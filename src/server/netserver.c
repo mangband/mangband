@@ -626,7 +626,7 @@ static void Console(int fd, int arg)
 		
 static void Contact(int fd, int arg)
 {
-	int bytes, login_port, newsock;
+	int bytes, login_port, newsock, len;
 	u16b version = 0;
 	unsigned magic;
 	unsigned short port;
@@ -679,8 +679,12 @@ static void Contact(int fd, int arg)
 	}
 	ibuf.len = bytes;
 
-	strcpy(host_addr, DgramLastaddr());
-	/*if (Check_address(host_addr)) return;*/
+	/* Get the IP address of the client, without using the broken DgramLastAddr() */
+	struct sockaddr_in sin;
+	struct hostent *host;
+	len = sizeof sin;
+	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
+		strcpy(host_addr, inet_ntoa(sin.sin_addr));  
 
 	if (Packet_scanf(&ibuf, "%u", &magic) <= 0)
 	{
