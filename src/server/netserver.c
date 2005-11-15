@@ -89,6 +89,9 @@
 #define MAX_MOTD_SIZE			(30*1024)
 #define MAX_MOTD_LOOPS			120
 
+#ifdef WINDOWS
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#endif
 
 connection_t	*Conn = NULL;
 static int		max_connections = 0;
@@ -436,7 +439,11 @@ void setup_contact_socket(void)
 	plog("Create TCP socket..."); 
 	while ((Socket = CreateServerSocket(18346)) == -1)
 	{
+#ifdef WINDOWS
+  Sleep(1);
+#else
 		sleep(1);
+#endif
 	}
 	plog("Set Non-Blocking..."); 
 	if (SetSocketNonBlocking(Socket, 1) == -1)

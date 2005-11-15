@@ -104,17 +104,6 @@
 
 #endif
 
-
-/*
- * OPTION: Hack -- Windows stuff
- */
-#ifdef WINDOWS
-
-/* Do not handle signals */
-# undef HANDLE_SIGNALS
-
-#endif
-
 /*
  * OPTION: See the Makefile(s), where several options may be declared.
  *
@@ -365,6 +354,17 @@
  * OPTION: Handle signals
  */
 #define HANDLE_SIGNALS
+
+
+/*
+ * OPTION: Hack -- Windows stuff
+ */
+#if defined(WINDOWS) || defined(__WIN32__)
+
+/* Do not handle signals */
+#undef HANDLE_SIGNALS
+
+#endif
 
 
 /*

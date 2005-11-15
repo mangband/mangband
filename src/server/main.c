@@ -21,8 +21,7 @@
  */
 
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(ACORN)
-
+#if !defined(MACINTOSH) && !defined(ACORN)
 
 #ifdef SET_UID
 
@@ -185,6 +184,9 @@ int main(int argc, char *argv[])
 	char buf[1024];
 	int catch_signals = TRUE;
 	time_t blah;
+#ifdef WINDOWS
+  WSADATA wsadata;
+#endif
 
 	blah=time(NULL);
 	fprintf(stderr,"Game Restarted %s\n", ctime(&blah));
@@ -192,6 +194,15 @@ int main(int argc, char *argv[])
 	/* Save the "program name" */
 	argv0 = argv[0];
 
+#ifdef WINDOWS
+	/* Load our debugging library on Windows, to give us nice stack dumps */
+	/* We use exchndl.dll from the mingw-utils package */
+	LoadLibrary("exchndl.dll");
+	
+	/* Initialise WinSock */
+	/* Initialize WinSock */
+	WSAStartup(MAKEWORD(1, 1), &wsadata);	
+#endif
 
 #ifdef USE_286
 	/* Attempt to use XMS (or EMS) memory for swap space */
@@ -519,6 +530,13 @@ int main(int argc, char *argv[])
 	/* Catch nasty signals */
 	if (catch_signals == TRUE)
 		signals_init();
+
+	/* Catch nasty "signals" on Windows */
+#ifdef WINDOWS
+#ifndef HANDLE_SIGNALS
+	setup_exit_handler();
+#endif
+#endif
 
 	/* Display the 'news' file */
 	show_news();

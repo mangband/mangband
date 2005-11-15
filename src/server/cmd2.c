@@ -258,14 +258,14 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 	int Depth = p_ptr->dun_depth;
 
 	int		i, d, ny, nx;
-	int		number, small;
+	int		number, small_;
 
 
 	/* Must be a chest */
 	if (o_ptr->tval != TV_CHEST) return;
 
 	/* Small chests often hold "gold" */
-	small = (o_ptr->sval < SV_CHEST_MIN_LARGE);
+	small_ = (o_ptr->sval < SV_CHEST_MIN_LARGE);
 
 	/* Determine how much to drop (see above) */
 	number = (o_ptr->sval % SV_CHEST_MIN_LARGE) * 2;
@@ -295,7 +295,7 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 				object_level = ABS(o_ptr->pval) + 10;
 
 				/* Small chests often drop gold */
-				if (small && (rand_int(100) < 75))
+				if (small_ && (rand_int(100) < 75))
 				{
 					place_gold(Depth, ny, nx);
 				}
