@@ -19,10 +19,7 @@
 #define CLIENT
 #include "angband.h"
 #include "netclient.h"
-// [grk] we don't need unistd.h on WIN32 in MSVC
-#ifndef __MSVC__
-# include <unistd.h>
-#endif
+#include <unistd.h>
 
 static u32b last_keepalive;
 
@@ -1450,7 +1447,7 @@ int Receive_message(void)
 	{
 		ptr = strstr(talk_pend, strchr(buf, ']') + 2);
 // [grk] hack not needed for WIN32 client
-#ifndef __MSVC__
+#ifndef WINDOWS
 		ptr = strtok(ptr, "\t");
 		ptr = strtok(NULL, "\t");
 #endif
@@ -2678,8 +2675,8 @@ int Send_msg(cptr message)
 
 	if (message && strlen(message))
 	{
-// [grk] MSVC WIN32 client hack to allow us to send messages longer than 58 chars
-#ifndef __MSVC__
+// [grk] WIN32 client hack to allow us to send messages longer than 58 chars
+#ifndef WINDOWS
 		if (strlen(talk_pend))
 			strcat(talk_pend, "\t");
 		strcat(talk_pend, message);
@@ -2690,7 +2687,7 @@ int Send_msg(cptr message)
 
 	//talk_resend = last_turns + 36;
 
-#ifndef __MSVC__
+#ifndef WINDOWS
 	if (!strlen(talk_pend)) return 1;
 #endif
 
@@ -2964,9 +2961,9 @@ void update_ticks()
 	float scale = 100000;
 	int mins,hours;
 
-// [grk] We do this slightly differently on WIN32 using MSVC
+// [grk] We do this slightly differently on WIN32 
 
-#ifdef __MSVC__
+#ifdef WINDOWS
 	LPSYSTEMTIME lpst;
 	SYSTEMTIME st;
 	lpst = &st;

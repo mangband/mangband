@@ -284,7 +284,7 @@ void client_init(char *argv1)
 	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code
 	// may have. So for the windows client, we disable this. The main-win.c file
 	// does this stuff anyway [grk]
-#ifndef __MSVC__
+#ifndef WINDOWS
 	quit_aux = quit_hook;
 #endif
 

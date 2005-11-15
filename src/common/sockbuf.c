@@ -27,7 +27,7 @@
 /* Hack - my errno doesn't include EWOULDBLOCK * - GP */
 # define EWOULDBLOCK WSAEWOULDBLOCK
 /* this next one redefines va_start and va_end, but it is necessary -GP*/
-# include <varargs.h>
+# include <stdarg.h>
 #else
 # include <unistd.h>
 # include <stdlib.h>

@@ -349,7 +349,7 @@ SetSocketNonBlocking(int fd, int flag)
 #endif
 
 #ifdef USE_IOCTL_FIONBIO
-	if (ioctlsocket(fd, FIONBIO, &flag) != SOCKET_ERROR)
+	if (ioctlsocket(fd, FIONBIO, (u_long*)&flag) != SOCKET_ERROR)
 	return 0;
     sprintf(buf, "ioctl FIONBIO failed in socklib.c line %d", __LINE__);
     perror(buf);
@@ -409,7 +409,7 @@ SetSocketBroadcast(int fd, int flag)
 		      (void *)&flag, sizeof(flag));
 } /* SetSocketBroadcast */
 
-
+
 /*
  *******************************************************************************
  *

@@ -132,13 +132,6 @@
 #define IDM_HELP_ABOUT			903
 
 /*
- * This may need to be removed for some compilers XXX XXX XXX
- */
-#ifndef __MSVC__
-# define STRICT
-#endif
-
-/*
  * exclude parts of WINDOWS.H that are not needed
  */
 #define NOSOUND           /* Sound APIs and definitions */
@@ -358,12 +351,10 @@ static term_data *td_ptr;
 /*
  * Even bigger hack than the above -- global edit control handle [grk]
  */
-#ifdef __MSVC__
 static HWND editmsg;
 static HWND old_focus = NULL;
 LONG FAR PASCAL SubClassFunc(HWND hWnd,WORD Message,WORD wParam, LONG lParam);
-FARPROC lpfnOldWndProc;
-#endif
+WNDPROC lpfnOldWndProc;
 
 /*
  * Various boolean flags
@@ -2256,11 +2247,11 @@ static void init_windows(void)
 	editmsg = CreateWindowEx(WS_EX_STATICEDGE,"EDIT",NULL,WS_CHILD|ES_AUTOHSCROLL|ES_OEMCONVERT|WS_VISIBLE,
 						 2,data[4].client_hgt-24,data[4].client_wid-8,20,data[4].w,NULL,hInstance,NULL);
 	editfont=CreateFont(16,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,PROOF_QUALITY,DEFAULT_PITCH,"Arial");  
-	SendMessage(editmsg, WM_SETFONT, editfont, NULL );
+	SendMessage(editmsg, WM_SETFONT, (int)editfont, (int)NULL );
 	stretch_chat_ctrl();
 
 	SendMessage(editmsg, EM_LIMITTEXT, 590, 0L);
-	lpfnOldWndProc = (FARPROC)SetWindowLong(editmsg, GWL_WNDPROC, (DWORD) SubClassFunc);
+	lpfnOldWndProc = (WNDPROC)SetWindowLong(editmsg, GWL_WNDPROC, (DWORD) SubClassFunc);
 
 	/* Activate the screen window */
 	SetActiveWindow(data[0].w);
@@ -2653,7 +2644,7 @@ static void process_menus(WORD wCmd)
 			use_graphics = !use_graphics;
 			save_prefs();
 			MessageBox(NULL, "You need to restart MAangband in order for the changes to take effect","MAngband",MB_OK);
-			return 0;
+			return;
 
 			/* Access the "graphic" mappings */
 			sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
@@ -3034,9 +3025,9 @@ LRESULT FAR PASCAL _export AngbandListProc(HWND hWnd, UINT uMsg,
 
 		case 0x133: /* WM_CTLCOLOREDIT */
 		{
-			SetTextColor(wParam,0x00ffffff);
-			SetBkColor(wParam, 0);
-			return CreateSolidBrush(0);
+			SetTextColor((HDC)wParam,0x00ffffff);
+			SetBkColor((HDC)wParam, 0);
+			return (int)CreateSolidBrush(0);
 		}
 
                 /* GRK, wasn't trapping this so vis menus got messed up */
