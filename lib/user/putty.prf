@@ -1,0 +1,56 @@
+
+# putty specific (reversed, numlock must be on)
+# this is to defeat putty trying to use sh pgup/pgdwn as scroll keys automatically
+
+# Walking
+
+A:4
+P:4
+
+A:7
+P:7
+
+A:8
+P:8
+
+A:9
+P:9
+
+A:6
+P:6
+
+A:3
+P:3
+
+A:2
+P:2
+
+A:1
+P:1
+
+# Running
+
+A:\e\e.4
+C:\e[D
+
+A:\e\e.7
+C:\e[1~
+
+A:\e\e.8
+C:\e[A
+
+A:\e\e.9
+C:\e[5~
+
+A:\e\e.6
+C:\e[C
+
+A:\e\e.3
+C:\e[6~
+
+A:\e\e.2
+C:\e[B
+
+A:\e\e.1
+C:\e[4~
+

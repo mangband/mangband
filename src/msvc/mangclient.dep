@@ -1,0 +1,481 @@
+# Microsoft Developer Studio Generated Dependency File, included by mangclient.mak
+
+"..\client\c-birth.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-cmd.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-files.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-init.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-inven.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-spell.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-store.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-tables.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-util.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-xtra1.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\c-xtra2.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\client.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\main-win.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\Readdib.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\netclient.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\netclient.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\Readdib.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\Readdib.h"\
+	
+
+"..\client\variable.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\angband.h"\
+	"..\client\externs.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\client\z-term.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\client\z-term.h"\
+	"..\common\bit.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-virt.h"\
+	"..\h-config.h"\
+	
+
+"..\common\net-win.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\angband.h"\
+	"..\common\bit.h"\
+	"..\common\defines.h"\
+	"..\common\externs.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\common\sockbuf.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\angband.h"\
+	"..\common\bit.h"\
+	"..\common\const.h"\
+	"..\common\defines.h"\
+	"..\common\externs.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-rand.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\config.h"\
+	"..\h-config.h"\
+	
+
+"..\common\z-form.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\bit.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-form.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\h-config.h"\
+	
+
+"..\common\z-rand.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\bit.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-rand.h"\
+	"..\h-config.h"\
+	
+
+"..\common\z-util.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\bit.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-util.h"\
+	"..\h-config.h"\
+	
+
+"..\common\z-virt.c" : \
+	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	"..\common\bit.h"\
+	"..\common\h-basic.h"\
+	"..\common\h-define.h"\
+	"..\common\h-net.h"\
+	"..\common\h-system.h"\
+	"..\common\h-type.h"\
+	"..\common\net-win.h"\
+	"..\common\pack.h"\
+	"..\common\sockbuf.h"\
+	"..\common\z-util.h"\
+	"..\common\z-virt.h"\
+	"..\h-config.h"\
+	
+
+.\Angband.rc : \
+	".\Angband.ico"\
+	
