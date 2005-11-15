@@ -2082,6 +2082,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 			}
 		}
 
+    if(spell >= 64) j -= 64; 
 		/* A prayer was prayed */
 		if (!((j < 32) ?
 		      (p_ptr->spell_worked1 & (1L << j)) :
