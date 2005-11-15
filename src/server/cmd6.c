@@ -1234,6 +1234,9 @@ void do_cmd_read_scroll(int Ind, int item)
 
 		case SV_SCROLL_WORD_OF_RECALL:
 		{
+#ifdef IRONMAN
+			msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 			if (p_ptr->word_recall == 0)
 			{
 				set_recall_depth(p_ptr, o_ptr);
@@ -1245,6 +1248,7 @@ void do_cmd_read_scroll(int Ind, int item)
 				p_ptr->word_recall = 0;
 				msg_print(Ind, "A tension leaves the air around you...");
 			}
+#endif
 			ident = TRUE;
 			break;
 		}
@@ -2491,6 +2495,9 @@ void do_cmd_zap_rod(int Ind, int item)
 
 		case SV_ROD_RECALL:
 		{
+#ifdef IRONMAN
+			msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 			if (p_ptr->word_recall == 0)
 			{
 				set_recall_depth(p_ptr,o_ptr);
@@ -2502,6 +2509,7 @@ void do_cmd_zap_rod(int Ind, int item)
 				msg_print(Ind, "A tension leaves the air around you...");
 				p_ptr->word_recall = 0;
 			}
+#endif
 			ident = TRUE;
 			o_ptr->pval = 60;
 			break;
@@ -2894,6 +2902,9 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 
 		case SV_ROD_RECALL:
 		{
+#ifdef IRONMAN
+			msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 			if (p_ptr->word_recall == 0)
 			{
 				set_recall_depth(p_ptr,o_ptr);
@@ -2905,6 +2916,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 				msg_print(Ind, "A tension leaves the air around you...");
 				p_ptr->word_recall = 0;
 			}
+#endif
 			ident = TRUE;
 			o_ptr->pval = 60;
 			break;
@@ -3393,6 +3405,9 @@ void do_cmd_activate(int Ind, int item)
 
 			case ART_AVAVIR:
 			{
+#ifdef IRONMAN
+				msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 				if (p_ptr->word_recall == 0)
 				{
 					set_recall_depth(p_ptr,o_ptr);
@@ -3405,6 +3420,7 @@ void do_cmd_activate(int Ind, int item)
 					msg_print(Ind, "A tension leaves the air around you...");
 				}
 				o_ptr->timeout = 200;
+#endif
 				break;
 			}
 

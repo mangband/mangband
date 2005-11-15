@@ -1418,7 +1418,29 @@ void move_player(int Ind, int dir, int do_pickup)
 	/* Find the result of moving */
 	y = p_ptr->py + ddy[dir];
 	x = p_ptr->px + ddx[dir];
-
+#ifdef IRONMAN
+	/* 
+	 * Ironmen don't go wandering in the countryside...
+	 */
+	if (!in_bounds(Depth, y, x))
+	{
+		if(Depth == 0)
+		{
+			switch(rand_int(5))
+			{
+				case 0: msg_print(Ind, "You don't feel like going to pick flowers right now."); break;
+				case 1: msg_print(Ind, "Where do you think you are going?"); break; /* [Warrior] */
+				case 2: msg_print(Ind, "Morgoth the potato farmer? - get real!"); break; /* [Warrior] */
+				case 3: msg_print(Ind, "Morgoth awaits you in the depths not in the fields."); break; 
+				case 4: msg_print(Ind, "Something draws your attention back to the stairs."); break; 
+			}	
+		}
+		else
+			msg_print(Ind, "There is a wall blocking your way");			
+		disturb(Ind, 1, 0);
+		return;
+	}	 
+#else
 	/* Update wilderness positions */
 	if (p_ptr->dun_depth <= 0)
 	{
@@ -1503,9 +1525,9 @@ void move_player(int Ind, int dir, int do_pickup)
 			return;
 		}
 	}
+#endif
 
 	
-
 	/* Examine the destination */
 	c_ptr = &cave[Depth][y][x];
 	w_ptr = &p_ptr->cave_flag[y][x];

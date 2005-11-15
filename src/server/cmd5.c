@@ -976,6 +976,9 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 			case 37:
 			{
+#ifdef IRONMAN
+				msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 				if (!p_ptr->word_recall)
 				{
 					set_recall_depth(p_ptr, o_ptr);
@@ -987,6 +990,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 					p_ptr->word_recall = 0;
 					msg_print(Ind, "A tension leaves the air around you...");
 				}
+#endif
 				break;
 			}
 
@@ -2054,6 +2058,9 @@ void do_cmd_pray(int Ind, int book, int spell)
 
 			case 56:
 			{
+#ifdef IRONMAN
+				msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+#else
 				if (p_ptr->word_recall == 0)
 				{
 					set_recall_depth(p_ptr, o_ptr);
@@ -2065,6 +2072,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 					p_ptr->word_recall = 0;
 					msg_print(Ind, "A tension leaves the air around you...");
 				}
+#endif
 				break;
 			}
 
@@ -2083,6 +2091,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 		}
 
     if(spell >= 64) j -= 64; 
+
 		/* A prayer was prayed */
 		if (!((j < 32) ?
 		      (p_ptr->spell_worked1 & (1L << j)) :

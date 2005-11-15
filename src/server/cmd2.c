@@ -48,6 +48,17 @@ void do_cmd_go_up(int Ind)
 		}
 	}
 
+#ifdef IRONMAN
+	/* 
+	 * Ironmen don't go up
+	 */
+	if(strcmp(p_ptr->name,cfg_dungeon_master))
+	{
+		msg_print(Ind, "Morgoth awaits you in the darkness below.");
+		return;	
+	}
+#endif
+
 	/* Remove the player from the old location */
 	c_ptr->m_idx = 0;
 

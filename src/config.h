@@ -65,6 +65,10 @@
 #define	BIND_NAME "mangband.org"
 #define	BIND_IP "64.53.71.113"
 */
+/*
+ * OPTION: Compile an Ironman Server 
+ */
+#define IRONMAN
 
 /*
  * OPTION: Include "ncurses.h" instead of "curses.h" in "main-gcu.c"

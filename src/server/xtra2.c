@@ -2450,6 +2450,37 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Tell him */
 	msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
 
+#ifdef IRONMAN
+	/* 
+	 * Ironmen don't get turned into ghosts.
+	 */
+
+	/* Remove him from his party */
+	if (p_ptr->party)
+	{
+		/* He leaves */
+		party_leave(Ind);
+	}
+
+	/* One less player here */
+	players_on_depth[p_ptr->dun_depth]--;
+
+	/* Remove him from the player name database */
+	delete_player_name(p_ptr->name);
+
+	/* Put him on the high score list */
+	add_high_score(Ind);  
+	
+	/* Format string */
+	sprintf(buf, "Killed by %s", p_ptr->died_from);
+
+	/* Get rid of him */
+	Destroy_connection(p_ptr->conn, buf);
+
+	/* Done */
+	return;
+#endif
+
 	/* Turn him into a ghost */
 	p_ptr->ghost = 1;
 

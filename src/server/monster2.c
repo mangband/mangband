@@ -460,6 +460,13 @@ s16b get_mon_num(int level)
 
 	alloc_entry		*table = alloc_race_table;
 
+#ifdef IRONMAN
+	/* 
+	 * Ironmen don't kill townies, also don't generate any monsters on special levels..
+	 */
+	if(level == 0) return(0);
+#endif
+
 	if (level > 0)
 	{
 
