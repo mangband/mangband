@@ -1811,7 +1811,7 @@ bool load_player(int Ind)
 	if (!p_ptr->savefile[0]) return (TRUE);
 
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(VM)
+#if !defined(MACINTOSH) && !defined(VM)
 
 	/* XXX XXX XXX Fix this */
 
@@ -2310,7 +2310,7 @@ bool load_server_info(void)
 
 	path_build(buf, 1024, ANGBAND_DIR_SAVE, "server");
 
-#if !defined(MACINTOSH) && !defined(WINDOWS) && !defined(VM)
+#if !defined(MACINTOSH) && !defined(VM)
 
 	/* XXX XXX XXX Fix this */
 	if (access(buf, 0) < 0)
