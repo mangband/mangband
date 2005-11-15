@@ -281,7 +281,7 @@ static cptr r_info_flags4[] =
 	"XXX5X4",
 	"XXX6X4",
 	"XXX7X4",
-	"XXX8X4"
+	"BOULDER"
 };
 
 /*
@@ -344,11 +344,11 @@ static cptr r_info_flags6[] =
 	"TRAPS",
 	"FORGET",
 	"XXX6X6",
-	"XXX7X6",
-	"XXX8X6",
+	"S_KIN",
+	"S_HI_DEMON",
 	"S_MONSTER",
 	"S_MONSTERS",
-	"S_ANT",
+	"S_ANIMAL",
 	"S_SPIDER",
 	"S_HOUND",
 	"S_HYDRA",

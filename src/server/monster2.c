@@ -1970,9 +1970,9 @@ static bool summon_specific_okay(int r_idx)
 	/* Check our requirements */
 	switch (summon_specific_type)
 	{
-		case SUMMON_ANT:
+		case SUMMON_ANIMAL:
 		{
-			okay = ((r_ptr->d_char == 'a') &&
+			okay = ((r_ptr->flags3 & RF3_ANIMAL) &&
 			        !(r_ptr->flags1 & RF1_UNIQUE));
 			break;
 		}
@@ -2026,6 +2026,13 @@ static bool summon_specific_okay(int r_idx)
 			break;
 		}
 
+		case SUMMON_KIN:
+		{
+			okay = ((r_ptr->d_char == summon_kin_type) &&
+			        !(r_ptr->flags1 & (RF1_UNIQUE)));
+			break;
+		}
+
 		case SUMMON_HI_UNDEAD:
 		{
 			okay = ((r_ptr->d_char == 'L') ||
@@ -2037,6 +2044,12 @@ static bool summon_specific_okay(int r_idx)
 		case SUMMON_HI_DRAGON:
 		{
 			okay = (r_ptr->d_char == 'D');
+			break;
+		}
+
+		case SUMMON_HI_DEMON:
+		{
+			okay = (r_ptr->d_char == 'U');
 			break;
 		}
 

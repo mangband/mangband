@@ -119,6 +119,8 @@ byte level_rand_x[MAX_DEPTH];
 s16b players_on_world[MAX_DEPTH + MAX_WILD];
 s16b *players_on_depth=&(players_on_world[MAX_WILD]);  /* How many players are at each depth */
 
+char summon_kin_type;		/* Hack -- See summon_specific() */
+
 s32b turn;			/* Current game turn */
 s32b old_turn;			/* Turn when level began (feelings) */
 

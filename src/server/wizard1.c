@@ -1696,6 +1696,7 @@ static void spoil_mon_info(cptr fname)
 		if (flags4 & RF4_ARROW_2) vp[vn++] = "fire arrows";
 		if (flags4 & RF4_ARROW_3) vp[vn++] = "fire missiles";
 		if (flags4 & RF4_ARROW_4) vp[vn++] = "fire missiles";
+		if (flags4 & RF4_BOULDER) vp[vn++] = "throw boulders";
 
 		if (vn)
 		{
@@ -1805,7 +1806,7 @@ static void spoil_mon_info(cptr fname)
 		if (flags6 & RF6_XXX8)            vp[vn++] = "do something";
 		if (flags6 & RF6_S_MONSTER)         vp[vn++] = "summon a monster";
 		if (flags6 & RF6_S_MONSTERS)        vp[vn++] = "summon monsters";
-		if (flags6 & RF6_S_ANT)             vp[vn++] = "summon ants";
+		if (flags6 & RF6_S_ANIMAL)             vp[vn++] = "summon animals";
 		if (flags6 & RF6_S_SPIDER)          vp[vn++] = "summon spiders";
 		if (flags6 & RF6_S_HOUND)           vp[vn++] = "summon hounds";
 		if (flags6 & RF6_S_HYDRA)           vp[vn++] = "summon hydras";

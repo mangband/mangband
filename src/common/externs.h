@@ -118,6 +118,7 @@ extern s16b cur_wid;*/
 extern s16b players_on_depth[MAX_DEPTH];
 extern s16b num_repro;
 extern s16b object_level;
+extern char summon_kin_type;
 extern s16b monster_level;
 extern s32b turn;
 extern s32b old_turn;

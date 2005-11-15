@@ -884,9 +884,13 @@ bool make_attack_spell(int Ind, int m_idx)
 			break;
 		}
 
-		/* RF4_XXX8X4 */
+		/* RF4_BOULDER */
 		case 96+31:
 		{
+			disturb(Ind, 1, 0);
+			if (blind) msg_format(Ind, "You hear something grunt with exertion.", m_name);
+			else msg_format(Ind, "%^s hurls a boulder at you!", m_name);
+			bolt(Ind, m_idx, GF_ARROW, damroll(1 + r_ptr->level / 7, 12));
 			break;
 		}
 
@@ -1669,15 +1673,42 @@ bool make_attack_spell(int Ind, int m_idx)
 			break;
 		}
 
-		/* RF6_XXX7X6 */
+		/* RF6_S_KIN */
 		case 160+16:
 		{
+			disturb(Ind, 1, 0);
+			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
+			else msg_format(Ind, "%^s magically summons %s %s.", m_name, m_poss,
+			                ((r_ptr->flags1) & RF1_UNIQUE ?
+			                 "minions" : "kin"));
+
+			/* Hack -- Set the letter of the monsters to summon */
+			summon_kin_type = r_ptr->d_char;
+			for (k = 0; k < 6; k++)
+			{
+				count += summon_specific(Depth, y, x, rlev, SUMMON_KIN);
+			}
+			if (blind && count)
+			{
+				msg_print(Ind, "You hear many things appear nearby.");
+			}
 			break;
 		}
 
-		/* RF6_XXX8X6 */
+		/* RF6_S_HI_DEMON */
 		case 160+17:
 		{
+			disturb(Ind, 1, 0);
+			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
+			else msg_format(Ind, "%^s magically summons greater demons!", m_name);
+			for (k = 0; k < 8; k++)
+			{
+				count += summon_specific(Depth, y, x, rlev, SUMMON_HI_DEMON);
+			}
+			if (blind && count)
+			{
+				msg_print(Ind, "You hear many evil things appear nearby.");
+			}
 			break;
 		}
 
@@ -1709,15 +1740,15 @@ bool make_attack_spell(int Ind, int m_idx)
 			break;
 		}
 
-		/* RF6_S_ANT */
+		/* RF6_S_ANIMAL */
 		case 160+20:
 		{
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons ants.", m_name);
+			else msg_format(Ind, "%^s magically summons animals.", m_name);
 			for (k = 0; k < 6; k++)
 			{
-				count += summon_specific(Depth, y, x, rlev, SUMMON_ANT);
+				count += summon_specific(Depth, y, x, rlev, SUMMON_ANIMAL);
 			}
 			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
 			break;

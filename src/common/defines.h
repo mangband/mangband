@@ -37,7 +37,7 @@
  
 #define VERSION_MAJOR	0
 #define VERSION_MINOR	7
-#define VERSION_PATCH	2
+#define VERSION_PATCH	3
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
@@ -47,7 +47,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define VERSION_EXTRA	1
+#define VERSION_EXTRA	3
 
 
 /*
@@ -183,7 +183,7 @@
 #define MAX_K_IDX	512	/* Max size for "k_info[]" */
 #define MAX_A_IDX	128	/* Max size for "a_info[]" */
 #define MAX_E_IDX	128	/* Max size for "e_info[]" */
-#define MAX_R_IDX	549	/* Max size for "r_info[]" */
+#define MAX_R_IDX	620	/* Max size for "r_info[]" */
 #define MAX_V_IDX 	256	/* Max size for "v_info[]" */
 
 
@@ -1733,7 +1733,7 @@ that keeps many algorithms happy.
 /*
  * Legal restrictions for "summon_specific()"
  */
-#define SUMMON_ANT			11
+#define SUMMON_ANIMAL			11
 #define SUMMON_SPIDER		12
 #define SUMMON_HOUND		13
 #define SUMMON_HYDRA		14
@@ -1743,9 +1743,10 @@ that keeps many algorithms happy.
 #define SUMMON_DRAGON		18
 #define SUMMON_HI_UNDEAD	21
 #define SUMMON_HI_DRAGON	22
+#define SUMMON_HI_DEMON		26
 #define SUMMON_WRAITH		31
 #define SUMMON_UNIQUE		32
-
+#define SUMMON_KIN			33
 
 /*
  * Spell types used by project(), and related functions.
@@ -2227,7 +2228,7 @@ that keeps many algorithms happy.
 #define RF4_XXX5			0x10000000
 #define RF4_XXX6			0x20000000
 #define RF4_XXX7			0x40000000
-#define RF4_XXX8			0x80000000
+#define RF4_BOULDER			0x80000000	/* Throw a boulder */
 
 /*
  * New monster race bit flags
@@ -2284,11 +2285,11 @@ that keeps many algorithms happy.
 #define RF6_TRAPS			0x00002000	/* Create Traps */
 #define RF6_FORGET			0x00004000	/* Cause amnesia */
 #define RF6_XXX6			0x00008000	/* ??? */
-#define RF6_XXX7			0x00010000	/* Summon (?) */
-#define RF6_XXX8			0x00020000	/* Summon (?) */
+#define RF6_S_KIN			0x00010000	/* Summon Kin */
+#define RF6_S_HI_DEMON			0x00020000	/*  Summon Greater Demons */
 #define RF6_S_MONSTER		0x00040000	/* Summon Monster */
 #define RF6_S_MONSTERS		0x00080000	/* Summon Monsters */
-#define RF6_S_ANT			0x00100000	/* Summon Ants */
+#define RF6_S_ANIMAL			0x00100000	/* Summon Animals */
 #define RF6_S_SPIDER		0x00200000	/* Summon Spiders */
 #define RF6_S_HOUND			0x00400000	/* Summon Hounds */
 #define RF6_S_HYDRA			0x00800000	/* Summon Hydras */
@@ -2363,7 +2364,7 @@ that keeps many algorithms happy.
    (RF6_BLINK |  RF6_TPORT | RF6_TELE_LEVEL | RF6_TELE_AWAY | \
     RF6_HEAL | RF6_HASTE | RF6_TRAPS | \
     RF6_S_MONSTER | RF6_S_MONSTERS | \
-    RF6_S_ANT | RF6_S_SPIDER | RF6_S_HOUND | RF6_S_HYDRA | \
+   	RF6_S_ANIMAL | RF6_S_SPIDER | RF6_S_HOUND | RF6_S_HYDRA | \
     RF6_S_ANGEL | RF6_S_DRAGON | RF6_S_UNDEAD | RF6_S_DEMON | \
     RF6_S_HI_DRAGON | RF6_S_HI_UNDEAD | RF6_S_WRAITH | RF6_S_UNIQUE)
 

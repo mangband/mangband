@@ -123,6 +123,7 @@ extern s16b cur_wid;*/
 extern s16b *players_on_depth;
 extern s16b num_repro;
 extern s16b object_level;
+extern char summon_kin_type;
 extern s16b monster_level;
 extern byte level_up_x[MAX_DEPTH];
 extern byte level_up_y[MAX_DEPTH];
