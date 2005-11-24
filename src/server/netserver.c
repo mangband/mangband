@@ -2314,7 +2314,7 @@ static int Receive_undefined(int ind)
 	connection_t *connp = &Conn[ind];
 
 	errno = 0;
-	plog(format("Unknown packet type %s (%d,%02x),connp->nick", connp->r.ptr[0], connp->state));
+	plog(format("Unknown packet type %s (%d,%02x)",connp->nick, connp->r.ptr[0], connp->state));
 	/* Destroy_connection(ind, "undefined packet"); */
 	return 0;
 }
