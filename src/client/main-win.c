@@ -937,6 +937,7 @@ static void load_prefs(void)
 	/* Pull nick/pass */
 	GetPrivateProfileString("MAngband", "nick", "PLAYER", nick, 70, ini_file);
 	GetPrivateProfileString("MAngband", "pass", "passwd", pass, 19, ini_file);
+	GetPrivateProfileString("MAngband", "host", "", server_name, 79, ini_file);
 
 	/* XXX Default real name */
 	strcpy(real_name, "PLAYER");

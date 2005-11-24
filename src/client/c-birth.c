@@ -419,6 +419,9 @@ bool get_server_name(void)
 	int i, j, bytes, socket, offsets[20];
 	char buf[8192], *ptr, c, out_val[160];
 
+	/* Perhaps we already have a server name from config file ? */
+	if(strlen(server_name) > 0) return TRUE;
+
 	/* Message */
 	prt("Connecting to metaserver for server list....", 1, 1);
 
