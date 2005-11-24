@@ -2166,6 +2166,7 @@ void player_death(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char buf[1024];
+	char dumpname[42];
 	int i;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
@@ -2307,6 +2308,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 			msg_broadcast(Ind, buf);
 		};
 	};
+
+#ifdef IRONMAN
+	/* Character dump here, before we start dropping items */
+	sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
+	file_character_server(Ind,dumpname);
+#endif
 
 	/* Drop gold if player has any */
 	if (p_ptr->alive && p_ptr->au)

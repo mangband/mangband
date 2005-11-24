@@ -828,6 +828,441 @@ void display_player(int Ind)
 }
 
 
+void c_put_str_b(char buffer[100][82], byte attr, cptr str, int row, int col)
+{
+	/* Position cursor, Dump the attr/text */
+	char* s;
+	int i;
+	s = buffer[row-1];
+	i = col;
+	while(*str)
+	{
+		s[i++] = (*str);
+		str++;
+	}
+}
+void put_str_b(char buffer[100][82], cptr str, int row, int col)
+{
+	c_put_str_b(buffer,0,str,row,col);
+}
+void prt_num_b(char buffer[100][82], cptr header, int num, int row, int col, byte color)
+{
+	int len = strlen(header);
+	char out_val[32];
+	put_str_b(buffer,header, row, col);
+	put_str_b(buffer,"   ", row, col + len);
+	(void)sprintf(out_val, "%6ld", (long)num);
+	c_put_str_b(buffer,color, out_val, row, col + len + 3);
+}
+
+void prt_lnum_b(char buffer[100][82], cptr header, s32b num, int row, int col, byte color)
+{
+	int len = strlen(header);
+	char out_val[32];
+	put_str_b(buffer,header, row, col);
+	(void)sprintf(out_val, "%9ld", (long)num);
+	c_put_str_b(buffer,color, out_val, row, col + len);
+}
+
+/*
+ * Returns a "rating" of x depending on y
+ */
+static cptr likert(int x, int y)
+{
+	/* Paranoia */
+	if (y <= 0) y = 1;
+
+	/* Negative values */
+	if (x < 0)
+	{
+		return ("Very Bad");
+	}
+
+	/* Analyze the value */
+	switch ((x / y))
+	{
+		case 0:
+		case 1:
+		{
+			return ("Bad");
+		}
+		case 2:
+		{
+			return ("Poor");
+		}
+		case 3:
+		case 4:
+		{
+			return ("Fair");
+		}
+		case 5:
+		{
+			return ("Good");
+		}
+		case 6:
+		{
+			return ("Very Good");
+		}
+		case 7:
+		case 8:
+		{
+			return ("Excellent");
+		}
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		{
+			return ("Superb");
+		}
+		case 14:
+		case 15:
+		case 16:
+		case 17:
+		{
+			return ("Heroic");
+		}
+		default:
+		{
+			return ("Legendary");
+		}
+	}
+}
+
+
+/*
+ * Similar to the function in c-xtra but modified to work server-side.
+ * We print text into a buffer rather than to a term.
+ * This is used for serverside character dumps.
+ */
+void display_player_server(int Ind, char buffer[100][82])
+{
+	int i;
+	char buf[80];
+	cptr desc;
+	bool hist;
+	hist = FALSE;
+	
+	player_type *p_ptr = Players[Ind];
+
+        /* Name, Sex, Race, Class */
+        put_str_b(buffer,"Name        :", 2, 1);
+        put_str_b(buffer,"Sex         :", 3, 1);
+        put_str_b(buffer,"Race        :", 4, 1);
+        put_str_b(buffer,"Class       :", 5, 1);
+
+        c_put_str_b(buffer,TERM_L_BLUE, p_ptr->name, 2, 15);
+        c_put_str_b(buffer,TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
+        c_put_str_b(buffer,TERM_L_BLUE, race_info[p_ptr->prace].title, 4, 15);
+        c_put_str_b(buffer,TERM_L_BLUE, class_info[p_ptr->pclass].title, 5, 15);
+
+        /* Age, Height, Weight, Social */
+        prt_num_b(buffer,"Age          ", (int)p_ptr->age, 2, 32, TERM_L_BLUE);
+        prt_num_b(buffer,"Height       ", (int)p_ptr->ht, 3, 32, TERM_L_BLUE);
+        prt_num_b(buffer,"Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
+        prt_num_b(buffer,"Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
+
+        /* Display the stats */
+        for (i = 0; i < 6; i++)
+        {
+                /* Special treatment of "injured" stats */
+                if (p_ptr->stat_use[i] < p_ptr->stat_top[i])
+                {
+                        int value;
+
+                        /* Use lowercase stat name */
+                        put_str_b(buffer,stat_names_reduced[i], 2 + i, 61);
+
+                        /* Get the current stat */
+                        value = p_ptr->stat_use[i];
+
+                        /* Obtain the current stat (modified) */
+                        cnv_stat(value, buf);
+
+                        /* Display the current stat (modified) */
+                        c_put_str_b(buffer,TERM_YELLOW, buf, 2 + i, 66);
+
+                        /* Acquire the max stat */
+                        value = p_ptr->stat_top[i];
+
+                        /* Obtain the maximum stat (modified) */
+                        cnv_stat(value, buf);
+
+                        /* Display the maximum stat (modified) */
+                        c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 73);
+                }
+
+                /* Normal treatment of "normal" stats */
+                else
+                {
+                        /* Assume uppercase stat name */
+                        put_str_b(buffer,stat_names[i], 2 + i, 61);
+
+                        /* Obtain the current stat (modified) */
+                        cnv_stat(p_ptr->stat_use[i], buf);
+
+                        /* Display the current stat (modified) */
+                        c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 66);
+                }
+        }
+
+		put_str_b(buffer,"(Miscellaneous Abilities)", 15, 25);
+		
+		/* Display "skills" */
+		put_str_b(buffer,"Fighting    :", 16, 1);
+		desc = likert(p_ptr->skill_thn, 12);
+		c_put_str_b(buffer,0, desc, 16, 15);
+
+		put_str_b(buffer,"Bows/Throw  :", 17, 1);
+		desc = likert(p_ptr->skill_thb, 12);
+		c_put_str_b(buffer,0, desc, 17, 15);
+
+		put_str_b(buffer,"Saving Throw:", 18, 1);
+		desc = likert(p_ptr->skill_sav, 6);
+		c_put_str_b(buffer,0, desc, 18, 15);
+
+		put_str_b(buffer,"Stealth     :", 19, 1);
+		desc = likert(p_ptr->skill_stl, 1);
+		c_put_str_b(buffer,0, desc, 19, 15);
+
+
+		put_str_b(buffer,"Perception  :", 16, 28);
+		desc = likert(p_ptr->skill_fos, 6);
+		c_put_str_b(buffer,0, desc, 16, 42);
+
+		put_str_b(buffer,"Searching   :", 17, 28);
+		desc = likert(p_ptr->skill_srh, 6);
+		c_put_str_b(buffer,0, desc, 17, 42);
+
+		put_str_b(buffer,"Disarming   :", 18, 28);
+		desc = likert(p_ptr->skill_dis, 8);
+		c_put_str_b(buffer,0, desc, 18, 42);
+
+		put_str_b(buffer,"Magic Device:", 19, 28);
+		desc = likert(p_ptr->skill_dev, 6);
+		c_put_str_b(buffer,0, desc, 19, 42);
+
+
+		put_str_b(buffer,"Blows/Round:", 16, 55);
+		put_str_b(buffer,format("%d", p_ptr->num_blow), 16, 69);
+
+		put_str_b(buffer,"Shots/Round:", 17, 55);
+		put_str_b(buffer,format("%d", p_ptr->num_fire), 17, 69);
+
+		put_str_b(buffer,"Infra-Vision:", 19, 55);
+		put_str_b(buffer,format("%d feet", p_ptr->see_infra * 10), 19, 69);
+
+        /* Dump the bonuses to hit/dam */
+        prt_num_b(buffer,"+ To Hit    ", p_ptr->dis_to_h, 9, 1, TERM_L_BLUE);
+        prt_num_b(buffer,"+ To Damage ", p_ptr->dis_to_d, 10, 1, TERM_L_BLUE);
+
+        /* Dump the armor class bonus */
+        prt_num_b(buffer,"+ To AC     ", p_ptr->dis_to_a, 11, 1, TERM_L_BLUE);
+
+        /* Dump the total armor class */
+        prt_num_b(buffer,"  Base AC   ", p_ptr->dis_ac, 12, 1, TERM_L_BLUE);
+
+        prt_num_b(buffer,"Level      ", (int)p_ptr->lev, 9, 28, TERM_L_GREEN);
+
+        if (p_ptr->exp >= p_ptr->max_exp)
+        {
+                prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_L_GREEN);
+        }
+        else
+        {
+                prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_YELLOW);
+        }
+
+        prt_lnum_b(buffer,"Max Exp    ", p_ptr->max_exp, 11, 28, TERM_L_GREEN);
+
+        if (p_ptr->lev >= PY_MAX_LEVEL)
+        {
+                put_str_b(buffer,"Exp to Adv.", 12, 28);
+                c_put_str_b(buffer,TERM_L_GREEN, "    *****", 12, 28+11);
+        }
+        else
+        {
+/*                prt_lnum_b(buffer,"Exp to Adv.", p_ptr->exp_adv, 12, 28, TERM_L_GREEN); */
+        }
+
+        prt_lnum_b(buffer,"Gold       ", p_ptr->au, 13, 28, TERM_L_GREEN);
+
+        prt_num_b(buffer,"Max Hit Points ", p_ptr->mhp, 9, 52, TERM_L_GREEN);
+
+        if (p_ptr->chp >= p_ptr->mhp)
+        {
+                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_L_GREEN);
+        }
+        else if (p_ptr->chp > (p_ptr->mhp) / 10)
+        {
+                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_YELLOW);
+        }
+        else
+        {
+                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_RED);
+        }
+
+        prt_num_b(buffer,"Max SP (Mana)  ", p_ptr->msp, 11, 52, TERM_L_GREEN);
+
+        if (p_ptr->csp >= p_ptr->msp)
+        {
+                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_L_GREEN);
+        }
+        else if (p_ptr->csp > (p_ptr->msp) / 10)
+        {
+                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_YELLOW);
+        }
+        else
+        {
+                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_RED);
+        }
+        
+		/* Check for history */
+		put_str_b(buffer, "(Character Background)", 21, 25);
+
+		for (i = 0; i < 4; i++)
+		{
+			put_str_b(buffer,p_ptr->history[i], i + 22, 10);
+		}
+        
+}
+
+
+/*
+ * Hack -- Dump a character description file
+ * This is for server-side character dumps
+ */
+errr file_character_server(int Ind, cptr name)
+{
+	int			i, j, x, y;
+
+	byte		a;
+	char		c;
+
+#if 0
+	cptr		other = "(";
+#endif
+
+	cptr		paren = ")";
+
+	int			fd = -1;
+
+	FILE		*fff = NULL;
+
+	store_type		*st_ptr = &store[7];
+
+	char		o_name[80];
+
+	char		buf[1024];
+
+	player_type *p_ptr = Players[Ind];
+
+	char		buffer[100][82];
+
+	// Init buffer...
+	for(i=0;i<100;i++)
+	{
+		for(x=0;x<80;x++)
+			buffer[i][x] = ' ';
+		buffer[i][80] = '\0';
+	}
+
+	/* Drop priv's */
+	safe_setuid_drop();
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_USER, name);
+
+	/* File type is "TEXT" */
+	FILE_TYPE(FILE_TYPE_TEXT);
+
+	/* Check for existing file */
+	fd = fd_open(buf, O_RDONLY);
+
+	/* Existing file */
+	if (fd >= 0)
+	{
+		char out_val[160];
+
+		/* Close the file */
+		(void)fd_close(fd);
+
+	}
+
+	/* Open the non-existing file */
+	if (fd < 0) fff = my_fopen(buf, "w");
+
+	/* Grab priv's */
+	safe_setuid_grab();
+
+
+	/* Invalid file */
+	if (!fff)
+	{
+		/* Error */
+		return (-1);
+	}
+
+
+	/* Begin dump */
+#ifdef IRONMAN
+	fprintf(fff, "  [Ironman MAngband %d.%d.%d Character Dump]\n\n",
+	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+#else
+	fprintf(fff, "  [MAngband %d.%d.%d Character Dump]\n\n",
+	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+#endif
+
+	/* Display the player info */
+	display_player_server(Ind, buffer);
+
+	/* Dump the buffer */
+	for(i=0;i<26;i++)
+	{
+		fprintf(fff,"%s\n",buffer[i]);
+	}
+
+	/* Dump the equipment */
+	fprintf(fff, "  [Character Equipment]\n\n");
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+	{
+		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		fprintf(fff, "%c%s %s\n",
+		        index_to_label(i), paren, o_name);
+	}
+	fprintf(fff, "\n\n");
+
+	/* Dump the inventory */
+	fprintf(fff, "  [Character Inventory]\n\n");
+	for (i = 0; i < INVEN_PACK; i++)
+	{
+		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		fprintf(fff, "%c%s %s\n",
+		        index_to_label(i), paren, o_name);
+	}
+	fprintf(fff, "\n\n");
+	
+	/* Dump last messages */
+	fprintf(fff, "  [Last Messages]\n\n");
+	i = p_ptr->msg_hist_ptr;
+	for(j=0;j<MAX_MSG_HIST;j++)
+	{
+		if(i >= MAX_MSG_HIST) i = 0;
+		if(p_ptr->msg_log[i])
+			fprintf(fff, "  %s\n",p_ptr->msg_log[i]);
+		i++;
+	}
+	fprintf(fff, "\n\n");
+	
+	/* Close it */
+	my_fclose(fff);
+
+	/* Success */
+	return (0);
+}
+
+
 
 
 /*

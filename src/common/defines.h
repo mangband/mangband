@@ -77,6 +77,11 @@
 
 
 /*
+ * Maximum number of messages to keep in player message history
+ */
+#define MAX_MSG_HIST 20
+
+/*
  * This is very important...
  *
  * This is the number of "frames" to produce per second.  It determines

@@ -1173,6 +1173,9 @@ struct player_type
 	char died_from_list[80]; /* what goes on the high score list */
 	s16b died_from_depth;	/* what depth we died on */
 
+	char msg_log[MAX_MSG_HIST][MAX_CHARS];	/* Message history log */
+	s16b msg_hist_ptr;	/* Where will the next message be stored */
+
 	u16b total_winner;	/* Is this guy the winner */
 	u16b retire_timer;	/* The number of minutes this guy can play until
 				   he will be forcibly retired.

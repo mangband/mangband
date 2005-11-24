@@ -1536,6 +1536,8 @@ static int Handle_login(int ind)
 	p_ptr->version = connp->version;
 /* temporary hack to turn on maximize for everybody */
         p_ptr->maximize=1;
+	/* Initialise message ptr before we start sending messages */
+	p_ptr->msg_hist_ptr = 0;
 
 
 	/* Copy the client preferences to the player struct */
