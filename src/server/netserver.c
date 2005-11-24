@@ -1195,7 +1195,11 @@ static int Handle_listening(int ind)
 	{
 		//if (n == 0 || errno == EWOULDBLOCK || errno == EAGAIN)
 		//	n = 0;
+#ifdef WINDOWS
+		if (n <= 0)
+#else
 		if (n == 0)
+#endif
 		{
 			/* Hack -- set sock to -1 so destroy connection doesn't
 			 * try to inform the client about its destruction
@@ -1821,11 +1825,22 @@ void Handle_input(int fd, int arg)
 		// Check to make sure that an EAGAIN error didn't occur.  Sometimes on
 		// Linux when receiving a lot of traffic EAGAIN will occur on recv and
 		// Sockbuf_read will return 0.
+#ifndef WINDOWS
 		if (errno != EAGAIN)
 		{
 			// If this happens, the the client has probably closed his TCP connection.
 			do_quit(ind, 0);
 		}
+#else
+		/* On windows, we frequently get EWOULDBLOCK return codes, i.e.
+		 * there is no data yet, but there may be in a moment. Without
+		 * this check clients frequently get disconnected */
+		if ( (errno != EAGAIN) && (errno != EWOULDBLOCK))
+		{
+			// If this happens, the the client has probably closed his TCP connection.
+			do_quit(ind, 0);
+		}
+#endif
 		
 		//Destroy_connection(ind, "input error");
 		return;
