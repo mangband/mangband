@@ -669,6 +669,11 @@ static void Contact(int fd, int arg)
 		{
 			remove_input(fd);
 		}
+		/* On Windows we may get a socket error without errno being set */
+		else if (bytes < 0 && errno == 0)
+		{
+			remove_input(fd);
+		}
 		else if (bytes < 0 && errno != EWOULDBLOCK && errno != EAGAIN &&
 			errno != EINTR)
 		{
