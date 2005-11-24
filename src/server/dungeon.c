@@ -1836,7 +1836,7 @@ static void process_various(void)
 
 void dungeon(void)
 {
-	int i, d;
+	int i, d, j;
 	byte *w_ptr;
 	cave_type *c_ptr;
 
@@ -1860,12 +1860,26 @@ void dungeon(void)
 		}
 	}
 
+
+	/* Deallocate any unused levels */
+	for (j = -MAX_WILD+1; j < MAX_DEPTH; j++)
+	{
+		/* Everybody has left a level that is still generated */
+		if (players_on_depth[j] == 0 && cave[j])
+		{						
+			/* Destroy the level */
+			/* Hack -- don't dealloc the town */
+			if (j)
+				dealloc_dungeon_level(j);
+		}
+	}
+
 	/* Check player's depth info */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *p_ptr = Players[i];
 		int Depth = p_ptr->dun_depth;
-		int j, x, y, startx, starty;
+		int x, y, startx, starty;
 
 		if (players_on_depth[Depth] == 0) continue;
 #if 0
@@ -1882,23 +1896,6 @@ void dungeon(void)
 
 		/* Make sure the server doesn't think the player is in a store */
 		p_ptr->store_num = -1;
-
-		/* Check to see which if the level needs generation or destruction */
-		/* Note that "town" is excluded */
-
-		for (j = -MAX_WILD+1; j < MAX_DEPTH; j++)
-		{
-			/* Everybody has left a level that is still generated */
-			if (players_on_depth[j] == 0 && cave[j])
-			{						
-				/* Destroy the level */
-				/* Hack -- don't dealloc the town */
-				if (j)
-					dealloc_dungeon_level(j);
-			}
-
-		}
-
 
 		/* Somebody has entered an ungenerated level */
 		if (players_on_depth[Depth] && !cave[Depth])
