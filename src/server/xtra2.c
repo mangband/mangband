@@ -2685,12 +2685,21 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 				p_ptr->exp_frac = new_exp_frac;
 			}
 
+#ifdef IRONMAN
+			/* Ironmen don't need experience from breeders */
+			if( r_ptr->flags2 & RF2_MULTIPLY )
+				new_exp = 0;
+#endif
 			/* Gain experience */
 			gain_exp(Ind, new_exp);
 		}
 		else
 		{
 			/* Give experience to that party */
+#ifdef IRONMAN
+			/* Ironmen parties don't need experience from breeders */
+			if( !(r_ptr->flags2 & RF2_MULTIPLY) )
+#endif
 			party_gain_exp(Ind, p_ptr->party, (long)r_ptr->mexp * r_ptr->level);
 		}
 
