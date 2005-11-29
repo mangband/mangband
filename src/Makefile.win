@@ -64,6 +64,7 @@ all: mangband mangclient
 objs = $(patsubst %.c,%.o,$(SERVER_SRC))
 mangband: $(objs)
 	$(CC) $(CFLAGS) -o mangband $(objs) $(LDFLAGS) $(SERVERLIBS)
+	mv mangband.exe ..
 
 #
 # Build the "MAngband" client
@@ -72,6 +73,7 @@ objc = $(patsubst %.c,%.o,$(CLIENT_SRC))
 mangclient: $(objc)
 	$(RES) -I client -o client/res.o client/Angband.rc
 	$(CC) $(CFLAGS) -o mangclient $(objc) client/res.o $(LDFLAGS) $(CLIENTLIBS)
+	mv mangclient.exe ..
 
 #
 # Build the "MAngband" remote console
