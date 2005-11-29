@@ -1869,7 +1869,8 @@ void dungeon(void)
 		{						
 			/* Destroy the level */
 			/* Hack -- don't dealloc the town */
-			if (j)
+			/* Hack -- don't dealloc special levels */
+			if( (j) && (!check_special_level(j)) )
 				dealloc_dungeon_level(j);
 		}
 	}
@@ -2471,3 +2472,17 @@ void shutdown_server(void)
 
 	quit("Server state saved");
 }
+
+/* 
+ * Check if the given depth is special static level, i.e. a hand designed level.
+ */
+bool check_special_level(s16b special_depth)
+{
+	int i;
+	for(i=0;i<MAX_SPECIAL_LEVELS;i++)
+	{
+		if(special_depth == special_levels[i]) return(TRUE);
+	}
+	return(FALSE);
+}
+

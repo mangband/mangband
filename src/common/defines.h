@@ -222,6 +222,10 @@
 */
 #define MAX_WILD        4096
 
+/*
+ * Maximum number of special pre-designed static levels.
+ */
+#define MAX_SPECIAL_LEVELS 10
 
 /*
  * Maximum size of the "lite" array (see "cave.c")

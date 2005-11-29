@@ -464,7 +464,7 @@ s16b get_mon_num(int level)
 	/* 
 	 * Ironmen don't kill townies, also don't generate any monsters on special levels..
 	 */
-	if(level == 0) return(0);
+	if((level == 0) || check_special_level(level)) return(0);
 #endif
 
 	if (level > 0)

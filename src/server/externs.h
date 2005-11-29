@@ -121,6 +121,7 @@ extern s16b resting;
 extern s16b cur_wid;*/
 /*extern s16b dun_level;*/
 extern s16b *players_on_depth;
+extern s16b special_levels[MAX_SPECIAL_LEVELS];
 extern s16b num_repro;
 extern s16b object_level;
 extern char summon_kin_type;
@@ -534,6 +535,7 @@ extern bool InitNewConsole(int write_fd);
 extern void play_game(bool new_game);
 extern void shutdown_server(void);
 extern void dungeon(void);
+extern bool check_special_level(s16b special_depth);
 
 /* files.c */
 extern void safe_setuid_drop(void);
