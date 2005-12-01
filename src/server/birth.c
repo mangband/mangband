@@ -823,6 +823,7 @@ static void player_wipe(int Ind)
 
 static byte player_init[MAX_CLASS][3][2] =
 {
+#ifndef IRONMAN
 	{
 		/* Warrior */
 		{ TV_POTION, SV_POTION_BESERK_STRENGTH },
@@ -864,6 +865,49 @@ static byte player_init[MAX_CLASS][3][2] =
 		{ TV_SWORD, SV_BROAD_SWORD },
 		{ TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL }
 	}
+#else
+	{
+		/* Warrior */
+		{ TV_LITE, SV_LITE_LANTERN },
+		{ 0, 0 },
+		{ 0, 0 },
+	},
+
+	{
+		/* Mage */
+		{ TV_MAGIC_BOOK, 0 },
+		{ TV_MAGIC_BOOK, 1 },
+		{ TV_LITE, SV_LITE_LANTERN },
+	},
+
+	{
+		/* Priest */
+		{ TV_PRAYER_BOOK, 0 },
+		{ TV_PRAYER_BOOK, 1 },
+		{ TV_LITE, SV_LITE_LANTERN },
+	},
+
+	{
+		/* Rogue */
+		{ TV_MAGIC_BOOK, 0 },
+		{ TV_MAGIC_BOOK, 1 },
+		{ TV_LITE, SV_LITE_LANTERN },
+	},
+
+	{
+		/* Ranger */
+		{ TV_MAGIC_BOOK, 0 },
+		{ TV_LITE, SV_LITE_LANTERN },
+		{ TV_BOW, SV_LONG_BOW }
+	},
+
+	{
+		/* Paladin */
+		{ TV_PRAYER_BOOK, 0 },
+		{ TV_PRAYER_BOOK, 1 },
+		{ TV_LITE, SV_LITE_LANTERN },
+	}
+#endif
 };
 
 
@@ -885,17 +929,53 @@ static void player_outfit(int Ind)
 	/* Hack -- Give the player some food */
 	invcopy(o_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION));
 	o_ptr->number = rand_range(3, 7);
+#ifdef IRONMAN	
+	o_ptr->number *= 2;
+#endif
 	object_aware(Ind, o_ptr);
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);
 
+#ifdef IRONMAN
+	/* Hack -- Give the player some oil */
+	invcopy(o_ptr, lookup_kind(TV_FLASK, 0));
+	o_ptr->number = rand_range(6, 14);
+	object_known(o_ptr);
+	(void)inven_carry(Ind, o_ptr);	
+#else
 	/* Hack -- Give the player some torches */
 	invcopy(o_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH));
 	o_ptr->number = rand_range(3, 7);
 	o_ptr->pval = rand_range(3, 7) * 500;
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);
+#endif
 
+#ifdef IRONMAN
+	/* More items for Ironmen */
+
+	/* Scrolls of teleportation */
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
+	o_ptr->number = 5;
+	/* Warrior and rogues get twice as many */
+	if( (p_ptr->pclass == CLASS_WARRIOR) || (p_ptr->pclass == CLASS_ROGUE) )
+		o_ptr->number *= 2;
+	o_ptr->discount = 0;
+	object_aware(Ind, o_ptr);
+	object_known(o_ptr);
+	(void)inven_carry(Ind, o_ptr);
+	
+	/* Warriors get cure serious wounds */
+	if( (p_ptr->pclass == CLASS_WARRIOR) )
+	{
+		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_CURE_SERIOUS));
+		o_ptr->number = 5;
+		o_ptr->discount = 0;
+		object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	}	
+#endif
 
 	/* 
 	 * Give the DM some interesting stuff, for quests, etc
