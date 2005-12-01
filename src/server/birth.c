@@ -869,8 +869,8 @@ static byte player_init[MAX_CLASS][3][2] =
 	{
 		/* Warrior */
 		{ TV_LITE, SV_LITE_LANTERN },
-		{ 0, 0 },
-		{ 0, 0 },
+		{ TV_FLASK, 0 },
+		{ TV_FLASK, 0 },
 	},
 
 	{
