@@ -375,6 +375,11 @@ static HINSTANCE hInstance;
 static HBRUSH hbrYellow;
 
 /*
+ * Black brush for the chat window edit control
+ */
+static HBRUSH hbrBlack;
+
+/*
  * An icon
  */
 static HICON hIcon;
@@ -2306,6 +2311,8 @@ static void init_windows(void)
 	/* Create a "brush" for drawing the "cursor" */
 	hbrYellow = CreateSolidBrush(win_clr[TERM_YELLOW]);
 
+	/* Create a "brush" for drawing the chat window edit control background */
+	hbrBlack = CreateSolidBrush(0);
 
 	/* Process pending messages */
 	(void)Term_xtra_win_flush();
@@ -3028,7 +3035,7 @@ LRESULT FAR PASCAL _export AngbandListProc(HWND hWnd, UINT uMsg,
 		{
 			SetTextColor((HDC)wParam,0x00ffffff);
 			SetBkColor((HDC)wParam, 0);
-			return (int)CreateSolidBrush(0);
+			return (int)hbrBlack;
 		}
 
                 /* GRK, wasn't trapping this so vis menus got messed up */
