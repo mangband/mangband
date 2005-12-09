@@ -2044,7 +2044,42 @@ void dungeon(void)
 
 		/* Update the player location */
 		cave[Depth][y][x].m_idx = 0 - i;
+    
+		/* Prevent hound insta-death */
+		switch (p_ptr->new_level_method)
+		{
+			/* Only when going *down* stairs (we don't want to make stair scuming safe) */
+			/* Also when moving to another level via spell, such as when recalling */
+			case LEVEL_DOWN:  
+			case LEVEL_RAND:
 
+				/* Remove nearby hounds */
+				for (j = 1; j < m_max; j++)
+				{
+					monster_type	*m_ptr = &m_list[j];
+					monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+		
+					/* Paranoia -- Skip dead monsters */
+					if (!m_ptr->r_idx) continue;
+
+					/* Hack -- Skip Unique Monsters */
+					if (r_ptr->flags1 & RF1_UNIQUE) continue;
+
+					/* Skip monsters other than hounds */
+					if (r_ptr->d_char != 'Z') continue;
+
+					/* Skip monsters not on this depth */
+					if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
+
+					/* Skip distant monsters */
+					if (m_ptr->cdis > MAX_SIGHT) continue;
+
+					/* Delete the monster */
+					delete_monster_idx(j);					
+				}
+			break;
+		}
+    
 		/* Recalculate panel */
 		p_ptr->panel_row = ((p_ptr->py - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
 		if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
