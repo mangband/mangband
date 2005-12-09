@@ -1078,7 +1078,7 @@ static void process_player_end(int Ind)
 		/* Ghosts don't need food */
 		/* don't use food in town */
 
-		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0))
+		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
 		{
 			/* Digest normally */
 			if (p_ptr->food < PY_FOOD_MAX)
