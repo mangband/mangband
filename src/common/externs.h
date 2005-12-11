@@ -29,7 +29,7 @@ extern char hexsym[16];
 extern byte adj_val_min[];
 extern byte adj_val_max[];
 extern const int adj_mag_study[];
-extern byte adj_mag_mana[];
+extern const int adj_mag_mana[];
 extern byte adj_mag_fail[];
 extern byte adj_mag_stat[];
 extern byte adj_chr_gold[];

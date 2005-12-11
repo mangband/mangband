@@ -1112,7 +1112,7 @@ static void calc_mana(int Ind)
 	if (levels < 0) levels = 0;
 
 	/* Extract total mana */
-	new_mana = adj_mag_mana[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]] * levels / 2;
+	new_mana = adj_mag_mana[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]] * levels / 100;
 
 	/* Hack -- usually add one mana */
 	if (new_mana) new_mana++;
