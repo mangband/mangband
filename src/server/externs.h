@@ -51,7 +51,7 @@ extern byte adj_str_blow[];
 extern byte adj_dex_blow[];
 extern byte adj_dex_safe[];
 extern byte adj_con_fix[];
-extern byte adj_con_mhp[];
+extern const int adj_con_mhp[];
 extern byte blows_table[12][12];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
 extern byte extract_energy[200];

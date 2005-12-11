@@ -1276,13 +1276,13 @@ static void calc_hitpoints(int Ind)
 
 	int bonus, mhp;
 
-	/* Un-inflate "half-hitpoint bonus per level" value */
-	bonus = ((int)(adj_con_mhp[p_ptr->stat_ind[A_CON]]) - 128);
+	/* Get "1/100th hitpoint bonus per level" value */
+	bonus = adj_con_mhp[p_ptr->stat_ind[A_CON]];
 
 	/* Calculate hitpoints */
 	if (p_ptr->fruit_bat) mhp = p_ptr->lev + 2;
 	
-	else mhp = p_ptr->player_hp[p_ptr->lev-1] + (bonus * p_ptr->lev / 2);
+	else mhp = p_ptr->player_hp[p_ptr->lev-1] + (bonus * p_ptr->lev / 100);
 
 	/* Always have at least one hitpoint per level */
 	if (mhp < p_ptr->lev + 1) mhp = p_ptr->lev + 1;
