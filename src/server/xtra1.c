@@ -835,6 +835,7 @@ static void calc_spells(int Ind)
 
 	int			i, j, k, levels;
 	int			num_allowed, num_known;
+	int percent_spells;
 
 	magic_type		*s_ptr;
 
@@ -851,9 +852,11 @@ static void calc_spells(int Ind)
 	/* Hack -- no negative spells */
 	if (levels < 0) levels = 0;
 
-	/* Extract total allowed spells */
-	num_allowed = (adj_mag_study[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]] *
-	               levels / 2);
+	/* Number of 1/100 spells per level */
+	percent_spells = adj_mag_study[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]];
+
+	/* Extract total allowed spells (rounded up) */
+	num_allowed = (((percent_spells * levels) + 50) / 100);
 
 	/* Assume none known */
 	num_known = 0;
