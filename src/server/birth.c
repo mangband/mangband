@@ -974,7 +974,43 @@ static void player_outfit(int Ind)
 		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	}	
+	}
+	
+	/* Mages get third book */
+	if( (p_ptr->pclass == CLASS_MAGE) )
+	{
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 2));
+		o_ptr->number = 1;
+		o_ptr->discount = 0;
+		object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	}
+
+	/* Priests get third book */
+	if( (p_ptr->pclass == CLASS_PRIEST) )
+	{
+		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 2));
+		o_ptr->number = 1;
+		o_ptr->discount = 0;
+		object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	}
+
+	/* Ranger get second book */
+	if( (p_ptr->pclass == CLASS_RANGER) )
+	{
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 1));
+		o_ptr->number = 1;
+		o_ptr->discount = 0;
+		object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	}
+
+
+		
 #endif
 
 	/* 
