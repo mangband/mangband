@@ -2046,6 +2046,7 @@ void dungeon(void)
 		cave[Depth][y][x].m_idx = 0 - i;
     
 		/* Prevent hound insta-death */
+		int dy, dx, d;
 		switch (p_ptr->new_level_method)
 		{
 			/* Only when going *down* stairs (we don't want to make stair scuming safe) */
@@ -2071,8 +2072,13 @@ void dungeon(void)
 					/* Skip monsters not on this depth */
 					if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
 
+					/* Approximate distance */
+					dy = (p_ptr->py > m_ptr->fy) ? (p_ptr->py - m_ptr->fy) : (m_ptr->fy - p_ptr->py);
+					dx = (p_ptr->px > m_ptr->fx) ? (p_ptr->px - m_ptr->fx) : (m_ptr->fx - p_ptr->px);
+					d = (dy > dx) ? (dy + (dx>>1)) : (dx + (dy>>1));
+
 					/* Skip distant monsters */
-					if (m_ptr->cdis > MAX_SIGHT) continue;
+					if (d > MAX_SIGHT) continue;
 
 					/* Delete the monster */
 					delete_monster_idx(j);					
