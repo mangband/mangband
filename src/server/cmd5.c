@@ -2078,14 +2078,34 @@ void do_cmd_pray(int Ind, int book, int spell)
 
 			case 57:
 			{
-				// Temporily disabled until I have time to fix this.
-				// -APD
-				/*
-				msg_print(Ind, "The world changes!");
-				p_ptr->new_level_flag = TRUE;
-				p_ptr->new_level_method = LEVEL_RAND;
-				break;
-				*/
+				/* Alter Reality */
+				
+				/* Which dungeon level are we changing? */
+				int Depth = p_ptr->dun_depth;
+        
+				/* Don't allow this in towns */
+				if( (!Depth) || (check_special_level(Depth)) )
+					break;
+        
+				/* Search for players on this depth */
+				for (i = 1; i < NumPlayers + 1; i++)
+				{
+					player_type *p_ptr = Players[i];
+					
+					/* Only players on this depth */
+					if(p_ptr->dun_depth == Depth)
+					{
+						/* Tell the player about it */
+						msg_print(i, "The world changes!");
+						p_ptr->new_level_flag = TRUE;
+						p_ptr->new_level_method = LEVEL_RAND;
+					}
+				}
+
+				/* Deallocate the level */
+				dealloc_dungeon_level(Depth);
+				cave[Depth] = 0;
+				
 				break;
 			}
 		}
