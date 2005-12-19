@@ -454,7 +454,7 @@ extern void do_cmd_visuals(void);
 extern void do_cmd_colors(void);
 extern void do_cmd_note(void);
 extern void do_cmd_version(void);
-extern void do_cmd_feeling(void);
+extern void do_cmd_feeling(int Ind);
 extern void do_cmd_load_screen(void);
 extern void do_cmd_save_screen(void);
 extern void do_cmd_check_artifacts(int Ind);

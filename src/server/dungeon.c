@@ -1907,6 +1907,9 @@ void dungeon(void)
 			/* Generate a dungeon level there */
 			/* option 29 is auto_scum */
 			generate_cave(Depth,p_ptr->options[29]);
+			
+			/* Give a level feeling to this player */
+			do_cmd_feeling(i);
 		}
 
 		/* Clear the "marked" and "lit" flags for each cave grid */

@@ -163,7 +163,6 @@ void do_cmd_version(void)
 /*
  * Array of feeling strings
  */
-#if 0
 static cptr do_cmd_feeling_text[11] =
 {
 	"Looks like any other level.",
@@ -178,7 +177,6 @@ static cptr do_cmd_feeling_text[11] =
 	"This level can't be all bad...",
 	"What a boring place..."
 };
-#endif
 
 
 /*
@@ -192,9 +190,28 @@ static cptr do_cmd_feeling_text[11] =
  * level will still get a "special" feeling.  So, should the level feeling
  * be recomputed whenever it is asked for?  Right now, level feelings are
  * disabled.  --KLJ--
+ *
+ * We give a level feeling to the player who causes the level to be
+ * generated. See dungeon.c [grk]
+ *
  */
-void do_cmd_feeling(void)
+void do_cmd_feeling(int Ind)
 {
+	player_type *p_ptr = Players[Ind];
+
+	/* Verify the feeling */
+	if (feeling < 0) feeling = 0;
+	if (feeling > 10) feeling = 10;
+
+	/* No useful feeling in town */
+	if (!p_ptr->dun_depth)
+	{
+		msg_print(Ind, "Looks like a typical town.");
+		return;
+	}
+
+	/* Display the feeling */
+	msg_print(Ind, do_cmd_feeling_text[feeling]);
 }
 
 

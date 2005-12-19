@@ -4340,8 +4340,10 @@ void generate_cave(int Depth,int auto_scum)
 		/* Hack -- Have a special feeling sometimes */
 		if (good_item_flag) feeling = 1;
 
+#ifndef IRONMAN
 		/* It takes 1000 game turns for "feelings" to recharge */
 		if ((turn - old_turn) < 1000) feeling = 0;
+#endif
 
 		/* Hack -- no feeling in the town */
 		if (!Depth) feeling = 0;
