@@ -1437,20 +1437,23 @@ static void process_player_end(int Ind)
 				if (!(o_ptr->timeout)) j++;
 			}
 		}
+		/* Don't recharge rods in shops (fixes stacking exploits) */
+		if( (p_ptr->store_num <= 0) ){
 
-		/* Recharge rods */
-		for (i = 0; i < INVEN_PACK; i++)
-		{
-			o_ptr = &p_ptr->inventory[i];
-
-			/* Examine all charging rods */
-			if ((o_ptr->tval == TV_ROD) && (o_ptr->pval))
+			/* Recharge rods */
+			for (i = 0; i < INVEN_PACK; i++)
 			{
-				/* Charge it */
-				o_ptr->pval--;
+				o_ptr = &p_ptr->inventory[i];
 
-				/* Notice changes */
-				if (!(o_ptr->pval)) j++;
+				/* Examine all charging rods */
+				if ((o_ptr->tval == TV_ROD) && (o_ptr->pval))
+				{
+					/* Charge it */
+					o_ptr->pval--;
+
+					/* Notice changes */
+					if (!(o_ptr->pval)) j++;
+				}
 			}
 		}
 
