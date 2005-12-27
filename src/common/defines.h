@@ -82,6 +82,11 @@
 #define MAX_MSG_HIST 20
 
 /*
+ * Maximum number of events to keep in the character event history
+ */
+#define MAX_CHAR_HIST 200 
+
+/*
  * This is very important...
  *
  * This is the number of "frames" to produce per second.  It determines

@@ -1176,6 +1176,9 @@ struct player_type
 	char msg_log[MAX_MSG_HIST][MAX_CHARS];	/* Message history log */
 	s16b msg_hist_ptr;	/* Where will the next message be stored */
 
+	char char_hist[MAX_CHAR_HIST][MAX_CHARS];	/* Character event history */
+	s16b char_hist_ptr;	/* Where will the next event be stored */
+	
 	u16b total_winner;	/* Is this guy the winner */
 	u16b retire_timer;	/* The number of minutes this guy can play until
 				   he will be forcibly retired.
@@ -1374,6 +1377,9 @@ struct player_type
 	byte tval_ammo;		/* Correct ammo tval */
 
 	s16b pspeed;		/* Current speed */
+	
+	u32b birth_turn;	/* Server turn on which player was born */
+	u32b turn;			/* Actual player turns */
 };
 
 

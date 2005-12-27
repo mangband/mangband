@@ -1243,6 +1243,19 @@ errr file_character_server(int Ind, cptr name)
 	}
 	fprintf(fff, "\n\n");
 	
+	/* Dump character history */
+	if(p_ptr->birth_turn)
+	{
+		fprintf(fff, "  [Character History]\n\n");
+		fprintf(fff, "Time       Dungeon Char  Event\n");
+		fprintf(fff, "           Level   Level\n\n");
+		for(j=0;j<p_ptr->char_hist_ptr;j++)
+		{
+			fprintf(fff, "%s\n",p_ptr->char_hist[j]);
+		}
+		fprintf(fff, "\n\n");
+	}
+
 	/* Dump last messages */
 	fprintf(fff, "  [Last Messages]\n\n");
 	i = p_ptr->msg_hist_ptr;
@@ -1250,7 +1263,7 @@ errr file_character_server(int Ind, cptr name)
 	{
 		if(i >= MAX_MSG_HIST) i = 0;
 		if(p_ptr->msg_log[i])
-			fprintf(fff, "  %s\n",p_ptr->msg_log[i]);
+			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
 	fprintf(fff, "\n\n");

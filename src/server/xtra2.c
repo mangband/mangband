@@ -1704,6 +1704,7 @@ void check_experience(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int		i;
+	char buf[80];
 
 
 	/* Note current level */
@@ -1771,6 +1772,13 @@ void check_experience(int Ind)
 
 		/* Message */
 		msg_format(Ind, "Welcome to level %d.", p_ptr->lev);
+
+		/* Record this event in the character history */
+		if(!(p_ptr->lev % 5))
+		{
+			sprintf(buf,"Reached level %d",p_ptr->lev);
+			log_history_event(Ind, buf);
+		}
 
 		/* Update some stuff */
 		p_ptr->update |= (PU_BONUS | PU_HP | PU_MANA | PU_SPELLS);
@@ -1893,6 +1901,7 @@ void monster_death(int Ind, int m_idx)
 	int			total = 0;
 
 	char buf[160];
+	char logbuf[160];
 
 	cave_type		*c_ptr;
 
@@ -2000,6 +2009,8 @@ void monster_death(int Ind, int m_idx)
 		
 		/* give credit to the killer by default */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
+		/* message for event history */
+		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
 		
 		/* give credit to the party if there is a teammate on the 
 		level, and the level is not 0 (the town)  */
@@ -2010,6 +2021,8 @@ void monster_death(int Ind, int m_idx)
 				if ( (Players[i]->party == p_ptr->party) && (Players[i]->dun_depth == p_ptr->dun_depth) && (i != Ind) && (p_ptr->dun_depth) )
 				{
 					sprintf(buf, "%s was slain by %s.",(r_name + r_ptr->name),parties[p_ptr->party].name);
+					/* message for event history */
+					sprintf(logbuf,"Helped to kill %s",(r_name + r_ptr->name));
 					break; 
 				} 
 			
@@ -2020,6 +2033,10 @@ void monster_death(int Ind, int m_idx)
   
     		/* Tell every player */
     		msg_broadcast(Ind, buf);
+
+		/* Record this kill in the event history */
+		log_history_event(Ind, logbuf);
+		
 	}
 
 	/* Mega-Hack -- drop "winner" treasures */

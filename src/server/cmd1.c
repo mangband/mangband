@@ -645,6 +645,16 @@ void carry(int Ind, int pickup, int confirm)
 				/* Message */
 				msg_format(Ind, "You have %s (%c).", o_name, index_to_label(slot));
 
+				/* Hack - record finding artifacts in the event history */
+				if(artifact_p(o_ptr))
+				{
+					char artname[80];
+					char msg[80];
+					object_desc(0, artname, o_ptr, FALSE, 0);
+					sprintf(msg,"Found The %s",artname);					
+					log_history_event(Ind, msg);
+				}
+					
 
 				/*  hack so it doesnt clear the house -APD- */
 				if (o_ptr->tval == TV_KEY) houses[o_ptr->pval].owned = 2;

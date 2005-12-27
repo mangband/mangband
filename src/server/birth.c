@@ -1614,6 +1614,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	p_ptr->maximize=1;
 
+	/* Remember when this player was created in terms of the server turn counter */
+	p_ptr->birth_turn = turn;
+
 	/* No autoroller */
 	get_stats(Ind, stat_order);
 

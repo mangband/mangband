@@ -914,6 +914,8 @@ static void process_player_begin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
+	/* Increment turn count */
+	p_ptr->turn++;
 
 	/* Give the player some energy */
 	p_ptr->energy += extract_energy[p_ptr->pspeed];

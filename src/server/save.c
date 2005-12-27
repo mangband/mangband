@@ -704,6 +704,12 @@ static bool wr_savefile_new(int Ind)
 	/* Write the server turn */
 	write_int("turn",turn);
 
+	/* Write the players birth turn */
+	write_uint("birth_turn",p_ptr->birth_turn);
+
+	/* Write the players turn */
+	write_uint("player_turn",p_ptr->turn);
+
 	/* Dump the object memory */
 	start_section("object_memory");
 	tmp16u = MAX_K_IDX;
@@ -770,6 +776,14 @@ static bool wr_savefile_new(int Ind)
 		write_int("wild_map",p_ptr->wild_map[i]);
 	}
 	end_section("wilderness");
+	
+	/* write character event history */
+	start_section("event_history");
+	for(i=0;i<p_ptr->char_hist_ptr;i++)
+	{
+		write_str("hist",p_ptr->char_hist[i]);
+	}
+	end_section("event_history");
 
 	end_section("mangband_player_save");
 

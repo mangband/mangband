@@ -275,6 +275,48 @@ void skip_value(char* name)
 	}
 }
 
+/* Check if the given named value is next */
+bool value_exists(char* name)
+{
+	char seek_name[80];
+	bool matched = FALSE;
+	char value[160];
+	long fpos;
+	
+	/* Remember where we are */
+	fpos = ftell(file_handle);
+	sprintf(seek_name,"%s = ",name);
+	fgets(file_buf, sizeof(file_buf)-1, file_handle);
+	matched = TRUE;
+	if(strstr(file_buf,seek_name) == NULL)
+	{
+		matched = FALSE;
+	}
+	/* Move back */
+	fseek(file_handle,fpos,SEEK_SET);
+	return(matched);
+}
+
+/* Check if the given named section is next */
+bool section_exists(char* name)
+{
+	char seek_section[80];
+	char got_section[80];
+	bool matched = FALSE;
+	long fpos;
+	
+	/* Remember where we are */
+	fpos = ftell(file_handle);
+	fgets(file_buf, sizeof(file_buf)-1, file_handle);
+	sprintf(seek_section,"<%s>",name);
+	if(sscanf(file_buf,"%s",got_section) == 1)
+	{
+		matched = !strcmp(got_section,seek_section);
+	}
+	/* Move back */
+	fseek(file_handle,fpos,SEEK_SET);
+	return(matched);
+}
 
 /*
  * This function determines if the version of the savefile
@@ -1333,7 +1375,20 @@ static errr rd_savefile_new_aux(int Ind)
 
 	/* Skip the turn info - if present */
 	skip_value("turn");
+	
+	/* Turn this character was born on */
+	if(value_exists("birth_turn"))
+		p_ptr->birth_turn = read_uint("birth_turn");
+	else
+		/* Disable character event logging if no birth turn */
+		p_ptr->birth_turn = 0;
 
+	/* Player turns (actually time spent playing) */
+	if(value_exists("player_turn"))
+		p_ptr->turn = read_uint("player_turn");
+	else
+		p_ptr->turn = 0;
+	
 	/* Object Memory */
 	start_section_read("object_memory");
 	tmp16u = read_int("max_k_idx");
@@ -1433,6 +1488,18 @@ static errr rd_savefile_new_aux(int Ind)
 	}
 	end_section_read("wilderness");
 	
+	/* Read the character event history */
+	if(section_exists("event_history"))
+	{
+		start_section_read("event_history");
+		p_ptr->char_hist_ptr = 0;
+		while(value_exists("hist"))
+		{
+			read_str("hist",p_ptr->char_hist[p_ptr->char_hist_ptr++]);
+		}
+		end_section_read("event_history");
+	}
+
 	/* Hack -- no ghosts */
 	r_info[MAX_R_IDX-1].max_num = 0;
 

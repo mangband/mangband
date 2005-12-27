@@ -2896,3 +2896,36 @@ bool is_a_vowel(int ch)
 
 	return (FALSE);
 }
+
+/* 
+ * Record a message in the character history
+ */
+extern void log_history_event(int Ind, char *msg)
+{
+	char buf[100];
+	char eventtime[12];
+	int i, days, hours, mins, seconds;
+	player_type *p_ptr = Players[Ind];
+	
+	/* Never record duplicate entries */
+	for(i=0;i<p_ptr->char_hist_ptr;i++)
+	{
+		if(strstr(p_ptr->char_hist[i],msg) != NULL)
+			return;
+	}
+	
+	/* Convert turn real time */
+	seconds = p_ptr->turn / cfg_fps;
+	days = seconds / 86400;
+	hours = (seconds / 3600) - (24 * days);
+	mins = (seconds / 60) % 60;
+	sprintf(eventtime,"%02i:%02i:%02i",days,hours,mins);
+
+	/* Format to time, depth, clevel, message */
+	sprintf(buf,"%s   %4ift   %2i   %s",eventtime,p_ptr->dun_depth*50,p_ptr->lev,msg);
+	
+	/* Add the message to the history */
+	strncpy(p_ptr->char_hist[p_ptr->char_hist_ptr], buf, 78);
+	p_ptr->char_hist[p_ptr->char_hist_ptr++][78] = '\0';
+	
+}
