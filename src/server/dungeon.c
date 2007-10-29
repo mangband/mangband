@@ -1438,7 +1438,7 @@ static void process_player_end(int Ind)
 			}
 		}
 		/* Don't recharge rods in shops (fixes stacking exploits) */
-		if( (p_ptr->store_num <= 0) ){
+		if( (p_ptr->store_num < 0) ){
 
 			/* Recharge rods */
 			for (i = 0; i < INVEN_PACK; i++)
