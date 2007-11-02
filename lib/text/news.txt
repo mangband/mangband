@@ -1,0 +1,19 @@
+                    :::!~!!!!!:.                Server: Refugee
+                  .xUHWH!! !!?M88WHX:.             Mangband 0.7.2
+                .X*#M@$!!  !X!M$$$$$$WWx:.          www.mangband.org 
+               :!!!!!!?H! :!$!$$$$$$$$$$8X:         
+              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:         Current Server Admin: 
+             :!~::!H!<   ~.U$X!?R$$$$$$$$MM!          crimson@mangband.org 
+             ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!                                
+               !:~~~ .:!M"T#$$$$WX??#MRRMMM!        Ported to multiplayer 
+               ~?WuxiW*`   `"#$$$$8!!!!??!!!           by Keldon Jones.
+             :X- M$$$$       `"T#$T~!8$WUXU~                                                  
+            :  ~#$$$m:        ~!~ ?$$$$$$          Based on Angband 2.7.2.                        
+          :!`.-   ~T$$$$8xx.  .xWW- ~""##*"           by Ben Harrison.                     
+.....   -~~:<` !    ~?T#$$@@W@*?$$      /`                                  
+W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :          Newbies : Hit '?' for help
+:::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~                     Hit ':' to talk
+.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `                                        
+Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!               Be sure to check on mangband.org  
+$R@i.~~ !     :   ~$$$$$B$$en:``              for the new forums and information!
+?MXT@Wx.~    :     ~"##*$$$$M~                                              

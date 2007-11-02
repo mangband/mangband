@@ -1,0 +1,35 @@
+perl -we '
+my (%player,%nick,%real); 
+$|++;
+$started = 1033045948;
+while(<>) { 
+	if(m#.*?Welcome\s+?(.*?)=(.*?)\s+?\((.*?)\/#) { 
+		if( !exists($real{lc($3)}) ) {
+			$real{lc($3)}++;
+			if( !exists($nick{lc($2)}) ) {
+				$nick{lc($2)}++; 
+				if( !exists($player{lc($1)}) ) {
+					$player{lc($1)}++; 
+				}
+			};
+		};
+	}; 
+}; 
+for(keys %player) { $player{$_}--; push @kplayer, $_ if (--$player{$_});};
+for(keys %nick) { $nick{$_}--; push @knick, $_ if (--$nick{$_});};
+for(keys %real) { $real{$_}--; push @kreal, $_ if (--$real{$_});};
+
+$days = int(time - $started) / (24*60*60);
+
+print "Players: " . scalar @kplayer . " " . (scalar @kplayer)/$days . "\n";
+for(sort @kplayer) { 
+	print "[" . ucfirst($_) . "]\n";
+};
+print "\n";
+print "  Nicks: " . (@knick); 
+print "    IPS: " . (@kreal);
+
+
+print $days;
+' mangband.log
+

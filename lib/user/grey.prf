@@ -1,0 +1,50 @@
+
+
+# Automatic macro dump
+
+# Macro '0'
+
+A:w0
+C:X
+
+
+# Macro '1'
+
+A:z0*t
+C:\e[[A
+
+
+# Macro '2'
+
+A:q0
+C:]
+
+
+# Macro '3'
+
+A:z1*t
+C:\e[[B
+
+
+# Macro '4'
+
+A:Z0
+C:\e[[E
+
+
+# Macro '5'
+
+A:q1
+C:/
+
+
+# Macro '6'
+
+##A:b
+##C:1
+
+
+
+
+
+

@@ -1,0 +1,171 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+ANGBAND                 ICON    DISCARDABLE     "Angband.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+ANGBAND MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "E&xit",                       105
+    END
+    POPUP "&Options"
+    BEGIN
+        POPUP "&View"
+        BEGIN
+            MENUITEM "M&irror Window",              212
+            MENUITEM "&Recall Window",              213
+            MENUITEM "C&hoice Window",              214
+            MENUITEM "&Chat Window",                215
+            MENUITEM "Term-&5 Window",              216
+            MENUITEM "Term-&6 Window",              217
+            MENUITEM "Term-&7 Window",              218
+        END
+        POPUP "&Fonts"
+        BEGIN
+            MENUITEM "&Main Window",                201
+            MENUITEM "M&irror Window",              202
+            MENUITEM "&Recall Window",              203
+            MENUITEM "C&hoice Window",              204
+            MENUITEM "&Chat Window",                205
+            MENUITEM "Term-&5 Window",              206
+            MENUITEM "Term-&6 Window",              207
+            MENUITEM "Term-&7 Window",              208
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Graphics",                   221
+        MENUITEM "&Sound",                      222
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About...",                   903
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+ABOUT DIALOG DISCARDABLE  0, 0, 283, 172
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About..."
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,226,151,50,14
+    LTEXT           "MAngband 0.7.0",IDC_STATIC,38,15,54,8
+    LTEXT           "Based on Moria - Copyright (c) 1985 Robert Alan Koeneke",
+                    IDC_STATIC,38,28,184,8
+    LTEXT           "and Umoria - Copyright (c) 1989 James E. Wilson",
+                    IDC_STATIC,52,36,154,8
+    LTEXT           "Angband 2.0 - 2.4: Alex Cutler, Andy Astrand, Sean Marsh, Geoff Hill, Charles Teague, and others",
+                    IDC_STATIC,38,51,221,16
+    ICON            "ANGBAND",IDC_STATIC,7,7,21,20
+    LTEXT           "Angband 2.5 - 2.6: Charles Swiger (cs4w+@andrew.cmu.edu)",
+                    IDC_STATIC,37,67,221,10
+    LTEXT           "Angband 2.7 - 2.8: Ben Harrison (benh@phial.com)",
+                    IDC_STATIC,37,80,221,10
+    LTEXT           "Curses/X11 Module: Ben Harrison, Torbj|rn Lindgren",
+                    IDC_STATIC,37,93,221,10
+    LTEXT           "MAngband 0.1 - 0.5: Keldon Jones (keldon@umr.edu)",
+                    IDC_STATIC,37,106,221,10
+    LTEXT           "MAngband 0.6 - 0.7: Alex Dingle (adingle@crud.net)",
+                    IDC_STATIC,37,119,221,10
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,37,136,217,1
+    LTEXT           "Visit the MAngband homepage at: www.mangband.org",
+                    IDC_STATIC,37,140,173,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "ABOUT", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 165
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
