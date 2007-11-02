@@ -1,2 +1,0 @@
-dummy: 
-	( cd src; make )
