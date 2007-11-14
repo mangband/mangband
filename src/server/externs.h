@@ -15,7 +15,6 @@
 /* #include "netserver.h" */
 
 /* netserver.c */
-extern long Id;
 extern int NumPlayers;
 extern int process_pending_commands(int Ind);
 #ifdef NEW_SERVER_CONSOLE
