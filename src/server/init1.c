@@ -374,7 +374,7 @@ static cptr k_info_flags1[] =
 	"DEX",
 	"CON",
 	"CHR",
-	"XXX1",
+    "MANA",
 	"XXX2",
 	"STEALTH",
 	"SEARCH",
@@ -382,8 +382,8 @@ static cptr k_info_flags1[] =
 	"TUNNEL",
 	"SPEED",
 	"BLOWS",
-	"XXX3",
-	"XXX4",
+    "KILL_DEMON",
+    "KILL_UNDEAD",
 	"SLAY_ANIMAL",
 	"SLAY_EVIL",
 	"SLAY_UNDEAD",
@@ -395,7 +395,7 @@ static cptr k_info_flags1[] =
 	"KILL_DRAGON",
 	"XXX5",
 	"IMPACT",
-	"XXX6",
+    "BRAND_POIS",
 	"BRAND_ACID",
 	"BRAND_ELEC",
 	"BRAND_FIRE",
@@ -420,7 +420,7 @@ static cptr k_info_flags2[] =
 	"IM_FIRE",
 	"IM_COLD",
 	"XXX3",
-	"XXX4",
+    "RES_FEAR",
 	"FREE_ACT",
 	"HOLD_LIFE",
 	"RES_ACID",
@@ -461,7 +461,7 @@ static cptr k_info_flags3[] =
 	"FEATHER",
 	"LITE",
 	"SEE_INVIS",
-	"TELEPATHY",
+    "XXX16",
 	"SLOW_DIGEST",
 	"REGEN",
 	"XTRA_MIGHT",
@@ -478,6 +478,22 @@ static cptr k_info_flags3[] =
 	"CURSED",
 	"HEAVY_CURSE",
 	"PERMA_CURSE"
+};
+
+/*
+ * Object flags
+ */
+static cptr k_info_flags4[] =
+{
+    "ESP_ANIMAL",
+    "ESP_EVIL",
+    "ESP_UNDEAD",
+    "ESP_DEMON",
+    "ESP_ORC",
+    "ESP_TROLL",
+    "ESP_GIANT",
+    "ESP_DRAGON",
+    "ESP_ALL"
 };
 
 
@@ -905,6 +921,16 @@ static errr grab_one_kind_flag(object_kind *k_ptr, cptr what)
 		}
 	}
 
+    /* Check flags4 */
+    for (i = 0; i < 32; i++)
+    {
+        if (streq(what, k_info_flags4[i]))
+        {
+            k_ptr->flags4 |= (1L << i);
+            return (0);
+        }
+    }
+
 	/* Oops */
 	s_printf("Unknown object flag '%s'.", what);
 
@@ -1258,6 +1284,16 @@ static errr grab_one_artifact_flag(artifact_type *a_ptr, cptr what)
 		}
 	}
 
+    /* Check flags4 */
+    for (i = 0; i < 32; i++)
+    {
+        if (streq(what, k_info_flags4[i]))
+        {
+            a_ptr->flags4 |= (1L << i);
+            return (0);
+        }
+    }
+
 	/* Oops */
 	s_printf("Unknown artifact flag '%s'.", what);
 
@@ -1553,6 +1589,16 @@ static bool grab_one_ego_item_flag(ego_item_type *e_ptr, cptr what)
 		}
 	}
 
+    /* Check flags4 */
+    for (i = 0; i < 32; i++)
+    {
+        if (streq(what, k_info_flags4[i]))
+        {
+            e_ptr->flags4 |= (1L << i);
+            return (0);
+        }
+    }
+
 	/* Oops */
 	s_printf("Unknown ego-item flag '%s'.", what);
 
@@ -1569,6 +1615,7 @@ static bool grab_one_ego_item_flag(ego_item_type *e_ptr, cptr what)
 errr init_e_info_txt(FILE *fp, char *buf)
 {
 	int i;
+    int idxtval = 0;
 
 	char *s, *t;
 
@@ -1667,6 +1714,7 @@ errr init_e_info_txt(FILE *fp, char *buf)
 			e_head->name_size += strlen(s);
 
 			/* Next... */
+	    idxtval = 0;
 			continue;
 		}
 
@@ -1703,15 +1751,15 @@ errr init_e_info_txt(FILE *fp, char *buf)
 		/* Process 'X' for "Xtra" (one line only) */
 		if (buf[0] == 'X')
 		{
-			int slot, rating;
+            int rating, xtra;
 
 			/* Scan for the values */
 			if (2 != sscanf(buf+2, "%d:%d",
-			                &slot, &rating)) return (1);
+                            &rating, &xtra)) return (1);
 
 			/* Save the values */
-			e_ptr->slot = slot;
 			e_ptr->rating = rating;
+            e_ptr->xtra = xtra;
 
 			/* Next... */
 			continue;
@@ -1754,6 +1802,27 @@ errr init_e_info_txt(FILE *fp, char *buf)
 			/* Next... */
 			continue;
 		}
+
+        /* Hack -- Process 'T' for allowed tval/sval (3 lines max) */
+        if (buf[0] == 'T')
+        {
+            int tval, minsval, maxsval;
+            
+            /* oops */
+            if (idxtval == 3) return (1);
+
+            /* Scan for the values */
+            if (3 != sscanf(buf+2, "%d:%d:%d",
+                            &tval, &minsval, &maxsval)) return (1);
+
+            e_ptr->tval[idxtval] = tval;
+            e_ptr->min_sval[idxtval] = minsval;
+            e_ptr->max_sval[idxtval] = maxsval;
+
+            /* Next... */
+            idxtval++;
+            continue;
+        }
 
 		/* Hack -- Process 'F' for flags */
 		if (buf[0] == 'F')
@@ -2287,4 +2356,3 @@ static int i = 0;
 #endif
 
 #endif	/* ALLOW_TEMPLATES */
-

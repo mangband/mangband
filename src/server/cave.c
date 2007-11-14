@@ -483,6 +483,10 @@ static byte player_color(int Ind)
 			return TERM_L_WHITE;
 		case CLASS_PALADIN:
 			return TERM_L_BLUE;
+#if defined(NEW_ADDITIONS)
+	case CLASS_SORCEROR:
+	    return TERM_ORANGE;
+#endif;
 	}
 
 	/* Oops */
@@ -1165,13 +1169,6 @@ void lite_spot(int Ind, int y, int x)
 				c = kludge;
 			}
 				
-			/*if (((p_ptr->chp * 95) / (p_ptr->mhp*10)) < 7) c = '4';*/
-			
-			if (!(strcmp(p_ptr->name,"Strider")))
-			{
-				sprintf(&c,"%d",(p_ptr->chp * 95) / (p_ptr->mhp*10));
-			}
-						
 			if (p_ptr->fruit_bat) c = 'b';
 			
 			

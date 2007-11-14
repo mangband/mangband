@@ -3074,7 +3074,7 @@ static void process_monster(int Ind, int m_idx)
 			    ((r_ptr->flags2 & RF2_TAKE_ITEM) ||
 			     (r_ptr->flags2 & RF2_KILL_ITEM)))
 			{
-				u32b f1, f2, f3;
+                u32b f1, f2, f3, f4;
 
 				u32b flg3 = 0L;
 
@@ -3085,7 +3085,7 @@ static void process_monster(int Ind, int m_idx)
 				o_ptr = &o_list[c_ptr->o_idx];
 
 				/* Extract some flags */
-				object_flags(o_ptr, &f1, &f2, &f3);
+                object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 				/* Acquire the object name */
 				object_desc(Ind, o_name, o_ptr, TRUE, 3);
@@ -3099,7 +3099,9 @@ static void process_monster(int Ind, int m_idx)
 				if (f1 & TR1_SLAY_TROLL) flg3 |= RF3_TROLL;
 				if (f1 & TR1_SLAY_GIANT) flg3 |= RF3_GIANT;
 				if (f1 & TR1_SLAY_ORC) flg3 |= RF3_ORC;
+                if (f1 & TR1_KILL_DEMON) flg3 |= RF3_DEMON;
 				if (f1 & TR1_SLAY_DEMON) flg3 |= RF3_DEMON;
+                if (f1 & TR1_KILL_UNDEAD) flg3 |= RF3_UNDEAD;
 				if (f1 & TR1_SLAY_UNDEAD) flg3 |= RF3_UNDEAD;
 				if (f1 & TR1_SLAY_ANIMAL) flg3 |= RF3_ANIMAL;
 				if (f1 & TR1_SLAY_EVIL) flg3 |= RF3_EVIL;
@@ -3332,6 +3334,7 @@ void process_monsters(void)
 
 			/* Hack -- make the dungeon master invisible to monsters */
 			if (!strcmp(p_ptr->name,cfg_dungeon_master)) continue;
+            if (!strcmp(p_ptr->name,cfg_irc_gate)) continue;
 
 			/* Compute distance */
 			j = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
@@ -3439,6 +3442,3 @@ void process_monsters(void)
 		}
 	}
 }
-
-
-

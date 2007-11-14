@@ -270,4 +270,3 @@ extern errr term_init(term *t, int w, int h, int k);
 
 
 #endif
-

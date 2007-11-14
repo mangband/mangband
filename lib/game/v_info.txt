@@ -18,7 +18,7 @@
 
 # Version stamp (required)
 
-V:0.7.3
+V:1.0.0
 
 
 ### Simple Vaults (type 7) -- maximum size 44x22 ###
@@ -2634,4 +2634,3 @@ D:%X88XX888XXXXXXXX+XX..,XX.X...XXXX...X,X#X,X...XXXX...X.XX,..XX+XXXXXXXX888XX8
 D:%X888XXXXX9999999..X..,,X..............X#X..............X,,..X..9999999XXXXX888X%
 D:%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

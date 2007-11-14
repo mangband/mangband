@@ -838,4 +838,3 @@ int Packet_scanf(va_alist)
 
     return (failure) ? -1 : count;
 }
-

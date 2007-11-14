@@ -518,5 +518,3 @@ void display_store(void)
 	/* Flush any events that happened */
 	Flush_queue();
 }
-
-

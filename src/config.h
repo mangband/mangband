@@ -62,13 +62,10 @@
  * Note that this would allow multiple servers to run on a single
  * machine as well.
  *
-#define	BIND_NAME "mangband.org"
-#define	BIND_IP "64.53.71.113"
+#define	BIND_NAME "tester"
+#define	BIND_IP "192.168.1.199"
 */
-/*
- * OPTION: Compile an Ironman Server 
- */
-#define IRONMAN
+
 
 /*
  * OPTION: Include "ncurses.h" instead of "curses.h" in "main-gcu.c"
@@ -309,6 +306,11 @@
  * --broken in mangband.
  */
 /* #define ALLOW_OLD_SAVEFILES */
+
+/* Use the new houseless code for Wilderness levels, including invaders. */
+/*
+#define DEVEL_TOWN_COMPATIBILITY 0
+*/
 
 
 /*
@@ -611,5 +613,4 @@
  * You may need to turn "SAFE_SETUID" off to use this option.
  */
 /* #define SECURE */
-
 

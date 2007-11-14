@@ -17,7 +17,7 @@
 
 # Version stamp (required)
 
-V:0.7.3
+V:1.0.0
 
 
 # 0x00 --> nothing
@@ -455,23 +455,22 @@ M:120
 # 0x7C --> permanent wall -- basic (perm)
 
 N:124:permanent wall
-G:#:w
+G:#:u
 
 # 0x7D --> permanent wall -- inner (perm)
 
 N:125:permanent wall
-G:#:w
+G:#:u
 M:124
 
 # 0x7E --> permanent wall -- outer (perm)
 
 N:126:permanent wall
-G:#:w
+G:#:u
 M:124
 
 # 0x7F --> permanent wall -- solid (perm)
 
 N:127:permanent wall
-G:#:w
+G:#:u
 M:124
-

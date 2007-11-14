@@ -1,3 +1,4 @@
+
 /* File: h-type.h */
 
 #ifndef INCLUDED_H_TYPE_H
@@ -183,4 +184,3 @@ typedef vptr	(*func_key)(vptr);
 
 
 #endif
-

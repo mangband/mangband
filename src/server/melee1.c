@@ -1246,5 +1246,3 @@ bool make_attack_normal(int Ind, int m_idx)
 	/* Assume we attacked */
 	return (TRUE);
 }
-
-

@@ -1473,6 +1473,3 @@ void display_roff(int r_idx)
 	roff_top(r_idx);
 #endif
 }
-
-
-

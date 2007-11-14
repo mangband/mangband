@@ -15,6 +15,309 @@
 #include "angband.h"
 
 
+void telekinesis_aux(int Ind, int item)
+{
+	player_type *p_ptr = Players[Ind], *p2_ptr;
+	object_type *q_ptr, *o_ptr = p_ptr->current_telekinesis;
+	bool ok = FALSE;
+	int Ind2;
+
+	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+
+	p_ptr->current_telekinesis = NULL;
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		q_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+	  msg_print(Ind, "You must carry the object to teleport it.");
+	  return;
+	}
+	
+	/* check for a valid inscription */
+	if (inscription == NULL)
+	  {
+	    msg_print(Ind, "Nobody to send to.");
+	    return;
+	  }
+	
+	/* scan the inscription for @P */
+	while ((*inscription != '\0') && !ok)
+	{
+		
+		if (*inscription == '@')
+		{
+			inscription++;
+			
+			/* a valid @P has been located */
+			if (*inscription == 'P')
+			{			
+				inscription++;
+				
+				Ind2 = find_player_name(inscription);
+				if (Ind2) ok = TRUE;
+			}
+		}
+		inscription++;
+	}
+	
+        if (!ok)
+	  {
+	    msg_print(Ind, "Player is not on.");
+	    return;
+	  }
+
+	p2_ptr = Players[Ind2];
+
+	/* Actually teleport the object to the player inventory */
+	inven_carry(Ind2, q_ptr);
+
+	/* Combine the pack */
+	p2_ptr->notice |= (PN_COMBINE);
+
+	/* Window stuff */
+	p2_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+	/* Wipe it */
+	inven_item_increase(Ind, item, -99);
+	inven_item_describe(Ind, item);
+	inven_item_optimize(Ind, item);
+
+	/* Combine the pack */
+	p_ptr->notice |= (PN_COMBINE);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+	msg_format(Ind2, "You are hit by a powerful magic wave from %s.", p_ptr->name);
+}
+
+
+bool telekinesis(int Ind, object_type *o_ptr)
+{
+  player_type *p_ptr = Players[Ind];
+
+  p_ptr->current_telekinesis = o_ptr;
+  get_item(Ind);
+
+  return TRUE;
+}
+
+
+int get_player(int Ind, object_type *o_ptr)
+{
+        player_type *p_ptr = Players[Ind];
+        bool ok = FALSE;
+        int Ind2;
+
+	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+
+       	/* check for a valid inscription */
+	if (inscription == NULL)
+	  {
+	    msg_print(Ind, "Nobody to use the power with.");
+	    return 0;
+	  }
+	
+	/* scan the inscription for @P */
+	while ((*inscription != '\0') && !ok)
+	{
+		
+		if (*inscription == '@')
+		{
+			inscription++;
+			
+			/* a valid @P has been located */
+			if (*inscription == 'P')
+			{			
+				inscription++;
+				
+				Ind2 = find_player_name(inscription);
+				if (Ind2) ok = TRUE;
+			}
+		}
+		inscription++;
+	}
+	
+        if (!ok)
+	  {
+	    msg_print(Ind, "Player is not on.");
+	    return 0;
+	  }
+
+	return Ind2;
+}
+
+
+/*
+ * Set "p_ptr->tim_manashield", notice observable changes
+ */
+bool set_tim_manashield(int Ind, int v)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool notice = FALSE;
+
+	/* Hack -- Force good values */
+	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
+
+	/* Open */
+	if (v)
+	{
+		if (!p_ptr->tim_manashield)
+		{
+			msg_print(Ind, "You feel immortal !");
+			notice = TRUE;
+		}
+	}
+
+	/* Shut */
+	else
+	{
+		if (p_ptr->tim_manashield)
+		{
+			msg_print(Ind, "You feel less immortal.");
+			notice = TRUE;
+		}
+	}
+
+	/* Use the value */
+	p_ptr->tim_manashield = v;
+
+	/* Nothing to notice */
+	if (!notice) return (FALSE);
+
+	/* Disturb */
+	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+
+	/* Recalculate bonuses */
+	p_ptr->update |= (PU_BONUS);
+
+	/* Handle stuff */
+	handle_stuff(Ind);
+
+	/* Result */
+	return (TRUE);
+}
+
+
+/*
+ * Set "p_ptr->tim_meditation", notice observable changes
+ */
+bool set_tim_meditation(int Ind, int v)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool notice = FALSE;
+
+	/* Hack -- Force good values */
+	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
+
+	/* Open */
+	if (v)
+	{
+		if (!p_ptr->tim_meditation)
+		{
+			msg_format_near(Ind, "%s starts a calm meditation!", p_ptr->name);
+			msg_print(Ind, "You start a calm meditation!");
+			notice = TRUE;
+		}
+	}
+
+	/* Shut */
+	else
+	{
+		if (p_ptr->tim_meditation)
+		{
+			msg_format_near(Ind, "%s stops meditating.", p_ptr->name);
+			msg_print(Ind, "You stop your meditation.");
+			notice = TRUE;
+		}
+	}
+
+	/* Use the value */
+	p_ptr->tim_meditation = v;
+
+	/* Nothing to notice */
+	if (!notice) return (FALSE);
+
+	/* Disturb */
+	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+
+	/* Recalculate bonuses */
+	p_ptr->update |= (PU_HP | PU_MANA);
+
+	/* Handle stuff */
+	handle_stuff(Ind);
+
+	/* Result */
+	return (TRUE);
+}
+
+
+/*
+ * Set "p_ptr->tim_wraith", notice observable changes
+ */
+bool set_tim_wraith(int Ind, int v)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool notice = FALSE;
+
+	/* Hack -- Force good values */
+	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
+
+	/* Open */
+	if (v)
+	{
+		if (!p_ptr->tim_wraith)
+		{
+			msg_format_near(Ind, "%s turns into a wraith!", p_ptr->name);
+			msg_print(Ind, "You turn into a wraith!");
+			notice = TRUE;
+			
+			p_ptr->wraith_in_wall = TRUE;
+		}
+	}
+
+	/* Shut */
+	else
+	{
+		if (p_ptr->tim_wraith)
+		{
+			msg_format_near(Ind, "%s loses his wraith powers.", p_ptr->name);
+			msg_print(Ind, "You lose your wraith powers.");
+			notice = TRUE;
+			
+			/* That will hopefully prevent game hanging when loading */
+			if (cave_floor_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px)) p_ptr->wraith_in_wall = FALSE;
+		}
+	}
+
+	/* Use the value */
+	p_ptr->tim_wraith = v;
+
+	/* Nothing to notice */
+	if (!notice) return (FALSE);
+
+	/* Disturb */
+	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+
+	/* Recalculate bonuses */
+	p_ptr->update |= (PU_BONUS);
+
+	/* Handle stuff */
+	handle_stuff(Ind);
+
+	/* Result */
+	return (TRUE);
+}
+
 
 /*
  * Set "p_ptr->blind", notice observable changes
@@ -1772,6 +2075,8 @@ void check_experience(int Ind)
 
 		/* Message */
 		msg_format(Ind, "Welcome to level %d.", p_ptr->lev);
+	sprintf(buf, "%s has attained level %d.", p_ptr->name, p_ptr->lev);
+	msg_broadcast(Ind, buf);
 
 		/* Record this event in the character history */
 		if(!(p_ptr->lev % 5))
@@ -1919,6 +2224,8 @@ void monster_death(int Ind, int m_idx)
 
 	int force_coin = get_coin_type(r_ptr);
 
+    u16b quark = 0;
+
 
 	/* Get the location */
 	y = m_ptr->fy;
@@ -1932,6 +2239,12 @@ void monster_death(int Ind, int m_idx)
 	if (r_ptr->flags1 & RF1_DROP_2D2) number += damroll(2, 2);
 	if (r_ptr->flags1 & RF1_DROP_3D2) number += damroll(3, 2);
 	if (r_ptr->flags1 & RF1_DROP_4D2) number += damroll(4, 2);
+
+    /* Hack -- inscribe items that a unique drops */
+    if (r_ptr->flags1 & RF1_UNIQUE)
+    {
+	quark = quark_add(r_name + r_ptr->name);
+    }
 
 	/* Drop some objects */
 	for (j = 0; j < number; j++)
@@ -1966,7 +2279,7 @@ void monster_death(int Ind, int m_idx)
 			/* Place Object */
 			else
 			{
-				place_object(Depth, ny, nx, good, great);
+                place_object(Depth, ny, nx, good, great, quark);
 				if (player_can_see_bold(Ind, ny, nx)) dump_item++;
 			}
 
@@ -2000,15 +2313,23 @@ void monster_death(int Ind, int m_idx)
 		lore_treasure(m_idx, dump_item, dump_gold);
 	}
 
+    	if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
+	{
+		/* Remember */
+	    	p_ptr->r_killed[m_ptr->r_idx]++;
+	}
+
 
 	/* Take note of the killer */
 	if (r_ptr->flags1 & RF1_UNIQUE)
 	{
 		/* Remember */
-		r_ptr->killer = p_ptr->id;
+        //r_ptr->killer = p_ptr->id;
 		
 		/* give credit to the killer by default */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
+	msg_print(Ind, buf);
+
 		/* message for event history */
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
 		
@@ -2051,6 +2372,7 @@ void monster_death(int Ind, int m_idx)
 
 		/* Mega-Hack -- Mark this item as "Grond" */
 		prize.name1 = ART_GROND;
+	prize.note = quark;
 
 		/* Mega-Hack -- Actually create "Grond" */
 		apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
@@ -2064,6 +2386,7 @@ void monster_death(int Ind, int m_idx)
 
 		/* Mega-Hack -- Mark this item as "Morgoth" */
 		prize.name1 = ART_MORGOTH;
+	prize.note = quark;
 
 		/* Mega-Hack -- Actually create "Morgoth" */
 		apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
@@ -2218,6 +2541,8 @@ void player_death(int Ind)
 			party_leave(Ind);
 		}
 
+/* No more respawn */
+#if 0
 		/* Bring back to life the uniques he slew */
 		for (i = 1; i < MAX_R_IDX; i++)
 		{
@@ -2244,6 +2569,7 @@ void player_death(int Ind)
 				
 			}
 		}
+#endif
 
 		/* One less player here */
 		players_on_depth[p_ptr->dun_depth]--;
@@ -2326,11 +2652,14 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		};
 	};
 
-#ifdef IRONMAN
+//  if (cfg_ironman)
+// {
+    if(p_ptr->lev > 19) { /* don't dump low chr deaths. */
 	/* Character dump here, before we start dropping items */
 	sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
 	file_character_server(Ind,dumpname);
-#endif
+    }
+// }
 
 	/* Drop gold if player has any */
 	if (p_ptr->alive && p_ptr->au)
@@ -2406,6 +2735,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 	if (p_ptr->fruit_bat != -1)
 
+#if 0
 	/* Bring back to life the uniques he slew */
 	for (i = 1; i < MAX_R_IDX; i++)
 	{
@@ -2432,6 +2762,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 			
 		}
 	}
+#endif
 
 	/* Handle suicide */
 	if (!p_ptr->alive)
@@ -2474,7 +2805,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Tell him */
 	msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
 
-#ifdef IRONMAN
+  if (cfg_ironman)
+  {
 	/* 
 	 * Ironmen don't get turned into ghosts.
 	 */
@@ -2503,7 +2835,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 	/* Done */
 	return;
-#endif
+  }
 
 	/* Turn him into a ghost */
 	p_ptr->ghost = 1;
@@ -2569,6 +2901,7 @@ void resurrect_player(int Ind)
 
 	/* Hack -- the dungeon master can not ressurect */
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) return;
+    if (!strcmp(p_ptr->name,cfg_irc_gate)) return;
 
 	/* Reset ghost flag */
 	p_ptr->ghost = 0;
@@ -2631,6 +2964,9 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 
 	s32b		new_exp, new_exp_frac;
 
+    /* Killing an unique multiple times is cheezy! */
+    bool cheeze = ((r_ptr->flags1 & RF1_UNIQUE) && p_ptr->r_killed[m_ptr->r_idx]);
+
 
 	/* Redraw (later) if needed */
 	update_health(m_idx);
@@ -2683,6 +3019,10 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			msg_format(Ind, "You have slain %s.", m_name);
 		}
 
+	/* Cheezy kills give neither xp nor loot! */
+	if (!cheeze)
+	{
+
 		/* Split experience if in a party */
 		if (p_ptr->party == 0)
 		{
@@ -2702,29 +3042,29 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 				p_ptr->exp_frac = new_exp_frac;
 			}
 
-#ifdef IRONMAN
+			// if (cfg_ironman)
+			// {
 			/* Ironmen don't need experience from breeders */
-			if( r_ptr->flags2 & RF2_MULTIPLY )
-				new_exp = 0;
-#endif
+            			if (r_ptr->flags2 & RF2_MULTIPLY) new_exp = 0;
+			// }
+
 			/* Gain experience */
 			gain_exp(Ind, new_exp);
 		}
 		else
 		{
 			/* Give experience to that party */
-#ifdef IRONMAN
 			/* Ironmen parties don't need experience from breeders */
-			if( !(r_ptr->flags2 & RF2_MULTIPLY) )
-#endif
+			if (!(/* cfg_ironman && */(r_ptr->flags2 & RF2_MULTIPLY)))
 			party_gain_exp(Ind, p_ptr->party, (long)r_ptr->mexp * r_ptr->level);
+           		
 		}
 
 		/* Generate treasure */
 		monster_death(Ind, m_idx);
 
 		/* When the player kills a Unique, it stays dead */
-		if (r_ptr->flags1 & RF1_UNIQUE) r_ptr->max_num = 0;
+        	//if (r_ptr->flags1 & RF1_UNIQUE) r_ptr->max_num = 0;
 
 		/* Recall even invisible uniques or winners */
 		if (p_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE))
@@ -2738,6 +3078,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			/* Hack -- Auto-recall */
 			recent_track(m_ptr->r_idx);
 		}
+	}
 
 		/* Delete the monster */
 		delete_monster_idx(m_idx);
@@ -4167,7 +4508,7 @@ u16b master_summon_aux_monster_type( char monster_type, char * monster_parms)
 bool master_acquire(int Ind, char * parms)
 {
 	player_type * p_ptr = Players[Ind];
-	acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1, TRUE);
+    acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1, FALSE);
 	return TRUE;
 }
 
@@ -4321,5 +4662,3 @@ bool master_generate(int Ind, char * parms)
 	}
 	return TRUE;
 }
-
-

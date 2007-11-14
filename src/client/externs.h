@@ -46,8 +46,8 @@ extern char inventory_name[INVEN_TOTAL][80];
 
 extern store_type store;
 extern owner_type store_owner;
-extern int store_prices[24];
-extern char store_names[24][80];
+extern int store_prices[STORE_INVEN_MAX];
+extern char store_names[STORE_INVEN_MAX][80];
 extern s16b store_num;
 
 extern char spell_info[26][9][80];
@@ -277,6 +277,8 @@ extern void cmd_master(void);
 extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
+extern void cmd_observe(void);
+extern void cmd_mind(void);
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
@@ -339,7 +341,7 @@ extern void display_inventory(void);
 extern void display_store(void);
 
 /* c-xtra1.c */
-extern void prt_stat(int stat, int max, int cur);
+extern void prt_stat(int stat, int max, int cur, bool maxed);
 extern void prt_title(cptr title);
 extern void prt_level(int level, int max, int cur, int adv);
 extern void prt_gold(int gold);
@@ -441,8 +443,9 @@ extern int Send_purchase_house(int dir);
 extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
+extern int Send_observe(int item);
 
-
+extern int Send_mind();
 
 
 /*

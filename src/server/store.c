@@ -332,37 +332,49 @@ static int store_num = 7;
  */
 static byte rgold_adj[MAX_RACES][MAX_RACES] =
 {
-	/*Hum, HfE, Elf,  Hal, Gno, Dwa, HfO, HfT, Dun, HiE*/
+    /*Hum, HfE, Elf, Hal, Gno, Dwa, HfO, HfT, Dun, HiE,  Yk, Gob, Ent,  TL*/
 
 	/* Human */
-	{ 100, 105, 105, 110, 113, 115, 120, 125, 100, 105},
+    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105,  80, 120, 100, 100},
 
 	/* Half-Elf */
-	{ 110, 100, 100, 105, 110, 120, 125, 130, 110, 100},
+    { 110, 100, 100, 105, 110, 120, 125, 130, 110, 100,  85, 125, 100, 100},
 
 	/* Elf */
-	{ 110, 105, 100, 105, 110, 120, 125, 130, 110, 100},
+    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100},
 
 	/* Halfling */
-	{ 115, 110, 105,  95, 105, 110, 115, 130, 115, 105},
+    { 115, 110, 105,  95, 105, 110, 115, 130, 115, 105,  80, 115, 100, 100},
 
 	/* Gnome */
-	{ 115, 115, 110, 105,  95, 110, 115, 130, 115, 110},
+    { 115, 115, 110, 105,  95, 110, 115, 130, 115, 110,  90, 115, 100, 100},
 
 	/* Dwarf */
-	{ 115, 120, 120, 110, 110,  95, 125, 135, 115, 120},
+    { 115, 120, 120, 110, 110,  95, 125, 135, 115, 120, 110, 135, 100, 100},
 
 	/* Half-Orc */
-	{ 115, 120, 125, 115, 115, 130, 110, 115, 115, 125},
+    { 115, 120, 125, 115, 115, 130, 110, 115, 115, 125,  90, 110, 100, 100},
 
 	/* Half-Troll */
-	{ 110, 115, 115, 110, 110, 130, 110, 110, 110, 115},
+    { 110, 115, 115, 110, 110, 130, 110, 110, 110, 115,  95, 110, 100, 100},
 
 	/* Dunedain  */
-	{ 100, 105, 105, 110, 113, 115, 120, 125, 100, 105},
+    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105, 100, 120, 100, 100},
 
 	/* High_Elf */
-	{ 110, 105, 100, 105, 110, 120, 125, 130, 110, 100}
+    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100},
+
+    /* Yeek (unused) */
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+
+    /* Goblin (unused) */
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+
+    /* Ent (unused) */
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+
+    /* Thunderlord (unused) */
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100}
 
 };
 
@@ -494,6 +506,9 @@ static void mass_produce(object_type *o_ptr)
 
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
+#if defined(NEW_ADDITIONS)
+	case TV_SORCERY_BOOK:
+#endif
 		{
 			if (cost <= 50L) size += mass_roll(2, 3);
 			if (cost <= 500L) size += mass_roll(1, 3);
@@ -511,6 +526,7 @@ static void mass_produce(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_POLEARM:
 		case TV_HAFTED:
+        case TV_MSTAFF:
 		case TV_DIGGING:
 		case TV_BOW:
 		{
@@ -596,6 +612,9 @@ static bool store_object_similar(object_type *o_ptr, object_type *j_ptr)
 
 	/* Require identical "ego-item" names */
 	if (o_ptr->name2 != j_ptr->name2) return (0);
+
+    /* Require identical "random artifact" names */
+    if (o_ptr->name3 != j_ptr->name3) return (0);
 
 	/* Hack -- Never stack "powerful" items */
 	if (o_ptr->xtra1 || j_ptr->xtra1) return (0);
@@ -690,7 +709,7 @@ static bool store_check_num(int st, object_type *o_ptr)
 static bool store_will_buy(int Ind, object_type *o_ptr)
 {
 	player_type *p_ptr = Players[Ind];
-	u32b            f1,f2,f3;
+    u32b            f1,f2,f3,f4;
 
 	/* Switch on the store */
 	switch (p_ptr->store_num)
@@ -753,6 +772,7 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 				case TV_HAFTED:
 				case TV_POLEARM:
 				case TV_SWORD:
+                case TV_MSTAFF:
 					break;
 				default:
 					return (FALSE);
@@ -776,7 +796,7 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 					/* if Known, aware, and Blessed, yes. */
 					if (object_aware_p(Ind, o_ptr)) {
 						if (object_known_p(Ind, o_ptr)){
-							object_flags(o_ptr, &f1, &f2, &f3);
+                            object_flags(o_ptr, &f1, &f2, &f3, &f4);
 							if (f3 & TR3_BLESSED) break;
 						}
 					}
@@ -809,6 +829,9 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 			switch (o_ptr->tval)
 			{
 				case TV_MAGIC_BOOK:
+#if defined(NEW_ADDITIONS)
+		case TV_SORCERY_BOOK:
+#endif
 				case TV_AMULET:
 				case TV_RING:
 				case TV_STAFF:
@@ -1228,7 +1251,12 @@ static void store_create(int st)
 		invcopy(o_ptr, i);
 
 		/* Apply some "low-level" magic (no artifacts) */
+	/* Boost BM to bypass the "good" roll */
+	if (store_num == 6)
+		apply_magic(0, o_ptr, level, FALSE, TRUE, FALSE);
+	else
 		apply_magic(0, o_ptr, level, FALSE, FALSE, FALSE);
+
 
 		/* Hack -- Charge lite's */
 		if (o_ptr->tval == TV_LITE)
@@ -1251,11 +1279,8 @@ static void store_create(int st)
 			if (black_market_crap(o_ptr)) continue;
 
 			/* Hack -- No "cheap" items */
-			if (object_value(0, o_ptr) < 10) continue;
-			//if (object_value(0, o_ptr) < 3000) continue;
-
-			/* No "worthless" items */
-			/* if (object_value(o_ptr) <= 0) continue; */
+	    /* Value of 100 should prevent generation of stuff like amulets of adornment */
+            if (object_value(0, o_ptr) < 100) continue;
 		}
 
 		/* Prune normal stores */
@@ -1434,8 +1459,8 @@ static void display_inventory(int Ind)
 	store_type *st_ptr = &store[p_ptr->store_num];
 	int k;
 
-	/* Display the next 24 items */
-	for (k = 0; k < 24; k++)
+    /* Display the items */
+    for (k = 0; k < STORE_INVEN_MAX; k++)
 	{
 		/* Do not display "dead" items */
 		if (k >= st_ptr->stock_num) break;
@@ -2368,5 +2393,3 @@ void store_init(int which)
 		invwipe(&st_ptr->stock[k]);
 	}
 }
-
-		

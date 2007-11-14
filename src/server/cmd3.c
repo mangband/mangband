@@ -1112,6 +1112,9 @@ void do_cmd_steal(int Ind, int dir)
  */
 static bool item_tester_refill_lantern(object_type *o_ptr)
 {
+    /* Randarts are not refillable */
+    if (o_ptr->name3) return (FALSE);
+
 	/* Flasks of oil are okay */
 	if (o_ptr->tval == TV_FLASK) return (TRUE);
 
@@ -1389,7 +1392,7 @@ static bool do_cmd_look_accept(int Ind, int y, int x)
 	/* Player grids */
 	if (c_ptr->m_idx < 0)
 	{
-		if (player_has_los_bold(Ind, y, x) || p_ptr->telepathy)
+        if (player_has_los_bold(Ind, y, x) || (p_ptr->telepathy == TR4_ESP_ALL))
 			return (TRUE);
 	}
 
@@ -1994,5 +1997,3 @@ void do_cmd_query_symbol(int Ind, char sym)
 	/* Display the result */
 	msg_print(Ind, buf);
 }
-
-

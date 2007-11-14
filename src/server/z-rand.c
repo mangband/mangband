@@ -94,6 +94,16 @@ void Rand_state_init(u32b seed)
 		/* Advance the index */
 		Rand_place = j;
 	}
+/* 
+	{ 
+		int x;
+		for(x=0;x<100;x++) { 
+*/
+			fprintf(stderr,"Random Number %ld\n", rand_int(32768));
+/*
+		};
+	};
+*/
 }
 
 
@@ -349,3 +359,6 @@ s16b maxroll(int num, int sides)
 {
 	return (num * sides);
 }
+
+
+

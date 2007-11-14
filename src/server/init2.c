@@ -1065,7 +1065,6 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_HAFTED, SV_MORNING_STAR },
 
 		{ TV_HAFTED, SV_FLAIL },
-	//	{ TV_HAFTED, SV_FLAIL },    for life.
 		{ TV_HAFTED, SV_LEAD_FILLED_MACE },
 		{ TV_SCROLL, SV_SCROLL_REMOVE_CURSE },
 		{ TV_SCROLL, SV_SCROLL_BLESSING },
@@ -1074,17 +1073,6 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_POTION, SV_POTION_BOLDNESS },
 		{ TV_POTION, SV_POTION_HEROISM },
 
-#ifdef IRONMAN
-		/* In Ironman, temple sells healing pots */
-		{ TV_POTION, SV_POTION_HEALING },
-		{ TV_POTION, SV_POTION_HEALING },
-		{ TV_POTION, SV_POTION_HEALING },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
-		{ TV_POTION, SV_POTION_CURE_CRITICAL },
-		{ TV_POTION, SV_POTION_CURE_CRITICAL },
-		{ TV_POTION, SV_POTION_RESTORE_EXP },
-#else
 		{ TV_SCROLL, SV_SCROLL_LIFE	},
 		{ TV_POTION, SV_POTION_CURE_LIGHT },
 		{ TV_POTION, SV_POTION_CURE_SERIOUS },
@@ -1093,7 +1081,6 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_POTION, SV_POTION_CURE_CRITICAL },
 		{ TV_POTION, SV_POTION_RESTORE_EXP },
 		{ TV_POTION, SV_POTION_RESTORE_EXP },
-#endif
 
 		{ TV_PRAYER_BOOK, 0 },
 		{ TV_PRAYER_BOOK, 0 },
@@ -1131,18 +1118,10 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_SCROLL, SV_SCROLL_RECHARGING },
 		{ TV_SCROLL, SV_SCROLL_SATISFY_HUNGER },
 
-#ifdef IRONMAN
-		/* Alchemy stocks tele scrolls instead of useless WoR in Ironman */
-		{ TV_SCROLL, SV_SCROLL_TELEPORT },
-		{ TV_SCROLL, SV_SCROLL_TELEPORT },
-		{ TV_SCROLL, SV_SCROLL_TELEPORT },
-		{ TV_SCROLL, SV_SCROLL_TELEPORT },
-#else
 		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL },
 		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL },
 		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL },
 		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL },
-#endif
 
 		{ TV_POTION, SV_POTION_RESIST_HEAT },
 		{ TV_POTION, SV_POTION_RESIST_COLD },
@@ -1169,58 +1148,280 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_WAND, SV_WAND_SLEEP_MONSTER },
 		{ TV_WAND, SV_WAND_MAGIC_MISSILE },
 		{ TV_WAND, SV_WAND_STINKING_CLOUD },
-		{ TV_WAND, SV_WAND_WONDER },
 		{ TV_STAFF, SV_STAFF_LITE },
 		{ TV_STAFF, SV_STAFF_MAPPING },
 		{ TV_STAFF, SV_STAFF_DETECT_TRAP },
 		{ TV_STAFF, SV_STAFF_DETECT_DOOR },
-
-		{ TV_STAFF, SV_STAFF_DETECT_GOLD },
 		{ TV_STAFF, SV_STAFF_DETECT_ITEM },
+
 		{ TV_STAFF, SV_STAFF_DETECT_INVIS },
 		{ TV_STAFF, SV_STAFF_DETECT_EVIL },
 		{ TV_STAFF, SV_STAFF_TELEPORTATION },
 		{ TV_STAFF, SV_STAFF_TELEPORTATION },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
+        { TV_MAGIC_BOOK, 0 },
+        { TV_MAGIC_BOOK, 0 },
 
-		/*
-		{ TV_RING, SV_RING_RESIST_FIRE },
-		{ TV_RING, SV_RING_RESIST_COLD },
+        { TV_MAGIC_BOOK, 1 },
+        { TV_MAGIC_BOOK, 2 },
+        { TV_MAGIC_BOOK, 3 }
+	
+#if defined(NEW_ADDITIONS)
+	,{ TV_SORCERY_BOOK, 0 },
+	{ TV_SORCERY_BOOK, 0 },
+	{ TV_SORCERY_BOOK, 1 },
+	{ TV_SORCERY_BOOK, 2 },
+	{ TV_SORCERY_BOOK, 3 }
+#endif
+    }
+};
+
+static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
+{
+    {
+        /* General Store */
+
+        { TV_FOOD, SV_FOOD_RATION },
+        { TV_FOOD, SV_FOOD_RATION },
+        { TV_FOOD, SV_FOOD_RATION },
+        { TV_FOOD, SV_FOOD_RATION },
+        { TV_FOOD, SV_FOOD_RATION },
+        { TV_FOOD, SV_FOOD_BISCUIT },
+        { TV_FOOD, SV_FOOD_JERKY },
+        { TV_FOOD, SV_FOOD_JERKY },
+
+        { TV_FOOD, SV_FOOD_PINT_OF_WINE },
+        { TV_FOOD, SV_FOOD_PINT_OF_ALE },
+        { TV_LITE, SV_LITE_TORCH },
+        { TV_LITE, SV_LITE_TORCH },
+        { TV_LITE, SV_LITE_TORCH },
+        { TV_LITE, SV_LITE_TORCH },
+        { TV_LITE, SV_LITE_LANTERN },
+        { TV_LITE, SV_LITE_LANTERN },
+
+        { TV_FLASK, 0 },
+        { TV_FLASK, 0 },
+        { TV_FLASK, 0 },
+        { TV_FLASK, 0 },
+        { TV_FLASK, 0 },
+        { TV_FLASK, 0 },
+        { TV_ARROW, SV_AMMO_NORMAL },
+        { TV_ARROW, SV_AMMO_NORMAL },
+
+        { TV_SHOT, SV_AMMO_NORMAL },
+        { TV_BOLT, SV_AMMO_NORMAL },
+        { TV_BOLT, SV_AMMO_NORMAL },
+        { TV_DIGGING, SV_SHOVEL },
+        { TV_DIGGING, SV_PICK },
+        { TV_CLOAK, SV_CLOAK },
+        { TV_CLOAK, SV_CLOAK },
+        { TV_CLOAK, SV_CLOAK }
+    },
+
+    {
+        /* Armoury */
+
+        { TV_BOOTS, SV_PAIR_OF_SOFT_LEATHER_BOOTS },
+        { TV_BOOTS, SV_PAIR_OF_SOFT_LEATHER_BOOTS },
+        { TV_BOOTS, SV_PAIR_OF_HARD_LEATHER_BOOTS },
+        { TV_BOOTS, SV_PAIR_OF_HARD_LEATHER_BOOTS },
+        { TV_HELM, SV_HARD_LEATHER_CAP },
+        { TV_HELM, SV_HARD_LEATHER_CAP },
+        { TV_HELM, SV_METAL_CAP },
+        { TV_HELM, SV_IRON_HELM },
+
+        { TV_SOFT_ARMOR, SV_ROBE },
+        { TV_SOFT_ARMOR, SV_ROBE },
+        { TV_SOFT_ARMOR, SV_SOFT_LEATHER_ARMOR },
+        { TV_SOFT_ARMOR, SV_SOFT_LEATHER_ARMOR },
+        { TV_SOFT_ARMOR, SV_HARD_LEATHER_ARMOR },
+        { TV_SOFT_ARMOR, SV_HARD_LEATHER_ARMOR },
+        { TV_SOFT_ARMOR, SV_HARD_STUDDED_LEATHER },
+        { TV_SOFT_ARMOR, SV_HARD_STUDDED_LEATHER },
+
+        { TV_SOFT_ARMOR, SV_LEATHER_SCALE_MAIL },
+        { TV_SOFT_ARMOR, SV_LEATHER_SCALE_MAIL },
+        { TV_HARD_ARMOR, SV_METAL_SCALE_MAIL },
+        { TV_HARD_ARMOR, SV_CHAIN_MAIL },
+        { TV_HARD_ARMOR, SV_CHAIN_MAIL },
+        { TV_HARD_ARMOR, SV_AUGMENTED_CHAIN_MAIL },
+        { TV_HARD_ARMOR, SV_BAR_CHAIN_MAIL },
+        { TV_HARD_ARMOR, SV_DOUBLE_CHAIN_MAIL },
+
+        { TV_HARD_ARMOR, SV_METAL_BRIGANDINE_ARMOUR },
+        { TV_GLOVES, SV_SET_OF_LEATHER_GLOVES },
+        { TV_GLOVES, SV_SET_OF_LEATHER_GLOVES },
+        { TV_GLOVES, SV_SET_OF_GAUNTLETS },
+        { TV_SHIELD, SV_SMALL_LEATHER_SHIELD },
+        { TV_SHIELD, SV_SMALL_LEATHER_SHIELD },
+        { TV_SHIELD, SV_LARGE_LEATHER_SHIELD },
+        { TV_SHIELD, SV_SMALL_METAL_SHIELD }
+    },
+
+    {
+        /* Weaponsmith */
+
+        { TV_SWORD, SV_DAGGER },
+        { TV_SWORD, SV_MAIN_GAUCHE },
+        { TV_SWORD, SV_RAPIER },
+        { TV_SWORD, SV_SMALL_SWORD },
+        { TV_SWORD, SV_SHORT_SWORD },
+        { TV_SWORD, SV_SABRE },
+        { TV_SWORD, SV_CUTLASS },
+        { TV_SWORD, SV_TULWAR },
+
+        { TV_SWORD, SV_BROAD_SWORD },
+        { TV_SWORD, SV_LONG_SWORD },
+        { TV_SWORD, SV_SCIMITAR },
+        { TV_SWORD, SV_KATANA },
+        { TV_SWORD, SV_BASTARD_SWORD },
+        { TV_POLEARM, SV_SPEAR },
+        { TV_POLEARM, SV_AWL_PIKE },
+        { TV_POLEARM, SV_TRIDENT },
+
+        { TV_POLEARM, SV_PIKE },
+        { TV_POLEARM, SV_BEAKED_AXE },
+        { TV_POLEARM, SV_BROAD_AXE },
+        { TV_POLEARM, SV_LANCE },
+        { TV_POLEARM, SV_BATTLE_AXE },
+        { TV_HAFTED, SV_WHIP },
+        { TV_BOW, SV_SLING },
+        { TV_BOW, SV_SHORT_BOW },
+
+        { TV_BOW, SV_LONG_BOW },
+        { TV_BOW, SV_LIGHT_XBOW },
+        { TV_SHOT, SV_AMMO_NORMAL },
+        { TV_SHOT, SV_AMMO_NORMAL },
+        { TV_ARROW, SV_AMMO_NORMAL },
+        { TV_ARROW, SV_AMMO_NORMAL },
+        { TV_BOLT, SV_AMMO_NORMAL },
+        { TV_BOLT, SV_AMMO_NORMAL },
+    },
+
+    {
+        /* Temple */
+
+        { TV_HAFTED, SV_WHIP },
+        { TV_HAFTED, SV_QUARTERSTAFF },
+        { TV_HAFTED, SV_MACE },
+        { TV_HAFTED, SV_MACE },
+        { TV_HAFTED, SV_BALL_AND_CHAIN },
+        { TV_HAFTED, SV_WAR_HAMMER },
+        { TV_HAFTED, SV_LUCERN_HAMMER },
+        { TV_HAFTED, SV_MORNING_STAR },
+
+        { TV_HAFTED, SV_FLAIL },
+        { TV_HAFTED, SV_LEAD_FILLED_MACE },
+        { TV_SCROLL, SV_SCROLL_REMOVE_CURSE },
+        { TV_SCROLL, SV_SCROLL_BLESSING },
+        { TV_SCROLL, SV_SCROLL_HOLY_CHANT },
+        { TV_SCROLL, SV_SCROLL_LIFE	},
+        { TV_POTION, SV_POTION_BOLDNESS },
+        { TV_POTION, SV_POTION_HEROISM },
+
+        /* In Ironman, temple sells healing pots */
+        { TV_POTION, SV_POTION_HEALING },
+        { TV_POTION, SV_POTION_HEALING },
+        { TV_POTION, SV_POTION_HEALING },
+        { TV_POTION, SV_POTION_CURE_SERIOUS },
+        { TV_POTION, SV_POTION_CURE_SERIOUS },
+        { TV_POTION, SV_POTION_CURE_CRITICAL },
+        { TV_POTION, SV_POTION_CURE_CRITICAL },
+        { TV_POTION, SV_POTION_RESTORE_EXP },
+
+        { TV_PRAYER_BOOK, 0 },
+        { TV_PRAYER_BOOK, 0 },
+        { TV_PRAYER_BOOK, 0 },
+        { TV_PRAYER_BOOK, 1 },
+        { TV_PRAYER_BOOK, 1 },
+        { TV_PRAYER_BOOK, 2 },
+        { TV_PRAYER_BOOK, 2 },
+        { TV_PRAYER_BOOK, 3 }
+    },
+
+    {
+        /* Alchemy shop */
+
+        { TV_SCROLL, SV_SCROLL_ENCHANT_WEAPON_TO_HIT },
+        { TV_SCROLL, SV_SCROLL_ENCHANT_WEAPON_TO_DAM },
+        { TV_SCROLL, SV_SCROLL_ENCHANT_ARMOR },
+        { TV_SCROLL, SV_SCROLL_IDENTIFY },
+        { TV_SCROLL, SV_SCROLL_IDENTIFY },
+        { TV_SCROLL, SV_SCROLL_IDENTIFY },
+        { TV_SCROLL, SV_SCROLL_IDENTIFY },
+        { TV_SCROLL, SV_SCROLL_LIGHT },
+
+        { TV_SCROLL, SV_SCROLL_PHASE_DOOR },
+        { TV_SCROLL, SV_SCROLL_PHASE_DOOR },
+        { TV_SCROLL, SV_SCROLL_PHASE_DOOR },
+        { TV_SCROLL, SV_SCROLL_MONSTER_CONFUSION },
+        { TV_SCROLL, SV_SCROLL_MAPPING },
+        { TV_SCROLL, SV_SCROLL_ENCHANT_WEAPON_TO_HIT },
+        { TV_SCROLL, SV_SCROLL_ENCHANT_WEAPON_TO_DAM },
+        { TV_SCROLL, SV_SCROLL_ENCHANT_ARMOR },
+
+        { TV_SCROLL, SV_SCROLL_DETECT_DOOR },
+        { TV_SCROLL, SV_SCROLL_DETECT_INVIS },
+        { TV_SCROLL, SV_SCROLL_RECHARGING },
+        { TV_SCROLL, SV_SCROLL_SATISFY_HUNGER },
+
+        /* Alchemy stocks tele scrolls instead of useless WoR in Ironman */
+        { TV_SCROLL, SV_SCROLL_TELEPORT },
+        { TV_SCROLL, SV_SCROLL_TELEPORT },
+        { TV_SCROLL, SV_SCROLL_TELEPORT },
+        { TV_SCROLL, SV_SCROLL_TELEPORT },
+
+        { TV_POTION, SV_POTION_RESIST_HEAT },
+        { TV_POTION, SV_POTION_RESIST_COLD },
+        { TV_POTION, SV_POTION_RES_STR },
+        { TV_POTION, SV_POTION_RES_INT },
+        { TV_POTION, SV_POTION_RES_WIS },
+        { TV_POTION, SV_POTION_RES_DEX },
+        { TV_POTION, SV_POTION_RES_CON },
+        { TV_POTION, SV_POTION_RES_CHR }
+    },
+
+    {
+        /* Magic-User store */
+
+        { TV_RING, SV_RING_SEARCHING }, 
+	{ TV_RING, SV_RING_FEATHER_FALL },
 		{ TV_RING, SV_RING_PROTECTION },
-		{ TV_RING, SV_RING_FREE_ACTION },
-		{ TV_RING, SV_RING_SEE_INVIS},
-		{ TV_RING, SV_RING_STR},
-		{ TV_RING, SV_RING_INT},
-		{ TV_RING, SV_RING_DEX},
-		{ TV_RING, SV_RING_CON},
-		{ TV_RING, SV_RING_ACCURACY},
-		{ TV_RING, SV_RING_DAMAGE},
 		{ TV_AMULET, SV_AMULET_CHARISMA },
 		{ TV_AMULET, SV_AMULET_SLOW_DIGEST },
 		{ TV_AMULET, SV_AMULET_RESIST_ACID },
+        { TV_WAND, SV_WAND_SLOW_MONSTER },
+        { TV_WAND, SV_WAND_CONFUSE_MONSTER },
 
 		{ TV_WAND, SV_WAND_SLEEP_MONSTER },
+        { TV_WAND, SV_WAND_MAGIC_MISSILE },
+        { TV_WAND, SV_WAND_STINKING_CLOUD },
 		{ TV_STAFF, SV_STAFF_LITE },
 		{ TV_STAFF, SV_STAFF_MAPPING },
+        { TV_STAFF, SV_STAFF_DETECT_TRAP },
 		{ TV_STAFF, SV_STAFF_DETECT_DOOR },
-
 		{ TV_STAFF, SV_STAFF_DETECT_ITEM },
+
+        { TV_STAFF, SV_STAFF_DETECT_INVIS },
 		{ TV_STAFF, SV_STAFF_DETECT_EVIL },
 		{ TV_STAFF, SV_STAFF_TELEPORTATION },
 		{ TV_STAFF, SV_STAFF_TELEPORTATION },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
-		*/
+		{ TV_MAGIC_BOOK, 0 },
+		{ TV_MAGIC_BOOK, 0 },
 
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 0 },
 		{ TV_MAGIC_BOOK, 1 },
-		{ TV_MAGIC_BOOK, 1 },
-		{ TV_MAGIC_BOOK, 2 },
 		{ TV_MAGIC_BOOK, 2 },
 		{ TV_MAGIC_BOOK, 3 }
+#if defined(NEW_ADDITIONS)
+	,{ TV_SORCERY_BOOK, 0 },
+	{ TV_SORCERY_BOOK, 0 },
+	{ TV_SORCERY_BOOK, 1 },
+	{ TV_SORCERY_BOOK, 2 },
+	{ TV_SORCERY_BOOK, 3 }
+#endif
 	}
 };
 
@@ -1320,6 +1521,11 @@ static errr init_other(void)
 			/* Extract the tval/sval codes */
 			int tv = store_table[i][k][0];
 			int sv = store_table[i][k][1];
+	    if (cfg_ironman)
+	    {
+		tv = ironman_store_table[i][k][0];
+		sv = ironman_store_table[i][k][1];
+	    }
 
 			/* Look for it */
 			for (k_idx = 1; k_idx < MAX_K_IDX; k_idx++)
@@ -1650,6 +1856,11 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
+	printf("Dugeon Master Set as [%s]\n",cfg_dungeon_master);
+    }
+     else if (!strcmp(option,"IRC_GATE_NAME"))
+    {
+	cfg_irc_gate = strdup(value);
 	}
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
@@ -1677,14 +1888,6 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_door_bump_open = str_to_boolean(value);
 	}
-	else if (!strcmp(option,"BASE_UNIQUE_RESPAWN_TIME"))
-	{
-		cfg_unique_respawn_time = atoi(value);
-	}
-	else if (!strcmp(option,"MAX_UNIQUE_RESPAWN_TIME"))
-	{
-		cfg_unique_max_respawn_time = atoi(value);
-	}
 	else if (!strcmp(option,"LEVEL_UNSTATIC_CHANCE"))
 	{
 		cfg_level_unstatic_chance = atoi(value);
@@ -1693,6 +1896,23 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_retire_timer = atoi(value);
 	}
+    else if (!strcmp(option,"ALLOW_RANDOM_ARTIFACTS"))
+    {
+        cfg_random_artifacts = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"IRONMAN"))
+    {
+        cfg_ironman = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"BASE_UNIQUE_RESPAWN_TIME"))
+    {
+        cfg_unique_respawn_time = atoi(value);
+    }
+    else if (!strcmp(option,"MAX_UNIQUE_RESPAWN_TIME"))
+    {
+        cfg_unique_max_respawn_time = atoi(value);
+    }
+
 	else printf("Error : unrecognized mangband.cfg option %s\n", option);
 }
 
@@ -1825,5 +2045,3 @@ void init_some_arrays(void)
 	/* Hack -- all done */
 	s_printf("[Initializing arrays... done]\n");
 }
-
-

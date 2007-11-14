@@ -61,8 +61,8 @@ extern player_race race_info[MAX_RACES];
 extern player_class class_info[MAX_CLASS];
 extern player_magic magic_info[MAX_CLASS];
 extern magic_type ghost_spells[64];
-extern u32b spell_flags[2][9][2];
-extern cptr spell_names[3][64];
+extern u32b spell_flags[3][9][2];
+extern cptr spell_names[4][64];
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];
@@ -168,16 +168,19 @@ extern char * cfg_meta_address;
 extern char * cfg_report_address;
 extern char * cfg_console_password;
 extern char * cfg_dungeon_master;
+extern char * cfg_irc_gate;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern bool cfg_mage_hp_bonus;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;
 extern bool cfg_door_bump_open;
-extern s32b cfg_unique_respawn_time;
-extern s32b cfg_unique_max_respawn_time;
 extern s32b cfg_level_unstatic_chance;
 extern s32b cfg_retire_timer;
+extern bool cfg_random_artifacts;
+extern bool cfg_ironman;
+extern s32b cfg_unique_respawn_time;
+extern s32b cfg_unique_max_respawn_time;
 
 extern bool rogue_like_commands;
 extern bool quick_messages;
@@ -514,6 +517,8 @@ extern void do_cmd_pray_aux(int Ind, int dir);
 extern void show_ghost_spells(int Ind);
 extern void do_cmd_ghost_power(int Ind, int ability);
 extern void do_cmd_ghost_power_aux(int Ind, int dir);
+extern void do_cmd_sorc(int Ind, int book, int spell);
+extern void do_cmd_sorc_aux(int Ind, int dir);
 
 
 /* cmd6.c */
@@ -536,6 +541,8 @@ extern void play_game(bool new_game);
 extern void shutdown_server(void);
 extern void dungeon(void);
 extern bool check_special_level(s16b special_depth);
+extern int find_player_name(char *name);
+extern int find_player(s32b id);
 
 /* files.c */
 extern void safe_setuid_drop(void);
@@ -566,6 +573,7 @@ extern void signals_ignore_tstp(void);
 extern void signals_handle_tstp(void);
 extern void signals_init(void);
 extern void kingly(int Ind);
+extern errr get_rnd_line(cptr file_name, int entry, char *output);
 
 /* generate.c */
 extern void alloc_dungeon_level(int Depth);
@@ -638,6 +646,9 @@ extern int race_index(char * name);
 extern bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char num);
 extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char num);
 
+/* monster2.c */
+extern bool is_detected(u32b flag, u32b esp);
+
 /* netserver.c */
 /*extern void Contact(int fd, void *arg);*/
 extern int Net_input(void);
@@ -655,6 +666,7 @@ extern int Send_sp(int Ind, int msp, int csp);
 extern int Send_char_info(int Ind, int race, int class, int sex);
 extern int Send_various(int Ind, int height, int weight, int age, int sc);
 extern int Send_stat(int Ind, int stat, int max, int cur);
+extern int Send_maxstat(int Ind, int stat, int max);
 extern int Send_history(int Ind, int line, cptr hist);
 extern int Send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, cptr name);
 extern int Send_equip(int Ind, char pos, byte attr, int wgt, byte tval, cptr name);
@@ -705,7 +717,7 @@ extern void Handle_direction(int Ind, int dir);
 /* object2.c */
 extern void flavor_init(void);
 extern void reset_visuals(void);
-extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
+extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
 extern void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern bool identify_fully_aux(int Ind, object_type *o_ptr);
@@ -750,8 +762,8 @@ extern s16b lookup_kind(int tval, int sval);
 extern void invwipe(object_type *o_ptr);
 extern void invcopy(object_type *o_ptr, int k_idx);
 extern void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, bool great);
-extern void place_object(int Depth, int y, int x, bool good, bool great);
-extern void acquirement(int Depth, int y1, int x1, int num, bool great);
+extern bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark);
+extern void acquirement(int Depth, int y1, int x1, int num, bool special);
 extern void place_trap(int Depth, int y, int x);
 extern void place_gold(int Depth, int y, int x);
 extern void process_objects(void);
@@ -819,8 +831,10 @@ extern bool dec_stat(int Ind, int stat, int amount, int permanent);
 extern bool res_stat(int Ind, int stat);
 extern bool apply_disenchant(int Ind, int mode);
 extern bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int flg);
+extern bool project_hook(int Ind, int typ, int dir, int dam, int flg);
 
 /* spells2.c */
+extern void wipe_spell(int Depth, int cy, int cx, int r);
 extern bool hp_player(int Ind, int num);
 extern bool hp_player_quiet(int Ind, int num);
 extern void warding_glyph(int Ind);
@@ -892,6 +906,8 @@ extern bool teleport_monster(int Ind, int dir);
 extern bool cure_light_wounds_proj(int Ind, int dir);
 extern bool cure_serious_wounds_proj(int Ind, int dir);
 extern bool cure_critical_wounds_proj(int Ind, int dir);
+extern bool cure_mortal_wounds_proj(int Ind, int dir);
+extern bool heal_other_lite_proj(int Ind, int dir);
 extern bool heal_other_proj(int Ind, int dir);
 extern bool heal_other_heavy_proj(int Ind, int dir);
 extern bool door_creation(int Ind);
@@ -961,6 +977,12 @@ extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 
 /* xtra2.c */
+extern bool telekinesis(int Ind, object_type *o_ptr);
+extern void telekinesis_aux(int Ind, int item);
+extern int get_player(int Ind, object_type *o_ptr);
+extern bool set_tim_manashield(int Ind, int v);
+extern bool set_tim_meditation(int Ind, int v);
+extern bool set_tim_wraith(int Ind, int v);
 extern bool set_blind(int Ind, int v);
 extern bool set_confused(int Ind, int v);
 extern bool set_poisoned(int Ind, int v);

@@ -197,18 +197,9 @@ static cptr do_cmd_feeling_text[11] =
  */
 void do_cmd_feeling(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Verify the feeling */
 	if (feeling < 0) feeling = 0;
 	if (feeling > 10) feeling = 10;
-
-	/* No useful feeling in town */
-	if (!p_ptr->dun_depth)
-	{
-		msg_print(Ind, "Looks like a typical town.");
-		return;
-	}
 
 	/* Display the feeling */
 	msg_print(Ind, do_cmd_feeling_text[feeling]);
@@ -407,13 +398,11 @@ void do_cmd_check_artifacts(int Ind, int line)
  */
 void do_cmd_check_uniques(int Ind, int line)
 {
-	int k;
-
+	int k, l, i, total = 0;
 	FILE *fff;
-
 	char file_name[1024];
-	cptr killer;
-
+	int idx[MAX_R_IDX];
+	monster_race *r_ptr, *curr_ptr;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -424,54 +413,79 @@ void do_cmd_check_uniques(int Ind, int line)
 	/* Scan the monster races */
 	for (k = 1; k < MAX_R_IDX-1; k++)
 	{
-		monster_race *r_ptr = &r_info[k];
+		r_ptr = &r_info[k];
 
 		/* Only print Uniques */
 		if (r_ptr->flags1 & RF1_UNIQUE)
 		{
-			bool dead = (r_ptr->max_num == 0);
-
 			/* Only display "known" uniques */
-			if (dead || cheat_know || r_ptr->r_sights)
+			if (cheat_know || r_ptr->r_sights)
 			{
-				/* Print a message */
-				fprintf(fff, "     %s is %s",
-				        (r_name + r_ptr->name),
-				        (dead ? "dead" : "alive"));
-
-				/* If dead, print killer */
-								
-				if (dead)
+				l = 0;
+				while (l < total)
 				{
-					killer = lookup_player_name(r_ptr->killer);
-					/*
-					
-					killer = lookup_player_name(r_ptr->killer);
-					if (killer)
-						fprintf(fff, " (killed by %s)",
-							killer);
-							
-					Now displays the respawn time.....
-					*/
-					
-					if (killer)
-					{																						
-						fprintf(fff, " (killed by %s,",killer);
-						/* Hack -- round the displayed
-						 * respawn time off to the
-						 * nearest 10 minutes...
-						 */
-						fprintf(fff, " safe %d min)",
-							((r_ptr->respawn_timer/10)+1)*10);
-					}
-
-				}
-
-				/* Terminate line */
-				fprintf(fff, "\n");
+					curr_ptr = &r_info[idx[l]];
+					if (r_ptr->level > curr_ptr->level)
+						break;
+					l++;
+				}				
+				for (i = total; i > l; i--)	
+					idx[i] = idx[i - 1];
+				idx[l] = k;
+				total++;
 			}
 		}
 	}
+								
+	if (total)
+				{
+		/* for each unique */
+		for (l = total - 1; l >= 0; l--)
+		{
+			byte ok = FALSE;
+			bool full = FALSE;
+					
+			r_ptr = &r_info[idx[l]];
+							
+			/* Format message */
+			fprintf(fff, "%s has been killed by", r_name + r_ptr->name);
+					
+			k = 0;
+			for (i = 1; i <= NumPlayers; i++)
+					{																						
+				player_type *q_ptr = Players[i];
+
+				if (q_ptr->r_killed[idx[l]])
+				{
+					if (!ok)
+					{
+
+						fprintf(fff, ":\n");
+						ok = TRUE;
+					}
+					fprintf(fff, "  %-16.16s", q_ptr->name);
+					k++;
+					full = FALSE;
+					if (k == 4)
+					{
+						fprintf(fff, "\n");
+						k = 0;
+						full = TRUE;
+					}
+				}
+					}
+
+			if (!ok)
+			{
+				if (r_ptr->r_tkills) fprintf(fff, " Somebody.");
+				else fprintf(fff, " Nobody.");
+				}
+
+				/* Terminate line */
+			if (!full) fprintf(fff, "\n");
+		}
+	}
+	else fprintf(fff, "No uniques are witnessed so far.\n");
 
 	/* Close the file */
 	my_fclose(fff);
@@ -517,8 +531,8 @@ void do_cmd_check_players(int Ind, int line)
 		/* don't display the dungeon master if the secret_dungeon_master
 		 * option is set 
 		 */
-		if ((!strcmp(q_ptr->name,cfg_dungeon_master)) &&
-		   (cfg_secret_dungeon_master)) continue;
+        if (!strcmp(q_ptr->name,cfg_dungeon_master) && (cfg_secret_dungeon_master)) continue;
+        if (!strcmp(q_ptr->name,cfg_irc_gate) && (cfg_secret_dungeon_master)) continue;
 
 		/*** Determine color ***/
 

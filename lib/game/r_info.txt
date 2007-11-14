@@ -96,7 +96,7 @@
 
 # Version stamp (required)
 
-V:0.7.3
+V:1.0.0
 
 
 ##### Non-race (contains the "player" picture) #####
@@ -110,7 +110,7 @@ G:@:w
 N:1:Filthy street urchin
 G:t:D
 I:110:1d4:4:1:40
-W:0:2:0:0
+W:0:5:0:0
 B:BEG
 B:TOUCH:EAT_GOLD
 F:MALE
@@ -203,7 +203,7 @@ D:You feel it isn't safe to touch him.
 N:10:Squint-eyed rogue
 G:t:b
 I:110:2d8:10:8:99
-W:0:1:0:0
+W:0:2:0:0
 B:HIT:HURT:1d6
 B:TOUCH:EAT_ITEM
 B:INSULT
@@ -239,7 +239,7 @@ D: amulets of adornment to buy.
 N:13:Mean-looking mercenary
 G:t:r
 I:110:5d8:10:20:250
-W:0:1:0:0
+W:0:3:0:0
 B:HIT:HURT:1d10
 F:MALE
 F:RAND_50 | DROP_90
@@ -250,7 +250,7 @@ D:No job is too low for him.
 N:14:Battle-scarred veteran
 G:t:B
 I:110:7d8:10:30:250
-W:0:1:0:0
+W:0:3:0:0
 B:HIT:HURT:2d6
 F:MALE
 F:RAND_50 | DROP_90
@@ -585,7 +585,7 @@ F:ANIMAL | IM_ACID
 D:A small humanoid figure.
 
 N:46:Grip, Farmer Maggot's dog
-G:C:U
+G:C:W
 I:120:5d5:30:30:0
 W:2:1:0:30
 B:BITE:HURT:1d4
@@ -597,7 +597,7 @@ D:A rather vicious dog belonging to Farmer Maggot.  It thinks you are
 D: stealing mushrooms.
 
 N:47:Fang, Farmer Maggot's dog
-G:C:U
+G:C:W
 I:120:5d5:30:30:0
 W:2:1:0:30
 B:BITE:HURT:1d4
@@ -4339,14 +4339,14 @@ S:BLINK | TELE_AWAY
 D:It is a very unstable, strange pulsing mound of flesh.
 
 N:330:Shelob, Spider of Darkness
-G:S:D
+G:S:v
 I:120:35d100:30:120:80
 W:55:3:0:27000
 B:CLAW:POISON:5d6
 B:CLAW:POISON:5d6
 B:BITE:PARALYZE:5d10
 B:STING:LOSE_STR:5d4
-F:UNIQUE | FEMALE
+F:UNIQUE | FEMALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ESCORT | ESCORTS
 F:ONLY_ITEM | DROP_1D2 | DROP_2D2 | DROP_GOOD
@@ -5592,7 +5592,7 @@ D: its helmet, eyes glow a baleful red and seem to pierce you like lances of
 D: fire.
 
 N:408:Castamir the Usurper
-G:p:R
+G:p:v
 I:120:88d10:20:90:40
 W:38:5:0:1600
 B:HIT:HURT:5d5
@@ -5724,7 +5724,7 @@ D:It is an angel, fast and strong.  You are stunned by its extreme holiness
 D: and try to resist all desires to obey it.
 
 N:416:Vargo, Tyrant of Fire
-G:E:r
+G:E:v
 I:120:24d100:12:50:50
 W:43:3:0:4000
 B:HIT:FIRE:4d6
@@ -5733,7 +5733,7 @@ B:HIT:FIRE:4d6
 B:HIT:FIRE:4d6
 F:UNIQUE
 F:FORCE_SLEEP | FORCE_MAXHP | RAND_25
-F:EMPTY_MIND
+F:EMPTY_MIND | ATTR_MULTI
 F:KILL_ITEM | KILL_BODY | BASH_DOOR | POWERFUL
 F:IM_FIRE | IM_POIS | IM_ACID | IM_ELEC
 F:NO_CONF | NO_SLEEP | NO_FEAR
@@ -5821,7 +5821,7 @@ D:A massive two-headed troll of huge strength, ettins are stupid but violent.
 D: They are also living proof that two heads are not more intelligent than one...
 
 N:422:Waldern, King of Water
-G:E:b
+G:E:v
 I:120:25d100:12:80:50
 W:43:3:0:4250
 B:HIT:HURT:5d5
@@ -5830,7 +5830,7 @@ B:HIT:HURT:5d5
 B:HIT:HURT:5d5
 F:UNIQUE
 F:FORCE_SLEEP | FORCE_MAXHP | RAND_25
-F:EMPTY_MIND | COLD_BLOOD
+F:EMPTY_MIND | COLD_BLOOD | ATTR_MULTI
 F:KILL_ITEM | KILL_BODY | BASH_DOOR | POWERFUL
 F:IM_POIS | IM_ACID | IM_FIRE | IM_COLD | IM_ACID
 F:NO_CONF | NO_SLEEP | NO_FEAR
@@ -5840,14 +5840,14 @@ D:A towering water elemental, Waldern is master of all things liquid.
 D: Wave after wave drowns your frail body.
 
 N:423:Kavlax the Many-Headed
-G:d:v
+G:d:R
 I:120:13d100:20:85:30
 W:39:3:0:3000
 B:BITE:HURT:2d12
 B:BITE:HURT:2d12
 B:BITE:HURT:2d12
 B:BITE:HURT:2d12
-F:UNIQUE | MALE | ATTR_MULTI
+F:UNIQUE | MALE
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:OPEN_DOOR | BASH_DOOR | POWERFUL
@@ -6114,14 +6114,14 @@ D:A vast legendary bird, its iron talons rake the most impenetrable of
 D: surfaces and its screech echoes through the many winding dungeon corridors.
 
 N:440:Uvatha the Horseman
-G:W:D
+G:W:v
 I:120:18d100:90:60:10
 W:40:3:0:10000
 B:HIT:HURT:6d6
 B:HIT:HURT:6d6
 B:HIT:EXP_80:4d6
 B:HIT:EXP_80:4d6
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_MAXHP
 F:ONLY_ITEM | DROP_2D2 | DROP_GOOD
 F:COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -6265,14 +6265,14 @@ D:It is a demon of small stature, but its armoured frame moves with
 D: lightning speed and its powers make it a tornado of death and destruction.
 
 N:449:Adunaphel the Quiet
-G:W:D
+G:W:v
 I:120:21d100:90:60:10
 W:43:3:0:13000
 B:HIT:HURT:6d6
 B:HIT:HURT:6d6
 B:TOUCH:EXP_80:5d6
 B:TOUCH:EXP_80:5d6
-F:UNIQUE | FEMALE
+F:UNIQUE | FEMALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:INVISIBLE | COLD_BLOOD | PASS_WALL | MOVE_BODY
@@ -6339,14 +6339,14 @@ S:S_DEMON
 D:It is a demon of lizard form with cruel-looking jaws.
 
 N:453:Akhorahil the Blind
-G:W:D
+G:W:v
 I:120:24d100:90:70:10
 W:45:3:0:15000
 B:HIT:HURT:7d6
 B:HIT:HURT:7d6
 B:GAZE:EXP_80:6d6
 B:WAIL:TERRIFY:6d6
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -6360,7 +6360,7 @@ D: enchantments, he created jewelled eyes that enabled him to see better than
 D: any ordinary man ever could.
 
 N:454:Gorlim, Betrayer of Barahir
-G:p:s
+G:p:v
 I:120:16d100:20:120:40
 W:41:3:0:7000
 B:HIT:HURT:8d6
@@ -6415,14 +6415,14 @@ S:S_DEMON
 D:It is demon with arms and pincers, its form a true mockery of life.
 
 N:457:Ren the Unclean
-G:W:D
+G:W:v
 I:120:27d100:90:70:10
 W:48:3:0:18000
 B:HIT:HURT:7d7
 B:HIT:HURT:7d7
 B:TOUCH:EXP_80:6d7
 B:WAIL:TERRIFY:6d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:INVISIBLE | COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -6546,14 +6546,14 @@ D: a master of light and dark.  Its form disappears from sight as it cloaks
 D: itself in unearthly shadows.
 
 N:464:Ji Indur Dawndeath
-G:W:D
+G:W:v
 I:120:32d100:90:70:10
 W:52:3:0:22000
 B:HIT:HURT:8d7
 B:HIT:HURT:8d7
 B:TOUCH:EXP_40:6d7
 B:TOUCH:EXP_40:6d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:INVISIBLE | COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -6585,14 +6585,14 @@ S:S_DEMON
 D:She is a demon of female form with many arms, each bearing deadly weapons.
 
 N:466:Quaker, Master of Earth
-G:E:u
+G:E:v
 I:110:28d100:10:97:90
 W:43:3:0:4500
 B:HIT:HURT:6d6
 B:HIT:HURT:6d6
 B:HIT:HURT:6d6
 B:HIT:SHATTER:10d10
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:EMPTY_MIND | COLD_BLOOD
 F:KILL_ITEM | KILL_BODY | PASS_WALL | POWERFUL
@@ -6623,7 +6623,7 @@ S:S_DEMON
 D:It is a massive humanoid demon wreathed in flames.
 
 N:468:Ariel, Queen of Air
-G:E:B
+G:E:v
 I:130:27d100:12:50:50
 W:43:3:0:4750
 B:HIT:HURT:4d6
@@ -6632,7 +6632,7 @@ B:HIT:CONFUSE:4d4
 B:HIT:CONFUSE:4d4
 F:UNIQUE | FEMALE
 F:FORCE_SLEEP | FORCE_MAXHP
-F:RAND_25
+F:RAND_25 | ATTR_MULTI
 F:EMPTY_MIND | COLD_BLOOD
 F:KILL_ITEM | KILL_BODY | BASH_DOOR | POWERFUL
 F:IM_ACID | IM_COLD | IM_ELEC | IM_POIS
@@ -6738,14 +6738,14 @@ D: His scales are covered with frost, and his breath sends a shower of ice
 D: into the air.
 
 N:474:Dwar, Dog Lord of Waw
-G:W:D
+G:W:v
 I:120:40d100:90:90:10
 W:56:3:0:25000
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
 B:BITE:EXP_40:6d7
 B:WAIL:TERRIFY:6d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:SMART | COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -6817,7 +6817,7 @@ D: radiating from its frame shakes your courage, its hatred inspired by your
 D: defiance.
 
 N:478:Dracolisk
-G:D:R
+G:D:v
 I:120:35d100:25:120:80
 W:55:2:0:14000
 B:BITE:HURT:4d12
@@ -6920,7 +6920,7 @@ B:HIT:FIRE:6d12
 B:HIT:FIRE:6d12
 B:CRUSH:HURT:5d12
 B:TOUCH:UN_POWER
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ESCORT | ESCORTS
 F:ONLY_ITEM | DROP_2D2 | DROP_3D2 | DROP_4D2 | DROP_GOOD
@@ -7079,14 +7079,14 @@ D:He is a master of disguise, an expert of stealth, a genius at traps, and
 D: moves with blinding speed.  Check your pockets!
 
 N:492:Hoarmurath of Dir
-G:W:D
+G:W:v
 I:120:45d100:90:100:10
 W:64:3:0:30000
 B:HIT:HURT:9d9
 B:HIT:HURT:9d9
 B:TOUCH:EXP_80:6d7
 B:WAIL:TERRIFY:6d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP | SMART
 F:ONLY_ITEM | DROP_2D2 | DROP_4D2 | DROP_GOOD
 F:COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -7119,14 +7119,14 @@ D: all forms of unarmed combat and controlling the world's natural creatures
 D: with disdainful ease.
 
 N:494:Khamul, the Black Easterling
-G:W:D
+G:W:v
 I:120:50d100:90:100:10
 W:72:3:0:40000
 B:HIT:HURT:9d10
 B:HIT:HURT:9d10
 B:TOUCH:EXP_40:7d7
 B:TOUCH:EXP_40:7d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_3D2 | DROP_4D2 | DROP_GOOD
 F:SMART | COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -7813,14 +7813,14 @@ D: shred your soul and his spells crush your will.  He is ancient, his history
 D: steeped in forgotten evils, his atrocities numerous and sickening.
 
 N:530:Ungoliant, the Unlight
-G:S:D
+G:S:v
 I:130:130d100:40:160:80
 W:75:1:0:35000
 B:CLAW:POISON:8d6
 B:CLAW:POISON:8d6
 B:BITE:PARALYZE:8d10
 B:STING:LOSE_STR:8d4
-F:UNIQUE | FEMALE
+F:UNIQUE | FEMALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_4D2 | DROP_GOOD
 F:SMART | BASH_DOOR
@@ -7911,14 +7911,14 @@ D: of your eyes.  Pulsating first one colour then the next, it knows only it
 D: must bring help to protect itself.
 
 N:535:The Witch-King of Angmar
-G:W:D
+G:W:v
 I:130:60d100:90:120:10
 W:80:3:0:60000
 B:HIT:HURT:10d10
 B:HIT:HURT:10d10
 B:HIT:EXP_80:7d7
 B:HIT:EXP_80:7d7
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP | SMART
 F:ONLY_ITEM | DROP_3D2 | DROP_4D2 | DROP_GOOD | DROP_GREAT
 F:COLD_BLOOD | OPEN_DOOR | BASH_DOOR | MOVE_BODY
@@ -8016,7 +8016,7 @@ B:HIT:FIRE:8d12
 B:HIT:FIRE:8d12
 B:CRUSH:HURT:8d12
 B:TOUCH:UN_POWER
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ESCORT | ESCORTS
 F:ONLY_ITEM | DROP_2D2 | DROP_3D2 | DROP_4D2 | DROP_GOOD
@@ -8033,7 +8033,7 @@ D: eyes that smoulder red.  The dungeon floor where he stands is scorched by
 D: the heat of his body.
 
 N:541:Draugluin, Sire of All Werewolves
-G:C:u
+G:C:v
 I:130:70d100:80:90:90
 W:83:2:0:40000
 B:CLAW:HURT:6d8
@@ -8096,7 +8096,7 @@ D: acknowledges no master save himself, as he hunts alone for his nemesis -
 D: Carcharoth, the terrible wolf of Angband.
 
 N:544:Carcharoth, the Jaws of Thirst
-G:C:r
+G:C:R
 I:130:80d100:50:160:10
 W:90:1:0:40000
 B:CLAW:FIRE:9d12
@@ -8124,7 +8124,7 @@ B:HIT:FIRE:9d12
 B:HIT:FIRE:9d12
 B:CRUSH:HURT:8d12
 B:TOUCH:UN_POWER
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ESCORT | ESCORTS
 F:ONLY_ITEM | DROP_2D2 | DROP_3D2 | DROP_4D2 | DROP_GOOD | DROP_GREAT
@@ -8431,14 +8431,14 @@ D: human intelligence and the great physical strength of the bear makes for
 D: a dangerous enemy.
 
 N:566:Beorn, the Shape-Changer
-G:q:D
+G:q:v
 I:120:20d70:25:60:25
 W:28:3:0:1000
 B:CLAW:HURT:2d10
 B:CLAW:HURT:2d10
 B:BITE:HURT:4d8
 B:CRUSH:HURT:3d6
-F:UNIQUE | MALE | FORCE_MAXHP | FORCE_SLEEP
+F:UNIQUE | MALE | FORCE_MAXHP | FORCE_SLEEP | ATTR_MULTI
 F:BASH_DOOR | ANIMAL | ESCORT | MOVE_BODY | SMART
 F:ONLY_ITEM | DROP_2D2 | DROP_GOOD
 D:Beorn is only occasionally seen in human form these days, preferring to
@@ -8919,13 +8919,13 @@ D:Clouds of these monsters light up the dungeon - so brightly that you can
 D: barely see through them.
 
 N:594:Eol, the Dark Elf
-G:h:D
+G:h:v
 I:130:80d30:20:100:60
 W:49:2:0:25000
 B:HIT:HURT:3d8
 B:HIT:HURT:3d8
 B:HIT:HURT:3d8
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_2D2 | DROP_4D2 | DROP_GOOD
 F:SMART | OPEN_DOOR | BASH_DOOR | HURT_LITE
@@ -8940,14 +8940,14 @@ D: he is currently fleeing their wrath, following the murder of Princess
 D: Aredhel of Gondolin.
 
 N:595:Maeglin, the Traitor of Gondolin
-G:h:D
+G:h:v
 I:130:60d100:70:120:20
 W:81:2:0:35000
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
-F:UNIQUE | MALE
+F:UNIQUE | MALE | ATTR_MULTI
 F:FORCE_SLEEP | FORCE_MAXHP
 F:ONLY_ITEM | DROP_3D2 | DROP_4D2 | DROP_GOOD | DROP_GREAT
 F:OPEN_DOOR | BASH_DOOR | KILL_WALL | MOVE_BODY
@@ -9189,14 +9189,14 @@ D:This ogre is leader of his tribe.  He sneers at you as he advances towards you
 D: wielding a huge club and pushing his own followers rudely aside.
 
 N:611:Ar-Pharazon the Golden
-G:p:y
+G:p:v
 I:130:40d100:30:45:255
 W:55:1:0:32500
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
 B:HIT:HURT:8d8
-F:FORCE_SLEEP | FORCE_MAXHP | UNIQUE | EVIL | MALE
+F:FORCE_SLEEP | FORCE_MAXHP | UNIQUE | EVIL | MALE | ATTR_MULTI
 F:ONLY_ITEM | DROP_1D2 | DROP_3D2 | DROP_GOOD | DROP_GREAT
 F:SMART | TAKE_ITEM | OPEN_DOOR | BASH_DOOR | MOVE_BODY
 F:IM_FIRE | IM_ELEC | IM_POIS
@@ -9283,4 +9283,3 @@ F:IM_ELEC | IM_POIS | IM_ACID | IM_FIRE | IM_COLD
 S:1_IN_5
 S:BR_ACID | BR_POIS | BR_COLD | BR_FIRE | BR_ELEC
 D:Shimmering in rainbow hues, this hound is beautiful and deadly.
-

@@ -19,7 +19,10 @@
 #define CLIENT
 #include "angband.h"
 #include "netclient.h"
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 static u32b last_keepalive;
 
@@ -69,6 +72,7 @@ static void Receive_init(void)
 
 	receive_tbl[PKT_QUIT]		= Receive_quit;
 	receive_tbl[PKT_STAT]		= Receive_stat;
+    receive_tbl[PKT_MAXSTAT]		= Receive_maxstat;
 	receive_tbl[PKT_HP]		= Receive_hp;
 	receive_tbl[PKT_AC]		= Receive_ac;
 	receive_tbl[PKT_INVEN]		= Receive_inven;
@@ -1049,7 +1053,7 @@ int Receive_stat(void)
 	p_ptr->stat_use[(int) stat] = cur;
 
 	if (!screen_icky && !shopping)
-		prt_stat(stat, max, cur);
+        prt_stat(stat, max, cur, (p_ptr->stat_max[(int) stat] == 18+100));
 	else
 		if ((n = Packet_printf(&qbuf, "%c%c%hd%hd", ch, stat, max, cur)) <= 0)
 		{
@@ -1063,6 +1067,34 @@ int Receive_stat(void)
 	return 1;
 }
 
+int Receive_maxstat(void)
+{
+    int	n;
+    char	ch;
+    char	stat;
+    s16b	max;
+
+    if ((n = Packet_scanf(&rbuf, "%c%c%hd", &ch, &stat, &max)) <= 0)
+    {
+        return n;
+    }
+
+    p_ptr->stat_max[(int) stat] = max;
+
+    if (!screen_icky && !shopping)
+        prt_stat(stat, p_ptr->stat_top[(int) stat], p_ptr->stat_use[(int) stat], (max == 18+100));
+    else
+        if ((n = Packet_printf(&qbuf, "%c%c%hd", ch, stat, max)) <= 0)
+        {
+            return n;
+        }
+
+
+    /* Window stuff */
+    p_ptr->window |= (PW_PLAYER);
+
+    return 1;
+}
 int Receive_hp(void)
 {
 	int	n;
@@ -1800,8 +1832,11 @@ int Receive_spell_info(void)
 		return n;
 	}
 
-	/* Save the info */
+    /* Save the info... */
 	strcpy(spell_info[book][line], buf);
+
+    /* ... and wipe the next line */
+    if (line < 8) spell_info[book][line+1][0] = '\0';
 
 	return 1;
 }
@@ -2499,6 +2534,18 @@ int Send_destroy(int item, int amt)
 	return 1;
 }
 
+int Send_observe(int item)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%hd", PKT_OBSERVE, item)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
 int Send_inscribe(int item, cptr buf)
 {
 	int	n;
@@ -3031,4 +3078,16 @@ static u32b last_sent;
 		 	last_sent=ticks;
 		}
 	}
+}
+
+int Send_mind()
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c", PKT_MIND)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
 }

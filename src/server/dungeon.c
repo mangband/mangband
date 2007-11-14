@@ -1,5 +1,3 @@
-
-
 /* Purpose: Angband game engine */
 
 /*
@@ -15,6 +13,37 @@
 #include "angband.h"
 #include "externs.h"
 
+
+int find_player(s32b id)
+{
+	int i;
+
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		player_type *p_ptr = Players[i];
+		
+		if (p_ptr->id == id) return i;
+	}
+	
+	/* assume none */
+	return 0;
+}	
+
+
+int find_player_name(char *name)
+{
+	int i;
+
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		player_type *p_ptr = Players[i];
+		
+		if (!strcmp(p_ptr->name, name)) return i;
+	}
+	
+	/* assume none */
+	return 0;
+}
 
 
 /*
@@ -98,6 +127,7 @@ static cptr value_check_aux2(object_type *o_ptr)
  *   Class 3 = Rogue   --> okay and heavy
  *   Class 4 = Ranger  --> okay and heavy
  *   Class 5 = Paladin --> slow but heavy
+ *   Class 6 = Sorceror --> slow and light
  */
 static void sense_inventory(int Ind)
 {
@@ -137,6 +167,9 @@ static void sense_inventory(int Ind)
 		}
 
 		case CLASS_MAGE:
+#if defined(NEW_ADDITIONS)
+	case CLASS_SORCEROR:
+#endif
 		{
 			/* Very bad (light) sensing */
 			if (0 != rand_int(240000L / (plev + 5))) return;
@@ -214,6 +247,7 @@ static void sense_inventory(int Ind)
 			case TV_HAFTED:
 			case TV_POLEARM:
 			case TV_SWORD:
+            case TV_MSTAFF:
 			case TV_BOOTS:
 			case TV_GLOVES:
 			case TV_HELM:
@@ -881,6 +915,7 @@ static int auto_retaliate(int Ind)
 
 	/* The dungeon master does not fight his or her offspring */
 	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return FALSE;
+    if (!strcmp(p_ptr->name, cfg_irc_gate)) return FALSE;
 
 	/* If we have a target to attack, attack it! */
 	if (m_target_ptr)
@@ -963,6 +998,7 @@ static void process_player_end(int Ind)
 	int	i, j, new_depth, new_world_x, new_world_y;
 	int	regen_amount, NumPlayers_old=NumPlayers;
 	char	attackstatus;
+    int minus;
 
 	object_type		*o_ptr;
 
@@ -1197,8 +1233,41 @@ static void process_player_end(int Ind)
 			disturb(Ind, 0, 0);
 		}
 
+	minus = 1;
+
 		/* Finally, at the end of our turn, update certain counters. */
 		/*** Timeout Various Things ***/
+
+	/* Hack -- Timed manashield */
+	if (p_ptr->tim_manashield)
+	{
+		 set_tim_manashield(Ind, p_ptr->tim_manashield - minus);
+	}
+
+	/* Hack -- Meditation */
+	if (p_ptr->tim_meditation)
+	{
+		(void)set_tim_meditation(Ind, p_ptr->tim_meditation - minus);
+	}
+
+	/* Hack -- Wraithform */
+	if (p_ptr->tim_wraith)
+	{
+		/* In town it only runs out if you are not on a wall
+			  To prevent breaking into houses */
+		if (players_on_depth[p_ptr->dun_depth] != 0)
+		{
+			/* important! check for illegal spaces */
+			if (in_bounds(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
+			{
+				if ((p_ptr->dun_depth > 0) ||
+					(cave_floor_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px)))
+				{
+					(void)set_tim_wraith(Ind, p_ptr->tim_wraith - minus);
+				}
+			}
+		}
+	}
 
 		/* Hack -- Hallucinating */
 		if (p_ptr->image)
@@ -1364,7 +1433,7 @@ static void process_player_end(int Ind)
 		{
 			/* Hack -- Use some fuel (sometimes) */
 			if (!artifact_p(o_ptr) && !(o_ptr->sval == SV_LITE_DWARVEN)
-				&& !(o_ptr->sval == SV_LITE_FEANOR) && (o_ptr->pval > 0))
+                && !(o_ptr->sval == SV_LITE_FEANOR) && (o_ptr->pval > 0) && (!o_ptr->name3))
 			{
 				/* Decrease life-span */
 				o_ptr->pval--;
@@ -1639,7 +1708,6 @@ static void process_various(void)
 
 		}
 
-
 		/* Update the unique respawn timers */
 		for (i = 1; i < MAX_R_IDX-1; i++)
 		{
@@ -1660,16 +1728,21 @@ static void process_various(void)
 			// Decrament the counter 
 			else r_ptr->respawn_timer--; 
 			// Once the timer hits 0, ressurect the unique.
+#if 0 
 			if (!r_ptr->respawn_timer)
     			{
 				/* "Ressurect" the unique */
     				r_ptr->max_num = 1;
 				r_ptr->respawn_timer = -1;
 
-    				/* Tell every player */
+		/* don't announce */
+		/*
     				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));
     				msg_broadcast(0,buf); 
+		*/
+	    
     			}	    			
+#endif
  		}
 
 		// If the level unstaticer is not disabled
@@ -1844,6 +1917,7 @@ void dungeon(void)
 	int i, d, j;
 	byte *w_ptr;
 	cave_type *c_ptr;
+    int dy, dx;       
 
 	/* Return if no one is playing */
 	/* if (!NumPlayers) return; */
@@ -1914,7 +1988,8 @@ void dungeon(void)
 			generate_cave(Depth,p_ptr->options[29]);
 			
 			/* Give a level feeling to this player */
-			do_cmd_feeling(i);
+	    /* No feeling outside the dungeon */
+            if (Depth > 0) do_cmd_feeling(i);
 		}
 
 		/* Clear the "marked" and "lit" flags for each cave grid */
@@ -2054,7 +2129,6 @@ void dungeon(void)
 		cave[Depth][y][x].m_idx = 0 - i;
     
 		/* Prevent hound insta-death */
-		int dy, dx, d;
 		switch (p_ptr->new_level_method)
 		{
 			/* Only when going *down* stairs (we don't want to make stair scuming safe) */
@@ -2534,4 +2608,3 @@ bool check_special_level(s16b special_depth)
 	}
 	return(FALSE);
 }
-

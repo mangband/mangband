@@ -821,5 +821,3 @@ void core_fmt(cptr fmt, ...)
 	/* Call core() */
 	core(res);
 }
-
-

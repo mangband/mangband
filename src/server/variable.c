@@ -1,3 +1,4 @@
+
 /* File: variable.c */
 
 /* Purpose: Angband variables */
@@ -180,16 +181,19 @@ char * cfg_meta_address;
 char * cfg_report_address = NULL;
 char * cfg_console_password = "change_me";
 char * cfg_dungeon_master = "DungeonMaster";
+char * cfg_irc_gate = "IrcGate";
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
 bool cfg_mage_hp_bonus = 1;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;
 bool cfg_door_bump_open = 1;
+s32b cfg_level_unstatic_chance = 60;
+bool cfg_random_artifacts = 0; /* No randarts by default */
+s32b cfg_retire_timer = -1;
+bool cfg_ironman = 0;
 s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
-s32b cfg_level_unstatic_chance = 60;
-s32b cfg_retire_timer = -1;
 
 
 /*
@@ -794,5 +798,3 @@ bool (*get_obj_num_hook)(int k_idx);
  */
 //bool (*master_move_hook)(int Ind, char * args) = master_acquire;
 bool (*master_move_hook)(int Ind, char * args) = NULL;
-
-

@@ -1,8 +1,8 @@
-                    :::!~!!!!!:.                Server: Refugee
-                  .xUHWH!! !!?M88WHX:.             Mangband 0.7.2
-                .X*#M@$!!  !X!M$$$$$$WWx:.          www.mangband.org 
+                    :::!~!!!!!:.
+                  .xUHWH!! !!?M88WHX:.             Mangband 1.0.0 Alpha
+                .X*#M@$!!  !X!M$$$$$$WWx:.          resolute.mangband.org
                :!!!!!!?H! :!$!$$$$$$$$$$8X:         
-              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:         Current Server Admin: 
+              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:         Server Admin:
              :!~::!H!<   ~.U$X!?R$$$$$$$$MM!          crimson@mangband.org 
              ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!                                
                !:~~~ .:!M"T#$$$$WX??#MRRMMM!        Ported to multiplayer 
@@ -10,10 +10,10 @@
              :X- M$$$$       `"T#$T~!8$WUXU~                                                  
             :  ~#$$$m:        ~!~ ?$$$$$$          Based on Angband 2.7.2.                        
           :!`.-   ~T$$$$8xx.  .xWW- ~""##*"           by Ben Harrison.                     
-.....   -~~:<` !    ~?T#$$@@W@*?$$      /`                                  
-W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :          Newbies : Hit '?' for help
-:::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~                     Hit ':' to talk
-.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `                                        
-Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!               Be sure to check on mangband.org  
-$R@i.~~ !     :   ~$$$$$B$$en:``              for the new forums and information!
+.....   -~~:<` !    ~?T#$$@@W@*?$$      /
+W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :      * WARNING: TEST MODE SERVER *
+:::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~
+.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `       This server is audited
+Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!         See the forums on www.mangband.org
+$R@i.~~ !     :   ~$$$$$B$$en:``         Enjoy your play!
 ?MXT@Wx.~    :     ~"##*$$$$M~                                              

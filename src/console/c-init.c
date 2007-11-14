@@ -104,7 +104,7 @@ static void show_menu(void)
 /*
  * Cleanup after ourselves
  */
-static void Net_cleanup(void)
+void Net_cleanup(void)
 {
 	/* Destroy the buffer */
 	Sockbuf_cleanup(&ibuf);
@@ -281,6 +281,10 @@ void console_init(void)
 	}
 #endif
 
+#ifdef WIN32
+	done = TRUE;
+#endif
+
 	/* No visual module worked */
 	if (!done)
 	{
@@ -327,3 +331,201 @@ void console_init(void)
 	/* Quit, closing term windows */
 	quit(NULL);
 }
+
+/* missing functions */
+int Net_flush(void)
+{
+    if (ibuf.len == 0)
+    {
+        ibuf.ptr = ibuf.buf;
+        return 0;
+    }
+    if (Sockbuf_flush(&ibuf) == -1)
+        return -1;
+    Sockbuf_clear(&ibuf);
+    return 1;
+}
+
+int Send_msg(cptr message)
+{
+    int	n; 
+
+    if ((n = Packet_printf(&ibuf, "%c%S", PKT_MESSAGE, message)) <= 0)
+    {
+        return n;
+    }
+
+    return 1;
+}
+
+void init_file_paths(char *path)
+{
+        char *tail;
+
+
+        /*** Free everything ***/
+
+        /* Free the main path */
+        string_free(ANGBAND_DIR);
+
+        /* Free the sub-paths */
+        string_free(ANGBAND_DIR_APEX);
+        string_free(ANGBAND_DIR_BONE);
+        string_free(ANGBAND_DIR_DATA);
+        string_free(ANGBAND_DIR_EDIT);
+        string_free(ANGBAND_DIR_FILE);
+        string_free(ANGBAND_DIR_HELP);
+        string_free(ANGBAND_DIR_INFO);
+        string_free(ANGBAND_DIR_SAVE);
+        string_free(ANGBAND_DIR_USER);
+        string_free(ANGBAND_DIR_XTRA);
+
+
+        /*** Prepare the "path" ***/
+
+        /* Hack -- save the main directory */
+        ANGBAND_DIR = string_make(path);
+
+        /* Prepare to append to the Base Path */
+        tail = path + strlen(path);
+
+
+#ifdef VM
+
+
+        /*** Use "flat" paths with VM/ESA ***/
+
+        /* Use "blank" path names */
+        ANGBAND_DIR_APEX = string_make("");
+        ANGBAND_DIR_BONE = string_make("");
+        ANGBAND_DIR_DATA = string_make("");
+        ANGBAND_DIR_EDIT = string_make("");
+        ANGBAND_DIR_FILE = string_make("");
+        ANGBAND_DIR_HELP = string_make("");
+        ANGBAND_DIR_INFO = string_make("");
+        ANGBAND_DIR_SAVE = string_make("");
+        ANGBAND_DIR_USER = string_make("");
+        ANGBAND_DIR_XTRA = string_make("");
+
+
+#else /* VM */
+
+
+        /*** Build the sub-directory names ***/
+
+        /* Build a path name */
+        strcpy(tail, "apex");
+        ANGBAND_DIR_APEX = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "bone");
+        ANGBAND_DIR_BONE = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "data");
+        ANGBAND_DIR_DATA = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "edit");
+        ANGBAND_DIR_EDIT = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "file");
+        ANGBAND_DIR_FILE = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "help");
+        ANGBAND_DIR_HELP = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "info");
+        ANGBAND_DIR_INFO = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "save");
+        ANGBAND_DIR_SAVE = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "user");
+        ANGBAND_DIR_USER = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "xtra");
+        ANGBAND_DIR_XTRA = string_make(path);
+
+#endif /* VM */
+
+
+#ifdef NeXT
+
+        /* Allow "fat binary" usage with NeXT */
+        if (TRUE)
+        {
+                cptr next = NULL;
+
+# if defined(m68k)
+                next = "m68k";
+# endif
+
+# if defined(i386)
+                next = "i386";
+# endif
+
+# if defined(sparc)
+                next = "sparc";
+# endif
+
+# if defined(hppa)
+                next = "hppa";
+# endif
+
+                /* Use special directory */
+                if (next)
+                {
+                        /* Forget the old path name */
+                        string_free(ANGBAND_DIR_DATA);
+
+                        /* Build a new path name */
+                        sprintf(tail, "data-%s", next);
+                        ANGBAND_DIR_DATA = string_make(path);
+                }
+        }
+
+#endif /* NeXT */
+
+}
+
+errr path_build(char *buf, int max, cptr path, cptr file)
+{
+        /* Special file */
+        if (file[0] == '~')
+        {
+                /* Use the file itself */
+                strnfmt(buf, max, "%s", file);
+        }
+
+        /* Absolute file, on "normal" systems */
+        else if (prefix(file, PATH_SEP) && !streq(PATH_SEP, ""))
+        {
+                /* Use the file itself */
+                strnfmt(buf, max, "%s", file);
+        }
+
+        /* No path given */
+        else if (!path[0])
+        {
+                /* Use the file itself */
+                strnfmt(buf, max, "%s", file);
+        }
+
+        /* Path and File */
+        else
+        {
+                /* Build the new path */
+                strnfmt(buf, max, "%s%s%s", path, PATH_SEP, file);
+        }
+
+        /* Success */
+        return (0);
+}
+

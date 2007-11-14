@@ -79,7 +79,16 @@ extern void clear_from(int row);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 
-
+/* missing declarations */
+extern char nick[80];
+extern char real_name[80];
+extern cptr ang_term_name[8];
+extern char hexsym[16];
+extern int Net_flush(void);
+extern int Send_msg(cptr message);
+extern void init_file_paths(char *path);
+extern errr path_build(char *buf, int max, cptr path, cptr file);
+extern void Net_cleanup(void);
 
 /*
  * Hack -- conditional (or "bizarre") externs

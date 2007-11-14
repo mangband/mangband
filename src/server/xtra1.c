@@ -110,6 +110,7 @@ static void prt_stat(int Ind, int stat)
 	player_type *p_ptr = Players[Ind];
 
 	Send_stat(Ind, stat, p_ptr->stat_top[stat], p_ptr->stat_use[stat]);
+    Send_maxstat(Ind, stat, p_ptr->stat_max[stat]);
 }
 
 
@@ -219,7 +220,7 @@ static void prt_sp(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Do not show mana unless it matters */
-	if (!p_ptr->mp_ptr->spell_book) Send_sp(Ind, 0, 0);
+    if (!p_ptr->mp_ptr->spell_book && !p_ptr->esp_link) Send_sp(Ind, 0, 0);
 
 	else Send_sp(Ind, p_ptr->msp, p_ptr->csp);
 }
@@ -839,7 +840,7 @@ static void calc_spells(int Ind)
 
 	magic_type		*s_ptr;
 
-	cptr p = ((p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK) ? "spell" : "prayer");
+    cptr p = ((p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
 
 
 	/* Hack -- must be literate */
@@ -1099,6 +1100,7 @@ static void calc_mana(int Ind)
 	int		new_mana, levels, cur_wgt, max_wgt;
 
 	object_type	*o_ptr;
+    u32b f1, f2, f3, f4;
 
 
 	/* Hack -- Must be literate */
@@ -1117,20 +1119,17 @@ static void calc_mana(int Ind)
 	/* Hack -- usually add one mana */
 	if (new_mana) new_mana++;
 
+    /* Get the gloves */
+    o_ptr = &p_ptr->inventory[INVEN_HANDS];
+
+    /* Examine the gloves */
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Only mages are affected */
 	if (p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK)
 	{
-		u32b f1, f2, f3;
-
 		/* Assume player is not encumbered by gloves */
 		p_ptr->cumber_glove = FALSE;
-
-		/* Get the gloves */
-		o_ptr = &p_ptr->inventory[INVEN_HANDS];
-
-		/* Examine the gloves */
-		object_flags(o_ptr, &f1, &f2, &f3);
 
 		/* Normal gloves hurt mage-type spells */
 		if (o_ptr->k_idx &&
@@ -1145,6 +1144,26 @@ static void calc_mana(int Ind)
 		}
 	}
 
+    /* Sorcerors get extra mana */
+#if defined(NEW_ADDITIONS)
+    if (p_ptr->pclass == CLASS_SORCEROR)
+    {
+	new_mana += (new_mana * 4) / 10;
+    }
+#endif
+
+    /* Extra mana capacity */
+    if (f1 & TR1_MANA)
+    {
+	/* 1 pval = 10% more mana */
+	new_mana += new_mana * o_ptr->pval / 10;
+    }
+
+    /* Meditation increase mana at the cost of hp */
+    if (p_ptr->tim_meditation)
+    {
+	new_mana += new_mana / 2;
+    }
 
 	/* Assume player not encumbered by armor */
 	p_ptr->cumber_armor = FALSE;
@@ -1191,7 +1210,8 @@ static void calc_mana(int Ind)
 		else if (!p_ptr->msp)
 		{
 			/* Reset mana */
-			p_ptr->csp = new_mana;
+	    /* disabled because horribly exploitable!!! */
+            // p_ptr->csp = new_mana;
 			p_ptr->csp_frac = 0;
 		}
 
@@ -1287,13 +1307,19 @@ static void calc_hitpoints(int Ind)
 	/* Always have at least one hitpoint per level */
 	if (mhp < p_ptr->lev + 1) mhp = p_ptr->lev + 1;
 
-	/* Option : give (most!) mages a bonus hitpoint / lvl */
-	if (cfg_mage_hp_bonus)
-		if ((p_ptr->pclass == CLASS_MAGE) && (strcmp(p_ptr->name,"Seth"))) mhp += p_ptr->lev;
+    /* Option : give mages a bonus hitpoint / lvl */
+    if (cfg_mage_hp_bonus && (p_ptr->pclass == CLASS_MAGE))
+	mhp += p_ptr->lev;
 
 	/* Factor in the hero / superhero settings */
 	if (p_ptr->hero) mhp += 10;
 	if (p_ptr->shero) mhp += 30;
+
+    /* Meditation increase mana at the cost of hp */
+    if (p_ptr->tim_meditation)
+    {
+	mhp = mhp * 3 / 5;
+    }
 
 	/* New maximum hitpoints */
 	if (mhp != p_ptr->mhp)
@@ -1431,7 +1457,7 @@ static void calc_bonuses(int Ind)
 
 	int			old_speed;
 
-	int			old_telepathy;
+    u32b		old_telepathy;
 	int			old_see_inv;
 
 	int			old_dis_ac;
@@ -1447,7 +1473,7 @@ static void calc_bonuses(int Ind)
 	object_kind		*k_ptr;
 	ego_item_type 		*e_ptr;
 
-	u32b		f1, f2, f3;
+    u32b		f1, f2, f3, f4;
 
 
 	/* Save the old speed */
@@ -1494,7 +1520,7 @@ static void calc_bonuses(int Ind)
 	p_ptr->regenerate = FALSE;
 	p_ptr->feather_fall = FALSE;
 	p_ptr->hold_life = FALSE;
-	p_ptr->telepathy = FALSE;
+    p_ptr->telepathy = 0;
 	p_ptr->lite = FALSE;
 	p_ptr->sustain_str = FALSE;
 	p_ptr->sustain_int = FALSE;
@@ -1522,7 +1548,7 @@ static void calc_bonuses(int Ind)
 	p_ptr->immune_elec = FALSE;
 	p_ptr->immune_fire = FALSE;
 	p_ptr->immune_cold = FALSE;
-
+    p_ptr->auto_id = FALSE;
 
 
 	/* Base infravision (purely racial) */
@@ -1560,6 +1586,13 @@ static void calc_bonuses(int Ind)
 	p_ptr->skill_dig = 0;
 
 
+    /* Start with "normal" speed */
+    p_ptr->pspeed = 110;
+
+    /* Bats get +10 speed ... they need it!*/
+    if (p_ptr->fruit_bat) p_ptr->pspeed += 10;
+
+
 	/* Elf */
 	if (p_ptr->prace == RACE_ELF) p_ptr->resist_lite = TRUE;
 
@@ -1582,21 +1615,60 @@ static void calc_bonuses(int Ind)
 	if (p_ptr->prace == RACE_DUNADAN) p_ptr->sustain_con = TRUE;
 
 	/* High Elf */
-	if (p_ptr->prace == RACE_HIGH_ELF) p_ptr->resist_lite = TRUE;
-	if (p_ptr->prace == RACE_HIGH_ELF) p_ptr->see_inv = TRUE;
+    if (p_ptr->prace == RACE_HIGH_ELF)
+    {
+	p_ptr->resist_lite = TRUE;
+	p_ptr->see_inv = TRUE;
+    }
+
+#if defined(NEW_ADDITIONS)
+    /* Yeek */
+    if (p_ptr->prace == RACE_YEEK) p_ptr->feather_fall = TRUE;
+
+    /* Goblin */
+    if (p_ptr->prace == RACE_GOBLIN)
+    {
+	p_ptr->resist_dark = TRUE;
+	p_ptr->feather_fall = TRUE;
+    }
+
+    /* Ent */
+    if (p_ptr->prace == RACE_ENT)
+    {
+	p_ptr->slow_digest = TRUE;
+	p_ptr->pspeed -= 2;
+	if (p_ptr->lev >= 5) p_ptr->see_inv = TRUE;
+	if (p_ptr->lev >= 10) p_ptr->telepathy = TR4_ESP_ANIMAL;
+	if (p_ptr->lev >= 15) p_ptr->telepathy |= TR4_ESP_ORC;
+	if (p_ptr->lev >= 20) p_ptr->telepathy |= TR4_ESP_TROLL;
+	if (p_ptr->lev >= 25) p_ptr->telepathy |= TR4_ESP_GIANT;
+	if (p_ptr->lev >= 30) p_ptr->telepathy |= TR4_ESP_DRAGON;
+	if (p_ptr->lev >= 35) p_ptr->telepathy |= TR4_ESP_DEMON;
+	if (p_ptr->lev >= 40) p_ptr->telepathy |= TR4_ESP_UNDEAD;
+	if (p_ptr->lev >= 45) p_ptr->telepathy |= TR4_ESP_EVIL;
+	if (p_ptr->lev >= 50) p_ptr->telepathy = TR4_ESP_ALL;
+    }
+
+    /* Thunderlord */
+    if (p_ptr->prace == RACE_TLORD)
+    {
+	p_ptr->feather_fall = TRUE;
+	if (p_ptr->lev >= 5) p_ptr->telepathy = TR4_ESP_DRAGON;
+	if (p_ptr->lev >= 10) p_ptr->resist_fire = TRUE;
+	if (p_ptr->lev >= 15) p_ptr->resist_cold = TRUE;
+	if (p_ptr->lev >= 20) p_ptr->resist_acid = TRUE;
+	if (p_ptr->lev >= 25) p_ptr->resist_elec = TRUE;
+    }
+#endif
 
 	/* Ghost */
 	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
 	if (p_ptr->ghost) p_ptr->resist_neth = TRUE;
 	if (p_ptr->ghost) p_ptr->hold_life = TRUE;
+    if (p_ptr->ghost) p_ptr->resist_fear = TRUE;
 	if (p_ptr->ghost) p_ptr->free_act = TRUE;
 	if (p_ptr->ghost) p_ptr->see_infra += 2;
 
-	/* Start with "normal" speed */
-	p_ptr->pspeed = 110;
-
-	/* Bats get +10 speed ... they need it!*/
-	if (p_ptr->fruit_bat) p_ptr->pspeed += 10;
 
 	/* Start with a single blow per turn */
 	p_ptr->num_blow = 1;
@@ -1638,7 +1710,7 @@ static void calc_bonuses(int Ind)
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) 
 	{
 		p_ptr->pspeed += 50;
-		p_ptr->telepathy = 1;
+        p_ptr->telepathy = TR4_ESP_ALL;
 	}
 
 
@@ -1653,7 +1725,7 @@ static void calc_bonuses(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the item flags */
-		object_flags(o_ptr, &f1, &f2, &f3);
+        object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 		/* Hack -- first add any "base bonuses" of the item.  A new
 		 * feature in MAngband 0.7.0 is that the magnitude of the
@@ -1746,6 +1818,9 @@ static void calc_bonuses(int Ind)
 		/* Boost shots */
 		if (f3 & TR3_XTRA_SHOTS) extra_shots++;
 
+	/* Auto-id */
+	if (f3 & TR3_KNOWLEDGE) p_ptr->auto_id = TRUE;
+
 		/* Various flags */
 		if (f3 & TR3_AGGRAVATE) p_ptr->aggravate = TRUE;
 		if (f3 & TR3_TELEPORT) p_ptr->teleport = TRUE;
@@ -1754,12 +1829,18 @@ static void calc_bonuses(int Ind)
 		if (f3 & TR3_XTRA_MIGHT) p_ptr->xtra_might = TRUE;
 		if (f3 & TR3_SLOW_DIGEST) p_ptr->slow_digest = TRUE;
 		if (f3 & TR3_REGEN) p_ptr->regenerate = TRUE;
-		if (f3 & TR3_TELEPATHY) p_ptr->telepathy = TRUE;
 		if (f3 & TR3_LITE) p_ptr->lite += 1;
 		if (f3 & TR3_SEE_INVIS) p_ptr->see_inv = TRUE;
 		if (f3 & TR3_FEATHER) p_ptr->feather_fall = TRUE;
+        if (f2 & TR2_RES_FEAR) p_ptr->resist_fear = TRUE;
 		if (f2 & TR2_FREE_ACT) p_ptr->free_act = TRUE;
 		if (f2 & TR2_HOLD_LIFE) p_ptr->hold_life = TRUE;
+
+	/* telepathy */
+	if (f4 & TR4_ESP_ALL)
+		p_ptr->telepathy = TR4_ESP_ALL;
+	else if (p_ptr->telepathy != TR4_ESP_ALL)
+		p_ptr->telepathy |= f4;
 
 		/* Immunity flags */
 		if (f2 & TR2_IM_FIRE) p_ptr->immune_fire = TRUE;
@@ -2115,7 +2196,7 @@ static void calc_bonuses(int Ind)
 		}
 
 		/* Hack -- Reward High Level Rangers using Bows */
-		if ((p_ptr->pclass == 4) && (p_ptr->tval_ammo == TV_ARROW))	
+        if ((p_ptr->pclass == CLASS_RANGER) && (p_ptr->tval_ammo == TV_ARROW))	
 		{
 			/* Extra shot at level 20 */
 			if (p_ptr->lev >= 20) p_ptr->num_fire++;
@@ -2179,6 +2260,11 @@ static void calc_bonuses(int Ind)
 
 			/* Paladin */
 			case CLASS_PALADIN: num = 5; wgt = 30; mul = 4; break;
+
+#if defined(NEW_ADDITIONS)
+	    /* Sorceror */
+	    case CLASS_SORCEROR: num = 1; wgt = 40; mul = 2; break;
+#endif
 		}
 
 		/* Enforce a minimum "weight" (tenth pounds) */
@@ -2217,7 +2303,7 @@ static void calc_bonuses(int Ind)
 	p_ptr->icky_wield = FALSE;
 
 	/* Priest weapon penalty for non-blessed edged weapons */
-	if ((p_ptr->pclass == 2) && (!p_ptr->bless_blade) &&
+    if ((p_ptr->pclass == CLASS_PRIEST) && (!p_ptr->bless_blade) &&
 	    ((o_ptr->tval == TV_SWORD) || (o_ptr->tval == TV_POLEARM)))
 	{
 		/* Reduce the real bonuses */
@@ -2789,5 +2875,3 @@ void handle_stuff(int Ind)
 	/* Window stuff */
 	if (p_ptr->window) window_stuff(Ind);
 }
-
-

@@ -15,7 +15,61 @@
 #include "angband.h"
 
 
+/* Wipe everything */
+void wipe_spell(int Depth, int cy, int cx, int r)
+{
+	int		yy, xx, dy, dx;
 
+	cave_type	*c_ptr;
+
+
+
+	/* Don't hurt town or surrounding areas */
+	if (Depth <= 0 ? wild_info[Depth].radius <= 2 : 0)
+		return;
+
+	/* Paranoia -- Enforce maximum range */
+	if (r > 12) r = 12;
+
+	/* Check around the epicenter */
+	for (dy = -r; dy <= r; dy++)
+		for (dx = -r; dx <= r; dx++)
+		{
+			/* Extract the location */
+			yy = cy + dy;
+			xx = cx + dx;
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, yy, xx)) continue;
+
+			/* Skip distant grids */
+			if (distance(cy, cx, yy, xx) > r) continue;
+
+			/* Access the grid */
+			c_ptr = &cave[Depth][yy][xx];
+
+			/* Lose room and vault */
+			if (Depth > 0)
+            		{
+                		c_ptr->info &= ~(CAVE_ROOM | CAVE_ICKY);
+            		}
+			
+			/* Delete monsters */
+			delete_monster(Depth, yy, xx);
+
+			/* Destroy "valid" grids */
+			if ((cave_valid_bold(Depth, yy, xx)) && !(c_ptr->info & CAVE_ICKY))
+			{
+				/* Turn into basic floor */
+				c_ptr->feat = FEAT_FLOOR;
+			
+				/* Delete objects */
+				delete_object(Depth, yy, xx);
+			}
+
+			everyone_lite_spot(Depth, yy, xx);
+		}
+}
 
 
 /*
@@ -346,7 +400,7 @@ static int remove_curse_aux(int Ind, int all)
 	/* Attempt to uncurse items being worn */
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
-		u32b f1, f2, f3;
+        u32b f1, f2, f3, f4;
 
 		object_type *o_ptr = &p_ptr->inventory[i];
 
@@ -354,7 +408,7 @@ static int remove_curse_aux(int Ind, int all)
 		if (!cursed_p(o_ptr)) continue;
 
 		/* Extract the flags */
-		object_flags(o_ptr, &f1, &f2, &f3);
+        object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 		/* Heavily Cursed Items need a special spell */
 		if (!all && (f3 & TR3_HEAVY_CURSE)) continue;
@@ -451,7 +505,7 @@ void self_knowledge(int Ind)
 
 	int		i = 0, k;
 
-	u32b	f1 = 0L, f2 = 0L, f3 = 0L;
+    u32b	f1 = 0L, f2 = 0L, f3 = 0L, f4 = 0L;
 
 	object_type	*o_ptr;
 
@@ -466,7 +520,7 @@ void self_knowledge(int Ind)
 	/* Acquire item flags from equipment */
 	for (k = INVEN_WIELD; k < INVEN_TOTAL; k++)
 	{
-		u32b t1, t2, t3;
+        u32b t1, t2, t3, t4;
 
 		o_ptr = &p_ptr->inventory[k];
 
@@ -474,12 +528,13 @@ void self_knowledge(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the flags */
-		object_flags(o_ptr, &t1, &t2, &t3);
+        object_flags(o_ptr, &t1, &t2, &t3, &t4);
 
 		/* Extract flags */
 		f1 |= t1;
 		f2 |= t2;
 		f3 |= t3;
+	f4 |= t4;
 	}
 
 
@@ -518,16 +573,16 @@ void self_knowledge(int Ind)
 	}
 	if (p_ptr->teleport)
 	{
-		info[i++] = "Your position is very uncertain.";
+        info[i++] = "You are teleporting.";
 	}
 
 	if (p_ptr->blessed)
 	{
-		info[i++] = "You feel rightous.";
+        info[i++] = "You feel righteous.";
 	}
 	if (p_ptr->hero)
 	{
-		info[i++] = "You feel heroic.";
+        info[i++] = "You feel like a hero.";
 	}
 	if (p_ptr->shero)
 	{
@@ -585,10 +640,42 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "Your appetite is small.";
 	}
-	if (p_ptr->telepathy)
+    if (p_ptr->telepathy == TR4_ESP_ALL)
 	{
 		info[i++] = "You have ESP.";
 	}
+    if (p_ptr->telepathy & TR4_ESP_ANIMAL)
+    {
+        info[i++] = "You can see the presence of animals.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_EVIL)
+    {
+        info[i++] = "You can see the presence of evil.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_UNDEAD)
+    {
+        info[i++] = "You can see the presence of undead.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_DEMON)
+    {
+        info[i++] = "You can see the presence of demons.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_ORC)
+    {
+        info[i++] = "You can see the presence of orcs.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_TROLL)
+    {
+        info[i++] = "You can see the presence of trolls.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_GIANT)
+    {
+        info[i++] = "You can see the presence of giants.";
+    }
+    if (p_ptr->telepathy & TR4_ESP_DRAGON)
+    {
+        info[i++] = "You can see the presence of dragons.";
+    }
 	if (p_ptr->hold_life)
 	{
 		info[i++] = "You have a firm hold on your life force.";
@@ -597,6 +684,10 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You are carrying a permanent light.";
 	}
+    if (p_ptr->auto_id)
+    {
+	info[i++] = "You are able to magically appraise items.";
+    }
 
 	if (p_ptr->immune_acid)
 	{
@@ -815,6 +906,10 @@ void self_knowledge(int Ind)
 		{
 			info[i++] = "Your weapon freezes your foes.";
 		}
+        if (f1 & TR1_BRAND_POIS)
+        {
+            info[i++] = "Your weapon poisons your foes.";
+        }
 
 		/* Special "slay" flags */
 		if (f1 & TR1_SLAY_ANIMAL)
@@ -855,6 +950,14 @@ void self_knowledge(int Ind)
 		{
 			info[i++] = "Your weapon is a great bane of dragons.";
 		}
+        if (f1 & TR1_KILL_DEMON)
+        {
+            info[i++] = "Your weapon is a great bane of demons.";
+        }
+        if (f1 & TR1_KILL_UNDEAD)
+        {
+            info[i++] = "Your weapon is a great bane of undead.";
+        }
 	}
 
 
@@ -1153,6 +1256,7 @@ bool detect_invisible(int Ind)
 
 		/* Skip the dungeon master */
 		if (!strcmp(q_ptr->name, cfg_dungeon_master)) continue;
+        if (!strcmp(q_ptr->name, cfg_irc_gate)) continue;
 
 		/* Detect all invisible players but not the dungeon master */
 		if (panel_contains(py, px) && q_ptr->ghost) 
@@ -1596,6 +1700,7 @@ static bool item_tester_hook_weapon(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
+        case TV_MSTAFF:
 		case TV_DIGGING:
 		case TV_BOW:
 		case TV_BOLT:
@@ -1661,10 +1766,20 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 
 	bool a = artifact_p(o_ptr);
 
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
+
+    /* Magic ammo are always +0 +0 */
+    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	(o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
+	return FALSE;
+
+    /* Artifact ammo cannot be enchanted */
+    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	(o_ptr->tval == TV_BOLT)) && a)
+	return FALSE;
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 
 	/* Large piles resist enchantment */
@@ -1779,6 +1894,92 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 	return (TRUE);
 }
 
+
+bool create_artifact(int Ind)
+{
+  player_type *p_ptr = Players[Ind];
+
+  p_ptr->current_artifact = TRUE;
+  get_item(Ind);
+
+  return TRUE;
+}
+
+
+bool create_artifact_aux(int Ind, int item)
+{
+#if defined(RANDART)
+	player_type *p_ptr = Players[Ind];
+
+	object_type *o_ptr;
+	char o_name[80];
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		o_ptr = &o_list[0 - item];
+	}
+
+
+	if (o_ptr->number > 1) return FALSE;
+	if (artifact_p(o_ptr)) return FALSE;
+	
+	/* Description */
+	object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+	/* Describe */
+	msg_format(Ind, "%s %s glow%s brightly!",
+		((item >= 0) ? "Your" : "The"), o_name,
+		((o_ptr->number > 1) ? "" : "s"));
+
+	o_ptr->name1 = ART_RANDART;
+
+	/* Piece together a 32-bit random seed */
+	o_ptr->name3 = rand_int(0xFFFF) << 16;
+	o_ptr->name3 += rand_int(0xFFFF);
+	/* Check the tval is allowed */
+	if (randart_make(o_ptr) == NULL)
+	{
+		/* If not, wipe seed. No randart today */
+		o_ptr->name1 = 0;
+		o_ptr->name3 = 0L;
+
+		return FALSE;
+	}
+
+	apply_magic(p_ptr->dun_depth, o_ptr, p_ptr->lev, FALSE, FALSE, FALSE);
+
+	/* Remove all inscriptions */
+        if (o_ptr->note)
+        {
+		/* Forget the inscription */
+                o_ptr->note = 0;
+        }
+
+	/* Clear flags */
+	o_ptr->ident &= ~ID_KNOWN;
+	o_ptr->ident &= ~ID_SENSE;
+	o_ptr->ident &= ~ID_MENTAL;
+
+	/* Recalculate bonuses */
+	p_ptr->update |= (PU_BONUS);
+
+	/* Combine / Reorder the pack (later) */
+	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+
+	p_ptr->current_artifact = FALSE;
+#endif
+	return TRUE;
+}
 
 
 bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
@@ -3545,7 +3746,7 @@ bool fire_ball(int Ind, int typ, int dir, int dam, int rad)
 /*
  * Hack -- apply a "projection()" in a direction (or at the target)
  */
-static bool project_hook(int Ind, int typ, int dir, int dam, int flg)
+bool project_hook(int Ind, int typ, int dir, int dam, int flg)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -3723,6 +3924,18 @@ bool cure_critical_wounds_proj(int Ind, int dir)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
 	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(6, 10), flg));
+}
+
+bool cure_mortal_wounds_proj(int Ind, int dir)
+{
+    int flg = PROJECT_STOP | PROJECT_KILL;
+    return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(10, 10), flg));
+}
+
+bool heal_other_lite_proj(int Ind, int dir)
+{
+    int flg = PROJECT_STOP | PROJECT_KILL;
+    return (project_hook(Ind, GF_HEAL_PLAYER, dir, 100, flg));
 }
 
 bool heal_other_proj(int Ind, int dir)

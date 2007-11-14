@@ -653,7 +653,7 @@ static void alloc_object(int Depth, int set, int typ, int num)
 
 			case ALLOC_TYP_OBJECT:
 			{
-				place_object(Depth, y, x, FALSE, FALSE);
+                place_object(Depth, y, x, FALSE, FALSE, 0);
 				break;
 			}
 		}
@@ -843,7 +843,7 @@ static void vault_objects(int Depth, int y, int x, int num)
 			/* Place an item */
 			if (rand_int(100) < 75)
 			{
-				place_object(Depth, j, k, FALSE, FALSE);
+                place_object(Depth, j, k, FALSE, FALSE, 0);
 			}
 
 			/* Place gold */
@@ -1327,7 +1327,7 @@ static void build_type3(int Depth, int yval, int xval)
 		}
 
 		/* Place a treasure in the vault */
-		place_object(Depth, yval, xval, FALSE, FALSE);
+        place_object(Depth, yval, xval, FALSE, FALSE, 0);
 
 		/* Let's guard the treasure well */
 		vault_monsters(Depth, yval, xval, rand_int(2) + 3);
@@ -1544,7 +1544,7 @@ static void build_type4(int Depth, int yval, int xval)
 		/* Object (80%) */
 		if (rand_int(100) < 80)
 		{
-			place_object(Depth, yval, xval, FALSE, FALSE);
+            place_object(Depth, yval, xval, FALSE, FALSE, 0);
 		}
 
 		/* Stairs (20%) */
@@ -1627,8 +1627,8 @@ static void build_type4(int Depth, int yval, int xval)
 			vault_monsters(Depth, yval, xval + 2, randint(2));
 
 			/* Objects */
-			if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE);
-			if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE);
+            if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE, 0);
+            if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE, 0);
 		}
 
 		break;
@@ -2544,7 +2544,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				case '*':
 				if (rand_int(100) < 75)
 				{
-					place_object(Depth, y, x, FALSE, FALSE);
+                    place_object(Depth, y, x, FALSE, FALSE, 0);
 				}
 				else
 				{
@@ -2605,7 +2605,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 7;
-				place_object(Depth, y, x, TRUE, FALSE);
+                place_object(Depth, y, x, TRUE, FALSE, 0);
 				object_level = Depth;
 				break;
 
@@ -2615,7 +2615,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 20;
-				place_object(Depth, y, x, TRUE, TRUE);
+                place_object(Depth, y, x, TRUE, TRUE, 0);
 				object_level = Depth;
 				break;
 
@@ -2630,7 +2630,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				if (rand_int(100) < 50)
 				{
 					object_level = Depth + 7;
-					place_object(Depth, y, x, FALSE, FALSE);
+                    place_object(Depth, y, x, FALSE, FALSE, 0);
 					object_level = Depth;
 				}
 				break;
@@ -3564,14 +3564,14 @@ static void build_store(int n, int yy, int xx)
 	x1 = x0 - randint(5);
 	x2 = x0 + randint(5);
 
-	/* Hack -- make building 9's as large as possible */
-	if (n == 12)
-	{
-		y1 = y0 - 3;
-		y2 = y0 + 3;
-		x1 = x0 - 5;
-		x2 = x0 + 5;
-	}
+    /* Hack -- make building's as large as possible */
+//    if (n == 12)
+ //   {
+        y1 = y0 - randint(3);
+        y2 = y0 + randint(3);
+        x1 = x0 - randint(5);
+        x2 = x0 + randint(5);
+  //  }
 
 	/* Build an invulnerable rectangular building */
 	for (y = y1; y <= y2; y++)
@@ -4340,10 +4340,11 @@ void generate_cave(int Depth,int auto_scum)
 		/* Hack -- Have a special feeling sometimes */
 		if (good_item_flag) feeling = 1;
 
-#ifndef IRONMAN
+	if (!cfg_ironman)
+	{
 		/* It takes 1000 game turns for "feelings" to recharge */
 		if ((turn - old_turn) < 1000) feeling = 0;
-#endif
+	}
 
 		/* Hack -- no feeling in the town */
 		if (!Depth) feeling = 0;
@@ -4370,7 +4371,8 @@ void generate_cave(int Depth,int auto_scum)
 		}
 
 		/* Mega-Hack -- "auto-scum" */
-		if (auto_scum && (num < 100))
+	/* Auto-scum only in the dungeon!!! */
+        if ((Depth > 0) && auto_scum && (num < 100))
 		{
 			fprintf(stderr,"auto_scum in on for this level\n");
 			/* Require "goodness" */
@@ -4422,6 +4424,3 @@ void generate_cave(int Depth,int auto_scum)
 	/* Remember when this level was "created" */
 	old_turn = turn;
 }
-
-
-

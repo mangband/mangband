@@ -161,6 +161,7 @@ struct object_kind
 	u32b flags1;		/* Flags, set 1 */
 	u32b flags2;		/* Flags, set 2 */
 	u32b flags3;		/* Flags, set 3 */
+    u32b flags4;		/* Flags, set 4 */
 
 	byte locale[4];		/* Allocation level(s) */
 	byte chance[4];		/* Allocation chance(s) */
@@ -228,6 +229,7 @@ struct artifact_type
 	u32b flags1;		/* Artifact Flags, set 1 */
 	u32b flags2;		/* Artifact Flags, set 2 */
 	u32b flags3;		/* Artifact Flags, set 3 */
+    u32b flags4;		/* Artifact Flags, set 4 */
 
 	byte level;			/* Artifact level */
 	byte rarity;		/* Artifact rarity */
@@ -248,23 +250,28 @@ struct ego_item_type
 	u16b name;			/* Name (offset) */
 	u16b text;			/* Text (offset) */
 
-	byte slot;			/* Standard slot value */
 	byte rating;		/* Rating boost */
+		byte xtra;			/* Random powers (sustain, resist, ability) */
 
 	byte level;			/* Minimum level */
 	byte rarity;		/* Object rarity */
 
-	byte max_to_h;		/* Maximum to-hit bonus */
-	byte max_to_d;		/* Maximum to-dam bonus */
-	byte max_to_a;		/* Maximum to-ac bonus */
+    char max_to_h;		/* Maximum to-hit bonus */
+    char max_to_d;		/* Maximum to-dam bonus */
+    char max_to_a;		/* Maximum to-ac bonus */
 
-	byte max_pval;		/* Maximum pval */
+    char max_pval;		/* Maximum pval */
 
 	s32b cost;			/* Ego-item "cost" */
+
+    byte tval[3];		/* Possible tval for base item */
+    byte min_sval[3];	/* Mininum sval for base item */
+    byte max_sval[3];	/* Maximum sval for base item */
 
 	u32b flags1;		/* Ego-Item Flags, set 1 */
 	u32b flags2;		/* Ego-Item Flags, set 2 */
 	u32b flags3;		/* Ego-Item Flags, set 3 */
+    u32b flags4;		/* Ego-Item Flags, set 4 */
 };
 
 
@@ -500,6 +507,7 @@ struct object_type
 
 	byte name1;			/* Artifact type, if any */
 	byte name2;			/* Ego-Item type, if any */
+    s32b name3;			/* Randart seed, if any */
 
 	byte xtra1;			/* Extra info type */
 	byte xtra2;			/* Extra info index */
@@ -846,7 +854,7 @@ struct player_race
 	s16b r_thb;			/* combat (shooting) */
 
 	byte r_mhp;			/* Race hit-dice modifier */
-	byte r_exp;			/* Race experience factor */
+    s16b r_exp;			/* Race experience factor */
 
 	byte b_age;			/* base age */
 	byte m_age;			/* mod age */
@@ -1012,7 +1020,7 @@ struct player_type
 	byte oops;			/* Unused */
 
 	byte hitdie;		/* Hit dice (sides) */
-	byte expfact;		/* Experience factor */
+    s16b expfact;		/* Experience factor */
 
 	byte maximize;		/* Maximize stats */
 	byte preserve;		/* Preserve artifacts */
@@ -1211,6 +1219,7 @@ struct player_type
 	s16b current_identify;	/* Are we identifying something? */
 	s16b current_star_identify;
 	s16b current_recharge;
+    s16b current_artifact;
 
 	s16b current_selling;
 	s16b current_sell_amt;
@@ -1237,6 +1246,18 @@ struct player_type
 	s16b blessed;		/* Timed -- Blessed */
 	s16b tim_invis;		/* Timed -- See Invisible */
 	s16b tim_infra;		/* Timed -- Infra Vision */
+
+    /* Sorceror flags */
+    bool wraith_in_wall;
+    s16b tim_wraith;
+    s16b tim_meditation;
+    s16b tim_manashield;
+
+    /* Mind flags */
+    s32b esp_link;
+    byte esp_link_type;
+    u16b esp_link_flags;
+    object_type *current_telekinesis;
 
 	s16b oppose_acid;	/* Timed -- oppose acid */
 	s16b oppose_elec;	/* Timed -- oppose lightning */
@@ -1338,11 +1359,12 @@ struct player_type
 	bool see_inv;		/* Can see invisible */
 	bool regenerate;	/* Regenerate hit pts */
 	bool hold_life;		/* Resist life draining */
-	bool telepathy;		/* Telepathy */
+    u32b telepathy;		/* Telepathy */
 	bool slow_digest;	/* Slower digestion */
 	bool bless_blade;	/* Blessed blade */
 	bool xtra_might;	/* Extra might bow */
 	bool impact;		/* Earthquake blows */
+    bool auto_id;	/* Auto-id */
 
 	s16b dis_to_h;		/* Known bonus to hit */
 	s16b dis_to_d;		/* Known bonus to dam */
@@ -1378,8 +1400,8 @@ struct player_type
 
 	s16b pspeed;		/* Current speed */
 	
+    s16b r_killed[MAX_R_IDX];	/* Monsters killed */
+    
 	u32b birth_turn;	/* Server turn on which player was born */
 	u32b turn;			/* Actual player turns */
 };
-
-

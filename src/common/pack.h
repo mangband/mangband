@@ -20,6 +20,7 @@
 
 
 /* Packet types 20-59 are info that is sent to the client */
+#define PKT_MAXSTAT		19
 #define PKT_PLUSSES		20
 #define PKT_AC			21
 #define PKT_EXPERIENCE		22
@@ -71,6 +72,10 @@
 #define PKT_SELL		62
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
+
+
+/* Extra packets */
+#define PKT_MIND		67
 
 
 /* Packet types 70-116 are sent from the client */
@@ -134,6 +139,9 @@
 
 /* Packet type 150 are hacks */
 #define PKT_FLUSH		150
+
+/* Extra packets */
+#define PKT_OBSERVE		160
 
 
 

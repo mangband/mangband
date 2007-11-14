@@ -22,6 +22,7 @@ int Receive_reply(int *replyto, int *result);
 int Send_ack(long rel_loops);
 int Receive_magic(void);
 int Receive_stat(void);
+int Receive_maxstat(void);
 int Receive_hp(void);
 int Receive_ac(void);
 int Receive_inven(void);
