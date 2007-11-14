@@ -545,10 +545,6 @@
 #define RACE_HALF_TROLL	7
 #define RACE_DUNADAN	8
 #define RACE_HIGH_ELF	9
-#define RACE_YEEK	10
-#define RACE_GOBLIN	11
-#define RACE_ENT	12
-#define RACE_TLORD	13
 
 /*
  * Player class constants (hard-coded by save-files, arrays, etc)
@@ -559,10 +555,6 @@
 #define CLASS_ROGUE		3
 #define CLASS_RANGER	4
 #define CLASS_PALADIN	5
-#define CLASS_SORCEROR	6
-
-
-
 
 /*** Screen Locations ***/
 
@@ -1106,7 +1098,6 @@ that keeps many algorithms happy.
 #define TV_FOOD         80
 #define TV_MAGIC_BOOK   90
 #define TV_PRAYER_BOOK  91
-#define TV_SORCERY_BOOK 92
 #define TV_GOLD         100	/* Gold can only be picked up by players */
 
 
@@ -1849,11 +1840,6 @@ that keeps many algorithms happy.
 #define GF_DISP_EVIL	68
 #define GF_DISP_ALL	69
 #define	GF_HEAL_PLAYER	70
-#define	GF_STONE_WALL 	71
-#define	GF_WRAITH_PLAYER 72
-#define	GF_SPEED_PLAYER  73
-#define	GF_SHIELD_PLAYER 74
-#define GF_RECALL_PLAYER 75
 
 /*
  * Some things which induce learning
@@ -2055,14 +2041,6 @@ that keeps many algorithms happy.
 #define TR3_HEAVY_CURSE		0x40000000L	/* Item is Heavily Cursed */
 #define TR3_PERMA_CURSE		0x80000000L	/* Item is Perma Cursed */
 
-#define TR4_ESP_ANIMAL		0x00000001L
-#define TR4_ESP_EVIL		0x00000002L
-#define TR4_ESP_UNDEAD		0x00000004L
-#define TR4_ESP_DEMON		0x00000008L
-#define TR4_ESP_ORC		0x00000010L
-#define TR4_ESP_TROLL		0x00000020L
-#define TR4_ESP_GIANT		0x00000040L
-#define TR4_ESP_DRAGON		0x00000080L
 #define TR4_ESP_ALL		0x00000100L
 
 
@@ -2935,56 +2913,4 @@ extern int PlayerUID;
 #define PSPELL_WORD_RECALL	56
 #define PSPELL_ALTER_REALITY	57
 
-/* Sorcery spells */
-#define SSPELL_MAGIC_MISSILE	0
-#define SSPELL_PHASE_DOOR	1
-#define SSPELL_DETECT_MONSTERS	2
-#define SSPELL_DETECT_TRAPS	3
-#define SSPELL_LIGHT_AREA	4
-#define SSPELL_DETECT_FEATURES	5
-#define SSPELL_CONFUSE_MONSTER	6
-#define SSPELL_DETECT_OBJECT	7
-#define SSPELL_NOXIOUS_CLOUD	8
-#define SSPELL_TELEPORT_SELF	9
-#define SSPELL_BEAM_LIGHT	10
-#define SSPELL_SLEEP_MONSTER	11
-#define SSPELL_LIGHTNING_BOLT	12
-#define SSPELL_STONE_MUD	13
-#define SSPELL_FROST_BOLT	14
-#define SSPELL_WRAITH_FORM	15
-#define SSPELL_ETHEREAL_EYE	16
-#define SSPELL_FIRE_BOLT	17
-#define SSPELL_IDENTIFY_ITEM	18
-#define SSPELL_RADIATE_FEAR	19
-#define SSPELL_HASTE_SELF	20
-#define SSPELL_ELEMENTAL_BOLT	21
-#define SSPELL_TELEPORT_AWAY	22
-#define SSPELL_CREATE_FOOD	23
-#define SSPELL_MEDITATE_MANA	24
-#define SSPELL_RECHARGE_ITEM	25
-#define SSPELL_FIRE_STORM	26
-#define SSPELL_FORCE_SHIELD	27
-#define SSPELL_SUN_FIRE		28
-#define SSPELL_SAFE_GUARD	29
-#define SSPELL_CREATE_WALLS	30
-#define SSPELL_CREATE_STAIRS	31
-#define SSPELL_ELEM_SHIELD	32
-#define SSPELL_WORD_RECALL	33
-#define SSPELL_MANA_SHIELD	34
-#define SSPELL_EARTH_QUAKE	35
-#define SSPELL_POLY_OTHER	36
-#define SSPELL_CHAOS_BLAST	37
-#define SSPELL_WIPE_AREA	38
-#define SSPELL_MANA_BLAST	39
-#define SSPELL_WORD_DESTRUCTION	40
-#define SSPELL_MIND_VISION	41
-#define SSPELL_TELE_OBJECT	42
-#define SSPELL_SELF_SCAN	43
-#define SSPELL_IDENTIFY_FULL	44
-#define SSPELL_ENLIGHT_LEVEL	45
-#define SSPELL_PLASMA_BLAST	46
-#define SSPELL_ANNIHIL_BOLT	47
-#define SSPELL_OBLIVION_BLAST	48
-#define SSPELL_TIDAL_WAVE	49
-#define SSPELL_ANARCHY_FORCE	50
-#define SSPELL_MANA_STRIKE	51
+

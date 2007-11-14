@@ -435,11 +435,6 @@ static void wr_extra(int Ind)
 	write_int("word_recall",p_ptr->word_recall);
 	write_int("see_infra",p_ptr->see_infra);
 	write_int("tim_infra",p_ptr->tim_infra);
-	/* Sorceror flags */
-	write_int("wraith_in_wall",p_ptr->wraith_in_wall);
-	write_int("tim_wraith",p_ptr->tim_wraith);
-	write_int("tim_meditation",p_ptr->tim_meditation);
-	write_int("tim_manashield",p_ptr->tim_manashield);
 
 	write_int("oppose_fire",p_ptr->oppose_fire);
 	write_int("oppose_cold",p_ptr->oppose_cold);

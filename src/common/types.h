@@ -1247,12 +1247,6 @@ struct player_type
 	s16b tim_invis;		/* Timed -- See Invisible */
 	s16b tim_infra;		/* Timed -- Infra Vision */
 
-    /* Sorceror flags */
-    bool wraith_in_wall;
-    s16b tim_wraith;
-    s16b tim_meditation;
-    s16b tim_manashield;
-
     /* Mind flags */
     s32b esp_link;
     byte esp_link_type;

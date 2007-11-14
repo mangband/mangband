@@ -314,9 +314,6 @@ static bool object_easy_know(int i)
 		/* Spellbooks */
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
-#if defined(NEW_ADDITIONS)
-	case TV_SORCERY_BOOK:
-#endif
 		{
 			return (TRUE);
 		}
@@ -481,13 +478,6 @@ static byte default_tval_to_attr(int tval)
 		{
 			return (TERM_L_RED);
 		}
-
-#if defined(NEW_ADDITIONS)
-	case TV_SORCERY_BOOK:
-	{
-	    return (TERM_ORANGE);
-	}
-#endif
 
 		case TV_PRAYER_BOOK:
 		{
@@ -1363,16 +1353,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			basenm = "& Book~ of Magic Spells #";
 			break;
 		}
-
-#if defined(NEW_ADDITIONS)
-	/* Sorcery Books */
-	case TV_SORCERY_BOOK:
-	{
-		modstr = basenm;
-		basenm = "& Book~ of Sorcery #";
-		break;
-	}
-#endif
 
 			/* Prayer Books */
 		case TV_PRAYER_BOOK:
@@ -2530,40 +2510,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It is a great bane of dragons.";
 	}
-#if  defined(NEW_ADDITIONS)
-	else if (f1 & TR1_SLAY_DRAGON)
-	{
-		info[i++] = "It is especially deadly against dragons.";
-	}
-    if (f4 & TR4_ESP_DRAGON)
-    {
-        info[i++] = "It allows you to sense the presence of dragons.";
-    }
-	if (f1 & TR1_SLAY_ORC)
-	{
-		info[i++] = "It is especially deadly against orcs.";
-	}
-    if (f4 & TR4_ESP_ORC)
-    {
-        info[i++] = "It allows you to sense the presence of orcs.";
-    }
-	if (f1 & TR1_SLAY_TROLL)
-	{
-		info[i++] = "It is especially deadly against trolls.";
-	}
-    if (f4 & TR4_ESP_TROLL)
-    {
-        info[i++] = "It allows you to sense the presence of trolls.";
-    }
-	if (f1 & TR1_SLAY_GIANT)
-	{
-		info[i++] = "It is especially deadly against giants.";
-	}
-    if (f4 & TR4_ESP_GIANT)
-    {
-        info[i++] = "It allows you to sense the presence of giants.";
-    }  
-#endif
     if (f1 & TR1_KILL_DEMON)
     {
         info[i++] = "It is a great bane of demons.";
@@ -2572,10 +2518,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It strikes at demons with holy wrath.";
 	}
-    if (f4 & TR4_ESP_DEMON)
-    {
-        info[i++] = "It allows you to sense the presence of demons.";
-    }  
     if (f1 & TR1_KILL_UNDEAD)
     {
         info[i++] = "It is a great bane of undead.";
@@ -2584,26 +2526,14 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It strikes at undead with holy wrath.";
 	}
-    if (f4 & TR4_ESP_UNDEAD)
-    {
-        info[i++] = "It allows you to sense the presence of undead.";
-    }
 	if (f1 & TR1_SLAY_EVIL)
 	{
 		info[i++] = "It fights against evil with holy fury.";
 	}
-    if (f4 & TR4_ESP_EVIL)
-    {
-        info[i++] = "It allows you to sense the presence of evil.";
-    }
 	if (f1 & TR1_SLAY_ANIMAL)
 	{
 		info[i++] = "It is especially deadly against natural creatures.";
 	}
-    if (f4 & TR4_ESP_ANIMAL)
-    {
-        info[i++] = "It allows you to sense the presence of animals.";
-    }
 
 	if (f2 & TR2_SUST_STR)
 	{

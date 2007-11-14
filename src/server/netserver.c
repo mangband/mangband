@@ -4276,11 +4276,6 @@ static int Receive_spell(int ind)
 
     if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
     {
-#if defined(NEW_ADDITIONS)
-	if (p_ptr->pclass == CLASS_SORCEROR)
-		do_cmd_sorc(player, book, spell);
-	else
-#endif
 		do_cmd_cast(player, book, spell);
 		return 2;
 	}
@@ -7260,10 +7255,6 @@ void Handle_direction(int Ind, int dir)
 			do_cmd_ghost_power_aux(Ind, dir);
 		else if (p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK)
 			do_cmd_cast_aux(Ind, dir);
-#if defined(NEW_ADDITIONS)
-	else if (p_ptr->mp_ptr->spell_book == TV_SORCERY_BOOK)
-	    do_cmd_sorc_aux(Ind, dir);
-#endif
 		else if (p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK)
 			do_cmd_pray_aux(Ind, dir);
 		else p_ptr->current_spell = -1;

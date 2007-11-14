@@ -362,19 +362,7 @@ static byte rgold_adj[MAX_RACES][MAX_RACES] =
     { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105, 100, 120, 100, 100},
 
 	/* High_Elf */
-    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100},
-
-    /* Yeek (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Goblin (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Ent (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Thunderlord (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100}
+    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100}
 
 };
 
@@ -506,9 +494,6 @@ static void mass_produce(object_type *o_ptr)
 
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
-#if defined(NEW_ADDITIONS)
-	case TV_SORCERY_BOOK:
-#endif
 		{
 			if (cost <= 50L) size += mass_roll(2, 3);
 			if (cost <= 500L) size += mass_roll(1, 3);
@@ -829,9 +814,6 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 			switch (o_ptr->tval)
 			{
 				case TV_MAGIC_BOOK:
-#if defined(NEW_ADDITIONS)
-		case TV_SORCERY_BOOK:
-#endif
 				case TV_AMULET:
 				case TV_RING:
 				case TV_STAFF:

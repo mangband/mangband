@@ -485,12 +485,6 @@ void prt_basic(void)
         case RACE_HALF_TROLL: r = "Half-troll"; break;
         case RACE_DUNADAN: r = "Dunadan"; break;
         case RACE_HIGH_ELF: r = "High-elf"; break;
-#if defined(NEW_ADDITIONS)
-	case RACE_YEEK: r = "Yeek"; break;
-	case RACE_GOBLIN: r = "Goblin"; break;
-	case RACE_ENT: r = "Ent"; break;
-	case RACE_TLORD: r = "Thunderlord"; break;
-#endif
 	}
 
 	switch(class)
@@ -501,9 +495,6 @@ void prt_basic(void)
         case CLASS_ROGUE: c = "Rogue"; break;
         case CLASS_RANGER: c = "Ranger"; break;
         case CLASS_PALADIN: c = "Paladin"; break;
-#if defined(NEW_ADDITIONS)
-	case CLASS_SORCEROR: c = "Sorceror"; break;
-#endif
 	}
 
 	prt_field(r, ROW_RACE, COL_RACE);

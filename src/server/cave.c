@@ -483,10 +483,6 @@ static byte player_color(int Ind)
 			return TERM_L_WHITE;
 		case CLASS_PALADIN:
 			return TERM_L_BLUE;
-#if defined(NEW_ADDITIONS)
-	case CLASS_SORCEROR:
-	    return TERM_ORANGE;
-#endif;
 	}
 
 	/* Oops */

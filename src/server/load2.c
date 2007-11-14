@@ -983,13 +983,7 @@ static bool rd_extra(int Ind)
 	p_ptr->word_recall = read_int("word_recall");
 	p_ptr->see_infra = read_int("see_infra");
 	p_ptr->tim_infra = read_int("tim_infra");
-
-	/* Sorceror flags */
-	p_ptr->wraith_in_wall = read_int("wraith_in_wall");
-	p_ptr->tim_wraith = read_int("tim_wraith");
-	p_ptr->tim_meditation = read_int("tim_meditation");
-	p_ptr->tim_manashield = read_int("tim_manashield");
-
+	
 	p_ptr->oppose_fire = read_int("oppose_fire");
 	p_ptr->oppose_cold = read_int("oppose_cold");
 	p_ptr->oppose_acid = read_int("oppose_acid");

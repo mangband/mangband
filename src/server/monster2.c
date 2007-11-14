@@ -883,16 +883,6 @@ void lore_treasure(int m_idx, int num_item, int num_gold)
 bool is_detected(u32b flag, u32b esp)
 {
 	if (esp == TR4_ESP_ALL) return TRUE;
-#if defined(NEW_ADDITIONS)	
-	if ((flag & RF3_ORC) && (esp & TR4_ESP_ORC)) return TRUE;
-	if ((flag & RF3_TROLL) && (esp & TR4_ESP_TROLL)) return TRUE;
-	if ((flag & RF3_GIANT) && (esp & TR4_ESP_GIANT)) return TRUE;
-	if ((flag & RF3_DRAGON) && (esp & TR4_ESP_DRAGON)) return TRUE;
-	if ((flag & RF3_DEMON) && (esp & TR4_ESP_DEMON)) return TRUE;
-	if ((flag & RF3_UNDEAD) && (esp & TR4_ESP_UNDEAD)) return TRUE;
-	if ((flag & RF3_EVIL) && (esp & TR4_ESP_EVIL)) return TRUE;
-	if ((flag & RF3_ANIMAL) && (esp & TR4_ESP_ANIMAL)) return TRUE;
-#endif
 	return FALSE;
 }
 
@@ -1063,8 +1053,7 @@ void update_mon(int m_idx, bool dist)
 			}
 
 			/* Telepathy can see all "nearby" monsters with "minds" */
-            if (is_detected(r_ptr->flags3, p_ptr->telepathy) ||
-		((p_ptr->prace == RACE_TLORD) && (m_ptr->cdis <= (p_ptr->lev / 2))))
+            if (is_detected(r_ptr->flags3, p_ptr->telepathy))
 			{
 				/* Empty mind, no telepathy */
 				if (r_ptr->flags2 & RF2_EMPTY_MIND)
@@ -1297,8 +1286,7 @@ void update_player(int Ind)
 			}
 
 			/* Telepathy can see all players */
-            if ((p_ptr->telepathy == TR4_ESP_ALL) ||
-		((p_ptr->prace == RACE_TLORD) && (dis <= (p_ptr->lev / 2))))
+            if (p_ptr->telepathy == TR4_ESP_ALL)
 			{
 				/* Visible */
 				hard = flag = TRUE;
