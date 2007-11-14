@@ -263,6 +263,10 @@
 # define stricmp strcasecmp
 #endif
 
+#ifdef WIN32
+#define strcasecmp stricmp
+#endif
+
 
 /*
  * OPTION: Define "HAS_MEMSET" only if "memset()" exists.
@@ -285,5 +289,3 @@
 
 
 #endif
-
-

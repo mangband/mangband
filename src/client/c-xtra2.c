@@ -200,5 +200,3 @@ void do_cmd_messages(void)
 	/* Flush any queued events */
 	Flush_queue();
 }
-
-

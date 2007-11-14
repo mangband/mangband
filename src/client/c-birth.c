@@ -404,7 +404,7 @@ static bool enter_server_name(void)
 	move_cursor(5, 1);
 
 	/* Default */
-	strcpy(server_name, "refugee.mangband.org");
+    strcpy(server_name, "localhost");
 
 	/* Ask for server name */
 	return askfor_aux(server_name, 80, 0);

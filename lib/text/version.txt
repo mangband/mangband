@@ -386,5 +386,3 @@ Angband Version 2.5   : 12/05/93 Charles Swiger.
 Angband Version 2.6   :  9/04/94
 
 Angband Version 2.7   :  1/1/95  Ben Harrison
-
-

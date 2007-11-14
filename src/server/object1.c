@@ -30,7 +30,7 @@
  * Max sizes of the following arrays
  */
 #define MAX_ROCKS      42       /* Used with rings (min 38) */
-#define MAX_AMULETS    16       /* Used with amulets (min 13) */
+#define MAX_AMULETS    26       /* Used with amulets (min 13) */
 #define MAX_WOODS      32       /* Used with staffs (min 30) */
 #define MAX_METALS     32       /* Used with wands/rods (min 29/28) */
 #define MAX_COLORS     60       /* Used with potions (min 60) */
@@ -79,15 +79,19 @@ static cptr amulet_adj[MAX_AMULETS] =
 	"Amber", "Driftwood", "Coral", "Agate", "Ivory",
 	"Obsidian", "Bone", "Brass", "Bronze", "Pewter",
 	"Tortoise Shell", "Golden", "Azure", "Crystal", "Silver",
-	"Copper"
+    "Copper", "Emerald", "Ruby", "Amethyst", "Mithril",
+    "Sapphire", "Dragon Tooth", "Sea Shell", "Flint Stone",
+    "Platinum", "Glass"
 };
 
 static byte amulet_col[MAX_AMULETS] =
 {
 	TERM_YELLOW, TERM_L_UMBER, TERM_WHITE, TERM_L_WHITE, TERM_WHITE,
-	TERM_L_DARK, TERM_WHITE, TERM_L_UMBER, TERM_L_UMBER, TERM_SLATE,
+    TERM_L_DARK, TERM_WHITE, TERM_ORANGE, TERM_L_UMBER, TERM_SLATE,
 	TERM_UMBER, TERM_YELLOW, TERM_L_BLUE, TERM_WHITE, TERM_L_WHITE,
-	TERM_L_UMBER
+    TERM_L_UMBER, TERM_GREEN, TERM_RED, TERM_VIOLET, TERM_L_BLUE,
+    TERM_BLUE, TERM_L_WHITE, TERM_L_BLUE, TERM_SLATE,
+    TERM_L_WHITE, TERM_WHITE
 };
 
 
@@ -124,10 +128,10 @@ static byte staff_col[MAX_WOODS] =
 
 static cptr wand_adj[MAX_METALS] =
 {
-	"Aluminum", "Cast Iron", "Chromium", "Copper", "Gold",
+    "Aluminium", "Cast Iron", "Chromium", "Copper", "Gold",
 	"Iron", "Magnesium", "Molybdenum", "Nickel", "Rusty",
 	"Silver", "Steel", "Tin", "Titanium", "Tungsten",
-	"Zirconium", "Zinc", "Aluminum-Plated", "Copper-Plated", "Gold-Plated",
+    "Zirconium", "Zinc", "Aluminium-Plated", "Copper-Plated", "Gold-Plated",
 	"Nickel-Plated", "Silver-Plated", "Steel-Plated", "Tin-Plated", "Zinc-Plated",
 	"Mithril-Plated", "Mithril", "Runed", "Bronze", "Brass",
 	"Platinum", "Lead"/*,"Lead-Plated","Ivory","Pewter"*/
@@ -310,6 +314,9 @@ static bool object_easy_know(int i)
 		/* Spellbooks */
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
+#if defined(NEW_ADDITIONS)
+	case TV_SORCERY_BOOK:
+#endif
 		{
 			return (TRUE);
 		}
@@ -403,6 +410,11 @@ static byte default_tval_to_attr(int tval)
 			return (TERM_L_WHITE);
 		}
 
+        case TV_MSTAFF:
+        {
+            return (TERM_L_BLUE);
+        }
+
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_CROWN:
@@ -469,6 +481,13 @@ static byte default_tval_to_attr(int tval)
 		{
 			return (TERM_L_RED);
 		}
+
+#if defined(NEW_ADDITIONS)
+	case TV_SORCERY_BOOK:
+	{
+	    return (TERM_ORANGE);
+	}
+#endif
 
 		case TV_PRAYER_BOOK:
 		{
@@ -860,7 +879,7 @@ void reset_visuals(void)
 /*
  * Obtain the "flags" for an item
  */
-void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
 {
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
@@ -868,15 +887,30 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 	(*f1) = k_ptr->flags1;
 	(*f2) = k_ptr->flags2;
 	(*f3) = k_ptr->flags3;
+    (*f4) = k_ptr->flags4;
 
 	/* Artifact */
-	if (o_ptr->name1)
+    if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr = &a_info[o_ptr->name1];
+        artifact_type *a_ptr;
+#if 0
+	if (o_ptr->name1 == ART_RANDART)
+	{
+		a_ptr = randart_make(o_ptr);
+	}
+	else
+	{
+#endif
+		a_ptr = &a_info[o_ptr->name1];
+#if 0
+	}
+#endif
+	if (a_ptr == NULL) return;
 
 		(*f1) = a_ptr->flags1;
 		(*f2) = a_ptr->flags2;
 		(*f3) = a_ptr->flags3;
+	(*f4) = a_ptr->flags4;
 	}
 
 	/* Ego-item */
@@ -887,6 +921,7 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 		(*f1) |= e_ptr->flags1;
 		(*f2) |= e_ptr->flags2;
 		(*f3) |= e_ptr->flags3;
+	(*f4) |= e_ptr->flags4;
 	}
 
 	/* Extra powers */
@@ -911,7 +946,7 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 		case EGO_XTRA_POWER:
 		{
 			/* Choose a power */
-			switch (o_ptr->xtra2 % 9)
+            switch (o_ptr->xtra2 % 11)
 			{
 				case 0: (*f2) |= TR2_RES_BLIND; break;
 				case 1: (*f2) |= TR2_RES_CONF; break;
@@ -922,6 +957,8 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 				case 6: (*f2) |= TR2_RES_CHAOS; break;
 				case 7: (*f2) |= TR2_RES_DISEN; break;
 				case 8: (*f2) |= TR2_RES_POIS; break;
+		case 9: (*f2) |= TR2_RES_LITE; break; /* was missing... why??? */
+		case 10: (*f2) |= TR2_RES_DARK; break; /* was missing... why??? */
 			}
 
 			break;
@@ -930,16 +967,17 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 		case EGO_XTRA_ABILITY:
 		{
 			/* Choose an ability */
-			switch (o_ptr->xtra2 % 8)
+            switch (o_ptr->xtra2 % 9)
 			{
 				case 0: (*f3) |= TR3_FEATHER; break;
 				case 1: (*f3) |= TR3_LITE; break;
 				case 2: (*f3) |= TR3_SEE_INVIS; break;
-				case 3: (*f3) |= TR3_TELEPATHY; break;
+                case 3: (*f4) |= TR4_ESP_ALL; break;
 				case 4: (*f3) |= TR3_SLOW_DIGEST; break;
 				case 5: (*f3) |= TR3_REGEN; break;
 				case 6: (*f2) |= TR2_FREE_ACT; break;
 				case 7: (*f2) |= TR2_HOLD_LIFE; break;
+		case 8: (*f2) |= TR2_RES_FEAR; break;
 			}
 
 			break;
@@ -1143,14 +1181,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 
 	char		tmp_val[160];
 
-	u32b		f1, f2, f3;
+    u32b		f1, f2, f3, f4;
 
 	object_kind		*k_ptr = &k_info[o_ptr->k_idx];
 
 
 	/* Extract some flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
-
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Assume aware and known if not a valid player */
 	if (Ind)
@@ -1176,7 +1213,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	/* Assume no "modifier" string */
 	modstr = "";
 
-
 	/* Analyze the object */
 	switch (o_ptr->tval)
 	{
@@ -1192,7 +1228,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			break;
 		}
 
-
 			/* Missiles/ Bows/ Weapons */
 		case TV_SHOT:
 		case TV_BOLT:
@@ -1201,12 +1236,12 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
+        case TV_MSTAFF:
 		case TV_DIGGING:
 		{
 			show_weapon = TRUE;
 			break;
 		}
-
 
 			/* Armour */
 		case TV_BOOTS:
@@ -1223,24 +1258,23 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			break;
 		}
 
-
 			/* Lites (including a few "Specials") */
 		case TV_LITE:
 		{
 			break;
 		}
 
-
 			/* Amulets (including a few "Specials") */
 		case TV_AMULET:
 		{
 			/* Known artifacts */
-			if (artifact_p(o_ptr) && aware) break;
+	    /* if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = amulet_adj[indexx];
-			if (aware) append_name = TRUE;
-			basenm = aware ? "& Amulet~" : "& # Amulet~";
+            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+            if (!aware) basenm = "& # Amulet~";
+            else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
 			break;
 		}
 
@@ -1249,12 +1283,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_RING:
 		{
 			/* Known artifacts */
-			if (artifact_p(o_ptr) && aware) break;
+	    /*if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = ring_adj[indexx];
-			if (aware) append_name = TRUE;
-			basenm = aware ? "& Ring~" : "& # Ring~";
+            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+            if (!aware) basenm = "& # Ring~";
+            else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
 
 			/* Hack -- The One Ring */
 			if (!aware && (o_ptr->sval == SV_RING_POWER)) modstr = "Plain Gold";
@@ -1328,6 +1363,16 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			basenm = "& Book~ of Magic Spells #";
 			break;
 		}
+
+#if defined(NEW_ADDITIONS)
+	/* Sorcery Books */
+	case TV_SORCERY_BOOK:
+	{
+		modstr = basenm;
+		basenm = "& Book~ of Sorcery #";
+		break;
+	}
+#endif
 
 			/* Prayer Books */
 		case TV_PRAYER_BOOK:
@@ -1498,8 +1543,21 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	/* Hack -- Append "Artifact" or "Special" names */
 	if (known)
 	{
+        /* Grab any randart name */
+#if defined(RANDARTS)
+	if (o_ptr->name1 == ART_RANDART)
+	{
+		/* Create the name */
+		randart_name(o_ptr, tmp_val);
+			
+		t = object_desc_chr(t, ' ');
+		t = object_desc_str(t, tmp_val);
+	}
+			
 		/* Grab any artifact name */
-		if (o_ptr->name1)
+	else 
+#endif
+	if (artifact_p(o_ptr))
 		{
 			artifact_type *a_ptr = &a_info[o_ptr->name1];
 
@@ -1621,6 +1679,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
+        case TV_MSTAFF:
 		case TV_DIGGING:
 
 		/* Append a "damage" string */
@@ -1750,14 +1809,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	}
 
 	/* Hack -- Process Lanterns/Torches */
-	else if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN))
+    else if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN) && (!o_ptr->name3))
 	{
 		/* Hack -- Turns of light for normal lites */
 		t = object_desc_str(t, " (with ");
 		t = object_desc_num(t, o_ptr->pval);
 		t = object_desc_str(t, " turns of light)");
 	}
-
 
 	/* Dump "pval" flags for wearable items */
 	if (known && (f1 & TR1_PVAL_MASK))
@@ -1963,10 +2021,10 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
  */
 cptr item_activation(object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Require activation ability */
 	if (!(f3 & TR3_ACTIVATE)) return (NULL);
@@ -2000,15 +2058,15 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_RINGIL:
 		{
-			return "frost ball (100) every 300 turns";
+            return "frost ball (100) every 40 turns";
 		}
 		case ART_ANDURIL:
 		{
-			return "fire ball (72) every 400 turns";
+            return "fire ball (72) every 40 turns";
 		}
 		case ART_FIRESTAR:
 		{
-			return "large fire ball (72) every 100 turns";
+            return "large fire ball (72) every 20 turns";
 		}
 		case ART_FEANOR:
 		{
@@ -2016,11 +2074,11 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_THEODEN:
 		{
-			return "drain life (120) every 400 turns";
+            return "drain life (120) every 40 turns";
 		}
 		case ART_TURMIL:
 		{
-			return "drain life (90) every 70 turns";
+            return "drain life (90) every 40 turns";
 		}
 		case ART_CASPANION:
 		{
@@ -2048,7 +2106,7 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_LOTHARANG:
 		{
-			return "cure wounds (4d7) every 3+d3 turns";
+            return "cure wounds (4d8) every 3+d3 turns";
 		}
 		case ART_CUBRAGOL:
 		{
@@ -2056,11 +2114,11 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_ARUNRUTH:
 		{
-			return "frost bolt (12d8) every 500 turns";
+            return "frost bolt (12d8) every 50 turns";
 		}
 		case ART_AEGLOS:
 		{
-			return "frost ball (100) every 500 turns";
+            return "frost ball (100) every 35 turns";
 		}
 		case ART_OROME:
 		{
@@ -2068,7 +2126,7 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_SOULKEEPER:
 		{
-			return "heal (1000) every 888 turns";
+            return "heal (1000) every 444 turns";
 		}
 		case ART_BELEGENNON:
 		{
@@ -2080,11 +2138,11 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_LUTHIEN:
 		{
-			return "restore life levels every 450 turns";
+            return "restore life levels every 250 turns";
 		}
 		case ART_ULMO:
 		{
-			return "teleport away every 150 turns";
+            return "teleport away every 50 turns";
 		}
 		case ART_COLLUIN:
 		{
@@ -2128,7 +2186,7 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_FINGOLFIN:
 		{
-			return "a magical arrow (150) every 90+d90 turns";
+            return "a magical arrow (150) every 30+d30 turns";
 		}
 		case ART_HOLHENNETH:
 		{
@@ -2136,16 +2194,20 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_GONDOR:
 		{
-			return "heal (500) every 500 turns";
+            return "heal (500) every 250 turns";
 		}
 		case ART_RAZORBACK:
 		{
-			return "star ball (150) every 1000 turns";
+            return "star ball (150) every 50 turns";
 		}
 		case ART_BLADETURNER:
 		{
 			return "berserk rage, bless, and resistance every 400 turns";
 		}
+        case ART_MEDIATOR:
+        {
+            return "star ball (150) every 50 turns";
+        }
 		case ART_GALADRIEL:
 		{
 			return "illumination every 10+d10 turns";
@@ -2156,11 +2218,15 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_THRAIN:
 		{
-			return "clairvoyance every 100+d100 turns";
+            return "detection every 30+d30 turns";
+        }
+        case ART_PALANTIR:
+        {
+            return "clairvoyance every 50+d50 turns";
 		}
 		case ART_INGWE:
 		{
-			return "dispel evil (x5) every 300+d300 turns";
+            return "dispel evil (x5) every 50+d50 turns";
 		}
 		case ART_CARLAMMAS:
 		{
@@ -2172,19 +2238,67 @@ cptr item_activation(object_type *o_ptr)
 		}
 		case ART_NARYA:
 		{
-			return "large fire ball (120) every 225+d225 turns";
+            return "large fire ball (120) every 20+d20 turns";
 		}
 		case ART_NENYA:
 		{
-			return "large frost ball (200) every 325+d325 turns";
+            return "large frost ball (200) every 20+d20 turns";
 		}
 		case ART_VILYA:
 		{
-			return "large lightning ball (250) every 425+d425 turns";
+            return "large lightning ball (250) every 20+d20 turns";
 		}
 		case ART_POWER:
 		{
-			return "bizarre things every 450+d450 turns";
+            return "bizarre things every 30+d30 turns";
+        }
+        case ART_ELESSAR:
+        {
+            return "heal (500) every 200 turns";
+        }
+        case ART_EVENSTAR:
+        {
+            return "restore life levels every 150 turns";
+        }
+        case ART_HIMRING:
+        {
+            return "protection from evil every 100+d100 turns";
+        }
+        case ART_GILGALAD:
+        {
+            return "starlight every 100 turns";
+        }
+        case ART_EOL:
+        {
+            return "mana bolt (10d10) every 30+d30 turns";
+        }
+        case ART_WORMTONGUE:
+        {
+            return "phase door every 20 turns";
+        }
+        case ART_HURIN:
+        {
+            return "berserk rage every 80+d80 turns";
+        }
+        case ART_GOTHMOG:
+        {
+            return "large fire ball (120) every 15 turns";
+        }
+        case ART_UMBAR:
+        {
+            return "a magical arrow (150) every 20+d20 turns";
+        }
+        case ART_NAIN:
+        {
+            return "stone to mud every 2 turns";
+        }
+        case ART_FUNDIN:
+        {
+            return "dispel evil (x5) every 100+d100 turns";
+        }
+        case ART_HARADRIM:
+        {
+            return "berserk rage every 50 turns";
 		}
 	}
 
@@ -2201,6 +2315,15 @@ cptr item_activation(object_type *o_ptr)
 	if ((o_ptr->tval == TV_AMULET) && (o_ptr->sval == SV_AMULET_THE_MOON))
 		return "sleep monsters every 100+d100 turns";
 
+    /* Some rings can be activated for resistance */
+    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_FLAMES))
+    	return "resist fire every 150+d50 turns";
+    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_ACID))
+    	return "resist acid every 150+d50 turns";
+    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_ICE))
+    	return "resist cold every 150+d50 turns";
+    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_LIGHTNING))
+    	return "resist lightning every 150+d50 turns";
 
 	/* Require dragon scale mail */
 	if (o_ptr->tval != TV_DRAG_ARMOR) return (NULL);
@@ -2276,7 +2399,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	player_type *p_ptr = Players[Ind];
 	int i = 0;
 
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 
 	cptr		*info = p_ptr->info;
 
@@ -2287,7 +2410,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	p_ptr->special_file_type = TRUE;
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Mega-Hack -- describe activation */
 	if (f3 & TR3_ACTIVATE)
@@ -2347,6 +2470,11 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 		info[i++] = "It affects your charisma.";
 	}
 
+    if (f1 & TR1_MANA)
+    {
+	info[i++] = "It affects your mana capacity.";
+    }
+
 	if (f1 & TR1_STEALTH)
 	{
 		info[i++] = "It affects your stealth.";
@@ -2388,6 +2516,10 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It does extra damage from frost.";
 	}
+    if (f1 & TR1_BRAND_POIS)
+    {
+        info[i++] = "It does extra damage from poison.";
+    }
 
 	if (f1 & TR1_IMPACT)
 	{
@@ -2398,38 +2530,80 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It is a great bane of dragons.";
 	}
+#if  defined(NEW_ADDITIONS)
 	else if (f1 & TR1_SLAY_DRAGON)
 	{
 		info[i++] = "It is especially deadly against dragons.";
 	}
+    if (f4 & TR4_ESP_DRAGON)
+    {
+        info[i++] = "It allows you to sense the presence of dragons.";
+    }
 	if (f1 & TR1_SLAY_ORC)
 	{
 		info[i++] = "It is especially deadly against orcs.";
 	}
+    if (f4 & TR4_ESP_ORC)
+    {
+        info[i++] = "It allows you to sense the presence of orcs.";
+    }
 	if (f1 & TR1_SLAY_TROLL)
 	{
 		info[i++] = "It is especially deadly against trolls.";
 	}
+    if (f4 & TR4_ESP_TROLL)
+    {
+        info[i++] = "It allows you to sense the presence of trolls.";
+    }
 	if (f1 & TR1_SLAY_GIANT)
 	{
 		info[i++] = "It is especially deadly against giants.";
 	}
-	if (f1 & TR1_SLAY_DEMON)
+    if (f4 & TR4_ESP_GIANT)
+    {
+        info[i++] = "It allows you to sense the presence of giants.";
+    }  
+#endif
+    if (f1 & TR1_KILL_DEMON)
+    {
+        info[i++] = "It is a great bane of demons.";
+    }
+    else if (f1 & TR1_SLAY_DEMON)
 	{
 		info[i++] = "It strikes at demons with holy wrath.";
 	}
-	if (f1 & TR1_SLAY_UNDEAD)
+    if (f4 & TR4_ESP_DEMON)
+    {
+        info[i++] = "It allows you to sense the presence of demons.";
+    }  
+    if (f1 & TR1_KILL_UNDEAD)
+    {
+        info[i++] = "It is a great bane of undead.";
+    }
+    else if (f1 & TR1_SLAY_UNDEAD)
 	{
 		info[i++] = "It strikes at undead with holy wrath.";
 	}
+    if (f4 & TR4_ESP_UNDEAD)
+    {
+        info[i++] = "It allows you to sense the presence of undead.";
+    }
 	if (f1 & TR1_SLAY_EVIL)
 	{
 		info[i++] = "It fights against evil with holy fury.";
 	}
+    if (f4 & TR4_ESP_EVIL)
+    {
+        info[i++] = "It allows you to sense the presence of evil.";
+    }
 	if (f1 & TR1_SLAY_ANIMAL)
 	{
 		info[i++] = "It is especially deadly against natural creatures.";
 	}
+    if (f4 & TR4_ESP_ANIMAL)
+    {
+        info[i++] = "It allows you to sense the presence of animals.";
+    }
 
 	if (f2 & TR2_SUST_STR)
 	{
@@ -2472,6 +2646,11 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It provides immunity to cold.";
 	}
+
+    if (f2 & TR2_RES_FEAR)
+    {
+        info[i++] = "It makes you completely fearless.";
+    }
 
 	if (f2 & TR2_FREE_ACT)
 	{
@@ -2558,7 +2737,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It allows you to see invisible monsters.";
 	}
-	if (f3 & TR3_TELEPATHY)
+    if (f4 & TR4_ESP_ALL)
 	{
 		info[i++] = "It gives telepathic powers.";
 	}
@@ -2597,6 +2776,11 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It has been blessed by the gods.";
 	}
+
+    if (f3 & TR3_KNOWLEDGE)
+    {
+	info[i++] = "It identifies all items for you.";
+    }
 
 	if (cursed_p(o_ptr))
 	{
@@ -2722,6 +2906,7 @@ s16b wield_slot(int Ind, object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
+        case TV_MSTAFF:
 		{
 			return (INVEN_WIELD);
 		}
@@ -3042,4 +3227,3 @@ void display_equip(int Ind)
 		Send_equip(Ind, tmp_val[0], attr, wgt, o_ptr->tval, o_name);
 	}
 }
-

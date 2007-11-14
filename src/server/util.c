@@ -8,7 +8,9 @@
 #include "angband.h"
 
 
-
+#ifdef WIN32
+#define strncasecmp strnicmp
+#endif
 
 #ifndef HAS_MEMSET
 

@@ -172,6 +172,12 @@ void process_command()
                         break;
                 }
 
+		case 'I':
+                {
+                        cmd_observe();
+                        break;
+                }
+
 		case '{':
 		{
 			cmd_inscribe();
@@ -282,6 +288,12 @@ void process_command()
 			cmd_ghost();
 			break;
 		}
+
+	case 'x':
+	{
+		cmd_mind();
+		break;
+	}
 
 		/*** Looking/Targetting ***/
 		case '*':
@@ -766,6 +778,20 @@ void cmd_destroy(void)
 
 	/* Send it */
 	Send_destroy(item, amt);
+}
+
+
+void cmd_observe(void)
+{
+	int item;
+
+	if (!c_get_item(&item, "Examine what? ", TRUE, TRUE, FALSE))
+	{
+		return;
+	}
+
+	/* Send it */
+	Send_observe(item);
 }
 
 
@@ -1351,7 +1377,12 @@ void cmd_browse(void)
 
 	if (class == CLASS_PRIEST || class == CLASS_PALADIN)
 		item_tester_tval = TV_PRAYER_BOOK;
-	else item_tester_tval = TV_MAGIC_BOOK;
+#if defined(NEW_ADDITIONS)
+    else if (class == CLASS_SORCEROR)
+	item_tester_tval = TV_SORCERY_BOOK;
+#endif
+    else 
+	item_tester_tval = TV_MAGIC_BOOK;
 
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
@@ -1375,6 +1406,10 @@ void cmd_study(void)
 
 	if (class == CLASS_PRIEST || class == CLASS_PALADIN)
 		item_tester_tval = TV_PRAYER_BOOK;
+#if defined(NEW_ADDITIONS)
+    else if (class == CLASS_SORCEROR)
+	item_tester_tval = TV_SORCERY_BOOK;
+#endif
 	else item_tester_tval = TV_MAGIC_BOOK;
 
 	if (!c_get_item(&item, "Gain from which book? ", FALSE, TRUE, FALSE))
@@ -1391,12 +1426,21 @@ void cmd_cast(void)
 {
 	int item;
 
-	if (class != CLASS_MAGE && class != CLASS_ROGUE && class != CLASS_RANGER)
+    if (class != CLASS_MAGE && class != CLASS_ROGUE && class != CLASS_RANGER 
+#if defined(NEW_ADDITIONS)
+		    && class != CLASS_SORCEROR
+#endif
+		    )
 	{
 		c_msg_print("You cannot cast spells!");
 		return;
 	}
 
+#if defined(NEW_ADDITIONS)
+    if (class == CLASS_SORCEROR)
+	item_tester_tval = TV_SORCERY_BOOK;
+    else 
+#endif
 	item_tester_tval = TV_MAGIC_BOOK;
 
 	if (!c_get_item(&item, "Cast from what book? ", FALSE, TRUE, FALSE))
@@ -2244,3 +2288,7 @@ void cmd_master(void)
 	Flush_queue();
 }
 
+void cmd_mind(void)
+{
+	Send_mind();
+}

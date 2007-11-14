@@ -65,6 +65,10 @@ static char sourceid[] =
 #include <setjmp.h>
 #include <errno.h>
 
+#ifdef WIN32
+int errno = 0;
+#endif
+
 /* This should be complied by a std c compiler */
 /*
 #ifdef _cplusplus

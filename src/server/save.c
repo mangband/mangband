@@ -106,7 +106,7 @@ static void wr_item(object_type *o_ptr)
 
 	write_int("iy",o_ptr->iy);
 	write_int("ix",o_ptr->ix);
-	write_uint("dun_depth",o_ptr->dun_depth);
+	write_int("dun_depth",o_ptr->dun_depth);
 
 	write_int("tval",o_ptr->tval);
 	write_int("sval",o_ptr->sval);
@@ -119,6 +119,7 @@ static void wr_item(object_type *o_ptr)
 
 	write_int("name1",o_ptr->name1);
 	write_int("name2",o_ptr->name2);
+	write_int("name3",o_ptr->name3);
 	write_int("timeout",o_ptr->timeout);
 
 	write_int("to_h",o_ptr->to_h);
@@ -434,6 +435,12 @@ static void wr_extra(int Ind)
 	write_int("word_recall",p_ptr->word_recall);
 	write_int("see_infra",p_ptr->see_infra);
 	write_int("tim_infra",p_ptr->tim_infra);
+	/* Sorceror flags */
+	write_int("wraith_in_wall",p_ptr->wraith_in_wall);
+	write_int("tim_wraith",p_ptr->tim_wraith);
+	write_int("tim_meditation",p_ptr->tim_meditation);
+	write_int("tim_manashield",p_ptr->tim_manashield);
+
 	write_int("oppose_fire",p_ptr->oppose_fire);
 	write_int("oppose_cold",p_ptr->oppose_cold);
 	write_int("oppose_acid",p_ptr->oppose_acid);
@@ -444,6 +451,11 @@ static void wr_extra(int Ind)
 	write_int("searching",p_ptr->searching);
 	write_int("maximize",p_ptr->maximize);
 	write_int("preserve",p_ptr->preserve);
+
+	/* Dump the monster lore */
+	start_section("uniques");
+	for (i = 0; i < MAX_R_IDX; i++) write_int("unique",p_ptr->r_killed[i]);
+	end_section("uniques");
 
 	/* Special stuff */
 	write_int("panic_save",panic_save);
@@ -1103,9 +1115,9 @@ bool load_player(int Ind)
 	{
 		/* Extract version */
 		sf_major = 0; /* [grk] FIXME */
-		sf_minor = 7;
-		sf_patch = 3;
-		sf_extra = 3;
+		sf_minor = 9;
+		sf_patch = 9;
+		sf_extra = 0;
 
 		/* Parse "new" savefiles */
 		/* Parse "MAngband" savefiles */
@@ -1522,13 +1534,13 @@ bool load_server_info(void)
         {
                 /* Extract version */
                 /* [grk] FIXME */
-                sf_major = 0;
-                sf_minor = 7;
-                sf_patch = 3;
-                sf_extra = 3;
+                sf_major = 1;
+                sf_minor = 0;
+                sf_patch = 0;
+                sf_extra = 0;
 
                 /* Parse "MAngband" savefiles */
-                if (sf_major == 0)
+                if (sf_major == 1)
                 {
                         /* Attempt to load */
                         err = rd_server_savefile();

@@ -1035,6 +1035,7 @@ const int adj_con_mhp[] =
  *    Rogue   --> num = 5; mul = 3; div = MAX(30, weapon_weight);
  *    Ranger  --> num = 5; mul = 4; div = MAX(35, weapon_weight);
  *    Paladin --> num = 5; mul = 4; div = MAX(30, weapon_weight);
+ *    Sorceror --> num = 1;
  *
  * To get "P", we look up the relevant "adj_str_blow[]" (see above),
  * multiply it by "mul", and then divide it by "div", rounding down.
@@ -1473,6 +1474,55 @@ player_race race_info[MAX_RACES] =
 		4,
 		0x1F
 	}
+#if defined(NEW_ADDITIONS)
+    ,{
+	"Yeek",
+	{  -5, -5, -5, -5, -5, -5 },
+	0,  0,  0,  0,  0,  10,  0,  0,
+	6,  50,
+	14,  6,
+	72,  6, 180, 25,
+	66,  4, 150, 20,
+	0,
+	0x3F
+    },
+
+    {
+	"Goblin",
+	{  0, -1, -5,  4,  2, -5 },
+	2, -3, -3,  0,  2, 8, 12, -5,
+	11,  115,
+	11,  4,
+	66,  1, 150,  5,
+	62,  1, 120,  5,
+	3,
+	0x0D
+    },
+
+    {
+	"Ent",
+	{ 8, -4, 2, -4,  8, -5 },
+	5, 0, 20, -6, 5, 4, 15, 5,
+	14, 300,
+	255, 70,
+	72, 6, 100, 25,
+	66, 4, 100, 20,
+	5,
+	0x3F,
+    },
+
+    {
+	"Thunderlord",
+	{  6,  3,  -10,  0,  5,  5 },
+	6,  0,  10,  -16,  30,  10,  15,  5,
+	12,  350,
+	14,  6,
+	180,  6, 255, 25,
+	150,  4, 230, 20,
+	0,
+	0x3F
+    }
+#endif
 };
 
 
@@ -1534,6 +1584,15 @@ player_class class_info[MAX_CLASS] =
 		7,  10, 11, 0,  0,  0,  35, 30,
 		6, 35
 	}
+#if defined(NEW_ADDITIONS)
+    ,{
+	"Sorceror",
+	{-5, 5, 1, 0, -1, 0},
+	35, 40, 30, 2, 16, 20, 30, 20,
+	8,  15,  9, 0,  0,  0, 11, 15,
+	0, 30
+    }
+#endif
 };
 
 
@@ -1683,20 +1742,20 @@ player_magic magic_info[MAX_CLASS] =
 
 			{  9,  7, 45,   8},
 			{  9,  7, 75,   9},
-			{  9,  7, 45,   8},
+            {  9,  9, 50,   6},
 			{ 11,  7, 45,   9},
 			{ 11,  7, 75,   6},
 			{ 13,  7, 50,   6},
-			{ 15,  9, 50,   6},
+            { 15, 12, 55,   8},
 			{ 17,  9, 50,   7},
 
-			{ 19, 12, 55,   8},
+            { 19, 18, 65,  12},
 			{ 21, 12, 90,   8},
 			{ 23, 12, 60,   8},
 			{ 25, 12, 65,  10},
-			{ 29, 18, 65,  12},
+            { 29, 21, 75,  12},
 			{ 33, 21, 80,  15},
-			{ 37, 25, 95,  21},
+            { 37, 50, 95,  21},
 
 			{  7,  7, 20,  28},
 			{  9, 12, 40,  44},
@@ -1791,14 +1850,14 @@ player_magic magic_info[MAX_CLASS] =
 			{ 25, 10, 80, 150},
 			{ 35, 50, 80, 230},
 
-			{ 15,  5, 50,  25},
-			{ 17,  7, 60,  45},
+            {  5,  4, 32,  25},
+            { 13, 11, 45,  45},
 			{ 30, 50, 80, 130},
 			{ 35, 70, 90, 230},
 			{ 35, 70, 90, 250},	/* 350 */
 
-			{ 15,  7, 70,  25},
-			{ 20, 10, 75,  60},
+            { 15,  7, 55,  25},
+            { 20, 10, 70,  60},
 			{ 25, 25, 80, 250},
 			{ 35, 35, 80, 115},
 			{ 45, 60, 75, 250},	/* 350 */
@@ -1950,18 +2009,18 @@ player_magic magic_info[MAX_CLASS] =
 
 			{ 17, 17, 55,   3},
 			{ 17, 17, 90,   4},
-			{ 21, 17, 55,   3},
+            { 21, 20, 60,   3},
 			{ 21, 19, 60,   3},
 			{ 23, 25, 90,   3},
 			{ 23, 20, 60,   3},
-			{ 25, 20, 60,   3},
+            { 25, 21, 65,   3},
 			{ 25, 21, 65,   3},
 
-			{ 27, 21, 65,   3},
+            { 27, 25, 80,   5},
 			{ 29, 23, 95,   3},
 			{ 31, 25, 70,   3},
 			{ 33, 25, 75,   4},
-			{ 35, 25, 80,   5},
+            { 35, 30, 95,   5},
 			{ 37, 30, 95,  10},
 			{ 99,  0,  0,   0},
 
@@ -2025,6 +2084,7 @@ player_magic magic_info[MAX_CLASS] =
 			{  7,  5, 40,   3},
 			{  7,  5, 40,   3},
 			{  9,  7, 40,   3},
+
 			{  9,  7, 40,   3},
 			{  9,  8, 40,   3},
 			{ 11,  9, 40,   3},
@@ -2033,6 +2093,7 @@ player_magic magic_info[MAX_CLASS] =
 			{ 13, 10, 45,   3},
 			{ 13, 11, 45,   4},
 			{ 15, 13, 45,   4},
+
 			{ 15, 15, 50,   4},
 			{ 17, 15, 50,   4},
 			{ 17, 15, 50,   4},
@@ -2042,6 +2103,7 @@ player_magic magic_info[MAX_CLASS] =
 			{ 23, 17, 50,   3},
 			{ 25, 20, 50,   3},
 			{ 27, 21, 50,   3},
+
 			{ 29, 22, 50,   3},
 			{ 31, 24, 60,   3},
 			{ 33, 28, 60,   3},
@@ -2055,14 +2117,14 @@ player_magic magic_info[MAX_CLASS] =
 			{ 30, 15, 80, 135},
 			{ 37, 55, 80, 215},
 
-			{ 17, 15, 50,  25},
-			{ 23, 25, 60,  35},
+            { 11,  9, 40,  25},
+            { 25, 20, 50,  35},
 			{ 35, 60, 80, 115},
 			{ 40, 80, 90, 200},
 			{ 40, 80, 90, 250},	/* 300 */
 
-			{ 20, 13, 70,  20},
-			{ 30, 20, 75,  40},
+            { 20, 13, 60,  20},
+            { 30, 20, 70,  40},
 			{ 30, 35, 80, 200},
 			{ 40, 40, 80, 100},
 			{ 47, 70, 75, 250},	/* 350 */
@@ -2088,7 +2150,105 @@ player_magic magic_info[MAX_CLASS] =
 			{ 99,  0,  0,   0},
 			{ 99,  0,  0,   0}
 		}
+    },
+
+#if defined(NEW_ADDITIONS)
+    {
+	/*** Sorceror ***/
+
+	TV_SORCERY_BOOK,
+	0,
+
+	A_INT,
+	2,
+
+	1,
+	300,
+
+	{
+		/* Apprentice Handbook */
+		{ 1, 1, 10, 4 },
+        	{ 1, 1, 12, 4 },
+		{ 2, 2, 12, 4 },
+		{ 2, 2, 12, 4 },
+		{ 3, 2, 14, 4 },
+		{ 3, 3, 14, 6 },
+		{ 4, 3, 15, 8 },
+		{ 5, 6, 25, 8 },
+
+		/* Mystical Words */
+		{ 6, 5, 18, 8 },
+		{ 6, 6, 20, 9 },
+		{ 7, 7, 22, 10 },
+		{ 7, 7, 22, 11 },
+		{ 8, 7, 25, 12 },
+		{ 8, 9, 30, 13 },
+		{ 9, 8, 35, 14 },
+		{ 10, 10, 50, 15 },
+
+		/* Arcane Chants */
+		{ 11, 8, 40, 16 },
+		{ 12, 9, 35, 17 },
+		{ 13, 10, 70, 17 },
+		{ 14, 12, 45, 17 },
+		{ 16, 18, 50, 20 },
+		{ 17, 13, 40, 20 },
+		{ 18, 15, 50, 20 },
+		{ 20, 30, 65, 24 },
+
+		/* Locus of Force */	                
+		{ 22, 5, 30, 25 },
+		{ 24, 26, 65, 27 },
+		{ 25, 21, 50, 29 },
+		{ 25, 25, 55, 32 },
+		{ 27, 30, 75, 35 },
+		{ 35, 50, 60, 45 },
+
+		/* Powerful Sigils */
+		{ 20, 15, 44, 62 },
+		{ 23, 24, 50, 70 },
+		{ 28, 26, 35, 60 },
+		{ 30, 33, 65, 140 },
+		{ 45, 60, 75, 130 },
+
+		/* Disruptive Forces */
+		{ 16, 12, 35, 40 },
+		{ 18, 14, 44, 50 },
+		{ 28, 27, 55, 100 },
+		{ 35, 40, 65, 150 },
+		{ 38, 25, 10, 175 },
+		{ 44, 50, 65, 250 },			
+
+		/* Forces of the Mind */	                
+		{ 15, 16, 30, 45 },	                
+		{ 28, 50, 35, 100 },
+		{ 33, 35, 50, 150 },
+		{ 36, 32, 85, 200 },
+		{ 45, 60, 88, 210 },
+
+		/* Power of Ancient Sorcerors */
+		{ 36, 24, 45, 230 },
+		{ 39, 30, 45, 235 },
+		{ 42, 35, 50, 240 },
+		{ 45, 40, 55, 250 },
+		{ 47, 46, 55, 253 },
+		{ 49, 48, 65, 255 },
+
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0},
+		{ 99,  0,  0,   0}
 	}
+	}
+#endif
 };
 
 /*
@@ -2168,7 +2328,7 @@ magic_type ghost_spells[64] =
 /*
  * Spells in each book (mage spells then priest spells)
  */
-u32b spell_flags[2][9][2] =
+u32b spell_flags[3][9][2] =
 {
 	{
 		/*** Mage spell books ***/
@@ -2194,6 +2354,18 @@ u32b spell_flags[2][9][2] =
 		{ 0x00000000, 0x000001f0 },
 		{ 0x00000000, 0x000fc000 },
 		{ 0x00000000, 0x00003e00 }
+    },
+
+    {
+	/*** Sorcery spell books (only 8 books) ***/
+	{0x000000ff, 0x00000000},
+	{0x0000ff00, 0x00000000},
+	{0x00ff0000, 0x00000000},
+	{0x3f000000, 0x00000000},
+	{0xC0000000, 0x00000007},
+	{0x00000000, 0x000001f8},
+	{0x00000000, 0x00003e00},
+	{0x00000000, 0x000fc000},
 	}
 };
 
@@ -2201,7 +2373,7 @@ u32b spell_flags[2][9][2] =
 /*
  * Names of the spells (mage spells, priest spells, ghost spells)
  */
-cptr spell_names[3][64] =
+cptr spell_names[4][64] =
 {
 	/*** Mage Spells ***/
 
@@ -2221,7 +2393,7 @@ cptr spell_names[3][64] =
 		"Confuse Monster",
 		"Lightning Bolt",
 		"Trap/Door Destruction",
-		"Sleep I",
+        "Sleep Monster",
 		"Cure Poison",
 		"Teleport Self",
 		"Spear of Light",
@@ -2231,19 +2403,19 @@ cptr spell_names[3][64] =
 		/* Incantations and Illusions (sval 2) */
 		"Satisfy Hunger",
 		"Recharge Item I",
-		"Sleep II",
+        "Fire Bolt",
 		"Polymorph Other",
 		"Identify",
-		"Sleep III",
-		"Fire Bolt",
+        "Sleep Monsters",
+        "Frost Ball",
 		"Slow Monster",
 
 		/* Sorcery and Evocations (sval 3) */
-		"Frost Ball",
+        "Fire Ball",
 		"Recharge Item II",
 		"Teleport Other",
 		"Haste Self",
-		"Fire Ball",
+        "Tidal Wave",
 		"Word of Destruction",
 		"Genocide",
 
@@ -2341,9 +2513,9 @@ cptr spell_names[3][64] =
 		"Clairvoyance",
 
 		/* Purifications and Healing (sval 6) */
-		"Cure Serious Wounds",
-		"Cure Mortal Wounds",
+        "Cure Critical Wounds",
 		"Healing",
+        "Extra Healing",
 		"Restoration",
 		"Remembrance",
 
@@ -2374,6 +2546,92 @@ cptr spell_names[3][64] =
 		"(blank)",
 		"(blank)",
 		"(blank)",
+        "(blank)",
+        "(blank)"
+    },
+
+    /*** Sorcery Spells ***/
+
+    {
+	/* Apprentice Handbook */
+	"Magic Missile",
+	"Phase Door",
+	"Detect Monsters",
+	"Detect Traps",
+	"Light Area",
+	"Detect Doors/Stairs",
+	"Confuse Monster",
+	"Detect Object",
+
+	/* Mystical Words */
+	"Noxious Cloud",
+	"Teleport",
+	"Beam of Light",
+	"Sleep Monster",
+	"Lightning Bolt",
+	"Stone to Mud",
+	"Frost Bolt",
+	"Wraithform",
+
+	/* Arcane Chants */
+	"Ethereal Eye",
+	"Fire Bolt",
+	"Identification",
+	"Radiate Fear",
+	"Haste Self",
+	"Elemental Bolt",
+	"Teleport Away",
+	"Create Food",
+
+	/* Locus of Force */                
+	"Meditation",
+	"Recharging",
+	"Firestorm",
+	"Force Shield",
+	"Sunfire",
+	"Safeguard",
+
+	/* Powerful Sigils */
+	"Sanctuary",
+	"Escape",
+	"Elemental Shield",
+	"Recall",
+	"Disruption Shield",
+
+	/* Disruptive Forces */
+	"Earthquake",
+	"Polymorph",
+	"Chaos Blast",
+	"Wipe",
+	"Mana Blast",
+	"Word of Destruction",
+
+	/* Forces of the Mind */                
+	"Mind Vision",                
+	"Telekinesis",
+	"Self-Scan",
+	"*Identify*",
+	"Clairvoyance",
+
+	/* Power of Ancient Sorcerors */
+	"Plasma Eruption",
+	"Annihilation Bolt",
+	"Oblivion Blast",
+	"Tidal Wave",
+	"Anarchy Force",
+	"Mana Strike",
+
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
+	"(blank)",
 		"(blank)"
 	},
 
@@ -2630,6 +2888,20 @@ cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5] =
 		"Low Paladin",
 		"High Paladin",
 		"Paladin Lord",
+    },
+
+    /* Sorcerors */
+    {
+	"Novice",
+	"Apprentice",
+	"Trickster",
+	"Illusionist",
+	"Spellbinder",
+	"Evoker",
+	"Conjurer",
+	"Sorcerer",
+	"Mage Lord",
+	"Arch-Mage",
 	}
 };
 
@@ -2971,5 +3243,3 @@ option_type option_info[] =
 	{ NULL,			0, 0, 0, 0,
 	NULL,			NULL }
 };
-
-

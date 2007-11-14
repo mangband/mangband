@@ -15,6 +15,27 @@
 #include "angband.h"
 
 
+/* Scan all players on the level and see if at least one can find the unique */
+bool allow_unique_level(int r_idx, int Depth)
+{
+	int i;
+	
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *p_ptr = Players[i];
+
+		/* Is the player on the level and did he killed the unique already ? */
+		if (!p_ptr->r_killed[r_idx] && (p_ptr->dun_depth == Depth))
+		{
+			/* One is enough */
+			return (TRUE);
+		}
+	}
+	
+	/* Yeah but we need at least ONE */
+	return (FALSE);
+}
+
 
 /*
  * Delete a monster by index.
@@ -460,12 +481,13 @@ s16b get_mon_num(int level)
 
 	alloc_entry		*table = alloc_race_table;
 
-#ifdef IRONMAN
+  if (cfg_ironman)
+  {
 	/* 
 	 * Ironmen don't kill townies, also don't generate any monsters on special levels..
 	 */
 	if((level == 0) || check_special_level(level)) return(0);
-#endif
+  }
 
 	if (level > 0)
 	{
@@ -530,11 +552,11 @@ s16b get_mon_num(int level)
 		r_ptr = &r_info[r_idx];
 
 		/* Hack -- "unique" monsters must be "unique" */
-		if ((r_ptr->flags1 & RF1_UNIQUE) &&
+        /*if ((r_ptr->flags1 & RF1_UNIQUE) &&
 		    (r_ptr->cur_num >= r_ptr->max_num))
 		{
 			continue;
-		}
+        }*/
 
 		/* Depth Monsters never appear out of depth */
 		/* FIXME: This might cause FORCE_DEPTH monsters to appear out of depth */
@@ -858,6 +880,22 @@ void lore_treasure(int m_idx, int num_item, int num_gold)
 }
 
 
+bool is_detected(u32b flag, u32b esp)
+{
+	if (esp == TR4_ESP_ALL) return TRUE;
+#if defined(NEW_ADDITIONS)	
+	if ((flag & RF3_ORC) && (esp & TR4_ESP_ORC)) return TRUE;
+	if ((flag & RF3_TROLL) && (esp & TR4_ESP_TROLL)) return TRUE;
+	if ((flag & RF3_GIANT) && (esp & TR4_ESP_GIANT)) return TRUE;
+	if ((flag & RF3_DRAGON) && (esp & TR4_ESP_DRAGON)) return TRUE;
+	if ((flag & RF3_DEMON) && (esp & TR4_ESP_DEMON)) return TRUE;
+	if ((flag & RF3_UNDEAD) && (esp & TR4_ESP_UNDEAD)) return TRUE;
+	if ((flag & RF3_EVIL) && (esp & TR4_ESP_EVIL)) return TRUE;
+	if ((flag & RF3_ANIMAL) && (esp & TR4_ESP_ANIMAL)) return TRUE;
+#endif
+	return FALSE;
+}
+
 
 /*
  * This function updates the monster record of the given monster
@@ -1025,7 +1063,8 @@ void update_mon(int m_idx, bool dist)
 			}
 
 			/* Telepathy can see all "nearby" monsters with "minds" */
-			if (p_ptr->telepathy)
+            if (is_detected(r_ptr->flags3, p_ptr->telepathy) ||
+		((p_ptr->prace == RACE_TLORD) && (m_ptr->cdis <= (p_ptr->lev / 2))))
 			{
 				/* Empty mind, no telepathy */
 				if (r_ptr->flags2 & RF2_EMPTY_MIND)
@@ -1258,13 +1297,15 @@ void update_player(int Ind)
 			}
 
 			/* Telepathy can see all players */
-			if (p_ptr->telepathy)
+            if ((p_ptr->telepathy == TR4_ESP_ALL) ||
+		((p_ptr->prace == RACE_TLORD) && (dis <= (p_ptr->lev / 2))))
 			{
 				/* Visible */
 				hard = flag = TRUE;
 			}
 		/* hack -- dungeon masters are invisible */
 		if (!strcmp(q_ptr->name,cfg_dungeon_master)) flag = FALSE;
+        if (!strcmp(q_ptr->name,cfg_irc_gate)) flag = FALSE;
 		}
 
 		/* Player is now visible */
@@ -1421,7 +1462,8 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 
 
 	/* Hack -- "unique" monsters must be "unique" */
-	if ((r_ptr->flags1 & RF1_UNIQUE) && (r_ptr->cur_num >= r_ptr->max_num))
+    if ((r_ptr->flags1 & RF1_UNIQUE) && ((!allow_unique_level(r_idx, Depth)) ||
+	(r_ptr->cur_num >= r_ptr->max_num)))
 	{
 		/* Cannot create */
 		return (FALSE);
@@ -2256,10 +2298,14 @@ bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char size)
 bool multiply_monster(int m_idx)
 {
 	monster_type	*m_ptr = &m_list[m_idx];
+    monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
 	int			i, y, x;
 
 	bool result = FALSE;
+
+    /* NO UNIQUES */
+    if (r_ptr->flags1 & RF1_UNIQUE) return FALSE;
 
 	/* Try up to 18 times */
 	for (i = 0; i < 18; i++)
@@ -2553,4 +2599,3 @@ int race_index(char * name)
 	}
 	return 0;
 }
-

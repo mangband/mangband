@@ -225,7 +225,7 @@ static bool wild_monst_aux_lake(int r_idx)
 	monster_race *r_ptr = &r_info[r_idx];
 
 	/* no reproducing monsters allowed */
-	if (r_ptr->flags3 & RF2_MULTIPLY) return FALSE;
+	if (r_ptr->flags2 & RF2_MULTIPLY) return FALSE;
 
 	/* animals are OK */
 	if (r_ptr->flags3 & RF3_ANIMAL) return TRUE;
@@ -245,7 +245,7 @@ static bool wild_monst_aux_grassland(int r_idx)
 	monster_race *r_ptr = &r_info[r_idx];
 
 	/* no reproducing monsters allowed */
-	if (r_ptr->flags3 & RF2_MULTIPLY) return FALSE;
+	if (r_ptr->flags2 & RF2_MULTIPLY) return FALSE;
 
 	/* animals are OK */
 	if (r_ptr->flags3 & RF3_ANIMAL) return TRUE; 
@@ -385,9 +385,10 @@ void reserve_building_plot(int Depth, int *x1, int *y1, int *x2, int *y2, int xl
 	int x,y, attempts = 0, plot_clear;
 
 #ifdef DEVEL_TOWN_COMPATIBILITY
+	printf("Using Devel Town Compat\n");
 	while (attempts < 200)
 #else
-	while (attempts < 20)
+	while (attempts < 80)
 #endif
 	{
 	
@@ -716,7 +717,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 		if (cave_clean_bold(Depth,y,x))
 		{			
 			object_level = w_ptr->radius/2 +1;
-			place_object(Depth,y,x,FALSE,FALSE);
+			place_object(Depth,y,x,FALSE,FALSE,0);
 			num_objects--;
 		}
 		trys++;	
@@ -838,6 +839,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	cave_type *c_ptr;
 	wilderness_type *w_ptr=&wild_info[Depth];
 	bool rand_old = Rand_quick;
+	int rand_bonus=0;
 	
 	/* Hack -- Use the "simple" RNG */
 	Rand_quick = TRUE;
@@ -855,20 +857,22 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	/* chance of being a "large" house */
 	if (!rand_int(2))
 	{
-		house_xlen = rand_int(10) + rand_int(rand_int(10)) + 9;
-		house_ylen = rand_int(5) + rand_int(rand_int(5)) + 6;
+		house_xlen = rand_int(10) + rand_int(rand_int(10)) + 9+rand_bonus;
+		house_ylen = rand_int(5) + rand_int(rand_int(5)) + 6+rand_bonus;
 	}
 	/* chance of being a "small" house */
+/*
 	else if (!rand_int(2))
 	{
-		house_xlen = rand_int(4) + 3;
-		house_ylen = rand_int(2) + 3;
+		house_xlen = rand_int(4) + 3+rand_bonus;
+		house_ylen = rand_int(2) + 3+rand_bonus;
 	}
+*/
 	/* a "normal" house */
 	else
 	{
-		house_xlen = rand_int(10) + 3;
-		house_ylen = rand_int(5) + 3;
+		house_xlen = rand_int(10) + 3+rand_bonus;
+		house_ylen = rand_int(5) + 3+rand_bonus;
 	}
 	area = (house_xlen-2) * (house_ylen-2);
 

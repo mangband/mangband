@@ -91,6 +91,7 @@ static int Receive_stand(int ind);
 static int Receive_destroy(int ind);
 static int Receive_look(int ind);
 static int Receive_spell(int ind);
+static int Receive_observe(int ind);
 
 static int Receive_open(int ind);
 static int Receive_pray(int ind);
@@ -142,6 +143,7 @@ static int Receive_master(int ind);
 static int Receive_autophase(int ind);
 
 static void Handle_item(int Ind, int item);
+static int Receive_mind(int ind);
 
 int Setup_net_server(void);
 bool Destroy_connection(int ind, char *reason);

@@ -330,4 +330,3 @@ quality metals they contain.
 
 
 Artifact Armours -- see "rumors.hlp"
-

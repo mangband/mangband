@@ -378,6 +378,7 @@ static bool wearable_p(object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
+		case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -428,7 +429,7 @@ static void rd_item(object_type *o_ptr)
 	byte old_dd;
 	byte old_ds;
 
-	u32b f1, f2, f3;
+	u32b f1, f2, f3, f4;
 
 	u16b tmp16u;
 
@@ -470,6 +471,7 @@ static void rd_item(object_type *o_ptr)
 
 	o_ptr->name1 = read_int("name1");
 	o_ptr->name2 = read_int("name2");
+	o_ptr->name3 = read_int("name3");
 	o_ptr->timeout = read_int("timeout");
 
 	o_ptr->to_h = read_int("to_h");
@@ -478,8 +480,8 @@ static void rd_item(object_type *o_ptr)
 
 	o_ptr->ac = read_int("ac");
 
-	o_ptr->dd = read_int("dd");
-	o_ptr->ds = read_int("ds");
+	old_dd = read_int("dd");
+	old_ds = read_int("ds");
 
 	o_ptr->ident = read_int("ident");
 
@@ -536,11 +538,11 @@ static void rd_item(object_type *o_ptr)
 
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 
 	/* Paranoia */
-	if (o_ptr->name1)
+	if (true_artifact_p(o_ptr))
 	{
 		artifact_type *a_ptr;
 
@@ -577,13 +579,23 @@ static void rd_item(object_type *o_ptr)
 
 
 	/* Artifacts */
-	if (o_ptr->name1)
+	if (artifact_p(o_ptr))
 	{
 		artifact_type *a_ptr;
 
 		/* Obtain the artifact info */
+#if defined(RANDART)
+		if (o_ptr->name1 == ART_RANDART)
+		{
+			a_ptr = randart_make(o_ptr);
+		}
+		else
+		{
+#endif
 		a_ptr = &a_info[o_ptr->name1];
-
+#if defined(RANDART)
+		}
+#endif
 		/* Acquire new artifact "pval" */
 		o_ptr->pval = a_ptr->pval;
 
@@ -971,6 +983,13 @@ static bool rd_extra(int Ind)
 	p_ptr->word_recall = read_int("word_recall");
 	p_ptr->see_infra = read_int("see_infra");
 	p_ptr->tim_infra = read_int("tim_infra");
+
+	/* Sorceror flags */
+	p_ptr->wraith_in_wall = read_int("wraith_in_wall");
+	p_ptr->tim_wraith = read_int("tim_wraith");
+	p_ptr->tim_meditation = read_int("tim_meditation");
+	p_ptr->tim_manashield = read_int("tim_manashield");
+
 	p_ptr->oppose_fire = read_int("oppose_fire");
 	p_ptr->oppose_cold = read_int("oppose_cold");
 	p_ptr->oppose_acid = read_int("oppose_acid");
@@ -981,6 +1000,11 @@ static bool rd_extra(int Ind)
 	p_ptr->searching = read_int("searching");
 	p_ptr->maximize = read_int("maximize");
 	p_ptr->preserve = read_int("preserve");
+
+	/* Read the unique list info */
+	start_section_read("uniques");
+	for (i = 0; i < MAX_R_IDX; i++) p_ptr->r_killed[i] = read_int("unique");
+	end_section_read("uniques");
 
 	/* Special stuff */
 	panic_save = read_int("panic_save");
@@ -1553,6 +1577,8 @@ errr rd_server_savefile()
         u16b tmp16u;
         u32b tmp32u;
 	s32b tmp32s;
+	int major;
+	char name[80];
 
 	/* Savefile name */
 	path_build(savefile, 1024, ANGBAND_DIR_SAVE, "server");
@@ -1561,7 +1587,6 @@ errr rd_server_savefile()
 	file_handle = my_fopen(savefile, "r");
 	line_counter = 0;
 
-	int major;
 	start_section_read("mangband_server_save");
 	start_section_read("version");
 	major = read_int("major"); 
@@ -1760,7 +1785,6 @@ errr rd_server_savefile()
 	if (!older_than(0,4,1))
 	{
 		start_section_read("player_names");
-		char name[80];
 
 		tmp32u = read_int("num_players");
 

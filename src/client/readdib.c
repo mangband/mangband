@@ -336,4 +336,3 @@ ErrExit2:
 	_lclose(fh);
 	return(result);
 }
-

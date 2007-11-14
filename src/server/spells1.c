@@ -547,6 +547,29 @@ void take_hit(int Ind, int damage, cptr hit_from)
 	/* Mega-Hack -- Apply "invulnerability" */
 	if (p_ptr->invuln && (damage < 9000)) return;
 
+    /* Disruption shield */
+    if (p_ptr->tim_manashield)
+    {
+	if (p_ptr->csp > 0)
+	{
+		int taken = (damage);
+
+		if (p_ptr->csp < taken)
+		{
+			damage -= taken - p_ptr->csp;
+			p_ptr->csp = 0;
+		}
+		else
+		{
+			damage = 0;
+			p_ptr->csp -= taken;
+		}
+		 
+		/* Display the spellpoints */
+		p_ptr->redraw |= (PR_MANA);
+	}
+    }
+
 	/* Hurt the player */
 	p_ptr->chp -= damage;
 
@@ -636,6 +659,7 @@ static bool hates_acid(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
+        case TV_MSTAFF:
 		case TV_HELM:
 		case TV_CROWN:
 		case TV_SHIELD:
@@ -709,6 +733,7 @@ static bool hates_fire(object_type *o_ptr)
 		case TV_BOW:
 		case TV_HAFTED:
 		case TV_POLEARM:
+        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_CLOAK:
@@ -720,6 +745,9 @@ static bool hates_fire(object_type *o_ptr)
 		/* Books */
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
+#if defined(NEW_ADDITIONS)
+	case TV_SORCERY_BOOK:
+#endif
 		{
 			return (TRUE);
 		}
@@ -773,9 +801,9 @@ static bool hates_cold(object_type *o_ptr)
  */
 static int set_acid_destroy(object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 	if (!hates_acid(o_ptr)) return (FALSE);
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 	if (f3 & TR3_IGNORE_ACID) return (FALSE);
 	return (TRUE);
 }
@@ -786,9 +814,9 @@ static int set_acid_destroy(object_type *o_ptr)
  */
 static int set_elec_destroy(object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 	if (!hates_elec(o_ptr)) return (FALSE);
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 	if (f3 & TR3_IGNORE_ELEC) return (FALSE);
 	return (TRUE);
 }
@@ -799,9 +827,9 @@ static int set_elec_destroy(object_type *o_ptr)
  */
 static int set_fire_destroy(object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 	if (!hates_fire(o_ptr)) return (FALSE);
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 	if (f3 & TR3_IGNORE_FIRE) return (FALSE);
 	return (TRUE);
 }
@@ -812,9 +840,9 @@ static int set_fire_destroy(object_type *o_ptr)
  */
 static int set_cold_destroy(object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+    u32b f1, f2, f3, f4;
 	if (!hates_cold(o_ptr)) return (FALSE);
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 	if (f3 & TR3_IGNORE_COLD) return (FALSE);
 	return (TRUE);
 }
@@ -909,7 +937,7 @@ static int minus_ac(int Ind)
 
 	object_type		*o_ptr = NULL;
 
-	u32b		f1, f2, f3;
+    u32b		f1, f2, f3, f4;
 
 	char		o_name[80];
 
@@ -936,7 +964,7 @@ static int minus_ac(int Ind)
 	object_desc(Ind, o_name, o_ptr, FALSE, 0);
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Object resists */
 	if (f3 & TR3_IGNORE_ACID)
@@ -1598,6 +1626,25 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			break;
 		}
 
+	case GF_STONE_WALL:
+	{
+		/* Require a "naked" floor grid */
+		if (!cave_naked_bold(Depth, y, x)) break;
+
+               	/* Beware of the houses in town */
+               	if ((Depth <= 0) && (cave[Depth][y][x].info & CAVE_ICKY)) break;
+
+                /* Place a wall */
+		c_ptr->feat = FEAT_WALL_EXTRA;
+					
+		/* Notice */
+		note_spot(Ind, y, x);
+
+		/* Redraw */
+		everyone_lite_spot(Depth, y, x);
+		break;
+	}
+
 		/* Burn trees and grass */
 		case GF_FIRE:
 		{
@@ -1873,7 +1920,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 					}
 
 					/* Place gold */
-					place_object(Depth, y, x, FALSE, FALSE);
+                    place_object(Depth, y, x, FALSE, FALSE, 0);
 				}
 			}
 
@@ -2073,7 +2120,7 @@ static bool project_i(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 	cptr	note_kill = NULL;
 
-	u32b	f1, f2, f3;
+    u32b	f1, f2, f3, f4;
 
 	char	o_name[80];
 
@@ -2099,7 +2146,7 @@ static bool project_i(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3);
+    object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Get the "plural"-ness */
 	if (o_ptr->number > 1) plural = TRUE;
@@ -3612,7 +3659,8 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 		/* Do not become hostile if it was a healing or teleport spell */
 		
-		if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
+        if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL) && (typ != GF_WRAITH_PLAYER)
+		&& (typ != GF_SPEED_PLAYER) && (typ != GF_SHIELD_PLAYER) && (typ != GF_RECALL_PLAYER))
 		{
 			/* If this was intentional, make target hostile */
 			if (check_hostile(0 - who, Ind))
@@ -3996,6 +4044,64 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		set_cut(Ind, Players[Ind]->cut - 10);
 		
 		break;
+
+	case GF_WRAITH_PLAYER:		
+	{
+		if (fuzzy) msg_print(Ind, "You feel less consistant!");
+		else msg_format(Ind, "%^s turns you into a wraith!", killer);
+		
+		set_tim_wraith(Ind, p_ptr->tim_wraith + dam);
+		break;
+        }
+
+	case GF_SPEED_PLAYER:		
+	{
+		if (fuzzy) msg_print(Ind, "You feel faster!");
+		else msg_format(Ind, "%^s speeds you up!", killer);
+		
+		if (!p_ptr->fast)
+		{
+			 (void)set_fast(Ind, dam);
+		}
+		else
+		{
+			(void)set_fast(Ind, p_ptr->fast + (dam / 5));
+		}
+		break;
+	}
+
+	case GF_SHIELD_PLAYER:
+	{
+		if (fuzzy) msg_print(Ind, "You feel protected!");
+		else msg_format(Ind, "%^s shields you!", killer);
+		
+                if (!p_ptr->shield)
+                        (void)set_shield(Ind, dam);
+                 else
+                        (void)set_shield(Ind, p_ptr->shield + (dam / 5));
+		break;
+	}
+
+	case GF_RECALL_PLAYER:
+	{
+		if (cfg_ironman)
+                	msg_print(Ind, "The air about you becomes charged... but only for a moment...");
+		else if (!p_ptr->word_recall)
+		{
+			p_ptr->recall_depth = p_ptr->max_dlv;
+			p_ptr->word_recall = dam;
+			if (fuzzy) msg_print(Ind, "You feel unstable!");
+			else msg_format(Ind, "%^s recalls you!", killer);
+		}
+		else
+		{
+			p_ptr->word_recall = 0;
+			if (fuzzy) msg_print(Ind, "You feel more stable!");
+			else msg_format(Ind, "%^s stops your recall!", killer);
+		}
+		dam = 0;
+		break;
+        }
 
 		case GF_OLD_CONF:
 		
@@ -4402,6 +4508,9 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			
 			/* healing spells hit everybody */			
 			if (typ == GF_HEAL_PLAYER) break;
+	    if (typ == GF_WRAITH_PLAYER) break;
+	    if (typ == GF_SPEED_PLAYER) break;
+	    if (typ == GF_SHIELD_PLAYER) break;
 			
 			/* neutral people hit each other */			
 			if (!Players[0 - who]->party) break;
@@ -4752,8 +4861,3 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Return "something was noticed" */
 	return (notice);
 }
-
-
-
-
-

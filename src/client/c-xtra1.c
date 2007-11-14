@@ -49,7 +49,7 @@ void cnv_stat(int val, char *out_val)
 /*
  * Print character stat in given row, column
  */
-void prt_stat(int stat, int max, int cur)
+void prt_stat(int stat, int max, int cur, bool maxed)
 {
 	char tmp[32];
 
@@ -64,6 +64,9 @@ void prt_stat(int stat, int max, int cur)
 	{
 		Term_putstr(0, ROW_STAT + stat, -1, TERM_WHITE, stat_names[stat]);
 		cnv_stat(cur, tmp);
+	if (maxed)
+		Term_putstr(COL_STAT + 6, ROW_STAT + stat, -1, TERM_L_UMBER, tmp);
+	else
 		Term_putstr(COL_STAT + 6, ROW_STAT + stat, -1, TERM_L_GREEN, tmp);
 	}
 }
@@ -472,26 +475,35 @@ void prt_basic(void)
 
 	switch(race)
 	{
-		case 0: r = "Human"; break;
-		case 1: r = "Half-elf"; break;
-		case 2: r = "Elf"; break;
-		case 3: r = "Hobbit"; break;
-		case 4: r = "Gnome"; break;
-		case 5: r = "Dwarf"; break;
-		case 6: r = "Half-orc"; break;
-		case 7: r = "Half-troll"; break;
-		case 8: r = "Dunadan"; break;
-		case 9: r = "High-elf"; break;
+        case RACE_HUMAN: r = "Human"; break;
+        case RACE_HALF_ELF: r = "Half-elf"; break;
+        case RACE_ELF: r = "Elf"; break;
+        case RACE_HOBBIT: r = "Hobbit"; break;
+        case RACE_GNOME: r = "Gnome"; break;
+        case RACE_DWARF: r = "Dwarf"; break;
+        case RACE_HALF_ORC: r = "Half-orc"; break;
+        case RACE_HALF_TROLL: r = "Half-troll"; break;
+        case RACE_DUNADAN: r = "Dunadan"; break;
+        case RACE_HIGH_ELF: r = "High-elf"; break;
+#if defined(NEW_ADDITIONS)
+	case RACE_YEEK: r = "Yeek"; break;
+	case RACE_GOBLIN: r = "Goblin"; break;
+	case RACE_ENT: r = "Ent"; break;
+	case RACE_TLORD: r = "Thunderlord"; break;
+#endif
 	}
 
 	switch(class)
 	{
-		case 0: c = "Warrior"; break;
-		case 1: c = "Mage"; break;
-		case 2: c = "Priest"; break;
-		case 3: c = "Rogue"; break;
-		case 4: c = "Ranger"; break;
-		case 5: c = "Paladin"; break;
+        case CLASS_WARRIOR: c = "Warrior"; break;
+        case CLASS_MAGE: c = "Mage"; break;
+        case CLASS_PRIEST: c = "Priest"; break;
+        case CLASS_ROGUE: c = "Rogue"; break;
+        case CLASS_RANGER: c = "Ranger"; break;
+        case CLASS_PALADIN: c = "Paladin"; break;
+#if defined(NEW_ADDITIONS)
+	case CLASS_SORCEROR: c = "Sorceror"; break;
+#endif
 	}
 
 	prt_field(r, ROW_RACE, COL_RACE);
@@ -1075,6 +1087,7 @@ void fix_message(void)
 			if (ang_term[PMSG_TERM]) {
 
 				if (msg[0] == '[') continue;
+		else if(strstr(msg, "begins a new game")!=NULL) continue;
 				else if(strstr(msg, "has entered the game")!=NULL) continue;
 				else if(strstr(msg, "has left the game")!=NULL) continue;
 				else if(strstr(msg, "committed suicide.")!=NULL) continue;
@@ -1082,6 +1095,8 @@ void fix_message(void)
 				else if(strstr(msg, "was slain by")!=NULL) continue;
 				else if(strstr(msg, "rises from the dead")!=NULL) continue;
 				else if(strstr(msg, "ghost was destroyed by")!=NULL) continue;
+		else if(strstr(msg, "has attained level")!=NULL) continue;
+		else if(strstr(msg, "Welcome to level")!=NULL) continue;
 
 			} 
 
@@ -1093,13 +1108,22 @@ void fix_message(void)
 			} else {
 				a=TERM_WHITE;
 
+                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-				if( (strstr(msg, "was slain by")!=NULL)) a=TERM_YELLOW;
+                if( (strstr(msg, "was slain by")!=NULL))
+		{
+			if (strstr(msg, "Morgoth") != NULL)
+				a = TERM_VIOLET;
+			else
+				a = TERM_YELLOW;
+		}
 				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
 				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
+                if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
 			};
 
 			/* Dump the message on the appropriate line */
@@ -1150,13 +1174,22 @@ void fix_message(void)
 			} else {
 				a=TERM_WHITE;
 
+                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
 				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-				if( (strstr(msg, "was slain by")!=NULL)) a=TERM_YELLOW;
+                if( (strstr(msg, "was slain by")!=NULL))
+		{
+			if (strstr(msg, "Morgoth") != NULL)
+				a = TERM_VIOLET;
+			else
+				a = TERM_YELLOW;
+		}
 				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
 				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
+		if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
 			};
 
 			if(a != TERM_WHITE) {
@@ -1319,6 +1352,9 @@ void display_player(int hist)
                         cnv_stat(value, buf);
 
                         /* Display the maximum stat (modified) */
+			if (p_ptr->stat_max[i] == 18+100)
+				c_put_str(TERM_L_UMBER, buf, 2 + i, 73);
+			else
                         c_put_str(TERM_L_GREEN, buf, 2 + i, 73);
                 }
 
@@ -1332,6 +1368,9 @@ void display_player(int hist)
                         cnv_stat(p_ptr->stat_use[i], buf);
 
                         /* Display the current stat (modified) */
+			if (p_ptr->stat_max[i] == 18+100)
+				c_put_str(TERM_L_UMBER, buf, 2 + i, 66);
+			else
                         c_put_str(TERM_L_GREEN, buf, 2 + i, 66);
                 }
         }
@@ -1497,5 +1536,3 @@ void window_stuff(void)
 		fix_message();
 	}
 }
-
-	

@@ -561,5 +561,3 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Return TRUE if something was picked */
 	return (item);
 }
-
-					

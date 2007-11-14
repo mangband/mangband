@@ -17,6 +17,9 @@ static void print_spells(int book)
 	/* Dump the spells */
 	for (i = 0; i < 9; i++)
 	{
+	/* Clear line */
+	prt("", 2 + i, col);
+
 		/* Check for end of the book */
 		if (spell_info[book][i][0] == '\0')
 			break;
@@ -125,7 +128,11 @@ static int get_spell(int *sn, cptr prompt, int book, bool known)
 		}
 		
 		/* hack for CAPITAL prayers (heal other) */
-		if ((class == CLASS_PRIEST) || (class == CLASS_PALADIN))
+        if ((class == CLASS_PRIEST) || (class == CLASS_PALADIN) 
+#if defined(NEW_ADDITIONS)
+			|| (class == CLASS_SORCEROR)
+#endif
+			)
 		{
 			/* lowercase */
 			if (islower(choice))

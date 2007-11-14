@@ -62,14 +62,16 @@ struct hist_type
  * Background information (see below)
  *
  * Chart progression by race:
- *   Human/Dunadan -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
+ *   Human/Dunadan/Yeek -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Half-Elf      -->  4 -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Elf/High-Elf  -->  7 -->  8 -->  9 --> 54 --> 55 --> 56
  *   Hobbit        --> 10 --> 11 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Gnome         --> 13 --> 14 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Dwarf         --> 16 --> 17 --> 18 --> 57 --> 58 --> 59 --> 60 --> 61
- *   Half-Orc      --> 19 --> 20 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
+ *   Half-Orc/Goblin   	--> 19 --> 20 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Half-Troll    --> 22 --> 23 --> 62 --> 63 --> 64 --> 65 --> 66
+ *   Ent		--> 94 --> 95
+ *   Thunderlord	--> 89 --> 91
  *
  * XXX XXX XXX This table *must* be correct or drastic errors may occur!
  */
@@ -236,7 +238,24 @@ static hist_type bg[] =
 
 	{"ulcerous skin.",						 33, 66, 0, 50},
 	{"scabby skin.",						 66, 66, 0, 50},
-	{"leprous skin.",						100, 66, 0, 50}
+    {"leprous skin.",						100, 66, 0, 50},
+
+    {"You are one of several children of a Thunderlord. ", 	85, 89, 91, 50},
+    {"You are the only child of a Thunderlord. ", 		100, 89, 91, 60},
+
+    {"You have a Green Eagle.", 				30, 91, 0, 40},
+    {"You have a Blue Eagle.", 					55, 91, 0, 60},
+    {"You have a Brown Eagle.", 				80, 91, 0, 80},
+    {"You have a Bronze Eagle.", 				90, 91, 0, 100},
+    {"You have a Gold Eagle.", 					100, 91, 0, 120},
+
+    {"You are of an unknown generation of the Ents.",        	30, 94, 95, 30},
+    {"You are of the third generation of the Ents.",         	40, 94, 95, 50},
+    {"You are of the second generation of the Ents.",        	60, 94, 95, 60},
+    {"You are of the first beings who awoke on Arda.",      	100, 94, 95, 80},
+
+    {"You have green skin and unflexible members.",          	50, 95, 0, 50},
+    {"You have brown skin and unflexible members.",         	100, 95, 0, 50}
 };
 
 
@@ -328,11 +347,10 @@ static void get_stats(int Ind, int stat_order[6])
 {
 	player_type *p_ptr = Players[Ind];
 	int		i, j;
-
 	int		bonus;
-
 	int		dice[18];
 	int		stats[6];
+    int         n17, n16, n15;
 
 	/* Clear "stats" array */
 	for (i = 0; i < 6; i++)
@@ -364,6 +382,13 @@ static void get_stats(int Ind, int stat_order[6])
 		stats[stat_order[i]] = 1;
 	}
 
+    /* Ensure that the primary stat is 17, secondary stat >= 16 and
+	third stat >= 15 --> no more endless suicides */
+    do
+    {
+	n17 = 0;
+	n16 = 0;
+	n15 = 0;
 	/* Roll and verify some stats */
 	while (TRUE)
 	{
@@ -386,10 +411,15 @@ static void get_stats(int Ind, int stat_order[6])
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
+          if (j == 17) n17++;
+	  if (j >= 16) n16++;
+	  if (j >= 15) n15++;
 
 		/* Save that value */
 		stats[i] = j;
 	}
+    }
+    while ((n17 < 1) || (n16 < 2) || (n15 < 3));
 
 	/* Now sort the stats */
 	/* I use a bubble sort because I'm lazy at the moment */
@@ -527,6 +557,9 @@ static void get_history(int Ind)
 	{
 		case RACE_HUMAN:
 		case RACE_DUNADAN:
+#if defined(NEW_ADDITIONS)
+	case RACE_YEEK:
+#endif
 		{
 			chart = 1;
 			break;
@@ -564,6 +597,9 @@ static void get_history(int Ind)
 		}
 
 		case RACE_HALF_ORC:
+#if defined(NEW_ADDITIONS)
+	case RACE_GOBLIN:
+#endif
 		{
 			chart = 19;
 			break;
@@ -575,6 +611,19 @@ static void get_history(int Ind)
 			break;
 		}
 
+#if defined(NEW_ADDITIONS)
+	case RACE_ENT:
+	{
+	    chart = 94;
+	    break;
+	}
+
+	case RACE_TLORD:
+	{
+	    chart = 89;
+	    break;
+	}
+#endif
 		default:
 		{
 			chart = 0;
@@ -730,6 +779,15 @@ static void get_money(int Ind)
 		p_ptr->ghost = 1;
 		p_ptr->noscore = 1;
 	}
+    if (!strcmp(p_ptr->name,cfg_irc_gate))
+    {
+	p_ptr->au = 0;
+	p_ptr->lev = 1;
+	p_ptr->exp = 0;
+	p_ptr->invuln = -1;
+	p_ptr->ghost = 1;
+	p_ptr->noscore = 1;
+    }
 	
 }
 
@@ -823,7 +881,6 @@ static void player_wipe(int Ind)
 
 static byte player_init[MAX_CLASS][3][2] =
 {
-#ifndef IRONMAN
 	{
 		/* Warrior */
 		{ TV_POTION, SV_POTION_BESERK_STRENGTH },
@@ -857,15 +914,26 @@ static byte player_init[MAX_CLASS][3][2] =
 		{ TV_MAGIC_BOOK, 0 },
 		{ TV_SWORD, SV_BROAD_SWORD },
 		{ TV_BOW, SV_LONG_BOW }
-	},
+    }
 
-	{
+    ,{
 		/* Paladin */
 		{ TV_PRAYER_BOOK, 0 },
 		{ TV_SWORD, SV_BROAD_SWORD },
 		{ TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL }
 	}
-#else
+#if defined(NEW_ADDITIONS)
+    ,{
+	/* Sorceror */
+	{ TV_SORCERY_BOOK, 0 },
+	{ TV_SWORD, SV_DAGGER },
+	{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL }
+    }
+#endif
+};
+
+static byte ironman_player_init[MAX_CLASS][3][2] =
+{
 	{
 		/* Warrior */
 		{ TV_LITE, SV_LITE_LANTERN },
@@ -899,13 +967,20 @@ static byte player_init[MAX_CLASS][3][2] =
 		{ TV_MAGIC_BOOK, 0 },
 		{ TV_LITE, SV_LITE_LANTERN },
 		{ TV_BOW, SV_LONG_BOW }
-	},
-
-	{
+    }
+    ,{
 		/* Paladin */
 		{ TV_PRAYER_BOOK, 0 },
 		{ TV_PRAYER_BOOK, 1 },
 		{ TV_LITE, SV_LITE_LANTERN },
+    },
+
+#if defined(NEW_ADDTIONS)
+    {
+	/* Sorceror */
+	{ TV_SORCERY_BOOK, 0 },
+	{ TV_SORCERY_BOOK, 1 },
+	{ TV_LITE, SV_LITE_LANTERN }
 	}
 #endif
 };
@@ -929,29 +1004,31 @@ static void player_outfit(int Ind)
 	/* Hack -- Give the player some food */
 	invcopy(o_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION));
 	o_ptr->number = rand_range(3, 7);
-#ifdef IRONMAN	
-	o_ptr->number *= 2;
-#endif
+    if (cfg_ironman) o_ptr->number *= 2;
 	object_aware(Ind, o_ptr);
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);
 
-#ifdef IRONMAN
+    if (cfg_ironman)
+    {
 	/* Hack -- Give the player some oil */
 	invcopy(o_ptr, lookup_kind(TV_FLASK, 0));
 	o_ptr->number = rand_range(6, 14);
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);	
-#else
+    }
+    else
+    {
 	/* Hack -- Give the player some torches */
 	invcopy(o_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH));
 	o_ptr->number = rand_range(3, 7);
 	o_ptr->pval = rand_range(3, 7) * 500;
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);
-#endif
+    }
 
-#ifdef IRONMAN
+    if (cfg_ironman)
+    {
 	/* More items for Ironmen */
 
 	/* Scrolls of teleportation */
@@ -998,7 +1075,7 @@ static void player_outfit(int Ind)
 		(void)inven_carry(Ind, o_ptr);
 	}
 
-	/* Ranger get second book */
+    	/* Rangers get second book */
 	if( (p_ptr->pclass == CLASS_RANGER) )
 	{
 		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 1));
@@ -1008,306 +1085,163 @@ static void player_outfit(int Ind)
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 	}
-
-
-		
+#if defined(NEW_ADDITIONS)
+    	/* Sorcerors get third book */
+    	if( (p_ptr->pclass == CLASS_SORCEROR) )
+    	{
+        	invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 2));
+        	o_ptr->number = 1;
+        	o_ptr->discount = 0;
+        	object_aware(Ind, o_ptr);
+        	object_known(o_ptr);
+        	(void)inven_carry(Ind, o_ptr);
+    	}
 #endif
+    }
 
 	/* 
-	 * Give the DM some interesting stuff, for quests, etc
+     * Give the DM some interesting stuff
 	 */
 
 	 if (!strcmp(p_ptr->name,cfg_dungeon_master))
 	{ 
-		artifact_type	* a_ptr;
-		int		k_idx;
-
-	/*
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_LIFE));
-		o_ptr->number = 99;
-		o_ptr->discount = 100;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-		o_ptr->number = 99;
-		o_ptr->discount = 100;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_THE_MOON));
+	/* DM gets all deep books */
+	if ((p_ptr->pclass == CLASS_MAGE) || (p_ptr->pclass == CLASS_RANGER) ||
+		(p_ptr->pclass == CLASS_ROGUE))
+	{
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 4));
 		o_ptr->number = 1;
-//		o_ptr->pval = 6;
-		apply_magic(0,o_ptr,0,0,0,0);
-//		object_known(o_ptr);
+        	object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_THE_MAGI));
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 5));
 		o_ptr->number = 1;
-//		o_ptr->pval = 6;
-		apply_magic(0,o_ptr,0,0,0,0);
-//		object_known(o_ptr);
+        	object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_TERKEN));
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 6));
 		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,0,0);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
+        	object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_CLOAK, SV_KOLLA));
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,1,1);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_SHIELD, SV_ORCISH_SHIELD));
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,1,1);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_BOOTS, SV_PAIR_OF_WITAN_BOOTS));
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,1,1);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_GLOVES, SV_SET_OF_ELVEN_GLOVES));
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,1,1);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_SPEED));
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,1,1);
-//		o_ptr->pval = 6;
-//		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
 		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 7));
 		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,0,0);
-//		o_ptr->pval = 6;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_CROWN, SV_GOLDEN_CROWN));
-		o_ptr->number = 2;
-		o_ptr->name2 = EGO_MAGI;
-		o_ptr->xtra1 = EGO_XTRA_ABILITY;
-		o_ptr->xtra2 = 3; // telepathy...
-		o_ptr->pval = 2; // plus 2 to INT
-		o_ptr->to_a = 10;
+		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 8));
+		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
-		o_ptr->number = 20;
-		o_ptr->discount = 100;
+	} 
+	if ((p_ptr->pclass == CLASS_PRIEST) 
+#if defined(NEW_ADDITIONS)
+			|| (p_ptr->pclass == CLASS_PALADIN)
+#endif
+	)
+	{
+		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
+		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
-		o_ptr->number = 18;
-		o_ptr->discount = 0;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_RESTORE_MANA));
-		o_ptr->number = 22;
-		o_ptr->discount = 0;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-		o_ptr->number = 33;
-		o_ptr->discount = 0;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL));
-		o_ptr->number = 18;
-		o_ptr->discount = 0;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-		o_ptr->number = 99;
-		o_ptr->discount = 100;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
 		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 5));
 		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
 		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 6));
 		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
 		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 7));
 		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
 		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 8));
 		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_BOW, SV_HEAVY_XBOW));
-		o_ptr->number = 1;
-		o_ptr->name2 = EGO_VELOCITY;
-		o_ptr->to_h = 11;
-		o_ptr->to_d = 28;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_LITE, SV_LITE_FEANOR));
+	} 
+#if defined(NEW_ADDITIONS)
+	if (p_ptr->pclass == CLASS_SORCEROR)
+	{
+		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 4));
 		o_ptr->number = 1;
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-		
-
-		invcopy(o_ptr, lookup_kind(TV_SWORD, SV_RAPIER));
+		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 5));
 		o_ptr->number = 1;
-		o_ptr->name2 = EGO_WEST;
-		o_ptr->to_h = 10;
-		o_ptr->to_d = 15;
-		o_ptr->pval = 2; // plus 2
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_CLOAK, SV_CLOAK));
+		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 6));
 		o_ptr->number = 1;
-		o_ptr->name2 = EGO_AMAN;
-		o_ptr->to_a = 25;
-		o_ptr->xtra1 = EGO_XTRA_POWER;
-		o_ptr->xtra2 = 2; // 2 should be resist sound...
-		o_ptr->pval = 3; // plus 3 to stealth (hopefully...)
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_CLOAK, SV_CLOAK));
+		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 7));
 		o_ptr->number = 1;
-		o_ptr->name2 = EGO_AMAN;
-		o_ptr->to_a = 24;
-		o_ptr->xtra1 = EGO_XTRA_POWER;
-		o_ptr->xtra2 = 6; // 6 should be chaos
-		o_ptr->pval = 2; // plus 2 to stealth 
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	}
+#endif
+
+	/* DM gets useful potions */
+	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_EXPERIENCE));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
+		object_known(o_ptr);
+		(void)inven_carry(Ind, o_ptr);
+	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_RESTORE_MANA));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 
-		invcopy(o_ptr, lookup_kind(TV_BOOTS, SV_PAIR_OF_HARD_LEATHER_BOOTS));
-		o_ptr->number = 1;
-		o_ptr->name2 = EGO_SPEED;
-		o_ptr->to_a = 10;
-		o_ptr->pval = 10; // plus 10 to speed (hopefully...)
+	/* DM gets useful scrolls */
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_BOOTS, SV_PAIR_OF_SOFT_LEATHER_BOOTS));
-		o_ptr->number = 1;
-		o_ptr->name2 = EGO_SPEED;
-		o_ptr->to_a = 10;
-		o_ptr->pval = 10; // plus 10 to speed (hopefully...)
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_ARTIFACT_CREATION));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_SHIELD, SV_SMALL_METAL_SHIELD));
-		o_ptr->number = 1;
-		o_ptr->name2 = EGO_ENDURANCE; // resistance
-		o_ptr->to_a = 15;
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_LIFE));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_CROWN, SV_GOLDEN_CROWN));
-		o_ptr->number = 2;
-		o_ptr->name2 = EGO_MAGI;
-		o_ptr->xtra1 = EGO_XTRA_ABILITY;
-		o_ptr->xtra2 = 3; // telepathy...
-		o_ptr->pval = 2; // plus 2 to INT
-		o_ptr->to_a = 10;
+        invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_GLOVES, SV_SET_OF_CESTI));
-		o_ptr->number = 2;
-		o_ptr->name2 = EGO_AGILITY;
-		o_ptr->pval = 4; 
-		o_ptr->to_a = 20;
-		//o_ptr->to_h = 5;
-		//o_ptr->to_d = 5;
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT));
+        o_ptr->number = 99;
+	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_SLAYING));
-		o_ptr->number = 1;
-		o_ptr->to_h = 9;
-		o_ptr->to_d = 15;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_INT));
-		o_ptr->number = 1;
-		o_ptr->pval = 6;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_SPEED));
-		o_ptr->number = 1;
-		o_ptr->pval = 12;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_DAMAGE));
-		o_ptr->number = 1;
-		o_ptr->to_d = 20;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_WISDOM));
-		o_ptr->number = 1;
-		o_ptr->pval = 6;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_DRAG_ARMOR, SV_DRAGON_CHAOS));
-		o_ptr->number = 1;
-		o_ptr->to_a = 23;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		invcopy(o_ptr, lookup_kind(TV_DRAG_ARMOR, SV_DRAGON_BALANCE));
-		o_ptr->number = 1;
-		o_ptr->to_a = 17;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		a_ptr = &a_info[ART_FINGOLFIN];
-		k_idx = lookup_kind(a_ptr->tval, a_ptr->sval);
-		invcopy(o_ptr, k_idx);
-		o_ptr->name1 = ART_FINGOLFIN;
-		o_ptr->number = 1;
-		apply_magic(0,o_ptr,0,0,0,0);
-		object_known(o_ptr);
-		inven_carry(Ind, o_ptr);
-	*/
 	}
 	
 	/* Hack -- Give the player three useful objects */
 	for (i = 0; i < 3; i++)
 	{
+	if (cfg_ironman)
+	{
+		tv = ironman_player_init[p_ptr->pclass][i][0];
+        	sv = ironman_player_init[p_ptr->pclass][i][1];
+	}
+	else
+	{
 		tv = player_init[p_ptr->pclass][i][0];
 		sv = player_init[p_ptr->pclass][i][1];
+	}
 		invcopy(o_ptr, lookup_kind(tv, sv));
 		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
@@ -1432,7 +1366,7 @@ static void player_setup(int Ind)
 		/* Pick a location */
 		/* Hack -- ghosts do not scatter, as they may not be in a line of sight
 		   with a valid region */
-		if (!p_ptr->ghost)
+        if (!p_ptr->ghost && !p_ptr->wraith_in_wall)
 		{
 			// Hack -- invery require_los since scatter actually takes
 			// a "don't require line of sight" boolean parameter.
@@ -1477,6 +1411,7 @@ static void player_setup(int Ind)
 	{
 		/* Add */
 		add_player_name(p_ptr->name, p_ptr->id);
+	printf("Player Name is [%s], id is %d\n",p_ptr->name, p_ptr->id);
 	}
 
 	/* Set his "current activities" variables */
@@ -1540,8 +1475,8 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 
 	/* Do some consistency checks */
-	if (race < 0 || race > 9) race = 0;
-	if (class < 0 || class > 5) class = 0;
+    if (race < 0 || race >= MAX_RACES) race = RACE_HUMAN;
+    if (class < 0 || class >= MAX_CLASS) class = CLASS_WARRIOR;
 	if (sex < 0 || sex > 1) sex = 0;
 
 	/* Allocate memory for him */
@@ -1675,4 +1610,3 @@ void server_birth(void)
 	/* First player's ID should be 1 */
 	player_id = 1;
 }
-

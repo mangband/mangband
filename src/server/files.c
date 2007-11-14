@@ -818,6 +818,7 @@ void display_player(int Ind)
 	for (i = 0; i < 6; i++)
 	{
 		Send_stat(Ind, i, p_ptr->stat_top[i], p_ptr->stat_use[i]);
+	Send_maxstat(Ind, i, p_ptr->stat_max[i]);
 	}
 
 	/* Extra info */
@@ -942,9 +943,9 @@ void display_player_server(int Ind, char buffer[100][82])
 	char buf[80];
 	cptr desc;
 	bool hist;
-	hist = FALSE;
-	
 	player_type *p_ptr = Players[Ind];
+
+    hist = FALSE;
 
         /* Name, Sex, Race, Class */
         put_str_b(buffer,"Name        :", 2, 1);
@@ -990,6 +991,9 @@ void display_player_server(int Ind, char buffer[100][82])
                         cnv_stat(value, buf);
 
                         /* Display the maximum stat (modified) */
+                        if (p_ptr->stat_max[i] == 18+100)
+				c_put_str_b(buffer,TERM_L_UMBER, buf, 2 + i, 73);
+			else
                         c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 73);
                 }
 
@@ -1003,6 +1007,9 @@ void display_player_server(int Ind, char buffer[100][82])
                         cnv_stat(p_ptr->stat_use[i], buf);
 
                         /* Display the current stat (modified) */
+                        if (p_ptr->stat_max[i] == 18+100)
+				c_put_str_b(buffer,TERM_L_UMBER, buf, 2 + i, 66);
+			else
                         c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 66);
                 }
         }
@@ -1206,13 +1213,12 @@ errr file_character_server(int Ind, cptr name)
 
 
 	/* Begin dump */
-#ifdef IRONMAN
-	fprintf(fff, "  [Ironman MAngband %d.%d.%d Character Dump]\n\n",
+    if (cfg_ironman)
+    	fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
 	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-#else
-	fprintf(fff, "  [MAngband %d.%d.%d Character Dump]\n\n",
+    else
+    	fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
 	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-#endif
 
 	/* Display the player info */
 	display_player_server(Ind, buffer);
@@ -1360,7 +1366,7 @@ errr file_character(cptr name, bool full)
 
 
 	/* Begin dump */
-	fprintf(fff, "  [Angband %d.%d.%d Character Dump]\n\n",
+    fprintf(fff, "  [MAngband %d.%d.%d Character Dump]\n\n",
 	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 
 
@@ -1699,7 +1705,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 
 #if 0
 		/* Show a general "title" */
-		prt(format("[Angband %d.%d.%d, %s, Line %d/%d]",
+        prt(format("[MAngband %d.%d.%d, %s, Line %d/%d]",
 		           VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH,
 		           caption, line, size), 0, 0);
 
@@ -2954,6 +2960,136 @@ void display_scores(int Ind, int line)
 
 
 /*
+ * Get a random line from a file
+ * Based on the monster speech patch by Matt Graham,
+ */
+errr get_rnd_line(cptr file_name, int entry, char *output)
+{
+	FILE    *fp;
+	char    buf[1024];
+	int     line, counter, test, numentries;
+	int     line_num = 0;
+	bool    found = FALSE;
+
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_TEXT, file_name);
+
+	/* Open the file */
+	fp = my_fopen(buf, "r");
+
+	/* Failed */
+	if (!fp) return (-1);
+
+	/* Find the entry of the monster */
+	while (TRUE)
+	{
+		/* Get a line from the file */
+		if (my_fgets(fp, buf, 1024) == 0)
+		{
+			/* Count the lines */
+			line_num++;
+
+			/* Look for lines starting with 'N:' */
+			if ((buf[0] == 'N') && (buf[1] == ':'))
+			{
+				/* Allow default lines */
+				if (buf[2] == '*')
+				{
+					/* Default lines */
+					found = TRUE;
+					break;
+				}
+				/* Get the monster number */
+				else if (sscanf(&(buf[2]), "%d", &test) != EOF)
+				{
+					/* Is it the right monster? */
+					if (test == entry)
+					{
+						found = TRUE;
+						break;
+					}
+				}
+				else
+				{
+					my_fclose(fp);
+					return (-1);
+				}
+			}
+		}
+		else
+		{
+			/* Reached end of file */
+			my_fclose(fp);
+			return (-1);
+		}
+
+	}
+
+	/* Get the number of entries */
+	while (TRUE)
+	{
+		/* Get the line */
+		if (my_fgets(fp, buf, 1024) == 0)
+		{
+			/* Count the lines */
+			line_num++;
+
+			/* Look for the number of entries */
+			if (isdigit(buf[0]))
+			{
+				/* Get the number of entries */
+				numentries = atoi(buf);
+				break;
+			}
+		}
+		else
+		{
+			/* Count the lines */
+			line_num++;
+
+			my_fclose(fp);
+			return (-1);
+		}
+	}
+
+	if (numentries > 0)
+	{
+		/* Grab an appropriate line number */
+		line = rand_int(numentries);
+
+		/* Get the random line */
+		for (counter = 0; counter <= line; counter++)
+		{
+			/* Count the lines */
+			line_num++;
+
+			/* Try to read the line */
+			if (my_fgets(fp, buf, 1024) == 0)
+			{
+				/* Found the line */
+				if (counter == line) break;
+			}
+			else
+			{
+				my_fclose(fp);
+				return (-1);
+			}
+		}
+
+		/* Copy the line */
+		strcpy(output, buf);
+	}
+
+	/* Close the file */
+	my_fclose(fp);
+
+	/* Success */
+	return (0);
+}
+
+
+/*
  * Handle a fatal crash.
  *
  * Here we try to save every player's state, and the state of the server
@@ -3039,7 +3175,7 @@ void exit_game_panic(void)
 	/* Dump a nice core - Chris */
 #ifdef	HANDLE_SIGNALS
 	signal(11, 0);
-	kill(getpid(), 11);
+    // kill(getpid(), 11);
 #endif
 	
 	/* Successful panic save of server info */
@@ -3236,6 +3372,7 @@ static void handle_signal_abort(int sig)
 	if (!server_generated || server_saved) quit(NULL);
 
 	/* Save everybody and quit */
+    fprintf(stderr,"unexpected Signal, aborting.\n");
 	exit_game_panic();
 }
 
@@ -3380,5 +3517,3 @@ void signals_init(void)
 
 
 #endif	/* HANDLE_SIGNALS */
-
-

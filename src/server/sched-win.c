@@ -27,10 +27,10 @@
 
 #define SERVER
 
+#include <winsock2.h>
 #include "angband.h"   
 #include <mmsystem.h>
-#include <winbase.h> 
-#include <winsock2.h>
+#include <winbase.h> 
 
 static volatile long timer_ticks;  
 static long frame_count;  
@@ -65,12 +65,12 @@ static void stop_timer(void)
 static void setup_timer(void)
 {
   DWORD delay;
+  TIMECAPS tc;
 
   /* If we are already running a timer, stop it */
   if(timer_id != 0) stop_timer();
   
   /* Query the high resolution timer */ 
-  TIMECAPS tc;
   timeGetDevCaps(&tc, sizeof(TIMECAPS));
   resolution = min(max(tc.wPeriodMin, 1), tc.wPeriodMax);
 

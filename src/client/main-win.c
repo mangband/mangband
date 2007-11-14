@@ -2152,7 +2152,7 @@ static void init_windows(void)
 	td = &data[0];
 	WIPE(td, term_data);
 
-	sprintf(version, "MAngband %d.%d.%d", 
+    sprintf(version, "Mangband %d.%d.%d", 
 			VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	td->s = version;
 	td->keys = 1024;
@@ -2651,7 +2651,7 @@ static void process_menus(WORD wCmd)
 			/* Toggle "graphics" */
 			use_graphics = !use_graphics;
 			save_prefs();
-			MessageBox(NULL, "You need to restart MAangband in order for the changes to take effect","MAngband",MB_OK);
+            MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);
 			return;
 
 			/* Access the "graphic" mappings */
@@ -3688,7 +3688,3 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 }
 
 #endif /* _Windows */
-
-
-
-

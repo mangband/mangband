@@ -113,7 +113,6 @@ static void console_uniques()
 {
 	int k, count = 0;
 	char buf[1024], tmp[1024];
-	cptr killer;
 
 	/* Packet header */
 	Packet_printf(&console_buf, "%c", CONSOLE_UNIQUE_LIST);
@@ -148,32 +147,27 @@ static void console_uniques()
 		/* Only process uniques */
 		if (r_ptr->flags1 & RF1_UNIQUE)
 		{
-			bool dead = (r_ptr->max_num == 0);
-
 			/* Only display known uniques */
-			if (dead || r_ptr->r_sights)
+			if (r_ptr->r_sights)
 			{
+				int i;
+				byte ok = FALSE;
+			
 				/* Format message */
-				sprintf(buf, "%s is %s", (r_name + r_ptr->name),
-						(dead ? "dead" : "alive"));
+				sprintf(buf, "%s has been killed by:\n");
 
-				/* If dead, print killer */
-				if (dead)
+				for (i = 1; i <= NumPlayers; i++)
 				{
-					/* Lookup killer's name */
-					killer = lookup_player_name(r_ptr->killer);
+					player_type *q_ptr = Players[i];
 
-					/* Only accept valid names */
-					if (killer)
+					if (q_ptr->r_killed[k])
 					{
-						/* Format */
-						sprintf(tmp, " (killed by %s)",
-								killer);
-
-						/* Append */
-						strcat(buf, tmp);
+						sprintf(buf, "        %s\n");
+						ok = TRUE;
 					}
 				}
+				if (!ok) sprintf(buf, "       Nobody\n");
+
 
 				/* Add info */
 				Packet_printf(&console_buf, "%d%s", k, buf);
@@ -258,7 +252,7 @@ static void console_change_unique(int unique, cptr killer)
 	{
 		/* Dead */
 		r_ptr->max_num = 0;
-		r_ptr->killer = kill_idx;
+        //r_ptr->killer = kill_idx;
 	}
 	else
 	{
@@ -273,7 +267,7 @@ static void console_change_unique(int unique, cptr killer)
     			msg_broadcast(0,buf);    				    				
 		}
 		r_ptr->max_num = 1;
-		r_ptr->killer = 0;
+        //r_ptr->killer = 0;
 	}
 
 	/* Succeeded */

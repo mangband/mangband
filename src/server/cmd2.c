@@ -48,7 +48,8 @@ void do_cmd_go_up(int Ind)
 		}
 	}
 
-#ifdef IRONMAN
+  if (cfg_ironman)
+  {
 	/* 
 	 * Ironmen don't go up
 	 */
@@ -57,7 +58,7 @@ void do_cmd_go_up(int Ind)
 		msg_print(Ind, "Morgoth awaits you in the darkness below.");
 		return;	
 	}
-#endif
+  }
 
 	/* Remove the player from the old location */
 	c_ptr->m_idx = 0;
@@ -119,12 +120,19 @@ void do_cmd_go_down(int Ind)
 
 	/* Verify stairs */
 
-	if (p_ptr->ghost && (strcmp(p_ptr->name,cfg_dungeon_master))) {
+    if (p_ptr->ghost && (
+			    strcmp(p_ptr->name,cfg_dungeon_master) &&
+			    strcmp(p_ptr->name,cfg_irc_gate)
+			)
+		    ) {
 		msg_print(Ind, "You seem unable to go down.  Try going up.");
 		return;
 	};
 
-	if (!p_ptr->ghost && (strcmp(p_ptr->name,cfg_dungeon_master)) && c_ptr->feat != FEAT_MORE)
+    if (!p_ptr->ghost && (
+			    strcmp(p_ptr->name,cfg_dungeon_master) &&
+			    strcmp(p_ptr->name,cfg_irc_gate)
+			 ) && c_ptr->feat != FEAT_MORE)
 	{
 		msg_print(Ind, "I see no down staircase here.");
 		return;
@@ -314,7 +322,7 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 				/* Otherwise drop an item */
 				else
 				{
-					place_object(Depth, ny, nx, FALSE, FALSE);
+                    place_object(Depth, ny, nx, FALSE, FALSE, 0);
 				}
 
 				/* Reset the object level */
@@ -710,7 +718,10 @@ void do_cmd_open(int Ind, int dir)
 
 				/* Take CHR into account */
 				factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-				price = (unsigned long long) houses[i].price * factor / 100;
+                price = (unsigned long) houses[i].price * factor / 100;
+		if(Depth==0) {
+			price = (unsigned long)price *5L;
+		};
 
 				/* Tell him the price */
 				msg_format(Ind, "This house costs %ld gold.", price);
@@ -1111,7 +1122,7 @@ void do_cmd_tunnel(int Ind, int dir)
 					/* Hack -- place an object */
 					if (rand_int(100) < 10)
 					{
-						place_object(Depth, y, x, FALSE, FALSE);
+                        place_object(Depth, y, x, FALSE, FALSE, 0);
 						if (player_can_see_bold(Ind, y, x))
 						{
 							msg_print(Ind, "You have found something!");
@@ -2088,6 +2099,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 	int			missile_char;
 
 	char		o_name[80];
+    bool                magic = FALSE;
 
 
 	/* Get the "bow" (if any) */
@@ -2138,6 +2150,9 @@ void do_cmd_fire(int Ind, int dir, int item)
 		return;
 	}
 
+    /* Magic ammo */
+    if ((o_ptr->sval == SV_AMMO_MAGIC) || artifact_p(o_ptr))
+	magic = TRUE;
 
 	/* Only fire in direction 5 if we have a target */
 	if ((dir == 5) && !target_okay(Ind))
@@ -2147,6 +2162,8 @@ void do_cmd_fire(int Ind, int dir, int item)
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
 
+    if (!magic)
+    {
 	/* Reduce and describe inventory */
 	if (item >= 0)
 	{
@@ -2161,6 +2178,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
 	}
+    }
 
 	/* Use the missile object */
 	o_ptr = &throw_obj;
@@ -2525,7 +2543,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 	j = (hit_body ? breakage_chance(o_ptr) : 0);
 
 	/* Drop (or break) near that location */
-	drop_near(o_ptr, j, Depth, y, x);
+    if (!magic) drop_near(o_ptr, j, Depth, y, x);
 }
 
 
@@ -2954,7 +2972,8 @@ void do_cmd_purchase_house(int Ind, int dir)
 
 		/* Take player's CHR into account */
 		factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-		price = (unsigned long long) houses[i].price * factor / 100;
+        price = (unsigned long) houses[i].price * factor / 100;
+
 
 		/* Check for already-owned house */
 		if (houses[i].owned)
@@ -3014,6 +3033,11 @@ void do_cmd_purchase_house(int Ind, int dir)
 			return;
 		}
 
+	if(Depth == 0) {
+		/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
+		price =(unsigned long)price *5L; 
+	}
+
 		/* Check for enough funds */
 		if (price > p_ptr->au)
 		{
@@ -3047,5 +3071,3 @@ void do_cmd_purchase_house(int Ind, int dir)
 		p_ptr->redraw |= (PR_GOLD);
 	}
 }
-
-

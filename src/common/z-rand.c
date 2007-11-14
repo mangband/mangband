@@ -349,6 +349,3 @@ s16b maxroll(int num, int sides)
 {
 	return (num * sides);
 }
-
-
-

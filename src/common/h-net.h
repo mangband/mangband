@@ -19,4 +19,3 @@
 
 /* Include some bit-manipulation functions used in the networking code */
 #include "bit.h"
-
