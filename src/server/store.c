@@ -1637,6 +1637,12 @@ void store_purchase(int Ind, int item, int amt)
 	/* Get the actual item */
 	o_ptr = &st_ptr->stock[item];
 
+	/* Sanity check the number of items */
+	if (amt > o_ptr->number)
+	{
+		amt = o_ptr->number;
+	}
+
 	/* Assume the player wants just one of them */
 	/*amt = 1;*/
 
@@ -1906,6 +1912,12 @@ void store_sell(int Ind, int item, int amt)
 		o_ptr = &o_list[0 - item];
 	}
 
+	/* Sanity check the number of items */
+	if (amt > o_ptr->number)
+	{
+		amt = o_ptr->number;
+	}	
+	
 	/* Check for validity of sale */
 	if (!store_will_buy(Ind, o_ptr))
 	{
