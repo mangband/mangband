@@ -984,6 +984,17 @@ static bool rd_extra(int Ind)
 	p_ptr->see_infra = read_int("see_infra");
 	p_ptr->tim_infra = read_int("tim_infra");
 	
+	/* Skip any wierd tomeness which may be present */
+	/* XXX This is a temporary fix */
+	if(value_exists("wraith_in_wall"))
+		skip_value("wraith_in_wall");
+	if(value_exists("tim_wraith"))
+		skip_value("tim_wraith");
+	if(value_exists("tim_meditation"))
+		skip_value("tim_meditation");
+	if(value_exists("tim_manashield"))
+		skip_value("tim_manashield");
+
 	p_ptr->oppose_fire = read_int("oppose_fire");
 	p_ptr->oppose_cold = read_int("oppose_cold");
 	p_ptr->oppose_acid = read_int("oppose_acid");
