@@ -241,10 +241,16 @@ int Net_setup(void)
  */
 int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 {
-	int	i, n, type, result;
+	int	i, n, type, result, data_size;
 
 	Sockbuf_clear(&wbuf);
 	n = Packet_printf(&wbuf, "%c%s%s%s%hd%hd%hd", PKT_VERIFY, real, nick, pass, sex, race, class);
+
+	/* Determine the total size of the following data */
+	data_size = 6 + 64 + (TV_MAX + MAX_F_IDX + MAX_K_IDX + MAX_R_IDX)*2;
+	
+	/* Make sure the server knows how much data we are about to send! */
+	Packet_printf(&wbuf, "%hd", data_size);
 
 	/* Send the desired stat order */
 	for (i = 0; i < 6; i++)
@@ -257,43 +263,43 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 	{
 		Packet_printf(&wbuf, "%c", Client_setup.options[i]);
 	}
-
-#ifndef BREAK_GRAPHICS
+	Sockbuf_flush(&wbuf);
+	
 	/* Send the "unknown" redefinitions */
+	Packet_printf(&wbuf, "%hd", TV_MAX);
 	for (i = 0; i < TV_MAX; i++)
 	{
 		Packet_printf(&wbuf, "%c%c", Client_setup.u_attr[i], Client_setup.u_char[i]);
 	}
+	Sockbuf_flush(&wbuf);
 
 	/* Send the "feature" redefinitions */
+	Packet_printf(&wbuf, "%hd", MAX_F_IDX);
 	for (i = 0; i < MAX_F_IDX; i++)
 	{
 		Packet_printf(&wbuf, "%c%c", Client_setup.f_attr[i], Client_setup.f_char[i]);
 	}
+	Sockbuf_flush(&wbuf);
 
 	/* Send the "object" redefinitions */
+	Packet_printf(&wbuf, "%hd", MAX_K_IDX);
+	/* Hack simulate a crappy network connection */
+	sleep(1);
 	for (i = 0; i < MAX_K_IDX; i++)
 	{
 		Packet_printf(&wbuf, "%c%c", Client_setup.k_attr[i], Client_setup.k_char[i]);
 	}
+	Sockbuf_flush(&wbuf);
 
 	/* Send the "monster" redefinitions */
+	Packet_printf(&wbuf, "%hd", MAX_R_IDX);
 	for (i = 0; i < MAX_R_IDX; i++)
 	{
 		Packet_printf(&wbuf, "%c%c", Client_setup.r_attr[i], Client_setup.r_char[i]);
 	}
-#endif
+	Sockbuf_flush(&wbuf);
 
-	if (n <= 0 || Sockbuf_flush(&wbuf) <= 0)
-	{
-		plog("Can't send verify packet");
-		//return -1;
-	}
-	//		time(&last);
-
-	//		if (retries > 1)
-	//			printf("Waiting for verify response\n");
-	//	}
+	/* Now wait for a response */
 	SetTimeout(5, 0);
 	if (!SocketReadable(rbuf.sock))
 	{

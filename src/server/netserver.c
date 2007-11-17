@@ -1191,6 +1191,8 @@ static int Handle_listening(int ind)
 	unsigned char type;
 	int i, n, oldlen;
 	s16b sex, race, class;
+	s16b block_size;
+	bool old_client;
 	char nick[MAX_NAME_LEN], real[MAX_NAME_LEN], pass[MAX_NAME_LEN];
 
 	if (connp->state != CONN_LISTENING)
@@ -1247,109 +1249,33 @@ static int Handle_listening(int ind)
 		return -1;
 	}
 
-	/* After the client sends the basic player information, it sends us a
-	 * large block of "verification" data.  Because this block may have
-	 * been broken up into several packets, we may only have the beginning
-	 * of it.  Check to see if we have all this data.  If we don't, then
-	 * exit this function.  It will be called again when more data has
-	 * arrived.
-	 */
-	// The verification block is 2654 bytes long.  Make sure we have this
-	// much data past the basic player information.  If we don't, then reset
-	// the read location and exit.
-	if (2654 > connp->r.len - (connp->r.ptr - connp->r.buf))
+	/* Try to detect version 0.7.2 clients */
+	if ( (connp->r.len - (connp->r.ptr - connp->r.buf)) < 2654)
 	{
 		connp->r.ptr = connp->r.buf;
 		return 1;
 	}
-	
-	/* toast this after fix
-	*If we don't, then
-	* wait a bit for more to arrive.  Waiting causes the game to "freeze"
-	* for a bit.  This is really bad.  The connection code desperatly
-	* needs to be rewritten to prevent this from happening. -APD
-	*/
-
-	/* Log the players connection */
-	s_printf("%s: Welcome %s=%s@%s (%s/%d)", showtime(), connp->nick,
-		connp->real, connp->host, connp->addr, connp->his_port);
-	if (connp->version != MY_VERSION)
-		s_printf(" (version %04x)", connp->version);
-	s_printf("\n");
-
-
-	// The verification block is 2654 bytes long.  Make sure we have this
-	// much data past the basic player information.  If we don't, then do a
-	// blocking read while we try to get it.
-
-	/* If neccecary receive the rest of the verification data */
-	// note that connp->r.ptr is now pointing past the basic player information, and so
-	// connp->r.ptr - connp->r.buf is the length of the player information.
-	
-	// Mega-hack -- disable the timer interrupt so select isn't disturbed
-#if 0
-	block_timer();	
-
-	SetTimeout(1,0);	
-	while (2654 > connp->r.len - (connp->r.ptr - connp->r.buf))
+	/* If we have *exactly* 2654 bytes, we are probably talking to a 
+	 * 0.7.2 client and we should assume the old broken char/attr
+	 * protocol */
+	old_client = FALSE;
+	if ((connp->r.len - (connp->r.ptr - connp->r.buf)) == 2654)
 	{
-		// If we have data, read it
-		if ((result = SocketReadable(connp->r.sock)))
+		old_client = TRUE;
+	}
+
+	/* If this isn't an old 0.7.2 client, determine exactly how much data we
+	 * are waiting for, and wait for it */
+	if(!old_client)
+	{
+		n = Packet_scanf(&connp->r, "%hd", &block_size);
+		if ( (connp->r.len - (connp->r.ptr - connp->r.buf)) < block_size)
 		{
-			if (result == -1)
-			{
-				Destroy_connection(ind, "verification socket error");
-				return -1;
-			}
-			printf("Got verification data.\n");
-			n = DgramReceiveAny(connp->r.sock, connp->r.buf + connp->r.len, 
-					connp->r.size - connp->r.len);
-			if (n < 0)
-			{
-				Destroy_connection(ind, "verification packet error");
-				return -1;
-			}
-			if (n == 0)
-			{
-				Destroy_connection(ind, "TCP connection closed");
-				return -1;
-			}
-			connp->r.len += n;
-		}
-		// If we timed out, abort
-		else
-		{
-			Destroy_connection(ind, "verify incomplete");
-			return -1;
+			connp->r.ptr = connp->r.buf;
+			return 1;
 		}
 	}
-	SetTimeout(0,0); 
-
-	allow_timer();
-#endif
-
-/*	s_printf("Listening on connection %d, received %d bytes.\n", ind, n);
-
-	for (i = 0; i < n; i++)
-	{
-		printf("%3d ", connp->r.ptr[i] & 0xff);
-		if (i % 20 == 0)
-			printf("\n");
-	}
-
-	printf("\n"); */
-
-#if 0
-	//UDP stuff
-	if (DgramConnect(connp->w.sock, connp->addr, connp->his_port) == -1)
-	{
-		plog(format("Cannot connect datagram socket (%s,%d)",
-			connp->host, connp->his_port));
-		Destroy_connection(ind, "connect error");
-		return -1;
-	}
-#endif
-
+		
 	/* Read the stat order */
 	for (i = 0; i < 6; i++)
 	{
@@ -1366,7 +1292,6 @@ static int Handle_listening(int ind)
 	for (i = 0; i < 64; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c", &connp->Client_setup.options[i]);
-
 		if (n <= 0)
 		{
 			Destroy_connection(ind, "Misread options");
@@ -1375,68 +1300,95 @@ static int Handle_listening(int ind)
 	}
 
 	/* Read the "unknown" char/attrs */
-	for (i = 0; i < TV_MAX; i++)
+	if(!old_client)
+	{
+		n = Packet_scanf(&connp->r, "%hd", &block_size);
+	}
+	else
+	{
+		/* Assume 0.7.2 block size */
+		block_size = 100;
+	}
+	if (block_size > TV_MAX) block_size = TV_MAX;
+	/* We have the TV data, read it */
+	for (i = 0; i < block_size; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.u_attr[i], &connp->Client_setup.u_char[i]);
-
 		if (n <= 0)
 		{
 			break;
-
-#if 0
-			Destroy_connection(ind, "Misread unknown redefinitions");
-			return -1;
-#endif
 		}
 	}
 
 	/* Read the "feature" char/attrs */
-	for (i = 0; i < MAX_F_IDX; i++)
+	if(!old_client)
+	{
+		n = Packet_scanf(&connp->r, "%hd", &block_size);
+	}
+	else
+	{
+		/* Assume 0.7.2 block size */
+		block_size = 128;
+	}
+	if (block_size > MAX_F_IDX) block_size = MAX_F_IDX;
+	/* We have the F data, read it */
+	for (i = 0; i < block_size; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.f_attr[i], &connp->Client_setup.f_char[i]);
-
 		if (n <= 0)
 		{
 			break;
-
-#if 0
-			Destroy_connection(ind, "Misread feature redefinitions");
-			return -1;
-#endif
 		}
 	}
 
 	/* Read the "object" char/attrs */
-	for (i = 0; i < MAX_K_IDX; i++)
+	if(!old_client)
+	{
+		n = Packet_scanf(&connp->r, "%hd", &block_size);
+	}
+	else
+	{
+		/* Assume 0.7.2 block size */
+		block_size = 512;
+	}
+	if (block_size > MAX_K_IDX) block_size = MAX_K_IDX;
+	/* We have the K data, read it */
+	for (i = 0; i < block_size; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.k_attr[i], &connp->Client_setup.k_char[i]);
-
 		if (n <= 0)
 		{
 			break;
-
-#if 0
-			Destroy_connection(ind, "Misread object redefinitions");
-			return -1;
-#endif
 		}
 	}
 
 	/* Read the "monster" char/attrs */
-	for (i = 0; i < MAX_R_IDX; i++)
+	if(!old_client)
+	{
+		n = Packet_scanf(&connp->r, "%hd", &block_size);
+	}
+	else
+	{
+		/* Assume 0.7.2 block size */
+		block_size = 620;
+	}
+	if (block_size > MAX_R_IDX) block_size = MAX_R_IDX;
+	/* We have the R data, read it */
+	for (i = 0; i < block_size; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.r_attr[i], &connp->Client_setup.r_char[i]);
-
 		if (n <= 0)
 		{
 			break;
-
-#if 0
-			Destroy_connection(ind, "Misread monster redefinitions");
-			return -1;
-#endif
 		}
 	}
+	
+	/* Log the players connection */
+	s_printf("%s: Welcome %s=%s@%s (%s/%d)", showtime(), connp->nick,
+		connp->real, connp->host, connp->addr, connp->his_port);
+	if (connp->version != MY_VERSION)
+		s_printf(" (version %04x)", connp->version);
+	s_printf("\n");
 
 	if (strcmp(real, connp->real))
 	{
