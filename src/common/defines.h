@@ -2781,7 +2781,7 @@ extern int PlayerUID;
 /*
  * Ghost spell "realm"
  */
-#define GHOST_SPELLS	3
+#define GHOST_SPELLS	2
 
 
 /* Mental links */
