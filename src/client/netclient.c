@@ -283,8 +283,6 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 
 	/* Send the "object" redefinitions */
 	Packet_printf(&wbuf, "%hd", MAX_K_IDX);
-	/* Hack simulate a crappy network connection */
-	sleep(1);
 	for (i = 0; i < MAX_K_IDX; i++)
 	{
 		Packet_printf(&wbuf, "%c%c", Client_setup.k_attr[i], Client_setup.k_char[i]);
