@@ -3202,7 +3202,7 @@ BOOL ctrl_handler( DWORD fdwCtrlType )
 
 /* Global unhandled exception handler */
 /* If the server crashes under Windows, this is where we end up */
-LONG WINAPI UnhandledExceptionFilter(
+LONG WINAPI myUnhandledExceptionFilter(
   struct _EXCEPTION_POINTERS* ExceptionInfo)
 {
 	/* We don't report to the meta server in this case, the meta
@@ -3237,7 +3237,7 @@ void setup_exit_handler(void)
 		plog("ERROR: Could not set panic save handler!");
 	}
 	/* Trap unhandled exceptions, i.e. server crashes */
-	old_handler = SetUnhandledExceptionFilter( UnhandledExceptionFilter );
+	old_handler = SetUnhandledExceptionFilter( myUnhandledExceptionFilter );
 }
 #endif
 #endif
