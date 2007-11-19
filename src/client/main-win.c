@@ -3493,7 +3493,7 @@ static void init_stuff(void)
 
 
 	/* XXX XXX XXX */
-	GetPrivateProfileString("Angband", "LibPath", "c:\\angband\\lib",
+	GetPrivateProfileString("Angband", "LibPath", "c:\\mangband\\lib",
 	                        path, 1000, ini_file);
 
 	/* Analyze the path */
