@@ -67,7 +67,7 @@ static char sourceid[] =
 
 /* Visual Studio predefines errno as *_errno() --  BS */
 /* Assumes _MSC_VER is only defined for Visual Studio --  BS */
-#if defined ((WIN32) && !(_MSC_VER)) 
+#if defined(WIN32) && !defined(_MSC_VER)
 int errno = 0;
 #endif
 
