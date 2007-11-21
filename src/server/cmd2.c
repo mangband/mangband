@@ -1841,7 +1841,7 @@ int do_cmd_run(int Ind, int dir)
 		}
 
 		/* Make sure we have enough energy to start running */
-		if (p_ptr->energy >= (level_speed(p_ptr->dun_depth)*6)/5)
+		if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
 			/* Hack -- Set the run counter */
 			p_ptr->running = (command_arg ? command_arg : 1000);
