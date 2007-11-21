@@ -132,10 +132,10 @@
 #define PKT_MASTER		118 /* dungeon master commands */
 #define PKT_AUTOPHASE		119 /* automatically try to phase */
 
-/* Packet types 121-122 are more administrative stuff */
+/* Packet types 121-123 are more administrative stuff */
 #define PKT_FAILURE		121
 #define PKT_SUCCESS		122
-
+#define PKT_CLEAR		123
 
 /* Packet type 150 are hacks */
 #define PKT_FLUSH		150

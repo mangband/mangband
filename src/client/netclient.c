@@ -2999,6 +2999,18 @@ int Send_master(s16b command, cptr buf)
 	return 1;
 }
 
+int Send_clear(void)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c", PKT_CLEAR)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
 // Update the current time, which is stored in 100 ms "ticks".
 // I hope that Windows systems have gettimeofday on them by default.
 // If not there should hopefully be some simmilar efficient call with the same

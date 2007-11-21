@@ -225,6 +225,8 @@ static void Init_receive(void)
 	playing_receive[PKT_MASTER]		= Receive_master;
 
 	playing_receive[PKT_AUTOPHASE]		= Receive_autophase;
+	
+	playing_receive[PKT_CLEAR] = Receive_clear;
 }
 
 static int Init_setup(void)
@@ -7188,6 +7190,19 @@ static int Receive_party(int ind)
 
 	return 1;
 }
+
+static int Receive_clear(int ind)
+{
+	connection_t *connp = &Conn[ind];
+
+	/* Clear command queue */
+	Sockbuf_clear(&connp->r);
+	Sockbuf_clear(&connp->c);
+	Sockbuf_clear(&connp->q);
+
+	return 2;
+}
+
 
 void Handle_direction(int Ind, int dir)
 {
