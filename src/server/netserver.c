@@ -7193,11 +7193,20 @@ static int Receive_party(int ind)
 
 static int Receive_clear(int ind)
 {
+	char ch;
+	int n;
 	connection_t *connp = &Conn[ind];
 
-	/* Clear command queue */
-	Sockbuf_clear(&connp->r);
-	Sockbuf_clear(&connp->c);
+	/* Remove the clear command from the queue */
+	if ((n = Packet_scanf(&connp->r, "%c", &ch)) != 1)
+	{
+		errno = 0;
+		plog("Cannot receive clear packet");
+		Destroy_connection(ind, "receive error");
+		return -1;
+	}
+
+	/* Clear any queued commands prior to this clear request */
 	Sockbuf_clear(&connp->q);
 
 	return 2;
