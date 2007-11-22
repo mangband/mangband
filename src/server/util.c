@@ -6,7 +6,7 @@
 #define SERVER
 
 #include "angband.h"
-
+#include "externs.h"
 
 #ifdef WIN32
 #define strncasecmp strnicmp
@@ -2485,7 +2485,7 @@ void msg_print(int Ind, cptr msg)
 		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST) 
 			p_ptr->msg_hist_ptr = 0;
 	}
-
+	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
 	/* sad, but true, we have to log messages. */
 	if(Ind) {
@@ -2516,6 +2516,10 @@ void msg_broadcast(int Ind, cptr msg)
 		/* Tell this one */
 	 	msg_print(i, msg);
 	 }
+	 
+	/* Send to console */
+	console_print(msg);
+	 
 }
 
 
@@ -2631,7 +2635,7 @@ void player_talk_aux(int Ind, cptr message)
 	else
 	{
 		/* Default name */
-		strcpy(sender, "Server Admin");
+		strcpy(sender, "irc");
 	}
 
 	/* Default to no search string */
@@ -2798,34 +2802,14 @@ void player_talk_aux(int Ind, cptr message)
 		return;
 	}
 
-	/* Look for leading ':', but ignore "smileys" */
-	/* -APD- I don't like this new fangled talking system, reverting to the old way */
-	/*if (!strncasecmp(message, "All:", 4) ||
-	      (message[0] == ':' && !strchr(")(-", message[1])))
-	  { */
-		/* Send to everyone */
-		for (i = 1; i <= NumPlayers; i++)
-		{
-			/* Send message */
-			msg_format(i, "[%s] %s", sender, message);
-		}
-	/*}
-	 else
+	/* Send to everyone */
+	for (i = 1; i <= NumPlayers; i++)
 	{
-		 Send to everyone at this depth 
-		for (i = 1; i <= NumPlayers; i++)
-		{
-			q_ptr = Players[i];
-
-			 Check depth 
-			if (p_ptr->dun_depth == q_ptr->dun_depth)
-			{
-				 Send message 
-				msg_format(i, "[%s] %s", sender, message);
-			}
-		}
+		/* Send message */
+		msg_format(i, "[%s] %s", sender, message);
 	}
-	*/
+	/* Send to the console too */
+	console_print(format("[%s] %s", sender, message));
 }
 
 

@@ -528,19 +528,6 @@
 
 
 /*
- * OPTION: Have the server respond to commands typed in on its tty.
- */
-/*define SERVER_CONSOLE */
-
-/*
- * OPTION: Enable a method to control the server from an external program.
- */
-#define NEW_SERVER_CONSOLE
-
-
-
-
-/*
  * Hack -- Special "ancient machine" versions
  */
 #if defined(USE_286) || defined(ANGBAND_LITE_MAC)

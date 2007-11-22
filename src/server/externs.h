@@ -17,9 +17,7 @@
 /* netserver.c */
 extern int NumPlayers;
 extern int process_pending_commands(int Ind);
-#ifdef NEW_SERVER_CONSOLE
 extern int ConsoleSocket;
-#endif
 
 /* tables.c */
 extern s16b ddd[9];
@@ -533,6 +531,7 @@ extern void do_cmd_activate_dir(int Ind, int dir);
 /* control.c */
 extern void NewConsole(int fd, int arg);
 extern bool InitNewConsole(int write_fd);
+extern void console_print(char *msg);
 
 /* dungeon.c */
 extern void play_game(bool new_game);

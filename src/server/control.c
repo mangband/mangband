@@ -6,10 +6,22 @@
 
 #include "angband.h"
 
-#ifdef NEW_SERVER_CONSOLE
-
 static sockbuf_t console_buf;
 static bool console_authenticated;
+static bool console_listen;
+
+/*
+ * Output some text to the console, if we are listening
+ */
+void console_print(char *msg)
+{
+	printf("Listener heard: %s\n",msg);
+	if (console_listen)
+	{
+		Packet_printf(&console_buf, "%s%c",msg,'\n');
+		Sockbuf_flush(&console_buf);
+	}
+}
 
 /*
  * Return the list of players
@@ -74,7 +86,7 @@ static void console_reload_server_preferences(void)
 
 	/* Let mangconsole know that the command was a success */
 	/* Packet header */
-	Packet_printf(&console_buf, "%c", CONSOLE_RELOAD_SERVER_PREFERENCES);
+	Packet_printf(&console_buf, "%s", "Reloaded\n");
 
 	/* Write the output */
 	DgramReply(console_buf.sock, console_buf.ptr, console_buf.len);
@@ -122,6 +134,7 @@ void NewConsole(int read_fd, int arg)
 		console_buf.sock = newsock;
 		install_input(NewConsole, newsock, 2);
 		console_authenticated = FALSE;
+		console_listen = FALSE;
 		return;
 	}
 
@@ -192,8 +205,15 @@ void NewConsole(int read_fd, int arg)
 		}
 	}
 
+	/* Clear buffer */
+	Sockbuf_clear(&console_buf);
+
 	/* Determine what the command is */
-	if (!strncmp(cmd,"status",6)) 
+	if (!strncmp(cmd,"listen",6)) 
+	{
+		console_listen = TRUE;
+	}
+	else if (!strncmp(cmd,"status",6)) 
 	{
 		console_status();
 	}
@@ -233,4 +253,3 @@ bool InitNewConsole(int write_fd)
 	return TRUE;
 }
 
-#endif

@@ -106,9 +106,7 @@ int			NumPlayers;
 
 int		MetaSocket = -1;
 
-#ifdef NEW_SERVER_CONSOLE
 int		ConsoleSocket = -1;
-#endif
 
 
 char *showtime(void)
@@ -471,12 +469,6 @@ void setup_contact_socket(void)
 
 	install_input(Contact, Socket, 0);
 	
-#ifdef SERVER_CONSOLE
-	/* Hack -- Install stdin an the "console" input */
-	install_input(Console, 0, 0);
-#endif
-
-#ifdef NEW_SERVER_CONSOLE
 	if ((ConsoleSocket = CreateServerSocket(18347)) == -1)
 	{
 		s_printf("Couldn't create console socket\n");
@@ -494,7 +486,6 @@ void setup_contact_socket(void)
 
 	/* Install the new console socket */
 	install_input(NewConsole, ConsoleSocket, 0);
-#endif
 }
 
 static int Reply(char *host_addr, int fd)
