@@ -2147,6 +2147,7 @@ static void get_moves(int Ind, int m_idx, int *mm)
 	player_type *p_ptr = Players[Ind];
 
 	monster_type *m_ptr = &m_list[m_idx];
+	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
 	int y, ay, x, ax;
 
@@ -2154,6 +2155,32 @@ static void get_moves(int Ind, int m_idx, int *mm)
 
 	int y2 = p_ptr->py;
 	int x2 = p_ptr->px;
+
+	/* Wanderers have their own ideas about where they are going */
+	if (r_ptr->flags2 & RF2_WANDERER)
+	{
+		x2 = y2 = 0;
+		
+		/* Do we know where we are going? */
+		if ( m_ptr->wx || m_ptr->wy )
+		{
+			/* Yes, set that as our target */
+			x2 = m_ptr->wx;
+			y2 = m_ptr->wy;
+			
+			/* If we are here already go somewhere else */
+			if ( (x2 == m_ptr->fx && y2 == m_ptr->fy) || (randint(1000)<10) )
+			{
+				x2 = y2 = 0;
+			}
+		}
+		if ( !x2 && !y2 )
+		{
+			/* We don't know where we're going, pick a destination */
+			x2 = m_ptr->wx = randint(MAX_WID);
+			y2 = m_ptr->wy = randint(MAX_HGT);
+		}
+	}
 
 
 #ifdef MONSTER_FLOW
@@ -2379,6 +2406,7 @@ static u32b noise = 0L;
  *
  * Note that the "Ind" specifies the player that the monster will go after.
  */
+
 static void process_monster(int Ind, int m_idx)
 {
 	player_type *p_ptr = Players[Ind];
@@ -3362,17 +3390,18 @@ void process_monsters(void)
 		m_ptr->cdis = dis_to_closest;
 		m_ptr->closest_player = closest;
 
-		/* Hack -- Require proximity */
-		if (m_ptr->cdis >= 100) continue;
-
-
 		/* Access the race */
 		r_ptr = &r_info[m_ptr->r_idx];
+
+		/* Hack -- Require proximity unless this is a wanderer */
+		if ( !(r_ptr->flags2 & RF2_WANDERER) )
+		{
+			if (m_ptr->cdis >= 100) continue;
+		}
 
 		/* Access the location */
 		fx = m_ptr->fx;
 		fy = m_ptr->fy;
-
 
 		/* Assume no move */
 		test = FALSE;
@@ -3406,8 +3435,8 @@ void process_monsters(void)
 		}
 #endif
 
-		/* Do nothing */
-		if (!test) continue;
+		/* Do nothing unless a wanderer */
+		if (!test && !(r_ptr->flags2 & RF2_WANDERER) ) continue;
 
 
 		/* Process the monster */

@@ -177,6 +177,7 @@ extern bool cfg_random_artifacts;
 extern bool cfg_ironman;
 extern s32b cfg_unique_respawn_time;
 extern s32b cfg_unique_max_respawn_time;
+extern s16b cfg_max_townies;
 
 extern bool rogue_like_commands;
 extern bool quick_messages;

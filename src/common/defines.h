@@ -2169,7 +2169,7 @@ that keeps many algorithms happy.
 #define RF2_KILL_BODY		0x00200000	/* Monster can kill monsters */
 #define RF2_TAKE_ITEM		0x00400000	/* Monster can pick up items */
 #define RF2_KILL_ITEM		0x00800000	/* Monster can crush items */
-#define RF2_BRAIN_1			0x01000000
+#define RF2_WANDERER		0x01000000	/* Town wanderers */
 #define RF2_BRAIN_2			0x02000000
 #define RF2_BRAIN_3			0x04000000
 #define RF2_BRAIN_4			0x08000000

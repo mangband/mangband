@@ -545,6 +545,8 @@ struct monster_type
 
 	byte fy;			/* Y location on map */
 	byte fx;			/* X location on map */
+	byte wx;			/* Wanderers X target on map */
+	byte wy;			/* Wanderers Y target on map */
 
 	s16b dun_depth;			/* Level of the dungeon */
 

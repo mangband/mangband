@@ -1894,6 +1894,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_unique_max_respawn_time = atoi(value);
     }
+    else if (!strcmp(option,"MAX_TOWNIES"))
+    {
+        cfg_max_townies = atoi(value);
+    }
 
 	else printf("Error : unrecognized mangband.cfg option %s\n", option);
 }

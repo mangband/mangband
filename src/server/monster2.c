@@ -478,6 +478,7 @@ s16b get_mon_num(int level)
 	long		value, total;
 
 	monster_race	*r_ptr;
+	monster_type	*m_ptr;
 
 	alloc_entry		*table = alloc_race_table;
 
@@ -488,6 +489,25 @@ s16b get_mon_num(int level)
 	 */
 	if((level == 0) || check_special_level(level)) return(0);
   }
+
+	/* Limit the total number of townies */
+	j = 0;
+	if (level == 0)
+	{
+		for (i = m_top - 1; i >= 0; i--)
+		{
+			/* Access the index */
+			p = m_fast[i];
+
+			/* Access the monster */
+			m_ptr = &m_list[p];
+			
+			/* Count townies */
+			if (m_ptr->dun_depth == 0) j++;
+		}
+	}
+	if (j > cfg_max_townies) return(0);
+	
 
 	if (level > 0)
 	{
