@@ -3331,6 +3331,10 @@ void process_monsters(void)
 			/* Hack -- Skip him if he's shopping */
 			if (p_ptr->store_num != -1)
 				continue;
+				
+			/* Hack - Skip him if he's in town and not aggravating */
+			if (p_ptr->dun_depth == 0 && !p_ptr->aggravate)
+				continue;
 
 			/* Hack -- make the dungeon master invisible to monsters */
 			if (!strcmp(p_ptr->name,cfg_dungeon_master)) continue;

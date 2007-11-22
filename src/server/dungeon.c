@@ -2092,6 +2092,15 @@ void dungeon(void)
 
 		/* Update the player location */
 		cave[Depth][y][x].m_idx = 0 - i;
+
+		/* Angry towns folk forget us when we enter the dungeon */
+		switch (p_ptr->new_level_method)
+		{
+			case LEVEL_DOWN:  
+			case LEVEL_RAND:
+				p_ptr->aggravate = FALSE;
+			break;
+		}
     
 		/* Prevent hound insta-death */
 		switch (p_ptr->new_level_method)

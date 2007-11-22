@@ -2065,6 +2065,10 @@ void monster_death(int Ind, int m_idx)
 	y = m_ptr->fy;
 	x = m_ptr->fx;
 	Depth = m_ptr->dun_depth;
+	
+	/* Hack - Killing monsters in town really upsets the towns folk */
+	if (Depth == 0)
+		p_ptr->aggravate = TRUE;
 
 	/* Determine how much we can drop */
 	if ((r_ptr->flags1 & RF1_DROP_60) && (rand_int(100) < 60)) number++;
@@ -2344,6 +2348,10 @@ void player_death(int Ind)
 	int i;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
+
+	/* Hack - If we are murdered by angry towns folk, they are appeased by our death */
+	if (p_ptr->dun_depth == 0)
+		p_ptr->aggravate = FALSE;
 
 	/* Get rid of him if he's a ghost */
 	if (p_ptr->ghost)
