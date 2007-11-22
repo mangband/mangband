@@ -167,7 +167,6 @@ extern char * cfg_meta_address;
 extern char * cfg_report_address;
 extern char * cfg_console_password;
 extern char * cfg_dungeon_master;
-extern char * cfg_irc_gate;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern bool cfg_mage_hp_bonus;

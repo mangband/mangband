@@ -911,7 +911,6 @@ static int auto_retaliate(int Ind)
 
 	/* The dungeon master does not fight his or her offspring */
 	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return FALSE;
-    if (!strcmp(p_ptr->name, cfg_irc_gate)) return FALSE;
 
 	/* If we have a target to attack, attack it! */
 	if (m_target_ptr)

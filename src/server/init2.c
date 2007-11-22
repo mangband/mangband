@@ -1844,10 +1844,6 @@ void set_server_option(char * option, char * value)
 		cfg_dungeon_master = strdup(value);
 	printf("Dugeon Master Set as [%s]\n",cfg_dungeon_master);
     }
-     else if (!strcmp(option,"IRC_GATE_NAME"))
-    {
-	cfg_irc_gate = strdup(value);
-	}
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
 		cfg_secret_dungeon_master = str_to_boolean(value);

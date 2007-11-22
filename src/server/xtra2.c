@@ -2743,7 +2743,6 @@ void resurrect_player(int Ind)
 
 	/* Hack -- the dungeon master can not ressurect */
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) return;
-    if (!strcmp(p_ptr->name,cfg_irc_gate)) return;
 
 	/* Reset ghost flag */
 	p_ptr->ghost = 0;

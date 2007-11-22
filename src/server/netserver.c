@@ -343,7 +343,6 @@ bool Report_to_meta(int flag)
 		for (i = 1; i <= NumPlayers; i++)
 		{
             if (!strcmp(Players[i]->name, cfg_dungeon_master) && cfg_secret_dungeon_master) hidden_dungeon_master++;
-            if (!strcmp(Players[i]->name, cfg_irc_gate) && cfg_secret_dungeon_master) hidden_dungeon_master++;
 		}
 
 		/* tell the metaserver about everyone except hidden dungeon_masters */
@@ -358,7 +357,6 @@ bool Report_to_meta(int flag)
 			{
 				/* handle the cfg_secret_dungeon_master option */
                 if ((!strcmp(Players[i]->name, cfg_dungeon_master)) && (cfg_secret_dungeon_master)) continue;
-                if ((!strcmp(Players[i]->name, cfg_irc_gate)) && (cfg_secret_dungeon_master)) continue;
 				strcat(buf, Players[i]->basename);
 				strcat(buf, " ");
 			}
@@ -569,7 +567,6 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 			!strcasecmp(Players[i]->addr, addr) && 
             // !strcasecmp(Players[i]->hostname, host_name) &&
              strcasecmp(nick_name, cfg_dungeon_master) &&
-             strcasecmp(nick_name, cfg_irc_gate) 
 		)
 		{
 			return E_TWO_PLAYERS;
@@ -850,7 +847,7 @@ static void Delete_player(int Ind)
 	/* If he was actively playing, tell everyone that he's left */
 	/* handle the cfg_secret_dungeon_master option */
 	if (p_ptr->alive && !p_ptr->death && 
-	    ((strcmp(p_ptr->name, cfg_dungeon_master)&& strcmp(p_ptr->name,cfg_irc_gate)) || !cfg_secret_dungeon_master))
+	    ((strcmp(p_ptr->name, cfg_dungeon_master)) || !cfg_secret_dungeon_master))
 	{
 		if(p_ptr->lev >1) {
 		/* RLS: Don't report level 1's  too much noise */
@@ -1599,7 +1596,6 @@ static int Handle_login(int ind)
 
 	/* Handle the cfg_secret_dungeon_master option */
 	if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && (cfg_secret_dungeon_master)) return 0;
-    if ((!strcmp(p_ptr->name,cfg_irc_gate)) && (cfg_secret_dungeon_master)) return 0;
 
 	/* Tell everyone about our new player */
 	for (i = 1; i < NumPlayers; i++)

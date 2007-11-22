@@ -121,8 +121,7 @@ void do_cmd_go_down(int Ind)
 	/* Verify stairs */
 
     if (p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master) &&
-			    strcmp(p_ptr->name,cfg_irc_gate)
+			    strcmp(p_ptr->name,cfg_dungeon_master)
 			)
 		    ) {
 		msg_print(Ind, "You seem unable to go down.  Try going up.");
@@ -130,8 +129,7 @@ void do_cmd_go_down(int Ind)
 	};
 
     if (!p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master) &&
-			    strcmp(p_ptr->name,cfg_irc_gate)
+			    strcmp(p_ptr->name,cfg_dungeon_master)
 			 ) && c_ptr->feat != FEAT_MORE)
 	{
 		msg_print(Ind, "I see no down staircase here.");

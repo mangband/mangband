@@ -1224,7 +1224,6 @@ bool detect_invisible(int Ind)
 
 		/* Skip the dungeon master */
 		if (!strcmp(q_ptr->name, cfg_dungeon_master)) continue;
-        if (!strcmp(q_ptr->name, cfg_irc_gate)) continue;
 
 		/* Detect all invisible players but not the dungeon master */
 		if (panel_contains(py, px) && q_ptr->ghost) 

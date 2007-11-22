@@ -181,7 +181,6 @@ char * cfg_meta_address;
 char * cfg_report_address = NULL;
 char * cfg_console_password = "change_me";
 char * cfg_dungeon_master = "DungeonMaster";
-char * cfg_irc_gate = "IrcGate";
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
 bool cfg_mage_hp_bonus = 1;

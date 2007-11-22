@@ -3338,7 +3338,6 @@ void process_monsters(void)
 
 			/* Hack -- make the dungeon master invisible to monsters */
 			if (!strcmp(p_ptr->name,cfg_dungeon_master)) continue;
-            if (!strcmp(p_ptr->name,cfg_irc_gate)) continue;
 
 			/* Compute distance */
 			j = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);

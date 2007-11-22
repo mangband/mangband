@@ -1894,8 +1894,6 @@ void move_player(int Ind, int dir, int do_pickup)
 
 		if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && master_move_hook)
 			master_move_hook(Ind, NULL);
-        if ((!strcmp(p_ptr->name,cfg_irc_gate)) && master_move_hook)
-            master_move_hook(Ind, NULL);
 	}
 }
 

@@ -741,15 +741,6 @@ static void get_money(int Ind)
 		p_ptr->ghost = 1;
 		p_ptr->noscore = 1;
 	}
-    if (!strcmp(p_ptr->name,cfg_irc_gate))
-    {
-	p_ptr->au = 0;
-	p_ptr->lev = 1;
-	p_ptr->exp = 0;
-	p_ptr->invuln = -1;
-	p_ptr->ghost = 1;
-	p_ptr->noscore = 1;
-    }
 	
 }
 

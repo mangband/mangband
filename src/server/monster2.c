@@ -1293,7 +1293,6 @@ void update_player(int Ind)
 			}
 		/* hack -- dungeon masters are invisible */
 		if (!strcmp(q_ptr->name,cfg_dungeon_master)) flag = FALSE;
-        if (!strcmp(q_ptr->name,cfg_irc_gate)) flag = FALSE;
 		}
 
 		/* Player is now visible */
