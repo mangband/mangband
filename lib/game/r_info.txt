@@ -392,8 +392,6 @@ W:1:1:0:1
 B:GAZE:PARALYZE
 F:NEVER_MOVE
 F:HURT_LITE | NO_FEAR
-S:1_IN_100
-S:BLINK
 D:A disembodied eye, floating a few feet above the ground.
 
 N:28:Rock lizard

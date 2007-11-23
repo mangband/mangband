@@ -888,6 +888,9 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (set_paralyzed(Ind, p_ptr->paralyzed + 3 + randint(rlev)))
 						{
 							obvious = TRUE;
+							
+							/* Hack - Make level 1 monsters who paralyze also blink */
+							if (r_ptr->level == 1) blinked = TRUE;
 						}
 					}
 
