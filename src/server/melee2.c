@@ -2152,12 +2152,16 @@ static void get_moves(int Ind, int m_idx, int *mm)
 	int y, ay, x, ax;
 
 	int move_val = 0;
-
+	
 	int y2 = p_ptr->py;
 	int x2 = p_ptr->px;
 
-	/* Wanderers have their own ideas about where they are going */
-	if (r_ptr->flags2 & RF2_WANDERER)
+	/* Wanderers have their own ideas about where they are going unless
+	 * the player is aggravating them or they are hurt and standing near
+	 * a player who is higher than level 1.
+	 */
+	if ( (r_ptr->flags2 & RF2_WANDERER) && (!p_ptr->aggravate) 
+	   && ( (m_ptr->hp == m_ptr->maxhp) || (p_ptr->lev == 1) ) )
 	{
 		x2 = y2 = 0;
 		
@@ -2168,8 +2172,14 @@ static void get_moves(int Ind, int m_idx, int *mm)
 			x2 = m_ptr->wx;
 			y2 = m_ptr->wy;
 			
-			/* If we are here already go somewhere else */
-			if ( (x2 == m_ptr->fx && y2 == m_ptr->fy) || (randint(1000)<10) )
+			/* If we have nearly arrived, go somewhere else */
+			if ( (abs(x2 - m_ptr->fx) < 10) && (abs(y2 - m_ptr->fy) < 10) )
+			{
+				x2 = y2 = 0;
+			}
+
+			/* Occasionally we change our mind about where we want to go */
+			if (randint(1000) < 10)
 			{
 				x2 = y2 = 0;
 			}
@@ -2197,8 +2207,8 @@ static void get_moves(int Ind, int m_idx, int *mm)
 	x = m_ptr->fx - x2;
 
 
-	/* Apply fear if possible and necessary */
-	if (mon_will_run(Ind, m_idx))
+	/* Apply fear if possible and necessary (wanderers never run away) */
+	if ( mon_will_run(Ind, m_idx) && !(r_ptr->flags2 & RF2_WANDERER) )
 	{
 		/* XXX XXX Not very "smart" */
 		y = (-y), x = (-x);
@@ -2591,7 +2601,6 @@ static void process_monster(int Ind, int m_idx)
 			}
 		}
 	}
-
 
 	/* Handle "fear" */
 	if (m_ptr->monfear)
