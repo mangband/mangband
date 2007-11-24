@@ -8,10 +8,6 @@
 #include "angband.h"
 #include "externs.h"
 
-#ifdef WIN32
-#define strncasecmp strnicmp
-#endif
-
 #ifndef HAS_MEMSET
 
 /*
