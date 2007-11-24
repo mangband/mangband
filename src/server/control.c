@@ -15,7 +15,6 @@ static bool console_listen;
  */
 void console_print(char *msg)
 {
-	printf("Listener heard: %s\n",msg);
 	if (console_listen)
 	{
 		Packet_printf(&console_buf, "%s%c",msg,'\n');
@@ -45,6 +44,66 @@ static void console_status()
 			
 	}
 	Sockbuf_flush(&console_buf);
+}
+
+/*
+ * Return information about a specific player
+ */
+static void console_whois(char *name)
+{
+	int i, len;
+	char output[1024];
+	player_type *p_ptr, *p_ptr_search;
+	
+	p_ptr = 0;
+
+	/* Find this player */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		p_ptr_search = Players[i];
+		len = strlen(p_ptr_search->name);
+		if (!strncasecmp(p_ptr_search->name, name, len))
+		{
+			p_ptr = p_ptr_search;
+		}
+	}
+	if (!p_ptr)
+	{
+		Packet_printf(&console_buf, "%s%c","No such player",'\n');
+		Sockbuf_flush(&console_buf);
+		return;
+	}
+	
+	/* Output player information */
+
+	/* General character description */
+	Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
+		p_ptr->name, p_ptr->lev, race_info[p_ptr->prace].title,
+		class_info[p_ptr->pclass].title, p_ptr->dun_depth*50));
+	
+	/* Player connection info */
+	Packet_printf(&console_buf, "%s",format("(%s@%s [%s] v%d)\n", 
+		p_ptr->realname, p_ptr->hostname, p_ptr->addr, p_ptr->version));
+				
+	/* Other interesting factoids */
+	if ( p_ptr->lives > 0 )
+		Packet_printf(&console_buf, "%s",format("%s resurected %d times.\n", p_ptr->lives));
+	if ( p_ptr->max_dlv == 0 )
+		Packet_printf(&console_buf, "%s",format("Has never left the town!\n"));
+	else
+		Packet_printf(&console_buf, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
+	i = p_ptr->msg_hist_ptr-1;
+	if( i >= 0 )
+	{
+		if (p_ptr->msg_log[i])
+		{
+			Packet_printf(&console_buf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
+		}
+	}
+		
+
+	Sockbuf_flush(&console_buf);
+	
 }
 
 static void console_message(char *buf)
@@ -146,7 +205,6 @@ void NewConsole(int read_fd, int arg)
 	Sockbuf_clear(&console_buf);
 	/* Read the message */
 	bytes = DgramReceiveAny(read_fd, console_buf.buf, console_buf.size);
-	printf("got %d bytes\n",bytes);
 
 	/* Check for errors or our TCP connection closing */
 	if (bytes <= 0)
@@ -243,6 +301,10 @@ void NewConsole(int read_fd, int arg)
 	else if (!strncmp(cmd,"reload",6))
 	{
 		console_reload_server_preferences();
+	}
+	else if (!strncmp(cmd,"whois",5))
+	{
+		console_whois(params);
 	}
 	
 }
