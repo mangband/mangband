@@ -39,9 +39,9 @@ static void console_status()
 		player_type *p_ptr = Players[k];
 
 		/* Add an entry */
-		Packet_printf(&console_buf, "%s",format("%s level %d %s %s at %d ft\n", 
+		Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
 			p_ptr->name, p_ptr->lev, race_info[p_ptr->prace].title,
-			class_info[p_ptr->pclass].title, p_ptr->dun_depth));
+			class_info[p_ptr->pclass].title, p_ptr->dun_depth*50));
 			
 	}
 	Sockbuf_flush(&console_buf);
@@ -135,6 +135,9 @@ void NewConsole(int read_fd, int arg)
 		install_input(NewConsole, newsock, 2);
 		console_authenticated = FALSE;
 		console_listen = FALSE;
+		Packet_printf(&console_buf, "%s","Connected\n");
+		Sockbuf_flush(&console_buf);
+
 		return;
 	}
 
@@ -143,6 +146,7 @@ void NewConsole(int read_fd, int arg)
 	Sockbuf_clear(&console_buf);
 	/* Read the message */
 	bytes = DgramReceiveAny(read_fd, console_buf.buf, console_buf.size);
+	printf("got %d bytes\n",bytes);
 
 	/* Check for errors or our TCP connection closing */
 	if (bytes <= 0)
@@ -185,7 +189,14 @@ void NewConsole(int read_fd, int arg)
 
 			return;
 		}
-		else console_authenticated = TRUE;
+		else 
+		{
+			/* Clear buffer */
+			Sockbuf_clear(&console_buf);
+			console_authenticated = TRUE;
+			Packet_printf(&console_buf, "%s","Authenticated\n");
+			Sockbuf_flush(&console_buf);
+		}
 	}
 
 	/* Acquire command in the form: <command> <params> */
