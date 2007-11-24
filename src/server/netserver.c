@@ -1269,6 +1269,7 @@ static int Handle_listening(int ind)
 	}
 
 	/* Check for new protocol flag if this isn't a known legacy client */
+	broken_client = FALSE;
 	if(!old_client)
 	{
 		broken_client = TRUE;
