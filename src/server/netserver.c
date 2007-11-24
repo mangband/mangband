@@ -107,7 +107,7 @@ int			NumPlayers;
 int		MetaSocket = -1;
 
 int		ConsoleSocket = -1;
-
+bool	broken_client;
 
 char *showtime(void)
 {
@@ -1183,7 +1183,9 @@ static int Handle_listening(int ind)
 	s16b sex, race, class;
 	s16b block_size;
 	bool old_client;
+	char p1,p2;
 	char nick[MAX_NAME_LEN], real[MAX_NAME_LEN], pass[MAX_NAME_LEN];
+	s16b old_max_tv, old_max_f,old_max_k,old_max_r;
 
 	if (connp->state != CONN_LISTENING)
 	{
@@ -1239,19 +1241,47 @@ static int Handle_listening(int ind)
 		return -1;
 	}
 
-	/* Try to detect version 0.7.2 clients */
+	/* Try to detect version 0.7.2 (and other) clients */
 	if ( (connp->r.len - (connp->r.ptr - connp->r.buf)) < 2654)
 	{
 		connp->r.ptr = connp->r.buf;
 		return 1;
 	}
-	/* If we have *exactly* 2654 bytes, we are probably talking to a 
-	 * 0.7.2 client and we should assume the old broken char/attr
-	 * protocol */
+
+	/* If we have *exactly* 2654 bytes, assume 0.7.2 client */
 	old_client = FALSE;
 	if ((connp->r.len - (connp->r.ptr - connp->r.buf)) == 2654)
 	{
 		old_client = TRUE;
+		old_max_tv = 100;
+		old_max_f = 128;
+		old_max_k = 512;
+		old_max_r = 549;
+	}
+	/* If we have *exactly* 2796 bytes, assume 0.7.3 client */
+	else if ((connp->r.len - (connp->r.ptr - connp->r.buf)) == 2796)
+	{
+		old_client = TRUE;
+		old_max_tv = 100;
+		old_max_f = 128;
+		old_max_k = 512;
+		old_max_r = 620;
+	}
+
+	/* Check for new protocol flag if this isn't a known legacy client */
+	if(!old_client)
+	{
+		broken_client = TRUE;
+		n = Packet_scanf(&connp->r, "%c%c", &p1,&p2);
+		if( p1 == 'X' && p2 == 'X' )
+		{
+			broken_client = FALSE;
+		}
+		/* In an ideal world we would just send a warning message to the client
+		 * here saying their software incompatible.  Sadly the legacy clients
+		 * don't listen for or display warnings from the server at this point
+		 * so we have to wait until later. *If* the client makes it that far :-/
+		 */
 	}
 
 	/* If this isn't an old 0.7.2 client, determine exactly how much data we
@@ -1296,8 +1326,8 @@ static int Handle_listening(int ind)
 	}
 	else
 	{
-		/* Assume 0.7.2 block size */
-		block_size = 100;
+		/* Legacy client block size */
+		block_size = old_max_tv;
 	}
 	if (block_size > TV_MAX) block_size = TV_MAX;
 	/* We have the TV data, read it */
@@ -1317,8 +1347,8 @@ static int Handle_listening(int ind)
 	}
 	else
 	{
-		/* Assume 0.7.2 block size */
-		block_size = 128;
+		/* Legacy client block size */
+		block_size = old_max_f;
 	}
 	if (block_size > MAX_F_IDX) block_size = MAX_F_IDX;
 	/* We have the F data, read it */
@@ -1338,8 +1368,8 @@ static int Handle_listening(int ind)
 	}
 	else
 	{
-		/* Assume 0.7.2 block size */
-		block_size = 512;
+		/* Legacy client block size */
+		block_size = old_max_k;
 	}
 	if (block_size > MAX_K_IDX) block_size = MAX_K_IDX;
 	/* We have the K data, read it */
@@ -1359,8 +1389,8 @@ static int Handle_listening(int ind)
 	}
 	else
 	{
-		/* Assume 0.7.2 block size */
-		block_size = 620;
+		/* Legacy client block size */
+		block_size = old_max_r;
 	}
 	if (block_size > MAX_R_IDX) block_size = MAX_R_IDX;
 	/* We have the R data, read it */
@@ -2113,6 +2143,15 @@ static int Receive_play(int ind)
 	connection_t *connp = &Conn[ind];
 	unsigned char ch;
 	int n;
+
+	/* Disconnect the client if we know it's not compatible - this action has been
+	 * delayed from the initial connection stage */
+	if( broken_client )
+	{
+			Destroy_connection(ind, "Incompatible client.\n"\
+				"Download at http://www.mangband.org");
+			return -1;		
+	}
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) != 1)
 	{
