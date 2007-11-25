@@ -5,8 +5,7 @@
 #define SERVER
 
 #include "angband.h"
-
-
+#include "../common/md5.h"
 
 /*
  * Some "local" parameters, used to help write savefiles
@@ -23,6 +22,17 @@ static int xml_indent = 0L;
 static char xml_buf[32];
 static char *xml_prefix = xml_buf;
 
+static void MD5Password PROTO_LIST ((char *));
+
+static void MD5Password (char *string)
+{
+  MD5_CTX context;
+  unsigned int len = strlen (string);
+
+  MD5Init (&context);
+  MD5Update (&context, string, len);
+  MD5Final (string, &context);
+}
 
 /* Start a section */
 static void start_section(char* name)
