@@ -1119,9 +1119,9 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Extract version */
-		sf_major = 0; /* [grk] FIXME */
-		sf_minor = 9;
-		sf_patch = 9;
+		sf_major = 1; /* [grk] FIXME */
+		sf_minor = 0;
+		sf_patch = 0;
 		sf_extra = 0;
 
 		/* Parse "new" savefiles */
