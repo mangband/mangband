@@ -70,6 +70,7 @@ extern void	DgramClose(int);
 extern void	GetLocalHostName(char *, unsigned);
 extern int SocketClose(int fd);
 extern void CleanupDgramSocket(int sock);
+extern int CreateClientSocket(char *host, int port);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\
