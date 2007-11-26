@@ -69,9 +69,10 @@ extern int	DgramLastport(void);
 extern void	DgramClose(int);
 extern void	GetLocalHostName(char *, unsigned);
 extern int SocketClose(int);
-extern void CleanupDgramSocket(int sock);
+extern void CleanupDgramSocket(int);
 extern int CreateClientSocket(char *, int);
-extern int SocketRead(int fd, char *, int);
+extern int SocketRead(int, char *, int);
+extern int SetSocketNoDelay(int, int);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\
