@@ -1326,6 +1326,7 @@ static errr rd_dungeon_special()
 			}
 		}
 	}
+	return 0;
 }
 
 /* Reads in a players memory of the level he is currently on, in run-length encoded
