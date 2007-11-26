@@ -4020,7 +4020,7 @@ bool set_recall_depth(player_type * p_ptr, object_type * o_ptr)
 	p_ptr->recall_depth = p_ptr->max_dlv;
 	
 	/* check for a valid inscription */
-	if (inscription == NULL) return;
+	if (inscription == NULL) return FALSE;
 	
 	/* scan the inscription for @R */
 	while (*inscription != '\0')
