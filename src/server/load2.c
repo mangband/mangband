@@ -884,8 +884,8 @@ static bool rd_extra(int Ind)
 	read_str("pass",pass); /* 80 */
 
 	/* Here's where we do our password encryption handling */
-//	strcat(temp, (const char *)pass);
-//	MD5Password(temp);
+	strcpy(temp, (const char *)pass);
+	MD5Password(temp);
 
 	if (strcmp(pass, p_ptr->pass)) 
 		return TRUE; 

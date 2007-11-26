@@ -151,7 +151,7 @@ void MD5Update (MD5_CTX *context, unsigned char *input, unsigned int inputLen)
   the message digest and zeroizing the context.
  */
 void MD5Final (digest, context)
-unsigned char digest[16];                         /* message digest */
+unsigned char digest[80];                         /* message digest */
 MD5_CTX *context;                                       /* context */
 {
   unsigned char bits[8];
