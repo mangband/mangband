@@ -21,17 +21,20 @@ without express or implied warranty of any kind.
 These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
-
+#ifndef INCLUDED_ANGBAND_H
+#include "angband.h"
+#endif
 #include "global.h"
 
 /* MD5 context. */
 typedef struct {
-  unsigned long state[4];                                   /* state (ABCD) */
-  unsigned long count[2];        /* number of bits, modulo 2^64 (lsb first) */
-  unsigned char buffer[64];                         /* input buffer */
+  u32b state[4];                                   /* state (ABCD) */
+  u32b count[2];        /* number of bits, modulo 2^64 (lsb first) */
+  unsigned char buffer[512];                        /* input buffer */
 } MD5_CTX;
 
 void MD5Init PROTO_LIST ((MD5_CTX *));
 void MD5Update PROTO_LIST ((MD5_CTX *, unsigned char *, unsigned int));
 void MD5Final PROTO_LIST ((unsigned char [80], MD5_CTX *));
 
+extern void MD5Password PROTO_LIST ((char *));

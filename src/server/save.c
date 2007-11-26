@@ -22,9 +22,7 @@ static int xml_indent = 0L;
 static char xml_buf[32];
 static char *xml_prefix = xml_buf;
 
-static void MD5Password PROTO_LIST ((char *));
-
-static void MD5Password (char *string)
+extern void MD5Password (char *string)
 {
   MD5_CTX context;
   unsigned int len = strlen (string);
@@ -1126,7 +1124,7 @@ bool load_player(int Ind)
 
 		/* Parse "new" savefiles */
 		/* Parse "MAngband" savefiles */
-		if (sf_major == 0)
+		if (sf_major == 1)
 		{
 			/* Attempt to load */
 			err = rd_savefile_new(Ind);

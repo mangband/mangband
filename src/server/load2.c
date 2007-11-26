@@ -5,6 +5,7 @@
 #define SERVER
 
 #include "angband.h"
+#include "../common/md5.h"
 
 
 /*
@@ -871,6 +872,7 @@ static bool rd_extra(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char pass[80];
+	char temp[80];
 
 	int i;
 
@@ -880,6 +882,10 @@ static bool rd_extra(int Ind)
 
 	read_str("playername",p_ptr->name); /* 32 */
 	read_str("pass",pass); /* 80 */
+
+	/* Here's where we do our password encryption handling */
+//	strcat(temp, (const char *)pass);
+//	MD5Password(temp);
 
 	if (strcmp(pass, p_ptr->pass)) 
 		return TRUE; 
