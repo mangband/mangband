@@ -872,7 +872,7 @@ static bool rd_extra(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char pass[80];
-	char temp[80];
+	char temp[20];
 
 	int i;
 
@@ -884,11 +884,21 @@ static bool rd_extra(int Ind)
 	read_str("pass",pass); /* 80 */
 
 	/* Here's where we do our password encryption handling */
-	strcpy(temp, (const char *)pass);
-	MD5Password(temp);
+	strcpy(temp, "$1$");
+	strcat(temp + 3, (const char *)pass);
+	MD5Password(temp + 3);
+	temp[19] = 0;
 
-	if (strcmp(pass, p_ptr->pass)) 
-		return TRUE; 
+	if (strcmp(temp, p_ptr->pass))
+	{
+		/* Might be old style password */
+		if (strcmp(pass, p_ptr->pass))
+		{
+			/* No, it's neither */
+			return TRUE;
+		}
+		/* Save as new style instead */
+	}
 
 	read_str("died_from",p_ptr->died_from); /* 80 */
 
@@ -1452,7 +1462,7 @@ static errr rd_savefile_new_aux(int Ind)
 
 	/* Read the extra stuff */
 	if (rd_extra(Ind))
-		return 35;
+		return BAD_PASSWORD;
 	/*if (arg_fiddle) note("Loaded extra information");*/
 
 

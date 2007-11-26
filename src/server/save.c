@@ -1139,7 +1139,7 @@ bool load_player(int Ind)
 
 		/* Message (below) */
 		if (err) what = "Cannot parse savefile";
-		if (err == 35) what = "Incorrect password";
+		if (err == BAD_PASSWORD) what = "Incorrect password";
 	}
 
 	/* Paranoia */

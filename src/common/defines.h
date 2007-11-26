@@ -2894,4 +2894,5 @@ extern int PlayerUID;
 #define PSPELL_WORD_RECALL	56
 #define PSPELL_ALTER_REALITY	57
 
-
+/* Login constants */
+#define BAD_PASSWORD 35
