@@ -2094,7 +2094,11 @@ void do_quit(int ind, bool tellclient)
 	if (!tellclient)
 	{
 		/* Close the socket */
+#ifdef WINDOWS
+		SocketClose(connp->w.sock);
+#else
 		close(connp->w.sock);
+#endif
 
 		/* No more packets from a player who is quitting */
 		remove_input(connp->w.sock);
