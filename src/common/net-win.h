@@ -73,6 +73,7 @@ extern void CleanupDgramSocket(int);
 extern int CreateClientSocket(char *, int);
 extern int SocketRead(int, char *, int);
 extern int SetSocketNoDelay(int, int);
+extern int SocketAccept(int);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\
