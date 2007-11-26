@@ -10,13 +10,13 @@
 #endif
 
 /* POINTER defines a generic pointer type */
-typedef unsigned char *POINTER;
+/* typedef unsigned char *POINTER; Now byte_ptr */
 
 /* UINT2 defines a two byte word */
-typedef u16b UINT2;
+/* typedef u16b UINT2; Now u16b */
 
 /* UINT4 defines a four byte word */
-typedef u32b UINT4;
+/* typedef u32b UINT4; Now u32b */
 
 /* PROTO_LIST is defined depending on how PROTOTYPES is defined above.
 If using PROTOTYPES, then PROTO_LIST returns the list, otherwise it
