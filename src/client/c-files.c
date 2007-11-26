@@ -298,8 +298,8 @@ errr path_parse(char *buf, int max, cptr file)
         if (s) (void)strcat(buf, s);
 
         /* Success */
-        return (0);
 #endif /* WIN32 */
+        return (0);
 }
 
 
