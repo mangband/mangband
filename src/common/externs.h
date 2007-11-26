@@ -767,6 +767,7 @@ extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
 extern bool sleep_monsters_touch(int Ind);
+extern bool create_artifact(int Ind);
 
 /* store.c */
 extern void do_cmd_store(int Ind);
