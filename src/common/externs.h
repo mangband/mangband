@@ -507,6 +507,7 @@ extern void exit_game_panic(void);
 extern void signals_ignore_tstp(void);
 extern void signals_handle_tstp(void);
 extern void signals_init(void);
+extern void setup_exit_handler(void);
 
 /* generate.c */
 extern void generate_cave(int Depth);
