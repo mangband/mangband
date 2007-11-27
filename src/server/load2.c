@@ -872,11 +872,18 @@ static bool rd_extra(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char pass[80];
-	char temp[20];
+	char temp[80];
+	char temp2[80];
 
-	int i;
+	int i, save_flag = 0;
 
 	byte tmp8u;
+
+	/*	p_ptr->pass	- Password from client
+		pass		- Password from save file
+		temp		- Hashed saved password
+		temp2		- Hashed client password
+	*/
 
 	start_section_read("player");
 
@@ -884,20 +891,44 @@ static bool rd_extra(int Ind)
 	read_str("pass",pass); /* 80 */
 
 	/* Here's where we do our password encryption handling */
-	strcpy(temp, "$1$");
-	strcat(temp + 3, (const char *)pass);
-	MD5Password(temp + 3);
-	temp[19] = 0;
+	strcpy(temp, (const char *)pass);
+	MD5Password(temp); /* The hashed version of our stored password */
+	strcpy(temp2, (const char *)p_ptr->pass);
+	MD5Password(temp2); /* The hashed version of password from client */
 
-	if (strcmp(temp, p_ptr->pass))
-	{
-		/* Might be old style password */
+	if ((pass[0] == '$') && (pass[1] == '1') && (pass[2] == '$'))
+	{ /* Most likely an MD5 hashed password saved */
 		if (strcmp(pass, p_ptr->pass))
-		{
-			/* No, it's neither */
-			return TRUE;
+		{ /* No match, might be clear text from client */
+			if (strcmp(pass, temp2))
+			{
+				/* No, it's not correct */
+				return TRUE;
+			}
+			/* Old style client, but OK otherwise */
 		}
-		/* Save as new style instead */
+	}
+	else
+	{ /* Most likely clear text password saved */
+		if ((p_ptr->pass[0] == '$') && (p_ptr->pass[1] == '1') && (p_ptr->pass[2] == '$'))
+		{ /* Most likely hashed password from new client */
+			if (strcmp(temp, p_ptr->pass))
+			{
+				/* No, it doesn't match hatched */
+				return TRUE;
+			}
+		}
+		else
+		{ /* Most likely clear text from client as well */
+			if (strcmp(pass, p_ptr->pass))
+			{
+				/* No, it's not correct */
+				return TRUE;
+			}
+		}
+		/* Good match with clear text, save the hashed */
+		strcpy(p_ptr->pass, (const char *)temp);
+		save_flag = 1;
 	}
 
 	read_str("died_from",p_ptr->died_from); /* 80 */
@@ -1037,6 +1068,10 @@ static bool rd_extra(int Ind)
 	p_ptr->death = read_int("death");
 
 	end_section_read("player");
+
+	/* Need to save? */
+	if (save_flag)
+		save_player(Ind);
 
 	/* Success */
 	return FALSE;
