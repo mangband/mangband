@@ -138,6 +138,69 @@ static void console_kick_player(char *name)
 
 }
 
+/*
+ * Test the integrity of the RNG
+ */
+static void console_rng_test()
+{
+	int i;
+	u32b outcome, value;
+	/* This is the expected outcome, generated on our reference platform */
+	u32b reference = 0x0D3E5371;
+	
+	/* Don't run this if any players are connected */
+	if(NumPlayers > 0)
+	{
+		Packet_printf(&console_buf, "%s", "Can't run the RNG test with players connected!\n");
+		Sockbuf_flush(&console_buf);
+		return;
+	}
+	
+	/* Preserve current RNG state */
+	bool randquick = Rand_quick;
+	u32b randvalue = Rand_value;
+	u16b randplace = Rand_place;
+	u32b randstate[RAND_DEG];
+	for( i=0; i<RAND_DEG; i++ ) randstate[i] = Rand_state[i];
+
+	/* Initialise to a known state */
+	Rand_quick = FALSE;
+	Rand_value = 0;
+	Rand_place = 0;
+	Rand_state_init(0xDEADDEAD);
+	outcome = 0;
+
+	/* Let the operator know we are busy */
+	Packet_printf(&console_buf, "%s", "Torturing the RNG for 100 million iterations...\n");
+	Sockbuf_flush(&console_buf);
+
+	/* Torture the RNG for a hundred million iterations */
+	for(i=0;i<100000000;i++)
+	{
+		/* Flip between the quick and the complex */
+		Rand_quick = (i % 2);
+		outcome ^= Rand_mod(0x0FFFFFFF);
+		outcome ^= Rand_div(0x0FFFFFFF);	
+	}
+
+	/* Display the results */
+	if(outcome == reference)
+	{
+		Packet_printf(&console_buf, "%s","RNG is working perfectly\n");
+	} else {
+		Packet_printf(&console_buf, "%s","RNG integrity check FAILED\n");
+		Packet_printf(&console_buf, "%s",
+			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
+	}
+	Sockbuf_flush(&console_buf);
+	
+	/* Restore the RNG state */
+	Rand_quick = randquick;
+	Rand_value= randvalue;
+	Rand_place = randplace;
+	for( i=0; i<RAND_DEG; i++ ) Rand_state[i] = randstate[i];
+}
+
 static void console_reload_server_preferences(void)
 {
 	/* Reload the server preferences */
@@ -305,6 +368,10 @@ void NewConsole(int read_fd, int arg)
 	else if (!strncmp(cmd,"whois",5))
 	{
 		console_whois(params);
+	}
+	else if (!strncmp(cmd,"rngtest",7))
+	{
+		console_rng_test();
 	}
 	
 }
