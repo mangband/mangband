@@ -25,7 +25,7 @@ void console_print(char *msg)
 /*
  * Return the list of players
  */
-static void console_status()
+static void console_who()
 {
 	int k;
 
@@ -282,9 +282,9 @@ void NewConsole(int read_fd, int arg)
 	{
 		console_listen = TRUE;
 	}
-	else if (!strncmp(cmd,"status",6)) 
+	else if (!strncmp(cmd,"who",6)) 
 	{
-		console_status();
+		console_who();
 	}
 	else if (!strncmp(cmd,"shutdown",8))
 	{
