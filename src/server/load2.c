@@ -896,7 +896,7 @@ static bool rd_extra(int Ind)
 	strcpy(temp2, (const char *)p_ptr->pass);
 	MD5Password(temp2); /* The hashed version of password from client */
 
-	if ((pass[0] == '$') && (pass[1] == '1') && (pass[2] == '$'))
+	if (strstr(pass, "$1$"))
 	{ /* Most likely an MD5 hashed password saved */
 		if (strcmp(pass, p_ptr->pass))
 		{ /* No match, might be clear text from client */
@@ -928,7 +928,6 @@ static bool rd_extra(int Ind)
 		}
 		/* Good match with clear text, save the hashed */
 		strcpy(p_ptr->pass, (const char *)temp);
-		save_flag = 1;
 	}
 
 	read_str("died_from",p_ptr->died_from); /* 80 */
@@ -1068,10 +1067,6 @@ static bool rd_extra(int Ind)
 	p_ptr->death = read_int("death");
 
 	end_section_read("player");
-
-	/* Need to save? */
-	if (save_flag)
-		save_player(Ind);
 
 	/* Success */
 	return FALSE;

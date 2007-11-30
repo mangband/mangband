@@ -329,3 +329,26 @@ unsigned int len;
  ((char *)output)[i] = (char)value;
 }
 
+/* Finally we put the hashing algorithm to work */
+extern void MD5Password (char *string)
+{
+  MD5_CTX context;
+  unsigned int len = strlen (string);
+  char temp[80];
+  int i, j;
+
+  MD5Init (&context);
+  MD5Update (&context, string, len);
+  MD5Final (string, &context);
+
+  /* Convert to hex */
+  strcpy(temp, "$1$");
+  for (i = 0; i < 16; i++)
+  {
+	  j = 2 * i + 3;
+	  sprintf(&temp[j], "%02X", (char)string[i]);
+	}
+  temp[j + 2] = 0;
+  strcpy(string, temp);
+}
+

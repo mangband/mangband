@@ -22,28 +22,6 @@ static int xml_indent = 0L;
 static char xml_buf[32];
 static char *xml_prefix = xml_buf;
 
-extern void MD5Password (char *string)
-{
-  MD5_CTX context;
-  unsigned int len = strlen (string);
-  char temp[80];
-  int i, j;
-
-  MD5Init (&context);
-  MD5Update (&context, string, len);
-  MD5Final (string, &context);
-
-  /* Convert to hex */
-  strcpy(temp, "$1$");
-  for (i = 0; i < 16; i++)
-  {
-	  j = 2 * i + 3;
-	  sprintf(&temp[j], "%02X", (char)string[i]);
-	}
-  temp[j + 2] = 0;
-  strcpy(string, temp);
-}
-
 /* Start a section */
 static void start_section(char* name)
 {
