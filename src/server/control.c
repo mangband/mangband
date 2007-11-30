@@ -148,6 +148,11 @@ static void console_rng_test()
 	/* This is the expected outcome, generated on our reference platform */
 	u32b reference = 0x0D3E5371;
 	
+	bool randquick = Rand_quick;
+	u32b randvalue = Rand_value;
+	u16b randplace = Rand_place;
+	u32b randstate[RAND_DEG];
+
 	/* Don't run this if any players are connected */
 	if(NumPlayers > 0)
 	{
@@ -157,10 +162,6 @@ static void console_rng_test()
 	}
 	
 	/* Preserve current RNG state */
-	bool randquick = Rand_quick;
-	u32b randvalue = Rand_value;
-	u16b randplace = Rand_place;
-	u32b randstate[RAND_DEG];
 	for( i=0; i<RAND_DEG; i++ ) randstate[i] = Rand_state[i];
 
 	/* Initialise to a known state */
