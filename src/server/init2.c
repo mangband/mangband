@@ -1602,13 +1602,6 @@ static errr init_other(void)
 		}
 	}
 
-
-	/*** Pre-allocate space for the "format()" buffer ***/
-
-	/* Hack -- Just call the "format()" function */
-	(void)format("%s (%s).", "Ben Harrison", MAINTAINER);
-
-
 	/* Success */
 	return (0);
 }
@@ -1831,10 +1824,6 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_meta_address = strdup(value);
 	}
-	else if (!strcmp(option,"MAINTAINER"))
-	{
-		cfg_maintainer = strdup(value);
-	} 
 	else if (!strcmp(option,"BIND_NAME"))
 	{
 		cfg_bind_name = strdup(value);

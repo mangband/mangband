@@ -180,7 +180,6 @@ bool cfg_report_to_meta = 0;
 char * cfg_meta_address;
 char * cfg_report_address = NULL;
 char * cfg_bind_name = NULL;
-char * cfg_maintainer = "crimson@mangband.org";
 char * cfg_console_password = "change_me";
 char * cfg_dungeon_master = "DungeonMaster";
 bool cfg_secret_dungeon_master = 0;
