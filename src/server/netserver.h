@@ -24,7 +24,7 @@
 #define MAX_RETRANSMIT		(2 * FPS)
 #define DEFAULT_RETRANSMIT	(FPS / 2)
 
-#define MAX_NAME_LEN		20
+#define MAX_NAME_LEN		36
 
 typedef struct {
 	int		state;
