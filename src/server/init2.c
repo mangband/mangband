@@ -1831,6 +1831,14 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_meta_address = strdup(value);
 	}
+	else if (!strcmp(option,"MAINTAINER"))
+	{
+		cfg_maintainer = strdup(value);
+	} 
+	else if (!strcmp(option,"BIND_NAME"))
+	{
+		cfg_bind_name = strdup(value);
+	}
 	else if (!strcmp(option,"REPORT_ADDRESS"))
 	{
 		cfg_report_address = strdup(value);

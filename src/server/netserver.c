@@ -290,11 +290,14 @@ bool Report_to_meta(int flag)
 		}
 		else
 		{
-#ifdef BIND_NAME
-			strncpy( local_name, BIND_NAME, 1024);
-#else
-			GetLocalHostName(local_name, 1024);
-#endif
+			if ( cfg_bind_name )
+			{
+				strncpy( local_name, cfg_bind_name, 1024 );
+			}
+			else
+			{
+				GetLocalHostName( local_name, 1024 );
+			}
 		}
 	}
 
