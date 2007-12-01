@@ -834,7 +834,6 @@ static s32b object_value_real(object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -965,18 +964,6 @@ static s32b object_value_real(object_type *o_ptr)
 			/* Done */
 			break;
 		}
-
-        case TV_MSTAFF:
-        {
-            /* Ego/randart mage weapons can have negative hit/damage bonuses */
-            if ((o_ptr->to_h + o_ptr->to_d < 0) && !artifact_p(o_ptr) && !o_ptr->name2) return (0L);
-
-            /* Factor in the bonuses */
-            value += ((o_ptr->to_h + o_ptr->to_d + o_ptr->to_a) * 100L);
-
-            /* Done */
-            break;
-        }
 
 		/* Ammo */
 		case TV_SHOT:
@@ -1142,7 +1129,6 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -1796,20 +1782,11 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
 		/* Very good */
 		if (power > 1)
 		{
-	    if (o_ptr->tval == TV_MSTAFF)
-		{
-		/* Ego mage weapons get penalties tohit/todam */
-			o_ptr->to_h -= tohit2;
-			o_ptr->to_d -= todam2;
+			/* Enchant again */
+			o_ptr->to_h += tohit2;
+			o_ptr->to_d += todam2;
 		}
-	    else
-					{
-		/* Enchant again */
-		o_ptr->to_h += tohit2;
-		o_ptr->to_d += todam2;
-					}
-				}
-			}
+	}
 
     /* Cursed */
     else if (power < 0)
@@ -2631,7 +2608,6 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOW:
 		case TV_SHOT:
 		case TV_ARROW:
@@ -2778,7 +2754,6 @@ static bool kind_is_good(int k_idx)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 		{
 			if (k_ptr->to_h < 0) return (FALSE);

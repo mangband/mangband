@@ -1667,7 +1667,6 @@ static bool item_tester_hook_weapon(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 		case TV_BOW:
 		case TV_BOLT:

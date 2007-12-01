@@ -511,7 +511,6 @@ static void mass_produce(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_POLEARM:
 		case TV_HAFTED:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 		case TV_BOW:
 		{
@@ -757,7 +756,6 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 				case TV_HAFTED:
 				case TV_POLEARM:
 				case TV_SWORD:
-                case TV_MSTAFF:
 					break;
 				default:
 					return (FALSE);

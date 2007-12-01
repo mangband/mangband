@@ -1063,7 +1063,6 @@ that keeps many algorithms happy.
 #define TV_HAFTED       21	/* Priest Weapons */
 #define TV_POLEARM      22	/* Axes and Pikes */
 #define TV_SWORD        23	/* Edged Weapons */
-#define TV_MSTAFF       24	/* Mage Weapons */
 #define TV_BOOTS        30	/* Boots */
 #define TV_GLOVES       31	/* Gloves */
 #define TV_HELM         32	/* Helms */
@@ -1164,10 +1163,6 @@ that keeps many algorithms happy.
 #define SV_TWO_HANDED_SWORD		25	/* 3d6 */
 #define SV_EXECUTIONERS_SWORD	28	/* 4d5 */
 #define SV_BLADE_OF_CHAOS		30	/* 6d5 */
-
-/* The "sval" codes for TV_MSTAFF */
-#define SV_MAGE_STAFF			1	/* 1d1 */
-#define SV_ELVEN_STAFF			2	/* 1d4 */
 
 /* The "sval" codes for TV_SHIELD */
 #define SV_SMALL_LEATHER_SHIELD		2
