@@ -420,7 +420,8 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, bytes, socket, offsets[20];
+	int i, j, y, bytes, socket, offsets[20];
+	bool server;
 	char buf[8192], *ptr, c, out_val[160];
 
 	/* Perhaps we already have a server name from config file ? */
@@ -455,7 +456,7 @@ bool get_server_name(void)
 
 	/* Start at the beginning */
 	ptr = buf;
-	i = 0;
+	i = y = 0;
 
 	/* Print each server */
 	while (ptr - buf < bytes)
@@ -470,30 +471,44 @@ bool get_server_name(void)
 			continue;
 		}
 
-		/* Save offset */
-		offsets[i] = ptr - buf;
+		/* Save server entries */
+		if (*ptr != ' ')
+		{
+			server = TRUE;
+			
+			/* Save offset */
+			offsets[i] = ptr - buf;
 
-		/* Format entry */
-		sprintf(out_val, "%c) %s", I2A(i), ptr);
+			/* Format entry */
+			sprintf(out_val, "%c) %s", I2A(i), ptr);
+		}
+		else
+		{
+			server = FALSE;
+			
+			/* Display notices */
+			sprintf(out_val, "%s", ptr);			
+		}
 
 		/* Strip off offending characters */
 		out_val[strlen(out_val) - 1] = '\0';
 
 		/* Print this entry */
-		prt(out_val, i + 1, 1);
+		prt(out_val, y + 1, 1);
 
 		/* Go to next metaserver entry */
 		ptr += strlen(ptr) + 1;
 
 		/* One more entry */
-		i++;
+		if (server) i++;
+		y++;
 
 		/* We can't handle more than 20 entries -- BAD */
 		if (i > 20) break;
 	}
 
 	/* Prompt */
-	prt("Choose a server to connect to (Q for manual entry): ", i + 2, 1);
+	prt("Choose a server to connect to (Q for manual entry): ", y + 2, 1);
 
 	/* Ask until happy */
 	while (1)
