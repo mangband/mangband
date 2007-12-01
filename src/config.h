@@ -42,7 +42,7 @@
  * players on.  Define this to be an empty string if you don't want to
  * report to a metaserver.
  */
-#define	META_ADDRESS "mangband.org.uk"  
+#define	META_ADDRESS "mangband.org"  
 
 
 /*
