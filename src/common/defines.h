@@ -84,7 +84,7 @@
 /*
  * Maximum number of events to keep in the character event history
  */
-#define MAX_CHAR_HIST 200 
+#define MAX_CHAR_HIST 300
 
 /*
  * This is very important...

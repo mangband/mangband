@@ -2889,6 +2889,10 @@ extern void log_history_event(int Ind, char *msg)
 	int i, days, hours, mins, seconds;
 	player_type *p_ptr = Players[Ind];
 	
+	/* Don't record if we have no space */
+	if (p_ptr->char_hist_ptr >= MAX_CHAR_HIST-1)
+		return;
+	
 	/* Never record duplicate entries */
 	for(i=0;i<p_ptr->char_hist_ptr;i++)
 	{
