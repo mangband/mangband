@@ -2532,7 +2532,7 @@ void aggravate_monsters(int Ind, int who)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i;
+	int i, d;
 
 	bool sleep = FALSE;
 	bool speed = FALSE;
@@ -2552,8 +2552,11 @@ void aggravate_monsters(int Ind, int who)
 		/* Skip aggravating monster (or player) */
 		if (i == who) continue;
 
+		/* Calculate the distance to this monster */
+		d = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
+
 		/* Wake up nearby sleeping monsters */
-		if (m_ptr->cdis < MAX_SIGHT * 2)
+		if (d < MAX_SIGHT * 2)
 		{
 			/* Wake up */
 			if (m_ptr->csleep)
@@ -2696,7 +2699,7 @@ bool mass_genocide(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int		i;
+	int		i, d;
 
 	bool	result = FALSE;
 
@@ -2718,8 +2721,11 @@ bool mass_genocide(int Ind)
 		/* Hack -- Skip unique monsters */
 		if (r_ptr->flags1 & RF1_UNIQUE) continue;
 
+		/* Calculate the distance to this monster */
+		d = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
+
 		/* Skip distant monsters */
-		if (m_ptr->cdis > MAX_SIGHT) continue;
+		if (d > MAX_SIGHT) continue;
 
 		/* Delete the monster */
 		delete_monster_idx(i);
