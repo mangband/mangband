@@ -2343,6 +2343,7 @@ void player_death(int Ind)
 	char dumpname[42];
 	int i;
 	s16b num_keys = 0;
+	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
 
@@ -2564,13 +2565,20 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		};
 
 		/* Drop this one */
+		item_weight = p_ptr->inventory[i].weight * p_ptr->inventory[i].number;
 		drop_near(&p_ptr->inventory[i], 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
-
-		/* No more item */
-
-		p_ptr->inventory[i].k_idx = 0;
-		p_ptr->inventory[i].tval = 0;
-		inven_item_increase(Ind, i, -p_ptr->inventory[i].number);
+		/* Be careful if the item was destroyed when we dropped it */
+		if (!p_ptr->inventory[i].k_idx)
+		{
+			p_ptr->total_weight -= item_weight;
+		}
+		else
+		{
+			/* We dropped the item on the floor, forget about it */
+			p_ptr->inventory[i].k_idx = 0;
+			p_ptr->inventory[i].tval = 0;
+			inven_item_increase(Ind, i, -p_ptr->inventory[i].number);
+		}
 	}
 
 	if (p_ptr->fruit_bat != -1)
