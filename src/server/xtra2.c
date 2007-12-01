@@ -2611,6 +2611,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	if (p_ptr->poisoned) (void)set_poisoned(Ind, 0);
 	if (p_ptr->stun) (void)set_stun(Ind, 0);
 	if (p_ptr->cut) (void)set_cut(Ind, 0);
+	if (p_ptr->shero) (void)set_shero(Ind, 0);
 	if (p_ptr->fruit_bat != -1) (void)set_food(Ind, PY_FOOD_MAX - 1);
 	else p_ptr->fruit_bat = 2;
 	/* Remove the death flag */
