@@ -172,6 +172,9 @@ void compact_monsters(int size)
 			/* Hack -- High level monsters start out "immune" */
 			if (r_ptr->level > cur_lev) continue;
 
+			/* Ignore nearby monsters */
+			if ((cur_dis > 0) && (m_ptr->cdis < cur_dis)) continue;
+
 			/* Saving throw chance */
 			chance = 90;
 
