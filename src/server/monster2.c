@@ -24,7 +24,7 @@ bool allow_unique_level(int r_idx, int Depth)
 	{
 		player_type *p_ptr = Players[i];
 
-		/* Is the player on the level and did he killed the unique already ? */
+		/* Is the player on the level and did he kill the unique already ? */
 		if (!p_ptr->r_killed[r_idx] && (p_ptr->dun_depth == Depth))
 		{
 			/* One is enough */

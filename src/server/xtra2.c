@@ -2052,10 +2052,10 @@ void monster_death(int Ind, int m_idx)
 		lore_treasure(m_idx, dump_item, dump_gold);
 	}
 
-    	if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
+    if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
 	{
 		/* Remember */
-	    	p_ptr->r_killed[m_ptr->r_idx]++;
+		p_ptr->r_killed[m_ptr->r_idx]++;
 	}
 
 
@@ -2067,7 +2067,7 @@ void monster_death(int Ind, int m_idx)
 		
 		/* give credit to the killer by default */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
-	msg_print(Ind, buf);
+		msg_print(Ind, buf);
 
 		/* message for event history */
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
@@ -2282,36 +2282,6 @@ void player_death(int Ind)
 			party_leave(Ind);
 		}
 
-/* No more respawn */
-#if 0
-		/* Bring back to life the uniques he slew */
-		for (i = 1; i < MAX_R_IDX; i++)
-		{
-			monster_race *r_ptr = &r_info[i];
-
-			/* Check for unique-ness */
-			if (!(r_ptr->flags1 & RF1_UNIQUE))
-				continue;
-
-			/* See if this guy was the killer */
-			if (r_ptr->killer == p_ptr->id)
-			{
-				/* Resurrect the unique */
-				r_ptr->max_num = 1;
-
-				/* No more killer */
-				r_ptr->killer = 0;
-				
-				r_ptr->respawn_timer = -1;
-				
-				/* Tell every player */ 
-				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
-				msg_broadcast(0, buf);
-				
-			}
-		}
-#endif
-
 		/* One less player here */
 		players_on_depth[p_ptr->dun_depth]--;
 
@@ -2487,35 +2457,27 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	}
 
 	if (p_ptr->fruit_bat != -1)
-
-#if 0
-	/* Bring back to life the uniques he slew */
-	for (i = 1; i < MAX_R_IDX; i++)
 	{
-		monster_race *r_ptr = &r_info[i];
-
-		/* Check for unique-ness */
-		if (!(r_ptr->flags1 & RF1_UNIQUE))
-			continue;
-
-		/* See if this guy was the killer */
-		if (r_ptr->killer == p_ptr->id)
+		/* Bring back to life the uniques he slew */
+		for (i = 1; i < MAX_R_IDX; i++)
 		{
-			/* Resurrect the unique */
-			r_ptr->max_num = 1;
+			monster_race *r_ptr = &r_info[i];
 
-			/* No more killer */
-			r_ptr->killer = 0;
-			
-			r_ptr->respawn_timer = 0;
-			sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));
-				
-			/* Tell every player */
-			msg_broadcast(0,buf);
-			
+			/* Check for unique-ness */
+			if (!(r_ptr->flags1 & RF1_UNIQUE))
+				continue;
+
+			/* If we have killed this unique, bring him back */
+			if (p_ptr->r_killed[i])
+			{
+				p_ptr->r_killed[i] = 0;
+
+				/* Tell the player */ 
+				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
+				msg_print(Ind, buf);
+			}
 		}
 	}
-#endif
 
 	/* Handle suicide */
 	if (!p_ptr->alive)
