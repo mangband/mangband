@@ -1960,8 +1960,17 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
 	if ((o_ptr->tval == TV_CLOAK) && (o_ptr->sval == SV_KOLLA))
 	{
 		o_ptr->bpval = randint(2);
-		rating += 20;
-			}
+
+		/* Cursed kolla */
+		if (o_ptr->to_a < 0) 
+		{
+			o_ptr->bpval = -o_ptr->bpval;
+		}
+		else
+		{
+			rating += 20;
+		}
+	}
 
 	/* are we done? */
 	if ((power >= -1) && (power <= 1)) return;
