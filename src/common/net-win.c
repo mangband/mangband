@@ -61,7 +61,11 @@ static char sourceid[] =
 /* may need to find a replacement for netdb.h */
 /* #include <netdb.h> */
 #include <signal.h>
-#define SIGALRM	293		/* not listed in win's signal.h -GP */
+#ifdef _MSC_VER
+# define SIGALRM SIGINT /* DJL: SIGALRM (293) is greater than NSIG (23) so use this suggested fix */
+#else
+# define SIGALRM	293		/* not listed in win's signal.h -GP */
+#endif
 #include <setjmp.h>
 #include <errno.h>
 
