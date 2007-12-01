@@ -1528,7 +1528,6 @@ static void calc_bonuses(int Ind)
 	p_ptr->immune_elec = FALSE;
 	p_ptr->immune_fire = FALSE;
 	p_ptr->immune_cold = FALSE;
-    p_ptr->auto_id = FALSE;
 
 
 	/* Base infravision (purely racial) */
@@ -1757,9 +1756,6 @@ static void calc_bonuses(int Ind)
 
 		/* Boost shots */
 		if (f3 & TR3_XTRA_SHOTS) extra_shots++;
-
-	/* Auto-id */
-	if (f3 & TR3_KNOWLEDGE) p_ptr->auto_id = TRUE;
 
 		/* Various flags */
 		if (f3 & TR3_AGGRAVATE) p_ptr->aggravate = TRUE;

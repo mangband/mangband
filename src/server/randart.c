@@ -326,7 +326,6 @@ static s32b artifact_power (artifact_type *a_ptr)
         if (a_ptr->flags4 & TR4_ESP_EVIL) p += 14;
 	if (a_ptr->flags4 & TR4_ESP_ANIMAL) p += 3;
 	if (a_ptr->flags4 & TR4_ESP_ALL) p += 22;
-        if (a_ptr->flags3 & TR3_KNOWLEDGE) p += 20;
         if (a_ptr->flags3 & TR3_SLOW_DIGEST) p += 4;
 	if (a_ptr->flags3 & TR3_REGEN) p += 8;
 	if (a_ptr->flags3 & TR3_TELEPORT) p -= 20;
@@ -711,10 +710,6 @@ static void add_ability (artifact_type *a_ptr)
 					else do_pval (a_ptr);
 					if (a_ptr->pval < 0) a_ptr->pval = 2;
 				}
-				else if (r < 40)
-				{
-				    a_ptr->flags3 |= TR3_KNOWLEDGE;
-				}
 				else if (r < 55)
 				{
 					a_ptr->flags1 |= TR1_DEX;
@@ -742,10 +737,6 @@ static void add_ability (artifact_type *a_ptr)
                                 {
 					a_ptr->flags1 |= TR1_INFRA;
 					if (a_ptr->pval == 0) a_ptr->pval = randint(2);
-				}
-				else if (r < 26)
-				{
-				    a_ptr->flags3 |= TR3_KNOWLEDGE;
 				}
 				else if (r < 42) add_esp(a_ptr);
 				else if (r < 57) a_ptr->flags3 |= TR3_SEE_INVIS;

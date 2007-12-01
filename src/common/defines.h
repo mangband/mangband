@@ -1990,7 +1990,7 @@ that keeps many algorithms happy.
 #define TR2_RES_DISEN		0x80000000L
 
 
-#define TR3_KNOWLEDGE		0x00000001L	/* Auto-id */
+#define TR3_XXX1			0x00000001L	/* Later */
 #define TR3_XXX2			0x00000002L	/* Later */
 #define TR3_XXX3			0x00000004L	/* Later */
 #define TR3_XXX4			0x00000008L	/* Later */

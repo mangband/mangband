@@ -3780,17 +3780,6 @@ void combine_pack(int Ind)
 		/* Skip empty items */
 		if (!o_ptr->k_idx) continue;
 
-	/* Auto-id */
-	if (p_ptr->auto_id)
-	{
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-	}
-
-
 		/* Scan the items above that item */
 		for (j = 0; j < i; j++)
 		{

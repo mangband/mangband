@@ -652,11 +652,6 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You are carrying a permanent light.";
 	}
-    if (p_ptr->auto_id)
-    {
-	info[i++] = "You are able to magically appraise items.";
-    }
-
 	if (p_ptr->immune_acid)
 	{
 		info[i++] = "You are completely immune to acid.";

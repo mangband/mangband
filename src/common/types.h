@@ -1359,7 +1359,6 @@ struct player_type
 	bool bless_blade;	/* Blessed blade */
 	bool xtra_might;	/* Extra might bow */
 	bool impact;		/* Earthquake blows */
-    bool auto_id;	/* Auto-id */
 
 	s16b dis_to_h;		/* Known bonus to hit */
 	s16b dis_to_d;		/* Known bonus to dam */

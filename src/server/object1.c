@@ -2700,11 +2700,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 		info[i++] = "It has been blessed by the gods.";
 	}
 
-    if (f3 & TR3_KNOWLEDGE)
-    {
-	info[i++] = "It identifies all items for you.";
-    }
-
 	if (cursed_p(o_ptr))
 	{
 		if (f3 & TR3_PERMA_CURSE)
