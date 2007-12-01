@@ -2789,9 +2789,6 @@ static bool kind_is_good(int k_idx)
 
 		/* Books -- High level books are good */
 		case TV_MAGIC_BOOK:
-#if defined(NEW_ADDITIONS)
-	case TV_SORCERY_BOOK:
-#endif
 		case TV_PRAYER_BOOK:
 		{
 			if (k_ptr->sval >= SV_BOOK_MIN_GOOD) return (TRUE);

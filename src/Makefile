@@ -57,7 +57,7 @@ SERV_SRCS = \
   server/cmd6.c server/store.c server/birth.c server/load2.c \
   server/sched.c server/generate.c server/wilderness.c server/dungeon.c \
   server/init1.c server/init2.c server/netserver.c server/printout.c \
-  server/main.c
+  server/main.c common/md5.c
 
 SERV_OBJS = \
   common/z-util.o common/z-virt.o common/z-form.o common/z-rand.o \
@@ -70,7 +70,7 @@ SERV_OBJS = \
   server/cmd6.o server/store.o server/birth.o server/load2.o \
   server/sched.o server/generate.o server/wilderness.o server/dungeon.o \
   server/init1.o server/init2.o server/netserver.o server/printout.o \
-  server/main.o 
+  server/main.o common/md5.o
 
 
 CLI_SRCS = \
@@ -80,7 +80,8 @@ CLI_SRCS = \
   client/c-files.c client/c-tables.c client/c-store.c client/c-init.c \
   client/variable.c client/main-ibm.c client/main-cap.c client/main-gcu.c \
   client/main-x11.c client/main-xaw.c client/netclient.c client/c-birth.c \
-  client/c-xtra1.c client/c-xtra2.c client/c-spell.c client/client.c client/set_focus.c
+  client/c-xtra1.c client/c-xtra2.c client/c-spell.c client/client.c client/set_focus.c \
+  common/md5.c
 
 CLI_OBJS = \
   common/z-util.o common/z-virt.o common/z-form.o common/z-rand.o \
@@ -89,25 +90,8 @@ CLI_OBJS = \
   client/c-files.o client/c-tables.o client/c-store.o client/c-init.o \
   client/variable.o client/main-ibm.o client/main-cap.o client/main-gcu.o \
   client/main-x11.o client/main-xaw.o client/netclient.o client/c-birth.o \
-  client/c-xtra1.o client/c-xtra2.o client/c-spell.o client/client.o client/set_focus.o
-
-
-CONS_SRCS = \
-  common/z-util.c common/z-virt.c common/z-form.c common/net-unix.c \
-  common/sockbuf.c common/net-ibm.c \
-  client/z-term.c \
-  client/main-ibm.c client/main-cap.c client/main-gcu.c \
-  client/main-x11.c client/main-xaw.c \
-  console/variable.c console/c-util.c console/console.c console/c-init.c
-
-CONS_OBJS = \
-  common/z-util.o common/z-virt.o common/z-form.o common/net-unix.o \
-  common/sockbuf.o common/net-ibm.o \
-  client/z-term.o \
-  client/main-ibm.o client/main-cap.o client/main-gcu.o \
-  client/main-x11.o client/main-xaw.o \
-  console/variable.o console/c-util.o console/console.o console/c-init.o
-
+  client/c-xtra1.o client/c-xtra2.o client/c-spell.o client/client.o client/set_focus.o \
+  common/md5.o
 
 ##
 ## Following are some "system" definitions
@@ -274,12 +258,10 @@ LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 # below.
 #
 
-install: mangclient mangconsole mangband
+install: mangclient mangband
 	-mv ../mangclient ../mangclient.old
 	-mv ../mangband ../mangband.old
-	-mv ../mangconsole ../mangconsole.old
 	cp mangclient ..
-	cp mangconsole ..
 	cp mangband ..
 
 
@@ -300,13 +282,6 @@ mangclient: $(CLI_OBJS)
 	$(CC) $(CFLAGS) -o mangclient $(CLI_OBJS) $(LDFLAGS) $(LIBS)
 
 
-#
-# Build the "MAngband" remote console
-#
-
-mangconsole: $(CONS_OBJS)
-	$(CC) $(CFLAGS) -o mangconsole $(CONS_OBJS) $(LDFLAGS) $(LIBS)
-
 
 #
 # Rule for making a '.o'
@@ -323,8 +298,7 @@ clean:
 	cd server; rm -f *.o
 	cd client; rm -f *.o
 	cd common; rm -f *.o
-	cd console; rm -f *.o
-
+	
 
 
 #

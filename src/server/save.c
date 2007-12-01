@@ -5,8 +5,7 @@
 #define SERVER
 
 #include "angband.h"
-
-
+#include "../common/md5.h"
 
 /*
  * Some "local" parameters, used to help write savefiles
@@ -22,7 +21,6 @@ static u32b	x_stamp = 0L;	/* A simple "checksum" on the encoded bytes */
 static int xml_indent = 0L;
 static char xml_buf[32];
 static char *xml_prefix = xml_buf;
-
 
 /* Start a section */
 static void start_section(char* name)
@@ -435,11 +433,6 @@ static void wr_extra(int Ind)
 	write_int("word_recall",p_ptr->word_recall);
 	write_int("see_infra",p_ptr->see_infra);
 	write_int("tim_infra",p_ptr->tim_infra);
-	/* Sorceror flags */
-	write_int("wraith_in_wall",p_ptr->wraith_in_wall);
-	write_int("tim_wraith",p_ptr->tim_wraith);
-	write_int("tim_meditation",p_ptr->tim_meditation);
-	write_int("tim_manashield",p_ptr->tim_manashield);
 
 	write_int("oppose_fire",p_ptr->oppose_fire);
 	write_int("oppose_cold",p_ptr->oppose_cold);
@@ -1114,14 +1107,14 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Extract version */
-		sf_major = 0; /* [grk] FIXME */
-		sf_minor = 9;
-		sf_patch = 9;
+		sf_major = 1; /* [grk] FIXME */
+		sf_minor = 0;
+		sf_patch = 0;
 		sf_extra = 0;
 
 		/* Parse "new" savefiles */
 		/* Parse "MAngband" savefiles */
-		if (sf_major == 0)
+		if (sf_major == 1)
 		{
 			/* Attempt to load */
 			err = rd_savefile_new(Ind);
@@ -1136,7 +1129,7 @@ bool load_player(int Ind)
 
 		/* Message (below) */
 		if (err) what = "Cannot parse savefile";
-		if (err == 35) what = "Incorrect password";
+		if (err == BAD_PASSWORD) what = "Incorrect password";
 	}
 
 	/* Paranoia */

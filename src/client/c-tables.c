@@ -254,54 +254,6 @@ player_race race_info[MAX_RACES] =
 		0x1F
     },
 
-#if defined(NEW_ADDITIONS)
-    {
-	"Yeek",
-	{  -5, -5, -5, -5, -5, -5 },
-	0,  0,  0,  0,  0,  10,  0,  0,
-	6,  50,
-	14,  6,
-	72,  6, 180, 25,
-	66,  4, 150, 20,
-	0,
-	0x3F
-    },
-
-    {
-	"Goblin",
-	{  0, -1, -5,  4,  2, -5 },
-	2, -3, -3,  0,  2, 8, 12, -5,
-	11,  115,
-	11,  4,
-	66,  1, 150,  5,
-	62,  1, 120,  5,
-	3,
-	0x0D
-    },
-    {
-	"Ent",
-	{ 8, -4, 2, -4,  8, -5 },
-	5, 0, 20, -6, 5, 4, 15, 5,
-	14, 300,
-	255, 70,
-	72, 6, 100, 25,
-	66, 4, 100, 20,
-	5,
-	0x3F,
-    },
-
-    {
-	"Thunderlord",
-	{  6,  3,  -10,  0,  5,  5 },
-	6,  0,  10,  -16,  30,  10,  15,  5,
-	12,  350,
-	14,  6,
-	180,  6, 255, 25,
-	150,  4, 230, 20,
-	0,
-	0x3F
-	}
-#endif
 };
 
 
@@ -364,15 +316,6 @@ player_class class_info[MAX_CLASS] =
 		6, 35
     },
 
-#if defined(NEW_ADDITIONS)
-    {
-	"Sorceror",
-	{-5, 5, 1, 0, -1, 0},
-	35, 40, 30, 2, 16, 20, 30, 20,
-	8,  15,  9, 0,  0,  0, 11, 15,
-	0, 30
-	}
-#endif
 };
 
 
@@ -931,103 +874,6 @@ player_magic magic_info[MAX_CLASS] =
 		}
     },
 
-#if defined(NEW_ADDITIONS)
-    {
-	/*** Sorceror ***/
-
-	TV_SORCERY_BOOK,
-	0,
-
-	A_INT,
-	2,
-
-	1,
-	300,
-
-	{
-		/* Apprentice Handbook */
-		{ 1, 1, 10, 4 },
-        	{ 1, 1, 12, 4 },
-		{ 2, 2, 12, 4 },
-		{ 2, 2, 12, 4 },
-		{ 3, 2, 14, 4 },
-		{ 3, 3, 14, 6 },
-		{ 4, 3, 15, 8 },
-		{ 5, 6, 25, 8 },
-
-		/* Mystical Words */
-		{ 6, 5, 18, 8 },
-		{ 6, 6, 20, 9 },
-		{ 7, 7, 22, 10 },
-		{ 7, 7, 22, 11 },
-		{ 8, 7, 25, 12 },
-		{ 8, 9, 30, 13 },
-		{ 9, 8, 35, 14 },
-		{ 10, 10, 50, 15 },
-
-		/* Arcane Chants */
-		{ 11, 8, 40, 16 },
-		{ 12, 9, 35, 17 },
-		{ 13, 10, 70, 17 },
-		{ 14, 12, 45, 17 },
-		{ 16, 18, 50, 20 },
-		{ 17, 13, 40, 20 },
-		{ 18, 15, 50, 20 },
-		{ 20, 30, 65, 24 },
-
-		/* Locus of Force */	                
-		{ 22, 5, 30, 25 },
-		{ 24, 26, 65, 27 },
-		{ 25, 21, 50, 29 },
-		{ 25, 25, 55, 32 },
-		{ 27, 30, 75, 35 },
-		{ 35, 50, 60, 45 },
-
-		/* Powerful Sigils */
-		{ 20, 15, 44, 62 },
-		{ 23, 24, 50, 70 },
-		{ 28, 26, 35, 60 },
-		{ 30, 33, 65, 140 },
-		{ 45, 60, 75, 130 },
-
-		/* Disruptive Forces */
-		{ 16, 12, 35, 40 },
-		{ 18, 14, 44, 50 },
-		{ 28, 27, 55, 100 },
-		{ 35, 40, 65, 150 },
-		{ 38, 25, 10, 175 },
-		{ 44, 50, 65, 250 },			
-
-		/* Forces of the Mind */	                
-		{ 15, 16, 30, 45 },	                
-		{ 28, 50, 35, 100 },
-		{ 33, 35, 50, 150 },
-		{ 36, 32, 85, 200 },
-		{ 45, 60, 88, 210 },
-
-		/* Power of Ancient Sorcerors */
-		{ 36, 24, 45, 230 },
-		{ 39, 30, 45, 235 },
-		{ 42, 35, 50, 240 },
-		{ 45, 40, 55, 250 },
-		{ 47, 46, 55, 253 },
-		{ 49, 48, 65, 255 },
-
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0},
-		{ 99,  0,  0,   0}
-	}
-	}
-#endif
 };
 
 
@@ -1062,19 +908,6 @@ u32b spell_flags[3][9][2] =
 		{ 0x00000000, 0x00003e00 }
     },
 
-#if defined(NEW_ADDITIONS)
-    {
-	/*** Sorcery spell books (only 8 books) ***/
-	{0x000000ff, 0x00000000},
-	{0x0000ff00, 0x00000000},
-	{0x00ff0000, 0x00000000},
-	{0x3f000000, 0x00000000},
-	{0xC0000000, 0x00000007},
-	{0x00000000, 0x000001f8},
-	{0x00000000, 0x00003e00},
-	{0x00000000, 0x000fc000},
-	}
-#endif
 };
 
 
@@ -1258,92 +1091,6 @@ cptr spell_names[3][64] =
         "(blank)"
     },
 
-#if defined(NEW_ADDITIONS)
-    /*** Sorcery Spells ***/
-
-    {
-	/* Apprentice Handbook */
-	"Magic Missile",
-	"Phase Door",
-	"Detect Monsters",
-	"Detect Traps",
-	"Light Area",
-	"Detect Doors/Stairs",
-	"Confuse Monster",
-	"Detect Object",
-
-	/* Mystical Words */
-	"Noxious Cloud",
-	"Teleport",
-	"Beam of Light",
-	"Sleep Monster",
-	"Lightning Bolt",
-	"Stone to Mud",
-	"Frost Bolt",
-	"Wraithform",
-
-	/* Arcane Chants */
-	"Ethereal Eye",
-	"Fire Bolt",
-	"Identification",
-	"Radiate Fear",
-	"Haste Self",
-	"Elemental Bolt",
-	"Teleport Away",
-	"Create Food",
-
-	/* Locus of Force */                
-	"Meditation",
-	"Recharging",
-	"Firestorm",
-	"Force Shield",
-	"Sunfire",
-	"Safeguard",
-
-	/* Powerful Sigils */
-	"Sanctuary",
-	"Escape",
-	"Elemental Shield",
-	"Recall",
-	"Disruption Shield",
-
-	/* Disruptive Forces */
-	"Earthquake",
-	"Polymorph",
-	"Chaos Blast",
-	"Wipe",
-	"Mana Blast",
-	"Word of Destruction",
-
-	/* Forces of the Mind */                
-	"Mind Vision",                
-	"Telekinesis",
-	"Self-Scan",
-	"*Identify*",
-	"Clairvoyance",
-
-	/* Power of Ancient Sorcerors */
-	"Plasma Eruption",
-	"Annihilation Bolt",
-	"Oblivion Blast",
-	"Tidal Wave",
-	"Anarchy Force",
-	"Mana Strike",
-
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-	"(blank)",
-		"(blank)"
-	}
-#endif
 };
 
 
@@ -1520,21 +1267,8 @@ cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5] =
 		"Low Paladin",
 		"High Paladin",
 		"Paladin Lord",
-    },
+    }
 
-    /* Sorcerors */
-    {
-	"Novice",
-	"Apprentice",
-	"Trickster",
-	"Illusionist",
-	"Spellbinder",
-	"Evoker",
-	"Conjurer",
-	"Sorcerer",
-	"Mage Lord",
-	"Arch-Mage",
-	}
 };
 
 

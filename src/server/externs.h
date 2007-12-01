@@ -15,12 +15,9 @@
 /* #include "netserver.h" */
 
 /* netserver.c */
-extern long Id;
 extern int NumPlayers;
 extern int process_pending_commands(int Ind);
-#ifdef NEW_SERVER_CONSOLE
 extern int ConsoleSocket;
-#endif
 
 /* tables.c */
 extern s16b ddd[9];
@@ -61,8 +58,8 @@ extern player_race race_info[MAX_RACES];
 extern player_class class_info[MAX_CLASS];
 extern player_magic magic_info[MAX_CLASS];
 extern magic_type ghost_spells[64];
-extern u32b spell_flags[3][9][2];
-extern cptr spell_names[4][64];
+extern u32b spell_flags[2][9][2];
+extern cptr spell_names[3][64];
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];
@@ -168,7 +165,6 @@ extern char * cfg_meta_address;
 extern char * cfg_report_address;
 extern char * cfg_console_password;
 extern char * cfg_dungeon_master;
-extern char * cfg_irc_gate;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern bool cfg_mage_hp_bonus;
@@ -181,6 +177,7 @@ extern bool cfg_random_artifacts;
 extern bool cfg_ironman;
 extern s32b cfg_unique_respawn_time;
 extern s32b cfg_unique_max_respawn_time;
+extern s16b cfg_max_townies;
 
 extern bool rogue_like_commands;
 extern bool quick_messages;
@@ -386,8 +383,7 @@ extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 extern bool (*get_mon_num_hook)(int r_idx);
 extern bool (*get_obj_num_hook)(int k_idx);
 extern bool (*master_move_hook)(int Ind, char * parms);
-
-
+extern char * cfg_bind_name;
 
 
 /*
@@ -535,6 +531,7 @@ extern void do_cmd_activate_dir(int Ind, int dir);
 /* control.c */
 extern void NewConsole(int fd, int arg);
 extern bool InitNewConsole(int write_fd);
+extern void console_print(char *msg);
 
 /* dungeon.c */
 extern void play_game(bool new_game);
@@ -980,9 +977,6 @@ extern void handle_stuff(int Ind);
 extern bool telekinesis(int Ind, object_type *o_ptr);
 extern void telekinesis_aux(int Ind, int item);
 extern int get_player(int Ind, object_type *o_ptr);
-extern bool set_tim_manashield(int Ind, int v);
-extern bool set_tim_meditation(int Ind, int v);
-extern bool set_tim_wraith(int Ind, int v);
 extern bool set_blind(int Ind, int v);
 extern bool set_confused(int Ind, int v);
 extern bool set_poisoned(int Ind, int v);

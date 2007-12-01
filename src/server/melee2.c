@@ -2147,13 +2147,50 @@ static void get_moves(int Ind, int m_idx, int *mm)
 	player_type *p_ptr = Players[Ind];
 
 	monster_type *m_ptr = &m_list[m_idx];
+	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
 	int y, ay, x, ax;
 
 	int move_val = 0;
-
+	
 	int y2 = p_ptr->py;
 	int x2 = p_ptr->px;
+
+	/* Wanderers have their own ideas about where they are going unless
+	 * the player is aggravating them or they are hurt and standing near
+	 * a player who is higher than level 1.
+	 */
+	if ( (r_ptr->flags2 & RF2_WANDERER) && (!p_ptr->aggravate) 
+	   && ( (m_ptr->hp == m_ptr->maxhp) || (p_ptr->lev == 1) ) )
+	{
+		x2 = y2 = 0;
+		
+		/* Do we know where we are going? */
+		if ( m_ptr->wx || m_ptr->wy )
+		{
+			/* Yes, set that as our target */
+			x2 = m_ptr->wx;
+			y2 = m_ptr->wy;
+			
+			/* If we have nearly arrived, go somewhere else */
+			if ( (abs(x2 - m_ptr->fx) < 10) && (abs(y2 - m_ptr->fy) < 10) )
+			{
+				x2 = y2 = 0;
+			}
+
+			/* Occasionally we change our mind about where we want to go */
+			if (randint(1000) < 10)
+			{
+				x2 = y2 = 0;
+			}
+		}
+		if ( !x2 && !y2 )
+		{
+			/* We don't know where we're going, pick a destination */
+			x2 = m_ptr->wx = randint(MAX_WID);
+			y2 = m_ptr->wy = randint(MAX_HGT);
+		}
+	}
 
 
 #ifdef MONSTER_FLOW
@@ -2170,8 +2207,8 @@ static void get_moves(int Ind, int m_idx, int *mm)
 	x = m_ptr->fx - x2;
 
 
-	/* Apply fear if possible and necessary */
-	if (mon_will_run(Ind, m_idx))
+	/* Apply fear if possible and necessary (wanderers never run away) */
+	if ( mon_will_run(Ind, m_idx) && !(r_ptr->flags2 & RF2_WANDERER) )
 	{
 		/* XXX XXX Not very "smart" */
 		y = (-y), x = (-x);
@@ -2379,6 +2416,7 @@ static u32b noise = 0L;
  *
  * Note that the "Ind" specifies the player that the monster will go after.
  */
+
 static void process_monster(int Ind, int m_idx)
 {
 	player_type *p_ptr = Players[Ind];
@@ -2563,7 +2601,6 @@ static void process_monster(int Ind, int m_idx)
 			}
 		}
 	}
-
 
 	/* Handle "fear" */
 	if (m_ptr->monfear)
@@ -3334,7 +3371,6 @@ void process_monsters(void)
 
 			/* Hack -- make the dungeon master invisible to monsters */
 			if (!strcmp(p_ptr->name,cfg_dungeon_master)) continue;
-            if (!strcmp(p_ptr->name,cfg_irc_gate)) continue;
 
 			/* Compute distance */
 			j = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
@@ -3363,17 +3399,18 @@ void process_monsters(void)
 		m_ptr->cdis = dis_to_closest;
 		m_ptr->closest_player = closest;
 
-		/* Hack -- Require proximity */
-		if (m_ptr->cdis >= 100) continue;
-
-
 		/* Access the race */
 		r_ptr = &r_info[m_ptr->r_idx];
+
+		/* Hack -- Require proximity unless this is a wanderer */
+		if ( !(r_ptr->flags2 & RF2_WANDERER) )
+		{
+			if (m_ptr->cdis >= 100) continue;
+		}
 
 		/* Access the location */
 		fx = m_ptr->fx;
 		fy = m_ptr->fy;
-
 
 		/* Assume no move */
 		test = FALSE;
@@ -3407,8 +3444,8 @@ void process_monsters(void)
 		}
 #endif
 
-		/* Do nothing */
-		if (!test) continue;
+		/* Do nothing unless a wanderer */
+		if (!test && !(r_ptr->flags2 & RF2_WANDERER) ) continue;
 
 
 		/* Process the monster */

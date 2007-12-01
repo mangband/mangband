@@ -532,7 +532,6 @@ void do_cmd_check_players(int Ind, int line)
 		 * option is set 
 		 */
         if (!strcmp(q_ptr->name,cfg_dungeon_master) && (cfg_secret_dungeon_master)) continue;
-        if (!strcmp(q_ptr->name,cfg_irc_gate) && (cfg_secret_dungeon_master)) continue;
 
 		/*** Determine color ***/
 

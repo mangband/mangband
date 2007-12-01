@@ -15,9 +15,7 @@
 /* netserver.c */
 extern long Id;
 extern int NumPlayers;
-#ifdef NEW_SERVER_CONSOLE
 extern int ConsoleSocket;
-#endif
 
 /* tables.c */
 extern s16b ddd[9];
@@ -353,9 +351,7 @@ extern bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
 extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 extern bool (*get_mon_num_hook)(int r_idx);
 extern bool (*get_obj_num_hook)(int k_idx);
-
-
-
+extern char * cfg_bind_name;
 
 /*
  * Automatically generated "function declarations"
@@ -509,6 +505,8 @@ extern void exit_game_panic(void);
 extern void signals_ignore_tstp(void);
 extern void signals_handle_tstp(void);
 extern void signals_init(void);
+extern void setup_exit_handler(void);
+extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
 extern void generate_cave(int Depth);
@@ -769,6 +767,8 @@ extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
 extern bool sleep_monsters_touch(int Ind);
+extern bool create_artifact(int Ind);
+extern bool create_artifact_aux(int Ind, int item);
 
 /* store.c */
 extern void do_cmd_store(int Ind);

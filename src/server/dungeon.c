@@ -127,7 +127,6 @@ static cptr value_check_aux2(object_type *o_ptr)
  *   Class 3 = Rogue   --> okay and heavy
  *   Class 4 = Ranger  --> okay and heavy
  *   Class 5 = Paladin --> slow but heavy
- *   Class 6 = Sorceror --> slow and light
  */
 static void sense_inventory(int Ind)
 {
@@ -167,9 +166,6 @@ static void sense_inventory(int Ind)
 		}
 
 		case CLASS_MAGE:
-#if defined(NEW_ADDITIONS)
-	case CLASS_SORCEROR:
-#endif
 		{
 			/* Very bad (light) sensing */
 			if (0 != rand_int(240000L / (plev + 5))) return;
@@ -915,7 +911,6 @@ static int auto_retaliate(int Ind)
 
 	/* The dungeon master does not fight his or her offspring */
 	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return FALSE;
-    if (!strcmp(p_ptr->name, cfg_irc_gate)) return FALSE;
 
 	/* If we have a target to attack, attack it! */
 	if (m_target_ptr)
@@ -1237,37 +1232,6 @@ static void process_player_end(int Ind)
 
 		/* Finally, at the end of our turn, update certain counters. */
 		/*** Timeout Various Things ***/
-
-	/* Hack -- Timed manashield */
-	if (p_ptr->tim_manashield)
-	{
-		 set_tim_manashield(Ind, p_ptr->tim_manashield - minus);
-	}
-
-	/* Hack -- Meditation */
-	if (p_ptr->tim_meditation)
-	{
-		(void)set_tim_meditation(Ind, p_ptr->tim_meditation - minus);
-	}
-
-	/* Hack -- Wraithform */
-	if (p_ptr->tim_wraith)
-	{
-		/* In town it only runs out if you are not on a wall
-			  To prevent breaking into houses */
-		if (players_on_depth[p_ptr->dun_depth] != 0)
-		{
-			/* important! check for illegal spaces */
-			if (in_bounds(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
-			{
-				if ((p_ptr->dun_depth > 0) ||
-					(cave_floor_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px)))
-				{
-					(void)set_tim_wraith(Ind, p_ptr->tim_wraith - minus);
-				}
-			}
-		}
-	}
 
 		/* Hack -- Hallucinating */
 		if (p_ptr->image)

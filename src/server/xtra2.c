@@ -153,172 +153,6 @@ int get_player(int Ind, object_type *o_ptr)
 	return Ind2;
 }
 
-
-/*
- * Set "p_ptr->tim_manashield", notice observable changes
- */
-bool set_tim_manashield(int Ind, int v)
-{
-	player_type *p_ptr = Players[Ind];
-
-	bool notice = FALSE;
-
-	/* Hack -- Force good values */
-	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
-
-	/* Open */
-	if (v)
-	{
-		if (!p_ptr->tim_manashield)
-		{
-			msg_print(Ind, "You feel immortal !");
-			notice = TRUE;
-		}
-	}
-
-	/* Shut */
-	else
-	{
-		if (p_ptr->tim_manashield)
-		{
-			msg_print(Ind, "You feel less immortal.");
-			notice = TRUE;
-		}
-	}
-
-	/* Use the value */
-	p_ptr->tim_manashield = v;
-
-	/* Nothing to notice */
-	if (!notice) return (FALSE);
-
-	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
-
-	/* Recalculate bonuses */
-	p_ptr->update |= (PU_BONUS);
-
-	/* Handle stuff */
-	handle_stuff(Ind);
-
-	/* Result */
-	return (TRUE);
-}
-
-
-/*
- * Set "p_ptr->tim_meditation", notice observable changes
- */
-bool set_tim_meditation(int Ind, int v)
-{
-	player_type *p_ptr = Players[Ind];
-
-	bool notice = FALSE;
-
-	/* Hack -- Force good values */
-	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
-
-	/* Open */
-	if (v)
-	{
-		if (!p_ptr->tim_meditation)
-		{
-			msg_format_near(Ind, "%s starts a calm meditation!", p_ptr->name);
-			msg_print(Ind, "You start a calm meditation!");
-			notice = TRUE;
-		}
-	}
-
-	/* Shut */
-	else
-	{
-		if (p_ptr->tim_meditation)
-		{
-			msg_format_near(Ind, "%s stops meditating.", p_ptr->name);
-			msg_print(Ind, "You stop your meditation.");
-			notice = TRUE;
-		}
-	}
-
-	/* Use the value */
-	p_ptr->tim_meditation = v;
-
-	/* Nothing to notice */
-	if (!notice) return (FALSE);
-
-	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
-
-	/* Recalculate bonuses */
-	p_ptr->update |= (PU_HP | PU_MANA);
-
-	/* Handle stuff */
-	handle_stuff(Ind);
-
-	/* Result */
-	return (TRUE);
-}
-
-
-/*
- * Set "p_ptr->tim_wraith", notice observable changes
- */
-bool set_tim_wraith(int Ind, int v)
-{
-	player_type *p_ptr = Players[Ind];
-
-	bool notice = FALSE;
-
-	/* Hack -- Force good values */
-	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
-
-	/* Open */
-	if (v)
-	{
-		if (!p_ptr->tim_wraith)
-		{
-			msg_format_near(Ind, "%s turns into a wraith!", p_ptr->name);
-			msg_print(Ind, "You turn into a wraith!");
-			notice = TRUE;
-			
-			p_ptr->wraith_in_wall = TRUE;
-		}
-	}
-
-	/* Shut */
-	else
-	{
-		if (p_ptr->tim_wraith)
-		{
-			msg_format_near(Ind, "%s loses his wraith powers.", p_ptr->name);
-			msg_print(Ind, "You lose your wraith powers.");
-			notice = TRUE;
-			
-			/* That will hopefully prevent game hanging when loading */
-			if (cave_floor_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px)) p_ptr->wraith_in_wall = FALSE;
-		}
-	}
-
-	/* Use the value */
-	p_ptr->tim_wraith = v;
-
-	/* Nothing to notice */
-	if (!notice) return (FALSE);
-
-	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
-
-	/* Recalculate bonuses */
-	p_ptr->update |= (PU_BONUS);
-
-	/* Handle stuff */
-	handle_stuff(Ind);
-
-	/* Result */
-	return (TRUE);
-}
-
-
 /*
  * Set "p_ptr->blind", notice observable changes
  *
@@ -2508,6 +2342,7 @@ void player_death(int Ind)
 	char buf[1024];
 	char dumpname[42];
 	int i;
+	s16b num_keys = 0;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
 
@@ -2701,9 +2536,14 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		/* If we committed suicide, only drop artifacts */
 		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
 
-		/* do not drop keys */
-
-		if (p_ptr->inventory[i].tval == TV_KEY) continue;
+		/* do not drop keys, but track them so we don't reset inventory
+		   as empty if there are keys in it. */
+		if (p_ptr->inventory[i].tval == TV_KEY)
+		{ /* Move the key to the first available slot, then zero the old slot */
+			p_ptr->inventory[num_keys++] = p_ptr->inventory[i];
+			p_ptr->inventory[i].iy = p_ptr->inventory[i].ix = p_ptr->inventory[i].dun_depth = 0;
+			continue;
+		}
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 #if !defined( PKILL )
@@ -2866,8 +2706,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
 
-	/* He is carrying nothing */
-	p_ptr->inven_cnt = 0;
+	/* He is carrying nothing except keys */
+	p_ptr->inven_cnt = num_keys;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);
@@ -2901,7 +2741,6 @@ void resurrect_player(int Ind)
 
 	/* Hack -- the dungeon master can not ressurect */
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) return;
-    if (!strcmp(p_ptr->name,cfg_irc_gate)) return;
 
 	/* Reset ghost flag */
 	p_ptr->ghost = 0;
@@ -4187,7 +4026,7 @@ bool set_recall_depth(player_type * p_ptr, object_type * o_ptr)
 	p_ptr->recall_depth = p_ptr->max_dlv;
 	
 	/* check for a valid inscription */
-	if (inscription == NULL) return;
+	if (inscription == NULL) return FALSE;
 	
 	/* scan the inscription for @R */
 	while (*inscription != '\0')

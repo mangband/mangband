@@ -97,13 +97,12 @@ bool party_mode;
 cptr race_title[] = {
 	"Human", "Half-elf", "Elf", "Hobbit",
 	"Gnome", "Dwarf", "Half-Orc", "Half-Troll",
-    "Dunadan", "High-elf", "Yeek", "Goblin",
-    "Ent", "Thunderlord"
+    "Dunadan", "High-elf"
 	};
 
 cptr class_title[] = {
 	"Warrior", "Mage", "Priest", "Rogue",
-    "Ranger", "Paladin", "Sorceror"
+    "Ranger", "Paladin"
 	};
 
 cptr ANGBAND_DIR;

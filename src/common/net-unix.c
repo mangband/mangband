@@ -138,9 +138,7 @@ struct sockaddr_un	sl_dgram_lastaddr;
 struct sockaddr_in	sl_dgram_lastaddr;
 #endif
 
-#ifdef NEW_SERVER_CONSOLE
 int ConsoleSocket;
-#endif
 
 /* Global broadcast enable variable (super-user only), default disabled */
 int			sl_broadcast_enabled = 0;

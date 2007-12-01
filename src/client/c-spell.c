@@ -128,11 +128,7 @@ static int get_spell(int *sn, cptr prompt, int book, bool known)
 		}
 		
 		/* hack for CAPITAL prayers (heal other) */
-        if ((class == CLASS_PRIEST) || (class == CLASS_PALADIN) 
-#if defined(NEW_ADDITIONS)
-			|| (class == CLASS_SORCEROR)
-#endif
-			)
+        if ((class == CLASS_PRIEST) || (class == CLASS_PALADIN) )
 		{
 			/* lowercase */
 			if (islower(choice))

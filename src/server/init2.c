@@ -1167,13 +1167,6 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
         { TV_MAGIC_BOOK, 2 },
         { TV_MAGIC_BOOK, 3 }
 	
-#if defined(NEW_ADDITIONS)
-	,{ TV_SORCERY_BOOK, 0 },
-	{ TV_SORCERY_BOOK, 0 },
-	{ TV_SORCERY_BOOK, 1 },
-	{ TV_SORCERY_BOOK, 2 },
-	{ TV_SORCERY_BOOK, 3 }
-#endif
     }
 };
 
@@ -1415,13 +1408,6 @@ static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_MAGIC_BOOK, 1 },
 		{ TV_MAGIC_BOOK, 2 },
 		{ TV_MAGIC_BOOK, 3 }
-#if defined(NEW_ADDITIONS)
-	,{ TV_SORCERY_BOOK, 0 },
-	{ TV_SORCERY_BOOK, 0 },
-	{ TV_SORCERY_BOOK, 1 },
-	{ TV_SORCERY_BOOK, 2 },
-	{ TV_SORCERY_BOOK, 3 }
-#endif
 	}
 };
 
@@ -1615,13 +1601,6 @@ static errr init_other(void)
 			}
 		}
 	}
-
-
-	/*** Pre-allocate space for the "format()" buffer ***/
-
-	/* Hack -- Just call the "format()" function */
-	(void)format("%s (%s).", "Ben Harrison", MAINTAINER);
-
 
 	/* Success */
 	return (0);
@@ -1845,6 +1824,10 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_meta_address = strdup(value);
 	}
+	else if (!strcmp(option,"BIND_NAME"))
+	{
+		cfg_bind_name = strdup(value);
+	}
 	else if (!strcmp(option,"REPORT_ADDRESS"))
 	{
 		cfg_report_address = strdup(value);
@@ -1858,10 +1841,6 @@ void set_server_option(char * option, char * value)
 		cfg_dungeon_master = strdup(value);
 	printf("Dugeon Master Set as [%s]\n",cfg_dungeon_master);
     }
-     else if (!strcmp(option,"IRC_GATE_NAME"))
-    {
-	cfg_irc_gate = strdup(value);
-	}
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
 		cfg_secret_dungeon_master = str_to_boolean(value);
@@ -1911,6 +1890,10 @@ void set_server_option(char * option, char * value)
     else if (!strcmp(option,"MAX_UNIQUE_RESPAWN_TIME"))
     {
         cfg_unique_max_respawn_time = atoi(value);
+    }
+    else if (!strcmp(option,"MAX_TOWNIES"))
+    {
+        cfg_max_townies = atoi(value);
     }
 
 	else printf("Error : unrecognized mangband.cfg option %s\n", option);

@@ -644,38 +644,6 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You have ESP.";
 	}
-    if (p_ptr->telepathy & TR4_ESP_ANIMAL)
-    {
-        info[i++] = "You can see the presence of animals.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_EVIL)
-    {
-        info[i++] = "You can see the presence of evil.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_UNDEAD)
-    {
-        info[i++] = "You can see the presence of undead.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_DEMON)
-    {
-        info[i++] = "You can see the presence of demons.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_ORC)
-    {
-        info[i++] = "You can see the presence of orcs.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_TROLL)
-    {
-        info[i++] = "You can see the presence of trolls.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_GIANT)
-    {
-        info[i++] = "You can see the presence of giants.";
-    }
-    if (p_ptr->telepathy & TR4_ESP_DRAGON)
-    {
-        info[i++] = "You can see the presence of dragons.";
-    }
 	if (p_ptr->hold_life)
 	{
 		info[i++] = "You have a firm hold on your life force.";
@@ -1256,7 +1224,6 @@ bool detect_invisible(int Ind)
 
 		/* Skip the dungeon master */
 		if (!strcmp(q_ptr->name, cfg_dungeon_master)) continue;
-        if (!strcmp(q_ptr->name, cfg_irc_gate)) continue;
 
 		/* Detect all invisible players but not the dungeon master */
 		if (panel_contains(py, px) && q_ptr->ghost) 

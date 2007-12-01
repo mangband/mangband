@@ -37,11 +37,6 @@
  */
 
 /*
- * OPTION: Person to bother if something goes wrong.
- */
-#define MAINTAINER	"crimson@mangband.org"
-
-/*
  * OPTION: Set the metaserver address.  The metaserver keeps track of
  * all running servers so people can find an active server with other
  * players on.  Define this to be an empty string if you don't want to
@@ -524,19 +519,6 @@
  */
 #define SHIMMER_MONSTERS
 #define SHIMMER_OBJECTS
-
-
-
-/*
- * OPTION: Have the server respond to commands typed in on its tty.
- */
-/*define SERVER_CONSOLE */
-
-/*
- * OPTION: Enable a method to control the server from an external program.
- */
-#define NEW_SERVER_CONSOLE
-
 
 
 

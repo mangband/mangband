@@ -62,16 +62,14 @@ struct hist_type
  * Background information (see below)
  *
  * Chart progression by race:
- *   Human/Dunadan/Yeek -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
+ *   Human/Dunadan -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Half-Elf      -->  4 -->  1 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Elf/High-Elf  -->  7 -->  8 -->  9 --> 54 --> 55 --> 56
  *   Hobbit        --> 10 --> 11 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Gnome         --> 13 --> 14 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Dwarf         --> 16 --> 17 --> 18 --> 57 --> 58 --> 59 --> 60 --> 61
- *   Half-Orc/Goblin   	--> 19 --> 20 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
+ *   Half-Orc      --> 19 --> 20 -->  2 -->  3 --> 50 --> 51 --> 52 --> 53
  *   Half-Troll    --> 22 --> 23 --> 62 --> 63 --> 64 --> 65 --> 66
- *   Ent		--> 94 --> 95
- *   Thunderlord	--> 89 --> 91
  *
  * XXX XXX XXX This table *must* be correct or drastic errors may occur!
  */
@@ -238,24 +236,7 @@ static hist_type bg[] =
 
 	{"ulcerous skin.",						 33, 66, 0, 50},
 	{"scabby skin.",						 66, 66, 0, 50},
-    {"leprous skin.",						100, 66, 0, 50},
-
-    {"You are one of several children of a Thunderlord. ", 	85, 89, 91, 50},
-    {"You are the only child of a Thunderlord. ", 		100, 89, 91, 60},
-
-    {"You have a Green Eagle.", 				30, 91, 0, 40},
-    {"You have a Blue Eagle.", 					55, 91, 0, 60},
-    {"You have a Brown Eagle.", 				80, 91, 0, 80},
-    {"You have a Bronze Eagle.", 				90, 91, 0, 100},
-    {"You have a Gold Eagle.", 					100, 91, 0, 120},
-
-    {"You are of an unknown generation of the Ents.",        	30, 94, 95, 30},
-    {"You are of the third generation of the Ents.",         	40, 94, 95, 50},
-    {"You are of the second generation of the Ents.",        	60, 94, 95, 60},
-    {"You are of the first beings who awoke on Arda.",      	100, 94, 95, 80},
-
-    {"You have green skin and unflexible members.",          	50, 95, 0, 50},
-    {"You have brown skin and unflexible members.",         	100, 95, 0, 50}
+	{"leprous skin.",						100, 66, 0, 50}
 };
 
 
@@ -557,9 +538,6 @@ static void get_history(int Ind)
 	{
 		case RACE_HUMAN:
 		case RACE_DUNADAN:
-#if defined(NEW_ADDITIONS)
-	case RACE_YEEK:
-#endif
 		{
 			chart = 1;
 			break;
@@ -597,9 +575,6 @@ static void get_history(int Ind)
 		}
 
 		case RACE_HALF_ORC:
-#if defined(NEW_ADDITIONS)
-	case RACE_GOBLIN:
-#endif
 		{
 			chart = 19;
 			break;
@@ -611,19 +586,6 @@ static void get_history(int Ind)
 			break;
 		}
 
-#if defined(NEW_ADDITIONS)
-	case RACE_ENT:
-	{
-	    chart = 94;
-	    break;
-	}
-
-	case RACE_TLORD:
-	{
-	    chart = 89;
-	    break;
-	}
-#endif
 		default:
 		{
 			chart = 0;
@@ -779,15 +741,6 @@ static void get_money(int Ind)
 		p_ptr->ghost = 1;
 		p_ptr->noscore = 1;
 	}
-    if (!strcmp(p_ptr->name,cfg_irc_gate))
-    {
-	p_ptr->au = 0;
-	p_ptr->lev = 1;
-	p_ptr->exp = 0;
-	p_ptr->invuln = -1;
-	p_ptr->ghost = 1;
-	p_ptr->noscore = 1;
-    }
 	
 }
 
@@ -922,14 +875,6 @@ static byte player_init[MAX_CLASS][3][2] =
 		{ TV_SWORD, SV_BROAD_SWORD },
 		{ TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL }
 	}
-#if defined(NEW_ADDITIONS)
-    ,{
-	/* Sorceror */
-	{ TV_SORCERY_BOOK, 0 },
-	{ TV_SWORD, SV_DAGGER },
-	{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL }
-    }
-#endif
 };
 
 static byte ironman_player_init[MAX_CLASS][3][2] =
@@ -975,14 +920,6 @@ static byte ironman_player_init[MAX_CLASS][3][2] =
 		{ TV_LITE, SV_LITE_LANTERN },
     },
 
-#if defined(NEW_ADDTIONS)
-    {
-	/* Sorceror */
-	{ TV_SORCERY_BOOK, 0 },
-	{ TV_SORCERY_BOOK, 1 },
-	{ TV_LITE, SV_LITE_LANTERN }
-	}
-#endif
 };
 
 
@@ -1085,18 +1022,6 @@ static void player_outfit(int Ind)
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 	}
-#if defined(NEW_ADDITIONS)
-    	/* Sorcerors get third book */
-    	if( (p_ptr->pclass == CLASS_SORCEROR) )
-    	{
-        	invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 2));
-        	o_ptr->number = 1;
-        	o_ptr->discount = 0;
-        	object_aware(Ind, o_ptr);
-        	object_known(o_ptr);
-        	(void)inven_carry(Ind, o_ptr);
-    	}
-#endif
     }
 
 	/* 
@@ -1130,11 +1055,7 @@ static void player_outfit(int Ind)
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 	} 
-	if ((p_ptr->pclass == CLASS_PRIEST) 
-#if defined(NEW_ADDITIONS)
-			|| (p_ptr->pclass == CLASS_PALADIN)
-#endif
-	)
+	if ((p_ptr->pclass == CLASS_PRIEST) )
 	{
 		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
 		o_ptr->number = 1;
@@ -1157,27 +1078,6 @@ static void player_outfit(int Ind)
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 	} 
-#if defined(NEW_ADDITIONS)
-	if (p_ptr->pclass == CLASS_SORCEROR)
-	{
-		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 4));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 5));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 6));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SORCERY_BOOK, 7));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-#endif
 
 	/* DM gets useful potions */
 	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
@@ -1366,7 +1266,7 @@ static void player_setup(int Ind)
 		/* Pick a location */
 		/* Hack -- ghosts do not scatter, as they may not be in a line of sight
 		   with a valid region */
-        if (!p_ptr->ghost && !p_ptr->wraith_in_wall)
+        if (!p_ptr->ghost)
 		{
 			// Hack -- invery require_los since scatter actually takes
 			// a "don't require line of sight" boolean parameter.

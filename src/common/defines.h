@@ -136,6 +136,12 @@
  */
 #define NOT_CONNECTED	(-1)
 
+/*
+ * Maximum length for names and passwords
+ *
+ */
+#define MAX_NAME_LEN		20
+#define MAX_PASS_LEN		40
 
 /*
  * Maximum number of players playing at once.
@@ -267,7 +273,7 @@
  * OPTION: Maximum number of "quarks" (see "io.c")
  * Default: assume at most 512 different inscriptions are used
  */
-#define QUARK_MAX	512
+#define QUARK_MAX	3096
 
 /*
  * OPTION: Maximum number of messages to remember (see "io.c")
@@ -339,25 +345,6 @@
 #define SPECIAL_FILE_SCORES	5
 #define SPECIAL_FILE_HELP	6
 
-
-/*
- * The commands that can be given to the new console
- */
-#define CONSOLE_STATUS			  10
-#define CONSOLE_PLAYER_INFO		  11
-#define CONSOLE_ARTIFACT_LIST		  12
-#define CONSOLE_UNIQUE_LIST		  13
-#define CONSOLE_CHANGE_ARTIFACT		  14
-#define CONSOLE_CHANGE_UNIQUE		  15
-#define CONSOLE_SHUTDOWN		  16
-#define CONSOLE_MESSAGE			  17
-#define CONSOLE_KICK_PLAYER		  18
-#define CONSOLE_RELOAD_SERVER_PREFERENCES 19
-
-/*
- * The replies that the new console can send
- */
-#define CONSOLE_DENIED		100
 
 /*
  * Store constants
@@ -545,10 +532,6 @@
 #define RACE_HALF_TROLL	7
 #define RACE_DUNADAN	8
 #define RACE_HIGH_ELF	9
-#define RACE_YEEK	10
-#define RACE_GOBLIN	11
-#define RACE_ENT	12
-#define RACE_TLORD	13
 
 /*
  * Player class constants (hard-coded by save-files, arrays, etc)
@@ -559,10 +542,6 @@
 #define CLASS_ROGUE		3
 #define CLASS_RANGER	4
 #define CLASS_PALADIN	5
-#define CLASS_SORCEROR	6
-
-
-
 
 /*** Screen Locations ***/
 
@@ -1106,7 +1085,6 @@ that keeps many algorithms happy.
 #define TV_FOOD         80
 #define TV_MAGIC_BOOK   90
 #define TV_PRAYER_BOOK  91
-#define TV_SORCERY_BOOK 92
 #define TV_GOLD         100	/* Gold can only be picked up by players */
 
 
@@ -1849,11 +1827,6 @@ that keeps many algorithms happy.
 #define GF_DISP_EVIL	68
 #define GF_DISP_ALL	69
 #define	GF_HEAL_PLAYER	70
-#define	GF_STONE_WALL 	71
-#define	GF_WRAITH_PLAYER 72
-#define	GF_SPEED_PLAYER  73
-#define	GF_SHIELD_PLAYER 74
-#define GF_RECALL_PLAYER 75
 
 /*
  * Some things which induce learning
@@ -2055,14 +2028,6 @@ that keeps many algorithms happy.
 #define TR3_HEAVY_CURSE		0x40000000L	/* Item is Heavily Cursed */
 #define TR3_PERMA_CURSE		0x80000000L	/* Item is Perma Cursed */
 
-#define TR4_ESP_ANIMAL		0x00000001L
-#define TR4_ESP_EVIL		0x00000002L
-#define TR4_ESP_UNDEAD		0x00000004L
-#define TR4_ESP_DEMON		0x00000008L
-#define TR4_ESP_ORC		0x00000010L
-#define TR4_ESP_TROLL		0x00000020L
-#define TR4_ESP_GIANT		0x00000040L
-#define TR4_ESP_DRAGON		0x00000080L
 #define TR4_ESP_ALL		0x00000100L
 
 
@@ -2210,7 +2175,7 @@ that keeps many algorithms happy.
 #define RF2_KILL_BODY		0x00200000	/* Monster can kill monsters */
 #define RF2_TAKE_ITEM		0x00400000	/* Monster can pick up items */
 #define RF2_KILL_ITEM		0x00800000	/* Monster can crush items */
-#define RF2_BRAIN_1			0x01000000
+#define RF2_WANDERER		0x01000000	/* Town wanderers */
 #define RF2_BRAIN_2			0x02000000
 #define RF2_BRAIN_3			0x04000000
 #define RF2_BRAIN_4			0x08000000
@@ -2803,7 +2768,7 @@ extern int PlayerUID;
 /*
  * Ghost spell "realm"
  */
-#define GHOST_SPELLS	3
+#define GHOST_SPELLS	2
 
 
 /* Mental links */
@@ -2935,56 +2900,5 @@ extern int PlayerUID;
 #define PSPELL_WORD_RECALL	56
 #define PSPELL_ALTER_REALITY	57
 
-/* Sorcery spells */
-#define SSPELL_MAGIC_MISSILE	0
-#define SSPELL_PHASE_DOOR	1
-#define SSPELL_DETECT_MONSTERS	2
-#define SSPELL_DETECT_TRAPS	3
-#define SSPELL_LIGHT_AREA	4
-#define SSPELL_DETECT_FEATURES	5
-#define SSPELL_CONFUSE_MONSTER	6
-#define SSPELL_DETECT_OBJECT	7
-#define SSPELL_NOXIOUS_CLOUD	8
-#define SSPELL_TELEPORT_SELF	9
-#define SSPELL_BEAM_LIGHT	10
-#define SSPELL_SLEEP_MONSTER	11
-#define SSPELL_LIGHTNING_BOLT	12
-#define SSPELL_STONE_MUD	13
-#define SSPELL_FROST_BOLT	14
-#define SSPELL_WRAITH_FORM	15
-#define SSPELL_ETHEREAL_EYE	16
-#define SSPELL_FIRE_BOLT	17
-#define SSPELL_IDENTIFY_ITEM	18
-#define SSPELL_RADIATE_FEAR	19
-#define SSPELL_HASTE_SELF	20
-#define SSPELL_ELEMENTAL_BOLT	21
-#define SSPELL_TELEPORT_AWAY	22
-#define SSPELL_CREATE_FOOD	23
-#define SSPELL_MEDITATE_MANA	24
-#define SSPELL_RECHARGE_ITEM	25
-#define SSPELL_FIRE_STORM	26
-#define SSPELL_FORCE_SHIELD	27
-#define SSPELL_SUN_FIRE		28
-#define SSPELL_SAFE_GUARD	29
-#define SSPELL_CREATE_WALLS	30
-#define SSPELL_CREATE_STAIRS	31
-#define SSPELL_ELEM_SHIELD	32
-#define SSPELL_WORD_RECALL	33
-#define SSPELL_MANA_SHIELD	34
-#define SSPELL_EARTH_QUAKE	35
-#define SSPELL_POLY_OTHER	36
-#define SSPELL_CHAOS_BLAST	37
-#define SSPELL_WIPE_AREA	38
-#define SSPELL_MANA_BLAST	39
-#define SSPELL_WORD_DESTRUCTION	40
-#define SSPELL_MIND_VISION	41
-#define SSPELL_TELE_OBJECT	42
-#define SSPELL_SELF_SCAN	43
-#define SSPELL_IDENTIFY_FULL	44
-#define SSPELL_ENLIGHT_LEVEL	45
-#define SSPELL_PLASMA_BLAST	46
-#define SSPELL_ANNIHIL_BOLT	47
-#define SSPELL_OBLIVION_BLAST	48
-#define SSPELL_TIDAL_WAVE	49
-#define SSPELL_ANARCHY_FORCE	50
-#define SSPELL_MANA_STRIKE	51
+/* Login constants */
+#define BAD_PASSWORD 35

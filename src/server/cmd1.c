@@ -1632,8 +1632,6 @@ void move_player(int Ind, int dir, int do_pickup)
 		         (ddx[q_ptr->last_dir] == (-ddx[dir]))) ||
 			(!strcmp(q_ptr->name,cfg_dungeon_master)))
 		{
-	  if (!((Depth <= 0) && (p_ptr->tim_wraith || q_ptr->tim_wraith)))
-	  {
 			c_ptr->m_idx = 0 - Ind;
 			cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - Ind2;
 
@@ -1659,7 +1657,6 @@ void move_player(int Ind, int dir, int do_pickup)
 			everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 			everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
 		}
-        }
 
 		/* Hack -- the Dungeon Master cannot bump people */
 		else if (strcmp(p_ptr->name,cfg_dungeon_master))
@@ -1702,7 +1699,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	}
 
 	/* Player can not walk through "walls", but ghosts can */
-    else if ((!p_ptr->ghost) && (!p_ptr->tim_wraith) && (!cave_floor_bold(Depth, y, x)))
+    else if ((!p_ptr->ghost) && (!cave_floor_bold(Depth, y, x)))
 	{
 		/* Disturb the player */
 		disturb(Ind, 0, 0);
@@ -1775,24 +1772,8 @@ void move_player(int Ind, int dir, int do_pickup)
 		}
 	}
 
-    /* Wraiths trying to walk into a house */
-    else if (p_ptr->tim_wraith && (((c_ptr->feat >= FEAT_HOME_HEAD) && (c_ptr->feat <= FEAT_HOME_TAIL)) ||
-	((cave[Depth][y][x].info & CAVE_ICKY) && (Depth <= 0))))
-    {
-	disturb(Ind, 0, 0);
-    }
-
-    /* Wraiths can't enter vaults so easily :) trying to walk into a permanent wall */
-    else if (p_ptr->tim_wraith && c_ptr->feat >= FEAT_PERM_EXTRA && (Depth > 0))
-    {
-	/* Message */
-	msg_print(Ind, "The wall blocks your movement.");
-
-	disturb(Ind, 0, 0);
-    }
-
 	/* Ghost trying to walk into a permanent wall */
-    else if ((p_ptr->ghost || p_ptr->tim_wraith) && c_ptr->feat >= FEAT_PERM_SOLID)
+    else if (p_ptr->ghost && c_ptr->feat >= FEAT_PERM_SOLID)
 	{
 		/* Message */
 		msg_print(Ind, "The wall blocks your movement.");
@@ -1913,8 +1894,6 @@ void move_player(int Ind, int dir, int do_pickup)
 
 		if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && master_move_hook)
 			master_move_hook(Ind, NULL);
-        if ((!strcmp(p_ptr->name,cfg_irc_gate)) && master_move_hook)
-            master_move_hook(Ind, NULL);
 	}
 }
 
@@ -1932,7 +1911,7 @@ int see_wall(int Ind, int dir, int y, int x)
 	x += ddx[dir];
 
 	/* Ghosts run right through everything */
-    if ((p_ptr->ghost || p_ptr->tim_wraith)) return (FALSE);
+    if (p_ptr->ghost) return (FALSE);
 
 	/* Do wilderness hack, keep running from one outside level to another */
 	if ( (!in_bounds(Depth, y, x)) && (Depth <= 0) ) return FALSE;
@@ -2292,7 +2271,7 @@ static bool run_test(int Ind)
 
 
 	/* XXX -- Ghosts never stop running */
-    if (p_ptr->ghost || p_ptr->tim_wraith) return (FALSE);
+    if (p_ptr->ghost) return (FALSE);
 
 	/* No options yet */
 	option = 0;

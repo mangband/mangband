@@ -545,6 +545,8 @@ struct monster_type
 
 	byte fy;			/* Y location on map */
 	byte fx;			/* X location on map */
+	byte wx;			/* Wanderers X target on map */
+	byte wy;			/* Wanderers Y target on map */
 
 	s16b dun_depth;			/* Level of the dungeon */
 
@@ -1246,12 +1248,6 @@ struct player_type
 	s16b blessed;		/* Timed -- Blessed */
 	s16b tim_invis;		/* Timed -- See Invisible */
 	s16b tim_infra;		/* Timed -- Infra Vision */
-
-    /* Sorceror flags */
-    bool wraith_in_wall;
-    s16b tim_wraith;
-    s16b tim_meditation;
-    s16b tim_manashield;
 
     /* Mind flags */
     s32b esp_link;

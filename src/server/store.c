@@ -332,49 +332,37 @@ static int store_num = 7;
  */
 static byte rgold_adj[MAX_RACES][MAX_RACES] =
 {
-    /*Hum, HfE, Elf, Hal, Gno, Dwa, HfO, HfT, Dun, HiE,  Yk, Gob, Ent,  TL*/
+    /*Hum, HfE, Elf, Hal, Gno, Dwa, HfO, HfT, Dun, HiE */
 
 	/* Human */
-    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105,  80, 120, 100, 100},
+    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105 },
 
 	/* Half-Elf */
-    { 110, 100, 100, 105, 110, 120, 125, 130, 110, 100,  85, 125, 100, 100},
+    { 110, 100, 100, 105, 110, 120, 125, 130, 110, 100 },
 
 	/* Elf */
-    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100},
+    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100 },
 
 	/* Halfling */
-    { 115, 110, 105,  95, 105, 110, 115, 130, 115, 105,  80, 115, 100, 100},
+    { 115, 110, 105,  95, 105, 110, 115, 130, 115, 105 },
 
 	/* Gnome */
-    { 115, 115, 110, 105,  95, 110, 115, 130, 115, 110,  90, 115, 100, 100},
+    { 115, 115, 110, 105,  95, 110, 115, 130, 115, 110 },
 
 	/* Dwarf */
-    { 115, 120, 120, 110, 110,  95, 125, 135, 115, 120, 110, 135, 100, 100},
+    { 115, 120, 120, 110, 110,  95, 125, 135, 115, 120 },
 
 	/* Half-Orc */
-    { 115, 120, 125, 115, 115, 130, 110, 115, 115, 125,  90, 110, 100, 100},
+    { 115, 120, 125, 115, 115, 130, 110, 115, 115, 125 },
 
 	/* Half-Troll */
-    { 110, 115, 115, 110, 110, 130, 110, 110, 110, 115,  95, 110, 100, 100},
+    { 110, 115, 115, 110, 110, 130, 110, 110, 110, 115 },
 
 	/* Dunedain  */
-    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105, 100, 120, 100, 100},
+    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105 },
 
 	/* High_Elf */
-    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100,  90, 125, 100, 100},
-
-    /* Yeek (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Goblin (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Ent (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-
-    /* Thunderlord (unused) */
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100}
+    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100 }
 
 };
 
@@ -506,9 +494,6 @@ static void mass_produce(object_type *o_ptr)
 
 		case TV_MAGIC_BOOK:
 		case TV_PRAYER_BOOK:
-#if defined(NEW_ADDITIONS)
-	case TV_SORCERY_BOOK:
-#endif
 		{
 			if (cost <= 50L) size += mass_roll(2, 3);
 			if (cost <= 500L) size += mass_roll(1, 3);
@@ -829,9 +814,6 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 			switch (o_ptr->tval)
 			{
 				case TV_MAGIC_BOOK:
-#if defined(NEW_ADDITIONS)
-		case TV_SORCERY_BOOK:
-#endif
 				case TV_AMULET:
 				case TV_RING:
 				case TV_STAFF:
@@ -1655,6 +1637,12 @@ void store_purchase(int Ind, int item, int amt)
 	/* Get the actual item */
 	o_ptr = &st_ptr->stock[item];
 
+	/* Sanity check the number of items */
+	if (amt > o_ptr->number)
+	{
+		amt = o_ptr->number;
+	}
+
 	/* Assume the player wants just one of them */
 	/*amt = 1;*/
 
@@ -1924,6 +1912,12 @@ void store_sell(int Ind, int item, int amt)
 		o_ptr = &o_list[0 - item];
 	}
 
+	/* Sanity check the number of items */
+	if (amt > o_ptr->number)
+	{
+		amt = o_ptr->number;
+	}	
+	
 	/* Check for validity of sale */
 	if (!store_will_buy(Ind, o_ptr))
 	{

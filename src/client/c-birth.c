@@ -13,6 +13,7 @@
 #define CLIENT
 
 #include "angband.h"
+#include "../common/md5.h"
 
 
 /*
@@ -53,12 +54,12 @@ void choose_name(void)
 
 
 /*
- * Choose the character's name
+ * Choose the character's password
  */
 void enter_password(void)
 {
 	int c;
-	char tmp[23];
+	char tmp[MAX_PASS_LEN];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);
@@ -85,6 +86,9 @@ void enter_password(void)
 	 /* Re-Draw the name (in light blue) */
 	for (c = 0; c < strlen(pass); c++)
 		Term_putch(15+c, 3, TERM_L_BLUE, 'x');
+
+	/* Now hash that sucker! */
+	MD5Password(pass);
 
 	/* Erase the prompt, etc */
 	clear_from(20);

@@ -1144,25 +1144,11 @@ static void calc_mana(int Ind)
 		}
 	}
 
-    /* Sorcerors get extra mana */
-#if defined(NEW_ADDITIONS)
-    if (p_ptr->pclass == CLASS_SORCEROR)
-    {
-	new_mana += (new_mana * 4) / 10;
-    }
-#endif
-
     /* Extra mana capacity */
     if (f1 & TR1_MANA)
     {
 	/* 1 pval = 10% more mana */
 	new_mana += new_mana * o_ptr->pval / 10;
-    }
-
-    /* Meditation increase mana at the cost of hp */
-    if (p_ptr->tim_meditation)
-    {
-	new_mana += new_mana / 2;
     }
 
 	/* Assume player not encumbered by armor */
@@ -1314,12 +1300,6 @@ static void calc_hitpoints(int Ind)
 	/* Factor in the hero / superhero settings */
 	if (p_ptr->hero) mhp += 10;
 	if (p_ptr->shero) mhp += 30;
-
-    /* Meditation increase mana at the cost of hp */
-    if (p_ptr->tim_meditation)
-    {
-	mhp = mhp * 3 / 5;
-    }
 
 	/* New maximum hitpoints */
 	if (mhp != p_ptr->mhp)
@@ -1620,46 +1600,6 @@ static void calc_bonuses(int Ind)
 	p_ptr->resist_lite = TRUE;
 	p_ptr->see_inv = TRUE;
     }
-
-#if defined(NEW_ADDITIONS)
-    /* Yeek */
-    if (p_ptr->prace == RACE_YEEK) p_ptr->feather_fall = TRUE;
-
-    /* Goblin */
-    if (p_ptr->prace == RACE_GOBLIN)
-    {
-	p_ptr->resist_dark = TRUE;
-	p_ptr->feather_fall = TRUE;
-    }
-
-    /* Ent */
-    if (p_ptr->prace == RACE_ENT)
-    {
-	p_ptr->slow_digest = TRUE;
-	p_ptr->pspeed -= 2;
-	if (p_ptr->lev >= 5) p_ptr->see_inv = TRUE;
-	if (p_ptr->lev >= 10) p_ptr->telepathy = TR4_ESP_ANIMAL;
-	if (p_ptr->lev >= 15) p_ptr->telepathy |= TR4_ESP_ORC;
-	if (p_ptr->lev >= 20) p_ptr->telepathy |= TR4_ESP_TROLL;
-	if (p_ptr->lev >= 25) p_ptr->telepathy |= TR4_ESP_GIANT;
-	if (p_ptr->lev >= 30) p_ptr->telepathy |= TR4_ESP_DRAGON;
-	if (p_ptr->lev >= 35) p_ptr->telepathy |= TR4_ESP_DEMON;
-	if (p_ptr->lev >= 40) p_ptr->telepathy |= TR4_ESP_UNDEAD;
-	if (p_ptr->lev >= 45) p_ptr->telepathy |= TR4_ESP_EVIL;
-	if (p_ptr->lev >= 50) p_ptr->telepathy = TR4_ESP_ALL;
-    }
-
-    /* Thunderlord */
-    if (p_ptr->prace == RACE_TLORD)
-    {
-	p_ptr->feather_fall = TRUE;
-	if (p_ptr->lev >= 5) p_ptr->telepathy = TR4_ESP_DRAGON;
-	if (p_ptr->lev >= 10) p_ptr->resist_fire = TRUE;
-	if (p_ptr->lev >= 15) p_ptr->resist_cold = TRUE;
-	if (p_ptr->lev >= 20) p_ptr->resist_acid = TRUE;
-	if (p_ptr->lev >= 25) p_ptr->resist_elec = TRUE;
-    }
-#endif
 
 	/* Ghost */
 	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
@@ -2260,11 +2200,6 @@ static void calc_bonuses(int Ind)
 
 			/* Paladin */
 			case CLASS_PALADIN: num = 5; wgt = 30; mul = 4; break;
-
-#if defined(NEW_ADDITIONS)
-	    /* Sorceror */
-	    case CLASS_SORCEROR: num = 1; wgt = 40; mul = 2; break;
-#endif
 		}
 
 		/* Enforce a minimum "weight" (tenth pounds) */

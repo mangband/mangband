@@ -2751,7 +2751,7 @@ LRESULT FAR PASCAL _export AngbandWndProc(HWND hWnd, UINT uMsg,
                                           WPARAM wParam, LPARAM lParam);
 #endif
 
-LRESULT FAR PASCAL _export AngbandWndProc(HWND hWnd, UINT uMsg,
+LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
                                           WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT     ps;
@@ -3000,7 +3000,7 @@ LRESULT FAR PASCAL _export AngbandListProc(HWND hWnd, UINT uMsg,
                                            WPARAM wParam, LPARAM lParam);
 #endif
 
-LRESULT FAR PASCAL _export AngbandListProc(HWND hWnd, UINT uMsg,
+LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
                                            WPARAM wParam, LPARAM lParam)
 {
 	term_data      *td;
@@ -3493,7 +3493,7 @@ static void init_stuff(void)
 
 
 	/* XXX XXX XXX */
-	GetPrivateProfileString("Angband", "LibPath", "c:\\angband\\lib",
+	GetPrivateProfileString("Angband", "LibPath", "c:\\mangband\\lib",
 	                        path, 1000, ini_file);
 
 	/* Analyze the path */

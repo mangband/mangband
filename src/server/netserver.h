@@ -24,8 +24,6 @@
 #define MAX_RETRANSMIT		(2 * FPS)
 #define DEFAULT_RETRANSMIT	(FPS / 2)
 
-#define MAX_NAME_LEN		20
-
 typedef struct {
 	int		state;
 	int		drain_state;
@@ -141,6 +139,7 @@ static int Receive_options(int ind);
 static int Receive_suicide(int ind);
 static int Receive_master(int ind);
 static int Receive_autophase(int ind);
+static int Receive_clear(int ind);
 
 static void Handle_item(int Ind, int item);
 static int Receive_mind(int ind);

@@ -5,6 +5,7 @@
 #define SERVER
 
 #include "angband.h"
+#include "../common/md5.h"
 
 
 /*
@@ -870,19 +871,64 @@ static void rd_wild(int n)
 static bool rd_extra(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	char pass[80];
+	char pass[MAX_PASS_LEN];
+	char temp[MAX_PASS_LEN];
+	char temp2[MAX_PASS_LEN];
 
-	int i;
+	int i, save_flag = 0;
 
 	byte tmp8u;
+
+	/*	p_ptr->pass	- Password from client
+		pass		- Password from save file
+		temp		- Hashed saved password
+		temp2		- Hashed client password
+	*/
 
 	start_section_read("player");
 
 	read_str("playername",p_ptr->name); /* 32 */
-	read_str("pass",pass); /* 80 */
+	read_str("pass",pass); /* 80, but really should be MAX_PASS_LEN */
 
-	if (strcmp(pass, p_ptr->pass)) 
-		return TRUE; 
+	/* Here's where we do our password encryption handling */
+	strcpy(temp, (const char *)pass);
+	MD5Password(temp); /* The hashed version of our stored password */
+	strcpy(temp2, (const char *)p_ptr->pass);
+	MD5Password(temp2); /* The hashed version of password from client */
+
+	if (strstr(pass, "$1$"))
+	{ /* Most likely an MD5 hashed password saved */
+		if (strcmp(pass, p_ptr->pass))
+		{ /* No match, might be clear text from client */
+			if (strcmp(pass, temp2))
+			{
+				/* No, it's not correct */
+				return TRUE;
+			}
+			/* Old style client, but OK otherwise */
+		}
+	}
+	else
+	{ /* Most likely clear text password saved */
+		if ((p_ptr->pass[0] == '$') && (p_ptr->pass[1] == '1') && (p_ptr->pass[2] == '$'))
+		{ /* Most likely hashed password from new client */
+			if (strcmp(temp, p_ptr->pass))
+			{
+				/* No, it doesn't match hatched */
+				return TRUE;
+			}
+		}
+		else
+		{ /* Most likely clear text from client as well */
+			if (strcmp(pass, p_ptr->pass))
+			{
+				/* No, it's not correct */
+				return TRUE;
+			}
+		}
+		/* Good match with clear text, save the hashed */
+		strcpy(p_ptr->pass, (const char *)temp);
+	}
 
 	read_str("died_from",p_ptr->died_from); /* 80 */
 
@@ -983,12 +1029,17 @@ static bool rd_extra(int Ind)
 	p_ptr->word_recall = read_int("word_recall");
 	p_ptr->see_infra = read_int("see_infra");
 	p_ptr->tim_infra = read_int("tim_infra");
-
-	/* Sorceror flags */
-	p_ptr->wraith_in_wall = read_int("wraith_in_wall");
-	p_ptr->tim_wraith = read_int("tim_wraith");
-	p_ptr->tim_meditation = read_int("tim_meditation");
-	p_ptr->tim_manashield = read_int("tim_manashield");
+	
+	/* Skip any wierd tomeness which may be present */
+	/* XXX This is a temporary fix */
+	if(value_exists("wraith_in_wall"))
+		skip_value("wraith_in_wall");
+	if(value_exists("tim_wraith"))
+		skip_value("tim_wraith");
+	if(value_exists("tim_meditation"))
+		skip_value("tim_meditation");
+	if(value_exists("tim_manashield"))
+		skip_value("tim_manashield");
 
 	p_ptr->oppose_fire = read_int("oppose_fire");
 	p_ptr->oppose_cold = read_int("oppose_cold");
@@ -1315,6 +1366,7 @@ static errr rd_dungeon_special()
 			}
 		}
 	}
+	return 0;
 }
 
 /* Reads in a players memory of the level he is currently on, in run-length encoded
@@ -1440,7 +1492,7 @@ static errr rd_savefile_new_aux(int Ind)
 
 	/* Read the extra stuff */
 	if (rd_extra(Ind))
-		return 35;
+		return BAD_PASSWORD;
 	/*if (arg_fiddle) note("Loaded extra information");*/
 
 

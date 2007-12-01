@@ -121,8 +121,7 @@ void do_cmd_go_down(int Ind)
 	/* Verify stairs */
 
     if (p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master) &&
-			    strcmp(p_ptr->name,cfg_irc_gate)
+			    strcmp(p_ptr->name,cfg_dungeon_master)
 			)
 		    ) {
 		msg_print(Ind, "You seem unable to go down.  Try going up.");
@@ -130,8 +129,7 @@ void do_cmd_go_down(int Ind)
 	};
 
     if (!p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master) &&
-			    strcmp(p_ptr->name,cfg_irc_gate)
+			    strcmp(p_ptr->name,cfg_dungeon_master)
 			 ) && c_ptr->feat != FEAT_MORE)
 	{
 		msg_print(Ind, "I see no down staircase here.");
@@ -1841,7 +1839,7 @@ int do_cmd_run(int Ind, int dir)
 		}
 
 		/* Make sure we have enough energy to start running */
-		if (p_ptr->energy >= (level_speed(p_ptr->dun_depth)*6)/5)
+		if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
 			/* Hack -- Set the run counter */
 			p_ptr->running = (command_arg ? command_arg : 1000);
