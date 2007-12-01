@@ -1253,7 +1253,6 @@ struct player_type
     s32b esp_link;
     byte esp_link_type;
     u16b esp_link_flags;
-    object_type *current_telekinesis;
 
 	s16b oppose_acid;	/* Timed -- oppose acid */
 	s16b oppose_elec;	/* Timed -- oppose lightning */

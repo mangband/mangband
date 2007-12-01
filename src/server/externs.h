@@ -974,8 +974,6 @@ extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 
 /* xtra2.c */
-extern bool telekinesis(int Ind, object_type *o_ptr);
-extern void telekinesis_aux(int Ind, int item);
 extern int get_player(int Ind, object_type *o_ptr);
 extern bool set_blind(int Ind, int v);
 extern bool set_confused(int Ind, int v);
