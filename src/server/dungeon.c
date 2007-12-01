@@ -143,6 +143,7 @@ static void sense_inventory(int Ind)
 	object_type *o_ptr;
 
 	char o_name[80];
+	char o_inscribe[80];
 
 
 	/*** Check for "sensing" ***/
@@ -302,7 +303,14 @@ static void sense_inventory(int Ind)
 		o_ptr->ident |= (ID_SENSE);
 
 		/* Inscribe it textually */
-		if (!o_ptr->note) o_ptr->note = quark_add(feel);
+		if (o_ptr->note)
+		{
+			strcpy(o_inscribe, (const char *)feel);
+			strcat(o_inscribe, " - ");
+			strcat(o_inscribe, quark_str(o_ptr->note));
+			strcpy(feel, o_inscribe);
+		}
+		o_ptr->note = quark_add(feel);
 
 		/* Combine / Reorder the pack (later) */
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);

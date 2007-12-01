@@ -695,6 +695,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_type		*o_ptr;
 
 	char		o_name[80];
+	char		o_inscribe[80];
 
 
 	/* Hack -- force destruction */
@@ -747,6 +748,18 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 		/* Hack -- Handle icky artifacts */
 		if (cursed_p(o_ptr) || broken_p(o_ptr)) feel = "terrible";
+
+		/* Hack -- Check for an existing inscription */
+		if (o_ptr->note)
+		{
+			if (!strstr(quark_str(o_ptr->note), feel))
+			{
+				strcpy(o_inscribe, (const char *)feel);
+				strcat(o_inscribe, " - ");
+				strcat(o_inscribe, quark_str(o_ptr->note));
+				strcpy(feel, o_inscribe);
+			}
+		}
 
 		/* Hack -- inscribe the artifact */
 		o_ptr->note = quark_add(feel);
