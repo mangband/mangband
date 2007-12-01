@@ -910,7 +910,7 @@ static bool rd_extra(int Ind)
 	}
 	else
 	{ /* Most likely clear text password saved */
-		if ((p_ptr->pass[0] == '$') && (p_ptr->pass[1] == '1') && (p_ptr->pass[2] == '$'))
+		if (strstr(p_ptr->pass, "$1$"))
 		{ /* Most likely hashed password from new client */
 			if (strcmp(temp, p_ptr->pass))
 			{
