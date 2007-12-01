@@ -136,6 +136,12 @@
  */
 #define NOT_CONNECTED	(-1)
 
+/*
+ * Maximum length for names and passwords
+ *
+ */
+#define MAX_NAME_LEN		20
+#define MAX_PASS_LEN		40
 
 /*
  * Maximum number of players playing at once.

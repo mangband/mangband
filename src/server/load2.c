@@ -871,9 +871,9 @@ static void rd_wild(int n)
 static bool rd_extra(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	char pass[80];
-	char temp[80];
-	char temp2[80];
+	char pass[MAX_PASS_LEN];
+	char temp[MAX_PASS_LEN];
+	char temp2[MAX_PASS_LEN];
 
 	int i, save_flag = 0;
 
@@ -888,7 +888,7 @@ static bool rd_extra(int Ind)
 	start_section_read("player");
 
 	read_str("playername",p_ptr->name); /* 32 */
-	read_str("pass",pass); /* 80 */
+	read_str("pass",pass); /* 80, but really should be MAX_PASS_LEN */
 
 	/* Here's where we do our password encryption handling */
 	strcpy(temp, (const char *)pass);

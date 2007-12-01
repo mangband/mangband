@@ -59,7 +59,7 @@ void choose_name(void)
 void enter_password(void)
 {
 	int c;
-	char tmp[80];
+	char tmp[MAX_PASS_LEN];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);

@@ -334,7 +334,7 @@ extern void MD5Password (char *string)
 {
   MD5_CTX context;
   unsigned int len = strlen (string);
-  char temp[80];
+  char temp[MAX_PASS_LEN];
   int i, j;
 
   MD5Init (&context);
