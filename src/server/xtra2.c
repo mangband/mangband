@@ -2247,6 +2247,7 @@ void player_death(int Ind)
 	char buf[1024];
 	char dumpname[42];
 	int i;
+	u32b uniques;
 	s16b num_keys = 0;
 	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
@@ -2467,14 +2468,20 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 			if (!(r_ptr->flags1 & RF1_UNIQUE))
 				continue;
 
-			/* If we have killed this unique, bring him back */
+			/* If we have killed this unique, bring it back */
 			if (p_ptr->r_killed[i])
 			{
-				p_ptr->r_killed[i] = 0;
+				/* Bring back if unique_depth > our_max_depth - 35% */
+				uniques = p_ptr->max_dlv-((p_ptr->max_dlv*11468)>>15);
+				if (r_ptr->level > uniques )
+				{
+					printf("r_ptr->level = %d, uniques = %d\n",r_ptr->level,uniques);
+					p_ptr->r_killed[i] = 0;
 
-				/* Tell the player */ 
-				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
-				msg_print(Ind, buf);
+					/* Tell the player */ 
+					sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
+					msg_print(Ind, buf);
+				}
 			}
 		}
 	}
