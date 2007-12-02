@@ -308,8 +308,12 @@ static void sense_inventory(int Ind)
 			strcpy(o_inscribe, (const char *)feel);
 			strcat(o_inscribe, " - ");
 			strcat(o_inscribe, quark_str(o_ptr->note));
+			o_ptr->note = quark_add(o_inscribe);
 		}
-		o_ptr->note = quark_add(o_inscribe);
+		else
+		{
+			o_ptr->note = quark_add(feel);
+		}
 
 		/* Combine / Reorder the pack (later) */
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
