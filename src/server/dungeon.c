@@ -2348,7 +2348,7 @@ void play_game(bool new_game)
 	if (!new_game)
 	{
 		/* Process the player name */
-		/*process_player_name(FALSE);*/
+		/*process_player_name(Ind, FALSE);*/
 	}
 
 	/* Init the RNG */

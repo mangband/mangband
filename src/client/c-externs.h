@@ -289,6 +289,7 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_aux(char *buf);
 extern void show_motd(void);
 extern void peruse_file(void);
+extern void do_cmd_help(cptr name);
 
 /* c-init.c */
 extern void initialize_all_pref_files(void);
@@ -365,7 +366,6 @@ extern void health_redraw(int num, byte attr);
 extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);
-extern void display_player(int hist);
 extern void window_stuff(void);
 
 /* c-xtra2.c */

@@ -373,8 +373,8 @@ extern void note_spot_depth(int Depth, int y, int x);
 extern void everyone_lite_spot(int Depth, int y, int x);
 extern void lite_spot(int Ind, int y, int x);
 extern void prt_map(int Ind);
-extern void display_map(int *cy, int *cx);
-extern void do_cmd_view_map(void);
+/*extern void display_map(int *cy, int *cx);*/
+/*extern void do_cmd_view_map(void);*/
 extern void forget_lite(int Ind);
 extern void update_lite(int Ind);
 extern void forget_view(int Ind);
@@ -387,7 +387,7 @@ extern void wiz_dark(int Ind);
 extern void mmove2(int *y, int *x, int y1, int x1, int y2, int x2);
 extern bool projectable(int Depth, int y1, int x1, int y2, int x2);
 extern void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m);
-extern void health_track(int m_idx);
+/*extern void health_track(int m_idx);*/
 extern void recent_track(int r_idx);
 extern void disturb(int Ind, int stop_search, int flush_output);
 extern bool is_quest(int level);
@@ -399,7 +399,7 @@ extern s16b critical_shot(int Ind, int weight, int plus, int dam);
 extern s16b critical_norm(int Ind, int weight, int plus, int dam);
 extern s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr);
 extern void search(int Ind);
-extern void carry(int Ind, int pickup);
+/*extern void carry(int Ind, int pickup);*/
 extern void py_attack(int Ind, int y, int x);
 extern void move_player(int Ind, int dir, int do_pickup);
 extern void run_step(int Ind, int dir);
@@ -453,8 +453,8 @@ extern void do_cmd_version(void);
 extern void do_cmd_feeling(int Ind);
 extern void do_cmd_load_screen(void);
 extern void do_cmd_save_screen(void);
-extern void do_cmd_check_artifacts(int Ind);
-extern void do_cmd_check_uniques(int Ind);
+/*extern void do_cmd_check_artifacts(int Ind);*/
+/*extern void do_cmd_check_uniques(int Ind);*/
 
 /* cmd5.c */
 extern void do_cmd_browse(int Ind, int book);
@@ -492,9 +492,8 @@ extern errr check_time(void);
 extern errr check_load(void);
 extern void read_times(void);
 extern void show_news(void);
-extern errr show_file(int Ind, cptr name, cptr what);
-extern void do_cmd_help(cptr name);
-extern void process_player_name(int Ind, bool sf);
+/*extern errr show_file(int Ind, cptr name, cptr what);*/
+/*extern void process_player_name(int Ind, bool sf);*/
 extern void get_name(int Ind);
 extern void do_cmd_suicide(int Ind);
 extern void do_cmd_save_game(int Ind);
@@ -509,7 +508,7 @@ extern void setup_exit_handler(void);
 extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
-extern void generate_cave(int Depth);
+/*extern void generate_cave(int Depth);*/
 
 /* init-txt.c */
 extern errr init_v_info_txt(FILE *fp, char *buf);
@@ -547,7 +546,7 @@ extern void wipe_m_list(int Depth);
 extern s16b m_pop(void);
 extern errr get_mon_num_prep(void);
 extern s16b get_mon_num(int level);
-extern void monster_desc(char *desc, monster_type *m_ptr, int mode);
+/*extern void monster_desc(char *desc, monster_type *m_ptr, int mode);*/
 extern void lore_do_probe(int m_idx);
 extern void lore_treasure(int m_idx, int num_item, int num_gold);
 extern void update_mon(int m_idx, bool dist);
@@ -565,7 +564,7 @@ extern int Net_input(void);
 extern int Net_output(void);
 extern void setup_contact_socket(void);
 extern int Setup_net_server(void);
-extern void Destroy_connection(int Ind, char *reason);
+/*extern void Destroy_connection(int Ind, char *reason);*/
 extern int Send_plusses(int Ind, int tohit, int todam);
 extern int Send_ac(int Ind, int base, int plus);
 extern int Send_experience(int Ind, int lev, int max_exp, int cur_exp, s32b adv_exp);
@@ -597,9 +596,9 @@ extern int Send_stun(int Ind, int stun);
 extern int Send_direction(int Ind);
 extern int Send_message(int Ind, cptr msg);
 extern int Send_char(int Ind, int x, int y, byte a, char c);
-extern int Send_spell_info(int Ind, int i, cptr out_val);
+/*extern int Send_spell_info(int Ind, int i, cptr out_val);*/
 extern int Send_item_request(int Ind);
-extern int Send_state(int Ind, bool paralyzed, bool searching);
+/*extern int Send_state(int Ind, bool paralyzed, bool searching);*/
 
 extern void Handle_direction(int Ind, int dir);
 
@@ -612,8 +611,8 @@ extern void flavor_init(void);
 extern void reset_visuals(void);
 extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
 extern void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
-extern void object_desc_store(char *buf, object_type *o_ptr, int pref, int mode);
-extern bool identify_fully_aux(object_type *o_ptr);
+/*extern void object_desc_store(char *buf, object_type *o_ptr, int pref, int mode);*/
+/*extern bool identify_fully_aux(object_type *o_ptr);*/
 extern s16b index_to_label(int i);
 extern s16b label_to_inven(int Ind, int c);
 extern s16b label_to_equip(int Ind, int c);
@@ -645,11 +644,11 @@ extern s16b o_pop(void);
 extern errr get_obj_num_prep(void);
 extern s16b get_obj_num(int level);
 extern void object_known(object_type *o_ptr);
-extern void object_aware(object_type *o_ptr);
-extern void object_tried(object_type *o_ptr);
-extern s32b object_value(object_type *o_ptr);
-extern bool object_similar(object_type *o_ptr, object_type *j_ptr);
-extern void object_absorb(object_type *o_ptr, object_type *j_ptr);
+/*extern void object_aware(object_type *o_ptr);*/
+/*extern void object_tried(object_type *o_ptr);*/
+/*extern s32b object_value(object_type *o_ptr);*/
+/*extern bool object_similar(object_type *o_ptr, object_type *j_ptr);*/
+/*extern void object_absorb(object_type *o_ptr, object_type *j_ptr);*/
 extern s16b lookup_kind(int tval, int sval);
 extern void invwipe(object_type *o_ptr);
 extern void invcopy(object_type *o_ptr, int k_idx);
@@ -674,7 +673,7 @@ extern bool save_server_info(void);
 
 /* sched.c */
 extern void install_timer_tick(void (*func)(void), int freq);
-extern void install_input(void (*func)(int, void *), int fd, void *arg);
+/*extern void install_input(void (*func)(int, void *), int fd, void *arg);*/
 extern void remove_input(int fd);
 extern void sched(void);
 
@@ -797,7 +796,7 @@ extern errr fd_write(int fd, cptr buf, huge n);
 extern errr fd_close(int fd);
 extern void flush(void);
 extern void bell(void);
-extern void sound(int num);
+/*extern void sound(int num);*/
 /* extern void move_cursor(int row, int col); */
 extern void text_to_ascii(char *buf, cptr str);
 extern void ascii_to_text(char *buf, cptr str);
@@ -819,7 +818,7 @@ extern void c_roff(byte attr, cptr str);
 extern void roff(cptr str);
 extern void clear_screen(void);
 extern void clear_from(int row);
-extern bool askfor_aux(char *buf, int len);
+/*extern bool askfor_aux(char *buf, int len);*/
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_check(cptr prompt);
 extern bool get_com(cptr prompt, char *command);

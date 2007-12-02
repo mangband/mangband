@@ -1,4 +1,5 @@
 #include "../common/angband.h"
+#include "netclient.h"
 
 /* Handle all commands */
 

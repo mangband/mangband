@@ -659,7 +659,7 @@ static bool store_check_num(int st, object_type *o_ptr)
 			j_ptr = &st_ptr->stock[i];
 
 			/* Can the new object be combined with the old one? */
-			if (object_similar(j_ptr, o_ptr)) return (TRUE);
+			if (Ind, object_similar(j_ptr, o_ptr)) return (TRUE);
 		}
 	}
 #endif
@@ -865,10 +865,10 @@ static int home_carry(object_type *o_ptr)
 		j_ptr = &st_ptr->stock[slot];
 
 		/* The home acts just like the player */
-		if (object_similar(j_ptr, o_ptr))
+		if (Ind, object_similar(j_ptr, o_ptr))
 		{
 			/* Save the new number of items */
-			object_absorb(j_ptr, o_ptr);
+			object_absorb(Ind, j_ptr, o_ptr);
 
 			/* All done */
 			return (slot);
@@ -880,7 +880,7 @@ static int home_carry(object_type *o_ptr)
 
 
 	/* Determine the "value" of the item */
-	value = object_value(o_ptr);
+	value = object_value(Ind, o_ptr);
 
 	/* Check existing slots to see if we must "slide" */
 	for (slot = 0; slot < st_ptr->stock_num; slot++)
@@ -911,7 +911,7 @@ static int home_carry(object_type *o_ptr)
 		if (!object_known_p(j_ptr)) break;
 
 		/* Objects sort by decreasing value */
-		j_value = object_value(j_ptr);
+		j_value = object_value(Ind, j_ptr);
 		if (value > j_value) break;
 		if (value < j_value) continue;
 	}
