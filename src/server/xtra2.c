@@ -4129,7 +4129,7 @@ u16b master_summon_aux_monster_type( char monster_type, char * monster_parms)
 		case 's': 
 		{
 			/* if the name was specified, summon this exact race */
-			if (strlen(monster_parms) > 1) return race_index(monster_parms);
+			if (strlen(monster_parms) > 1) return race_index_fuzzy(monster_parms);
 			/* otherwise, summon a monster that looks like us */
 			else
 			{

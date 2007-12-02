@@ -2606,3 +2606,33 @@ int race_index(char * name)
 	}
 	return 0;
 }
+
+/* Takes a (partial) monster name and returns an index, or 0 if no match
+ * was found.
+ */
+int race_index_fuzzy(char * name)
+{
+	char match[MAX_CHARS];
+	char monster[MAX_CHARS];
+	char* str;
+	char* dst;
+	int i;
+
+	/* Lowercase our search string */
+	for(str=name;*str;str++) *str=tolower(*str);
+
+	/* for each monster race */
+	for (i = 1; i <= alloc_race_size; i++)
+	{
+		/* Clean up monster name */
+		dst = monster;
+		for(str=&r_name[r_info[i].name];*str;str++)
+		{
+			if (isalpha(*str) || *str==32) *dst++ = tolower(*str);
+		}
+		/* If cleaned name matches our search string, return it */
+		if (strstr(monster,name)) return i;
+	}
+	return 0;
+}
+

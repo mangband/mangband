@@ -2059,7 +2059,7 @@ void cmd_master_aux_summon(void)
 			{
 				buf[2] = 's';
 				buf[3] = 0;
-				get_string("Summon which mosnter or character? ", &buf[3], 79);
+				get_string("Enter (partial) monster name: ", &buf[3], 79);
 				if (!buf[3]) redo_hack = 1;
 				break;
 			}
