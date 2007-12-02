@@ -141,13 +141,13 @@ CC = gcc
 #
 
 # support both Xwindows, and Terminal (telnet) mode
-CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
-LIBS = -L/usr/X11R6/lib -lX11 -lncurses
+#CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
+#LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 
 
 # only support Terminal mode.
-#CFLAGS = -Wall -g -pipe -D"USE_GCU" -I/usr/include/ncurses
-#LIBS = -lncurses
+CFLAGS = -Wall -g -pipe -D"USE_GCU" -I/usr/include/ncurses
+LIBS = -lncurses
 
 
 
