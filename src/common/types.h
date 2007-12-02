@@ -12,7 +12,7 @@
 
 
 /*
- * This file should ONLY be included by "angband.h"
+ * This file should ONLY be included by "../common/angband.h"
  */
 
 

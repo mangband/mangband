@@ -35,7 +35,7 @@
  *
  */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 #ifndef lint
 static char sourceid[] =

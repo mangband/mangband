@@ -54,8 +54,8 @@ extern s32b player_exp[PY_MAX_LEVEL];
 extern player_race race_info[MAX_RACES];
 extern player_class class_info[MAX_CLASS];
 extern player_magic magic_info[MAX_CLASS];
-extern u32b spell_flags[3][9][2];
-extern cptr spell_names[4][64];
+/*extern u32b spell_flags[3][9][2];*/
+/*extern cptr spell_names[4][64];*/
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];
@@ -113,7 +113,7 @@ extern s16b resting;
 /*extern s16b cur_hgt;
 extern s16b cur_wid;*/
 /*extern s16b dun_level;*/
-extern s16b players_on_depth[MAX_DEPTH];
+/*extern s16b players_on_depth[MAX_DEPTH];*/
 extern s16b num_repro;
 extern s16b object_level;
 extern char summon_kin_type;
@@ -140,13 +140,13 @@ extern bool scan_objects;
 /*extern s16b total_weight;*/
 extern s16b inven_nxt;
 /*extern s16b inven_cnt;
-extern s16b equip_cnt;*/
+extern s16b equip_cnt;
 extern s16b o_nxt;
 extern s16b m_nxt;
 extern s16b o_max;
 extern s16b m_max;
 extern s16b o_top;
-extern s16b m_top;
+extern s16b m_top;*/
 extern bool rogue_like_commands;
 extern bool quick_messages;
 extern bool other_query_flag;
@@ -281,11 +281,11 @@ extern u32b window_mask[8];
 /*extern term *ang_term[8];*/
 extern s16b o_fast[MAX_O_IDX];
 extern s16b m_fast[MAX_M_IDX];
-extern cave_type **cave[MAX_DEPTH];
+/*extern cave_type **cave[MAX_DEPTH];*/
 extern object_type *o_list;
 extern monster_type *m_list;
 extern quest q_list[MAX_Q_IDX];
-extern store_type *store;
+/*extern store_type *store;*/
 /*extern object_type *inventory;*/
 extern s16b alloc_kind_size;
 extern alloc_entry *alloc_kind_table;
@@ -358,7 +358,7 @@ extern char * cfg_bind_name;
  */
 
 /* birth.c */
-extern void player_birth(int Ind, cptr name, int conn, int race, int class, int sex);
+/*extern void player_birth(int Ind, cptr name, int conn, int race, int class, int sex);*/
 
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);
@@ -417,7 +417,7 @@ extern void do_cmd_bash(int Ind, int dir);
 extern void do_cmd_spike(int Ind, int dir);
 extern void do_cmd_walk(int Ind, int dir, int pickup);
 extern void do_cmd_stay(int Ind, int pickup);
-extern void do_cmd_run(int Ind, int dir);
+/*extern void do_cmd_run(int Ind, int dir);*/
 /*extern void do_cmd_rest(void);*/
 extern void do_cmd_fire(int Ind, int dir, int item);
 extern void do_cmd_throw(int Ind, int dir, int item);
@@ -482,7 +482,7 @@ extern void play_game(bool new_game);
 extern void safe_setuid_drop(void);
 extern void safe_setuid_grab(void);
 extern s16b tokenize(char *buf, s16b num, char **tokens);
-extern void display_player(int Ind, bool do_hist);
+extern void display_player(int Ind, int do_hist);
 extern errr file_character(cptr name, bool full);
 extern errr process_pref_file_aux(char *buf);
 extern errr process_pref_file(cptr name);
@@ -834,7 +834,7 @@ extern s16b modify_stat_value(int value, int amount);
 extern void notice_stuff(int Ind);
 extern void update_stuff(int Ind);
 extern void redraw_stuff(int Ind);
-extern void window_stuff(int Ind);
+/*extern void window_stuff(int Ind);*/
 extern void handle_stuff(int Ind);
 
 /* xtra2.c */

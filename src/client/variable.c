@@ -1,4 +1,4 @@
-#include "angband.h"
+#include "../common/angband.h"
 
 /* Client global variables */
 

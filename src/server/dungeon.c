@@ -8,10 +8,10 @@
  * included in all such copies.
  */
 
-#define SERVER
+/* #define SERVER */
 
-#include "angband.h"
-#include "externs.h"
+#include "../common/angband.h"
+/*#include "externs.h"*/
 
 
 int find_player(s32b id)

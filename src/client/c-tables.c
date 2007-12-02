@@ -14,7 +14,7 @@
  * Only a little of the file is used for the client, the rest is commented out.
  */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 
 

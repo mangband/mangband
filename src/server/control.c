@@ -4,7 +4,7 @@
  * have a devoted tty.
  */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 static sockbuf_t console_buf;
 static bool console_authenticated;

@@ -2,9 +2,9 @@
 
 /* Purpose: Initialization (part 2) -BEN- */
 
-#define SERVER
+/* #define SERVER */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 
 /*

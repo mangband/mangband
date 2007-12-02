@@ -7,7 +7,7 @@
  * "c-init.c".
  */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 
 static void read_mangrc(void)

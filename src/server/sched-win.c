@@ -25,10 +25,10 @@
  * Windows port of sched.c - Graham R King [grk] (October 2005)
  */
 
-#define SERVER
+/* #define SERVER */
 
 #include <winsock2.h>
-#include "angband.h"   
+#include "../common/angband.h"   
 #include <mmsystem.h>
 #include <winbase.h> 
 

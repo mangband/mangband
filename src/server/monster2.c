@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-#define SERVER
+/* #define SERVER */
 
-#include "angband.h"
+#include "../common/angband.h"
 
 
 /* Scan all players on the level and see if at least one can find the unique */

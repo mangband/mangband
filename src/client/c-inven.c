@@ -1,4 +1,4 @@
-#include "angband.h"
+#include "../common/angband.h"
 
 s16b index_to_label(int i)
 {

@@ -76,9 +76,9 @@
 
 
 
-#define SERVER
+/* #define SERVER */
 
-#include "angband.h"
+#include "../common/angband.h"
 #include "netserver.h"
 
 #define MAX_SELECT_FD			1023

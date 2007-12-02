@@ -48,7 +48,13 @@
  */
 #include "../common/defines.h"
 #include "../common/types.h"
-#include "externs.h"
+#ifdef CLIENT
+#include "../client/c-externs.h"
+#endif
+#ifdef SERVER
+#include "../server/s-externs.h"
+#endif
+#include "../common/externs.h"
 
 
 

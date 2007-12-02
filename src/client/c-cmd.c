@@ -1,4 +1,4 @@
-#include "angband.h"
+#include "../common/angband.h"
 
 /* Handle all commands */
 
@@ -1112,7 +1112,7 @@ void cmd_character(void)
 	while (!done)
 	{
 		/* Display player info */
-		display_player(hist);
+		display_player(0, hist);
 
 		/* Display message */
 		prt("[ESC to quit, h to toggle history]", 21, 24);
