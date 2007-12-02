@@ -243,7 +243,6 @@ static void sense_inventory(int Ind)
 			case TV_HAFTED:
 			case TV_POLEARM:
 			case TV_SWORD:
-            case TV_MSTAFF:
 			case TV_BOOTS:
 			case TV_GLOVES:
 			case TV_HELM:

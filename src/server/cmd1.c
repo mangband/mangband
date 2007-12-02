@@ -617,13 +617,6 @@ void carry(int Ind, int pickup, int confirm)
 	/* Get the object */
 	o_ptr = &o_list[c_ptr->o_idx];
 
-    /* Auto-id */
-    if (p_ptr->auto_id)
-    {
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-    }
-
 	/* Describe the object */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 

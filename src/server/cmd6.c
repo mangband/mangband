@@ -1119,23 +1119,6 @@ void do_cmd_read_scroll(int Ind, int item)
 	/* Analyze the scroll */
 	switch (o_ptr->sval)
 	{
-	case SV_SCROLL_ARTIFACT_CREATION:
-	{
-	    
-	    	msg_print(Ind, "This is an artifact creation scroll.");
-		ident = TRUE;
-		if (cfg_random_artifacts)
-		{
-			(void)create_artifact(Ind);
-			used_up = FALSE;
-		}
-		else
-		{
-			/* No randarts -> try to generate a normal art */
-			acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1, TRUE);
-		}
-		break;
-        }
 
 		case SV_SCROLL_DARKNESS:
 		{

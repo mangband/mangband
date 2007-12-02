@@ -834,7 +834,6 @@ static s32b object_value_real(object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -965,18 +964,6 @@ static s32b object_value_real(object_type *o_ptr)
 			/* Done */
 			break;
 		}
-
-        case TV_MSTAFF:
-        {
-            /* Ego/randart mage weapons can have negative hit/damage bonuses */
-            if ((o_ptr->to_h + o_ptr->to_d < 0) && !artifact_p(o_ptr) && !o_ptr->name2) return (0L);
-
-            /* Factor in the bonuses */
-            value += ((o_ptr->to_h + o_ptr->to_d + o_ptr->to_a) * 100L);
-
-            /* Done */
-            break;
-        }
 
 		/* Ammo */
 		case TV_SHOT:
@@ -1142,7 +1129,6 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -1796,20 +1782,11 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
 		/* Very good */
 		if (power > 1)
 		{
-	    if (o_ptr->tval == TV_MSTAFF)
-		{
-		/* Ego mage weapons get penalties tohit/todam */
-			o_ptr->to_h -= tohit2;
-			o_ptr->to_d -= todam2;
+			/* Enchant again */
+			o_ptr->to_h += tohit2;
+			o_ptr->to_d += todam2;
 		}
-	    else
-					{
-		/* Enchant again */
-		o_ptr->to_h += tohit2;
-		o_ptr->to_d += todam2;
-					}
-				}
-			}
+	}
 
     /* Cursed */
     else if (power < 0)
@@ -1960,8 +1937,17 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
 	if ((o_ptr->tval == TV_CLOAK) && (o_ptr->sval == SV_KOLLA))
 	{
 		o_ptr->bpval = randint(2);
-		rating += 20;
-			}
+
+		/* Cursed kolla */
+		if (o_ptr->to_a < 0) 
+		{
+			o_ptr->bpval = -o_ptr->bpval;
+		}
+		else
+		{
+			rating += 20;
+		}
+	}
 
 	/* are we done? */
 	if ((power >= -1) && (power <= 1)) return;
@@ -2622,7 +2608,6 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_BOW:
 		case TV_SHOT:
 		case TV_ARROW:
@@ -2769,7 +2754,6 @@ static bool kind_is_good(int k_idx)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 		{
 			if (k_ptr->to_h < 0) return (FALSE);
@@ -3795,17 +3779,6 @@ void combine_pack(int Ind)
 
 		/* Skip empty items */
 		if (!o_ptr->k_idx) continue;
-
-	/* Auto-id */
-	if (p_ptr->auto_id)
-	{
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-	}
-
 
 		/* Scan the items above that item */
 		for (j = 0; j < i; j++)

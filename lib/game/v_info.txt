@@ -1924,7 +1924,7 @@ D:%%%%%%%%%%%%
 #Greater Vaults (denoted by "8" in X: line)
 
 N:88:Greater Vault (Twisted Cube)
-X:8:20:24:39
+X:8:20:24:41
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D:%.......................................%
 D:%.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.....%
@@ -1970,7 +1970,7 @@ D:%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N:90:The I in the Storm
-X:8:40:41:25
+X:8:40:25:41
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D:%XXXXXXXXXXXXXXXXXXX#XXXXXXXXXXXXXXXXXXX%
 D:%X&&..^..#9X..^^^^^^^^^^^^^..X9#..^..&&X%
@@ -1998,7 +1998,7 @@ D:%XXXXXXXXXXXXXXXXXXX#XXXXXXXXXXXXXXXXXXX%
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N:91:The Bank From Hell
-X:8:30:20:30
+X:8:30:20:31
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D:%XXXXXXXXXXXXXX+XXXXXXXXXXXXXX%
 D:%X.&.&.&.&.&.#...#.&.&.&.&.&.X%
@@ -2092,7 +2092,7 @@ D:%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX#%
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N:95:Roundabout Two
-X:8:25:40:25
+X:8:25:25:40
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D:%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%
 D:%#^X.^^+X@XX.+X^^^^^+.X...X8#@&*X*****X%
@@ -2229,27 +2229,27 @@ D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N:101:Funnel
 X:8:15:21:23
-D:%%%%%%%%%%%%%%%%%%%%%%%
-D:%XXXXXXXXXXXXXXXXXXXXX%
-D:%X&&&...........***X.#%
-D:%X&XXXXXXXXXXXXXXX*X.X%
-D:%X&X&&&.......***X*X.X%
-D:%X.X&XXXXXXXXXX.*X.X.X%
-D:%X.X&X8XX,,,,,XX*X.X.X%
-D:%X.X.XXX,,,,,,,X.X.X.X%
-D:%X.X.XX@@@@@@@@@.X.X.X%
-D:%X.X.X89,,,,,,,,.X.X.X%
-D:%X.X.X89,,,,,,,,.X.X.X%
-D:%X.X.X89,,,,,,,,.X.X.X%
-D:%X.X.XX@@@@@@@@@XX.X.X%
-D:%X.X.XXX,,,,,,,XXX.X.X%
-D:%X.X*X8XX,,,,,XX8X&X.X%
-D:%X.X*XXXXXXXXXXXXX&X.X%
-D:%X*X***.........&&&X&X%
-D:%X*XXXXXXXXXXXXXXXXX&X%
-D:%X***.............&&&X%
-D:%XXXXXXXXXXXXXXXXXXXXX%
-D:%%%%%%%%%%%%%%%%%%%%%%%
+D:%%%%%%%%%%%%%%%%%%%%%%% 
+D:%XXXXXXXXXXXXXXXXXXXXX% 
+D:%X&&&...........***X.#% 
+D:%X&XXXXXXXXXXXXXXX*X.X% 
+D:%X&X&&&.......***X*X.X% 
+D:%X.X&XXXXXXXXXX.*X.X.X% 
+D:%X.X&X8XX,,,,,XX*X.X.X% 
+D:%X.X.XX#,,,,,,,X.X.X.X% 
+D:%X.X.XX@@@@@@@@@.X.X.X% 
+D:%X.X.X89,,,,,,,,.X.X.X% 
+D:%X.X.X89,,,,,,,,.X.X.X% 
+D:%X.X.X89,,,,,,,,.X.X.X% 
+D:%X.X.XX@@@@@@@@@XX.X.X% 
+D:%X.X.XX#,,,,,,,#XX.X.X% 
+D:%X.X*X8XX,,,,,XX8X&X.X% 
+D:%X.X*XXXXXXXXXXXXX&X.X% 
+D:%X*X***.........&&&X&X% 
+D:%X*XXXXXXXXXXXXXXXXX&X% 
+D:%X***.............&&&X% 
+D:%XXXXXXXXXXXXXXXXXXXXX% 
+D:%%%%%%%%%%%%%%%%%%%%%%% 
 
 N:102:False Wall
 X:8:20:15:64
@@ -2420,7 +2420,7 @@ D:%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N:109:Bubbles
-X:8:35:25:40
+X:8:35:25:41
 D:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D:%XXX#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%
 D:%X8X#X8XXX8XXX8XXX8XXX8XXX8XXX8XXX8XXX8X%

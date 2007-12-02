@@ -379,7 +379,6 @@ static bool wearable_p(object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-		case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -910,7 +909,7 @@ static bool rd_extra(int Ind)
 	}
 	else
 	{ /* Most likely clear text password saved */
-		if ((p_ptr->pass[0] == '$') && (p_ptr->pass[1] == '1') && (p_ptr->pass[2] == '$'))
+		if (strstr(p_ptr->pass, "$1$"))
 		{ /* Most likely hashed password from new client */
 			if (strcmp(temp, p_ptr->pass))
 			{

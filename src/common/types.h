@@ -1253,7 +1253,6 @@ struct player_type
     s32b esp_link;
     byte esp_link_type;
     u16b esp_link_flags;
-    object_type *current_telekinesis;
 
 	s16b oppose_acid;	/* Timed -- oppose acid */
 	s16b oppose_elec;	/* Timed -- oppose lightning */
@@ -1360,7 +1359,6 @@ struct player_type
 	bool bless_blade;	/* Blessed blade */
 	bool xtra_might;	/* Extra might bow */
 	bool impact;		/* Earthquake blows */
-    bool auto_id;	/* Auto-id */
 
 	s16b dis_to_h;		/* Known bonus to hit */
 	s16b dis_to_d;		/* Known bonus to dam */

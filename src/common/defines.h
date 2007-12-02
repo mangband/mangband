@@ -84,7 +84,7 @@
 /*
  * Maximum number of events to keep in the character event history
  */
-#define MAX_CHAR_HIST 200 
+#define MAX_CHAR_HIST 300
 
 /*
  * This is very important...
@@ -1063,7 +1063,6 @@ that keeps many algorithms happy.
 #define TV_HAFTED       21	/* Priest Weapons */
 #define TV_POLEARM      22	/* Axes and Pikes */
 #define TV_SWORD        23	/* Edged Weapons */
-#define TV_MSTAFF       24	/* Mage Weapons */
 #define TV_BOOTS        30	/* Boots */
 #define TV_GLOVES       31	/* Gloves */
 #define TV_HELM         32	/* Helms */
@@ -1164,10 +1163,6 @@ that keeps many algorithms happy.
 #define SV_TWO_HANDED_SWORD		25	/* 3d6 */
 #define SV_EXECUTIONERS_SWORD	28	/* 4d5 */
 #define SV_BLADE_OF_CHAOS		30	/* 6d5 */
-
-/* The "sval" codes for TV_MSTAFF */
-#define SV_MAGE_STAFF			1	/* 1d1 */
-#define SV_ELVEN_STAFF			2	/* 1d4 */
 
 /* The "sval" codes for TV_SHIELD */
 #define SV_SMALL_LEATHER_SHIELD		2
@@ -1421,7 +1416,7 @@ that keeps many algorithms happy.
 #define SV_SCROLL_CURSE_WEAPON			3
 #define SV_SCROLL_SUMMON_MONSTER		4
 #define SV_SCROLL_SUMMON_UNDEAD			5
-#define SV_SCROLL_ARTIFACT_CREATION	6
+/* xxx (summon?) */
 #define SV_SCROLL_TRAP_CREATION			7
 #define SV_SCROLL_PHASE_DOOR			8
 #define SV_SCROLL_TELEPORT				9
@@ -1995,7 +1990,7 @@ that keeps many algorithms happy.
 #define TR2_RES_DISEN		0x80000000L
 
 
-#define TR3_KNOWLEDGE		0x00000001L	/* Auto-id */
+#define TR3_XXX1			0x00000001L	/* Later */
 #define TR3_XXX2			0x00000002L	/* Later */
 #define TR3_XXX3			0x00000004L	/* Later */
 #define TR3_XXX4			0x00000008L	/* Later */

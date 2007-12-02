@@ -407,11 +407,6 @@ static byte default_tval_to_attr(int tval)
 			return (TERM_L_WHITE);
 		}
 
-        case TV_MSTAFF:
-        {
-            return (TERM_L_BLUE);
-        }
-
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_CROWN:
@@ -1226,7 +1221,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 		{
 			show_weapon = TRUE;
@@ -1659,7 +1653,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		case TV_DIGGING:
 
 		/* Append a "damage" string */
@@ -2707,11 +2700,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 		info[i++] = "It has been blessed by the gods.";
 	}
 
-    if (f3 & TR3_KNOWLEDGE)
-    {
-	info[i++] = "It identifies all items for you.";
-    }
-
 	if (cursed_p(o_ptr))
 	{
 		if (f3 & TR3_PERMA_CURSE)
@@ -2836,7 +2824,6 @@ s16b wield_slot(int Ind, object_type *o_ptr)
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:
-        case TV_MSTAFF:
 		{
 			return (INVEN_WIELD);
 		}

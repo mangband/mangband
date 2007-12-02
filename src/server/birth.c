@@ -1107,8 +1107,6 @@ static void player_outfit(int Ind)
 	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_ARTIFACT_CREATION));
-        o_ptr->number = 99;
 	object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);

@@ -636,7 +636,6 @@ static bool hates_acid(object_type *o_ptr)
 		case TV_SWORD:
 		case TV_HAFTED:
 		case TV_POLEARM:
-        case TV_MSTAFF:
 		case TV_HELM:
 		case TV_CROWN:
 		case TV_SHIELD:
@@ -710,7 +709,6 @@ static bool hates_fire(object_type *o_ptr)
 		case TV_BOW:
 		case TV_HAFTED:
 		case TV_POLEARM:
-        case TV_MSTAFF:
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_CLOAK:

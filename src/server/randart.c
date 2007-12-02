@@ -206,21 +206,6 @@ static s32b artifact_power (artifact_type *a_ptr)
 
 			break;
 		}
-                case TV_MSTAFF:
-		{
-			p += (a_ptr->dd * a_ptr->ds + 1) / 2;
-
-			p += (a_ptr->to_d + 2 * sign (a_ptr->to_d)) / 3;
-			if (a_ptr->to_d > 15) p += (a_ptr->to_d - 14) / 2;
-
-			p += (a_ptr->to_h + 3 * sign (a_ptr->to_h)) / 4;
-
-			/* Remember, weight is in 0.1 lb. units. */
-			if (a_ptr->weight != k_ptr->weight)
-				p += (k_ptr->weight - a_ptr->weight) / 20;
-
-			break;
-		}
 		case TV_BOOTS:
 		case TV_GLOVES:
 		case TV_HELM:
@@ -341,7 +326,6 @@ static s32b artifact_power (artifact_type *a_ptr)
         if (a_ptr->flags4 & TR4_ESP_EVIL) p += 14;
 	if (a_ptr->flags4 & TR4_ESP_ANIMAL) p += 3;
 	if (a_ptr->flags4 & TR4_ESP_ALL) p += 22;
-        if (a_ptr->flags3 & TR3_KNOWLEDGE) p += 20;
         if (a_ptr->flags3 & TR3_SLOW_DIGEST) p += 4;
 	if (a_ptr->flags3 & TR3_REGEN) p += 8;
 	if (a_ptr->flags3 & TR3_TELEPORT) p -= 20;
@@ -623,35 +607,6 @@ static void add_ability (artifact_type *a_ptr)
 
 				break;
 			}
-			case TV_MSTAFF:
-			{
-				if (r < 14)
-				{
-					a_ptr->flags1 |= TR1_WIS;
-					do_pval (a_ptr);
-				}
-				else if (r < 28)
-				{
-					a_ptr->flags1 |= TR1_INT;
-					do_pval (a_ptr);
-				}
-                                else if (r < 42)
-				{
-					a_ptr->flags2 |= TR2_SUST_WIS;
-				}
-				else if (r < 56)
-				{
-					a_ptr->flags2 |= TR2_SUST_INT;
-				}
-				else if (r < 70) a_ptr->flags3 |= TR3_SEE_INVIS;
-				else if (r < 84)
-				{
-					a_ptr->to_d += 2 + rand_int (10);
-					a_ptr->to_h += 2 + rand_int (10);
-				}
-				else add_esp(a_ptr);
-				break;
-			}
 			case TV_SHOT:
 			case TV_ARROW:
 			case TV_BOLT:
@@ -755,10 +710,6 @@ static void add_ability (artifact_type *a_ptr)
 					else do_pval (a_ptr);
 					if (a_ptr->pval < 0) a_ptr->pval = 2;
 				}
-				else if (r < 40)
-				{
-				    a_ptr->flags3 |= TR3_KNOWLEDGE;
-				}
 				else if (r < 55)
 				{
 					a_ptr->flags1 |= TR1_DEX;
@@ -786,10 +737,6 @@ static void add_ability (artifact_type *a_ptr)
                                 {
 					a_ptr->flags1 |= TR1_INFRA;
 					if (a_ptr->pval == 0) a_ptr->pval = randint(2);
-				}
-				else if (r < 26)
-				{
-				    a_ptr->flags3 |= TR3_KNOWLEDGE;
 				}
 				else if (r < 42) add_esp(a_ptr);
 				else if (r < 57) a_ptr->flags3 |= TR3_SEE_INVIS;
@@ -1110,7 +1057,6 @@ artifact_type *randart_make(object_type *o_ptr)
 	    (k_ptr->tval!=TV_HAFTED) &&
 	    (k_ptr->tval!=TV_POLEARM) &&
 	    (k_ptr->tval!=TV_SWORD) &&
-	    (k_ptr->tval!=TV_MSTAFF) &&
 	    (k_ptr->tval!=TV_BOOTS) &&
 	    (k_ptr->tval!=TV_GLOVES) &&
 	    (k_ptr->tval!=TV_HELM) &&
@@ -1336,15 +1282,6 @@ artifact_type *randart_make(object_type *o_ptr)
 
 	/* Extra weapon dice limited to +3 */
 	if (a_ptr->dd > k_ptr->dd + 3) a_ptr->dd = k_ptr->dd + 3;
-
-	/* Mage staves never have high tohit/todam */
-	if (a_ptr->tval == TV_MSTAFF)
-        {
-		if (a_ptr->to_h > 15) a_ptr->to_h = 15;
-		if (a_ptr->to_d > 15) a_ptr->to_d = 15;
-		a_ptr->to_h -= (a_ptr->pval + rand_int(5)) * 3;
-		a_ptr->to_d -= (a_ptr->pval + rand_int(5)) * 3;
-	}
 
 	/* No more than +4 infra on helms and crowns */
 	if ((a_ptr->tval == TV_HELM || a_ptr->tval == TV_CROWN) &&

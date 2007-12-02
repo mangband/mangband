@@ -7302,10 +7302,6 @@ void Handle_item(int Ind, int item)
     {
 	create_artifact_aux(Ind, item);
     }
-    else if (p_ptr->current_telekinesis != NULL)
-    {
-	telekinesis_aux(Ind, item);
-    }
 
 	for (i = 0; i < INVEN_PACK; i++) inven_item_optimize(Ind, i);
 }
