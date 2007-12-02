@@ -367,6 +367,8 @@ extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);
 extern void window_stuff(void);
+extern void display_equip(void);
+
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
