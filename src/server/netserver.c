@@ -3574,33 +3574,24 @@ static int Receive_run(int ind)
 	if (dir == 5)
 		return 1;
 
-#if 0
-	/* Only process the run command if we are not already running in
-	 * the direction requested.
-	 */
-	if (player && (!p_ptr->running || (dir != p_ptr->find_current)))
+	// If we don't want to queue the command, return now.
+	if ((n = do_cmd_run(player,dir)) == 2)
 	{
-#endif
-		// If we don't want to queue the command, return now.
-		if ((n = do_cmd_run(player,dir)) == 2)
+		return 2;
+	}
+	// If do_cmd_run returns a 0, then there wasn't enough energy
+	// to execute the run command.  Queue the run command if desired.
+	else if (n == 0)
+	{
+		// Only buffer a run request if we have no previous commands
+		// buffered, and it is a new direction or we aren't already
+		// running.
+		if (((!connp->q.len) && (dir != p_ptr->find_current)) || (!p_ptr->running))
 		{
-			return 2;
-		}
-		// If do_cmd_run returns a 0, then there wasn't enough energy
-		// to execute the run command.  Queue the run command if desired.
-		else if (n == 0)
-		{
-			// Only buffer a run request if we have no previous commands
-			// buffered, and it is a new direction or we aren't already
-			// running.
-			if (((!connp->q.len) && (dir != p_ptr->find_current)) || (!p_ptr->running))
-			{
-				Packet_printf(&connp->q, "%c%c", ch, dir);
-
+			Packet_printf(&connp->q, "%c%c", ch, dir);
 				return 0;
-			}
 		}
-	//}
+	}
 
 	return 1;
 }

@@ -24,7 +24,7 @@ bool allow_unique_level(int r_idx, int Depth)
 	{
 		player_type *p_ptr = Players[i];
 
-		/* Is the player on the level and did he killed the unique already ? */
+		/* Is the player on the level and did he kill the unique already ? */
 		if (!p_ptr->r_killed[r_idx] && (p_ptr->dun_depth == Depth))
 		{
 			/* One is enough */
@@ -2606,3 +2606,33 @@ int race_index(char * name)
 	}
 	return 0;
 }
+
+/* Takes a (partial) monster name and returns an index, or 0 if no match
+ * was found.
+ */
+int race_index_fuzzy(char * name)
+{
+	char match[MAX_CHARS];
+	char monster[MAX_CHARS];
+	char* str;
+	char* dst;
+	int i;
+
+	/* Lowercase our search string */
+	for(str=name;*str;str++) *str=tolower(*str);
+
+	/* for each monster race */
+	for (i = 1; i <= alloc_race_size; i++)
+	{
+		/* Clean up monster name */
+		dst = monster;
+		for(str=&r_name[r_info[i].name];*str;str++)
+		{
+			if (isalpha(*str) || *str==32) *dst++ = tolower(*str);
+		}
+		/* If cleaned name matches our search string, return it */
+		if (strstr(monster,name)) return i;
+	}
+	return 0;
+}
+

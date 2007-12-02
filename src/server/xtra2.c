@@ -2052,10 +2052,10 @@ void monster_death(int Ind, int m_idx)
 		lore_treasure(m_idx, dump_item, dump_gold);
 	}
 
-    	if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
+    if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
 	{
 		/* Remember */
-	    	p_ptr->r_killed[m_ptr->r_idx]++;
+		p_ptr->r_killed[m_ptr->r_idx]++;
 	}
 
 
@@ -2067,7 +2067,7 @@ void monster_death(int Ind, int m_idx)
 		
 		/* give credit to the killer by default */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
-	msg_print(Ind, buf);
+		msg_print(Ind, buf);
 
 		/* message for event history */
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
@@ -2247,6 +2247,7 @@ void player_death(int Ind)
 	char buf[1024];
 	char dumpname[42];
 	int i;
+	u32b uniques;
 	s16b num_keys = 0;
 	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
@@ -2281,36 +2282,6 @@ void player_death(int Ind)
 			/* He leaves */
 			party_leave(Ind);
 		}
-
-/* No more respawn */
-#if 0
-		/* Bring back to life the uniques he slew */
-		for (i = 1; i < MAX_R_IDX; i++)
-		{
-			monster_race *r_ptr = &r_info[i];
-
-			/* Check for unique-ness */
-			if (!(r_ptr->flags1 & RF1_UNIQUE))
-				continue;
-
-			/* See if this guy was the killer */
-			if (r_ptr->killer == p_ptr->id)
-			{
-				/* Resurrect the unique */
-				r_ptr->max_num = 1;
-
-				/* No more killer */
-				r_ptr->killer = 0;
-				
-				r_ptr->respawn_timer = -1;
-				
-				/* Tell every player */ 
-				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
-				msg_broadcast(0, buf);
-				
-			}
-		}
-#endif
 
 		/* One less player here */
 		players_on_depth[p_ptr->dun_depth]--;
@@ -2487,35 +2458,33 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	}
 
 	if (p_ptr->fruit_bat != -1)
-
-#if 0
-	/* Bring back to life the uniques he slew */
-	for (i = 1; i < MAX_R_IDX; i++)
 	{
-		monster_race *r_ptr = &r_info[i];
-
-		/* Check for unique-ness */
-		if (!(r_ptr->flags1 & RF1_UNIQUE))
-			continue;
-
-		/* See if this guy was the killer */
-		if (r_ptr->killer == p_ptr->id)
+		/* Bring back to life the uniques he slew */
+		for (i = 1; i < MAX_R_IDX; i++)
 		{
-			/* Resurrect the unique */
-			r_ptr->max_num = 1;
+			monster_race *r_ptr = &r_info[i];
 
-			/* No more killer */
-			r_ptr->killer = 0;
-			
-			r_ptr->respawn_timer = 0;
-			sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));
-				
-			/* Tell every player */
-			msg_broadcast(0,buf);
-			
+			/* Check for unique-ness */
+			if (!(r_ptr->flags1 & RF1_UNIQUE))
+				continue;
+
+			/* If we have killed this unique, bring it back */
+			if (p_ptr->r_killed[i])
+			{
+				/* Bring back if unique_depth > our_max_depth - 35% */
+				uniques = p_ptr->max_dlv-((p_ptr->max_dlv*11468)>>15);
+				if (r_ptr->level > uniques )
+				{
+					printf("r_ptr->level = %d, uniques = %d\n",r_ptr->level,uniques);
+					p_ptr->r_killed[i] = 0;
+
+					/* Tell the player */ 
+					sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
+					msg_print(Ind, buf);
+				}
+			}
 		}
 	}
-#endif
 
 	/* Handle suicide */
 	if (!p_ptr->alive)
@@ -2611,6 +2580,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	if (p_ptr->poisoned) (void)set_poisoned(Ind, 0);
 	if (p_ptr->stun) (void)set_stun(Ind, 0);
 	if (p_ptr->cut) (void)set_cut(Ind, 0);
+	if (p_ptr->shero) (void)set_shero(Ind, 0);
 	if (p_ptr->fruit_bat != -1) (void)set_food(Ind, PY_FOOD_MAX - 1);
 	else p_ptr->fruit_bat = 2;
 	/* Remove the death flag */
@@ -4159,7 +4129,7 @@ u16b master_summon_aux_monster_type( char monster_type, char * monster_parms)
 		case 's': 
 		{
 			/* if the name was specified, summon this exact race */
-			if (strlen(monster_parms) > 1) return race_index(monster_parms);
+			if (strlen(monster_parms) > 1) return race_index_fuzzy(monster_parms);
 			/* otherwise, summon a monster that looks like us */
 			else
 			{
