@@ -122,7 +122,7 @@ extern char *strrchr();
 
 
 #if !defined(linux) && !defined(__MWERKS__) && !defined(ACORN)
-extern long atol();
+/*extern long atol(const char *);*/
 #endif
 
 
