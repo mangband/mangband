@@ -2955,11 +2955,11 @@ void acquirement(int Depth, int y1, int x1, int num)
 			/* Must have a clean grid */
 			if (!cave_clean_bold(Depth, y, x)) continue;
 
-            /* Place a great object */
-            oblev = object_level;
-            object_level = Depth;
-            ok = place_object(Depth, y, x, TRUE, TRUE, 0);
-            object_level = oblev;
+			/* Place a great object */
+			oblev = object_level;
+			object_level = Depth;
+			ok = place_object(Depth, y, x, TRUE, TRUE, 0);
+			object_level = oblev;
 
 			/* Notice */
 			note_spot_depth(Depth, y, x);
