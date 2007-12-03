@@ -2,7 +2,7 @@
  * Client-side store stuff.
  */
 
-#include "../common/angband.h"
+#include "angband.h"
 
 static bool leave_store;
 static int store_top;

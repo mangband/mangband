@@ -45,7 +45,7 @@
 #endif
 
 
-#include "../common/angband.h"
+#include "angband.h"
 #include "version.h"
 #include "const.h"
 /*#include "error.h"*/

@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-/* #define CLIENT */
+#define CLIENT
 
-#include "../common/angband.h"
+#include "angband.h"
 #include "../common/md5.h"
 
 

@@ -2,7 +2,7 @@
 
 
 
-#include "../common/angband.h"
+#include "angband.h"
 
 /*
  * Print character info at given row, column in a 13 char field
@@ -1017,7 +1017,7 @@ void fix_player(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_player(0, FALSE);
+		display_player(FALSE);
 
 		/* Fresh */
 		Term_fresh();
@@ -1290,7 +1290,7 @@ static cptr likert(int x, int y)
 }
 
 
-void display_player(int Ind, int hist)
+void display_player(int hist)
 {
 	int i;
 	char buf[80];

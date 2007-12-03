@@ -3,7 +3,7 @@
  * file, and some various "pref files".
  */
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 /*

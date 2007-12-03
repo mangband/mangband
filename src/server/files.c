@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
+#include "angband.h"
 
 #ifdef HANDLE_SIGNALS
 #include <signal.h>
@@ -801,7 +801,7 @@ static void display_player_middle(int Ind)
  *
  * The top two and bottom two lines are left blank.
  */
-void display_player(int Ind, int do_hist)
+void display_player(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -1374,7 +1374,7 @@ errr file_character(cptr name, bool full)
 	Term_save();
 
 	/* Display the player (with various) */
-	display_player(Ind, FALSE);
+	display_player(FALSE);
 
 	/* Dump part of the screen */
 	for (y = 2; y < 22; y++)
@@ -1397,7 +1397,7 @@ errr file_character(cptr name, bool full)
 	}
 
 	/* Display the player (with history) */
-	display_player(Ind, TRUE);
+	display_player(TRUE);
 
 	/* Dump part of the screen */
 	for (y = 15; y < 20; y++)
@@ -2109,7 +2109,7 @@ static void show_info(int Ind)
 		o_ptr = &inventory[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(Ind, o_ptr);
+			object_aware(o_ptr);
 			object_known(o_ptr);
 		}
 	}
@@ -2120,7 +2120,7 @@ static void show_info(int Ind)
 		o_ptr = &st_ptr->stock[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(Ind, o_ptr);
+			object_aware(o_ptr);
 			object_known(o_ptr);
 		}
 	}
@@ -2165,7 +2165,7 @@ static void show_info(int Ind)
 
 
 	/* Show player on screen */
-	display_player(Ind, FALSE);
+	display_player(FALSE);
 
 	/* Prompt for inventory */
 	prt("Hit any key to see more information (ESC to abort): ", 23, 0);

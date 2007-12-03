@@ -3,10 +3,10 @@
 /* Purpose: Angband utilities -BEN- */
 
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
-/*#include "externs.h"*/
+#include "angband.h"
+#include "externs.h"
 
 #ifndef HAS_MEMSET
 

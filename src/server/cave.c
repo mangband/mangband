@@ -2,9 +2,9 @@
 
 /* Purpose: low level dungeon routines -BEN- */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 

@@ -8,10 +8,10 @@
  * included in all such copies.
  */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
-/*#include "externs.h"*/
+#include "angband.h"
+#include "externs.h"
 
 
 int find_player(s32b id)
@@ -2348,7 +2348,7 @@ void play_game(bool new_game)
 	if (!new_game)
 	{
 		/* Process the player name */
-		/*process_player_name(Ind, FALSE);*/
+		/*process_player_name(FALSE);*/
 	}
 
 	/* Init the RNG */

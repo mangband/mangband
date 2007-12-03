@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 /*
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 #if 0
 
 	/* Process the player name */
-	process_player_name(Ind, TRUE);
+	process_player_name(TRUE);
 #endif
 
 /* This is all removed, as there is no need for the server to open a term */

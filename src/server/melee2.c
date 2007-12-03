@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 

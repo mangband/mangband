@@ -1,4 +1,4 @@
-#include "../common/angband.h"
+#include "angband.h"
 
 #define MACRO_USE_CMD	0x01
 #define MACRO_USE_STD	0x02

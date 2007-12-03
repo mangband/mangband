@@ -29,10 +29,7 @@
 #include "../common/z-virt.h"
 #include "../common/z-form.h"
 #include "../common/z-rand.h"
-
-#ifdef CLIENT
 #include "z-term.h"
-#endif
 
 
 /*
@@ -43,8 +40,6 @@
 
 /*
  * Now, include the define's, the type's, and the extern's
- *
- * Note that the externs are NOT common.
  */
 #include "../common/defines.h"
 #include "../common/types.h"

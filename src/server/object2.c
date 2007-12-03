@@ -10,9 +10,9 @@
  * included in all such copies.
  */
 
-/* #define SERVER */
+#define SERVER
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 
@@ -3246,7 +3246,7 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			everyone_lite_spot(Depth, ny, nx);
 
 			/* Sound */
-			/*sound(Ind, SOUND_DROP);*/
+			/*sound(SOUND_DROP);*/
 
 			/* Mega-Hack -- no message if "dropped" by player */
 			/* Message when an object falls under the player */

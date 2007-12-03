@@ -6,7 +6,7 @@
  * Windows), then it should be placed in the "main-???.c" file.
  */
 
-#include "../common/angband.h"
+#include "angband.h"
 
 static int Socket;
 

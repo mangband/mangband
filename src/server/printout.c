@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include "../common/angband.h"
+#include "angband.h"
 
 static FILE *fp = NULL;
 static int init = FALSE;

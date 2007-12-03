@@ -10,7 +10,7 @@
  * included in all such copies.
  */
 
-#include "../common/angband.h"
+#include "angband.h"
 
 
 

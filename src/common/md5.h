@@ -22,7 +22,7 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 #ifndef INCLUDED_ANGBAND_H
-#include "../common/angband.h"
+#include "angband.h"
 #endif
 #include "global.h"
 
