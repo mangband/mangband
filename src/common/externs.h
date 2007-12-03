@@ -655,7 +655,7 @@ extern void invwipe(object_type *o_ptr);
 extern void invcopy(object_type *o_ptr, int k_idx);
 extern void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, bool great);
 extern bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark);
-extern void acquirement(int Depth, int y1, int x1, int num, bool special);
+extern void acquirement(int Depth, int y1, int x1, int num);
 extern void place_trap(int Depth, int y, int x);
 extern void place_gold(int Depth, int y, int x);
 extern void process_objects(void);
