@@ -12,120 +12,68 @@
  * Not-so-Automatically generated "variable" declarations
  */
 
-/* tables.c */
-extern s16b ddx[10];
-extern s16b ddy[10];
-extern char hexsym[16];
-extern owner_type owners[MAX_STORES][MAX_OWNERS];
-extern player_race race_info[MAX_RACES];
-extern player_class class_info[MAX_CLASS];
-extern option_type option_info[];
-extern cptr stat_names[6];
-extern cptr stat_names_reduced[6];
-extern cptr ang_term_name[8];
-extern cptr window_flag_desc[32];
-
-/* set_focus.c */
-extern void set_chat_focus( void );
-extern void unset_chat_focus( void );
-extern void stretch_chat_ctrl( void );
-
-
-
-
 /* variable.c */
 extern char nick[80];
 extern char pass[80];
-
 extern char real_name[80];
-
 extern char server_name[80];
-
 extern object_type inventory[INVEN_TOTAL];
 extern char inventory_name[INVEN_TOTAL][80];
-
 extern store_type store;
 extern owner_type store_owner;
 extern int store_prices[STORE_INVEN_MAX];
 extern char store_names[STORE_INVEN_MAX][80];
 extern s16b store_num;
-
 extern char spell_info[26][9][80];
-
 extern char party_info[160];
-
 extern setup_t Setup;
 extern client_setup_t Client_setup;
-
 extern bool shopping;
-
 extern s16b last_line_info;
 extern s16b cur_line;
 extern s16b max_line;
-
 extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;
-
 extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;
-
 extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
-
 extern int special_line_type;
-
 extern bool inkey_base;
 extern bool inkey_scan;
 extern bool inkey_flag;
-
 extern s16b macro__num;
 extern cptr *macro__pat;
 extern cptr *macro__act;
 extern bool *macro__cmd;
 extern char *macro__buf;
-
 extern u16b message__next;
 extern u16b message__last;
 extern u16b message__head;
 extern u16b message__tail;
 extern u16b *message__ptr;
 extern char *message__buf;
-
-
-
-
 extern bool msg_flag;
-
 extern term *ang_term[8];
 extern u32b window_flag[8];
-
 extern byte color_table[256][4];
-
 extern cptr ANGBAND_SYS;
-
 extern byte keymap_cmds[128];
 extern byte keymap_dirs[128];
-
 extern s16b command_cmd;
 extern s16b command_dir;
-
 extern s16b race;
 extern s16b class;
 extern s16b sex;
-
 extern s16b stat_order[6];
-
 extern bool topline_icky;
 extern bool screen_icky;
 extern bool party_mode;
-
-
 extern cptr race_title[];
 extern cptr class_title[];
-
 extern cptr ANGBAND_DIR;
 extern cptr ANGBAND_DIR_APEX;
 extern cptr ANGBAND_DIR_BONE;
@@ -137,10 +85,8 @@ extern cptr ANGBAND_DIR_INFO;
 extern cptr ANGBAND_DIR_SAVE;
 extern cptr ANGBAND_DIR_USER;
 extern cptr ANGBAND_DIR_XTRA;
-
 extern bool use_graphics;
 extern bool use_sound;
-
 extern bool rogue_like_commands;
 extern bool quick_messages;
 extern bool other_query_flag;
@@ -157,7 +103,6 @@ extern bool show_choices;
 extern bool show_details;
 extern bool ring_bell;
 extern bool use_color;
-
 extern bool find_ignore_stairs;
 extern bool find_ignore_doors;
 extern bool find_cut;
@@ -170,7 +115,6 @@ extern bool disturb_minor;
 extern bool disturb_other;
 extern bool alert_hitpoint;
 extern bool alert_failure;
-
 extern bool auto_haggle;
 extern bool auto_scum;
 extern bool stack_allow_items;
@@ -187,7 +131,6 @@ extern bool track_follow;
 extern bool track_target;
 extern bool smart_learn;
 extern bool smart_cheat;
-
 extern bool view_reduce_lite;
 extern bool view_reduce_view;
 extern bool avoid_abort;
@@ -204,8 +147,6 @@ extern bool view_yellow_lite;
 extern bool view_bright_lite;
 extern bool view_granite_lite;
 extern bool view_special_lite;
-
-
 
 /*
  * Not-so-Automatically generated "function declarations"
@@ -367,8 +308,7 @@ extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);
 extern void window_stuff(void);
-extern void display_equip(void);
-
+/*extern void display_equip(void);*/
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
@@ -391,7 +331,6 @@ extern int Net_start(void);
 extern int Net_input(void);
 extern int Net_packet(void);
 extern int Flush_queue(void);
-
 extern int Send_search(void);
 extern int Send_walk(int dir);
 extern int Send_run(int dir);
@@ -446,9 +385,12 @@ extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
-
 extern int Send_mind();
 
+/* set_focus.c */
+extern void set_chat_focus( void );
+extern void unset_chat_focus( void );
+extern void stretch_chat_ctrl( void );
 
 /*
  * Hack -- conditional (or "bizarre") externs

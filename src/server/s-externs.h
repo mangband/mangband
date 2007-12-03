@@ -68,7 +68,7 @@ extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
 extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
-extern option_type option_info[];
+/*extern option_type option_info[];*/
 
 /* variable.c */
 extern cptr copyright[6];
