@@ -1259,8 +1259,7 @@ static void store_create(int st)
 			if (black_market_crap(o_ptr)) continue;
 
 			/* Hack -- No "cheap" items */
-	    /* Value of 100 should prevent generation of stuff like amulets of adornment */
-            if (object_value(0, o_ptr) < 100) continue;
+			if (object_value(0, o_ptr) < 40) continue;
 		}
 
 		/* Prune normal stores */
