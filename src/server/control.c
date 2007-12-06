@@ -233,7 +233,7 @@ static void console_shutdown(void)
  */
 void NewConsole(int read_fd, int arg)
 {
-	char ch, passwd[80], buf[1024], cmd[16];
+	char ch, passwd[80], buf[1024];
 	char *params;
 	int i, j, bytes, buflen;
 	static int newsock = 0;
@@ -324,53 +324,50 @@ void NewConsole(int read_fd, int arg)
 	/* Acquire command in the form: <command> <params> */
 	Packet_scanf(&console_buf, "%N", buf);
 	buflen = strlen(buf);
-	for(i=0;i<sizeof(cmd);i++)
+
+	/* Split up command and params */
+	if(params = strstr(buf," "))
 	{
-		if (i < buflen)
-		{
-			if (buf[i] == ' ') {
-				cmd[i] = '\0';
-				params = &buf[i+1];
-				break;
-			} else {
-				cmd[i] = buf[i];
-			}
-		}
+		*params++ = '\0';
+	}
+	else
+	{
+		params = buf;
 	}
 
 	/* Clear buffer */
 	Sockbuf_clear(&console_buf);
 
 	/* Determine what the command is */
-	if (!strncmp(cmd,"listen",6)) 
+	if (!strncmp(buf,"listen",6)) 
 	{
 		console_listen = TRUE;
 	}
-	else if (!strncmp(cmd,"who",6)) 
+	else if (!strncmp(buf,"who",6)) 
 	{
 		console_who();
 	}
-	else if (!strncmp(cmd,"shutdown",8))
+	else if (!strncmp(buf,"shutdown",8))
 	{
 		console_shutdown();
 	}
-	else if (!strncmp(cmd,"msg",3))
+	else if (!strncmp(buf,"msg",3))
 	{
 		console_message(params);
 	}
-	else if (!strncmp(cmd,"kick",4))
+	else if (!strncmp(buf,"kick",4))
 	{
 		console_kick_player(params);
 	}
-	else if (!strncmp(cmd,"reload",6))
+	else if (!strncmp(buf,"reload",6))
 	{
 		console_reload_server_preferences();
 	}
-	else if (!strncmp(cmd,"whois",5))
+	else if (!strncmp(buf,"whois",5))
 	{
 		console_whois(params);
 	}
-	else if (!strncmp(cmd,"rngtest",7))
+	else if (!strncmp(buf,"rngtest",7))
 	{
 		console_rng_test();
 	}
