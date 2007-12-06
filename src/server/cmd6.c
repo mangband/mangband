@@ -1470,14 +1470,14 @@ void do_cmd_read_scroll(int Ind, int item)
 
 		case SV_SCROLL_ACQUIREMENT:
 		{
-            acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1, FALSE);
+            acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1);
 			ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ACQUIREMENT:
 		{
-            acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, randint(2) + 1, FALSE);
+            acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, randint(2) + 1);
 			ident = TRUE;
 			break;
 		}

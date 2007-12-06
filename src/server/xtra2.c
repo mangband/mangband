@@ -4230,7 +4230,7 @@ u16b master_summon_aux_monster_type( char monster_type, char * monster_parms)
 bool master_acquire(int Ind, char * parms)
 {
 	player_type * p_ptr = Players[Ind];
-    acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1, FALSE);
+    acquirement(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 1);
 	return TRUE;
 }
 

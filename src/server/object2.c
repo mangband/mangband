@@ -2934,11 +2934,11 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 /*
  * Scatter some "great" objects near the player
  */
-void acquirement(int Depth, int y1, int x1, int num, bool special)
+void acquirement(int Depth, int y1, int x1, int num)
 {
 	int        y, x, i, d;
     bool ok = FALSE;
-    int tries = 20; /* should be enough */
+    int oblev;
 
 	/* Scatter some objects */
 	for (; num > 0; --num)
@@ -2955,15 +2955,11 @@ void acquirement(int Depth, int y1, int x1, int num, bool special)
 			/* Must have a clean grid */
 			if (!cave_clean_bold(Depth, y, x)) continue;
 
-            /* Place a great object */
-            ok = place_object(Depth, y, x, TRUE, TRUE, 0);
-
-	    /* Handle special objects */
-	    while (special && !ok && --tries)
-	    {
-		delete_object(Depth, y, x);
-		ok = place_object(Depth, y, x, TRUE, TRUE, 0);
-	    }
+			/* Place a great object */
+			oblev = object_level;
+			object_level = Depth;
+			ok = place_object(Depth, y, x, TRUE, TRUE, 0);
+			object_level = oblev;
 
 			/* Notice */
 			note_spot_depth(Depth, y, x);
