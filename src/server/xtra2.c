@@ -2248,7 +2248,6 @@ void player_death(int Ind)
 	char dumpname[42];
 	int i;
 	u32b uniques;
-	s16b num_keys = 0;
 	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
@@ -2413,14 +2412,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		/* If we committed suicide, only drop artifacts */
 		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
 
-		/* do not drop keys, but track them so we don't reset inventory
-		   as empty if there are keys in it. */
-		if (p_ptr->inventory[i].tval == TV_KEY)
-		{ /* Move the key to the first available slot, then zero the old slot */
-			p_ptr->inventory[num_keys++] = p_ptr->inventory[i];
-			p_ptr->inventory[i].iy = p_ptr->inventory[i].ix = p_ptr->inventory[i].dun_depth = 0;
-			continue;
-		}
+		/* do not drop keys */
+
+		if (p_ptr->inventory[i].tval == TV_KEY) continue;
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 #if !defined( PKILL )
@@ -2589,8 +2583,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
 
-	/* He is carrying nothing except keys */
-	p_ptr->inven_cnt = num_keys;
+	/* He is carrying nothing */
+	p_ptr->inven_cnt = 0;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);
