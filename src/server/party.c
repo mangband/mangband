@@ -131,6 +131,19 @@ int party_add(int adder, cptr name)
 		return FALSE;
 	}
 
+	/* Check for hostility */
+	if (check_hostile(Ind, adder) ) 
+	{
+		msg_print(adder, "That player is hostile towards you.");
+		return FALSE;
+	}
+	
+	if (check_hostile(adder, Ind) ) 
+	{
+		msg_print(adder, "You are hostile to that player.");
+		return FALSE;
+	}
+
 	/* Set pointer */
 	p_ptr = Players[Ind];
 
