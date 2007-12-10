@@ -78,6 +78,8 @@ static int Receive_ack(int ind);
 static int Receive_discard(int ind);
 static int Receive_undefined(int ind);
 
+static int Receive_pass(int ind);
+
 static int Receive_keepalive(int ind);
 static int Receive_walk(int ind);
 static int Receive_run(int ind);

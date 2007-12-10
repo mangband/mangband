@@ -1105,7 +1105,23 @@ bool get_string(cptr prompt, char *buf, int len)
 	return (res);
 }
 
+/* Same as get_string, but with ** .. stupid code duplication :( */
+bool get_string_masked(cptr prompt, char *buf, int len)
+{
+	bool res;
 
+    /* Display prompt */
+	prt(prompt, 0, 0);
+
+	/* Ask the user for a string */
+	res = askfor_aux(buf, len, 1);
+
+	/* Clear prompt */
+	prt("", 0, 0);
+
+	/* Result */
+	return (res);
+}
 /*
  * Prompts for a keypress
  *

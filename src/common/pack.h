@@ -142,7 +142,7 @@
 
 /* Extra packets */
 #define PKT_OBSERVE		160
-
+#define PKT_CHANGEPASS		162
 
 
 /*

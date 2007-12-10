@@ -1097,7 +1097,36 @@ void cmd_look(void)
 	}
 }
 
-			
+void cmd_changepass(void) 
+{
+	int done = 0;
+	char pass1[MAX_PASS_LEN]; 	pass1[0] = '\0';
+	char pass2[MAX_PASS_LEN];	pass2[0] = '\0';
+
+
+	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1)) 
+	{
+		if (get_string_masked("Confirm It: ", pass2, MAX_PASS_LEN-1)) 
+		{
+			if (!strcmp(pass1,pass2)) {
+				MD5Password(pass1);
+				Send_pass(pass1);
+				prt(" Password changed [press any key]",0,0);
+			} else {
+				prt(" Not matching [paused]",0,0);
+			}
+
+			int pause = 0;
+			char ch;
+			while (!pause)
+			{
+				ch = inkey();
+				if (ch) pause = 1;
+			}
+		}
+	}
+}
+
 void cmd_character(void)
 {
 	char ch = 0;
@@ -1115,7 +1144,7 @@ void cmd_character(void)
 		display_player(hist);
 
 		/* Display message */
-		prt("[ESC to quit, h to toggle history]", 21, 24);
+		prt("[ESC to quit, h to toggle history, p to change password]", 21, 12);
 
 		/* Wait for key */
 		ch = inkey();
@@ -1125,6 +1154,12 @@ void cmd_character(void)
 		{
 			/* Toggle */
 			hist = !hist;
+		}
+		
+		/* Check for "change password" */
+		if (ch == 'p' || ch == 'P') 
+		{
+			cmd_changepass();
 		}
 
 		/* Check for quit */

@@ -225,6 +225,7 @@ static void Init_receive(void)
 	playing_receive[PKT_AUTOPHASE]		= Receive_autophase;
 	
 	playing_receive[PKT_CLEAR] = Receive_clear;
+	playing_receive[PKT_CHANGEPASS] = Receive_pass;
 }
 
 static int Init_setup(void)
@@ -6373,6 +6374,41 @@ static int Receive_item(int ind)
 }
 
 
+static int change_password(Ind, buf)
+int Ind;
+char * buf;
+{
+
+	player_type *p_ptr = Players[Ind];
+	if(p_ptr) {
+		strncpy(p_ptr->pass, buf, MAX_PASS_LEN);
+	};
+};
+
+
+static int Receive_pass(int ind)
+{
+	connection_t *connp = &Conn[ind];
+
+	char ch, buf[1024];
+
+	int n, player;
+
+	if (connp->id != -1) player = GetInd[connp->id];
+		else player = 0;
+
+	if ((n = Packet_scanf(&connp->r, "%c%S", &ch, buf)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	change_password(player, buf);
+
+	return 1;
+}
+
 static int Receive_message(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -7298,16 +7334,6 @@ void Handle_item(int Ind, int item)
 }
 
 
-static int change_password(Ind, buf)
-int Ind;
-char * buf;
-{
-
-	player_type *p_ptr = Players[Ind];
-	if(p_ptr) {
-		strncpy(p_ptr->pass, buf, MAX_PASS_LEN);
-	};
-};
 
 /* receive a dungeon master command */
 static int Receive_master(int ind)

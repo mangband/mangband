@@ -2753,6 +2753,23 @@ int Send_msg(cptr message)
 	return 1;
 }
 
+int Send_pass(cptr newpass)
+{
+	int	n;
+
+	if (newpass && strlen(newpass))
+	{
+	    if ((n = Packet_printf(&wbuf, "%c%S", PKT_CHANGEPASS, newpass)) <= 0)
+	    {
+		return n;
+	    }
+	
+	}
+
+	return 1;
+}
+
+
 int Send_fire(int item, int dir)
 {
 	int	n;
