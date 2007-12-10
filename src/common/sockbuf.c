@@ -24,8 +24,6 @@
 #ifdef WIN32
 
 # include <winsock.h>
-/* Hack - my errno doesn't include EWOULDBLOCK * - GP */
-# define EWOULDBLOCK WSAEWOULDBLOCK
 /* this next one redefines va_start and va_end, but it is necessary -GP*/
 # include <stdarg.h>
 #else

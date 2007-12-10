@@ -89,10 +89,6 @@
 #define MAX_MOTD_SIZE			(30*1024)
 #define MAX_MOTD_LOOPS			120
 
-#ifdef WINDOWS
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#endif
-
 connection_t	*Conn = NULL;
 static int		max_connections = 0;
 static setup_t		Setup;
