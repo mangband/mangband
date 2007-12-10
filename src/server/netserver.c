@@ -646,8 +646,6 @@ static void Contact(int fd, int arg)
     struct sockaddr_in sin;
     struct hostent *host;
     
-    printf("Game socket num %d\n",fd);
-
 	/* Create a TCP socket for communication with whoever contacted us */
 	/* Hack -- check if this data has arrived on the contact socket or not.
 	 * If it has, then we have not created a connection with the client yet, 
