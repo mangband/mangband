@@ -246,16 +246,22 @@ void NewConsole(int read_fd, int arg)
 	if (read_fd == ConsoleSocket)
 	{
 		// Hack -- make sure that two people haven't tried to use mangconsole
-		// at the same time.  Since I am currently too lazy to support this,
+		// at the same time.  Since I (AD) am currently too lazy to support this,
 		// we will remove the input of the first person when the second person
 		// connects.
 		if (newsock) remove_input(newsock);
 		if ((newsock = SocketAccept(read_fd)) == -1)
 		{
+			plog("Couldn't accept console connection");
+			return;
 			quit("Couldn't accept TCP connection.\n");
 		}
 		console_buf.sock = newsock;
-		install_input(NewConsole, newsock, 2);
+		if (SetSocketNonBlocking(newsock, 1) == -1)
+		{
+			plog("Can't make contact socket non-blocking");
+		}
+		install_input(NewConsole, newsock, 5);
 		console_authenticated = FALSE;
 		console_listen = FALSE;
 		Packet_printf(&console_buf, "%s","Connected\n");
@@ -270,16 +276,25 @@ void NewConsole(int read_fd, int arg)
 	/* Read the message */
 	bytes = DgramReceiveAny(read_fd, console_buf.buf, console_buf.size);
 
-	/* Check for errors or our TCP connection closing */
-	if (bytes <= 0)
+	/* If this happens our TCP connection has probably been severed. Remove the input. */
+	if(!bytes && errno != EAGAIN && errno != EWOULDBLOCK)
 	{
-		/* If this happens our TCP connection has probably been severed.
-		 * Remove the input.
-		 */
-		//s_printf("Error reading from console socket\n");
 		remove_input(newsock);
+		close(newsock);
 		newsock = 0;
-
+	}
+	if (bytes < 0)
+	{
+		/* Hack - ignore these errors */
+		if(errno == EAGAIN || errno == EINTR)
+		{ 
+			GetSocketError(newsock);
+			return;
+		}
+		/* We have a socket error, disconnect */
+		remove_input(newsock);
+		close(newsock);
+		newsock = 0;
 		return;
 	}
 

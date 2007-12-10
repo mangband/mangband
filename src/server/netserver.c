@@ -478,6 +478,10 @@ void setup_contact_socket(void)
 		s_printf("Couldn't create console socket\n");
 		return;
 	}
+	if (SetSocketNonBlocking(ConsoleSocket, 1) == -1)
+	{
+		plog("Can't make console socket non-blocking");
+	}
 	if (SocketLinger(ConsoleSocket) == -1)
 	{
 		plog("Couldn't set SO_LINGER on the console socket");
@@ -642,6 +646,7 @@ static void Contact(int fd, int arg)
     struct sockaddr_in sin;
     struct hostent *host;
     
+    printf("Game socket num %d\n",fd);
 
 	/* Create a TCP socket for communication with whoever contacted us */
 	/* Hack -- check if this data has arrived on the contact socket or not.
