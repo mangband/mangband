@@ -118,6 +118,16 @@ int main(int argc, char **argv)
 	argv0 = argv[0];
 
 	/* Attempt to initialize a visual module */
+#ifdef USE_SDL
+	/* Attempt to use the "main-sdl.c" support */
+	if (!done)
+	{
+		extern errr init_sdl(int argc, char **argv);
+		if (0 == init_sdl(argc,argv)) done = TRUE;
+		if (done) ANGBAND_SYS = "sdl";
+	}
+#endif
+
 #ifdef USE_XAW
 	/* Attempt to use the "main-xaw.c" support */
 	if (!done)
@@ -183,17 +193,33 @@ int main(int argc, char **argv)
 	/* Always call with NULL argument */
 	client_init(NULL);
 #else
-	if (argc == 2)
-	{
-		/* Initialize with given server name */
-		client_init(argv[1]);
-	}
-	else
-	{
-		/* Initialize and query metaserver */
+	#ifdef WINDOWS
+		/* Initialize WinSock */
+		WSADATA wsadata;
+		WSAStartup(MAKEWORD(1, 1), &wsadata);
+	#endif
+
+	/* using SDL, pass command keys on (ugly hack)
+		after we work out some config mechanisms,
+		it'll be possible to clear this all up	 */
+
+	#ifdef USE_SDL
 		client_init(NULL);
-	}
+	#else
+		if (argc == 2)
+		{
+			/* Initialize with given server name */
+			client_init(argv[1]);
+		}
+		else
+		{
+			/* Initialize and query metaserver */
+			client_init(NULL);
+		}
+	#endif
+
 #endif
+
 
 	return 0;
 }

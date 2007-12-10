@@ -1231,12 +1231,14 @@ void cmd_help(void)
 
 void cmd_message(void)
 {
-
+	//[flm] powerhack to prevent next hack:
+	bool refocus_chat = TRUE;
+#ifdef USE_SDL
+	refocus_chat = FALSE;
+#endif
 # define PMSG_TERM 4
-
 	// [hack] hack to just change the window focus in WIN32 client
-
-	if (ang_term[PMSG_TERM]) {
+	if (refocus_chat && ang_term[PMSG_TERM]) {
 		set_chat_focus();
 	} else {
 		char buf[60];

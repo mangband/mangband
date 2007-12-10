@@ -79,7 +79,7 @@ CLI_SRCS = \
   client/z-term.c client/c-util.c client/c-cmd.c client/c-inven.c \
   client/c-files.c client/c-tables.c client/c-store.c client/c-init.c \
   client/variable.c client/main-ibm.c client/main-cap.c client/main-gcu.c \
-  client/main-x11.c client/main-xaw.c client/netclient.c client/c-birth.c \
+  client/main-x11.c client/main-sdl.c client/maim-sdl.c client/sdl-xxx.c client/main-xaw.c client/netclient.c client/c-birth.c \
   client/c-xtra1.c client/c-xtra2.c client/c-spell.c client/client.c client/set_focus.c \
   common/md5.c
 
@@ -89,7 +89,7 @@ CLI_OBJS = \
   client/z-term.o client/c-util.o client/c-cmd.o client/c-inven.o \
   client/c-files.o client/c-tables.o client/c-store.o client/c-init.o \
   client/variable.o client/main-ibm.o client/main-cap.o client/main-gcu.o \
-  client/main-x11.o client/main-xaw.o client/netclient.o client/c-birth.o \
+  client/main-x11.o client/main-sdl.o client/maim-sdl.o client/sdl-xxx.o client/main-xaw.o client/netclient.o client/c-birth.o \
   client/c-xtra1.o client/c-xtra2.o client/c-spell.o client/client.o client/set_focus.o \
   common/md5.o
 
@@ -119,6 +119,15 @@ CLI_OBJS = \
 # This is my compiler of choice, it seems to work most everywhere
 #
 CC = gcc
+
+
+#
+# SDL version (see main-sdl.c)
+#
+#
+#
+#CFLAGS = -Wall -g -pipe -D"USE_SDL" -D"USE_XXX" `sdl-config --cflags`
+#LIBS = -lncurses `sdl-config --libs`
 
 
 #
