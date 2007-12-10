@@ -1100,8 +1100,12 @@ void cmd_look(void)
 void cmd_changepass(void) 
 {
 	int done = 0;
-	char pass1[MAX_PASS_LEN]; 	pass1[0] = '\0';
-	char pass2[MAX_PASS_LEN];	pass2[0] = '\0';
+	char pass1[MAX_PASS_LEN];
+	char pass2[MAX_PASS_LEN];
+	int pause = 0;
+	char ch;
+	pass1[0] = '\0';
+	pass2[0] = '\0';
 
 
 	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1)) 
@@ -1116,8 +1120,6 @@ void cmd_changepass(void)
 				prt(" Not matching [paused]",0,0);
 			}
 
-			int pause = 0;
-			char ch;
 			while (!pause)
 			{
 				ch = inkey();
