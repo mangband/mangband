@@ -2631,7 +2631,7 @@ void player_talk_aux(int Ind, cptr message)
 	else
 	{
 		/* Default name */
-		strcpy(sender, "irc");
+		strcpy(sender, "");
 	}
 
 	/* Default to no search string */
@@ -2802,7 +2802,14 @@ void player_talk_aux(int Ind, cptr message)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Send message */
-		msg_format(i, "[%s] %s", sender, message);
+		if(Ind)
+		{
+			msg_format(i, "[%s] %s", sender, message);
+		}
+		else
+		{
+			msg_format(i, "%s", message);
+		}
 	}
 	/* Send to the console too */
 	console_print(format("[%s] %s", sender, message));
