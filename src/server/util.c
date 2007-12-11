@@ -2472,7 +2472,7 @@ void msg_print(int Ind, cptr msg)
 {
 	/* Log messages for each player, so we can dump last messages
 	 * in serer-side character dumps */
-	if(msg)
+	if(msg && Ind)
 	{
 		player_type *p_ptr = Players[Ind];
 		strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
@@ -2748,7 +2748,7 @@ void player_talk_aux(int Ind, cptr message)
 		 */
 		if(strcmp( search, cfg_dungeon_master)) {
 			/* Send an error message */
-			msg_format(Ind, "Could not match name '%s'.", search);
+			if ( Ind ) msg_format(Ind, "Could not match name '%s'.", search);
 		};
 
 		/* Give up */
