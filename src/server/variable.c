@@ -352,7 +352,7 @@ s16b panel_col_min, panel_col_max;*/
 s16b px;*/
 
 /* Targetting variables */
-s16b target_who;
+s32b target_who;
 s16b target_col;
 s16b target_row;
 

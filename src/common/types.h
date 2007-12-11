@@ -1089,7 +1089,7 @@ struct player_type
 
 	byte party;		/* The party he belongs to (or 0 if neutral) */
 
-	s16b target_who;
+	s32b target_who;
 	s16b target_col;	/* What position is targetted */
 	s16b target_row;
 
