@@ -2481,6 +2481,28 @@ int Send_maxstat(int ind, int stat, int max)
     return Packet_printf(&connp->c, "%c%c%hd", PKT_MAXSTAT, stat, max);
 }
 
+int Send_objflags(int Ind, int line)
+{
+	connection_t *connp = &Conn[Players[Ind]->conn];
+	
+	int i;
+	
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for objflags (%d.%d.%d)",
+			Ind, connp->state, connp->id));
+		return 0;
+	}
+	
+	Packet_printf(&connp->c, "%c%hu", PKT_OBJFLAGS, line);
+	for (i = 0; i < 13; i++) {
+		Packet_printf(&connp->c, "%c%c", Players[Ind]->hist_flags[line][i].a, Players[Ind]->hist_flags[line][i].c);
+	}
+	
+	return 1;
+}
+
 int Send_history(int ind, int line, cptr hist)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];

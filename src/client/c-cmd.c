@@ -1143,7 +1143,7 @@ void cmd_character(void)
 	while (!done)
 	{
 		/* Display player info */
-		display_player(hist);
+		display_player();
 
 		/* Display message */
 		prt("[ESC to quit, h to toggle history, p to change password]", 21, 12);
@@ -1155,7 +1155,8 @@ void cmd_character(void)
 		if (ch == 'h' || ch == 'H')
 		{
 			/* Toggle */
-			hist = !hist;
+			char_screen_mode++;
+			if (char_screen_mode > 2) char_screen_mode = 0;
 		}
 		
 		/* Check for "change password" */

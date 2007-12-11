@@ -186,3 +186,5 @@ bool view_yellow_lite;
 bool view_bright_lite;
 bool view_granite_lite;
 bool view_special_lite;
+
+int char_screen_mode;

@@ -1017,7 +1017,7 @@ void fix_player(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_player(FALSE);
+		display_player();
 
 		/* Fresh */
 		Term_fresh();
@@ -1290,32 +1290,171 @@ static cptr likert(int x, int y)
 }
 
 
-void display_player(int hist)
+
+
+/*
+ * Hack -- see below
+ */
+static cptr display_player_flag_names[4][8] =
+{
+	{
+		" Acid:",	/* TR2_RES_ACID */
+		" Elec:",	/* TR2_RES_ELEC */
+		" Fire:",	/* TR2_RES_FIRE */
+		" Cold:",	/* TR2_RES_COLD */
+		" Pois:",	/* TR2_RES_POIS */
+		" Fear:",	/* TR2_RES_FEAR */
+		" Lite:",	/* TR2_RES_LITE */
+		" Dark:"	/* TR2_RES_DARK */
+	},
+
+	{
+		"Blind:",	/* TR2_RES_BLIND */
+		"Confu:",	/* TR2_RES_CONFU */
+		"Sound:",	/* TR2_RES_SOUND */
+		"Shard:",	/* TR2_RES_SHARD */
+		"Nexus:",	/* TR2_RES_NEXUS */
+		"Nethr:",	/* TR2_RES_NETHR */
+		"Chaos:",	/* TR2_RES_CHAOS */
+		"Disen:"	/* TR2_RES_DISEN */
+	},
+
+	{
+		"S.Dig:",	/* TR3_SLOW_DIGEST */
+		"Feath:",	/* TR3_FEATHER */
+		"PLite:",	/* TR3_LITE */
+		"Regen:",	/* TR3_REGEN */
+		"Telep:",	/* TR3_TELEPATHY */
+		"Invis:",	/* TR3_SEE_INVIS */
+		"FrAct:",	/* TR3_FREE_ACT */
+		"HLife:"	/* TR3_HOLD_LIFE */
+	},
+
+	{
+		"Stea.:",	/* TR1_STEALTH */
+		"Sear.:",	/* TR1_SEARCH */
+		"Infra:",	/* TR1_INFRA */
+		"Tunn.:",	/* TR1_TUNNEL */
+		"Speed:",	/* TR1_SPEED */
+		"Blows:",	/* TR1_BLOWS */
+		"Shots:",	/* TR1_SHOTS */
+		"Might:"	/* TR1_MIGHT */
+	}
+};
+
+
+/*
+ * Equippy chars
+ */
+static void display_player_equippy(int y, int x)
 {
 	int i;
+	byte a;
+	char c;
+	
+	/* Dump equippy chars */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
+	{
+		/* Get attr/char for display */
+		a = p_ptr->hist_flags[0][i-INVEN_WIELD].a;
+		c = p_ptr->hist_flags[0][i-INVEN_WIELD].c;
+
+		/* Dump */
+		Term_putch(x+i-INVEN_WIELD, y, a, c);
+	}
+}
+
+static void display_player_sust_info(void)
+{
+	int i, row, col, stat;
+	byte a;
+	char c;
+
+	/* Row */
+	row = 2;
+	/* Column */
+	col = 46;
+
+	/* Header */
+	c_put_str(TERM_WHITE, "abcdefghijkl@", row-1, col);
+
+	for (stat = 0; stat < 6; ++stat)
+	{
+		for (i = 0; i < 13; ++i)
+		{
+			a = p_ptr->hist_flags[stat+1][i].a;
+			c = p_ptr->hist_flags[stat+1][i].c;
+			/* Dump proper character */
+			Term_putch(col+i, row+stat, a, c);
+			//c_put_str(a, c, col+i, row+stat);
+		}
+	
+	}
+
+	col = 46;
+
+	/* Footer */
+	c_put_str(TERM_WHITE, "abcdefghijkl@", row+6, col);
+
+	/* Equippy */
+	display_player_equippy(row+7, col);
+}
+
+static void display_player_flag_info(void)
+{
+	int i, row, col, y, x, off;
+	cptr name;
+
+	byte a;
+	char c;
+
+	/* Four columns */
+	for (x = 0; x < 4; x++)
+	{
+		/* Reset */
+		row = 10;
+		col = 20 * x;
+		
+		/* Header */
+		c_put_str(TERM_WHITE, "abcdefghijkl@", row, col+6);
+
+		/* Eight Lines */	
+		for (y = 0; y < 8; ++y)
+		{
+
+			/* Extract name */
+			name = display_player_flag_names[x][y];
+	
+			/* Name */
+			c_put_str(TERM_WHITE, name, row+1, col);
+
+			off = 7 + (x * 8 + y);			
+			
+			/* Draw dots */
+			for (i = 0; i < 13; i++) 
+			{
+				a = p_ptr->hist_flags[off][i].a;
+				c = p_ptr->hist_flags[off][i].c;
+				/* Dump proper character */
+				Term_putch(col+6+i, row+1, a, c);
+			}			
+			
+			row++;
+		}
+	
+		/* Footer */
+		c_put_str(TERM_WHITE, "abcdefghijkl@", row+1, col+6);
+		/* Equippy */
+	 	display_player_equippy(row+2, col+6);
+	}	
+	
+}
+
+void display_player_stats_info()
+{
+	int i;
+	int row = 2;
 	char buf[80];
-	cptr desc;
-
-        /* Clear screen */
-        Term_clear();
-
-        /* Name, Sex, Race, Class */
-        put_str("Name        :", 2, 1);
-        put_str("Sex         :", 3, 1);
-        put_str("Race        :", 4, 1);
-        put_str("Class       :", 5, 1);
-
-        c_put_str(TERM_L_BLUE, nick, 2, 15);
-        c_put_str(TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
-        c_put_str(TERM_L_BLUE, race_info[race].title, 4, 15);
-        c_put_str(TERM_L_BLUE, class_info[class].title, 5, 15);
-
-        /* Age, Height, Weight, Social */
-        prt_num("Age          ", (int)p_ptr->age, 2, 32, TERM_L_BLUE);
-        prt_num("Height       ", (int)p_ptr->ht, 3, 32, TERM_L_BLUE);
-        prt_num("Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
-        prt_num("Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
-
         /* Display the stats */
         for (i = 0; i < 6; i++)
         {
@@ -1325,7 +1464,7 @@ void display_player(int hist)
                         int value;
 
                         /* Use lowercase stat name */
-                        put_str(stat_names_reduced[i], 2 + i, 61);
+                        put_str(stat_names_reduced[i], row + i, 61);
 
                         /* Get the current stat */
                         value = p_ptr->stat_use[i];
@@ -1334,7 +1473,7 @@ void display_player(int hist)
                         cnv_stat(value, buf);
 
                         /* Display the current stat (modified) */
-                        c_put_str(TERM_YELLOW, buf, 2 + i, 66);
+                        c_put_str(TERM_YELLOW, buf, row + i, 66);
 
                         /* Acquire the max stat */
                         value = p_ptr->stat_top[i];
@@ -1343,88 +1482,32 @@ void display_player(int hist)
                         cnv_stat(value, buf);
 
                         /* Display the maximum stat (modified) */
-			if (p_ptr->stat_max[i] == 18+100)
-				c_put_str(TERM_L_UMBER, buf, 2 + i, 73);
-			else
-                        c_put_str(TERM_L_GREEN, buf, 2 + i, 73);
-                }
+								if (p_ptr->stat_max[i] == 18+100)
+									c_put_str(TERM_L_UMBER, buf, row + i, 73);
+								else
+                        	c_put_str(TERM_L_GREEN, buf, row + i, 73);
+                			}
 
                 /* Normal treatment of "normal" stats */
                 else
                 {
                         /* Assume uppercase stat name */
-                        put_str(stat_names[i], 2 + i, 61);
+                        put_str(stat_names[i], row + i, 61);
 
                         /* Obtain the current stat (modified) */
                         cnv_stat(p_ptr->stat_use[i], buf);
 
                         /* Display the current stat (modified) */
-			if (p_ptr->stat_max[i] == 18+100)
-				c_put_str(TERM_L_UMBER, buf, 2 + i, 66);
-			else
-                        c_put_str(TERM_L_GREEN, buf, 2 + i, 66);
-                }
-        }
+								if (p_ptr->stat_max[i] == 18+100)
+									c_put_str(TERM_L_UMBER, buf, row + i, 66);
+								else
+	                        c_put_str(TERM_L_GREEN, buf, row + i, 66);
+   			   }
+	        }
+}
 
-	/* Check for history */
-	if (hist)
-	{
-		put_str("(Character Background)", 15, 25);
-
-		for (i = 0; i < 4; i++)
-		{
-			put_str(p_ptr->history[i], i + 16, 10);
-		}
-	}
-	else
-	{
-		put_str("(Miscellaneous Abilities)", 15, 25);
-		
-		/* Display "skills" */
-		put_str("Fighting    :", 16, 1);
-		desc = likert(p_ptr->skill_thn, 12);
-		c_put_str(likert_color, desc, 16, 15);
-
-		put_str("Bows/Throw  :", 17, 1);
-		desc = likert(p_ptr->skill_thb, 12);
-		c_put_str(likert_color, desc, 17, 15);
-
-		put_str("Saving Throw:", 18, 1);
-		desc = likert(p_ptr->skill_sav, 6);
-		c_put_str(likert_color, desc, 18, 15);
-
-		put_str("Stealth     :", 19, 1);
-		desc = likert(p_ptr->skill_stl, 1);
-		c_put_str(likert_color, desc, 19, 15);
-
-
-		put_str("Perception  :", 16, 28);
-		desc = likert(p_ptr->skill_fos, 6);
-		c_put_str(likert_color, desc, 16, 42);
-
-		put_str("Searching   :", 17, 28);
-		desc = likert(p_ptr->skill_srh, 6);
-		c_put_str(likert_color, desc, 17, 42);
-
-		put_str("Disarming   :", 18, 28);
-		desc = likert(p_ptr->skill_dis, 8);
-		c_put_str(likert_color, desc, 18, 42);
-
-		put_str("Magic Device:", 19, 28);
-		desc = likert(p_ptr->skill_dev, 6);
-		c_put_str(likert_color, desc, 19, 42);
-
-
-		put_str("Blows/Round:", 16, 55);
-		put_str(format("%d", p_ptr->num_blow), 16, 69);
-
-		put_str("Shots/Round:", 17, 55);
-		put_str(format("%d", p_ptr->num_fire), 17, 69);
-
-		put_str("Infra-Vision:", 19, 55);
-		put_str(format("%d feet", p_ptr->see_infra * 10), 19, 69);
-	}
-
+static void display_player_misc_info(void)
+{
         /* Dump the bonuses to hit/dam */
         prt_num("+ To Hit    ", p_ptr->dis_to_h, 9, 1, TERM_L_BLUE);
         prt_num("+ To Damage ", p_ptr->dis_to_d, 10, 1, TERM_L_BLUE);
@@ -1488,7 +1571,119 @@ void display_player(int hist)
         else
         {
                 prt_num("Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_RED);
-        }
+	     }
+}
+
+/*
+ * Display the character on the screen (3 different modes)
+ *
+ * The top two lines, and the bottom line (or two) are left blank.
+ *
+ * Mode 0 = standard display with skills
+ * Mode 1 = standard display with history
+ * Mode 2 = special display with equipment flags
+ */
+
+void display_player(void)
+{
+	int i;
+	char buf[80];
+	cptr desc;
+
+     /* Clear screen */
+     Term_clear();
+
+     /* Name, Sex, Race, Class */
+     put_str("Name        :", 2, 1);
+     put_str("Sex         :", 3, 1);
+     put_str("Race        :", 4, 1);
+     put_str("Class       :", 5, 1);
+
+     c_put_str(TERM_L_BLUE, nick, 2, 15);
+     c_put_str(TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
+     c_put_str(TERM_L_BLUE, race_info[race].title, 4, 15);
+     c_put_str(TERM_L_BLUE, class_info[class].title, 5, 15);
+
+	display_player_stats_info();
+
+	/* Check for history */
+	if (char_screen_mode == 2)
+	{
+		/* Stat/Sustain flags */
+		display_player_sust_info();
+
+		/* Other flags */
+		display_player_flag_info();
+	}
+	else
+	{
+		display_player_misc_info();
+
+     /* Age, Height, Weight, Social */
+     prt_num("Age          ", (int)p_ptr->age, 2, 32, TERM_L_BLUE);
+     prt_num("Height       ", (int)p_ptr->ht, 3, 32, TERM_L_BLUE);
+     prt_num("Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
+     prt_num("Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
+	
+		if (char_screen_mode) {
+			put_str("(Character Background)", 15, 25);
+	
+			for (i = 0; i < 4; i++)
+			{
+				put_str(p_ptr->history[i], i + 16, 10);
+			}
+		
+		} 
+		else
+		{
+			put_str("(Miscellaneous Abilities)", 15, 25);
+			
+			/* Display "skills" */
+			put_str("Fighting    :", 16, 1);
+			desc = likert(p_ptr->skill_thn, 12);
+			c_put_str(likert_color, desc, 16, 15);
+	
+			put_str("Bows/Throw  :", 17, 1);
+			desc = likert(p_ptr->skill_thb, 12);
+			c_put_str(likert_color, desc, 17, 15);
+	
+			put_str("Saving Throw:", 18, 1);
+			desc = likert(p_ptr->skill_sav, 6);
+			c_put_str(likert_color, desc, 18, 15);
+	
+			put_str("Stealth     :", 19, 1);
+			desc = likert(p_ptr->skill_stl, 1);
+			c_put_str(likert_color, desc, 19, 15);
+	
+	
+			put_str("Perception  :", 16, 28);
+			desc = likert(p_ptr->skill_fos, 6);
+			c_put_str(likert_color, desc, 16, 42);
+	
+			put_str("Searching   :", 17, 28);
+			desc = likert(p_ptr->skill_srh, 6);
+			c_put_str(likert_color, desc, 17, 42);
+	
+			put_str("Disarming   :", 18, 28);
+			desc = likert(p_ptr->skill_dis, 8);
+			c_put_str(likert_color, desc, 18, 42);
+	
+			put_str("Magic Device:", 19, 28);
+			desc = likert(p_ptr->skill_dev, 6);
+			c_put_str(likert_color, desc, 19, 42);
+	
+	
+			put_str("Blows/Round:", 16, 55);
+			put_str(format("%d", p_ptr->num_blow), 16, 69);
+	
+			put_str("Shots/Round:", 17, 55);
+			put_str(format("%d", p_ptr->num_fire), 17, 69);
+	
+			put_str("Infra-Vision:", 19, 55);
+			put_str(format("%d feet", p_ptr->see_infra * 10), 19, 69);
+		}
+	}
+
 }
 
 /*

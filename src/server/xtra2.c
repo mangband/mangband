@@ -2600,7 +2600,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	p_ptr->update |= (PU_BONUS);
 
 	/* Redraw */
-	p_ptr->redraw |= (PR_HP | PR_GOLD | PR_BASIC);
+	p_ptr->redraw |= (PR_HP | PR_GOLD | PR_BASIC | PR_OFLAGS );
 
 	/* Notice */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);

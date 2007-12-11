@@ -382,7 +382,6 @@ static void prt_speed(int Ind)
 	Send_speed(Ind, i - 110);
 }
 
-
 static void prt_study(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -417,6 +416,371 @@ static void prt_stun(int Ind)
 
 	Send_stun(Ind, s);
 }
+/* !! */
+/*
+ * Obtain the "flags" for the player as if he was an item
+ */
+void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
+{
+	player_type *p_ptr = Players[Ind];
+	/* Clear */
+	(*f1) = (*f2) = (*f3) = 0L;
+
+	/* Add racial flags */
+	
+	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
+	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
+	if (p_ptr->prace == RACE_GNOME) *f3 |= TR2_FREE_ACT;
+	if (p_ptr->prace == RACE_DWARF) *f2 |= TR2_RES_BLIND;
+	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
+	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
+	if (p_ptr->prace == RACE_DUNADAN) *f2 |= TR2_SUST_CON;
+   if (p_ptr->prace == RACE_HIGH_ELF)
+    {
+    	*f2 |= TR2_RES_LITE ;
+    	*f3 |= TR3_SEE_INVIS;
+    }
+	
+	/* Classial flags */
+	if (p_ptr->pclass == CLASS_ROGUE) *f1 |= TR1_SPEED;
+
+	/* Ghost */
+	if (p_ptr->ghost) {
+		*f3 |= TR3_SEE_INVIS;
+		*f2 |= TR2_RES_NETHER;
+		*f2 |= TR2_HOLD_LIFE;
+		*f2 |= TR2_RES_FEAR;
+		*f2 |= TR2_FREE_ACT;
+		*f1 |= TR1_INFRA;
+	}
+	
+
+	
+	/*
+			In ideal world of Angband this is done like that:
+				Someday...			
+			
+	(*f1) |= race_info[race].flags1;
+	(*f2) |= race_info[race].flags2;
+	(*f3) |= race_info[race].flags3;
+
+	if (cp_ptr->flags & CF_BRAVERY_30)
+	{
+		if (p_ptr->lev >= 30) (*f2) |= (TR2_RES_FEAR);
+	}
+	 */
+}
+
+/*
+ * Hack -- see below
+ */
+static const byte display_player_flag_set[4] =
+{
+	2,
+	2,
+	3,
+	1
+};
+
+/*
+ * Hack -- see below
+ */
+static const u32b display_player_flag_head[4] =
+{
+	TR2_RES_ACID,
+	TR2_RES_BLIND,
+	TR3_SLOW_DIGEST,
+	TR1_STEALTH
+};
+
+			
+static void prt_player_equippy(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+
+	byte a;
+	char c;
+
+	object_type *o_ptr;
+
+	/* Dump equippy chars */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
+	{
+		/* Object */
+		o_ptr = &p_ptr->inventory[i];
+
+		/* Skip empty objects */
+		if (!o_ptr->k_idx) {
+			a = c = 0;
+		} else {
+			/* Get attr/char for display */
+			a = k_info[o_ptr->k_idx].x_attr;
+			c = k_info[o_ptr->k_idx].x_char;
+		}
+
+		/* Dump proper character */
+		p_ptr->hist_flags[0][i-INVEN_WIELD].a = a;
+		p_ptr->hist_flags[0][i-INVEN_WIELD].c = c;
+
+	}
+}
+
+
+static void prt_player_sust_info(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	int i, row, col, stat;
+	object_type *o_ptr;
+	u32b f1, f2, f3, f4;
+	u32b ignore_f2, ignore_f3, ignore_f4;
+
+	f1 = f2 = f3 = f4 = 0L;
+	ignore_f2 = ignore_f3 = ignore_f4 = 0L;
+
+	byte a;
+	char c;
+	/* Row */
+	row = 3;
+	/* Column */
+	col = 26;
+	/* Header */
+	//c_put_str(TERM_WHITE, "abcdefghijkl@", row-1, col);
+	/* Process equipment */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
+	{
+		/* Get the object */
+		o_ptr = &p_ptr->inventory[i];
+		/* Get the "known" flags */
+		object_flags_known(Ind, o_ptr, &f1, &f2, &f3, &f4);
+		/* Hack -- assume stat modifiers are known */
+		//object_flags(o_ptr, &f1, &f2, &f3, &f4);
+		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3, &ignore_f4);
+		/* Initialize color based of sign of pval. 6 -- total num of stats*/
+		for (stat = 0; stat < 6; stat++)
+		{
+			printf("inspecting %d / %d \n", i, stat);
+			/* Default */
+			a = TERM_SLATE;
+			c = '.';
+			/* Boost */
+			if (f1 & (1<<stat))
+			{
+				/* Default */
+				c = '*';
+				/* Good */
+				if (o_ptr->pval > 0)
+				{
+					/* Good */
+					a = TERM_L_GREEN;
+					/* Label boost */
+					if (o_ptr->pval < 10) c = I2D(o_ptr->pval);
+				}
+				/* Bad */
+				if (o_ptr->pval < 0)
+				{
+					/* Bad */
+					a = TERM_RED;
+					/* Label boost */
+					if (o_ptr->pval > -10) c = I2D(-(o_ptr->pval));
+				}
+			}
+			/* Sustain */
+			if (f2 & (1<<stat))
+			{
+				/* Dark green */
+				a = TERM_GREEN;
+				/* Convert '.' to 's' */
+				if (c == '.') c = 's';
+			}
+			/* Dump proper character */
+			p_ptr->hist_flags[stat+1][i-INVEN_WIELD].a = a;
+			p_ptr->hist_flags[stat+1][i-INVEN_WIELD].c = c;
+			//Term_putch(col, row+stat, a, c);
+		}
+		/* Advance */
+		col++;
+	}
+	/* Player flags */
+	player_flags(Ind, &f1, &f2, &f3);
+	/* Check stats */
+	for (stat = 0; stat < 6; ++stat)
+	{
+		/* Default */
+		a = TERM_SLATE;
+		c = '.';
+		/* Sustain */
+		if (f2 & (1<<stat))
+		{
+			/* Dark green "s" */
+			a = TERM_GREEN;
+			c = 's';
+		}
+		/* Dump */
+		p_ptr->hist_flags[stat+1][12].a = a;
+		p_ptr->hist_flags[stat+1][12].c = c;
+		//Term_putch(col, row+stat, a, c);
+	}
+	/* Column */
+	col = 26;
+	/* Footer */
+	//c_put_str(TERM_WHITE, "abcdefghijkl@", row+6, col);
+	/* Equippy */
+	// display_player_equippy(row+7, col);
+}
+
+static void prt_player_flag_info(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	
+	int x, y, i, n;
+
+	int row, col;
+	
+	int realX, realY;
+
+	int set;
+	u32b head;
+	u32b flag;
+	//cptr name;
+
+	u32b f[5];
+
+	realX = 0;
+	realY = 7;
+
+	byte attr = TERM_SLATE;
+	object_type *o_ptr;
+
+	/* Four columns */
+	for (x = 0; x < 4; x++)
+	{
+		/* Reset */
+		row = 11;
+		col = 20 * x;
+
+		/* Extract set */
+		set = display_player_flag_set[x];
+
+		/* Extract head */
+		head = display_player_flag_head[x];
+
+		/* Header */
+		//c_put_str(TERM_WHITE, "abcdefghijkl@", row++, col+6);
+
+		/* Eight rows */
+		for (y = 0; y < 8; y++)
+		{
+			/* Extract flag */
+			flag = (head << y);
+
+			/* Extract name */
+			//name = display_player_flag_names[x][y];
+
+			/* Header */
+			//c_put_str(TERM_WHITE, name, row, col);
+
+			/* Check equipment */
+			for (n = 6, i = INVEN_WIELD; i < INVEN_TOTAL; ++i, ++n)
+			{
+
+				/* Object */
+				o_ptr = &p_ptr->inventory[i];
+
+				/* Known flags */
+				//ject_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3], &f[4]);
+				object_flags(o_ptr, &f[1], &f[2], &f[3], &f[4]);
+
+				/* Color columns by parity */
+				if (i % 2) attr = TERM_L_WHITE;
+
+				/* Non-existant objects */
+				if (!o_ptr->k_idx) attr = TERM_L_DARK;
+
+				/* Hack -- Check immunities */
+				if ((x == 0) && (y < 4) &&
+				    (f[set] & ((TR2_IM_ACID) << y)))
+				{
+					//c_put_str(TERM_WHITE, "*", row, col+n);
+					p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+					p_ptr->hist_flags[realY][realX].c = '*';
+				}
+
+				/* Check flags + free action hack */
+				else if (f[set] & flag)
+				{
+					//c_put_str(TERM_WHITE, "+", row, col+n);
+					p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+					p_ptr->hist_flags[realY][realX].c = '+';
+				}
+
+				/* Default */
+				else
+				{
+					//c_put_str(attr, ".", row, col+n);
+					p_ptr->hist_flags[realY][realX].a = attr;
+					p_ptr->hist_flags[realY][realX].c = '.';
+				}
+				
+				realX++;
+			}
+
+			/* Player flags */
+			player_flags(Ind, &f[1], &f[2], &f[3]);
+
+			/* Default */
+			//c_put_str(TERM_SLATE, ".", row, col+n);
+			p_ptr->hist_flags[realY][realX].a = TERM_SLATE;
+			p_ptr->hist_flags[realY][realX].c = '.';
+
+			/* Hack -- Check immunities */
+			if ((x == 0) && (y < 4) &&
+			    (f[set] & ((TR2_IM_ACID) << y)))
+			{
+				//c_put_str(TERM_WHITE, "*", row, col+n);
+				p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+				p_ptr->hist_flags[realY][realX].c = '*';
+			}
+
+			/* Check flags */
+			else if (f[set] & flag) {
+				//c_put_str(TERM_WHITE, "+", row, col+n);
+				p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+				p_ptr->hist_flags[realY][realX].c = '+';
+			}
+
+			/* Advance */
+			row++;
+			
+			realY++; realX = 0;
+		}
+
+		/* Footer */
+		//c_put_str(TERM_WHITE, "abcdefghijkl@", row++, col+6);
+
+		/* Equippy */
+		//display_player_equippy(row++, col+6);
+	}
+}
+
+
+static void prt_flags(int Ind)
+{
+	/* player_type *p_ptr = Players[Ind]; */
+	int i;
+
+	prt_player_equippy(Ind);
+	prt_player_sust_info(Ind);
+	prt_player_flag_info(Ind);
+
+	for (i = 0; i < 39; i++)
+	{
+		Send_objflags(Ind, i);
+	}
+	
+}
+
 
 static void prt_history(int Ind)
 {
@@ -2633,6 +2997,12 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_HISTORY);
 		prt_history(Ind);
+	}
+	
+	if (p_ptr->redraw & PR_OFLAGS)
+	{
+		p_ptr->redraw &= ~(PR_OFLAGS);
+		prt_flags(Ind);
 	}
 
 	if (p_ptr->redraw & PR_VARIOUS)

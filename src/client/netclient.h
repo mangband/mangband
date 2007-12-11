@@ -33,6 +33,7 @@ int Receive_plusses(void);
 int Receive_experience(void);
 int Receive_gold(void);
 int Receive_sp(void);
+int Receive_objflags(void);
 int Receive_history(void);
 int Receive_char(void);
 int Receive_message(void);

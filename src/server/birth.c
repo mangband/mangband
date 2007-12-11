@@ -1342,7 +1342,7 @@ static void player_setup(int Ind)
 	}
 
 	/* Tell the server to redraw the player's display */
-	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_HISTORY | PR_VARIOUS;
+	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_HISTORY | PR_VARIOUS | PR_OFLAGS;
 	p_ptr->redraw |= PR_PLUSSES;
 
 	/* Update his view, light, bonuses, and torch radius */

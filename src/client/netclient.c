@@ -84,6 +84,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_GOLD]		= Receive_gold;
 	receive_tbl[PKT_SP]		= Receive_sp;
 	receive_tbl[PKT_HISTORY]	= Receive_history;
+	receive_tbl[PKT_OBJFLAGS]	= Receive_objflags;
 	receive_tbl[PKT_CHAR]		= Receive_char;
 	receive_tbl[PKT_MESSAGE]	= Receive_message;
 	receive_tbl[PKT_STATE]		= Receive_state;
@@ -1394,6 +1395,31 @@ int Receive_sp(void)
 
 	return 1;
 }
+
+
+int Receive_objflags(void)
+{
+	char	ch, c;
+	int	n, x;
+	s16b	y;
+	byte	a;
+	
+	
+	if ((n = Packet_scanf(&rbuf, "%c%hu", &ch, &y)) <= 0)
+	{
+		return n;
+	}
+
+	for (x = 0; x < 13; x++)
+	{
+		
+		Packet_scanf(&rbuf, "%c%c", &a, &c);
+		p_ptr->hist_flags[y][x].a = a;
+		p_ptr->hist_flags[y][x].c = c;
+		
+	}
+}
+
 
 int Receive_history(void)
 {

@@ -95,7 +95,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 	p_ptr->window |= (PW_EQUIP);
 
 	/* Redraw */
-	p_ptr->redraw |= (PR_PLUSSES);
+	p_ptr->redraw |= (PR_PLUSSES | PR_OFLAGS);
 }
 
 
@@ -498,7 +498,7 @@ void do_cmd_wield(int Ind, int item)
 	p_ptr->update |= (PU_MANA);
 
 	/* Redraw */
-	p_ptr->redraw |= (PR_PLUSSES);
+	p_ptr->redraw |= (PR_PLUSSES | PR_OFLAGS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);

@@ -205,7 +205,7 @@ extern bool view_bright_lite;
 extern bool view_granite_lite;
 extern bool view_special_lite;
 
-
+extern int char_screen_mode;
 
 /*
  * Not-so-Automatically generated "function declarations"
@@ -365,7 +365,7 @@ extern void health_redraw(int num, byte attr);
 extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);
-extern void display_player(int hist);
+extern void display_player(void);
 extern void window_stuff(void);
 
 /* c-xtra2.c */
