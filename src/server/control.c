@@ -52,6 +52,7 @@ static void console_who()
 static void console_whois(char *name)
 {
 	int i, len;
+	u16b major, minor, patch, extra;
 	char output[1024];
 	player_type *p_ptr, *p_ptr_search;
 	
@@ -81,9 +82,15 @@ static void console_whois(char *name)
 		p_ptr->name, p_ptr->lev, race_info[p_ptr->prace].title,
 		class_info[p_ptr->pclass].title, p_ptr->dun_depth*50));
 	
+	/* Breakup the client version identifier */
+	major = (p_ptr->version & 0xF000) >> 12;
+	minor = (p_ptr->version & 0xF00) >> 8;
+	patch = (p_ptr->version & 0xF0) >> 4;
+	extra = (p_ptr->version & 0xF);
+
 	/* Player connection info */
-	Packet_printf(&console_buf, "%s",format("(%s@%s [%s] v%d)\n", 
-		p_ptr->realname, p_ptr->hostname, p_ptr->addr, p_ptr->version));
+	Packet_printf(&console_buf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
+		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
 				
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
