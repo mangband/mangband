@@ -535,12 +535,12 @@ static void prt_player_sust_info(int Ind)
 	object_type *o_ptr;
 	u32b f1, f2, f3, f4;
 	u32b ignore_f2, ignore_f3, ignore_f4;
+	byte a;
+	char c;
 
 	f1 = f2 = f3 = f4 = 0L;
 	ignore_f2 = ignore_f3 = ignore_f4 = 0L;
 
-	byte a;
-	char c;
 	/* Row */
 	row = 3;
 	/* Column */
@@ -647,11 +647,11 @@ static void prt_player_flag_info(int Ind)
 
 	u32b f[5];
 
-	realX = 0;
-	realY = 7;
-
 	byte attr = TERM_SLATE;
 	object_type *o_ptr;
+
+	realX = 0;
+	realY = 7;
 
 	/* Four columns */
 	for (x = 0; x < 4; x++)
