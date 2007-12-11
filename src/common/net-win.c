@@ -69,12 +69,6 @@ static char sourceid[] =
 #include <setjmp.h>
 #include <errno.h>
 
-/* Visual Studio predefines errno as *_errno() --  BS */
-/* Assumes _MSC_VER is only defined for Visual Studio --  BS */
-#if defined(WIN32) && !defined(_MSC_VER)
-int errno = 0;
-#endif
-
 /* This should be complied by a std c compiler */
 /*
 #ifdef _cplusplus
