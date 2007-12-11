@@ -1418,6 +1418,7 @@ int Receive_objflags(void)
 		p_ptr->hist_flags[y][x].c = c;
 		
 	}
+	return 0;
 }
 
 
