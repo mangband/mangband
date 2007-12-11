@@ -1274,9 +1274,6 @@ bool detect_evil(int Ind)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
@@ -1294,7 +1291,7 @@ bool detect_evil(int Ind)
 	if (flag)
 	{
 		/* Describe, and wait for acknowledgement */
-		msg_print(Ind, "You sense the presence of evil!");
+		msg_print(Ind, "You sense the presence of evil creatures!");
 		msg_print(Ind, NULL);
 
 		/* Wait */
