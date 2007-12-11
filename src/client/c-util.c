@@ -1953,8 +1953,8 @@ static errr macro_dump(cptr fname)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_USER, fname);
 
-	/* Append to the file */
-	fff = my_fopen(buf, "a");
+	/* Write to the file */
+	fff = my_fopen(buf, "w");
 
 	/* Failure */
 	if (!fff) return (-1);

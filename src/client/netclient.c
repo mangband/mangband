@@ -2135,6 +2135,8 @@ int Receive_special_line(void)
 		return n;
 	}
 
+	if (!screen_icky) return 0;
+
 	/* Maximum */
 	max_line = max;
 
