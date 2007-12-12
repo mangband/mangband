@@ -1860,7 +1860,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_DISPEL_EVIL:
             {
-                (void)dispel_evil(Ind, plev * 3);
+                (void)dispel_evil(Ind, randint(plev * 3));
                 break;
             }
 
@@ -1873,7 +1873,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_HOLY_WORD:
 			{
-				(void)dispel_evil(Ind, plev * 4);
+				(void)dispel_evil(Ind, randint(plev * 4));
 				(void)hp_player(Ind, 1000);
 				(void)set_afraid(Ind, 0);
 				(void)set_poisoned(Ind, 0);
@@ -1991,7 +1991,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_DISPEL_EVIL2:
 			{
-				(void)dispel_evil(Ind, plev * 4);
+				(void)dispel_evil(Ind, randint(plev * 4));
 				break;
 			}
 
