@@ -60,7 +60,7 @@ CLI_EXE = mangclient.exe
 # Set any compiler options
 
 CCOPTS = -Hc -tW -lGn -w- \
-	-D_WIN32_WINNT=0x0400 -DWINVER=0x0400 -DBORLAND \
+	-D_WIN32_WINNT=0x0400 -DWINVER=0x0400 \
 	-DWIN32 -D_WINDOWS -DSTDVA=1 -DSTRICT \
 	-Icommon -I$(BCCDIR)\include -Iserver -L$(BCCDIR)\lib
 
