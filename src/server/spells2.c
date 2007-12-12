@@ -3893,7 +3893,7 @@ bool cure_critical_wounds_proj(int Ind, int dir)
 bool cure_mortal_wounds_proj(int Ind, int dir)
 {
     int flg = PROJECT_STOP | PROJECT_KILL;
-    return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(10, 10), flg));
+    return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(8, 10), flg));
 }
 
 bool heal_other_lite_proj(int Ind, int dir)

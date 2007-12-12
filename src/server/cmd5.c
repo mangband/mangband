@@ -222,7 +222,7 @@ static void spell_info(int Ind, char *p, int j)
             case PSPELL_CURE_CRITICAL: strcpy(p, " heal 6d10"); break;
             case PSPELL_SENSE_INVISIBLE: strcpy(p, " dur 24+d24"); break;
             case PSPELL_PROTECTION_EVIL: sprintf(p, " dur %d+d25", 3*plev); break;
-            case PSPELL_CURE_MORTAL: strcpy(p, " heal 10d10"); break;
+            case PSPELL_CURE_MORTAL: strcpy(p, " heal 8d10"); break;
             case PSPELL_HERO_PRAYER: strcpy(p, " dur 48+d48"); break;
             case PSPELL_DISPEL_UNDEAD: sprintf(p, " dam d%d", 3*plev); break;
             case PSPELL_CURE_HEAL: strcpy(p, " heal 300"); break;
@@ -1812,7 +1812,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_CURE_MORTAL:
             {
-                (void)hp_player(Ind, damroll(10, 10));
+                (void)hp_player(Ind, damroll(8, 10));
                 (void)set_stun(Ind, 0);
                 (void)set_cut(Ind, 0);
                 break;
