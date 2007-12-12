@@ -1997,8 +1997,8 @@ that keeps many algorithms happy.
 #define TR3_XXX4			0x00000008L	/* Later */
 #define TR3_XXX5			0x00000010L	/* Later */
 #define TR3_XXX6			0x00000020L	/* Later */
-#define TR3_XXX7			0x00000040L	/* Later */
-#define TR3_XXX8			0x00000080L	/* Later */
+#define TR3_XXX7			0x00000040L	/* Later Angband's Free_Action */
+#define TR3_XXX8			0x00000080L	/* Later Angband's Hold_Life */
 #define TR3_EASY_KNOW		0x00000100L	/* Aware -> Known */
 #define TR3_HIDE_TYPE		0x00000200L	/* Hide "pval" description */
 #define TR3_SHOW_MODS		0x00000400L	/* Always show Tohit/Todam */

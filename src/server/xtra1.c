@@ -430,7 +430,7 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	
 	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
 	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
-	if (p_ptr->prace == RACE_GNOME) *f3 |= TR2_FREE_ACT;
+	if (p_ptr->prace == RACE_GNOME) *f2 |= TR2_FREE_ACT;
 	if (p_ptr->prace == RACE_DWARF) *f2 |= TR2_RES_BLIND;
 	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
 	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
@@ -560,7 +560,6 @@ static void prt_player_sust_info(int Ind)
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
 		for (stat = 0; stat < 6; stat++)
 		{
-			printf("inspecting %d / %d \n", i, stat);
 			/* Default */
 			a = TERM_SLATE;
 			c = '.';
@@ -707,7 +706,7 @@ static void prt_player_flag_info(int Ind)
 					p_ptr->hist_flags[realY][realX].c = '*';
 				}
 
-				/* Check flags + free action hack */
+				/* Check flags */
 				else if (f[set] & flag)
 				{
 					//c_put_str(TERM_WHITE, "+", row, col+n);

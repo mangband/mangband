@@ -1400,10 +1400,9 @@ int Receive_sp(void)
 int Receive_objflags(void)
 {
 	char	ch, c;
-	int	n, x;
+	int	n, x, i;
 	s16b	y;
 	byte	a;
-	
 	
 	if ((n = Packet_scanf(&rbuf, "%c%hu", &ch, &y)) <= 0)
 	{
@@ -1412,13 +1411,59 @@ int Receive_objflags(void)
 
 	for (x = 0; x < 13; x++)
 	{
+		/* Read the char/attr pair */
+		Packet_scanf(&rbuf, "%c%c", &c, &a);
+		/* Check for bit 0x40 on the attribute */
+		if (a & 0x40)
+		{
+			/* First, clear the bit */
+			a &= ~(0x40);
+
+			/* Read the number of repetitions */
+			Packet_scanf(&rbuf, "%c", &n);
+			
+		}
+		else
+		{
+			/* No RLE, just one instance */
+			n = 1;
+		}
+
+		/* Draw a character n times */
+		for (i = 0; i < n; i++)
+		{
+				p_ptr->hist_flags[y][x+i].a = a;
+				p_ptr->hist_flags[y][x+i].c = c;
+		}
+
+		/* Reset 'x' to the correct value */
+		x += n - 1;
+
+		/* hack -- if x > 80, assume we have received corrupted data,
+		 * flush our buffers 
+		
+		if (x > 13) 
+		{
+			Sockbuf_clear(&rbuf);
+			Sockbuf_clear(&cbuf);
+		}
+		*/ 
+		
+	}
+
+	
+	/* No RLE mode
+	for (x = 0; x < 13; x++)
+	{
 		
 		Packet_scanf(&rbuf, "%c%c", &a, &c);
 		p_ptr->hist_flags[y][x].a = a;
 		p_ptr->hist_flags[y][x].c = c;
 		
 	}
-	return 0;
+	*/
+
+	return 1;
 }
 
 

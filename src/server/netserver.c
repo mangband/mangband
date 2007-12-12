@@ -2484,8 +2484,10 @@ int Send_maxstat(int ind, int stat, int max)
 int Send_objflags(int Ind, int line)
 {
 	connection_t *connp = &Conn[Players[Ind]->conn];
+	player_type *p_ptr = Players[Ind];
 	
-	int i;
+	int i, x1, n, a;
+	char c;
 	
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2496,10 +2498,55 @@ int Send_objflags(int Ind, int line)
 	}
 	
 	Packet_printf(&connp->c, "%c%hu", PKT_OBJFLAGS, line);
-	for (i = 0; i < 13; i++) {
-		Packet_printf(&connp->c, "%c%c", Players[Ind]->hist_flags[line][i].a, Players[Ind]->hist_flags[line][i].c);
-	}
 	
+	/* Each column */
+	for (i = 0; i < 13; i++)
+	{
+		/* Obtain the char/attr pair */
+		c = p_ptr->hist_flags[line][i].c;
+		a = p_ptr->hist_flags[line][i].a;
+
+		/* Start looking here */
+		x1 = i + 1;
+
+		/* Start with count of 1 */
+		n = 1;
+
+		/* Count repetitions of this grid */
+		while (p_ptr->hist_flags[line][x1].c == c &&
+			p_ptr->hist_flags[line][x1].a == a && x1 < 13)
+		{
+			/* Increment count and column */
+			n++;
+			x1++;
+		}
+
+		/* RLE if there at least 2 similar grids in a row */
+		if (n >= 2)
+		{
+			/* Set bit 0x40 of a */
+			a |= 0x40;
+
+			/* Output the info */
+			Packet_printf(&connp->c, "%c%c%c", c, a, n);
+			/* Start again after the run */
+			i = x1 - 1;
+		}
+		else
+		{
+			/* Normal, single grid */
+			Packet_printf(&connp->c, "%c%c", c, a);
+		}
+		
+	}	
+	
+	/* No RLE mode
+	for (i = 0; i < 13; i++) {
+	
+		Packet_printf(&connp->c, "%c%c", Players[Ind]->hist_flags[line][i].a, Players[Ind]->hist_flags[line][i].c);
+		
+	}
+	*/
 	return 1;
 }
 
