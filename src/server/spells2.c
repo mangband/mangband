@@ -3248,7 +3248,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 					/*msg_format("%^s wails out in pain!", m_name);*/
 
 					/* Take damage from the quake */
-					damage = (sn ? damroll(4, 8) : 200);
+					damage = (sn ? damroll(4, 8) : (m_ptr->hp + 1));
 
 					/* Monster is certainly awake */
 					m_ptr->csleep = 0;
