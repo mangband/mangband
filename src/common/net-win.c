@@ -69,6 +69,10 @@ static char sourceid[] =
 #include <setjmp.h>
 #include <errno.h>
 
+#if defined(BORLAND)
+int errno = 0;
+#endif
+
 /* This should be complied by a std c compiler */
 /*
 #ifdef _cplusplus
