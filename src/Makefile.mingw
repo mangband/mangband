@@ -1,0 +1,115 @@
+# File: Makefile.win
+
+# Build MAngband on Windows under MinGW with GNU Make
+# Graham R King (1st November 2005)
+
+#
+# Server Source files
+#
+SERVER_SRC = \
+  common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
+  common/net-win.c common/sockbuf.c server/variable.c server/control.c \
+  server/party.c server/tables.c server/util.c server/cave.c \
+  server/sched-win.c server/object1.c server/object2.c server/monster1.c server/monster2.c \
+  server/xtra1.c server/xtra2.c server/spells1.c server/spells2.c \
+  server/melee1.c server/melee2.c server/save.c server/files.c \
+  server/cmd1.c server/cmd2.c server/cmd3.c server/cmd4.c server/cmd5.c \
+  server/cmd6.c server/store.c server/birth.c server/load2.c \
+  server/generate.c server/wilderness.c server/dungeon.c \
+  server/init1.c server/init2.c server/netserver.c server/printout.c \
+  server/main.c common/md5.c
+
+#
+# Client Source files
+#
+CLIENT_SRC = \
+  common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
+  common/sockbuf.c common/net-win.c common/md5.c \
+  client/z-term.c client/c-util.c client/c-cmd.c client/c-inven.c \
+  client/c-files.c client/c-tables.c client/c-store.c client/c-init.c \
+  client/variable.c client/readdib.c \
+  client/main-win.c client/netclient.c client/c-birth.c \
+  client/c-xtra1.c client/c-xtra2.c client/c-spell.c
+
+#
+# Console Source files
+#
+CONSOLE_SRC = \
+  common/z-util.c common/z-virt.c common/z-form.c common/net-win.c \
+  common/sockbuf.c client/readdib.c \
+  client/z-term.c client/main-win.c client/client.c \
+  console/variable.c console/c-util.c console/console.c console/c-init.c
+  
+#
+# Our variables
+#
+CC = gcc
+CFLAGS = -g -pipe 
+CLIENTLIBS = -l ws2_32 -l winmm -l gdi32 -l comdlg32 -mwindows
+SERVERLIBS = -l ws2_32 -l winmm 
+CONSOLELIBS = -l ws2_32 -l winmm -l gdi32 -l comdlg32 -mwindows
+LDFLAGS =     
+# resource compiler to use
+RES = windres
+
+#
+# SDL MODE
+#
+#CFLAGS = -g -pipe `sdl-config --cflags` -D"USE_SDL"
+#CLIENTLIBS = -l ws2_32 `sdl-config --libs`
+#CLIENT_SRC = \
+#  common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
+#  common/sockbuf.c common/net-win.c \
+#  client/z-term.c client/c-util.c client/c-cmd.c client/c-inven.c \
+#  client/c-files.c client/c-tables.c client/c-store.c client/c-init.c \
+#  client/variable.c \
+#  client/set_focus.c client/main-sdl.c client/maim-sdl.c client/sdl-xxx.c \
+#  client/client.c client/netclient.c client/c-birth.c \
+#  client/c-xtra1.c client/c-xtra2.c client/c-spell.c
+
+#CONSOLELIBS = -l ws2_32 -l winmm -l gdi32 -l comdlg32 -mwindows `sdl-config --libs`
+#CONSOLE_SRC = \
+  common/z-util.c common/z-virt.c common/z-form.c common/net-win.c \
+  common/sockbuf.c client/z-term.c \
+  client/maim-sdl.c \
+  console/variable.c console/c-util.c console/console.c console/c-init.c \
+ client/main-sdl.c
+
+
+#
+# Default: build the server and client
+#
+.PHONY: all
+all: mangband mangclient
+
+#
+# Build the Server
+#
+objs = $(patsubst %.c,%.o,$(SERVER_SRC))
+mangband: $(objs)
+	$(CC) $(CFLAGS) -o mangband $(objs) $(LDFLAGS) $(SERVERLIBS)
+
+#
+# Build the "MAngband" client
+#
+objc = $(patsubst %.c,%.o,$(CLIENT_SRC))
+mangclient: $(objc)
+	$(RES) -I client -o client/res.o client/Angband.rc
+	$(CC) $(CFLAGS) -o mangclient $(objc) client/res.o $(LDFLAGS) $(CLIENTLIBS)
+
+#
+# Build the "MAngband" remote console
+#
+objn = $(patsubst %.c,%.o,$(CONSOLE_SRC))
+mangconsole: $(objn)
+	$(CC) $(CFLAGS) -o mangconsole $(objn) $(LDFLAGS) $(CONSOLELIBS)
+
+#
+# Tidy up object files
+#
+.PHONY: clean
+clean:
+	cd server; rm -f *.o
+	cd client; rm -f *.o
+	cd common; rm -f *.o
+	cd console; rm -f *.o
