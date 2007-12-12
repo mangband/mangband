@@ -1839,7 +1839,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_DISPEL_UNDEAD:
             {
-                (void)dispel_undead(Ind, plev * 3);
+                (void)dispel_undead(Ind, randint(plev * 3));
                 break;
             }
 
@@ -1985,7 +1985,7 @@ void do_cmd_pray(int Ind, int book, int spell)
             case PSPELL_DISPEL_UNDEAD2:
 			{
 				
-				(void)dispel_undead(Ind, plev * 4);
+				(void)dispel_undead(Ind, randint(plev * 4));
 				break;
 			}
 
