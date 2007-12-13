@@ -1486,6 +1486,7 @@ bool detection(int Ind)
 	if (detect_trap(Ind)) detect = TRUE;
 	if (detect_sdoor(Ind)) detect = TRUE;
 	if (detect_creatures(Ind)) detect = TRUE;
+	if (detect_invisible(Ind)) detect = TRUE;
 
 	/* Result */
 	return (detect);
