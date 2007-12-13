@@ -48,50 +48,30 @@
 
 SERV_SRCS = \
   common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
-  common/net-unix.c common/sockbuf.c server/variable.c server/control.c \
+  common/net-unix.c common/net-win.c common/sockbuf.c server/variable.c server/control.c \
   server/party.c server/tables.c server/util.c server/cave.c \
   server/object1.c server/object2.c server/monster1.c server/monster2.c \
   server/xtra1.c server/xtra2.c server/spells1.c server/spells2.c \
   server/melee1.c server/melee2.c server/save.c server/files.c \
   server/cmd1.c server/cmd2.c server/cmd3.c server/cmd4.c server/cmd5.c \
   server/cmd6.c server/store.c server/birth.c server/load2.c \
-  server/sched.c server/generate.c server/wilderness.c server/dungeon.c \
+  server/sched.c server/sched-win.c server/generate.c server/wilderness.c server/dungeon.c \
   server/init1.c server/init2.c server/netserver.c server/printout.c \
   server/main.c common/md5.c
 
-SERV_OBJS = \
-  common/z-util.o common/z-virt.o common/z-form.o common/z-rand.o \
-  common/net-unix.o common/sockbuf.o server/variable.o server/control.o \
-  server/party.o server/tables.o server/util.o server/cave.o \
-  server/object1.o server/object2.o server/monster1.o server/monster2.o \
-  server/xtra1.o server/xtra2.o server/spells1.o server/spells2.o \
-  server/melee1.o server/melee2.o server/save.o server/files.o \
-  server/cmd1.o server/cmd2.o server/cmd3.o server/cmd4.o server/cmd5.o \
-  server/cmd6.o server/store.o server/birth.o server/load2.o \
-  server/sched.o server/generate.o server/wilderness.o server/dungeon.o \
-  server/init1.o server/init2.o server/netserver.o server/printout.o \
-  server/main.o common/md5.o
-
-
 CLI_SRCS = \
   common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
-  common/net-unix.c common/sockbuf.c common/net-ibm.c \
+  common/net-unix.c common/net-win.c common/net-ibm.c common/sockbuf.c common/md5.c \
   client/z-term.c client/c-util.c client/c-cmd.c client/c-inven.c \
   client/c-files.c client/c-tables.c client/c-store.c client/c-init.c \
-  client/variable.c client/main-ibm.c client/main-cap.c client/main-gcu.c \
-  client/main-x11.c client/main-sdl.c client/maim-sdl.c client/sdl-xxx.c client/main-xaw.c client/netclient.c client/c-birth.c \
-  client/c-xtra1.c client/c-xtra2.c client/c-spell.c client/client.c client/set_focus.c \
-  common/md5.c
+  client/set_focus.c client/variable.c client/readdib.c \
+  client/main-ibm.c client/main-cap.c client/main-xaw.c \
+  client/main-gcu.c client/main-x11.c \
+  client/main-sdl.c client/maim-sdl.c client/sdl-xxx.c \
+  client/netclient.c client/c-birth.c \
+  client/c-xtra1.c client/c-xtra2.c client/c-spell.c client/client.c 
 
-CLI_OBJS = \
-  common/z-util.o common/z-virt.o common/z-form.o common/z-rand.o \
-  common/net-unix.o common/sockbuf.o common/net-ibm.o \
-  client/z-term.o client/c-util.o client/c-cmd.o client/c-inven.o \
-  client/c-files.o client/c-tables.o client/c-store.o client/c-init.o \
-  client/variable.o client/main-ibm.o client/main-cap.o client/main-gcu.o \
-  client/main-x11.o client/main-sdl.o client/maim-sdl.o client/sdl-xxx.o client/main-xaw.o client/netclient.o client/c-birth.o \
-  client/c-xtra1.o client/c-xtra2.o client/c-spell.o client/client.o client/set_focus.o \
-  common/md5.o
+
 
 ##
 ## Following are some "system" definitions
@@ -119,6 +99,27 @@ CLI_OBJS = \
 # This is my compiler of choice, it seems to work most everywhere
 #
 CC = gcc
+
+
+#
+# Windows32 version (see main-win.c)
+#
+#	Note, how special CLI_LIBS and SERV_LIBS directives are used
+#	to separete LIBS for client and server! 
+#
+#	CLI_MAIN directive changes client/client.c 
+#
+#
+#CFLAGS = -g -pipe
+#CLI_LIBS = -l ws2_32 -l winmm -l gdi32 -l comdlg32 -mwindows
+#SERV_LIBS = -l ws2_32 -l winmm 
+#RES= windres -I client -o client/res.o client/Angband.rc
+#CLI_MAIN = client/main-win.c
+
+#
+# Windows32 + SDL version (see main-sdl.c)
+#	
+#
 
 
 #
@@ -259,6 +260,26 @@ LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 #CFLAGS = -Wall -O2 -g -D"USE_IBM" -DMSDOS
 #LIBS = -ltcp
 
+#
+# Hack -- configure special flags to match usual flags
+#
+
+ifneq ($(strip $(LIBS)),)
+	SERV_LIBS = $(LIBS)
+	CLI_LIBS = $(LIBS)
+endif
+ifneq ($(strip $(CLI_MAIN)),)
+	CLI_RSRCS = $(patsubst client/client.c,$(CLI_MAIN),$(CLI_SRCS))
+else
+	CLI_RSRCS = $(CLI_SRCS)
+endif
+ifneq ($(strip $(RES)),)
+	RES_OBJ = client/res.o
+endif
+CLI_OBJS = $(patsubst %.c,%.o,$(CLI_RSRCS))
+SERV_OBJS = $(patsubst %.c,%.o,$(SERV_SRCS))
+
+
 
 #
 # Hack -- "install" as the base target
@@ -280,7 +301,7 @@ install: mangclient mangband
 #
 
 mangband: $(SERV_OBJS)
-	$(CC) $(CFLAGS) -o mangband $(SERV_OBJS) $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -o mangband $(SERV_OBJS) $(LDFLAGS) $(SERV_LIBS)
 
 
 #
@@ -288,7 +309,8 @@ mangband: $(SERV_OBJS)
 #
 
 mangclient: $(CLI_OBJS)
-	$(CC) $(CFLAGS) -o mangclient $(CLI_OBJS) $(LDFLAGS) $(LIBS)
+	$(RES)
+	$(CC) $(CFLAGS) -o mangclient $(CLI_OBJS) $(RES_OBJ) $(LDFLAGS) $(CLI_LIBS)
 
 
 
@@ -315,7 +337,7 @@ clean:
 #
 
 depend:
-	makedepend -- $(CFLAGS) -D__MAKEDEPEND__ -- $(SERV_SRCS) $(CLI_SRCS)
+	makedepend -- $(CFLAGS) -D__MAKEDEPEND__ -- $(SERV_SRCS) $(CLI_RSRCS)
 
 
 # DO NOT ADD ANYTHING BELOW THIS LINE.

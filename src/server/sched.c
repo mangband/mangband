@@ -1,3 +1,4 @@
+#ifndef WIN32
 /* $Id: sched.c,v 1.2 2000/04/08 04:46:52 adingle Exp $
  *
  * XPilot, a multiplayer gravity war game.  Copyright (C) 1991-95 by
@@ -503,3 +504,4 @@ void sched(void)
     }
 }
 
+#endif

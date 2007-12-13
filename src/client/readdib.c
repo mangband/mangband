@@ -1,3 +1,4 @@
+#ifdef WIN32
 /* File: readbits.c */
 
 /*
@@ -336,3 +337,5 @@ ErrExit2:
 	_lclose(fh);
 	return(result);
 }
+
+#endif

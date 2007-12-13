@@ -1,3 +1,4 @@
+#ifdef WIN32
 /*
  * This file was taken from the net-unix.c file instead of the
  * general "fill-in-the-blanks" network module.
@@ -2036,3 +2037,4 @@ SocketWrite(int fd, char *buf, int size)
 } /* SocketWrite */
 
 /*#endif	/*SERVER function? */
+#endif
