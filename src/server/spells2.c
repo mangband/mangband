@@ -199,7 +199,11 @@ void warding_glyph(int Ind)
 	cave_type *c_ptr;
 
 	/* Require clean space */
-	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px)) return;
+	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
+	{
+		msg_print(Ind, "The object resists the spell.");
+		return;
+	}
 
 	/* Access the player grid */
 	c_ptr = &cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px];
