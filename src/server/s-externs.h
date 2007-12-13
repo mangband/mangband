@@ -1001,7 +1001,7 @@ extern bool set_oppose_pois(int Ind, int v);
 extern bool set_stun(int Ind, int v);
 extern bool set_cut(int Ind, int v);
 extern bool set_food(int Ind, int v);
-extern bool set_recall_depth(player_type * p_ptr, object_type * o_ptr);
+extern void set_recall(int Ind, object_type * o_ptr);
 extern void check_experience(int Ind);
 extern void gain_exp(int Ind, s32b amount);
 extern void lose_exp(int Ind, s32b amount);

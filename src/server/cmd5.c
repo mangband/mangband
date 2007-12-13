@@ -978,19 +978,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_WORD_RECALL:
 			{
-		if (cfg_ironman)
-				msg_print(Ind, "The air about you becomes charged... but only for a moment...");
-		else if (!p_ptr->word_recall)
-				{
-					set_recall_depth(p_ptr, o_ptr);
-					p_ptr->word_recall = rand_int(20) + 15;
-					msg_print(Ind, "The air about you becomes charged...");
-				}
-				else
-				{
-					p_ptr->word_recall = 0;
-					msg_print(Ind, "A tension leaves the air around you...");
-				}
+				set_recall(Ind, o_ptr);
 				break;
 			}
 
@@ -2083,19 +2071,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_WORD_RECALL:
 			{
-		if (cfg_ironman)
-				msg_print(Ind, "The air about you becomes charged... but only for a moment...");
-                else if (p_ptr->word_recall == 0)
-				{
-					set_recall_depth(p_ptr, o_ptr);
-					p_ptr->word_recall = rand_int(20) + 15;
-					msg_print(Ind, "The air about you becomes charged...");
-				}
-				else
-				{
-					p_ptr->word_recall = 0;
-					msg_print(Ind, "A tension leaves the air around you...");
-				}
+				set_recall(Ind, o_ptr);
 				break;
 			}
 

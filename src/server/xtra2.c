@@ -3898,63 +3898,6 @@ bool get_rep_dir(int *dp)
 #endif
 
 
-
-/* Selects the recall depth.
-   Setting negative levels is now legal, assuming that the player has explored
-   the respective wilderness level.
-*/
-bool set_recall_depth(player_type * p_ptr, object_type * o_ptr)
-{
-	int recall_depth = 0;
-	
-	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
-	
-	/* default to the players maximum depth */
-	p_ptr->recall_depth = p_ptr->max_dlv;
-	
-	/* check for a valid inscription */
-	if (inscription == NULL) return FALSE;
-	
-	/* scan the inscription for @R */
-	while (*inscription != '\0')
-	{
-		
-		if (*inscription == '@')
-		{
-			inscription++;
-			
-			if (*inscription == 'R')
-			{			
-				/* a valid @R has been located */
-
-				inscription++;
-				/* convert the inscription into a level index */
-				recall_depth = atoi(inscription);
-				/* help avoid typos */
-				if(recall_depth %50) { p_ptr->recall_depth=0; return FALSE; }
-				recall_depth/=50;
-			}
-		}
-		inscription++;
-	}
-	
-	/* do some bounds checking / sanity checks */
-	if((recall_depth > p_ptr->max_dlv) || (!recall_depth)) recall_depth = p_ptr->max_dlv;
-	
-	/* if a wilderness level, verify that the player has visited here before */
-	if (recall_depth < 0)
-	{
-		/* if the player has not visited here, set the recall depth to the town */
-               if ((strcmp(p_ptr->name,cfg_dungeon_master)))
-                    if (!(p_ptr->wild_map[-recall_depth/8] & (1 << -recall_depth%8)))
-                        recall_depth = 1;
-
-	}
-	
-	p_ptr->recall_depth = recall_depth;
-	return TRUE;
-}
-
 /* this has finally earned its own function, to make it easy for restoration to do this also */
 
 bool do_scroll_life(int Ind)

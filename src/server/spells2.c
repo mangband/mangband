@@ -1004,6 +1004,77 @@ bool lose_all_info(int Ind)
 	return (TRUE);
 }
 
+/*
+ * Set word of recall as appropriate
+ */
+void set_recall(int Ind, object_type * o_ptr)
+{
+	int recall_depth = 0;
+	player_type * p_ptr = Players[Ind];
+	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+
+	/* Ironmen don't recall unless they've won */
+	if (cfg_ironman && !p_ptr->total_winner)
+	{
+		msg_print(Ind,"Nothing happens.");
+		return;
+	}
+	
+	/* Activate recall */
+	if (!p_ptr->word_recall)
+	{
+		/* default to the players maximum depth */
+		p_ptr->recall_depth = p_ptr->max_dlv;
+	
+		/* scan the inscription for @R */
+		if(inscription)
+		{
+			while (*inscription != '\0')
+			{
+				if (*inscription == '@')
+				{
+					inscription++;
+					if (*inscription == 'R')
+					{			
+						/* a valid @R has been located */
+						inscription++;
+						/* convert the inscription into a level index */
+						recall_depth = atoi(inscription);
+						if(!recall_depth %50) 
+						{
+							recall_depth/=50;
+						}
+					}
+				}
+				inscription++;
+			}
+		}
+	
+		/* do some bounds checking / sanity checks */
+		if((recall_depth > p_ptr->max_dlv) || (!recall_depth)) recall_depth = p_ptr->max_dlv;
+	
+		/* if a wilderness level, verify that the player has visited here before */
+		if (recall_depth < 0)
+		{
+			/* if the player has not visited here, set the recall depth to the town */
+			if ((strcmp(p_ptr->name,cfg_dungeon_master)))
+				if (!(p_ptr->wild_map[-recall_depth/8] & (1 << -recall_depth%8)))
+					recall_depth = 1;
+
+		}
+	
+		p_ptr->recall_depth = recall_depth;
+		p_ptr->word_recall = rand_int(20) + 15;
+		msg_print(Ind, "The air about you becomes charged...");
+	}
+	else
+	{
+		p_ptr->word_recall = 0;
+		msg_print(Ind, "A tension leaves the air around you...");
+	}	
+
+}
+
 
 /*
  * Detect any treasure on the current panel		-RAK-
