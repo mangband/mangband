@@ -1047,7 +1047,7 @@ cptr spell_names[3][64] =
 		"Holy Word",
 
 		/* Godly Insights... (sval 5) */
-        "Detect Creatures",
+        "Detect Monsters",
 		"Detection",
 		"Perception",
 		"Probing",

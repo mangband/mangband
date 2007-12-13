@@ -2213,7 +2213,7 @@ cptr spell_names[3][64] =
 	{
 		/* Magic for Beginners (sval 0) */
 		"Magic Missile",
-		"Detect Creatures",
+		"Detect Monsters",
 		"Phase Door",
 		"Light Area",
 		"Treasure Detection",
@@ -2339,7 +2339,7 @@ cptr spell_names[3][64] =
 		"Holy Word",
 
 		/* Godly Insights... (sval 5) */
-		"Detect Creatures",
+		"Detect Monsters",
 		"Detection",
 		"Perception",
 		"Probing",
