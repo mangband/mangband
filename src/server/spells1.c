@@ -351,6 +351,13 @@ void teleport_player_level(int Ind)
 	int Depth = p_ptr->dun_depth, new_depth, new_world_x = 0, new_world_y = 0;
 	char *msg;
 
+	/* Ironmen don't teleport level */
+	if (cfg_ironman)
+	{
+		msg_print(Ind,"Nothing happens.")
+		return;
+	}
+	
 	/* sometimes go down */
 	if ((!Depth) || ((rand_int(100) < 50) && (Depth < MAX_DEPTH-1)))
 	{
