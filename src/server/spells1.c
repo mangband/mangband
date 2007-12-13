@@ -354,7 +354,7 @@ void teleport_player_level(int Ind)
 	/* Ironmen don't teleport level */
 	if (cfg_ironman)
 	{
-		msg_print(Ind,"Nothing happens.")
+		msg_print(Ind,"Nothing happens.");
 		return;
 	}
 	
