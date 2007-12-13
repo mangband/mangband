@@ -2082,10 +2082,10 @@ void do_cmd_pray(int Ind, int book, int spell)
 				/* Which dungeon level are we changing? */
 				int Depth = p_ptr->dun_depth;
         
-				/* Don't allow this in towns */
-				if( (!Depth) || (check_special_level(Depth)) )
+				/* Don't allow this in towns or the wilderness */
+				if( (Depth <= 0) || (check_special_level(Depth)) )
 					break;
-        
+					
 				/* Search for players on this depth */
 				for (i = 1; i < NumPlayers + 1; i++)
 				{
