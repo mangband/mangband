@@ -981,7 +981,7 @@ static void process_player_begin(int Ind)
 		p_ptr->energy = 0;
 
 	/* Hack -- semi-constant hallucination */
-	if (p_ptr->image && (randint(10) < 1)) p_ptr->redraw |= (PR_MAP);
+	if (p_ptr->image && (randint(10) == 1)) p_ptr->redraw |= (PR_MAP);
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
 	if ((p_ptr->teleport) && (rand_int(100) < 1))
