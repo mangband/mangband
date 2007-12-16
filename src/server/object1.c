@@ -864,6 +864,7 @@ void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f
 {
 	bool aware, known;
 	
+	aware = known = FALSE;	
 	/* See if the object is "aware" */
 	if (object_aware_p(Ind, o_ptr)) aware = TRUE;
 
@@ -871,7 +872,7 @@ void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f
 	if (object_known_p(Ind, o_ptr)) known = TRUE;
 	
 	/* See if 'un'aware OR 'un'known */
-	if (!aware || !known) return
+	if (!aware || !known) return;
 	
 	object_flags(o_ptr, f1, f2, f3, f4);
 }

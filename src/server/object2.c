@@ -683,6 +683,9 @@ void object_aware(int Ind, object_type *o_ptr)
 {
 	/* Fully aware of the effects */
 	Players[Ind]->obj_aware[o_ptr->k_idx] = TRUE;
+	
+	/* Update resistant flags */
+	Players[Ind]->redraw |= PR_OFLAGS;
 }
 
 

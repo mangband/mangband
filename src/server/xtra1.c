@@ -538,7 +538,6 @@ static void prt_player_sust_info(int Ind)
 	byte a;
 	char c;
 
-	f1 = f2 = f3 = f4 = 0L;
 	ignore_f2 = ignore_f3 = ignore_f4 = 0L;
 
 	/* Row */
@@ -552,9 +551,11 @@ static void prt_player_sust_info(int Ind)
 	{
 		/* Get the object */
 		o_ptr = &p_ptr->inventory[i];
+		/* Clear flags */
+		f1 = f2 = f3 = f4 = 0L;
 		/* Get the "known" flags */
 		object_flags_known(Ind, o_ptr, &f1, &f2, &f3, &f4);
-		/* Hack -- assume stat modifiers are known */
+		/* Hack -- assume stat modifiers are known .. because they can be calculated */
 		//object_flags(o_ptr, &f1, &f2, &f3, &f4);
 		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3, &ignore_f4);
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
@@ -644,9 +645,12 @@ static void prt_player_flag_info(int Ind)
 	u32b flag;
 	//cptr name;
 
-	u32b f[5];
 
+	u32b f[5];
+	
 	byte attr = TERM_SLATE;
+	char c = '.';
+	
 	object_type *o_ptr;
 
 	realX = 0;
@@ -673,6 +677,7 @@ static void prt_player_flag_info(int Ind)
 		{
 			/* Extract flag */
 			flag = (head << y);
+	
 
 			/* Extract name */
 			//name = display_player_flag_names[x][y];
@@ -686,44 +691,61 @@ static void prt_player_flag_info(int Ind)
 
 				/* Object */
 				o_ptr = &p_ptr->inventory[i];
+				
+				/* Default Value */
+				attr = TERM_SLATE;
+				c = '.';
+				
+				/* Clear flags */
+				f[1] = f[2] = f[3] = f[4] = 0L;
 
-				/* Known flags */
-				//ject_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3], &f[4]);
-				object_flags(o_ptr, &f[1], &f[2], &f[3], &f[4]);
+				/* Fill in Known flags */
+				object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3], &f[4]);
+				//object_flags(o_ptr, &f[1], &f[2], &f[3], &f[4]);
 
 				/* Color columns by parity */
-				if (i % 2) attr = TERM_L_WHITE;
+				if (n % 2) attr = TERM_L_WHITE;
 
 				/* Non-existant objects */
-				if (!o_ptr->k_idx) attr = TERM_L_DARK;
-
+				if (!o_ptr->k_idx) attr = TERM_L_DARK; 
+				
 				/* Hack -- Check immunities */
 				if ((x == 0) && (y < 4) &&
 				    (f[set] & ((TR2_IM_ACID) << y)))
 				{
+					attr = TERM_WHITE;
+					c = '*';
 					//c_put_str(TERM_WHITE, "*", row, col+n);
-					p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-					p_ptr->hist_flags[realY][realX].c = '*';
+					//p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+					//p_ptr->hist_flags[realY][realX].c = '*';
 				}
 
 				/* Check flags */
 				else if (f[set] & flag)
 				{
 					//c_put_str(TERM_WHITE, "+", row, col+n);
-					p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-					p_ptr->hist_flags[realY][realX].c = '+';
+					attr = TERM_WHITE;
+					c = '+';
+					//p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
+					//p_ptr->hist_flags[realY][realX].c = '+';
 				}
 
 				/* Default */
 				else
 				{
 					//c_put_str(attr, ".", row, col+n);
-					p_ptr->hist_flags[realY][realX].a = attr;
-					p_ptr->hist_flags[realY][realX].c = '.';
+					//p_ptr->hist_flags[realY][realX].a = attr;
+					//p_ptr->hist_flags[realY][realX].c = c;
 				}
+				
+				p_ptr->hist_flags[realY][realX].a = attr;
+				p_ptr->hist_flags[realY][realX].c = c;
 				
 				realX++;
 			}
+
+			/* Clear */
+			f[1] = f[2] = f[3] = f[4] = 0L;
 
 			/* Player flags */
 			player_flags(Ind, &f[1], &f[2], &f[3]);
