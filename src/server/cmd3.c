@@ -136,6 +136,13 @@ static void inven_drop(int Ind, int item, int amt)
 		return;
 	};
 
+	/* Never drop artifacts */
+	if (artifact_p(o_ptr))
+	{
+		msg_print(Ind, "This item is too special to discard");
+		return;	
+	}	
+
 	/* Make a "fake" object */
 	tmp_obj = *o_ptr;
 	tmp_obj.number = amt;

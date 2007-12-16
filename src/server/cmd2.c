@@ -2595,10 +2595,17 @@ void do_cmd_throw(int Ind, int dir, int item)
                 return;
 	};
 
-        if( check_guard_inscription( o_ptr->note, 'v' )) {
-      		msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
+	if( check_guard_inscription( o_ptr->note, 'v' )) {
+		msg_print(Ind, "The item's inscription prevents it");
+		return;
+	};
+	
+	/* Never throw artifacts */
+	if (artifact_p(o_ptr))
+	{
+		msg_print(Ind, "This item is too special to throw away");
+		return;	
+	}	
 
 	/* Create a "local missile object" */
 	throw_obj = *o_ptr;
