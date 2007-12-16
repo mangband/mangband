@@ -122,10 +122,10 @@ CC = gcc
 #	
 # 	Can't compile server this way :(
 #
-CFLAGS = -g -pipe `sdl-config --cflags` -D"USE_SDL"
-LIBS = -l ws2_32 `sdl-config --libs`
-RES= windres -I client -o client/res.o client/Angband.rc
-EXE_HACK=.exe
+#CFLAGS = -g -pipe `sdl-config --cflags` -D"USE_SDL"
+#LIBS = -l ws2_32 `sdl-config --libs`
+#RES= windres -I client -o client/res.o client/Angband.rc
+#EXE_HACK=.exe
 
 #
 # SDL version (see main-sdl.c)
@@ -157,8 +157,8 @@ EXE_HACK=.exe
 #
 
 # support both Xwindows, and Terminal (telnet) mode
-#CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
-#LIBS = -L/usr/X11R6/lib -lX11 -lncurses
+CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
+LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 
 
 # only support Terminal mode.
