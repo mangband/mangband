@@ -2332,17 +2332,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		pkill++; 	/* he was pkilled.... Drop an ear(?) */
 		if( ptmp != NULL) { /* Safty First! */
 			if (!strcasecmp(p_ptr->addr, ptmp->addr)) {
-
-				/* naughty, naughty... same player trying to cheat! */
-				/* kill both characters, dropping nothing */
-				/* note this means the offender drops nothing too! */
-				/* we do this in an offhand way, allowing the main
-				   dungeon loop to carry it out, so we don't end up
-				   tripping on our toes on the way out */
-				   This process reduces the killer to a ghost, and
-				   the character that got killed to rubble.
-				/* Crimson... */
-
+				/* naughty, naughty... same player trying to cheat! kill both characters, 
+				 * dropping nothing note this means the offender drops nothing too! we do 
+				 * this in an offhand way, allowing the main dungeon loop to carry it out, 
+				 * so we don't end up tripping on our toes on the way out  This process 
+				 * reduces the killer to a ghost, and the character that got killed to rubble.
+				 * Crimson... */
 				strcpy(ptmp->died_from, p_ptr->name);
 				ptmp->total_winner = FALSE;
 				ptmp->death = TRUE;
@@ -2364,14 +2359,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		};
 	};
 
-//  if (cfg_ironman)
-// {
     if(p_ptr->lev > 19) { /* don't dump low chr deaths. */
-	/* Character dump here, before we start dropping items */
-	sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
-	file_character_server(Ind,dumpname);
+		/* Character dump here, before we start dropping items */
+		sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
+		file_character_server(Ind,dumpname);
     }
-// }
 
 	/* Drop gold if player has any */
 	if (p_ptr->alive && p_ptr->au)
@@ -2406,7 +2398,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 			continue;
 #if defined( PKILL )
 
-		/* hack: pkills drop *nothing* */
+		/* hack: pkills drop *nothing* - except artifacts */
 		if (pkill && !artifact_p(&p_ptr->inventory[i])) continue;
 #endif
 
@@ -2451,6 +2443,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		if (!p_ptr->inventory[i].k_idx)
 		{
 			p_ptr->total_weight -= item_weight;
+			/* If it was an artifact, mark it as unfound */
+			if (artifact_p(&p_ptr->inventory[i]))
+			{
+				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+			}
+
 		}
 		else
 		{
