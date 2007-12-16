@@ -100,6 +100,9 @@ CLI_SRCS = \
 #
 CC = gcc
 
+# Allow SVN revision number to be used as version id
+#shell=/bin/sh
+#SVNREV := -D'SVNREV="$(shell svnversion -n .)"'
 
 #
 # Windows32 version (see main-win.c)
@@ -110,7 +113,7 @@ CC = gcc
 #	CLI_MAIN directive changes client/client.c 
 #
 #
-#CFLAGS = -g -pipe
+#CFLAGS = $(SVNREV) -g -pipe
 #CLI_LIBS = -l ws2_32 -l winmm -l gdi32 -l comdlg32 -mwindows
 #SERV_LIBS = -l ws2_32 -l winmm 
 #RES= windres -I client -o client/res.o client/Angband.rc
@@ -122,7 +125,7 @@ CC = gcc
 #	
 # 	Can't compile server this way :(
 #
-#CFLAGS = -g -pipe `sdl-config --cflags` -D"USE_SDL"
+#CFLAGS = $(SVNREV) -g -pipe `sdl-config --cflags` -D"USE_SDL"
 #LIBS = -l ws2_32 `sdl-config --libs`
 #RES= windres -I client -o client/res.o client/Angband.rc
 #EXE_HACK=.exe
@@ -133,7 +136,7 @@ CC = gcc
 # 	With some luck this could be used on any unix-based system
 # 	with SDL support (ncurses still?)
 #
-#CFLAGS = -Wall -g -pipe -D"USE_SDL" -D"USE_XXX" `sdl-config --cflags`
+#CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_SDL" -D"USE_XXX" `sdl-config --cflags`
 #LIBS = -lncurses `sdl-config --libs`
 
 
@@ -157,18 +160,18 @@ CC = gcc
 #
 
 # support both Xwindows, and Terminal (telnet) mode
-CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
+CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
 LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 
 
 # only support Terminal mode.
-#CFLAGS = -Wall -g -pipe -D"USE_GCU" -I/usr/include/ncurses
+#CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_GCU" -I/usr/include/ncurses
 #LIBS = -lncurses
 
 
 
 # Only support Xwindows (and not terminal mode) 
-#CFLAGS = -Wall -O1 -pipe -g -D"USE_X11"
+#CFLAGS = $(SVNREV) -Wall -O1 -pipe -g -D"USE_X11"
 #LIBS = -lX11
 
 

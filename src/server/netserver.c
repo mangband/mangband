@@ -362,11 +362,11 @@ bool Report_to_meta(int flag)
 	}
 
 	/* Append the version number */
+#ifndef SVNREV
     if (cfg_ironman)
-    	sprintf(temp, "Ironman Mangband Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    	sprintf(temp, "Ironman Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
     else
-    	sprintf(temp, "Mangband Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-
+    	sprintf(temp, "Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	/* Append the additional version info */
 	if (VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
@@ -374,6 +374,12 @@ bool Report_to_meta(int flag)
 		strcat(temp, "beta");
 	if (VERSION_EXTRA == 3)
 		strcat(temp, "development");
+#else
+    if (cfg_ironman)
+    	sprintf(temp, "Ironman Revision: %d ", atoi(SVNREV));
+    else
+    	sprintf(temp, "Revision: %d ", atoi(SVNREV));
+#endif
 
 	if (!(flag & META_DIE))
 		strcat(buf, temp);
