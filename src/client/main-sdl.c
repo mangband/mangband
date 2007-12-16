@@ -44,7 +44,7 @@
 
 #ifdef USE_SDL 
 
-#include "SDL.h"
+#include <SDL/SDL.h>
 #include <string.h>
 
 
@@ -76,6 +76,7 @@ extern errr SDL_DrawCursor(SDL_Surface *dst, SDL_Rect *dr);
 #define SDL_ALLOW_MAGIC_GOATS
 #define SDL_DRINK_TOO_MUCH_COFFEE
 #define SDL_BE_EXTRA_STUPID
+
 
 These #defines were really mostly pointless. All the code they optionally
 left out should compile everywhere where the SDL exists, I think.
@@ -1544,6 +1545,13 @@ errr init_sdl(int oargc, char **oargv)
 {
 	int argc = oargc;
 	char **argv = oargv;
+
+#ifdef WINDOWS
+	/* Initialize WinSock */
+	WSADATA wsadata;
+	WSAStartup(MAKEWORD(1, 1), &wsadata);
+#endif
+
 	term_data *td;
 	Uint32 initflags = SDL_INIT_VIDEO; /* What's the point, if not video? */
 	char path[1024];

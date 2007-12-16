@@ -115,17 +115,23 @@ CC = gcc
 #SERV_LIBS = -l ws2_32 -l winmm 
 #RES= windres -I client -o client/res.o client/Angband.rc
 #CLI_MAIN = client/main-win.c
+#EXE_HACK=.exe
 
 #
 # Windows32 + SDL version (see main-sdl.c)
 #	
+# 	Can't compile server this way :(
 #
-
+CFLAGS = -g -pipe `sdl-config --cflags` -D"USE_SDL"
+LIBS = -l ws2_32 `sdl-config --libs`
+RES= windres -I client -o client/res.o client/Angband.rc
+EXE_HACK=.exe
 
 #
 # SDL version (see main-sdl.c)
 #
-#
+# 	With some luck this could be used on any unix-based system
+# 	with SDL support (ncurses still?)
 #
 #CFLAGS = -Wall -g -pipe -D"USE_SDL" -D"USE_XXX" `sdl-config --cflags`
 #LIBS = -lncurses `sdl-config --libs`
@@ -151,8 +157,8 @@ CC = gcc
 #
 
 # support both Xwindows, and Terminal (telnet) mode
-CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
-LIBS = -L/usr/X11R6/lib -lX11 -lncurses
+#CFLAGS = -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
+#LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 
 
 # only support Terminal mode.
@@ -289,8 +295,9 @@ SERV_OBJS = $(patsubst %.c,%.o,$(SERV_SRCS))
 #
 
 install: mangclient mangband
-	-mv ../mangclient ../mangclient.old
-	-mv ../mangband ../mangband.old
+	-mv ../mangclient$(EXE_HACK) ../mangclient.old 
+	-mv ../mangband$(EXE_HACK) ../mangband.old 
+
 	cp mangclient ..
 	cp mangband ..
 

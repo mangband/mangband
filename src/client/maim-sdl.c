@@ -19,7 +19,7 @@
 #ifdef USE_SDL
 
 
-#include "SDL.h"
+#include <SDL/SDL.h>
 #include <string.h>
 #include <math.h> /* for scaling blits */
 

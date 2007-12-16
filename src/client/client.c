@@ -114,12 +114,6 @@ int main(int argc, char **argv)
 {
 	bool done = FALSE;
 
-#ifdef WINDOWS
-	/* Initialize WinSock */
-	WSADATA wsadata;
-	WSAStartup(MAKEWORD(1, 1), &wsadata);
-#endif
-
 	/* Save the program name */
 	argv0 = argv[0];
 

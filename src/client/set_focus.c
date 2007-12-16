@@ -1,4 +1,4 @@
-#ifndef WIN32
+#if !defined(WIN32) || (defined(WIN32) && defined(USE_SDL))
 
 /* [grk]
  * A gross hack to allow the client to scroll the dungeon display.
