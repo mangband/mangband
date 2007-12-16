@@ -114,6 +114,12 @@ int main(int argc, char **argv)
 {
 	bool done = FALSE;
 
+#ifdef WINDOWS
+	/* Initialize WinSock */
+	WSADATA wsadata;
+	WSAStartup(MAKEWORD(1, 1), &wsadata);
+#endif
+
 	/* Save the program name */
 	argv0 = argv[0];
 
@@ -193,11 +199,6 @@ int main(int argc, char **argv)
 	/* Always call with NULL argument */
 	client_init(NULL);
 #else
-	#ifdef WINDOWS
-		/* Initialize WinSock */
-		WSADATA wsadata;
-		WSAStartup(MAKEWORD(1, 1), &wsadata);
-	#endif
 
 	/* using SDL, pass command keys on (ugly hack)
 		after we work out some config mechanisms,
