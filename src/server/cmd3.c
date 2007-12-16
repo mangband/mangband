@@ -745,46 +745,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
-	/* Artifacts cannot be destroyed */
-	if (artifact_p(o_ptr))
-	{
-		cptr feel = "special";
-
-		/* Message */
-		msg_format(Ind, "You cannot destroy %s.", o_name);
-
-		/* Hack -- Handle icky artifacts */
-		if (cursed_p(o_ptr) || broken_p(o_ptr)) feel = "terrible";
-
-		/* Hack -- Check for an existing inscription */
-		if (o_ptr->note)
-		{
-			if (!strstr(quark_str(o_ptr->note), feel))
-			{
-				strcpy(o_inscribe, (const char *)feel);
-				strcat(o_inscribe, " - ");
-				strcat(o_inscribe, quark_str(o_ptr->note));
-				strcpy(feel, o_inscribe);
-			}
-		}
-
-		/* Hack -- inscribe the artifact */
-		o_ptr->note = quark_add(feel);
-
-		/* We have "felt" it (again) */
-		o_ptr->ident |= (ID_SENSE);
-
-		/* Combine the pack */
-		p_ptr->notice |= (PN_COMBINE);
-
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
-		/* Done */
-		return;
-	}
-
-	/* Keys cannot be destoryed */
+	/* Keys cannot be destroyed */
 	if (o_ptr->tval == TV_KEY)
 	{
 		/* Message */
@@ -804,6 +765,13 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		return;
 	}
 
+	/* Artifacts *can* now be destroyed */
+	if (artifact_p(o_ptr))
+	{
+		/* set the artifact as unfound */
+		a_info[o_ptr->name1].cur_num = 0;
+	}
+	
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
 
