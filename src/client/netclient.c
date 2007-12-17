@@ -1571,11 +1571,15 @@ int Receive_message(void)
 		c_msg_print(buf);
 	}
 	else
+	{
+		c_message_add(buf);
+	}
+	/*
 		if ((n = Packet_printf(&qbuf, "%c%s", ch, buf)) <= 0)
 		{
 			return n;
 		}
-
+	*/
 	return 1;
 }
 
