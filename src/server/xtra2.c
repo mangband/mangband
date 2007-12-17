@@ -2640,6 +2640,9 @@ void resurrect_player(int Ind)
 	{
 		p_ptr->au = 100;
 	}
+	
+	/* Count resurrections */
+	p_ptr->lives++;
 
 	/* Message */
 	msg_print(Ind, "You feel life return to your body.");
