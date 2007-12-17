@@ -818,7 +818,7 @@ void display_player(int Ind)
 	for (i = 0; i < 6; i++)
 	{
 		Send_stat(Ind, i, p_ptr->stat_top[i], p_ptr->stat_use[i]);
-	Send_maxstat(Ind, i, p_ptr->stat_max[i]);
+		Send_maxstat(Ind, i, p_ptr->stat_max[i]);
 	}
 
 	/* Extra info */
@@ -3175,7 +3175,7 @@ void exit_game_panic(void)
 	/* Dump a nice core - Chris */
 #ifdef	HANDLE_SIGNALS
 	signal(11, 0);
-    // kill(getpid(), 11);
+    	kill(getpid(), 11);
 #endif
 	
 	/* Successful panic save of server info */
