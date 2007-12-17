@@ -6456,8 +6456,10 @@ char * buf;
 	player_type *p_ptr = Players[Ind];
 	if(p_ptr) {
 		strncpy(p_ptr->pass, buf, MAX_PASS_LEN);
-	};
-};
+		return 0;
+	}
+	return -1;
+}
 
 
 static int Receive_pass(int ind)
