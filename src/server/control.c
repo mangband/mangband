@@ -47,6 +47,14 @@ static void console_who()
 }
 
 /*
+ * Utility function, change locally as required when testing
+ */
+static void console_debug()
+{
+	return;
+}
+
+/*
  * Return information about a specific player
  */
 static void console_whois(char *name)
@@ -392,6 +400,10 @@ void NewConsole(int read_fd, int arg)
 	else if (!strncmp(buf,"rngtest",7))
 	{
 		console_rng_test();
+	}
+	else if (!strncmp(buf,"debug",5))
+	{
+		console_debug();
 	}
 	
 }
