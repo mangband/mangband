@@ -2622,6 +2622,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
  
 void resurrect_player(int Ind)
 {
+	int exp, lives, level;
 	player_type *p_ptr = Players[Ind];
 
 	/* Hack -- the dungeon master can not ressurect */
@@ -2629,10 +2630,24 @@ void resurrect_player(int Ind)
 
 	/* Reset ghost flag */
 	p_ptr->ghost = 0;
+
+	/* Count resurrections */
+	p_ptr->lives++;
 	
 	/* Lose some experience */
-	p_ptr->max_exp -= p_ptr->max_exp / 2;
-	p_ptr->exp -= p_ptr->exp / 2;
+	exp = p_ptr->max_exp;
+	lives = p_ptr->lives;
+	level = p_ptr->lev;
+	if (p_ptr->lev < 25)
+	{	
+		exp -= exp * (((float)lives * 10)/100);
+	}
+	else
+	{
+		exp -= exp * ((((float)lives * 10)*((float)level / 25))/100);
+	}
+	p_ptr->max_exp = exp;
+	p_ptr->exp = exp;
 	check_experience(Ind);
 
 	/* If we resurrect in town, we get a little cash */
@@ -2641,9 +2656,6 @@ void resurrect_player(int Ind)
 		p_ptr->au = 100;
 	}
 	
-	/* Count resurrections */
-	p_ptr->lives++;
-
 	/* Message */
 	msg_print(Ind, "You feel life return to your body.");
 
