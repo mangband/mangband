@@ -2635,6 +2635,12 @@ void resurrect_player(int Ind)
 	p_ptr->exp -= p_ptr->exp / 2;
 	check_experience(Ind);
 
+	/* If we resurrect in town, we get a little cash */
+	if (!p_ptr->dun_depth)
+	{
+		p_ptr->au = 100;
+	}
+
 	/* Message */
 	msg_print(Ind, "You feel life return to your body.");
 
