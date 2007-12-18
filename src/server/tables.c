@@ -2347,9 +2347,9 @@ cptr spell_names[3][64] =
 		"Clairvoyance",
 
 		/* Purifications and Healing (sval 6) */
-        "Cure Critical Wounds",
-		"Healing",
-        "Extra Healing",
+        "Cure Serious Wounds",
+		"Cure Mortal Wounds",
+        "Healing", 
 		"Restoration",
 		"Remembrance",
 

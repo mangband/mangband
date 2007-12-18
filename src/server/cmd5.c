@@ -228,9 +228,9 @@ static void spell_info(int Ind, char *p, int j)
             case PSPELL_CURE_HEAL: strcpy(p, " heal 300"); break;
             case PSPELL_DISPEL_EVIL: sprintf(p, " dam d%d", 3*plev); break;
             case PSPELL_HOLY_WORD: strcpy(p, " heal 1000"); break;
-            case PSPELL_CURE_CRIT2: strcpy(p, " heal 6d10"); break;
-            case PSPELL_CURE_HEALING: strcpy(p, " heal 100"); break;
-            case PSPELL_EXTRA_HEALING: strcpy(p, " heal 2000"); break;
+            case PSPELL_CURE_SERIOUS_WOUNDS2: strcpy(p, " heal 4d10"); break;
+            case PSPELL_CURE_MORTAL_WOUNDS2: strcpy(p, " heal 8d10"); break;
+            case PSPELL_HEALING: strcpy(p, " heal 2000"); break;
             case PSPELL_DISPEL_UNDEAD2: sprintf(p, " dam d%d", 4*plev); break;
             case PSPELL_DISPEL_EVIL2: sprintf(p, " dam d%d", 4*plev); break;
             case PSPELL_ANNIHILAT_BOLT: strcpy(p, " dam 200"); break;
@@ -1900,36 +1900,36 @@ void do_cmd_pray(int Ind, int book, int spell)
 				break;
 			}
 
-            case PSPELL_CURE_CRIT2:
+            case PSPELL_CURE_SERIOUS_WOUNDS2:
 			{
-                (void)hp_player(Ind, damroll(6, 10));
+                (void)hp_player(Ind, damroll(4, 10));
 				(void)set_cut(Ind, 0);
 				break;
 			}
-	    /* cure critical wounds projectile */
-            case PSPELL_CURE_CRIT2+64:
+			/* cure serious wounds2 projectile */
+            case PSPELL_CURE_SERIOUS_WOUNDS2+64:
             {
-                p_ptr->current_spell = PSPELL_CURE_CRIT2;
+                p_ptr->current_spell = PSPELL_CURE_SERIOUS_WOUNDS2;
                 get_aim_dir(Ind);
                 return;
             }
 
-            case PSPELL_CURE_HEALING:
+            case PSPELL_CURE_MORTAL_WOUNDS2:
 			{
-                (void)hp_player(Ind, 100);
+                (void)hp_player(Ind, damroll(8, 10));
 				(void)set_stun(Ind, 0);
 				(void)set_cut(Ind, 0);
 				break;
 			}
-	    /* Healing projectile */
-            case PSPELL_CURE_HEALING+64:
+			/* Healing projectile */
+            case PSPELL_CURE_MORTAL_WOUNDS2+64:
             {
-                p_ptr->current_spell = PSPELL_CURE_HEALING;
+                p_ptr->current_spell = PSPELL_CURE_MORTAL_WOUNDS2;
                 get_aim_dir(Ind);
                 return;
             }
 
-            case PSPELL_EXTRA_HEALING:
+            case PSPELL_HEALING:
 			{
 				(void)hp_player(Ind, 2000);
 				(void)set_stun(Ind, 0);
@@ -1938,9 +1938,9 @@ void do_cmd_pray(int Ind, int book, int spell)
 			}
 
 			/* heal other spell */
-            case PSPELL_EXTRA_HEALING+64:
+            case PSPELL_HEALING+64:
 			{
-                p_ptr->current_spell = PSPELL_EXTRA_HEALING;
+                p_ptr->current_spell = PSPELL_HEALING;
 				get_aim_dir(Ind);
 				return;
 			}
@@ -2216,6 +2216,7 @@ void do_cmd_pray_aux(int Ind, int dir)
 		}
 
         case PSPELL_CURE_SERIOUS:
+        case PSPELL_CURE_SERIOUS_WOUNDS2:
 		{
 			(void)cure_serious_wounds_proj(Ind, dir);
 			break;
@@ -2231,14 +2232,13 @@ void do_cmd_pray_aux(int Ind, int dir)
 			break;
 		}
 
-        case PSPELL_CURE_CRITICAL: 
-	case PSPELL_CURE_CRIT2:
+		case PSPELL_CURE_CRITICAL: 
 		{
 			(void)cure_critical_wounds_proj(Ind, dir);
 			break;	
 		}
 
-	case PSPELL_CURE_MORTAL: 
+		case PSPELL_CURE_MORTAL: 
         {
             (void)cure_mortal_wounds_proj(Ind, dir);
             break;	
@@ -2250,13 +2250,13 @@ void do_cmd_pray_aux(int Ind, int dir)
 			break;
 		}
 
-	case PSPELL_CURE_HEALING:
-	{
-            heal_other_lite_proj(Ind,dir);
-            break;
-        }
+		case PSPELL_CURE_MORTAL_WOUNDS2:
+		{
+			cure_mortal_wounds_proj(Ind,dir);
+			break;
+		}
 
-        case PSPELL_EXTRA_HEALING:
+        case PSPELL_HEALING:
 		{
 			heal_other_heavy_proj(Ind,dir);
 			break;
