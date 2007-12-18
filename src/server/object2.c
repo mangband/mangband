@@ -1344,8 +1344,11 @@ void invcopy(object_type *o_ptr, int k_idx)
 	/* Hack -- worthless items are always "broken" */
 	if (k_ptr->cost <= 0) o_ptr->ident |= ID_BROKEN;
 
-	/* Hack -- cursed items are always "cursed" */
-	if (k_ptr->flags3 & TR3_CURSED) o_ptr->ident |= ID_CURSED;
+	/* Hack -- cursed items are always "cursed" */ 
+	if ((k_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(k_ptr->flags3 & TR3_HEAVY_CURSE) ||
+ 		 		(k_ptr->flags3 & TR3_PERMA_CURSE))
+					o_ptr->ident |= ID_CURSED;
 }
 
 
@@ -1749,11 +1752,15 @@ static bool check_ego(object_type *o_ptr, int level, int power, int idx)
 		return FALSE;
 		
 	/* check cursed egos */
-	if ((power > 1) && (e_ptr->flags3 & TR3_CURSED))
+	if ((power > 1) && ( (e_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(e_ptr->flags3 & TR3_HEAVY_CURSE) ||
+		 		(e_ptr->flags3 & TR3_PERMA_CURSE) ) )
 		return FALSE;
 		
 	/* check cursed objects */
-	if ((power < -1) && !(e_ptr->flags3 & TR3_CURSED))
+	if ( (power < -1) && !( (e_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(e_ptr->flags3 & TR3_HEAVY_CURSE) ||
+		 		(e_ptr->flags3 & TR3_PERMA_CURSE) ) )
 		return FALSE;
 
 	/* we have a winner */
@@ -2585,7 +2592,11 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		if (!a_ptr->cost) o_ptr->ident |= ID_BROKEN;
 
 		/* Hack -- extract the "cursed" flag */
-		if (a_ptr->flags3 & TR3_CURSED) o_ptr->ident |= ID_CURSED;
+		if ((a_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(a_ptr->flags3 & TR3_HEAVY_CURSE) ||
+		 		(a_ptr->flags3 & TR3_PERMA_CURSE))
+					o_ptr->ident |= ID_CURSED;		
+		
 
 		/* Mega-Hack -- increase the rating */
 		rating += 10;
@@ -2669,7 +2680,11 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		if (!e_ptr->cost) o_ptr->ident |= ID_BROKEN;
 
 		/* Hack -- acquire "cursed" flag */
-		if (e_ptr->flags3 & TR3_CURSED) o_ptr->ident |= ID_CURSED;
+		if ((e_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(e_ptr->flags3 & TR3_HEAVY_CURSE) ||
+		 		(e_ptr->flags3 & TR3_PERMA_CURSE))
+					o_ptr->ident |= ID_CURSED;		
+		
 
 		/* Hack -- apply extra penalties if needed */
 		if (cursed_p(o_ptr) || broken_p(o_ptr))
@@ -2721,7 +2736,10 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		if (!k_ptr->cost) o_ptr->ident |= ID_BROKEN;
 
 		/* Hack -- acquire "cursed" flag */
-		if (k_ptr->flags3 & TR3_CURSED) o_ptr->ident |= ID_CURSED;
+		if ((k_ptr->flags3 & TR3_LIGHT_CURSE) ||
+				(k_ptr->flags3 & TR3_HEAVY_CURSE) ||
+ 		 		(k_ptr->flags3 & TR3_PERMA_CURSE))
+		 			o_ptr->ident |= ID_CURSED;
 	}
 }
 

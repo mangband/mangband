@@ -950,10 +950,10 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
             switch (o_ptr->xtra2 % 11)
 			{
 				case 0: (*f2) |= TR2_RES_BLIND; break;
-				case 1: (*f2) |= TR2_RES_CONF; break;
+				case 1: (*f2) |= TR2_RES_CONFU; break;
 				case 2: (*f2) |= TR2_RES_SOUND; break;
-				case 3: (*f2) |= TR2_RES_SHARDS; break;
-				case 4: (*f2) |= TR2_RES_NETHER; break;
+				case 3: (*f2) |= TR2_RES_SHARD; break;
+				case 4: (*f2) |= TR2_RES_NETHR; break;
 				case 5: (*f2) |= TR2_RES_NEXUS; break;
 				case 6: (*f2) |= TR2_RES_CHAOS; break;
 				case 7: (*f2) |= TR2_RES_DISEN; break;
@@ -973,11 +973,11 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
 				case 0: (*f3) |= TR3_FEATHER; break;
 				case 1: (*f3) |= TR3_LITE; break;
 				case 2: (*f3) |= TR3_SEE_INVIS; break;
-                case 3: (*f4) |= TR4_ESP_ALL; break;
+            case 3: (*f3) |= TR3_TELEPATHY; break;
 				case 4: (*f3) |= TR3_SLOW_DIGEST; break;
 				case 5: (*f3) |= TR3_REGEN; break;
-				case 6: (*f2) |= TR2_FREE_ACT; break;
-				case 7: (*f2) |= TR2_HOLD_LIFE; break;
+				case 6: (*f3) |= TR3_FREE_ACT; break;
+				case 7: (*f3) |= TR3_HOLD_LIFE; break;
 		case 8: (*f2) |= TR2_RES_FEAR; break;
 			}
 
@@ -1690,7 +1690,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		power = (o_ptr->sval % 10);
 
 		/* Apply the "Extra Might" flag */
-		if (f3 & TR3_XTRA_MIGHT) power++;
+		if (f1 & TR1_MIGHT) power++;
 
 		/* Append a special "damage" string */
 		t = object_desc_chr(t, ' ');
@@ -2458,12 +2458,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It affects your charisma.";
 	}
-
-    if (f1 & TR1_MANA)
-    {
-	info[i++] = "It affects your mana capacity.";
-    }
-
 	if (f1 & TR1_STEALTH)
 	{
 		info[i++] = "It affects your stealth.";
@@ -2510,7 +2504,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
         info[i++] = "It does extra damage from poison.";
     }
 
-	if (f1 & TR1_IMPACT)
+	if (f3 & TR3_IMPACT)
 	{
 		info[i++] = "It can cause earthquakes.";
 	}
@@ -2591,11 +2585,11 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
         info[i++] = "It makes you completely fearless.";
     }
 
-	if (f2 & TR2_FREE_ACT)
+	if (f3 & TR3_FREE_ACT)
 	{
 		info[i++] = "It provides immunity to paralysis.";
 	}
-	if (f2 & TR2_HOLD_LIFE)
+	if (f3 & TR3_HOLD_LIFE)
 	{
 		info[i++] = "It provides resistance to life draining.";
 	}
@@ -2634,7 +2628,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It provides resistance to blindness.";
 	}
-	if (f2 & TR2_RES_CONF)
+	if (f2 & TR2_RES_CONFU)
 	{
 		info[i++] = "It provides resistance to confusion.";
 	}
@@ -2642,12 +2636,12 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It provides resistance to sound.";
 	}
-	if (f2 & TR2_RES_SHARDS)
+	if (f2 & TR2_RES_SHARD)
 	{
 		info[i++] = "It provides resistance to shards.";
 	}
 
-	if (f2 & TR2_RES_NETHER)
+	if (f2 & TR2_RES_NETHR)
 	{
 		info[i++] = "It provides resistance to nether.";
 	}
@@ -2676,7 +2670,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	{
 		info[i++] = "It allows you to see invisible monsters.";
 	}
-    if (f4 & TR4_ESP_ALL)
+    if (f3 & TR3_TELEPATHY)
 	{
 		info[i++] = "It gives telepathic powers.";
 	}
@@ -2689,11 +2683,11 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 		info[i++] = "It speeds your regenerative powers.";
 	}
 
-	if (f3 & TR3_XTRA_MIGHT)
+	if (f1 & TR1_MIGHT)
 	{
 		info[i++] = "It fires missiles with extra might.";
 	}
-	if (f3 & TR3_XTRA_SHOTS)
+	if (f1 & TR1_SHOTS)
 	{
 		info[i++] = "It fires missiles excessively fast.";
 	}

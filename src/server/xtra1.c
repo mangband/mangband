@@ -430,7 +430,7 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	
 	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
 	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
-	if (p_ptr->prace == RACE_GNOME) *f2 |= TR2_FREE_ACT;
+	if (p_ptr->prace == RACE_GNOME) *f3 |= TR3_FREE_ACT;
 	if (p_ptr->prace == RACE_DWARF) *f2 |= TR2_RES_BLIND;
 	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
 	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
@@ -447,10 +447,10 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	/* Ghost */
 	if (p_ptr->ghost) {
 		*f3 |= TR3_SEE_INVIS;
-		*f2 |= TR2_RES_NETHER;
-		*f2 |= TR2_HOLD_LIFE;
+		*f2 |= TR2_RES_NETHR;
+		*f3 |= TR3_HOLD_LIFE;
 		*f2 |= TR2_RES_FEAR;
-		*f2 |= TR2_FREE_ACT;
+		*f3 |= TR3_FREE_ACT;
 		*f1 |= TR1_INFRA;
 	}
 	
@@ -1518,7 +1518,7 @@ static void calc_mana(int Ind)
 
 		/* Normal gloves hurt mage-type spells */
 		if (o_ptr->k_idx &&
-		    !(f2 & TR2_FREE_ACT) &&
+		    !(f3 & TR3_FREE_ACT) &&
 		    !((f1 & TR1_DEX) && (o_ptr->pval > 0)))
 		{
 			/* Encumbered */
@@ -1528,13 +1528,6 @@ static void calc_mana(int Ind)
 			new_mana = (3 * new_mana) / 4;
 		}
 	}
-
-    /* Extra mana capacity */
-    if (f1 & TR1_MANA)
-    {
-	/* 1 pval = 10% more mana */
-	new_mana += new_mana * o_ptr->pval / 10;
-    }
 
 	/* Assume player not encumbered by armor */
 	p_ptr->cumber_armor = FALSE;
@@ -2034,7 +2027,7 @@ static void calc_bonuses(int Ind)
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) 
 	{
 		p_ptr->pspeed += 50;
-        p_ptr->telepathy = TR4_ESP_ALL;
+        p_ptr->telepathy = TR3_TELEPATHY;
 	}
 
 
@@ -2137,31 +2130,31 @@ static void calc_bonuses(int Ind)
 		if (f1 & TR1_BLOWS) extra_blows += o_ptr->pval;
 
 		/* Hack -- cause earthquakes */
-		if (f1 & TR1_IMPACT) p_ptr->impact = TRUE;
+		if (f3 & TR3_IMPACT) p_ptr->impact = TRUE;
 
 		/* Boost shots */
-		if (f3 & TR3_XTRA_SHOTS) extra_shots++;
+		if (f1 & TR1_SHOTS) extra_shots++;
 
 		/* Various flags */
 		if (f3 & TR3_AGGRAVATE) p_ptr->aggravate = TRUE;
 		if (f3 & TR3_TELEPORT) p_ptr->teleport = TRUE;
 		if (f3 & TR3_DRAIN_EXP) p_ptr->exp_drain = TRUE;
 		if (f3 & TR3_BLESSED) p_ptr->bless_blade = TRUE;
-		if (f3 & TR3_XTRA_MIGHT) p_ptr->xtra_might = TRUE;
+		if (f1 & TR1_MIGHT) p_ptr->xtra_might = TRUE;
 		if (f3 & TR3_SLOW_DIGEST) p_ptr->slow_digest = TRUE;
 		if (f3 & TR3_REGEN) p_ptr->regenerate = TRUE;
 		if (f3 & TR3_LITE) p_ptr->lite += 1;
 		if (f3 & TR3_SEE_INVIS) p_ptr->see_inv = TRUE;
 		if (f3 & TR3_FEATHER) p_ptr->feather_fall = TRUE;
         if (f2 & TR2_RES_FEAR) p_ptr->resist_fear = TRUE;
-		if (f2 & TR2_FREE_ACT) p_ptr->free_act = TRUE;
-		if (f2 & TR2_HOLD_LIFE) p_ptr->hold_life = TRUE;
+		if (f3 & TR3_FREE_ACT) p_ptr->free_act = TRUE;
+		if (f3 & TR3_HOLD_LIFE) p_ptr->hold_life = TRUE;
 
 	/* telepathy */
-	if (f4 & TR4_ESP_ALL)
-		p_ptr->telepathy = TR4_ESP_ALL;
-	else if (p_ptr->telepathy != TR4_ESP_ALL)
-		p_ptr->telepathy |= f4;
+	if (f3 & TR3_TELEPATHY)
+		p_ptr->telepathy = TR3_TELEPATHY;
+	else if (p_ptr->telepathy != TR3_TELEPATHY)
+		p_ptr->telepathy |= f3;
 
 		/* Immunity flags */
 		if (f2 & TR2_IM_FIRE) p_ptr->immune_fire = TRUE;
@@ -2175,16 +2168,16 @@ static void calc_bonuses(int Ind)
 		if (f2 & TR2_RES_FIRE) p_ptr->resist_fire = TRUE;
 		if (f2 & TR2_RES_COLD) p_ptr->resist_cold = TRUE;
 		if (f2 & TR2_RES_POIS) p_ptr->resist_pois = TRUE;
-		if (f2 & TR2_RES_CONF) p_ptr->resist_conf = TRUE;
+		if (f2 & TR2_RES_CONFU) p_ptr->resist_conf = TRUE;
 		if (f2 & TR2_RES_SOUND) p_ptr->resist_sound = TRUE;
 		if (f2 & TR2_RES_LITE) p_ptr->resist_lite = TRUE;
 		if (f2 & TR2_RES_DARK) p_ptr->resist_dark = TRUE;
 		if (f2 & TR2_RES_CHAOS) p_ptr->resist_chaos = TRUE;
 		if (f2 & TR2_RES_DISEN) p_ptr->resist_disen = TRUE;
-		if (f2 & TR2_RES_SHARDS) p_ptr->resist_shard = TRUE;
+		if (f2 & TR2_RES_SHARD) p_ptr->resist_shard = TRUE;
 		if (f2 & TR2_RES_NEXUS) p_ptr->resist_nexus = TRUE;
 		if (f2 & TR2_RES_BLIND) p_ptr->resist_blind = TRUE;
-		if (f2 & TR2_RES_NETHER) p_ptr->resist_neth = TRUE;
+		if (f2 & TR2_RES_NETHR) p_ptr->resist_neth = TRUE;
 
 		/* Sustain flags */
 		if (f2 & TR2_SUST_STR) p_ptr->sustain_str = TRUE;

@@ -902,7 +902,7 @@ void lore_treasure(int m_idx, int num_item, int num_gold)
 
 bool is_detected(u32b flag, u32b esp)
 {
-	if (esp == TR4_ESP_ALL) return TRUE;
+	if (esp == TR3_TELEPATHY) return TRUE;
 	return FALSE;
 }
 
@@ -1306,7 +1306,7 @@ void update_player(int Ind)
 			}
 
 			/* Telepathy can see all players */
-            if (p_ptr->telepathy == TR4_ESP_ALL)
+            if (p_ptr->telepathy == TR3_TELEPATHY)
 			{
 				/* Visible */
 				hard = flag = TRUE;

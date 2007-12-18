@@ -644,7 +644,7 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "Your appetite is small.";
 	}
-    if (p_ptr->telepathy == TR4_ESP_ALL)
+    if (p_ptr->telepathy == TR3_TELEPATHY)
 	{
 		info[i++] = "You have ESP.";
 	}
@@ -851,7 +851,7 @@ void self_knowledge(int Ind)
 		}
 
 		/* Hack */
-		if (f1 & TR1_IMPACT)
+		if (f3 & TR3_IMPACT)
 		{
 			info[i++] = "The impact of your weapon can cause earthquakes.";
 		}

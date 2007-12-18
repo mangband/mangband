@@ -1380,7 +1380,7 @@ static bool do_cmd_look_accept(int Ind, int y, int x)
 	/* Player grids */
 	if (c_ptr->m_idx < 0)
 	{
-        if (player_has_los_bold(Ind, y, x) || (p_ptr->telepathy == TR4_ESP_ALL))
+        if (player_has_los_bold(Ind, y, x) || (p_ptr->telepathy == TR3_TELEPATHY))
 			return (TRUE);
 	}
 
