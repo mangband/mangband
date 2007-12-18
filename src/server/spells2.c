@@ -2282,9 +2282,6 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 	/* Recharge wands */
 	if (o_ptr->tval == TV_WAND) return (TRUE);
 
-	/* Hack -- Recharge rods */
-	if (o_ptr->tval == TV_ROD) return (TRUE);
-
 	/* Nope */
 	return (FALSE);
 }
@@ -2303,7 +2300,7 @@ bool recharge(int Ind, int num)
 
 
 /*
- * Recharge a wand/staff/rod from the pack or on the floor.
+ * Recharge a wand or staff from the pack or on the floor.
  *
  * Mage -- Recharge I --> recharge(5)
  * Mage -- Recharge II --> recharge(40)
@@ -2363,92 +2360,45 @@ bool recharge_aux(int Ind, int item, int num)
 	/* Extract the object "level" */
 	lev = k_info[o_ptr->k_idx].level;
 
-	/* Recharge a rod */
-	if (o_ptr->tval == TV_ROD)
+	/* Recharge power */
+	i = (num + 100 - lev - (10 * o_ptr->pval)) / 15;
+
+	/* Paranoia -- prevent crashes */
+	if (i < 1) i = 1;
+
+	/* Back-fire XXX XXX XXX */
+	if (rand_int(i) == 0)
 	{
-		/* Extract a recharge power */
-		i = (100 - lev + num) / 5;
+		msg_print(Ind, "There is a bright flash of light.");
 
-		/* Paranoia -- prevent crashes */
-		if (i < 1) i = 1;
+		/* Drain the power */
+		o_ptr->pval = 0;
 
-		/* Back-fire */
-		if (rand_int(i) == 0)
+		/* *Identified* items keep the knowledge about the charges */
+		if (!(o_ptr->ident & ID_MENTAL))
 		{
-			/* Hack -- backfire */
-			msg_print(Ind, "The recharge backfires, draining the rod further!");
-
-			/* Hack -- decharge the rod */
-			if (o_ptr->pval < 10000) o_ptr->pval = (o_ptr->pval + 100) * 2;
+			/* We no longer "know" the item */
+			o_ptr->ident &= ~(ID_KNOWN);
 		}
 
-		/* Recharge */
-		else
-		{
-			/* Rechange amount */
-			t = (num * damroll(2, 4));
-
-			/* Recharge by that amount */
-			if (o_ptr->pval > t)
-			{
-				o_ptr->pval -= t;
-			}
-
-			/* Fully recharged */
-			else
-			{
-				o_ptr->pval = 0;
-			}
-		}
+		/* We know that the item is empty */
+		o_ptr->ident |= ID_EMPTY;
 	}
 
-	/* Recharge wand/staff */
+	/* Recharge */
 	else
 	{
-		/* Recharge power */
-		i = (num + 100 - lev - (10 * o_ptr->pval)) / 15;
+		/* Extract a "power" */
+		t = (num / (lev + 2)) + 1;
 
-		/* Paranoia -- prevent crashes */
-		if (i < 1) i = 1;
+		/* Recharge based on the power */
+		if (t > 0) o_ptr->pval += 2 + randint(t);
 
-		/* Back-fire XXX XXX XXX */
-		if (rand_int(i) == 0)
-		{
-			/* Dangerous Hack -- Destroy the item */
-			msg_print(Ind, "There is a bright flash of light.");
+		/* Hack -- we no longer "know" the item */
+		o_ptr->ident &= ~ID_KNOWN;
 
-			/* Reduce and describe inventory */
-			if (item >= 0)
-			{
-				inven_item_increase(Ind, item, -999);
-				inven_item_describe(Ind, item);
-				inven_item_optimize(Ind, item);
-			}
-
-			/* Reduce and describe floor item */
-			else
-			{
-				floor_item_increase(0 - item, -999);
-				floor_item_describe(0 - item);
-				floor_item_optimize(0 - item);
-			}
-		}
-
-		/* Recharge */
-		else
-		{
-			/* Extract a "power" */
-			t = (num / (lev + 2)) + 1;
-
-			/* Recharge based on the power */
-			if (t > 0) o_ptr->pval += 2 + randint(t);
-
-			/* Hack -- we no longer "know" the item */
-			o_ptr->ident &= ~ID_KNOWN;
-
-			/* Hack -- we no longer think the item is empty */
-			o_ptr->ident &= ~ID_EMPTY;
-		}
+		/* Hack -- we no longer think the item is empty */
+		o_ptr->ident &= ~ID_EMPTY;
 	}
 
 	/* Combine / Reorder the pack (later) */
