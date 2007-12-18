@@ -2356,7 +2356,7 @@ cptr spell_names[3][64] =
 		/* Wrath of God (sval 8) */
 		"Dispel Undead",
 		"Dispel Evil",
-		"Banishment",
+		"Banish Evil",
 		"Word of Destruction",
 		"Annihilation",
 

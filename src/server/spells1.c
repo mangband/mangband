@@ -3089,7 +3089,7 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			/* Teleport evil (Use "dam" as "power") */
 		case GF_AWAY_EVIL:
 		{
-			/* Only affect undead */
+			/* Only affect evil */
 			if (r_ptr->flags3 & RF3_EVIL)
 			{
 				if (seen) obvious = TRUE;
