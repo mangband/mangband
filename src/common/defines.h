@@ -2429,6 +2429,9 @@ that keeps many algorithms happy.
     (((T)->ident & ID_KNOWN) || \
      (k_info[(T)->k_idx].easy_know && Players[IND]->obj_aware[(T)->k_idx]))
 
+#define object_felt_or_known_p(IND, T) \
+    (((T)->ident & ID_SENSE) || \
+    object_known_p(IND, T))
 
 /*
  * Return the "attr" for a given item.

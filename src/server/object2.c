@@ -1172,6 +1172,9 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_ARROW:
 		case TV_SHOT:
 		{
+			/* Require feeling */
+			if (!object_felt_or_known_p(Ind,o_ptr) || !object_felt_or_known_p(Ind,j_ptr)) return (FALSE);
+		
 			/* Require identical "bonuses" */
 			if (o_ptr->to_h != j_ptr->to_h) return (FALSE);
 			if (o_ptr->to_d != j_ptr->to_d) return (FALSE);
