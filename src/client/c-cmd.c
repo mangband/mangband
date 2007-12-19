@@ -1247,7 +1247,8 @@ void cmd_message(void)
 		buf[0] = '\0';
 
 		if (get_string("Message: ", buf, 59))
-			Send_msg(buf);
+			if (buf[0] != '\0')
+				Send_msg(buf);
 	};
 }
 

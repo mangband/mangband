@@ -1849,7 +1849,10 @@ errr init_sdl(int oargc, char **oargv)
 
 	SDL_WM_SetCaption("MAngband","Ang");
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	SDL_ShowCursor(SDL_DISABLE);
+
+	/* Adjust those to turn on/off OS Cursor */
+	//SDL_ShowCursor(SDL_DISABLE);
+	SDL_ShowCursor(SDL_ENABLE);
 
 
 	if (!cleanHEX(&screen_font, fontname)) return -1;
