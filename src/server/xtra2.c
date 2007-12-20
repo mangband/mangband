@@ -2256,6 +2256,15 @@ void player_death(int Ind)
 	if (p_ptr->ghost)
 	{
 
+		/* Disown any houses he owns */
+		for(i=0; i<num_houses;i++)
+		{
+			if(house_owned_by(Ind,i))
+			{
+				disown_house(i);
+			}
+		}
+
 		/* Tell players */
 		sprintf(buf, "%s's ghost was destroyed by %s.",
 				p_ptr->name, p_ptr->died_from);

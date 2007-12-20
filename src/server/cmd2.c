@@ -511,9 +511,19 @@ bool set_house_owner(int Ind, int house)
  */
 void disown_house(int house)
 {
+	int i,j;
+	
 	if (house >= 0 && house < num_houses)
 	{
 		houses[house].owned[0] = '\0';
+		/* Clear any items from the house */
+		for (i = houses[house].y_1; i <= houses[house].y_2; i++) 
+		{
+			for (j = houses[house].x_1; j <= houses[house].x_2; j++) 
+			{ 
+				delete_object(houses[house].depth,i,j); 
+			} 
+		} 		
 	}		
 }
 
