@@ -322,7 +322,7 @@ static void wr_house(house_type *house)
 	write_int("door_y",house->door_y);
 	write_int("door_x",house->door_x);
 	write_int("strength",house->strength);
-	write_int("owned",house->owned);
+	write_str("owned",house->owned);
 
 	write_int("depth",house->depth);
 	write_int("price",house->price);

@@ -956,7 +956,7 @@ struct house_type
 	byte door_y;		/* Location of door */
 	byte door_x;
 	byte strength;		/* Strength of door (unused) */
-	byte owned;		/* Currently owned? */
+	char owned[MAX_NAME_LEN];	/* Currently owned? */
 
 	s32b depth;
 

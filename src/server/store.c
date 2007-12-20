@@ -830,9 +830,6 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 	/* XXX XXX XXX Ignore "worthless" items */
 	if (object_value(Ind, o_ptr) <= 0) return (FALSE);
 
-	/* XXX Never OK to sell keys */
-	if (o_ptr->tval == TV_KEY) return (FALSE);
-
 	/* Assume okay */
 	return (TRUE);
 }

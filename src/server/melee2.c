@@ -3107,7 +3107,6 @@ static void process_monster(int Ind, int m_idx)
 
 			/* Take or Kill objects (not "gold") on the floor */
 			if (o_ptr->k_idx && (o_ptr->tval != TV_GOLD) &&
-			    (o_ptr->tval != TV_KEY) &&
 			    ((r_ptr->flags2 & RF2_TAKE_ITEM) ||
 			     (r_ptr->flags2 & RF2_KILL_ITEM)))
 			{

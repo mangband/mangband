@@ -457,8 +457,65 @@ int pick_house(int Depth, int y, int x)
 	return -1;
 }
 
+/*
+ * Determine if the given house is owned
+ */
+bool house_owned(int house)
+{
+	if (house >= 0 && house < num_houses)
+	{
+		if (houses[house].owned[0])
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 
+/*
+ * Determine if the given player owns the given house
+ */
+bool house_owned_by(int Ind, int house)
+{
+	player_type *p_ptr = Players[Ind];
 
+	/* If not owned at all, obviously not owned by this player */
+	if (!house_owned(house)) return FALSE;
+	
+	/* It's owned, is it by this player */
+	if (!strcmp(p_ptr->name,houses[house].owned))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/*
+ * Set the owner of the given house
+ */
+bool set_house_owner(int Ind, int house)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Not if it's already owned */
+	if (house_owned(house)) return FALSE;
+	
+	/* Set the player as the owner */
+	strncpy(houses[house].owned,p_ptr->name,MAX_NAME_LEN);
+	
+	return TRUE;
+}
+
+/*
+ * Set the given house as unowned
+ */
+void disown_house(int house)
+{
+	if (house >= 0 && house < num_houses)
+	{
+		houses[house].owned[0] = '\0';
+	}		
+}
 
 /*
  * Open a closed door or closed chest.
@@ -665,44 +722,32 @@ void do_cmd_open(int Ind, int dir)
 		else if (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL)
 		{
 			i = pick_house(Depth, y, x);
-
-			/* See if he has the key in his inventory */
-			for (j = 0; j < INVEN_PACK; j++)
+			
+			/* Do we own this house? */
+			if (house_owned_by(Ind,i) || (!(strcmp(p_ptr->name,cfg_dungeon_master))) )
 			{
-				object_type *o_ptr = &p_ptr->inventory[j];
 
-				/* Check for a key */
-				if ( (o_ptr->tval == TV_KEY && o_ptr->pval == i) || (!(strcmp(p_ptr->name,cfg_dungeon_master))) )
-				{
-					/* Open the door */
-					c_ptr->feat = FEAT_HOME_OPEN;
+				/* Open the door */
+				c_ptr->feat = FEAT_HOME_OPEN;
 
-					/* Take half a turn */
-					p_ptr->energy -= level_speed(p_ptr->dun_depth)/2;
+				/* Take half a turn */
+				p_ptr->energy -= level_speed(p_ptr->dun_depth)/2;
 
-					/* Notice */
-					note_spot_depth(Depth, y, x);
+				/* Notice */
+				note_spot_depth(Depth, y, x);
 
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
+				/* Redraw */
+				everyone_lite_spot(Depth, y, x);
 
-					/* XXX -- Paranoia */
-					if (!houses[i].owned)
-					{
-						/* Assume one key */
-						if (strcmp(p_ptr->name, cfg_dungeon_master)) houses[i].owned = 1;
-					} 
-
-					/* Update some things */
-					p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
+				/* Update some things */
+				p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
 					
-					/* Done */
-					return;
-				}
+				/* Done */
+				return;
 			}
 
 			/* He's not the owner, check if owned */
-			if (houses[i].owned)
+			else if (house_owned(i))
 			{
 				if(strcmp(p_ptr->name,cfg_dungeon_master))  {
 					msg_format(Ind, "This house is already owned.");
@@ -717,9 +762,9 @@ void do_cmd_open(int Ind, int dir)
 				/* Take CHR into account */
 				factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
                 price = (unsigned long) houses[i].price * factor / 100;
-		if(Depth==0) {
-			price = (unsigned long)price *5L;
-		};
+				if(Depth==0) {
+					price = (unsigned long)price *5L;
+				};
 
 				/* Tell him the price */
 				msg_format(Ind, "This house costs %ld gold.", price);
@@ -2984,50 +3029,34 @@ void do_cmd_purchase_house(int Ind, int dir)
 
 
 		/* Check for already-owned house */
-		if (houses[i].owned)
+		if (house_owned(i))
 		{
-			/* See if he has the key in his inventory */
-			for (j = 0; j < INVEN_PACK; j++)
+			
+			/* Is it owned by this player? */
+			if (house_owned_by(Ind,i))
 			{
-				object_type *o_ptr = &p_ptr->inventory[j];
-
-				/* Check for a key */
-				if (o_ptr->tval == TV_KEY && o_ptr->pval == i)
-				{
-
-				        if( check_guard_inscription( o_ptr->note, 'h' )) {
-						msg_print(Ind, "The item's inscription prevents it");
-						return;
-					};
+		
+				/* house is no longer owned */
+				disown_house(i);
 					
-					/* Take away a key (do) */
-					inven_item_increase(Ind,j,-1);
-					inven_item_describe(Ind,j);
-					inven_item_optimize(Ind,j);
+				msg_format(Ind, "You sell your house for %ld gold.", price/2);
 
-					/* house is no longer owned */
-					houses[i].owned = 0;
-					
-					msg_format(Ind, "You sell your house for %ld gold.", price/2);
+				 /* Get the money */
+				p_ptr->au += price / 2;
 
-					 /* Get the money */
-					p_ptr->au += price / 2;
+				/* Window */
+				p_ptr->window |= (PW_INVEN);
 
-					/* Window */
-					p_ptr->window |= (PW_INVEN);
+				/* Redraw */
+				p_ptr->redraw |= (PR_GOLD);
 
-					/* Redraw */
-					p_ptr->redraw |= (PR_GOLD);
-
-					/* Done */
-					return;
-				}
-				
+				/* Done */
+				return;			
 			}
 		
 			if (!strcmp(p_ptr->name,cfg_dungeon_master))
 			{
-				houses[i].owned = 0;
+				disown_house(i);
 				
 				msg_format(Ind, "The house has been reset.");
 				
@@ -3041,10 +3070,11 @@ void do_cmd_purchase_house(int Ind, int dir)
 			return;
 		}
 
-	if(Depth == 0) {
-		/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
-		price =(unsigned long)price *5L; 
-	}
+		if(Depth == 0) 
+		{
+			/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
+			price =(unsigned long)price *5L; 
+		}
 
 		/* Check for enough funds */
 		if (price > p_ptr->au)
@@ -3060,20 +3090,11 @@ void do_cmd_purchase_house(int Ind, int dir)
 		/* Reshow */
 		everyone_lite_spot(Depth, y, x);
 
-		/* Make a key */
-		invcopy(&key, lookup_kind(TV_KEY, 1));
-
-		/* Set the pval to the house that this key opens */
-		key.pval = i;
-
-		/* Drop it */
-		drop_near(&key, -1, Depth, y, x);
-
 		/* Take some of the player's money */
 		p_ptr->au -= price;
 
 		/* The house is now owned */
-		houses[i].owned = 1;
+		set_house_owner(Ind,i);
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_GOLD);

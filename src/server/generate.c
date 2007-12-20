@@ -3837,7 +3837,7 @@ static void build_store(int n, int yy, int xx)
 			/* Store door location information */
 			houses[num_houses].door_y = y;
 			houses[num_houses].door_x = x;
-			houses[num_houses].owned = 0;
+			houses[num_houses].owned[0] = '\0';
 
 			/* One more house */
 			num_houses++;

@@ -2248,7 +2248,6 @@ void player_death(int Ind)
 	char dumpname[42];
 	int i;
 	u32b uniques;
-	s16b num_keys = 0;
 	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
@@ -2256,19 +2255,6 @@ void player_death(int Ind)
 	/* Get rid of him if he's a ghost */
 	if (p_ptr->ghost)
 	{
-
-		/* hack, account for keys ghosts can carry */
-		for (i = 0; i < INVEN_TOTAL; i++)
-		{
-			/* Make sure we have an object */
-			if (p_ptr->inventory[i].k_idx == 0) continue;
-			if (p_ptr->inventory[i].k_idx == 0) continue;
-
-			/* no chance to drop */
-
-			delete_object_ptr(&p_ptr->inventory[i]);
-
-		}
 
 		/* Tell players */
 		sprintf(buf, "%s's ghost was destroyed by %s.",
@@ -2404,19 +2390,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 		/* If we committed suicide, only drop artifacts */
 		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
-
-		/* do not drop keys, but track them so we don't reset inventory
-		   as empty if there are keys in it. */
-		if (p_ptr->inventory[i].tval == TV_KEY)
-		{ /* Move the key to the first available slot, then zero the old slot */
-			if (i != num_keys)
-			{ /* Check to make sure it's not already there! */
-				p_ptr->inventory[num_keys++] = p_ptr->inventory[i];
-				invwipe(&p_ptr->inventory[i]);
-/*				p_ptr->inventory[i].iy = p_ptr->inventory[i].ix = p_ptr->inventory[i].dun_depth = 0;*/
-			}
-			continue;
-		}
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 #if !defined( PKILL )
@@ -2591,8 +2564,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
 
-	/* He is carrying nothing except keys */
-	p_ptr->inven_cnt = num_keys;
+	/* He is carrying nothing */
+	p_ptr->inven_cnt = 0;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);

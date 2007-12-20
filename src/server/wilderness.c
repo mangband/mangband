@@ -1136,7 +1136,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 		{
 			houses[num_houses].door_y = door_y;
 			houses[num_houses].door_x = door_x;
-			houses[num_houses].owned = 0;
+			houses[num_houses].owned[0] = '\0';
 			num_houses++;
 		}
 	}

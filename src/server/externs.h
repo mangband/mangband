@@ -445,6 +445,10 @@ extern void run_step(int Ind, int dir);
 extern int see_wall(int Ind, int dir, int y, int x);
 
 /* cmd2.c */
+extern bool house_owned(int house);
+extern bool house_owned_by(int Ind, int house);
+extern bool set_house_owner(int Ind, int house);
+extern void disown_house(int house);
 extern void do_cmd_go_up(int Ind);
 extern void do_cmd_go_down(int Ind);
 extern void do_cmd_search(int Ind);

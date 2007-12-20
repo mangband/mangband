@@ -1222,7 +1222,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_BOTTLE:
 		case TV_JUNK:
 		case TV_SPIKE:
-		case TV_KEY:
 		case TV_FLASK:
 		case TV_CHEST:
 		{

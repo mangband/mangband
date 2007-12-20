@@ -630,9 +630,6 @@ bool make_attack_normal(int Ind, int m_idx)
 						/* Don't steal artifacts  -CFT */
 						if (artifact_p(o_ptr)) continue;
 
-						/* Don't steal keys */
-						if (o_ptr->tval == TV_KEY) continue;
-
 						/* Get a description */
 						object_desc(Ind, o_name, o_ptr, FALSE, 3);
 

@@ -843,7 +843,7 @@ static void rd_house(int n)
 	house_ptr->strength = read_int("strength");
 
 	/* Owned or not */
-	house_ptr->owned = read_int("owned");
+	read_str("owned",house_ptr->owned); 
 
 	house_ptr->depth = read_int("depth");
 	house_ptr->price = read_int("price");

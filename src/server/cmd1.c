@@ -704,10 +704,6 @@ void carry(int Ind, int pickup, int confirm)
 					log_history_event(Ind, msg);
 				}
 					
-
-				/*  hack so it doesnt clear the house -APD- */
-				if (o_ptr->tval == TV_KEY) houses[o_ptr->pval].owned = 2;
-
 				/* Delete original */
 				delete_object(Depth, p_ptr->py, p_ptr->px);
 

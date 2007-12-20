@@ -745,16 +745,6 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
-	/* Keys cannot be destroyed */
-	if (o_ptr->tval == TV_KEY)
-	{
-		/* Message */
-		msg_format(Ind, "You cannot destory %s.", o_name);
-
-		/* Done */
-		return;
-	}
-
 	/* Cursed, equipped items cannot be destroyed */
 	if (item >= INVEN_WIELD && cursed_p(o_ptr))
 	{
