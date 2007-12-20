@@ -305,10 +305,13 @@ static void sense_inventory(int Ind)
 		/* Inscribe it textually */
 		if (o_ptr->note)
 		{
-			strcpy(o_inscribe, (const char *)feel);
-			strcat(o_inscribe, " - ");
-			strcat(o_inscribe, quark_str(o_ptr->note));
-			o_ptr->note = quark_add(o_inscribe);
+			if (strstr((const char*)o_ptr->note, (const char*)feel) == NULL)
+			{
+				strcpy(o_inscribe, (const char *)feel);
+				strcat(o_inscribe, " - ");
+				strcat(o_inscribe, quark_str(o_ptr->note));
+				o_ptr->note = quark_add(o_inscribe);
+			}
 		}
 		else
 		{
