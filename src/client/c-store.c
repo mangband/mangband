@@ -362,6 +362,7 @@ void display_store(void)
 		case 5: feature = "Magic Shop"; break;
 		case 6: feature = "Black Market"; break;
 		case 7: feature = "Your home"; break;
+		case 8: feature = "The Back Room"; break;
 	}
 	
 	/* The "Home" is special */
@@ -452,7 +453,11 @@ void display_store(void)
                 else
                 {
                         prt(" p) Purchase an item.", 22, 40);
-                        prt(" s) Sell an item.", 23, 40);
+						/* We don't sell things in some shops  */
+						if (store_num != 8)
+						{
+                        	prt(" s) Sell an item.", 23, 40);
+                        }
                 }
 
                 /* Prompt */

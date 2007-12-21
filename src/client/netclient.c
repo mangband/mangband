@@ -2136,7 +2136,16 @@ int Receive_store_info(void)
 	}
 
 	store.stock_num = num_items;
-	store_owner = owners[store_num][owner_num];
+	/* The shopkeeper of the BM looks after his "back room" */
+	if (store_num != 8)
+	{
+		store_owner = owners[store_num][owner_num];
+	}
+	else
+	{
+		/* BM shopkeeper looks after this */
+		store_owner = owners[6][owner_num];
+	}
 
 	/* Only enter "display_store" if we're not already shopping */
 	if (!shopping)

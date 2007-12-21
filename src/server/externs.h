@@ -927,6 +927,7 @@ extern void do_cmd_store(int Ind);
 extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
+extern void player_store_create(int st);
 
 /* util.c */
 extern errr path_parse(char *buf, int max, cptr file);

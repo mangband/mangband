@@ -3852,6 +3852,17 @@ static void build_store(int n, int yy, int xx)
 	{
 		/* Clear previous contents, add a store door */
 		c_ptr->feat = FEAT_SHOP_HEAD + n;
+		
+		/* If this is the Black Market add the "back room" */
+		if (n == 6)
+		{
+			/* At the back :) */
+			if (y == y2) y = y1; else if (y == y1) y = y2;
+			if (x == x2) x = x1; else if (x == x1) x = x2;
+			c_ptr = &cave[0][y][x];
+			c_ptr->feat = FEAT_SHOP_HEAD + 8;
+					
+		}
 	}
 }
 
@@ -3973,15 +3984,6 @@ static void town_gen_hack(void)
 		place_street(1, x);
 	}
 
-#ifdef DEVEL_TOWN_COMPATIBILITY
-
-	/* -APD- place the auction house near the central stores */
-
-	auction_x = rand_int(5) + 3;
-	if ( (auction_x == 3) || (auction_x == 8) ) auction_y = rand_int(1) + 1;
-	else auction_y = (rand_int(1) * 3) + 1; // 1 or 4
-#endif
-
 	/* Prepare an Array of "remaining stores", and count them */
 	for (n = 0; n < MAX_STORES-1; n++) rooms[n] = n;
 	for (n = MAX_STORES-1; n < 16; n++) rooms[n] = 10;
@@ -4020,21 +4022,7 @@ static void town_gen_hack(void)
 			/* Pick a random unplaced store */
 			k = rand_int(n) + 8;
 
-#ifdef	DEVEL_TOWN_COMPATIBILITY
-			if ( (y != auction_y) || (x != auction_x) ) 
-			{
-				/* Build that store at the proper location */
-				build_store(rooms[k], y, x);
-			}
-			
-			else /* auction time! */
-			{
-				build_store(14, y, x);
-			
-			}
-#else
 			build_store(rooms[k], y, x);
-#endif
 
 			/* One less building */
 			n--;

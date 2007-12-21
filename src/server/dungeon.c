@@ -1793,8 +1793,11 @@ static void process_various(void)
 	{
 		int n;
 
-		/* Maintain each shop (except home and auction house) */
-		for (n = 0; n < MAX_STORES - 2; n++)
+		/* Update the back room */
+		player_store_create(8);
+		
+		/* Maintain each shop */
+		for (n = 0; n < MAX_STORES; n++)
 		{
 			/* Maintain */
 			store_maint(n);
@@ -1803,7 +1806,7 @@ static void process_various(void)
 		/* Sometimes, shuffle the shopkeepers */
 		if (rand_int(STORE_SHUFFLE) == 0)
 		{
-			/* Shuffle a random shop (except home and auction house) */
+			/* Shuffle a random shop (except home and higher) */
 			store_shuffle(rand_int(MAX_STORES - 2));
 		}
 	}
@@ -2428,9 +2431,6 @@ void play_game(bool new_game)
 		{
 			/* Initialize */
 			store_init(n);
-	
-			/* Ignore home and auction house */
-			if ((n == MAX_STORES - 2) || (n == MAX_STORES - 1)) continue;
 	
 			/* Maintain the shop */
 			for (i = 0; i < 10; i++) store_maint(n);
