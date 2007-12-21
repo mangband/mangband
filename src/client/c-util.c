@@ -14,9 +14,6 @@ static bool flush_later = FALSE;
 
 static byte macro__use[256];
 
-bool msg_flag;
-
-
 static char octify(uint i)
 {
 	return (hexsym[i%8]);
