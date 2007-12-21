@@ -305,7 +305,7 @@ static void sense_inventory(int Ind)
 		/* Inscribe it textually */
 		if (o_ptr->note)
 		{
-			if (strstr((const char*)o_ptr->note, (const char*)feel) == NULL)
+			if (strstr((const char*)quark_str(o_ptr->note), (const char*)feel) == NULL)
 			{
 				strcpy(o_inscribe, (const char *)feel);
 				strcat(o_inscribe, " - ");
