@@ -1614,6 +1614,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				/* Hack -- special message */
 				if (!quiet && player_can_see_bold(Ind, y, x))
 				{
+					if (Depth == 0) trees_in_town--;
 					msg_print(Ind, "The tree burns to the ground!");
 					obvious = TRUE;
 				}
