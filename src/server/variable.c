@@ -197,6 +197,7 @@ bool cfg_ironman = 0;
 s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
 s16b cfg_max_townies = 100;
+s16b cfg_max_trees = 100;
 
 
 /*
