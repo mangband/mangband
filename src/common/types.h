@@ -523,6 +523,7 @@ struct object_type
 	s16b timeout;		/* Timeout Counter */
 
 	byte ident;			/* Special flags  */
+	s32b askprice;		/* Item sale price */
 
 	/*byte marked;	*/	/* Object is marked */
 

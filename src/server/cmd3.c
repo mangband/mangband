@@ -895,6 +895,16 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 		o_ptr = &o_list[0 - item];
 	}
 
+	/* Don't allow certain inscriptions on unidentified items */
+	if (!object_known_p(Ind, o_ptr))
+	{
+		if (strstr(inscription,"for sale")) 
+		{	
+			msg_print(Ind,"You must identify this item first");
+			return;
+		}
+	}
+	
 	/* Describe the activity */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 

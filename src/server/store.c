@@ -112,6 +112,15 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 
 	/* Get the value of one of the items */
 	price = object_value(Ind, o_ptr);
+	
+	/* Use sellers asking price as base price in the "back room" */
+	if (p_ptr->store_num == 8)
+	{
+		if (o_ptr->askprice > price)
+		{
+			price = o_ptr->askprice;
+		}
+	}
 
 	/* Worthless items */
 	if (price <= 0) return (0L);
@@ -581,11 +590,26 @@ static int store_carry(int st, object_type *o_ptr)
 		/* Can the existing items be incremented? */
 		if (store_object_similar(j_ptr, o_ptr))
 		{
-			/* Hack -- extra items disappear */
-			store_object_absorb(j_ptr, o_ptr);
-
-			/* All done */
-			return (slot);
+			/* In the "back room" we only combine items from the same seller */
+			if (st == 8)
+			{
+				if (!strcmp(quark_str(j_ptr->note),quark_str(o_ptr->note)))
+				{
+					/* Hack -- extra items disappear */
+					store_object_absorb(j_ptr, o_ptr);
+			
+					/* All done */
+					return (slot);
+				}
+			}
+			else
+			{
+				/* Hack -- extra items disappear */
+				store_object_absorb(j_ptr, o_ptr);
+			
+				/* All done */
+				return (slot);
+			}
 		}
 	}
 
@@ -767,7 +791,8 @@ void player_store_create(int st)
 	int			i, tries, level, stocked,x,y;
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
-	cave_type               *c_ptr;
+	cave_type		*c_ptr;
+	char 			*c;
 
 	/* Paranoia -- no room left */
 	if (st_ptr->stock_num >= st_ptr->stock_size) return;
@@ -814,10 +839,16 @@ void player_store_create(int st)
 						/* If there was an object, is it for sale? */
 						if (o_ptr->note)
 						{
+							
 							/* Is this item for sale? */
-							if(strstr(quark_str(o_ptr->note),"for sale"))
+							if(c = strstr(quark_str(o_ptr->note),"for sale"))
 							{
-								/* For sale, how much for? */
+								/* Get ask price */
+								c += 8; /* skip "for sale" */
+								if( *c == ' ' )
+								{
+									o_ptr->askprice = atoi(c);
+								}
 	
 								/* Inscribe with the sellers name */
 								o_ptr->note = quark_add(houses[i].owned);
