@@ -966,8 +966,6 @@ static void store_create(int st)
 	}
 }
 
-
-
 /*
  * Eliminate need to bargain if player has haggled well in the past
  */
@@ -976,60 +974,7 @@ static bool noneedtobargain(s32b minprice)
 	/* Hack -- We never haggle anyway --KLJ-- */
 	return (TRUE);
 
-#if 0
-	s32b good = st_ptr->good_buy;
-	s32b bad = st_ptr->bad_buy;
-
-	/* Cheap items are "boring" */
-	if (minprice < 10L) return (TRUE);
-
-	/* Perfect haggling */
-	if (good == MAX_SHORT) return (TRUE);
-
-	/* Reward good haggles, punish bad haggles, notice price */
-	if (good > ((3 * bad) + (5 + (minprice/50)))) return (TRUE);
-
-	/* Return the flag */
-	return (FALSE);
-#endif
 }
-
-
-/*
- * Update the bargain info
- */
-#if 0
-static void updatebargain(s32b price, s32b minprice)
-{
-	/* Hack -- auto-haggle */
-	if (auto_haggle) return;
-
-	/* Cheap items are "boring" */
-	if (minprice < 10L) return;
-
-	/* Count the successful haggles */
-	if (price == minprice)
-	{
-		/* Just count the good haggles */
-		if (st_ptr->good_buy < MAX_SHORT)
-		{
-			st_ptr->good_buy++;
-		}
-	}
-
-	/* Count the failed haggles */
-	else
-	{
-		/* Just count the bad haggles */
-		if (st_ptr->bad_buy < MAX_SHORT)
-		{
-			st_ptr->bad_buy++;
-		}
-	}
-}
-#endif
-
-
 
 /*
  * Re-displays a single store entry
@@ -1261,16 +1206,24 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 
 /*
  * Remove the given item from the players house who owns it and credit
- * this player with some gold for the transaction.
+ * this player with some gold for the transaction. Return the number of
+ * matching items removed from houses.
  */
-void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
+int sell_player_item(object_type *o_ptr_shop, int number, s32b gold)
 {
-	int			i,x,y;
+	int			i,x,y,sold,spacex,spacey,spacedepth;
 	object_type		*o_ptr;
 	cave_type		*c_ptr;
+	cave_type		*c_ptr_gold;
+	object_type		gold_obj;
+	s32b			price_each = gold / number;
+	bool			have_gold, have_space;
 	
 	/* Search for the item in the player house(s) */
-	for(i=0;i<num_houses && number;i++)
+	sold = 0;
+	have_gold = FALSE;
+	have_space = FALSE;
+	for(i=0;i<num_houses;i++)
 	{
 		if (house_owned(i))
 		{
@@ -1278,9 +1231,9 @@ void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
 			if (strcmp(houses[i].owned,quark_str(o_ptr_shop->note))) continue;
 			
 			/* Scan each house location */
-			for(y=houses[i].y_1; y<=houses[i].y_2 && number;y++)
+			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
 			{
-				for(x=houses[i].x_1; x<=houses[i].x_2 && number;x++)
+				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
 				{
 					/* Get grid */
 					c_ptr = &cave[houses[i].depth][y][x];
@@ -1289,11 +1242,28 @@ void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
 					if (c_ptr->o_idx)
 					{
 						o_ptr = &o_list[c_ptr->o_idx];
+						/* If this is a pile of gold, remember it as we can drop gold here */
+						if (o_ptr->tval == TV_GOLD && !have_gold)
+						{
+							c_ptr_gold = c_ptr;
+							have_gold = TRUE;
+						}
 					}
 					else
 					{
+						/* Remember this emtpy space because we can drop gold here */
+						if (!have_space)
+						{
+							spacex = x;
+							spacey = y;
+							spacedepth = houses[i].depth;
+							have_space = TRUE;
+						}
 						continue;
 					}
+					
+					/* Finished with items but still need space to drop gold? */
+					if (!number) continue;
 						
 					/* Is this the item we've sold? We must be careful that we have found the correct 
 					 * item match or else this could be exploited. Even so, I can't help thinking there
@@ -1311,6 +1281,7 @@ void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
 						if (o_ptr->number <= number)
 						{
 							number -= o_ptr->number;
+							sold += o_ptr->number;
 							/* Remove the item(s) and keep searching if required */
 							delete_object(houses[i].depth,y,x);
 						}
@@ -1318,16 +1289,45 @@ void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
 						{
 							/* Reduce the pile of items */
 							o_ptr->number -= number;
+							sold += number;
 							number = 0;
 						}						
 					}
 				}
 			}				
 		}
+		/* Done aleady? */
+		if (!number && (have_gold || have_space)) break;
 	}	
+
+	/* Bail out if there was a problem with the sale */
+	if (!sold) return(sold);
 	
-	/* Leave some gold in the house */
-	
+	/* Did we find a pile of gold suitable for leaving a deposit? */
+	if (have_gold)
+	{
+		/* Add some gold to the pile */
+		o_ptr = &o_list[c_ptr_gold->o_idx];
+		o_ptr->pval += sold * price_each;
+	}
+	/* No existing gold pile, hopefully we found some space */
+	else if (have_space)
+	{
+		/* Make some gold */
+		invcopy(&gold_obj, lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
+		/* How much gold to leave */
+		gold_obj.pval = sold * price_each;
+		/* Put it in the house */
+		drop_near(&gold_obj,0,spacedepth,spacey,spacex);
+	}
+	/* Oh dear, no space for payment! */
+	else
+	{
+		/* What to do now? We have already removed the items from the house. */
+		/* XXX Do nothing, the seller should ensure available space for payment */
+	}
+
+	return(sold);
 }
 
 /*
@@ -1342,7 +1342,7 @@ void store_purchase(int Ind, int item, int amt)
 	store_type *st_ptr = &store[st];
 	owner_type *ot_ptr = &owners[st][st_ptr->owner];
 
-	int			i, choice;
+	int			i, choice, sold;
 	int			item_new;
 
 	s32b		price, best;
@@ -1361,28 +1361,6 @@ void store_purchase(int Ind, int item, int amt)
 		return;
 	}
 
-
-#if 0
-	/* Find the number of objects on this and following pages */
-	i = (st_ptr->stock_num - store_top);
-
-	/* And then restrict it to the current page */
-	if (i > 12) i = 12;
-
-	/* Prompt */
-	if (p_ptr->store_num == 7)
-	{
-		sprintf(out_val, "Which item do you want to take? ");
-	}
-	else
-	{
-		sprintf(out_val, "Which item are you interested in? ");
-	}
-
-	/* Get the item number to be bought */
-	if (!get_stock(&item, out_val, 0, i-1)) return;
-#endif
-
 	/* Get the actual item */
 	o_ptr = &st_ptr->stock[item];
 
@@ -1391,9 +1369,6 @@ void store_purchase(int Ind, int item, int amt)
 	{
 		amt = o_ptr->number;
 	}
-
-	/* Assume the player wants just one of them */
-	/*amt = 1;*/
 
 	/* Hack -- get a "sample" object */
 	sell_obj = *o_ptr;
@@ -1409,24 +1384,6 @@ void store_purchase(int Ind, int item, int amt)
 	/* Determine the "best" price (per item) */
 	best = price_item(Ind, &sell_obj, ot_ptr->min_inflate, FALSE);
 
-#if 0
-	/* Find out how many the player wants */
-	if (o_ptr->number > 1)
-	{
-		/* Hack -- note cost of "fixed" items */
-		if ((p_ptr->store_num != 7) && (o_ptr->ident & ID_FIXED))
-		{
-			msg_format("That costs %ld gold per item.", (long)(best));
-		}
-
-		/* Get a quantity */
-		amt = get_quantity(NULL, o_ptr->number);
-
-		/* Allow user abort */
-		if (amt <= 0) return;
-	}
-#endif
-
 	/* Create the object to be sold (structure copy) */
 	sell_obj = *o_ptr;
 	sell_obj.number = amt;
@@ -1441,38 +1398,11 @@ void store_purchase(int Ind, int item, int amt)
 	/* Attempt to buy it */
 	if (p_ptr->store_num != 7)
 	{
-		/* For now, I'm assuming everything's price is "fixed" */
-		/* Fixed price, quick buy */
-#if 0
-		if (o_ptr->ident & ID_FIXED)
-		{
-#endif
-			/* Assume accept */
-			choice = 0;
+		/* Assume accept */
+		choice = 0;
 
-			/* Go directly to the "best" deal */
-			price = (best * sell_obj.number);
-#if 0
-		}
-
-		/* Haggle for it */
-		else
-		{
-			/* Describe the object (fully) */
-			object_desc_store(o_name, &sell_obj, TRUE, 3);
-
-			/* Message */
-			msg_format("Buying %s (%c).", o_name, I2A(item));
-			msg_print(NULL);
-
-			/* Haggle for a final price */
-			choice = purchase_haggle(&sell_obj, &price);
-
-			/* Hack -- Got kicked out */
-			if (st_ptr->store_open >= turn) return;
-		}
-#endif
-
+		/* Go directly to the "best" deal */
+		price = (best * sell_obj.number);
 
 		/* Player wants it */
 		if (choice == 0)
@@ -1483,6 +1413,33 @@ void store_purchase(int Ind, int item, int amt)
 			/* Player can afford it */
 			if (p_ptr->au >= price)
 			{
+				/* If this is the "back room" we have sold a real item */
+				if (p_ptr->store_num == 8)
+				{
+					/* Remove the item from the players house */
+					sold = sell_player_item(o_ptr, amt, price);
+					
+					/* Did we really manage to sell this? */
+					if (sold)
+					{
+						if (sold < amt)
+						{
+							/* Couldn't buy as many as we wanted */
+							amt = sold;
+
+							/* Recalculate correct price */
+							price = (best * amt);
+						}
+					}
+					else
+					{
+						/* Error - perhaps someone picked up the item in the house
+						 * just before we hit "buy"? */
+						msg_format(Ind, "Sorry, this item is reserved.");
+						return;
+					}
+				}
+
 				/* Say "okay" */
 				say_comment_1(Ind);
 
@@ -1523,13 +1480,6 @@ void store_purchase(int Ind, int item, int amt)
 				/* Note how many slots the store used to have */
 				i = st_ptr->stock_num;
 
-				/* If this is the "back room" we have sold a real item */
-				if (p_ptr->store_num == 8)
-				{
-					/* Remove the item from the players house */
-					sold_player_item(o_ptr, amt, price);
-				}
-
 				/* Remove the bought items from the store */
 				store_item_increase(st, item, -amt);
 				store_item_optimize(st, item);
@@ -1566,6 +1516,13 @@ void store_purchase(int Ind, int item, int amt)
 
 					/* Redraw everything */
 					display_inventory(Ind);
+				}
+
+				/* Allow an empty "back room" */
+				else if (st_ptr->stock_num == 0 && p_ptr->store_num == 8)
+				{
+					/* Redraw everything */
+					display_inventory(Ind);		
 				}
 
 				/* The item is gone */
