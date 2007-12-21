@@ -70,7 +70,7 @@ static char sourceid[] =
 #include <setjmp.h>
 #include <errno.h>
 
-#if defined(BORLAND)
+#if defined(__BORLANDC__)
 int errno = 0;
 #endif
 
