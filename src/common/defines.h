@@ -2105,7 +2105,7 @@ that keeps many algorithms happy.
 #define RBE_EXP_20		26
 #define RBE_EXP_40		27
 #define RBE_EXP_80		28
-
+#define RBE_HALLU		29
 
 
 /*** Monster flag values (hard-coded) ***/

@@ -225,6 +225,7 @@ bool make_attack_normal(int Ind, int m_idx)
 			case RBE_EXP_20:	power =  5; break;
 			case RBE_EXP_40:	power =  5; break;
 			case RBE_EXP_80:	power =  5; break;
+			case RBE_HALLU:     power = 10; break;
 		}
 
 
@@ -1110,6 +1111,21 @@ bool make_attack_normal(int Ind, int m_idx)
 						}
 					}
 					break;
+				}
+				
+				case RBE_HALLU:
+				{
+					/* Take damage */
+					take_hit(Ind, damage, ddesc);
+
+					/* Increase "image" */
+					if (!p_ptr->resist_chaos)
+					{
+						if (set_image(Ind, p_ptr->image + 3 + randint(rlev / 2)))
+						{
+							obvious = TRUE;
+						}
+					}
 				}
 			}
 

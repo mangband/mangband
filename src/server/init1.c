@@ -124,6 +124,7 @@ static cptr r_info_blow_effect[] =
 	"EXP_20",
 	"EXP_40",
 	"EXP_80",
+	"HALLU",
 	NULL
 };
 
