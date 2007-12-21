@@ -110,6 +110,8 @@ s16b num_repro;			/* Current reproducer count */
 s16b object_level;		/* Current object creation level */
 s16b monster_level;		/* Current monster creation level */
 
+byte trees_in_town;
+
 byte level_up_y[MAX_DEPTH]; 	/* Where do players start if coming up? */
 byte level_up_x[MAX_DEPTH];
 byte level_down_y[MAX_DEPTH];	/* Where do players start if going down? */

@@ -1895,6 +1895,11 @@ void set_server_option(char * option, char * value)
     {
         cfg_max_townies = atoi(value);
     }
+    else if (!strcmp(option,"MAX_TREES"))
+    {
+        cfg_max_trees = atoi(value);
+    }
+
 
 	else printf("Error : unrecognized mangband.cfg option %s\n", option);
 }

@@ -1202,6 +1202,8 @@ void do_cmd_tunnel(int Ind, int dir)
 				/* mow down the vegetation */
 				if ((p_ptr->skill_dig > rand_int(400)) && twall(Ind, y, x))
 				{
+					if (Depth == 0) trees_in_town--;				
+				
 					/* Message */
 					msg_print(Ind, "You hack your way through the vegetation.");
 					

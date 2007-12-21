@@ -48,6 +48,7 @@ extern byte adj_str_blow[];
 extern byte adj_dex_blow[];
 extern byte adj_dex_safe[];
 extern byte adj_con_fix[];
+extern byte trees_in_town;
 extern const int adj_con_mhp[];
 extern byte blows_table[12][12];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
@@ -178,6 +179,7 @@ extern bool cfg_ironman;
 extern s32b cfg_unique_respawn_time;
 extern s32b cfg_unique_max_respawn_time;
 extern s16b cfg_max_townies;
+extern s16b cfg_max_trees;
 
 extern bool rogue_like_commands;
 extern bool quick_messages;

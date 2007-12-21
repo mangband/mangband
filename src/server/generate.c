@@ -3637,12 +3637,15 @@ static void build_store(int n, int yy, int xx)
 
 		for (i = 0; i < 5; i++)
 		{
+			if (trees_in_town == cfg_max_trees) break;
+			
 			y = rand_range(y1 + 1, y2 - 1);
 			x = rand_range(x1 + 1, x2 - 1);
 
 			c_ptr = &cave[0][y][x];
 
 			c_ptr->feat = FEAT_TREE;
+			trees_in_town++;
 		}
 
 		return;
@@ -3737,8 +3740,11 @@ static void build_store(int n, int yy, int xx)
 				chance = 80 - chance;
 
 				/* Put some trees */
-				if (randint(100) < chance)
-					c_ptr->feat = FEAT_TREE;
+				if (randint(100) < chance && trees_in_town < cfg_max_trees)
+					{
+						c_ptr->feat = FEAT_TREE;
+						trees_in_town++;
+					}
 			}
 		}
 
@@ -3960,7 +3966,7 @@ static void town_gen_hack(void)
 			/* Clear all features, set to "empty floor" */
 			c_ptr->feat = FEAT_DIRT;
 
-			if (rand_int(100) < 75)
+			if (rand_int(100) < 75 || trees_in_town > cfg_max_trees)
 			{
 				c_ptr->feat = FEAT_GRASS;
 			}
@@ -3968,6 +3974,7 @@ static void town_gen_hack(void)
 			else if (rand_int(100) < 15)
 			{
 				c_ptr->feat = FEAT_TREE;
+				trees_in_town++;
 			}
 		}
 	}

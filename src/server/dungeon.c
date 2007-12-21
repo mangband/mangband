@@ -1756,7 +1756,7 @@ static void process_various(void)
 
 
 	/* Grow trees very occasionally */
-	if (!(turn % (10L * GROW_TREE)))
+	if (!(turn % (10L * GROW_TREE)) && trees_in_town < cfg_max_trees)
 	{
 		/* Find a suitable location */
 		for (i = 1; i < 1000; i++)
@@ -1779,6 +1779,7 @@ static void process_various(void)
 
 			/* Grow a tree here */
 			c_ptr->feat = FEAT_TREE;
+			trees_in_town++;
 
 			/* Show it */
 			everyone_lite_spot(0, y, x);
