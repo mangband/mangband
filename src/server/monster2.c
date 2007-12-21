@@ -2630,6 +2630,7 @@ int race_index_fuzzy(char * name)
 		{
 			if (isalpha(*str) || *str==32) *dst++ = tolower(*str);
 		}
+		*dst++ = '\0';
 		/* If cleaned name matches our search string, return it */
 		if (strstr(monster,name)) return i;
 	}
