@@ -2248,6 +2248,7 @@ void player_death(int Ind)
 	char dumpname[42];
 	int i;
 	u32b uniques;
+	s16b num_keys = 0;
 	s16b item_weight = 0;
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
@@ -2256,13 +2257,17 @@ void player_death(int Ind)
 	if (p_ptr->ghost)
 	{
 
-		/* Disown any houses he owns */
-		for(i=0; i<num_houses;i++)
+		/* hack, account for keys ghosts can carry */
+		for (i = 0; i < INVEN_TOTAL; i++)
 		{
-			if(house_owned_by(Ind,i))
-			{
-				disown_house(i);
-			}
+			/* Make sure we have an object */
+			if (p_ptr->inventory[i].k_idx == 0) continue;
+			if (p_ptr->inventory[i].k_idx == 0) continue;
+
+			/* no chance to drop */
+
+			delete_object_ptr(&p_ptr->inventory[i]);
+
 		}
 
 		/* Tell players */
@@ -2399,6 +2404,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 		/* If we committed suicide, only drop artifacts */
 		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
+
+		/* do not drop keys, but track them so we don't reset inventory
+		   as empty if there are keys in it. */
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 #if !defined( PKILL )
@@ -2573,8 +2581,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
 
-	/* He is carrying nothing */
-	p_ptr->inven_cnt = 0;
+	/* He is carrying nothing except keys */
+	p_ptr->inven_cnt = num_keys;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);
@@ -4301,14 +4309,153 @@ vault_type *get_vault(char *name)
 	return NULL;
 }
 
+
+/* This "table" is used to provide XTRA2 descriptions */ 
+static cptr extra_mods[][11] =
+{
+	{"Regular"},
+	{"Sustain STR", "Sustain DEX", "Sustain CON", "Sustain INT", "Sustain WIS", "Sustain CHR"},
+	{"Blind.", "Confusion", "Sound", "Shards", "Nether", "Nexus", "Chaos", "Disen", "Poison", "Light", "Dark"},
+	{"Feather", "PermaLite", "SeeInvis", "Telepathy", "Slow.Digestion", "Regeneration", "Free Action", "Hold Life", "Make Fearless"}
+};
+
 /* Generate something */
 bool master_generate(int Ind, char * parms)
 {
+	static object_type dm_obj;
+	static int last_k_idx = 0;
+	static int last_e_idx = 0;
+	
+	int xtra_mod = 0;
+	byte xtra_val = 0;
+	int rarity_hack;
+	
+	char buf[80]; 
+	buf[0] = '\0';
+	
 	/* get the player pointer */
 	player_type *p_ptr = Players[Ind];
 
+	/* this variables tells us if DM_OBJ was updated */
+	bool dm_updated = FALSE;
+
 	switch (parms[0])
 	{
+		/* generate an item */
+		case 'i':
+		{
+			object_kind *k_ptr = NULL;
+			ego_item_type *e_ptr = NULL;
+			int k_idx = 0, e_idx = -1;		
+		
+			switch(parms[1])
+			{
+				case 'r':
+					/* user refreshed screen */ 
+					//last_k_idx = 0;
+					//last_e_idx = 0;
+					break;
+				case 'M':
+					/* decrement value */
+					if (!last_k_idx) break;
+					switch (parms[2])
+					{
+						case 'h': dm_obj.to_h--; break;
+						case 'd': dm_obj.to_d--; break;
+						case 'a': if(dm_obj.ac>0) dm_obj.ac--; break;
+						case 'x': if(dm_obj.xtra2>0) dm_obj.xtra2--; break;
+						case 'p': if(dm_obj.pval>0) dm_obj.pval--; break;
+					}
+					break;
+				case 'I':
+					/* increment value */
+					if (!last_k_idx) break;
+					switch (parms[2])
+					{
+						case 'h': dm_obj.to_h++; break;
+						case 'd': dm_obj.to_d++; break;
+						case 'a': dm_obj.ac++; break;
+						case 'x': if(dm_obj.xtra2<256) dm_obj.xtra2++; break;
+						case 'p': dm_obj.pval++; break;
+					}
+					break;				
+				case 'd':
+					/* deploy */
+					place_specific_object(p_ptr->dun_depth, p_ptr->py, p_ptr->px, &dm_obj, e_info[last_e_idx].level, parms[2]);
+					break;
+				case 'e':
+					/* ego kind */
+					switch(parms[2])
+					{
+						case '#':e_idx = parms[3];break;
+						case 'n': e_idx = ego_kind_index_fuzzy(&parms[3]);break;
+						case '+': e_idx = last_e_idx + 1;break;
+						case '-': e_idx = last_e_idx - 1;break;
+					}				
+					break;
+				case 'k':
+					/* object kind */
+					switch(parms[2])
+					{
+						case '#':k_idx = parms[3];break;
+						case 'n':k_idx = item_kind_index_fuzzy(&parms[3]);break;
+						case '+':k_idx = last_k_idx + 1;break;
+						case '-':k_idx = last_k_idx - 1;break;
+					}				
+					break;
+			}					
+			
+	
+			if ((last_k_idx != k_idx) && (k_idx > 0 && k_idx < MAX_K_IDX)) {
+				last_k_idx = k_idx;
+				dm_updated = TRUE;
+			}
+			 
+			if ((last_e_idx != e_idx) && (e_idx > -1 && e_idx < MAX_E_IDX)) {
+				last_e_idx = e_idx; 
+				dm_updated = TRUE;
+			}			
+			
+			k_ptr = &k_info[last_k_idx];			
+			e_ptr = &e_info[last_e_idx];
+			
+			if (dm_updated) {
+				invwipe(&dm_obj);
+				invcopy(&dm_obj, last_k_idx);
+				dm_obj.ident = ID_KNOWN;
+				
+				rarity_hack = e_ptr->rarity;		
+				e_ptr->rarity = 0;
+				if (check_ego(&dm_obj, e_ptr->level, 0, last_e_idx))
+					dm_obj.name2 = last_e_idx;
+				e_ptr->rarity = rarity_hack;
+
+			}			
+			
+			if (last_k_idx && &dm_obj) {
+				object_desc(Ind, buf, &dm_obj, 1, 3);
+				Send_special_line(Ind, 16, 15, TERM_WHITE, format(" %s", buf));
+			} else {
+				Send_special_line(Ind, 16, 15, TERM_WHITE, " [No Object]");			
+			}
+			
+			if(last_e_idx > 0 && e_ptr) {
+				/* Obtain XTRA2 moddifers */ 
+				if (e_ptr->xtra == EGO_XTRA_SUSTAIN) { xtra_val = 1; xtra_mod = 6; }
+				else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = 11; } 
+				else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = 9; }
+				else { xtra_val = 0; xtra_mod = 1; }
+				
+				Send_special_line(Ind, 16, 16, TERM_WHITE, format(" %s [%s]", e_name + e_ptr->name, extra_mods[xtra_val][dm_obj.xtra2 % xtra_mod] ));
+			} else {
+				Send_special_line(Ind, 16, 16, TERM_WHITE, " [No Ego-Kind]");
+			}	
+			
+			
+			
+			
+			break;
+		}
 		/* generate a vault */
 		case 'v':
 		{
@@ -4317,7 +4464,7 @@ bool master_generate(int Ind, char * parms)
 			switch(parms[1])
 			{
 				case '#':
-					v_ptr = &v_info[parms[2]];
+					v_ptr = &v_info[(byte)parms[2]];
 					break;
 				case 'n':
 					v_ptr = get_vault(&parms[2]);

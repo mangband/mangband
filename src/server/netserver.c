@@ -7479,6 +7479,7 @@ static int Receive_master(int ind)
 				master_generate(player, buf);
 				break;
 			}
+			
 		}
 	}
 

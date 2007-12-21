@@ -764,6 +764,7 @@ extern void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr);
 extern s16b lookup_kind(int tval, int sval);
 extern void invwipe(object_type *o_ptr);
 extern void invcopy(object_type *o_ptr, int k_idx);
+extern bool check_ego(object_type *o_ptr, int level, int power, int idx);
 extern void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, bool great);
 extern bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark);
 extern void acquirement(int Depth, int y1, int x1, int num);
@@ -796,6 +797,9 @@ extern void add_player_name(cptr name, int id);
 extern void delete_player_id(int id);
 extern void delete_player_name(cptr name);
 extern int player_id_list(int **list);
+extern int ego_kind_index_fuzzy(char * name);
+extern int item_kind_index_fuzzy(char * name);
+extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int lev, int num);
 
 /* printout.c */
 extern int s_print_only_to_file(int which);

@@ -1367,7 +1367,7 @@ static void object_mention(object_type *o_ptr)
 	char o_name[80];
 
 	/* Describe */
-	object_desc_store(o_name, o_ptr, FALSE, 0);
+		object_desc_store(o_name, o_ptr, FALSE, 0);
 
 	/* Artifact */
 	if (artifact_p(o_ptr))
@@ -1641,8 +1641,10 @@ static void charge_staff(object_type *o_ptr)
 	}
 }
 
+
+
 /* get an ego item from e_info */
-static bool check_ego(object_type *o_ptr, int level, int power, int idx)
+ bool check_ego(object_type *o_ptr, int level, int power, int idx)
 {
 	int idxtval;
 	ego_item_type *e_ptr = &e_info[idx];
@@ -1661,7 +1663,7 @@ static bool check_ego(object_type *o_ptr, int level, int power, int idx)
 	if ((o_ptr->sval < e_ptr->min_sval[idxtval]) ||
 			(o_ptr->sval > e_ptr->max_sval[idxtval]))
 		return FALSE;
-		
+
 	/* check min depth */
 	if (level < e_ptr->level)
 		return FALSE;
@@ -1681,7 +1683,7 @@ static bool check_ego(object_type *o_ptr, int level, int power, int idx)
 				(e_ptr->flags3 & TR3_HEAVY_CURSE) ||
 		 		(e_ptr->flags3 & TR3_PERMA_CURSE) ) )
 		return FALSE;
-
+	
 	/* we have a winner */
 	return TRUE;
 }
@@ -2590,7 +2592,7 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		ego_item_type *e_ptr = &e_info[o_ptr->name2];
 
         /* Extra powers */
-	o_ptr->xtra1 = e_ptr->xtra;
+		o_ptr->xtra1 = e_ptr->xtra;
 
 		/* Randomize the "xtra" power */
 		if (o_ptr->xtra1) o_ptr->xtra2 = randint(256);
@@ -2621,16 +2623,16 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		else
 		{
 			/* Hack -- obtain bonuses */
-	    /* Don't forget minuses!! */
+	   	/* Don't forget minuses!! */
             if (e_ptr->max_to_h > 0) o_ptr->to_h += randint(e_ptr->max_to_h);
 	    else if (e_ptr->max_to_h < 0) o_ptr->to_h -= randint(-e_ptr->max_to_h);
-	    if (e_ptr->max_to_d > 0) o_ptr->to_d += randint(e_ptr->max_to_d);
+	    		if (e_ptr->max_to_d > 0) o_ptr->to_d += randint(e_ptr->max_to_d);
 	    else if (e_ptr->max_to_d < 0) o_ptr->to_d -= randint(-e_ptr->max_to_d);
-	    if (e_ptr->max_to_a > 0) o_ptr->to_a += randint(e_ptr->max_to_a);
+	    		if (e_ptr->max_to_a > 0) o_ptr->to_a += randint(e_ptr->max_to_a);
 	    else if (e_ptr->max_to_a < 0) o_ptr->to_a -= randint(-e_ptr->max_to_a);
 
 			/* Hack -- obtain pval */
-	    /* Don't forget minuses!! */
+	   	/* Don't forget minuses!! */
             if (e_ptr->max_pval > 0) o_ptr->pval += randint(e_ptr->max_pval);
 	    else if (e_ptr->max_pval < 0) o_ptr->pval -= randint(-e_ptr->max_pval);
 		}
@@ -2731,6 +2733,83 @@ static bool kind_is_good(int k_idx)
 	return (FALSE);
 }
 
+
+		
+bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int lev, int num)
+{
+	int o_idx, i, d, x, y, xtra_hack;
+	
+	/* Scatter some objects */
+	for (; num > 0; --num)
+	{
+		/* Check near the player for space */
+		for (i = 0; i < 25; ++i)
+		{
+			/* Increasing Distance */
+			d = (i + 4) / 5;
+
+			/* Pick a location */
+			scatter(Depth, &y, &x, y1, x1, d, 0);
+
+			/* Must have a clean grid */
+			if (!cave_clean_bold(Depth, y, x)) continue;
+
+			/* Place a great object */
+			
+			/* Make an object */
+			o_idx = o_pop();
+		
+			/* Success */
+			if (o_idx)
+			{
+				cave_type		*c_ptr;
+				object_type		*o_ptr;
+				int			i;
+		
+				o_ptr = &o_list[o_idx];
+		
+				(*o_ptr) = (*forge);
+		
+				o_ptr->ident = 0;		
+		
+				o_ptr->iy = y;
+				o_ptr->ix = x;
+				o_ptr->dun_depth = Depth;
+		
+				c_ptr = &cave[Depth][y][x];
+				c_ptr->o_idx = o_idx;
+				
+				/* Make sure no one sees it at first */
+				for (i = 1; i < NumPlayers + 1; i++)
+				{
+				#if 0
+					if (Players[i]->conn == NOT_CONNECTED)
+						continue;
+				#endif
+					/* He can't see it */
+					Players[i]->obj_vis[o_idx] = FALSE;
+				}
+			
+				
+				xtra_hack = o_ptr->xtra2;
+				apply_magic(Depth, o_ptr, lev, TRUE, FALSE, FALSE);
+				o_ptr->xtra2 = xtra_hack;
+								
+				/* Notice */
+				note_spot_depth(Depth, y, x);
+
+				/* Redraw */
+				everyone_lite_spot(Depth, y, x);
+					
+			}
+
+			/* Placement accomplished */
+			break;
+		}
+	}	
+
+	return !num;
+}
 
 
 /*
@@ -3957,4 +4036,65 @@ void setup_objects(void)
 		/* Set the o_idx correctly */
 		cave[o_ptr->dun_depth][o_ptr->iy][o_ptr->ix].o_idx = i;
 	}
+}
+
+
+
+/* Takes a (partial) item_kind name and returns an index, or 0 if no match
+ * was found.
+ */
+int item_kind_index_fuzzy(char * name)
+{
+	char match[MAX_CHARS];
+	char* str;
+	char* dst;
+	int i;
+
+	/* Lowercase our search string */
+	for(str=name;*str;str++) *str=tolower(*str);
+
+	/* for each item kind race */
+	for (i = 1; i <= MAX_K_IDX; i++)
+	{
+		/* Clean up it's name */
+		dst = match;
+		for(str=(k_name + k_info[i].name);*str;str++)
+		{
+			if (isalpha(*str) || *str==32) *dst++ = tolower(*str);
+		}
+		*dst++ = '\0';
+		/* If cleaned name matches our search string, return it */
+		if (strstr(match,name)) { return i; }
+	}
+	return 0;
+}
+
+
+/* Takes a (partial) item ego name and returns an index, or 0 if no match
+ * was found.
+ */
+int ego_kind_index_fuzzy(char * name)
+{
+	char match[MAX_CHARS];
+	char* str;
+	char* dst;
+	int i;
+
+	/* Lowercase our search string */
+	for(str=name;*str;str++) *str=tolower(*str);
+
+	/* for each ego kind race */
+	for (i = 1; i <= MAX_E_IDX; i++)
+	{
+		/* Clean up it's name */
+		dst = match;
+		for(str=(e_name + e_info[i].name);*str;str++)
+		{
+			if (isalpha(*str) || *str==32) *dst++ = tolower(*str);
+		}
+		*dst++ = '\0';
+		/* If cleaned name matches our search string, return it */
+		if (strstr(match,name)) return i;
+	}
+	return 0;
 }

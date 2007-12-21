@@ -958,8 +958,8 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
 				case 6: (*f2) |= TR2_RES_CHAOS; break;
 				case 7: (*f2) |= TR2_RES_DISEN; break;
 				case 8: (*f2) |= TR2_RES_POIS; break;
-		case 9: (*f2) |= TR2_RES_LITE; break; /* was missing... why??? */
-		case 10: (*f2) |= TR2_RES_DARK; break; /* was missing... why??? */
+				case 9: (*f2) |= TR2_RES_LITE; break; /* was missing... why??? */
+				case 10: (*f2) |= TR2_RES_DARK; break; /* was missing... why??? */
 			}
 
 			break;
@@ -978,7 +978,7 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
 				case 5: (*f3) |= TR3_REGEN; break;
 				case 6: (*f3) |= TR3_FREE_ACT; break;
 				case 7: (*f3) |= TR3_HOLD_LIFE; break;
-		case 8: (*f2) |= TR2_RES_FEAR; break;
+				case 8: (*f2) |= TR2_RES_FEAR; break;
 			}
 
 			break;
@@ -1163,7 +1163,7 @@ static char *object_desc_int(char *t, sint v)
 void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 {
 	cptr		basenm, modstr;
-	int			power, indexx;
+	int		power, indexx;
 
 	bool		aware = FALSE;
 	bool		known = FALSE;

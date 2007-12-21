@@ -1608,6 +1608,160 @@ void cmd_master_aux_level(void)
 		c_msg_print(NULL);
 	}
 }
+void cmd_master_aux_generate_item(void)
+{
+	char i, redo_hack;
+	char buf[80];
+	/* Process requests until done */
+	
+	/* Clear screen */
+	Term_clear();
+	
+	/* Inform server about cleared screen */
+	Send_master(MASTER_GENERATE, "ir");		
+		
+	while (1)
+	{
+		redo_hack = 0;
+		
+		/* Initialize buffer */
+		buf[0] = 'i';
+		buf[1] = '\0';
+
+		/* Describe */
+		Term_putstr(0, 2, -1, TERM_WHITE, "Generate Item");
+
+		/* Selections */
+		Term_putstr(5, 4, -1, TERM_WHITE, "(1) By number" );
+		Term_putstr(5, 5, -1, TERM_WHITE, "(2) By name" );
+		Term_putstr(5, 6, -1, TERM_WHITE, "(+) Next" );
+		Term_putstr(5, 7, -1, TERM_WHITE, "(-) Previous" );
+		
+		Term_putstr(50, 4, -1, TERM_WHITE, "(h)it, (d)am," );
+		Term_putstr(50, 5, -1, TERM_WHITE, "(a)c,  (p)val," );
+		Term_putstr(50, 6, -1, TERM_WHITE, "(x)tra2" );
+		
+		Term_putstr(21, 8, -1, TERM_WHITE, "item/ego - SHIFT - inc/decr " );
+		Term_putstr(34, 9, -1, TERM_WHITE, "|" );
+		Term_putstr(32, 10, -1, TERM_WHITE, "force" );
+		
+		
+		Term_putstr(5, 10, -1, TERM_WHITE, "(g) Generate");
+
+		/* Prompt */
+		Term_putstr(0, 12, -1, TERM_WHITE, "Command: ");
+		
+		Term_putstr(0, 15, -1, TERM_WHITE, "Selection: ");
+
+		/* Get a key */
+		i = inkey();
+
+		/* Leave */
+		if (i == ESCAPE) break;
+		else if (i == 'H' || i == 'D' || i == 'A' || i == 'X' || i == 'P')
+		{
+			buf[1] = 'M';
+			buf[2] = tolower(i);
+		}		
+		else if (i == 'h' || i == 'd' || i == 'a' || i == 'x' || i == 'p')
+		{
+			buf[1] = 'I';
+			buf[2] = i;
+		}		
+		else if (i == 'g')
+		{
+			buf[1] = 'd';
+			buf[2] = c_get_quantity("How much? ", 127);
+			if(!buf[2]) redo_hack = 1;
+			buf[3] = 0;
+		}
+		else if (i == 'G')
+		{
+			buf[1] = 'd';
+			buf[2] = 1;
+			buf[3] = 0;
+		}
+		else if (i == '=')
+		{
+			/* Next Ego */
+			buf[1] = 'k';
+			buf[2] = '+';
+		}
+		else if (i == '-')
+		{
+			/* Prev. Kind */
+			buf[1] = 'k';
+			buf[2] = '-';
+		}
+		else if (i == '+')
+		{
+			/* Next Ego */
+			buf[1] = 'e';
+			buf[2] = '+';
+		}
+		else if (i == '_')
+		{
+			/* Prev. Ego */
+			buf[1] = 'e';
+			buf[2] = '-';
+		}
+		else if (i == '1')
+		{
+			/* Kind by number */
+			buf[1] = 'k';
+			buf[2] = '#';
+			buf[3] = c_get_quantity("Item number? ", 530);
+			if(!buf[3]) redo_hack = 1;
+			buf[4] = 0;
+			
+		}
+		else if (i == '2')
+		{
+			/* Kind by name */
+			buf[1] = 'k';
+			buf[2] = 'n';
+			get_string("Enter item name: ", &buf[3], 79);
+			if(!buf[3]) redo_hack = 1;
+		}
+		else if (i == '!')
+		{
+			/* Ego by number */
+			buf[1] = 'e';
+			buf[2] = '#';
+			buf[3] = c_get_quantity("EGO id? ", 127);
+			if(!buf[3]) redo_hack = 1;
+			buf[4] = 0;
+		}
+		else if (i == '@')
+		{
+			/* Ego by name */
+			buf[1] = 'e';
+			buf[2] = 'n';
+			get_string("Enter ego name: ", &buf[3], 79);
+			if(!buf[3]) redo_hack = 1;
+		}
+
+		/* Oops */
+		else
+		{
+			/* Ring bell */
+			bell(); redo_hack = 1;
+		}
+
+		/* hack -- don't do this if we hit an invalid key previously */
+		if(redo_hack) continue;
+		
+		
+		/* Clear screen again */
+		Term_clear();
+
+		/* Send choice to server */
+		Send_master(MASTER_GENERATE, buf);
+
+		/* Flush messages */
+		c_msg_print(NULL);
+	}
+}
 
 void cmd_master_aux_generate_vault(void)
 {
@@ -1709,6 +1863,12 @@ void cmd_master_aux_generate(void)
 		{
 			cmd_master_aux_generate_vault();
 		}
+		else if (i == '2')
+		{
+			cmd_master_aux_generate_item();
+		}
+
+
 
 		/* Oops */
 		else
