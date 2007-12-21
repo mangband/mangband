@@ -1614,7 +1614,6 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				/* Hack -- special message */
 				if (!quiet && player_can_see_bold(Ind, y, x))
 				{
-					if (Depth == 0) trees_in_town--;
 					msg_print(Ind, "The tree burns to the ground!");
 					obvious = TRUE;
 				}
@@ -2684,8 +2683,8 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		case GF_NEXUS:
 		{
 			if (seen) obvious = TRUE;
-			if ((r_ptr->flags4 & RF4_BR_NEXU) ||
-			    prefix(name, "Nexus"))
+			if ((r_ptr->flags3 & RF3_RES_NEXU) ||
+				(r_ptr->flags4 & RF4_BR_NEXU))
 			{
 				note = " resists.";
 				dam *= 3; dam /= (randint(6)+6);
