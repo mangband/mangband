@@ -2257,17 +2257,13 @@ void player_death(int Ind)
 	if (p_ptr->ghost)
 	{
 
-		/* hack, account for keys ghosts can carry */
-		for (i = 0; i < INVEN_TOTAL; i++)
-		{
-			/* Make sure we have an object */
-			if (p_ptr->inventory[i].k_idx == 0) continue;
-			if (p_ptr->inventory[i].k_idx == 0) continue;
-
-			/* no chance to drop */
-
-			delete_object_ptr(&p_ptr->inventory[i]);
-
+		/* Disown any houses he owns */
+		for(i=0; i<num_houses;i++)
+		{ 
+			if(house_owned_by(Ind,i))
+			{ 
+				disown_house(i);
+			}
 		}
 
 		/* Tell players */
@@ -2404,9 +2400,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 		/* If we committed suicide, only drop artifacts */
 		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
-
-		/* do not drop keys, but track them so we don't reset inventory
-		   as empty if there are keys in it. */
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 #if !defined( PKILL )
@@ -2581,8 +2574,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
 
-	/* He is carrying nothing except keys */
-	p_ptr->inven_cnt = num_keys;
+	/* He is carrying nothing */
+	p_ptr->inven_cnt = 0;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);
