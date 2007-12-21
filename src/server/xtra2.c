@@ -4323,8 +4323,7 @@ bool master_generate(int Ind, char * parms)
 	byte xtra_val = 0;
 	int rarity_hack;
 	
-	char buf[80]; 
-	buf[0] = '\0';
+	char buf[80] = {'\0'};
 	
 	/* get the player pointer */
 	player_type *p_ptr = Players[Ind];
