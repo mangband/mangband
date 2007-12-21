@@ -1091,6 +1091,9 @@ that keeps many algorithms happy.
 #define TV_MAX		100
 
 
+/* The "sval" codes for TV_GOLD (mostly calculated at runtime) */
+#define SV_PLAYER_GOLD	9
+
 /* The "sval" codes for TV_SHOT/TV_ARROW/TV_BOLT */
 #define SV_AMMO_LIGHT		0	/* pebbles */
 #define SV_AMMO_NORMAL		1	/* shots, arrows, bolts */

@@ -2365,7 +2365,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	if (p_ptr->alive && p_ptr->au)
 	{
 		/* Put the player's gold in the overflow slot */
-		invcopy(&p_ptr->inventory[INVEN_PACK], 488);
+		invcopy(&p_ptr->inventory[INVEN_PACK], lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
 
 		/* Drop no more than 32000 gold */
 		if (p_ptr->au > 32000) p_ptr->au = 32000;

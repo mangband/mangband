@@ -661,9 +661,8 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 		return;
 	}
 
-	/* Setup the object */
-	/* XXX Use "gold" object kind */
-	invcopy(&tmp_obj, 488);
+	/* Use "gold" object kind */
+	invcopy(&tmp_obj, lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
 
 	/* Setup the "worth" */
 	tmp_obj.pval = amt;
