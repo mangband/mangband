@@ -1263,15 +1263,71 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
  * Remove the given item from the players house who owns it and credit
  * this player with some gold for the transaction.
  */
-void sold_player_item(object_type *o_ptr, int number, s32b gold)
+void sold_player_item(object_type *o_ptr_shop, int number, s32b gold)
 {
-	/* Who owns this item */
+	int			i,x,y;
+	object_type		*o_ptr;
+	cave_type		*c_ptr;
 	
 	/* Search for the item in the player house(s) */
-	
-	/* Remove the item(s) from the house */
+	for(i=0;i<num_houses && number;i++)
+	{
+		if (house_owned(i))
+		{
+			/* Owned by the player who owns the item? */
+			if (strcmp(houses[i].owned,quark_str(o_ptr_shop->note))) continue;
+			
+			/* Scan each house location */
+			for(y=houses[i].y_1; y<=houses[i].y_2 && number;y++)
+			{
+				for(x=houses[i].x_1; x<=houses[i].x_2 && number;x++)
+				{
+					/* Get grid */
+					c_ptr = &cave[houses[i].depth][y][x];
+
+					/* Get the object (if any) */
+					if (c_ptr->o_idx)
+					{
+						o_ptr = &o_list[c_ptr->o_idx];
+					}
+					else
+					{
+						continue;
+					}
+						
+					/* Is this the item we've sold? We must be careful that we have found the correct 
+					 * item match or else this could be exploited. Even so, I can't help thinking there
+					 * must be a better way to do this */
+					if (o_ptr_shop->tval == o_ptr->tval && o_ptr_shop->sval == o_ptr->sval &&
+					o_ptr_shop->bpval == o_ptr->bpval && o_ptr_shop->pval == o_ptr->pval &&
+					o_ptr_shop->discount == o_ptr->discount && o_ptr_shop->name1 == o_ptr->name1 &&
+					o_ptr_shop->name2 == o_ptr->name2 && o_ptr_shop->name3 == o_ptr->name3 &&
+					o_ptr_shop->xtra1 == o_ptr->xtra1 && o_ptr_shop->xtra2 == o_ptr->xtra2 &&
+					o_ptr_shop->to_h == o_ptr->to_h && o_ptr_shop->to_d == o_ptr->to_d &&
+					o_ptr_shop->to_a == o_ptr->to_a && o_ptr_shop->ac == o_ptr->ac &&
+					o_ptr_shop->dd == o_ptr->dd && o_ptr_shop->ds == o_ptr->ds) 
+					{
+						/* Found a matching item */
+						if (o_ptr->number <= number)
+						{
+							number -= o_ptr->number;
+							/* Remove the item(s) and keep searching if required */
+							delete_object(houses[i].depth,y,x);
+						}
+						else if (o_ptr->number > number)
+						{
+							/* Reduce the pile of items */
+							o_ptr->number -= number;
+							number = 0;
+						}						
+					}
+				}
+			}				
+		}
+	}	
 	
 	/* Leave some gold in the house */
+	
 }
 
 /*
