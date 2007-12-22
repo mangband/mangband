@@ -1230,6 +1230,7 @@ struct player_type
 	int current_sell_price;
 
 	int store_num;		/* What store this guy is in */
+	int player_store_num;		/* What player store this guy is in */
 
 	s16b fast;			/* Timed -- Fast */
 	s16b slow;			/* Timed -- Slow */

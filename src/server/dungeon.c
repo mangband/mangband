@@ -1794,9 +1794,6 @@ static void process_various(void)
 	{
 		int n;
 
-		/* Update the back room */
-		player_store_create(8);
-		
 		/* Maintain each shop */
 		for (n = 0; n < MAX_STORES; n++)
 		{

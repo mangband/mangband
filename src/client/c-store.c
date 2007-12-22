@@ -365,52 +365,42 @@ void display_store(void)
 		case 8: feature = "The Back Room"; break;
 	}
 	
-	/* The "Home" is special */
-	if (store_num == 7)
+	/* Put the owner name and race */
+	if (store_num != 8)
 	{
-		/* Put the owner name */
-                put_str("Your Home", 3, 30);
+		sprintf(buf, "%s (%s)", store_owner.owner_name, race_info[store_owner.owner_race].title);
+		put_str(buf, 3, 10);
 
-                /* Label the item descriptions */
-                put_str("Item Description", 5, 3);
+		/* Show the max price in the store (above prices) */
+		sprintf(buf, "%s (%ld)", feature, (long)(store_owner.max_cost));
+		prt(buf, 3, 50);
 
-                /* If showing weights, show label */
-                if (show_weights)
-                {
-                        put_str("Weight", 5, 70);
-                }
 	}
-
-	/* Normal stores */
 	else
 	{
-                /* Put the owner name and race */
-                sprintf(buf, "%s (%s)", store_owner.owner_name, race_info[store_owner.owner_race].title);
-                put_str(buf, 3, 10);
-
-                /* Show the max price in the store (above prices) */
-                sprintf(buf, "%s (%ld)", feature, (long)(store_owner.max_cost));
-                prt(buf, 3, 50);
-
-                /* Label the item descriptions */
-                put_str("Item Description", 5, 3);
-
-                /* If showing weights, show label */
-                if (show_weights)
-                {
-                        put_str("Weight", 5, 60);
-                }
-
-                /* Label the asking price (in stores) */
-                put_str("Price", 5, 72);
-
-		/* Display the players remaining gold */
-		prt("Gold Remaining: ", 19, 53);
-
-		sprintf(buf, "%9ld", (long) p_ptr->au);
-		prt(buf, 19, 68);
-
+		/* A player owned store */
+		sprintf(buf, "%s's Store", player_owner );
+		put_str(buf, 3, 10);		
 	}
+
+	/* Label the item descriptions */
+	put_str("Item Description", 5, 3);
+
+	/* If showing weights, show label */
+	if (show_weights)
+	{
+		put_str("Weight", 5, 60);
+	}
+
+	/* Label the asking price (in stores) */
+	put_str("Price", 5, 72);
+
+	/* Display the players remaining gold */
+	prt("Gold Remaining: ", 19, 53);
+
+	sprintf(buf, "%9ld", (long) p_ptr->au);
+	prt(buf, 19, 68);
+
 
 	/* Start at the top */
 	store_top = 0;

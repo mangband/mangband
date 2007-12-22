@@ -929,11 +929,10 @@ extern bool sleep_monsters_touch(int Ind);
 extern void store_purchase(int Ind, int item, int amt);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
-extern void do_cmd_store(int Ind);
+extern void do_cmd_store(int Ind, int pstore);
 extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
-extern void player_store_create(int st);
 
 /* util.c */
 extern errr path_parse(char *buf, int max, cptr file);

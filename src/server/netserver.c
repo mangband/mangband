@@ -3166,6 +3166,30 @@ int Send_store_info(int ind, int num, int owner, int items)
     return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
 }
 
+int Send_player_store_info(int ind, int num, char *owner, int items)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+    player_type *p_ptr = Players[ind];
+
+    int count = items;
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for store info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+    if ((connp->version != MY_VERSION) && (count > 24))
+    {
+		/* older client only accept 2 pages of items */
+        count = 24;
+    }
+
+    return Packet_printf(&connp->c, "%c%hd%s%hd", PKT_PLAYER_STORE_INFO, num, owner, count);
+}
+
 int Send_store_sell(int ind, int price)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];

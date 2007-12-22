@@ -1839,7 +1839,7 @@ void move_player(int Ind, int dir, int do_pickup)
 
 			/* Hack -- Enter store */
 			command_new = '_';
-			do_cmd_store(Ind);
+			do_cmd_store(Ind,-1);
 		}
 
 		/* Handle resurrection */

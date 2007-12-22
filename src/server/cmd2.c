@@ -759,11 +759,14 @@ void do_cmd_open(int Ind, int dir)
 			/* He's not the owner, check if owned */
 			else if (house_owned(i))
 			{
-				if(strcmp(p_ptr->name,cfg_dungeon_master))  {
-					msg_format(Ind, "This house is already owned.");
-				} else {
-					msg_format(Ind, "house (%d) is already owned.",i);
-				};
+				/* Player owned store! */
+	
+				/* Disturb */
+				disturb(Ind, 0, 0);
+
+				/* Hack -- Enter store */
+				command_new = '_';
+				do_cmd_store(Ind,i);
 			}
 			else
 			{

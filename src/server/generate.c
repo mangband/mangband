@@ -3866,7 +3866,8 @@ static void build_store(int n, int yy, int xx)
 			if (y == y2) y = y1; else if (y == y1) y = y2;
 			if (x == x2) x = x1; else if (x == x1) x = x2;
 			c_ptr = &cave[0][y][x];
-			c_ptr->feat = FEAT_SHOP_HEAD + 8;
+			/* Disabled */
+			/* c_ptr->feat = FEAT_SHOP_HEAD + 8; */
 					
 		}
 	}

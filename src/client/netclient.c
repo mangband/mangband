@@ -107,6 +107,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_SPECIAL_OTHER]	= Receive_special_other;
 	receive_tbl[PKT_STORE]		= Receive_store;
 	receive_tbl[PKT_STORE_INFO]	= Receive_store_info;
+	receive_tbl[PKT_PLAYER_STORE_INFO]	= Receive_player_store_info;
 	receive_tbl[PKT_SELL]		= Receive_sell;
 	receive_tbl[PKT_TARGET_INFO]	= Receive_target_info;
 	receive_tbl[PKT_SOUND]		= Receive_sound;
@@ -2150,6 +2151,30 @@ int Receive_store_info(void)
 	/* Only enter "display_store" if we're not already shopping */
 	if (!shopping)
 		display_store();
+	else
+		display_inventory();
+
+	return 1;
+}
+
+int Receive_player_store_info(void)
+{
+	int	n;
+	char	ch;
+	s16b	owner_num, num_items;
+
+	if ((n = Packet_scanf(&rbuf, "%c%hd%s%hd", &ch, &store_num, player_owner, &num_items)) <= 0)
+	{
+		return n;
+	}
+
+	store.stock_num = num_items;
+
+	/* Only enter "display_store" if we're not already shopping */
+	if (!shopping)
+		display_store();
+	else
+		display_inventory();
 
 	return 1;
 }

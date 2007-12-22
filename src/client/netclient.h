@@ -59,6 +59,7 @@ int Receive_floor(void);
 int Receive_special_other(void);
 int Receive_store(void);
 int Receive_store_info(void);
+int Receive_player_store_info(void);
 int Receive_sell(void);
 int Receive_target_info(void);
 int Receive_sound(void);

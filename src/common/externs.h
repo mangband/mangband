@@ -771,7 +771,7 @@ extern bool create_artifact(int Ind);
 extern bool create_artifact_aux(int Ind, int item);
 
 /* store.c */
-extern void do_cmd_store(int Ind);
+extern void do_cmd_store(int Ind, int pstore);
 extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
