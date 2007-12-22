@@ -1838,8 +1838,11 @@ void move_player(int Ind, int dir, int do_pickup)
 			disturb(Ind, 0, 0);
 
 			/* Hack -- Enter store */
-			command_new = '_';
-			do_cmd_store(Ind,-1);
+			if (c_ptr->feat != FEAT_SHOP_HEAD+7)
+			{
+				command_new = '_';
+				do_cmd_store(Ind,-1);
+			}
 		}
 
 		/* Handle resurrection */
