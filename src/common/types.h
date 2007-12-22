@@ -1071,7 +1071,7 @@ struct player_type
 	s16b stat_cur[6];	/* Current "natural" stat values */
 
 	char history[4][60];	/* The player's "history" */
-	cave_view_type hist_flags[38][14]; /* Player' sustains/restists/flags */
+	cave_view_type hist_flags[39][14]; /* Player' sustains/restists/flags */
 
 	s16b world_x;	/* The wilderness x coordinate */
 	s16b world_y;	/* The wilderness y coordinate */
