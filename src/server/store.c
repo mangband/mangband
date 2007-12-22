@@ -1188,6 +1188,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	object_type		gold_obj;
 	s32b			price_each = gold / number;
 	bool			have_gold, have_space;
+	char			*c;
 	
 	/* Search for the item in the player house(s) */
 	sold = 0;
@@ -1229,33 +1230,48 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 			/* Finished with items but still need space to drop gold? */
 			if (!number) continue;
 						
-			/* Is this the item we've sold? We must be careful that we have found the correct 
-			 * item match or else this could be exploited. Even so, I can't help thinking there
-			 * must be a better way to do this */
-			if (o_ptr_shop->tval == o_ptr->tval && o_ptr_shop->sval == o_ptr->sval &&
-			o_ptr_shop->bpval == o_ptr->bpval && o_ptr_shop->pval == o_ptr->pval &&
-			o_ptr_shop->discount == o_ptr->discount && o_ptr_shop->name1 == o_ptr->name1 &&
-			o_ptr_shop->name2 == o_ptr->name2 && o_ptr_shop->name3 == o_ptr->name3 &&
-			o_ptr_shop->xtra1 == o_ptr->xtra1 && o_ptr_shop->xtra2 == o_ptr->xtra2 &&
-			o_ptr_shop->to_h == o_ptr->to_h && o_ptr_shop->to_d == o_ptr->to_d &&
-			o_ptr_shop->to_a == o_ptr->to_a && o_ptr_shop->ac == o_ptr->ac &&
-			o_ptr_shop->dd == o_ptr->dd && o_ptr_shop->ds == o_ptr->ds) 
+			/* Is this item for sale? */
+			if (!o_ptr->note) continue;
+			if(c = strstr(quark_str(o_ptr->note),"for sale"))
 			{
-				/* Found a matching item */
-				if (o_ptr->number <= number)
+				/* Get ask price */
+				c += 8; /* skip "for sale" */
+				if( *c == ' ' )
 				{
-					number -= o_ptr->number;
-					sold += o_ptr->number;
-					/* Remove the item(s) and keep searching if required */
-					delete_object(houses[p_ptr->player_store_num].depth,y,x);
+					o_ptr->askprice = atoi(c);
 				}
-				else if (o_ptr->number > number)
+
+
+				/* Is this the item we've sold? We must be careful that we have found the correct 
+				 * item match or else this could be exploited. Even so, I can't help thinking there
+				 * must be a better way to do this */
+				if (o_ptr_shop->tval == o_ptr->tval && o_ptr_shop->sval == o_ptr->sval &&
+				o_ptr_shop->bpval == o_ptr->bpval && o_ptr_shop->pval == o_ptr->pval &&
+				o_ptr_shop->discount == o_ptr->discount && o_ptr_shop->name1 == o_ptr->name1 &&
+				o_ptr_shop->name2 == o_ptr->name2 && o_ptr_shop->name3 == o_ptr->name3 &&
+				o_ptr_shop->xtra1 == o_ptr->xtra1 && o_ptr_shop->xtra2 == o_ptr->xtra2 &&
+				o_ptr_shop->to_h == o_ptr->to_h && o_ptr_shop->to_d == o_ptr->to_d &&
+				o_ptr_shop->to_a == o_ptr->to_a && o_ptr_shop->ac == o_ptr->ac &&
+				o_ptr_shop->dd == o_ptr->dd && o_ptr_shop->ds == o_ptr->ds &&
+				o_ptr_shop->askprice == o_ptr->askprice)
 				{
-					/* Reduce the pile of items */
-					o_ptr->number -= number;
-					sold += number;
-					number = 0;
-				}						
+	
+					/* Found a matching item */
+					if (o_ptr->number <= number)
+					{
+						number -= o_ptr->number;
+						sold += o_ptr->number;
+						/* Remove the item(s) and keep searching if required */
+						delete_object(houses[p_ptr->player_store_num].depth,y,x);
+					}
+					else if (o_ptr->number > number)
+					{
+						/* Reduce the pile of items */
+						o_ptr->number -= number;
+						sold += number;
+						number = 0;
+					}						
+				}
 			}
 		}
 		/* Done aleady? */

@@ -877,11 +877,10 @@ void do_cmd_uninscribe(int Ind, int item)
 void do_cmd_inscribe(int Ind, int item, cptr inscription)
 {
 	player_type *p_ptr = Players[Ind];
-
 	object_type		*o_ptr;
-
 	char		o_name[80];
-
+	s32b		price;
+	char		*c;
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -895,14 +894,26 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 		o_ptr = &o_list[0 - item];
 	}
 
-	/* Don't allow certain inscriptions on unidentified items */
-	if (!object_known_p(Ind, o_ptr))
-	{
-		if (strstr(inscription,"for sale")) 
-		{	
+	/* Don't allow certain inscriptions when selling */
+	if (c = strstr(inscription,"for sale")) 
+	{	
+		/* Can't sell unindentified items */
+		if (!object_known_p(Ind, o_ptr))
+		{
 			msg_print(Ind,"You must identify this item first");
 			return;
 		}
+		/* Can't sell overpriced items */
+		c += 8; /* skip "for sale" */
+		if( *c == ' ' )
+		{
+			price = atoi(c);
+			if (price > 9999999)
+			{
+				msg_print(Ind,"Your price is too high!");
+				return;
+			}
+		}		
 	}
 	
 	/* Describe the activity */
