@@ -1031,81 +1031,77 @@ void update_mon(int m_idx, bool dist)
 			m_ptr->cdis = (d < 255) ? d : 255;
 		}
 
-
-		/* Process "distant" monsters */
-#if 0
-		if (m_ptr->cdis > MAX_SIGHT)
+		/* Nearby */
+		if (m_ptr->cdis <= MAX_SIGHT)
 		{
-			/* Ignore unseen monsters */
-			if (!p_ptr->mon_vis[m_idx]) return;
-		}
-#endif
 
-		/* Process "nearby" monsters on the current "panel" */
-		if (panel_contains(fy, fx))
-		{
-			cave_type *c_ptr = &cave[Depth][fy][fx];
-			byte *w_ptr = &p_ptr->cave_flag[fy][fx];
-
-			/* Normal line of sight, and player is not blind */
-			if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
+			/* Process "nearby" monsters on the current "panel" */
+			if (panel_contains(fy, fx))
 			{
-				/* Use "infravision" */
-				if (m_ptr->cdis <= (byte)(p_ptr->see_infra))
+				cave_type *c_ptr = &cave[Depth][fy][fx];
+				byte *w_ptr = &p_ptr->cave_flag[fy][fx];
+	
+				/* Normal line of sight, and player is not blind */
+				if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
 				{
-					/* Infravision only works on "warm" creatures */
-					/* Below, we will need to know that infravision failed */
-					if (r_ptr->flags2 & RF2_COLD_BLOOD) do_cold_blood = TRUE;
-
-					/* Infravision works */
-					if (!do_cold_blood) easy = flag = TRUE;
-				}
-
-				/* Use "illumination" */
-				if ((c_ptr->info & CAVE_LITE) || (c_ptr->info & CAVE_GLOW))
-				{
-					/* Take note of invisibility */
-					if (r_ptr->flags2 & RF2_INVISIBLE) do_invisible = TRUE;
-
-					/* Visible, or detectable, monsters get seen */
-					if (!do_invisible || p_ptr->see_inv) easy = flag = TRUE;
-				}
-			}
-
-			/* Telepathy can see all "nearby" monsters with "minds" */
-            if (is_detected(r_ptr->flags3, p_ptr->telepathy))
-			{
-				/* Empty mind, no telepathy */
-				if (r_ptr->flags2 & RF2_EMPTY_MIND)
-				{
-					do_empty_mind = TRUE;
+					/* Use "infravision" */
+					if (m_ptr->cdis <= (byte)(p_ptr->see_infra))
+					{
+						/* Infravision only works on "warm" creatures */
+						/* Below, we will need to know that infravision failed */
+						if (r_ptr->flags2 & RF2_COLD_BLOOD) do_cold_blood = TRUE;
+	
+						/* Infravision works */
+						if (!do_cold_blood) easy = flag = TRUE;
+					}
+	
+					/* Use "illumination" */
+					if ((c_ptr->info & CAVE_LITE) || (c_ptr->info & CAVE_GLOW))
+					{
+						/* Take note of invisibility */
+						if (r_ptr->flags2 & RF2_INVISIBLE) do_invisible = TRUE;
+	
+						/* Visible, or detectable, monsters get seen */
+						if (!do_invisible || p_ptr->see_inv) easy = flag = TRUE;
+					}
 				}
 	
-				/* Weird mind, occasional telepathy */
-				else if (r_ptr->flags2 & RF2_WEIRD_MIND)
+				/* Telepathy can see all "nearby" monsters with "minds" */
+	            if (is_detected(r_ptr->flags3, p_ptr->telepathy))
 				{
-					do_weird_mind = TRUE;
-					if (rand_int(100) < 10) hard = flag = TRUE;
+					/* Empty mind, no telepathy */
+					if (r_ptr->flags2 & RF2_EMPTY_MIND)
+					{
+						do_empty_mind = TRUE;
+					}
+		
+					/* Weird mind, occasional telepathy */
+					else if (r_ptr->flags2 & RF2_WEIRD_MIND)
+					{
+						do_weird_mind = TRUE;
+						/* One in 10 individuals are detectable */
+						if ((m_idx % 10) == 5) hard = flag = TRUE;
+					}
+	
+					/* Normal mind, allow telepathy */
+					else
+					{
+						hard = flag = TRUE;
+					}
+	
+					/* Apply telepathy */
+					if (hard)
+					{
+						/* Hack -- Memorize mental flags */
+						if (r_ptr->flags2 & RF2_SMART) r_ptr->r_flags2 |= RF2_SMART;
+						if (r_ptr->flags2 & RF2_STUPID) r_ptr->r_flags2 |= RF2_STUPID;
+					}
 				}
-
-				/* Normal mind, allow telepathy */
-				else
-				{
-					hard = flag = TRUE;
-				}
-
-				/* Apply telepathy */
-				if (hard)
-				{
-					/* Hack -- Memorize mental flags */
-					if (r_ptr->flags2 & RF2_SMART) r_ptr->r_flags2 |= RF2_SMART;
-					if (r_ptr->flags2 & RF2_STUPID) r_ptr->r_flags2 |= RF2_STUPID;
-				}
+	
+				/* Hack -- Wizards have "perfect telepathy" */
+				/* if (p_ptr->wizard) flag = TRUE; */
+				//if (!strcmp(p_ptr->name, cfg_dungeon_master)) flag = TRUE;
 			}
-
-			/* Hack -- Wizards have "perfect telepathy" */
-			/* if (p_ptr->wizard) flag = TRUE; */
-			if (!strcmp(p_ptr->name, cfg_dungeon_master)) flag = TRUE;
 		}
 
 
