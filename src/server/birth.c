@@ -1025,107 +1025,115 @@ static void player_outfit(int Ind)
     }
 
 	/* 
-     * Give the DM some interesting stuff
+     * Give the DM some interesting stuff or all players if this is dev mode
 	 */
 
-	 if (!strcmp(p_ptr->name,cfg_dungeon_master))
-	{ 
-	/* DM gets all deep books */
-	if ((p_ptr->pclass == CLASS_MAGE) || (p_ptr->pclass == CLASS_RANGER) ||
-		(p_ptr->pclass == CLASS_ROGUE))
+#ifndef DEBUG
+	if (!strcmp(p_ptr->name,cfg_dungeon_master))
 	{
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 4));
-		o_ptr->number = 1;
-        	object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 5));
-		o_ptr->number = 1;
-        	object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 6));
-		o_ptr->number = 1;
-        	object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 7));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 8));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	} 
-	if ((p_ptr->pclass == CLASS_PRIEST) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 5));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 6));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 7));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 8));
-		o_ptr->number = 1;
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	} 
+#endif
+		p_ptr->au = 10000000;
 
-	/* DM gets useful potions */
-	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		/* All deep books */
+		if ((p_ptr->pclass == CLASS_MAGE) || (p_ptr->pclass == CLASS_RANGER) ||
+			(p_ptr->pclass == CLASS_ROGUE))
+		{
+			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 4));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 5));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 6));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 7));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 8));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+		} 
+		if ((p_ptr->pclass == CLASS_PRIEST) || (p_ptr->pclass == CLASS_PALADIN))
+		{
+			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 5));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 6));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 7));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 8));
+			o_ptr->number = 1;
+			object_known(o_ptr);
+			(void)inven_carry(Ind, o_ptr);
+		} 
+
+		/* Useful potions */
+		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
+		o_ptr->number = 20;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_EXPERIENCE));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_EXPERIENCE));
+		o_ptr->number = 30;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_RESTORE_MANA));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
+		o_ptr->number = 15;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
 
-	/* DM gets useful scrolls */
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		/* Useful scrolls */
+		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
+		o_ptr->number = 25;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	object_aware(Ind, o_ptr);
+		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
+		o_ptr->number = 30;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_LIFE));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT));
+		o_ptr->number = 20;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-        invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		
+		/* Useful equipment */
+		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_SPEED));
+		o_ptr->pval = 30;
+		o_ptr->number = 1;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT));
-        o_ptr->number = 99;
-	object_aware(Ind, o_ptr);
+		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_ESP));
+		o_ptr->pval = 10;
+		o_ptr->number = 1;
+		object_aware(Ind, o_ptr);
 		object_known(o_ptr);
 		(void)inven_carry(Ind, o_ptr);
+		
+#ifndef DEBUG
 	}
+#endif
 	
 	/* Hack -- Give the player three useful objects */
 	for (i = 0; i < 3; i++)
