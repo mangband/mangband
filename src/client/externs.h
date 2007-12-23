@@ -279,7 +279,6 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
-extern void cmd_mind(void);
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
@@ -445,8 +444,6 @@ extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
-
-extern int Send_mind();
 
 
 /*

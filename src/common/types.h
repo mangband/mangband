@@ -1252,11 +1252,6 @@ struct player_type
 	s16b tim_invis;		/* Timed -- See Invisible */
 	s16b tim_infra;		/* Timed -- Infra Vision */
 
-    /* Mind flags */
-    s32b esp_link;
-    byte esp_link_type;
-    u16b esp_link_flags;
-
 	s16b oppose_acid;	/* Timed -- oppose acid */
 	s16b oppose_elec;	/* Timed -- oppose lightning */
 	s16b oppose_fire;	/* Timed -- oppose heat */

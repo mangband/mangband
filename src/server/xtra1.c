@@ -220,7 +220,7 @@ static void prt_sp(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Do not show mana unless it matters */
-    if (!p_ptr->mp_ptr->spell_book && !p_ptr->esp_link) Send_sp(Ind, 0, 0);
+    if (!p_ptr->mp_ptr->spell_book) Send_sp(Ind, 0, 0);
 
 	else Send_sp(Ind, p_ptr->msp, p_ptr->csp);
 }

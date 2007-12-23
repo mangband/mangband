@@ -179,8 +179,6 @@ static void Init_receive(void)
 	playing_receive[PKT_WIELD]		= Receive_wield;
 	playing_receive[PKT_ZAP]		= Receive_zap;
 
-    playing_receive[PKT_MIND]		= Receive_mind;
-
 	playing_receive[PKT_TARGET]		= Receive_target;
 	playing_receive[PKT_TARGET_FRIENDLY]	= Receive_target_friendly;
 	playing_receive[PKT_INSCRIBE]		= Receive_inscribe;
@@ -646,7 +644,6 @@ static void Contact(int fd, int arg)
 		host_addr[24],
 		reply_to, status;
     struct sockaddr_in sin;
-    struct hostent *host;
     
 	/* Create a TCP socket for communication with whoever contacted us */
 	/* Hack -- check if this data has arrived on the contact socket or not.
@@ -2805,33 +2802,8 @@ int Send_message(int ind, cptr msg)
 
 int Send_char(int ind, int x, int y, byte a, char c)
 {
-    player_type *p_ptr = Players[ind];
-
 	if (!BIT(Conn[Players[ind]->conn].state, CONN_PLAYING | CONN_READY))
 		return 0;
-
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	int Ind2 = find_player(p_ptr->esp_link);
-
-	if (!Ind2)
-	{
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	}
-	else
-	{
-		if (BIT(Conn[Players[Ind2]->conn].state, CONN_PLAYING | CONN_READY))
-		{
-		    Packet_printf(&Conn[Players[Ind2]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
-		}
-	}
-    }
 
 	return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
 }
@@ -2892,8 +2864,6 @@ int Send_line_info(int ind, int y)
 	int x, x1, n;
 	char c;
 	byte a;
-    int Ind2 = 0;
-    player_type *p_ptr2;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2903,29 +2873,8 @@ int Send_line_info(int ind, int y)
 		return 0;
 	}
 	
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	    Ind2 = find_player(p_ptr->esp_link);
-
-	    if (!Ind2)
-	    {
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	    }
-	    else
-	    {
-		p_ptr2 = Players[Ind2];
-	    }
-    }
-    
 	/* Put a header on the packet */
 	Packet_printf(&connp->c, "%c%hd", PKT_LINE_INFO, y);
-    if (Ind2) Packet_printf(&Conn[p_ptr2->conn].c, "%c%hd", PKT_LINE_INFO, y);
 
 	/* Each column */
 	for (x = 0; x < 80; x++)
@@ -2957,7 +2906,6 @@ int Send_line_info(int ind, int y)
 
 			/* Output the info */
 			Packet_printf(&connp->c, "%c%c%c", c, a, n);
-	    if (Ind2) Packet_printf(&Conn[p_ptr2->conn].c, "%c%c%c", c, a, n);
 
 			/* Start again after the run */
 			x = x1 - 1;
@@ -2966,7 +2914,6 @@ int Send_line_info(int ind, int y)
 		{
 			/* Normal, single grid */
 			Packet_printf(&connp->c, "%c%c", c, a); 
-	    if (Ind2) Packet_printf(&Conn[p_ptr2->conn].c, "%c%c", c, a);
 		}
 	}
 
@@ -2983,9 +2930,6 @@ int Send_mini_map(int ind, int y)
 	int x, x1, n;
 	char c;
 	byte a;
-    int Ind2 = 0;
-    player_type *p_ptr2;
-    connection_t *connp2;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2994,31 +2938,9 @@ int Send_mini_map(int ind, int y)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	    Ind2 = find_player(p_ptr->esp_link);
-
-	    if (!Ind2)
-	    {
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	    }
-	    else
-	    {
-		p_ptr2 = Players[Ind2];
-		connp2 = &Conn[p_ptr2->conn];
-	    }
-    }
-    
+	    
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", PKT_MINI_MAP, y);
-    if (Ind2) Packet_printf(&connp2->c, "%c%hd", PKT_MINI_MAP, y);
 
 	/* Each column */
 	for (x = 0; x < 80; x++)
@@ -3050,7 +2972,6 @@ int Send_mini_map(int ind, int y)
 
 			/* Output the info */
 			Packet_printf(&connp->c, "%c%c%c", c, a, n);
-	    if (Ind2) Packet_printf(&connp2->c, "%c%c%c", c, a, n);
 
 			/* Start again after the run */
 			x = x1 - 1;
@@ -3059,7 +2980,6 @@ int Send_mini_map(int ind, int y)
 		{
 			/* Normal, single grid */
 			Packet_printf(&connp->c, "%c%c", c, a); 
-	    if (Ind2) Packet_printf(&connp2->c, "%c%c", c, a); 
 		}
 	}
 
@@ -3072,7 +2992,6 @@ int Send_mini_map(int ind, int y)
 int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cptr name)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
-    player_type *p_ptr = Players[ind];
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -3089,38 +3008,12 @@ int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cpt
 	return 0;
     }
 
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	    int Ind2 = find_player(p_ptr->esp_link);
-	    player_type *p_ptr2;
-	    connection_t *connp2;
-
-	    if (!Ind2)
-	    {
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	    }
-	    else
-	    {
-		p_ptr2 = Players[Ind2];
-		connp2 = &Conn[p_ptr2->conn];
-
-		Packet_printf(&connp2->c, "%c%c%c%hd%hd%d%s", PKT_STORE, pos, attr, wgt, number, price, name);
-	    }
-    }
-
 	return Packet_printf(&connp->c, "%c%c%c%hd%hd%d%s", PKT_STORE, pos, attr, wgt, number, price, name);
 }
 
 int Send_store_info(int ind, int num, int owner, int items)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
-    player_type *p_ptr = Players[ind];
 
     int count = items;
 
@@ -3138,38 +3031,12 @@ int Send_store_info(int ind, int num, int owner, int items)
         count = 24;
     }
 
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	    int Ind2 = find_player(p_ptr->esp_link);
-	    player_type *p_ptr2;
-	    connection_t *connp2;
-
-	    if (!Ind2)
-	    {
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	    }
-	    else
-	    {
-		p_ptr2 = Players[Ind2];
-		connp2 = &Conn[p_ptr2->conn];
-
-		Packet_printf(&connp2->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
-	    }
-    }
-
     return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
 }
 
 int Send_player_store_info(int ind, int num, char *owner, int items)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
-    player_type *p_ptr = Players[ind];
 
     int count = items;
 
@@ -3193,7 +3060,6 @@ int Send_player_store_info(int ind, int num, char *owner, int items)
 int Send_store_sell(int ind, int price)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
-    player_type *p_ptr = Players[ind];
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -3202,31 +3068,6 @@ int Send_store_sell(int ind, int price)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-
-    if (p_ptr->esp_link_type && p_ptr->esp_link && (p_ptr->esp_link_flags & LINKF_VIEW))
-    {
-	    int Ind2 = find_player(p_ptr->esp_link);
-	    player_type *p_ptr2;
-	    connection_t *connp2;
-
-	    if (!Ind2)
-	    {
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		msg_print(ind, "Ending mind link.");
-		p_ptr->esp_link = 0;
-		p_ptr->esp_link_type = 0;
-		p_ptr->esp_link_flags = 0;
-	    }
-	    else
-	    {
-		p_ptr2 = Players[Ind2];
-		connp2 = &Conn[p_ptr2->conn];
-
-		Packet_printf(&connp2->c, "%c%d", PKT_SELL, price);
-	    }
-    }
 
 	return Packet_printf(&connp->c, "%c%d", PKT_SELL, price);
 }
@@ -3490,50 +3331,15 @@ static int Receive_keepalive(int ind)
 static int Receive_walk(int ind)
 {
 	connection_t *connp = &Conn[ind];
-    player_type *p_ptr, *p_ptr2;
+    player_type *p_ptr;
 	char ch, dir;
 
-    int n, player, Ind2;
+    int n, player;
 
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 	else player = 0;
 
@@ -3550,7 +3356,6 @@ static int Receive_walk(int ind)
 		disturb(player, 0, 0);
 		return 1;
 	}
-
 
 	if (player && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
@@ -3595,48 +3400,10 @@ static int Receive_run(int ind)
 	int i, n, player;
 	char dir;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	/* If not the dungeon master, who can always run */
@@ -3651,13 +3418,13 @@ static int Receive_run(int ind)
 			{
 				// Treat this as a walk request
 				// Hack -- send the same connp->r "arguments" to Receive_walk
-		// Hack -- Always allow running in town.
-		if(p_ptr->dun_depth) {	
-				return Receive_walk(ind);
+				// Hack -- Always allow running in town.
+				if(p_ptr->dun_depth) {	
+					return Receive_walk(ind);
+				}
 			}
 		}
 	}
-    }
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
 	{
@@ -3704,48 +3471,10 @@ static int Receive_tunnel(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -3774,48 +3503,10 @@ static int Receive_aim_wand(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%c", &ch, &item, &dir)) <= 0)
@@ -3849,48 +3540,10 @@ static int Receive_drop(int ind)
 	int n, player; 
 	s16b item, amt;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &item, &amt)) <= 0)
@@ -3924,48 +3577,10 @@ static int Receive_fire(int ind)
 	int n, player;
 	s16b item;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c%hd", &ch, &dir, &item)) <= 0)
@@ -4006,48 +3621,10 @@ static int Receive_stand(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -4077,48 +3654,10 @@ static int Receive_destroy(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &item, &amt)) <= 0)
@@ -4159,48 +3698,10 @@ static int Receive_observe(int ind)
 
 	int n, player;
 
-	player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -4233,48 +3734,10 @@ static int Receive_look(int ind)
 
     int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
     if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -4301,48 +3764,10 @@ static int Receive_spell(int ind)
 
     s16b book, spell;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
     if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &book, &spell)) <= 0)
@@ -4376,48 +3801,10 @@ static int Receive_open(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -4452,48 +3839,10 @@ static int Receive_pray(int ind)
 
 	s16b book, prayer;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &book, &prayer)) <= 0)
@@ -4529,48 +3878,10 @@ static int Receive_ghost(int ind)
 
 	s16b ability;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &ability)) <= 0)
@@ -4604,48 +3915,10 @@ static int Receive_quaff(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -4679,48 +3952,10 @@ static int Receive_read(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -4753,48 +3988,10 @@ static int Receive_search(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -4824,48 +4021,10 @@ static int Receive_take_off(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -4899,48 +4058,10 @@ static int Receive_use(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -4974,48 +4095,10 @@ static int Receive_throw(int ind)
 	int n, player;
 	s16b item;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c%hd", &ch, &dir, &item)) <= 0)
@@ -5050,48 +4133,10 @@ static int Receive_wield(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5125,48 +4170,10 @@ static int Receive_zap(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5200,48 +4207,10 @@ static int Receive_target(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &dir)) <= 0)
@@ -5267,48 +4236,10 @@ static int Receive_target_friendly(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &dir)) <= 0)
@@ -5338,48 +4269,10 @@ static int Receive_inscribe(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%s", &ch, &item, inscription)) <= 0)
@@ -5406,48 +4299,10 @@ static int Receive_uninscribe(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5474,48 +4329,10 @@ static int Receive_activate(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5548,48 +4365,10 @@ static int Receive_bash(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -5622,48 +4401,11 @@ static int Receive_disarm(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
 
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -5697,48 +4439,10 @@ static int Receive_eat(int ind)
 	s16b item;
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5773,48 +4477,10 @@ static int Receive_fill(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &item)) <= 0)
@@ -5847,48 +4513,10 @@ static int Receive_locate(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -5913,48 +4541,10 @@ static int Receive_map(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -5979,48 +4569,10 @@ static int Receive_search_mode(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -6045,48 +4597,10 @@ static int Receive_close(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -6121,48 +4635,10 @@ static int Receive_gain(int ind)
 
 	s16b book, spell;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &book, &spell)) <= 0)
@@ -6195,48 +4671,10 @@ static int Receive_go_up(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -6269,48 +4707,10 @@ static int Receive_go_down(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
@@ -6344,48 +4744,10 @@ static int Receive_direction(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 		else player = 0;
 
@@ -6413,48 +4775,10 @@ static int Receive_item(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 		else player = 0;
 
@@ -6541,48 +4865,10 @@ static int Receive_purchase(int ind)
 	int n, player;
 	s16b item, amt;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 	else player = 0;
 
@@ -6612,48 +4898,10 @@ static int Receive_sell(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 		else player = 0;
 
@@ -6679,48 +4927,10 @@ static int Receive_store_leave(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
 		p_ptr = Players[player];
-	
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
     else player = 0;
     
@@ -6761,48 +4971,10 @@ static int Receive_store_confirm(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
     if (connp->id != -1)
     {
         player = GetInd[connp->id];
         p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
     }
 		else player = 0;
 
@@ -6829,48 +5001,10 @@ static int Receive_drop_gold(int ind)
 	int n, player;
 	s32b amt;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1) 
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%ld", &ch, &amt)) <= 0)
@@ -6903,48 +5037,10 @@ static int Receive_steal(int ind)
 
 	int n, player;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
@@ -6984,30 +5080,6 @@ static int Receive_redraw(int ind)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	if (p_ptr->esp_link_type && p_ptr->esp_link)
-	{
-		    int Ind2 = find_player(p_ptr->esp_link);
-		    
-		    if (!Ind2)
-		    {
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		    }
-		    else
-		    {
-			if (Players[Ind2]->esp_link_flags & LINKF_VIEW)
-			{
-			    player = Ind2;
-			    p_ptr = Players[Ind2];
-			}
-		    }
-	}
 	}
 	else player = 0;
 
@@ -7036,48 +5108,10 @@ static int Receive_rest(int ind)
 	int player, n;
 	char ch;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 	else player = 0;
 
@@ -7191,48 +5225,10 @@ static int Receive_options(int ind)
 	int player, i, n;
 	char ch;
 
-    player_type *p_ptr2;
-    int Ind2;
-
 	if (connp->id != -1)
 	{
 		player = GetInd[connp->id];
 		p_ptr = Players[player];
-
-	/* Break mind link */
-	if (p_ptr->esp_link_type &&p_ptr->esp_link)
-	{
-		Ind2 = find_player(p_ptr->esp_link);
-		    
-		if (!Ind2)
-		{
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		}
-		else
-		{
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		}
-	}
 	}
 	else
 	{
@@ -7553,67 +5549,3 @@ static int Receive_autophase(int Ind)
 }
 
 
-static int Receive_mind(int ind)
-{
-	connection_t *connp = &Conn[ind];
-	player_type *p_ptr, *p_ptr2;
-
-	char ch;
-
-	int n, player, Ind2;
-
-	if (connp->id != -1)
-	{
-		player = GetInd[connp->id];
-		p_ptr = Players[player];
-	}
-
-	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
-	{
-		if (n == -1)
-			Destroy_connection(ind, "read error");
-		return n;
-	}
-
-	if (connp->id != -1)
-	{
-		/* Break mind link */
-		if (p_ptr->esp_link_type &&p_ptr->esp_link)
-		{
-		    Ind2 = find_player(p_ptr->esp_link);
-		    
-		    if (!Ind2)
-		    {
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			msg_print(player, "Ending mind link.");
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-		    }
-		    else
-		    {
-			p_ptr2 = Players[Ind2];
-			msg_format(player, "You break the mind link with %s.", p_ptr2->name);
-			msg_format(Ind2, "%s breaks the mind link with you.", p_ptr->name);
-			p_ptr->esp_link = 0;
-			p_ptr->esp_link_type = 0;
-			p_ptr->esp_link_flags = 0;
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-			p_ptr2->esp_link = 0;
-			p_ptr2->esp_link_type = 0;
-			p_ptr2->esp_link_flags = 0;
-			p_ptr2->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
-			p_ptr2->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
-			p_ptr2->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
-		    }
-		}
-			
-		return 2;
-	}
-
-	return 1;
-}

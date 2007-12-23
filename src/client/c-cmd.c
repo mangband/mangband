@@ -290,12 +290,6 @@ void process_command()
 			break;
 		}
 
-	case 'x':
-	{
-		cmd_mind();
-		break;
-	}
-
 		/*** Looking/Targetting ***/
 		case '*':
 		{
@@ -2476,7 +2470,3 @@ void cmd_master(void)
 	Flush_queue();
 }
 
-void cmd_mind(void)
-{
-	Send_mind();
-}

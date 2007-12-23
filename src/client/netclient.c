@@ -3228,14 +3228,3 @@ static u32b last_sent;
 	}
 }
 
-int Send_mind()
-{
-	int	n;
-
-	if ((n = Packet_printf(&wbuf, "%c", PKT_MIND)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}

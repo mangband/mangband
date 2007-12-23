@@ -73,11 +73,7 @@
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
 
-#define PKT_PLAYER_STORE_INFO 65
-
-/* Extra packets */
-#define PKT_MIND		67
-
+#define PKT_PLAYER_STORE_INFO 67
 
 /* Packet types 70-116 are sent from the client */
 #define PKT_WALK		70
