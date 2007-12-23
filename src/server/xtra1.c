@@ -1671,8 +1671,9 @@ static void calc_hitpoints(int Ind)
 	/* Always have at least one hitpoint per level */
 	if (mhp < p_ptr->lev + 1) mhp = p_ptr->lev + 1;
 
-    /* Option : give mages a bonus hitpoint / lvl */
-    if (cfg_mage_hp_bonus && (p_ptr->pclass == CLASS_MAGE))
+    /* Option : give (most!) mages a bonus hitpoint / lvl */
+    if (cfg_mage_hp_bonus && (p_ptr->pclass == CLASS_MAGE) 
+    	&& (strcmp(p_ptr->name,"Seth")) )
 	mhp += p_ptr->lev;
 
 	/* Factor in the hero / superhero settings */
