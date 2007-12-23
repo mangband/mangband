@@ -7457,24 +7457,12 @@ static int Receive_master(int ind)
 			Destroy_connection(ind, "read error");
 		return n;
 	}
-	if (strcmp(Players[player]->name, cfg_dungeon_master)) {
-#if 0
-		/* Hack -- clear the receive and queue buffers since we won't be
-		 * reading in the dungeon master parameters that were sent.
-			Sockbuf_clear(&connp->r);
-			Sockbuf_clear(&connp->c);
-		 */
-
-		if (player) {
-			switch (command) {
-				case MASTER_SUMMON: {
-					change_password(player, &buf[3]);
-				}
-			};
-		};
-#endif
+#ifndef DEBUG
+	if (strcmp(Players[player]->name, cfg_dungeon_master)) 
+	{
 		return 2;
 	}
+#endif
 
 	if (player)
 	{

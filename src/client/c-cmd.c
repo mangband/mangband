@@ -1849,6 +1849,9 @@ void cmd_master_aux_generate(void)
 		/* Selections */
 		Term_putstr(5, 4, -1, TERM_WHITE, "(1) Vault");
 
+		/* Selections */
+		Term_putstr(5, 5, -1, TERM_WHITE, "(2) Generate Item");
+
 		/* Prompt */
 		Term_putstr(0, 7, -1, TERM_WHITE, "Command: ");
 
