@@ -2618,19 +2618,8 @@ void resurrect_player(int Ind)
 	p_ptr->lives++;
 	
 	/* Lose some experience */
-	exp = p_ptr->max_exp;
-	lives = p_ptr->lives;
-	level = p_ptr->lev;
-	if (p_ptr->lev < 25)
-	{	
-		exp -= exp * (((float)lives * 10)/100);
-	}
-	else
-	{
-		exp -= exp * ((((float)lives * 10)*((float)level / 25))/100);
-	}
-	p_ptr->max_exp = exp;
-	p_ptr->exp = exp;
+	p_ptr->max_exp -= p_ptr->max_exp / 2;
+	p_ptr->exp -= p_ptr->exp / 2; 	
 	check_experience(Ind);
 
 	/* If we resurrect in town, we get a little cash */
