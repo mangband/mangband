@@ -122,8 +122,9 @@
  * OPTION: Include some debugging code.  Note that this option may
  * result in a server that crashes more frequently, as a core dump
  * will be done instead of killing the bad connection.
-#define DEBUG
  */
+#define DEBUG
+
 
 /*
  * OPTION: define "SPECIAL_BSD" for using certain versions of UNIX
