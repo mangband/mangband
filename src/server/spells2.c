@@ -2789,13 +2789,9 @@ bool mass_genocide(int Ind)
 bool probing(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
 	int Depth = p_ptr->dun_depth;
-
-	int            i;
-
+	int            i,d;
 	bool	probe = FALSE;
-
 
 	/* Probe all (nearby) monsters */
 	for (i = 1; i < m_max; i++)
@@ -2808,29 +2804,31 @@ bool probing(int Ind)
 		/* Skip monsters not on this depth */
 		if (Depth != m_ptr->dun_depth) continue;
 
+		/* MAngband specific spell change - don't require LoS, instead limit
+		 * to radius around the player */
+
+		/* Calculate the distance to this monster */
+		d = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
+
 		/* Require line of sight */
-		if (!player_has_los_bold(Ind, m_ptr->fy, m_ptr->fx)) continue;
+		if (d > MAX_SIGHT) continue;
 
-		/* Probe visible monsters */
-		if (p_ptr->mon_vis[i])
-		{
-			char m_name[80];
+		char m_name[80];
 
-			/* Start the message */
-			if (!probe) msg_print(Ind, "Probing...");
+		/* Start the message */
+		if (!probe) msg_print(Ind, "Probing...");
 
-			/* Get "the monster" or "something" */
-			monster_desc(Ind, m_name, i, 0x04);
+		/* Get "the monster" or "something" */
+		monster_desc(Ind, m_name, i, 0x04);
 
-			/* Describe the monster */
-			msg_format(Ind, "%^s has %d hit points.", m_name, m_ptr->hp);
+		/* Describe the monster */
+		msg_format(Ind, "%^s has %d hit points.", m_name, m_ptr->hp);
 
-			/* Learn all of the non-spell, non-treasure flags */
-			lore_do_probe(i);
+		/* Learn all of the non-spell, non-treasure flags */
+		lore_do_probe(i);
 
-			/* Probe worked */
-			probe = TRUE;
-		}
+		/* Probe worked */
+		probe = TRUE;
 	}
 
 	/* Done */
