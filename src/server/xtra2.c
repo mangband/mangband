@@ -4356,7 +4356,7 @@ bool master_generate(int Ind, char * parms)
 						case 'h': dm_obj.to_h++; break;
 						case 'd': dm_obj.to_d++; break;
 						case 'a': dm_obj.ac++; break;
-						case 'x': if(dm_obj.xtra2<256) dm_obj.xtra2++; break;
+						case 'x': if(dm_obj.xtra2<255) dm_obj.xtra2++; break;
 						case 'p': dm_obj.pval++; break;
 					}
 					break;				
