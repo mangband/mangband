@@ -2793,6 +2793,8 @@ bool probing(int Ind)
 	int            i,d;
 	bool	probe = FALSE;
 
+	char m_name[80];
+
 	/* Probe all (nearby) monsters */
 	for (i = 1; i < m_max; i++)
 	{
@@ -2812,8 +2814,6 @@ bool probing(int Ind)
 
 		/* Require line of sight */
 		if (d > MAX_SIGHT) continue;
-
-		char m_name[80];
 
 		/* Start the message */
 		if (!probe) msg_print(Ind, "Probing...");
