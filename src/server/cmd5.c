@@ -387,6 +387,7 @@ void do_cmd_browse(int Ind, int book)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -477,6 +478,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Get the item (on the floor) */
 	else
 	{
+		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - book];
 	}
 
@@ -658,6 +660,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Get the item (on the floor) */
 	else
 	{
+		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - book];
 	}
 
@@ -1555,6 +1558,7 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Get the item (on the floor) */
     else
     {
+    	  item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
         o_ptr = &o_list[0 - item];
     }
 

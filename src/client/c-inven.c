@@ -166,12 +166,19 @@ static int get_tag(int *cp, char tag)
         return (FALSE);
 }
 
+/* 
+	Every instance of c_get_item in the code specifies 'floor' as FALSE,
+	so inside this function, we're always treating it as NOT(floor), since
+	we DO need floor checks.
+*/
 bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';
 
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
+	
+	bool allow_floor = FALSE;
 
 	char	tmp_val[160];
 	char	out_val[160];
@@ -212,7 +219,12 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((e1 <= e2) && (!get_item_okay(e2))) e2--;
 
 
-	if ((i1 > i2) && (e1 > e2))
+	/* Check floor thing */
+	if (floor_tval && !floor) {
+		if( (!item_tester_tval) || (item_tester_tval && floor_tval == item_tester_tval)) allow_floor = TRUE;
+	}
+	
+	if ((i1 > i2) && (e1 > e2) && !allow_floor)
 	{
 		/* Cancel command_see */
 		command_see = FALSE;
@@ -329,6 +341,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			if (inven) strcat(out_val, " / for Inven,");
 		}
 
+		/* Append floor if possible */
+		if (allow_floor) strcat(out_val, " - for floor,");
+
 		/* Finish the prompt */
 		strcat(out_val, " ESC");
 
@@ -376,7 +391,14 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				}
 				break;
 			}
-
+			case '-':
+				/* Floor */
+				
+				(*cp) = -1;
+				item = TRUE;
+				done = TRUE;
+				
+				break;
 			case '/':
 			{
 				/* Verify legality */

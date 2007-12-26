@@ -18,6 +18,7 @@ char player_owner[MAX_NAME_LEN]; /* The store owner for player owned stores */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
 char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
+char floor_tval;		/* Currect tval on a floor */
 
 char spell_info[26][9][80];		/* Spell information */
 

@@ -346,10 +346,10 @@ void do_cmd_wield(int Ind, int item)
 		o_ptr = &(p_ptr->inventory[item]);
 	}
 
-
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -543,6 +543,7 @@ void do_cmd_takeoff(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -596,6 +597,7 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -717,6 +719,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -803,6 +806,7 @@ void do_cmd_observe(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -847,6 +851,7 @@ void do_cmd_uninscribe(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -891,6 +896,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -1148,6 +1154,7 @@ static void do_cmd_refill_lamp(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -1236,6 +1243,7 @@ static void do_cmd_refill_torch(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 

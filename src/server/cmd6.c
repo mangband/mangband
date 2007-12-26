@@ -85,6 +85,7 @@ void do_cmd_eat_food(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -381,6 +382,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -1090,6 +1092,7 @@ void do_cmd_read_scroll(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -1548,6 +1551,7 @@ void do_cmd_use_staff(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -1971,6 +1975,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 	if( check_guard_inscription( o_ptr->note, 'a' )) {
@@ -2383,6 +2388,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 	if( check_guard_inscription( o_ptr->note, 'z' )) {
@@ -2653,6 +2659,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 	if( check_guard_inscription( o_ptr->note, 'z' )) {
@@ -3186,6 +3193,7 @@ void do_cmd_activate(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -3932,6 +3940,7 @@ void do_cmd_activate_dir(int Ind, int dir)
 	/* Get the item (on the floor) */
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 

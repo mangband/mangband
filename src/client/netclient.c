@@ -1887,6 +1887,7 @@ int Receive_item(void)
 	if (!screen_icky && !topline_icky)
 	{
 		c_msg_print(NULL);
+		item_tester_tval = 0;
 
 		if (!c_get_item(&item, "Which item? ", TRUE, TRUE, FALSE))
 		{
@@ -2266,8 +2267,8 @@ int Receive_floor(void)
 		return n;
 	}
 
-	/* Ignore for now */
-	tval = tval;
+	/* Remember for later */
+	floor_tval = tval;
 
 	return 1;
 }

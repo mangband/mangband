@@ -2190,6 +2190,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 	}
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -2648,6 +2649,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 	}
 	else
 	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
 	if(!o_ptr->tval) {
