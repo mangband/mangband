@@ -21,6 +21,11 @@ static void read_mangrc(void)
 	struct passwd *pw;
 #endif
 
+#ifdef WINDOWS
+	char buffer[20]; 
+	LPDWORD bufferLen;
+#endif
+
 	/* Try to find home directory */
 	if (getenv("HOME"))
 	{
@@ -65,6 +70,19 @@ static void read_mangrc(void)
 		strcpy(real_name, nick);
 	}
 #endif
+
+      /* Get user name from WINDOWS machine! */
+#ifdef WINDOWS
+	 if ( GetUserName(buffer, &bufferLen) ) {
+
+		 /* Cut */
+		buffer[16] = '\0';
+		
+		/* Copy to real name */
+  		strcpy(real_name, buffer);
+	 }
+#endif
+
 
 	/* Attempt to open file */
 	if ((config = fopen(config_name, "r")))

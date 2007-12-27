@@ -904,6 +904,8 @@ static void load_prefs(void)
 	int i;
 #endif
 
+	char* buffer; int bufferLen, j;
+
 #ifdef USE_GRAPHICS
 	/* Extract the "use_graphics" flag */
 	use_graphics = (GetPrivateProfileInt("Angband", "Graphics", 0, ini_file) != 0);
@@ -944,8 +946,16 @@ static void load_prefs(void)
 	GetPrivateProfileString("MAngband", "pass", "passwd", pass, 19, ini_file);
 	GetPrivateProfileString("MAngband", "host", "", server_name, 79, ini_file);
 
-	/* XXX Default real name */
-	strcpy(real_name, "PLAYER");
+	/* Pull username from Windows */
+	if ( GetUserName(buffer, &bufferLen) ) {
+		/* Cut */
+		buffer[16] = '\0';
+  		strcpy(real_name, buffer);
+
+	}
+   	else
+		/* XXX Default real name */
+		strcpy(real_name, "PLAYER");
 }
 
 
