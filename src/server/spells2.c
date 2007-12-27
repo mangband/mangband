@@ -1928,6 +1928,17 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 	return (TRUE);
 }
 
+void spell_clear(int Ind)
+{
+  player_type *p_ptr = Players[Ind];
+  p_ptr->current_enchant_h = 0;
+  p_ptr->current_enchant_d = 0;
+  p_ptr->current_enchant_a = 0;
+  p_ptr->current_identify = 0;
+  p_ptr->current_star_identify = 0;
+  p_ptr->current_recharge = 0;
+  p_ptr->current_artifact = 0;
+}
 
 bool create_artifact(int Ind)
 {
@@ -2024,7 +2035,7 @@ bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 
 	get_item(Ind);
 
-   spell_clear(Ind);
+	spell_clear(Ind);
 	p_ptr->current_enchant_h = num_hit;
 	p_ptr->current_enchant_d = num_dam;
 	p_ptr->current_enchant_a = num_ac;
@@ -2107,17 +2118,6 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 }
 
 
-void spell_clear(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-	p_ptr->current_enchant_h = 0;
-	p_ptr->current_enchant_d = 0;
-	p_ptr->current_enchant_a = 0;
-	p_ptr->current_identify = 0;
-	p_ptr->current_star_identify = 0;
-	p_ptr->current_recharge = 0;
-	p_ptr->current_artifact = 0;
-}
 
 bool ident_spell(int Ind)
 {
@@ -2125,7 +2125,7 @@ bool ident_spell(int Ind)
 
 	get_item(Ind);
    
-   spell_clear(Ind);
+	spell_clear(Ind);
 	p_ptr->current_identify = 1;
 
 	return TRUE;
@@ -2205,7 +2205,7 @@ bool identify_fully(int Ind)
 
 	get_item(Ind);
 
-   spell_clear(Ind);
+	spell_clear(Ind);
 	p_ptr->current_star_identify = 1;
 
 	return TRUE;
@@ -2313,7 +2313,7 @@ bool recharge(int Ind, int num)
 
 	get_item(Ind);
 
-   spell_clear(Ind);
+	spell_clear(Ind);
 	p_ptr->current_recharge = num;
 
 	return TRUE;
