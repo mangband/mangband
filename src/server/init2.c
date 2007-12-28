@@ -833,7 +833,7 @@ static errr init_r_info(void)
 
 
 /*
- * Initialize the "v_info" array
+ * Initialize the "v_info" array (Vault handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -884,13 +884,13 @@ static errr init_v_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "v_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "vault.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'v_info.txt' file.");
+	if (!fp) quit("Cannot open 'vault.txt' file.");
 
 	/* Parse the file */
 	err = init_v_info_txt(fp, buf);
@@ -907,13 +907,13 @@ static errr init_v_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'v_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'vault.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'v_info.txt' file.");
+		quit("Error in 'vault.txt' file.");
 	}
 
 	/* Success */
