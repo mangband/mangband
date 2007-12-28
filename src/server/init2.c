@@ -380,7 +380,7 @@ static cptr err_str[8] =
 
 
 /*
- * Initialize the "f_info" array
+ * Initialize the "f_info" array (Terrain handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -432,13 +432,13 @@ static errr init_f_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "f_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "terrain.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'f_info.txt' file.");
+	if (!fp) quit("Cannot open 'terrain.txt' file.");
 
 	/* Parse the file */
 	err = init_f_info_txt(fp, buf);
@@ -455,13 +455,13 @@ static errr init_f_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'f_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'terrain.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'f_info.txt' file.");
+		quit("Error in 'terrain.txt' file.");
 	}
 
 	/* Success */
