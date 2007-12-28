@@ -3405,6 +3405,91 @@ s16b target_pick(int Ind, int y1, int x1, int dy, int dx)
 
 
 /*
+ * Describe a floor tile (for looking and targeting routines)
+ *	
+ * if !active, activities such as tracking are disabled
+ */
+void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
+	monster_type *m_ptr;
+	object_type *o_ptr;
+	char o_name[80];
+	bool found = FALSE;
+	bool self = FALSE;
+	if (c_ptr->m_idx < 0)
+	{
+		q_ptr = Players[0 - c_ptr->m_idx];
+
+		self = (0 - c_ptr->m_idx == Ind ? TRUE : FALSE); 
+
+		if (p_ptr->play_vis[0 - c_ptr->m_idx] || self)
+		{
+			if (active && !self)
+			{
+				/* Track health */
+				if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+			}
+
+		/* Format string */
+		sprintf(out_val, "%s the %s %s", q_ptr->name, race_info[q_ptr->prace].title, class_info[q_ptr->pclass].title);
+		
+		found = TRUE;
+		}
+		
+	}
+	else if (c_ptr->m_idx > 0)
+	{
+		monster_race *r_ptr = &r_info[m_list[c_ptr->m_idx].r_idx];
+
+		if (p_ptr->mon_vis[c_ptr->m_idx]) 
+		{
+			if (active)
+			{
+				/* Track health */
+				if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+			}
+					
+		/* Format string */
+		sprintf(out_val, "%s (%s)", r_name + r_ptr->name, look_mon_desc(c_ptr->m_idx));
+		
+		found = TRUE;
+		}
+	}
+	if (!found && c_ptr->o_idx)
+	{
+		o_ptr = &o_list[c_ptr->o_idx];
+
+		/* Obtain an object description */
+		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+
+		sprintf(out_val, "You see %s", o_name);
+		
+		found = TRUE;
+	}
+	if (!found)
+	{
+		int feat = f_info[c_ptr->feat].mimic;
+		cptr name = f_name + f_info[feat].name;
+		cptr p1 = "A ";
+
+		if (is_a_vowel(name[0])) p1 = "An ";
+
+		/* Hack -- special description for store doors */
+		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
+		{
+			p1 = "The entrance to the ";
+		}
+
+		/* Message */
+		sprintf(out_val, "%s%s", p1, name);
+	}
+
+}
+
+
+/*
  * Set a new target.  This code can be called from "get_aim_dir()"
  *
  * The target must be on the current panel.  Consider the use of
@@ -3442,7 +3527,13 @@ bool target_set(int Ind, int dir)
 	monster_type	*m_ptr;
 	monster_race	*r_ptr;
 
-	if (!dir)
+	/* Cancel targeting */
+ 	if (dir == 255)
+   {
+		/* For later */      
+      return;
+   }
+	if (dir != 5 && dir != 128 + 5)
 	{
 		x = p_ptr->px;
 		y = p_ptr->py;
@@ -3521,7 +3612,7 @@ bool target_set(int Ind, int dir)
 		/* Start near the player */
 		m = 0;
 	}
-	else if (dir >= 128)
+	if (dir >= 128)
 	{
 		/* Initialize if needed */
 		if (dir == 128)
@@ -3533,10 +3624,28 @@ bool target_set(int Ind, int dir)
 		{
 			p_ptr->target_row += ddy[dir - 128];
 			p_ptr->target_col += ddx[dir - 128];
-		}
+			
+			/* Hack Begin { */
+			p_ptr->target_col -= p_ptr->panel_col_prt;
+			p_ptr->target_row -= p_ptr->panel_row_prt;
 
+			/* Adjus boundaries */
+			if (p_ptr->target_col < 13) p_ptr->target_col = 13;
+			if (p_ptr->target_col > SCREEN_WID+12) p_ptr->target_col = SCREEN_WID+12;
+			if (p_ptr->target_row < 1) p_ptr->target_row = 1;
+			if (p_ptr->target_row > SCREEN_HGT) p_ptr->target_row = SCREEN_HGT;
+			
+			/* } Hack End */
+			p_ptr->target_col += p_ptr->panel_col_prt;
+			p_ptr->target_row += p_ptr->panel_row_prt;
+		}
+		
+		/* Describe what is under cursor */
+		c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
+		describe_floor_tile(c_ptr, out_val, Ind, FALSE);
+		
 		/* Info */
-		strcpy(out_val, "[<dir>, q] ");
+		strcpy(out_val, " [<dir>, q] ");
 
 		/* Tell the client */
 		Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
@@ -3551,7 +3660,7 @@ bool target_set(int Ind, int dir)
 		/* Done */
 		return FALSE;
 	}
-	else
+	else if (dir)
 	{
 		/* Start where we last left off */
 		m = p_ptr->look_index;
@@ -3579,8 +3688,15 @@ bool target_set(int Ind, int dir)
 		i = target_pick(Ind, p_ptr->target_y[m], p_ptr->target_x[m], ddy[dir], ddx[dir]);
 
 		/* Use that monster */
-		if (i > 0) m = i;
+		if (i >= 0) m = i;
+
+		/* Do not re-target, if allready picked */		
+		if (dir == 5) flag = FALSE;
 	}
+
+	/* Do not re-target, if noone's around */
+	if (!p_ptr->target_n) flag = FALSE;
+ 
 
 	/* Target monsters */
 	if (flag && p_ptr->target_n && p_ptr->target_idx[m] > 0)

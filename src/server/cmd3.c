@@ -1357,7 +1357,7 @@ void do_cmd_target(int Ind, int dir)
 	/* Set the target */
 	if (target_set(Ind, dir))
 	{
-		msg_print(Ind, "Target Selected.");
+		/*msg_print(Ind, "Target Selected.");*/
 	}
 	else
 	{
@@ -1479,6 +1479,14 @@ void do_cmd_look(int Ind, int dir)
 	char o_name[80];
 	char out_val[160];
 
+	/* Cancel */
+	if (dir == 5)
+	{
+		/* More stuff here later */
+		return;
+	}
+
+
 	/* Blind */
 	if (p_ptr->blind)
 	{
@@ -1495,8 +1503,8 @@ void do_cmd_look(int Ind, int dir)
 
 
 	/* Reset "temp" array */
-	/* Only if this is the first time, or if we've been asked to reset */
-	if (!dir)
+	/* Do it Every time (unless canceled before) */
+	/* if (!dir) */
 	{
 		p_ptr->target_n = 0;
 
@@ -1518,8 +1526,11 @@ void do_cmd_look(int Ind, int dir)
 			}
 		}
 
-		/* Start near the player */
-		p_ptr->look_index = 0;
+		/* Only if this is the first time, or if we've been asked to reset */
+		if (!dir) {
+			/* Start near the player */
+			p_ptr->look_index = 0;
+		}
 
 		/* Paranoia */
 		if (!p_ptr->target_n)
@@ -1546,9 +1557,12 @@ void do_cmd_look(int Ind, int dir)
 			else p_ptr->target_idx[i] = 0;
 		}
 	}
-
+	
+	/* Just be cautius */
+	if (p_ptr->look_index > p_ptr->target_n) p_ptr->look_index = p_ptr->target_n;
+	
 	/* Motion */
-	else
+	if (dir)
 	{
 		/* Reset the locations */
 		for (i = 0; i < p_ptr->target_n; i++)
@@ -1594,54 +1608,9 @@ void do_cmd_look(int Ind, int dir)
 	if (!cave[Depth]) return;
 
 	c_ptr = &cave[Depth][y][x];
-
-	if (c_ptr->m_idx < 0)
-	{
-		q_ptr = Players[0 - c_ptr->m_idx];
-
-		/* Track health */
-		if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-
-		/* Format string */
-		sprintf(out_val, "%s the %s %s", q_ptr->name, race_info[q_ptr->prace].title, class_info[q_ptr->pclass].title);
-	}
-	else if (c_ptr->m_idx > 0)
-	{
-		monster_race *r_ptr = &r_info[m_list[c_ptr->m_idx].r_idx];
-
-		/* Track health */
-		if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-
-		/* Format string */
-		sprintf(out_val, "%s (%s)", r_name + r_ptr->name, look_mon_desc(c_ptr->m_idx));
-	}
-	else if (c_ptr->o_idx)
-	{
-		o_ptr = &o_list[c_ptr->o_idx];
-
-		/* Obtain an object description */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-
-		sprintf(out_val, "You see %s", o_name);
-	}
-	else
-	{
-		int feat = f_info[c_ptr->feat].mimic;
-		cptr name = f_name + f_info[feat].name;
-		cptr p1 = "A ";
-
-		if (is_a_vowel(name[0])) p1 = "An ";
-
-		/* Hack -- special description for store doors */
-		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
-		{
-			p1 = "The entrance to the ";
-		}
-
-		/* Message */
-		sprintf(out_val, "%s%s", p1, name);
-	}
-
+	
+	describe_floor_tile(c_ptr, out_val, Ind, TRUE);
+	
 	/* Append a little info */
 	strcat(out_val, " [<dir>, q]");
 

@@ -976,6 +976,7 @@ int cmd_target(void)
 {
 	bool done = FALSE;
 	bool position = FALSE;
+	bool fail = FALSE;
 	int d;
 	char ch;
 
@@ -996,7 +997,8 @@ int cmd_target(void)
 			{
 				/* Clear top line */
 				prt("", 0, 0);
-				return FALSE;
+				done = fail = TRUE;
+				break;
 			}
 			case 't':
 			case '5':
@@ -1025,7 +1027,8 @@ int cmd_target(void)
 					 */
 					/* Clear the top line */
 					prt("", 0, 0);
-					return FALSE;
+					done = fail = TRUE;
+					break;
 				}
 				else
 				{
@@ -1037,13 +1040,23 @@ int cmd_target(void)
 			}
 		}
 	}
+	
+	if (fail)
+	{
+		/* Clear the top line */
+		prt("", 0, 0);
+		/* Send the cancellation */
+		Send_target(255);
+	}
+	else
+	{
+		/* Send the affirmative */
+		if (position)
+			Send_target(128 + 5);
+		else Send_target(5);
+	}
 
-	/* Send the affirmative */
-	if (position)
-		Send_target(128 + 5);
-	else Send_target(5);
-
-	return TRUE;
+	return !fail;
 }
 
 
@@ -1078,7 +1091,8 @@ void cmd_look(void)
 			{
 				/* Clear top line */
 				prt("", 0, 0);
-				return;
+				done = TRUE;
+				break;
 			}
 			default:
 			{
@@ -1089,6 +1103,9 @@ void cmd_look(void)
 			}
 		}
 	}
+
+	/* Tell the server we're done looking */
+	Send_look(5);
 }
 
 void cmd_changepass(void) 
