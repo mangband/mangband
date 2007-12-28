@@ -1041,7 +1041,7 @@ errr init_k_info_txt(FILE *fp, char *buf)
 		if (!k_ptr) return (3);
 
 
-#if 0
+#if 1
 
 		/* Process 'D' for "Description" */
 		if (buf[0] == 'D')

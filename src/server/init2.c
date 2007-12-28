@@ -472,7 +472,7 @@ static errr init_f_info(void)
 
 
 /*
- * Initialize the "k_info" array
+ * Initialize the "k_info" array (Object handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -522,13 +522,13 @@ static errr init_k_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "k_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "object.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'k_info.txt' file.");
+	if (!fp) quit("Cannot open 'object.txt' file.");
 
 	/* Parse the file */
 	err = init_k_info_txt(fp, buf);
@@ -545,13 +545,13 @@ static errr init_k_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'k_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'object.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'k_info.txt' file.");
+		quit("Error in 'object.txt' file.");
 	}
 
 	/* Success */
