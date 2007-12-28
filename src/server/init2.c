@@ -562,7 +562,7 @@ static errr init_k_info(void)
 
 
 /*
- * Initialize the "a_info" array
+ * Initialize the "a_info" array (Artifact handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -613,13 +613,13 @@ static errr init_a_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "a_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "artifact.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'a_info.txt' file.");
+	if (!fp) quit("Cannot open 'artifact.txt' file.");
 
 	/* Parse the file */
 	err = init_a_info_txt(fp, buf);
@@ -636,13 +636,13 @@ static errr init_a_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'a_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'artifact.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'a_info.txt' file.");
+		quit("Error in 'artifact.txt' file.");
 	}
 
 	/* Success */
@@ -652,7 +652,7 @@ static errr init_a_info(void)
 
 
 /*
- * Initialize the "e_info" array
+ * Initialize the "e_info" array (Ego item handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -704,13 +704,13 @@ static errr init_e_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "e_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "ego_item.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'e_info.txt' file.");
+	if (!fp) quit("Cannot open 'ego_item.txt' file.");
 
 	/* Parse the file */
 	err = init_e_info_txt(fp, buf);
@@ -727,13 +727,13 @@ static errr init_e_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'e_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'ego_item.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'e_info.txt' file.");
+		quit("Error in 'ego_item.txt' file.");
 	}
 
 	/* Success */

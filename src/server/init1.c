@@ -1409,7 +1409,7 @@ errr init_a_info_txt(FILE *fp, char *buf)
 		if (!a_ptr) return (3);
 
 
-#if 0
+#if 1
 
 		/* Process 'D' for "Description" */
 		if (buf[0] == 'D')
@@ -1712,7 +1712,7 @@ errr init_e_info_txt(FILE *fp, char *buf)
 		if (!e_ptr) return (3);
 
 
-#if 0
+#if 1
 
 		/* Process 'D' for "Description" */
 		if (buf[0] == 'D')
