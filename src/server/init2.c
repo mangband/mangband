@@ -117,7 +117,7 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_DATA = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "game");
+	strcpy(tail, "edit");
 	ANGBAND_DIR_GAME = string_make(path);
 
 	/* Build a path name */
