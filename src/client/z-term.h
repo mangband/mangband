@@ -29,6 +29,9 @@ struct term_win
 {
 	bool cu, cv;
 	byte cx, cy;
+	
+	bool bcv;
+	byte bcx, bcy;
 
 	byte **a;
 	char **c;
@@ -239,6 +242,7 @@ extern errr Term_xtra(int n, int v);
 extern errr Term_fresh(void);
 extern errr Term_set_cursor(int v);
 extern errr Term_gotoxy(int x, int y);
+extern errr Term_consolidate_cursor(bool on, int x, int y);
 extern errr Term_draw(int x, int y, byte a, char c);
 extern errr Term_addch(byte a, char c);
 extern errr Term_addstr(int n, byte a, cptr s);

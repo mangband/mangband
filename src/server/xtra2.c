@@ -3430,6 +3430,9 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 			{
 				/* Track health */
 				if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+		
+				/* Track with cursor */
+				if (p_ptr->play_vis[0 - c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
 			}
 
 		/* Format string */
@@ -3449,6 +3452,9 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 			{
 				/* Track health */
 				if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+		
+				/* Track with cursor */
+				if (p_ptr->mon_vis[c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
 			}
 					
 		/* Format string */
@@ -3460,6 +3466,9 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 	if (!found && c_ptr->o_idx)
 	{
 		o_ptr = &o_list[c_ptr->o_idx];
+
+		/* Release Tracking */
+		if (active) p_ptr->cursor_who = 0;
 
 		/* Obtain an object description */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
@@ -3482,12 +3491,14 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 			p1 = "The entrance to the ";
 		}
 
+		/* Release Tracking */
+		if (active) p_ptr->cursor_who = 0;
+		
 		/* Message */
 		sprintf(out_val, "%s%s", p1, name);
 	}
 
 }
-
 
 /*
  * Set a new target.  This code can be called from "get_aim_dir()"
@@ -3530,8 +3541,9 @@ bool target_set(int Ind, int dir)
 	/* Cancel targeting */
  	if (dir == 255)
    {
-		/* For later */      
-      return;
+		/* Reset cursor track */
+		p_ptr->cursor_who = 0;
+		return;      
    }
 	if (dir != 5 && dir != 128 + 5)
 	{
@@ -3644,8 +3656,9 @@ bool target_set(int Ind, int dir)
 		c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
 		describe_floor_tile(c_ptr, out_val, Ind, FALSE);
 		
+
 		/* Info */
-		strcpy(out_val, " [<dir>, q] ");
+		strcat(out_val, " [<dir>, q] ");
 
 		/* Tell the client */
 		Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
@@ -3697,7 +3710,6 @@ bool target_set(int Ind, int dir)
 	/* Do not re-target, if noone's around */
 	if (!p_ptr->target_n) flag = FALSE;
  
-
 	/* Target monsters */
 	if (flag && p_ptr->target_n && p_ptr->target_idx[m] > 0)
 	{
@@ -3716,6 +3728,9 @@ bool target_set(int Ind, int dir)
 		/* Hack -- Track that monster */
 		health_track(Ind, idx);
 
+		/* Track with cursor */
+		if (p_ptr->mon_vis[idx]) cursor_track(Ind, idx);
+		
 		/* Hack -- handle stuff */
 		handle_stuff(Ind);
 
@@ -3740,6 +3755,9 @@ bool target_set(int Ind, int dir)
 
 		/* Hack -- Track that player */
 		health_track(Ind, idx);
+		
+		/* Track with cursor */
+		if (p_ptr->play_vis[0 - idx]) cursor_track(Ind, idx);
 
 		/* Hack -- handle stuff */
 		handle_stuff(Ind);
@@ -3763,6 +3781,9 @@ bool target_set(int Ind, int dir)
 
 		/* Track */
 		if (p_ptr->target_who) health_track(Ind, p_ptr->target_who);
+		
+		/* Reset cursor track */
+		p_ptr->cursor_who = 0;
 	}
 
 	/* Failure */

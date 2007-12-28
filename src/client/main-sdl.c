@@ -63,11 +63,13 @@ extern int IsMovement(SDLKey k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
 
 extern errr SDL_init_screen_cursor(Uint32 w, Uint32 h);
-extern errr SDL_DrawCursor(SDL_Surface *dst, SDL_Rect *dr);
+//extern errr SDL_DrawCursor(SDL_Surface *dst, SDL_Rect *dr);
 
+extern SDL_Surface *sdl_screen_cursor ;
+extern SDL_Rect sdl_screen_cursor_sr;
 
-
-
+inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c);
+static errr Term_curs_sdl(int x, int y);
 
 /* perhaps this should be in config.h:  (not if it's distributed on its own) */
 /*#define USE_HEX_FONTS
@@ -818,7 +820,8 @@ static errr Term_xtra_sdl(int n, int v)
 		/* if possible, to the requested value (0=off, 1=on) */
 		/* This action is optional, but can improve both the */
 		/* efficiency (and attractiveness) of the program. */
-	
+		
+
 		td->cursor_on = n ? TRUE : FALSE;
 
 		return (0);
@@ -992,6 +995,17 @@ static errr Term_wipe_sdl(int x, int y, int n)
 
 
 /*
+void RedrawChar(int x, int y)
+{
+	Uint8 a, c;
+
+	a = Term->scr->a[y][x];	c = Term->scr->c[y][x];
+	
+	//Term_wipe_sdl(x, y, 1);
+	Term_char_sdl(x, y, a, c);
+}
+*/
+/*
  * XXX XXX XXX Display the cursor
  *
  * This routine should display the cursor at the given location
@@ -1012,9 +1026,16 @@ static errr Term_curs_sdl(int x, int y)
 	term_data *td = (term_data*)(Term->data);
 	SDL_Rect dr, mr, gr; /* cursor destination, magic, and graphic tile loc. */
 	Uint8 a, c;
-
+	
+	//if (td->cx != -1 && td->cy != -1) { 
+	//		RedrawChar(td->cx, td->cy); 
+	//	}
+	if (td->cx == x && td->cy == y) return;
+	//if (x == -1 && y == -1) return;
 	if (td->cursor_on) 
 	{
+		//Term_wipe_sdl(	td->cx,	td->cy, 1);
+				
 		td->cx = x, td->cy = y;
 		dr.x = x * td->w;
 		dr.y = y * td->h;
@@ -1047,12 +1068,26 @@ static errr Term_curs_sdl(int x, int y)
 			SDL_UpdateRectX( mr.x, mr.y, mr.w, mr.h, td->xoff, td->yoff);
 #endif
 		}
-//		SDL_DrawCursor(td->face, &dr);
+		//draw char beneath it		
+		//Term_wipe_sdl(x,y,1);
+		//RedrawChar(x, y);
+		
+		SDL_DrawCursorX(&dr);
+		SDL_UpdateRectX(dr.x, dr.y, dr.w, dr.h, td->xoff, td->yoff);
 	}
 
 
 	/* Success */
 	return (0);
+}
+
+errr SDL_DrawCursorX(SDL_Rect *dr)
+{
+	//SDL_Surface* sdl_screen_cursor = SDL_return_screen_surface();
+	if (!dr || !sdl_screen_cursor) return -1;
+	if (SDL_BlitSurface(sdl_screen_cursor, &sdl_screen_cursor_sr, bigface, dr)) return -1;
+	//SDL_UpdateRectX( dr.x, dr.y, dr.w, dr.h, dr->x, dr->y, dr->w, dr->h);
+	return 0;
 }
 
 /* x and y are in !!PIXELS!! This is because we don't know tile dimensions
@@ -1475,7 +1510,6 @@ if (i == 4)	td->name = "Term-4";
 	td->face = NULL;
 	td->online = FALSE;
 
-
 	td->xoff = xoff; 
 	td->yoff = yoff;
 
@@ -1521,6 +1555,10 @@ if (i == 4)	td->name = "Term-4";
 	td->cursor_on = TRUE;
 	td->cursor_magic = TRUE;
 
+	td->cx = -1;
+	td->cy = -1;
+	
+	
 
 //#ifdef USE_XXX
 //	if (use_xxx)
@@ -1891,7 +1929,7 @@ errr init_sdl(int oargc, char **oargv)
 	}
 
 
-//	SDL_init_screen_cursor(td->w, td->h);
+	SDL_init_screen_cursor(td->w, td->h);
 
 	/*
 	 *

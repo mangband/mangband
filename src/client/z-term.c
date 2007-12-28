@@ -1087,7 +1087,47 @@ static void Term_fresh_row_pict(int y)
 
 
 
+void Term_restore_old_char()
+{
+	term_win *old = Term->old;
 
+	int tx = old->cx;
+	int ty = old->cy;
+
+	byte *old_aa = old->a[ty];
+	char *old_cc = old->c[ty];
+
+	byte a = old_aa[tx];
+	char c = old_cc[tx];
+
+	/* Hack -- use "Term_pict()" always */
+	if (Term->always_pict)
+	{
+		(void)((*Term->pict_hook)(tx, ty, a, c));
+	}
+
+	/* Hack -- use "Term_pict()" sometimes */
+	else if (Term->higher_pict && (a & 0x80) && (c & 0x80))
+	{
+		(void)((*Term->pict_hook)(tx, ty, a, c));
+	}
+
+	/* Hack -- restore the actual character */
+	else if (a || Term->always_text)
+	{
+		char buf[2];
+		buf[0] = c;
+		buf[1] = '\0';
+		(void)((*Term->text_hook)(tx, ty, 1, a, buf));
+	}
+
+	/* Hack -- erase the grid */
+	else
+	{
+		(void)((*Term->wipe_hook)(tx, ty, 1));
+	}
+	
+}
 
 /*
  * Actually perform all requested changes to the window
@@ -1154,57 +1194,30 @@ errr Term_fresh(void)
 	/* Cursor update -- Erase old Cursor */
 	if (Term->soft_cursor)
 	{
+		/* Erase */
+		//if (!scr->bcv) // && scr->cv)
+		//{
+	//		(void)((*Term->curs_hook)(-1, -1));
+	//		Term_xtra(TERM_XTRA_SHAPE, 0);
+		//}
 		bool okay = FALSE;
 
 		/* Cursor has moved */
-		if (old->cy != scr->cy) okay = TRUE;
-		if (old->cx != scr->cx) okay = TRUE;
+		if (old->cv && old->cy != scr->bcy) okay = TRUE;
+		if (old->cv && old->cx != scr->bcx) okay = TRUE;
 
 		/* Cursor is now offscreen/invisible */
-		if (scr->cu || !scr->cv) okay = TRUE;
+		if (!scr->bcv && old->cv) okay = TRUE; 
 
 		/* Cursor was already offscreen/invisible */
-		if (old->cu || !old->cv) okay = FALSE;
+		if (!old->cv) okay = FALSE;
 
 		/* Erase old cursor if it is "wrong" */
 		if (okay)
 		{
-			int tx = old->cx;
-			int ty = old->cy;
-
-			byte *old_aa = old->a[ty];
-			char *old_cc = old->c[ty];
-
-			byte a = old_aa[tx];
-			char c = old_cc[tx];
-
-			/* Hack -- use "Term_pict()" always */
-			if (Term->always_pict)
-			{
-				(void)((*Term->pict_hook)(tx, ty, a, c));
-			}
-
-			/* Hack -- use "Term_pict()" sometimes */
-			else if (Term->higher_pict && (a & 0x80) && (c & 0x80))
-			{
-				(void)((*Term->pict_hook)(tx, ty, a, c));
-			}
-
-			/* Hack -- restore the actual character */
-			else if (a || Term->always_text)
-			{
-				char buf[2];
-				buf[0] = c;
-				buf[1] = '\0';
-				(void)((*Term->text_hook)(tx, ty, 1, a, buf));
-			}
-
-			/* Hack -- erase the grid */
-			else
-			{
-				(void)((*Term->wipe_hook)(tx, ty, 1));
-			}
+			Term_restore_old_char();		
 		}
+			
 	}
 
 	/* Cursor Update -- Erase old Cursor */
@@ -1229,7 +1242,7 @@ errr Term_fresh(void)
 		Term_xtra(TERM_XTRA_CLEAR, 0);
 
 		/* Hack -- clear all "cursor" data XXX XXX XXX */
-		old->cv = old->cu = old->cx = old->cy = 0;
+		//old->cv = old->cu = old->cx = old->cy = 0;
 
 		/* Wipe each row */
 		for (y = 0; y < h; y++)
@@ -1405,54 +1418,46 @@ errr Term_fresh(void)
 	/* Cursor update -- Show new Cursor */
 	if (Term->soft_cursor)
 	{
+		bool okay = FALSE;	
+		/* Cursor has moved */
+		if (old->cv && old->cy != scr->bcy) okay = TRUE;
+		if (old->cv && old->cx != scr->bcx) okay = TRUE;
+
+		/* Cursor is now onscreen/visible */
+		if (!old->cv) okay = TRUE; 
+
+		/* Meaningless without visibility */
+		if (!scr->bcv) okay = FALSE;
+
 		/* Draw the cursor */
-		if (!scr->cu && scr->cv)
+		if (okay)//scr->bcv) // && scr->cv)
 		{
+		
 			/* Call the cursor display routine */
-			(void)((*Term->curs_hook)(scr->cx, scr->cy));
-		}
+			(void)((*Term->curs_hook)(scr->bcx, scr->bcy));
+			
+		} 
 	}
 
 	/* Cursor Update -- Show new Cursor */
 	else
 	{
-		/* The cursor is useless, hide it */
-		if (scr->cu)
+		if (!scr->bcv)
 		{
-			/* Paranoia -- Put the cursor NEAR where it belongs */
-			(void)((*Term->curs_hook)(w - 1, scr->cy));
-
-			/* Make the cursor invisible */
-			/* Term_xtra(TERM_XTRA_SHAPE, 0); */
+		    Term_xtra(TERM_XTRA_SHAPE, 0);
+		} else {
+		    (void)((*Term->curs_hook)(scr->bcx, scr->bcy));
+		    Term_xtra(TERM_XTRA_SHAPE, 1);
 		}
-
-		/* The cursor is invisible, hide it */
-		else if (!scr->cv)
-		{
-			/* Paranoia -- Put the cursor where it belongs */
-			(void)((*Term->curs_hook)(scr->cx, scr->cy));
-
-			/* Make the cursor invisible */
-			/* Term_xtra(TERM_XTRA_SHAPE, 0); */
-		}
-
-		/* The cursor is visible, display it correctly */
-		else
-		{
-			/* Put the cursor where it belongs */
-			(void)((*Term->curs_hook)(scr->cx, scr->cy));
-
-			/* Make the cursor visible */
-			Term_xtra(TERM_XTRA_SHAPE, 1);
-		}
+	
 	}
 
 
 	/* Save the "cursor state" */
-	old->cu = scr->cu;
-	old->cv = scr->cv;
-	old->cx = scr->cx;
-	old->cy = scr->cy;
+	//old->cu = scr->cu;
+	old->cv = scr->bcv;
+	old->cx = scr->bcx;
+	old->cy = scr->bcy;
 
 
 	/* Forget "total erase" */
@@ -1487,6 +1492,17 @@ errr Term_set_cursor(int v)
 	return (0);
 }
 
+
+/*
+ * Set 'BEST' cursor (sent by server or user itself)
+ */
+errr Term_consolidate_cursor(bool on, int x, int y)
+{
+    Term->scr->bcx = x;
+    Term->scr->bcy = y;
+    Term->scr->bcv = on;
+    return (0);
+}
 
 /*
  * Place the cursor at a given location

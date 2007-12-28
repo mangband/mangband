@@ -850,6 +850,7 @@ SDL_Rect sdl_screen_cursor_sr;
 
 /* it must be true that w * h * 4 <= maxUint32 */
 
+
 errr SDL_init_screen_cursor(Uint32 w, Uint32 h)
 {
 	Uint32 i;
@@ -865,6 +866,7 @@ errr SDL_init_screen_cursor(Uint32 w, Uint32 h)
 														  0x0000ff00,
 														  0x00000000);
 
+
 	if (!sdl_screen_cursor) return -1;
 
 	SDL_SetAlpha(sdl_screen_cursor, SDL_SRCALPHA | SDL_RLEACCEL, 0x80);
@@ -878,7 +880,6 @@ errr SDL_init_screen_cursor(Uint32 w, Uint32 h)
 
 errr SDL_DrawCursor(SDL_Surface *dst, SDL_Rect *dr)
 {
-	plog("plucky duck!");
 	if (!dst || !dr || !sdl_screen_cursor) return -1;
 	if (SDL_BlitSurface(sdl_screen_cursor, &sdl_screen_cursor_sr, dst, dr)) return -1;
 	SDL_UpdateRect(dst, dr->x, dr->y, dr->w, dr->h);

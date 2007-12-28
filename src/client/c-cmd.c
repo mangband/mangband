@@ -980,6 +980,8 @@ int cmd_target(void)
 	int d;
 	char ch;
 
+	cursor_icky = TRUE;
+
 	/* Tell the server to init targetting */
 	Send_target(0);
 
@@ -995,8 +997,6 @@ int cmd_target(void)
 			case ESCAPE:
 			case 'q':
 			{
-				/* Clear top line */
-				prt("", 0, 0);
 				done = fail = TRUE;
 				break;
 			}
@@ -1025,8 +1025,6 @@ int cmd_target(void)
 					 * the player is probably trying to do 
 					 * something else, like stay alive...
 					 */
-					/* Clear the top line */
-					prt("", 0, 0);
 					done = fail = TRUE;
 					break;
 				}
@@ -1056,6 +1054,24 @@ int cmd_target(void)
 		else Send_target(5);
 	}
 
+	if (fail)
+	{
+		/* Clear the top line */
+		prt("", 0, 0);
+		/* Send the cancellation */
+		Send_target(255);
+	}
+	else
+	{
+		/* Send the affirmative */
+		if (position)	Send_target(128 + 5);
+		else 				Send_target(5);
+	}
+	
+	/* Reset cursor stuff */
+	cursor_icky = FALSE;
+	Term_consolidate_cursor(FALSE, 0, 0);
+
 	return !fail;
 }
 
@@ -1074,6 +1090,8 @@ void cmd_look(void)
 	bool done = FALSE;
 	int d;
 	char ch;
+	
+	cursor_icky = TRUE;
 
 	/* Tell the server to init looking */
 	Send_look(0);
@@ -1106,6 +1124,9 @@ void cmd_look(void)
 
 	/* Tell the server we're done looking */
 	Send_look(5);
+	
+	cursor_icky = FALSE;
+	Term_consolidate_cursor(FALSE, 0, 0);
 }
 
 void cmd_changepass(void) 

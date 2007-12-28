@@ -3274,6 +3274,21 @@ int Send_pause(int ind)
 }
 
 
+int Send_cursor(int ind, char vis, char x, char y)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for cursor position (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	return Packet_printf(&connp->c, "%c%c%c%c", PKT_CURSOR, vis, x, y);
+}
+
 
 int Send_monster_health(int ind, int num, byte attr)
 {

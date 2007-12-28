@@ -1482,10 +1482,9 @@ void do_cmd_look(int Ind, int dir)
 	/* Cancel */
 	if (dir == 5)
 	{
-		/* More stuff here later */
+		p_ptr->cursor_who = 0;
 		return;
 	}
-
 
 	/* Blind */
 	if (p_ptr->blind)
@@ -1531,7 +1530,7 @@ void do_cmd_look(int Ind, int dir)
 			/* Start near the player */
 			p_ptr->look_index = 0;
 		}
-
+		
 		/* Paranoia */
 		if (!p_ptr->target_n)
 		{

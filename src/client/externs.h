@@ -123,6 +123,7 @@ extern s16b stat_order[6];
 extern bool topline_icky;
 extern bool screen_icky;
 extern bool party_mode;
+extern bool cursor_icky;
 
 
 extern cptr race_title[];

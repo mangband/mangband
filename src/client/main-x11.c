@@ -2124,11 +2124,22 @@ static errr Term_wipe_x11(int x, int y, int n)
  */
 static errr Term_curs_x11(int x, int y)
 {
+
+	term_data *td = (term_data*)(Term->data);
+
+	XDrawRectangle(Metadpy->dpy, Infowin->win, xor->gc,
+			 x * td->fnt->wid + Infowin->x - 1,
+			 y * td->fnt->hgt + Infowin->y - 1,
+			 td->fnt->wid - 1, td->fnt->hgt - 1);
+
+	/* Success */
+	//return (0);
+
 	/* Draw the cursor */
-	Infoclr_set(xor);
+	//Infoclr_set(xor);
 
 	/* Hilite the cursor character */
-	Infofnt_text_non(x, y, " ", 1);
+	//Infofnt_text_non(x, y, " ", 1);
 
 	/* Success */
 	return (0);

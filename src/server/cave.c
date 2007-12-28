@@ -3623,6 +3623,50 @@ void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m)
 }
 
 
+/*
+ * Cursor-track a new monster
+ */
+void cursor_track(int Ind, int m_idx)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Track a new guy */
+	p_ptr->cursor_who = m_idx;
+
+	/* no Redraw first time */
+	/* p_ptr->redraw |= (PR_CURSOR); */
+
+}
+
+/*
+ * Update the cursors for anyone tracking a monster
+ */
+void update_cursor(int m_idx)
+{
+	player_type *p_ptr;
+	int i;
+
+	/* Each player */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		p_ptr = Players[i];
+
+		/* Check connection */
+#if 0
+		if (p_ptr->conn == NOT_CONNECTED)
+			continue;
+#endif
+
+		/* See if he is tracking this monster */
+		if (p_ptr->cursor_who == m_idx)
+		{
+			/* Redraw */
+			p_ptr->redraw |= (PR_CURSOR);
+		}
+	}
+}
+
+
 
 
 /*

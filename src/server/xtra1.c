@@ -840,6 +840,118 @@ static void prt_skills(int Ind)
 	Send_skills(Ind);
 }
 
+/*
+ * Redraw the cursor
+ *
+ * This function must simply calculate correct offset for each player
+ * and update his cursor location
+ */
+static void cursor_redraw(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int vis, x, y = 0;
+
+	/* Not tracking */
+	if (p_ptr->cursor_who == 0)
+	{
+		/* Reset the cursor */
+		vis = 0;
+	}
+
+	/* Tracking a hallucinatory monster */
+	/* commented: this can't happen as 'looking' doesn't work while hallucinating */
+	/* else if (p_ptr->image)
+	{
+		
+	}
+	*/
+	/* Tracking a player */
+	else if (p_ptr->cursor_who < 0)
+	{
+		player_type *q_ptr;
+		/* Make sure we have a valid index */
+		if (0 - p_ptr->cursor_who > NumPlayers)
+		{
+			/* Invalid index -- reset the cursor */
+			Send_cursor(Ind, 0,0,0);
+			/* Reset the index */
+			p_ptr->cursor_who = 0;
+			return;
+		}
+		
+		q_ptr = Players[0 - p_ptr->cursor_who];
+
+		/* Tracking a bad player (?) */
+		if (!q_ptr)
+		{
+			/* Reset the cursor */
+			vis = 0;
+		}
+
+		/* Tracking an unseen player */
+		else if (!p_ptr->play_vis[0 - p_ptr->cursor_who])
+		{
+			/* Should not be possible */
+			vis = 0;
+		}
+
+		/* Tracking a visible player */
+		else
+		{
+			vis = 1;
+			x = q_ptr->px - p_ptr->panel_col_prt;
+			y = q_ptr->py - p_ptr->panel_row_prt;
+		}
+	}
+
+	/* Tracking a bad monster (?) */
+	else if (!m_list[p_ptr->health_who].r_idx)
+	{
+		/* Reset the cursor */
+		vis = 0;
+	}
+
+	/* Tracking an unseen monster */
+	else if (!p_ptr->mon_vis[p_ptr->health_who])
+	{
+		/* Reset cursor */
+		vis = 0;
+	}
+
+	/* Tracking a dead monster (???) */
+	else if (!m_list[p_ptr->health_who].hp < 0)
+	{
+		/* Reset cursor */
+		vis = 0;
+	}
+
+	/* Tracking a visible monster */
+	else
+	{
+		monster_type *m_ptr = &m_list[p_ptr->health_who];
+		
+		vis = 1;
+		x = m_ptr->fx - p_ptr->panel_col_prt;
+		y = m_ptr->fy - p_ptr->panel_row_prt;
+	}
+	
+	if (vis == 1) 
+	{
+		Send_cursor(Ind, vis, x, y);
+	}
+	else 
+	{
+		Send_cursor(Ind, 0, 0, 0);
+		
+		/* Cancel tracking */
+		p_ptr->cursor_who = 0;
+		/* Reset look */
+		p_ptr->look_index = 0;
+	}
+
+}
+
+
 
 /*
  * Redraw the "monster health bar"	-DRS-
@@ -860,7 +972,6 @@ static void prt_skills(int Ind)
 static void health_redraw(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
 #ifdef DRS_SHOW_HEALTH_BAR
 
 	/* Not tracking */
@@ -1002,7 +1113,6 @@ static void health_redraw(int Ind)
 		/* Send the health */
 		Send_monster_health(Ind, len, attr);
 	}
-
 #endif
 
 }
@@ -3006,6 +3116,12 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_HEALTH);
 		health_redraw(Ind);
+	}
+	
+	if (p_ptr->redraw & PR_CURSOR)
+	{
+		p_ptr->redraw &= ~(PR_CURSOR);
+		cursor_redraw(Ind);
 	}
 
 	if (p_ptr->redraw & PR_HISTORY)

@@ -70,6 +70,7 @@ int Receive_pickup_check(void);
 int Receive_party(void);
 int Receive_skills(void);
 int Receive_pause(void);
+int Receive_cursor(void);
 int Receive_monster_health(void);
 
 extern int Send_clear(void);

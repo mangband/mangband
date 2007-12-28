@@ -119,6 +119,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_PARTY]		= Receive_party;
 	receive_tbl[PKT_SKILLS]		= Receive_skills;
 	receive_tbl[PKT_PAUSE]		= Receive_pause;
+	receive_tbl[PKT_CURSOR]		= Receive_cursor;
 	receive_tbl[PKT_MONSTER_HEALTH]	= Receive_monster_health;
 	receive_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 }
@@ -2214,6 +2215,8 @@ int Receive_target_info(void)
 
 	/* Move the cursor */
 	Term_gotoxy(x, y);
+	if (cursor_icky)
+		Term_consolidate_cursor(TRUE, x, y);
 
 	return 1;
 }
@@ -2356,6 +2359,22 @@ int Receive_skills(void)
 
 	return 1;
 }
+
+int Receive_cursor(void)
+{
+	int n;
+	char ch;
+	char vis, x, y;
+
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%c", &ch, &vis, &x, &y)) <= 0)
+	{
+		return n;
+	}
+	
+	if (cursor_icky)
+		Term_consolidate_cursor(vis, x, y);
+}
+
 
 int Receive_pause(void)
 {

@@ -1186,6 +1186,8 @@ void update_mon(int m_idx, bool dist)
 			}
 		}
 	}
+	
+	update_cursor(m_idx);
 }
 
 
@@ -1222,7 +1224,7 @@ void update_monsters(bool dist)
 void update_player(int Ind)
 {
 	player_type *p_ptr, *q_ptr = Players[Ind];
-
+	
 	int i;
 
 	/* Current player location */
@@ -1389,6 +1391,8 @@ void update_player(int Ind)
 			}
 		}
 	}
+
+	update_cursor(-Ind);	
 }
 
 /*

@@ -95,6 +95,7 @@ s16b stat_order[6];			/* Desired order of stats */
 bool topline_icky;
 bool screen_icky;
 bool party_mode;
+bool cursor_icky;
 
 cptr race_title[] = {
 	"Human", "Half-elf", "Elf", "Hobbit",

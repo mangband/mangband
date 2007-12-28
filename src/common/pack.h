@@ -136,6 +136,7 @@
 
 /* Packet type 150 are hacks */
 #define PKT_FLUSH		150
+#define PKT_CURSOR 	151
 
 /* Extra packets */
 #define PKT_OBSERVE		160
