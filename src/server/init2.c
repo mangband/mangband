@@ -741,7 +741,7 @@ static errr init_e_info(void)
 }
 
 /*
- * Initialize the "r_info" array
+ * Initialize the "r_info" array (Monster handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
@@ -793,13 +793,13 @@ static errr init_r_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "r_info.txt");
+	path_build(buf, 1024, ANGBAND_DIR_GAME, "monster.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
 
 	/* Parse it */
-	if (!fp) quit("Cannot open 'r_info.txt' file.");
+	if (!fp) quit("Cannot open 'monster.txt' file.");
 
 	/* Parse the file */
 	err = init_r_info_txt(fp, buf);
@@ -816,13 +816,13 @@ static errr init_r_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'r_info.txt'.", err, error_line);
+		s_printf("Error %d at line %d of 'monster.txt'.", err, error_line);
 		s_printf("Record %d contains a '%s' error.", error_idx, oops);
 		s_printf("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
-		quit("Error in 'r_info.txt' file.");
+		quit("Error in 'monster.txt' file.");
 	}
 
 	/* Success */
