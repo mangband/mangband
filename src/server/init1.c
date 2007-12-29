@@ -382,8 +382,8 @@ static cptr k_info_flags1[] =
 	"TUNNEL",
 	"SPEED",
 	"BLOWS",
-	"XTRA_SHOTS",
-	"XTRA_MIGHT",
+	"SHOTS",
+	"MIGHT",
 	"SLAY_ANIMAL",
 	"SLAY_EVIL",
 	"SLAY_UNDEAD",
@@ -432,11 +432,11 @@ static cptr k_info_flags2[] =
 	"RES_LITE",
 	"RES_DARK",
 	"RES_BLIND",
-	"RES_CONF",
+	"RES_CONFU",
 	"RES_SOUND",
-	"RES_SHARDS",
+	"RES_SHARD",
 	"RES_NEXUS",
-	"RES_NETHER",
+	"RES_NETHR",
 	"RES_CHAOS",
 	"RES_DISEN"
 };
@@ -450,7 +450,7 @@ static cptr k_info_flags3[] =
 	"FEATHER",
 	"LITE",
 	"REGEN",
-	"ESP_ALL",
+	"TELEPATHY",
 	"SEE_INVIS",
 	"FREE_ACT",
 	"HOLD_LIFE",
@@ -475,9 +475,9 @@ static cptr k_info_flags3[] =
 	"HIDE_TYPE",
 	"SHOW_MODS",
 	"XXX7",
-	"CURSED",
-	"PERMA_CURSE",
-	"HEAVY_CURSE"
+	"LIGHT_CURSE",
+	"HEAVY_CURSE",
+	"PERMA_CURSE"
 };
 
 
