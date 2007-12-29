@@ -904,7 +904,8 @@ static void load_prefs(void)
 	int i;
 #endif
 
-	char* buffer; int bufferLen, j;
+	LPSTR buffer[20] = {'\0'};
+	LPDWORD bufferLen = sizeof(buffer);
 
 #ifdef USE_GRAPHICS
 	/* Extract the "use_graphics" flag */

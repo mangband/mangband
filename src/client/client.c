@@ -22,8 +22,8 @@ static void read_mangrc(void)
 #endif
 
 #ifdef WINDOWS
-	char buffer[20]; 
-	LPDWORD bufferLen;
+	LPSTR buffer[20] = {'\0'};
+	LPDWORD bufferLen = sizeof(buffer);
 #endif
 
 	/* Try to find home directory */
