@@ -1212,6 +1212,27 @@ errr init_f_info_txt(FILE *fp, char *buf)
 
 
 /*
+ * Grab one flag from a textual string
+ */
+static errr grab_one_flag(u32b *flags, cptr names[], cptr what)
+{
+	int i;
+
+	/* Check flags */
+	for (i = 0; i < 32; i++)
+	{
+		if (streq(what, names[i]))
+		{
+			*flags |= (1L << i);
+			return (0);
+		}
+	}
+
+	return (-1);
+}
+
+
+/*
  * Grab one flag in a player_race from a textual string
  */
 static errr grab_one_racial_flag(player_race *pr_ptr, cptr what)
@@ -1472,27 +1493,6 @@ errr parse_p_info(char *buf, header *head)
 
 	/* Success */
 	return (0);
-}
-
-
-/*
- * Grab one flag from a textual string
- */
-static errr grab_one_flag(u32b *flags, cptr names[], cptr what)
-{
-	int i;
-
-	/* Check flags */
-	for (i = 0; i < 32; i++)
-	{
-		if (streq(what, names[i]))
-		{
-			*flags |= (1L << i);
-			return (0);
-		}
-	}
-
-	return (-1);
 }
 
 
