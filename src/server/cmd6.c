@@ -1286,6 +1286,24 @@ void do_cmd_read_scroll(int Ind, int item)
 			used_up = FALSE;
 			break;
 		}
+		
+		case SV_SCROLL_CREATE_ARTIFACT:
+		{
+#ifndef DEBUG
+			if (!strcmp(p_ptr->name, cfg_dungeon_master))
+			{
+#endif
+				(void)create_artifact(Ind);
+				used_up = FALSE;
+				ident = TRUE;
+#ifndef DEBUG
+			} else {
+				ident = TRUE;
+				msg_print(Ind, "You failed to read the scroll properly.");
+			}
+#endif
+			break;
+		}
 
 		case SV_SCROLL_ENCHANT_WEAPON_TO_HIT:
 		{

@@ -1954,7 +1954,6 @@ bool create_artifact(int Ind)
 
 bool create_artifact_aux(int Ind, int item)
 {
-#if defined(RANDART)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
@@ -1972,8 +1971,12 @@ bool create_artifact_aux(int Ind, int item)
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	}
+#if !defined(RANDART)
+	/* Cheap hack: maximum depth , playerlevel, etc */ 
+	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
 
-
+	return TRUE;
+#else
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
 	

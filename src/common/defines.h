@@ -1430,7 +1430,7 @@ that keeps many algorithms happy.
 #define SV_SCROLL_CURSE_WEAPON			3
 #define SV_SCROLL_SUMMON_MONSTER		4
 #define SV_SCROLL_SUMMON_UNDEAD			5
-/* xxx (summon?) */
+#define SV_SCROLL_CREATE_ARTIFACT 		6
 #define SV_SCROLL_TRAP_CREATION			7
 #define SV_SCROLL_PHASE_DOOR			8
 #define SV_SCROLL_TELEPORT				9
