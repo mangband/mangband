@@ -2436,10 +2436,10 @@ void do_cmd_fire(int Ind, int dir, int item)
 			/* Did we hit it (penalize range) */
 			if (test_hit_fire(chance - cur_dis, q_ptr->ac + q_ptr->to_a, visible))
 			{
-				char p_name[80];
+				char pvp_name[80];
 
 				/* Get the name */
-				strcpy(p_name, q_ptr->name);
+				strcpy(pvp_name, q_ptr->name);
 
 				/* Handle unseen player */
 				if (!visible)
@@ -2453,7 +2453,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 				else
 				{
 					/* Messages */
-					msg_format(Ind, "The %s hits %s.", o_name, p_name);
+					msg_format(Ind, "The %s hits %s.", o_name, pvp_name);
 					msg_format(0 - c_ptr->m_idx, "%^s hits you with a %s.", p_ptr->name, o_name);
 
 					/* Track this player's health */
@@ -2834,10 +2834,10 @@ void do_cmd_throw(int Ind, int dir, int item)
 			/* Did we hit him (penalize range) */
 			if (test_hit_fire(chance - cur_dis, q_ptr->ac + q_ptr->to_a, visible))
 			{
-				char p_name[80];
+				char pvp_name[80];
 
 				/* Get his name */
-				strcpy(p_name, q_ptr->name);
+				strcpy(pvp_name, q_ptr->name);
 
 				/* Handle unseen player */
 				if (!visible)
@@ -2851,7 +2851,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 				else
 				{
 					/* Messages */
-					msg_format(Ind, "The %s hits %s.", o_name, p_name);
+					msg_format(Ind, "The %s hits %s.", o_name, pvp_name);
 					msg_format(0 - c_ptr->m_idx, "%s hits you with a %s!", p_ptr->name, o_name);
 
 					/* Track player's health */

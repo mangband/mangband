@@ -1071,7 +1071,7 @@ void py_attack_player(int Ind, int y, int x)
 
 	object_type *o_ptr;
 
-	char p_name[80];
+	char pvp_name[80];
 
 	bool do_quake = FALSE;
 
@@ -1080,7 +1080,7 @@ void py_attack_player(int Ind, int y, int x)
 	disturb(0 - c_ptr->m_idx, 0, 0);
 
 	/* Extract name */
-	strcpy(p_name, q_ptr->name);
+	strcpy(pvp_name, q_ptr->name);
 
 	/* Track player health */
 	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
@@ -1096,7 +1096,7 @@ void py_attack_player(int Ind, int y, int x)
 	if (p_ptr->afraid)
 	{
 		/* Message */
-		msg_format(Ind, "You are too afraid to attack %s!", p_name);
+		msg_format(Ind, "You are too afraid to attack %s!", pvp_name);
 
 		/* Done */
 		return;
@@ -1120,7 +1120,7 @@ void py_attack_player(int Ind, int y, int x)
 			sound(Ind, SOUND_HIT);
 
 			/* Messages */
-			msg_format(Ind, "You hit %s.", p_name);
+			msg_format(Ind, "You hit %s.", pvp_name);
 			msg_format(0 - c_ptr->m_idx, "%s hits you.", p_ptr->name);
 
 			/* Hack -- bare hands do one damage */
@@ -1169,15 +1169,15 @@ void py_attack_player(int Ind, int y, int x)
 				/* Confuse the monster */
 				if (q_ptr->resist_conf)
 				{
-					msg_format(Ind, "%^s is unaffected.", p_name);
+					msg_format(Ind, "%^s is unaffected.", pvp_name);
 				}
 				else if (rand_int(100) < q_ptr->lev)
 				{
-					msg_format(Ind, "%^s is unaffected.", p_name);
+					msg_format(Ind, "%^s is unaffected.", pvp_name);
 				}
 				else
 				{
-					msg_format(Ind, "%^s appears confused.", p_name);
+					msg_format(Ind, "%^s appears confused.", pvp_name);
 					set_confused(0 - c_ptr->m_idx, q_ptr->confused + 10 + rand_int(p_ptr->lev) / 5);
 				}
 			}
@@ -1189,7 +1189,7 @@ void py_attack_player(int Ind, int y, int x)
 
 				if (rand_int(100) < fear_chance)
 				{
-					msg_format(Ind, "%^s appears afraid.", p_name);
+					msg_format(Ind, "%^s appears afraid.", pvp_name);
 					set_afraid(0 - c_ptr->m_idx, q_ptr->afraid + 4 + rand_int(p_ptr->lev) / 5);
 				}
 			}
@@ -1202,7 +1202,7 @@ void py_attack_player(int Ind, int y, int x)
 			sound(Ind, SOUND_MISS);
 
 			/* Messages */
-			msg_format(Ind, "You miss %s.", p_name);
+			msg_format(Ind, "You miss %s.", pvp_name);
 			msg_format(0 - c_ptr->m_idx, "%s misses you.", p_ptr->name);
 		}
 	}
