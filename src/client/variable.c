@@ -97,6 +97,11 @@ bool screen_icky;
 bool party_mode;
 bool cursor_icky;
 
+/*
+ * The player race arrays
+ */
+char *p_name;
+
 cptr race_title[] = {
 	"Human", "Half-elf", "Elf", "Hobbit",
 	"Gnome", "Dwarf", "Half-Orc", "Half-Troll",

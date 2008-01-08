@@ -30,7 +30,7 @@
  * that the binary image files are extremely system dependant.
  */
 
-
+#include "init.h"
 
 /*
  * Find the default paths to all of our important sub-directories.
@@ -74,11 +74,21 @@ void init_file_paths(char *path)
 	string_free(ANGBAND_DIR);
 
 	/* Free the sub-paths */
+/*	string_free(ANGBAND_DIR_APEX);*/
+/*	string_free(ANGBAND_DIR_BONE);*/
 	string_free(ANGBAND_DIR_DATA);
-	string_free(ANGBAND_DIR_GAME);
+	string_free(ANGBAND_DIR_EDIT);
+/*	string_free(ANGBAND_DIR_FILE);*/
+/*	string_free(ANGBAND_DIR_HELP);*/
+/*	string_free(ANGBAND_DIR_INFO);*/
 	string_free(ANGBAND_DIR_SAVE);
-	string_free(ANGBAND_DIR_TEXT);
+/*	string_free(ANGBAND_DIR_PREF);*/
 	string_free(ANGBAND_DIR_USER);
+/*	string_free(ANGBAND_DIR_XTRA);*/
+/*	string_free(ANGBAND_DIR_SCRIPT);*/
+
+	string_free(ANGBAND_DIR_GAME);
+	string_free(ANGBAND_DIR_TEXT);
 
 
 	/*** Prepare the "path" ***/
@@ -118,8 +128,24 @@ void init_file_paths(char *path)
 
 	/* Build a path name */
 	strcpy(tail, "edit");
-	ANGBAND_DIR_GAME = string_make(path);
+	ANGBAND_DIR_EDIT = string_make(path);
+#if 0
+	/* Build a path name */
+	strcpy(tail, "file");
+	ANGBAND_DIR_FILE = string_make(path);
 
+	/* Build a path name */
+	strcpy(tail, "help");
+	ANGBAND_DIR_HELP = string_make(path);
+
+	/* Build a path name */
+	strcpy(tail, "info");
+	ANGBAND_DIR_INFO = string_make(path);
+
+	/* Build a path name */
+	strcpy(tail, "pref");
+	ANGBAND_DIR_PREF = string_make(path);
+#endif
 	/* Build a path name */
 	strcpy(tail, "save");
 	ANGBAND_DIR_SAVE = string_make(path);
@@ -131,7 +157,19 @@ void init_file_paths(char *path)
 	/* Build a path name */
 	strcpy(tail, "user");
 	ANGBAND_DIR_USER = string_make(path);
+#if 0
+	/* Build a path name */
+	strcpy(tail, "apex");
+	ANGBAND_DIR_APEX = string_make(path);
 
+	/* Build a path name */
+	strcpy(tail, "bone");
+	ANGBAND_DIR_BONE = string_make(path);
+
+	/* Build a path name */
+	strcpy(tail, "xtra");
+	ANGBAND_DIR_XTRA = string_make(path);
+#endif
 #endif /* VM */
 
 
@@ -377,6 +415,382 @@ static cptr err_str[8] =
 #endif
 
 
+/*
+ * File headers
+ */
+header z_head;
+/*header v_head;
+header f_head;
+header k_head;
+header a_head;
+header e_head;
+header r_head;*/
+header p_head;
+header c_head;
+header h_head;
+header b_head;
+header g_head;
+header flavor_head;
+
+
+
+/*** Initialize from binary image files ***/
+
+
+/*
+ * Initialize a "*_info" array, by parsing a binary "image" file
+ */
+static errr init_info_raw(int fd, header *head)
+{
+	header test;
+
+
+	/* Read and verify the header */
+	if (fd_read(fd, (char*)(&test), sizeof(header)) ||
+	    (test.v_major != head->v_major) ||
+	    (test.v_minor != head->v_minor) ||
+	    (test.v_patch != head->v_patch) ||
+	    (test.v_extra != head->v_extra) ||
+	    (test.info_num != head->info_num) ||
+	    (test.info_len != head->info_len) ||
+	    (test.head_size != head->head_size) ||
+	    (test.info_size != head->info_size))
+	{
+		/* Error */
+		return (-1);
+	}
+
+
+	/* Accept the header */
+	COPY(head, &test, header);
+
+
+	/* Allocate the "*_info" array */
+	C_MAKE(head->info_ptr, head->info_size, char);
+
+	/* Read the "*_info" array */
+	fd_read(fd, head->info_ptr, head->info_size);
+
+	if (head->name_size)
+	{
+		/* Allocate the "*_name" array */
+		C_MAKE(head->name_ptr, head->name_size, char);
+
+		/* Read the "*_name" array */
+		fd_read(fd, head->name_ptr, head->name_size);
+	}
+
+	if (head->text_size)
+	{
+		/* Allocate the "*_text" array */
+		C_MAKE(head->text_ptr, head->text_size, char);
+
+		/* Read the "*_text" array */
+		fd_read(fd, head->text_ptr, head->text_size);
+	}
+
+	/* Success */
+	return (0);
+}
+
+
+/*
+ * Initialize the header of an *_info.raw file.
+ */
+static void init_header(header *head, int num, int len)
+{
+	/* Save the "version" */
+	head->v_major = VERSION_MAJOR;
+	head->v_minor = VERSION_MINOR;
+	head->v_patch = VERSION_PATCH;
+	head->v_extra = VERSION_EXTRA;
+
+	/* Save the "record" information */
+	head->info_num = num;
+	head->info_len = len;
+
+	/* Save the size of "*_head" and "*_info" */
+	head->head_size = sizeof(header);
+	head->info_size = head->info_num * head->info_len;
+}
+
+
+#ifdef ALLOW_TEMPLATES
+
+/*
+ * Display a parser error message.
+ */
+static void display_parse_error(cptr filename, errr err, cptr buf)
+{
+	cptr oops;
+
+	/* Error string */
+	oops = (((err > 0) && (err < PARSE_ERROR_MAX)) ? err_str[err] : "unknown");
+
+	/* Oops */
+	s_printf("Error at line %d of '%s.txt'.", error_line, filename);
+	s_printf("Record %d contains a '%s' error.", error_idx, oops);
+	s_printf("Parsing '%s'.", buf);
+/*	message_flush();*/
+
+	/* Quit */
+	quit_fmt("Error in '%s.txt' file.", filename);
+}
+
+#endif /* ALLOW_TEMPLATES */
+
+
+/*
+ * Initialize a "*_info" array
+ *
+ * Note that we let each entry have a unique "name" and "text" string,
+ * even if the string happens to be empty (everyone has a unique '\0').
+ */
+static errr init_info(cptr filename, header *head)
+{
+	int fd;
+
+	errr err = 1;
+
+	FILE *fp;
+
+	/* General buffer */
+	char buf[1024];
+
+
+#ifdef ALLOW_TEMPLATES
+
+	/*** Load the binary image file ***/
+
+	/* Build the filename */
+	path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+
+	/* Attempt to open the "raw" file */
+	fd = fd_open(buf, O_RDONLY);
+
+	/* Process existing "raw" file */
+	if (fd >= 0)
+	{
+#ifdef CHECK_MODIFICATION_TIME
+
+		err = check_modification_date(fd, format("%s.txt", filename));
+
+#endif /* CHECK_MODIFICATION_TIME */
+
+		/* Attempt to parse the "raw" file */
+		if (!err)
+			err = init_info_raw(fd, head);
+
+		/* Close it */
+		fd_close(fd);
+	}
+
+	/* Do we have to parse the *.txt file? */
+	if (err)
+	{
+		/*** Make the fake arrays ***/
+
+		/* Allocate the "*_info" array */
+		C_MAKE(head->info_ptr, head->info_size, char);
+
+		/* MegaHack -- make "fake" arrays */
+		if (z_info)
+		{
+			C_MAKE(head->name_ptr, z_info->fake_name_size, char);
+			C_MAKE(head->text_ptr, z_info->fake_text_size, char);
+		}
+
+
+		/*** Load the ascii template file ***/
+
+		/* Build the filename */
+		path_build(buf, sizeof(buf), ANGBAND_DIR_EDIT, format("%s.txt", filename));
+
+		/* Open the file */
+		fp = my_fopen(buf, "r");
+
+		/* Parse it */
+		if (!fp) quit(format("Cannot open '%s.txt' file.", filename));
+
+		/* Parse the file */
+		err = init_info_txt(fp, buf, head, head->parse_info_txt);
+
+		/* Close it */
+		my_fclose(fp);
+
+		/* Errors */
+		if (err) display_parse_error(filename, err, buf);
+
+
+		/*** Dump the binary image file ***/
+
+		/* File type is "DATA" */
+		FILE_TYPE(FILE_TYPE_DATA);
+
+		/* Build the filename */
+		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+
+
+		/* Attempt to open the file */
+		fd = fd_open(buf, O_RDONLY);
+
+		/* Failure */
+		if (fd < 0)
+		{
+			int mode = 0644;
+
+			/* Grab permissions */
+			safe_setuid_grab();
+
+			/* Create a new file */
+			fd = fd_make(buf, mode);
+
+			/* Drop permissions */
+			safe_setuid_drop();
+
+			/* Failure */
+			if (fd < 0)
+			{
+				/* Complain */
+				plog_fmt("Cannot create the '%s' file!", buf);
+
+				/* Continue */
+				return (0);
+			}
+		}
+
+		/* Close it */
+		fd_close(fd);
+
+		/* Grab permissions */
+		safe_setuid_grab();
+
+		/* Attempt to create the raw file */
+		fd = fd_open(buf, O_WRONLY);
+
+		/* Drop permissions */
+		safe_setuid_drop();
+
+		/* Failure */
+		if (fd < 0)
+		{
+			/* Complain */
+			plog_fmt("Cannot write the '%s' file!", buf);
+
+			/* Continue */
+			return (0);
+		}
+
+		/* Dump to the file */
+		if (fd >= 0)
+		{
+			/* Dump it */
+			fd_write(fd, (cptr)head, head->head_size);
+
+			/* Dump the "*_info" array */
+			if (head->info_size > 0)
+				fd_write(fd, head->info_ptr, head->info_size);
+
+			/* Dump the "*_name" array */
+			if (head->name_size > 0)
+				fd_write(fd, head->name_ptr, head->name_size);
+
+			/* Dump the "*_text" array */
+			if (head->text_size > 0)
+				fd_write(fd, head->text_ptr, head->text_size);
+
+			/* Close */
+			fd_close(fd);
+		}
+
+
+		/*** Kill the fake arrays ***/
+
+		/* Free the "*_info" array */
+		KILL(head->info_ptr, vptr);
+
+		/* MegaHack -- Free the "fake" arrays */
+		if (z_info)
+		{
+			KILL(head->name_ptr, cptr);
+			KILL(head->text_ptr, cptr);
+		}
+
+#endif /* ALLOW_TEMPLATES */
+
+
+		/*** Load the binary image file ***/
+
+		/* Build the filename */
+		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+
+		/* Attempt to open the "raw" file */
+		fd = fd_open(buf, O_RDONLY);
+
+		/* Process existing "raw" file */
+		if (fd < 0) quit(format("Cannot load '%s.raw' file.", filename));
+
+		/* Attempt to parse the "raw" file */
+		err = init_info_raw(fd, head);
+
+		/* Close it */
+		fd_close(fd);
+
+		/* Error */
+		if (err) quit(format("Cannot parse '%s.raw' file.", filename));
+
+#ifdef ALLOW_TEMPLATES
+	}
+#endif /* ALLOW_TEMPLATES */
+
+	/* Success */
+	return (0);
+}
+
+
+/*
+ * Free the allocated memory for the info-, name-, and text- arrays.
+ */
+static errr free_info(header *head)
+{
+	if (head->info_size)
+		FREE(head->info_ptr, vptr);
+
+	if (head->name_size)
+		FREE(head->name_ptr, cptr);
+
+	if (head->text_size)
+		FREE(head->text_ptr, cptr);
+
+	/* Success */
+	return (0);
+}
+
+
+/*
+ * Initialize the "z_info" array
+ */
+static errr init_z_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&z_head, 1, sizeof(maxima));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	z_head.parse_info_txt = parse_z_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("limits", &z_head);
+
+	/* Set the global variables */
+	z_info = z_head.info_ptr;
+
+	return (err);
+}
 
 
 /*
@@ -432,7 +846,7 @@ static errr init_f_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "terrain.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "terrain.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -522,7 +936,7 @@ static errr init_k_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "object.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "object.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -613,7 +1027,7 @@ static errr init_a_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "artifact.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "artifact.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -704,7 +1118,7 @@ static errr init_e_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "ego_item.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "ego_item.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -793,7 +1207,7 @@ static errr init_r_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "monster.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "monster.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -884,7 +1298,7 @@ static errr init_v_info(void)
 	/*** Load the ascii template file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_GAME, "vault.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "vault.txt");
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");
@@ -1808,6 +2222,33 @@ bool str_to_boolean(char * str)
 	return !(strcasecmp(str, "true"));
 }
 
+/*
+ * Initialize the "p_info" array
+ */
+static errr init_p_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&p_head, z_info->p_max, sizeof(player_race));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	p_head.parse_info_txt = parse_p_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("p_race", &p_head);
+
+	/* Set the global variables */
+	p_info = p_head.info_ptr;
+	p_name = p_head.name_ptr;
+	p_text = p_head.text_ptr;
+
+	return (err);
+}
+
 /* Try to set a server option.  This is handled very sloppily right now,
  * since server options are manually mapped to global variables.  Maybe
  * the handeling of this will be unified in the future with some sort of 
@@ -1998,6 +2439,10 @@ void load_server_cfg(void)
  */
 void init_some_arrays(void)
 {
+	/* Initialize size info */
+	s_printf("[Initializing array sizes...]");
+	if (init_z_info()) quit("Cannot initialize sizes");
+
 	/* Initialize feature info */
 	s_printf("[Initializing arrays... (features)]\n");
 	if (init_f_info()) quit("Cannot initialize features");
@@ -2018,9 +2463,13 @@ void init_some_arrays(void)
 	s_printf("[Initializing arrays... (monsters)]\n");
 	if (init_r_info()) quit("Cannot initialize monsters");
 
-	/* Initialize feature info */
+	/* Initialize vault info */
 	s_printf("[Initializing arrays... (vaults)]\n");
 	if (init_v_info()) quit("Cannot initialize vaults");
+
+	/* Initialize race info */
+	s_printf("[Initializing arrays... (races)]");
+	if (init_p_info()) quit("Cannot initialize races");
 
 	/* Initialize some other arrays */
 	s_printf("[Initializing arrays... (other)]\n");

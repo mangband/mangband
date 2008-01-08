@@ -3436,7 +3436,7 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 			}
 
 		/* Format string */
-		sprintf(out_val, "%s the %s %s", q_ptr->name, race_info[q_ptr->prace].title, class_info[q_ptr->pclass].title);
+		sprintf(out_val, "%s the %s %s", q_ptr->name, p_name + race_info[q_ptr->prace].name, class_info[q_ptr->pclass].title);
 		
 		found = TRUE;
 		}

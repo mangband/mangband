@@ -656,6 +656,11 @@ player_magic *mp_ptr;*/
 
 
 /*
+ * Structure (not array) of size limits
+ */
+maxima *z_info;
+
+/*
  * The vault generation arrays
  */
 header *v_head;
@@ -706,6 +711,49 @@ char *r_text;
 
 
 /*
+ * The player race arrays
+ */
+player_race *p_info;
+char *p_name;
+char *p_text;
+
+/*
+ * The player class arrays
+ */
+player_class *c_info;
+char *c_name;
+char *c_text;
+
+/*
+ * The shop owner arrays
+ */
+owner_type *b_info;
+char *b_name;
+char *b_text;
+
+/*
+ * The racial price adjustment arrays
+ */
+byte *g_info;
+char *g_name;
+char *g_text;
+
+#if 0
+/*
+ * The player history arrays
+ */
+hist_type *h_info;
+char *h_text;
+
+/*
+ * The object flavor arrays
+ */
+flavor_type *flavor_info;
+char *flavor_name;
+char *flavor_text;
+#endif
+
+/*
  * Hack -- The special Angband "System Suffix"
  * This variable is used to choose an appropriate "pref-xxx" file
  */
@@ -729,6 +777,7 @@ cptr ANGBAND_DIR_DATA;
  * These files are portable between platforms
  */
 cptr ANGBAND_DIR_GAME;
+cptr ANGBAND_DIR_EDIT;
 
 /*
  * Various user editable text files (ascii), such as the help and greeting

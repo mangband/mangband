@@ -1342,6 +1342,26 @@ s32b player_exp[PY_MAX_LEVEL] =
 
 
 /*
+ * Player Sexes
+ *
+ *	Title,
+ *	Winner
+ */
+const player_sex sex_info[MAX_SEXES] =
+{
+	{
+		"Female",
+		"Queen"
+	},
+
+	{
+		"Male",
+		"King"
+	}
+};
+
+
+/*
  * Player Race Information:
  *    Title,
  *    {STR,INT,WIS,DEX,CON,CHR},
@@ -1356,7 +1376,7 @@ s32b player_exp[PY_MAX_LEVEL] =
 player_race race_info[MAX_RACES] =
 {
 	{
-		"Human",
+		/*"Human",*/ 1,1,
 		{  0,  0,  0,  0,  0,  0 },
 		0,  0,  0,  0,  0,  10,  0,  0,
 		10,  100,
@@ -1364,8 +1384,11 @@ player_race race_info[MAX_RACES] =
 		72,  6, 180, 25,
 		66,  4, 150, 20,
 		0,
-		0x3F
-	},
+		0x3F,
+		1,0,0,0
+	}
+#if 0	
+	,
 
 	{
 		"Half-Elf",
@@ -1474,6 +1497,7 @@ player_race race_info[MAX_RACES] =
 		4,
 		0x1F
 	}
+#endif
 };
 
 

@@ -45,8 +45,36 @@
  * and increase the complexity of the code.
  */
 
+/**** Available Structs ****/
 
 
+/*
+ * Information about maximal indices of certain arrays
+ * Actually, these are not the maxima, but the maxima plus one
+ */
+
+typedef struct maxima maxima;
+
+struct maxima
+{
+	u32b fake_text_size;
+	u32b fake_name_size;
+
+	u16b f_max;		/* Max size for "f_info[]" */
+	u16b k_max;		/* Max size for "k_info[]" */
+	u16b a_max;		/* Max size for "a_info[]" */
+	u16b e_max;		/* Max size for "e_info[]" */
+	u16b r_max;		/* Max size for "r_info[]" */
+	u16b v_max;		/* Max size for "v_info[]" */
+	u16b p_max;		/* Max size for "p_info[]" */
+	u16b h_max;		/* Max size for "h_info[]" */
+	u16b b_max;		/* Max size per element of "b_info[]" */
+	u16b c_max;		/* Max size for "c_info[]" */
+	u16b flavor_max; /* Max size for "flavor_info[]" */
+
+	u16b o_max;		/* Max size for "o_list[]" */
+	u16b m_max;		/* Max size for "mon_list[]" */
+};
 
 
 /*
@@ -79,6 +107,8 @@
 
 typedef struct header header;
 
+typedef errr (*parse_info_txt_func)(char *buf, header *head);
+
 struct header
 {
 	byte	v_major;		/* Version -- major */
@@ -87,9 +117,9 @@ struct header
 	byte	v_extra;		/* Version -- extra */
 
 
-	u32b	info_num;		/* Number of "info" records */
+	u16b	info_num;		/* Number of "info" records */
 
-	u32b	info_len;		/* Size of each "info" record */
+	u16b	info_len;		/* Size of each "info" record */
 
 
 	u32b	head_size;		/* Size of the "header" in bytes */
@@ -99,6 +129,12 @@ struct header
 	u32b	name_size;		/* Size of the "name" array in bytes */
 
 	u32b	text_size;		/* Size of the "text" array in bytes */
+
+	void *info_ptr;
+	char *name_ptr;
+	char *text_ptr;
+
+	parse_info_txt_func parse_info_txt;
 };
 
 
@@ -836,6 +872,20 @@ struct player_magic
 
 
 /*
+ * Player sex info
+ */
+
+typedef struct player_sex player_sex;
+
+struct player_sex
+{
+	cptr title;			/* Type of sex */
+
+	cptr winner;		/* Name of winner */
+};
+
+
+/*
  * Player racial info
  */
 
@@ -843,7 +893,8 @@ typedef struct player_race player_race;
 
 struct player_race
 {
-	cptr title;			/* Type of race */
+	u32b name;			/* Name (offset) */
+	u32b text;			/* Text (offset) */
 
 	s16b r_adj[6];		/* Racial stat bonuses */
 
@@ -875,6 +926,12 @@ struct player_race
 	byte infra;			/* Infra-vision	range */
 
 	byte choice;		/* Legal class choices */
+
+	s16b hist;			/* Starting history index */
+
+	u32b flags1;		/* Racial Flags, set 1 */
+	u32b flags2;		/* Racial Flags, set 2 */
+	u32b flags3;		/* Racial Flags, set 3 */
 };
 
 

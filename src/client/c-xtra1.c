@@ -1601,7 +1601,7 @@ void display_player(void)
 
      c_put_str(TERM_L_BLUE, nick, 2, 15);
      c_put_str(TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
-     c_put_str(TERM_L_BLUE, race_info[race].title, 4, 15);
+     c_put_str(TERM_L_BLUE, p_name + race_info[race].name, 4, 15);
      c_put_str(TERM_L_BLUE, class_info[class].title, 5, 15);
 
 	display_player_stats_info();

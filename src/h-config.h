@@ -203,6 +203,7 @@
 # define PATH_SEP ":"
 #endif
 #if defined(WINDOWS) || defined(WINNT)
+# define DEFAULT_PATH ".\\lib\\"
 # undef PATH_SEP
 # define PATH_SEP "\\"
 #endif

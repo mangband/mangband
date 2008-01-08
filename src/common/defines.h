@@ -157,6 +157,11 @@
 #define MAX_STORES	9
 
 /*
+ * Maximum number of player "sex" types (see "table.c", etc)
+ */
+#define MAX_SEXES            2
+
+/*
  * Total number of owners per store (see "store.c", etc)
  */
 #define MAX_OWNERS	4
@@ -518,6 +523,12 @@
 #define A_DEX	3
 #define A_CON	4
 #define A_CHR	5
+
+/*
+ * Total number of stats.
+ */
+#define A_MAX	6
+
 
 /*
  * Player race constants (hard-coded by save-files, arrays, etc)

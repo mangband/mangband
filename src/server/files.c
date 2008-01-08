@@ -955,7 +955,7 @@ void display_player_server(int Ind, char buffer[100][82])
 
         c_put_str_b(buffer,TERM_L_BLUE, p_ptr->name, 2, 15);
         c_put_str_b(buffer,TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
-        c_put_str_b(buffer,TERM_L_BLUE, race_info[p_ptr->prace].title, 4, 15);
+        c_put_str_b(buffer,TERM_L_BLUE, p_name + race_info[p_ptr->prace].name, 4, 15);
         c_put_str_b(buffer,TERM_L_BLUE, class_info[p_ptr->pclass].title, 5, 15);
 
         /* Age, Height, Weight, Social */
@@ -2491,7 +2491,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 		/* Dump some info */
 		sprintf(out_val, "%3d.%9s  %s the %s %s, Level %d",
 			place, the_score.pts, the_score.who,
-			race_info[pr].title, class_info[pc].title,
+			p_name + race_info[pr].name, class_info[pc].title,
 			clev);
 
 		/* Append a "maximum level" */
