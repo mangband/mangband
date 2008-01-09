@@ -1627,6 +1627,9 @@ bool set_food(int Ind, int v)
 	{
 		new_aux = 5;
 	}
+	
+	/* Hack -- do not report hunger for ghosts */
+	if (p_ptr->ghost) old_aux = new_aux;
 
 	/* Food increase */
 	if (new_aux > old_aux)
@@ -2547,12 +2550,13 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Turn him into a ghost */
 	p_ptr->ghost = 1;
 
-	/* Teleport him */
-	teleport_player(Ind, 200);
-
 	/* Give him his hit points back */
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
+	
+	/* Teleport him */
+	teleport_player(Ind, 200);
+
 	}
 	
 	

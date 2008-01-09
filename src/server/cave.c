@@ -1140,7 +1140,7 @@ void lite_spot(int Ind, int y, int x)
 
 	int dispx, dispy;
 
-	int kludge;
+	int kludge, pre_kludge;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
@@ -1159,9 +1159,11 @@ void lite_spot(int Ind, int y, int x)
 			/* Get the "player" char */
 			c = r_ptr->d_char;
 			
-			if (((p_ptr->chp * 95) / (p_ptr->mhp*10)) < 7) 
+			pre_kludge = (p_ptr->chp * 95) / (p_ptr->mhp*10);
+			pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
+			if (pre_kludge < 7) 
 			{
-				sprintf((unsigned char *)&kludge,"%d",(p_ptr->chp * 95) / (p_ptr->mhp*10)); 
+				sprintf((unsigned char *)&kludge,"%d",pre_kludge); 
 				c = kludge;
 			}
 				
