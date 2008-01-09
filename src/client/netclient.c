@@ -2085,11 +2085,15 @@ int Receive_special_other(void)
 {
 	int	n;
 	char	ch;
+	char buf[80];
 
-	if ((n = Packet_scanf(&rbuf, "%c", &ch)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%s", &ch, buf)) <= 0)
 	{
 		return n;
 	}
+	
+	/* Set file perusal header */
+	strcpy(special_line_header, buf);
 
 	/* Set file perusal method to "other" */
 	special_line_type = SPECIAL_FILE_OTHER;
@@ -2253,6 +2257,40 @@ int Receive_special_line(void)
 
 	/* Maximum */
 	max_line = max;
+
+	/* Hack -- decide to go popup/fullon mode */
+	if (line == 0)
+	{	
+		if (max > (SCREEN_HGT - 2)/2 || special_line_type != SPECIAL_FILE_OTHER) 
+		{
+			/* Clear the screen */
+			Term_clear();
+	
+			/* Show a general "title" + header */
+			special_line_header[60] = '\0';
+	      prt(format("[Mangband %d.%d.%d] %60s",
+				VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, special_line_header), 0, 0);
+	
+			/* Prompt (check if we have extra pages) */
+			if (max > (SCREEN_HGT - 2)) 
+				prt("[Press Space to advance, or ESC to exit.]", 23, 0);
+			else
+				prt("[Press ESC to exit.]", 23, 0);
+				
+		} else {
+			/* Clear the screen */
+			for (n = 0; n < max_line + 5; n++)
+				Term_erase(0, n, 80);
+			
+			/* Show a specific "title" -- header */
+			c_put_str(TERM_YELLOW, special_line_header, 0, 0);
+
+			/* Prompt */
+			c_put_str(TERM_L_BLUE, "[Press any key to continue]", max_line + 3, 0);
+		}
+	}
+	
+		
 
 	/* Print out the info */
 	c_put_str(attr, buf, line + 2, 0);

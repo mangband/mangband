@@ -78,6 +78,7 @@ extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
 
 extern int special_line_type;
+extern char special_line_header[80];
 
 extern bool inkey_base;
 extern bool inkey_scan;

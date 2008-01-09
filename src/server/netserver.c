@@ -207,7 +207,7 @@ static void Init_receive(void)
 	playing_receive[PKT_DROP_GOLD]		= Receive_drop_gold;
 	playing_receive[PKT_REDRAW]		= Receive_redraw;
 	playing_receive[PKT_REST]		= Receive_rest;
-	playing_receive[PKT_SPECIAL_LINE]	= Receive_special_line;
+	playing_receive[PKT_SPECIAL_LINE]	= 	Receive_special_line;
 	playing_receive[PKT_PARTY]		= Receive_party;
 	playing_receive[PKT_GHOST]		= Receive_ghost;
 
@@ -3191,7 +3191,7 @@ int Send_party(int ind)
 	return Packet_printf(&connp->c, "%c%s", PKT_PARTY, buf);
 }
 
-int Send_special_other(int ind)
+int Send_special_other(int ind, char *header)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -3203,7 +3203,7 @@ int Send_special_other(int ind)
 		return 0;
 	}
 
-	return Packet_printf(&connp->c, "%c", PKT_SPECIAL_OTHER);
+	return Packet_printf(&connp->c, "%c%s", PKT_SPECIAL_OTHER, header);
 }
 
 int Send_skills(int ind)

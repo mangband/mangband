@@ -238,6 +238,14 @@
  */
 #define PLAYER_INTERACTION
 
+
+/*
+ * OPTION: Enable experimental text_out routine.
+ * It is definitly more CPU-intesnive, but IS pretty and more Angband-like.
+ */
+#define PRETTY_TEXT_OUT
+
+
 /*
  * OPTION: Hack -- Compile in support for "Cyborg" mode
  */

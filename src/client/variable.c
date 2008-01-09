@@ -49,6 +49,7 @@ byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);
 
 int special_line_type;
+char special_line_header[80];
 
 bool inkey_base = FALSE;
 bool inkey_scan = FALSE;

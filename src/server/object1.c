@@ -2002,10 +2002,14 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
 
 
 
-
+#if 0
 /*
  * Determine the "Activation" (if any) for an artifact
  * Return a string, or NULL for "no activation"
+ *
+ * OBSOLETE! see: describe_item_activation in obj-info.c 
+ *
+ * this is kept for refrence purposes only -FLM
  */
 cptr item_activation(object_type *o_ptr)
 {
@@ -2377,7 +2381,7 @@ cptr item_activation(object_type *o_ptr)
 	/* Oops */
 	return NULL;
 }
-
+#endif 
 
 /*
  * Describe a "fully identified" item
@@ -2385,373 +2389,25 @@ cptr item_activation(object_type *o_ptr)
 bool identify_fully_aux(int Ind, object_type *o_ptr)
 {
 	player_type *p_ptr = Players[Ind];
-	int i = 0;
 
-    u32b f1, f2, f3, f4;
-
-	cptr		*info = p_ptr->info;
-
+	/* Describe it fully */
+	
 	/* Clear the info area first. */
 	memset(p_ptr->info,0,sizeof(p_ptr->info));
 
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
-	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
-
-	/* Mega-Hack -- describe activation */
-	if (f3 & TR3_ACTIVATE)
-	{
-		info[i++] = "It can be activated for...";
-		info[i++] = item_activation(o_ptr);
-		info[i++] = "...if it is being worn.";
-	}
-
-
-	/* Hack -- describe lite's */
-	if (o_ptr->tval == TV_LITE)
-	{
-		if (artifact_p(o_ptr) || (o_ptr->sval == SV_LITE_FEANOR))
-		{
-			info[i++] = "It provides light (radius 3) forever.";
-		}
-		else if (o_ptr->sval == SV_LITE_DWARVEN)
-		{
-			info[i++] = "It provides light (radius 2) forever.";
-		}
-		else if (o_ptr->sval == SV_LITE_LANTERN)
-		{
-			info[i++] = "It provides light (radius 2) when fueled.";
-		}
-		else
-		{
-			info[i++] = "It provides light (radius 1) when fueled.";
-		}
-	}
-
-
-	/* And then describe it fully */
-
-	if (f1 & TR1_STR)
-	{
-		info[i++] = "It affects your strength.";
-	}
-	if (f1 & TR1_INT)
-	{
-		info[i++] = "It affects your intelligence.";
-	}
-	if (f1 & TR1_WIS)
-	{
-		info[i++] = "It affects your wisdom.";
-	}
-	if (f1 & TR1_DEX)
-	{
-		info[i++] = "It affects your dexterity.";
-	}
-	if (f1 & TR1_CON)
-	{
-		info[i++] = "It affects your constitution.";
-	}
-	if (f1 & TR1_CHR)
-	{
-		info[i++] = "It affects your charisma.";
-	}
-	if (f1 & TR1_STEALTH)
-	{
-		info[i++] = "It affects your stealth.";
-	}
-	if (f1 & TR1_SEARCH)
-	{
-		info[i++] = "It affects your searching.";
-	}
-	if (f1 & TR1_INFRA)
-	{
-		info[i++] = "It affects your infravision.";
-	}
-	if (f1 & TR1_TUNNEL)
-	{
-		info[i++] = "It affects your ability to tunnel.";
-	}
-	if (f1 & TR1_SPEED)
-	{
-		info[i++] = "It affects your speed.";
-	}
-	if (f1 & TR1_BLOWS)
-	{
-		info[i++] = "It affects your attack speed.";
-	}
-
-	if (f1 & TR1_BRAND_ACID)
-	{
-		info[i++] = "It does extra damage from acid.";
-	}
-	if (f1 & TR1_BRAND_ELEC)
-	{
-		info[i++] = "It does extra damage from electricity.";
-	}
-	if (f1 & TR1_BRAND_FIRE)
-	{
-		info[i++] = "It does extra damage from fire.";
-	}
-	if (f1 & TR1_BRAND_COLD)
-	{
-		info[i++] = "It does extra damage from frost.";
-	}
-    if (f1 & TR1_BRAND_POIS)
-    {
-        info[i++] = "It does extra damage from poison.";
-    }
-
-	if (f3 & TR3_IMPACT)
-	{
-		info[i++] = "It can cause earthquakes.";
-	}
-
-	if (f1 & TR1_KILL_DRAGON)
-	{
-		info[i++] = "It is a great bane of dragons.";
-	}
-    if (f1 & TR1_KILL_DEMON)
-    {
-        info[i++] = "It is a great bane of demons.";
-    }
-    else if (f1 & TR1_SLAY_DEMON)
-	{
-		info[i++] = "It strikes at demons with holy wrath.";
-	}
-    if (f1 & TR1_KILL_UNDEAD)
-    {
-        info[i++] = "It is a great bane of undead.";
-    }
-    else if (f1 & TR1_SLAY_UNDEAD)
-	{
-		info[i++] = "It strikes at undead with holy wrath.";
-	}
-	if (f1 & TR1_SLAY_EVIL)
-	{
-		info[i++] = "It fights against evil with holy fury.";
-	}
-	if (f1 & TR1_SLAY_ANIMAL)
-	{
-		info[i++] = "It is especially deadly against natural creatures.";
-	}
-
-	if (f2 & TR2_SUST_STR)
-	{
-		info[i++] = "It sustains your strength.";
-	}
-	if (f2 & TR2_SUST_INT)
-	{
-		info[i++] = "It sustains your intelligence.";
-	}
-	if (f2 & TR2_SUST_WIS)
-	{
-		info[i++] = "It sustains your wisdom.";
-	}
-	if (f2 & TR2_SUST_DEX)
-	{
-		info[i++] = "It sustains your dexterity.";
-	}
-	if (f2 & TR2_SUST_CON)
-	{
-		info[i++] = "It sustains your constitution.";
-	}
-	if (f2 & TR2_SUST_CHR)
-	{
-		info[i++] = "It sustains your charisma.";
-	}
-
-	if (f2 & TR2_IM_ACID)
-	{
-		info[i++] = "It provides immunity to acid.";
-	}
-	if (f2 & TR2_IM_ELEC)
-	{
-		info[i++] = "It provides immunity to electricity.";
-	}
-	if (f2 & TR2_IM_FIRE)
-	{
-		info[i++] = "It provides immunity to fire.";
-	}
-	if (f2 & TR2_IM_COLD)
-	{
-		info[i++] = "It provides immunity to cold.";
-	}
-
-    if (f2 & TR2_RES_FEAR)
-    {
-        info[i++] = "It makes you completely fearless.";
-    }
-
-	if (f3 & TR3_FREE_ACT)
-	{
-		info[i++] = "It provides immunity to paralysis.";
-	}
-	if (f3 & TR3_HOLD_LIFE)
-	{
-		info[i++] = "It provides resistance to life draining.";
-	}
-
-	if (f2 & TR2_RES_ACID)
-	{
-		info[i++] = "It provides resistance to acid.";
-	}
-	if (f2 & TR2_RES_ELEC)
-	{
-		info[i++] = "It provides resistance to electricity.";
-	}
-	if (f2 & TR2_RES_FIRE)
-	{
-		info[i++] = "It provides resistance to fire.";
-	}
-	if (f2 & TR2_RES_COLD)
-	{
-		info[i++] = "It provides resistance to cold.";
-	}
-	if (f2 & TR2_RES_POIS)
-	{
-		info[i++] = "It provides resistance to poison.";
-	}
-
-	if (f2 & TR2_RES_LITE)
-	{
-		info[i++] = "It provides resistance to light.";
-	}
-	if (f2 & TR2_RES_DARK)
-	{
-		info[i++] = "It provides resistance to dark.";
-	}
-
-	if (f2 & TR2_RES_BLIND)
-	{
-		info[i++] = "It provides resistance to blindness.";
-	}
-	if (f2 & TR2_RES_CONFU)
-	{
-		info[i++] = "It provides resistance to confusion.";
-	}
-	if (f2 & TR2_RES_SOUND)
-	{
-		info[i++] = "It provides resistance to sound.";
-	}
-	if (f2 & TR2_RES_SHARD)
-	{
-		info[i++] = "It provides resistance to shards.";
-	}
-
-	if (f2 & TR2_RES_NETHR)
-	{
-		info[i++] = "It provides resistance to nether.";
-	}
-	if (f2 & TR2_RES_NEXUS)
-	{
-		info[i++] = "It provides resistance to nexus.";
-	}
-	if (f2 & TR2_RES_CHAOS)
-	{
-		info[i++] = "It provides resistance to chaos.";
-	}
-	if (f2 & TR2_RES_DISEN)
-	{
-		info[i++] = "It provides resistance to disenchantment.";
-	}
-
-	if (f3 & TR3_FEATHER)
-	{
-		info[i++] = "It induces feather falling.";
-	}
-	if (f3 & TR3_LITE)
-	{
-		info[i++] = "It provides permanent light.";
-	}
-	if (f3 & TR3_SEE_INVIS)
-	{
-		info[i++] = "It allows you to see invisible monsters.";
-	}
-    if (f3 & TR3_TELEPATHY)
-	{
-		info[i++] = "It gives telepathic powers.";
-	}
-	if (f3 & TR3_SLOW_DIGEST)
-	{
-		info[i++] = "It slows your metabolism.";
-	}
-	if (f3 & TR3_REGEN)
-	{
-		info[i++] = "It speeds your regenerative powers.";
-	}
-
-	if (f1 & TR1_MIGHT)
-	{
-		info[i++] = "It fires missiles with extra might.";
-	}
-	if (f1 & TR1_SHOTS)
-	{
-		info[i++] = "It fires missiles excessively fast.";
-	}
-
-	if (f3 & TR3_DRAIN_EXP)
-	{
-		info[i++] = "It drains experience.";
-	}
-	if (f3 & TR3_TELEPORT)
-	{
-		info[i++] = "It induces random teleportation.";
-	}
-	if (f3 & TR3_AGGRAVATE)
-	{
-		info[i++] = "It aggravates nearby creatures.";
-	}
-
-	if (f3 & TR3_BLESSED)
-	{
-		info[i++] = "It has been blessed by the gods.";
-	}
-
-	if (cursed_p(o_ptr))
-	{
-		if (f3 & TR3_PERMA_CURSE)
-		{
-			info[i++] = "It is permanently cursed.";
-		}
-		else if (f3 & TR3_HEAVY_CURSE)
-		{
-			info[i++] = "It is heavily cursed.";
-		}
-		else
-		{
-			info[i++] = "It is cursed.";
-		}
-	}
-
-
-	if (f3 & TR3_IGNORE_ACID)
-	{
-		info[i++] = "It cannot be harmed by acid.";
-	}
-	if (f3 & TR3_IGNORE_ELEC)
-	{
-		info[i++] = "It cannot be harmed by electricity.";
-	}
-	if (f3 & TR3_IGNORE_FIRE)
-	{
-		info[i++] = "It cannot be harmed by fire.";
-	}
-	if (f3 & TR3_IGNORE_COLD)
-	{
-		info[i++] = "It cannot be harmed by cold.";
-	}
-
-	/* No special effects */
-
-	if (!i) return (FALSE);
-
-	/* Let the client know it's about to get some info */
-	Send_special_other(Ind);
-
+	/* Prepare player structure for text */	
+	text_out_init(Ind);
+	
+	/* Dump info into player */
+	object_info_screen(o_ptr);
+	
 	/* Gave knowledge */
-	return (TRUE);
+	return TRUE; 
+	
+	//Send_special_other(Ind, o_name);
 }
 
 

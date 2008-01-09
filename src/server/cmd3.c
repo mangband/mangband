@@ -810,23 +810,20 @@ void do_cmd_observe(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-
-	/* Require full knowledge */
-	if (!(o_ptr->ident & ID_MENTAL))
-	{
-		msg_print(Ind, "You have no special knowledge about that item.");
-		return;
-	}
-
-
-	/* Description */
+	/* Get name */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 
-	/* Describe */
+	/* Inform */
 	msg_format(Ind, "Examining %s...", o_name);
 
+	/* Capitalize object name for header */
+	o_name[0] = toupper(o_name[0]);
+	
 	/* Describe it fully */
-	if (!identify_fully_aux(Ind, o_ptr)) msg_print(Ind, "You see nothing special.");
+	identify_fully_aux(Ind, o_ptr);
+	
+	/* Notify player */
+	Send_special_other(Ind, o_name);
 }
 
 

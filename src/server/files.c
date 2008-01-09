@@ -1702,6 +1702,9 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 			return (TRUE);
 		}
 
+		/* Inform about empty file/list */
+		if (!i)
+			Send_special_line(Ind, 1, 0, TERM_WHITE, "  (nothing)");
 
 #if 0
 		/* Show a general "title" */

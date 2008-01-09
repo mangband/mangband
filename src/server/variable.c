@@ -385,6 +385,9 @@ int num_houses;
 /* An array to access a Player's ID */
 long GetInd[MAX_ID];
 
+/* Player for doing text_out */
+int player_textout = 0;
+
 /* Current player's character name */
 /* In the player info --KLJ-- */
 /*char player_name[32];*/

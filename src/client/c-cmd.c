@@ -1222,6 +1222,9 @@ void cmd_artifacts(void)
 	/* Set the hook */
 	special_line_type = SPECIAL_FILE_ARTIFACT;
 
+	/* Set the header */
+	strcpy(special_line_header, "Artifacts");
+
 	/* Call the file perusal */
 	peruse_file();
 }
@@ -1230,6 +1233,9 @@ void cmd_uniques(void)
 {
 	/* Set the hook */
 	special_line_type = SPECIAL_FILE_UNIQUE;
+	
+	/* Set the header */
+	strcpy(special_line_header, "Uniques");
 
 	/* Call the file perusal */
 	peruse_file();
@@ -1240,6 +1246,10 @@ void cmd_players(void)
 	/* Set the hook */
 	special_line_type = SPECIAL_FILE_PLAYER;
 
+	/* Set the header */
+	strcpy(special_line_header, "Players");
+
+
 	/* Call the file perusal */
 	peruse_file();
 }
@@ -1249,6 +1259,9 @@ void cmd_high_scores(void)
 	/* Set the hook */
 	special_line_type = SPECIAL_FILE_SCORES;
 
+	/* Set the header */
+	strcpy(special_line_header, "Highscores");
+
 	/* Call the file perusal */
 	peruse_file();
 }
@@ -1257,6 +1270,9 @@ void cmd_help(void)
 {
 	/* Set the hook */
 	special_line_type = SPECIAL_FILE_HELP;
+	
+	/* Set the header */
+	strcpy(special_line_header, "Help");
 
 	/* Call the file perusal */
 	peruse_file();

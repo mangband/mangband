@@ -50,7 +50,7 @@ SERV_SRCS = \
   common/z-util.c common/z-virt.c common/z-form.c common/z-rand.c \
   common/net-unix.c common/net-win.c common/sockbuf.c server/variable.c server/control.c \
   server/party.c server/tables.c server/util.c server/cave.c \
-  server/object1.c server/object2.c server/monster1.c server/monster2.c \
+  server/object1.c server/object2.c server/obj-info.c server/monster1.c server/monster2.c \
   server/xtra1.c server/xtra2.c server/spells1.c server/spells2.c \
   server/melee1.c server/melee2.c server/save.c server/files.c \
   server/cmd1.c server/cmd2.c server/cmd3.c server/cmd4.c server/cmd5.c \

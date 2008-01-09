@@ -41,7 +41,7 @@ s16b tokenize(char *buf, s16b num, char **tokens)
                         if ((*t == ':') || (*t == '/')) break;
 
                         /* Handle single quotes */
-                        if (*t == '\'')
+                        if (*t == '\'') //'
                         {
                                 /* Advance */
                                 t++;
@@ -56,11 +56,11 @@ s16b tokenize(char *buf, s16b num, char **tokens)
                                 t++;
 
                                 /* Hack -- Require a close quote */
-                                if (*t != '\'') *t = '\'';
+                                if (*t != '\'') *t = '\''; //'
                         }
 
                         /* Handle back-slash */
-                        if (*t == '\\') t++;
+                        if (*t == '\\') t++; 
                 }
 
                 /* Nothing left */
@@ -938,6 +938,7 @@ void peruse_file(void)
 
 	/* Initialize */
 	cur_line = 0;
+	max_line = 0;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
@@ -949,21 +950,24 @@ void peruse_file(void)
 	while (TRUE)
 	{
 		/* Clear the screen */
-		Term_clear();
+		//Term_clear();
 
 		/* Send the command */
 		Send_special_line(special_line_type, cur_line);
 
 		/* Show a general "title" */
-        prt(format("[Mangband %d.%d.%d]",
-			VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH), 0, 0);
+      //          prt(format("[Mangband %d.%d.%d] <%d>",
+		//	VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, max_line), 0, 0);
 
 		/* Prompt */
-		prt("[Press Return, Space, -, or ESC to exit.]", 23, 0);
+		//prt("[Press Return, Space, -, or ESC to exit.]", 23, 0);
 
 		/* Get a keypress */
 		k = inkey();
 
+		/* Hack -- make any key escape if we're in popup mode */
+		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == SPECIAL_FILE_OTHER) k = ESCAPE;
+		
 		/* Hack -- go to a specific line */
 		if (k == '#')
 		{
@@ -976,21 +980,49 @@ void peruse_file(void)
 			}
 		}
 
-		/* Hack -- Allow backing up */
-		if (k == '-')
+		/* Back up half page */
+		if (k == '_')
 		{
 			cur_line -= 10;
 			if (cur_line < 0) cur_line = 0;
 		}
 
-		/* Hack -- Advance one line */
-		if ((k == '\n') || (k == '\r'))
+		/* Back up one full page */
+		if ((k == '-') || (k == '9'))
+		{
+			cur_line -= 20;
+			if (cur_line < 0) cur_line = 0;
+		}
+
+
+		/* Advance to the bottom */
+		if (k == '1' && max_line)
+		{
+			cur_line = max_line - 20;
+			if (cur_line < 0) cur_line = 0;
+		}
+
+		/* Back up to the top */
+		if (k == '7')
+		{
+			cur_line = 0;
+		}
+
+		/* Advance one line */
+		if ((k == '\n') || (k == '\r') || (k == '2'))
 		{
 			cur_line++;
 		}
+		
+		/* Back up one line */
+		if ((k == '=') || (k == '8'))
+		{
+			cur_line--;
+			if (cur_line < 0) cur_line = 0;
+		}
 
 		/* Advance one page */
-		if (k == ' ')
+		if (k == ' ' || k == '3')
 		{
 			cur_line += 20;
 		}
@@ -999,8 +1031,9 @@ void peruse_file(void)
 		if (k == ESCAPE) break;
 
 		/* Check maximum line */
-		if (cur_line > max_line)
+		if (cur_line > max_line || cur_line < 0)
 			cur_line = 0;
+			
 	}
 
 	/* Tell the server we're done looking */

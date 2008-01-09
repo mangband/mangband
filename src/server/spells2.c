@@ -929,7 +929,7 @@ void self_knowledge(int Ind)
 
 
 	/* Let the client know to expect some info */
-	Send_special_other(Ind);
+	Send_special_other(Ind, "Self-Knowledge");
 }
 
 
@@ -1944,9 +1944,10 @@ bool create_artifact(int Ind)
 {
   player_type *p_ptr = Players[Ind];
 
+  get_item(Ind);
+
   spell_clear(Ind);
   p_ptr->current_artifact = TRUE;
-  get_item(Ind);
 
   return TRUE;
 }
@@ -2283,6 +2284,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
+	Send_special_other(Ind, o_name);
 
 	/* We no longer have a *identify* in progress */
 	p_ptr->current_star_identify = 0;
