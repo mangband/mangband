@@ -481,6 +481,62 @@ static cptr k_info_flags3[] =
 	"PERMA_CURSE"
 };
 
+/*
+ * Activation type flags
+ */
+static cptr a_info_act[ACT_MAX] =
+{
+	"ILLUMINATION",
+	"MAGIC_MAP",
+	"CLAIRVOYANCE",
+	"PROT_EVIL",
+	"DISP_EVIL",
+	"HEAL1",
+	"HEAL2",
+	"CURE_WOUNDS",
+	"HASTE1",
+	"HASTE2",
+	"FIRE1",
+	"FIRE2",
+	"FIRE3",
+	"FROST1",
+	"FROST2",
+	"FROST3",
+	"FROST4",
+	"FROST5",
+	"ACID1",
+	"RECHARGE1",
+	"SLEEP",
+	"LIGHTNING_BOLT",
+	"ELEC2",
+	"BANISHMENT",
+	"MASS_BANISHMENT",
+	"IDENTIFY",
+	"DRAIN_LIFE1",
+	"DRAIN_LIFE2",
+	"BIZZARE",
+	"STAR_BALL",
+	"RAGE_BLESS_RESIST",
+	"PHASE",
+	"TRAP_DOOR_DEST",
+	"DETECT",
+	"RESIST",
+	"TELEPORT",
+	"RESTORE_LIFE",
+	"MISSILE",
+	"ARROW",
+	"REM_FEAR_POIS",
+	"STINKING_CLOUD",
+	"STONE_TO_MUD",
+	"TELE_AWAY",
+	"WOR",
+	"CONFUSE",
+	"PROBE",
+	"FIREBRAND",
+	"STARLIGHT",
+	"MANA_BOLT",
+	"BERSERKER"
+};
 
 
 /*** Initialize from ascii template files ***/
@@ -1917,6 +1973,29 @@ static errr grab_one_artifact_flag(artifact_type *a_ptr, cptr what)
 	return (1);
 }
 
+/*
+ * Grab one activation from a textual string
+ */
+static errr grab_one_activation(artifact_type *a_ptr, cptr what)
+{
+	int i;
+
+	/* Scan activations */
+	for (i = 0; i < ACT_MAX; i++)
+	{
+		if (streq(what, a_info_act[i]))
+		{
+			a_ptr->activation = i;
+			return (0);
+		}
+	}
+
+	/* Oops */
+	s_printf("Unknown artifact activation '%s'.", what);
+
+	/* Error */
+	return (1);
+}
 
 
 
@@ -2038,6 +2117,38 @@ errr init_a_info_txt(FILE *fp, char *buf)
 
 
 #if 1
+
+		/* Process 'A' for "Activation & time" */
+		if (buf[0] == 'A')
+		{
+			int time, rand;
+	
+			/* Find the colon before the name */
+			s = strchr(buf + 2, ':');
+	
+			/* Verify that colon */
+			if (!s) return (1);
+	
+			/* Nuke the colon, advance to the name */
+			*s++ = '\0';
+	
+			/* Paranoia -- require a name */
+			if (!*s) return (1);
+	
+			/* Get the activation */
+			if (grab_one_activation(a_ptr, buf + 2)) return (1);
+	
+			/* Scan for the values */
+			if (2 != sscanf(s, "%d:%d",
+				            &time, &rand)) return (1);
+	
+			/* Save the values */
+			a_ptr->time = time;
+			a_ptr->randtime = rand;
+			
+			/* Next... */
+			continue;
+		}
 
 		/* Process 'D' for "Description" */
 		if (buf[0] == 'D')

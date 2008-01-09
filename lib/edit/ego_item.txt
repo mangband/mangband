@@ -386,6 +386,7 @@ W:0:2:0:1500
 C:5:5:0:0
 T:31:0:99
 F:SHOW_MODS
+D:They boost your to-hit and to-dam values.
 
 N:47:of Agility
 X:14:0
@@ -849,12 +850,16 @@ X:10:0
 W:0:1:0:1000
 C:15:5:0:0
 T:19:0:99
+D:It has no special abilities, but its to-hit value may be unusually
+D: high.
 
 N:97:of Power
 X:10:0
 W:0:1:0:1000
 C:5:15:0:0
 T:19:0:99
+D:It has no special abilities, but its to-dam value may be unusually
+D: high.
 
 # Bows only
 
@@ -1037,6 +1042,9 @@ C:5:5:0:0
 T:16:0:99
 T:17:0:99
 T:18:0:99
+D:Ammunition of Wounding often has unusually high to-hit and to-dam
+D: values.
+
 
 N:118:of Backbiting
 X:0:0
