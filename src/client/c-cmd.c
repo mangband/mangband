@@ -1660,6 +1660,7 @@ void cmd_master_aux_generate_item(void)
 {
 	char i, redo_hack;
 	char buf[80];
+	s32b tmp_quan;
 	/* Process requests until done */
 	
 	/* Clear screen */
@@ -1758,7 +1759,7 @@ void cmd_master_aux_generate_item(void)
 			/* Kind by number */
 			buf[1] = 'k';
 			buf[2] = '#';
-			s32b tmp_quan = c_get_quantity("Item number? ", MAX_K_IDX);
+			tmp_quan = c_get_quantity("Item number? ", MAX_K_IDX);
 			if (tmp_quan > 255) 
 			{buf[3] = tmp_quan-255;buf[4] = tmp_quan-(tmp_quan-255);}
 			else
