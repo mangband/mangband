@@ -121,7 +121,7 @@ owner_type owners[MAX_STORES][MAX_OWNERS] =
 	}
 };
 
-p_name = "Human\0Half-Elf\0Elf\0Hobbit\0Gnome\0Dwarf\0Half-Orc\0Half-Troll\0Dunadan\0High-Elf\0Kobold\0";
+char *p_name = "Human\0Half-Elf\0Elf\0Hobbit\0Gnome\0Dwarf\0Half-Orc\0Half-Troll\0Dunadan\0High-Elf\0Kobold\0";
 
 /*
  * Player Race Information:

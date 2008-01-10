@@ -17,6 +17,7 @@ extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
+extern char *p_name;
 extern player_race race_info[MAX_RACES];
 extern player_class class_info[MAX_CLASS];
 extern option_type option_info[];
