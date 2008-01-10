@@ -2411,6 +2411,8 @@ int Receive_cursor(void)
 	
 	if (cursor_icky)
 		Term_consolidate_cursor(vis, x, y);
+
+	return 0;
 }
 
 
