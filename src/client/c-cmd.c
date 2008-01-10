@@ -1758,9 +1758,13 @@ void cmd_master_aux_generate_item(void)
 			/* Kind by number */
 			buf[1] = 'k';
 			buf[2] = '#';
-			buf[3] = c_get_quantity("Item number? ", 530);
-			if(!buf[3]) redo_hack = 1;
-			buf[4] = 0;
+			s32b tmp_quan = c_get_quantity("Item number? ", MAX_K_IDX);
+			if (tmp_quan > 255) 
+			{buf[3] = tmp_quan-255;buf[4] = tmp_quan-(tmp_quan-255);}
+			else
+			{buf[3] = tmp_quan;buf[4] = 0;}
+			if(!tmp_quan) redo_hack = 1;
+			buf[5] = 0;
 			
 		}
 		else if (i == '2')
@@ -1776,7 +1780,7 @@ void cmd_master_aux_generate_item(void)
 			/* Ego by number */
 			buf[1] = 'e';
 			buf[2] = '#';
-			buf[3] = c_get_quantity("EGO id? ", 127);
+			buf[3] = c_get_quantity("EGO id? ", MAX_E_IDX);
 			if(!buf[3]) redo_hack = 1;
 			buf[4] = 0;
 		}
@@ -1898,7 +1902,7 @@ void cmd_master_aux_generate(void)
 		Term_putstr(5, 4, -1, TERM_WHITE, "(1) Vault");
 
 		/* Selections */
-		Term_putstr(5, 5, -1, TERM_WHITE, "(2) Generate Item");
+		Term_putstr(5, 5, -1, TERM_WHITE, "(2) Item");
 
 		/* Prompt */
 		Term_putstr(0, 7, -1, TERM_WHITE, "Command: ");

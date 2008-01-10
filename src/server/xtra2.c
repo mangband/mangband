@@ -4509,7 +4509,7 @@ bool master_generate(int Ind, char * parms)
 					/* ego kind */
 					switch(parms[2])
 					{
-						case '#':e_idx = parms[3];break;
+						case '#': e_idx = (byte)parms[3];break;
 						case 'n': e_idx = ego_kind_index_fuzzy(&parms[3]);break;
 						case '+': e_idx = last_e_idx + 1;break;
 						case '-': e_idx = last_e_idx - 1;break;
@@ -4519,7 +4519,7 @@ bool master_generate(int Ind, char * parms)
 					/* object kind */
 					switch(parms[2])
 					{
-						case '#':k_idx = parms[3];break;
+						case '#':k_idx = (byte)parms[3] + (byte)parms[4];break;
 						case 'n':k_idx = item_kind_index_fuzzy(&parms[3]);break;
 						case '+':k_idx = last_k_idx + 1;break;
 						case '-':k_idx = last_k_idx - 1;break;
@@ -4555,8 +4555,10 @@ bool master_generate(int Ind, char * parms)
 			}			
 			
 			if (last_k_idx && &dm_obj) {
+			//	dm_obj.ident = ID_KNOWN;
+				object_aware(Ind, &dm_obj);
 				object_desc(Ind, buf, &dm_obj, 1, 3);
-				Send_special_line(Ind, 16, 15, TERM_WHITE, format(" %s", buf));
+				Send_special_line(Ind, 16, 15, TERM_WHITE, format("%d. %s", last_k_idx, buf));
 			} else {
 				Send_special_line(Ind, 16, 15, TERM_WHITE, " [No Object]");			
 			}
@@ -4568,7 +4570,7 @@ bool master_generate(int Ind, char * parms)
 				else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = 9; }
 				else { xtra_val = 0; xtra_mod = 1; }
 				
-				Send_special_line(Ind, 16, 16, TERM_WHITE, format(" %s [%s]", e_name + e_ptr->name, extra_mods[xtra_val][dm_obj.xtra2 % xtra_mod] ));
+				Send_special_line(Ind, 16, 16, TERM_WHITE, format("%d. %s [%s]", last_e_idx, e_name + e_ptr->name, extra_mods[xtra_val][dm_obj.xtra2 % xtra_mod] ));
 			} else {
 				Send_special_line(Ind, 16, 16, TERM_WHITE, " [No Ego-Kind]");
 			}	
