@@ -1053,8 +1053,6 @@ static bool curse_weapon(int Ind)
  * include scrolls with no effects but recharge or identify, which are
  * cancelled before use.  XXX Reading them still takes a turn, though.
  */
- 
-
 void do_cmd_read_scroll(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
@@ -1492,12 +1490,41 @@ void do_cmd_read_scroll(int Ind, int item)
 		}
 	}
 
-
+	/* Hack -- allow certain scrolls to be "preserved" */
+	if (!used_up) 
+	{
+		p_ptr->current_scroll = item;
+		return;
+	}
+	
+	do_cmd_read_scroll_end(Ind, item, ident);
+}
+void do_cmd_read_scroll_end(int Ind, int item, bool ident)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type		*o_ptr;
+	int lev;
+	
+	/* Get the scroll (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+	/* Get the scroll (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		o_ptr = &o_list[0 - item];
+	} 
+  
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* The item was tried */
 	object_tried(Ind, o_ptr);
+
+	/* Object level */
+	lev = k_info[o_ptr->k_idx].level;
 
 	/* An identification was made */
 	if (ident && !object_aware_p(Ind, o_ptr))
@@ -1509,29 +1536,23 @@ void do_cmd_read_scroll(int Ind, int item)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
-
-
 	/* Destroy a scroll in the pack */
 	if (item >= 0)
 	{
 		inven_item_increase(Ind, item, -1);
-
-		/* Hack -- allow certain scrolls to be "preserved" */
-		if (!used_up) return;
-
 		inven_item_describe(Ind, item);
 		inven_item_optimize(Ind, item);
 	}
-
 	/* Destroy a scroll on the floor */
 	else
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-	}
-}
+	} 
 
+	p_ptr->current_scroll = -1;
+}
 
 
 
@@ -1694,7 +1715,10 @@ void do_cmd_use_staff(int Ind, int item)
 
 		case SV_STAFF_IDENTIFY:
 		{
-			if (!ident_spell(Ind)) use_charge = FALSE;
+			//if (!
+			ident_spell(Ind);
+			//)
+			 use_charge = FALSE;
 			ident = TRUE;
 			break;
 		}
@@ -1893,6 +1917,38 @@ void do_cmd_use_staff(int Ind, int item)
 		}
 	}
 
+	/* Hack -- some uses are "free" */
+	if (!use_charge)
+	{
+		p_ptr->current_staff = item; 
+		return;
+	}
+	
+	do_cmd_use_staff_discharge(Ind, item, ident);
+}
+
+void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
+{
+	player_type *p_ptr = Players[Ind];
+
+	int lev;
+
+	object_type		*o_ptr;
+	
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+	/* Get the item (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		o_ptr = &o_list[0 - item];
+	}
+
+	/* Extract the item level */
+	lev = k_info[o_ptr->k_idx].level;
 
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
@@ -1909,11 +1965,6 @@ void do_cmd_use_staff(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Hack -- some uses are "free" */
-	if (!use_charge) return;
-
 
 	/* Use a single charge */
 	o_ptr->pval--;
@@ -1949,8 +2000,9 @@ void do_cmd_use_staff(int Ind, int item)
 	{
 		floor_item_charges(0 - item);
 	}
+	
+	p_ptr->current_staff = -1; 
 }
-
 
 /*
  * Aim a wand (from the pack or floor).

@@ -5417,29 +5417,37 @@ void Handle_item(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 	int i;
+	bool ident = FALSE; /* scroll exposed itself */ 
 
 	if ((p_ptr->current_enchant_h > 0) || (p_ptr->current_enchant_d > 0) ||
              (p_ptr->current_enchant_a > 0))
 	{
-		enchant_spell_aux(Ind, item, p_ptr->current_enchant_h,
+		ident = enchant_spell_aux(Ind, item, p_ptr->current_enchant_h,
 			p_ptr->current_enchant_d, p_ptr->current_enchant_a);
 	}
 	else if (p_ptr->current_identify)
 	{
-		ident_spell_aux(Ind, item);
+		ident = ident_spell_aux(Ind, item);
 	}
 	else if (p_ptr->current_star_identify)
 	{
-		identify_fully_item(Ind, item);
+		ident = identify_fully_item(Ind, item);
 	}
 	else if (p_ptr->current_recharge)
 	{
-		recharge_aux(Ind, item, p_ptr->current_recharge);
+		ident = recharge_aux(Ind, item, p_ptr->current_recharge);
 	}
     else if (p_ptr->current_artifact)
     {
-	create_artifact_aux(Ind, item);
+		ident = create_artifact_aux(Ind, item);
     }
+
+	if (p_ptr->current_scroll != -1) {
+		do_cmd_read_scroll_end(Ind, p_ptr->current_scroll, ident);
+	}
+	if (p_ptr->current_staff != -1) {
+		do_cmd_use_staff_discharge(Ind, p_ptr->current_staff, ident);
+	}
 
 	for (i = 0; i < INVEN_PACK; i++) inven_item_optimize(Ind, i);
 }

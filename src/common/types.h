@@ -1286,6 +1286,8 @@ struct player_type
 	s16b current_star_identify;
 	s16b current_recharge;
     s16b current_artifact;
+    s16b current_scroll; /* Scroll being read */
+    s16b current_staff; /* Staff being used */
 
 	s16b current_selling;
 	s16b current_sell_amt;

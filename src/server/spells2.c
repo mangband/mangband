@@ -1938,17 +1938,21 @@ void spell_clear(int Ind)
   p_ptr->current_star_identify = 0;
   p_ptr->current_recharge = 0;
   p_ptr->current_artifact = 0;
+  
+  /* Hack: this should be somewhere else: */
+  p_ptr->current_staff = -1;
+  p_ptr->current_scroll = -1;
 }
 
 bool create_artifact(int Ind)
 {
   player_type *p_ptr = Players[Ind];
 
-  get_item(Ind);
-
   spell_clear(Ind);
   p_ptr->current_artifact = TRUE;
 
+  get_item(Ind);
+  
   return TRUE;
 }
 
@@ -2037,13 +2041,13 @@ bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 {
 	player_type *p_ptr = Players[Ind];
 
-	get_item(Ind);
-
 	spell_clear(Ind);
 	p_ptr->current_enchant_h = num_hit;
 	p_ptr->current_enchant_d = num_dam;
 	p_ptr->current_enchant_a = num_ac;
 
+	get_item(Ind);
+	
 	return (TRUE);
 }
 	
@@ -2127,11 +2131,11 @@ bool ident_spell(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	get_item(Ind);
-   
 	spell_clear(Ind);
 	p_ptr->current_identify = 1;
 
+	get_item(Ind);
+   
 	return TRUE;
 }
 
@@ -2207,10 +2211,10 @@ bool identify_fully(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	get_item(Ind);
-
 	spell_clear(Ind);
 	p_ptr->current_star_identify = 1;
+
+	get_item(Ind);
 
 	return TRUE;
 }
@@ -2316,10 +2320,10 @@ bool recharge(int Ind, int num)
 {
 	player_type *p_ptr = Players[Ind];
 
-	get_item(Ind);
-
 	spell_clear(Ind);
 	p_ptr->current_recharge = num;
+
+	get_item(Ind);
 
 	return TRUE;
 }
