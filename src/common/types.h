@@ -10,11 +10,9 @@
  * included in all such copies.
  */
 
-
 /*
  * This file should ONLY be included by "angband.h"
  */
-
 
 /*
  * Note that "char" may or may not be signed, and that "signed char"
@@ -45,37 +43,235 @@
  * and increase the complexity of the code.
  */
 
-/**** Available Structs ****/
+
+/**** MAngband specific structs ****/
+
+typedef struct cave_type cave_type;
+typedef struct server_setup_t server_setup_t;
+typedef struct client_setup_t client_setup_t;
+typedef struct option_type option_type;
+typedef struct wilderness_type wilderness_type;
+typedef struct cave_view_type cave_view_type;
+typedef struct party_type party_type;
+typedef struct house_type house_type;
+typedef struct hostile_type hostile_type;
+
+
+/**** MAngband specific structs ****/
+
+/*
+ * A single "grid" in a Cave
+ *
+ * Note that several aspects of the code restrict the actual cave
+ * to a max size of 256 by 256.  In partcular, locations are often
+ * saved as bytes, limiting each coordinate to the 0-255 range.
+ *
+ * The "o_idx" and "m_idx" fields are very interesting.  There are
+ * many places in the code where we need quick access to the actual
+ * monster or object(s) in a given cave grid.  The easiest way to
+ * do this is to simply keep the index of the monster and object
+ * (if any) with the grid, but takes a lot of memory.  Several other
+ * methods come to mind, but they all seem rather complicated.
+ *
+ * Note the special fields for the simple "monster flow" code,
+ * and for the "tracking" code.
+ */
+
+struct cave_type
+{
+	byte info;		/* Hack -- cave flags */
+
+	byte feat;		/* Hack -- feature type */
+
+	s16b o_idx;		/* Item index (in o_list) or zero */
+
+	s16b m_idx;		/* Monster index (in m_list) or zero */
+				/* or negative if a player */
+
+#ifdef MONSTER_FLOW
+
+	byte cost;		/* Hack -- cost of flowing */
+	byte when;		/* Hack -- when cost was computed */
+
+#endif
+
+};
 
 
 /*
- * Information about maximal indices of certain arrays
- * Actually, these are not the maxima, but the maxima plus one
+ * The setup data that the server transmits to the
+ * client.
  */
-
-typedef struct maxima maxima;
-
-struct maxima
+struct server_setup_t
 {
-	u32b fake_text_size;
-	u32b fake_name_size;
-
-	u16b f_max;		/* Max size for "f_info[]" */
-	u16b k_max;		/* Max size for "k_info[]" */
-	u16b a_max;		/* Max size for "a_info[]" */
-	u16b e_max;		/* Max size for "e_info[]" */
-	u16b r_max;		/* Max size for "r_info[]" */
-	u16b v_max;		/* Max size for "v_info[]" */
-	u16b p_max;		/* Max size for "p_info[]" */
-	u16b h_max;		/* Max size for "h_info[]" */
-	u16b b_max;		/* Max size per element of "b_info[]" */
-	u16b c_max;		/* Max size for "c_info[]" */
-	u16b flavor_max; /* Max size for "flavor_info[]" */
-
-	u16b o_max;		/* Max size for "o_list[]" */
-	u16b m_max;		/* Max size for "mon_list[]" */
+	s16b frames_per_second;
+	int motd_len;
+	int setup_size;
+	char motd[80 * 23];
 };
 
+/*
+ * The setup data that the client transmits to the
+ * server.
+ */
+
+struct client_setup_t
+{
+	bool options[64];
+
+	byte u_attr[TV_MAX];
+	char u_char[TV_MAX];
+
+	byte f_attr[MAX_F_IDX];
+	char f_char[MAX_F_IDX];
+
+	byte k_attr[MAX_K_IDX];
+	char k_char[MAX_K_IDX];
+
+	byte r_attr[MAX_R_IDX];
+	char r_char[MAX_R_IDX];
+};
+
+
+/*
+ * Available "options"
+ *
+ *	- Address of actual option variable (or NULL)
+ *
+ *	- Normal Value (TRUE or FALSE)
+ *
+ *	- Option Page Number (or zero)
+ *
+ *	- Savefile Set (or zero)
+ *	- Savefile Bit in that set
+ *
+ *	- Textual name (or NULL)
+ *	- Textual description
+ */
+
+struct option_type
+{
+	bool	*o_var;
+
+	byte	o_norm;
+
+	byte	o_page;
+
+	byte	o_set;
+	byte	o_bit;
+
+	cptr	o_text;
+	cptr	o_desc;
+};
+
+
+
+/* Adding this structure so we can have different creatures generated
+   in different types of wilderness... this will probably be completly
+   redone when I do a proper landscape generator.
+   -APD-
+*/
+
+struct wilderness_type
+{
+	int world_x; /* the world coordinates */
+	int world_y;
+	int radius; /* the distance from the town */
+	int type;   /* what kind of terrain we are in */
+	u16b flags; /* various */
+};
+
+
+/* The information needed to show a single "grid" */
+
+struct cave_view_type
+{
+	byte a;		/* Color attribute */
+	char c;		/* ASCII character */
+};
+
+/*
+ * Information about a "party"
+ */
+
+struct party_type
+{
+	char name[80];		/* Name of the party */
+	char owner[20];		/* Owner's name */
+	s32b num;		/* Number of people in the party */
+	s32b created;		/* Creation (or disband-tion) time */
+};
+
+/*
+ * Information about a "house"
+ */
+
+/*
+In order to delete the contents of a house after its key is lost,
+added x_1, y_1, x_2, y_2, which are the locations of the opposite 
+corners of the house.
+-APD-
+*/
+
+struct house_type
+{
+	byte x_1;
+	byte y_1; 
+	byte x_2;
+	byte y_2;
+	
+	byte door_y;		/* Location of door */
+	byte door_x;
+	byte strength;		/* Strength of door (unused) */
+	char owned[MAX_NAME_LEN];	/* Currently owned? */
+
+	s32b depth;
+
+	s32b price;		/* Cost of buying */
+};
+
+
+/*
+ * Information about a "hostility"
+ */
+
+struct hostile_type
+{
+	s32b id;		/* ID of player we are hostile to */
+	hostile_type *next;	/* Next in list */
+};
+
+
+/**** Available Structs ****/
+
+typedef struct header header;
+typedef struct maxima maxima;
+typedef struct feature_type feature_type;
+typedef struct object_kind object_kind;
+typedef struct artifact_type artifact_type;
+typedef struct ego_item_type ego_item_type;
+typedef struct monster_blow monster_blow;
+typedef struct monster_race monster_race;
+typedef struct monster_lore monster_lore;
+typedef struct vault_type vault_type;
+typedef struct object_type object_type;
+typedef struct monster_type monster_type;
+typedef struct alloc_entry alloc_entry;
+typedef struct quest quest;
+typedef struct owner_type owner_type;
+typedef struct store_type store_type;
+typedef struct magic_type magic_type;
+typedef struct player_magic player_magic;
+typedef struct player_sex player_sex;
+typedef struct player_race player_race;
+typedef struct player_class player_class;
+typedef struct hist_type hist_type;
+typedef struct player_other player_other;
+typedef struct player_type player_type;
+typedef struct start_item start_item;
+
+
+/**** Available Structs ****/
 
 /*
  * Template file header information (see "init.c").  16 bytes.
@@ -104,8 +300,6 @@ struct maxima
  * computers) which use 2 byte "int" values, and which use "int" for the
  * arguments to the relevent functions.
  */
-
-typedef struct header header;
 
 typedef errr (*parse_info_txt_func)(char *buf, header *head);
 
@@ -138,12 +332,36 @@ struct header
 };
 
 
+/*
+ * Information about maximal indices of certain arrays
+ * Actually, these are not the maxima, but the maxima plus one
+ */
+
+struct maxima
+{
+	u32b fake_text_size;
+	u32b fake_name_size;
+
+	u16b f_max;		/* Max size for "f_info[]" */
+	u16b k_max;		/* Max size for "k_info[]" */
+	u16b a_max;		/* Max size for "a_info[]" */
+	u16b e_max;		/* Max size for "e_info[]" */
+	u16b r_max;		/* Max size for "r_info[]" */
+	u16b v_max;		/* Max size for "v_info[]" */
+	u16b p_max;		/* Max size for "p_info[]" */
+	u16b h_max;		/* Max size for "h_info[]" */
+	u16b b_max;		/* Max size per element of "b_info[]" */
+	u16b c_max;		/* Max size for "c_info[]" */
+	u16b flavor_max; /* Max size for "flavor_info[]" */
+
+	u16b o_max;		/* Max size for "o_list[]" */
+	u16b m_max;		/* Max size for "mon_list[]" */
+};
+
 
 /*
  * Information about terrain "features"
  */
-
-typedef struct feature_type feature_type;
 
 struct feature_type
 {
@@ -169,8 +387,6 @@ struct feature_type
  *
  * Only "aware" and "tried" are saved in the savefile
  */
-
-typedef struct object_kind object_kind;
 
 struct object_kind
 {
@@ -238,8 +454,6 @@ struct object_kind
  * Note that "max_num" is always "1" (if that artifact "exists")
  */
 
-typedef struct artifact_type artifact_type;
-
 struct artifact_type
 {
 	u16b name;			/* Name (offset) */
@@ -283,8 +497,6 @@ struct artifact_type
  * Information about "ego-items".
  */
 
-typedef struct ego_item_type ego_item_type;
-
 struct ego_item_type
 {
 	u16b name;			/* Name (offset) */
@@ -326,8 +538,6 @@ struct ego_item_type
  *	- Damage Sides
  */
 
-typedef struct monster_blow monster_blow;
-
 struct monster_blow
 {
 	byte method;
@@ -358,8 +568,6 @@ struct monster_blow
  * fields have a special prefix to aid in searching for them.
  */
 
-
-typedef struct monster_race monster_race;
 
 struct monster_race
 {
@@ -442,12 +650,47 @@ struct monster_race
 };
 
 
+/*
+ * Monster "lore" information
+ *
+ * Note that these fields are related to the "monster recall" and can
+ * be scrapped if space becomes an issue, resulting in less "complete"
+ * monster recall (no knowledge of spells, etc). XXX XXX XXX
+ */
+struct monster_lore
+{
+	s16b sights;			/* Count sightings of this monster */
+	s16b deaths;			/* Count deaths from this monster */
+
+	s16b pkills;			/* Count monsters killed in this life */
+	s16b tkills;			/* Count monsters killed in all lives */
+
+	byte wake;				/* Number of times woken up (?) */
+	byte ignore;			/* Number of times ignored (?) */
+
+	byte xtra1;				/* Something (unused) */
+	byte xtra2;				/* Something (unused) */
+
+	byte drop_gold;			/* Max number of gold dropped at once */
+	byte drop_item;			/* Max number of item dropped at once */
+
+	byte cast_innate;		/* Max number of innate spells seen */
+	byte cast_spell;		/* Max number of other spells seen */
+
+	byte blows[MONSTER_BLOW_MAX]; /* Number of times each blow type was seen */
+
+	u32b flags1;			/* Observed racial flags */
+	u32b flags2;			/* Observed racial flags */
+	u32b flags3;			/* Observed racial flags */
+	u32b flags4;			/* Observed racial flags */
+	u32b flags5;			/* Observed racial flags */
+	u32b flags6;			/* Observed racial flags */
+};
+
 
 /*
  * Information about "vault generation"
  */
-
-typedef struct vault_type vault_type;
 
 struct vault_type
 {
@@ -460,50 +703,6 @@ struct vault_type
 
 	byte hgt;			/* Vault height */
 	byte wid;			/* Vault width */
-};
-
-
-
-
-
-/*
- * A single "grid" in a Cave
- *
- * Note that several aspects of the code restrict the actual cave
- * to a max size of 256 by 256.  In partcular, locations are often
- * saved as bytes, limiting each coordinate to the 0-255 range.
- *
- * The "o_idx" and "m_idx" fields are very interesting.  There are
- * many places in the code where we need quick access to the actual
- * monster or object(s) in a given cave grid.  The easiest way to
- * do this is to simply keep the index of the monster and object
- * (if any) with the grid, but takes a lot of memory.  Several other
- * methods come to mind, but they all seem rather complicated.
- *
- * Note the special fields for the simple "monster flow" code,
- * and for the "tracking" code.
- */
-
-typedef struct cave_type cave_type;
-
-struct cave_type
-{
-	byte info;		/* Hack -- cave flags */
-
-	byte feat;		/* Hack -- feature type */
-
-	s16b o_idx;		/* Item index (in o_list) or zero */
-
-	s16b m_idx;		/* Monster index (in m_list) or zero */
-				/* or negative if a player */
-
-#ifdef MONSTER_FLOW
-
-	byte cost;		/* Hack -- cost of flowing */
-	byte when;		/* Hack -- when cost was computed */
-
-#endif
-
 };
 
 
@@ -521,8 +720,6 @@ struct cave_type
  * Note that "object flags" must now be derived from the object kind,
  * the artifact and ego-item indexes, and the two "xtra" fields.
  */
-
-typedef struct object_type object_type;
 
 struct object_type
 {
@@ -578,8 +775,6 @@ struct object_type
  * Note: fy, fx constrain dungeon size to 256x256
  */
 
-typedef struct monster_type monster_type;
-
 struct monster_type
 {
 	s16b r_idx;			/* Monster race index */
@@ -631,7 +826,6 @@ struct monster_type
 
 
 
-
 /*
  * An entry for the object/monster allocation functions
  *
@@ -639,8 +833,6 @@ struct monster_type
  * Pass 2 is determined from allocation restriction
  * Pass 3 is determined from allocation calculation
  */
-
-typedef struct alloc_entry alloc_entry;
 
 struct alloc_entry
 {
@@ -653,79 +845,6 @@ struct alloc_entry
 
 	u16b total;		/* Unused for now */
 };
-
-
-/*
- * The setup data that the server transmits to the
- * client.
- */
-typedef struct setup_t setup_t;
-
-struct setup_t
-{
-	s16b frames_per_second;
-	int motd_len;
-	int setup_size;
-	char motd[80 * 23];
-};
-
-/*
- * The setup data that the client transmits to the
- * server.
- */
-typedef struct client_setup_t client_setup_t;
-
-struct client_setup_t
-{
-	bool options[64];
-
-	byte u_attr[TV_MAX];
-	char u_char[TV_MAX];
-
-	byte f_attr[MAX_F_IDX];
-	char f_char[MAX_F_IDX];
-
-	byte k_attr[MAX_K_IDX];
-	char k_char[MAX_K_IDX];
-
-	byte r_attr[MAX_R_IDX];
-	char r_char[MAX_R_IDX];
-};
-
-
-/*
- * Available "options"
- *
- *	- Address of actual option variable (or NULL)
- *
- *	- Normal Value (TRUE or FALSE)
- *
- *	- Option Page Number (or zero)
- *
- *	- Savefile Set (or zero)
- *	- Savefile Bit in that set
- *
- *	- Textual name (or NULL)
- *	- Textual description
- */
-
-typedef struct option_type option_type;
-
-struct option_type
-{
-	bool	*o_var;
-
-	byte	o_norm;
-
-	byte	o_page;
-
-	byte	o_set;
-	byte	o_bit;
-
-	cptr	o_text;
-	cptr	o_desc;
-};
-
 
 
 /*
@@ -744,8 +863,6 @@ struct option_type
  * actually scan the dead unique list to see what quests are left.
  */
 
-typedef struct quest quest;
-
 struct quest
 {
 	int level;		/* Dungeon level */
@@ -756,29 +873,9 @@ struct quest
 };
 
 
-/* Adding this structure so we can have different creatures generated
-   in different types of wilderness... this will probably be completly
-   redone when I do a proper landscape generator.
-   -APD-
-*/
-
-typedef struct wilderness_type wilderness_type;
-
-struct wilderness_type
-{
-	int world_x; /* the world coordinates */
-	int world_y;
-	int radius; /* the distance from the town */
-	int type;   /* what kind of terrain we are in */
-	u16b flags; /* various */
-};
-
-
 /*
  * A store owner
  */
-
-typedef struct owner_type owner_type;
 
 struct owner_type
 {
@@ -805,8 +902,6 @@ struct owner_type
  * A store, with an owner, various state flags, a current stock
  * of items, and a table of items that are often purchased.
  */
-
-typedef struct store_type store_type;
 
 struct store_type
 {
@@ -840,8 +935,6 @@ struct store_type
  * where X is 0 for mage-spells and 1 for priest-spells.
  */
 
-typedef struct magic_type magic_type;
-
 struct magic_type
 {
 	byte slevel;		/* Required level (to learn) */
@@ -856,8 +949,6 @@ struct magic_type
  *
  * Note that a player with a "spell_book" of "zero" is illiterate.
  */
-
-typedef struct player_magic player_magic;
 
 struct player_magic
 {
@@ -879,8 +970,6 @@ struct player_magic
  * Player sex info
  */
 
-typedef struct player_sex player_sex;
-
 struct player_sex
 {
 	cptr title;			/* Type of sex */
@@ -892,8 +981,6 @@ struct player_sex
 /*
  * Player racial info
  */
-
-typedef struct player_race player_race;
 
 struct player_race
 {
@@ -943,8 +1030,6 @@ struct player_race
  * Player class info
  */
 
-typedef struct player_class player_class;
-
 struct player_class
 {
 	cptr title;			/* Type of class */
@@ -974,68 +1059,40 @@ struct player_class
 };
 
 
-/* The information needed to show a single "grid" */
-typedef struct cave_view_type cave_view_type;
-
-struct cave_view_type
-{
-	byte a;		/* Color attribute */
-	char c;		/* ASCII character */
-};
-
 /*
- * Information about a "party"
+ * Player background information
  */
-typedef struct party_type party_type;
-
-struct party_type
+struct hist_type
 {
-	char name[80];		/* Name of the party */
-	char owner[20];		/* Owner's name */
-	s32b num;		/* Number of people in the party */
-	s32b created;		/* Creation (or disband-tion) time */
+	/*u32b text;*/			    /* Text (offset) */
+	cptr info;			    /* Textual History */
+
+	byte roll;			    /* Frequency of this entry */
+	byte chart;			    /* Chart index */
+	byte next;			    /* Next chart index */
+	byte bonus;			    /* Social Class Bonus + 50 */
 };
 
+
 /*
- * Information about a "house"
+ * Some more player information
+ *
+ * This information is retained across player lives
  */
-typedef struct house_type house_type;
-
-/*
-In order to delete the contents of a house after its key is lost,
-added x_1, y_1, x_2, y_2, which are the locations of the opposite 
-corners of the house.
--APD-
-*/
-
-struct house_type
+struct player_other
 {
-	byte x_1;
-	byte y_1; 
-	byte x_2;
-	byte y_2;
-	
-	byte door_y;		/* Location of door */
-	byte door_x;
-	byte strength;		/* Strength of door (unused) */
-	char owned[MAX_NAME_LEN];	/* Currently owned? */
+	char full_name[32];		/* Full name */
+	char base_name[32];		/* Base name */
 
-	s32b depth;
+	bool opt[OPT_MAX];		/* Options */
 
-	s32b price;		/* Cost of buying */
+	u32b window_flag[ANGBAND_TERM_MAX];	/* Window flags */
+
+	byte hitpoint_warn;		/* Hitpoint warning (0 to 9) */
+
+	byte delay_factor;		/* Delay factor (0 to 9) */
 };
 
-
-/*
- * Information about a "hostility"
- */
-typedef struct hostile_type hostile_type;
-
-struct hostile_type
-{
-	s32b id;		/* ID of player we are hostile to */
-	hostile_type *next;	/* Next in list */
-};
 
 /*
  * Most of the "player" information goes here.
@@ -1052,8 +1109,6 @@ struct hostile_type
  * whenever anything important changes.
  */
 
-
-typedef struct player_type player_type;
 
 struct player_type
 {
@@ -1460,4 +1515,16 @@ struct player_type
     
 	u32b birth_turn;	/* Server turn on which player was born */
 	u32b turn;			/* Actual player turns */
+};
+
+
+/*
+ * Starting equipment entry
+ */
+struct start_item
+{
+	byte tval;	/* Item's tval */
+	byte sval;	/* Item's sval */
+	byte min;	/* Minimum starting amount */
+	byte max;	/* Maximum starting amount */
 };

@@ -91,7 +91,7 @@
 
 connection_t	*Conn = NULL;
 static int		max_connections = 0;
-static setup_t		Setup;
+static server_setup_t		Setup;
 static int		(*playing_receive[256])(int ind),
 			(*login_receive[256])(int ind),
 			(*drain_receive[256])(int ind);
@@ -230,7 +230,7 @@ static int Init_setup(void)
 
 	Setup.frames_per_second = cfg_fps;
 	Setup.motd_len = 23 * 80;
-	Setup.setup_size = sizeof(setup_t);
+	Setup.setup_size = sizeof(server_setup_t);
 
 	path_build(buf, 1024, ANGBAND_DIR_TEXT, "news.txt");
 

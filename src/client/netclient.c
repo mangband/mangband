@@ -131,7 +131,7 @@ static void Receive_init(void)
 int Net_setup(void)
 {
 	int n, len, done = 0;
-	long todo = sizeof(setup_t);
+	long todo = sizeof(server_setup_t);
 	char *ptr;
 
 	ptr = (char *) &Setup;

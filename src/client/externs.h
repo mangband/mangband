@@ -57,7 +57,7 @@ extern char spell_info[26][9][80];
 extern char party_info[160];
 extern char floor_tval;
 
-extern setup_t Setup;
+extern server_setup_t Setup;
 extern client_setup_t Client_setup;
 
 extern bool shopping;

@@ -24,7 +24,7 @@ char spell_info[26][9][80];		/* Spell information */
 
 char party_info[160];			/* Information about your party */
 
-setup_t Setup;				/* The information given to us by the server */
+server_setup_t Setup;				/* The information given to us by the server */
 client_setup_t Client_setup;		/* The information we give to the server */
 
 bool shopping;				/* Are we in a store? */

@@ -152,6 +152,12 @@
 #define MAX_PLAYERS	1000
 
 /*
+ * Maximum amount of Angband windows.
+ */
+#define ANGBAND_TERM_MAX 8
+
+
+/*
  * Total number of stores (see "store.c", etc)
  */
 #define MAX_STORES	9
@@ -1585,6 +1591,11 @@ that keeps many algorithms happy.
 #define SV_BOOK_MIN_GOOD	4
 
 
+/*** Monster blow constants ***/
+
+
+#define MONSTER_BLOW_MAX 4
+
 
 /*** General flag values ***/
 
@@ -2341,6 +2352,21 @@ that keeps many algorithms happy.
 #define RF6_S_HI_DRAGON		0x20000000	/* Summon Ancient Dragon */
 #define RF6_S_WRAITH		0x40000000	/* Summon Unique Wraith */
 #define RF6_S_UNIQUE		0x80000000	/* Summon Unique Monster */
+
+
+/*** Option Definitions ***/
+
+/*
+ * Option indexes (offsets)
+ *
+ * These values are hard-coded by savefiles (and various pieces of code).
+ */
+#define OPT_BIRTH					128
+#define OPT_CHEAT					160
+#define OPT_ADULT					192
+#define OPT_SCORE					224
+#define OPT_NONE					255
+#define OPT_MAX						256
 
 
 /* 

@@ -38,26 +38,6 @@ struct birther
 };
 
 
-
-/*
- * Forward declare
- */
-typedef struct hist_type hist_type;
-
-/*
- * Player background information
- */
-struct hist_type
-{
-	cptr info;			    /* Textual History */
-
-	byte roll;			    /* Frequency of this entry */
-	byte chart;			    /* Chart index */
-	byte next;			    /* Next chart index */
-	byte bonus;			    /* Social Class Bonus + 50 */
-};
-
-
 /*
  * Background information (see below)
  *
