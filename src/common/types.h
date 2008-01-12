@@ -1064,8 +1064,8 @@ struct player_class
  */
 struct hist_type
 {
-	/*u32b text;*/			    /* Text (offset) */
-	cptr info;			    /* Textual History */
+	u32b text;			    /* Text (offset) */
+	/*cptr info;*/			    /* Textual History */
 
 	byte roll;			    /* Frequency of this entry */
 	byte chart;			    /* Chart index */

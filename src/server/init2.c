@@ -1066,6 +1066,34 @@ static errr init_a_info(void)
 
 
 /*
+ * Initialize the "h_info" array
+ */
+static errr init_h_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&h_head, z_info->h_max, sizeof(hist_type));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	h_head.parse_info_txt = parse_h_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("p_hist", &h_head);
+
+	/* Set the global variables */
+	h_info = h_head.info_ptr;
+	h_text = h_head.text_ptr;
+
+	return (err);
+}
+
+
+
+/*
  * Initialize the "e_info" array (Ego item handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
@@ -2467,8 +2495,12 @@ void init_some_arrays(void)
 	s_printf("[Initializing arrays... (vaults)]\n");
 	if (init_v_info()) quit("Cannot initialize vaults");
 
+	/* Initialize history info */
+	s_printf("[Initializing arrays... (histories)]\n");
+	if (init_h_info()) quit("Cannot initialize histories");
+
 	/* Initialize race info */
-	s_printf("[Initializing arrays... (races)]");
+	s_printf("[Initializing arrays... (races)]\n");
 	if (init_p_info()) quit("Cannot initialize races");
 
 	/* Initialize some other arrays */

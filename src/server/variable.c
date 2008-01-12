@@ -741,13 +741,13 @@ byte *g_info;
 char *g_name;
 char *g_text;
 
-#if 0
 /*
  * The player history arrays
  */
 hist_type *h_info;
 char *h_text;
 
+#if 0
 /*
  * The object flavor arrays
  */

@@ -587,7 +587,7 @@ static void get_history(int Ind)
 		while ((chart != bg[i].chart) || (roll > bg[i].roll)) i++;
 
 		/* Acquire the textual history */
-		(void)strcat(buf, bg[i].info);
+		(void)strcat(buf, h_text + bg[i].text);
 
 		/* Add in the social class */
 		social_class += (int)(bg[i].bonus) - 50;
