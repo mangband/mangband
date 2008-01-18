@@ -269,6 +269,7 @@ typedef struct hist_type hist_type;
 typedef struct player_other player_other;
 typedef struct player_type player_type;
 typedef struct start_item start_item;
+typedef struct flavor_type flavor_type;
 
 
 /**** Available Structs ****/
@@ -387,11 +388,10 @@ struct feature_type
  *
  * Only "aware" and "tried" are saved in the savefile
  */
-
 struct object_kind
 {
-	u16b name;			/* Name (offset) */
-	u16b text;			/* Text (offset) */
+	u32b name;			/* Name (offset) */
+	u32b text;			/* Text (offset) */
 
 	byte tval;			/* Object type */
 	byte sval;			/* Object sub type */
@@ -413,17 +413,12 @@ struct object_kind
 	u32b flags1;		/* Flags, set 1 */
 	u32b flags2;		/* Flags, set 2 */
 	u32b flags3;		/* Flags, set 3 */
-    u32b flags4;		/* Flags, set 4 */
 
 	byte locale[4];		/* Allocation level(s) */
 	byte chance[4];		/* Allocation chance(s) */
 
 	byte level;			/* Level */
 	byte extra;			/* Something */
-
-
-	byte k_attr;		/* Standard object attribute */
-	char k_char;		/* Standard object character */
 
 
 	byte d_attr;		/* Default object attribute */
@@ -434,14 +429,12 @@ struct object_kind
 	char x_char;		/* Desired object character */
 
 
-	bool has_flavor;	/* This object has a flavor */
-
-	bool easy_know;		/* This object is always known (if aware) */
+	u16b flavor;		/* Special object flavor (or zero) */
 
 
-/*	bool aware;	*/		/* The player is "aware" of the item's effects */
+	bool aware;			/* The player is "aware" of the item's effects */
 
-/*	bool tried;	*/		/* The player has "tried" one of the items */
+	bool tried;			/* The player has "tried" one of the items */
 };
 
 
@@ -1065,7 +1058,6 @@ struct player_class
 struct hist_type
 {
 	u32b text;			    /* Text (offset) */
-	/*cptr info;*/			    /* Textual History */
 
 	byte roll;			    /* Frequency of this entry */
 	byte chart;			    /* Chart index */
@@ -1527,4 +1519,19 @@ struct start_item
 	byte sval;	/* Item's sval */
 	byte min;	/* Minimum starting amount */
 	byte max;	/* Maximum starting amount */
+};
+
+
+struct flavor_type
+{
+	u32b text;      /* Text (offset) */
+	
+	byte tval;      /* Associated object type */
+	byte sval;      /* Associated object sub-type */
+
+	byte d_attr;    /* Default flavor attribute */
+	char d_char;    /* Default flavor character */
+
+	byte x_attr;    /* Desired flavor attribute */
+	char x_char;    /* Desired flavor character */
 };

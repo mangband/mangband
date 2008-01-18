@@ -1106,7 +1106,7 @@ static void player_setup(int Ind)
 		if (!k_ptr->name) continue;
 
 		/* No flavor yields aware */
-		if (!k_ptr->has_flavor) p_ptr->obj_aware[i] = TRUE;
+		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
 	}
 
 	/* Add him to the player name database, if he is not already there */

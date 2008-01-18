@@ -2886,6 +2886,63 @@ bool is_a_vowel(int ch)
 	return (FALSE);
 }
 
+/*
+ * Converts a string to a terminal color byte.
+ */
+int color_text_to_attr(cptr name)
+{
+	if (my_stricmp(name, "dark")       == 0) return (TERM_DARK);
+	if (my_stricmp(name, "white")      == 0) return (TERM_WHITE);
+	if (my_stricmp(name, "slate")      == 0) return (TERM_SLATE);
+	if (my_stricmp(name, "orange")     == 0) return (TERM_ORANGE);
+	if (my_stricmp(name, "red")        == 0) return (TERM_RED);
+	if (my_stricmp(name, "green")      == 0) return (TERM_GREEN);
+	if (my_stricmp(name, "blue")       == 0) return (TERM_BLUE);
+	if (my_stricmp(name, "umber")      == 0) return (TERM_UMBER);
+	if (my_stricmp(name, "violet")     == 0) return (TERM_VIOLET);
+	if (my_stricmp(name, "yellow")     == 0) return (TERM_YELLOW);
+	if (my_stricmp(name, "lightdark")  == 0) return (TERM_L_DARK);
+	if (my_stricmp(name, "lightwhite") == 0) return (TERM_L_WHITE);
+	if (my_stricmp(name, "lightred")   == 0) return (TERM_L_RED);
+	if (my_stricmp(name, "lightgreen") == 0) return (TERM_L_GREEN);
+	if (my_stricmp(name, "lightblue")  == 0) return (TERM_L_BLUE);
+	if (my_stricmp(name, "lightumber") == 0) return (TERM_L_UMBER);
+
+	/* Oops */
+	return (-1);
+}
+
+
+/*
+ * Extract a textual representation of an attribute
+ */
+cptr attr_to_text(byte a)
+{
+	switch (a)
+	{
+		case TERM_DARK:    return ("Dark");
+		case TERM_WHITE:   return ("White");
+		case TERM_SLATE:   return ("Slate");
+		case TERM_ORANGE:  return ("Orange");
+		case TERM_RED:     return ("Red");
+		case TERM_GREEN:   return ("Green");
+		case TERM_BLUE:    return ("Blue");
+		case TERM_UMBER:   return ("Umber");
+		case TERM_L_DARK:  return ("L.Dark");
+		case TERM_L_WHITE: return ("L.Slate");
+		case TERM_VIOLET:  return ("Violet");
+		case TERM_YELLOW:  return ("Yellow");
+		case TERM_L_RED:   return ("L.Red");
+		case TERM_L_GREEN: return ("L.Green");
+		case TERM_L_BLUE:  return ("L.Blue");
+		case TERM_L_UMBER: return ("L.Umber");
+	}
+
+	/* Oops */
+	return ("Icky");
+}
+
+
 /* 
  * Record a message in the character history
  */

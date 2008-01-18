@@ -499,13 +499,100 @@ static byte default_tval_to_char(int tval)
 		object_kind *k_ptr = &k_info[i];
 
 		/* Use the first value we find */
-		if (k_ptr->tval == tval) return (k_ptr->k_char);
+		if (k_ptr->tval == tval) return (k_ptr->d_char);
 	}
 
 	/* Default to space */
 	return (' ');
 }
 
+
+
+static void flavor_assign_fixed(void)
+{
+	int i, j;
+
+	for (i = 0; i < z_info->flavor_max; i++)
+	{
+		flavor_type *flavor_ptr = &flavor_info[i];
+
+		/* Skip random flavors */
+		if (flavor_ptr->sval == SV_UNKNOWN) continue;
+
+		for (j = 0; j < z_info->k_max; j++)
+		{
+			/* Skip other objects */
+			if ((k_info[j].tval == flavor_ptr->tval) &&
+			    (k_info[j].sval == flavor_ptr->sval))
+			{
+				/* Store the flavor index */
+				k_info[j].flavor = i;
+			}
+		}
+	}
+}
+
+
+static void flavor_assign_random(byte tval)
+{
+	int i, j;
+	int flavor_count = 0;
+	int choice;
+
+	/* Count the random flavors for the given tval */
+	for (i = 0; i < z_info->flavor_max; i++)
+	{
+		if ((flavor_info[i].tval == tval) &&
+		    (flavor_info[i].sval == SV_UNKNOWN))
+		{
+			flavor_count++;
+		}
+	}
+
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		/* Skip other object types */
+		if (k_info[i].tval != tval) continue;
+
+		/* Skip objects that already are flavored */
+		if (k_info[i].flavor != 0) continue;
+
+		/* HACK - Ordinary food is "boring" */
+		if ((tval == TV_FOOD) && (k_info[i].sval >= SV_FOOD_MIN_FOOD))
+			continue;
+
+		if (!flavor_count) quit_fmt("Not enough flavors for tval %d.", tval);
+
+		/* Select a flavor */
+		choice = rand_int(flavor_count);
+	
+		/* Find and store the flavor */
+		for (j = 0; j < z_info->flavor_max; j++)
+		{
+			/* Skip other tvals */
+			if (flavor_info[j].tval != tval) continue;
+
+			/* Skip assigned svals */
+			if (flavor_info[j].sval != SV_UNKNOWN) continue;
+
+			if (choice == 0)
+			{
+				/* Store the flavor index */
+				k_info[i].flavor = j;
+
+				/* Mark the flavor as used */
+				flavor_info[j].sval = k_info[i].sval;
+
+				/* One less flavor to choose from */
+				flavor_count--;
+
+				break;
+			}
+
+			choice--;
+		}
+	}
+}
 
 
 /*
@@ -536,16 +623,10 @@ static byte default_tval_to_char(int tval)
  * This is accomplished by the use of a saved "random seed", as in
  * "town_gen()".  Since no other functions are called while the special
  * seed is in effect, so this function is pretty "safe".
- *
- * Note that the "hacked seed" may provide an RNG with alternating parity!
  */
 void flavor_init(void)
 {
-	int		i, j;
-
-	byte	temp_col;
-
-	cptr	temp_adj;
+	int i, j;
 
 
 	/* Hack -- Use the "simple" RNG */
@@ -555,97 +636,16 @@ void flavor_init(void)
 	Rand_value = seed_flavor;
 
 
-	/* Efficiency -- Rods/Wands share initial array */
-	for (i = 0; i < MAX_METALS; i++)
-	{
-		rod_adj[i] = wand_adj[i];
-		rod_col[i] = wand_col[i];
-	}
+	flavor_assign_fixed();
 
-
-	/* Rings have "ring colors" */
-	for (i = 0; i < MAX_ROCKS; i++)
-	{
-		j = rand_int(MAX_ROCKS);
-		temp_adj = ring_adj[i];
-		ring_adj[i] = ring_adj[j];
-		ring_adj[j] = temp_adj;
-		temp_col = ring_col[i];
-		ring_col[i] = ring_col[j];
-		ring_col[j] = temp_col;
-	}
-
-	/* Amulets have "amulet colors" */
-	for (i = 0; i < MAX_AMULETS; i++)
-	{
-		j = rand_int(MAX_AMULETS);
-		temp_adj = amulet_adj[i];
-		amulet_adj[i] = amulet_adj[j];
-		amulet_adj[j] = temp_adj;
-		temp_col = amulet_col[i];
-		amulet_col[i] = amulet_col[j];
-		amulet_col[j] = temp_col;
-	}
-
-	/* Staffs */
-	for (i = 0; i < MAX_WOODS; i++)
-	{
-		j = rand_int(MAX_WOODS);
-		temp_adj = staff_adj[i];
-		staff_adj[i] = staff_adj[j];
-		staff_adj[j] = temp_adj;
-		temp_col = staff_col[i];
-		staff_col[i] = staff_col[j];
-		staff_col[j] = temp_col;
-	}
-
-	/* Wands */
-	for (i = 0; i < MAX_METALS; i++)
-	{
-		j = rand_int(MAX_METALS);
-		temp_adj = wand_adj[i];
-		wand_adj[i] = wand_adj[j];
-		wand_adj[j] = temp_adj;
-		temp_col = wand_col[i];
-		wand_col[i] = wand_col[j];
-		wand_col[j] = temp_col;
-	}
-
-	/* Rods */
-	for (i = 0; i < MAX_METALS; i++)
-	{
-		j = rand_int(MAX_METALS);
-		temp_adj = rod_adj[i];
-		rod_adj[i] = rod_adj[j];
-		rod_adj[j] = temp_adj;
-		temp_col = rod_col[i];
-		rod_col[i] = rod_col[j];
-		rod_col[j] = temp_col;
-	}
-
-	/* Foods (Mushrooms) */
-	for (i = 0; i < MAX_SHROOM; i++)
-	{
-		j = rand_int(MAX_SHROOM);
-		temp_adj = food_adj[i];
-		food_adj[i] = food_adj[j];
-		food_adj[j] = temp_adj;
-		temp_col = food_col[i];
-		food_col[i] = food_col[j];
-		food_col[j] = temp_col;
-	}
-
-	/* Potions */
-	for (i = 4; i < MAX_COLORS; i++)
-	{
-		j = rand_int(MAX_COLORS - 4) + 4;
-		temp_adj = potion_adj[i];
-		potion_adj[i] = potion_adj[j];
-		potion_adj[j] = temp_adj;
-		temp_col = potion_col[i];
-		potion_col[i] = potion_col[j];
-		potion_col[j] = temp_col;
-	}
+	flavor_assign_random(TV_RING);
+	flavor_assign_random(TV_AMULET);
+	flavor_assign_random(TV_STAFF);
+	flavor_assign_random(TV_WAND);
+	flavor_assign_random(TV_ROD);
+	flavor_assign_random(TV_FOOD);
+	flavor_assign_random(TV_POTION);
+	flavor_assign_random(TV_SCROLL);
 
 	/* Scrolls (random titles, always white) */
 	for (i = 0; i < MAX_TITLES; i++)
@@ -677,7 +677,7 @@ void flavor_init(void)
 				for (q = 0; q < s; q++)
 				{
 					/* Add the syllable */
-					strcat(tmp, syllables[rand_int(MAX_SYLLABLES)]);
+					my_strcat(tmp, syllables[rand_int(MAX_SYLLABLES)], sizeof(tmp));
 				}
 
 				/* Stop before getting too long */
@@ -687,11 +687,11 @@ void flavor_init(void)
 				strcat(buf, " ");
 
 				/* Add the word */
-				strcat(buf, tmp);
+				my_strcat(buf, tmp, sizeof(buf));
 			}
 
 			/* Save the title */
-			strcpy(scroll_adj[i], buf+1);
+			my_strcpy(scroll_adj[i], buf+1, sizeof(scroll_adj[0]));
 
 			/* Assume okay */
 			okay = TRUE;
@@ -718,9 +718,6 @@ void flavor_init(void)
 			/* Break when done */
 			if (okay) break;
 		}
-
-		/* All scrolls are white */
-		scroll_col[i] = TERM_WHITE;
 	}
 
 
@@ -728,24 +725,17 @@ void flavor_init(void)
 	Rand_quick = FALSE;
 
 	/* Analyze every object */
-	for (i = 1; i < MAX_K_IDX; i++)
+	for (i = 1; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
 
 		/* Skip "empty" objects */
 		if (!k_ptr->name) continue;
 
-		/* Check for a "flavor" */
-		k_ptr->has_flavor = object_has_flavor(i);
-
 		/* No flavor yields aware */
-		/*if (!k_ptr->has_flavor) k_ptr->aware = TRUE;*/
-
-		/* Check for "easily known" */
-		k_ptr->easy_know = object_easy_know(i);
+		if (!k_ptr->flavor) k_ptr->aware = TRUE;
 	}
 }
-
 
 
 
@@ -758,7 +748,7 @@ static byte object_d_attr(int i)
 	object_kind *k_ptr = &k_info[i];
 
 	/* Flavored items */
-	if (k_ptr->has_flavor)
+	if (k_ptr->flavor)
 	{
 		/* Extract the indexx */
 		int indexx = k_ptr->sval;
@@ -778,7 +768,7 @@ static byte object_d_attr(int i)
 	}
 
 	/* Default attr if legal */
-	if (k_ptr->k_attr) return (k_ptr->k_attr);
+	if (k_ptr->d_attr) return (k_ptr->d_attr);
 
 	/* Default to white */
 	return (TERM_WHITE);
@@ -793,7 +783,7 @@ static byte object_d_char(int i)
 {
 	object_kind *k_ptr = &k_info[i];
 
-	return (k_ptr->k_char);
+	return (k_ptr->d_char);
 }
 
 
@@ -888,7 +878,7 @@ void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
 	(*f1) = k_ptr->flags1;
 	(*f2) = k_ptr->flags2;
 	(*f3) = k_ptr->flags3;
-    (*f4) = k_ptr->flags4;
+/*    (*f4) = k_ptr->flags4; */
 
 	/* Artifact */
     if (artifact_p(o_ptr))

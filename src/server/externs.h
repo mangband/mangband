@@ -386,9 +386,9 @@ extern char *g_name;
 extern char *g_text;
 extern hist_type *h_info;
 extern char *h_text;
-/*extern flavor_type *flavor_info;
+extern flavor_type *flavor_info;
 extern char *flavor_name;
-extern char *flavor_text;*/
+extern char *flavor_text;
 extern cptr ANGBAND_SYS;
 extern cptr ANGBAND_DIR;
 extern cptr ANGBAND_DIR_APEX;
@@ -1003,6 +1003,8 @@ extern void msg_format_near(int Ind, cptr fmt, ...);
 extern void player_talk(int Ind, char *msg);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg);
+extern int color_text_to_attr(cptr name);
+extern cptr attr_to_text(byte a);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);

@@ -346,9 +346,9 @@ extern char *g_name;
 extern char *g_text;
 extern hist_type *h_info;
 extern char *h_text;
-/*extern flavor_type *flavor_info;
+extern flavor_type *flavor_info;
 extern char *flavor_name;
-extern char *flavor_text;*/
+extern char *flavor_text;
 extern cptr ANGBAND_SYS;
 extern cptr ANGBAND_DIR;
 extern cptr ANGBAND_DIR_APEX;

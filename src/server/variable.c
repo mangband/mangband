@@ -747,14 +747,12 @@ char *g_text;
 hist_type *h_info;
 char *h_text;
 
-#if 0
 /*
  * The object flavor arrays
  */
 flavor_type *flavor_info;
 char *flavor_name;
 char *flavor_text;
-#endif
 
 /*
  * Hack -- The special Angband "System Suffix"

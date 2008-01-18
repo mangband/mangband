@@ -1591,6 +1591,12 @@ that keeps many algorithms happy.
 #define SV_BOOK_MIN_GOOD	4
 
 
+/*
+ * Special "sval" value -- unknown "sval"
+ */
+#define SV_UNKNOWN			255
+
+
 /*** Monster blow constants ***/
 
 
@@ -2468,7 +2474,7 @@ that keeps many algorithms happy.
  */
 #define object_known_p(IND, T) \
     (((T)->ident & ID_KNOWN) || \
-     (k_info[(T)->k_idx].easy_know && Players[IND]->obj_aware[(T)->k_idx]))
+     (k_info[(T)->k_idx].aware && Players[IND]->obj_aware[(T)->k_idx]))
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \

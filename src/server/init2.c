@@ -1363,6 +1363,32 @@ static errr init_v_info(void)
 }
 
 
+/*
+ * Initialize the "flavor_info" array
+ */
+static errr init_flavor_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&flavor_head, z_info->flavor_max, sizeof(flavor_type));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	flavor_head.parse_info_txt = parse_flavor_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("flavor", &flavor_head);
+
+	/* Set the global variables */
+	flavor_info = flavor_head.info_ptr;
+	flavor_name = flavor_head.name_ptr;
+	flavor_text = flavor_head.text_ptr;
+
+	return (err);
+}
 
 
 /*** Initialize others ***/
@@ -2502,6 +2528,10 @@ void init_some_arrays(void)
 	/* Initialize race info */
 	s_printf("[Initializing arrays... (races)]\n");
 	if (init_p_info()) quit("Cannot initialize races");
+
+	/* Initialize flavor info */
+	s_printf("[Initializing arrays... (flavors)]");
+	if (init_flavor_info()) quit("Cannot initialize flavors");
 
 	/* Initialize some other arrays */
 	s_printf("[Initializing arrays... (other)]\n");
