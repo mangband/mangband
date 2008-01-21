@@ -1036,7 +1036,13 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 			if (!p_ptr->stack_allow_wands) return (0);
 
 			/* Require identical charges */
-			if (o_ptr->pval != j_ptr->pval) return (0);
+			if (o_ptr->pval != j_ptr->pval)
+			{
+				/* Check to make sure they aren't stacked 
+				   in the wrong order */
+				p_ptr->notice |= (PN_REORDER);
+				return (0);
+			}
 
 			/* Probably okay */
 			break;
