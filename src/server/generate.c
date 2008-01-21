@@ -4228,6 +4228,7 @@ void dealloc_dungeon_level(int Depth)
 void generate_cave(int Depth,int auto_scum)
 {
 	int i, num;
+	int scum = auto_scum;
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
@@ -4339,7 +4340,11 @@ void generate_cave(int Depth,int auto_scum)
 	if (!cfg_ironman)
 	{
 		/* It takes 1000 game turns for "feelings" to recharge */
-		if ((turn - old_turn) < 1000) feeling = 0;
+		if ((turn - old_turn) < 1000)
+		{
+			feeling = 0;
+			scum = FALSE;
+		}
 	}
 
 		/* Hack -- no feeling in the town */
@@ -4368,7 +4373,7 @@ void generate_cave(int Depth,int auto_scum)
 
 		/* Mega-Hack -- "auto-scum" */
 	/* Auto-scum only in the dungeon!!! */
-        if ((Depth > 0) && auto_scum && (num < 100))
+        if ((Depth > 0) && scum && (num < 100))
 		{
 			fprintf(stderr,"auto_scum in on for this level\n");
 			/* Require "goodness" */
