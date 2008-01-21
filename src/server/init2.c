@@ -1066,6 +1066,35 @@ static errr init_a_info(void)
 
 
 /*
+ * Initialize the "c_info" array
+ */
+static errr init_c_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&c_head, z_info->c_max, sizeof(player_class));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	c_head.parse_info_txt = parse_c_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("p_class", &c_head);
+
+	/* Set the global variables */
+	c_info = c_head.info_ptr;
+	c_name = c_head.name_ptr;
+	c_text = c_head.text_ptr;
+
+	return (err);
+}
+
+
+
+/*
  * Initialize the "h_info" array
  */
 static errr init_h_info(void)

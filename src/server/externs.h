@@ -604,6 +604,7 @@ extern void signals_ignore_tstp(void);
 extern void signals_handle_tstp(void);
 extern void signals_init(void);
 extern void kingly(int Ind);
+extern void setup_exit_handler(void);
 extern errr get_rnd_line(cptr file_name, int entry, char *output);
 
 /* generate.c */

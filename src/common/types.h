@@ -1020,14 +1020,29 @@ struct player_race
 
 
 /*
+ * Starting equipment entry
+ */
+struct start_item
+{
+	byte tval;	/* Item's tval */
+	byte sval;	/* Item's sval */
+	byte min;	/* Minimum starting amount */
+	byte max;	/* Maximum starting amount */
+};
+
+
+/*
  * Player class info
  */
 
+//	cptr title;			/* Type of class */
 struct player_class
 {
-	cptr title;			/* Type of class */
+	u32b name;			/* Name (offset) */
 
-	s16b c_adj[6];		/* Class stat modifier */
+	u32b title[10];		/* Titles - offset */
+
+	s16b c_adj[A_MAX];	/* Class stat modifier */
 
 	s16b c_dis;			/* class disarming */
 	s16b c_dev;			/* class magic devices */
@@ -1049,6 +1064,24 @@ struct player_class
 
 	s16b c_mhp;			/* Class hit-dice adjustment */
 	s16b c_exp;			/* Class experience factor */
+
+	u32b flags;			/* Class Flags */
+
+	u16b max_attacks;	/* Maximum possible attacks */
+	u16b min_weight;	/* Minimum weapon weight for calculations */
+	u16b att_multiply;	/* Multiplier for attack calculations */
+
+	byte spell_book;	/* Tval of spell books (if any) */
+	u16b spell_stat;	/* Stat for spells (if any) */
+	u16b spell_first;	/* Level of first spell */
+	u16b spell_weight;	/* Weight that hurts spells */
+
+	u32b sense_base;	/* Base pseudo-id value */
+	u16b sense_div;		/* Pseudo-id divisor */
+
+	start_item start_items[MAX_START_ITEMS];/* The starting inventory */
+
+	player_magic spells; /* Magic spells */
 };
 
 
@@ -1507,18 +1540,6 @@ struct player_type
     
 	u32b birth_turn;	/* Server turn on which player was born */
 	u32b turn;			/* Actual player turns */
-};
-
-
-/*
- * Starting equipment entry
- */
-struct start_item
-{
-	byte tval;	/* Item's tval */
-	byte sval;	/* Item's sval */
-	byte min;	/* Minimum starting amount */
-	byte max;	/* Maximum starting amount */
 };
 
 

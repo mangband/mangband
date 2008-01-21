@@ -168,6 +168,12 @@
 #define MAX_SEXES            2
 
 /*
+ * Maximum amount of starting equipment
+ */
+#define MAX_START_ITEMS	4
+
+
+/*
  * Total number of owners per store (see "store.c", etc)
  */
 #define MAX_OWNERS	4
@@ -475,6 +481,26 @@
 #define PY_REGEN_FAINT		33		/* Regen factor*2^16 when fainting */
 #define PY_REGEN_HPBASE		1442	/* Min amount hp regen*2^16 */
 #define PY_REGEN_MNBASE		524		/* Min amount mana regen*2^16 */
+
+
+/*
+ * Maximum number of players spells
+ */
+#define PY_MAX_SPELLS 64
+
+
+/*
+ * Number of spells per book
+ */
+#define SPELLS_PER_BOOK 9
+
+
+/*
+ * Flags for player_type.spell_flags[]
+ */
+#define PY_SPELL_LEARNED    0x01 /* Spell has been learned */
+#define PY_SPELL_WORKED     0x02 /* Spell has been successfully tried */
+#define PY_SPELL_FORGOTTEN  0x04 /* Spell has been forgotten */
 
 
 /* Randart rarity */

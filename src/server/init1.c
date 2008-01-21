@@ -539,6 +539,46 @@ static cptr a_info_act[ACT_MAX] =
 };
 
 
+/*
+ * Class flags
+ */
+static cptr c_info_flags[] =
+{
+	"EXTRA_SHOT",
+	"BRAVERY_30",
+	"BLESS_WEAPON",
+	"CUMBER_GLOVE",
+	"ZERO_FAIL",
+	"BEAM",
+	"CHOOSE_SPELLS",
+	"PSEUDO_ID_HEAVY",
+	"PSEUDO_ID_IMPROV",
+	"XXX10",
+	"XXX11",
+	"XXX12",
+	"XXX13",
+	"XXX14",
+	"XXX15",
+	"XXX16",
+	"XXX17",
+	"XXX18",
+	"XXX19",
+	"XXX20",
+	"XXX21",
+	"XXX22",
+	"XXX23",
+	"XXX24",
+	"XXX25",
+	"XXX26",
+	"XXX27",
+	"XXX28",
+	"XXX29",
+	"XXX30",
+	"XXX31",
+	"XXX32"
+};
+
+
 /*** Initialize from ascii template files ***/
 
 
@@ -1055,6 +1095,343 @@ errr init_v_info_txt(FILE *fp, char *buf)
 	/* No version yet */
 	if (!okay) return (2);
 
+
+	/* Success */
+	return (0);
+}
+
+
+
+/*
+ * Grab one flag in a player class from a textual string
+ */
+static errr grab_one_class_flag(player_class *pc_ptr, cptr what)
+{
+	if (grab_one_flag(&pc_ptr->flags, c_info_flags, what) == 0)
+		return (0);
+
+	/* Oops */
+	msg_format("Unknown player class flag '%s'.", what);
+
+	/* Error */
+	return (PARSE_ERROR_GENERIC);
+}
+
+
+/*
+ * Initialize the "c_info" array, by parsing an ascii "template" file
+ */
+errr parse_c_info(char *buf, header *head)
+{
+	int i, j;
+
+	char *s, *t;
+
+	/* Current entry */
+	static player_class *pc_ptr = NULL;
+
+	static int cur_title = 0;
+	static int cur_equip = 0;
+
+
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
+	{
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
+
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
+
+		/* Get the index */
+		i = atoi(buf+2);
+
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
+
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
+
+		/* Save the index */
+		error_idx = i;
+
+		/* Point at the "info" */
+		pc_ptr = (player_class*)head->info_ptr + i;
+
+		/* Store the name */
+		if (!(pc_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+
+		/* No titles and equipment yet */
+		cur_title = 0;
+		cur_equip = 0;
+	}
+
+	/* Process 'S' for "Stats" (one line only) */
+	else if (buf[0] == 'S')
+	{
+		int adj;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Start the string */
+		s = buf+1;
+
+		/* For each stat */
+		for (j = 0; j < A_MAX; j++)
+		{
+			/* Find the colon before the subindex */
+			s = strchr(s, ':');
+
+			/* Verify that colon */
+			if (!s) return (PARSE_ERROR_GENERIC);
+
+			/* Nuke the colon, advance to the subindex */
+			*s++ = '\0';
+
+			/* Get the value */
+			adj = atoi(s);
+
+			/* Save the value */
+			pc_ptr->c_adj[j] = adj;
+
+			/* Next... */
+			continue;
+		}
+	}
+
+	/* Process 'C' for "Class Skills" (one line only) */
+	else if (buf[0] == 'C')
+	{
+		int dis, dev, sav, stl, srh, fos, thn, thb;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (8 != sscanf(buf+2, "%d:%d:%d:%d:%d:%d:%d:%d",
+			            &dis, &dev, &sav, &stl,
+			            &srh, &fos, &thn, &thb)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		pc_ptr->c_dis = dis;
+		pc_ptr->c_dev = dev;
+		pc_ptr->c_sav = sav;
+		pc_ptr->c_stl = stl;
+		pc_ptr->c_srh = srh;
+		pc_ptr->c_fos = fos;
+		pc_ptr->c_thn = thn;
+		pc_ptr->c_thb = thb;
+	}
+
+	/* Process 'X' for "Extra Skills" (one line only) */
+	else if (buf[0] == 'X')
+	{
+		int dis, dev, sav, stl, srh, fos, thn, thb;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (8 != sscanf(buf+2, "%d:%d:%d:%d:%d:%d:%d:%d",
+			            &dis, &dev, &sav, &stl,
+			            &srh, &fos, &thn, &thb)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		pc_ptr->x_dis = dis;
+		pc_ptr->x_dev = dev;
+		pc_ptr->x_sav = sav;
+		pc_ptr->x_stl = stl;
+		pc_ptr->x_srh = srh;
+		pc_ptr->x_fos = fos;
+		pc_ptr->x_thn = thn;
+		pc_ptr->x_thb = thb;
+	}
+
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int mhp, exp, sense_div;
+		long sense_base;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%ld:%d",
+			            &mhp, &exp, &sense_base, &sense_div))
+			return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		pc_ptr->c_mhp = mhp;
+		pc_ptr->c_exp = exp;
+		pc_ptr->sense_base = sense_base;
+		pc_ptr->sense_div = sense_div;
+	}
+
+	/* Process 'A' for "Attack Info" (one line only) */
+	else if (buf[0] == 'A')
+	{
+		int max_attacks, min_weight, att_multiply;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &max_attacks, &min_weight, &att_multiply))
+			return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		pc_ptr->max_attacks = max_attacks;
+		pc_ptr->min_weight = min_weight;
+		pc_ptr->att_multiply = att_multiply;
+	}
+
+	/* Process 'M' for "Magic Info" (one line only) */
+	else if (buf[0] == 'M')
+	{
+		int spell_book, spell_stat, spell_first, spell_weight;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+		                &spell_book, &spell_stat,
+		                &spell_first, &spell_weight))
+			return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		pc_ptr->spell_book = spell_book;
+		pc_ptr->spell_stat = spell_stat;
+		pc_ptr->spell_first = spell_first;
+		pc_ptr->spell_weight = spell_weight;
+	}
+
+	/* Process 'B' for "Spell/Prayer book info" */
+	else if (buf[0] == 'B')
+	{
+		int spell, level, mana, fail, exp;
+		player_magic *mp_ptr;
+		magic_type *spell_ptr;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (5 != sscanf(buf+2, "%d:%d:%d:%d:%d",
+		                &spell, &level, &mana, &fail, &exp))
+			return (PARSE_ERROR_GENERIC);
+
+		/* Validate the spell index */
+		if ((spell >= PY_MAX_SPELLS) || (spell < 0))
+			return (PARSE_ERROR_OUT_OF_BOUNDS);
+
+		mp_ptr = &pc_ptr->spells;
+		spell_ptr = &mp_ptr->info[spell];
+
+		/* Save the values */
+		spell_ptr->slevel = level;
+		spell_ptr->smana = mana;
+		spell_ptr->sfail = fail;
+		spell_ptr->sexp = exp;
+	}
+
+	/* Process 'T' for "Titles" */
+	else if (buf[0] == 'T')
+	{
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Get the text */
+		s = buf+2;
+
+		/* Store the text */
+		if (!add_text(&pc_ptr->title[cur_title], head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+		
+		/* Next title */
+		cur_title++;
+
+		/* Limit number of titles */
+		if (cur_title > PY_MAX_LEVEL / 5)
+			return (PARSE_ERROR_TOO_MANY_ARGUMENTS);
+	}
+
+	/* Process 'E' for "Starting Equipment" */
+	else if (buf[0] == 'E')
+	{
+		int tval, sval, min, max;
+
+		start_item *e_ptr;
+
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Access the item */
+		e_ptr = &pc_ptr->start_items[cur_equip];
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &tval, &sval, &min, &max)) return (PARSE_ERROR_GENERIC);
+
+		if ((min < 0) || (max < 0) || (min > 99) || (max > 99))
+			return (PARSE_ERROR_INVALID_ITEM_NUMBER);
+
+		/* Save the values */
+		e_ptr->tval = tval;
+		e_ptr->sval = sval;
+		e_ptr->min = min;
+		e_ptr->max = max;
+
+		/* Next item */
+		cur_equip++;
+
+		/* Limit number of starting items */
+		if (cur_equip > MAX_START_ITEMS)
+			return (PARSE_ERROR_GENERIC);
+	}
+
+	/* Process 'F' for flags */
+	else if (buf[0] == 'F')
+	{
+		/* There better be a current pc_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry textually */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while ((*t == ' ') || (*t == '|')) t++;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_class_flag(pc_ptr, s))
+				return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
