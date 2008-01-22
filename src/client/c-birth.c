@@ -162,7 +162,7 @@ static void choose_race(void)
 	for (j = 0; j < MAX_RACES; j++)
 	{
 		rp_ptr = &race_info[j];
-		(void)sprintf(out_val, "%c) %s", I2A(j), rp_ptr->name);
+    		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -182,7 +182,7 @@ static void choose_race(void)
 		{
 			race = j;
 			rp_ptr = &race_info[j];
-			c_put_str(TERM_L_BLUE, rp_ptr->name, 5, 15);
+			c_put_str(TERM_L_BLUE, p_name + rp_ptr->name, 5, 15);
 			break;
 		}
 		else if (c == '?')
