@@ -757,19 +757,35 @@ void cmd_destroy(void)
 		return;
 	}
 
-	/* Get an amount */
-	if (inventory[item].number > 1)
+	/* Not on-the-floor item */
+	if (item >= 0) 
 	{
-		amt = c_get_quantity("How many? ", inventory[item].number);
+		/* Get an amount */
+		if (inventory[item].number > 1)
+		{
+			amt = c_get_quantity("How many? ", inventory[item].number);
+		}
+		else amt = 1;
+	
+		/* Sanity check */
+		if (inventory[item].number == amt)
+			sprintf(out_val, "Really destroy %s? ", inventory_name[item]);
+		else
+			sprintf(out_val, "Really destroy %d of your %s? ", amt, inventory_name[item]);
+		if (!get_check(out_val)) return;
+	
 	}
-	else amt = 1;
-
-	/* Sanity check */
-	if (inventory[item].number == amt)
-		sprintf(out_val, "Really destroy %s? ", inventory_name[item]);
-	else
-		sprintf(out_val, "Really destroy %d of your %s? ", amt, inventory_name[item]);
-	if (!get_check(out_val)) return;
+	else 
+	{
+		/* BAD HACK -- always destroy only 1 item on the floor. 
+			TODO: server informs client about number of items along the lines of TV_ update
+					then it is presented here
+		*/
+		sprintf(out_val, "Really destroy ? ");
+		if (!get_check(out_val)) return;
+			
+		amt = 1;
+	} 
 
 	/* Send it */
 	Send_destroy(item, amt);

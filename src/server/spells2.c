@@ -1974,6 +1974,10 @@ bool create_artifact_aux(int Ind, int item)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+			if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return FALSE;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 #if !defined(RANDART)
@@ -2083,6 +2087,10 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return FALSE;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -2163,6 +2171,10 @@ bool ident_spell_aux(int Ind, int item)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return FALSE;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -2243,6 +2255,10 @@ bool identify_fully_item(int Ind, int item)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return FALSE;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -2378,6 +2394,10 @@ bool recharge_aux(int Ind, int item, int num)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return FALSE;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 

@@ -388,6 +388,10 @@ void do_cmd_browse(int Ind, int book)
 	else
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
 		o_ptr = &o_list[0 - item];
 	}
 
@@ -479,6 +483,10 @@ void do_cmd_study(int Ind, int book, int spell)
 	else
 	{
 		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (book == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
 		o_ptr = &o_list[0 - book];
 	}
 
@@ -661,6 +669,10 @@ void do_cmd_cast(int Ind, int book, int spell)
 	else
 	{
 		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (book == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
 		o_ptr = &o_list[0 - book];
 	}
 
@@ -1558,7 +1570,11 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Get the item (on the floor) */
     else
     {
-    	  item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+    	if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
         o_ptr = &o_list[0 - item];
     }
 
