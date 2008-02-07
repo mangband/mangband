@@ -1,7 +1,20 @@
-# File: e_info.txt
+# File: ego_item.txt
 
-# The ego-item indexes are defined in "defines.h"
-# File totally renumbered for version 0.9.9
+
+# This file is used to initialize the "lib/data/ego_item.raw" file, which is
+# used to initialize the "ego-item" information for the Angband game.
+
+# Do not modify this file unless you know exactly what you are doing,
+# unless you wish to risk possible system crashes and broken savefiles.
+# After modifying this file, delete the "lib/data/ego_item.raw" file.
+
+# The ego-item indexes are defined in "defines.h", and must not be changed
+# or savefile compatibility will be lost.
+
+# Note that several "ego-item" types may share the same "textual name",
+# such as with "Armor of Resistance" and "Shield of Resistance".
+
+# === Understanding ego_item.txt ===
 
 # N: serial number : ego type
 # X: rating : xtra
@@ -10,121 +23,155 @@
 # T: tval : min_sval : max_sval
 # F: flag | flag | etc
 
+# 'N' indicates the beginning of an entry. The serial number must
+# increase for each new item.
+
+# 'X' is for extra information - Rating affects level feelings.
+# The xtra value determines random extra flags for the ego-item.
+# Nothing happens with a value of 0, 1 stands for "one random extra
+# sustain", 2 is "one random extra resist", and 3 is "one random
+# extra ability".
+
+# 'C' is for creation bonusses - maximum to-hit, to-dam, to-ac, and
+# pval. Cursed ego-items will negate the given value.
+
+# 'W' is for extra information. Depth is the depth the object is
+# normally found at, rarity determines how common the object is,
+# weight is in tenth-pounds and cost is the items value.
+
+# 'F' is for flags. These are fairly self-explanatory. As many F:
+# lines may be used as are needed to specify all the flags and flags
+# are separated by the '|' symbol.
+
+# 'T' is for possible 'tval' and 'sval' values of the base-item.
+# Up to three 'T' entries are possible for a single object. The
+# ego-item can only be generated from items of this tval, with sval
+# in the specified range.
+
 
 # Version stamp (required)
 
 V:1.0.0
 
+# 1 (unused)
+
+# 2 (unused)
+
+# 3 (unused)
+
 ### Body Armor ###
 
-N:1:of Resist Acid
+N:4:of Resist Acid
 X:16:0
 W:0:1:0:1000
 T:36:0:99
 T:37:0:99
 F:RES_ACID | IGNORE_ACID
 
-N:2:of Resist Lightning
+N:5:of Resist Lightning
 X:10:0
 W:0:1:0:400
 T:36:0:99
 T:37:0:99
 F:RES_ELEC | IGNORE_ELEC
 
-N:3:of Resist Fire
+N:6:of Resist Fire
 X:14:0
 W:0:1:0:800
 T:36:0:99
 T:37:0:99
 F:RES_FIRE | IGNORE_FIRE
 
-N:4:of Resist Cold
+N:7:of Resist Cold
 X:12:0
 W:0:1:0:600
 T:36:0:99
 T:37:0:99
 F:RES_COLD | IGNORE_COLD
 
-N:5:of Resistance
+N:8:of Resistance
 X:20:0
 W:0:2:0:12500
 C:0:0:10:0
 T:36:0:99
 T:37:0:99
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | 
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-N:6:of Elvenkind
+N:9:of Elvenkind
 X:25:2
 W:0:4:0:15000
 C:0:0:10:3
 T:36:0:99
 T:37:0:99
-F:STEALTH | 
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | 
+F:STEALTH |
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-# New ego item: Armor of Vulnerability
-
-N:7:of Vulnerability
+N:10:of Vulnerability
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 C:0:0:50:0
 T:36:0:99
 T:37:0:99
 F:AGGRAVATE | LIGHT_CURSE
 
-# Robes only
+### Robes only ###
 
-N:8:of Permanence
+N:11:of Permanence
 X:30:2
 W:0:4:0:30000
 C:0:0:20:0
 T:36:2:2
-F:SUST_STR | SUST_DEX | SUST_CON | SUST_INT | SUST_WIS | SUST_CHR | 
-F:HOLD_LIFE | RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | 
+F:SUST_STR | SUST_DEX | SUST_CON | SUST_INT | SUST_WIS | SUST_CHR |
+F:HOLD_LIFE | RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-# New ego item: Armor (Dwarven)
-# Heavy metal armor only, not rusty
+### Heavy metal armor only, not rusty ###
 
-N:9:(Dwarven)
+N:12:(Dwarven)
 X:18:0
 W:0:2:0:5000
 C:0:0:15:2
 T:37:3:99
 F:IGNORE_ACID | IGNORE_FIRE |
 F:FREE_ACT |
-F:STR | CON | INFRA | HIDE_TYPE
+F:STR | CON | INFRA | HIDE_TYPE |
+
+# 13 (unused)
+
+# 14 (unused)
+
+# 15 (unused)
 
 
 ### Shields ###
 
-N:10:of Resist Acid
+N:16:of Resist Acid
 X:16:0
 W:0:1:0:1000
 T:34:0:99
 F:RES_ACID | IGNORE_ACID
 
-N:11:of Resist Lightning
+N:17:of Resist Lightning
 X:10:0
 W:0:1:0:400
 T:34:0:99
 F:RES_ELEC | IGNORE_ELEC
 
-N:12:of Resist Fire
+N:18:of Resist Fire
 X:14:0
 W:0:1:0:800
 T:34:0:99
 F:RES_FIRE | IGNORE_FIRE
 
-N:13:of Resist Cold
+N:19:of Resist Cold
 X:12:0
 W:0:1:0:600
 T:34:0:99
 F:RES_COLD | IGNORE_COLD
 
-N:14:of Resistance
+N:20:of Resistance
 X:20:0
 W:0:2:0:12500
 C:0:0:10:0
@@ -132,17 +179,7 @@ T:34:0:99
 F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-N:15:of the Avari
-X:25:2
-W:0:4:0:18000
-C:0:0:15:2
-T:34:0:99
-F:RES_FIRE | RES_COLD | RES_ACID | RES_ELEC | CON |
-F:IGNORE_ACID | IGNORE_FIRE | IGNORE_COLD | IGNORE_ELEC
-
-# New ego item: Shield of Elvenkind
-
-N:16:of Elvenkind
+N:21:of Elvenkind
 X:25:2
 W:0:4:0:18000
 C:0:0:10:3
@@ -151,9 +188,7 @@ F:STEALTH |
 F:RES_FIRE | RES_COLD | RES_ACID | RES_ELEC |
 F:IGNORE_ACID | IGNORE_FIRE | IGNORE_COLD | IGNORE_ELEC
 
-# New ego item: Shield of Preservation
-
-N:17:of Preservation
+N:22:of Preservation
 X:25:2
 W:60:4:0:24000
 C:0:0:20:0
@@ -161,11 +196,9 @@ T:34:0:99
 F:RES_DISEN | SUST_STR | SUST_CON | SUST_DEX | HOLD_LIFE |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-# New ego item: Shield of Vulnerability
-
-N:18:of Vulnerability
+N:23:of Vulnerability
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 C:0:0:50:0
 T:34:0:99
 F:AGGRAVATE | LIGHT_CURSE
@@ -173,112 +206,106 @@ F:AGGRAVATE | LIGHT_CURSE
 
 ### Crowns and Helms ###
 
-N:19:of Intelligence
+N:24:of Intelligence
 X:13:0
 C:0:0:0:2
-W:0:1:0:500
+W:0:2:0:500
 T:32:0:99
 F:INT | SUST_INT
 
-N:20:of Wisdom
+N:25:of Wisdom
 X:13:0
-W:0:1:0:500
+W:0:2:0:500
 C:0:0:0:2
 T:32:0:99
 F:WIS | SUST_WIS
 
-N:21:of Beauty
+N:26:of Beauty
 X:8:0
-W:0:1:0:1000
+W:0:2:0:1000
 C:0:0:0:4
 T:32:0:99
 F:CHR | SUST_CHR
 
-N:22:of the Magi
+N:27:of the Magi
 X:15:3
-W:0:2:0:7500
+W:0:4:0:7500
 C:0:0:0:3
 T:33:0:99
-F:INT | SUST_INT | 
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | 
+F:INT | SUST_INT |
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-N:23:of Might
+N:28:of Might
 X:19:0
+W:0:4:0:7500
+C:0:0:0:3
+T:33:0:99
+F:STR | DEX | CON | SUST_STR | SUST_DEX | SUST_CON | FREE_ACT
+F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
+
+N:29:of Lordliness
+X:17:3
 W:0:2:0:7500
 C:0:0:0:3
 T:33:0:99
-F:STR | DEX | CON | SUST_STR | SUST_DEX | SUST_CON | FREE_ACT |
+F:WIS | CHR | SUST_WIS | SUST_CHR | RES_FEAR
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-N:24:of Lordliness
-X:17:3
-W:0:1:0:7500
-C:0:0:0:3
-T:33:0:99
-F:WIS | CHR | SUST_WIS | SUST_CHR | RES_FEAR |
-F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
-
-N:25:of Seeing
+N:30:of Seeing
 X:8:0
-W:0:1:0:2000
+W:0:2:0:2000
 C:0:0:0:5
 T:33:0:99
 T:32:0:99
 F:SEARCH | RES_BLIND | SEE_INVIS
 
-N:26:of Infravision
+N:31:of Infravision
 X:11:0
-W:0:1:0:500
+W:0:2:0:500
 C:0:0:0:5
 T:32:0:99
 F:INFRA | HIDE_TYPE
 
-N:27:of Light
+N:32:of Light
 X:6:0
-W:0:1:0:1000
+W:0:2:0:1000
 T:32:0:99
 F:LITE | RES_LITE
 
-N:28:of Telepathy
+N:33:of Telepathy
 X:20:0
-W:0:3:0:50000
+W:0:6:0:50000
 T:32:0:99
 T:33:0:99
 F:TELEPATHY
 
-N:29:of Regeneration
+N:34:of Regeneration
 X:10:0
-W:0:2:0:1500
+W:0:4:0:1500
 T:32:0:99
 T:33:0:99
 F:REGEN
 
-N:30:of Teleportation
+N:35:of Teleportation
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 T:32:0:99
 F:TELEPORT | LIGHT_CURSE
 
-# New ego item: Crown of Serenity
-
-N:31:of Serenity
+N:36:of Serenity
 X:20:0
-W:0:3:0:4000
+W:0:6:0:4000
 T:33:0:99
 F:RES_SOUND | RES_CONFU | RES_FEAR
 
-# New ego item: Crown of Night and Day
-
-N:32:of Night and Day
+N:37:of Night and Day
 X:18:0
-W:35:3:0:4000
+W:35:6:0:4000
 T:33:0:99
 F:RES_LITE | RES_DARK | LITE | SEE_INVIS | RES_BLIND | IGNORE_ACID
 
-# New ego item: Crown of Dullness
-
-N:33:of Dullness
+N:38:of Dullness
 X:0:0
 C:0:0:0:5
 W:0:2:0:0
@@ -286,7 +313,7 @@ T:32:0:99
 T:33:0:99
 F:INT | WIS | CHR | LIGHT_CURSE
 
-N:34:of Sickliness
+N:39:of Sickliness
 X:0:0
 C:0:0:0:5
 W:0:2:0:0
@@ -296,160 +323,112 @@ F:STR | DEX | CON | LIGHT_CURSE
 
 ### Cloaks ###
 
-N:35:of Protection
+N:40:of Protection
 X:10:0
 W:0:2:0:1500
 C:0:0:10:0
 T:35:0:99
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD | RES_SHARD
 
-N:36:of Stealth
+N:41:of Stealth
 X:10:0
 W:0:1:0:500
 C:0:0:0:3
 T:35:0:99
 F:STEALTH
 
-N:37:of Aman
+N:42:of Aman
 X:20:2
 W:0:6:0:4000
 C:0:0:20:3
 T:35:0:99
-F:STEALTH | 
+F:STEALTH |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
-N:38:of the Teleri
-X:20:0
-W:0:3:0:2000
-C:0:0:10:0
+N:43:of the Magi
+X:15:3
+W:30:3:0:2000
+C:0:0:4:2
 T:35:0:99
-F:HOLD_LIFE | FREE_ACT
+F:INT | SUST_INT | STEALTH | HIDE_TYPE | IGNORE_ACID
 
-N:39:of Resistance
-X:20:0
-W:0:4:0:12500
-C:0:0:10:0
-T:35:0:99
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
-F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
-
-N:40:of Lordly Resistance
-X:20:0
-W:0:12:0:80000
-C:0:0:20:0
-T:35:0:99
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | ACTIVATE |
-F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
-
-# New ego item: Cloak of the Magi
-#
-#N:41:of the Magi
-#X:15:3
-#W:30:3:0:2000
-#C:0:0:4:2
-#T:35:0:99
-#F:INT | SUST_INT | STEALTH | HIDE_TYPE | IGNORE_ACID
-
-N:42:of Enveloping
+N:44:of Enveloping
 X:0:0
 W:0:1:0:0
 C:10:10:0:0
 T:35:0:99
 F:SHOW_MODS | LIGHT_CURSE
 
-N:43:of Vulnerability
+N:45:of Vulnerability
 X:0:0
 W:0:1:0:0
 C:0:0:50:0
 T:35:0:99
 F:AGGRAVATE | LIGHT_CURSE
 
-N:44:of Irritation
+N:46:of Irritation
 X:0:0
 W:0:1:0:0
 C:15:15:0:0
 T:35:0:99
 F:AGGRAVATE | SHOW_MODS | LIGHT_CURSE
 
+# 47 (unused)
 
 ### Gloves ###
 
-N:45:of Free Action
+N:48:of Free Action
 X:11:0
-W:0:2:0:1000
-T:31:0:99
 F:FREE_ACT
-
-N:46:of Slaying
-X:17:0
-W:0:2:0:1500
-C:5:5:0:0
+W:0:4:0:1000
 T:31:0:99
+
+N:49:of Slaying
+X:17:0
+W:0:4:0:1500
+C:5:5:0:0
 F:SHOW_MODS
+T:31:0:99
 D:They boost your to-hit and to-dam values.
 
-N:47:of Agility
+N:50:of Agility
 X:14:0
-W:0:3:0:1000
+W:0:6:0:1000
 C:0:0:0:5
 T:31:0:99
 F:DEX | HIDE_TYPE
 
-N:48:of Power
+N:51:of Power
 X:22:0
-W:0:3:0:2500
+W:0:6:0:2500
 C:5:5:0:5
 T:31:0:99
 F:STR | SHOW_MODS | HIDE_TYPE
 
-N:49:of the Istari
-X:20:2
-W:0:6:0:15000
-C:5:5:10:3
-T:31:0:99
-F:INT | WIS | FREE_ACT |
-F:SHOW_MODS | HIDE_TYPE
-
-# New ego item: Gloves of the Magi
-
-#N:50:of the Magi
-#X:20:3
-#W:0:6:0:15000
-#C:-5:-5:10:10
-#T:31:0:99
-#F:MANA | FREE_ACT |
-#F:SHOW_MODS | HIDE_TYPE
-
-# New ego item: Gloves of Thievery
-# Leather gloves only
-
-N:51:of Thievery
+N:52:of Thievery
 X:22:0
-W:40:6:0:5000
+W:40:12:0:5000
 C:8:3:0:5
 T:31:1:1
 F:DEX | SEARCH | SHOW_MODS | FEATHER | FREE_ACT | HIDE_TYPE
 
-# New ego item: Gloves of Combat
-# No leather gloves
+N:53:of Combat
+X:22:0
+W:50:12:0:7000
+C:3:8:0:2
+T:31:2:99
+F:STR | CON | SHOW_MODS | AGGRAVATE | HIDE_TYPE
 
-#N:52:of Combat
-#X:22:0
-#W:50:6:0:7000
-#C:3:8:0:2
-#T:31:2:99
-#F:STR | CON | SHOW_MODS | AGGRAVATE | HIDE_TYPE
-
-N:53:of Weakness
+N:54:of Weakness
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 C:0:0:0:10
 T:31:0:99
 F:STR | LIGHT_CURSE | HIDE_TYPE
 
-N:54:of Clumsiness
+N:55:of Clumsiness
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 C:0:0:0:10
 T:31:0:99
 F:DEX | LIGHT_CURSE | HIDE_TYPE
@@ -457,48 +436,37 @@ F:DEX | LIGHT_CURSE | HIDE_TYPE
 
 ### Boots ###
 
-N:55:of Slow Descent
+N:56:of Slow Descent
 X:7:0
 W:0:5:0:250
 T:30:0:99
 F:FEATHER
 
-N:56:of Stealth
+N:57:of Stealth
 X:16:0
 W:0:6:0:500
 C:0:0:0:3
 T:30:0:99
 F:STEALTH | HIDE_TYPE
 
-N:57:of Free Action
+N:58:of Free Action
 X:15:0
 W:0:8:0:1000
-T:30:0:99
 F:FREE_ACT
+T:30:0:99
 
-N:58:of Speed
+N:59:of Speed
 X:25:0
 W:0:24:0:100000
 C:0:0:0:10
 T:30:0:99
 F:SPEED | HIDE_TYPE
 
-N:59:of Mirkwood
-X:20:0
-W:0:12:0:15000
-T:30:0:99
-F:FREE_ACT | RES_POIS
-
-# New ego item: Boots of Stability
-
 N:60:of Stability
 X:20:0
 W:0:10:0:5000
 T:30:0:99
 F:RES_NEXUS | FEATHER
-
-# New ego item: Boots of Elvenkind
-# Leather boots only
 
 N:61:of Elvenkind
 X:30:0
@@ -511,92 +479,84 @@ N:62:of Slowness
 X:0:0
 W:0:5:0:0
 C:0:0:0:5
-T:30:0:99
 F:SPEED | LIGHT_CURSE | HIDE_TYPE
+T:30:0:99
 
 N:63:of Annoyance
 X:0:0
 W:0:10:0:0
 C:0:0:0:10
-T:30:0:99
 F:SPEED | STEALTH | AGGRAVATE | LIGHT_CURSE | HIDE_TYPE
+T:30:0:99
 
 
 ### Weapons ###
 
 N:64:(Holy Avenger)
 X:30:1
-W:0:6:0:20000
+W:0:12:0:20000
 C:6:6:4:4
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:WIS | 
+F:WIS |
 F:SLAY_EVIL | SLAY_UNDEAD | SLAY_DEMON |
-#F:ESP_EVIL | 
 F:SEE_INVIS | BLESSED | RES_FEAR
 
 N:65:(Defender)
 X:25:1
-W:0:6:0:15000
+W:0:12:0:15000
 C:4:4:8:4
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:STEALTH | FREE_ACT | SEE_INVIS | FEATHER | REGEN |
-F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | 
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
 N:66:(Blessed)
 X:20:3
-W:0:5:0:5000
+W:0:10:0:5000
 C:0:0:0:3
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:WIS | BLESSED
 
-# New ego item: Weapon of Gondolin
-
 N:67:of Gondolin
 X:30:3
-W:30:10:0:25000
+W:30:20:0:25000
 C:7:7:0:0
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_DEMON | SLAY_ORC | SLAY_TROLL | SLAY_DRAGON |
-#F:ESP_DEMON | F: ESP_ORC | ESP_TROLL | ESP_DRAGON |
 F:LITE | RES_DARK | SEE_INVIS | FREE_ACT |
 F:IGNORE_ACID | IGNORE_FIRE
 
 N:68:of Westernesse
 X:20:0
-W:0:5:0:20000
+W:0:10:0:20000
 C:5:5:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:STR | DEX | CON | 
-F:SLAY_ORC | SLAY_TROLL | SLAY_GIANT | 
-#F:ESP_ORC | ESP_TROLL | ESP_GIANT |
+F:STR | DEX | CON |
+F:SLAY_ORC | SLAY_TROLL | SLAY_GIANT |
 F:FREE_ACT | SEE_INVIS
 
 N:69:of Extra Attacks
 X:20:0
-W:0:5:0:10000
+W:0:10:0:10000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BLOWS | HIDE_TYPE
 
-# New ego item: Weapon of Fury
-# Heavy weapons only
-
 N:70:of Fury
 X:30:0
-W:40:10:0:20000
+W:40:20:0:20000
 T:21:12:99
 T:22:10:99
 T:23:16:99
@@ -604,209 +564,225 @@ C:10:10:0:2
 F:STR | BLOWS | AGGRAVATE | RES_FEAR | HIDE_TYPE |
 F:IGNORE_ACID | IGNORE_FIRE
 
-# The "Elemental" brands (5)
+# 71 (unused)
 
-N:71:of Acid
+# The "Branded" weapons (5)
+
+N:72:of Acid
 X:20:0
-W:0:5:0:5000
+W:0:10:0:5000
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BRAND_ACID | RES_ACID | IGNORE_ACID
 
-N:72:of Lightning
+N:73:of Lightning
 X:20:0
-W:0:5:0:4500
+W:0:10:0:4500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BRAND_ELEC | RES_ELEC | IGNORE_ELEC
 
-N:73:of Flame
+N:74:of Flame
 X:15:0
-W:0:4:0:3500
+W:0:8:0:3500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BRAND_FIRE | RES_FIRE | IGNORE_FIRE
 
-N:74:of Frost
+N:75:of Frost
 X:15:0
-W:0:4:0:3000
+W:0:8:0:3000
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BRAND_COLD | RES_COLD | IGNORE_COLD
 
-N:75:of Venom
+N:76:of Venom
 X:15:0
-W:0:4:0:4000
+W:0:8:0:4000
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:BRAND_POIS
 
-# The "Slay" brands (8)
+# 77 (unused)
 
-N:76:of Slay Animal
+# 78 (unused)
+
+# 79 (unused)
+
+# The "Slay" weapons (8)
+
+N:80:of Slay Animal
 X:18:0
-W:0:3:0:3000
+W:0:6:0:3000
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_ANIMAL
 
-N:77:of Slay Evil
+N:81:of Slay Evil
 X:18:0
-W:0:3:0:3000
+W:0:6:0:3000
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_EVIL
 
-N:78:of Slay Undead
+N:82:of Slay Undead
 X:18:0
-W:0:3:0:3500
+W:0:6:0:3500
 T:21:0:18
 T:22:0:99
 T:23:0:99
 F:SLAY_UNDEAD
 
-N:79:of Slay Demon
+N:83:of Slay Demon
 X:14:0
-W:0:3:0:3500
+W:0:6:0:3500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_DEMON
 
-N:80:of Slay Orc
+N:84:of Slay Orc
 X:10:0
-W:0:3:0:2500
+W:0:6:0:2500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_ORC
 
-N:81:of Slay Troll
+N:85:of Slay Troll
 X:10:0
-W:0:3:0:2500
+W:0:6:0:2500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_TROLL
 
-N:82:of Slay Giant
+N:86:of Slay Giant
 X:14:0
-W:0:3:0:2500
+W:0:6:0:2500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_GIANT
 
-N:83:of Slay Dragon
+N:87:of Slay Dragon
 X:18:0
-W:0:3:0:3500
+W:0:6:0:3500
 T:21:0:99
 T:22:0:99
 T:23:0:99
 F:SLAY_DRAGON
 
-# The "Kill" brands (8)
+# The *Slay* weapons (8)
 
-N:84:of *Slay Animal*
+N:88:of *Slay Animal*
 X:20:0
-W:0:10:0:6000
+W:0:20:0:6000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:INT | SLAY_ANIMAL | 
-#F:ESP_ANIMAL | 
-F:SLOW_DIGEST
+F:INT | SLAY_ANIMAL | SLOW_DIGEST
 
-N:85:of *Slay Evil*
+N:89:of *Slay Evil*
 X:20:3
-W:0:10:0:5000
+W:0:20:0:5000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:WIS | SLAY_EVIL | 
-#F:ESP_EVIL | 
-F:BLESSED
+F:WIS | SLAY_EVIL | BLESSED
 
-N:86:of *Slay Undead*
+N:90:of *Slay Undead*
 X:24:0
-W:0:10:0:8000
+W:0:20:0:8000
 C:0:0:0:2
 T:21:0:18
 T:22:0:99
 T:23:0:99
-F:KILL_UNDEAD | 
-#F:ESP_UNDEAD | 
-F:WIS | SEE_INVIS
+F:KILL_UNDEAD | WIS | SEE_INVIS
 
-N:87:of *Slay Demon*
+N:91:of *Slay Demon*
 X:16:0
-W:0:10:0:8000
+W:0:20:0:8000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:KILL_DEMON | 
-#F:ESP_DEMON | 
-F:INT | RES_FIRE
+F:KILL_DEMON | INT | RES_FIRE
 
-N:88:of *Slay Orc*
+N:92:of *Slay Orc*
 X:14:0
-W:0:10:0:4000
+W:0:20:0:4000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:DEX | SLAY_ORC | 
-#F:ESP_ORC | 
-F:SUST_DEX
+F:DEX | SLAY_ORC | SUST_DEX
 
-N:89:of *Slay Troll*
+N:93:of *Slay Troll*
 X:14:0
-W:0:10:0:4000
+W:0:20:0:4000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:STR | SLAY_TROLL | 
-#F:ESP_TROLL | 
-F:REGEN
+F:STR | SLAY_TROLL | REGEN
 
-N:90:of *Slay Giant*
+N:94:of *Slay Giant*
 X:16:0
-W:0:10:0:4000
+W:0:20:0:4000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:STR | SLAY_GIANT | 
-#F:ESP_GIANT | 
-F:SUST_STR
+F:STR | SLAY_GIANT | SUST_STR
 
-N:91:of *Slay Dragon*
+N:95:of *Slay Dragon*
 X:24:0
-W:0:10:0:8000
+W:0:20:0:8000
 C:0:0:0:2
 T:21:0:99
 T:22:0:99
 T:23:0:99
-F:CON | KILL_DRAGON | 
-#F:ESP_DRAGON | 
-F:RES_FEAR
+F:CON | KILL_DRAGON | RES_FEAR
 
-# LIGHT_CURSE weapons
+# 96 (unused)
 
-N:92:of Morgul
+# 97 (unused)
+
+# 98 (unused)
+
+# 99 (unused)
+
+### Digging Tools
+
+N:100:of Digging
+X:4:0
+W:0:1:0:500
+C:0:0:0:4
+T:20:0:99
+F:TUNNEL | BRAND_ACID
+
+N:101:of Earthquakes
+X:8:0
+W:20:4:0:3000
+C:10:10:0:6
+T:20:0:99
+F:STR | TUNNEL | BRAND_ACID | IMPACT | HIDE_TYPE
+
+### Cursed Weapons
+
+N:102:of Morgul
 X:0:0
-W:0:1:0:1
+W:0:5:0:1
 C:0:0:0:0
 T:21:0:99
 T:22:0:99
@@ -814,38 +790,12 @@ T:23:0:99
 F:SEE_INVIS | AGGRAVATE | HEAVY_CURSE | LIGHT_CURSE |
 F:HOLD_LIFE | DRAIN_EXP | SLAY_UNDEAD | BRAND_POIS
 
-# New ego item: Weapon of Power
-# Mage weapons only
-
-N:93:of Power
-X:20:2
-W:0:1:0:15000
-C:-10:-10:0:3
-T:24:0:99
-F:INT | WIS | FREE_ACT
-
-# Digging Tools
-
-N:94:of Digging
-X:4:0
-W:0:1:0:500
-C:0:0:0:4
-T:20:0:99
-F:TUNNEL | BRAND_ACID
-
-# New ego item: Digging Tool of Earthquakes
-
-N:95:of Earthquakes
-X:8:0
-W:20:4:0:3000
-C:10:10:0:6
-T:20:0:99
-F:STR | TUNNEL | BRAND_ACID | IMPACT | HIDE_TYPE
+# 103 (unused)
 
 
 ### Missile Launchers ###
 
-N:96:of Accuracy
+N:104:of Accuracy
 X:10:0
 W:0:1:0:1000
 C:15:5:0:0
@@ -853,7 +803,7 @@ T:19:0:99
 D:It has no special abilities, but its to-hit value may be unusually
 D: high.
 
-N:97:of Power
+N:105:of Power
 X:10:0
 W:0:1:0:1000
 C:5:15:0:0
@@ -861,61 +811,44 @@ T:19:0:99
 D:It has no special abilities, but its to-dam value may be unusually
 D: high.
 
-# Bows only
-
-N:98:of Lothlorien
+N:106:of Lothlorien
 X:30:3
 W:50:4:0:20000
 C:10:10:0:2
 T:19:12:13
 F:DEX | MIGHT | FREE_ACT | IGNORE_ACID | IGNORE_FIRE | HIDE_TYPE
 
-# New ego item: Missile Launcher of the Haradrim
-# Light crossbows only
-
-N:99:of the Haradrim
+N:107:of the Haradrim
 X:30:0
 W:50:4:0:20000
-C:5:5:0:0
+C:5:5:0:1
 T:19:23:23
 F:MIGHT | SHOTS | IGNORE_ACID | IGNORE_FIRE | HIDE_TYPE
 
-N:100:of Numenor
-X:20:0
-W:0:3:0:15000
-C:10:10:0:0
-T:19:0:99
-F:REGEN | MIGHT
-
-N:101:of Extra Might
+N:108:of Extra Might
 X:20:0
 W:0:2:0:10000
-C:5:10:0:0
-T:19:0:99
+C:5:10:0:1
 F:MIGHT | HIDE_TYPE
+T:19:0:99
 
-N:102:of Extra Shots
+N:109:of Extra Shots
 X:20:0
 W:0:2:0:10000
-C:10:5:0:0
-T:19:0:99
+C:10:5:0:1
 F:SHOTS | HIDE_TYPE
+T:19:0:99
 
-# New ego item: Missile Launcher of Buckland
-# Slings only
-
-N:103:of Buckland
+N:110:of Buckland
 X:25:0
 W:40:4:0:20000
 C:8:8:0:2
 T:19:2:2
 F:DEX | SHOTS | MIGHT | IGNORE_ACID | IGNORE_FIRE | HIDE_TYPE
 
-# New ego item: Missile Launcher of the Nazgul
-
-N:104:of the Nazgul
+N:111:of the Nazgul
 X:0:0
-W:0:1:0:0
+W:0:2:0:0
 C:10:10:0:0
 T:19:0:99
 F:LIGHT_CURSE | DRAIN_EXP | SEE_INVIS
@@ -923,121 +856,107 @@ F:LIGHT_CURSE | DRAIN_EXP | SEE_INVIS
 
 ### Ammo ###
 
-N:105:of Slay Animal
+N:112:of Slay Animal
 X:10:0
-W:0:3:0:20
+W:0:6:0:20
 T:16:0:99
 T:17:0:99
 T:18:0:99
 F:SLAY_ANIMAL
 
-N:106:of Slay Evil
+N:113:of Slay Evil
 X:10:0
-W:0:3:0:20
-T:16:0:99
-T:17:0:99
-T:18:0:99
+W:0:6:0:20
+T:16:0:2
+T:17:0:2
+T:18:0:2
 F:SLAY_EVIL
 
-# New ego item: Ammo of Slay Undead
-
-N:107:of Slay Undead
+N:114:of Slay Undead
 X:10:0
-W:0:4:0:25
+W:0:8:0:25
 T:16:0:99
 T:17:0:99
 T:18:0:99
 F:SLAY_UNDEAD
 
-# New ego item: Ammo of Slay Demon
-
-N:108:of Slay Demon
+N:115:of Slay Demon
 X:10:0
-W:0:4:0:25
+W:0:8:0:25
 T:16:0:99
 T:17:0:99
 T:18:0:99
 F:SLAY_DEMON
 
-# New ego item: Ammo of Slay Giant
-
-N:109:of Slay Giant
+N:116:of Acid
 X:10:0
-W:0:4:0:25
-T:16:0:99
-T:17:0:99
-T:18:0:99
-F:SLAY_GIANT
-
-N:110:of Slay Dragon
-X:10:0
-W:0:4:0:40
-T:16:0:99
-T:17:0:99
-T:18:0:99
-F:SLAY_DRAGON
-
-# New ego item: Ammo of Holy Might
-
-N:111:of Holy Might
-X:20:0
-W:40:8:0:60
-C:10:10:0:0
-T:16:2:99
-T:17:2:99
-T:18:2:99
-F:SLAY_EVIL | SLAY_DEMON | SLAY_UNDEAD |
-F:IGNORE_FIRE | IGNORE_ACID
-
-# New ego item: Ammo of Acid
-
-N:112:of Acid
-X:10:0
-W:0:5:0:50
+W:0:9:0:50
 T:16:0:99
 T:17:0:99
 T:18:0:99
 F:BRAND_ACID | IGNORE_ACID
 
-# New ego item: Ammo of Lightning
-
-N:113:of Lightning
+N:117:of Lightning
 X:10:0
-W:0:5:0:45
+W:0:9:0:45
 T:16:0:99
 T:17:0:99
 T:18:0:99
 F:BRAND_ELEC | IGNORE_ELEC
 
-# New ego item: Ammo of Venom
-
-N:114:of Venom
+N:118:of Slay Giant
 X:10:0
-W:0:3:0:40
+W:0:8:0:25
 T:16:0:99
 T:17:0:99
 T:18:0:99
+F:SLAY_GIANT
+
+N:119:of Slay Dragon
+X:10:0
+W:0:8:0:40
+T:16:0:99
+T:17:0:99
+T:18:0:99
+F:SLAY_DRAGON
+
+N:120:of Holy Might
+X:20:0
+W:40:15:0:60
+C:10:10:0:0
+T:16:2:99
+T:17:2:99
+T:18:2:99
+F:SLAY_EVIL | SLAY_DEMON | SLAY_UNDEAD
+F:IGNORE_FIRE | IGNORE_ACID
+
+N:121:of Venom
+X:10:0
+W:0:6:0:40
+T:16:0:2
+T:17:0:2
+T:18:0:2
 F:BRAND_POIS
 
-N:115:of Flame
+N:122:of Flame
 X:10:0
-W:0:3:0:35
-T:16:0:99
-T:17:0:99
-T:18:0:99
 F:BRAND_FIRE | IGNORE_FIRE
-
-N:116:of Frost
-X:10:0
-W:0:3:0:30
+W:0:6:0:35
 T:16:0:99
 T:17:0:99
 T:18:0:99
-F:BRAND_COLD | IGNORE_COLD
 
-N:117:of Wounding
+N:123:of Frost
+X:10:0
+F:BRAND_COLD | IGNORE_COLD
+W:0:6:0:30
+T:16:0:99
+T:17:0:99
+T:18:0:99
+
+N:124:of Wounding
 X:5:0
-W:0:2:0:20
+W:0:4:0:20
 C:5:5:0:0
 T:16:0:99
 T:17:0:99
@@ -1045,8 +964,7 @@ T:18:0:99
 D:Ammunition of Wounding often has unusually high to-hit and to-dam
 D: values.
 
-
-N:118:of Backbiting
+N:125:of Backbiting
 X:0:0
 W:0:1:0:0
 C:50:50:0:0
@@ -1055,13 +973,12 @@ T:17:0:99
 T:18:0:99
 F:LIGHT_CURSE
 
-# 119-125 (unused)
-
-
 ### Special Broken Items ###
 
-# Destroyed Weapon
+# these won't be generated by the make_ego_item code as long as
+# they keep their rarity of 0 and nobody adds 'T' lines for them.
 
+# Destroyed Weapon
 N:126:(Shattered)
 X:0:0
 W:0:0:0:0
@@ -1074,3 +991,107 @@ X:0:0
 W:0:0:0:0
 C:0:0:10:0
 
+# MAngband Specific Items
+
+### Shields ###
+
+N:128:of the Avari
+X:32:20
+W:0:0:0:80000
+C:0:0:15:2
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | CON
+F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
+
+### Cloaks ###
+
+N:129:of the Teleri
+X:31:20
+W:0:0:0:20000
+C:0:0:10:0
+F:HOLD_LIFE | FREE_ACT
+
+# Hack -- this item does not belong here.
+# Note -- this file is really lame.  The whole way that objects
+# are defined should be changed.  It is silly that we have to
+# manually number these items ourselves, and add specific code for
+# each item.  We should be able to completly define the objects externally
+# without hardcoding anything into the game engine.
+
+N:130:of Lordly Resistance
+X:31:20
+W:0:0:0:250000
+C:0:0:20:0
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | ACTIVATE |
+F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
+
+
+N:131:of Resistance
+X:31:20
+W:0:0:0:35000
+C:0:0:10:0
+F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
+F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
+
+### Gloves ###
+
+N:132:of the Istari
+X:34:20
+W:0:0:0:50000
+C:5:5:10:3
+F:INT | WIS | FREE_ACT
+F:SHOW_MODS | HIDE_TYPE
+
+### Boots ###
+
+N:133:of Mirkwood
+X:35:20
+W:0:0:0:15000
+F:FREE_ACT | RES_POIS
+
+### Missile Launchers ###
+
+
+N:134:of Lothlorien
+X:25:20
+W:0:0:0:30000
+C:10:10:0:3
+F:STEALTH | XTRA_SHOTS
+
+N:135:of Numenor
+X:25:20
+W:0:0:0:50000
+C:10:10:0:0
+F:REGEN | XTRA_MIGHT
+
+
+# Old Angband Items Crushed By New Angband Items
+#
+#### Crowns and Helms ###
+#
+#N:36:of Stupidity
+#X:33:0
+#C:0:0:0:5
+#W:0:0:0:0
+#F:INT
+#
+#N:37:of Naivety
+#X:33:0
+#C:0:0:0:5
+#W:0:0:0:0
+#F:WIS
+#
+#N:38:of Ugliness
+#X:33:0
+#C:0:0:0:5
+#W:0:0:0:0
+#F:CHR
+#
+#
+#### Boots ###
+#
+#N:61:of Noise
+#X:35:0
+#W:0:0:0:0
+#F:AGGRAVATE
+#
+#
