@@ -271,6 +271,7 @@ void client_init(char *argv1)
 	char host_name[80], trymsg[80], c;
 	u16b version = MY_VERSION;
 	s32b temp;
+	bool done = 0;
 
 	/* Setup the file paths */
 	init_stuff();
@@ -317,6 +318,7 @@ void client_init(char *argv1)
 	// Create the net socket and make the TCP connection
 	if ((Socket = CreateClientSocket(server_name, 18346)) == -1)
 	{
+	    while (!done) {
 		/* Prompt for auto-retry [grk] */
 		put_str("Couldn't connect to server, keep trying? [Y/N]", 21, 1);
 		/* Make sure the message is shown */
@@ -334,6 +336,7 @@ void client_init(char *argv1)
 		trycount = 1;
 		while( (Socket = CreateClientSocket(server_name, 18346)) == -1)
 		{
+			if (trycount > 200) break;
 			/* Progress Message */
 			sprintf(trymsg, "Connecting to server [%i]                      ",trycount++);
 			put_str(trymsg, 21, 1);
@@ -341,6 +344,8 @@ void client_init(char *argv1)
 			Term_redraw(); /* Hmm maybe not the proper way to force an os poll */
 			Term_flush();
 		}
+		if (Socket != -1) done = 1;
+	    }
 	}
 
 	/* Create a socket buffer */
