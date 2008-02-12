@@ -1055,13 +1055,13 @@ N:134:of Lothlorien
 X:25:20
 W:0:0:0:30000
 C:10:10:0:3
-F:STEALTH | XTRA_SHOTS
+F:STEALTH | SHOTS
 
 N:135:of Numenor
 X:25:20
 W:0:0:0:50000
 C:10:10:0:0
-F:REGEN | XTRA_MIGHT
+F:REGEN | MIGHT
 
 
 # Old Angband Items Crushed By New Angband Items
