@@ -368,7 +368,7 @@ void display_store(void)
 	/* Put the owner name and race */
 	if (store_num != 8)
 	{
-		sprintf(buf, "%s (%s)", store_owner.owner_name, race_info[store_owner.owner_race].name);
+		sprintf(buf, "%s (%s)", store_owner.owner_name, p_name + race_info[store_owner.owner_race].name);
 		put_str(buf, 3, 10);
 
 		/* Show the max price in the store (above prices) */
