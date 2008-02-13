@@ -215,7 +215,7 @@
 #define MAX_F_IDX	128	/* Max size for "f_info[]" */
 #define MAX_K_IDX	544	/* Max size for "k_info[]" */
 #define MAX_A_IDX	138	/* Max size for "a_info[]" */
-#define MAX_E_IDX	128	/* Max size for "e_info[]" */
+#define MAX_E_IDX	138	/* Max size for "e_info[]" */
 #define MAX_R_IDX	620	/* Max size for "r_info[]" */
 #define MAX_V_IDX 	256	/* Max size for "v_info[]" */
 
@@ -684,72 +684,71 @@
 
 /* Various */
 #define FEAT_FLOOR		0x01
-#define FEAT_GRASS		0x02
-#define FEAT_DIRT		0x03
-#define FEAT_CROP		0x04
-#define FEAT_LOOSE_DIRT		0x05
-#define FEAT_WATER		0x06
-#define	FEAT_MUD		0x07
+#define FEAT_INVIS		0x02
+#define FEAT_GLYPH		0x03
+#define FEAT_OPEN		0x04
+#define FEAT_BROKEN		0x05
+#define FEAT_LESS		0x06
+#define FEAT_MORE		0x07
 
-#define FEAT_INVIS		0x08
-#define FEAT_GLYPH		0x09
-#define FEAT_OPEN		0x0A
-#define FEAT_BROKEN		0x0B
-#define FEAT_LESS		0x0C
-#define FEAT_MORE		0x0D
-#define FEAT_HOME_OPEN		0x0E
+/* Shops */
+#define FEAT_SHOP_HEAD	0x08
+#define FEAT_SHOP_TAIL	0x0F
 
 /* Traps */
 #define FEAT_TRAP_HEAD	0x10
 #define FEAT_TRAP_TAIL	0x1F
 
-/* Trees */
-#define FEAT_TREE	0x20
-#define FEAT_EVIL_TREE  0x21
+/* Doors */
+#define FEAT_DOOR_HEAD	0x20
+#define FEAT_DOOR_TAIL	0x2F
 
-/* Special "home doors" */
-#define FEAT_HOME_HEAD	0x28
-#define FEAT_HOME_TAIL	0x2F
+/* Extra */
+#define FEAT_SECRET	0x30
+#define FEAT_RUBBLE	0x31
+
+/* Seams */
+#define FEAT_MAGMA	0x32
+#define FEAT_QUARTZ	0x33
+#define FEAT_MAGMA_H	0x34
+#define FEAT_QUARTZ_H	0x35
+#define FEAT_MAGMA_K	0x36
+#define FEAT_QUARTZ_K	0x37
+
+/* Walls */
+#define FEAT_WALL_EXTRA	0x38
+#define FEAT_WALL_INNER	0x39
+#define FEAT_WALL_OUTER	0x3A
+#define FEAT_WALL_SOLID	0x3B
+#define FEAT_PERM_EXTRA	0x3C
+#define FEAT_PERM_INNER	0x3D
+#define FEAT_PERM_OUTER	0x3E
+#define FEAT_PERM_SOLID	0x3F
 
 /* adding various wilderness features here.
 feat_perm is used for an "invisible" outside wall
 that keeps many algorithms happy.
 -APD- */
+#define FEAT_PERM_CLEAR 0x60
+#define FEAT_LOGS	0x58
+#define FEAT_DRAWBRIDGE 0x59	
 
-#define FEAT_PERM_CLEAR 0x30
-#define FEAT_LOGS	0x31
-#define FEAT_DRAWBRIDGE 0x40	
+/* Trees */
+#define FEAT_TREE	0x52
+#define FEAT_EVIL_TREE  0x53
 
-/* Shops */
-/* changed FEAT_SHOP_TAIL to 0x50 for auction house */
-#define FEAT_SHOP_HEAD	0x48
-#define FEAT_SHOP_TAIL	0x50
+/* Wilds */
+#define FEAT_GRASS		0x50
+#define FEAT_CROP		0x51
+#define FEAT_WATER		0x41
+#define	FEAT_MUD		0x42
+#define FEAT_LOOSE_DIRT		0x43
+#define FEAT_DIRT		0x44
 
-/* Doors */
-#define FEAT_DOOR_HEAD	0x60
-#define FEAT_DOOR_TAIL	0x6F
-
-/* Extra */
-#define FEAT_SECRET		0x70
-#define FEAT_RUBBLE		0x71
-
-/* Seams */
-#define FEAT_MAGMA		0x72
-#define FEAT_QUARTZ		0x73
-#define FEAT_MAGMA_H	0x74
-#define FEAT_QUARTZ_H	0x75
-#define FEAT_MAGMA_K	0x76
-#define FEAT_QUARTZ_K	0x77
-
-/* Walls */
-#define FEAT_WALL_EXTRA	0x78
-#define FEAT_WALL_INNER	0x79
-#define FEAT_WALL_OUTER	0x7A
-#define FEAT_WALL_SOLID	0x7B
-#define FEAT_PERM_EXTRA	0x7C
-#define FEAT_PERM_INNER	0x7D
-#define FEAT_PERM_OUTER	0x7E
-#define FEAT_PERM_SOLID	0x7F
+/* Special "home doors" */
+#define FEAT_HOME_OPEN	0x04
+#define FEAT_HOME_HEAD	0x61
+#define FEAT_HOME_TAIL	0x68
 
 
 /*** Artifact indexes (see "lib/edit/a_info.txt") ***/
@@ -2610,6 +2609,9 @@ that keeps many algorithms happy.
    ((X) >= p_ptr->panel_col_min) && ((X) <= p_ptr->panel_col_max))
 
 
+/* Determine if this block is blocked by wilderness */
+#define cave_wild_block(DEPTH,Y,X) (!(cave[DEPTH][Y][X].feat == FEAT_TREE)) 
+
 
 /*
  * Determine if a "legal" grid is a "floor" grid
@@ -2621,7 +2623,9 @@ that keeps many algorithms happy.
  * do not, allowing an extremely fast single bit check below.
  */
 #define cave_floor_bold(DEPTH,Y,X) \
-    (!(cave[DEPTH][Y][X].feat & 0x20))
+    (!(cave[DEPTH][Y][X].feat & 0x20) && cave_wild_block(DEPTH,Y,X))
+
+
 
 /*
  * Determine if a "legal" grid is a "clean" floor grid
@@ -2654,8 +2658,9 @@ that keeps many algorithms happy.
  * Line 4 -- forbid any player
  */
 #define cave_naked_bold(DEPTH,Y,X) \
-    ((cave[DEPTH][Y][X].feat >= FEAT_FLOOR) && \
-     (cave[DEPTH][Y][X].feat <= FEAT_DIRT) && \
+    (cave[DEPTH][Y][X].feat == FEAT_FLOOR || \
+    (cave[DEPTH][Y][X].feat >= FEAT_LOOSE_DIRT && \
+     cave[DEPTH][Y][X].feat <= FEAT_CROP) && \
      !(cave[DEPTH][Y][X].o_idx) && \
      !(cave[DEPTH][Y][X].m_idx))
 

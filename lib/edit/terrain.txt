@@ -6,7 +6,6 @@
 
 # Do not modify this file unless you know exactly what you are doing,
 # unless you wish to risk possible system crashes and broken savefiles.
-
 # After modifying this file, delete the "lib/data/terrain.raw" file.
 
 # Note that the terrain feature are grouped into very regular groups,
@@ -32,6 +31,8 @@
 # R - Light Red    G - Light Green    B - Light Blue    U - Light Brown
 
 # 'M' is the index of a feature to mimic.
+
+
 # Version stamp (required)
 
 V:1.0.0
@@ -48,71 +49,76 @@ G: :w
 N:1:open floor
 G:.:w
 
-# 0x02 --> grass
+# 0x02 --> invisible trap (drawn as open floor)
 
-N:2:grass
-G:.:g
-
-# 0x03 --> packed dirt
-
-N:3:packed dirt
-G:.:u
-
-# 0x04 --> crops  
-
-N:4:crops
-G:%:g
-
-# 0x05 --> loose dirt
-
-N:5:loose dirt
-G:%:u
-
-# 0x06 --> water
-
-N:6:water
-G:~:b
-
-# 0x07 --> mud
-
-N:7:mud
-G:~:u
-
-# 0x08 --> invisible trap (drawn as open floor)
-
-N:8:invisible trap
+N:2:invisible trap
 G:.:w
 M:1
 
-# 0x09 --> glyph of warding
+# 0x03 --> glyph of warding
 
-N:9:glyph of warding
+N:3:glyph of warding
 G:;:y
 
-# 0x0A --> open door
+# 0x04 --> open door
 
-N:10:open door
+N:4:open door
 G:':U
 
-# 0x0B --> broken door
+# 0x05 --> broken door
 
-N:11:broken door
-G:':U
+N:5:broken door
+G:':u
 
-# 0x0C --> up stairs (perm)
+# 0x06 --> up stairs (perm)
 
-N:12:up staircase
+N:6:up staircase
 G:<:w
 
-# 0x0D --> down stairs (perm)
+# 0x07 --> down stairs (perm)
 
-N:13:down staircase
+N:7:down staircase
 G:>:w
 
-# 0x0E --> open door to a home
+# 0x08 --> shop -- general store (perm)
 
-N:14:open door
-G:':U
+N:8:General Store
+G:1:U
+
+# 0x09 --> shop -- armoury (perm)
+
+N:9:Armoury
+G:2:s
+
+# 0x0A --> shop -- weapon shop (perm)
+
+N:10:Weapon Smiths
+G:3:w
+
+# 0x0B --> shop -- temple (perm)
+
+N:11:Temple
+G:4:g
+
+# 0x0C --> shop -- alchemist (perm)
+
+N:12:Alchemy Shop
+G:5:b
+
+# 0x0D --> shop -- magic shop (perm)
+
+N:13:Magic Shop
+G:6:r
+
+# 0x0E --> shop -- black market (perm)
+
+N:14:Black Market
+G:7:D
+
+# 0x0F --> shop -- home (perm)
+
+N:15:Home
+G:8:y
 
 # 0x10 --> visible trap -- trap door
 
@@ -193,119 +199,6 @@ G:^:g
 
 N:31:gas trap
 G:^:g
-
-# 0x20 --> tree
-
-N:32:tree
-G:*:g
-
-# 0x21 --> evil tree
-
-N:33:dark tree
-G:*:D
-
-# 0x28 --> home door (strength 1)
-
-N:40:closed door
-G:+:U
-
-# 0x29 --> home door (strength 2)
-
-N:41:closed door
-G:+:U
-M:40
-
-# 0x2A --> home door (strength 2)
-
-N:42:closed door
-G:+:U
-M:40
-
-# 0x2B --> home door (strength 2)
-
-N:43:closed door
-G:+:U
-M:40
-
-# 0x2C --> home door (strength 2)
-
-N:44:closed door
-G:+:U
-M:40
-
-# 0x2D --> home door (strength 2)
-
-N:45:closed door
-G:+:U
-M:40
-
-# 0x2E --> home door (strength 2)
-
-N:46:closed door
-G:+:U
-M:40
-
-# 0x2F --> home door (strength 2)
-
-N:47:closed door
-G:+:U
-M:40
-
-# used for the wilderness border
-N:48:permanent wall
-#G: :w
-G: :w
-
-# logs, used for log cabin
-N:49:logs
-G:=:u
-
-# drawbridge, used for moats
-N:64:drawbridge
-G:=:u
-
-# 0x48 --> shop -- general store (perm)
-
-N:72:General Store
-G:1:U
-
-# 0x49 --> shop -- armoury (perm)
-
-N:73:Armoury
-G:2:s
-
-# 0x4A --> shop -- weapon shop (perm)
-
-N:74:Weapon Smiths
-G:3:w
-
-# 0x4B --> shop -- temple (perm)
-
-N:75:Temple
-G:4:g
-
-# 0x4C --> shop -- alchemist (perm)
-
-N:76:Alchemy Shop
-G:5:b
-
-# 0x4D --> shop -- magic shop (perm)
-
-N:77:Magic Shop
-G:6:r
-
-# 0x4E --> shop -- black market (perm)
-
-N:78:Black Market
-G:7:D
-
-N:79:Tavern
-G:8:y
-
-# 0x50 --> shop - AUCTION House . woo hoo. -AD-
-
-N:80:Auction House
-G:9:B
 
 # 0x2x --> locked door (power 0)
 
@@ -492,3 +385,112 @@ N:63:permanent wall
 G:#:w
 M:60
 
+# MAngband-specific terrain elements:		
+### 0x40 - 0x4F	[ terrain % water  ]
+### 0x50 - 0x5F	[ vegetation, misc ]
+### 0x60 - 0x6F	[ walls, doors 	   ]
+
+# 0x40 --> wilderness darkness [empty]
+
+# 0x41 --> water
+
+N:65:water
+G:~:b
+
+# 0x42 --> mud
+
+N:66:mud
+G:~:u
+
+# 0x43 --> loose dirt
+
+N:67:loose dirt
+G:%:u
+
+# 0x44 --> packed dirt
+
+N:68:packed dirt
+G:.:u
+
+# 0x50 --> grass
+
+N:80:grass
+G:.:g
+
+# 0x51 --> crops
+
+N:81:crops
+G:%:g
+
+# 0x52 --> tree
+
+N:82:tree
+G:*:g
+
+# 0x53 --> evil tree
+
+N:83:dark tree
+G:*:D
+
+# 0x58 --> logs, used for log cabin
+
+N:88:log
+G:=:u
+
+# 0x59 --> drawbridge, used for moats
+
+N:89:drawbridge
+G:=:u
+
+# 0x60 --> used for the wilderness border
+
+N:96:border permawall
+#G:#:w
+G: :w
+
+# 0x61 --> home door (strength 1)
+
+N:97:closed door
+G:+:U
+
+# 0x62 --> home door (strength 2)
+
+N:98:closed door
+G:+:U
+M:40
+
+# 0x63 --> home door (strength 2)
+
+N:99:closed door
+G:+:U
+M:40
+
+# 0x64 --> home door (strength 2)
+
+N:100:closed door
+G:+:U
+M:40
+
+# 0x65 --> home door (strength 2)
+
+N:101:closed door
+G:+:U
+M:40
+
+# 0x66 --> home door (strength 2)
+
+N:102:closed door
+G:+:U
+M:40
+
+# 0x67 --> home door (strength 2)
+
+N:103:closed door
+G:+:U
+M:40
+
+# 0x68 --> home door (strength 2)
+
+N:104:closed door
+G:+:U
+M:40
