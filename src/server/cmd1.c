@@ -1762,7 +1762,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	}
 
 	/* Ghost trying to walk into a permanent wall */
-    else if (p_ptr->ghost && c_ptr->feat >= FEAT_PERM_SOLID)
+    else if (p_ptr->ghost && c_ptr->feat == FEAT_PERM_SOLID)
 	{
 		/* Message */
 		msg_print(Ind, "The wall blocks your movement.");
