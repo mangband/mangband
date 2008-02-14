@@ -729,26 +729,26 @@
 feat_perm is used for an "invisible" outside wall
 that keeps many algorithms happy.
 -APD- */
-#define FEAT_PERM_CLEAR 0x60
-#define FEAT_LOGS	0x58
-#define FEAT_DRAWBRIDGE 0x59	
+#define FEAT_DRAWBRIDGE	0x50
+#define FEAT_LOGS			0x60
+#define FEAT_PERM_CLEAR	0x70	
 
 /* Trees */
-#define FEAT_TREE	0x52
-#define FEAT_EVIL_TREE  0x53
+#define FEAT_TREE			0x61
+#define FEAT_EVIL_TREE  0x62
 
 /* Wilds */
-#define FEAT_GRASS		0x50
-#define FEAT_CROP		0x51
-#define FEAT_WATER		0x41
-#define	FEAT_MUD		0x42
-#define FEAT_LOOSE_DIRT		0x43
-#define FEAT_DIRT		0x44
+#define FEAT_DIRT				0x40
+#define FEAT_GRASS			0x41
+#define FEAT_CROP				0x42
+#define FEAT_LOOSE_DIRT		0x44
+#define FEAT_WATER			0x4C
+#define FEAT_MUD				0x48
 
 /* Special "home doors" */
-#define FEAT_HOME_OPEN	0x04
-#define FEAT_HOME_HEAD	0x61
-#define FEAT_HOME_TAIL	0x68
+#define FEAT_HOME_OPEN	0x79
+#define FEAT_HOME_HEAD	0x71
+#define FEAT_HOME_TAIL	0x78
 
 
 /*** Artifact indexes (see "lib/edit/a_info.txt") ***/
@@ -2609,10 +2609,6 @@ that keeps many algorithms happy.
    ((X) >= p_ptr->panel_col_min) && ((X) <= p_ptr->panel_col_max))
 
 
-/* Determine if this block is blocked by wilderness */
-#define cave_wild_block(DEPTH,Y,X) (!(cave[DEPTH][Y][X].feat == FEAT_TREE)) 
-
-
 /*
  * Determine if a "legal" grid is a "floor" grid
  *
@@ -2623,20 +2619,30 @@ that keeps many algorithms happy.
  * do not, allowing an extremely fast single bit check below.
  */
 #define cave_floor_bold(DEPTH,Y,X) \
-    (!(cave[DEPTH][Y][X].feat & 0x20) && cave_wild_block(DEPTH,Y,X))
+    (!(cave[DEPTH][Y][X].feat & 0x20))
 
+/*
+ * Determine if a grid is an "naked" wilderness grid
+ * Line 1 -- forbid in dungeon
+ * Line 2-3 -- forbid non-terrain
+ */
+#define cave_wild_bold(DEPTH,Y,X) \
+	(!(DEPTH > 0) && \
+	((cave[DEPTH][Y][X].feat >= FEAT_DIRT) && \
+	 (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT)))
 
 
 /*
  * Determine if a "legal" grid is a "clean" floor grid
  *
  * Line 1 -- forbid non-floors
+ * Line 2 -- forbid non-terrain
  * Line 2 -- forbid normal objects
  */
 #define cave_clean_bold(DEPTH,Y,X) \
-    ((cave[DEPTH][Y][X].feat >= FEAT_FLOOR) && \
-     (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT) && \
-     (!cave[DEPTH][Y][X].o_idx))
+   (((cave[DEPTH][Y][X].feat == FEAT_FLOOR) || \
+     (cave_wild_bold(DEPTH,Y,X))) && \
+    (!cave[DEPTH][Y][X].o_idx))
 
 /*
  * Determine if a "legal" grid is an "empty" floor grid
@@ -2652,29 +2658,32 @@ that keeps many algorithms happy.
 /*
  * Determine if a "legal" grid is an "naked" floor grid
  *
- * Line 1 -- forbid non-floors
- * Line 2 -- forbid normal objects
- * Line 3 -- forbid normal monsters
- * Line 4 -- forbid any player
+ * Line 1 -- forbid non-wild floors
+ * Line 2 -- forbid non-floors
+ * Line 3 -- forbid normal objects
+ * Line 4 -- forbid normal monsters
+ * Line 5 -- forbid any player... MISSING ?
  */
 #define cave_naked_bold(DEPTH,Y,X) \
-    (cave[DEPTH][Y][X].feat == FEAT_FLOOR || \
-    (cave[DEPTH][Y][X].feat >= FEAT_LOOSE_DIRT && \
-     cave[DEPTH][Y][X].feat <= FEAT_CROP) && \
-     !(cave[DEPTH][Y][X].o_idx) && \
-     !(cave[DEPTH][Y][X].m_idx))
+	(((cave_wild_bold(DEPTH,Y,X))	|| \
+	  (cave[DEPTH][Y][X].feat == FEAT_FLOOR)) && \
+	!(cave[DEPTH][Y][X].o_idx) && \
+	!(cave[DEPTH][Y][X].m_idx))
 
 
 /*
  * Determine if a "legal" grid is "permanent"
  *
- * Line 1 -- perma-walls
- * Line 2-3 -- stairs
- * Line 4-5 -- shop doors
- * Lines 5-6 -- home doors
+ * Line 1 -- perma-walls in town
+ * Line 2-3 -- perma-walls
+ * Line 4-5 -- stairs
+ * Line 6-7 -- shop doors
+ * Lines 8-9 -- home doors
  */
 #define cave_perma_bold(DEPTH,Y,X) \
-    ((cave[DEPTH][Y][X].feat >= FEAT_PERM_EXTRA) || \
+    ((cave[DEPTH][Y][X].feat == FEAT_PERM_CLEAR) || \
+    ((cave[DEPTH][Y][X].feat >= FEAT_PERM_EXTRA) && \
+      (cave[DEPTH][Y][X].feat <= FEAT_PERM_SOLID)) || \
      ((cave[DEPTH][Y][X].feat == FEAT_LESS) || \
       (cave[DEPTH][Y][X].feat == FEAT_MORE)) || \
      ((cave[DEPTH][Y][X].feat >= FEAT_SHOP_HEAD) && \
@@ -2711,11 +2720,19 @@ that keeps many algorithms happy.
 
 
 /*
+ * Grid based version of "cave_wild_bold()"
+ */
+#define cave_wild_grid(C) \
+	(((C)->feat >= FEAT_DIRT) && \
+	 ((C)->feat <= FEAT_LOOSE_DIRT))
+
+
+/*
  * Grid based version of "cave_clean_bold()"
  */
 #define cave_clean_grid(C) \
-    (((C)->feat >= FEAT_FLOOR) && \
-     ((C)->feat <= FEAT_DIRT) && \
+    (((C)->feat == FEAT_FLOOR) || \
+     (cave_wild_grid(C)) && \
      (!(C)->o_idx))
 
 /*
@@ -2729,11 +2746,10 @@ that keeps many algorithms happy.
  * Grid based version of "cave_empty_bold()"
  */
 #define cave_naked_grid(C) \
-    (((C)->feat >= FEAT_FLOOR) && \
-     ((C)->feat <= FEAT_DIRT) && \
+    ((((C)->feat == FEAT_FLOOR) || \
+     		cave_wild_grid(C)) && \
      !((C)->o_idx) && \
-     !((C)->m_idx))
-
+     			!((C)->m_idx)))
 
 /*
  * Grid based version of "cave_perma_bold()"

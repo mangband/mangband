@@ -661,7 +661,7 @@ void do_cmd_open(int Ind, int dir)
 		}
 
 		/* Jammed door */
-		else if (c_ptr->feat == FEAT_DOOR_HEAD + 0x08)
+		else if (c_ptr->feat >= FEAT_DOOR_HEAD + 0x08 && c_ptr->feat <= FEAT_DOOR_TAIL)
 		{
 			/* Take a turn */
 			p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -671,7 +671,7 @@ void do_cmd_open(int Ind, int dir)
 		}
 
 		/* Locked door */
-		else if (c_ptr->feat == FEAT_DOOR_HEAD + 0x01)
+		else if (c_ptr->feat >= FEAT_DOOR_HEAD + 0x01 && c_ptr->feat <= FEAT_DOOR_HEAD + 0x07)
 		{
 			/* Take a turn */
 			p_ptr->energy -= level_speed(p_ptr->dun_depth);

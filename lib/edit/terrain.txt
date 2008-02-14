@@ -13,6 +13,11 @@
 
 # Note that terrain feature zero contains the "darkness" picture.
 
+# Note that (M)Angband performs a 1 bit check opeation (& 0x20) to see if an object
+# blocks line of sight. That means, those ranges are to be used for blocking:
+# 0x20-0x3F, 0x60-0x7F, 0xA0-0xBF, 0xE0-0xFF (last 2 are not likely to be used, 
+# due to limits imposed in limits.txt or in MAX_F define)
+
 # === Understanding terrain.txt ===
 
 # N : serial number : terrain name
@@ -385,112 +390,125 @@ N:63:permanent wall
 G:#:w
 M:60
 
-# MAngband-specific terrain elements:		
-### 0x40 - 0x4F	[ terrain % water  ]
-### 0x50 - 0x5F	[ vegetation, misc ]
-### 0x60 - 0x6F	[ walls, doors 	   ]
+# MAngband-specific terrain elements:
 
-# 0x40 --> wilderness darkness [empty]
+### 0x40 - 0x5F		WILDERNESS TERRAIN 
+### 0x60 - 0x6F   	WILDERNESS BLOCKERS
+### 0x70 - 0x7F		EXTRA BLOCKERS
 
-# 0x41 --> water
+### wilderness bits: 0x4M where M is WWVV
+### WW - water, VV - vegetation; in ^2 binary
+### therefore:
+### pdirt = 0000			grass = 0001
+### ldirt = 0100			crops = 0010
+### mud   = 1000
+### water = 1100
 
-N:65:water
-G:~:b
+# 0x40 --> packed dirt
 
-# 0x42 --> mud
-
-N:66:mud
-G:~:u
-
-# 0x43 --> loose dirt
-
-N:67:loose dirt
-G:%:u
-
-# 0x44 --> packed dirt
-
-N:68:packed dirt
+N:64:packed dirt
 G:.:u
 
-# 0x50 --> grass
+# 0x41 --> grass
 
-N:80:grass
+N:65:grass
 G:.:g
 
-# 0x51 --> crops
+# 0x42 --> crops
 
-N:81:crops
+N:66:crops
 G:%:g
 
-# 0x52 --> tree
+# 0x44 --> loose dirt
 
-N:82:tree
+N:68:loose dirt
+G:%:u
+
+# 0x48 --> mud
+
+N:72:mud
+G:~:u
+
+# 0x4C --> water
+
+N:76:water
+G:~:b
+
+# 0x50 --> drawbridge, used for moats
+
+N:80:drawbridge
+G:=:u
+
+# 0x60 --> logs, used for log cabin
+
+N:96:log
+G:=:u
+
+# 0x61 --> tree
+
+N:97:tree
 G:*:g
 
-# 0x53 --> evil tree
+# 0x62 --> evil tree
 
-N:83:dark tree
+N:98:dark tree
 G:*:D
 
-# 0x58 --> logs, used for log cabin
+# 0x70 --> used for the wilderness border
 
-N:88:log
-G:=:u
-
-# 0x59 --> drawbridge, used for moats
-
-N:89:drawbridge
-G:=:u
-
-# 0x60 --> used for the wilderness border
-
-N:96:border permawall
+N:112:border permawall
 #G:#:w
 G: :w
 
-# 0x61 --> home door (strength 1)
+# 0x71 --> home door (strength 1)
 
-N:97:closed door
+N:113:closed door
 G:+:U
 
-# 0x62 --> home door (strength 2)
+# 0x72 --> home door (strength 2)
 
-N:98:closed door
-G:+:U
-M:40
-
-# 0x63 --> home door (strength 2)
-
-N:99:closed door
+N:114:closed door
 G:+:U
 M:40
 
-# 0x64 --> home door (strength 2)
+# 0x73 --> home door (strength 2)
 
-N:100:closed door
+N:115:closed door
 G:+:U
 M:40
 
-# 0x65 --> home door (strength 2)
+# 0x74 --> home door (strength 2)
 
-N:101:closed door
+N:116:closed door
 G:+:U
 M:40
 
-# 0x66 --> home door (strength 2)
+# 0x75 --> home door (strength 2)
 
-N:102:closed door
+N:117:closed door
 G:+:U
 M:40
 
-# 0x67 --> home door (strength 2)
+# 0x76 --> home door (strength 2)
 
-N:103:closed door
+N:118:closed door
 G:+:U
 M:40
 
-# 0x68 --> home door (strength 2)
+# 0x77 --> home door (strength 2)
 
-N:104:closed door
+N:119:closed door
 G:+:U
 M:40
+
+# 0x78 --> home door (strength 2)
+
+N:120:closed door
+G:+:U
+M:40
+
+# 0x79 --> opened home door
+
+N:121:opened door
+G:':U
+M:4
