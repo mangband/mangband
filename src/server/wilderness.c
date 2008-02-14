@@ -415,14 +415,19 @@ void reserve_building_plot(int Depth, int *x1, int *y1, int *x2, int *y2, int xl
 			*x2 = *x1 + xlen-1;
 			*y2 = *y1 + ylen-1;
 			
-			if ( (!in_bounds(Depth, *y1, *x1)) ||
-			     (!in_bounds(Depth, *y2, *x2)) )
-			{
-				*x1 = *y1 = *x2 = *y2 = -1;
-				return;
-			}
 		}
-		
+		/* add a 'border' (reserve 1 tile more then needed) */
+		--*x1;	--*y1; ++*x2; ++*y2;
+
+		/* check accuired x1,y1,x2,y2 */
+		if ( (!in_bounds(Depth, *y1, *x1)) ||
+		     (!in_bounds(Depth, *y2, *x2)) )
+		{
+			*x1 = *y1 = *x2 = *y2 = -1;
+			return;
+		}
+
+
 		plot_clear = 1;
 		
 		/* check if its clear */
@@ -466,6 +471,7 @@ void reserve_building_plot(int Depth, int *x1, int *y1, int *x2, int *y2, int xl
 					cave[Depth][y][x].info |= CAVE_XTRA; 
 				}
 			}
+			++*x1; ++*y1; --*x2; --*y2;
 			return;			
 		}
 			
