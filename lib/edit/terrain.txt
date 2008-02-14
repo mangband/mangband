@@ -392,9 +392,10 @@ M:60
 
 # MAngband-specific terrain elements:
 
-### 0x40 - 0x5F		WILDERNESS TERRAIN 
-### 0x60 - 0x6F   	WILDERNESS BLOCKERS
-### 0x70 - 0x7F		EXTRA BLOCKERS
+### 0x40 - 0x4F	Soil and Vegetation	(dirt, grass)
+### 0x50 - 0x5F	Transparent Features	(opened doors, moats)
+### 0x60 - 0x6F	Solid Objects	(trees)
+### 0x70 - 0x7F	Extra Objects	(permwall, house doors)
 
 ### wilderness bits: 0x4M where M is WWVV
 ### WW - water, VV - vegetation; in ^2 binary
@@ -438,6 +439,12 @@ G:~:b
 
 N:80:drawbridge
 G:=:u
+
+# 0x51 --> opened home door
+
+N:81:opened door
+G:':U
+M:4
 
 # 0x60 --> logs, used for log cabin
 
@@ -506,9 +513,3 @@ M:40
 N:120:closed door
 G:+:U
 M:40
-
-# 0x79 --> opened home door
-
-N:121:opened door
-G:':U
-M:4

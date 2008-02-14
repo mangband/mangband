@@ -746,7 +746,7 @@ that keeps many algorithms happy.
 #define FEAT_MUD				0x48
 
 /* Special "home doors" */
-#define FEAT_HOME_OPEN	0x79
+#define FEAT_HOME_OPEN	0x51
 #define FEAT_HOME_HEAD	0x71
 #define FEAT_HOME_TAIL	0x78
 
