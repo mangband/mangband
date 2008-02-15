@@ -2523,7 +2523,7 @@ void load_server_cfg(void)
 void init_some_arrays(void)
 {
 	/* Initialize size info */
-	s_printf("[Initializing array sizes...]");
+	s_printf("[Initializing array sizes...]\n");
 	if (init_z_info()) quit("Cannot initialize sizes");
 
 	/* Initialize feature info */
@@ -2559,7 +2559,7 @@ void init_some_arrays(void)
 	if (init_p_info()) quit("Cannot initialize races");
 
 	/* Initialize flavor info */
-	s_printf("[Initializing arrays... (flavors)]");
+	s_printf("[Initializing arrays... (flavors)]\n");
 	if (init_flavor_info()) quit("Cannot initialize flavors");
 
 	/* Initialize some other arrays */

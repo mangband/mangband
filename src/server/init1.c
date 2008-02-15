@@ -3609,8 +3609,8 @@ errr parse_flavor_info(char *buf, header *head)
 		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
 
 		/* Save the values */
-		flavor_ptr->d_attr = d_attr;
-		flavor_ptr->d_char = d_char;
+		flavor_ptr->d_attr = flavor_ptr->x_attr = d_attr;
+		flavor_ptr->d_char = flavor_ptr->x_char = d_char;
 	}
 
 	/* Process 'D' for "Description" */

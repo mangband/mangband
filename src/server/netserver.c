@@ -1572,11 +1572,20 @@ static int Handle_login(int ind)
 		p_ptr->k_attr[i] = connp->Client_setup.k_attr[i];
 		p_ptr->k_char[i] = connp->Client_setup.k_char[i];
 
+		/* Hack suggested by PW, to enable broken flavors */
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].x_attr: k_info[i].x_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].x_char: k_info[i].x_char);
+			
+		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].d_attr: k_info[i].d_attr);
+		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].d_char: k_info[i].d_char);
+
+		/* Old version		== notice how flavor array is not used at all !
 		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = k_info[i].x_attr;
 		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = k_info[i].x_char;
 
 		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = k_info[i].d_attr;
 		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = k_info[i].d_char;
+		*/
 	}
 
 	for (i = 0; i < MAX_R_IDX; i++)
