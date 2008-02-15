@@ -3603,7 +3603,7 @@ static void build_store(int n, int yy, int xx)
 				c_ptr->feat = FEAT_FLOOR;
 
 				/* Declare this to be a room */
-				c_ptr->info |= CAVE_ROOM | CAVE_GLOW;
+				c_ptr->info |= CAVE_ROOM | CAVE_GLOW | CAVE_ICKY;
 			}
 		}
 
