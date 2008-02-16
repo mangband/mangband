@@ -76,7 +76,7 @@ void enter_password(void)
 		/* Get an input, ignore "Escape" */
 		if (askfor_aux(tmp, 15, 1)) 
 		{
-			if (strcmp(tmp, "passwd"))
+			if (!strcmp(tmp, "passwd"))
 				continue;
 			else
 				strcpy(pass, tmp);
