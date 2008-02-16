@@ -373,6 +373,11 @@ void process_command()
 			cmd_master();
 			break;
 		}
+		case KTRL('D'): /* 'Describe item. This means 'brag about it in chat' */
+      {
+         cmd_describe();
+         break;
+     	}
 
                 case KTRL('P'):
                 {
@@ -835,6 +840,30 @@ void cmd_uninscribe(void)
 	/* Send it */
 	Send_uninscribe(item);
 }
+
+void cmd_describe(void)
+{
+	int item;
+	char buf[80];
+
+	if (!c_get_item(&item, "Describe what? ", TRUE, TRUE, FALSE))
+	{
+		return;
+	}
+
+	buf[0] = '\0';
+	
+	/* Copy item name */
+	strcpy(buf, inventory_name[item]);		
+	
+	if (buf[0] != '\0')
+				Send_msg(buf);
+				
+	///* Get an inscription */
+	//if (get_string("Inscription: ", buf, 59))
+	//	Send_inscribe(item, buf);
+}
+
 
 void cmd_steal(void)
 {
