@@ -104,6 +104,14 @@ CC = gcc
 #shell=/bin/sh
 #SVNREV := -D'SVNREV="$(shell svnversion -n .)"'
 
+
+# AutoTools
+CC = @CC@
+CFLAGS = $(SVNREV) @CFLAGS@
+LIBS = @LIBS@
+
+@WINDOWS_HACKS@
+
 #
 # Windows32 version (see main-win.c)
 #
@@ -160,13 +168,15 @@ CC = gcc
 #
 
 # support both Xwindows, and Terminal (telnet) mode
-CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
-LIBS = -L/usr/X11R6/lib -lX11 -lncurses
+#CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_X11" -D"USE_GCU" -I/usr/include/ncurses -Icommon
+#LIBS = -L/usr/X11R6/lib -lX11 -lncurses
 
 
 # only support Terminal mode.
 #CFLAGS = $(SVNREV) -Wall -g -pipe -D"USE_GCU" -I/usr/include/ncurses
 #LIBS = -lncurses
+
+
 
 
 
