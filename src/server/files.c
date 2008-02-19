@@ -3176,7 +3176,7 @@ void exit_game_panic(void)
 
 
 	/* Dump a nice core - Chris */
-#ifdef	HANDLE_SIGNALS
+#if defined(HANDLE_SIGNALS) && !defined(WINDOWS)
 	signal(11, 0);
     	kill(getpid(), 11);
 #endif

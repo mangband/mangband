@@ -104,13 +104,16 @@ CC = gcc
 #shell=/bin/sh
 #SVNREV := -D'SVNREV="$(shell svnversion -n .)"'
 
-
 # AutoTools
 CC = @CC@
 CFLAGS = $(SVNREV) @CFLAGS@
 LIBS = @LIBS@
 
-@WINDOWS_HACKS@
+@CLI_LIBS@
+@SERV_LIBS@
+@CLI_MAIN@
+@CLI_DMAIN@
+@RES_FILE@
 
 #
 # Windows32 version (see main-win.c)
@@ -292,12 +295,17 @@ ifneq ($(strip $(CLI_MAIN)),)
 else
 	CLI_RSRCS = $(CLI_SRCS)
 endif
+ifneq ($(strip $(CLI_DMAIN)),)
+	RCFLAGS = $(patsubst $(CLI_DMAIN),,$(CFLAGS))
+else
+	RCFLAGS = $(CFLAGS)
+endif
+
 ifneq ($(strip $(RES)),)
 	RES_OBJ = client/res.o
 endif
 CLI_OBJS = $(patsubst %.c,%.o,$(CLI_RSRCS))
 SERV_OBJS = $(patsubst %.c,%.o,$(SERV_SRCS))
-
 
 
 #
@@ -308,9 +316,6 @@ SERV_OBJS = $(patsubst %.c,%.o,$(SERV_SRCS))
 #
 
 install: mangclient mangband
-	-mv ../mangclient$(EXE_HACK) ../mangclient.old 
-	-mv ../mangband$(EXE_HACK) ../mangband.old 
-
 	cp mangclient ..
 	cp mangband ..
 
@@ -321,7 +326,7 @@ install: mangclient mangband
 #
 
 mangband: $(SERV_OBJS)
-	$(CC) $(CFLAGS) -o mangband $(SERV_OBJS) $(LDFLAGS) $(SERV_LIBS)
+	$(CC) $(RCFLAGS) -o mangband $(SERV_OBJS) $(LDFLAGS) $(SERV_LIBS)
 
 
 #
@@ -330,7 +335,7 @@ mangband: $(SERV_OBJS)
 
 mangclient: $(CLI_OBJS)
 	$(RES)
-	$(CC) $(CFLAGS) -o mangclient $(CLI_OBJS) $(RES_OBJ) $(LDFLAGS) $(CLI_LIBS)
+	$(CC) $(RCFLAGS) -o mangclient $(CLI_OBJS) $(RES_OBJ) $(LDFLAGS) $(CLI_LIBS)
 
 
 
@@ -338,7 +343,7 @@ mangclient: $(CLI_OBJS)
 # Rule for making a '.o'
 #
 .c.o:
-	$(CC) $(CFLAGS) -o $*.o -c $*.c
+	$(CC) $(RCFLAGS) -o $*.o -c $*.c
 
 
 #
@@ -357,7 +362,7 @@ clean:
 #
 
 depend:
-	makedepend -- $(CFLAGS) -D__MAKEDEPEND__ -- $(SERV_SRCS) $(CLI_RSRCS)
+	makedepend -- $(RCFLAGS) -D__MAKEDEPEND__ -- $(SERV_SRCS) $(CLI_RSRCS)
 
 
 # DO NOT ADD ANYTHING BELOW THIS LINE.
