@@ -383,6 +383,12 @@ static void get_history(int Ind)
 			break;
 		}
 
+		case RACE_KOBOLD:
+		{
+			chart = 23;
+			break;
+		}
+
 		default:
 		{
 			chart = 0;
@@ -1241,7 +1247,7 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	/* Set pointers */
 	p_ptr->rp_ptr = &p_info[p_ptr->prace];
 	p_ptr->cp_ptr = &class_info[class];
-	p_ptr->mp_ptr = &magic_info[class];
+	p_ptr->mp_ptr = &class_info[class].spells;
 
 	/* Set his ID */
 	p_ptr->id = player_id++;

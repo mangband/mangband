@@ -17,6 +17,8 @@ extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
+extern char *c_name;
+extern char *c_text;
 extern char *p_name;
 extern player_race race_info[MAX_RACES];
 extern player_class class_info[MAX_CLASS];
@@ -449,6 +451,9 @@ extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
+
+/* x-spell.c */
+extern cptr get_spell_name(int tval, int index);
 
 
 /*

@@ -221,7 +221,7 @@ static void choose_class(void)
 	for (j = 0; j < MAX_CLASS; j++)
 	{
 		cp_ptr = &class_info[j];
-		sprintf(out_val, "%c) %s", I2A(j), cp_ptr->title);
+		sprintf(out_val, "%c) %s", I2A(j), c_name + cp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -242,7 +242,7 @@ static void choose_class(void)
 		{
 			class = j;
 			cp_ptr = &class_info[j];
-			c_put_str(TERM_L_BLUE, cp_ptr->title, 6, 15);
+			c_put_str(TERM_L_BLUE, c_name + cp_ptr->name, 6, 15);
 			break;
 		}
 		else if (c == '?')

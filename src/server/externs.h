@@ -1080,6 +1080,9 @@ extern bool master_acquire(int Ind, char * parms);
 
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 
+/* x-spell.c */
+extern cptr get_spell_name(int tval, int index);
+
 /*
  * Hack -- conditional (or "bizarre") externs
  */

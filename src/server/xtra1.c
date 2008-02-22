@@ -220,7 +220,7 @@ static void prt_sp(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Do not show mana unless it matters */
-    if (!p_ptr->mp_ptr->spell_book) Send_sp(Ind, 0, 0);
+    if (!p_ptr->cp_ptr->spell_book) Send_sp(Ind, 0, 0);
 
 	else Send_sp(Ind, p_ptr->msp, p_ptr->csp);
 }
@@ -1232,7 +1232,7 @@ static void fix_spell(int Ind)
 	}
 
 	/* Warriors don't need this */
-	if (!p_ptr->mp_ptr->spell_book)
+	if (!p_ptr->cp_ptr->spell_book)
 		return;
 
 	/* Check for blindness and no lite and confusion */
@@ -1244,7 +1244,7 @@ static void fix_spell(int Ind)
 	/* Scan for appropriate books */
 	for (i = 0; i < INVEN_WIELD; i++)
 	{
-		if (p_ptr->inventory[i].tval == p_ptr->mp_ptr->spell_book)
+		if (p_ptr->inventory[i].tval == p_ptr->cp_ptr->spell_book)
 		{
 			do_cmd_browse(Ind, i);
 		}
@@ -1335,21 +1335,21 @@ static void calc_spells(int Ind)
 
 	magic_type		*s_ptr;
 
-    cptr p = ((p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
+    cptr p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
 
 
 	/* Hack -- must be literate */
-	if (!p_ptr->mp_ptr->spell_book) return;
+	if (!p_ptr->cp_ptr->spell_book) return;
 
 
 	/* Determine the number of spells allowed */
-	levels = p_ptr->lev - p_ptr->mp_ptr->spell_first + 1;
+	levels = p_ptr->lev - p_ptr->cp_ptr->spell_first + 1;
 
 	/* Hack -- no negative spells */
 	if (levels < 0) levels = 0;
 
 	/* Number of 1/100 spells per level */
-	percent_spells = adj_mag_study[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]];
+	percent_spells = adj_mag_study[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]];
 
 	/* Extract total allowed spells (rounded up) */
 	num_allowed = (((percent_spells * levels) + 50) / 100);
@@ -1419,7 +1419,13 @@ static void calc_spells(int Ind)
 
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
+			           get_spell_name(p_ptr->cp_ptr->spell_book, j));
+
+#if 0
+			/* Message */
+			msg_format(Ind, "You have forgotten the %s of %s.", p,
 			           spell_names[p_ptr->mp_ptr->spell_type][j]);
+#endif
 
 			/* One more can be learned */
 			p_ptr->new_spells++;
@@ -1467,9 +1473,16 @@ static void calc_spells(int Ind)
 				p_ptr->spell_learned2 &= ~(1L << (j - 32));
 			}
 
+
+			/* Message */
+			msg_format(Ind, "You have forgotten the %s of %s.", p,
+			           get_spell_name(p_ptr->cp_ptr->spell_book, j));
+
+#if 0
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
 			           spell_names[p_ptr->mp_ptr->spell_type][j]);
+#endif
 
 			/* One more can be learned */
 			p_ptr->new_spells++;
@@ -1525,7 +1538,13 @@ static void calc_spells(int Ind)
 
 			/* Message */
 			msg_format(Ind, "You have remembered the %s of %s.",
+			           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
+
+#if 0
+			/* Message */
+			msg_format(Ind, "You have remembered the %s of %s.",
 			           p, spell_names[p_ptr->mp_ptr->spell_type][j]);
+#endif
 
 			/* One less can be learned */
 			p_ptr->new_spells--;
@@ -1599,17 +1618,17 @@ static void calc_mana(int Ind)
 
 
 	/* Hack -- Must be literate */
-	if (!p_ptr->mp_ptr->spell_book) return;
+	if (!p_ptr->cp_ptr->spell_book) return;
 
 
 	/* Extract "effective" player level */
-	levels = (p_ptr->lev - p_ptr->mp_ptr->spell_first) + 1;
+	levels = (p_ptr->lev - p_ptr->cp_ptr->spell_first) + 1;
 
 	/* Hack -- no negative mana */
 	if (levels < 0) levels = 0;
 
 	/* Extract total mana */
-	new_mana = adj_mag_mana[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]] * levels / 100;
+	new_mana = adj_mag_mana[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]] * levels / 100;
 
 	/* Hack -- usually add one mana */
 	if (new_mana) new_mana++;
@@ -1621,7 +1640,7 @@ static void calc_mana(int Ind)
     object_flags(o_ptr, &f1, &f2, &f3, &f4);
 
 	/* Only mages are affected */
-	if (p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK)
+	if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
 	{
 		/* Assume player is not encumbered by gloves */
 		p_ptr->cumber_glove = FALSE;
@@ -1652,7 +1671,7 @@ static void calc_mana(int Ind)
 	cur_wgt += p_ptr->inventory[INVEN_FEET].weight;
 
 	/* Determine the weight allowance */
-	max_wgt = p_ptr->mp_ptr->spell_weight;
+	max_wgt = p_ptr->cp_ptr->spell_weight;
 
 	/* Heavy armor penalizes mana */
 	if (((cur_wgt - max_wgt) / 10) > 0)
@@ -2390,7 +2409,7 @@ static void calc_bonuses(int Ind)
 			/* Change in INT may affect Mana/Spells */
 			else if (i == A_INT)
 			{
-				if (p_ptr->mp_ptr->spell_stat == A_INT)
+				if (p_ptr->cp_ptr->spell_stat == A_INT)
 				{
 					p_ptr->update |= (PU_MANA | PU_SPELLS);
 				}
@@ -2399,7 +2418,7 @@ static void calc_bonuses(int Ind)
 			/* Change in WIS may affect Mana/Spells */
 			else if (i == A_WIS)
 			{
-				if (p_ptr->mp_ptr->spell_stat == A_WIS)
+				if (p_ptr->cp_ptr->spell_stat == A_WIS)
 				{
 					p_ptr->update |= (PU_MANA | PU_SPELLS);
 				}

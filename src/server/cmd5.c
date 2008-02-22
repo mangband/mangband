@@ -52,7 +52,7 @@ static s16b spell_chance(int Ind, int spell)
 
 
 	/* Paranoia -- must be literate */
-	if (!p_ptr->mp_ptr->spell_book) return (100);
+	if (!p_ptr->cp_ptr->spell_book) return (100);
 
 	/* Access the spell */
 	s_ptr = &p_ptr->mp_ptr->info[spell];
@@ -64,8 +64,8 @@ static s16b spell_chance(int Ind, int spell)
 	chance -= 3 * (p_ptr->lev - s_ptr->slevel);
 
 	/* Reduce failure rate by INT/WIS adjustment */
-    //chance -= 3 * (adj_mag_stat[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]] - 1);
-    chance -= adj_mag_stat[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]];
+    //chance -= 3 * (adj_mag_stat[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]] - 1);
+    chance -= adj_mag_stat[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]];
 
 	/* Not enough mana to cast */
 	if (s_ptr->smana > p_ptr->csp)
@@ -76,7 +76,7 @@ static s16b spell_chance(int Ind, int spell)
 	}
 
 	/* Extract the minimum failure rate */
-	minfail = adj_mag_fail[p_ptr->stat_ind[p_ptr->mp_ptr->spell_stat]];
+	minfail = adj_mag_fail[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]];
 
     /* Non mage/priest characters never get too good */
     if ((p_ptr->pclass != CLASS_MAGE) && (p_ptr->pclass != CLASS_PRIEST) )
@@ -162,7 +162,7 @@ static void spell_info(int Ind, char *p, int j)
 #ifdef DRS_SHOW_SPELL_INFO
 
 	/* Mage spells */
-	if (p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK)
+	if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
 	{
 		int plev = p_ptr->lev;
 
@@ -202,7 +202,7 @@ static void spell_info(int Ind, char *p, int j)
 	}
 
 	/* Priest spells */
-	if (p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK)
+	if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
 	{
 		int plev = p_ptr->lev;
 
@@ -308,7 +308,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 
 		/* Dump the spell --(-- */
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
-		        I2A(i), spell_names[p_ptr->mp_ptr->spell_type][j],
+		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
 		Send_spell_info(Ind, book, i, out_val);
 	}
@@ -326,8 +326,8 @@ static void print_spells(int Ind, int book, byte *spell, int num)
  * The "prompt" should be "cast", "recite", or "study"
  * The "known" should be TRUE for cast/pray, FALSE for study
  */
-#if 0
-static int get_spell(int Ind, int *sn, cptr prompt, int sval, bool known)
+#if 1
+static int get_spell(int *sn, cptr prompt, int sval, bool known)
 {
 }
 #endif
@@ -344,7 +344,7 @@ void do_cmd_browse(int Ind, int book)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			i, item, sval;
+	int			i, j, item, sval;
 
 	byte		spell[64], num = 0;
 
@@ -352,7 +352,7 @@ void do_cmd_browse(int Ind, int book)
 
 
 	/* Warriors are illiterate */
-	if (!p_ptr->mp_ptr->spell_book)
+	if (!p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "You cannot read books!");
 		return;
@@ -374,7 +374,7 @@ void do_cmd_browse(int Ind, int book)
 
 
 	/* Restrict choices to "useful" books */
-	item_tester_tval = p_ptr->mp_ptr->spell_book;
+	item_tester_tval = p_ptr->cp_ptr->spell_book;
 
 	item = book;
 
@@ -395,7 +395,7 @@ void do_cmd_browse(int Ind, int book)
 		o_ptr = &o_list[0 - item];
 	}
 
-	if (o_ptr->tval != p_ptr->mp_ptr->spell_book)
+	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "SERVER ERROR: Tried browsing a bad book!");
 		return;
@@ -406,6 +406,16 @@ void do_cmd_browse(int Ind, int book)
 	sval = o_ptr->sval;
 
 
+	/* Extract spells */
+	for (i = 0; i < SPELLS_PER_BOOK; i++)
+	{
+		j = get_spell_index(Ind, o_ptr, i);
+
+		/* Collect this spell */
+		if (j != -1) spell[num++] = j;
+	}
+
+#if 0
 	/* Extract spells */
 	for (i = 0; i < 64; i++)
 	{
@@ -418,7 +428,7 @@ void do_cmd_browse(int Ind, int book)
 			spell[num++] = i;
 		}
 	}
-
+#endif
 
 	/* Display the spells */
 	print_spells(Ind, book, spell, num);
@@ -438,14 +448,14 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	int			j = -1;
 
-    cptr p = ((p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
+    cptr p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
 
 	object_type		*o_ptr;
 
 	byte spells[64], num = 0;
 
 
-	if (!p_ptr->mp_ptr->spell_book)
+	if (!p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "You cannot read books!");
 		return;
@@ -471,7 +481,7 @@ void do_cmd_study(int Ind, int book, int spell)
 
 
 	/* Restrict choices to "useful" books */
-	item_tester_tval = p_ptr->mp_ptr->spell_book;
+	item_tester_tval = p_ptr->cp_ptr->spell_book;
 
 	/* Get the item (in the pack) */
 	if (book >= 0)
@@ -490,7 +500,7 @@ void do_cmd_study(int Ind, int book, int spell)
 		o_ptr = &o_list[0 - book];
 	}
 
-	if (o_ptr->tval != p_ptr->mp_ptr->spell_book)
+	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "SERVER ERROR: Trying to gain a spell from a bad book!");
 		return;
@@ -499,9 +509,46 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
+	/* Mage -- Learn a selected spell */
+	if (p_ptr->cp_ptr->flags & CF_CHOOSE_SPELLS)
+	{
+		/* Ask for a spell */
+		spell = get_spell(o_ptr, "study", sval, FALSE);
 
+		/* Allow cancel */
+		if (spell == -1) return;
+	}
+	else
+	{
+		int k = 0;
+
+		int gift = -1;
+
+		/* Extract spells */
+		for (i = 0; i < SPELLS_PER_BOOK; i++)
+		{
+			spell = get_spell_index(Ind, o_ptr, i);
+
+			/* Skip empty spells */
+			if (spell == -1) continue;
+
+			/* Skip non "okay" prayers */
+			if (!spell_okay(Ind, spell, FALSE)) continue;
+
+			/* Apply the randomizer */
+			if ((++k > 1) && (rand_int(k) != 0)) continue;
+
+			/* Track it */
+			gift = spell;
+		}
+
+		/* Accept gift */
+		spell = gift;
+	}
+
+#if 0
     /* Spellcaster -- Learn a selected spell */
-    if ((p_ptr->mp_ptr->spell_book == TV_MAGIC_BOOK) )
+    if ((p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK) )
 	{
 		for (i = 0; i < 64; i++)
 		{
@@ -526,7 +573,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	}
 
     /* Cleric -- Learn a random prayer */
-	if (p_ptr->mp_ptr->spell_book == TV_PRAYER_BOOK)
+	if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
 	{
 		int k = 0;
 
@@ -549,6 +596,7 @@ void do_cmd_study(int Ind, int book, int spell)
 			}
 		}
 	}
+#endif
 
 	/* Nothing to study */
 	if (j < 0)
@@ -586,7 +634,13 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	/* Mention the result */
 	msg_format(Ind, "You have learned the %s of %s.",
+	           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
+
+#if 0
+	/* Mention the result */
+	msg_format(Ind, "You have learned the %s of %s.",
 	           p, spell_names[p_ptr->mp_ptr->spell_type][j]);
+#endif
 
 	/* One less spell available */
 	p_ptr->new_spells--;
@@ -635,7 +689,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	byte spells[64], num = 0;
 
 	/* Require spell ability */
-	if (p_ptr->mp_ptr->spell_book != TV_MAGIC_BOOK)
+	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
 	{
 		msg_print(Ind, "You cannot cast spells!");
 		return;
@@ -657,7 +711,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 
 	/* Restrict choices to spell books */
-	item_tester_tval = p_ptr->mp_ptr->spell_book;
+	item_tester_tval = p_ptr->cp_ptr->spell_book;
 
 	/* Get the item (in the pack) */
 	if (book >= 0)
@@ -676,7 +730,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 		o_ptr = &o_list[0 - book];
 	}
 
-	if (o_ptr->tval != p_ptr->mp_ptr->spell_book)
+	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "SERVER ERROR: Tried to cast spell from bad book!");
 		return;
@@ -690,6 +744,10 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
+	/* Ask for a spell */
+	j = get_spell(o_ptr, "cast", sval, TRUE);
+
+#if 0
 	for (i = 0; i < 64; i++)
 	{
 		/* Check for this spell */
@@ -704,6 +762,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	/* Set the spell number */
 	j = spells[spell];
+#endif
 
 	if (!spell_okay(Ind, j, 1))
 	{
@@ -1535,7 +1594,7 @@ void do_cmd_pray(int Ind, int book, int spell)
     byte spells[64], num = 0;
 
     /* Must use prayer books */
-    if (p_ptr->mp_ptr->spell_book != TV_PRAYER_BOOK)
+    if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
     {
         msg_print(Ind, "Pray hard enough and your prayers may be answered.");
         return;
@@ -1557,7 +1616,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
 
     /* Restrict choices */
-    item_tester_tval = p_ptr->mp_ptr->spell_book;
+    item_tester_tval = p_ptr->cp_ptr->spell_book;
 
     item = book;
 
@@ -1578,7 +1637,7 @@ void do_cmd_pray(int Ind, int book, int spell)
         o_ptr = &o_list[0 - item];
     }
 
-    if (o_ptr->tval != p_ptr->mp_ptr->spell_book)
+    if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
     {
         msg_print(Ind, "SERVER ERROR: Tried to pray prayer from bad book!");
         return;
@@ -1591,7 +1650,11 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Access the item's sval */
     sval = o_ptr->sval;
 
-    for (i = 0; i < 64; i++)
+	/* Choose a spell */
+	j = get_spell(o_ptr, "recite", sval, TRUE);
+
+#if 0
+	for (i = 0; i < 64; i++)
     {
         /* Check for this spell */
         if ((i < 32) ?
@@ -1612,7 +1675,8 @@ void do_cmd_pray(int Ind, int book, int spell)
     
     /* heal other prayers */
     else j = spells[spell-64];
-    
+#endif
+
     if (!spell_okay(Ind, j, 1))
     {
         msg_print(Ind, "You cannot pray that prayer.");

@@ -310,6 +310,7 @@ void client_init(char *argv1)
 
 
 	/* Get character name and pass */
+
 	get_char_name();
 
 	/* Capitalize the name */

@@ -37,6 +37,7 @@ int lag_ok;				/* server understands lag-check packets */
 
 player_type player;			/* The client-side copy of some of the player information */
 player_type *p_ptr = &player;
+player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
 

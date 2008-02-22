@@ -1562,7 +1562,7 @@ player_class class_info[MAX_CLASS] =
 };
 
 
-
+#if 0
 
 
 
@@ -2119,13 +2119,14 @@ player_magic magic_info[MAX_CLASS] =
     },
 
 };
+#endif
 
 /*
  * Note that this is the same for all classes (for now).
  *
  * Such a hack....
  */
-magic_type ghost_spells[64] =
+magic_type ghost_spells[PY_MAX_SPELLS] =
 {
 	{  1,   1, 0, 0},
 	{ 10,   2, 0, 0},
@@ -2231,10 +2232,9 @@ u32b spell_flags[2][9][2] =
 /*
  * Names of the spells (mage spells, priest spells, ghost spells)
  */
-cptr spell_names[3][64] =
+cptr spell_names[3][PY_MAX_SPELLS] =
 {
 	/*** Mage Spells ***/
-
 	{
 		/* Magic for Beginners (sval 0) */
 		"Magic Missile",

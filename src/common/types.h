@@ -945,16 +945,16 @@ struct magic_type
 
 struct player_magic
 {
-	s16b spell_book;		/* Tval of spell books (if any) */
-	s16b spell_xtra;		/* Something for later */
-
-	s16b spell_stat;		/* Stat for spells (if any)  */
-	s16b spell_type;		/* Spell type (mage/priest) */
-
-	s16b spell_first;		/* Level of first spell */
-	s16b spell_weight;		/* Weight that hurts spells */
-
-	magic_type info[64];	/* The available spells */
+//	s16b spell_book;		/* Tval of spell books (if any) */
+//	s16b spell_xtra;		/* Something for later */
+//
+//	s16b spell_stat;		/* Stat for spells (if any)  */
+//	s16b spell_type;		/* Spell type (mage/priest) */
+//
+//	s16b spell_first;		/* Level of first spell */
+//	s16b spell_weight;		/* Weight that hurts spells */
+//
+	magic_type info[PY_MAX_SPELLS];	/* The available spells */
 };
 
 

@@ -825,7 +825,7 @@ void object_info_screen(const object_type *o_ptr)
 
 	/* Hack -- Browse book, then prompt for a command */
 	/*
-	if (o_ptr->tval == cp_ptr->spell_book)
+	if (o_ptr->tval == cp_ptr->cp_ptr->spell_book)
 	{
 		// Call the aux function 
 		do_cmd_browse_aux(o_ptr);

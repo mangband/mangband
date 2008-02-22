@@ -575,6 +575,7 @@
 #define RACE_HALF_TROLL	7
 #define RACE_DUNADAN	8
 #define RACE_HIGH_ELF	9
+#define RACE_KOBOLD		10
 
 /*
  * Player class constants (hard-coded by save-files, arrays, etc)
@@ -2098,6 +2099,42 @@ that keeps many algorithms happy.
 #define TR3_IGNORE_MASK \
 	(TR3_IGNORE_ACID | TR3_IGNORE_ELEC | TR3_IGNORE_FIRE | \
 	 TR3_IGNORE_COLD )
+
+/*** Class flags ***/
+
+#define CF_EXTRA_SHOT		0x00000001L	/* Extra shots */
+#define CF_BRAVERY_30		0x00000002L	/* Gains resist fear at plev 30 */
+#define CF_BLESS_WEAPON		0x00000004L	/* Requires blessed/hafted weapons */
+#define CF_CUMBER_GLOVE		0x00000008L	/* Gloves disturb spellcasting */
+#define CF_ZERO_FAIL		0x00000010L /* Fail rates can reach 0% */
+#define CF_BEAM				0x00000020L /* Higher chance of spells beaming */
+#define CF_CHOOSE_SPELLS	0x00000040L	/* Allow choice of spells */
+#define CF_PSEUDO_ID_HEAVY	0x00000080L /* Allow heavy pseudo-id */
+#define CF_PSEUDO_ID_IMPROV	0x00000100L /* Pseudo-id improves quicker with player-level */
+#define CF_XXX10			0x00000200L
+#define CF_XXX11			0x00000400L
+#define CF_XXX12			0x00000800L
+#define CF_XXX13			0x00001000L
+#define CF_XXX14			0x00002000L
+#define CF_XXX15			0x00004000L
+#define CF_XXX16			0x00008000L
+#define CF_XXX17			0x00010000L
+#define CF_XXX18			0x00020000L
+#define CF_XXX19			0x00040000L
+#define CF_XXX20			0x00080000L
+#define CF_XXX21			0x00100000L
+#define CF_XXX22			0x00200000L
+#define CF_XXX23			0x00400000L
+#define CF_XXX24			0x00800000L
+#define CF_XXX25			0x01000000L
+#define CF_XXX26			0x02000000L
+#define CF_XXX27			0x04000000L
+#define CF_XXX28			0x08000000L
+#define CF_XXX29			0x10000000L
+#define CF_XXX30			0x20000000L
+#define CF_XXX31			0x40000000L
+#define CF_XXX32			0x80000000L
+
 
 /*** Monster blow constants ***/
 

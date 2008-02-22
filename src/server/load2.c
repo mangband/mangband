@@ -1513,7 +1513,7 @@ static errr rd_savefile_new_aux(int Ind)
 	
 
 	/* Important -- Choose the magic info */
-	p_ptr->mp_ptr = &magic_info[p_ptr->pclass];
+	p_ptr->mp_ptr = &class_info[p_ptr->pclass].spells;
 
 
 	/* Read spell info */

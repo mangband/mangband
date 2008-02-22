@@ -3703,10 +3703,10 @@ s16b inven_carry(int Ind, object_type *o_ptr)
 			if (!j_ptr->k_idx) break;
 
 			/* Hack -- readable books always come first */
-			if ((o_ptr->tval == p_ptr->mp_ptr->spell_book) &&
-			    (j_ptr->tval != p_ptr->mp_ptr->spell_book)) break;
-			if ((j_ptr->tval == p_ptr->mp_ptr->spell_book) &&
-			    (o_ptr->tval != p_ptr->mp_ptr->spell_book)) continue;
+			if ((o_ptr->tval == p_ptr->cp_ptr->spell_book) &&
+			    (j_ptr->tval != p_ptr->cp_ptr->spell_book)) break;
+			if ((j_ptr->tval == p_ptr->cp_ptr->spell_book) &&
+			    (o_ptr->tval != p_ptr->cp_ptr->spell_book)) continue;
 
 			/* Objects sort by decreasing type */
 			if (o_ptr->tval > j_ptr->tval) break;
@@ -3895,10 +3895,10 @@ void reorder_pack(int Ind)
 			if (!j_ptr->k_idx) break;
 
 			/* Hack -- readable books always come first */
-			if ((o_ptr->tval == p_ptr->mp_ptr->spell_book) &&
-			    (j_ptr->tval != p_ptr->mp_ptr->spell_book)) break;
-			if ((j_ptr->tval == p_ptr->mp_ptr->spell_book) &&
-			    (o_ptr->tval != p_ptr->mp_ptr->spell_book)) continue;
+			if ((o_ptr->tval == p_ptr->cp_ptr->spell_book) &&
+			    (j_ptr->tval != p_ptr->cp_ptr->spell_book)) break;
+			if ((j_ptr->tval == p_ptr->cp_ptr->spell_book) &&
+			    (o_ptr->tval != p_ptr->cp_ptr->spell_book)) continue;
 
 			/* Objects sort by decreasing type */
 			if (o_ptr->tval > j_ptr->tval) break;

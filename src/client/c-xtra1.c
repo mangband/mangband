@@ -485,6 +485,7 @@ void prt_basic(void)
         case RACE_HALF_TROLL: r = "Half-troll"; break;
         case RACE_DUNADAN: r = "Dunadan"; break;
         case RACE_HIGH_ELF: r = "High-elf"; break;
+        case RACE_KOBOLD: r = "Kobold"; break;
 	}
 
 	switch(class)

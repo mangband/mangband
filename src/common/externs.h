@@ -296,10 +296,10 @@ extern char tval_to_char[128];
 extern byte keymap_cmds[128];
 extern byte keymap_dirs[128];
 extern byte color_table[256][4];
-/*extern player_type *p_ptr;*/
-/*extern player_race *rp_ptr;
+extern player_type *p_ptr;
+extern player_race *rp_ptr;
 extern player_class *cp_ptr;
-extern player_magic *mp_ptr;*/
+extern player_magic *mp_ptr;
 /*extern u32b spell_learned1;
 extern u32b spell_learned2;
 extern u32b spell_worked1;
@@ -369,6 +369,9 @@ extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 extern bool (*get_mon_num_hook)(int r_idx);
 extern bool (*get_obj_num_hook)(int k_idx);
 extern char * cfg_bind_name;
+
+/* x-spell.c */
+extern cptr get_spell_name(int tval, int index);
 
 /*
  * Automatically generated "function declarations"
