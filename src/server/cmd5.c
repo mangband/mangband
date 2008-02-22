@@ -329,6 +329,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 #if 1
 static int get_spell(int *sn, cptr prompt, int sval, bool known)
 {
+	return 0;
 }
 #endif
 

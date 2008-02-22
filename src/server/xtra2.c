@@ -3547,7 +3547,7 @@ bool target_set(int Ind, int dir)
    {
 		/* Reset cursor track */
 		p_ptr->cursor_who = 0;
-		return;      
+		return (FALSE);      
    }
 	if (dir != 5 && dir != 128 + 5)
 	{
