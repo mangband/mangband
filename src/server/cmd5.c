@@ -928,7 +928,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_RECHARGE_ITEM:
 			{
-				(void)recharge(Ind, 5);
+				(void)recharge(Ind, 2 + plev / 5);
 				break;
 			}
 
@@ -981,7 +981,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_RECHARGE_ITEM2:
 			{
-				(void)recharge(Ind, 40);
+				(void)recharge(Ind, 50 + plev);
 				break;
 			}
 
