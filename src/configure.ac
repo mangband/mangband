@@ -21,8 +21,9 @@ AC_CHECK_LIB([X11], [main], have_x11="yes")
 AC_CHECK_LIB([SDL], [main], have_sdl="yes")
 
 # Try finding ncurses or curses...
+have_curs="yes"
 AC_CHECK_LIB([ncurses], [main],,[
-    AC_CHECK_LIB([curses], [main], have_curs="yes")
+    AC_CHECK_LIB([curses], [main],, have_curs="no")
     ])
 
 AC_CHECK_LIB([ws2_32], [main],[
@@ -59,6 +60,11 @@ then
     enabled_gcu="yes"
 fi
 
+# But if we try GCU without ncurses - quit with an error
+if test "x$enabled_gcu" = xyes && test "x$have_curs" != xyes
+then
+    AC_ERROR([For GCU visual module, ncurses library is required. Try getting libncurses5-dev package.])
+fi
 # Set flags
 #GCU
 if test "x$enabled_gcu" = xyes
@@ -78,6 +84,7 @@ then
     LIBS="$LIBS `sdl-config --libs`"
     CFLAGS="$CFLAGS `sdl-config --cflags`"
 fi
+
 
 # Entering Windows_Hacks zone
 RES_FILE="#"
