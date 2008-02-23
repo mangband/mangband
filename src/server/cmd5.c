@@ -173,19 +173,19 @@ static void spell_info(int Ind, char *p, int j)
             case MSPELL_PHASE_DOOR: strcpy(p, " range 10"); break;
             case MSPELL_CURE_LIGHT: strcpy(p, " heal 2d8"); break;
             case MSPELL_STINKING_CLOUD: sprintf(p, " dam %d", 10 + (plev / 2)); break;
-            case MSPELL_LIGHTNING_BOLT: sprintf(p, " dam %dd8", (3+((plev-5)/4))); break;
+            case MSPELL_LIGHTNING_BOLT: sprintf(p, " dam %dd6", (3+((plev-5)/6))); break;
             case MSPELL_TELEPORT_SELF: sprintf(p, " range %d", plev * 5); break;
             case MSPELL_SPEAR_LIGHT: strcpy(p, " dam 6d8"); break;
             case MSPELL_FROST_BOLT: sprintf(p, " dam %dd8", (5+((plev-5)/4))); break;
-            case MSPELL_FIRE_BOLT: sprintf(p, " dam %dd8", (8+((plev-5)/4))); break;
+            case MSPELL_FIRE_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
             case MSPELL_FROST_BALL: sprintf(p, " dam %d", 30 + plev); break;
 	    case MSPELL_FIRE_BALL: sprintf(p, " dam %d", 55 + plev); break;
             case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d20", plev); break;
 	    case MSPELL_TIDAL_WAVE: sprintf(p, " dam %d", 40 + plev*2); break;            
             case MSPELL_ACID_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
-            case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 20 + plev/2); break;
+            case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 40 + plev/2); break;
             case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev); break;
-            case MSPELL_ICE_STORM: sprintf(p, " dam %d", 70 + plev); break;
+            case MSPELL_ICE_STORM: sprintf(p, " dam %d", 50 + plev*2); break;
             case MSPELL_METEOR_SWARM: sprintf(p, " dam %d", 65 + plev); break;
             case MSPELL_MANA_STORM: sprintf(p, " dam %d", 300 + plev*2); break;
             case MSPELL_RESIST_FIRE: strcpy(p, " dur 20+d20"); break;
@@ -1332,7 +1332,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts a lightning bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, beam-10, GF_ELEC, dir,
-				damroll(3+((plev-5)/4), 8));
+				damroll(3+((plev-5)/6), 6));
 			break;
 		}
 
@@ -1373,7 +1373,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts a fire bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, beam, GF_FIRE, dir,
-				damroll(8+((plev-5)/4), 8));
+				damroll(6+((plev-5)/4), 8));
 			break;
 		}
 
@@ -1421,7 +1421,7 @@ void do_cmd_cast_aux(int Ind, int dir)
         case MSPELL_CLOUD_KILL:
 		{
 			msg_format_near(Ind, "%s casts a cloud of death.", p_ptr->name);
-			fire_ball(Ind, GF_POIS, dir, 20 + (plev / 2), 3);
+			fire_ball(Ind, GF_POIS, dir, 40 + (plev / 2), 3);
 			break;
 		}
 
@@ -1434,8 +1434,8 @@ void do_cmd_cast_aux(int Ind, int dir)
 
         case MSPELL_ICE_STORM:
 		{
-            msg_format_near(Ind, "%s invokes an ice storm.", p_ptr->name);
-			fire_ball(Ind, GF_COLD, dir, 70 + (plev), 3);
+        		msg_format_near(Ind, "%s invokes an ice storm.", p_ptr->name);
+			fire_ball(Ind, GF_COLD, dir, 50 + (plev * 2), 3);
 			break;
 		}
 
