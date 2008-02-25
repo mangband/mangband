@@ -1260,7 +1260,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	    /* if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
-			modstr = amulet_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
             if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
             if (!aware) basenm = "& # Amulet~";
             else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
@@ -1275,7 +1275,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	    /*if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
-			modstr = ring_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
             if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
             if (!aware) basenm = "& # Ring~";
             else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
@@ -1290,7 +1290,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_STAFF:
 		{
 			/* Color the object */
-			modstr = staff_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Staff~" : "& # Staff~";
 			break;
@@ -1299,7 +1299,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_WAND:
 		{
 			/* Color the object */
-			modstr = wand_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Wand~" : "& # Wand~";
 			break;
@@ -1308,7 +1308,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_ROD:
 		{
 			/* Color the object */
-			modstr = rod_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Rod~" : "& # Rod~";
 			break;
@@ -1317,7 +1317,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_SCROLL:
 		{
 			/* Color the object */
-			modstr = scroll_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Scroll~" : "& Scroll~ titled \"#\"";
 			break;
@@ -1326,7 +1326,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_POTION:
 		{
 			/* Color the object */
-			modstr = potion_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Potion~" : "& # Potion~";
 			break;
@@ -1338,7 +1338,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			if (o_ptr->sval >= SV_FOOD_MIN_FOOD) break;
 
 			/* Color the object */
-			modstr = food_adj[indexx];
+			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Mushroom~" : "& # Mushroom~";
 			break;
