@@ -1317,7 +1317,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_SCROLL:
 		{
 			/* Color the object */
-			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
+			modstr = scroll_adj[indexx];
 			if (aware) append_name = TRUE;
 			basenm = aware ? "& Scroll~" : "& Scroll~ titled \"#\"";
 			break;
