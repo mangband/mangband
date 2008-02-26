@@ -260,6 +260,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 
 	char		out_val[160];
 
+    int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
 
 	/* Dump the spells */
 	for (i = 0; i < num; i++)
@@ -308,7 +309,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 
 		/* Dump the spell --(-- */
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
-		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
+		        I2A(i), spell_names[p][j],
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
 		Send_spell_info(Ind, book, i, out_val);
 	}
@@ -330,6 +331,8 @@ void do_cmd_browse(int Ind, int book)
 	byte		spell[64], num = 0;
 
 	object_type		*o_ptr;
+
+    int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
 
 
 	/* Warriors are illiterate */
@@ -386,30 +389,18 @@ void do_cmd_browse(int Ind, int book)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
-
-	/* Extract spells */
-	for (i = 0; i < SPELLS_PER_BOOK; i++)
-	{
-		j = get_spell_index(Ind, o_ptr, i);
-
-		/* Collect this spell */
-		if (j != -1) spell[num++] = j;
-	}
-
-#if 0
 	/* Extract spells */
 	for (i = 0; i < 64; i++)
 	{
 		/* Check for this spell */
 		if ((i < 32) ?
-		    (spell_flags[p_ptr->mp_ptr->spell_type][sval][0] & (1L << i)) :
-		    (spell_flags[p_ptr->mp_ptr->spell_type][sval][1] & (1L << (i - 32))))
+		    (spell_flags[p][sval][0] & (1L << i)) :
+		    (spell_flags[p][sval][1] & (1L << (i - 32))))
 		{
 			/* Collect this spell */
 			spell[num++] = i;
 		}
 	}
-#endif
 
 	/* Display the spells */
 	print_spells(Ind, book, spell, num);
@@ -575,7 +566,7 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	/* Mention the result */
 	msg_format(Ind, "You have learned the %s of %s.",
-	           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
+	           p, spell_names[((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0)][j]);
 
 #if 0
 	/* Mention the result */

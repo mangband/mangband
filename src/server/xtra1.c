@@ -1337,6 +1337,7 @@ static void calc_spells(int Ind)
 
     cptr p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
 
+	int mtype = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
 
 	/* Hack -- must be literate */
 	if (!p_ptr->cp_ptr->spell_book) return;
@@ -1419,13 +1420,8 @@ static void calc_spells(int Ind)
 
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
-			           get_spell_name(p_ptr->cp_ptr->spell_book, j));
+			           spell_names[mtype][j]);
 
-#if 0
-			/* Message */
-			msg_format(Ind, "You have forgotten the %s of %s.", p,
-			           spell_names[p_ptr->mp_ptr->spell_type][j]);
-#endif
 
 			/* One more can be learned */
 			p_ptr->new_spells++;
@@ -1476,13 +1472,8 @@ static void calc_spells(int Ind)
 
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
-			           get_spell_name(p_ptr->cp_ptr->spell_book, j));
+			           spell_names[mtype][j]);
 
-#if 0
-			/* Message */
-			msg_format(Ind, "You have forgotten the %s of %s.", p,
-			           spell_names[p_ptr->mp_ptr->spell_type][j]);
-#endif
 
 			/* One more can be learned */
 			p_ptr->new_spells++;
@@ -1538,13 +1529,8 @@ static void calc_spells(int Ind)
 
 			/* Message */
 			msg_format(Ind, "You have remembered the %s of %s.",
-			           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
+			           p, spell_names[mtype][j]);
 
-#if 0
-			/* Message */
-			msg_format(Ind, "You have remembered the %s of %s.",
-			           p, spell_names[p_ptr->mp_ptr->spell_type][j]);
-#endif
 
 			/* One less can be learned */
 			p_ptr->new_spells--;
