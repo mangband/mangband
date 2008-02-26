@@ -56,7 +56,6 @@ extern byte extract_energy[200];
 extern byte level_speeds[128];
 extern s32b player_exp[PY_MAX_LEVEL];
 extern player_race race_info[MAX_RACES];
-extern player_class class_info[MAX_CLASS];
 extern player_magic magic_info[MAX_CLASS];
 extern magic_type ghost_spells[64];
 extern u32b spell_flags[2][9][2];

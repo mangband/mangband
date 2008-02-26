@@ -21,7 +21,7 @@ extern char *c_name;
 extern char *c_text;
 extern char *p_name;
 extern player_race race_info[MAX_RACES];
-extern player_class class_info[MAX_CLASS];
+extern player_class c_info[MAX_CLASS];
 extern option_type option_info[];
 extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];

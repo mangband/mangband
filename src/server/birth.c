@@ -1212,8 +1212,8 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Set pointers */
 	p_ptr->rp_ptr = &p_info[p_ptr->prace];
-	p_ptr->cp_ptr = &class_info[class];
-	p_ptr->mp_ptr = &class_info[class].spells;
+	p_ptr->cp_ptr = &c_info[class];
+	p_ptr->mp_ptr = &c_info[class].spells;
 
 	/* Set his ID */
 	p_ptr->id = player_id++;

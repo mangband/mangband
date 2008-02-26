@@ -152,7 +152,7 @@ static bool spell_okay(int Ind, int j, bool known)
  * The strings in this function were extracted from the code in the
  * functions "do_cmd_cast()" and "do_cmd_pray()" and may be dated.
  */
-static void spell_info(int Ind, char *p, int j)
+static void do_spell_info(int Ind, char *p, int j)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -281,7 +281,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		/* XXX XXX Could label spells above the players level */
 
 		/* Get extra info */
-		spell_info(Ind, info, j);
+		do_spell_info(Ind, info, j);
 
 		/* Use that info */
 		comment = info;
@@ -313,26 +313,6 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		Send_spell_info(Ind, book, i, out_val);
 	}
 }
-
-
-
-/*
- * Allow user to choose a spell/prayer from the given book.
- *
- * If a valid spell is chosen, saves it in '*sn' and returns TRUE
- * If the user hits escape, returns FALSE, and set '*sn' to -1
- * If there are no legal choices, returns FALSE, and sets '*sn' to -2
- *
- * The "prompt" should be "cast", "recite", or "study"
- * The "known" should be TRUE for cast/pray, FALSE for study
- */
-#if 1
-static int get_spell(int *sn, cptr prompt, int sval, bool known)
-{
-	return 0;
-}
-#endif
-
 
 
 
@@ -455,7 +435,6 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	byte spells[64], num = 0;
 
-
 	if (!p_ptr->cp_ptr->spell_book)
 	{
 		msg_print(Ind, "You cannot read books!");
@@ -510,53 +489,15 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
-	/* Mage -- Learn a selected spell */
-	if (p_ptr->cp_ptr->flags & CF_CHOOSE_SPELLS)
-	{
-		/* Ask for a spell */
-		spell = get_spell(o_ptr, "study", sval, FALSE);
-
-		/* Allow cancel */
-		if (spell == -1) return;
-	}
-	else
-	{
-		int k = 0;
-
-		int gift = -1;
-
-		/* Extract spells */
-		for (i = 0; i < SPELLS_PER_BOOK; i++)
-		{
-			spell = get_spell_index(Ind, o_ptr, i);
-
-			/* Skip empty spells */
-			if (spell == -1) continue;
-
-			/* Skip non "okay" prayers */
-			if (!spell_okay(Ind, spell, FALSE)) continue;
-
-			/* Apply the randomizer */
-			if ((++k > 1) && (rand_int(k) != 0)) continue;
-
-			/* Track it */
-			gift = spell;
-		}
-
-		/* Accept gift */
-		spell = gift;
-	}
-
-#if 0
     /* Spellcaster -- Learn a selected spell */
-    if ((p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK) )
+    if (p == "spell")
 	{
 		for (i = 0; i < 64; i++)
 		{
 			/* Check for this spell */
 			if ((i < 32) ?
-				(spell_flags[p_ptr->mp_ptr->spell_type][sval][0] & (1L << i)) :
-				(spell_flags[p_ptr->mp_ptr->spell_type][sval][1] & (1L << (i - 32))))
+				(spell_flags[0][sval][0] & (1L << i)) :
+				(spell_flags[0][sval][1] & (1L << (i - 32))))
 			{
 				/* Collect this spell */
 				spells[num++] = i;
@@ -574,7 +515,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	}
 
     /* Cleric -- Learn a random prayer */
-	if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
+	if (p == "prayer")
 	{
 		int k = 0;
 
@@ -583,8 +524,8 @@ void do_cmd_study(int Ind, int book, int spell)
 		{
 			/* Check spells in the book */
 			if ((i < 32) ?
-			    (spell_flags[p_ptr->mp_ptr->spell_type][sval][0] & (1L << i)) :
-			    (spell_flags[p_ptr->mp_ptr->spell_type][sval][1] & (1L << (i - 32))))
+			    (spell_flags[1][sval][0] & (1L << i)) :
+			    (spell_flags[1][sval][1] & (1L << (i - 32))))
 			{
 				/* Skip non "okay" prayers */
 				if (!spell_okay(Ind, i, FALSE)) continue;
@@ -597,7 +538,6 @@ void do_cmd_study(int Ind, int book, int spell)
 			}
 		}
 	}
-#endif
 
 	/* Nothing to study */
 	if (j < 0)
@@ -689,6 +629,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	byte spells[64], num = 0;
 
+    int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
+
 	/* Require spell ability */
 	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
 	{
@@ -745,16 +687,12 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
-	/* Ask for a spell */
-	j = get_spell(o_ptr, "cast", sval, TRUE);
-
-#if 0
 	for (i = 0; i < 64; i++)
 	{
 		/* Check for this spell */
 		if ((i < 32) ?
-			(spell_flags[p_ptr->mp_ptr->spell_type][sval][0] & (1L << i)) :
-			(spell_flags[p_ptr->mp_ptr->spell_type][sval][1] & (1L << (i - 32))))
+			(spell_flags[p][sval][0] & (1L << i)) :
+			(spell_flags[p][sval][1] & (1L << (i - 32))))
 		{
 			/* Collect this spell */
 			spells[num++] = i;
@@ -763,7 +701,6 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	/* Set the spell number */
 	j = spells[spell];
-#endif
 
 	if (!spell_okay(Ind, j, 1))
 	{
@@ -1594,6 +1531,8 @@ void do_cmd_pray(int Ind, int book, int spell)
 
     byte spells[64], num = 0;
 
+    int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
+
     /* Must use prayer books */
     if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
     {
@@ -1651,16 +1590,12 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Access the item's sval */
     sval = o_ptr->sval;
 
-	/* Choose a spell */
-	j = get_spell(o_ptr, "recite", sval, TRUE);
-
-#if 0
 	for (i = 0; i < 64; i++)
     {
         /* Check for this spell */
         if ((i < 32) ?
-            (spell_flags[p_ptr->mp_ptr->spell_type][sval][0] & (1L << i)) :
-            (spell_flags[p_ptr->mp_ptr->spell_type][sval][1] & (1L << (i - 32))))
+            (spell_flags[p][sval][0] & (1L << i)) :
+            (spell_flags[p][sval][1] & (1L << (i - 32))))
         {
             /* Collect this spell */
             spells[num++] = i;
@@ -1676,7 +1611,6 @@ void do_cmd_pray(int Ind, int book, int spell)
     
     /* heal other prayers */
     else j = spells[spell-64];
-#endif
 
     if (!spell_okay(Ind, j, 1))
     {

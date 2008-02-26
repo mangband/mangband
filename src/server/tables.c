@@ -1500,7 +1500,7 @@ player_race race_info[MAX_RACES] =
 #endif
 };
 
-
+#if 0
 /*
  * Player Classes.
  *
@@ -1510,7 +1510,7 @@ player_race race_info[MAX_RACES] =
  *   x_dis, x_dev, x_sav, x_stl, x_srh, x_fos, x_thn, x_thb,
  *   HD, Exp
  */
-player_class class_info[MAX_CLASS] =
+player_class c_info[MAX_CLASS] =
 {
 	{
 		"Warrior",
@@ -1560,7 +1560,7 @@ player_class class_info[MAX_CLASS] =
 		6, 35
 	}
 };
-
+#endif
 
 #if 0
 

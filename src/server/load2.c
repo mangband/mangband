@@ -1509,11 +1509,11 @@ static errr rd_savefile_new_aux(int Ind)
 
 	/* Important -- Initialize the race/class */
 	p_ptr->rp_ptr = &race_info[p_ptr->prace];
-	p_ptr->cp_ptr = &class_info[p_ptr->pclass];
+	p_ptr->cp_ptr = &c_info[p_ptr->pclass];
 	
 
 	/* Important -- Choose the magic info */
-	p_ptr->mp_ptr = &class_info[p_ptr->pclass].spells;
+	p_ptr->mp_ptr = &c_info[p_ptr->pclass].spells;
 
 
 	/* Read spell info */

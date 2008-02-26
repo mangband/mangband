@@ -328,7 +328,7 @@ char *c_text = "Rookie\0Soldier\0Swordsman\0Swashbuckler\0Veteran\0Myrmidon\0Com
  *   x_dis, x_dev, x_sav, x_stl, x_srh, x_fos, x_thn, x_thb,
  *   HD, Exp
  */
-player_class class_info[MAX_CLASS] =
+player_class c_info[MAX_CLASS] =
 {
 	{
 		0, /*"Warrior\0", 0-7 */
