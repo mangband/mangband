@@ -298,6 +298,35 @@ static bool object_has_flavor(int i)
 }
 
 
+/* HACK! 
+ * Hard-code items for EASY_KNOW flag emulation
+ * (as suggested by PW)
+ */
+bool easy_know_p(object_type *o_ptr)
+{
+	/* Valid "tval" codes */ 
+	switch (o_ptr->tval) 
+	{ 
+	/* Some objects are easily known */ 
+	case TV_SPIKE: 
+	case TV_FOOD: 
+	case TV_SCROLL: 
+	case TV_POTION: 
+	case TV_ROD: 
+	case TV_FLASK: 
+	case TV_MAGIC_BOOK: 
+			return (TRUE); 
+	
+	/* Some objects with zero values are easily known */ 
+	case TV_RING: 
+	case TV_AMULET: return ((o_ptr->pval == 0) && (o_ptr->to_a == 0) && 
+	(o_ptr->to_d == 0) && (o_ptr->to_h == 0)); 
+	} 
+	
+	/* Nope */ 
+	return (FALSE);
+}
+
 /*
  * Certain items, if aware, are known instantly
  * This function is used only by "flavor_init()"

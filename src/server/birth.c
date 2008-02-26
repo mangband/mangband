@@ -726,6 +726,28 @@ static byte ironman_player_init[MAX_CLASS][3][2] =
 };
 
 
+/*
+ * Hack -- use this function to give instant aware of certain items on birth
+ * 
+ */
+static bool insta_aware(object_kind *k_ptr) { 
+	/* Valid "tval" codes */ 
+	switch (k_ptr->tval) 
+	{ 
+	/* Some objects are easily known */ 
+	case TV_SPIKE: 
+	case TV_FLASK: 
+	case TV_MAGIC_BOOK: 
+	case TV_PRAYER_BOOK: 
+		 return (TRUE); 
+	
+	/* Basic food is easily known */ 
+	case TV_FOOD: return (k_ptr->sval >= SV_FOOD_MIN_FOOD); 
+	} 
+	
+	/* Nope */ 
+	return (FALSE); 
+}
 
 /*
  * Init players with some belongings
@@ -1103,6 +1125,13 @@ static void player_setup(int Ind)
 	/* Show him to everybody */
 	everyone_lite_spot(Depth, y, x);
 
+	/* Hack -- Give him "awareness" of certain objects -- Even more hacked */
+	for (i = 0; i < z_info->k_max; i++) 
+	{ 
+		object_kind *k_ptr = &k_info[i]; 
+		if (insta_aware(k_ptr)) p_ptr->obj_aware[i] = TRUE; 
+	}
+#if 0
 	/* Hack -- Give him "awareness" of certain objects */
 	for (i = 1; i < MAX_K_IDX; i++)
 	{
@@ -1114,6 +1143,7 @@ static void player_setup(int Ind)
 		/* No flavor yields aware */
 		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
 	}
+#endif
 
 	/* Add him to the player name database, if he is not already there */
 	if (!lookup_player_name(p_ptr->id))

@@ -719,6 +719,7 @@ extern void Handle_direction(int Ind, int dir);
 /* object2.c */
 extern void flavor_init(void);
 extern void reset_visuals(void);
+extern bool easy_know_p(object_type *o_ptr); /* Hack */
 extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
 extern void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
 extern void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
