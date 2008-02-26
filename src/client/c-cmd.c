@@ -11,7 +11,9 @@ void process_command()
                 case ESCAPE:
                 case ' ':
                 {
-                        Send_clear();
+    			if (first_escape) 
+                	    Send_clear();
+    			first_escape = FALSE;
                         break;
                 }
 

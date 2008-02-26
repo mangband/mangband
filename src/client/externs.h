@@ -87,6 +87,8 @@ extern bool inkey_base;
 extern bool inkey_scan;
 extern bool inkey_flag;
 
+extern bool first_escape;
+
 extern s16b macro__num;
 extern cptr *macro__pat;
 extern cptr *macro__act;

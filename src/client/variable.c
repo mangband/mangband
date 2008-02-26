@@ -56,6 +56,8 @@ bool inkey_base = FALSE;
 bool inkey_scan = FALSE;
 bool inkey_flag = FALSE;
 
+bool first_escape = FALSE;
+
 s16b macro__num;
 cptr *macro__pat;
 cptr *macro__act;

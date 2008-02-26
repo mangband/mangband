@@ -382,6 +382,7 @@ static char inkey_aux(void)
 
 	/* We are now inside a macro */
 	parse_macro = TRUE;
+	first_escape = TRUE;
 
 	/* Push the "macro complete" key */
 	if (Term_key_push(29)) return (0);
