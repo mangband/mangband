@@ -40,7 +40,7 @@ static void console_who()
 		/* Add an entry */
 		Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
 			p_ptr->name, p_ptr->lev, p_name + race_info[p_ptr->prace].name,
-			c_info[p_ptr->pclass].title, p_ptr->dun_depth*50));
+			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 			
 	}
 	Sockbuf_flush(&console_buf);
@@ -88,7 +88,7 @@ static void console_whois(char *name)
 	/* General character description */
 	Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
 		p_ptr->name, p_ptr->lev, p_name + race_info[p_ptr->prace].name,
-		c_info[p_ptr->pclass].title, p_ptr->dun_depth*50));
+		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
 	/* Breakup the client version identifier */
 	major = (p_ptr->version & 0xF000) >> 12;

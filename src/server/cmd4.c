@@ -549,8 +549,8 @@ void do_cmd_check_players(int Ind, int line)
 
 		/* Print a message */
 		fprintf(fff, "     %s the %s %s (Level %d, %s)",
-			q_ptr->name, p_name + race_info[q_ptr->prace].name,
-			c_info[q_ptr->pclass].title, q_ptr->lev,
+			q_ptr->name, p_name + p_info[q_ptr->prace].name,
+			c_name + c_info[q_ptr->pclass].name, q_ptr->lev,
 			parties[q_ptr->party].name);
 
 		/* Print extra info if these people are in the same party */

@@ -427,7 +427,7 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	(*f1) = (*f2) = (*f3) = 0L;
 
 	/* Add racial flags */
-	
+	/* 
 	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
 	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
 	if (p_ptr->prace == RACE_GNOME) *f3 |= TR3_FREE_ACT;
@@ -435,12 +435,12 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
 	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
 	if (p_ptr->prace == RACE_DUNADAN) *f2 |= TR2_SUST_CON;
-   if (p_ptr->prace == RACE_HIGH_ELF)
-    {
-    	*f2 |= TR2_RES_LITE ;
-    	*f3 |= TR3_SEE_INVIS;
-    }
-	
+	if (p_ptr->prace == RACE_HIGH_ELF)
+	{
+    	    *f2 |= TR2_RES_LITE ;
+	    *f3 |= TR3_SEE_INVIS;
+	}
+	*/
 	/* Classial flags */
 	if (p_ptr->pclass == CLASS_ROGUE) *f1 |= TR1_SPEED;
 
@@ -459,16 +459,16 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	/*
 			In ideal world of Angband this is done like that:
 				Someday...			
-			
-	(*f1) |= race_info[race].flags1;
-	(*f2) |= race_info[race].flags2;
-	(*f3) |= race_info[race].flags3;
+	*/		
+	(*f1) |= p_info[p_ptr->prace].flags1;
+	(*f2) |= p_info[p_ptr->prace].flags2;
+	(*f3) |= p_info[p_ptr->prace].flags3;
 
-	if (cp_ptr->flags & CF_BRAVERY_30)
+	if (c_info[p_ptr->pclass].flags & CF_BRAVERY_30)
 	{
 		if (p_ptr->lev >= 30) (*f2) |= (TR2_RES_FEAR);
 	}
-	 */
+	
 }
 
 /*

@@ -1508,7 +1508,7 @@ static errr rd_savefile_new_aux(int Ind)
 
 
 	/* Important -- Initialize the race/class */
-	p_ptr->rp_ptr = &race_info[p_ptr->prace];
+	p_ptr->rp_ptr = &p_info[p_ptr->prace];
 	p_ptr->cp_ptr = &c_info[p_ptr->pclass];
 	
 
