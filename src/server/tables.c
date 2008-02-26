@@ -2230,94 +2230,77 @@ u32b spell_flags[2][9][2] =
 
 
 /*
- * Names of the spells (mage spells, priest spells, ghost spells)
+ * Names of the spells (mage spells then priest spells)
  */
 cptr spell_names[3][PY_MAX_SPELLS] =
 {
 	/*** Mage Spells ***/
+
 	{
-		/* Magic for Beginners (sval 0) */
-		"Magic Missile",
-		"Detect Monsters",
-		"Phase Door",
-		"Light Area",
-		"Treasure Detection",
-		"Cure Light Wounds",
-		"Object Detection",
-		"Find Hidden Traps/Doors",
-		"Stinking Cloud",
-
-		/* Conjurings and Tricks (sval 1) */
-		"Confuse Monster",
-		"Lightning Bolt",
-		"Trap/Door Destruction",
-        "Sleep Monster",
-		"Cure Poison",
-		"Teleport Self",
-		"Spear of Light",
-		"Frost Bolt",
-		"Turn Stone to Mud",
-
-		/* Incantations and Illusions (sval 2) */
-		"Satisfy Hunger",
-		"Recharge Item I",
-        "Fire Bolt",
-		"Polymorph Other",
-		"Identify",
-        "Sleep Monsters",
-        "Frost Ball",
-		"Slow Monster",
-
-		/* Sorcery and Evocations (sval 3) */
-        "Fire Ball",
-		"Recharge Item II",
-		"Teleport Other",
-		"Haste Self",
-        "Tidal Wave",
-		"Word of Destruction",
-		"Genocide",
-
-		/* Mordenkainen's Escapes (sval 5) */
-		"Door Creation",
-		"Stair Creation",
-		"Teleport Level",
-		"Earthquake",
-		"Word of Recall",
-
-		/* Raal's Tome of Destruction (sval 8) */
-		"Acid Bolt",
-		"Cloud Kill",
-		"Acid Ball",
-		"Ice Storm",
-		"Meteor Swarm",
-		"Mana Storm",
-
-		/* Kelek's Grimoire of Power (sval 6) */
-		"Detect Evil",
-		"Detect Enchantment",
-		"Recharge Item III",
-		"Genocide",
-		"Mass Genocide",
-
-		/* Resistance of Scarabtarices (sval 4) */
-		"Resist Fire",
-		"Resist Cold",
-		"Resist Acid",
-		"Resist Poison",
-		"Resistance",
-
-		/* Tenser's transformations... (sval 7) */
-		"Heroism",
-		"Shield",
-		"Berserker",
-		"Essence of Speed",
-		"Globe of Invulnerability",
-
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)"
+	  "Magic Missile",
+	  "Detect Monsters",
+	  "Phase Door",
+	  "Light Area",
+	  "Find Hidden Traps/Doors",
+	  "Cure Light Wounds",
+	  "Detect Treasure",
+	  "Detect Objects",
+	  "Identify",
+	  "Detect Invisible",
+	  "Detect Enchantment",
+	  "Stinking Cloud",
+	  "Lightning Bolt",
+	  "Confuse Monster",
+	  "Sleep Monster",
+	  "Wonder",
+	  "Frost Bolt",
+	  "Acid Bolt",
+	  "Fire Bolt",
+	  "Trap/Door Destruction",
+	  "Spear of Light",
+	  "Turn Stone to Mud",
+	  "Door Creation",
+	  "Earthquake",
+	  "Stair Creation",
+	  "Cure Poison",
+	  "Satisfy Hunger",
+	  "Heroism",
+	  "Berserker",
+	  "Haste Self",
+	  "Teleport Self",
+	  "Slow Monster",
+	  "Teleport Other",
+	  "Teleport Level",
+	  "Word of Recall",
+	  "Polymorph Other",
+	  "Shock Wave",
+	  "Explosion",
+	  "Cloudkill",
+	  "Mass Sleep",
+	  "Bedlam",
+	  "Rend Soul",
+	  "Word of Destruction",
+	  "Chaos Strike",
+	  "Resist Cold",
+	  "Resist Fire",
+	  "Resist Poison",
+	  "Resistance",
+	  "Shield",
+	  "Rune of Protection",
+	  "Lesser Recharging",
+	  "Enchant Armor",
+	  "Enchant Weapon",
+	  "Greater Recharging",
+	  "Elemental Brand",
+	  "Frost Ball",
+	  "Acid Ball",
+	  "Fire Ball",
+	  "Ice Storm",
+	  "Banishment",
+	  "Meteor Swarm",
+	  "Mass Banishment",
+	  "Rift",
+	  "Mana Storm"
 	},
 
 
@@ -2371,9 +2354,9 @@ cptr spell_names[3][PY_MAX_SPELLS] =
 		"Clairvoyance",
 
 		/* Purifications and Healing (sval 6) */
-        "Cure Serious Wounds",
+		"Cure Serious Wounds",
 		"Cure Mortal Wounds",
-        "Healing", 
+		"Healing",
 		"Restoration",
 		"Remembrance",
 
@@ -2404,8 +2387,8 @@ cptr spell_names[3][PY_MAX_SPELLS] =
 		"(blank)",
 		"(blank)",
 		"(blank)",
-        "(blank)",
-        "(blank)"
+		"(blank)",
+		"(blank)"
     },
 
 	/*** Ghost abilities ***/

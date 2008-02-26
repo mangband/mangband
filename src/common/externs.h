@@ -55,7 +55,7 @@ extern player_race race_info[MAX_RACES];
 //extern player_class c_info[MAX_CLASS];
 extern player_magic magic_info[MAX_CLASS];
 extern u32b spell_flags[3][9][2];
-extern cptr spell_names[4][64];
+extern cptr spell_names[3][64];
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];

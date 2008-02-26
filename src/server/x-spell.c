@@ -411,7 +411,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 /*
  * Names of the spells (mage spells then priest spells)
  */
-static cptr spell_names[2][PY_MAX_SPELLS] =
+static cptr spell_names[3][PY_MAX_SPELLS] =
 {
 	/*** Mage Spells ***/
 
