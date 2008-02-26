@@ -331,71 +331,7 @@ static void get_history(int Ind)
 	social_class = randint(4);
 
 	/* Starting place */
-	switch (p_ptr->prace)
-	{
-		case RACE_HUMAN:
-		case RACE_DUNADAN:
-		{
-			chart = 1;
-			break;
-		}
-
-		case RACE_HALF_ELF:
-		{
-			chart = 4;
-			break;
-		}
-
-		case RACE_ELF:
-		case RACE_HIGH_ELF:
-		{
-			chart = 7;
-			break;
-		}
-
-		case RACE_HOBBIT:
-		{
-			chart = 10;
-			break;
-		}
-
-		case RACE_GNOME:
-		{
-			chart = 13;
-			break;
-		}
-
-		case RACE_DWARF:
-		{
-			chart = 16;
-			break;
-		}
-
-		case RACE_HALF_ORC:
-		{
-			chart = 19;
-			break;
-		}
-
-		case RACE_HALF_TROLL:
-		{
-			chart = 22;
-			break;
-		}
-
-		case RACE_KOBOLD:
-		{
-			chart = 23;
-			break;
-		}
-
-		default:
-		{
-			chart = 0;
-			break;
-		}
-	}
-
+	chart = p_info[p_ptr->prace].hist;
 
 	/* Process the history */
 	while (chart)
