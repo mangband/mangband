@@ -2558,6 +2558,10 @@ void init_some_arrays(void)
 	s_printf("[Initializing arrays... (races)]\n");
 	if (init_p_info()) quit("Cannot initialize races");
 
+	/* Initialize class info */
+	s_printf("[Initializing arrays... (classes)]");
+	if (init_c_info()) quit("Cannot initialize classes");
+
 	/* Initialize flavor info */
 	s_printf("[Initializing arrays... (flavors)]\n");
 	if (init_flavor_info()) quit("Cannot initialize flavors");
