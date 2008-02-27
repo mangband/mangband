@@ -171,33 +171,33 @@ static void do_spell_info(int Ind, char *p, int j)
 		{
             case MSPELL_MAGIC_MISSILE: sprintf(p, " dam %dd4", 3+((plev-1)/5)); break;
             case MSPELL_PHASE_DOOR: strcpy(p, " range 10"); break;
-            case MSPELL_CURE_LIGHT: strcpy(p, " heal 2d8"); break;
+            case MSPELL_CURE_LIGHT_WOUNDS: strcpy(p, " heal 2d8"); break;
             case MSPELL_STINKING_CLOUD: sprintf(p, " dam %d", 10 + (plev / 2)); break;
             case MSPELL_LIGHTNING_BOLT: sprintf(p, " dam %dd6", (3+((plev-5)/6))); break;
             case MSPELL_TELEPORT_SELF: sprintf(p, " range %d", plev * 5); break;
-            case MSPELL_SPEAR_LIGHT: strcpy(p, " dam 6d8"); break;
+            case MSPELL_SPEAR_OF_LIGHT: strcpy(p, " dam 6d8"); break;
             case MSPELL_FROST_BOLT: sprintf(p, " dam %dd8", (5+((plev-5)/4))); break;
             case MSPELL_FIRE_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
             case MSPELL_FROST_BALL: sprintf(p, " dam %d", 30 + plev); break;
 	    case MSPELL_FIRE_BALL: sprintf(p, " dam %d", 55 + plev); break;
             case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d20", plev); break;
-	    case MSPELL_TIDAL_WAVE: sprintf(p, " dam %d", 40 + plev*2); break;            
+	    case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev*2); break;            
             case MSPELL_ACID_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
             case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 40 + plev/2); break;
-            case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev); break;
+/*            case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev); break; */
             case MSPELL_ICE_STORM: sprintf(p, " dam %d", 50 + plev*2); break;
             case MSPELL_METEOR_SWARM: sprintf(p, " dam %d", 65 + plev); break;
             case MSPELL_MANA_STORM: sprintf(p, " dam %d", 300 + plev*2); break;
             case MSPELL_RESIST_FIRE: strcpy(p, " dur 20+d20"); break;
             case MSPELL_RESIST_COLD: strcpy(p, " dur 20+d20"); break;
-            case MSPELL_RESIST_ACID: strcpy(p, " dur 20+d20"); break;
+/*            case MSPELL_RESIST_ACID: strcpy(p, " dur 20+d20"); break; */
             case MSPELL_RESIST_POISON: strcpy(p, " dur 20+d20"); break;
-            case MSPELL_RESIST_ELEMENTS: strcpy(p, " dur 20+d20"); break;
-            case MSPELL_SHIELD_HERO: strcpy(p, " dur 25+d25"); break;
-            case MSPELL_SHIELD_ARMOR: strcpy(p, " dur 30+d20"); break;
-            case MSPELL_SHIELD_BERSERK: strcpy(p, " dur 25+d25"); break;
-            case MSPELL_SHIELD_SPEED: sprintf(p, " dur %d+d30", 30+plev); break;
-            case MSPELL_SHIELD_GOI: strcpy(p, " dur 10+d10"); break;
+            case MSPELL_RESISTANCE: strcpy(p, " dur 20+d20"); break;
+            case MSPELL_HEROISM: strcpy(p, " dur 25+d25"); break;
+            case MSPELL_SHIELD: strcpy(p, " dur 30+d20"); break;
+            case MSPELL_BERSERKER: strcpy(p, " dur 25+d25"); break;
+/*            case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d30", 30+plev); break; */
+/*            case MSPELL_SHIELD_GOI: strcpy(p, " dur 10+d10"); break; */
 		}
 	}
 
@@ -754,26 +754,26 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_DETECT_TREASURES:
+            case MSPELL_TREASURE_DETECTION:
 			{
 				(void)detect_treasure(Ind);
 				break;
 			}
 
-            case MSPELL_CURE_LIGHT:
+            case MSPELL_CURE_LIGHT_WOUNDS:
 			{
 				(void)hp_player(Ind, damroll(2, 8));
 				(void)set_cut(Ind, p_ptr->cut - 15);
 				break;
 			}
 
-            case MSPELL_DETECT_OBJECTS:
+            case MSPELL_OBJECT_DETECTION:
 			{
 				(void)detect_object(Ind);
 				break;
 			}
 
-            case MSPELL_DETECT_FEATURES:
+            case MSPELL_FIND_TRAPS_DOORS:
 			{
 				(void)detect_sdoor(Ind);
 				(void)detect_trap(Ind);
@@ -801,7 +801,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_DESTROY_FEATURES:
+            case MSPELL_TRAP_DOOR_DESTRUCTION:
 			{
 				(void)destroy_doors_touch(Ind);
 				break;
@@ -827,9 +827,9 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_SPEAR_LIGHT:
+            case MSPELL_SPEAR_OF_LIGHT:
 			{
-                p_ptr->current_spell = MSPELL_SPEAR_LIGHT;
+                p_ptr->current_spell = MSPELL_SPEAR_OF_LIGHT;
 				get_aim_dir(Ind);
 				return;
 			}
@@ -841,20 +841,20 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_STONE_MUD:
+            case MSPELL_TURN_STONE_TO_MUD:
 			{
-                p_ptr->current_spell = MSPELL_STONE_MUD;
+                p_ptr->current_spell = MSPELL_TURN_STONE_TO_MUD;
 				get_aim_dir(Ind);
 				return;
 			}
 
-            case MSPELL_SAT_HUNGER:
+            case MSPELL_SATISFY_HUNGER:
 			{
 				(void)set_food(Ind, PY_FOOD_MAX - 1);
 				break;
 			}
 
-            case MSPELL_RECHARGE_ITEM:
+            case MSPELL_RECHARGE_ITEM_I:
 			{
 				(void)recharge(Ind, 2 + plev / 5);
 				break;
@@ -874,18 +874,18 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_IDENTIFY_OBJECT:
+            case MSPELL_IDENTIFY:
 			{
 				(void)ident_spell(Ind);
 				break;
 			}
 
-            case MSPELL_SLEEP_MONSTERS:
+/*            case MSPELL_SLEEP_MONSTER:
 			{
 				(void)sleep_monsters(Ind);
 				break;
 			}
-
+*/
             case MSPELL_FROST_BALL:
 			{
                 p_ptr->current_spell = MSPELL_FROST_BALL;
@@ -907,7 +907,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_RECHARGE_ITEM2:
+            case MSPELL_RECHARGE_ITEM_II:
 			{
 				(void)recharge(Ind, 50 + plev);
 				break;
@@ -934,21 +934,21 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_TIDAL_WAVE:
+            case MSPELL_ACID_BALL:
 			{
-                p_ptr->current_spell = MSPELL_TIDAL_WAVE;
+                p_ptr->current_spell = MSPELL_ACID_BALL;
 				get_aim_dir(Ind);
 				return;
 			}
 
-            case MSPELL_WORD_DESTRUCTION:
+            case MSPELL_WORD_OF_DESTRUCTION:
 			{
 				msg_format_near(Ind, "%s unleashes great power!", p_ptr->name);
 				destroy_area(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 15, TRUE);
 				break;
 			}
 
-            case MSPELL_GENOCIDE_HARD:
+            case MSPELL_BANISHMENT:
 			{
 				(void)genocide(Ind);
 				break;
@@ -972,14 +972,14 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_EARTH_QUAKE:
+            case MSPELL_EARTHQUAKE:
 			{
 				msg_format_near(Ind, "%s casts a spell, and the ground shakes!", p_ptr->name);
 				earthquake(p_ptr->dun_depth, p_ptr->py, p_ptr->px, 10);
 				break;
 			}
 
-            case MSPELL_WORD_RECALL:
+            case MSPELL_WORD_OF_RECALL:
 			{
 				set_recall(Ind, o_ptr);
 				break;
@@ -999,13 +999,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_ACID_BALL:
+/*            case MSPELL_ACID_BALL:
 			{
                 p_ptr->current_spell = MSPELL_ACID_BALL;
 				get_aim_dir(Ind);
 				return;
 			}
-
+*/
             case MSPELL_ICE_STORM:
 			{
                 p_ptr->current_spell = MSPELL_ICE_STORM;
@@ -1027,31 +1027,31 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-            case MSPELL_DETECT_EVIL:
+/*            case MSPELL_DETECT_EVIL:
 			{
 				(void)detect_evil(Ind);
 				break;
 			}
-
-            case MSPELL_DETECT_ENCHANT:
+*/
+            case MSPELL_DETECT_ENCHANTMENT:
 			{
 				(void)detect_magic(Ind);
 				break;
 			}
 
-            case MSPELL_RECHARGE_ITEM3:
+/*            case MSPELL_RECHARGE_ITEM3:
 			{
 				recharge(Ind, 100);
 				break;
 			}
-
-            case MSPELL_GENOCIDE_EASY:
+*/
+/*            case MSPELL_BANISHMENT:
 			{
 				(void)genocide(Ind);
 				break;
 			}
-
-            case MSPELL_GENOCIDE_MASS:
+*/
+            case MSPELL_MASS_BANISHMENT:
 			{
 				(void)mass_genocide(Ind);
 				break;
@@ -1069,19 +1069,19 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_RESIST_ACID:
+/*            case MSPELL_RESIST_ACID:
 			{
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
 				break;
 			}
-
+*/
             case MSPELL_RESIST_POISON:
 			{
 				(void)set_oppose_pois(Ind, p_ptr->oppose_pois + randint(20) + 20);
 				break;
 			}
 
-            case MSPELL_RESIST_ELEMENTS:
+            case MSPELL_RESISTANCE:
 			{
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
 				(void)set_oppose_elec(Ind, p_ptr->oppose_elec + randint(20) + 20);
@@ -1091,7 +1091,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_SHIELD_HERO:
+            case MSPELL_HEROISM:
 			{
 				(void)hp_player(Ind, 10);
 				(void)set_hero(Ind, p_ptr->hero + randint(25) + 25);
@@ -1099,14 +1099,14 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_SHIELD_ARMOR:
+            case MSPELL_SHIELD:
 			{
 				msg_format_near(Ind, "%s forms a mystic shield.", p_ptr->name);
 				(void)set_shield(Ind, p_ptr->shield + randint(20) + 30);
 				break;
 			}
 
-            case MSPELL_SHIELD_BERSERK:
+            case MSPELL_BERSERKER:
 			{
 				msg_format_near(Ind, "%s enters a battle rage!", p_ptr->name);
 				(void)hp_player(Ind, 30);
@@ -1115,7 +1115,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-            case MSPELL_SHIELD_SPEED:
+/*            case MSPELL_HASTE_SELF:
 			{
 				if (!p_ptr->fast)
 				{
@@ -1127,8 +1127,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 				}
 				break;
 			}
-
-            case MSPELL_SHIELD_GOI:
+*/
+/*            case MSPELL_SHIELD_GOI:
 			{
 				//(void)set_invuln(Ind, p_ptr->invuln + randint(8) + 8);
 				// GOI no longer stacks, as when it did it was vastly overpowered. 
@@ -1136,6 +1136,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 					set_invuln(Ind, 10 + randint(10));
 				break;
 			}
+*/
 		}
 
 		/* A spell was cast */
@@ -1270,7 +1271,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-        case MSPELL_SPEAR_LIGHT:
+        case MSPELL_SPEAR_OF_LIGHT:
 		{
 			msg_print(Ind, "A line of blue shimmering light appears.");
 			lite_line(Ind, dir);
@@ -1285,7 +1286,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-        case MSPELL_STONE_MUD:
+        case MSPELL_TURN_STONE_TO_MUD:
 		{
 			(void)wall_to_mud(Ind, dir);
 			break;
@@ -1331,9 +1332,9 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-	case MSPELL_TIDAL_WAVE:
+	case MSPELL_ACID_BALL:
         {
-            msg_format_near(Ind, "%s invokes a tidal wave.", p_ptr->name);
+            msg_format_near(Ind, "%s invokes an acid ball.", p_ptr->name);
             fire_ball(Ind, GF_WATER, dir, 40 + (plev * 2), 2);
             break;
         }
@@ -1353,13 +1354,13 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-        case MSPELL_ACID_BALL:
+/*        case MSPELL_ACID_BALL:
 		{
 			msg_format_near(Ind, "%s casts an acid ball.", p_ptr->name);
 			fire_ball(Ind, GF_ACID, dir, 40 + (plev), 2);
 			break;
 		}
-
+*/
         case MSPELL_ICE_STORM:
 		{
         		msg_format_near(Ind, "%s invokes an ice storm.", p_ptr->name);
