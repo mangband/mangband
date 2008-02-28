@@ -2979,69 +2979,87 @@ extern int PlayerUID;
 #define MSPELL_HASTE_SELF	57
 #define MSPELL_SHIELD_GOI	58 /* missing entirely in 3.0.6 */
 #endif
+
+		/* Magic for Beginners */
 #define MSPELL_MAGIC_MISSILE             0
 #define MSPELL_DETECT_MONSTERS           1
 #define MSPELL_PHASE_DOOR                2
 #define MSPELL_LIGHT_AREA                3
-#define MSPELL_FIND_TRAPS_DOORS          4
+#define MSPELL_TREASURE_DETECTION        4
 #define MSPELL_CURE_LIGHT_WOUNDS         5
-#define MSPELL_TREASURE_DETECTION        6
-#define MSPELL_OBJECT_DETECTION          7
-#define MSPELL_IDENTIFY                  8
-#define MSPELL_DETECT_INVISIBLE          9
-#define MSPELL_DETECT_ENCHANTMENT        10
-#define MSPELL_STINKING_CLOUD            11
-#define MSPELL_LIGHTNING_BOLT            12
-#define MSPELL_CONFUSE_MONSTER           13
-#define MSPELL_SLEEP_MONSTER             14
-#define MSPELL_WONDER                    15
+#define MSPELL_OBJECT_DETECTION          6
+#define MSPELL_FIND_TRAPS_DOORS          7
+#define MSPELL_STINKING_CLOUD            8
+
+		/* Conjurings and Tricks */
+#define MSPELL_CONFUSE_MONSTER           9
+#define MSPELL_LIGHTNING_BOLT            10
+#define MSPELL_TRAP_DOOR_DESTRUCTION     11
+#define MSPELL_CURE_POISON               12
+#define MSPELL_SLEEP_MONSTER             13
+#define MSPELL_TELEPORT_SELF             14
+#define MSPELL_SPEAR_OF_LIGHT            15
 #define MSPELL_FROST_BOLT                16
-#define MSPELL_ACID_BOLT                 17
-#define MSPELL_FIRE_BOLT                 18
-#define MSPELL_TRAP_DOOR_DESTRUCTION     19
-#define MSPELL_SPEAR_OF_LIGHT            20
-#define MSPELL_TURN_STONE_TO_MUD         21
-#define MSPELL_DOOR_CREATION             22
-#define MSPELL_EARTHQUAKE                23
-#define MSPELL_STAIR_CREATION            24
-#define MSPELL_CURE_POISON               25
-#define MSPELL_SATISFY_HUNGER            26
-#define MSPELL_HEROISM                   27
-#define MSPELL_BERSERKER                 28
+#define MSPELL_WONDER                    17
+
+		/* Incantations and Illusions */
+#define MSPELL_SATISFY_HUNGER            18
+#define MSPELL_RECHARGE_ITEM_I           19
+#define MSPELL_TURN_STONE_TO_MUD         20
+#define MSPELL_FIRE_BOLT                 21
+#define MSPELL_POLYMORPH_OTHER           22
+#define MSPELL_IDENTIFY                  23
+#define MSPELL_DETECT_INVISIBLE          24
+#define MSPELL_ACID_BOLT                 25
+#define MSPELL_SLOW_MONSTER              26
+
+		/* Sorcery and Evocations */
+#define MSPELL_FROST_BALL                27
+#define MSPELL_TELEPORT_OTHER            28
 #define MSPELL_HASTE_SELF                29
-#define MSPELL_TELEPORT_SELF             30
-#define MSPELL_SLOW_MONSTER              31
-#define MSPELL_TELEPORT_OTHER            32
-#define MSPELL_TELEPORT_LEVEL            33
-#define MSPELL_WORD_OF_RECALL            34
-#define MSPELL_POLYMORPH_OTHER           35
-#define MSPELL_SHOCK_WAVE                36
-#define MSPELL_EXPLOSION                 37
-#define MSPELL_CLOUD_KILL                38
-#define MSPELL_MASS_SLEEP                39
-#define MSPELL_BEDLAM                    40
-#define MSPELL_REND_SOUL                 41
-#define MSPELL_WORD_OF_DESTRUCTION       42
-#define MSPELL_CHAOS_STRIKE              43
-#define MSPELL_RESIST_COLD               44
-#define MSPELL_RESIST_FIRE               45
-#define MSPELL_RESIST_POISON             46
-#define MSPELL_RESISTANCE                47
-#define MSPELL_SHIELD                    48
+#define MSPELL_MASS_SLEEP                30
+#define MSPELL_FIRE_BALL                 31
+#define MSPELL_DETECT_ENCHANTMENT        32
+
+		/* Resistances of Scarabtarices */
+#define MSPELL_RESIST_COLD               33
+#define MSPELL_RESIST_FIRE               34
+#define MSPELL_RESIST_POISON             35
+#define MSPELL_RESISTANCE                36
+#define MSPELL_SHIELD                    37
+
+		/* Raal's Tome of Destruction */
+#define MSPELL_SHOCK_WAVE                38
+#define MSPELL_EXPLOSION                 39
+#define MSPELL_CLOUD_KILL                40
+#define MSPELL_ACID_BALL                 41
+#define MSPELL_ICE_STORM                 42
+#define MSPELL_METEOR_SWARM              43
+#define MSPELL_RIFT                      44
+
+		/* Mordenkainen's Escapes */
+#define MSPELL_DOOR_CREATION             45
+#define MSPELL_STAIR_CREATION            46
+#define MSPELL_TELEPORT_LEVEL            47
+#define MSPELL_WORD_OF_RECALL            48
 #define MSPELL_RUNE_OF_PROTECTION        49
-#define MSPELL_RECHARGE_ITEM_I           50
-#define MSPELL_ENCHANT_ARMOR             51
-#define MSPELL_ENCHANT_WEAPON            52
-#define MSPELL_RECHARGE_ITEM_II          53
-#define MSPELL_ELEMENTAL_BRAND           54
-#define MSPELL_FROST_BALL                55
-#define MSPELL_ACID_BALL                 56
-#define MSPELL_FIRE_BALL                 57
-#define MSPELL_ICE_STORM                 58
+
+		/* Tenser's transformations */
+#define MSPELL_HEROISM                   50
+#define MSPELL_BERSERKER                 51
+#define MSPELL_ENCHANT_ARMOR             52
+#define MSPELL_ENCHANT_WEAPON            53
+#define MSPELL_RECHARGE_ITEM_II          54
+#define MSPELL_ELEMENTAL_BRAND           55
+
+		/* Kelek's Grimoire of Power */
+#define MSPELL_EARTHQUAKE                56
+#define MSPELL_BEDLAM                    57
+#define MSPELL_REND_SOUL                 58
 #define MSPELL_BANISHMENT                59
-#define MSPELL_METEOR_SWARM              60
+#define MSPELL_WORD_OF_DESTRUCTION       60
 #define MSPELL_MASS_BANISHMENT           61
-#define MSPELL_RIFT                      62
+#define MSPELL_CHAOS_STRIKE              62
 #define MSPELL_MANA_STORM                63
 
 /* Priest spells */
