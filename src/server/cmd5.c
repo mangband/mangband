@@ -1209,6 +1209,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 			}
 
 			case MSPELL_MASS_SLEEP:
+			{
+				(void)sleep_monsters(Ind);
+				break;
+			}
+
 			case MSPELL_BEDLAM:
 			case MSPELL_REND_SOUL:
 			case MSPELL_CHAOS_STRIKE:
