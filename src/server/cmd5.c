@@ -1215,6 +1215,12 @@ void do_cmd_cast(int Ind, int book, int spell)
 			}
 
 			case MSPELL_BEDLAM:
+			{
+                p_ptr->current_spell = MSPELL_BEDLAM;
+				get_aim_dir(Ind);
+				return;
+			}
+
 			case MSPELL_REND_SOUL:
 			case MSPELL_CHAOS_STRIKE:
 			case MSPELL_RUNE_OF_PROTECTION:
@@ -1577,6 +1583,13 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts an explosion.", p_ptr->name);
 			fire_ball(Ind, GF_SHARDS, dir, 10 + plev, 2);
+			break;
+		}
+
+		case MSPELL_BEDLAM:
+		{
+			msg_format_near(Ind, "%s casts an explosion.", p_ptr->name);
+			fire_ball(Ind, GF_CONFUSION, dir, 10 + plev, 2);
 			break;
 		}
 
