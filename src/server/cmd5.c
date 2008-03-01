@@ -1193,7 +1193,14 @@ void do_cmd_cast(int Ind, int book, int spell)
 				get_aim_dir(Ind);
 				return;
 			}
+
 			case MSPELL_SHOCK_WAVE:
+			{
+                p_ptr->current_spell = MSPELL_SHOCK_WAVE;
+				get_aim_dir(Ind);
+				return;
+			}
+
 			case MSPELL_EXPLOSION:
 			case MSPELL_MASS_SLEEP:
 			case MSPELL_BEDLAM:
@@ -1544,8 +1551,14 @@ void do_cmd_cast_aux(int Ind, int dir)
 
         case MSPELL_WONDER:
 		{
-			msg_format_near(Ind, "%s casts a mana ball.", p_ptr->name);
 			(void)spell_wonder(Ind, dir);
+			break;
+		}
+
+		case MSPELL_SHOCK_WAVE:
+		{
+			msg_format_near(Ind, "%s casts a shock wave.", p_ptr->name);
+			fire_ball(Ind, GF_SOUND, dir, 10 + plev, 2);
 			break;
 		}
 
