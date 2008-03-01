@@ -1181,6 +1181,26 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
+			case MSPELL_DETECT_INVISIBLE:
+			{
+				(void)detect_invisible(Ind);
+				break;
+			}
+
+			case MSPELL_WONDER:
+			case MSPELL_SHOCK_WAVE:
+			case MSPELL_EXPLOSION:
+			case MSPELL_MASS_SLEEP:
+			case MSPELL_BEDLAM:
+			case MSPELL_REND_SOUL:
+			case MSPELL_CHAOS_STRIKE:
+			case MSPELL_RUNE_OF_PROTECTION:
+			case MSPELL_RIFT:
+			{
+				break;
+			}
+
+
 /*            case MSPELL_HASTE_SELF:
 			{
 				if (!p_ptr->fast)
