@@ -1236,6 +1236,12 @@ void do_cmd_cast(int Ind, int book, int spell)
 			}
 
 			case MSPELL_RUNE_OF_PROTECTION:
+			{
+                msg_format_near(Ind, "%s lays down a rune of protection.", p_ptr->name);
+				(void)warding_glyph(Ind);
+				break;
+			}
+
 			case MSPELL_RIFT:
 			{
 				break;
