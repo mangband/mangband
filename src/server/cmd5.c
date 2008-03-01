@@ -1202,6 +1202,12 @@ void do_cmd_cast(int Ind, int book, int spell)
 			}
 
 			case MSPELL_EXPLOSION:
+			{
+                p_ptr->current_spell = MSPELL_EXPLOSION;
+				get_aim_dir(Ind);
+				return;
+			}
+
 			case MSPELL_MASS_SLEEP:
 			case MSPELL_BEDLAM:
 			case MSPELL_REND_SOUL:
@@ -1559,6 +1565,13 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts a shock wave.", p_ptr->name);
 			fire_ball(Ind, GF_SOUND, dir, 10 + plev, 2);
+			break;
+		}
+
+		case MSPELL_EXPLOSION:
+		{
+			msg_format_near(Ind, "%s casts an explosion.", p_ptr->name);
+			fire_ball(Ind, GF_SHARDS, dir, 10 + plev, 2);
 			break;
 		}
 
