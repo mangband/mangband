@@ -1188,6 +1188,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 			}
 
 			case MSPELL_WONDER:
+			{
+                p_ptr->current_spell = MSPELL_WONDER;
+				get_aim_dir(Ind);
+				return;
+			}
 			case MSPELL_SHOCK_WAVE:
 			case MSPELL_EXPLOSION:
 			case MSPELL_MASS_SLEEP:
@@ -1293,6 +1298,75 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_PLAYER);
+}
+
+
+static int beam_chance(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	int plev = p_ptr->lev;
+	return ((p_ptr->cp_ptr->flags & CF_BEAM) ? plev : (plev / 2));
+}
+
+
+static void spell_wonder(int Ind, int dir)
+{
+/* This spell should become more useful (more
+   controlled) as the player gains experience levels.
+   Thus, add 1/5 of the player's level to the die roll.
+   This eliminates the worst effects later on, while
+   keeping the results quite random.  It also allows
+   some potent effects only at high level. */
+
+	player_type *p_ptr = Players[Ind];
+
+	int py = p_ptr->py;
+	int px = p_ptr->px;
+	int plev = p_ptr->lev;
+	int die = randint(100) + plev / 5;
+	int beam = beam_chance(Ind);
+
+	if (die > 100)
+		msg_print(Ind, "You feel a surge of power!");
+	if (die < 8) clone_monster(Ind, dir);
+	else if (die < 14) speed_monster(Ind, dir);
+	else if (die < 26) heal_monster(Ind, dir);
+	else if (die < 31) poly_monster(Ind, dir);
+	else if (die < 36)
+		fire_bolt_or_beam(Ind, beam - 10, GF_MISSILE, dir,
+		                  damroll(3 + ((plev - 1) / 5), 4));
+	else if (die < 41) confuse_monster(Ind, dir, plev);
+	else if (die < 46) fire_ball(Ind, GF_POIS, dir, 20 + (plev / 2), 3);
+	else if (die < 51) lite_line(Ind, dir);
+	else if (die < 56)
+		fire_beam(Ind, GF_ELEC, dir, damroll(3+((plev-5)/6), 6));
+	else if (die < 61)
+		fire_bolt_or_beam(Ind, beam-10, GF_COLD, dir,
+		                  damroll(5+((plev-5)/4), 8));
+	else if (die < 66)
+		fire_bolt_or_beam(Ind, beam, GF_ACID, dir,
+		                  damroll(6+((plev-5)/4), 8));
+	else if (die < 71)
+		fire_bolt_or_beam(Ind, beam, GF_FIRE, dir,
+		                  damroll(8+((plev-5)/4), 8));
+	else if (die < 76) drain_life(Ind, dir, 75);
+	else if (die < 81) fire_ball(Ind, GF_ELEC, dir, 30 + plev / 2, 2);
+	else if (die < 86) fire_ball(Ind, GF_ACID, dir, 40 + plev, 2);
+	else if (die < 91) fire_ball(Ind, GF_ICE, dir, 70 + plev, 3);
+	else if (die < 96) fire_ball(Ind, GF_FIRE, dir, 80 + plev, 3);
+	else if (die < 101) drain_life(Ind, dir, 100 + plev);
+	else if (die < 104) earthquake(p_ptr->dun_depth, py, px, 12);
+	else if (die < 106) destroy_area(p_ptr->dun_depth, py, px, 15, TRUE);
+	else if (die < 108) genocide(Ind);
+	else if (die < 110) dispel_monsters(Ind, 120);
+	else /* RARE */
+	{
+		dispel_monsters(Ind, 150);
+		slow_monsters(Ind);
+		sleep_monsters(Ind);
+		hp_player(Ind, 300);
+	}
 }
 
 
@@ -1465,6 +1539,13 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts a mana ball.", p_ptr->name);
 			fire_ball(Ind, GF_MANA, dir, 300 + (plev * 2), 3);
+			break;
+		}
+
+        case MSPELL_WONDER:
+		{
+			msg_format_near(Ind, "%s casts a mana ball.", p_ptr->name);
+			(void)spell_wonder(Ind, dir);
 			break;
 		}
 
