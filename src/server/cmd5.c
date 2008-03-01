@@ -1244,8 +1244,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 			case MSPELL_RIFT:
 			{
-				break;
+                p_ptr->current_spell = MSPELL_RIFT;
+				get_aim_dir(Ind);
+				return;
 			}
+
 
 
 /*            case MSPELL_HASTE_SELF:
@@ -1624,6 +1627,14 @@ void do_cmd_cast_aux(int Ind, int dir)
 			msg_format_near(Ind, "%s casts a ball of chaos.", p_ptr->name);
 			fire_bolt_or_beam(Ind, beam, GF_CHAOS, dir,
 				damroll(13, plev));
+			break;
+		}
+
+		case MSPELL_RIFT:
+		{
+			msg_format_near(Ind, "Space warps in a beam from %s.", p_ptr->name);
+			fire_bolt_or_beam(Ind, beam, GF_GRAVITY, dir,
+				40 + damroll(plev, 7));
 			break;
 		}
 
