@@ -594,6 +594,54 @@ void do_cmd_study(int Ind, int book, int spell)
 }
 
 
+/*
+ * Brand the current weapon
+ */
+void brand_weapon(int Ind)
+{
+    player_type *p_ptr = Players[Ind];
+
+    object_type *o_ptr;
+
+    o_ptr = &p_ptr->inventory[INVEN_WIELD];
+
+    /* you can never modify artifacts / ego-items */
+    /* you can never modify broken / cursed items */
+    if ((o_ptr->k_idx) &&
+        (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
+        (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
+    {
+        cptr act = NULL;
+
+        char o_name[80];
+
+        if (rand_int(100) < 25)
+        {
+            act = "is covered in a fiery shield!";
+            o_ptr->name2 = EGO_BRAND_FIRE;
+        }
+
+        else
+        {
+            act = "glows deep, icy blue!";
+            o_ptr->name2 = EGO_BRAND_COLD;
+        }
+
+        object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+        msg_format(Ind, "Your %s %s", o_name, act);
+
+        enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+    }
+
+    else
+    {
+        if (flush_failure) flush();
+        msg_print(Ind, "The Branding failed.");
+    }
+}
+
+
 
 /*
  * Cast a spell
@@ -1115,6 +1163,24 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
+            case MSPELL_ENCHANT_WEAPON:
+			{
+				(void)enchant_spell(Ind, rand_int(4) + 1, rand_int(4) + 1, 0);
+				break;
+			}
+
+            case MSPELL_ENCHANT_ARMOR:
+			{
+				(void)enchant_spell(Ind, 0, 0, rand_int(3) + 2);
+				break;
+			}
+
+            case MSPELL_ELEMENTAL_BRAND:
+			{
+				brand_weapon(Ind);
+				break;
+			}
+
 /*            case MSPELL_HASTE_SELF:
 			{
 				if (!p_ptr->fast)
@@ -1456,54 +1522,6 @@ void do_cmd_cast_aux(int Ind, int dir)
 	/* Window stuff */
 	p_ptr->window |= (PW_PLAYER);
 }
-
-/*
- * Brand the current weapon
- */
-static void brand_weapon(int Ind)
-{
-    player_type *p_ptr = Players[Ind];
-
-    object_type *o_ptr;
-
-    o_ptr = &p_ptr->inventory[INVEN_WIELD];
-
-    /* you can never modify artifacts / ego-items */
-    /* you can never modify broken / cursed items */
-    if ((o_ptr->k_idx) &&
-        (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
-        (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
-    {
-        cptr act = NULL;
-
-        char o_name[80];
-
-        if (rand_int(100) < 25)
-        {
-            act = "is covered in a fiery shield!";
-            o_ptr->name2 = EGO_BRAND_FIRE;
-        }
-
-        else
-        {
-            act = "glows deep, icy blue!";
-            o_ptr->name2 = EGO_BRAND_COLD;
-        }
-
-        object_desc(Ind, o_name, o_ptr, FALSE, 0);
-
-        msg_format(Ind, "Your %s %s", o_name, act);
-
-        enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
-    }
-
-    else
-    {
-        if (flush_failure) flush();
-        msg_print(Ind, "The Branding failed.");
-    }
-}
-
 
 /*
  * Pray a prayer
