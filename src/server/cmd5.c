@@ -1099,7 +1099,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_BANISHMENT:
 			{
-				(void)genocide(Ind);
+				(void)banishment(Ind);
 				break;
 			}
 
@@ -1202,7 +1202,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 */
             case MSPELL_MASS_BANISHMENT:
 			{
-				(void)mass_genocide(Ind);
+				(void)mass_banishment(Ind);
 				break;
 			}
 
@@ -1507,7 +1507,7 @@ static void spell_wonder(int Ind, int dir)
 	else if (die < 101) drain_life(Ind, dir, 100 + plev);
 	else if (die < 104) earthquake(p_ptr->dun_depth, py, px, 12);
 	else if (die < 106) destroy_area(p_ptr->dun_depth, py, px, 15, TRUE);
-	else if (die < 108) genocide(Ind);
+	else if (die < 108) banishment(Ind);
 	else if (die < 110) dispel_monsters(Ind, 120);
 	else /* RARE */
 	{
@@ -1569,7 +1569,7 @@ void do_cmd_cast_aux(int Ind, int dir)
         case MSPELL_LIGHTNING_BOLT:
 		{
 			msg_format_near(Ind, "%s casts a lightning bolt.", p_ptr->name);
-			fire(Ind, GF_ELEC, dir, 
+			fire_beam(Ind, GF_ELEC, dir, 
 			          damroll(3+((plev-5)/6), 6));
 			break;
 		}

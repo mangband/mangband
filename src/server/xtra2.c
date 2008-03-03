@@ -4348,7 +4348,7 @@ bool master_summon(int Ind, char * parms)
 				/* hack -- monster_type '0' specifies mass genocide */
 				if (monster_type == '0')
 				{
-					mass_genocide(Ind);
+					mass_banishment(Ind);
 					break;
 				}
 

@@ -1473,16 +1473,16 @@ void do_cmd_read_scroll(int Ind, int item)
 
 		case SV_SCROLL_GENOCIDE:
 		{
-			msg_print(Ind, "This is a genocide scroll.");
-			(void)genocide(Ind);
+			msg_print(Ind, "This is a banishment scroll.");
+			(void)banishment(Ind);
 			ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_MASS_GENOCIDE:
 		{
-			msg_print(Ind, "This is a mass genocide scroll.");
-			(void)mass_genocide(Ind);
+			msg_print(Ind, "This is a mass banishment scroll.");
+			(void)mass_banishment(Ind);
 			ident = TRUE;
 			break;
 		}
@@ -1911,7 +1911,7 @@ void do_cmd_use_staff(int Ind, int item)
 
 		case SV_STAFF_GENOCIDE:
 		{
-			(void)genocide(Ind);
+			(void)banishment(Ind);
 			ident = TRUE;
 			break;
 		}
@@ -3496,7 +3496,7 @@ void do_cmd_activate(int Ind, int item)
 			case ACT_BANISHMENT:
 			{
 				msg_format(Ind, "Your %s glows deep blue...", o_name);
-				(void)genocide(Ind);
+				(void)banishment(Ind);
 				break;
 			}
 
@@ -3693,7 +3693,7 @@ void do_cmd_activate(int Ind, int item)
 			case ACT_MASS_BANISHMENT:
 			{
 				msg_format(Ind, "Your %s lets out a long, shrill note...", o_name);
-				(void)mass_genocide(Ind);
+				(void)mass_banishment(Ind);
 				break;
 			}
 
