@@ -2422,6 +2422,10 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	
 	/* Dump info into player */
 	object_info_screen(o_ptr);
+
+	/* Restore height and width of current dungeon level */
+	p_ptr->cur_hgt = MAX_HGT; 
+	p_ptr->cur_wid = MAX_WID;
 	
 	/* Gave knowledge */
 	return TRUE; 
