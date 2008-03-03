@@ -277,6 +277,14 @@ void wipe_o_list(int Depth)
 			a_info[o_ptr->name1].cur_num = 0;
 		}
 
+		/* Monster */
+		if (o_ptr->held_m_idx)
+		{
+			monster_type *m_ptr;
+			m_ptr = &m_list[o_ptr->held_m_idx];
+			m_ptr->hold_o_idx = 0;			
+		}
+
 		/* Wipe the object */
 		WIPE(o_ptr, object_type);
 	}

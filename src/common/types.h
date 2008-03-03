@@ -758,6 +758,9 @@ struct object_type
 	/*byte marked;	*/	/* Object is marked */
 
 	u16b note;			/* Inscription index */
+	
+	s16b next_o_idx;  /* Next object in stack (if any) */
+	s16b held_m_idx;  /* Monster holding us (if any) */
 };
 
 
@@ -797,7 +800,7 @@ struct monster_type
 /*	bool ml;*/			/* Monster is "visible" */
 
 	s16b closest_player;	/* The player closest to this monster */
-
+	s16b hold_o_idx; 	/* Object being helf (if any) */
 #ifdef WDT_TRACK_OPTIONS
 
 	byte ty;			/* Y location of target */

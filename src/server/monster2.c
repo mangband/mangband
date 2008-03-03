@@ -59,6 +59,8 @@ void delete_monster_idx(int i)
 
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
+	s16b this_o_idx, next_o_idx = 0;
+
 	/* Get location */
 	y = m_ptr->fy;
 	x = m_ptr->fx;
@@ -97,6 +99,25 @@ void delete_monster_idx(int i)
 	 */
 	if (cave[Depth])
 		cave[Depth][y][x].m_idx = 0;
+		
+	/* Delete objects */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Hack -- efficiency */
+		o_ptr->held_m_idx = 0;
+
+		/* Delete the object */
+		delete_object_idx(this_o_idx);
+	}
+
 
 	/* Visual update */
 	everyone_lite_spot(Depth, y, x);
@@ -145,6 +166,7 @@ void compact_monsters(int size)
 
 	int		cur_lev, cur_dis, chance;
 
+	s16b this_o_idx, next_o_idx = 0;
 
 	/* Message (only if compacting) */
 	if (size) s_printf("Compacting monsters...\n");
@@ -223,6 +245,22 @@ void compact_monsters(int size)
 			   it sometimes will not be */
 			if (cave[Depth])			
 				cave[Depth][ny][nx].m_idx = i;
+
+			/* Repair objects being carried by monster */
+			for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+			{
+				object_type *o_ptr;
+		
+				/* Get the object */
+				o_ptr = &o_list[this_o_idx];
+		
+				/* Get the next object */
+				next_o_idx = o_ptr->next_o_idx;
+		
+				/* Reset monster pointer */
+				o_ptr->held_m_idx = i;
+			}
+
 
 			/* Structure copy */
 			m_list[i] = m_list[m_max];
@@ -869,6 +907,76 @@ void lore_do_probe(int m_idx)
 	/* Window stuff */
 	/*p_ptr->window |= (PW_MONSTER);*/
 }
+
+/*
+ * Make a monster carry an object
+ */
+s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
+{
+	s16b o_idx;
+
+	s16b this_o_idx, next_o_idx = 0;
+
+	monster_type *m_ptr = &m_list[m_idx];
+
+
+	/* Scan objects already being held for combination */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Check for combination */
+		if (object_similar(Ind, o_ptr, j_ptr))
+		{
+			/* Combine the items */
+			object_absorb(Ind, o_ptr, j_ptr);
+
+			/* Result */
+			return (this_o_idx);
+		}
+	}
+
+
+	/* Make an object */
+	o_idx = o_pop();
+
+	/* Success */
+	if (o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get new object */
+		o_ptr = &o_list[o_idx];
+
+		/* Copy object */
+		COPY(o_ptr, j_ptr, object_type);
+
+		/* Forget mark */
+		//o_ptr->marked = FALSE;
+
+		/* Forget location */
+		o_ptr->iy = o_ptr->ix = 0;
+
+		/* Link the object to the monster */
+		o_ptr->held_m_idx = m_idx;
+
+		/* Link the object to the pile */
+		o_ptr->next_o_idx = m_ptr->hold_o_idx;
+
+		/* Link the monster to the object */
+		m_ptr->hold_o_idx = o_idx;
+	}
+
+	/* Result */
+	return (o_idx);
+}
+
 
 
 /*

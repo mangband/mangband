@@ -3164,6 +3164,9 @@ static void process_monster(int Ind, int m_idx)
 				/* Pick up the item */
 				else if (r_ptr->flags2 & RF2_TAKE_ITEM)
 				{
+					object_type *i_ptr;
+					object_type object_type_body;
+				
 					/* Take note */
 					did_take_item = TRUE;
 
@@ -3174,8 +3177,17 @@ static void process_monster(int Ind, int m_idx)
 						msg_format(Ind, "%^s picks up %s.", m_name, o_name);
 					}
 
+					/* Prepare local object */
+					i_ptr = &object_type_body;
+					
+					/* Obtain local object */
+					COPY(i_ptr, o_ptr, object_type);
+
 					/* Delete the object */
 					delete_object(Depth, ny, nx);
+									
+					/* Carry the object */
+					(void)monster_carry(Ind, m_idx, i_ptr);
 				}
 
 				/* Destroy the item */
@@ -3190,7 +3202,7 @@ static void process_monster(int Ind, int m_idx)
 						/* Dump a message */
 						msg_format(Ind, "%^s crushes %s.", m_name, o_name);
 					}
-
+					
 					/* Delete the object */
 					delete_object(Depth, ny, nx);
 				}

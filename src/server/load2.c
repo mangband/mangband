@@ -1790,6 +1790,39 @@ errr rd_server_savefile()
 		end_section_read("objects");
 	}
 
+	/* Read holding info if new enougth */
+	if (!older_than(1,0,0))
+	{
+		/* Reacquire objects */
+		for (i = 1; i < o_max; ++i)
+		{
+			object_type *o_ptr;
+			monster_type *m_ptr;
+	
+			/* Get the object */
+			o_ptr = &o_list[i];
+	
+			/* Ignore dungeon objects */
+			if (!o_ptr->held_m_idx) continue;
+	
+			/* Verify monster index */
+			if (o_ptr->held_m_idx > z_info->m_max)
+			{
+				note("Invalid monster index");
+				return (-1);
+			}
+	
+			/* Get the monster */
+			m_ptr = &m_list[o_ptr->held_m_idx];
+	
+			/* Link the object to the pile */
+			o_ptr->next_o_idx = m_ptr->hold_o_idx;
+	
+			/* Link the monster to the object */
+			m_ptr->hold_o_idx = i;
+		}
+	}
+	
 	/* Read house info if new enough */
 	if (!older_than(0,4,0))
 	{

@@ -1947,6 +1947,10 @@ void monster_death(int Ind, int m_idx)
 	int			number = 0;
 	int			total = 0;
 
+	s16b this_o_idx, next_o_idx = 0;
+	object_type *i_ptr;
+	object_type object_type_body;
+				
 	char buf[160];
 	char logbuf[160];
 
@@ -1973,6 +1977,40 @@ void monster_death(int Ind, int m_idx)
 	y = m_ptr->fy;
 	x = m_ptr->fx;
 	Depth = m_ptr->dun_depth;
+	
+	/* Drop objects being carried */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Paranoia -- About to drop (nothing).. But why? :( */
+		if (!o_ptr) break;
+
+		/* Paranoia */
+		o_ptr->held_m_idx = 0;
+
+		/* Get local object */
+		i_ptr = &object_type_body;
+
+		/* Copy the object */
+		//object_copy(i_ptr, o_ptr);
+		COPY(i_ptr, o_ptr, object_type);
+
+		/* Delete the object */
+		delete_object_idx(this_o_idx);
+
+		/* Drop it */
+		drop_near(i_ptr, -1, Depth, y, x);
+	}
+
+	/* Forget objects */
+	m_ptr->hold_o_idx = 0;
 
 	/* Determine how much we can drop */
 	if ((r_ptr->flags1 & RF1_DROP_60) && (rand_int(100) < 60)) number++;
