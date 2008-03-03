@@ -847,7 +847,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 			(void)do_inc_stat(Ind, A_INT);
 			(void)do_inc_stat(Ind, A_WIS);
 			(void)detect_treasure(Ind);
-			(void)detect_object(Ind);
+			(void)detect_objects_normal(Ind);
 			(void)detect_sdoor(Ind);
 			(void)detect_trap(Ind);
 			identify_pack(Ind);
@@ -1381,7 +1381,7 @@ void do_cmd_read_scroll(int Ind, int item)
 
 		case SV_SCROLL_DETECT_ITEM:
 		{
-			if (detect_object(Ind)) ident = TRUE;
+			if (detect_objects_normal(Ind)) ident = TRUE;
 			break;
 		}
 
@@ -1785,7 +1785,7 @@ void do_cmd_use_staff(int Ind, int item)
 
 		case SV_STAFF_DETECT_ITEM:
 		{
-			if (detect_object(Ind)) ident = TRUE;
+			if (detect_objects_normal(Ind)) ident = TRUE;
 			break;
 		}
 

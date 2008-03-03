@@ -919,7 +919,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_OBJECT_DETECTION:
 			{
-				(void)detect_object(Ind);
+				(void)detect_objects_normal(Ind);
 				break;
 			}
 

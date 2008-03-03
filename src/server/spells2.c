@@ -1480,7 +1480,7 @@ bool detection(int Ind)
 
 	/* Detect the easy things */
 	if (detect_treasure(Ind)) detect = TRUE;
-	if (detect_object(Ind)) detect = TRUE;
+	if (detect_objects_normal(Ind)) detect = TRUE;
 	if (detect_trap(Ind)) detect = TRUE;
 	if (detect_sdoor(Ind)) detect = TRUE;
 	if (detect_creatures(Ind)) detect = TRUE;
@@ -1494,7 +1494,7 @@ bool detection(int Ind)
 /*
  * Detect all objects on the current panel		-RAK-
  */
-bool detect_object(int Ind)
+bool detect_objects_normal(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 

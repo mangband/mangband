@@ -858,7 +858,7 @@ extern bool detect_invisible(int Ind);
 extern bool detect_evil(int Ind);
 extern bool detect_creatures(int Ind);
 extern bool detection(int Ind);
-extern bool detect_object(int Ind);
+extern bool detect_objects_normal(int Ind);
 extern bool detect_trap(int Ind);
 extern bool detect_sdoor(int Ind);
 extern void stair_creation(int Ind);
