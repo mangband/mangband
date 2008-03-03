@@ -889,6 +889,7 @@ extern void lite_room(int Ind, int Depth, int y1, int x1);
 extern void unlite_room(int Ind, int Depth, int y1, int x1);
 extern bool lite_area(int Ind, int dam, int rad);
 extern bool unlite_area(int Ind, int dam, int rad);
+extern bool fire_swarm(int Ind, int num, int typ, int dir, int dam, int rad);
 extern bool fire_ball(int Ind, int typ, int dir, int dam, int rad);
 extern bool fire_bolt(int Ind, int typ, int dir, int dam);
 extern bool fire_beam(int Ind, int typ, int dir, int dam);

@@ -1681,7 +1681,7 @@ void do_cmd_cast_aux(int Ind, int dir)
         case MSPELL_METEOR_SWARM:
 		{
 			msg_format_near(Ind, "%s casts a meteor shower.", p_ptr->name);
-			fire_ball(Ind, GF_METEOR, dir, 65 + (plev), 3);
+			fire_swarm(Ind, 2 + plev / 20, GF_METEOR, dir, 30 + plev / 2, 1);
 			break;
 		}
 
