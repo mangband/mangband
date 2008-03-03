@@ -1569,7 +1569,7 @@ void do_cmd_cast_aux(int Ind, int dir)
         case MSPELL_ICE_STORM:
 		{
         		msg_format_near(Ind, "%s invokes an ice storm.", p_ptr->name);
-			fire_ball(Ind, GF_COLD, dir, 50 + (plev * 2), 3);
+			fire_ball(Ind, GF_ICE, dir, 50 + (plev * 2), 3);
 			break;
 		}
 
