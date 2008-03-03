@@ -1163,8 +1163,6 @@ bool detect_treasure(int Ind)
 	return (detect);
 }
 
-
-
 /*
  * Detect magic items.
  *
@@ -1174,7 +1172,7 @@ bool detect_treasure(int Ind)
  *
  * It can probably be argued that this function is now too powerful.
  */
-bool detect_magic(int Ind)
+bool detect_objects_magic(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 

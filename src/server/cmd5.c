@@ -1185,7 +1185,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 */
             case MSPELL_DETECT_ENCHANTMENT:
 			{
-				(void)detect_magic(Ind);
+				(void)detect_objects_magic(Ind);
 				break;
 			}
 

@@ -886,7 +886,7 @@ extern bool restore_level(int Ind);
 extern void self_knowledge(int Ind);
 extern bool lose_all_info(int Ind);
 extern bool detect_treasure(int Ind);
-extern bool detect_magic(int Ind);
+extern bool detect_objects_magic(int Ind);
 extern bool detect_invisible(int Ind);
 extern bool detect_evil(int Ind);
 extern bool detect_creatures(int Ind);
