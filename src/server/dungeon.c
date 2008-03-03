@@ -1756,7 +1756,7 @@ static void process_various(void)
 
 
 	/* Grow trees very occasionally */
-	if (!(turn % (10L * GROW_TREE)) && trees_in_town < cfg_max_trees)
+	if (!(turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
 	{
 		/* Find a suitable location */
 		for (i = 1; i < 1000; i++)

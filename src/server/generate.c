@@ -3565,13 +3565,13 @@ static void build_store(int n, int yy, int xx)
 	x2 = x0 + randint(5);
 
     /* Hack -- make building's as large as possible */
-//    if (n == 12)
- //   {
+	//if (n == 12)
+ 	//{
         y1 = y0 - randint(3);
         y2 = y0 + randint(3);
         x1 = x0 - randint(5);
         x2 = x0 + randint(5);
-  //  }
+  	//}
 
 	/* Build an invulnerable rectangular building */
 	for (y = y1; y <= y2; y++)
@@ -3637,7 +3637,7 @@ static void build_store(int n, int yy, int xx)
 
 		for (i = 0; i < 5; i++)
 		{
-			if (trees_in_town == cfg_max_trees) break;
+			if (trees_in_town == cfg_max_trees && cfg_max_trees != -1) break;
 			
 			y = rand_range(y1 + 1, y2 - 1);
 			x = rand_range(x1 + 1, x2 - 1);
@@ -3714,7 +3714,10 @@ static void build_store(int n, int yy, int xx)
 	if (n == 12)
 	{
 		int xc, yc, max_dis;
-
+		int size = (y2 - y1 + 1) * (x2 - x1 + 1); 
+      bool limit_trees = ((cfg_max_trees > 0) && (size > (cfg_max_trees / 4))); 
+      int max_chance = (limit_trees? (100 * (cfg_max_trees / 4)): (100 * size));
+        
 		/* Find the center of the forested area */
 		xc = (x1 + x2) / 2;
 		yc = (y1 + y2) / 2;
@@ -3738,9 +3741,13 @@ static void build_store(int n, int yy, int xx)
 				chance = 100 * (distance(y, x, yc, xc));
 				chance /= max_dis;
 				chance = 80 - chance;
+				chance *= size;
+
+				/* We want at most (cfg_max_trees / 4) trees */ 
+            if (limit_trees && (chance > max_chance)) chance = max_chance; 
 
 				/* Put some trees */
-				if (randint(100) < chance && trees_in_town < cfg_max_trees)
+				if (randint(100 * size) < chance && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
 					{
 						c_ptr->feat = FEAT_TREE;
 						trees_in_town++;
@@ -3950,7 +3957,18 @@ static void town_gen_hack(void)
 	int                 rooms[72];
 	/* int                 rooms[MAX_STORES]; */
 
-
+	/* Hack limit trees to max/4 */
+	 int size = (MAX_HGT - 2) * (MAX_WID - 2); 
+    bool limit_trees = ((cfg_max_trees > 0) && (size > (cfg_max_trees / 4))); 
+    int max_chance = (limit_trees? (100 * (cfg_max_trees / 4)): (100 * size)); 
+    int chance;
+   /* Reset counter */
+    trees_in_town = 0;
+ 	/* Calculate chance of a tree */ 
+    chance = 4 * size; 
+   /* We want at most (cfg_max_trees / 4) trees */ 
+    if (limit_trees && (chance > max_chance)) chance = max_chance;
+   
 	/* Hack -- Use the "simple" RNG */
 	Rand_quick = TRUE;
 
@@ -3967,15 +3985,15 @@ static void town_gen_hack(void)
 			/* Clear all features, set to "empty floor" */
 			c_ptr->feat = FEAT_DIRT;
 
-			if (rand_int(100) < 75 || trees_in_town > cfg_max_trees)
-			{
-				c_ptr->feat = FEAT_GRASS;
-			}
-
-			else if (rand_int(100) < 15)
+			if (rand_int(100 * size) < chance && (cfg_max_trees == -1 || trees_in_town < cfg_max_trees))
 			{
 				c_ptr->feat = FEAT_TREE;
 				trees_in_town++;
+			}
+
+			else if (rand_int(100) < 75)
+			{
+				c_ptr->feat = FEAT_GRASS;
 			}
 		}
 	}
@@ -3996,7 +4014,7 @@ static void town_gen_hack(void)
 	for (n = 0; n < MAX_STORES-1; n++) rooms[n] = n;
 	for (n = MAX_STORES-1; n < 16; n++) rooms[n] = 10;
 	for (n = 16; n < 68; n++) rooms[n] = 13;
-	for (n = 68; n < 71; n++) rooms[n] = 12;
+	for (n = 68; n < 71; n++) rooms[n] = 12; /* 3 forests */
 	rooms[n++] = 11;
 
 	/* Place stores */
