@@ -5428,6 +5428,10 @@ void Handle_item(int Ind, int item)
 	int i;
 	bool ident = FALSE; /* scroll exposed itself */ 
 
+	if (p_ptr->current_spell) {
+	    do_cmd_cast_aux(Ind, item);
+	    return;
+	}
 	if ((p_ptr->current_enchant_h > 0) || (p_ptr->current_enchant_d > 0) ||
              (p_ptr->current_enchant_a > 0))
 	{

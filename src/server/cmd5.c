@@ -593,6 +593,132 @@ void do_cmd_study(int Ind, int book, int spell)
 	p_ptr->window |= (PW_SPELL);
 }
 
+/*
+ * Brand weapons (or ammo)
+ *
+ * Turns the (non-magical) object into an ego-item of 'brand_type'.
+ */
+void brand_object(int Ind, object_type *o_ptr, byte brand_type)
+{
+	player_type *p_ptr = Players[Ind];
+	/* you can never modify artifacts / ego-items */
+	/* you can never modify broken / cursed items */
+	if ((o_ptr->k_idx) &&
+	    (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
+	    (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
+	{
+		cptr act = "magical";
+		char o_name[80];
+
+		switch (brand_type)
+		{
+			case EGO_BRAND_FIRE:
+			case EGO_FLAME:
+				act = "fiery";
+				break;
+			case EGO_BRAND_COLD:
+			case EGO_FROST:
+				act = "frosty";
+				break;
+			case EGO_BRAND_POIS:
+			case EGO_VENOM:
+				act = "sickly";
+				break;
+		}
+
+      object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+		/* Describe */
+		msg_format(Ind, "A %s aura surrounds the %s.", act, o_name);
+
+		/* Brand the object */
+		o_ptr->name2 = brand_type;
+
+		/* Combine / Reorder the pack (later) */
+		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+		/* Enchant */
+		enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+	}
+	else
+	{
+		if (flush_failure) flush();
+		msg_print(Ind, "The Branding failed.");
+	}
+}
+/*
+ * Hook to specify "ammo"
+ */
+static bool item_tester_hook_ammo(const object_type *o_ptr)
+{
+	switch (o_ptr->tval)
+	{
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			return (TRUE);
+		}
+	}
+
+	return (FALSE);
+}
+/*
+ * Brand chosen ammo
+ */
+void brand_ammo(int Ind, int item)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	cptr q, s;
+	int r;
+	byte brand_type;
+
+	/* Only accept ammo */
+	item_tester_hook = item_tester_hook_ammo;
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
+		o_ptr = &o_list[0 - item];
+	}
+
+	if (!item_tester_hook(o_ptr)) {
+			msg_print(Ind, "You cannot brand that!");
+			return;
+	}
+
+	r = rand_int(100);
+
+	/* Select the brand */
+	if (r < 33)
+		brand_type = EGO_FLAME;
+	else if (r < 67)
+		brand_type = EGO_FROST;
+	else
+		brand_type = EGO_VENOM;
+
+	/* Brand the ammo */
+	brand_object(Ind, o_ptr, brand_type);
+
+	/* Done */
+	return (TRUE);
+}
 
 /*
  * Brand the current weapon
@@ -604,41 +730,16 @@ void brand_weapon(int Ind)
     object_type *o_ptr;
 
     o_ptr = &p_ptr->inventory[INVEN_WIELD];
+    
+    byte brand_type;
+    
+    /* Select a brand */
+	 if (rand_int(100) < 25)
+		brand_type = EGO_BRAND_FIRE;
+	 else
+		brand_type = EGO_BRAND_COLD;
 
-    /* you can never modify artifacts / ego-items */
-    /* you can never modify broken / cursed items */
-    if ((o_ptr->k_idx) &&
-        (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
-        (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
-    {
-        cptr act = NULL;
-
-        char o_name[80];
-
-        if (rand_int(100) < 25)
-        {
-            act = "is covered in a fiery shield!";
-            o_ptr->name2 = EGO_BRAND_FIRE;
-        }
-
-        else
-        {
-            act = "glows deep, icy blue!";
-            o_ptr->name2 = EGO_BRAND_COLD;
-        }
-
-        object_desc(Ind, o_name, o_ptr, FALSE, 0);
-
-        msg_format(Ind, "Your %s %s", o_name, act);
-
-        enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
-    }
-
-    else
-    {
-        if (flush_failure) flush();
-        msg_print(Ind, "The Branding failed.");
-    }
+	 brand_object(Ind, o_ptr, brand_type);
 }
 
 
@@ -1177,8 +1278,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_ELEMENTAL_BRAND:
 			{
-				brand_weapon(Ind);
-				break;
+		                p_ptr->current_spell = MSPELL_ELEMENTAL_BRAND;
+				get_item(Ind);
+				return;
+				//brand_ammo(Ind);
+				//break;
 			}
 
 			case MSPELL_DETECT_INVISIBLE:
@@ -1586,7 +1690,11 @@ void do_cmd_cast_aux(int Ind, int dir)
 			fire_ball(Ind, GF_MANA, dir, 300 + (plev * 2), 3);
 			break;
 		}
-
+	case MSPELL_ELEMENTAL_BRAND:
+		{
+			brand_ammo(Ind, dir);
+			break;
+		}
         case MSPELL_WONDER:
 		{
 			(void)spell_wonder(Ind, dir);
