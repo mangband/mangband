@@ -1718,14 +1718,14 @@ void do_cmd_cast_aux(int Ind, int dir)
 		case MSPELL_BEDLAM:
 		{
 			msg_format_near(Ind, "%s creates confusion.", p_ptr->name);
-			fire_ball(Ind, GF_CONFUSION, dir, 10 + plev, 2);
+			fire_ball(Ind, GF_OLD_CONF, dir, plev, 4);
 			break;
 		}
 
 		case MSPELL_REND_SOUL:
 		{
 			msg_format_near(Ind, "%s casts a nether ball.", p_ptr->name);
-			fire_bolt_or_beam(Ind, beam, GF_NETHER, dir,
+			fire_bolt_or_beam(Ind, beam/4, GF_NETHER, dir,
 				damroll(11, plev));
 			break;
 		}
@@ -1741,7 +1741,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 		case MSPELL_RIFT:
 		{
 			msg_format_near(Ind, "Space warps in a beam from %s.", p_ptr->name);
-			fire_bolt_or_beam(Ind, beam, GF_GRAVITY, dir,
+			fire_beam(Ind, GF_GRAVITY, dir,
 				40 + damroll(plev, 7));
 			break;
 		}
