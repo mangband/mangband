@@ -2661,7 +2661,7 @@ void aggravate_monsters(int Ind, int who)
  * This is different from normal Angband now -- the closest non-unique
  * monster is chosen as the designed character to genocide.
  */
-bool genocide(int Ind)
+bool banishment(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -2729,7 +2729,7 @@ bool genocide(int Ind)
 		delete_monster_idx(i);
 
 		/* Take damage */
-		take_hit(Ind, randint(4), "the strain of casting Genocide");
+		take_hit(Ind, randint(4), "the strain of casting Banishment");
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
@@ -2763,7 +2763,7 @@ bool genocide(int Ind)
 /*
  * Delete all nearby (non-unique) monsters
  */
-bool mass_genocide(int Ind)
+bool mass_banishment(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -2802,7 +2802,7 @@ bool mass_genocide(int Ind)
 		/* does not effect the dungeon master, because it disturbs his movement
 		 */
 		if (strcmp(p_ptr->name,cfg_dungeon_master))
-			take_hit(Ind, randint(3), "the strain of casting Mass Genocide");
+			take_hit(Ind, randint(3), "the strain of casting Mass Banishment");
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
