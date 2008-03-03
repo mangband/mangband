@@ -1569,8 +1569,8 @@ void do_cmd_cast_aux(int Ind, int dir)
         case MSPELL_LIGHTNING_BOLT:
 		{
 			msg_format_near(Ind, "%s casts a lightning bolt.", p_ptr->name);
-			fire_bolt_or_beam(Ind, beam-10, GF_ELEC, dir,
-				damroll(3+((plev-5)/6), 6));
+			fire(Ind, GF_ELEC, dir, 
+			          damroll(3+((plev-5)/6), 6));
 			break;
 		}
 
