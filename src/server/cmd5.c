@@ -730,9 +730,9 @@ void brand_weapon(int Ind)
 
     object_type *o_ptr;
 
-    o_ptr = &p_ptr->inventory[INVEN_WIELD];
-    
     byte brand_type;
+    
+    o_ptr = &p_ptr->inventory[INVEN_WIELD];
     
     /* Select a brand */
 	 if (rand_int(100) < 25)
