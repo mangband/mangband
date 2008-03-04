@@ -855,6 +855,54 @@ errr process_pref_file_aux(char *buf)
 }
 
 
+errr Save_options(void)
+{
+	int i;
+
+    FILE *fp;
+
+    char buf[1024];
+
+    /* Build the filename */
+    path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");
+
+    /* Open the file */
+    fp = my_fopen(buf, "w");
+
+    /* Catch errors */
+    if (!fp) return (-1);
+
+	/* Skip space */
+	fprintf(fp, "# This file can be used to set or clear all of the options.\n");
+	fprintf(fp, "# Note that all of the options are given.\n\n");
+	fprintf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
+	fprintf(fp, "# Also remember that not all options are used.\n\n");
+
+	/* Process "X:<str>" and "Y:<str>" */
+    for (i = 0; option_info[i].o_desc; i++)
+    {
+		if ((*option_info[i].o_var) == FALSE)
+		{
+            if (option_info[i].o_text)
+				fprintf(fp, "X:%s\n", option_info[i].o_text);
+		}
+		else if ((*option_info[i].o_var) == TRUE)
+		{
+            if (option_info[i].o_text)
+				fprintf(fp, "Y:%s\n", option_info[i].o_text);
+		}
+		else
+			fprintf(fp, "\n");
+		if ((i == 15) || (i == 27) || (i == 43) || (i == 59))
+			fprintf(fp, "\n");
+    }
+
+	/* Close the file */
+	my_fclose(fp);
+
+	return 0;
+}
+
 /*
  * Process the "user pref file" with the given name
  *

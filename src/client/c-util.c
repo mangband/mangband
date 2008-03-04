@@ -2660,6 +2660,9 @@ void do_cmd_options(void)
 	/* Resend options to server */
 	Send_options();
 
+	/* Resend options to server */
+	Save_options();
+
 	/* Send a redraw request */
 	Send_redraw();
 }
