@@ -168,6 +168,7 @@ extern char * cfg_console_password;
 extern char * cfg_dungeon_master;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
+extern s16b cfg_tcp_port;
 extern bool cfg_mage_hp_bonus;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;

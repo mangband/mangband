@@ -447,7 +447,7 @@ static sockbuf_t ibuf;
 void setup_contact_socket(void)
 {
 	plog("Create TCP socket..."); 
-	while ((Socket = CreateServerSocket(18346)) == -1)
+	while ((Socket = CreateServerSocket(cfg_tcp_port)) == -1)
 	{
 #ifdef WINDOWS
   Sleep(1);

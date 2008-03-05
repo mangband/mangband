@@ -2375,6 +2375,11 @@ void set_server_option(char * option, char * value)
 		/* Hack -- reinstall the timer handler to match the new FPS */
 		install_timer_tick(dungeon, cfg_fps);
 	}
+	else if (!strcmp(option,"TCP_SOCKET"))
+	{
+		cfg_tcp_port = atoi(value);
+		/* We probably ought to do some sanity check here */
+	}
 	else if (!strcmp(option,"MAGE_HITPOINT_BONUS"))
 	{
 		cfg_mage_hp_bonus = str_to_boolean(value);

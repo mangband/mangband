@@ -186,6 +186,7 @@ char * cfg_console_password = "change_me";
 char * cfg_dungeon_master = "DungeonMaster";
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
+s16b cfg_tcp_port = 18346;
 bool cfg_mage_hp_bonus = 1;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;
