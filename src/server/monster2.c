@@ -147,6 +147,76 @@ void delete_monster(int Depth, int y, int x)
 	if (c_ptr->m_idx > 0) delete_monster_idx(c_ptr->m_idx);
 }
 
+/*
+ * Move a monster from index i1 to index i2 in the monster list
+ */
+static void compact_monsters_aux(int i1, int i2)
+{
+	int y, x, Depth;
+
+	monster_type *m_ptr;
+
+	s16b this_o_idx, next_o_idx = 0;
+
+
+	/* Do nothing */
+	if (i1 == i2) return;
+
+
+	/* Old monster */
+	m_ptr = &m_list[i1];
+
+	/* Location */
+	y = m_ptr->fy;
+	x = m_ptr->fx;
+	Depth = m_ptr->dun_depth;
+	/* Update the cave */
+	/* Hack -- make sure the level is allocated, as in the wilderness
+	   it sometimes will not be */
+	if (cave[Depth])			
+		cave[Depth][y][x].m_idx = i2;
+
+
+	/* Repair objects being carried by monster */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Reset monster pointer */
+		o_ptr->held_m_idx = i2;
+	}
+	
+	int Ind;
+	/* Copy the visibility and los flags for the players */
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+#if 0
+		if (Players[Ind]->conn == NOT_CONNECTED) continue;
+#endif
+
+		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
+		Players[Ind]->mon_los[i2] = Players[Ind]->mon_los[i1];
+
+		/* Hack -- Update the target */
+		if (Players[Ind]->target_who == (int)(i1)) Players[Ind]->target_who = i2;
+
+		/* Hack -- Update the health bar */
+		if (Players[Ind]->health_who == (int)(i1)) health_track(Ind, i2);
+	}
+
+	/* Hack -- move monster */
+	COPY(&m_list[i2], &m_list[i1], monster_type);
+
+	/* Hack -- wipe hole */
+	(void)WIPE(&m_list[i1], monster_type);
+}
+
 
 /*
  * Compact and Reorder the monster list
@@ -229,62 +299,14 @@ void compact_monsters(int size)
 
 		/* Skip real monsters */
 		if (m_ptr->r_idx) continue;
+		
+		/* Move last monster into open hole */
+		compact_monsters_aux(m_max - 1, i);
 
 		/* One less monster */
 		m_max--;
 
-		/* Reorder */
-		if (i != m_max)
-		{
-			int ny = m_list[m_max].fy;
-			int nx = m_list[m_max].fx;
-			int Depth = m_list[m_max].dun_depth;
-
-			/* Update the cave */
-			/* Hack -- make sure the level is allocated, as in the wilderness
-			   it sometimes will not be */
-			if (cave[Depth])			
-				cave[Depth][ny][nx].m_idx = i;
-
-			/* Repair objects being carried by monster */
-			for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
-			{
-				object_type *o_ptr;
-		
-				/* Get the object */
-				o_ptr = &o_list[this_o_idx];
-		
-				/* Get the next object */
-				next_o_idx = o_ptr->next_o_idx;
-		
-				/* Reset monster pointer */
-				o_ptr->held_m_idx = i;
-			}
-
-
-			/* Structure copy */
-			m_list[i] = m_list[m_max];
-
-			/* Copy the visibility and los flags for the players */
-			for (Ind = 1; Ind < NumPlayers + 1; Ind++)
-			{
-#if 0
-				if (Players[Ind]->conn == NOT_CONNECTED) continue;
-#endif
-
-				Players[Ind]->mon_vis[i] = Players[Ind]->mon_vis[m_max];
-				Players[Ind]->mon_los[i] = Players[Ind]->mon_los[m_max];
-
-				/* Hack -- Update the target */
-				if (Players[Ind]->target_who == (int)(m_max)) Players[Ind]->target_who = i;
-
-				/* Hack -- Update the health bar */
-				if (Players[Ind]->health_who == (int)(m_max)) health_track(Ind, i);
-			}
-
-			/* Wipe the hole */
-			WIPE(&m_list[m_max], monster_type);
-		}
+		compact_monsters_aux(m_max-1, i);
 	}
 
 	/* Reset "m_nxt" */
@@ -936,7 +958,6 @@ s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
 		{
 			/* Combine the items */
 			object_absorb(Ind, o_ptr, j_ptr);
-
 			/* Result */
 			return (this_o_idx);
 		}

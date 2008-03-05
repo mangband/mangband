@@ -1977,7 +1977,7 @@ void monster_death(int Ind, int m_idx)
 	y = m_ptr->fy;
 	x = m_ptr->fx;
 	Depth = m_ptr->dun_depth;
-	
+
 	/* Drop objects being carried */
 	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
 	{
@@ -1989,11 +1989,10 @@ void monster_death(int Ind, int m_idx)
 		/* Get the next object */
 		next_o_idx = o_ptr->next_o_idx;
 
-		/* Paranoia -- About to drop (nothing).. But why? :( */
-		if (!o_ptr) break;
-
 		/* Paranoia */
 		o_ptr->held_m_idx = 0;
+		
+		o_ptr->next_o_idx = 0;
 
 		/* Get local object */
 		i_ptr = &object_type_body;

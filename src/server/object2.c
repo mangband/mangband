@@ -17,37 +17,6 @@
 
 
 
-/*
- * Delete a dungeon object
- */
-void delete_object_idx(int o_idx)
-{
-	object_type *o_ptr = &o_list[o_idx];
-	int i,j;
-
-	int y = o_ptr->iy;
-	int x = o_ptr->ix;
-	int Depth = o_ptr->dun_depth;
-
-	cave_type *c_ptr = &cave[Depth][y][x];
-
-	/* Wipe the object */
-	WIPE(o_ptr, object_type);
-
-
-	/* Object is gone */
-	c_ptr->o_idx = 0;
-
-	/* No one can see it anymore */
-	for (i = 1; i < NumPlayers + 1; i++)
-	{
-		Players[i]->obj_vis[o_idx] = FALSE;
-	}
-
-	/* Visual update */
-	everyone_lite_spot(Depth, y, x);
-}
-
 void delete_object_ptr(object_type * o_ptr)
 {
 	/* special function to deal with inventory items being destoryed, instead of just wiping them */
@@ -63,182 +32,373 @@ void delete_object_ptr(object_type * o_ptr)
 
 }
 
-/*
- * Deletes object from given location
- */
-void delete_object(int Depth, int y, int x)
-{
-	cave_type *c_ptr;
+/* 
+ * Excise a dungeon object from any stacks 
+ */ 
+static void excise_object_idx(int o_idx) 
+{ 
+   object_type *j_ptr; 
+   s16b this_o_idx, next_o_idx = 0; 
+   s16b prev_o_idx = 0; 
 
-	/* Refuse "illegal" locations */
-	if (!in_bounds(Depth, y, x)) return;
+   /* Object */ 
+   j_ptr = &o_list[o_idx]; 
 
-	/* Paranoia -- make sure the level has been allocated */
-	if (!cave[Depth])
-	{
-		printf("Error : tried to delete object on unallocated level %d",Depth);
-		return;
-	}
+   /* Monster */ 
+   if (j_ptr->held_m_idx) 
+   { 
+      monster_type *m_ptr; 
 
-	/* Find where it was */
-	c_ptr = &cave[Depth][y][x];
+      /* Monster */ 
+      m_ptr = &m_list[j_ptr->held_m_idx]; 
 
-	/* Delete the object */
-	if (c_ptr->o_idx) delete_object_idx(c_ptr->o_idx);
+      /* Scan all objects in the grid */ 
+      for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx) 
+      { 
+         object_type *o_ptr; 
+
+         /* Get the object */ 
+         o_ptr = &o_list[this_o_idx]; 
+
+         /* Get the next object */ 
+         next_o_idx = o_ptr->next_o_idx; 
+
+         /* Done */ 
+         if (this_o_idx == o_idx) 
+         { 
+            /* No previous */ 
+            if (prev_o_idx == 0) 
+            { 
+               /* Remove from list */ 
+               m_ptr->hold_o_idx = next_o_idx; 
+            } 
+
+            /* Real previous */ 
+            else 
+            { 
+               object_type *i_ptr; 
+
+               /* Previous object */ 
+               i_ptr = &o_list[prev_o_idx]; 
+
+               /* Remove from list */ 
+               i_ptr->next_o_idx = next_o_idx; 
+            } 
+
+            /* Forget next pointer */ 
+            o_ptr->next_o_idx = 0; 
+
+            /* Done */ 
+            break; 
+         } 
+
+         /* Save prev_o_idx */ 
+         prev_o_idx = this_o_idx; 
+      } 
+   } 
+
+   /* Dungeon */ 
+   else 
+   { 
+      int y = j_ptr->iy; 
+      int x = j_ptr->ix; 
+        int Depth = j_ptr->dun_depth; 
+        cave_type *c_ptr = &cave[Depth][y][x]; 
+        int i; 
+
+        /* Object is gone */ 
+        c_ptr->o_idx = 0; 
+
+        /* No one can see it anymore */ 
+        for (i = 1; i < NumPlayers + 1; i++) 
+            Players[i]->obj_vis[c_ptr->o_idx] = FALSE; 
+   } 
+} 
+
+
+static void object_wipe(object_type* o_ptr) 
+{ 
+    /* Wipe the object */ 
+    WIPE(o_ptr, object_type); 
+} 
+
+
+/* 
+ * Delete a dungeon object 
+ */ 
+void delete_object_idx(int o_idx) 
+{ 
+    object_type *j_ptr; 
+
+   /* Excise */ 
+   excise_object_idx(o_idx); 
+
+   /* Object */ 
+   j_ptr = &o_list[o_idx]; 
+
+   /* Dungeon floor */ 
+   if (!j_ptr->held_m_idx) 
+   { 
+      int y, x, Depth; 
+
+      /* Location */ 
+      y = j_ptr->iy; 
+      x = j_ptr->ix; 
+      Depth = j_ptr->dun_depth; 
+
+      /* Visual update */ 
+      everyone_lite_spot(Depth, y, x); 
+   } 
+
+   /* Wipe the object */ 
+   object_wipe(j_ptr); 
+} 
+
+
+/* 
+ * Deletes object from given location 
+ */ 
+void delete_object(int Depth, int y, int x) 
+{ 
+    cave_type *c_ptr; 
+
+    /* Paranoia */ 
+    if (!in_bounds(Depth, y, x)) return; 
+
+    /* Paranoia -- make sure the level has been allocated */ 
+    if (!cave[Depth]) 
+    { 
+        printf("Error : tried to delete object on unallocated level %d\n",Depth); 
+        return; 
+    } 
+
+    /* Find where it was */ 
+    c_ptr = &cave[Depth][y][x]; 
+
+    /* Delete the object */ 
+    if (c_ptr->o_idx) delete_object_idx(c_ptr->o_idx); 
+} 
+
+
+/* 
+ * Move an object from index i1 to index i2 in the object list 
+ */ 
+static void compact_objects_aux(int i1, int i2) 
+{ 
+   int i, Ind; 
+   object_type *o_ptr; 
+
+   /* Do nothing */ 
+   if (i1 == i2) return; 
+
+   /* Repair objects */
+   for (i = 1; i < o_max; i++) 
+   { 
+      /* Get the object */ 
+      o_ptr = &o_list[i]; 
+
+      /* Skip "dead" objects */ 
+      if (!o_ptr->k_idx) continue; 
+
+      /* Repair "next" pointers */ 
+      if (o_ptr->next_o_idx == i1) 
+      { 
+         /* Repair */ 
+         o_ptr->next_o_idx = i2; 
+      } 
+   } 
+	
+      		
+   /* Get the object */ 
+   o_ptr = &o_list[i1]; 
+   /* Monster */ 
+   if (o_ptr->held_m_idx) 
+   {
+      monster_type *m_ptr; 
+
+      /* Get the monster */ 
+      m_ptr = &m_list[o_ptr->held_m_idx]; 
+
+      /* Repair monster */ 
+      if (m_ptr->hold_o_idx == i1) 
+      { 
+         /* Repair */ 
+         m_ptr->hold_o_idx = i2;
+      } 
+   } 
+
+   /* Dungeon */ 
+   else 
+   { 
+      int y, x, Depth; 
+
+      /* Get location */ 
+      y = o_ptr->iy; 
+      x = o_ptr->ix; 
+        Depth = o_ptr->dun_depth; 
+
+      /* Repair grid */ 
+        if (cave[Depth] && (cave[Depth][y][x].o_idx == i1)) 
+      { 
+         /* Repair */ 
+         cave[Depth][y][x].o_idx = i2; 
+      } 
+   } 
+
+    /* Copy the visibility flags for each player */ 
+    for (Ind = 1; Ind < NumPlayers + 1; Ind++) 
+        Players[Ind]->obj_vis[i2] = Players[Ind]->obj_vis[i1]; 
+
+   /* Hack -- move object */
+   COPY(&o_list[i2], &o_list[i1], object_type); 
+
+   /* Hack -- wipe hole */
+   object_wipe(o_ptr); 
+} 
+
+
+/* 
+ * Compact and reorder the object list 
+ * 
+ * This function can be very dangerous, use with caution! 
+ * 
+ * When compacting objects, we first destroy gold, on the basis that by the 
+ * time item compaction becomes an issue, the player really won't care. 
+ * We also nuke items marked as squelch. 
+ * 
+ * When compacting other objects, we base the saving throw on a combination of 
+ * object level, distance from player, and current "desperation". 
+ * 
+ * After compacting, we "reorder" the objects into a more compact order, and we 
+ * reset the allocation info, and the "live" array. 
+ */ 
+void compact_objects(int size) 
+{ 
+    int i, y, x, cnt; 
+   int cur_lev, cur_val, chance; 
+
+   /* Reorder objects when not passed a size */ 
+   if (!size) 
+   { 
+      /* Excise dead objects (backwards!) */ 
+      for (i = o_max - 1; i >= 1; i--) 
+      { 
+         object_type *o_ptr = &o_list[i]; 
+
+         /* Skip real objects */ 
+         if (o_ptr->k_idx) continue; 
+
+         /* Move last object into open hole */ 
+         compact_objects_aux(o_max - 1, i); 
+
+         /* Compress "o_max" */ 
+         o_max--; 
+      } 
+
+        /* Reset "o_nxt" */ 
+        o_nxt = o_max; 
+
+        /* Reset "o_top" */ 
+        o_top = 0; 
+
+        /* Collect "live" objects */ 
+        for (i = 0; i < o_max; i++) 
+        { 
+            /* Collect indexes */ 
+            o_fast[o_top++] = i; 
+        } 
+
+      return; 
+   } 
+
+   /* Message */ 
+   s_printf("Compacting objects...\n"); 
+
+   /*** Try destroying objects ***/ 
+
+   /* First do gold */ 
+   for (i = 1; (i < o_max) && (size); i++) 
+   { 
+      object_type *o_ptr = &o_list[i]; 
+
+      /* Nuke gold */ 
+      if (o_ptr->tval == TV_GOLD) 
+      { 
+         delete_object_idx(i); 
+         size--; 
+      } 
+   } 
+
+   /* Compact at least 'size' objects */ 
+   for (cnt = 1; size; cnt++) 
+   { 
+      /* Get more vicious each iteration */ 
+      cur_lev = 5 * cnt; 
+
+      /* Destroy more valuable items each iteration */ 
+      cur_val = 500 * (cnt - 1); 
+
+      /* Examine the objects */ 
+      for (i = 1; (i < o_max) && (size); i++) 
+      { 
+         object_type *o_ptr = &o_list[i]; 
+         object_kind *k_ptr = &k_info[o_ptr->k_idx]; 
+
+         /* Skip dead objects */ 
+         if (!o_ptr->k_idx) continue; 
+
+         /* Hack -- High level objects start out "immune" */ 
+         if (k_ptr->level > cur_lev) continue; 
+
+            /* Valuable objects start out "immune" */ 
+            if (object_value(0, o_ptr) > cur_val) continue; 
+
+         /* Saving throw */ 
+         chance = 90; 
+
+         /* Monster */ 
+         if (o_ptr->held_m_idx) 
+         { 
+            monster_type *m_ptr; 
+
+            /* Get the monster */ 
+            m_ptr = &m_list[o_ptr->held_m_idx]; 
+
+            /* Monsters protect their objects */ 
+            //if (magik(90)) 
+            continue; 
+         } 
+
+         /* Dungeon */ 
+         else 
+         { 
+            /* Get the location */ 
+            y = o_ptr->iy; 
+            x = o_ptr->ix; 
+
+                /* Hack -- only compact items in houses in emergencies */ 
+                if (!o_ptr->dun_depth && (cave[0][y][x].info & CAVE_ICKY)) 
+                { 
+                    /* Grant immunity except in emergencies */ 
+                    if (cnt < 1000) chance = 100; 
+                } 
+         } 
+
+         /* Hack -- only compact artifacts in emergencies */ 
+         if (artifact_p(o_ptr) && (cnt < 1000)) chance = 100; 
+
+         /* Apply the saving throw */ 
+         if (magik(chance)) continue; 
+
+         /* Delete the object */ 
+         delete_object_idx(i); 
+         size--; 
+      } 
+   } 
+
+   /* Reorder objects */ 
+   compact_objects(0); 
 }
-
-
-
-/*
- * Compact and Reorder the object list
- *
- * This function can be very dangerous, use with caution!
- *
- * When actually "compacting" objects, we base the saving throw on a
- * combination of object level, distance from player, and current
- * "desperation".
- *
- * After "compacting" (if needed), we "reorder" the objects into a more
- * compact order, and we reset the allocation info, and the "live" array.
- */
-void compact_objects(int size)
-{
-	int i, y, x, num, cnt, Ind;
-
-	int cur_val, cur_lev, cur_dis, chance;
-
-
-	/* Compact */
-	if (size)
-	{
-		/* Message */
-		s_printf("Compacting objects...\n");
-
-		/* Redraw map */
-		/*p_ptr->redraw |= (PR_MAP);*/
-
-		/* Window stuff */
-		/*p_ptr->window |= (PW_OVERHEAD);*/
-	}
-
-
-	/* Compact at least 'size' objects */
-	for (num = 0, cnt = 1; num < size; cnt++)
-	{
-		/* Get more vicious each iteration */
-		cur_lev = 5 * cnt;
-
-		/* Destroy more valuable items each iteration */
-		cur_val = 500 * (cnt - 1);
-
-		/* Get closer each iteration */
-		cur_dis = 5 * (20 - cnt);
-
-		/* Examine the objects */
-		for (i = 1; i < o_max; i++)
-		{
-			object_type *o_ptr = &o_list[i];
-
-			object_kind *k_ptr = &k_info[o_ptr->k_idx];
-
-			/* Skip dead objects */
-			if (!o_ptr->k_idx) continue;
-
-			/* Hack -- High level objects start out "immune" */
-			if (k_ptr->level > cur_lev) continue;
-
-			/* Get the location */
-			y = o_ptr->iy;
-			x = o_ptr->ix;
-
-			/* Nearby objects start out "immune" */
-			/*if ((cur_dis > 0) && (distance(py, px, y, x) < cur_dis)) continue;*/
-
-			/* Valuable objects start out "immune" */
-			if (object_value(0, &o_list[i]) > cur_val) continue;
-
-			/* Saving throw */
-			chance = 90;
-
-			/* Hack -- only compact artifacts in emergencies */
-			if (artifact_p(o_ptr) && (cnt < 1000)) chance = 100;
-
-			/* Hack -- only compact items in houses in emergencies */
-			if (!o_ptr->dun_depth && (cave[0][y][x].info & CAVE_ICKY))
-			{
-				/* Grant immunity except in emergencies */
-				if (cnt < 1000) chance = 100;
-			}
-
-			/* Apply the saving throw */
-			if (rand_int(100) < chance) continue;
-
-			/* Delete it */
-			delete_object_idx(i);
-
-			/* Count it */
-			num++;
-		}
-	}
-
-
-	/* Excise dead objects (backwards!) */
-	for (i = o_max - 1; i >= 1; i--)
-	{
-		/* Get the i'th object */
-		object_type *o_ptr = &o_list[i];
-
-		/* Skip real objects */
-		if (o_ptr->k_idx) continue;
-
-		/* One less object */
-		o_max--;
-
-		/* Reorder */
-		if (i != o_max)
-		{
-			int ny = o_list[o_max].iy;
-			int nx = o_list[o_max].ix;
-			int Depth = o_list[o_max].dun_depth;
-
-			/* Update the cave */
-			/* Hack -- with wilderness objects, sometimes the cave is not allocated,
-			   so check that it is. */
-			if (cave[Depth]) cave[Depth][ny][nx].o_idx = i;
-
-			/* Structure copy */
-			o_list[i] = o_list[o_max];
-
-			/* Copy the visiblity flags for each player */
-			for (Ind = 1; Ind < NumPlayers + 1; Ind++)
-			{
-#if 0
-				if (Players[Ind]->conn == NOT_CONNECTED) continue;
-#endif
-
-				Players[Ind]->obj_vis[i] = Players[Ind]->obj_vis[o_max];
-			}
-
-			/* Wipe the hole */
-			WIPE(&o_list[o_max], object_type);
-		}
-	}
-
-	/* Reset "o_nxt" */
-	o_nxt = o_max;
-
-
-	/* Reset "o_top" */
-	o_top = 0;
-
-	/* Collect "live" objects */
-	for (i = 0; i < o_max; i++)
-	{
-		/* Collect indexes */
-		o_fast[o_top++] = i;
-	}
-}
-
 
 
 
@@ -3296,12 +3456,10 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 		/* Describe */
 
 		/* Message */
-		/* 
-		 *
+		/*
 		object_desc(o_name, o_ptr, FALSE, 0);
-		msg_format(Ind,"The %s disappear%s.",
+		msg_format("The %s disappear%s.",
 		           o_name, ((o_ptr->number == 1) ? "s" : ""));
-
 		*/
 
 		delete_object_ptr(o_ptr);
@@ -3757,6 +3915,9 @@ s16b inven_carry(int Ind, object_type *o_ptr)
 
 	/* Structure copy to insert the new item */
 	p_ptr->inventory[i] = (*o_ptr);
+
+	/* Forget monster */ 
+	p_ptr->inventory[i].held_m_idx = 0; 
 
 	/* Forget the old location */
 	p_ptr->inventory[i].iy = p_ptr->inventory[i].ix = p_ptr->inventory[i].dun_depth = 0;

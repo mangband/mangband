@@ -495,6 +495,9 @@ static void rd_item(object_type *o_ptr)
 	/* Save the inscription */
 	if (note[0]) o_ptr->note = quark_add(note);
 
+	/* Monster holding object */ 
+   o_ptr->held_m_idx = read_int("held_m_idx");
+
 	end_section_read("item");
 
 	/* Mega-Hack -- handle "dungeon objects" later */

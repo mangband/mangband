@@ -142,6 +142,9 @@ static void wr_item(object_type *o_ptr)
 		write_str("inscription","");
 	}
 	
+	/* Held by monster index */ 
+   write_int("held_m_idx", o_ptr->held_m_idx);
+	
 	end_section("item");
 }
 
