@@ -317,7 +317,7 @@ void client_init(char *argv1)
 	nick[0] = toupper(nick[0]);
 
 	// Create the net socket and make the TCP connection
-	if ((Socket = CreateClientSocket(server_name, 18346)) == -1)
+	if ((Socket = CreateClientSocket(server_name, server_port)) == -1)
 	{
 	    while (!done) {
 		/* Prompt for auto-retry [grk] */
@@ -335,7 +335,7 @@ void client_init(char *argv1)
 
 		/* ...else, keep trying until socket connected */
 		trycount = 1;
-		while( (Socket = CreateClientSocket(server_name, 18346)) == -1)
+		while( (Socket = CreateClientSocket(server_name, server_port)) == -1)
 		{
 			if (trycount > 200) break;
 			/* Progress Message */
@@ -396,7 +396,7 @@ void client_init(char *argv1)
 
 	/* Connect to server */
 #ifdef UNIX_SOCKETS
-	if ((DgramConnect(Socket, server_name, 18346)) == -1)
+	if ((DgramConnect(Socket, server_name, server_port)) == -1)
 #else
 	// UDP stuffif ((DgramConnect(Socket, server_name, 18346)) == -1)
 #endif

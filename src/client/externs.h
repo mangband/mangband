@@ -43,6 +43,7 @@ extern char pass[80];
 extern char real_name[80];
 
 extern char server_name[80];
+extern int server_port;
 
 extern object_type inventory[INVEN_TOTAL];
 extern char inventory_name[INVEN_TOTAL][80];

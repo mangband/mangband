@@ -415,6 +415,7 @@ static bool enter_server_name(void)
 
 	/* Default */
     strcpy(server_name, "localhost");
+    server_port = 18346;
 
 	/* Ask for server name */
 	return askfor_aux(server_name, 80, 0);
@@ -427,9 +428,10 @@ static bool enter_server_name(void)
 bool get_server_name(void)
 {
 	int i, j, y, bytes, socket, offsets[20];
-	bool server;
+	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
-
+	int ports[30];
+	server_port = 18346;
 	/* Perhaps we already have a server name from config file ? */
 	if(strlen(server_name) > 0) return TRUE;
 
@@ -440,7 +442,7 @@ bool get_server_name(void)
 	Term_fresh();
 
 	/* Connect to metaserver */
-	socket = CreateClientSocket(META_ADDRESS, 8801);
+	socket = CreateClientSocket(META_ADDRESS, 8802);
 
 	/* Check for failure */
 	if (socket == -1)
@@ -476,9 +478,16 @@ bool get_server_name(void)
 			/* Next */
 			continue;
 		}
-
+		info = TRUE;
 		/* Save server entries */
-		if (*ptr != ' ')
+		if (*ptr == '%')
+		{
+			server = info = FALSE;
+
+			/* Save port */			
+			ports[i] = atoi(ptr+1);
+		}
+		else if (*ptr != ' ') 		 
 		{
 			server = TRUE;
 			
@@ -496,19 +505,21 @@ bool get_server_name(void)
 			sprintf(out_val, "%s", ptr);			
 		}
 
-		/* Strip off offending characters */
-		out_val[strlen(out_val) - 1] = '\0';
-
-		/* Print this entry */
-		prt(out_val, y + 1, 1);
-
+		if (info) {
+			/* Strip off offending characters */
+			out_val[strlen(out_val) - 1] = '\0';
+	
+			/* Print this entry */
+			prt(out_val, y + 1, 1);
+			
+			/* One more entry */
+			if (server) i++;
+			y++;
+		}
+		
 		/* Go to next metaserver entry */
 		ptr += strlen(ptr) + 1;
-
-		/* One more entry */
-		if (server) i++;
-		y++;
-
+	
 		/* We can't handle more than 20 entries -- BAD */
 		if (i > 20) break;
 	}
@@ -538,6 +549,9 @@ bool get_server_name(void)
 
 	/* Extract server name */
 	sscanf(buf + offsets[j], "%s", server_name);
+	
+	/* Set port */
+	server_port = ports[j+1];
 
 	/* Success */
 	return TRUE;

@@ -8,6 +8,7 @@ char pass[80];
 char real_name[80];
 
 char server_name[80];
+int server_port;
 
 object_type inventory[INVEN_TOTAL];	/* The client-side copy of the inventory */
 char inventory_name[INVEN_TOTAL][80];	/* The client-side copy of the inventory names */

@@ -294,6 +294,9 @@ bool Report_to_meta(int flag)
 				GetLocalHostName( local_name, 1024 );
 			}
 		}
+		strcat(local_name, ":");
+		sprintf(temp, "%d", cfg_tcp_port);
+		strcat(local_name, temp);
 	}
 
 	strcpy(buf, local_name);
