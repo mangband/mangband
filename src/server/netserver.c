@@ -476,7 +476,7 @@ void setup_contact_socket(void)
 
 	install_input(Contact, Socket, 0);
 	
-	if ((ConsoleSocket = CreateServerSocket(18347)) == -1)
+	if ((ConsoleSocket = CreateServerSocket(cfg_tcp_port + 1)) == -1)
 	{
 		s_printf("Couldn't create console socket\n");
 		return;
