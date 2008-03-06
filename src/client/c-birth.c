@@ -404,6 +404,9 @@ void get_char_info(void)
 
 static bool enter_server_name(void)
 {
+	bool result;
+	char *s;
+
 	/* Clear screen */
 	Term_clear();
 
@@ -418,7 +421,15 @@ static bool enter_server_name(void)
     server_port = 18346;
 
 	/* Ask for server name */
-	return askfor_aux(server_name, 80, 0);
+	result = askfor_aux(server_name, 80, 0);
+
+	s = strchr(server_name, ':');
+	if (!s) return result;
+
+	sscanf(s, ":%d", &server_port);
+	strcpy (s, "\0");
+
+	return result;
 }
 
 /*

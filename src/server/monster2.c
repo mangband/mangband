@@ -153,6 +153,7 @@ void delete_monster(int Depth, int y, int x)
 static void compact_monsters_aux(int i1, int i2)
 {
 	int y, x, Depth;
+	int Ind;
 
 	monster_type *m_ptr;
 
@@ -192,7 +193,6 @@ static void compact_monsters_aux(int i1, int i2)
 		o_ptr->held_m_idx = i2;
 	}
 	
-	int Ind;
 	/* Copy the visibility and los flags for the players */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
