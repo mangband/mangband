@@ -5431,7 +5431,7 @@ void Handle_item(int Ind, int item)
 	int i;
 	bool ident = FALSE; /* scroll exposed itself */ 
 
-	if (p_ptr->current_spell) {
+	if (p_ptr->current_spell != -1) {
 	    do_cmd_cast_aux(Ind, item);
 	    return;
 	}
