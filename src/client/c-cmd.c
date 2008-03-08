@@ -1730,22 +1730,26 @@ void cmd_master_aux_generate_item(void)
 		/* Selections */
 		Term_putstr(5, 4, -1, TERM_WHITE, "(1) By number" );
 		Term_putstr(5, 5, -1, TERM_WHITE, "(2) By name" );
-		Term_putstr(5, 6, -1, TERM_WHITE, "(+) Next" );
-		Term_putstr(5, 7, -1, TERM_WHITE, "(-) Previous" );
+		Term_putstr(5, 6, -1, TERM_WHITE, "(+) Next Item" );
+		Term_putstr(5, 7, -1, TERM_WHITE, "(-) Previous Item" );
+		Term_putstr(5, 8, -1, TERM_WHITE, "(>) Next Ego" );
+		Term_putstr(5, 9, -1, TERM_WHITE, "(<) Previous Ego" );
 		
 		Term_putstr(50, 4, -1, TERM_WHITE, "(h)it, (d)am," );
 		Term_putstr(50, 5, -1, TERM_WHITE, "(a)c,  (p)val," );
 		Term_putstr(50, 6, -1, TERM_WHITE, "(x)tra2" );
 		
-		Term_putstr(21, 8, -1, TERM_WHITE, "item/ego - SHIFT - inc/decr " );
-		Term_putstr(34, 9, -1, TERM_WHITE, "|" );
-		Term_putstr(32, 10, -1, TERM_WHITE, "force" );
+		// This is very confusing.
+//		Term_putstr(21, 8, -1, TERM_WHITE, "item/ego - SHIFT - inc/decr " );
+//		Term_putstr(34, 9, -1, TERM_WHITE, "|" );
+//		Term_putstr(32, 10, -1, TERM_WHITE, "force" );
 		
-		
-		Term_putstr(5, 10, -1, TERM_WHITE, "(g) Generate");
 
-		/* Prompt */
-		Term_putstr(0, 12, -1, TERM_WHITE, "Command: ");
+//		/* Prompt */
+//		Term_putstr(0, 12, -1, TERM_WHITE, "Command: ");
+
+
+		Term_putstr(5, 10, -1, TERM_WHITE, "(g) Generate");
 		
 		Term_putstr(0, 15, -1, TERM_WHITE, "Selection: ");
 
@@ -1777,25 +1781,25 @@ void cmd_master_aux_generate_item(void)
 			buf[2] = 1;
 			buf[3] = 0;
 		}
-		else if (i == '=')
+		else if (i == '+')
 		{
-			/* Next Ego */
+			/* Next Item*/
 			buf[1] = 'k';
 			buf[2] = '+';
 		}
 		else if (i == '-')
 		{
-			/* Prev. Kind */
+			/* Prev. Item */
 			buf[1] = 'k';
 			buf[2] = '-';
 		}
-		else if (i == '+')
+		else if (i == '>')
 		{
 			/* Next Ego */
 			buf[1] = 'e';
 			buf[2] = '+';
 		}
-		else if (i == '_')
+		else if (i == '<')
 		{
 			/* Prev. Ego */
 			buf[1] = 'e';
