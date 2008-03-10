@@ -305,8 +305,6 @@ void compact_monsters(int size)
 
 		/* One less monster */
 		m_max--;
-
-		compact_monsters_aux(m_max-1, i);
 	}
 
 	/* Reset "m_nxt" */
