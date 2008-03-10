@@ -1164,7 +1164,7 @@ bool detect_treasure(int Ind)
 	/* Describe */
 	if (detect)
 	{
-		msg_print("You sense the presence of buried treasure!");
+		msg_print(Ind, "You sense the presence of buried treasure!");
 	}
 
 	return (detect);
