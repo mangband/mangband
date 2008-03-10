@@ -135,14 +135,14 @@ static void inven_drop(int Ind, int item, int amt)
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
 	};
-
+#if 0
 	/* Never drop artifacts */
 	if (artifact_p(o_ptr))
 	{
 		msg_print(Ind, "This item is too special to discard");
 		return;	
 	}	
-
+#endif
 	/* Make a "fake" object */
 	tmp_obj = *o_ptr;
 	tmp_obj.number = amt;
@@ -764,7 +764,51 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
+#if 1
+	/* Artifacts cannot be destroyed */
+	if (artifact_p(o_ptr))
+	{
+		cptr feel = "special";
 
+		/* Message */
+		msg_format(Ind, "You cannot destroy %s.", o_name);
+ 		
+		if (!object_known_p(Ind, o_ptr)) { 		
+ 		
+		/* Hack -- Handle icky artifacts */
+		if (cursed_p(o_ptr) || broken_p(o_ptr)) feel = "terrible";
+
+		/* Hack -- Check for an existing inscription */
+		if (o_ptr->note)
+		{
+			if (!strstr(quark_str(o_ptr->note), feel))
+			{
+				strcpy(o_inscribe, (const char *)feel);
+				strcat(o_inscribe, " - ");
+				strcat(o_inscribe, quark_str(o_ptr->note));
+				
+				//strcpy(feel, o_inscribe);
+				/* ^^^ This line causes crash for unknown reasons :( */
+			}
+		}
+
+		/* Hack -- inscribe the artifact */
+		o_ptr->note = quark_add(feel);
+
+		/* We have "felt" it (again) */
+		o_ptr->ident |= (ID_SENSE);
+
+		/* Combine the pack */
+		p_ptr->notice |= (PN_COMBINE);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+		}
+		/* Done */
+		return;
+	}
+#endif
 	/* Cursed, equipped items cannot be destroyed */
 	if (item >= INVEN_WIELD && cursed_p(o_ptr))
 	{
@@ -774,13 +818,14 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		/* Done */
 		return;
 	}
-
+#if 0
 	/* Artifacts *can* now be destroyed */
 	if (artifact_p(o_ptr))
 	{
 		/* set the artifact as unfound */
 		a_info[o_ptr->name1].cur_num = 0;
 	}
+#endif
 	
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
