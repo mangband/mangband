@@ -359,7 +359,7 @@ void prt_state(bool paralyzed, bool searching, bool resting)
 	}
 	else
 	{
-		strcpy(text, "            ");
+		strcpy(text, "          ");
 	}
 
 	c_put_str(attr, text, ROW_STATE, COL_STATE);
@@ -411,15 +411,15 @@ void prt_cut(int cut)
 {
 	if (cut > 1000)
 	{
-		c_put_str(TERM_L_RED, "Mortal wound", ROW_CUT, COL_CUT);
+		c_put_str(TERM_L_RED,  "Mortal wound", ROW_CUT, COL_CUT);
 	}
 	else if (cut > 200)
 	{
-		c_put_str(TERM_RED, "Deep gash  ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_RED,    "Deep gash   ", ROW_CUT, COL_CUT);
 	}
 	else if (cut > 100)
 	{
-		c_put_str(TERM_RED, "Severe cut  ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_RED,    "Severe cut  ", ROW_CUT, COL_CUT);
 	}
 	else if (cut > 50)
 	{
@@ -431,15 +431,15 @@ void prt_cut(int cut)
 	}
 	else if (cut > 10)
 	{
-		c_put_str(TERM_YELLOW, "Light cut  ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_YELLOW, "Light cut   ", ROW_CUT, COL_CUT);
 	}
 	else if (cut)
 	{
-		c_put_str(TERM_YELLOW, "Graze     ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_YELLOW, "Graze       ", ROW_CUT, COL_CUT);
 	}
 	else
 	{
-		put_str("            ", ROW_CUT, COL_CUT);
+			       put_str("            ", ROW_CUT, COL_CUT);
 	}
 }
 
