@@ -1140,7 +1140,7 @@ bool detect_treasure(int Ind)
 				/* Redraw */
 				lite_spot(Ind, y, x);
 			}
-
+#if 0
 			/* Notice gold */
 			if (o_ptr->tval == TV_GOLD)
 			{
@@ -1157,7 +1157,14 @@ bool detect_treasure(int Ind)
 					lite_spot(Ind, y, x);
 				}
 			}
+#endif
 		}
+	}
+	
+	/* Describe */
+	if (detect)
+	{
+		msg_print("You sense the presence of buried treasure!");
 	}
 
 	return (detect);
