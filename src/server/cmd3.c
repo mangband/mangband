@@ -1547,6 +1547,109 @@ static bool do_cmd_look_accept(int Ind, int y, int x)
 }
 
 
+/*
+ * Describe a floor tile (for looking and targeting routines)
+ *	
+ * if !active, activities such as tracking are disabled
+ */
+void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
+	monster_type *m_ptr;
+	object_type *o_ptr;
+	char o_name[80];
+	bool found = FALSE;
+	bool self = FALSE;
+	if (c_ptr->m_idx < 0)
+	{
+		q_ptr = Players[0 - c_ptr->m_idx];
+
+		self = (0 - c_ptr->m_idx == Ind ? TRUE : FALSE); 
+
+		if (p_ptr->play_vis[0 - c_ptr->m_idx] || self)
+		{
+			if (active && !self)
+			{
+				/* Track health */
+				if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+		
+				/* Track with cursor */
+				if (p_ptr->play_vis[0 - c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
+			}
+
+		/* Format string */
+		sprintf(out_val, "%s the %s %s", q_ptr->name, p_name + p_info[q_ptr->prace].name, c_name + c_info[q_ptr->pclass].name);
+		
+		found = TRUE;
+		}
+		
+	}
+	else if (c_ptr->m_idx > 0)
+	{
+		monster_race *r_ptr = &r_info[m_list[c_ptr->m_idx].r_idx];
+
+		if (p_ptr->mon_vis[c_ptr->m_idx]) 
+		{
+			if (active)
+			{
+				/* Track health */
+				if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+		
+				/* Track with cursor */
+				if (p_ptr->mon_vis[c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
+			}
+					
+		/* Format string */
+		sprintf(out_val, "%s (%s)", r_name + r_ptr->name, look_mon_desc(c_ptr->m_idx));
+		
+		found = TRUE;
+		}
+	}
+	if (!found && c_ptr->o_idx)
+	{
+		if (p_ptr->obj_vis[c_ptr->o_idx])
+		{
+			o_ptr = &o_list[c_ptr->o_idx];
+	
+			/* Release Tracking */
+			if (active) p_ptr->cursor_who = 0;
+	
+			/* Obtain an object description */
+			object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	
+			sprintf(out_val, "You see %s", o_name);
+			
+			found = TRUE;
+		}
+	}
+	if (!found)
+	{
+		int feat = f_info[c_ptr->feat].mimic;
+		cptr name = f_name + f_info[feat].name;
+		
+		cptr p1 = "A ";
+
+		/* Hack -- handle unknown grids */
+		if (!(cave_flag & CAVE_MARK) ) name = "unknown grid";
+		
+		if (is_a_vowel(name[0])) p1 = "An ";
+
+		/* Hack -- special description for store doors */
+		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
+		{
+			p1 = "The entrance to the ";
+		}
+
+		/* Release Tracking */
+		if (active) p_ptr->cursor_who = 0;
+		
+		/* Message */
+		sprintf(out_val, "%s%s", p1, name);
+	}
+
+}
+
 
 /*
  * A new "look" command, similar to the "target" command.

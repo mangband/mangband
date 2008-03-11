@@ -2,6 +2,24 @@
 
 /* Handle all commands */
 
+void cmd_spike(void)
+{
+	int dir;
+
+	if (!c_get_spike()) 
+	{
+			/* Message */
+			c_msg_print("You have no spikes!");
+			return;
+	}
+
+	get_dir(&dir);
+
+	/* Send it */
+	Send_steal(dir);
+}
+
+
 void process_command()
 {
         /* Parse the command */
@@ -877,24 +895,6 @@ void cmd_steal(void)
 	/* Send it */
 	Send_steal(dir);
 }
-
-void cmd_spike(void)
-{
-	int dir;
-
-	if (!c_get_spike()) 
-	{
-			/* Message */
-			c_msg_print("You have no spikes!");
-			return;
-	}
-
-	get_dir(&dir);
-
-	/* Send it */
-	Send_steal(dir);
-}
-
 
 void cmd_quaff(void)
 {
