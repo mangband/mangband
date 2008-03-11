@@ -3444,13 +3444,90 @@ s16b target_pick(int Ind, int y1, int x1, int dy, int dx)
 	return (b_i);
 }
 
+/*
+ * Manipulate player's target/look position and describe it
+ *
+ */
+void target_free_aux(int Ind, int dir, bool *can_target)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+	cave_type *c_ptr;
+	byte cave_flag;
+	char out_val[160];
+	int i;
 
+	/* Allow manual targeting in certain cicrumstances */	
+	if (dir == 64 + 5 && can_target) {
+		*can_target = FALSE;
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			if ((p_ptr->target_idx[i] != 0) &&
+				(p_ptr->target_y[i] == p_ptr->target_row) &&
+				(p_ptr->target_x[i] == p_ptr->target_col))
+			{
+				p_ptr->target_who = p_ptr->target_idx[i];
+				p_ptr->target_col = p_ptr->target_x[i];
+				p_ptr->target_row = p_ptr->target_y[i];
+		
+				/* Track */
+				if (p_ptr->target_who) health_track(Ind, p_ptr->target_who);
+				
+				/* Reset cursor track */
+				p_ptr->cursor_who = 0;
+				
+				*can_target = TRUE;
+			}
+		}
+		return;
+	}
+	
+	
+	/* Initialize if needed */
+	if (dir == 64)
+	{
+		p_ptr->target_col = p_ptr->px;
+		p_ptr->target_row = p_ptr->py;
+	}
+	else
+	{
+		p_ptr->target_row += ddy[dir - 64];
+		p_ptr->target_col += ddx[dir - 64];
+		
+		/* Hack Begin { */
+		p_ptr->target_col -= p_ptr->panel_col_prt;
+		p_ptr->target_row -= p_ptr->panel_row_prt;
+
+		/* Adjus boundaries */
+		if (p_ptr->target_col < 13) p_ptr->target_col = 13;
+		if (p_ptr->target_col > SCREEN_WID+12) p_ptr->target_col = SCREEN_WID+12;
+		if (p_ptr->target_row < 1) p_ptr->target_row = 1;
+		if (p_ptr->target_row > SCREEN_HGT) p_ptr->target_row = SCREEN_HGT;
+		
+		/* } Hack End */
+		p_ptr->target_col += p_ptr->panel_col_prt;
+		p_ptr->target_row += p_ptr->panel_row_prt;
+	}
+	
+	/* Describe what is under cursor */
+	c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
+	cave_flag = p_ptr->cave_flag[p_ptr->target_row][p_ptr->target_col];
+	describe_floor_tile(c_ptr, out_val, Ind, FALSE, cave_flag);
+
+	/* Info */
+	if (can_target)
+		strcat(out_val, " [<dir>, q, m, t] ");
+	else
+		strcat(out_val, " [<dir>, q, m] ");
+	/* Tell the client */
+	Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
+}
 /*
  * Describe a floor tile (for looking and targeting routines)
  *	
  * if !active, activities such as tracking are disabled
  */
-void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
+void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag)
 {
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
@@ -3506,22 +3583,29 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active)
 	}
 	if (!found && c_ptr->o_idx)
 	{
-		o_ptr = &o_list[c_ptr->o_idx];
-
-		/* Release Tracking */
-		if (active) p_ptr->cursor_who = 0;
-
-		/* Obtain an object description */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-
-		sprintf(out_val, "You see %s", o_name);
-		
-		found = TRUE;
+		if (p_ptr->obj_vis[c_ptr->o_idx])
+		{
+			o_ptr = &o_list[c_ptr->o_idx];
+	
+			/* Release Tracking */
+			if (active) p_ptr->cursor_who = 0;
+	
+			/* Obtain an object description */
+			object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	
+			sprintf(out_val, "You see %s", o_name);
+			
+			found = TRUE;
+		}
 	}
 	if (!found)
 	{
 		int feat = f_info[c_ptr->feat].mimic;
 		cptr name = f_name + f_info[feat].name;
+		
+		/* Hack -- handle unknown grids */
+		if (!(cave_flag & CAVE_MARK) ) name = "unknown grid";
+		
 		cptr p1 = "A ";
 
 		if (is_a_vowel(name[0])) p1 = "An ";
@@ -3569,8 +3653,11 @@ bool target_set(int Ind, int dir)
 
 	int		y;
 	int		x;
+	
+	int cave_flag;
 
 	bool	flag = TRUE;
+	bool  free_target = TRUE;
 
 	char	out_val[160];
 
@@ -3578,7 +3665,12 @@ bool target_set(int Ind, int dir)
 
 	monster_type	*m_ptr;
 	monster_race	*r_ptr;
-
+	
+	/* Reset cursor track */	
+	if (dir == 0 || dir == 64 + 0)
+	{
+		p_ptr->cursor_who = 0;
+	}
 	/* Cancel targeting */
  	if (dir == 255)
    {
@@ -3586,7 +3678,7 @@ bool target_set(int Ind, int dir)
 		p_ptr->cursor_who = 0;
 		return (FALSE);      
    }
-	if (dir != 5 && dir != 128 + 5)
+	if (dir != 5 && dir != 64 + 5)
 	{
 		x = p_ptr->px;
 		y = p_ptr->py;
@@ -3665,54 +3757,11 @@ bool target_set(int Ind, int dir)
 		/* Start near the player */
 		m = 0;
 	}
-	if (dir >= 128)
+	if (dir >= 64)
 	{
-		/* Initialize if needed */
-		if (dir == 128)
-		{
-			p_ptr->target_col = p_ptr->px;
-			p_ptr->target_row = p_ptr->py;
-		}
-		else
-		{
-			p_ptr->target_row += ddy[dir - 128];
-			p_ptr->target_col += ddx[dir - 128];
-			
-			/* Hack Begin { */
-			p_ptr->target_col -= p_ptr->panel_col_prt;
-			p_ptr->target_row -= p_ptr->panel_row_prt;
-
-			/* Adjus boundaries */
-			if (p_ptr->target_col < 13) p_ptr->target_col = 13;
-			if (p_ptr->target_col > SCREEN_WID+12) p_ptr->target_col = SCREEN_WID+12;
-			if (p_ptr->target_row < 1) p_ptr->target_row = 1;
-			if (p_ptr->target_row > SCREEN_HGT) p_ptr->target_row = SCREEN_HGT;
-			
-			/* } Hack End */
-			p_ptr->target_col += p_ptr->panel_col_prt;
-			p_ptr->target_row += p_ptr->panel_row_prt;
-		}
-		
-		/* Describe what is under cursor */
-		c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
-		describe_floor_tile(c_ptr, out_val, Ind, FALSE);
-		
-
-		/* Info */
-		strcat(out_val, " [<dir>, q] ");
-
-		/* Tell the client */
-		Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
-
-		/* Check for completion */
-		if (dir == 128 + 5)
-		{
-			p_ptr->target_who = MAX_M_IDX + 1;
-			return TRUE;
-		}
-
-		/* Done */
-		return FALSE;
+		/* Perform manual targetin */
+		target_free_aux(Ind, dir, &free_target);
+		return free_target;
 	}
 	else if (dir)
 	{
@@ -3777,7 +3826,7 @@ bool target_set(int Ind, int dir)
 
 		/* Describe, prompt for recall */
 		sprintf(out_val,
-			"%s (%s) [<dir>, q, t] ",
+			"%s (%s) [<dir>, q, p, t] ",
 			(r_name + r_ptr->name),
 			look_mon_desc(idx));
 
@@ -3804,7 +3853,7 @@ bool target_set(int Ind, int dir)
 		handle_stuff(Ind);
 
 		/* Describe */
-		sprintf(out_val, "%s [<dir>, q, t] ", q_ptr->name);
+		sprintf(out_val, "%s [<dir>, q, p, t] ", q_ptr->name);
 
 		/* Tell the client about it */
 		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);

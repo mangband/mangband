@@ -1572,7 +1572,7 @@ void do_cmd_look(int Ind, int dir)
 	char out_val[160];
 
 	/* Cancel */
-	if (dir == 5)
+	if (dir == 5 || dir == 64 + 5)
 	{
 		p_ptr->cursor_who = 0;
 		return;
@@ -1592,6 +1592,12 @@ void do_cmd_look(int Ind, int dir)
 		return;
 	}
 
+	/* Manual mode */
+	if (dir >= 64)
+	{
+		target_free_aux(Ind, dir, FALSE);
+		return;
+	}
 
 	/* Reset "temp" array */
 	/* Do it Every time (unless canceled before) */
@@ -1700,10 +1706,10 @@ void do_cmd_look(int Ind, int dir)
 
 	c_ptr = &cave[Depth][y][x];
 	
-	describe_floor_tile(c_ptr, out_val, Ind, TRUE);
+	describe_floor_tile(c_ptr, out_val, Ind, TRUE, p_ptr->cave_flag[y][x]);
 	
 	/* Append a little info */
-	strcat(out_val, " [<dir>, q]");
+	strcat(out_val, " [<dir>, q, p]");
 
 	/* Tell the client */
 	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);

@@ -1053,14 +1053,22 @@ int cmd_target(void)
 				done = TRUE;
 				break;
 			}
+			case 'm':
+			{
+				position = FALSE;
+				/* Tell the server to reset */
+				Send_target(0);
+				/* Reset cursor stuff */
+				Term_consolidate_cursor(FALSE, 0, 0);
+				/* Clear the top line */
+				prt("", 0, 0);
+				break;
+			}
 			case 'p':
 			{
-				/* Toggle */
-				position = !position;
-
+				position = TRUE;
 				/* Tell the server to reset */
-				Send_target(128 + 0);
-
+				Send_target(64 + 0);
 				break;
 			}
 			default:
@@ -1078,7 +1086,7 @@ int cmd_target(void)
 				else
 				{
 					if (position)
-						Send_target(d + 128);	
+						Send_target(d + 64);	
 					else Send_target(d);
 				}
 				break;
@@ -1097,24 +1105,10 @@ int cmd_target(void)
 	{
 		/* Send the affirmative */
 		if (position)
-			Send_target(128 + 5);
+			Send_target(64 + 5);
 		else Send_target(5);
 	}
 
-	if (fail)
-	{
-		/* Clear the top line */
-		prt("", 0, 0);
-		/* Send the cancellation */
-		Send_target(255);
-	}
-	else
-	{
-		/* Send the affirmative */
-		if (position)	Send_target(128 + 5);
-		else 				Send_target(5);
-	}
-	
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
 	Term_consolidate_cursor(FALSE, 0, 0);
@@ -1137,6 +1131,7 @@ void cmd_look(void)
 	bool done = FALSE;
 	int d;
 	char ch;
+	bool position = FALSE;
 	
 	cursor_icky = TRUE;
 
@@ -1159,11 +1154,30 @@ void cmd_look(void)
 				done = TRUE;
 				break;
 			}
+			case 'm':
+			{
+				position = FALSE;
+				/* Tell the server to reset */
+				Send_look(0);
+				break;
+			}
+			case 'p':
+			{
+				position = TRUE;
+
+				/* Tell the server to reset */
+				Send_look(64 + 0);
+
+				break;
+			}
 			default:
 			{
 				d = keymap_dirs[ch & 0x7F];
 				if (!d) bell();
-				else Send_look(d);
+				else {
+					if (position) Send_look(d + 64);
+					else Send_look(d);
+				}
 				break;
 			}
 		}

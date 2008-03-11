@@ -922,7 +922,7 @@ extern bool sleep_monsters_touch(int Ind);
 
 
 /* store.c */
-extern bool get_store_item(int Ind, int item, object_type *i_ptr)
+extern bool get_store_item(int Ind, int item, object_type *i_ptr);
 extern void store_purchase(int Ind, int item, int amt);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
