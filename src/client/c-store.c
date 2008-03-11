@@ -166,7 +166,39 @@ static int get_stock(int *com_val, cptr pmt, int i, int j)
 
 
 
+static void store_examine(void) 
+{
+        int                     i;
+        int                     item;
 
+        char            out_val[160];
+
+        /* Empty? */
+        if (store.stock_num <= 0)
+        {
+                if (store_num == 7) c_msg_print("Your home is empty.");
+                else c_msg_print("I am currently out of stock.");
+                return;
+        }
+
+        /* Find the number of objects on this and following pages */
+        i = (store.stock_num - store_top);
+
+        /* And then restrict it to the current page */
+        if (i > 12) i = 12;
+
+        /* Prompt */
+        sprintf(out_val, "Which item do you want to examine? ");
+
+        /* Get the item number to be bought */
+        if (!get_stock(&item, out_val, 0, i-1)) return;
+
+        /* Get the actual index */
+        item = item + store_top;
+
+		  /* Tell the server */
+		  Send_observe(item);
+}
 
 static void store_purchase(void)
 {
@@ -292,6 +324,12 @@ static void store_process_command(void)
                         }
                         break;
                 }
+                       /* Look (examine) */
+                case 'l':
+                {
+                        store_examine();
+                        break;
+                }
 
                         /* Get (purchase) */
                 case 'g':
@@ -303,6 +341,7 @@ static void store_process_command(void)
                         /* Drop (Sell) */
                 case 'd':
                 {
+                		if (store_num != 8)
                         store_sell();
                         break;
                 }
@@ -429,27 +468,28 @@ void display_store(void)
                 /* Browse if necessary */
                 if (store.stock_num > 12)
                 {
-                        prt(" SPACE) Next page of stock", 23, 0);
+                        prt(" SPACE) Next page of stock.", 23, 0);
                 }
 
                 /* Home commands */
                 if (store_num == 7)
                 {
-                        prt(" g) Get an item.", 22, 40);
-                        prt(" d) Drop an item.", 23, 40);
+                        prt(" g) Get an item.", 22, 30);
+                        prt(" d) Drop an item.", 23, 30);
                 }
 
                 /* Shop commands XXX XXX XXX */
                 else
                 {
-                        prt(" p) Purchase an item.", 22, 40);
+                        prt(" p) Purchase an item.", 22, 30);
 						/* We don't sell things in some shops  */
 						if (store_num != 8)
 						{
-                        	prt(" s) Sell an item.", 23, 40);
+                        	prt(" s) Sell an item.", 23, 30);
                         }
                 }
-
+					 prt (" l) Look at an item.", 22, 56);
+					 
                 /* Prompt */
                 prt("You may: ", 21, 0);
 

@@ -859,22 +859,34 @@ void do_cmd_observe(int Ind, int item)
 
 	char		o_name[80];
 
-
-	/* Get the item (in the pack) */
-	if (item >= 0)
-	{
-		o_ptr = &(p_ptr->inventory[item]);
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+	/* Get the item (in the store) */
+	if (p_ptr->store_num != -1) {
+		object_type		tmp_obj;
+		o_ptr = &tmp_obj;
+		/* Fill o_ptr with correct item */
+		if (!get_store_item(Ind, item, o_ptr)) 
+		{
+			/* Disguise our bug as a feature */ 
+			msg_print(Ind,"Sorry, this item is exclusive.");
 			return;
 		}
-		o_ptr = &o_list[0 - item];
+	} else {
+		/* Get the item (in the pack) */
+		if (item >= 0)
+		{
+			o_ptr = &(p_ptr->inventory[item]);
+		}
+	
+		/* Get the item (on the floor) */
+		else
+		{
+			item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+			if (item == 0) {
+				msg_print(Ind, "There's nothing on the floor.");
+				return;
+			}
+			o_ptr = &o_list[0 - item];
+		}
 	}
 
 	/* Get name */

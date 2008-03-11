@@ -779,7 +779,7 @@ static void store_create(int st)
 	int			i, tries, level, stocked,x,y;
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
-	cave_type               *c_ptr;
+	cave_type		*c_ptr;
 
 	/* Paranoia -- no room left */
 	if (st_ptr->stock_num >= st_ptr->stock_size) return;
@@ -1309,32 +1309,20 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 }
 
 /*
- * Buy an item from a store				-RAK-
+ * Find an item in store, set it to o_ptr, return true on success
  */
-void store_purchase(int Ind, int item, int amt)
+bool get_store_item(int Ind, int item, object_type *i_ptr)
 {
+	bool 		found;
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
 	store_type *st_ptr = &store[st];
-	owner_type *ot_ptr = &owners[st][st_ptr->owner];
-	int			i, choice, sold, stocked,x,y;
-	int			item_new;
-	s32b		price, best;
-	object_type		sell_obj;
-	char		o_name[80];
-	bool 		found;
 	object_type		tmp_obj;
-	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
-	char			*c;
-
-	/* Empty? */
-	if (st_ptr->stock_num <= 0)
-	{
-		msg_print(Ind, "I am currently out of stock.");
-		return;
-	}
-
+	char			*c;	
+	int stocked,x,y;
+	object_type		*o_ptr;
+	
 	/* Player owned stores */
 	if (p_ptr->store_num == 8)
 	{
@@ -1351,7 +1339,7 @@ void store_purchase(int Ind, int item, int amt)
 				/* Get the object (if any) */
 				if (c_ptr->o_idx)
 				{
-					tmp_obj = o_list[c_ptr->o_idx];
+					o_ptr = &o_list[c_ptr->o_idx];
 					/* If there was an object, is it for sale? */
 					if (o_ptr->note)
 					{
@@ -1379,13 +1367,6 @@ void store_purchase(int Ind, int item, int amt)
 			}
 			if (found) break;
 		}
-		/* If we didn't find this item, something has gone badly wrong */
-		if (!found)
-		{	
-			/* Disguise our bug as a feature */
-			msg_print(Ind,"Sorry, this item is reserved.");
-			return;
-		}
 		
 	}
 	/* Normal stores */
@@ -1393,8 +1374,44 @@ void store_purchase(int Ind, int item, int amt)
 	{
 		/* Get the actual item */
 		o_ptr = &st_ptr->stock[item];
+		found = TRUE;
 	}
-	
+	*(i_ptr) = *(o_ptr);
+	return found;
+}
+
+/*
+ * Buy an item from a store				-RAK-
+ */
+void store_purchase(int Ind, int item, int amt)
+{
+	player_type *p_ptr = Players[Ind];
+	int st = p_ptr->store_num;
+	store_type *st_ptr = &store[st];
+	owner_type *ot_ptr = &owners[st][st_ptr->owner];
+	int			i, choice, sold;
+	int			item_new;
+	s32b		price, best;
+	object_type		sell_obj;
+	char		o_name[80];
+	object_type		tmp_obj;
+	object_type		*o_ptr = &tmp_obj;
+
+	/* Empty && Not player-owned? */
+	if (st != 8 && st_ptr->stock_num <= 0)
+	{
+		msg_print(Ind, "I am currently out of stock.");
+		return;
+	}
+
+	/* Fill o_ptr with correct item */
+	if (!get_store_item(Ind, item, o_ptr)) 
+	{
+			/* Disguise our bug as a feature */ 
+			msg_print(Ind,"Sorry, this item is reserved.");
+			return;
+	}
+
 	/* Sanity check the number of items */
 	if (amt > o_ptr->number)
 	{
@@ -1482,6 +1499,9 @@ void store_purchase(int Ind, int item, int amt)
 
 			/* Hack -- clear the "fixed" flag from the item */
 			sell_obj.ident &= ~ID_FIXED;
+			
+			/* Remove the incription (if player shop) */
+			if (st == 8) sell_obj.note = 0;
 
 			/* Describe the transaction */
 			object_desc(Ind, o_name, &sell_obj, TRUE, 3);

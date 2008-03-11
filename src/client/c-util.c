@@ -1250,6 +1250,12 @@ void request_command(bool shopping)
 
 			/* Command "s" -> "sell" (drop) */
 			case 's': command_cmd = 'd'; break;
+			
+			/* Command "I" -> "look" (Inspect) */
+			case 'I': command_cmd = 'l'; break;
+			
+			/* Command "x" -> "look" (examine) */
+			case 'x': command_cmd = 'l'; break;
 		}
 	}
 
