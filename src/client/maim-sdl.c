@@ -764,6 +764,11 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 
 	buf[0] = '\0';
 
+	if(ks->unicode && !(ks->unicode & 0xff80))	{
+		ch = ks->unicode;
+		if (ch) sdlkapp(ch);
+		return buf;
+	}
 
 	for (i = 0; ; ++i)
 	{
