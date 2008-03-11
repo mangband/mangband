@@ -366,7 +366,7 @@ static int next_to_walls(int Depth, int y, int x)
 /*
  * Convert existing terrain type to rubble
  */
-static void place_rubble(int Depth, int y, int x)
+static void place_rubble_aux(int Depth, int y, int x)
 {
 	cave_type *c_ptr = &cave[Depth][y][x];
 
@@ -374,7 +374,45 @@ static void place_rubble(int Depth, int y, int x)
 	c_ptr->feat = FEAT_RUBBLE;
 }
 
+/*
+ * Find secondary spot for rubble
+ *
+ * Note: unlike doors, first element might generate anywhere,
+ * leaving the possibility of useless rubble. That is intenteded
+ */
+static void place_rubble(int Depth, int y, int x)
+{
+	cave_type *c_ptr = &cave[Depth][y][x];
 
+	place_rubble_aux(Depth, y, x);
+
+	int i,j;
+	for (j = -1; j < 2; j++) {
+		for (i = -1; i < 2; i++) {
+			/* Skip corners */
+			if (abs(i+j) != 1) continue; 
+			
+			/* Check Bounds */
+			if (!in_bounds(Depth, y+j, x+i)) continue;
+
+			/* Totally useless AKA Require a certain number of adjacent walls */
+			if (next_to_walls(Depth, y+j, x+i) < 2) continue;			
+			
+			/* Require wall grid */
+			if (cave_naked_bold(Depth, y+j, x+i)) continue;
+
+			/* Require usefullness -- Not nessecary, since first element sucks anyway */
+			/* if (next_to_walls(Depth, y+j*-1, x+i*-1) < 1) continue; */
+			
+			/* Place on the opposite side */
+			place_rubble_aux(Depth, y+j*-1, x+i*-1);
+			
+			/* Done */
+			return;		
+		}
+	}
+	/* None */
+}
 
 /*
  * Convert existing terrain type to "up stairs"
