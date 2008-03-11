@@ -195,7 +195,8 @@ void process_command()
 
 		case 'j':
 		{
-			cmd_steal();
+			//cmd_steal();
+			cmd_spike();
 			break;
 		}
 
@@ -877,6 +878,24 @@ void cmd_steal(void)
 	Send_steal(dir);
 }
 
+void cmd_spike(void)
+{
+	int dir;
+
+	if (!c_get_spike()) 
+	{
+			/* Message */
+			c_msg_print("You have no spikes!");
+			return;
+	}
+
+	get_dir(&dir);
+
+	/* Send it */
+	Send_steal(dir);
+}
+
+
 void cmd_quaff(void)
 {
 	int item;
@@ -1004,6 +1023,7 @@ void cmd_eat(void)
 	/* Send it */
 	Send_eat(item);
 }
+
 
 void cmd_activate(void)
 {

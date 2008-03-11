@@ -5076,7 +5076,10 @@ static int Receive_steal(int ind)
 			Destroy_connection(ind, "read error");
 		return n;
 	}
-
+	
+	do_cmd_spike(player, dir);
+	
+#if 0
 	if (!cfg_no_steal) {
 		if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
@@ -5092,7 +5095,7 @@ static int Receive_steal(int ind)
 	else 
 		/* handle the option to disable player/player stealing */
 		msg_print(player, "Your pathetic attempts at stealing fail.\n");
-
+#endif
 	return 1;
 }
 	
