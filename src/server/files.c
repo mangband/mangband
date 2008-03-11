@@ -1143,29 +1143,18 @@ void display_player_server(int Ind, char buffer[100][82])
 errr file_character_server(int Ind, cptr name)
 {
 	int			i, j, x, y;
-
 	byte		a;
 	char		c;
-
-#if 0
-	cptr		other = "(";
-#endif
-
 	cptr		paren = ")";
-
 	int			fd = -1;
-
 	FILE		*fff = NULL;
-
 	store_type		*st_ptr = &store[7];
-
 	char		o_name[80];
-
+	char		today[10];
 	char		buf[1024];
-
 	player_type *p_ptr = Players[Ind];
-
 	char		buffer[100][82];
+	time_t ct = time((time_t*)0);
 
 	// Init buffer...
 	for(i=0;i<100;i++)
@@ -1211,6 +1200,23 @@ errr file_character_server(int Ind, cptr name)
 		return (-1);
 	}
 
+	/* Add ladder information, this line is used by the online ladder and 
+	 * not displayed when viewing a character dump online.
+	 */
+	strftime(today, 9, "%m/%d/%y", localtime(&ct));
+	fprintf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s\n",
+		(long)total_points(Ind),
+		(long)p_ptr->au,
+		today,
+		p_ptr->name,
+		p_ptr->male ? 'm' : 'f',
+		p_ptr->prace,
+		p_ptr->pclass,
+		p_ptr->lev,
+		p_ptr->died_from_depth,
+		p_ptr->max_plv,
+		p_ptr->max_dlv,
+		p_ptr->died_from_list);
 
 	/* Begin dump */
     if (cfg_ironman)
