@@ -32,11 +32,11 @@
  */
 
 /*
- * Current version number of MAngband: 0.9.9
+ * Current version number of MAngband.
  */
  
 #define VERSION_MAJOR	1
-#define VERSION_MINOR	0
+#define VERSION_MINOR	1
 #define VERSION_PATCH	0
 
 /*
