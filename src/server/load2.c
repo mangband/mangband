@@ -1339,6 +1339,9 @@ static errr rd_dungeon_special()
 		special_levels[i] = -999;
 	}
 	
+	/* Vanilla Mangand doesn't have special static pre-designed levels */
+	if (!cfg_ironman) return 0;
+	
 	num_levels = 0;
 	for(i=0;i<MAX_DEPTH;i++)
 	{
