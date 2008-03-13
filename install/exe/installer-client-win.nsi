@@ -1,15 +1,14 @@
 
 ; NSIS Installer for Windows Mangband Client 
-; Originally by Graham R King (4th November 2005)
 ; Downlad NSIS at nsis.sourceforge.net
 
 ; You will need to change this...
-!define DEV_DIR "C:\Projects\Eclipse\Mangband\"
+!define DEV_DIR "..\..\"
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband"
-!define PRODUCT_VERSION "0.7.2 (build 3)"
-!define VER "072-build3"
+!define PRODUCT_VERSION "1.1.0 (beta x)"
+!define VER "110-betax"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\MAngclient.exe"
@@ -57,7 +56,7 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${DEV_DIR}mangclient.exe"
-  File "${DEV_DIR}README-client.htm"
+  File "README-client.htm"
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\MAngband.lnk" "$INSTDIR\mangclient.exe"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\ReadMe.lnk" "$INSTDIR\README-client.htm"
@@ -68,11 +67,11 @@ Section "MainSection" SEC01
   CreateDirectory "$INSTDIR\lib\save"
   File "${DEV_DIR}mangclient.ini"
   SetOutPath "$INSTDIR\lib"
-  FILE /r "${DEV_DIR}lib\game"
-  FILE /r "${DEV_DIR}lib\help"
-  FILE /r "${DEV_DIR}lib\text"
-  FILE /r "${DEV_DIR}lib\user"
-  FILE /r "${DEV_DIR}lib\xtra"
+  FILE /r /x .svn "${DEV_DIR}lib\edit"
+  FILE /r /x .svn "${DEV_DIR}lib\help"
+  FILE /r /x .svn "${DEV_DIR}lib\text"
+  FILE /r /x .svn "${DEV_DIR}lib\user"
+  FILE /r /x .svn "${DEV_DIR}lib\xtra"
 
 SectionEnd
 

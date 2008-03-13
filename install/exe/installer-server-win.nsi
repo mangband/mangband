@@ -1,15 +1,14 @@
 
 ; NSIS Installer for Windows Mangband Server 
-; Originally by Graham R King (4th November 2005)
 ; Downlad NSIS at nsis.sourceforge.net
 
 ; You will need to change this...
-!define DEV_DIR ".\"
+!define DEV_DIR "..\..\"
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband Server"
-!define PRODUCT_VERSION "0.7.2 (build 5)"
-!define VER "072-build5"
+!define PRODUCT_VERSION "1.1.0 (beta x)"
+!define VER "110-betax"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\MAngband.exe"
@@ -57,7 +56,7 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${DEV_DIR}MAngband.exe"
-  File "${DEV_DIR}README.htm"
+  File "README.htm"
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Start Server.lnk" "$INSTDIR\run-server.bat"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\ReadMe.lnk" "$INSTDIR\README.htm"
@@ -67,14 +66,14 @@ Section "MainSection" SEC01
   CreateDirectory "$INSTDIR\lib\data"
   CreateDirectory "$INSTDIR\lib\file"
   CreateDirectory "$INSTDIR\lib\save"
-  File "${DEV_DIR}run-server.bat"
-  File "${DEV_DIR}exchndl.dll"
+  File "run-server.bat"
+  ; File "${DEV_DIR}exchndl.dll"
   File "${DEV_DIR}mangband.cfg"
   SetOutPath "$INSTDIR\lib"
-  FILE /r "${DEV_DIR}lib\game"
-  FILE /r "${DEV_DIR}lib\help"
-  FILE /r "${DEV_DIR}lib\text"
-  FILE /r "${DEV_DIR}lib\user"
+  FILE /r /x .svn "${DEV_DIR}lib\edit"
+  FILE /r /x .svn "${DEV_DIR}lib\help"
+  FILE /r /x .svn "${DEV_DIR}lib\text"
+  FILE /r /x .svn "${DEV_DIR}lib\user"
 
 SectionEnd
 
