@@ -286,6 +286,12 @@ LIBS = @LIBS@
 # Hack -- configure special flags to match usual flags
 #
 
+ifeq ($(strip $(PREFIX)),)
+#PREFIX=@prefix@/bin
+PREFIX=.. #manghack VS autoconf. MANGHACK WINS!
+endif
+
+
 ifneq ($(strip $(LIBS)),)
 	SERV_LIBS = $(LIBS)
 	CLI_LIBS = $(LIBS)
@@ -316,8 +322,8 @@ SERV_OBJS = $(patsubst %.c,%.o,$(SERV_SRCS))
 #
 
 install: mangclient mangband
-	cp mangclient ..
-	cp mangband ..
+	cp mangclient $(PREFIX)
+	cp mangband $(PREFIX)
 
 
 

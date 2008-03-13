@@ -43,7 +43,7 @@ system "cp -R ../../lib $newdir/";
 # Tar it!
 
 system "rm -f $newdir.tar.gz";
-system "tar -cvzf $newdir.tar.gz --exclude='.svn' $newdir >/dev/null";
+system "tar -cvzf $newdir.tar.gz --exclude='.svn' --exclude='*.o' $newdir >/dev/null";
 
 # Step 4
 # Help .deb script
