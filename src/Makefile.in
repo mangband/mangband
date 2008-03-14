@@ -291,6 +291,9 @@ ifeq ($(strip $(PREFIX)),)
 PREFIX=.. #manghack VS autoconf. MANGHACK WINS!
 endif
 
+ifneq ($(strip $(DATADIR)),)
+CFLAGS+=-DDEFAULT_PATH="\"$(DATADIR)\""
+endif
 
 ifneq ($(strip $(LIBS)),)
 	SERV_LIBS = $(LIBS)

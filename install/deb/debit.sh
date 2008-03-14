@@ -17,14 +17,16 @@ cp ../tgz/mangband-${VER}.tar.gz ./mangband_${VER}.orig.tar.gz
 tar -xzvf mangband_${VER}.orig.tar.gz
 cd mangband-${VER}
 cp -R src/* .
-dh_make -m -n
+dh_make -m -n --email team@mangband.org
 cd debian
 rm *.ex *.EX
 
 cp -f ../../control .
 cp -f ../../rules .
 chmod +x rules
-echo "usr/share/games/mangband" >>./dirs
+echo "#!/bin/sh" >./postinst
+echo chmod og+w -R /var/games/mangband >>./postinst
+echo "var/games/" >>./dirs
 echo "etc/" >>./dirs
 echo Version: ${VER} >>./control
 echo "/etc/mangband.cfg" >./conffiles

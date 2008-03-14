@@ -1754,8 +1754,9 @@ errr init_sdl(int oargc, char **oargv)
 	init_color_data_sdl();
 
 #ifdef OLD_TERM_28X
-	strcpy(path,"lib/"); /* XXX XXX XXX this is system dependent!!!! FIXME */
-	init_file_paths(path);
+//	strcpy(path,"lib/"); /* XXX XXX XXX this is system dependent!!!! FIXME */
+//	init_file_paths(path);
+	init_stuff();
 #endif
 
 

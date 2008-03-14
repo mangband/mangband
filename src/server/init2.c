@@ -2503,11 +2503,15 @@ void load_server_cfg(void)
 	/* Attempt to open the file */
 	cfg = fopen("mangband.cfg", "r");
 
-	/* Failure */
-	if (cfg < 0)
+	/* Failure, try /etc then stop trying */
+	if (cfg <= 0)
 	{
-		printf("Error : cannot open file mangband.cfg\n");
-		return;
+		cfg = fopen("/etc/mangband.cfg", "r");
+		if (cfg <= 0)
+	    	{
+			printf("Error : cannot open file mangband.cfg\n");
+			return;
+		}
 	}
 
 	/* Actually parse the file */

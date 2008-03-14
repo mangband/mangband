@@ -49,7 +49,7 @@ static void init_arrays(void)
  * Note that the "path" must be "Angband:" for the Amiga, and it
  * is ignored for "VM/ESA", so I just combined the two.
  */
-static void init_stuff(void)
+void init_stuff(void)
 {
         char path[1024];
 

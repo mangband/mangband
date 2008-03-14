@@ -1,7 +1,7 @@
 Source: mangband
 Section: games
 Priority: optional
-Maintainer: Mangband Project Team <jug@mangband.org>
+Maintainer: Mangband Project Team <team@mangband.org>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.2
 
