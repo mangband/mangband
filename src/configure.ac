@@ -43,6 +43,10 @@ if test "x$have_x11" = xyes && test "x$with_x11" = xyes
 then
     enabled_x11="yes"
 fi
+if test "x$have_curs" = xyes && test "x$with_gcu" != xno 
+then
+    enabled_gcu="yes"
+fi
 if test "x$have_sdl" = xyes && test "x$with_sdl" = xyes 
 then
     enabled_sdl="yes"
@@ -152,3 +156,5 @@ AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
+#for debug you can use this:
+#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS"
