@@ -2395,7 +2395,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		};
 	};
 
-    if(p_ptr->lev > 19) { /* don't dump low chr deaths. */
+	/* don't dump low chr deaths or ghosts */
+    if(p_ptr->lev > 19 && p_ptr->alive) { 
 		/* Character dump here, before we start dropping items */
 		sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
 		file_character_server(Ind,dumpname);

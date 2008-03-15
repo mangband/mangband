@@ -2617,6 +2617,10 @@ if test "x$have_x11" = xyes && test "x$with_x11" = xyes
 then
     enabled_x11="yes"
 fi
+if test "x$have_curs" = xyes && test "x$with_gcu" != xno
+then
+    enabled_gcu="yes"
+fi
 if test "x$have_sdl" = xyes && test "x$with_sdl" = xyes
 then
     enabled_sdl="yes"
@@ -6651,3 +6655,5 @@ fi
 
 { echo "$as_me:$LINENO: Configured. Type 'make' to build." >&5
 echo "$as_me: Configured. Type 'make' to build." >&6;}
+#for debug you can use this:
+#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS"

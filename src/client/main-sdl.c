@@ -732,7 +732,6 @@ static errr Term_xtra_sdl(int n, int v)
 			{
 				if (event.key.state == SDL_PRESSED) 
 				{
-
 					/* Various frivolous hacks. */
 					switch(event.key.keysym.sym)
 					{
@@ -1755,8 +1754,9 @@ errr init_sdl(int oargc, char **oargv)
 	init_color_data_sdl();
 
 #ifdef OLD_TERM_28X
-	strcpy(path,"lib/"); /* XXX XXX XXX this is system dependent!!!! FIXME */
-	init_file_paths(path);
+//	strcpy(path,"lib/"); /* XXX XXX XXX this is system dependent!!!! FIXME */
+//	init_file_paths(path);
+	init_stuff();
 #endif
 
 
@@ -1892,6 +1892,7 @@ errr init_sdl(int oargc, char **oargv)
 	//SDL_ShowCursor(SDL_DISABLE);
 	SDL_ShowCursor(SDL_ENABLE);
 
+	SDL_EnableUNICODE(1);
 
 	if (!cleanHEX(&screen_font, fontname)) return -1;
 	if (!cleanHEX(&mirror_font, smallfontname)) return -1;

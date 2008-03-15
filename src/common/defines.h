@@ -32,11 +32,11 @@
  */
 
 /*
- * Current version number of MAngband: 0.9.9
+ * Current version number of MAngband.
  */
  
 #define VERSION_MAJOR	1
-#define VERSION_MINOR	0
+#define VERSION_MINOR	1
 #define VERSION_PATCH	0
 
 /*
@@ -2541,7 +2541,9 @@ that keeps many algorithms happy.
 #endif
 
 /* PW-hacked version: uses hardcoded values for easy_know + makes sure it's not an artifact */ 
-#define object_known_p(IND, T) (((T)->ident & ID_KNOWN) || (easy_know_p(T) && ((T)->name3 == 0) && Players[IND]->obj_aware[(T)->k_idx])) 
+#define object_known_p(IND, T) \
+	(((T)->ident & ID_KNOWN) || \ 
+	(easy_know_p(T) && (T)->name3 == 0 && Players[IND]->obj_aware[(T)->k_idx]))
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \

@@ -794,7 +794,7 @@ static s32b object_value_base(int Ind, object_type *o_ptr)
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
 	/* Aware item -- use template cost */
-	if (Ind == 0 || object_aware_p(Ind, o_ptr)) return (k_ptr->cost);
+	if (Ind == 0 || object_aware_p(Ind, o_ptr) || !easy_know_p(o_ptr)) return (k_ptr->cost);
 
 	/* Analyze the type */
 	switch (o_ptr->tval)

@@ -2375,7 +2375,7 @@ void set_server_option(char * option, char * value)
 		/* Hack -- reinstall the timer handler to match the new FPS */
 		install_timer_tick(dungeon, cfg_fps);
 	}
-	else if (!strcmp(option,"TCP_SOCKET"))
+	else if (!strcmp(option,"TCP_PORT"))
 	{
 		cfg_tcp_port = atoi(value);
 		/* We probably ought to do some sanity check here */
@@ -2503,11 +2503,15 @@ void load_server_cfg(void)
 	/* Attempt to open the file */
 	cfg = fopen("mangband.cfg", "r");
 
-	/* Failure */
-	if (cfg < 0)
+	/* Failure, try /etc then stop trying */
+	if (cfg <= 0)
 	{
-		printf("Error : cannot open file mangband.cfg\n");
-		return;
+		cfg = fopen("/etc/mangband.cfg", "r");
+		if (cfg <= 0)
+	    	{
+			printf("Error : cannot open file mangband.cfg\n");
+			return;
+		}
 	}
 
 	/* Actually parse the file */
@@ -2568,7 +2572,7 @@ void init_some_arrays(void)
 	if (init_p_info()) quit("Cannot initialize races");
 
 	/* Initialize class info */
-	s_printf("[Initializing arrays... (classes)]");
+	s_printf("[Initializing arrays... (classes)]\n");
 	if (init_c_info()) quit("Cannot initialize classes");
 
 	/* Initialize flavor info */
