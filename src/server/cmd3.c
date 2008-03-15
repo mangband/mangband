@@ -870,6 +870,11 @@ void do_cmd_observe(int Ind, int item)
 			msg_print(Ind,"Sorry, this item is exclusive.");
 			return;
 		}
+		
+			/* Get name */
+			object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+			/* Identify this store item */
+			object_known(o_ptr);
 	} else {
 		/* Get the item (in the pack) */
 		if (item >= 0)
@@ -887,10 +892,10 @@ void do_cmd_observe(int Ind, int item)
 			}
 			o_ptr = &o_list[0 - item];
 		}
+		
+		/* Get name */
+		object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	}
-
-	/* Get name */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 
 	/* Inform */
 	msg_format(Ind, "Examining %s...", o_name);
