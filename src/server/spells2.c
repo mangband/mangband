@@ -1040,7 +1040,7 @@ void set_recall(int Ind, object_type * o_ptr)
 						inscription++;
 						/* convert the inscription into a level index */
 						recall_depth = atoi(inscription);
-						if(!recall_depth %50) 
+						if(!(recall_depth % 50)) 
 						{
 							recall_depth/=50;
 						}
