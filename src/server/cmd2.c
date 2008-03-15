@@ -1048,7 +1048,8 @@ void do_cmd_tunnel(int Ind, int dir)
 		}
 
 		/* No tunnelling through doors */
-		else if (c_ptr->feat < FEAT_SECRET && c_ptr->feat >= FEAT_HOME_HEAD)
+		else if ((c_ptr->feat < FEAT_SECRET || c_ptr->feat >= FEAT_DRAWBRIDGE) 
+			&& (c_ptr->feat != FEAT_TREE && c_ptr->feat != FEAT_EVIL_TREE)	)
 		{
 			/* Message */
 			msg_print(Ind, "You cannot tunnel through doors.");
@@ -1074,13 +1075,13 @@ void do_cmd_tunnel(int Ind, int dir)
 			p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 			/* Titanium */
-			if (c_ptr->feat >= FEAT_PERM_EXTRA)
+			if (c_ptr->feat >= FEAT_PERM_EXTRA && c_ptr->feat <= FEAT_PERM_SOLID)
 			{
 				msg_print(Ind, "This seems to be permanent rock.");
 			}
 
 			/* Granite */
-			else if (c_ptr->feat >= FEAT_WALL_EXTRA)
+			else if (c_ptr->feat >= FEAT_WALL_EXTRA && c_ptr->feat <= FEAT_WALL_SOLID)
 			{
 				/* Tunnel */
 				if ((p_ptr->skill_dig > 40 + rand_int(1600)) && twall(Ind, y, x))
@@ -1098,7 +1099,7 @@ void do_cmd_tunnel(int Ind, int dir)
 			}
 
 			/* Quartz / Magma */
-			else if (c_ptr->feat >= FEAT_MAGMA)
+			else if (c_ptr->feat >= FEAT_MAGMA && c_ptr->feat <= FEAT_QUARTZ_K)
 			{
 				bool okay = FALSE;
 				bool gold = FALSE;
