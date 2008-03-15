@@ -2071,6 +2071,7 @@ void interact_macros(void)
 	int i;
 
 	char tmp[160], buf[1024];
+	char* str;
 
 	/* Screen is icky */
 	screen_icky = TRUE;
@@ -2153,6 +2154,9 @@ void interact_macros(void)
 
 			/* Ask for a file */
 			if (!askfor_aux(tmp, 70, 0)) continue;
+			
+			/* Lowercase the filename */
+			for(str=tmp;*str;str++) *str=tolower(*str);
 
 			/* Dump the macros */
 			(void)macro_dump(tmp);
