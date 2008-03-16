@@ -3013,13 +3013,6 @@ int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cpt
 		return 0;
 	}
 
-    if ((connp->version != MY_VERSION) && (pos >= 24))
-    {
-	/* older client only accept 2 pages of items */
-        errno = 0;
-	return 0;
-    }
-
 	return Packet_printf(&connp->c, "%c%c%c%hd%hd%d%s", PKT_STORE, pos, attr, wgt, number, price, name);
 }
 
@@ -3037,12 +3030,6 @@ int Send_store_info(int ind, int num, int owner, int items)
 		return 0;
 	}
 
-    if ((connp->version != MY_VERSION) && (count > 24))
-    {
-	/* older client only accept 2 pages of items */
-        count = 24;
-    }
-
     return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
 }
 
@@ -3059,12 +3046,6 @@ int Send_player_store_info(int ind, int num, char *owner, int items)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-
-    if ((connp->version != MY_VERSION) && (count > 24))
-    {
-		/* older client only accept 2 pages of items */
-        count = 24;
-    }
 
     return Packet_printf(&connp->c, "%c%hd%s%hd", PKT_PLAYER_STORE_INFO, num, owner, count);
 }

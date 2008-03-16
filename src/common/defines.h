@@ -370,8 +370,8 @@
 #define STORE_CHOICES	32		/* Number of items to choose stock from */
 #define STORE_OBJ_LEVEL	7		/* Magic Level for normal stores */
 #define STORE_TURNOVER	9		/* Normal shop turnover, per day */
-#define STORE_MIN_KEEP	12		/* Min slots to "always" keep full */
-#define STORE_MAX_KEEP	24		/* Max slots to "always" keep full */
+#define STORE_MIN_KEEP	30		/* Min slots to "always" keep full */
+#define STORE_MAX_KEEP	47		/* Max slots to "always" keep full */
 #define STORE_SHUFFLE	25		/* 1/Chance (per day) of an owner changing */
 #define STORE_TURNS	250		/* Number of turns between turnovers */
 
@@ -2542,8 +2542,9 @@ that keeps many algorithms happy.
 
 /* PW-hacked version: uses hardcoded values for easy_know + makes sure it's not an artifact */ 
 #define object_known_p(IND, T) \
-	(((T)->ident & ID_KNOWN) || \ 
-	(easy_know_p(T) && (T)->name3 == 0 && Players[IND]->obj_aware[(T)->k_idx]))
+	(((T)->ident & ID_KNOWN) || \
+		(easy_know_p(T) && (T)->name3 == 0 && \
+		Players[IND]->obj_aware[(T)->k_idx]))
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \
