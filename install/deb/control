@@ -1,0 +1,14 @@
+Source: mangband
+Section: games
+Priority: optional
+Maintainer: Mangband Project Team <team@mangband.org>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.2
+
+Package: mangband
+Architecture: any
+Depends: libncurses | libX11 | libsdl1.2debian
+Suggests: libncurses , libX11 , libsdl1.2debian
+Description: Free online multiplayer real-time roguelike game
+ MAngband is a free online multiplayer real-time roguelike game,
+ derived from the single player game Angband.

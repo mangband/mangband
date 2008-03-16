@@ -372,7 +372,7 @@ bool Report_to_meta(int flag)
 	if (VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
 	if (VERSION_EXTRA == 2)
-		strcat(temp, "beta-0");
+		strcat(temp, "beta-1");
 	if (VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
