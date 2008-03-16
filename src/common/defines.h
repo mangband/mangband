@@ -2541,9 +2541,7 @@ that keeps many algorithms happy.
 #endif
 
 /* PW-hacked version: uses hardcoded values for easy_know + makes sure it's not an artifact */ 
-#define object_known_p(IND, T) \
-	(((T)->ident & ID_KNOWN) || \ 
-	(easy_know_p(T) && (T)->name3 == 0 && Players[IND]->obj_aware[(T)->k_idx]))
+#define object_known_p(IND, T) (((T)->ident & ID_KNOWN) || (easy_know_p(T) && (T)->name3 == 0 && Players[IND]->obj_aware[(T)->k_idx]))
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \
