@@ -1521,8 +1521,15 @@ D: permanently implants this knowledge into your mind, so that you will
 D: never forget it even if hit by magical amnesia.
 D:  (The spell may be aborted without using up the scroll.)
 
-## XXX 178 XXX ##
-
+N:178:Life
+G:?:d
+I:70:48:0
+W:20:0:5:500
+A:20/1
+F:EASY_KNOW
+D:It restores life to a ghost character standing next to the player who
+D:reads it. It restores experience to maximum if it is currently below 
+D:maximum if there is no ghost adjacent.
 
 # New scroll: Scroll of Artifact Creation
 
