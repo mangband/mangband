@@ -558,6 +558,14 @@ static int store_carry(int st, object_type *o_ptr)
 
 	/* Cursed/Worthless items "disappear" when sold */
 	if (value <= 0) return (-1);
+	
+	/* Artifacts "disappear" when sold */
+	if (artifact_p(o_ptr))
+	{
+		/* Mark the artifact so it can be found again */
+		a_info[o_ptr->name1].cur_num = 0;
+		return (-1);
+	}
 
 	/* Erase the inscription for normal shops */
 	o_ptr->note = 0;
