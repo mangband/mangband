@@ -122,6 +122,51 @@ static void object_wipe(object_type* o_ptr)
     WIPE(o_ptr, object_type); 
 } 
 
+/*
+ * Prepare an object based on an object kind.
+ */
+void object_prep(object_type *o_ptr, int k_idx)
+{
+	object_kind *k_ptr = &k_info[k_idx];
+
+	/* Clear the record */
+	(void)WIPE(o_ptr, object_type);
+
+	/* Save the kind index */
+	o_ptr->k_idx = k_idx;
+
+	/* Efficiency -- tval/sval */
+	o_ptr->tval = k_ptr->tval;
+	o_ptr->sval = k_ptr->sval;
+
+	/* Default "pval" */
+	o_ptr->pval = k_ptr->pval;
+
+	/* Default number */
+	o_ptr->number = 1;
+
+	/* Default weight */
+	o_ptr->weight = k_ptr->weight;
+
+	/* Default magic */
+	o_ptr->to_h = k_ptr->to_h;
+	o_ptr->to_d = k_ptr->to_d;
+	o_ptr->to_a = k_ptr->to_a;
+
+	/* Default power */
+	o_ptr->ac = k_ptr->ac;
+	o_ptr->dd = k_ptr->dd;
+	o_ptr->ds = k_ptr->ds;
+
+	/* Hack -- worthless items are always "broken" */
+	if (k_ptr->cost <= 0) o_ptr->ident |= (ID_BROKEN);
+
+	/* Hack -- cursed items are always "cursed" */
+	if (k_ptr->flags3 & (TR3_LIGHT_CURSE)) o_ptr->ident |= (ID_CURSED);
+}
+
+
+
 
 /* 
  * Delete a dungeon object 
@@ -794,7 +839,7 @@ static s32b object_value_base(int Ind, object_type *o_ptr)
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
 	/* Aware item -- use template cost */
-	if (Ind == 0 || object_aware_p(Ind, o_ptr) || !easy_know_p(o_ptr)) return (k_ptr->cost);
+	if (Ind == 0 || object_aware_p(Ind, o_ptr)) return (k_ptr->cost);
 
 	/* Analyze the type */
 	switch (o_ptr->tval)
