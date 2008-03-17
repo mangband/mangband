@@ -780,15 +780,16 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
 	WritePrivateProfileString(sec_name, "Rows", buf, ini_file);
 
 	/* Acquire position */
-	GetWindowRect(td->w, &rc);
+	if (GetWindowRect(td->w, &rc))
+	{
+		/* Current position (x) */
+		wsprintf(buf, "%d", rc.left);
+		WritePrivateProfileString(sec_name, "PositionX", buf, ini_file);
 
-	/* Current position (x) */
-	wsprintf(buf, "%d", rc.left);
-	WritePrivateProfileString(sec_name, "PositionX", buf, ini_file);
-
-	/* Current position (y) */
-	wsprintf(buf, "%d", rc.top);
-	WritePrivateProfileString(sec_name, "PositionY", buf, ini_file);
+		/* Current position (y) */
+		wsprintf(buf, "%d", rc.top);
+		WritePrivateProfileString(sec_name, "PositionY", buf, ini_file);
+	}
 }
 
 
@@ -858,8 +859,10 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->rows = GetPrivateProfileInt(sec_name, "Rows", td->rows, ini_file);
 
 	/* Window position */
-	td->pos_x = GetPrivateProfileInt(sec_name, "PositionX", td->pos_x, ini_file);
-	td->pos_y = GetPrivateProfileInt(sec_name, "PositionY", td->pos_y, ini_file);
+	GetPrivateProfileString(sec_name, "PositionX", "0", tmp, 127, ini_file);
+	td->pos_x = atoi(tmp);
+	GetPrivateProfileString(sec_name, "PositionY", "0", tmp, 127, ini_file);
+	td->pos_y = atoi(tmp);
 }
 
 
