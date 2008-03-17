@@ -2558,8 +2558,8 @@ void shutdown_server(void)
 	/* Now wipe every object, to preserve artifacts on the ground */
 	for (i = 1; i < MAX_DEPTH; i++)
 	{
-		/* Wipe this depth */
-		wipe_o_list(i);
+		/* Wipe this depth if no player on it */
+		if (!players_on_depth[i]) wipe_o_list(i);
 	}
 
 	/* Save the server state */

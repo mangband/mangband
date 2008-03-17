@@ -372,7 +372,7 @@
 #define STORE_TURNOVER	9		/* Normal shop turnover, per day */
 #define STORE_MIN_KEEP	12		/* Min slots to "always" keep full */
 #define STORE_MAX_KEEP	36		/* Max slots to "always" keep full */
-#define STORE_SHUFFLE	25		/* 1/Chance (per day) of an owner changing */
+#define STORE_SHUFFLE	35		/* 1/Chance (per day) of an owner changing */
 #define STORE_TURNS	250		/* Number of turns between turnovers */
 
 
@@ -2540,11 +2540,24 @@ that keeps many algorithms happy.
      (k_info[(T)->k_idx].aware && Players[IND]->obj_aware[(T)->k_idx]))
 #endif
 
+#if 0
 /* PW-hacked version: uses hardcoded values for easy_know + makes sure it's not an artifact */ 
 #define object_known_p(IND, T) \
 	(((T)->ident & ID_KNOWN) || \
 		(easy_know_p(T) && (T)->name3 == 0 && \
 		Players[IND]->obj_aware[(T)->k_idx]))
+#endif
+
+/*
+ * Determine if a given inventory item is "known"
+ * Test One -- Check for special "known" tag
+ * Test Two -- Check for "Easy Know" + "Aware"
+ */
+#define object_known_p(IND, T) \
+	(((T)->ident & (ID_KNOWN)) || \
+	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
+	  Players[IND]->obj_aware[(T)->k_idx]))
+    
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \

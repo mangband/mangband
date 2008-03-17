@@ -135,14 +135,14 @@ static void inven_drop(int Ind, int item, int amt)
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
 	};
-#if 0
-	/* Never drop artifacts */
-	if (artifact_p(o_ptr))
+
+	/* Never drop artifacts above their base depth */
+	if (artifact_p(o_ptr) && (p_ptr->dun_depth < k_info[o_ptr->k_idx].level) )
 	{
-		msg_print(Ind, "This item is too special to discard");
+		msg_print(Ind, "You can not drop this here.");
 		return;	
 	}	
-#endif
+
 	/* Make a "fake" object */
 	tmp_obj = *o_ptr;
 	tmp_obj.number = amt;
@@ -718,8 +718,6 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_type		*o_ptr;
 
 	char		o_name[80];
-	char		o_inscribe[80];
-
 
 	/* Hack -- force destruction */
 	if (command_arg > 0) force = TRUE;
@@ -752,19 +750,10 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
 	};
-#if 0
-	/* Verify if needed */
-	if (!force || other_query_flag)
-	{
-		/* Make a verification */
-		sprintf(out_val, "Really destroy %s? ", o_name);
-		if (!get_check(Ind, out_val)) return;
-	}
-#endif
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-#if 1
+
 	/* Artifacts cannot be destroyed */
 	if (artifact_p(o_ptr))
 	{
@@ -773,24 +762,8 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		/* Message */
 		msg_format(Ind, "You cannot destroy %s.", o_name);
  		
-		if (!object_known_p(Ind, o_ptr)) { 		
- 		
 		/* Hack -- Handle icky artifacts */
 		if (cursed_p(o_ptr) || broken_p(o_ptr)) feel = "terrible";
-
-		/* Hack -- Check for an existing inscription */
-		if (o_ptr->note)
-		{
-			if (!strstr(quark_str(o_ptr->note), feel))
-			{
-				strcpy(o_inscribe, (const char *)feel);
-				strcat(o_inscribe, " - ");
-				strcat(o_inscribe, quark_str(o_ptr->note));
-				
-				//strcpy(feel, o_inscribe);
-				/* ^^^ This line causes crash for unknown reasons :( */
-			}
-		}
 
 		/* Hack -- inscribe the artifact */
 		o_ptr->note = quark_add(feel);
@@ -804,11 +777,10 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		/* Window stuff */
 		p_ptr->window |= (PW_INVEN | PW_EQUIP);
 
-		}
 		/* Done */
 		return;
 	}
-#endif
+
 	/* Cursed, equipped items cannot be destroyed */
 	if (item >= INVEN_WIELD && cursed_p(o_ptr))
 	{
@@ -818,15 +790,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		/* Done */
 		return;
 	}
-#if 0
-	/* Artifacts *can* now be destroyed */
-	if (artifact_p(o_ptr))
-	{
-		/* set the artifact as unfound */
-		a_info[o_ptr->name1].cur_num = 0;
-	}
-#endif
-	
+
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
 

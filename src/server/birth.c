@@ -661,35 +661,60 @@ static byte ironman_player_init[MAX_CLASS][3][2] =
 
 };
 
-
+#if 0
+// This is a very good function to use. The shortcoming is that it is missing all the usefull
+// ironman and debug addons, and for some reason food + lite is not bundled with it.
 /*
- * Hack -- use this function to give instant aware of certain items on birth
- * 
+ * Init players with some belongings
+ *
+ * Having an item identifies it and makes the player "aware" of its purpose.
  */
-static bool insta_aware(object_kind *k_ptr) { 
-	/* Valid "tval" codes */ 
-	switch (k_ptr->tval) 
-	{ 
-	/* Some objects are easily known */ 
-	case TV_SPIKE: 
-	case TV_FLASK: 
-	case TV_MAGIC_BOOK: 
-	case TV_PRAYER_BOOK: 
-		 return (TRUE); 
-	
-	/* Basic food is easily known */ 
-	case TV_FOOD: return (k_ptr->sval >= SV_FOOD_MIN_FOOD); 
-	} 
-	
-	/* Nope */ 
-	return (FALSE); 
+static void player_outfit(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	player_class *cp_ptr = &c_info[p_ptr->pclass];
+	int i;
+	const start_item *e_ptr;
+	object_type *i_ptr;
+	object_type object_type_body;
+
+
+	/* Hack -- Give the player his equipment */
+	for (i = 0; i < MAX_START_ITEMS; i++)
+	{
+		/* Access the item */
+		e_ptr = &(cp_ptr->start_items[i]);
+
+		/* Get local object */
+		i_ptr = &object_type_body;
+
+		/* Hack	-- Give the player an object */
+		if (e_ptr->tval > 0)
+		{
+			/* Get the object_kind */
+			int k_idx = lookup_kind(e_ptr->tval, e_ptr->sval);
+
+			/* Valid item? */
+			if (!k_idx) continue;
+
+			/* Prepare the item */
+			object_prep(i_ptr, k_idx);
+			i_ptr->number = (byte)rand_range(e_ptr->min, e_ptr->max);
+
+			object_aware(Ind, i_ptr);
+			object_known(i_ptr);
+			(void)inven_carry(Ind, i_ptr);
+		}
+	}
 }
+#endif
 
 /*
  * Init players with some belongings
  *
  * Having an item makes the player "aware" of its purpose.
  */
+#if 1
 static void player_outfit(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -697,6 +722,7 @@ static void player_outfit(int Ind)
 
 	object_type	forge;
 	object_type	*o_ptr = &forge;
+
 
 
 	/* Hack -- Give the player some food */
@@ -916,7 +942,7 @@ static void player_outfit(int Ind)
 	}
 	
 }
-
+#endif
 static void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -1061,26 +1087,6 @@ static void player_setup(int Ind)
 	/* Show him to everybody */
 	everyone_lite_spot(Depth, y, x);
 
-	/* Hack -- Give him "awareness" of certain objects -- Even more hacked */
-	for (i = 0; i < z_info->k_max; i++) 
-	{ 
-		object_kind *k_ptr = &k_info[i]; 
-		if (insta_aware(k_ptr)) p_ptr->obj_aware[i] = TRUE; 
-	}
-#if 0
-	/* Hack -- Give him "awareness" of certain objects */
-	for (i = 1; i < MAX_K_IDX; i++)
-	{
-		object_kind *k_ptr = &k_info[i];
-
-		/* Skip "empty" objects */
-		if (!k_ptr->name) continue;
-
-		/* No flavor yields aware */
-		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
-	}
-#endif
-
 	/* Add him to the player name database, if he is not already there */
 	if (!lookup_player_name(p_ptr->id))
 	{
@@ -1147,7 +1153,7 @@ static void player_setup(int Ind)
 bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[6])
 {
 	player_type *p_ptr;
-
+	int i;
 
 	/* Do some consistency checks */
     if (race < 0 || race >= MAX_RACES) race = RACE_HUMAN;
@@ -1244,6 +1250,18 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Hack -- outfit the player */
 	player_outfit(Ind);
+	
+	/* Hack -- Give him "awareness" of certain objects */
+	for (i = 0; i < z_info->k_max; i++) 
+	{
+		object_kind *k_ptr = &k_info[i];
+
+		/* Skip "empty" objects */
+		if (!k_ptr->name) continue;
+
+		/* No flavor yields aware */
+		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
+	}
 
 	/* Set his location, panel, etc. */
 	player_setup(Ind);

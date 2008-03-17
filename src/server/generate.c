@@ -403,7 +403,10 @@ static void place_rubble(int Depth, int y, int x)
 
 			/* Require usefullness -- Not nessecary, since first element sucks anyway */
 			/* if (next_to_walls(Depth, y+j*-1, x+i*-1) < 1) continue; */
-			
+
+			/* Require an empty grid on the opposite side */
+			if (!cave_naked_bold(Depth, y+j*-1, x+i*-1)) continue;
+		
 			/* Place on the opposite side */
 			place_rubble_aux(Depth, y+j*-1, x+i*-1);
 			

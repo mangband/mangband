@@ -260,19 +260,19 @@ static void mass_produce(object_type *o_ptr)
 	{
 		discount = 0;
 	}
-	else if (rand_int(25) == 0)
+	else if (rand_int(50) == 0)
 	{
 		discount = 25;
 	}
-	else if (rand_int(150) == 0)
+	else if (rand_int(300) == 0)
 	{
 		discount = 50;
 	}
-	else if (rand_int(300) == 0)
+	else if (rand_int(600) == 0)
 	{
 		discount = 75;
 	}
-	else if (rand_int(500) == 0)
+	else if (rand_int(1000) == 0)
 	{
 		discount = 90;
 	}
@@ -558,6 +558,14 @@ static int store_carry(int st, object_type *o_ptr)
 
 	/* Cursed/Worthless items "disappear" when sold */
 	if (value <= 0) return (-1);
+	
+	/* Artifacts "disappear" when sold */
+	if (artifact_p(o_ptr))
+	{
+		/* Mark the artifact so it can be found again */
+		a_info[o_ptr->name1].cur_num = 0;
+		return (-1);
+	}
 
 	/* Erase the inscription for normal shops */
 	o_ptr->note = 0;
@@ -1914,19 +1922,23 @@ void store_shuffle(int which)
 	/* Hack -- discount all the items */
 	for (i = 0; i < st_ptr->stock_num; i++)
 	{
-		object_type *o_ptr;
+		/* Chance of putting items up for sale */
+		if (rand_int(10) == 0)
+		{
+			object_type *o_ptr;
 
-		/* Get the item */
-		o_ptr = &st_ptr->stock[i];
+			/* Get the item */
+			o_ptr = &st_ptr->stock[i];
 
-		/* Hack -- Sell all old items for "half price" */
-		o_ptr->discount = 50;
+			/* Hack -- Sell all old items for "half price" */
+			o_ptr->discount = 50;
 
-		/* Hack -- Items are no longer "fixed price" */
-		o_ptr->ident &= ~ID_FIXED;
+			/* Hack -- Items are no longer "fixed price" */
+			o_ptr->ident &= ~ID_FIXED;
 
-		/* Mega-Hack -- Note that the item is "on sale" */
-		o_ptr->note = quark_add("on sale");
+			/* Mega-Hack -- Note that the item is "on sale" */
+			o_ptr->note = quark_add("on sale");
+		}
 	}
 }
 

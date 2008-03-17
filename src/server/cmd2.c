@@ -961,7 +961,10 @@ static bool twall(int Ind, int y, int x)
 	if (cave_floor_bold(Depth, y, x)) return (FALSE);
 
 	/* Remove the feature */
-	c_ptr->feat = FEAT_FLOOR;
+	if (Depth > 0)
+		c_ptr->feat = FEAT_FLOOR;
+	else
+		c_ptr->feat = FEAT_DIRT;
 
 	/* Forget the "field mark" */
 	*w_ptr &= ~CAVE_MARK;
@@ -2662,14 +2665,14 @@ void do_cmd_throw(int Ind, int dir, int item)
 		msg_print(Ind, "The item's inscription prevents it");
 		return;
 	};
-#if 0
+
 	/* Never throw artifacts */
 	if (artifact_p(o_ptr))
 	{
-		msg_print(Ind, "This item is too special to throw away");
+		msg_print(Ind, "You can not throw this!");
 		return;	
 	}	
-#endif
+
 	/* Create a "local missile object" */
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
