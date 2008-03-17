@@ -372,7 +372,7 @@
 #define STORE_TURNOVER	9		/* Normal shop turnover, per day */
 #define STORE_MIN_KEEP	12		/* Min slots to "always" keep full */
 #define STORE_MAX_KEEP	36		/* Max slots to "always" keep full */
-#define STORE_SHUFFLE	25		/* 1/Chance (per day) of an owner changing */
+#define STORE_SHUFFLE	35		/* 1/Chance (per day) of an owner changing */
 #define STORE_TURNS	250		/* Number of turns between turnovers */
 
 
