@@ -961,7 +961,10 @@ static bool twall(int Ind, int y, int x)
 	if (cave_floor_bold(Depth, y, x)) return (FALSE);
 
 	/* Remove the feature */
-	c_ptr->feat = FEAT_FLOOR;
+	if (Depth > 0)
+		c_ptr->feat = FEAT_FLOOR;
+	else
+		c_ptr->feat = FEAT_DIRT;
 
 	/* Forget the "field mark" */
 	*w_ptr &= ~CAVE_MARK;

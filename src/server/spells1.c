@@ -1822,7 +1822,10 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				}
 
 				/* Destroy the wall */
-				c_ptr->feat = FEAT_DIRT;
+				if (Depth > 0)
+					c_ptr->feat = FEAT_FLOOR;
+				else
+					c_ptr->feat = FEAT_MUD;
 			}
 
 			/* Quartz / Magma with treasure */
@@ -1837,8 +1840,11 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				}
 
 				/* Destroy the wall */
-				c_ptr->feat = FEAT_DIRT;
-
+				if (Depth > 0)
+					c_ptr->feat = FEAT_FLOOR;
+				else
+					c_ptr->feat = FEAT_MUD;
+					
 				/* Place some gold */
 				place_gold(Depth, y, x);
 			}
@@ -1854,7 +1860,10 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				}
 
 				/* Destroy the wall */
-				c_ptr->feat = FEAT_DIRT;
+				if (Depth > 0)
+					c_ptr->feat = FEAT_FLOOR;
+				else
+					c_ptr->feat = FEAT_MUD;
 			}
 
 			/* Rubble */
@@ -1868,7 +1877,10 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				}
 
 				/* Destroy the rubble */
-				c_ptr->feat = FEAT_DIRT;
+				if (Depth > 0)
+					c_ptr->feat = FEAT_FLOOR;
+				else
+					c_ptr->feat = FEAT_MUD;
 
 				/* Hack -- place an object */
 				if (rand_int(100) < 10)
@@ -1907,7 +1919,10 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				}
 
 				/* Destroy the feature */
-				c_ptr->feat = FEAT_DIRT;
+				if (Depth > 0)
+					c_ptr->feat = FEAT_FLOOR;
+				else
+					c_ptr->feat = FEAT_DIRT;
 			}
 
 			/* Forget the wall */
