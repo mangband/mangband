@@ -2662,14 +2662,14 @@ void do_cmd_throw(int Ind, int dir, int item)
 		msg_print(Ind, "The item's inscription prevents it");
 		return;
 	};
-#if 0
+
 	/* Never throw artifacts */
 	if (artifact_p(o_ptr))
 	{
-		msg_print(Ind, "This item is too special to throw away");
+		msg_print(Ind, "You can not throw this!");
 		return;	
 	}	
-#endif
+
 	/* Create a "local missile object" */
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
