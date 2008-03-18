@@ -236,7 +236,7 @@
  * that people can hit each other to do damage, and spells will now
  * harm other players when they hit.
  */
-#define PLAYER_INTERACTION
+/* #define PLAYER_INTERACTION */
 
 
 /*
