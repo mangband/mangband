@@ -3973,9 +3973,6 @@ bool poly_monster(int Ind, int dir)
 bool clone_monster(int Ind, int dir)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
-	player_type *p_ptr = Players[Ind];
-	if(p_ptr->lev > 10) return 0;
-
 	return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
 }
 

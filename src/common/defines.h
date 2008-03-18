@@ -2528,26 +2528,6 @@ that keeps many algorithms happy.
 #define object_tried_p(IND, T) \
     (Players[IND]->obj_tried[(T)->k_idx])
 
-
-/*
- * Determine if a given inventory item is "known"
- * Test One -- Check for special "known" tag
- * Test Two -- Check for "Easy Know" + "Aware"
- */
-#if 0
-#define object_known_p(IND, T) \
-    (((T)->ident & ID_KNOWN) || \
-     (k_info[(T)->k_idx].aware && Players[IND]->obj_aware[(T)->k_idx]))
-#endif
-
-#if 0
-/* PW-hacked version: uses hardcoded values for easy_know + makes sure it's not an artifact */ 
-#define object_known_p(IND, T) \
-	(((T)->ident & ID_KNOWN) || \
-		(easy_know_p(T) && (T)->name3 == 0 && \
-		Players[IND]->obj_aware[(T)->k_idx]))
-#endif
-
 /*
  * Determine if a given inventory item is "known"
  * Test One -- Check for special "known" tag

@@ -714,7 +714,6 @@ static void player_outfit(int Ind)
  *
  * Having an item makes the player "aware" of its purpose.
  */
-#if 1
 static void player_outfit(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -942,7 +941,7 @@ static void player_outfit(int Ind)
 	}
 	
 }
-#endif
+
 static void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];

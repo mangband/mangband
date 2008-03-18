@@ -102,7 +102,7 @@ static void console_whois(char *name)
 				
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
-		Packet_printf(&console_buf, "%s",format("%s resurected %d times.\n", p_ptr->lives));
+		Packet_printf(&console_buf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
 	if ( p_ptr->max_dlv == 0 )
 		Packet_printf(&console_buf, "%s",format("Has never left the town!\n"));
 	else
