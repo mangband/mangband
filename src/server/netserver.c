@@ -1658,7 +1658,9 @@ static int Handle_login(int ind)
 	return 0;
 }
 
-/* Actually execute commands from the client command queue */
+/* Actually execute commands from the client command queue 
+ * (return TRUE incase there was an error)
+ */
 int process_pending_commands(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -1717,7 +1719,7 @@ int process_pending_commands(int ind)
 			connp->start = turn;
 		}
 		if (result == -1)
-			return FALSE;
+			return TRUE;
 
 		// We didn't have enough energy to execute an important command.
 		if (result == 0) 
@@ -5029,7 +5031,7 @@ static int Receive_drop_gold(int ind)
 	}
 	else if (player)
 	{
-		Packet_printf(&connp->q, "%c%ld", &ch, &amt);
+		Packet_printf(&connp->q, "%c%ld", ch, amt);
 		return 0;
 	}
 
