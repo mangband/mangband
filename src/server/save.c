@@ -13,8 +13,6 @@
 
 static FILE	*file_handle;		/* Current save "file" */
 
-static byte	xor_byte;	/* Simple encryption */
-
 static u32b	v_stamp = 0L;	/* A simple "checksum" on the actual values */
 static u32b	x_stamp = 0L;	/* A simple "checksum" on the encoded bytes */
 
@@ -996,10 +994,6 @@ bool load_player(int Ind)
 
 	byte	vvv[4];
 
-#ifdef VERIFY_TIMESTAMP
-	struct stat	statbuf;
-#endif
-
 	cptr	what = "generic";
 
 
@@ -1091,11 +1085,6 @@ bool load_player(int Ind)
 	if (!err)
 	{
 
-#ifdef VERIFY_TIMESTAMP
-		/* Get the timestamp */
-		(void)fstat(fd, &statbuf);
-#endif
-
 		/* Read the first four bytes */
 		if (fd_read(fd, (char*)(vvv), 4)) err = -1;
 
@@ -1109,26 +1098,8 @@ bool load_player(int Ind)
 	/* Process file */
 	if (!err)
 	{
-		/* Extract version */
-		sf_major = 1; /* [grk] FIXME */
-		sf_minor = 0;
-		sf_patch = 0;
-		sf_extra = 0;
-
-		/* Parse "new" savefiles */
-		/* Parse "MAngband" savefiles */
-		if (sf_major == 1)
-		{
-			/* Attempt to load */
-			err = rd_savefile_new(Ind);
-		}
-
-		/* Parse "future" savefiles */
-		else
-		{
-			/* Error XXX XXX XXX */
-			err = -1;
-		}
+		/* Attempt to load */
+		err = rd_savefile_new(Ind);
 
 		/* Message (below) */
 		if (err) what = "Cannot parse savefile";
@@ -1145,37 +1116,9 @@ bool load_player(int Ind)
 		if (err) what = "Broken savefile";
 	}
 
-#ifdef VERIFY_TIMESTAMP
-	/* Verify timestamp */
-	if (!err && !arg_wizard)
-	{
-		/* Hack -- Verify the timestamp */
-		if (sf_when > (statbuf.st_ctime + 100) ||
-		    sf_when < (statbuf.st_ctime - 100))
-		{
-			/* Message */
-			what = "Invalid timestamp";
-
-			/* Oops */
-			err = -1;
-		}
-	}
-#endif
-
-
 	/* Okay */
 	if (!err)
 	{
-		/* Give a conversion warning */
-		if ((version_major != sf_major) ||
-		    (version_minor != sf_minor) ||
-		    (version_patch != sf_patch))
-		{
-			/* Message */
-			printf("Converted a %d.%d.%d savefile.\n",
-			           sf_major, sf_minor, sf_patch);
-		}
-
 		/* Player is dead */
 		if (p_ptr->death)
 		{
@@ -1238,8 +1181,7 @@ bool load_player(int Ind)
 
 
 	/* Message */
-	Destroy_connection(p_ptr->conn, format("Error (%s) reading %d.%d.%d savefile.",
-	           what, sf_major, sf_minor, sf_patch));
+	Destroy_connection(p_ptr->conn, format("Error (%s) reading savefile.",what));
 
 	/* Oops */
 	return (FALSE);
@@ -1528,26 +1470,8 @@ bool load_server_info(void)
         /* Process file */
         if (!err)
         {
-                /* Extract version */
-                /* [grk] FIXME */
-                sf_major = 1;
-                sf_minor = 0;
-                sf_patch = 0;
-                sf_extra = 0;
-
-                /* Parse "MAngband" savefiles */
-                if (sf_major == 1)
-                {
-                        /* Attempt to load */
-                        err = rd_server_savefile();
-                }
-
-                /* Parse "future" savefiles */
-                else
-                {
-                        /* Error XXX XXX XXX */
-                        err = -1;
-                }
+                /* Attempt to load */
+                err = rd_server_savefile();
 
                 /* Message (below) */
                 if (err) what = "Cannot parse savefile";
@@ -1556,16 +1480,6 @@ bool load_server_info(void)
         /* Okay */
         if (!err)
         {
-                /* Give a conversion warning */
-                if ((version_major != sf_major) ||
-                    (version_minor != sf_minor) ||
-                    (version_patch != sf_patch))
-                {
-                        /* Message */
-                        printf("Converted a %d.%d.%d savefile.\n",
-                                   sf_major, sf_minor, sf_patch);
-                }
-
                 /* The server state was loaded */
                 server_state_loaded = TRUE;
 
@@ -1574,7 +1488,7 @@ bool load_server_info(void)
         }
 
 	/* Message */
-	s_printf("Error (%s) reading a %d.%d.%d server savefile.", what, sf_major, sf_minor, sf_patch);
+	s_printf("Error (%s) reading server savefile.", what);
 
 	return (FALSE);
 }

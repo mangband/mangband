@@ -58,10 +58,6 @@ static FILE *file_handle;
 /* Line counter */
 static int line_counter;
 
-/*
- * Hack -- old "encryption" byte
- */
-static byte	xor_byte;
 
 /*
  * Hack -- simple "checksum" on the actual values
@@ -318,29 +314,6 @@ bool section_exists(char* name)
 	fseek(file_handle,fpos,SEEK_SET);
 	return(matched);
 }
-
-/*
- * This function determines if the version of the savefile
- * currently being read is older than version "x.y.z".
- */
-static bool older_than(byte x, byte y, byte z)
-{
-	/* Much older, or much more recent */
-	if (sf_major < x) return (TRUE);
-	if (sf_major > x) return (FALSE);
-
-	/* Distinctly older, or distinctly more recent */
-	if (sf_minor < y) return (TRUE);
-	if (sf_minor > y) return (FALSE);
-
-	/* Barely older, or barely more recent */
-	if (sf_patch < z) return (TRUE);
-	if (sf_patch > z) return (FALSE);
-
-	/* Identical versions */
-	return (FALSE);
-}
-
 
 /*
  * Show information on the screen, one line at a time.
@@ -1410,8 +1383,6 @@ static errr rd_cave_memory(int Ind)
 /*
  * Actually read the savefile
  *
- * Angband 2.8.0 will completely replace this code, see "save.c",
- * though this code will be kept to read pre-2.8.0 savefiles.
  */
 static errr rd_savefile_new_aux(int Ind)
 {
@@ -1421,19 +1392,6 @@ static errr rd_savefile_new_aux(int Ind)
 
 	u16b tmp16u;
 	u32b tmp32u;
-
-
-#ifdef VERIFY_CHECKSUMS
-	u32b n_x_check, n_v_check;
-	u32b o_x_check, o_v_check;
-#endif
-
-
-	/* Mention the savefile version */
-	/*note(format("Loading a %d.%d.%d savefile...",
-	            sf_major, sf_minor, sf_patch));*/
-
-
 
 	start_section_read("mangband_player_save");
 	start_section_read("version");
@@ -1654,9 +1612,6 @@ errr rd_server_savefile()
 	/* Paranoia */
 	if (!file_handle) return (-1);
 
-        /* Hack -- decrypt */
-        xor_byte = sf_extra;
-
         /* Clear the checksums */
         v_check = 0L;
         x_check = 0L;
@@ -1772,9 +1727,7 @@ errr rd_server_savefile()
 		}
 		end_section_read("monsters");
 
-	/* Read object info if new enough */
-	if (!older_than(0,4,0))
-	{
+		/* Read object info */
 		start_section_read("objects");
 		tmp16u = read_int("max_objects");
 
@@ -1794,11 +1747,8 @@ errr rd_server_savefile()
 		/* Set the maximum object number */
 		o_max = tmp16u;
 		end_section_read("objects");
-	}
 
-	/* Read holding info if new enougth */
-	if (!older_than(1,0,0))
-	{
+		/* Read holding info */
 		/* Reacquire objects */
 		for (i = 1; i < o_max; ++i)
 		{
@@ -1827,11 +1777,8 @@ errr rd_server_savefile()
 			/* Link the monster to the object */
 			m_ptr->hold_o_idx = i;
 		}
-	}
 	
-	/* Read house info if new enough */
-	if (!older_than(0,4,0))
-	{
+		/* Read house info */
 		start_section_read("houses");
 		tmp16u = read_int("num_houses");
 
@@ -1849,11 +1796,8 @@ errr rd_server_savefile()
 		}
 		num_houses = tmp16u;
 		end_section_read("houses");
-	}
 
-	/* Read wilderness info if new enough */
-	if (!older_than(0,5,5))
-	{
+		/* Read wilderness info */
 		start_section_read("wilderness");
 		/* read how many wilderness levels */
 		tmp32u = read_int("max_wild");
@@ -1869,11 +1813,8 @@ errr rd_server_savefile()
 			rd_wild(i);
 		}	
 		end_section_read("wilderness");
-	}
 
-	/* Read the player name database if new enough */
-	if (!older_than(0,4,1))
-	{
+		/* Read the player name database  */
 		start_section_read("player_names");
 
 		tmp32u = read_int("num_players");
@@ -1893,12 +1834,11 @@ errr rd_server_savefile()
 			end_section_read("player");
 		}
 		end_section_read("player_names");
-	}
 
 	seed_flavor = read_uint("seed_flavor");
 	seed_town = read_uint("seed_town");
 
-		player_id = read_int("player_id");
+	player_id = read_int("player_id");
 
 	turn = read_int("turn");
 
