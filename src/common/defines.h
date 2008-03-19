@@ -418,7 +418,10 @@
 #define MAX_SIGHT	20	/* Maximum view distance */
 #define MAX_RANGE	18	/* Maximum range (spells, etc) */
 
-
+/*
+ * Maximum number of picked up/stolen objects a monster can carry
+ */
+#define MAX_MONSTER_BAG 25 /* Undef to unlimit */
 
 /*
  * There is a 1/160 chance per round of creating a new monster

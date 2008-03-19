@@ -929,6 +929,45 @@ void lore_do_probe(int m_idx)
 }
 
 /*
+ * See if a monster can carry an object (it will pick up either way)
+ */
+bool monster_can_carry(int m_idx)
+{
+	int total_number = 0;
+	s16b this_o_idx, next_o_idx = 0;
+
+	monster_type	*m_ptr = &m_list[m_idx];
+	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	
+	/* Breeders and Townies can't keep */
+	if ((m_ptr->dun_depth < 1) || (r_ptr->flags2 & RF2_MULTIPLY))
+		return FALSE;
+		
+#if !defined(MAX_MONSTER_BAG)
+ 	return TRUE;
+#else	
+	/* Scan objects already being held for combination */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		/* Get the next object */
+		next_o_idx = o_list[this_o_idx].next_o_idx;
+	
+		/* Count it */		
+		total_number++;
+	}
+
+	/* Chance-based responce. The closer monster to his limit, the less the chance is.
+	 *	If he reached the limit, he will not pick up 
+	 *	XXX XXX XXX -- double chance && strict limit 		
+	 */
+	if ((rand_int(MAX_MONSTER_BAG) * 2 > total_number) && (total_number < MAX_MONSTER_BAG))
+		return TRUE;
+	
+	return FALSE;
+#endif 
+}
+
+/*
  * Make a monster carry an object
  */
 s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)

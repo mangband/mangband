@@ -3110,7 +3110,7 @@ static void process_monster(int Ind, int m_idx)
 			    ((r_ptr->flags2 & RF2_TAKE_ITEM) ||
 			     (r_ptr->flags2 & RF2_KILL_ITEM)))
 			{
-                u32b f1, f2, f3, f4;
+				u32b f1, f2, f3, f4;
 
 				u32b flg3 = 0L;
 
@@ -3177,17 +3177,20 @@ static void process_monster(int Ind, int m_idx)
 						msg_format(Ind, "%^s picks up %s.", m_name, o_name);
 					}
 
-					/* Prepare local object */
-					i_ptr = &object_type_body;
-					
-					/* Obtain local object */
-					COPY(i_ptr, o_ptr, object_type);
-
+					if	(monster_can_carry(m_idx))
+					{
+						/* Prepare local object */
+						i_ptr = &object_type_body;
+						
+						/* Obtain local object */
+						COPY(i_ptr, o_ptr, object_type);
+	
+						/* Carry the object */
+						(void)monster_carry(Ind, m_idx, i_ptr);
+					}
+										
 					/* Delete the object */
 					delete_object(Depth, ny, nx);
-									
-					/* Carry the object */
-					(void)monster_carry(Ind, m_idx, i_ptr);
 				}
 
 				/* Destroy the item */
