@@ -1218,6 +1218,16 @@ errr file_character_server(int Ind, cptr name)
 		p_ptr->max_dlv,
 		p_ptr->died_from_list);
 
+	/* Leave it at that for characters lower than level 20 */
+	if( p_ptr->lev < 20 )
+	{
+		/* Close dump file */
+		my_fclose(fff);
+
+		/* Success */
+		return (0);	
+	}
+
 	/* Begin dump */
     if (cfg_ironman)
     	fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
