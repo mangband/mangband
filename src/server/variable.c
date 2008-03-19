@@ -40,15 +40,6 @@ byte version_extra = VERSION_EXTRA;
 
 
 /*
- * Hack -- Savefile version
- */
-byte sf_major;			/* Savefile's "version_major" */
-byte sf_minor;			/* Savefile's "version_minor" */
-byte sf_patch;			/* Savefile's "version_patch" */
-byte sf_extra;			/* Savefile's "version_extra" */
-
-
-/*
  * Hack -- Savefile information
  */
 u32b sf_xtra;			/* Operating system info */

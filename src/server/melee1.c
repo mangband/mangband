@@ -621,7 +621,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					{
 						/* Item copy */
  						object_type *i_ptr; 
-                  object_type object_type_body;					
+						object_type object_type_body;					
 					
 						/* Pick an item */
 						i = rand_int(INVEN_PACK);
@@ -642,19 +642,22 @@ bool make_attack_normal(int Ind, int m_idx)
 						msg_format(Ind, "%sour %s (%c) was stolen!",
 						           ((o_ptr->number > 1) ? "One of y" : "Y"),
 						           o_name, index_to_label(i));
-
-						/* Get local object */ 
-						i_ptr = &object_type_body; 
-
-						/* Obtain local object */ 
-                  COPY(i_ptr, o_ptr, object_type); 
-
-						/* Modify number */ 
-						i_ptr->number = 1; 
-
-						/* Carry the object */ 
-                  monster_carry(Ind, m_idx, i_ptr); 
-
+	
+						if	(monster_can_carry(m_idx))
+						{
+							/* Get local object */ 
+							i_ptr = &object_type_body; 
+	
+							/* Obtain local object */ 
+							COPY(i_ptr, o_ptr, object_type); 
+	
+							/* Modify number */ 
+							i_ptr->number = 1; 
+	
+							/* Carry the object */ 
+							monster_carry(Ind, m_idx, i_ptr); 
+						}
+						
 						/* Steal the items */
 						inven_item_increase(Ind, i, -1);
 						inven_item_optimize(Ind, i);

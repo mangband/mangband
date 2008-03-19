@@ -16,6 +16,9 @@
 
 #ifdef HANDLE_SIGNALS
 #include <signal.h>
+
+volatile sig_atomic_t signalbusy = 0;
+
 #endif
 
 
@@ -1217,6 +1220,16 @@ errr file_character_server(int Ind, cptr name)
 		p_ptr->max_plv,
 		p_ptr->max_dlv,
 		p_ptr->died_from_list);
+
+	/* Leave it at that for characters lower than level 20 */
+	if( p_ptr->lev < 20 )
+	{
+		/* Close dump file */
+		my_fclose(fff);
+
+		/* Success */
+		return (0);	
+	}
 
 	/* Begin dump */
     if (cfg_ironman)
@@ -3110,12 +3123,12 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
  *
  * Note that this function would not be needed at all if there were no bugs.
  */
-void exit_game_panic(void)
+void exit_game_panic()
 {
 	int i = 1;
 
-	/* If nothing important has happened, just quit */
-	if (!server_generated || server_saved) quit("panic");
+	/* If nothing important has happened, just return */
+	if (!server_generated || server_saved) return;
 
 	/* Mega-Hack -- see "msg_print()" */
 	msg_flag = FALSE;
@@ -3178,17 +3191,11 @@ void exit_game_panic(void)
 		if (!players_on_depth[i]) wipe_o_list(i);
 	}
 
-	if (!save_server_info()) quit("server panic info save failed!");
+	if (!save_server_info()) fprintf(stderr,"server panic info save failed!\n");
 
-
-	/* Dump a nice core - Chris */
-#if defined(HANDLE_SIGNALS) && !defined(WINDOWS)
-	signal(11, 0);
-    	kill(getpid(), 11);
-#endif
-	
 	/* Successful panic save of server info */
-	quit("server panic info save succeeded!");
+    fprintf(stderr,"server panic info save succeeded!\n");
+
 }
 
 /*
@@ -3228,7 +3235,7 @@ LONG WINAPI myUnhandledExceptionFilter(
 	}
 
 	/* Save everything and quit the game */
-	exit_game_panic();	 
+	exit_game_panic();
 
 	/* We don't expect to ever get here... but for what it's worth... */
 	return(EXCEPTION_EXECUTE_HANDLER); 
@@ -3334,6 +3341,7 @@ static void handle_signal_simple(int sig)
 
 		/* Save everything and quit the game */
 		exit_game_panic();
+		quit("quit");
 	}
 
 	/* Give warning (after 4) */
@@ -3373,16 +3381,23 @@ static void handle_signal_simple(int sig)
  */
 static void handle_signal_abort(int sig)
 {
-	/* Disable handler */
-	(void)signal(sig, SIG_IGN);
+	/* We are *not* reentrant */
+	if (signalbusy) raise(sig);
+	signalbusy = 1;
 
+    fprintf(stderr,"Unexpected signal, panic saving.\n");
 
 	/* Nothing to save, just quit */
 	if (!server_generated || server_saved) quit(NULL);
 
-	/* Save everybody and quit */
-    fprintf(stderr,"unexpected Signal, aborting.\n");
-	exit_game_panic();
+	/* Save everybody */
+    exit_game_panic();
+
+	/* Enable default handler */
+	(void)signal(sig, SIG_DFL);
+
+	/* Reraise */
+	raise(sig);
 }
 
 
