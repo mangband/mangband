@@ -746,8 +746,9 @@ extern void Handle_direction(int Ind, int dir);
 /* object2.c */
 extern void flavor_init(void);
 extern void reset_visuals(void);
-extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
-extern void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4);
+extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
+extern void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
+static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
 extern void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern bool identify_fully_aux(int Ind, object_type *o_ptr);

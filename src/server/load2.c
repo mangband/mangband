@@ -514,7 +514,7 @@ static void rd_item(object_type *o_ptr)
 
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 
 	/* Paranoia */
