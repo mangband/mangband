@@ -1376,6 +1376,7 @@ struct player_type
 	s16b current_sell_amt;
 	int current_sell_price;
 
+	int current_house; /* Which house is he pointing */
 	int store_num;		/* What store this guy is in */
 	int player_store_num;		/* What player store this guy is in */
 

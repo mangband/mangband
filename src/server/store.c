@@ -1411,6 +1411,13 @@ void store_purchase(int Ind, int item, int amt)
 		msg_print(Ind, "I am currently out of stock.");
 		return;
 	}
+	
+	/* Player-owned && Is his? */
+	if (st == 8 && house_owned_by(Ind, p_ptr->player_store_num))
+	{
+		msg_print(Ind, "You cannot buy from yourself.");
+		return;
+	} 
 
 	/* Fill o_ptr with correct item */
 	if (!get_store_item(Ind, item, o_ptr)) 
