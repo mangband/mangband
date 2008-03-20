@@ -2020,6 +2020,7 @@ void get_name(int Ind)
  */
 void do_cmd_suicide(int Ind)
 {
+	int i;
 	player_type *p_ptr = Players[Ind];
 
 	/* Mark as suicide */
@@ -2036,6 +2037,15 @@ void do_cmd_suicide(int Ind)
 	p_ptr->ghost = FALSE;
 
 	if (p_ptr->total_winner) kingly(Ind);
+
+	/* Disown any houses he owns */
+	for(i=0; i<num_houses;i++)
+	{ 
+		if(house_owned_by(Ind,i))
+		{ 
+			disown_house(i);
+		}
+	}
 
 	/* Kill him */
 	player_death(Ind);
