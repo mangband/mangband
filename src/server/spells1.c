@@ -3595,11 +3595,6 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Player cannot hurt himself */
 	if (0 - who == Ind) return (FALSE);
 
-#ifndef PLAYER_INTERACTION
-	/* Mega-Hack -- Players cannot hurt other players */
-	if (who <= 0) return (FALSE);
-#endif
-
 	/* Extract radius */
 	div = r + 1;
 
@@ -3637,14 +3632,10 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		
         if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
 		{
-			/* If this was intentional, make target hostile */
-			if (check_hostile(0 - who, Ind))
+			/* Only allowed if both players are hostile */
+			if (!check_hostile(Ind, 0 - who) || !check_hostile(0 - who, Ind))
 			{
-				/* Make target hostile if not already */
-				if (!check_hostile(Ind, 0 - who))
-				{
-					add_hostility(Ind, killer);
-				}
+				return(FALSE);
 			}
 			
 			/* XXX Reduce damage by 1/3 */

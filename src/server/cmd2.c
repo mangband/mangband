@@ -2412,12 +2412,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 			/* Use this player */
 			p_ptr = Players[i];
 
-#if 0
-			/* If he's not playing, skip him */
-			if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* If he's not here, skip him */
 			if (p_ptr->dun_depth != Depth)
 				continue;
@@ -2457,7 +2451,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 		/* Player here, hit him */
 		if (cave[Depth][y][x].m_idx < 0)
 		{
-#ifdef PLAYER_INTERACTION
 			cave_type *c_ptr = &cave[Depth][y][x];
 
 			q_ptr = Players[0 - c_ptr->m_idx];
@@ -2479,6 +2472,12 @@ void do_cmd_fire(int Ind, int dir, int item)
 				/* Get the name */
 				strcpy(pvp_name, q_ptr->name);
 
+				/* Don't allow if players aren't hostile */
+				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
+				{
+					return;
+				}
+
 				/* Handle unseen player */
 				if (!visible)
 				{
@@ -2496,16 +2495,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 
 					/* Track this player's health */
 					health_track(Ind, c_ptr->m_idx);
-				}
-
-				/* If this was intentional, make target hostile */
-				if (check_hostile(Ind, 0 - c_ptr->m_idx))
-				{
-					/* Make target hostile if not already */
-					if (!check_hostile(0 - c_ptr->m_idx, Ind))
-					{
-						add_hostility(0 - c_ptr->m_idx, p_ptr->name);
-					}
 				}
 
 				/* Apply special damage XXX XXX XXX */
@@ -2526,11 +2515,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 			}
 			
 			} /* end hack */
-#else
-
-			/* Stop looking */
-			break;
-#endif
 		}
 
 		/* Monster here, Try to hit it */
@@ -2812,12 +2796,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 			/* Use this player */
 			p_ptr = Players[i];
 
-#if 0
-			/* If he's not playing, skip him */
-			if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* If he's not here, skip him */
 			if (p_ptr->dun_depth != Depth)
 				continue;
@@ -2858,7 +2836,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 		/* Player here, try to hit him */
 		if (cave[Depth][y][x].m_idx < 0)
 		{
-#ifdef PLAYER_INTERACTION
 			cave_type *c_ptr = &cave[Depth][y][x];
 
 			q_ptr = Players[0 - c_ptr->m_idx];
@@ -2874,8 +2851,14 @@ void do_cmd_throw(int Ind, int dir, int item)
 			{
 				char pvp_name[80];
 
-				/* Get his name */
+				/* Get the name */
 				strcpy(pvp_name, q_ptr->name);
+
+				/* Don't allow if players aren't hostile */
+				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
+				{
+					return;
+				}
 
 				/* Handle unseen player */
 				if (!visible)
@@ -2912,11 +2895,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 				/* Stop looking */
 				break;
 			}
-#else
-
-			/* Stop looking */
-			break;
-#endif
 		}
 
 		/* Monster here, Try to hit it */
