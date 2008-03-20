@@ -671,13 +671,13 @@ static void prt_player_flag_info(int Ind)
 
 		/* Header */
 		//c_put_str(TERM_WHITE, "abcdefghijkl@", row++, col+6);
-
+		
 		/* Eight rows */
 		for (y = 0; y < 8; y++)
 		{
 			/* Extract flag */
 			flag = (head << y);
-	
+
 
 			/* Extract name */
 			//name = display_player_flag_names[x][y];
@@ -695,13 +695,12 @@ static void prt_player_flag_info(int Ind)
 				/* Default Value */
 				attr = TERM_SLATE;
 				c = '.';
-				
+
 				/* Clear flags */
 				f[1] = f[2] = f[3] = 0L;
 
 				/* Fill in Known flags */
 				object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3]);
-				//object_flags(o_ptr, &f[1], &f[2], &f[3], &f[4]);
 
 				/* Color columns by parity */
 				if (n % 2) attr = TERM_L_WHITE;
@@ -745,7 +744,7 @@ static void prt_player_flag_info(int Ind)
 			}
 
 			/* Clear */
-			f[1] = f[2] = f[3] = f[4] = 0L;
+			f[1] = f[2] = f[3] = 0L;
 
 			/* Player flags */
 			player_flags(Ind, &f[1], &f[2], &f[3]);
