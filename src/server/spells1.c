@@ -780,9 +780,9 @@ static bool hates_cold(object_type *o_ptr)
  */
 static int set_acid_destroy(object_type *o_ptr)
 {
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 	if (!hates_acid(o_ptr)) return (FALSE);
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 	if (f3 & TR3_IGNORE_ACID) return (FALSE);
 	return (TRUE);
 }
@@ -793,9 +793,9 @@ static int set_acid_destroy(object_type *o_ptr)
  */
 static int set_elec_destroy(object_type *o_ptr)
 {
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 	if (!hates_elec(o_ptr)) return (FALSE);
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 	if (f3 & TR3_IGNORE_ELEC) return (FALSE);
 	return (TRUE);
 }
@@ -806,9 +806,9 @@ static int set_elec_destroy(object_type *o_ptr)
  */
 static int set_fire_destroy(object_type *o_ptr)
 {
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 	if (!hates_fire(o_ptr)) return (FALSE);
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 	if (f3 & TR3_IGNORE_FIRE) return (FALSE);
 	return (TRUE);
 }
@@ -819,9 +819,9 @@ static int set_fire_destroy(object_type *o_ptr)
  */
 static int set_cold_destroy(object_type *o_ptr)
 {
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 	if (!hates_cold(o_ptr)) return (FALSE);
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 	if (f3 & TR3_IGNORE_COLD) return (FALSE);
 	return (TRUE);
 }
@@ -916,7 +916,7 @@ static int minus_ac(int Ind)
 
 	object_type		*o_ptr = NULL;
 
-    u32b		f1, f2, f3, f4;
+        u32b		f1, f2, f3;
 
 	char		o_name[80];
 
@@ -943,7 +943,7 @@ static int minus_ac(int Ind)
 	object_desc(Ind, o_name, o_ptr, FALSE, 0);
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+    object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Object resists */
 	if (f3 & TR3_IGNORE_ACID)
@@ -2096,7 +2096,7 @@ static bool project_i(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 	cptr	note_kill = NULL;
 
-    u32b	f1, f2, f3, f4;
+        u32b	f1, f2, f3;
 
 	char	o_name[80];
 
@@ -2122,7 +2122,7 @@ static bool project_i(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Get the "plural"-ness */
 	if (o_ptr->number > 1) plural = TRUE;

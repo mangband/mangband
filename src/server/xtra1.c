@@ -533,12 +533,12 @@ static void prt_player_sust_info(int Ind)
 
 	int i, row, col, stat;
 	object_type *o_ptr;
-	u32b f1, f2, f3, f4;
-	u32b ignore_f2, ignore_f3, ignore_f4;
+	u32b f1, f2, f3;
+	u32b ignore_f2, ignore_f3;
 	byte a;
 	char c;
 
-	ignore_f2 = ignore_f3 = ignore_f4 = 0L;
+	ignore_f2 = ignore_f3 = 0L;
 
 	/* Row */
 	row = 3;
@@ -552,12 +552,12 @@ static void prt_player_sust_info(int Ind)
 		/* Get the object */
 		o_ptr = &p_ptr->inventory[i];
 		/* Clear flags */
-		f1 = f2 = f3 = f4 = 0L;
+		f1 = f2 = f3 = 0L;
 		/* Get the "known" flags */
-		object_flags_known(Ind, o_ptr, &f1, &f2, &f3, &f4);
+		object_flags_known(Ind, o_ptr, &f1, &f2, &f3);
 		/* Hack -- assume stat modifiers are known .. because they can be calculated */
 		//object_flags(o_ptr, &f1, &f2, &f3, &f4);
-		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3, &ignore_f4);
+		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3);
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
 		for (stat = 0; stat < 6; stat++)
 		{
@@ -646,7 +646,7 @@ static void prt_player_flag_info(int Ind)
 	//cptr name;
 
 
-	u32b f[5];
+	u32b f[4];
 	
 	byte attr = TERM_SLATE;
 	char c = '.';
@@ -697,10 +697,10 @@ static void prt_player_flag_info(int Ind)
 				c = '.';
 				
 				/* Clear flags */
-				f[1] = f[2] = f[3] = f[4] = 0L;
+				f[1] = f[2] = f[3] = 0L;
 
 				/* Fill in Known flags */
-				object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3], &f[4]);
+				object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3]);
 				//object_flags(o_ptr, &f[1], &f[2], &f[3], &f[4]);
 
 				/* Color columns by parity */
@@ -1600,7 +1600,7 @@ static void calc_mana(int Ind)
 	int		new_mana, levels, cur_wgt, max_wgt;
 
 	object_type	*o_ptr;
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 
 
 	/* Hack -- Must be literate */
@@ -1623,7 +1623,7 @@ static void calc_mana(int Ind)
     o_ptr = &p_ptr->inventory[INVEN_HANDS];
 
     /* Examine the gloves */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+    object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Only mages are affected */
 	if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
@@ -1947,7 +1947,7 @@ static void calc_bonuses(int Ind)
 	object_kind		*k_ptr;
 	ego_item_type 		*e_ptr;
 
-    u32b		f1, f2, f3, f4;
+        u32b		f1, f2, f3;
 
 
 	/* Save the old speed */
@@ -2158,7 +2158,7 @@ static void calc_bonuses(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the item flags */
-        object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 
 		/* Hack -- first add any "base bonuses" of the item.  A new
 		 * feature in MAngband 0.7.0 is that the magnitude of the

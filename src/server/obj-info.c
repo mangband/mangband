@@ -74,10 +74,10 @@ static cptr act_description[ACT_MAX] =
  */
 void describe_item_activation(const object_type *o_ptr)
 {
-	u32b f1, f2, f3, f4;
+	u32b f1, f2, f3;
 
 	/* Extract the flags */
-	object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Require activation ability */
 	if (!(f3 & TR3_ACTIVATE)) return;
@@ -693,13 +693,13 @@ static bool describe_activation(const object_type *o_ptr, u32b f3)
 
 bool object_info_out(const object_type *o_ptr)
 {
-	u32b f1, f2, f3, f4;
+	u32b f1, f2, f3;
 	bool something = FALSE;
 
-	f1 = f2 = f3 = f4 = 0;
+	f1 = f2 = f3 = 0;
 	/* Grab the object flags */
 	//object_info_out_flags(o_ptr, &f1, &f2, &f3);
-	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3, &f4);
+	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3);
 
 	/* Describe the object */
 	if (describe_stats(o_ptr, f1)) something = TRUE;

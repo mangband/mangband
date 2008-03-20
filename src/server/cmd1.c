@@ -181,10 +181,10 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Some "weapons" and "ammo" do extra damage */
 	switch (o_ptr->tval)
@@ -396,10 +396,10 @@ s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr)
 {
 	int mult = 1;
 
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Some "weapons" and "ammo" do extra damage */
 	switch (o_ptr->tval)

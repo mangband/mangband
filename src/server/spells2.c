@@ -404,7 +404,7 @@ static int remove_curse_aux(int Ind, int all)
 	/* Attempt to uncurse items being worn */
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
-        u32b f1, f2, f3, f4;
+	        u32b f1, f2, f3;
 
 		object_type *o_ptr = &p_ptr->inventory[i];
 
@@ -412,7 +412,7 @@ static int remove_curse_aux(int Ind, int all)
 		if (!cursed_p(o_ptr)) continue;
 
 		/* Extract the flags */
-        object_flags(o_ptr, &f1, &f2, &f3, &f4);
+    		object_flags(o_ptr, &f1, &f2, &f3);
 
 		/* Heavily Cursed Items need a special spell */
 		if (!all && (f3 & TR3_HEAVY_CURSE)) continue;
@@ -509,7 +509,7 @@ void self_knowledge(int Ind)
 
 	int		i = 0, k;
 
-    u32b	f1 = 0L, f2 = 0L, f3 = 0L, f4 = 0L;
+	u32b	f1 = 0L, f2 = 0L, f3 = 0L;
 
 	object_type	*o_ptr;
 
@@ -524,7 +524,7 @@ void self_knowledge(int Ind)
 	/* Acquire item flags from equipment */
 	for (k = INVEN_WIELD; k < INVEN_TOTAL; k++)
 	{
-        u32b t1, t2, t3, t4;
+	        u32b t1, t2, t3;
 
 		o_ptr = &p_ptr->inventory[k];
 
@@ -532,13 +532,12 @@ void self_knowledge(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the flags */
-        object_flags(o_ptr, &t1, &t2, &t3, &t4);
+	        object_flags(o_ptr, &t1, &t2, &t3);
 
 		/* Extract flags */
 		f1 |= t1;
 		f2 |= t2;
 		f3 |= t3;
-	f4 |= t4;
 	}
 
 
@@ -1805,7 +1804,7 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 
 	bool a = artifact_p(o_ptr);
 
-    u32b f1, f2, f3, f4;
+    u32b f1, f2, f3;
 
     /* Magic ammo are always +0 +0 */
     if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
@@ -1818,7 +1817,7 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 	return FALSE;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 
 
 	/* Large piles resist enchantment */
