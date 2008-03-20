@@ -1271,6 +1271,14 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 						sold += o_ptr->number;
 						/* Remove the item(s) and keep searching if required */
 						delete_object(houses[p_ptr->player_store_num].depth,y,x);
+						/* Remember this emtpy space because we can drop gold here */
+						if (!have_space)
+						{
+							spacex = x;
+							spacey = y;
+							spacedepth = houses[p_ptr->player_store_num].depth;
+							have_space = TRUE;
+						}
 					}
 					else if (o_ptr->number > number)
 					{
