@@ -253,6 +253,7 @@ extern void cmd_destroy(void);
 extern void cmd_inscribe(void);
 extern void cmd_uninscribe(void);
 extern void cmd_describe(void);
+extern void cmd_spike(void);
 extern void cmd_steal(void);
 extern void cmd_quaff(void);
 extern void cmd_read_scroll(void);

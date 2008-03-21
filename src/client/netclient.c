@@ -2792,6 +2792,18 @@ int Send_custom_command(byte i, int item, char dir, int value)
 	return 1;
 }
 
+int Send_spike(int dir)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_SPIKE, dir)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
 int Send_steal(int dir)
 {
 	int	n;

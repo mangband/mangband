@@ -136,11 +136,11 @@ static int Receive_rest(int ind);
 static int Receive_party(int ind);
 static int Receive_special_line(int ind);
 
+static int Receive_spike(int ind);
 static int Receive_steal(int ind);
 static int Receive_options(int ind);
 static int Receive_suicide(int ind);
 static int Receive_master(int ind);
-static int Receive_autophase(int ind);
 static int Receive_clear(int ind);
 static int Receive_custom_command(int ind);
 

@@ -211,12 +211,12 @@ static void Init_receive(void)
 	playing_receive[PKT_PARTY]		= Receive_party;
 	playing_receive[PKT_GHOST]		= Receive_ghost;
 
-	playing_receive[PKT_STEAL]		= Receive_steal;
+	playing_receive[PKT_SPIKE]		= Receive_spike;
 	playing_receive[PKT_OPTIONS]		= Receive_options;
 	playing_receive[PKT_SUICIDE]		= Receive_suicide;
 	playing_receive[PKT_MASTER]		= Receive_master;
 
-	playing_receive[PKT_SPIKE]		= Receive_steal;
+	playing_receive[PKT_STEAL]		= Receive_steal;
 	playing_receive[PKT_COMMAND]		= Receive_custom_command;
 	
 	playing_receive[PKT_CLEAR] = Receive_clear;
@@ -1618,7 +1618,7 @@ static int Handle_login(int ind)
 	}
 #ifdef COMMAND_OVERLOAD
 	/* Send custom commands */
-	Send_custom_commands(NumPlayers);
+//	Send_custom_commands(NumPlayers);
 #endif
 	/* Send party information */
 	Send_party(NumPlayers);
@@ -5120,8 +5120,7 @@ static int Receive_custom_command(int ind)
 	do_cmd_custom(player, i, item, dir, value);
 }
 
-
-static int Receive_steal(int ind)
+static int Receive_spike(int ind)
 {
 	connection_t *connp = &Conn[ind];
 	player_type *p_ptr;
@@ -5145,7 +5144,31 @@ static int Receive_steal(int ind)
 	
 	do_cmd_spike(player, dir);
 	
-#if 0
+	return 1;
+}
+
+static int Receive_steal(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	player_type *p_ptr;
+
+	char ch, dir;
+
+	int n, player;
+
+	if (connp->id != -1)
+	{
+		player = GetInd[connp->id];
+		p_ptr = Players[player];
+	}
+
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+	
 	if (!cfg_no_steal) {
 		if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
@@ -5161,7 +5184,7 @@ static int Receive_steal(int ind)
 	else 
 		/* handle the option to disable player/player stealing */
 		msg_print(player, "Your pathetic attempts at stealing fail.\n");
-#endif
+
 	return 1;
 }
 	
@@ -5601,59 +5624,4 @@ static int Receive_master(int ind)
 
 	return 2;
 }
-
-/* automatic phase command, will try to phase door
- * in the best way possobile.
- *
- * This function should probably be improved a lot, I am just
- * doing a basic version for now.
- */
-
-static int Receive_autophase(int Ind)
-{
-	player_type *p_ptr;
-	connection_t *connp = &Conn[Ind];
-	object_type *o_ptr;
-	int player, n;
-
-	if (connp->id != -1) player = GetInd[connp->id];
-		else player = 0;
-
-	/* a valid player was found, try to do the autophase */	
-	if (player)
-	{
-		p_ptr = Players[Ind];
-		/* first, check the inventory for phase scrolls */
-		/* check every item of his inventory */
-		for (n = 0; n < INVEN_PACK; n++)
-		{
-			o_ptr = &p_ptr->inventory[n];
-			if ((o_ptr->tval == TV_SCROLL) && (o_ptr->sval == SV_SCROLL_PHASE_DOOR))
-			{
-				/* found a phase scroll, read it! */
-				do_cmd_read_scroll(Ind, n);
-				return 1;
-			}
-		}
-
-		/* No scrolls, see if we can cast the phase door spell */
-		/* Check for magic book I */
-
-		for (n = 0; n < INVEN_PACK; n++)
-		{
-			o_ptr = &p_ptr->inventory[n];
-			/* if this is the mage book I */
-			if ((o_ptr->tval == TV_MAGIC_BOOK) && (o_ptr->sval == 0))
-			{
-				/* attempt to cast phase door */
-				do_cmd_cast(Ind, 0, 2);
-			}
-		}
-	}
-
-	/* Failure!  We are in trouble... */
-
-	return -1;
-}
-
 

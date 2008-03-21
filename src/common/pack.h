@@ -123,11 +123,11 @@
 #define PKT_REST		112
 #define PKT_GHOST		113
 #define PKT_SUICIDE		114
-#define PKT_STEAL		115
+#define PKT_SPIKE 		115
 #define PKT_OPTIONS		116
 #define PKT_TARGET_FRIENDLY	117
 #define PKT_MASTER		118 /* dungeon master commands */
-#define PKT_SPIKE		119 
+#define PKT_STEAL		 	119 
 
 /* Packet types 121-123 are more administrative stuff */
 #define PKT_FAILURE		121

@@ -1,24 +1,6 @@
 #include "angband.h"
 
-/* Handle all commands */
-
-void cmd_spike(void)
-{
-	int dir;
-
-	if (!c_get_spike()) 
-	{
-			/* Message */
-			c_msg_print("You have no spikes!");
-			return;
-	}
-
-	get_dir(&dir);
-
-	/* Send it */
-	Send_steal(dir);
-}
-
+/* Handle custom commands */
 void cmd_custom(byte i)
 {
 	if (i < 0 || i > custom_commands) return;
@@ -68,7 +50,7 @@ void cmd_custom(byte i)
 
 	Send_custom_command(i, item, dir, value);
 }
-
+/* Handle all commands */
 void process_command()
 {
 #ifdef COMMAND_OVERLOAD
@@ -271,8 +253,13 @@ void process_command()
 
 		case 'j':
 		{
-			//cmd_steal();
 			cmd_spike();
+			break;
+		}
+		
+		case 'J':
+		{
+			cmd_steal();
 			break;
 		}
 
@@ -943,6 +930,22 @@ void cmd_describe(void)
 	//	Send_inscribe(item, buf);
 }
 
+void cmd_spike(void)
+{
+	int dir;
+
+	if (!c_get_spike()) 
+	{
+			/* Message */
+			c_msg_print("You have no spikes!");
+			return;
+	}
+
+	get_dir(&dir);
+
+	/* Send it */
+	Send_spike(dir);
+}
 
 void cmd_steal(void)
 {
