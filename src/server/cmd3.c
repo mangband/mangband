@@ -137,7 +137,7 @@ static void inven_drop(int Ind, int item, int amt)
 	};
 
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < k_info[o_ptr->k_idx].level) )
+	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
