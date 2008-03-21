@@ -872,6 +872,152 @@ void reset_visuals(void)
 	}
 }
 
+/*
+ * Modes of object_flags_aux()
+ */
+#define OBJECT_FLAGS_RANDOM -2 /* Only known random flags -- XXX broken in mangband XXX unused in angband */
+#define OBJECT_FLAGS_FULL   -1 /* Full info */
+#define OBJECT_FLAGS_KNOWN  0 /* + Ind = Only flags known to the player */
+
+
+/*
+ * Obtain the "flags" for an item
+ */
+static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+{
+	object_kind *k_ptr;
+	int Ind = mode;
+	
+	if (mode != OBJECT_FLAGS_FULL)
+	{
+		/* Clear */
+		(*f1) = (*f2) = (*f3) = 0L;
+
+		/* Must be identified */
+		if (!object_known_p(Ind, o_ptr)) return;
+	}
+
+	if (mode != OBJECT_FLAGS_RANDOM)
+	{
+		k_ptr = &k_info[o_ptr->k_idx];
+
+		/* Base object */
+		(*f1) = k_ptr->flags1;
+		(*f2) = k_ptr->flags2;
+		(*f3) = k_ptr->flags3;
+
+		if (mode == OBJECT_FLAGS_FULL)
+		{
+			/* Artifact */
+			if (o_ptr->name1)
+			{
+				artifact_type *a_ptr = &a_info[o_ptr->name1];
+
+				(*f1) = a_ptr->flags1;
+				(*f2) = a_ptr->flags2;
+				(*f3) = a_ptr->flags3;
+			}
+		}
+
+		/* Ego-item */
+		if (o_ptr->name2)
+		{
+			ego_item_type *e_ptr = &e_info[o_ptr->name2];
+
+			(*f1) |= e_ptr->flags1;
+			(*f2) |= e_ptr->flags2;
+			(*f3) |= e_ptr->flags3;
+		}
+
+		if (mode == OBJECT_FLAGS_KNOWN)
+		{
+			/* Obvious artifact flags */
+			if (o_ptr->name1)
+			{
+				artifact_type *a_ptr = &a_info[o_ptr->name1];
+
+				/* Obvious flags (pval) */
+				(*f1) = (a_ptr->flags1 & (TR1_PVAL_MASK));
+
+				(*f3) = (a_ptr->flags3 & (TR3_IGNORE_MASK));
+			}
+		}
+	}
+
+	if (mode != OBJECT_FLAGS_FULL)
+	{
+		bool spoil = FALSE;
+
+#ifdef SPOIL_ARTIFACTS
+		/* Full knowledge for some artifacts */
+		if (artifact_p(o_ptr)) spoil = TRUE;
+#endif /* SPOIL_ARTIFACTS */
+
+#ifdef SPOIL_EGO_ITEMS
+		/* Full knowledge for some ego-items */
+		if (ego_item_p(o_ptr)) spoil = TRUE;
+#endif /* SPOIL_ARTIFACTS */
+
+		/* Need full knowledge or spoilers */
+		if (!spoil && !(o_ptr->ident & ID_MENTAL)) return;
+
+		/* Artifact */
+		if (o_ptr->name1)
+		{
+
+#if 0
+	if (o_ptr->name1 == ART_RANDART)
+	{
+		a_ptr = randart_make(o_ptr);
+	}
+	else
+	{
+#endif
+		
+		
+			artifact_type *a_ptr = &a_info[o_ptr->name1];
+
+			(*f1) = a_ptr->flags1;
+			(*f2) = a_ptr->flags2;
+			(*f3) = a_ptr->flags3;
+
+			if (mode == OBJECT_FLAGS_RANDOM)
+			{
+				/* Hack - remove 'ignore' flags */
+				(*f3) &= ~(TR3_IGNORE_MASK);
+			}
+		}
+
+		/* Full knowledge for *identified* objects */
+		if (!(o_ptr->ident & ID_MENTAL)) return;
+	}
+
+	/* Extra powers */
+	switch (o_ptr->xtra1)
+	{
+		case OBJECT_XTRA_TYPE_SUSTAIN:
+		{
+			/* OBJECT_XTRA_WHAT_SUSTAIN == 2 */
+			(*f2) |= (OBJECT_XTRA_BASE_SUSTAIN << o_ptr->xtra2);
+			break;
+		}
+
+		case OBJECT_XTRA_TYPE_RESIST:
+		{
+			/* OBJECT_XTRA_WHAT_RESIST == 2 */
+			(*f2) |= (OBJECT_XTRA_BASE_RESIST << o_ptr->xtra2);
+			break;
+		}
+
+		case OBJECT_XTRA_TYPE_POWER:
+		{
+			/* OBJECT_XTRA_WHAT_POWER == 3 */
+			(*f3) |= (OBJECT_XTRA_BASE_POWER << o_ptr->xtra2);
+			break;
+		}
+	}
+}
+
 
 
 
@@ -879,7 +1025,7 @@ void reset_visuals(void)
 /*
  * Obtain "flags" known to player
  */
-void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
+void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
 	bool aware, known;
 	
@@ -893,123 +1039,16 @@ void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f
 	/* See if 'un'aware OR 'un'known */
 	if (!known || (!aware && !known)) return;
 	
-	object_flags(o_ptr, f1, f2, f3, f4);
+	object_flags_aux(OBJECT_FLAGS_KNOWN + Ind, o_ptr, f1, f2, f3);	
 }
 
 /*
  * Obtain the "flags" for an item
  */
-void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3, u32b *f4)
+void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
-	object_kind *k_ptr = &k_info[o_ptr->k_idx];
-
-	/* Base object */
-	(*f1) = k_ptr->flags1;
-	(*f2) = k_ptr->flags2;
-	(*f3) = k_ptr->flags3;
-/*    (*f4) = k_ptr->flags4; */
-
-	/* Artifact */
-    if (artifact_p(o_ptr))
-	{
-        artifact_type *a_ptr;
-#if 0
-	if (o_ptr->name1 == ART_RANDART)
-	{
-		a_ptr = randart_make(o_ptr);
-	}
-	else
-	{
-#endif
-		a_ptr = &a_info[o_ptr->name1];
-#if 0
-	}
-#endif
-	if (a_ptr == NULL) return;
-
-		(*f1) = a_ptr->flags1;
-		(*f2) = a_ptr->flags2;
-		(*f3) = a_ptr->flags3;
-	(*f4) = a_ptr->flags4;
-	}
-
-	/* Ego-item */
-	if (o_ptr->name2)
-	{
-		ego_item_type *e_ptr = &e_info[o_ptr->name2];
-
-		(*f1) |= e_ptr->flags1;
-		(*f2) |= e_ptr->flags2;
-		(*f3) |= e_ptr->flags3;
-	(*f4) |= e_ptr->flags4;
-	}
-
-	/* Extra powers */
-	switch (o_ptr->xtra1)
-	{
-		case EGO_XTRA_SUSTAIN:
-		{
-			/* Choose a sustain */
-			switch (o_ptr->xtra2 % 6)
-			{
-				case 0: (*f2) |= TR2_SUST_STR; break;
-				case 1: (*f2) |= TR2_SUST_INT; break;
-				case 2: (*f2) |= TR2_SUST_WIS; break;
-				case 3: (*f2) |= TR2_SUST_DEX; break;
-				case 4: (*f2) |= TR2_SUST_CON; break;
-				case 5: (*f2) |= TR2_SUST_CHR; break;
-			}
-
-			break;
-		}
-
-		case EGO_XTRA_POWER:
-		{
-			/* Choose a power */
-            switch (o_ptr->xtra2 % 11)
-			{
-				case 0: (*f2) |= TR2_RES_BLIND; break;
-				case 1: (*f2) |= TR2_RES_CONFU; break;
-				case 2: (*f2) |= TR2_RES_SOUND; break;
-				case 3: (*f2) |= TR2_RES_SHARD; break;
-				case 4: (*f2) |= TR2_RES_NETHR; break;
-				case 5: (*f2) |= TR2_RES_NEXUS; break;
-				case 6: (*f2) |= TR2_RES_CHAOS; break;
-				case 7: (*f2) |= TR2_RES_DISEN; break;
-				case 8: (*f2) |= TR2_RES_POIS; break;
-				case 9: (*f2) |= TR2_RES_LITE; break; /* was missing... why??? */
-				case 10: (*f2) |= TR2_RES_DARK; break; /* was missing... why??? */
-			}
-
-			break;
-		}
-
-		case EGO_XTRA_ABILITY:
-		{
-			/* Choose an ability */
-            switch (o_ptr->xtra2 % 9)
-			{
-				case 0: (*f3) |= TR3_FEATHER; break;
-				case 1: (*f3) |= TR3_LITE; break;
-				case 2: (*f3) |= TR3_SEE_INVIS; break;
-            case 3: (*f3) |= TR3_TELEPATHY; break;
-				case 4: (*f3) |= TR3_SLOW_DIGEST; break;
-				case 5: (*f3) |= TR3_REGEN; break;
-				case 6: (*f3) |= TR3_FREE_ACT; break;
-				case 7: (*f3) |= TR3_HOLD_LIFE; break;
-				case 8: (*f2) |= TR2_RES_FEAR; break;
-			}
-
-			break;
-		}
-	}
+	object_flags_aux(OBJECT_FLAGS_FULL, o_ptr, f1, f2, f3);
 }
-
-
-
-
-
-
 
 /*
  * Print a char "c" into a string "t", as if by sprintf(t, "%c", c),
@@ -1201,13 +1240,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 
 	char		tmp_val[160];
 
-    u32b		f1, f2, f3, f4;
+    u32b		f1, f2, f3;
 
 	object_kind		*k_ptr = &k_info[o_ptr->k_idx];
 
 
 	/* Extract some flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+    object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Assume aware and known if not a valid player */
 	if (Ind)
@@ -2032,10 +2071,10 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
  */
 cptr item_activation(object_type *o_ptr)
 {
-    u32b f1, f2, f3, f4;
+    u32b f1, f2, f3;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+    object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Require activation ability */
 	if (!(f3 & TR3_ACTIVATE)) return (NULL);

@@ -181,10 +181,10 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+        object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Some "weapons" and "ammo" do extra damage */
 	switch (o_ptr->tval)
@@ -396,10 +396,10 @@ s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr)
 {
 	int mult = 1;
 
-    u32b f1, f2, f3, f4;
+        u32b f1, f2, f3;
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3, &f4);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Some "weapons" and "ammo" do extra damage */
 	switch (o_ptr->tval)
@@ -1085,11 +1085,10 @@ void py_attack_player(int Ind, int y, int x)
 	/* Track player health */
 	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
 
-	/* If target isn't already hostile toward attacker, make it so */
+	/* If target isn't hostile toward attacker, don't attack */
 	if (!check_hostile(0 - c_ptr->m_idx, Ind))
 	{
-		/* Make hostile */
-		add_hostility(0 - c_ptr->m_idx, p_ptr->name);
+		return;
 	}
 
 	/* Handle attacker fear */
@@ -1606,14 +1605,9 @@ void move_player(int Ind, int dir, int do_pickup)
 		player_type *q_ptr = Players[0 - c_ptr->m_idx];
 		int Ind2 = 0 - c_ptr->m_idx;
 
-#ifdef PLAYER_INTERACTION
 		/* Check for an attack */
 		if (check_hostile(Ind, Ind2))
 			py_attack(Ind, y, x);
-#else
-		/* XXX */
-		if (0);
-#endif
 
 		/* If both want to switch, do it */
 		else if ((!p_ptr->ghost && !q_ptr->ghost &&

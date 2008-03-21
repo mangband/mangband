@@ -4998,7 +4998,10 @@ static int Receive_store_confirm(int ind)
 	if (!player)
 		return -1;
 
-	store_confirm(player);
+	if (p_ptr->store_num > -1)
+		store_confirm(player);
+	else
+		do_cmd_purchase_house(player, 0);
 
 	return 1;
 }

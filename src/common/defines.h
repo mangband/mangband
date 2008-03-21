@@ -2103,6 +2103,35 @@ that keeps many algorithms happy.
 	(TR3_IGNORE_ACID | TR3_IGNORE_ELEC | TR3_IGNORE_FIRE | \
 	 TR3_IGNORE_COLD )
 
+/*
+ * Hack -- special "xtra" object flag info (type)
+ */
+#define OBJECT_XTRA_TYPE_SUSTAIN	1
+#define OBJECT_XTRA_TYPE_RESIST		2
+#define OBJECT_XTRA_TYPE_POWER		3
+
+/*
+ * Hack -- special "xtra" object flag info (what flag set)
+ */
+#define OBJECT_XTRA_WHAT_SUSTAIN	2
+#define OBJECT_XTRA_WHAT_RESIST		2
+#define OBJECT_XTRA_WHAT_POWER		3
+
+/*
+ * Hack -- special "xtra" object flag info (base flag value)
+ */
+#define OBJECT_XTRA_BASE_SUSTAIN	TR2_SUST_STR
+#define OBJECT_XTRA_BASE_RESIST		TR2_RES_POIS
+#define OBJECT_XTRA_BASE_POWER		TR3_SLOW_DIGEST
+
+/*
+ * Hack -- special "xtra" object flag info (number of flags)
+ */
+#define OBJECT_XTRA_SIZE_SUSTAIN	6
+#define OBJECT_XTRA_SIZE_RESIST		12
+#define OBJECT_XTRA_SIZE_POWER		8
+
+
 /*** Class flags ***/
 
 #define CF_EXTRA_SHOT		0x00000001L	/* Extra shots */

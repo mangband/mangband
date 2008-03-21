@@ -458,6 +458,31 @@ int pick_house(int Depth, int y, int x)
 }
 
 /*
+ * Determine if the player is inside the house
+ */
+bool house_inside(int Ind, int house)
+{
+	player_type *p_ptr = Players[Ind];
+
+#if 0
+	/* If he's not playing, skip him */
+	if (p_ptr->.conn == NOT_CONNECTED) return FALSE;		
+#endif
+	
+	if (house >= 0 && house < num_houses)
+	{
+		if (houses[house].depth == p_ptr->dun_depth
+					&& p_ptr->px >= houses[house].x_1 && p_ptr->px <= houses[house].x_2 
+					&& p_ptr->py >= houses[house].y_1 && p_ptr->py <= houses[house].y_2)
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/*
  * Determine if the given house is owned
  */
 bool house_owned(int house)
@@ -516,6 +541,15 @@ void disown_house(int house)
 	if (house >= 0 && house < num_houses)
 	{
 		houses[house].owned[0] = '\0';
+		/* Remove all players from the house */
+		for (i = 1; i < NumPlayers + 1; i++)
+		{
+			if (house_inside(i, house))
+			{
+				msg_print(i, "You have been expelled from the house.");
+				teleport_player(i, 5);
+			}
+		}
 		/* Clear any items from the house */
 		for (i = houses[house].y_1; i <= houses[house].y_2; i++) 
 		{
@@ -2378,12 +2412,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 			/* Use this player */
 			p_ptr = Players[i];
 
-#if 0
-			/* If he's not playing, skip him */
-			if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* If he's not here, skip him */
 			if (p_ptr->dun_depth != Depth)
 				continue;
@@ -2423,7 +2451,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 		/* Player here, hit him */
 		if (cave[Depth][y][x].m_idx < 0)
 		{
-#ifdef PLAYER_INTERACTION
 			cave_type *c_ptr = &cave[Depth][y][x];
 
 			q_ptr = Players[0 - c_ptr->m_idx];
@@ -2445,6 +2472,12 @@ void do_cmd_fire(int Ind, int dir, int item)
 				/* Get the name */
 				strcpy(pvp_name, q_ptr->name);
 
+				/* Don't allow if players aren't hostile */
+				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
+				{
+					return;
+				}
+
 				/* Handle unseen player */
 				if (!visible)
 				{
@@ -2462,16 +2495,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 
 					/* Track this player's health */
 					health_track(Ind, c_ptr->m_idx);
-				}
-
-				/* If this was intentional, make target hostile */
-				if (check_hostile(Ind, 0 - c_ptr->m_idx))
-				{
-					/* Make target hostile if not already */
-					if (!check_hostile(0 - c_ptr->m_idx, Ind))
-					{
-						add_hostility(0 - c_ptr->m_idx, p_ptr->name);
-					}
 				}
 
 				/* Apply special damage XXX XXX XXX */
@@ -2492,11 +2515,6 @@ void do_cmd_fire(int Ind, int dir, int item)
 			}
 			
 			} /* end hack */
-#else
-
-			/* Stop looking */
-			break;
-#endif
 		}
 
 		/* Monster here, Try to hit it */
@@ -2778,12 +2796,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 			/* Use this player */
 			p_ptr = Players[i];
 
-#if 0
-			/* If he's not playing, skip him */
-			if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* If he's not here, skip him */
 			if (p_ptr->dun_depth != Depth)
 				continue;
@@ -2824,7 +2836,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 		/* Player here, try to hit him */
 		if (cave[Depth][y][x].m_idx < 0)
 		{
-#ifdef PLAYER_INTERACTION
 			cave_type *c_ptr = &cave[Depth][y][x];
 
 			q_ptr = Players[0 - c_ptr->m_idx];
@@ -2840,8 +2851,14 @@ void do_cmd_throw(int Ind, int dir, int item)
 			{
 				char pvp_name[80];
 
-				/* Get his name */
+				/* Get the name */
 				strcpy(pvp_name, q_ptr->name);
+
+				/* Don't allow if players aren't hostile */
+				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
+				{
+					return;
+				}
 
 				/* Handle unseen player */
 				if (!visible)
@@ -2878,11 +2895,6 @@ void do_cmd_throw(int Ind, int dir, int item)
 				/* Stop looking */
 				break;
 			}
-#else
-
-			/* Stop looking */
-			break;
-#endif
 		}
 
 		/* Monster here, Try to hit it */
@@ -3026,6 +3038,61 @@ void do_cmd_purchase_house(int Ind, int dir)
 		}	
 	}
 
+	/* Check for no-direction -- confirmation (when selling house) */
+	if (!dir)
+	{
+			i = p_ptr->current_house;
+			p_ptr->current_house = -1;	
+
+			if (i == -1)
+			{
+				/* No house, message */
+				msg_print(Ind, "You see nothing to sell there.");
+				return;
+			}
+			
+			/* Get requested grid */
+			c_ptr = &cave[Depth][houses[i].door_y][houses[i].door_x];
+				
+			/* Take player's CHR into account */
+			factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
+        	price = (unsigned long) houses[i].price * factor / 100;
+
+			if (house_owned(i))
+			{
+				/* Is it owned by this player? */
+				if (house_owned_by(Ind,i))
+				{	
+					/* house is no longer owned */
+					disown_house(i);
+					
+					msg_format(Ind, "You sell your house for %ld gold.", price/2);
+	
+					/* Close the door */
+					c_ptr->feat = FEAT_HOME_HEAD + houses[i].strength;
+
+					/* Reshow */
+					everyone_lite_spot(Depth, houses[i].door_y, houses[i].door_x);	
+	
+					 /* Get the money */
+					p_ptr->au += price / 2;
+	
+					/* Window */
+					p_ptr->window |= (PW_INVEN);
+	
+					/* Redraw */
+					p_ptr->redraw |= (PR_GOLD);
+	
+					/* Done */
+					return;			
+					}
+			}
+			
+			/* No house, message */
+			msg_print(Ind, "You don't own this house.");
+			return;
+	}
+
 	/* Be sure we have a direction */
 	if (dir)
 	{
@@ -3056,23 +3123,21 @@ void do_cmd_purchase_house(int Ind, int dir)
 			/* Is it owned by this player? */
 			if (house_owned_by(Ind,i))
 			{
-		
-				/* house is no longer owned */
-				disown_house(i);
-					
-				msg_format(Ind, "You sell your house for %ld gold.", price/2);
-
-				 /* Get the money */
-				p_ptr->au += price / 2;
-
-				/* Window */
-				p_ptr->window |= (PW_INVEN);
-
-				/* Redraw */
-				p_ptr->redraw |= (PR_GOLD);
-
-				/* Done */
-				return;			
+				if (house_inside(Ind, i)) 
+				{
+					/* Hack -- Enter own store */
+					command_new = '_';
+					do_cmd_store(Ind,i);
+				}
+				else
+				{
+					/* Delay house transaction */
+					p_ptr->current_house = i;			
+			
+					/* Tell the client about the price */
+					Send_store_sell(Ind, price/2);
+				}
+				return;		
 			}
 		
 			if (!strcmp(p_ptr->name,cfg_dungeon_master))

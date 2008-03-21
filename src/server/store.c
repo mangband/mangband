@@ -392,7 +392,7 @@ static bool store_check_num(int st, object_type *o_ptr)
 static bool store_will_buy(int Ind, object_type *o_ptr)
 {
 	player_type *p_ptr = Players[Ind];
-    u32b            f1,f2,f3,f4;
+        u32b            f1,f2,f3;
 
 	/* Switch on the store */
 	switch (p_ptr->store_num)
@@ -478,7 +478,7 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 					/* if Known, aware, and Blessed, yes. */
 					if (object_aware_p(Ind, o_ptr)) {
 						if (object_known_p(Ind, o_ptr)){
-                            object_flags(o_ptr, &f1, &f2, &f3, &f4);
+                            object_flags(o_ptr, &f1, &f2, &f3);
 							if (f3 & TR3_BLESSED) break;
 						}
 					}
@@ -1271,6 +1271,14 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 						sold += o_ptr->number;
 						/* Remove the item(s) and keep searching if required */
 						delete_object(houses[p_ptr->player_store_num].depth,y,x);
+						/* Remember this emtpy space because we can drop gold here */
+						if (!have_space)
+						{
+							spacex = x;
+							spacey = y;
+							spacedepth = houses[p_ptr->player_store_num].depth;
+							have_space = TRUE;
+						}
 					}
 					else if (o_ptr->number > number)
 					{
@@ -1411,6 +1419,13 @@ void store_purchase(int Ind, int item, int amt)
 		msg_print(Ind, "I am currently out of stock.");
 		return;
 	}
+	
+	/* Player-owned && Is his? */
+	if (st == 8 && house_owned_by(Ind, p_ptr->player_store_num))
+	{
+		msg_print(Ind, "You cannot buy from yourself.");
+		return;
+	} 
 
 	/* Fill o_ptr with correct item */
 	if (!get_store_item(Ind, item, o_ptr)) 

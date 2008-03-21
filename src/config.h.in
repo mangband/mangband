@@ -231,13 +231,6 @@
  */
 #define WIDE_CORRIDORS
 
-/*
- * OPTION: Allow players to interact.  This has many effects, mainly
- * that people can hit each other to do damage, and spells will now
- * harm other players when they hit.
- */
-/* #define PLAYER_INTERACTION */
-
 
 /*
  * OPTION: Enable experimental text_out routine.
