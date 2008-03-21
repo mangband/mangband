@@ -929,7 +929,7 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 			(*f3) |= e_ptr->flags3;
 		}
 
-		if (mode == OBJECT_FLAGS_KNOWN)
+		if (mode >= OBJECT_FLAGS_KNOWN)
 		{
 			/* Obvious artifact flags */
 			if (o_ptr->name1)
