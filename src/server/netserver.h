@@ -145,7 +145,8 @@ static int Receive_clear(int ind);
 static int Receive_custom_command(int ind);
 
 static void Handle_item(int Ind, int item);
-static int Receive_mind(int ind);
+int Setup_net_server(void);
+void Send_custom_commands(int ind);
 
 int Setup_net_server(void);
 bool Destroy_connection(int ind, char *reason);

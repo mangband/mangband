@@ -1618,7 +1618,7 @@ static int Handle_login(int ind)
 	}
 #ifdef COMMAND_OVERLOAD
 	/* Send custom commands */
-//	Send_custom_commands(NumPlayers);
+	Send_custom_commands(NumPlayers);
 #endif
 	/* Send party information */
 	Send_party(NumPlayers);
@@ -3107,14 +3107,7 @@ int Send_sound(int ind, int sound)
 
 	return Packet_printf(&connp->c, "%c%c", PKT_SOUND, sound);
 }
-void Send_custom_commands(int ind)
-{
-	int i;
-	for (i = 0; i < 2; i++)
-	{
-		Send_custom_command(ind, i);
-	} 
-}
+
 /*
  * Hack this should be loaded from some cool structure!!! 
  *
@@ -3156,6 +3149,15 @@ int Send_custom_command(int ind, int command)
 
 	strncpy(buf, prompt, 59);
 	return Packet_printf(&connp->c, "%c%hd%lu%c%S", PKT_COMMAND, catch, flag, tval, buf);
+}
+//Second evil function
+void Send_custom_commands(int ind)
+{
+	int i;
+	for (i = 0; i < 2; i++)
+	{
+		Send_custom_command(ind, i);
+	} 
 }
 
 int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
@@ -5118,6 +5120,8 @@ static int Receive_custom_command(int ind)
 	}
 	
 	do_cmd_custom(player, i, item, dir, value);
+
+	return 1;
 }
 
 static int Receive_spike(int ind)
