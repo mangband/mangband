@@ -329,7 +329,7 @@ extern void prt(cptr str, int row, int col);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
 extern void request_command(bool shopping);
-extern bool c_get_dir(int *dp, cptr prompt, bool allow_target);
+extern bool c_get_dir(char *dp, cptr prompt, bool allow_target);
 extern bool get_dir(int *dp);
 extern void c_put_str(byte attr, cptr str, int row, int col);
 extern void put_str(cptr str, int row, int col);

@@ -3116,6 +3116,13 @@ int Send_sound(int ind, int sound)
 int Send_custom_command(int ind, int command)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
+	s16b trigger;
+	byte tval = 0;
+	u32b flag = 0;
+	cptr prompt = "";
+	char buf[60];
+	buf[59] = '\0';
+	
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
@@ -3124,21 +3131,15 @@ int Send_custom_command(int ind, int command)
 		return 0;
 	}
 
-	s16b catch;
-	byte tval = 0;
-	u32b flag = 0;
-	cptr prompt = "";
-	char buf[60];
-	buf[59] = '\0';
 	switch (command) 
 	{
 		case 1:
-			catch = 'J';
+			trigger = 'J';
 			flag = (COMMAND_ITEM_NONE | COMMAND_TARGET_DIR);
 			prompt = "Touch in what ";
 			break;
 		case 0:
-			catch = 'E';
+			trigger = 'E';
 			tval = TV_FOOD;
 			flag = (COMMAND_ITEM_INVENT | COMMAND_ITEM_NORMAL | COMMAND_TARGET_NONE);
 			prompt = "Eat what? ";
@@ -3148,7 +3149,7 @@ int Send_custom_command(int ind, int command)
 	}
 
 	strncpy(buf, prompt, 59);
-	return Packet_printf(&connp->c, "%c%hd%lu%c%S", PKT_COMMAND, catch, flag, tval, buf);
+	return Packet_printf(&connp->c, "%c%hd%lu%c%S", PKT_COMMAND, trigger, flag, tval, buf);
 }
 //Second evil function
 void Send_custom_commands(int ind)

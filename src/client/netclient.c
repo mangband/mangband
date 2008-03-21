@@ -2249,6 +2249,7 @@ int Receive_custom_command(void)
 	s16b catch;
 	u32b flag;
 	
+	custom_command_type *cc_ptr;
 
 	char buf[60];
 	buf[0] = '\0';
@@ -2258,7 +2259,8 @@ int Receive_custom_command(void)
 	}
 
 	if (custom_commands >= MAX_CUSTOM_COMMANDS) return 0;
-	custom_command_type *cc_ptr = &custom_command[custom_commands];
+
+	cc_ptr = &custom_command[custom_commands];
 	WIPE(cc_ptr, custom_command_type);
 
 	cc_ptr->catch = catch;

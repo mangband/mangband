@@ -3,12 +3,15 @@
 /* Handle custom commands */
 void cmd_custom(byte i)
 {
+	custom_command_type *cc_ptr;
+	char dir;
+	int item, value;	
+	cptr prompt;
+
 	if (i < 0 || i > custom_commands) return;
-	custom_command_type *cc_ptr = &custom_command[i];
-	char dir = 0;
-	int item = 0;	
-	int value = 0;
-	cptr prompt = cc_ptr->prompt;
+	cc_ptr = &custom_command[i];
+	dir = item = value = 0;
+	prompt = cc_ptr->prompt;
 	
 	/* Search for an item (automatic) */
 	if (cc_ptr->flag & COMMAND_ITEM_QUICK)

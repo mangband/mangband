@@ -1263,7 +1263,7 @@ void request_command(bool shopping)
 	prt("", 0, 0);
 }
 
-bool c_get_dir(int *dp, cptr prompt, bool allow_target)
+bool c_get_dir(char *dp, cptr prompt, bool allow_target)
 {
 	int	dir = 0;
 
@@ -1292,7 +1292,7 @@ bool c_get_dir(int *dp, cptr prompt, bool allow_target)
 
 	else dir = keymap_dirs[command & 0x7F];
 
-	*dp = dir;
+	*dp = (byte)dir;
 
 	if (!dir) return (FALSE);
 
