@@ -89,6 +89,8 @@ byte keymap_dirs[128];
 s16b command_cmd;
 s16b command_dir;
 
+custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
+s16b custom_commands;
 
 s16b race;
 s16b class;

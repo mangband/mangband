@@ -121,6 +121,9 @@ extern byte keymap_dirs[128];
 extern s16b command_cmd;
 extern s16b command_dir;
 
+extern custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
+extern s16b custom_commands;
+
 extern s16b race;
 extern s16b class;
 extern s16b sex;
@@ -228,6 +231,7 @@ extern bool get_server_name(void);
 
 /* c-cmd.c */
 extern void process_command(void);
+extern void cmd_custom(byte i);
 extern void cmd_tunnel(void);
 extern void cmd_walk(void);
 extern void cmd_run(void);
@@ -309,6 +313,7 @@ extern void client_init(char *argv1);
 extern s16b index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
+extern bool c_check_item(int *item, byte tval);
 
 /* c-util.c */
 extern void move_cursor(int row, int col);
@@ -323,6 +328,7 @@ extern void prt(cptr str, int row, int col);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
 extern void request_command(bool shopping);
+extern bool c_get_dir(int *dp, cptr prompt, bool allow_target);
 extern bool get_dir(int *dp);
 extern void c_put_str(byte attr, cptr str, int row, int col);
 extern void put_str(cptr str, int row, int col);

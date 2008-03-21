@@ -117,6 +117,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_FLOOR]		= Receive_floor;
 	receive_tbl[PKT_PICKUP_CHECK]	= Receive_pickup_check;
 	receive_tbl[PKT_PARTY]		= Receive_party;
+	receive_tbl[PKT_COMMAND]	= Receive_custom_command;
 	receive_tbl[PKT_SKILLS]		= Receive_skills;
 	receive_tbl[PKT_PAUSE]		= Receive_pause;
 	receive_tbl[PKT_CURSOR]		= Receive_cursor;
@@ -2241,6 +2242,36 @@ int Receive_sound(void)
 	return 1;
 }
 
+int Receive_custom_command(void)
+{
+	int n;
+	char ch, tval;
+	s16b catch;
+	u32b flag;
+	
+
+	char buf[60];
+	buf[0] = '\0';
+	if ((n = Packet_scanf(&rbuf, "%c%hd%lu%c%S", &ch, &catch, &flag, &tval, buf)) <= 0)
+	{
+		return n;
+	}
+
+	if (custom_commands >= MAX_CUSTOM_COMMANDS) return 0;
+	custom_command_type *cc_ptr = &custom_command[custom_commands];
+	WIPE(cc_ptr, custom_command_type);
+
+	cc_ptr->catch = catch;
+	cc_ptr->flag = flag;
+	cc_ptr->tval = tval;
+	buf[59] = '\0'; 
+	strcat(cc_ptr->prompt, buf);
+
+	custom_commands++;	
+
+	return 1;
+}
+
 int Receive_special_line(void)
 {
 	int	n;
@@ -2742,6 +2773,18 @@ int Send_uninscribe(int item)
 	int	n;
 
 	if ((n = Packet_printf(&wbuf, "%c%hd", PKT_UNINSCRIBE, item)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
+int Send_custom_command(byte i, int item, char dir, int value)
+{
+	int 	n;
+	printf("com [%c/%d] >>> item=%d, dir=%d, value=%d\n", i,i,item,dir,value);
+	if ((n = Packet_printf(&wbuf, "%c%c%hd%c%hd", PKT_COMMAND, i, item, dir, value)) <= 0)
 	{
 		return n;
 	}

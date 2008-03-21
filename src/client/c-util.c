@@ -1263,6 +1263,42 @@ void request_command(bool shopping)
 	prt("", 0, 0);
 }
 
+bool c_get_dir(int *dp, cptr prompt, bool allow_target)
+{
+	int	dir = 0;
+
+	char	command;
+
+	cptr	p;
+
+	char buf[80];
+	buf[0] = '\0';
+	strcpy(buf, prompt);
+	
+	if (allow_target)
+		p = "Direction ('*' to choose target, non-direction cancels) ?";
+	else
+		p = "Direction (non-direction cancels)?";
+	strcat(buf, p);
+
+	get_com(buf, &command);
+
+	/* Handle target request */
+	if (command == '*' && allow_target)
+	{
+		if (cmd_target())
+			dir = 5;
+	}
+
+	else dir = keymap_dirs[command & 0x7F];
+
+	*dp = dir;
+
+	if (!dir) return (FALSE);
+
+	return (TRUE);
+}
+
 bool get_dir(int *dp)
 {
 	int	dir = 0;

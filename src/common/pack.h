@@ -127,7 +127,7 @@
 #define PKT_OPTIONS		116
 #define PKT_TARGET_FRIENDLY	117
 #define PKT_MASTER		118 /* dungeon master commands */
-#define PKT_AUTOPHASE		119 /* automatically try to phase */
+#define PKT_SPIKE		119 
 
 /* Packet types 121-123 are more administrative stuff */
 #define PKT_FAILURE		121
@@ -142,6 +142,7 @@
 #define PKT_OBSERVE		160
 #define PKT_CHANGEPASS		162
 #define PKT_OBJFLAGS		163
+#define PKT_COMMAND		164
 
 
 /*

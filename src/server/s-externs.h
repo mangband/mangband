@@ -1,4 +1,4 @@
-/* File: externs.h */
+c/* File: externs.h */
 
 /* Purpose: extern declarations (variables and functions) */
 
@@ -462,6 +462,7 @@ extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_fire(int Ind, int dir, int item);
 extern void do_cmd_throw(int Ind, int dir, int item);
 extern void do_cmd_purchase_house(int Ind, int dir);
+extern void do_cmd_custom(int Ind, char c, int item, char dir, int value);
 extern int pick_house(int Depth, int y, int x);
 
 /* cmd3.c */

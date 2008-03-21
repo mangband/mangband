@@ -142,6 +142,7 @@ static int Receive_suicide(int ind);
 static int Receive_master(int ind);
 static int Receive_autophase(int ind);
 static int Receive_clear(int ind);
+static int Receive_custom_command(int ind);
 
 static void Handle_item(int Ind, int item);
 static int Receive_mind(int ind);

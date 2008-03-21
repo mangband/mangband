@@ -232,12 +232,18 @@
  */
 #define WIDE_CORRIDORS
 
+
 /*
  * OPTION: Enable experimental text_out routine.
  * It is definitly more CPU-intesnive, but IS pretty and more Angband-like.
  */
 #define PRETTY_TEXT_OUT
 
+/*
+ * OPTION: Enable experimental command overloading.
+ * Command overloads eat more bandwitch, but give more flexibility.
+ */
+#define COMMAND_OVERLOAD
 
 /*
  * OPTION: Hack -- Compile in support for "Cyborg" mode

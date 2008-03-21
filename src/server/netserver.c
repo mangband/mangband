@@ -216,7 +216,8 @@ static void Init_receive(void)
 	playing_receive[PKT_SUICIDE]		= Receive_suicide;
 	playing_receive[PKT_MASTER]		= Receive_master;
 
-	playing_receive[PKT_AUTOPHASE]		= Receive_autophase;
+	playing_receive[PKT_SPIKE]		= Receive_steal;
+	playing_receive[PKT_COMMAND]		= Receive_custom_command;
 	
 	playing_receive[PKT_CLEAR] = Receive_clear;
 	playing_receive[PKT_CHANGEPASS] = Receive_pass;
@@ -1615,7 +1616,10 @@ static int Handle_login(int ind)
 		plog("Cannot send play reply");
 		return -1;
 	}
-	
+#ifdef COMMAND_OVERLOAD
+	/* Send custom commands */
+	Send_custom_commands(NumPlayers);
+#endif
 	/* Send party information */
 	Send_party(NumPlayers);
 
@@ -3102,6 +3106,56 @@ int Send_sound(int ind, int sound)
 	}
 
 	return Packet_printf(&connp->c, "%c%c", PKT_SOUND, sound);
+}
+void Send_custom_commands(int ind)
+{
+	int i;
+	for (i = 0; i < 2; i++)
+	{
+		Send_custom_command(ind, i);
+	} 
+}
+/*
+ * Hack this should be loaded from some cool structure!!! 
+ *
+ *	XXX XXX HARDCODED COMMANDS HERE:
+ */
+int Send_custom_command(int ind, int command)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for custom command (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	s16b catch;
+	byte tval = 0;
+	u32b flag = 0;
+	cptr prompt = "";
+	char buf[60];
+	buf[59] = '\0';
+	switch (command) 
+	{
+		case 1:
+			catch = 'J';
+			flag = (COMMAND_ITEM_NONE | COMMAND_TARGET_DIR);
+			prompt = "Touch in what ";
+			break;
+		case 0:
+			catch = 'E';
+			tval = TV_FOOD;
+			flag = (COMMAND_ITEM_INVENT | COMMAND_ITEM_NORMAL | COMMAND_TARGET_NONE);
+			prompt = "Eat what? ";
+			break;
+		default:
+			return -1;
+	}
+
+	strncpy(buf, prompt, 59);
+	return Packet_printf(&connp->c, "%c%hd%lu%c%S", PKT_COMMAND, catch, flag, tval, buf);
 }
 
 int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
@@ -5040,6 +5094,32 @@ static int Receive_drop_gold(int ind)
 
 	return 1;
 }
+
+static int Receive_custom_command(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	player_type *p_ptr;
+
+	s16b item, value;
+	int n, player;
+	char ch, i, dir;
+
+	if (connp->id != -1)
+	{
+		player = GetInd[connp->id];
+		p_ptr = Players[player];
+	}
+
+	if ((n = Packet_scanf(&connp->r, "%c%c%hd%c%hd", &ch, &i, &item, &dir, &value)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+	
+	do_cmd_custom(player, i, item, dir, value);
+}
+
 
 static int Receive_steal(int ind)
 {

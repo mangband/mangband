@@ -19,9 +19,67 @@ void cmd_spike(void)
 	Send_steal(dir);
 }
 
+void cmd_custom(byte i)
+{
+	if (i < 0 || i > custom_commands) return;
+	custom_command_type *cc_ptr = &custom_command[i];
+	char dir = 0;
+	int item = 0;	
+	int value = 0;
+	cptr prompt = cc_ptr->prompt;
+	
+	/* Search for an item (automatic) */
+	if (cc_ptr->flag & COMMAND_ITEM_QUICK)
+	{
+		if (!c_check_item(&item, cc_ptr->tval))
+			return;
+	}
+	/* Ask for an item (interactive) ? */
+	else if ((cc_ptr->flag & COMMAND_ITEM_NORMAL) || (cc_ptr->flag & COMMAND_ITEM_DOUBLE))
+	{
+		item_tester_tval = cc_ptr->tval;
+		if (!c_get_item(&item, prompt, 
+				(cc_ptr->flag & COMMAND_ITEM_EQUIP), 
+				(cc_ptr->flag & COMMAND_ITEM_INVENT), 
+				(cc_ptr->flag & COMMAND_ITEM_FLOOR)))
+				return;
+		
+		prompt = "";
+		/* Get an amount - from inventory */
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item >= 0 && inventory[item].number > 1)
+		{
+			value = c_get_quantity("How many? ", inventory[item].number);
+		}
+	}
+	/* Second item? */
+	if (cc_ptr->flag & COMMAND_ITEM_DOUBLE)
+	{
+		if (!c_get_item(&value, prompt, 
+				(cc_ptr->flag & COMMAND_SECOND_EQUIP), 
+				(cc_ptr->flag & COMMAND_SECOND_INVENT), 
+				(cc_ptr->flag & COMMAND_SECOND_FLOOR)))
+				return;
+	}
+	if (cc_ptr->flag & COMMAND_TARGET_DIR) 
+	{
+		if (!c_get_dir(&dir, prompt, ((cc_ptr->flag & COMMAND_TARGET_ALLOW) ? TRUE : FALSE) ))
+			return;
+	}
+
+	Send_custom_command(i, item, dir, value);
+}
 
 void process_command()
 {
+#ifdef COMMAND_OVERLOAD
+	byte i;
+	for (i = 0; i < custom_commands; i++) {
+		if (custom_command[i].catch == command_cmd) {
+			cmd_custom(i);
+			return;	
+		}
+	}
+#endif
         /* Parse the command */
         switch (command_cmd)
         {

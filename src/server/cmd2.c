@@ -1725,7 +1725,27 @@ static bool get_spike(int Ind, int *ip)
 	return (FALSE);
 }
 
-
+/* 
+ * Perform a custom command
+ * Give appropriate prompts
+ */
+void do_cmd_custom(int Ind, char c, int item, char dir, int value)
+{
+	player_type *p_ptr = Players[Ind];
+	
+	/* HACK -- must be some form of structure */
+	switch(c) 
+	{
+		case 0: /* Eat */
+			do_cmd_eat_food(Ind, item);
+			break;
+		case 1: /* Steal */
+			do_cmd_steal(Ind, dir);
+			break;
+		default:
+		msg_print(Ind, "Hit '?' for help."); 
+	}
+}
 
 /*
  * Jam a closed door with a spike

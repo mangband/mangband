@@ -55,6 +55,7 @@ typedef struct cave_view_type cave_view_type;
 typedef struct party_type party_type;
 typedef struct house_type house_type;
 typedef struct hostile_type hostile_type;
+typedef struct custom_command_type custom_command_type;
 
 
 /**** MAngband specific structs ****/
@@ -1559,4 +1560,13 @@ struct flavor_type
 
 	byte x_attr;    /* Desired flavor attribute */
 	char x_char;    /* Desired flavor character */
+};
+
+
+struct custom_command_type
+{
+	s16b catch;		/* Actual command (such as 'j') */
+	u32b flag;
+	byte tval; 
+	char prompt[60];
 };

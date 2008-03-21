@@ -166,6 +166,28 @@ static int get_tag(int *cp, char tag)
         return (FALSE);
 }
 
+bool c_check_item(int *item, byte tval)
+{
+	int i;
+	for (i = 0; i < INVEN_PACK; i++)
+	{
+		object_type *o_ptr = &inventory[i];
+
+		/* Skip non-objects */
+		if (!o_ptr->number) continue;
+		
+		/* Check the "tval" code */
+		if (o_ptr->tval == tval)
+		{
+			(*item) = i;
+			return TRUE;
+		}
+	}	
+	
+	/* Oops */
+	return FALSE;
+}
+
 bool c_get_spike()
 {
 	int i;
