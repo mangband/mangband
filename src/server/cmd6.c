@@ -1399,7 +1399,7 @@ void do_cmd_read_scroll(int Ind, int item)
 
 		case SV_SCROLL_DETECT_INVIS:
 		{
-			if (detect_invisible(Ind)) ident = TRUE;
+			if (detect_invisible(Ind, TRUE)) ident = TRUE;
 			break;
 		}
 
@@ -1815,7 +1815,7 @@ void do_cmd_use_staff(int Ind, int item)
 
 		case SV_STAFF_DETECT_INVIS:
 		{
-			if (detect_invisible(Ind)) ident = TRUE;
+			if (detect_invisible(Ind, TRUE)) ident = TRUE;
 			break;
 		}
 

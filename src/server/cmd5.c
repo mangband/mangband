@@ -887,7 +887,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
             case MSPELL_DETECT_MONSTERS:
 			{
-				(void)detect_creatures(Ind);
+				(void)detect_creatures(Ind, TRUE);
 				break;
 			}
 
@@ -1288,7 +1288,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 			case MSPELL_DETECT_INVISIBLE:
 			{
-				(void)detect_invisible(Ind);
+				(void)detect_invisible(Ind, TRUE);
 				break;
 			}
 
@@ -2200,7 +2200,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_DETECT_MONSTERS:
 			{
-				(void)detect_creatures(Ind);
+				(void)detect_creatures(Ind, TRUE);
 				break;
 			}
 
