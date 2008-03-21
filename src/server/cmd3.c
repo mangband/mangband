@@ -137,7 +137,7 @@ static void inven_drop(int Ind, int item, int amt)
 	};
 
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < k_info[o_ptr->k_idx].level) )
+	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
@@ -1002,6 +1002,7 @@ void do_cmd_steal(int Ind, int dir)
 	cave_type *c_ptr;
 
 	int success, notice;
+	bool fail = TRUE;
 
 	/* Ghosts cannot steal */
 	if ((p_ptr->ghost) || (p_ptr->fruit_bat))
@@ -1095,6 +1096,7 @@ void do_cmd_steal(int Ind, int dir)
 					msg_format(0 - c_ptr->m_idx, "You notice %s stealing %ld gold!",
 					           p_ptr->name, amt);
 				}
+				fail = FALSE;
 			}
 		}
 		else
@@ -1108,36 +1110,43 @@ void do_cmd_steal(int Ind, int dir)
 
 			/* Get object */
 			o_ptr = &q_ptr->inventory[item];
-			forge = *o_ptr;
-
-			/* Give one item to thief */
-			forge.number = 1;
-			inven_carry(Ind, &forge);
-
-			/* Take one from target */
-			inven_item_increase(0 - c_ptr->m_idx, item, -1);
-			inven_item_optimize(0 - c_ptr->m_idx, item);
-
-			/* Tell thief what he got */
-			object_desc(Ind, o_name, &forge, TRUE, 3);
-			msg_format(Ind, "You stole %s.", o_name);
-
-			/* Easier to notice heavier objects */
-			notice += forge.weight;
-
-			/* Check for target noticing */
-			if (rand_int(100) < notice)
+			
+			/* Don't steal (nothing)s */
+			if (o_ptr->k_idx)
 			{
-				/* Make target hostile */
-				add_hostility(0 - c_ptr->m_idx, p_ptr->name);
-
-				/* Message */
-				msg_format(0 - c_ptr->m_idx, "You notice %s stealing %s!",
-				           p_ptr->name, o_name);
-			}
+				forge = *o_ptr;
+	
+				/* Give one item to thief */
+				forge.number = 1;
+				inven_carry(Ind, &forge);
+	
+				/* Take one from target */
+				inven_item_increase(0 - c_ptr->m_idx, item, -1);
+				inven_item_optimize(0 - c_ptr->m_idx, item);
+	
+				/* Tell thief what he got */
+				object_desc(Ind, o_name, &forge, TRUE, 3);
+				msg_format(Ind, "You stole %s.", o_name);
+	
+				/* Easier to notice heavier objects */
+				notice += forge.weight;
+	
+				/* Check for target noticing */
+				if (rand_int(100) < notice)
+				{
+					/* Make target hostile */
+					add_hostility(0 - c_ptr->m_idx, p_ptr->name);
+	
+					/* Message */
+					msg_format(0 - c_ptr->m_idx, "You notice %s stealing %s!",
+					           p_ptr->name, o_name);
+				}
+				fail = FALSE; 
+			}  
 		}
 	}
-	else
+	
+	if (fail)
 	{
 		/* Message */
 		msg_print(Ind, "You fail to steal anything.");

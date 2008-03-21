@@ -1241,7 +1241,7 @@ bool detect_objects_magic(int Ind)
 /*
  * Locates and displays all invisible creatures on current panel -RAK-
  */
-bool detect_invisible(int Ind)
+bool detect_invisible(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -1310,7 +1310,7 @@ bool detect_invisible(int Ind)
 	}
 
 	/* Describe result, and clean up */
-	if (flag)
+	if (flag && pause)
 	{
 		/* Describe, and wait for acknowledgement */
 		msg_print(Ind, "You sense the presence of invisible creatures!");
@@ -1389,7 +1389,7 @@ bool detect_evil(int Ind)
 /*
  * Display all non-invisible monsters/players on the current panel
  */
-bool detect_creatures(int Ind)
+bool detect_creatures(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -1458,7 +1458,7 @@ bool detect_creatures(int Ind)
 	}
 
 	/* Describe and clean up */
-	if (flag)
+	if (flag && pause)
 	{
 		/* Describe, and wait for acknowledgement */
 		msg_print(Ind, "You sense the presence of creatures!");
@@ -1483,14 +1483,31 @@ bool detect_creatures(int Ind)
 bool detection(int Ind)
 {
 	bool	detect = FALSE;
+	bool	detected_invis, detected_creatures = FALSE;
 
 	/* Detect the easy things */
 	if (detect_treasure(Ind)) detect = TRUE;
 	if (detect_objects_normal(Ind)) detect = TRUE;
 	if (detect_trap(Ind)) detect = TRUE;
 	if (detect_sdoor(Ind)) detect = TRUE;
-	if (detect_creatures(Ind)) detect = TRUE;
-	if (detect_invisible(Ind)) detect = TRUE;
+	detected_creatures = detect_creatures(Ind, FALSE);
+	detected_invis = detect_invisible(Ind, FALSE);
+		
+	/* Describe result, and clean up */
+	if (detected_creatures || detected_invis)
+	{
+		detect = TRUE;
+		/* Describe, and wait for acknowledgement */
+		msg_print(Ind, "You sense the presence of creatures!");
+		msg_print(Ind, NULL);
+
+		/* Wait */
+		Send_pause(Ind);
+
+		/* Mega-Hack -- Fix the monsters and players */
+		update_monsters(FALSE);
+		update_players();
+	}
 
 	/* Result */
 	return (detect);
