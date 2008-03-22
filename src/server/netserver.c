@@ -523,6 +523,17 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 		nick_name[0] > 'Z')
 		return E_INVAL;
 
+	/* Any wierd characters here, bail out.  We allow letters, numbers and space */
+	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
+	{
+		if ( (*ptr == 32) || ((*ptr >= 97) && (*ptr <= 122)) || ((*ptr >= 65) && (*ptr <= 90)) )
+		{
+			/* ok */
+		} else {
+			return E_INVAL;
+		}
+	}
+	
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
 		if (isascii(*ptr) && isspace(*ptr))
