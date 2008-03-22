@@ -2524,6 +2524,9 @@ static void calc_bonuses(int Ind)
 
 	/* Extract the current weight (in tenth pounds) */
 	j = p_ptr->total_weight;
+	
+	/* Cap the weight */
+	if (j > 1<<14) j = 1<<14;
 
 	/* Extract the "weight limit" (in tenth pounds) */
 	i = weight_limit(Ind);
