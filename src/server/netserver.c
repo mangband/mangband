@@ -526,7 +526,8 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 	/* Any wierd characters here, bail out.  We allow letters, numbers and space */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
-		if ( (*ptr == 32) || ((*ptr >= 97) && (*ptr <= 122)) || ((*ptr >= 65) && (*ptr <= 90)) )
+		if ( (*ptr == 32) || ((*ptr >= 97) && (*ptr <= 122)) || ((*ptr >= 65) && (*ptr <= 90))
+		|| ((*ptr >= 48) && (*ptr <= 57)) )
 		{
 			/* ok */
 		} else {
