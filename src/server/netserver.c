@@ -2150,17 +2150,13 @@ void do_quit(int ind, bool tellclient)
 		/* Disable all output and input to and from this player */
 		connp->w.sock = -1;
 	}
-#if 0
+
 	/* If we are close to the center of town, exit quickly. */
 	if (depth <= 0 ? wild_info[depth].radius <= 2 : 0)
 	{
 		Destroy_connection(ind, "client quit");
 	}
 	// Otherwise wait for the timeout
-#endif
-    // No timeout on client quit (abusable... but essential to preserve chars
-    // when an intempestive disconnection occurs)
-    Destroy_connection(ind, "client quit");
 }
 
 
