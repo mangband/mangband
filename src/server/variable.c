@@ -240,7 +240,7 @@ bool alert_failure;			/* Alert user to various failures */
 
 /* Option Set 3 -- Game-Play */
 
-bool auto_haggle;			/* Auto-haggle in stores */
+bool no_ghost;				/* Death is permanent */
 
 bool auto_scum;				/* Auto-scum for good levels */
 

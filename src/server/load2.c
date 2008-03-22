@@ -960,6 +960,11 @@ static bool rd_extra(int Ind)
 	p_ptr->csp = read_int("csp");
 	p_ptr->csp_frac = read_int("csp_frac");
 
+	if(value_exists("no_ghost"))
+	{
+		p_ptr->no_ghost = read_int("no_ghost");
+	}
+	
 	p_ptr->max_plv = read_int("max_plv");
 	p_ptr->max_dlv = read_int("max_dlv");
 	

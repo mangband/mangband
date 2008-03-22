@@ -1161,6 +1161,7 @@ struct player_type
 	s16b ghost;		/* Are we a ghost */
 	s16b fruit_bat;		/* Are we a fruit bat */
 	byte lives;         /* number of times we have ressurected */
+	byte no_ghost;		/* Are we in "no ghost" mode? */
 
 	byte prace;			/* Race index */
 	byte pclass;		/* Class index */

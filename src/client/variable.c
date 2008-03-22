@@ -168,7 +168,7 @@ bool disturb_other;
 bool alert_hitpoint;
 bool alert_failure;
 
-bool auto_haggle;
+bool no_ghost;
 bool auto_scum;
 bool stack_allow_items;
 bool stack_allow_wands;

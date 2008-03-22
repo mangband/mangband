@@ -34,7 +34,7 @@ X:disturb_other
 Y:alert_hitpoint
 Y:alert_failure
 
-Y:auto_haggle
+X:no_ghost
 Y:auto_scum
 Y:stack_allow_items
 Y:stack_allow_wands
