@@ -1068,21 +1068,9 @@ static void player_setup(int Ind)
 		}
 		else
 		{
-			if(!strcmp(p_ptr->name,cfg_dungeon_master))
-			{
-				/* DM stays where you put him */
-				x = p_ptr->px;
-				y = p_ptr->py;
-			}
-			else
-			{
-				/* ghosts can be on top of stuff */
-				x = rand_int(MAX_WID);
-				y = rand_int(MAX_HGT);
-
-				/* Ignore illegal locations */
-				if (!in_bounds(Depth, y, x)) continue;
-			}
+			/* ghosts can be on top of stuff */
+			x = p_ptr->px;
+			y = p_ptr->py;
 		}
 
 		break;
