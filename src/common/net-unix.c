@@ -1235,7 +1235,6 @@ char	*buf;
 	(void) signal(SIGALRM, inthandler);
 	(void) alarm(sl_timeout_s);
 	ret1 = read(fd, &buf[ret], size - ret);
-	DEB(fprintf(stderr, "Read %d bytes\n", ret1));
 	(void) alarm(0);
 	(void) signal(SIGALRM, SIG_DFL);
 	ret += ret1;
