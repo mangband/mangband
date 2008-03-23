@@ -4249,12 +4249,16 @@ G:~:b
 I:39:2:10000
 W:20:0:10:2000
 A:20/20
+D:It is equippable as a light source and grants you permanent light
+D: with a radius of 2 squares.
 
 N:530:& Feanorian Lamp~
 G:~:B
 I:39:3:10000
 W:40:0:10:6000
 A:40/10
+D:It is equippable as a light source and grants you permanent light
+D: with a radius of 3 squares.
 
 # Comments from the old k_info.txt file for MAngband
 

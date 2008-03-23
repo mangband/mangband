@@ -997,7 +997,7 @@ that keeps many algorithms happy.
 #define EGO_AMAN		37
 #define EGO_TELERI		38
 #define EGO_CLOAK_RES		39
-#define EGO_CLOAK_LORDLY_RES		40
+#define EGO_CLOAK_LORDLY_RES		130 /* MAngband-specific */
 #define EGO_CLOAK_MAGI		41
 #define EGO_ENVELOPING		42
 #define EGO_VULNERABILITY		43

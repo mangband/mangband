@@ -107,7 +107,7 @@ void describe_item_activation(const object_type *o_ptr)
 
 		return;
 	}
-	
+
 	/* MAngband-specific hack: Some ego items can be activated */
 	switch (o_ptr->name2)
 	{
@@ -290,13 +290,74 @@ static void output_desc_list(cptr intro, cptr list[], int n)
 #define A_MAX 6 //hack, must be in defines.h with its friends
 /*
  * Describe stat modifications.
+ * This function is HACKed to handle MAngband-specific bpval (bonus value) 
+ * Handles each stat separately!
  */
-static bool describe_stats(const object_type *o_ptr, u32b f1)
+static bool describe_stats(const object_type *o_ptr, u32b f1, u32b fH)
 {
 	cptr descs[A_MAX];
+	int pval[A_MAX];
+	bool noted[A_MAX], found = FALSE;
 	int cnt = 0;
-	int pval = (o_ptr->pval > 0 ? o_ptr->pval : -o_ptr->pval);
+	int i, j;
 
+	/* First pass - collect flags */
+	for (i = 0; i < A_MAX; i++) 
+	{
+		noted[i] = FALSE;
+		pval[i] = 0;
+		if (fH & (TR1_STR << i) )
+			pval[i] += o_ptr->bpval;
+		if (f1 & (TR1_STR << i) )
+			pval[i] += o_ptr->pval;
+	}
+	/* Second pass - report all similar stats */
+	for (j = 0; j < A_MAX; j++) 
+	{
+		cnt = 0;
+		WIPE(descs, cptr);
+		/* Found a suitable flag to report */
+		if (pval[j] != 0 && noted[j] == FALSE)
+		{
+			/* Report it and all similar to it */
+			for (i = j; i < A_MAX; i++) 
+			{
+			 	if (pval[i] == pval[j])
+			 	{
+			 		/* Store flag for report */
+			 		descs[cnt++] = stat_names[i];
+			 		
+			 		/* Do not report this again */
+			 		noted[i] = TRUE;
+			 	}
+			}
+		}
+		/* Report all stored flags */
+		if (cnt != 0)
+		{
+			/* Shorten to "all stats", if appropriate. */
+			if (cnt == A_MAX)
+			{
+				p_text_out(format("It %s all your stats", (pval[j] > 0 ? "increases" : "decreases")));
+			}
+			else
+			{
+				p_text_out(format("It %s your ", (pval[j] > 0 ? "increases" : "decreases")));
+		
+				/* Output list */
+				output_list(descs, cnt);
+			}
+		
+			/* Output end */
+			p_text_out(format(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]) ));
+			found = TRUE;
+		}
+	}
+	/* We found something */
+	return (found);
+#if 0
+	int pval = (o_ptr->pval > 0 ? o_ptr->pval : -o_ptr->pval);
+	
 	/* Abort if the pval is zero */
 	if (!pval) return (FALSE);
 
@@ -326,19 +387,80 @@ static bool describe_stats(const object_type *o_ptr, u32b f1)
 
 	/* Output end */
 	p_text_out(format(" by %i.  ", pval));
-
+	
 	/* We found something */
 	return (TRUE);
+#endif
 }
-
-
+/* Should probably put it into tables.c */
+cptr secondary_names[8] =
+{
+	"stealth", "searching", "infravision", "tunneling", "speed", "attack speed", "shooting speed", "shooting power"
+};
 /*
  * Describe "secondary bonuses" of an item.
+ * This function is HACKed to handle MAngband-specific bpval (bonus value) 
+ * == 6 || == 7 are special hacks for TR1_SHOT and TR1_MIGHT (grants 1 point)
  */
-static bool describe_secondary(const object_type *o_ptr, u32b f1)
+static bool describe_secondary(const object_type *o_ptr, u32b f1, u32b fH)
 {
 	cptr descs[8];
 	int cnt = 0;
+	int pval[8];
+	bool noted[8], found = FALSE;
+	int j, i;
+
+	/* First pass - collect flags */
+	for (i = 0; i < 8; i++) 
+	{
+		noted[i] = FALSE;
+		pval[i] = 0;
+		/* Get 'base bonus' */
+		if (fH & (TR1_STEALTH << i))
+			pval[i] += ( i == 6 || i == 7 ? 1 : o_ptr->bpval );
+		/* Get 'base' */
+		if (f1 & (TR1_STEALTH << i))
+			pval[i] += ( i == 6 || i == 7 ? 1 : o_ptr->pval );
+	}
+	/* Second pass - report all similar flags */
+	for (j = 0; j < 8; j++) 
+	{
+		cnt = 0;
+		WIPE(descs, cptr);
+		/* Found a suitable flag to report */
+		if (pval[j] != 0 && noted[j] == FALSE)
+		{
+			/* Report it and all similar to it */
+			for (i = j; i < 8; i++) 
+			{
+			 	if (pval[i] == pval[j])
+			 	{
+			 		/* Store flag for report */
+			 		descs[cnt++] = secondary_names[i];
+			 		
+			 		/* Do not report this again */
+			 		noted[i] = TRUE;
+			 	}
+			}
+		}
+		/* Report all stored flags */
+		if (cnt != 0)
+		{
+			/* Start */
+			p_text_out(format("It %s your ", (pval[j] > 0 ? "increases" : "decreases")));
+
+			/* Output list */
+			output_list(descs, cnt);
+
+			/* Output end */
+			p_text_out(format(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]) ));
+	
+			found = TRUE;
+		}
+	}
+
+	return found;
+#if 0	
 	int pval = (o_ptr->pval > 0 ? o_ptr->pval : -o_ptr->pval);
 
 	/* Collect */
@@ -365,6 +487,7 @@ static bool describe_secondary(const object_type *o_ptr, u32b f1)
 
 	/* We found something */
 	return (TRUE);
+#endif
 }
 
 
@@ -598,7 +721,7 @@ static bool describe_misc_magic(const object_type *o_ptr, u32b f3)
 	cptr good[6], bad[4];
 	int gc = 0, bc = 0;
 	bool something = FALSE;
-
+	
 	/* Collect stuff which can't be categorized */
 	if (f3 & (TR3_BLESSED))     good[gc++] = "is blessed by the gods";
 	if (f3 & (TR3_IMPACT))      good[gc++] = "creates earthquakes on impact";
@@ -693,17 +816,26 @@ static bool describe_activation(const object_type *o_ptr, u32b f3)
 
 bool object_info_out(const object_type *o_ptr)
 {
-	u32b f1, f2, f3;
+	object_kind *k_ptr = &k_info[o_ptr->k_idx];
+	ego_item_type *e_ptr = &e_info[o_ptr->name2];
+	u32b f1, f2, f3, fH;
 	bool something = FALSE;
 
-	f1 = f2 = f3 = 0;
+	f1 = f2 = f3 = fH = 0;
+	
 	/* Grab the object flags */
-	//object_info_out_flags(o_ptr, &f1, &f2, &f3);
 	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3);
+	
+	/* Hack -- set bonus flags */
+	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(player_textout, o_ptr) )
+		fH = k_ptr->flags1;
+	/* Hack -- clear out any pval bonuses that are in the base item */
+	if (o_ptr->name2)
+		f1 &= ~(k_ptr->flags1 & TR1_PVAL_MASK & ~e_ptr->flags1);
 
 	/* Describe the object */
-	if (describe_stats(o_ptr, f1)) something = TRUE;
-	if (describe_secondary(o_ptr, f1)) something = TRUE;
+	if (describe_stats(o_ptr, f1, fH)) something = TRUE;
+	if (describe_secondary(o_ptr, f1, fH)) something = TRUE;
 	if (describe_slay(o_ptr, f1)) something = TRUE;
 	if (describe_brand(o_ptr, f1)) something = TRUE;
 	if (describe_immune(o_ptr, f2)) something = TRUE;

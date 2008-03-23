@@ -996,18 +996,20 @@ C:0:0:10:0
 ### Shields ###
 
 N:128:of the Avari
-X:32:20
+X:32:2
 W:0:0:0:80000
 C:0:0:15:2
+T:34:0:99
 F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | CON
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
 ### Cloaks ###
 
 N:129:of the Teleri
-X:31:20
+X:31:0
 W:0:0:0:20000
 C:0:0:10:0
+T:35:0:99
 F:HOLD_LIFE | FREE_ACT
 
 # Hack -- this item does not belong here.
@@ -1018,49 +1020,55 @@ F:HOLD_LIFE | FREE_ACT
 # without hardcoding anything into the game engine.
 
 N:130:of Lordly Resistance
-X:31:20
+X:31:0
 W:0:0:0:250000
 C:0:0:20:0
+T:35:0:99
 F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD | ACTIVATE |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
 
 N:131:of Resistance
-X:31:20
+X:31:0
 W:0:0:0:35000
 C:0:0:10:0
+T:35:0:99
 F:RES_ACID | RES_ELEC | RES_FIRE | RES_COLD |
 F:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 
 ### Gloves ###
 
 N:132:of the Istari
-X:34:20
+X:34:2
 W:0:0:0:50000
 C:5:5:10:3
+T:31:0:99
 F:INT | WIS | FREE_ACT
 F:SHOW_MODS | HIDE_TYPE
 
 ### Boots ###
 
 N:133:of Mirkwood
-X:35:20
+X:35:0
 W:0:0:0:15000
+T:30:0:99
 F:FREE_ACT | RES_POIS
 
 ### Missile Launchers ###
 
 
 N:134:of Lothlorien
-X:25:20
+X:25:0
 W:0:0:0:30000
 C:10:10:0:3
+T:19:0:99
 F:STEALTH | SHOTS
 
 N:135:of Numenor
-X:25:20
+X:25:0
 W:0:0:0:50000
 C:10:10:0:0
+T:19:0:99
 F:REGEN | MIGHT
 
 
