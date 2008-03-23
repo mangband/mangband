@@ -531,9 +531,11 @@ static void prt_player_sust_info(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i, row, col, stat;
+	int i, row, col, stat, boost;
 	object_type *o_ptr;
-	u32b f1, f2, f3;
+	object_kind *k_ptr;
+	ego_item_type *e_ptr;
+	u32b f1, f2, f3, f1_hack;
 	u32b ignore_f2, ignore_f3;
 	byte a;
 	char c;
@@ -551,39 +553,57 @@ static void prt_player_sust_info(int Ind)
 	{
 		/* Get the object */
 		o_ptr = &p_ptr->inventory[i];
+		/* And it's base/ego */
+		k_ptr = &k_info[o_ptr->k_idx];
+		e_ptr = &e_info[o_ptr->name2];		
+		
 		/* Clear flags */
 		f1 = f2 = f3 = 0L;
 		/* Get the "known" flags */
 		object_flags_known(Ind, o_ptr, &f1, &f2, &f3);
 		/* Hack -- assume stat modifiers are known .. because they can be calculated */
-		//object_flags(o_ptr, &f1, &f2, &f3, &f4);
 		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3);
+
+		/* Hack -- make a second set of flags for "bpval" items */	
+		if (k_ptr->flags1 & TR1_PVAL_MASK) 
+			f1_hack = k_ptr->flags1;
+			
+		/* Hack -- clear out any pval bonuses that are in the base item */
+		if (o_ptr->name2)
+			f1 &= ~(k_ptr->flags1 & TR1_PVAL_MASK & ~e_ptr->flags1);
+		
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
 		for (stat = 0; stat < 6; stat++)
 		{
 			/* Default */
 			a = TERM_SLATE;
 			c = '.';
+			boost = 0;
+			
+			/* Hack -- precalculate boost */
+			if (f1 & (1<<stat))				boost += o_ptr->pval;
+			if (f1_hack & (1<<stat))		boost += o_ptr->bpval;
+				
 			/* Boost */
-			if (f1 & (1<<stat))
+			if (boost)
 			{
 				/* Default */
 				c = '*';
 				/* Good */
-				if (o_ptr->pval > 0)
+				if (boost > 0)
 				{
 					/* Good */
 					a = TERM_L_GREEN;
 					/* Label boost */
-					if (o_ptr->pval < 10) c = I2D(o_ptr->pval);
+					if (boost < 10) c = I2D(boost);
 				}
 				/* Bad */
-				if (o_ptr->pval < 0)
+				if (boost < 0)
 				{
 					/* Bad */
 					a = TERM_RED;
 					/* Label boost */
-					if (o_ptr->pval > -10) c = I2D(-(o_ptr->pval));
+					if (boost > -10) c = I2D(-(boost));
 				}
 			}
 			/* Sustain */
@@ -2524,6 +2544,9 @@ static void calc_bonuses(int Ind)
 
 	/* Extract the current weight (in tenth pounds) */
 	j = p_ptr->total_weight;
+	
+	/* Cap the weight */
+	if (j > 1<<14) j = 1<<14;
 
 	/* Extract the "weight limit" (in tenth pounds) */
 	i = weight_limit(Ind);

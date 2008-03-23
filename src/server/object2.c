@@ -2070,11 +2070,15 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
 
     /* Set the orcish shield's STR and CON bonus */
     if ((o_ptr->tval == TV_SHIELD) && (o_ptr->sval == SV_ORCISH_SHIELD))
-			{
+	 {
     	o_ptr->bpval = randint(2);
     	
     	/* Cursed orcish shield */
-    	if (power < 0) o_ptr->bpval = -o_ptr->bpval;
+    	if (power < 0) 
+    	{
+    		o_ptr->bpval = -o_ptr->bpval;
+    		o_ptr->ident |= ID_CURSED;
+    	}
     }
     
     /* Set the Witan Boots stealth penalty */
@@ -2092,6 +2096,7 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
 		if (o_ptr->to_a < 0) 
 		{
 			o_ptr->bpval = -o_ptr->bpval;
+			o_ptr->ident |= ID_CURSED;
 		}
 		else
 		{
@@ -2425,9 +2430,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
-                                        o_ptr->xtra1 = EGO_XTRA_ABILITY;
-                                        o_ptr->xtra2 = randint(256);
-
+                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
+                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_POWER);
 					break;
 				}
 
@@ -2446,6 +2450,11 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				{
                     o_ptr->pval = 1 + m_bonus(2, level);
                     o_ptr->to_a = randint(5) + m_bonus(5, level);
+                    
+                    /* mangband-specific -- TURN IT ON IF YOU NEED
+                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
+                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
+							*/
 
                     break;
                 }
@@ -2810,11 +2819,31 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 	{
 		ego_item_type *e_ptr = &e_info[o_ptr->name2];
 
-        /* Extra powers */
-		o_ptr->xtra1 = e_ptr->xtra;
+		/* Extra powers */
+		if (e_ptr->xtra)
+		{
+			o_ptr->xtra1 = e_ptr->xtra;
+			switch (o_ptr->xtra1)
+			{
+				case OBJECT_XTRA_TYPE_SUSTAIN:
+				{
+					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_SUSTAIN);
+					break;
+				}
 
-		/* Randomize the "xtra" power */
-		if (o_ptr->xtra1) o_ptr->xtra2 = randint(256);
+				case OBJECT_XTRA_TYPE_RESIST:
+				{
+					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_RESIST);
+					break;
+				}
+
+				case OBJECT_XTRA_TYPE_POWER:
+				{
+					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_POWER);
+					break;
+				}
+			}
+		}
 
 		/* Hack -- acquire "broken" flag */
 		if (!e_ptr->cost) o_ptr->ident |= ID_BROKEN;
