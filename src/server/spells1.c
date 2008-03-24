@@ -3761,7 +3761,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		{
 			dam *= 6; dam /= (randint(6) + 6);
 		}
-		if (!p_ptr->resist_conf)
+		if (!p_ptr->resist_conf && !p_ptr->resist_chaos)
 		{
 			(void)set_confused(Ind, p_ptr->confused + rand_int(20) + 10);
 		}
