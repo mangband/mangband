@@ -3046,8 +3046,8 @@ void text_out(cptr buf) {
 		/* We can't, let's find a suitable wrap point */
 		else
 		{
-			/* Default to line end (worst case, breaks words) */
-			j = 80 - p_ptr->cur_wid - 1;
+			/* Default to whole line */
+			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
 				if (buf[i] == ' ') 

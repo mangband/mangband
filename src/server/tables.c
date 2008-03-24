@@ -1955,6 +1955,19 @@ cptr stat_names_reduced[6] =
 	"Str: ", "Int: ", "Wis: ", "Dex: ", "Con: ", "Chr: "
 };
 
+/*
+ * Full stat names
+ */
+cptr stat_names_full[A_MAX] =
+{
+	"strength",
+	"intelligence",
+	"wisdom",
+	"dexterity",
+	"constitution",
+	"charisma"
+};
+
 
 /*
  * Standard window names

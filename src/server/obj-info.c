@@ -325,7 +325,7 @@ static bool describe_stats(const object_type *o_ptr, u32b f1, u32b fH)
 			 	if (pval[i] == pval[j])
 			 	{
 			 		/* Store flag for report */
-			 		descs[cnt++] = stat_names[i];
+			 		descs[cnt++] = stat_names_full[i];
 			 		
 			 		/* Do not report this again */
 			 		noted[i] = TRUE;
