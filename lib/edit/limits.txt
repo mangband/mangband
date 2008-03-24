@@ -18,7 +18,7 @@ V:1.1.0
 M:F:64
 
 # Maximum number of object kinds
-M:K:515
+M:K:530
 
 # Maximum number of artifacts
 M:A:137
@@ -45,7 +45,7 @@ M:H:165
 M:B:4
 
 # Maximum number of flavors
-M:L:303
+M:L:305
 
 # Maximum number of objects on the level
 M:O:512
