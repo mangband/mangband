@@ -155,8 +155,8 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 		/* Never get "silly" */
 		if (adjust < 100) adjust = 100;
 
-		/* Mega-Hack -- Black market sucks */
-		if (p_ptr->store_num == 6) price = price * 3;
+		/* The black market and player owned shops are expensive */
+		if (p_ptr->store_num == 6 || p_ptr->store_num == 8) price = price * 3;
 	}
 
 	/* Compute the final price (with rounding) */
@@ -957,7 +957,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 	owner_type *ot_ptr = &owners[p_ptr->store_num][st_ptr->owner];
-	s32b		x;
+	u32b		x;
 	char		o_name[80];
 	byte		attr;
 	int			wgt;
@@ -975,8 +975,19 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	/* Only show the weight of an individual item */
 	wgt = o_ptr->weight;
 
-	/* Extract the "minimum" price */
-	x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+	/* Extract the item price */
+	if (house_owned_by(Ind, p_ptr->player_store_num))
+	{
+		/* Viewing our own shop - the price we will get */
+		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+		x = (x * 85) >> 8;
+	}
+	else
+	{
+		/* Viewing someone else's shop - the price we will pay */
+		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+	}
+
 
 	/* Send the info */
 	Send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
@@ -1195,6 +1206,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	cave_type		*c_ptr_gold;
 	object_type		gold_obj;
 	s32b			price_each = gold / number;
+	u32b			total;
 	bool			have_gold, have_space;
 	char			*c;
 	
@@ -1297,12 +1309,17 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	/* Bail out if there was a problem with the sale */
 	if (!sold) return(sold);
 	
+	/* How much total gold is the player receiving? */
+	total = sold * price_each;
+	/* Tax - difference between shop price and BM price, i.e. divide by 3 */
+	total = (total * 85) >> 8;
+	
 	/* Did we find a pile of gold suitable for leaving a deposit? */
 	if (have_gold)
 	{
 		/* Add some gold to the pile */
 		o_ptr = &o_list[c_ptr_gold->o_idx];
-		o_ptr->pval += sold * price_each;
+		o_ptr->pval += total;
 	}
 	/* No existing gold pile, hopefully we found some space */
 	else if (have_space)
@@ -1310,7 +1327,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 		/* Make some gold */
 		invcopy(&gold_obj, lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
 		/* How much gold to leave */
-		gold_obj.pval = sold * price_each;
+		gold_obj.pval = total;
 		/* Put it in the house */
 		drop_near(&gold_obj,0,spacedepth,spacey,spacex);
 	}
