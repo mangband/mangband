@@ -66,6 +66,7 @@ extern cptr color_names[16];
 extern cptr sound_names[SOUND_MAX];
 extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
+extern cptr stat_names_full[6];
 extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
 extern option_type option_info[];
@@ -1004,6 +1005,7 @@ extern void player_talk(int Ind, char *msg);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg);
 extern int color_text_to_attr(cptr name);
+extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 
 /* xtra1.c */

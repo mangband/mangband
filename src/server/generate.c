@@ -3886,7 +3886,7 @@ static void build_store(int n, int yy, int xx)
 		c_ptr->feat = FEAT_HOME_HEAD + houses[num_houses].strength;
 
 		/* hack -- only create houses that aren't already loaded from disk */
-		if ((pick_house(0, y, x)) == -1)
+		if ((tmp = pick_house(0, y, x)) == -1)
 		{
 			/* Store door location information */
 			houses[num_houses].door_y = y;
@@ -3895,6 +3895,10 @@ static void build_store(int n, int yy, int xx)
 
 			/* One more house */
 			num_houses++;
+		}
+		else
+		{
+		    c_ptr->feat = FEAT_HOME_HEAD + houses[tmp].strength;
 		}
 	}
 	else if (n == 14) // auctionhouse

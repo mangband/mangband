@@ -1138,12 +1138,16 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	if (type == WILD_TOWN_HOME)
 	{
 		/* hack -- only add a house if it is not already in memory */
-		if ((pick_house(Depth, door_y, door_x)) == -1)
+		if ((tmp = pick_house(Depth, door_y, door_x)) == -1)
 		{
 			houses[num_houses].door_y = door_y;
 			houses[num_houses].door_x = door_x;
 			houses[num_houses].owned[0] = '\0';
 			num_houses++;
+		}
+		else
+		{
+		    cave[Depth][door_y][door_x].feat = FEAT_HOME_HEAD + houses[tmp].strength;
 		}
 	}
 		

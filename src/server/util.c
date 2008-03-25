@@ -890,6 +890,30 @@ int color_char_to_attr(char c)
 	return (-1);
 }
 
+/*
+ * Convert a color to it's opposite 
+ */
+int color_opposite(int color) {
+	switch (color) {
+		case TERM_L_BLUE: 	return TERM_BLUE;
+		case TERM_L_GREEN: 	return TERM_GREEN;
+		case TERM_L_RED: 		return TERM_RED;
+		case TERM_L_WHITE: 	return TERM_SLATE;
+		case TERM_UMBER: 		return TERM_L_UMBER;
+		case TERM_ORANGE: 	return TERM_YELLOW;
+		case TERM_DARK: 		return TERM_L_DARK;
+		case TERM_VIOLET:		return ( randint(100) < 50 ? TERM_BLUE : TERM_RED );
+		/* and vice versa */
+		case TERM_BLUE: 		return TERM_L_BLUE;
+		case TERM_GREEN: 		return TERM_L_GREEN;
+		case TERM_RED: 		return TERM_L_RED;
+		case TERM_SLATE: 		return TERM_L_WHITE;
+		case TERM_L_UMBER: 	return TERM_UMBER;
+		case TERM_YELLOW: 	return TERM_ORANGE;
+		case TERM_L_DARK: 	return TERM_DARK;
+	}
+	return color;
+}
 
 
 /*
@@ -3046,8 +3070,8 @@ void text_out(cptr buf) {
 		/* We can't, let's find a suitable wrap point */
 		else
 		{
-			/* Default to line end (worst case, breaks words) */
-			j = 80 - p_ptr->cur_wid - 1;
+			/* Default to whole line */
+			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
 				if (buf[i] == ' ') 

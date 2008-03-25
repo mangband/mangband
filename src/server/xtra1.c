@@ -720,6 +720,7 @@ static void prt_player_flag_info(int Ind)
 				f[1] = f[2] = f[3] = 0L;
 
 				/* Fill in Known flags */
+				if (o_ptr->k_idx) /* don't waste time */
 				object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3]);
 
 				/* Color columns by parity */
@@ -2517,11 +2518,13 @@ static void calc_bonuses(int Ind)
 
 
 	/* Hack -- Res Chaos -> Res Conf */
+	/* Not in recent Angband!
 	if (p_ptr->resist_chaos)
 	{
 		p_ptr->resist_conf = TRUE;
 	}
-
+	*/
+	
 	/* Hack -- Hero/Shero -> Res fear */
 	if (p_ptr->hero || p_ptr->shero)
 	{

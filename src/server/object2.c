@@ -1307,8 +1307,8 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_ARROW:
 		case TV_SHOT:
 		{
-			/* Require feeling */
-			if (!object_felt_or_known_p(Ind,o_ptr) || !object_felt_or_known_p(Ind,j_ptr)) return (FALSE);
+			/* Require identical knowledge of both items */
+			if (object_known_p(Ind,o_ptr) != object_known_p(Ind,j_ptr)) return (FALSE);
 		
 			/* Require identical "bonuses" */
 			if (o_ptr->to_h != j_ptr->to_h) return (FALSE);
@@ -1324,8 +1324,8 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 			/* Require identical "ego-item" names */
 			if (o_ptr->name2 != j_ptr->name2) return (FALSE);
 
-            /* Require identical "random artifact" names */
-            if (o_ptr->name3 != j_ptr->name3) return (FALSE);
+		        /* Require identical "random artifact" names */
+	                if (o_ptr->name3 != j_ptr->name3) return (FALSE);
 
 			/* Hack -- Never stack "powerful" items */
 			if (o_ptr->xtra1 || j_ptr->xtra1) return (FALSE);
@@ -2579,7 +2579,12 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		charge_staff(o_ptr);
 
 		break;
+		
+		case TV_ROD:
 
+		/* Transfer the pval. */
+		o_ptr->pval = k_info[o_ptr->k_idx].pval;
+		break;
 
 		case TV_CHEST:
 

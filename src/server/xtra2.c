@@ -2674,7 +2674,7 @@ void resurrect_player(int Ind)
 	msg_print(Ind, "You feel life return to your body.");
 
 	/* Redraw */
-	p_ptr->redraw |= (PR_BASIC);
+	p_ptr->redraw |= (PR_BASIC | PR_OFLAGS);
 
 	/* Update */
 	p_ptr->update |= (PU_BONUS);

@@ -1203,3 +1203,13 @@ G:?:w
 N:302:70
 G:?:w
 
+##### MAngband #####
+# Mangband has more items, needs more flavors
+
+N:303:40
+G:":U
+D:Sandstone
+
+N:304:40
+G:":D
+D:Fossilized
