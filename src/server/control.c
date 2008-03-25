@@ -373,7 +373,7 @@ void NewConsole(int read_fd, int arg)
 	{
 		console_listen = TRUE;
 	}
-	else if (!strncmp(buf,"who",6)) 
+	else if (!strncmp(buf,"who",3)) 
 	{
 		console_who();
 	}
