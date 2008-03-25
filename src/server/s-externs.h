@@ -970,6 +970,7 @@ extern void msg_format_near(int Ind, cptr fmt, ...);
 extern void player_talk(int Ind, char *msg);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg);
+extern int color_opposite(int color);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);

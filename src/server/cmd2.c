@@ -2796,7 +2796,42 @@ void do_cmd_throw(int Ind, int dir, int item)
 		mmove2(&ny, &nx, p_ptr->py, p_ptr->px, ty, tx);
 
 		/* Stopped by walls/doors */
-		if (!cave_floor_bold(Depth, ny, nx)) break;
+		if (!cave_floor_bold(Depth, ny, nx)) 
+		{
+			/* Special case: potion VS house door */
+			if (o_ptr->tval == TV_POTION &&
+				 cave[Depth][ny][nx].feat >= FEAT_HOME_HEAD && 
+				 cave[Depth][ny][nx].feat <= FEAT_HOME_TAIL) 
+			{
+				/* Break it */
+				hit_body = TRUE;
+				
+				/* Find suitable color */
+				for (i = FEAT_HOME_HEAD; i < FEAT_HOME_TAIL + 1; i++)
+				{
+					if (f_info[i].z_attr == missile_attr || f_info[i].z_attr == color_opposite(missile_attr)) 
+					{
+						/* Pick a house */
+						if ((j = pick_house(Depth, ny, nx)) == -1) break;
+
+						/* Must own the house */
+						if (!house_owned_by(Ind,j)) break;
+						
+						/* Chance to fail */
+						if (randint(100) > p_ptr->sc) break;
+
+						/* Perform colorization */
+						houses[j].strength = i - FEAT_HOME_HEAD;
+						cave[Depth][ny][nx].feat = i;
+						everyone_lite_spot(Depth, ny, nx);
+						
+						/* Done */
+						break;
+					}
+				}		
+			}
+			break;
+		}
 
 		/* Advance the distance */
 		cur_dis++;

@@ -1005,6 +1005,7 @@ extern void player_talk(int Ind, char *msg);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg);
 extern int color_text_to_attr(cptr name);
+extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 
 /* xtra1.c */

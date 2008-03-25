@@ -475,41 +475,41 @@ G:+:U
 # 0x72 --> home door (strength 2)
 
 N:114:closed door
-G:+:U
-M:40
+G:+:s
+#M:40
 
-# 0x73 --> home door (strength 2)
+# 0x73 --> home door (strength 3)
 
 N:115:closed door
-G:+:U
-M:40
+G:+:w
+#M:40
 
-# 0x74 --> home door (strength 2)
+# 0x74 --> home door (strength 4)
 
 N:116:closed door
-G:+:U
-M:40
+G:+:g
+#M:40
 
-# 0x75 --> home door (strength 2)
+# 0x75 --> home door (strength 5)
 
 N:117:closed door
-G:+:U
-M:40
+G:+:b
+#M:40
 
-# 0x76 --> home door (strength 2)
+# 0x76 --> home door (strength 6)
 
 N:118:closed door
-G:+:U
-M:40
+G:+:r
+#M:40
 
-# 0x77 --> home door (strength 2)
+# 0x77 --> home door (strength 7)
 
 N:119:closed door
-G:+:U
-M:40
+G:+:D
+#M:40
 
-# 0x78 --> home door (strength 2)
+# 0x78 --> home door (strength 8)
 
 N:120:closed door
-G:+:U
-M:40
+G:+:y
+#M:40
