@@ -1105,7 +1105,7 @@ static void display_store(int Ind)
 	/* Player owned stores */
 	else
 	{
-		Send_player_store_info(Ind, p_ptr->store_num, 
+		Send_player_store_info(Ind, houses[p_ptr->player_store_num].strength, 
 			houses[p_ptr->player_store_num].owned, stockcount);		
 	}
 

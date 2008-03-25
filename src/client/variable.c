@@ -16,6 +16,7 @@ char inventory_name[INVEN_TOTAL][80];	/* The client-side copy of the inventory n
 store_type store;			/* The general info about the current store */
 owner_type store_owner;			/* The current owner of the store */
 char player_owner[MAX_NAME_LEN]; /* The store owner for player owned stores */
+byte player_store_type;			/* Shop type for player owned stores */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
 char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */

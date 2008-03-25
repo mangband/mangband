@@ -2168,13 +2168,15 @@ int Receive_player_store_info(void)
 {
 	int	n;
 	char	ch;
-	s16b	owner_num, num_items;
+	s16b	owner_num, num_items, tmp;
 
-	if ((n = Packet_scanf(&rbuf, "%c%hd%s%hd", &ch, &store_num, player_owner, &num_items)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%hd%s%hd", &ch, &tmp, player_owner, &num_items)) <= 0)
 	{
 		return n;
 	}
 
+	player_store_type = (byte)tmp;
+	store_num = 8;
 	store.stock_num = num_items;
 
 	/* Only enter "display_store" if we're not already shopping */
