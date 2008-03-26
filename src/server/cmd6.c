@@ -2001,26 +2001,30 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	/* Use a single charge */
 	o_ptr->pval--;
 
-	/* XXX Hack -- unstack if necessary */
-	if ((item >= 0) && (o_ptr->number > 1))
-	{
-		/* Make a fake item */
-		object_type tmp_obj;
-		tmp_obj = *o_ptr;
-		tmp_obj.number = 1;
-
-		/* Restore the charges */
-		o_ptr->pval++;
-
-		/* Unstack the used item */
-		o_ptr->number--;
-		p_ptr->total_weight -= tmp_obj.weight;
-		item = inven_carry(Ind, &tmp_obj);
-
-		/* Message */
-		msg_print(Ind, "You unstack your staff.");
+	if (!p_ptr->stack_allow_wands) {
+		/* XXX Hack -- unstack if necessary */
+		if ((item >= 0) && (o_ptr->number > 1))
+		{
+			/* Make a fake item */
+			object_type tmp_obj;
+			tmp_obj = *o_ptr;
+			tmp_obj.number = 1;
+			
+			distribute_charges(o_ptr, &tmp_obj, 1);			
+			
+			/* Restore the charges */
+			//o_ptr->pval++;
+	
+			/* Unstack the used item */
+			o_ptr->number--;
+			p_ptr->total_weight -= tmp_obj.weight;
+			item = inven_carry(Ind, &tmp_obj);
+	
+			/* Message */
+			msg_print(Ind, "You unstack your staff.");
+		}
 	}
-
+	
 	/* Describe charges in the pack */
 	if (item >= 0)
 	{
@@ -2425,26 +2429,30 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Use a single charge */
 	o_ptr->pval--;
 
-	/* Hack -- unstack if necessary */
-	if ((item >= 0) && (o_ptr->number > 1))
-	{
-		/* Make a fake item */
-		object_type tmp_obj;
-		tmp_obj = *o_ptr;
-		tmp_obj.number = 1;
-
-		/* Restore the charges */
-		o_ptr->pval++;
-
-		/* Unstack the used item */
-		o_ptr->number--;
-		p_ptr->total_weight -= tmp_obj.weight;
-		item = inven_carry(Ind, &tmp_obj);
-
-		/* Message */
-		msg_print(Ind, "You unstack your wand.");
+	if (!p_ptr->stack_allow_wands) {
+		/* Hack -- unstack if necessary */
+		if ((item >= 0) && (o_ptr->number > 1))
+		{
+			/* Make a fake item */
+			object_type tmp_obj;
+			tmp_obj = *o_ptr;
+			tmp_obj.number = 1;
+	
+			distribute_charges(o_ptr, &tmp_obj, 1);	
+				
+			/* Restore the charges */
+			//o_ptr->pval++;
+	
+			/* Unstack the used item */
+			o_ptr->number--;
+			p_ptr->total_weight -= tmp_obj.weight;
+			item = inven_carry(Ind, &tmp_obj);
+	
+			/* Message */
+			msg_print(Ind, "You unstack your wand.");
+		}
 	}
-
+	
 	/* Describe the charges in the pack */
 	if (item >= 0)
 	{
@@ -2714,25 +2722,28 @@ void do_cmd_zap_rod(int Ind, int item)
 		return;
 	}
 
-
-	/* XXX Hack -- unstack if necessary */
-	if ((item >= 0) && (o_ptr->number > 1))
-	{
-		/* Make a fake item */
-		object_type tmp_obj;
-		tmp_obj = *o_ptr;
-		tmp_obj.number = 1;
-
-		/* Restore "charge" */
-		o_ptr->pval = 0;
-
-		/* Unstack the used item */
-		o_ptr->number--;
-		p_ptr->total_weight -= tmp_obj.weight;
-		item = inven_carry(Ind, &tmp_obj);
-
-		/* Message */
-		msg_print(Ind, "You unstack your rod.");
+	if (!p_ptr->stack_allow_wands) {
+		/* XXX Hack -- unstack if necessary */
+		if ((item >= 0) && (o_ptr->number > 1))
+		{
+			/* Make a fake item */
+			object_type tmp_obj;
+			tmp_obj = *o_ptr;
+			tmp_obj.number = 1;
+			
+			distribute_charges(o_ptr, &tmp_obj, 1);
+	
+			/* Restore "charge" */
+			//o_ptr->pval = 0;
+	
+			/* Unstack the used item */
+			o_ptr->number--;
+			p_ptr->total_weight -= tmp_obj.weight;
+			item = inven_carry(Ind, &tmp_obj);
+	
+			/* Message */
+			msg_print(Ind, "You unstack your rod.");
+		}
 	}
 }
 
