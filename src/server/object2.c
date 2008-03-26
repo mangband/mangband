@@ -2317,7 +2317,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_DAMAGE:
 				{
 					/* Bonus to damage */
-					o_ptr->to_d = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_d = 5 + randint(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2339,7 +2339,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_ACCURACY:
 				{
 					/* Bonus to hit */
-					o_ptr->to_h = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_h = 5 + randint(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
