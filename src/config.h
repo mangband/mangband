@@ -232,6 +232,7 @@
  */
 #define WIDE_CORRIDORS
 
+
 /*
  * OPTION: Enable experimental text_out routine.
  * It is definitly more CPU-intesnive, but IS pretty and more Angband-like.
