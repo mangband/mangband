@@ -113,9 +113,10 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 	/* Get the value of one of the items */
 	price = object_value(Ind, o_ptr);
 	
-	/* Use sellers asking price as base price in the "back room" */
+	/* Use sellers asking price as base price in player owned shops */
 	if (p_ptr->store_num == 8)
 	{
+		price = price*3;
 		if (o_ptr->askprice > price)
 		{
 			price = o_ptr->askprice;
@@ -155,8 +156,8 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 		/* Never get "silly" */
 		if (adjust < 100) adjust = 100;
 
-		/* The black market and player owned shops are expensive */
-		if (p_ptr->store_num == 6 || p_ptr->store_num == 8) price = price * 3;
+		/* The black market is expensive */
+		if (p_ptr->store_num == 6) price = price * 3;
 	}
 
 	/* Compute the final price (with rounding) */
@@ -1013,7 +1014,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	{
 		/* Viewing our own shop - the price we will get */
 		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
-		x = (x * 85) >> 8;
+		x = (x * 90) / 100;
 	}
 	else
 	{
@@ -1351,10 +1352,12 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 	/* Bail out if there was a problem with the sale */
 	if (!sold) return(sold);
 	
-	/* How much total gold is the player receiving? */
-	total = sold * price_each;
-	/* Tax - difference between shop price and BM price, i.e. divide by 3 */
-	total = (total * 85) >> 8;
+	/* How much total gold is the seller receiving? */
+	total = object_value(Ind, o_ptr_shop) * 3;
+	if (o_ptr_shop->askprice > total) total = o_ptr_shop->askprice;
+	total = total * sold;
+	/* Small sales tax */
+	total = (total * 90) / 100;
 	
 	/* Did we find a pile of gold suitable for leaving a deposit? */
 	if (have_gold)
