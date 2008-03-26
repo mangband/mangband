@@ -2455,6 +2455,28 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 					break;
 				}
 
+                /* Amulet of ESP -- never cursed */
+                case SV_AMULET_ESP:
+                {
+					o_ptr->pval = randint(5) + m_bonus(5, level);
+
+                    break;
+                }
+
+				/* Amulet of the Magi -- never cursed */
+				case SV_AMULET_THE_MAGI:
+				{
+                    o_ptr->pval = 1 + m_bonus(2, level);
+                    o_ptr->to_a = randint(5) + m_bonus(5, level);
+                    
+                    /* mangband-specific -- TURN IT ON IF YOU NEED
+                    o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
+                    o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
+					*/
+
+                    break;
+                }
+
 				/* Amulet of speed */
 				case SV_AMULET_SPEED:
 				{
@@ -2479,51 +2501,32 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				}
 
          			/* Amulet of Terken -- never cursed */
-                                case SV_AMULET_TERKEN:
+				case SV_AMULET_TERKEN:
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
-                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
-                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_POWER);
+                    o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
+                    o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_POWER);
 					break;
 				}
 
          			/* Amulet of the Moon -- never cursed */
-                                case SV_AMULET_THE_MOON:
+				case SV_AMULET_THE_MOON:
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
-                                        o_ptr->to_h = randint(5);
-                                        o_ptr->to_d = randint(5);
+                    o_ptr->to_h = randint(5);
+                    o_ptr->to_d = randint(5);
 
 					break;
 				}
 
-				/* Amulet of the Magi -- never cursed */
-				case SV_AMULET_THE_MAGI:
-				{
-                    o_ptr->pval = 1 + m_bonus(2, level);
-                    o_ptr->to_a = randint(5) + m_bonus(5, level);
-                    
-                    /* mangband-specific -- TURN IT ON IF YOU NEED
-                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
-                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
-							*/
-
-                    break;
-                }
-
-                /* Amulet of ESP -- never cursed */
-                case SV_AMULET_ESP:
-                {
-					o_ptr->pval = randint(5) + m_bonus(5, level);
-
-                    break;
-                }
-
                 /* Amulet of Devotion -- never cursed */
                 case SV_AMULET_DEVOTION:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
+					o_ptr->pval = 1 + m_bonus(3, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }
@@ -2531,10 +2534,12 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of Weaponmastery -- never cursed */
                 case SV_AMULET_WEPMASTERY:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
-                    o_ptr->to_h = randint(5);
-                    o_ptr->to_d = randint(5);
-					o_ptr->to_a = randint(5) + m_bonus(5, level);
+					o_ptr->to_h = 1 + m_bonus(4, level);
+					o_ptr->to_d = 1 + m_bonus(4, level);
+					o_ptr->pval = 1 + m_bonus(2, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }
@@ -2542,7 +2547,10 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of Trickery -- never cursed */
                 case SV_AMULET_TRICKERY:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
+					o_ptr->pval = randint(1) + m_bonus(3, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }
