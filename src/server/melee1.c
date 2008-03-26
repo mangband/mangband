@@ -635,8 +635,23 @@ bool make_attack_normal(int Ind, int m_idx)
 						/* Don't steal artifacts  -CFT */
 						if (artifact_p(o_ptr)) continue;
 
+						/* Get local object */ 
+						i_ptr = &object_type_body; 
+	
+						/* Obtain local object */ 
+						COPY(i_ptr, o_ptr, object_type); 
+	
+						/* Modify number */ 
+						i_ptr->number = 1; 
+
+						/* Hack -- If a rod, staff, or wand, allocate total
+						 * maximum timeouts or charges between those
+					 	* stolen and those missed. -LM-
+					 	*/
+						distribute_charges(o_ptr, i_ptr, 1);
+
 						/* Get a description */
-						object_desc(Ind, o_name, o_ptr, FALSE, 3);
+						object_desc(Ind, o_name, i_ptr, FALSE, 3);
 
 						/* Message */
 						msg_format(Ind, "%sour %s (%c) was stolen!",
@@ -645,15 +660,6 @@ bool make_attack_normal(int Ind, int m_idx)
 	
 						if	(monster_can_carry(m_idx))
 						{
-							/* Get local object */ 
-							i_ptr = &object_type_body; 
-	
-							/* Obtain local object */ 
-							COPY(i_ptr, o_ptr, object_type); 
-	
-							/* Modify number */ 
-							i_ptr->number = 1; 
-	
 							/* Carry the object */ 
 							monster_carry(Ind, m_idx, i_ptr); 
 						}

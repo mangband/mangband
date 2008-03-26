@@ -303,7 +303,12 @@ static bool store_object_similar(object_type *o_ptr, object_type *j_ptr)
 	if (o_ptr->k_idx != j_ptr->k_idx) return (0);
 
 	/* Different charges (etc) cannot be stacked */
-	if (o_ptr->pval != j_ptr->pval) return (0);
+//	if (o_ptr->pval != j_ptr->pval) return (0);
+	/* Different pvals cannot be stacked, except for wands, staves, or rods */
+	if ((o_ptr->pval != j_ptr->pval) &&
+	    (o_ptr->tval != TV_WAND) &&
+	    (o_ptr->tval != TV_STAFF) &&
+	    (o_ptr->tval != TV_ROD)) return (0);
 
 	/* Require many identical values */
 	if (o_ptr->to_h  !=  j_ptr->to_h) return (0);
@@ -350,6 +355,22 @@ static void store_object_absorb(object_type *o_ptr, object_type *j_ptr)
 
 	/* Combine quantity, lose excess items */
 	o_ptr->number = (total > 99) ? 99 : total;
+
+	/*
+	 * Hack -- if rods are stacking, add the pvals (maximum timeouts)
+	 * and any charging timeouts together
+	 */
+	if (o_ptr->tval == TV_ROD)
+	{
+		o_ptr->pval += j_ptr->pval;
+		o_ptr->timeout += j_ptr->timeout;
+	}
+
+	/* Hack -- if wands/staves are stacking, combine the charges */
+	if ((o_ptr->tval == TV_WAND) || (o_ptr->tval == TV_STAFF))
+	{
+		o_ptr->pval += j_ptr->pval;
+	}
 }
 
 
@@ -749,9 +770,13 @@ static void store_delete(int st)
 {
 	store_type *st_ptr = &store[st];
 	int what, num;
+	object_type *o_ptr;
 
 	/* Pick a random slot */
 	what = rand_int(st_ptr->stock_num);
+
+	/* Get the object */
+	o_ptr = &st_ptr->stock[what];
 
 	/* Determine how many items are here */
 	num = st_ptr->stock[what].number;
@@ -769,6 +794,14 @@ static void store_delete(int st)
 		a_info[st_ptr->stock[what].name1].cur_num = 0;
 	}
 
+	/* Hack -- decrement the maximum timeouts and total charges of rods and wands. */
+	if ((o_ptr->tval == TV_ROD) ||
+	    (o_ptr->tval == TV_STAFF) ||
+	    (o_ptr->tval == TV_WAND))
+	{
+		o_ptr->pval -= num * o_ptr->pval / o_ptr->number;
+	}
+	
 	/* Actually destroy (part of) the item */
 	store_item_increase(st, what, -num);
 	store_item_optimize(st, what);
@@ -1174,8 +1207,9 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
  * Remove the given item from the players house who owns it and credit
  * this player with some gold for the transaction. Return the number of
  * matching items removed from houses.
+ * Hack -- when buying wands/staffs pval is transmitted
  */
-int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
+int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, byte pval)
 {
 	player_type *p_ptr = Players[Ind];
 	int			i,x,y,sold,spacex,spacey,spacedepth;
@@ -1274,6 +1308,14 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 					}
 					else if (o_ptr->number > number)
 					{
+						/* Hack -- handle charges */
+						if ((o_ptr->tval == TV_ROD) ||
+	    				(o_ptr->tval == TV_STAFF) ||
+	    				(o_ptr->tval == TV_WAND))
+						{
+ 							o_ptr->pval -= pval;
+ 						}
+					
 						/* Reduce the pile of items */
 						o_ptr->number -= number;
 						sold += number;
@@ -1403,6 +1445,23 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 	return found;
 }
 
+void store_handle_charges(int st, int item, int rem)
+{
+	object_type		*o_ptr;
+	store_type *st_ptr = &store[st];
+	o_ptr = &st_ptr->stock[item];
+	/* Hack -- remove charges */
+	if ((o_ptr->tval == TV_ROD) ||
+	    (o_ptr->tval == TV_STAFF) ||
+	    (o_ptr->tval == TV_WAND))
+	{
+		o_ptr->pval -= rem;
+		if (o_ptr->pval < 0) o_ptr->pval = 0;
+	}
+	/* Reduce charges */
+	//if (cnt > 0) reduce_charges(o_ptr, -num);	
+}
+
 /*
  * Buy an item from a store				-RAK-
  */
@@ -1487,6 +1546,14 @@ void store_purchase(int Ind, int item, int amt)
 
 	/* Create the object to be sold (structure copy) */
 	sell_obj = *o_ptr;
+		
+	/*
+	 * Hack -- If a rod or wand, allocate total maximum timeouts or charges
+	 * between those purchased and left on the shelf.
+	 */
+	reduce_charges(&sell_obj, sell_obj.number - amt);
+	//distribute_charges(o_ptr, &sell_obj, amt);	
+
 	sell_obj.number = amt;
 
 	/* Hack -- require room in pack */
@@ -1515,7 +1582,7 @@ void store_purchase(int Ind, int item, int amt)
 			if (p_ptr->store_num == 8)
 			{
 				/* Remove the item from the players house */
-				sold = sell_player_item(Ind, o_ptr, amt, price);
+				sold = sell_player_item(Ind, o_ptr, amt, price,  sell_obj.pval);
 					
 				/* Did we really manage to sell this? */
 				if (sold)
@@ -1577,6 +1644,8 @@ void store_purchase(int Ind, int item, int amt)
 
 			/* Note how many slots the store used to have */
 			i = st_ptr->stock_num;
+			
+			store_handle_charges(st, item, sell_obj.pval);
 
 			if (p_ptr->store_num == 8)
 			{
@@ -1657,7 +1726,7 @@ void store_sell(int Ind, int item, int amt)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			choice;
+	int			choice, tmp_pval, tmp_time;
 
 	s32b		price;
 
@@ -1717,6 +1786,18 @@ void store_sell(int Ind, int item, int amt)
 
 	/* Create the object to be sold (structure copy) */
 	sold_obj = *o_ptr;
+	
+	/*
+	 * Hack -- Allocate charges between those wands, staves, or rods
+	 * sold and retained, unless all are being sold.
+	 */
+	//reduce_charges(&sold_obj, sold_obj.number - amt);
+	tmp_pval = o_ptr->pval;
+	tmp_time = o_ptr->timeout;
+	distribute_charges(o_ptr, &sold_obj, amt);
+	o_ptr->pval = tmp_pval;
+	o_ptr->timeout = tmp_time;
+	
 	sold_obj.number = amt;
 
 	/* Get a full description */
@@ -1813,6 +1894,13 @@ void store_confirm(int Ind)
 
 	/* Re-Create the now-identified object that was sold */
 	sold_obj = *o_ptr;
+	
+	/*
+	 * Hack -- Allocate charges between those wands, staves, or rods
+	 * sold and retained, unless all are being sold.
+	 */
+	distribute_charges(o_ptr, &sold_obj, amt);
+	
 	sold_obj.number = amt;
 
 	/* Get the "actual" value */

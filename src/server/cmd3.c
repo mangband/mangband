@@ -146,6 +146,9 @@ static void inven_drop(int Ind, int item, int amt)
 	/* Make a "fake" object */
 	tmp_obj = *o_ptr;
 	tmp_obj.number = amt;
+	
+	/* Distribute charges of wands, staves, or rods */
+	distribute_charges(o_ptr, &tmp_obj, amt);
 
 	/* What are we "doing" with the object */
 	if (amt < o_ptr->number)
@@ -720,6 +723,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 	object_type		*o_ptr;
 
+	object_type *i_ptr;
+	object_type object_type_body;
+	
 	char		o_name[80];
 
 	/* Hack -- force destruction */
@@ -742,13 +748,32 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		o_ptr = &o_list[0 - item];
 	}
 
+	/* Get local object */
+	i_ptr = &object_type_body;
 
-	/* Describe the object */
+	/* Obtain a local object */
+	COPY(i_ptr, o_ptr, object_type);
+
+	if ((o_ptr->tval == TV_WAND) ||
+	    (o_ptr->tval == TV_STAFF) ||
+	    (o_ptr->tval == TV_ROD))
+	{
+		/* Calculate the amount of destroyed charges */
+		i_ptr->pval = o_ptr->pval * quantity / o_ptr->number;
+	}
+
+	/* Set quantity */
+	i_ptr->number = quantity;
+
+	/* Describe the destroyed object */
+	object_desc(Ind, o_name, i_ptr, TRUE, 3);
+
+	/* Describe the object 
 	old_number = o_ptr->number;
 	o_ptr->number = quantity;
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	o_ptr->number = old_number;
-
+	*/
 	if( check_guard_inscription( o_ptr->note, 'k' )) {
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
@@ -800,6 +825,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
+	
+	/* Reduce the charges of rods/wands/staves */
+	reduce_charges(o_ptr, quantity);
 
 	/* Eliminate the item (from the pack) */
 	if (item >= 0)
@@ -1122,9 +1150,15 @@ void do_cmd_steal(int Ind, int dir)
 			if (o_ptr->k_idx)
 			{
 				forge = *o_ptr;
-	
 				/* Give one item to thief */
 				forge.number = 1;
+				
+				/* Hack -- If a rod, staff, or wand, allocate total
+				 * maximum timeouts or charges between those
+				 * stolen and those missed. -LM-
+				 */
+				distribute_charges(o_ptr, &forge, 1);				
+				
 				inven_carry(Ind, &forge);
 	
 				/* Take one from target */

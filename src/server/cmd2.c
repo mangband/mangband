@@ -2756,6 +2756,9 @@ void do_cmd_throw(int Ind, int dir, int item)
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
 
+	/* Distribute charges of wands, staves, or rods */
+	distribute_charges(o_ptr, &throw_obj, 1);
+
 	/* Reduce and describe inventory */
 	if (item >= 0)
 	{
