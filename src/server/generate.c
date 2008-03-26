@@ -4254,6 +4254,17 @@ void dealloc_dungeon_level(int Depth)
 {
 	int i;
 
+	/* Hack to compensate for the half baked hacks below! */
+	/* Don't deallocate levels which contain houses owned by players */
+	for (i = 0; i < num_houses; i++)
+	{
+		/* House on this depth and owned? */
+		if (houses[i].depth == Depth && house_owned(i))
+		{
+			return;
+		}
+	}
+	
 	/* Delete any monsters on that level */
 	/* Hack -- don't wipe wilderness monsters */
 	if (Depth > 0) wipe_m_list(Depth);
