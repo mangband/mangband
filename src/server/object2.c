@@ -1982,46 +1982,73 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
         /* Cursed (if "bad") */
         if (o_ptr->to_h + o_ptr->to_d < 0) o_ptr->ident |= ID_CURSED;
     }
-    
-    /* Set the cursed diggers penalty */
-    if (o_ptr->tval == TV_DIGGING)
+
+	/* Analyze type */
+	switch (o_ptr->tval)
+	{
+		case TV_DIGGING:
+		{
+			/* Very bad */
+			if (power < -1)
+			{
+				/* Hack -- Horrible digging bonus */
+				o_ptr->pval = 0 - (5 + randint(5));
+			}
+
+			/* Bad */
+			else if (power < 0)
+			{
+				/* Hack -- Reverse digging bonus */
+				o_ptr->pval = 0 - (o_ptr->pval);
+			}
+
+			break;
+		}
+
+
+		case TV_HAFTED:
+		case TV_POLEARM:
+		case TV_SWORD:
+		{
+			/* Very Good */
+			if (power > 1)
+			{
+				/* Hack -- Super-charge the damage dice */
+				while ((o_ptr->dd * o_ptr->ds > 0) &&
+				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
 				{
-    	/* Bad */
-    	if (power < 0)
-					{
-      	/* Hack -- Reverse digging bonus */
-        o_ptr->pval = 0 - (o_ptr->pval);
-					}
-      
-      /* Very bad */
-      else if (power < -1)
-					{
-      	/* Hack -- Horrible digging bonus */
-      	o_ptr->pval = 0 - (5 + randint(5));
-					}
-    }
-    
-    /* Set the ego weapons extra dice */
-    if (((o_ptr->tval == TV_HAFTED) || (o_ptr->tval == TV_POLEARM) ||
-    	(o_ptr->tval == TV_SWORD)) && (power > 1))
-					{
-    	/* Hack -- Super-charge the damage dice */
-    	while (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0) o_ptr->dd++;
-    	
-    	/* Hack -- Lower the damage dice */
-    	if (o_ptr->dd > 9) o_ptr->dd = 9;
-					}
-    
-    /* Set the ego missiles extra dice */
-    if (((o_ptr->tval == TV_BOLT) || (o_ptr->tval == TV_ARROW) ||
-    	(o_ptr->tval == TV_SHOT)) && (power > 1))
-					{
-    	/* Hack -- Super-charge the damage dice */
-    	while (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0) o_ptr->dd++;
-    	
-    	/* Hack -- Lower the damage dice */
-    	if (o_ptr->dd > 9) o_ptr->dd = 9;
-					}
+					o_ptr->dd++;
+				}
+
+				/* Hack -- Lower the damage dice */
+				if (o_ptr->dd > 9) o_ptr->dd = 9;
+			}
+
+			break;
+		}
+
+
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			/* Very good */
+			if (power > 1)
+			{
+				/* Hack -- super-charge the damage dice */
+				while ((o_ptr->dd * o_ptr->ds > 0) &&
+				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
+				{
+					o_ptr->dd++;
+				}
+
+				/* Hack -- restrict the damage dice */
+				if (o_ptr->dd > 9) o_ptr->dd = 9;
+			}
+
+			break;
+		}
+	}
     
     /* are we done? */
     if ((power >= -1) && (power <= 1)) return;
@@ -2033,11 +2060,11 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
-					{
+		{
     		o_ptr->name2 = idx; /* EGO_XXX */
-						break;
-					}
-				}
+			break;
+		}
+	}
 }
 
 
