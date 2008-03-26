@@ -2383,8 +2383,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_SLAYING:
 				{
 					/* Bonus to damage and to hit */
-					o_ptr->to_d = randint(5) + m_bonus(10, level);
-					o_ptr->to_h = randint(5) + m_bonus(10, level);
+					o_ptr->to_d = randint(5) + m_bonus(5, level);
+					o_ptr->to_h = randint(5) + m_bonus(5, level);
 
 					/* Cursed */
 					if (power < 0)
