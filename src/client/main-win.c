@@ -3646,7 +3646,9 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	/* Set hooks */
 	quit_aux = hack_quit;
 	core_aux = hack_core;
+	/* No need to open a dialog on a warning, it just gets in the way of game play.
 	plog_aux = hack_plog;
+	*/
 
 	/* Prepare the filepaths */
 	init_stuff();
