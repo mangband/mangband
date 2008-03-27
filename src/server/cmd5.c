@@ -1359,7 +1359,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 
 
-/*            case MSPELL_HASTE_SELF:
+#if 0
+			case MSPELL_HASTE_SELF:
 			{
 				if (!p_ptr->fast)
 				{
@@ -1371,7 +1372,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 				}
 				break;
 			}
-*/
+#endif
 /*            case MSPELL_SHIELD_GOI:
 			{
 				//(void)set_invuln(Ind, p_ptr->invuln + randint(8) + 8);
