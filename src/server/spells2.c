@@ -1667,6 +1667,20 @@ bool detect_sdoor(int Ind)
 				/* Obvious */
 				detect = TRUE;
 			}
+			else if (((c_ptr->feat >= FEAT_DOOR_HEAD) &&
+			     (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
+			    ((c_ptr->feat == FEAT_OPEN) ||
+			     (c_ptr->feat == FEAT_BROKEN)))
+			{ /* Deal with non-hidden doors as well */
+				/* Memorize the door */
+				*w_ptr |= CAVE_MARK;
+
+				/* Redraw */
+				lite_spot(Ind, i, j);
+
+				/* Obvious */
+				detect = TRUE;
+			}
 
 			/* Ignore known grids */
 			if (*w_ptr & CAVE_MARK) continue;
