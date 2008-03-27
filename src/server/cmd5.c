@@ -1357,8 +1357,6 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-
-
 #if 0
 			case MSPELL_HASTE_SELF:
 			{
@@ -1373,7 +1371,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 #endif
-/*            case MSPELL_SHIELD_GOI:
+#if 0
+			case MSPELL_SHIELD_GOI:
 			{
 				//(void)set_invuln(Ind, p_ptr->invuln + randint(8) + 8);
 				// GOI no longer stacks, as when it did it was vastly overpowered. 
@@ -1381,7 +1380,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 					set_invuln(Ind, 10 + randint(10));
 				break;
 			}
-*/
+#endif
 		}
 
 		/* A spell was cast */
