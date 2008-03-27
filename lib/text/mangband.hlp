@@ -1,3 +1,42 @@
+ arrow keys, numpad         walk            You can also use numpad.
+ hold Shift                 run             To attack, bump into monster.
+ hold Ctrl                  dig             To shoot -- read page[2]
+
+ w wear/wield item          t takeoff item            R rest
+                       
+ d drop item                , pick up item            v throw item
+                            I examine item            k destroy item
+
+ m cast spell               p pray                    r read scroll
+ a aim wand                 z zap rod                 u use staff
+                       
+ E eat food                 F refill light            > go downstairs
+ q quaff potion             G study book              < go upstairs
+                       
+ : send message             @ who is online           C character info
+ # high scores              P party menu              
+ ~ list of artifcats        | list of uniques         { inscribe item
+
+ M map                      L browse locataion        U ghost powers
+
+ o open door/chest          c close door              s search
+ D disarm trap/chest        B bash door               S searching mode
+ j jam door                                           J steal
+ 
+ b browse book              $ drop gold               h buy/sell house
+
+ f shoot projectile         A activate item           } unscribe item
+ 
+ l look mode                ; walk
+ * target mode              . run
+ ( target friend            T dig
+
+ % edit macros              
+ = game options                                       ? this page
+
+^x quit the game (saves your character)              ^r redraw screen         
+ Q commit suicide (destroys your character)                                   
+
 
 An introduction to MAngband.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -10,39 +49,6 @@ But, as you get more experienced, you will become better at surviving and may
 even live to see level 20. Have fun!" - (Alex Dingle, maintainer 1998-2002)
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-The commands:
-
-Movement - numpad (make sure num lock is off)
-Run - '.' or 'Shift' (+ direction)
-Talk - ':'
-See who is connected - '@'
-View your inventory - 'i'
-View your equipment - 'e'
-Wield/equip something - 'w'
-Take off something - 't'
-Eat something - 'E'
-Fill/refill a lantern/torch (with oil/lantern/torch) - 'F'
-Go down - '>'
-Go up - '<'
-Drop an item - 'd'
-Drop some gold - '$'
-View a map of the explored level - 'M'
-Rest - 'R'
-Fire ammunition 'f'
-Use a staff - 'u'
-Aim a wand - 'a'
-Zap a rod - 'z'
-Edit your macros - '%'
-Edit your preferences '=' (only saves temporarily).
-Inscribe an object - '{'
-Uninscribe an object - '}'
-Buy/sell a house 'h'
-Party options - 'P'
-Undead powers - 'U'
-See the highscore - '#'
-See the unique list - '~'
-See the artifact list - '|'
-Quit the game - control-x (also saves it)
 
 Part I -- The Basics
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -88,11 +94,22 @@ you can start over by hitting 'Q'. Ghosts also have certain undead powers, 'U'.
 Part II -- Macros
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-If you want to survive in MAngband, you will have to learn some basic macros. This is because the game is in realtime and the adventurer will often find himself in situations where he won't have time to enter all the commands manually. 
+If you want to survive in MAngband, you will have to learn some basic macros. 
+This is because the game is in realtime and the adventurer will often find 
+himself in situations where he won't have time to enter all the commands 
+manually. 
 
-A macro is a programmed key on your keyboard. You can program any key to do whatever keypresses you'd like, in any order you'd like. Most people use the function keys (F1-F12) for the macros because none of them are used for game commands such as those mentioned in the beginning of this guide.
+A macro is a programmed key on your keyboard. You can program any key to do 
+whatever keypresses you'd like, in any order you'd like. Most people use the 
+function keys (F1-F12) for the macros because none of them are used for game 
+commands such as those mentioned in the beginning of this guide.
 
-Example 1: You're a Mage. Gain the spell Detect Creatures. Hit 'G' then 'a' then 'b'. Inscribe your Beginners magic book with @m1. This gives your book a specific number instead of just a position in your inventory. Positions may change as you drop items or if an item is destroyed so if you don't give your book a number the macro might not find the right book. This is VERY important.
+Example 1: You're a Mage. Gain the spell Detect Creatures. Hit 'G' then 'a' 
+then 'b'. Inscribe your Beginners magic book with @m1. This gives your book
+a specific number instead of just a position in your inventory. Positions 
+may change as you drop items or if an item is destroyed so if you don't 
+give your book a number the macro might not find the right book. 
+This is VERY important.
 
 Push '%' to go to the macro-screen. Press '3' Enter a new action.
 Set the action as \em1b then hit enter. Press '5' Create Normal Macro. 
@@ -100,12 +117,26 @@ Push F1 on your keyboard. You have now programmed the F1 key to execute the
 Detect Creature spell.
 
 Now, hit Esc to get out of the macro menu. If you now try hitting F1 you will
-cast the Detect Creature spell. But why the \e part? and why choose a Normal Macro instead of a Command macro?  If you try to set \em1b as a command macro, the macro will ignore the \e.  The "\e" is the same as escape. So if you were doing something else,  like eating, quaffing, or gaining spells, and something bad happens, 
-you want the macro to work! Immediately.
+cast the Detect Creature spell. But why the \e part? and why choose a Normal
+Macro instead of a Command macro?  If you try to set \em1b as a command macro,
+the macro will ignore the \e.  The "\e" is the same as escape. So if you were
+doing something else,  like eating, quaffing, or gaining spells, and something
+bad happens, you want the macro to work! Immediately.
 
 Example 2: You're a Warrior.
-Inscribe your potion of Berserk Strength with @q1. Go to the macro-menu (%) and choose option (3), Enter a new action. Set the action as \eq1 Press (5), Create a Normal Macro, and press the key where you want this macro, F2 for example. Then hit Esc, and you're in the game again. When you now press F2 it will quaff your potion of Berserk Strength.
+Inscribe your potion of Berserk Strength with @q1. Go to the macro-menu (%)
+and choose option (3), Enter a new action. Set the action as \eq1 Press (5),
+Create a Normal Macro, and press the key where you want this macro, F2 for
+example. Then hit Esc, and you're in the game again. When you now press F2
+it will quaff your potion of Berserk Strength.
 
-Example 3: You want to use a bow. Inscribe your arrows @f1. Set action as \ef1*t, and set it as normal macro. The *t is for targetting monsters.
+Example 3: You want to use a bow. Inscribe your arrows @f1. Set action
+as \ef1*t, and set it as normal macro. The *t is for targetting monsters.
 
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 Thats it! Check out the homepage or stop by the forums for more info.
+
+http://www.mangband.org -- official homepage
+http://www.mangband.org/Newbie/Newbie -- a great tutorial for new players
+http://www.mangband.org/forum -- mangband forums
