@@ -1177,12 +1177,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-/*            case MSPELL_DETECT_EVIL:
+#if 0
+			case MSPELL_DETECT_EVIL:
 			{
 				(void)detect_evil(Ind);
 				break;
 			}
-*/
+#endif
             case MSPELL_DETECT_ENCHANTMENT:
 			{
 				(void)detect_objects_magic(Ind);
