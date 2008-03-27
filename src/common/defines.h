@@ -1111,19 +1111,14 @@ that keeps many algorithms happy.
 
 /* Gloves */
 #define EGO_ISTARI			132
-#define EGO_MAGIC			133
 
 /* Boots */
-#define EGO_MIRKWOOD		134
-#define EGO_BOOTS_ELVEN		135
+#define EGO_MIRKWOOD		133
 
-/* Mage weapons */
-#define EGO_STAFF_POWER		136
+/* Missile launchers */
+#define EGO_LOTHLORIEN		134
+#define EGO_NUMENOR			135
 
-/* Ammo */
-#define EGO_HOLY_MIGHT		137
-#define EGO_ACID			138
-#define EGO_LIGHTNING		139
 
 /*** Object "tval" and "sval" codes ***/
 
