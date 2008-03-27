@@ -1537,7 +1537,6 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	/* Get the scroll (on the floor) */
 	else
 	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		o_ptr = &o_list[0 - item];
 	} 
   
@@ -1971,11 +1970,6 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	/* Get the item (on the floor) */
 	else
 	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return;
-		}
 		o_ptr = &o_list[0 - item];
 	}
 
