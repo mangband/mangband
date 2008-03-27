@@ -1190,12 +1190,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-/*            case MSPELL_RECHARGE_ITEM3:
+#if 0
+			case MSPELL_RECHARGE_ITEM3:
 			{
 				recharge(Ind, 100);
 				break;
 			}
-*/
+#endif
 /*            case MSPELL_BANISHMENT:
 			{
 				(void)genocide(Ind);
