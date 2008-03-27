@@ -1221,12 +1221,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-/*            case MSPELL_RESIST_ACID:
+#if 0
+			case MSPELL_RESIST_ACID:
 			{
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
 				break;
 			}
-*/
+#endif
             case MSPELL_RESIST_POISON:
 			{
 				(void)set_oppose_pois(Ind, p_ptr->oppose_pois + randint(20) + 20);
