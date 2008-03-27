@@ -622,7 +622,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 				act = "frosty";
 				break;
 			case EGO_BRAND_POIS:
-			case EGO_VENOM:
+			case EGO_AMMO_VENOM:
 				act = "sickly";
 				break;
 		}
@@ -712,7 +712,7 @@ void brand_ammo(int Ind, int item)
 	else if (r < 67)
 		brand_type = EGO_FROST;
 	else
-		brand_type = EGO_VENOM;
+		brand_type = EGO_AMMO_VENOM;
 
 	/* Brand the ammo */
 	brand_object(Ind, o_ptr, brand_type);
