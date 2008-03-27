@@ -369,39 +369,39 @@ void NewConsole(int read_fd, int arg)
 	Sockbuf_clear(&console_buf);
 
 	/* Determine what the command is */
-	if (!strncmp(buf,"listen",6)) 
+	if (!strcmp(buf,"listen")) 
 	{
 		console_listen = TRUE;
 	}
-	else if (!strncmp(buf,"who",3)) 
+	else if (!strcmp(buf,"who")) 
 	{
 		console_who();
 	}
-	else if (!strncmp(buf,"shutdown",8))
+	else if (!strcmp(buf,"shutdown"))
 	{
 		console_shutdown();
 	}
-	else if (!strncmp(buf,"msg",3))
+	else if (!strcmp(buf,"msg"))
 	{
 		console_message(params);
 	}
-	else if (!strncmp(buf,"kick",4))
+	else if (!strcmp(buf,"kick"))
 	{
 		console_kick_player(params);
 	}
-	else if (!strncmp(buf,"reload",6))
+	else if (!strcmp(buf,"reload"))
 	{
 		console_reload_server_preferences();
 	}
-	else if (!strncmp(buf,"whois",5))
+	else if (!strcmp(buf,"whois"))
 	{
 		console_whois(params);
 	}
-	else if (!strncmp(buf,"rngtest",7))
+	else if (!strcmp(buf,"rngtest"))
 	{
 		console_rng_test();
 	}
-	else if (!strncmp(buf,"debug",5))
+	else if (!strcmp(buf,"debug"))
 	{
 		console_debug();
 	}
