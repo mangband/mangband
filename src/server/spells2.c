@@ -198,6 +198,14 @@ void warding_glyph(int Ind)
 
 	cave_type *c_ptr;
 
+	/* Can't create in town */
+	if (p_ptr->dun_depth == 0)
+	{
+		msg_print(Ind, "The very soil of the Town prevents you.");
+		return;
+	}
+
+
 	/* Require clean space */
 	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
 	{
