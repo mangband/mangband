@@ -1956,46 +1956,73 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
         /* Cursed (if "bad") */
         if (o_ptr->to_h + o_ptr->to_d < 0) o_ptr->ident |= ID_CURSED;
     }
-    
-    /* Set the cursed diggers penalty */
-    if (o_ptr->tval == TV_DIGGING)
+
+	/* Analyze type */
+	switch (o_ptr->tval)
+	{
+		case TV_DIGGING:
+		{
+			/* Very bad */
+			if (power < -1)
+			{
+				/* Hack -- Horrible digging bonus */
+				o_ptr->pval = 0 - (5 + randint(5));
+			}
+
+			/* Bad */
+			else if (power < 0)
+			{
+				/* Hack -- Reverse digging bonus */
+				o_ptr->pval = 0 - (o_ptr->pval);
+			}
+
+			break;
+		}
+
+
+		case TV_HAFTED:
+		case TV_POLEARM:
+		case TV_SWORD:
+		{
+			/* Very Good */
+			if (power > 1)
+			{
+				/* Hack -- Super-charge the damage dice */
+				while ((o_ptr->dd * o_ptr->ds > 0) &&
+				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
 				{
-    	/* Bad */
-    	if (power < 0)
-					{
-      	/* Hack -- Reverse digging bonus */
-        o_ptr->pval = 0 - (o_ptr->pval);
-					}
-      
-      /* Very bad */
-      else if (power < -1)
-					{
-      	/* Hack -- Horrible digging bonus */
-      	o_ptr->pval = 0 - (5 + randint(5));
-					}
-    }
-    
-    /* Set the ego weapons extra dice */
-    if (((o_ptr->tval == TV_HAFTED) || (o_ptr->tval == TV_POLEARM) ||
-    	(o_ptr->tval == TV_SWORD)) && (power > 1))
-					{
-    	/* Hack -- Super-charge the damage dice */
-    	while (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0) o_ptr->dd++;
-    	
-    	/* Hack -- Lower the damage dice */
-    	if (o_ptr->dd > 9) o_ptr->dd = 9;
-					}
-    
-    /* Set the ego missiles extra dice */
-    if (((o_ptr->tval == TV_BOLT) || (o_ptr->tval == TV_ARROW) ||
-    	(o_ptr->tval == TV_SHOT)) && (power > 1))
-					{
-    	/* Hack -- Super-charge the damage dice */
-    	while (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0) o_ptr->dd++;
-    	
-    	/* Hack -- Lower the damage dice */
-    	if (o_ptr->dd > 9) o_ptr->dd = 9;
-					}
+					o_ptr->dd++;
+				}
+
+				/* Hack -- Lower the damage dice */
+				if (o_ptr->dd > 9) o_ptr->dd = 9;
+			}
+
+			break;
+		}
+
+
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			/* Very good */
+			if (power > 1)
+			{
+				/* Hack -- super-charge the damage dice */
+				while ((o_ptr->dd * o_ptr->ds > 0) &&
+				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
+				{
+					o_ptr->dd++;
+				}
+
+				/* Hack -- restrict the damage dice */
+				if (o_ptr->dd > 9) o_ptr->dd = 9;
+			}
+
+			break;
+		}
+	}
     
     /* are we done? */
     if ((power >= -1) && (power <= 1)) return;
@@ -2007,11 +2034,11 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
-					{
+		{
     		o_ptr->name2 = idx; /* EGO_XXX */
-						break;
-					}
-				}
+			break;
+		}
+	}
 }
 
 
@@ -2264,7 +2291,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_DAMAGE:
 				{
 					/* Bonus to damage */
-					o_ptr->to_d = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_d = 5 + randint(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2286,7 +2313,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_ACCURACY:
 				{
 					/* Bonus to hit */
-					o_ptr->to_h = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_h = 5 + randint(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2330,8 +2357,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_SLAYING:
 				{
 					/* Bonus to damage and to hit */
-					o_ptr->to_d = randint(5) + m_bonus(10, level);
-					o_ptr->to_h = randint(5) + m_bonus(10, level);
+					o_ptr->to_d = randint(5) + m_bonus(5, level);
+					o_ptr->to_h = randint(5) + m_bonus(5, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2402,6 +2429,28 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 					break;
 				}
 
+                /* Amulet of ESP -- never cursed */
+                case SV_AMULET_ESP:
+                {
+					o_ptr->pval = randint(5) + m_bonus(5, level);
+
+                    break;
+                }
+
+				/* Amulet of the Magi -- never cursed */
+				case SV_AMULET_THE_MAGI:
+				{
+                    o_ptr->pval = 1 + m_bonus(2, level);
+                    o_ptr->to_a = randint(5) + m_bonus(5, level);
+                    
+                    /* mangband-specific -- TURN IT ON IF YOU NEED
+                    o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
+                    o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
+					*/
+
+                    break;
+                }
+
 				/* Amulet of speed */
 				case SV_AMULET_SPEED:
 				{
@@ -2426,51 +2475,31 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				}
 
          			/* Amulet of Terken -- never cursed */
-                                case SV_AMULET_TERKEN:
+				case SV_AMULET_TERKEN:
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
-                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
-                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_POWER);
+                    o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
 					break;
 				}
 
          			/* Amulet of the Moon -- never cursed */
-                                case SV_AMULET_THE_MOON:
+				case SV_AMULET_THE_MOON:
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
-                                        o_ptr->to_h = randint(5);
-                                        o_ptr->to_d = randint(5);
+                    o_ptr->to_h = randint(5);
+                    o_ptr->to_d = randint(5);
 
 					break;
 				}
 
-				/* Amulet of the Magi -- never cursed */
-				case SV_AMULET_THE_MAGI:
-				{
-                    o_ptr->pval = 1 + m_bonus(2, level);
-                    o_ptr->to_a = randint(5) + m_bonus(5, level);
-                    
-                    /* mangband-specific -- TURN IT ON IF YOU NEED
-                                        o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
-                                        o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
-							*/
-
-                    break;
-                }
-
-                /* Amulet of ESP -- never cursed */
-                case SV_AMULET_ESP:
-                {
-					o_ptr->pval = randint(5) + m_bonus(5, level);
-
-                    break;
-                }
-
                 /* Amulet of Devotion -- never cursed */
                 case SV_AMULET_DEVOTION:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
+					o_ptr->pval = 1 + m_bonus(3, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }
@@ -2478,10 +2507,12 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of Weaponmastery -- never cursed */
                 case SV_AMULET_WEPMASTERY:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
-                    o_ptr->to_h = randint(5);
-                    o_ptr->to_d = randint(5);
-					o_ptr->to_a = randint(5) + m_bonus(5, level);
+					o_ptr->to_h = 1 + m_bonus(4, level);
+					o_ptr->to_d = 1 + m_bonus(4, level);
+					o_ptr->pval = 1 + m_bonus(2, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }
@@ -2489,7 +2520,10 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of Trickery -- never cursed */
                 case SV_AMULET_TRICKERY:
                 {
-                    o_ptr->pval = 1 + m_bonus(2, level);
+					o_ptr->pval = randint(1) + m_bonus(3, level);
+
+					/* Boost the rating */
+					rating += 25;
 
                     break;
                 }

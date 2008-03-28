@@ -172,6 +172,10 @@ static void inven_drop(int Ind, int item, int amt)
 	{
 		act = "Dropped";
 	}
+	
+	/* Dropping from equipment? Update object flags! */
+	if (item >= INVEN_WIELD)
+		p_ptr->redraw |= (PR_OFLAGS);
 
 	/* Message */
 	object_desc(Ind, o_name, &tmp_obj, TRUE, 3);
@@ -790,6 +794,10 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		/* Done */
 		return;
 	}
+
+	/* Destroying from equipment? Update object flags! */
+	if (item >= INVEN_WIELD)
+		p_ptr->redraw |= (PR_OFLAGS);
 
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);

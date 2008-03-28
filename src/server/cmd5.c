@@ -622,7 +622,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 				act = "frosty";
 				break;
 			case EGO_BRAND_POIS:
-			case EGO_VENOM:
+			case EGO_AMMO_VENOM:
 				act = "sickly";
 				break;
 		}
@@ -712,7 +712,7 @@ void brand_ammo(int Ind, int item)
 	else if (r < 67)
 		brand_type = EGO_FROST;
 	else
-		brand_type = EGO_VENOM;
+		brand_type = EGO_AMMO_VENOM;
 
 	/* Brand the ammo */
 	brand_object(Ind, o_ptr, brand_type);
@@ -1177,24 +1177,26 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-/*            case MSPELL_DETECT_EVIL:
+#if 0
+			case MSPELL_DETECT_EVIL:
 			{
 				(void)detect_evil(Ind);
 				break;
 			}
-*/
+#endif
             case MSPELL_DETECT_ENCHANTMENT:
 			{
 				(void)detect_objects_magic(Ind);
 				break;
 			}
 
-/*            case MSPELL_RECHARGE_ITEM3:
+#if 0
+			case MSPELL_RECHARGE_ITEM3:
 			{
 				recharge(Ind, 100);
 				break;
 			}
-*/
+#endif
 /*            case MSPELL_BANISHMENT:
 			{
 				(void)genocide(Ind);
@@ -1219,12 +1221,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-/*            case MSPELL_RESIST_ACID:
+#if 0
+			case MSPELL_RESIST_ACID:
 			{
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
 				break;
 			}
-*/
+#endif
             case MSPELL_RESIST_POISON:
 			{
 				(void)set_oppose_pois(Ind, p_ptr->oppose_pois + randint(20) + 20);
@@ -1354,9 +1357,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 				return;
 			}
 
-
-
-/*            case MSPELL_HASTE_SELF:
+#if 0
+			case MSPELL_HASTE_SELF:
 			{
 				if (!p_ptr->fast)
 				{
@@ -1368,8 +1370,9 @@ void do_cmd_cast(int Ind, int book, int spell)
 				}
 				break;
 			}
-*/
-/*            case MSPELL_SHIELD_GOI:
+#endif
+#if 0
+			case MSPELL_SHIELD_GOI:
 			{
 				//(void)set_invuln(Ind, p_ptr->invuln + randint(8) + 8);
 				// GOI no longer stacks, as when it did it was vastly overpowered. 
@@ -1377,7 +1380,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 					set_invuln(Ind, 10 + randint(10));
 				break;
 			}
-*/
+#endif
 		}
 
 		/* A spell was cast */

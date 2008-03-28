@@ -536,11 +536,14 @@ bool set_house_owner(int Ind, int house)
  */
 void disown_house(int house)
 {
-	int i,j;
+	cave_type *c_ptr;
+	int i,j, Depth;
 	
 	if (house >= 0 && house < num_houses)
 	{
+		Depth = houses[house].depth;
 		houses[house].owned[0] = '\0';
+		houses[house].strength = 0;
 		/* Remove all players from the house */
 		for (i = 1; i < NumPlayers + 1; i++)
 		{
@@ -558,6 +561,19 @@ void disown_house(int house)
 				delete_object(houses[house].depth,i,j); 
 			} 
 		} 		
+		
+		/* Paranoia! */		
+		if (!cave[Depth]) return;
+		
+		/* Get requested grid */
+		c_ptr = &cave[Depth][houses[house].door_y][houses[house].door_x];
+
+		/* Close the door */
+		c_ptr->feat = FEAT_HOME_HEAD + houses[house].strength;
+
+		/* Reshow */
+		everyone_lite_spot(Depth, houses[house].door_y, houses[house].door_x);	
+
 	}		
 }
 
@@ -3102,12 +3118,6 @@ void do_cmd_purchase_house(int Ind, int dir)
 					disown_house(i);
 					
 					msg_format(Ind, "You sell your house for %ld gold.", price/2);
-	
-					/* Close the door */
-					c_ptr->feat = FEAT_HOME_HEAD + houses[i].strength;
-
-					/* Reshow */
-					everyone_lite_spot(Depth, houses[i].door_y, houses[i].door_x);	
 	
 					 /* Get the money */
 					p_ptr->au += price / 2;
