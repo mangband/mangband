@@ -828,32 +828,6 @@ static void store_create(int st)
 	/* Paranoia -- no room left */
 	if (st_ptr->stock_num >= st_ptr->stock_size) return;
 
-	/* Hack -- BM should 'Normally' carry Healing pots and
-	 * *ID* scrolls.
-	 */
-
-        if(store_num==6) {
-                invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
-                o_ptr->number=1;
-                object_known(o_ptr);
-                (void)store_carry(st, o_ptr);
-
-                invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_SPEED));
-                o_ptr->number=1;
-                object_known(o_ptr);
-                (void)store_carry(st, o_ptr);
-
-                invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-                o_ptr->number=1;
-                object_known(o_ptr);
-                (void)store_carry(st, o_ptr);
-
-                invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_ENLIGHTENMENT));
-                o_ptr->number=1;
-                object_known(o_ptr);
-                (void)store_carry(st, o_ptr);
-        };                                                                                    
-
 	/* Hack -- consider up to four items */
 	for (tries = 0; tries < 4; tries++)
 	{
