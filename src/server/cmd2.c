@@ -2618,7 +2618,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 					message_pain(Ind, c_ptr->m_idx, tdam);
 
 					/* Take note */
-					if (fear && visible)
+					if (fear && visible && !(r_ptr->flags2 & RF2_WANDERER))
 					{
 						char m_name[80];
 
@@ -3033,7 +3033,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 					message_pain(Ind, c_ptr->m_idx, tdam);
 
 					/* Take note */
-					if (fear && visible)
+					if (fear && visible && !(r_ptr->flags2 & RF2_WANDERER))
 					{
 						char m_name[80];
 

@@ -1401,7 +1401,7 @@ void py_attack_mon(int Ind, int y, int x)
 
 
 	/* Hack -- delay fear messages */
-	if (fear && p_ptr->mon_vis[c_ptr->m_idx])
+	if (fear && p_ptr->mon_vis[c_ptr->m_idx] && !(r_ptr->flags2 & RF2_WANDERER))
 	{
 		/* Sound */
 		sound(Ind, SOUND_FLEE);
