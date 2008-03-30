@@ -1207,7 +1207,7 @@ errr file_character_server(int Ind, cptr name)
 	 * not displayed when viewing a character dump online.
 	 */
 	strftime(today, 9, "%m/%d/%y", localtime(&ct));
-	fprintf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s\n",
+	fprintf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%d.%d.%d\n",
 		(long)total_points(Ind),
 		(long)p_ptr->au,
 		today,
@@ -1219,7 +1219,8 @@ errr file_character_server(int Ind, cptr name)
 		p_ptr->died_from_depth,
 		p_ptr->max_plv,
 		p_ptr->max_dlv,
-		p_ptr->died_from_list);
+		p_ptr->died_from_list,
+		VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 
 	/* Leave it at that for characters lower than level 20 */
 	if( p_ptr->lev < 20 )

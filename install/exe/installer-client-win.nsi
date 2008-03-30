@@ -2,13 +2,15 @@
 ; NSIS Installer for Windows Mangband Client 
 ; Downlad NSIS at nsis.sourceforge.net
 
-; You will need to change this...
+; Where is the root of the project?
 !define DEV_DIR "..\..\"
+!include "FileFunc.nsh"
+!insertmacro GetParent
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband"
-!define PRODUCT_VERSION "1.1.0 (beta 1)"
-!define VER "110-beta1"
+!define PRODUCT_VERSION "1.1.0"
+!define VER "110"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\MAngclient.exe"
@@ -56,20 +58,20 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${DEV_DIR}mangclient.exe"
+  File "${DEV_DIR}mangclient-sdl.exe"
+  File "${DEV_DIR}sdl.dll"
   File "README-client.htm"
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\MAngband.lnk" "$INSTDIR\mangclient.exe"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\ReadMe.lnk" "$INSTDIR\README-client.htm"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\MAngband (One Window).lnk" "$INSTDIR\mangclient-sdl.exe"
 
   CreateDirectory "$INSTDIR\lib"
-  CreateDirectory "$INSTDIR\lib\data"
   CreateDirectory "$INSTDIR\lib\file"
-  CreateDirectory "$INSTDIR\lib\save"
+  CreateDirectory "$INSTDIR\lib\help"
+  CreateDirectory "$INSTDIR\tmp"
   File "${DEV_DIR}mangclient.ini"
   SetOutPath "$INSTDIR\lib"
-  FILE /r /x .svn "${DEV_DIR}lib\edit"
-  FILE /r /x .svn "${DEV_DIR}lib\help"
-  FILE /r /x .svn "${DEV_DIR}lib\text"
   FILE /r /x .svn "${DEV_DIR}lib\user"
   FILE /r /x .svn "${DEV_DIR}lib\xtra"
 
@@ -100,9 +102,41 @@ Function un.onUninstSuccess
   MessageBox MB_ICONINFORMATION|MB_OK "The ${PRODUCT_NAME} was successfully removed from your computer."
 FunctionEnd
 
+; This removes a previous beta if it's installed
 Function .onInit
 
+  ReadRegStr $R0 HKLM \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\MAngband Beta" \
+  "UninstallString"
+  StrCmp $R0 "" done foundold
+
+foundold:
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "A Beta version of MAngband is already installed and should be removed. Click `OK` to remove \
+  the beta version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+
+;Run the uninstaller
+uninst:
+  ClearErrors
+
+  ${GetParent} $R0 $R9
+
+  ExecWait '$R0 _?=$R9' 
+;  ExecWait '$R0' 
+
+  IfErrors no_remove_uninstaller
+    ;You can either use Delete /REBOOTOK in the uninstaller or add some code
+    ;here to remove to remove the uninstaller. Use a registry key to check
+    ;whether the user has chosen to uninstall. If you are using an uninstaller
+    ;components page, make sure all sections are uninstalled.
+  no_remove_uninstaller:
+
+done:
+
 FunctionEnd
+
 
 Function un.onInit
   MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove the ${PRODUCT_NAME} and all of its components?" IDYES +2
@@ -113,6 +147,8 @@ Section Uninstall
   
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\mangclient.exe"
+  Delete "$INSTDIR\mangclient-sdl.exe"
+  Delete "$INSTDIR\sdl.dll"
   Delete "$INSTDIR\mangclient.ini"
 
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
