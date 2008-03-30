@@ -181,7 +181,7 @@ extern bool disturb_other;
 extern bool alert_hitpoint;
 extern bool alert_failure;
 
-extern bool auto_haggle;
+extern bool no_ghost;
 extern bool auto_scum;
 extern bool stack_allow_items;
 extern bool stack_allow_wands;

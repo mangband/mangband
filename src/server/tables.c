@@ -2142,8 +2142,8 @@ option_type option_info[] =
 
 	/*** Game-Play ***/
 
-	{ &auto_haggle,			FALSE,	3,	1, 0,
-	"auto_haggle",			"Auto-haggle in stores" },
+	{ &no_ghost,			FALSE,	3,	1, 0,
+	"no_ghost",				"Death is permanent" },
 
 	{ &auto_scum,			FALSE,	3,	1, 1,
 	"auto_scum",			"Auto-scum for good levels" },

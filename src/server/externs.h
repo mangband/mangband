@@ -227,7 +227,7 @@ extern bool stack_force_notes;
 extern bool stack_force_costs;
 extern bool view_reduce_lite;
 extern bool view_reduce_view;
-extern bool auto_haggle;
+extern bool no_ghost;
 extern bool auto_scum;
 extern bool expand_look;
 extern bool expand_list;

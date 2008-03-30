@@ -2553,7 +2553,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* Tell him */
 	msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
 
-  if (cfg_ironman)
+  if (cfg_ironman || p_ptr->no_ghost)
   {
 	/* 
 	 * Ironmen don't get turned into ghosts.

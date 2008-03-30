@@ -393,6 +393,7 @@ static void wr_extra(int Ind)
 	write_int("csp",p_ptr->csp);
 	write_int("csp_frac",p_ptr->csp_frac);
 	
+	write_int("no_ghost",p_ptr->no_ghost);
 
 	/* Max Player and Dungeon Levels */
 	write_int("max_plv",p_ptr->max_plv);

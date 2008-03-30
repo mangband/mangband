@@ -1135,7 +1135,7 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 	purse = (s32b)(ot_ptr->max_cost);
 
 	/* No need to haggle */
-	if (noneed || auto_haggle || (final_ask >= purse))
+	if (noneed || TRUE || (final_ask >= purse))
 	{
 		/* No reason to haggle */
 		if (final_ask >= purse)
