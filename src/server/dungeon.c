@@ -2010,7 +2010,7 @@ void dungeon(void)
 					c_ptr = &cave[Depth][y][x];
 
 					/* Memorize if daytime or "interesting" */
-					if (dawn || (is_boring(c_ptr->feat)) || c_ptr->info & CAVE_ROOM)
+					if (dawn || (!is_boring(c_ptr->feat)) || c_ptr->info & CAVE_ROOM)
 						*w_ptr |= CAVE_MARK;
 				}
 			}
