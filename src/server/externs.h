@@ -567,6 +567,7 @@ extern bool InitNewConsole(int write_fd);
 extern void console_print(char *msg);
 
 /* dungeon.c */
+extern bool is_boring(byte feat);
 extern void play_game(bool new_game);
 extern void shutdown_server(void);
 extern void dungeon(void);

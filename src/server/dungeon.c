@@ -13,6 +13,11 @@
 #include "angband.h"
 #include "externs.h"
 
+bool is_boring(byte feat)
+{
+	return (feat <= FEAT_INVIS || (feat >= 0x40 && feat <= 0x4F));
+}
+
 
 int find_player(s32b id)
 {
@@ -542,7 +547,7 @@ static void process_world(int Ind)
 						w_ptr = &p_ptr->cave_flag[y][x];
 
 						/*  Darken "boring" features */
-						if (c_ptr->feat <= FEAT_INVIS && !(c_ptr->info & CAVE_ROOM))
+						if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
 						{
 							  /* Forget the grid */ 
 							c_ptr->info &= ~CAVE_GLOW;
@@ -1857,7 +1862,7 @@ static void process_various(void)
 					c_ptr = &cave[0][y][x];
 
 					 /* Darken "boring" features */
-					if (c_ptr->feat <= FEAT_INVIS && !(c_ptr->info & CAVE_ROOM))
+					if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
 					{
 						 /* Darken the grid */
 						c_ptr->info &= ~CAVE_GLOW;
@@ -2005,7 +2010,7 @@ void dungeon(void)
 					c_ptr = &cave[Depth][y][x];
 
 					/* Memorize if daytime or "interesting" */
-					if (dawn || c_ptr->feat > FEAT_INVIS || c_ptr->info & CAVE_ROOM)
+					if (dawn || (is_boring(c_ptr->feat)) || c_ptr->info & CAVE_ROOM)
 						*w_ptr |= CAVE_MARK;
 				}
 			}

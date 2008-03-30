@@ -492,6 +492,7 @@ extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int dir);
 
 /* dungeon.c */
+extern bool is_boring(byte feat);
 extern void play_game(bool new_game);
 
 /* files.c */
