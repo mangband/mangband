@@ -1035,7 +1035,7 @@ static void player_setup(int Ind)
 				c_ptr = &cave[0][y][x];
 
 				/* If day or interesting, memorize */
-				if (dawn || c_ptr->feat > FEAT_INVIS || c_ptr->info & CAVE_ROOM)
+				if (dawn || !is_boring(c_ptr->feat) || c_ptr->info & CAVE_ROOM)
 					*w_ptr |= CAVE_MARK;
 			}
 		}

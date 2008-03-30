@@ -480,7 +480,7 @@ static void place_locked_door(int Depth, int y, int x)
 	cave_type *c_ptr = &cave[Depth][y][x];
 
 	/* Create locked door */
-	c_ptr->feat = FEAT_DOOR_HEAD + randint(7);
+	c_ptr->feat = FEAT_DOOR_HEAD + (byte_hack)randint(7);
 }
 
 
@@ -540,14 +540,14 @@ static void place_random_door(int Depth, int y, int x)
 	else if (tmp < 999)
 	{
 		/* Create locked door */
-		c_ptr->feat = FEAT_DOOR_HEAD + randint(7);
+		c_ptr->feat = FEAT_DOOR_HEAD + (byte_hack)randint(7);
 	}
 
 	/* Stuck doors (1/1000) */
 	else
 	{
 		/* Create jammed door */
-		c_ptr->feat = FEAT_DOOR_HEAD + 0x08 + rand_int(8);
+		c_ptr->feat = FEAT_DOOR_HEAD + 0x08 + (byte_hack)rand_int(8);
 	}
 }
 
@@ -4411,15 +4411,23 @@ void generate_cave(int Depth,int auto_scum)
 		/* Hack -- Have a special feeling sometimes */
 		if (good_item_flag) feeling = 1;
 
-	if (!cfg_ironman)
-	{
-		/* It takes 1000 game turns for "feelings" to recharge */
-		if ((turn - old_turn) < 1000)
+		if (!cfg_ironman)
 		{
-			feeling = 0;
-			scum = FALSE;
+			/* It takes 1000 game turns for "feelings" to recharge */
+			if (old_turn > turn) /* Handle wrapping turn counting */
+			{
+				if (((u32b)(turn + 0x7FFFFFFF) - old_turn) < 1000)
+				{
+					feeling = 0;
+					scum = FALSE;
+				}
+			}
+			else if ((turn - old_turn) < 1000)
+			{
+				feeling = 0;
+				scum = FALSE;
+			}
 		}
-	}
 
 		/* Hack -- no feeling in the town */
 		if (!Depth) feeling = 0;

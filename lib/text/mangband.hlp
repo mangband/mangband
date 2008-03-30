@@ -1,142 +1,162 @@
- arrow keys, numpad         walk            You can also use numpad.
- hold Shift                 run             To attack, bump into monster.
- hold Ctrl                  dig             To shoot -- read page[2]
+This is a quick reference guide, see http://mangband.org/help/ for full help!
+(use up/down arrow keys to scroll this text)
 
- w wear/wield item          t takeoff item            R rest
+ --- Movement commands ---
+ To walk use the direction keys on your numpad.
+ To run (much faster) hold down Shift and use the numpad direction keys.
+ If running doesn't work?  Try pressing Numlock.
+
+ (<) go upstairs             (>) go downstairs          (;) walk
+ (.) run
                        
- d drop item                , pick up item            v throw item
-                            I examine item            k destroy item
+ --- Inventory commands ---
+ (i) inventory list          (e) equipment list         (d) drop item
+ ($) drop gold               (k) destroy item           (w) wear/wield item
+ (t) takeoff item            (,) pick up item           (g) get/pickup item       
 
- m cast spell               p pray                    r read scroll
- a aim wand                 z zap rod                 u use staff
-                       
- E eat food                 F refill light            > go downstairs
- q quaff potion             G study book              < go upstairs
-                       
- : send message             @ who is online           C character info
- # high scores              P party menu              
- ~ list of artifcats        | list of uniques         { inscribe item
-
- M map                      L browse locataion        U ghost powers
-
- o open door/chest          c close door              s search
- D disarm trap/chest        B bash door               S searching mode
- j jam door                                           J steal
+ --- Resting commands ---
+ (R) rest
  
- b browse book              $ drop gold               h buy/sell house
+ --- Searching commands ---
+ (s) search                  (S) toggle search mode
 
- f shoot projectile         A activate item           } unscribe item
+ --- Alter commands ---
+ (T) tunnel                  (o) open door/chest        (c) close door
+ (j) jam door (with spikes)  (B) bash a door            (D) disarm trap/chest
+ To tunnel you can also hold down Ctrl and use the numpad direction keys.
  
- l look mode                ; walk
- * target mode              . run
- ( target friend            T dig
+ --- Spell and prayer commands ---
+ (b) browse book             (G) gain spells or prayers (U) ghost powers
+ (m) cast a spell            (p) pray a prayer
+ 
+ --- Object manipulation commands ---
+ (E) eat some food           (F) Fuel your lantern      (q) quaff potion
+ (r) read scroll             ({) inscribe item          (}) uninscribe item
+ 
+ --- Magical object commands ---
+ (A) activate an artifact    (a) aim a wand             (u) use a staff 
+ (z) zap a rod
+ 
+ --- Throwing and missile weapons ---
+ (f) fire a projectile       (v) throw an item          (*) targeting mode
+  (  target a friend
+ 
+ --- Looking commands ---
+ (M) map                     (L) browse location        (I) examine an item
+ (l) look around
+ 
+ --- Message commands ---
+ (:) send a chat message     (Ctrl P) view message history
+ 
+ --- Player house commands ---
+ (h) buy or sell a house if used outside a house
+ (h) view your own shop inventory if used inside a house
 
- % edit macros              
- = game options                                       ? this page
-
-^x quit the game (saves your character)              ^r redraw screen         
- Q commit suicide (destroys your character)                                   
-
-
-An introduction to MAngband.
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Version 1.0 - Halloween 2007 (31.10.2007)
-By Warrior (warrior@mangband.org)
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Before you read this guide, listen to this bit of advice:
-"Don't get discouraged!! If you are new to mangband, you will die... A lot.
-But, as you get more experienced, you will become better at surviving and may 
-even live to see level 20. Have fun!" - (Alex Dingle, maintainer 1998-2002)
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-
-Part I -- The Basics
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-1. What is MAngband? 
-
-MAngband is a free online multiplayer real-time roguelike game, derived from
-the single player game Angband. The official webpage is http://www.mangband.org
-
-2. What are all the strange letters and symbols? (@...t...*...)
-
-After creating a new character you will start in the tavern in town. 
-The white @ represents you, ... represents the floor/ground, * is a tree and 
-# a wall. The numbers (1-7) are stores, where you can buy new equipment and 
-sell stuff you've found in the dungeon. Monsters will (usually) be a colored 
-letter.
-
-3. What kind of equipment should I buy? 
-
-You start with some items related to your class, like magic books if you're a
-mage or a bow if you're a ranger. You should make sure you have at least the 
-following before entering the dungeon: A weapon, a brass lantern and some food.
-
-4. Ok - so what do I do now?
-
-The goal of the game is to kill Morgoth, Lord of Darkness. He lives 5000 feet 
-below the town so it's a pretty long walk. Luckily the dungeon is filled with
-other monsters for you to kill on your way down.
-
-5. How do I get into the dungeon?
-
-Hit 'M' to see the map. The entrance to the dungeon is the down staircase '>' 
-Press '>' when standing on it to enter. You can also use 'L' to look around.
-
-6. What happens when I die?
-
-You become a ghost. If your ghost dies your character is gone and you must 
-start over from level 1. Ghosts can pass through walls and drift up to town 
-by hitting '<'. Once you're back in town you can resurrect in the temple. 
-This will cost you half your experience points. If you don't want to resurrect 
-you can start over by hitting 'Q'. Ghosts also have certain undead powers, 'U'.
-
-Part II -- Macros
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-If you want to survive in MAngband, you will have to learn some basic macros. 
-This is because the game is in realtime and the adventurer will often find 
-himself in situations where he won't have time to enter all the commands 
-manually. 
-
-A macro is a programmed key on your keyboard. You can program any key to do 
-whatever keypresses you'd like, in any order you'd like. Most people use the 
-function keys (F1-F12) for the macros because none of them are used for game 
-commands such as those mentioned in the beginning of this guide.
-
-Example 1: You're a Mage. Gain the spell Detect Creatures. Hit 'G' then 'a' 
-then 'b'. Inscribe your Beginners magic book with @m1. This gives your book
-a specific number instead of just a position in your inventory. Positions 
-may change as you drop items or if an item is destroyed so if you don't 
-give your book a number the macro might not find the right book. 
-This is VERY important.
-
-Push '%' to go to the macro-screen. Press '3' Enter a new action.
-Set the action as \em1b then hit enter. Press '5' Create Normal Macro. 
-Push F1 on your keyboard. You have now programmed the F1 key to execute the 
-Detect Creature spell.
-
-Now, hit Esc to get out of the macro menu. If you now try hitting F1 you will
-cast the Detect Creature spell. But why the \e part? and why choose a Normal
-Macro instead of a Command macro?  If you try to set \em1b as a command macro,
-the macro will ignore the \e.  The "\e" is the same as escape. So if you were
-doing something else,  like eating, quaffing, or gaining spells, and something
-bad happens, you want the macro to work! Immediately.
-
-Example 2: You're a Warrior.
-Inscribe your potion of Berserk Strength with @q1. Go to the macro-menu (%)
-and choose option (3), Enter a new action. Set the action as \eq1 Press (5),
-Create a Normal Macro, and press the key where you want this macro, F2 for
-example. Then hit Esc, and you're in the game again. When you now press F2
-it will quaff your potion of Berserk Strength.
-
-Example 3: You want to use a bow. Inscribe your arrows @f1. Set action
-as \ef1*t, and set it as normal macro. The *t is for targetting monsters.
+ --- Game status commands ---
+ (C) character info          (~) list found artifacts   (|) list of uniques
+ (#) high scores             (P) party menu             (@) who is online
+ 
+ --- User preference commands ---
+ (=) game options            (%) edit macros            
+ 
+ --- Saving and exiting commands ---
+ (Ctrl X) exit the game (saves your character) 
+ (Q) commit suicide (destroys your character)
+ 
+ --- Extra commands ---
+ (Ctrl R) redraw the screen  (J) steal
+                    
 
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Thats it! Check out the homepage or stop by the forums for more info.
+ An Introduction to MAngband - by Warrior (warrior@mangband.org)
 
-http://www.mangband.org -- official homepage
-http://www.mangband.org/Newbie/Newbie -- a great tutorial for new players
-http://www.mangband.org/forum -- mangband forums
+ Before you read this guide, listen to this bit of advice:
+    "Don't get discouraged!! If you are new to mangband, you will 
+    die... A lot. But, as you get more experienced, you will become 
+    better at surviving and may even live to see level 20. Have fun!"
+    - (Alex Dingle, maintainer 1998-2002)
+
+ --- Part I -- The Basics ---
+
+ 1. What is MAngband? 
+
+ MAngband is a free online multiplayer real-time roguelike game, derived from
+ the single player game Angband. 
+
+ 2. What are all the strange letters and symbols? (@...t...*...)
+
+ After creating a new character you will start in the tavern in town. 
+ The white @ represents you, ... represents the floor/ground, * is a tree and 
+ # a wall. The numbers (1-7) are stores, where you can buy new equipment and 
+ sell stuff you've found in the dungeon. Monsters will (usually) be a colored 
+ letter.
+
+ 3. What kind of equipment should I buy? 
+
+ You start with some items related to your class, like magic books if you're a
+ mage or a bow if you're a ranger. You should make sure you have at least the 
+ following before entering the dungeon: A weapon, a brass lantern and some food.
+
+ 4. Ok - so what do I do now?
+
+ The goal of the game is to kill Morgoth, Lord of Darkness. He lives 5000 feet 
+ below the town so it's a pretty long walk. Luckily the dungeon is filled with
+ other monsters for you to kill on your way down.
+
+ 5. How do I get into the dungeon?
+
+ Hit 'M' to see the map. The entrance to the dungeon is the down staircase '>' 
+ Press '>' when standing on it to enter. You can also use 'L' to look around.
+
+ 6. What happens when I die?
+
+ You become a ghost. If your ghost dies your character is gone and you must 
+ start over from level 1. Ghosts can pass through walls and drift up to town 
+ by hitting '<'. Once you're back in town you can resurrect in the temple. 
+ This will cost you half your experience points. If you don't want to resurrect 
+ you can start over by hitting 'Q'. Ghosts also have certain undead powers, 'U'.
+
+ --- Part II -- Macros ---
+
+ If you want to survive in MAngband, you will have to learn some basic macros. 
+ This is because the game is in realtime and the adventurer will often find 
+ himself in situations where he won't have time to enter all the commands 
+ manually. 
+ 
+ A macro is a programmed key on your keyboard. You can program any key to do 
+ whatever keypresses you'd like, in any order you'd like. Most people use the 
+ function keys (F1-F12) for the macros because none of them are used for game 
+ commands such as those mentioned in the beginning of this guide.
+
+ Example 1: You're a Mage. Gain the spell Detect Creatures. Hit 'G' then 'a' 
+ then 'b'. Inscribe your Beginners magic book with @m1. This gives your book
+ a specific number instead of just a position in your inventory. Positions 
+ may change as you drop items or if an item is destroyed so if you don't 
+ give your book a number the macro might not find the right book. 
+ This is VERY important.
+
+ Push '%' to go to the macro-screen. Press '3' Enter a new action.
+ Set the action as \em1b then hit enter. Press '5' Create Normal Macro. 
+ Push F1 on your keyboard. You have now programmed the F1 key to execute the 
+ Detect Creature spell.
+ 
+ Now, hit Esc to get out of the macro menu. If you now try hitting F1 you will
+ cast the Detect Creature spell. But why the \e part? and why choose a Normal
+ Macro instead of a Command macro?  If you try to set \em1b as a command macro,
+ the macro will ignore the \e.  The "\e" is the same as escape. So if you were
+ doing something else,  like eating, quaffing, or gaining spells, and something
+ bad happens, you want the macro to work! Immediately.
+
+ Example 2: You're a Warrior.
+ Inscribe your potion of Berserk Strength with @q1. Go to the macro-menu (%)
+ and choose option (3), Enter a new action. Set the action as \eq1 Press (5),
+ Create a Normal Macro, and press the key where you want this macro, F2 for
+ example. Then hit Esc, and you're in the game again. When you now press F2
+ it will quaff your potion of Berserk Strength.
+
+ Example 3: You want to use a bow. Inscribe your arrows @f1. Set action
+ as \ef1*t, and set it as normal macro. The *t is for targetting monsters.
+
+ Thats it! Check out the online documentation for more info.
+ (http://mangband.org/help/)
+

@@ -2110,9 +2110,12 @@ static void calc_bonuses(int Ind)
 	/* High Elf */
     if (p_ptr->prace == RACE_HIGH_ELF)
     {
-	p_ptr->resist_lite = TRUE;
-	p_ptr->see_inv = TRUE;
+		p_ptr->resist_lite = TRUE;
+		p_ptr->see_inv = TRUE;
     }
+
+	/* Kobold */
+	if (p_ptr->prace == RACE_KOBOLD) p_ptr->resist_pois = TRUE;
 
 	/* Ghost */
 	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
@@ -2156,7 +2159,15 @@ static void calc_bonuses(int Ind)
 		{
 			p_ptr->pspeed += (((p_ptr->lev-5)/15)+1);
 		}
-		
+	}
+
+	/* Hack -- Warriors get fear resist at level 30 */
+	if (p_ptr->pclass == CLASS_WARRIOR)
+	{
+		if (p_ptr->lev >= 30) 
+		{
+			p_ptr->resist_fear = TRUE;
+		}
 	}
 
 	/* Hack -- the dungeon master gets +50 speed. */

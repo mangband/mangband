@@ -198,6 +198,14 @@ void warding_glyph(int Ind)
 
 	cave_type *c_ptr;
 
+	/* Can't create in town */
+	if (p_ptr->dun_depth == 0)
+	{
+		msg_print(Ind, "The very soil of the Town prevents you.");
+		return;
+	}
+
+
 	/* Require clean space */
 	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
 	{
@@ -1063,7 +1071,7 @@ void set_recall(int Ind, object_type * o_ptr)
 		}
 	
 		p_ptr->recall_depth = recall_depth;
-		p_ptr->word_recall = rand_int(20) + 15;
+		p_ptr->word_recall = (s16b)rand_int(20) + 15;
 		msg_print(Ind, "The air about you becomes charged...");
 	}
 	else
@@ -1717,12 +1725,15 @@ void stair_creation(int Ind)
 	/* Access the grid */
 	cave_type *c_ptr;
 
-	if(p_ptr->dun_depth == 0 ) { return;};
+	if(Depth <= 0 ) { return;};
 
 	/* Access the player grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
 
-	/* XXX XXX XXX */
+	/* forbid perma-grids
+	 * forbid grids containing artifacts
+	 * forbid house doors
+	 */
 	if (!cave_valid_bold(Depth, p_ptr->py, p_ptr->px))
 	{
 		msg_print(Ind, "The object resists the spell.");
@@ -1733,7 +1744,7 @@ void stair_creation(int Ind)
 	delete_object(Depth, p_ptr->py, p_ptr->px);
 
 	/* Create a staircase */
-	if (!Depth)
+	if (!Depth) /* Should never happen, would be in town */
 	{
 		c_ptr->feat = FEAT_MORE;
 	}
@@ -1997,7 +2008,7 @@ bool create_artifact_aux(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
-	char o_name[80];
+	char o_name[80]; /* Only used by randart() */
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -3597,7 +3608,7 @@ static void cave_temp_room_unlite(int Ind)
 		c_ptr->info &= ~CAVE_GLOW;
 
 		/* Hack -- Forget "boring" grids */
-		if (c_ptr->feat <= FEAT_INVIS)
+		if (is_boring(c_ptr->feat))
 		{
 			/* Forget the grid */
 			p_ptr->cave_flag[y][x] &= ~CAVE_MARK;

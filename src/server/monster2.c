@@ -2320,6 +2320,7 @@ bool summon_specific(int Depth, int y1, int x1, int lev, int type)
 {
 	int i, x, y, r_idx;
 
+	if (Depth == 0) return (FALSE);
 
 	/* Look for a location */
 	for (i = 0; i < 20; ++i)
@@ -2382,6 +2383,8 @@ bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char si
 {
 	int c, i, x, y;
 
+	if (Depth == 0) return (FALSE);
+
 	/* for each monster we are summoning */
 
 	for (c = 0; c < size; c++)
@@ -2427,8 +2430,9 @@ bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char size)
 	int			y, x;
 	int			tries = 0;
 
-	/* paranoia, make sure the level is allocated */
+	/* paranoia, make sure the level is allocated and non-Town */
 	if (!cave[Depth]) return (FALSE);
+	if (Depth == 0) return (FALSE);
 
 	/* Find a legal, distant, unoccupied, space */
 	while (tries < 50)

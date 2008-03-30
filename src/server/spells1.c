@@ -2028,7 +2028,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			c_ptr->info &= ~CAVE_GLOW;
 
 			/* Hack -- Forget "boring" grids */
-			if (c_ptr->feat <= FEAT_INVIS)
+			if (is_boring(c_ptr->feat))
 			{
 				/* Forget */
 				everyone_forget_spot(Depth, y, x);

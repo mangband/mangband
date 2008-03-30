@@ -643,7 +643,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 	feat = c_ptr->feat;
 
 	/* Floors (etc) */
-	if (feat <= FEAT_INVIS)
+	if (is_boring(feat))
 	{
 		/* Memorized (or visible) floor */
 		/* Hack -- space are visible to the dungeon master */
@@ -1042,7 +1042,7 @@ void note_spot(int Ind, int y, int x)
 		if (player_can_see_bold(Ind, y, x))
 		{
 			/* Memorize normal features */
-			if (c_ptr->feat > FEAT_INVIS) 
+			if (!is_boring(c_ptr->feat)) 
 			{
 				/* Memorize */
 				*w_ptr |= CAVE_MARK;
@@ -3280,7 +3280,7 @@ void map_area(int Ind)
 			if (c_ptr->feat < FEAT_SECRET)
 			{
 				/* Memorize normal features */
-				if (c_ptr->feat > FEAT_INVIS)
+				if (!is_boring(c_ptr->feat))
 				{
 					/* Memorize the object */
 					*w_ptr |= CAVE_MARK;
@@ -3371,7 +3371,7 @@ void wiz_lite(int Ind)
 					c_ptr->info |= (CAVE_GLOW);
 
 					/* Memorize normal features */
-					if (c_ptr->feat > FEAT_INVIS)
+					if (!is_boring(c_ptr->feat))
 					{
 						/* Memorize the grid */
 						*w_ptr |= CAVE_MARK;

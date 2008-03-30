@@ -454,6 +454,7 @@ extern void recent_track(int r_idx);
 extern void disturb(int Ind, int stop_search, int flush_output);
 extern bool is_quest(int level);
 extern void update_players(void);
+extern void update_cursor(int);
 
 /* cmd1.c */
 extern bool test_hit_fire(int chance, int ac, int vis);
@@ -565,6 +566,7 @@ extern bool InitNewConsole(int write_fd);
 extern void console_print(char *msg);
 
 /* dungeon.c */
+extern bool is_boring(byte feat);
 extern void play_game(bool new_game);
 extern void shutdown_server(void);
 extern void dungeon(void);
