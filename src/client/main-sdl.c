@@ -754,21 +754,23 @@ static errr Term_xtra_sdl(int n, int v)
 
 					/* Try to save a screenshot. */
 					case SDLK_F12:
-						if (SDL_SaveBMP(data[0].face, "newshot.bmp")) 
-						{
-							plog("You fail to get the screenshot off!");
-							break;
-						}
-						for (i = 0; i < 999; ++i) {
-							snprintf(buf, 1024, "%03d.bmp", i);
-							if ((tmp = fopen(buf, "rb")) != NULL)
+						if (event.key.keysym.mod & KMOD_ALT) {
+							if (SDL_SaveBMP(bigface, "newshot.bmp")) 
 							{
-								fclose(tmp);
-								continue;
+								plog("You fail to get the screenshot off!");
+								break;
 							}
-							rename("newshot.bmp", buf);
+							for (i = 0; i < 999; ++i) {
+								snprintf(buf, 1024, "%03d.bmp", i);
+								if ((tmp = fopen(buf, "rb")) != NULL)
+								{
+									fclose(tmp);
+									continue;
+								}
+								rename("newshot.bmp", buf);
+							}
+							plog("*click*");
 						}
-						plog("*click*");
 						break;
 					default:
 						break;
