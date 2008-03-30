@@ -4,6 +4,8 @@
 
 ; Where is the root of the project?
 !define DEV_DIR "..\..\"
+!include "FileFunc.nsh"
+!insertmacro GetParent
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband"
@@ -65,15 +67,11 @@ Section "MainSection" SEC01
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\MAngband (One Window).lnk" "$INSTDIR\mangclient-sdl.exe"
 
   CreateDirectory "$INSTDIR\lib"
-  CreateDirectory "$INSTDIR\lib\data"
   CreateDirectory "$INSTDIR\lib\file"
-  CreateDirectory "$INSTDIR\lib\save"
+  CreateDirectory "$INSTDIR\lib\help"
   CreateDirectory "$INSTDIR\tmp"
   File "${DEV_DIR}mangclient.ini"
   SetOutPath "$INSTDIR\lib"
-  FILE /r /x .svn "${DEV_DIR}lib\edit"
-  FILE /r /x .svn "${DEV_DIR}lib\help"
-  FILE /r /x .svn "${DEV_DIR}lib\text"
   FILE /r /x .svn "${DEV_DIR}lib\user"
   FILE /r /x .svn "${DEV_DIR}lib\xtra"
 
@@ -122,8 +120,11 @@ foundold:
 ;Run the uninstaller
 uninst:
   ClearErrors
-;  ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
-  ExecWait '$R0' ;Do not copy the uninstaller to a temp file
+
+  ${GetParent} $R0 $R9
+
+  ExecWait '$R0 _?=$R9' 
+;  ExecWait '$R0' 
 
   IfErrors no_remove_uninstaller
     ;You can either use Delete /REBOOTOK in the uninstaller or add some code
