@@ -2136,12 +2136,12 @@ void interact_macros(void)
 
 
 		/* Selections */
-		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load a user pref file");
-		Term_putstr(5,  5, -1, TERM_WHITE, "(2) Dump macros");
+		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load macros");
+		Term_putstr(5,  5, -1, TERM_WHITE, "(2) Save macros");
 		Term_putstr(5,  6, -1, TERM_WHITE, "(3) Enter a new action");
 		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Create a command macro");
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
-		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Create a identity macro");
+		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Create an identity macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
 #if 0
 		Term_putstr(5, 12, -1, TERM_WHITE, "(X) Turn off an option (by name)");

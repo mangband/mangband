@@ -3503,7 +3503,7 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			else if (!quiet && dam > 0) message_pain(Ind, c_ptr->m_idx, dam);
 
 			/* Take note */
-			if (!quiet && (fear || do_fear) && (p_ptr->mon_vis[c_ptr->m_idx]))
+			if (!quiet && (fear || do_fear) && (p_ptr->mon_vis[c_ptr->m_idx]) && !(r_ptr->flags2 & RF2_WANDERER))
 			{
 				/* Sound */
 				sound(Ind, SOUND_FLEE);

@@ -1182,20 +1182,17 @@ void update_mon(int m_idx, bool dist)
 		if (!cave[Depth]) continue;
 
 		/* Calculate distance */
-		if (dist)
-		{
-			int d, dy, dx;
+		int d, dy, dx;
 
-			/* Distance components */
-			dy = (p_ptr->py > fy) ? (p_ptr->py - fy) : (fy - p_ptr->py);
-			dx = (p_ptr->px > fx) ? (p_ptr->px - fx) : (fx - p_ptr->px);
+		/* Distance components */
+		dy = (p_ptr->py > fy) ? (p_ptr->py - fy) : (fy - p_ptr->py);
+		dx = (p_ptr->px > fx) ? (p_ptr->px - fx) : (fx - p_ptr->px);
 
-			/* Approximate distance */
-			d = (dy > dx) ? (dy + (dx>>1)) : (dx + (dy>>1));
+		/* Approximate distance */
+		d = (dy > dx) ? (dy + (dx>>1)) : (dx + (dy>>1));
 
-			/* Save the distance (in a byte) */
-			m_ptr->cdis = (d < 255) ? d : 255;
-		}
+		/* Save the distance (in a byte) */
+		m_ptr->cdis = (d < 255) ? d : 255;
 
 		/* Nearby */
 		if (m_ptr->cdis <= MAX_SIGHT)
@@ -1269,6 +1266,7 @@ void update_mon(int m_idx, bool dist)
 				//if (!strcmp(p_ptr->name, cfg_dungeon_master)) flag = TRUE;
 			}
 		}
+
 
 
 		/* The monster is now visible */
