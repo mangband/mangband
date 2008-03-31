@@ -643,8 +643,10 @@ int Net_packet(void)
 		if (receive_tbl[type] == NULL)
 		{
 			errno = 0;
-			plog(format("Received unknown packet type (%d, %d), dropping",
-				type, prev_type));
+			/* The player really doesn't need to know about this */
+#ifdef DEBUG			
+			plog(format("Received unknown packet type (%d, %d), dropping", type, prev_type));
+#endif
 			Sockbuf_clear(&rbuf);
 			break;
 		}
