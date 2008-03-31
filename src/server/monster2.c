@@ -1129,6 +1129,7 @@ void update_mon(int m_idx, bool dist)
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
 	player_type *p_ptr;
+	int d, dy, dx;
 
 	/* The current monster location */
 	int fy = m_ptr->fy;
@@ -1182,7 +1183,6 @@ void update_mon(int m_idx, bool dist)
 		if (!cave[Depth]) continue;
 
 		/* Calculate distance */
-		int d, dy, dx;
 
 		/* Distance components */
 		dy = (p_ptr->py > fy) ? (p_ptr->py - fy) : (fy - p_ptr->py);
