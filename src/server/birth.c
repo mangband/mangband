@@ -945,7 +945,8 @@ static void player_outfit(int Ind)
 static void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	int y, x, i, d, count = 0, Depth = p_ptr->dun_depth;
+	player_type *q_ptr;
+	int y, x, i, d, k, count = 0, Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
 
 	bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)), require_los = 1; 
@@ -1042,6 +1043,31 @@ static void player_setup(int Ind)
 	}
 
 	/* Re-Place the player correctly */
+
+	/* Don't allow placement inside a shop if someone is shopping (anti-exploit) */
+	for (i = 0; i < num_houses; i++)
+	{
+		/* Are we inside this house? */
+		if (house_inside(Ind, i))
+		{
+			/* Is anyone shopping in it? */
+			for (k = 1; k <= NumPlayers; k++ )
+			{
+				q_ptr = Players[k];
+				if(q_ptr && Ind != k)
+				{
+					/* Someone in here? */
+					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
+					{
+						/* Put us somewhere safe instead */
+						p_ptr->py = level_down_y[0];
+						p_ptr->px = level_down_x[0];
+					}
+				}				
+			}
+			break;			
+		}
+	}
 
 	// Hack -- don't require line of sight if we are stuck in something 
 	// solid, such as rock.  This might happen if the level unstatics
