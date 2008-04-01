@@ -548,10 +548,21 @@ void do_cmd_check_players(int Ind, int line)
 		fprintf(fff, "%c", attr);
 
 		/* Print a message */
-		fprintf(fff, "     %s the %s %s (Level %d, %s)",
+		if(q_ptr->no_ghost)
+		{
+			fprintf(fff, "     %s the Brave %s %s (Level %d, %s)",
 			q_ptr->name, p_name + p_info[q_ptr->prace].name,
 			c_name + c_info[q_ptr->pclass].name, q_ptr->lev,
 			parties[q_ptr->party].name);
+		} 
+		else 
+		{
+			fprintf(fff, "     %s the %s %s (Level %d, %s)",
+			q_ptr->name, p_name + p_info[q_ptr->prace].name,
+			c_name + c_info[q_ptr->pclass].name, q_ptr->lev,
+			parties[q_ptr->party].name);
+		}
+
 
 		/* Print extra info if these people are in the same party */
 		/* Hack -- always show extra info to dungeon master */

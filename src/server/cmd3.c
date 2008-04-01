@@ -530,17 +530,12 @@ void do_cmd_takeoff(int Ind, int item)
 
 	object_type *o_ptr;
 
-
-#if 0
 	/* Verify potential overflow */
 	if (p_ptr->inven_cnt >= INVEN_PACK)
 	{
-		/* Verify with the player */
-		if (other_query_flag &&
-		    !get_check(Ind, "Your pack may overflow.  Continue? ")) return;
+		msg_print(Ind, "Your pack is full and would overflow!");
+		return;
 	}
-#endif
-
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -551,12 +546,8 @@ void do_cmd_takeoff(int Ind, int item)
 	/* Get the item (on the floor) */
 	else
 	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return;
-		}
-		o_ptr = &o_list[0 - item];
+		/* We can't "takeoff" something that is on the floor */
+		return;
 	}
 
 	if( check_guard_inscription( o_ptr->note, 'T' )) {

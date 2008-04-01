@@ -464,16 +464,11 @@ bool house_inside(int Ind, int house)
 {
 	player_type *p_ptr = Players[Ind];
 
-#if 0
-	/* If he's not playing, skip him */
-	if (p_ptr->.conn == NOT_CONNECTED) return FALSE;		
-#endif
-	
 	if (house >= 0 && house < num_houses)
 	{
 		if (houses[house].depth == p_ptr->dun_depth
-					&& p_ptr->px >= houses[house].x_1 && p_ptr->px <= houses[house].x_2 
-					&& p_ptr->py >= houses[house].y_1 && p_ptr->py <= houses[house].y_2)
+			&& p_ptr->px >= houses[house].x_1 && p_ptr->px <= houses[house].x_2 
+			&& p_ptr->py >= houses[house].y_1 && p_ptr->py <= houses[house].y_2)
 		{
 			return TRUE;
 		}
@@ -585,9 +580,10 @@ void disown_house(int house)
 void do_cmd_open(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
 	int Depth = p_ptr->dun_depth;
 
-	int				y, x, i, j;
+	int				y, x, i, j, k;
 	int				flag;
 
 	cave_type		*c_ptr;
@@ -786,6 +782,25 @@ void do_cmd_open(int Ind, int dir)
 			/* Do we own this house? */
 			if (house_owned_by(Ind,i) || (!(strcmp(p_ptr->name,cfg_dungeon_master))) )
 			{
+
+				/* If someone is in our store, we can't enter (anti-exploit) */
+				/* FIXME This can be removed once we have a mechanism to eject a
+				 * client from a shop.  See store_purchase. 
+				 */
+				for (k = 1; k <= NumPlayers; k++ )
+				{
+					/* We don't block the owner from getting out! */
+					q_ptr = Players[k];
+					if(q_ptr && Ind != k)
+					{
+						/* We do block the owner getting in */
+						if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
+						{
+							msg_print(Ind, "The shoppers block the entrance!");
+							return;		
+						}
+					}				
+				}
 
 				/* Open the door */
 				c_ptr->feat = FEAT_HOME_OPEN;

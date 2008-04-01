@@ -1430,6 +1430,24 @@ void store_purchase(int Ind, int item, int amt)
 			msg_print(Ind,"Sorry, this item is reserved.");
 			return;
 	}
+	
+	/* Don't sell if someone has just entered the house (anti-exploit) */
+	if (st == 8 )
+	{
+		for (i = 1; i <= NumPlayers; i++)
+		{
+			if(house_inside(i, p_ptr->player_store_num))
+			{
+				/* FIXME Here we should eject the player from the shop for his own
+				 * protection. The shop keeper can exploit him if he is inside the
+				 * shop when another player is shopping.
+				 */
+				/* msg_print(Ind, "The shopkeeper is currently restocking."); */
+				msg_print(Ind, "WARNING: Shop keeper is restocking, please leave!");
+				return;		
+			}
+		}
+	}
 
 	/* Sanity check the number of items */
 	if (amt > o_ptr->number)
@@ -1836,7 +1854,7 @@ static bool leave_store = FALSE;
 void do_cmd_store(int Ind, int pstore)
 {
 	player_type *p_ptr = Players[Ind];
-	int			which;
+	int			which, i;
 
 	cave_type		*c_ptr;
 
@@ -1873,6 +1891,15 @@ void do_cmd_store(int Ind, int pstore)
 	/* Player owned store */
 	else
 	{
+		/* Store is closed if someone is restocking (anti-exploit) */
+		for (i = 1; i <= NumPlayers; i++)
+		{
+			if(house_inside(i, pstore))
+			{
+				msg_print(Ind, "The doors are locked.");
+				return;		
+			}
+		}
 		p_ptr->store_num = 8;
 		p_ptr->player_store_num = pstore;
 	}

@@ -2342,8 +2342,10 @@ void player_death(int Ind)
 	
 	if (p_ptr->fruit_bat == -1)
 		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-	else if (p_ptr->alive)
+	else if (p_ptr->alive && !p_ptr->no_ghost)
 		sprintf(buf, "%s was killed by %s.", p_ptr->name, p_ptr->died_from);
+	else if (p_ptr->alive && p_ptr->no_ghost)
+		sprintf(buf, "The brave hero %s was killed by %s.", p_ptr->name, p_ptr->died_from);
 	else if (!p_ptr->total_winner)
 		sprintf(buf, "%s committed suicide.", p_ptr->name);
 	else
