@@ -61,7 +61,7 @@ static void console_whois(char *name)
 {
 	int i, len;
 	u16b major, minor, patch, extra;
-	char output[1024];
+	char output[1024], brave[15];
 	player_type *p_ptr, *p_ptr_search;
 	
 	p_ptr = 0;
@@ -86,8 +86,9 @@ static void console_whois(char *name)
 	/* Output player information */
 
 	/* General character description */
-	Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
-		p_ptr->name, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
+	(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
+	Packet_printf(&console_buf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
 	/* Breakup the client version identifier */
@@ -129,27 +130,39 @@ static void console_message(char *buf)
 
 static void console_kick_player(char *name)
 {
-	int i;
+	int i, len;
+	player_type *p_ptr, *p_ptr_search;
+
+	p_ptr = 0;
 
 	/* Check the players in the game */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		/* Check name */
-		if (!strcmp(name, Players[i]->name))
+		p_ptr_search = Players[i];
+		len = strlen(p_ptr_search->name);
+		if (!strncasecmp(p_ptr_search->name, name, len))
 		{
-			/* Kick him */
-			Destroy_connection(Players[i]->conn, "kicked out");
-
-			/* Success */
-			Packet_printf(&console_buf, "%s", "Kicked player\n");
-			Sockbuf_flush(&console_buf);
-			return;
+			p_ptr = p_ptr_search;
+			break;
 		}
 	}
 
-	/* Failure */
-	Packet_printf(&console_buf, "%s", "No such player\n");
-	Sockbuf_flush(&console_buf);
+	/* Check name */
+	if (p_ptr)
+	{
+		/* Kick him */
+		Destroy_connection(p_ptr->conn, "kicked out");
+		/* Success */
+		Packet_printf(&console_buf, "%s", "Kicked player\n");
+		Sockbuf_flush(&console_buf);
+		return;
+	}
+	else
+	{
+		/* Failure */
+		Packet_printf(&console_buf, "%s", "No such player\n");
+		Sockbuf_flush(&console_buf);
+	}
 
 }
 
