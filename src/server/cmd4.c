@@ -398,9 +398,9 @@ void do_cmd_check_artifacts(int Ind, int line)
  */
 void do_cmd_check_uniques(int Ind, int line)
 {
-	int k, l, i, total = 0;
+	int k, l, i, space, namelen, total = 0, width = 78;
 	FILE *fff;
-	char file_name[1024];
+	char file_name[1024], buf[1024];
 	int idx[MAX_R_IDX];
 	monster_race *r_ptr, *curr_ptr;
 
@@ -438,60 +438,73 @@ void do_cmd_check_uniques(int Ind, int line)
 	}
 								
 	if (total)
-				{
+	{
 		/* for each unique */
 		for (l = total - 1; l >= 0; l--)
 		{
-			byte ok = FALSE;
-			bool full = FALSE;
-					
+			bool ok = FALSE;
+			char highlight = 'D';
 			r_ptr = &r_info[idx[l]];
-							
-			/* Format message */
-			fprintf(fff, "%s has been killed by", r_name + r_ptr->name);
+			sprintf(buf, "%s killed by: ", r_name + r_ptr->name);
+			space = width - strlen(buf);
 					
-			k = 0;
+			/* Do we need to highlight this unique? */
 			for (i = 1; i <= NumPlayers; i++)
-					{																						
+			{
 				player_type *q_ptr = Players[i];
-
 				if (q_ptr->r_killed[idx[l]])
 				{
-					if (!ok)
-					{
-
-						fprintf(fff, ":\n");
-						ok = TRUE;
-					}
-					fprintf(fff, "  %-16.16s", q_ptr->name);
-					k++;
-					full = FALSE;
-					if (k == 4)
-					{
-						fprintf(fff, "\n");
-						k = 0;
-						full = TRUE;
-					}
+					if (i == Ind) highlight = 'w';
 				}
-					}
-
-			if (!ok)
+			}
+			
+			/* Append all players who killed this unique */
+			k = 0;
+			for (i = 1; i <= NumPlayers; i++)
 			{
-				if (r_ptr->r_tkills) fprintf(fff, " Somebody.");
-				else fprintf(fff, " Nobody.");
+				player_type *q_ptr = Players[i];
+				if (q_ptr->r_killed[idx[l]])
+				{
+					ok = TRUE;
+					namelen = strlen(q_ptr->name)+2;
+					if (space - namelen < 0 )
+					{
+						/* Out of space, flush the line */
+						fprintf(fff, "%c%s\n", highlight, buf);
+						strcpy(buf, "  \0");
+						k = 0;
+						space = width;
+					}
+					if (k++) strcat(buf, ", ");
+					strcat(buf, q_ptr->name);
+					space -= namelen;
 				}
+			}
+			if(ok)
+			{
+				fprintf(fff, "%c%s\n", highlight, buf);
+			}
+			else
+			{
+				if (r_ptr->r_tkills)
+				{
+					fprintf(fff, "D%s has been killed by somebody.\n", r_name + r_ptr->name);
+				}
+				else
+				{
+					fprintf(fff, "D%s has never been killed!\n", r_name + r_ptr->name);
+				}
+			}
 
-				/* Terminate line */
-			if (!full) fprintf(fff, "\n");
 		}
 	}
-	else fprintf(fff, "No uniques are witnessed so far.\n");
+	else fprintf(fff, "wNo uniques are witnessed so far.\n");
 
 	/* Close the file */
 	my_fclose(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Known Uniques", line, 0);
+	show_file(Ind, file_name, "Known Uniques", line, 1);
 
 	/* Remove the file */
 	fd_kill(file_name);
