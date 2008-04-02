@@ -362,12 +362,12 @@ static bool describe_stats(const object_type *o_ptr, u32b f1, u32b fH)
 	if (!pval) return (FALSE);
 
 	/* Collect stat bonuses */
-	if (f1 & (TR1_STR)) descs[cnt++] = stat_names[A_STR];
-	if (f1 & (TR1_INT)) descs[cnt++] = stat_names[A_INT];
-	if (f1 & (TR1_WIS)) descs[cnt++] = stat_names[A_WIS];
-	if (f1 & (TR1_DEX)) descs[cnt++] = stat_names[A_DEX];
-	if (f1 & (TR1_CON)) descs[cnt++] = stat_names[A_CON];
-	if (f1 & (TR1_CHR)) descs[cnt++] = stat_names[A_CHR];
+	if (f1 & (TR1_STR)) descs[cnt++] = stat_names_full[A_STR];
+	if (f1 & (TR1_INT)) descs[cnt++] = stat_names_full[A_INT];
+	if (f1 & (TR1_WIS)) descs[cnt++] = stat_names_full[A_WIS];
+	if (f1 & (TR1_DEX)) descs[cnt++] = stat_names_full[A_DEX];
+	if (f1 & (TR1_CON)) descs[cnt++] = stat_names_full[A_CON];
+	if (f1 & (TR1_CHR)) descs[cnt++] = stat_names_full[A_CHR];
 
 	/* Skip */
 	if (cnt == 0) return (FALSE);
