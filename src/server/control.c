@@ -28,6 +28,7 @@ void console_print(char *msg)
 static void console_who()
 {
 	int k;
+	char brave[15];
 
 	/* Packet header */
 	Packet_printf(&console_buf, "%s",format("%d players online\n", NumPlayers));
@@ -38,8 +39,9 @@ static void console_who()
 		player_type *p_ptr = Players[k];
 
 		/* Add an entry */
-		Packet_printf(&console_buf, "%s",format("%s is a level %d %s %s at %d ft\n", 
-			p_ptr->name, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
+		(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
+		Packet_printf(&console_buf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 			
 	}
