@@ -129,27 +129,39 @@ static void console_message(char *buf)
 
 static void console_kick_player(char *name)
 {
-	int i;
+	int i, len;
+	player_type *p_ptr, *p_ptr_search;
+
+	p_ptr = 0;
 
 	/* Check the players in the game */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		/* Check name */
-		if (!strcmp(name, Players[i]->name))
+		p_ptr_search = Players[i];
+		len = strlen(p_ptr_search->name);
+		if (!strncasecmp(p_ptr_search->name, name, len))
 		{
-			/* Kick him */
-			Destroy_connection(Players[i]->conn, "kicked out");
-
-			/* Success */
-			Packet_printf(&console_buf, "%s", "Kicked player\n");
-			Sockbuf_flush(&console_buf);
-			return;
+			p_ptr = p_ptr_search;
+			break;
 		}
 	}
 
-	/* Failure */
-	Packet_printf(&console_buf, "%s", "No such player\n");
-	Sockbuf_flush(&console_buf);
+	/* Check name */
+	if (p_ptr)
+	{
+		/* Kick him */
+		Destroy_connection(p_ptr->conn, "kicked out");
+		/* Success */
+		Packet_printf(&console_buf, "%s", "Kicked player\n");
+		Sockbuf_flush(&console_buf);
+		return;
+	}
+	else
+	{
+		/* Failure */
+		Packet_printf(&console_buf, "%s", "No such player\n");
+		Sockbuf_flush(&console_buf);
+	}
 
 }
 
