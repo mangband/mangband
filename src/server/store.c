@@ -1982,7 +1982,7 @@ void do_cmd_store(int Ind, int pstore)
 		/* Store is closed if someone is restocking (anti-exploit) */
 		for (i = 1; i <= NumPlayers; i++)
 		{
-			if(house_inside(i, pstore))
+			if(Ind != i && house_inside(i, pstore))
 			{
 				msg_print(Ind, "The doors are locked.");
 				return;		
