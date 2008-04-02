@@ -975,10 +975,14 @@ that keeps many algorithms happy.
 #define EGO_TELEPATHY		33
 #define EGO_REGENERATION	34
 #define EGO_TELEPORTATION	35
-#define EGO_STUPIDITY		36
-#define EGO_NAIVETY			37
-#define EGO_UGLINESS		38
+#define EGO_SERENITY		36
+#define EGO_NITE_DAY		37
+#define EGO_DULLNESS		38
 #define EGO_SICKLINESS		39
+#define EGO_STUPIDITY		136
+#define EGO_NAIVETY		137
+#define EGO_UGLINESS		138
+
 
 /* Cloaks */
 #define EGO_PROTECTION		40
@@ -1086,25 +1090,22 @@ that keeps many algorithms happy.
 /* Shields */
 #define EGO_SHIELD_AVARI	128
 
-/* Crowns and Helms */
-#define EGO_SERENITY		129
-#define EGO_NITE_DAY		130
-#define EGO_DULLNESS		131
 
 /* Cloaks */
-#define EGO_CLOAK_TELERI	132
-#define EGO_CLOAK_RES		133
-#define EGO_CLOAK_LORDLY_RES	134
+#define EGO_CLOAK_TELERI	129
+#define EGO_CLOAK_RES		131
+#define EGO_CLOAK_LORDLY_RES	130
 
 /* Gloves */
-#define EGO_ISTARI			135
+#define EGO_ISTARI			132
 
 /* Boots */
-#define EGO_MIRKWOOD		136
+#define EGO_MIRKWOOD		133
 
 /* Missile launchers */
-#define EGO_LOTHLORIEN		137
-#define EGO_NUMENOR			138
+#define EGO_LOTHLORIEN		106 /* note: this is angband, 
+				     *	for mangband set to 134 */
+#define EGO_NUMENOR		135
 
 
 /*** Object "tval" and "sval" codes ***/
