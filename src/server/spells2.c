@@ -4013,8 +4013,28 @@ bool poly_monster(int Ind, int dir)
 
 bool clone_monster(int Ind, int dir)
 {
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
+	int num, i;
+	player_type *p_ptr = Players[Ind];
+	
+	// Never in the town
+	if(!p_ptr->dun_depth) return(FALSE);
+	
+	// This has a chance of backfiring
+	if(randint(5)==1)
+	{
+		// Backfire, clone oddly (summon)
+		num = 2 + randint(3);
+		for (i = 0; i < num; i++)
+		{
+			(void)summon_specific(p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->dun_depth, 0);
+		}
+	}
+	else
+	{
+		// Standard clone effect
+		int flg = PROJECT_STOP | PROJECT_KILL;
+		return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
+	}
 }
 
 bool fear_monster(int Ind, int dir, int plev)
