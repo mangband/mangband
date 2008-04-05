@@ -4269,8 +4269,11 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Affected location(s) */
 	cave_type *c_ptr;
 
-	/* Disable all animation effects */
-	bool disableeffects = TRUE;
+	/* Effect density, 1 in density frames are actually drawn */
+	int density = 5;	
+	
+	/* Disable all effect animations completely */
+	bool disableeffects = FALSE;
 
 	/* Assume the player sees nothing */
 	bool notice = FALSE;
@@ -4287,7 +4290,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 
 	/* Number of grids in the "blast area" (including the "beam" path) */
 	int grids = 0;
-
+	
 	/* Coordinates of the affected grids */
 	byte gx[256], gy[256];
 
@@ -4374,11 +4377,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				int dispx, dispy;
 				byte attr;
 
-#if 0
-				if (p_ptr->conn == NOT_CONNECTED)
-					continue;
-#endif
-
 				if (p_ptr->dun_depth != Depth)
 					continue;
 
@@ -4399,7 +4397,8 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				p_ptr->scr_info[dispy][dispx].c = '*';
 				p_ptr->scr_info[dispy][dispx].a = attr;
 
-				if (!disableeffects) Send_char(j, dispx, dispy, attr, '*');
+				/* Beams can have a slightly higher density */
+				if (randint(density>>1) == 1) Send_char(j, dispx, dispy, attr, '*');
 			}
 		}
 
@@ -4478,12 +4477,10 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				p_ptr->scr_info[dispy][dispx].c = ch;
 				p_ptr->scr_info[dispy][dispx].a = attr;
 
-				if (!disableeffects) Send_char(j, dispx, dispy, attr, ch);
-
-				/* Hack -- Show bolt char */
-				if (!disableeffects) 
+				if (randint(density) == 1) 
 				{
-					if (dist % 2) Send_flush(j);
+					Send_char(j, dispx, dispy, attr, ch);
+					Send_flush(j);
 				}
 			}
 		}
@@ -4493,6 +4490,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		/* Save the new location */
 		y = y9;
 		x = x9;
+	
 	}
 
 
@@ -4541,7 +4539,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		}
 	}
 
-
 	/* Speed -- ignore "non-explosions" */
 	if (!grids) return (FALSE);
 
@@ -4557,6 +4554,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			/* Dump everything with this radius */
 			for (i = gm[t]; i < gm[t+1]; i++)
 			{
+			    if(randint(density) != 1) continue;
 				/* Extract the location */
 				y = gy[i];
 				x = gx[i];
