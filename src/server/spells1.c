@@ -4481,7 +4481,10 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (!disableeffects) Send_char(j, dispx, dispy, attr, ch);
 
 				/* Hack -- Show bolt char */
-				//if (dist % 2) Send_flush(j);
+				if (!disableeffects) 
+				{
+					if (dist % 2) Send_flush(j);
+				}
 			}
 		}
 		/* Clean up */
