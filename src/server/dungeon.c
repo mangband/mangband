@@ -765,11 +765,6 @@ static int auto_retaliate(int Ind)
 	{
 		q_ptr = Players[i];
 
-#if 0
-		/* Skip non-connected players */
-		if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 		/* Skip players not at this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
@@ -1908,12 +1903,6 @@ void dungeon(void)
 	/* Check for death.  Go backwards (very important!) */
 	for (i = NumPlayers; i > 0; i--)
 	{
-#if 0
-		/* Check connection first */
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Check for death */
 		if (Players[i]->death)
 		{
@@ -1945,10 +1934,6 @@ void dungeon(void)
 		int x, y, startx, starty;
 
 		if (players_on_depth[Depth] == 0) continue;
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
 
 		if (!p_ptr->new_level_flag)
 			continue;
@@ -2189,11 +2174,6 @@ void dungeon(void)
 	/* Do final end of turn processing for each player */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Actually process that player */
 		process_player_end(i);
 	}
@@ -2201,12 +2181,6 @@ void dungeon(void)
 	/* Check for death.  Go backwards (very important!) */
 	for (i = NumPlayers; i > 0; i--)
 	{
-#if 0
-		/* Check connection first */
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Check for death */
 		if (Players[i]->death)
 		{
@@ -2223,11 +2197,6 @@ void dungeon(void)
 	/* Do some beginning of turn processing for each player */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Actually process that player */
 		process_player_begin(i);
 	}
@@ -2241,11 +2210,6 @@ void dungeon(void)
 	/* Probess the world */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Process the world of that player */
 		process_world(i);
 	}
@@ -2260,10 +2224,6 @@ void dungeon(void)
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *p_ptr = Players[i];
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
 
 		/* Notice stuff */
 		if (p_ptr->notice) notice_stuff(i);

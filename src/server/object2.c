@@ -3095,10 +3095,6 @@ bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int le
 				/* Make sure no one sees it at first */
 				for (i = 1; i < NumPlayers + 1; i++)
 				{
-				#if 0
-					if (Players[i]->conn == NOT_CONNECTED)
-						continue;
-				#endif
 					/* He can't see it */
 					Players[i]->obj_vis[o_idx] = FALSE;
 				}
@@ -3243,11 +3239,6 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 		/* Make sure no one sees it at first */
 		for (i = 1; i < NumPlayers + 1; i++)
 		{
-#if 0
-			if (Players[i]->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* He can't see it */
 			Players[i]->obj_vis[o_idx] = FALSE;
 		}
@@ -3412,10 +3403,6 @@ void place_gold(int Depth, int y, int x)
 		/* No one can see it */
 		for (j = 1; j <= NumPlayers; j++)
 		{
-#if 0
-			if (Players[j]->conn == NOT_CONNECTED) continue;
-#endif
-
 			/* This player can't see it */
 			Players[j]->obj_vis[o_idx] = FALSE;
 		}

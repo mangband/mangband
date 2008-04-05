@@ -3622,11 +3622,6 @@ bool target_set(int Ind, int dir)
 			/* Don't target yourself */
 			if (i == Ind) continue;
 
-#if 0
-			/* Skip unconnected players */
-			if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 			/* Ignore players we aren't hostile to */
 			if (!check_hostile(Ind, i)) continue;
 
@@ -3826,11 +3821,6 @@ bool target_set_friendly(int Ind, int dir)
 
 			/* Don't target yourself */
 			if (i == Ind) continue;
-
-#if 0
-			/* Skip unconnected players */
-			if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
 
 			/* Ignore players we aren't friends with */
 			/* if (!check_hostile(Ind, i)) continue; */
@@ -4106,10 +4096,7 @@ bool master_level(int Ind, char * parms)
 			num_on_depth = 0;
 			for (i = 1; i <= NumPlayers; i++)
 			{
-#if 0
-				if (p_ptr->conn == NOT_CONNECTED) continue;
 				if (Players[i]->dun_depth == p_ptr->dun_depth) num_on_depth++;
-#endif
 			}
 			/* set the number of players on the level equal to the numer of 
 			 * currently connected players on the level.

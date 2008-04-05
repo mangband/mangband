@@ -627,13 +627,6 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 	byte a;
 	char c;
 
-#if 0
-	if (Players[Ind]->conn == NOT_CONNECTED) {
-		return;
-	}
-#endif
-
-
 	/* Get the cave */
 	c_ptr = &cave[Depth][y][x];
 	w_ptr = &p_ptr->cave_flag[y][x];
@@ -1072,11 +1065,6 @@ void note_spot_depth(int Depth, int y, int x)
 
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		if (Players[i]->dun_depth == Depth)
 		{
 			note_spot(i, y, x);
@@ -1091,12 +1079,6 @@ void everyone_lite_spot(int Depth, int y, int x)
 	/* Check everyone */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-		/* If he's not playing, skip him */
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
 			continue;
@@ -1116,12 +1098,6 @@ void everyone_forget_spot(int Depth, int y, int x)
 	/* Check everyone */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
-		/* If he's not playing, skip him */
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
 			continue;
@@ -1952,11 +1928,6 @@ void forget_lite(int Ind)
 
 		for (j = 1; j <= NumPlayers; j++)
 		{
-			/* Make sure player is connected */
-#if 0
-			if (Players[j]->conn == NOT_CONNECTED)
-				continue;
-#endif
 
 			/* Make sure player is on the level */
 			if (Players[j]->dun_depth != Depth)
@@ -2067,11 +2038,6 @@ void update_lite(int Ind)
 
 		for (j = 1; j <= NumPlayers; j++)
 		{
-			/* Make sure player is connected */
-#if 0
-			if (Players[j]->conn == NOT_CONNECTED)
-				continue;
-#endif
 
 			/* Make sure player is on the level */
 			if (Players[j]->dun_depth != Depth)
@@ -3653,12 +3619,6 @@ void update_cursor(int m_idx)
 	{
 		p_ptr = Players[i];
 
-		/* Check connection */
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* See if he is tracking this monster */
 		if (p_ptr->cursor_who == m_idx)
 		{
@@ -3697,12 +3657,6 @@ void update_health(int m_idx)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		p_ptr = Players[i];
-
-		/* Check connection */
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
 
 		/* See if he is tracking this monster */
 		if (p_ptr->health_who == m_idx)

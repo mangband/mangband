@@ -2001,10 +2001,6 @@ int Net_output(void)
 	{
 		p_ptr = Players[i];
 
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 		if (p_ptr->new_level_flag) continue;
 
 		connp = &Conn[p_ptr->conn];
