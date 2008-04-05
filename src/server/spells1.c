@@ -4439,6 +4439,8 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		/* Nothing can travel furthur than the maximal distance */
 		if (dist > MAX_RANGE) break;
 
+/* Here we disable projectile animations to see if it helps with lag */
+#if 0
 		/* Only do visual effects (and delay) if requested */
 		if (!(flg & PROJECT_HIDE))
 		{
@@ -4481,7 +4483,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (dist % 2) Send_flush(j);
 			}
 		}
-
+#endif
 		/* Clean up */
 		everyone_lite_spot(Depth, y9, x9);
 
@@ -4540,6 +4542,8 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Speed -- ignore "non-explosions" */
 	if (!grids) return (FALSE);
 
+/* Here we disable explosion animations to see if it helps with lag */
+#if 0
 	/* Display the "blast area" */
 	if (!(flg & PROJECT_HIDE))
 	{
@@ -4634,7 +4638,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			}
 		}
 	}
-
+#endif
 
 	/* Check features */
 	if (flg & PROJECT_GRID)
