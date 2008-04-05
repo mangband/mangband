@@ -4269,6 +4269,9 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Affected location(s) */
 	cave_type *c_ptr;
 
+	/* Disable all animation effects */
+	bool disableeffects = TRUE;
+
 	/* Assume the player sees nothing */
 	bool notice = FALSE;
 
@@ -4396,7 +4399,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				p_ptr->scr_info[dispy][dispx].c = '*';
 				p_ptr->scr_info[dispy][dispx].a = attr;
 
-				Send_char(j, dispx, dispy, attr, '*');
+				if (!disableeffects) Send_char(j, dispx, dispy, attr, '*');
 			}
 		}
 
@@ -4439,8 +4442,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		/* Nothing can travel furthur than the maximal distance */
 		if (dist > MAX_RANGE) break;
 
-/* Here we disable projectile animations to see if it helps with lag */
-#if 0
 		/* Only do visual effects (and delay) if requested */
 		if (!(flg & PROJECT_HIDE))
 		{
@@ -4477,13 +4478,12 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				p_ptr->scr_info[dispy][dispx].c = ch;
 				p_ptr->scr_info[dispy][dispx].a = attr;
 
-				Send_char(j, dispx, dispy, attr, ch);
+				if (!disableeffects) Send_char(j, dispx, dispy, attr, ch);
 
 				/* Hack -- Show bolt char */
-				if (dist % 2) Send_flush(j);
+				//if (dist % 2) Send_flush(j);
 			}
 		}
-#endif
 		/* Clean up */
 		everyone_lite_spot(Depth, y9, x9);
 
@@ -4542,8 +4542,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Speed -- ignore "non-explosions" */
 	if (!grids) return (FALSE);
 
-/* Here we disable explosion animations to see if it helps with lag */
-#if 0
 	/* Display the "blast area" */
 	if (!(flg & PROJECT_HIDE))
 	{
@@ -4593,7 +4591,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					p_ptr->scr_info[dispy][dispx].c = '*';
 					p_ptr->scr_info[dispy][dispx].a = attr;
 
-					Send_char(j, dispx, dispy, attr, '*');
+					if (!disableeffects) Send_char(j, dispx, dispy, attr, '*');
 
 					drawn = TRUE;
 
@@ -4612,7 +4610,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 0; j < num_can_see; j++)
 			{
 				/* Show this radius and delay */
-				Send_flush(who_can_see[j]);
+				if (!disableeffects) Send_flush(who_can_see[j]);
 			}
 		}
 
@@ -4634,11 +4632,10 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 0; j < num_can_see; j++)
 			{
 				/* Show this radius and delay */
-				Send_flush(who_can_see[j]);
+				if (!disableeffects) Send_flush(who_can_see[j]);
 			}
 		}
 	}
-#endif
 
 	/* Check features */
 	if (flg & PROJECT_GRID)
