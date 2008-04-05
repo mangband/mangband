@@ -2523,11 +2523,6 @@ void msg_broadcast(int Ind, cptr msg)
 	/* Tell every player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-#if 0
-		/* Skip disconnected players */
-		if (Players[i]->conn == NOT_CONNECTED) 
-			continue;
-#endif
 			
 		/* Skip the specified player */
 		if (i == Ind)

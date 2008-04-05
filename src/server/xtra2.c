@@ -1817,8 +1817,8 @@ void check_experience(int Ind)
 
 		/* Message */
 		msg_format(Ind, "Welcome to level %d.", p_ptr->lev);
-	sprintf(buf, "%s has attained level %d.", p_ptr->name, p_ptr->lev);
-	msg_broadcast(Ind, buf);
+		sprintf(buf, "%s has attained level %d.", p_ptr->name, p_ptr->lev);
+		msg_broadcast(Ind, buf);
 
 		/* Record this event in the character history */
 		if(!(p_ptr->lev % 5))
