@@ -4451,11 +4451,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				char ch;
 				byte attr;
 
-#if 0
-				if (p_ptr->conn == NOT_CONNECTED)
-					continue;
-#endif
-
 				if (p_ptr->dun_depth != Depth)
 					continue;
 
@@ -4566,11 +4561,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					byte attr;
 					int k;
 					bool flag = TRUE;
-
-#if 0
-					if (p_ptr->conn == NOT_CONNECTED)
-						continue;
-#endif
 
 					if (p_ptr->dun_depth != Depth)
 						continue;

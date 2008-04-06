@@ -837,6 +837,7 @@ static void Conn_set_state(connection_t *connp, int state, int drain_state)
 static void Delete_player(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	char buf[255];
 	int i;
 
 	/* Be paranoid */
@@ -861,24 +862,9 @@ static void Delete_player(int Ind)
 	if (p_ptr->alive && !p_ptr->death && 
 	    ((strcmp(p_ptr->name, cfg_dungeon_master)) || !cfg_secret_dungeon_master))
 	{
-		if(p_ptr->lev >1) {
-		/* RLS: Don't report level 1's  too much noise */
-			for (i = 1; i < NumPlayers + 1; i++)
-			{
-#if 0
-				if (Players[i]->conn == NOT_CONNECTED)
-					continue;
-#endif
-
-				/* Don't tell him about himself */
-				if (i == Ind) continue;
-
-				/* Send a little message */
-				msg_format(i, "%s has left the game.", p_ptr->name);
-			}
-		};
+		sprintf(buf, "%s has left the game.", p_ptr->name);
+		msg_broadcast(Ind, buf);
 	}
-
 
 	/* Swap entry number 'Ind' with the last one */
 	/* Also, update the "player_index" on the cave grids */
@@ -1521,6 +1507,7 @@ static int Handle_login(int ind)
 	connection_t *connp = &Conn[ind];
 	player_type *p_ptr;
 	int i;
+	char buf[255];
 
 	if (Id >= MAX_ID)
 	{
@@ -1658,20 +1645,19 @@ static int Handle_login(int ind)
 	if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && (cfg_secret_dungeon_master)) return 0;
 
 	/* Tell everyone about our new player */
+	if(p_ptr->exp == 0)
+	{
+		sprintf(buf, "%s begins a new game.", p_ptr->name);
+	}
+	else 
+	{
+		sprintf(buf, "%s has entered the game.", p_ptr->name);
+	}
 	for (i = 1; i < NumPlayers; i++)
 	{
-#if 0
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-		if(p_ptr->exp == 0) {
-			/* RLS: changed so new players are noted as new */
-			msg_format(i, "%s begins a new game.", p_ptr->name);
-		} else {
-			msg_format(i, "%s has entered the game.", p_ptr->name);
-		};
+		msg_print(i, buf);
 	}
-
+	console_print(buf);
 	/* Tell the meta server about the new player */
 	Report_to_meta(META_UPDATE);
 
@@ -2010,10 +1996,6 @@ int Net_output(void)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		p_ptr = Players[i];
-
-#if 0
-		if (p_ptr->conn == NOT_CONNECTED) continue;
-#endif
 
 		if (p_ptr->new_level_flag) continue;
 

@@ -1296,11 +1296,6 @@ bool detect_invisible(int Ind, bool pause)
 		int py = q_ptr->py;
 		int px = q_ptr->px;
 
-#if 0
-		/* Skip disconnected players */
-		if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 		/* Skip visible players */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
@@ -1440,11 +1435,6 @@ bool detect_creatures(int Ind, bool pause)
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
-
-#if 0
-		/* Skip disconnected players */
-		if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
 
 		/* Skip visible players */
 		if (p_ptr->play_vis[i]) continue;

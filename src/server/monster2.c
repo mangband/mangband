@@ -77,11 +77,6 @@ void delete_monster_idx(int i)
 	/* Remove him from everybody's view */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-#if 0
-		/* Skip this player if he isn't playing */
-		if (Players[Ind]->conn == NOT_CONNECTED) continue;
-#endif
-
 		Players[Ind]->mon_vis[i] = FALSE;
 		Players[Ind]->mon_los[i] = FALSE;
 
@@ -196,9 +191,6 @@ static void compact_monsters_aux(int i1, int i2)
 	/* Copy the visibility and los flags for the players */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-#if 0
-		if (Players[Ind]->conn == NOT_CONNECTED) continue;
-#endif
 
 		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
 		Players[Ind]->mon_los[i2] = Players[Ind]->mon_los[i1];
@@ -1162,12 +1154,6 @@ void update_mon(int m_idx, bool dist)
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
 
-#if 0
-		/* If he's not playing, skip him */
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
 		{
@@ -1415,11 +1401,6 @@ void update_player(int Ind)
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
 
-#if 0
-		/* Skip disconnected players */
-		if (p_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
@@ -1569,13 +1550,6 @@ void update_players(void)
 	/* Update each player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-#if 0
-		player_type *p_ptr = Players[i];
-
-		/* Skip disconnected players */
-		if (p_ptr->conn == NOT_CONNECTED) continue;
-#endif
-
 		/* Update the player */
 		update_player(i);
 	}
@@ -1758,11 +1732,6 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-#if 0
-		if (Players[Ind]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		Players[Ind]->mon_los[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_vis[c_ptr->m_idx] = FALSE;
 	}
@@ -2132,12 +2101,6 @@ bool alloc_monster(int Depth, int dis, int slp)
 		for (i = 1; i < NumPlayers + 1; i++)
 		{
 			p_ptr = Players[i];
-
-#if 0
-			/* Skip him if he's not playing */
-			if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
 
 			/* Skip him if he's not on this depth */
 			if (p_ptr->dun_depth != Depth)

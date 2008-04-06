@@ -2879,12 +2879,6 @@ void close_game(void)
 	{
 		player_type *p_ptr = Players[i];
 
-#if 0
-		/* Make sure the player is connected */
-		if (p_ptr->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Handle stuff */
 		handle_stuff(i);
 

@@ -3369,12 +3369,6 @@ void process_monsters(void)
 
 			p_ptr = Players[pl];
 
-#if 0
-			/* Only check him if he is playing */
-		     	if (p_ptr->conn == NOT_CONNECTED)
-				continue;
-#endif
-
 			/* Make sure he's on the same dungeon level */
 			if (p_ptr->dun_depth != m_ptr->dun_depth)
 				continue;

@@ -957,12 +957,6 @@ static void player_setup(int Ind)
 		/* Skip this player */
 		if (i == Ind) continue;
 
-#if 0
-		/* Skip disconnected players */
-		if (Players[i]->conn == NOT_CONNECTED)
-			continue;
-#endif
-
 		/* Count */
 		if (Players[i]->dun_depth == Depth)
 			count++;

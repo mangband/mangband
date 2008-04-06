@@ -2523,11 +2523,6 @@ void msg_broadcast(int Ind, cptr msg)
 	/* Tell every player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-#if 0
-		/* Skip disconnected players */
-		if (Players[i]->conn == NOT_CONNECTED) 
-			continue;
-#endif
 			
 		/* Skip the specified player */
 		if (i == Ind)
@@ -2589,11 +2584,6 @@ void msg_print_near(int Ind, cptr msg)
 	{
 		/* Check this player */
 		p_ptr = Players[i];
-
-#if 0
-		/* Make sure this player is in the game */
-		if (p_ptr->conn == NOT_CONNECTED) continue;
-#endif
 
 		/* Don't send the message to the player who caused it */
 		if (Ind == i) continue;
@@ -2731,11 +2721,6 @@ void player_talk_aux(int Ind, cptr message)
 		{
 			/* Check this one */
 			q_ptr = Players[i];
-
-#if 0
-			/* Skip if disconnected */
-			if (q_ptr->conn == NOT_CONNECTED) continue;
-#endif
 
 			/* Check name */
 			if (!strncasecmp(q_ptr->name, search, len))
