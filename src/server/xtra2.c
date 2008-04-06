@@ -2293,10 +2293,9 @@ void player_death(int Ind)
 	int tmp;  /* used to check for pkills */
 	int pkill=0;  /* verifies we have a pkill */
 
-	/* Get rid of him if he's a ghost */
-	if (p_ptr->ghost)
+	/* If this is our final death, clear any houses */
+	if (p_ptr->ghost || p_ptr->no_ghost)
 	{
-
 		/* Disown any houses he owns */
 		for(i=0; i<num_houses;i++)
 		{ 
@@ -2305,6 +2304,11 @@ void player_death(int Ind)
 				disown_house(i);
 			}
 		}
+	}
+
+	/* Get rid of him if he's a ghost */
+	if (p_ptr->ghost)
+	{
 
 		/* Tell players */
 		sprintf(buf, "%s's ghost was destroyed by %s.",
