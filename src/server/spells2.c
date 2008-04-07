@@ -4006,14 +4006,19 @@ bool clone_monster(int Ind, int dir)
 	int num, i;
 	player_type *p_ptr = Players[Ind];
 	
-	// Never in the town
+	/* Never in the town */
 	if(!p_ptr->dun_depth) return(FALSE);
 	
-	// This has a chance of backfiring
+	/* This has a chance of backfiring. This behaviour is not in vanilla Angband.  
+	 * in vanilla however, cloning 100 Great Hell Wyrms effects only the cloner. In MAngband
+	 * this effects all players and the whole game economy as the game is flooded with
+	 * great items */
 	if(randint(5)==1)
 	{
-		// Backfire, clone oddly (summon)
-		num = 2 + randint(3);
+		msg_print(Ind, "The wand crackles loudly!");
+		/* Backfire, clone oddly (phase and summon) */
+		teleport_player(Ind, 5);
+		num = 2 + randint(6);
 		for (i = 0; i < num; i++)
 		{
 			(void)summon_specific(p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->dun_depth, 0);
@@ -4021,7 +4026,7 @@ bool clone_monster(int Ind, int dir)
 	}
 	else
 	{
-		// Standard clone effect
+		/* Standard clone effect */
 		int flg = PROJECT_STOP | PROJECT_KILL;
 		return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
 	}
