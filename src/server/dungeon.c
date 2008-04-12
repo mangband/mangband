@@ -1953,7 +1953,7 @@ void dungeon(void)
 
 			/* Generate a dungeon level there */
 			/* option 29 is auto_scum */
-			generate_cave(Depth,p_ptr->options[29]);
+			generate_cave(i, Depth, p_ptr->options[29]);
 			
 			/* Give a level feeling to this player */
 	    /* No feeling outside the dungeon */
@@ -2451,7 +2451,7 @@ void play_game(bool new_game)
 		alloc_dungeon_level(0);
 
 		/* Actually generate the town */
-		generate_cave(0,0);
+		generate_cave(0, 0, 0);
 	}
 
 	/* Finish initializing dungeon monsters */

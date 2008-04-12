@@ -992,14 +992,14 @@ static void player_setup(int Ind)
 			/* Build a new level and put him on it */
 			alloc_dungeon_level(Depth);
 			/* option 29 is auto_scum for the player */
-			generate_cave(Depth,p_ptr->options[29]);
+			generate_cave(Ind, Depth, p_ptr->options[29]);
 		}
 		else
 		/* rebuild the wilderness level */
 		{
 			alloc_dungeon_level(Depth);
 			/* NB: Wilderness levels do not currently honor auto_scum */
-			generate_cave(Depth,0);
+			generate_cave(Ind, Depth, 0);
 			/* hack -- this is important */
 			if (!players_on_depth[Depth]) players_on_depth[Depth] = 1;
 			
@@ -1155,6 +1155,9 @@ static void player_setup(int Ind)
 
 	/* This guy is alive now */
 	p_ptr->alive = TRUE;
+
+	/* Set turn player entered level */
+	p_ptr->old_turn = turn;
 }
 
 

@@ -526,7 +526,7 @@ extern void setup_exit_handler(void);
 extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
-extern void generate_cave(int Depth);
+extern void generate_cave(int Ind, int Depth);
 
 /* init-txt.c */
 extern errr init_v_info_txt(FILE *fp, char *buf);

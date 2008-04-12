@@ -4299,10 +4299,12 @@ void dealloc_dungeon_level(int Depth)
  */
  
  
-void generate_cave(int Depth,int auto_scum)
+void generate_cave(int Ind, int Depth, int auto_scum)
 {
 	int i, num;
 	int scum = auto_scum;
+
+	player_type *p_ptr = Players[Ind];
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
@@ -4414,15 +4416,15 @@ void generate_cave(int Depth,int auto_scum)
 		if (!cfg_ironman)
 		{
 			/* It takes 1000 game turns for "feelings" to recharge */
-			if (old_turn > turn) /* Handle wrapping turn counting */
+			if (p_ptr->old_turn > turn) /* Handle wrapping turn counting */
 			{
-				if (((u32b)(turn + 0x7FFFFFFF) - old_turn) < 1000)
+				if (((u32b)(turn + 0x7FFFFFFF) - p_ptr->old_turn) < 1000)
 				{
 					feeling = 0;
 					scum = FALSE;
 				}
 			}
-			else if ((turn - old_turn) < 1000)
+			else if ((turn - p_ptr->old_turn) < 1000)
 			{
 				feeling = 0;
 				scum = FALSE;
@@ -4505,5 +4507,5 @@ void generate_cave(int Depth,int auto_scum)
 	server_dungeon = TRUE;
 
 	/* Remember when this level was "created" */
-	old_turn = turn;
+	p_ptr->old_turn = turn;
 }

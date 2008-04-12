@@ -1546,6 +1546,7 @@ struct player_type
     
 	u32b birth_turn;	/* Server turn on which player was born */
 	u32b turn;			/* Actual player turns */
+	u32b old_turn;		/* Turn when player entered current level */
 };
 
 
