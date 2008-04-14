@@ -496,7 +496,7 @@ errr process_pref_file(cptr name)
 		if (process_pref_file_aux(buf))
 		{
 			/* Useful error message */
-			s_printf("Error in '%s' parsing '%s'.\n", buf, name);
+			plog(format("Error in '%s' parsing '%s'.", buf, name));
 		}
 	}
 
@@ -2605,7 +2605,7 @@ static errr top_twenty(int Ind)
 	/* No score file */
 	if (highscore_fd < 0)
 	{
-		s_printf("Score file unavailable.\n");
+		plog("Score file unavailable.");
 		return (0);
 	}
 
@@ -2748,7 +2748,7 @@ static errr predict_score(int Ind, int line)
 	/* No score file */
 	if (highscore_fd < 0)
 	{
-		s_printf("Score file unavailable.\n");
+		plog("Score file unavailable.");
 		return (0);
 	}
 
@@ -2969,7 +2969,7 @@ void display_scores(int Ind, int line)
 	if (highscore_fd < 0)
 	{
 		/* Message to server admin */
-		s_printf("Score file unavailable.\n");
+		plog("Score file unavailable.");
 
 		/* Quit */
 		return;
@@ -3202,10 +3202,10 @@ void exit_game_panic()
 		if (!players_on_depth[i]) wipe_o_list(i);
 	}
 
-	if (!save_server_info()) fprintf(stderr,"server panic info save failed!\n");
+	if (!save_server_info()) plog("server panic info save failed!");
 
 	/* Successful panic save of server info */
-    fprintf(stderr,"server panic info save succeeded!\n");
+    plog("server panic info save succeeded!");
 
 }
 
@@ -3358,7 +3358,7 @@ static void handle_signal_simple(int sig)
 	/* Give warning (after 4) */
 	else if (signal_count >= 4)
 	{
-		s_printf("Warning: Next signal kills server!\n");
+		plog("Warning: Next signal kills server!");
 
 		/* Make a noise */
 		/*Term_xtra(TERM_XTRA_NOISE, 0);*/
@@ -3396,7 +3396,7 @@ static void handle_signal_abort(int sig)
 	if (signalbusy) raise(sig);
 	signalbusy = 1;
 
-    fprintf(stderr,"Unexpected signal, panic saving.\n");
+    plog("Unexpected signal, panic saving.");
 
 	/* Nothing to save, just quit */
 	if (!server_generated || server_saved) quit(NULL);

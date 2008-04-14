@@ -56,7 +56,7 @@ SERV_SRCS = \
   server/cmd1.c server/cmd2.c server/cmd3.c server/cmd4.c server/cmd5.c \
   server/cmd6.c server/store.c server/birth.c server/load2.c \
   server/sched.c server/sched-win.c server/generate.c server/wilderness.c server/dungeon.c \
-  server/init1.c server/init2.c server/netserver.c server/printout.c \
+  server/init1.c server/init2.c server/netserver.c \
   server/main.c common/md5.c
 
 CLI_SRCS = \

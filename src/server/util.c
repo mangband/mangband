@@ -2509,9 +2509,9 @@ void msg_print(int Ind, cptr msg)
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
 	/* sad, but true, we have to log messages. */
 	if(Ind) {
-		plog(format("%s: %s",Players[Ind]->name,msg));
+		if(msg) plog(format("%s: %s",Players[Ind]->name,msg));
 	} else {
-		plog(format("%d: %s",Ind,msg));
+		if(msg) plog(format("%d: %s",Ind,msg));
 	};
 	Send_message(Ind, msg);
 }

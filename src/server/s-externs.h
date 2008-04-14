@@ -796,12 +796,6 @@ extern void delete_player_id(int id);
 extern void delete_player_name(cptr name);
 extern int player_id_list(int **list);
 
-/* printout.c */
-extern int s_print_only_to_file(int which);
-extern int s_setup(char *str);
-extern int s_shutdown(void);
-extern int s_printf(char *str, ...);
-
 /* save.c */
 extern bool save_player(int Ind);
 extern bool load_player(int Ind);

@@ -2402,7 +2402,7 @@ void play_game(bool new_game)
 
 
 	/* Flash a message */
-	s_printf("Please wait...\n");
+	plog("Please wait...");
 
 	/* Flush the message */
 	/*Term_fresh();*/
@@ -2415,7 +2415,7 @@ void play_game(bool new_game)
 	/* Flavor the objects */
 	flavor_init();
 
-	s_printf("Object flavors initialized...\n");
+	plog("Object flavors initialized...");
 
 	/* Reset the visual mappings */
 	reset_visuals();
@@ -2488,7 +2488,7 @@ void play_game(bool new_game)
 	sched();
 
 	/* This should never, ever happen */
-	s_printf("sched returned!!!\n");
+	plog("FATAL ERROR sched() returned!");
 
 	/* Close stuff */
 	close_game();
@@ -2502,7 +2502,7 @@ void shutdown_server(void)
 {
 	int i;
 
-	s_printf("Shutting down.\n");
+	plog("Shutting down.");
 
 	/* Kick every player out and save his game */
 	while(NumPlayers > 0)

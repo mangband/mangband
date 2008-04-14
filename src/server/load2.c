@@ -94,7 +94,7 @@ void start_section_read(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing section.  Expected '%s', found '%s' at line %i\n",seek_section,got_section,line_counter));
+		plog(format("Missing section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
 		exit(1);
 	}
 }
@@ -115,7 +115,7 @@ void end_section_read(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing end section.  Expected '%s', found '%s' at line %i\n",seek_section,got_section,line_counter));
+		plog(format("Missing end section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
 		exit(1);
 	}
 }
@@ -135,7 +135,7 @@ int read_int(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing integer.  Expected '%s', found '%s' at line %i\n",name,file_buf,line_counter));
+		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
 		exit(1);
 	}
 	return value;
@@ -156,7 +156,7 @@ uint read_uint(char* name)
 	}
 	if(!matched)
 	{		
-		plog(format("Missing unsigned integer.  Expected '%s', found '%s' at line %i\n",name,file_buf,line_counter));
+		plog(format("Missing unsigned integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
 		exit(1);
 	}
 	return value;
@@ -176,7 +176,7 @@ void read_str(char* name, char* value)
 	sscanf(file_buf,"%s = ",seek_name);
 	if(strcmp(seek_name,name))
 	{
-		plog(format("Missing string data.  Expected '%s' got '%s' at line %i\n",name,seek_name,line_counter));
+		plog(format("Missing string data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
 		exit(1);
 	}
 
@@ -207,7 +207,7 @@ float read_float(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing float.  Expected '%s', found '%s' at line %i\n",name,file_buf,line_counter));
+		plog(format("Missing float.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
 		exit(1);
 	}
 	return value;
@@ -229,7 +229,7 @@ void read_binary(char* name, char* value, int max_len)
 	sscanf(file_buf,"%s = ",seek_name);
 	if(strcmp(seek_name,name))
 	{
-		plog(format("Missing binary data.  Expected '%s' got '%s' at line %i\n",name,seek_name,line_counter));
+		plog(format("Missing binary data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
 		exit(1);
 	}
 

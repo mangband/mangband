@@ -167,7 +167,24 @@ static void init_stuff(void)
 	init_file_paths(path);
 }
 
-
+/*
+ * Server logging hook.
+ * We should be cautious, as we may be called from a signal handler in a panic.
+ */
+static void server_log(cptr str)
+{
+	char buf[16];
+	time_t t;
+	struct tm *local;
+	
+	/* Grab the time */
+	time(&t);
+	local = localtime(&t);
+	strftime(buf, 16, "%d%m%y %H%M%S", local);
+	
+	/* Output the message timestamped */
+	fprintf(stderr,"%s %s\n", buf, str);
+}
 
 /*
  * Some machines can actually parse command line args
@@ -183,13 +200,15 @@ int main(int argc, char *argv[])
 	bool new_game = FALSE;
 	char buf[1024];
 	int catch_signals = TRUE;
-	time_t blah;
 #ifdef WINDOWS
   WSADATA wsadata;
 #endif
 
-	blah=time(NULL);
-	fprintf(stderr,"Game Restarted %s\n", ctime(&blah));
+	/* Setup our logging hook */
+	plog_aux = server_log;	
+
+	/* Note we are starting up */
+	plog("Game Restarted");
 
 	/* Save the "program name" */
 	argv0 = argv[0];
@@ -228,13 +247,6 @@ int main(int argc, char *argv[])
 
 	/* Get the file paths */
 	init_stuff();
-
-	/* Initialize the server log file */
-	path_build(buf, 1024, ANGBAND_DIR_DATA, "mangband.log");
-
-	/* Open the file */
-	s_setup(buf);
-
 
 #ifdef SET_UID
 
@@ -537,9 +549,6 @@ int main(int argc, char *argv[])
 	setup_exit_handler();
 #endif
 #endif
-
-	/* Display the 'news' file */
-	show_news();
 
 	/* Load the mangband.cfg options */
 	load_server_cfg();

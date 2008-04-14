@@ -352,7 +352,7 @@ void NewConsole(int read_fd, int arg)
 			DgramWrite(read_fd, console_buf.buf, console_buf.len);
 
 			/* Log this to the local console */
-			s_printf("Illegal console command from %s.\n", DgramLastname());
+			plog(format("Illegal console command from %s.", DgramLastname()));
 
 			return;
 		}
@@ -432,7 +432,7 @@ bool InitNewConsole(int write_fd)
 	if (Sockbuf_init(&console_buf, write_fd, 8192, SOCKBUF_READ | SOCKBUF_WRITE))
 	{
 		/* Failed */
-		s_printf("No memory for console buffer.\n");
+		plog("No memory for console buffer.");
 
 		return FALSE;
 	}

@@ -396,7 +396,7 @@ bool Report_to_meta(int flag)
 
 	if ((bytes = DgramSend(MetaSocket, cfg_meta_address, 8800, meta_buf.buf, meta_buf.len) == -1))
 	{
-		s_printf("Couldn't send info to meta-server!\n");
+		plog("Couldn't send info to meta-server!");
 		return FALSE;
 	}
 
@@ -435,7 +435,7 @@ int Setup_net_server(void)
 	/* Tell the metaserver that we're starting up */
 	Report_to_meta(META_START);
 
-	s_printf("Server is running version %04x\n", MY_VERSION);
+	plog(format("Server is running version %04x\n", MY_VERSION));
 
 	return 0;
 }
@@ -479,7 +479,7 @@ void setup_contact_socket(void)
 	
 	if ((ConsoleSocket = CreateServerSocket(cfg_tcp_port + 1)) == -1)
 	{
-		s_printf("Couldn't create console socket\n");
+		plog("Couldn't create console socket");
 		return;
 	}
 	if (SetSocketNonBlocking(ConsoleSocket, 1) == -1)
@@ -594,6 +594,7 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 
 static void Console(int fd, int arg)
 {
+#if 0
 	char buf[1024];
 	int i;
 
@@ -645,6 +646,7 @@ static void Console(int fd, int arg)
 	{
 		/* Whatever I need at the moment */
 	}
+#endif
 }
 		
 static void Contact(int fd, int arg)
@@ -671,9 +673,9 @@ static void Contact(int fd, int arg)
 	{
 		if ((newsock = SocketAccept(fd)) == -1)
 		{
-			plog("Dropped TCP Connection\n");
+			plog("Dropped TCP Connection");
 			return;
-			quit("Couldn't accept TCP connection.\n");
+			quit("Couldn't accept TCP connection.");
 		}
 		install_input(Contact, newsock, 2);
 
@@ -946,12 +948,11 @@ bool Destroy_connection(int ind, char *reason)
 			DgramWrite(sock, pkt, len);
 		}
 	}
-	s_printf("%s: Goodbye %s=%s@%s (\"%s\")\n",
-		showtime(),
+	plog(format("Goodbye %s=%s@%s (\"%s\")",
 		connp->nick ? connp->nick : "",
 		connp->real ? connp->real : "",
 		connp->host ? connp->host : "",
-		reason);
+		reason));
 
 	Conn_set_state(connp, CONN_FREE, CONN_FREE);
 
@@ -1041,7 +1042,7 @@ int Setup_connection(char *real, char *nick, char *addr, char *host,
 
 	if (free_conn_index >= max_connections)
 	{
-		s_printf("Full house for %s(%s)@%s\n", real, nick, host);
+		plog(format("Full house for %s(%s)@%s", real, nick, host));
 		return -1;
 	}
 	connp = &Conn[free_conn_index];
@@ -1413,16 +1414,13 @@ static int Handle_listening(int ind)
 	}
 	
 	/* Log the players connection */
-	s_printf("%s: Welcome %s=%s@%s (%s/%d)", showtime(), connp->nick,
-		connp->real, connp->host, connp->addr, connp->his_port);
-	if (connp->version != MY_VERSION)
-		s_printf(" (version %04x)", connp->version);
-	s_printf("\n");
+	plog(format("Welcome %s=%s@%s (%s/%d) (version %04x)", connp->nick,
+		connp->real, connp->host, connp->addr, connp->his_port,connp->version));
 
 	if (strcmp(real, connp->real))
 	{
-		s_printf("Client verified incorrectly (%s, %s)(%s, %s)",
-			real, nick, connp->real, connp->nick);
+		plog(format("Client verified incorrectly (%s, %s)(%s, %s)",
+			real, nick, connp->real, connp->nick));
 		Send_reply(ind, PKT_VERIFY, PKT_FAILURE);
 		Send_reliable(ind);
 		Destroy_connection(ind, "verify incorrect");
