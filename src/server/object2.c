@@ -2505,7 +2505,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				{
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
-                    o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
+					o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
+					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_POWER);
 					break;
 				}
 
