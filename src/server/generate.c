@@ -4299,13 +4299,20 @@ void dealloc_dungeon_level(int Depth)
  */
  
  
-void generate_cave(int Depth,int auto_scum)
+void generate_cave(int Ind, int Depth, int auto_scum)
 {
 	int i, num;
 	int scum = auto_scum;
+	player_type *p_ptr = 0;
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
+
+	/* get the player context, if any */
+	if(Ind)
+	{
+		p_ptr = Players[Ind];
+	}
 
 	/* Generate */
 	for (num = 0; TRUE; num++)
@@ -4362,6 +4369,7 @@ void generate_cave(int Depth,int auto_scum)
 			/*max_panel_rows = (cur_hgt / SCREEN_HGT) * 2 - 2;
 			max_panel_cols = (cur_wid / SCREEN_WID) * 2 - 2;*/
 
+				/* Try again */
 			/* Assume illegal panel */
 			/*panel_row = max_panel_rows;
 			panel_col = max_panel_cols;*/
@@ -4406,23 +4414,15 @@ void generate_cave(int Depth,int auto_scum)
 		else if (rating > 10) feeling = 8;
 		else if (rating > 0) feeling = 9;
 		else feeling = 10;
-		fprintf(stderr," New Level %d Rating %d\n",Depth*50,rating);
+		/* fprintf(stderr," New Level %d Rating %d\n",Depth*50,rating); */
 
 		/* Hack -- Have a special feeling sometimes */
 		if (good_item_flag) feeling = 1;
 
-		if (!cfg_ironman)
+		if (!cfg_ironman && p_ptr)
 		{
 			/* It takes 1000 game turns for "feelings" to recharge */
-			if (old_turn > turn) /* Handle wrapping turn counting */
-			{
-				if (((u32b)(turn + 0x7FFFFFFF) - old_turn) < 1000)
-				{
-					feeling = 0;
-					scum = FALSE;
-				}
-			}
-			else if ((turn - old_turn) < 1000)
+			if ((turn - p_ptr->old_turn) < 1000)
 			{
 				feeling = 0;
 				scum = FALSE;
@@ -4454,15 +4454,16 @@ void generate_cave(int Depth,int auto_scum)
 		}
 
 		/* Mega-Hack -- "auto-scum" */
-	/* Auto-scum only in the dungeon!!! */
+		/* Auto-scum only in the dungeon!!! */
         if ((Depth > 0) && scum && (num < 100))
 		{
-			fprintf(stderr,"auto_scum in on for this level\n");
+			/* fprintf(stderr,"auto_scum in on for this level\n"); */
 			/* Require "goodness" */
 			if ((feeling > 9) ||
 			    ((Depth >= 5) && (feeling > 8)) ||
 			    ((Depth >= 10) && (feeling > 7)) ||
 			    ((Depth >= 20) && (feeling > 6)) ||
+				/* Try again */
 			    ((Depth >= 40) && (feeling > 5)))
 			{
 				/* Give message to cheaters */
@@ -4500,10 +4501,12 @@ void generate_cave(int Depth,int auto_scum)
 			compact_monsters(32);
 	}
 
+	/* Remember when we had a level feeling if we are a player */
+	if(p_ptr)
+	{
+		p_ptr->old_turn = turn;
+	}
 
 	/* Dungeon level ready */
 	server_dungeon = TRUE;
-
-	/* Remember when this level was "created" */
-	old_turn = turn;
 }

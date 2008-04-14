@@ -609,7 +609,7 @@ extern errr get_rnd_line(cptr file_name, int entry, char *output);
 /* generate.c */
 extern void alloc_dungeon_level(int Depth);
 extern void dealloc_dungeon_level(int Depth);
-extern void generate_cave(int Depth,int auto_scum);
+extern void generate_cave(int Ind, int Depth,int auto_scum);
 extern void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data);
 
 /* wilderness.c */

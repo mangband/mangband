@@ -4009,20 +4009,13 @@ bool clone_monster(int Ind, int dir)
 	/* Never in the town */
 	if(!p_ptr->dun_depth) return(FALSE);
 	
-	/* This has a chance of backfiring. This behaviour is not in vanilla Angband.  
-	 * in vanilla however, cloning 100 Great Hell Wyrms effects only the cloner. In MAngband
-	 * this effects all players and the whole game economy as the game is flooded with
-	 * great items */
-	if(randint(5)==1)
+	/* Restricted in MAngband. This behaviour is not in vanilla Angband, in vanilla however,
+	 * cloning 100 Great Hell Wyrms effects only the cloner. In MAngband this effects all 
+	 * players and the whole game economy as the game is flooded with great items */
+	if(p_ptr->lev >= 10)
 	{
-		msg_print(Ind, "The wand crackles loudly!");
-		/* Backfire, clone oddly (phase and summon) */
-		teleport_player(Ind, 5);
-		num = 2 + randint(6);
-		for (i = 0; i < num; i++)
-		{
-			(void)summon_specific(p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->dun_depth, 0);
-		}
+		msg_print(Ind, "The wand crackles loudly. Nothing else happens.");
+		return(TRUE);
 	}
 	else
 	{
