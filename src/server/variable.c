@@ -190,7 +190,7 @@ s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
 s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
-
+bool cfg_chardump_color = FALSE;
 
 /*
  * Software options (set via the '=' command).  See "tables.c"
@@ -670,6 +670,8 @@ header *f_head;
 feature_type *f_info;
 char *f_name;
 char *f_text;
+char f_char_s[MAX_F_IDX];
+char f_attr_s[MAX_F_IDX];
 
 /*
  * The object kind arrays
@@ -703,6 +705,8 @@ header *r_head;
 monster_race *r_info;
 char *r_name;
 char *r_text;
+char r_char_s[MAX_R_IDX];
+char r_attr_s[MAX_R_IDX];
 
 
 /*
