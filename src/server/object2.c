@@ -213,7 +213,7 @@ void delete_object(int Depth, int y, int x)
     /* Paranoia -- make sure the level has been allocated */ 
     if (!cave[Depth]) 
     { 
-        printf("Error : tried to delete object on unallocated level %d\n",Depth); 
+        plog(format("Error : tried to delete object on unallocated level %d",Depth));
         return; 
     } 
 
@@ -357,7 +357,7 @@ void compact_objects(int size)
    } 
 
    /* Message */ 
-   s_printf("Compacting objects...\n"); 
+   plog("Compacting objects..."); 
 
    /*** Try destroying objects ***/ 
 
@@ -564,7 +564,7 @@ s16b o_pop(void)
 
 
 	/* Warn the player */
-	if (server_dungeon) s_printf("Too many objects!");
+	if (server_dungeon) plog("Too many objects!");
 
 	/* Oops */
 	return (0);
@@ -1426,7 +1426,7 @@ s16b lookup_kind(int tval, int sval)
 	}
 
 	/* Oops */
-	s_printf("No object (%d,%d)", tval, sval);
+	plog(format("No object (%d,%d)", tval, sval));
 
 	/* Oops */
 	return (0);
@@ -1684,7 +1684,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 		/* Mega-Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
 		object_desc(0, o_name, o_ptr, TRUE, 3);
-        fprintf(stderr, "Special artifact %s created\n", o_name);
+        plog(format("Special artifact %s created", o_name));
 
 
 		/* Success */
@@ -1745,7 +1745,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 		/* Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
         object_desc(0, o_name, o_ptr, TRUE, 3);
-        fprintf(stderr, "Artifact %s created\n", o_name);
+        plog(format("Artifact %s created", o_name));
 
 		/* Success */
 		return (TRUE);

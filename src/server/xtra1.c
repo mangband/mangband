@@ -535,7 +535,7 @@ static void prt_player_sust_info(int Ind)
 	object_type *o_ptr;
 	object_kind *k_ptr;
 	ego_item_type *e_ptr;
-	u32b f1, f2, f3, f1_hack;
+	u32b f1, f2, f3, f1_hack = 0;
 	u32b ignore_f2, ignore_f3;
 	byte a;
 	char c;

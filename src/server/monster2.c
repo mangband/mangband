@@ -231,7 +231,7 @@ void compact_monsters(int size)
 	s16b this_o_idx, next_o_idx = 0;
 
 	/* Message (only if compacting) */
-	if (size) s_printf("Compacting monsters...\n");
+	if (size) plog("Compacting monsters...");
 
 
 	/* Compact at least 'size' objects */
@@ -444,7 +444,7 @@ s16b m_pop(void)
 
 
 	/* Warn the player */
-	if (server_dungeon) s_printf("Too many monsters!");
+	if (server_dungeon) plog("Too many monsters!");
 
 	/* Try not to crash */
 	return (0);

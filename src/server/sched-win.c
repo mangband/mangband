@@ -80,7 +80,7 @@ static void setup_timer(void)
    */
   delay = 1000/timer_freq;
   delay = delay/resolution;
-  printf("Timer delay %i ms timer resolution is %i ms\n",delay,resolution);
+  plog(format("Timer delay %i ms timer resolution is %i ms\n",delay,resolution));
   if(!timeBeginPeriod(resolution) == TIMERR_NOERROR)
   {
 	plog("Could not set the timer to the required resolution");
@@ -367,8 +367,7 @@ void sched(void)
       n = select(max_fd, &readmask, NULL, NULL, &tv);
       if (n < 0) {
         if (errno != EINTR) {
-          printf("Errno: %d\n",errno);
-          /* plog("sched select error"); */
+          plog(format("Errno: %d\n",errno));
           core("sched select error");
           exit(1);
         }

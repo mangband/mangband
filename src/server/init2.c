@@ -264,6 +264,7 @@ static void show_news_aux(cptr why)
  */
 void show_news(void)
 {
+#if 0
 	int		fd = -1;
 
 	int		mode = 0644;
@@ -359,6 +360,7 @@ void show_news(void)
 
 	/* Close it */
 	(void)fd_close(fd);
+#endif
 }
 
 
@@ -528,9 +530,9 @@ static void display_parse_error(cptr filename, errr err, cptr buf)
 	oops = (((err > 0) && (err < PARSE_ERROR_MAX)) ? err_str[err] : "unknown");
 
 	/* Oops */
-	s_printf("Error at line %d of '%s.txt'.", error_line, filename);
-	s_printf("Record %d contains a '%s' error.", error_idx, oops);
-	s_printf("Parsing '%s'.", buf);
+	plog(format("Error at line %d of '%s.txt'.", error_line, filename));
+	plog(format("Record %d contains a '%s' error.", error_idx, oops));
+	plog(format("Parsing '%s'.", buf));
 /*	message_flush();*/
 
 	/* Quit */
@@ -869,9 +871,9 @@ static errr init_f_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'terrain.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'terrain.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -959,9 +961,9 @@ static errr init_k_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'object.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'object.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1050,9 +1052,9 @@ static errr init_a_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'artifact.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'artifact.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1198,9 +1200,9 @@ static errr init_e_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'ego_item.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'ego_item.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1287,9 +1289,9 @@ static errr init_r_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'monster.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'monster.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1378,9 +1380,9 @@ static errr init_v_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		s_printf("Error %d at line %d of 'vault.txt'.", err, error_line);
-		s_printf("Record %d contains a '%s' error.", error_idx, oops);
-		s_printf("Parsing '%s'.", buf);
+		plog(format("Error %d at line %d of 'vault.txt'.", err, error_line));
+		plog(format("Record %d contains a '%s' error.", error_idx, oops));
+		plog(format("Parsing '%s'.", buf));
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -2363,7 +2365,7 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
-	printf("Dugeon Master Set as [%s]\n",cfg_dungeon_master);
+	plog(format("Dugeon Master Set as [%s]",cfg_dungeon_master));
     }
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
@@ -2434,7 +2436,7 @@ void set_server_option(char * option, char * value)
     }
 
 
-	else printf("Error : unrecognized mangband.cfg option %s\n", option);
+	else plog(format("Error : unrecognized mangband.cfg option %s", option));
 }
 
 
@@ -2509,7 +2511,7 @@ void load_server_cfg(void)
 		cfg = fopen("/etc/mangband.cfg", "r");
 		if (cfg <= 0)
 	    	{
-			printf("Error : cannot open file mangband.cfg\n");
+			plog("Error : cannot open file mangband.cfg");
 			return;
 		}
 	}
@@ -2536,57 +2538,57 @@ void load_server_cfg(void)
 void init_some_arrays(void)
 {
 	/* Initialize size info */
-	s_printf("[Initializing array sizes...]\n");
+	plog("[Initializing array sizes...]");
 	if (init_z_info()) quit("Cannot initialize sizes");
 
 	/* Initialize feature info */
-	s_printf("[Initializing arrays... (features)]\n");
+	plog("[Initializing arrays... (features)]");
 	if (init_f_info()) quit("Cannot initialize features");
 
 	/* Initialize object info */
-	s_printf("[Initializing arrays... (objects)]\n");
+	plog("[Initializing arrays... (objects)]");
 	if (init_k_info()) quit("Cannot initialize objects");
 
 	/* Initialize artifact info */
-	s_printf("[Initializing arrays... (artifacts)]\n");
+	plog("[Initializing arrays... (artifacts)]");
 	if (init_a_info()) quit("Cannot initialize artifacts");
 
 	/* Initialize ego-item info */
-	s_printf("[Initializing arrays... (ego-items)]\n");
+	plog("[Initializing arrays... (ego-items)]");
 	if (init_e_info()) quit("Cannot initialize ego-items");
 
 	/* Initialize monster info */
-	s_printf("[Initializing arrays... (monsters)]\n");
+	plog("[Initializing arrays... (monsters)]");
 	if (init_r_info()) quit("Cannot initialize monsters");
 
 	/* Initialize vault info */
-	s_printf("[Initializing arrays... (vaults)]\n");
+	plog("[Initializing arrays... (vaults)]");
 	if (init_v_info()) quit("Cannot initialize vaults");
 
 	/* Initialize history info */
-	s_printf("[Initializing arrays... (histories)]\n");
+	plog("[Initializing arrays... (histories)]");
 	if (init_h_info()) quit("Cannot initialize histories");
 
 	/* Initialize race info */
-	s_printf("[Initializing arrays... (races)]\n");
+	plog("[Initializing arrays... (races)]");
 	if (init_p_info()) quit("Cannot initialize races");
 
 	/* Initialize class info */
-	s_printf("[Initializing arrays... (classes)]\n");
+	plog("[Initializing arrays... (classes)]");
 	if (init_c_info()) quit("Cannot initialize classes");
 
 	/* Initialize flavor info */
-	s_printf("[Initializing arrays... (flavors)]\n");
+	plog("[Initializing arrays... (flavors)]");
 	if (init_flavor_info()) quit("Cannot initialize flavors");
 
 	/* Initialize some other arrays */
-	s_printf("[Initializing arrays... (other)]\n");
+	plog("[Initializing arrays... (other)]");
 	if (init_other()) quit("Cannot initialize other stuff");
 
 	/* Initialize some other arrays */
-	s_printf("[Initializing arrays... (alloc)]\n");
+	plog("[Initializing arrays... (alloc)]");
 	if (init_alloc()) quit("Cannot initialize alloc stuff");
 
 	/* Hack -- all done */
-	s_printf("[Initializing arrays... done]\n");
+	plog("[Initializing arrays... done]");
 }

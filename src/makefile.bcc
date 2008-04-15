@@ -88,7 +88,7 @@ SERV_SRCS = \
   server\cmd1.c server\cmd2.c server\cmd3.c server\cmd4.c server\cmd5.c \
   server\cmd6.c server\store.c server\birth.c server\load2.c \
   server\generate.c server\wilderness.c server\dungeon.c \
-  server\init1.c server\init2.c server\netserver.c server\printout.c \
+  server\init1.c server\init2.c server\netserver.c \
   server\main.c common\md5.c
 
 SERV_OBJS = \
@@ -101,7 +101,7 @@ SERV_OBJS = \
   server\cmd1.obj server\cmd2.obj server\cmd3.obj server\cmd4.obj server\cmd5.obj \
   server\cmd6.obj server\store.obj server\birth.obj server\load2.obj \
   server\generate.obj server\wilderness.obj server\dungeon.obj \
-  server\init1.obj server\init2.obj server\netserver.obj server\printout.obj \
+  server\init1.obj server\init2.obj server\netserver.obj \
   server\main.obj common\md5.obj
 
 CONS_SRCS = \

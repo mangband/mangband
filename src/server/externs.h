@@ -832,12 +832,6 @@ extern int ego_kind_index_fuzzy(char * name);
 extern int item_kind_index_fuzzy(char * name);
 extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int lev, int num);
 
-/* printout.c */
-extern int s_print_only_to_file(int which);
-extern int s_setup(char *str);
-extern int s_shutdown(void);
-extern int s_printf(char *str, ...);
-
 /* save.c */
 extern bool save_player(int Ind);
 extern bool load_player(int Ind);
