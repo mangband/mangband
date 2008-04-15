@@ -1301,10 +1301,26 @@ errr file_character_server(int Ind, cptr name)
 	x2 = p_ptr->px + 39;
 	y1 = p_ptr->py - 10;
 	y2 = p_ptr->py + 10;
-	if (y1 < 1) y1 = 1;
-	if (y2 > MAX_HGT-2) y2 = MAX_HGT-2;
-	if (x1 < 1) x1 = 1;
-	if (x2 > MAX_WID-2) x2 = MAX_WID-2;
+	if (y1 < 0)
+	{
+		y2 = y2-y1;
+		y1 = 0;
+	}
+	if (x1 < 0)
+	{
+		x2 = x2-x1;
+		x1 = 0;
+	}
+	if (y2 > MAX_HGT-1)
+	{
+		y1 = y1 - (y2-(MAX_HGT-1));
+		y2 = MAX_HGT-1;
+	}
+	if (x2 > MAX_WID-1)
+	{
+		x1 = x1 - (x2-(MAX_WID-1));
+		x2 = MAX_WID-1;
+	}
 	/* Describe each row */
 	for(y=y1;y<=y2;y++)
 	{
