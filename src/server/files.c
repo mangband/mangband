@@ -1145,9 +1145,9 @@ void display_player_server(int Ind, char buffer[100][82])
  */
 errr file_character_server(int Ind, cptr name)
 {
-	int			i, j, x, y, x1, x2, y1, y2;
+	int			i, j, x, y;
 	byte		a;
-	char		c, attr;
+	char		c;
 	cptr		paren = ")";
 	int			fd = -1;
 	FILE		*fff = NULL;
@@ -1293,84 +1293,6 @@ errr file_character_server(int Ind, cptr name)
 		i++;
 	}
 	fprintf(fff, "\n\n");
-
-	/* Dump the scene of death */
-	fprintf(fff, "  [Scene of Death]\n\n");
-	/* Get an in bounds area */
-	x1 = p_ptr->px - 39;
-	x2 = p_ptr->px + 39;
-	y1 = p_ptr->py - 10;
-	y2 = p_ptr->py + 10;
-	if (y1 < 0)
-	{
-		y2 = y2-y1;
-		y1 = 0;
-	}
-	if (x1 < 0)
-	{
-		x2 = x2-x1;
-		x1 = 0;
-	}
-	if (y2 > MAX_HGT-1)
-	{
-		y1 = y1 - (y2-(MAX_HGT-1));
-		y2 = MAX_HGT-1;
-	}
-	if (x2 > MAX_WID-1)
-	{
-		x1 = x1 - (x2-(MAX_WID-1));
-		x2 = MAX_WID-1;
-	}
-	/* Describe each row */
-	for(y=y1;y<=y2;y++)
-	{
-		for(x=x1;x<=x2;x++)
-		{
-			/* Get the features */
-			map_info(Ind, y, x, &a, &c, TRUE);
-			/* Hack for the player who is already dead and gone */
-			if( (x == p_ptr->px) && (y == p_ptr->py))
-			{
-				c = '@';
-				a = 'W';
-			}
-			/* translate the attr */
-			attr = 'w';
-			switch (a)
-			{
-				case TERM_DARK: attr = 'd'; break;
-				case TERM_WHITE: attr = 'w'; break;
-				case TERM_SLATE: attr = 's'; break;
-				case TERM_ORANGE: attr = 'o'; break;
-				case TERM_RED: attr = 'r'; break;
-				case TERM_GREEN: attr = 'g'; break;
-				case TERM_BLUE: attr = 'b'; break;
-				case TERM_UMBER: attr = 'u'; break;
-				case TERM_L_DARK: attr = 'D'; break;
-				case TERM_L_WHITE: attr = 'W'; break;
-				case TERM_VIOLET: attr = 'v'; break;
-				case TERM_YELLOW: attr = 'y'; break;
-				case TERM_L_RED: attr = 'R'; break;
-				case TERM_L_GREEN: attr = 'G'; break;
-				case TERM_L_BLUE: attr = 'B'; break;
-				case TERM_L_UMBER: attr = 'U'; break;
-			}
-			/* Config file controls if we output with color codes */
-			if(cfg_chardump_color)
-			{
-				/* Output with attr colour code */
-				fprintf(fff,"%c%c",attr,c);
-			}
-			else
-			{
-				/* Output plain ASCII */
-				fprintf(fff,"%c",c);
-			}
-		}
-		fprintf(fff,"\n");
-	}
-	fprintf(fff, "\n\n");
-
 	
 	/* Close it */
 	my_fclose(fff);

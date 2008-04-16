@@ -803,7 +803,6 @@ static errr init_z_info(void)
  */
 static errr init_f_info(void)
 {
-	int i;
 	errr err;
 
 	FILE *fp;
@@ -879,14 +878,6 @@ static errr init_f_info(void)
 
 		/* Quit */
 		quit("Error in 'terrain.txt' file.");
-	}
-
-	/* Keep a copy of server side char/attrs in the same format as in  the player 
-	 * structure for use later in map_info() rendering server side scenes */
-	for(i=0; i<MAX_F_IDX; i++)
-	{
-		f_char_s[i] = f_info[i].f_char;
-		f_attr_s[i] = f_info[i].f_attr;
 	}
 
 	/* Success */
@@ -1231,7 +1222,7 @@ static errr init_e_info(void)
 static errr init_r_info(void)
 {
 	errr err;
-	int i;
+
 	FILE *fp;
 
 	/* General buffer */
@@ -1305,14 +1296,6 @@ static errr init_r_info(void)
 
 		/* Quit */
 		quit("Error in 'monster.txt' file.");
-	}
-
-	/* Keep a copy of server side char/attrs in the same format as in  the player 
-	 * structure for use later in map_info() rendering server side scenes */
-	for(i=0; i<MAX_R_IDX; i++)
-	{
-		r_char_s[i] = r_info[i].d_char;
-		r_attr_s[i] = r_info[i].d_attr;
 	}
 
 	/* Success */
@@ -2450,10 +2433,6 @@ void set_server_option(char * option, char * value)
     else if (!strcmp(option,"MAX_TREES"))
     {
         cfg_max_trees = atoi(value);
-    }
-    else if (!strcmp(option,"CHARACTER_DUMP_COLOR"))
-    {
-        cfg_chardump_color = str_to_boolean(value);
     }
 
 
