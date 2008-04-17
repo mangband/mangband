@@ -2086,6 +2086,63 @@ static void calc_bonuses(int Ind)
     if (p_ptr->fruit_bat) p_ptr->pspeed += 10;
 
 
+	/*** Analyze player ***/
+
+	/* Extract the player flags */
+	player_flags(Ind, &f1, &f2, &f3);
+
+	/* Good flags */
+	if (f3 & (TR3_SLOW_DIGEST)) p_ptr->slow_digest = TRUE;
+	if (f3 & (TR3_FEATHER)) p_ptr->feather_fall = TRUE;
+	if (f3 & (TR3_LITE)) p_ptr->lite = TRUE;
+	if (f3 & (TR3_REGEN)) p_ptr->regenerate = TRUE;
+	if (f3 & (TR3_TELEPATHY)) p_ptr->telepathy = TRUE;
+	if (f3 & (TR3_SEE_INVIS)) p_ptr->see_inv = TRUE;
+	if (f3 & (TR3_FREE_ACT)) p_ptr->free_act = TRUE;
+	if (f3 & (TR3_HOLD_LIFE)) p_ptr->hold_life = TRUE;
+
+	/* Weird flags */
+	if (f3 & (TR3_BLESSED)) p_ptr->bless_blade = TRUE;
+
+	/* Bad flags */
+	if (f3 & (TR3_IMPACT)) p_ptr->impact = TRUE;
+	if (f3 & (TR3_AGGRAVATE)) p_ptr->aggravate = TRUE;
+	if (f3 & (TR3_TELEPORT)) p_ptr->teleport = TRUE;
+	if (f3 & (TR3_DRAIN_EXP)) p_ptr->exp_drain = TRUE;
+
+	/* Immunity flags */
+	if (f2 & (TR2_IM_FIRE)) p_ptr->immune_fire = TRUE;
+	if (f2 & (TR2_IM_ACID)) p_ptr->immune_acid = TRUE;
+	if (f2 & (TR2_IM_COLD)) p_ptr->immune_cold = TRUE;
+	if (f2 & (TR2_IM_ELEC)) p_ptr->immune_elec = TRUE;
+
+	/* Resistance flags */
+	if (f2 & (TR2_RES_ACID)) p_ptr->resist_acid = TRUE;
+	if (f2 & (TR2_RES_ELEC)) p_ptr->resist_elec = TRUE;
+	if (f2 & (TR2_RES_FIRE)) p_ptr->resist_fire = TRUE;
+	if (f2 & (TR2_RES_COLD)) p_ptr->resist_cold = TRUE;
+	if (f2 & (TR2_RES_POIS)) p_ptr->resist_pois = TRUE;
+	if (f2 & (TR2_RES_FEAR)) p_ptr->resist_fear = TRUE;
+	if (f2 & (TR2_RES_LITE)) p_ptr->resist_lite = TRUE;
+	if (f2 & (TR2_RES_DARK)) p_ptr->resist_dark = TRUE;
+	if (f2 & (TR2_RES_BLIND)) p_ptr->resist_blind = TRUE;
+	if (f2 & (TR2_RES_CONFU)) p_ptr->resist_conf = TRUE;
+	if (f2 & (TR2_RES_SOUND)) p_ptr->resist_sound = TRUE;
+	if (f2 & (TR2_RES_SHARD)) p_ptr->resist_shard = TRUE;
+	if (f2 & (TR2_RES_NEXUS)) p_ptr->resist_nexus = TRUE;
+	if (f2 & (TR2_RES_NETHR)) p_ptr->resist_neth = TRUE;
+	if (f2 & (TR2_RES_CHAOS)) p_ptr->resist_chaos = TRUE;
+	if (f2 & (TR2_RES_DISEN)) p_ptr->resist_disen = TRUE;
+
+	/* Sustain flags */
+	if (f2 & (TR2_SUST_STR)) p_ptr->sustain_str = TRUE;
+	if (f2 & (TR2_SUST_INT)) p_ptr->sustain_int = TRUE;
+	if (f2 & (TR2_SUST_WIS)) p_ptr->sustain_wis = TRUE;
+	if (f2 & (TR2_SUST_DEX)) p_ptr->sustain_dex = TRUE;
+	if (f2 & (TR2_SUST_CON)) p_ptr->sustain_con = TRUE;
+	if (f2 & (TR2_SUST_CHR)) p_ptr->sustain_chr = TRUE;
+
+#if 0
 	/* Elf */
 	if (p_ptr->prace == RACE_ELF) p_ptr->resist_lite = TRUE;
 
@@ -2116,12 +2173,13 @@ static void calc_bonuses(int Ind)
 
 	/* Kobold */
 	if (p_ptr->prace == RACE_KOBOLD) p_ptr->resist_pois = TRUE;
-
+#endif
+	
 	/* Ghost */
 	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
 	if (p_ptr->ghost) p_ptr->resist_neth = TRUE;
 	if (p_ptr->ghost) p_ptr->hold_life = TRUE;
-    if (p_ptr->ghost) p_ptr->resist_fear = TRUE;
+   if (p_ptr->ghost) p_ptr->resist_fear = TRUE;
 	if (p_ptr->ghost) p_ptr->free_act = TRUE;
 	if (p_ptr->ghost) p_ptr->see_infra += 2;
 
@@ -2160,7 +2218,7 @@ static void calc_bonuses(int Ind)
 			p_ptr->pspeed += (((p_ptr->lev-5)/15)+1);
 		}
 	}
-
+#if 0
 	/* Hack -- Warriors get fear resist at level 30 */
 	if (p_ptr->pclass == CLASS_WARRIOR)
 	{
@@ -2169,7 +2227,7 @@ static void calc_bonuses(int Ind)
 			p_ptr->resist_fear = TRUE;
 		}
 	}
-
+#endif
 	/* Hack -- the dungeon master gets +50 speed. */
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) 
 	{
