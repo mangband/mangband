@@ -426,39 +426,8 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	/* Clear */
 	(*f1) = (*f2) = (*f3) = 0L;
 
-	/* Add racial flags */
-	/* 
-	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
-	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
-	if (p_ptr->prace == RACE_GNOME) *f3 |= TR3_FREE_ACT;
-	if (p_ptr->prace == RACE_DWARF) *f2 |= TR2_RES_BLIND;
-	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
-	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
-	if (p_ptr->prace == RACE_DUNADAN) *f2 |= TR2_SUST_CON;
-	if (p_ptr->prace == RACE_HIGH_ELF)
-	{
-    	    *f2 |= TR2_RES_LITE ;
-	    *f3 |= TR3_SEE_INVIS;
-	}
-	*/
-	/* Classial flags */
-	if (p_ptr->pclass == CLASS_ROGUE) *f1 |= TR1_SPEED;
-
-	/* Ghost */
-	if (p_ptr->ghost) {
-		*f3 |= TR3_SEE_INVIS;
-		*f2 |= TR2_RES_NETHR;
-		*f3 |= TR3_HOLD_LIFE;
-		*f2 |= TR2_RES_FEAR;
-		*f3 |= TR3_FREE_ACT;
-		*f1 |= TR1_INFRA;
-	}
-	
-
-	
 	/*
-			In ideal world of Angband this is done like that:
-				Someday...			
+			Welcome to the bright future!
 	*/		
 	(*f1) |= p_info[p_ptr->prace].flags1;
 	(*f2) |= p_info[p_ptr->prace].flags2;
@@ -469,6 +438,18 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 		if (p_ptr->lev >= 30) (*f2) |= (TR2_RES_FEAR);
 	}
 	
+	/* MAngband-specific: Classial flags */
+	if (p_ptr->pclass == CLASS_ROGUE) *f1 |= TR1_SPEED;
+
+	/* MAngband-specific: Ghost */
+	if (p_ptr->ghost) {
+		*f3 |= TR3_SEE_INVIS;
+		*f2 |= TR2_RES_NETHR;
+		*f3 |= TR3_HOLD_LIFE;
+		*f2 |= TR2_RES_FEAR;
+		*f3 |= TR3_FREE_ACT;
+		*f1 |= TR1_INFRA;
+	}
 }
 
 /*
@@ -2142,48 +2123,6 @@ static void calc_bonuses(int Ind)
 	if (f2 & (TR2_SUST_CON)) p_ptr->sustain_con = TRUE;
 	if (f2 & (TR2_SUST_CHR)) p_ptr->sustain_chr = TRUE;
 
-#if 0
-	/* Elf */
-	if (p_ptr->prace == RACE_ELF) p_ptr->resist_lite = TRUE;
-
-	/* Hobbit */
-	if (p_ptr->prace == RACE_HOBBIT) p_ptr->sustain_dex = TRUE;
-
-	/* Gnome */
-	if (p_ptr->prace == RACE_GNOME) p_ptr->free_act = TRUE;
-
-	/* Dwarf */
-	if (p_ptr->prace == RACE_DWARF) p_ptr->resist_blind = TRUE;
-
-	/* Half-Orc */
-	if (p_ptr->prace == RACE_HALF_ORC) p_ptr->resist_dark = TRUE;
-
-	/* Half-Troll */
-	if (p_ptr->prace == RACE_HALF_TROLL) p_ptr->sustain_str = TRUE;
-
-	/* Dunadan */
-	if (p_ptr->prace == RACE_DUNADAN) p_ptr->sustain_con = TRUE;
-
-	/* High Elf */
-    if (p_ptr->prace == RACE_HIGH_ELF)
-    {
-		p_ptr->resist_lite = TRUE;
-		p_ptr->see_inv = TRUE;
-    }
-
-	/* Kobold */
-	if (p_ptr->prace == RACE_KOBOLD) p_ptr->resist_pois = TRUE;
-#endif
-	
-	/* Ghost */
-	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
-	if (p_ptr->ghost) p_ptr->resist_neth = TRUE;
-	if (p_ptr->ghost) p_ptr->hold_life = TRUE;
-   if (p_ptr->ghost) p_ptr->resist_fear = TRUE;
-	if (p_ptr->ghost) p_ptr->free_act = TRUE;
-	if (p_ptr->ghost) p_ptr->see_infra += 2;
-
-
 	/* Start with a single blow per turn */
 	p_ptr->num_blow = 1;
 
@@ -2218,16 +2157,7 @@ static void calc_bonuses(int Ind)
 			p_ptr->pspeed += (((p_ptr->lev-5)/15)+1);
 		}
 	}
-#if 0
-	/* Hack -- Warriors get fear resist at level 30 */
-	if (p_ptr->pclass == CLASS_WARRIOR)
-	{
-		if (p_ptr->lev >= 30) 
-		{
-			p_ptr->resist_fear = TRUE;
-		}
-	}
-#endif
+
 	/* Hack -- the dungeon master gets +50 speed. */
 	if (!strcmp(p_ptr->name,cfg_dungeon_master)) 
 	{
@@ -2720,7 +2650,7 @@ static void calc_bonuses(int Ind)
 		}
 
 		/* Hack -- Reward High Level Rangers using Bows */
-        if ((p_ptr->pclass == CLASS_RANGER) && (p_ptr->tval_ammo == TV_ARROW))	
+        if ((p_ptr->cp_ptr->flags & CF_EXTRA_SHOT) && (p_ptr->tval_ammo == TV_ARROW))	
 		{
 			/* Extra shot at level 20 */
 			if (p_ptr->lev >= 20) p_ptr->num_fire++;
@@ -2762,35 +2692,13 @@ static void calc_bonuses(int Ind)
 	{
 		int str_index, dex_index;
 
-		int num = 0, wgt = 0, mul = 0, div = 0;
-
-		/* Analyze the class */
-		switch (p_ptr->pclass)
-		{
-			/* Warrior */
-			case CLASS_WARRIOR: num = 6; wgt = 30; mul = 5; break;
-
-			/* Mage */
-			case CLASS_MAGE:    num = 4; wgt = 40; mul = 2; break;
-
-			/* Priest */
-			case CLASS_PRIEST:  num = 5; wgt = 35; mul = 3; break;
-
-			/* Rogue */
-			case CLASS_ROGUE:   num = 5; wgt = 30; mul = 3; break;
-
-			/* Ranger */
-			case CLASS_RANGER:  num = 5; wgt = 35; mul = 4; break;
-
-			/* Paladin */
-			case CLASS_PALADIN: num = 5; wgt = 30; mul = 4; break;
-		}
+		int div = 0;
 
 		/* Enforce a minimum "weight" (tenth pounds) */
-		div = ((o_ptr->weight < wgt) ? wgt : o_ptr->weight);
+		div = ((o_ptr->weight < p_ptr->cp_ptr->min_weight) ? p_ptr->cp_ptr->min_weight : o_ptr->weight);
 
 		/* Access the strength vs weight */
-		str_index = (adj_str_blow[p_ptr->stat_ind[A_STR]] * mul / div);
+		str_index = (adj_str_blow[p_ptr->stat_ind[A_STR]] * p_ptr->cp_ptr->att_multiply / div);
 
 		/* Maximal value */
 		if (str_index > 11) str_index = 11;
@@ -2805,7 +2713,7 @@ static void calc_bonuses(int Ind)
 		p_ptr->num_blow = blows_table[str_index][dex_index];
 
 		/* Maximal value */
-		if (p_ptr->num_blow > num) p_ptr->num_blow = num;
+		if (p_ptr->num_blow > p_ptr->cp_ptr->max_attacks) p_ptr->num_blow = p_ptr->cp_ptr->max_attacks;
 
 		/* Add in the "bonus blows" */
 		p_ptr->num_blow += extra_blows;
@@ -2822,7 +2730,7 @@ static void calc_bonuses(int Ind)
 	p_ptr->icky_wield = FALSE;
 
 	/* Priest weapon penalty for non-blessed edged weapons */
-    if ((p_ptr->pclass == CLASS_PRIEST) && (!p_ptr->bless_blade) &&
+    if ((p_ptr->cp_ptr->flags & CF_BLESS_WEAPON) && (!p_ptr->bless_blade) &&
 	    ((o_ptr->tval == TV_SWORD) || (o_ptr->tval == TV_POLEARM)))
 	{
 		/* Reduce the real bonuses */
