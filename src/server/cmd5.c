@@ -183,7 +183,7 @@ static void do_spell_info(int Ind, char *p, int j)
 	    		case MSPELL_FIRE_BALL: sprintf(p, " dam %d", 55 + plev); break;
             case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d20", plev); break;
 	    		case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev*2); break;            
-            case MSPELL_ACID_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
+            case MSPELL_ACID_BOLT: sprintf(p, " dam %dd8", (8 + ((plev-5)/4))); break;
             case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 40 + plev/2); break;
 /*            case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev); break; */
             case MSPELL_ICE_STORM: sprintf(p, " dam %d", 50 + plev*2); break;
@@ -1656,7 +1656,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s casts an acid bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, beam, GF_ACID, dir,
-				damroll(6+((plev-5)/4), 8));
+				damroll(8+((plev-5)/4), 8));
 			break;
 		}
 
