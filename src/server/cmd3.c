@@ -553,7 +553,7 @@ void do_cmd_takeoff(int Ind, int item)
 		return;
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'T' )) {
+	if( check_guard_inscription( o_ptr->note, 't' )) {
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
 	};
