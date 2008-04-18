@@ -3268,8 +3268,9 @@ void map_area(int Ind)
 			c_ptr = &cave[Depth][y][x];
 			w_ptr = &p_ptr->cave_flag[y][x];
 
-			/* All non-walls are "checked" */
-			if (c_ptr->feat < FEAT_SECRET)
+			/* All non-walls are "checked", including MAngband specifics */
+			if ((c_ptr->feat < FEAT_SECRET) || 
+				((c_ptr->feat >= FEAT_DIRT) && (c_ptr->feat < FEAT_DRAWBRIDGE)))
 			{
 				/* Memorize normal features */
 				if (!is_boring(c_ptr->feat))
@@ -3285,7 +3286,8 @@ void map_area(int Ind)
 					w_ptr = &p_ptr->cave_flag[y+ddy_ddd[i]][x+ddx_ddd[i]];
 
 					/* Memorize walls (etc) */
-					if (c_ptr->feat >= FEAT_SECRET)
+					if ((c_ptr->feat >= FEAT_SECRET) && 
+						((c_ptr->feat < FEAT_DIRT) || (c_ptr->feat >= FEAT_DRAWBRIDGE)))
 					{
 						/* Memorize the walls */
 						*w_ptr |= CAVE_MARK;
