@@ -550,7 +550,7 @@ void do_cmd_takeoff(int Ind, int item)
 		return;
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'T' )) {
+	if( check_guard_inscription( o_ptr->note, 't' )) {
 		msg_print(Ind, "The item's inscription prevents it.");
 		return;
 	};
@@ -1267,6 +1267,9 @@ static void do_cmd_refill_lamp(int Ind, int item)
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
+	
+	/* Hack - Force Equipment Update */
+	p_ptr->window |= (PW_EQUIP);
 }
 
 
@@ -1366,6 +1369,9 @@ static void do_cmd_refill_torch(int Ind, int item)
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
+	
+	/* Hack - Force Equipment Update */
+	p_ptr->window |= (PW_EQUIP);
 }
 
 

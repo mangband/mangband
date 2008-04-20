@@ -426,39 +426,8 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	/* Clear */
 	(*f1) = (*f2) = (*f3) = 0L;
 
-	/* Add racial flags */
-	/* 
-	if (p_ptr->prace == RACE_ELF) *f2 |=  TR2_RES_LITE; 
-	if (p_ptr->prace == RACE_HOBBIT) *f2 |= TR2_SUST_DEX;
-	if (p_ptr->prace == RACE_GNOME) *f3 |= TR3_FREE_ACT;
-	if (p_ptr->prace == RACE_DWARF) *f2 |= TR2_RES_BLIND;
-	if (p_ptr->prace == RACE_HALF_ORC) *f2 |= TR2_RES_DARK;
-	if (p_ptr->prace == RACE_HALF_TROLL) *f2 |= TR2_SUST_STR;
-	if (p_ptr->prace == RACE_DUNADAN) *f2 |= TR2_SUST_CON;
-	if (p_ptr->prace == RACE_HIGH_ELF)
-	{
-    	    *f2 |= TR2_RES_LITE ;
-	    *f3 |= TR3_SEE_INVIS;
-	}
-	*/
-	/* Classial flags */
-	if (p_ptr->pclass == CLASS_ROGUE) *f1 |= TR1_SPEED;
-
-	/* Ghost */
-	if (p_ptr->ghost) {
-		*f3 |= TR3_SEE_INVIS;
-		*f2 |= TR2_RES_NETHR;
-		*f3 |= TR3_HOLD_LIFE;
-		*f2 |= TR2_RES_FEAR;
-		*f3 |= TR3_FREE_ACT;
-		*f1 |= TR1_INFRA;
-	}
-	
-
-	
 	/*
-			In ideal world of Angband this is done like that:
-				Someday...			
+			Welcome to the bright future!
 	*/		
 	(*f1) |= p_info[p_ptr->prace].flags1;
 	(*f2) |= p_info[p_ptr->prace].flags2;
@@ -469,6 +438,18 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 		if (p_ptr->lev >= 30) (*f2) |= (TR2_RES_FEAR);
 	}
 	
+	/* MAngband-specific: Rogues & Fruit Bats */
+	if (p_ptr->pclass == CLASS_ROGUE || p_ptr->fruit_bat) *f1 |= TR1_SPEED;
+
+	/* MAngband-specific: Ghost */
+	if (p_ptr->ghost) {
+		*f3 |= TR3_SEE_INVIS;
+		*f2 |= TR2_RES_NETHR;
+		*f3 |= TR3_HOLD_LIFE;
+		*f2 |= TR2_RES_FEAR;
+		*f3 |= TR3_FREE_ACT;
+		*f1 |= TR1_INFRA;
+	}
 }
 
 /*
@@ -1969,6 +1950,7 @@ static void calc_bonuses(int Ind)
 
         u32b		f1, f2, f3;
 
+	/*** Memorize ***/
 
 	/* Save the old speed */
 	old_speed = p_ptr->pspeed;
@@ -1985,12 +1967,31 @@ static void calc_bonuses(int Ind)
 	old_dis_to_h = p_ptr->dis_to_h;
 	old_dis_to_d = p_ptr->dis_to_d;
 
+	/*** Reset ***/
+	
+   /* Start with "normal" speed */
+   p_ptr->pspeed = 110;
+
+   /* MAngband-specific: Bats get +10 speed ... they need it! */
+   if (p_ptr->fruit_bat) p_ptr->pspeed += 10;
+
+	/* Start with a single blow per turn */
+	p_ptr->num_blow = 1;
+
+	/* Start with a single shot per turn */
+	p_ptr->num_fire = 1;
+
+	/* Reset the "xtra" tval */
+	p_ptr->tval_xtra = 0;
+
+	/* Reset the "ammo" tval */
+	p_ptr->tval_ammo = 0;
+	
 	/* Clear extra blows/shots */
 	extra_blows = extra_shots = 0;
 
 	/* Clear the stat modifiers */
 	for (i = 0; i < 6; i++) p_ptr->stat_add[i] = 0;
-
 
 	/* Clear the Displayed/Real armor class */
 	p_ptr->dis_ac = p_ptr->ac = 0;
@@ -1999,7 +2000,6 @@ static void calc_bonuses(int Ind)
 	p_ptr->dis_to_h = p_ptr->to_h = 0;
 	p_ptr->dis_to_d = p_ptr->to_d = 0;
 	p_ptr->dis_to_a = p_ptr->to_a = 0;
-
 
 	/* Clear all the flags */
 	p_ptr->aggravate = FALSE;
@@ -2044,9 +2044,10 @@ static void calc_bonuses(int Ind)
 	p_ptr->immune_cold = FALSE;
 
 
+	/*** Extract race/class info ***/
+	
 	/* Base infravision (purely racial) */
 	p_ptr->see_infra = p_ptr->rp_ptr->infra;
-
 
 	/* Base skill -- disarming */
 	p_ptr->skill_dis = p_ptr->rp_ptr->r_dis + p_ptr->cp_ptr->c_dis;
@@ -2079,65 +2080,61 @@ static void calc_bonuses(int Ind)
 	p_ptr->skill_dig = 0;
 
 
-    /* Start with "normal" speed */
-    p_ptr->pspeed = 110;
+	/*** Analyze player ***/
 
-    /* Bats get +10 speed ... they need it!*/
-    if (p_ptr->fruit_bat) p_ptr->pspeed += 10;
+	/* Extract the player flags */
+	player_flags(Ind, &f1, &f2, &f3);
 
+	/* Good flags */
+	if (f3 & (TR3_SLOW_DIGEST)) p_ptr->slow_digest = TRUE;
+	if (f3 & (TR3_FEATHER)) p_ptr->feather_fall = TRUE;
+	if (f3 & (TR3_LITE)) p_ptr->lite = TRUE;
+	if (f3 & (TR3_REGEN)) p_ptr->regenerate = TRUE;
+	if (f3 & (TR3_TELEPATHY)) p_ptr->telepathy = TRUE;
+	if (f3 & (TR3_SEE_INVIS)) p_ptr->see_inv = TRUE;
+	if (f3 & (TR3_FREE_ACT)) p_ptr->free_act = TRUE;
+	if (f3 & (TR3_HOLD_LIFE)) p_ptr->hold_life = TRUE;
 
-	/* Elf */
-	if (p_ptr->prace == RACE_ELF) p_ptr->resist_lite = TRUE;
+	/* Weird flags */
+	if (f3 & (TR3_BLESSED)) p_ptr->bless_blade = TRUE;
 
-	/* Hobbit */
-	if (p_ptr->prace == RACE_HOBBIT) p_ptr->sustain_dex = TRUE;
+	/* Bad flags */
+	if (f3 & (TR3_IMPACT)) p_ptr->impact = TRUE;
+	if (f3 & (TR3_AGGRAVATE)) p_ptr->aggravate = TRUE;
+	if (f3 & (TR3_TELEPORT)) p_ptr->teleport = TRUE;
+	if (f3 & (TR3_DRAIN_EXP)) p_ptr->exp_drain = TRUE;
 
-	/* Gnome */
-	if (p_ptr->prace == RACE_GNOME) p_ptr->free_act = TRUE;
+	/* Immunity flags */
+	if (f2 & (TR2_IM_FIRE)) p_ptr->immune_fire = TRUE;
+	if (f2 & (TR2_IM_ACID)) p_ptr->immune_acid = TRUE;
+	if (f2 & (TR2_IM_COLD)) p_ptr->immune_cold = TRUE;
+	if (f2 & (TR2_IM_ELEC)) p_ptr->immune_elec = TRUE;
 
-	/* Dwarf */
-	if (p_ptr->prace == RACE_DWARF) p_ptr->resist_blind = TRUE;
+	/* Resistance flags */
+	if (f2 & (TR2_RES_ACID)) p_ptr->resist_acid = TRUE;
+	if (f2 & (TR2_RES_ELEC)) p_ptr->resist_elec = TRUE;
+	if (f2 & (TR2_RES_FIRE)) p_ptr->resist_fire = TRUE;
+	if (f2 & (TR2_RES_COLD)) p_ptr->resist_cold = TRUE;
+	if (f2 & (TR2_RES_POIS)) p_ptr->resist_pois = TRUE;
+	if (f2 & (TR2_RES_FEAR)) p_ptr->resist_fear = TRUE;
+	if (f2 & (TR2_RES_LITE)) p_ptr->resist_lite = TRUE;
+	if (f2 & (TR2_RES_DARK)) p_ptr->resist_dark = TRUE;
+	if (f2 & (TR2_RES_BLIND)) p_ptr->resist_blind = TRUE;
+	if (f2 & (TR2_RES_CONFU)) p_ptr->resist_conf = TRUE;
+	if (f2 & (TR2_RES_SOUND)) p_ptr->resist_sound = TRUE;
+	if (f2 & (TR2_RES_SHARD)) p_ptr->resist_shard = TRUE;
+	if (f2 & (TR2_RES_NEXUS)) p_ptr->resist_nexus = TRUE;
+	if (f2 & (TR2_RES_NETHR)) p_ptr->resist_neth = TRUE;
+	if (f2 & (TR2_RES_CHAOS)) p_ptr->resist_chaos = TRUE;
+	if (f2 & (TR2_RES_DISEN)) p_ptr->resist_disen = TRUE;
 
-	/* Half-Orc */
-	if (p_ptr->prace == RACE_HALF_ORC) p_ptr->resist_dark = TRUE;
-
-	/* Half-Troll */
-	if (p_ptr->prace == RACE_HALF_TROLL) p_ptr->sustain_str = TRUE;
-
-	/* Dunadan */
-	if (p_ptr->prace == RACE_DUNADAN) p_ptr->sustain_con = TRUE;
-
-	/* High Elf */
-    if (p_ptr->prace == RACE_HIGH_ELF)
-    {
-		p_ptr->resist_lite = TRUE;
-		p_ptr->see_inv = TRUE;
-    }
-
-	/* Kobold */
-	if (p_ptr->prace == RACE_KOBOLD) p_ptr->resist_pois = TRUE;
-
-	/* Ghost */
-	if (p_ptr->ghost) p_ptr->see_inv = TRUE;
-	if (p_ptr->ghost) p_ptr->resist_neth = TRUE;
-	if (p_ptr->ghost) p_ptr->hold_life = TRUE;
-    if (p_ptr->ghost) p_ptr->resist_fear = TRUE;
-	if (p_ptr->ghost) p_ptr->free_act = TRUE;
-	if (p_ptr->ghost) p_ptr->see_infra += 2;
-
-
-	/* Start with a single blow per turn */
-	p_ptr->num_blow = 1;
-
-	/* Start with a single shot per turn */
-	p_ptr->num_fire = 1;
-
-	/* Reset the "xtra" tval */
-	p_ptr->tval_xtra = 0;
-
-	/* Reset the "ammo" tval */
-	p_ptr->tval_ammo = 0;
-
+	/* Sustain flags */
+	if (f2 & (TR2_SUST_STR)) p_ptr->sustain_str = TRUE;
+	if (f2 & (TR2_SUST_INT)) p_ptr->sustain_int = TRUE;
+	if (f2 & (TR2_SUST_WIS)) p_ptr->sustain_wis = TRUE;
+	if (f2 & (TR2_SUST_DEX)) p_ptr->sustain_dex = TRUE;
+	if (f2 & (TR2_SUST_CON)) p_ptr->sustain_con = TRUE;
+	if (f2 & (TR2_SUST_CHR)) p_ptr->sustain_chr = TRUE;
 
 	/* Hack -- apply racial/class stat maxes */
 	if (p_ptr->maximize)
@@ -2152,21 +2149,11 @@ static void calc_bonuses(int Ind)
 
 
 	/* -APD- Hack -- rogues +1 speed at 5,20,35,50. this may be out of place, but.... */
-	
 	if (p_ptr->pclass == CLASS_ROGUE) 
 	{
 		if (p_ptr->lev >= 5)
 		{
 			p_ptr->pspeed += (((p_ptr->lev-5)/15)+1);
-		}
-	}
-
-	/* Hack -- Warriors get fear resist at level 30 */
-	if (p_ptr->pclass == CLASS_WARRIOR)
-	{
-		if (p_ptr->lev >= 30) 
-		{
-			p_ptr->resist_fear = TRUE;
 		}
 	}
 
@@ -2178,6 +2165,8 @@ static void calc_bonuses(int Ind)
 	}
 
 
+	/*** Analyze equipment ***/
+	
 	/* Scan the usable inventory */
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
@@ -2361,6 +2350,8 @@ static void calc_bonuses(int Ind)
 		if (object_known_p(Ind, o_ptr)) p_ptr->dis_to_d += o_ptr->to_d;
 	}
 
+	
+	/*** Handle stats ***/
 
 	/* Calculate stats */
 	for (i = 0; i < 6; i++)
@@ -2446,6 +2437,8 @@ static void calc_bonuses(int Ind)
 		}
 	}
 
+	
+	/*** Temporary flags ***/
 
 	/* Apply temporary "stun" */
 	if (p_ptr->stun > 50)
@@ -2527,7 +2520,6 @@ static void calc_bonuses(int Ind)
 		p_ptr->see_infra++;
 	}
 
-
 	/* Hack -- Res Chaos -> Res Conf */
 	/* Not in recent Angband!
 	if (p_ptr->resist_chaos)
@@ -2542,19 +2534,8 @@ static void calc_bonuses(int Ind)
 		p_ptr->resist_fear = TRUE;
 	}
 
-
-	/* Hack -- Telepathy Change */
-	if (p_ptr->telepathy != old_telepathy)
-	{
-		p_ptr->update |= (PU_MONSTERS);
-	}
-
-	/* Hack -- See Invis Change */
-	if (p_ptr->see_inv != old_see_inv)
-	{
-		p_ptr->update |= (PU_MONSTERS);
-	}
-
+	
+	/*** Analyze weight ***/
 
 	/* Extract the current weight (in tenth pounds) */
 	j = p_ptr->total_weight;
@@ -2582,11 +2563,9 @@ static void calc_bonuses(int Ind)
 			p_ptr->skill_stl *= 3;
 		}
 	}
-
-	/* Display the speed (if needed) */
-	if (p_ptr->pspeed != old_speed) p_ptr->redraw |= (PR_SPEED);
-
-
+	
+	/*** Apply modifier bonuses ***/
+	
 	/* Actual Modifier Bonuses (Un-inflate stat bonuses) */
 	p_ptr->to_a += ((int)(adj_dex_ta[p_ptr->stat_ind[A_DEX]]) - 128);
 	p_ptr->to_d += ((int)(adj_str_td[p_ptr->stat_ind[A_STR]]) - 128);
@@ -2599,25 +2578,67 @@ static void calc_bonuses(int Ind)
 	p_ptr->dis_to_h += ((int)(adj_dex_th[p_ptr->stat_ind[A_DEX]]) - 128);
 	p_ptr->dis_to_h += ((int)(adj_str_th[p_ptr->stat_ind[A_STR]]) - 128);
 
+	
+	/*** Modify skills ***/
 
-	/* Redraw armor (if needed) */
-	if ((p_ptr->dis_ac != old_dis_ac) || (p_ptr->dis_to_a != old_dis_to_a))
-	{
-		/* Redraw */
-		p_ptr->redraw |= (PR_ARMOR);
+	/* Affect Skill -- stealth (bonus one) */
+	p_ptr->skill_stl += 1;
 
-		/* Window stuff */
-		p_ptr->window |= (PW_PLAYER);
-	}
+	/* Affect Skill -- disarming (DEX and INT) */
+	p_ptr->skill_dis += adj_dex_dis[p_ptr->stat_ind[A_DEX]];
+	p_ptr->skill_dis += adj_int_dis[p_ptr->stat_ind[A_INT]];
 
+	/* Affect Skill -- magic devices (INT) */
+	p_ptr->skill_dev += adj_int_dev[p_ptr->stat_ind[A_INT]];
+
+	/* Affect Skill -- saving throw (WIS) */
+	p_ptr->skill_sav += adj_wis_sav[p_ptr->stat_ind[A_WIS]];
+
+	/* Affect Skill -- digging (STR) */
+	p_ptr->skill_dig += adj_str_dig[p_ptr->stat_ind[A_STR]];
+
+	/* Affect Skill -- disarming (Level, by Class) */
+	p_ptr->skill_dis += (p_ptr->cp_ptr->x_dis * p_ptr->lev / 10);
+
+	/* Affect Skill -- magic devices (Level, by Class) */
+	p_ptr->skill_dev += (p_ptr->cp_ptr->x_dev * p_ptr->lev / 10);
+
+	/* Affect Skill -- saving throw (Level, by Class) */
+	p_ptr->skill_sav += (p_ptr->cp_ptr->x_sav * p_ptr->lev / 10);
+
+	/* Affect Skill -- stealth (Level, by Class) */
+	p_ptr->skill_stl += (p_ptr->cp_ptr->x_stl * p_ptr->lev / 10);
+
+	/* Affect Skill -- search ability (Level, by Class) */
+	p_ptr->skill_srh += (p_ptr->cp_ptr->x_srh * p_ptr->lev / 10);
+
+	/* Affect Skill -- search frequency (Level, by Class) */
+	p_ptr->skill_fos += (p_ptr->cp_ptr->x_fos * p_ptr->lev / 10);
+
+	/* Affect Skill -- combat (normal) (Level, by Class) */
+	p_ptr->skill_thn += (p_ptr->cp_ptr->x_thn * p_ptr->lev / 10);
+
+	/* Affect Skill -- combat (shooting) (Level, by Class) */
+	p_ptr->skill_thb += (p_ptr->cp_ptr->x_thb * p_ptr->lev / 10);
+
+	/* Affect Skill -- combat (throwing) (Level, by Class) */
+	p_ptr->skill_tht += (p_ptr->cp_ptr->x_thb * p_ptr->lev / 10);
+
+	/* Limit Skill -- stealth from 0 to 30 */
+	if (p_ptr->skill_stl > 30) p_ptr->skill_stl = 30;
+	if (p_ptr->skill_stl < 0) p_ptr->skill_stl = 0;
+
+	/* Limit Skill -- digging from 1 up */
+	if (p_ptr->skill_dig < 1) p_ptr->skill_dig = 1;
 
 	/* Obtain the "hold" value */
 	hold = adj_str_hold[p_ptr->stat_ind[A_STR]];
 
 
+	/*** Analyze current bow ***/
+	
 	/* Examine the "current bow" */
 	o_ptr = &p_ptr->inventory[INVEN_BOW];
-
 
 	/* Assume not heavy */
 	p_ptr->heavy_shoot = FALSE;
@@ -2632,7 +2653,6 @@ static void calc_bonuses(int Ind)
 		/* Heavy Bow */
 		p_ptr->heavy_shoot = TRUE;
 	}
-
 
 	/* Compute "extra shots" if needed */
 	if (o_ptr->k_idx && !p_ptr->heavy_shoot)
@@ -2662,7 +2682,7 @@ static void calc_bonuses(int Ind)
 		}
 
 		/* Hack -- Reward High Level Rangers using Bows */
-        if ((p_ptr->pclass == CLASS_RANGER) && (p_ptr->tval_ammo == TV_ARROW))	
+       if ((p_ptr->cp_ptr->flags & CF_EXTRA_SHOT) && (p_ptr->tval_ammo == TV_ARROW))	
 		{
 			/* Extra shot at level 20 */
 			if (p_ptr->lev >= 20) p_ptr->num_fire++;
@@ -2679,10 +2699,10 @@ static void calc_bonuses(int Ind)
 	}
 
 
+	/*** Analyze weapon ***/
 
 	/* Examine the "main weapon" */
 	o_ptr = &p_ptr->inventory[INVEN_WIELD];
-
 
 	/* Assume not heavy */
 	p_ptr->heavy_wield = FALSE;
@@ -2704,35 +2724,13 @@ static void calc_bonuses(int Ind)
 	{
 		int str_index, dex_index;
 
-		int num = 0, wgt = 0, mul = 0, div = 0;
-
-		/* Analyze the class */
-		switch (p_ptr->pclass)
-		{
-			/* Warrior */
-			case CLASS_WARRIOR: num = 6; wgt = 30; mul = 5; break;
-
-			/* Mage */
-			case CLASS_MAGE:    num = 4; wgt = 40; mul = 2; break;
-
-			/* Priest */
-			case CLASS_PRIEST:  num = 5; wgt = 35; mul = 3; break;
-
-			/* Rogue */
-			case CLASS_ROGUE:   num = 5; wgt = 30; mul = 3; break;
-
-			/* Ranger */
-			case CLASS_RANGER:  num = 5; wgt = 35; mul = 4; break;
-
-			/* Paladin */
-			case CLASS_PALADIN: num = 5; wgt = 30; mul = 4; break;
-		}
+		int div = 0;
 
 		/* Enforce a minimum "weight" (tenth pounds) */
-		div = ((o_ptr->weight < wgt) ? wgt : o_ptr->weight);
+		div = ((o_ptr->weight < p_ptr->cp_ptr->min_weight) ? p_ptr->cp_ptr->min_weight : o_ptr->weight);
 
 		/* Access the strength vs weight */
-		str_index = (adj_str_blow[p_ptr->stat_ind[A_STR]] * mul / div);
+		str_index = (adj_str_blow[p_ptr->stat_ind[A_STR]] * p_ptr->cp_ptr->att_multiply / div);
 
 		/* Maximal value */
 		if (str_index > 11) str_index = 11;
@@ -2747,7 +2745,7 @@ static void calc_bonuses(int Ind)
 		p_ptr->num_blow = blows_table[str_index][dex_index];
 
 		/* Maximal value */
-		if (p_ptr->num_blow > num) p_ptr->num_blow = num;
+		if (p_ptr->num_blow > p_ptr->cp_ptr->max_attacks) p_ptr->num_blow = p_ptr->cp_ptr->max_attacks;
 
 		/* Add in the "bonus blows" */
 		p_ptr->num_blow += extra_blows;
@@ -2764,7 +2762,7 @@ static void calc_bonuses(int Ind)
 	p_ptr->icky_wield = FALSE;
 
 	/* Priest weapon penalty for non-blessed edged weapons */
-    if ((p_ptr->pclass == CLASS_PRIEST) && (!p_ptr->bless_blade) &&
+    if ((p_ptr->cp_ptr->flags & CF_BLESS_WEAPON) && (!p_ptr->bless_blade) &&
 	    ((o_ptr->tval == TV_SWORD) || (o_ptr->tval == TV_POLEARM)))
 	{
 		/* Reduce the real bonuses */
@@ -2779,64 +2777,35 @@ static void calc_bonuses(int Ind)
 		p_ptr->icky_wield = TRUE;
 	}
 
-	/* Redraw plusses to hit/damage if necessary */
-	if ((p_ptr->dis_to_h != old_dis_to_h) || (p_ptr->dis_to_d != old_dis_to_d))
+
+	/*** Notice changes ***/
+
+	/* Note -- unlike angband, stat changes are noticed when updated (see above) */ 
+
+	/* Hack -- Telepathy Change */
+	if (p_ptr->telepathy != old_telepathy)
 	{
-		/* Redraw plusses */
-		p_ptr->redraw |= (PR_PLUSSES);
+		p_ptr->update |= (PU_MONSTERS);
 	}
 
-	/* Affect Skill -- stealth (bonus one) */
-	p_ptr->skill_stl += 1;
+	/* Hack -- See Invis Change */
+	if (p_ptr->see_inv != old_see_inv)
+	{
+		p_ptr->update |= (PU_MONSTERS);
+	}
+	
+	/* Display the speed (if needed) */
+	if (p_ptr->pspeed != old_speed) p_ptr->redraw |= (PR_SPEED);
 
-	/* Affect Skill -- disarming (DEX and INT) */
-	p_ptr->skill_dis += adj_dex_dis[p_ptr->stat_ind[A_DEX]];
-	p_ptr->skill_dis += adj_int_dis[p_ptr->stat_ind[A_INT]];
+	/* Redraw armor (if needed) */
+	if ((p_ptr->dis_ac != old_dis_ac) || (p_ptr->dis_to_a != old_dis_to_a))
+	{
+		/* Redraw */
+		p_ptr->redraw |= (PR_ARMOR);
 
-	/* Affect Skill -- magic devices (INT) */
-	p_ptr->skill_dev += adj_int_dev[p_ptr->stat_ind[A_INT]];
-
-	/* Affect Skill -- saving throw (WIS) */
-	p_ptr->skill_sav += adj_wis_sav[p_ptr->stat_ind[A_WIS]];
-
-	/* Affect Skill -- digging (STR) */
-	p_ptr->skill_dig += adj_str_dig[p_ptr->stat_ind[A_STR]];
-
-
-	/* Affect Skill -- disarming (Level, by Class) */
-	p_ptr->skill_dis += (p_ptr->cp_ptr->x_dis * p_ptr->lev / 10);
-
-	/* Affect Skill -- magic devices (Level, by Class) */
-	p_ptr->skill_dev += (p_ptr->cp_ptr->x_dev * p_ptr->lev / 10);
-
-	/* Affect Skill -- saving throw (Level, by Class) */
-	p_ptr->skill_sav += (p_ptr->cp_ptr->x_sav * p_ptr->lev / 10);
-
-	/* Affect Skill -- stealth (Level, by Class) */
-	p_ptr->skill_stl += (p_ptr->cp_ptr->x_stl * p_ptr->lev / 10);
-
-	/* Affect Skill -- search ability (Level, by Class) */
-	p_ptr->skill_srh += (p_ptr->cp_ptr->x_srh * p_ptr->lev / 10);
-
-	/* Affect Skill -- search frequency (Level, by Class) */
-	p_ptr->skill_fos += (p_ptr->cp_ptr->x_fos * p_ptr->lev / 10);
-
-	/* Affect Skill -- combat (normal) (Level, by Class) */
-	p_ptr->skill_thn += (p_ptr->cp_ptr->x_thn * p_ptr->lev / 10);
-
-	/* Affect Skill -- combat (shooting) (Level, by Class) */
-	p_ptr->skill_thb += (p_ptr->cp_ptr->x_thb * p_ptr->lev / 10);
-
-	/* Affect Skill -- combat (throwing) (Level, by Class) */
-	p_ptr->skill_tht += (p_ptr->cp_ptr->x_thb * p_ptr->lev / 10);
-
-
-	/* Limit Skill -- stealth from 0 to 30 */
-	if (p_ptr->skill_stl > 30) p_ptr->skill_stl = 30;
-	if (p_ptr->skill_stl < 0) p_ptr->skill_stl = 0;
-
-	/* Limit Skill -- digging from 1 up */
-	if (p_ptr->skill_dig < 1) p_ptr->skill_dig = 1;
+		/* Window stuff */
+		p_ptr->window |= (PW_PLAYER);
+	}
 
 
 	/* Hack -- handle "xtra" mode */
@@ -2863,7 +2832,6 @@ static void calc_bonuses(int Ind)
 		p_ptr->old_heavy_shoot = p_ptr->heavy_shoot;
 	}
 
-
 	/* Take note when "heavy weapon" changes */
 	if (p_ptr->old_heavy_wield != p_ptr->heavy_wield)
 	{
@@ -2884,7 +2852,6 @@ static void calc_bonuses(int Ind)
 		/* Save it */
 		p_ptr->old_heavy_wield = p_ptr->heavy_wield;
 	}
-
 
 	/* Take note when "illegal weapon" changes */
 	if (p_ptr->old_icky_wield != p_ptr->icky_wield)
