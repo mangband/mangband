@@ -3035,7 +3035,7 @@ int Send_store_info(int ind, int num, int owner, int items)
     return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
 }
 
-int Send_player_store_info(int ind, int num, char *owner, int items)
+int Send_player_store_info(int ind, char *name, char *owner, int items)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -3049,7 +3049,7 @@ int Send_player_store_info(int ind, int num, char *owner, int items)
 		return 0;
 	}
 
-    return Packet_printf(&connp->c, "%c%hd%s%hd", PKT_PLAYER_STORE_INFO, num, owner, count);
+    return Packet_printf(&connp->c, "%c%s%s%hd", PKT_PLAYER_STORE_INFO, name, owner, count);
 }
 
 int Send_store_sell(int ind, int price)

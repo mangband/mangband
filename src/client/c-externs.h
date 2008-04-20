@@ -30,7 +30,7 @@ extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
 
-
+pl
 
 
 /* variable.c */
@@ -48,7 +48,7 @@ extern char inventory_name[INVEN_TOTAL][80];
 extern store_type store;
 extern owner_type store_owner;
 extern char player_owner[MAX_NAME_LEN];
-extern byte player_store_type;
+extern char player_store_name[MAX_CHARS];
 extern int store_prices[STORE_INVEN_MAX];
 extern char store_names[STORE_INVEN_MAX][80];
 extern s16b store_num;

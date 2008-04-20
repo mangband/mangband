@@ -1094,6 +1094,55 @@ static int display_inventory(int Ind)
 	return (stocked);
 }
 
+/* Returns the name of a player owned store */
+static int get_player_store_name(int num, char *name)
+{
+	int 			k,i,x,y;
+	object_type		tmp_obj;
+	object_type		*o_ptr = &tmp_obj;
+	cave_type		*c_ptr;
+	char 			*c;
+
+	/* Default title */
+	strcpy(name, "Store\0");
+
+	/* Scan house */
+	for(y=houses[num].y_1; y<=houses[num].y_2;y++)
+	{
+		for(x=houses[num].x_1; x<=houses[num].x_2;x++)
+		{
+			/* Get grid */
+			c_ptr = &cave[houses[num].depth][y][x];
+			/* Get the object (if any) */
+			if (c_ptr->o_idx)
+			{
+				tmp_obj = o_list[c_ptr->o_idx];
+			}
+			else
+			{
+				continue;
+			}
+						
+			/* If there was an object, is does it have a store name? */
+			if (o_ptr->note)
+			{
+							
+				/* Is this item for sale? */
+				if(c = strstr(quark_str(o_ptr->note),"store name"))
+				{
+					/* Get name */
+					c += 10; /* skip "for sale" */
+					if( *c++ == ' ' )
+					{
+						strncpy(name, c, MAX_CHARS-1);
+						strcat(name,"\0");
+					}
+				}
+			}					
+		}
+	}
+}
+
 
 /*
  * Displays players gold					-RAK-
@@ -1112,6 +1161,7 @@ static void store_prt_gold(int Ind)
 static void display_store(int Ind)
 {
 	int stockcount;
+	char store_name[MAX_CHARS];
 	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 
@@ -1126,7 +1176,9 @@ static void display_store(int Ind)
 	/* Player owned stores */
 	else
 	{
-		Send_player_store_info(Ind, houses[p_ptr->player_store_num].strength, 
+		/* Get the store name if any */
+		get_player_store_name(p_ptr->player_store_num, &store_name);
+		Send_player_store_info(Ind, store_name, 
 			houses[p_ptr->player_store_num].owned, stockcount);		
 	}
 

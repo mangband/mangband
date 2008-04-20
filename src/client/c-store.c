@@ -391,39 +391,18 @@ void display_store(void)
 	Term_clear();
 
 	/* Find the "store name" */
-	if (store_num != 8)
+	switch (store_num)
 	{
-		/* For regular NPC shops */	
-		switch (store_num)
-		{
-			case 0: feature = "General store"; break;
-			case 1: feature = "Armoury"; break;
-			case 2: feature = "Weapon Smith"; break;
-			case 3: feature = "Temple"; break;
-			case 4: feature = "Alchemist"; break;
-			case 5: feature = "Magic Shop"; break;
-			case 6: feature = "Black Market"; break;
-			case 7: feature = "Your home"; break;
-			case 8: feature = "The Back Room"; break;
-		}
-	}
-	else
-	{
-		/* For player-runned shops */
-		switch (player_store_type)
-		{
-			case 0: feature = "Shop"; break;
-			case 1: feature = "Armoury"; break;
-			case 2: feature = "Weapon Shop"; break;
-			case 3: feature = "Ecclesial Shop"; break;
-			case 4: feature = "Alchemy Shop"; break;
-			case 5: feature = "Magic Shop"; break;
-			case 6: feature = "Mixed Shop"; break;
-			case 7: feature = "Home"; break;
-			case 8: feature = "Back Room"; break;
-		}
+		case 0: feature = "General store"; break;
+		case 1: feature = "Armoury"; break;
+		case 2: feature = "Weapon Smith"; break;
+		case 3: feature = "Temple"; break;
+		case 4: feature = "Alchemist"; break;
+		case 5: feature = "Magic Shop"; break;
+		case 6: feature = "Black Market"; break;
+		case 7: feature = "Your home"; break;
+		case 8: feature = "The Back Room"; break;
 	}	
-	
 	
 	/* Put the owner name and race */
 	if (store_num != 8)
@@ -439,7 +418,7 @@ void display_store(void)
 	else
 	{
 		/* A player owned store */
-		sprintf(buf, "%s's %s", player_owner, feature );
+		sprintf(buf, "%s's %s", player_owner, player_store_name );
 		put_str(buf, 3, 10);		
 	}
 
