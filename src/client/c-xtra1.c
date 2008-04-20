@@ -1088,6 +1088,7 @@ void fix_message(void)
 				else if(strstr(msg, "rises from the dead")!=NULL) continue;
 				else if(strstr(msg, "ghost was destroyed by")!=NULL) continue;
 		else if(strstr(msg, "has attained level")!=NULL) continue;
+		else if(strstr(msg, "has dropped to level")!=NULL) continue;
 		else if(strstr(msg, "Welcome to level")!=NULL) continue;
 
 			} 
@@ -1115,6 +1116,7 @@ void fix_message(void)
 				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
 				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
                 if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+                if(strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
 		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
 			};
 
@@ -1181,6 +1183,7 @@ void fix_message(void)
 				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
 				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
 		if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+		if(strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
 		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
 			};
 

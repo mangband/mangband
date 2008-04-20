@@ -1787,6 +1787,11 @@ void check_experience(int Ind)
 		/* Lose a level */
 		p_ptr->lev--;
 
+		/* Message */
+		msg_format(Ind, "Dropped back to level %d.", p_ptr->lev);
+		sprintf(buf, "%s has dropped to level %d.", p_ptr->name, p_ptr->lev);
+		msg_broadcast(Ind, buf);
+
 		/* Update some stuff */
 		p_ptr->update |= (PU_BONUS | PU_HP | PU_MANA | PU_SPELLS);
 
