@@ -1749,6 +1749,7 @@ void check_experience(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int		i;
+	int 		old_level;
 	char buf[80];
 
 
@@ -1784,6 +1785,8 @@ void check_experience(int Ind)
 	       (p_ptr->exp < (player_exp[p_ptr->lev-2] *
 	                      p_ptr->expfact / 100L)))
 	{
+		old_level = p_ptr->lev;	
+	
 		/* Lose a level */
 		p_ptr->lev--;
 
@@ -1798,6 +1801,10 @@ void check_experience(int Ind)
 		/* Redraw some stuff */
 		p_ptr->redraw |= (PR_LEV | PR_TITLE);
 
+		/* Hack -- redraw charsheet when falling below level 30 */
+		if (old_level >= 30 && p_ptr->lev < 30)		
+			p_ptr->redraw |= (PR_OFLAGS);
+
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
 
@@ -1811,6 +1818,8 @@ void check_experience(int Ind)
 	       (p_ptr->exp >= (player_exp[p_ptr->lev-1] *
 	                       p_ptr->expfact / 100L)))
 	{
+		old_level = p_ptr->lev;
+		
 		/* Gain a level */
 		p_ptr->lev++;
 
@@ -1837,6 +1846,10 @@ void check_experience(int Ind)
 
 		/* Redraw some stuff */
 		p_ptr->redraw |= (PR_LEV | PR_TITLE);
+		
+		/* Hack -- redraw charsheet on level 30 */
+		if (old_level < 30 && p_ptr->lev >= 30)
+			p_ptr->redraw |= (PR_OFLAGS);
 
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
