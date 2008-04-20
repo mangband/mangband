@@ -204,3 +204,4 @@ bool view_granite_lite;
 bool view_special_lite;
 
 int char_screen_mode;
+bool target_position;

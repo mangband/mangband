@@ -2218,6 +2218,8 @@ int Receive_target_info(void)
 		return n;
 	}
 
+	if (buf[0] == '\0') target_position = TRUE;
+
 	/* Print the message */
 	prt(buf, 0, 0);
 

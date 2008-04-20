@@ -3643,10 +3643,16 @@ bool target_set(int Ind, int dir)
 			p_ptr->target_n++;
 		}
 
-		/*** Hack -- in angband this would move into manual mode,
-			but in mangband all we can do is send a message */
-		if (!p_ptr->target_n) {
-		    Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, "Nothing to target. [p, ESC]"); 
+		/* Do something if there are no suitable targets */
+		if (!p_ptr->target_n && dir < 64) {
+#ifdef NOTARGET_PROMPT
+			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, "Nothing to target. [p, ESC]");
+			return FALSE;
+#else
+ 		   Send_target_info(Ind, 0, 0, "\0");
+			target_free_aux(Ind, 64, &free_target);
+			return free_target;
+#endif
 		}
 
 		/* Set the sort hooks */
