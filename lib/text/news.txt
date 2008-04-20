@@ -1,19 +1,23 @@
-                    :::!~!!!!!:.
-                  .xUHWH!! !!?M88WHX:.             Mangband 1.0.0 Alpha
-                .X*#M@$!!  !X!M$$$$$$WWx:.          resolute.mangband.org
-               :!!!!!!?H! :!$!$$$$$$$$$$8X:         
-              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:         Server Admin:
-             :!~::!H!<   ~.U$X!?R$$$$$$$$MM!          crimson@mangband.org 
-             ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!                                
-               !:~~~ .:!M"T#$$$$WX??#MRRMMM!        Ported to multiplayer 
-               ~?WuxiW*`   `"#$$$$8!!!!??!!!           by Keldon Jones.
-             :X- M$$$$       `"T#$T~!8$WUXU~                                                  
-            :  ~#$$$m:        ~!~ ?$$$$$$          Based on Angband 2.7.2.                        
-          :!`.-   ~T$$$$8xx.  .xWW- ~""##*"           by Ben Harrison.                     
-.....   -~~:<` !    ~?T#$$@@W@*?$$      /
-W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :      * WARNING: TEST MODE SERVER *
-:::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~
-.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `       This server is audited
-Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!         See the forums on www.mangband.org
-$R@i.~~ !     :   ~$$$$$B$$en:``         Enjoy your play!
-?MXT@Wx.~    :     ~"##*$$$$M~                                              
+     .iiT88888888TT888888888888888TTTTiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii:.
+     iiiT88888TTTTTT88888888888888TTTiiiiiiiiiiiiiiiiiiiiiiiiiiiTTTTiiii:: 
+    .iiT8888TTTTTTTT888888888888TTTTTTTTTTTTiiiiiiiiiiiiiiTTTTTTTTTTTTTii:
+    iiT888TTTTTTTTTTTTT8888TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT8888TTTii::
+    iT888TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT88888888TTTTTT88888TTTTTiii::
+    iT8TTTiiiiiiTTTTTTT888888TTTTTTTTTTTT888888888TTTTTTTTTTTTTTTTiiiiiii:::
+    `iTii::::::iiiiiiiiiii88888888888888888888TTTTTTTTiiiiiii:::::::::iiii::
+     iTi:       ````:::::iiiiiiiii888888888TTTTTiiii:::::::'''''    `::ii:::
+     :i:                   ````::ii888888TTTTi:::'''''                ::i:: 
+      ::                          i8888TTTii:                         :::  
+        :                       .:iT888TTii:                        .:::
+      :::                    .:iiiT888TTiiii::.                  .::i::     
+     :iiii:..            ..::iiiTT88888TTiiiiTT::..         ...:iiiiT8::
+    :iTTTiiii::::::::::::::iiiTTT8888"  TiiiiiiTTTii::::::::::iiiiTTTTii:: 
+   :TT888TTTTTTTiiiiiiiiiiTTTTT8888"     TiiiiiiiiTTTTiiiiiiiiiTTTTTTTTiii:
+  :TT8888888888888TTTTTTTTTT888888        TiiiiiiiiiiiiiTTTTTTTTT8888TTTTii: 
+ :iTT88888888888TTTTTTTTTTTT88888          TiiiiTTTTTTTTTTT88888888888TTTTTi:
+::TT8888888TTTTTTTTTTTTTTTTT8888:     :     iiiiiTTTTTTTT888888888888TTTTTii:
+::iiTTTTTTTTTTTTTiiiiiiTTTTTTT88     ii.    :iiiTTTTTT8888888888888TTTTTiiii:
+ ::iiiTTTTTTTiiiiiiiiTTTTTTTTT888. .T8ii.. iiiiTTTTTT8888888TTTTTTTTiiiiii::'
+  ``:::::iiiiiiiiiiTTTTTTTTTTT8888888TTTiiiiiiiiTTTTTTTTTTTTTTTTiiiiiiii:::' 
+      ``::::::iiiTTTTTTTTTT8888888TTTTTTTTiiiTTTTTTTTTTTTTTTTTTTiii::''' 
+         MAngband v1.1.0 (1st Apr 2008)      Press ? for help in game
