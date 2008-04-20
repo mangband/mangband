@@ -3646,7 +3646,7 @@ bool target_set(int Ind, int dir)
 		/*** Hack -- in angband this would move into manual mode,
 			but in mangband all we can do is send a message */
 		if (!p_ptr->target_n) {
-		    msg_print(Ind, "Nothing to target. (p for manual targeting, ESC to exit targeting mode)");
+		    Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, "Nothing to target. [p, ESC]"); 
 		}
 
 		/* Set the sort hooks */
