@@ -510,24 +510,28 @@ static void process_world(int Ind)
 				/* Message */
 				msg_print(Ind, "The sun has risen.");
 	
-				/* Hack -- Scan the level */
-				for (y = 0; y < MAX_HGT; y++)
+				/* Make sure we're not in a store */
+				if ((Depth == 0) && (p_ptr->store_num != -1))
 				{
-					for (x = 0; x < MAX_WID; x++)
+					/* Hack -- Scan the level */
+					for (y = 0; y < MAX_HGT; y++)
 					{
-						/* Get the cave grid */
-						c_ptr = &cave[Depth][y][x];
-						w_ptr = &p_ptr->cave_flag[y][x];
+						for (x = 0; x < MAX_WID; x++)
+						{
+							/* Get the cave grid */
+							c_ptr = &cave[Depth][y][x];
+							w_ptr = &p_ptr->cave_flag[y][x];
 
-						/* Assume lit */
-						c_ptr->info |= CAVE_GLOW;
+							/* Assume lit */
+							c_ptr->info |= CAVE_GLOW;
 
-						/* Hack -- Memorize lit grids if allowed */
-						if ((!Depth) && (p_ptr->view_perma_grids)) *w_ptr |= CAVE_MARK;
+							/* Hack -- Memorize lit grids if allowed */
+							if ((!Depth) && (p_ptr->view_perma_grids)) *w_ptr |= CAVE_MARK;
 
-						/* Hack -- Notice spot */
-						note_spot(Ind, y, x);						
-					}			
+							/* Hack -- Notice spot */
+							note_spot(Ind, y, x);						
+						}			
+					}
 				}
 			}
 
@@ -537,27 +541,30 @@ static void process_world(int Ind)
 				/* Message  */
 				msg_print(Ind, "The sun has fallen.");
 
-				 /* Hack -- Scan the level */
-				for (y = 0; y < MAX_HGT; y++)
-				{					
-					for (x = 0; x < MAX_WID; x++)
-					{
-						/*  Get the cave grid */
-						c_ptr = &cave[Depth][y][x];
-						w_ptr = &p_ptr->cave_flag[y][x];
-
-						/*  Darken "boring" features */
-						if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
+				/* Make sure we're not in a store */
+				if ((Depth == 0) && (p_ptr->store_num != -1))
+				{
+					 /* Hack -- Scan the level */
+					for (y = 0; y < MAX_HGT; y++)
+					{					
+						for (x = 0; x < MAX_WID; x++)
 						{
-							  /* Forget the grid */ 
-							c_ptr->info &= ~CAVE_GLOW;
-							*w_ptr &= ~CAVE_MARK;
+							/*  Get the cave grid */
+							c_ptr = &cave[Depth][y][x];
+							w_ptr = &p_ptr->cave_flag[y][x];
 
-							  /* Hack -- Notice spot */
-							note_spot(Ind, y, x);
-						}						
+							/*  Darken "boring" features */
+							if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
+							{
+								  /* Forget the grid */ 
+								c_ptr->info &= ~CAVE_GLOW;
+								*w_ptr &= ~CAVE_MARK;
+
+								  /* Hack -- Notice spot */
+								note_spot(Ind, y, x);
+							}						
+						}
 					}
-					
 				}  				
 			}
 
