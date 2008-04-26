@@ -174,6 +174,7 @@ extern s32b cfg_level_unstatic_chance;
 extern s32b cfg_retire_timer;
 extern bool cfg_random_artifacts;
 extern bool cfg_ironman;
+extern bool cfg_town_wall;
 extern s32b cfg_unique_respawn_time;
 extern s32b cfg_unique_max_respawn_time;
 extern s16b cfg_max_townies;

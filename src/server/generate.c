@@ -4140,6 +4140,9 @@ static void town_gen(void)
 	int	y, x;
 	cave_type *c_ptr;
 
+	byte wall_feat;
+	if (!cfg_town_wall)	wall_feat = FEAT_PERM_CLEAR;
+	else			wall_feat = FEAT_PERM_SOLID;
 
 	/* Perma-walls -- North/South*/
 	for (x = 0; x < MAX_WID; x++)
@@ -4148,7 +4151,7 @@ static void town_gen(void)
 		c_ptr = &cave[0][0][x];
 
 		/* Clear previous contents, add "clear" perma-wall */
-		c_ptr->feat = FEAT_PERM_CLEAR;
+		c_ptr->feat = wall_feat;
 
 		/* Illuminate and memorize the walls 
 		c_ptr->info |= (CAVE_GLOW | CAVE_MARK);*/
@@ -4157,7 +4160,7 @@ static void town_gen(void)
 		c_ptr = &cave[0][MAX_HGT-1][x];
 
 		/* Clear previous contents, add "clear" perma-wall */
-		c_ptr->feat = FEAT_PERM_CLEAR;
+		c_ptr->feat = wall_feat;
 
 		/* Illuminate and memorize the walls 
 		c_ptr->info |= (CAVE_GLOW);*/
@@ -4170,7 +4173,7 @@ static void town_gen(void)
 		c_ptr = &cave[0][y][0];
 
 		/* Clear previous contents, add "clear" perma-wall */
-		c_ptr->feat = FEAT_PERM_CLEAR;
+		c_ptr->feat = wall_feat;
 
 		/* Illuminate and memorize the walls
 		c_ptr->info |= (CAVE_GLOW);*/
@@ -4179,7 +4182,7 @@ static void town_gen(void)
 		c_ptr = &cave[0][y][MAX_WID-1];
 
 		/* Clear previous contents, add "clear" perma-wall */
-		c_ptr->feat = FEAT_PERM_CLEAR;
+		c_ptr->feat = wall_feat;
 
 		/* Illuminate and memorize the walls 
 		c_ptr->info |= (CAVE_GLOW);*/
