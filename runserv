@@ -9,6 +9,9 @@ ulimit -c unlimited
 
 while :; do
 	nohup $GAME_DIR/mangband >nohup.out 2>&1   # Needed so we get core files!
+        exitcode=$?
+        stamp=`date`;
+        echo "$stamp Server exited with exit code $exitcode" >> nohup.out
 	if [ -f core ] ; then
 		mv core cores/`/bin/date +"%Y.%m.%d.%I.%M.%S"`
 	fi
