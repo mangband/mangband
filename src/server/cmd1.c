@@ -1473,14 +1473,14 @@ void move_player(int Ind, int dir, int do_pickup)
 	y = p_ptr->py + ddy[dir];
 	x = p_ptr->px + ddx[dir];
 
-  if (cfg_ironman)
+  if (cfg_ironman || cfg_town_wall)
   {
 	/* 
 	 * Ironmen don't go wandering in the countryside...
 	 */
 	if (!in_bounds(Depth, y, x))
 	{
-		if(Depth == 0)
+		if(Depth == 0 && !cfg_town_wall)
 		{
 			switch(rand_int(5))
 			{
@@ -1492,7 +1492,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			}	
 		}
 		else
-			msg_print(Ind, "There is a wall blocking your way");			
+			msg_print(Ind, "There is a wall blocking your way.");			
 		disturb(Ind, 1, 0);
 		return;
 	}	 

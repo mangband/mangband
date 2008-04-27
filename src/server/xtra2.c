@@ -1749,6 +1749,7 @@ void check_experience(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int		i;
+	int 		old_level;
 	char buf[80];
 
 
@@ -1784,6 +1785,8 @@ void check_experience(int Ind)
 	       (p_ptr->exp < (player_exp[p_ptr->lev-2] *
 	                      p_ptr->expfact / 100L)))
 	{
+		old_level = p_ptr->lev;	
+	
 		/* Lose a level */
 		p_ptr->lev--;
 
@@ -1792,6 +1795,10 @@ void check_experience(int Ind)
 
 		/* Redraw some stuff */
 		p_ptr->redraw |= (PR_LEV | PR_TITLE);
+
+		/* Hack -- redraw charsheet when falling below level 30 */
+		if (old_level >= 30 && p_ptr->lev < 30)		
+			p_ptr->redraw |= (PR_OFLAGS);
 
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
@@ -1806,6 +1813,8 @@ void check_experience(int Ind)
 	       (p_ptr->exp >= (player_exp[p_ptr->lev-1] *
 	                       p_ptr->expfact / 100L)))
 	{
+		old_level = p_ptr->lev;
+		
 		/* Gain a level */
 		p_ptr->lev++;
 
@@ -1832,6 +1841,10 @@ void check_experience(int Ind)
 
 		/* Redraw some stuff */
 		p_ptr->redraw |= (PR_LEV | PR_TITLE);
+		
+		/* Hack -- redraw charsheet on level 30 */
+		if (old_level < 30 && p_ptr->lev >= 30)
+			p_ptr->redraw |= (PR_OFLAGS);
 
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
@@ -3638,10 +3651,16 @@ bool target_set(int Ind, int dir)
 			p_ptr->target_n++;
 		}
 
-		/*** Hack -- in angband this would move into manual mode,
-			but in mangband all we can do is send a message */
-		if (!p_ptr->target_n) {
-		    msg_print(Ind, "Nothing to target. (p for manual targeting, ESC to exit targeting mode)");
+		/* Do something if there are no suitable targets */
+		if (!p_ptr->target_n && dir < 64) {
+#ifdef NOTARGET_PROMPT
+			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, "Nothing to target. [p, ESC]");
+			return FALSE;
+#else
+ 		   Send_target_info(Ind, 0, 0, "\0");
+			target_free_aux(Ind, 64, &free_target);
+			return free_target;
+#endif
 		}
 
 		/* Set the sort hooks */

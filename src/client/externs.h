@@ -216,7 +216,7 @@ extern bool view_granite_lite;
 extern bool view_special_lite;
 
 extern int char_screen_mode;
-
+extern bool target_position;
 /*
  * Not-so-Automatically generated "function declarations"
  */

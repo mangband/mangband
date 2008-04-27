@@ -1042,13 +1042,13 @@ void cmd_activate(void)
 int cmd_target(void)
 {
 	bool done = FALSE;
-	bool position = FALSE;
 	bool fail = FALSE;
 	int d;
 	char ch;
 
 	cursor_icky = TRUE;
-
+	target_position = FALSE;
+	
 	/* Tell the server to init targetting */
 	Send_target(0);
 
@@ -1075,7 +1075,7 @@ int cmd_target(void)
 			}
 			case 'm':
 			{
-				position = FALSE;
+				target_position = FALSE;
 				/* Tell the server to reset */
 				Send_target(0);
 				/* Reset cursor stuff */
@@ -1086,7 +1086,7 @@ int cmd_target(void)
 			}
 			case 'p':
 			{
-				position = TRUE;
+				target_position = TRUE;
 				/* Tell the server to reset */
 				Send_target(64 + 0);
 				break;
@@ -1105,9 +1105,10 @@ int cmd_target(void)
 				}
 				else
 				{
-					if (position)
+					if (target_position)
 						Send_target(d + 64);	
-					else Send_target(d);
+					else 
+						Send_target(d);
 				}
 				break;
 			}
@@ -1124,9 +1125,10 @@ int cmd_target(void)
 	else
 	{
 		/* Send the affirmative */
-		if (position)
+		if (target_position)
 			Send_target(64 + 5);
-		else Send_target(5);
+		else 
+			Send_target(5);
 	}
 
 	/* Reset cursor stuff */

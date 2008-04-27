@@ -2418,6 +2418,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_ironman = str_to_boolean(value);
     }
+    else if (!strcmp(option,"TOWN_WALL"))
+    {
+        cfg_town_wall = str_to_boolean(value);
+    }
     else if (!strcmp(option,"BASE_UNIQUE_RESPAWN_TIME"))
     {
         cfg_unique_respawn_time = atoi(value);

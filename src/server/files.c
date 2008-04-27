@@ -3496,12 +3496,9 @@ void signals_init(void)
 	(void)signal(SIGTERM, handle_signal_abort);
 #endif
 
-	/*
-	 * This happens naturaly when clients disconnect.
 #ifdef SIGPIPE
-	(void)signal(SIGPIPE, handle_signal_abort);
+	(void)signal(SIGPIPE, SIG_IGN);
 #endif
-*/
 
 #ifdef SIGEMT
 	(void)signal(SIGEMT, handle_signal_abort);

@@ -983,8 +983,8 @@ static void process_player_begin(int Ind)
 	if (p_ptr->paralyzed || p_ptr->stun >= 100)
 		p_ptr->energy = 0;
 
-	/* Hack -- semi-constant hallucination */
-	if (p_ptr->image && (randint(10) == 1)) p_ptr->redraw |= (PR_MAP);
+	/* Hack -- semi-constant hallucination (but not in stores) */
+	if (p_ptr->image && p_ptr->store_num == -1 && (randint(10) == 1)) p_ptr->redraw |= (PR_MAP);
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
 	if ((p_ptr->teleport) && (rand_int(100) < 1))
