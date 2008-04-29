@@ -350,6 +350,7 @@ extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);
 extern void do_cmd_options(void);
+extern bool get_string_masked(cptr prompt, char *buf, int len);
 
 /* c-spell.c */
 extern void show_browse(int book);
