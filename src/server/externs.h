@@ -1076,6 +1076,7 @@ extern bool get_item(int Ind);
 extern bool do_scroll_life(int Ind);
 extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
+extern void target_free_aux(int Ind, int dir, bool *can_target);
 
 extern bool master_level(int Ind, char * parms);
 extern bool master_build(int Ind, char * parms);
