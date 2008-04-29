@@ -750,7 +750,7 @@ extern int Send_special_other(int ind, char *header);
 extern int Send_skills(int ind);
 extern int Send_pause(int ind);
 extern int Send_monster_health(int ind, int num, byte attr);
-
+extern int Send_cursor(int ind, char vis, char x, char y);
 extern void Handle_direction(int Ind, int dir);
 
 
