@@ -687,6 +687,7 @@ extern void setup_monsters(void);
 extern int race_index(char * name);
 extern bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char num);
 extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char num);
+extern int race_index_fuzzy(char * name);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
