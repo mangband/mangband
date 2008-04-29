@@ -477,6 +477,7 @@ extern void run_step(int Ind, int dir);
 extern int see_wall(int Ind, int dir, int y, int x);
 
 /* cmd2.c */
+extern bool house_inside(int Ind, int house);
 extern bool house_owned(int house);
 extern bool house_owned_by(int Ind, int house);
 extern bool set_house_owner(int Ind, int house);
