@@ -1,4 +1,5 @@
 #include "angband.h"
+#include "netclient.h"
 
 /* Handle custom commands */
 void cmd_custom(byte i)
