@@ -1141,6 +1141,8 @@ static int get_player_store_name(int num, char *name)
 			}					
 		}
 	}
+	/* someday we should probably return something significant */
+	return (int)strlen((const char*)name);
 }
 
 
