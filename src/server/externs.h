@@ -754,10 +754,10 @@ extern int Send_monster_health(int ind, int num, byte attr);
 extern void Handle_direction(int Ind, int dir);
 
 
-
-
+/* obj-info.c */
 /* object1.c */
 /* object2.c */
+extern void object_info_screen(const object_type *o_ptr);
 extern void flavor_init(void);
 extern void reset_visuals(void);
 extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
