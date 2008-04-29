@@ -957,6 +957,8 @@ extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
 extern bool sleep_monsters_touch(int Ind);
+extern bool create_artifact(int Ind);
+extern bool create_artifact_aux(int Ind, int item);
 
 
 /* store.c */
