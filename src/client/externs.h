@@ -467,6 +467,7 @@ extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
+extern int Send_pass(cptr newpass);
 
 /* x-spell.c */
 extern cptr get_spell_name(int tval, int index);
