@@ -1,5 +1,6 @@
 #include "angband.h"
 #include "netclient.h"
+#include "../common/md5.h"
 
 /* Handle custom commands */
 void cmd_custom(byte i)
