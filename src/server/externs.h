@@ -688,6 +688,8 @@ extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char n
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
+extern bool monster_can_carry(int m_idx);
 
 /* netserver.c */
 /*extern void Contact(int fd, void *arg);*/
