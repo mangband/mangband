@@ -523,7 +523,6 @@ extern void signals_ignore_tstp(void);
 extern void signals_handle_tstp(void);
 extern void signals_init(void);
 extern void setup_exit_handler(void);
-extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
 extern void generate_cave(int Ind, int Depth);

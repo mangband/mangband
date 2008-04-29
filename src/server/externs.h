@@ -614,6 +614,7 @@ extern void signals_init(void);
 extern void kingly(int Ind);
 extern void setup_exit_handler(void);
 extern errr get_rnd_line(cptr file_name, int entry, char *output);
+extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
 extern void alloc_dungeon_level(int Depth);
