@@ -3563,7 +3563,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows bright yellow...", o_name);
 				/* msg_print(Ind, "You hear a low humming noise..."); */
-				if (!recharge(Ind, 60)) return FALSE;
+				if (!recharge(Ind, 60)) return;
 				break;
 			}
 
