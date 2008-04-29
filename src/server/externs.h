@@ -461,6 +461,7 @@ extern void disturb(int Ind, int stop_search, int flush_output);
 extern bool is_quest(int level);
 extern void update_players(void);
 extern void update_cursor(int);
+extern void cursor_track(int Ind, int m_idx);
 
 /* cmd1.c */
 extern bool test_hit_fire(int chance, int ac, int vis);
