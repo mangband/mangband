@@ -1017,6 +1017,7 @@ extern void log_history_event(int Ind, char *msg);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
+extern void text_out(cptr buf);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);
