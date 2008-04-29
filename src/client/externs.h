@@ -295,6 +295,7 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
+extern int Send_custom_command(byte i, int item, char dir, int value);
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
