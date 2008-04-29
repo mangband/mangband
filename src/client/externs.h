@@ -308,6 +308,7 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_aux(char *buf);
 extern void show_motd(void);
 extern void peruse_file(void);
+extern errr Save_options(void);
 
 /* c-init.c */
 extern void initialize_all_pref_files(void);
