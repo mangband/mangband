@@ -718,7 +718,7 @@ void brand_ammo(int Ind, int item)
 	brand_object(Ind, o_ptr, brand_type);
 
 	/* Done */
-	return (TRUE);
+	return;
 }
 
 /*
