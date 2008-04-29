@@ -972,6 +972,7 @@ extern void do_cmd_store(int Ind, int pstore);
 extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
+extern int Send_player_store_info(int ind, char *name, char *owner, int items);
 
 /* util.c */
 extern errr path_parse(char *buf, int max, cptr file);
