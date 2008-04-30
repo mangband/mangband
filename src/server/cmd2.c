@@ -1322,8 +1322,8 @@ void do_cmd_tunnel(int Ind, int dir)
 				msg_print(Ind, "You tunnel into the granite wall.");
 				more = TRUE;
 
-				/* Hack -- Search */
-				search(Ind);
+				/* Hack -- Occasional Search */
+				if (rand_int(100) < 25) search(Ind);
 			}
 		}
 
