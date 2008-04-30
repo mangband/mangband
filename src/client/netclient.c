@@ -250,7 +250,7 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 	n = Packet_printf(&wbuf, "%c%s%s%s%hd%hd%hd", PKT_VERIFY, real, nick, pass, sex, race, class);
 
 	/* Determine the total size of the following data */
-	data_size = 2 + 6 + 64 + (TV_MAX + MAX_F_IDX + MAX_K_IDX + MAX_R_IDX)*2;
+	data_size = 12 + 64 + (TV_MAX+1 + MAX_F_IDX+1 + MAX_K_IDX+1 + MAX_R_IDX+1)*2;
 	
 	/* Send a flag to indicate we speak the new protocol */
 	Packet_printf(&wbuf, "%c%c", 'X', 'X');
