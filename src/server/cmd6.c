@@ -3844,40 +3844,16 @@ void do_cmd_activate(int Ind, int item)
 		return;
 	}
 
-    /* Some rings can be activated for resistance */
-    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_FLAMES))
-    {
-        msg_print(Ind, "Your ring glows brightly...");
-        (void)set_oppose_fire(Ind, p_ptr->oppose_fire + randint(40) + 40);
-
-        o_ptr->timeout = rand_int(50) + 150;
-        return;
-    }
-    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_ACID))
-    {
-        msg_print(Ind, "Your ring glows brightly...");
-        (void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(40) + 40);
-
-        o_ptr->timeout = rand_int(50) + 150;
-        return;
-    }
-    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_ICE))
-    {
-        msg_print(Ind, "Your ring glows brightly...");
-        (void)set_oppose_cold(Ind, p_ptr->oppose_cold + randint(40) + 40);
-
-        o_ptr->timeout = rand_int(50) + 150;
-        return;
-    }
-    if ((o_ptr->tval == TV_RING) && (o_ptr->sval == SV_RING_LIGHTNING))
-    {
-        msg_print(Ind, "Your ring glows brightly...");
-        (void)set_oppose_elec(Ind, p_ptr->oppose_elec + randint(40) + 40);
-
-        o_ptr->timeout = rand_int(50) + 150;
-        return;
-    }
-
+  	/* Hack -- some Rings can be activated for double resist and element ball */
+	if (o_ptr->tval == TV_RING)
+	{
+		if ( (o_ptr->sval == SV_RING_FLAMES) || (o_ptr->sval == SV_RING_ACID) || (o_ptr->sval == SV_RING_ICE) || (o_ptr->sval == SV_RING_LIGHTNING) ) {
+			p_ptr->current_activation = item;
+			get_aim_dir(Ind);
+			return;
+		}
+	}
+	
 	/* Hack -- Dragon Scale Mail can be activated as well */
 	if (o_ptr->tval == TV_DRAG_ARMOR)
 	{
@@ -4235,6 +4211,47 @@ void do_cmd_activate_dir(int Ind, int dir)
 				msg_print(Ind, "SERVER ERROR: Directional activation called for non-directional activatee!");
 				p_ptr->current_activation = -1;
 				return;
+			}
+		}
+	}
+	
+	/* Hack -- some Rings can be activated for double resist and element ball */
+	if (o_ptr->tval == TV_RING)
+	{
+		//msg_print(Ind, "Your ring glows brightly..."); // this message is not in angband 3.0.6
+		/* Branch on the sub-type */
+		switch (o_ptr->sval)
+		{
+			case SV_RING_ACID:
+			{
+				fire_ball(Ind, GF_ACID, dir, 70, 2);
+				set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
+				o_ptr->timeout = rand_int(50) + 50;
+				break;
+			}
+
+			case SV_RING_FLAMES:
+			{
+				fire_ball(Ind, GF_FIRE, dir, 80, 2);
+				set_oppose_fire(Ind, p_ptr->oppose_fire + randint(20) + 20);
+				o_ptr->timeout = rand_int(50) + 50;
+				break;
+			}
+
+			case SV_RING_ICE:
+			{
+				fire_ball(Ind, GF_COLD, dir, 75, 2);
+				set_oppose_cold(Ind, p_ptr->oppose_cold + randint(20) + 20);
+				o_ptr->timeout = rand_int(50) + 50;
+				break;
+			}
+
+			case SV_RING_LIGHTNING:
+			{
+				fire_ball(Ind, GF_ELEC, dir, 85, 2);
+				set_oppose_elec(Ind, p_ptr->oppose_elec + randint(20) + 20);
+				o_ptr->timeout = rand_int(50) + 50;
+				break;
 			}
 		}
 	}
