@@ -1636,6 +1636,9 @@ void move_player(int Ind, int dir, int do_pickup)
 			disturb(Ind, 1, 0);
 			disturb(Ind2, 1, 0);
 
+			/* Unhack both of them */
+			q_ptr->last_dir = p_ptr->last_dir = 5;
+
 			/* Re-show both grids */
 			everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 			everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
