@@ -192,6 +192,12 @@ s32b cfg_unique_max_respawn_time = 50000;
 s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
 bool cfg_chardump_color = FALSE;
+s16b cfg_pvp_hostility = 2;
+bool cfg_pvp_notify = FALSE;
+s16b cfg_pvp_safehostility = 3;
+s16b cfg_pvp_safedepth = -1;
+s16b cfg_pvp_saferadius = -1;
+s16b cfg_pvp_safelevel = -1;
 
 /*
  * Software options (set via the '=' command).  See "tables.c"

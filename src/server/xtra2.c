@@ -3645,7 +3645,7 @@ bool target_set(int Ind, int dir)
 			if (i == Ind) continue;
 
 			/* Ignore players we aren't hostile to */
-			if (!check_hostile(Ind, i)) continue;
+			if (!check_hostile(Ind, i) && cfg_pvp_hostility > 0) continue;
 
 			/* Ignore "unreasonable" players */
 			if (!target_able(Ind, 0 - i)) continue;

@@ -527,6 +527,9 @@ bool add_hostility(int Ind, cptr name)
 
 		/* Message */
 		msg_format(Ind, "You are now hostile toward %s.", q_ptr->name);
+		
+		/* Notify the victim */
+		if (cfg_pvp_notify) msg_format(i, "%s is now hostile towards you.", p_ptr->name);
 
 		/* Success */
 		return TRUE;
@@ -924,3 +927,83 @@ int player_id_list(int **list)
 	/* Return length */
 	return len;
 }
+
+/* Make target hostile if not already */
+void add_hostility_ind(int Ind, int target) {
+	player_type *p_ptr = Players[target];
+	if (!check_hostile(Ind, target)) 
+	{ 
+		add_hostility(Ind, p_ptr->name);
+	}
+}
+/* 
+ * Engage in PVP or Cancel it
+ *
+ * This function should be called in each instance of player-to-player damage possibility
+ * i.e. melee, ranged attacks, magic, splash damage, etc.  It checks if pvp is desirable/possible 
+ * and sets some hostility if nessecary. 
+ *
+ * Modes: 0 -- test		1 -- meele		2 -- direct ranged		3 -- inderect ranged
+ *
+ *	Returns FALSE if no damage should be dealt 
+ */ 
+bool pvp_okay(int attacker, int target, int mode) 
+{
+	bool intentional = FALSE;
+	int Depth = Players[attacker]->dun_depth;
+	int party_id = Players[attacker]->party;
+	int hostility = cfg_pvp_hostility;
+	if (check_hostile(attacker, target)) intentional = TRUE;
+
+	/* SAFE DEPTH */
+	if (cfg_pvp_safedepth > -1 && Depth > -1 && Depth <= cfg_pvp_safedepth) hostility = cfg_pvp_safehostility;
+	/* SAFE WILDERNESS RADIUS */
+	if (cfg_pvp_saferadius > -1 && Depth < 0 && wild_info[Depth].radius <= cfg_pvp_saferadius) hostility = cfg_pvp_safehostility;
+	/* SAFE LEVEL DIFFERENCE */
+	if (cfg_pvp_safelevel > -1 && abs(Players[attacker]->lev - Players[target]->lev) > cfg_pvp_safelevel) hostility = cfg_pvp_safehostility;
+
+	/* Safe Mode -- Both players must be hostile towards each other (1.1.0) */
+	if (hostility == 2) {
+		if (check_hostile(target, attacker) && intentional) return TRUE;
+	}
+	
+	/* Normal Mode -- Attacker must be hostile towards his target */
+	if (hostility == 1) {
+		/* If this was intentional, make target hostile */ 
+		if (intentional) 
+		{ 
+			if (mode) add_hostility_ind(target, attacker); 
+			return TRUE; 
+		}
+	}
+
+	/* Dangerous Mode -- No hostility needed at all (only for inderect damage) (0.7.2) */
+	if (hostility == 0) {
+		if (mode > 1) {
+			if (!intentional) add_hostility_ind(attacker, target);
+			add_hostility_ind(target, attacker);
+			return TRUE;
+		} else {
+			return intentional;
+		}
+	}
+
+	/* Brutal mode -- all players always fight */	
+	if (hostility == -1) {
+		/* There's only one way not to fight: be in a party */
+		if (!(party_id && player_in_party(party_id, target)))
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+
+
+
+
+
+
+
+

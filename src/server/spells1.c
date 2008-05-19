@@ -3630,10 +3630,9 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 		/* Do not become hostile if it was a healing or teleport spell */
 		
-        if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
+	if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
 		{
-			/* Only allowed if both players are hostile */
-			if (!check_hostile(Ind, 0 - who) || !check_hostile(0 - who, Ind))
+			if (!pvp_okay(Ind, 0 - who, (p_ptr->target_who == who ? 2 : 3))) 
 			{
 				return(FALSE);
 			}

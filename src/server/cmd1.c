@@ -1085,12 +1085,6 @@ void py_attack_player(int Ind, int y, int x)
 	/* Track player health */
 	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
 
-	/* If target isn't hostile toward attacker, don't attack */
-	if (!check_hostile(0 - c_ptr->m_idx, Ind))
-	{
-		return;
-	}
-
 	/* Handle attacker fear */
 	if (p_ptr->afraid)
 	{
@@ -1606,7 +1600,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		int Ind2 = 0 - c_ptr->m_idx;
 
 		/* Check for an attack */
-		if (check_hostile(Ind, Ind2))
+		if (pvp_okay(Ind, Ind2, 1))
 			py_attack(Ind, y, x);
 
 		/* If both want to switch, do it */

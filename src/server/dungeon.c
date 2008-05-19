@@ -779,7 +779,7 @@ static int auto_retaliate(int Ind)
 		if (Ind == i) continue;
 
 		/* Skip players we aren't hostile to */
-		if (!check_hostile(Ind, i)) continue;
+		if (!pvp_okay(Ind, i, 0)) continue;
 
 		/* Skip players we cannot see */
 		if (!p_ptr->play_vis[i]) continue;

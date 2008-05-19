@@ -2459,6 +2459,31 @@ void set_server_option(char * option, char * value)
     {
         cfg_chardump_color = str_to_boolean(value);
     }
+    else if (!strcmp(option,"PVP_NOTIFY"))
+    {
+			cfg_pvp_notify = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"PVP_HOSTILITY"))
+    {
+			cfg_pvp_hostility = atoi(value);
+    }
+    else if (!strcmp(option,"PVP_SAFEHOSTILITY"))
+    {
+			cfg_pvp_safehostility = atoi(value);
+    }
+    else if (!strcmp(option,"PVP_SAFEDEPTH"))
+    {
+			cfg_pvp_safedepth = atoi(value);
+    }
+    else if (!strcmp(option,"PVP_SAFERADIUS"))
+    {
+			cfg_pvp_saferadius = atoi(value);
+    }
+    else if (!strcmp(option,"PVP_SAFELEVEL"))
+    {
+			cfg_pvp_safelevel = atoi(value);
+    }
+    
 
 
 	else plog(format("Error : unrecognized mangband.cfg option %s", option));

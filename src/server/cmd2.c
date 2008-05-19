@@ -2530,7 +2530,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 				strcpy(pvp_name, q_ptr->name);
 
 				/* Don't allow if players aren't hostile */
-				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
+				if (!pvp_okay(Ind, 0 - c_ptr->m_idx, (p_ptr->target_who == c_ptr->m_idx ? 2 : 3) ))
 				{
 					return;
 				}
