@@ -1322,8 +1322,8 @@ void do_cmd_tunnel(int Ind, int dir)
 				msg_print(Ind, "You tunnel into the granite wall.");
 				more = TRUE;
 
-				/* Hack -- Search */
-				search(Ind);
+				/* Hack -- Occasional Search */
+				if (rand_int(100) < 25) search(Ind);
 			}
 		}
 
@@ -1930,6 +1930,12 @@ int do_cmd_run(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
+
+	if (p_ptr->confused)
+	{
+	    msg_print(Ind, "You are too confused!");
+	    return 2;
+	}
 
 	/* Ignore if we are already running in this direction */
 	if (p_ptr->running && (dir == p_ptr->find_current) ) return 2;

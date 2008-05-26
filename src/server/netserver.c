@@ -2184,8 +2184,8 @@ static int Receive_play(int ind)
 	if (ch != PKT_PLAY)
 	{
 		errno = 0;
-		plog("Packet is not of play type");
-		Destroy_connection(ind, "not play");
+		plog(format("Packet is not of play type - (%02x)", ch));
+		Destroy_connection(ind, format("not play - (%02x)", ch));
 		return -1;
 	}
 	if (connp->state != CONN_LOGIN)

@@ -456,6 +456,7 @@ extern void disturb(int Ind, int stop_search, int flush_output);
 extern bool is_quest(int level);
 extern void update_players(void);
 extern void update_cursor(int);
+extern void cursor_track(int Ind, int m_idx);
 
 /* cmd1.c */
 extern bool test_hit_fire(int chance, int ac, int vis);
@@ -472,6 +473,7 @@ extern void run_step(int Ind, int dir);
 extern int see_wall(int Ind, int dir, int y, int x);
 
 /* cmd2.c */
+extern bool house_inside(int Ind, int house);
 extern bool house_owned(int house);
 extern bool house_owned_by(int Ind, int house);
 extern bool set_house_owner(int Ind, int house);
@@ -513,6 +515,7 @@ extern void do_cmd_target_friendly(int Ind, int dir);
 extern void do_cmd_look(int Ind, int dir);
 extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
+extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 
 /* cmd4.c */
 extern void do_cmd_redraw(void);
@@ -606,6 +609,7 @@ extern void signals_init(void);
 extern void kingly(int Ind);
 extern void setup_exit_handler(void);
 extern errr get_rnd_line(cptr file_name, int entry, char *output);
+extern errr file_character_server(int Ind, cptr name);
 
 /* generate.c */
 extern void alloc_dungeon_level(int Depth);
@@ -677,9 +681,12 @@ extern void setup_monsters(void);
 extern int race_index(char * name);
 extern bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char num);
 extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char num);
+extern int race_index_fuzzy(char * name);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
+extern bool monster_can_carry(int m_idx);
 
 /* netserver.c */
 /*extern void Contact(int fd, void *arg);*/
@@ -740,14 +747,14 @@ extern int Send_special_other(int ind, char *header);
 extern int Send_skills(int ind);
 extern int Send_pause(int ind);
 extern int Send_monster_health(int ind, int num, byte attr);
-
+extern int Send_cursor(int ind, char vis, char x, char y);
 extern void Handle_direction(int Ind, int dir);
 
 
-
-
+/* obj-info.c */
 /* object1.c */
 /* object2.c */
+extern void object_info_screen(const object_type *o_ptr);
 extern void flavor_init(void);
 extern void reset_visuals(void);
 extern void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
@@ -809,6 +816,8 @@ extern cptr item_activation(object_type *o_ptr);
 extern void combine_pack(int Ind);
 extern void reorder_pack(int Ind);
 extern void setup_objects(void);
+extern void distribute_charges(object_type *o_ptr, object_type *q_ptr, int amt);
+extern void reduce_charges(object_type *o_ptr, int amt);
 
 /* party.c */
 extern int party_lookup(cptr name);
@@ -948,6 +957,8 @@ extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
 extern bool sleep_monsters_touch(int Ind);
+extern bool create_artifact(int Ind);
+extern bool create_artifact_aux(int Ind, int item);
 
 
 /* store.c */
@@ -1004,6 +1015,8 @@ extern void log_history_event(int Ind, char *msg);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
+extern void text_out(cptr buf);
+extern void text_out_init(int Ind);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);
@@ -1067,6 +1080,7 @@ extern bool get_item(int Ind);
 extern bool do_scroll_life(int Ind);
 extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
+extern void target_free_aux(int Ind, int dir, bool *can_target);
 
 extern bool master_level(int Ind, char * parms);
 extern bool master_build(int Ind, char * parms);

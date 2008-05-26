@@ -289,6 +289,8 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
+extern int Send_custom_command(byte i, int item, char dir, int value);
+extern int Send_spike(int dir);
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
@@ -300,6 +302,7 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_aux(char *buf);
 extern void show_motd(void);
 extern void peruse_file(void);
+extern errr Save_options(void);
 
 /* c-init.c */
 extern void initialize_all_pref_files(void);
@@ -309,6 +312,7 @@ extern void client_init(char *argv1);
 extern s16b index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
+extern bool c_get_spike(void);
 
 /* c-util.c */
 extern void move_cursor(int row, int col);
@@ -339,6 +343,7 @@ extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);
 extern void do_cmd_options(void);
+extern bool get_string_masked(cptr prompt, char *buf, int len);
 
 /* c-spell.c */
 extern void show_browse(int book);
@@ -455,6 +460,7 @@ extern int Send_suicide(void);
 extern int Send_options(void);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
+extern int Send_pass(cptr newpass);
 
 /* x-spell.c */
 extern cptr get_spell_name(int tval, int index);

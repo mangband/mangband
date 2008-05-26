@@ -565,7 +565,7 @@ int Net_start(void)
 	if (cbuf.ptr[0] == PKT_QUIT)
 	{
 		errno = 0;
-		quit(&rbuf.ptr[1]);
+		quit(&cbuf.ptr[1]);
 		return -1;
 	}
 	if (cbuf.ptr[0] != PKT_REPLY)

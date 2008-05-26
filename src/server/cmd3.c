@@ -397,6 +397,14 @@ void do_cmd_wield(int Ind, int item)
 		return;
 	};
 
+	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
+	if (item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
+	{
+		object_desc(Ind, o_name, x_ptr, FALSE, 0);
+		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);
+		return;
+	}
+
 #if 0
 	/* Verify potential overflow */
 	if ((p_ptr->inven_cnt >= INVEN_PACK) &&

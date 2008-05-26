@@ -1,7 +1,8 @@
 #include "angband.h"
+#include "netclient.h"
+#include "../common/md5.h"
 
 /* Handle all commands */
-
 void cmd_spike(void)
 {
 	int dir;
