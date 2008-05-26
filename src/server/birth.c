@@ -948,6 +948,7 @@ static void player_setup(int Ind)
 	player_type *q_ptr;
 	int y, x, i, d, k, count = 0, Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
+	bool reposition;
 
 	bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)), require_los = 1; 
 
@@ -1038,12 +1039,20 @@ static void player_setup(int Ind)
 
 	/* Re-Place the player correctly */
 
-	/* Don't allow placement inside a shop if someone is shopping (anti-exploit) */
+	/* Don't allow placement inside a shop if someone is shopping or 
+	 * if we don't own it (anti-exploit) */
+	reposition = FALSE;
 	for (i = 0; i < num_houses; i++)
 	{
 		/* Are we inside this house? */
 		if (house_inside(Ind, i))
 		{
+			/* If we don't own it, get out of it */
+			if( !house_owned_by(Ind, i) )
+			{
+				reposition = TRUE;
+				break;
+			}
 			/* Is anyone shopping in it? */
 			for (k = 1; k <= NumPlayers; k++ )
 			{
@@ -1053,15 +1062,23 @@ static void player_setup(int Ind)
 					/* Someone in here? */
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
 					{
-						/* Put us somewhere safe instead */
-						p_ptr->py = level_down_y[0];
-						p_ptr->px = level_down_x[0];
+						reposition = TRUE;
 					}
 				}				
 			}
 			break;			
 		}
 	}
+
+	/* If we need to reposition to the player, do it */
+	if(reposition)
+	{
+		/* Put us in the tavern */
+		p_ptr->dun_depth = 0;
+		p_ptr->py = level_down_y[0];
+		p_ptr->px = level_down_x[0];
+	}
+
 
 	// Hack -- don't require line of sight if we are stuck in something 
 	// solid, such as rock.  This might happen if the level unstatics
