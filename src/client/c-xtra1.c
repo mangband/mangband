@@ -643,6 +643,18 @@ static void display_inven(void)
 	}
 }
 
+/* Uses Equip Window ! */
+void display_floor_item(void)
+{
+	byte i = INVEN_TOTAL - INVEN_WIELD;
+	/* Floor item! */
+	Term_erase(0, i, 255);
+	if (floor_tval) 
+	{
+		Term_putstr(0, i, 4, TERM_WHITE, "-)");
+		Term_putstr(3, i, strlen(floor_name), floor_attr, floor_name);
+	}
+}
 
 /*
  * Choice window "shadow" of the "show_equip()" function. 
@@ -700,8 +712,10 @@ static void display_equip(void)
 		}
 	}
 
+	display_floor_item();	
+	
 	/* Erase the rest of the window */
-	for (i = INVEN_TOTAL - INVEN_WIELD; i < Term->hgt; i++)
+	for (i = INVEN_TOTAL - INVEN_WIELD + 1; i < Term->hgt; i++)
 	{
 		/* Erase the line */
 		Term_erase(0, i, 255);
@@ -962,6 +976,37 @@ void fix_inven(void)
 	}
 }
 
+/*
+ * Display floor item in equipment sub-window
+ */
+void fix_floor(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < 8; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_EQUIP)) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display inventory */
+		display_floor_item();
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
 
 /*
  * Display equipment in sub-windows

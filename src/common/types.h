@@ -1203,6 +1203,7 @@ struct player_type
 	u16b csp_frac;		/* Cur mana frac (times 2^16) */
 
 	object_type *inventory;	/* Player's inventory */
+	s16b delta_floor_item; /* Player is standing on.. */
 
 	s16b total_weight;	/* Total weight being carried */
 

@@ -461,6 +461,7 @@ void do_cmd_wield(int Ind, int item)
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Access the wield slot */
@@ -843,6 +844,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		floor_item_increase(0 - item, -quantity);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 }
 
@@ -1305,6 +1307,7 @@ static void do_cmd_refill_lamp(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */
@@ -1407,6 +1410,7 @@ static void do_cmd_refill_torch(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */

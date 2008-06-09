@@ -653,14 +653,13 @@ void carry(int Ind, int pickup, int confirm)
 		if (!pickup)
 		{
 			msg_format(Ind, "You see %s.", o_name);
-			Send_floor(Ind, o_ptr->tval);
+			floor_item_notify(Ind, c_ptr->o_idx, FALSE);
 		}
 
 		/* Note that the pack is too full */
 		else if (!inven_carry_okay(Ind, o_ptr))
 		{
 			msg_format(Ind, "You have no room for %s.", o_name);
-			Send_floor(Ind, o_ptr->tval);
 		}
 
 		/* Pick up the item (if requested and allowed) */
@@ -708,7 +707,7 @@ void carry(int Ind, int pickup, int confirm)
 				delete_object(Depth, p_ptr->py, p_ptr->px);
 
 				/* Tell the client */
-				Send_floor(Ind, 0);
+				floor_item_notify(Ind, NULL, FALSE);
 			}
 		}
 	}
@@ -1818,7 +1817,7 @@ void move_player(int Ind, int dir, int do_pickup)
 
 		/* Handle "objects" */
 		if (c_ptr->o_idx) carry(Ind, do_pickup, 0);
-		else Send_floor(Ind, 0);
+		else 	floor_item_notify(Ind, NULL, FALSE);
 
 		/* Handle "store doors" */
 		if ((!p_ptr->ghost) &&

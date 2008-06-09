@@ -37,6 +37,11 @@ void cmd_custom(byte i)
 		{
 			value = c_get_quantity("How many? ", inventory[item].number);
 		}
+		/* Get an amount - from floor */
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item < 0 && floor_amt > 1)
+		{
+			value = c_get_quantity("How many? ", floor_amt);
+		}
 	}
 	/* Second item? */
 	if (cc_ptr->flag & COMMAND_ITEM_DOUBLE)
@@ -800,7 +805,7 @@ void cmd_wield(void)
 {
 	int item;
 
-	if (!c_get_item(&item, "Wear/Wield which item? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Wear/Wield which item? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -828,7 +833,7 @@ void cmd_destroy(void)
 	int item, amt;
 	char out_val[160];
 
-	if (!c_get_item(&item, "Destroy what? ", TRUE, TRUE, FALSE))
+	if (!c_get_item(&item, "Destroy what? ", TRUE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -853,14 +858,20 @@ void cmd_destroy(void)
 	}
 	else 
 	{
-		/* BAD HACK -- always destroy only 1 item on the floor. 
-			TODO: server informs client about number of items along the lines of TV_ update
-					then it is presented here
-		*/
-		sprintf(out_val, "Really destroy ? ");
+		/* Get an amount */
+		if (floor_amt > 1)
+		{
+			amt = c_get_quantity("How many? ", floor_amt);
+		}
+		else amt = 1;
+
+		/* Sanity check */
+		if (floor_amt == amt)
+			sprintf(out_val, "Really destroy %s? ", floor_name);
+		else 
+			sprintf(out_val, "Really destroy %d of %s? ", amt, floor_name);
 		if (!get_check(out_val)) return;
 			
-		amt = 1;
 	} 
 
 	/* Send it */
@@ -872,7 +883,7 @@ void cmd_observe(void)
 {
 	int item;
 
-	if (!c_get_item(&item, "Examine what? ", TRUE, TRUE, FALSE))
+	if (!c_get_item(&item, "Examine what? ", TRUE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -887,7 +898,7 @@ void cmd_inscribe(void)
 	int item;
 	char buf[1024];
 
-	if (!c_get_item(&item, "Inscribe what? ", TRUE, TRUE, FALSE))
+	if (!c_get_item(&item, "Inscribe what? ", TRUE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -903,7 +914,7 @@ void cmd_uninscribe(void)
 {
 	int item;
 
-	if (!c_get_item(&item, "Uninscribe what? ", TRUE, TRUE, FALSE))
+	if (!c_get_item(&item, "Uninscribe what? ", TRUE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -917,7 +928,7 @@ void cmd_describe(void)
 	int item;
 	char buf[80];
 
-	if (!c_get_item(&item, "Describe what? ", TRUE, TRUE, FALSE))
+	if (!c_get_item(&item, "Describe what? ", TRUE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -925,7 +936,10 @@ void cmd_describe(void)
 	buf[0] = '\0';
 	
 	/* Copy item name */
-	strcpy(buf, inventory_name[item]);		
+	if (item < 0) 
+		strcpy(buf, floor_name);
+	else
+		strcpy(buf, inventory_name[item]);		
 	
 	if (buf[0] != '\0')
 				Send_msg(buf);
@@ -968,7 +982,7 @@ void cmd_quaff(void)
 
 	item_tester_tval = TV_POTION;
 
-	if (!c_get_item(&item, "Quaff which potion? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Quaff which potion? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -983,7 +997,7 @@ void cmd_read_scroll(void)
 
 	item_tester_tval = TV_SCROLL;
 
-	if (!c_get_item(&item, "Read which scroll? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Read which scroll? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -998,7 +1012,7 @@ void cmd_aim_wand(void)
 
 	item_tester_tval = TV_WAND;
 
-	if (!c_get_item(&item, "Aim which wand? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Aim which wand? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1015,7 +1029,7 @@ void cmd_use_staff(void)
 
 	item_tester_tval = TV_STAFF;
 
-	if (!c_get_item(&item, "Use which staff? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Use which staff? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1030,7 +1044,7 @@ void cmd_zap_rod(void)
 
 	item_tester_tval = TV_ROD;
 
-	if (!c_get_item(&item, "Use which rod? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Use which rod? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1066,7 +1080,7 @@ void cmd_refill(void)
 
 	p = "Refill with which light? ";
 
-	if (!c_get_item(&item, p, FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, p, FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1081,7 +1095,7 @@ void cmd_eat(void)
 
 	item_tester_tval = TV_FOOD;
 
-	if (!c_get_item(&item, "Eat what? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Eat what? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1571,7 +1585,7 @@ void cmd_fire(void)
 {
 	int item, dir;
 
-	if (!c_get_item(&item, "Fire which ammo? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Fire which ammo? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}
@@ -1587,7 +1601,7 @@ void cmd_throw(void)
 {
 	int item, dir;
 
-	if (!c_get_item(&item, "Throw what? ", FALSE, TRUE, FALSE))
+	if (!c_get_item(&item, "Throw what? ", FALSE, TRUE, TRUE))
 	{
 		return;
 	}

@@ -20,7 +20,11 @@ char player_store_name[MAX_CHARS];			/* Shop name for player owned stores */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
 char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
-char floor_tval;		/* Currect tval on a floor */
+
+char floor_name[80]; 	/* Client-side copy of floor item */
+byte floor_tval;		
+int  floor_amt;		
+byte floor_attr;
 
 char spell_info[26][9][80];		/* Spell information */
 

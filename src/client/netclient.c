@@ -1164,6 +1164,29 @@ int Receive_ac(void)
 	return 1;
 }
 
+int Receive_floor(void)
+{
+	int	n;
+	char	ch;
+	byte tval, attr;
+	s16b amt;
+	char name[80];
+
+	if ((n = Packet_scanf(&rbuf, "%c%c%hd%c%s", &ch, &attr, &amt, &tval, name)) <= 0)
+	{
+		return n;
+	}
+
+	/* Remember for later */
+	floor_amt = amt;
+	floor_tval = tval;
+	floor_attr = attr;
+	
+	strncpy(floor_name, name, 79);
+	fix_floor();
+	return 1;
+}
+
 int Receive_inven(void)
 {
 	int	n;
@@ -1893,7 +1916,7 @@ int Receive_item(void)
 		c_msg_print(NULL);
 		item_tester_tval = 0;
 
-		if (!c_get_item(&item, "Which item? ", TRUE, TRUE, FALSE))
+		if (!c_get_item(&item, "Which item? ", TRUE, TRUE, TRUE))
 		{
 			return 1;
 		}
@@ -2332,22 +2355,6 @@ int Receive_special_line(void)
 
 	/* Print out the info */
 	c_put_str(attr, buf, line + 2, 0);
-
-	return 1;
-}
-
-int Receive_floor(void)
-{
-	int	n;
-	char	ch, tval;
-
-	if ((n = Packet_scanf(&rbuf, "%c%c", &ch, &tval)) <= 0)
-	{
-		return n;
-	}
-
-	/* Remember for later */
-	floor_tval = tval;
 
 	return 1;
 }

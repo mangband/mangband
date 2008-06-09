@@ -336,9 +336,10 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 				everyone_lite_spot(Depth, ny, nx);
 
 				/* Under the player */
-				if ((ny == p_ptr->py) && (nx == p_ptr->px))
+				if (cave[Depth][y][x].m_idx < 0) 
 				{
-					msg_print(Ind, "You feel something roll beneath your feet.");
+					msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
+					floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
 				}
 
 				/* Successful placement */
@@ -2334,6 +2335,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
     }
 
@@ -2768,6 +2770,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Use the local object */

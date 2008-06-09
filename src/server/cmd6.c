@@ -356,6 +356,7 @@ void do_cmd_eat_food(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 }
 
@@ -915,6 +916,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 }
 
@@ -1572,6 +1574,7 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	} 
 
 	p_ptr->current_scroll = -1;

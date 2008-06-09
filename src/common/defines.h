@@ -1830,6 +1830,7 @@ that keeps many algorithms happy.
 #define PR_SKILLS	0x10000000L	/* Display Skills */
 #define PR_OFLAGS	0x20000000L	/* Display Object/Resistance Flags  */
 #define PR_CURSOR	0x40000000L	/* Display Cursor  */
+#define PR_FLOOR	0x80000000L	/* Display floor object */
 /* xxx */
 /* xxx */
 /* xxx */

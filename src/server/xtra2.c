@@ -2096,6 +2096,7 @@ void monster_death(int Ind, int m_idx)
 			if (c_ptr->m_idx < 0)
 			{
 				msg_print(0 - c_ptr->m_idx, "You feel something roll beneath your feet.");
+				floor_item_notify(0 - c_ptr->m_idx, c_ptr->o_idx, TRUE);
 			}
 
 			break;
@@ -2487,6 +2488,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		/* Drop this one */
 		item_weight = p_ptr->inventory[i].weight * p_ptr->inventory[i].number;
 		drop_near(&p_ptr->inventory[i], 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		
 		/* Be careful if the item was destroyed when we dropped it */
 		if (!p_ptr->inventory[i].k_idx)
 		{

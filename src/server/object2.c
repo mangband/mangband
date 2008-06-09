@@ -3438,11 +3438,10 @@ void acquirement(int Depth, int y1, int x1, int num)
 			everyone_lite_spot(Depth, y, x);
 
 			/* Under the player */
-			/*if ((y == py) && (x == px))
-			{*/
-				/* Message */
-				/*msg_print ("You feel something roll beneath your feet.");
-			}*/
+			if (cave[Depth][y][x].m_idx < 0) {
+				msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
+				floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
+			}
 
 			/* Placement accomplished */
 			break;
@@ -3741,10 +3740,11 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 
 			/* Mega-Hack -- no message if "dropped" by player */
 			/* Message when an object falls under the player */
-			/*if (chance && (ny == py) && (nx == px))
+			if (c_ptr->m_idx < 0)
 			{
-				msg_print("You feel something roll beneath your feet.");
-			}*/
+				if (chance) msg_print(0 - c_ptr->m_idx, "You feel something roll beneath your feet.");
+				floor_item_notify(0 - c_ptr->m_idx, o_idx, TRUE);
+			}
 	}
 
 
@@ -4006,6 +4006,29 @@ void floor_item_describe(int item)
 	/*msg_format("You see %s.", o_name);*/
 }
 
+/*
+ * Inform player about item he is standing on
+ */
+void floor_item_notify(int Ind, s16b o_idx, bool force)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	char	o_name[80];
+ 
+	if (!force && p_ptr->delta_floor_item == o_idx) return;
+	p_ptr->delta_floor_item = o_idx;
+	
+	if (o_idx) {
+		o_ptr = &o_list[o_idx];
+		/* Describe the object */
+		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		Send_floor(Ind, tval_to_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, o_name);
+	}
+	else
+	{
+		Send_floor(Ind, 0, 0, 0, "");
+	}
+}
 
 /*
  * Increase the "number" of an item on the floor

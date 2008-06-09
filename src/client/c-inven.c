@@ -209,11 +209,7 @@ bool c_get_spike()
 	/* Oops */
 	return FALSE;
 }
-/* 
-	Every instance of c_get_item in the code specifies 'floor' as FALSE,
-	so inside this function, we're always treating it as NOT(floor), since
-	we DO need floor checks.
-*/
+
 bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';
@@ -263,7 +259,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 
 	/* Check floor thing */
-	if (floor_tval && !floor) {
+	if (floor_tval && floor) {
 		if( (!item_tester_tval) || (item_tester_tval && floor_tval == item_tester_tval)) allow_floor = TRUE;
 	}
 	
@@ -436,11 +432,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			}
 			case '-':
 				/* Floor */
-				
-				(*cp) = -1;
-				item = TRUE;
-				done = TRUE;
-				
+				if (allow_floor) 
+				{
+					(*cp) = -1;
+					item = TRUE;
+					done = TRUE;
+				}
+
 				break;
 			case '/':
 			{

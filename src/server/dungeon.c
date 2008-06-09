@@ -2154,6 +2154,7 @@ void dungeon(void)
 	
 		p_ptr->redraw |= (PR_MAP);
 		p_ptr->redraw |= (PR_DEPTH);
+		p_ptr->redraw |= (PR_FLOOR);
 
 		panel_bounds(i);
 		forget_view(i);

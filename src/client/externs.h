@@ -48,6 +48,11 @@ extern int server_port;
 extern object_type inventory[INVEN_TOTAL];
 extern char inventory_name[INVEN_TOTAL][80];
 
+extern char floor_name[80];
+extern byte floor_tval;		
+extern int  floor_amt;		
+extern byte floor_attr;
+
 extern store_type store;
 extern owner_type store_owner;
 extern char player_owner[MAX_NAME_LEN];
@@ -59,7 +64,6 @@ extern s16b store_num;
 extern char spell_info[26][9][80];
 
 extern char party_info[160];
-extern char floor_tval;
 
 extern server_setup_t Setup;
 extern client_setup_t Client_setup;
@@ -391,6 +395,7 @@ extern void show_equip(void);
 extern void fix_message(void);
 extern void display_player(void);
 extern void window_stuff(void);
+extern void fix_floor(void);
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);

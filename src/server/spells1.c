@@ -247,6 +247,9 @@ void teleport_player(int Ind, int dis)
 
 	/* Update stuff */
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
+	
+	/* Redraw floor */
+	p_ptr->redraw |= (PR_FLOOR);
 
 	/* Update the monsters */
 	p_ptr->update |= (PU_DISTANCE);

@@ -2581,6 +2581,21 @@ int Send_history(int ind, int line, cptr hist)
 	return Packet_printf(&connp->c, "%c%hu%s", PKT_HISTORY, line, hist);
 }
 
+int Send_floor(int ind, byte attr, int amt, byte tval, cptr name)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for floor item (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	return Packet_printf(&connp->c, "%c%c%hd%c%s", PKT_FLOOR, attr, amt, tval, name);
+}
+
 int Send_inven(int ind, char pos, byte attr, int wgt, int amt, byte tval, cptr name)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
@@ -3137,7 +3152,7 @@ int Send_custom_command(int ind, int command)
 		case 0:
 			trigger = 'E';
 			tval = TV_FOOD;
-			flag = (COMMAND_ITEM_INVENT | COMMAND_ITEM_NORMAL | COMMAND_TARGET_NONE);
+			flag = (COMMAND_ITEM_INVENT | COMMAND_ITEM_FLOOR | COMMAND_ITEM_NORMAL | COMMAND_TARGET_NONE);
 			prompt = "Eat what? ";
 			break;
 		default:
@@ -3173,21 +3188,6 @@ int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
 	strncpy(temp, buf, 79);
 	temp[79] = '\0';
 	return Packet_printf(&connp->c, "%c%hd%hd%c%s", PKT_SPECIAL_LINE, max, line, attr, temp);
-}
-
-int Send_floor(int ind, char tval)
-{
-	connection_t *connp = &Conn[Players[ind]->conn];
-
-	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
-	{
-		errno = 0;
-		plog(format("Connection not ready for floor item (%d.%d.%d)",
-			ind, connp->state, connp->id));
-		return 0;
-	}
-
-	return Packet_printf(&connp->c, "%c%c", PKT_FLOOR, tval);
 }
 
 int Send_pickup_check(int ind, cptr buf)
@@ -5213,7 +5213,7 @@ static int Receive_redraw(int ind)
 	if (player)
 	{
 		p_ptr->store_num = -1;
-		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
+		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR );
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
 	p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
 	}

@@ -452,6 +452,17 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	}
 }
 
+static void prt_floor_item(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+	cave_type	*c_ptr;
+	if (cave[Depth]) {
+		c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
+		floor_item_notify(Ind, c_ptr->o_idx, TRUE);
+	}
+}
+
 /*
  * Hack -- see below
  */
@@ -3231,6 +3242,12 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_STUDY);
 		prt_study(Ind);
+	}
+	
+	if (p_ptr->redraw & PR_FLOOR)
+	{
+		p_ptr->redraw &= ~(PR_FLOOR);
+		prt_floor_item(Ind);
 	}
 }
 
