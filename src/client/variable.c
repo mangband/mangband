@@ -88,6 +88,7 @@ byte color_table[256][4];
 
 cptr ANGBAND_SYS;
 
+cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
 byte keymap_cmds[128];
 byte keymap_dirs[128];
 
@@ -125,6 +126,7 @@ cptr class_title[] = {
     "Ranger", "Paladin"
 	};
 
+cptr ANGBAND_GRAF = "none";
 cptr ANGBAND_DIR;
 cptr ANGBAND_DIR_APEX;
 cptr ANGBAND_DIR_BONE;
@@ -135,6 +137,7 @@ cptr ANGBAND_DIR_HELP;
 cptr ANGBAND_DIR_INFO;
 cptr ANGBAND_DIR_SAVE;
 cptr ANGBAND_DIR_USER;
+cptr ANGBAND_DIR_PREF;
 cptr ANGBAND_DIR_XTRA;
 
 

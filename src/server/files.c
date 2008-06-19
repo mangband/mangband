@@ -146,7 +146,7 @@ s16b tokenize(char *buf, s16b num, char **tokens)
 			if ((*t == ':') || (*t == '/')) break;
 
 			/* Handle single quotes */
-			if (*t == '\'')
+			if (*t == '\'') /* ' */
 			{
 				/* Advance */
 				t++;
@@ -189,7 +189,7 @@ s16b tokenize(char *buf, s16b num, char **tokens)
 }
 
 
-
+bool skip_next_line = FALSE; 
 /*
  * Parse a sub-file of the "extra info" (format shown below)
  *
@@ -256,12 +256,12 @@ errr process_pref_file_aux(char *buf)
 
 	char *zz[16];
 
-
-	/* Skip "empty" lines */
-	if (!buf[0]) return (0);
-
-	/* Skip "blank" lines */
-	if (isspace(buf[0])) return (0);
+	/* Skip "empty" && "blank" lines */
+	if (!buf[0] || isspace(buf[0])) 
+	{
+			skip_next_line = FALSE;	
+			return (0);
+	}
 
 	/* Skip comments */
 	if (buf[0] == '#') return (0);
@@ -270,6 +270,8 @@ errr process_pref_file_aux(char *buf)
 	/* Require "?:*" format */
 	if (buf[1] != ':') return (1);
 
+	/* Hack - Do not load any Evaluated Expressions */
+	if (skip_next_line)		return(0);
 
 	/* Process "%:<fname>" */
 	if (buf[0] == '%')
@@ -358,6 +360,13 @@ errr process_pref_file_aux(char *buf)
 	/* Process "E:<tv>:<a>/<c>" -- attr/char for equippy chars */
 	else if (buf[0] == 'E')
 	{
+		if (tokenize(buf+2, 2, zz) == 2)
+		{
+			j = (byte)strtol(zz[0], NULL, 0) % 128;
+			n1 = strtol(zz[1], NULL, 0);
+			if (n1) tval_to_attr[j] = n1;
+			return (0);
+		}
 		if (tokenize(buf+2, 3, zz) == 3)
 		{
 			j = (byte)strtol(zz[0], NULL, 0) % 128;
@@ -396,7 +405,22 @@ errr process_pref_file_aux(char *buf)
 	}
 
 
-	/* Process "S:<key>:<key>:<dir>" -- keymap */
+	/* Process "S:<num>:<a>/<c>" -- attr/char for special things */
+	else if (buf[0] == 'S')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			i = strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if ((i < 0) || (i >= (long)N_ELEMENTS(misc_to_attr))) return (1);
+			misc_to_attr[i] = (byte)n1;
+			misc_to_char[i] = (char)n2;
+			return (0);
+		}
+
+	}
+	/* Process "S:<key>:<key>:<dir>" -- keymap */		
 	else if (buf[0] == 'S')
 	{
 		if (tokenize(buf+2, 3, zz) == 3)
@@ -460,6 +484,14 @@ errr process_pref_file_aux(char *buf)
 	/* Process "W:<num>:<use> -- set window use */
 	else if (buf[0] == 'W')
 	{
+		return (0);
+	}
+	
+	
+	/* Process "?: -- expression */
+	else if (buf[0] == '?')
+	{
+		skip_next_line = TRUE;
 		return (0);
 	}
 

@@ -336,6 +336,8 @@ extern s16b alloc_kind_size;
 extern alloc_entry *alloc_kind_table;
 extern s16b alloc_race_size;
 extern alloc_entry *alloc_race_table;
+extern byte misc_to_attr[256];
+extern char misc_to_char[256];
 extern byte tval_to_attr[128];
 extern char tval_to_char[128];
 extern byte keymap_cmds[128];

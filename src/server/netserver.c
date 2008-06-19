@@ -1329,21 +1329,13 @@ static int Handle_listening(int ind)
 		}
 	}
 
-	/* Read the "unknown" char/attrs */
-	if(!old_client)
-	{
-		n = Packet_scanf(&connp->r, "%hd", &block_size);
-	}
-	else
-	{
-		/* Legacy client block size */
-		block_size = old_max_tv;
-	}
-	if (block_size > TV_MAX) block_size = TV_MAX;
-	/* We have the TV data, read it */
+	/* Read the "flavour" char/attrs */
+	n = Packet_scanf(&connp->r, "%hd", &block_size);
+	if (block_size > MAX_FLVR_IDX) block_size = MAX_FLVR_IDX;
+	/* We have the flavor X data, read it */
 	for (i = 0; i < block_size; i++)
 	{
-		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.u_attr[i], &connp->Client_setup.u_char[i]);
+		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.flvr_x_attr[i], &connp->Client_setup.flvr_x_char[i]);
 		if (n <= 0)
 		{
 			break;
@@ -1407,6 +1399,32 @@ static int Handle_listening(int ind)
 	for (i = 0; i < block_size; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.r_attr[i], &connp->Client_setup.r_char[i]);
+		if (n <= 0)
+		{
+			break;
+		}
+	}
+
+	/* Read the "tval" char/attrs */
+	n = Packet_scanf(&connp->r, "%hd", &block_size);
+	if (block_size > 128) block_size = 128;
+	/* We have the data, read it */
+	for (i = 0; i < 128; i++)
+	{
+		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.tval_attr[i], &connp->Client_setup.tval_char[i]);
+		if (n <= 0)
+		{
+			break;
+		}
+	}
+	
+	/* Read the "misc" char/attrs */
+	n = Packet_scanf(&connp->r, "%hd", &block_size);
+	if (block_size > 256) block_size = 256;
+	/* We have the data, read it */
+	for (i = 0; i < 256; i++)
+	{
+		n = Packet_scanf(&connp->r, "%c%c", &connp->Client_setup.misc_attr[i], &connp->Client_setup.misc_char[i]);
 		if (n <= 0)
 		{
 			break;
@@ -1549,22 +1567,10 @@ static int Handle_login(int ind)
 		p_ptr->options[i] = connp->Client_setup.options[i];
 	}
 
-	for (i = 0; i < TV_MAX; i++)
-	{
-		int j;
-
-		if (!connp->Client_setup.u_attr[i] &&
-		    !connp->Client_setup.u_char[i])
-			continue;
-
-		for (j = 0; j < MAX_K_IDX; j++)
-		{
-			if (k_info[j].tval == i)
-			{
-				p_ptr->d_attr[j] = connp->Client_setup.u_attr[i];
-				p_ptr->d_char[j] = connp->Client_setup.u_char[i];
-			}
-		}
+	for (i = 0; i < MAX_FLVR_IDX; i++) 
+	{ 
+		if (!connp->Client_setup.flvr_x_attr[i]) connp->Client_setup.flvr_x_attr[i] = flavor_info[i].x_attr;
+		if (!connp->Client_setup.flvr_x_char[i]) connp->Client_setup.flvr_x_char[i] = flavor_info[i].x_char;
 	}
 
 	for (i = 0; i < MAX_F_IDX; i++)
@@ -1581,20 +1587,11 @@ static int Handle_login(int ind)
 		p_ptr->k_attr[i] = connp->Client_setup.k_attr[i];
 		p_ptr->k_char[i] = connp->Client_setup.k_char[i];
 
-		/* Hack suggested by PW, to enable broken flavors */
-		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].x_attr: k_info[i].x_attr);
-		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].x_char: k_info[i].x_char);
-			
-		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].d_attr: k_info[i].d_attr);
-		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? flavor_info[k_info[i].flavor].d_char: k_info[i].d_char);
-
-		/* Old version		== notice how flavor array is not used at all !
-		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = k_info[i].x_attr;
-		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = k_info[i].x_char;
-
-		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = k_info[i].d_attr;
-		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = k_info[i].d_char;
-		*/
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? connp->Client_setup.flvr_x_attr[k_info[i].flavor]: k_info[i].x_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? connp->Client_setup.flvr_x_char[k_info[i].flavor]: k_info[i].x_char);
+		
+		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? connp->Client_setup.flvr_x_attr[k_info[i].flavor]: k_info[i].d_attr);
+		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? connp->Client_setup.flvr_x_char[k_info[i].flavor]: k_info[i].d_char);
 	}
 
 	for (i = 0; i < MAX_R_IDX; i++)
@@ -1605,6 +1602,22 @@ static int Handle_login(int ind)
 		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].x_attr;
 		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].x_char;
 	}
+	
+	for (i = 0; i < 128; i++) 
+	{
+		p_ptr->tval_attr[i] = connp->Client_setup.tval_attr[i];
+		p_ptr->tval_char[i] = connp->Client_setup.tval_char[i];
+				
+		if (!p_ptr->tval_attr[i]) p_ptr->tval_attr[i] = tval_to_attr[i]; 
+		if (!p_ptr->tval_char[i]) p_ptr->tval_char[i] = tval_to_char[i];
+	}
+	
+	for (i = 0; i < 256; i++) 
+	{
+		p_ptr->misc_attr[i] = connp->Client_setup.misc_attr[i];
+		p_ptr->misc_char[i] = connp->Client_setup.misc_char[i];
+	}
+	
 
 	sync_options(NumPlayers + 1);
 

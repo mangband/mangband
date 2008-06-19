@@ -226,6 +226,9 @@
 #define MAX_O_IDX	32768	/* Max size for "o_list[]" */
 #define MAX_M_IDX 	32768	/* Max size for "m_list[]" */
 
+#define MAX_FLVR_IDX	330 /* Max size for flv_x_char[]/attr[] */ 
+
+
 
 /*
  * Hack -- Maximum number of quests
@@ -698,6 +701,13 @@
 #define COMMAND_TARGET_NONE	0x10000000
 #define COMMAND_TARGET_DIR		0x80000000
 #define COMMAND_TARGET_ALLOW	0x01000000
+
+/*
+ * Number of keymap modes
+ */
+#define KEYMAP_MODES	2
+#define KEYMAP_MODE_ORIG	0	/* Mode for original keyset commands */
+#define KEYMAP_MODE_ROGUE	1	/* Mode for roguelike keyset commands */
 
 /*** Terrain Feature Indexes (see "lib/edit/f_info.txt") ***/
 
@@ -2899,6 +2909,23 @@ that keeps many algorithms happy.
 #define player_has_los_bold(IND,Y,X) \
     ((Players[IND]->cave_flag[Y][X] & CAVE_VIEW) != 0)
 
+/*
+ * Convert an "attr"/"char" pair into a "pict" (P)
+ */
+#define PICT(A,C) \
+	((((u16b)(A)) << 8) | ((byte)(C)))
+
+/*
+ * Convert a "pict" (P) into an "attr" (A)
+ */
+#define PICT_A(P) \
+	((byte)((P) >> 8))
+
+/*
+ * Convert a "pict" (P) into an "char" (C)
+ */
+#define PICT_C(P) \
+	((char)((byte)(P)))
 
 
 
@@ -3196,3 +3223,15 @@ extern int PlayerUID;
 
 /* Login constants */
 #define BAD_PASSWORD 35
+
+/* Given an array, determine how many elements are in the array. */
+#define N_ELEMENTS(a) (sizeof(a) / sizeof((a)[0]))
+
+/*
+ * Available graphic modes
+ */
+#define GRAPHICS_NONE           0
+#define GRAPHICS_ORIGINAL       1
+#define GRAPHICS_ADAM_BOLT      2
+#define GRAPHICS_DAVID_GERVAIS  3
+#define GRAPHICS_PSEUDO         4

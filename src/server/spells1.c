@@ -4106,6 +4106,86 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 
 
+/*
+ * Find the attr/char pair to use for a spell effect
+ *
+ * It is moving (or has moved) from (x,y) to (nx,ny).
+ *
+ * If the distance is not "one", we (may) return "*".
+ */
+static u16b bolt_pict(int Ind, int y, int x, int ny, int nx, int typ)
+{
+	player_type *p_ptr = Players[Ind];
+
+	int base;
+
+	byte k;
+
+	byte a;
+	char c;
+
+	if (!(p_ptr->use_graphics && (p_ptr->use_graphics == GRAPHICS_DAVID_GERVAIS)))
+	{
+		/* No motion (*) */
+		if ((ny == y) && (nx == x)) base = 0x30;
+
+		/* Vertical (|) */
+		else if (nx == x) base = 0x40;
+
+		/* Horizontal (-) */
+		else if (ny == y) base = 0x50;
+
+		/* Diagonal (/) */
+		else if ((ny-y) == (x-nx)) base = 0x60;
+
+		/* Diagonal (\) */
+		else if ((ny-y) == (nx-x)) base = 0x70;
+
+		/* Weird (*) */
+		else base = 0x30;
+
+		/* Basic spell color */
+		k = spell_color(typ);
+
+		/* Obtain attr/char */
+		a = p_ptr->misc_attr[base+k];
+		c = p_ptr->misc_char[base+k];
+
+	}
+	else
+	{
+		int add;
+
+		/* No motion (*) */
+		if ((ny == y) && (nx == x)) {base = 0x00; add = 0;}
+
+		/* Vertical (|) */
+		else if (nx == x) {base = 0x40; add = 0;}
+
+		/* Horizontal (-) */
+		else if (ny == y) {base = 0x40; add = 1;}
+
+		/* Diagonal (/) */
+		else if ((ny-y) == (x-nx)) {base = 0x40; add = 2;}
+
+		/* Diagonal (\) */
+		else if ((ny-y) == (nx-x)) {base = 0x40; add = 3;}
+
+		/* Weird (*) */
+		else {base = 0x00; add = 0;}
+
+		if (typ >= 0x40) k = 0;
+		else k = typ;
+
+		/* Obtain attr/char */
+		a = p_ptr->misc_attr[base+k];
+		c = p_ptr->misc_char[base+k] + add;
+	}
+
+	/* Create pict */
+	return (PICT(a,c));
+}
+
 
 /*
  * Find the char to use to draw a moving bolt
@@ -4376,8 +4456,9 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 1; j < NumPlayers + 1; j++)
 			{
 				player_type *p_ptr = Players[j];
-				int dispx, dispy;
+				int dispx, dispy, p;
 				byte attr;
+				char ch;
 
 				if (p_ptr->dun_depth != Depth)
 					continue;
@@ -4391,12 +4472,19 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (!player_has_los_bold(j, y, x))
 					continue;
 
+				/* Obtain the bolt pict */
+				p = bolt_pict(j, y, x, y, x, typ);
+
+				/* Extract attr/char */
+				attr = PICT_A(p);
+				ch = PICT_C(p);
+
 				dispx = x - p_ptr->panel_col_prt;
 				dispy = y - p_ptr->panel_row_prt;
 
-				attr = spell_color(typ);
+				//attr = spell_color(typ);
 
-				p_ptr->scr_info[dispy][dispx].c = '*';
+				p_ptr->scr_info[dispy][dispx].c = ch;
 				p_ptr->scr_info[dispy][dispx].a = attr;
 
 				/* Beams can have a slightly higher density */
@@ -4449,6 +4537,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 1; j < NumPlayers + 1; j++)
 			{
 				player_type *p_ptr = Players[j];
+				u16b p;
 				int dispy, dispx;
 				char ch;
 				byte attr;
@@ -4468,8 +4557,15 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				dispx = x9 - p_ptr->panel_col_prt;
 				dispy = y9 - p_ptr->panel_row_prt;
 
-				ch = bolt_char(y, x, y9, x9);
-				attr = spell_color(typ);
+				/* Obtain the bolt pict */
+				p = bolt_pict(j, y, x, y9, x9, typ);
+
+				/* Extract attr/char */
+				attr = PICT_A(p);
+				ch = PICT_C(p);
+
+				//ch = bolt_char(y, x, y9, x9);
+				//attr = spell_color(typ);
 
 				p_ptr->scr_info[dispy][dispx].c = ch;
 				p_ptr->scr_info[dispy][dispx].a = attr;
@@ -4560,7 +4656,9 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				{
 					player_type *p_ptr = Players[j];
 					int dispy, dispx;
+					u16b p;
 					byte attr;
+					char ch;
 					int k;
 					bool flag = TRUE;
 
@@ -4576,15 +4674,22 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					if (!player_has_los_bold(j, y, x))
 						continue;
 
-					attr = spell_color(typ);
+					/* Obtain the bolt pict */
+					p = bolt_pict(j, y, x, y, x, typ);
+
+					/* Extract attr/char */
+					attr = PICT_A(p);
+					ch = PICT_C(p);
+
+					//attr = spell_color(typ);
 
 					dispx = x - p_ptr->panel_col_prt;
 					dispy = y - p_ptr->panel_row_prt;
 
-					p_ptr->scr_info[dispy][dispx].c = '*';
+					p_ptr->scr_info[dispy][dispx].c = ch;
 					p_ptr->scr_info[dispy][dispx].a = attr;
 
-					if (!disableeffects) Send_char(j, dispx, dispy, attr, '*');
+					if (!disableeffects) Send_char(j, dispx, dispy, attr, ch);
 
 					drawn = TRUE;
 

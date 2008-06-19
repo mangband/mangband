@@ -86,58 +86,22 @@ void initialize_all_pref_files(void)
 {
         char buf[1024];
 
-
         /* Access the "basic" pref file */
-        strcpy(buf, "pref.prf");
+ 	     strcpy(buf, "pref.prf");
 
         /* Process that file */
         process_pref_file(buf);
 
-        /* Access the "user" pref file */
+  	     /* Access the "user" pref file */
         sprintf(buf, "user.prf");
-
-        /* Process that file */
-        process_pref_file(buf);
-
-
-
-        /* Access the "basic" system pref file */
-        sprintf(buf, "pref-%s.prf", ANGBAND_SYS);
-
-        /* Process that file */
-        process_pref_file(buf);
-
-        /* Access the "visual" system pref file (if any) */
-        sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
-
-        /* Process that file */
-        process_pref_file(buf);
-
-        /* Access the "user" system pref file */
-        sprintf(buf, "user-%s.prf", ANGBAND_SYS);
-
-        /* Process that file */
-        process_pref_file(buf);
-
-
-        /* Access the "race" pref file */
-        sprintf(buf, "%s.prf", race_title[race]);
-	buf[0] = tolower(buf[0]);
-
-        /* Process that file */
-        process_pref_file(buf);
-
-        /* Access the "class" pref file */
-        sprintf(buf, "%s.prf", class_title[class]);
-	buf[0] = tolower(buf[0]);
 
         /* Process that file */
         process_pref_file(buf);
 
         /* Access the "character" pref file */
         sprintf(buf, "%s.prf", nick);
-	buf[0] = tolower(buf[0]);
-
+		  buf[0] = tolower(buf[0]);
+	
         /* Process that file */
         process_pref_file(buf);
 }
@@ -510,7 +474,7 @@ void client_init(char *argv1)
 	}
 
 	/* Setup the key mappings */
-	keymap_init();
+	//keymap_init();
 
 	/* Show the MOTD */
 	show_motd();

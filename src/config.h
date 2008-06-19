@@ -233,7 +233,7 @@
 #define WIDE_CORRIDORS
 
 /*
- * OPTION: Do not switch to manual targeting if there are no 
+ * OPTION: Do not switch to manual targeting if there are no
  * targets in the vicinity of player (un-Angband), display a prompt instead
  */
 #define NOTARGET_PROMPT

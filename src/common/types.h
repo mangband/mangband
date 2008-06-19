@@ -120,8 +120,8 @@ struct client_setup_t
 {
 	bool options[64];
 
-	byte u_attr[TV_MAX];
-	char u_char[TV_MAX];
+	byte flvr_x_attr[MAX_FLVR_IDX];
+	char flvr_x_char[MAX_FLVR_IDX];
 
 	byte f_attr[MAX_F_IDX];
 	char f_char[MAX_F_IDX];
@@ -131,6 +131,12 @@ struct client_setup_t
 
 	byte r_attr[MAX_R_IDX];
 	char r_char[MAX_R_IDX];
+	
+	byte misc_attr[256];
+	char misc_char[256];
+		
+	byte tval_attr[128];
+	char tval_char[128];
 };
 
 
@@ -1286,6 +1292,12 @@ struct player_type
 	char k_char[MAX_K_IDX];
 	byte r_attr[MAX_R_IDX];
 	char r_char[MAX_R_IDX];
+	byte misc_attr[256];
+	char misc_char[256];
+	byte tval_attr[128];
+	char tval_char[128];
+   
+	byte use_graphics;
 
 	bool carry_query_flag;
 	bool use_old_target;

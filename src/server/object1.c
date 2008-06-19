@@ -2808,7 +2808,7 @@ void display_inven(int Ind)
 		n = strlen(o_name);
 
 		/* Get a color */
-		attr = tval_to_attr[o_ptr->tval % 128];
+		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
 		if (!use_color) attr = TERM_WHITE;
@@ -2859,7 +2859,7 @@ void display_equip(int Ind)
 		n = strlen(o_name);
 
 		/* Get the color */
-		attr = tval_to_attr[o_ptr->tval % 128];
+		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
 		if (!use_color) attr = TERM_WHITE;

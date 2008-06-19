@@ -947,7 +947,7 @@ static void display_entry(int Ind, int pos)
 	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
 	o_name[maxwid] = '\0';
 
-	attr = tval_to_attr[o_ptr->tval];
+	attr = p_ptr->tval_attr[o_ptr->tval];
 
 	/* Only show the weight of an individual item */
 	wgt = o_ptr->weight;
@@ -980,7 +980,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
 	o_name[maxwid] = '\0';
 
-	attr = tval_to_attr[o_ptr->tval];
+	attr = p_ptr->tval_attr[o_ptr->tval];
 
 	/* Only show the weight of an individual item */
 	wgt = o_ptr->weight;

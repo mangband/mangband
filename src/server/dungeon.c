@@ -2271,6 +2271,11 @@ static void load_all_pref_files(void)
 	/* Process that file */
 	process_pref_file(buf);
 
+	/* Access the "user" pref file */
+	sprintf(buf, "font.prf");
+
+	/* Process that file */
+	process_pref_file(buf);
 
 
 }

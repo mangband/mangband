@@ -1,55 +1,252 @@
 # File: pref.prf
 
 #
-# This is the basic "user pref file"
+# This file defines "default" actions of various kinds
 #
-# Basically, this file, and the other "user pref files", contain a set
-# of "user pref commands" that are executed after a character is loaded
-# or created.  Various commands allow you to create macros, define keymaps,
-# modify the attr/chars of various things, change the color information,
-# turn options off or on, etc.
+# This file includes, if appropriate, various "sub-files"
 #
-# This file should contain only "user pref commands" which will work on
-# any system, since it is loaded no matter what system is being used.
+# See "lib/help/command.txt" and "src/files.c" for more information.
 #
-# You can often use a command line argument to specify a replacement
-# directory for the "lib/user/" directory, which allows you to keep
-# your own local "user pref files" independant of the system files.
-#
-# Angband will automatically load, if possible, the files "pref.prf",
-# "font-xxx.prf" or "graf-xxx.prf", "pref-xxx.prf", "user-xxx.prf",
-# "Race.prf", "Class.prf", and "Name.prf", where "xxx" is replaced
-# by the "system suffix", and "Race", "Class", and "Name", are
-# replaced by the race, class, and name of the current character.
-#
-# See "lib/help/command.txt" and "src/files.c" for more info.
+# Note that the "X" key is mapped in both keysets to the key sequence
+# "w0", which will "swap weapons" as long as both weapons contain the
+# inscription "@0".  For example, inscribe your main weapon as "@1@0"
+# and your digger (or secondary weapon) as "@2@0".
 #
 
-# Include the "option.prf" file, which sets all the options
 
-%:options.prf
+##### Force certain options #####
 
+## # Option -- Default to original commands
+## X:rogue_like_commands
 
-# Include the "window.prf" file, which sets window options
-
-%:window.prf
-
-
-## OPTION: Display "veins" (white "%") as "normal walls" (white "#") 
-## This replaces the old method of setting "notice_seams" to false,
-## which no longer works as of Angband 2.7.9, for various reasons.
-#
-#F:50:1/35
-#F:51:1/35
-#F:52:1/35
-#F:53:1/35
+## # Option -- Default to roguelike commands
+## Y:rogue_like_commands
 
 
-# Command macro -- "X" will now "swap weapons" as long as both weapons
-# contain the inscription "@0".  For example, inscribe your main weapon
-# as "@1@0" and your digger (or secondary weapon) as "@2@0".
+##### Original Keyset Mappings #####
 
+# Stay still (numerical)
+A:,
+C:0:5
+
+# Movement (numerical)
+A:;1
+C:0:1
+A:;2
+C:0:2
+A:;3
+C:0:3
+A:;4
+C:0:4
+A:;6
+C:0:6
+A:;7
+C:0:7
+A:;8
+C:0:8
+A:;9
+C:0:9
+
+# Hack -- Commit suicide
+A:Q
+C:0:^C
+
+# Hack -- Swap equipment
 A:w0
-C:X
+C:0:X
+
+# Original keymap: Repeat last command
+A:^V
+C:0:n
 
 
+##### Roguelike Keyset Mappings #####
+
+# Stay still (numerical)
+A:,
+C:1:5
+
+# Movement (numerical)
+A:;1
+C:1:1
+A:;2
+C:1:2
+A:;3
+C:1:3
+A:;4
+C:1:4
+A:;6
+C:1:6
+A:;7
+C:1:7
+A:;8
+C:1:8
+A:;9
+C:1:9
+
+# Run
+A:.
+C:1:,
+
+# Stay still
+A:,
+C:1:.
+
+# Movement (rogue keys)
+A:;1
+C:1:b
+A:;2
+C:1:j
+A:;3
+C:1:n
+A:;4
+C:1:h
+A:;6
+C:1:l
+A:;7
+C:1:y
+A:;8
+C:1:k
+A:;9
+C:1:u
+
+# Running (shift + rogue keys)
+A:.1
+C:1:B
+A:.2
+C:1:J
+A:.3
+C:1:N
+A:.4
+C:1:H
+A:.6
+C:1:L
+A:.7
+C:1:Y
+A:.8
+C:1:K
+A:.9
+C:1:U
+
+# Altering (control + rogue keys)
+A:+1
+C:1:^B
+A:+2
+C:1:^J
+A:+3
+C:1:^N
+A:+4
+C:1:^H
+A:+6
+C:1:^L
+A:+7
+C:1:^Y
+A:+8
+C:1:^K
+A:+9
+C:1:^U
+
+# Allow use of the "tunnel" command
+A:T
+C:1:^T
+
+# Allow use of the "destroy" command
+A:k
+C:1:^D
+
+# Locate player on map
+A:L
+C:1:W
+
+# Browse a book (Peruse)
+A:b
+C:1:P
+
+# Jam a door (Spike)
+A:j
+C:1:S
+
+# Toggle search mode
+A:S
+C:1:#
+
+# Use a staff (Zap)
+A:u
+C:1:Z
+
+# Take off equipment
+A:t
+C:1:T
+
+# Fire an item
+A:f
+C:1:t
+
+# Bash a door (Force)
+A:B
+C:1:f
+
+# Look around (examine)
+A:l
+C:1:x
+
+# Aim a wand (Zap)
+A:a
+C:1:z
+
+# Zap a rod (Activate)
+A:z
+C:1:a
+
+# Hack -- Commit suicide
+A:Q
+C:1:^C
+
+# Hack -- Swap equipment
+A:w0
+C:1:X
+
+# Roguelike keymap: Repeat last command
+A:^V
+C:1:'
+
+
+# Message colors -- disabled in mangband
+# %:message.prf
+
+##### Fonts VS Graphics #####
+
+?:[EQU $GRAF none]
+%:font.prf
+
+
+##### System Specific Subfiles #####
+
+?:[IOR [EQU $SYS xaw] [EQU $SYS x11] [EQU $SYS xpj] [EQU $SYS gtk]]
+%:pref-x11.prf
+
+?:[IOR [EQU $SYS gcu] [EQU $SYS lsl] [EQU $SYS cap] [EQU $SYS vcs] [EQU $SYS sla]]
+%:pref-gcu.prf
+
+?:[EQU $SYS sdl]
+%:pref-sdl.prf
+
+?:[EQU $SYS ami]
+%:pref-ami.prf
+
+?:[EQU $SYS mac]
+%:pref-mac.prf
+
+?:[IOR [EQU $SYS dos] [EQU $SYS ibm]]
+%:pref-dos.prf
+
+?:[EQU $SYS win]
+%:pref-win.prf
+
+?:[EQU $SYS emx]
+%:pref-emx.prf
+
+?:[EQU $SYS acn]
+%:pref-acn.prf
+
+?:1

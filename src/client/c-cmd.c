@@ -1728,13 +1728,13 @@ void cmd_load_pref(void)
 	buf[0] = '\0';
 
 	if (get_string("Action: ", buf, 79))
-		process_pref_file_aux(buf);
+		process_pref_file_command(buf);
 }
 
 void cmd_redraw(void)
 {
 	Send_redraw();
-	keymap_init();
+	//keymap_init();
 }
 
 void cmd_purchase_house(void)

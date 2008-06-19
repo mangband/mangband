@@ -4022,7 +4022,7 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 		o_ptr = &o_list[o_idx];
 		/* Describe the object */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-		Send_floor(Ind, tval_to_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, o_name);
+		Send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, o_name);
 	}
 	else
 	{

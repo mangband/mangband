@@ -405,6 +405,15 @@ static char inkey_aux(void)
 	return (0);
 }
 
+/*
+ * Mega-Hack -- special "inkey_next" pointer.  XXX XXX XXX
+ *
+ * This special pointer allows a sequence of keys to be "inserted" into
+ * the stream of keys returned by "inkey()".  This key sequence will not
+ * trigger any macros, and cannot be bypassed by the Borg.  It is used
+ * in Angband to handle "keymaps".
+ */
+static cptr inkey_next = NULL;
 
 
 /*
@@ -432,6 +441,8 @@ static char inkey_aux(void)
  *
  * Note that the "flush()" function does not actually flush the input queue,
  * but waits until "inkey()" is called to perform the "flush".
+ *
+ * Hack -- Note the use of "inkey_next" to allow "keymaps" to be processed.
  *
  * Refresh the screen if waiting for a keypress and no key is ready.
  *
@@ -483,7 +494,26 @@ char inkey(void)
 
 	int skipping = FALSE;
 
+	/* Hack -- Use the "inkey_next" pointer */
+	if (inkey_next && *inkey_next && !flush_later)
+	{
+	
+		/* Get next character, and advance */
+		ch = *inkey_next++;
 
+		/* Cancel the various "global parameters" */
+		inkey_base = flush_later = inkey_flag = inkey_scan = FALSE;
+
+		command_cmd = ch;
+		command_dir = 0;
+
+		/* Accept result */
+		return (ch);
+	}
+
+	/* Forget pointer */
+	inkey_next = NULL;
+	
         /* Hack -- handle delayed "flush()" */
         if (flush_later)
         {
@@ -1154,6 +1184,10 @@ bool get_com(cptr prompt, char *command)
 	return (TRUE);
 }
 
+/*
+ * Hack -- special buffer to hold the action of the current keymap
+ */
+static char request_command_buffer[256];
 
 /*
  * Request a command from the user.
@@ -1171,7 +1205,22 @@ bool get_com(cptr prompt, char *command)
 void request_command(bool shopping)
 {
 	char cmd;
+	
+	int mode;
+	
+	cptr act;
+	
+	/* Roguelike */
+	if (rogue_like_commands)
+	{
+		mode = KEYMAP_MODE_ROGUE;
+	}
 
+	/* Original */
+	else
+	{
+		mode = KEYMAP_MODE_ORIG;
+	}
 
 	/* Flush the input */
 	/* flush(); */
@@ -1202,6 +1251,9 @@ void request_command(bool shopping)
 		/* Get a char to use without casting */
 		(void)(get_com("Command: ", &cmd));
 
+		/* Hack -- bypass keymaps */
+		if (!inkey_next) inkey_next = "";
+		
 		/* Hack -- allow "control chars" to be entered */
 		if (cmd == '^')
 		{
@@ -1227,10 +1279,26 @@ void request_command(bool shopping)
 			/* Convert */
 			cmd = KTRL(cmd);
 		}
+		
+		/* Look up applicable keymap */
+		act = keymap_act[mode][(byte)(cmd)];
 
-		/* Access the array info */
-		command_cmd = keymap_cmds[cmd & 0x7F];
-		command_dir = keymap_dirs[cmd & 0x7F];
+		/* Apply keymap if not inside a keymap already */
+		if (act && !inkey_next)
+		{
+			/* Install the keymap */
+			my_strcpy(request_command_buffer, act,
+			          sizeof(request_command_buffer));
+
+			/* Start using the buffer */
+			inkey_next = request_command_buffer;
+
+			/* Continue */
+			return;
+		}
+		
+		/* Accept command */
+		command_cmd = cmd;
 	}
 
 	/* Paranoia */
@@ -1299,6 +1367,61 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target)
 	return (TRUE);
 }
 
+/*
+ * Extract a direction (or zero) from a character
+ */
+int target_dir(char ch)
+{
+	int d = 0;
+
+	int mode;
+
+	cptr act;
+
+	cptr s;
+
+
+	/* Already a direction? */
+	if (isdigit((unsigned char)ch))
+	{
+		d = D2I(ch);
+	}
+	else
+	{
+		/* Roguelike */
+		if (rogue_like_commands)
+		{
+			mode = KEYMAP_MODE_ROGUE;
+		}
+
+		/* Original */
+		else
+		{
+			mode = KEYMAP_MODE_ORIG;
+		}
+
+		/* Extract the action (if any) */
+		act = keymap_act[mode][(byte)(ch)];
+
+		/* Analyze */
+		if (act)
+		{
+			/* Convert to a direction */
+			for (s = act; *s; ++s)
+			{
+				/* Use any digits in keymap */
+				if (isdigit((unsigned char)*s)) d = D2I(*s);
+			}
+		}
+	}
+
+	/* Paranoia */
+	if (d == 5) d = 0;
+
+	/* Return direction */
+	return (d);
+}
+
 bool get_dir(int *dp)
 {
 	int	dir = 0;
@@ -1318,7 +1441,7 @@ bool get_dir(int *dp)
 			dir = 5;
 	}
 
-	else dir = keymap_dirs[command & 0x7F];
+	else dir = target_dir(command);//keymap_dirs[command & 0x7F];
 
 	*dp = dir;
 
@@ -2102,6 +2225,28 @@ static void get_macro_trigger(char *buf)
 	Term_addstr(-1, TERM_WHITE, tmp);
 }
 
+/*
+ * Find the macro (if any) which exactly matches the given pattern
+ */
+int macro_find_exact(cptr pat)
+{
+	int i;
+
+	/* Scan the macros */
+	for (i = 0; i < macro__num; ++i)
+	{
+		/* Skip macros which do not match the pattern */
+		if (!streq(macro__pat[i], pat)) continue;
+
+		/* Found one */
+		return (i);
+	}
+
+	/* No matches */
+	return (-1);
+}
+
+
 void interact_macros(void)
 {
 	int i;
@@ -2139,11 +2284,12 @@ void interact_macros(void)
 		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load macros");
 		Term_putstr(5,  5, -1, TERM_WHITE, "(2) Save macros");
 		Term_putstr(5,  6, -1, TERM_WHITE, "(3) Enter a new action");
-		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Create a command macro");
+		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Query key for macro");
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
-		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Create an identity macro");
-		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
+		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
 #if 0
+		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
+		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
 		Term_putstr(5, 12, -1, TERM_WHITE, "(X) Turn off an option (by name)");
 		Term_putstr(5, 13, -1, TERM_WHITE, "(Y) Turn on an option (by name)");
 #endif
@@ -2217,11 +2363,13 @@ void interact_macros(void)
 			text_to_ascii(macro__buf, buf);
 		}
 
-		/* Create a command macro */
+		/* Query key */
 		else if (i == '4')
 		{
+			int k;
+			
 			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Query key for macro");
 
 			/* Prompt */
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
@@ -2229,11 +2377,39 @@ void interact_macros(void)
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
 
-			/* Link the macro */
-			macro_add(buf, macro__buf, TRUE);
+			/* Get the action */
+			k = macro_find_exact(buf);
+			
+			
+			/* Nothing found */
+			if (k < 0)
+			{
+				/* Prompt */
+				c_msg_print("Found no macro.");
+			}
 
-			/* Message */
-			c_msg_print("Created a new command macro.");
+			/* It's an identity macro (empty) */
+			else if (streq(buf, macro__act[k]))
+			{
+				/* Prompt */
+				c_msg_print("Found no macro.");
+			}
+			
+			/* Found one */
+			else 
+			{
+				/* Obtain the action */
+				my_strcpy(macro__buf, macro__act[k], strlen(macro__buf)+1);
+
+				/* Analyze the current action */
+				ascii_to_text(tmp, macro__buf);
+
+				/* Display the current action */
+				prt(tmp, 22, 0);
+
+				/* Prompt */
+				c_msg_print("Found a macro.");
+			}
 		}
 
 		/* Create a normal macro */
@@ -2259,7 +2435,7 @@ void interact_macros(void)
 		else if (i == '6')
 		{
 			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create an identity macro");
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Remove a macro");
 
 			/* Prompt */
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
@@ -2271,7 +2447,7 @@ void interact_macros(void)
 			macro_add(buf, buf, FALSE);
 
 			/* Message */
-			c_msg_print("Created a new identity macro.");
+			c_msg_print("Removed a macro.");
 		}
 
 		/* Create an empty macro */
@@ -2292,6 +2468,26 @@ void interact_macros(void)
 			/* Message */
 			c_msg_print("Created a new empty macro.");
 		}
+#if 0		
+		/* Create a command macro */
+		else if (i == '8')
+		{
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
+
+			/* Prompt */
+			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+
+			/* Get a macro trigger */
+			get_macro_trigger(buf);
+
+			/* Link the macro */
+			macro_add(buf, macro__buf, TRUE);
+
+			/* Message */
+			c_msg_print("Created a new command macro.");
+		}
+#endif
 
 		/* Oops */
 		else

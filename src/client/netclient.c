@@ -251,7 +251,7 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 	n = Packet_printf(&wbuf, "%c%s%s%s%hd%hd%hd", PKT_VERIFY, real, nick, pass, sex, race, class);
 
 	/* Determine the total size of the following data */
-	data_size = 2 + 6 + 64 + (TV_MAX + MAX_F_IDX + MAX_K_IDX + MAX_R_IDX)*2;
+	data_size = 2 + 6 + 64 + (MAX_FLVR_IDX + MAX_F_IDX + MAX_K_IDX + MAX_R_IDX)*2 + 128 + 256;
 	
 	/* Send a flag to indicate we speak the new protocol */
 	Packet_printf(&wbuf, "%c%c", 'X', 'X');
@@ -271,12 +271,12 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 		Packet_printf(&wbuf, "%c", Client_setup.options[i]);
 	}
 	Sockbuf_flush(&wbuf);
-	
-	/* Send the "unknown" redefinitions */
-	Packet_printf(&wbuf, "%hd", TV_MAX);
-	for (i = 0; i < TV_MAX; i++)
+
+	/* Send the "flavour" redefinitions */
+	Packet_printf(&wbuf, "%hd", MAX_FLVR_IDX);
+	for (i = 0; i < MAX_FLVR_IDX; i++)
 	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.u_attr[i], Client_setup.u_char[i]);
+		Packet_printf(&wbuf, "%c%c", Client_setup.flvr_x_attr[i], Client_setup.flvr_x_char[i]);
 	}
 	Sockbuf_flush(&wbuf);
 
@@ -304,6 +304,22 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 	}
 	Sockbuf_flush(&wbuf);
 
+	/* Send "tval_to_" redefenitions */
+	Packet_printf(&wbuf, "%hd", 128);
+	for (i = 0; i < 128; i++)
+	{
+		Packet_printf(&wbuf, "%c%c", Client_setup.tval_attr[i], Client_setup.tval_char[i]);
+	}
+	Sockbuf_flush(&wbuf);
+	
+	/* Send "misc_to_" redefenitions */
+	Packet_printf(&wbuf, "%hd", 256);
+	for (i = 0; i < 256; i++)
+	{
+		Packet_printf(&wbuf, "%c%c", Client_setup.misc_attr[i], Client_setup.misc_char[i]);
+	}
+	Sockbuf_flush(&wbuf);
+		
 	/* Now wait for a response */
 	SetTimeout(5, 0);
 	if (!SocketReadable(rbuf.sock))
@@ -1258,16 +1274,6 @@ int Receive_char_info(void)
 	p_ptr->prace = race;
 	p_ptr->pclass = class;
 	p_ptr->male = sex;
-
-	/* Mega-hack -- Read pref files if we haven't already */
-	if (!pref_files_loaded)
-	{
-		/* Load */
-		initialize_all_pref_files();
-
-		/* Pref files are now loaded */
-		pref_files_loaded = TRUE;
-	}
 
 	if (!screen_icky && !shopping)
 		prt_basic();
