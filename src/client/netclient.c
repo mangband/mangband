@@ -923,6 +923,84 @@ int Send_ack(long rel_loops)
 	return 1;
 }
 
+/* 
+ * Decodes a (possibly) RLE-encoded stream of attr/char pairs
+ *
+ * See "rle_encode" for possible "mode" descriptions.
+ *
+ * Note -- if "draw" is FALSE, the packets will be read for no effect 
+ * Note -- setting "lineref" to NULL enables to-screen drawing, in that 
+ * 		  case 'draw' is used to convey the Y coordinate
+ */ 
+int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s16b draw)
+{
+	int	n, x, i;
+	char c;
+	byte a;
+	s16b y = draw;
+		
+	for (x = 0; x < max_col; x++)
+	{
+		/* Read the char/attr pair */
+		Packet_scanf(buf, "%c%c", &c, &a);
+
+		/* RLE-II - Test for 0xFF in the attribute */
+		if ((mode == RLE_LARGE) && (a == 0xFF))
+		{
+			/* Get the number of repetitions */
+			n = c;
+			
+			/* Read the attr/char pair */
+			Packet_scanf(buf, "%c%c", &c, &a);
+		}
+		/* RLE-I - Check for bit 0x40 on the attribute */
+		else if ((mode == RLE_CLASSIC) && (a & 0x40))
+		{
+			/* First, clear the bit */
+			a &= ~(0x40);
+
+			/* Read the number of repetitions */
+			Packet_scanf(buf, "%c", &n);
+		}
+		else
+		{
+			/* No RLE, just one instance */
+			n = 1;
+		}
+
+		/* Draw a character n times */
+		if (draw)
+		{
+			for (i = 0; i < n; i++)
+			{
+				if (lineref) 
+				{
+					/* Memorize */
+					lineref[x+i].a = a;
+					lineref[x+i].c = c;
+				} 
+				else if (c)
+				{				
+					/* Don't draw on screen if character is 0 */
+					Term_draw(x + i, y, a, c);
+				}
+			}
+		}
+		/* Reset 'x' to the correct value */
+		x += n - 1;
+
+		/* hack -- if x > allowed, assume we have received corrupted data,
+		 * flush our buffers 
+		if (x > max_col) 
+		{
+			Sockbuf_clear(&rbuf);
+			Sockbuf_clear(&cbuf);
+		}
+		*/ 
+	}
+}
+
+
 int old_Receive_reliable(void)
 {
 	int	n;
@@ -1442,49 +1520,8 @@ int Receive_objflags(void)
 	{
 		return n;
 	}
-
-	for (x = 0; x < 13; x++)
-	{
-		/* Read the char/attr pair */
-		Packet_scanf(&rbuf, "%c%c", &c, &a);
-		/* Check for bit 0x40 on the attribute */
-		if (a & 0x40)
-		{
-			/* First, clear the bit */
-			a &= ~(0x40);
-
-			/* Read the number of repetitions */
-			Packet_scanf(&rbuf, "%c", &n);
-			
-		}
-		else
-		{
-			/* No RLE, just one instance */
-			n = 1;
-		}
-
-		/* Draw a character n times */
-		for (i = 0; i < n; i++)
-		{
-				p_ptr->hist_flags[y][x+i].a = a;
-				p_ptr->hist_flags[y][x+i].c = c;
-		}
-
-		/* Reset 'x' to the correct value */
-		x += n - 1;
-
-		/* hack -- if x > 80, assume we have received corrupted data,
-		 * flush our buffers 
-		
-		if (x > 13) 
-		{
-			Sockbuf_clear(&rbuf);
-			Sockbuf_clear(&cbuf);
-		}
-		*/ 
-		
-	}
-
+	
+	rle_decode(&rbuf, &p_ptr->hist_flags[y], 13, RLE_CLASSIC, TRUE);
 	
 	/* No RLE mode
 	for (x = 0; x < 13; x++)
@@ -2030,47 +2067,8 @@ int Receive_line_info(void)
 	if (y > last_line_info)
 		last_line_info = y;
 
-	for (x = 0; x < 80; x++)
-	{
-		/* Read the char/attr pair */
-		Packet_scanf(&rbuf, "%c%c", &c, &a);
-
-		/* Check for bit 0x40 on the attribute */
-		if (a & 0x40)
-		{
-			/* First, clear the bit */
-			a &= ~(0x40);
-
-			/* Read the number of repetitions */
-			Packet_scanf(&rbuf, "%c", &n);
-		}
-		else
-		{
-			/* No RLE, just one instance */
-			n = 1;
-		}
-
-		/* Draw a character n times */
-		for (i = 0; i < n; i++)
-		{
-			/* Don't draw anything if "char" is zero */
-			if (c && draw)
-				Term_draw(x + i, y, a, c);
-		}
-
-		/* Reset 'x' to the correct value */
-		x += n - 1;
-
-		/* hack -- if x > 80, assume we have received corrupted data,
-		 * flush our buffers 
-		 */
-		if (x > 80) 
-		{
-			Sockbuf_clear(&rbuf);
-			Sockbuf_clear(&cbuf);
-		}
-
-	}
+	/* Decode the attr/char stream */		
+	rle_decode(&rbuf, NULL, 80, RLE_CLASSIC, ( draw ? y : 0) );
 
 	/* Request a redraw if the screen was icky */
 	if (screen_icky)

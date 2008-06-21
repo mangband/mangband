@@ -2077,6 +2077,83 @@ int Net_output(void)
 	return 1;
 }
 
+
+/*
+ * Encodes and sends an attr/char pairs stream using one of the following "mode"s:
+ * 
+ * RLE_NONE - no encoding is performed, the stream is sent as is.
+ * RLE_CLASSIC - classic mangband encoding, the attr is ORed with 0x40, 
+ * 					uses 3 bytes per repetition
+ * RLE_LARGE - a more traffic-consuming routine, which is using a separate
+ * 				byte to mark the repetition spot (making it 4 bytes per rep.), 
+ * 				but it can be used to transfer high-bit attr/chars
+ *  
+ * "lineref" is a pointer to an attr/char array, and "max_col" is specifying it's size  
+ *
+ * Note! To sucessfully decode, client MUST use the same "mode"
+ */
+int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
+{
+	int x1, i, n, a;
+	char c;
+	/* count bytes */ int b = 0;
+
+	/* Each column */
+	for (i = 0; i < max_col; i++)
+	{
+		/* Obtain the char/attr pair */
+		c = (lineref[i]).c;
+		a = (lineref[i]).a;
+		
+		/* Start looking here */
+		x1 = i + 1;
+
+		/* Start with count of 1 */
+		n = 1;
+
+		/* Count repetitions of this grid */
+		while (mode && lineref[x1].c == c &&
+			lineref[x1].a == a && x1 < max_col)
+		{
+			/* Increment count and column */
+			n++;
+			x1++;
+		}
+
+		/* RLE-II if there at least 3 similar grids in a row */
+		if (mode == RLE_LARGE && n >= 3)
+		{
+			/* Output the info - number of repetitons, and FF to mark the spot */
+			Packet_printf(buf, "%c%c%c%c", (byte)n, 0xFF, c, a);
+
+			/* Start again after the run */
+			i = x1 - 1;	
+			/* count bytes */ b+=4;
+		}
+		/* RLE-I if there at least 2 similar grids in a row */
+		else if (mode == RLE_CLASSIC && n >= 2)
+		{
+			/* Set bit 0x40 of a */
+			a |= 0x40;
+
+			/* Output the info */
+			Packet_printf(buf, "%c%c%c", c, a, n);
+			
+			/* Start again after the run */
+			i = x1 - 1;
+			/* count bytes */ b+=3;
+		}
+		else
+		{
+			/* Normal, single grid */
+			Packet_printf(buf, "%c%c", c, a);
+			/* count bytes */ b+=2;
+		}
+				
+	}
+	/* report total bytes */ return b;
+}
+
 /*
  * Send a reply to a special client request.
  * Not used consistently everywhere.
@@ -2516,9 +2593,6 @@ int Send_objflags(int Ind, int line)
 	connection_t *connp = &Conn[Players[Ind]->conn];
 	player_type *p_ptr = Players[Ind];
 	
-	int i, x1, n, a;
-	char c;
-	
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
@@ -2527,49 +2601,12 @@ int Send_objflags(int Ind, int line)
 		return 0;
 	}
 	
+	/* Put a header on the packet */
 	Packet_printf(&connp->c, "%c%hu", PKT_OBJFLAGS, line);
-	
-	/* Each column */
-	for (i = 0; i < 13; i++)
-	{
-		/* Obtain the char/attr pair */
-		c = p_ptr->hist_flags[line][i].c;
-		a = p_ptr->hist_flags[line][i].a;
 
-		/* Start looking here */
-		x1 = i + 1;
+	/* Encode and send the attr/char stream */
+	rle_encode(&connp->c, &p_ptr->hist_flags[line], 13, RLE_CLASSIC); 	
 
-		/* Start with count of 1 */
-		n = 1;
-
-		/* Count repetitions of this grid */
-		while (p_ptr->hist_flags[line][x1].c == c &&
-			p_ptr->hist_flags[line][x1].a == a && x1 < 13)
-		{
-			/* Increment count and column */
-			n++;
-			x1++;
-		}
-
-		/* RLE if there at least 2 similar grids in a row */
-		if (n >= 2)
-		{
-			/* Set bit 0x40 of a */
-			a |= 0x40;
-
-			/* Output the info */
-			Packet_printf(&connp->c, "%c%c%c", c, a, n);
-			/* Start again after the run */
-			i = x1 - 1;
-		}
-		else
-		{
-			/* Normal, single grid */
-			Packet_printf(&connp->c, "%c%c", c, a);
-		}
-		
-	}	
-	
 	/* No RLE mode
 	for (i = 0; i < 13; i++) {
 	
@@ -2903,9 +2940,6 @@ int Send_line_info(int ind, int y)
 {
 	player_type *p_ptr = Players[ind];
 	connection_t *connp = &Conn[p_ptr->conn];
-	int x, x1, n;
-	char c;
-	byte a;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2918,46 +2952,9 @@ int Send_line_info(int ind, int y)
 	/* Put a header on the packet */
 	Packet_printf(&connp->c, "%c%hd", PKT_LINE_INFO, y);
 
-	/* Each column */
-	for (x = 0; x < 80; x++)
-	{
-		/* Obtain the char/attr pair */
-		c = p_ptr->scr_info[y][x].c;
-		a = p_ptr->scr_info[y][x].a;
+	/* Encode and send the attr/char stream */
+	rle_encode(&connp->c, p_ptr->scr_info[y], 80, RLE_CLASSIC);
 
-		/* Start looking here */
-		x1 = x + 1;
-
-		/* Start with count of 1 */
-		n = 1;
-
-		/* Count repetitions of this grid */
-		while (p_ptr->scr_info[y][x1].c == c &&
-			p_ptr->scr_info[y][x1].a == a && x1 < 80)
-		{
-			/* Increment count and column */
-			n++;
-			x1++;
-		}
-
-		/* RLE if there at least 2 similar grids in a row */
-		if (n >= 2)
-		{
-			/* Set bit 0x40 of a */
-			a |= 0x40;
-
-			/* Output the info */
-			Packet_printf(&connp->c, "%c%c%c", c, a, n);
-
-			/* Start again after the run */
-			x = x1 - 1;
-		}
-		else
-		{
-			/* Normal, single grid */
-			Packet_printf(&connp->c, "%c%c", c, a); 
-		}
-	}
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */

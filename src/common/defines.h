@@ -319,6 +319,12 @@
  */
 #define MAX_SHORT       32767
 
+/*
+ * RLE encoding modes
+ */
+#define RLE_NONE 0
+#define RLE_CLASSIC 1
+#define RLE_LARGE 2
 
 /*
  * Party commands
