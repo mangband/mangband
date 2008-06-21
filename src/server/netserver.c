@@ -2980,47 +2980,8 @@ int Send_mini_map(int ind, int y)
 	    
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", PKT_MINI_MAP, y);
-
-	/* Each column */
-	for (x = 0; x < 80; x++)
-	{
-		/* Obtain the char/attr pair */
-		c = p_ptr->scr_info[y][x].c;
-		a = p_ptr->scr_info[y][x].a;
-
-		/* Start looking here */
-		x1 = x + 1;
-
-		/* Start with count of 1 */
-		n = 1;
-
-		/* Count repetitions of this grid */
-		while (p_ptr->scr_info[y][x1].c == c &&
-			p_ptr->scr_info[y][x1].a == a && x1 < 80)
-		{
-			/* Increment count and column */
-			n++;
-			x1++;
-		}
-
-		/* RLE if there at least 2 similar grids in a row */
-		if (n >= 2)
-		{
-			/* Set bit 0x40 of a */
-			a |= 0x40;
-
-			/* Output the info */
-			Packet_printf(&connp->c, "%c%c%c", c, a, n);
-
-			/* Start again after the run */
-			x = x1 - 1;
-		}
-		else
-		{
-			/* Normal, single grid */
-			Packet_printf(&connp->c, "%c%c", c, a); 
-		}
-	}
+	
+	rle_encode(&connp->c, p_ptr->scr_info[y], 80, RLE_CLASSIC); 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */

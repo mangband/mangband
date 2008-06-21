@@ -928,7 +928,7 @@ int Send_ack(long rel_loops)
  *
  * See "rle_encode" for possible "mode" descriptions.
  *
- * Note -- if "draw" is FALSE, the packets will be read for no effect 
+ * Note -- if "draw" is -1, the packets will be read for no effect 
  * Note -- setting "lineref" to NULL enables to-screen drawing, in that 
  * 		  case 'draw' is used to convey the Y coordinate
  */ 
@@ -969,7 +969,7 @@ int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s
 		}
 
 		/* Draw a character n times */
-		if (draw)
+		if (draw >= 0)
 		{
 			for (i = 0; i < n; i++)
 			{
@@ -1508,7 +1508,6 @@ int Receive_sp(void)
 	return 1;
 }
 
-
 int Receive_objflags(void)
 {
 	char	ch, c;
@@ -1521,7 +1520,7 @@ int Receive_objflags(void)
 		return n;
 	}
 	
-	rle_decode(&rbuf, &p_ptr->hist_flags[y], 13, RLE_CLASSIC, TRUE);
+	rle_decode(&rbuf, &p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0);
 	
 	/* No RLE mode
 	for (x = 0; x < 13; x++)
@@ -2068,7 +2067,7 @@ int Receive_line_info(void)
 		last_line_info = y;
 
 	/* Decode the attr/char stream */		
-	rle_decode(&rbuf, NULL, 80, RLE_CLASSIC, ( draw ? y : 0) );
+	rle_decode(&rbuf, NULL, 80, RLE_CLASSIC, ( draw ? y : -1) );
 
 	/* Request a redraw if the screen was icky */
 	if (screen_icky)
