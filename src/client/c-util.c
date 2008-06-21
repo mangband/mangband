@@ -901,53 +901,6 @@ static char original_commands(char command)
 
 
 /*
- * React to new value of "rogue_like_commands".
- *
- * Initialize the "keymap" arrays based on the current value of
- * "rogue_like_commands".  Note that all "undefined" keypresses
- * by default map to themselves with no direction.  This allows
- * "standard" commands to use the same keys in both keysets.
- *
- * To reset the keymap, simply set "rogue_like_commands" to -1,
- * call this function, restore its value, call this function.
- *
- * The keymap arrays map keys to "command_cmd" and "command_dir".
- *
- * It is illegal for keymap_cmds[N] to be zero, except for
- * keymaps_cmds[0], which is unused.
- *
- * You can map a key to "tab" to make it "non-functional".
- */
-void keymap_init(void)
-{
-	int i, k;
-
-	/* Initialize every entry */
-	for (i = 0; i < 128; i++)
-	{
-		/* Default to "no direction" */
-		hack_dir = 0;
-
-		/* Attempt to translate */
-		if (rogue_like_commands)
-		{
-			k = roguelike_commands(i);
-		}
-		else
-		{
-			k = original_commands(i);
-		}
-
-		/* Save the keypress */
-		keymap_cmds[i] = k;
-
-		/* Save the direction */
-		keymap_dirs[i] = hack_dir;
-	}
-}
-
-
-/*
  * Flush the screen, make a noise
  */
 void bell(void)
@@ -1358,7 +1311,7 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target)
 			dir = 5;
 	}
 
-	else dir = keymap_dirs[command & 0x7F];
+	else dir = target_dir(command);
 
 	*dp = (byte)dir;
 
@@ -1441,7 +1394,7 @@ bool get_dir(int *dp)
 			dir = 5;
 	}
 
-	else dir = target_dir(command);//keymap_dirs[command & 0x7F];
+	else dir = target_dir(command);
 
 	*dp = dir;
 
@@ -2755,7 +2708,7 @@ static void do_cmd_options_win(void)
 
 			default:
 			{
-				d = keymap_dirs[ch & 0x7F];
+				d = target_dir(ch);
 
 				x = (x + ddx[d] + 8) % 8;
 				y = (y + ddy[d] + 16) % 16;
@@ -2896,13 +2849,10 @@ void do_cmd_options(void)
 	Flush_queue();
 
 
-	/* Verify the keymap */
-	keymap_init();
-
 	/* Resend options to server */
 	Send_options();
 
-	/* Resend options to server */
+	/* Save options to file */
 	Save_options();
 
 	/* Send a redraw request */

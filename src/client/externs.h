@@ -121,8 +121,6 @@ extern byte color_table[256][4];
 extern cptr ANGBAND_SYS;
 
 extern cptr keymap_act[KEYMAP_MODES][256];
-extern byte keymap_cmds[128];
-extern byte keymap_dirs[128];
 
 extern s16b command_cmd;
 extern s16b command_dir;
@@ -334,13 +332,13 @@ extern void flush(void);
 extern void flush_now(void);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern char inkey(void);
-extern void keymap_init(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);
 extern void prt(cptr str, int row, int col);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
 extern void request_command(bool shopping);
+extern int target_dir(char ch);
 extern bool c_get_dir(char *dp, cptr prompt, bool allow_target);
 extern bool get_dir(int *dp);
 extern void c_put_str(byte attr, cptr str, int row, int col);

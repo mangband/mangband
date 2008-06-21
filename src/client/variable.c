@@ -89,8 +89,6 @@ byte color_table[256][4];
 cptr ANGBAND_SYS;
 
 cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
-byte keymap_cmds[128];
-byte keymap_dirs[128];
 
 s16b command_cmd;
 s16b command_dir;

@@ -621,7 +621,7 @@ void cmd_locate(void)
 			if (ch == ESCAPE) break;
 
 			/* Extract direction */
-			dir = keymap_dirs[ch & 0x7F];
+			dir = target_dir(ch);
 
 			/* Error */
 			if (!dir) bell();
@@ -1173,7 +1173,7 @@ int cmd_target(void)
 			}
 			default:
 			{
-				d = keymap_dirs[ch & 0x7F];
+				d = target_dir(ch);
 				if (!d) 
 				{
 					/* APD exit if not a direction, since 
@@ -1274,7 +1274,7 @@ void cmd_look(void)
 			}
 			default:
 			{
-				d = keymap_dirs[ch & 0x7F];
+				d = target_dir(ch);
 				if (!d) bell();
 				else {
 					if (position) Send_look(d + 64);
