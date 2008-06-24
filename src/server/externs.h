@@ -70,6 +70,7 @@ extern cptr stat_names_full[6];
 extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
 extern option_type option_info[];
+extern cave_view_type player_presets[3][MAX_CLASS+1][MAX_RACES+1];
 
 /* variable.c */
 extern cptr copyright[6];

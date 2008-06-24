@@ -91,8 +91,16 @@ BEGIN
             MENUITEM "Term-&7 Window",              208
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Graphics",                   221
-        MENUITEM "&Sound",                      222
+		POPUP "&Graphics"
+		BEGIN
+			MENUITEM "&Off",						221
+			MENUITEM "&Standart (8x8)",             222
+			MENUITEM "&Adam Bolt's (16x16)",        223
+			MENUITEM "&David Gervais' (32x32)",     224
+//			MENUITEM SEPARATOR
+//			MENUITEM "&Respect Tile Size",			225
+		END
+        MENUITEM "&Sound",                      226
     END
     POPUP "&Help"
     BEGIN

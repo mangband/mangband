@@ -157,8 +157,11 @@ extern cptr ANGBAND_DIR_USER;
 extern cptr ANGBAND_DIR_PREF;
 extern cptr ANGBAND_DIR_XTRA;
 
-extern bool use_graphics;
+extern int use_graphics;
+extern bool big_tile;
 extern bool use_sound;
+
+extern cave_view_type trans[40][88];
 
 extern bool rogue_like_commands;
 extern bool quick_messages;
@@ -331,6 +334,7 @@ extern bool c_get_spike(void);
 extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);
+extern void set_graphics(int mode);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern char inkey(void);
 extern void bell(void);

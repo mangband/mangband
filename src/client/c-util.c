@@ -109,6 +109,16 @@ static int macro_ready(cptr buf)
 	return (n);
 }
 
+/*
+ * Hack -- set graphics mode 
+ */
+void set_graphics(int mode) {
+	use_graphics = mode;
+	if (mode == 0) ANGBAND_GRAF = "none";
+	if (mode == 1) ANGBAND_GRAF = "old";
+	if (mode == 2) ANGBAND_GRAF = "new";
+	if (mode == 3) ANGBAND_GRAF = "david";
+}
 
 /*
  * Hack -- add a macro definition (or redefinition).

@@ -139,10 +139,11 @@ cptr ANGBAND_DIR_PREF;
 cptr ANGBAND_DIR_XTRA;
 
 
-bool use_graphics;
+int use_graphics;
+bool big_tile;
 bool use_sound;
 
-
+cave_view_type trans[40][88];
 
 bool rogue_like_commands;
 bool quick_messages;

@@ -488,6 +488,72 @@ static byte player_color(int Ind)
 	/* Oops */
 	return TERM_WHITE;
 }
+/*
+ * Return the correct attr/char pair for any player
+ */ 
+int player_pict(int Ind, int who)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr = Players[who];
+	byte a, row, col;
+	char c;
+	int kludge, pre_kludge;
+
+	/* Decide on player image */
+	if (p_ptr->use_graphics) 
+	{
+		a = (player_presets[p_ptr->use_graphics-1][q_ptr->pclass][q_ptr->prace]).a;
+		c = (player_presets[p_ptr->use_graphics-1][q_ptr->pclass][q_ptr->prace]).c;
+
+		/* Handle himself */
+		if (who == Ind) 
+		{
+			/* Get the "player" attr */
+			a = p_ptr->r_attr[0];
+
+			/* Get the "player" char */
+			c = p_ptr->r_char[0];
+		}
+
+		/* Hack -- handle ghosts */
+		if (q_ptr->ghost)
+		{
+			a = (player_presets[p_ptr->use_graphics-1][6][0]).a;
+			c = (player_presets[p_ptr->use_graphics-1][6][0]).c;
+		}
+		/* Hack -- handle fruitbats */
+		if (q_ptr->fruit_bat)
+		{
+			a = (player_presets[p_ptr->use_graphics-1][6][1]).a;
+			c = (player_presets[p_ptr->use_graphics-1][6][1]).c;
+		}
+	}
+	/* Non-graphical opponent */
+	else
+	{
+		/* Get the "player" char */
+		c = p_ptr->r_char[0];// r_info[0].d_char;
+			
+		/* Fruit bat hack! */
+		if (q_ptr->fruit_bat) c = 'b';
+
+		/* Get the "player" attr */
+		a = player_color(who);
+	}
+	
+	// kludge overwrite graphics !
+	//if (!p_ptr->use_graphics)
+	//{
+	pre_kludge = (q_ptr->chp * 95) / (q_ptr->mhp*10);
+	pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
+	if (pre_kludge < 7) 
+	{
+		sprintf((unsigned char *)&kludge,"%d",pre_kludge); 
+		c = kludge;
+	}
+	//}
+	return (PICT(a, c));
+}
 
 
 /*
@@ -634,8 +700,8 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 
 	int feat;
 
-	byte a;
-	char c;
+	byte a, ta;
+	char c, tc;
 
 	/* Get the cave */
 	c_ptr = &cave[Depth][y][x];
@@ -658,9 +724,176 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		r_char_ptr = &p_ptr->r_char;
 	}
 
+	bool visi = FALSE;
+	bool lite_glow = FALSE;
+
+	// grid is visible for DM anyways
+	if ( !strcmp(p_ptr->name,cfg_dungeon_master) ) visi = TRUE;
+	// cave MARK (??)
+	if ( (*w_ptr & CAVE_MARK) ) visi = TRUE;
+	// CAVE LITE / GLOW + VIEW
+	if ( (*w_ptr & CAVE_VIEW) && ((c_ptr->info & CAVE_LITE) || (c_ptr->info & CAVE_GLOW)) && !p_ptr->blind) lite_glow = TRUE;
+
+
+
 	/* Feature code */
 	feat = c_ptr->feat;
 
+	int t_dispx = x - p_ptr->panel_col_prt;
+	int t_dispy = y - p_ptr->panel_row_prt;
+
+	ta = f_attr_ptr[c_ptr->feat];
+	tc = f_char_ptr[c_ptr->feat];
+	
+	if (is_boring(feat) && (visi || lite_glow)) {
+		visi = TRUE;
+		/* Floor with graphical aid */
+		if (p_ptr->use_graphics) 
+		{
+				/* Handle "torch-lit" grids */
+				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW && feat == FEAT_FLOOR)
+				{
+					/* Torch lite */
+					if (p_ptr->view_yellow_lite)
+					{
+						if (p_ptr->use_graphics == 1) { ta = 0xCF; tc = 0x8F; }
+						if (p_ptr->use_graphics == 2) { tc += 2; }
+						if (p_ptr->use_graphics == 3) { tc -= 1; }
+					}
+				}
+		}
+		/* Regular floor grid */
+		else 
+		{
+			/* Special lighting effects */
+			if (p_ptr->view_special_lite && (ta == TERM_WHITE))
+			{
+				/* Handle "blind" */
+				if (p_ptr->blind)
+				{
+					/* Use "dark gray" */
+					ta = TERM_L_DARK;
+				}
+
+				/* Handle "torch-lit" grids */
+				else if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+				{
+					/* Torch lite */
+					if (p_ptr->view_yellow_lite)
+					{
+						/* Use "yellow" */
+						/* a = TERM_YELLOW; */
+						ta = TERM_ORANGE;
+					}
+				}
+
+				/* Handle "dark" grids */
+				else if (!(c_ptr->info & CAVE_GLOW))
+				{
+					/* Use "dark gray" */
+					ta = TERM_L_DARK;
+				}
+
+				/* Handle "out-of-sight" grids */
+				else if (!(*w_ptr & CAVE_VIEW))
+				{
+					/* Special flag */
+					if (p_ptr->view_bright_lite)
+					{
+						/* Use "gray" */
+						ta = TERM_SLATE;
+					}
+				}
+			}
+		
+
+		}
+	}
+	/* Non-floor -- Perform regular colorizations */
+	else if (visi && !p_ptr->use_graphics)
+	{
+		/* Apply "mimic" field */
+		feat = f_info[feat].mimic;
+
+		ta = f_attr_ptr[feat];
+		tc = f_char_ptr[feat];
+	
+		/* Special lighting effects */
+		if (p_ptr->view_granite_lite && (ta == TERM_WHITE) && (feat >= FEAT_SECRET))
+		{
+			/* Handle "blind" */
+			if (p_ptr->blind)
+			{
+				/* Use "dark gray" */
+				ta = TERM_L_DARK;
+			}
+
+			/* Handle "torch-lit" grids */
+			else if (*w_ptr & CAVE_LITE)
+			{
+				/* Torch lite */
+				if (p_ptr->view_yellow_lite)
+				{
+					/* Use "yellow" */
+					/* a = TERM_YELLOW; */
+					ta = TERM_ORANGE;
+				}
+			}
+
+			/* Handle "view_bright_lite" */
+			else if (p_ptr->view_bright_lite)
+			{
+				/* Not viewable */
+				if (!(*w_ptr & CAVE_VIEW))
+				{
+					/* Use "gray" */
+					ta = TERM_SLATE;
+				}
+
+				/* Not glowing */
+				else if (!(c_ptr->info & CAVE_GLOW))
+				{
+					/* Use "gray" */
+					ta = TERM_SLATE;
+				}
+
+				/* Not glowing correctly */
+				else
+				{
+					int xx, yy;
+
+					/* Hack -- move towards player */
+					yy = (y < p_ptr->py) ? (y + 1) : (y > p_ptr->py) ? (y - 1) : y;
+					xx = (x < p_ptr->px) ? (x + 1) : (x > p_ptr->px) ? (x - 1) : x;
+
+					/* Check for "local" illumination */
+					if (!(cave[Depth][yy][xx].info & CAVE_GLOW))
+					{
+						/* Use "gray" */
+						ta = TERM_SLATE;
+					}
+				}
+			}
+		}
+	}
+	if (!visi) 
+	{
+		/* Unknown - Access Darkness */
+		ta = f_attr_ptr[FEAT_NONE];
+		tc = f_char_ptr[FEAT_NONE];
+	}
+
+	/* Hack -- new transperacy */
+	p_ptr->trn_info[t_dispy][t_dispx].a = ta;//f_attr_ptr[c_ptr->feat];
+	p_ptr->trn_info[t_dispy][t_dispx].c = tc;//f_char_ptr[c_ptr->feat];
+
+	(*ap) = ta;
+	(*cp) = tc;
+
+	a = ta;
+	c = tc;
+
+#if 0
 	/* Floors (etc) */
 	if (is_boring(feat))
 	{
@@ -841,7 +1074,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 			(*cp) = f_char_ptr[FEAT_NONE];
 		}
 	}
-
+#endif
 	/* Hack -- rare random hallucination, except on outer dungeon walls */
 	if (p_ptr->image && (!rand_int(256)) && (c_ptr->feat < FEAT_PERM_SOLID))
 	{
@@ -980,18 +1213,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		/* Is that player visible? */
 		if (p_ptr->play_vis[0 - c_ptr->m_idx])
 		{
-			if (Players[0 - c_ptr->m_idx]->fruit_bat) c = 'b';
-			else if((( Players[0 - c_ptr->m_idx]->chp * 95)/ (Players[0 - c_ptr->m_idx]->mhp*10)) >= 7) c = '@';
-			else 
-			{
-				sprintf((unsigned char *)&kludge,"%d", ((Players[0 - c_ptr->m_idx]->chp * 95) / (Players[0 - c_ptr->m_idx]->mhp*10)));
-				c = (char)kludge;
-			}			
-
-			a = player_color(0 - c_ptr->m_idx);
+			int p = player_pict(Ind, 0 - c_ptr->m_idx);
+			a = PICT_A(p);
+			c = PICT_C(p);
 
 			(*cp) = c;
-	
 			(*ap) = a;
 
 			if (p_ptr->image)
@@ -999,6 +1225,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				/* Change the other player into a hallucination */
 				image_monster(ap, cp);
 			}
+
 		}
 	}
 }
@@ -1147,31 +1374,18 @@ void lite_spot(int Ind, int y, int x)
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
 	{
-		byte a;
-		char c;
+		byte a, ta;
+		char c, tc;
+
+		ta = p_ptr->trn_info[y][x].a;
+		tc = p_ptr->trn_info[y][x].c;
 
 		/* Handle "player" */
 		if ((y == p_ptr->py) && (x == p_ptr->px))
 		{
-			monster_race *r_ptr = &r_info[0];
-
-			/* Get the "player" attr */
-			a = r_ptr->d_attr;
-
-			/* Get the "player" char */
-			c = r_ptr->d_char;
-			
-			pre_kludge = (p_ptr->chp * 95) / (p_ptr->mhp*10);
-			pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
-			if (pre_kludge < 7) 
-			{
-				sprintf((unsigned char *)&kludge,"%d",pre_kludge); 
-				c = kludge;
-			}
-				
-			if (p_ptr->fruit_bat) c = 'b';
-			
-			
+			int p = player_pict(Ind,Ind);
+			a = PICT_A(p);
+			c = PICT_C(p);
 		}
 
 		/* Normal */
@@ -1190,6 +1404,8 @@ void lite_spot(int Ind, int y, int x)
 		/* Only draw if different than buffered */
 		if (p_ptr->scr_info[dispy][dispx].c != c ||
 		    p_ptr->scr_info[dispy][dispx].a != a ||
+			p_ptr->trn_info[dispy][dispx].a != ta ||
+			p_ptr->trn_info[dispy][dispx].c != tc ||
 		    (x == p_ptr->px && y==p_ptr->py))
 		{
 			/* Modify internal buffer */
@@ -1233,6 +1449,8 @@ void prt_map(int Ind)
 		{
 			p_ptr->scr_info[dispy][x].c = 0;
 			p_ptr->scr_info[dispy][x].a = 0;
+			p_ptr->trn_info[dispy][x].c = 0;
+			p_ptr->trn_info[dispy][x].a = 0;
 		}
 
 		/* Scan the columns of row "y" */
@@ -1485,6 +1703,8 @@ void display_map(int Ind, int *cy, int *cx)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 0;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 
 		/* Display the line */
@@ -1514,6 +1734,8 @@ void display_map(int Ind, int *cy, int *cx)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 	}
 
@@ -1647,6 +1869,8 @@ void wild_display_map(int Ind)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 0;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 
 		/* Display the line */
@@ -1676,6 +1900,8 @@ void wild_display_map(int Ind)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 	}
 

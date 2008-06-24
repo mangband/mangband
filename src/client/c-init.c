@@ -224,7 +224,7 @@ static void quit_hook(cptr s)
 
 void gather_settings()
 {
-	Client_setup.settings[0] = 1;
+	Client_setup.settings[0] = use_graphics;
 }
 
 /*

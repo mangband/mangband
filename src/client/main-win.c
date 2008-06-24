@@ -75,6 +75,9 @@
 
 #define MNU_SUPPORT
 #define GRAPHICS
+
+static cptr GFXBMP[] = { "8x8.BMP", "8x8.BMP", "16x16.BMP", "32x32.BMP" };
+static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define GFXD "16x16.BMP"
 
 /*
@@ -122,8 +125,13 @@
 #define IDM_WINDOWS_TERM_6		217
 #define IDM_WINDOWS_TERM_7		218
 
-#define IDM_OPTIONS_GRAPHICS	221
-#define IDM_OPTIONS_SOUND		222
+#define IDM_GRAPHICS_OFF	221
+#define IDM_GRAPHICS_OLD	222
+#define	IDM_GRAPHICS_NEW	223
+#define IDM_GRAPHICS_DVG	224
+#define IDM_GRAPHICS_BIG_TILE	225
+
+#define IDM_OPTIONS_SOUND		226
 #define IDM_OPTIONS_UNUSED		231
 #define IDM_OPTIONS_SAVER		232
 
@@ -294,7 +302,7 @@ struct _term_data
 	HWND     w;
 
 #ifdef USE_GRAPHICS
-	DIBINIT infGraph;
+	
 #endif
 
 	DWORD    dwStyle;
@@ -324,7 +332,6 @@ struct _term_data
 	cptr     graf_want;
 
 	cptr     font_file;
-	cptr     graf_file;
 
 	HFONT    font_id;
 
@@ -332,7 +339,10 @@ struct _term_data
 	uint     font_hgt;
 };
 
-
+#ifdef USE_GRAPHICS
+	DIBINIT infMask;
+	DIBINIT infGraph;
+#endif 
 /*
  * Maximum number of windows XXX XXX XXX XXX
  */
@@ -417,7 +427,8 @@ static cptr AppName  = "ANGBAND";
  * Name of sub-window type
  */
 static cptr AngList  = "AngList";
-
+static int next_graphics = 0;
+static int loaded_graphics = 0;
 /*
  * Directory names
  */
@@ -537,6 +548,25 @@ void unset_chat_focus( void )
 {
 	/* Set focus back to original window */
 	if(old_focus) SetFocus(old_focus);
+}
+
+void set_graphics_next(int mode)
+{
+	next_graphics = mode;
+	if (next_graphics != use_graphics)
+	{
+		MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);	
+		
+		/*
+		save_prefs();
+		*/
+
+		/* Access the "graphic" mappings */
+		//sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
+
+		/* Load the file */
+		//process_pref_file(buf);
+	}
 }
 
 void stretch_chat_ctrl( void )
@@ -765,12 +795,6 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
 		WritePrivateProfileString(sec_name, "Font", td->font_file, ini_file);
 	}
 
-	/* Desired graf */
-	if (td->graf_file)
-	{
-		WritePrivateProfileString(sec_name, "Graf", td->graf_file, ini_file);
-	}
-
 	/* Current size (x) */
 	wsprintf(buf, "%d", td->cols);
 	WritePrivateProfileString(sec_name, "Columns", buf, ini_file);
@@ -805,7 +829,7 @@ static void save_prefs(void)
 #endif
 
 #ifdef USE_GRAPHICS
-	strcpy(buf, use_graphics ? "1" : "0");
+	wsprintf(buf, "%d", next_graphics);
 	WritePrivateProfileString("Angband", "Graphics", buf, ini_file);
 #endif
 #ifdef USE_SOUND
@@ -851,8 +875,8 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->font_want = string_make(extract_file_name(tmp));
 
 	/* Desired graf, with default */
-	GetPrivateProfileString(sec_name, "Graf", GFXD, tmp, 127, ini_file);
-	td->graf_want = string_make(extract_file_name(tmp));
+	GetPrivateProfileString(sec_name, "Graf", GFXBMP[use_graphics], tmp, 127, ini_file);
+	//td->graf_want = string_make(extract_file_name(tmp));
 
 	/* Window size */
 	td->cols = GetPrivateProfileInt(sec_name, "Columns", td->cols, ini_file);
@@ -912,7 +936,9 @@ static void load_prefs(void)
 
 #ifdef USE_GRAPHICS
 	/* Extract the "use_graphics" flag */
-	use_graphics = (GetPrivateProfileInt("Angband", "Graphics", 0, ini_file) != 0);
+	loaded_graphics = GetPrivateProfileInt("Angband", "Graphics", 0, ini_file);
+	set_graphics(loaded_graphics);
+	set_graphics_next(loaded_graphics);
 #endif
 
 #ifdef USE_SOUND
@@ -997,15 +1023,8 @@ static void new_palette(void)
 
 #ifdef USE_GRAPHICS
 
-	/* Check windows */
-	for (i = MAX_TERM_DATA - 1; i >= 0; i--)
-	{
-		if (data[i].graf_file)
-		{
-			/* Check the bitmap palette */
-			hBmPal = data[i].infGraph.hPalette;
-		}
-	}
+	/* Check the bitmap palette */
+	hBmPal = infGraph.hPalette;
 
 	/* Use the bitmap */
 	if (hBmPal)
@@ -1279,27 +1298,6 @@ static errr term_force_graf(term_data *td, cptr name)
 	HDC hdcDest;
 	HBITMAP hbmSrcOld;
 	
-	/* Forget old stuff */
-	if (td->graf_file)
-	{
-		/* Free the old information */
-		if (td->infGraph.hDIB) GlobalFree(td->infGraph.hDIB);
-		if (td->infGraph.hPalette) DeleteObject(td->infGraph.hPalette);
-		if (td->infGraph.hBitmap) DeleteObject(td->infGraph.hBitmap);
-
-		/* Forget them */
-		td->infGraph.hDIB = 0;
-		td->infGraph.hPalette = 0;
-		td->infGraph.hBitmap = 0;
-
-		/* Forget old graf name */
-		string_free(td->graf_file);
-
-		/* Forget it */
-		td->graf_file = NULL;
-	}
-
-
 	/* No name */
 	if (!name) return (1);
 
@@ -1340,20 +1338,28 @@ static errr term_force_graf(term_data *td, cptr name)
 	if (!check_file(buf)) return (1);
 
 
-	/* Save new graf name */
-	td->graf_file = string_make(base_graf);
-
 	/* Load the bitmap or quit */
-	if (!ReadDIB(td->w, buf, &td->infGraph))
+	if (!ReadDIB(td->w, buf, &infGraph))
 	{
 		quit_fmt("Bitmap corrupted:\n%s", buf);
 	}
 
 	/* Save the new sizes */
-	td->infGraph.CellWidth = wid;
-	td->infGraph.CellHeight = hgt;
+	infGraph.CellWidth = wid;
+	infGraph.CellHeight = hgt;
                  
-                 
+	if (GFXMASK[use_graphics])
+	{
+		/* Access the mask file */
+		path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
+
+		/* Load the bitmap or quit */
+		if (!ReadDIB(data[0].w, buf, &infMask))
+		{
+			quit_fmt("Cannot read bitmap mask file '%s'", buf);
+		}
+	}
+
 	/* More info */
 ////	hdcSrc = CreateCompatibleDC(hdc);
 ////	hbmSrcOld = SelectObject(hdcSrc, td->infGraph.hBitmap);
@@ -1453,9 +1459,6 @@ static void term_change_bitmap(term_data *td)
 
 	char tmp[128] = "";
 
-	/* Extract a default if possible */
-	if (td->graf_file) strcpy(tmp, td->graf_file);
-
 	/* Ask for a choice */
 	memset(&ofn, 0, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
@@ -1474,14 +1477,14 @@ static void term_change_bitmap(term_data *td)
 		/* XXX XXX XXX */
 
 		/* Force the requested font and bitmap */
-		if (term_force_font(td, tmp) ||
+		if (
 		    term_force_graf(td, tmp))
 		{
 			/* Force the "standard" font */
-			(void)term_force_font(td, "8X13.FON");
+			//(void)term_force_font(td, "8X13.FON");
 
 			/* Force the "standard" bitmap */
-			(void)term_force_graf(td, GFXD);
+			(void)term_force_graf(td, GFXBMP[use_graphics]);
 		}
 	}
 }
@@ -1589,8 +1592,8 @@ static errr Term_xtra_win_react(void)
 		/* Hack -- set the player picture */
 		Client_setup.r_attr[0] = 0x81;
 		Client_setup.r_char[0] = 0x81;
-//		r_info[0].x_attr = 0x87;
-//		r_info[0].x_char = 0x80 | (10 * p_ptr->pclass + p_ptr->prace);
+		//r_info[0].x_attr = 0x87;
+		//r_info[0].x_char = 0x80 | (10 * p_ptr->pclass + p_ptr->prace);
 	}
 
 	/* Remember */
@@ -1926,10 +1929,12 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 
 	HDC  hdc;
 	HDC hdcSrc;
+	HDC hdcMask;
 	HBITMAP hbmSrcOld;
 	int row, col;
 	int x1, y1, w1, h1;
 	int x2, y2, w2, h2;
+	int x3, y3;
 
 	/* Paranoia -- handle weird requests */
 	if (!use_graphics)
@@ -1959,10 +1964,10 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	/* Extract picture info */
 	row = (a & 0x7F);
 	col = (c & 0x7F);
-
+	
 	/* Size of bitmap cell */
-	w1 = td->infGraph.CellWidth;
-	h1 = td->infGraph.CellHeight;
+	w1 = infGraph.CellWidth;
+	h1 = infGraph.CellHeight;
 
 	/* Location of bitmap cell */
 	x1 = col * w1;
@@ -1979,47 +1984,61 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	/* Info */
 	hdc = GetDC(td->w);
 
-/* [grk] We don't use this, we scale the bitmap */
-#ifdef USEBUGGYCODE 
-	/* Handle small bitmaps */
-	if ((w1 < w2) || (h1 < h2))
-	{
-		RECT rc;
-
-		/* Erasure rectangle */
-		rc.left   = x2;
-		rc.right  = x2 + w2;
-		rc.top    = y2;
-		rc.bottom = y2 + h2;
-
-		/* Erase the rectangle */
-		SetBkColor(hdc, RGB(0, 0, 0));
-		SelectObject(hdc, td->font_id);
-		ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rc, NULL, 0, NULL);
-
-		/* Center bitmaps */
-		x2 += (w2 - w1) >> 1;
-		y2 += (h2 - h1) >> 1;
-	}
-#endif
-
 	/* More info */
 	hdcSrc = CreateCompatibleDC(hdc);
-	hbmSrcOld = SelectObject(hdcSrc, td->infGraph.hBitmap);
+	hbmSrcOld = SelectObject(hdcSrc, infGraph.hBitmap);
 
-	/* Copy the picture from the bitmap to the window */
-//	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
+	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
+	    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	{
+		hdcMask = CreateCompatibleDC(hdc);
+		SelectObject(hdcMask, infMask.hBitmap);
+	}
+	else
+	{
+		hdcMask = NULL;
+	}
+	
+	//---new tiling---
+	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
+		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+		{
+			x3 = (p_ptr->trn_info[y][x].c & 0x7F) * w1;
+			y3 = (p_ptr->trn_info[y][x].a & 0x7F) * h1;
+			
+			SetStretchBltMode(hdc, COLORONCOLOR);
 
-/* [grk] Stretch the 16x16 tiles to current font size */
-	/* Set the correct mode for stretching the tiles */
-	SetStretchBltMode(hdc, COLORONCOLOR);
-	/* Copy the terrain picture from the bitmap to the window */
-	StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
-/* end stretch [grk] */
+			/* Copy the terrain picture from the bitmap to the window */
+			StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
 
+			/* Only draw if terrain and overlay are different */
+			if ((x1 != x3) || (y1 != y3))
+			{
+				/* Mask out the tile */
+				StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+
+				/* Draw the tile */
+				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+			}
+	}
+	else
+	{
+		/* Set the correct mode for stretching the tiles */
+		SetStretchBltMode(hdc, COLORONCOLOR);
+		/* Copy the terrain picture from the bitmap to the window */
+		StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+	}
 	/* Release */
 	SelectObject(hdcSrc, hbmSrcOld);
 	DeleteDC(hdcSrc);
+
+	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
+	    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	{
+		/* Release */
+		SelectObject(hdcMask, hbmSrcOld);
+		DeleteDC(hdcMask);
+	}
 
 	/* Release */
 	ReleaseDC(td->w, hdc);
@@ -2063,12 +2082,6 @@ static errr Term_text_win(int x, int y, int n, byte a, const char *s)
 //			if(x<13) return 0;
 //		}
 //	}
-
-//	if(*s == '@'){
-//		 Term_pict_win(x,y,0x82,0x82);
-//		 return 0;
-//	}
-		
 #endif
 
 	/* Location */
@@ -2285,34 +2298,8 @@ static void init_windows(void)
 	/* Handle "graphics" mode */
 	if (use_graphics)
 	{
-		/* Force the "requested" bitmap XXX XXX XXX */
-		if (term_force_graf(&data[0], data[0].graf_want))
-		{
-			/* XXX XXX XXX Force the "standard" font */
-			(void)term_force_font(&data[0], "8X13.FON");
-
-			/* XXX XXX XXX Force the "standard" bitmap */
-			(void)term_force_graf(&data[0], GFXD);
-		}
-
-#ifdef FULL_GRAPHICS
-
-		/* Windows */
-		for (i = 1; i < MAX_TERM_DATA; i++)
-		{
-			/* Force the "requested" bitmap XXX XXX XXX */
-			if (term_force_graf(&data[i], data[i].graf_want))
-			{
-				/* XXX XXX XXX Force the "standard" font */
-				(void)term_force_font(&data[i], "8X13.FON");
-
-				/* XXX XXX XXX Force the "standard" bitmap */
-				(void)term_force_graf(&data[i], GFXD);
-			}
-		}
-
-#endif /* FULL_GRAPHICS */
-
+		/* XXX XXX XXX Force the "standard" bitmap */
+		(void)term_force_graf(&data[0], GFXBMP[use_graphics]);
 	}
 
 #endif
@@ -2482,9 +2469,22 @@ static void setup_menus(void)
 	}
 #endif
 #ifdef USE_GRAPHICS
-	/* Item "Graphics" */
-	CheckMenuItem(hm, IDM_OPTIONS_GRAPHICS,
-	              MF_BYCOMMAND | (use_graphics ? MF_CHECKED : MF_UNCHECKED));
+	/* Item "Graphics - Off" */
+	CheckMenuItem(hm, IDM_GRAPHICS_OFF,
+	              MF_BYCOMMAND | (!next_graphics ? MF_CHECKED : MF_UNCHECKED));
+	/* Item "Graphics - Old" */
+	CheckMenuItem(hm, IDM_GRAPHICS_OLD,
+	              MF_BYCOMMAND | (next_graphics == 1 ? MF_CHECKED : MF_UNCHECKED));
+	/* Item "Graphics - New" */
+	CheckMenuItem(hm, IDM_GRAPHICS_NEW,
+	              MF_BYCOMMAND | (next_graphics == 2 ? MF_CHECKED : MF_UNCHECKED));
+	/* Item "Graphics - DVG" */
+	CheckMenuItem(hm, IDM_GRAPHICS_DVG,
+	              MF_BYCOMMAND | (next_graphics == 3 ? MF_CHECKED : MF_UNCHECKED));
+
+	/* Item "Graphics - Respect Tile Size?" */
+	CheckMenuItem(hm, IDM_GRAPHICS_BIG_TILE,
+	              MF_BYCOMMAND | (big_tile ? MF_CHECKED : MF_UNCHECKED));
 #endif
 #ifdef USE_SOUND
 	/* Item "Sound" */
@@ -2652,72 +2652,53 @@ static void process_menus(WORD wCmd)
 		}
 /*	Currently no graphics options available. -GP */
 #ifdef USE_GRAPHICS
-		case IDM_OPTIONS_GRAPHICS:
+		case IDM_GRAPHICS_OFF:
 		{
-			char buf[1024];
-
-			/* XXX XXX XXX  */
-			//Term_activate(term_screen);
-
-			/* Reset the visuals */
-			//reset_visuals();
-
-			/* Toggle "graphics" */
-			use_graphics = !use_graphics;
-			save_prefs();
-            MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);
-			return;
-
-			/* Access the "graphic" mappings */
-			sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
-
-			/* Load the file */
-			process_pref_file(buf);
-#endif		/* GP's USE_GRAPHICS */
-#ifdef USE_GRAPHICS
-
-			/* Use graphics */
-			if (use_graphics)
-			{
-				/* Try to use the current font */
-				if (term_force_graf(&data[0], data[0].font_file))
-				{
-					/* XXX XXX XXX Force a "usable" font */
-					(void)term_force_font(&data[0], "8X13.FON");
-
-					/* XXX XXX XXX Force a "usable" graf */
-					(void)term_force_graf(&data[0], GFXD);
-				}
-
-#ifdef FULL_GRAPHICS
-
-				/* Windows */
-				for (i = 1; i < MAX_TERM_DATA; i++)
-				{
-					/* Try to use the current font */
-					if (term_force_graf(&data[i], data[i].font_file))
-					{
-						/* XXX XXX XXX Force a "usable" font */
-						(void)term_force_font(&data[i], "8X13.FON");
-
-						/* XXX XXX XXX Force a "usable" graf */
-						(void)term_force_graf(&data[i], GFXD);
-					}
-				}
-
-#endif
-
-			}
-
-#endif
-
-#ifdef USE_GRAPHICS	/* no support -GP */
+			set_graphics_next(0);
+			break;
+		}
+		case IDM_GRAPHICS_OLD:
+		{
+			set_graphics_next(1);
+			break;
+		}
+		case IDM_GRAPHICS_NEW:
+		{
+			set_graphics_next(2);
+			break;
+		}
+		case IDM_GRAPHICS_DVG:
+		{
+			set_graphics_next(3);
+			break;
+		
+			/* no support -GP */
 			/* React to changes */
-			Term_xtra_win_react();
+			//Term_xtra_win_react();
+
+			/* Hack -- Force redraw */
+			//Term_key_push(KTRL('R'));
+		}
+		case IDM_GRAPHICS_BIG_TILE:
+		{
+			static int old_font_wid, old_font_hgt;
+			/*
+			if (!big_tile) 
+			{
+				old_font_wid = data[0].font_wid;
+				old_font_hgt = data[0].font_hgt;
+				data[0].font_wid = infGraph.CellHeight;
+				data[0].font_hgt = infGraph.CellHeight;
+			} else {
+				data[0].font_wid = old_font_wid;
+				data[0].font_hgt = old_font_hgt;
+			}
+			*/
+			x_offset = 20;
+			big_tile = !big_tile;			
 
 			/* Hack -- Force redraw */
 			Term_key_push(KTRL('R'));
-
 			break;
 		}
 #endif
@@ -3379,8 +3360,11 @@ static void hack_quit(cptr str)
 	}
 
 #ifdef USE_GRAPHICS
-	term_force_graf(&data[0], NULL);
+	/* Free the bitmap stuff */
+	FreeDIB(&infGraph);
+	FreeDIB(&infMask);
 #endif
+
 	term_force_font(&data[0], NULL);
 	if (data[0].font_want) string_free(data[0].font_want);
 	if (data[0].graf_want) string_free(data[0].graf_want);
@@ -3456,7 +3440,9 @@ static void hook_quit(cptr str)
 	}
 
 #ifdef USE_GRAPHICS
-	term_force_graf(&data[0], NULL);
+	/* Free the bitmap stuff */
+	FreeDIB(&infGraph);
+	FreeDIB(&infMask);
 #endif
 	term_force_font(&data[0], NULL);
 	if (data[0].font_want) string_free(data[0].font_want);
@@ -3569,7 +3555,7 @@ static void init_stuff(void)
 	validate_dir(ANGBAND_DIR_XTRA_GRAF);
 
 	/* Build the filename */
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, GFXD);
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, GFXBMP[use_graphics]);
 
 	/* Hack -- Validate the basic graf */
 	validate_file(path);

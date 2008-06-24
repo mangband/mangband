@@ -338,4 +338,17 @@ ErrExit2:
 	return(result);
 }
 
+/* Free a DIB */
+void FreeDIB(DIBINIT *dib)
+{
+	/* Free the bitmap stuff */
+	if (dib->hPalette) DeleteObject(dib->hPalette);
+	if (dib->hBitmap) DeleteObject(dib->hBitmap);
+	if (dib->hDIB) GlobalFree(dib->hDIB);
+
+	dib->hPalette = NULL;
+	dib->hBitmap = NULL;
+	dib->hDIB = NULL;
+}
+
 #endif

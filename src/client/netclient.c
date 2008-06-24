@@ -1207,6 +1207,12 @@ int Receive_basic_info(void)
 		return n;
 	}
 
+	/* Server has restrictions on graphics */
+	if (graf < use_graphics) 
+	{
+		set_graphics(graf);
+	}
+
 	return 1;
 }
 int Receive_char_info_conn(void)
@@ -1472,10 +1478,28 @@ int Receive_char(void)
 	char	ch;
 	char	x, y;
 	char	a, c;
+	char	tap,tcp;
 
 	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c", &ch, &x, &y, &a, &c)) <= 0)
 	{
 		return n;
+	}
+
+	if (use_graphics > 1) {
+		if ((n = Packet_scanf(&rbuf, "%c%c", &tap, &tcp)) <= 0)
+		{
+			return n;
+		}
+		if (p_ptr->trn_info[y][x].a != tap || p_ptr->trn_info[y][x].c != tcp) 
+		{
+			p_ptr->trn_info[y][x].a = tap;
+			p_ptr->trn_info[y][x].c = tcp;
+			/* Hack -- force refresh of that grid no matter what */
+			Term->scr->a[y][x] = 0;
+			Term->scr->c[y][x] = 0;
+			Term->old->a[y][x] = 0;
+			Term->old->c[y][x] = 0;
+		}
 	}
 
 	if (!screen_icky && !shopping)
@@ -1485,11 +1509,21 @@ int Receive_char(void)
 		/* Put the cursor there */
 		Term_gotoxy(x, y);
 	}
+	/* Queue for later */
+	else if (use_graphics > 1)
+	{
+		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c%c%c", ch, x, y, a, c, tap, tcp)) <= 0)
+		{
+			return n;
+		}
+	}
 	else
+	{
 		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x, y, a, c)) <= 0)
 		{
 			return n;
 		}
+	}
 
 	return 1;
 }
@@ -1973,8 +2007,14 @@ int Receive_line_info(void)
 	if (y > last_line_info)
 		last_line_info = y;
 
+	if (ch != PKT_MINI_MAP && use_graphics > 1)
+	{
+		/* Decode the secondary attr/char stream */		
+		rle_decode(&rbuf, p_ptr->trn_info[y], 80, RLE_LARGE , 0 );
+	}
+
 	/* Decode the attr/char stream */		
-	rle_decode(&rbuf, NULL, 80, RLE_CLASSIC, ( draw ? y : -1) );
+	rle_decode(&rbuf, NULL, 80, (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1) );
 
 	/* Request a redraw if the screen was icky */
 	if (screen_icky)

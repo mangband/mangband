@@ -219,6 +219,8 @@ C:1:'
 ?:[EQU $GRAF none]
 %:font.prf
 
+?:[NEQ $GRAF none]
+%:graf.prf
 
 ##### System Specific Subfiles #####
 

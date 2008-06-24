@@ -1291,7 +1291,9 @@ static int Enter_player(int ind)
 		p_ptr->misc_attr[i] = connp->Client_setup.misc_attr[i];
 		p_ptr->misc_char[i] = connp->Client_setup.misc_char[i];
 	}
-	
+
+	/* Hack -- graphic option */
+	p_ptr->use_graphics = connp->Client_setup.settings[0];
 
 	sync_options(NumPlayers + 1);
 
@@ -2523,7 +2525,10 @@ int Send_char(int ind, int x, int y, byte a, char c)
 	if (!BIT(Conn[Players[ind]->conn].state, CONN_PLAYING | CONN_READY))
 		return 0;
 
-	return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
+	if (Players[ind]->use_graphics > 1)
+		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c%c%c", PKT_CHAR, x, y, a, c, Players[ind]->trn_info[y][x].a, Players[ind]->trn_info[y][x].c);
+	else
+		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
 }
 
 int Send_spell_info(int ind, int book, int i, cptr out_val)
@@ -2591,8 +2596,14 @@ int Send_line_info(int ind, int y)
 	/* Put a header on the packet */
 	Packet_printf(&connp->c, "%c%hd", PKT_LINE_INFO, y);
 
+	if (p_ptr->use_graphics > 1)
+	{
+		/* Encode and transperancy attr/char stream */
+		rle_encode(&connp->c, p_ptr->trn_info[y], 80, RLE_LARGE );
+	}
+
 	/* Encode and send the attr/char stream */
-	rle_encode(&connp->c, p_ptr->scr_info[y], 80, RLE_CLASSIC);
+	rle_encode(&connp->c, p_ptr->scr_info[y], 80, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) );
 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
@@ -2620,7 +2631,7 @@ int Send_mini_map(int ind, int y)
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", PKT_MINI_MAP, y);
 	
-	rle_encode(&connp->c, p_ptr->scr_info[y], 80, RLE_CLASSIC); 
+	rle_encode(&connp->c, p_ptr->scr_info[y], 80, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */
