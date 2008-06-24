@@ -585,7 +585,7 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 		|| ((*ptr >= 48) && (*ptr <= 57)) )
 		{
 			/* ok */
-		} else { plog(">>>>");
+		} else {
 			return E_INVAL;
 		}
 	}

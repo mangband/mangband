@@ -1157,6 +1157,8 @@ int Receive_motd(void)
 	char ch;
 	bool show = FALSE;
 
+	len = off = 0;
+
 	if ((n = Packet_scanf(&rbuf, "%c%ld%ld", &ch, &len, &off)) <= 0)
 	{
 		return n;
@@ -1196,6 +1198,9 @@ int Receive_basic_info(void)
 	int n;
 	int graf, snd, tmp3, tmp4, tmp5, tmp6, tmp7;
 	char ch;
+
+	/* Clear any old info */
+	graf = snd = tmp3 = tmp4 = tmp5 = tmp6 = tmp7 = 0;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd%hd%hd%hd", &ch, &Setup.frames_per_second, &graf, &snd, &tmp3, &tmp4, &tmp5, &tmp6, &tmp7)) <= 0)
 	{
