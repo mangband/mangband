@@ -960,7 +960,144 @@ bool save_player(int Ind)
 	return (result);
 }
 
+/* XXX XXX XXX
+ * Similarly to "load_player", reads a part of player savefile and report the results.
+ * 
+ * This is used because we need the password information early on in the connection stage
+ * (before the player structure is allocated) and the only way 
+ * to get it is to read the save file. The file will be read again when it is time
+ * to allocate player information and start game play.
+ *
+ * The actual read is performed by "rd_savefile_new_scoop_aux" from "load2.c", which
+ * is a simplified code duplcation from player loading routines.
+ */
+int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
+{
+	int		fd = -1;
+	errr	err = 0;
+	byte	vvv[4];
+	cptr	what = "generic";
 
+	char tmp[MAX_CHARS];
+
+	strcpy(tmp, nick);
+	if (process_player_name_aux( &tmp , NULL, TRUE ) < 0)
+	{
+		/* Error allready! */
+		err = -1;
+	}
+	
+#if !defined(MACINTOSH) && !defined(VM)
+	/* Verify the existance of the savefile */
+	if (access(tmp, 0) < 0)
+	{
+		/* Give a message */
+		plog(format("Savefile does not exist for player %s", nick));
+
+		/* Inform caller */
+		return 0;			
+	}
+#endif	
+
+#ifdef VERIFY_SAVEFILE
+
+	/* Verify savefile usage */
+	if (!err)
+	{
+		FILE *fkk;
+
+		char temp[1024];
+
+		/* Extract name of lock file */
+		strcpy(temp, tmp);
+		strcat(temp, ".lok");
+
+		/* Check for lock */
+		fkk = my_fopen(temp, "r");
+
+		/* Oops, lock exists */
+		if (fkk)
+		{
+			/* Close the file */
+			my_fclose(fkk);
+
+			/* Message */
+			//msg_print(Ind, "Savefile is currently in use.");
+			//msg_print(Ind, NULL);
+
+			/* Oops */
+			return (FALSE);
+		}
+
+		/* Create a lock file */
+		fkk = my_fopen(temp, "w");
+
+		/* Dump a line of info */
+		fprintf(fkk, "Lock file for savefile '%s'\n", tmp);
+
+		/* Close the lock file */
+		my_fclose(fkk);
+	}
+
+#endif
+
+
+	/* Okay */
+	if (!err)
+	{
+		/* Open the savefile */
+		fd = fd_open(tmp, O_RDONLY);
+
+		/* No file */
+		if (fd < 0) err = -1;
+
+		/* Message (below) */
+		if (err) what = "Cannot open savefile";
+	}
+
+	/* Process file */
+	if (!err)
+	{
+
+		/* Read the first four bytes */
+		if (fd_read(fd, (char*)(vvv), 4)) err = -1;
+
+		/* What */
+		if (err) what = "Cannot read savefile";
+
+		/* Close the file */
+		(void)fd_close(fd);
+	}
+
+	/* Process file */
+	if (!err)
+	{
+		/* Attempt to load */
+ 		err = rd_savefile_new_scoop_aux( tmp , pass , race, class, sex );
+		
+		/* Message (below) */
+		if (err == -1) what = "Cannot parse savefile";
+		if (err == -2) what = "Incorrect password";
+	}
+
+#ifdef VERIFY_SAVEFILE
+	/* Verify savefile usage */
+	if (TRUE)
+	{
+		char temp[1024];
+
+		/* Extract name of lock file */
+		strcpy(temp, tmp);
+		strcat(temp, ".lok");
+
+		/* Remove lock */
+		fd_kill(temp);
+	}
+#endif
+
+	/* Oops */
+	return (err);
+}
 
 /*
  * Attempt to Load a "savefile"

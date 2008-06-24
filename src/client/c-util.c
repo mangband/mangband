@@ -2850,7 +2850,7 @@ void do_cmd_options(void)
 
 
 	/* Resend options to server */
-	Send_options();
+	Send_options(FALSE);
 
 	/* Save options to file */
 	Save_options();

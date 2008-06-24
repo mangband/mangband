@@ -1342,3 +1342,15 @@ void server_birth(void)
 	/* First player's ID should be 1 */
 	player_id = 1;
 }
+
+/*
+ * Check if we can work with this version.
+ * Add more interesting checks if needed
+ */
+bool client_version_ok(u16b version)
+{
+	if (version == MY_VERSION) 
+		return TRUE;
+	else
+		return FALSE;
+}

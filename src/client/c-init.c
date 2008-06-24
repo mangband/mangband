@@ -149,7 +149,7 @@ static void Input_loop(void)
 		{
 			if ((result = Net_input()) == -1)
 			{
-				/*plog("Bad net input");*/
+				/*plog("Bad net input"); */
 				return;
 			}
 		}
@@ -222,14 +222,48 @@ static void quit_hook(cptr s)
 	}
 }
 
+void gather_settings()
+{
+	Client_setup.settings[0] = 1;
+}
+
+/*
+ * Client is ready to play call-back
+ */
+bool client_ready()
+{
+	/* Send request for MOTD to read (optional) */
+	Send_motd(0); // pass -1 to receive motd off-screen 
+
+	gather_settings();
+	
+	/* Initialize the pref files */
+	initialize_all_pref_files();
+
+	Send_options(TRUE);
+
+	/* Send visual preferences */
+	Net_verify();
+
+	/* Hack -- don't enter the game if waiting for motd */
+	if (Setup.wait && !Setup.ready)
+	{
+		return FALSE;
+	}		
+		
+	/* Request gameplay */
+	Send_play(1);
+	
+	return TRUE;
+}
+
 /*
  * Initialize everything, contact the server, and start the loop.
  */
 void client_init(char *argv1)
 {
 	sockbuf_t ibuf;
-	unsigned magic = 12345;
-	unsigned char reply_to, status;
+	unsigned char status;
 	int login_port, trycount;
 	int bytes, retries;
 	char host_name[80], trymsg[80], c;
@@ -320,116 +354,45 @@ void client_init(char *argv1)
 		quit("No memory for socket buffer\n");
 	}
 
-	/* Make it non-blocking */
-	//if (SetSocketNonBlocking(Socket, 1) == -1)
-//	{	
-//		quit("Can't make socket non-blocking\n");
-//	}
-
-
-#if 0
-	// UDP code
-	/* Create net socket */
-	if ((Socket = CreateDgramSocket(0)) == -1)
-	{
-		quit("Could not create Dgram socket\n");
-	}
-
-	/* Make it non-blocking */
+	/* Make it non-blocking 
 	if (SetSocketNonBlocking(Socket, 1) == -1)
 	{	
 		quit("Can't make socket non-blocking\n");
-	}
-
-	/* Create a socket buffer */
-	if (Sockbuf_init(&ibuf, Socket, CLIENT_SEND_SIZE,
-		SOCKBUF_READ | SOCKBUF_WRITE | SOCKBUF_DGRAM) == -1)
-	{
-		quit("No memory for socket buffer\n");
-	}
-#endif
+	} */
 
 	/* Clear it */
 	Sockbuf_clear(&ibuf);
-	
+
 	/* Put the contact info in it */
-	Packet_printf(&ibuf, "%u", magic);
-	Packet_printf(&ibuf, "%s%hu%c", real_name, GetPortNum(ibuf.sock), 0xFF);
-	Packet_printf(&ibuf, "%s%s%hu", nick, host_name, version);
-
-
-	/* Connect to server */
-#ifdef UNIX_SOCKETS
-	if ((DgramConnect(Socket, server_name, server_port)) == -1)
-#else
-	// UDP stuffif ((DgramConnect(Socket, server_name, 18346)) == -1)
-#endif
-	//{
-	//	quit("That server either isn't up, or you mistyped the host name.\n");
-	//}
+	Packet_printf(&ibuf, "%hu", version);
+	Packet_printf(&ibuf, "%s%s%s%s", real_name, host_name, nick, pass);
 	
-	/* Send the info */
-	if ((bytes = DgramWrite(Socket, ibuf.buf, ibuf.len) == -1))
-	{
+	/* Send it */
+	if (!Net_Send(Socket, &ibuf))
 		quit("Couldn't send contact information\n");
-	}
 
-	/* Listen for reply */
-	for (retries = 0; retries < 10; retries++)
-	{
-		/* Set timeout */
-		SetTimeout(1, 0);
-
-		/* Wait for info */
-		if (!SocketReadable(Socket)) continue;
-
-		/* Read reply */
-		if(DgramRead(Socket, ibuf.buf, ibuf.size) <= 0)
-		{
-			/*printf("DgramReceiveAny failed (errno = %d)\n", errno);*/
-			continue;
-		}
-
-		/* Extra info from packet */
-		Packet_scanf(&ibuf, "%c%c%d", &reply_to, &status, &temp);
-
-		/* Hack -- set the login port correctly */
-		login_port = (int) temp;
-
-		/* massive hack alert.  We change reply to on lag-check enabled servers so the 
-		   client knows to send the tick count along.  Bad, ugly hack, but the only way
-		   to support both ways for now.
-		*/
-
-		lag_ok=0;
-		if(reply_to == 254) { 
-			c_msg_print("Lag Meter Enabled");
-			lag_ok=1; 
-		};
-
-		break;
-	}
-
-	/* Check for failure */
-	if (retries >= 10)
-	{
-		Net_cleanup();
+	/* Wait for reply */
+	if (!Net_WaitReply(Socket, &ibuf, 10))
 		quit("Server didn't respond!\n");
-	}
 
-	/* Server returned error code */
-	if (status == E_NEED_INFO)
-	{
-		/* Get sex/race/class */
-		get_char_info();
-	}
-	else if (status)
+	/* Read what he sent */
+	Packet_scanf(&ibuf, "%c", &status);
+	
+	/* Some error */
+	if (status)
 	{
 		/* The server didn't like us.... */
 		switch (status)
 		{
+			case E_NEED_INFO: break;
 			case E_VERSION:
 				quit("This version of the client will not work with that server.");
+			case E_SOCKET:
+				quit("Socket error");
+			case E_BAD_PASS:
+				quit("The password you supplied is incorrect");
+			case E_READ_ERR:
+				quit("There was an error accessing your savefile");
 			case E_GAME_FULL:
 				quit("Sorry, the game is full.  Try again later.");
 			case E_IN_USE:
@@ -442,49 +405,15 @@ void client_init(char *argv1)
 				quit(format("Connection failed with status %d.", status));
 		}
 	}
-
-/*	printf("Server sent login port %d\n", login_port);
-	printf("Server sent status %u\n", status);  */
-
-	/* Close our current connection */
-	// Dont close the TCP connection DgramClose(Socket);
-
-	/* Connect to the server on the port it sent */
-	//if (Net_init(server_name, login_port) == -1)
-	if (Net_init(server_name, Socket) == -1)
+	
+	/* Server agreed to talk, initialize the buffers */
+	if (Net_init(Socket) == -1)
 	{
 		quit("Network initialization failed!\n");
 	}
-
-	/* Initialize the pref files */
-	initialize_all_pref_files();
-
-	/* Verify that we are on the correct port */
-	if (Net_verify(real_name, nick, pass, sex, race, class) == -1)
-	{
-		Net_cleanup();
-		quit("Network verify failed!\n");
-	}
-
-	/* Receive stuff like the MOTD */
-	if (Net_setup() == -1)
-	{
-		Net_cleanup();
-		quit("Network setup failed!\n");
-	}
-
-	/* Setup the key mappings */
-	//keymap_init();
-
-	/* Show the MOTD */
-	show_motd();
-
-	/* Start the game */
-	if (Net_start() == -1)
-	{
-		Net_cleanup();
-		quit("Network start failed!\n");
-	}
+	
+	/* Send request for anything needed for play	*/
+	Send_play(0);
 
 	/* Main loop */
 	Input_loop();

@@ -9,8 +9,8 @@
 #define PKT_PLAY		3
 #define PKT_QUIT		4
 #define PKT_LEAVE		5
-#define PKT_MAGIC		6
-#define PKT_RELIABLE		7
+#define PKT_MOTD		6
+#define PKT_BASIC_INFO		7
 #define PKT_ACK			8
 #define PKT_TALK		9
 
@@ -156,6 +156,8 @@
 #define E_IN_USE	0x08
 #define E_SOCKET	0x09
 #define E_INVAL		0x0A
+#define E_READ_ERR   0x0B
+#define E_BAD_PASS	0x0C
 
 
 /*

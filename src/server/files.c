@@ -1999,71 +1999,62 @@ errr show_file(int Ind, cptr name, cptr what, int line, int color)
 }
 
 
-
-
 /*
- * Process the player name.
- * Extract a clean "base name".
- * Build the savefile name if needed.
+ * XXXXXXXXX
  */
-bool process_player_name(int Ind, bool sf)
+int process_player_name_aux(cptr name, cptr base, bool sf)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i, k = 0;
+	char local_base[MAX_CHARS];
+	char *basename = base;
 
-
+	
 	/* Cannot be too long */
-	if (strlen(p_ptr->name) > 15)
+	if (strlen(name) > 15)
 	{
-		/* Name too long */
-		Destroy_connection(p_ptr->conn, "Your name is too long!");
-
 		/* Abort */
-		return FALSE;
+		return -1;
 	}
 
 	/* Cannot contain "icky" characters */
-	for (i = 0; p_ptr->name[i]; i++)
+	for (i = 0; name[i]; i++)
 	{
 		/* No control characters */
-		if (iscntrl(p_ptr->name[i]))
+		if (iscntrl(name[i]))
 		{
-			/* Illegal characters */
-			Destroy_connection(p_ptr->conn, "Your name contains control chars!");
-
 			/* Abort */
-			return FALSE;
+			return -2;
 		}
 	}
-
+	
+	if (base == NULL) basename = &local_base[0];
 
 #ifdef MACINTOSH
 
 	/* Extract "useful" letters */
-	for (i = 0; p_ptr->name[i]; i++)
+	for (i = 0; name[i]; i++)
 	{
-		char c = p_ptr->name[i];
+		char c = name[i];
 
 		/* Convert "dot" to "underscore" */
 		if (c == '.') c = '_';
 
 		/* Accept all the letters */
-		p_ptr->basename[k++] = c;
+		basename[k++] = c;
 	}
 
 #else
 
 	/* Extract "useful" letters */
-	for (i = 0; p_ptr->name[i]; i++)
+	for (i = 0; name[i]; i++)
 	{
-		char c = p_ptr->name[i];
+		char c = name[i];
 
 		/* Accept some letters */
-		if (isalpha(c) || isdigit(c)) p_ptr->basename[k++] = c;
+		if (isalpha(c) || isdigit(c)) basename[k++] = c;
 
 		/* Convert space, dot, and underscore to underscore */
-		else if (strchr(". _", c)) p_ptr->basename[k++] = '_';
+		else if (strchr(". _", c)) basename[k++] = '_';
 	}
 
 #endif
@@ -2077,18 +2068,74 @@ bool process_player_name(int Ind, bool sf)
 #endif
 
 	/* Terminate */
-	p_ptr->basename[k] = '\0';
+	basename[k] = '\0';
 
 	/* Require a "base" name */
-	if (!p_ptr->basename[0]) strcpy(p_ptr->basename, "PLAYER");
+	if (!basename[0]) strcpy(basename, "PLAYER");
+
+	/* Change the savefile name */
+	if (sf)
+	{
+		char temp[128];
+
+		/* Rename the savefile, using the player_base */
+		(void)sprintf(temp, "%s", basename);
+
+#ifdef VM
+		/* Hack -- support "flat directory" usage on VM/ESA */
+		(void)sprintf(temp, "%s.sv", player_base);
+#endif /* VM */
+
+		/* Build the filename */
+		path_build(name, 1024, ANGBAND_DIR_SAVE, temp);
+	}
+
+	/* Success */
+	return 0;
+}
 
 
+
+/*
+ * Process the player name.
+ * Extract a clean "base name".
+ * Build the savefile name if needed.
+ */
+bool process_player_name(int Ind, bool sf)
+{
+	player_type *p_ptr = Players[Ind];
+
+	int ret;
+	
 #ifdef SAVEFILE_MUTABLE
 
 	/* Accept */
 	sf = TRUE;
 
 #endif
+	
+	ret = process_player_name_aux(p_ptr->name, p_ptr->basename, FALSE);
+
+	/* Cannot be too long */
+	if (ret == -1)
+	{
+		/* Name too long */
+		Destroy_connection(p_ptr->conn, "Your name is too long!");
+
+		/* Abort */
+		return FALSE;
+	}
+
+	/* Cannot contain "icky" characters */
+	if (ret == -2)
+	{
+		/* Illegal characters */
+		Destroy_connection(p_ptr->conn, "Your name contains control chars!");
+
+		/* Abort */
+		return FALSE;
+	}
+	
 
 	/* Change the savefile name */
 	if (sf)

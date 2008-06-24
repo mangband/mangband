@@ -870,7 +870,7 @@ static bool rd_extra(int Ind)
 	MD5Password(temp); /* The hashed version of our stored password */
 	strcpy(temp2, (const char *)p_ptr->pass);
 	MD5Password(temp2); /* The hashed version of password from client */
-
+#if 0
 	if (strstr(pass, "$1$"))
 	{ /* Most likely an MD5 hashed password saved */
 		if (strcmp(pass, p_ptr->pass))
@@ -904,7 +904,7 @@ static bool rd_extra(int Ind)
 		/* Good match with clear text, save the hashed */
 		strcpy(p_ptr->pass, (const char *)temp);
 	}
-
+#endif
 	read_str("died_from",p_ptr->died_from); /* 80 */
 
 	read_str("died_from_list",p_ptr->died_from_list); /* 80 */
@@ -1372,6 +1372,139 @@ static errr rd_cave_memory(int Ind)
 
 	/* Success */
 	return (0);
+}
+
+/* XXX XXX XXX 
+ * This function is a large code duplication of rd_savefile_new_aux and rd_extra
+ * it attempts to read out the race/class/sex info and does a password check
+ * Because the neccessary information is located rather deeply in the savefile,
+ * it performs some dummy reads and ommits the data.
+ * See "scoop_player" in "save.c" for more info.  
+ * 
+ * Note -- this should match the savefile format (at least the start of it).
+ * Yeah, it's a klunky kludge and there are several ways to resolve it
+ * sometime in the future.
+ */
+errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex)
+{
+	int i;
+
+	u16b tmp16u;
+	u32b tmp32u;
+	
+	errr err;
+
+	char name[32];
+	char pass[80];
+	char temp[80];
+	char temp2[80];
+	char temp3[80];
+
+	/* The savefile is a text file */
+	file_handle = my_fopen(sfile, "r");
+
+	/* Paranoia */
+	if (!file_handle) return (-1);
+
+	/* Do it */
+	start_section_read("mangband_player_save");
+	start_section_read("version");
+	read_int("major"); 
+	read_int("minor");
+	read_int("patch");
+	end_section_read("version");	
+	read_uint("sf_xtra");
+	read_uint("sf_when");
+	read_int("sf_lives");
+   read_int("sf_saves");
+	skip_value("turn");
+	if(value_exists("birth_turn"))
+		read_uint("birth_turn");
+	if(value_exists("player_turn"))
+		 read_uint("player_turn");
+		
+	start_section_read("object_memory");
+	tmp16u = read_int("max_k_idx");
+	for (i = 0; i < tmp16u; i++)
+	{
+		byte tmp8u;
+
+		tmp8u = read_int("flags");
+	}
+	end_section_read("object_memory");
+
+	start_section_read("player");
+	read_str("playername",name); /* 32 */
+	read_str("pass",pass); /* 80, but really should be MAX_PASS_LEN */
+
+	read_str("died_from",temp3); /* 80 */
+	read_str("died_from_list",temp); /* 80 */
+	read_str("died_from_depth",temp); /* 80 */
+	start_section_read("history");
+	read_str("history",temp); /* 60 */
+	read_str("history",temp); /* 60 */
+	read_str("history",temp); /* 60 */
+	read_str("history",temp); /* 60 */
+	end_section_read("history");
+
+	/* Class/Race/Gender/Party */
+	*race = read_int("prace");
+	*class = read_int("pclass");
+	*sex = read_int("male");
+
+	/* Paranoia */	
+	temp[0] = '\0';
+	
+	/* Here's where we do our password encryption handling */
+	strcpy(temp, (const char *)pass);
+	MD5Password(temp); /* The hashed version of our stored password */
+	strcpy(temp2, (const char *)pass_word);
+	MD5Password(temp2); /* The hashed version of password from client */
+
+	err = 0;
+
+	if (strstr(pass, "$1$"))
+	{ /* Most likely an MD5 hashed password saved */
+		if (strcmp(pass, pass_word))
+		{ /* No match, might be clear text from client */
+			if (strcmp(pass, temp2))
+			{
+				/* No, it's not correct */
+				err = -2;
+			}
+			/* Old style client, but OK otherwise */
+		}
+	}
+	else
+	{ /* Most likely clear text password saved */
+		if (strstr(pass_word, "$1$"))
+		{ /* Most likely hashed password from new client */
+			if (strcmp(temp, pass_word))
+			{
+				/* No, it doesn't match hatched */
+				err = -2;
+			}
+		}
+		else
+		{ /* Most likely clear text from client as well */
+			if (strcmp(pass, pass_word))
+			{
+				/* No, it's not correct */
+				err = -2;
+			}
+		}
+		/* Good match with clear text, save the hashed */
+		strcpy(pass_word, (const char *)temp);
+	}
+
+	/* Check for errors */
+	if (ferror(file_handle)) err = -1;
+
+	/* Close the file */
+	my_fclose(file_handle);
+
+	/* Result */
+	return (err);
 }
 
 /*

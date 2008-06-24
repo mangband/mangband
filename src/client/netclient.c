@@ -24,6 +24,7 @@
 #include <unistd.h>
 #endif
 
+int conn_state;			/* Similar to server's connp->state */
 static u32b last_keepalive;
 
 int			ticks = 0; // Keeps track of time in 100ms "ticks"
@@ -32,8 +33,7 @@ static bool		request_redraw;
 
 sockbuf_t	rbuf, cbuf, wbuf, qbuf;
 static int		(*receive_tbl[256])(void),
-			(*reliable_tbl[256])(void);
-static unsigned		magic;
+					(*setup_tbl[256])(void);
 static long		last_send_anything,
 			last_keyboard_change,
 			last_keyboard_ack,
@@ -57,10 +57,18 @@ static void Receive_init(void)
 	for (i = 0; i < 256; i++)
 	{
 		receive_tbl[i] = NULL;
-		reliable_tbl[i] = NULL;
+		setup_tbl[i] = NULL;
 	}
+	
+	setup_tbl[PKT_QUIT]		= Receive_quit;
+	setup_tbl[PKT_BASIC_INFO] = Receive_basic_info;
+	setup_tbl[PKT_MOTD] = Receive_motd;
+	setup_tbl[PKT_PLAY] = Receive_play;
+	setup_tbl[PKT_CHAR_INFO] = Receive_char_info_conn;
+	setup_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
+	setup_tbl[PKT_END]		= Receive_end;
 
-	receive_tbl[PKT_RELIABLE]	= Receive_reliable;
+	receive_tbl[PKT_MOTD] = Receive_motd;
 	receive_tbl[PKT_QUIT]		= Receive_quit;
 	receive_tbl[PKT_START]		= Receive_start;
 	receive_tbl[PKT_END]		= Receive_end;
@@ -125,250 +133,73 @@ static void Receive_init(void)
 	receive_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 }
 
-// I haven't really figured out this function yet.  It looks to me like
-// the whole thing could be replaced by one or two reads.  Why they decided
-// to do this using UDP, I'll never know.  -APD
-
-int Net_setup(void)
+int Send_verify_visual(int type)
 {
-	int n, len, done = 0;
-	long todo = sizeof(server_setup_t);
-	char *ptr;
-
-	ptr = (char *) &Setup;
-
-	while (todo > 0)
-	{
-		if (cbuf.ptr != cbuf.buf)
-			Sockbuf_advance(&cbuf, cbuf.ptr - cbuf.buf);
-
-		len = cbuf.len;
-		if (len > todo)
-			len = todo;
-
-		if (len > 0)
-		{
-			if (done == 0)
-			{
-				n = Packet_scanf(&cbuf, "%ld%hd",
-					&Setup.motd_len, &Setup.frames_per_second);
-				if (n <= 0)
-				{
-					errno = 0;
-					quit("Can't read setup info from reliable data buffer");
-				}
-				ptr = (char *) &Setup;
-				done = (char *) &Setup.motd[0] - ptr;
-				todo = Setup.motd_len;
-			}
-			else
-			{
-				memcpy(&ptr[done], cbuf.ptr, len);
-				Sockbuf_advance(&cbuf, len + cbuf.ptr - cbuf.buf);
-				done += len;
-				todo -= len;
-			}
-		}
-		if (todo > 0)
-		{
-			if (rbuf.ptr != rbuf.buf)
-				Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
-
-			if (rbuf.len > 0)
-			{
-				/*
-				if (rbuf.ptr[0] != PKT_RELIABLE)
-				{
-					if (rbuf.ptr[0] == PKT_QUIT)
-					{
-						quit("Server closed connection");
-					}
-					else
-					{
-						errno = 0;
-						quit_fmt("Not a reliable packet (%d) in setup", rbuf.ptr[0]);
-					}
-				}
-				*/
-				if (Receive_reliable() == -1)
-					return -1;
-				//if (Sockbuf_flush(&wbuf) == -1)
-				//	return -1;
-			}
-
-			if (cbuf.ptr != cbuf.buf)
-				Sockbuf_advance(&cbuf, cbuf.ptr - cbuf.buf);
-
-			if (cbuf.len > 0)
-				continue;
-
-		//	for (retries = 0;;retries++)
-		//	{
-			//	if (retries >= 10)
-			//	{
-			//		errno = 0;
-			//		quit_fmt("Can't read setup after %d retries "
-			//			 "(todo=%d, left=%d)",
-			//			 retries, todo, cbuf.len - (cbuf.ptr - cbuf.buf));
-			//	}
-
-				SetTimeout(5, 0);
-				if (!SocketReadable(rbuf.sock))
-				{
-					errno = 0;
-					quit("No setup info received");
-				}
-				while (SocketReadable(rbuf.sock) > 0)
-				{
-					Sockbuf_clear(&rbuf);
-					if (Sockbuf_read(&rbuf) == -1)
-						quit("Can't read all of setup data");
-					if (rbuf.len > 0)
-						break;
-					SetTimeout(0, 0);
-				}
-		//		if (rbuf.len > 0)
-		//			break;
-		//	}
-		}
+	int	n, i, size;
+	byte *attr_ref;
+	char *char_ref;
+	switch (type) {
+		case 0:
+			size = MAX_FLVR_IDX;
+			attr_ref = &Client_setup.flvr_x_attr;
+			char_ref = &Client_setup.flvr_x_char;
+			break;
+		case 1:
+			size = MAX_F_IDX;
+			attr_ref = &Client_setup.f_attr;
+			char_ref = &Client_setup.f_char;
+			break;
+		case 2:
+			size = MAX_K_IDX;
+ 			attr_ref = &Client_setup.k_attr;
+  			char_ref = &Client_setup.k_char;
+  			break;
+  		case 3:
+			size = MAX_R_IDX;
+			attr_ref = &Client_setup.r_attr;
+			char_ref = &Client_setup.r_char;
+			break;
+		case 4:
+	 		size = 128;
+			attr_ref = &Client_setup.tval_attr;
+			char_ref = &Client_setup.tval_char;
+			break;
+		case 5:
+			size = 256;
+			attr_ref =	&Client_setup.misc_attr;
+			char_ref =	&Client_setup.misc_char;
+			break;
+		default:
+			return 0;
 	}
 
-	return 0;
-}
-
-/*
- * Send the first packet to the server with our name,
- * nick and display contained in it.
- * The server uses this data to verify that the packet
- * is from the right UDP connection, it already has
- * this info from the ENTER_GAME_pack.
- */
-int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
-{
-	int	i, n, type, result, data_size;
-
-	Sockbuf_clear(&wbuf);
-	n = Packet_printf(&wbuf, "%c%s%s%s%hd%hd%hd", PKT_VERIFY, real, nick, pass, sex, race, class);
-
-	/* Determine the total size of the following data */
-	data_size = 2 + 6 + 64 + (MAX_FLVR_IDX + MAX_F_IDX + MAX_K_IDX + MAX_R_IDX)*2 + 128 + 256;
+	if ((n = Packet_printf(&wbuf, "%c%c%hd", PKT_VERIFY, (byte)type, size)) <= 0)
+	{
+		return n;
+	}
 	
-	/* Send a flag to indicate we speak the new protocol */
-	Packet_printf(&wbuf, "%c%c", 'X', 'X');
+	for (i = 0; i < size; i++)
+	{
+		if ((n = Packet_printf(&wbuf, "%c%c", attr_ref[i], char_ref[i])) <= 0)
+		{
+			return n;
+		}
+	}
+	
 
-	/* Make sure the server knows how much data we are about to send! */
-	Packet_printf(&wbuf, "%hd", data_size);
-
-	/* Send the desired stat order */
+	return 1;
+} 
+/*
+ * NET VERIFY LIVES !!!  
+ */
+int Net_verify()
+{
+	int i;
+	/* There are 5 char/attr streams, go throu all of them */
 	for (i = 0; i < 6; i++)
 	{
-		Packet_printf(&wbuf, "%hd", stat_order[i]);
+		Send_verify_visual(i);
 	}
-
-	/* Send the options */
-	for (i = 0; i < 64; i++)
-	{
-		Packet_printf(&wbuf, "%c", Client_setup.options[i]);
-	}
-	Sockbuf_flush(&wbuf);
-
-	/* Send the "flavour" redefinitions */
-	Packet_printf(&wbuf, "%hd", MAX_FLVR_IDX);
-	for (i = 0; i < MAX_FLVR_IDX; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.flvr_x_attr[i], Client_setup.flvr_x_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-
-	/* Send the "feature" redefinitions */
-	Packet_printf(&wbuf, "%hd", MAX_F_IDX);
-	for (i = 0; i < MAX_F_IDX; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.f_attr[i], Client_setup.f_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-
-	/* Send the "object" redefinitions */
-	Packet_printf(&wbuf, "%hd", MAX_K_IDX);
-	for (i = 0; i < MAX_K_IDX; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.k_attr[i], Client_setup.k_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-
-	/* Send the "monster" redefinitions */
-	Packet_printf(&wbuf, "%hd", MAX_R_IDX);
-	for (i = 0; i < MAX_R_IDX; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.r_attr[i], Client_setup.r_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-
-	/* Send "tval_to_" redefenitions */
-	Packet_printf(&wbuf, "%hd", 128);
-	for (i = 0; i < 128; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.tval_attr[i], Client_setup.tval_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-	
-	/* Send "misc_to_" redefenitions */
-	Packet_printf(&wbuf, "%hd", 256);
-	for (i = 0; i < 256; i++)
-	{
-		Packet_printf(&wbuf, "%c%c", Client_setup.misc_attr[i], Client_setup.misc_char[i]);
-	}
-	Sockbuf_flush(&wbuf);
-		
-	/* Now wait for a response */
-	SetTimeout(5, 0);
-	if (!SocketReadable(rbuf.sock))
-	{
-
-		errno = 0;
-		plog("No verify response");
-		return -1;
-
-	}
-	Sockbuf_clear(&rbuf);
-	if (Sockbuf_read(&rbuf) == -1)
-	{
-		plog("Can't read verify reply packet");
-		return -1;
-	}
-	//if (rbuf.len <= 0)
-	//	continue;
-	
-	if (Receive_reliable() == -1)
-		return -1;
-	if (Sockbuf_flush(&wbuf) == -1)
-		return -1;
-	//if (cbuf.len == 0)
-	//	continue;
-	if (Receive_reply(&type, &result) <= 0)
-	{
-		errno = 0;	
-		plog("Can't receive verify reply packet");
-		return -1;
-	}
-	if (type != PKT_VERIFY)
-	{
-		errno = 0;
-		plog(format("Verify wrong reply type (%d)", type));
-		return -1;
-	}
-	if (result != PKT_SUCCESS)
-	{
-		errno = 0;
-		plog(format("Verification failed (%d)", result));
-		return -1;
-	}
-	if (Receive_magic() <= 0)
-	{
-		plog("Can't receive magic packet after verify");
-		return -1;
-	}
-
 	return 0;
 }
 
@@ -382,7 +213,7 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
  * 3) cbuf is used to copy the reliable data stream
  *    into from the raw and unreliable rbuf packets.
  */
-int Net_init(char *server, int fd)
+int Net_init(int fd)
 {
 	int		 sock;
 
@@ -460,11 +291,16 @@ int Net_init(char *server, int fd)
 		return -1;
 	}
 
+	Setup.ready = Setup.wait = FALSE;
+
 	/* reliable data byte stream offset */
 	reliable_offset = 0;
 
 	/* Initialized */
 	initialized = 1;
+	
+	/* Advance State*/
+	conn_state = CONN_SETUP;
 
 	return 0;
 }
@@ -535,95 +371,6 @@ int Net_fd(void)
 }
 
 
-/*
- * Try to send a `start play' packet to the server and get an
- * acknowledgement from the server.  This is called after
- * we have initialized all our other stuff like the user interface
- * and we also have the map already.
- */
-int Net_start(void)
-{
-	int	type, result;
-
-	Sockbuf_clear(&wbuf);
-	if (Packet_printf(&wbuf, "%c", PKT_PLAY) <= 0
-		|| Sockbuf_flush(&wbuf) == -1)
-	{
-		quit("Can't send start play packet");
-	}
-
-	// Wait for data to arrive
-	SetTimeout(5, 0);	
-	if (!SocketReadable(rbuf.sock))
-	{
-		errno = 0;
-		quit("No play packet reply received.");
-	}
-
-	Sockbuf_clear(&rbuf);
-	if (Sockbuf_read(&rbuf) == -1)
-	{
-		quit("Error reading play reply");
-		return -1;
-	}
-
-	if (Receive_reliable() == -1)
-		return -1;
-		//if (Sockbuf_flush(&wbuf) == -1)
-		//	return -1;
-	//}
-
-	//if (cbuf.ptr - cbuf.buf >= cbuf.len)
-	//{
-	//	continue;
-	//}
-		
-	/* If our connection wasn't accepted, quit */
-	if (cbuf.ptr[0] == PKT_QUIT)
-	{
-		errno = 0;
-		quit(&cbuf.ptr[1]);
-		return -1;
-	}
-	if (cbuf.ptr[0] != PKT_REPLY)
-	{
-		errno = 0;
-		quit(format("Not a reply packet after play (%d,%d,%d)",
-			cbuf.ptr[0], cbuf.ptr - cbuf.buf, cbuf.len));
-		return -1;
-	}
-	if (Receive_reply(&type, &result) <= 0)
-	{
-		errno = 0;
-		quit("Can't receive reply packet after play");
-		return -1;
-	}
-	if (type != PKT_PLAY)
-	{
-		errno = 0;
-		quit("Can't receive reply packet after play");
-		return -1;
-	}
-	if (result != PKT_SUCCESS)
-	{
-		errno = 0;
-		quit(format("Start play not allowed (%d)", result));
-		return -1;
-	}
-	// Finish processing any commands that were sent to us along with
-	// the PKT_PLAY packet.
-	
-	// Advance past our PKT_PLAY data
-	//Sockbuf_advance(&rbuf, 3);
-	// Actually process any leftover commands in rbuf
-	if (Net_packet() == -1)
-	{
-		return -1;
-	}
-
-	errno = 0;
-	return 0;
-}
 
 
 /*
@@ -636,6 +383,8 @@ int Net_packet(void)
 			prev_type = 0,
 			result;
 
+	int (**ack_tbl)(void) = receive_tbl;
+	if (conn_state == CONN_SETUP) ack_tbl = setup_tbl;
 	/* Hack -- copy cbuf to rbuf since this is where this function
 	 * expects the data to be.
 	 */
@@ -656,18 +405,17 @@ int Net_packet(void)
 	while (rbuf.buf + rbuf.len > rbuf.ptr)
 	{
 		type = (*rbuf.ptr & 0xFF);
-
-		if (receive_tbl[type] == NULL)
+		if (ack_tbl[type] == NULL)
 		{
 			errno = 0;
 			/* The player really doesn't need to know about this */
 #ifdef DEBUG			
-			plog(format("Received unknown packet type (%d, %d), dropping", type, prev_type));
+			plog(format("Received unknown packet type (%d, %d, %d), dropping", type, prev_type, conn_state));
 #endif
 			Sockbuf_clear(&rbuf);
 			break;
 		}
-		else if ((result = (*receive_tbl[type])()) <= 0)
+		else if ((result = (*ack_tbl[type])()) <= 0)
 		{
 			if (result == -1)
 			{
@@ -678,49 +426,16 @@ int Net_packet(void)
 				}
 				return -1;
 			}
+			if (result == -2)
+			{
+				ack_tbl = (conn_state == CONN_PLAYING ? receive_tbl : setup_tbl);
+				continue;
+			}
 			Sockbuf_clear(&rbuf);
 			break;
 		}
 		prev_type = type;
 	}
-#if 0
-	// Process all the queued client updates
-	while (cbuf.buf + cbuf.len > cbuf.ptr) 
-	{
-		/* Reset full length */
-		//reliable_full_len = 0;
-
-		type = (*cbuf.ptr & 0xFF);
-		if (type == PKT_REPLY)
-		{
-			if ((result = Receive_reply(&replyto, &status)) <= 0)
-			{
-				if (result == 0)
-					break;
-				return -1;
-			}
-			errno = 0;
-			plog(format("Got reply packet (%d, %d)", replyto, status));
-		}
-		else if (receive_tbl[type] == NULL)
-		{
-			errno = 0;
-			 //plog(format("Receive unknown reliable data packet type (%d, %d, %d)",
-			//	type, cbuf.ptr - cbuf.buf, cbuf.len)); 
-
-			 /* we have received bad data, ignore this packet */
-			Sockbuf_clear(&cbuf);
-
-			break;
-		}
-		else if ((result = (*receive_tbl[type])()) <= 0)
-		{
-			if (result == 0)
-				break;
-			return -1;
-		}
-	}
-#endif
 	return 0;
 }
 
@@ -834,6 +549,48 @@ int Flush_queue(void)
 	return 1;
 }
 
+bool Net_Send(int Socket, sockbuf_t* ibuf)
+{
+	int bytes;
+	/* Send the info */
+	if ((bytes = DgramWrite(Socket, ibuf->buf, ibuf->len) == -1))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int max_retries)
+{
+	int retries;
+	/* Listen for reply */
+	for (retries = 0; retries < max_retries; retries++)
+	{
+		/* Set timeout */
+		SetTimeout(1, 0);
+
+		/* Wait for info */
+		if (!SocketReadable(Socket)) continue;
+
+		/* Read reply */
+		if(DgramRead(Socket, ibuf->buf, ibuf->size) <= 0)
+		{
+			/*printf("DgramReceiveAny failed (errno = %d)\n", errno);*/
+			continue;
+		}
+
+		break;
+	}
+	
+	if (retries >= max_retries)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}	
+
 /*
  * Receive the beginning of a new frame update packet,
  * which contains the loops number.
@@ -897,13 +654,57 @@ int Receive_end(void)
 }
 
 
-int Receive_magic(void)
+
+int Send_motd(int off)
 {
 	int	n;
-	byte	ch;
+	int offset = off;
+	
+	if (offset < 0) offset = 0;
 
-	if ((n = Packet_scanf(&cbuf, "%c%u", &ch, &magic)) <= 0)
+	if ((n = Packet_printf(&wbuf, "%c%ld", PKT_MOTD, offset)) <= 0)
+	{
 		return n;
+	}
+
+	if (off == 0)
+	{
+		Setup.ready = FALSE;
+		Setup.wait = TRUE;
+	}
+
+	return 1;
+}
+
+int Send_char_info()
+{
+	int	n, i;
+	if ((n = Packet_printf(&wbuf, "%c%hu%hu%hu", PKT_CHAR_INFO, race, class, sex)) <= 0)
+	{
+		return n;
+	}
+
+	/* Send the desired stat order */
+	for (i = 0; i < 6; i++)
+	{
+			n = Packet_printf(&wbuf, "%hd", stat_order[i]);
+			if (n < 0) {
+						return n;
+			}
+	}
+
+	return 1;
+}
+
+int Send_play(int mode)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_PLAY, (byte)mode)) <= 0)
+	{
+		return n;
+	}
+
 	return 1;
 }
 
@@ -934,9 +735,9 @@ int Send_ack(long rel_loops)
  */ 
 int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s16b draw)
 {
-	int	n, x, i;
+	int	x, i;
 	char c;
-	byte a;
+	byte a, n;
 	s16b y = draw;
 		
 	for (x = 0; x < max_col; x++)
@@ -1332,6 +1133,107 @@ int Receive_equip(void)
 	/* Window stuff */
 	p_ptr->window |= (PW_EQUIP);
 
+	return 1;
+}
+
+/* Ready to play */
+int Receive_play(void)
+{
+	int n;
+	char ch;
+
+	if ((n = Packet_scanf(&rbuf, "%c", &ch)) <= 0)
+	{
+		return n;
+	}
+	
+	conn_state = CONN_PLAYING;
+
+	return -2;
+}
+int Receive_motd(void)
+{
+	int n, i, off, len;
+	char ch;
+	bool show = FALSE;
+
+	if ((n = Packet_scanf(&rbuf, "%c%ld%ld", &ch, &len, &off)) <= 0)
+	{
+		return n;
+	}
+
+	for (i = 0; i < len; i++)
+	{
+		if ((n = Packet_scanf(&rbuf, "%c", &Setup.motd[off+i])) <= 0)
+		{
+			return n;
+		}
+	}
+
+	if (len == 0)
+	{
+		Setup.ready = TRUE;
+		
+		if (conn_state == CONN_SETUP)
+		{
+			if (Setup.wait) {
+				Send_play(1);
+				show_motd();
+				Setup.wait = FALSE;
+			}
+		}
+	}
+	else 
+	{
+		/* Request continuation */		
+		Send_motd(off + i);
+	}
+
+	return 1;
+}
+int Receive_basic_info(void)
+{
+	int n;
+	int graf, snd, tmp3, tmp4, tmp5, tmp6, tmp7;
+	char ch;
+
+	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd%hd%hd%hd", &ch, &Setup.frames_per_second, &graf, &snd, &tmp3, &tmp4, &tmp5, &tmp6, &tmp7)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+int Receive_char_info_conn(void)
+{
+	int	n, mode;
+	char	ch;
+
+	/* Clear any old info */
+	race = class = sex = 0;
+
+	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd", &ch, &mode, &race, &class, &sex)) <= 0)
+	{
+		return n;
+	}
+
+	/* No character */
+	if (mode == 0)
+	{
+		get_char_info();
+		Send_char_info();
+	}
+
+	p_ptr->prace = race;
+	p_ptr->pclass = class;
+	p_ptr->male = sex;
+	
+	/* Hack -- assume ready */
+	if (Setup.frames_per_second && mode)
+	{
+			client_ready();
+	}
+	
 	return 1;
 }
 
@@ -1858,17 +1760,17 @@ int Receive_keepalive(void)
 {
 	int	n;
 	char	ch;
-	u32b	cticks;
+	s32b	cticks;
 
 
-	if ((n = Packet_scanf(&rbuf, "%c%lu", &ch, &cticks)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%ld", &ch, &cticks)) <= 0)
 	{
 		return n;
 	}
 	/* make sure it's the same one we sent... */
 
 	if(cticks == last_keepalive) {
-		if (!screen_icky && !shopping) {
+		if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
 			prt_lag(cticks,mticks-cticks);
 		} 
 		last_keepalive=0;
@@ -2614,18 +2516,11 @@ int Send_keepalive(void)
 {
 	int	n;
 
-	if( lag_ok) {
-		if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE,last_keepalive=mticks)) <= 0)
-		{
-			return n;
-		}
-	} else {
-		if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE)) <= 0)
-		{
-			return n;
-		}
-	};
-
+	if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE,last_keepalive=mticks)) <= 0)
+	{
+		return n;
+	}
+	
 	return 1;
 }
 
@@ -3233,13 +3128,22 @@ int Send_suicide(void)
 	return 1;
 }
 
-int Send_options(void)
+int Send_options(bool settings)
 {
 	int i, n;
 
-	if ((n = Packet_printf(&wbuf, "%c", PKT_OPTIONS)) <= 0)
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_OPTIONS, (byte)settings )) <= 0)
 	{
 		return n;
+	}
+
+	if (settings)
+	{
+		/* Send each setting */
+		for (i = 0; i < 16; i++)
+		{
+			Packet_printf(&wbuf, "%hd", Client_setup.settings[i]);
+		}
 	}
 
 	/* Send each option */
@@ -3340,11 +3244,10 @@ static u32b last_sent;
 	// Check to see if it has been 2 seconds since we last sent anything.  Assume
 	// that each game turn lasts 100 ms.
 	//if ((ticks - last_send_anything) >= 10)
-	if(lag_ok) { 
 		if ((mticks - last_sent) > 10000)  /* 1 second */
 		{
 			if(last_keepalive) { 
-				if (!screen_icky && !shopping) {
+				if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
 					prt_lag(999999999, mticks-last_keepalive); 
 				} 
 				last_keepalive=0;
@@ -3352,11 +3255,5 @@ static u32b last_sent;
 			Send_keepalive(); 
 			last_sent=mticks;
 		}
-	} else {
-		if ((ticks - last_sent) > 20) {  /* 2 seconds */
-			Send_stay();
-		 	last_sent=ticks;
-		}
-	}
 }
 

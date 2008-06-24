@@ -1207,13 +1207,13 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			/* Race */
 			else if (streq(b+1, "RACE"))
 			{
-				v = race_title[race];//p_name;// + rp_ptr->name;
+				v = p_name + race_info[p_ptr->prace].name;
 			}
 
 			/* Class */
 			else if (streq(b+1, "CLASS"))
 			{
-				v = c_name;// + cp_ptr->name;
+				v = c_name + c_info[p_ptr->pclass].name;
 			}
 
 			/* Player */

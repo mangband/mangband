@@ -107,7 +107,8 @@ struct server_setup_t
 {
 	s16b frames_per_second;
 	int motd_len;
-	int setup_size;
+	bool ready;
+	bool wait;
 	char motd[80 * 23];
 };
 
@@ -118,6 +119,7 @@ struct server_setup_t
 
 struct client_setup_t
 {
+	int  settings[16];
 	bool options[64];
 
 	byte flvr_x_attr[MAX_FLVR_IDX];

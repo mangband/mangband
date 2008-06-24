@@ -1,18 +1,25 @@
 #define MIN_RECEIVE_WINDOW_SIZE		1
 #define MAX_RECEIVE_WINDOW_SIZE		4
 
+#define CONN_PLAYING 1
+#define CONN_SETUP	2 
+
 extern int	receive_window_size;
 //extern long	last_turns;
 
 int Net_packet();
 int Net_setup(void);
-int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class);
-int Net_init(char *server, int fd);
+int Net_verify(void);
+int Net_init(int fd);
 void Net_cleanup(void);
 int Net_flush(void);
 int Net_fd(void);
-int Net_start(void);
 int Net_input(void);
+int Receive_motd(void);
+int Receive_basic_info(void);
+int Receive_char_info(void);
+int Receive_play(void);
+int Receive_char_info_conn(void);
 int Receive_start(void);
 int Receive_end(void);
 int Receive_leave(void);

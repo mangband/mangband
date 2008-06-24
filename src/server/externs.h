@@ -432,6 +432,7 @@ extern const player_sex sex_info[MAX_SEXES];
 /* birth.c */
 extern bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[]);
 extern void server_birth(void);
+extern bool client_version_ok(u16b version);
 
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);
@@ -609,6 +610,7 @@ extern void show_news(void);
 extern errr show_file(int Ind, cptr name, cptr what, int line, int color);
 extern void do_cmd_help(int Ind, int line);
 extern bool process_player_name(int Ind, bool sf);
+extern int process_player_name_aux(cptr name, cptr basename, bool sf);
 extern void get_name(int Ind);
 extern void do_cmd_suicide(int Ind);
 extern void do_cmd_save_game(int Ind);
@@ -659,6 +661,7 @@ extern void load_server_cfg(void);
 /* load2.c */
 extern errr rd_savefile_new(int Ind);
 extern errr rd_server_savefile(void);
+extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex);
 
 /* melee1.c */
 /* melee2.c */
@@ -859,6 +862,7 @@ extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge,
 
 /* save.c */
 extern bool save_player(int Ind);
+extern int scoop_player(char *nick, char *pass, int *race, int *class, int *sex);
 extern bool load_player(int Ind);
 extern bool load_server_info(void);
 extern bool save_server_info(void);

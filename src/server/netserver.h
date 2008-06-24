@@ -5,8 +5,8 @@
 #define NOT_CONNECTED		(-1)
 
 #define CONN_FREE		0x00
-#define CONN_LISTENING		0x01
-#define CONN_SETUP		0x02
+#define CONN_SETUP		0x01
+#define CONN_XXXX1		0x02
 #define CONN_LOGIN		0x04
 #define CONN_PLAYING		0x08
 #define CONN_DRAIN		0x20
@@ -27,7 +27,6 @@
 typedef struct {
 	int		state;
 	int		drain_state;
-	unsigned	magic;
 	sockbuf_t	r;
 	sockbuf_t	w;
 	sockbuf_t	c;
@@ -45,8 +44,7 @@ typedef struct {
 	int		acks;
 	int		setup;
 	int		client_setup;
-	int		my_port;
-	int		his_port;
+	int		char_state;
 	int		id;
 	unsigned	version;
 	char		*real;
@@ -63,18 +61,17 @@ typedef struct {
 
 static void Contact(int fd, int arg);
 static void Console(int fd, int arg);
-static int Enter_player(char *real, char *name, char *addr, char *host,
-				unsigned version, int port, int *login_port, int fd);
 
-static int Handle_listening(int ind);
-static int Handle_setup(int ind);
-static int Handle_login(int ind);
+static int Enter_player(int ind);
 void Handle_input(int fd, int arg);
 void do_quit(int ind, bool tellclient);
 
+static int Receive_motd(int ind);
+static int Receive_char_info(int ind);
+static int Receive_verify_visual(int ind);
+
 static int Receive_quit(int ind);
 static int Receive_play(int ind);
-static int Receive_ack(int ind);
 static int Receive_discard(int ind);
 static int Receive_undefined(int ind);
 
@@ -147,11 +144,15 @@ static int Receive_custom_command(int ind);
 static void Handle_item(int Ind, int item);
 int Setup_net_server(void);
 void Send_custom_commands(int ind);
+int Send_game_start_conn(int ind);
+int Send_motd_conn(int ind, int offset);
+int Send_basic_info_conn(int ind);
+int Send_char_info_conn(int ind);
 
 int Setup_net_server(void);
 bool Destroy_connection(int ind, char *reason);
 int Check_connection(char *real, char *nick, char *addr);
-int Setup_connection(char *real, char *nick, char *addr, char *host, unsigned version, int fd);
+int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass, bool need_info, int race, int class, int sex, unsigned version, int fd);
 int Input(void);
 int Send_reply(int ind, int replyto, int result);
 int Send_leave(int ind, int id);

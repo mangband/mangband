@@ -316,6 +316,7 @@ extern void peruse_file(void);
 extern errr Save_options(void);
 
 /* c-init.c */
+extern bool client_ready(void);
 extern void initialize_all_pref_files(void);
 extern void client_init(char *argv1);
 
@@ -404,18 +405,20 @@ extern void do_cmd_messages(void);
 /* client.c */
 
 /* netclient.c */
+extern int conn_state;			/* Similar to server's connp->state */
 extern sockbuf_t rbuf, cbuf, wbuf, qbuf;
 extern int ticks;
 extern int lag_ok;
 extern void update_ticks();
 extern void do_keepalive();
+extern bool Net_Send(int Socket, sockbuf_t* ibuf);
+extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
 extern int Net_setup(void);
-extern int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class);
-extern int Net_init(char *server, int port);
+extern int Net_verify(void);
+extern int Net_init(int port);
 extern void Net_cleanup(void);
 extern int Net_flush(void);
 extern int Net_fd(void);
-extern int Net_start(void);
 extern int Net_input(void);
 extern int Net_packet(void);
 extern int Flush_queue(void);
@@ -471,7 +474,7 @@ extern int Send_special_line(int type, int line);
 extern int Send_party(s16b command, cptr buf);
 extern int Send_purchase_house(int dir);
 extern int Send_suicide(void);
-extern int Send_options(void);
+extern int Send_options(bool settings);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
 extern int Send_pass(cptr newpass);
