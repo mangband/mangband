@@ -1965,7 +1965,7 @@ int do_cmd_run(int Ind, int dir)
 	if (dir)
 	{
 		/* Make sure we have an empty space to run into */
-		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px))
+		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px) && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
 			/* Handle the cfg_door_bump option */
 			if (cfg_door_bump_open)
@@ -1994,6 +1994,9 @@ int do_cmd_run(int Ind, int dir)
 			/* Disturb */
 			disturb(Ind, 0, 0);
 
+			/* Waste a little bit of energy for trying */
+			p_ptr->energy -= level_speed(p_ptr->dun_depth)/5;
+			
 			return 2;
 		}
 

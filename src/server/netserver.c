@@ -3240,7 +3240,7 @@ static int Receive_run(int ind)
 	// If we don't want to queue the command, return now.
 	if ((n = do_cmd_run(player,dir)) == 2)
 	{
-		return 2;
+		return -1;
 	}
 	// If do_cmd_run returns a 0, then there wasn't enough energy
 	// to execute the run command.  Queue the run command if desired.
