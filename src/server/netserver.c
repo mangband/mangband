@@ -1362,13 +1362,13 @@ int process_pending_commands(int ind)
 	player_type *p_ptr;	
 	int player, type, result, (**receive_tbl)(int ind) = playing_receive, old_energy = 0;
 	
+	int num_players_start = NumPlayers; // Hack to see if we have quit in this function
+
 	if (connp->state & (CONN_PLAYING | CONN_READY))
 		receive_tbl = &playing_receive[0];
 	else if (connp->state & CONN_SETUP)
 		receive_tbl = &setup_receive[0];
 	
-	int num_players_start = NumPlayers; // Hack to see if we have quit in this function
-
 	// Hack -- take any pending commands from the command que connp->q
 	// and move them to connp->r, where the Receive functions get their
 	// data from.

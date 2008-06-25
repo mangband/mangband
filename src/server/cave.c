@@ -703,6 +703,12 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	byte a, ta;
 	char c, tc;
 
+	bool visi = FALSE;
+	bool lite_glow = FALSE;
+
+	int t_dispx = x - p_ptr->panel_col_prt;
+	int t_dispy = y - p_ptr->panel_row_prt;
+
 	/* Get the cave */
 	c_ptr = &cave[Depth][y][x];
 	w_ptr = &p_ptr->cave_flag[y][x];
@@ -724,9 +730,6 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		r_char_ptr = &p_ptr->r_char;
 	}
 
-	bool visi = FALSE;
-	bool lite_glow = FALSE;
-
 	// grid is visible for DM anyways
 	if ( !strcmp(p_ptr->name,cfg_dungeon_master) ) visi = TRUE;
 	// cave MARK (??)
@@ -738,9 +741,6 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 
 	/* Feature code */
 	feat = c_ptr->feat;
-
-	int t_dispx = x - p_ptr->panel_col_prt;
-	int t_dispy = y - p_ptr->panel_row_prt;
 
 	ta = f_attr_ptr[c_ptr->feat];
 	tc = f_char_ptr[c_ptr->feat];
