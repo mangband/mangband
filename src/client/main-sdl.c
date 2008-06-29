@@ -1031,7 +1031,7 @@ static errr Term_curs_sdl(int x, int y)
 	//if (td->cx != -1 && td->cy != -1) { 
 	//		RedrawChar(td->cx, td->cy); 
 	//	}
-	if (td->cx == x && td->cy == y) return;
+	if (td->cx == x && td->cy == y) return (0);
 	//if (x == -1 && y == -1) return;
 	if (td->cursor_on) 
 	{

@@ -707,7 +707,7 @@ void carry(int Ind, int pickup, int confirm)
 				delete_object(Depth, p_ptr->py, p_ptr->px);
 
 				/* Tell the client */
-				floor_item_notify(Ind, NULL, FALSE);
+				floor_item_notify(Ind, 0, FALSE);
 			}
 		}
 	}
@@ -1817,7 +1817,7 @@ void move_player(int Ind, int dir, int do_pickup)
 
 		/* Handle "objects" */
 		if (c_ptr->o_idx) carry(Ind, do_pickup, 0);
-		else 	floor_item_notify(Ind, NULL, FALSE);
+		else 	floor_item_notify(Ind, 0, FALSE);
 
 		/* Handle "store doors" */
 		if ((!p_ptr->ghost) &&
@@ -2603,7 +2603,9 @@ static bool run_test(int Ind)
 void run_step(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
+	#if 0
 	cave_type *c_ptr;
+	#endif
 
 	/* Check for just changed level */
 	if (p_ptr->new_level_flag) return;

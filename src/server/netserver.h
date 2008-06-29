@@ -60,7 +60,7 @@ typedef struct {
 } connection_t;
 
 static void Contact(int fd, int arg);
-static void Console(int fd, int arg);
+//static void Console(int fd, int arg);
 
 static int Enter_player(int ind);
 void Handle_input(int fd, int arg);

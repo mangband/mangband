@@ -224,11 +224,11 @@ static void compact_monsters_aux(int i1, int i2)
  */
 void compact_monsters(int size)
 {
-	int		i, num, cnt, Ind;
+	int		i, num, cnt;//, Ind;
 
 	int		cur_lev, cur_dis, chance;
 
-	s16b this_o_idx, next_o_idx = 0;
+	//s16b this_o_idx, next_o_idx = 0;
 
 	/* Message (only if compacting) */
 	if (size) plog("Compacting monsters...");
@@ -2743,7 +2743,6 @@ int race_index(char * name)
  */
 int race_index_fuzzy(char * name)
 {
-	char match[MAX_CHARS];
 	char monster[MAX_CHARS];
 	char* str;
 	char* dst;

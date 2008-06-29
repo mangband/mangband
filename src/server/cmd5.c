@@ -327,7 +327,7 @@ void do_cmd_browse(int Ind, int book)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			i, j, item, sval;
+	int			i, item, sval;
 
 	byte		spell[64], num = 0;
 
@@ -482,7 +482,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	sval = o_ptr->sval;
 
     /* Spellcaster -- Learn a selected spell */
-    if (p == "spell")
+    if (!strcmp(p, "spell"))
 	{
 		for (i = 0; i < 64; i++)
 		{
@@ -507,7 +507,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	}
 
     /* Cleric -- Learn a random prayer */
-	if (p == "prayer")
+	if (!strcmp(p,"prayer"))
 	{
 		int k = 0;
 
@@ -654,7 +654,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 /*
  * Hook to specify "ammo"
  */
-static bool item_tester_hook_ammo(const object_type *o_ptr)
+static bool item_tester_hook_ammo(int Ind, object_type *o_ptr)
 {
 	switch (o_ptr->tval)
 	{
@@ -675,12 +675,12 @@ void brand_ammo(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 	object_type *o_ptr;
-	cptr q, s;
+//	cptr q, s;
 	int r;
 	byte brand_type;
 
 	/* Only accept ammo */
-	item_tester_hook = item_tester_hook_ammo;
+	/* item_tester_hook = item_tester_hook_ammo; */
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -699,7 +699,7 @@ void brand_ammo(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-	if (!item_tester_hook(o_ptr)) {
+	if (!item_tester_hook_ammo(Ind, o_ptr)) {
 			msg_print(Ind, "You cannot brand that!");
 			return;
 	}

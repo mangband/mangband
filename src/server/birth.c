@@ -1128,7 +1128,7 @@ static void player_setup(int Ind)
 	{
 		/* Add */
 		add_player_name(p_ptr->name, p_ptr->id);
-	printf("Player Name is [%s], id is %d\n",p_ptr->name, p_ptr->id);
+	printf("Player Name is [%s], id is %d\n", p_ptr->name, (int)p_ptr->id);
 	}
 
 	/* Set his "current activities" variables */

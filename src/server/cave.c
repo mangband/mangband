@@ -495,9 +495,9 @@ int player_pict(int Ind, int who)
 {
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr = Players[who];
-	byte a, row, col;
-	char c;
-	int kludge, pre_kludge;
+	byte a;
+	char c, kludge;
+	int pre_kludge;
 
 	/* Decide on player image */
 	if (p_ptr->use_graphics) 
@@ -548,7 +548,7 @@ int player_pict(int Ind, int who)
 	pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
 	if (pre_kludge < 7) 
 	{
-		sprintf((unsigned char *)&kludge,"%d",pre_kludge); 
+		sprintf(&kludge, "%d", pre_kludge); 
 		c = kludge;
 	}
 	//}
@@ -686,18 +686,17 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
-	int kludge; /* for displaying chars with lowered hp's */
 
 	char *f_char_ptr;
-	byte *f_attr_ptr;
+	unsigned char *f_attr_ptr;
 	char *r_char_ptr;
 	byte *r_attr_ptr;
 
 	cave_type *c_ptr;
 	byte *w_ptr;
-
+#if 0 // for boring floors
 	feature_type *f_ptr;
-
+#endif
 	int feat;
 
 	byte a, ta;
@@ -717,17 +716,17 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	if (server)
 	{
 		/* We have initialised a global array of server char/attr elsewhere for speed */
-		f_attr_ptr = &f_attr_s;
-		f_char_ptr = &f_char_s;
-		r_attr_ptr = &r_attr_s;
-		r_char_ptr = &r_char_s;
+		f_attr_ptr = f_attr_s;
+		f_char_ptr = f_char_s;
+		r_attr_ptr = r_attr_s;
+		r_char_ptr = r_char_s;
 	}
 	else
 	{
-		f_attr_ptr = &p_ptr->f_attr;
-		f_char_ptr = &p_ptr->f_char;
-		r_attr_ptr = &p_ptr->r_attr;
-		r_char_ptr = &p_ptr->r_char;
+		f_attr_ptr = p_ptr->f_attr;
+		f_char_ptr = p_ptr->f_char;
+		r_attr_ptr = p_ptr->r_attr;
+		r_char_ptr = p_ptr->r_char;
 	}
 
 	// grid is visible for DM anyways
@@ -1368,8 +1367,6 @@ void lite_spot(int Ind, int y, int x)
 	player_type *p_ptr = Players[Ind];
 
 	int dispx, dispy;
-
-	int kludge, pre_kludge;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))

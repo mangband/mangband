@@ -509,7 +509,7 @@ void prt_basic(void)
 void prt_lag(u32b mark, u32b num)
 {
 	int attr=0;
-	static int flipper =0;
+	//static int flipper =0;
 	static u32b last=0;
 
 	/* Default to "unknown" */
@@ -1086,8 +1086,8 @@ void fix_player(void)
 
 void fix_message(void)
 {
-        int j, c, i,ii, pmdone, mdone;
-        int w, h, pmw, pmh;
+        int j, c, i;
+        int w, h;
         int x, y;
         term *oldt;
 	char from_us[30];
@@ -1636,7 +1636,6 @@ static void display_player_misc_info(void)
 void display_player(void)
 {
 	int i;
-	char buf[80];
 	cptr desc;
 
      /* Clear screen */

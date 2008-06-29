@@ -177,7 +177,7 @@ char * cfg_console_password = "change_me";
 char * cfg_dungeon_master = "DungeonMaster";
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
-s16b cfg_tcp_port = 18346;
+s32b cfg_tcp_port = 18346;
 bool cfg_mage_hp_bonus = 1;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;
@@ -685,7 +685,7 @@ feature_type *f_info;
 char *f_name;
 char *f_text;
 char f_char_s[MAX_F_IDX];
-char f_attr_s[MAX_F_IDX];
+byte f_attr_s[MAX_F_IDX];
 
 /*
  * The object kind arrays
@@ -720,7 +720,7 @@ monster_race *r_info;
 char *r_name;
 char *r_text;
 char r_char_s[MAX_R_IDX];
-char r_attr_s[MAX_R_IDX];
+byte r_attr_s[MAX_R_IDX];
 
 
 /*

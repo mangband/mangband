@@ -16,7 +16,7 @@
 
 int get_player(int Ind, object_type *o_ptr)
 {
-        player_type *p_ptr = Players[Ind];
+        //player_type *p_ptr = Players[Ind];
         bool ok = FALSE;
         int Ind2;
 
@@ -2307,10 +2307,9 @@ void player_death(int Ind)
 	char dumpname[42];
 	int i;
 	u32b uniques;
-	s16b num_keys = 0;
 	s16b item_weight = 0;
-	int tmp;  /* used to check for pkills */
-	int pkill=0;  /* verifies we have a pkill */
+	//int tmp;  /* used to check for pkills */
+	//int pkill=0;  /* verifies we have a pkill */
 
 	/* If this is our final death, clear any houses */
 	if (p_ptr->ghost || p_ptr->no_ghost)
@@ -2423,7 +2422,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* don't dump ghosts */
     if(p_ptr->alive) { 
 		/* Character dump here, before we start dropping items */
-		sprintf(dumpname,"%s-%i.txt",p_ptr->name,turn);
+		sprintf(dumpname,"%s-%i.txt",p_ptr->name,(int)turn);
 		file_character_server(Ind,dumpname);
     }
 
@@ -2527,7 +2526,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 				uniques = p_ptr->max_dlv-((p_ptr->max_dlv*11468)>>15);
 				if (r_ptr->level > uniques )
 				{
-					printf("r_ptr->level = %d, uniques = %d\n",r_ptr->level,uniques);
+					printf("r_ptr->level = %d, uniques = %d\n",r_ptr->level,(int)uniques);
 					p_ptr->r_killed[i] = 0;
 
 					/* Tell the player */ 
@@ -2673,7 +2672,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
  
 void resurrect_player(int Ind)
 {
-	int exp, lives, level;
 	player_type *p_ptr = Players[Ind];
 
 	/* Hack -- the dungeon master can not ressurect */
@@ -3628,8 +3626,6 @@ bool target_set(int Ind, int dir)
 	int		y;
 	int		x;
 	
-	int cave_flag;
-
 	bool	flag = TRUE;
 	bool  free_target = TRUE;
 

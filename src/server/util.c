@@ -2533,7 +2533,7 @@ void msg_broadcast(int Ind, cptr msg)
 	 }
 	 
 	/* Send to console */
-	console_print(msg);
+	console_print((char*)msg);
 	 
 }
 
@@ -3059,12 +3059,17 @@ void text_out(cptr buf) {
 			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
-				if (buf[i] == ' ') 
+				if (buf[i] == ' ')
+				{ 
 					if (i - shorten < 80 - p_ptr->cur_wid)
+					{
 						j = i - shorten;
+					}
 					else
+					{
 						break;
-			
+					}
+				}
 			simple = FALSE;
 			warped = TRUE;
 		}

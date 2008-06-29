@@ -1131,7 +1131,7 @@ static errr grab_one_class_flag(player_class *pc_ptr, cptr what)
 		return (0);
 
 	/* Oops */
-	msg_format("Unknown player class flag '%s'.", what);
+	//msg_format("Unknown player class flag '%s'.", what);
 
 	/* Error */
 	return (PARSE_ERROR_GENERIC);
@@ -1750,7 +1750,7 @@ static errr grab_one_racial_flag(player_race *pr_ptr, cptr what)
 		return (0);
 
 	/* Oops */
-	msg_format("Unknown player flag '%s'.", what);
+	//msg_format("Unknown player flag '%s'.", what);
 
 	/* Error */
 	return (PARSE_ERROR_GENERIC);

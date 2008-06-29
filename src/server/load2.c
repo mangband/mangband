@@ -167,8 +167,8 @@ uint read_uint(char* name)
 void read_str(char* name, char* value)
 {
 	char seek_name[80];
-	int params;
-	bool matched = FALSE;
+	//int params;
+	//bool matched = FALSE;
 	char *c;
 	
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
@@ -218,7 +218,7 @@ void read_binary(char* name, char* value, int max_len)
 {
 	char seek_name[80];
 	char hex[3];
-	int i;
+	//int i;
 	char *c;
 	char *bin;
 	int abyte;
@@ -252,8 +252,7 @@ void read_binary(char* name, char* value, int max_len)
 void skip_value(char* name)
 {
 	char seek_name[80];
-	bool matched = FALSE;
-	char value[160];
+	//bool matched = FALSE;
 	long fpos;
 	
 	/* Remember where we are incase there is nothing to skip */
@@ -277,7 +276,6 @@ bool value_exists(char* name)
 {
 	char seek_name[80];
 	bool matched = FALSE;
-	char value[160];
 	long fpos;
 	
 	/* Remember where we are */
@@ -404,7 +402,7 @@ static void rd_item(object_type *o_ptr)
 
 	u32b f1, f2, f3;
 
-	u16b tmp16u;
+	//u16b tmp16u;
 
 	object_kind *k_ptr;
 
@@ -614,7 +612,7 @@ static void rd_item(object_type *o_ptr)
 
 static void rd_monster(monster_type *m_ptr)
 {
-	byte tmp8u;
+	//byte tmp8u;
 
 	start_section_read("monster");
 
@@ -651,8 +649,8 @@ static void rd_monster(monster_type *m_ptr)
  */
 static void rd_lore(int r_idx)
 {
-	byte tmp8u;
-	u16b tmp16u;
+	//byte tmp8u;
+	//u16b tmp16u;
 
 	monster_race *r_ptr = &r_info[r_idx];
 
@@ -830,7 +828,7 @@ static void rd_house(int n)
 
 static void rd_wild(int n)
 {
-	u32b tmp32u;
+	//u32b tmp32u;
 	wilderness_type *w_ptr = &wild_info[-n];
 	
 	/* the flags */
@@ -850,9 +848,9 @@ static bool rd_extra(int Ind)
 	char temp[MAX_PASS_LEN];
 	char temp2[MAX_PASS_LEN];
 
-	int i, save_flag = 0;
+	int i = 0;
 
-	byte tmp8u;
+	//byte tmp8u;
 
 	/*	p_ptr->pass	- Password from client
 		pass		- Password from save file
@@ -1203,11 +1201,11 @@ static errr rd_dungeon(void)
 	s32b depth;
 	u16b max_y, max_x;
 
-	int i, y, x;
+	int y, x;
 	cave_type *c_ptr;
 	char cave_row[MAX_WID+1];
 
-	unsigned char runlength, feature, flags;
+	//unsigned char runlength, feature, flags;
 
 	start_section_read("dungeon_level");
 
@@ -1349,9 +1347,9 @@ static errr rd_cave_memory(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	u16b max_y, max_x;
-	int i, y, x;
+	int y, x;
 	char cave_row[MAX_WID+1];
-	unsigned char runlength, cur_flag;
+	//unsigned char runlength, cur_flag;
 
 	start_section_read("cave_memory");
 
@@ -1390,7 +1388,7 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *cla
 	int i;
 
 	u16b tmp16u;
-	u32b tmp32u;
+	//u32b tmp32u;
 	
 	errr err;
 

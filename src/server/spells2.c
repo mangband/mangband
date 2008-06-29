@@ -1998,8 +1998,9 @@ bool create_artifact_aux(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
+#if defined(RANDART)
 	char o_name[80]; /* Only used by randart() */
-
+#endif
 	/* Get the item (in the pack) */
 	if (item >= 0)
 	{
@@ -4003,7 +4004,6 @@ bool poly_monster(int Ind, int dir)
 
 bool clone_monster(int Ind, int dir)
 {
-	int num, i;
 	player_type *p_ptr = Players[Ind];
 	
 	/* Never in the town */

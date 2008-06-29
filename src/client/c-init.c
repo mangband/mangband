@@ -264,11 +264,9 @@ void client_init(char *argv1)
 {
 	sockbuf_t ibuf;
 	unsigned char status;
-	int login_port, trycount;
-	int bytes, retries;
+	int trycount;
 	char host_name[80], trymsg[80], c;
 	u16b version = MY_VERSION;
-	s32b temp;
 	bool done = 0;
 
 	/* Setup the file paths */

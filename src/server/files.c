@@ -1183,7 +1183,6 @@ errr file_character_server(int Ind, cptr name)
 	cptr		paren = ")";
 	int			fd = -1;
 	FILE		*fff = NULL;
-	store_type		*st_ptr = &store[7];
 	char		o_name[80];
 	char		today[10];
 	char		buf[1024];
@@ -1214,11 +1213,8 @@ errr file_character_server(int Ind, cptr name)
 	/* Existing file */
 	if (fd >= 0)
 	{
-		char out_val[160];
-
 		/* Close the file */
 		(void)fd_close(fd);
-
 	}
 
 	/* Open the non-existing file */

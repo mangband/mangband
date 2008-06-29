@@ -4186,8 +4186,8 @@ static u16b bolt_pict(int Ind, int y, int x, int ny, int nx, int typ)
 	return (PICT(a,c));
 }
 
-
-/*
+#if 0
+/*	XXX -- Supressed by bolt_pict
  * Find the char to use to draw a moving bolt
  * It is moving (or has moved) from (x,y) to (nx,ny).
  * If the distance is not "one", we (may) return "*".
@@ -4201,7 +4201,7 @@ static char bolt_char(int y, int x, int ny, int nx)
 	if ((ny-y) == (nx-x)) return '\\';
 	return '*';
 }
-
+#endif
 
 
 /*

@@ -576,9 +576,6 @@ int get_spell_index(int Ind, const object_type *o_ptr, int index)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int spell;
-	int num = 0;
-
 	/* Get the item's sval */
 	int sval = o_ptr->sval;
 

@@ -20,13 +20,13 @@
 void delete_object_ptr(object_type * o_ptr)
 {
 	/* special function to deal with inventory items being destoryed, instead of just wiping them */
-
+/*
 	int i,j;
 
 	int y = o_ptr->iy;
 	int x = o_ptr->ix;
 	int Depth = o_ptr->dun_depth;
-
+*/
 	/* Wipe the object */
 	WIPE(o_ptr, object_type);
 
@@ -456,7 +456,7 @@ void compact_objects(int size)
 
 void wipe_o_list(int Depth)
 {
-	int i, x, y, house_depth;
+	int i;//, house_depth;
 
 	/* Delete the existing objects */
 	for (i = 1; i < o_max; i++)

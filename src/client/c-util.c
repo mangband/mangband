@@ -748,8 +748,8 @@ char inkey(void)
 	return (ch);
 }
 
+#if 0
 static int hack_dir = 0;
-
 /*
  * Convert a "Rogue" keypress into an "Angband" keypress
  * Pass extra information as needed via "hack_dir"
@@ -907,7 +907,7 @@ static char original_commands(char command)
 	/* Default */
 	return (command);
 }
-
+#endif
 
 
 /*

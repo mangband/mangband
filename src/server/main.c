@@ -198,7 +198,6 @@ static void server_log(cptr str)
 int main(int argc, char *argv[])
 {
 	bool new_game = FALSE;
-	char buf[1024];
 	int catch_signals = TRUE;
 #ifdef WINDOWS
   WSADATA wsadata;

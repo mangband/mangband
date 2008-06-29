@@ -870,7 +870,7 @@ bool object_info_out(const object_type *o_ptr)
 static bool screen_out_head(const object_type *o_ptr)
 {
 	//char *o_name;
-	int name_size = 80;//Term->wid;
+	//int name_size = 80;//Term->wid;
 	bool has_description = FALSE;
 
 	/* Allocate memory to the size of the screen */

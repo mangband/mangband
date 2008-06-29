@@ -1763,7 +1763,7 @@ static bool get_spike(int Ind, int *ip)
  */
 void do_cmd_custom(int Ind, char c, int item, char dir, int value)
 {
-	player_type *p_ptr = Players[Ind];
+	//player_type *p_ptr = Players[Ind];
 	
 	/* HACK -- must be some form of structure */
 	switch(c) 
@@ -3124,9 +3124,8 @@ void do_cmd_purchase_house(int Ind, int dir)
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
-	int y, x, i, j, factor, price;
+	int y, x, i, factor, price;
 	cave_type *c_ptr;
-	object_type key;
 
 	/* Ghosts cannot buy houses */
 	if(strcmp(p_ptr->name,cfg_dungeon_master))  {

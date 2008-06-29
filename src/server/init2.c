@@ -213,7 +213,7 @@ void init_file_paths(char *path)
 }
 
 
-
+#if 0
 /*
  * Hack -- Explain a broken "lib" folder and quit (see below).
  *
@@ -221,6 +221,7 @@ void init_file_paths(char *path)
  * may or may not be initialized, but the "plog()" and "quit()"
  * functions are "supposed" to work under any conditions.
  */
+
 static void show_news_aux(cptr why)
 {
 	/* Why */
@@ -238,7 +239,7 @@ static void show_news_aux(cptr why)
 	/* Quit with error */
 	quit("Fatal Error.");
 }
-
+#endif
 
 /*
  * Hack -- verify some files, and display the "news.txt" file
@@ -749,7 +750,7 @@ static errr init_info(cptr filename, header *head)
 	return (0);
 }
 
-
+#if 0
 /*
  * Free the allocated memory for the info-, name-, and text- arrays.
  */
@@ -767,7 +768,7 @@ static errr free_info(header *head)
 	/* Success */
 	return (0);
 }
-
+#endif
 
 /*
  * Initialize the "z_info" array

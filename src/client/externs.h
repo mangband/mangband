@@ -427,6 +427,9 @@ extern int Net_input(void);
 extern int Net_packet(void);
 extern int Flush_queue(void);
 
+extern int Send_motd(int offset);
+extern int Send_play(int mode);
+
 extern int Send_search(void);
 extern int Send_walk(int dir);
 extern int Send_run(int dir);

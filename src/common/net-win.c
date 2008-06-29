@@ -2036,5 +2036,5 @@ SocketWrite(int fd, char *buf, int size)
     return retval;
 } /* SocketWrite */
 
-/*#endif	/*SERVER function? */
+/*#endif	//SERVER function? */
 #endif

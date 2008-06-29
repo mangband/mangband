@@ -63,7 +63,7 @@ static void console_whois(char *name)
 {
 	int i, len;
 	u16b major, minor, patch, extra;
-	char output[1024], brave[15];
+	char brave[15]; //output[1024]; 
 	player_type *p_ptr, *p_ptr_search;
 	
 	p_ptr = 0;
@@ -174,7 +174,7 @@ static void console_kick_player(char *name)
 static void console_rng_test()
 {
 	int i;
-	u32b outcome, value;
+	u32b outcome;
 	/* This is the expected outcome, generated on our reference platform */
 	u32b reference = 0x0D3E5371;
 	
@@ -263,9 +263,9 @@ static void console_shutdown(void)
  */
 void NewConsole(int read_fd, int arg)
 {
-	char ch, passwd[80], buf[1024];
+	char passwd[80], buf[1024];
 	char *params;
-	int i, j, bytes, buflen;
+	int bytes, buflen;
 	static int newsock = 0;
 
 	/* Make a TCP connection */
@@ -371,7 +371,7 @@ void NewConsole(int read_fd, int arg)
 	buflen = strlen(buf);
 
 	/* Split up command and params */
-	if(params = strstr(buf," "))
+	if( (params = strstr(buf," ")) )
 	{
 		*params++ = '\0';
 	}

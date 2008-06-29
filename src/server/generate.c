@@ -383,7 +383,6 @@ static void place_rubble_aux(int Depth, int y, int x)
 static void place_rubble(int Depth, int y, int x)
 {
 	int i,j;
-	cave_type *c_ptr = &cave[Depth][y][x];
 
 	place_rubble_aux(Depth, y, x);
 

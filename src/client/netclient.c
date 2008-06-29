@@ -141,33 +141,33 @@ int Send_verify_visual(int type)
 	switch (type) {
 		case 0:
 			size = MAX_FLVR_IDX;
-			attr_ref = &Client_setup.flvr_x_attr;
-			char_ref = &Client_setup.flvr_x_char;
+			attr_ref = Client_setup.flvr_x_attr;
+			char_ref = Client_setup.flvr_x_char;
 			break;
 		case 1:
 			size = MAX_F_IDX;
-			attr_ref = &Client_setup.f_attr;
-			char_ref = &Client_setup.f_char;
+			attr_ref = Client_setup.f_attr;
+			char_ref = Client_setup.f_char;
 			break;
 		case 2:
 			size = MAX_K_IDX;
- 			attr_ref = &Client_setup.k_attr;
-  			char_ref = &Client_setup.k_char;
+ 			attr_ref = Client_setup.k_attr;
+  			char_ref = Client_setup.k_char;
   			break;
   		case 3:
 			size = MAX_R_IDX;
-			attr_ref = &Client_setup.r_attr;
-			char_ref = &Client_setup.r_char;
+			attr_ref = Client_setup.r_attr;
+			char_ref = Client_setup.r_char;
 			break;
 		case 4:
 	 		size = 128;
-			attr_ref = &Client_setup.tval_attr;
-			char_ref = &Client_setup.tval_char;
+			attr_ref = Client_setup.tval_attr;
+			char_ref = Client_setup.tval_char;
 			break;
 		case 5:
 			size = 256;
-			attr_ref =	&Client_setup.misc_attr;
-			char_ref =	&Client_setup.misc_char;
+			attr_ref =	Client_setup.misc_attr;
+			char_ref =	Client_setup.misc_char;
 			break;
 		default:
 			return 0;
@@ -799,6 +799,7 @@ int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s
 		}
 		*/ 
 	}
+	return 0;
 }
 
 
@@ -1155,7 +1156,6 @@ int Receive_motd(void)
 {
 	int n, i, off, len;
 	char ch;
-	bool show = FALSE;
 
 	len = off = 0;
 
@@ -1252,7 +1252,7 @@ int Receive_char_info(void)
 {
 	int	n;
 	char	ch;
-	static bool pref_files_loaded = FALSE;
+/*	static bool pref_files_loaded = FALSE; */
 
 	/* Clear any old info */
 	race = class = sex = 0;
@@ -1423,17 +1423,17 @@ int Receive_sp(void)
 
 int Receive_objflags(void)
 {
-	char	ch, c;
-	int	n, x, i;
-	s16b	y;
-	byte	a;
+	int	n;
+	char	ch;
+	s16b  y;
+	/* int x; byte a; char c; */
 	
 	if ((n = Packet_scanf(&rbuf, "%c%hu", &ch, &y)) <= 0)
 	{
 		return n;
 	}
 	
-	rle_decode(&rbuf, &p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0);
+	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0);
 	
 	/* No RLE mode
 	for (x = 0; x < 13; x++)
@@ -1476,7 +1476,7 @@ int Receive_char(void)
 {
 	int	n;
 	char	ch;
-	char	x, y;
+	unsigned char	x, y;
 	char	a, c;
 	char	tap,tcp;
 
@@ -1988,11 +1988,9 @@ int Receive_flush(void)
 
 int Receive_line_info(void)
 {
-	char	ch, c, n;
-	int	x, i;
+	char	ch, n;
 	s16b	y;
-	byte	a;
-	bool	draw = FALSE;
+		bool	draw = FALSE;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
@@ -2083,7 +2081,8 @@ int Receive_special_other(void)
 int Receive_store(void)
 {
 	int	n, price;
-	char	ch, pos, name[1024];
+	char	ch, name[1024];
+	unsigned char pos;
 	byte	attr;
 	s16b	wgt, num;
 
@@ -2143,7 +2142,7 @@ int Receive_player_store_info(void)
 {
 	int	n;
 	char	ch;
-	s16b	owner_num, num_items;
+	s16b	num_items;// owner_num;
 
 	if ((n = Packet_scanf(&rbuf, "%c%s%s%hd", &ch, player_store_name, player_owner, &num_items)) <= 0)
 	{

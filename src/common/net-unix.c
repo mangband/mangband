@@ -31,7 +31,7 @@
 
 #ifdef SET_UID
 
-#ifndef lint
+#if !(defined lint) && (1 == 0)
 static char sourceid[] =
     "@(#)$Id: net-unix.c,v 1.5 2000/08/08 16:27:54 mangadm Exp $";
 #endif
@@ -368,7 +368,7 @@ GetPortNum(fd)
 int	fd;
 #endif /* __STDC__ */
 {
-    int			len;
+    unsigned int			len;
 #ifdef UNIX_SOCKETS
     struct sockaddr_un	addr;
     int port;
@@ -436,7 +436,7 @@ int	fd;
 #ifdef UNIX_SOCKETS
     return "localhost";
 #else
-    int			len;
+    unsigned int len;
     struct sockaddr_in	addr;
 
     len = sizeof(struct sockaddr_in);
@@ -493,7 +493,7 @@ int	namelen;
 #ifdef UNIX_SOCKETS
     strcpy(name, "localhost");
 #else
-    int			len;
+    unsigned int len;
     struct sockaddr_in	addr;
     struct hostent	*hp;
 
@@ -1062,7 +1062,7 @@ GetSocketError(fd)
 int	fd;
 #endif /* __STDC__ */
 {
-    int	error, size;
+    int	error; unsigned int size;
 
     size = sizeof(error);
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
@@ -1883,7 +1883,7 @@ int	size;
 #endif /* __STDC__ */
 {
     int		retval;
-    int		addrlen = sizeof(sl_dgram_lastaddr);
+    unsigned int		addrlen = sizeof(sl_dgram_lastaddr);
 
     (void) memset((char *)&sl_dgram_lastaddr, 0, addrlen);
     cmw_priv_assert_netaccess();

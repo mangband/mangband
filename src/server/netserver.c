@@ -290,7 +290,7 @@ bool Report_to_meta(int flag)
 			}
 		}
 		strcat(local_name, ":");
-		sprintf(temp, "%d", cfg_tcp_port);
+		sprintf(temp, "%d", (int) cfg_tcp_port);
 		strcat(local_name, temp);
 	}
 
@@ -599,10 +599,9 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 
 	return SUCCESS;
 }
-
+#if 0
 static void Console(int fd, int arg)
 {
-#if 0
 	char buf[1024];
 	int i;
 
@@ -654,15 +653,16 @@ static void Console(int fd, int arg)
 	{
 		/* Whatever I need at the moment */
 	}
-#endif
 }
+#endif
 		
 static void Contact(int fd, int arg)
 {
-	int bytes, newsock, len;
+	int bytes, newsock;
 	int race, class, sex , ret;
 	bool need_info = FALSE;
 	u16b version = 0;
+	unsigned int len;
 	char	status,
 		real_name[MAX_CHARS],
 		nick_name[MAX_CHARS],
@@ -860,7 +860,6 @@ static void Delete_player(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char buf[255];
-	int i;
 
 	/* Be paranoid */
 	if (cave[p_ptr->dun_depth])
@@ -1195,7 +1194,7 @@ static int Enter_player(int ind)
 {
 	connection_t *connp = &Conn[ind];
 	player_type *p_ptr;
-	int i, j;
+	int i;
 	char buf[255];
 
 	if (Id >= MAX_ID)
@@ -2113,7 +2112,7 @@ int Send_game_start_conn(int ind)
 int Send_motd_conn(int ind, int offset)
 {
 	connection_t *connp = &Conn[ind];
-	int i, n;
+	int i;
 	int max;
 
 	 
@@ -2616,9 +2615,6 @@ int Send_mini_map(int ind, int y)
 {
 	player_type *p_ptr = Players[ind];
 	connection_t *connp = &Conn[p_ptr->conn];
-	int x, x1, n;
-	char c;
-	byte a;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{

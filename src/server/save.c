@@ -76,7 +76,8 @@ static void write_binary(char* name, char* data)
 		b = data[i];
 		fprintf(file_handle,"%2x",b);
 	}
-	fprintf(file_handle,"\n",name);
+	//fprintf(file_handle,"\n",name);
+	fprintf(file_handle,"\n");
 }
 
 
@@ -555,8 +556,8 @@ static void wr_player_names(void)
 static void wr_dungeon(int Depth)
 {
 	int y, x;
-	byte prev_feature, prev_info;
-	unsigned char runlength;
+	//byte prev_feature, prev_info;
+	//unsigned char runlength;
 	char cave_row[MAX_WID+1];
 
 	cave_type *c_ptr;
@@ -624,8 +625,8 @@ void wr_cave_memory(Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	int y,x;
-	char prev_flag;
-	unsigned char runlength = 0;
+	//char prev_flag;
+	//unsigned char runlength = 0;
 	char cave_row[MAX_WID+1];
 
 	start_section("cave_memory");
@@ -661,7 +662,7 @@ static bool wr_savefile_new(int Ind)
 
 	u32b              now, tmp32u;
 
-	byte		tmp8u;
+	//byte		tmp8u;
 	u16b		tmp16u;
 
 
@@ -981,7 +982,7 @@ int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
 	char tmp[MAX_CHARS];
 
 	strcpy(tmp, nick);
-	if (process_player_name_aux( &tmp , NULL, TRUE ) < 0)
+	if (process_player_name_aux( &tmp[0] , NULL, TRUE ) < 0)
 	{
 		/* Error allready! */
 		err = -1;
@@ -1331,7 +1332,7 @@ static bool wr_server_savefile(void)
 
         u32b              now;
 
-        byte            tmp8u;
+        //byte            tmp8u;
         u16b            tmp16u;
 		u32b		tmp32u;
 

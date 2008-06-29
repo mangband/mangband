@@ -1653,7 +1653,7 @@ static void process_various(void)
 	cave_type *c_ptr;
 	player_type *p_ptr;
 
-	char buf[1024];
+	//char buf[1024];
 
 	/* Save the server state occasionally */
 	if (!(turn % (cfg_fps * 60 * SERVER_SAVE)))

@@ -820,10 +820,9 @@ static void store_delete(int st)
 static void store_create(int st)
 {
 	store_type *st_ptr = &store[st];
-	int			i, tries, level, stocked,x,y;
+	int			i, tries, level;
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
-	cave_type		*c_ptr;
 
 	/* Paranoia -- no room left */
 	if (st_ptr->stock_num >= st_ptr->stock_size) return;
@@ -1014,7 +1013,7 @@ static int display_inventory(int Ind)
 {
 	player_type 	*p_ptr = Players[Ind];
 	store_type 		*st_ptr = &store[p_ptr->store_num];
-	int 			k,i,x,y,stocked;
+	int 			k,x,y,stocked;
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
@@ -1065,7 +1064,7 @@ static int display_inventory(int Ind)
 				{
 							
 					/* Is this item for sale? */
-					if(c = strstr(quark_str(o_ptr->note),"for sale"))
+					if((c = strstr(quark_str(o_ptr->note),"for sale")))
 					{
 						/* Get ask price */
 						c += 8; /* skip "for sale" */
@@ -1097,7 +1096,7 @@ static int display_inventory(int Ind)
 /* Returns the name of a player owned store */
 static int get_player_store_name(int num, char *name)
 {
-	int 			k,i,x,y;
+	int 			x,y;
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
@@ -1128,7 +1127,7 @@ static int get_player_store_name(int num, char *name)
 			{
 							
 				/* Is this item for sale? */
-				if(c = strstr(quark_str(o_ptr->note),"store name"))
+				if((c = strstr(quark_str(o_ptr->note),"store name")))
 				{
 					/* Get name */
 					c += 10; /* skip "for sale" */
@@ -1179,7 +1178,7 @@ static void display_store(int Ind)
 	else
 	{
 		/* Get the store name if any */
-		get_player_store_name(p_ptr->player_store_num, &store_name);
+		get_player_store_name(p_ptr->player_store_num, &store_name[0]);
 		Send_player_store_info(Ind, store_name, 
 			houses[p_ptr->player_store_num].owned, stockcount);		
 	}
@@ -1265,12 +1264,12 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, byte pval)
 {
 	player_type *p_ptr = Players[Ind];
-	int			i,x,y,sold,spacex,spacey,spacedepth;
+	int			x,y,sold,spacex,spacey,spacedepth;
 	object_type		*o_ptr;
 	cave_type		*c_ptr;
 	cave_type		*c_ptr_gold;
 	object_type		gold_obj;
-	s32b			price_each = gold / number;
+	//s32b			price_each = gold / number;
 	u32b			total;
 	bool			have_gold, have_space;
 	char			*c;
@@ -1317,7 +1316,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 						
 			/* Is this item for sale? */
 			if (!o_ptr->note) continue;
-			if(c = strstr(quark_str(o_ptr->note),"for sale"))
+			if((c = strstr(quark_str(o_ptr->note),"for sale")))
 			{
 				/* Get ask price */
 				c += 8; /* skip "for sale" */
@@ -1425,7 +1424,7 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
 	store_type *st_ptr = &store[st];
-	object_type		tmp_obj;
+	//object_type		tmp_obj;
 	cave_type		*c_ptr;
 	char			*c;	
 	int stocked,x,y;
@@ -1452,7 +1451,7 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 					if (o_ptr->note)
 					{
 						/* Is this item for sale? */
-						if(c = strstr(quark_str(o_ptr->note),"for sale"))
+						if((c = strstr(quark_str(o_ptr->note),"for sale")))
 						{
 							/* Is this the item we are looking for? */
 							if (item == stocked)

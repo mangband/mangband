@@ -636,7 +636,7 @@ void init_file_paths(char *path)
 
 errr process_pref_file_command(char *buf)
 {
-        int i, j, k;
+        int i, j;
 	int n1, n2;
 
         char *zz[16];

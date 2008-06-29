@@ -42,7 +42,7 @@
 /*
  * Rings (adjectives and colors)
  */
-
+#if 0
 static cptr ring_adj[MAX_ROCKS] =
 {
 	"Alexandrite", "Amethyst", "Aquamarine", "Azurite", "Beryl",
@@ -55,7 +55,7 @@ static cptr ring_adj[MAX_ROCKS] =
 	"Obsidian", "Silver", "Tortoise Shell", "Mithril", "Jet",
 	"Engagement", "Adamantite"
 };
-
+#endif
 static byte ring_col[MAX_ROCKS] =
 {
 	TERM_GREEN, TERM_VIOLET, TERM_L_BLUE, TERM_L_BLUE, TERM_L_GREEN,
@@ -73,7 +73,7 @@ static byte ring_col[MAX_ROCKS] =
 /*
  * Amulets (adjectives and colors)
  */
-
+#if 0
 static cptr amulet_adj[MAX_AMULETS] =
 {
 	"Amber", "Driftwood", "Coral", "Agate", "Ivory",
@@ -83,7 +83,7 @@ static cptr amulet_adj[MAX_AMULETS] =
     "Sapphire", "Dragon Tooth", "Sea Shell", "Flint Stone",
     "Platinum", "Glass"
 };
-
+#endif
 static byte amulet_col[MAX_AMULETS] =
 {
 	TERM_YELLOW, TERM_L_UMBER, TERM_WHITE, TERM_L_WHITE, TERM_WHITE,
@@ -98,7 +98,7 @@ static byte amulet_col[MAX_AMULETS] =
 /*
  * Staffs (adjectives and colors)
  */
-
+#if 0
 static cptr staff_adj[MAX_WOODS] =
 {
 	"Aspen", "Balsa", "Banyan", "Birch", "Cedar",
@@ -109,7 +109,7 @@ static cptr staff_adj[MAX_WOODS] =
 	"Mistletoe", "Hawthorn", "Bamboo", "Silver", "Runed",
 	"Golden", "Ashen"/*,"Gnarled","Ivory","Willow"*/
 };
-
+#endif
 static byte staff_col[MAX_WOODS] =
 {
 	TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER,
@@ -125,7 +125,7 @@ static byte staff_col[MAX_WOODS] =
 /*
  * Wands (adjectives and colors)
  */
-
+#if 0
 static cptr wand_adj[MAX_METALS] =
 {
     "Aluminium", "Cast Iron", "Chromium", "Copper", "Gold",
@@ -136,7 +136,7 @@ static cptr wand_adj[MAX_METALS] =
 	"Mithril-Plated", "Mithril", "Runed", "Bronze", "Brass",
 	"Platinum", "Lead"/*,"Lead-Plated","Ivory","Pewter"*/
 };
-
+#endif
 static byte wand_col[MAX_METALS] =
 {
 	TERM_L_BLUE, TERM_L_DARK, TERM_WHITE, TERM_L_UMBER, TERM_YELLOW,
@@ -153,16 +153,16 @@ static byte wand_col[MAX_METALS] =
  * Rods (adjectives and colors).
  * Efficiency -- copied from wand arrays
  */
-
+#if 0
 static cptr rod_adj[MAX_METALS];
-
+#endif
 static byte rod_col[MAX_METALS];
 
 
 /*
  * Mushrooms (adjectives and colors)
  */
-
+#if 0
 static cptr food_adj[MAX_SHROOM] =
 {
 	"Blue", "Black", "Black Spotted", "Brown", "Dark Blue",
@@ -170,7 +170,7 @@ static cptr food_adj[MAX_SHROOM] =
 	"Grey", "Light Blue", "Light Green", "Violet", "Red",
 	"Slimy", "Tan", "White", "White Spotted", "Wrinkled",
 };
-
+#endif
 static byte food_col[MAX_SHROOM] =
 {
 	TERM_BLUE, TERM_L_DARK, TERM_L_DARK, TERM_UMBER, TERM_BLUE,
@@ -185,7 +185,7 @@ static byte food_col[MAX_SHROOM] =
  * Hack -- The first four entries are hard-coded.
  * (water, apple juice, slime mold juice, something)
  */
-
+#if 0
 static cptr potion_adj[MAX_COLORS] =
 {
 	"Clear", "Light Brown", "Icky Green", "xxx",
@@ -201,7 +201,7 @@ static cptr potion_adj[MAX_COLORS] =
 	"Pungent", "Clotted Red", "Viscous Pink", "Oily Yellow", "Gloopy Green",
 	"Shimmering", "Coagulated Crimson", "Yellow Speckled", "Gold"
 };
-
+#endif
 static byte potion_col[MAX_COLORS] =
 {
 	TERM_WHITE, TERM_L_UMBER, TERM_GREEN, 0,
@@ -261,7 +261,7 @@ static byte scroll_col[MAX_TITLES];
 
 
 
-
+#if 0
 /*
  * Certain items have a flavor
  * This function is used only by "flavor_init()"
@@ -296,7 +296,7 @@ static bool object_has_flavor(int i)
 	/* Assume no flavor */
 	return (FALSE);
 }
-
+#endif
 
 /* HACK! 
  * Hard-code items for EASY_KNOW flag emulation
@@ -326,7 +326,7 @@ bool easy_know_p(object_type *o_ptr)
 	/* Nope */ 
 	return (FALSE);
 }
-
+#if 0
 /*
  * Certain items, if aware, are known instantly
  * This function is used only by "flavor_init()"
@@ -379,7 +379,7 @@ static bool object_easy_know(int i)
 	/* Nope */
 	return (FALSE);
 }
-
+#endif
 
 /*
  * Hack -- prepare the default object attr codes by tval
@@ -1025,7 +1025,7 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 /*
  * Obtain "flags" known to player
  */
-void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
 	bool aware, known;
 	
@@ -1045,7 +1045,7 @@ void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f
 /*
  * Obtain the "flags" for an item
  */
-void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
 	object_flags_aux(OBJECT_FLAGS_FULL, o_ptr, f1, f2, f3);
 }
@@ -1218,7 +1218,7 @@ static char *object_desc_int(char *t, sint v)
  *   2 -- The Cloak of Death [1,+3] (+2 to Stealth)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
  */
-void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
+void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode)
 {
 	cptr		basenm, modstr;
 	int		power, indexx;

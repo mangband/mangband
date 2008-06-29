@@ -718,7 +718,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			old_number;
+//	int			old_number;
 
 	bool		force = FALSE;
 
@@ -991,7 +991,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 
 	/* Don't allow certain inscriptions when selling */
-	if (c = strstr(inscription,"for sale")) 
+	if ((c = strstr(inscription,"for sale"))) 
 	{	
 		/* Can't sell unindentified items */
 		if (!object_known_p(Ind, o_ptr))
@@ -1585,7 +1585,6 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, b
 {
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
-	monster_type *m_ptr;
 	object_type *o_ptr;
 	char o_name[80];
 	bool found = FALSE;
@@ -1698,9 +1697,9 @@ void do_cmd_look(int Ind, int dir)
 
 	cave_type *c_ptr;
 	monster_type *m_ptr;
-	object_type *o_ptr;
+	//object_type *o_ptr;
 
-	char o_name[80];
+	//char o_name[80];
 	char out_val[160];
 
 	/* Cancel */
