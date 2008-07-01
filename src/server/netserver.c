@@ -1360,7 +1360,7 @@ int process_pending_commands(int ind)
 	connection_t *connp = &Conn[ind];
 	player_type *p_ptr;	
 	int player, type, result, (**receive_tbl)(int ind) = playing_receive, old_energy = 0;
-	
+	int last_pos, data_advance = 0; // Hack to buffer data in SETUP state
 	int num_players_start = NumPlayers; // Hack to see if we have quit in this function
 
 	if (connp->state & (CONN_PLAYING | CONN_READY))
@@ -1400,9 +1400,22 @@ int process_pending_commands(int ind)
 	{
 		while ((connp->r.ptr < connp->r.buf + connp->r.len))
 		{
+			/* Store all data for future, incase a command reports it lacks bytes! */
+			if (Sockbuf_write(&connp->q, connp->r.ptr, (connp->r.len - data_advance)) !=  (connp->r.len - data_advance))
+			{
+				errno = 0;
+				Destroy_connection(ind, "Can't copy read data to queue buffer");
+				return TRUE;
+			}
+			last_pos = connp->r.ptr;
 			type = (connp->r.ptr[0] & 0xFF);
 			result = (*receive_tbl[type])(ind);
+			if ((connp->r.ptr - last_pos) > 0) 
+				data_advance += (connp->r.ptr - last_pos);
 			connp->start = turn;
+			if (result == 0)
+				return TRUE;
+			Sockbuf_clear(&connp->q);
 			if (result == -1)
 				return TRUE;
 		}
@@ -3011,6 +3024,7 @@ static int Receive_verify_visual(int ind)
 	bool discard = FALSE;
 	char *char_ref;
 	byte *attr_ref;
+	type=size=0;
 	if ((n = Packet_scanf(&connp->r, "%c%c%hd", &ch, &type, &size)) <= 0)
 	{
 		if (n == -1) Destroy_connection(ind, "read error");
