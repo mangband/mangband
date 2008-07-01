@@ -41,6 +41,7 @@
 /*
  * Now, include the define's, the type's, and the extern's
  */
+#include "c-defines.h"
 #include "../common/defines.h"
 #include "../common/types.h"
 #include "externs.h"

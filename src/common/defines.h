@@ -35,9 +35,9 @@
  * Current version number of MAngband.
  */
  
-#define VERSION_MAJOR	1
-#define VERSION_MINOR	1
-#define VERSION_PATCH	0
+#define SERVER_VERSION_MAJOR	1
+#define SERVER_VERSION_MINOR	1
+#define SERVER_VERSION_PATCH	0
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
@@ -47,15 +47,16 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define VERSION_EXTRA	2
+#define SERVER_VERSION_EXTRA	2
 
 
 /*
  * This value is a single 16-bit number holding the version info
  */
 
-#define MY_VERSION (VERSION_MAJOR << 12 | VERSION_MINOR << 8 | VERSION_PATCH \
-	<< 4 | VERSION_EXTRA)
+#define SERVER_VERSION ( \
+  SERVER_VERSION_MAJOR << 12 | SERVER_VERSION_MINOR << 8 \
+  | SERVER_VERSION_PATCH << 4 | SERVER_VERSION_EXTRA)
 
 
 /*

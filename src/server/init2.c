@@ -503,10 +503,10 @@ static errr init_info_raw(int fd, header *head)
 static void init_header(header *head, int num, int len)
 {
 	/* Save the "version" */
-	head->v_major = VERSION_MAJOR;
-	head->v_minor = VERSION_MINOR;
-	head->v_patch = VERSION_PATCH;
-	head->v_extra = VERSION_EXTRA;
+	head->v_major = SERVER_VERSION_MAJOR;
+	head->v_minor = SERVER_VERSION_MINOR;
+	head->v_patch = SERVER_VERSION_PATCH;
+	head->v_extra = SERVER_VERSION_EXTRA;
 
 	/* Save the "record" information */
 	head->info_num = num;
@@ -819,9 +819,9 @@ static errr init_f_info(void)
 	MAKE(f_head, header);
 
 	/* Save the "version" */
-	f_head->v_major = VERSION_MAJOR;
-	f_head->v_minor = VERSION_MINOR;
-	f_head->v_patch = VERSION_PATCH;
+	f_head->v_major = SERVER_VERSION_MAJOR;
+	f_head->v_minor = SERVER_VERSION_MINOR;
+	f_head->v_patch = SERVER_VERSION_PATCH;
 	f_head->v_extra = 0;
 
 	/* Save the "record" information */
@@ -918,9 +918,9 @@ static errr init_k_info(void)
 	MAKE(k_head, header);
 
 	/* Save the "version" */
-	k_head->v_major = VERSION_MAJOR;
-	k_head->v_minor = VERSION_MINOR;
-	k_head->v_patch = VERSION_PATCH;
+	k_head->v_major = SERVER_VERSION_MAJOR;
+	k_head->v_minor = SERVER_VERSION_MINOR;
+	k_head->v_patch = SERVER_VERSION_PATCH;
 	k_head->v_extra = 0;
 
 	/* Save the "record" information */
@@ -1009,9 +1009,9 @@ static errr init_a_info(void)
 	MAKE(a_head, header);
 
 	/* Save the "version" */
-	a_head->v_major = VERSION_MAJOR;
-	a_head->v_minor = VERSION_MINOR;
-	a_head->v_patch = VERSION_PATCH;
+	a_head->v_major = SERVER_VERSION_MAJOR;
+	a_head->v_minor = SERVER_VERSION_MINOR;
+	a_head->v_patch = SERVER_VERSION_PATCH;
 	a_head->v_extra = 0;
 
 	/* Save the "record" information */
@@ -1156,9 +1156,9 @@ static errr init_e_info(void)
 	MAKE(e_head, header);
 
 	/* Save the "version" */
-	e_head->v_major = VERSION_MAJOR;
-	e_head->v_minor = VERSION_MINOR;
-	e_head->v_patch = VERSION_PATCH;
+	e_head->v_major = SERVER_VERSION_MAJOR;
+	e_head->v_minor = SERVER_VERSION_MINOR;
+	e_head->v_patch = SERVER_VERSION_PATCH;
 	e_head->v_extra = 0;
 
 	/* Save the "record" information */
@@ -1245,9 +1245,9 @@ static errr init_r_info(void)
 	MAKE(r_head, header);
 
 	/* Save the "version" */
-	r_head->v_major = VERSION_MAJOR;
-	r_head->v_minor = VERSION_MINOR;
-	r_head->v_patch = VERSION_PATCH;
+	r_head->v_major = SERVER_VERSION_MAJOR;
+	r_head->v_minor = SERVER_VERSION_MINOR;
+	r_head->v_patch = SERVER_VERSION_PATCH;
 	r_head->v_extra = 0;
 
 	/* Save the "record" information */
@@ -1345,9 +1345,9 @@ static errr init_v_info(void)
 	MAKE(v_head, header);
 
 	/* Save the "version" */
-	v_head->v_major = VERSION_MAJOR;
-	v_head->v_minor = VERSION_MINOR;
-	v_head->v_patch = VERSION_PATCH;
+	v_head->v_major = SERVER_VERSION_MAJOR;
+	v_head->v_minor = SERVER_VERSION_MINOR;
+	v_head->v_patch = SERVER_VERSION_PATCH;
 	v_head->v_extra = 0;
 
 	/* Save the "record" information */

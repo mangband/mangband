@@ -2180,7 +2180,7 @@ static void init_windows(void)
 	WIPE(td, term_data);
 
     sprintf(version, "Mangband %d.%d.%d", 
-			VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+			CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH);
 	td->s = version;
 	td->keys = 1024;
 	td->rows = 24;

@@ -2278,8 +2278,8 @@ int Receive_special_line(void)
 	
 			/* Show a general "title" + header */
 			special_line_header[60] = '\0';
-	      prt(format("[Mangband %d.%d.%d] %60s",
-				VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, special_line_header), 0, 0);
+			prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR, 
+			CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, special_line_header), 0, 0);
 	
 			/* Prompt (check if we have extra pages) */
 			if (max > (SCREEN_HGT - 2)) 

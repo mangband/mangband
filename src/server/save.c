@@ -686,9 +686,9 @@ static bool wr_savefile_new(int Ind)
 
 	/* Dump the file header */
 	start_section("version");
-	write_int("major",VERSION_MAJOR);
-	write_int("minor",VERSION_MINOR);
-	write_int("patch",VERSION_PATCH);
+	write_int("major",SERVER_VERSION_MAJOR);
+	write_int("minor",SERVER_VERSION_MINOR);
+	write_int("patch",SERVER_VERSION_PATCH);
 	end_section("version");
 
 
@@ -1356,9 +1356,9 @@ static bool wr_server_savefile(void)
 
 		/* Dump the file header */
 		start_section("version");
-		write_int("major",VERSION_MAJOR);
-		write_int("minor",VERSION_MINOR);
-		write_int("patch",VERSION_PATCH);
+		write_int("major",SERVER_VERSION_MAJOR);
+		write_int("minor",SERVER_VERSION_MINOR);
+		write_int("patch",SERVER_VERSION_PATCH);
 		end_section("version");
 
         /* Operating system */

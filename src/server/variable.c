@@ -33,10 +33,10 @@ cptr copyright[6] =
 /*
  * Hack -- Link the "version" into the executable
  */
-byte version_major = VERSION_MAJOR;
-byte version_minor = VERSION_MINOR;
-byte version_patch = VERSION_PATCH;
-byte version_extra = VERSION_EXTRA;
+byte version_major = SERVER_VERSION_MAJOR;
+byte version_minor = SERVER_VERSION_MINOR;
+byte version_patch = SERVER_VERSION_PATCH;
+byte version_extra = SERVER_VERSION_EXTRA;
 
 
 /*

@@ -360,15 +360,17 @@ bool Report_to_meta(int flag)
 	/* Append the version number */
 #ifndef SVNREV
     if (cfg_ironman)
-    	sprintf(temp, "Ironman Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    	sprintf(temp, "Ironman Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
+    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
     else
-    	sprintf(temp, "Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
+    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	/* Append the additional version info */
-	if (VERSION_EXTRA == 1)
+	if (SERVER_VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
-	if (VERSION_EXTRA == 2)
+	if (SERVER_VERSION_EXTRA == 2)
 		strcat(temp, "beta-1");
-	if (VERSION_EXTRA == 3)
+	if (SERVER_VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
     if (cfg_ironman)
@@ -429,7 +431,7 @@ int Setup_net_server(void)
 	/* Tell the metaserver that we're starting up */
 	Report_to_meta(META_START);
 
-	plog(format("Server is running version %04x\n", MY_VERSION));
+	plog(format("Server is running version %04x\n", SERVER_VERSION));
 
 	return 0;
 }
@@ -2244,7 +2246,7 @@ int Send_maxstat(int ind, int stat, int max)
         return 0;
     }
 
-    if (connp->version != MY_VERSION)
+    if (connp->version != SERVER_VERSION)
     {
 	/* don't send packet to older client */
         errno = 0;

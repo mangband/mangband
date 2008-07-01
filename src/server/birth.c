@@ -1349,7 +1349,7 @@ void server_birth(void)
  */
 bool client_version_ok(u16b version)
 {
-	if (version == MY_VERSION) 
+	if (version == SERVER_VERSION) 
 		return TRUE;
 	else
 		return FALSE;

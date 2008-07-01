@@ -1248,7 +1248,7 @@ errr file_character_server(int Ind, cptr name)
 		p_ptr->max_plv,
 		p_ptr->max_dlv,
 		p_ptr->died_from_list,
-		VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+		SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Leave it at that for characters lower than level 20 */
 	if( p_ptr->lev < 20 )
@@ -1263,10 +1263,10 @@ errr file_character_server(int Ind, cptr name)
 	/* Begin dump */
     if (cfg_ironman)
     	fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
-	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
     else
     	fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
-	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
 	display_player_server(Ind, buffer);
@@ -1835,7 +1835,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 #if 0
 		/* Show a general "title" */
         prt(format("[MAngband %d.%d.%d, %s, Line %d/%d]",
-		           VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH,
+		           SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH,
 		           caption, line, size), 0, 0);
 
 
@@ -2814,7 +2814,7 @@ static errr top_twenty(int Ind)
 
 	/* Save the version */
 	sprintf(the_score.what, "%u.%u.%u",
-	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Calculate and save the points */
 	sprintf(the_score.pts, "%9lu", (long)total_points(Ind));
@@ -2908,7 +2908,7 @@ static errr predict_score(int Ind, int line)
 
 	/* Save the version */
 	sprintf(the_score.what, "%u.%u.%u",
-	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Calculate and save the points */
 	sprintf(the_score.pts, "%9lu", (long)total_points(Ind));

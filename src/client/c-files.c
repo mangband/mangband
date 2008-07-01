@@ -1225,7 +1225,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			/* Game version */
 			else if (streq(b+1, "VERSION"))
 			{
-				v = MY_VERSION;//VERSION_STRING;
+				v = CLIENT_VERSION;
 			}
 		}
 
@@ -1451,7 +1451,7 @@ void peruse_file(void)
 
 		/* Show a general "title" */
       //          prt(format("[Mangband %d.%d.%d] <%d>",
-		//	VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, max_line), 0, 0);
+		//	CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, max_line), 0, 0);
 
 		/* Prompt */
 		//prt("[Press Return, Space, -, or ESC to exit.]", 23, 0);

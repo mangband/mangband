@@ -266,7 +266,7 @@ void client_init(char *argv1)
 	unsigned char status;
 	int trycount;
 	char host_name[80], trymsg[80], c;
-	u16b version = MY_VERSION;
+	u16b version = CLIENT_VERSION;
 	u16b conntype = CONNTYPE_PLAYER;
 	bool done = 0;
 
