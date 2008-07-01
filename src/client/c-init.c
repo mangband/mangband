@@ -267,6 +267,7 @@ void client_init(char *argv1)
 	int trycount;
 	char host_name[80], trymsg[80], c;
 	u16b version = MY_VERSION;
+	u16b conntype = CONNTYPE_PLAYER;
 	bool done = 0;
 
 	/* Setup the file paths */
@@ -363,6 +364,7 @@ void client_init(char *argv1)
 
 	/* Put the contact info in it */
 	Packet_printf(&ibuf, "%hu", version);
+	Packet_printf(&ibuf, "%hu", conntype);
 	Packet_printf(&ibuf, "%s%s%s%s", real_name, host_name, nick, pass);
 	
 	/* Send it */

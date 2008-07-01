@@ -662,6 +662,7 @@ static void Contact(int fd, int arg)
 	int race, class, sex , ret;
 	bool need_info = FALSE;
 	u16b version = 0;
+	u16b conntype = 0;
 	unsigned int len;
 	char	status,
 		real_name[MAX_CHARS],
@@ -730,14 +731,26 @@ static void Contact(int fd, int arg)
 		return;
 	}
 	
-	
 	if (!client_version_ok(version)) 
 	{
 		status = E_VERSION;
 	}
 	else
 	{
-		/* His version was correct. Let's try to read the string */
+		/* What type of connection is the client requesting? */
+		if (Packet_scanf(&ibuf, "%hu", &conntype) <= 0)
+		{
+			plog(format("Incomplete handshake from %s", host_addr));
+			return;
+		}
+		/* Is a valid connection type? */
+		if(!connection_type_ok(conntype))
+		{
+			plog(format("Invalid connection type requested from %s", host_addr));
+			return;			
+		}
+		
+		/* His version was correct and he's a player. Let's try to read the string */
 		if (Packet_scanf(&ibuf, "%s%s%s%s", real_name, host_name, nick_name, pass_word) <= 0)
 		{
 			plog(format("Incomplete handshake from %s", host_addr));

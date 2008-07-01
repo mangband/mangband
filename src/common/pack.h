@@ -165,3 +165,10 @@
  */
 #define ENTER_GAME_pack	0x00
 #define CONTACT_pack	0x31
+
+/*
+ * Connection types
+ */
+#define CONNTYPE_PLAYER	0x00
+#define CONNTYPE_CONSOLE	0x01
+#define CONNTYPE_MONITOR	0x02
