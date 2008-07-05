@@ -360,7 +360,7 @@ bool Report_to_meta(int flag)
 	/* Append the version number */
 #ifndef SVNREV
     if (cfg_ironman)
-    	sprintf(temp, "Version: %d.%d.%d (Ironman)", SERVER_VERSION_MAJOR, 
+    	sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR, 
     	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
     else
     	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
@@ -369,12 +369,12 @@ bool Report_to_meta(int flag)
 	if (SERVER_VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
 	if (SERVER_VERSION_EXTRA == 2)
-		strcat(temp, "beta-1");
+		strcat(temp, "beta");
 	if (SERVER_VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
     if (cfg_ironman)
-    	sprintf(temp, "Revision: %d (Ironman)", atoi(SVNREV));
+    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
     else
     	sprintf(temp, "Revision: %d ", atoi(SVNREV));
 #endif
