@@ -1177,6 +1177,152 @@ s32b object_value(int Ind, object_type *o_ptr)
 }
 
 
+/*
+ * Determine if an item can "absorb" a second item on the floor -- MAngband-specific Hack
+ *
+ * It is very similar from the object_similar function, minus the player specific-checks.
+ * It denies most attempts, but is allows discounts & inscription stack.
+ * 
+ */
+bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
+{
+	int total = o_ptr->number + j_ptr->number;
+
+
+	/* Require identical object types */
+	if (o_ptr->k_idx != j_ptr->k_idx) return (0);
+
+
+	/* Analyze the items */
+	switch (o_ptr->tval)
+	{
+		/* Chests */
+		case TV_CHEST:
+		{
+			/* Never okay */
+			return (0);
+		}
+
+		/* Food and Potions and Scrolls */
+		case TV_FOOD:
+		case TV_POTION:
+		case TV_SCROLL:
+		{
+			/* Assume okay */
+			break;
+		}
+
+		/* Staffs and Wands */
+		case TV_STAFF:
+		case TV_WAND:
+		{
+			/* Never okay -- why?*/
+			return(0);
+		}
+
+		/* Staffs and Wands and Rods */
+		case TV_ROD:
+		{
+			/* Never okay -- why?*/
+			return(0);
+		}
+
+		/* Weapons and Armor */
+		case TV_BOW:
+		case TV_DIGGING:
+		case TV_HAFTED:
+		case TV_POLEARM:
+		case TV_SWORD:
+		case TV_BOOTS:
+		case TV_GLOVES:
+		case TV_HELM:
+		case TV_CROWN:
+		case TV_SHIELD:
+		case TV_CLOAK:
+		case TV_SOFT_ARMOR:
+		case TV_HARD_ARMOR:
+		case TV_DRAG_ARMOR:
+		{
+ 			/* Never okay -- why?*/
+			return (0);
+		}
+
+		/* Rings, Amulets, Lites */
+		case TV_RING:
+		case TV_AMULET:
+		case TV_LITE:
+		{
+			/* Never okay -- why?*/
+         return (0);
+		}
+
+		/* Missiles */
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			/* Require identical "bonuses" */
+			if (o_ptr->to_h != j_ptr->to_h) return (FALSE);
+			if (o_ptr->to_d != j_ptr->to_d) return (FALSE);
+			if (o_ptr->to_a != j_ptr->to_a) return (FALSE);
+
+			/* Require identical "pval" code */
+			if (o_ptr->pval != j_ptr->pval) return (FALSE);
+
+			/* Require identical "artifact" names */
+			if (o_ptr->name1 != j_ptr->name1) return (FALSE);
+
+			/* Require identical "ego-item" names */
+			if (o_ptr->name2 != j_ptr->name2) return (FALSE);
+
+		        /* Require identical "random artifact" names */
+	                if (o_ptr->name3 != j_ptr->name3) return (FALSE);
+
+			/* Hack -- Never stack "powerful" items */
+			if (o_ptr->xtra1 || j_ptr->xtra1) return (FALSE);
+
+			/* Hack -- Never stack recharging items */
+			if (o_ptr->timeout || j_ptr->timeout) return (FALSE);
+
+			/* Require identical "values" */
+			if (o_ptr->ac != j_ptr->ac) return (FALSE);
+			if (o_ptr->dd != j_ptr->dd) return (FALSE);
+			if (o_ptr->ds != j_ptr->ds) return (FALSE);
+
+			/* Probably okay */
+			break;
+		}
+
+		/* Various */
+		default:
+		{
+			/* Never okay -- why?*/
+			return(0);
+		}
+	}
+
+
+	/* Hack -- Require identical "cursed" status */
+	if ((o_ptr->ident & ID_CURSED) != (j_ptr->ident & ID_CURSED)) return (0);
+
+	/* Hack -- Require identical "broken" status */
+	if ((o_ptr->ident & ID_BROKEN) != (j_ptr->ident & ID_BROKEN)) return (0);
+
+	/* Hack -- require semi-matching "inscriptions" */
+	if (o_ptr->note && j_ptr->note && (o_ptr->note != j_ptr->note)) return (0);
+
+	/* Hack -- normally require matching "inscriptions"
+	if ((o_ptr->note != j_ptr->note)) return (0);*/
+
+	/* Hack -- normally require matching "discounts"
+	if ((o_ptr->discount != j_ptr->discount)) return (0);*/
+
+	/* Maximal "stacking" limit */
+	if (total >= MAX_STACK_SIZE) return (0);
+
+	/* They match, so they must be similar */
+	return (TRUE);
+}
 
 
 
@@ -3407,8 +3553,10 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 	int		k, d, ny, nx, y1, x1, o_idx;
 
 	cave_type	*c_ptr;
+	object_type *j_ptr;
 
 	bool flag = FALSE;
+	bool comb = FALSE;
 
 	if(o_ptr == NULL) return;
 
@@ -3431,6 +3579,20 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			/* Pick a "nearby" location */
 			scatter(Depth, &ny, &nx, y1, x1, d, 0);
 
+			/* Get the cave grid */
+			c_ptr = &cave[Depth][ny][nx];
+
+			if (c_ptr->o_idx) {
+				j_ptr = &o_list[c_ptr->o_idx];
+
+				/* Check for combination */
+				if (object_similar_floor(o_ptr, j_ptr)) 
+				{
+					flag = TRUE;
+					comb = TRUE;
+				}
+			}
+			
 			/* Require clean floor space */
 			if (!cave_clean_bold(Depth, ny, nx)) continue;
 
@@ -3496,32 +3658,45 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 		/* Assume fails */
 		flag = FALSE;
 
-		/* XXX XXX XXX */
-
-		/* Crush anything under us (for artifacts) */
-		delete_object(Depth, ny, nx);
-
-		/* Make a new object */
-		o_idx = o_pop();
-
-		/* Success */
-		if (o_idx)
+		/* Crush contents or combine two objects? */
+		if (!comb) {
+			/* Crush anything under us (for artifacts) */
+			delete_object(Depth, ny, nx);
+	
+			/* Make a new object */
+			o_idx = o_pop();
+	
+			/* Success */
+			if (o_idx)
+			{
+				/* Structure copy */
+				o_list[o_idx] = *o_ptr;
+	
+				/* Access */
+				o_ptr = &o_list[o_idx];
+	
+				/* Locate */
+				o_ptr->iy = ny;
+				o_ptr->ix = nx;
+				o_ptr->dun_depth = Depth;
+	
+				/* Place */
+				c_ptr = &cave[Depth][ny][nx];
+				c_ptr->o_idx = o_idx;
+				
+				/* Notify ! */
+				flag = TRUE;
+			}
+		}
+		else
 		{
-			/* Structure copy */
-			o_list[o_idx] = *o_ptr;
-
-			/* Access */
-			o_ptr = &o_list[o_idx];
-
-			/* Locate */
-			o_ptr->iy = ny;
-			o_ptr->ix = nx;
-			o_ptr->dun_depth = Depth;
-
-			/* Place */
-			c_ptr = &cave[Depth][ny][nx];
-			c_ptr->o_idx = o_idx;
-
+			j_ptr->number += o_ptr->number;
+			
+			/* Notify ! */
+			flag = TRUE;
+		}
+	}
+	if (flag) {
 			/* Clear visibility flags */
 			for (k = 1; k <= NumPlayers; k++)
 			{
@@ -3544,10 +3719,6 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			{
 				msg_print("You feel something roll beneath your feet.");
 			}*/
-
-			/* Success */
-			flag = TRUE;
-		}
 	}
 
 

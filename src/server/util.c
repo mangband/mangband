@@ -270,28 +270,23 @@ errr path_parse(char *buf, int max, cptr file)
 
 
 /*
- * Hack -- acquire a "temporary" file name if possible
+ * Acquire a "temporary" file name if possible
  *
  * This filename is always in "system-specific" form.
  */
 errr path_temp(char *buf, int max)
 {
-	cptr s;
-
-	/* Temp file */
-	s = tmpnam(NULL);
-
-	/* Oops */
-	if (!s) return (-1);
-
-	/* XXX HACK because the mangband.orgs root partition (where /tmp
-	 * is located) has run out of disk space we use our own dedicated tmp
-	 * directory.
-	 */
-           buf[0] = '.';
-
-	/* Format to length */
-	strnfmt(buf+1, max-1, "%s", s);
+#ifdef WIN32
+	char prefix[] = "mng";
+	if(!GetTempPath(max,buf)) return(-1);
+	if(!GetTempFileName(buf,prefix,0,buf)) return(-1);
+#else
+	strcpy(buf,"/tmp/mangXXXXXX");
+	if(mkstemp(buf) < 0)
+	{
+		return(-1);
+	}
+#endif
 
 	/* Success */
 	return (0);

@@ -3002,6 +3002,54 @@ void verify_panel(int Ind)
 	p_ptr->window |= (PW_OVERHEAD);
 }
 
+/*
+ * Player Health Description
+ */
+cptr look_player_desc(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool          living = TRUE;
+	int           perc;
+
+
+	/* Determine if the monster is "living" (vs "undead") */
+	if (p_ptr->ghost) living = FALSE;
+	/*
+	if (r_ptr->flags3 & RF3_UNDEAD) living = FALSE;
+	if (r_ptr->flags3 & RF3_DEMON) living = FALSE;
+	if (strchr("Egv", r_ptr->d_char)) living = FALSE;
+	*/
+
+	/* Healthy */
+	if (p_ptr->chp >= p_ptr->mhp)
+	{
+		/* No damage */
+		return (living ? "unhurt" : "undamaged");
+	}
+
+
+	/* Calculate a health "percentage" */
+	perc = 100L * p_ptr->chp / p_ptr->mhp;
+
+	if (perc >= 60)
+	{
+		return (living ? "somewhat wounded" : "somewhat damaged");
+	}
+
+	if (perc >= 25)
+	{
+		return (living ? "wounded" : "damaged");
+	}
+
+	if (perc >= 10)
+	{
+		return (living ? "badly wounded" : "badly damaged");
+	}
+
+	return (living ? "almost dead" : "almost destroyed");
+}
+
 
 
 /*
@@ -3142,6 +3190,7 @@ void wounded_player_target_sort(int Ind, vptr sx, vptr sy, vptr id, int n)
 	byte * x = (byte *) sx;
 	byte * y = (byte *) sy; 
 	byte swpb;
+	int w1, w2;
 	
 	/* num equals our max index */
 	num = n-1;
@@ -3150,7 +3199,8 @@ void wounded_player_target_sort(int Ind, vptr sx, vptr sy, vptr id, int n)
 	{
 		for (c = 0; c < num; c++)
 		{
-			if (player_wounded(idx[c+1]) > player_wounded(idx[c]))
+			w1 = player_wounded(idx[c+1]); w2 = player_wounded(idx[c]);
+			if (w1 > w2 || (w1 == w2 && rand_int(100) > 50)) 
 			{
 				swp = idx[c];
 				idx[c] = idx[c+1];
@@ -3859,7 +3909,7 @@ bool target_set_friendly(int Ind, int dir)
 			if (!target_able(Ind, 0 - i)) continue;
 
 			/* Ignore already targeted player */
-			if ((0 - i)==p_ptr->target_who) continue;
+			//if ((0 - i)==p_ptr->target_who) continue;
 
 			/* Save the player index */
 			p_ptr->target_x[p_ptr->target_n] = q_ptr->px;
@@ -3900,9 +3950,11 @@ bool target_set_friendly(int Ind, int dir)
 		handle_stuff(Ind);
 
 		/* Describe */
-		sprintf(out_val, "%s targetted.", q_ptr->name);
-		msg_print(Ind, out_val);
-
+		sprintf(out_val,
+			"%s (%s)",
+			(q_ptr->name),
+			look_player_desc(idx));
+		
 		/* Tell the client about it */
 		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
 	}

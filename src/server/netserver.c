@@ -365,7 +365,7 @@ bool Report_to_meta(int flag)
 	/* Append the version number */
 #ifndef SVNREV
     if (cfg_ironman)
-    	sprintf(temp, "Ironman Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    	sprintf(temp, "Version: %d.%d.%d Ironman ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
     else
     	sprintf(temp, "Version: %d.%d.%d ", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	/* Append the additional version info */
@@ -377,7 +377,7 @@ bool Report_to_meta(int flag)
 		strcat(temp, "development");
 #else
     if (cfg_ironman)
-    	sprintf(temp, "Ironman Revision: %d ", atoi(SVNREV));
+    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
     else
     	sprintf(temp, "Revision: %d ", atoi(SVNREV));
 #endif
@@ -3449,7 +3449,7 @@ static int Receive_run(int ind)
 	// If we don't want to queue the command, return now.
 	if ((n = do_cmd_run(player,dir)) == 2)
 	{
-		return 2;
+		return -1;
 	}
 	// If do_cmd_run returns a 0, then there wasn't enough energy
 	// to execute the run command.  Queue the run command if desired.
