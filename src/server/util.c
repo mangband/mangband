@@ -2627,9 +2627,9 @@ void msg_format_near(int Ind, cptr fmt, ...)
 void player_talk_aux(int Ind, cptr message)
 {
 	int i, j, len, target = 0;
-	char search[80], sender[80];
+	char search[80], sender[80], dest_chan[MAX_CHAN_LEN];
 	player_type *p_ptr = Players[Ind], *q_ptr;
-	cptr colon, problem = "";
+	cptr colon, problem = "", chan_prefix;
 
 	/* Get sender's name */
 	if (Ind)
@@ -2646,6 +2646,45 @@ void player_talk_aux(int Ind, cptr message)
 	/* Default to no search string */
 	strcpy(search, "");
 
+	if(Ind)
+	{
+		/* Default to the senders main channel */
+		strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
+	}
+	else
+	{
+		/* Default to public channel if not originated by a player */
+		strcpy(dest_chan,DEFAULT_CHANNEL);
+	}
+	
+	/* Is the message destined for a particular channel? */
+	if(strchr("#",*message))
+	{
+		/* Yes, examine in more detail */
+		chan_prefix = strchr(message,' ');
+		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
+		{
+			/* Channel name only?  Change the players default channel */
+			if(Ind)
+			{
+				strcpy(p_ptr->main_channel,message);
+				strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
+				msg_format(Ind,"Channel changed to %s",dest_chan);
+				return;
+			}
+		}
+		else if(!chan_prefix || chan_prefix-message >= MAX_CHAN_LEN)
+		{
+			/* Invalid channel prefix?  Forget about the channel. */
+		}
+		else
+		{
+			/* Channel name followed by text? Extract the channel name */
+			strncpy(dest_chan, message, chan_prefix - message);
+			dest_chan[chan_prefix - message] = '\0';
+			message += (chan_prefix - message)+1;
+		}
+	}
 
 	/* Look for a player's name followed by a colon */
 	colon = strchr(message, ':');
@@ -2802,21 +2841,29 @@ void player_talk_aux(int Ind, cptr message)
 		return;
 	}
 
-	/* Send to everyone */
+	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		/* Send message */
-		if(Ind)
+		q_ptr = Players[i];
+		if(!strcmp(dest_chan,q_ptr->main_channel))
 		{
-			msg_format(i, "[%s] %s", sender, message);
-		}
-		else
-		{
-			msg_format(i, "%s", message);
+			/* Send message */
+			if(Ind)
+			{
+				msg_format(i, "[%s] %s", sender, message);
+			}
+			else
+			{
+				msg_format(i, "%s", message);
+			}
 		}
 	}
-	/* Send to the console too */
-	console_print(format("[%s] %s", sender, message));
+
+	/* Send to the console too if it's a public message */
+	if(!strcmp(dest_chan,"#public"))
+	{
+		console_print(format("[%s] %s", sender, message));
+	}
 }
 
 

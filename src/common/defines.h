@@ -76,7 +76,6 @@
  */
 #define MSG_LEN 256
 
-
 /*
  * Maximum number of messages to keep in player message history
  */
@@ -105,6 +104,15 @@
 #define META_DIE	0x02
 #define META_UPDATE	0x04
 
+/*
+ * Maximum channel name length
+ */
+#define MAX_CHAN_LEN 12
+
+/*
+ * Default chat channel
+ */
+#define DEFAULT_CHANNEL "#public"
 
 /*
  * Number of grids used to display the dungeon (vertically).
