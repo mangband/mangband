@@ -2789,8 +2789,8 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		
 		case TV_ROD:
 
-		/* Transfer the pval. */
-		o_ptr->pval = k_info[o_ptr->k_idx].pval;
+		/* Init as charged */
+		o_ptr->pval = 0; /* k_info[o_ptr->k_idx].pval; */;
 		break;
 
 		case TV_CHEST:
