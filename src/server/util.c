@@ -2489,9 +2489,17 @@ static void msg_flush(int x)
  */
 void msg_print(int Ind, cptr msg)
 {
+	bool log = TRUE;
+	
+	/* We don't need to log *everything* */
+	if(msg && strchr("[",*msg))
+	{
+		log = FALSE;
+	}
+
 	/* Log messages for each player, so we can dump last messages
 	 * in serer-side character dumps */
-	if(msg && Ind)
+	if(msg && Ind && log)
 	{
 		player_type *p_ptr = Players[Ind];
 		strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
@@ -2499,8 +2507,13 @@ void msg_print(int Ind, cptr msg)
 		/* Maintain a circular buffer */
 		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST) 
 			p_ptr->msg_hist_ptr = 0;
+		plog(format("%s: %s",Players[Ind]->name,msg)); 
 	}
-	
+	else if(msg && log)
+	{
+		plog(format("%d: %s",Ind,msg)); 
+	}; 	
+
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
 	Send_message(Ind, msg);
 }
