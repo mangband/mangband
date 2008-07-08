@@ -103,11 +103,11 @@ static void read_mangrc(void)
 				char *name;
 
 				/* Extract name */
-				name = strtok(buf, " \t\n");
-				name = strtok(NULL, "\t\n");
+				name = strtok(buf, " =\t\n");
+				name = strtok(NULL, " =\t\n");
 
 				/* Default nickname */
-				strcpy(nick, name);
+				if ( name ) strcpy(nick, name);
 			}
 
 			/* Password line */
@@ -116,11 +116,11 @@ static void read_mangrc(void)
 				char *p;
 
 				/* Extract password */
-				p = strtok(buf, " \t\n");
-				p = strtok(NULL, "\t\n");
+				p = strtok(buf, " =\t\n");
+				p = strtok(NULL, " =\t\n");
 
 				/* Default password */
-				strcpy(pass, p);
+				if ( p ) strcpy(pass, p);
 			}
 
 			/*** Everything else is ignored ***/
