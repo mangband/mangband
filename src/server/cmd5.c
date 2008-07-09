@@ -1645,13 +1645,6 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-	case MSPELL_ACID_BALL:
-        {
-            msg_format_near(Ind, "%s invokes an acid ball.", p_ptr->name);
-            fire_ball(Ind, GF_WATER, dir, 40 + (plev * 2), 2);
-            break;
-        }
-
         case MSPELL_ACID_BOLT:
 		{
 			msg_format_near(Ind, "%s casts an acid bolt.", p_ptr->name);
@@ -1667,13 +1660,13 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-/*        case MSPELL_ACID_BALL:
+        case MSPELL_ACID_BALL:
 		{
 			msg_format_near(Ind, "%s casts an acid ball.", p_ptr->name);
 			fire_ball(Ind, GF_ACID, dir, 40 + (plev), 2);
 			break;
 		}
-*/
+
         case MSPELL_ICE_STORM:
 		{
         		msg_format_near(Ind, "%s invokes an ice storm.", p_ptr->name);

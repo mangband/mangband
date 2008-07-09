@@ -3903,7 +3903,7 @@ bool target_set_friendly(int Ind, int dir)
 
 			/* Ignore players we aren't friends with */
 			/* if (!check_hostile(Ind, i)) continue; */
-			if ((!player_in_party(p_ptr->party, Ind)) || (p_ptr->party == 0)) continue;
+			if ((!player_in_party(p_ptr->party, i)) || (p_ptr->party == 0)) continue;
 
 			/* Ignore "unreasonable" players */
 			if (!target_able(Ind, 0 - i)) continue;

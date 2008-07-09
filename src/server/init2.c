@@ -2383,7 +2383,7 @@ void set_server_option(char * option, char * value)
 		/* We probably ought to do some sanity check here */
 		if (cfg_tcp_port & 0x01) /* Odd number */
 			cfg_tcp_port++;
-		if ((cfg_tcp_port > 64000) || (cfg_tcp_port < 4000))
+		if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
 			cfg_tcp_port = 18346;
 	}
 	else if (!strcmp(option,"MAGE_HITPOINT_BONUS"))

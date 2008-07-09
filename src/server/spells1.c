@@ -4394,11 +4394,14 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 
 				attr = spell_color(typ);
 
-				p_ptr->scr_info[dispy][dispx].c = '*';
-				p_ptr->scr_info[dispy][dispx].a = attr;
-
 				/* Beams can have a slightly higher density */
 				if (randint(density>>1) == 1) Send_char(j, dispx, dispy, attr, '*');
+				if (randint(density>>1) == 1)
+				{
+					p_ptr->scr_info[dispy][dispx].c = '*';
+					p_ptr->scr_info[dispy][dispx].a = attr;
+					Send_char(j, dispx, dispy, attr, '*');
+				}
 			}
 		}
 
