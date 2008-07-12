@@ -1426,7 +1426,7 @@ int process_pending_commands(int ind)
 			type = (connp->r.ptr[0] & 0xFF);
 			result = (*receive_tbl[type])(ind);
 			if ((connp->r.ptr - last_pos) > 0) 
-				data_advance += (connp->r.ptr - last_pos);
+				data_advance += (int)(connp->r.ptr - last_pos);
 			connp->start = turn;
 			if (result == 0)
 				return TRUE;
