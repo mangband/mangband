@@ -2456,6 +2456,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_max_trees = atoi(value);
     }
+    else if (!strcmp(option,"MAX_HOUSES"))
+    {
+        cfg_max_houses = atoi(value);
+    }
     else if (!strcmp(option,"CHARACTER_DUMP_COLOR"))
     {
         cfg_chardump_color = str_to_boolean(value);

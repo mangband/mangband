@@ -191,6 +191,7 @@ s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
 s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
+s16b cfg_max_houses = 0;
 bool cfg_chardump_color = FALSE;
 s16b cfg_pvp_hostility = 2;
 bool cfg_pvp_notify = FALSE;
