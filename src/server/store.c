@@ -1934,6 +1934,12 @@ void store_confirm(int Ind)
 	{
 		display_inventory(Ind);
 	}
+	
+	/* If this was an artifact, remember the player doesn't want it */
+	if( artifact_p(o_ptr) )
+	{
+		p_ptr->sold_arts[o_ptr->name1] = TRUE;
+	}
 }
 
 

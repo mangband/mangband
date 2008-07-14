@@ -1417,6 +1417,7 @@ static errr rd_savefile_new_aux(int Ind)
 
 	u16b tmp16u;
 	u32b tmp32u;
+	bool clear = FALSE;
 
 	start_section_read("mangband_player_save");
 	start_section_read("version");
@@ -1562,6 +1563,31 @@ static errr rd_savefile_new_aux(int Ind)
 			read_str("hist",p_ptr->char_hist[p_ptr->char_hist_ptr++]);
 		}
 		end_section_read("event_history");
+	}
+
+	/* Read the characters sold artifact list */
+	if(section_exists("sold_artifacts"))
+	{
+		start_section_read("sold_artifacts");
+		tmp16u = read_int("max_a_idx");
+		tmp32u = tmp16u;
+		/* If we have an unexpected number of arts, just reset our list
+		 * of sold artifacts. It's not so important we want to break
+		 * save file compatability for it. */
+		if( tmp16u != MAX_A_IDX )
+		{
+			clear = TRUE;
+			tmp16u = 0;
+		}
+		for(i = 0; i < MAX_A_IDX; i++)
+		{
+			if(i < tmp32u)
+			{
+				if(!clear) tmp16u = read_int("sold_art");
+			}
+			p_ptr->sold_arts[i] = tmp16u;
+		}
+		end_section_read("sold_artifacts");
 	}
 
 	/* Hack -- no ghosts */
