@@ -79,7 +79,7 @@
 /*
  * Maximum number of messages to keep in player message history
  */
-#define MAX_MSG_HIST 20
+#define MAX_MSG_HIST 60
 
 /*
  * Maximum number of events to keep in the character event history
