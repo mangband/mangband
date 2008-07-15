@@ -1350,6 +1350,7 @@ struct player_type
 
 	char msg_log[MAX_MSG_HIST][MAX_CHARS];	/* Message history log */
 	s16b msg_hist_ptr;	/* Where will the next message be stored */
+	s16b msg_hist_dupe; /* Count duplicate messages for collapsing */
 
 	char char_hist[MAX_CHAR_HIST][MAX_CHARS];	/* Character event history */
 	s16b char_hist_ptr;	/* Where will the next event be stored */

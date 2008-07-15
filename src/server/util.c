@@ -2490,6 +2490,9 @@ static void msg_flush(int x)
 void msg_print(int Ind, cptr msg)
 {
 	bool log = TRUE;
+	bool add = FALSE;
+	char multiplier[12];
+	s16b ptr;
 	
 	/* We don't need to log *everything* */
 	if(msg && strchr("[",*msg))
@@ -2498,14 +2501,37 @@ void msg_print(int Ind, cptr msg)
 	}
 
 	/* Log messages for each player, so we can dump last messages
-	 * in serer-side character dumps */
+	 * in server-side character dumps */
 	if(msg && Ind && log)
 	{
 		player_type *p_ptr = Players[Ind];
-		strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
-		p_ptr->msg_log[p_ptr->msg_hist_ptr++][78] = '\0';
+		add = TRUE;
+		/* Ensure we know where the last message is */
+		ptr = p_ptr->msg_hist_ptr - 1;
+		if(ptr < 0) ptr = MAX_MSG_HIST-1;
+		/* If this message is already in the buffer, count it as a dupe */
+		if(!strcmp(p_ptr->msg_log[ptr],msg))
+		{
+			p_ptr->msg_hist_dupe++;
+			/* And don't add another copy to the buffer */
+			add = FALSE;
+		}
+		/* This message is the end of a series of dupes */
+		else if(p_ptr->msg_hist_dupe > 0)
+		{
+			/* Add the dupe counter to the end of the last message */
+			sprintf(multiplier," (x%d)",p_ptr->msg_hist_dupe+1);
+			strcat(p_ptr->msg_log[ptr],multiplier);
+			p_ptr->msg_hist_dupe = 0;
+		}
+		if(add)
+		{
+			/* Standard, unique (for the moment) message */
+			strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
+			p_ptr->msg_log[p_ptr->msg_hist_ptr++][78] = '\0';
+		}
 		/* Maintain a circular buffer */
-		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST) 
+		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST)
 			p_ptr->msg_hist_ptr = 0;
 		plog(format("%s: %s",Players[Ind]->name,msg)); 
 	}
