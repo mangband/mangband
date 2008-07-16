@@ -1316,6 +1316,14 @@ void do_cmd_read_scroll(int Ind, int item)
 #endif
 			break;
 		}
+	
+		case SV_SCROLL_CREATE_HOUSE:
+		{
+			msg_print(Ind, "This is a scroll of house creation.");
+			used_up = create_house(Ind);
+			ident = TRUE;
+			break;
+		}
 
 		case SV_SCROLL_ENCHANT_WEAPON_TO_HIT:
 		{

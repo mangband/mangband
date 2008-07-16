@@ -531,6 +531,213 @@ int houses_owned(int Ind)
 	return owned;
 }
 
+/*
+ * Create a new house door.
+ */
+bool create_house_door(int Ind, int x, int y)
+{
+	int house, i;
+	cave_type		*c_ptr;
+	player_type *p_ptr = Players[Ind];
+
+	/* Which house is the given location part of? */
+	house = -1;
+	for (i = 0; i < num_houses; i++)
+	{
+		/* Check the house position *including* the walls */
+		if (houses[i].depth == p_ptr->dun_depth
+			&& x >= houses[i].x_1-1 && x <= houses[i].x_2+1 
+			&& y >= houses[i].y_1-1 && y <= houses[i].y_2+1)
+		{
+			/* We found the house this section of wall belongs to */
+			house = i;
+			break;
+		}
+	}
+	/* Do we own this house? */
+	if(!house_owned_by(Ind,house))
+	{
+		msg_print(Ind, "You do not own this house");
+		return FALSE;
+	}
+	/* Does it already have a door? */
+	if(houses[house].door_y != 0 && houses[house].door_x != 0)
+	{
+		msg_print(Ind, "This house already has a door");
+		return FALSE;
+	}
+	/* No door, so create one! */
+	houses[house].door_y = y;
+	houses[house].door_x = x;	
+	c_ptr = &cave[p_ptr->dun_depth][y][x];
+	c_ptr->feat = FEAT_HOME_HEAD;
+	everyone_lite_spot(p_ptr->dun_depth, y, x);	
+	
+	msg_print(Ind, "You create a door for your house!");
+	return TRUE;	
+}
+
+/*
+ * Create a new house.
+ * The creating player owns the house.
+ */
+bool create_house(int Ind)
+{
+	s16b x1, x2, y1, y2, x, y;
+	player_type *p_ptr = Players[Ind];
+	cave_type *c_ptr;
+	int item;
+	bool foundation;
+	object_type	*o_ptr;
+
+	plog(format("Player is at x,y %d, %d",p_ptr->px, p_ptr->py));
+
+	/* Are we stood on something? */
+	item = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+	if (item == 0) {
+		msg_print(Ind, "There is no house foundation here.");
+		return FALSE;
+	}
+	/* We must be stood on a house foundation */
+	o_ptr = &o_list[item];
+	if (o_ptr->tval != TV_JUNK || o_ptr->sval != SV_HOUSE_FOUNDATION)
+	{
+		msg_print(Ind, "There is no house foundation here.");
+		return FALSE;
+	}
+	
+	/* Start considering the area around the player */
+	x1 = x2 = p_ptr->px;
+	y1 = y2 = p_ptr->py;
+	/* We must carefully find the edges of our foundation */
+	/* First, determine the minimum x extent */
+	foundation = TRUE;
+	do { 
+		x1--;
+		if(foundation = in_bounds(p_ptr->dun_depth,y1,x1))
+			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
+	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
+	x1++;
+	/* Determine the maximum x extent */
+	foundation = TRUE;
+	plog(format("x2 is %d",x2));
+	do {
+		x2++; 
+		if(foundation = in_bounds(p_ptr->dun_depth,y1,x2))
+			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x2].o_idx];
+			plog(format("x2 is %d in loop",x2));	
+	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
+	plog(format("x2 is %d",x2));
+	x2--;
+	plog(format("final x2 is %d",x2));
+
+	/* Determine the minimum y extent */
+	foundation = TRUE;
+	do { 
+		y1--;
+		if(foundation = in_bounds(p_ptr->dun_depth,y1,x1))
+			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
+	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
+	y1++;
+	/* Determine the maximum y extent */
+	foundation = TRUE;
+	do { 
+		y2++;
+		if(foundation = in_bounds(p_ptr->dun_depth,y2,x1))
+			o_ptr = &o_list[cave[p_ptr->dun_depth][y2][x1].o_idx];
+	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
+	y2--;
+
+	plog(format("House x1 = %d",x1));
+	plog(format("House y1 = %d",y1));
+	plog(format("House x2 = %d",x2));
+	plog(format("House y2 = %d",y2));
+
+	/* We must have a solid rectangle of foundation stones */
+	foundation = TRUE;
+	for (y = y1; y <= y2; y++)
+	{
+		for (x = x1; x <= x2; x++)
+		{
+			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
+			if(o_ptr->tval != TV_JUNK || o_ptr->sval != SV_HOUSE_FOUNDATION)
+			{
+				foundation = FALSE;
+				break;
+			}
+		}
+	}
+	if(!foundation)
+	{
+		msg_print(Ind, "The house must have a rectangular foundation");
+		return FALSE;
+	}
+
+	/* Must not be too small */
+	if(x2-x1 < 3 || y2-y1 < 3)
+	{
+		msg_print(Ind, "The foundation is too small");
+		return FALSE;
+	}
+	
+	/* Must not be too big */
+	/* XXX really? */
+
+	/* Is the location allowed? */
+	/* XXX We should check if too near other houses, roads, level edges, etc */
+	
+	/* Add a house to our houses list */
+	houses[num_houses].price = 0;	/* XXX */
+	houses[num_houses].x_1 = x1+1;
+	houses[num_houses].y_1 = y1+1;
+	houses[num_houses].x_2 = x2-1;
+	houses[num_houses].y_2 = y2-1;
+	houses[num_houses].depth = p_ptr->dun_depth;
+	houses[num_houses].door_y = 0;
+	houses[num_houses].door_x = 0;
+	set_house_owner(Ind, num_houses);
+	num_houses++;
+	
+	/* Render into the terrain */
+	for (y = y1; y <= y2; y++)
+	{
+		for (x = x1; x <= x2; x++)
+		{
+			/* Get the grid */
+			c_ptr = &cave[p_ptr->dun_depth][y][x];
+
+			/* Delete any object */
+			delete_object(p_ptr->dun_depth, y, x);
+
+			/* Build a wall */
+			c_ptr->feat = FEAT_PERM_EXTRA;
+			
+			/* Update the spot */
+			everyone_lite_spot(p_ptr->dun_depth, y, x);	
+		}
+	}		
+	for (y = y1 + 1; y < y2; y++)
+	{
+		for (x = x1 + 1; x < x2; x++)
+		{
+			/* Get the grid */
+			c_ptr = &cave[p_ptr->dun_depth][y][x];
+
+			/* Delete any object */
+			delete_object(p_ptr->dun_depth, y, x);
+
+			/* Fill with floor */
+			c_ptr->feat = FEAT_FLOOR;
+
+			/* Make it "icky" */
+			c_ptr->info |= CAVE_ICKY;			
+
+			/* Update the spot */
+			everyone_lite_spot(p_ptr->dun_depth, y, x);	
+		}
+	}
+	return TRUE;
+}
 
 /*
  * Set the owner of the given house
@@ -649,10 +856,11 @@ void do_cmd_open(int Ind, int dir)
 
 		/* Nothing useful */
 		if (!((c_ptr->feat >= FEAT_DOOR_HEAD) &&
-		      (c_ptr->feat <= FEAT_DOOR_TAIL)) &&
-		    !((c_ptr->feat >= FEAT_HOME_HEAD) &&
-		      (c_ptr->feat <= FEAT_HOME_TAIL)) &&
-		    (o_ptr->tval != TV_CHEST))
+			(c_ptr->feat <= FEAT_DOOR_TAIL)) &&
+			!((c_ptr->feat >= FEAT_HOME_HEAD) &&
+			(c_ptr->feat <= FEAT_HOME_TAIL)) &&
+			(c_ptr->feat != FEAT_PERM_EXTRA) &&
+			(o_ptr->tval != TV_CHEST))
 		{
 			/* Message */
 			msg_print(Ind, "You see nothing there to open.");
@@ -671,6 +879,14 @@ void do_cmd_open(int Ind, int dir)
 			py_attack(Ind, y, x);
 		}
 
+		/* Open a perma wall */
+		else if (c_ptr->feat == FEAT_PERM_EXTRA)
+		{
+			/* Opening a wall?  Either the player has lost his mind or he 
+			 * is trying to create a door! */
+			create_house_door(Ind, x, y);
+		}
+		
 		/* Open a closed chest. */
 		else if (o_ptr->tval == TV_CHEST)
 		{

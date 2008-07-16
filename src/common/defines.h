@@ -1576,6 +1576,7 @@ that keeps many algorithms happy.
 #define SV_SCROLL_ACQUIREMENT			46
 #define SV_SCROLL_STAR_ACQUIREMENT		47
 #define SV_SCROLL_LIFE				48
+#define SV_SCROLL_CREATE_HOUSE			49
 
 /* The "sval" codes for TV_POTION */
 #define SV_POTION_WATER				0
@@ -1671,6 +1672,8 @@ that keeps many algorithms happy.
 #define SV_FOOD_PINT_OF_ALE		38
 #define SV_FOOD_PINT_OF_WINE		39
 
+/* The "sval" codes for TV_JUNK */
+#define SV_HOUSE_FOUNDATION		9
 
 /*
  * Special "sval" limit -- first "normal" food

@@ -494,6 +494,7 @@ extern bool house_inside(int Ind, int house);
 extern bool house_owned(int house);
 extern bool house_owned_by(int Ind, int house);
 extern bool set_house_owner(int Ind, int house);
+extern bool create_house(int Ind);
 extern int houses_owned(int Ind);
 extern void disown_house(int house);
 extern void do_cmd_go_up(int Ind);

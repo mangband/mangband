@@ -1559,7 +1559,11 @@ D: if you are currently in one.
 D:  This inflicts 2d8 points of damage on any light-sensitive creatures
 D: within the radius of the spell.
 
-## XXX 182 XXX ##
+N:182:House Creation
+G:?:d
+I:70:49:0
+W:99:0:5:1000000
+A:99/40
 
 ## XXX 183 XXX ##
 
@@ -3564,8 +3568,13 @@ P:0:1d2:0:0:0
 A:5/4
 F:EASY_KNOW
 
-## XXX 399 XXX ##
-
+N:399:& House Foundation Stone~
+G:~:v
+I:3:9:0
+W:99:0:200:0
+P:0:1d2:0:0:0
+A:99/40
+F:EASY_KNOW
 
 ##### Dragon Scale Mail #####
 
