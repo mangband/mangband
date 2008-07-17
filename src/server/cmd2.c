@@ -532,17 +532,16 @@ int houses_owned(int Ind)
 }
 
 /*
- * Create a new house door.
+ * Given coordinates return a house to which they belong.
+ * Houses can be overlapping, so a single coordinate pair may match several
+ * houses.  The offset parameter allows searching for the next match.
  */
-bool create_house_door(int Ind, int x, int y)
+int find_house(int Ind, int x, int y, int offset)
 {
-	int house, i;
-	cave_type		*c_ptr;
 	player_type *p_ptr = Players[Ind];
-
-	/* Which house is the given location part of? */
-	house = -1;
-	for (i = 0; i < num_houses; i++)
+	int i;
+	
+	for (i = offset; i < num_houses; i++)
 	{
 		/* Check the house position *including* the walls */
 		if (houses[i].depth == p_ptr->dun_depth
@@ -550,31 +549,261 @@ bool create_house_door(int Ind, int x, int y)
 			&& y >= houses[i].y_1-1 && y <= houses[i].y_2+1)
 		{
 			/* We found the house this section of wall belongs to */
-			house = i;
-			break;
+			return i;
 		}
 	}
-	/* Do we own this house? */
-	if(!house_owned_by(Ind,house))
+	return -1;
+}
+
+/*
+ * Determine if the given location is ok to use as part of the foundation
+ * of a house.
+ */
+bool is_valid_foundation(Ind, x, y)
+{
+	int house;
+	player_type *p_ptr = Players[Ind];
+	cave_type *c_ptr;
+	object_type	*o_ptr;
+
+	/* Foundation stones are always valid */
+	o_ptr = &o_list[cave[p_ptr->dun_depth][y][x].o_idx];
+	if (o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION)
 	{
-		msg_print(Ind, "You do not own this house");
-		return FALSE;
+		return TRUE;
 	}
-	/* Does it already have a door? */
-	if(houses[house].door_y != 0 && houses[house].door_x != 0)
-	{
-		msg_print(Ind, "This house already has a door");
-		return FALSE;
-	}
-	/* No door, so create one! */
-	houses[house].door_y = y;
-	houses[house].door_x = x;	
-	c_ptr = &cave[p_ptr->dun_depth][y][x];
-	c_ptr->feat = FEAT_HOME_HEAD;
-	everyone_lite_spot(p_ptr->dun_depth, y, x);	
 	
-	msg_print(Ind, "You create a door for your house!");
-	return TRUE;	
+	/* Perma walls and doors are valid if they are part of a house owned 
+	 * by this player */
+	c_ptr = &cave[p_ptr->dun_depth][y][x];
+	if( (c_ptr->feat == FEAT_PERM_EXTRA)
+		|| (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL))
+	{
+		/* Looks like part of a house, which house? */
+		house = find_house(Ind, x, y, 0);
+		if(house >= 0)
+		{
+			/* Do we own this house? */
+			if(house_owned_by(Ind,house))
+			{
+				/* Valid, a wall or door in our own house. */
+				return TRUE;
+			}			
+		}
+	}
+	return FALSE;		
+}
+
+/*
+ * Create a new house door at the given location.
+ * Due to the fact that houses can overlap (i.e. share a common wall) it
+ * may not be possible to identify the house to which the door should belong.
+ * 
+ * For example, on the left below, we have two houses overlapping, neither
+ * have doors. On the right the player creates a door, but to which house does
+ * it belong?
+ * 
+ *   ####                        ####    
+ *   #  #@                       #  #@  
+ *   #  ###                      #  +##
+ *   #### #                      #### #
+ *      # #                         # #
+ *      ###                         ###
+ * 
+ * It is therefore possible to create a complex of houses such that the player
+ * owned shop mechanism becomes confused.  When a player bumps one door they
+ * see the contents of a different room listed.
+ * 
+ * FIXME Therefore the player owned shop mechanism should treat overlapping 
+ * player created houses as a *single* house and present all goods in all
+ * attached houses.
+ */
+bool create_house_door(int Ind, int x, int y)
+{
+	int house, i, lastmatch;
+	cave_type		*c_ptr;
+	player_type *p_ptr = Players[Ind];
+
+	/* Which house is the given location part of? */
+	lastmatch = 0;
+	while( (house = find_house(Ind,x,y,lastmatch)) > -1 )
+	{
+		lastmatch = house+1;
+
+		/* Do we own this house? */
+		if(!house_owned_by(Ind,house))
+		{
+			/* If we don't own this one, we can't own any overlapping ones */
+			msg_print(Ind, "You do not own this house");
+			return FALSE;
+		}
+
+		/* Does it already have a door? */
+		if(houses[house].door_y == 0 && houses[house].door_x == 0)
+		{
+			/* No door, so create one! */
+			houses[house].door_y = y;
+			houses[house].door_x = x;	
+			c_ptr = &cave[p_ptr->dun_depth][y][x];
+			c_ptr->feat = FEAT_HOME_HEAD;
+			everyone_lite_spot(p_ptr->dun_depth, y, x);	
+			msg_print(Ind, "You create a door for your house!");
+			return TRUE;
+		}
+	}
+	/* We searched all matching houses and none needed a door */
+	return FALSE;
+}
+
+/*
+ * Determine the area for a house foundation.
+ * 
+ * Although an individual house must be rectangular, a foundation
+ * can be non-rectangular.  This is because we allow existing walls to 
+ * form part of our foundation, and therefore allow complex shaped houses
+ * to be consructed.
+ *                                              ~~~
+ * For example this is a legal foundation:   ~~~~~~
+ *                                           ~~~~~~
+ * In this sitation:
+ * 
+ *   #####                               #####   
+ *   #   #                               #   #
+ *   #   #      Forming a final shape:   #   #
+ *   #####~~~                            ###+####
+ *     ~~~~~~                              #    #
+ *     ~~~~~~                              ######
+ * 
+ * This function is also responsible for rejecting illegal shapes and sizes.
+ * 
+ * We start from the player location (who must be stood on a foundation stone)
+ * and work our way outwards to find the bounding rectange of the foundation.
+ * Conceptually imagine a box radiating out from the player, we keep extending
+ * the box in each dimension for as long as all points on the perimeter are
+ * either foundation stones or walls of houses the player owns.
+ * 
+ */
+bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
+{
+	player_type *p_ptr = Players[Ind];
+	cave_type *c_ptr;
+	int x, y, x1, y1, x2, y2;
+	bool done, valid;
+	bool n,s,e,w,ne,nw,se,sw;
+	object_type	*o_ptr;
+
+	plog(format("Player is at x,y %d, %d",p_ptr->px, p_ptr->py));
+
+	/* We must be stood on a house foundation */
+	o_ptr = &o_list[cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx];
+	if (o_ptr->tval != TV_JUNK || o_ptr->sval != SV_HOUSE_FOUNDATION)
+	{
+		msg_print(Ind, "There is no house foundation here.");
+		return FALSE;
+	}
+	
+	/* Start from the players position */
+	x1 = p_ptr->px;
+	x2 = p_ptr->px;
+	y1 = p_ptr->py;
+	y2 = p_ptr->py;
+	
+	done = FALSE;
+	while(!done)
+	{
+		n = s = e = w = ne = nw = se = sw = FALSE;
+
+		/* Could we expand north? */
+		n = TRUE;
+		for(x = x1; x <= x2; x++)
+		{
+			/* Is this a valid location for part of our house? */
+			if(!is_valid_foundation(Ind, x, y1-1))
+			{
+				/* Not a valid perimeter */
+				n = FALSE; 
+				break;
+			}			
+		}
+		
+		/* Could we expand east? */
+		e = TRUE;
+		for(y = y1; y <= y2; y++)
+		{
+			/* Is this a valid location for part of our house? */
+			if(!is_valid_foundation(Ind, x2+1, y))
+			{
+				/* Not a valid perimeter */
+				e = FALSE;
+				break;
+			}			
+		}
+		
+		/* Could we expend south? */
+		s = TRUE;
+		for(x = x1; x <= x2; x++)
+		{
+			/* Is this a valid location for part of our house? */
+			if(!is_valid_foundation(Ind, x, y2+1))
+			{
+				/* Not a valid perimeter */
+				s = FALSE;
+				break;
+			}			
+		}
+		
+		/* Could we expand west? */
+		w = TRUE;
+		for(y = y1; y <= y2; y++)
+		{
+			/* Is this a valid location for part of our house? */
+			if(!is_valid_foundation(Ind, x1-1, y))
+			{
+				/* Not a valid perimeter */
+				w = FALSE;
+				break;
+			}			
+		}
+		
+		/* Could we expand the corners? */
+		ne = is_valid_foundation(Ind, x2+1, y1-1);
+		nw = is_valid_foundation(Ind, x1-1, y1-1);
+		se = is_valid_foundation(Ind, x2+1, y2+1);
+		sw = is_valid_foundation(Ind, x1-1, y2+1);
+
+		/* Only permit expansion in a way that maintains a rectangle, we don't
+		 * want to create fancy polygons. */
+		if( n ) n = (!e && !w) || ( e && ne ) || ( w && nw );
+		if( e ) e = (!n && !s) || ( n && ne ) || ( s && se );
+		if( s ) s = (!e && !w) || ( e && se ) || ( w && sw );
+		if( w ) w = (!n && !s) || ( n && nw ) || ( s && sw );
+		
+		/* Actually expand the boundary */
+		if( n ) y1--;
+		if( s ) y2++;
+		if( w ) x1--;
+		if( e ) x2++;
+		
+		/* Stop if we couldn't expand */
+		done = !(n || s || w || e);
+
+	}
+
+	plog(format("Proposed house is at x1,y1,x2,y2 %d,%d,%d,%d",x1,y1,x2,y2));
+	
+	/* Is the bounding rectangle we found big enough? */
+	if(x2-x1 < 2 || y2-y1 < 2)
+	{
+		msg_print(Ind, "The foundation is too small");
+		return FALSE;
+	}
+	
+	/* Return the area */
+	*px1 = x1;	
+	*px2 = x2;
+	*py1 = y1;
+	*py2 = y2;
+	return TRUE;
 }
 
 /*
@@ -583,105 +812,18 @@ bool create_house_door(int Ind, int x, int y)
  */
 bool create_house(int Ind)
 {
-	s16b x1, x2, y1, y2, x, y;
+	int x1, x2, y1, y2, x, y;
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
 	int item;
 	bool foundation;
 	object_type	*o_ptr;
 
-	plog(format("Player is at x,y %d, %d",p_ptr->px, p_ptr->py));
-
-	/* Are we stood on something? */
-	item = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-	if (item == 0) {
-		msg_print(Ind, "There is no house foundation here.");
+	/* Determine the area of the house foundation */
+	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
+	{
 		return FALSE;
 	}
-	/* We must be stood on a house foundation */
-	o_ptr = &o_list[item];
-	if (o_ptr->tval != TV_JUNK || o_ptr->sval != SV_HOUSE_FOUNDATION)
-	{
-		msg_print(Ind, "There is no house foundation here.");
-		return FALSE;
-	}
-	
-	/* Start considering the area around the player */
-	x1 = x2 = p_ptr->px;
-	y1 = y2 = p_ptr->py;
-	/* We must carefully find the edges of our foundation */
-	/* First, determine the minimum x extent */
-	foundation = TRUE;
-	do { 
-		x1--;
-		if(foundation = in_bounds(p_ptr->dun_depth,y1,x1))
-			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
-	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
-	x1++;
-	/* Determine the maximum x extent */
-	foundation = TRUE;
-	plog(format("x2 is %d",x2));
-	do {
-		x2++; 
-		if(foundation = in_bounds(p_ptr->dun_depth,y1,x2))
-			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x2].o_idx];
-			plog(format("x2 is %d in loop",x2));	
-	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
-	plog(format("x2 is %d",x2));
-	x2--;
-	plog(format("final x2 is %d",x2));
-
-	/* Determine the minimum y extent */
-	foundation = TRUE;
-	do { 
-		y1--;
-		if(foundation = in_bounds(p_ptr->dun_depth,y1,x1))
-			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
-	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
-	y1++;
-	/* Determine the maximum y extent */
-	foundation = TRUE;
-	do { 
-		y2++;
-		if(foundation = in_bounds(p_ptr->dun_depth,y2,x1))
-			o_ptr = &o_list[cave[p_ptr->dun_depth][y2][x1].o_idx];
-	} while( foundation && o_ptr->tval == TV_JUNK && o_ptr->sval == SV_HOUSE_FOUNDATION );
-	y2--;
-
-	plog(format("House x1 = %d",x1));
-	plog(format("House y1 = %d",y1));
-	plog(format("House x2 = %d",x2));
-	plog(format("House y2 = %d",y2));
-
-	/* We must have a solid rectangle of foundation stones */
-	foundation = TRUE;
-	for (y = y1; y <= y2; y++)
-	{
-		for (x = x1; x <= x2; x++)
-		{
-			o_ptr = &o_list[cave[p_ptr->dun_depth][y1][x1].o_idx];
-			if(o_ptr->tval != TV_JUNK || o_ptr->sval != SV_HOUSE_FOUNDATION)
-			{
-				foundation = FALSE;
-				break;
-			}
-		}
-	}
-	if(!foundation)
-	{
-		msg_print(Ind, "The house must have a rectangular foundation");
-		return FALSE;
-	}
-
-	/* Must not be too small */
-	if(x2-x1 < 3 || y2-y1 < 3)
-	{
-		msg_print(Ind, "The foundation is too small");
-		return FALSE;
-	}
-	
-	/* Must not be too big */
-	/* XXX really? */
 
 	/* Is the location allowed? */
 	/* XXX We should check if too near other houses, roads, level edges, etc */
@@ -709,8 +851,11 @@ bool create_house(int Ind)
 			/* Delete any object */
 			delete_object(p_ptr->dun_depth, y, x);
 
-			/* Build a wall */
-			c_ptr->feat = FEAT_PERM_EXTRA;
+			/* Build a wall, but don't destroy any existing door */
+			if( c_ptr->feat < FEAT_HOME_HEAD || c_ptr->feat > FEAT_HOME_TAIL)
+			{
+				c_ptr->feat = FEAT_PERM_EXTRA;
+			}
 			
 			/* Update the spot */
 			everyone_lite_spot(p_ptr->dun_depth, y, x);	
