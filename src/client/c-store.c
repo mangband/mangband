@@ -85,6 +85,13 @@ void display_inventory(void)
 {
 	int i, k;
 
+	/* Check for empty page */
+	if (store_top == store.stock_num)
+	{
+		/* Go to previous page if possible */
+		if (store_top > 0) store_top -= 12;
+	}
+
 	for (k = 0; k < 12; k++)
 	{
 		/* Do not display "dead" items */
