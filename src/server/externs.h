@@ -465,6 +465,7 @@ extern void wiz_lite(int Ind);
 extern void wiz_dark(int Ind);
 extern void mmove2(int *y, int *x, int y1, int x1, int y2, int x2);
 extern bool projectable(int Depth, int y1, int x1, int y2, int x2);
+extern bool projectable_wall(int Depth, int y1, int x1, int y2, int x2);
 extern void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m);
 extern void health_track(int Ind, int m_idx);
 extern void update_health(int m_idx);
