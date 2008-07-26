@@ -2246,13 +2246,6 @@ int Send_maxstat(int ind, int stat, int max)
         return 0;
     }
 
-    if (connp->version != SERVER_VERSION)
-    {
-	/* don't send packet to older client */
-        errno = 0;
-        return 0;
-    }
-
     return Packet_printf(&connp->c, "%c%c%hd", PKT_MAXSTAT, stat, max);
 }
 
