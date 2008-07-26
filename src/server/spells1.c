@@ -1630,7 +1630,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (c_ptr->feat == FEAT_GRASS)
 			{
 				/* Destroy the grass */
-				c_ptr->feat = FEAT_GRASS;
+				c_ptr->feat = FEAT_DIRT;
 			}
 
 			break;
