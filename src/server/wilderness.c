@@ -573,7 +573,8 @@ static void wild_add_garden(int Depth, int x, int y)
 						break;
 					}
 					/* Hack -- only drop food the first time */
-					if (!(w_ptr->flags & WILD_F_GENERATED)) drop_near(&food, -1, Depth, y, x);
+					/* Hack -- or regenerate occasionally (1 in 16) */
+					if (!(w_ptr->flags & WILD_F_GENERATED) || (rand_int(16) < 1)) drop_near(&food, -1, Depth, y, x);
 				}				
 			}
 		}
