@@ -3136,6 +3136,18 @@ int Send_special_line(int type, int line)
 	return 1;
 }
 
+int Send_symbol(char sym)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_SYMBOL_QUERY, sym)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
 int Send_party(s16b command, cptr buf)
 {
 	int	n;

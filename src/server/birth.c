@@ -492,18 +492,21 @@ static void player_wipe(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	object_type *old_inven;
+	monster_lore *old_lore;
 	int i;
 
 
-	/* Hack -- save the inventory pointer */
+	/* Hack -- save the inventory and lore pointers */
 	old_inven = p_ptr->inventory;
+	old_lore = p_ptr->l_list;
 
 	/* Hack -- zero the struct */
 	WIPE(p_ptr, player_type);
 
-	/* Hack -- reset the inventory pointer */
+	/* Hack -- reset the inventory and lore pointers */
 	p_ptr->inventory = old_inven;
-
+	p_ptr->l_list = old_lore;
+	
 	/* Wipe the history */
 	for (i = 0; i < 4; i++)
 	{
@@ -523,6 +526,15 @@ static void player_wipe(int Ind)
 		invwipe(&p_ptr->inventory[i]);
 	}
 
+	/* Reset the "monsters" */
+	for (i = 1; i < z_info->r_max; i++)
+	{
+		monster_lore *l_ptr = p_ptr->l_list + i;
+
+		/* Clear player kills */
+		l_ptr->pkills = 0;
+		p_ptr->r_killed[i] = 0;
+	}
 
 	/* Hack -- Well fed player */
 	p_ptr->food = PY_FOOD_FULL - 1;
@@ -1207,6 +1219,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Allocate memory for his inventory */
 	C_MAKE(Players[Ind]->inventory, INVEN_TOTAL, object_type);
+
+	/* Allocate memory for his lore array */
+	C_MAKE(Players[Ind]->l_list, z_info->r_max, monster_lore);
 
 	/* Set pointer */
 	p_ptr = Players[Ind];

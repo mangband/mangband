@@ -125,6 +125,8 @@ bool make_attack_normal(int Ind, int m_idx)
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	int			ap_cnt;
 
@@ -243,7 +245,7 @@ bool make_attack_normal(int Ind, int m_idx)
 			    ((rand_int(100) + p_ptr->lev) > 50))
 			{
 				/* Remember the Evil-ness */
-				if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags3 |= RF3_EVIL;
+				if (p_ptr->mon_vis[m_idx]) l_ptr->flags3 |= RF3_EVIL;
 
 				/* Message */
 				msg_format(Ind, "%^s is repelled.", m_name);
@@ -1260,12 +1262,12 @@ bool make_attack_normal(int Ind, int m_idx)
 		if (visible)
 		{
 			/* Count "obvious" attacks (and ones that cause damage) */
-			if (obvious || damage || (r_ptr->r_blows[ap_cnt] > 10))
+			if (obvious || damage || (l_ptr->blows[ap_cnt] > 10))
 			{
 				/* Count attacks of this type */
-				if (r_ptr->r_blows[ap_cnt] < MAX_UCHAR)
+				if (l_ptr->blows[ap_cnt] < MAX_UCHAR)
 				{
-					r_ptr->r_blows[ap_cnt]++;
+					l_ptr->blows[ap_cnt]++;
 				}
 			}
 		}
@@ -1281,7 +1283,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Always notice cause of death */
-	if (p_ptr->death && (r_ptr->r_deaths < MAX_SHORT)) r_ptr->r_deaths++;
+	if (p_ptr->death && (l_ptr->deaths < MAX_SHORT)) l_ptr->deaths++;
 
 
 	/* Assume we attacked */

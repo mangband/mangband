@@ -905,19 +905,27 @@ void monster_desc(int Ind, char *desc, int m_idx, int mode)
 /*
  * Learn about a monster (by "probing" it)
  */
-void lore_do_probe(int m_idx)
+void lore_do_probe(int Ind, int m_idx)
 {
+	player_type  *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
-
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
+	
 	/* Hack -- Memorize some flags */
-	r_ptr->r_flags1 = r_ptr->flags1;
-	r_ptr->r_flags2 = r_ptr->flags2;
-	r_ptr->r_flags3 = r_ptr->flags3;
+	l_ptr->flags1 = r_ptr->flags1;
+	l_ptr->flags2 = r_ptr->flags2;
+	l_ptr->flags3 = r_ptr->flags3;
 
-	/* Window stuff */
-	/*p_ptr->window |= (PW_MONSTER);*/
+#if 0
+	/* Update monster recall window */
+	if (p_ptr->monster_race_idx == m_ptr->r_idx)
+	{
+		/* Window stuff */
+		p_ptr->window |= (PW_MONSTER);
+	}
+#endif
 }
 
 /*
@@ -1042,19 +1050,29 @@ s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
  * gold and items are dropped, and remembers that information to be
  * described later by the monster recall code.
  */
-void lore_treasure(int m_idx, int num_item, int num_gold)
+void lore_treasure(int Ind, int m_idx, int num_item, int num_gold)
 {
+	player_type	 *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
-
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
+
 
 	/* Note the number of things dropped */
-	if (num_item > r_ptr->r_drop_item) r_ptr->r_drop_item = num_item;
-	if (num_gold > r_ptr->r_drop_gold) r_ptr->r_drop_gold = num_gold;
+	if (num_item > l_ptr->drop_item) l_ptr->drop_item = num_item;
+	if (num_gold > l_ptr->drop_gold) l_ptr->drop_gold = num_gold;
 
 	/* Hack -- memorize the good/great flags */
-	if (r_ptr->flags1 & RF1_DROP_GOOD) r_ptr->r_flags1 |= RF1_DROP_GOOD;
-	if (r_ptr->flags1 & RF1_DROP_GREAT) r_ptr->r_flags1 |= RF1_DROP_GREAT;
+	if (r_ptr->flags1 & (RF1_DROP_GOOD)) l_ptr->flags1 |= (RF1_DROP_GOOD);
+	if (r_ptr->flags1 & (RF1_DROP_GREAT)) l_ptr->flags1 |= (RF1_DROP_GREAT);
+#if 0
+	/* Update monster recall window */
+	if (p_ptr->monster_race_idx == m_ptr->r_idx)
+	{
+		/* Window stuff */
+		p_ptr->window |= (PW_MONSTER);
+	}
+#endif
 }
 
 
@@ -1117,8 +1135,8 @@ bool is_detected(u32b flag, u32b esp)
 void update_mon(int m_idx, bool dist)
 {
 	monster_type *m_ptr = &m_list[m_idx];
-
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore *l_ptr;
 
 	player_type *p_ptr;
 	int d, dy, dx;
@@ -1150,7 +1168,7 @@ void update_mon(int m_idx, bool dist)
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
 		p_ptr = Players[Ind];
-
+		l_ptr = p_ptr->l_list + m_ptr->r_idx;
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
 
@@ -1242,8 +1260,8 @@ void update_mon(int m_idx, bool dist)
 					if (hard)
 					{
 						/* Hack -- Memorize mental flags */
-						if (r_ptr->flags2 & RF2_SMART) r_ptr->r_flags2 |= RF2_SMART;
-						if (r_ptr->flags2 & RF2_STUPID) r_ptr->r_flags2 |= RF2_STUPID;
+						if (r_ptr->flags2 & RF2_SMART) l_ptr->flags2 |= RF2_SMART;
+						if (r_ptr->flags2 & RF2_STUPID) l_ptr->flags2 |= RF2_STUPID;
 					}
 				}
 	
@@ -1271,6 +1289,9 @@ void update_mon(int m_idx, bool dist)
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
 
 				/* Hack -- Count "fresh" sightings */
+				if (l_ptr->sights < MAX_SHORT) l_ptr->sights++;
+				
+				/* Hack -- Count "global" sightings */
 				if (r_ptr->r_sights < MAX_SHORT) r_ptr->r_sights++;
 
 				/* Disturb on appearance */
@@ -1278,10 +1299,10 @@ void update_mon(int m_idx, bool dist)
 			}
 
 			/* Memorize various observable flags */
-			if (do_empty_mind) r_ptr->r_flags2 |= RF2_EMPTY_MIND;
-			if (do_weird_mind) r_ptr->r_flags2 |= RF2_WEIRD_MIND;
-			if (do_cold_blood) r_ptr->r_flags2 |= RF2_COLD_BLOOD;
-			if (do_invisible) r_ptr->r_flags2 |= RF2_INVISIBLE;
+			if (do_empty_mind) l_ptr->flags2 |= RF2_EMPTY_MIND;
+			if (do_weird_mind) l_ptr->flags2 |= RF2_WEIRD_MIND;
+			if (do_cold_blood) l_ptr->flags2 |= RF2_COLD_BLOOD;
+			if (do_invisible) l_ptr->flags2 |= RF2_INVISIBLE;
 
 			/* Efficiency -- Notice multi-hued monsters */
 			if (r_ptr->flags1 & RF1_ATTR_MULTI) scan_monsters = TRUE;

@@ -1678,6 +1678,88 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, b
 
 }
 
+/* Give player detailed information about a range of monsters,
+ * specified by char
+ */
+void do_cmd_monster_desc_all(int Ind, char c) {
+	player_type *p_ptr = Players[Ind];
+	monster_lore *l_ptr;
+	char mon_name[80];
+	int i;
+	bool found = FALSE;
+	
+	/* Clear the info area first. */
+	memset(p_ptr->info,0,sizeof(p_ptr->info));
+
+	/* Let the player scroll through this info */
+	p_ptr->special_file_type = TRUE;
+
+	/* Prepare player structure for text */	
+	text_out_init(Ind);
+
+	for (i = 1; i < z_info->r_max; i++) 
+	{
+		/* Require at least 1 encounter */
+		if (p_ptr->l_list[i].sights && r_info[i].d_char == c)
+		{
+			/* Monster name */
+			text_out("\n  ");
+			text_out(r_name + r_info[i].name);
+			text_out("\n");
+		
+			/* Dump info into player */
+			describe_monster(Ind, i, FALSE);
+			
+			found = TRUE;
+		}
+	}
+	
+	if (!found)
+		text_out("You fail to remember any monsters of this kind");
+		
+	/* Restore height and width of current dungeon level */
+	p_ptr->cur_hgt = MAX_HGT; 
+	p_ptr->cur_wid = MAX_WID;
+
+	/* Notify player */
+	Send_special_other(Ind, format("Monster Recall ('%c')", c));
+	
+	return;
+}
+
+/* Give player detailed information about a specified monster */
+void do_cmd_monster_desc(int Ind, int m_idx) {
+	player_type *p_ptr = Players[Ind];
+	int r_idx = m_list[m_idx].r_idx;
+	/* Describe it fully */
+	
+	/* Clear the info area first. */
+	memset(p_ptr->info,0,sizeof(p_ptr->info));
+
+	/* Let the player scroll through this info */
+	p_ptr->special_file_type = TRUE;
+
+	/* Prepare player structure for text */	
+	text_out_init(Ind);
+	//text_out("  ");
+	
+	/* Dump info into player */
+	describe_monster(Ind, r_idx, FALSE);
+
+	/* Restore height and width of current dungeon level */
+	p_ptr->cur_hgt = MAX_HGT; 
+	p_ptr->cur_wid = MAX_WID;
+	
+	/* Monster name (for title) */
+	char mon_name[80];
+	mon_name[0] = '\0';
+	monster_desc(Ind, mon_name, m_idx, 0);
+	
+	/* Notify player */
+	Send_special_other(Ind, mon_name);
+	
+	return; 
+}
 
 /*
  * A new "look" command, similar to the "target" command.
@@ -1697,6 +1779,7 @@ void do_cmd_look(int Ind, int dir)
 
 	cave_type *c_ptr;
 	monster_type *m_ptr;
+	bool offer_recall = FALSE;
 	//object_type *o_ptr;
 
 	//char o_name[80];
@@ -1727,6 +1810,31 @@ void do_cmd_look(int Ind, int dir)
 	if (dir >= 64)
 	{
 		target_free_aux(Ind, dir, FALSE);
+		return;
+	}
+
+	/* Monster Recall */
+	if (dir == 25) {
+		/* Hack -- disable cursor*/
+		p_ptr->cursor_who = 0;
+
+		/* Describe */
+		y = p_ptr->target_y[p_ptr->look_index];
+		x = p_ptr->target_x[p_ptr->look_index];
+
+		/* Paranoia */
+		if (!cave[Depth]) return;
+
+		c_ptr = &cave[Depth][y][x];
+	
+		if (c_ptr->m_idx > 0)
+		{
+			do_cmd_monster_desc(Ind, c_ptr->m_idx);
+			
+		
+		}
+		
+		/* Fail */
 		return;
 	}
 
@@ -1836,10 +1944,19 @@ void do_cmd_look(int Ind, int dir)
 	if (!cave[Depth]) return;
 
 	c_ptr = &cave[Depth][y][x];
+
+	/* Monster on grid */	 
+	if (c_ptr->m_idx > 0)
+	{
+		offer_recall = TRUE;
+	}
 	
 	describe_floor_tile(c_ptr, out_val, Ind, TRUE, p_ptr->cave_flag[y][x]);
 	
-	/* Append a little info */
+ 	/* Append a little info */
+	if (offer_recall)
+ 	strcat(out_val, " [<dir>, r, q, p]");
+	else
 	strcat(out_val, " [<dir>, q, p]");
 
 	/* Tell the client */
@@ -2199,4 +2316,8 @@ void do_cmd_query_symbol(int Ind, char sym)
 
 	/* Display the result */
 	msg_print(Ind, buf);
+	
+	/* MEGA-HACK!! Add monster recall info BASED on letter! This ommits creeping coins and mimics :( */
+	if ( (sym >= 'a' && sym <= 'z') || (sym >= 'A' && sym <= 'Z')	)
+		do_cmd_monster_desc_all(Ind, sym);
 }

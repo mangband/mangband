@@ -647,11 +647,75 @@ static void rd_monster(monster_type *m_ptr)
 /*
  * Read the monster lore
  */
-static void rd_lore(int r_idx)
+static void rd_lore(int Ind, int r_idx)
 {
-	//byte tmp8u;
-	//u16b tmp16u;
+	int i;
+	byte tmp8u;
+	
+	player_type *p_ptr = Players[Ind];
+	monster_race *r_ptr = &r_info[r_idx];
+	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
+	start_section_read("lore");
+
+	/* Count sights/deaths/kills */
+	l_ptr->sights = read_int("sights");
+	l_ptr->deaths = read_int("deaths");
+	l_ptr->pkills = read_int("pkills");
+	l_ptr->tkills = read_int("tkills");
+
+	/* Count wakes and ignores */
+	l_ptr->wake = read_int("wake");
+	l_ptr->ignore = read_int("ignore");
+
+	/* Extra stuff */
+	/* -- was never really used 
+	rd_byte(&l_ptr->xtra1);
+	rd_byte(&l_ptr->xtra2);
+	*/
+
+	/* Count drops */
+	l_ptr->drop_gold = read_int("drop_gold");
+	l_ptr->drop_item = read_int("drop_item");
+
+	/* Count spells */
+	l_ptr->cast_innate = read_int("cast_innate");
+	l_ptr->cast_spell = read_int("cast_spell");
+
+	/* Count blows of each type */
+	start_section_read("blows");
+	for (i = 0; i < MONSTER_BLOW_MAX; i++)
+		l_ptr->blows[i] = read_int("blow");
+	end_section_read("blows");
+
+
+	/* Memorize flags */
+	start_section_read("flags");
+	l_ptr->flags1 = read_int("flag");
+	l_ptr->flags2 = read_int("flag");
+	l_ptr->flags3 = read_int("flag");
+	l_ptr->flags4 = read_int("flag");
+	l_ptr->flags5 = read_int("flag");
+	l_ptr->flags6 = read_int("flag");
+	end_section_read("flags");
+
+	/* Repair the lore flags */
+	/* No need to repair AFAIU
+	l_ptr->flags1 &= r_ptr->flags1;
+	l_ptr->flags2 &= r_ptr->flags2;
+	l_ptr->flags3 &= r_ptr->flags3;
+	l_ptr->flags4 &= r_ptr->flags4;
+	l_ptr->flags5 &= r_ptr->flags5;
+	l_ptr->flags6 &= r_ptr->flags6;
+	*/
+	end_section_read("lore");
+}
+
+/*
+ * Read the uniques lore
+ */
+static void rd_u_lore(int r_idx)
+{
 	monster_race *r_ptr = &r_info[r_idx];
 
 	start_section_read("lore");
@@ -660,59 +724,26 @@ static void rd_lore(int r_idx)
 
 	/* Count sights/deaths/kills */
 	r_ptr->r_sights = read_int("sights");
-	r_ptr->r_deaths = read_int("deaths");
-	r_ptr->r_pkills = read_int("pkills");
+	if (value_exists("deaths")) skip_value("deaths");
+	if (value_exists("pkills")) skip_value("pkills");
 	r_ptr->r_tkills = read_int("tkills");
 	
-	/* Count wakes and ignores */
-	r_ptr->r_wake = read_int("wake");
-	r_ptr->r_ignore = read_int("ignore");
-
-	/* Load in the amount of time left until the (possobile) unique respawns */
-	r_ptr->respawn_timer = read_uint("respawn_timer");
-
-	/* Count drops */
-	r_ptr->r_drop_gold = read_int("drop_gold");
-	r_ptr->r_drop_item = read_int("drop_item");
-
-
-	/* Count spells */
-	r_ptr->r_cast_inate = read_int("cast_innate");
-	r_ptr->r_cast_spell = read_int("cast_spell");
-
-	start_section_read("blows");
-	/* Count blows of each type */
-	r_ptr->r_blows[0] = read_int("blow");
-	r_ptr->r_blows[1] = read_int("blow");
-	r_ptr->r_blows[2] = read_int("blow");
-	r_ptr->r_blows[3] = read_int("blow");
-	end_section_read("blows");
-
-	/* Memorize flags */
-	start_section_read("flags");
-	r_ptr->r_flags1 = read_int("flag");
-	r_ptr->r_flags2 = read_int("flag");
-	r_ptr->r_flags3 = read_int("flag");
-	r_ptr->r_flags4 = read_int("flag");
-	r_ptr->r_flags5 = read_int("flag");
-	r_ptr->r_flags6 = read_int("flag");
-	end_section_read("flags");
-
-
+	if (value_exists("wake")) skip_value("wake");
+	if (value_exists("ignore")) skip_value("ignore");
+	if (value_exists("respawn_timer")) skip_value("respawn_timer");
+	if (value_exists("drop_gold")) skip_value("drop_gold");
+	if (value_exists("drop_item")) skip_value("drop_item");
+	if (value_exists("cast_innate")) skip_value("cast_innate");
+	if (value_exists("cast_spell")) skip_value("cast_spell");
+	
+	if (section_exists("blows")) while(value_exists("blow")) skip_value("blow");
+	if (section_exists("flags")) while(value_exists("flag")) skip_value("flag");
+	
 	/* Read the "Racial" monster limit per level */
 	r_ptr->max_num = read_int("max_num");
 
-	/* Read the "killer" info */
-	r_ptr->killer = read_int("killer");
-
-	/* Repair the lore flags */
-	r_ptr->r_flags1 &= r_ptr->flags1;
-	r_ptr->r_flags2 &= r_ptr->flags2;
-	r_ptr->r_flags3 &= r_ptr->flags3;
-	r_ptr->r_flags4 &= r_ptr->flags4;
-	r_ptr->r_flags5 &= r_ptr->flags5;
-	r_ptr->r_flags6 &= r_ptr->flags6;
-
+	if (value_exists("killer")) skip_value("killer");
+	
 	end_section_read("lore");
 
 }
@@ -1385,7 +1416,7 @@ static errr rd_cave_memory(int Ind)
  */
 errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex)
 {
-	int i;
+	int i, j;
 
 	u16b tmp16u;
 	//u32b tmp32u;
@@ -1420,6 +1451,38 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *cla
 		read_uint("birth_turn");
 	if(value_exists("player_turn"))
 		 read_uint("player_turn");
+		 
+ 	start_section_read("monster_lore");
+	tmp16u = read_int("max_r_idx");
+	for (i = 0; i < tmp16u; i++)
+	{
+		start_section_read("lore");
+		read_int("sights");
+		read_int("deaths");
+		read_int("pkills");
+		read_int("tkills");
+		read_int("wake");
+		read_int("ignore");
+		read_int("drop_gold");
+		read_int("drop_item");
+		read_int("cast_innate");
+		read_int("cast_spell");
+		start_section_read("blows");
+		for (j = 0; j < MONSTER_BLOW_MAX; j++)
+			read_int("blow");
+		end_section_read("blows");
+		start_section_read("flags");
+		read_int("flag");
+		read_int("flag");
+		read_int("flag");
+		read_int("flag");
+		read_int("flag");
+		read_int("flag");
+		end_section_read("flags");
+		end_section_read("lore");
+	}
+	end_section_read("monster_lore");
+
 		
 	start_section_read("object_memory");
 	tmp16u = read_int("max_k_idx");
@@ -1553,6 +1616,28 @@ static errr rd_savefile_new_aux(int Ind)
 		p_ptr->turn = read_uint("player_turn");
 	else
 		p_ptr->turn = 0;
+	
+	
+	/* Monster Memory */
+	if (section_exists("monster_lore")) {
+	start_section_read("monster_lore");
+	tmp16u = read_int("max_r_idx");
+
+	/* Incompatible save files */
+	if (tmp16u > z_info->r_max)
+	{
+		note(format("Too many (%u) monster races!", tmp16u));
+		return (21);
+	}
+
+	/* Read the available records */
+	for (i = 0; i < tmp16u; i++)
+	{
+		/* Read the lore */
+		rd_lore(Ind, i);
+	}
+	end_section_read("monster_lore");
+	}
 	
 	/* Object Memory */
 	start_section_read("object_memory");
@@ -1797,7 +1882,7 @@ errr rd_server_savefile()
 		monster_race *r_ptr;
 
                 /* Read the lore */
-                rd_lore(i);
+               rd_u_lore(i);
 
 		/* Access the monster race */
 		r_ptr = &r_info[i];

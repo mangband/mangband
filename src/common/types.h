@@ -589,7 +589,7 @@ struct monster_race
 
 	s16b extra;				/* Unused (for now) */
 
-	byte freq_inate;		/* Inate spell frequency */
+	byte freq_innate;		/* Inate spell frequency */
 	byte freq_spell;		/* Other spell frequency */
 
 	u32b flags1;			/* Flags 1 (general) */
@@ -615,40 +615,15 @@ struct monster_race
 
 
 	byte max_num;			/* Maximum population allowed per level */
-
 	byte cur_num;			/* Monster population on current level */
 
 
 	s32b killer;			/* ID of the player who killed him */
 
-	s16b r_sights;			/* Count sightings of this monster */
-	s16b r_deaths;			/* Count deaths from this monster */
-
-	s16b r_pkills;			/* Count monsters killed in this life */
-	s16b r_tkills;			/* Count monsters killed in all lives */
-
-	byte r_wake;			/* Number of times woken up (?) */
-	byte r_ignore;			/* Number of times ignored (?) */
-
-	/*byte r_xtra1;			changed to time for japanese patch APD Something (unused)
-	  byte r_xtra2;                    Something (unused) */
+	s16b r_sights;			/* Count sightings of this monster by all players*/
+	s16b r_tkills;			/* Count monsters killed by all players */
 	  
 	s32b respawn_timer;			/* The amount of time until the unique respawns */
-
-	byte r_drop_gold;		/* Max number of gold dropped at once */
-	byte r_drop_item;		/* Max number of item dropped at once */
-
-	byte r_cast_inate;		/* Max number of inate spells seen */
-	byte r_cast_spell;		/* Max number of other spells seen */
-
-	byte r_blows[4];		/* Number of times each blow type was seen */
-
-	u32b r_flags1;			/* Observed racial flags */
-	u32b r_flags2;			/* Observed racial flags */
-	u32b r_flags3;			/* Observed racial flags */
-	u32b r_flags4;			/* Observed racial flags */
-	u32b r_flags5;			/* Observed racial flags */
-	u32b r_flags6;			/* Observed racial flags */
 };
 
 
@@ -1284,6 +1259,8 @@ struct player_type
 
 	bool obj_aware[MAX_K_IDX]; /* Is the player aware of this obj type? */
 	bool obj_tried[MAX_K_IDX]; /* Has the player tried this obj type? */
+
+	monster_lore *l_list; /* Character's monster lore */
 
 	bool options[64];	/* Player's options */
 	byte d_attr[MAX_K_IDX];

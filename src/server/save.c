@@ -177,7 +177,69 @@ static void wr_monster(monster_type *m_ptr)
 /*
  * Write a "lore" record
  */
-static void wr_lore(int r_idx)
+static void wr_lore(int Ind, int r_idx)
+{
+	int i;
+
+	player_type *p_ptr = Players[Ind];
+	monster_race *r_ptr = &r_info[r_idx];
+	monster_lore *l_ptr = p_ptr->l_list + r_idx;
+
+	start_section("lore");
+	
+	/* Count sights/deaths/kills */
+	write_int("sights",l_ptr->sights);
+	write_int("deaths",l_ptr->deaths);
+	write_int("pkills",l_ptr->pkills);
+	write_int("tkills",l_ptr->tkills);
+
+	/* Count wakes and ignores */
+	write_int("wake",l_ptr->wake);
+	write_int("ignore",l_ptr->ignore);
+
+	/* Extra stuff */
+//	wr_byte(l_ptr->xtra1);
+//	wr_byte(l_ptr->xtra2);
+
+	/* Count drops */
+	write_int("drop_gold",l_ptr->drop_gold);
+	write_int("drop_item",l_ptr->drop_item);
+
+	/* Count spells */
+	write_int("cast_innate",l_ptr->cast_innate);
+	write_int("cast_spell",l_ptr->cast_spell);
+
+	/* Count blows of each type */
+	start_section("blows");
+	for (i = 0; i < MONSTER_BLOW_MAX; i++)
+		write_int("blow",l_ptr->blows[i]);
+	end_section("blows");
+
+	/* Memorize flags */
+	start_section("flags");
+	write_uint("flag",l_ptr->flags1);
+	write_uint("flag",l_ptr->flags2);
+	write_uint("flag",l_ptr->flags3);
+	write_uint("flag",l_ptr->flags4);
+	write_uint("flag",l_ptr->flags5);
+	write_uint("flag",l_ptr->flags6);
+	end_section("flags");
+
+	/* Monster limit per level */
+	//wr_byte(r_ptr->max_num);
+
+	/* Later (?) */
+	//wr_byte(0);
+	//wr_byte(0);
+	//wr_byte(0);
+	
+	end_section("lore");
+}
+
+/*
+ * Write a unique "lore" record
+ */
+static void wr_u_lore(int r_idx)
 {
 	monster_race *r_ptr = &r_info[r_idx];
 
@@ -188,52 +250,13 @@ static void wr_lore(int r_idx)
 
 	/* Count sights/deaths/kills */
 	write_int("sights",r_ptr->r_sights);
-	write_int("deaths",r_ptr->r_deaths);
-	write_int("pkills",r_ptr->r_pkills);
 	write_int("tkills",r_ptr->r_tkills);
 
-	/* Count wakes and ignores */
-	write_int("wake",r_ptr->r_wake);
-	write_int("ignore",r_ptr->r_ignore);
-
-	/* Save the amount of time until the unique respawns */
-	write_uint("respawn_timer",r_ptr->respawn_timer);
-
-	/* Count drops */
-	write_int("drop_gold",r_ptr->r_drop_gold);
-	write_int("drop_item",r_ptr->r_drop_item);
-
-	/* Count spells */
-	write_int("cast_innate",r_ptr->r_cast_inate);
-	write_int("cast_spell",r_ptr->r_cast_spell);
-
-	/* Count blows of each type */
-	start_section("blows");
-	write_int("blow",r_ptr->r_blows[0]);
-	write_int("blow",r_ptr->r_blows[1]);
-	write_int("blow",r_ptr->r_blows[2]);
-	write_int("blow",r_ptr->r_blows[3]);
-	end_section("blows");
-
-	/* Memorize flags */
-	start_section("flags");
-	write_uint("flag",r_ptr->r_flags1);
-	write_uint("flag",r_ptr->r_flags2);
-	write_uint("flag",r_ptr->r_flags3);
-	write_uint("flag",r_ptr->r_flags4);
-	write_uint("flag",r_ptr->r_flags5);
-	write_uint("flag",r_ptr->r_flags6);
-	end_section("flags");
-
-	/* Monster limit per level */
+ 	/* Monster limit per level */
 	write_int("max_num",r_ptr->max_num);
-	
-	/* Killer */
-	write_uint("killer",r_ptr->killer);
-	
+
 	end_section("lore");
 }
-
 
 /*
  * Write an "xtra" record
@@ -718,6 +741,13 @@ static bool wr_savefile_new(int Ind)
 	/* Write the players turn */
 	write_uint("player_turn",p_ptr->turn);
 
+	/* Dump the monster lore */
+	start_section("monster_lore");
+	tmp16u = z_info->r_max;
+	write_int("max_r_idx",tmp16u);
+	for (i = 0; i < tmp16u; i++) wr_lore(Ind, i);
+	end_section("monster_lore");
+	
 	/* Dump the object memory */
 	start_section("object_memory");
 	tmp16u = MAX_K_IDX;
@@ -1389,7 +1419,7 @@ static bool wr_server_savefile(void)
 		start_section("monster_lore");
         tmp16u = MAX_R_IDX;
 		write_uint("max_r_idx",tmp16u);
-        for (i = 0; i < tmp16u; i++) wr_lore(i);
+        for (i = 0; i < tmp16u; i++) wr_u_lore(i);
 		end_section("monster_lore");
 
         /* Hack -- Dump the artifacts */

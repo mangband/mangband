@@ -478,6 +478,7 @@ extern int Send_store_leave(void);
 extern int Send_store_confirm(void);
 extern int Send_redraw(void);
 extern int Send_special_line(int type, int line);
+extern int Send_symbol(char sym);
 extern int Send_party(s16b command, cptr buf);
 extern int Send_purchase_house(int dir);
 extern int Send_suicide(void);

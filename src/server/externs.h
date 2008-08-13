@@ -680,6 +680,7 @@ extern void screen_roff(int r_idx);
 extern void display_roff(int r_idx);
 
 /* monster.c */
+extern void describe_monster(int Ind, int m_ind, bool spoilers);
 extern void delete_monster_idx(int i);
 extern void delete_monster(int Depth, int y, int x);
 extern void compact_monsters(int size);
@@ -688,8 +689,8 @@ extern s16b m_pop(void);
 extern errr get_mon_num_prep(void);
 extern s16b get_mon_num(int level);
 extern void monster_desc(int Ind, char *desc, int m_idx, int mode);
-extern void lore_do_probe(int m_idx);
-extern void lore_treasure(int m_idx, int num_item, int num_gold);
+extern void lore_do_probe(int Ind, int m_idx);
+extern void lore_treasure(int Ind, int m_idx, int num_item, int num_gold);
 extern void update_mon(int m_idx, bool dist);
 extern void update_monsters(bool dist);
 extern void update_player(int Ind);

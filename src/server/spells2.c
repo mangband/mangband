@@ -1262,6 +1262,7 @@ bool detect_invisible(int Ind, bool pause)
 	{
 		monster_type *m_ptr = &m_list[i];
 		monster_race *r_ptr = &r_info[m_ptr->r_idx];
+		monster_race *l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
@@ -1279,7 +1280,7 @@ bool detect_invisible(int Ind, bool pause)
 		if (panel_contains(fy, fx) && (r_ptr->flags2 & RF2_INVISIBLE))
 		{
 			/* Take note that they are invisible */
-			r_ptr->r_flags2 |= RF2_INVISIBLE;
+			l_ptr->flags2 |= RF2_INVISIBLE;
 
 			/* Mega-Hack -- Show the monster */
 			p_ptr->mon_vis[i] = TRUE;
@@ -2913,7 +2914,7 @@ bool probing(int Ind)
 		msg_format(Ind, "%^s has %d hit points.", m_name, m_ptr->hp);
 
 		/* Learn all of the non-spell, non-treasure flags */
-		lore_do_probe(i);
+		lore_do_probe(Ind, i);
 
 		/* Probe worked */
 		probe = TRUE;

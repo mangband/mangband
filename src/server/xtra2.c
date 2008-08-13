@@ -2108,7 +2108,7 @@ void monster_death(int Ind, int m_idx)
 	if (visible && (dump_item || dump_gold))
 	{
 		/* Take notes on treasure */
-		lore_treasure(m_idx, dump_item, dump_gold);
+		lore_treasure(Ind, m_idx, dump_item, dump_gold);
 	}
 
     if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
@@ -2744,6 +2744,8 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	s32b		new_exp, new_exp_frac;
 
@@ -2853,9 +2855,12 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 		if (p_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE))
 		{
 			/* Count kills this life */
-			if (r_ptr->r_pkills < MAX_SHORT) r_ptr->r_pkills++;
+			if (l_ptr->pkills < MAX_SHORT) l_ptr->pkills++;
 
 			/* Count kills in all lives */
+			if (l_ptr->tkills < MAX_SHORT) l_ptr->tkills++;
+
+			/* Count kills by all players */			
 			if (r_ptr->r_tkills < MAX_SHORT) r_ptr->r_tkills++;
 
 			/* Hack -- Auto-recall */
@@ -3557,6 +3562,23 @@ void target_free_aux(int Ind, int dir, bool *can_target)
 		return;
 	}
 	
+	/* Monster recall */
+	if (dir == 64 + 25) 
+	{
+		/* Paranoia */
+		if (!cave[Depth]) return;
+
+		/* Fetch */
+		c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
+		if (c_ptr->m_idx > 0)
+		{
+			do_cmd_monster_desc(Ind, c_ptr->m_idx);
+		}
+		
+		/* Fail */
+		p_ptr->cursor_who = 0;
+		return;
+	}
 	
 	/* Initialize if needed */
 	if (dir == 64)
@@ -3590,10 +3612,13 @@ void target_free_aux(int Ind, int dir, bool *can_target)
 	describe_floor_tile(c_ptr, out_val, Ind, FALSE, cave_flag);
 
 	/* Info */
+	strcat(out_val, " [<dir>");
+	if (c_ptr->m_idx > 0)
+		strcat(out_val, ", r");
 	if (can_target)
-		strcat(out_val, " [<dir>, q, m, t] ");
-	else
-		strcat(out_val, " [<dir>, q, m] ");
+		strcat(out_val, ", t");
+	strcat(out_val, ", q, m] ");
+	
 	/* Tell the client */
 	Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
 }

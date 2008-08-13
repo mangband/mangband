@@ -2531,6 +2531,20 @@ that keeps many algorithms happy.
 #define RF6_S_UNIQUE		0x80000000	/* Summon Unique Monster */
 
 
+/*
+ * Some flags are obvious
+ */
+#define RF1_OBVIOUS_MASK \
+	(RF1_UNIQUE | RF1_QUESTOR | RF1_MALE | RF1_FEMALE | \
+	 RF1_FRIEND | RF1_FRIENDS | RF1_ESCORT | RF1_ESCORTS)
+
+/*
+ * "race" flags
+ */
+#define RF3_RACE_MASK \
+	(RF3_ORC | RF3_TROLL | RF3_GIANT | RF3_DRAGON | \
+	 RF3_DEMON | RF3_UNDEAD | RF3_EVIL | RF3_ANIMAL)
+
 /*** Option Definitions ***/
 
 /*

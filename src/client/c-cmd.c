@@ -423,6 +423,12 @@ void process_command()
 			break;
 		}
 
+		case '/':
+		{
+			cmd_query_symbol();
+			break;
+		}
+		
 		/*** Miscellaneous ***/
 		case ':':
 		{
@@ -1273,6 +1279,15 @@ void cmd_look(void)
 
 				break;
 			}
+			case 'r':
+				/* Ask server for monster recall */
+				if (position) Send_look(64 + 25);
+				else Send_look(25);
+				
+				/* Hack: cancel looking */
+				prt("", 0, 0);
+				done = TRUE;
+				break;
 			default:
 			{
 				d = target_dir(ch);
@@ -1439,6 +1454,16 @@ void cmd_help(void)
 
 	/* Call the file perusal */
 	peruse_file();
+}
+
+void cmd_query_symbol(void)
+{
+	char sym;
+	
+	/* Get a character or abort */
+	if (!get_com("Enter character to be identified: ", &sym)) return;
+	
+	Send_symbol(sym);	
 }
 
 void cmd_message(void)

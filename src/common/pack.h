@@ -72,6 +72,7 @@
 #define PKT_SELL		62
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
+#define PKT_SYMBOL_QUERY	65
 
 #define PKT_PLAYER_STORE_INFO 67
 

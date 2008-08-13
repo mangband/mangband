@@ -203,6 +203,7 @@ static void Init_receive(void)
 	playing_receive[PKT_REDRAW]		= Receive_redraw;
 	playing_receive[PKT_REST]		= Receive_rest;
 	playing_receive[PKT_SPECIAL_LINE]	= 	Receive_special_line;
+	playing_receive[PKT_SYMBOL_QUERY]	= 	Receive_symbol_query;
 	playing_receive[PKT_PARTY]		= Receive_party;
 	playing_receive[PKT_GHOST]		= Receive_ghost;
 
@@ -5086,6 +5087,28 @@ static int Receive_special_line(int ind)
 				break;
 		}
 	}
+
+	return 1;
+}
+
+static int Receive_symbol_query(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	int player, n;
+	char ch, sym;
+
+	if (connp->id != -1) player = GetInd[connp->id];
+		else player = 0;
+		
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &sym)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	/* Perform query */
+	do_cmd_query_symbol(player, sym);
 
 	return 1;
 }

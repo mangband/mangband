@@ -1221,6 +1221,7 @@ void py_attack_mon(int Ind, int y, int x)
 
 	monster_type	*m_ptr = &m_list[c_ptr->m_idx];
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	object_type		*o_ptr;
 
@@ -1351,7 +1352,7 @@ void py_attack_mon(int Ind, int y, int x)
 				/* Confuse the monster */
 				if (r_ptr->flags3 & RF3_NO_CONF)
 				{
-					if (p_ptr->mon_vis[c_ptr->m_idx]) r_ptr->r_flags3 |= RF3_NO_CONF;
+					if (p_ptr->mon_vis[c_ptr->m_idx]) l_ptr->flags3 |= RF3_NO_CONF;
 					msg_format(Ind, "%^s is unaffected.", m_name);
 				}
 				else if (rand_int(100) < r_ptr->level)

@@ -433,6 +433,7 @@ bool make_attack_spell(int Ind, int m_idx)
 
 	monster_type	*m_ptr = &m_list[m_idx];
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	char		m_name[80];
 	char		m_poss[80];
@@ -463,7 +464,7 @@ bool make_attack_spell(int Ind, int m_idx)
 
 
 	/* Hack -- Extract the spell probability */
-	chance = (r_ptr->freq_inate + r_ptr->freq_spell) / 2;
+	chance = (r_ptr->freq_innate + r_ptr->freq_spell) / 2;
 
 	/* Not allowed to cast spells */
 	if (!chance) return (FALSE);
@@ -1937,28 +1938,28 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* Inate spell */
 		if (thrown_spell < 32*4)
 		{
-			r_ptr->r_flags4 |= (1L << (thrown_spell - 32*3));
-			if (r_ptr->r_cast_inate < MAX_UCHAR) r_ptr->r_cast_inate++;
+			l_ptr->flags4 |= (1L << (thrown_spell - 32*3));
+			if (l_ptr->cast_innate < MAX_UCHAR) l_ptr->cast_innate++;
 		}
 
 		/* Bolt or Ball */
 		else if (thrown_spell < 32*5)
 		{
-			r_ptr->r_flags5 |= (1L << (thrown_spell - 32*4));
-			if (r_ptr->r_cast_spell < MAX_UCHAR) r_ptr->r_cast_spell++;
+			l_ptr->flags5 |= (1L << (thrown_spell - 32*4));
+			if (l_ptr->cast_spell < MAX_UCHAR) l_ptr->cast_spell++;
 		}
 
 		/* Special spell */
 		else if (thrown_spell < 32*6)
 		{
-			r_ptr->r_flags6 |= (1L << (thrown_spell - 32*5));
-			if (r_ptr->r_cast_spell < MAX_UCHAR) r_ptr->r_cast_spell++;
+			l_ptr->flags6 |= (1L << (thrown_spell - 32*5));
+			if (l_ptr->cast_spell < MAX_UCHAR) l_ptr->cast_spell++;
 		}
 	}
 
 
 	/* Always take note of monsters that kill you */
-	if (p_ptr->death && (r_ptr->r_deaths < MAX_SHORT)) r_ptr->r_deaths++;
+	if (p_ptr->death && (l_ptr->deaths < MAX_SHORT)) l_ptr->deaths++;
 
 
 	/* A spell was cast */
@@ -2426,6 +2427,7 @@ static void process_monster(int Ind, int m_idx)
 
 	monster_type	*m_ptr = &m_list[m_idx];
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	int			i, d, oy, ox, ny, nx;
 
@@ -2487,7 +2489,7 @@ static void process_monster(int Ind, int m_idx)
 				if (p_ptr->mon_vis[m_idx])
 				{
 					/* Hack -- Count the ignores */
-					if (r_ptr->r_ignore < MAX_UCHAR) r_ptr->r_ignore++;
+					if (l_ptr->ignore < MAX_UCHAR) l_ptr->ignore++;
 				}
 			}
 
@@ -2509,7 +2511,7 @@ static void process_monster(int Ind, int m_idx)
 					msg_format(Ind, "%^s wakes up.", m_name);
 
 					/* Hack -- Count the wakings */
-					if (r_ptr->r_wake < MAX_UCHAR) r_ptr->r_wake++;
+					if (l_ptr->wake < MAX_UCHAR) l_ptr->wake++;
 				}
 			}
 		}
@@ -2667,7 +2669,7 @@ static void process_monster(int Ind, int m_idx)
 				if (multiply_monster(m_idx))
 				{
 					/* Take note if visible */
-					if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags2 |= RF2_MULTIPLY;
+					if (p_ptr->mon_vis[m_idx]) l_ptr->flags2 |= RF2_MULTIPLY;
 
 					/* Multiplying takes energy */
 					m_ptr->energy -= level_speed(m_ptr->dun_depth);
@@ -2703,8 +2705,8 @@ static void process_monster(int Ind, int m_idx)
 	         (rand_int(100) < 75))
 	{
 		/* Memorize flags */
-		if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags1 |= RF1_RAND_50;
-		if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags1 |= RF1_RAND_25;
+		if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_RAND_50;
+		if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_RAND_25;
 
 		/* Try four "random" directions */
 		mm[0] = mm[1] = mm[2] = mm[3] = 5;
@@ -2715,7 +2717,7 @@ static void process_monster(int Ind, int m_idx)
 	         (rand_int(100) < 50))
 	{
 		/* Memorize flags */
-		if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags1 |= RF1_RAND_50;
+		if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_RAND_50;
 
 		/* Try four "random" directions */
 		mm[0] = mm[1] = mm[2] = mm[3] = 5;
@@ -2726,7 +2728,7 @@ static void process_monster(int Ind, int m_idx)
 	         (rand_int(100) < 25))
 	{
 		/* Memorize flags */
-		if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags1 |= RF1_RAND_25;
+		if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_RAND_25;
 
 		/* Try four "random" directions */
 		mm[0] = mm[1] = mm[2] = mm[3] = 5;
@@ -2977,7 +2979,7 @@ static void process_monster(int Ind, int m_idx)
 		    (r_ptr->flags1 & RF1_NEVER_BLOW))
 		{
 			/* Hack -- memorize lack of attacks */
-			/* if (m_ptr->ml) r_ptr->r_flags1 |= RF1_NEVER_BLOW; */
+			/* if (m_ptr->ml) l_ptr->flags1 |= RF1_NEVER_BLOW; */
 
 			/* Do not move */
 			do_move = FALSE;
@@ -3007,7 +3009,7 @@ static void process_monster(int Ind, int m_idx)
 		if (do_move && (r_ptr->flags1 & RF1_NEVER_MOVE))
 		{
 			/* Hack -- memorize lack of attacks */
-			/* if (m_ptr->ml) r_ptr->r_flags1 |= RF1_NEVER_MOVE; */
+			/* if (m_ptr->ml) l_ptr->flags1 |= RF1_NEVER_MOVE; */
 
 			/* Do not move */
 			do_move = FALSE;
@@ -3233,28 +3235,28 @@ static void process_monster(int Ind, int m_idx)
 	if (p_ptr->mon_vis[m_idx])
 	{
 		/* Monster opened a door */
-		if (did_open_door) r_ptr->r_flags2 |= RF2_OPEN_DOOR;
+		if (did_open_door) l_ptr->flags2 |= RF2_OPEN_DOOR;
 
 		/* Monster bashed a door */
-		if (did_bash_door) r_ptr->r_flags2 |= RF2_BASH_DOOR;
+		if (did_bash_door) l_ptr->flags2 |= RF2_BASH_DOOR;
 
 		/* Monster tried to pick something up */
-		if (did_take_item) r_ptr->r_flags2 |= RF2_TAKE_ITEM;
+		if (did_take_item) l_ptr->flags2 |= RF2_TAKE_ITEM;
 
 		/* Monster tried to crush something */
-		if (did_kill_item) r_ptr->r_flags2 |= RF2_KILL_ITEM;
+		if (did_kill_item) l_ptr->flags2 |= RF2_KILL_ITEM;
 
 		/* Monster pushed past another monster */
-		if (did_move_body) r_ptr->r_flags2 |= RF2_MOVE_BODY;
+		if (did_move_body) l_ptr->flags2 |= RF2_MOVE_BODY;
 
 		/* Monster ate another monster */
-		if (did_kill_body) r_ptr->r_flags2 |= RF2_KILL_BODY;
+		if (did_kill_body) l_ptr->flags2 |= RF2_KILL_BODY;
 
 		/* Monster passed through a wall */
-		if (did_pass_wall) r_ptr->r_flags2 |= RF2_PASS_WALL;
+		if (did_pass_wall) l_ptr->flags2 |= RF2_PASS_WALL;
 
 		/* Monster destroyed a wall */
-		if (did_kill_wall) r_ptr->r_flags2 |= RF2_KILL_WALL;
+		if (did_kill_wall) l_ptr->flags2 |= RF2_KILL_WALL;
 	}
 
 
