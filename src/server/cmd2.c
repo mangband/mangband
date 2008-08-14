@@ -122,7 +122,7 @@ void do_cmd_go_down(int Ind)
 
     if (p_ptr->ghost && (
 			    strcmp(p_ptr->name,cfg_dungeon_master)
-			)
+			) && !cfg_ghost_diving
 		    ) {
 		msg_print(Ind, "You seem unable to go down.  Try going up.");
 		return;

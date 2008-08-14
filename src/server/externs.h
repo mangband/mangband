@@ -170,6 +170,7 @@ extern s32b cfg_tcp_port;
 extern bool cfg_mage_hp_bonus;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;
+extern bool cfg_ghost_diving;
 extern bool cfg_door_bump_open;
 extern s32b cfg_level_unstatic_chance;
 extern s32b cfg_retire_timer;

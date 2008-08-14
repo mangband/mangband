@@ -181,6 +181,7 @@ s32b cfg_tcp_port = 18346;
 bool cfg_mage_hp_bonus = 1;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;
+bool cfg_ghost_diving = 0;
 bool cfg_door_bump_open = 1;
 s32b cfg_level_unstatic_chance = 60;
 bool cfg_random_artifacts = 0; /* No randarts by default */
