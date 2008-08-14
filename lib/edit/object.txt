@@ -1537,7 +1537,6 @@ N:179:Artifact Creation
 G:?:d
 I:70:6:0
 W:99:0:5:1000000
-A:99/40
 
 N:180:Remove Curse
 G:?:w
