@@ -354,7 +354,20 @@ static void wr_house(house_type *house)
 	end_section("house");
 }
 
+static void wr_header(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
 
+	start_section("header");
+
+	write_str("playername",p_ptr->name);
+	write_str("pass",p_ptr->pass);
+	write_int("prace",p_ptr->prace);
+	write_int("pclass",p_ptr->pclass);
+	write_int("male",p_ptr->male);
+	
+	end_section("header");
+}
 /*
  * Write some "extra" info
  */
@@ -366,9 +379,10 @@ static void wr_extra(int Ind)
 
 	start_section("player");
 
+	/*	
 	write_str("playername",p_ptr->name);
-
 	write_str("pass",p_ptr->pass);
+	*/
 
 	write_str("died_from",p_ptr->died_from);
 	write_str("died_from_list",p_ptr->died_from_list);
@@ -382,9 +396,11 @@ static void wr_extra(int Ind)
 	end_section("history");
 
 	/* Race/Class/Gender/Party */
+	/*
 	write_int("prace",p_ptr->prace);
 	write_int("pclass",p_ptr->pclass);
 	write_int("male",p_ptr->male);
+	*/
 	write_int("party",p_ptr->party);
 
 	write_int("hitdie",p_ptr->hitdie);
@@ -714,6 +730,7 @@ static bool wr_savefile_new(int Ind)
 	write_int("patch",SERVER_VERSION_PATCH);
 	end_section("version");
 
+	wr_header(Ind);
 
 	/* Reset the checksum */
 	v_stamp = 0L;

@@ -872,7 +872,7 @@ static void rd_wild(int n)
  * Read/Write the "extra" information
  */
 
-static bool rd_extra(int Ind)
+static bool rd_extra(int Ind, bool had_header)
 {
 	player_type *p_ptr = Players[Ind];
 	char pass[MAX_PASS_LEN];
@@ -891,49 +891,12 @@ static bool rd_extra(int Ind)
 
 	start_section_read("player");
 
-	read_str("playername",p_ptr->name); /* 32 */
-	read_str("pass",pass); /* 80, but really should be MAX_PASS_LEN */
+	if (!had_header)
+	{
+		read_str("playername",p_ptr->name); /* 32 */
+		skip_value("pass");
+	}
 
-	/* Here's where we do our password encryption handling */
-	strcpy(temp, (const char *)pass);
-	MD5Password(temp); /* The hashed version of our stored password */
-	strcpy(temp2, (const char *)p_ptr->pass);
-	MD5Password(temp2); /* The hashed version of password from client */
-#if 0
-	if (strstr(pass, "$1$"))
-	{ /* Most likely an MD5 hashed password saved */
-		if (strcmp(pass, p_ptr->pass))
-		{ /* No match, might be clear text from client */
-			if (strcmp(pass, temp2))
-			{
-				/* No, it's not correct */
-				return TRUE;
-			}
-			/* Old style client, but OK otherwise */
-		}
-	}
-	else
-	{ /* Most likely clear text password saved */
-		if (strstr(p_ptr->pass, "$1$"))
-		{ /* Most likely hashed password from new client */
-			if (strcmp(temp, p_ptr->pass))
-			{
-				/* No, it doesn't match hatched */
-				return TRUE;
-			}
-		}
-		else
-		{ /* Most likely clear text from client as well */
-			if (strcmp(pass, p_ptr->pass))
-			{
-				/* No, it's not correct */
-				return TRUE;
-			}
-		}
-		/* Good match with clear text, save the hashed */
-		strcpy(p_ptr->pass, (const char *)temp);
-	}
-#endif
 	read_str("died_from",p_ptr->died_from); /* 80 */
 
 	read_str("died_from_list",p_ptr->died_from_list); /* 80 */
@@ -947,9 +910,12 @@ static bool rd_extra(int Ind)
 	end_section_read("history");
 
 	/* Class/Race/Gender/Party */
-	p_ptr->prace = read_int("prace");
-	p_ptr->pclass = read_int("pclass");
-	p_ptr->male = read_int("male");
+	if (!had_header)
+	{
+		p_ptr->prace = read_int("prace");
+		p_ptr->pclass = read_int("pclass");
+		p_ptr->male = read_int("male");
+	}
 	p_ptr->party = read_int("party");
 
 	/* Special Race/Class info */
@@ -1404,30 +1370,30 @@ static errr rd_cave_memory(int Ind)
 }
 
 /* XXX XXX XXX 
- * This function is a large code duplication of rd_savefile_new_aux and rd_extra
- * it attempts to read out the race/class/sex info and does a password check
- * Because the neccessary information is located rather deeply in the savefile,
- * it performs some dummy reads and ommits the data.
+ * This function parses savefile as if it is a text file, searching for
+ * pass = , prace = , etc strings. It ignores the 'xml' format for sake
+ * of maintance simplicity (i.e. it doesn't care about savefile format
+ * changes). It attempts to read out the race/class/sex info and 
+ * does a password check -> result of wich is the return value.
+ *
  * See "scoop_player" in "save.c" for more info.  
- * 
- * Note -- this should match the savefile format (at least the start of it).
- * Yeah, it's a klunky kludge and there are several ways to resolve it
- * sometime in the future.
  */
 errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex)
 {
-	int i, j;
-
-	u16b tmp16u;
-	//u32b tmp32u;
-	
 	errr err;
 
-	char name[32];
 	char pass[80];
 	char temp[80];
 	char temp2[80];
-	char temp3[80];
+	
+	char *read;
+
+	bool read_pass = FALSE;
+	bool read_race = FALSE;
+	bool read_class = FALSE;
+	bool read_sex = FALSE;
+
+	char buf[1024];
 
 	/* The savefile is a text file */
 	file_handle = my_fopen(sfile, "r");
@@ -1435,83 +1401,43 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *cla
 	/* Paranoia */
 	if (!file_handle) return (-1);
 
-	/* Do it */
-	start_section_read("mangband_player_save");
-	start_section_read("version");
-	read_int("major"); 
-	read_int("minor");
-	read_int("patch");
-	end_section_read("version");	
-	read_uint("sf_xtra");
-	read_uint("sf_when");
-	read_int("sf_lives");
-   read_int("sf_saves");
-	skip_value("turn");
-	if(value_exists("birth_turn"))
-		read_uint("birth_turn");
-	if(value_exists("player_turn"))
-		 read_uint("player_turn");
-		 
- 	start_section_read("monster_lore");
-	tmp16u = read_int("max_r_idx");
-	for (i = 0; i < tmp16u; i++)
+	/* Try to fetch the data */
+	while (!feof(file_handle))
 	{
-		start_section_read("lore");
-		read_int("sights");
-		read_int("deaths");
-		read_int("pkills");
-		read_int("tkills");
-		read_int("wake");
-		read_int("ignore");
-		read_int("drop_gold");
-		read_int("drop_item");
-		read_int("cast_innate");
-		read_int("cast_spell");
-		start_section_read("blows");
-		for (j = 0; j < MONSTER_BLOW_MAX; j++)
-			read_int("blow");
-		end_section_read("blows");
-		start_section_read("flags");
-		read_int("flag");
-		read_int("flag");
-		read_int("flag");
-		read_int("flag");
-		read_int("flag");
-		read_int("flag");
-		end_section_read("flags");
-		end_section_read("lore");
-	}
-	end_section_read("monster_lore");
+		fgets(buf, 1024, file_handle);
 
+		read = strtok(buf, " \t=");
+		if (!strcmp(read, "pass"))
+		{
+			read = strtok(NULL, " \t\n=");
+			strcpy(pass, read);
+			read_pass = TRUE;
+			continue;
+		}
+		if (!strcmp(read, "prace"))
+		{
+			read = strtok(NULL, " \t\n=");
+			*race = atoi(read);
+			read_race = TRUE;
+			continue;
+		}
+		if (!strcmp(read, "pclass"))
+		{
+			read = strtok(NULL, " \t\n=");
+			*class = atoi(read);
+			read_class = TRUE;
+			continue;
+		}
+		if (!strcmp(read, "male"))
+		{
+			read = strtok(NULL, " \t\n=");
+			*sex = atoi(read);
+			read_sex = TRUE;
+			continue;
+		}
 		
-	start_section_read("object_memory");
-	tmp16u = read_int("max_k_idx");
-	for (i = 0; i < tmp16u; i++)
-	{
-		byte tmp8u;
-
-		tmp8u = read_int("flags");
+		if (read_pass && read_race && read_class && read_sex) break;
 	}
-	end_section_read("object_memory");
-
-	start_section_read("player");
-	read_str("playername",name); /* 32 */
-	read_str("pass",pass); /* 80, but really should be MAX_PASS_LEN */
-
-	read_str("died_from",temp3); /* 80 */
-	read_str("died_from_list",temp); /* 80 */
-	read_str("died_from_depth",temp); /* 80 */
-	start_section_read("history");
-	read_str("history",temp); /* 60 */
-	read_str("history",temp); /* 60 */
-	read_str("history",temp); /* 60 */
-	read_str("history",temp); /* 60 */
-	end_section_read("history");
-
-	/* Class/Race/Gender/Party */
-	*race = read_int("prace");
-	*class = read_int("pclass");
-	*sex = read_int("male");
 
 	/* Paranoia */	
 	temp[0] = '\0';
@@ -1581,6 +1507,7 @@ static errr rd_savefile_new_aux(int Ind)
 	u16b tmp16u;
 	u32b tmp32u;
 	bool clear = FALSE;
+	bool had_header = FALSE;
 
 	start_section_read("mangband_player_save");
 	start_section_read("version");
@@ -1588,6 +1515,22 @@ static errr rd_savefile_new_aux(int Ind)
 	read_int("minor");
 	read_int("patch");
 	end_section_read("version");
+	
+	if (section_exists("header")) 
+	{
+		start_section_read("header");
+		had_header = TRUE;
+
+		read_str("playername",p_ptr->name); /* 32 */
+
+		skip_value("pass");
+
+		p_ptr->prace = read_int("prace");
+		p_ptr->pclass = read_int("pclass");
+		p_ptr->male = read_int("male");
+		
+		end_section_read("header");
+	}
 
 	/* Operating system info */
 	sf_xtra = read_uint("sf_xtra");
@@ -1665,8 +1608,8 @@ static errr rd_savefile_new_aux(int Ind)
 	/*if (arg_fiddle) note("Loaded Object Memory");*/
 
 	/* Read the extra stuff */
-	if (rd_extra(Ind))
-		return BAD_PASSWORD;
+	rd_extra(Ind, had_header);
+
 	/*if (arg_fiddle) note("Loaded extra information");*/
 
 
