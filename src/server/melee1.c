@@ -143,7 +143,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 	char		ddesc[80];
 
-	bool		blinked;
+	int		blinked;
 
 
 	/* Not allowed to attack */
@@ -164,7 +164,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Assume no blink */
-	blinked = FALSE;
+	blinked = 0;
 
 	/* Scan through all four blows */
 	for (ap_cnt = 0; ap_cnt < 4; ap_cnt++)
@@ -556,7 +556,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						msg_print(Ind, "You quickly protect your money pouch!");
 
 						/* Occasional blink anyway */
-						if (rand_int(3)) blinked = TRUE;
+						if (rand_int(3)) blinked = 2;
 					}
 
 					/* Eat gold */
@@ -589,7 +589,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						p_ptr->window |= (PW_PLAYER);
 
 						/* Blink away */
-						blinked = TRUE;
+						blinked = 2;
 					}
 
 					break;
@@ -609,7 +609,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						msg_print(Ind, "You grab hold of your backpack!");
 
 						/* Occasional "blink" anyway */
-						blinked = TRUE;
+						blinked = 2;
 
 						/* Obvious */
 						obvious = TRUE;
@@ -674,7 +674,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						obvious = TRUE;
 
 						/* Blink away */
-						blinked = TRUE;
+						blinked = 2;
 
 						/* Done */
 						break;
@@ -915,7 +915,7 @@ bool make_attack_normal(int Ind, int m_idx)
 							obvious = TRUE;
 							
 							/* Hack - Make level 1 monsters who paralyze also blink */
-							if (r_ptr->level == 1) blinked = TRUE;
+							if (r_ptr->level == 1) blinked = 1;
 						}
 					}
 
@@ -1275,10 +1275,15 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Blink away */
-	if (blinked)
+	if (blinked == 2)
 	{
 		msg_print(Ind, "There is a puff of smoke!");
 		teleport_away(m_idx, MAX_SIGHT * 2 + 5);
+	}
+    else if (blinked == 1)
+	{
+		msg_format(Ind, "%^s blinks away.", m_name);
+		teleport_away(m_idx, 10);
 	}
 
 
