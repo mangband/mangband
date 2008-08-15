@@ -345,8 +345,8 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Restrict the choices */
 	/*item_tester_hook = item_tester_hook_wear;*/
-
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 		msg_print(Ind, "You cannot equip yourself!");
 		return;
@@ -548,7 +548,7 @@ void do_cmd_takeoff(int Ind, int item)
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 		msg_print(Ind, "You cannot do that!");
 		return;
@@ -609,7 +609,7 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 		msg_print(Ind, "You cannot drop items!");
 		return;
@@ -689,7 +689,7 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	object_type tmp_obj;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 		msg_print(Ind, "You cannot drop items!");
 		return;
@@ -957,7 +957,7 @@ void do_cmd_uninscribe(int Ind, int item)
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		msg_print(Ind, "You cannot touch items!");
 		return;
@@ -1013,7 +1013,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	char		*c;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		msg_print(Ind, "You cannot touch items!");
 		return;
@@ -1088,7 +1088,7 @@ void do_cmd_steal(int Ind, int dir)
 	bool fail = TRUE;
 
 	/* Ghosts cannot steal */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 	        msg_print(Ind, "You cannot steal things!");
 	        return;
@@ -1479,7 +1479,7 @@ void do_cmd_refill(int Ind, int item)
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 		msg_print(Ind, "You cannot touch items!");
 		return;
