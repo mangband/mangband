@@ -336,7 +336,7 @@ void do_cmd_browse(int Ind, int book)
     int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot read books!");
 		return;
@@ -434,7 +434,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	byte spells[64], num = 0;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot read books!");
 		return;
@@ -793,7 +793,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot cast spells!");
 		return;

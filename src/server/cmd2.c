@@ -2636,7 +2636,7 @@ void do_cmd_fire(int Ind, int dir, int item)
     bool                magic = FALSE;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot shoot!");
 		return;
@@ -3106,7 +3106,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 	/*int			msec = delay_factor * delay_factor * delay_factor;*/
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot touch things!");
 		return;

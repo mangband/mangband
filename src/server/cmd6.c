@@ -73,7 +73,7 @@ void do_cmd_eat_food(int Ind, int item)
 	object_type		*o_ptr;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot eat food!");
 		return;
@@ -381,7 +381,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	object_type	*o_ptr;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot quaff potions!");
 		return;
@@ -1083,7 +1083,7 @@ void do_cmd_read_scroll(int Ind, int item)
 
 
 	/* Check some conditions */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot read scrolls!");
 		return;
@@ -1622,7 +1622,7 @@ void do_cmd_use_staff(int Ind, int item)
 	object_type		*o_ptr;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot use staves!");
 		return;
@@ -2094,7 +2094,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	object_type		*o_ptr;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot aim wands!");
 		return;
@@ -2521,7 +2521,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	bool use_charge = TRUE;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot zap rods!");
 		return;
@@ -3346,7 +3346,7 @@ void do_cmd_activate(int Ind, int item)
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
-	if (p_ptr->ghost || p_ptr->fruit_bat)
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && strcmp(p_ptr->name,cfg_dungeon_master) )
 	{
 		msg_print(Ind, "You cannot activate items!");
 		return;
