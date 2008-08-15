@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="mangband" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="..\..\mangband" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\" />
+				<Option object_output="Debug Win32" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWINDOWS" />
+					<Add option="-DWIN32" />
+					<Add option="-DHAS_STRICMP" />
+					<Add option="-D_MFC_VER" />
+					<Add option="-DSTDVA" />
+					<Add option="-D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="-W" />
+					<Add option="-g" />
+					<Add option="-O0" />
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="ws2_32" />
+					<Add library="Winmm" />
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="..\..\mangband" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\" />
+				<Option object_output="Release Win32" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWINDOWS" />
+					<Add option="-DWIN32" />
+					<Add option="-DHAS_STRICMP" />
+					<Add option="-D_MFC_VER" />
+					<Add option="-DSTDVA" />
+					<Add option="-D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="-W" />
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="ws2_32" />
+					<Add library="Winmm" />
+					<Add directory="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="..\..\src\common\angband.h" />
+		<Unit filename="..\..\src\common\bit.h" />
+		<Unit filename="..\..\src\common\const.h" />
+		<Unit filename="..\..\src\common\defines.h" />
+		<Unit filename="..\..\src\common\externs.h" />
+		<Unit filename="..\..\src\common\global.h" />
+		<Unit filename="..\..\src\common\h-basic.h" />
+		<Unit filename="..\..\src\common\h-define.h" />
+		<Unit filename="..\..\src\common\h-net.h" />
+		<Unit filename="..\..\src\common\h-system.h" />
+		<Unit filename="..\..\src\common\h-type.h" />
+		<Unit filename="..\..\src\common\md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\md5.h" />
+		<Unit filename="..\..\src\common\net-ibm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\net-ibm.h" />
+		<Unit filename="..\..\src\common\net-win.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\net-win.h" />
+		<Unit filename="..\..\src\common\pack.h" />
+		<Unit filename="..\..\src\common\sockbuf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\sockbuf.h" />
+		<Unit filename="..\..\src\common\types.h" />
+		<Unit filename="..\..\src\common\version.h" />
+		<Unit filename="..\..\src\common\z-form.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\z-form.h" />
+		<Unit filename="..\..\src\common\z-rand.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\z-rand.h" />
+		<Unit filename="..\..\src\common\z-util.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\z-util.h" />
+		<Unit filename="..\..\src\common\z-virt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\common\z-virt.h" />
+		<Unit filename="..\..\src\server\angband.h" />
+		<Unit filename="..\..\src\server\birth.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cave.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\cmd6.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\control.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\dungeon.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\externs.h" />
+		<Unit filename="..\..\src\server\files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\generate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\init.h" />
+		<Unit filename="..\..\src\server\init1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\init2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\load2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\melee1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\melee2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\monster1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\monster2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\netserver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\netserver.h" />
+		<Unit filename="..\..\src\server\obj-info.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\object1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\object2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\party.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\s-externs.h" />
+		<Unit filename="..\..\src\server\save.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\sched-win.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\sched.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\spells1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\spells2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\store.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\tables.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\util.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\variable.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\wilderness.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\x-spell.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\xtra1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\server\xtra2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
