@@ -1064,7 +1064,7 @@ void set_recall(int Ind, object_type * o_ptr)
 		if (recall_depth < 0)
 		{
 			/* if the player has not visited here, set the recall depth to the town */
-			if ((strcmp(p_ptr->name,cfg_dungeon_master)))
+			if (!is_dm_p(p_ptr))
 				if (!(p_ptr->wild_map[-recall_depth/8] & (1 << -recall_depth%8)))
 					recall_depth = 1;
 
@@ -1301,7 +1301,7 @@ bool detect_invisible(int Ind, bool pause)
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
 		/* Skip the dungeon master */
-		if (!strcmp(q_ptr->name, cfg_dungeon_master)) continue;
+		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 		/* Detect all invisible players but not the dungeon master */
 		if (panel_contains(py, px) && q_ptr->ghost) 
@@ -2839,7 +2839,7 @@ bool mass_banishment(int Ind)
 		/* Hack -- visual feedback */
 		/* does not effect the dungeon master, because it disturbs his movement
 		 */
-		if (strcmp(p_ptr->name,cfg_dungeon_master))
+		if (!(p_ptr->dm_flags & DM_INVULNERABLE))
 			take_hit(Ind, randint(3), "the strain of casting Mass Banishment");
 
 		/* Redraw */

@@ -337,7 +337,7 @@ bool Report_to_meta(int flag)
 
 		for (i = 1; i <= NumPlayers; i++)
 		{
-            if (!strcmp(Players[i]->name, cfg_dungeon_master) && cfg_secret_dungeon_master) hidden_dungeon_master++;
+            if (Players[i]->dm_flags & DM_SECRET_PRESENCE) hidden_dungeon_master++;
 		}
 
 		/* tell the metaserver about everyone except hidden dungeon_masters */
@@ -351,7 +351,7 @@ bool Report_to_meta(int flag)
 			for (i = 1; i <= NumPlayers; i++)
 			{
 				/* handle the cfg_secret_dungeon_master option */
-                if ((!strcmp(Players[i]->name, cfg_dungeon_master)) && (cfg_secret_dungeon_master)) continue;
+                if (Players[i]->dm_flags & DM_SECRET_PRESENCE) continue;
 				strcat(buf, Players[i]->basename);
 				strcat(buf, " ");
 			}
@@ -897,7 +897,7 @@ static void Delete_player(int Ind)
 	/* If he was actively playing, tell everyone that he's left */
 	/* handle the cfg_secret_dungeon_master option */
 	if (p_ptr->alive && !p_ptr->death && 
-	    ((strcmp(p_ptr->name, cfg_dungeon_master)) || !cfg_secret_dungeon_master))
+	    !(p_ptr->dm_flags & DM_SECRET_PRESENCE))
 	{
 		sprintf(buf, "%s has left the game.", p_ptr->name);
 		msg_broadcast(Ind, buf);
@@ -1346,7 +1346,7 @@ static int Enter_player(int ind)
 	num_logins++;
 
 	/* Handle the cfg_secret_dungeon_master option */
-	if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && (cfg_secret_dungeon_master)) return 0;
+	if (p_ptr->dm_flags & DM_SECRET_PRESENCE) return 0;
 
 	/* Tell everyone about our new player */
 	if(p_ptr->exp == 0)
@@ -3223,7 +3223,7 @@ static int Receive_run(int ind)
 	}
 
 	/* If not the dungeon master, who can always run */
-	if (strcmp(p_ptr->name,cfg_dungeon_master)) 
+	if (p_ptr->dm_flags & DM_NEVER_DISTURB) 
 	{
 		/* Check for monsters in sight or confusion */
 		for (i = 0; i < m_max; i++)
@@ -5374,12 +5374,6 @@ static int Receive_master(int ind)
 			Destroy_connection(ind, "read error");
 		return n;
 	}
-#ifndef DEBUG
-	if (strcmp(Players[player]->name, cfg_dungeon_master)) 
-	{
-		return 2;
-	}
-#endif
 
 	if (player)
 	{
@@ -5387,24 +5381,28 @@ static int Receive_master(int ind)
 		{
 			case MASTER_LEVEL:
 			{
+				if (!(Players[player]->dm_flags & DM_LEVEL_CONTROL)) return 2;
 				master_level(player, buf);
 				break;
 			}
 
 			case MASTER_BUILD:
 			{
+				if (!(Players[player]->dm_flags & DM_CAN_BUILD)) return 2;
 				master_build(player, buf);
 				break;
 			}
 
 			case MASTER_SUMMON:
 			{
+				if (!(Players[player]->dm_flags & DM_CAN_SUMMON)) return 2;
 				master_summon(player, buf);
 				break;
 			}
 		
 			case MASTER_GENERATE:
 			{
+				if (!(Players[player]->dm_flags & DM_CAN_GENERATE)) return 2;
 				master_generate(player, buf);
 				break;
 			}

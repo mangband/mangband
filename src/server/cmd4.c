@@ -544,7 +544,7 @@ void do_cmd_check_players(int Ind, int line)
 		/* don't display the dungeon master if the secret_dungeon_master
 		 * option is set 
 		 */
-        if (!strcmp(q_ptr->name,cfg_dungeon_master) && (cfg_secret_dungeon_master)) continue;
+        if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 		/*** Determine color ***/
 
@@ -579,7 +579,7 @@ void do_cmd_check_players(int Ind, int line)
 
 		/* Print extra info if these people are in the same party */
 		/* Hack -- always show extra info to dungeon master */
-		if ((p_ptr->party == q_ptr->party && p_ptr->party) || (!strcmp(p_ptr->name,cfg_dungeon_master)))
+		if ((p_ptr->party == q_ptr->party && p_ptr->party) || (p_ptr->dm_flags & DM_SEE_PLAYERS))
 		{
 			fprintf(fff, " at %d ft", q_ptr->dun_depth * 50);
 		}

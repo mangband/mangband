@@ -1150,6 +1150,8 @@ struct player_type
 	byte pclass;		/* Class index */
 	byte male;			/* Sex of character */
 	byte oops;			/* Unused */
+	
+	u32b dm_flags;	   /* Dungeon Master Flags */ 
 
 	byte hitdie;		/* Hit dice (sides) */
     s16b expfact;		/* Experience factor */

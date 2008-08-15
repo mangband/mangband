@@ -1476,7 +1476,7 @@ void update_player(int Ind)
 				hard = flag = TRUE;
 			}
 		/* hack -- dungeon masters are invisible */
-		if (!strcmp(q_ptr->name,cfg_dungeon_master)) flag = FALSE;
+		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 		}
 
 		/* Player is now visible */

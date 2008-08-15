@@ -609,7 +609,7 @@ void carry(int Ind, int pickup, int confirm)
 	/* Hack -- nothing here to pick up */
 	if (!(c_ptr->o_idx)) return;
 
-	if (strcmp(p_ptr->name,cfg_dungeon_master)) {
+	if (!(p_ptr->dm_flags & DM_GHOST_BODY)) {
 		/* Normal Ghosts cannot pick things up */
 		if ((p_ptr->ghost) || (p_ptr->fruit_bat) ) return;
 	};
@@ -623,6 +623,9 @@ void carry(int Ind, int pickup, int confirm)
 	/* Pick up gold */
 	if (o_ptr->tval == TV_GOLD)
 	{
+		/* Hack -- ghosts don't autopick gold even if they could */
+		if (p_ptr->ghost) return;
+	
 		/* Disturb */
 		disturb(Ind, 0, 0);
 
@@ -647,12 +650,14 @@ void carry(int Ind, int pickup, int confirm)
 	else
 	{
 		/* Hack -- disturb */
-		disturb(Ind, 0, 0);
+		if (!p_ptr->ghost)
+			disturb(Ind, 0, 0);
 
 		/* Describe the object */
 		if (!pickup)
 		{
-			msg_format(Ind, "You see %s.", o_name);
+			if (!p_ptr->ghost)
+				msg_format(Ind, "You see %s.", o_name);
 			floor_item_notify(Ind, c_ptr->o_idx, FALSE);
 		}
 
@@ -1607,7 +1612,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		else if ((!p_ptr->ghost && !q_ptr->ghost &&
 		         (ddy[q_ptr->last_dir] == -(ddy[dir])) &&
 		         (ddx[q_ptr->last_dir] == (-ddx[dir]))) ||
-			(!strcmp(q_ptr->name,cfg_dungeon_master)))
+			(is_dm_p(q_ptr)))
 		{
 			c_ptr->m_idx = 0 - Ind;
 			cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - Ind2;
@@ -1620,7 +1625,7 @@ void move_player(int Ind, int dir, int do_pickup)
 
 			/* Tell both of them */
 			/* Don't tell people they bumped into the Dungeon Master */
-			if (strcmp(q_ptr->name,cfg_dungeon_master))
+			if (!is_dm_p(q_ptr))
 			{
 				msg_format(Ind, "You switch places with %s.", q_ptr->name);
 				msg_format(Ind2, "You switch places with %s.", p_ptr->name);
@@ -1639,7 +1644,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		}
 
 		/* Hack -- the Dungeon Master cannot bump people */
-		else if (strcmp(p_ptr->name,cfg_dungeon_master))
+		else if (!is_dm_p(p_ptr))
 		{
 			/* Tell both about it */
 			msg_format(Ind, "You bump into %s.", q_ptr->name);
@@ -1655,7 +1660,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	else if (c_ptr->m_idx > 0)
 	{
 		/* Hack -- the dungeon master switches places with his monsters */
-		if (!strcmp(p_ptr->name,cfg_dungeon_master))
+		if (p_ptr->dm_flags & DM_MONSTER_FRIEND)
 		{
 			/* save old player location */
 			oldx = p_ptr->px;
@@ -1875,7 +1880,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		 * and summoning monster armies easier.
 		 */
 
-		if ((!strcmp(p_ptr->name,cfg_dungeon_master)) && master_move_hook)
+		if (is_dm_p(p_ptr) && master_move_hook)
 			master_move_hook(Ind, NULL);
 	}
 }

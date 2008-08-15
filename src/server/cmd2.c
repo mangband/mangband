@@ -34,7 +34,7 @@ void do_cmd_go_up(int Ind)
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
 
 	/* Verify stairs if not a ghost, or admin wizard */
-	if (!p_ptr->ghost && (strcmp(p_ptr->name,cfg_dungeon_master)) && c_ptr->feat != FEAT_LESS)
+	if (!p_ptr->ghost && c_ptr->feat != FEAT_LESS)
 	{
 		msg_print(Ind, "I see no up staircase here.");
 		return;
@@ -53,7 +53,7 @@ void do_cmd_go_up(int Ind)
 	/* 
 	 * Ironmen don't go up
 	 */
-	if(strcmp(p_ptr->name,cfg_dungeon_master))
+	if(!is_dm_p(p_ptr)
 	{
 		msg_print(Ind, "Morgoth awaits you in the darkness below.");
 		return;	
@@ -118,19 +118,13 @@ void do_cmd_go_down(int Ind)
 	/* Player grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
 
-	/* Verify stairs */
-
-    if (p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master)
-			) && !cfg_ghost_diving
-		    ) {
+	/* Ghosts who are not dungeon masters can't dive if ghost_diving is off (even if there's a staircase) */
+	if (p_ptr->ghost && !cfg_ghost_diving && !is_dm_p(p_ptr)) {
 		msg_print(Ind, "You seem unable to go down.  Try going up.");
 		return;
 	};
-
-    if (!p_ptr->ghost && (
-			    strcmp(p_ptr->name,cfg_dungeon_master)
-			 ) && c_ptr->feat != FEAT_MORE)
+	/* Verify stairs */
+   if (c_ptr->feat != FEAT_MORE)
 	{
 		msg_print(Ind, "I see no down staircase here.");
 		return;
@@ -967,7 +961,7 @@ void do_cmd_open(int Ind, int dir)
 
 
 	/* Ghosts cannot open doors */
-	if ((p_ptr->ghost) || (p_ptr->fruit_bat))
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		msg_print(Ind, "You cannot open things!");
 		return;
@@ -1163,7 +1157,7 @@ void do_cmd_open(int Ind, int dir)
 			i = pick_house(Depth, y, x);
 			
 			/* Do we own this house? */
-			if (house_owned_by(Ind,i) || (!(strcmp(p_ptr->name,cfg_dungeon_master))) )
+			if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 			{
 
 				/* If someone is in our store, we can't enter (anti-exploit) */
@@ -1272,12 +1266,10 @@ void do_cmd_close(int Ind, int dir)
 
 
 	/* Ghosts cannot close */
-	if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
-		if(strcmp(p_ptr->name,cfg_dungeon_master))  {
-			msg_print(Ind, "You cannot close things!");
-			return;
-		};
+		msg_print(Ind, "You cannot close things!");
+		return;
 	}
 
 	/* Allow repeated command */
@@ -1457,7 +1449,7 @@ void do_cmd_tunnel(int Ind, int dir)
 
 
 	/* Ghosts have no need to tunnel */
-	if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		/* Message */
 		msg_print(Ind, "You cannot tunnel.");
@@ -1741,7 +1733,7 @@ void do_cmd_disarm(int Ind, int dir)
 
 
 	/* Ghosts cannot disarm */
-	if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		/* Message */
 		msg_print(Ind, "You cannot disarm things!");
@@ -1973,7 +1965,7 @@ void do_cmd_bash(int Ind, int dir)
 
 
 	/* Ghosts cannot bash */
-	if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		/* Message */
 		msg_print(Ind, "You cannot bash things!");
@@ -2177,7 +2169,7 @@ void do_cmd_spike(int Ind, int dir)
 
 
 	/* Ghosts cannot spike */
-	if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		/* Message */
 		msg_print(Ind, "You cannot spike doors!");
@@ -3510,7 +3502,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 	cave_type *c_ptr;
 
 	/* Ghosts cannot buy houses */
-	if(strcmp(p_ptr->name,cfg_dungeon_master))  {
+	if(!(p_ptr->dm_flags & DM_HOUSE_CONTROL))  {
 		if ( (p_ptr->ghost) || (p_ptr->fruit_bat) )
 		{
 			/* Message */
@@ -3616,7 +3608,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 				return;		
 			}
 		
-			if (!strcmp(p_ptr->name,cfg_dungeon_master))
+			if (p_ptr->dm_flags & DM_HOUSE_CONTROL)
 			{
 				disown_house(i);
 				

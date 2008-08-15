@@ -2172,7 +2172,7 @@ static void calc_bonuses(int Ind)
 	}
 
 	/* Hack -- the dungeon master gets +50 speed. */
-	if (!strcmp(p_ptr->name,cfg_dungeon_master)) 
+	if (is_dm_p(p_ptr)) 
 	{
 		p_ptr->pspeed += 50;
         p_ptr->telepathy = TR3_TELEPATHY;

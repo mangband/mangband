@@ -470,17 +470,6 @@ static void get_money(int Ind)
 
 	/* Save the gold */
 	p_ptr->au = gold;
-	
-	if (!strcmp(p_ptr->name,cfg_dungeon_master))
-	{
-		p_ptr->au = 50000000;
-		p_ptr->lev = 50;
-		p_ptr->exp = 15000000;
-		p_ptr->invuln = -1;
-		p_ptr->ghost = 1;
-		p_ptr->noscore = 1;
-	}
-	
 }
 
 
@@ -830,7 +819,7 @@ static void player_outfit(int Ind)
 	 */
 
 #ifndef DEBUG
-	if (!strcmp(p_ptr->name,cfg_dungeon_master))
+	if (is_dm_p(p_ptr))
 	{
 #endif
 		p_ptr->au = 10000000;
@@ -1192,6 +1181,21 @@ static void player_setup(int Ind)
 	p_ptr->old_turn = turn;
 }
 
+static void player_admin(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	
+	/* Hack -- set Dungeon Master flags */
+#ifdef DEBUG
+	p_ptr->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
+#endif
+	if (!strcmp(p_ptr->name,cfg_dungeon_master))
+	{
+		/* All DM powers ! */
+		p_ptr->dm_flags = 0xFFFFFFFF;
+		if (!cfg_secret_dungeon_master)	p_ptr->dm_flags ^= DM_SECRET_PRESENCE;
+	}
+}
 
 
 /*
@@ -1234,6 +1238,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	strcpy(p_ptr->pass, pass);
 	p_ptr->conn = conn;
 
+	/* DM powers? */
+	player_admin(Ind);
+
 	/* Verify his name and create a savefile name */
 	if (!process_player_name(Ind, TRUE)) return FALSE;
 
@@ -1267,6 +1274,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Reprocess his name */
 	if (!process_player_name(Ind, TRUE)) return FALSE;
+
+	/* DM powers? */
+	player_admin(Ind);
 
 	/* Set info */
 	p_ptr->prace = race;
@@ -1304,6 +1314,19 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Roll for gold */
 	get_money(Ind);
+	
+	/* Hack -- grant some Dungeon Master powers */
+	if (is_dm_p(p_ptr))
+	{
+		p_ptr->au = 50000000;
+		p_ptr->lev = 50;
+		p_ptr->exp = 15000000;
+		p_ptr->ghost = 1;
+		p_ptr->noscore = 1;
+		
+		if (p_ptr->dm_flags & DM_INVULNERABLE)
+			p_ptr->invuln = -1;
+	}
 
 	/* Hack -- outfit the player */
 	player_outfit(Ind);

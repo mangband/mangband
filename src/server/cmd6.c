@@ -1301,19 +1301,15 @@ void do_cmd_read_scroll(int Ind, int item)
 		
 		case SV_SCROLL_CREATE_ARTIFACT:
 		{
-#ifndef DEBUG
-			if (!strcmp(p_ptr->name, cfg_dungeon_master))
+			if (p_ptr->dm_flags & DM_CAN_GENERATE)
 			{
-#endif
 				(void)create_artifact(Ind);
 				used_up = FALSE;
 				ident = TRUE;
-#ifndef DEBUG
 			} else {
 				ident = TRUE;
 				msg_print(Ind, "You failed to read the scroll properly.");
 			}
-#endif
 			break;
 		}
 	

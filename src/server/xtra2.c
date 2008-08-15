@@ -73,7 +73,7 @@ bool set_blind(int Ind, int v)
 	bool notice = FALSE;
 
 	/* the admin wizard can not be blinded */
-	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return 1;
+	if (p_ptr->dm_flags & DM_INVULNERABLE) return 1;
 
 	/* Hack -- Force good values */
 	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
@@ -1202,7 +1202,7 @@ bool set_stun(int Ind, int v)
 
 
 	/* hack -- the admin wizard can not be stunned */
-	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return TRUE;
+	if (p_ptr->dm_flags & DM_INVULNERABLE) return TRUE;
 
 	/* Hack -- Force good values */
 	v = (v > 10000) ? 10000 : (v < 0) ? 0 : v;
@@ -2412,7 +2412,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
 	/* Tell the players */
 	/* handle the secret_dungeon_master option */
-	if ((strcmp(p_ptr->name,cfg_dungeon_master)) || (!cfg_secret_dungeon_master)) {
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) {
 		/* RLS: Don't broadcast level 1 suicides */
 		if((!strstr(buf,"suicide")) || (p_ptr->lev > 1)) {
 			msg_broadcast(Ind, buf);
@@ -2675,7 +2675,7 @@ void resurrect_player(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Hack -- the dungeon master can not ressurect */
-	if (!strcmp(p_ptr->name,cfg_dungeon_master)) return;
+	if (is_dm_p(p_ptr)) return;
 
 	/* Reset ghost flag */
 	p_ptr->ghost = 0;
