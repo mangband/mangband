@@ -1729,6 +1729,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 /* Give player detailed information about a specified monster */
 void do_cmd_monster_desc(int Ind, int m_idx) {
+	char mon_name[80];
 	player_type *p_ptr = Players[Ind];
 	int r_idx = m_list[m_idx].r_idx;
 	/* Describe it fully */
@@ -1751,7 +1752,6 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 	p_ptr->cur_wid = MAX_WID;
 	
 	/* Monster name (for title) */
-	char mon_name[80];
 	mon_name[0] = '\0';
 	monster_desc(Ind, mon_name, m_idx, 0);
 	

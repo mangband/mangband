@@ -1265,13 +1265,14 @@ static void cheat_monster_lore(int r_idx, monster_lore *l_ptr)
  */
 void describe_monster(int Ind, int r_idx, bool spoilers)
 {
+	const monster_race *r_ptr = &r_info[r_idx];
 	monster_lore lore;
+	monster_lore *l_ptr;
 	player_type	*p_ptr;
 	
 	/* Get the race and lore */
 	p_ptr = Players[Ind];
-	const monster_race *r_ptr = &r_info[r_idx];
-	monster_lore *l_ptr = p_ptr->l_list + r_idx;
+	l_ptr = p_ptr->l_list + r_idx;
 
 	/* Hack -- create a copy of the monster-memory */
 	COPY(&lore, l_ptr, monster_lore);
