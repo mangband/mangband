@@ -736,8 +736,18 @@ static void rd_u_lore(int r_idx)
 	if (value_exists("cast_innate")) skip_value("cast_innate");
 	if (value_exists("cast_spell")) skip_value("cast_spell");
 	
-	if (section_exists("blows")) while(value_exists("blow")) skip_value("blow");
-	if (section_exists("flags")) while(value_exists("flag")) skip_value("flag");
+	if (section_exists("blows")) 
+	{
+		start_section_read("blows");
+		while(value_exists("blow")) skip_value("blow");
+		end_section_read("blows");
+	}
+	if (section_exists("flags")) 
+	{
+		start_section_read("flags");
+		while(value_exists("flag")) skip_value("flag");
+		end_section_read("flags");
+	}
 	
 	/* Read the "Racial" monster limit per level */
 	r_ptr->max_num = read_int("max_num");

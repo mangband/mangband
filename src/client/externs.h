@@ -285,6 +285,7 @@ extern void cmd_uniques(void);
 extern void cmd_players(void);
 extern void cmd_high_scores(void);
 extern void cmd_help(void);
+extern void cmd_query_symbol(void);
 extern void cmd_message(void);
 extern void cmd_party(void);
 extern void cmd_fire(void);
