@@ -346,6 +346,11 @@ void do_cmd_wield(int Ind, int item)
 	/* Restrict the choices */
 	/*item_tester_hook = item_tester_hook_wear;*/
 
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot equip yourself!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -542,6 +547,13 @@ void do_cmd_takeoff(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot do that!");
+		return;
+	}
+
 	/* Verify potential overflow */
 	if (p_ptr->inven_cnt >= INVEN_PACK)
 	{
@@ -595,6 +607,13 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot drop items!");
+		return;
+	}
 
 	/* Handle the newbies_cannot_drop option */	
 	if ((p_ptr->lev == 1) && (cfg_newbies_cannot_drop))
@@ -669,6 +688,13 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 
 	object_type tmp_obj;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot drop items!");
+		return;
+	}
+
 	/* Handle the newbies_cannot_drop option */
 	if ((p_ptr->lev == 1) && (cfg_newbies_cannot_drop))
 	{
@@ -728,6 +754,13 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_type object_type_body;
 	
 	char		o_name[80];
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot destroy items!");
+		return;
+	}
 
 	/* Hack -- force destruction */
 	if (command_arg > 0) force = TRUE;
@@ -923,6 +956,12 @@ void do_cmd_uninscribe(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -972,6 +1011,13 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	char		o_name[80];
 	s32b		price;
 	char		*c;
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -1246,6 +1292,12 @@ static void do_cmd_refill_lamp(int Ind, int item)
 	object_type *o_ptr;
 	object_type *j_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Restrict the choices */
 	item_tester_hook = item_tester_refill_lantern;
@@ -1343,6 +1395,12 @@ static void do_cmd_refill_torch(int Ind, int item)
 	object_type *o_ptr;
 	object_type *j_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Restrict the choices */
 	item_tester_hook = item_tester_refill_torch;
@@ -1431,6 +1489,13 @@ void do_cmd_refill(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Get the light */
 	o_ptr = &(p_ptr->inventory[INVEN_LITE]);

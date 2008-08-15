@@ -2635,6 +2635,12 @@ void do_cmd_fire(int Ind, int dir, int item)
 	char		o_name[80];
     bool                magic = FALSE;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot shoot!");
+		return;
+	}
 
 	/* Get the "bow" (if any) */
 	j_ptr = &(p_ptr->inventory[INVEN_BOW]);
@@ -3099,6 +3105,12 @@ void do_cmd_throw(int Ind, int dir, int item)
 
 	/*int			msec = delay_factor * delay_factor * delay_factor;*/
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot touch things!");
+		return;
+	}
 
 	/* Access the item (if in the pack) */
 	if (item >= 0)

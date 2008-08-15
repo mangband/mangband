@@ -72,6 +72,12 @@ void do_cmd_eat_food(int Ind, int item)
 
 	object_type		*o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot eat food!");
+		return;
+	}
 
 	/* Restrict choices to food */
 	item_tester_tval = TV_FOOD;
@@ -374,6 +380,12 @@ void do_cmd_quaff_potion(int Ind, int item)
 
 	object_type	*o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot quaff potions!");
+		return;
+	}
 
 	/* Restrict choices to potions */
 	item_tester_tval = TV_POTION;
@@ -1071,6 +1083,11 @@ void do_cmd_read_scroll(int Ind, int item)
 
 
 	/* Check some conditions */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot read scrolls!");
+		return;
+	}
 	if (p_ptr->blind)
 	{
 		msg_print(Ind, "You can't see anything.");
@@ -1604,6 +1621,13 @@ void do_cmd_use_staff(int Ind, int item)
 
 	object_type		*o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot use staves!");
+		return;
+	}
+
 	/* Hack -- let staffs of identify get aborted */
 	bool use_charge = TRUE;
 
@@ -2069,6 +2093,12 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 
 	object_type		*o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot aim wands!");
+		return;
+	}
 
 	/* Restrict choices to wands */
 	item_tester_tval = TV_WAND;
@@ -2490,6 +2520,12 @@ void do_cmd_zap_rod(int Ind, int item)
 	/* Hack -- let perception get aborted */
 	bool use_charge = TRUE;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot zap rods!");
+		return;
+	}
 
 	/* Restrict choices to rods */
 	item_tester_tval = TV_ROD;
@@ -3309,6 +3345,12 @@ void do_cmd_activate(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot activate items!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)

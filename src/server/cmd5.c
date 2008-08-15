@@ -335,6 +335,12 @@ void do_cmd_browse(int Ind, int book)
 
     int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
 
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot read books!");
+		return;
+	}
 
 	/* Warriors are illiterate */
 	if (!p_ptr->cp_ptr->spell_book)
@@ -426,6 +432,13 @@ void do_cmd_study(int Ind, int book, int spell)
 	object_type		*o_ptr;
 
 	byte spells[64], num = 0;
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot read books!");
+		return;
+	}
 
 	if (!p_ptr->cp_ptr->spell_book)
 	{
@@ -774,6 +787,13 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	/* Require spell ability */
 	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
+	{
+		msg_print(Ind, "You cannot cast spells!");
+		return;
+	}
+
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
 	{
 		msg_print(Ind, "You cannot cast spells!");
 		return;
@@ -1837,6 +1857,13 @@ void do_cmd_pray(int Ind, int book, int spell)
     byte spells[64], num = 0;
 
     int p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? 1 : 0);
+
+    /* Restrict ghosts */
+    if (p_ptr->ghost || p_ptr->fruit_bat)
+    {
+		msg_print(Ind, "Pray hard enough and your prayers may be answered.");
+		return;
+    }
 
     /* Must use prayer books */
     if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
