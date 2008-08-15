@@ -53,7 +53,7 @@ void do_cmd_go_up(int Ind)
 	/* 
 	 * Ironmen don't go up
 	 */
-	if(!is_dm_p(p_ptr)
+	if(!is_dm_p(p_ptr))
 	{
 		msg_print(Ind, "Morgoth awaits you in the darkness below.");
 		return;	
