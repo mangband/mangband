@@ -1811,6 +1811,9 @@ static void calc_hitpoints(int Ind)
 		/* Save the new max-hitpoints */
 		p_ptr->mhp = mhp;
 
+		/* Check bounds (sometimes chp = mhp + 1) */
+		if (p_ptr->chp > p_ptr->mhp) p_ptr->chp = p_ptr->mhp;
+
 		/* Display hitpoints (later) */
 		p_ptr->redraw |= (PR_HP);
 

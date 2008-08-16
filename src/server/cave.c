@@ -3551,6 +3551,32 @@ bool projectable(int Depth, int y1, int x1, int y2, int x2)
 }
 
 
+/* The same function... but with target in a wall (for player ghosts)
+/* Used by monsters... otherwise player ghosts would be safe from monster spells! */
+bool projectable_wall(int Depth, int y1, int x1, int y2, int x2)
+{
+	int dist, y, x;
+
+	/* Start at the initial location */
+	y = y1, x = x1;
+
+	/* See "project()" */
+	for (dist = 0; dist <= MAX_RANGE; dist++)
+	{
+		/* Check for arrival at "final target" */
+		if ((x == x2) && (y == y2)) return (TRUE);
+
+		/* Never go through walls */
+		if (dist && !cave_floor_bold(Depth, y, x)) break;
+
+		/* Calculate the new location */
+		mmove2(&y, &x, y1, x1, y2, x2);
+	}
+
+	/* Assume obstruction */
+	return (FALSE);
+}
+
 
 /*
  * Standard "find me a location" function

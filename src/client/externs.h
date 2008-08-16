@@ -335,7 +335,7 @@ extern s16b message_num(void);
 extern cptr message_str(s16b age);
 extern void c_message_add(cptr msg);
 extern void c_msg_print(cptr msg);
-extern s32b c_get_quantity(cptr prompt, int max);
+extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char private);
 extern void clear_from(int row);

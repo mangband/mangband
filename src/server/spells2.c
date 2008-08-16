@@ -3933,6 +3933,12 @@ bool lite_line(int Ind, int dir)
 	return (project_hook(Ind, GF_LITE_WEAK, dir, damroll(6, 8), flg));
 }
 
+bool strong_lite_line(int Ind, int dir)
+{
+	int flg = PROJECT_BEAM | PROJECT_GRID | PROJECT_KILL;
+	return (project_hook(Ind, GF_LITE, dir, damroll(10, 8), flg));
+}
+
 bool drain_life(int Ind, int dir, int dam)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;

@@ -694,12 +694,12 @@ static bool describe_sustains(const object_type *o_ptr, u32b f2)
 	(void)o_ptr;
 
 	/* Collect the sustains */
-	if (f2 & (TR2_SUST_STR)) list[n++] = stat_names[A_STR];
-	if (f2 & (TR2_SUST_INT)) list[n++] = stat_names[A_INT];
-	if (f2 & (TR2_SUST_WIS)) list[n++] = stat_names[A_WIS];
-	if (f2 & (TR2_SUST_DEX)) list[n++] = stat_names[A_DEX];
-	if (f2 & (TR2_SUST_CON)) list[n++] = stat_names[A_CON];
-	if (f2 & (TR2_SUST_CHR)) list[n++] = stat_names[A_CHR];
+	if (f2 & (TR2_SUST_STR)) list[n++] = stat_names_full[A_STR];
+	if (f2 & (TR2_SUST_INT)) list[n++] = stat_names_full[A_INT];
+	if (f2 & (TR2_SUST_WIS)) list[n++] = stat_names_full[A_WIS];
+	if (f2 & (TR2_SUST_DEX)) list[n++] = stat_names_full[A_DEX];
+	if (f2 & (TR2_SUST_CON)) list[n++] = stat_names_full[A_CON];
+	if (f2 & (TR2_SUST_CHR)) list[n++] = stat_names_full[A_CHR];
 
 	/* Describe immunities */
 	if (n == A_MAX)

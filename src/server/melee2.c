@@ -484,8 +484,9 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* Check range */
 		if (m_ptr->cdis > MAX_RANGE) return (FALSE);
 
-		/* Check path */
-		if (!projectable(p_ptr->dun_depth, m_ptr->fy, m_ptr->fx, p_ptr->py, p_ptr->px)) return (FALSE);
+		/* Check path (destination could be standing on a wall) */
+		if (!projectable_wall(p_ptr->dun_depth, m_ptr->fy, m_ptr->fx, p_ptr->py, p_ptr->px))
+		    return (FALSE);
 	}
 
 

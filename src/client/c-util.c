@@ -1758,7 +1758,7 @@ void c_msg_print(cptr msg)
  *
  * Hack -- allow "command_arg" to specify a quantity
  */
-s32b c_get_quantity(cptr prompt, int max)
+s32b c_get_quantity(cptr prompt, s32b max)
 {
 	int amt;
 

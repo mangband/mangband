@@ -3766,7 +3766,7 @@ void do_cmd_activate(int Ind, int item)
 			case ACT_STARLIGHT:
 			{
 				msg_format(Ind, "Your %s glows with the light of a thousand stars...", o_name);
-				for (k = 0; k < 8; k++) lite_line(Ind, ddd[k]);
+				for (k = 0; k < 8; k++) strong_lite_line(Ind, ddd[k]);
 				break;
 			}
 

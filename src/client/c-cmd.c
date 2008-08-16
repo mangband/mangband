@@ -740,7 +740,7 @@ void cmd_drop_gold(void)
 	s32b amt;
 
 	/* Get how much */
-	amt = c_get_quantity("How much gold? ", -1);
+	amt = c_get_quantity("How much gold? ", p_ptr->au);
 
 	/* Send it */
 	if (amt)
