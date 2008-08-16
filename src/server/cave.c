@@ -539,6 +539,16 @@ int player_pict(int Ind, int who)
 
 		/* Get the "player" attr */
 		a = player_color(who);
+		
+		/* Handle himself -- can we say code duplication? Yes! */
+		if (who == Ind) 
+		{
+			/* Get the "player" attr */
+			a = p_ptr->r_attr[0];
+
+			/* Get the "player" char */
+			c = p_ptr->r_char[0];
+		}
 	}
 	
 	// kludge overwrite graphics !
@@ -554,6 +564,10 @@ int player_pict(int Ind, int who)
 	//}
 	return (PICT(a, c));
 }
+
+
+/* Crude Hack -- toggle if we're doing mini map */
+static bool display_mini_map = FALSE;
 
 
 /*
@@ -882,10 +896,12 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		tc = f_char_ptr[FEAT_NONE];
 	}
 
-	/* Hack -- new transperacy */
-	p_ptr->trn_info[t_dispy][t_dispx].a = ta;//f_attr_ptr[c_ptr->feat];
-	p_ptr->trn_info[t_dispy][t_dispx].c = tc;//f_char_ptr[c_ptr->feat];
-
+	/* Hack -- new transperacny */
+	if (!display_mini_map)
+	{
+		p_ptr->trn_info[t_dispy][t_dispx].a = ta;//f_attr_ptr[c_ptr->feat];
+		p_ptr->trn_info[t_dispy][t_dispx].c = tc;//f_char_ptr[c_ptr->feat];
+	}
 	(*ap) = ta;
 	(*cp) = tc;
 
@@ -1629,6 +1645,7 @@ void display_map(int Ind, int *cy, int *cx)
 	p_ptr->view_special_lite = FALSE;
 	p_ptr->view_granite_lite = FALSE;
 
+	display_mini_map = TRUE;
 
 	/* Clear the chars and attributes */
 	for (y = 0; y < MAP_HGT+2; ++y)
@@ -1741,6 +1758,7 @@ void display_map(int Ind, int *cy, int *cx)
 	(*cy) = p_ptr->py / RATIO + 1;
 	(*cx) = p_ptr->px / RATIO + 1;
 
+	display_mini_map = FALSE;
 
 	/* Restore lighting effects */
 	p_ptr->view_special_lite = old_view_special_lite;
