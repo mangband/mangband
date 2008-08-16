@@ -1621,16 +1621,15 @@ void do_cmd_use_staff(int Ind, int item)
 
 	object_type		*o_ptr;
 
+	/* Hack -- let staffs of identify get aborted */
+	bool use_charge = TRUE;
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		msg_print(Ind, "You cannot use staves!");
 		return;
 	}
-
-	/* Hack -- let staffs of identify get aborted */
-	bool use_charge = TRUE;
-
 
 	/* Restrict choices to wands */
 	item_tester_tval = TV_STAFF;
