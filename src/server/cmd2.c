@@ -2636,7 +2636,7 @@ void do_cmd_fire(int Ind, int dir, int item)
     bool                magic = FALSE;
 
 	/* Restrict ghosts */
-	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & GHOST_HANDS) )
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
 		msg_print(Ind, "You cannot shoot!");
 		return;
