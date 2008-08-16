@@ -3690,6 +3690,9 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 		}
 		else
 		{
+			/* Use old object */
+			o_idx = c_ptr->o_idx;			
+			
 			j_ptr->number += o_ptr->number;
 			
 			/* Notify ! */
