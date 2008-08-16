@@ -1222,7 +1222,7 @@ static errr term_force_font(term_data *td, cptr name)
 	td->font_file = string_make(base_font);
 
 	/* Load the new font or quit */
-	if (!AddFontResource(buf))
+	if (!AddFontResourceEx(buf,FR_PRIVATE,0))
 	{
 		quit_fmt("Font file corrupted:\n%s", buf);
 	}
