@@ -101,7 +101,7 @@ void do_cmd_eat_food(int Ind, int item)
 
 	if (o_ptr->tval != TV_FOOD)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to eat non-food!");
+		/* Tried to eat non-food */
 		return;
 	}
 
@@ -403,7 +403,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 
 	if (o_ptr->tval != TV_POTION)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to quaff non-potion!");
+		/* Tried to quaff non-potion */
 		return;
 	}
 
@@ -1113,7 +1113,7 @@ void do_cmd_read_scroll(int Ind, int item)
 
 	if (o_ptr->tval != TV_SCROLL)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to read non-scroll!");
+		/* Tried to read non-scroll */
 		return;
 	}
 
@@ -1628,7 +1628,7 @@ void do_cmd_use_staff(int Ind, int item)
 
 	if (o_ptr->tval != TV_STAFF)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to use non-staff!");
+		/* Tried to use non-staff */
 		return;
 	}
 
@@ -2327,7 +2327,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 
 		case SV_WAND_WONDER:
 		{
-			msg_print(Ind, "SERVER ERROR: Oops.  Wand of wonder activated.");
+			/* Oops.  Wand of wonder activated */
 			break;
 		}
 
@@ -2503,7 +2503,7 @@ void do_cmd_zap_rod(int Ind, int item)
 
 	if (o_ptr->tval != TV_ROD)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to zap non-rod!");
+		/* Tried to zap non-rod */
 		return;
 	}
 
@@ -2679,7 +2679,7 @@ void do_cmd_zap_rod(int Ind, int item)
 
 		default:
 		{
-			msg_print(Ind, "SERVER ERROR: Directional rod zapped in non-directional function!");
+			/* Directional rod zapped in non-directional function */
 			return;
 		}
 	}
@@ -2777,7 +2777,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 
 	if (o_ptr->tval != TV_ROD)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to zap non-rod!");
+		/* Tried to zap non-rod */
 		return;
 	}
 

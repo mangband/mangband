@@ -382,7 +382,7 @@ void do_cmd_browse(int Ind, int book)
 
 	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried browsing a bad book!");
+		/* Tried browsing a bad book */
 		return;
 	}
 
@@ -474,7 +474,7 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
-		msg_print(Ind, "SERVER ERROR: Trying to gain a spell from a bad book!");
+		/* Trying to gain a spell from a bad book */
 		return;
 	}
 
@@ -816,7 +816,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
 	{
-		msg_print(Ind, "SERVER ERROR: Tried to cast spell from bad book!");
+		/* Tried to cast spell from bad book */
 		return;
 	}
 
@@ -1884,7 +1884,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 
     if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
     {
-        msg_print(Ind, "SERVER ERROR: Tried to pray prayer from bad book!");
+        /* Tried to pray prayer from bad book */
         return;
     }
         if( check_guard_inscription( o_ptr->note, 'p' )) {
