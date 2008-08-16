@@ -4359,9 +4359,6 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	/* Effect density, 1 in density frames are actually drawn */
 	int density = 5;	
 	
-	/* Disable all effect animations completely */
-	bool disableeffects = FALSE;
-
 	/* Assume the player sees nothing */
 	bool notice = FALSE;
 
@@ -4696,7 +4693,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					p_ptr->scr_info[dispy][dispx].c = ch;
 					p_ptr->scr_info[dispy][dispx].a = attr;
 
-					if (!disableeffects) Send_char(j, dispx, dispy, attr, ch);
+					Send_char(j, dispx, dispy, attr, ch);
 
 					drawn = TRUE;
 
@@ -4715,12 +4712,12 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 0; j < num_can_see; j++)
 			{
 				/* Show this radius and delay */
-				if (!disableeffects) Send_flush(who_can_see[j]);
+				Send_flush(who_can_see[j]);
 			}
 		}
 
 		/* Flush the erasing */
-		if (drawn)
+		if (TRUE)
 		{
 			/* Erase the explosion drawn above */
 			for (i = 0; i < grids; i++)
@@ -4737,7 +4734,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			for (j = 0; j < num_can_see; j++)
 			{
 				/* Show this radius and delay */
-				if (!disableeffects) Send_flush(who_can_see[j]);
+				Send_flush(who_can_see[j]);
 			}
 		}
 	}
