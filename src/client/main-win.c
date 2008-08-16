@@ -2207,7 +2207,7 @@ static void init_windows(void)
 
 
 	/* Need these before term_getsize gets called */
-	data[0].dwStyle = (WS_OVERLAPPED | WS_THICKFRAME | WS_SYSMENU |
+	data[0].dwStyle = (WS_OVERLAPPED | WS_SYSMENU |
 	                   WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION |
 	                   WS_VISIBLE);
 	data[0].dwExStyle = 0;
