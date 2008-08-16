@@ -798,10 +798,11 @@ void cmd_drop(void)
 
 void cmd_drop_gold(void)
 {
-	s32b amt;
+	s32b amt = 0;
 
 	/* Get how much */
-	amt = c_get_quantity("How much gold? ", p_ptr->au);
+	if (p_ptr->au)
+		amt = c_get_quantity("How much gold? ", p_ptr->au);
 
 	/* Send it */
 	if (amt)
@@ -1631,7 +1632,8 @@ void cmd_throw(void)
 		return;
 	}
 
-	get_dir(&dir);
+	if (!get_dir(&dir))
+		return;
 
 	/* Send it */
 	Send_throw(item, dir);
