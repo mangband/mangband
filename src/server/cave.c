@@ -566,10 +566,6 @@ int player_pict(int Ind, int who)
 }
 
 
-/* Crude Hack -- toggle if we're doing mini map */
-static bool display_mini_map = FALSE;
-
-
 /*
  * Extract the attr/char to display at the given (legal) map location
  *
@@ -696,7 +692,7 @@ static bool display_mini_map = FALSE;
  * Without this ability server side renders would use client localised 
  * char/attr values which may not makes sense in the context of the server.
  */
-void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
+void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, bool server)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
@@ -713,8 +709,8 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 #endif
 	int feat;
 
-	byte a, ta;
-	char c, tc;
+	byte a;
+	char c;
 
 	bool visi = FALSE;
 	bool lite_glow = FALSE;
@@ -755,8 +751,8 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	/* Feature code */
 	feat = c_ptr->feat;
 
-	ta = f_attr_ptr[c_ptr->feat];
-	tc = f_char_ptr[c_ptr->feat];
+	a = f_attr_ptr[c_ptr->feat];
+	c = f_char_ptr[c_ptr->feat];
 	
 	if (is_boring(feat) && (visi || lite_glow)) {
 		visi = TRUE;
@@ -769,9 +765,9 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 					/* Torch lite */
 					if (p_ptr->view_yellow_lite)
 					{
-						if (p_ptr->use_graphics == 1) { ta = 0xCF; tc = 0x8F; }
-						if (p_ptr->use_graphics == 2) { tc += 2; }
-						if (p_ptr->use_graphics == 3) { tc -= 1; }
+						if (p_ptr->use_graphics == 1) { a = 0xCF; c = 0x8F; }
+						if (p_ptr->use_graphics == 2) { c += 2; }
+						if (p_ptr->use_graphics == 3) { c -= 1; }
 					}
 				}
 		}
@@ -779,13 +775,13 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		else 
 		{
 			/* Special lighting effects */
-			if (p_ptr->view_special_lite && (ta == TERM_WHITE))
+			if (p_ptr->view_special_lite && (a == TERM_WHITE))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
 				{
 					/* Use "dark gray" */
-					ta = TERM_L_DARK;
+					a = TERM_L_DARK;
 				}
 
 				/* Handle "torch-lit" grids */
@@ -796,7 +792,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 					{
 						/* Use "yellow" */
 						/* a = TERM_YELLOW; */
-						ta = TERM_ORANGE;
+						a = TERM_ORANGE;
 					}
 				}
 
@@ -804,7 +800,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				else if (!(c_ptr->info & CAVE_GLOW))
 				{
 					/* Use "dark gray" */
-					ta = TERM_L_DARK;
+					a = TERM_L_DARK;
 				}
 
 				/* Handle "out-of-sight" grids */
@@ -814,7 +810,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 					if (p_ptr->view_bright_lite)
 					{
 						/* Use "gray" */
-						ta = TERM_SLATE;
+						a = TERM_SLATE;
 					}
 				}
 			}
@@ -828,17 +824,17 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		/* Apply "mimic" field */
 		feat = f_info[feat].mimic;
 
-		ta = f_attr_ptr[feat];
-		tc = f_char_ptr[feat];
+		a = f_attr_ptr[feat];
+		c = f_char_ptr[feat];
 	
 		/* Special lighting effects */
-		if (p_ptr->view_granite_lite && (ta == TERM_WHITE) && (feat >= FEAT_SECRET))
+		if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
 		{
 			/* Handle "blind" */
 			if (p_ptr->blind)
 			{
 				/* Use "dark gray" */
-				ta = TERM_L_DARK;
+				a = TERM_L_DARK;
 			}
 
 			/* Handle "torch-lit" grids */
@@ -849,7 +845,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				{
 					/* Use "yellow" */
 					/* a = TERM_YELLOW; */
-					ta = TERM_ORANGE;
+					a = TERM_ORANGE;
 				}
 			}
 
@@ -860,14 +856,14 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				if (!(*w_ptr & CAVE_VIEW))
 				{
 					/* Use "gray" */
-					ta = TERM_SLATE;
+					a = TERM_SLATE;
 				}
 
 				/* Not glowing */
 				else if (!(c_ptr->info & CAVE_GLOW))
 				{
 					/* Use "gray" */
-					ta = TERM_SLATE;
+					a = TERM_SLATE;
 				}
 
 				/* Not glowing correctly */
@@ -883,7 +879,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 					if (!(cave[Depth][yy][xx].info & CAVE_GLOW))
 					{
 						/* Use "gray" */
-						ta = TERM_SLATE;
+						a = TERM_SLATE;
 					}
 				}
 			}
@@ -892,21 +888,17 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	if (!visi) 
 	{
 		/* Unknown - Access Darkness */
-		ta = f_attr_ptr[FEAT_NONE];
-		tc = f_char_ptr[FEAT_NONE];
+		a = f_attr_ptr[FEAT_NONE];
+		c = f_char_ptr[FEAT_NONE];
 	}
 
-	/* Hack -- new transperacny */
-	if (!display_mini_map)
-	{
-		p_ptr->trn_info[t_dispy][t_dispx].a = ta;//f_attr_ptr[c_ptr->feat];
-		p_ptr->trn_info[t_dispy][t_dispx].c = tc;//f_char_ptr[c_ptr->feat];
-	}
-	(*ap) = ta;
-	(*cp) = tc;
-
-	a = ta;
-	c = tc;
+	/* Save the terrain info for the transparency effects */
+	(*tap) = a;
+	(*tcp) = c;
+	
+	/* Hack - premoderate result */
+	(*ap) = a;
+	(*cp) = c;
 
 #if 0
 	/* Floors (etc) */
@@ -1390,9 +1382,6 @@ void lite_spot(int Ind, int y, int x)
 		byte a, ta;
 		char c, tc;
 
-		ta = p_ptr->trn_info[y][x].a;
-		tc = p_ptr->trn_info[y][x].c;
-
 		/* Handle "player" */
 		if ((y == p_ptr->py) && (x == p_ptr->px))
 		{
@@ -1405,7 +1394,7 @@ void lite_spot(int Ind, int y, int x)
 		else
 		{
 			/* Examine the grid */
-			map_info(Ind, y, x, &a, &c, FALSE);
+			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 		}
 
 		/* Hack -- fake monochrome */
@@ -1424,9 +1413,11 @@ void lite_spot(int Ind, int y, int x)
 			/* Modify internal buffer */
 			p_ptr->scr_info[dispy][dispx].c = c;
 			p_ptr->scr_info[dispy][dispx].a = a;
+			p_ptr->trn_info[dispy][dispx].c = tc;
+			p_ptr->trn_info[dispy][dispx].a = ta;
 
 			/* Tell client to redraw this grid */
-			(void)Send_char(Ind, dispx, dispy, a, c);
+			(void)Send_char(Ind, dispx, dispy, a, c, ta, tc);
 		} 
 	}
 }
@@ -1471,21 +1462,22 @@ void prt_map(int Ind)
 		{
 			byte a;
 			char c;
+			byte ta;
+			char tc;
 
 			/* Determine what is there */
-			map_info(Ind, y, x, &a, &c, FALSE);
+			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 
 			/* Hack -- fake monochrome */
 			if (!use_color) a = TERM_WHITE;
 
 			dispx = x - p_ptr->panel_col_prt;
 
-			/* Efficiency -- Redraw that grid of the map */
-			if (p_ptr->scr_info[dispy][dispx].c != c || p_ptr->scr_info[dispy][dispx].a != a)
-			{
-				p_ptr->scr_info[dispy][dispx].c = c;
-				p_ptr->scr_info[dispy][dispx].a = a;
-			}
+			p_ptr->scr_info[dispy][dispx].c = c;
+			p_ptr->scr_info[dispy][dispx].a = a;
+			p_ptr->trn_info[dispy][dispx].c = tc;
+			p_ptr->trn_info[dispy][dispx].a = ta;
+
 		}
 
 		/* Send that line of info */
@@ -1645,7 +1637,6 @@ void display_map(int Ind, int *cy, int *cx)
 	p_ptr->view_special_lite = FALSE;
 	p_ptr->view_granite_lite = FALSE;
 
-	display_mini_map = TRUE;
 
 	/* Clear the chars and attributes */
 	for (y = 0; y < MAP_HGT+2; ++y)
@@ -1671,7 +1662,7 @@ void display_map(int Ind, int *cy, int *cx)
 			y = j / RATIO + 1;
 
 			/* Extract the current attr/char at that map location */
-			map_info(Ind, j, i, &ta, &tc, FALSE);
+			map_info(Ind, j, i, &ta, &tc, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
 			tp = priority(ta, tc);
@@ -1758,7 +1749,6 @@ void display_map(int Ind, int *cy, int *cx)
 	(*cy) = p_ptr->py / RATIO + 1;
 	(*cx) = p_ptr->px / RATIO + 1;
 
-	display_mini_map = FALSE;
 
 	/* Restore lighting effects */
 	p_ptr->view_special_lite = old_view_special_lite;

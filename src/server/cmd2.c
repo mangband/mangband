@@ -2870,7 +2870,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 				p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Send_char(i, dispx, dispy, missile_attr, missile_char);
+				Send_char(i, dispx, dispy, missile_attr, missile_char, p_ptr->trn_info[dispy][dispx].a, p_ptr->trn_info[dispy][dispx].c);
 
 				/* Flush and wait */
 				if (cur_dis % tmul) Send_flush(i);
@@ -3299,7 +3299,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 				p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Send_char(i, dispx, dispy, missile_attr, missile_char);
+				Send_char(i, dispx, dispy, missile_attr, missile_char, p_ptr->trn_info[dispy][dispx].a, p_ptr->trn_info[dispy][dispx].c);
 
 				/* Flush and wait */
 				if (cur_dis % 2) Send_flush(i);

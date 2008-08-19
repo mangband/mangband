@@ -2541,13 +2541,13 @@ int Send_message(int ind, cptr msg)
 	return Packet_printf(&connp->c, "%c%s", PKT_MESSAGE, buf);
 }
 
-int Send_char(int ind, int x, int y, byte a, char c)
+int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
 {
 	if (!BIT(Conn[Players[ind]->conn].state, CONN_PLAYING | CONN_READY))
 		return 0;
 
 	if (Players[ind]->use_graphics > 1)
-		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c%c%c", PKT_CHAR, x, y, a, c, Players[ind]->trn_info[y][x].a, Players[ind]->trn_info[y][x].c);
+		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c%c%c", PKT_CHAR, x, y, a, c, ta, tc);
 	else
 		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
 }

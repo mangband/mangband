@@ -1355,7 +1355,7 @@ errr file_character_server(int Ind, cptr name)
 		for(x=x1;x<=x2;x++)
 		{
 			/* Get the features */
-			map_info(Ind, y, x, &a, &c, TRUE);
+			map_info(Ind, y, x, &a, &c, &a, &c, TRUE);
 			/* Hack for the player who is already dead and gone */
 			if( (x == p_ptr->px) && (y == p_ptr->py))
 			{
