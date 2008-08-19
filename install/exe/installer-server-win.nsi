@@ -66,8 +66,9 @@ Section "MainSection" SEC01
   CreateDirectory "$INSTDIR\lib\file"
   CreateDirectory "$INSTDIR\lib\save"
   File "run-server.bat"
-  ; File "${DEV_DIR}exchndl.dll"
+  SetOverwrite off
   File "${DEV_DIR}mangband.cfg"
+  SetOverwrite ifnewer
   SetOutPath "$INSTDIR\lib"
   FILE /r /x .svn "${DEV_DIR}lib\data"
   FILE /r /x .svn "${DEV_DIR}lib\edit"

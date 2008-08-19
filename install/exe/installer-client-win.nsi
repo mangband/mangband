@@ -70,10 +70,14 @@ Section "MainSection" SEC01
   CreateDirectory "$INSTDIR\lib\file"
   CreateDirectory "$INSTDIR\lib\help"
   CreateDirectory "$INSTDIR\tmp"
+  SetOverwrite off
   File "${DEV_DIR}mangclient.ini"
+  SetOverwrite ifnewer
   SetOutPath "$INSTDIR\lib"
   FILE /r /x .svn "${DEV_DIR}lib\user"
+  SetOverwrite try
   FILE /r /x .svn "${DEV_DIR}lib\xtra"
+  SetOverwrite ifnewer
 
 SectionEnd
 
