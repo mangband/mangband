@@ -911,7 +911,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		        (*w_ptr & CAVE_VIEW)) ||
 		      ((c_ptr->info & CAVE_GLOW) &&
 		       (*w_ptr & CAVE_VIEW))) &&
-		     !p_ptr->blind)) || (p_ptr->df_flags & SEE_LEVEL))
+		     !p_ptr->blind)) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Access floor */
 			f_ptr = &f_info[FEAT_FLOOR];
@@ -988,7 +988,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 	{
 		/* Memorized grids */
 		/* Hack -- everything is visible to dungeon masters */
-		if ((*w_ptr & CAVE_MARK) || (p_ptr->dm_flags & SEE_LEVEL))
+		if ((*w_ptr & CAVE_MARK) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Apply "mimic" field */
 			feat = f_info[feat].mimic;

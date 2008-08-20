@@ -118,19 +118,20 @@ void do_cmd_go_down(int Ind)
 	/* Player grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
 
-	/* Ghosts who are not dungeon masters can't dive if ghost_diving is off (even if there's a staircase) */
-	if (p_ptr->ghost && !cfg_ghost_diving && !is_dm_p(p_ptr)) {
-		msg_print(Ind, "You seem unable to go down.  Try going up.");
-		return;
-	};
 	/* Verify stairs */
-   if (c_ptr->feat != FEAT_MORE)
+   if (!p_ptr->ghost && c_ptr->feat != FEAT_MORE)
 	{
 		msg_print(Ind, "I see no down staircase here.");
 		return;
 	}
 	else
 	{
+		/* No ghost diving unless DM or allowed in config */
+		if (p_ptr->ghost && !cfg_ghost_diving && !is_dm_p(p_ptr)) {
+			msg_print(Ind, "You seem unable to go down.  Try going up.");
+			return;
+		};
+		
 		/* Can't go down in the wilderness */
 		if (p_ptr->dun_depth < 0)
 		{
