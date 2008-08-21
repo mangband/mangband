@@ -2519,7 +2519,6 @@ static void process_monster(int Ind, int m_idx)
 		/* Still sleeping */
 		if (m_ptr->csleep) 
 		{
-			m_ptr->energy -= level_speed(m_ptr->dun_depth);
 			return;
 		}
 	}
@@ -2566,7 +2565,6 @@ static void process_monster(int Ind, int m_idx)
 		/* Still stunned */
 		if (m_ptr->stunned) 
 		{
-			m_ptr->energy -= level_speed(m_ptr->dun_depth);
 			return;
 		}
 	}
@@ -2663,7 +2661,7 @@ static void process_monster(int Ind, int m_idx)
 			}
 
 			/* Hack -- multiply slower in crowded areas */
-			if ((k < 4) && (!k || !rand_int(k * MON_MULT_ADJ)) && (m_ptr->energy >= level_speed(m_ptr->dun_depth)))
+			if ((k < 4) && (!k || !rand_int(k * MON_MULT_ADJ)))
 			{
 				/* Try to multiply */
 				if (multiply_monster(m_idx))
@@ -2671,18 +2669,14 @@ static void process_monster(int Ind, int m_idx)
 					/* Take note if visible */
 					if (p_ptr->mon_vis[m_idx]) l_ptr->flags2 |= RF2_MULTIPLY;
 
-					/* Multiplying takes energy */
-					m_ptr->energy -= level_speed(m_ptr->dun_depth);
-
 					return;
 				}
 			}
 		}
 						
 	/* Attempt to cast a spell */
-	if (make_attack_spell(Ind, m_idx) && (m_ptr->energy >= level_speed(m_ptr->dun_depth))) 
+	if (make_attack_spell(Ind, m_idx)) 
 	{
-		m_ptr->energy -= level_speed(m_ptr->dun_depth);
 		return;
 	}
 
@@ -2989,19 +2983,14 @@ static void process_monster(int Ind, int m_idx)
 		/* The player is in the way.  Attack him. */
 		if (do_move && (c_ptr->m_idx < 0))
 		{
-			if (m_ptr->energy >= level_speed(m_ptr->dun_depth))
-			{
-				/* Do the attack */
-				(void)make_attack_normal(0 - c_ptr->m_idx, m_idx);
+			/* Do the attack */
+			(void)make_attack_normal(0 - c_ptr->m_idx, m_idx);
 
-				/* Do not move */
-				do_move = FALSE;
+			/* Do not move */
+			do_move = FALSE;
 
-				/* Took a turn */
-				do_turn = TRUE;
-				m_ptr->energy -= level_speed(m_ptr->dun_depth);
-			}
-			else return;
+			/* Took a turn */
+			do_turn = TRUE;
 		}
 
 
@@ -3218,7 +3207,6 @@ static void process_monster(int Ind, int m_idx)
 		/* Stop when done */
 		if (do_turn) 
 		{
-			m_ptr->energy -= level_speed(m_ptr->dun_depth);
 			break;
 		}
 	}
@@ -3365,6 +3353,9 @@ void process_monsters(void)
 
 		/* Not enough energy to move */
 		if (m_ptr->energy < level_speed(m_ptr->dun_depth)) continue;
+		
+		/* Use some energy */
+		m_ptr->energy -= level_speed(m_ptr->dun_depth);
 
 		/* Find the closest player */
 		for (pl = 1; pl < NumPlayers + 1; pl++)
