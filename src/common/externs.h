@@ -49,7 +49,7 @@ extern byte adj_con_fix[];
 extern const int adj_con_mhp[];
 extern byte blows_table[12][12];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
-extern u16b extract_energy[200];
+extern byte extract_energy[200];
 extern s32b player_exp[PY_MAX_LEVEL];
 extern player_race race_info[MAX_RACES];
 //extern player_class c_info[MAX_CLASS];
@@ -97,6 +97,7 @@ extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;
 extern s16b command_new;
+/*extern s16b energy_use;*/
 extern s16b choose_default;
 extern bool create_up_stair;
 extern bool create_down_stair;
