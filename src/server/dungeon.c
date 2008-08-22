@@ -1090,7 +1090,7 @@ static void process_player_end(int Ind)
 	 * and poison faster with respect to real time < 1750 feet and slower >
 	 * 1750 feet.
 	 */
-	if (!(turn%(level_speed(p_ptr->dun_depth)/12)))
+	if (!(turn%((level_speed(p_ptr->dun_depth)*100)/12)))
 	{
 		/*** Damage over Time ***/
 
@@ -1137,10 +1137,10 @@ static void process_player_end(int Ind)
 			if (p_ptr->food < PY_FOOD_MAX)
 			{
 				/* Every 50/6 level turns */
-			        if (!(turn%((level_speed(p_ptr->dun_depth)/12)*10)))
+				if (!(turn % (((level_speed(p_ptr->dun_depth)/100)/12)*10)))
 				{
 					/* Basic digestion rate based on speed */
-					i = extract_energy[p_ptr->pspeed] * 2;
+					i = (extract_energy[p_ptr->pspeed]/100) * 2;
 
 					/* Regeneration takes more food */
 					if (p_ptr->regenerate) i += 30;

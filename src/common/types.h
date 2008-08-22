@@ -772,7 +772,7 @@ struct monster_type
 	s16b csleep;		/* Inactive counter */
 
 	byte mspeed;		/* Monster "speed" */
-	s16b energy;		/* Monster "energy" */
+	u16b energy;		/* Monster "energy" */
 
 	byte stunned;		/* Monster is stunned */
 	byte confused;		/* Monster is confused */
@@ -1355,8 +1355,6 @@ struct player_type
 
 	bool resting;		/* Are we resting? */
 
-	s16b energy_use;	/* How much energy has been used */
-
 	int look_index;		/* Used for looking or targeting */
 
 	s16b current_spell;	/* Spell being cast */
@@ -1408,7 +1406,7 @@ struct player_type
 
 	s16b word_recall;	/* Word of recall counter */
 
-	s16b energy;		/* Current energy */
+	u16b energy;		/* Current energy */
 
 	s16b food;			/* Current nutrition */
 
