@@ -3223,7 +3223,7 @@ static int Receive_run(int ind)
 	}
 
 	/* If not the dungeon master, who can always run */
-	if (p_ptr->dm_flags & DM_NEVER_DISTURB) 
+	if (!(p_ptr->dm_flags & DM_NEVER_DISTURB)) 
 	{
 		/* Check for monsters in sight or confusion */
 		for (i = 0; i < m_max; i++)

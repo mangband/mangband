@@ -624,7 +624,7 @@ void carry(int Ind, int pickup, int confirm)
 	if (o_ptr->tval == TV_GOLD)
 	{
 		/* Hack -- ghosts don't autopick gold even if they could */
-		if (p_ptr->ghost) return;
+		if (p_ptr->ghost && !pickup) return;
 	
 		/* Disturb */
 		disturb(Ind, 0, 0);
