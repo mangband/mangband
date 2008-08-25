@@ -1042,7 +1042,7 @@ static s32b object_value_real(object_type *o_ptr)
 		case TV_STAFF:
 		{
 			/* Pay extra for charges */
-			value += ((value / 20) * o_ptr->pval);
+			value += ((value / 20) * (o_ptr->pval / o_ptr->number));
 
 			/* Done */
 			break;
