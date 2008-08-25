@@ -1382,19 +1382,15 @@ void lite_spot(int Ind, int y, int x)
 		byte a, ta;
 		char c, tc;
 
+		/* Examine the grid */
+		map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
+
 		/* Handle "player" */
 		if ((y == p_ptr->py) && (x == p_ptr->px))
 		{
 			int p = player_pict(Ind,Ind);
 			a = PICT_A(p);
 			c = PICT_C(p);
-		}
-
-		/* Normal */
-		else
-		{
-			/* Examine the grid */
-			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 		}
 
 		/* Hack -- fake monochrome */

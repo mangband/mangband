@@ -1477,8 +1477,10 @@ int Receive_char(void)
 	int	n;
 	char	ch;
 	unsigned char	x, y;
-	char	a, c;
-	char	tap,tcp;
+	char	c, tcp;
+	byte	a, tap;
+	
+	tap = tcp = c = a = x = y = 0;
 
 	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c", &ch, &x, &y, &a, &c)) <= 0)
 	{
