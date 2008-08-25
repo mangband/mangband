@@ -1647,6 +1647,12 @@ void display_map(int Ind)
 	bool old_view_special_lite;
 	bool old_view_granite_lite;
 
+	/* Large array on the stack */
+	byte ma[SCREEN_HGT + 2][78 + 2];
+	char mc[SCREEN_HGT + 2][78 + 2];
+
+	byte mp[SCREEN_HGT + 2][78 + 2];
+
 	/* Desired map height */
 	map_hgt = SCREEN_HGT;
 	map_wid = 78;
@@ -1660,12 +1666,6 @@ void display_map(int Ind)
  
 	/* Prevent accidents */
 	if ((map_wid < 1) || (map_hgt < 1)) return;
-
-	/* Large array on the stack */
-	byte ma[map_hgt + 2][map_wid + 2];
-	char mc[map_hgt + 2][map_wid + 2];
-
-	byte mp[map_hgt + 2][map_wid + 2];
 
 	/* Save lighting effects */
 	old_view_special_lite = p_ptr->view_special_lite;
@@ -1800,6 +1800,10 @@ void wild_display_map(int Ind)
 
 	char buf[80];
 
+	/* Large array on the stack */
+	byte ma[SCREEN_HGT + 2][78 + 2];
+	char mc[SCREEN_HGT + 2][78 + 2];
+
 	/* Desired map height */
 	map_hgt = SCREEN_HGT;
 	map_wid = 78;
@@ -1813,10 +1817,6 @@ void wild_display_map(int Ind)
  
 	/* Prevent accidents */
 	if ((map_wid < 1) || (map_hgt < 1)) return;
-
-	/* Large array on the stack */
-	byte ma[map_hgt + 2][map_wid + 2];
-	char mc[map_hgt + 2][map_wid + 2];
 
 	/* Clear the chars and attributes */
 	for (y = 0; y < map_hgt+2; ++y)
