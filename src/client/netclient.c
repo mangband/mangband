@@ -1223,6 +1223,8 @@ int Receive_char_info_conn(void)
 	/* Clear any old info */
 	race = class = sex = 0;
 
+	mode = 0;
+
 	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd", &ch, &mode, &race, &class, &sex)) <= 0)
 	{
 		return n;
