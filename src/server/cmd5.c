@@ -1544,6 +1544,20 @@ static void spell_wonder(int Ind, int dir)
 	}
 }
 
+static bool is_item_spell(int tval, int spell) 
+{ 
+ 	switch (tval)
+	{
+	case TV_MAGIC_BOOK: 
+		return ((spell == MSPELL_IDENTIFY) || (spell == MSPELL_ENCHANT_ARMOR) || 
+			(spell == MSPELL_ENCHANT_WEAPON) || (spell == MSPELL_ELEMENTAL_BRAND)); 
+	case TV_PRAYER_BOOK: 
+		return ((spell == PSPELL_IDENTIFY_ITEM) || (spell == PSPELL_ENCHANT_WEAPON) || 
+			(spell == PSPELL_ENCHANT_ARMOR)); 
+	} 
+	return FALSE; 
+} 
+
 
 /*
  * Finish casting a spell that required a direction --KLJ--
@@ -1558,7 +1572,8 @@ void do_cmd_cast_aux(int Ind, int dir)
 	magic_type *s_ptr = &p_ptr->mp_ptr->info[p_ptr->current_spell];
 
 	/* Only fire in direction 5 if we have a target */
-	if ((dir == 5) && !target_okay(Ind))
+	/* Some spells use "dir" as item number - skip them since they don't require a target */ 
+	if (!is_item_spell(TV_MAGIC_BOOK, p_ptr->current_spell) && (dir == 5) && !target_okay(Ind)) 
 	{
 		/* Reset current spell */
 		p_ptr->current_spell = -1;
@@ -2543,7 +2558,8 @@ void do_cmd_pray_aux(int Ind, int dir)
 	magic_type *s_ptr = &p_ptr->mp_ptr->info[p_ptr->current_spell];
 
 	/* Only fire in direction 5 if we have a target */
-	if ((dir == 5) && !target_okay(Ind))
+	/* Some spells use "dir" as item number - skip them since they don't require a target */ 
+ 	if (!is_item_spell(TV_PRAYER_BOOK, p_ptr->current_spell) && (dir == 5) && !target_okay(Ind))
 	{
 		/* Reset current spell */
 		p_ptr->current_spell = -1;
