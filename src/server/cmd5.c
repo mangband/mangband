@@ -185,11 +185,13 @@ static void do_spell_info(int Ind, char *p, int j)
             case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d20", plev); break;
 	    	case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev*2); break;            
             case MSPELL_ACID_BOLT: sprintf(p, " dam %dd8", (8 + ((plev-5)/4))); break;
-            case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 40 + plev/2); break;
+            case MSPELL_EXPLOSION: sprintf(p, " dam %d", 20 + plev * 2); break;
+			case MSPELL_CLOUD_KILL: sprintf(p, " dam %d", 40 + plev/2); break;
 /*            case MSPELL_ACID_BALL: sprintf(p, " dam %d", 40 + plev); break; */
             case MSPELL_ICE_STORM: sprintf(p, " dam %d", 50 + plev*2); break;
-            case MSPELL_METEOR_SWARM: sprintf(p, " dam %d", 65 + plev); break;
-            case MSPELL_MANA_STORM: sprintf(p, " dam %d", 300 + plev*2); break;
+            case MSPELL_METEOR_SWARM: sprintf(p, " dam %dx%d", 30 + plev / 2, 2 + plev / 20); break;
+            case MSPELL_CHAOS_STRIKE: sprintf(p, " dam 13d%d", plev); break;
+			case MSPELL_MANA_STORM: sprintf(p, " dam %d", 300 + plev*2); break;
             case MSPELL_RESIST_FIRE: strcpy(p, " dur 20+d20"); break;
             case MSPELL_RESIST_COLD: strcpy(p, " dur 20+d20"); break;
 /*            case MSPELL_RESIST_ACID: strcpy(p, " dur 20+d20"); break; */
@@ -198,6 +200,7 @@ static void do_spell_info(int Ind, char *p, int j)
             case MSPELL_HEROISM: strcpy(p, " dur 25+d25"); break;
             case MSPELL_SHIELD: strcpy(p, " dur 30+d20"); break;
             case MSPELL_BERSERKER: strcpy(p, " dur 25+d25"); break;
+			case MSPELL_RIFT: sprintf(p, " dam 40+%dd7", plev); break;
 /*            case MSPELL_HASTE_SELF: sprintf(p, " dur %d+d30", 30+plev); break; */
 /*            case MSPELL_SHIELD_GOI: strcpy(p, " dur 10+d10"); break; */
 		}
