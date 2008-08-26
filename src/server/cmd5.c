@@ -177,7 +177,7 @@ static void do_spell_info(int Ind, char *p, int j)
             case MSPELL_LIGHTNING_BOLT: sprintf(p, " dam %dd6", (3+((plev-5)/6))); break;
             case MSPELL_TELEPORT_SELF: sprintf(p, " range %d", plev * 5); break;
          	case MSPELL_SHOCK_WAVE:	sprintf(p, " dam %d", 10 + plev); break;
-/*            case MSPELL_SPEAR_OF_LIGHT: strcpy(p, " dam 6d8"); break; */
+            case MSPELL_SPEAR_OF_LIGHT: strcpy(p, " dam 6d8"); break;
             case MSPELL_FROST_BOLT: sprintf(p, " dam %dd8", (5+((plev-5)/4))); break;
             case MSPELL_FIRE_BOLT: sprintf(p, " dam %dd8", (6+((plev-5)/4))); break;
             case MSPELL_FROST_BALL: sprintf(p, " dam %d", 30 + plev); break;
@@ -1001,14 +1001,12 @@ void do_cmd_cast(int Ind, int book, int spell)
 				break;
 			}
 
-#if 0
             case MSPELL_SPEAR_OF_LIGHT:
 			{
                 p_ptr->current_spell = MSPELL_SPEAR_OF_LIGHT;
 				get_aim_dir(Ind);
 				return;
 			}
-#endif
 
             case MSPELL_FROST_BOLT:
 			{
@@ -1625,14 +1623,12 @@ void do_cmd_cast_aux(int Ind, int dir)
 			break;
 		}
 
-#if 0
         case MSPELL_SPEAR_OF_LIGHT:
 		{
 			msg_print(Ind, "A line of blue shimmering light appears.");
 			lite_line(Ind, dir);
 			break;
 		}
-#endif
 
         case MSPELL_FROST_BOLT:
 		{
