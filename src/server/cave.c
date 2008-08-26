@@ -496,8 +496,8 @@ int player_pict(int Ind, int who)
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr = Players[who];
 	byte a;
-	char c, kludge;
-	int pre_kludge;
+	char c;
+	int health;
 
 	/* Decide on player image */
 	if (p_ptr->use_graphics) 
@@ -551,17 +551,13 @@ int player_pict(int Ind, int who)
 		}
 	}
 	
-	// kludge overwrite graphics !
-	//if (!p_ptr->use_graphics)
-	//{
-	pre_kludge = (q_ptr->chp * 95) / (q_ptr->mhp*10);
-	pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
-	if (pre_kludge < 7) 
+	/* Reflect players current hitpoints in the player symbol */
+	health = ((q_ptr->chp>0 ? q_ptr->chp : 0) * 95) / (q_ptr->mhp*10);
+	if (health < 7) 
 	{
-		sprintf(&kludge, "%d", pre_kludge); 
-		c = kludge;
+		c = health + 48;
 	}
-	//}
+	
 	return (PICT(a, c));
 }
 
