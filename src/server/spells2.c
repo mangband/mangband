@@ -3471,6 +3471,24 @@ void earthquake(int Depth, int cy, int cx, int r)
 			}
 		}
 	}
+
+	/* Examine the quaked region */
+	for (dy = -r; dy <= r; dy++)
+	{
+		for (dx = -r; dx <= r; dx++)
+		{
+			/* Extract the location */
+			yy = cy + dy;
+			xx = cx + dx;
+
+			/* Skip unaffected grids */
+			if (!map[16+yy-cy][16+xx-cx]) continue;
+
+			/* Redraw any effected grids */
+			everyone_lite_spot(Depth,yy,xx);
+		}
+	}
+
 }
 
 
