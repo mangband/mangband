@@ -3471,6 +3471,8 @@ void earthquake(int Depth, int cy, int cx, int r)
 			}
 		}
 	}
+	/* Redraw the screen */
+	p_ptr->redraw |= (PR_MAP);
 }
 
 
