@@ -363,6 +363,7 @@ void NewConsole(int read_fd, int arg)
 			console_authenticated = TRUE;
 			Packet_printf(&console_buf, "%s","Authenticated\n");
 			Sockbuf_flush(&console_buf);
+			return;
 		}
 	}
 
