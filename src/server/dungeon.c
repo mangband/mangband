@@ -1,4 +1,5 @@
 /* Purpose: Angband game engine */
+/* Purpose: Angband game engine */
 
 /*
  * Copyright (c) 1989 James E. Wilson, Robert A. Koeneke
@@ -746,215 +747,92 @@ static void process_command(void)
 #endif
 
 /*
- * Check for nearby players or monsters and attempt to do something useful.
+ * Check for nearby players or monsters and attack.
  *
- * This function should only be called if the player is "lagging" and helpless
- * to do anything about the situation.  This is not intended to be incredibly
- * useful, merely to prevent deaths due to extreme lag.
+ * This function helps out the player by continuing to melee any monster
+ * he attacks. If there are nearby monsters and the player has chosen no
+ * action, a target will be selected at random and attacked until the 
+ * player chooses some other action or the target dies.
+ * 
+ * This function returns FALSE if no attack has been performed, TRUE if an attack
+ * has been performed.
  */
- /* This function returns a 0 if no attack has been performed, a 1 if an attack
-  * has been performed and there are still monsters around, and a 2 if an attack
-  * has been performed and all of the surrounding monsters are dead.
-  */
-  /* We now intelligently try to decide which monster to autoattack.  Our current
-   * algorithm is to fight first Q's, then any monster that is 20 levels higher
-   * than its peers, then the most proportionatly wounded monster, then the highest
-   * level monster, then the monster with the least hit points.
-   */ 
 static int auto_retaliate(int Ind)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr, *p_target_ptr = NULL, *prev_p_target_ptr = NULL;
-	int i;
-	monster_type *m_ptr, *m_target_ptr = NULL, *prev_m_target_ptr = NULL;
-
-	/* Check each player */
-	for (i = 1; i <= NumPlayers; i++)
-	{
-		q_ptr = Players[i];
-
-		/* Skip players not at this depth */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
-
-		/* Skip ourselves */
-		if (Ind == i) continue;
-
-		/* Skip players we aren't hostile to */
-		if (!pvp_okay(Ind, i, 0)) continue;
-
-		/* Skip players we cannot see */
-		if (!p_ptr->play_vis[i]) continue;
-
-		/* A hostile player is next to us */
-		if (distance(p_ptr->py, p_ptr->px, q_ptr->py, q_ptr->px) == 1)
-		{
-			/* Figure out if this is the best target so far */
-			if (p_target_ptr)
-			{
-				/* If we are 15 levels over the old target, make this
-				 * player our new target.
-				 */
-				if ((q_ptr->lev - 15) >= p_target_ptr->lev)
-				{
-					prev_p_target_ptr = p_target_ptr;
-					p_target_ptr = q_ptr;
-				}
-				/* Otherwise attack this player if he is more proportionatly
-				 * wounded than our old target.
-				 */
-				else if (q_ptr->chp * p_target_ptr->mhp < p_target_ptr->chp * q_ptr->mhp)
-				{
-					prev_p_target_ptr = p_target_ptr;
-					p_target_ptr = q_ptr;
-				}
-				/* If it is a tie attack the higher level player */
-				else if (q_ptr->chp * p_target_ptr->mhp == p_target_ptr->chp * q_ptr->mhp)
-				{
-					if (q_ptr->lev > p_target_ptr->lev)
-					{
-						prev_p_target_ptr = p_target_ptr;
-						p_target_ptr = q_ptr;
-					}
-					/* If it is a tie attack the player with less hit points */
-					else if (q_ptr->lev == p_target_ptr->lev)
-					{
-						if (q_ptr->chp < p_target_ptr->chp)
-						{
-							prev_p_target_ptr = p_target_ptr;
-							p_target_ptr = q_ptr;
-						}
-					}
-				}
-			}
-			else
-			{
-				prev_p_target_ptr = p_target_ptr;
-				p_target_ptr = q_ptr;
-			}
-		}
-	}
-
-
-	/* Check each monster */
-	for (i = 1; i < m_max; i++)
-	{
-		m_ptr = &m_list[i];
-
-		/* Paranoia -- Skip dead monsters */
-		if (!m_ptr->r_idx) continue;
-
-		/* Skip monsters that aren't at this depth */
-		if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
-
-		/* Make sure that the player can see this monster */
-		if (!p_ptr->mon_vis[i]) continue;
-
-		/* A monster is next to us */
-		if (distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx) == 1)
-		{
-			/* Figure out if this is the best target so far */
-			if (m_target_ptr)
-			{
-				/* If it is a Q, then make it our new target. */
-				/* We don't handle the case of choosing between two
-				 * Q's because if the player is standing next to two Q's
-				 * he deserves whatever punishment he gets.
-				 */
-				if (r_info[m_ptr->r_idx].d_char == 'Q')
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* Otherwise if it is 20 levels higher than everything
-				 * else attack it.
-				 */
-				else if ((r_info[m_ptr->r_idx].level - 20) >=
-						r_info[m_target_ptr->r_idx].level)
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* Otherwise if it is the most proportionatly wounded monster
-				 * attack it.
-				 */
-				else if (m_ptr->hp * m_target_ptr->maxhp < m_target_ptr->hp * m_ptr->maxhp)
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* If it is a tie attack the higher level monster */
-				else if (m_ptr->hp * m_target_ptr->maxhp == m_target_ptr->hp * m_ptr->maxhp)
-				{
-					if (r_info[m_ptr->r_idx].level > r_info[m_target_ptr->r_idx].level)
-					{
-						prev_m_target_ptr = m_target_ptr;
-						m_target_ptr = m_ptr;
-					}
-					/* If it is a tie attack the monster with less hit points */
-					else if (r_info[m_ptr->r_idx].level == r_info[m_target_ptr->r_idx].level)
-					{
-						if (m_ptr->hp < m_target_ptr->hp)
-						{
-							prev_m_target_ptr = m_target_ptr;
-							m_target_ptr = m_ptr;
-						}
-					}
-				}
-			}
-			else
-			{
-				prev_m_target_ptr = m_target_ptr;
-				m_target_ptr = m_ptr;
-			}
-		}
-	}
-
-	/* If we have a player target, attack him. */
-	if (p_target_ptr)
-	{
-		/* Attack him */
-		py_attack(Ind, p_target_ptr->py, p_target_ptr->px);
-
-		/* Check if he is still alive or another targets exists */
-		if ((!p_target_ptr->death) || (prev_p_target_ptr) || (m_target_ptr))
-		{
-			/* We attacked something */
-			return 1;
-		}
-		else
-		{
-			/* Otherwise return 2 to indicate we are no longer
-			 * autoattacking anything.
-			 */
-			return 2;
-		}
-	}
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
+	int i, targets, ax, ay, tx, ty, target;
+	cave_type	*c_ptr;
+	int targetlist[8];
+	bool istarget = FALSE;
+	monster_type *m_ptr;
 
 	/* The dungeon master does not fight his or her offspring */
 	if (p_ptr->dm_flags & DM_MONSTER_FRIEND) return FALSE;
-
-	/* If we have a target to attack, attack it! */
-	if (m_target_ptr)
+	
+	/* How many possible targets around us? */
+	targets = 0;
+	for(i = 0; i < 8; i++)
 	{
-		/* Attack it */
-		py_attack(Ind, m_target_ptr->fy, m_target_ptr->fx);
-
-		/* Check if it is still alive or another targets exists */
-		if ((m_target_ptr->r_idx) || (prev_m_target_ptr) || (p_target_ptr))
+		ax = p_ptr->px + ddx_ddd[i];
+		ay = p_ptr->py + ddy_ddd[i];
+		if(in_bounds(p_ptr->dun_depth,ay,ax))
 		{
-			/* We attacked something */
-			return 1;
-		}
-		else
-		{
-			/* Otherwise return 2 to indicate we are no longer
-			 * autoattacking anything.
-			 */
-			return 2;
+			/* Anything here? */
+			c_ptr = &cave[p_ptr->dun_depth][ay][ax];
+			/* Another player perhaps? */
+			if (c_ptr->m_idx < 0)
+			{
+				/* If they are hostile, they are a fair target */
+				if(pvp_okay(Ind, 0 - c_ptr->m_idx, 0))
+				{
+					targetlist[targets++] = i;
+					if(p_ptr->health_who == c_ptr->m_idx)
+					{
+						q_ptr = Players[0-c_ptr->m_idx];
+						istarget = TRUE;
+						tx = q_ptr->px;
+						ty = q_ptr->py;
+					}
+				}
+			}
+			/* Or perhaps a monster */
+			else if(c_ptr->m_idx)
+			{
+				targetlist[targets++] = i;
+				if(p_ptr->health_who == c_ptr->m_idx)
+				{
+					m_ptr = &m_list[c_ptr->m_idx];
+					istarget = TRUE;
+					tx = m_ptr->fx;
+					ty = m_ptr->fy;
+				}
+			}			
 		}
 	}
+	
+	/* If no available targets bail out */
+	if(!targets) return FALSE;
 
-	/* Nothing was attacked. */
-	return 0;
+	/* If our current target is available, use that */
+	if(istarget)
+	{
+		ax = tx;
+		ay = ty;
+	}
+	else
+	{
+		/* Pick one of the available targets */
+		target = rand_int(targets);
+		ax = p_ptr->px + ddx_ddd[targetlist[target]];
+		ay = p_ptr->py + ddy_ddd[targetlist[target]];
+	}
+	
+	/* Attack it! */
+	py_attack(Ind, ay, ax);
+	
+	return TRUE;
+	
 }
 
 /*
