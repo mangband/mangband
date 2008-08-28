@@ -783,6 +783,9 @@ static int auto_retaliate(int Ind)
 			/* Another player perhaps? */
 			if (c_ptr->m_idx < 0)
 			{
+				/* Skip players we cannot see */
+				if (!p_ptr->play_vis[0 - c_ptr->m_idx]) continue;
+
 				/* If they are hostile, they are a fair target */
 				if(pvp_okay(Ind, 0 - c_ptr->m_idx, 0))
 				{
@@ -799,6 +802,9 @@ static int auto_retaliate(int Ind)
 			/* Or perhaps a monster */
 			else if(c_ptr->m_idx)
 			{
+				/* Make sure that the player can see this monster */
+				if (!p_ptr->mon_vis[c_ptr->m_idx]) continue;
+				
 				targetlist[targets++] = i;
 				if(p_ptr->health_who == c_ptr->m_idx)
 				{
