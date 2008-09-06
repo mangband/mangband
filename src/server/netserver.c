@@ -448,7 +448,7 @@ static sockbuf_t ibuf;
 void setup_contact_socket(void)
 {
 	plog("Create TCP socket..."); 
-	while ((Socket = CreateServerSocket(cfg_tcp_port)) == -1)
+	while ((Socket = CreateServerSocket(cfg_tcp_port, FALSE)) == -1)
 	{
 #ifdef WINDOWS
   Sleep(1);
@@ -474,7 +474,7 @@ void setup_contact_socket(void)
 
 	install_input(Contact, Socket, 0);
 	
-	if ((ConsoleSocket = CreateServerSocket(cfg_tcp_port + 1)) == -1)
+	if ((ConsoleSocket = CreateServerSocket(cfg_tcp_port + 1, cfg_console_local_only)) == -1)
 	{
 		plog("Couldn't create console socket");
 		return;

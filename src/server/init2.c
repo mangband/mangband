@@ -2380,6 +2380,10 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_console_password = strdup(value);
 	}
+	else if (!strcmp(option,"CONSOLE_LOCAL_ONLY"))
+	{
+		cfg_console_local_only = str_to_boolean(value);
+	}
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);

@@ -75,7 +75,7 @@ extern int SocketRead(int, char *, int);
 extern int SetSocketNoDelay(int, int);
 extern int SocketAccept(int);
 extern int SocketLinger(int);
-extern int CreateServerSocket(int);
+extern int CreateServerSocket(int, bool);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\

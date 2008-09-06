@@ -163,6 +163,7 @@ extern bool cfg_report_to_meta;
 extern char * cfg_meta_address;
 extern char * cfg_report_address;
 extern char * cfg_console_password;
+extern bool cfg_console_local_only;
 extern char * cfg_dungeon_master;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
