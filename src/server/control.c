@@ -339,6 +339,10 @@ void NewConsole(int read_fd, int arg)
 	{
 		Packet_scanf(&console_buf, "%N",passwd); 
 
+		/* Hack: comply with telnet */
+		buflen = strlen(passwd);
+		if (buflen && passwd[buflen-1] == '\r') passwd[buflen-1] = '\0';
+		
 		/* Check for illegal accesses */
 		if (strcmp(passwd, cfg_console_password))
 		{
@@ -371,6 +375,9 @@ void NewConsole(int read_fd, int arg)
 	Packet_scanf(&console_buf, "%N", buf);
 	buflen = strlen(buf);
 
+	/* Hack: comply with telnet */
+	if (buflen && buf[buflen-1] == '\r') buf[buflen-1] = '\0';
+		
 	/* Split up command and params */
 	if( (params = strstr(buf," ")) )
 	{
