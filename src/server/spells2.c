@@ -4039,7 +4039,7 @@ bool clone_monster(int Ind, int dir)
 	 * players and the whole game economy as the game is flooded with great items */
 	if(p_ptr->lev >= 10)
 	{
-		msg_print(Ind, "The wand crackles loudly. Nothing else happens.");
+		msg_print(Ind, "You hear a loud crackling sound. Nothing else happens.");
 		return(TRUE);
 	}
 	else
