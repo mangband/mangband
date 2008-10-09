@@ -2544,6 +2544,7 @@ void do_cmd_zap_rod(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 	if( check_guard_inscription( o_ptr->note, 'z' )) {
                 msg_print(Ind, "The item's inscription prevents it");
@@ -2822,6 +2823,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 	if( check_guard_inscription( o_ptr->note, 'z' )) {
                 msg_print(Ind, "The item's inscription prevents it");

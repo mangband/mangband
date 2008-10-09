@@ -2017,6 +2017,7 @@ bool create_artifact_aux(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 #if !defined(RANDART)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
@@ -2130,6 +2131,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2214,6 +2216,7 @@ bool ident_spell_aux(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2298,6 +2301,7 @@ bool identify_fully_item(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2437,6 +2441,7 @@ bool recharge_aux(int Ind, int item, int num)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	if (!item_tester_hook(o_ptr))

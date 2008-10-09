@@ -717,6 +717,7 @@ void brand_ammo(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	if (!item_tester_hook_ammo(Ind, o_ptr)) {

@@ -978,6 +978,7 @@ void do_cmd_uninscribe(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Nothing to remove */
@@ -1034,6 +1035,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Don't allow certain inscriptions when selling */
