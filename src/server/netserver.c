@@ -853,11 +853,6 @@ static void Conn_set_state(connection_t *connp, int state, int drain_state)
 		num_conn_playing++;
 		connp->timeout = IDLE_TIMEOUT;
 	}
-	else if (connp->state == CONN_READY)
-	{
-		num_conn_playing++;
-		connp->timeout = READY_TIMEOUT;
-	}
 	else if (connp->state == CONN_SETUP)
 		connp->timeout = SETUP_TIMEOUT;
 	else if (connp->state == CONN_FREE)
@@ -1121,7 +1116,7 @@ int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
 	connp->sex = sex;
 	connp->start = turn;
 	connp->id = -1;
-	connp->timeout = LISTEN_TIMEOUT;
+	connp->timeout = SETUP_TIMEOUT;
 	connp->reliable_offset = 0;
 	connp->reliable_unsent = 0;
 	connp->last_send_loops = 0;

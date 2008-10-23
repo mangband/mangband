@@ -12,10 +12,7 @@
 #define CONN_DRAIN		0x20
 #define CONN_READY		0x40
 
-#define LISTEN_TIMEOUT		120
-#define SETUP_TIMEOUT		15
-#define LOGIN_TIMEOUT		15
-#define READY_TIMEOUT		30
+#define SETUP_TIMEOUT		180
 #define IDLE_TIMEOUT		15
 
 #define MAX_RTT			(2 * FPS)
