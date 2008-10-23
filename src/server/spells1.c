@@ -4419,10 +4419,10 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			if (typ == GF_HEAL_PLAYER) break;
 			
 			/* neutral people hit each other */			
-			if (!Players[0 - who]->party) break;
+			if (who < 0 && !Players[0 - who]->party) break;
 			
 			/* people not in the same party hit each other */			
-			if (!player_in_party(Players[0 - who]->party, 0 - c_ptr->m_idx)) break;	
+			if (who < 0 && !player_in_party(Players[0 - who]->party, 0 - c_ptr->m_idx)) break;	
 		}
 
 
