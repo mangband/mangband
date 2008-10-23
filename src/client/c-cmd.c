@@ -1880,7 +1880,9 @@ void cmd_master_aux_generate_item(void)
 		
 		Term_putstr(50, 4, -1, TERM_WHITE, "(h)it, (d)am," );
 		Term_putstr(50, 5, -1, TERM_WHITE, "(a)c,  (p)val," );
-		Term_putstr(50, 6, -1, TERM_WHITE, "(x)tra2" );
+		Term_putstr(50, 6, -1, TERM_WHITE, "(x)tra2, " );
+		Term_putstr(50, 7, -1, TERM_WHITE, "(i)dentified," );
+		Term_putstr(50, 8, -1, TERM_WHITE, "(b)est kind" );
 		
 		// This is very confusing.
 //		Term_putstr(21, 8, -1, TERM_WHITE, "item/ego - SHIFT - inc/decr " );
@@ -1901,12 +1903,22 @@ void cmd_master_aux_generate_item(void)
 
 		/* Leave */
 		if (i == ESCAPE) break;
-		else if (i == 'H' || i == 'D' || i == 'A' || i == 'X' || i == 'P')
+		else if (i == 'b')
+		{
+			buf[1] = 'b';
+			buf[2] = 'k';
+		}
+		else if (i == 'B')
+		{
+			buf[1] = 'b';
+			buf[2] = 'e';
+		}
+		else if (i == 'H' || i == 'D' || i == 'A' || i == 'X' || i == 'P' || i == 'I')
 		{
 			buf[1] = 'M';
 			buf[2] = tolower(i);
 		}		
-		else if (i == 'h' || i == 'd' || i == 'a' || i == 'x' || i == 'p')
+		else if (i == 'h' || i == 'd' || i == 'a' || i == 'x' || i == 'p' || i == 'i')
 		{
 			buf[1] = 'I';
 			buf[2] = i;

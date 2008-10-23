@@ -4516,12 +4516,12 @@ vault_type *get_vault(char *name)
 
 
 /* This "table" is used to provide XTRA2 descriptions */ 
-static cptr extra_mods[][11] =
+static cptr extra_mods[][12] =
 {
 	{"Regular"},
 	{"Sustain STR", "Sustain DEX", "Sustain CON", "Sustain INT", "Sustain WIS", "Sustain CHR"},
-	{"Blind.", "Confusion", "Sound", "Shards", "Nether", "Nexus", "Chaos", "Disen", "Poison", "Light", "Dark"},
-	{"Feather", "PermaLite", "SeeInvis", "Telepathy", "Slow.Digestion", "Regeneration", "Free Action", "Hold Life", "Make Fearless"}
+	{"Poison", "Fear", "Light", "Dark", "Blindness", "Confusion", "Sound", "Shards", "Nexus", "Nether", "Chaos", "Disen"},
+	{"Slow.Digestion", "Feather", "PermaLite", "Regeneration", "Telepathy", "SeeInvis", "Free Action", "Hold Life"}
 };
 
 /* Generate something */
@@ -4559,6 +4559,50 @@ bool master_generate(int Ind, char * parms)
 					//last_k_idx = 0;
 					//last_e_idx = 0;
 					break;
+				case 'b':
+					/* best base kind for selected ego */
+					if (parms[2] == 'k')
+					{
+						/* no ego */
+						if (!last_e_idx) break;
+						
+						int idxtval = rand_int(2);
+						byte i;
+						for (i = e_info[last_e_idx].min_sval[idxtval]; i < e_info[last_e_idx].max_sval[idxtval]; i++)
+						{
+							k_idx = lookup_kind(e_info[last_e_idx].tval[idxtval], i);
+							if (k_idx) break;
+						}
+					}
+					/* best ego kind for selected base */
+					else if (parms[2] == 'e')
+					{
+						/* no base */
+						if (!last_k_idx) break;
+						
+						int i, rnd_offset = rand_int(MAX_E_IDX);
+						if (dm_obj.name2) rnd_offset = dm_obj.name2 + 1;
+						for (i = rnd_offset; i < MAX_E_IDX; i++)
+						{
+							if (check_ego(&dm_obj, e_info[i].level, 0, i))
+							{
+								e_idx = i;
+								break;
+							}
+						}
+						/* nothing found yet? */
+						if (e_idx > -1) break;
+						for (i = 1; i < rnd_offset; i++)
+						{
+							if (check_ego(&dm_obj, e_info[i].level, 0, i))
+							{
+								e_idx = i;
+								break;
+							}			
+						}
+					}					
+
+					break;
 				case 'M':
 					/* decrement value */
 					if (!last_k_idx) break;
@@ -4569,6 +4613,7 @@ bool master_generate(int Ind, char * parms)
 						case 'a': if(dm_obj.ac>0) dm_obj.ac--; break;
 						case 'x': if(dm_obj.xtra2>0) dm_obj.xtra2--; break;
 						case 'p': if(dm_obj.pval>0) dm_obj.pval--; break;
+						case 'i': dm_obj.ident = 0; break;
 					}
 					break;
 				case 'I':
@@ -4581,11 +4626,23 @@ bool master_generate(int Ind, char * parms)
 						case 'a': dm_obj.ac++; break;
 						case 'x': if(dm_obj.xtra2<255) dm_obj.xtra2++; break;
 						case 'p': dm_obj.pval++; break;
+						case 'i': dm_obj.ident = ID_KNOWN; break;
 					}
 					break;				
 				case 'd':
 					/* deploy */
+					switch (dm_obj.tval)
+					{
+						case TV_ARROW: case TV_BOLT: case TV_SPIKE: case TV_SHOT:
+						dm_obj.number = randint(98);
+						break;
+						case TV_SCROLL: case TV_POTION: case TV_FLASK: case TV_FOOD:
+						dm_obj.number = (parms[2] < 99 && parms[2] > 0 ? parms[2] : 45);
+						parms[2] = 1;
+						break;
+					}
 					place_specific_object(p_ptr->dun_depth, p_ptr->py, p_ptr->px, &dm_obj, e_info[last_e_idx].level, parms[2]);
+					dm_obj.number = 1;
 					break;
 				case 'e':
 					/* ego kind */
@@ -4636,23 +4693,24 @@ bool master_generate(int Ind, char * parms)
 
 			}			
 			
-			if (last_k_idx && &dm_obj) {
+			if (last_k_idx && k_ptr) {
 			//	dm_obj.ident = ID_KNOWN;
 				object_aware(Ind, &dm_obj);
 				object_desc(Ind, buf, &dm_obj, 1, 3);
-				Send_special_line(Ind, 16, 15, TERM_WHITE, format("%d. %s", last_k_idx, buf));
+				Send_special_line(Ind, 16, 15, TERM_WHITE, format("%d. %s %s", last_k_idx, buf, ((dm_obj.ident & ID_KNOWN) ? "(id)" : "")));
 			} else {
 				Send_special_line(Ind, 16, 15, TERM_WHITE, " [No Object]");			
 			}
 			
 			if(last_e_idx > 0 && e_ptr) {
 				/* Obtain XTRA2 moddifers */ 
-				if (e_ptr->xtra == EGO_XTRA_SUSTAIN) { xtra_val = 1; xtra_mod = 6; }
-				else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = 11; } 
-				else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = 9; }
+				if (e_ptr->xtra == EGO_XTRA_SUSTAIN) { xtra_val = 1; xtra_mod = OBJECT_XTRA_SIZE_SUSTAIN; }
+				else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = OBJECT_XTRA_SIZE_RESIST; } 
+				else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = OBJECT_XTRA_SIZE_POWER; }
 				else { xtra_val = 0; xtra_mod = 1; }
+				if (dm_obj.xtra2 >= xtra_mod) dm_obj.xtra2 %= xtra_mod; 
 				
-				Send_special_line(Ind, 16, 16, TERM_WHITE, format("%d. %s [%s]", last_e_idx, e_name + e_ptr->name, extra_mods[xtra_val][dm_obj.xtra2 % xtra_mod] ));
+				Send_special_line(Ind, 16, 16, TERM_WHITE, format("%d. %s [%s]", last_e_idx, e_name + e_ptr->name, extra_mods[xtra_val][dm_obj.xtra2]));
 			} else {
 				Send_special_line(Ind, 16, 16, TERM_WHITE, " [No Ego-Kind]");
 			}	

@@ -1596,10 +1596,10 @@ s16b lookup_kind(int tval, int sval)
 		/* Found a match */
 		if ((k_ptr->tval == tval) && (k_ptr->sval == sval)) return (k);
 	}
-
+#ifdef DEBUG
 	/* Oops */
 	plog(format("No object (%d,%d)", tval, sval));
-
+#endif
 	/* Oops */
 	return (0);
 }
@@ -3247,10 +3247,21 @@ bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int le
 				}
 			
 				
-				xtra_hack = o_ptr->xtra2;
+				xtra_hack = forge->xtra2;
 				apply_magic(Depth, o_ptr, lev, TRUE, FALSE, FALSE);
 				o_ptr->xtra2 = xtra_hack;
-								
+				
+				o_ptr->to_h = forge->to_h;
+				o_ptr->to_d = forge->to_d;
+				o_ptr->to_a = forge->to_a;
+				o_ptr->pval = forge->pval;
+
+				/* Identify fully? */
+				if ((forge->ident & ID_KNOWN))
+				{
+					object_known(o_ptr);
+				}
+
 				/* Notice */
 				note_spot_depth(Depth, y, x);
 
