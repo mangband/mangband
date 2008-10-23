@@ -2823,6 +2823,12 @@ static void calc_bonuses(int Ind)
 		p_ptr->window |= (PW_PLAYER);
 	}
 
+	/* Redraw To-Hit and To-Dim (if needed) */
+	if ((p_ptr->dis_to_h != old_dis_to_h) || (p_ptr->dis_to_d != old_dis_to_d))
+	{
+		/* Redraw */
+		p_ptr->redraw |= (PR_PLUSSES);
+	}
 
 	/* Hack -- handle "xtra" mode */
 	/*if (character_xtra) return;*/
