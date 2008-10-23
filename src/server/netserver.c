@@ -3411,7 +3411,7 @@ static int Receive_fire(int ind)
 	{
 		/* Change firing direction */
 		while (dir == 5)
-			dir = randint(9) + 1;
+			dir = ddd[rand_int(8)];
 	}
 
 	if (connp->id != -1 && p_ptr->energy >= (level_speed(p_ptr->dun_depth) / p_ptr->num_fire))

@@ -2278,7 +2278,7 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 
 			/* Prevent walking nowhere */
 			while (dir == 5)
-				dir = rand_int(9) + 1;
+				dir = ddd[rand_int(8)];
 		}
 
 		/* Handle the cfg_door_bump_open option */
