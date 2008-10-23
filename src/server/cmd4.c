@@ -577,9 +577,9 @@ void do_cmd_check_players(int Ind, int line)
 		}
 
 
-		/* Print extra info if these people are in the same party */
+		/* Print extra info if these people are not 'red' aka hostile */
 		/* Hack -- always show extra info to dungeon master */
-		if ((p_ptr->party == q_ptr->party && p_ptr->party) || (p_ptr->dm_flags & DM_SEE_PLAYERS))
+		if ((attr != 'r' && cfg_pvp_hostility > 0) || (p_ptr->dm_flags & DM_SEE_PLAYERS))
 		{
 			fprintf(fff, " at %d ft", q_ptr->dun_depth * 50);
 		}

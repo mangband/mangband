@@ -3930,8 +3930,7 @@ bool target_set_friendly(int Ind, int dir)
 			if (i == Ind) continue;
 
 			/* Ignore players we aren't friends with */
-			/* if (!check_hostile(Ind, i)) continue; */
-			if ((!player_in_party(p_ptr->party, i)) || (p_ptr->party == 0)) continue;
+			if (pvp_okay(Ind, i, 0) || check_hostile(i, Ind)) continue;
 
 			/* Ignore "unreasonable" players */
 			if (!target_able(Ind, 0 - i)) continue;
@@ -3985,14 +3984,15 @@ bool target_set_friendly(int Ind, int dir)
 		
 		/* Tell the client about it */
 		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
+
+
+		/* Remember current index */
+		p_ptr->look_index = m;
+	
+		p_ptr->target_who = 0 - p_ptr->target_idx[m];
+		p_ptr->target_col = p_ptr->target_x[m];
+		p_ptr->target_row = p_ptr->target_y[m];	
 	}
-
-	/* Remember current index */
-	p_ptr->look_index = m;
-
-	p_ptr->target_who = 0 - p_ptr->target_idx[m];
-	p_ptr->target_col = p_ptr->target_x[m];
-	p_ptr->target_row = p_ptr->target_y[m];	
 
 	/* Failure */
 	if (!p_ptr->target_who) return (FALSE);
