@@ -435,7 +435,7 @@ extern void everyone_lite_spot(int Depth, int y, int x);
 extern void everyone_forget_spot(int Depth, int y, int x);
 extern void lite_spot(int Ind, int y, int x);
 extern void prt_map(int Ind);
-extern void display_map(int Ind, int *cy, int *cx);
+extern void display_map(int Ind);
 extern void do_cmd_view_map(int Ind);
 extern void forget_lite(int Ind);
 extern void update_lite(int Ind);
