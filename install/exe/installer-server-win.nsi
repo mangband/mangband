@@ -7,8 +7,8 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband Server"
-!define PRODUCT_VERSION "1.1.0 (beta 1)"
-!define VER "110-beta1"
+!define PRODUCT_VERSION "1.2.0 (alpha)"
+!define VER "120-alpha"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\MAngband.exe"
