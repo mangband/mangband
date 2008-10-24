@@ -5402,6 +5402,11 @@ static int Receive_master(int ind)
 				break;
 			}
 			
+			case MASTER_PLAYER:
+			{
+				master_player(player, buf);
+				break;
+			}
 		}
 	}
 

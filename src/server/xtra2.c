@@ -4514,6 +4514,125 @@ vault_type *get_vault(char *name)
 	return NULL;
 }
 
+static cptr dm_flags_str[17] =
+{
+	"Dungeon Master",
+	"Presence Hidden",
+	"Can Change Self",
+	"Can Change Others",
+	"Access to Build Menu",
+	"Access to Level Menu",
+	"Access to Summon Menu",
+	"Access to Generate Menu",
+	"Monster Friend",
+	"*Invulnerable*",
+	"Ghostly Hands",
+	"Ghostly Body",
+	"Never Disturbed",	
+	"See Level",
+	"See Monsters",
+	"See Players",
+	"Landlord"
+};
+bool master_player(int Ind, char * parms)
+{
+	static int dm_player;
+	static int dm_player_off;
+	int i, len;
+	player_type *q_ptr;
+	player_type *p_ptr = Players[Ind];
+	char buf[80];
+	bool check = FALSE;
+	u32b new_flag = 0;
+	u32b flag = 0x00000001L;
+	u32b access_flag = DM_CAN_MUTATE_SELF;
+	bool ghost = FALSE;
+	
+	strcpy(buf, "No Player!");	
+	
+	if (parms[0] == '>')
+	{
+		switch (parms[1]) 
+		{
+			case 'r': break;
+			case 'n': if (dm_player_off<16) dm_player_off++; break;
+			case 'p': if (dm_player_off>0) dm_player_off--; break;
+			case 'x': new_flag = (flag << dm_player_off); break;
+			case 'g': ghost = TRUE; break;
+		}
+	}
+	else if (parms[0] == ' ')
+	{
+		dm_player = Ind;
+	}
+	else
+	{
+		len = strlen(parms);	
+		dm_player = 0;
+		for (i = 1; i <= NumPlayers; i++)
+		{
+			q_ptr = Players[i];
+			
+			if (!strncasecmp(q_ptr->name, parms, len)) 
+			{
+				dm_player = i;
+				break;
+			} 
+		}
+	}
+	
+	/* Check permissions */
+	if (dm_player != Ind) access_flag = DM_CAN_ASSIGN; 
+	if (!(p_ptr->dm_flags & access_flag))
+	{
+		dm_player = 0;
+		if (dm_player == Ind)
+			strcpy(buf, "Can't change self");
+		else
+			strcpy(buf, "Can't change others");
+	}
+	
+	/* Update && Display player */	
+	if (dm_player)
+	{
+		q_ptr = Players[dm_player];
+		
+		/* Toggle ghost */
+		if (ghost)
+			q_ptr->ghost = !q_ptr->ghost;
+
+		/* Toggle 1 of DM flags */			
+		if (new_flag)
+		{
+			flag = new_flag;
+			if (!(q_ptr->dm_flags & new_flag))
+				q_ptr->dm_flags |= new_flag;
+			else	
+				q_ptr->dm_flags &= ~new_flag;
+		} 
+		else
+			flag <<= dm_player_off;
+			
+		/* Current selection */
+		if ((q_ptr->dm_flags & flag))	check = TRUE;
+		
+		/* Hack -- for *invulnerbale* set "invuln" */
+		if (flag == new_flag && flag == DM_INVULNERABLE)
+		{
+			if (check)
+				q_ptr->invuln = -1;
+			else
+				q_ptr->invuln = 0;
+		}
+
+		/* Display */
+		Send_special_line(Ind, 16, 15, TERM_WHITE, format("  Player: %s%s", q_ptr->name, (q_ptr->ghost ? ", ghost" : "") ));
+		Send_special_line(Ind, 16, 16, TERM_WHITE, format("    Flag: %s -- %s", dm_flags_str[dm_player_off], (check ? "Yes" : "No") ));
+	}
+	/* Error */
+	else
+		Send_special_line(Ind, 16, 15, TERM_WHITE, format(" Error! %s", buf));
+}
 
 /* This "table" is used to provide XTRA2 descriptions */ 
 static cptr extra_mods[][12] =

@@ -2144,7 +2144,119 @@ void cmd_master_aux_generate(void)
 	}
 }
 
+void cmd_master_aux_player_inside(void)
+{
+	char i;
+	char buf[80];
 
+	/* Process requests until done */
+	while (1)
+	{
+		/* Inform about screen update */
+		Send_master(MASTER_PLAYER, ">r");
+			
+		/* Clear screen */
+		Term_clear();
+
+		/* Initialize buffer */
+		buf[0] = '\0';
+
+		/* Describe */
+		Term_putstr(0, 2, -1, TERM_WHITE, "Player commands");
+
+		/* Selections */
+		Term_putstr(5, 4, -1, TERM_WHITE, "(<) Previous");
+		Term_putstr(5, 5, -1, TERM_WHITE, "(>) Next");
+		Term_putstr(5, 6, -1, TERM_WHITE, "RET Change");
+		
+		Term_putstr(5, 8, -1, TERM_WHITE, "(g) Ghost");
+
+		/* Prompt */
+		Term_putstr(0, 15, -1, TERM_WHITE, "Selection: ");
+
+		/* Get a key */
+		i = inkey();
+		
+		/* Leave */
+		if (i == ESCAPE) break;
+		
+		switch (i)
+		{
+			case '<': 
+				/* Prev Sel */
+				buf[0] = '>';
+				buf[1] = 'p';
+				break;
+			case '>': 
+				/* Next Sel */
+				buf[0] = '>';
+				buf[1] = 'n';
+				break; 
+			case '\r':
+				/* Change */
+				buf[0] = '>';
+				buf[1] = 'x';
+				break;
+			case 'g':
+				/* Toggle Ghost */
+				buf[0] = '>';
+				buf[1] = 'g';
+				break; 
+		}	
+		
+		if (buf)
+		{
+			buf[2] = '\0';
+			Send_master(MASTER_PLAYER, buf);
+		}
+	}
+}
+void cmd_master_aux_player(void)
+{
+	char i;
+	char buf[80];
+
+	/* Process requests until done */
+	while (1)
+	{
+		/* Clear screen */
+		Term_clear();
+
+		/* Initialize buffer */
+		buf[0] = '\0';
+
+		/* Describe */
+		Term_putstr(0, 2, -1, TERM_WHITE, "Player commands");
+
+		/* Selections */
+		Term_putstr(5, 4, -1, TERM_WHITE, "(1) Self");
+		Term_putstr(5, 5, -1, TERM_WHITE, "(2) By Name");
+
+		/* Prompt */
+		Term_putstr(0, 8, -1, TERM_WHITE, "Command: ");
+
+		/* Get a key */
+		i = inkey();
+
+		/* Leave */
+		if (i == ESCAPE) break;
+		
+		if (i == '1')
+		{
+			Send_master(MASTER_PLAYER, " ");
+			cmd_master_aux_player_inside();
+		}
+		if (i == '2')
+		{
+			/* Get player name */
+			if (get_string("Player: ", buf, 80)) 
+			{
+				Send_master(MASTER_PLAYER, buf);
+				cmd_master_aux_player_inside();
+			}
+		}
+	}
+}
 
 void cmd_master_aux_build(void)
 {
@@ -2677,6 +2789,7 @@ void cmd_master(void)
 		Term_putstr(5, 5, -1, TERM_WHITE, "(2) Building Commands");
 		Term_putstr(5, 6, -1, TERM_WHITE, "(3) Summoning Commands");
 		Term_putstr(5, 7, -1, TERM_WHITE, "(4) Generation Commands");
+		Term_putstr(5, 8, -1, TERM_WHITE, "(5) Player Commands");
 
 		/* Prompt */
 		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
@@ -2709,6 +2822,12 @@ void cmd_master(void)
 		else if (i == '4')
 		{
 			cmd_master_aux_generate();
+		}
+
+		/* Player commands */
+		else if (i == '5')
+		{
+			cmd_master_aux_player();
 		}
 
 		/* Oops */
