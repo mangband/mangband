@@ -62,7 +62,7 @@
 
 # Version stamp (required)
 
-V:1.1.1
+V:1.1.2
 
 
 N:0:Warrior
