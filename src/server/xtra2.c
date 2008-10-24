@@ -4563,11 +4563,12 @@ bool master_generate(int Ind, char * parms)
 					/* best base kind for selected ego */
 					if (parms[2] == 'k')
 					{
+						int idxtval = rand_int(2);
+						byte i;
+
 						/* no ego */
 						if (!last_e_idx) break;
 						
-						int idxtval = rand_int(2);
-						byte i;
 						for (i = e_info[last_e_idx].min_sval[idxtval]; i < e_info[last_e_idx].max_sval[idxtval]; i++)
 						{
 							k_idx = lookup_kind(e_info[last_e_idx].tval[idxtval], i);
@@ -4577,11 +4578,12 @@ bool master_generate(int Ind, char * parms)
 					/* best ego kind for selected base */
 					else if (parms[2] == 'e')
 					{
+						int i, rnd_offset = rand_int(MAX_E_IDX);
+						if (dm_obj.name2) rnd_offset = dm_obj.name2 + 1;
+
 						/* no base */
 						if (!last_k_idx) break;
 						
-						int i, rnd_offset = rand_int(MAX_E_IDX);
-						if (dm_obj.name2) rnd_offset = dm_obj.name2 + 1;
 						for (i = rnd_offset; i < MAX_E_IDX; i++)
 						{
 							if (check_ego(&dm_obj, e_info[i].level, 0, i))
