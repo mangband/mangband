@@ -7,7 +7,7 @@
  */
  
 #define CLIENT_VERSION_MAJOR	1
-#define CLIENT_VERSION_MINOR	1
+#define CLIENT_VERSION_MINOR	2
 #define CLIENT_VERSION_PATCH	0
 
 /*
@@ -18,7 +18,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define CLIENT_VERSION_EXTRA	2
+#define CLIENT_VERSION_EXTRA	0
 
 
 /*
