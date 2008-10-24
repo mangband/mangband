@@ -3033,6 +3033,10 @@ extern int PlayerUID;
 #define TERM_L_UMBER		15	/* 'U' */	/* 3,2,1 */
 
 
+#define MSG_GENERIC		0
+#define MSG_LOCAL 		255
+
+
 /*** Sound constants ***/
 
 

@@ -107,7 +107,8 @@ extern u16b message__head;
 extern u16b message__tail;
 extern u16b *message__ptr;
 extern char *message__buf;
-
+extern u16b *message__type;
+extern u16b *message__count;
 
 
 
@@ -351,8 +352,10 @@ extern void c_put_str(byte attr, cptr str, int row, int col);
 extern void put_str(cptr str, int row, int col);
 extern bool get_check(cptr prompt);
 extern s16b message_num(void);
+extern cptr message_last(void);
 extern cptr message_str(s16b age);
-extern void c_message_add(cptr msg);
+extern void c_message_add(cptr msg, u16b type);
+extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);

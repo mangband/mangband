@@ -356,11 +356,11 @@ void get_char_name(void)
 	Term_fresh();
 
 	/* Note player birth in the message recall */
-	c_message_add(" ");
-	c_message_add("  ");
-	c_message_add("====================");
-	c_message_add("  ");
-	c_message_add(" ");
+	c_message_add(" ", MSG_LOCAL);
+	c_message_add("  ", MSG_LOCAL);
+	c_message_add("====================", MSG_LOCAL);
+	c_message_add("  ", MSG_LOCAL);
+	c_message_add(" ", MSG_LOCAL);
 }
 
 /*

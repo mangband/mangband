@@ -1486,30 +1486,73 @@ bool get_check(cptr prompt)
 
 
 /*
+ * Calculate the index of a message
+ */
+static s16b message_age2idx(int age)
+{
+	return ((message__next + MESSAGE_MAX - (age + 1)) % MESSAGE_MAX);
+}
+
+/*
  * Recall the "text" of a saved message
  */
 cptr message_str(s16b age)
 {
-        s16b x;
-        s16b o;
-        cptr s;
+	static char buf[1024];
+	s16b x;
+	u16b o;
+	cptr s;
 
-        /* Forgotten messages have no text */
-        if ((age < 0) || (age >= message_num())) return ("");
+	/* Forgotten messages have no text */
+	if ((age < 0) || (age >= message_num())) return ("");
 
-        /* Acquire the "logical" index */
-        x = (message__next + MESSAGE_MAX - (age + 1)) % MESSAGE_MAX;
+	/* Get the "logical" index */
+	x = message_age2idx(age);
 
-        /* Get the "offset" for the message */
-        o = message__ptr[x];
+	/* Get the "offset" for the message */
+	o = message__ptr[x];
 
-        /* Access the message text */
-        s = &message__buf[o];
+	/* Get the message text */
+	s = &message__buf[o];
 
-        /* Return the message text */
-        return (s);
+	/* HACK - Handle repeated messages */
+	if (message__count[x] > 1)
+	{
+		strnfmt(buf, sizeof(buf), "%s <%dx>", s, message__count[x]);
+		s = buf;
+	}
+
+	/* Return the message text */
+	return (s);
 }
 
+/*
+ * Recall the "text" of a last saved message, which is NON-LOCAL
+ */
+cptr message_last()
+{
+	static char buf[1024];
+	s16b x;
+	u16b o;
+	cptr s = "";
+
+	/* Get the "logical" last index */
+	for (x = message_age2idx(0); x > message__last; x--)
+	{
+		/* Get the "offset" for the message */
+		o = message__ptr[x];
+
+		/* Get the message text */
+		s = &message__buf[o];
+	
+		/* Make sure it's not "local" */
+		if (message__type[x] != MSG_LOCAL)
+			break;
+	}
+
+	/* Return the message text */
+	return (s);
+}
 
 /*
  * How many messages are "available"?
@@ -1536,173 +1579,218 @@ s16b message_num(void)
 /*
  * Add a new message, with great efficiency
  */
-void c_message_add(cptr str)
+void c_message_add(cptr str, u16b type)
 {
-        int i, k, x, n;
+	int k, i, x, o;
+	size_t n;
+
+	cptr s;
+
+	cptr u;
+	char *v;
+
+	/*** Step 1 -- Analyze the message ***/
+
+	/* Hack -- Ignore "non-messages" */
+	if (!str) return;
+
+	/* Message length */
+	n = strlen(str);
+
+	/* Hack -- Ignore "long" messages */
+	if (n >= MESSAGE_BUF / 4) return;
 
 
-        /*** Step 1 -- Analyze the message ***/
+	/*** Step 2 -- Attempt to optimize ***/
 
-        /* Hack -- Ignore "non-messages" */
-        if (!str) return;
+	/* Get the "logical" last index */
+	x = message_age2idx(0);
 
-        /* Message length */
-        n = strlen(str);
+	/* Get the "offset" for the last message */
+	o = message__ptr[x];
 
-        /* Important Hack -- Ignore "long" messages */
-        if (n >= MESSAGE_BUF / 4) return;
+	/* Get the message text */
+	s = &message__buf[o];
 
-
-        /*** Step 2 -- Attempt to optimize ***/
-
-        /* Limit number of messages to check */
-        k = message_num() / 4;
-
-        /* Limit number of messages to check */
-        if (k > MESSAGE_MAX / 32) k = MESSAGE_MAX / 32;
-
-        /* Check the last few messages (if any to count) */
-        for (i = message__next; k; k--)
-        {
-                u16b q;
-
-                cptr old;
-
-                /* Back up and wrap if needed */
-                if (i-- == 0) i = MESSAGE_MAX - 1;
-
-                /* Stop before oldest message */
-                if (i == message__last) break;
-
-                /* Extract "distance" from "head" */
-                q = (message__head + MESSAGE_BUF - message__ptr[i]) % MESSAGE_BUF;
-
-                /* Do not optimize over large distance */
-                if (q > MESSAGE_BUF / 2) continue;
-
-                /* Access the old string */
-                old = &message__buf[message__ptr[i]];
-
-                /* Compare */
-                if (!streq(old, str)) continue;
-
-                /* Get the next message index, advance */
-                x = message__next++;
-
-                /* Handle wrap */
-                if (message__next == MESSAGE_MAX) message__next = 0;
-
-                /* Kill last message if needed */
-                if (message__next == message__last) message__last++;
-
-                /* Handle wrap */
-                if (message__last == MESSAGE_MAX) message__last = 0;
-
-                /* Assign the starting address */
-                message__ptr[x] = message__ptr[i];
+	/* Last message repeated? */
+	if (streq(str, s))
+	{
+		/* Increase the message count */
+		message__count[x]++;
 
 		/* Redraw */
 		p_ptr->window |= (PW_MESSAGE);
 
-                /* Success */
-                return;
-        }
+		/* Success */
+		return;
+	}
+
+	/*** Step 3 -- Attempt to optimize ***/
+
+	/* Limit number of messages to check */
+	k = message_num() / 4;
+
+	/* Limit number of messages to check */
+	if (k > 32) k = 32;
+
+	/* Start just after the most recent message */
+	i = message__next;
+
+	/* Check the last few messages for duplication */
+	for ( ; k; k--)
+	{
+		u16b q;
+
+		cptr old;
+
+		/* Back up, wrap if needed */
+		if (i-- == 0) i = MESSAGE_MAX - 1;
+
+		/* Stop before oldest message */
+		if (i == message__last) break;
+
+		/* Index */
+		o = message__ptr[i];
+
+		/* Extract "distance" from "head" */
+		q = (message__head + MESSAGE_BUF - o) % MESSAGE_BUF;
+
+		/* Do not optimize over large distances */
+		if (q >= MESSAGE_BUF / 4) continue;
+
+		/* Get the old string */
+		old = &message__buf[o];
+
+		/* Continue if not equal */
+		if (!streq(str, old)) continue;
+
+		/* Get the next available message index */
+		x = message__next;
+
+		/* Advance 'message__next', wrap if needed */
+		if (++message__next == MESSAGE_MAX) message__next = 0;
+
+		/* Kill last message if needed */
+		if (message__next == message__last)
+		{
+			/* Advance 'message__last', wrap if needed */
+			if (++message__last == MESSAGE_MAX) message__last = 0;
+		}
+
+		/* Assign the starting address */
+		message__ptr[x] = message__ptr[i];
+
+		/* Store the message type */
+		message__type[x] = type;
+
+		/* Store the message count */
+		message__count[x] = 1;
+
+		/* Redraw */
+		p_ptr->window |= (PW_MESSAGE);
+
+		/* Success */
+		return;
+	}
+
+	/*** Step 4 -- Ensure space before end of buffer ***/
+
+	/* Kill messages, and wrap, if needed */
+	if (message__head + (n + 1) >= MESSAGE_BUF)
+	{
+		/* Kill all "dead" messages */
+		for (i = message__last; TRUE; i++)
+		{
+			/* Wrap if needed */
+			if (i == MESSAGE_MAX) i = 0;
+
+			/* Stop before the new message */
+			if (i == message__next) break;
+
+			/* Get offset */
+			o = message__ptr[i];
+
+			/* Kill "dead" messages */
+			if (o >= message__head)
+			{
+				/* Track oldest message */
+				message__last = i + 1;
+			}
+		}
+
+		/* Wrap "tail" if needed */
+		if (message__tail >= message__head) message__tail = 0;
+
+		/* Start over */
+		message__head = 0;
+	}
 
 
-        /*** Step 3 -- Ensure space before end of buffer ***/
+	/*** Step 5 -- Ensure space for actual characters ***/
 
-        /* Kill messages and Wrap if needed */
-        if (message__head + n + 1 >= MESSAGE_BUF)
-        {
-                /* Kill all "dead" messages */
-                for (i = message__last; TRUE; i++)
-                {
-                        /* Wrap if needed */
-                        if (i == MESSAGE_MAX) i = 0;
+	/* Kill messages, if needed */
+	if (message__head + (n + 1) > message__tail)
+	{
+		/* Advance to new "tail" location */
+		message__tail += (MESSAGE_BUF / 4);
 
-                        /* Stop before the new message */
-                        if (i == message__next) break;
+		/* Kill all "dead" messages */
+		for (i = message__last; TRUE; i++)
+		{
+			/* Wrap if needed */
+			if (i == MESSAGE_MAX) i = 0;
 
-                        /* Kill "dead" messages */
-                        if (message__ptr[i] >= message__head)
-                        {
-                                /* Track oldest message */
-                                message__last = i + 1;
-                        }
-                }
+			/* Stop before the new message */
+			if (i == message__next) break;
 
-                /* Wrap "tail" if needed */
-                if (message__tail >= message__head) message__tail = 0;
+			/* Get offset */
+			o = message__ptr[i];
 
-                /* Start over */
-                message__head = 0;
-        }
-
-
-        /*** Step 4 -- Ensure space before next message ***/
-
-        /* Kill messages if needed */
-        if (message__head + n + 1 > message__tail)
-        {
-                /* Grab new "tail" */
-                message__tail = message__head + n + 1;
-
-                /* Advance tail while possible past first "nul" */
-                while (message__buf[message__tail-1]) message__tail++;
-
-                /* Kill all "dead" messages */
-                for (i = message__last; TRUE; i++)
-                {
-                        /* Wrap if needed */
-                        if (i == MESSAGE_MAX) i = 0;
-
-                        /* Stop before the new message */
-                        if (i == message__next) break;
-
-                        /* Kill "dead" messages */
-                        if ((message__ptr[i] >= message__head) &&
-                            (message__ptr[i] < message__tail))
-                        {
-                                /* Track oldest message */
-                                message__last = i + 1;
-                        }
-                }
-        }
+			/* Kill "dead" messages */
+			if ((o >= message__head) && (o < message__tail))
+			{
+				/* Track oldest message */
+				message__last = i + 1;
+			}
+		}
+	}
 
 
-        /*** Step 5 -- Grab a new message index ***/
+	/*** Step 6 -- Grab a new message index ***/
 
-        /* Get the next message index, advance */
-        x = message__next++;
+	/* Get the next available message index */
+	x = message__next;
 
-        /* Handle wrap */
-        if (message__next == MESSAGE_MAX) message__next = 0;
+	/* Advance 'message__next', wrap if needed */
+	if (++message__next == MESSAGE_MAX) message__next = 0;
 
-        /* Kill last message if needed */
-        if (message__next == message__last) message__last++;
+	/* Kill last message if needed */
+	if (message__next == message__last)
+	{
+		/* Advance 'message__last', wrap if needed */
+		if (++message__last == MESSAGE_MAX) message__last = 0;
+	}
 
-        /* Handle wrap */
-        if (message__last == MESSAGE_MAX) message__last = 0;
 
+	/*** Step 7 -- Insert the message text ***/
 
+	/* Assign the starting address */
+	message__ptr[x] = message__head;
 
-        /*** Step 6 -- Insert the message text ***/
+	/* Inline 'strcpy(message__buf + message__head, str)' */
+	v = message__buf + message__head;
+	for (u = str; *u; ) *v++ = *u++;
+	*v = '\0';
 
-        /* Assign the starting address */
-        message__ptr[x] = message__head;
+	/* Advance the "head" pointer */
+	message__head += (n + 1);
 
-        /* Append the new part of the message */
-        for (i = 0; i < n; i++)
-        {
-                /* Copy the message */
-                message__buf[message__head + i] = str[i];
-        }
+	/* Store the message type */
+	message__type[x] = type;
 
-        /* Terminate */
-        message__buf[message__head + i] = '\0';
-
-        /* Advance the "head" pointer */
-        message__head += n + 1;
+	/* Store the message count */
+	message__count[x] = 1;
+	
 
 	/* Window stuff */
 	p_ptr->window |= PW_MESSAGE;
@@ -1774,6 +1862,10 @@ static void msg_flush(int x)
  */
 void c_msg_print(cptr msg)
 {
+	c_msg_print_aux(msg, MSG_LOCAL);
+}
+void c_msg_print_aux(cptr msg, u16b type)
+{
 	static int p = 0;
 
 	int n;
@@ -1815,12 +1907,18 @@ void c_msg_print(cptr msg)
 
 
 	/* Memorize the message */
-	c_message_add(msg);
+	c_message_add(msg, type);
 
 
 	/* Copy it */
 	strcpy(buf, msg);
-
+	
+	/* Strip it */
+	buf[80] = '\0';
+	
+	/* Display it */
+	Term_putstr(0, 0, 80, TERM_WHITE, buf);
+#if 0
 	/* Analyze the buffer */
 	t = buf;
 
@@ -1866,7 +1964,7 @@ void c_msg_print(cptr msg)
 
 	/* Display the tail of the message */
 	Term_putstr(p, 0, n, TERM_WHITE, t);
-
+#endif
 	/* Remember the message */
 	msg_flag = TRUE;
 

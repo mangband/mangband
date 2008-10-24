@@ -23,6 +23,8 @@ static void init_arrays(void)
 	/* Message variables */
 	C_MAKE(message__ptr, MESSAGE_MAX, u16b);
 	C_MAKE(message__buf, MESSAGE_BUF, char);
+	C_MAKE(message__type, MESSAGE_MAX, u16b);
+	C_MAKE(message__count, MESSAGE_MAX, u16b);	
 
 	/* Hack -- No messages yet */
 	message__tail = MESSAGE_BUF;

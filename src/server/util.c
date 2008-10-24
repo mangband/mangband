@@ -2491,6 +2491,7 @@ void msg_print(int Ind, cptr msg)
 {
 	bool log = TRUE;
 	bool add = FALSE;
+	bool dup = FALSE;
 	char multiplier[12];
 	s16b ptr;
 	
@@ -2515,6 +2516,7 @@ void msg_print(int Ind, cptr msg)
 			p_ptr->msg_hist_dupe++;
 			/* And don't add another copy to the buffer */
 			add = FALSE;
+			dup = TRUE;
 		}
 		/* This message is the end of a series of dupes */
 		else if(p_ptr->msg_hist_dupe > 0)
@@ -2540,6 +2542,13 @@ void msg_print(int Ind, cptr msg)
 		plog(format("%d: %s",Ind,msg)); 
 	}; 	
 
+	/* Hack -- repeated message */
+	if (dup)
+	{
+		Send_message(Ind, " "); // a space
+		return;
+	}
+	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
 	Send_message(Ind, msg);
 }

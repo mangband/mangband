@@ -1563,8 +1563,13 @@ int Receive_message(void)
 	/* Hack -- ' ' is numericall the lowest charcter we will probably be trying to
 	 * display.  This might screw up international character sets.
 	 */
-	for (c = 0; c < n; c++) if (buf[c] < ' ') return 1;
+	for (c = 0; c < strlen(buf); c++) if (buf[c] < ' ') return 1;
 
+	/* hack -- repeated message */
+	if (buf[0] == ' ' && buf[1] == '\0')
+	{
+		strcpy(buf, message_last());
+	}
 /*	printf("Message: %s\n", buf);*/
 
 	sprintf(search, "%s] ", nick);
@@ -1583,11 +1588,11 @@ int Receive_message(void)
 
 	if (!topline_icky && (party_mode || shopping || !screen_icky))
 	{
-		c_msg_print(buf);
+		c_msg_print_aux(buf, MSG_GENERIC);
 	}
 	else
 	{
-		c_message_add(buf);
+		c_message_add(buf, MSG_GENERIC);
 	}
 	/*
 		if ((n = Packet_printf(&qbuf, "%c%s", ch, buf)) <= 0)

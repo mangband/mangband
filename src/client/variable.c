@@ -76,7 +76,8 @@ u16b message__head;
 u16b message__tail;
 u16b *message__ptr;
 char *message__buf;
-
+u16b *message__type;
+u16b *message__count;
 
 bool msg_flag;
 
