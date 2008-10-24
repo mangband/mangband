@@ -977,11 +977,9 @@ void display_player_server(int Ind, char buffer[100][82])
 	int i;
 	char buf[80];
 	cptr desc;
-	bool hist;
+	bool hist = FALSE;
 	player_type *p_ptr = Players[Ind];
 
-    hist = FALSE;
-    
     int show_tohit = p_ptr->dis_to_h;
     int show_todam = p_ptr->dis_to_d;
     object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
