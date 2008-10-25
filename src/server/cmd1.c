@@ -1576,6 +1576,9 @@ void move_player(int Ind, int dir, int do_pickup)
 			/* update the wilderness map */
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
 			
+			/* disturb if necessary */
+			if (p_ptr->disturb_panel) disturb(Ind, 0, 0);
+						
 			players_on_depth[p_ptr->dun_depth]++;
 			p_ptr->new_level_flag = TRUE;
 			p_ptr->new_level_method = LEVEL_OUTSIDE;
