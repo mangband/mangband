@@ -625,6 +625,13 @@ void do_cmd_check_other(int Ind, int line)
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
 
+	/* Paranoia */
+	if (!fff) 
+	{
+		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		return;
+	}
+
 	/* Scan "info" */
 	while (n < 128 && p_ptr->info[n] && strlen(p_ptr->info[n]))
 	{
