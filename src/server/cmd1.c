@@ -1265,6 +1265,7 @@ void py_attack_mon(int Ind, int y, int x)
 
 	if (p_ptr->pclass == CLASS_ROGUE)
 	{
+	if (p_ptr->mon_vis[c_ptr->m_idx])
 		if(m_ptr->csleep /*&& m_ptr->ml*/)
 			backstab = TRUE;
 		else if (m_ptr->monfear /*&& m_ptr->ml)*/)
