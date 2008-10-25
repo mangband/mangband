@@ -3180,7 +3180,7 @@ int player_wounded(s16b ind)
 {
 	player_type *p_ptr = Players[ind];
 	
-	return (p_ptr->mhp * 100) / p_ptr->chp;
+	return ((p_ptr->mhp+1) * 100) / (p_ptr->chp+1);
 }
 
 /* this should probably be somewhere more logical, but I should probably be
