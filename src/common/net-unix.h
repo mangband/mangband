@@ -78,7 +78,7 @@ extern struct sockaddr_in
 
 #ifdef __STDC__
 extern void	SetTimeout(int, int);
-extern int	CreateServerSocket(int, bool);
+extern int	CreateServerSocket(int);
 extern int	GetPortNum(int);
 extern char	*GetSockAddr(int);
 extern int	GetPeerName(int, char *, int);

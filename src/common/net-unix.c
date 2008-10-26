@@ -254,11 +254,10 @@ SocketCloseAll()
  */
 int
 #ifdef __STDC__
-CreateServerSocket(int port, bool local)
+CreateServerSocket(int port)
 #else
-CreateServerSocket(port, local)
+CreateServerSocket(port)
 int	port;
-bool local;
 #endif /* __STDC__ */
 {
     int			fd;
@@ -297,10 +296,7 @@ bool local;
     	addr_in.sin_addr.s_addr	= inet_addr( BIND_IP); /* RLS */
     	/* fprintf( stderr, "Server Socket Binding By Request to %s\n",inet_ntoa(addr_in.sin_addr)); -RLS*/
 #else
-	if (local)
     	addr_in.sin_addr.s_addr	= INADDR_ANY;
-	else
-    	addr_in.sin_addr.s_addr	= htonl(0x7f000001L);
 #endif
     addr_in.sin_port		= htons(port);
     fd = socket(AF_INET, SOCK_STREAM, 0);

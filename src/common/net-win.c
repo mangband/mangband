@@ -1588,7 +1588,7 @@ void GetLocalHostName(char *name, unsigned size)
  * Originally coded by Arne Helme
  */
 int
-CreateServerSocket(int port, bool local)
+CreateServerSocket(int port)
 {
     struct sockaddr_in	addr_in;
     int			fd;
@@ -1602,10 +1602,7 @@ CreateServerSocket(int port, bool local)
     }
     memset((char *)&addr_in, 0, sizeof(struct sockaddr_in));
     addr_in.sin_family		= AF_INET;
-	if (local)    
     addr_in.sin_addr.s_addr	= INADDR_ANY;
-	else
-    addr_in.sin_addr.s_addr	= htonl(0x7f000001L);
     addr_in.sin_port		= htons(port);
 
     retval = bind(fd, (struct sockaddr *)&addr_in, sizeof(struct sockaddr_in));
