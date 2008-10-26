@@ -1850,12 +1850,46 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	/* Hack -- Rods have a "charging" indicator */
 	else if (known && (o_ptr->tval == TV_ROD))
 	{
-		/* Hack -- Dump " (charging)" if relevant */
-		if (o_ptr->pval) t = object_desc_str(t, " (charging)");
+		/* Hack -- Dump " (# charging)" if relevant */
+		if (o_ptr->timeout > 0)
+		{
+			/* Stacks of rods display an exact count of charging rods. */
+			if (o_ptr->number > 1)
+			{
+				/* Paranoia */
+				if (k_ptr->pval == 0) k_ptr->pval = 1;
+
+				/* Find out how many rods are charging, by dividing
+				 * current timeout by each rod's maximum timeout.
+				 * Ensure that any remainder is rounded up.  Display
+				 * very discharged stacks as merely fully discharged.
+				 */
+				power = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+
+				if (power > o_ptr->number) power = o_ptr->number;
+
+				/* Display prettily */
+				t = object_desc_str(t, " (");
+				t = object_desc_num(t, power);
+				t = object_desc_str(t, " charging)");
+			}
+			else
+			{
+				/* Single rod */
+				t = object_desc_str(t, " (charging)");
+			}
+		}
 	}
 
+	/* Indicate "charging" artifacts XXX XXX XXX */
+	else if (known && o_ptr->timeout)
+	{
+		/* Hack -- Dump " (charging)" if relevant */
+		t = object_desc_str(t, " (charging)");
+	}
+	
 	/* Hack -- Process Lanterns/Torches */
-    else if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN) && (!o_ptr->name3))
+   if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN) && (!o_ptr->name3))
 	{
 		/* Hack -- Turns of light for normal lites */
 		t = object_desc_str(t, " (with ");
@@ -1939,14 +1973,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			/* Finish the display */
 			t = object_desc_chr(t, p2);
 		}
-	}
-
-
-	/* Indicate "charging" artifacts XXX XXX XXX */
-	if (known && o_ptr->timeout)
-	{
-		/* Hack -- Dump " (charging)" if relevant */
-		t = object_desc_str(t, " (charging)");
 	}
 
 

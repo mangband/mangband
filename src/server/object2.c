@@ -2800,8 +2800,8 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		
 		case TV_ROD:
 
-		/* Init as charged */
-		o_ptr->pval = 0; /* k_info[o_ptr->k_idx].pval; */;
+		/* Transfer the pval. */
+		o_ptr->pval = k_info[o_ptr->k_idx].pval;
 		break;
 
 		case TV_CHEST:
@@ -4469,7 +4469,22 @@ void process_objects(void)
 		}
 
 		/* Recharge rods on the ground */
-		if ((o_ptr->tval == TV_ROD) && (o_ptr->pval)) o_ptr->pval--;
+		if ((o_ptr->tval == TV_ROD) && (o_ptr->timeout))
+		{
+			/* Charge it (charge ALL rods) */
+			/* Note: this is the behavior in vanilla Angband 3.0.9 */
+			o_ptr->timeout -= o_ptr->number;
+
+			/* Alternate code */
+			/* Only charging rods should recharge (same as charging from the inventory) */
+			/*object_kind* k_ptr = &k_info[o_ptr->k_idx];
+			int temp = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+			if (temp > o_ptr->number) temp = o_ptr->number;
+			o_ptr->timeout -= temp;*/
+
+			/* Boundary control */
+			if (o_ptr->timeout < 0) o_ptr->timeout = 0;
+		}
 	}
 
 
