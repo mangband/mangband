@@ -348,6 +348,7 @@ void do_cmd_browse(int Ind, int book)
 		return;
 	}
 
+#if 0
 	/* No lite */
 	if (p_ptr->blind || no_lite(Ind))
 	{
@@ -361,6 +362,7 @@ void do_cmd_browse(int Ind, int book)
 		msg_print(Ind, "You are too confused!");
 		return;
 	}
+#endif
 
 
 	/* Restrict choices to "useful" books */

@@ -1236,11 +1236,13 @@ static void fix_spell(int Ind)
 	if (!p_ptr->cp_ptr->spell_book)
 		return;
 
+#if 0
 	/* Check for blindness and no lite and confusion */
 	if (p_ptr->blind || no_lite(Ind) || p_ptr->confused)
 	{
 		return;
 	}
+#endif
 
 	/* Scan for appropriate books */
 	for (i = 0; i < INVEN_WIELD; i++)
