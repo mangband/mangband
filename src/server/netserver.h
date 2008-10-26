@@ -11,6 +11,7 @@
 #define CONN_PLAYING		0x08
 #define CONN_DRAIN		0x20
 #define CONN_READY		0x40
+#define CONN_CONSOLE		0x80
 
 #define SETUP_TIMEOUT		180
 #define IDLE_TIMEOUT		15
@@ -30,17 +31,8 @@ typedef struct {
 	sockbuf_t	q;
 	long		start;
 	long		timeout;
-	long		last_send_loops;
-	long		reliable_offset;
-	long		reliable_unsent;
-	long		retransmit_at_loop;
-	int		rtt_smoothed;
-	int		rtt_dev;
-	int		rtt_retransmit;
-	int		rtt_timeouts;
-	int		acks;
-	int		setup;
 	int		client_setup;
+	u16b		conntype;
 	int		char_state;
 	int		id;
 	unsigned	version;
@@ -54,6 +46,8 @@ typedef struct {
 	int		sex;
 	int		stat_order[6];
 	client_setup_t	Client_setup;
+	bool		console_authenticated;
+	bool		console_listen;
 } connection_t;
 
 static void Contact(int fd, int arg);
@@ -150,7 +144,7 @@ int Send_char_info_conn(int ind);
 int Setup_net_server(void);
 bool Destroy_connection(int ind, char *reason);
 int Check_connection(char *real, char *nick, char *addr);
-int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass, bool need_info, int race, int class, int sex, unsigned version, int fd);
+int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass, bool need_info, int race, int class, int sex, u16b conntype, unsigned version, int fd);
 int Input(void);
 int Send_reply(int ind, int replyto, int result);
 int Send_leave(int ind, int id);

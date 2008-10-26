@@ -17,7 +17,11 @@
 /* netserver.c */
 extern int NumPlayers;
 extern int process_pending_commands(int Ind);
-extern int ConsoleSocket;
+extern int max_connections;
+extern int console_buffer(int ind, bool read);
+extern bool Conn_is_alive(int ind);
+extern void Conn_set_console_setting(int ind, int set, bool val);
+extern bool Conn_get_console_setting(int ind, int set);
 
 /* tables.c */
 extern s16b ddd[9];

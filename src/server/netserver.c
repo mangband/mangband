@@ -90,7 +90,7 @@
 #define MAX_MOTD_LOOPS			120
 
 connection_t	*Conn = NULL;
-static int		max_connections = 0;
+int		max_connections = 0;
 static server_setup_t		Setup;
 static int		(*playing_receive[256])(int ind),
 				(*setup_receive[256])(int ind);
@@ -101,7 +101,6 @@ int			NumPlayers;
 
 int		MetaSocket = -1;
 
-int		ConsoleSocket = -1;
 
 char *showtime(void)
 {
@@ -448,7 +447,7 @@ static sockbuf_t ibuf;
 void setup_contact_socket(void)
 {
 	plog("Create TCP socket..."); 
-	while ((Socket = CreateServerSocket(cfg_tcp_port, FALSE)) == -1)
+	while ((Socket = CreateServerSocket(cfg_tcp_port)) == -1)
 	{
 #ifdef WINDOWS
   Sleep(1);
@@ -473,28 +472,6 @@ void setup_contact_socket(void)
 	}
 
 	install_input(Contact, Socket, 0);
-	
-	if ((ConsoleSocket = CreateServerSocket(cfg_tcp_port + 1, cfg_console_local_only)) == -1)
-	{
-		plog("Couldn't create console socket");
-		return;
-	}
-	if (SetSocketNonBlocking(ConsoleSocket, 1) == -1)
-	{
-		plog("Can't make console socket non-blocking");
-	}
-	if (SocketLinger(ConsoleSocket) == -1)
-	{
-		plog("Couldn't set SO_LINGER on the console socket");
-	}
-
-	if (!InitNewConsole(ConsoleSocket))
-	{
-		return;
-	}
-
-	/* Install the new console socket */
-	install_input(NewConsole, ConsoleSocket, 0);
 }
 
 static int Reply(char *host_addr, int fd)
@@ -520,6 +497,8 @@ static int Limit_connections(char *nick_name, char *real_name, char *host_name, 
 		connp = &Conn[i];
 
 		if (connp->state == CONN_FREE)
+					continue;
+		if (connp->state == CONN_CONSOLE)
 					continue;
 
 		if (strcasecmp(connp->nick, nick_name) == 0)
@@ -602,63 +581,12 @@ static int Check_names(char *nick_name, char *real_name, char *host_name, char *
 
 	return SUCCESS;
 }
-#if 0
-static void Console(int fd, int arg)
+static void Contact_cancel(int fd, char *reason)
 {
-	char buf[1024];
-	int i;
-
-	/* See what we got */
-        /* this code added by thaler, 6/28/97 */
-        fgets(buf, 1024, stdin);
-        if (buf[ strlen(buf)-1 ] == '\n')
-            buf[ strlen(buf)-1 ] = '\0';
-
-	for (i = 0; i < strlen(buf) && buf[i] != ' '; i++)
-	{
-		/* Capitalize each letter until we hit a space */
-		buf[i] = toupper(buf[i]);
-	}
-
-	/* Process our input */
-	if (!strncmp(buf, "HELLO", 5))
-		s_printf("Hello.  How are you?\n");
-
-	if (!strncmp(buf, "SHUTDOWN", 8))
-	{
-		shutdown_server();
-	}
-
-		
-	if (!strncmp(buf, "STATUS", 6))
-	{
-		s_printf("There %s %d %s.\n", (NumPlayers != 1 ? "are" : "is"), NumPlayers, (NumPlayers != 1 ? "players" : "player"));
-
-		if (NumPlayers > 0)
-		{
-			s_printf("%s:\n", (NumPlayers > 1 ? "They are" : "He is"));
-			for (i = 1; i < NumPlayers + 1; i++)
-				s_printf("\t%s\n", Players[i]->name);
-		}
-	}
-
-	if (!strncmp(buf, "MESSAGE", 7))
-	{
-		/* Send message to all players */
-		for (i = 1; i <= NumPlayers; i++)
-			msg_format(i, "[Server Admin] %s", &buf[8]);
-
-		/* Acknowledge */
-		s_printf("Message sent.\n");
-	}
-		
-	if (!strncmp(buf, "KELDON", 6))
-	{
-		/* Whatever I need at the moment */
-	}
-}
-#endif
-		
+	plog(reason);
+	remove_input(fd);
+	close(fd);
+}	
 static void Contact(int fd, int arg)
 {
 	int bytes, newsock;
@@ -735,29 +663,37 @@ static void Contact(int fd, int arg)
 		close(fd);
 		return;
 	}
+	
 	/* Convert connection type */
 	conntype = connection_type_ok(conntype);
+
 	/* For console, switch routines */
 	if(conntype == CONNTYPE_CONSOLE)
 	{
-		NewConsole(fd, -1);
+		/* Hack -- check local access */
+		if (cfg_console_local_only && sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK))
+		{
+			Contact_cancel(fd, format("Non-local console attempt from %s", host_addr));
+			return;
+		}
+		/* Try moving to console handlers */	
+		if ((ret = Setup_connection(0, 0, host_addr, 0, 0,	FALSE, 0, 0, 0, conntype, 0, fd)) > -1)
+			NewConsole(fd, -(ret+1) );
+		else
+			Contact_cancel(fd, format("Unable to setup console connection for %s", host_addr));
 		return;
 	}
 	/* For players - continue, otherwise - abort */
 	else if (conntype != CONNTYPE_PLAYER)
 	{
-		plog(format("Invalid connection type requested from %s", host_addr));
-		remove_input(fd);
-		close(fd);
+		Contact_cancel(fd, format("Invalid connection type requested from %s", host_addr));
 		return;			
 	}
 		
 	/* Read next data he sent us -- client version */
 	if (Packet_scanf(&ibuf, "%hu", &version) <= 0)
 	{
-		plog(format("Incompatible version packet from %s", host_addr));
-		remove_input(fd);
-		close(fd);
+		Contact_cancel(fd, format("Incompatible version packet from %s", host_addr));
 		return;
 	}
 	
@@ -770,9 +706,7 @@ static void Contact(int fd, int arg)
 		/* His version was correct and he's a player. Let's try to read the string */
 		if (Packet_scanf(&ibuf, "%s%s%s%s", real_name, host_name, nick_name, pass_word) <= 0)
 		{
-			plog(format("Incomplete handshake from %s", host_addr));
-			remove_input(fd);
-			close(fd);
+			Contact_cancel(fd, format("Incomplete handshake from %s", host_addr));
 			return;
 		}
 	
@@ -831,10 +765,10 @@ static void Contact(int fd, int arg)
 		if (NumPlayers >= MAX_SELECT_FD)
 			status = E_GAME_FULL;
 			
-		else if ((ret = Setup_connection(real_name, nick_name, host_addr, host_name, pass_word, need_info, race, class, sex, version, fd)) == -1) 
+		else if ((ret = Setup_connection(real_name, nick_name, host_addr, host_name, pass_word, need_info, race, class, sex, conntype, version, fd)) == -1) 
 			status = E_SOCKET;
 
-		if (ret == 2)
+		if (ret == -2)
 			status = E_GAME_FULL;
 
 		/* Log the players connection */			
@@ -978,26 +912,30 @@ bool Destroy_connection(int ind, char *reason)
 		remove_input(sock);
 	}
 
-	strncpy(&pkt[1], reason, sizeof(pkt) - 3);
-	pkt[sizeof(pkt) - 2] = '\0';
-	pkt[0] = PKT_QUIT;
-	len = strlen(pkt) + 2;
-	pkt[len - 1] = PKT_END;
-	pkt[len] = '\0';
-	/*len++;*/
-	if (sock != -1)
+	if (connp->conntype == CONNTYPE_PLAYER) 
 	{
-		if (DgramWrite(sock, pkt, len) != len)
+		strncpy(&pkt[1], reason, sizeof(pkt) - 3);
+		pkt[sizeof(pkt) - 2] = '\0';
+		pkt[0] = PKT_QUIT;
+		len = strlen(pkt) + 2;
+		pkt[len - 1] = PKT_END;
+		pkt[len] = '\0';
+		/*len++;*/
+		if (sock != -1)
 		{
-			GetSocketError(sock);
-			DgramWrite(sock, pkt, len);
+			if (DgramWrite(sock, pkt, len) != len)
+			{
+				GetSocketError(sock);
+				DgramWrite(sock, pkt, len);
+			}
 		}
+		
+		plog(format("Goodbye %s=%s@%s (\"%s\")",
+			connp->nick ? connp->nick : "",
+			connp->real ? connp->real : "",
+			connp->host ? connp->host : "",
+			reason));
 	}
-	plog(format("Goodbye %s=%s@%s (\"%s\")",
-		connp->nick ? connp->nick : "",
-		connp->real ? connp->real : "",
-		connp->host ? connp->host : "",
-		reason));
 
 	Conn_set_state(connp, CONN_FREE, CONN_FREE);
 
@@ -1058,10 +996,11 @@ int Check_connection(char *real, char *nick, char *addr)
  * room for more connections and create one.
  */
 int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
-			bool need_info, int race, int class, int sex, unsigned version, int fd)
+			bool need_info, int race, int class, int sex, u16b conntype, unsigned version, int fd)
 {
 	int i, free_conn_index = max_connections, my_port, sock;
 	connection_t *connp;
+	bool memory_error = FALSE;
 
 	for (i = 0; i < max_connections; i++)
 	{
@@ -1072,6 +1011,9 @@ int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
 				free_conn_index = i;
 			continue;
 		}
+		if (connp->state == CONN_CONSOLE || conntype == CONNTYPE_CONSOLE)
+			continue;
+
 		if (strcasecmp(connp->nick, nick) == 0)
 		{
 			if (connp->state == CONN_SETUP
@@ -1120,48 +1062,87 @@ int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
 	Sockbuf_init(&connp->c, -1, MAX_SOCKBUF_SIZE, SOCKBUF_WRITE | SOCKBUF_READ | SOCKBUF_LOCK);
 	Sockbuf_init(&connp->q, -1, MAX_SOCKBUF_SIZE, SOCKBUF_WRITE | SOCKBUF_READ | SOCKBUF_LOCK);
 
-	connp->real = strdup(real);
-	connp->nick = strdup(nick);
-	connp->addr = strdup(addr);
-	connp->host = strdup(host);
-	connp->pass = strdup(pass);
-	connp->version = version;
-	connp->char_state = ( need_info ? 0 : 1 );
-	connp->race = race;
-	connp->class = class;
-	connp->sex = sex;
-	connp->start = turn;
 	connp->id = -1;
-	connp->timeout = SETUP_TIMEOUT;
-	connp->reliable_offset = 0;
-	connp->reliable_unsent = 0;
-	connp->last_send_loops = 0;
-	connp->retransmit_at_loop = 0;
-	connp->rtt_retransmit = DEFAULT_RETRANSMIT;
-	connp->rtt_smoothed = 0;
-	connp->rtt_dev = 0;
-	connp->rtt_timeouts = 0;
-	connp->acks = 0;
-	connp->setup = 0;
-	Conn_set_state(connp, CONN_SETUP, CONN_SETUP);
-	if (connp->w.buf == NULL || connp->r.buf == NULL || connp->c.buf == NULL
-		|| connp->q.buf == NULL || connp->real == NULL || connp->nick == NULL
-		|| connp->addr == NULL || connp->host == NULL)
+	connp->conntype = conntype;
+	connp->addr = strdup(addr);
+
+	if (connp->w.buf == NULL || connp->r.buf == NULL || connp->c.buf == NULL || connp->q.buf == NULL || connp->addr == NULL)
+		memory_error = TRUE;
+		
+	if (conntype == CONNTYPE_PLAYER)
+	{
+		connp->real = strdup(real);
+		connp->nick = strdup(nick);
+		connp->host = strdup(host);
+		connp->pass = strdup(pass);
+		connp->version = version;
+		connp->char_state = ( need_info ? 0 : 1 );
+		connp->race = race;
+		connp->class = class;
+		connp->sex = sex;
+		connp->start = turn;
+	
+		connp->timeout = SETUP_TIMEOUT;		
+		
+		if (connp->real == NULL || connp->nick == NULL || connp->pass == NULL || connp->host == NULL)
+			memory_error = TRUE;		
+	}
+	
+	if (memory_error)	
 	{
 		plog("Not enough memory for connection");
 		Destroy_connection(free_conn_index, "no memory");
 		return -1;
 	}
+
+	if (conntype == CONNTYPE_CONSOLE)
+	{
+		connp->console_authenticated = FALSE;
+		connp->console_listen = FALSE;
+
+		Conn_set_state(connp, CONN_CONSOLE, CONN_CONSOLE);
+	}
 	
+	// Non-players leave now
+	if (conntype != CONNTYPE_PLAYER)
+		return free_conn_index;	
+		
+	Conn_set_state(connp, CONN_SETUP, CONN_SETUP);
+
 	// Remove the contact input handler
 	remove_input(sock);
 	// Install the game input handler
 	install_input(Handle_input, sock, free_conn_index);
 
-	return my_port;
+	return free_conn_index;
 }
 
 
+int console_buffer(int ind, bool read)
+{
+	connection_t		*connp = &Conn[ind];
+	if (read) return (int)&connp->r;
+	return (int)&connp->w;
+}
+bool Conn_is_alive(int ind)
+{
+	connection_t		*connp = &Conn[ind];
+	if (!connp) return FALSE;
+	if (connp->state != CONN_CONSOLE) return FALSE;
+	return TRUE;
+}
+bool Conn_get_console_setting(int ind, int set)
+{
+	connection_t		*connp = &Conn[ind];
+	if (set) return (bool)connp->console_authenticated;
+	return (bool)connp->console_listen;
+}
+void Conn_set_console_setting(int ind, int set, bool val)
+{
+	connection_t		*connp = &Conn[ind];
+	if (set) connp->console_authenticated = val;
+	else connp->console_listen = val;
+}
 
 	
 
@@ -1664,6 +1645,8 @@ int Net_input(void)
 		connp = &Conn[i];
 
 		if (connp->state == CONN_FREE)
+			continue;
+		if (connp->state == CONN_CONSOLE)
 			continue;
 		if (connp->start + connp->timeout * cfg_fps < turn)
 		{
