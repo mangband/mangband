@@ -41,7 +41,7 @@ static void print_spells(int book)
 static int get_spell(int *sn, cptr prompt, int book, bool known)
 {
 	int		i, num = 0;
-	bool		flag, redraw, okay;
+	bool		flag, redraw;
 	char		choice;
 	char		out_val[160];
 	cptr p;
@@ -51,26 +51,21 @@ static int get_spell(int *sn, cptr prompt, int book, bool known)
 	if (p_ptr->ghost)
 		p = "power";
 
-	/* Assume no usable spells */
-	okay = FALSE;
-
 	/* Assume no spells available */
 	(*sn) = -2;
 
-	/* Check for "okay" spells */
+	/* Check for available spells */
 	for (i = 0; i < 9; i++)
 	{
-		/* Look for "okay" spells */
-		if (spell_info[book][i][0]) 
-		{
-			okay = TRUE;
-			num++;
-		}
+		/* Check for end of the book */
+		if (spell_info[book][i][0] == '\0') break;
+
+        /* Spell is available */
+        num++;
 	}
 
 	/* No "okay" spells */
-	if (!okay) return (FALSE);
-
+	if (!num) return (FALSE);
 
 	/* Assume cancelled */
 	(*sn) = -1;
