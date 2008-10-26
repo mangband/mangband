@@ -1399,7 +1399,12 @@ bool client_version_ok(u16b version)
 /*
  * Check if the given connection type is valid.
  */
-bool connection_type_ok(u16b conntype)
+u16b connection_type_ok(u16b conntype)
 {
-	return (conntype == CONNTYPE_PLAYER);
+	if (conntype == CONNTYPE_PLAYER)
+		return CONNTYPE_PLAYER;
+	if (conntype == 8202 || conntype == 8205)
+		return CONNTYPE_CONSOLE;
+
+	return CONNTYPE_ERROR;
 }

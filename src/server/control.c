@@ -273,14 +273,18 @@ void NewConsole(int read_fd, int arg)
 	 * If it has, then we have not created a connection with the client yet, 
 	 * and so we must do so.
 	 */
-	if (read_fd == ConsoleSocket)
+	if (read_fd == ConsoleSocket || arg == -1)
 	{
 		// Hack -- make sure that two people haven't tried to use mangconsole
 		// at the same time.  Since I (AD) am currently too lazy to support this,
 		// we will remove the input of the first person when the second person
 		// connects.
+		if (arg == -1)
+		{
+			newsock = read_fd;
+		}
 		if (newsock) remove_input(newsock);
-		if ((newsock = SocketAccept(read_fd)) == -1)
+		if (arg != -1 && (newsock = SocketAccept(read_fd)) == -1)
 		{
 			plog("Couldn't accept console connection");
 			return;

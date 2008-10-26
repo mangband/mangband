@@ -727,10 +727,37 @@ static void Contact(int fd, int arg)
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
 		strcpy(host_addr, inet_ntoa(sin.sin_addr));  
 
-	/* Read first data he sent us -- client version */
+	/* Read first data he sent us -- connection type */
+	if (Packet_scanf(&ibuf, "%hu", &conntype) <= 0)
+	{
+		plog(format("Incomplete handshake from %s", host_addr));
+		remove_input(fd);
+		close(fd);
+		return;
+	}
+	/* Convert connection type */
+	conntype = connection_type_ok(conntype);
+	/* For console, switch routines */
+	if(conntype == CONNTYPE_CONSOLE)
+	{
+		NewConsole(fd, -1);
+		return;
+	}
+	/* For players - continue, otherwise - abort */
+	else if (conntype != CONNTYPE_PLAYER)
+	{
+		plog(format("Invalid connection type requested from %s", host_addr));
+		remove_input(fd);
+		close(fd);
+		return;			
+	}
+		
+	/* Read next data he sent us -- client version */
 	if (Packet_scanf(&ibuf, "%hu", &version) <= 0)
 	{
 		plog(format("Incompatible version packet from %s", host_addr));
+		remove_input(fd);
+		close(fd);
 		return;
 	}
 	
@@ -740,23 +767,12 @@ static void Contact(int fd, int arg)
 	}
 	else
 	{
-		/* What type of connection is the client requesting? */
-		if (Packet_scanf(&ibuf, "%hu", &conntype) <= 0)
-		{
-			plog(format("Incomplete handshake from %s", host_addr));
-			return;
-		}
-		/* Is a valid connection type? */
-		if(!connection_type_ok(conntype))
-		{
-			plog(format("Invalid connection type requested from %s", host_addr));
-			return;			
-		}
-		
 		/* His version was correct and he's a player. Let's try to read the string */
 		if (Packet_scanf(&ibuf, "%s%s%s%s", real_name, host_name, nick_name, pass_word) <= 0)
 		{
 			plog(format("Incomplete handshake from %s", host_addr));
+			remove_input(fd);
+			close(fd);
 			return;
 		}
 	

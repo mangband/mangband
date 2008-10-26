@@ -365,8 +365,8 @@ void client_init(char *argv1)
 	Sockbuf_clear(&ibuf);
 
 	/* Put the contact info in it */
-	Packet_printf(&ibuf, "%hu", version);
 	Packet_printf(&ibuf, "%hu", conntype);
+	Packet_printf(&ibuf, "%hu", version);
 	Packet_printf(&ibuf, "%s%s%s%s", real_name, host_name, nick, pass);
 	
 	/* Send it */

@@ -437,7 +437,7 @@ extern const player_sex sex_info[MAX_SEXES];
 extern bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[]);
 extern void server_birth(void);
 extern bool client_version_ok(u16b version);
-extern bool connection_type_ok(u16b version);
+extern u16b connection_type_ok(u16b version);
 
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);
