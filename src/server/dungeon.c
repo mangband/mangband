@@ -900,6 +900,7 @@ static void process_player_end(int Ind)
     int minus;
 
 	object_type		*o_ptr;
+	object_kind		*k_ptr;
 
 	/* Try to execute any commands on the command queue. */
 	/* NB: process_pending may have deleted the connection! */
@@ -1374,22 +1375,45 @@ static void process_player_end(int Ind)
 				if (!(o_ptr->timeout)) j++;
 			}
 		}
-		/* Don't recharge rods in shops (fixes stacking exploits) */
-		if( (p_ptr->store_num < 0) ){
 
+		/* Notice changes (equipment) */
+		if (j)
+		{
+			/* Window stuff */
+			p_ptr->window |= (PW_EQUIP);
+		}
+
+		j = 0;
+
+		/* Don't recharge rods in shops (fixes stacking exploits) */
+		if (p_ptr->store_num < 0)
+		{
 			/* Recharge rods */
 			for (i = 0; i < INVEN_PACK; i++)
 			{
 				o_ptr = &p_ptr->inventory[i];
+				k_ptr = &k_info[o_ptr->k_idx];
+
+				/* Skip non-objects */
+				if (!o_ptr->k_idx) continue;
 
 				/* Examine all charging rods */
-				if ((o_ptr->tval == TV_ROD) && (o_ptr->pval))
+				if ((o_ptr->tval == TV_ROD) && (o_ptr->timeout))
 				{
-					/* Charge it */
-					o_ptr->pval--;
+					/* Determine how many rods are charging */
+					int temp = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
 
-					/* Notice changes */
-					if (!(o_ptr->pval)) j++;
+					if (temp > o_ptr->number) temp = o_ptr->number;
+
+					/* Decrease timeout by that number */
+					o_ptr->timeout -= temp;
+
+					/* Boundary control */
+					if (o_ptr->timeout < 0) o_ptr->timeout = 0;
+
+					/* Update if any rods are recharged */
+					if (temp > (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval)
+						j++;
 				}
 			}
 		}
@@ -1401,7 +1425,7 @@ static void process_player_end(int Ind)
 			p_ptr->notice |= (PN_COMBINE);
 
 			/* Window stuff */
-			p_ptr->window |= (PW_INVEN | PW_EQUIP);
+			p_ptr->window |= (PW_INVEN);
 		}
 
 		/* Feel the inventory */

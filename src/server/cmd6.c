@@ -2031,7 +2031,8 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	/* Use a single charge */
 	o_ptr->pval--;
 
-	if (!p_ptr->stack_allow_wands) {
+	if (!p_ptr->stack_allow_wands) 
+	{
 		/* XXX Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
 		{
@@ -2042,9 +2043,6 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 			
 			distribute_charges(o_ptr, &tmp_obj, 1);			
 			
-			/* Restore the charges */
-			//o_ptr->pval++;
-	
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
@@ -2476,9 +2474,6 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	
 			distribute_charges(o_ptr, &tmp_obj, 1);	
 				
-			/* Restore the charges */
-			//o_ptr->pval++;
-	
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
@@ -2521,6 +2516,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	int                 ident, chance, lev;
 
 	object_type		*o_ptr;
+	object_kind		*k_ptr;
 
 	/* Hack -- let perception get aborted */
 	bool use_charge = TRUE;
@@ -2588,7 +2584,8 @@ void do_cmd_zap_rod(int Ind, int item)
 	ident = FALSE;
 
 	/* Extract the item level */
-	lev = k_info[o_ptr->k_idx].level;
+	k_ptr = &k_info[o_ptr->k_idx];
+	lev = k_ptr->level;
 
 	/* Base chance of success */
 	chance = p_ptr->skill_dev;
@@ -2613,11 +2610,16 @@ void do_cmd_zap_rod(int Ind, int item)
 		return;
 	}
 
-	/* Still charging */
-	if (o_ptr->pval)
+	/* Still charging? */
+	if (o_ptr->timeout > (o_ptr->pval - k_ptr->pval))
 	{
 		if (flush_failure) flush();
-		msg_print(Ind, "The rod is still charging.");
+
+		if (o_ptr->number == 1)
+			msg_print(Ind, "The rod is still charging.");
+		else
+			msg_print(Ind, "The rods are all still charging.");
+
 		return;
 	}
 
@@ -2628,14 +2630,12 @@ void do_cmd_zap_rod(int Ind, int item)
 		case SV_ROD_DETECT_TRAP:
 		{
 			if (detect_trap(Ind)) ident = TRUE;
-			o_ptr->pval = 50;
 			break;
 		}
 
 		case SV_ROD_DETECT_DOOR:
 		{
 			if (detect_sdoor(Ind)) ident = TRUE;
-			o_ptr->pval = 70;
 			break;
 		}
 
@@ -2643,7 +2643,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			ident = TRUE;
 			if (!ident_spell(Ind)) use_charge = FALSE;
-			o_ptr->pval = 10;
 			break;
 		}
 
@@ -2651,7 +2650,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			set_recall(Ind,o_ptr);
 			ident = TRUE;
-			o_ptr->pval = 60;
 			break;
 		}
 
@@ -2659,7 +2657,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			msg_format_near(Ind, "%s calls light.", p_ptr->name);
 			if (lite_area(Ind, damroll(2, 8), 2)) ident = TRUE;
-			o_ptr->pval = 30;
 			break;
 		}
 
@@ -2667,7 +2664,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			map_area(Ind);
 			ident = TRUE;
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -2675,7 +2671,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			detection(Ind);
 			ident = TRUE;
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -2683,7 +2678,6 @@ void do_cmd_zap_rod(int Ind, int item)
 		{
 			probing(Ind);
 			ident = TRUE;
-			o_ptr->pval = 50;
 			break;
 		}
 
@@ -2694,7 +2688,6 @@ void do_cmd_zap_rod(int Ind, int item)
 			if (set_confused(Ind, 0)) ident = TRUE;
 			if (set_stun(Ind, 0)) ident = TRUE;
 			if (set_cut(Ind, 0)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -2703,7 +2696,6 @@ void do_cmd_zap_rod(int Ind, int item)
 			if (hp_player(Ind, 500)) ident = TRUE;
 			if (set_stun(Ind, 0)) ident = TRUE;
 			if (set_cut(Ind, 0)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -2716,7 +2708,6 @@ void do_cmd_zap_rod(int Ind, int item)
 			if (do_res_stat(Ind, A_DEX)) ident = TRUE;
 			if (do_res_stat(Ind, A_CON)) ident = TRUE;
 			if (do_res_stat(Ind, A_CHR)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -2730,7 +2721,6 @@ void do_cmd_zap_rod(int Ind, int item)
 			{
 				(void)set_fast(Ind, p_ptr->fast + 5);
 			}
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -2759,11 +2749,10 @@ void do_cmd_zap_rod(int Ind, int item)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 	/* Hack -- deal with cancelled zap */
-	if (!use_charge)
-	{
-		o_ptr->pval = 0;
-		return;
-	}
+	if (!use_charge) return;
+
+	/* Drain the charge */
+	o_ptr->timeout += k_ptr->pval;
 
 	if (!p_ptr->stack_allow_wands) {
 		/* XXX Hack -- unstack if necessary */
@@ -2775,9 +2764,6 @@ void do_cmd_zap_rod(int Ind, int item)
 			tmp_obj.number = 1;
 			
 			distribute_charges(o_ptr, &tmp_obj, 1);
-	
-			/* Restore "charge" */
-			//o_ptr->pval = 0;
 	
 			/* Unstack the used item */
 			o_ptr->number--;
@@ -2807,6 +2793,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 	int                 item, ident, chance, lev;
 
 	object_type		*o_ptr;
+	object_kind		*k_ptr;
 
 	/* Hack -- let perception get aborted */
 	bool use_charge = TRUE;
@@ -2865,7 +2852,8 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 	ident = FALSE;
 
 	/* Extract the item level */
-	lev = k_info[o_ptr->k_idx].level;
+	k_ptr = &k_info[o_ptr->k_idx];
+	lev = k_ptr->level;
 
 	/* Base chance of success */
 	chance = p_ptr->skill_dev;
@@ -2890,11 +2878,16 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		return;
 	}
 
-	/* Still charging */
-	if (o_ptr->pval)
+	/* Still charging? */
+	if (o_ptr->timeout > (o_ptr->pval - k_ptr->pval))
 	{
 		if (flush_failure) flush();
-		msg_print(Ind, "The rod is still charging.");
+
+		if (o_ptr->number == 1)
+			msg_print(Ind, "The rod is still charging.");
+		else
+			msg_print(Ind, "The rods are all still charging.");
+
 		return;
 	}
 
@@ -2905,14 +2898,12 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		case SV_ROD_TELEPORT_AWAY:
 		{
 			if (teleport_monster(Ind, dir)) ident = TRUE;
-			o_ptr->pval = 25;
 			break;
 		}
 
 		case SV_ROD_DISARMING:
 		{
 			if (disarm_trap(Ind, dir)) ident = TRUE;
-			o_ptr->pval = 30;
 			break;
 		}
 
@@ -2921,35 +2912,30 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_print(Ind, "A line of blue shimmering light appears.");
 			lite_line(Ind, dir);
 			ident = TRUE;
-			o_ptr->pval = 9;
 			break;
 		}
 
 		case SV_ROD_SLEEP_MONSTER:
 		{
 			if (sleep_monster(Ind, dir)) ident = TRUE;
-			o_ptr->pval = 18;
 			break;
 		}
 
 		case SV_ROD_SLOW_MONSTER:
 		{
 			if (slow_monster(Ind, dir)) ident = TRUE;
-			o_ptr->pval = 20;
 			break;
 		}
 
 		case SV_ROD_DRAIN_LIFE:
 		{
 			if (drain_life(Ind, dir, 75)) ident = TRUE;
-			o_ptr->pval = 23;
 			break;
 		}
 
 		case SV_ROD_POLYMORPH:
 		{
 			if (poly_monster(Ind, dir)) ident = TRUE;
-			o_ptr->pval = 25;
 			break;
 		}
 
@@ -2958,7 +2944,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires an acid bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, 10, GF_ACID, dir, damroll(6, 8));
 			ident = TRUE;
-			o_ptr->pval = 12;
 			break;
 		}
 
@@ -2967,7 +2952,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a lightning bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, 10, GF_ELEC, dir, damroll(3, 8));
 			ident = TRUE;
-			o_ptr->pval = 11;
 			break;
 		}
 
@@ -2976,7 +2960,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a fire bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, 10, GF_FIRE, dir, damroll(8, 8));
 			ident = TRUE;
-			o_ptr->pval = 15;
 			break;
 		}
 
@@ -2985,7 +2968,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a frost bolt.", p_ptr->name);
 			fire_bolt_or_beam(Ind, 10, GF_COLD, dir, damroll(5, 8));
 			ident = TRUE;
-			o_ptr->pval = 13;
 			break;
 		}
 
@@ -2994,7 +2976,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires an acid ball.", p_ptr->name);
 			fire_ball(Ind, GF_ACID, dir, 60, 2);
 			ident = TRUE;
-			o_ptr->pval = 27;
 			break;
 		}
 
@@ -3003,7 +2984,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a lightning ball.", p_ptr->name);
 			fire_ball(Ind, GF_ELEC, dir, 32, 2);
 			ident = TRUE;
-			o_ptr->pval = 23;
 			break;
 		}
 
@@ -3012,7 +2992,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a fire ball.", p_ptr->name);
 			fire_ball(Ind, GF_FIRE, dir, 72, 2);
 			ident = TRUE;
-			o_ptr->pval = 30;
 			break;
 		}
 
@@ -3021,7 +3000,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			msg_format_near(Ind, "%s fires a frost ball.", p_ptr->name);
 			fire_ball(Ind, GF_COLD, dir, 48, 2);
 			ident = TRUE;
-			o_ptr->pval = 25;
 			break;
 		}
 
@@ -3030,14 +3008,12 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		case SV_ROD_DETECT_TRAP:
 		{
 			if (detect_trap(Ind)) ident = TRUE;
-			o_ptr->pval = 50;
 			break;
 		}
 
 		case SV_ROD_DETECT_DOOR:
 		{
 			if (detect_sdoor(Ind)) ident = TRUE;
-			o_ptr->pval = 70;
 			break;
 		}
 
@@ -3045,7 +3021,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			ident = TRUE;
 			if (!ident_spell(Ind)) use_charge = FALSE;
-			o_ptr->pval = 10;
 			break;
 		}
 
@@ -3053,7 +3028,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			set_recall(Ind,o_ptr);
 			ident = TRUE;
-			o_ptr->pval = 60;
 			break;
 		}
 
@@ -3061,7 +3035,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			msg_format_near(Ind, "%s calls light.", p_ptr->name);
 			if (lite_area(Ind, damroll(2, 8), 2)) ident = TRUE;
-			o_ptr->pval = 30;
 			break;
 		}
 
@@ -3069,7 +3042,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			map_area(Ind);
 			ident = TRUE;
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -3077,7 +3049,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			detection(Ind);
 			ident = TRUE;
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -3085,7 +3056,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 		{
 			probing(Ind);
 			ident = TRUE;
-			o_ptr->pval = 50;
 			break;
 		}
 
@@ -3096,7 +3066,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			if (set_confused(Ind, 0)) ident = TRUE;
 			if (set_stun(Ind, 0)) ident = TRUE;
 			if (set_cut(Ind, 0)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -3105,7 +3074,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			if (hp_player(Ind, 500)) ident = TRUE;
 			if (set_stun(Ind, 0)) ident = TRUE;
 			if (set_cut(Ind, 0)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -3118,7 +3086,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			if (do_res_stat(Ind, A_DEX)) ident = TRUE;
 			if (do_res_stat(Ind, A_CON)) ident = TRUE;
 			if (do_res_stat(Ind, A_CHR)) ident = TRUE;
-			o_ptr->pval = 999;
 			break;
 		}
 
@@ -3132,7 +3099,6 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 			{
 				(void)set_fast(Ind, p_ptr->fast + 5);
 			}
-			o_ptr->pval = 99;
 			break;
 		}
 
@@ -3164,31 +3130,30 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 	/* Hack -- deal with cancelled zap */
-	if (!use_charge)
-	{
-		o_ptr->pval = 0;
-		return;
-	}
+	if (!use_charge) return;
 
+    /* Drain the charge */
+    o_ptr->timeout += k_ptr->pval;
 
-	/* XXX Hack -- unstack if necessary */
-	if ((item >= 0) && (o_ptr->number > 1))
-	{
-		/* Make a fake item */
-		object_type tmp_obj;
-		tmp_obj = *o_ptr;
-		tmp_obj.number = 1;
-
-		/* Restore "charge" */
-		o_ptr->pval = 0;
-
-		/* Unstack the used item */
-		o_ptr->number--;
-		p_ptr->total_weight -= tmp_obj.weight;
-		item = inven_carry(Ind, &tmp_obj);
-
-		/* Message */
-		msg_print(Ind, "You unstack your rod.");
+	if (!p_ptr->stack_allow_wands) {
+		/* XXX Hack -- unstack if necessary */
+		if ((item >= 0) && (o_ptr->number > 1))
+		{
+			/* Make a fake item */
+			object_type tmp_obj;
+			tmp_obj = *o_ptr;
+			tmp_obj.number = 1;
+			
+			distribute_charges(o_ptr, &tmp_obj, 1);
+	
+			/* Unstack the used item */
+			o_ptr->number--;
+			p_ptr->total_weight -= tmp_obj.weight;
+			item = inven_carry(Ind, &tmp_obj);
+	
+			/* Message */
+			msg_print(Ind, "You unstack your rod.");
+		}
 	}
 }
 

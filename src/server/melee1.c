@@ -503,6 +503,9 @@ bool make_attack_normal(int Ind, int m_idx)
 						/* Obtain the item */
 						o_ptr = &p_ptr->inventory[i];
 
+						/* Skip non-objects */
+						if (!o_ptr->k_idx) continue;
+
 						/* Drain charged wands/staffs */
 						if (((o_ptr->tval == TV_STAFF) ||
 						     (o_ptr->tval == TV_WAND)) &&
@@ -516,7 +519,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 							/* Heal */
 							j = rlev;
-							m_ptr->hp += j * o_ptr->pval * o_ptr->number;
+							m_ptr->hp += j * o_ptr->pval;
 							if (m_ptr->hp > m_ptr->maxhp) m_ptr->hp = m_ptr->maxhp;
 
 							/* Redraw (later) if needed */
@@ -529,7 +532,7 @@ bool make_attack_normal(int Ind, int m_idx)
 							p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 							/* Window stuff */
-							p_ptr->window |= (PW_INVEN | PW_EQUIP);
+							p_ptr->window |= (PW_INVEN);
 
 							/* Done */
 							break;
