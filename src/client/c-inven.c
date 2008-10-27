@@ -216,6 +216,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
+	bool	equip_up, inven_up;
 	
 	bool allow_floor = FALSE;
 
@@ -230,6 +231,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* No item selected */
 	item = FALSE;
+
+	/* No window updates needed */
+	equip_up = inven_up = FALSE;
 
 	/* Default to "no item" */
 	*cp = -1;
@@ -248,6 +252,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((i1 <= i2) && (!get_item_okay(i1))) i1++;
 	while ((i1 <= i2) && (!get_item_okay(i2))) i2--;
 
+	/* Update window (later, twice) */
+	if ((i1 != 0) || (i2 != INVEN_PACK - 1)) inven_up = TRUE;
 
 	/* Full equipment */
 	e1 = INVEN_WIELD;
@@ -257,6 +263,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((e1 <= e2) && (!get_item_okay(e1))) e1++;
 	while ((e1 <= e2) && (!get_item_okay(e2))) e2--;
 
+	/* Update window (later, twice) */
+	if ((i1 != 0) || (i2 != INVEN_PACK - 1)) equip_up = TRUE;
 
 	/* Check floor thing */
 	if (floor_tval && floor) {
@@ -307,6 +315,10 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		Term_save();
 	}
 
+	/* Update windows with possible choices */
+	if (inven_up) p_ptr->window |= PW_INVEN;
+	if (equip_up) p_ptr->window |= PW_EQUIP;
+	window_stuff();
 	
 	/* Repeat while done */
 	while (!done)
@@ -617,6 +629,10 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Forget the item_tester_hook restriction */
 	item_tester_hook = 0;
 
+	/* Fix windows */	
+	if (inven_up) p_ptr->window |= PW_INVEN;
+	if (equip_up) p_ptr->window |= PW_EQUIP;
+	window_stuff();
 
 	/* Clear the prompt line */
 	prt("", 0, 0);
