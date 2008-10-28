@@ -264,7 +264,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((e1 <= e2) && (!get_item_okay(e2))) e2--;
 
 	/* Update window (later, twice) */
-	if ((i1 != 0) || (i2 != INVEN_PACK - 1)) equip_up = TRUE;
+	if ((e1 != INVEN_WIELD) || (e2 != INVEN_TOTAL - 1)) equip_up = TRUE;
 
 	/* Check floor thing */
 	if (floor_tval && floor) {
