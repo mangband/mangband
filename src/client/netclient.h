@@ -16,6 +16,7 @@ int Net_flush(void);
 int Net_fd(void);
 int Net_input(void);
 int Receive_motd(void);
+int Receive_struct_info(void);
 int Receive_basic_info(void);
 int Receive_char_info(void);
 int Receive_play(void);

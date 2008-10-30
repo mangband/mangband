@@ -17,6 +17,7 @@
 #define PKT_START		10
 #define PKT_END			11
 #define PKT_KEEPALIVE		12
+#define PKT_STRUCT_INFO		13
 
 
 /* Packet types 20-59 are info that is sent to the client */
@@ -160,6 +161,13 @@
 #define E_READ_ERR   0x0B
 #define E_BAD_PASS	0x0C
 
+/*
+ * PKT_STRUCT_INFO helpers
+ */
+#define STRUCT_INFO_UNKNOWN	0
+#define STRUCT_INFO_LIMITS	 1
+#define STRUCT_INFO_RACE	 2
+#define STRUCT_INFO_CLASS	 3
 
 /*
  * Some commands send to the server

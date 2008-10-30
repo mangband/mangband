@@ -65,6 +65,7 @@ static void Receive_init(void)
 	setup_tbl[PKT_MOTD] = Receive_motd;
 	setup_tbl[PKT_PLAY] = Receive_play;
 	setup_tbl[PKT_CHAR_INFO] = Receive_char_info_conn;
+	setup_tbl[PKT_STRUCT_INFO] = Receive_struct_info;
 	setup_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 	setup_tbl[PKT_END]		= Receive_end;
 
@@ -1213,6 +1214,77 @@ int Receive_basic_info(void)
 		set_graphics(graf);
 	}
 
+	return 1;
+}
+int Receive_struct_info(void)
+{
+	char 	ch;
+	int 	i, n;
+	byte 	typ;
+	u16b 	max;
+	char 	name[MAX_CHARS];
+	u32b 	off, fake_name_size, fake_text_size;
+
+	typ = max = off = fake_name_size = fake_text_size = 0;
+
+	if ((n = Packet_scanf(&rbuf, "%c%c%hu%lu%lu", &ch, &typ, &max, &fake_name_size, &fake_text_size)) <= 0)
+	{
+		return n;
+	}
+
+	/* Witch struct */
+	switch (typ)
+	{
+		/* Player Races */
+		case STRUCT_INFO_RACE:
+			/* Alloc */
+			C_MAKE(p_name, fake_name_size, char);
+			C_MAKE(race_info, max, player_race);
+			z_info.p_max = max;
+			
+			/* Fill */
+			for (i = 0; i < max; i++) 
+			{
+				player_race *pr_ptr = NULL;
+				pr_ptr = &race_info[i];
+						
+				if ((n = Packet_scanf(&rbuf, "%s%lu", &name, &off)) <= 0)
+				{
+					return n;
+				}
+		
+				strcpy(p_name + off, name);
+			
+				pr_ptr->name = off;
+				/* Transfer other fields here */
+			}
+		break;
+		/* Player Classes */
+		case STRUCT_INFO_CLASS:
+			/* Alloc */
+			C_MAKE(c_name, fake_name_size, char);
+			C_MAKE(c_info, max, player_class);
+			z_info.c_max = max;
+			
+			/* Fill */
+			for (i = 0; i < max; i++) 
+			{
+				player_class *pc_ptr = NULL;
+				pc_ptr = &c_info[i];
+						
+				if ((n = Packet_scanf(&rbuf, "%s%lu", &name, &off)) <= 0)
+				{
+					return n;
+				}
+		
+				strcpy(c_name + off, name);
+			
+				pc_ptr->name = off;
+				/* Transfer other fields here */
+			}
+		break;
+	}	
+	
 	return 1;
 }
 int Receive_char_info_conn(void)

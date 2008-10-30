@@ -1214,8 +1214,8 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	int i;
 
 	/* Do some consistency checks */
-    if (race < 0 || race >= MAX_RACES) race = RACE_HUMAN;
-    if (class < 0 || class >= MAX_CLASS) class = CLASS_WARRIOR;
+	if (race < 0 || race >= z_info->p_max) race = 0;
+	if (class < 0 || class >= z_info->c_max) class = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
 	/* Allocate memory for him */

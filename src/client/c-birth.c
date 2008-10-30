@@ -162,7 +162,7 @@ static void choose_race(void)
 	m = 21;
 
 
-	for (j = 0; j < MAX_RACES; j++)
+	for (j = 0; j < z_info.p_max; j++)
 	{
 		rp_ptr = &race_info[j];
     		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
@@ -181,7 +181,7 @@ static void choose_race(void)
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
-		if ((j < MAX_RACES) && (j >= 0))
+		if ((j < z_info.p_max) && (j >= 0))
 		{
 			race = j;
 			rp_ptr = &race_info[j];
@@ -221,7 +221,7 @@ static void choose_class(void)
 	m = 21;
 
 	/* Display the legal choices */
-	for (j = 0; j < MAX_CLASS; j++)
+	for (j = 0; j < z_info.c_max; j++)
 	{
 		cp_ptr = &c_info[j];
 		sprintf(out_val, "%c) %s", I2A(j), c_name + cp_ptr->name);
@@ -241,7 +241,7 @@ static void choose_class(void)
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
-		if ((j < MAX_CLASS) && (j >= 0))
+		if ((j < z_info.c_max) && (j >= 0))
 		{
 			class = j;
 			cp_ptr = &c_info[j];

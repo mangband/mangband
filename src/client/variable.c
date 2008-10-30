@@ -113,17 +113,12 @@ bool cursor_icky;
  * The player race arrays
  */
 char *p_name;
-
-cptr race_title[] = {
-	"Human", "Half-elf", "Elf", "Hobbit",
-	"Gnome", "Dwarf", "Half-Orc", "Half-Troll",
-    "Dunadan", "High-elf"
-	};
-
-cptr class_title[] = {
-	"Warrior", "Mage", "Priest", "Rogue",
-    "Ranger", "Paladin"
-	};
+player_race *race_info;
+char *c_name;
+char *c_text;
+player_class *c_info;
+//limits
+maxima z_info;
 
 cptr ANGBAND_GRAF = "none";
 cptr ANGBAND_DIR;

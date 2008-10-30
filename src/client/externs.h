@@ -17,11 +17,6 @@ extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
-extern char *c_name;
-extern char *c_text;
-extern char *p_name;
-extern player_race race_info[MAX_RACES];
-extern player_class c_info[MAX_CLASS];
 extern option_type option_info[];
 extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
@@ -111,6 +106,13 @@ extern u16b *message__type;
 extern u16b *message__count;
 
 
+extern char *c_name;
+extern char *c_text;
+extern char *p_name;
+extern player_race *race_info;
+extern player_class *c_info;
+
+extern maxima z_info;
 
 extern bool msg_flag;
 
@@ -140,9 +142,6 @@ extern bool screen_icky;
 extern bool party_mode;
 extern bool cursor_icky;
 
-
-extern cptr race_title[];
-extern cptr class_title[];
 
 extern cptr ANGBAND_GRAF;
 extern cptr ANGBAND_DIR;

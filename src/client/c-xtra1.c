@@ -472,31 +472,9 @@ void prt_stun(int stun)
 void prt_basic(void)
 {
 	cptr r, c;
-
-	switch(race)
-	{
-        case RACE_HUMAN: r = "Human"; break;
-        case RACE_HALF_ELF: r = "Half-elf"; break;
-        case RACE_ELF: r = "Elf"; break;
-        case RACE_HOBBIT: r = "Hobbit"; break;
-        case RACE_GNOME: r = "Gnome"; break;
-        case RACE_DWARF: r = "Dwarf"; break;
-        case RACE_HALF_ORC: r = "Half-orc"; break;
-        case RACE_HALF_TROLL: r = "Half-troll"; break;
-        case RACE_DUNADAN: r = "Dunadan"; break;
-        case RACE_HIGH_ELF: r = "High-elf"; break;
-        case RACE_KOBOLD: r = "Kobold"; break;
-	}
-
-	switch(class)
-	{
-        case CLASS_WARRIOR: c = "Warrior"; break;
-        case CLASS_MAGE: c = "Mage"; break;
-        case CLASS_PRIEST: c = "Priest"; break;
-        case CLASS_ROGUE: c = "Rogue"; break;
-        case CLASS_RANGER: c = "Ranger"; break;
-        case CLASS_PALADIN: c = "Paladin"; break;
-	}
+	
+	r = p_name + race_info[race].name;
+	c = c_name + c_info[class].name;
 
 	prt_field(r, ROW_RACE, COL_RACE);
 	prt_field(c, ROW_CLASS, COL_CLASS);

@@ -1971,6 +1971,9 @@ static int Receive_play(int ind)
 	{
 	
 		Send_basic_info_conn(ind);
+		
+		Send_race_info_conn(ind);
+		Send_class_info_conn(ind);
 
 		Send_char_info_conn(ind);
 
@@ -2160,6 +2163,78 @@ int Send_motd_conn(int ind, int offset)
 	
 	return 1; 
 } 
+int Send_race_info_conn(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	int i, name_size;
+	if (!BIT(connp->state, CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for race info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	if (Packet_printf(&connp->c, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_RACE) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+	
+	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
+	if (Packet_printf(&connp->c, "%hu%lu%lu", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	} 
+
+	for (i = 0; i < z_info->p_max; i++)
+	{
+		/* Transfer other fields here */
+		if (Packet_printf(&connp->c, "%s%lu",  p_name + p_info[i].name, p_info[i].name) <= 0)
+		{
+			Destroy_connection(ind, "write error");
+			return -1;
+		}
+	}
+	return 1;
+}
+int Send_class_info_conn(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	int i, name_size;
+	if (!BIT(connp->state, CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for class info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	if (Packet_printf(&connp->c, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_CLASS) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+	
+	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
+	if (Packet_printf(&connp->c, "%hu%lu%lu", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	} 
+
+	for (i = 0; i < z_info->c_max; i++)
+	{
+		/* Transfer other fields here */
+		if (Packet_printf(&connp->c, "%s%lu",  c_name + c_info[i].name, c_info[i].name) <= 0)
+		{
+			Destroy_connection(ind, "write error");
+			return -1;
+		}
+	}
+	return 1;	
+}
 int Send_basic_info_conn(int ind)
 {
 	connection_t *connp = &Conn[ind];
