@@ -3344,9 +3344,8 @@ void exit_game_panic()
 				i++;
 			}
 		}
-
 		/* Successful panic save */
-		if (!Destroy_connection(p_ptr->conn, "panic save succeeded!"))
+		else if (!Destroy_connection(p_ptr->conn, "panic save succeeded!"))
 		{
 			/* Something very bad happened, skip to next player */
 			i++;
