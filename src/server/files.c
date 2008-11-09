@@ -2994,6 +2994,9 @@ void kingly(int Ind)
 
 	/* Hack -- Player gets an XP bonus for beating the game */
 	p_ptr->exp = p_ptr->max_exp += 10000000L;
+
+	/* Hack -- Ensure we are retired */
+	p_ptr->retire_timer = 0;
 }
 
 
