@@ -613,8 +613,10 @@ static void Contact(int fd, int arg)
 	{
 		if ((newsock = SocketAccept(fd)) == -1)
 		{
-			plog("Dropped TCP Connection");
-			return;
+			/* We couldn't accept the socket connection. This is bad because we can't
+			 * handle this situation correctly yet.  For the moment, we just log the
+			 * error and quit */
+			plog(format("Could not accept TCP Connection, socket error = %d",errno));
 			quit("Couldn't accept TCP connection.");
 		}
 		install_input(Contact, newsock, 2);
