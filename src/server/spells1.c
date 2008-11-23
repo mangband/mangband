@@ -3640,7 +3640,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		
 	if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
 		{
-			if (!pvp_okay(Ind, 0 - who, (p_ptr->target_who == who ? 2 : 3))) 
+			if (!pvp_okay(0 - who, Ind, (p_ptr->target_who == who ? 2 : 3))) 
 			{
 				return(FALSE);
 			}

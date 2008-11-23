@@ -787,7 +787,7 @@ static int auto_retaliate(int Ind)
 				if (!p_ptr->play_vis[0 - c_ptr->m_idx]) continue;
 
 				/* If they are hostile, they are a fair target */
-				if(pvp_okay(Ind, 0 - c_ptr->m_idx, 0))
+				if(pvp_okay(Ind, 0 - c_ptr->m_idx, 1))
 				{
 					targetlist[targets++] = i;
 					if(p_ptr->health_who == c_ptr->m_idx)

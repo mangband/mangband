@@ -3717,6 +3717,9 @@ bool target_set(int Ind, int dir)
 			/* Don't target yourself */
 			if (i == Ind) continue;
 
+			/* Ignore players from party */
+			if (p_ptr->party && player_in_party(p_ptr->party, i)) continue;
+
 			/* Ignore players we aren't hostile to */
 			if (!check_hostile(Ind, i) && cfg_pvp_hostility > 0) continue;
 

@@ -476,6 +476,15 @@ bool add_hostility(int Ind, cptr name)
 	hostile_type *h_ptr;
 	int i;
 
+	/* Check if PvP is possible at all */
+	if (cfg_pvp_hostility > 2)
+	{
+		/* Message */
+		msg_print(Ind, "You cannot be hostile.");
+
+		return FALSE;
+	}
+
 	/* Check for sillyness */
 	if (streq(name, p_ptr->name))
 	{
@@ -620,6 +629,7 @@ bool remove_hostility(int Ind, cptr name)
 				return TRUE;
 			}
 		}
+#if 0
 		else
 		{
 			/* Assume this is a party */
@@ -647,6 +657,7 @@ bool remove_hostility(int Ind, cptr name)
 				return TRUE;
 			}
 		}
+#endif
 	}
 
 	/* Message */
@@ -674,12 +685,14 @@ bool check_hostile(int attacker, int target)
 			if (h_ptr->id == Players[target]->id)
 				return TRUE;
 		}
+#if 0
 		else
 		{
 			/* Check if target belongs to hostile party */
 			if (Players[target]->party == 0 - h_ptr->id)
 				return TRUE;
 		}
+#endif
 	}
 
 	/* Not hostile */
@@ -984,6 +997,7 @@ bool pvp_okay(int attacker, int target, int mode)
 			add_hostility_ind(target, attacker);
 			return TRUE;
 		} else {
+			if (mode && intentional) add_hostility_ind(target, attacker);
 			return intentional;
 		}
 	}
