@@ -543,7 +543,7 @@ bool add_hostility(int Ind, cptr name)
 		/* Success */
 		return TRUE;
 	}
-
+#if 0
 	/* Search for party to add */
 	if ((i = party_lookup(name)) != -1)
 	{
@@ -576,7 +576,7 @@ bool add_hostility(int Ind, cptr name)
 		/* Success */
 		return TRUE;
 	}
-
+#endif
 	/* Couldn't find player */
 	msg_format(Ind, "%^s is not currently in the game.", name);
 
