@@ -281,11 +281,13 @@ errr path_temp(char *buf, int max)
 	if(!GetTempPath(max,buf)) return(-1);
 	if(!GetTempFileName(buf,prefix,0,buf)) return(-1);
 #else
+	int p;
 	strcpy(buf,"/tmp/mangXXXXXX");
-	if(mkstemp(buf) < 0)
+	if((p = mkstemp(buf)) < 0)
 	{
 		return(-1);
 	}
+	fclose(fdopen(p, "r"));
 #endif
 
 	/* Success */
