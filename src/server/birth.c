@@ -1079,6 +1079,8 @@ static void player_setup(int Ind)
 	{
 		/* Put us in the tavern */
 		p_ptr->dun_depth = 0;
+		p_ptr->world_x = 0;
+		p_ptr->world_y = 0;
 		p_ptr->py = level_down_y[0];
 		p_ptr->px = level_down_x[0];
 	}
