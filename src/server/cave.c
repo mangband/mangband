@@ -770,6 +770,16 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		/* Regular floor grid */
 		else 
 		{
+			/* Hack -- MAngband-specific: Wilderness Special lighting effects */
+			if (p_ptr->view_special_lite && p_ptr->view_yellow_lite && (a == TERM_GREEN))
+			{
+				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+				{
+					/* Use light green for grass */
+					a = TERM_ORANGE;
+				}
+			}
+			
 			/* Special lighting effects */
 			if (p_ptr->view_special_lite && (a == TERM_WHITE))
 			{
@@ -822,6 +832,16 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 
 		a = f_attr_ptr[feat];
 		c = f_char_ptr[feat];
+		
+		/* Hack -- MAngband-specific: Wilderness Special lighting effects */
+		if (p_ptr->view_special_lite && p_ptr->view_yellow_lite && (a == TERM_GREEN))
+		{
+			if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+			{
+				/* Use light green for trees! */
+				a = TERM_ORANGE;
+			}
+		}
 	
 		/* Special lighting effects */
 		if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
