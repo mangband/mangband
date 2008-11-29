@@ -1531,27 +1531,32 @@ cptr message_str(s16b age)
  */
 cptr message_last()
 {
-	static char buf[1024];
-	s16b x;
-	u16b o;
-	cptr s = "";
+    s16b x;
+    u16b o;
+    cptr s = "";
 
-	/* Get the "logical" last index */
-	for (x = message_age2idx(0); x > message__last; x--)
-	{
-		/* Get the "offset" for the message */
-		o = message__ptr[x];
+    /* Get the "logical" last index */
+    x = message_age2idx(0);
 
-		/* Get the message text */
-		s = &message__buf[o];
-	
-		/* Make sure it's not "local" */
-		if (message__type[x] != MSG_LOCAL)
-			break;
-	}
+    /* Loop */
+    while (x != message__last)
+    {
+        /* Get the "offset" for the message */
+        o = message__ptr[x];
 
-	/* Return the message text */
-	return (s);
+        /* Get the message text */
+        s = &message__buf[o];
+
+        /* Make sure it's not "local" */
+        if (message__type[x] != MSG_LOCAL) break;
+
+        /* Advance x, wrap if needed */
+        if (x == 0) x = MESSAGE_MAX - 1;
+        else x--;
+    }
+
+    /* Return the message text */
+    return (s);
 }
 
 /*
