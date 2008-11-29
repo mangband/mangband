@@ -2459,6 +2459,13 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	/* Open the temp file */
 	fff = my_fopen(file_name, "w");
 
+	/* Paranoia */
+	if (!fff) 
+	{
+		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		return;
+	}
+
 	/* Assume we will show the first 20 */
 	from = 0;
 	to = 20;

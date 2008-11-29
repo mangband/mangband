@@ -269,6 +269,13 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
+	
+	/* Paranoia */
+	if (!fff) 
+	{
+		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		return;
+	}
 
 	/* Scan the artifacts */
 	for (k = 0; k < MAX_A_IDX; k++)
@@ -409,6 +416,13 @@ void do_cmd_check_uniques(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
+	
+	/* Paranoia */
+	if (!fff) 
+	{
+		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		return;
+	}
 
 	/* Scan the monster races */
 	for (k = 1; k < MAX_R_IDX-1; k++)
@@ -530,6 +544,13 @@ void do_cmd_check_players(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
+	
+	/* Paranoia */
+	if (!fff) 
+	{
+		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		return;
+	}
 
 	/* Scan the player races */
 	for (k = 1; k < NumPlayers + 1; k++)
