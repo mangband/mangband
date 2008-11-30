@@ -1550,6 +1550,60 @@ void peruse_file(void)
 /*
  * Client config file handler
  */
+#ifdef WINDOWS
+static char config_name[1024];	/* Config filename */
+void conf_init(void* param)
+{
+	char path[1024];
+	HINSTANCE hInstance = param;
+
+	GetModuleFileName(hInstance, path, 512);
+	strcpy(path + strlen(path) - 4, ".ini");
+
+	strcpy(config_name, path);
+}
+void conf_save()
+{ }
+void conf_timer(int ticks)
+{ }
+bool conf_section_exists(cptr section)
+{
+	char sections[1024];
+	int n;
+	size_t i;
+	
+	n = GetPrivateProfileSectionNames(sections, 1024, config_name);
+	if (n != 1024 - 2)
+	{
+		for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
+			if (!_stricmp(&sections[i], section))
+				return TRUE;
+	}
+
+	return FALSE;
+}
+cptr conf_get_string(cptr section, cptr name, cptr default_value)
+{
+	char value[100];
+	GetPrivateProfileString(section, name, default_value,
+	                        value, 100, config_name);
+	return &value[0];
+}
+s32b conf_get_int(cptr section, cptr name, s32b default_value)
+{
+	return GetPrivateProfileInt(section, name, default_value, config_name);
+}
+void conf_set_string(cptr section, cptr name, cptr value)
+{
+	WritePrivateProfileString(section, name, value, config_name);
+}
+void conf_set_int(cptr section, cptr name, s32b value)
+{
+	char s_value[100];
+	sprintf(s_value, "%ld", value);
+	WritePrivateProfileString(section, name, s_value, config_name);
+}
+#else
 typedef struct value_conf_type value_conf_type;
 typedef struct section_conf_type section_conf_type;
 struct value_conf_type
@@ -1742,7 +1796,7 @@ void conf_init()
 		MAKE(root_node, section_conf_type);
 	
 	/* Prepare */
-	strcpy(root_node->name, "root");
+	strcpy(root_node->name, "MAngband");
 	root_node->next = NULL;
 	root_node->first = NULL;
 	
@@ -1789,7 +1843,7 @@ void conf_init()
 			fgets(buf, 1024, config);
 			
 			/* Skip comments, empty lines */
-			if (buf[0] == '\n' || buf[0] == '#')
+			if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ';')
 				continue;
 
 			/* Probably a section */
@@ -1912,3 +1966,4 @@ void conf_timer(int ticks)
 		last_update = ticks;
 	}
 }
+#endif

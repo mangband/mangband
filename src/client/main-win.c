@@ -785,34 +785,42 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
 	/* Visible (Sub-windows) */
 	if (td != &data[0])
 	{
-		strcpy(buf, td->visible ? "1" : "0");
-		WritePrivateProfileString(sec_name, "Visible", buf, ini_file);
+		//strcpy(buf, td->visible ? "1" : "0");
+		conf_set_int(sec_name, "Visible", td->visible);
 	}
 
 	/* Desired font */
 	if (td->font_file)
 	{
-		WritePrivateProfileString(sec_name, "Font", td->font_file, ini_file);
+		/* Short-hand */
+		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
+		{
+			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
+			conf_set_string(sec_name, "Font", buf);
+		}
+		else
+		/* Full path */
+		conf_set_string(sec_name, "Font", td->font_file);
 	}
 
 	/* Current size (x) */
-	wsprintf(buf, "%d", td->cols);
-	WritePrivateProfileString(sec_name, "Columns", buf, ini_file);
+	//wsprintf(buf, "%d", td->cols);
+	conf_set_int(sec_name, "Columns", td->cols);
 
 	/* Current size (y) */
-	wsprintf(buf, "%d", td->rows);
-	WritePrivateProfileString(sec_name, "Rows", buf, ini_file);
+	//wsprintf(buf, "%d", td->rows);
+	conf_set_int(sec_name, "Rows", td->rows);
 
 	/* Acquire position */
 	if (GetWindowRect(td->w, &rc))
 	{
 		/* Current position (x) */
-		wsprintf(buf, "%d", rc.left);
-		WritePrivateProfileString(sec_name, "PositionX", buf, ini_file);
+		//wsprintf(buf, "%d", rc.left);
+		conf_set_int(sec_name, "PositionX", rc.left);
 
 		/* Current position (y) */
-		wsprintf(buf, "%d", rc.top);
-		WritePrivateProfileString(sec_name, "PositionY", buf, ini_file);
+		//wsprintf(buf, "%d", rc.top);
+		conf_set_int(sec_name, "PositionY", rc.top);
 	}
 }
 
@@ -829,12 +837,10 @@ static void save_prefs(void)
 #endif
 
 #ifdef USE_GRAPHICS
-	wsprintf(buf, "%d", next_graphics);
-	WritePrivateProfileString("Angband", "Graphics", buf, ini_file);
+	conf_set_int("Windows32", "Graphics", next_graphics);
 #endif
 #ifdef USE_SOUND
-	strcpy(buf, use_sound ? "1" : "0");
-	WritePrivateProfileString("Angband", "Sound", buf, ini_file);
+	conf_set_int("Windows32", "Sound", use_sound);
 #endif
 	save_prefs_aux(&data[0], "Main window");
 
@@ -867,26 +873,24 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	if (td != &data[0])
 	{
 		/* Extract visibility */
-		td->visible = (GetPrivateProfileInt(sec_name, "Visible", td->visible, ini_file) != 0);
+		td->visible = (conf_get_int(sec_name, "Visible", td->visible) != 0);
 	}
 
 	/* Desired font, with default */
-	GetPrivateProfileString(sec_name, "Font", "8X13.FON", tmp, 127, ini_file);
+	strcpy(tmp, conf_get_string(sec_name, "Font", "8X13.FON"));
 	td->font_want = string_make(extract_file_name(tmp));
 
 	/* Desired graf, with default */
-	GetPrivateProfileString(sec_name, "Graf", GFXBMP[use_graphics], tmp, 127, ini_file);
+	//strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
 	//td->graf_want = string_make(extract_file_name(tmp));
 
 	/* Window size */
-	td->cols = GetPrivateProfileInt(sec_name, "Columns", td->cols, ini_file);
-	td->rows = GetPrivateProfileInt(sec_name, "Rows", td->rows, ini_file);
+	td->cols = conf_get_int(sec_name, "Columns", td->cols);
+	td->rows = conf_get_int(sec_name, "Rows", td->rows);
 
 	/* Window position */
-	GetPrivateProfileString(sec_name, "PositionX", "0", tmp, 127, ini_file);
-	td->pos_x = atoi(tmp);
-	GetPrivateProfileString(sec_name, "PositionY", "0", tmp, 127, ini_file);
-	td->pos_y = atoi(tmp);
+	td->pos_x = conf_get_int(sec_name, "PositionX", td->pos_x);
+	td->pos_y =	conf_get_int(sec_name, "PositionY", td->pos_y);
 }
 
 
@@ -912,7 +916,7 @@ static void load_prefs_sound(int i)
 	strcat(wav, ".wav");
 
 	/* Look up the sound by its proper name, using default */
-	GetPrivateProfileString("Sound", aux, wav, tmp, 127, ini_file);
+	strcpy(tmp, conf_get_string("Sound", aux, wav));
 
 	/* Access the sound */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_SOUND, extract_file_name(tmp));
@@ -936,14 +940,14 @@ static void load_prefs(void)
 
 #ifdef USE_GRAPHICS
 	/* Extract the "use_graphics" flag */
-	loaded_graphics = GetPrivateProfileInt("Angband", "Graphics", 0, ini_file);
+	loaded_graphics = conf_get_int("Windows32", "Graphics", 0);
 	set_graphics(loaded_graphics);
 	set_graphics_next(loaded_graphics);
 #endif
 
 #ifdef USE_SOUND
 	/* Extract the "use_sound" flag */
-	use_sound = (GetPrivateProfileInt("Angband", "Sound", 0, ini_file) != 0);
+	use_sound = (conf_get_int("Windows32", "Sound", 0) != 0);
 #endif
 
 	/* Load window prefs */
@@ -972,9 +976,9 @@ static void load_prefs(void)
 #endif
 
 	/* Pull nick/pass */
-	GetPrivateProfileString("MAngband", "nick", "PLAYER", nick, 70, ini_file);
-	GetPrivateProfileString("MAngband", "pass", "passwd", pass, 19, ini_file);
-	GetPrivateProfileString("MAngband", "host", "", server_name, 79, ini_file);
+	strcpy(nick, conf_get_string("MAngband", "nick", "PLAYER"));
+	strcpy(pass, conf_get_string("MAngband", "pass", "passwd"));
+	strcpy(server_name, conf_get_string("MAngband", "host", ""));
 
 	/* Pull username from Windows */
 	if ( GetUserName(buffer, &bufferLen) ) {
@@ -3480,21 +3484,8 @@ static void init_stuff(void)
 
 	char path[1024];
 
-
-	/* Hack -- access "ANGBAND.INI" */
-	GetModuleFileName(hInstance, path, 512);
-	strcpy(path + strlen(path) - 4, ".INI");
-
-	/* Save "ANGBAND.INI" */
-	ini_file = string_make(path);
-
-	/* Validate "ANGBAND.INI" */
-	validate_file(ini_file);
-
-
 	/* XXX XXX XXX */
-	GetPrivateProfileString("Angband", "LibPath", "c:\\mangband\\lib",
-	                        path, 1000, ini_file);
+	strcpy(path, conf_get_string("Windows32", "LibPath", ".\\lib"));
 
 	/* Analyze the path */
 	i = strlen(path);
@@ -3634,6 +3625,9 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	core_aux = hack_core;
 	plog_aux = hack_plog;
 
+	/* Global client config */
+	conf_init(hInstance);
+	
 	/* Prepare the filepaths */
 	init_stuff();
 

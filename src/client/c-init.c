@@ -275,7 +275,7 @@ void client_init(char *argv1)
 	bool done = 0;
 
 	/* Client Config-file */
-	conf_init();
+	conf_init(NULL);
 	
 	/* Setup the file paths */
 	init_stuff();
@@ -313,8 +313,8 @@ void client_init(char *argv1)
 		strcpy(server_name, host_name);
 
 	/* Default nickname and password */
-	strcpy(nick, conf_get_string("root", "nick", nick));
-	strcpy(pass, conf_get_string("root", "pass", pass));
+	strcpy(nick, conf_get_string("MAngband", "nick", nick));
+	strcpy(pass, conf_get_string("MAngband", "pass", pass));
 	
 	
 	/* Get character name and pass */
