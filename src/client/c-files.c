@@ -1775,7 +1775,7 @@ cptr conf_get_string(cptr section, cptr name, cptr default_value)
 	return (cptr)conf_get_value(section, name, default_value, FALSE);
 }
 /* Initialize global config tree */
-void conf_init()
+void conf_init(void* param)
 {
 	section_conf_type	*s_ptr = NULL;
 	section_conf_type	*s_forge = NULL;
