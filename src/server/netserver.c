@@ -218,7 +218,7 @@ static void Init_receive(void)
 	playing_receive[PKT_CHANGEPASS] = Receive_pass;
 }
 
-static int Init_setup(void)
+int Init_setup(void)
 {
 	int n = 0;
 	char buf[1024];
