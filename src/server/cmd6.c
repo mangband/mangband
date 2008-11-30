@@ -3819,6 +3819,9 @@ void do_cmd_activate(int Ind, int item)
 				break;
 			}
 		}
+		/* Update equipment window */
+		p_ptr->window |= PW_EQUIP;
+
 		/* Done ego item activation */
 		return;
 	}
@@ -3830,6 +3833,10 @@ void do_cmd_activate(int Ind, int item)
 		sleep_monsters(Ind);
 
 		o_ptr->timeout = rand_int(100) + 100;
+		
+		/* Update equipment window */
+		p_ptr->window |= PW_EQUIP;
+
 		return;
 	}
 
