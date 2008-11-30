@@ -320,6 +320,7 @@ extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init();									/* Client config section */
 extern void conf_save();
+extern void conf_timer(int ticks);
 extern bool conf_section_exists(cptr section);
 extern cptr conf_get_string(cptr section, cptr name, cptr default_value);
 extern s32b conf_get_int(cptr section, cptr name, s32b default_value);
