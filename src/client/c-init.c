@@ -222,6 +222,8 @@ static void quit_hook(cptr s)
 		/* Nuke it */
 		term_nuke(ang_term[j]);
 	}
+	
+	conf_save();
 }
 
 void gather_settings()
@@ -272,6 +274,9 @@ void client_init(char *argv1)
 	u16b conntype = CONNTYPE_PLAYER;
 	bool done = 0;
 
+	/* Client Config-file */
+	conf_init();
+	
 	/* Setup the file paths */
 	init_stuff();
 
@@ -307,7 +312,11 @@ void client_init(char *argv1)
 #endif
 		strcpy(server_name, host_name);
 
-
+	/* Default nickname and password */
+	strcpy(nick, conf_get_string("root", "nick", nick));
+	strcpy(pass, conf_get_string("root", "pass", pass));
+	
+	
 	/* Get character name and pass */
 
 	get_char_name();

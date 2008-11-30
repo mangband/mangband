@@ -1545,3 +1545,370 @@ void peruse_file(void)
 	/* Flush any events that came in */
 	Flush_queue();
 }
+
+
+/*
+ * Client config file handler
+ */
+typedef struct value_conf_type value_conf_type;
+typedef struct section_conf_type section_conf_type;
+struct value_conf_type
+{
+	char name[100];
+	char value[100];
+	value_conf_type *next; /* Next value in list */
+};
+struct section_conf_type
+{
+	char name[100];
+	value_conf_type *first; /* First value in list */
+	section_conf_type *next;	/* Next section in list */
+};
+static section_conf_type *root_node = NULL;
+static bool conf_need_save = FALSE;	/* Scheduled save */
+static char config_name[100];	/* Config filename */
+
+/* Find a section by name */
+section_conf_type* conf_get_section(cptr section)
+{
+	section_conf_type *s_ptr;
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		if ( !strcasecmp(section, s_ptr->name) )
+		{
+			return s_ptr;
+		}	
+	}
+	return NULL;
+}
+bool conf_section_exists(cptr section)
+{
+	if (conf_get_section(section) == NULL)
+		return FALSE;
+		
+	return TRUE;
+}
+/* Add new section if it doesn't exist allready */
+section_conf_type* conf_add_section_aux(cptr section)
+{
+	section_conf_type *s_ptr;
+	section_conf_type	*s_forge = NULL;
+	
+	/* Find section */
+	s_ptr = conf_get_section(section);
+
+	/* Not found */	
+	if (!s_ptr)
+	{
+		/* Forge new section */
+		s_forge = 0;
+		MAKE(s_forge, section_conf_type);
+						
+		/* Fill */
+		strcpy(s_forge->name, section);						
+		s_forge->next = NULL;
+		s_forge->first = NULL;
+		
+		/* Attach */
+		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next) { }
+		if (!s_ptr)
+			root_node->next = s_forge;
+		else 
+			s_ptr->next = s_forge;
+		s_ptr = s_forge;
+		
+		conf_need_save = TRUE;
+	}
+	
+	return s_ptr;
+}
+void conf_add_section(cptr section)
+{
+	conf_add_section_aux(section);
+}
+/* Change a "string" prefrence and schedule save */
+void conf_set_string(cptr section, cptr name, cptr value)
+{
+	section_conf_type *s_ptr = NULL;
+	value_conf_type 	*v_ptr;
+	value_conf_type	*v_forge = NULL;
+	bool done = FALSE;
+
+	/* If section doesn't exist, create it */
+	s_ptr = conf_get_section(section);
+	if (!s_ptr)
+		s_ptr = conf_add_section_aux(section);
+
+	/* Find node to change */
+	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+	{	
+		if ( !strcasecmp(name, v_ptr->name) )
+		{
+			strcpy(v_ptr->value, value);
+			done = TRUE;
+			break;
+		}
+	}
+	
+	/* Or create new node */
+	if (!done)
+	{
+		/* Forge */
+		v_forge = 0;
+		MAKE(v_forge, value_conf_type);
+		
+		/* Fill */
+		strcpy(v_forge->name, name);
+		strcpy(v_forge->value, value);
+		
+		/* Attach */
+		if (!v_ptr)
+			s_ptr->first = v_forge;
+		else
+			v_ptr->next = v_forge;
+			
+		done = TRUE;
+	}
+
+	if (done) conf_need_save = TRUE;
+}
+/* Change an "integer" value. All values are stored as strings. */
+void conf_set_int(cptr section, cptr name, s32b value)
+{
+	char s_value[100];
+	sprintf(s_value, "%ld", value);
+	conf_set_string(section, name, s_value);
+}
+/* 
+ * Return value from section "section" , with name "name"
+ * For string values, a "cptr" is returned, for integers "int".
+ *
+ * Not recommended for external usage, use "conf_get_int" and
+ * "conf_get_string" instead.
+ */
+int conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
+{
+	section_conf_type *s_ptr;
+	value_conf_type 	*v_ptr;
+	
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		if ( !strcasecmp(section, s_ptr->name) )
+		{
+			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+			{	
+				if ( !strcasecmp(name, v_ptr->name) )
+				{
+					if (is_int)
+						return atoi(v_ptr->value);
+					return (int)v_ptr->value;
+				}
+			}
+		}
+	}
+	if (is_int)
+		return atoi(default_value);
+	return (int)default_value;
+}
+s32b conf_get_int(cptr section, cptr name, s32b default_value)
+{
+	char v_value[100];
+	sprintf(v_value, "%ld", default_value);
+	return (u32b)conf_get_value(section, name, v_value, TRUE);
+}
+cptr conf_get_string(cptr section, cptr name, cptr default_value)
+{
+	return (cptr)conf_get_value(section, name, default_value, FALSE);
+}
+/* Initialize global config tree */
+void conf_init()
+{
+	section_conf_type	*s_ptr = NULL;
+	section_conf_type	*s_forge = NULL;
+	value_conf_type	*v_ptr = NULL;
+	value_conf_type	*v_forge = NULL;
+
+	FILE *config;
+	char buf[1024];
+	char s_name[100], *name, *value;
+	int n;
+
+	/*
+	 * Prepare root node 
+	 */
+
+	/* Forge root */	
+	if (!root_node)
+		MAKE(root_node, section_conf_type);
+	
+	/* Prepare */
+	strcpy(root_node->name, "root");
+	root_node->next = NULL;
+	root_node->first = NULL;
+	
+	/* Attach */
+	s_ptr = root_node;
+	v_ptr = root_node->first;
+
+	/*
+	 * Get File name 
+	 */
+
+	/* Try to find home directory */
+	if (getenv("HOME"))
+	{
+		/* Use home directory as base */
+		strcpy(config_name, getenv("HOME"));
+	}
+
+	/* Otherwise use current directory */
+	else
+	{
+		/* Current directory */
+		strcpy(config_name, ".");
+	}
+
+	/* Append filename */
+#ifdef USE_EMX
+	strcat(config_name, "\\mang.rc");
+#else
+	strcat(config_name, "/.mangrc");
+#endif
+
+	/*
+	 * Read data 
+	 */
+	
+	/* Attempt to open file */
+	if ((config = my_fopen(config_name, "r")))
+	{	
+		/* Read until end */
+		while (!feof(config))
+		{
+			/* Get a line */
+			fgets(buf, 1024, config);
+			
+			/* Skip comments, empty lines */
+			if (buf[0] == '\n' || buf[0] == '#')
+				continue;
+
+			/* Probably a section */
+			if (buf[0] == '[')
+			{
+				/* Trim */
+				for(n = strlen(buf);
+			 	((buf[n] == '\n' || buf[n] == '\r' || buf[n] == ' ' || !buf[n]) && n > 1);
+			 	n--)	{ 	}
+			 					
+				/* Syntax is correct */
+				if (buf[n] == ']' && n > 1)
+				{
+					/* Get name */
+					buf[n] = '\0';
+					strcpy(s_name, buf + 1);
+					
+					/* New section */
+					if (!conf_section_exists(s_name)) 
+					{
+						/* Forge new section */
+						s_forge = 0;
+						MAKE(s_forge, section_conf_type);
+						
+						/* Fill */
+						strcpy(s_forge->name, s_name);						
+						s_forge->next = NULL;
+						s_forge->first = NULL;
+						s_ptr->next = s_forge;
+						s_ptr = s_forge;
+						
+						/* Attach */
+						v_ptr = s_ptr->first;
+						
+						/* Done */
+						continue;
+					} 
+				}
+				/* Malformed entry, skip */
+				continue;
+			}
+			
+			/* Attempt to read a value */
+			name	= strtok(buf, " =\t\n");
+			value	= strtok(NULL, " =\t\n");
+			
+			/* Read something */
+			if (name && value)
+			{
+				/* Forge new node */
+				v_forge = 0;
+				MAKE(v_forge, value_conf_type);
+				
+				/* Fill */
+				strcpy(v_forge->name, name);
+				strcpy(v_forge->value, value);
+				
+				/* Attach */
+				if (!v_ptr)
+					s_ptr->first = v_forge;
+				else
+					v_ptr->next = v_forge;
+				
+				/* Advance */
+				v_ptr = v_forge;
+			}
+		}
+		
+		/* Done reading */
+		my_fclose(config);
+	}
+#if 0
+	//list all sections
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		printf("[%s]\n", s_ptr->name);
+		//list all values
+		for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+		{
+			printf("  %s = %s\n", v_ptr->name, v_ptr->value);
+		}	
+	}
+#endif	
+}
+/* Save config file if it is scheduled */
+void conf_save()
+{
+	section_conf_type *s_ptr;
+	value_conf_type 	*v_ptr;
+	FILE *config;
+	
+	/* No changes */
+	if (!conf_need_save) return;
+	
+	/* Write */
+	if ((config = my_fopen(config_name, "w")))
+	{
+		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+		{
+			fprintf(config, "[%s]\n", s_ptr->name);
+			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+			{
+				fprintf(config, "%s %s\n", v_ptr->name, v_ptr->value);
+			}
+			if (s_ptr->next)
+				fprintf(config, "\n");
+		}
+		/* Done writing */
+		my_fclose(config);
+		conf_need_save = FALSE;
+	}
+}
+/* Scheduler */
+void conf_timer(int ticks)
+{
+	static int last_update = 0;
+	if ((ticks - last_update) > 600) /* 60 seconds? */
+	{
+		conf_save();
+		last_update = ticks;
+	}
+}

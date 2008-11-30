@@ -3367,6 +3367,8 @@ void update_ticks()
 	mticks = (long)(ticks*1000 ) + cur_time.tv_usec/(scale/100) ;
 	mticks = (long) ticks;
 */
+	/* XXX -- HACK -- Schedule config update */
+	conf_timer(ticks);
 }
 
 /* Write a keepalive packet to the output queue if it has been two seconds

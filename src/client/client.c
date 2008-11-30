@@ -10,12 +10,8 @@
 #include "angband.h"
 
 
-static void read_mangrc(void)
+static void read_credentials(void)
 {
-	char config_name[100];
-	FILE *config;
-	char buf[1024];
-
 #ifdef SET_UID
 	int player_uid;
 	struct passwd *pw;
@@ -24,27 +20,6 @@ static void read_mangrc(void)
 #ifdef WINDOWS
 	LPSTR buffer[20] = {'\0'};
 	LPDWORD bufferLen = sizeof(buffer);
-#endif
-
-	/* Try to find home directory */
-	if (getenv("HOME"))
-	{
-		/* Use home directory as base */
-		strcpy(config_name, getenv("HOME"));
-	}
-
-	/* Otherwise use current directory */
-	else
-	{
-		/* Current directory */
-		strcpy(config_name, ".");
-	}
-
-	/* Append filename */
-#ifdef USE_EMX
-	strcat(config_name, "\\mang.rc");
-#else
-	strcat(config_name, "/.mangrc");
 #endif
 
 	/* Initial defaults */
@@ -71,61 +46,16 @@ static void read_mangrc(void)
 	}
 #endif
 
-      /* Get user name from WINDOWS machine! */
-#ifdef WINDOWS
-	 if ( GetUserName(buffer, &bufferLen) ) {
-
-		 /* Cut */
+	/* Get user name from WINDOWS machine! */
+#ifdef WINDOWS	if ( GetUserName(buffer, &bufferLen) ) 
+	{
+		/* Cut */
 		buffer[16] = '\0';
 		
 		/* Copy to real name */
-  		strcpy(real_name, buffer);
-	 }
+  		strcpy(real_name, buffer);	}
 #endif
 
-
-	/* Attempt to open file */
-	if ((config = fopen(config_name, "r")))
-	{
-		/* Read until end */
-		while (!feof(config))
-		{
-			/* Get a line */
-			fgets(buf, 1024, config);
-
-			/* Skip comments, empty lines */
-			if (buf[0] == '\n' || buf[0] == '#')
-				continue;
-
-			/* Name line */
-			if (!strncmp(buf, "nick", 4))
-			{
-				char *name;
-
-				/* Extract name */
-				name = strtok(buf, " =\t\n");
-				name = strtok(NULL, " =\t\n");
-
-				/* Default nickname */
-				if ( name ) strcpy(nick, name);
-			}
-
-			/* Password line */
-			if (!strncmp(buf, "pass", 4))
-			{
-				char *p;
-
-				/* Extract password */
-				p = strtok(buf, " =\t\n");
-				p = strtok(NULL, " =\t\n");
-
-				/* Default password */
-				if ( p ) strcpy(pass, p);
-			}
-
-			/*** Everything else is ignored ***/
-		}
-	}
 }
 
 int main(int argc, char **argv)
@@ -204,8 +134,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Attempt to read default name/password from mangrc file */
-	read_mangrc();
+	/* Attempt to read default name/real name from OS */
+	read_credentials();
 
 #ifdef UNIX_SOCKETS
 	/* Always call with NULL argument */
