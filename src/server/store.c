@@ -1718,7 +1718,7 @@ void store_purchase(int Ind, int item, int amt)
 					}
 
 					/* New inventory */
-					for (i = 0; i < MAX_STORES; i++)
+					for (i = 0; i < 10; i++)
 					{
 						/* Maintain the store */
 						store_maint(p_ptr->store_num);
