@@ -1828,7 +1828,7 @@ void conf_init(void* param)
 		strcat(config_name, buf);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r"))
+		config = my_fopen(config_name, "r");
 	}
 
 	/* Otherwise use current directory */
@@ -1841,7 +1841,7 @@ void conf_init(void* param)
 		strcat(config_name, buf);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r"))
+		config = my_fopen(config_name, "r");
 	}
 
 	/*
@@ -1850,7 +1850,7 @@ void conf_init(void* param)
 	
 	/* File is opened */
 	if (config)
-	{	printf("opened %s\n", conifg_name);
+	{
 		/* Read until end */
 		while (!feof(config))
 		{
