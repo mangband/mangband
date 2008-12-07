@@ -1211,7 +1211,7 @@ static int Enter_player(int ind)
 	{
 		errno = 0;
 		plog(format("Id too big (%d)", Id));
-		return -1;
+		return -2;
 	}
 
 	for (i = 1; i < NumPlayers + 1; i++)
@@ -1228,7 +1228,7 @@ static int Enter_player(int ind)
 	if (!player_birth(NumPlayers + 1, connp->nick, connp->pass, ind, connp->race, connp->class, connp->sex, connp->stat_order))
 	{
 		/* Failed, connection destroyed */
-		return -1;
+		return -2;
 	}
 
 	p_ptr = Players[NumPlayers + 1];
@@ -1981,7 +1981,13 @@ static int Receive_play(int ind)
 
 	} else {
 		/* Trying to start gameplay! */
-		if (Enter_player(ind) == -1)
+		if ((n = Enter_player(ind)) == -2)
+		{
+			errno = 0;
+			plog(format("Enable to play (%02x)", connp->state));
+			Destroy_connection(ind, "cant play");
+		}
+		if (n < 0)
 		{
 			/* The connection has already been destroyed */
 			return -1;
