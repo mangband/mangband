@@ -1513,7 +1513,7 @@ static int Handle_login(int ind)
 	{
 		errno = 0;
 		plog(format("Id too big (%d)", Id));
-		return -1;
+		return -2;
 	}
 
 	for (i = 1; i < NumPlayers + 1; i++)
@@ -1530,7 +1530,7 @@ static int Handle_login(int ind)
 	if (!player_birth(NumPlayers + 1, connp->nick, connp->pass, ind, connp->race, connp->class, connp->sex, connp->stat_order))
 	{
 		/* Failed, connection destroyed */
-		return -1;
+		return -2;
 	}
 
 	p_ptr = Players[NumPlayers + 1];
@@ -2211,7 +2211,13 @@ static int Receive_play(int ind)
 	}
 
 	Sockbuf_clear(&connp->w);
-	if (Handle_login(ind) == -1)
+	if ((n = Handle_login(ind)) == -2)
+	{
+		errno = 0;
+		plog(format("Could not login player (%02x)", connp->state));
+		Destroy_connection(ind, "cant handle");
+	}
+	if (n < 0)
 	{
 		/* The connection has already been destroyed */
 		return -1;
