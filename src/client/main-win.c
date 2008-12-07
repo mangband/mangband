@@ -1510,6 +1510,23 @@ static void term_data_redraw(term_data *td)
 	/* Restore the term */
 	Term_activate(term_screen);
 }
+/*
+ * Hack -- resize term_data
+ */
+static void term_data_resize(term_data *td, bool redraw)
+{
+	/* Activate the term */
+	Term_activate(&td->t);
+
+	/* Redraw the contents */
+	if (redraw)	Term_redraw();
+
+	/* Resize! */
+	Term_resize(td->cols, td->rows);
+
+	/* Restore the term */
+	Term_activate(term_screen);
+}
 
 
 
@@ -3104,6 +3121,15 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 			td->rows = (HIWORD(lParam) - td->size_oh1 - td->size_oh2) / td->font_hgt;
 
 			term_getsize(td);
+
+			term_data_resize(td, FALSE);
+			/* Gross hack -- find needed terminal number */
+			for (i = 1; i < ANGBAND_TERM_MAX; i++) {
+				if ((ang_term[i]) == &(td->t)) {
+					p_ptr->window |= window_flag[i];
+				}
+			}
+			window_stuff();
 
 			MoveWindow(hWnd, td->pos_x, td->pos_y, td->size_wid, td->size_hgt, TRUE);
 			if(td == &data[4]) stretch_chat_ctrl();
