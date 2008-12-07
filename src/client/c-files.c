@@ -1664,7 +1664,7 @@ section_conf_type* conf_add_section_aux(cptr section)
 		s_forge->first = NULL;
 		
 		/* Attach */
-		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next) { }
+		for (s_ptr = root_node; s_ptr->next; s_ptr = s_ptr->next) { }
 		if (!s_ptr)
 			root_node->next = s_forge;
 		else 
@@ -1714,8 +1714,11 @@ void conf_set_string(cptr section, cptr name, cptr value)
 		/* Fill */
 		strcpy(v_forge->name, name);
 		strcpy(v_forge->value, value);
+		v_forge->next = NULL;
 		
 		/* Attach */
+		if (s_ptr->first)
+			for (v_ptr = s_ptr->first; v_ptr->next; v_ptr = v_ptr->next) { }
 		if (!v_ptr)
 			s_ptr->first = v_forge;
 		else
@@ -1808,34 +1811,46 @@ void conf_init(void* param)
 	 * Get File name 
 	 */
 
+	/* EMX Hack */
+#ifdef USE_EMX
+	strcpy(buf, "\\mang.rc");
+#else
+	strcpy(buf, "/.mangrc");
+#endif
+
 	/* Try to find home directory */
 	if (getenv("HOME"))
 	{
 		/* Use home directory as base */
 		strcpy(config_name, getenv("HOME"));
+
+		/* Append filename */
+		strcat(config_name, buf);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r"))
 	}
 
 	/* Otherwise use current directory */
-	else
+	if (!config)
 	{
 		/* Current directory */
 		strcpy(config_name, ".");
-	}
 
-	/* Append filename */
-#ifdef USE_EMX
-	strcat(config_name, "\\mang.rc");
-#else
-	strcat(config_name, "/.mangrc");
-#endif
+		/* Append filename */
+		strcat(config_name, buf);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r"))
+	}
 
 	/*
 	 * Read data 
 	 */
 	
-	/* Attempt to open file */
-	if ((config = my_fopen(config_name, "r")))
-	{	
+	/* File is opened */
+	if (config)
+	{	printf("opened %s\n", conifg_name);
 		/* Read until end */
 		while (!feof(config))
 		{
@@ -1900,6 +1915,7 @@ void conf_init(void* param)
 				/* Fill */
 				strcpy(v_forge->name, name);
 				strcpy(v_forge->value, value);
+				v_forge->next = NULL;
 				
 				/* Attach */
 				if (!v_ptr)
