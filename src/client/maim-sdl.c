@@ -24,6 +24,9 @@
 #include <math.h> /* for scaling blits */
 
 
+
+
+
 /*
  *
  * Supplemental SDL bitmap manipulation functions.
@@ -105,6 +108,15 @@ inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
 	return 0;
 }
 
+inline Uint32 ifloor(Uint32 i)
+{
+	return i & 0xFFFF0000;
+}
+
+inline Uint32 iceil(Uint32 i)
+{
+	return (i & 0xFFFF) ? i : ifloor(i) + (1<<16);
+}
 
 /* This routine performs a scaling blit. It will shrink and magnify. :) */
 /* It uses floating point arithmetic (because I am lazy) so it's not too fast
@@ -117,6 +129,7 @@ inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
  */
 inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
 {
+#if 0
 	Uint8 r, g, b;
 
 	float rs, gs, bs; /* sums */
@@ -153,8 +166,6 @@ inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_
 	ly = dr->y + dr->h;
 
 	area = wsx * wsy;
-
-
 
 	for (ty = dr->y, sy = (float)sr->y; ty < ly; ++ty, sy+=dsy)
 	{
@@ -209,9 +220,7 @@ inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_
 	return 0;
 #undef gsx
 #undef gsy
-}
-
-
+#else
 /* Integer math version of SDL_ScaleBlit().
  * Where necessary, a number uses the 16 high bits for the integer
  * and the 16 low bits for the decimal portion.
@@ -219,20 +228,6 @@ inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_
  * eg:
  * float a = (float) (b >> 16) + (b & 0xFFFF)/65536.0;
  */
-
-inline Uint32 ifloor(Uint32 i)
-{
-	return i & 0xFFFF0000;
-}
-
-inline Uint32 iceil(Uint32 i)
-{
-	return (i & 0xFFFF) ? i : ifloor(i) + (1<<16);
-}
-
-
-errr SDL_FastScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
-{
 	Uint8 r, g, b;
 	Uint32 rs, gs, bs; /* sums. */
 
@@ -324,153 +319,8 @@ errr SDL_FastScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rec
 	return 0;
 #undef gsx
 #undef gsy
-}
-
-
-
-#if 0 /* the procedure above is a more generalized version of the one below */
-
-/* The following is a function to perform a Blit while magnifying */
-/* Anti-aliasing is performed. :) */
-/* It is probably very SLOW on most systems. Use it for pre-processing. XXX */
-/* a Blit while shrinking is handled by a different function */
-errr SDL_StretchBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
-{
-	double sx, sy; /* current source x and y */
-	Uint32 isx, isy; /* temp. values for convenience in calculation code */
-	double dsx, dsy; /* source increment, per increment of 1 in destination */
-	double wx, wy; /* temp. weight values for the color mixing calculations */
-	double weight; /* temp. weight of pixel */
-
-	/* coordinates to get pixels from: ... */
-#undef gsx
-#define gsx (isx >= sr->x+sr->w ? sr->x+sr->w-1 : isx)
-#undef gsy
-#define gsy (isy >= sr->y+sr->h ? sr->y+sr->h-1 : isy)
-
-
-	Uint32 tx, ty; /* "to" x and y. "dx, dy" would be too confusing. */
-	Uint32 lx, ly; /* end x and y in destination, not inclusive */
-
-	double r, g, b; /* temporary values on which we perform calculations */
-	/*double s;*/ /* scale factor calculation thing. gross hack. don't ask. */
-	Uint8 ir, ig, ib; /* same here. */
-
-	if (src == NULL || sr == NULL || dst == NULL || dr == NULL) return -1;
-
-	/* these are meaningless and would cause a divide by zero: */
-	if (!dr->w || !dr->h) return -1; 
-
-	dsx = ((double) sr->w) / dr->w;
-	dsy = ((double) sr->h) / dr->h;
-
-	lx = dr->x + dr->w; 
-	ly = dr->y + dr->h;
-
-	for (ty = dr->y, sy = (double)sr->y; ty < ly; ++ty, sy+=dsy)
-	{
-		for (tx = dr->x, sx = (double)sr->x; tx < lx; ++tx, sx+=dsx)
-		{
-			/* here we must consider four pixels and mix them together */
-			/* the further away we are from a pixel, the less weight it has
-			 * when we mix in its color. Hence the "1 - hypot(..." etc.
-			 * Actually, no. Let's not use hypot().
-			 */
-			/* 
-			 * upper left pixel 
-			 */
-			wx = ((floor(sx) + 1) - sx);
-			wy = ((floor(sy) + 1) - sy);
-
-			isx = (Uint32) floor(sx);
-			isy = (Uint32) floor(sy);
-
-			if (SDL_GetPixel(src, gsx, gsy, &ir, &ig, &ib)) return -1;
-		
-			weight = wx * wy; 
-			/* the area of the overlap of our hypothetical and real pixel!!! */ 
-			if (weight < 1/1024.0) weight = 0;
-			r = weight * (double)ir;
-			g = weight * (double)ig;
-			b = weight * (double)ib;
-			/*s = weight * 255.0;*/
-
-			/* 
-			 * upper right pixel 
-			 */
-			wx = 1 - wx;
-			isx += 1;
-
-			if (SDL_GetPixel(src, gsx, gsy, &ir, &ig, &ib)) return -1;
-		
-			weight = wx * wy;
-			if (weight < 1/1024.0) weight = 0;
-			r += weight * (double)ir;
-			g += weight * (double)ig;
-			b += weight * (double)ib;
-			/*s += weight * 255.0;*/
-	
-			/* 
-			 * lower right pixel 
-			 */
-			wy = 1 - wy;
-			isy += 1;
-
-			if (SDL_GetPixel(src, gsx, gsy, &ir, &ig, &ib)) return -1;
-			
-			weight = wx * wy;
-			if (weight < 1/1024.0) weight = 0;
-			r += weight * (double)ir;
-			g += weight * (double)ig;
-			b += weight * (double)ib;
-			/*s += weight * 255.0;*/
-
-			/*
-			 * lower left pixel
-			 */
-			wx = 1 - wx;
-			isx -= 1;
-
-			if (SDL_GetPixel(src, gsx, gsy, &ir, &ig, &ib)) return -1;
-			
-			weight = wx * wy;
-			if (weight < 1/1024.0) weight = 0;
-			r += weight * (double)ir;
-			g += weight * (double)ig;
-			b += weight * (double)ib;
-			/*s += weight * 255.0;*/
-	
-
-			/*
-			r = 255 * (r/s);
-			g = 255 * (g/s);
-			b = 255 * (b/s);
-			*/
-
-			if (r >= 256.0 || g >= 256.0 || b > 256.0) 
-			{
-				plog("mixing error!");
-				plog(format("Values: %f, %f, %f\n", (double)r, (double)g, (double)b));
-				/**((char *)0) = 0;*/
-			}
-			if (r > 255.0) r = 255.0;
-			if (g > 255.0) g = 255.0;
-			if (b > 255.0) b = 255.0;
-			ir = (Uint8) r;
-			ig = (Uint8) g;
-			ib = (Uint8) b;
-
-			SDL_PutPixel(dst, tx, ty, ir, ig, ib);
-		}
-	}
-
-	return 0;
-}
-
 #endif
-
-
-
+}
 
 /* This function will take an SDL_Surface, allocate a new surface to hold
  * the resized surface, perform the scaling operation, free the old surface
@@ -497,10 +347,12 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	SDL_Rect sr, dr;
 	Uint32 x, y;
 	Uint32 nx, ny;
+	int i;
 
 	if (!t_oldw || !t_oldh || !t_neww || !t_newh || !src) return NULL; /*dummy!*/
 
-	if (t_oldw == t_neww && t_oldh == t_newh) return src; /* OK... */
+	//if (t_oldw == t_neww && t_oldh == t_newh) return src; /* OK... */
+	if (t_oldw == t_neww && t_oldh == t_newh) return NULL; /* HACKZ... */
 
 	/* Get the number of tiles in the image.
 	 * Any possible clipped tiles at the edges are ignored.
@@ -511,17 +363,18 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	/* Allocate a new SDL_Surface of appropriate size, with settings otherwise
 	 * identical to src.
 	 */
-	dst = SDL_CreateRGBSurface(src->flags, 
-	                     nx * t_neww, 
-								ny * t_newh, 
-								/*src->format->BitsPerPixel,*/
-								16,
-								src->format->Rmask,
-								src->format->Gmask,
-								src->format->Bmask,
-								src->format->Amask);
+	dst = SDL_CreateRGBSurface(src->flags, nx * t_neww, ny * t_newh, src->format->BitsPerPixel,
+										src->format->Rmask, src->format->Gmask, src->format->Bmask,	src->format->Amask);
 
-
+	/* Copy pallete */
+	if (src->format->BitsPerPixel == 8) {
+	for (i = 0; i < src->format->palette->ncolors; i++) {
+		dst->format->palette->colors[i] = src->format->palette->colors[i];
+	}
+	dst->format->palette->ncolors = src->format->palette->ncolors;
+	}
+	
+	/* Do per-tile scaling */
 	for (y = 0; y < ny; ++y)
 	{
 		for (x = 0; x < nx; ++x)
@@ -532,12 +385,17 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 			dr.w = t_neww; dr.h = t_newh;
 			dr.x = x * t_neww; dr.y = y * t_newh;
 
-			/*printf("%d,%d -> %d,%d   (%d,%d -> %d, %d)\n", sr.x, sr.y, dr.x, dr.y, sr.w, sr.h, dr.w, dr.h);*/
-
 			/* scale-blit one tile and check for error
 			 * although SDl_ScaleBlit() might not have any errors to return.
 			 */
-			if (SDL_FastScaleBlit(src, &sr, dst, &dr)) return NULL;
+			if (SDL_ScaleBlit(src, &sr, dst, &dr)) return NULL;
+			/* XXX XXX XXX HACK -- stay online */
+			if (conn_state && rand_int(10) < 5) {
+				Net_packet();
+				update_ticks();
+				do_keepalive();
+				Net_flush();
+			}
 		}
 	}
 
@@ -622,8 +480,6 @@ char *formatsdlflags(Uint32 flags) {
 
 
 /* A lot of code for handling keystrokes follow. */
-
-
 typedef struct sdl_keymapt sdl_keymapt;
 
 struct sdl_keymapt {
@@ -844,51 +700,5 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 #undef sdlkapp
 
 } /* SDL_keystring */
-
-
-
-/* Cursor hack, for testing of ideas. XXX XXX XXX */
-
-SDL_Surface *sdl_screen_cursor = NULL;
-SDL_Rect sdl_screen_cursor_sr;
-
-
-/* it must be true that w * h * 4 <= maxUint32 */
-
-
-errr SDL_init_screen_cursor(Uint32 w, Uint32 h)
-{
-	Uint32 i;
-
-	sdl_screen_cursor_sr.x = sdl_screen_cursor_sr.y = 0;
-	sdl_screen_cursor_sr.w = w;
-	sdl_screen_cursor_sr.h = h;
-
-	sdl_screen_cursor = NULL;
-	sdl_screen_cursor = SDL_CreateRGBSurface(SDL_SRCALPHA, w, h, 32,
-	                                         0xff000000,
-														  0x00ff0000,
-														  0x0000ff00,
-														  0x00000000);
-
-
-	if (!sdl_screen_cursor) return -1;
-
-	SDL_SetAlpha(sdl_screen_cursor, SDL_SRCALPHA | SDL_RLEACCEL, 0x80);
-	for (i = 0; i < w*h*4; ++i)
-	{
-		((Uint8 *)(sdl_screen_cursor->pixels))[i] = !(i & 2)?0x80 : 0xFF;
-	}
-
-	return 0;
-}
-
-errr SDL_DrawCursor(SDL_Surface *dst, SDL_Rect *dr)
-{
-	if (!dst || !dr || !sdl_screen_cursor) return -1;
-	if (SDL_BlitSurface(sdl_screen_cursor, &sdl_screen_cursor_sr, dst, dr)) return -1;
-	SDL_UpdateRect(dst, dr->x, dr->y, dr->w, dr->h);
-	return 0;
-}
 
 #endif

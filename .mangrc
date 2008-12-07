@@ -1,0 +1,70 @@
+[MAngband]
+
+[SDL]
+
+[SDL-Fonts]
+0 misc6x13.hex
+1 nethack10x19-10.hex
+
+[SDL-Term-Angband]
+Visible 1
+Font nethack10x19-10.hex
+Cols 80
+Rows 24
+PositionX 0
+PositionY 0
+
+[SDL-Term-Mirror]
+Visible 1
+Font misc6x13.hex
+Cols 80
+Rows 24
+PositionX 0
+PositionY 456
+
+[SDL-Term-Recall]
+Visible 1
+Font misc6x13.hex
+Cols 80
+Rows 13
+PositionX 804
+PositionY 0
+
+[SDL-Term-Choice]
+Visible 1
+Font misc6x13.hex
+Cols 80
+Rows 24
+PositionX 801
+PositionY 171
+ScaleX 0
+ScaleY 0
+
+[SDL-Term-4]
+Visible 1
+Font misc6x13.hex
+Cols 80
+Rows 24
+PositionX 483
+PositionY 485
+
+[SDL-Term-5]
+Visible 0
+Cols 0
+Rows 0
+PositionX 0
+PositionY 0
+
+[SDL-Term-6]
+Visible 0
+Cols 0
+Rows 0
+PositionX 0
+PositionY 0
+
+[SDL-Term-7]
+Visible 0
+Cols 0
+Rows 0
+PositionX 0
+PositionY 0
