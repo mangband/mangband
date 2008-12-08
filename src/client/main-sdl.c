@@ -781,18 +781,9 @@ void gui_term_drag(int nmx, int nmy) {
 void gui_term_drop() {
 	if (m_term != -1) {
 		if (m_resized && !m_control)
-		{
-			term_close(m_term);
-			term_open(m_term);
 			m_resized = FALSE;
-		}
 		if (m_rescaled && !m_shift)
-		{ 
-			term_close(m_term);
-			term_rescale(m_term, TRUE, TRUE);
-			term_open(m_term);
 			m_rescaled = FALSE;
-		}
 		if ((m_rescaled && m_shift) || (m_resized && m_control))
 			m_subterm = m_term;
 		m_term = -1;
@@ -844,7 +835,8 @@ void gui_term_unshift() {
 			term_rescale(i, TRUE, TRUE);
 			term_open(i);
 			m_rescaled = FALSE;
-			m_subterm = -1;
+			m_subterm = m_term = -1;
+			need_render = TRUE;
 	}
 }
 
@@ -866,7 +858,8 @@ void gui_term_unctrl() {
 		term_close(i);
 		term_open(i);
 		m_resized = FALSE;
-		m_subterm = -1;
+		m_subterm = m_term = -1;
+		need_render = TRUE;
 	}
 }
 
@@ -995,18 +988,6 @@ void SDL_FillTerm(term_data *td, Uint32 color) {
 #else
 	SDL_FillRect(td->face, NULL, color);
 #endif
-}
-/* Clear terminal */
-void SDL_TermClear(term_data *td) {
-	/* Fill it with black */
-	SDL_FillTerm(td, 0);
-	
-	/* Bring it to front */
-#ifdef SINGLE_SURFACE
-	SDL_FrontRect(td, 0, 0, td->width, td->height, need_render, TRUE);
-#else
-	if (!need_render)	SDL_FrontTerm(td, TRUE);
-#endif 
 }
 /* Prepare cursor surface */
 errr SDL_PrepareCursor(Uint32 w, Uint32 h)
@@ -1382,7 +1363,8 @@ static errr Term_xtra_sdl(int n, int v)
 
 		if (!td->online) return(1);
 
-		SDL_TermClear(td);
+		/* Fill it with black */
+		SDL_FillTerm(td, 0);
 
 		return (0);
 
