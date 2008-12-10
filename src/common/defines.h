@@ -669,6 +669,9 @@
 #define ROW_GOLD		6
 #define COL_GOLD		0	/* "AU xxxxxxxxx" */
 
+#define ROW_EQUIPPY		14
+#define COL_EQUIPPY		0	/* equippy chars */
+
 #define ROW_LAG			7
 #define COL_LAG			0	/* "LAG xxxxxxxx" */
 
@@ -705,32 +708,36 @@
 #define ROW_STUN		22
 #define COL_STUN		0	/* <stun> */
 
-#define ROW_HUNGRY		23
+#define ROW_HUNGRY		(Term->hgt - 1)
 #define COL_HUNGRY		0	/* "Weak" / "Hungry" / "Full" / "Gorged" */
 
-#define ROW_BLIND		23
+#define ROW_BLIND		(Term->hgt - 1)
 #define COL_BLIND		7	/* "Blind" */
 
-#define ROW_CONFUSED	23
+#define ROW_CONFUSED	(Term->hgt - 1)
 #define COL_CONFUSED	13	/* "Confused" */
 
-#define ROW_AFRAID		23
+#define ROW_AFRAID		(Term->hgt - 1)
 #define COL_AFRAID		22	/* "Afraid" */
 
-#define ROW_POISONED	23
+#define ROW_POISONED	(Term->hgt - 1)
 #define COL_POISONED	29	/* "Poisoned" */
 
-#define ROW_STATE		23
+#define ROW_STATE		(Term->hgt - 1)
 #define COL_STATE		38	/* <state> */
 
-#define ROW_SPEED		23
+#define ROW_SPEED		(Term->hgt - 1)
 #define COL_SPEED		49	/* "Slow (-NN)" or "Fast (+NN)" */
 
-#define ROW_STUDY		23
+#define ROW_STUDY		(Term->hgt - 1)
 #define COL_STUDY		64	/* "Study" */
 
-#define ROW_DEPTH		23
+#define ROW_DEPTH		(Term->hgt - 1)
 #define COL_DEPTH		70	/* "Lev NNN" / "NNNN ft" */
+
+#define ROW_OPPOSE_ELEMENTS	(Term->hgt - 1)
+#define COL_OPPOSE_ELEMENTS	80	/* "Acid Elec Fire Cold Pois" */
+
 
 /*** Custom commands ***/
 #define MAX_CUSTOM_COMMANDS	10
@@ -1872,7 +1879,7 @@ that keeps many algorithms happy.
 #define PR_MANA		0x00000080L	/* Display Mana */
 #define PR_GOLD		0x00000100L	/* Display Gold */
 #define PR_DEPTH	0x00000200L	/* Display Depth */
-#define PR_HISTORY	0x00000400L	/* Display History */
+/* XXXX #define PR_HISTORY	0x00000400L	// Display History */
 #define PR_HEALTH	0x00000800L	/* Display Health Bar */
 #define PR_CUT		0x00001000L	/* Display Extra (Cut) */
 #define PR_STUN		0x00002000L	/* Display Extra (Stun) */
@@ -1886,40 +1893,53 @@ that keeps many algorithms happy.
 #define PR_SPEED	0x00200000L	/* Display Extra (Speed) */
 #define PR_STUDY	0x00400000L	/* Display Extra (Study) */
 #define PR_PLUSSES	0x00800000L	/* Display Plusses to Hit/Damage */
-#define PR_EXTRA	0x01000000L	/* Display Extra Info */
-#define PR_BASIC	0x02000000L	/* Display Basic Info */
+/*xxx*/
 #define PR_MAP		0x04000000L	/* Display Map */
 #define PR_WIPE		0x08000000L	/* Hack -- Total Redraw */
 #define PR_SKILLS	0x10000000L	/* Display Skills */
 #define PR_OFLAGS	0x20000000L	/* Display Object/Resistance Flags  */
+#define PR_EQUIPPY	0x20000000L	/* Display Equppy (Note! in MAngband it's same as OFLAGS)  */
 #define PR_CURSOR	0x40000000L	/* Display Cursor  */
 #define PR_FLOOR	0x80000000L	/* Display floor object */
 /* xxx */
-/* xxx */
-/* xxx */
+#define PR_HEALTH_TRACK	0x00000400L /* Display monster health */
+#define PR_OPPOSE_ELEMENTS	0x01000000L	/* Display temp. resists */
+#define PR_LAG_METER	0x02000000L	/* Display lag meter */
 
+/* Display Basic Info */
+#define PR_BASIC \
+	(PR_MISC | PR_TITLE | PR_STATS | PR_LEV |\
+	 PR_EXP | PR_GOLD | PR_ARMOR | PR_HP |\
+	 PR_MANA | PR_DEPTH | PR_HEALTH)
+
+/* Display Extra Info */
+#define PR_EXTRA \
+	(PR_CUT | PR_STUN | PR_HUNGER | PR_BLIND |\
+	 PR_CONFUSED | PR_AFRAID | PR_POISONED | PR_STATE |\
+	 PR_SPEED | PR_STUDY | PR_OPPOSE_ELEMENTS)
+	 
 /*
  * Bit flags for the "p_ptr->window" variable (etc)
  */
-#define PW_INVEN	0x00000001L	/* Display inven/equip */
-#define PW_EQUIP	0x00000002L	/* Display equip/inven */
-#define PW_SPELL	0x00000004L	/* Display spell list */
-#define PW_PLAYER	0x00000008L	/* Display character */
-/* xxx */
-/* xxx */
-#define PW_MESSAGE	0x00000040L	/* Display messages */
-#define PW_OVERHEAD	0x00000080L	/* Display overhead view */
-#define PW_MONSTER	0x00000100L	/* Display monster recall */
-#define PW_OBJECT	0x00000200L	/* Display object recall */
-/* xxx */
-#define PW_SNAPSHOT	0x00000800L	/* Display snap-shot */
-/* xxx */
-/* xxx */
-#define PW_BORG_1	0x00004000L	/* Display borg messages */
-#define PW_BORG_2	0x00008000L	/* Display borg status */
+#define PW_INVEN            0x00000001L /* Display inven/equip */
+#define PW_EQUIP            0x00000002L /* Display equip/inven */
+#define PW_PLAYER_0         0x00000004L /* Display player (basic) */
+#define PW_PLAYER_1         0x00000008L /* Display player (extra) */
+#define PW_PLAYER_2         0x00000010L /* Display player (compact) */
+#define PW_MAP              0x00000020L /* Display dungeon map */
+#define PW_MESSAGE          0x00000040L /* Display messages */
+#define PW_OVERHEAD         0x00000080L /* Display overhead view */
+#define PW_MONSTER          0x00000100L /* Display monster recall */
+#define PW_OBJECT           0x00000200L /* Display object recall */
+#define PW_MONLIST          0x00000400L /* Display monster list */
+#define PW_STATUS           0x00000800L /* Display status */
+#define PW_MESSAGE_CHAT     0x00001000L /* MAngband-specific: Chat */
+#define PW_SPELL            0x00002000L /* Older angband: Spell list */
+#define PW_BORG_1           0x00004000L /* Display borg messages */
+#define PW_BORG_2           0x00008000L /* Display borg status */
 
-
-
+#define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
+ 
 /*** General index values ***/
 
 

@@ -969,27 +969,99 @@ errr process_pref_file_command(char *buf)
 	/* Process "W:<num>:<use>" -- specify window action */
 	else if (buf[0] == 'W')
 	{
-		if (tokenize(buf+2, 2, zz) == 2)
-		{
-			i = (byte)strtol(zz[0], NULL, 0);
-			window_flag[i] = 1L << ((byte)strtol(zz[1], NULL, 0));
-			return (0);
-		}
-	}
+		long win, flag;
 
+		if (tokenize(buf + 2, 2, zz) == 2)
+		{
+			win = strtol(zz[0], NULL, 0);
+			flag = strtol(zz[1], NULL, 0);
+
+			/* Ignore illegal windows */
+			if ((win >= ANGBAND_TERM_MAX)) return (0);
+			/* Hack -- Ignore the main window (but let STATUS and COMPACT be) */
+			if ((win <= 0) && ((1L << flag) != PW_STATUS) && ((1L << flag) != PW_PLAYER_2)) return (0);
+
+			/* Ignore illegal flags */
+			if ((flag < 0) || (flag >= 32)) return (0);
+
+			/* Require a real flag */
+			if (window_flag_desc[flag])
+			{
+				/* Turn flag on */
+				window_flag[win] |= (1L << flag);
+			}
+
+			/* Success */
+			return (0);
+		}	
+	}
 
         /* Failure */
         return (1);
 }
 
-
-errr Save_options(void)
+/* Uber hack + Code duplication */
+errr Save_windows(void)
 {
 	int i;
+	byte j;
 
     FILE *fp;
 
     char buf[1024];
+
+    /* Build the filename */
+    path_build(buf, 1024, ANGBAND_DIR_USER, "window.prf");
+
+    /* Open the file */
+    fp = my_fopen(buf, "w");
+
+    /* Catch errors */
+    if (!fp) return (-1);
+
+	/* Skip space */
+	fprintf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "# Usage: W:<window number>:<usage number>\n");
+	fprintf(fp, "# \n");
+	fprintf(fp, "# Valid usage numbers:\n");
+	/* Describe */
+	for (j = 0; j < 32; j++)
+	{
+		if (window_flag_desc[j])
+		fprintf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
+	}
+	fprintf(fp, "\n\n");
+
+	/* Dump */
+   for (i = 0; i < ANGBAND_TERM_MAX; i++)
+    {
+  		if (window_flag[i])
+		{
+	    	for (j = 0; j < 32; j++)
+   	 	{
+		   	if (window_flag[i] & (1L << j))
+				fprintf(fp, "W:%d:%d\n", i, j);
+			}
+		}
+    }
+
+	/* Close the file */
+	my_fclose(fp);
+
+	return 0;
+}
+
+errr Save_options(void)
+{
+	int i;
+	errr windows;
+    FILE *fp;
+
+    char buf[1024];
+
+	windows = Save_windows();
+	
 
     /* Build the filename */
     path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");

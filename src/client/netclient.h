@@ -32,6 +32,7 @@ int Receive_magic(void);
 int Receive_stat(void);
 int Receive_maxstat(void);
 int Receive_hp(void);
+int Receive_oppose(void);
 int Receive_ac(void);
 int Receive_inven(void);
 int Receive_equip(void);

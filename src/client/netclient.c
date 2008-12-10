@@ -29,6 +29,7 @@ static u32b last_keepalive;
 
 int			ticks = 0; // Keeps track of time in 100ms "ticks"
 u32b		mticks = 0; // Keeps track of time in 1ms "ticks"
+s32b		cticks_static = 0; // Ticks received from server
 static bool		request_redraw;
 
 sockbuf_t	rbuf, cbuf, wbuf, qbuf;
@@ -64,7 +65,7 @@ static void Receive_init(void)
 	setup_tbl[PKT_BASIC_INFO] = Receive_basic_info;
 	setup_tbl[PKT_MOTD] = Receive_motd;
 	setup_tbl[PKT_PLAY] = Receive_play;
-	setup_tbl[PKT_CHAR_INFO] = Receive_char_info_conn;
+	setup_tbl[PKT_CHAR_INFO] = 	Receive_char_info_conn;
 	setup_tbl[PKT_STRUCT_INFO] = Receive_struct_info;
 	setup_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 	setup_tbl[PKT_END]		= Receive_end;
@@ -83,6 +84,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_STAT]		= Receive_stat;
     receive_tbl[PKT_MAXSTAT]		= Receive_maxstat;
 	receive_tbl[PKT_HP]		= Receive_hp;
+	receive_tbl[PKT_OPPOSE]		= Receive_oppose;
 	receive_tbl[PKT_AC]		= Receive_ac;
 	receive_tbl[PKT_INVEN]		= Receive_inven;
 	receive_tbl[PKT_EQUIP]		= Receive_equip;
@@ -733,8 +735,9 @@ int Send_ack(long rel_loops)
  * Note -- if "draw" is -1, the packets will be read for no effect 
  * Note -- setting "lineref" to NULL enables to-screen drawing, in that 
  * 		  case 'draw' is used to convey the Y coordinate
+ * Note -- you can also specify x offset. "rle_decode" will not re-calc "max_col"
  */ 
-int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s16b draw)
+int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s16b draw, s16b x_off)
 {
 	int	x, i;
 	char c;
@@ -778,13 +781,13 @@ int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s
 				if (lineref) 
 				{
 					/* Memorize */
-					lineref[x+i].a = a;
-					lineref[x+i].c = c;
+					lineref[x+i+x_off].a = a;
+					lineref[x+i+x_off].c = c;
 				} 
 				else if (c)
 				{				
 					/* Don't draw on screen if character is 0 */
-					Term_draw(x + i, y, a, c);
+					Term_draw(x + i + x_off, y, a, c);
 				}
 			}
 		}
@@ -961,18 +964,7 @@ int Receive_stat(void)
 
 	p_ptr->stat_top[(int) stat] = max;
 	p_ptr->stat_use[(int) stat] = cur;
-
-	if (!screen_icky && !shopping)
-        prt_stat(stat, max, cur, (p_ptr->stat_max[(int) stat] == 18+100));
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c%hd%hd", ch, stat, max, cur)) <= 0)
-		{
-			return n;
-		}
-
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->redraw |= PR_STATS;
 
 	return 1;
 }
@@ -990,19 +982,8 @@ int Receive_maxstat(void)
     }
 
     p_ptr->stat_max[(int) stat] = max;
-
-    if (!screen_icky && !shopping)
-        prt_stat(stat, p_ptr->stat_top[(int) stat], p_ptr->stat_use[(int) stat], (max == 18+100));
-    else
-        if ((n = Packet_printf(&qbuf, "%c%c%hd", ch, stat, max)) <= 0)
-        {
-            return n;
-        }
-
-
-    /* Window stuff */
-    p_ptr->window |= (PW_PLAYER);
-
+    p_ptr->redraw |= PR_STATS;
+	 
     return 1;
 }
 int Receive_hp(void)
@@ -1018,18 +999,31 @@ int Receive_hp(void)
 
 	p_ptr->mhp = max;
 	p_ptr->chp = cur;
+	p_ptr->redraw |= PR_HP;
 
-	if (!screen_icky && !shopping)
-		prt_hp(max, cur);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd%hd", ch, max, cur)) <= 0)
-		{
-			return n;
-		}
+	return 1;
+}
 
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+int Receive_oppose(void)
+{
+	int	n;
+	char	ch;
+	s16b	acid, elec, fire, cold, pois;
 
+	acid = elec = fire = cold = pois = 0;	
+	
+	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd", &ch, &acid, &elec, &fire, &cold, &pois)) <= 0)
+	{
+		return n;
+	}
+
+	p_ptr->oppose_acid = acid;
+	p_ptr->oppose_elec = elec;
+	p_ptr->oppose_fire = fire;
+	p_ptr->oppose_cold = cold;
+	p_ptr->oppose_pois = pois;
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
+	
 	return 1;
 }
 
@@ -1046,18 +1040,8 @@ int Receive_ac(void)
 
 	p_ptr->dis_ac = base;
 	p_ptr->dis_to_a = plus;
-
-	if (!screen_icky && !shopping)
-		prt_ac(base + plus);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd%hd", ch, base, plus)) <= 0)
-		{
-			return n;
-		}
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
-
+	p_ptr->redraw |= PR_ARMOR;
+	
 	return 1;
 }
 
@@ -1345,17 +1329,7 @@ int Receive_char_info(void)
 	p_ptr->prace = race;
 	p_ptr->pclass = class;
 	p_ptr->male = sex;
-
-	if (!screen_icky && !shopping)
-		prt_basic();
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd%hd%hd", ch, race, class, sex)) <= 0)
-		{
-			return n;
-		}
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->redraw |= PR_MISC;
 
 	return 1;
 }
@@ -1379,7 +1353,7 @@ int Receive_various(void)
 	/*printf("Received various info: height %d, weight %d, age %d, sc %d\n", hgt, wgt, age, sc);*/
 
 	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER_0);
 
 	return 1;
 }
@@ -1401,7 +1375,7 @@ int Receive_plusses(void)
 	/*printf("Received plusses: +%d tohit +%d todam\n", hit, dam);*/
 
 	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER_0);
 
 	return 1;
 }
@@ -1422,17 +1396,7 @@ int Receive_experience(void)
 	p_ptr->max_exp = max;
 	p_ptr->exp = cur;
 	exp_adv = adv;
-
-	if (!screen_icky && !shopping)
-		prt_level(lev, max, cur, adv);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hu%d%d%d", ch, lev, max, cur, adv)) <= 0)
-		{
-			return n;
-		}
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->redraw |= (PR_LEV | PR_EXP);
 
 	return 1;
 }
@@ -1449,6 +1413,7 @@ int Receive_gold(void)
 	}
 
 	p_ptr->au = gold;
+	p_ptr->redraw |= PR_GOLD;
 
 	if (shopping)
 	{
@@ -1459,16 +1424,8 @@ int Receive_gold(void)
 	        sprintf(out_val, "%9ld", (long) gold);
 	        prt(out_val, 19, 68);
 	}
-	else if (!screen_icky)
-		prt_gold(gold);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%d", ch, gold)) <= 0)
-		{
-			return n;
-		}
 
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER_0 | PW_PLAYER_2);
 
 	return 1;
 }
@@ -1486,17 +1443,7 @@ int Receive_sp(void)
 
 	p_ptr->msp = max;
 	p_ptr->csp = cur;
-
-	if (!screen_icky && !shopping)
-		prt_sp(max, cur);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd%hd", ch, max, cur)) <= 0)
-		{
-			return n;
-		}
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->redraw |= PR_MANA;
 
 	return 1;
 }
@@ -1513,18 +1460,12 @@ int Receive_objflags(void)
 		return n;
 	}
 	
-	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0);
+	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0, 0);
 	
-	/* No RLE mode
-	for (x = 0; x < 13; x++)
-	{
-		
-		Packet_scanf(&rbuf, "%c%c", &a, &c);
-		p_ptr->hist_flags[y][x].a = a;
-		p_ptr->hist_flags[y][x].c = c;
-		
-	}
-	*/
+	p_ptr->redraw |= PR_EQUIPPY; 
+
+	/* Window stuff */
+	p_ptr->window |= (PW_PLAYER_1);
 
 	return 1;
 }
@@ -1547,14 +1488,14 @@ int Receive_history(void)
 	/*printf("Received history line %d: %s\n", line, buf);*/
 
 	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	//p_ptr->window |= (PW_PLAYER);
 
 	return 1;
 }
 
 int Receive_char(void)
 {
-	int	n;
+	int	n, x_off = 0;
 	char	ch;
 	unsigned char	x, y;
 	char	c, tcp;
@@ -1565,6 +1506,12 @@ int Receive_char(void)
 	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c", &ch, &x, &y, &a, &c)) <= 0)
 	{
 		return n;
+	}
+	
+	/* Temporary Hack: Manipulate offset */
+	if (!(window_flag[0] & PW_PLAYER_2)) {
+		x -= 13;
+		x_off = 13;
 	}
 
 	if (use_graphics > 1) {
@@ -1594,14 +1541,14 @@ int Receive_char(void)
 	/* Queue for later */
 	else if (use_graphics > 1)
 	{
-		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c%c%c", ch, x, y, a, c, tap, tcp)) <= 0)
+		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c%c%c", ch, x-x_off, y, a, c, tap, tcp)) <= 0)
 		{
 			return n;
 		}
 	}
 	else
 	{
-		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x, y, a, c)) <= 0)
+		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x-x_off, y, a, c)) <= 0)
 		{
 			return n;
 		}
@@ -1691,15 +1638,12 @@ int Receive_state(void)
 	{
 		return n;
 	}
-
-	if (!screen_icky && !shopping)
-		prt_state((bool)paralyzed, (bool)searching, (bool)resting);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hu%hu%hu", ch, paralyzed, searching, resting)) <= 0)
-		{
-			return n;
-		}
 	
+	p_ptr->paralyzed = paralyzed;
+	p_ptr->resting = resting;
+	p_ptr->searching = searching;
+	p_ptr->redraw |= PR_STATE;
+
 	return 1;
 }
 
@@ -1717,13 +1661,9 @@ int Receive_title(void)
 	/* XXX -- Extract "ghost-ness" */
 	p_ptr->ghost = streq(buf, "Ghost");
 
-	if (!screen_icky && !shopping)
-		prt_title(buf);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%s", ch, buf)) <= 0)
-		{
-			return n;
-		}
+	strncpy(ptitle, buf, 13);
+	ptitle[13] = '\0';
+	p_ptr->redraw |= PR_TITLE;
 
 	return 1;
 }
@@ -1739,13 +1679,8 @@ int Receive_depth(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_depth(depth);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hu", ch, depth)) <= 0)
-		{
-			return n;
-		}
+	p_ptr->dun_depth = depth;
+	p_ptr->redraw |= (PR_DEPTH);	
 
 	return 1;
 }
@@ -1760,14 +1695,9 @@ int Receive_confused(void)
 	{
 		return n;
 	}
-
-	if (!screen_icky && !shopping)
-		prt_confused(confused);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c", ch, confused)) <= 0)
-		{
-			return n;
-		}
+	
+	p_ptr->confused = confused;
+	p_ptr->redraw |= (PR_CONFUSED);
 
 	return 1;
 }
@@ -1782,14 +1712,9 @@ int Receive_poison(void)
 	{
 		return n;
 	}
-
-	if (!screen_icky && !shopping)
-		prt_poisoned(poison);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c", ch, poison)) <= 0)
-		{
-			return n;
-		}
+	
+	p_ptr->poisoned = poison;
+	p_ptr->redraw |= PR_POISONED;
 
 	return 1;
 }
@@ -1804,14 +1729,9 @@ int Receive_study(void)
 	{
 		return n;
 	}
-
-	if (!screen_icky && !shopping)
-		prt_study(study);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c", ch, study)) <= 0)
-		{
-			return n;
-		}
+	
+	p_ptr->new_spells = study;
+	p_ptr->redraw |= PR_STUDY;
 
 	return 1;
 }
@@ -1827,14 +1747,9 @@ int Receive_food(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_hunger(food);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hu", ch, food)) <= 0)
-		{
-			return n;
-		}
-
+	p_ptr->food = food;
+	p_ptr->redraw |= (PR_HUNGER);	
+	
 	return 1;
 }
 
@@ -1849,13 +1764,8 @@ int Receive_fear(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_afraid(afraid);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c", ch, afraid)) <= 0)
-		{
-			return n;
-		}
+	p_ptr->afraid = afraid;
+	p_ptr->redraw |= PR_AFRAID;
 
 	return 1;
 }
@@ -1871,13 +1781,8 @@ int Receive_speed(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_speed(speed);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd", ch, speed)) <= 0)
-		{
-			return n;
-		}
+	p_ptr->pspeed = speed;
+	p_ptr->redraw |= PR_SPEED;
 
 	return 1;
 }
@@ -1896,8 +1801,10 @@ int Receive_keepalive(void)
 	/* make sure it's the same one we sent... */
 
 	if(cticks == last_keepalive) {
-		if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
-			prt_lag(cticks,mticks-cticks);
+		if (conn_state == CONN_PLAYING) {
+			lag_mark = cticks;
+			lag_minus = mticks;
+			p_ptr->redraw |= PR_LAG_METER;
 		} 
 		last_keepalive=0;
 	};
@@ -1916,13 +1823,8 @@ int Receive_cut(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_cut(cut);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd", ch, cut)) <= 0)
-		{
-			return n;
-		}
+	p_ptr->cut = cut;
+	p_ptr->redraw |= PR_CUT;
 
 	return 1;
 }
@@ -1937,14 +1839,9 @@ int Receive_blind(void)
 	{
 		return n;
 	}
-
-	if (!screen_icky && !shopping)
-		prt_blind(blind);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%c", ch, blind)) <= 0)
-		{
-			return n;
-		}
+	
+	p_ptr->blind = blind;
+	p_ptr->redraw |= PR_BLIND;
 
 	return 1;
 }
@@ -1960,13 +1857,8 @@ int Receive_stun(void)
 		return n;
 	}
 
-	if (!screen_icky && !shopping)
-		prt_stun(stun);
-	else
-		if ((n = Packet_printf(&qbuf, "%c%hd", ch, stun)) <= 0)
-		{
-			return n;
-		}
+	p_ptr->stun = stun;
+	p_ptr->redraw |= PR_STUN;
 
 	return 1;
 }
@@ -2076,7 +1968,7 @@ int Receive_flush(void)
 int Receive_line_info(void)
 {
 	char	ch, n;
-	s16b	y;
+	s16b	y, x = 0;
 		bool	draw = FALSE;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
@@ -2095,11 +1987,16 @@ int Receive_line_info(void)
 	if (ch != PKT_MINI_MAP && use_graphics > 1)
 	{
 		/* Decode the secondary attr/char stream */		
-		rle_decode(&rbuf, p_ptr->trn_info[y], 80, RLE_LARGE , 0 );
+		rle_decode(&rbuf, p_ptr->trn_info[y], 80, RLE_LARGE , 0 , 0);
+	}
+
+	/* Temporary Hack: Manipulate offset */
+	if (!(window_flag[0] & PW_PLAYER_2)) {
+		x = -13;		
 	}
 
 	/* Decode the attr/char stream */		
-	rle_decode(&rbuf, NULL, 80, (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1) );
+	rle_decode(&rbuf, NULL, 80, (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1) , x);
 
 	/* Request a redraw if the screen was icky */
 	if (screen_icky)
@@ -2474,7 +2371,7 @@ int Receive_skills(void)
 	p_ptr->see_infra = tmp[10];
 
 	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER_0);
 
 	return 1;
 }
@@ -2543,18 +2440,9 @@ int Receive_monster_health(void)
 		return n;
 	}
 
-	if (!screen_icky)
-	{
-		/* Draw the health bar */
-		health_redraw(num, attr);
-	}
-	else
-	{
-		if ((n = Packet_printf(&qbuf, "%c%c%c", ch, num, attr)) <= 0)
-		{
-			return n;
-		}
-	}
+	health_track_num = num;
+	health_track_attr = attr;
+	p_ptr->redraw |= PR_HEALTH_TRACK;
 
 	return 1;
 }
@@ -3393,7 +3281,9 @@ static u32b last_sent;
 		{
 			if(last_keepalive) { 
 				if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
-					prt_lag(999999999, mticks-last_keepalive); 
+					lag_mark = 64000; //999999
+					lag_minus = last_keepalive;
+					p_ptr->redraw |= PR_LAG_METER; 
 				} 
 				last_keepalive=0;
 			};

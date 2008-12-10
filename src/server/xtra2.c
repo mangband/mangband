@@ -983,6 +983,8 @@ bool set_oppose_acid(int Ind, int v)
 	/* Disturb */
 	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
 
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
+
 	/* Handle stuff */
 	handle_stuff(Ind);
 
@@ -1031,6 +1033,8 @@ bool set_oppose_elec(int Ind, int v)
 
 	/* Disturb */
 	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
 	handle_stuff(Ind);
@@ -1081,6 +1085,8 @@ bool set_oppose_fire(int Ind, int v)
 	/* Disturb */
 	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
 
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
+
 	/* Handle stuff */
 	handle_stuff(Ind);
 
@@ -1130,6 +1136,8 @@ bool set_oppose_cold(int Ind, int v)
 	/* Disturb */
 	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
 
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
+
 	/* Handle stuff */
 	handle_stuff(Ind);
 
@@ -1178,6 +1186,8 @@ bool set_oppose_pois(int Ind, int v)
 
 	/* Disturb */
 	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+
+	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
 	handle_stuff(Ind);

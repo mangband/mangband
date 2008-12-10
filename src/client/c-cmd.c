@@ -1354,7 +1354,7 @@ void cmd_character(void)
 	while (!done)
 	{
 		/* Display player info */
-		display_player();
+		display_player(char_screen_mode);
 
 		/* Display message */
 		prt("[ESC to quit, h to toggle history, p to change password]", 21, 12);

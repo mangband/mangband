@@ -178,6 +178,12 @@ static void Input_loop(void)
 		// Update our internal timer, which is used to figure out when
 		// to send keepalive packets.
 		update_ticks();
+		
+		/* Redraw status etc if necessary */
+		if (p_ptr->redraw)
+		{
+			redraw_stuff();
+		}
 
 		/* Hack -- don't redraw the screen until we have all of it */
 		if (last_line_info < 22) continue;

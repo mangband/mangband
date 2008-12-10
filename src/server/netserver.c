@@ -1323,6 +1323,9 @@ static int Enter_player(int ind)
 	/* Send party information */
 	Send_party(NumPlayers);
 
+	/* Send him his history */
+	prt_history(NumPlayers);	
+	
 	/* Hack -- terminate the data stream sent to the client 
 	if (Packet_printf(&connp->c, "%c", PKT_END) <= 0)
 	{
@@ -2058,6 +2061,20 @@ int Send_plusses(int ind, int tohit, int todam)
 	return Packet_printf(&connp->c, "%c%hd%hd", PKT_PLUSSES, tohit, todam);
 }
 
+
+int Send_oppose(int ind, int acid, int elec, int fire, int cold, int pois)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for oppose (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd%hd", PKT_OPPOSE, acid, elec, fire, cold, pois);
+}
 
 int Send_ac(int ind, int base, int plus)
 {

@@ -63,6 +63,11 @@ extern char party_info[160];
 extern server_setup_t Setup;
 extern client_setup_t Client_setup;
 
+s16b lag_mark;
+s16b lag_minus;
+char health_track_num;
+byte health_track_attr;
+
 extern bool shopping;
 
 extern s16b last_line_info;
@@ -72,6 +77,8 @@ extern s16b max_line;
 extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;
+
+extern byte hitpoint_warn;
 
 extern s16b command_see;
 extern s16b command_gap;
@@ -134,6 +141,7 @@ extern s16b custom_commands;
 extern s16b race;
 extern s16b class;
 extern s16b sex;
+extern char ptitle[80];
 
 extern s16b stat_order[6];
 
@@ -386,31 +394,11 @@ extern void display_inventory(void);
 extern void display_store(void);
 
 /* c-xtra1.c */
-extern void prt_stat(int stat, int max, int cur, bool maxed);
-extern void prt_title(cptr title);
-extern void prt_level(int level, int max, int cur, int adv);
-extern void prt_gold(int gold);
-extern void prt_ac(int ac);
-extern void prt_hp(int max, int cur);
-extern void prt_sp(int max, int cur);
-extern void prt_depth(int depth);
-extern void prt_hunger(int food);
-extern void prt_blind(bool blind);
-extern void prt_confused(bool confused);
-extern void prt_afraid(bool fear);
-extern void prt_poisoned(bool poisoned);
-extern void prt_state(bool paralyzed, bool searching, bool resting);
-extern void prt_speed(int speed);
-extern void prt_study(bool study);
-extern void prt_cut(int cut);
-extern void prt_lag(u32b mark, u32b num);
-extern void prt_stun(int stun);
-extern void prt_basic(void);
-extern void health_redraw(int num, byte attr);
 extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);
-extern void display_player(void);
+extern void display_player(int screen_mode);
+extern void redraw_stuff(void);
 extern void window_stuff(void);
 extern void fix_floor(void);
 

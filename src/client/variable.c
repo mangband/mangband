@@ -33,6 +33,11 @@ char party_info[160];			/* Information about your party */
 server_setup_t Setup;				/* The information given to us by the server */
 client_setup_t Client_setup;		/* The information we give to the server */
 
+s16b lag_mark;
+s16b lag_minus;
+char health_track_num;
+byte health_track_attr;
+
 bool shopping;				/* Are we in a store? */
 
 s16b last_line_info;			/* Last line of info we've received */
@@ -46,6 +51,8 @@ player_type *p_ptr = &player;
 player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
+
+byte hitpoint_warn;
 
 s16b command_see;
 s16b command_gap;
@@ -100,6 +107,7 @@ s16b custom_commands;
 s16b race;
 s16b class;
 s16b sex;
+char ptitle[80];
 
 s16b stat_order[6];			/* Desired order of stats */
 

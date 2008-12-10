@@ -728,6 +728,7 @@ extern bool Report_to_meta(int flag);
 extern int Setup_net_server(void);
 extern bool Destroy_connection(int Ind, char *reason);
 extern int Send_plusses(int Ind, int tohit, int todam);
+extern int Send_oppose(int ind, int acid, int elec, int fire, int cold, int pois);
 extern int Send_ac(int Ind, int base, int plus);
 extern int Send_experience(int Ind, int lev, int max_exp, int cur_exp, s32b adv_exp);
 extern int Send_gold(int Ind, s32b gold);
@@ -1061,6 +1062,7 @@ extern void update_stuff(int Ind);
 extern void redraw_stuff(int Ind);
 extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
+extern void prt_history(int Ind);
 
 /* xtra2.c */
 extern int get_player(int Ind, object_type *o_ptr);

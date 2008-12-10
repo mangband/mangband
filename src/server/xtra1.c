@@ -319,6 +319,15 @@ static void prt_poisoned(int Ind)
 	}
 }
 
+/*
+ * Prints Opposed Elements
+ */
+static void prt_oppose_elements(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	Send_oppose(Ind, p_ptr->oppose_acid, p_ptr->oppose_elec, p_ptr->oppose_fire, p_ptr->oppose_cold, p_ptr->oppose_pois);
+}
 
 /*
  * Prints Searching, Resting, Paralysis, or 'count' status
@@ -822,7 +831,7 @@ static void prt_flags(int Ind)
 }
 
 
-static void prt_history(int Ind)
+void prt_history(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	int i;
@@ -1205,6 +1214,9 @@ static void prt_frame_extra(int Ind)
 
 	/* Study spells */
 	prt_study(Ind);
+	
+	/* Opposed elements */
+	prt_oppose_elements(Ind);
 }
 
 
@@ -3161,11 +3173,11 @@ void redraw_stuff(int Ind)
 		cursor_redraw(Ind);
 	}
 
-	if (p_ptr->redraw & PR_HISTORY)
+	/*if (p_ptr->redraw & PR_HISTORY)
 	{
 		p_ptr->redraw &= ~(PR_HISTORY);
 		prt_history(Ind);
-	}
+	}*/
 	
 	if (p_ptr->redraw & PR_OFLAGS)
 	{
@@ -3266,6 +3278,12 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_FLOOR);
 		prt_floor_item(Ind);
+	}
+	
+	if (p_ptr->redraw & PR_OPPOSE_ELEMENTS)
+	{
+		p_ptr->redraw &= ~(PR_OPPOSE_ELEMENTS);
+		prt_oppose_elements(Ind);
 	}
 }
 

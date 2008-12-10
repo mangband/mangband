@@ -21,6 +21,7 @@
 
 
 /* Packet types 20-59 are info that is sent to the client */
+#define PKT_OPPOSE		18
 #define PKT_MAXSTAT		19
 #define PKT_PLUSSES		20
 #define PKT_AC			21

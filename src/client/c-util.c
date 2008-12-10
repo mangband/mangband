@@ -2803,8 +2803,8 @@ static void do_cmd_options_win(void)
 			case 'y':
 			case 'Y':
 			{
-				/* Ignore screen */
-				if (x == 0) break;
+				/* Ignore screen (but not for Status AND Compact)*/
+				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
 				/* Set flag */
 				window_flag[x] |= (1L << y);
@@ -2856,7 +2856,7 @@ static void do_cmd_options_win(void)
 	}
 
 	/* Update windows */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_PLAYER);
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_PLAYER | PW_STATUS);
 
 	/* Update windows */
 	window_stuff();
