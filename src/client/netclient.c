@@ -1224,6 +1224,7 @@ int Receive_struct_info(void)
 	u16b 	max;
 	char 	name[MAX_CHARS];
 	u32b 	off, fake_name_size, fake_text_size;
+	byte	spell_book;
 
 	typ = max = off = fake_name_size = fake_text_size = 0;
 
@@ -1247,6 +1248,8 @@ int Receive_struct_info(void)
 			{
 				player_race *pr_ptr = NULL;
 				pr_ptr = &race_info[i];
+				
+				off = 0;
 						
 				if ((n = Packet_scanf(&rbuf, "%s%lu", &name, &off)) <= 0)
 				{
@@ -1271,8 +1274,10 @@ int Receive_struct_info(void)
 			{
 				player_class *pc_ptr = NULL;
 				pc_ptr = &c_info[i];
+				
+				off = spell_book = 0;
 						
-				if ((n = Packet_scanf(&rbuf, "%s%lu", &name, &off)) <= 0)
+				if ((n = Packet_scanf(&rbuf, "%s%lu%c", &name, &off, &spell_book)) <= 0)
 				{
 					return n;
 				}
@@ -1281,6 +1286,7 @@ int Receive_struct_info(void)
 			
 				pc_ptr->name = off;
 				/* Transfer other fields here */
+				pc_ptr->spell_book = spell_book;
 			}
 		break;
 	}	

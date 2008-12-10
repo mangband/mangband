@@ -2235,7 +2235,7 @@ int Send_class_info_conn(int ind)
 	for (i = 0; i < z_info->c_max; i++)
 	{
 		/* Transfer other fields here */
-		if (Packet_printf(&connp->c, "%s%lu",  c_name + c_info[i].name, c_info[i].name) <= 0)
+		if (Packet_printf(&connp->c, "%s%lu%c",  c_name + c_info[i].name, c_info[i].name, c_info[i].spell_book) <= 0)
 		{
 			Destroy_connection(ind, "write error");
 			return -1;
