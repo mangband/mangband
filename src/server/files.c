@@ -945,10 +945,12 @@ void display_player_server(int Ind, char buffer[100][82])
 	int i;
 	char buf[80];
 	cptr desc;
-	bool hist;
+	bool hist = FALSE;
 	player_type *p_ptr = Players[Ind];
 
-    hist = FALSE;
+    int show_tohit = p_ptr->dis_to_h;
+    int show_todam = p_ptr->dis_to_d;
+    object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
 
         /* Name, Sex, Race, Class */
         put_str_b(buffer,"Name        :", 2, 1);
@@ -1064,8 +1066,13 @@ void display_player_server(int Ind, char buffer[100][82])
 		put_str_b(buffer,format("%d feet", p_ptr->see_infra * 10), 19, 69);
 
         /* Dump the bonuses to hit/dam */
-        prt_num_b(buffer,"+ To Hit    ", p_ptr->dis_to_h, 9, 1, TERM_L_BLUE);
-        prt_num_b(buffer,"+ To Damage ", p_ptr->dis_to_d, 10, 1, TERM_L_BLUE);
+        if (o_ptr->k_idx)
+        {
+        	show_tohit += o_ptr->to_h;
+        	show_todam += o_ptr->to_d;
+        }
+        prt_num_b(buffer,"+ To Hit    ", show_tohit, 9, 1, TERM_L_BLUE);
+        prt_num_b(buffer,"+ To Damage ", show_todam, 10, 1, TERM_L_BLUE);
 
         /* Dump the armor class bonus */
         prt_num_b(buffer,"+ To AC     ", p_ptr->dis_to_a, 11, 1, TERM_L_BLUE);
