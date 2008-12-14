@@ -152,8 +152,6 @@
 #define SCREEN_CLIP_X	13
 #define SCREEN_CLIP_Y	2
 #define SCREEN_CLIP_L	1
-#define last_line_barrier \
-	((window_flag[0] & PW_STATUS) ? Term->hgt - SCREEN_CLIP_Y : Term->hgt - SCREEN_CLIP_L)
 #define DUNGEON_OFFSET_X \
 	((window_flag[0] & PW_PLAYER_2) ? SCREEN_CLIP_X : 0)
 #define DUNGEON_OFFSET_Y \
