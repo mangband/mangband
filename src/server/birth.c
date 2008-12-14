@@ -1141,24 +1141,6 @@ static void player_setup(int Ind)
 	p_ptr->current_spell = p_ptr->current_rod = p_ptr->current_activation = -1;
 	p_ptr->current_house = p_ptr->current_selling = p_ptr->store_num = -1;
 
-	/* Set the player's "panel" information */
-	p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-	p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-	p_ptr->panel_row = ((p_ptr->py - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
-	if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
-	else if (p_ptr->panel_row < 0) p_ptr->panel_row = 0;
-
-	p_ptr->panel_col = ((p_ptr->px - SCREEN_WID / 4) / (SCREEN_WID / 2));
-	if (p_ptr->panel_col > p_ptr->max_panel_cols) p_ptr->panel_col = p_ptr->max_panel_cols;
-	else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
-
-	p_ptr->cur_hgt = MAX_HGT;
-	p_ptr->cur_wid = MAX_WID;
-
-	/* Set the rest of the panel information */
-	panel_bounds(Ind);
-
 	/* Make sure his party still exists */
 	if (p_ptr->party && parties[p_ptr->party].num == 0)
 	{

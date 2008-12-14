@@ -107,6 +107,10 @@ struct server_setup_t
 {
 	s16b frames_per_second;
 	int motd_len;
+	byte min_col;
+	byte max_col;
+	byte min_row;
+	byte max_row;
 	bool ready;
 	bool wait;
 	char motd[80 * 23];
@@ -1279,6 +1283,8 @@ struct player_type
 	char tval_char[128];
    
 	byte use_graphics;
+	byte screen_wid;
+	byte screen_hgt;
 
 	bool carry_query_flag;
 	bool use_old_target;
@@ -1320,8 +1326,8 @@ struct player_type
 	s16b panel_col_old;
 
 				/* What he should be seeing */
-	cave_view_type scr_info[SCREEN_HGT + 20][SCREEN_WID + 24];
-	cave_view_type trn_info[SCREEN_HGT + 20][SCREEN_WID + 24];
+	cave_view_type scr_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
+	cave_view_type trn_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
 
 	char died_from[80];	/* What off-ed him */
 	char died_from_list[80]; /* what goes on the high score list */

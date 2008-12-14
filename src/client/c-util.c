@@ -2845,6 +2845,12 @@ static void do_cmd_options_win(void)
 		/* Activate */
 		Term_activate(ang_term[j]);
 
+		/* Hack -- request resize for dungeon */
+		if (j == 0)
+		{
+			net_term_resize(0, 0);
+		}
+
 		/* Erase */
 		Term_clear();
 

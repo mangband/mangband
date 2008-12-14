@@ -71,6 +71,7 @@ static void Receive_init(void)
 	setup_tbl[PKT_END]		= Receive_end;
 
 	receive_tbl[PKT_MOTD] = Receive_motd;
+	receive_tbl[PKT_ACK] = Receive_ack;
 	receive_tbl[PKT_QUIT]		= Receive_quit;
 	receive_tbl[PKT_START]		= Receive_start;
 	receive_tbl[PKT_END]		= Receive_end;
@@ -1181,13 +1182,15 @@ int Receive_motd(void)
 int Receive_basic_info(void)
 {
 	int n;
-	int graf, snd, tmp3, tmp4, tmp5, tmp6, tmp7;
+	int graf, snd, tmp7;
 	char ch;
 
 	/* Clear any old info */
-	graf = snd = tmp3 = tmp4 = tmp5 = tmp6 = tmp7 = 0;
+	graf = snd = tmp7 = 0;
+	Setup.frames_per_second = Setup.min_col = Setup.min_row = Setup.max_col = Setup.max_row = 0;
 
-	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd%hd%hd%hd", &ch, &Setup.frames_per_second, &graf, &snd, &tmp3, &tmp4, &tmp5, &tmp6, &tmp7)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd%hd%hd%hd", &ch, 
+	&Setup.frames_per_second, &graf, &snd, &Setup.min_col, &Setup.min_row, &Setup.max_col, &Setup.max_row, &tmp7)) <= 0)
 	{
 		return n;
 	}
@@ -1308,6 +1311,49 @@ int Receive_char_info_conn(void)
 	{
 			client_ready();
 	}
+	
+	return 1;
+}
+int Receive_ack(void)
+{
+	char 	ch;
+	int 	n;
+	byte 	typ;
+	byte	x, y;
+
+	typ = x = y = 0;
+
+	if ((n = Packet_scanf(&rbuf, "%c%c", &ch, &typ) <= 0))
+	{
+		return n;
+	}
+
+	/* What was acknowledged?! */
+	switch (typ)
+	{
+		/* No defines yet.. Let's say "0" is for "Term_Resize" */
+		case 0:
+			if ((n = Packet_scanf(&rbuf, "%c%c", &x, &y)) <= 0)
+			{
+				return n;
+			}
+
+			/* Hack -- Interface offsets */
+			y += SCREEN_CLIP_L;	/* Top Line */
+			x += DUNGEON_OFFSET_X; /* Compact */
+			y += DUNGEON_OFFSET_Y;	/* Status line */
+
+			/* Term resize! */
+			Term_resize(x, y);
+
+			/* Redraw status line */
+			Term_erase(0, y-1, x);
+			p_ptr->redraw |= PR_STATUS;
+			/* Redraw compact */
+			p_ptr->redraw |= PR_COMPACT;
+			
+		break;
+	}	
 	
 	return 1;
 }
@@ -1508,11 +1554,8 @@ int Receive_char(void)
 		return n;
 	}
 	
-	/* Temporary Hack: Manipulate offset */
-	if (!(window_flag[0] & PW_PLAYER_2)) {
-		x -= 13;
-		x_off = 13;
-	}
+	/* Hack: Manipulate offset */
+	x += (x_off = DUNGEON_OFFSET_X);
 
 	if (use_graphics > 1) {
 		if ((n = Packet_scanf(&rbuf, "%c%c", &tap, &tcp)) <= 0)
@@ -1984,19 +2027,17 @@ int Receive_line_info(void)
 	if (y > last_line_info)
 		last_line_info = y;
 
+	/* Hack: Manipulate offset */	
+	x += DUNGEON_OFFSET_X;
+
 	if (ch != PKT_MINI_MAP && use_graphics > 1)
 	{
 		/* Decode the secondary attr/char stream */		
-		rle_decode(&rbuf, p_ptr->trn_info[y], 80, RLE_LARGE , 0 , 0);
-	}
-
-	/* Temporary Hack: Manipulate offset */
-	if (!(window_flag[0] & PW_PLAYER_2)) {
-		x = -13;		
+		rle_decode(&rbuf, p_ptr->trn_info[y], Client_setup.settings[1], RLE_LARGE , 0 , x);
 	}
 
 	/* Decode the attr/char stream */		
-	rle_decode(&rbuf, NULL, 80, (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1) , x);
+	rle_decode(&rbuf, NULL, Client_setup.settings[1], (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1), x);
 
 	/* Request a redraw if the screen was icky */
 	if (screen_icky)
@@ -2178,6 +2219,9 @@ int Receive_target_info(void)
 
 	/* Print the message */
 	prt(buf, 0, 0);
+
+	/* Hack: Manipulate offset */
+	x += DUNGEON_OFFSET_X;
 
 	/* Move the cursor */
 	Term_gotoxy(x, y);
@@ -2386,6 +2430,9 @@ int Receive_cursor(void)
 	{
 		return n;
 	}
+	
+	/* Hack: Manipulate offset */
+	x += DUNGEON_OFFSET_X;
 	
 	if (cursor_icky)
 		Term_consolidate_cursor(vis, x, y);
@@ -3208,6 +3255,35 @@ int Send_clear(void)
 	}
 
 	return 1;
+}
+
+void net_term_resize(int cols, int rows)
+{
+	/* Defaults */
+	if (!cols && !rows)
+	{
+		cols = Term->wid;
+		rows = Term->hgt - SCREEN_CLIP_L;
+	}
+
+	/* Compact display */
+	cols -= DUNGEON_OFFSET_X;
+
+	/* Status line */
+	rows -= DUNGEON_OFFSET_Y;
+	
+	/* Check */
+	if (cols < Setup.min_col) cols = Setup.min_col;
+	if (rows < Setup.min_row) rows = Setup.min_row; 
+	if (cols > Setup.max_col) cols = Setup.max_col;
+	if (rows > Setup.max_row) rows = Setup.max_row;
+
+	/* Save */
+	Client_setup.settings[1] = cols;
+	Client_setup.settings[2] = rows;
+	
+	/* Send */
+	Send_options(TRUE);
 }
 
 // Update the current time, which is stored in 100 ms "ticks".

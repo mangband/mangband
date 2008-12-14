@@ -713,7 +713,15 @@ void gui_term_drag(int nmx, int nmy) {
   		sel_term->rows += my;
   		
 		if (sel_term->cols < 3) { sel_term->cols = 3; mx = 0; }
-		if (sel_term->rows < 1) { sel_term->rows = 1; my = 0; }		
+		if (sel_term->rows < 1) { sel_term->rows = 1; my = 0; }
+		/* Dungeon display hack */		
+		if (!m_term) {
+			if (!conn_state) { mx = 0; my = 0; }
+			if (sel_term->cols < Setup.min_col+SCREEN_CLIP_X) { sel_term->cols = Setup.min_col+SCREEN_CLIP_X; mx = 0; }
+			if (sel_term->rows < Setup.min_row+SCREEN_CLIP_Y) { sel_term->rows = Setup.min_row+SCREEN_CLIP_Y; my = 0; }
+			if (sel_term->cols > Setup.max_col+SCREEN_CLIP_X) { sel_term->cols = Setup.max_col+SCREEN_CLIP_X; mx = 0; }
+			if (sel_term->rows > Setup.max_row+SCREEN_CLIP_Y) { sel_term->rows = Setup.max_row+SCREEN_CLIP_Y; my = 0; }
+		}		
 
   		/* Nothing happend! */
 		if (!mx && !my) return;
@@ -856,6 +864,13 @@ void gui_term_unctrl() {
 
 	if (m_resized) {
 		term_close(i);
+		if (i == 0) {	/* Dungeon size */
+			net_term_resize(sel_term->cols, sel_term->rows - SCREEN_CLIP_L);
+		} else {				/* Other windows */
+			Term_activate(&sel_term->t);
+			Term_resize(sel_term->cols, sel_term->rows);
+			Term_activate(term_screen);
+		}
 		term_open(i);
 		m_resized = FALSE;
 		m_subterm = m_term = -1;
@@ -1981,6 +1996,7 @@ void term_close(int i)
 	/* Unlink */
 	ang_term[i] = NULL;
 }
+#define PMSG_TERM 4
 void term_open(int j)
 {
 	if (j == -1) return;
@@ -2004,6 +2020,7 @@ void term_open(int j)
 
 	term_redraw(j);
 	p_ptr->window |= window_flag[j];
+	if (j == PMSG_TERM) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
 	window_stuff();
 }
 void term_spawn()
@@ -2635,6 +2652,11 @@ void save_one_term(int i) {
 	conf_set_int(sec_name, "Visible", (int)td->online);
 	if (td->fd && td->fd->name)
 	conf_set_string(sec_name, "Font", td->fd->name);
+	
+	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
+	if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+	if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	
+	
 	conf_set_int(sec_name, "Cols", td->cols);
 	conf_set_int(sec_name, "Rows", td->rows);
 	conf_set_int(sec_name, "PositionX", td->xoff);

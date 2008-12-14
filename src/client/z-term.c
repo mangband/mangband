@@ -2290,6 +2290,10 @@ errr Term_resize(int w, int h)
 	if (Term->mem->cx >= w) Term->mem->cu = 1;
 	if (Term->mem->cy >= h) Term->mem->cu = 1;
 
+	/* Illegal cursor */
+	if (Term->scr->cx >= w) Term->old->bcv = Term->old->cv = 0;
+	if (Term->scr->cy >= h) Term->old->bcv = Term->old->cv = 0;
+
 #if 0
 
 	/* Illegal cursor */

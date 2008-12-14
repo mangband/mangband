@@ -2955,12 +2955,14 @@ void panel_bounds(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	p_ptr->panel_row_min = p_ptr->panel_row * (SCREEN_HGT / 2);
-	p_ptr->panel_row_max = p_ptr->panel_row_min + SCREEN_HGT - 1;
-	p_ptr->panel_row_prt = p_ptr->panel_row_min - 1;
-	p_ptr->panel_col_min = p_ptr->panel_col * (SCREEN_WID / 2);
-	p_ptr->panel_col_max = p_ptr->panel_col_min + SCREEN_WID - 1;
-	p_ptr->panel_col_prt = p_ptr->panel_col_min - 13;
+	p_ptr->panel_row_min = p_ptr->panel_row * (p_ptr->screen_hgt / 2);
+	if (p_ptr->panel_row_min + p_ptr->screen_hgt > p_ptr->cur_hgt) p_ptr->panel_row_min = p_ptr->cur_hgt - p_ptr->screen_hgt;
+	p_ptr->panel_row_max = p_ptr->panel_row_min + p_ptr->screen_hgt - 1;
+	p_ptr->panel_row_prt = p_ptr->panel_row_min - SCREEN_CLIP_L;
+	p_ptr->panel_col_min = p_ptr->panel_col * (p_ptr->screen_wid / 2);
+	if (p_ptr->panel_col_min + p_ptr->screen_wid > p_ptr->cur_wid) p_ptr->panel_col_min = p_ptr->cur_wid - p_ptr->screen_wid; 
+	p_ptr->panel_col_max = p_ptr->panel_col_min + p_ptr->screen_wid - 1;
+	p_ptr->panel_col_prt = p_ptr->panel_col_min;
 }
 
 
@@ -2986,7 +2988,7 @@ void verify_panel(int Ind)
 	/* Scroll screen when 2 grids from top/bottom edge */
 	if ((y < p_ptr->panel_row_min + 2) || (y > p_ptr->panel_row_max - 2))
 	{
-		prow = ((y - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
+		prow = ((y - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
 		if (prow > p_ptr->max_panel_rows) prow = p_ptr->max_panel_rows;
 		else if (prow < 0) prow = 0;
 	}
@@ -2994,7 +2996,7 @@ void verify_panel(int Ind)
 	/* Scroll screen when 4 grids from left/right edge */
 	if ((x < p_ptr->panel_col_min + 4) || (x > p_ptr->panel_col_max - 4))
 	{
-		pcol = ((x - SCREEN_WID / 4) / (SCREEN_WID / 2));
+		pcol = ((x - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
 		if (pcol > p_ptr->max_panel_cols) pcol = p_ptr->max_panel_cols;
 		else if (pcol < 0) pcol = 0;
 	}
@@ -3020,6 +3022,36 @@ void verify_panel(int Ind)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_OVERHEAD);
+}
+void setup_panel(int Ind, bool adjust)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Set the player's "panel" information */
+	p_ptr->max_panel_rows = (MAX_HGT / p_ptr->screen_hgt) * 2 - 2;
+	p_ptr->max_panel_cols = (MAX_WID / p_ptr->screen_wid) * 2 - 2;
+
+ 	/* Hack -- allow 'panel' leftovers */
+ 	while (MAX_WID * 2 - (p_ptr->max_panel_cols + 2) * p_ptr->screen_wid > 0) p_ptr->max_panel_cols++;
+ 	while (MAX_HGT * 2 - (p_ptr->max_panel_rows + 2) * p_ptr->screen_hgt > 0) p_ptr->max_panel_rows++;
+
+	/* Restore dungeon width (might've been overwritten by other displays) */ 	
+	p_ptr->cur_hgt = MAX_HGT;
+	p_ptr->cur_wid = MAX_WID;
+
+	/* Skip rest */ 	
+ 	if (!adjust) return;
+ 	
+ 	/* Set current */
+	p_ptr->panel_row = ((p_ptr->py - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
+	if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
+	else if (p_ptr->panel_row < 0) p_ptr->panel_row = 0;
+	p_ptr->panel_col = ((p_ptr->px - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
+	if (p_ptr->panel_col > p_ptr->max_panel_cols) p_ptr->panel_col = p_ptr->max_panel_cols;
+	else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
+
+	/* Set the rest of the panel information */
+	panel_bounds(Ind);
 }
 
 /*
@@ -3606,10 +3638,10 @@ void target_free_aux(int Ind, int dir, bool *can_target)
 		p_ptr->target_row -= p_ptr->panel_row_prt;
 
 		/* Adjus boundaries */
-		if (p_ptr->target_col < 13) p_ptr->target_col = 13;
-		if (p_ptr->target_col > SCREEN_WID+12) p_ptr->target_col = SCREEN_WID+12;
+		if (p_ptr->target_col < 0) p_ptr->target_col = 0;
+		if (p_ptr->target_col > p_ptr->screen_wid - 1) p_ptr->target_col = p_ptr->screen_wid - 1;
 		if (p_ptr->target_row < 1) p_ptr->target_row = 1;
-		if (p_ptr->target_row > SCREEN_HGT) p_ptr->target_row = SCREEN_HGT;
+		if (p_ptr->target_row > p_ptr->screen_hgt) p_ptr->target_row = p_ptr->screen_hgt;
 		
 		/* } Hack End */
 		p_ptr->target_col += p_ptr->panel_col_prt;

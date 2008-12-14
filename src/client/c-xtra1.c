@@ -2089,7 +2089,7 @@ void redraw_stuff(void)
 	{
 		p_ptr->window |= PW_STATUS;
 		/* HACK - Player disabled status on main terminal */
-		if (!(window_flag[0] & PW_STATUS)) {
+		if (!(window_flag[0] & PW_STATUS) || Term->wid < 80) {
 			p_ptr->redraw &= ~(PR_HUNGER | PR_BLIND | PR_CONFUSED | PR_AFRAID |
 	                     PR_POISONED | PR_STATE | PR_SPEED | PR_STUDY |
 	                     PR_DEPTH | PR_OPPOSE_ELEMENTS);

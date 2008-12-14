@@ -142,6 +142,7 @@ int Send_basic_info_conn(int ind);
 int Send_race_info_conn(int ind);
 int Send_class_info_conn(int ind);
 int Send_char_info_conn(int ind);
+int Send_term_resize_ack(int ind);
 
 int Setup_net_server(void);
 bool Destroy_connection(int ind, char *reason);

@@ -1897,12 +1897,8 @@ void dungeon(void)
 		{
 			bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
 
-			p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-			p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-			p_ptr->cur_hgt = MAX_HGT;
-			p_ptr->cur_wid = MAX_WID;
-
+			setup_panel(i, FALSE);
+			
 			/* Memorize the town for this player (if daytime) */
 			for (y = 0; y < MAX_HGT; y++)
 			{
@@ -1919,11 +1915,7 @@ void dungeon(void)
 		}
 		else
 		{
-			p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-			p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-			p_ptr->cur_hgt = MAX_HGT;
-			p_ptr->cur_wid = MAX_WID;
+			setup_panel(i, FALSE);
 		}
 
 		/* Determine starting location */
@@ -1994,8 +1986,8 @@ void dungeon(void)
 #if 0
 		while (TRUE)
 		{
-			y = rand_range(1, ((Depth) ? (MAX_HGT - 2) : (SCREEN_HGT - 2)));
-			x = rand_range(1, ((Depth) ? (MAX_WID - 2) : (SCREEN_WID - 2)));
+			y = rand_range(1, ((Depth) ? (MAX_HGT - 2) : (p_ptr->screen_hgt - 2)));
+			x = rand_range(1, ((Depth) ? (MAX_WID - 2) : (p_ptr->screen_wid - 2)));
 
 			/* Must be a "naked" floor grid */
 			if (!cave_naked_bold(Depth, y, x)) continue;
@@ -2054,11 +2046,11 @@ void dungeon(void)
 		}
     
 		/* Recalculate panel */
-		p_ptr->panel_row = ((p_ptr->py - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
+		p_ptr->panel_row = ((p_ptr->py - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
 		if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
 		else if (p_ptr->panel_row < 0) p_ptr->panel_row = 0;
 
-		p_ptr->panel_col = ((p_ptr->px - SCREEN_WID / 4) / (SCREEN_WID / 2));
+		p_ptr->panel_col = ((p_ptr->px - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
 		if (p_ptr->panel_col > p_ptr->max_panel_cols) p_ptr->panel_col = p_ptr->max_panel_cols;
 		else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
 	

@@ -1461,7 +1461,7 @@ void prt_map(int Ind)
 		dispy = y - p_ptr->panel_row_prt;
 
 		/* First clear the old stuff */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < MAX_WID; x++)
 		{
 			p_ptr->scr_info[dispy][x].c = 0;
 			p_ptr->scr_info[dispy][x].a = 0;
@@ -1660,15 +1660,15 @@ void display_map(int Ind)
 	bool old_view_granite_lite;
 
 	/* Large array on the stack */
-	byte ma[SCREEN_HGT + 2][78 + 2];
-	char mc[SCREEN_HGT + 2][78 + 2];
+	byte ma[MAX_HGT + 2][MAX_WID + 2];
+	char mc[MAX_HGT + 2][MAX_WID + 2];
 
-	byte mp[SCREEN_HGT + 2][78 + 2];
+	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = SCREEN_HGT;
-	map_wid = 78;
-	
+	map_hgt = p_ptr->screen_hgt - 1;
+	map_wid = p_ptr->screen_wid - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
@@ -1761,7 +1761,7 @@ void display_map(int Ind)
 	for (y = 0; y < map_hgt+2; ++y)
 	{
 		/* Display the line */
-		for (x = 0; x < 80; ++x)
+		for (x = 0; x < map_wid+2; ++x)
 		{
 			ta = ma[y][x];
 			tc = mc[y][x];
@@ -1778,7 +1778,7 @@ void display_map(int Ind)
 		Send_mini_map(Ind, y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < map_wid+2; x++)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;
@@ -1813,12 +1813,12 @@ void wild_display_map(int Ind)
 	char buf[80];
 
 	/* Large array on the stack */
-	byte ma[SCREEN_HGT + 2][78 + 2];
-	char mc[SCREEN_HGT + 2][78 + 2];
+	byte ma[MAX_HGT + 2][MAX_WID + 2];
+	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = SCREEN_HGT;
-	map_wid = 78;
+	map_hgt = p_ptr->screen_hgt - 1;
+	map_wid = p_ptr->screen_wid - 2;
 	
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
@@ -1929,7 +1929,7 @@ void wild_display_map(int Ind)
 	for (y = 0; y < map_hgt+2; ++y)
 	{
 		/* Display the line */
-		for (x = 0; x < 80; ++x)
+		for (x = 0; x < map_wid+2; ++x)
 		{
 			ta = ma[y][x];
 			tc = mc[y][x];
@@ -1946,7 +1946,7 @@ void wild_display_map(int Ind)
 		Send_mini_map(Ind, y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < map_wid+2; x++)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;

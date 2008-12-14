@@ -186,7 +186,7 @@ static void Input_loop(void)
 		}
 
 		/* Hack -- don't redraw the screen until we have all of it */
-		if (last_line_info < 22) continue;
+		if (last_line_info < last_line_barrier) continue;
 
 		/* Flush input (now!) */
 		flush_now();
@@ -234,7 +234,14 @@ static void quit_hook(cptr s)
 
 void gather_settings()
 {
+	/* Graphics */
 	Client_setup.settings[0] = use_graphics;
+
+	/* Dungeon Size */
+	Client_setup.settings[1] = Term->wid;
+	Client_setup.settings[2] = Term->hgt - SCREEN_CLIP_L; // Top Line
+	Client_setup.settings[1] -= DUNGEON_OFFSET_X; // Compact
+	Client_setup.settings[2] -= DUNGEON_OFFSET_Y; // Status line
 }
 
 /*
@@ -244,11 +251,11 @@ bool client_ready()
 {
 	/* Send request for MOTD to read (optional) */
 	Send_motd(0); // pass -1 to receive motd off-screen 
-
-	gather_settings();
 	
 	/* Initialize the pref files */
 	initialize_all_pref_files();
+
+	gather_settings();
 
 	Send_options(TRUE);
 

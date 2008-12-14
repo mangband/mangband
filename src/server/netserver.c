@@ -226,6 +226,10 @@ int Init_setup(void)
 
 	Setup.frames_per_second = cfg_fps;
 	Setup.motd_len = 23 * 80;
+	Setup.min_col = SCREEN_WID / 3 + 1;
+	Setup.min_row = SCREEN_HGT / 2 + 1;
+	Setup.max_col = MAX_WID;
+	Setup.max_row = MAX_HGT;
 
 	path_build(buf, 1024, ANGBAND_DIR_TEXT, "news.txt");
 
@@ -1193,7 +1197,39 @@ static void sync_options(int Ind)
 	}
 	
 }
+/* Same as above, but for settings
+ * Yeah, still kinda crappy */
+static int sync_settings(int ind)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+	player_type *p_ptr = Players[ind];
 
+	/* Resize */	
+	if (connp->Client_setup.settings[1] != p_ptr->screen_wid ||  connp->Client_setup.settings[2] != p_ptr->screen_hgt)
+	{
+		p_ptr->screen_wid = connp->Client_setup.settings[1];
+		p_ptr->screen_hgt = connp->Client_setup.settings[2];
+		
+		if (p_ptr->screen_hgt < Setup.min_row || p_ptr->screen_hgt > Setup.max_row || 
+		    p_ptr->screen_wid < Setup.min_col || p_ptr->screen_wid > Setup.max_col)
+		{	
+			errno = 0;
+			Destroy_connection(p_ptr->conn, "Incompatible screen size");
+			return -1;
+		}
+
+		setup_panel(ind, TRUE);
+		verify_panel(ind);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+		
+		/* Very important - ack term resize */
+		Send_term_resize_ack(ind);
+	}
+	
+	return 1;
+}
 /*
  * A client has requested to start active play.
  * See if we can allocate a player structure for it
@@ -1223,6 +1259,15 @@ static int Enter_player(int ind)
 			Destroy_connection(ind, "not login"); 
 			return -1;
 		}
+	}
+
+	/* XXX - HACK - Ensure his settings are allowed, disconnect otherwise */
+	if (connp->Client_setup.settings[1] < Setup.min_col || connp->Client_setup.settings[1] > Setup.max_col || 
+	    connp->Client_setup.settings[2] < Setup.min_row || connp->Client_setup.settings[2] > Setup.max_row)
+	{
+		Destroy_connection(ind, format("Incompatible screen size %dx%d (min %dx%d, max %dx%d).", 
+		connp->Client_setup.settings[1], connp->Client_setup.settings[2], Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row)); 
+		return -1;
 	}
 
 	if (!player_birth(NumPlayers + 1, connp->nick, connp->pass, ind, connp->race, connp->class, connp->sex, connp->stat_order))
@@ -1303,6 +1348,12 @@ static int Enter_player(int ind)
 
 	/* Hack -- graphic option */
 	p_ptr->use_graphics = connp->Client_setup.settings[0];
+
+	/* Hack -- dungeon screen size */
+	p_ptr->screen_wid = connp->Client_setup.settings[1];
+	p_ptr->screen_hgt = connp->Client_setup.settings[2];
+	
+	setup_panel(NumPlayers + 1, TRUE);
 
 	sync_options(NumPlayers + 1);
 
@@ -2270,7 +2321,7 @@ int Send_basic_info_conn(int ind)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd%hd%hd%hd%hd", PKT_BASIC_INFO, Setup.frames_per_second, 3, 1, 0, 0, 0, 0, 0);
+	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd%hd%hd%hd%hd", PKT_BASIC_INFO, Setup.frames_per_second, 3, 1, Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row, 0);
 }
 int Send_char_info_conn(int ind)
 {
@@ -2284,6 +2335,19 @@ int Send_char_info_conn(int ind)
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd", PKT_CHAR_INFO, connp->char_state, connp->race, connp->class, connp->sex);
+}
+int Send_term_resize_ack(int ind)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for term resize ack (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+	return Packet_printf(&connp->c, "%c%c%c%c", PKT_ACK, 0, Players[ind]->screen_wid, Players[ind]->screen_hgt);
 }
 
 int Send_char_info(int ind, int race, int class, int sex)
@@ -2714,11 +2778,11 @@ int Send_line_info(int ind, int y)
 	if (p_ptr->use_graphics > 1)
 	{
 		/* Encode and transperancy attr/char stream */
-		rle_encode(&connp->c, p_ptr->trn_info[y], 80, RLE_LARGE );
+		rle_encode(&connp->c, p_ptr->trn_info[y], p_ptr->screen_wid, RLE_LARGE );
 	}
 
 	/* Encode and send the attr/char stream */
-	rle_encode(&connp->c, p_ptr->scr_info[y], 80, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) );
+	rle_encode(&connp->c, p_ptr->scr_info[y], p_ptr->screen_wid, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) );
 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
@@ -2743,7 +2807,7 @@ int Send_mini_map(int ind, int y)
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", PKT_MINI_MAP, y);
 	
-	rle_encode(&connp->c, p_ptr->scr_info[y], 80, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 
+	rle_encode(&connp->c, p_ptr->scr_info[y], p_ptr->screen_wid, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */
@@ -5261,7 +5325,11 @@ static int Receive_options(int ind)
 	}
 
 	/* Sync named options */
-	if (player)	sync_options(player);
+	if (player)
+	{	
+		sync_options(player);
+		return sync_settings(player);
+	}
 
 	return 1;
 }

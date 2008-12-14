@@ -414,6 +414,7 @@ extern int ticks;
 extern int lag_ok;
 extern void update_ticks();
 extern void do_keepalive();
+extern void net_term_resize(int rows, int cols);
 extern bool Net_Send(int Socket, sockbuf_t* ibuf);
 extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
 extern int Net_setup(void);

@@ -1100,6 +1100,7 @@ extern void resurrect_player(int Ind);
 extern bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note);
 extern void panel_bounds(int Ind);
 extern void verify_panel(int Ind);
+extern void setup_panel(int Ind, bool adjust);
 extern cptr look_mon_desc(int m_idx);
 extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
 extern void ang_sort(int Ind, vptr u, vptr v, int n);

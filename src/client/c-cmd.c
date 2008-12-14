@@ -584,7 +584,7 @@ void cmd_map(void)
 	last_line_info = 0;
 
 	/* Wait until we get the whole thing */
-	while (last_line_info < 23)
+	while (last_line_info < Term->hgt-SCREEN_CLIP_L)
 	{
 		/* Wait for net input, or a key */
 		ch = inkey();
