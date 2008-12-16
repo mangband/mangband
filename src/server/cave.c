@@ -1476,7 +1476,7 @@ void display_map(int Ind)
 			col = (x * map_wid / dungeon_wid);
 
 			/* Extract the current attr/char at that map location */
-			map_info(Ind, j, i, &ta, &tc, FALSE);
+			map_info(Ind, y, x, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
 			tp = priority(ta, tc);
