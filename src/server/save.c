@@ -92,6 +92,7 @@ static void write_binary(char* name, char* data)
 static void wr_item(object_type *o_ptr)
 {
 	char obj_name[80];
+	int tmp = 0;
 	
 	start_section("item");
 
@@ -141,7 +142,10 @@ static void wr_item(object_type *o_ptr)
 	}
 	
 	/* Held by monster index */ 
-   write_int("held_m_idx", o_ptr->held_m_idx);
+	/* FIXME: we disable this here because it's broken and can cause the server save
+	 * file to fail to load due to invalid monster indexes */
+	/* write_int("held_m_idx", o_ptr->held_m_idx); */
+	write_int("held_m_idx", tmp);
 	
 	end_section("item");
 }
