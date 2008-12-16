@@ -511,6 +511,27 @@ bool house_owned_by(int Ind, int house)
 }
 
 /*
+ * Return the number of houses owned by the player
+ */
+int houses_owned(int Ind)
+{
+	int i;
+	int owned = 0;
+
+	/* Check each house */
+	for (i = 0; i < num_houses; i++)
+	{
+		if(house_owned_by(Ind,i))
+		{
+			owned++;
+		}
+	}
+
+	return owned;
+}
+
+
+/*
  * Set the owner of the given house
  */
 bool set_house_owner(int Ind, int house)
@@ -3236,6 +3257,14 @@ void do_cmd_purchase_house(int Ind, int dir)
 		{
 			/* Not enough money, message */
 			msg_print(Ind, "You do not have enough money.");
+			return;
+		}
+		
+		/* Check if we have too many houses already */
+		if( cfg_max_houses && houses_owned(Ind) >= cfg_max_houses )
+		{
+			/* Too many houses owned already */
+			msg_print(Ind, "You own too many houses already.");
 			return;
 		}
 
