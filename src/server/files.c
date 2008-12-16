@@ -3267,22 +3267,10 @@ void exit_game_panic()
 		/* Indicate panic save */
 		(void)strcpy(p_ptr->died_from, "(panic save)");
 
-		/* Panic save, or get worried */
-		if (!save_player(i))
-		{
-			if (!Destroy_connection(p_ptr->conn, "panic save failed!"))
-			{
-				/* Something extremely bad is going on, try to recover anyway */
-				i++;
-			}
-		}
-
-		/* Successful panic save */
-		if (!Destroy_connection(p_ptr->conn, "panic save succeeded!"))
-		{
-			/* Something very bad happened, skip to next player */
-			i++;
-		}
+		/* Try to save the player, don't worry if this fails because there
+		 * is nothing we can do now anyway */
+		save_player(i++);
+		
 	}
 
 	/* Clear objects so that artifacts get saved.
