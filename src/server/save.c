@@ -1685,7 +1685,7 @@ bool load_server_info(void)
         }
 
 	/* Message */
-	plog(format("Error (%s) reading server savefile.", what));
+	plog(format("Error (%s,%d) reading server savefile.", what, err));
 
 	return (FALSE);
 }
