@@ -1337,6 +1337,8 @@ struct player_type
 	char char_hist[MAX_CHAR_HIST][MAX_CHARS];	/* Character event history */
 	s16b char_hist_ptr;	/* Where will the next event be stored */
 	
+	char main_channel[MAX_CHAN_LEN]; /* main chat channel the player is in */
+	
 	u16b total_winner;	/* Is this guy the winner */
 	u16b retire_timer;	/* The number of minutes this guy can play until
 				   he will be forcibly retired.

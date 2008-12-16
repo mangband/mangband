@@ -560,6 +560,9 @@ static void player_wipe(int Ind)
 
 	/* Hack -- assume the player has an initial knowledge of the area close to town */
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
+	
+	/* Listen on the default chat channel */
+	strncpy(p_ptr->main_channel,DEFAULT_CHANNEL,MAX_CHAN_LEN);
 
 }
 
