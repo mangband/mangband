@@ -2321,7 +2321,7 @@ int Send_basic_info_conn(int ind)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd%hd%hd%hd%hd", PKT_BASIC_INFO, Setup.frames_per_second, 3, 1, Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row, 0);
+	return Packet_printf(&connp->c, "%c%hd%hd%hd%c%c%c%c%hd", PKT_BASIC_INFO, Setup.frames_per_second, 3, 1, Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row, 0);
 }
 int Send_char_info_conn(int ind)
 {

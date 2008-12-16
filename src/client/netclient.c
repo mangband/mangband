@@ -1189,7 +1189,7 @@ int Receive_basic_info(void)
 	graf = snd = tmp7 = 0;
 	Setup.frames_per_second = Setup.min_col = Setup.min_row = Setup.max_col = Setup.max_row = 0;
 
-	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%hd%hd%hd%hd%hd", &ch, 
+	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd%c%c%c%c%hd", &ch, 
 	&Setup.frames_per_second, &graf, &snd, &Setup.min_col, &Setup.min_row, &Setup.max_col, &Setup.max_row, &tmp7)) <= 0)
 	{
 		return n;
@@ -1342,6 +1342,9 @@ int Receive_ack(void)
 			y += SCREEN_CLIP_L;	/* Top Line */
 			x += DUNGEON_OFFSET_X; /* Compact */
 			y += DUNGEON_OFFSET_Y;	/* Status line */
+
+			/* Send event */
+			Term_xtra(TERM_XTRA_REACT, 0);
 
 			/* Term resize! */
 			Term_resize(x, y);

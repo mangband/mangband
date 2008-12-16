@@ -740,12 +740,17 @@ static void term_getsize(term_data *td)
 	if (td->rows < 1) td->rows = 1;
 
 	/* Paranoia */
-	if (td->cols > 80) td->cols = 80;
-	if (td->rows > 24) td->rows = 24;
+	if (conn_state && td == &data[0])
+	{
+		if (td->cols < Setup.min_col) td->cols = Setup.min_col;
+		if (td->rows < Setup.min_row) td->rows = Setup.min_row;
+		if (td->cols > Setup.max_col + SCREEN_CLIP_X) td->cols = Setup.max_col + SCREEN_CLIP_X;
+		if (td->rows > Setup.max_row + SCREEN_CLIP_Y) td->rows = Setup.max_row + SCREEN_CLIP_Y;
+	}
 
 	/* Window sizes */
 	td->client_wid = td->cols * td->font_wid + td->size_ow1 + td->size_ow2;
-	td->client_hgt = td->rows * td->font_hgt + td->size_oh1 + td->size_oh2;
+	td->client_hgt = td->rows * td->font_hgt + td->size_oh1 + td->size_oh2 + 1;
 
 	/* Fake window size */
 	rc.left = rc.top = 0;
@@ -802,6 +807,10 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
 		/* Full path */
 		conf_set_string(sec_name, "Font", td->font_file);
 	}
+
+	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
+	if (td == &data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+	if (td == &data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	
 
 	/* Current size (x) */
 	//wsprintf(buf, "%d", td->cols);
@@ -1636,6 +1645,8 @@ static errr Term_xtra_win_react(void)
 		/* Activate */
 		Term_activate(&td->t);
 
+
+		InvalidateRect(td->w, NULL, TRUE);
 		/* Hack -- Resize the term */
 		//Term_resize(td->cols, td->rows);
 
@@ -2241,9 +2252,8 @@ static void init_windows(void)
 
 
 	/* Need these before term_getsize gets called */
-	data[0].dwStyle = (WS_OVERLAPPED | WS_SYSMENU |
-	                   WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION |
-	                   WS_VISIBLE);
+	data[0].dwStyle = (WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | 
+	                   WS_MINIMIZEBOX | WS_CAPTION | WS_VISIBLE);
 	data[0].dwExStyle = 0;
 
 	/* Windows */
@@ -2817,8 +2827,8 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 
 			/* Maximum window size */
 			rc.left = rc.top = 0;
-			rc.right = rc.left + 80 * td->font_wid + td->size_ow1 + td->size_ow2;
-			rc.bottom = rc.top + 24 * td->font_hgt + td->size_oh1 + td->size_oh2;
+			rc.right = rc.left + (MAX_WID+SCREEN_CLIP_X) * td->font_wid + td->size_ow1 + td->size_ow2;
+			rc.bottom = rc.top + (MAX_HGT+SCREEN_CLIP_Y) * td->font_hgt + td->size_oh1 + td->size_oh2 + 1;
 
 			/* Paranoia */
 			rc.right  += (td->font_wid - 1);
@@ -2920,6 +2930,25 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 			process_menus(LOWORD(wParam));
 			return 0;
 		}
+/*
+		case WM_ENTERSIZEMOVE:
+		{
+			return 0;
+		}
+*/		
+		case WM_EXITSIZEMOVE:
+		{
+			term *old = Term;
+
+			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
+			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
+			if (!conn_state) return 1;
+
+			if (td->t.wid != td->cols || td->t.hgt != td->rows)
+				net_term_resize(td->cols, td->rows-DUNGEON_OFFSET_Y);
+			
+			return 0;
+		}
 
 		case WM_SIZE:
 		{
@@ -2962,6 +2991,12 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 					for (i = 1; i < MAX_TERM_DATA; i++)
 					{
 						if (data[i].visible) ShowWindow(data[i].w, SW_SHOWNOACTIVATE);
+					}
+
+					/* Changed size (before loggin in) */
+					if (!conn_state)
+					{
+						Term_resize(td->cols, td->rows);
 					}
 
 					return 0;
@@ -3106,7 +3141,12 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 
 			return 0;
 		}
-
+		case WM_EXITSIZEMOVE:
+		{
+			/* Force redraw to remove artifacts */
+			InvalidateRect(hWnd,NULL,TRUE);
+			return 0;
+		}
 		case WM_SIZE:
 		{
 			term *old = Term;
