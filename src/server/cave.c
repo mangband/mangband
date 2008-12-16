@@ -610,12 +610,22 @@ static byte player_color(int Ind)
  * Note the assumption that doing "x_ptr = &x_info[x]" plus a few of
  * "x_ptr->xxx", is quicker than "x_info[x].xxx", if this is incorrect
  * then a whole lot of code should be changed...  XXX XXX
+ *
+ * For MAngband, if server is true, we default back to the locally defined 
+ * char/attr values on the server to allow server side rendering of scenes.
+ * Without this ability server side renders would use client localised 
+ * char/attr values which may not makes sense in the context of the server.
  */
-void map_info(int Ind, int y, int x, byte *ap, char *cp)
+void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int kludge; /* for displaying chars with lowered hp's */
+
+	char *f_char_ptr;
+	byte *f_attr_ptr;
+	char *r_char_ptr;
+	byte *r_attr_ptr;
 
 	cave_type *c_ptr;
 	byte *w_ptr;
@@ -631,6 +641,22 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 	c_ptr = &cave[Depth][y][x];
 	w_ptr = &p_ptr->cave_flag[y][x];
 
+	/* Should we override the clients attr/char settings? */
+	if (server)
+	{
+		/* We have initialised a global array of server char/attr elsewhere for speed */
+		f_attr_ptr = &f_attr_s;
+		f_char_ptr = &f_char_s;
+		r_attr_ptr = &r_attr_s;
+		r_char_ptr = &r_char_s;
+	}
+	else
+	{
+		f_attr_ptr = &p_ptr->f_attr;
+		f_char_ptr = &p_ptr->f_char;
+		r_attr_ptr = &p_ptr->r_attr;
+		r_char_ptr = &p_ptr->r_char;
+	}
 
 	/* Feature code */
 	feat = c_ptr->feat;
@@ -651,10 +677,10 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 			f_ptr = &f_info[FEAT_FLOOR];
 
 			/* Normal char */
-			(*cp) = p_ptr->f_char[c_ptr->feat];
+			(*cp) = f_char_ptr[c_ptr->feat];
 
 			/* Normal attr */
-			a = p_ptr->f_attr[c_ptr->feat];
+			a = f_attr_ptr[c_ptr->feat];
 
 			/* Special lighting effects */
 			if (p_ptr->view_special_lite && (a == TERM_WHITE))
@@ -709,11 +735,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 
 			/* Normal attr */
 			/* (*ap) = f_ptr->f_attr; */
-			(*ap) = p_ptr->f_attr[FEAT_NONE];
+			(*ap) = f_attr_ptr[FEAT_NONE];
 
 			/* Normal char */
 			/* (*cp) = f_ptr->f_char; */
-			(*cp) = p_ptr->f_char[FEAT_NONE];
+			(*cp) = f_char_ptr[FEAT_NONE];
 		}
 	}
 
@@ -732,11 +758,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 
 			/* Normal char */
 			/* (*cp) = f_ptr->f_char; */
-			(*cp) = p_ptr->f_char[feat];
+			(*cp) = f_char_ptr[feat];
 
 			/* Normal attr */
 			/* a = f_ptr->f_attr; */
-			a = p_ptr->f_attr[feat];
+			a = f_attr_ptr[feat];
 
 			/* Special lighting effects */
 			if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
@@ -808,11 +834,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 
 			/* Normal attr */
 			/* (*ap) = f_ptr->f_attr; */
-			(*ap) = p_ptr->f_attr[FEAT_NONE];
+			(*ap) = f_attr_ptr[FEAT_NONE];
 
 			/* Normal char */
 			/* (*cp) = f_ptr->f_char; */
-			(*cp) = p_ptr->f_char[FEAT_NONE];
+			(*cp) = f_char_ptr[FEAT_NONE];
 		}
 	}
 
@@ -858,11 +884,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp)
 
 			/* Desired attr */
 			/* a = r_ptr->x_attr; */
-			a = p_ptr->r_attr[m_ptr->r_idx];
+			a = r_attr_ptr[m_ptr->r_idx];
 
 			/* Desired char */
 			/* c = r_ptr->x_char; */
-			c = p_ptr->r_char[m_ptr->r_idx];
+			c = r_char_ptr[m_ptr->r_idx];
 
 			/* Ignore weird codes */
 			if (avoid_other)
@@ -1152,7 +1178,7 @@ void lite_spot(int Ind, int y, int x)
 		else
 		{
 			/* Examine the grid */
-			map_info(Ind, y, x, &a, &c);
+			map_info(Ind, y, x, &a, &c, FALSE);
 		}
 
 		/* Hack -- fake monochrome */
@@ -1216,7 +1242,7 @@ void prt_map(int Ind)
 			char c;
 
 			/* Determine what is there */
-			map_info(Ind, y, x, &a, &c);
+			map_info(Ind, y, x, &a, &c, FALSE);
 
 			/* Hack -- fake monochrome */
 			if (!use_color) a = TERM_WHITE;
@@ -1450,7 +1476,7 @@ void display_map(int Ind)
 			col = (x * map_wid / dungeon_wid);
 
 			/* Extract the current attr/char at that map location */
-			map_info(Ind, y, x, &ta, &tc);
+			map_info(Ind, j, i, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
 			tp = priority(ta, tc);
