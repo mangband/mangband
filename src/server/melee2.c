@@ -3331,6 +3331,7 @@ void process_monsters(void)
 	{
 		player_type *p_ptr;
 		int closest = -1, dis_to_closest = 9999, lowhp = 9999;
+		bool closest_in_los = FALSE;
 
 		/* Access the index */
 		i = m_fast[k];
@@ -3367,6 +3368,7 @@ void process_monsters(void)
 		for (pl = 1; pl < NumPlayers + 1; pl++)
 		{
 			int j;
+			bool in_los;
 
 			p_ptr = Players[pl];
 
@@ -3384,16 +3386,26 @@ void process_monsters(void)
 			/* Compute distance */
 			j = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
 
-			/* Skip if further than closest */
-			if (j > dis_to_closest) continue;
+			/* Compute los */
+			in_los = player_has_los_bold(pl, m_ptr->fy, m_ptr->fx);
 
-			/* Skip if same distance and stronger */
-			if (j == dis_to_closest && p_ptr->chp > lowhp) continue;
-
+			/* Skip if _not_ in LoS while closest _is_ in */
+			if (!in_los && closest_in_los) continue;
+			
+			/* Only check distance if they share LoS properties */		
+			else if ((closest_in_los == in_los)) 
+			{
+				/* Skip if further than closest */
+				if (j > dis_to_closest) continue;
+	
+				/* Skip if same distance and stronger */
+				if (j == dis_to_closest && p_ptr->chp > lowhp) continue;
+			}
 			/* Remember this player */
 			dis_to_closest = j;
 			closest = pl;
 			lowhp = p_ptr->chp;
+			closest_in_los = in_los;
 		}
 
 		/* Paranoia -- Make sure we found a closest player */
@@ -3433,8 +3445,7 @@ void process_monsters(void)
 
 		/* Handle "sight" and "aggravation" */
 		else if ((m_ptr->cdis <= MAX_SIGHT) &&
-		         (player_has_los_bold(closest, fy, fx) ||
-		          p_ptr->aggravate))
+		         (closest_in_los || p_ptr->aggravate))
 		{
 			/* We can "see" or "feel" the player */
 			test = TRUE;
