@@ -1262,7 +1262,7 @@ bool detect_invisible(int Ind, bool pause)
 	{
 		monster_type *m_ptr = &m_list[i];
 		monster_race *r_ptr = &r_info[m_ptr->r_idx];
-		monster_race *l_ptr = p_ptr->l_list + m_ptr->r_idx;
+		monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
