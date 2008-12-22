@@ -4004,6 +4004,10 @@ bool poly_monster(int Ind, int dir)
 	player_type *p_ptr = Players[Ind];
 
 	int flg = PROJECT_STOP | PROJECT_KILL;
+
+	/* Never in the town */
+	if(!p_ptr->dun_depth) return(FALSE);
+
 	return (project_hook(Ind, GF_OLD_POLY, dir, p_ptr->lev, flg));
 }
 
@@ -4011,7 +4015,7 @@ bool clone_monster(int Ind, int dir)
 {
 	int num, i;
 	player_type *p_ptr = Players[Ind];
-	
+
 	/* Never in the town */
 	if(!p_ptr->dun_depth) return(FALSE);
 	
