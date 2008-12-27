@@ -2958,6 +2958,10 @@ int Send_msg(cptr message)
 		return n;
 	}
 
+#ifndef WINDOWS
+	talk_pend[0] = '\0';
+#endif
+
 	return 1;
 }
 
