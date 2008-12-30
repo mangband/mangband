@@ -1052,8 +1052,8 @@ bool askfor_aux(char *buf, int len, char private)
 		else
 		{
 			/* Hack -- erase the default passwd exactly once */
-			if (k == 1) Term_erase(x, y, len);
-			Term_putch(x+k-1, y, TERM_WHITE, 'x');
+			if (k <= 1) Term_erase(x, y, len);
+			if (k >  0) Term_putch(x+k-1, y, TERM_WHITE, 'x');
 		}
 	}
 
