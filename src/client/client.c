@@ -70,8 +70,8 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-sdl.c" support */
 	if (!done)
 	{
-		extern errr init_sdl(int argc, char **argv);
-		if (0 == init_sdl(argc,argv)) done = TRUE;
+		extern errr init_sdl(void);
+		if (0 == init_sdl()) done = TRUE;
 		if (done) ANGBAND_SYS = "sdl";
 	}
 #endif
@@ -142,24 +142,16 @@ int main(int argc, char **argv)
 	client_init(NULL);
 #else
 
-	/* using SDL, pass command keys on (ugly hack)
-		after we work out some config mechanisms,
-		it'll be possible to clear this all up	 */
-
-	#ifdef USE_SDL
+	if (argc == 2)
+	{
+		/* Initialize with given server name */
+		client_init(argv[1]);
+	}
+	else
+	{
+		/* Initialize and query metaserver */
 		client_init(NULL);
-	#else
-		if (argc == 2)
-		{
-			/* Initialize with given server name */
-			client_init(argv[1]);
-		}
-		else
-		{
-			/* Initialize and query metaserver */
-			client_init(NULL);
-		}
-	#endif
+	}
 
 #endif
 

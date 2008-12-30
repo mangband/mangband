@@ -2501,7 +2501,7 @@ void init_extra_paths()
  * simply adds a call to "init_xxx()" to that function, conditional
  * on some form of "USE_XXX" define.
  */
-errr init_sdl(int oargc, char **oargv)
+errr init_sdl(void)
 {
 #ifdef WINDOWS
 	/* Initialize WinSock */
