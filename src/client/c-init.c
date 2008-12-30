@@ -282,7 +282,7 @@ void client_init(char *argv1)
 	sockbuf_t ibuf;
 	unsigned char status;
 	int trycount;
-	char host_name[80], trymsg[80], c;
+	char host_name[80], trymsg[80], c, *s;
 	u16b version = CLIENT_VERSION;
 	u16b conntype = CONNTYPE_PLAYER;
 	bool done = 0;
@@ -318,6 +318,13 @@ void client_init(char *argv1)
 	{
 		/* Set the server's name */
 		strcpy(server_name, argv1);
+		/* Set server port */
+		s = strchr(server_name, ':');
+		if (s) 
+		{
+		    sscanf(s, ":%d", &server_port);
+		    strcpy (s, "\0");
+		}
 	}
 
 	/* Fix "localhost" */
