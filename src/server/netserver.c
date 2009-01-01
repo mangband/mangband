@@ -2247,7 +2247,7 @@ int Send_motd_conn(int ind, int offset)
 int Send_race_info_conn(int ind)
 {
 	connection_t *connp = &Conn[ind];
-	int i, name_size;
+	u32b i, name_size;
 	if (!BIT(connp->state, CONN_SETUP))
 	{
 		errno = 0;
@@ -2283,7 +2283,7 @@ int Send_race_info_conn(int ind)
 int Send_class_info_conn(int ind)
 {
 	connection_t *connp = &Conn[ind];
-	int i, name_size;
+	u32b i, name_size;
 	if (!BIT(connp->state, CONN_SETUP))
 	{
 		errno = 0;
