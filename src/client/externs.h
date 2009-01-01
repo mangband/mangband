@@ -296,6 +296,7 @@ extern void cmd_players(void);
 extern void cmd_high_scores(void);
 extern void cmd_help(void);
 extern void cmd_query_symbol(void);
+extern void cmd_chat();
 extern void cmd_message(void);
 extern void cmd_chat_close(int i);
 extern void cmd_chat_cycle(int dir);
