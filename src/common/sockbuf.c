@@ -516,14 +516,14 @@ int Packet_printf(va_alist)
 		}
 		switch (fmt[++i]) {
 		case 'd':
-		    lval = va_arg(ap, long);
+		    lval = va_arg(ap, s32b);
 		    *buf++ = lval >> 24;
 		    *buf++ = lval >> 16;
 		    *buf++ = lval >> 8;
 		    *buf++ = lval;
 		    break;
 		case 'u':
-		    ulval = va_arg(ap, unsigned long);
+		    ulval = va_arg(ap, u32b);
 		    *buf++ = ulval >> 24;
 		    *buf++ = ulval >> 16;
 		    *buf++ = ulval >> 8;
@@ -607,8 +607,8 @@ int Packet_scanf(va_alist)
     unsigned		*uptr;
     short		*sptr;
     unsigned short	*usptr;
-    long		*lptr;
-    unsigned long	*ulptr;
+    s32b		*lptr;
+    u32b		*ulptr;
     char		*cptr,
 			*str;
     char	terminator;
@@ -736,14 +736,14 @@ int Packet_scanf(va_alist)
 		}
 		switch (fmt[++i]) {
 		case 'd':
-		    lptr = va_arg(ap, long *);
+		    lptr = va_arg(ap, s32b *);
 		    *lptr = sbuf->ptr[j++] << 24;
 		    *lptr |= (sbuf->ptr[j++] & 0xFF) << 16;
 		    *lptr |= (sbuf->ptr[j++] & 0xFF) << 8;
 		    *lptr |= (sbuf->ptr[j++] & 0xFF);
 		    break;
 		case 'u':
-		    ulptr = va_arg(ap, unsigned long *);
+		    ulptr = va_arg(ap, u32b *);
 		    *ulptr = (sbuf->ptr[j++] & 0xFF) << 24;
 		    *ulptr |= (sbuf->ptr[j++] & 0xFF) << 16;
 		    *ulptr |= (sbuf->ptr[j++] & 0xFF) << 8;
