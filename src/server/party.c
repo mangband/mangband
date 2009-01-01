@@ -337,7 +337,7 @@ void party_msg(int party_id, cptr msg)
 	{
 		/* Check this guy */
 		if (player_in_party(party_id, i))
-			msg_print(i, msg);
+			msg_print_aux(i, msg, MSG_WHISPER);
 	}
 }
 

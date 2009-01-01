@@ -2491,6 +2491,11 @@ static void msg_flush(int x)
  */
 void msg_print(int Ind, cptr msg)
 {
+	msg_print_aux(Ind, msg, MSG_GENERIC);
+}
+void msg_print_aux(int Ind, cptr msg, u16b type)
+{
+	player_type *p_ptr = Players[Ind];
 	bool log = TRUE;
 	bool add = FALSE;
 	bool dup = FALSE;
@@ -2507,7 +2512,6 @@ void msg_print(int Ind, cptr msg)
 	 * in server-side character dumps */
 	if(msg && Ind && log)
 	{
-		player_type *p_ptr = Players[Ind];
 		add = TRUE;
 		/* Ensure we know where the last message is */
 		ptr = p_ptr->msg_hist_ptr - 1;
@@ -2544,15 +2548,18 @@ void msg_print(int Ind, cptr msg)
 		plog(format("%d: %s",Ind,msg)); 
 	}; 	
 
-	/* Hack -- repeated message */
-	if (dup)
+	/* Hack -- repeated message of the same type */
+	if (dup && type == p_ptr->msg_last_type)
 	{
-		Send_message(Ind, " "); // a space
+		Send_message(Ind, " ", type); // a space
 		return;
 	}
 	
+	/* Sent last type sent */
+	p_ptr->msg_last_type = type;	
+	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
-	Send_message(Ind, msg);
+	Send_message(Ind, msg, type);
 }
 
 void msg_broadcast(int Ind, cptr msg)
@@ -2568,7 +2575,7 @@ void msg_broadcast(int Ind, cptr msg)
 			continue;	
 			
 		/* Tell this one */
-	 	msg_print(i, msg);
+	 	msg_print_aux(i, msg, MSG_CHAT);
 	 }
 	 
 	/* Send to console */
@@ -2598,6 +2605,25 @@ void msg_format(int Ind, cptr fmt, ...)
 
 	/* Display */
 	msg_print(Ind, buf);
+}
+/* Dirty hack */
+void msg_format_type(int Ind, u16b type, cptr fmt, ...)
+{
+	va_list vp;
+
+	char buf[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Display */
+	msg_print_aux(Ind, buf, type);
 }
 
 
@@ -2662,93 +2688,11 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
-
-
-/*
- * A message prefixed by a player name is sent only to that player.
- * Otherwise, it is sent to everyone.
- */
-void player_talk_aux(int Ind, cptr message)
+int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
-	char search[80], sender[80], dest_chan[MAX_CHAN_LEN];
-	player_type *p_ptr = Players[Ind], *q_ptr;
-	cptr colon, problem = "", chan_prefix;
-
-	/* Get sender's name */
-	if (Ind)
-	{
-		/* Get player name */
-		strcpy(sender, p_ptr->name);
-	}
-	else
-	{
-		/* Default name */
-		strcpy(sender, "");
-	}
-
-	/* Default to no search string */
-	strcpy(search, "");
-
-	if(Ind)
-	{
-		/* Default to the senders main channel */
-		strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
-	}
-	else
-	{
-		/* Default to public channel if not originated by a player */
-		strcpy(dest_chan,DEFAULT_CHANNEL);
-	}
-	
-	/* Is the message destined for a particular channel? */
-	if(strchr("#",*message))
-	{
-		/* Yes, examine in more detail */
-		chan_prefix = strchr(message,' ');
-		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
-		{
-			/* Channel name only?  Change the players default channel */
-			if(Ind)
-			{
-				strcpy(p_ptr->main_channel,message);
-				strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
-				msg_format(Ind,"Channel changed to %s",dest_chan);
-				return;
-			}
-		}
-		else if(!chan_prefix || chan_prefix-message >= MAX_CHAN_LEN)
-		{
-			/* Invalid channel prefix?  Forget about the channel. */
-		}
-		else
-		{
-			/* Channel name followed by text? Extract the channel name */
-			strncpy(dest_chan, message, chan_prefix - message);
-			dest_chan[chan_prefix - message] = '\0';
-			message += (chan_prefix - message)+1;
-		}
-	}
-
-	/* Look for a player's name followed by a colon */
-	colon = strchr(message, ':');
-
-	/* Ignore "smileys" */
-	if (colon && strchr(")(-", *(colon + 1)))
-	{
-		/* Pretend colon wasn't there */
-		colon = NULL;
-	}
-
-	/* Form a search string if we found a colon */
-	if (colon)
-	{
-		/* Copy everything up to the colon to the search string */
-		strncpy(search, message, colon - message);
-
-		/* Add a trailing NULL */
-		search[colon - message] = '\0';
-	}
+	cptr problem = "";
+	player_type *q_ptr;
 
 	/* Acquire length of search string */
 	len = strlen(search);
@@ -2788,7 +2732,7 @@ void player_talk_aux(int Ind, cptr message)
 							if (len != strlen(parties[0 - target].name))
 								problem = "parties";
 						}
-					break;
+						break;
 					}
 				}
 			}
@@ -2799,6 +2743,9 @@ void player_talk_aux(int Ind, cptr message)
 		{
 			/* Check this one */
 			q_ptr = Players[i];
+			
+			/* Skip DM */
+			if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 			/* Check name */
 			if (!strncasecmp(q_ptr->name, search, len))
@@ -2809,67 +2756,316 @@ void player_talk_aux(int Ind, cptr message)
 					target = i;
 					problem = "";
 				}
-				else
+				/* Matching too many people */
+				else if (target > 0)
 				{
-					/* Matching too many people */
 					/* Make sure we don't already have an exact match */
-/*
-					if(Players[target]->name) 
-						if (len != strlen(Players[target]->name))
-*/
-							problem = "players or parties";
+					if (len != strlen(Players[target]->name))
+						problem = "players";
 				}
+				else	problem = "players or parties";
 			}
 		}
-
-		/* Move colon pointer forward to next word */
-		while (*colon && (isspace(*colon) || *colon == ':')) colon++;
 	}
 
 	/* Check for recipient set but no match found */
 	if (len && !target)
 	{
-		/* 
-		   DM messages fail silently.  This keeps folks from
-		   otherwise detecting if he's logged in.  --Crimson
-		 */
-		if(strcmp( search, cfg_dungeon_master)) {
-			/* Send an error message */
-			if ( Ind ) msg_format(Ind, "Could not match name '%s'.", search);
-		};
+		/* Prepare an error message */
+		sprintf(error, "Could not match name '%s'.", search); 
 
 		/* Give up */
-		return;
+		return 0;
 	}
 
 	/* Check for multiple recipients found */
-	if (strlen(problem))
+	if (!STRZERO(problem))
 	{
 		/* Send an error message */
-		msg_format(Ind, "'%s' matches too many %s.", search, problem);
+		sprintf(error, "'%s' matches too many %s.", search, problem);
+	
+		/* Give up */
+		return 0;
+	}
+
+	return target;
+}
+
+void assist_whisper(int Ind, cptr search)
+{
+	int target;
+	char error[80];
+
+	target = find_chat_target(search, error);
+
+	/* No match */	
+	if (!target)
+	{
+		/* Relay error */
+		msg_print(Ind, error);
 
 		/* Give up */
 		return;
 	}
+	/* A Player */
+	else if (target > 0)
+	{
+		Send_channel(Ind, 255, Players[target]->name);
+	}
+	/* A Party */
+	else if (target < 0)
+	{
+		Send_channel(Ind, 255, parties[0 - target].name);
+	}
+}
+
+void channel_join(int Ind, cptr channel, bool quiet)
+{
+	int i, last_free = 0;
+	player_type *p_ptr = Players[Ind];
+
+	/* Find channel */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (!last_free && STRZERO(channels[i].name)) last_free = i;
+		
+		/* Name match */
+		if (!strcmp(channels[i].name, channel))
+		{
+			if (!p_ptr->on_channel[i])
+			/* Enter channel */
+			{
+				channels[i].num++;
+				p_ptr->on_channel[i] = TRUE;
+				Send_channel(Ind, i, NULL);
+				if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+			}
+			/* Select channel */
+			else
+			{
+				p_ptr->main_channel = i;
+				Send_channel(Ind, i, "");
+				if (!quiet) msg_format(Ind,"Channel changed to %s",channel);
+			}
+			return;
+		}
+	}
+	
+	/* No such channel */
+	
+	/* We have free space */
+	if (last_free)
+	{
+		/* Create channel */
+		strcpy(channels[last_free].name, channel);
+		channels[last_free].num = 1;
+		p_ptr->on_channel[last_free] = TRUE;
+		Send_channel(Ind, last_free, FALSE);
+		if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+	}
+	/* All channel slots are used up */
+	else
+	{
+		if (!quiet) msg_format(Ind,"Unable to join channel %s",channel);
+	}
+}
+/* Actual code for leaving channels */
+void channel_leave_id(int Ind, int i, bool quiet)
+{
+	player_type *p_ptr = Players[Ind];
+	if (!i || !p_ptr->on_channel[i]) return;
+	
+	channels[i].num--;
+	if (!quiet) msg_format(Ind,"Left channel %s",channels[i].name);
+	if (channels[i].num <= 0)
+	{
+		channels[i].name[0] = '\0';
+		channels[i].id = 0;
+	}
+	if (p_ptr->main_channel == i)
+	{
+		p_ptr->main_channel = 0;
+	}
+	p_ptr->on_channel[i] = FALSE;
+	if (!quiet)
+		Send_channel(Ind, i, "-");
+}
+/* Find channel by name and leave it */
+void channel_leave(int Ind, cptr channel)
+{
+	int i;
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (!strcmp(channels[i].name, channel))
+		{
+			channel_leave_id(Ind, i, FALSE);
+			break;
+		}
+	}	
+}
+/* Leave all channels */
+void channels_leave(int Ind)
+{
+	int i;
+	player_type *p_ptr = Players[Ind];
+
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (p_ptr->on_channel[i])
+		{
+			channel_leave_id(Ind, i, TRUE);
+		}
+	}	
+}
+
+
+/*
+ * A message prefixed by a player name is sent only to that player.
+ * Otherwise, it is sent to everyone.
+ */
+void player_talk_aux(int Ind, cptr message)
+{
+	int i, target = 0;
+	char search[80], sender[80], error[80], tmp_chan[MAX_CHAN_LEN];
+	int dest_chan = 0; //#public
+	player_type *p_ptr = Players[Ind], *q_ptr;
+	cptr colon, chan_prefix;
+	bool msg_off = FALSE;
+
+	/* Get sender's name */
+	if (Ind)
+	{
+		/* Get player name */
+		strcpy(sender, p_ptr->name);
+	}
+	else
+	{
+		/* Default name */
+		strcpy(sender, "");
+	}
+
+	/* Default to no search string */
+	strcpy(search, "");
+
+	/* Default to #public channel if not originated by a player */
+	dest_chan = 0;
+
+	if(Ind)
+	{
+		/* Default to the senders main channel */
+		dest_chan = p_ptr->main_channel;
+		/* Set search string from senders secondary channel */
+		strcpy(search, p_ptr->second_channel);
+	}
+
+	/* Is the message destined for a particular channel? */
+	if(strchr("#", *message))
+	{
+		/* Yes, examine in more detail */
+		chan_prefix = strchr(message,' ');
+		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
+		{
+			/* Channel name only?  Change the players default channel */
+			if(Ind)
+			{
+				strncpy(tmp_chan,message,MAX_CHAN_LEN);
+				channel_join(Ind, tmp_chan, FALSE);
+				return;
+			}
+		}
+		else if(!chan_prefix || chan_prefix-message >= MAX_CHAN_LEN)
+		{
+			/* Invalid channel prefix?  Forget about the channel. */
+		}
+		else
+		{
+			/* Channel name followed by text? Extract the channel name */
+			strncpy(tmp_chan, message, chan_prefix - message);
+			tmp_chan[chan_prefix - message] = '\0';
+			for (i = 0; i < MAX_CHANNELS; i++)
+			{
+				if (!strcmp(channels[i].name, tmp_chan))
+				{
+					dest_chan = i;
+					break;
+				}
+			}
+			message += (chan_prefix - message)+1;
+			/* Forget about search string */
+			msg_off = FALSE;
+			strcpy(search, "");
+		}
+	}
+
+	/* Look for a player's name followed by a colon */
+	colon = strchr(message, ':');
+
+	/* Ignore "smileys" */
+	if (colon && *(colon + 1) && strchr(")(-|\\/", *(colon + 1)))
+	{
+		/* Pretend colon wasn't there */
+		colon = NULL;
+	}
+
+	/* Form a search string if we found a colon */
+	if (colon)
+	{
+		/* Copy everything up to the colon to the search string */
+		strncpy(search, message, colon - message);
+
+		/* Add a trailing NULL */
+		search[colon - message] = '\0';
+		
+		/* Move colon pointer forward to next word */
+		while (*colon && (isspace(*colon) || *colon == ':')) colon++;
+		
+		/* Offset message */
+		msg_off = TRUE;
+	}
+
+	/* Find special target */
+	if (strlen(search))
+	{
+		/* There's nothing else , prepare for whisper */
+		if (colon - message == strlen(message))
+		{
+			assist_whisper(Ind, search);
+			return;
+		}
+		if (!(target = find_chat_target(search, error)))
+		{
+			/* Error */
+			msg_print(Ind, error);
+			
+			/* Done */
+			return;
+		}
+	}
+		
+	/* No need to offset message */
+	if (!msg_off)
+	{
+		colon = message;
+	}
 
 	/* Send to appropriate player */
-	if (len && target > 0)
+	if (target > 0)
 	{
 		/* Set target player */
 		q_ptr = Players[target];
 
 		/* Send message to target */
-		msg_format(target, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(target, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Also send back to sender */
-		msg_format(Ind, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(Ind, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Done */
 		return;
 	}
 
 	/* Send to appropriate party */
-	if (len && target < 0)
+	if (target < 0)
 	{
 		/* Send message to target party */
 		party_msg_format(0 - target, "[%s:%s] %s",
@@ -2889,22 +3085,22 @@ void player_talk_aux(int Ind, cptr message)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		q_ptr = Players[i];
-		if(!strcmp(dest_chan,q_ptr->main_channel))
+		if(q_ptr->on_channel[dest_chan])
 		{
 			/* Send message */
 			if(Ind)
 			{
-				msg_format(i, "[%s] %s", sender, message);
+				msg_format_type(i, MSG_CHAT + dest_chan, "[%s] %s", sender, message);
 			}
 			else
 			{
-				msg_format(i, "%s", message);
+				msg_format_type(i, MSG_CHAT + dest_chan, "%s", message);
 			}
 		}
 	}
 
 	/* Send to the console too if it's a public message */
-	if(!strcmp(dest_chan,"#public"))
+	if(dest_chan == 0)
 	{
 		console_print(format("[%s] %s", sender, message));
 	}

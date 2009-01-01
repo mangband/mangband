@@ -122,6 +122,8 @@ extern player_class *c_info;
 extern maxima z_info;
 
 extern bool msg_flag;
+extern channel_type channels[MAX_CHANNELS];
+extern s16b view_channel;
 
 extern term *ang_term[8];
 extern u32b window_flag[8];
@@ -295,6 +297,8 @@ extern void cmd_high_scores(void);
 extern void cmd_help(void);
 extern void cmd_query_symbol(void);
 extern void cmd_message(void);
+extern void cmd_chat_close(int i);
+extern void cmd_chat_cycle(int dir);
 extern void cmd_party(void);
 extern void cmd_fire(void);
 extern void cmd_throw(void);
@@ -369,7 +373,9 @@ extern bool get_check(cptr prompt);
 extern s16b message_num(void);
 extern cptr message_last(void);
 extern cptr message_str(s16b age);
+extern u16b message_type(s16b age);
 extern void c_message_add(cptr msg, u16b type);
+extern void c_message_del(s16b age);
 extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);
@@ -401,6 +407,8 @@ extern void display_player(int screen_mode);
 extern void redraw_stuff(void);
 extern void window_stuff(void);
 extern void fix_floor(void);
+extern bool message_color(cptr msg, byte *ap);
+extern int find_whisper_tab(cptr msg, char *text);
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
@@ -462,6 +470,7 @@ extern int Send_activate(int item);
 extern int Send_target(int dir);
 extern int Send_target_friendly(int dir);
 extern int Send_look(int dir);
+extern int Send_chan(cptr channel);
 extern int Send_msg(cptr message);
 extern int Send_fire(int item, int dir);
 extern int Send_throw(int item, int dir);

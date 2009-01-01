@@ -1580,6 +1580,25 @@ s16b message_num(void)
         return (n);
 }
 
+/*
+ * Recall the "type" of a saved message
+ */
+u16b message_type(s16b age)
+{
+	s16b x;
+
+	/* Paranoia */
+	if (!message__type) return (MSG_GENERIC);
+
+	/* Forgotten messages are generic */
+	if ((age < 0) || (age >= message_num())) return (MSG_GENERIC);
+
+	/* Get the "logical" index */
+	x = message_age2idx(age);
+
+	/* Return the message type */
+	return (message__type[x]);
+}
 
 /*
  * Add a new message, with great efficiency
@@ -1624,7 +1643,7 @@ void c_message_add(cptr str, u16b type)
 		message__count[x]++;
 
 		/* Redraw */
-		p_ptr->window |= (PW_MESSAGE);
+		p_ptr->window |= (PW_MESSAGE | PW_MESSAGE_CHAT);
 
 		/* Success */
 		return;
@@ -1692,7 +1711,7 @@ void c_message_add(cptr str, u16b type)
 		message__count[x] = 1;
 
 		/* Redraw */
-		p_ptr->window |= (PW_MESSAGE);
+		p_ptr->window |= (PW_MESSAGE | PW_MESSAGE_CHAT);
 
 		/* Success */
 		return;
@@ -1798,9 +1817,32 @@ void c_message_add(cptr str, u16b type)
 	
 
 	/* Window stuff */
-	p_ptr->window |= PW_MESSAGE;
+	p_ptr->window |= PW_MESSAGE | PW_MESSAGE_CHAT;
 }
 
+/* Hack: Instead of deleting the message, it's being converted to GENERIC
+ * TODO: Remove it completly */
+void c_message_del(s16b age)
+{
+	static char buf[1024];
+	s16b x;
+	u16b o;
+
+	/* Forgotten messages have no text */
+	if ((age < 0) || (age >= message_num())) return ("");
+
+	/* Get the "logical" index */
+	x = message_age2idx(age);
+
+	/* Get the "offset" for the message */
+	o = message__ptr[x];
+
+	/* Hide */
+	message__type[x] = MSG_GENERIC;
+
+	/* Return */
+	return;
+}
 
 
 /*
@@ -2862,7 +2904,7 @@ static void do_cmd_options_win(void)
 	}
 
 	/* Update windows */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_PLAYER | PW_STATUS);
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_STATUS);
 
 	/* Update windows */
 	window_stuff();

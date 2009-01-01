@@ -79,6 +79,19 @@ void init_stuff(void)
         init_file_paths(path);
 }
 
+/* Init minor arrays */
+void init_minor(void)
+{
+	int i;
+	/* Chat channels */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		channels[i].name[0] = '\0';
+		channels[i].id = channels[i].num = 0;
+		p_ptr->on_channel[i] = FALSE; 
+	}
+	p_ptr->main_channel = 0;
+}
 
 
 /*
@@ -295,6 +308,9 @@ void client_init(char *argv1)
 
 	/* Initialize various arrays */
 	init_arrays();
+	
+	/* Initialize minor arrays */
+	init_minor();
 
 	GetLocalHostName(host_name, 80);
 

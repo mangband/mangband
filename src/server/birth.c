@@ -563,8 +563,9 @@ static void player_wipe(int Ind)
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
 	/* Listen on the default chat channel */
-	strncpy(p_ptr->main_channel,DEFAULT_CHANNEL,MAX_CHAN_LEN);
-
+	p_ptr->main_channel = 0;
+	strcpy(p_ptr->second_channel, "");
+	p_ptr->on_channel[0] = TRUE;
 }
 
 

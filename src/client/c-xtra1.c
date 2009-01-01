@@ -1386,28 +1386,227 @@ static void fix_status(void)
 		Term_activate(old);
 	}
 }
-
  
+/* Determine message color based on string templates */ 
+bool message_color(cptr msg, byte *ap)
+{
+	char from_us[30];
+	byte a;
+	
+	/* Determine what messages from us are prefixed with */
+	sprintf(from_us,"[%s]",nick);
+
+	if(msg[0] == '[') {
+				a = TERM_L_BLUE;
+				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
+	} else {
+				a = TERM_WHITE;
+
+				if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
+				if( (strstr(msg, "was slain by")!=NULL))
+				{
+					if (strstr(msg, "Morgoth") != NULL)
+						a = TERM_VIOLET;
+					else
+						a = TERM_YELLOW;
+				}
+				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
+				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
+				if( strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+				if( strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
+				if( strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
+	}
+	*ap = a;
+	return (a != TERM_WHITE); 
+}
+/*
+ * When we got a private message in format "[Recepient:Sender] Message"
+ * this function could be used to determine if it relates to any of the 
+ * chat tabs opened 
+ */
+int find_whisper_tab(cptr msg, char *text)
+{
+	char from_us[30], to_us[30], buf[80];
+	int i, tab = 0;
+	cptr offset, pmsg;
+	
+	buf[0] = '\0';
+	sprintf(from_us,":%s]",nick);
+	sprintf(to_us,"[%s:",nick);
+
+	/* Message From Us */
+	if ((offset = strstr(msg, from_us)) != NULL)
+	{
+		/* To who */
+		strcpy(buf, msg + 1);
+		buf[offset - msg - 1] = '\0';
+		/* Short text */
+		pmsg = msg + (offset - msg) + strlen(from_us) + 1;
+		sprintf(text, "[%s] %s", nick, pmsg);
+	}
+	/* Message To Us */
+	else if (strstr(msg, to_us) != NULL)
+	{
+		/* From who */
+		strcpy(buf, msg + strlen(to_us));
+		offset = strstr(msg, "]");
+		buf[offset - msg - strlen(to_us)] = '\0';
+		/* Short text */
+		sprintf(text, "[%s] %s", buf, offset + 2);
+	}
+	/* Some other kind of message (probably to Your Party) */
+	else if ((offset = strstr(msg, ":")))
+	{
+		/* Destination */
+		strcpy(buf, msg + 1);
+		buf[offset - msg - 1] = '\0';
+		/* Sender */
+		strcpy(from_us, offset + 1);
+		pmsg = strstr(offset, "]");
+		from_us[pmsg - offset - 1] = '\0';
+		/* Short text */
+		pmsg = msg + (pmsg - msg) + 2;
+		sprintf(text, "[%s] %s", from_us, pmsg);
+	}
+	
+	if (STRZERO(buf)) return 0;
+	
+	/* Find related tab */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (STRZERO(channels[i].name)) continue; //is empty
+		if (channels[i].id != MAX_CHANNELS) continue; //is channel
+		if (strcmp(channels[i].name, buf)) continue; //name mismatch
+		
+		tab = i;
+		break;
+	}
+
+	return tab;
+}
+
 /*
  * Hack -- display recent messages in sub-windows
  *
  * XXX XXX XXX Adjust for width and split messages
  */
 
-// [grk] Gross hack to display messages in seperate term
-
 #define PMSG_TERM 4
+void fix_special_message(void)
+{
+	int j, c, i;
+	int w, h, t;
+	int x, y, tab;
+	cptr msg;
+	byte a;
+	char text[80];
+		
+	term *old = Term;
+
+	/* No window */
+	if (!ang_term[PMSG_TERM]) return;
+
+	/* Activate */
+	Term_activate(ang_term[PMSG_TERM]);
+
+	/* Get size */
+	Term_get_size(&w, &h);
+
+	/* Dump header */
+	c = t = 0; /* Hor. & Vert. Offsets */
+	for (j = 0; j < MAX_CHANNELS; j++)
+	{
+		/* Skip empty */
+		if (STRZERO(channels[j].name)) continue;
+
+		/* Color */
+		a = TERM_L_DARK;
+		if (p_ptr->on_channel[j] == TRUE) a = TERM_WHITE;
+		if (view_channel == j) a = TERM_L_BLUE;
+
+		/* Carriage return */		
+		if (strlen(channels[j].name) + c + 1 >= w)
+		{
+			/* Clear to end of line */
+			Term_erase(x, y, 255);
+			
+			c = 0;
+			t++;
+		}
+
+		/* Dump the message on the appropriate line */		
+		Term_putstr(0 + c, 0 + t, -1, a, channels[j].name);
+		
+		/* Whitespace */
+		Term_locate(&x, &y);
+		Term_putstr(x, y, -1, TERM_WHITE, " ");
+							
+		Term_locate(&x, &y);
+		c = x;
+	}
+	
+	/* Clear to end of line */
+	Term_erase(x, y, 255);
+
+	/* Dump messages */
+	i = j = c = 0; /* Counters */
+	while(i < h - (t + 1)) {
+		msg = message_str(c++);
+
+		/* Filters */
+		if(msg[0] == 0) {i++; continue;}
+		if (message_type(c-1) == MSG_WHISPER)
+		{
+			tab = find_whisper_tab(msg, text);
+			if ( tab && tab != view_channel ) continue;
+			if ( tab ) msg = text;
+		}
+		else if (message_type(c-1) >= MSG_CHAT) 
+		{
+			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
+		}
+		else continue;
+		
+		i++;
+		
+		message_color(msg, &a);
+
+		/* Dump the message on the appropriate line */
+		Term_putstr(0, (h - 1) - j, -1, a, msg);
+
+		/* Cursor */
+		Term_locate(&x, &y);
+
+		/* Clear to end of line */
+		Term_erase(x, y, 255);
+		
+		j++;
+	}
+
+	/* Erase rest */
+	while (j < h - (t + 1)) 
+	{
+		/* Clear line */
+		Term_erase(0, (h - 1) - j, 255);
+		j++;
+	}
+
+	/* Fresh */
+	Term_fresh();
+
+	/* Restore */
+	Term_activate(old);
+}
 
 void fix_message(void)
 {
         int j, c, i;
         int w, h;
         int x, y;
-        term *oldt;
-	char from_us[30];
-
-	/* Determine what messages from us are prefixed with */
-	sprintf(from_us,"[%s]",nick);
 
         /* Scan windows */
         for (j = 0; j < 8; j++)
@@ -1429,145 +1628,37 @@ void fix_message(void)
                 /* Dump messages */
                 i=0; c=0;
                 while(i<h)
-                {
-			byte a;
-			cptr msg;
-
-			msg = message_str(c++);
-
-			if (ang_term[PMSG_TERM]) {
-
-				if (msg[0] == '[') continue;
-		else if(strstr(msg, "begins a new game")!=NULL) continue;
-				else if(strstr(msg, "has entered the game")!=NULL) continue;
-				else if(strstr(msg, "has left the game")!=NULL) continue;
-				else if(strstr(msg, "committed suicide.")!=NULL) continue;
-				else if(strstr(msg, "was killed by")!=NULL) continue;
-				else if(strstr(msg, "was slain by")!=NULL) continue;
-				else if(strstr(msg, "rises from the dead")!=NULL) continue;
-				else if(strstr(msg, "ghost was destroyed by")!=NULL) continue;
-		else if(strstr(msg, "has attained level")!=NULL) continue;
-		else if(strstr(msg, "has dropped to level")!=NULL) continue;
-		else if(strstr(msg, "Welcome to level")!=NULL) continue;
-
-			} 
-
-			a = TERM_WHITE;
-
-			if(msg[0] == '['){
-				a = TERM_L_BLUE;
-				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
-			} else {
-				a=TERM_WHITE;
-
-                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-                if( (strstr(msg, "was slain by")!=NULL))
-		{
-			if (strstr(msg, "Morgoth") != NULL)
-				a = TERM_VIOLET;
-			else
-				a = TERM_YELLOW;
-		}
-				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
-				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
-                if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
-                if(strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
-		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
-			};
-
-			/* Dump the message on the appropriate line */
-			Term_putstr(0, (h - 1) - i, -1, a, msg);
-
-			/* Cursor */
-			Term_locate(&x, &y);
-
-			/* Clear to end of line */
-			Term_erase(x, y, 255);
-		
-			i++;
-                }
-
+					{
+						byte a;
+						cptr msg;
+			
+						msg = message_str(c++);
+			
+						if (ang_term[PMSG_TERM]) {
+							if(message_type(c-1) >= MSG_WHISPER) continue;
+						} 
+			
+						a = TERM_WHITE;
+						message_color(msg, &a);
+			
+						/* Dump the message on the appropriate line */
+						Term_putstr(0, (h - 1) - i, -1, a, msg);
+			
+						/* Cursor */
+						Term_locate(&x, &y);
+			
+						/* Clear to end of line */
+						Term_erase(x, y, 255);
+					
+						i++;
+					}
+                
                 /* Fresh */
                 Term_fresh();
 
                 /* Restore */
                 Term_activate(old);
         }
-
-        // Display player messages in term 4
-                
-	oldt = Term;
-
-	/* No window */
-	if (ang_term[PMSG_TERM]) {
-
-		/* Activate */
-		Term_activate(ang_term[PMSG_TERM]);
-
-		/* Get size */
-		Term_get_size(&w, &h);
-
-		/* Dump messages */
-		i=0; c=0;
-		while(i<h) {
-			byte a;
-			cptr msg;
-
-			msg = message_str(c++);
-
-			if(msg[0] == 0) { i++; continue; };
-
-			if(msg[0] == '['){
-				a = TERM_L_BLUE;
-				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
-			} else {
-				a=TERM_WHITE;
-
-                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-                if( (strstr(msg, "was slain by")!=NULL))
-		{
-			if (strstr(msg, "Morgoth") != NULL)
-				a = TERM_VIOLET;
-			else
-				a = TERM_YELLOW;
-		}
-				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
-				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
-		if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
-		if(strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
-		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
-			};
-
-			if(a != TERM_WHITE) {
-
-				/* Dump the message on the appropriate line */
-				Term_putstr(0, (h - 1) - i, -1, a, msg);
-
-				/* Cursor */
-				Term_locate(&x, &y);
-
-				/* Clear to end of line */
-				Term_erase(x, y, 255);
-			
-				i++;
-			};
-		}
-
-                /* Fresh */
-                Term_fresh();
-
-		/* Restore */
-		Term_activate(oldt);
-	}
-
 }
 
 /*
@@ -2319,5 +2410,12 @@ void window_stuff(void)
 	{
 		p_ptr->window &= (~PW_MESSAGE);
 		fix_message();
+	}
+
+	/* Display MAngband messages */
+	if (p_ptr->window & PW_MESSAGE_CHAT)
+	{
+		p_ptr->window &= (~PW_MESSAGE_CHAT);
+		fix_special_message();
 	}
 }

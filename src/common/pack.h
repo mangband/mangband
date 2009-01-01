@@ -146,6 +146,7 @@
 #define PKT_CHANGEPASS		162
 #define PKT_OBJFLAGS		163
 #define PKT_COMMAND		164
+#define PKT_CHANNEL		165
 
 
 /*

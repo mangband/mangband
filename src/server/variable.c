@@ -380,6 +380,9 @@ player_type **Players;
 /* The party information */
 party_type parties[MAX_PARTIES];
 
+/* Chat channels */
+channel_type channels[MAX_CHANNELS];
+
 /* The information about houses */
 house_type houses[MAX_HOUSES];
 int num_houses;

@@ -29,6 +29,8 @@ byte floor_attr;
 char spell_info[26][9][80];		/* Spell information */
 
 char party_info[160];			/* Information about your party */
+channel_type channels[MAX_CHANNELS];
+s16b view_channel = 0;
 
 server_setup_t Setup;				/* The information given to us by the server */
 client_setup_t Client_setup;		/* The information we give to the server */

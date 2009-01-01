@@ -1982,6 +1982,14 @@ static errr init_other(void)
 	/* Hack -- No messages yet */
 	message__tail = MESSAGE_BUF;
 
+	/*** Prepare chat channels ***/
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		channels[i].name[0] = '\0';
+		channels[i].id = 0;
+		channels[i].num = 0;
+	}
+	strcpy(channels[0].name, DEFAULT_CHANNEL);
 
 	/*** Prepare the Player inventory ***/
 

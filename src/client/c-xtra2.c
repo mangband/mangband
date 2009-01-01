@@ -53,16 +53,15 @@ void do_cmd_messages(void)
                         byte a = TERM_WHITE;
 
                         cptr str = message_str(i+j);
+                        
+                        /* Determine color */
+                        message_color(str, &a);
 
                         /* Apply horizontal scroll */
                         str = (strlen(str) >= q) ? (str + q) : "";
 
                         /* Handle "shower" */
                         if (shower[0] && strstr(str, shower)) a = TERM_YELLOW;
-
-			/* Handle message from other player */
-			if (str[0] == '[')
-				a = TERM_L_BLUE;
 
                         /* Dump the messages, bottom to top */
                         Term_putstr(0, 21-j, -1, a, str);

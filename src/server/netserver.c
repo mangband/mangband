@@ -192,6 +192,7 @@ static void Init_receive(void)
 	playing_receive[PKT_GO_UP]		= Receive_go_up;
 	playing_receive[PKT_GO_DOWN]		= Receive_go_down;
 	playing_receive[PKT_MESSAGE]		= Receive_message;
+	playing_receive[PKT_CHANNEL]		= Receive_channel;
 	playing_receive[PKT_ITEM]		= Receive_item;
 	playing_receive[PKT_PURCHASE]		= Receive_purchase;
 
@@ -841,6 +842,9 @@ static void Delete_player(int Ind)
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 	}
+	
+	/* Leave chat channels */
+	channels_leave(Ind);
 
 	/* Try to save his character */
 	save_player(Ind);
@@ -1373,6 +1377,9 @@ static int Enter_player(int ind)
 #endif
 	/* Send party information */
 	Send_party(NumPlayers);
+	
+	/* Send channel */
+	Send_channel(NumPlayers, 0, NULL);
 
 	/* Send him his history */
 	prt_history(NumPlayers);	
@@ -1405,11 +1412,9 @@ static int Enter_player(int ind)
 	{
 		sprintf(buf, "%s has entered the game.", p_ptr->name);
 	}
-	for (i = 1; i < NumPlayers; i++)
-	{
-		msg_print(i, buf);
-	}
-	console_print(buf);
+	
+	msg_broadcast(i, buf);
+	
 	/* Tell the meta server about the new player */
 	Report_to_meta(META_UPDATE);
 
@@ -2676,7 +2681,7 @@ int Send_direction(int ind)
 	return Packet_printf(&connp->c, "%c", PKT_DIRECTION);
 }
 
-int Send_message(int ind, cptr msg)
+int Send_message(int ind, cptr msg, u16b typ)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 	char buf[80];
@@ -2696,7 +2701,7 @@ int Send_message(int ind, cptr msg)
 	strncpy(buf, msg, 78);
 	buf[78] = '\0';
 
-	return Packet_printf(&connp->c, "%c%s", PKT_MESSAGE, buf);
+	return Packet_printf(&connp->c, "%c%s%hd", PKT_MESSAGE, buf, typ);
 }
 
 int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
@@ -3034,6 +3039,22 @@ int Send_party(int ind)
 	}
 
 	return Packet_printf(&connp->c, "%c%s", PKT_PARTY, buf);
+}
+
+int Send_channel(int ind, int n, cptr virtual)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection nor ready for chat channel info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	} 
+
+	return Packet_printf(&connp->c, "%c%c%s", PKT_CHANNEL, n, ( virtual ? virtual : channels[n].name));
 }
 
 int Send_special_other(int ind, char *header)
@@ -4818,6 +4839,8 @@ static int Receive_message(int ind)
 	if (connp->id != -1) player = GetInd[connp->id];
 		else player = 0;
 
+	buf[0] = '\0';
+
 	if ((n = Packet_scanf(&connp->r, "%c%S", &ch, buf)) <= 0)
 	{
 		if (n == -1)
@@ -4826,6 +4849,41 @@ static int Receive_message(int ind)
 	}
 
 	player_talk(player, buf);
+
+	return 1;
+}
+
+static int Receive_channel(int ind)
+{
+	connection_t *connp = &Conn[ind];
+
+	char ch, buf[1024];
+
+	int n, player;
+
+	if (connp->id != -1) player = GetInd[connp->id];
+		else player = 0;
+
+	buf[0] = '\0';
+
+	if ((n = Packet_scanf(&connp->r, "%c%S", &ch, buf)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	if (buf[0] == '-')
+	{
+		channel_leave(player, buf + 1);
+	}
+	else if (buf[0] == '#')
+	{
+		channel_join(player, buf, TRUE);
+		/* Hack: Secondary channel */
+		Players[player]->second_channel[0] = '\0';
+	}	else if (player) strncpy(Players[player]->second_channel, buf, 80);
+		/* EndHack */
 
 	return 1;
 }

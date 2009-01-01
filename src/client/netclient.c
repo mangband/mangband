@@ -129,6 +129,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_FLOOR]		= Receive_floor;
 	receive_tbl[PKT_PICKUP_CHECK]	= Receive_pickup_check;
 	receive_tbl[PKT_PARTY]		= Receive_party;
+	receive_tbl[PKT_CHANNEL]	= Receive_channel;
 	receive_tbl[PKT_COMMAND]	= Receive_custom_command;
 	receive_tbl[PKT_SKILLS]		= Receive_skills;
 	receive_tbl[PKT_PAUSE]		= Receive_pause;
@@ -1607,9 +1608,10 @@ int Receive_message(void)
 {
 	int	n, c;
 	char	ch;
+	u16b	type = 0;
 	char	buf[1024], search[1024], *ptr;
 
-	if ((n = Packet_scanf(&rbuf, "%c%s", &ch, buf)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%s%hu", &ch, buf, &type)) <= 0)
 	{
 		return n;
 	}
@@ -1659,11 +1661,28 @@ int Receive_message(void)
 
 	if (!topline_icky && (party_mode || shopping || !screen_icky))
 	{
-		c_msg_print_aux(buf, MSG_GENERIC);
+		c_msg_print_aux(buf, type);
 	}
 	else
 	{
-		c_message_add(buf, MSG_GENERIC);
+		c_message_add(buf, type);
+	}
+	
+	/* Hack -- highlight chat tabs messages */
+	if (type >= MSG_CHAT)
+	{
+		for (n = 0; n < MAX_CHANNELS; n++)
+		{
+			if (!STRZERO(channels[n].name) && channels[n].id == type - MSG_CHAT)
+			{
+				if (n != view_channel) p_ptr->on_channel[n] = TRUE;
+			}
+		}
+	}
+	if (type == MSG_WHISPER)
+	{
+		n = find_whisper_tab(buf, search);
+		if (n && n != view_channel) p_ptr->on_channel[n] = TRUE;
 	}
 	/*
 		if ((n = Packet_printf(&qbuf, "%c%s", ch, buf)) <= 0)
@@ -2384,6 +2403,102 @@ int Receive_party(void)
 	return 1;
 }
 
+int Receive_channel(void)
+{
+	int n, j, free = -1;
+	byte i;
+	char ch, buf[MAX_CHAN_LEN];
+
+	if ((n = Packet_scanf(&rbuf, "%c%c%s", &ch, &i, buf)) <= 0)
+	{
+		return n;
+	}
+	
+	/** Close channel **/
+	if (buf[0] == '-')
+	{
+		for (n = 0; n < MAX_CHANNELS; n++)
+		{
+			if (channels[n].id == i)
+			{
+				if (view_channel == n)
+					cmd_chat_cycle(-1);
+					
+				for (j = 0; j < message_num(); j++)
+				{
+					u16b type = message_type(j);
+					if (type == MSG_CHAT + i)
+					{
+						c_message_del(j);
+					}
+				}
+
+				channels[n].name[0] = '\0';
+				channels[n].id = 0;
+				
+				if (p_ptr->main_channel == n)
+					p_ptr->main_channel = 0;				
+				if (STRZERO(channels[view_channel].name))
+					cmd_chat_cycle(+1);
+									
+				/* Window update */
+				p_ptr->window |= PW_MESSAGE_CHAT;
+
+				break;
+			}
+		}
+
+		return 1;
+	}
+	
+	/** Enforce channel **/
+	if (STRZERO(buf))
+	{
+		for (n = 0; n < MAX_CHANNELS; n++)
+		{
+			if (channels[n].id == i)
+			{
+				p_ptr->main_channel = view_channel = n;
+				
+				/* Window update */
+				p_ptr->window |= PW_MESSAGE_CHAT;
+
+				break;
+			}
+		}
+		return 1;
+	}	
+	
+	/** Open channel **/
+
+	/* Find free and duplicates */
+	for (n = 0; n < MAX_CHANNELS; n++)
+	{
+		if (free == -1 && STRZERO(channels[n].name)) { free = n; continue; }
+		if (!strcmp(channels[n].name, buf)) return 1;
+	}
+
+	/* Found free slot */
+	if ((n = free) != -1)
+	{
+		/* Copy info */
+		strcpy(channels[n].name, buf);
+		channels[n].id = i;
+		
+		/* Highlight 
+		p_ptr->on_channel[n] = TRUE; */
+		
+		/* Window fix */
+		p_ptr->window |= PW_MESSAGE_CHAT;
+
+		return 1;
+	}
+
+	plog("CLIENT ERROR! No space for new channel");
+
+	return 1;
+}
+
 int Receive_skills(void)
 {
 	int	n, i;
@@ -2931,6 +3046,18 @@ int Send_look(int dir)
 	return 1;
 }
 
+int Send_chan(cptr channel)
+{
+	int	n;
+	
+	if ((n = Packet_printf(&wbuf, "%c%S", PKT_CHANNEL, channel)) <= 0)
+	{
+		return n;
+	}
+	
+	return 1; 
+}
+
 int Send_msg(cptr message)
 {
 	int	n;
@@ -2952,6 +3079,16 @@ int Send_msg(cptr message)
 #ifndef WINDOWS
 	if (!strlen(talk_pend)) return 1;
 #endif
+
+	if (view_channel != p_ptr->main_channel)
+	{
+		//Change channel
+		p_ptr->main_channel = view_channel;
+		if ((n = Send_chan(channels[view_channel].name)) <= 0)
+		{
+			return n;
+		}
+	}
 
 	if ((n = Packet_printf(&wbuf, "%c%S", PKT_MESSAGE, talk_pend)) <= 0)
 	{

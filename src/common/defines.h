@@ -113,6 +113,7 @@
  * Default chat channel
  */
 #define DEFAULT_CHANNEL "#public"
+#define MAX_CHANNELS 255
 
 /*
  * Number of grids used to display the dungeon (vertically).
@@ -3046,6 +3047,10 @@ that keeps many algorithms happy.
 
 
 
+/* Is string empty? Beats calling strlen */
+#define STRZERO(S) \
+	((S)[0] == '\0') 
+
 /*
  * Hack -- Prepare to use the "Secure" routines
  */
@@ -3086,6 +3091,8 @@ extern int PlayerUID;
 
 #define MSG_GENERIC		0
 #define MSG_LOCAL 		255
+#define MSG_WHISPER		256
+#define MSG_CHAT  		257
 
 
 /*** Sound constants ***/

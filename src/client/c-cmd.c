@@ -456,6 +456,11 @@ void process_command()
 			cmd_master();
 			break;
 		}
+		case '\'':
+		{
+			cmd_chat();
+			break;
+		}		
 		case KTRL('D'): /* 'Describe item. This means 'brag about it in chat' */
       {
          cmd_describe();
@@ -1465,6 +1470,94 @@ void cmd_query_symbol(void)
 	if (!get_com("Enter character to be identified: ", &sym)) return;
 	
 	Send_symbol(sym);	
+}
+
+void cmd_chat()
+{
+	char com;
+	char buf[80];
+		
+	if (!get_com("Chat command [n - next, p - previous, c - close, o - open]:", &com)) return;
+	
+	switch (com)
+	{
+		case 'b':
+		case 'p':
+		case '4':
+			cmd_chat_cycle(-1);
+			break;
+		case 'f':
+		case 'n':
+		case '6':
+			cmd_chat_cycle(+1);
+			break;
+		case 'c':
+		case 'l':
+			cmd_chat_close(view_channel);
+			break;
+		case 'o':
+		case 'j':
+			buf[0] = '\0';
+			if (get_string("Channel: ", buf, 59))
+				Send_chan(buf);
+			break;
+
+	}
+}
+void cmd_chat_close(int n)
+{
+	char buf[80];
+	
+	if (n)
+	{
+		/* Request channel leave */
+		if (channels[n].name[0] == '#')
+		{
+			sprintf(buf,"-%s",channels[n].name);
+			Send_chan(buf);
+		}
+		/* Close locally */
+		else
+		{
+			if (view_channel == n)
+				cmd_chat_cycle(-1);
+				
+			channels[n].name[0] = '\0';
+			channels[n].id = 0;
+			
+			if (p_ptr->main_channel == n)
+				p_ptr->main_channel = 0;				
+			if (STRZERO(channels[view_channel].name))
+				cmd_chat_cycle(+1);
+									
+			/* Window update */
+			p_ptr->window |= PW_MESSAGE_CHAT;
+		}
+	}
+}
+void cmd_chat_cycle(int dir)
+{
+	s16b new_channel = view_channel;
+	bool done = FALSE;
+	while (!done)
+	{
+		new_channel += dir;
+
+		if (new_channel > MAX_CHANNELS || new_channel < 0) return;
+		if (STRZERO(channels[new_channel].name)) continue; 
+
+		break;
+	}
+	
+	if (new_channel != view_channel)
+	{
+		/* Set new */
+		view_channel = new_channel;
+		p_ptr->on_channel[view_channel] = FALSE;
+	
+		/* Redraw */
+		p_ptr->window |= (PW_MESSAGE_CHAT);
+	}
 }
 
 void cmd_message(void)
