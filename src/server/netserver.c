@@ -1128,11 +1128,11 @@ int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
 }
 
 
-int console_buffer(int ind, bool read)
+void* console_buffer(int ind, bool read)
 {
 	connection_t		*connp = &Conn[ind];
-	if (read) return (int)&connp->r;
-	return (int)&connp->w;
+	if (read) return (void*)&connp->r;
+	return (void*)&connp->w;
 }
 bool Conn_is_alive(int ind)
 {
