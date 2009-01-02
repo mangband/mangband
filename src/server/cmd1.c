@@ -587,6 +587,36 @@ void search(int Ind)
 }
 
 
+/*
+ * Determine if the object can be picked up, and has "=g" in its inscription.
+ */
+static bool auto_pickup_okay(const object_type *o_ptr)
+{
+	cptr s;
+
+	/* It can't be carried */
+	//if (!inven_carry_okay(o_ptr)) return (FALSE);
+
+	/* No inscription */
+	if (!o_ptr->note) return (FALSE);
+
+	/* Find a '=' */
+	s = strchr(quark_str(o_ptr->note), '=');
+
+	/* Process inscription */
+	while (s)
+	{
+		/* Auto-pickup on "=g" */
+		if (s[1] == 'g') return (TRUE);
+
+		/* Find another '=' */
+		s = strchr(s + 1, '=');
+	}
+
+	/* Don't auto pickup */
+	return (FALSE);
+}
+
 
 
 /*
@@ -619,6 +649,9 @@ void carry(int Ind, int pickup, int confirm)
 
 	/* Describe the object */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	
+	/* Check for auto-pickup */
+	if (auto_pickup_okay(o_ptr)) pickup = 1;
 
 	/* Pick up gold */
 	if (o_ptr->tval == TV_GOLD)
