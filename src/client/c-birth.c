@@ -421,7 +421,6 @@ static bool enter_server_name(void)
 
 	/* Default */
     strcpy(server_name, "localhost");
-    server_port = 18346;
 
 	/* Ask for server name */
 	result = askfor_aux(server_name, 80, 0);
@@ -445,7 +444,7 @@ bool get_server_name(void)
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
-	server_port = 18346;
+
 	/* Perhaps we already have a server name from config file ? */
 	if(strlen(server_name) > 0) return TRUE;
 
