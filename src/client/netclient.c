@@ -26,10 +26,10 @@
 
 int conn_state;			/* Similar to server's connp->state */
 static u32b last_keepalive;
+static huge last_sent;
 
 int			ticks = 0; // Keeps track of time in 100ms "ticks"
-u32b		mticks = 0; // Keeps track of time in 1ms "ticks"
-s32b		cticks_static = 0; // Ticks received from server
+huge			mticks = 0; // Keeps track of time in 0.1ms "ticks"
 static bool		request_redraw;
 
 sockbuf_t	rbuf, cbuf, wbuf, qbuf;
@@ -1867,8 +1867,7 @@ int Receive_keepalive(void)
 
 	if(cticks == last_keepalive) {
 		if (conn_state == CONN_PLAYING) {
-			lag_mark = cticks;
-			lag_minus = mticks;
+			lag_mark = (mticks-last_sent);
 			p_ptr->redraw |= PR_LAG_METER;
 		} 
 		last_keepalive=0;
@@ -3441,6 +3440,7 @@ void update_ticks()
 	struct timeval cur_time;
 	int newticks;
 	float scale = 100000;
+	float mscale = 100;
 	int mins,hours;
 
 // [grk] We do this slightly differently on WIN32 
@@ -3456,12 +3456,14 @@ void update_ticks()
 	mins = lpst->wMinute; 
 	hours = lpst->wHour; 
 	scale = 100;
+	mscale = 0.1;
 #else
 /* 	
 	hours = time(NULL) % 86400;
 	mins = time(NULL) % 3600;
 */
 	gettimeofday(&cur_time, NULL);
+	hours = mins = 0;
 #endif
 
 	// Set the new ticks to the old ticks rounded down to the number of seconds.
@@ -3475,8 +3477,8 @@ void update_ticks()
 	/*RLS*/
 	mticks = (long)(hours*3600*100) + 
 		(long)(mins*60*100) +
-		(long)(cur_time.tv_sec*100) +
-		cur_time.tv_usec/((scale/100)/10) ;
+		(cur_time.tv_sec*10000) +
+		(long)(cur_time.tv_usec/mscale);
 /* 
 	mticks = (long)(ticks*1000 ) + cur_time.tv_usec/(scale/100) ;
 	mticks = (long) ticks;
@@ -3493,7 +3495,6 @@ void update_ticks()
  */
 void do_keepalive()
 {
-static u32b last_sent;
 	// Check to see if it has been 2 seconds since we last sent anything.  Assume
 	// that each game turn lasts 100 ms.
 	//if ((ticks - last_send_anything) >= 10)
@@ -3501,8 +3502,7 @@ static u32b last_sent;
 		{
 			if(last_keepalive) { 
 				if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
-					lag_mark = 64000; //999999
-					lag_minus = last_keepalive;
+					lag_mark = 10000; //999999			
 					p_ptr->redraw |= PR_LAG_METER; 
 				} 
 				last_keepalive=0;

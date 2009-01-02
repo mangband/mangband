@@ -603,12 +603,18 @@ static void prt_lag(int row, int col)
 	//static int flipper =0;
 	static u32b last=0;
 
-	u32b mark = lag_mark; 
-	u32b num = mark - lag_minus;
+	u32b num = lag_mark;
+#if 0
+	/* Output lag in miliseconds instead of stars */
+	char buf[10];
+	buf[0] = '\0';
+	float ping = num / 10;
+	sprintf(buf, "%6.1fms", ping);
+#endif
 	/* Default to "unknown" */
 
-	num/=10;
-	if(num>30000) return; // sometimes we catch a negative flip, just ignore it.
+	//num/=10;
+	//if(num>30000) return; // sometimes we catch a negative flip, just ignore it.
 
 
 	Term_erase(col, row, 12);
@@ -616,8 +622,8 @@ static void prt_lag(int row, int col)
 
 	Term_putstr(col, row, 12, TERM_L_DARK, "LAG:[------]"); 
 
-	if( mark == 64000 ) {
-		c_msg_print(format("Time out Mark: %lu, Last: %lu", mark,last));
+	if( lag_mark == 10000 ) {
+		c_msg_print_aux("Time Out", MSG_LOCAL);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -630,13 +636,16 @@ static void prt_lag(int row, int col)
 
 	num=last=(num+last)/2L;
 		
-	num /= (500/6);
+	num /= (4000/6);
 	if(!attr) {
 		attr=TERM_L_GREEN;
 		if(num > 3L) attr=TERM_YELLOW;
 		if(num > 5L) attr=TERM_RED;
 	};
 	Term_putstr(col + 5, row, num, attr, "******");
+#if 0
+	Term_putstr(col + 4, row, 8, TERM_L_DARK, buf);
+#endif
 }
 
 /*
