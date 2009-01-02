@@ -335,6 +335,7 @@ void client_init(char *argv1)
 		/* Set the server's name */
 		strcpy(server_name, argv1);
 		/* Set server port */
+		server_port = conf_get_int("MAngband", "Port", 18346);
 		s = strchr(server_name, ':');
 		if (s) 
 		{
