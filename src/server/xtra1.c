@@ -1344,6 +1344,17 @@ static void fix_overhead(int Ind)
 
 
 /*
+ * Hack -- display mini-map view in sub-windows
+ *
+ * Note that the "player" symbol does NOT appear on the map.
+ */
+static void fix_map(int Ind)
+{
+	display_map(Ind, TRUE);
+}
+
+
+/*
  * Hack -- display monster recall in sub-windows
  */
 static void fix_monster(int Ind)
@@ -3338,6 +3349,13 @@ void window_stuff(int Ind)
 	{
 		p_ptr->window &= ~(PW_OVERHEAD);
 		fix_overhead(Ind);
+	}
+
+	/* Display mini-map view */
+	if (p_ptr->window & PW_MAP)
+	{
+		p_ptr->window &= ~(PW_MAP);
+		fix_map(Ind);
 	}
 
 	/* Display monster recall */

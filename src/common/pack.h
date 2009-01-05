@@ -147,6 +147,7 @@
 #define PKT_OBJFLAGS		163
 #define PKT_COMMAND		164
 #define PKT_CHANNEL		165
+#define PKT_TERM  		167
 
 
 /*
@@ -170,6 +171,26 @@
 #define STRUCT_INFO_LIMITS	 1
 #define STRUCT_INFO_RACE	 2
 #define STRUCT_INFO_CLASS	 3
+
+/*
+ * PKT_TERM helpers
+ */
+#define NTERM_ACTIVATE	0
+#define NTERM_CLEAR  	1
+#define NTERM_CURSOR 	2
+#define NTERM_SAVE   	3
+#define NTERM_LOAD   	4
+#define NTERM_KEY    	5
+#define NTERM_HOLD    	6
+/* NTERM_ACTIVATE */
+#define NTERM_WIN_OVERHEAD	0
+#define NTERM_WIN_MAP   	1
+#define NTERM_WIN_XXXX1 	2
+#define NTERM_WIN_XXXX2 	3
+#define NTERM_WIN_OBJECT	4
+#define NTERM_WIN_MONSTER	5
+#define NTERM_WIN_XXXX3 	6
+#define NTERM_WIN_XXXX4 	7
 
 /*
  * Some commands send to the server

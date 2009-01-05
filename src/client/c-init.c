@@ -91,6 +91,9 @@ void init_minor(void)
 		p_ptr->on_channel[i] = FALSE; 
 	}
 	p_ptr->main_channel = 0;
+	
+	/* Term channels */
+	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 }
 
 

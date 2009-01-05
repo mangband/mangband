@@ -383,6 +383,8 @@ extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char private);
 extern void clear_from(int row);
+extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
+extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);

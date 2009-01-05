@@ -2130,6 +2130,32 @@ void clear_from(int row)
 	}
 }
 
+int caveprt(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		/* Don't draw on screen if character is 0 */
+		if (src[i].c)
+		{				
+			Term_draw(i + x, y, src[i].a, src[i].c);
+		}
+	}
+	return 1;
+}
+
+int cavecpy(cave_view_type* dest, cave_view_type* src, int len)
+{
+	int i;
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = src[i].a;
+		dest[i].c = src[i].c;
+	}
+	return 1;
+}
+
 void prt_num(cptr header, int num, int row, int col, byte color)
 {
 	int len = strlen(header);

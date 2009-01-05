@@ -1640,7 +1640,7 @@ static byte priority(byte a, char c)
  */
  
  
-void display_map(int Ind)
+void display_map(int Ind, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
 	monster_race *r_ptr = &r_info[0];
@@ -1665,9 +1665,17 @@ void display_map(int Ind)
 
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
-	/* Desired map height */
+	/* Desired map size */
 	map_hgt = p_ptr->screen_hgt - 1;
 	map_wid = p_ptr->screen_wid - 2;
+	
+	/* Hack -- classic mini-map */
+	//TODO: handle client term size !
+	if (quiet)
+	{ 
+		map_hgt = 24 - 2;
+		map_wid = 80 - 2;
+	}
 
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
@@ -1757,6 +1765,10 @@ void display_map(int Ind)
 	/* Set the "player" char */
 	mc[y][x] = r_ptr->x_char;
 
+	/* Activate mini-map window */
+	if (quiet)
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP, 0);
+	
 	/* Display each map line in order */
 	for (y = 0; y < map_hgt+2; ++y)
 	{
@@ -1775,7 +1787,7 @@ void display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y);
+		Send_mini_map(Ind, y, (!quiet ? 0 :map_wid+2));
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -1788,7 +1800,9 @@ void display_map(int Ind)
 	}
 
 
-
+	/* Restore main window */
+	if (quiet)
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD, 0);
 
 	/* Restore lighting effects */
 	p_ptr->view_special_lite = old_view_special_lite;
@@ -1943,7 +1957,7 @@ void wild_display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y);
+		Send_mini_map(Ind, y, 0);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -1973,7 +1987,7 @@ void do_cmd_view_map(int Ind)
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
-	if (Players[Ind]->dun_depth >= 0) display_map(Ind);
+	if (Players[Ind]->dun_depth >= 0) display_map(Ind, FALSE);
 	/* do wilderness map */
 	else wild_display_map(Ind);
 }

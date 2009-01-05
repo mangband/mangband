@@ -2709,7 +2709,7 @@ int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
 	if (!BIT(Conn[Players[ind]->conn].state, CONN_PLAYING | CONN_READY))
 		return 0;
 
-	if (Players[ind]->use_graphics > 1)
+	if (Players[ind]->use_graphics > 1 && Players[ind]->remote_term == NTERM_WIN_OVERHEAD)
 		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c%c%c", PKT_CHAR, x, y, a, c, ta, tc);
 	else
 		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
@@ -2758,6 +2758,34 @@ int Send_flush(int ind)
 	return Packet_printf(&connp->c, "%c", PKT_FLUSH);
 }
 
+int Send_term_info(int ind, int mode, int arg1, int arg2)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+	u32b arg;
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for term info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+	
+	/* TODO: in some cases, arg = (u16b)arg1 << 16 | (u16b)(arg2)  ... ? */
+	/* We could also make arg - (u16b) and arg1,arg2 - (byte) ...? */
+	arg = arg1;
+	
+	/* Hack - do not change terms too often */
+	if (mode == NTERM_ACTIVATE)
+	{
+		if (p_ptr->remote_term == (byte)arg1) return 1;
+		p_ptr->remote_term = (byte)arg1;
+	}
+	
+	return Packet_printf(&connp->c, "%c%c%lu", PKT_TERM, mode, arg);
+}
+
 /*
  * As an attempt to lower bandwidth requirements, each line is run length
  * encoded.  Non-encoded grids are sent as normal, but if a grid is
@@ -2796,7 +2824,7 @@ int Send_line_info(int ind, int y)
 	return 1;
 }
 
-int Send_mini_map(int ind, int y)
+int Send_mini_map(int ind, int y, s16b w)
 {
 	player_type *p_ptr = Players[ind];
 	connection_t *connp = &Conn[p_ptr->conn];
@@ -2812,7 +2840,7 @@ int Send_mini_map(int ind, int y)
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", PKT_MINI_MAP, y);
 	
-	rle_encode(&connp->c, p_ptr->scr_info[y], p_ptr->screen_wid, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 
+	rle_encode(&connp->c, p_ptr->scr_info[y], (!w ? p_ptr->screen_wid : w), ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */
@@ -5183,7 +5211,7 @@ static int Receive_redraw(int ind)
 	{
 		p_ptr->store_num = -1;
 		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR );
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER | PW_MAP);
 	p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
 	}
 

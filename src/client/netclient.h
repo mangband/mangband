@@ -64,6 +64,7 @@ int Receive_item(void);
 int Receive_spell_info(void);
 int Receive_direction(void);
 int Receive_flush(void);
+int Receive_term_info(void);
 int Receive_line_info(void);
 int Receive_floor(void);
 int Receive_special_other(void);

@@ -3021,7 +3021,7 @@ void verify_panel(int Ind)
 	p_ptr->redraw |= (PR_MAP);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_OVERHEAD);
+	p_ptr->window |= (PW_OVERHEAD | PW_MAP);
 }
 void setup_panel(int Ind, bool adjust)
 {

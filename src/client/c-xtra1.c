@@ -1395,6 +1395,47 @@ static void fix_status(void)
 		Term_activate(old);
 	}
 }
+
+
+/*
+ * Hack -- display dungeon map view in sub-windows.
+ */
+static void fix_map(void)
+{
+	int j, y;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_MAP))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+		
+		/* Get size */
+		Term_get_size(&w, &h);
+
+		/* Print map */
+		for (y = 0; y < p_ptr->rem_last[NTERM_WIN_MAP]+1; y++)
+		{
+			caveprt(p_ptr->rem_info[NTERM_WIN_MAP][y], w, 0, y);
+		}
+			
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
  
 /* Determine message color based on string templates */ 
 bool message_color(cptr msg, byte *ap)
@@ -2412,6 +2453,13 @@ void window_stuff(void)
 	{
 		p_ptr->window &= ~(PW_PLAYER_2);
 		fix_player_compact();
+	}
+	
+	/* Display map view */
+	if (p_ptr->window & (PW_MAP))
+	{
+		p_ptr->window &= ~(PW_MAP);
+		fix_map();
 	}
 	
 	/* Display messages */

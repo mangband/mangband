@@ -566,6 +566,9 @@ static void player_wipe(int Ind)
 	p_ptr->main_channel = 0;
 	strcpy(p_ptr->second_channel, "");
 	p_ptr->on_channel[0] = TRUE;
+	
+	/* Output to default terminal */
+	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
 }
 
 

@@ -1339,6 +1339,10 @@ struct player_type
 				/* What he should be seeing */
 	cave_view_type scr_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
 	cave_view_type trn_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
+			/* Additional remote terms  -- WARNING -- THIS IS AROUND 250KB ! -- PRETTY EXCESSIVE */
+	cave_view_type rem_info[8][MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
+	byte rem_last[8];
+	byte remote_term;
 
 	char died_from[80];	/* What off-ed him */
 	char died_from_list[80]; /* what goes on the high score list */

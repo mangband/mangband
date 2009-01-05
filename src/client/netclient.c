@@ -115,6 +115,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_SPELL_INFO]	= Receive_spell_info;
 	receive_tbl[PKT_DIRECTION]	= Receive_direction;
 	receive_tbl[PKT_FLUSH]		= Receive_flush;
+	receive_tbl[PKT_TERM]		= Receive_term_info;
 	receive_tbl[PKT_LINE_INFO]	= Receive_line_info;
 	receive_tbl[PKT_SPECIAL_OTHER]	= Receive_special_other;
 	receive_tbl[PKT_STORE]		= Receive_store;
@@ -1558,6 +1559,14 @@ int Receive_char(void)
 		return n;
 	}
 	
+	/* Hack -- Use ANOTHER terminal */
+	if (p_ptr->remote_term)
+	{
+		p_ptr->rem_info[p_ptr->remote_term][y][x].a = a;
+		p_ptr->rem_info[p_ptr->remote_term][y][x].c = c;
+		return 1; 
+	}
+	
 	/* Hack: Manipulate offset */
 	x += (x_off = DUNGEON_OFFSET_X);
 
@@ -2029,17 +2038,57 @@ int Receive_flush(void)
 }
 
 
+int Receive_term_info(void)
+{
+	char ch, n, mode;
+	u32b arg;
+	
+	mode = arg = 0;	
+	
+	if ((n = Packet_scanf(&rbuf, "%c%c%lu", &ch, &mode, &arg)) <= 0)
+	{
+		return n;
+	}
+	
+	switch (mode)
+	{
+		case NTERM_ACTIVATE:
+			p_ptr->remote_term = arg;
+			break;
+		case NTERM_CLEAR:
+			Term_clear();
+			break;	
+	}
+	return 1;
+} 
+
 int Receive_line_info(void)
 {
 	char	ch, n;
 	s16b	y, x = 0;
 		bool	draw = FALSE;
+		bool quiet = FALSE;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
 		return n;
 	}
 
+	/* Hack -- Use ANOTHER terminal */
+	if (p_ptr->remote_term)
+	{
+		if (y > p_ptr->rem_last[p_ptr->remote_term])
+			p_ptr->rem_last[p_ptr->remote_term] = y;
+		if (ch == PKT_MINI_MAP && !screen_icky)
+			quiet = TRUE;
+		rle_decode(&rbuf, p_ptr->rem_info[p_ptr->remote_term][y], (!quiet ? Client_setup.settings[1] : 80), (ch == PKT_MINI_MAP && use_graphics ? RLE_LARGE : RLE_CLASSIC), 0, x);
+		if (ch == PKT_MINI_MAP && screen_icky)
+			caveprt(p_ptr->rem_info[p_ptr->remote_term][y], (!quiet ? Client_setup.settings[1] : 80), (!quiet ? DUNGEON_OFFSET_X : 0), y );
+		if (ch == PKT_MINI_MAP)
+			p_ptr->window |= PW_MAP;
+		return 1;
+	}	
+	
 	/* If this is the mini-map then we can draw if the screen is icky */
 	if (ch == PKT_MINI_MAP || (!screen_icky && !shopping))
 		draw = TRUE;
