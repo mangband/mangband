@@ -90,6 +90,7 @@ extern bool (*item_tester_hook)(object_type *o_ptr);
 
 extern int special_line_type;
 extern char special_line_header[80];
+extern bool special_line_onscreen;
 
 extern bool inkey_base;
 extern bool inkey_scan;

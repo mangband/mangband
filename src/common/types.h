@@ -1261,7 +1261,7 @@ struct player_type
 	byte target_x[TEMP_MAX];
 	s16b target_idx[TEMP_MAX];
 
-	cptr info[128];		/* Temp storage of *ID* and Self Knowledge info */
+	cptr info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
 	byte special_file_type;	/* Is he using *ID* or Self Knowledge? */
 
 	byte cave_flag[MAX_HGT][MAX_WID]; /* Can the player see this grid? */

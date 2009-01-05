@@ -1712,6 +1712,59 @@ void fix_message(void)
 }
 
 /*
+ * Hack -- display special recall in sub-windows
+ */
+static void fix_special_info(void)
+{
+	int i, j;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_SPECIAL_INFO))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Get size */
+		Term_get_size(&w, &h);		
+		
+		/* Display special title */
+		Term_erase(0, 0, 255);
+		Term_putstr(0, 0, 80, TERM_YELLOW, special_line_header);
+		
+		/* Dump text */
+		for (i = 0; p_ptr->info[i]; i++)
+		{
+			if (!p_ptr->info[i]) break;
+			Term_erase(0, 1+i, 255);
+			Term_putstr(0, 1+i, 80, TERM_WHITE, p_ptr->info[i]);
+		}
+		
+		/* Erase rest */
+		for (; i < h; i++)
+		{
+			Term_erase(0, 1+i, 255);
+		}
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+
+/*
  * Hack -- pass color info around this file
  */
 static byte likert_color = TERM_WHITE;
@@ -2474,5 +2527,12 @@ void window_stuff(void)
 	{
 		p_ptr->window &= (~PW_MESSAGE_CHAT);
 		fix_special_message();
+	}
+	
+	/* Display MAngband special recall */
+	if (p_ptr->window & (PW_SPECIAL_INFO))
+	{
+		p_ptr->window &= ~(PW_SPECIAL_INFO);
+		fix_special_info();
 	}
 }

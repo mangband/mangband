@@ -3275,7 +3275,7 @@ extern void log_history_event(int Ind, char *msg)
 void text_out_init(int Ind) {
 	player_type	*p_ptr = Players[Ind];
 	int i;
-	for (i = 0; i < 128; i++)
+	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (p_ptr->info[i])
 			string_free(p_ptr->info[i]);

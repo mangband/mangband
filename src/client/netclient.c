@@ -2167,9 +2167,15 @@ int Receive_special_other(void)
 	/* Set file perusal method to "other" */
 	special_line_type = SPECIAL_FILE_OTHER;
 
+	/* Disable to-screen */
+	//special_line_onscreen = FALSE;
+	
 	/* Peruse the file we're about to get */
 	peruse_file();
 
+	/* Restore */
+	special_line_onscreen = TRUE;
+	
 	return 1;
 }
 
@@ -2361,10 +2367,14 @@ int Receive_special_line(void)
 		return n;
 	}
 
-	if (!screen_icky) return 0;
-
+	/* Copy to local buffer */
+	p_ptr->info[line] = string_make(buf);
+	p_ptr->window |= PW_SPECIAL_INFO;
+	
 	/* Maximum */
 	max_line = max;
+
+	if (!screen_icky) return 1;
 
 	/* Hack -- decide to go popup/fullon mode */
 	if (line == 0)

@@ -87,6 +87,11 @@
 #define MAX_CHAR_HIST 300
 
 /*
+ * Maximum number of lines in 'special info' (*ID*, Self-Knowledge, Recalls)
+ */
+#define MAX_TXT_INFO 300
+
+/*
  * This is very important...
  *
  * This is the number of "frames" to produce per second.  It determines
@@ -1968,6 +1973,7 @@ that keeps many algorithms happy.
 #define PW_SPELL            0x00002000L /* Older angband: Spell list */
 #define PW_BORG_1           0x00004000L /* Display borg messages */
 #define PW_BORG_2           0x00008000L /* Display borg status */
+#define PW_SPECIAL_INFO     0x00008000L /* Display special info (instead of borg status) */
 
 #define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
  

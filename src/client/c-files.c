@@ -1501,11 +1501,31 @@ void show_motd(void)
 void peruse_file(void)
 {
 	char k; 
+	int n; 
+
+	/* Clear local buffer */
+	for (n = 0; n < MAX_TXT_INFO; n++)
+	{
+		if (p_ptr->info[n]) 
+		{
+			string_free(p_ptr->info[n]);
+			p_ptr->info[n] = 0;
+		}
+	}
 
 	/* Initialize */
 	cur_line = 0;
 	max_line = 0;
 
+	/* HACK - Stealh Mode? */
+	if (!special_line_onscreen)
+	{
+			Send_special_line(special_line_type, cur_line);
+			Send_special_line(SPECIAL_FILE_NONE, 0);
+			special_line_type = 0;
+			return;
+	}
+	
 	/* The screen is icky */
 	screen_icky = TRUE;
 

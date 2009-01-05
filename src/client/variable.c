@@ -66,6 +66,7 @@ bool (*item_tester_hook)(object_type *o_ptr);
 
 int special_line_type;
 char special_line_header[80];
+bool special_line_onscreen = TRUE;
 
 bool inkey_base = FALSE;
 bool inkey_scan = FALSE;
