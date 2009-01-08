@@ -1059,7 +1059,9 @@ extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 extern void text_out(cptr buf);
+extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
+extern void text_out_done();
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);

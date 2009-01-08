@@ -3280,22 +3280,19 @@ void text_out_init(int Ind) {
 	p_ptr->cur_hgt = 0;
 }
 
-/* 
- * A function to add info to p_ptr->info. 
- * You must call roff_init before issuing this.
- */
-#ifndef PRETTY_TEXT_OUT
-void text_out(cptr buf) {
-   player_type	*p_ptr = Players[player_textout];
-   
-   /* if (!buf || buf[0] == '\n') return; */
-
-	p_ptr->info[p_ptr->cur_hgt] = buf;
+void text_out_done()
+{
+	player_type	*p_ptr = Players[player_textout];
 	
-	p_ptr->cur_hgt++;
+	p_ptr->rem_last[1] = p_ptr->cur_hgt;	
+
+	/* Restore height and width of current dungeon level */
+	p_ptr->cur_hgt = MAX_HGT;
+	p_ptr->cur_wid = MAX_WID;
 }
-#else 
-void text_out(cptr buf) {
+
+void text_out_c(byte a, cptr buf)
+{
 	int i, j, shorten, buflen;
    player_type	*p_ptr = Players[player_textout];
    static char line_buf[80] = {'\0'};
@@ -3380,7 +3377,11 @@ void text_out(cptr buf) {
 			line_buf[i] = ' ';
 		
 	   /* Dump it */
-	   p_ptr->info[p_ptr->cur_hgt] = string_make(line_buf);
+	   for (i = 0; i < 80; i++)
+		{
+			p_ptr->rem_info[1][p_ptr->cur_hgt][i].c = line_buf[i];
+			p_ptr->rem_info[1][p_ptr->cur_hgt][i].a = a;
+		}
 	   
 		/* End function for simple cases */
 		if (simple) break;
@@ -3399,4 +3400,8 @@ void text_out(cptr buf) {
 		if (shorten >= buflen) break; 
 	}
 }
-#endif
+
+void text_out(cptr str)
+{
+	text_out_c(TERM_WHITE, str);
+}

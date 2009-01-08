@@ -35,11 +35,6 @@ static cptr wd_his[3] =
 
 
 
-/* Ugly hack -- dismiss color information */
-void text_out_c(byte a, cptr buf) {
-	text_out(buf);
-}
-
 /*
  * Determine if the "armor" is known
  * The higher the level, the fewer kills needed.

@@ -2476,9 +2476,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 
 	/* Describe it fully */
 	
-	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
-
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -2489,8 +2486,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	object_info_screen(o_ptr);
 
 	/* Restore height and width of current dungeon level */
-	p_ptr->cur_hgt = MAX_HGT; 
-	p_ptr->cur_wid = MAX_WID;
+	text_out_done();
 	
 	/* Gave knowledge */
 	return TRUE; 

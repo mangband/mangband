@@ -630,16 +630,36 @@ void do_cmd_check_other(int Ind, int line)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int n = 0;
-
-	FILE *fff;
-
-	char file_name[1024];
-
+	char buf[1024];
+	int i, j, size = 80;
 
 	/* Make sure the player is allowed to */
 	if (!p_ptr->special_file_type) return;
 
+	/* Dump the next 20 lines of the file */
+	for (i = 0; i < 20; i++)
+	{
+		byte attr = TERM_WHITE;
+
+		/* We're done */
+		if (line + i > MAX_TXT_INFO) break;
+		if (line + i > p_ptr->rem_last[1]) break; 
+		
+		/* Extract string */
+		for (j = 0; j < size; j++)
+		{
+			buf[j] = p_ptr->rem_info[1][line+i][j].c;
+		}
+		attr = p_ptr->rem_info[1][line+i][0].a;
+		buf[j] = '\0';
+
+		/* Dump the line */
+		Send_special_line(Ind, p_ptr->rem_last[1]+1, i, attr, &buf[0]);
+	}
+#if 0
+	int n = 0;
+	FILE *fff;
+	char file_name[1024];
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
 
@@ -674,4 +694,5 @@ void do_cmd_check_other(int Ind, int line)
 
 	/* Remove the file */
 	fd_kill(file_name);
+#endif
 }

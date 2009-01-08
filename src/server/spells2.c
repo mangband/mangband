@@ -522,6 +522,8 @@ void self_knowledge(int Ind)
 	object_type	*o_ptr;
 
 	cptr	*info = p_ptr->info;
+	
+	int j,e; /* copy hack */
 
 	/* Clear the info area first. */
 	memset(p_ptr->info,0,sizeof(p_ptr->info));
@@ -933,6 +935,24 @@ void self_knowledge(int Ind)
             info[i++] = "Your weapon is a great bane of undead.";
         }
 	}
+	
+	/* HACK !!! --- Copy to rem_info */
+	for (k = 0; k < i; k++)
+	{
+		e = strlen(info[k]);
+		for (j = 0; j < e; j++)
+		{
+			p_ptr->rem_info[1][k][j].c = info[k][j];
+			p_ptr->rem_info[1][k][j].a = TERM_WHITE;	
+		}
+		for (j = e; j < 80; j++)
+		{
+			p_ptr->rem_info[1][k][j].c = ' ';
+			p_ptr->rem_info[1][k][j].a = TERM_WHITE;	
+		}
+	}
+	/* Last line */
+	p_ptr->rem_last[1] = i - 1;
 
 
 	/* Let the client know to expect some info */

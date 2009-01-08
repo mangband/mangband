@@ -1743,9 +1743,6 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	int i;
 	bool found = FALSE;
 	
-	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
-
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -1773,8 +1770,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 		text_out("You fail to remember any monsters of this kind");
 		
 	/* Restore height and width of current dungeon level */
-	p_ptr->cur_hgt = MAX_HGT; 
-	p_ptr->cur_wid = MAX_WID;
+	text_out_done();
 
 	/* Notify player */
 	Send_special_other(Ind, format("Monster Recall ('%c')", c));
@@ -1789,9 +1785,6 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 	int r_idx = m_list[m_idx].r_idx;
 	/* Describe it fully */
 	
-	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
-
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -1803,8 +1796,7 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 	describe_monster(Ind, r_idx, FALSE);
 
 	/* Restore height and width of current dungeon level */
-	p_ptr->cur_hgt = MAX_HGT; 
-	p_ptr->cur_wid = MAX_WID;
+	text_out_done();
 	
 	/* Monster name (for title) */
 	mon_name[0] = '\0';
