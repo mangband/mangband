@@ -3284,7 +3284,7 @@ void text_out_done()
 {
 	player_type	*p_ptr = Players[player_textout];
 	
-	p_ptr->rem_last[1] = p_ptr->cur_hgt;	
+	p_ptr->last_info_line = p_ptr->cur_hgt;	
 
 	/* Restore height and width of current dungeon level */
 	p_ptr->cur_hgt = MAX_HGT;
@@ -3379,8 +3379,8 @@ void text_out_c(byte a, cptr buf)
 	   /* Dump it */
 	   for (i = 0; i < 80; i++)
 		{
-			p_ptr->rem_info[1][p_ptr->cur_hgt][i].c = line_buf[i];
-			p_ptr->rem_info[1][p_ptr->cur_hgt][i].a = a;
+			p_ptr->info[p_ptr->cur_hgt][i].c = line_buf[i];
+			p_ptr->info[p_ptr->cur_hgt][i].a = a;
 		}
 	   
 		/* End function for simple cases */

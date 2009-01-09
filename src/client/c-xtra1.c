@@ -1423,9 +1423,15 @@ static void fix_map(void)
 		Term_get_size(&w, &h);
 
 		/* Print map */
-		for (y = 0; y < p_ptr->rem_last[NTERM_WIN_MAP]+1; y++)
+		for (y = 0; y < last_remote_line[NTERM_WIN_MAP]+1; y++)
 		{
-			caveprt(p_ptr->rem_info[NTERM_WIN_MAP][y], w, 0, y);
+			caveprt(remote_info[NTERM_WIN_MAP][y], w, 0, y);
+		}
+
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, 255);
 		}
 			
 		/* Fresh */
@@ -1716,7 +1722,7 @@ void fix_message(void)
  */
 static void fix_special_info(void)
 {
-	int i, j;
+	int y, j;
 	int w, h;
 
 	/* Scan windows */
@@ -1740,6 +1746,18 @@ static void fix_special_info(void)
 		Term_erase(0, 0, 255);
 		Term_putstr(0, 0, 80, TERM_YELLOW, special_line_header);
 		
+		/* Print map */
+		for (y = 0; y < last_remote_line[0]+1; y++)
+		{
+			caveprt(remote_info[0][y], w, 0, y);
+		}
+
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, 255);
+		}
+#if 0
 		/* Dump text */
 		for (i = 0; p_ptr->info[i]; i++)
 		{
@@ -1753,7 +1771,7 @@ static void fix_special_info(void)
 		{
 			Term_erase(0, 1+i, 255);
 		}
-
+#endif
 		/* Fresh */
 		Term_fresh();
 

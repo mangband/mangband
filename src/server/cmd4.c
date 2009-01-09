@@ -643,18 +643,18 @@ void do_cmd_check_other(int Ind, int line)
 
 		/* We're done */
 		if (line + i > MAX_TXT_INFO) break;
-		if (line + i > p_ptr->rem_last[1]) break; 
+		if (line + i > p_ptr->last_info_line) break; 
 		
 		/* Extract string */
 		for (j = 0; j < size; j++)
 		{
-			buf[j] = p_ptr->rem_info[1][line+i][j].c;
+			buf[j] = p_ptr->info[line+i][j].c;
 		}
-		attr = p_ptr->rem_info[1][line+i][0].a;
+		attr = p_ptr->info[line+i][0].a;
 		buf[j] = '\0';
 
 		/* Dump the line */
-		Send_special_line(Ind, p_ptr->rem_last[1]+1, i, attr, &buf[0]);
+		Send_special_line(Ind, p_ptr->last_info_line+1, i, attr, &buf[0]);
 	}
 #if 0
 	int n = 0;

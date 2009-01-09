@@ -1503,16 +1503,6 @@ void peruse_file(void)
 	char k; 
 	int n; 
 
-	/* Clear local buffer */
-	for (n = 0; n < MAX_TXT_INFO; n++)
-	{
-		if (p_ptr->info[n]) 
-		{
-			string_free(p_ptr->info[n]);
-			p_ptr->info[n] = 0;
-		}
-	}
-
 	/* Initialize */
 	cur_line = 0;
 	max_line = 0;

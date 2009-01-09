@@ -1261,7 +1261,6 @@ struct player_type
 	byte target_x[TEMP_MAX];
 	s16b target_idx[TEMP_MAX];
 
-	cptr info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
 	byte special_file_type;	/* Is he using *ID* or Self Knowledge? */
 
 	byte cave_flag[MAX_HGT][MAX_WID]; /* Can the player see this grid? */
@@ -1340,8 +1339,8 @@ struct player_type
 	cave_view_type scr_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
 	cave_view_type trn_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
 			/* Additional remote terms  -- WARNING -- THIS IS AROUND 250KB ! -- PRETTY EXCESSIVE */
-	cave_view_type rem_info[8][MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
-	byte rem_last[8];
+	cave_view_type info[MAX_TXT_INFO][80];
+	s16b last_info_line;
 	byte remote_term;
 
 	char died_from[80];	/* What off-ed him */

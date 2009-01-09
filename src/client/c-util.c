@@ -2145,13 +2145,19 @@ int caveprt(cave_view_type* src, int len, s16b x, s16b y)
 	return 1;
 }
 
-int cavecpy(cave_view_type* dest, cave_view_type* src, int len)
+int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 {
-	int i;
-	for (i = 0; i < len; i++)
+	int i, e;
+	e = strlen(str);
+	for (i = 0; i < e; i++)
 	{
-		dest[i].a = src[i].a;
-		dest[i].c = src[i].c;
+		dest[i].a = attr;
+		dest[i].c = str[i];
+	}
+	for (i = e; i < max_col; i++)
+	{
+		dest[i].a = TERM_WHITE;
+		dest[i].c = ' ';
 	}
 	return 1;
 }

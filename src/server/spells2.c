@@ -521,12 +521,12 @@ void self_knowledge(int Ind)
 
 	object_type	*o_ptr;
 
-	cptr	*info = p_ptr->info;
-	
 	int j,e; /* copy hack */
+	static cptr s_info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
+	cptr	*info = s_info;
 
 	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
+	memset(s_info,0,sizeof(s_info));
 
 	/* Let the player scroll through the info */
 	p_ptr->special_file_type = TRUE;
@@ -942,17 +942,17 @@ void self_knowledge(int Ind)
 		e = strlen(info[k]);
 		for (j = 0; j < e; j++)
 		{
-			p_ptr->rem_info[1][k][j].c = info[k][j];
-			p_ptr->rem_info[1][k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].c = info[k][j];
+			p_ptr->info[k][j].a = TERM_WHITE;	
 		}
 		for (j = e; j < 80; j++)
 		{
-			p_ptr->rem_info[1][k][j].c = ' ';
-			p_ptr->rem_info[1][k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].c = ' ';
+			p_ptr->info[k][j].a = TERM_WHITE;	
 		}
 	}
 	/* Last line */
-	p_ptr->rem_last[1] = i - 1;
+	p_ptr->last_info_line = i - 1;
 
 
 	/* Let the client know to expect some info */

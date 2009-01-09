@@ -1560,10 +1560,12 @@ int Receive_char(void)
 	}
 	
 	/* Hack -- Use ANOTHER terminal */
-	if (p_ptr->remote_term)
+	if ((n = p_ptr->remote_term))
 	{
-		p_ptr->rem_info[p_ptr->remote_term][y][x].a = a;
-		p_ptr->rem_info[p_ptr->remote_term][y][x].c = c;
+		if (y > last_remote_line[n]) 
+			last_remote_line[n] = y; 
+		remote_info[n][y][x].a = a;
+		remote_info[n][y][x].c = c;
 		return 1; 
 	}
 	
@@ -2056,7 +2058,7 @@ int Receive_term_info(void)
 			p_ptr->remote_term = arg;
 			break;
 		case NTERM_CLEAR:
-			Term_clear();
+			last_remote_line[p_ptr->remote_term] = 0;
 			break;	
 	}
 	return 1;
@@ -2068,6 +2070,7 @@ int Receive_line_info(void)
 	s16b	y, x = 0;
 		bool	draw = FALSE;
 		bool quiet = FALSE;
+	int r;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
@@ -2075,15 +2078,15 @@ int Receive_line_info(void)
 	}
 
 	/* Hack -- Use ANOTHER terminal */
-	if (p_ptr->remote_term)
+	if ((r = p_ptr->remote_term))
 	{
-		if (y > p_ptr->rem_last[p_ptr->remote_term])
-			p_ptr->rem_last[p_ptr->remote_term] = y;
+		if (y > last_remote_line[r])
+			last_remote_line[r] = y;
 		if (ch == PKT_MINI_MAP && !screen_icky)
 			quiet = TRUE;
-		rle_decode(&rbuf, p_ptr->rem_info[p_ptr->remote_term][y], (!quiet ? Client_setup.settings[1] : 80), (ch == PKT_MINI_MAP && use_graphics ? RLE_LARGE : RLE_CLASSIC), 0, x);
+		rle_decode(&rbuf, remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (ch == PKT_MINI_MAP && use_graphics ? RLE_LARGE : RLE_CLASSIC), 0, x);
 		if (ch == PKT_MINI_MAP && screen_icky)
-			caveprt(p_ptr->rem_info[p_ptr->remote_term][y], (!quiet ? Client_setup.settings[1] : 80), (!quiet ? DUNGEON_OFFSET_X : 0), y );
+			caveprt(remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (!quiet ? DUNGEON_OFFSET_X : 0), y );
 		if (ch == PKT_MINI_MAP)
 			p_ptr->window |= PW_MAP;
 		return 1;
@@ -2361,6 +2364,7 @@ int Receive_special_line(void)
 	char	ch, attr;
 	s16b	max, line;
 	char	buf[80];
+	byte  r;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%c%s", &ch, &max, &line, &attr, buf)) <= 0)
 	{
@@ -2368,7 +2372,9 @@ int Receive_special_line(void)
 	}
 
 	/* Copy to local buffer */
-	p_ptr->info[line] = string_make(buf);
+	r = p_ptr->remote_term;
+	cavestr(remote_info[r][line+1], buf, attr, 80);
+	last_remote_line[r] = max;
 	p_ptr->window |= PW_SPECIAL_INFO;
 	
 	/* Maximum */
@@ -2378,7 +2384,10 @@ int Receive_special_line(void)
 
 	/* Hack -- decide to go popup/fullon mode */
 	if (line == 0)
-	{	
+	{
+		/* (but first copy header to local buffer!) */
+		cavestr(remote_info[r][0], special_line_header, TERM_YELLOW, 80);
+	
 		if (max > (SCREEN_HGT - 2)/2 || special_line_type != SPECIAL_FILE_OTHER) 
 		{
 			/* Clear the screen */
