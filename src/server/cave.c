@@ -1767,7 +1767,7 @@ void display_map(int Ind, bool quiet)
 
 	/* Activate mini-map window */
 	if (quiet)
-		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP, 0);
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
 	
 	/* Display each map line in order */
 	for (y = 0; y < map_hgt+2; ++y)
@@ -1802,7 +1802,7 @@ void display_map(int Ind, bool quiet)
 
 	/* Restore main window */
 	if (quiet)
-		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD, 0);
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 
 	/* Restore lighting effects */
 	p_ptr->view_special_lite = old_view_special_lite;
