@@ -2758,11 +2758,10 @@ int Send_flush(int ind)
 	return Packet_printf(&connp->c, "%c", PKT_FLUSH);
 }
 
-int Send_term_info(int ind, int mode, int arg1, int arg2)
+int Send_term_info(int ind, int mode, u16b arg)
 {
 	player_type *p_ptr = Players[ind];
 	connection_t *connp = &Conn[p_ptr->conn];
-	u32b arg;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2772,18 +2771,14 @@ int Send_term_info(int ind, int mode, int arg1, int arg2)
 		return 0;
 	}
 	
-	/* TODO: in some cases, arg = (u16b)arg1 << 16 | (u16b)(arg2)  ... ? */
-	/* We could also make arg - (u16b) and arg1,arg2 - (byte) ...? */
-	arg = arg1;
-	
 	/* Hack - do not change terms too often */
 	if (mode == NTERM_ACTIVATE)
 	{
-		if (p_ptr->remote_term == (byte)arg1) return 1;
-		p_ptr->remote_term = (byte)arg1;
+		if (p_ptr->remote_term == (byte)arg) return 1;
+		p_ptr->remote_term = (byte)arg;
 	}
 	
-	return Packet_printf(&connp->c, "%c%c%lu", PKT_TERM, mode, arg);
+	return Packet_printf(&connp->c, "%c%c%hu", PKT_TERM, mode, arg);
 }
 
 /*
@@ -2820,6 +2815,28 @@ int Send_line_info(int ind, int y)
 
 	/* Hack -- Prevent buffer overruns by flushing after each line sent */
 	/* Send_reliable(Players[ind]->conn); */
+	
+	return 1;
+}
+
+int Send_remote_line(int ind, int y)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for minimap (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+	    
+	/* Packet header */
+	Packet_printf(&connp->c, "%c%hd", PKT_LINE_INFO, y);
+	
+	/* Packet body */
+	rle_encode(&connp->c, p_ptr->info[y], 80, RLE_CLASSIC); 
 	
 	return 1;
 }

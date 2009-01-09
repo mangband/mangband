@@ -1738,8 +1738,6 @@ void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, b
  */
 void do_cmd_monster_desc_all(int Ind, char c) {
 	player_type *p_ptr = Players[Ind];
-	monster_lore *l_ptr;
-	char mon_name[80];
 	int i;
 	bool found = FALSE;
 	
@@ -1756,8 +1754,6 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 		{
 			/* Monster name */
 			text_out("\n  ");
-			text_out(r_name + r_info[i].name);
-			text_out("\n");
 		
 			/* Dump info into player */
 			describe_monster(Ind, i, FALSE);
@@ -1780,9 +1776,9 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 /* Give player detailed information about a specified monster */
 void do_cmd_monster_desc(int Ind, int m_idx) {
-	char mon_name[80];
 	player_type *p_ptr = Players[Ind];
 	int r_idx = m_list[m_idx].r_idx;
+	int i;
 	/* Describe it fully */
 	
 	/* Let the player scroll through this info */
@@ -1798,14 +1794,18 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 	/* Restore height and width of current dungeon level */
 	text_out_done();
 	
-	/* Monster name (for title) */
-	mon_name[0] = '\0';
-	monster_desc(Ind, mon_name, m_idx, 0);
 	
 	/* Notify player */
-	Send_special_other(Ind, mon_name);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MONSTER);
+	Send_term_info(Ind, NTERM_CLEAR, NTERM_WIN_MONSTER);
 	
-	return; 
+	for (i = 0; i < p_ptr->last_info_line; i++)
+		Send_remote_line(Ind, i);
+	
+	Send_term_info(Ind, NTERM_FRESH, NTERM_POP);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+	
+	return;
 }
 
 /*

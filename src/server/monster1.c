@@ -1244,7 +1244,42 @@ static void cheat_monster_lore(int r_idx, monster_lore *l_ptr)
 	l_ptr->flags6 = r_ptr->flags6;
 }
 
+void describe_monster_name(int r_idx)
+{
+	const monster_race *r_ptr = &r_info[r_idx];
 
+	byte a1, a2;
+	char c1, c2;
+
+	/* Get the chars */
+	c1 = r_ptr->d_char;
+	c2 = r_ptr->x_char;
+
+	/* Get the attrs */
+	a1 = r_ptr->d_attr;
+	a2 = r_ptr->x_attr;
+	
+	/* A title (use "The" for non-uniques) */
+	if (!(r_ptr->flags1 & RF1_UNIQUE))
+	{
+		text_out_c(TERM_WHITE, "The ");
+	}
+
+	/* Dump the name */
+	text_out_c(TERM_WHITE, (r_name + r_ptr->name));
+
+	/* Append the "standard" attr/char info */
+	text_out_c(TERM_WHITE, " ('");
+	text_out_c(a1, format("%c",c1));
+	text_out_c(TERM_WHITE, "')");
+
+	/* Append the "optional" attr/char info */
+	text_out_c(TERM_WHITE, "/('");
+	text_out_c(a2, format("%c",c2));
+	text_out_c(TERM_WHITE, "'):");
+	
+	text_out("\n");
+}
 
 /*
  * Hack -- display monster information using "text_out()"
@@ -1285,6 +1320,9 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 		/* Know "forced" flags */
 		lore.flags1 |= (r_ptr->flags1 & (RF1_FORCE_DEPTH | RF1_FORCE_MAXHP));
 	}
+
+	/* Monster name */
+	describe_monster_name(r_idx);
 
 	/* Cheat -- know everything */
 	if (cheat_know || spoilers) cheat_monster_lore(r_idx, &lore);

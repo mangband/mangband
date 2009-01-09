@@ -182,6 +182,8 @@
 #define NTERM_LOAD   	4
 #define NTERM_KEY    	5
 #define NTERM_HOLD    	6
+#define NTERM_FRESH  	7
+#define NTERM_POP    	8
 /* NTERM_ACTIVATE */
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1

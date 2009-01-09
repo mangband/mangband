@@ -431,7 +431,7 @@ cptr window_flag_desc[32] =
 	"Display map view",
 	"Display messages",
 	NULL,//"Display overhead view",
-	NULL,//"Display monster recall",
+	"Display monster recall",
 	NULL,//"Display object recall",
 	NULL,//"Display monster list",
 	"Display status",

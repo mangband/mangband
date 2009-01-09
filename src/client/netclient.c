@@ -2043,11 +2043,11 @@ int Receive_flush(void)
 int Receive_term_info(void)
 {
 	char ch, n, mode;
-	u32b arg;
+	u16b arg;
 	
 	mode = arg = 0;	
 	
-	if ((n = Packet_scanf(&rbuf, "%c%c%lu", &ch, &mode, &arg)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%hu", &ch, &mode, &arg)) <= 0)
 	{
 		return n;
 	}
@@ -2060,6 +2060,31 @@ int Receive_term_info(void)
 		case NTERM_CLEAR:
 			last_remote_line[p_ptr->remote_term] = 0;
 			break;	
+		case NTERM_FRESH:
+			switch (p_ptr->remote_term)
+			{
+				case NTERM_WIN_OVERHEAD:	p_ptr->window |= PW_OVERHEAD;	break;
+				case NTERM_WIN_MAP:     	p_ptr->window |= PW_MAP;   	break;
+				case NTERM_WIN_MONSTER: 	p_ptr->window |= PW_MONSTER;	break;
+				case NTERM_WIN_OBJECT:  	p_ptr->window |= PW_OBJECT;	break;
+			}
+			if (arg != NTERM_POP) break;
+			/* fall */
+		case NTERM_POP:
+			/* Popup Hack */
+			Term_save();
+			for (n = 0; n < last_remote_line[p_ptr->remote_term]+4; n++)
+				Term_erase(0, n, 80);
+			for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
+			c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+1, 0);
+			screen_icky = TRUE;
+			inkey();
+			screen_icky = FALSE;
+			Term_load();
+			Flush_queue();
+			Term_fresh();
+			break;
 	}
 	return 1;
 } 
@@ -2070,7 +2095,7 @@ int Receive_line_info(void)
 	s16b	y, x = 0;
 		bool	draw = FALSE;
 		bool quiet = FALSE;
-	int r;
+	byte r;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
@@ -2084,6 +2109,7 @@ int Receive_line_info(void)
 			last_remote_line[r] = y;
 		if (ch == PKT_MINI_MAP && !screen_icky)
 			quiet = TRUE;
+		if (ch != PKT_MINI_MAP) quiet = TRUE;
 		rle_decode(&rbuf, remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (ch == PKT_MINI_MAP && use_graphics ? RLE_LARGE : RLE_CLASSIC), 0, x);
 		if (ch == PKT_MINI_MAP && screen_icky)
 			caveprt(remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (!quiet ? DUNGEON_OFFSET_X : 0), y );

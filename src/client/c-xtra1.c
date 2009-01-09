@@ -1442,6 +1442,51 @@ static void fix_map(void)
 	}
 }
 
+
+/*
+ * Hack -- display some recall in some sub-windows
+ */
+static void fix_remote_term(byte rterm, u32b windows)
+{
+	int y, j;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (windows))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Get size */
+		Term_get_size(&w, &h);		
+		
+		/* Print data */
+		for (y = 0; y < last_remote_line[rterm]+1; y++)
+		{
+			caveprt(remote_info[rterm][y], w, 0, y);
+		}
+
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, 255);
+		}
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
  
 /* Determine message color based on string templates */ 
 bool message_color(cptr msg, byte *ap)
@@ -2552,5 +2597,12 @@ void window_stuff(void)
 	{
 		p_ptr->window &= ~(PW_SPECIAL_INFO);
 		fix_special_info();
+	}
+	
+	/* Display Monster recall */
+	if (p_ptr->window & (PW_MONSTER))
+	{
+		p_ptr->window &= ~(PW_MONSTER);
+		fix_remote_term(NTERM_WIN_MONSTER, PW_MONSTER);
 	}
 }
