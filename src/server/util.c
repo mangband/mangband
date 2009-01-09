@@ -3376,8 +3376,8 @@ void text_out_c(byte a, cptr buf)
 		for (i = p_ptr->cur_wid; i < 80; i++)
 			line_buf[i] = ' ';
 		
-	   /* Dump it */
-	   for (i = 0; i < 80; i++)
+		/* Dump it */
+		for (i = p_ptr->cur_wid-j; i < 80; i++)
 		{
 			p_ptr->info[p_ptr->cur_hgt][i].c = line_buf[i];
 			p_ptr->info[p_ptr->cur_hgt][i].a = a;
