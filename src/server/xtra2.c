@@ -2874,7 +2874,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			if (r_ptr->r_tkills < MAX_SHORT) r_ptr->r_tkills++;
 
 			/* Hack -- Auto-recall */
-			recent_track(m_ptr->r_idx);
+			monster_race_track(Ind, m_ptr->r_idx);
 		}
 	}
 
@@ -3860,7 +3860,7 @@ bool target_set(int Ind, int dir)
 		r_ptr = &r_info[m_ptr->r_idx];
 
 		/* Hack -- Track that monster race */
-		recent_track(m_ptr->r_idx);
+		monster_race_track(Ind, m_ptr->r_idx);
 
 		/* Hack -- Track that monster */
 		health_track(Ind, idx);

@@ -1301,6 +1301,10 @@ bool detect_invisible(int Ind, bool pause)
 		{
 			/* Take note that they are invisible */
 			l_ptr->flags2 |= RF2_INVISIBLE;
+			
+			/* Track this fact */
+			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
+				p_ptr->window |= PW_MONSTER;
 
 			/* Mega-Hack -- Show the monster */
 			p_ptr->mon_vis[i] = TRUE;
@@ -1370,7 +1374,8 @@ bool detect_evil(int Ind)
 	{
 		monster_type *m_ptr = &m_list[i];
 		monster_race *r_ptr = &r_info[m_ptr->r_idx];
-
+		monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
+		
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
 
@@ -1383,6 +1388,13 @@ bool detect_evil(int Ind)
 		/* Detect evil monsters */
 		if (panel_contains(fy, fx) && (r_ptr->flags3 & RF3_EVIL))
 		{
+			/* Take note that they are evil */
+			l_ptr->flags3 |= RF3_EVIL;
+
+			/* Track this fact */
+			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
+				p_ptr->window |= PW_MONSTER;
+
 			/* Mega-Hack -- Show the monster */
 			p_ptr->mon_vis[i] = TRUE;
 			lite_spot(Ind, fy, fx);

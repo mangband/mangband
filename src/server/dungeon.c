@@ -842,6 +842,85 @@ static int auto_retaliate(int Ind)
 }
 
 /*
+ * Hack -- helper function for "process_player()"
+ *
+ * Check for changes in the "monster memory"
+ */
+static void player_track_monster(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	bool changed = FALSE;
+
+	static int old_monster_race_idx = 0;
+
+	static u32b	old_flags1 = 0L;
+	static u32b	old_flags2 = 0L;
+	static u32b	old_flags3 = 0L;
+	static u32b	old_flags4 = 0L;
+	static u32b	old_flags5 = 0L;
+	static u32b	old_flags6 = 0L;
+
+	static byte old_blows[MONSTER_BLOW_MAX];
+
+	static byte	old_cast_innate = 0;
+	static byte	old_cast_spell = 0;
+
+
+	/* Tracking a monster */
+	if (p_ptr->monster_race_idx)
+	{
+		/* Get the monster lore */
+		monster_lore *l_ptr = p_ptr->l_list + p_ptr->monster_race_idx;
+
+		for (i = 0; i < MONSTER_BLOW_MAX; i++)
+		{
+			if (old_blows[i] != l_ptr->blows[i])
+			{
+				changed = TRUE;
+				break;
+			}
+		}
+		
+		/* Check for change of any kind */
+		if (changed ||
+		    (old_monster_race_idx != p_ptr->monster_race_idx) ||
+		    (old_flags1 != l_ptr->flags1) ||
+		    (old_flags2 != l_ptr->flags2) ||
+		    (old_flags3 != l_ptr->flags3) ||
+		    (old_flags4 != l_ptr->flags4) ||
+		    (old_flags5 != l_ptr->flags5) ||
+		    (old_flags6 != l_ptr->flags6) ||
+		    (old_cast_innate != l_ptr->cast_innate) ||
+		    (old_cast_spell != l_ptr->cast_spell))
+		{
+			/* Memorize old race */
+			old_monster_race_idx = p_ptr->monster_race_idx;
+
+			/* Memorize flags */
+			old_flags1 = l_ptr->flags1;
+			old_flags2 = l_ptr->flags2;
+			old_flags3 = l_ptr->flags3;
+			old_flags4 = l_ptr->flags4;
+			old_flags5 = l_ptr->flags5;
+			old_flags6 = l_ptr->flags6;
+
+			/* Memorize blows */
+			for (i = 0; i < MONSTER_BLOW_MAX; i++)
+				old_blows[i] = l_ptr->blows[i];
+
+			/* Memorize castings */
+			old_cast_innate = l_ptr->cast_innate;
+			old_cast_spell = l_ptr->cast_spell;
+
+			/* Window stuff */
+			p_ptr->window |= (PW_MONSTER);
+		}
+	}
+}
+
+
+/*
  * Player processing that occurs at the beginning of a new turn
  */
 static void process_player_begin(int Ind)
@@ -1528,6 +1607,8 @@ static void process_player_end(int Ind)
 		}
 	}
 
+	/* Track monster */
+	player_track_monster(Ind);
 
 	/* HACK -- redraw stuff a lot, this should reduce perceived latency. */
 	/* This might not do anything, I may have been silly when I added this. -APD */

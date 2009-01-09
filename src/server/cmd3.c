@@ -1757,6 +1757,10 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 		
 			/* Dump info into player */
 			describe_monster(Ind, i, FALSE);
+
+			/* Track first race */			
+			if (!found)
+				monster_race_track(Ind, i); 
 			
 			found = TRUE;
 		}
@@ -1775,14 +1779,11 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 }
 
 /* Give player detailed information about a specified monster */
-void do_cmd_monster_desc(int Ind, int m_idx) {
+void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
+{
 	player_type *p_ptr = Players[Ind];
-	int r_idx = m_list[m_idx].r_idx;
 	int i;
 	/* Describe it fully */
-	
-	/* Let the player scroll through this info */
-	p_ptr->special_file_type = TRUE;
 
 	/* Prepare player structure for text */	
 	text_out_init(Ind);
@@ -1802,10 +1803,13 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 	for (i = 0; i < p_ptr->last_info_line; i++)
 		Send_remote_line(Ind, i);
 	
-	Send_term_info(Ind, NTERM_FRESH, NTERM_POP);
+	Send_term_info(Ind, NTERM_FRESH, (quiet ? 0 : NTERM_POP));
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 	
 	return;
+}
+void do_cmd_monster_desc(int Ind, int m_idx) {
+	do_cmd_monster_desc_aux(Ind, m_list[m_idx].r_idx, FALSE);
 }
 
 /*

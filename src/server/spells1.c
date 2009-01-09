@@ -3529,6 +3529,12 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Update the monster XXX XXX XXX */
 	update_mon(c_ptr->m_idx, FALSE);
 
+	/* Update monster recall window */	
+	if (p_ptr->monster_race_idx == m_ptr->r_idx)
+	{
+		p_ptr->window |= (PW_MONSTER);
+	}
+
 	if (!quiet)
 	{
 		/* Hack -- Redraw the monster grid anyway */

@@ -918,14 +918,12 @@ void lore_do_probe(int Ind, int m_idx)
 	l_ptr->flags2 = r_ptr->flags2;
 	l_ptr->flags3 = r_ptr->flags3;
 
-#if 0
 	/* Update monster recall window */
 	if (p_ptr->monster_race_idx == m_ptr->r_idx)
 	{
 		/* Window stuff */
 		p_ptr->window |= (PW_MONSTER);
 	}
-#endif
 }
 
 /*
@@ -1065,14 +1063,13 @@ void lore_treasure(int Ind, int m_idx, int num_item, int num_gold)
 	/* Hack -- memorize the good/great flags */
 	if (r_ptr->flags1 & (RF1_DROP_GOOD)) l_ptr->flags1 |= (RF1_DROP_GOOD);
 	if (r_ptr->flags1 & (RF1_DROP_GREAT)) l_ptr->flags1 |= (RF1_DROP_GREAT);
-#if 0
+
 	/* Update monster recall window */
 	if (p_ptr->monster_race_idx == m_ptr->r_idx)
 	{
 		/* Window stuff */
 		p_ptr->window |= (PW_MONSTER);
 	}
-#endif
 }
 
 

@@ -3012,7 +3012,7 @@ void do_cmd_fire(int Ind, int dir, int item)
 					msg_format(Ind, "The %s hits %s.", o_name, m_name);
 
 					/* Hack -- Track this monster race */
-					if (visible) recent_track(m_ptr->r_idx);
+					if (visible) monster_race_track(m_ptr->r_idx);
 
 					/* Hack -- Track this monster */
 					if (visible) health_track(Ind, c_ptr->m_idx);
@@ -3437,7 +3437,7 @@ void do_cmd_throw(int Ind, int dir, int item)
 					msg_format(Ind, "The %s hits %s.", o_name, m_name);
 
 					/* Hack -- Track this monster race */
-					if (visible) recent_track(m_ptr->r_idx);
+					if (visible) monster_race_track(Ind, m_ptr->r_idx);
 
 					/* Hack -- Track this monster */
 					if (visible) health_track(Ind, c_ptr->m_idx);

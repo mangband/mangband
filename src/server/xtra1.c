@@ -1359,6 +1359,7 @@ static void fix_map(int Ind)
  */
 static void fix_monster(int Ind)
 {
+	do_cmd_monster_desc_aux(Ind, Players[Ind]->monster_race_idx, TRUE);
 }
 
 

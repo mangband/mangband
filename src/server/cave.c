@@ -4009,19 +4009,18 @@ void update_health(int m_idx)
 }
 
 
-
 /*
  * Hack -- track the given monster race
- *
- * Monster recall is disabled for now --KLJ--
  */
-void recent_track(int r_idx)
+void monster_race_track(int Ind, int r_idx)
 {
-	/* Save this monster ID */
-	/*recent_idx = r_idx;*/
+	player_type *p_ptr = Players[Ind];
 
 	/* Window stuff */
-	/*p_ptr->window |= (PW_MONSTER);*/
+	if (p_ptr->monster_race_idx != r_idx) p_ptr->window |= (PW_MONSTER);
+
+	/* Save this monster ID */
+	p_ptr->monster_race_idx = r_idx;
 }
 
 

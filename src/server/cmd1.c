@@ -1280,7 +1280,7 @@ void py_attack_mon(int Ind, int y, int x)
 
 
 	/* Auto-Recall if possible and visible */
-	if (p_ptr->mon_vis[c_ptr->m_idx]) recent_track(m_ptr->r_idx);
+	if (p_ptr->mon_vis[c_ptr->m_idx]) monster_race_track(Ind, m_ptr->r_idx);
 
 	/* Track a new monster */
 	if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);

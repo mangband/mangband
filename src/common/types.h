@@ -1243,6 +1243,7 @@ struct player_type
 
 	s16b health_who;	/* Who's shown on the health bar */
 	s16b cursor_who;	/* Who's tracked by cursor */
+	s16b monster_race_idx; /* Monster race trackee */
 
 	s16b view_n;		/* Array of grids viewable to player */
 	byte view_y[VIEW_MAX];
