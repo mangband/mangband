@@ -1103,6 +1103,91 @@ void set_recall(int Ind, object_type * o_ptr)
 }
 
 
+
+/*** Detection spells ***/
+
+/*
+ * Useful constants for the area around the player to detect.
+ * This is instead of using circular detection spells.
+ */
+#define DETECT_DIST_X	52	/* Detect 52 grids to the left & right */
+#define DETECT_DIST_Y	23	/* Detect 23 grids to the top & bottom */
+
+
+
+/*
+ * Map an area around the player.
+ *
+ * We must never attempt to map the outer dungeon walls, or we
+ * might induce illegal cave grid references.
+ */
+void map_area(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+	int		i, x, y, y1, y2, x1, x2;
+
+	cave_type	*c_ptr;
+	byte		*w_ptr;
+
+
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
+
+	/* Speed -- shrink to fit legal bounds */
+	if (y1 < 1) y1 = 1;
+	if (y2 > p_ptr->cur_hgt-2) y2 = p_ptr->cur_hgt-2;
+	if (x1 < 1) x1 = 1;
+	if (x2 > p_ptr->cur_wid-2) x2 = p_ptr->cur_wid-2;
+
+	/* Scan that area */
+	for (y = y1; y <= y2; y++)
+	{
+		for (x = x1; x <= x2; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			w_ptr = &p_ptr->cave_flag[y][x];
+
+			/* All non-walls are "checked", including MAngband specifics */
+			if ((c_ptr->feat < FEAT_SECRET) || 
+				((c_ptr->feat >= FEAT_DIRT) && (c_ptr->feat < FEAT_DRAWBRIDGE)))
+			{
+				/* Memorize normal features */
+				if (!is_boring(c_ptr->feat))
+				{
+					/* Memorize the object */
+					*w_ptr |= CAVE_MARK;
+				}
+
+				/* Memorize known walls */
+				for (i = 0; i < 8; i++)
+				{
+					c_ptr = &cave[Depth][y+ddy_ddd[i]][x+ddx_ddd[i]];
+					w_ptr = &p_ptr->cave_flag[y+ddy_ddd[i]][x+ddx_ddd[i]];
+
+					/* Memorize walls (etc) */
+					if ((c_ptr->feat >= FEAT_SECRET) && 
+						((c_ptr->feat < FEAT_DIRT) || (c_ptr->feat >= FEAT_DRAWBRIDGE)))
+					{
+						/* Memorize the walls */
+						*w_ptr |= CAVE_MARK;
+					}
+				}
+			}
+		}
+	}
+
+	/* Redraw map */
+	p_ptr->redraw |= (PR_MAP);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_OVERHEAD);
+}
+
+
 /*
  * Detect any treasure on the current panel		-RAK-
  *
@@ -1111,9 +1196,10 @@ void set_recall(int Ind, object_type * o_ptr)
 bool detect_treasure(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
+	
 	int Depth = p_ptr->dun_depth;
-
+	int x1, x2, y1, y2;
+	
 	int		y, x;
 	bool	detect = FALSE;
 
@@ -1122,11 +1208,22 @@ bool detect_treasure(int Ind)
 
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+
+	
 	/* Scan the current panel */
-	for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)
+	for (y = y1; y <= y2; y++)
 	{
-		for (x = p_ptr->panel_col_min; x <= p_ptr->panel_col_max; x++)
+		for (x = x1; x <= x2; x++)
 		{
 			c_ptr = &cave[Depth][y][x];
 			w_ptr = &p_ptr->cave_flag[y][x];
@@ -1211,6 +1308,7 @@ bool detect_objects_magic(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
+	int x1, x2, y1, y2;
 
 	int		i, j, tv;
 	bool	detect = FALSE;
@@ -1218,11 +1316,22 @@ bool detect_objects_magic(int Ind)
 	cave_type	*c_ptr;
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid and object */
 			c_ptr = &cave[Depth][i][j];
@@ -1272,11 +1381,23 @@ bool detect_objects_magic(int Ind)
 bool detect_invisible(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
+	int x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Detect all invisible monsters */
 	for (i = 1; i < m_max; i++)
 	{
@@ -1286,7 +1407,7 @@ bool detect_invisible(int Ind, bool pause)
 
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
-
+		
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
@@ -1296,8 +1417,11 @@ bool detect_invisible(int Ind, bool pause)
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
+
 		/* Detect all invisible monsters */
-		if (panel_contains(fy, fx) && (r_ptr->flags2 & RF2_INVISIBLE))
+		if (r_ptr->flags2 & (RF2_INVISIBLE))
 		{
 			/* Take note that they are invisible */
 			l_ptr->flags2 |= RF2_INVISIBLE;
@@ -1320,6 +1444,9 @@ bool detect_invisible(int Ind, bool pause)
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
+		
+		/* Only detect nearby players */
+		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
 
 		/* Skip visible players */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
@@ -1328,7 +1455,7 @@ bool detect_invisible(int Ind, bool pause)
 		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 		/* Detect all invisible players but not the dungeon master */
-		if (panel_contains(py, px) && q_ptr->ghost) 
+		if (q_ptr->ghost) 
 		{
 			/* Mega-Hack -- Show the player */
 			p_ptr->play_vis[i] = TRUE;
@@ -1364,11 +1491,23 @@ bool detect_invisible(int Ind, bool pause)
 bool detect_evil(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int	x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Display all the evil monsters */
 	for (i = 1; i < m_max; i++)
 	{
@@ -1385,8 +1524,11 @@ bool detect_evil(int Ind)
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
+		
 		/* Detect evil monsters */
-		if (panel_contains(fy, fx) && (r_ptr->flags3 & RF3_EVIL))
+		if (r_ptr->flags3 & (RF3_EVIL))
 		{
 			/* Take note that they are evil */
 			l_ptr->flags3 |= RF3_EVIL;
@@ -1428,11 +1570,23 @@ bool detect_evil(int Ind)
 bool detect_creatures(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
+	int	x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Detect non-invisible monsters */
 	for (i = 1; i < m_max; i++)
 	{
@@ -1451,8 +1605,11 @@ bool detect_creatures(int Ind, bool pause)
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
+		
 		/* Detect all non-invisible monsters */
-		if (panel_contains(fy, fx) && (!(r_ptr->flags2 & RF2_INVISIBLE)))
+		if (!(r_ptr->flags2 & (RF2_INVISIBLE)))
 		{
 			/* Mega-Hack -- Show the monster */
 			p_ptr->mon_vis[i] = TRUE;
@@ -1477,9 +1634,12 @@ bool detect_creatures(int Ind, bool pause)
 
 		/* Skip ourself */
 		if (i == Ind) continue;
-
+		
+		/* Only detect nearby players */
+		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
+		
 		/* Detect all non-invisible players */
-		if (panel_contains(py, px) && !q_ptr->ghost)
+		if (!q_ptr->ghost)
 		{
 			/* Mega-Hack -- Show the player */
 			p_ptr->play_vis[i] = TRUE;
@@ -1553,7 +1713,8 @@ bool detect_objects_normal(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
-
+	int	x1, x2, y1, y2;
+	
 	int		i, j;
 	bool	detect = FALSE;
 
@@ -1561,11 +1722,22 @@ bool detect_objects_normal(int Ind)
 
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			c_ptr = &cave[Depth][i][j];
 
@@ -1604,19 +1776,29 @@ bool detect_trap(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
-
+	int x1, x2, y1, y2;
+	
 	int		i, j;
-
 	bool	detect = FALSE;
 
 	cave_type  *c_ptr;
 	byte *w_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid */
 			c_ptr = &cave[Depth][i][j];
@@ -1666,6 +1848,7 @@ bool detect_sdoor(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
+	int x1, x2, y1, y2;
 
 	int		i, j;
 	bool	detect = FALSE;
@@ -1673,11 +1856,22 @@ bool detect_sdoor(int Ind)
 	cave_type *c_ptr;
 	byte *w_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid and object */
 			c_ptr = &cave[Depth][i][j];
