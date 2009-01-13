@@ -62,9 +62,6 @@ extern byte level_speeds[128];
 extern s32b player_exp[PY_MAX_LEVEL];
 extern player_race race_info[MAX_RACES];
 extern player_magic magic_info[MAX_CLASS];
-extern magic_type ghost_spells[64];
-extern u32b spell_flags[2][9][2];
-extern cptr spell_names[3][64];
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];
@@ -998,6 +995,8 @@ extern bool destroy_doors_touch(int Ind);
 extern bool sleep_monsters_touch(int Ind);
 extern bool create_artifact(int Ind);
 extern bool create_artifact_aux(int Ind, int item);
+extern void brand_ammo(int Ind, int item);
+extern void brand_weapon(int Ind);
 
 
 /* store.c */
@@ -1123,8 +1122,9 @@ extern bool target_okay(int Ind);
 extern s16b target_pick(int Ind, int y1, int x1, int dy, int dx);
 extern bool target_set(int Ind, int dir);
 extern bool target_set_friendly(int Ind, int dir);
-extern bool get_aim_dir(int Ind/*, int *dp*/);
-extern bool get_item(int Ind);
+extern bool get_aim_dir(int Ind, int *dp);
+extern bool get_aim_dir_old(int Ind);
+extern bool get_item(int Ind, int *cp);
 extern bool do_scroll_life(int Ind);
 extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
@@ -1142,7 +1142,12 @@ extern bool master_player(int Ind, char * parms);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 
 /* x-spell.c */
+extern cptr spell_names[3][64];
+extern magic_type ghost_spells[8];
+extern int get_spell_index(int Ind, const object_type *o_ptr, int index);
 extern cptr get_spell_name(int tval, int index);
+extern cptr get_spell_info(int Ind, int index);
+extern bool cast_spell(int Ind, int tval, int index);
 
 /*
  * Hack -- conditional (or "bizarre") externs

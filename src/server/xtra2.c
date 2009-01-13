@@ -4064,34 +4064,84 @@ bool target_set_friendly(int Ind, int dir)
  *
  * We just ask the client to send us a direction, unless we are confused --KLJ--
  */
-bool get_aim_dir(int Ind)
+bool get_aim_dir_old(int Ind)
 {
-	int		dir;
 	player_type *p_ptr = Players[Ind];
-
-
-	/* Global direction */
-	dir = command_dir;
 
 	/* Hack -- auto-target if requested */
 	if (p_ptr->use_old_target && target_okay(Ind)) 
 	{
-		dir = 5;
-		
 		/* XXX XXX Pretend we read this direction from the network */
-		Handle_direction(Ind, dir);
-		return (TRUE);
+		Handle_direction(Ind, 5);
+	}
+	/* Request direction */ 
+	else 
+	{
+		Send_direction(Ind);
 	}
 
-	Send_direction(Ind);
+	return (TRUE);
+}
+
+bool get_aim_dir(int Ind, int *dp)
+{
+	int		dir = 0;
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Global direction */
+	dir = p_ptr->command_dir;
+	p_ptr->command_dir = 0;
+
+	/* Hack -- auto-target if requested */
+	if (p_ptr->use_old_target && target_okay(Ind)) dir = 5;
+	
+	/* No direction -- Ask */
+	if (!dir)  
+	{
+		/* Ask player */
+		Send_direction(Ind);
+		
+		/* Cancel aiming */
+		return (FALSE);
+	}
+
+	/* Check for confusion */
+	if (p_ptr->confused)
+	{
+		/* Random direction */
+		dir = ddd[rand_int(8)];
+	}
+
+	/* Save direction */
+	(*dp) = dir;
 
 	return (TRUE);
 }
 
 
-bool get_item(int Ind)
+bool get_item(int Ind, int *cp)
 {
-	Send_item_request(Ind);
+	int		item = 0;
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Ready */
+	item = p_ptr->command_arg;
+	p_ptr->command_arg = -2;
+
+	/* No item -- Ask */
+	if (item == -2)  
+	{
+		/* Ask player */
+		Send_item_request(Ind);
+		
+		/* Cancel selection (for now) */
+		return (FALSE);
+	}
+
+	/* Save item */
+	(*cp) = item;
 
 	return (TRUE);
 }

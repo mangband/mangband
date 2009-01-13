@@ -1383,6 +1383,8 @@ struct player_type
 
 	int look_index;		/* Used for looking or targeting */
 
+	s16b command_dir; /* Direction being used */
+	s16b command_arg; /* Item being used */
 	s16b current_spell;	/* Spell being cast */
 	s16b current_rod;	/* Rod being zapped */
 	s16b current_activation;/* Artifact (or dragon mail) being activated */
@@ -1449,7 +1451,7 @@ struct player_type
 	u32b spell_worked2;	/* bit mask of spells tried and worked */
 	u32b spell_forgotten1;	/* bit mask of spells learned but forgotten */
 	u32b spell_forgotten2;	/* bit mask of spells learned but forgotten */
-	byte spell_order[64];	/* order spells learned/remembered/fogotten */
+	byte spell_order[PY_MAX_SPELLS]; /* order spells learned/remembered/fogotten */
 
 	bool old_cumber_armor;
 	bool old_cumber_glove;

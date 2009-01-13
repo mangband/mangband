@@ -2572,7 +2572,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	{
 		/* Get a direction, then return */
 		p_ptr->current_rod = item;
-		get_aim_dir(Ind);
+		get_aim_dir_old(Ind);
 		return;
 	}
 
@@ -3314,6 +3314,7 @@ void do_cmd_activate(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 
 	int         i, k, lev, chance;
+	int dir;
 
 	object_type *o_ptr;
 
@@ -3465,7 +3466,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "The %s glows deep red...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3473,7 +3474,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "The %s glows bright white...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3481,7 +3482,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "The %s glows deep blue...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;			
 			}
 
@@ -3489,7 +3490,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "The %s glows intensely black...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3606,7 +3607,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows extremely brightly...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3614,7 +3615,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s is covered in fire...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3622,7 +3623,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s is covered in frost...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3630,7 +3631,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s is covered in sparks...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3638,7 +3639,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s is covered in acid...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3646,7 +3647,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s grows magical spikes...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3676,7 +3677,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s throbs deep green...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3684,7 +3685,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s is covered in frost...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3692,7 +3693,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows a pale blue...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3700,7 +3701,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows a intense blue...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3708,7 +3709,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s rages in fire...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3716,7 +3717,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows black...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3724,7 +3725,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s pulsates...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3747,7 +3748,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows deep red...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3762,7 +3763,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows in scintillating colours...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3784,7 +3785,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows white...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3806,7 +3807,7 @@ void do_cmd_activate(int Ind, int item)
 			{
 				msg_format(Ind, "Your %s glows white...", o_name);
 				p_ptr->current_activation = item;
-				get_aim_dir(Ind);
+				get_aim_dir_old(Ind);
 				return;
 			}
 
@@ -3877,7 +3878,7 @@ void do_cmd_activate(int Ind, int item)
 	{
 		if ( (o_ptr->sval == SV_RING_FLAMES) || (o_ptr->sval == SV_RING_ACID) || (o_ptr->sval == SV_RING_ICE) || (o_ptr->sval == SV_RING_LIGHTNING) ) {
 			p_ptr->current_activation = item;
-			get_aim_dir(Ind);
+			get_aim_dir_old(Ind);
 			return;
 		}
 	}
@@ -3887,7 +3888,7 @@ void do_cmd_activate(int Ind, int item)
 	{
 		/* Get a direction for breathing (or abort) */
 		p_ptr->current_activation = item;
-		get_aim_dir(Ind);
+		get_aim_dir_old(Ind);
 		return;
 	}
 

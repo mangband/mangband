@@ -5577,16 +5577,27 @@ void Handle_item(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 	int i;
 	bool ident = FALSE; /* scroll exposed itself */ 
+	bool used_up = TRUE; /* hack for enchants */
 
-	if (p_ptr->current_spell != -1) {
-	    do_cmd_cast_aux(Ind, item);
-	    return;
+	/* Save item */
+	p_ptr->command_arg = item;	
+
+	if (p_ptr->current_spell != -1) 
+	{
+		if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
+			do_cmd_cast_aux(Ind, 0);
+		else if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
+			do_cmd_pray_aux(Ind, 0);
+		else p_ptr->current_spell = -1;
+		return;
 	}
+	
 	if ((p_ptr->current_enchant_h > 0) || (p_ptr->current_enchant_d > 0) ||
              (p_ptr->current_enchant_a > 0))
 	{
 		ident = enchant_spell_aux(Ind, item, p_ptr->current_enchant_h,
 			p_ptr->current_enchant_d, p_ptr->current_enchant_a);
+		used_up = ident;
 	}
 	else if (p_ptr->current_identify)
 	{
@@ -5606,7 +5617,8 @@ void Handle_item(int Ind, int item)
     }
 
 	if (p_ptr->current_scroll != -1) {
-		do_cmd_read_scroll_end(Ind, p_ptr->current_scroll, ident);
+		if (used_up)
+			do_cmd_read_scroll_end(Ind, p_ptr->current_scroll, ident);
 	}
 	if (p_ptr->current_staff != -1) {
 		do_cmd_use_staff_discharge(Ind, p_ptr->current_staff, ident);

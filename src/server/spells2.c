@@ -2037,6 +2037,160 @@ static bool item_tester_hook_armour(object_type *o_ptr)
 }
 
 
+/*
+ * Brand weapons (or ammo)
+ *
+ * Turns the (non-magical) object into an ego-item of 'brand_type'.
+ */
+void brand_object(int Ind, object_type *o_ptr, byte brand_type)
+{
+	player_type *p_ptr = Players[Ind];
+	/* you can never modify artifacts / ego-items */
+	/* you can never modify broken / cursed items */
+	if ((o_ptr->k_idx) &&
+	    (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
+	    (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
+	{
+		cptr act = "magical";
+		char o_name[80];
+
+		switch (brand_type)
+		{
+			case EGO_BRAND_FIRE:
+			case EGO_FLAME:
+				act = "fiery";
+				break;
+			case EGO_BRAND_COLD:
+			case EGO_FROST:
+				act = "frosty";
+				break;
+			case EGO_BRAND_POIS:
+			case EGO_AMMO_VENOM:
+				act = "sickly";
+				break;
+		}
+
+      object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+		/* Describe */
+		msg_format(Ind, "A %s aura surrounds the %s.", act, o_name);
+
+		/* Brand the object */
+		o_ptr->name2 = brand_type;
+
+		/* Combine / Reorder the pack (later) */
+		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+		/* Enchant */
+		enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+	}
+	else
+	{
+		if (flush_failure) flush();
+		msg_print(Ind, "The Branding failed.");
+	}
+}
+
+/*
+ * Hook to specify "ammo"
+ */
+static bool item_tester_hook_ammo(int Ind, object_type *o_ptr)
+{
+	switch (o_ptr->tval)
+	{
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			return (TRUE);
+		}
+	}
+
+	return (FALSE);
+}
+
+/*
+ * Brand chosen ammo
+ */
+void brand_ammo(int Ind, int item)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	int r;
+	byte brand_type;
+
+	/* Only accept ammo */
+	/* item_tester_hook = item_tester_hook_ammo; */
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
+		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
+	}
+
+	if (!item_tester_hook_ammo(Ind, o_ptr)) {
+			msg_print(Ind, "You cannot brand that!");
+			return;
+	}
+
+	r = rand_int(100);
+
+	/* Select the brand */
+	if (r < 33)
+		brand_type = EGO_FLAME;
+	else if (r < 67)
+		brand_type = EGO_FROST;
+	else
+		brand_type = EGO_AMMO_VENOM;
+
+	/* Brand the ammo */
+	brand_object(Ind, o_ptr, brand_type);
+
+	/* Done */
+	return;
+}
+
+/*
+ * Brand the current weapon
+ */
+void brand_weapon(int Ind)
+{
+    player_type *p_ptr = Players[Ind];
+
+    object_type *o_ptr;
+
+    byte brand_type;
+    
+    o_ptr = &p_ptr->inventory[INVEN_WIELD];
+    
+    /* Select a brand */
+	 if (rand_int(100) < 25)
+		brand_type = EGO_BRAND_FIRE;
+	 else
+		brand_type = EGO_BRAND_COLD;
+
+	 brand_object(Ind, o_ptr, brand_type);
+}
+
+
+
+
 
 /*
  * Enchants a plus onto an item.                        -RAK-
@@ -2201,7 +2355,8 @@ void spell_clear(int Ind)
   p_ptr->current_star_identify = 0;
   p_ptr->current_recharge = 0;
   p_ptr->current_artifact = 0;
-  
+  /* Hack */  
+  p_ptr->current_spell = -1;
   /* Hack: this should be somewhere else: */
   p_ptr->current_staff = -1;
   p_ptr->current_scroll = -1;
@@ -2210,11 +2365,15 @@ void spell_clear(int Ind)
 bool create_artifact(int Ind)
 {
   player_type *p_ptr = Players[Ind];
+  int item;
 
-  spell_clear(Ind);
   p_ptr->current_artifact = TRUE;
 
-  get_item(Ind);
+  if (!get_item(Ind, &item)) return FALSE;
+  
+  create_artifact_aux(Ind, item);  
+  
+  spell_clear(Ind);
   
   return TRUE;
 }
@@ -2309,13 +2468,17 @@ bool create_artifact_aux(int Ind, int item)
 bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 {
 	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
 	p_ptr->current_enchant_h = num_hit;
 	p_ptr->current_enchant_d = num_dam;
 	p_ptr->current_enchant_a = num_ac;
 
-	get_item(Ind);
+	if (!get_item(Ind, &item)) return (FALSE);
+
+	enchant_spell_aux(Ind, item, num_hit, num_dam, num_ac);
+
+	spell_clear(Ind);
 	
 	return (TRUE);
 }
@@ -2364,7 +2527,6 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "Sorry, you cannot enchant that item.");
-		get_item(Ind);
 		return (FALSE);
 	}
 
@@ -2404,11 +2566,15 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 bool ident_spell(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
-	spell_clear(Ind);
+	int item;
+	
 	p_ptr->current_identify = 1;
 
-	get_item(Ind);
+	if (!get_item(Ind, &item)) return FALSE;
+	
+	ident_spell_aux(Ind, item);	
+	
+	spell_clear(Ind);
    
 	return TRUE;
 }
@@ -2489,11 +2655,15 @@ bool ident_spell_aux(int Ind, int item)
 bool identify_fully(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
 	p_ptr->current_star_identify = 1;
 
-	get_item(Ind);
+	if (!get_item(Ind, &item)) return FALSE;
+
+	identify_fully_item(Ind, item);	
+
+	spell_clear(Ind);
 
 	return TRUE;
 }
@@ -2603,11 +2773,15 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 bool recharge(int Ind, int num)
 {
 	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
 	p_ptr->current_recharge = num;
 
-	get_item(Ind);
+	if (!get_item(Ind, &item)) return FALSE;
+	
+	recharge_aux(Ind, item, num);	
+	
+	spell_clear(Ind);
 
 	return TRUE;
 }
@@ -2673,7 +2847,6 @@ bool recharge_aux(int Ind, int item, int num)
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "You cannot recharge that item.");
-		get_item(Ind);
 		return (FALSE);
 	}
 
