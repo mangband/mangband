@@ -1033,7 +1033,8 @@ void cmd_aim_wand(void)
 	get_dir(&dir);
 	
 	/* Send it */
-	Send_aim(item, dir);
+	if (dir)
+		Send_aim(item, dir);
 }
 
 void cmd_use_staff(void)

@@ -4064,25 +4064,6 @@ bool target_set_friendly(int Ind, int dir)
  *
  * We just ask the client to send us a direction, unless we are confused --KLJ--
  */
-bool get_aim_dir_old(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-
-	/* Hack -- auto-target if requested */
-	if (p_ptr->use_old_target && target_okay(Ind)) 
-	{
-		/* XXX XXX Pretend we read this direction from the network */
-		Handle_direction(Ind, 5);
-	}
-	/* Request direction */ 
-	else 
-	{
-		Send_direction(Ind);
-	}
-
-	return (TRUE);
-}
-
 bool get_aim_dir(int Ind, int *dp)
 {
 	int		dir = 0;

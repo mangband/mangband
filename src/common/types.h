@@ -1385,18 +1385,8 @@ struct player_type
 
 	s16b command_dir; /* Direction being used */
 	s16b command_arg; /* Item being used */
+	s16b current_object;/* Object being cast (primary) */
 	s16b current_spell;	/* Spell being cast */
-	s16b current_rod;	/* Rod being zapped */
-	s16b current_activation;/* Artifact (or dragon mail) being activated */
-	s16b current_enchant_h; /* Current enchantments */
-	s16b current_enchant_d;
-	s16b current_enchant_a;
-	s16b current_identify;	/* Are we identifying something? */
-	s16b current_star_identify;
-	s16b current_recharge;
-    s16b current_artifact;
-    s16b current_scroll; /* Scroll being read */
-    s16b current_staff; /* Staff being used */
 
 	s16b current_selling;
 	s16b current_sell_amt;

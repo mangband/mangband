@@ -614,126 +614,19 @@ void do_cmd_cast(int Ind, int book, int spell)
 	{
 		if (flush_failure) flush();
 		msg_print(Ind, "You failed to get the spell off!");
+		return;
 	}
 
 	/* Process spell */
-	else
-	{
-		if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
-
-		/* A spell was tried */
-		if (!((j < 32) ?
-			  (p_ptr->spell_worked1 & (1L << j)) :
-			  (p_ptr->spell_worked2 & (1L << (j - 32)))))
-		{
-			int e = s_ptr->sexp;
-
-			/* The spell worked */
-			if (j < 32)
-			{
-				p_ptr->spell_worked1 |= (1L << j);
-			}
-			else
-			{
-				p_ptr->spell_worked2 |= (1L << (j - 32));
-			}
-
-			/* Gain experience */
-			gain_exp(Ind, e * s_ptr->slevel);
-
-			/* Fix the spell info */
-			p_ptr->window |= PW_SPELL;
-		}
-	}
-
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
-	/* Sufficient mana */
-	if (s_ptr->smana <= p_ptr->csp)
-	{
-		/* Use some mana */
-		p_ptr->csp -= s_ptr->smana;
-	}
-	/* Over-exert the player */
-	else
-	{
-		int oops = s_ptr->smana - p_ptr->csp;
-
-		/* No mana left */
-		p_ptr->csp = 0;
-		p_ptr->csp_frac = 0;
-
-		/* Message */
-		msg_print(Ind, "You faint from the effort!");
-
-		/* Hack -- Bypass free action */
-		(void)set_paralyzed(Ind, p_ptr->paralyzed + randint(5 * oops + 1));
-
-		/* Damage CON (possibly permanently) */
-		if (rand_int(100) < 50)
-		{
-			bool perm = (rand_int(100) < 25);
-
-			/* Message */
-			msg_print(Ind, "You have damaged your health!");
-
-			/* Reduce constitution */
-			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
-		}
-	}
-
-	/* Redraw mana */
-	p_ptr->redraw |= (PR_MANA);
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
+	
+	do_cmd_cast_fin(Ind);
 }
-
-
-
-static bool is_item_spell(int tval, int spell) 
-{ 
-#if 0
- 	switch (tval)
-	{
-	case TV_MAGIC_BOOK: 
-		return ((spell == SPELL_IDENTIFY) || (spell == SPELL_ENCHANT_ARMOR) || 
-			(spell == SPELL_ENCHANT_WEAPON) || (spell == SPELL_ELEMENTAL_BRAND)); 
-	case TV_PRAYER_BOOK: 
-		return ((spell == PSPELL_IDENTIFY_ITEM) || (spell == PSPELL_ENCHANT_WEAPON) || 
-			(spell == PSPELL_ENCHANT_ARMOR)); 
-	}
-#endif 
-	return FALSE; 
-} 
-
-
-/*
- * Finish casting a spell that required a direction --KLJ--
- */
-void do_cmd_cast_aux(int Ind, int dir)
+void do_cmd_cast_fin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr = &p_ptr->mp_ptr->info[p_ptr->current_spell];
 	int j = p_ptr->current_spell;
-
-	/* Only fire in direction 5 if we have a target */
-	/* Some spells use "dir" as item number - skip them since they don't require a target */ 
-	if (!is_item_spell(TV_MAGIC_BOOK, p_ptr->current_spell) && (dir == 5) && !target_okay(Ind)) 
-	{
-		/* Reset current spell */
-		p_ptr->current_spell = -1;
-
-		/* Done */
-		return;
-	}
-	
-
-	/* Prepare direction - will be read by get_aim_dir() called by cast_spell() */	
-	p_ptr->command_dir = dir;
-	
-	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, p_ptr->current_spell)) return;
 
 	/* A spell was tried */
 	if (!((j < 32) ?
@@ -759,7 +652,7 @@ void do_cmd_cast_aux(int Ind, int dir)
 		p_ptr->window |= PW_SPELL;
 	}
 
-	/* Take energy */
+	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Sufficient mana */
@@ -795,9 +688,6 @@ void do_cmd_cast_aux(int Ind, int dir)
 			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
 		}
 	}
-
-	/* Reset current spell */
-	p_ptr->current_spell = -1;
 
 	/* Resend mana */
 	p_ptr->redraw |= (PR_MANA);
@@ -893,7 +783,7 @@ void do_cmd_pray(int Ind, int book, int spell)
         index = get_spell_index(Ind, o_ptr, i);
 		
 		/* Collect this spell */
-    	if (spell != -1) spells[num++] = index;
+    	if (index != -1) spells[num++] = index;
     }
     
     /* OK, this is a unsightly kludge to get some extra (heal other) 
@@ -930,176 +820,17 @@ void do_cmd_pray(int Ind, int book, int spell)
     {
         if (flush_failure) flush();
         msg_print(Ind, "You failed to concentrate hard enough!");
+        return;
     }
 
     /* Success */
-    else
-    {
-		if (spell >= 64) j += 64;
-		if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
-		if (spell >= 64) j -= 64; 
 
-		/* A prayer was prayed */
-		if (!((j < 32) ?
-		      (p_ptr->spell_worked1 & (1L << j)) :
-		      (p_ptr->spell_worked2 & (1L << (j - 32)))))
-		{
-			int e = s_ptr->sexp;
-
-			/* The spell worked */
-			if (j < 32)
-			{
-				p_ptr->spell_worked1 |= (1L << j);
-			}
-			else
-			{
-				p_ptr->spell_worked2 |= (1L << (j - 32));
-			}
-
-			/* Gain experience */
-			gain_exp(Ind, e * s_ptr->slevel);
-
-			/* Fix the spell info */
-			p_ptr->window |= PW_SPELL;
-		}
-	}
-
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
-	/* Sufficient mana */
-	if (s_ptr->smana <= p_ptr->csp)
-	{
-		/* Use some mana */
-		p_ptr->csp -= s_ptr->smana;
-	}
-
-	/* Over-exert the player */
-	else
-	{
-		int oops = s_ptr->smana - p_ptr->csp;
-
-		/* No mana left */
-		p_ptr->csp = 0;
-		p_ptr->csp_frac = 0;
-
-		/* Message */
-		msg_print(Ind, "You faint from the effort!");
-
-		/* Hack -- Bypass free action */
-		(void)set_paralyzed(Ind, p_ptr->paralyzed + randint(5 * oops + 1));
-
-		/* Damage CON (possibly permanently) */
-		if (rand_int(100) < 50)
-		{
-			bool perm = (rand_int(100) < 25);
-
-			/* Message */
-			msg_print(Ind, "You have damaged your health!");
-
-			/* Reduce constitution */
-			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
-		}
-	}
-
-	/* Redraw mana */
-	p_ptr->redraw |= (PR_MANA);
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
-}
-
-void do_cmd_pray_aux(int Ind, int dir)
-{
-	player_type *p_ptr = Players[Ind];
-
-	int j;
-	magic_type *s_ptr = &p_ptr->mp_ptr->info[p_ptr->current_spell];
-
-	/* Only fire in direction 5 if we have a target */
-	/* Some spells use "dir" as item number - skip them since they don't require a target */ 
- 	if (!is_item_spell(TV_PRAYER_BOOK, p_ptr->current_spell) && (dir == 5) && !target_okay(Ind))
-	{
-		/* Reset current spell */
-		p_ptr->current_spell = -1;
-
-		/* Done */
-		return;
-	}
-
-	j = p_ptr->current_spell;
-
-	p_ptr->command_dir = dir;
-
+	if (spell >= 64) j += 64;
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
+	if (spell >= 64) j -= 64; 
 
-	/* We assume that the spell can be cast, and so forth */
-
-	if (!((j < 32) ?
-		(p_ptr->spell_worked1 & (1L << j)) :
-		(p_ptr->spell_worked2 & (1L << (j - 32)))))
-	{
-		int e = s_ptr->sexp;
-
-		if (p_ptr->current_spell < 32)
-		{
-			p_ptr->spell_worked1 |= (1L << j);
-		}
-		else
-		{
-			p_ptr->spell_worked2 |= (1L << (j - 32));
-		}
-
-		gain_exp(Ind, e * s_ptr->slevel);
-
-		/* Fix the spell info */
-		p_ptr->window |= PW_SPELL;
-	}
-
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
-	if (s_ptr->smana <= p_ptr->csp)
-	{
-		/* Use some mana */
-		p_ptr->csp -= s_ptr->smana;
-	}
-
-	/* Over-exert the player */
-	else
-	{
-		int oops = s_ptr->smana - p_ptr->csp;
-
-		/* No mana left */
-		p_ptr->csp = 0;
-		p_ptr->csp_frac = 0;
-
-		/* Message */
-		msg_print(Ind, "You faint from the effort!");
-
-		/* Hack -- bypass free action */
-		(void)set_paralyzed(Ind, p_ptr->paralyzed + randint(5 * oops - 1));
-
-		/* Damage CON (possibly permanently) */
-		if (rand_int(100) < 50)
-		{
-			bool perm = (rand_int(100) < 25);
-
-			/* Message */
-			msg_print(Ind, "You have damaged your health!");
-
-			/* Reduce constitution */
-			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
-		}
-	}
-
-	/* Reset current spell */
-	p_ptr->current_spell = -1;
-
-	/* Resend mana */
-	p_ptr->redraw |= (PR_MANA);
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	/* Hack! */
+	do_cmd_cast_fin(Ind);
 }
 
 
@@ -1176,32 +907,15 @@ void do_cmd_ghost_power(int Ind, int ability)
 
 	/* Spell effects */
 	if (!cast_spell(Ind, -1, i)) return;
-
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
-	/* Take some experience */
-	p_ptr->max_exp -= s_ptr->slevel * s_ptr->smana;
-	p_ptr->exp -= s_ptr->slevel * s_ptr->smana;
-
-	/* Too much can kill you */
-	if (p_ptr->exp < 0) take_hit(Ind, 5000, "the strain of ghostly powers");
-
-	/* Check experience levels */
-	check_experience(Ind);
-
-	/* Redraw experience */
-	p_ptr->redraw |= (PR_EXP);
-
-	/* Window stuff */
-	p_ptr->window |= (PW_PLAYER);
+	
+	do_cmd_ghost_power_fin(Ind);
 }
 
 
 /*
  * Directional ghost ability
  */
-void do_cmd_ghost_power_aux(int Ind, int dir)
+void do_cmd_ghost_power_fin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
@@ -1212,15 +926,6 @@ void do_cmd_ghost_power_aux(int Ind, int dir)
 
 	/* Acquire spell pointer */
 	s_ptr = &ghost_spells[p_ptr->current_spell];
-
-	/* Spell direction */
-	p_ptr->command_dir = dir;
-
-	/* Spell effects */
-	if (!cast_spell(Ind, -1, p_ptr->current_spell)) return;
-
-	/* No more spell */
-	p_ptr->current_spell = -1;
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);

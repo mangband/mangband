@@ -5543,6 +5543,19 @@ static int Receive_clear(int ind)
 	return 2;
 }
 
+void Handle_current(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	
+	if (p_ptr->current_spell != -1)
+	{
+		cast_spell(Ind, (p_ptr->ghost ? -1 : p_ptr->cp_ptr->spell_book), p_ptr->current_spell);
+	}
+	else if (p_ptr->current_object != -2)
+	{
+		use_object_current(Ind);
+	}
+}
 
 void Handle_direction(int Ind, int dir)
 {
@@ -5551,79 +5564,32 @@ void Handle_direction(int Ind, int dir)
 	if (!dir)
 	{
 		p_ptr->current_spell = -1;
-		p_ptr->current_rod = -1;
-		p_ptr->current_activation = -1;
+		p_ptr->current_object = -1;
 		return;
 	}
 
-	if (p_ptr->current_spell != -1)
-	{
-		if (p_ptr->ghost)
-			do_cmd_ghost_power_aux(Ind, dir);
-		else if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
-			do_cmd_cast_aux(Ind, dir);
-		else if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
-			do_cmd_pray_aux(Ind, dir);
-		else p_ptr->current_spell = -1;
-	}
-	else if (p_ptr->current_rod != -1)
-		do_cmd_zap_rod_dir(Ind, dir);
-	else if (p_ptr->current_activation != -1)
-		do_cmd_activate_dir(Ind, dir);
+	/* Save direction */
+	p_ptr->command_dir = dir;
+	
+	Handle_current(Ind);
 }
 		
 void Handle_item(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 	int i;
-	bool ident = FALSE; /* scroll exposed itself */ 
-	bool used_up = TRUE; /* hack for enchants */
+
+	if (item != -2)
+	{
+	
+	}
 
 	/* Save item */
 	p_ptr->command_arg = item;	
 
-	if (p_ptr->current_spell != -1) 
-	{
-		if (p_ptr->cp_ptr->spell_book == TV_MAGIC_BOOK)
-			do_cmd_cast_aux(Ind, 0);
-		else if (p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK)
-			do_cmd_pray_aux(Ind, 0);
-		else p_ptr->current_spell = -1;
-		return;
-	}
+	Handle_current(Ind);
 	
-	if ((p_ptr->current_enchant_h > 0) || (p_ptr->current_enchant_d > 0) ||
-             (p_ptr->current_enchant_a > 0))
-	{
-		ident = enchant_spell_aux(Ind, item, p_ptr->current_enchant_h,
-			p_ptr->current_enchant_d, p_ptr->current_enchant_a);
-		used_up = ident;
-	}
-	else if (p_ptr->current_identify)
-	{
-		ident = ident_spell_aux(Ind, item);
-	}
-	else if (p_ptr->current_star_identify)
-	{
-		ident = identify_fully_item(Ind, item);
-	}
-	else if (p_ptr->current_recharge)
-	{
-		ident = recharge_aux(Ind, item, p_ptr->current_recharge);
-	}
-    else if (p_ptr->current_artifact)
-    {
-		ident = create_artifact_aux(Ind, item);
-    }
-
-	if (p_ptr->current_scroll != -1) {
-		if (used_up)
-			do_cmd_read_scroll_end(Ind, p_ptr->current_scroll, ident);
-	}
-	if (p_ptr->current_staff != -1) {
-		do_cmd_use_staff_discharge(Ind, p_ptr->current_staff, ident);
-	}
-
+	/* Optimize inventory */
 	for (i = 0; i < INVEN_PACK; i++) inven_item_optimize(Ind, i);
 }
 

@@ -583,7 +583,7 @@ static byte player_init[MAX_CLASS][3][2] =
 {
 	{
 		/* Warrior */
-		{ TV_POTION, SV_POTION_BESERK_STRENGTH },
+		{ TV_POTION, SV_POTION_BERSERK_STRENGTH },
 		{ TV_SWORD, SV_BROAD_SWORD },
 		{ TV_HARD_ARMOR, SV_CHAIN_MAIL }
 	},
@@ -1142,7 +1142,9 @@ static void player_setup(int Ind)
 	}
 
 	/* Set his "current activities" variables */
-	p_ptr->current_spell = p_ptr->current_rod = p_ptr->current_activation = -1;
+	p_ptr->command_arg = -2; 
+	p_ptr->command_dir = 0;
+	p_ptr->current_spell = p_ptr->current_object = -1;
 	p_ptr->current_house = p_ptr->current_selling = p_ptr->store_num = -1;
 
 	/* Make sure his party still exists */

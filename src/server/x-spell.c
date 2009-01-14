@@ -955,6 +955,7 @@ static void spell_wonder(int Ind, int dir)
 	
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 	int plev = p_ptr->lev;
 	int die = randint(100) + plev / 5;
 	int beam = beam_chance(Ind);
@@ -988,8 +989,8 @@ static void spell_wonder(int Ind, int dir)
 	else if (die < 91) fire_ball(Ind, GF_ICE, dir, 70 + plev, 3);
 	else if (die < 96) fire_ball(Ind, GF_FIRE, dir, 80 + plev, 3);
 	else if (die < 101) drain_life(Ind, dir, 100 + plev);
-	else if (die < 104) earthquake(Ind, py, px, 12);
-	else if (die < 106) destroy_area(Ind, py, px, 15, TRUE);
+	else if (die < 104) earthquake(Depth, py, px, 12);
+	else if (die < 106) destroy_area(Depth, py, px, 15, TRUE);
 	else if (die < 108) banishment(Ind);
 	else if (die < 110) dispel_monsters(Ind, 120);
 	else /* RARE */
@@ -1009,6 +1010,7 @@ static bool cast_mage_spell(int Ind, int spell)
 	object_type		*o_ptr;
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 
 	int dir;
 
@@ -1234,7 +1236,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_WORD_OF_DESTRUCTION:
 		{
-			destroy_area(Ind, py, px, 15, TRUE);
+			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
 
@@ -1264,7 +1266,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_EARTHQUAKE:
 		{
-			earthquake(Ind, py, px, 10);
+			earthquake(Depth, py, px, 10);
 			break;
 		}
 
@@ -1458,6 +1460,9 @@ static bool cast_mage_spell(int Ind, int spell)
 		}
 	}
 	
+	/* Finalize */
+	do_cmd_cast_fin(Ind);
+	
 	/* Hack -- disable it */
 	p_ptr->current_spell = -1;
 
@@ -1472,6 +1477,7 @@ static bool cast_priest_spell(int Ind, int spell)
 	object_type		*o_ptr;
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 
 	int dir;
 
@@ -1492,6 +1498,13 @@ static bool cast_priest_spell(int Ind, int spell)
 		{
 			(void)hp_player(Ind, damroll(2, 10));
 			(void)set_cut(Ind, p_ptr->cut - 10);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_LIGHT_WOUNDS + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(2, 8));
 			break;
 		}
 
@@ -1551,6 +1564,13 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)set_cut(Ind, (p_ptr->cut / 2) - 20);
 			break;
 		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_SERIOUS_WOUNDS + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(4, 10));
+			break;
+		}
 
 		case PRAYER_CHANT:
 		{
@@ -1605,6 +1625,13 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)set_cut(Ind, 0);
 			break;
 		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_CRITICAL_WOUNDS + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(6, 10));
+			break;
+		}
 
 		case PRAYER_SENSE_INVISIBLE:
 		{
@@ -1620,7 +1647,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_EARTHQUAKE:
 		{
-			earthquake(Ind, py, px, 10);
+			earthquake(Depth, py, px, 10);
 			break;
 		}
 
@@ -1635,6 +1662,13 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)hp_player(Ind, damroll(8, 10));
 			(void)set_stun(Ind, 0);
 			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_MORTAL_WOUNDS + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(8, 10));
 			break;
 		}
 
@@ -1661,6 +1695,13 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)hp_player(Ind, 300);
 			(void)set_stun(Ind, 0);
 			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_HEAL + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, 300);
 			break;
 		}
 
@@ -1722,6 +1763,13 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)set_cut(Ind, 0);
 			break;
 		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_SERIOUS_WOUNDS2 + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(4, 10));
+			break;
+		}
 
 		case PRAYER_CURE_MORTAL_WOUNDS2:
 		{
@@ -1730,12 +1778,26 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)set_cut(Ind, 0);
 			break;
 		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_MORTAL_WOUNDS2 + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(8, 10));
+			break;
+		}
 
 		case PRAYER_HEALING:
 		{
 			(void)hp_player(Ind, 2000);
 			(void)set_stun(Ind, 0);
 			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_HEALING + PY_MAX_SPELLS:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, 2000);
 			break;
 		}
 
@@ -1779,7 +1841,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_WORD_OF_DESTRUCTION:
 		{
-			destroy_area(Ind, py, px, 15, TRUE);
+			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
 
@@ -1887,6 +1949,9 @@ static bool cast_priest_spell(int Ind, int spell)
 		}
 	}
 
+	/* Finalize */
+	do_cmd_cast_fin(Ind);
+
 	/* Hack -- disable it */
 	p_ptr->current_spell = -1;
 
@@ -1949,6 +2014,9 @@ static bool cast_undead_spell(int Ind, int spell)
 			break;
 		}
 	}
+
+	/* Finalize */
+	do_cmd_ghost_power_fin(Ind);
 
 	/* Hack -- disable it */
 	p_ptr->current_spell = -1;

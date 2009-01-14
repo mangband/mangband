@@ -215,6 +215,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../src/server/netserver.h" />
+		<Unit filename="../../src/server/use-obj.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../../src/server/obj-info.c">
 			<Option compilerVar="CC" />
 		</Unit>

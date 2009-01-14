@@ -269,6 +269,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\server\use-obj.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\object1.c"
 				>
 			</File>

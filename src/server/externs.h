@@ -566,12 +566,11 @@ extern void do_cmd_check_other(int Ind, int line);
 extern void do_cmd_browse(int Ind, int book);
 extern void do_cmd_study(int Ind, int book, int spell);
 extern void do_cmd_cast(int Ind, int book, int spell);
-extern void do_cmd_cast_aux(int Ind, int dir);
+extern void do_cmd_cast_fin(int Ind);
 extern void do_cmd_pray(int Ind, int book, int spell);
-extern void do_cmd_pray_aux(int Ind, int dir);
 extern void show_ghost_spells(int Ind);
 extern void do_cmd_ghost_power(int Ind, int ability);
-extern void do_cmd_ghost_power_aux(int Ind, int dir);
+extern void do_cmd_ghost_power_fin(int Ind);
 extern void do_cmd_sorc(int Ind, int book, int spell);
 extern void do_cmd_sorc_aux(int Ind, int dir);
 
@@ -585,7 +584,7 @@ extern void do_cmd_aim_wand(int Ind, int item, int dir);
 extern void do_cmd_use_staff(int Ind, int item);
 extern void do_cmd_use_staff_discharge(int Ind, int item, bool ident);
 extern void do_cmd_zap_rod(int Ind, int item);
-extern void do_cmd_zap_rod_dir(int Ind, int dir);
+extern void do_cmd_zap_rod_discharge(int Ind, int dir, bool ident);
 extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int dir);
 
@@ -982,13 +981,7 @@ extern bool fear_monster(int Ind, int dir, int plev);
 extern bool poly_monster(int Ind, int dir);
 extern bool clone_monster(int Ind, int dir);
 extern bool teleport_monster(int Ind, int dir);
-extern bool cure_light_wounds_proj(int Ind, int dir);
-extern bool cure_serious_wounds_proj(int Ind, int dir);
-extern bool cure_critical_wounds_proj(int Ind, int dir);
-extern bool cure_mortal_wounds_proj(int Ind, int dir);
-extern bool heal_other_lite_proj(int Ind, int dir);
-extern bool heal_other_proj(int Ind, int dir);
-extern bool heal_other_heavy_proj(int Ind, int dir);
+extern bool heal_player_ball(int Ind, int dir, int dam);
 extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
@@ -997,6 +990,10 @@ extern bool create_artifact(int Ind);
 extern bool create_artifact_aux(int Ind, int item);
 extern void brand_ammo(int Ind, int item);
 extern void brand_weapon(int Ind);
+extern bool brand_bolts(int Ind);
+extern void ring_of_power(int Ind, int dir);
+extern bool curse_armor(int Ind);
+extern bool curse_weapon(int Ind);
 
 
 /* store.c */
@@ -1148,6 +1145,10 @@ extern int get_spell_index(int Ind, const object_type *o_ptr, int index);
 extern cptr get_spell_name(int tval, int index);
 extern cptr get_spell_info(int Ind, int index);
 extern bool cast_spell(int Ind, int tval, int index);
+
+/* use-obj.c */
+extern bool use_object(int Ind, object_type *o_ptr, int item, bool *ident);
+extern bool use_object_current(int Ind);
 
 /*
  * Hack -- conditional (or "bizarre") externs

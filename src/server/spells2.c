@@ -2038,6 +2038,147 @@ static bool item_tester_hook_armour(object_type *o_ptr)
 
 
 /*
+ * Curse the players armor
+ */
+bool curse_armor(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	object_type *o_ptr;
+
+	char o_name[80];
+
+
+	/* Curse the body armor */
+	o_ptr = &p_ptr->inventory[INVEN_BODY];
+
+	/* Nothing to curse */
+	if (!o_ptr->k_idx) return (FALSE);
+
+
+	/* Describe */
+	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+
+	/* Attempt a saving throw for artifacts */
+	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	{
+		/* Cool */
+		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		           "terrible black aura", "surround your armor", o_name);
+	}
+
+	/* not artifact or failed save... */
+	else
+	{
+		/* Oops */
+		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+
+		/* Blast the armor */
+		o_ptr->name1 = 0;
+		o_ptr->name2 = EGO_BLASTED;
+	o_ptr->name3 = 0;
+		o_ptr->to_a = 0 - randint(5) - randint(5);
+		o_ptr->to_h = 0;
+		o_ptr->to_d = 0;
+		o_ptr->ac = 0;
+		o_ptr->dd = 0;
+		o_ptr->ds = 0;
+
+		/* Curse it */
+		o_ptr->ident |= ID_CURSED;
+
+		/* Break it */
+		o_ptr->ident |= ID_BROKEN;
+
+		/* Recalculate bonuses */
+		p_ptr->update |= (PU_BONUS);
+
+		/* Recalculate mana */
+		p_ptr->update |= (PU_MANA);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	}
+
+	return (TRUE);
+}
+
+
+/*
+ * Curse the players weapon
+ */
+bool curse_weapon(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	object_type *o_ptr;
+
+	char o_name[80];
+
+
+	/* Curse the weapon */
+	o_ptr = &p_ptr->inventory[INVEN_WIELD];
+
+	/* Nothing to curse */
+	if (!o_ptr->k_idx) return (FALSE);
+
+
+	/* Describe */
+	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+
+	/* Attempt a saving throw */
+	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	{
+		/* Cool */
+		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		           "terrible black aura", "surround your weapon", o_name);
+	}
+
+	/* not artifact or failed save... */
+	else
+	{
+		/* Oops */
+		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+
+		/* Shatter the weapon */
+		o_ptr->name1 = 0;
+		o_ptr->name2 = EGO_SHATTERED;
+	o_ptr->name3 = 0;
+		o_ptr->to_h = 0 - randint(5) - randint(5);
+		o_ptr->to_d = 0 - randint(5) - randint(5);
+		o_ptr->to_a = 0;
+		o_ptr->ac = 0;
+		o_ptr->dd = 0;
+		o_ptr->ds = 0;
+
+		/* Curse it */
+		o_ptr->ident |= ID_CURSED;
+
+		/* Break it */
+		o_ptr->ident |= ID_BROKEN;
+
+		/* Recalculate bonuses */
+		p_ptr->update |= (PU_BONUS);
+
+		/* Recalculate mana */
+		p_ptr->update |= (PU_MANA);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	}
+
+	/* Notice */
+	return (TRUE);
+}
+
+
+/*
  * Brand weapons (or ammo)
  *
  * Turns the (non-magical) object into an ego-item of 'brand_type'.
@@ -2348,26 +2489,15 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 void spell_clear(int Ind)
 {
   player_type *p_ptr = Players[Ind];
-  p_ptr->current_enchant_h = 0;
-  p_ptr->current_enchant_d = 0;
-  p_ptr->current_enchant_a = 0;
-  p_ptr->current_identify = 0;
-  p_ptr->current_star_identify = 0;
-  p_ptr->current_recharge = 0;
-  p_ptr->current_artifact = 0;
+
   /* Hack */  
   p_ptr->current_spell = -1;
-  /* Hack: this should be somewhere else: */
-  p_ptr->current_staff = -1;
-  p_ptr->current_scroll = -1;
+  p_ptr->current_object = -1;
 }
 
 bool create_artifact(int Ind)
 {
-  player_type *p_ptr = Players[Ind];
   int item;
-
-  p_ptr->current_artifact = TRUE;
 
   if (!get_item(Ind, &item)) return FALSE;
   
@@ -2467,12 +2597,7 @@ bool create_artifact_aux(int Ind, int item)
 
 bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 {
-	player_type *p_ptr = Players[Ind];
 	int item;
-
-	p_ptr->current_enchant_h = num_hit;
-	p_ptr->current_enchant_d = num_dam;
-	p_ptr->current_enchant_a = num_ac;
 
 	if (!get_item(Ind, &item)) return (FALSE);
 
@@ -2553,10 +2678,6 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 		msg_print(Ind, "The enchantment failed.");
 	}
 
-	p_ptr->current_enchant_h = -1;
-	p_ptr->current_enchant_d = -1;
-	p_ptr->current_enchant_a = -1;
-
 	/* Something happened */
 	return (TRUE);
 }
@@ -2565,11 +2686,8 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 
 bool ident_spell(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
 	int item;
 	
-	p_ptr->current_identify = 1;
-
 	if (!get_item(Ind, &item)) return FALSE;
 	
 	ident_spell_aux(Ind, item);	
@@ -2645,8 +2763,6 @@ bool ident_spell_aux(int Ind, int item)
 		           o_name);
 	}
 
-	p_ptr->current_identify = 0;
-
 	/* Something happened */
 	return (TRUE);
 }
@@ -2654,10 +2770,7 @@ bool ident_spell_aux(int Ind, int item)
 
 bool identify_fully(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
 	int item;
-
-	p_ptr->current_star_identify = 1;
 
 	if (!get_item(Ind, &item)) return FALSE;
 
@@ -2744,8 +2857,6 @@ bool identify_fully_item(int Ind, int item)
 	identify_fully_aux(Ind, o_ptr);
 	Send_special_other(Ind, o_name);
 
-	/* We no longer have a *identify* in progress */
-	p_ptr->current_star_identify = 0;
 
 	/* Success */
 	return (TRUE);
@@ -2772,10 +2883,7 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 
 bool recharge(int Ind, int num)
 {
-	player_type *p_ptr = Players[Ind];
 	int item;
-
-	p_ptr->current_recharge = num;
 
 	if (!get_item(Ind, &item)) return FALSE;
 	
@@ -2899,9 +3007,6 @@ bool recharge_aux(int Ind, int item, int num)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
-	/* We no longer have a recharge in progress */
-	p_ptr->current_recharge = 0;
 
 	/* Something was done */
 	return (TRUE);
@@ -4470,46 +4575,10 @@ bool teleport_monster(int Ind, int dir)
 	return (project_hook(Ind, GF_AWAY_ALL, dir, MAX_SIGHT * 5, flg));
 }
 
-bool cure_light_wounds_proj(int Ind, int dir)
+bool heal_player_ball(int Ind, int dir, int dam)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(2, 10), flg));
-}
-
-bool cure_serious_wounds_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(4, 10), flg));
-}
-
-bool cure_critical_wounds_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(6, 10), flg));
-}
-
-bool cure_mortal_wounds_proj(int Ind, int dir)
-{
-    int flg = PROJECT_STOP | PROJECT_KILL;
-    return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(8, 10), flg));
-}
-
-bool heal_other_lite_proj(int Ind, int dir)
-{
-    int flg = PROJECT_STOP | PROJECT_KILL;
-    return (project_hook(Ind, GF_HEAL_PLAYER, dir, 100, flg));
-}
-
-bool heal_other_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, 300, flg));
-}
-
-bool heal_other_heavy_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, 2000, flg));
+	return (project_hook(Ind, GF_HEAL_PLAYER, dir, dam, flg));
 }
 
 
@@ -4550,4 +4619,119 @@ bool sleep_monsters_touch(int Ind)
 
 	int flg = PROJECT_KILL | PROJECT_HIDE;
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->lev, GF_OLD_SLEEP, flg));
+}
+
+/*
+ * Enchant some bolts
+ */
+bool brand_bolts(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+
+	/* Use the first (XXX) acceptable bolts */
+	for (i = 0; i < INVEN_PACK; i++)
+	{
+		object_type *o_ptr = &p_ptr->inventory[i];
+
+		/* Skip non-bolts */
+		if (o_ptr->tval != TV_BOLT) continue;
+
+		/* Skip artifacts and ego-items */
+		if (artifact_p(o_ptr) || ego_item_p(o_ptr)) continue;
+
+		/* Skip cursed/broken items */
+		if (cursed_p(o_ptr) || broken_p(o_ptr)) continue;
+
+		/* Randomize */
+		if (rand_int(100) < 75) continue;
+
+		/* Message */
+		msg_print(Ind, "Your bolts are covered in a fiery aura!");
+
+		/* Ego-item */
+		o_ptr->name2 = EGO_FLAME;
+
+		/* Enchant */
+		enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+		/* Notice */
+		return (TRUE);
+	}
+
+	/* Flush */
+	if (flush_failure) flush();
+
+	/* Fail */
+	msg_print(Ind, "The fiery enchantment failed.");
+
+	/* Notice */
+	return (TRUE);
+}
+
+
+/*
+ * Hack -- activate the ring of power
+ */
+void ring_of_power(int Ind, int dir)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Pick a random effect */
+	switch (randint(10))
+	{
+		case 1:
+		case 2:
+		{
+			/* Message */
+			msg_print(Ind, "You are surrounded by a malignant aura.");
+
+			/* Decrease all stats (permanently) */
+			(void)dec_stat(Ind, A_STR, 50, TRUE);
+			(void)dec_stat(Ind, A_INT, 50, TRUE);
+			(void)dec_stat(Ind, A_WIS, 50, TRUE);
+			(void)dec_stat(Ind, A_DEX, 50, TRUE);
+			(void)dec_stat(Ind, A_CON, 50, TRUE);
+			(void)dec_stat(Ind, A_CHR, 50, TRUE);
+
+			/* Lose some experience (permanently) */
+			p_ptr->exp -= (p_ptr->exp / 4);
+			p_ptr->max_exp -= (p_ptr->exp / 4);
+			check_experience(Ind);
+
+			break;
+		}
+
+		case 3:
+		{
+			/* Message */
+			msg_print(Ind, "You are surrounded by a powerful aura.");
+
+			/* Dispel monsters */
+			dispel_monsters(Ind, 1000);
+
+			break;
+		}
+
+		case 4:
+		case 5:
+		case 6:
+		{
+			/* Mana Ball */
+			fire_ball(Ind, GF_MANA, dir, 300, 3);
+
+			break;
+		}
+
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		{
+			/* Mana Bolt */
+			fire_bolt(Ind, GF_MANA, dir, 250);
+
+			break;
+		}
+	}
 }

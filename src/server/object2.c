@@ -2026,7 +2026,7 @@ static void charge_staff(object_type *o_ptr)
 		case SV_STAFF_DISPEL_EVIL:		o_ptr->pval = randint(3)  + 4; break;
 		case SV_STAFF_POWER:			o_ptr->pval = randint(3)  + 1; break;
 		case SV_STAFF_HOLINESS:			o_ptr->pval = randint(2)  + 2; break;
-		case SV_STAFF_GENOCIDE:			o_ptr->pval = randint(2)  + 1; break;
+		case SV_STAFF_BANISHMENT:			o_ptr->pval = randint(2)  + 1; break;
 		case SV_STAFF_EARTHQUAKES:		o_ptr->pval = randint(5)  + 3; break;
 		case SV_STAFF_DESTRUCTION:		o_ptr->pval = randint(3)  + 1; break;
 	}
