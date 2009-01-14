@@ -530,10 +530,11 @@ static void player_wipe(int Ind)
 
 
 	/* Wipe the spells */
-	p_ptr->spell_learned1 = p_ptr->spell_learned2 = 0L;
-	p_ptr->spell_worked1 = p_ptr->spell_worked2 = 0L;
-	p_ptr->spell_forgotten1 = p_ptr->spell_forgotten2 = 0L;
-	for (i = 0; i < 64; i++) p_ptr->spell_order[i] = 99;
+	for (i = 0; i < PY_MAX_SPELLS; i++)
+	{
+		p_ptr->spell_flags[i] = 00;
+		p_ptr->spell_order[i] = 99;
+	}
 
 
 	/* Clear "cheat" options */

@@ -786,16 +786,16 @@ static bool wr_savefile_new(int Ind)
 	end_section("hp");
 
 	/* Write spell data */
-	write_uint("spell_learned1",p_ptr->spell_learned1);
-	write_uint("spell_learned2",p_ptr->spell_learned2);
-	write_uint("spell_worked1",p_ptr->spell_worked1);
-	write_uint("spell_worked2",p_ptr->spell_worked2);
-	write_uint("spell_forgotten1",p_ptr->spell_forgotten1);
-	write_uint("spell_forgotten2",p_ptr->spell_forgotten2);
+	start_section("spell_flags");
+	for (i = 0; i < PY_MAX_SPELLS; i++)
+	{
+		write_int("flag",p_ptr->spell_flags[i]);
+	}
+	end_section("spell_flags");
 
 	/* Dump the ordered spells */
 	start_section("spell_order");
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
 		write_int("order",p_ptr->spell_order[i]);
 	}

@@ -1645,15 +1645,52 @@ static errr rd_savefile_new_aux(int Ind)
 
 
 	/* Read spell info */
-	p_ptr->spell_learned1 = read_uint("spell_learned1");
-	p_ptr->spell_learned2 = read_uint("spell_learned2");
-	p_ptr->spell_worked1 = read_uint("spell_worked1");
-	p_ptr->spell_worked2 = read_uint("spell_worked2");
-	p_ptr->spell_forgotten1 = read_uint("spell_forgotten1");
-	p_ptr->spell_forgotten2 = read_uint("spell_forgotten2");
+	if (section_exists("spell_flags"))
+	{
+		start_section_read("spell_flags");
+		for (i = 0; i < PY_MAX_SPELLS; i++)
+		{
+			p_ptr->spell_flags[i] = read_int("flag");
+		}
+		end_section_read("spell_flags");
+	}
+	else
+	{
+		/* Port spell flags from old format */
+		u32b spell_learned1, spell_learned2;
+		u32b spell_worked1, spell_worked2;
+		u32b spell_forgotten1, spell_forgotten2;
+		spell_learned1 = read_uint("spell_learned1");
+		spell_learned2 = read_uint("spell_learned2");
+		spell_worked1 = read_uint("spell_worked1");
+		spell_worked2 = read_uint("spell_worked2");
+		spell_forgotten1 = read_uint("spell_forgotten1");
+		spell_forgotten2 = read_uint("spell_forgotten2");
+		for (i = 0; i < PY_MAX_SPELLS; i++)
+		{
+			if ((i < 32) ?
+				(spell_forgotten1 & (1L << i)) :
+				(spell_forgotten2 & (1L << (i - 32))))
+			{
+				p_ptr->spell_flags[i] |= PY_SPELL_FORGOTTEN;
+			} 
+			if ((i < 32) ?
+				(spell_learned1 & (1L << i)) :
+				(spell_learned2 & (1L << (i - 32))))
+			{
+				p_ptr->spell_flags[i] |= PY_SPELL_LEARNED;
+			}
+			if ((i < 32) ?
+				(spell_worked1 & (1L << i)) :
+				(spell_worked2 & (1L << (i - 32))))
+			{
+				p_ptr->spell_flags[i] |= PY_SPELL_WORKED;
+			}			
+		}
+	}
 
 	start_section_read("spell_order");
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
 		p_ptr->spell_order[i] = read_int("order");
 	}

@@ -2715,7 +2715,7 @@ int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
 		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
 }
 
-int Send_spell_info(int ind, int book, int i, cptr out_val)
+int Send_spell_info(int ind, int book, int i, byte flag, cptr out_val)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2726,7 +2726,7 @@ int Send_spell_info(int ind, int book, int i, cptr out_val)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c%hu%hu%s", PKT_SPELL_INFO, book, i, out_val);
+	return Packet_printf(&connp->c, "%c%c%hu%hu%s", PKT_SPELL_INFO, flag, book, i, out_val);
 }
 
 

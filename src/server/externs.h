@@ -757,7 +757,7 @@ extern int Send_stun(int Ind, int stun);
 extern int Send_direction(int Ind);
 extern int Send_message(int Ind, cptr msg, u16b typ);
 extern int Send_char(int Ind, int x, int y, byte a, char c, byte ta, char tc);
-extern int Send_spell_info(int Ind, int book, int i, cptr out_val);
+extern int Send_spell_info(int Ind, int book, int i, byte flag, cptr out_val);
 extern int Send_item_request(int Ind);
 extern int Send_state(int Ind, bool paralyzed, bool searching, bool resting);
 extern int Send_flush(int Ind);

@@ -1974,15 +1974,17 @@ int Receive_spell_info(void)
 	char	ch;
 	int	n;
 	u16b	book, line;
+	byte	flag;
 	char	buf[80];
 
-	if ((n = Packet_scanf(&rbuf, "%c%hu%hu%s", &ch, &book, &line, buf)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%hu%hu%s", &ch, &flag, &book, &line, buf)) <= 0)
 	{
 		return n;
 	}
 
     /* Save the info... */
 	strcpy(spell_info[book][line], buf);
+	p_ptr->spell_flags[book*SPELLS_PER_BOOK+line] = flag;
 
     /* ... and wipe the next line */
     if (line < 8) spell_info[book][line+1][0] = '\0';

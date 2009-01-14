@@ -1435,12 +1435,7 @@ struct player_type
 
 	s16b old_spells;
 
-	u32b spell_learned1;	/* bit mask of spells learned */
-	u32b spell_learned2;	/* bit mask of spells learned */
-	u32b spell_worked1;	/* bit mask of spells tried and worked */
-	u32b spell_worked2;	/* bit mask of spells tried and worked */
-	u32b spell_forgotten1;	/* bit mask of spells learned but forgotten */
-	u32b spell_forgotten2;	/* bit mask of spells learned but forgotten */
+	byte spell_flags[PY_MAX_SPELLS]; /* Spell Flags for learned/tried/forgotten */
 	byte spell_order[PY_MAX_SPELLS]; /* order spells learned/remembered/fogotten */
 
 	bool old_cumber_armor;

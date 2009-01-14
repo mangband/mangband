@@ -1404,12 +1404,10 @@ static void calc_spells(int Ind)
 	num_known = 0;
 
 	/* Count the number of spells we know */
-	for (j = 0; j < 64; j++)
+	for (j = 0; j < PY_MAX_SPELLS; j++)
 	{
 		/* Count known spells */
-		if ((j < 32) ?
-		    (p_ptr->spell_learned1 & (1L << j)) :
-		    (p_ptr->spell_learned2 & (1L << (j - 32))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_LEARNED)
 		{
 			num_known++;
 		}
@@ -1421,11 +1419,8 @@ static void calc_spells(int Ind)
 
 
 	/* Forget spells which are too hard */
-	for (i = 63; i >= 0; i--)
+	for (i = PY_MAX_SPELLS - 1; i >= 0; i--)
 	{
-		/* Efficiency -- all done */
-		if (!p_ptr->spell_learned1 && !p_ptr->spell_learned2) break;
-
 		/* Access the spell */
 		j = p_ptr->spell_order[i];
 
@@ -1439,33 +1434,17 @@ static void calc_spells(int Ind)
 		if (s_ptr->slevel <= p_ptr->lev) continue;
 
 		/* Is it known? */
-		if ((j < 32) ?
-		    (p_ptr->spell_learned1 & (1L << j)) :
-		    (p_ptr->spell_learned2 & (1L << (j - 32))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_LEARNED)
 		{
 			/* Mark as forgotten */
-			if (j < 32)
-			{
-				p_ptr->spell_forgotten1 |= (1L << j);
-			}
-			else
-			{
-				p_ptr->spell_forgotten2 |= (1L << (j - 32));
-			}
+			p_ptr->spell_flags[j] |= PY_SPELL_FORGOTTEN;
 
 			/* No longer known */
-			if (j < 32)
-			{
-				p_ptr->spell_learned1 &= ~(1L << j);
-			}
-			else
-			{
-				p_ptr->spell_learned2 &= ~(1L << (j - 32));
-			}
+			p_ptr->spell_flags[j] &= ~PY_SPELL_LEARNED;
 
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
-			           spell_names[mtype][j]);
+			           get_spell_name(p_ptr->cp_ptr->spell_book,j));
 
 
 			/* One more can be learned */
@@ -1475,13 +1454,10 @@ static void calc_spells(int Ind)
 
 
 	/* Forget spells if we know too many spells */
-	for (i = 63; i >= 0; i--)
+	for (i = PY_MAX_SPELLS - 1; i >= 0; i--)
 	{
 		/* Stop when possible */
 		if (p_ptr->new_spells >= 0) break;
-
-		/* Efficiency -- all done */
-		if (!p_ptr->spell_learned1 && !p_ptr->spell_learned2) break;
 
 		/* Get the (i+1)th spell learned */
 		j = p_ptr->spell_order[i];
@@ -1490,30 +1466,13 @@ static void calc_spells(int Ind)
 		if (j >= 99) continue;
 
 		/* Forget it (if learned) */
-		if ((j < 32) ?
-		    (p_ptr->spell_learned1 & (1L << j)) :
-		    (p_ptr->spell_learned2 & (1L << (j - 32))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_LEARNED)
 		{
 			/* Mark as forgotten */
-			if (j < 32)
-			{
-				p_ptr->spell_forgotten1 |= (1L << j);
-			}
-			else
-			{
-				p_ptr->spell_forgotten2 |= (1L << (j - 32));
-			}
+			p_ptr->spell_flags[j] |= PY_SPELL_FORGOTTEN;
 
 			/* No longer known */
-			if (j < 32)
-			{
-				p_ptr->spell_learned1 &= ~(1L << j);
-			}
-			else
-			{
-				p_ptr->spell_learned2 &= ~(1L << (j - 32));
-			}
-
+			p_ptr->spell_flags[j] &= ~PY_SPELL_LEARNED;
 
 			/* Message */
 			msg_format(Ind, "You have forgotten the %s of %s.", p,
@@ -1527,13 +1486,10 @@ static void calc_spells(int Ind)
 
 
 	/* Check for spells to remember */
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
 		/* None left to remember */
 		if (p_ptr->new_spells <= 0) break;
-
-		/* Efficiency -- all done */
-		if (!p_ptr->spell_forgotten1 && !p_ptr->spell_forgotten2) break;
 
 		/* Get the next spell we learned */
 		j = p_ptr->spell_order[i];
@@ -1548,29 +1504,13 @@ static void calc_spells(int Ind)
 		if (s_ptr->slevel > p_ptr->lev) continue;
 
 		/* First set of spells */
-		if ((j < 32) ?
-		    (p_ptr->spell_forgotten1 & (1L << j)) :
-		    (p_ptr->spell_forgotten2 & (1L << (j - 32))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_FORGOTTEN)
 		{
 			/* No longer forgotten */
-			if (j < 32)
-			{
-				p_ptr->spell_forgotten1 &= ~(1L << j);
-			}
-			else
-			{
-				p_ptr->spell_forgotten2 &= ~(1L << (j - 32));
-			}
+			p_ptr->spell_flags[j] &= ~PY_SPELL_FORGOTTEN;
 
 			/* Known once more */
-			if (j < 32)
-			{
-				p_ptr->spell_learned1 |= (1L << j);
-			}
-			else
-			{
-				p_ptr->spell_learned2 |= (1L << (j - 32));
-			}
+			p_ptr->spell_flags[j] |= PY_SPELL_LEARNED;
 
 			/* Message */
 			msg_format(Ind, "You have remembered the %s of %s.",
@@ -1587,7 +1527,7 @@ static void calc_spells(int Ind)
 	k = 0;
 
 	/* Count spells that can be learned */
-	for (j = 0; j < 64; j++)
+	for (j = 0; j < PY_MAX_SPELLS; j++)
 	{
 		/* Access the spell */
 		s_ptr = &p_ptr->mp_ptr->info[j];
@@ -1596,9 +1536,7 @@ static void calc_spells(int Ind)
 		if (s_ptr->slevel > p_ptr->lev) continue;
 
 		/* Skip spells we already know */
-		if ((j < 32) ?
-		    (p_ptr->spell_learned1 & (1L << j)) :
-		    (p_ptr->spell_learned2 & (1L << (j - 32))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_LEARNED)
 		{
 			continue;
 		}

@@ -121,18 +121,14 @@ static bool spell_okay(int Ind, int j, bool known)
 	if (s_ptr->slevel > p_ptr->lev) return (FALSE);
 
 	/* Spell is forgotten */
-	if ((j < 32) ?
-	    (p_ptr->spell_forgotten1 & (1L << j)) :
-	    (p_ptr->spell_forgotten2 & (1L << (j - 32))))
+	if (p_ptr->spell_flags[j] & PY_SPELL_FORGOTTEN)
 	{
 		/* Never okay */
 		return (FALSE);
 	}
 
 	/* Spell is learned */
-	if ((j < 32) ?
-	    (p_ptr->spell_learned1 & (1L << j)) :
-	    (p_ptr->spell_learned2 & (1L << (j - 32))))
+	if (p_ptr->spell_flags[j] & PY_SPELL_LEARNED)
 	{
 		/* Okay to cast, not to study */
 		return (known);
@@ -173,7 +169,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		if (s_ptr->slevel >= 99)
 		{
 			sprintf(out_val, "  %c) %-30s", I2A(i), "(illegible)");
-			Send_spell_info(Ind, book, i, out_val);
+			Send_spell_info(Ind, book, i, 0, out_val);
 			continue;
 		}
 
@@ -183,21 +179,15 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		comment = get_spell_info(Ind, j);
 
 		/* Analyze the spell */
-		if ((j < 32) ?
-		    ((p_ptr->spell_forgotten1 & (1L << j))) :
-		    ((p_ptr->spell_forgotten2 & (1L << (j - 32)))))
+		if (p_ptr->spell_flags[j] & PY_SPELL_FORGOTTEN)
 		{
 			comment = " forgotten";
 		}
-		else if (!((j < 32) ?
-		           (p_ptr->spell_learned1 & (1L << j)) :
-		           (p_ptr->spell_learned2 & (1L << (j - 32)))))
+		else if (!(p_ptr->spell_flags[j] & PY_SPELL_LEARNED))
 		{
 			comment = " unknown";
 		}
-		else if (!((j < 32) ?
-		           (p_ptr->spell_worked1 & (1L << j)) :
-		           (p_ptr->spell_worked2 & (1L << (j - 32)))))
+		else if (!(p_ptr->spell_flags[j] & PY_SPELL_WORKED))
 		{
 			comment = " untried";
 		}
@@ -206,7 +196,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		Send_spell_info(Ind, book, i, out_val);
+		Send_spell_info(Ind, book, i, p_ptr->spell_flags[j], out_val);
 	}
 }
 
@@ -450,14 +440,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Learn the spell */
-	if (j < 32)
-	{
-		p_ptr->spell_learned1 |= (1L << j);
-	}
-	else
-	{
-		p_ptr->spell_learned2 |= (1L << (j - 32));
-	}
+	p_ptr->spell_flags[j] |= PY_SPELL_LEARNED;
 
 	/* Find the next open entry in "spell_order[]" */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
@@ -629,21 +612,12 @@ void do_cmd_cast_fin(int Ind)
 	int j = p_ptr->current_spell;
 
 	/* A spell was tried */
-	if (!((j < 32) ?
-		  (p_ptr->spell_worked1 & (1L << j)) :
-		  (p_ptr->spell_worked2 & (1L << (j - 32)))))
+	if (!(p_ptr->spell_flags[j] & PY_SPELL_WORKED))
 	{
 		int e = s_ptr->sexp;
 
 		/* The spell worked */
-		if (j < 32)
-		{
-			p_ptr->spell_worked1 |= (1L << j);
-		}
-		else
-		{
-			p_ptr->spell_worked2 |= (1L << (j - 32));
-		}
+		p_ptr->spell_flags[j] |= PY_SPELL_WORKED;
 
 		/* Gain experience */
 		gain_exp(Ind, e * s_ptr->slevel);
@@ -857,7 +831,7 @@ void show_ghost_spells(int Ind)
                 I2A(j), spell_names[GHOST_SPELLS][i], s_ptr->slevel, s_ptr->smana, 0, comment);
 
 		/* Send it */
-		Send_spell_info(Ind, 0, j, out_val);
+		Send_spell_info(Ind, 0, j, PY_SPELL_WORKED, out_val);
 
 		/* Next spell */
 		j++;
