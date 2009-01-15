@@ -2503,8 +2503,6 @@ bool create_artifact(int Ind)
   
   create_artifact_aux(Ind, item);  
   
-  spell_clear(Ind);
-  
   return TRUE;
 }
 
@@ -2603,8 +2601,6 @@ bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 
 	enchant_spell_aux(Ind, item, num_hit, num_dam, num_ac);
 
-	spell_clear(Ind);
-	
 	return (TRUE);
 }
 	
@@ -2692,8 +2688,6 @@ bool ident_spell(int Ind)
 	
 	ident_spell_aux(Ind, item);	
 	
-	spell_clear(Ind);
-   
 	return TRUE;
 }
 
@@ -2775,8 +2769,6 @@ bool identify_fully(int Ind)
 	if (!get_item(Ind, &item)) return FALSE;
 
 	identify_fully_item(Ind, item);	
-
-	spell_clear(Ind);
 
 	return TRUE;
 }
@@ -2889,8 +2881,6 @@ bool recharge(int Ind, int num)
 	
 	recharge_aux(Ind, item, num);	
 	
-	spell_clear(Ind);
-
 	return TRUE;
 }
 

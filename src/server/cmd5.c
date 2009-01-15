@@ -600,10 +600,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 		return;
 	}
 
-	/* Process spell */
-	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
-	
-	do_cmd_cast_fin(Ind);
+	/* Cast spell */
+	cast_spell(Ind, p_ptr->cp_ptr->spell_book, j);
 }
 void do_cmd_cast_fin(int Ind)
 {
@@ -674,6 +672,9 @@ void do_cmd_cast_fin(int Ind)
  * Pray a prayer
  *
  * See above for an explanation of the weirdness in this function --KLJ--
+ *
+ * After prayer is cast, do_cmd_cast_fin() will be called !
+ * If we need to separate them later, we could...
  */
 void do_cmd_pray(int Ind, int book, int spell)
 {
@@ -802,9 +803,6 @@ void do_cmd_pray(int Ind, int book, int spell)
 	if (spell >= 64) j += 64;
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
 	if (spell >= 64) j -= 64; 
-
-	/* Hack! */
-	do_cmd_cast_fin(Ind);
 }
 
 
@@ -879,16 +877,9 @@ void do_cmd_ghost_power(int Ind, int ability)
 		return;
 	}
 
-	/* Spell effects */
-	if (!cast_spell(Ind, -1, i)) return;
-	
-	do_cmd_ghost_power_fin(Ind);
+	/* Cast ghost spell */
+	cast_spell(Ind, -1, i);
 }
-
-
-/*
- * Directional ghost ability
- */
 void do_cmd_ghost_power_fin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];

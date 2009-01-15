@@ -1019,9 +1019,6 @@ static bool cast_mage_spell(int Ind, int spell)
 	/* Hack -- chance of "beam" instead of "bolt" */
 	int beam = beam_chance(Ind);
 
-	/* Hack -- remember which */
-	p_ptr->current_spell = spell;
-
 	/* Spells. */
 	switch (spell)
 	{
@@ -1460,12 +1457,6 @@ static bool cast_mage_spell(int Ind, int spell)
 		}
 	}
 	
-	/* Finalize */
-	do_cmd_cast_fin(Ind);
-	
-	/* Hack -- disable it */
-	p_ptr->current_spell = -1;
-
 	/* Success */
 	return (TRUE);
 }
@@ -1483,9 +1474,6 @@ static bool cast_priest_spell(int Ind, int spell)
 
 	int plev = p_ptr->lev;
 	
-	/* Hack -- remember which */
-	p_ptr->current_spell = spell;
-
 	switch (spell)
 	{
 		case PRAYER_DETECT_EVIL:
@@ -1949,12 +1937,6 @@ static bool cast_priest_spell(int Ind, int spell)
 		}
 	}
 
-	/* Finalize */
-	do_cmd_cast_fin(Ind);
-
-	/* Hack -- disable it */
-	p_ptr->current_spell = -1;
-
 	/* Success */
 	return (TRUE);
 }
@@ -1967,9 +1949,6 @@ static bool cast_undead_spell(int Ind, int spell)
 	int dir;
 	
 	int plev = p_ptr->lev;
-
-	/* Hack -- remember which */
-	p_ptr->current_spell = spell;
 
 	switch (spell)
 	{
@@ -2015,12 +1994,6 @@ static bool cast_undead_spell(int Ind, int spell)
 		}
 	}
 
-	/* Finalize */
-	do_cmd_ghost_power_fin(Ind);
-
-	/* Hack -- disable it */
-	p_ptr->current_spell = -1;
-
 	/* Success */
 	return (TRUE);
 }
@@ -2028,17 +2001,30 @@ static bool cast_undead_spell(int Ind, int spell)
 
 bool cast_spell(int Ind, int tval, int index)
 {
+	player_type *p_ptr = Players[Ind];
+	bool done;
+	
+	/* START */
+	p_ptr->current_spell = index;
+
 	if (tval == TV_MAGIC_BOOK)
 	{
-		return cast_mage_spell(Ind, index);
+		done = cast_mage_spell(Ind, index);
+		if (done) do_cmd_cast_fin(Ind);
 	}
 	else if (tval == TV_PRAYER_BOOK)
 	{
-		return cast_priest_spell(Ind, index);
+		done = cast_priest_spell(Ind, index);
+		if (done) do_cmd_cast_fin(Ind);
 	}
 	else
 	{
-		return cast_undead_spell(Ind, index);
+		done = cast_undead_spell(Ind, index);
+		if (done) do_cmd_ghost_power_fin(Ind);
 	}
-}
+	
+	/* DONE */
+	if (done) p_ptr->current_spell = -1;
 
+	return done;
+}
