@@ -134,7 +134,7 @@ static void prt_title(int Ind)
 	/* Normal */
 	else
 	{
-		p = player_title[p_ptr->pclass][(p_ptr->lev-1)/5];
+		p = c_text + p_ptr->cp_ptr->title[(p_ptr->lev-1)/5];
 	}
 
 	/* Ghost */
