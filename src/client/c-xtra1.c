@@ -1444,6 +1444,91 @@ static void fix_map(void)
 
 
 /*
+ * Hack -- display spell list in sub-windows.
+ */
+static void fix_spells(void)
+{
+	int b, i, j, y = 0;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_SPELL))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+		
+		/* Get size */
+		Term_get_size(&w, &h);
+
+		/* Header */
+		prt("", y, 1);
+		put_str("Name", y, 6);
+		put_str("Lv Mana Fail", y, 36);
+		y++;
+		
+		/* Hack: Hijack iterm tester */
+		byte old_tester = item_tester_tval;
+		item_tester_tval = c_info[class].spell_book;
+
+		/* For each book */
+		for (b = 0; b < INVEN_PACK - 1; b++)
+		{
+			if (item_tester_okay(&inventory[b]))
+			{
+				/* Dump the spells */
+				for (i = 0; i < 9; i++)
+				{
+					/* Check for end of the book */
+					if (spell_info[b][i][0] == '\0')
+					break;
+					
+					/* skip Illegible */
+					if (strstr(spell_info[b][i], "(illegible)"))
+					continue;
+					
+					/* skip uncastable */
+					if (!(p_ptr->spell_flags[b*SPELLS_PER_BOOK+i] & PY_SPELL_LEARNED))
+					continue;
+					
+					/* Dump the info */
+					prt(format("%c", index_to_label(b)), y, 0);
+					prt(spell_info[b][i], y, 1);
+					
+					y++;
+					
+					/* End of terminal */
+					if (y > h) break;
+				}
+			}
+		}
+
+		/* Restore old tester */
+		item_tester_tval = old_tester;
+
+		/* Erase rest */
+		for (; y < h; y++)
+		{
+			Term_erase(0, y, 255);
+		}
+			
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
  * Hack -- display some recall in some sub-windows
  */
 static void fix_remote_term(byte rterm, u32b windows)
@@ -2577,6 +2662,13 @@ void window_stuff(void)
 		p_ptr->window &= ~(PW_MAP);
 		fix_map();
 	}
+
+	/* Display spell list */
+	if (p_ptr->window & (PW_SPELL))
+	{
+		p_ptr->window &= ~(PW_SPELL);
+		fix_spells();
+	}	
 	
 	/* Display messages */
 	if (p_ptr->window & PW_MESSAGE)

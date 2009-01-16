@@ -1988,6 +1988,9 @@ int Receive_spell_info(void)
 
     /* ... and wipe the next line */
     if (line < 8) spell_info[book][line+1][0] = '\0';
+    
+    /* Update spell list */
+    p_ptr->window |= PW_SPELL;
 
 	return 1;
 }
