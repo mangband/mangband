@@ -2403,7 +2403,7 @@ void redraw_stuff(void)
 	//if (!character_generated) return;
 
 	/* Character is shopping, hold on */
-	if (shopping) return;
+	/*if (shopping) return;*/
 
 	/* Character is in "icky" mode, no screen updates */
 	if (screen_icky) return;

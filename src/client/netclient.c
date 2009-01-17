@@ -1589,7 +1589,7 @@ int Receive_char(void)
 		}
 	}
 
-	if (!screen_icky && !shopping)
+	if (!screen_icky)
 	{
 		Term_draw(x, y, a, c);
 
@@ -1670,7 +1670,7 @@ int Receive_message(void)
 		else strcpy(talk_pend, "");
 	}
 
-	if (!topline_icky && (party_mode || shopping || !screen_icky))
+	if (!topline_icky && !screen_icky)
 	{
 		c_msg_print_aux(buf, type);
 	}
@@ -2005,7 +2005,7 @@ int Receive_direction(void)
 		return n;
 	}
 
-	if (!screen_icky && !topline_icky && !shopping)
+	if (!screen_icky && !topline_icky)
 	{
 		/* Ask for a direction */
 		get_dir(&dir);
@@ -2124,7 +2124,7 @@ int Receive_line_info(void)
 	}	
 	
 	/* If this is the mini-map then we can draw if the screen is icky */
-	if (ch == PKT_MINI_MAP || (!screen_icky && !shopping))
+	if (ch == PKT_MINI_MAP || !screen_icky)
 		draw = TRUE;
 	
 	/* Check the max line count */
