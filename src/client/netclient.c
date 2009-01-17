@@ -520,7 +520,7 @@ int Net_input(void)
 
 int Flush_queue(void)
 {
-	short	len;
+	int	len;
 
 	if (!initialized) return 0;
 
