@@ -735,17 +735,14 @@ int Send_ack(long rel_loops)
  *
  * See "rle_encode" for possible "mode" descriptions.
  *
- * Note -- if "draw" is -1, the packets will be read for no effect 
- * Note -- setting "lineref" to NULL enables to-screen drawing, in that 
- * 		  case 'draw' is used to convey the Y coordinate
- * Note -- you can also specify x offset. "rle_decode" will not re-calc "max_col"
+ * Note -- if "lineref" is NULL, the packets will be read from 
+ * the queue for no effect (usefull for discarding)
  */ 
-int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s16b draw, s16b x_off)
+int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 {
 	int	x, i;
 	char c;
 	byte a, n;
-	s16b y = draw;
 		
 	for (x = 0; x < max_col; x++)
 	{
@@ -777,21 +774,13 @@ int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode, s
 		}
 
 		/* Draw a character n times */
-		if (draw >= 0)
+		if (lineref)
 		{
 			for (i = 0; i < n; i++)
 			{
-				if (lineref) 
-				{
-					/* Memorize */
-					lineref[x+i+x_off].a = a;
-					lineref[x+i+x_off].c = c;
-				} 
-				else if (c)
-				{				
-					/* Don't draw on screen if character is 0 */
-					Term_draw(x + i + x_off, y, a, c);
-				}
+				/* Memorize */
+				lineref[x+i].a = a;
+				lineref[x+i].c = c;
 			}
 		}
 		/* Reset 'x' to the correct value */
@@ -1511,7 +1500,7 @@ int Receive_objflags(void)
 		return n;
 	}
 	
-	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC, 0, 0);
+	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC);
 	
 	p_ptr->redraw |= PR_EQUIPPY; 
 
@@ -2094,58 +2083,86 @@ int Receive_term_info(void)
 	return 1;
 } 
 
+#define DUNGEON_RLE_MODE (use_graphics ? RLE_LARGE : RLE_CLASSIC) 
 int Receive_line_info(void)
 {
 	char	ch, n;
-	s16b	y, x = 0;
-		bool	draw = FALSE;
-		bool quiet = FALSE;
-	byte r;
+	s16b	y = 0;
+
+	cave_view_type *dest;
+	s16b 	*line;
+	int 	mode;
+	s16b 	cols;
+	byte 	r;
+	bool 	draw = FALSE;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
 		return n;
 	}
+	
+	/* Defaults */
+	cols = Client_setup.settings[1]; // Dungeon Width
+	mode = DUNGEON_RLE_MODE;
+	dest = p_ptr->scr_info[y];
+	line = &last_line_info;
+	draw = TRUE;
 
 	/* Hack -- Use ANOTHER terminal */
 	if ((r = p_ptr->remote_term))
 	{
-		if (y > last_remote_line[r])
-			last_remote_line[r] = y;
-		if (ch == PKT_MINI_MAP && !screen_icky)
-			quiet = TRUE;
-		if (ch != PKT_MINI_MAP) quiet = TRUE;
-		rle_decode(&rbuf, remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (ch == PKT_MINI_MAP && use_graphics ? RLE_LARGE : RLE_CLASSIC), 0, x);
-		if (ch == PKT_MINI_MAP && screen_icky)
-			caveprt(remote_info[r][y], (!quiet ? Client_setup.settings[1] : 80), (!quiet ? DUNGEON_OFFSET_X : 0), y );
+		/* Mini Map Terminal */
 		if (ch == PKT_MINI_MAP)
+		{
+			//convetion asks to put this AFTER rle_decode, but it doesn't matter here
 			p_ptr->window |= PW_MAP;
-		return 1;
-	}	
-	
-	/* If this is the mini-map then we can draw if the screen is icky */
-	if (ch == PKT_MINI_MAP || !screen_icky)
-		draw = TRUE;
+		}
+		/* Every other terminal */
+		else
+		{
+			mode = RLE_CLASSIC;
+		}
+		
+		/* Values */
+		cols = 80; //Limited size
+		dest = remote_info[r][y];
+		line = &last_remote_line[r];
+		draw = FALSE;
+	}
+	/* Use MAIN terminal */
+	else
+	{
+		/* Mini Map */
+		if (ch == PKT_MINI_MAP)
+		{
+			draw = screen_icky;
+		}
+		/* Dungeon */
+		else
+		{
+			/* Decode the secondary attr/char stream */
+			if (use_graphics > 1)
+				rle_decode(&rbuf, p_ptr->trn_info[y], cols, RLE_LARGE);
+
+			draw = !screen_icky;
+
+			//TODO: Remove this:					
+			/* Request a redraw if the screen was icky */
+			if (screen_icky)
+				request_redraw = TRUE;
+		}
+	}
 	
 	/* Check the max line count */
-	if (y > last_line_info)
-		last_line_info = y;
-
-	/* Hack: Manipulate offset */	
-	x += DUNGEON_OFFSET_X;
-
-	if (ch != PKT_MINI_MAP && use_graphics > 1)
-	{
-		/* Decode the secondary attr/char stream */		
-		rle_decode(&rbuf, p_ptr->trn_info[y], Client_setup.settings[1], RLE_LARGE , 0 , x);
-	}
+	if (y > *line)
+		(*line) = y;
 
 	/* Decode the attr/char stream */		
-	rle_decode(&rbuf, NULL, Client_setup.settings[1], (use_graphics ? RLE_LARGE : RLE_CLASSIC), ( draw ? y : -1), x);
-
-	/* Request a redraw if the screen was icky */
-	if (screen_icky)
-		request_redraw = TRUE;
+	rle_decode(&rbuf, dest, cols, mode);
+	
+	/* Put data to screen */
+	if (draw)
+		caveprt(dest, cols, DUNGEON_OFFSET_X, y);
 
 	return 1;
 }
