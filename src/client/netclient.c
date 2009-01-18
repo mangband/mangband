@@ -1659,7 +1659,7 @@ int Receive_message(void)
 		else strcpy(talk_pend, "");
 	}
 
-	if (!topline_icky && !screen_icky)
+	if (!topline_icky && (party_mode || shopping || !screen_icky))
 	{
 		c_msg_print_aux(buf, type);
 	}
@@ -3617,7 +3617,8 @@ void do_keepalive()
 		if ((mticks - last_sent) > 10000)  /* 1 second */
 		{
 			if(last_keepalive) { 
-				if (!screen_icky && !shopping && conn_state == CONN_PLAYING) {
+				if (conn_state == CONN_PLAYING) 
+				{
 					lag_mark = 10000; //999999			
 					p_ptr->redraw |= PR_LAG_METER; 
 				} 
