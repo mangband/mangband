@@ -1736,6 +1736,9 @@ int Receive_title(void)
 	ptitle[13] = '\0';
 	p_ptr->redraw |= PR_TITLE;
 
+	/* XXX HACK -- Update lagmeter too */
+	p_ptr->redraw |= PR_LAG_METER;
+ 
 	return 1;
 }
 

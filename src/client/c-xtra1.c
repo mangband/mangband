@@ -289,7 +289,7 @@ static void prt_depth(int row, int col)
 	}
 
 	/* Right-Adjust the "depth" and clear old values */
-	prt(format("%7s", depths), row, col);
+	put_str(format("%7s", depths), row, col);
 }
 
 /*

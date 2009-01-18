@@ -1147,77 +1147,6 @@ static void health_redraw(int Ind)
 
 
 
-/*
- * Display basic info (mostly left of map)
- */
-static void prt_frame_basic(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-	int i;
-
-	/* Race and Class */
-	Send_char_info(Ind, p_ptr->prace, p_ptr->pclass, p_ptr->male);
-
-	/* Title */
-	prt_title(Ind);
-
-	/* Level/Experience */
-	prt_level(Ind);
-	prt_exp(Ind);
-
-	/* All Stats */
-	for (i = 0; i < 6; i++) prt_stat(Ind, i);
-
-	/* Armor */
-	prt_ac(Ind);
-
-	/* Hitpoints */
-	prt_hp(Ind);
-
-	/* Spellpoints */
-	prt_sp(Ind);
-
-	/* Gold */
-	prt_gold(Ind);
-
-	/* Current depth */
-	prt_depth(Ind);
-
-	/* Special */
-	health_redraw(Ind);
-}
-
-
-/*
- * Display extra info (mostly below map)
- */
-static void prt_frame_extra(int Ind)
-{
-	/* Cut/Stun */
-	prt_cut(Ind);
-	prt_stun(Ind);
-
-	/* Food */
-	prt_hunger(Ind);
-
-	/* Various */
-	prt_blind(Ind);
-	prt_confused(Ind);
-	prt_afraid(Ind);
-	prt_poisoned(Ind);
-
-	/* State */
-	prt_state(Ind);
-
-	/* Speed */
-	prt_speed(Ind);
-
-	/* Study spells */
-	prt_study(Ind);
-	
-	/* Opposed elements */
-	prt_oppose_elements(Ind);
-}
 
 
 
@@ -3035,17 +2964,6 @@ void redraw_stuff(int Ind)
 		prt_map(Ind);
 	}
 
-
-	if (p_ptr->redraw & PR_BASIC)
-	{
-		p_ptr->redraw &= ~(PR_BASIC);
-		p_ptr->redraw &= ~(PR_MISC | PR_TITLE | PR_STATS);
-		p_ptr->redraw &= ~(PR_LEV | PR_EXP | PR_GOLD);
-		p_ptr->redraw &= ~(PR_ARMOR | PR_HP | PR_MANA);
-		p_ptr->redraw &= ~(PR_DEPTH | PR_HEALTH);
-		prt_frame_basic(Ind);
-	}
-
 	if (p_ptr->redraw & PR_MISC)
 	{
 		p_ptr->redraw &= ~(PR_MISC);
@@ -3151,17 +3069,6 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_SKILLS);
 		prt_skills(Ind);
-	}
-
-	if (p_ptr->redraw & PR_EXTRA)
-	{
-		p_ptr->redraw &= ~(PR_EXTRA);
-		p_ptr->redraw &= ~(PR_CUT | PR_STUN);
-		p_ptr->redraw &= ~(PR_HUNGER);
-		p_ptr->redraw &= ~(PR_BLIND | PR_CONFUSED);
-		p_ptr->redraw &= ~(PR_AFRAID | PR_POISONED);
-		p_ptr->redraw &= ~(PR_STATE | PR_SPEED | PR_STUDY);
-		prt_frame_extra(Ind);
 	}
 
 	if (p_ptr->redraw & PR_CUT)
