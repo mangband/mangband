@@ -153,6 +153,8 @@ extern s16b stat_order[6];
 
 extern bool topline_icky;
 extern bool screen_icky;
+extern s16b section_icky_col;
+extern byte section_icky_row;
 extern bool party_mode;
 extern bool cursor_icky;
 

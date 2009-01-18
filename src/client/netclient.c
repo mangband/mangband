@@ -1540,6 +1540,7 @@ int Receive_char(void)
 	unsigned char	x, y;
 	char	c, tcp;
 	byte	a, tap;
+	bool draw = TRUE;
 	
 	tap = tcp = c = a = x = y = 0;
 
@@ -1578,7 +1579,19 @@ int Receive_char(void)
 		}
 	}
 
-	if (!screen_icky)
+	if (screen_icky || section_icky_row) draw = FALSE;
+	if (section_icky_row)
+	{
+		if (y >= section_icky_row) draw = TRUE;
+		else if (section_icky_col > 0 && x >= section_icky_col) draw = TRUE;
+		else if (section_icky_col < 0 && x >= 0-section_icky_col) draw = TRUE;
+	}
+	
+	p_ptr->scr_info[y][x-x_off].a = a;
+	p_ptr->scr_info[y][x-x_off].c = c;
+
+
+	if (draw)
 	{
 		Term_draw(x, y, a, c);
 
@@ -1586,19 +1599,12 @@ int Receive_char(void)
 		Term_gotoxy(x, y);
 	}
 	/* Queue for later */
-	else if (use_graphics > 1)
-	{
-		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c%c%c", ch, x-x_off, y, a, c, tap, tcp)) <= 0)
-		{
-			return n;
-		}
-	}
 	else
 	{
-		if ((n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x-x_off, y, a, c)) <= 0)
-		{
-			return n;
-		}
+		n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x-x_off, y, a, c);
+		if (use_graphics > 1 && n > 0)
+			n -= Packet_printf(&qbuf, "%c%c", tap, tcp);
+		if (n <= 0)	return n;
 	}
 
 	return 1;
@@ -2092,7 +2098,7 @@ int Receive_line_info(void)
 	cave_view_type *dest;
 	s16b 	*line;
 	int 	mode;
-	s16b 	cols;
+	s16b 	cols, xoff, coff;
 	byte 	r;
 	bool 	draw = FALSE;
 
@@ -2107,6 +2113,7 @@ int Receive_line_info(void)
 	dest = p_ptr->scr_info[y];
 	line = &last_line_info;
 	draw = TRUE;
+	xoff = coff = 0;
 
 	/* Hack -- Use ANOTHER terminal */
 	if ((r = p_ptr->remote_term))
@@ -2142,9 +2149,18 @@ int Receive_line_info(void)
 		{
 			/* Decode the secondary attr/char stream */
 			if (use_graphics > 1)
-				rle_decode(&rbuf, p_ptr->trn_info[y], cols, RLE_LARGE);
+				rle_decode(&rbuf, p_ptr->trn_info[y]+DUNGEON_OFFSET_X, cols, RLE_LARGE);
 
 			draw = !screen_icky;
+
+			/* Hang on! Icky section! */
+			if (section_icky_row && y < section_icky_row)
+			{
+				if (section_icky_col > 0) xoff = section_icky_col;
+				if (section_icky_col < 0) coff = section_icky_col;
+				if (xoff >= cols || cols-coff <= 0) draw = FALSE;
+				/*  if (!draw) request_redraw = TRUE; //might be helpfull */
+			}
 
 			//TODO: Remove this:					
 			/* Request a redraw if the screen was icky */
@@ -2162,7 +2178,7 @@ int Receive_line_info(void)
 	
 	/* Put data to screen */
 	if (draw)
-		caveprt(dest, cols, DUNGEON_OFFSET_X, y);
+		caveprt(dest+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
 
 	return 1;
 }

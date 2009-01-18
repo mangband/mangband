@@ -120,6 +120,8 @@ s16b stat_order[6];			/* Desired order of stats */
 
 bool topline_icky;
 bool screen_icky;
+s16b section_icky_col;
+byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 
