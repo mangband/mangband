@@ -1926,7 +1926,6 @@ that keeps many algorithms happy.
 #define PR_CURSOR	0x40000000L	/* Display Cursor  */
 #define PR_FLOOR	0x80000000L	/* Display floor object */
 /* xxx */
-#define PR_HEALTH_TRACK	0x00000400L /* Display monster health */
 #define PR_OPPOSE_ELEMENTS	0x01000000L	/* Display temp. resists */
 #define PR_LAG_METER	0x02000000L	/* Display lag meter */
 

@@ -2413,7 +2413,7 @@ void redraw_stuff(void)
 	if (p_ptr->redraw & (PR_MISC | PR_TITLE | PR_LEV | PR_EXP |
 	                     PR_STATS | PR_ARMOR | PR_HP | PR_MANA |
 	                     PR_GOLD | PR_HEALTH | PR_EQUIPPY | PR_CUT |
-	                     PR_STUN | PR_LAG_METER | PR_HEALTH_TRACK))
+	                     PR_STUN | PR_LAG_METER))
 	{
 		p_ptr->window |= PW_PLAYER_2;
 		/* HACK - Player disabled compact view on main terminal */
@@ -2421,7 +2421,7 @@ void redraw_stuff(void)
 			p_ptr->redraw &= ~(PR_MISC | PR_TITLE | PR_LEV | PR_EXP |
 	                     PR_STATS | PR_ARMOR | PR_HP | PR_MANA |
 	                     PR_GOLD | PR_HEALTH | PR_EQUIPPY | PR_CUT |
-	                     PR_STUN | PR_LAG_METER | PR_HEALTH_TRACK);
+	                     PR_STUN | PR_LAG_METER);
 		}
 	}
 
@@ -2517,12 +2517,6 @@ void redraw_stuff(void)
 		p_ptr->redraw &= ~(PR_LAG_METER);
 		prt_lag(ROW_LAG, COL_LAG);
 	}
-	
-	if (p_ptr->redraw & (PR_HEALTH_TRACK))
-	{
-		p_ptr->redraw &= ~(PR_HEALTH_TRACK);
-		health_redraw(ROW_INFO, COL_INFO);
-	}	
 	
 	if (p_ptr->redraw & (PR_DEPTH))
 	{

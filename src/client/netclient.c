@@ -2741,7 +2741,7 @@ int Receive_monster_health(void)
 
 	health_track_num = num;
 	health_track_attr = attr;
-	p_ptr->redraw |= PR_HEALTH_TRACK;
+	p_ptr->redraw |= PR_HEALTH;
 
 	return 1;
 }
