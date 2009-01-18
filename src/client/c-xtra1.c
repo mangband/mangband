@@ -1455,6 +1455,7 @@ static void fix_spells(void)
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
 		term *old = Term;
+		byte old_tester;
 
 		/* No window */
 		if (!ang_term[j]) continue;
@@ -1474,8 +1475,8 @@ static void fix_spells(void)
 		put_str("Lv Mana Fail", y, 36);
 		y++;
 		
-		/* Hack: Hijack iterm tester */
-		byte old_tester = item_tester_tval;
+		/* Hack: Hijack item tester */
+		old_tester = item_tester_tval;
 		item_tester_tval = c_info[class].spell_book;
 
 		/* For each book */
