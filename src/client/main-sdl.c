@@ -690,11 +690,13 @@ void gui_term_grab(int i) {
 }
 /* Drag term (MM) */
 void gui_term_drag(int nmx, int nmy) {
-
-	/* Thresholder */
-	int mx = 0, my = 0, hold_x = sel_term->w, hold_y = sel_term->h;
+	int mx = 0, my = 0, hold_x = 0, hold_y = 0;
 
 	if (m_term == -1) return;
+
+	/* Thresholder */
+	hold_x = sel_term->w,
+	hold_y = sel_term->h;	
 	
 	if (m_control && !m_shift) {
 		if (sel_term->cols == 80) hold_x = 150;
