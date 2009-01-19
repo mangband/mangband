@@ -947,15 +947,6 @@ struct magic_type
 
 struct player_magic
 {
-//	s16b spell_book;		/* Tval of spell books (if any) */
-//	s16b spell_xtra;		/* Something for later */
-//
-//	s16b spell_stat;		/* Stat for spells (if any)  */
-//	s16b spell_type;		/* Spell type (mage/priest) */
-//
-//	s16b spell_first;		/* Level of first spell */
-//	s16b spell_weight;		/* Weight that hurts spells */
-//
 	magic_type info[PY_MAX_SPELLS];	/* The available spells */
 };
 
@@ -1036,8 +1027,6 @@ struct start_item
 /*
  * Player class info
  */
-
-//	cptr title;			/* Type of class */
 struct player_class
 {
 	u32b name;			/* Name (offset) */
