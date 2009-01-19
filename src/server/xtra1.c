@@ -933,21 +933,21 @@ static void cursor_redraw(int Ind)
 	}
 
 	/* Tracking a bad monster (?) */
-	else if (!m_list[p_ptr->health_who].r_idx)
+	else if (!m_list[p_ptr->cursor_who].r_idx)
 	{
 		/* Reset the cursor */
 		vis = 0;
 	}
 
 	/* Tracking an unseen monster */
-	else if (!p_ptr->mon_vis[p_ptr->health_who])
+	else if (!p_ptr->mon_vis[p_ptr->cursor_who])
 	{
 		/* Reset cursor */
 		vis = 0;
 	}
 
 	/* Tracking a dead monster (???) */
-	else if (!m_list[p_ptr->health_who].hp < 0)
+	else if (!m_list[p_ptr->cursor_who].hp < 0)
 	{
 		/* Reset cursor */
 		vis = 0;
@@ -956,7 +956,7 @@ static void cursor_redraw(int Ind)
 	/* Tracking a visible monster */
 	else
 	{
-		monster_type *m_ptr = &m_list[p_ptr->health_who];
+		monster_type *m_ptr = &m_list[p_ptr->cursor_who];
 		
 		vis = 1;
 		x = m_ptr->fx - p_ptr->panel_col_prt;
@@ -973,8 +973,6 @@ static void cursor_redraw(int Ind)
 		
 		/* Cancel tracking */
 		p_ptr->cursor_who = 0;
-		/* Reset look */
-		p_ptr->look_index = 0;
 	}
 
 }

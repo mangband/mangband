@@ -244,7 +244,8 @@ extern bool view_granite_lite;
 extern bool view_special_lite;
 
 extern int char_screen_mode;
-extern bool target_position;
+extern bool target_recall;
+extern char target_prompt[60];
 /*
  * Not-so-Automatically generated "function declarations"
  */
@@ -292,6 +293,7 @@ extern void cmd_zap_rod(void);
 extern void cmd_refill(void);
 extern void cmd_eat(void);
 extern void cmd_activate(void);
+extern int cmd_target_interactive(int mode);
 extern int cmd_target(void);
 extern int cmd_target_friendly(void);
 extern void cmd_look(void);
@@ -419,6 +421,8 @@ extern void window_stuff(void);
 extern void fix_floor(void);
 extern bool message_color(cptr msg, byte *ap);
 extern int find_whisper_tab(cptr msg, char *text);
+extern void prt_map_easy(void);
+extern void prt_player_hack(bool force);
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
@@ -477,9 +481,7 @@ extern int Send_zap(int item);
 extern int Send_fill(int item);
 extern int Send_eat(int item);
 extern int Send_activate(int item);
-extern int Send_target(int dir);
-extern int Send_target_friendly(int dir);
-extern int Send_look(int dir);
+extern int Send_target_interactive(int mode, char dir);
 extern int Send_chan(cptr channel);
 extern int Send_msg(cptr message);
 extern int Send_fire(int item, int dir);

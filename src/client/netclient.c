@@ -2162,12 +2162,11 @@ int Receive_line_info(void)
 				if (section_icky_col > 0) xoff = section_icky_col;
 				if (section_icky_col < 0) coff = section_icky_col;
 				if (xoff >= cols || cols-coff <= 0) draw = FALSE;
-				/*  if (!draw) request_redraw = TRUE; //might be helpfull */
 			}
 
 			//TODO: Remove this:					
-			/* Request a redraw if the screen was icky */
-			if (screen_icky)
+			/* Request a redraw if the line was icky */
+			if (!draw)
 				request_redraw = TRUE;
 		}
 	}
@@ -2355,16 +2354,56 @@ int Receive_target_info(void)
 {
 	int	n;
 	char	ch, x, y, buf[80];
+	byte win = 0;
 
 	if ((n = Packet_scanf(&rbuf, "%c%c%c%s", &ch, &x, &y, buf)) <= 0)
 	{
 		return n;
 	}
 
-	if (buf[0] == '\0') target_position = TRUE;
+	/* Hack -- information recall */
+	if (buf[0] == ' ')
+	{ 
+		if (buf[1] == 'm') win = NTERM_WIN_MONSTER;
+
+		/* Very Dirty Hack -- Force Redraw */
+		prt_player_hack(TRUE);
+		
+		for (n = 0; n < last_remote_line[win]+2; n++)
+			Term_erase(0, n, 80);
+		for (n = 0; n < last_remote_line[win]+1; n++)
+			caveprt(remote_info[win][n], 80, 0, n );
+		
+		/* Hack -- apend target prompt after ':' */
+		for (n = 0; n < 80-2; n++)
+		{
+			if (remote_info[win][0][n].c == ':')
+			{
+				prt(target_prompt, 0, n + 2);
+				break;
+			}
+		}
+
+		target_recall = TRUE;		
+		topline_icky = TRUE;
+		section_icky_row = last_remote_line[win] + 2;
+		section_icky_col = 80;
+	} 
+	else 
+	{
+		char *s;
+		
+		/* Very Dirty Hack -- Force Redraw */
+		prt_player_hack(TRUE);
+
+		/* Store prompt */			
+		s = strchr(buf, '[');
+		strcpy(target_prompt, s);
+	}
 
 	/* Print the message */
-	prt(buf, 0, 0);
+	if (!target_recall)
+		prt(buf, 0, 0);
 
 	/* Hack: Manipulate offset */
 	x += DUNGEON_OFFSET_X;
@@ -2742,6 +2781,10 @@ int Receive_monster_health(void)
 	health_track_num = num;
 	health_track_attr = attr;
 	p_ptr->redraw |= PR_HEALTH;
+
+	/* Hack -- Force redraw */
+	if (ROW_INFO >= section_icky_row)
+		health_redraw(ROW_INFO, COL_INFO);
 
 	return 1;
 }
@@ -3142,37 +3185,14 @@ int Send_activate(int item)
 	return 1;
 }
 
-int Send_target(int dir)
+int Send_target_interactive(int mode, char dir)
 {
 	int	n;
+	char pkt;
+	
+	pkt = (mode & TARGET_FRND ? PKT_TARGET_FRIENDLY : (mode & TARGET_KILL ? PKT_TARGET : PKT_LOOK));
 
-	if ((n = Packet_printf(&wbuf, "%c%hd", PKT_TARGET, dir)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}
-
-
-int Send_target_friendly(int dir)
-{
-	int	n;
-
-	if ((n = Packet_printf(&wbuf, "%c%hd", PKT_TARGET_FRIENDLY, dir)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}
-
-
-int Send_look(int dir)
-{
-	int	n;
-
-	if ((n = Packet_printf(&wbuf, "%c%c", PKT_LOOK, dir)) <= 0)
+	if ((n = Packet_printf(&wbuf, "%c%c", pkt, dir)) <= 0)
 	{
 		return n;
 	}

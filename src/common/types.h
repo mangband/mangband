@@ -1237,9 +1237,15 @@ struct player_type
 
 	byte party;		/* The party he belongs to (or 0 if neutral) */
 
+	bool target_set;
 	s32b target_who;
 	s16b target_col;	/* What position is targetted */
 	s16b target_row;
+	
+	s16b target_flag; 	/* Arbitary grids OR Intersting grids */
+	u16b look_index; 	/* Index of interesting grid */
+	byte look_y; 		/* Row of arbitary grid */ 
+	byte look_x; 		/* Col of arbitary grid */
 
 	s16b health_who;	/* Who's shown on the health bar */
 	s16b cursor_who;	/* Who's tracked by cursor */
@@ -1380,8 +1386,6 @@ struct player_type
 	bool resting;		/* Are we resting? */
 
 	s16b energy_use;	/* How much energy has been used */
-
-	int look_index;		/* Used for looking or targeting */
 
 	s16b command_dir; /* Direction being used */
 	s16b command_arg; /* Item being used */

@@ -1528,10 +1528,10 @@ void do_cmd_refill(int Ind, int item)
 /*
  * Target command
  */
-void do_cmd_target(int Ind, int dir)
+void do_cmd_target(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set(Ind, dir))
+	if (target_set_interactive(Ind, TARGET_KILL, dir))
 	{
 		/*msg_print(Ind, "Target Selected.");*/
 	}
@@ -1541,10 +1541,10 @@ void do_cmd_target(int Ind, int dir)
 	}
 }
 
-void do_cmd_target_friendly(int Ind, int dir)
+void do_cmd_target_friendly(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set_friendly(Ind, dir))
+	if (target_set_interactive(Ind, TARGET_FRND, dir))
 	{
 		/*msg_print(Ind, "Target Selected.");*/
 	}
@@ -1554,183 +1554,13 @@ void do_cmd_target_friendly(int Ind, int dir)
 	}
 }
 
-
-/*
- * Hack -- determine if a given location is "interesting" to a player
- */
-static bool do_cmd_look_accept(int Ind, int y, int x)
+void do_cmd_look(int Ind, char dir)
 {
-	player_type *p_ptr = Players[Ind];
-	int Depth = p_ptr->dun_depth;
-
-	cave_type *c_ptr;
-	byte *w_ptr;
-
-
-	/* Examine the grid */
-	c_ptr = &cave[Depth][y][x];
-	w_ptr = &p_ptr->cave_flag[y][x];
-
-	/* Player grids */
-	if (c_ptr->m_idx < 0)
+	/* Look around */
+	if (target_set_interactive(Ind, TARGET_LOOK, dir))
 	{
-        if (player_has_los_bold(Ind, y, x) || (p_ptr->telepathy == TR3_TELEPATHY))
-			return (TRUE);
+		/*msg_print(Ind, "Target Selected.");*/
 	}
-
-	/* Visible monsters */
-	if (c_ptr->m_idx > 0)
-	{
-		/* Visible monsters */
-		if (p_ptr->mon_vis[c_ptr->m_idx]) return (TRUE);
-	}
-
-	/* Objects */
-	if (c_ptr->o_idx)
-	{
-		/* Memorized object */
-		if (p_ptr->obj_vis[c_ptr->o_idx]) return (TRUE);
-	}
-
-	/* Interesting memorized features */
-	if (*w_ptr & CAVE_MARK)
-	{
-		/* Notice glyphs */
-		if (c_ptr->feat == FEAT_GLYPH) return (TRUE);
-
-		/* Notice doors */
-		if (c_ptr->feat == FEAT_OPEN) return (TRUE);
-		if (c_ptr->feat == FEAT_BROKEN) return (TRUE);
-
-		/* Notice stairs */
-		if (c_ptr->feat == FEAT_LESS) return (TRUE);
-		if (c_ptr->feat == FEAT_MORE) return (TRUE);
-
-		/* Notice shops */
-		if ((c_ptr->feat >= FEAT_SHOP_HEAD) &&
-		    (c_ptr->feat <= FEAT_SHOP_TAIL)) return (TRUE);
-
-		/* Notice traps */
-		if ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
-		    (c_ptr->feat <= FEAT_TRAP_TAIL)) return (TRUE);
-
-		/* Notice doors */
-		if ((c_ptr->feat >= FEAT_DOOR_HEAD) &&
-		    (c_ptr->feat <= FEAT_DOOR_TAIL)) return (TRUE);
-
-		/* Notice rubble */
-		if (c_ptr->feat == FEAT_RUBBLE) return (TRUE);
-
-		/* Notice veins with treasure */
-		if (c_ptr->feat == FEAT_MAGMA_K) return (TRUE);
-		if (c_ptr->feat == FEAT_QUARTZ_K) return (TRUE);
-	}
-
-	/* Nope */
-	return (FALSE);
-}
-
-
-/*
- * Describe a floor tile (for looking and targeting routines)
- *	
- * if !active, activities such as tracking are disabled
- */
-void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag)
-{
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr;
-	object_type *o_ptr;
-	char o_name[80];
-	bool found = FALSE;
-	bool self = FALSE;
-	if (c_ptr->m_idx < 0)
-	{
-		q_ptr = Players[0 - c_ptr->m_idx];
-
-		self = (0 - c_ptr->m_idx == Ind ? TRUE : FALSE); 
-
-		if (p_ptr->play_vis[0 - c_ptr->m_idx] || self)
-		{
-			if (active && !self)
-			{
-				/* Track health */
-				if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-		
-				/* Track with cursor */
-				if (p_ptr->play_vis[0 - c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
-			}
-
-		/* Format string */
-		sprintf(out_val, "%s the %s %s", q_ptr->name, p_name + p_info[q_ptr->prace].name, c_name + c_info[q_ptr->pclass].name);
-		
-		found = TRUE;
-		}
-		
-	}
-	else if (c_ptr->m_idx > 0)
-	{
-		monster_race *r_ptr = &r_info[m_list[c_ptr->m_idx].r_idx];
-
-		if (p_ptr->mon_vis[c_ptr->m_idx]) 
-		{
-			if (active)
-			{
-				/* Track health */
-				if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-		
-				/* Track with cursor */
-				if (p_ptr->mon_vis[c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
-			}
-					
-		/* Format string */
-		sprintf(out_val, "%s (%s)", r_name + r_ptr->name, look_mon_desc(c_ptr->m_idx));
-		
-		found = TRUE;
-		}
-	}
-	if (!found && c_ptr->o_idx)
-	{
-		if (p_ptr->obj_vis[c_ptr->o_idx])
-		{
-			o_ptr = &o_list[c_ptr->o_idx];
-	
-			/* Release Tracking */
-			if (active) p_ptr->cursor_who = 0;
-	
-			/* Obtain an object description */
-			object_desc(Ind, o_name, o_ptr, TRUE, 3);
-	
-			sprintf(out_val, "You see %s", o_name);
-			
-			found = TRUE;
-		}
-	}
-	if (!found)
-	{
-		int feat = f_info[c_ptr->feat].mimic;
-		cptr name = f_name + f_info[feat].name;
-		
-		cptr p1 = "A ";
-
-		/* Hack -- handle unknown grids */
-		if (!(cave_flag & CAVE_MARK) ) name = "unknown grid";
-		
-		if (is_a_vowel(name[0])) p1 = "An ";
-
-		/* Hack -- special description for store doors */
-		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
-		{
-			p1 = "The entrance to the ";
-		}
-
-		/* Release Tracking */
-		if (active) p_ptr->cursor_who = 0;
-		
-		/* Message */
-		sprintf(out_val, "%s%s", p1, name);
-	}
-
 }
 
 /* Give player detailed information about a range of monsters,
@@ -1811,209 +1641,6 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 void do_cmd_monster_desc(int Ind, int m_idx) {
 	do_cmd_monster_desc_aux(Ind, m_list[m_idx].r_idx, FALSE);
 }
-
-/*
- * A new "look" command, similar to the "target" command.
- *
- * The "player grid" is always included in the "look" array, so
- * that this command will normally never "fail".
- *
- * XXX XXX XXX Allow "target" inside the "look" command (?)
- */
-void do_cmd_look(int Ind, int dir)
-{
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr;
-	int Depth = p_ptr->dun_depth;
-
-	int		y, x, i;
-
-	cave_type *c_ptr;
-	monster_type *m_ptr;
-	bool offer_recall = FALSE;
-	//object_type *o_ptr;
-
-	//char o_name[80];
-	char out_val[160];
-
-	/* Cancel */
-	if (dir == 5 || dir == 64 + 5)
-	{
-		p_ptr->cursor_who = 0;
-		return;
-	}
-
-	/* Blind */
-	if (p_ptr->blind)
-	{
-		msg_print(Ind, "You can't see a damn thing!");
-		return;
-	}
-
-	/* Hallucinating */
-	if (p_ptr->image)
-	{
-		msg_print(Ind, "You can't believe what you are seeing!");
-		return;
-	}
-
-	/* Manual mode */
-	if (dir >= 64)
-	{
-		target_free_aux(Ind, dir, FALSE);
-		return;
-	}
-
-	/* Monster Recall */
-	if (dir == 25) {
-		/* Hack -- disable cursor*/
-		p_ptr->cursor_who = 0;
-
-		/* Describe */
-		y = p_ptr->target_y[p_ptr->look_index];
-		x = p_ptr->target_x[p_ptr->look_index];
-
-		/* Paranoia */
-		if (!cave[Depth]) return;
-
-		c_ptr = &cave[Depth][y][x];
-	
-		if (c_ptr->m_idx > 0)
-		{
-			do_cmd_monster_desc(Ind, c_ptr->m_idx);
-			
-		
-		}
-		
-		/* Fail */
-		return;
-	}
-
-	/* Reset "temp" array */
-	/* Do it Every time (unless canceled before) */
-	/* if (!dir) */
-	{
-		p_ptr->target_n = 0;
-
-		/* Scan the current panel */
-		for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)
-		{
-			for (x = p_ptr->panel_col_min; x <= p_ptr->panel_col_max; x++)
-			{
-				/* Require line of sight, unless "look" is "expanded" */
-				if (!expand_look && !player_has_los_bold(Ind, y, x)) continue;
-	
-				/* Require interesting contents */
-				if (!do_cmd_look_accept(Ind, y, x)) continue;
-	
-				/* Save the location */
-				p_ptr->target_x[p_ptr->target_n] = x;
-				p_ptr->target_y[p_ptr->target_n] = y;
-				p_ptr->target_n++;
-			}
-		}
-
-		/* Only if this is the first time, or if we've been asked to reset */
-		if (!dir) {
-			/* Start near the player */
-			p_ptr->look_index = 0;
-		}
-		
-		/* Paranoia */
-		if (!p_ptr->target_n)
-		{
-			msg_print(Ind, "You see nothing special.");
-			return;
-		}
-	
-	
-		/* Set the sort hooks */
-		ang_sort_comp = ang_sort_comp_distance;
-		ang_sort_swap = ang_sort_swap_distance;
-	
-		/* Sort the positions */
-		ang_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
-
-		/* Collect monster and player indices */
-		for (i = 0; i < p_ptr->target_n; i++)
-		{
-			c_ptr = &cave[Depth][p_ptr->target_y[i]][p_ptr->target_x[i]];
-
-			if (c_ptr->m_idx != 0)
-				p_ptr->target_idx[i] = c_ptr->m_idx;
-			else p_ptr->target_idx[i] = 0;
-		}
-	}
-	
-	/* Just be cautius */
-	if (p_ptr->look_index > p_ptr->target_n) p_ptr->look_index = p_ptr->target_n;
-	
-	/* Motion */
-	if (dir)
-	{
-		/* Reset the locations */
-		for (i = 0; i < p_ptr->target_n; i++)
-		{
-			if (p_ptr->target_idx[i] > 0)
-			{
-				m_ptr = &m_list[p_ptr->target_idx[i]];
-
-				p_ptr->target_y[i] = m_ptr->fy;
-				p_ptr->target_x[i] = m_ptr->fx;
-			}
-			else if (p_ptr->target_idx[i] < 0)
-			{
-				q_ptr = Players[0 - p_ptr->target_idx[i]];
-
-				/* Check for player leaving */
-				if (((0 - p_ptr->target_idx[i]) > NumPlayers) ||
-				     (q_ptr->dun_depth != p_ptr->dun_depth))
-				{
-					p_ptr->target_y[i] = 0;
-					p_ptr->target_x[i] = 0;
-				}
-				else
-				{
-					p_ptr->target_y[i] = q_ptr->py;
-					p_ptr->target_x[i] = q_ptr->px;
-				}
-			}
-		}
-
-		/* Find a new grid if possible */
-		i = target_pick(Ind, p_ptr->target_y[p_ptr->look_index], p_ptr->target_x[p_ptr->look_index], ddy[dir], ddx[dir]);
-
-		/* Use that grid */
-		if (i >= 0) p_ptr->look_index = i;
-	}
-
-	/* Describe */
-	y = p_ptr->target_y[p_ptr->look_index];
-	x = p_ptr->target_x[p_ptr->look_index];
-
-	/* Paranoia */
-	if (!cave[Depth]) return;
-
-	c_ptr = &cave[Depth][y][x];
-
-	/* Monster on grid */	 
-	if (c_ptr->m_idx > 0)
-	{
-		offer_recall = TRUE;
-	}
-	
-	describe_floor_tile(c_ptr, out_val, Ind, TRUE, p_ptr->cave_flag[y][x]);
-	
- 	/* Append a little info */
-	if (offer_recall)
- 	strcat(out_val, " [<dir>, r, q, p]");
-	else
-	strcat(out_val, " [<dir>, q, p]");
-
-	/* Tell the client */
-	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
-}
-
 
 
 

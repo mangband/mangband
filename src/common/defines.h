@@ -1819,6 +1819,22 @@ that keeps many algorithms happy.
 #define ENCH_TODAM   0x02
 #define ENCH_TOAC    0x04
 
+/*
+ * Bit flags for the "target_set" function
+ *
+ *	KILL: Target monsters
+ *	LOOK: Describe grid fully
+ *	XTRA: Currently unused flag
+ *	GRID: Select from all grids
+ *  FRND: (MAngband-specific) Target friendly players
+ *  READ: (MAngband-specific) Keep reading recalls
+ */
+#define TARGET_KILL		0x01
+#define TARGET_LOOK		0x02
+#define TARGET_XTRA		0x04
+#define TARGET_GRID		0x08
+#define TARGET_FRND		0x40
+#define TARGET_READ		0x80
 
 /*
  * Some bit-flags for the "smart" field

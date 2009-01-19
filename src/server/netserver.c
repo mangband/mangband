@@ -4243,7 +4243,7 @@ static int Receive_target(int ind)
     player_type *p_ptr;
 
 	char ch;
-	s16b dir;
+	char dir;
 
 	int n, player;
 
@@ -4253,7 +4253,7 @@ static int Receive_target(int ind)
         p_ptr = Players[player];
     }
 
-	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &dir)) <= 0)
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
 	{
 		if (n == -1)
 			Destroy_connection(ind, "read error");
@@ -4272,7 +4272,7 @@ static int Receive_target_friendly(int ind)
     player_type *p_ptr;
 
 	char ch;
-	s16b dir;
+	char dir;
 
 	int n, player;
 
@@ -4282,7 +4282,7 @@ static int Receive_target_friendly(int ind)
         p_ptr = Players[player];
     }
 
-	if ((n = Packet_scanf(&connp->r, "%c%hd", &ch, &dir)) <= 0)
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
 	{
 		if (n == -1)
 			Destroy_connection(ind, "read error");

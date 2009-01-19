@@ -3053,6 +3053,44 @@ void setup_panel(int Ind, bool adjust)
 	/* Set the rest of the panel information */
 	panel_bounds(Ind);
 }
+bool adjust_panel(int Ind, int y, int x)
+{
+	player_type *p_ptr = Players[Ind];
+	int x2, y2;
+
+	/* Start at current panel */
+	y2 = p_ptr->panel_row;
+	x2 = p_ptr->panel_col;
+
+	if (x < p_ptr->panel_col_min) x2--;
+	if (x > p_ptr->panel_col_max) x2++;
+
+	if (y < p_ptr->panel_row_min) y2--;
+	if (y > p_ptr->panel_row_max) y2++;
+
+	/* Verify the row */
+	if (y2 > p_ptr->max_panel_rows) y2 = p_ptr->max_panel_rows;
+	else if (y2 < 0) y2 = 0;
+
+	/* Verify the col */
+	if (x2 > p_ptr->max_panel_cols) x2 = p_ptr->max_panel_cols;
+	else if (x2 < 0) x2 = 0;
+
+	if (x2 != x || y2 != y)
+	{
+		p_ptr->panel_row = y2;
+		p_ptr->panel_col = x2;
+		
+		panel_bounds(Ind);		
+		
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+//		p_ptr->window |= (PW_OVERHEAD | PW_MAP);
+		
+		return TRUE;
+	}
+	return FALSE;
+}
 
 /*
  * Player Health Description
@@ -3224,51 +3262,31 @@ int player_wounded(s16b ind)
 	
 	return ((p_ptr->mhp+1) * 100) / (p_ptr->chp+1);
 }
-
-/* this should probably be somewhere more logical, but I should probably be
-sleeping right now.....
-Selects the most wounded target.
-
-Hmm, I am sure there are faster sort algorithms out there... oh well, I don't 
-think it really matters... this one goes out to you Mr. Munroe.
--ADA-
-*/
-
-void wounded_player_target_sort(int Ind, vptr sx, vptr sy, vptr id, int n)
+/*
+ * Sorting hook -- comp -- function -- by "mostly wounded"
+ *
+ * We use "u" and "v" to point to arrays of "x" and "y" positions,
+ * where two players are located.
+ *
+ * This is a port of "wounded_player_target_sort()" by -ADA-
+ * and uses it's "player_wounded()" helper function.
+ */
+bool mang_sort_comp_wounded(int Ind, vptr u, vptr v, int a, int b)
 {
-	int c,num;
-	s16b swp;
-	s16b * idx = (s16b *) id;
-	byte * x = (byte *) sx;
-	byte * y = (byte *) sy; 
-	byte swpb;
+	player_type *p_ptr = Players[Ind];
+	byte *x = (byte*)(u);
+	byte *y = (byte*)(v);
+	
+	int Depth = p_ptr->dun_depth;
 	int w1, w2;
 	
-	/* num equals our max index */
-	num = n-1;
-	
-	while (num > 0)
-	{
-		for (c = 0; c < num; c++)
-		{
-			w1 = player_wounded(idx[c+1]); w2 = player_wounded(idx[c]);
-			if (w1 > w2 || (w1 == w2 && rand_int(100) > 50)) 
-			{
-				swp = idx[c];
-				idx[c] = idx[c+1];
-				idx[c+1] = swp;
-				
-				swpb = x[c];
-				x[c] = x[c+1];
-				x[c+1] = swpb;
-				
-				swpb = y[c];
-				y[c] = y[c+1];
-				y[c+1] = swpb;
-			}
-		}
-	num--;
-	}
+	s16b idx1 = 0 - cave[Depth][y[a]][x[a]].m_idx;
+	s16b idx2 = 0 - cave[Depth][y[b]][x[b]].m_idx;
+
+	w1 = player_wounded(idx1);
+	w2 = player_wounded(idx2);
+
+	return (w2 <= w1);
 }
 
 
@@ -3278,6 +3296,7 @@ void wounded_player_target_sort(int Ind, vptr sx, vptr sy, vptr id, int n)
  *
  * We use "u" and "v" to point to arrays of "x" and "y" positions,
  * and sort the arrays by double-distance to the player.
+ * We then compare by "player_wounded()" value.
  */
 bool ang_sort_comp_distance(int Ind, vptr u, vptr v, int a, int b)
 {
@@ -3511,6 +3530,106 @@ bool target_okay(int Ind)
 	return (FALSE);
 }
 
+/*
+ * Reset player's look_index to a closest target from given X/Y position. 
+ *
+ * Returns 999 on failure.
+ */
+int target_set_index(int Ind, int y, int x)
+{
+	player_type *p_ptr = Players[Ind];
+	int bd = 999;
+	int i, t;
+	
+	/* Reset */
+	p_ptr->look_index = 0;
+	bd = 999;
+
+	/* Pick a nearby target */
+	for (i = 0; i < p_ptr->target_n; i++)
+	{
+		t = distance(y, x, p_ptr->target_y[i], p_ptr->target_x[i]);
+
+		/* Pick closest */
+		if (t < bd)
+		{
+			p_ptr->look_index = i;
+			bd = t;
+		}
+	}
+	
+	return bd;
+}
+
+/*
+ * Set the target to a monster (or nobody)
+ */
+void target_set_monster(int Ind, int m_idx)
+{
+	player_type *p_ptr = Players[Ind];
+	/* Acceptable target */
+	if ((m_idx != 0) && target_able(Ind, m_idx))
+	{
+		/* Save target info */
+		p_ptr->target_set = TRUE;
+		p_ptr->target_who = m_idx;
+		/* Monster */
+		if (m_idx > 0)
+		{
+			monster_type *m_ptr = &m_list[m_idx];
+			p_ptr->target_row = m_ptr->fy;
+			p_ptr->target_col = m_ptr->fx;
+		} 
+		else
+		{
+			player_type *q_ptr = Players[0 - m_idx];
+			p_ptr->target_row = q_ptr->py;
+			p_ptr->target_col = q_ptr->px;
+		}
+	}
+
+	/* Clear target */
+	else
+	{
+		/* Reset target info */
+		p_ptr->target_set = FALSE;
+		p_ptr->target_who = 0;
+		p_ptr->target_row = 0;
+		p_ptr->target_col = 0;
+	}
+}
+
+/*
+ * Set the target to a location
+ */
+void target_set_location(int Ind, int y, int x)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+	/* Legal target */
+	//if (in_bounds_fully(y, x))
+	if (in_bounds(Depth, y, x))
+	{
+		/* Save target info */
+		p_ptr->target_set = TRUE;
+		p_ptr->target_who = 0;
+		p_ptr->target_row = y;
+		p_ptr->target_col = x;
+	}
+
+	/* Clear target */
+	else
+	{
+		/* Reset target info */
+		p_ptr->target_set = FALSE;
+		p_ptr->target_who = 0;
+		p_ptr->target_row = 0;
+		p_ptr->target_col = 0;
+	}
+}
+
+
+
 
 
 /*
@@ -3567,486 +3686,867 @@ s16b target_pick(int Ind, int y1, int x1, int dy, int dx)
 }
 
 /*
- * Manipulate player's target/look position and describe it
- *
+ * Hack -- determine if a given location is "interesting"
  */
-void target_free_aux(int Ind, int dir, bool *can_target)
+static bool target_set_interactive_accept(int Ind, int y, int x)
 {
 	player_type *p_ptr = Players[Ind];
-	int Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
-	byte cave_flag;
-	char out_val[160];
-	int i;
+		
+	int Depth = p_ptr->dun_depth;
 
-	/* Allow manual targeting in certain cicrumstances */	
-	if (dir == 64 + 5 && can_target) {
-		*can_target = FALSE;
-		for (i = 0; i < p_ptr->target_n; i++)
+	/* Examine the grid */
+	c_ptr = &cave[Depth][y][x];
+	
+	/* Player himself */
+	if (c_ptr->m_idx < 0 && 0 - c_ptr->m_idx == Ind) return (TRUE);
+
+	/* Handle hallucination */
+	if (p_ptr->image) return (FALSE);
+
+
+	/* Visible players */
+	if (c_ptr->m_idx < 0)
+	{
+		/* Visible monsters */
+		if (p_ptr->play_vis[0 - c_ptr->m_idx]) return (TRUE);
+	}
+	
+	/* Visible monsters */
+	if (c_ptr->m_idx > 0)
+	{
+		/* Visible monsters */
+		if (p_ptr->mon_vis[c_ptr->m_idx]) return (TRUE);
+	}
+	
+	/* Objects */
+	if (c_ptr->o_idx)
+	{
+		/* Memorized object */
+		if (p_ptr->obj_vis[c_ptr->o_idx]) return (TRUE);	
+	}
+#if 0
+	/* Scan all objects in the grid */
+	for (o_ptr = get_first_object(y, x); o_ptr; o_ptr = get_next_object(o_ptr))
+	{
+		/* Memorized object */
+		if (o_ptr->marked) return (TRUE);
+	}
+#endif
+	/* Interesting memorized features */
+	if (p_ptr->cave_flag[y][x] & (CAVE_MARK))
+	{
+		/* Notice glyphs */
+		if (c_ptr->feat == FEAT_GLYPH) return (TRUE);
+
+		/* Notice doors */
+		if (c_ptr->feat == FEAT_OPEN) return (TRUE);
+		if (c_ptr->feat == FEAT_BROKEN) return (TRUE);
+		if (c_ptr->feat == FEAT_HOME_OPEN) return (TRUE);
+
+		/* Notice stairs */
+		if (c_ptr->feat == FEAT_LESS) return (TRUE);
+		if (c_ptr->feat == FEAT_MORE) return (TRUE);
+
+		/* Notice shops */
+		if ((c_ptr->feat >= FEAT_SHOP_HEAD) &&
+		    (c_ptr->feat <= FEAT_SHOP_TAIL)) return (TRUE);
+		if ((c_ptr->feat >= FEAT_HOME_HEAD) &&
+		    (c_ptr->feat <= FEAT_HOME_TAIL)) return (TRUE);
+
+		/* Notice traps */
+		if ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
+		    (c_ptr->feat <= FEAT_TRAP_TAIL)) return (TRUE);
+
+		/* Notice doors */
+		if ((c_ptr->feat >= FEAT_DOOR_HEAD) &&
+		    (c_ptr->feat <= FEAT_DOOR_TAIL)) return (TRUE);
+
+		/* Notice rubble */
+		if (c_ptr->feat == FEAT_RUBBLE) return (TRUE);
+
+		/* Notice veins with treasure */
+		if (c_ptr->feat == FEAT_MAGMA_K) return (TRUE);
+		if (c_ptr->feat == FEAT_QUARTZ_K) return (TRUE);
+	}
+
+	/* Nope */
+	return (FALSE);
+}
+
+
+/*
+ * Prepare the "temp" array for "target_interactive_set"
+ *
+ * Return the number of target_able monsters in the set.
+ */
+static void target_set_interactive_prepare(int Ind, int mode)
+{
+	player_type *p_ptr = Players[Ind];
+	int y, x;
+	int old_y, old_x;
+	bool smooth = FALSE;
+
+	int Depth = p_ptr->dun_depth;
+	
+	/* HACK -- Smoothly adjust index */
+	if ((p_ptr->target_flag & TARGET_GRID) && p_ptr->target_n && (p_ptr->look_index <= p_ptr->target_n))
+	{
+		old_y = p_ptr->target_y[p_ptr->look_index];
+		old_x = p_ptr->target_x[p_ptr->look_index];
+		smooth = TRUE;
+	} 
+
+	/* Reset "temp" array */
+	p_ptr->target_n = 0;
+
+	/* Scan the current panel */
+	for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++) 
+	{
+		for (x = p_ptr->panel_col_min; x <= p_ptr->panel_col_max; x++) 
 		{
-			if ((p_ptr->target_idx[i] != 0) &&
-				(p_ptr->target_y[i] == p_ptr->target_row) &&
-				(p_ptr->target_x[i] == p_ptr->target_col))
+			int m_idx;
+			
+			/* Check bounds */
+			if (!in_bounds(Depth, y, x)) continue;//bounds_fully
+
+			/* Require line of sight, unless "look" is "expanded" */
+			if (!expand_look && !player_has_los_bold(Ind, y, x)) continue;
+
+			/* Require "interesting" contents */
+			if (!target_set_interactive_accept(Ind, y, x)) continue;
+
+			/* Special modes */
+			if (mode & (TARGET_KILL))
 			{
-				p_ptr->target_who = p_ptr->target_idx[i];
-				p_ptr->target_col = p_ptr->target_x[i];
-				p_ptr->target_row = p_ptr->target_y[i];
-		
-				/* Track */
-				if (p_ptr->target_who) health_track(Ind, p_ptr->target_who);
-				
-				/* Reset cursor track */
-				p_ptr->cursor_who = 0;
-				
-				*can_target = TRUE;
-			}
-		}
-		return;
-	}
-	
-	/* Monster recall */
-	if (dir == 64 + 25) 
-	{
-		/* Paranoia */
-		if (!cave[Depth]) return;
+				/* Must contain someone */
+				if (!((m_idx = cave[Depth][y][x].m_idx) != 0)) continue;
 
-		/* Fetch */
-		c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
-		if (c_ptr->m_idx > 0)
-		{
-			do_cmd_monster_desc(Ind, c_ptr->m_idx);
+				/* Must be a targettable someone */
+			 	if (!target_able(Ind, m_idx)) continue;
+			 	
+				/* If it's a player, he must not target self */
+				if (m_idx < 0 && (0 - m_idx == Ind)) continue;			 	
+			 	
+			 	/* If it's a player, he must not be friendly */
+			 	if (m_idx < 0 && (!pvp_okay(Ind, 0 - m_idx, 0) && !check_hostile(Ind, 0 - m_idx))) continue;
+			}
+			else if (mode & (TARGET_FRND))
+			{
+				/* Must contain player */
+				if (!((m_idx = cave[Depth][y][x].m_idx) < 0)) continue;
+				
+				/* Not self */
+				if (Ind == 0 - m_idx) continue;
+
+				/* Must be a targettable player */
+			 	if (!target_able(Ind, m_idx)) continue;
+
+			 	/* Must be friendly player */
+				if (pvp_okay(Ind, 0 - m_idx, 0) || check_hostile(0 - m_idx, Ind)) continue;
+			}
+			
+			/* Save the location */
+			p_ptr->target_x[p_ptr->target_n] = x;
+			p_ptr->target_y[p_ptr->target_n] = y;
+			p_ptr->target_n++;
 		}
-		
-		/* Fail */
-		p_ptr->cursor_who = 0;
-		return;
+	}
+
+	/* Set the sort hooks */
+	ang_sort_comp = ( mode & TARGET_FRND ? 
+					  mang_sort_comp_wounded
+					: ang_sort_comp_distance);
+	ang_sort_swap = ang_sort_swap_distance;
+
+	/* Sort the positions */
+	ang_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
+	
+	/* HACK -- Smoothly adjust index (continued) */
+	if (smooth)
+	{
+		target_set_index(Ind, old_y, old_x);
+	}
+
+	/* Flip index if it's too large */
+	if (p_ptr->look_index > p_ptr->target_n)
+		p_ptr->look_index = 0;
+}
+
+
+/*
+ * Examine a grid, return a keypress.
+ *
+ * The "mode" argument contains the "TARGET_LOOK" bit flag, which
+ * indicates that the "space" key should scan through the contents
+ * of the grid, instead of simply returning immediately.  This lets
+ * the "look" command get complete information, without making the
+ * "target" command annoying.
+ *
+ * The "info" argument contains the "commands" which should be shown
+ * inside the "[xxx]" text.  This string must never be empty, or grids
+ * containing monsters will be displayed with an extra comma.
+ *
+ * Note that if a monster is in the grid, we update both the monster
+ * recall info and the health bar info to track that monster.
+ *
+ * This function correctly handles multiple objects per grid, and objects
+ * and terrain features in the same grid, though the latter never happens.
+ *
+ * This function must handle blindness/hallucination.
+ */
+static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr info)
+{
+	player_type *p_ptr = Players[Ind];
+
+	cptr s1, s2, s3, i1;
+
+	bool force_recall;
+
+	int feat;
+	int m_idx;
+	int o_idx;
+	int h;
+
+	char out_val[256];
+	char x_name[80];
+	cptr name;
+
+	int Depth = p_ptr->dun_depth;
+
+	/* Default message */
+	s1 = "You see ";
+	s2 = "";
+	s3 = "";
+	i1 = "";
+	force_recall = FALSE;
+	
+	if (!(mode & TARGET_LOOK))
+	{
+		s1 = "";
 	}
 	
-	/* Initialize if needed */
-	if (dir == 64)
+	/* Creature on grid (monster or player) */
+	m_idx = cave[Depth][y][x].m_idx;
+
+	/* Object on grid */
+	o_idx = cave[Depth][y][x].o_idx;
+
+	/* The player */
+	if ((m_idx < 0) && (0 - m_idx == Ind))
 	{
-		p_ptr->target_col = p_ptr->px;
-		p_ptr->target_row = p_ptr->py;
+		/* Description */
+		s1 = "You are ";
+
+		/* Preposition */
+		s2 = "on ";
+	}
+
+	/* Hack -- hallucination */
+	if (p_ptr->image)
+	{
+		name = "something strange";
+	}
+
+	/* Visible player */
+	else if (m_idx < 0 && p_ptr->play_vis[0 - m_idx])
+	{
+		player_type *q_ptr = Players[0 - m_idx];
+	
+		/* Hack -- health bar for this player */
+		health_track(Ind, m_idx);
+		
+		/* Hack -- track cursor for this player */
+		if (!(p_ptr->target_flag & TARGET_GRID))
+			cursor_track(Ind, m_idx);
+		
+		/* Describe player */
+		if (q_ptr->ghost)
+			strnfmt(x_name, sizeof(x_name), "a ghost of %s (%s)", 
+				q_ptr->name, look_player_desc(0 - m_idx)	);		
+		else
+			strnfmt(x_name, sizeof(x_name), "%s, the %s %s (%s)", 
+				q_ptr->name, p_name + p_info[q_ptr->prace].name, 
+				c_text + q_ptr->cp_ptr->title[(q_ptr->lev-1)/5],
+				look_player_desc(0 - m_idx)	);
+		
+		name = x_name;
+	}
+
+	/* Visible monster */
+	else if (m_idx > 0 && p_ptr->mon_vis[m_idx])
+	{
+		monster_type *m_ptr = &m_list[m_idx];
+		char m_name[80];
+
+		/* Get the monster name ("a kobold") */
+		monster_desc(Ind, m_name, m_idx, 0);
+
+		/* Hack -- track this monster race */
+		monster_race_track(Ind, m_ptr->r_idx);
+
+		/* Hack -- health bar for this monster */
+		health_track(Ind, m_idx);
+		
+		/* Hack -- track cursor fo this monster */
+		if (!(p_ptr->target_flag & TARGET_GRID))
+			cursor_track(Ind, m_idx);
+
+		/* Hack -- handle stuff */
+		handle_stuff(Ind);
+
+		/* Describe the monster */
+		strnfmt(x_name, sizeof(x_name), "%s (%s)", 
+			m_name, look_mon_desc(m_idx)	);	
+
+		name = x_name;
+		i1 = "r,";
+		
+		/* Notify about recall instead of prompt */			
+		if (p_ptr->target_flag & TARGET_READ) 
+		{
+			force_recall = TRUE;
+		}
+	}
+
+	/* Visible Object */
+	else if (o_idx > 0 && p_ptr->obj_vis[o_idx])
+	{
+		object_type *o_ptr = &o_list[o_idx];
+		
+		/* Obtain an object description */
+		object_desc(Ind, x_name, o_ptr, TRUE, 3);
+
+		name = x_name;
+	}
+
+	/* Terrain feature if needed */
+	else
+	{
+		/* Feature (apply "mimic") */
+		feat = f_info[cave[Depth][y][x].feat].mimic;
+	
+		/* Require knowledge about grid, or ability to see grid */
+		if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !player_can_see_bold(Ind, y,x))
+		{
+			/* Forget feature */
+			feat = FEAT_NONE;
+		}
+	
+		name = f_name + f_info[feat].name;
+
+		/* Hack -- handle unknown grids */
+		if (feat == FEAT_NONE) name = "unknown grid";// || feat <= FEAT_INVIS
+
+		/* Pick a prefix */
+		if (*s2 && (feat >= FEAT_DOOR_HEAD)) s2 = "in ";
+
+		/* Pick proper indefinite article */
+		s3 = (is_a_vowel(name[0])) ? "an " : "a ";
+
+		/* Hack -- special introduction for store doors */
+		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
+		{
+			s3 = "the entrance to the ";
+		}
+
+		/* Hack -- player houses and shops */
+		if ((feat >= FEAT_HOME_HEAD) && (feat <= FEAT_HOME_TAIL))
+		{
+			if ((h = pick_house(Depth, y, x)) != -1)
+			{
+				if (!STRZERO(houses[h].owned))
+				{
+					char h_name[80];
+					s3 = "the entrance to ";
+					if (!strcmp(houses[h].owned, p_ptr->name))
+						strcpy(x_name, "Your ");
+					else
+						strnfmt(x_name, sizeof(x_name), "%s's ", houses[h].owned);
+					if (!houses[h].strength)
+						strcat(x_name, "Home");
+					else
+					{
+						get_player_store_name(h, h_name); //"Store"
+						strcat(x_name, h_name);
+					}
+					name = x_name;
+				}
+				else
+				{
+					s3 = "a door to ";
+					name = "foreign house";
+				}
+			} 
+		}
+	}
+
+	/* Hack -- Force Recall */
+	if (force_recall)
+	{
+		out_val[0] = ' ';
+		out_val[1] = 'm';
+		out_val[2] = '\0';
+	}
+	/* Prepare the message */
+	else
+	{
+		strnfmt(out_val, sizeof(out_val),
+		        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
+		if (is_dm_p(p_ptr))
+			strcat(out_val, format(" (%d:%d)", y, x));
+		/* Hack -- capitalize */
+		if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
+	}
+	
+	/* Tell the client */
+	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
+
+	/* Done */
+	return;
+}
+
+
+/*
+ * Extract a direction (or zero) from a character
+ */
+int target_dir(char ch)
+{
+	int d = 0;
+
+	/* Already a direction? */
+	if (isdigit((unsigned char)ch))
+	{
+		d = D2I(ch);
 	}
 	else
 	{
-		p_ptr->target_row += ddy[dir - 64];
-		p_ptr->target_col += ddx[dir - 64];
-		
-		/* Hack Begin { */
-		p_ptr->target_col -= p_ptr->panel_col_prt;
-		p_ptr->target_row -= p_ptr->panel_row_prt;
-
-		/* Adjus boundaries */
-		if (p_ptr->target_col < 0) p_ptr->target_col = 0;
-		if (p_ptr->target_col > p_ptr->screen_wid - 1) p_ptr->target_col = p_ptr->screen_wid - 1;
-		if (p_ptr->target_row < 1) p_ptr->target_row = 1;
-		if (p_ptr->target_row > p_ptr->screen_hgt) p_ptr->target_row = p_ptr->screen_hgt;
-		
-		/* } Hack End */
-		p_ptr->target_col += p_ptr->panel_col_prt;
-		p_ptr->target_row += p_ptr->panel_row_prt;
+	
 	}
-	
-	/* Describe what is under cursor */
-	c_ptr = &cave[Depth][p_ptr->target_row][p_ptr->target_col];
-	cave_flag = p_ptr->cave_flag[p_ptr->target_row][p_ptr->target_col];
-	describe_floor_tile(c_ptr, out_val, Ind, FALSE, cave_flag);
 
-	/* Info */
-	strcat(out_val, " [<dir>");
-	if (c_ptr->m_idx > 0)
-		strcat(out_val, ", r");
-	if (can_target)
-		strcat(out_val, ", t");
-	strcat(out_val, ", q, m] ");
-	
-	/* Tell the client */
-	Send_target_info(Ind, p_ptr->target_col - p_ptr->panel_col_prt, p_ptr->target_row - p_ptr->panel_row_prt, out_val);
+	/* Paranoia */
+	if (d == 5) d = 0;
+
+	/* Return direction */
+	return (d);
 }
+
+
+
 /*
- * Set a new target.  This code can be called from "get_aim_dir()"
+ * Handle "target" and "look".
  *
- * The target must be on the current panel.  Consider the use of
- * "panel_bounds()" to allow "off-panel" targets, perhaps by using
- * some form of "scrolling" the map around the cursor.  XXX XXX XXX
+ * Currently, when "flag" is true, that is, when
+ * "interesting" grids are being used, and a directional key is used, we
+ * only scroll by a single panel, in the direction requested, and check
+ * for any interesting grids on that panel.  The "correct" solution would
+ * actually involve scanning a larger set of grids, including ones in
+ * panels which are adjacent to the one currently scanned, but this is
+ * overkill for this function.  XXX XXX
  *
- * That is, consider the possibility of "auto-scrolling" the screen
- * while the cursor moves around.  This may require changes in the
- * "update_mon()" code to allow "visibility" even if off panel.
+ * Hack -- targetting/observing an "outer border grid" may induce
+ * problems, so this is not currently allowed.
  *
- * Hack -- targetting an "outer border grid" may be dangerous,
- * so this is not currently allowed.
+ * The player can use the direction keys to move among "interesting"
+ * grids in a heuristic manner, or the "space", "+", and "-" keys to
+ * move through the "interesting" grids in a sequential manner, or
+ * can enter "location" mode, and use the direction keys to move one
+ * grid at a time in any direction.  The "t" (set target) command will
+ * only target a monster (as opposed to a location) if the monster is
+ * target_able and the "interesting" mode is being used.
  *
- * You can now use the direction keys to move among legal monsters,
- * just like the new "look" function allows the use of direction
- * keys to move amongst interesting locations.
+ * The current grid is described using the "look" method above, and
+ * a new command may be entered at any time, but note that if the
+ * "TARGET_LOOK" bit flag is set (or if we are in "location" mode,
+ * where "space" has no obvious meaning) then "space" will scan
+ * through the description of the current grid until done, instead
+ * of immediately jumping to the next "interesting" grid.  This
+ * allows the "target" command to retain its old semantics.
+ *
+ * The "*", "+", and "-" keys may always be used to jump immediately
+ * to the next (or previous) interesting grid, in the proper mode.
+ *
+ * The "return" key may always be used to scan through a complete
+ * grid description (forever).
+ *
+ * This command will cancel any old target, even if used from
+ * inside the "look" command.
  */
-bool target_set(int Ind, int dir)
+bool target_set_interactive(int Ind, int mode, char query)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr;
+	player_type *p_ptr = Players[Ind];
+	int py = p_ptr->py;
+	int px = p_ptr->px;
 
-	int Depth = p_ptr->dun_depth;
+	int i, d, bd, Depth;
 
-	int		i, m, idx;
+	int y = py;
+	int x = px;
 
-	int		y;
-	int		x;
-	
-	bool	flag = TRUE;
-	bool  free_target = TRUE;
+	bool done = FALSE;
+	bool prompt_arb = FALSE; /* Display info about arbitary grid */
+	bool prompt_int = FALSE; /* Display info about interesting grid */
 
-	char	out_val[160];
+	char info[80];
 
-	cave_type		*c_ptr;
 
-	monster_type	*m_ptr;
-	monster_race	*r_ptr;
-	
-	/* Reset cursor track */	
-	if (dir == 0 || dir == 64 + 0)
+	/* Cancel target */
+	target_set_monster(Ind, 0);
+
+
+	/* Cancel tracking */
+	/* health_track(Ind, 0); */
+	cursor_track(Ind, 0);
+
+	/* Start near the player */
+	if (query == '\0')
 	{
-		p_ptr->cursor_who = 0;
+		p_ptr->target_flag &= ~TARGET_GRID;
+		p_ptr->look_index = 0;
+		p_ptr->look_y = py;
+		p_ptr->look_x = px;
 	}
-	/* Cancel targeting */
- 	if (dir == 255)
-   {
-		/* Reset cursor track */
-		p_ptr->cursor_who = 0;
-		return (FALSE);      
-   }
-	if (dir != 5 && dir != 64 + 5)
+	
+	/* Prepare the "temp" array */
+	target_set_interactive_prepare(Ind, mode);
+
+	/* No targets */
+	if (!(p_ptr->target_flag & TARGET_GRID) && !p_ptr->target_n)
 	{
-		x = p_ptr->px;
-		y = p_ptr->py;
-
-		/* Go ahead and turn off target mode */
-		p_ptr->target_who = 0;
-
-		/* Turn off health tracking */
-		health_track(Ind, 0);
-
-
-		/* Reset "target" array */
-		p_ptr->target_n = 0;
-
-		/* Collect "target-able" monsters */
-		for (i = 1; i < m_max; i++)
-		{
-			monster_type *m_ptr = &m_list[i];
-
-			/* Skip "dead" monsters */
-			if (!m_ptr->r_idx) continue;
-
-			/* Skip monsters not on this depth */
-			if (m_ptr->dun_depth != Depth) continue;
-
-			/* Ignore "unreasonable" monsters */
-			if (!target_able(Ind, i)) continue;
-
-			/* Save this monster index */
-			p_ptr->target_x[p_ptr->target_n] = m_ptr->fx;
-			p_ptr->target_y[p_ptr->target_n] = m_ptr->fy;
-			p_ptr->target_n++;
-		}
-
-		/* Collect "target-able" players */
-		for (i = 1; i <= NumPlayers; i++)
-		{
-			/* Acquire pointer */
-			q_ptr = Players[i];
-
-			/* Don't target yourself */
-			if (i == Ind) continue;
-
-			/* Ignore players from party */
-			if (p_ptr->party && player_in_party(p_ptr->party, i)) continue;
-
-			/* Ignore players we aren't hostile to */
-			if (!check_hostile(Ind, i) && cfg_pvp_hostility > 0) continue;
-
-			/* Ignore "unreasonable" players */
-			if (!target_able(Ind, 0 - i)) continue;
-
-			/* Save the player index */
-			p_ptr->target_x[p_ptr->target_n] = q_ptr->px;
-			p_ptr->target_y[p_ptr->target_n] = q_ptr->py;
-			p_ptr->target_n++;
-		}
-
-		/* Do something if there are no suitable targets */
-		if (!p_ptr->target_n && dir < 64) {
 #ifdef NOTARGET_PROMPT
-			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, "Nothing to target. [p, ESC]");
-			return FALSE;
+		if (!(query == ESCAPE || query == 'q'))
+			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, 
+			"Nothing to target. [p, ESC]");
+		return FALSE;
 #else
- 		   Send_target_info(Ind, 0, 0, "\0");
-			target_free_aux(Ind, 64, &free_target);
-			return free_target;
-#endif
-		}
+		/* "Emulate Angband" Hack -- switch to manual targeting */ 
+		query = 'p';
+#endif		
+	}
 
-		/* Set the sort hooks */
-		ang_sort_comp = ang_sort_comp_distance;
-		ang_sort_swap = ang_sort_swap_distance;
-
-		/* Sort the positions */
-		ang_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
-
-		/* Collect indices */
-		for (i = 0; i < p_ptr->target_n; i++)
+	/* Toggle recall (and cancel further query tests) */
+	if (p_ptr->target_flag & TARGET_READ)
+	{
+		if ((query == '\n') || (query == '\r') || 
+		   (query == ' ' && (mode & TARGET_LOOK))) 
 		{
-			cave_type *c_ptr = &cave[Depth][p_ptr->target_y[i]][p_ptr->target_x[i]];
+			p_ptr->target_flag &= ~TARGET_READ;
+			query = '\0';
+		} 
+	}
+	else if (query == 'r') 
+	{
+		p_ptr->target_flag |= TARGET_READ;
+		query = '\0';
+	}
 
-			p_ptr->target_idx[i] = c_ptr->m_idx;
-		}
+
+	/* Interesting grids */
+	if (!(p_ptr->target_flag & TARGET_GRID))// && p_ptr->target_n)
+	{
+		/* By default we DO prompt */
+		prompt_int = TRUE;
+		
+		/* Assume no "direction" */
+		d = 0;
+
+		/* Shortcuts: */
+		y = p_ptr->target_y[p_ptr->look_index];
+		x = p_ptr->target_x[p_ptr->look_index];
 			
-		/* Start near the player */
-		m = 0;
-	}
-	if (dir >= 64)
-	{
-		/* Perform manual targetin */
-		target_free_aux(Ind, dir, &free_target);
-		return free_target;
-	}
-	else if (dir)
-	{
-		/* Start where we last left off */
-		m = p_ptr->look_index;
 
-		/* Reset the locations */
-		for (i = 0; i < p_ptr->target_n; i++)
+		/* Analyze */
+		switch (query)
 		{
-			if (p_ptr->target_idx[i] > 0)
+			case '\0':
+				break;
+			case ESCAPE:
+			case 'q':
 			{
-				m_ptr = &m_list[p_ptr->target_idx[i]];
-
-				p_ptr->target_y[i] = m_ptr->fy;
-				p_ptr->target_x[i] = m_ptr->fx;
+				prompt_int = FALSE;
+				done = TRUE;
+				break;
 			}
-			else if (p_ptr->target_idx[i] < 0)
-			{
-				q_ptr = Players[0 - p_ptr->target_idx[i]];
 
-				p_ptr->target_y[i] = q_ptr->py;
-				p_ptr->target_x[i] = q_ptr->px;
+			case ' ':
+			case '(':
+			case '*':
+			case '+':
+			{
+				if (++p_ptr->look_index == p_ptr->target_n)
+				{
+					p_ptr->look_index = 0;
+					if (!expand_list) done = TRUE;
+				}
+				break;
+			}
+
+			case '-':
+			{
+				if (p_ptr->look_index-- == 0)
+				{
+					p_ptr->look_index = p_ptr->target_n - 1;
+					if (!expand_list) done = TRUE;
+				}
+				break;
+			}
+
+			case 'p':
+			{
+				/* Recenter around player */
+				verify_panel(Ind);
+
+				/* Handle stuff */
+				handle_stuff(Ind);
+				
+				y = py;
+				x = px;
+			}
+			
+			case 'o':
+			{
+				p_ptr->look_y = y;
+				p_ptr->look_x = x;
+
+				p_ptr->target_flag |= TARGET_GRID;
+				prompt_arb = TRUE;
+				prompt_int = FALSE;
+				break;
+			}
+
+			case 'm':
+			{
+				break;
+			}
+
+			case 't':
+			case '5':
+			case '0':
+			case '.':
+			{
+				int Depth = p_ptr->dun_depth;
+				int m_idx = cave[Depth][y][x].m_idx;
+
+				if ((m_idx != 0) && target_able(Ind, m_idx))
+				{
+					health_track(Ind, m_idx);
+					target_set_monster(Ind, m_idx);
+				}
+				else
+				{
+					done = TRUE;
+				}
+				done = TRUE;
+				break;
+			}
+
+			default:
+			{
+				/* Extract direction */
+				d = target_dir(query);
+
+				/* Oops */
+				//if (!d) bell("Illegal command for target mode!");
+
+				break;
 			}
 		}
 
-		/* Find a new monster */
-		i = target_pick(Ind, p_ptr->target_y[m], p_ptr->target_x[m], ddy[dir], ddx[dir]);
+		/* Hack -- move around */
+		if (d)
+		{
+			y = p_ptr->target_y[p_ptr->look_index];
+			x = p_ptr->target_x[p_ptr->look_index];
 
-		/* Use that monster */
-		if (i >= 0) m = i;
+			/* Find a new interesting grid" */
+			i = target_pick(Ind, y, x, ddy[d], ddx[d]);
 
-		/* Do not re-target, if allready picked */		
-		if (dir == 5) flag = FALSE;
+			/* Use interesting grid if found */
+			if (i >= 0) p_ptr->look_index = i;
+		}
 	}
 
-	/* Do not re-target, if noone's around */
-	if (!p_ptr->target_n) flag = FALSE;
- 
-	/* Target monsters */
-	if (flag && p_ptr->target_n && p_ptr->target_idx[m] > 0)
+	/* Arbitrary grids */
+	else
 	{
-		y = p_ptr->target_y[m];
-		x = p_ptr->target_x[m];
-		idx = p_ptr->target_idx[m];
+		/* Assume prompt is needed */
+		prompt_arb = TRUE;	
+	
+		/* Assume no direction */
+		d = 0;
 
-		c_ptr = &cave[Depth][y][x];
+		/* Analyze the keypress */
+		switch (query)
+		{
+			case '\0':
+				break;
+			case ESCAPE:
+			case 'q':
+			{
+				done = TRUE;
+				break;
+			}
 
-		m_ptr = &m_list[idx];
-		r_ptr = &r_info[m_ptr->r_idx];
+			case ' ':
+			case '(':
+			case '*':
+			case '+':
+			case '-':
+			{
+				break;
+			}
 
-		/* Hack -- Track that monster race */
-		monster_race_track(Ind, m_ptr->r_idx);
+			case 'p':
+			{
+				/* Recenter around player */
+				verify_panel(Ind);
 
-		/* Hack -- Track that monster */
-		health_track(Ind, idx);
+				/* Handle stuff */
+				handle_stuff(Ind);
 
-		/* Track with cursor */
-		if (p_ptr->mon_vis[idx]) cursor_track(Ind, idx);
+				p_ptr->look_y = py;
+				p_ptr->look_x = px;
+			}
+
+			case 'o':
+			{
+				break;
+			}
+
+			case 'm':
+			{
+				p_ptr->target_flag &= ~TARGET_GRID;
+
+				bd = target_set_index(Ind, p_ptr->look_y, p_ptr->look_x);
+
+				/* Nothing interesting */
+				if (bd == 999) p_ptr->target_flag |= TARGET_GRID;
+				else
+				{
+					prompt_int = TRUE;
+					prompt_arb = FALSE; 
+				}
+
+				break;
+			}
+
+			case 't':
+			case '5':
+			case '0':
+			case '.':
+			{
+				target_set_location(Ind, p_ptr->look_y, p_ptr->look_x);
+				done = TRUE;
+				break;
+			}
+
+			default:
+			{
+				/* Extract a direction */
+				d = target_dir(query);
+
+				/* Oops */
+				//if (!d) bell("Illegal command for target mode!");
+
+				break;
+			}
+		}
+
+		/* Handle "direction" */
+		if (d)
+		{
+			int dungeon_hgt = MAX_HGT;
+			int dungeon_wid = MAX_WID;
+
+			/* Move */
+			p_ptr->look_x += ddx[d];
+			p_ptr->look_y += ddy[d];
+
+			/* Slide into legality */
+			if (p_ptr->look_x >= dungeon_wid - 1) p_ptr->look_x--;
+			else if (p_ptr->look_x <= 0) p_ptr->look_x++;
+
+			/* Slide into legality */
+			if (p_ptr->look_y >= dungeon_hgt - 1) p_ptr->look_y--;
+			else if (p_ptr->look_y <= 0) p_ptr->look_y++;
+
+			/* Adjust panel if needed */
+			if (adjust_panel(Ind, p_ptr->look_y, p_ptr->look_x))
+			{
+				/* Handle stuff */
+				handle_stuff(Ind);
+
+				/* Recalculate interesting grids */
+				target_set_interactive_prepare(Ind, mode);
+			}
+
+		}
+	}
+	
+	if (prompt_int)
+	{
+		y = p_ptr->target_y[p_ptr->look_index];
+		x = p_ptr->target_x[p_ptr->look_index];
+		Depth = p_ptr->dun_depth;
+
+		/* Allow target */
+		if ((cave[Depth][y][x].m_idx != 0) && target_able(Ind, cave[Depth][y][x].m_idx))
+		{
+			strcpy(info, "q,t,p,o,+,-,<dir>");
+		}
+
+		/* Dis-allow target */
+		else
+		{
+			strcpy(info, "q,p,o,+,-,<dir>");
+		}
+
+		/* Adjust panel if needed */
+		if (adjust_panel(Ind, y, x))
+		{
+			/* Handle stuff */
+			handle_stuff(Ind);
+		}
+	}
+	
+	if (prompt_arb)
+	{
+		y = p_ptr->look_y;	
+		x = p_ptr->look_x;
 		
-		/* Hack -- handle stuff */
+		/* Default prompt */
+		strcpy(info, "q,t,p,m,+,-,<dir>");
+	}
+
+	if (prompt_arb || prompt_int)
+	{
+		/* Describe and Prompt */
+		target_set_interactive_aux(Ind, y, x, mode, info);
+		
+		/* Cancel tracking */
+		/* health_track(0); */
+	}
+
+	if (done) 
+	{
+		/* Forget list of targets */
+		p_ptr->target_n = 0;
+	
+		/* Clear the top line */
+		// prt("", 0, 0); 
+	
+		/* Recenter around player */
+		verify_panel(Ind);
+	
+		/* Handle stuff */
 		handle_stuff(Ind);
-
-		/* Describe, prompt for recall */
-		sprintf(out_val,
-			"%s (%s) [<dir>, q, p, t] ",
-			(r_name + r_ptr->name),
-			look_mon_desc(idx));
-
-		/* Tell the client about it */
-		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
 	}
-	else if (flag && p_ptr->target_n && p_ptr->target_idx[m] < 0)
-	{
-		y = p_ptr->target_y[m];
-		x = p_ptr->target_x[m];
-		idx = p_ptr->target_idx[m];
-
-		c_ptr = &cave[Depth][y][x];
-
-		q_ptr = Players[0 - idx];
-
-		/* Hack -- Track that player */
-		health_track(Ind, idx);
-		
-		/* Track with cursor */
-		if (p_ptr->play_vis[0 - idx]) cursor_track(Ind, idx);
-
-		/* Hack -- handle stuff */
-		handle_stuff(Ind);
-
-		/* Describe */
-		sprintf(out_val, "%s [<dir>, q, p, t] ", q_ptr->name);
-
-		/* Tell the client about it */
-		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
-	}
-
-	/* Remember current index */
-	p_ptr->look_index = m;
-
-	/* Set target */
-	if (dir == 5)
-	{
-		p_ptr->target_who = p_ptr->target_idx[m];
-		p_ptr->target_col = p_ptr->target_x[m];
-		p_ptr->target_row = p_ptr->target_y[m];
-
-		/* Track */
-		if (p_ptr->target_who) health_track(Ind, p_ptr->target_who);
-		
-		/* Reset cursor track */
-		p_ptr->cursor_who = 0;
-	}
-
-	/* Failure */
-	if (!p_ptr->target_who) return (FALSE);
-
-	/* Clear target info */
-	p_ptr->target_n = 0;
+	
+	/* Failure to set target */
+	if (!p_ptr->target_set) return (FALSE);
 
 	/* Success */
 	return (TRUE);
-}
-
-/* targets the most wounded teammate. should be useful for stuff like heal other 
-and teleport macros. -ADA- */
-
-bool target_set_friendly(int Ind, int dir)
-{
-	player_type *p_ptr = Players[Ind], *q_ptr;
-
-	int Depth = p_ptr->dun_depth;
-
-	int		i, m, idx;
-
-	int		y;
-	int		x;
-
-	char	out_val[160];
-
-	cave_type		*c_ptr;
-
-		x = p_ptr->px;
-		y = p_ptr->py;
-
-		/* Go ahead and turn off target mode */
-		/* p_ptr->target_who = 0; */
-
-		/* Turn off health tracking */
-		health_track(Ind, 0);
-
-
-		/* Reset "target" array */
-		p_ptr->target_n = 0;
-
-
-		/* Collect "target-able" players */
-		for (i = 1; i <= NumPlayers; i++)
-		{
-			/* Acquire pointer */
-			q_ptr = Players[i];
-
-			/* Don't target yourself */
-			if (i == Ind) continue;
-
-			/* Ignore players we aren't friends with */
-			if (pvp_okay(Ind, i, 0) || check_hostile(i, Ind)) continue;
-
-			/* Ignore "unreasonable" players */
-			if (!target_able(Ind, 0 - i)) continue;
-
-			/* Ignore already targeted player */
-			//if ((0 - i)==p_ptr->target_who) continue;
-
-			/* Save the player index */
-			p_ptr->target_x[p_ptr->target_n] = q_ptr->px;
-			p_ptr->target_y[p_ptr->target_n] = q_ptr->py;
-			p_ptr->target_idx[p_ptr->target_n] = i;
-			p_ptr->target_n++;
-		}
-
-		/* Set the sort hooks */ 
-		ang_sort_comp = ang_sort_comp_distance;
-		ang_sort_swap = ang_sort_swap_distance;
-
-		/* Sort the positions */
-		wounded_player_target_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_idx, p_ptr->target_n);
-
-		/* start at weakest */
-		
-		m = 0;
-		p_ptr->target_who = 0;
-	
-	/* too lazy to handle dirs right now */
-	
-	/* handle player target.... */	
-	if (p_ptr->target_n)
-	{
-		y = p_ptr->target_y[m];
-		x = p_ptr->target_x[m];
-		idx = p_ptr->target_idx[m];
-
-		c_ptr = &cave[Depth][y][x];
-
-		q_ptr = Players[idx];
-
-		/* Hack -- Track that player */
-		health_track(Ind, 0 - idx);
-
-		/* Hack -- handle stuff */
-		handle_stuff(Ind);
-
-		/* Describe */
-		sprintf(out_val,
-			"%s (%s)",
-			(q_ptr->name),
-			look_player_desc(idx));
-		
-		/* Tell the client about it */
-		Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
-
-
-		/* Remember current index */
-		p_ptr->look_index = m;
-	
-		p_ptr->target_who = 0 - p_ptr->target_idx[m];
-		p_ptr->target_col = p_ptr->target_x[m];
-		p_ptr->target_row = p_ptr->target_y[m];	
-	}
-
-	/* Failure */
-	if (!p_ptr->target_who) return (FALSE);
-
-	/* Clear target info */
-	p_ptr->target_n = 0;
-
-	/* Success */
-	return (p_ptr->target_who);
 }
 
 

@@ -390,7 +390,7 @@ void display_store(void)
 	
 	/* The screen is "icky" */
 	screen_icky = TRUE;
-
+ 
 	/* We are "shopping" */
 	shopping = TRUE;
 
@@ -553,6 +553,9 @@ void display_store(void)
 
 	/* The screen is no longer icky */
 	screen_icky = FALSE;
+
+	/* Return map */
+	prt_map_easy();
 
 	/* We are no longer "shopping" */
 	shopping = FALSE;

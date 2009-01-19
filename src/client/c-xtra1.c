@@ -594,6 +594,33 @@ static void prt_oppose_elements(int row, int col, int wid)
 }
 
 /*
+ * Print dungeon map. Called prt_map_easy so it wouldn't be
+ * called by (& PR_MAP) check accidently.
+ */
+void prt_map_easy()
+{
+	int y;
+	for (y = 0; y < Client_setup.settings[2]; y++)
+	{
+		Term_erase(y, 0, Client_setup.settings[1]);
+		caveprt(p_ptr->scr_info[y], Client_setup.settings[1], DUNGEON_OFFSET_X, y);
+	} 
+}
+/* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
+void prt_player_hack(bool force)
+{
+	int n;
+	if (window_flag[0] & PW_PLAYER_2)
+	{
+		for (n = 0; n < 22; n++)
+			Term_erase(0, n, 13);
+		p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		if (force)
+			redraw_stuff();
+	}
+}
+
+/*
  * Redraw the lag bar
  */
 

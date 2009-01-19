@@ -1132,187 +1132,72 @@ void cmd_activate(void)
 	Send_activate(item);
 }
 
-
-int cmd_target(void)
+int cmd_target_interactive(int mode)
 {
 	bool done = FALSE;
-	bool fail = FALSE;
-	int d;
 	char ch;
 
 	cursor_icky = TRUE;
-	target_position = FALSE;
 	
 	/* Tell the server to init targetting */
-	Send_target(0);
+	Send_target_interactive(mode, 0);
 
 	while (!done)
 	{
 		ch = inkey();
 
+		if (target_recall)
+		{
+			target_recall = FALSE;
+
+			topline_icky = FALSE;
+			section_icky_row = section_icky_col = 0;
+		}
+
 		if (!ch)
 			continue;
 
+		Send_target_interactive(mode, ch);
+
 		switch (ch)
 		{
-			case ESCAPE:
-			case 'q':
-			{
-				done = fail = TRUE;
-				break;
-			}
 			case 't':
 			case '5':
-			{
+			case '0':
+			case '.':
 				done = TRUE;
 				break;
-			}
-			case 'm':
-			{
-				target_position = FALSE;
-				/* Tell the server to reset */
-				Send_target(0);
-				/* Reset cursor stuff */
-				Term_consolidate_cursor(FALSE, 0, 0);
-				/* Clear the top line */
-				prt("", 0, 0);
-				break;
-			}
-			case 'p':
-			{
-				target_position = TRUE;
-				/* Tell the server to reset */
-				Send_target(64 + 0);
-				break;
-			}
-			default:
-			{
-				d = target_dir(ch);
-				if (!d) 
-				{
-					/* APD exit if not a direction, since 
-					 * the player is probably trying to do 
-					 * something else, like stay alive...
-					 */
-					done = fail = TRUE;
-					break;
-				}
-				else
-				{
-					if (target_position)
-						Send_target(d + 64);	
-					else 
-						Send_target(d);
-				}
-				break;
-			}
 		}
-	}
-	
-	if (fail)
-	{
-		/* Clear the top line */
-		prt("", 0, 0);
-		/* Send the cancellation */
-		Send_target(255);
-	}
-	else
-	{
-		/* Send the affirmative */
-		if (target_position)
-			Send_target(64 + 5);
-		else 
-			Send_target(5);
+		if (ch == ESCAPE)
+		{
+			prt("", 0, 0);
+			/* Very Dirty Hack -- Force Redraw */
+			prt_player_hack(FALSE);
+			prt_map_easy();
+			break;
+		}
 	}
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
 	Term_consolidate_cursor(FALSE, 0, 0);
 
-	return !fail;
+	return done;
 }
 
+int cmd_target(void)
+{
+	return cmd_target_interactive(TARGET_KILL);
+}
 
 int cmd_target_friendly(void)
 {
-	/* Tell the server to init targetting */
-	Send_target_friendly(0);
-	return TRUE;
+	return cmd_target_interactive(TARGET_FRND);
 }
-
-
 
 void cmd_look(void)
 {
-	bool done = FALSE;
-	int d;
-	char ch;
-	bool position = FALSE;
-	
-	cursor_icky = TRUE;
-
-	/* Tell the server to init looking */
-	Send_look(0);
-
-	while (!done)
-	{
-		ch = inkey();
-
-		if (!ch) continue;
-
-		switch (ch)
-		{
-			case ESCAPE:
-			case 'q':
-			{
-				/* Clear top line */
-				prt("", 0, 0);
-				done = TRUE;
-				break;
-			}
-			case 'm':
-			{
-				position = FALSE;
-				/* Tell the server to reset */
-				Send_look(0);
-				break;
-			}
-			case 'p':
-			{
-				position = TRUE;
-
-				/* Tell the server to reset */
-				Send_look(64 + 0);
-
-				break;
-			}
-			case 'r':
-				/* Ask server for monster recall */
-				if (position) Send_look(64 + 25);
-				else Send_look(25);
-				
-				/* Hack: cancel looking */
-				prt("", 0, 0);
-				done = TRUE;
-				break;
-			default:
-			{
-				d = target_dir(ch);
-				if (!d) bell();
-				else {
-					if (position) Send_look(d + 64);
-					else Send_look(d);
-				}
-				break;
-			}
-		}
-	}
-
-	/* Tell the server we're done looking */
-	Send_look(5);
-	
-	cursor_icky = FALSE;
-	Term_consolidate_cursor(FALSE, 0, 0);
+	(void)cmd_target_interactive(TARGET_LOOK);
 }
 
 void cmd_changepass(void) 

@@ -1094,7 +1094,7 @@ static int display_inventory(int Ind)
 }
 
 /* Returns the name of a player owned store */
-static int get_player_store_name(int num, char *name)
+int get_player_store_name(int num, char *name)
 {
 	int 			x,y;
 	object_type		tmp_obj;
