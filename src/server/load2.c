@@ -167,8 +167,6 @@ uint read_uint(char* name)
 void read_str(char* name, char* value)
 {
 	char seek_name[80];
-	//int params;
-	//bool matched = FALSE;
 	char *c;
 	
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
@@ -218,10 +216,9 @@ void read_binary(char* name, char* value, int max_len)
 {
 	char seek_name[80];
 	char hex[3];
-	//int i;
 	char *c;
 	char *bin;
-	int abyte;
+	unsigned int abyte;
 	hex[2] = '\0';
 
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
@@ -252,7 +249,6 @@ void read_binary(char* name, char* value, int max_len)
 void skip_value(char* name)
 {
 	char seek_name[80];
-	//bool matched = FALSE;
 	long fpos;
 	
 	/* Remember where we are incase there is nothing to skip */
@@ -401,8 +397,6 @@ static void rd_item(object_type *o_ptr)
 	byte old_ds;
 
 	u32b f1, f2, f3;
-
-	//u16b tmp16u;
 
 	object_kind *k_ptr;
 
@@ -612,8 +606,6 @@ static void rd_item(object_type *o_ptr)
 
 static void rd_monster(monster_type *m_ptr)
 {
-	//byte tmp8u;
-
 	start_section_read("monster");
 
 	/* Hack -- wipe */
@@ -650,10 +642,8 @@ static void rd_monster(monster_type *m_ptr)
 static void rd_lore(int Ind, int r_idx)
 {
 	int i;
-	byte tmp8u;
 	
 	player_type *p_ptr = Players[Ind];
-	monster_race *r_ptr = &r_info[r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
 	start_section_read("lore");
@@ -667,12 +657,6 @@ static void rd_lore(int Ind, int r_idx)
 	/* Count wakes and ignores */
 	l_ptr->wake = read_int("wake");
 	l_ptr->ignore = read_int("ignore");
-
-	/* Extra stuff */
-	/* -- was never really used 
-	rd_byte(&l_ptr->xtra1);
-	rd_byte(&l_ptr->xtra2);
-	*/
 
 	/* Count drops */
 	l_ptr->drop_gold = read_int("drop_gold");
@@ -869,7 +853,6 @@ static void rd_house(int n)
 
 static void rd_wild(int n)
 {
-	//u32b tmp32u;
 	wilderness_type *w_ptr = &wild_info[-n];
 	
 	/* the flags */
@@ -885,19 +868,8 @@ static void rd_wild(int n)
 static bool rd_extra(int Ind, bool had_header)
 {
 	player_type *p_ptr = Players[Ind];
-	char pass[MAX_PASS_LEN];
-	char temp[MAX_PASS_LEN];
-	char temp2[MAX_PASS_LEN];
 
 	int i = 0;
-
-	//byte tmp8u;
-
-	/*	p_ptr->pass	- Password from client
-		pass		- Password from save file
-		temp		- Hashed saved password
-		temp2		- Hashed client password
-	*/
 
 	start_section_read("player");
 
@@ -1212,8 +1184,6 @@ static errr rd_dungeon(void)
 	cave_type *c_ptr;
 	char cave_row[MAX_WID+1];
 
-	//unsigned char runlength, feature, flags;
-
 	start_section_read("dungeon_level");
 
 	/*** Depth info ***/
@@ -1356,7 +1326,6 @@ static errr rd_cave_memory(int Ind)
 	u16b max_y, max_x;
 	int y, x;
 	char cave_row[MAX_WID+1];
-	//unsigned char runlength, cur_flag;
 
 	start_section_read("cave_memory");
 
