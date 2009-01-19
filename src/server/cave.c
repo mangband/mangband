@@ -532,7 +532,7 @@ int player_pict(int Ind, int who)
 	else
 	{
 		/* Get the "player" char */
-		c = p_ptr->r_char[0];// r_info[0].d_char;
+		c = p_ptr->r_char[0];/* r_info[0].d_char; */
 			
 		/* Fruit bat hack! */
 		if (q_ptr->fruit_bat) c = 'b';
@@ -700,7 +700,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 
 	cave_type *c_ptr;
 	byte *w_ptr;
-#if 0 // for boring floors
+#if 0 /* for boring floors */
 	feature_type *f_ptr;
 #endif
 	int feat;
@@ -710,9 +710,6 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 
 	bool visi = FALSE;
 	bool lite_glow = FALSE;
-
-	int t_dispx = x - p_ptr->panel_col_prt;
-	int t_dispy = y - p_ptr->panel_row_prt;
 
 	/* Get the cave */
 	c_ptr = &cave[Depth][y][x];
@@ -735,11 +732,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		r_char_ptr = p_ptr->r_char;
 	}
 
-	// grid is visible for DM anyways
+	/* Grid is visible for DM anyways */
 	if ( p_ptr->dm_flags & DM_SEE_LEVEL ) visi = TRUE;
-	// cave MARK (??)
+	/* Pre-test for CAVE MARK */
 	if ( (*w_ptr & CAVE_MARK) ) visi = TRUE;
-	// CAVE LITE / GLOW + VIEW
+	/* Pre-test for CAVE LITE / GLOW + VIEW / blindness */
 	if ( (*w_ptr & CAVE_VIEW) && ((c_ptr->info & CAVE_LITE) || (c_ptr->info & CAVE_GLOW)) && !p_ptr->blind) lite_glow = TRUE;
 
 
@@ -761,7 +758,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 					/* Torch lite */
 					if (p_ptr->view_yellow_lite)
 					{
-						if (p_ptr->use_graphics == 1) { a = 0xCF; c = 0x8F; }
+						if (p_ptr->use_graphics == 1) { a = 0xCF; c = (char)0x8F; }
 						if (p_ptr->use_graphics == 2) { c += 2; }
 						if (p_ptr->use_graphics == 3) { c -= 1; }
 					}
@@ -1645,7 +1642,7 @@ void display_map(int Ind, bool quiet)
 	player_type *p_ptr = Players[Ind];
 	monster_race *r_ptr = &r_info[0];
 
-	int i, j, x, y;
+	int x, y;
 
 	int map_hgt, map_wid;
 	int dungeon_hgt, dungeon_wid;
@@ -1814,12 +1811,11 @@ void wild_display_map(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i, j;
 	int world_x,world_y, x,y, wild_idx, type;
 
 	int map_hgt, map_wid;
 	int dungeon_hgt, dungeon_wid;
-	int row, col;
+	int col;
 
 	byte ta;
 	char tc;
@@ -1982,8 +1978,6 @@ void wild_display_map(int Ind)
  
 void do_cmd_view_map(int Ind)
 {
-	int cy, cx;
-
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
@@ -3794,7 +3788,7 @@ bool projectable(int Depth, int y1, int x1, int y2, int x2)
 
 
 /* The same function... but with target in a wall (for player ghosts)
-/* Used by monsters... otherwise player ghosts would be safe from monster spells! */
+ * Used by monsters... otherwise player ghosts would be safe from monster spells! */
 bool projectable_wall(int Depth, int y1, int x1, int y2, int x2)
 {
 	int dist, y, x;
