@@ -313,10 +313,10 @@ cptr conf_find_font(term_data *td) {
 	do 
 	{
 		sprintf(buf, "%d", i);	
-		//attempt to read next in conf
+		/* attempt to read next in conf */
 		strcpy(fontname, conf_get_string("SDL-Fonts", buf, "\0"));
 
-		//it's the same as current
+		/* it's the same as current */
 		if (!strcasecmp(fontname, td->fd->name))
 		{
 			j = i + 1;
@@ -328,16 +328,16 @@ cptr conf_find_font(term_data *td) {
 	fontname[0] = '\0';
 	if (j != -1)
 	{
-		//attempt to read font j
+		/* attempt to read font j */
 		sprintf(buf, "%d", j);
 		strcpy(fontname, conf_get_string("SDL-Fonts", buf, "\0"));
 	}
-	//fail? try font 0
+	/* fail? try font 0 */
 	if (fontname[0] == '\0') {
 		sprintf(buf, "%d", 0);
 		strcpy(fontname, conf_get_string("SDL-Fonts", buf, "\0"));
 		if (fontname[0] == '\0') {
-			//full failure
+			/* full failure */
 			return "nethack10x19-10.hex";
 		}
 	}
@@ -378,9 +378,10 @@ errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 	SDL_Surface *mask;
 #endif
 	char path[1024];
-
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
 	Uint32 mw, mh;
+	
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
+
 	if ((fd->face = SDL_LoadBMP(path)) != NULL)
 	{
 		/* Attempt to get dimensions from filename */
@@ -685,14 +686,15 @@ void gui_term_grab(int i) {
 	m_term = i;
 	m_subterm = -1;
 	sel_term = &data[i];
-	need_render = TRUE; //highlight our selection
+	need_render = TRUE; /* highlight our selection */
 }
 /* Drag term (MM) */
 void gui_term_drag(int nmx, int nmy) {
-	if (m_term == -1) return;
 
 	/* Thresholder */
 	int mx = 0, my = 0, hold_x = sel_term->w, hold_y = sel_term->h;
+
+	if (m_term == -1) return;
 	
 	if (m_control && !m_shift) {
 		if (sel_term->cols == 80) hold_x = 150;
@@ -733,8 +735,8 @@ void gui_term_drag(int nmx, int nmy) {
 		need_render = TRUE;
 	}
 	else if (m_shift) {
-		//if (sel_term->w == 8 || sel_term->w == 16 || sel_term->w == 32) hold_x = 150;
-		//if (sel_term->h == 8 || sel_term->h == 16 || sel_term->h == 32) hold_y = 150;
+		/*if (sel_term->w == 8 || sel_term->w == 16 || sel_term->w == 32) hold_x = 150;
+		if (sel_term->h == 8 || sel_term->h == 16 || sel_term->h == 32) hold_y = 150;*/
 		
 		tmx += nmx;
 		tmy += nmy;
@@ -759,9 +761,9 @@ void gui_term_drag(int nmx, int nmy) {
 		sel_term->width  = sel_term->w * sel_term->cols;
 		sel_term->height = sel_term->h * sel_term->rows;
 
-		//if (!m_rescaled) term_rescale(m_term, FALSE, FALSE);
-		//term_close(m_term);		
- 		//term_open(m_term);
+		/*if (!m_rescaled) term_rescale(m_term, FALSE, FALSE);
+		 term_close(m_term);		
+ 		 term_open(m_term);*/
  		#ifndef SINGLE_SURFACE
  		term_redraw(m_term);
  		#endif
@@ -796,7 +798,7 @@ void gui_term_drop() {
 			m_subterm = m_term;
 		m_term = -1;
 		m_moved = FALSE;
-	   need_render = TRUE; //highlight lack of selection
+	   need_render = TRUE; /* highlight lack of selection */
 	}
 }
 /* Slap term (RMB) */
@@ -831,9 +833,10 @@ void gui_term_shift() {
 }
 /* Release shift on term (-SHIFT) */
 void gui_term_unshift() {
-	m_shift = FALSE;
-
 	int i = m_term;
+	
+	m_shift = FALSE;
+	
 	if (i == -1) i = m_subterm;
 	if (i == -1) return;
 	
@@ -856,9 +859,10 @@ void gui_term_ctrl() {
 }
 /* Release ctrl on term (-CTRL) */
 void gui_term_unctrl() {
+	int i = m_term;
+	
 	m_control = FALSE;
 	
-	int i = m_term;
 	if (i == -1) i = m_subterm;
 	if (i == -1) return;	
 
@@ -1353,7 +1357,7 @@ static errr Term_xtra_sdl(int n, int v)
 			
 			} 
 		} while (SDL_PollEvent(NULL));
-		} //before do
+		} /* before do */
 
 		return (0);
 
@@ -1468,10 +1472,10 @@ static errr Term_xtra_sdl(int n, int v)
 		/* For example, this action can be used to react to */
 		/* changes in the global "color_table[256][4]" array. */
 		/* This action is optional, but can be very useful */
-
-		//term_display_all();
-		//SDL_Flip(bigface); /* I guess... XXX XXX XXX */ 
-
+#if 0
+		term_display_all();
+		SDL_Flip(bigface); /* I guess... XXX XXX XXX */ 
+#endif
 		return (0);
 
 		case TERM_XTRA_ALIVE:
@@ -1587,7 +1591,7 @@ static errr Term_curs_sdl(int x, int y)
 	}
 
 	/* No change */
-	//if (td->cx == x && td->cy == y) return (0);
+	/* if (td->cx == x && td->cy == y) return (0); */
 
 	/* Asign & Redraw */
 	if (td->cursor_on) 
@@ -1595,7 +1599,7 @@ static errr Term_curs_sdl(int x, int y)
 		td->cx = x;
 		td->cy = y;
 
-		//if (x == -1 || y == -1) return;
+		/* if (x == -1 || y == -1) return; */
 			
 		SDL_GetCharRect(td, x, y, &dr);
 		SDL_DrawCursor(&dr);
@@ -1827,10 +1831,7 @@ static void term_data_link(int i)
 
 
 	/* Prepare the init/nuke hooks */
-//if (i == 0) {
-//	td->init_hook = t->init_hook = Term_init_sdl;
 	td->nuke_hook = t->nuke_hook = Term_nuke_sdl;
-//}
 
 	/* Prepare the template hooks */
 	td->user_hook = t->user_hook = Term_user_sdl;
@@ -1851,7 +1852,7 @@ static void term_data_link(int i)
 	if (!i) term_screen = t;
 	
 	/* Activate it */
-	//Term_activate(t);
+	/* Term_activate(t); */
 }
 
 /* Create new scaled surfaces if 'term' sizes are weird 
@@ -1905,7 +1906,7 @@ void term_rescale(int i, bool create, bool redraw) {
 
  	if (redraw)
  	{
-		//term_redraw(m_term);
+		/* term_redraw(m_term); */
 	}
 }
 /*
@@ -1939,9 +1940,7 @@ void term_stack(int i) {
 	term_data *td = &data[i];
 	int j;
 	bool found = FALSE;
-	//int x = 0, y = 0;
-	//int max_y = 0;
-	//plog(format("doing term %d", i));
+
 	td->xoff = td->yoff = 0;
 	
 	if (i == 0) found = TRUE;
@@ -2039,7 +2038,7 @@ void term_spawn()
 }
 /* Draw a 'window decoration' aka 'border' around terminal */
 void term_draw_border(term_data *td) {
-		char title[td->cols];
+		char title[MSG_LEN];
 		SDL_Rect nr;
 
 		/* 'Header' */
@@ -2114,7 +2113,7 @@ void term_display_all() {
 			term_draw_border(&data[i]);
 		}
 	}
-	//SDL_Flip(bigface);
+	/* SDL_Flip(bigface); */
 }
 
 /*
@@ -2654,8 +2653,8 @@ void save_one_term(int i) {
 	conf_set_string(sec_name, "Font", td->fd->name);
 	
 	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-	if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
-	if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	
+	if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; /* Compact */
+	if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; /* Status line */	
 	
 	conf_set_int(sec_name, "Cols", td->cols);
 	conf_set_int(sec_name, "Rows", td->rows);
