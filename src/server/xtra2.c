@@ -5204,10 +5204,12 @@ bool master_player(int Ind, char * parms)
 		/* Display */
 		Send_special_line(Ind, 16, 15, TERM_WHITE, format("  Player: %s%s", q_ptr->name, (q_ptr->ghost ? ", ghost" : "") ));
 		Send_special_line(Ind, 16, 16, TERM_WHITE, format("    Flag: %s -- %s", dm_flags_str[dm_player_off], (check ? "Yes" : "No") ));
+		return TRUE;
 	}
 	/* Error */
 	else
 		Send_special_line(Ind, 16, 15, TERM_WHITE, format(" Error! %s", buf));
+		return FALSE;
 }
 
 /* This "table" is used to provide XTRA2 descriptions */ 
