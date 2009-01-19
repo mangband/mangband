@@ -1639,7 +1639,12 @@ bool set_food(int Ind, int v)
 	}
 	
 	/* Hack -- do not report hunger for ghosts */
-	if (p_ptr->ghost) old_aux = new_aux;
+	if (p_ptr->ghost) 
+	{
+		old_aux = new_aux;
+		/* but still refresh to display Full state */
+		notice = TRUE;
+	}
 
 	/* Food increase */
 	if (new_aux > old_aux)
