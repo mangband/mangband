@@ -122,7 +122,7 @@ G:7:D
 
 # 0x0F --> shop -- home (perm)
 
-N:15:Home
+N:15:Tavern
 G:8:y
 
 # 0x10 --> visible trap -- trap door
