@@ -507,7 +507,7 @@ void NewConsole(int read_fd, int arg)
 	Sockbuf_clear(console_buf_r);
 	
 	/* Paranoia to ease ops-coder's life later */
-	if (!buf || buf[0] == '\0') return;
+	if (STRZERO(buf)) return;
 	
 	/* Execute console command */
 	buflen = strlen(buf);
