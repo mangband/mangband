@@ -1476,11 +1476,11 @@ int process_pending_commands(int ind)
 				Destroy_connection(ind, "Can't copy read data to queue buffer");
 				return TRUE;
 			}
-			last_pos = (int)connp->r.ptr;
+			last_pos = (huge)connp->r.ptr;
 			type = (connp->r.ptr[0] & 0xFF);
 			result = (*receive_tbl[type])(ind);
-			if (((int)connp->r.ptr - last_pos) > 0) 
-				data_advance += (int)(connp->r.ptr - last_pos);
+			if ((huge)(connp->r.ptr - last_pos) > 0) 
+				data_advance += ((huge)connp->r.ptr - last_pos);
 			connp->start = turn;
 			if (result == 0)
 				return TRUE;
