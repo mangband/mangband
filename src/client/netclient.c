@@ -2435,15 +2435,15 @@ int Receive_sound(void)
 int Receive_custom_command(void)
 {
 	int n;
-	char ch, tval;
+	char ch, tval, pkt, scheme;
 	s16b catch;
 	u32b flag;
 	
 	custom_command_type *cc_ptr;
 
-	char buf[60];
+	char buf[MSG_LEN];
 	buf[0] = '\0';
-	if ((n = Packet_scanf(&rbuf, "%c%hd%lu%c%S", &ch, &catch, &flag, &tval, buf)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%hd%lu%c%S", &ch, &pkt, &scheme, &catch, &flag, &tval, buf)) <= 0)
 	{
 		return n;
 	}
@@ -2454,10 +2454,17 @@ int Receive_custom_command(void)
 	WIPE(cc_ptr, custom_command_type);
 
 	cc_ptr->catch = catch;
+	cc_ptr->pkt = pkt;
+	cc_ptr->scheme = scheme;	
 	cc_ptr->flag = flag;
 	cc_ptr->tval = tval;
-	buf[59] = '\0'; 
-	strcat(cc_ptr->prompt, buf);
+
+	buf[strlen(buf)+1] = '\0';
+	for (n = 0; n < sizeof(buf); n++) 
+	{
+		if (buf[n] == '\n') buf[n] = '\0';
+		cc_ptr->prompt[n] = buf[n];
+	}
 
 	custom_commands++;	
 
@@ -3053,14 +3060,35 @@ int Send_uninscribe(int item)
 	return 1;
 }
 
-int Send_custom_command(byte i, int item, char dir, int value)
+int Send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {
+	custom_command_type *cc_ptr = &custom_command[i];
 	int 	n;
-	printf("com [%c/%d] >>> item=%d, dir=%d, value=%d\n", i,i,item,dir,value);
-	if ((n = Packet_printf(&wbuf, "%c%c%hd%c%hd", PKT_COMMAND, i, item, dir, value)) <= 0)
-	{
+	
+	/* Command header */	
+	if (cc_ptr->pkt == (char)PKT_COMMAND)
+		n = Packet_printf(&wbuf, "%c%c", PKT_COMMAND, i);
+	else
+		n = Packet_printf(&wbuf, "%c", cc_ptr->pkt);
+	if (n <= 0) /* Error ! */
 		return n;
+	
+	/* Command body */
+	switch (cc_ptr->scheme)
+	{
+		case SCHEME_QUICK:                                                          		break;
+		case SCHEME_FULL:  n = Packet_printf(&wbuf, "%c%c%hd%s", item, dir, value, entry); 	break;		
+		case SCHEME_CONSUME_OBJECT: 	n = Packet_printf(&wbuf, "%c", item);           	break;
+		case SCHEME_ALTER_GRID:     	n = Packet_printf(&wbuf, "%c", dir);            	break;
+		case SCHEME_COMBINE_OBJECTS:	n = Packet_printf(&wbuf, "%c%c", item, (char)value);break;
+		case SCHEME_AIM_OBJECT:     	n = Packet_printf(&wbuf, "%c%c", item, dir);    	break;
+		case SCHEME_USE_OBJECTS:    	n = Packet_printf(&wbuf, "%c%ld", item, value); 	break;
+		case SCHEME_SINGLE_NUMERIC: 	n = Packet_printf(&wbuf, "%ld", value);         	break;
+		case SCHEME_SINGLE_STRING:  	n = Packet_printf(&wbuf, "%s", entry);          	break;
+		case SCHEME_OBJECT_STRING:    	n = Packet_printf(&wbuf, "%c%s", item, entry);     	break;
 	}
+	if (n <= 0) /* Error ! */
+		return n;
 
 	return 1;
 }

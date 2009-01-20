@@ -145,10 +145,11 @@
 #define PKT_OBSERVE		160
 #define PKT_CHANGEPASS		162
 #define PKT_OBJFLAGS		163
-#define PKT_COMMAND		164
 #define PKT_CHANNEL		165
 #define PKT_TERM  		167
 
+/* Packet types 191-254 are for custom commands, DO NOT USE THAT SPACE */
+#define PKT_COMMAND		191
 
 /*
  * Possible error codes returned
@@ -171,6 +172,21 @@
 #define STRUCT_INFO_LIMITS	 1
 #define STRUCT_INFO_RACE	 2
 #define STRUCT_INFO_CLASS	 3
+
+/*
+ * PKT_COMMAND helpers
+ */
+#define SCHEME_QUICK			0	/* %c - PKT */
+#define SCHEME_FULL				1 	/* %c%c%c%hd%s - PKT, item, dir, value, string */
+#define SCHEME_CONSUME_OBJECT	2	/* %c%c - PKT, item */
+#define SCHEME_ALTER_GRID	   	3	/* %c%c - PKT, dir */
+#define SCHEME_COMBINE_OBJECTS	4	/* %c%c - PKT, item1, item2 */
+#define SCHEME_AIM_OBJECT   	5	/* %c%c - PKT, item, dir */
+#define SCHEME_USE_OBJECTS  	6	/* %c%c - PKT, item, quantity */
+#define SCHEME_SINGLE_NUMERIC	7	/* %c%hd - PKT, value */
+#define SCHEME_SINGLE_STRING	8 	/* %c%s - PKT, string */
+#define SCHEME_OBJECT_STRING  	9 	/* %c%s - PKT, item, string */
+
 
 /*
  * PKT_TERM helpers

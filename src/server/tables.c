@@ -13,6 +13,68 @@
 #include "angband.h"
 
 
+/*
+ *  Global array of "custom commands".
+ *
+ *	Ends with an empty entry (used while iterating, do not dismiss).
+ *
+ * FORMAT:
+ *  	key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
+ *  	(flags | flags | flags), 
+ *  	tval, prompt
+ * LEGEND:
+ *  key - char, single keypress	:	'j'
+ *  PKT - packet type to use	: To use default command set PKT_COMMAND
+ * 								: To declare new command use PKT_COMMAND+n (up to MAX_CUSTOM_COMMANDS)
+ *								: To overload existing command use it's PKT_ (i.e. PKT_EAT)
+ *  SCHEME - see pack.h			:	 SCHEME CONTROLS BOTH PACKET PARSING
+ *								: 		AND DO_CMD_CALLBACK ARGUMENTS
+ *								:			IT *IS* IMPORTANT
+ *  energy_cost - 0 or n		: If the command is free use 0
+ *								: Use n to set 1/Nth of level_speed
+ *								: i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
+ *  (*do_cmd_callback) - a callback to one of the do_cmd functions, arguments depend on SCHEME
+ *  (flags) - see defines.h
+ *  tval - TVAL for item tester (probably would be used as some hack for other modes too)
+ *  prompt - new-line separated string of prompts for each (flags) group.
+ */
+const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
+{
+#ifdef COMMAND_OVERLOAD
+	{ /* Inscribe Item */	
+		'{', PKT_INSCRIBE, SCHEME_OBJECT_STRING, 0, (cccb)do_cmd_inscribe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
+		0, "Inscribe what? \nInscription: "
+	},
+	{ /* Drop Item */	
+		'd', PKT_DROP, SCHEME_USE_OBJECTS, 1, (cccb)do_cmd_drop,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Drop what? \nHow much? "
+	},
+	{ /* Eat */
+		'E', PKT_EAT, SCHEME_CONSUME_OBJECT, 1, (cccb)do_cmd_eat_food,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR), 
+		TV_FOOD, "Eat what? "
+	},
+	{ /* Drop Gold */	
+		'$', PKT_DROP_GOLD, SCHEME_SINGLE_NUMERIC, 1, (cccb)do_cmd_drop_gold,
+		(COMMAND_NEED_VALUE), 
+		0, "How much gold? "
+	},
+	{ /* Steal */
+		'J', PKT_STEAL, SCHEME_ALTER_GRID, 1, (cccb)do_cmd_steal,
+		(COMMAND_TARGET_DIR),
+		0, "Touch in what "
+	},
+	{ /* Purchase/Sell/Examine House */
+		'h', (char)PKT_COMMAND, SCHEME_ALTER_GRID, 1, (cccb)do_cmd_purchase_house,
+		(COMMAND_TARGET_DIR),
+		0, "Knock in what "
+	},
+#endif	
+	/* End-of-array */
+	{ 0,0,0,0,0,0,0 }
+};
 
 
 /*

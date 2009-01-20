@@ -7,14 +7,17 @@ void cmd_custom(byte i)
 {
 	custom_command_type *cc_ptr;
 	char dir;
-	int item, value;	
+	int item, item2;
+	s32b value;
 	cptr prompt;
+	char entry[60];
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
 	cc_ptr = &custom_command[i];
 	dir = item = value = 0;
 	prompt = cc_ptr->prompt;
+	entry[0] = '\0';
 	
 	/* Search for an item (automatic) */
 	if (cc_ptr->flag & COMMAND_ITEM_QUICK)
@@ -23,56 +26,92 @@ void cmd_custom(byte i)
 			return;
 	}
 	/* Ask for an item (interactive) ? */
-	else if ((cc_ptr->flag & COMMAND_ITEM_NORMAL) || (cc_ptr->flag & COMMAND_ITEM_DOUBLE))
+	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
 		if (!c_get_item(&item, prompt, 
 				(cc_ptr->flag & COMMAND_ITEM_EQUIP), 
-				(cc_ptr->flag & COMMAND_ITEM_INVENT), 
+				(cc_ptr->flag & COMMAND_ITEM_INVEN), 
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR)))
 				return;
-		
-		prompt = "";
+		prompt = prompt + strlen(prompt) + 1;
+
 		/* Get an amount - from inventory */
 		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item >= 0 && inventory[item].number > 1)
 		{
-			value = c_get_quantity("How many? ", inventory[item].number);
+			if (STRZERO(prompt)) prompt = "How many? ";
+			value = c_get_quantity(prompt, inventory[item].number);
 		}
 		/* Get an amount - from floor */
 		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item < 0 && floor_amt > 1)
 		{
-			value = c_get_quantity("How many? ", floor_amt);
+			if (STRZERO(prompt)) prompt = "How many? ";
+			value = c_get_quantity(prompt, floor_amt);
 		}
 	}
 	/* Second item? */
-	if (cc_ptr->flag & COMMAND_ITEM_DOUBLE)
+	if (cc_ptr->flag & COMMAND_NEED_SECOND)
 	{
-		if (!c_get_item(&value, prompt, 
+		if (!c_get_item(&item2, prompt, 
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP), 
-				(cc_ptr->flag & COMMAND_SECOND_INVENT), 
+				(cc_ptr->flag & COMMAND_SECOND_INVEN), 
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR)))
 				return;
+		value = (s32b)item2;
+		prompt = prompt + strlen(prompt) + 1;
 	}
 	if (cc_ptr->flag & COMMAND_TARGET_DIR) 
 	{
 		if (!c_get_dir(&dir, prompt, ((cc_ptr->flag & COMMAND_TARGET_ALLOW) ? TRUE : FALSE) ))
 			return;
+		prompt = prompt + strlen(prompt) + 1;
 	}
+	/* Need values? */
+	if (cc_ptr->flag & COMMAND_NEED_VALUE)
+	{
+		if (STRZERO(prompt)) prompt = "Quantity: ";
+		value = c_get_quantity(prompt, 999000000);
+		prompt = prompt + strlen(prompt) + 1;
+	}		
+	if (cc_ptr->flag & COMMAND_NEED_CHAR)
+	{
+		if (STRZERO(prompt)) prompt = "Command: ";
+		if (!get_com(prompt, &entry[0])) 
+			return;
+		entry[1] = '\0';
+		prompt = prompt + strlen(prompt) + 1;
+	}	
+	else if (cc_ptr->flag & COMMAND_NEED_STRING)
+	{
+		if (STRZERO(prompt)) prompt = "Entry: ";
+		if (!get_string(prompt, entry, sizeof(entry)))
+			return;
+		prompt = prompt + strlen(prompt) + 1;
+	}
+	if (cc_ptr->flag & COMMAND_NEED_CONFIRM)
+	{
+		if (STRZERO(prompt)) prompt = "Really perform said action ? ";
+		if (!get_check(prompt))
+			return;
+		prompt = prompt + strlen(prompt) + 1;
+	}	
 
-	Send_custom_command(i, item, dir, value);
+
+	Send_custom_command(i, item, dir, value, entry);
 }
 /* Handle all commands */
 void process_command()
 {
-#ifdef COMMAND_OVERLOAD
 	byte i;
-	for (i = 0; i < custom_commands; i++) {
-		if (custom_command[i].catch == command_cmd) {
+	for (i = 0; i < custom_commands; i++) 
+	{
+		if (custom_command[i].catch == command_cmd) 
+		{
 			cmd_custom(i);
 			return;	
 		}
 	}
-#endif
+
         /* Parse the command */
         switch (command_cmd)
         {

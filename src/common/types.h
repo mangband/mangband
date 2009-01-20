@@ -1569,10 +1569,16 @@ struct flavor_type
 };
 
 
+typedef int (*cccb)	(void); /* "Custom Command Call-Back" */ 
 struct custom_command_type
 {
-	s16b catch;		/* Actual command (such as 'j') */
+	char catch;     	/* Actual command (such as 'j'). */
+	char pkt;
+	byte scheme;
+	byte energy_cost;  	/* In 1/Nth of level_speed; 0 == free */
+	cccb do_cmd_callback;
+		
 	u32b flag;
 	byte tval; 
-	char prompt[60];
+	char prompt[MSG_LEN];
 };

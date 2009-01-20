@@ -325,8 +325,6 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
-extern int Send_custom_command(byte i, int item, char dir, int value);
-extern int Send_spike(int dir);
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
@@ -452,6 +450,8 @@ extern int Flush_queue(void);
 extern int Send_motd(int offset);
 extern int Send_play(int mode);
 
+extern int Send_custom_command(byte i, char item, char dir, s32b value, char *entry);
+
 extern int Send_search(void);
 extern int Send_walk(int dir);
 extern int Send_run(int dir);
@@ -473,6 +473,7 @@ extern int Send_destroy(int item, int amt);
 extern int Send_inscribe(int item, cptr buf);
 extern int Send_uninscribe(int item);
 extern int Send_steal(int dir);
+extern int Send_spike(int dir);
 extern int Send_quaff(int item);
 extern int Send_read(int item);
 extern int Send_aim(int item, int dir);

@@ -135,6 +135,18 @@ static void Init_receive(void)
 		playing_receive[i] = Receive_undefined;
 		setup_receive[i] = Receive_undefined;
 	}
+	for (i = PKT_COMMAND; i < 255; i++)
+	{
+		playing_receive[i] = Receive_custom_command;
+	}
+	for (i = i; i < MAX_CUSTOM_COMMANDS; i++)
+	{
+		if (!custom_commands[i].pkt)
+		{
+			for (i = i; i < MAX_CUSTOM_COMMANDS; i++)
+				WIPE(&custom_commands[i], custom_command_type);
+		}
+	}
 
 	setup_receive[PKT_CHAR_INFO]	= Receive_char_info;
 	setup_receive[PKT_PLAY]			= Receive_play;
@@ -217,6 +229,16 @@ static void Init_receive(void)
 	
 	playing_receive[PKT_CLEAR] = Receive_clear;
 	playing_receive[PKT_CHANGEPASS] = Receive_pass;
+	
+	/* Command Overload! */
+	for (i = 0; i < MAX_CUSTOM_COMMANDS; i++)
+	{
+		if (!custom_commands[i].pkt) break;
+		if ((byte)custom_commands[i].pkt < PKT_COMMAND)
+		{
+			playing_receive[(byte)custom_commands[i].pkt] = Receive_custom_command;
+		}
+	}
 }
 
 int Init_setup(void)
@@ -1371,10 +1393,9 @@ static int Enter_player(int ind)
 	//Conn_set_state(connp, CONN_READY, CONN_PLAYING);
 	Conn_set_state(connp, CONN_PLAYING, CONN_PLAYING);
 
-#ifdef COMMAND_OVERLOAD
 	/* Send custom commands */
 	Send_custom_commands(NumPlayers);
-#endif
+
 	/* Send party information */
 	Send_party(NumPlayers);
 	
@@ -2967,19 +2988,13 @@ int Send_sound(int ind, int sound)
 }
 
 /*
- * Hack this should be loaded from some cool structure!!! 
- *
- *	XXX XXX HARDCODED COMMANDS HERE:
+ * Send commands from custom_commands array,
+ * defined in tables.c 
  */
 int Send_custom_command(int ind, int command)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
-	s16b trigger;
-	byte tval = 0;
-	u32b flag = 0;
-	cptr prompt = "";
-	char buf[60];
-	buf[59] = '\0';
+	const custom_command_type *cc_ptr = &custom_commands[command];
 	
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -2988,33 +3003,22 @@ int Send_custom_command(int ind, int command)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-
-	switch (command) 
-	{
-		case 1:
-			trigger = 'J';
-			flag = (COMMAND_ITEM_NONE | COMMAND_TARGET_DIR);
-			prompt = "Touch in what ";
-			break;
-		case 0:
-			trigger = 'E';
-			tval = TV_FOOD;
-			flag = (COMMAND_ITEM_INVENT | COMMAND_ITEM_FLOOR | COMMAND_ITEM_NORMAL | COMMAND_TARGET_NONE);
-			prompt = "Eat what? ";
-			break;
-		default:
-			return -1;
-	}
-
-	strncpy(buf, prompt, 59);
-	return Packet_printf(&connp->c, "%c%hd%lu%c%S", PKT_COMMAND, trigger, flag, tval, buf);
+	
+	return Packet_printf(&connp->c, "%c%c%c%hd%lu%c%S", 
+			 PKT_COMMAND, cc_ptr->pkt, cc_ptr->scheme,
+			 cc_ptr->catch, cc_ptr->flag,
+			 cc_ptr->tval, cc_ptr->prompt);
 }
-//Second evil function
+
 void Send_custom_commands(int ind)
 {
 	int i;
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < MAX_CUSTOM_COMMANDS; i++)
 	{
+		/* Hack -- end of array */
+		if (custom_commands[i].catch == 0) break;
+		
+		/* Send command */
 		Send_custom_command(ind, i);
 	} 
 }
@@ -5113,9 +5117,13 @@ static int Receive_custom_command(int ind)
 	connection_t *connp = &Conn[ind];
 	player_type *p_ptr;
 
-	s16b item, value;
+	s32b value;
 	int n, player;
-	char ch, i, dir;
+	char ch, dir;
+	char item, item2;
+	byte i, j;
+	char entry[60];
+	
 
 	if (connp->id != -1)
 	{
@@ -5123,15 +5131,124 @@ static int Receive_custom_command(int ind)
 		p_ptr = Players[player];
 	}
 
-	if ((n = Packet_scanf(&connp->r, "%c%c%hd%c%hd", &ch, &i, &item, &dir, &value)) <= 0)
+	if ((n = Packet_scanf(&connp->r, "%c", &ch)) <= 0)
 	{
 		if (n == -1)
 			Destroy_connection(ind, "read error");
 		return n;
 	}
 	
-	do_cmd_custom(player, i, item, dir, value);
+	/* Direct? */
+	if (ch == (char)PKT_COMMAND)
+	{
+		if ((n = Packet_scanf(&connp->r, "%c", &i)) <= 0)
+		{
+			if (n == -1)
+				Destroy_connection(ind, "read error");
+			return n;
+		}
+	}
+	/* Find */
+	else
+	{
+		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
+		{
+			if (custom_commands[j].pkt == ch)
+			{
+				i = j;
+				break;
+			}	
+		}
+	}
+	
+	/* Undefined */
+	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].pkt)
+		return Receive_undefined(ind);		
+	
+	/* Command body */
+	switch (custom_commands[i].scheme)
+	{
+		case SCHEME_QUICK:                                                               		break;
+		case SCHEME_FULL:n = Packet_scanf(&connp->r, "%c%c%hd%s", &item, &dir, &value, entry); 	break;
+		case SCHEME_CONSUME_OBJECT:    	n = Packet_scanf(&connp->r, "%c", &item);           	break;
+		case SCHEME_ALTER_GRID:     	n = Packet_scanf(&connp->r, "%c", &dir);            	break;
+		case SCHEME_COMBINE_OBJECTS:	n = Packet_scanf(&connp->r, "%c%c", &item, &item2); 	break;
+		case SCHEME_AIM_OBJECT:     	n = Packet_scanf(&connp->r, "%c%c", &item, &dir);   	break;
+		case SCHEME_USE_OBJECTS:     	n = Packet_scanf(&connp->r, "%c%ld", &item, &value);	break;
+		case SCHEME_SINGLE_NUMERIC:    	n = Packet_scanf(&connp->r, "%ld", &value);         	break;
+		case SCHEME_SINGLE_STRING:  	n = Packet_scanf(&connp->r, "%s", entry);           	break;
+		case SCHEME_OBJECT_STRING:  	n = Packet_scanf(&connp->r, "%c%s", &item, entry);     	break;
+	}
+	if (n <= 0) /* Error ! */
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}	
 
+	/* Does it cost energy? */
+	if (custom_commands[i].energy_cost)
+	{
+		/* Not enough! ABORT! */
+		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
+		{
+			Packet_printf(&connp->q, "%c", ch);
+			if (ch == (char)PKT_COMMAND) Packet_printf(&connp->q, "%c", i);
+			switch (custom_commands[i].scheme)
+			{
+				case SCHEME_QUICK:                                                         		break;
+				case SCHEME_FULL:Packet_printf(&connp->q, "%c%c%hd%s", item, dir, value, entry);break;				
+				case SCHEME_CONSUME_OBJECT:    	Packet_printf(&connp->q, "%c", item);          	break;
+				case SCHEME_ALTER_GRID:     	Packet_printf(&connp->q, "%c", dir);          	break;
+				case SCHEME_COMBINE_OBJECTS:	Packet_printf(&connp->q, "%c%c", item, item2); 	break;
+				case SCHEME_AIM_OBJECT:     	Packet_printf(&connp->q, "%c%c", item, dir);   	break;
+				case SCHEME_USE_OBJECTS:     	Packet_printf(&connp->q, "%c%ld", item, value);	break;
+				case SCHEME_SINGLE_NUMERIC:    	Packet_printf(&connp->q, "%ld", value);       	break;
+				case SCHEME_SINGLE_STRING:  	Packet_printf(&connp->q, "%s", entry);         	break;
+				case SCHEME_OBJECT_STRING:  	Packet_printf(&connp->q, "%c%s", item, entry); 	break;
+			}
+			/* Report lack of energy */
+			return 2;
+		} 
+	}	
+
+	/* Execute command */
+	switch (custom_commands[i].scheme)
+	{
+		case SCHEME_QUICK:
+		    (*(void (*)(int))(custom_commands[i].do_cmd_callback))
+		    (player);
+		break;
+		case SCHEME_CONSUME_OBJECT:
+			(*(void (*)(int, char))(custom_commands[i].do_cmd_callback))
+			(player, item);
+		break;
+		case SCHEME_ALTER_GRID:
+			(*(void (*)(int, char))(custom_commands[i].do_cmd_callback))
+			(player, dir);
+		break;		
+		case SCHEME_COMBINE_OBJECTS:
+			(*(void (*)(int, char, char))(custom_commands[i].do_cmd_callback))
+			(player, item, item2);
+		break;
+		case SCHEME_USE_OBJECTS:
+			(*(void (*)(int, char, int))(custom_commands[i].do_cmd_callback))
+			(player, item, value);
+		break;
+		case SCHEME_SINGLE_NUMERIC:
+			(*(void (*)(int, int))(custom_commands[i].do_cmd_callback))
+			(player, value);
+		break;
+		case SCHEME_SINGLE_STRING:
+			(*(void (*)(int, char*))(custom_commands[i].do_cmd_callback))
+			(player, entry);
+		case SCHEME_OBJECT_STRING:
+			(*(void (*)(int, char, char*))(custom_commands[i].do_cmd_callback))
+			(player, item, entry);
+		break;
+	}
+	
+	/* Report success */
 	return 1;
 }
 

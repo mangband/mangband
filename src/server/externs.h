@@ -25,6 +25,7 @@ extern bool Conn_get_console_setting(int ind, int set);
 extern int Init_setup();
 
 /* tables.c */
+const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -519,7 +520,6 @@ extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_fire(int Ind, int dir, int item);
 extern void do_cmd_throw(int Ind, int dir, int item);
 extern void do_cmd_purchase_house(int Ind, int dir);
-extern void do_cmd_custom(int Ind, char c, int item, char dir, int value);
 extern int pick_house(int Depth, int y, int x);
 
 /* cmd3.c */
