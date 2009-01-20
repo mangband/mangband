@@ -3098,26 +3098,14 @@ bool adjust_panel(int Ind, int y, int x)
 }
 
 /*
- * Player Health Description
+ * Heatlh description (unhurt, wounded, etc)
  */
-cptr look_player_desc(int Ind)
+cptr look_health_desc(bool living, s16b chp, s16b mhp)
 {
-	player_type *p_ptr = Players[Ind];
-
-	bool          living = TRUE;
-	int           perc;
-
-
-	/* Determine if the monster is "living" (vs "undead") */
-	if (p_ptr->ghost) living = FALSE;
-	/*
-	if (r_ptr->flags3 & RF3_UNDEAD) living = FALSE;
-	if (r_ptr->flags3 & RF3_DEMON) living = FALSE;
-	if (strchr("Egv", r_ptr->d_char)) living = FALSE;
-	*/
-
+	int	perc;
+	
 	/* Healthy */
-	if (p_ptr->chp >= p_ptr->mhp)
+	if (chp >= mhp)
 	{
 		/* No damage */
 		return (living ? "unhurt" : "undamaged");
@@ -3125,7 +3113,7 @@ cptr look_player_desc(int Ind)
 
 
 	/* Calculate a health "percentage" */
-	perc = 100L * p_ptr->chp / p_ptr->mhp;
+	perc = 100L * chp / mhp;
 
 	if (perc >= 60)
 	{
@@ -3145,8 +3133,34 @@ cptr look_player_desc(int Ind)
 	return (living ? "almost dead" : "almost destroyed");
 }
 
+/*
+ * Player Health Description
+ */
+cptr look_player_desc(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool          living = TRUE;
+	static char buf[80];
 
 
+	/* Determine if the player is "living" (vs "undead") */
+	if (p_ptr->ghost) living = FALSE;
+
+	/* Apply health description */
+	strcpy(buf, look_health_desc(living, p_ptr->chp, p_ptr->mhp));
+	
+	/* Apply condition descriptions */
+	if (p_ptr->resting) strcat(buf, ", resting");
+	if (p_ptr->confused) strcat(buf, ", confused");
+	if (p_ptr->afraid) strcat(buf, ", afraid");
+	if (p_ptr->stun) strcat(buf, ", stunned");
+	
+	/* Player-specific conditions */
+	if (p_ptr->paralyzed) strcat(buf, ", paralyzed");
+
+	return buf;
+}
 /*
  * Monster health description
  */
@@ -3156,7 +3170,7 @@ cptr look_mon_desc(int m_idx)
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
 	bool          living = TRUE;
-	int           perc;
+	static char buf[80];
 
 
 	/* Determine if the monster is "living" (vs "undead") */
@@ -3164,34 +3178,16 @@ cptr look_mon_desc(int m_idx)
 	if (r_ptr->flags3 & RF3_DEMON) living = FALSE;
 	if (strchr("Egv", r_ptr->d_char)) living = FALSE;
 
+	/* Apply health description */
+	strcpy(buf, look_health_desc(living, m_ptr->hp, m_ptr->maxhp));
 
-	/* Healthy monsters */
-	if (m_ptr->hp >= m_ptr->maxhp)
-	{
-		/* No damage */
-		return (living ? "unhurt" : "undamaged");
-	}
-
-
-	/* Calculate a health "percentage" */
-	perc = 100L * m_ptr->hp / m_ptr->maxhp;
-
-	if (perc >= 60)
-	{
-		return (living ? "somewhat wounded" : "somewhat damaged");
-	}
-
-	if (perc >= 25)
-	{
-		return (living ? "wounded" : "damaged");
-	}
-
-	if (perc >= 10)
-	{
-		return (living ? "badly wounded" : "badly damaged");
-	}
-
-	return (living ? "almost dead" : "almost destroyed");
+	/* Apply condition descriptions */
+	if (m_ptr->csleep) strcat(buf, ", asleep");
+	if (m_ptr->confused) strcat(buf, ", confused");
+	if (m_ptr->monfear) strcat(buf, ", afraid");
+	if (m_ptr->stunned) strcat(buf, ", stunned");
+	
+	return buf;
 }
 
 
