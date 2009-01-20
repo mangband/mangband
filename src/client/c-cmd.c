@@ -112,61 +112,61 @@ void process_command()
 		}
 	}
 
-        /* Parse the command */
-        switch (command_cmd)
-        {
-                /* Ignore */
-                case ESCAPE:
-                case ' ':
-                {
-    			if (first_escape) 
-                	    Send_clear();
-    			first_escape = FALSE;
-                        break;
-                }
+	/* Parse the command */
+	switch (command_cmd)
+	{
+		/* Ignore */
+		case ESCAPE:
+		case ' ':
+		{
+			if (first_escape) 
+				Send_clear();
+			first_escape = FALSE;
+			break;
+		}
 
-                /* Ignore return */
-                case '\r':
-                {
-                        break;
-                }
+		/* Ignore return */
+		case '\r':
+		{
+			break;
+		}
 
-                /*** Movement Commands ***/
+		/*** Movement Commands ***/
 
-                /* Dig a tunnel*/
-                case '+':
-                {
-                        cmd_tunnel();
-                        break;
-                }
+		/* Dig a tunnel*/
+		case '+':
+		{
+			cmd_tunnel();
+			break;
+		}
 
-                /* Move */
-                case ';':
-                {
-                        cmd_walk();
-                        break;
-                }
+		/* Move */
+		case ';':
+		{
+			cmd_walk();
+			break;
+		}
 
-                /*** Running, Staying, Resting ***/
-                case '.':
-                {
-                        cmd_run();
-                        break;
-                }
+		/*** Running, Staying, Resting ***/
+		case '.':
+		{
+			cmd_run();
+			break;
+		}
 
-                case ',':
-                case 'g':
-                {
-                        cmd_stay();
-                        break;
-                }
+		case ',':
+		case 'g':
+		{
+			cmd_stay();
+			break;
+		}
 
-                /* Get the mini-map */
-                case 'M':
-                {
-                        cmd_map();
-                        break;
-                }
+		/* Get the mini-map */
+		case 'M':
+		{
+			cmd_map();
+			break;
+		}
 
 		/* Recenter map */
 		case 'L':
@@ -175,19 +175,19 @@ void process_command()
 			break;
 		}
 
-                /* Search */
-                case 's':
-                {
-                        cmd_search();
-                        break;
-                }
+		/* Search */
+		case 's':
+		{
+			cmd_search();
+			break;
+		}
 
-                /* Toggle Search Mode */
-                case 'S':
-                {
-                        cmd_toggle_search();
-                        break;
-                }
+		/* Toggle Search Mode */
+		case 'S':
+		{
+			cmd_toggle_search();
+			break;
+		}
 
 		/* Rest */
 		case 'R':
@@ -196,68 +196,68 @@ void process_command()
 			break;
 		}
 
-                /*** Stairs and doors and chests ***/
+		/*** Stairs and doors and chests ***/
 
-                /* Go up */
-                case '<':
-                {
-                        cmd_go_up();
-                        break;
-                }
+		/* Go up */
+		case '<':
+		{
+			cmd_go_up();
+			break;
+		}
 
-                /* Go down */
-                case '>':
-                {
-                        cmd_go_down();
-                        break;
-                }
+		/* Go down */
+		case '>':
+		{
+			cmd_go_down();
+			break;
+		}
 
-                /* Open a door */
-                case 'o':
-                {
-                        cmd_open();
-                        break;
-                }
+		/* Open a door */
+		case 'o':
+		{
+			cmd_open();
+			break;
+		}
 
-                /* Close a door */
-                case 'c':
-                {
-                        cmd_close();
-                        break;
-                }
+		/* Close a door */
+		case 'c':
+		{
+			cmd_close();
+			break;
+		}
 
-                /* Bash a door */
-                case 'B':
-                {
-                        cmd_bash();
-                        break;
-                }
+		/* Bash a door */
+		case 'B':
+		{
+			cmd_bash();
+			break;
+		}
 
-                /* Disarm a trap or chest */
-                case 'D':
-                {
-                        cmd_disarm();
-                        break;
-                }
+		/* Disarm a trap or chest */
+		case 'D':
+		{
+			cmd_disarm();
+			break;
+		}
 
-                /*** Inventory commands ***/
-                case 'i':
-                {
-                        cmd_inven();
-                        break;
-                }
+		/*** Inventory commands ***/
+		case 'i':
+		{
+			cmd_inven();
+			break;
+		}
 
-                case 'e':
-                {
-                        cmd_equip();
-                        break;
-                }
+		case 'e':
+		{
+			cmd_equip();
+			break;
+		}
 
-                case 'd':
-                {
-                        cmd_drop();
-                        break;
-                }
+		case 'd':
+		{
+			cmd_drop();
+			break;
+		}
 
 		case '$':
 		{
@@ -265,29 +265,29 @@ void process_command()
 			break;
 		}
 
-                case 'w':
-                {
-                        cmd_wield();
-                        break;
-                }
+		case 'w':
+		{
+			cmd_wield();
+			break;
+		}
 
-                case 't':
-                {
-                        cmd_take_off();
-                        break;
-                }
+		case 't':
+		{
+			cmd_take_off();
+			break;
+		}
 
-                case 'k':
-                {
-                        cmd_destroy();
-                        break;
-                }
+		case 'k':
+		{
+			cmd_destroy();
+			break;
+		}
 
 		case 'I':
-                {
-                        cmd_observe();
-                        break;
-                }
+		{
+			cmd_observe();
+			break;
+		}
 
 		case '{':
 		{
@@ -306,61 +306,60 @@ void process_command()
 			cmd_spike();
 			break;
 		}
-		
+
 		case 'J':
 		{
 			cmd_steal();
 			break;
 		}
 
-                /*** Inventory "usage" commands ***/
-                case 'q':
-                {
-                        cmd_quaff();
-                        break;
-                }
+		/*** Inventory "usage" commands ***/
+		case 'q':
+		{
+			cmd_quaff();
+			break;
+		}
 
-                case 'r':
-                {
-                        cmd_read_scroll();
-                        break;
-                }
+		case 'r':
+		{
+			cmd_read_scroll();
+			break;
+		}
 
-                case 'a':
-                {
-                        cmd_aim_wand();
-                        break;
-                }
+		case 'a':
+		{
+			cmd_aim_wand();
+			break;
+		}
 
-                case 'u':
-                {
-                        cmd_use_staff();
-                        break;
-                }
+		case 'u':
+		{
+			cmd_use_staff();
+			break;
+		}
 
-                case 'z':
-                {
-                        cmd_zap_rod();
-                        break;
-                }
+		case 'z':
+		{
+			cmd_zap_rod();
+			break;
+		}
 
-                case 'F':
-                {
-                        cmd_refill();
-                        break;
-                }
+		case 'F':
+		{
+			cmd_refill();
+			break;
+		}
+		case 'E':
+		{
+			cmd_eat();
+			break;
+		}
 
-                case 'E':
-                {
-                        cmd_eat();
-                        break;
-                }
-
-                case 'A':
-                {
-                        cmd_activate();
-                        break;
-                }
+		case 'A':
+		{
+			cmd_activate();
+			break;
+		}
 
 		/*** Firing and throwing ***/
 		case 'f':
@@ -373,32 +372,31 @@ void process_command()
 		{
 			cmd_throw();
 			break;
+		}
+		/*** Spell casting ***/
+		case 'b':
+		{
+			cmd_browse();
+			break;
+		}
+		
+		case 'G':
+		{
+			cmd_study();
+			break;
 		}
 
-                /*** Spell casting ***/
-                case 'b':
-                {
-                        cmd_browse();
-                        break;
-                }
+		case 'm':
+		{
+			cmd_cast();
+			break;
+		}
 
-                case 'G':
-                {
-                        cmd_study();
-                        break;
-                }
-
-                case 'm':
-                {
-                        cmd_cast();
-                        break;
-                }
-
-                case 'p':
-                {
-                        cmd_pray();
-                        break;
-                }
+		case 'p':
+		{
+			cmd_pray();
+			break;
+		}
 
 		case 'U':
 		{
@@ -412,7 +410,7 @@ void process_command()
 			cmd_target();
 			break;
 		}
-		
+
 		case '(':
 		{
 			cmd_target_friendly();
@@ -459,7 +457,7 @@ void process_command()
 		case '?':
 		{
 			cmd_help();
-			break;
+			reak;
 		}
 
 		case '/':
@@ -467,7 +465,7 @@ void process_command()
 			cmd_query_symbol();
 			break;
 		}
-		
+
 		/*** Miscellaneous ***/
 		case ':':
 		{
@@ -487,36 +485,33 @@ void process_command()
 			 * a valid dungeon master.  These commands only are 
 			 * effective for a valid dungeon master.
 			 */
-
-			/*
-			if (!strcmp(nick,DUNGEON_MASTER)) cmd_master(); 
-			else prt("Hit '?' for help.", 0, 0);
-			*/
 			cmd_master();
 			break;
 		}
-		case '\'':
+
+		case '\'': /* Handle chat */
 		{
 			cmd_chat();
 			break;
-		}		
-		case KTRL('D'): /* 'Describe item. This means 'brag about it in chat' */
-      {
-         cmd_describe();
-         break;
-     	}
+		}
 
-                case KTRL('P'):
-                {
-                        do_cmd_messages();
-                        break;
-                }
+		case KTRL('D'): /* 'Describe item. This means "brag about it in chat" */
+		{
+			cmd_describe();
+			break;
+		}
 
-                case KTRL('X'):
-                {
-                        Net_cleanup();
-                        quit(NULL);
-                }
+		case KTRL('P'):
+		{
+	        do_cmd_messages();
+	        break;
+		}
+
+		case KTRL('X'):
+		{
+	        Net_cleanup();
+	        quit(NULL);
+		}
 
 		case KTRL('R'):
 		{
@@ -554,12 +549,12 @@ void process_command()
 			break;
 		}
 
-                default:
-                {
-                        prt("Hit '?' for help.", 0, 0);
-                        break;
-                }
-        }
+		default:
+		{
+			prt("Hit '?' for help.", 0, 0);
+			break;
+		}
+	}
 }
 
 
