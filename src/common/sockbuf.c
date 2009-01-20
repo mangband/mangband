@@ -416,10 +416,10 @@ int Packet_printf(va_alist)
 			failure = 0,
 			max_str_size;
     unsigned		uval;
-    short		sval;
-    unsigned short	usval;
-    long		lval;
-    unsigned long	ulval;
+    s16b		sval;
+    u16b		usval;
+    s32b		lval;
+    u32b		ulval;
     char		*str,
 			*end,
 			*buf,
@@ -500,7 +500,7 @@ int Packet_printf(va_alist)
 		    *buf++ = sval;
 		    break;
 		case 'u':
-		    usval = va_arg(ap, unsigned);
+		    usval = va_arg(ap, unsigned int);
 		    *buf++ = usval >> 8;
 		    *buf++ = usval;
 		    break;
@@ -605,8 +605,8 @@ int Packet_scanf(va_alist)
 			failure = 0,
 			max_str_size;
     unsigned		*uptr;
-    short		*sptr;
-    unsigned short	*usptr;
+    s16b		*sptr;
+    u16b		*usptr;
     s32b		*lptr;
     u32b		*ulptr;
     char		*cptr,
