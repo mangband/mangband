@@ -457,7 +457,7 @@ void process_command()
 		case '?':
 		{
 			cmd_help();
-			reak;
+			break;
 		}
 
 		case '/':
