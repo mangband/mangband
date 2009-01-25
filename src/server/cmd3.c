@@ -707,8 +707,13 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	if (amt <= 0) return;
 	if (amt > p_ptr->au)
 	{
+	    /* Hack - entering 999kk means MAX */
+	    if (amt != 999000000)
+	    {
 		msg_print(Ind, "You do not have that much gold.");
 		return;
+	    } else 
+		amt = p_ptr->au;
 	}
 
 	/* Use "gold" object kind */

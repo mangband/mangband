@@ -3060,6 +3060,10 @@ int Send_uninscribe(int item)
 	return 1;
 }
 
+#define S_START case SCHEME_EMPTY: n = (1
+#define S_WRITE(A, B) ); break; case SCHEME_ ## A: n = Packet_printf(&wbuf, (B),
+#define S_DONE ); break;
+  
 int Send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {
 	custom_command_type *cc_ptr = &custom_command[i];
@@ -3076,16 +3080,8 @@ int Send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 	/* Command body */
 	switch (cc_ptr->scheme)
 	{
-		case SCHEME_QUICK:                                                          		break;
-		case SCHEME_FULL:  n = Packet_printf(&wbuf, "%c%c%hd%s", item, dir, value, entry); 	break;		
-		case SCHEME_CONSUME_OBJECT: 	n = Packet_printf(&wbuf, "%c", item);           	break;
-		case SCHEME_ALTER_GRID:     	n = Packet_printf(&wbuf, "%c", dir);            	break;
-		case SCHEME_COMBINE_OBJECTS:	n = Packet_printf(&wbuf, "%c%c", item, (char)value);break;
-		case SCHEME_AIM_OBJECT:     	n = Packet_printf(&wbuf, "%c%c", item, dir);    	break;
-		case SCHEME_USE_OBJECTS:    	n = Packet_printf(&wbuf, "%c%ld", item, value); 	break;
-		case SCHEME_SINGLE_NUMERIC: 	n = Packet_printf(&wbuf, "%ld", value);         	break;
-		case SCHEME_SINGLE_STRING:  	n = Packet_printf(&wbuf, "%s", entry);          	break;
-		case SCHEME_OBJECT_STRING:    	n = Packet_printf(&wbuf, "%c%s", item, entry);     	break;
+		/* Hack -- See pack.h */
+		SCHEME_WRITE
 	}
 	if (n <= 0) /* Error ! */
 		return n;
@@ -3098,18 +3094,6 @@ int Send_spike(int dir)
 	int	n;
 
 	if ((n = Packet_printf(&wbuf, "%c%c", PKT_SPIKE, dir)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}
-
-int Send_steal(int dir)
-{
-	int	n;
-
-	if ((n = Packet_printf(&wbuf, "%c%c", PKT_STEAL, dir)) <= 0)
 	{
 		return n;
 	}
@@ -3484,35 +3468,11 @@ int Send_special_line(int type, int line)
 	return 1;
 }
 
-int Send_symbol(char sym)
-{
-	int	n;
-
-	if ((n = Packet_printf(&wbuf, "%c%c", PKT_SYMBOL_QUERY, sym)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}
-
 int Send_party(s16b command, cptr buf)
 {
 	int	n;
 
 	if ((n = Packet_printf(&wbuf, "%c%hd%s", PKT_PARTY, command, buf)) <= 0)
-	{
-		return n;
-	}
-
-	return 1;
-}
-
-int Send_purchase_house(int dir)
-{
-	int n;
-
-	if ((n = Packet_printf(&wbuf, "%c%hd%hd", PKT_PURCHASE, dir, 0)) <= 0)
 	{
 		return n;
 	}

@@ -2592,7 +2592,7 @@ static int breakage_chance(object_type *o_ptr)
  *
  * Note that Bows of "Extra Shots" give an extra shot.
  */
-void do_cmd_fire(int Ind, int dir, int item)
+void do_cmd_fire(int Ind, int item, int dir)
 {
 	player_type *p_ptr = Players[Ind], *q_ptr;
 	int Depth = p_ptr->dun_depth;
@@ -3063,7 +3063,7 @@ void do_cmd_fire(int Ind, int dir, int item)
  * to hit bonus of the weapon to have an effect?  Should it ever cause
  * the item to be destroyed?  Should it do any damage at all?
  */
-void do_cmd_throw(int Ind, int dir, int item)
+void do_cmd_throw(int Ind, int item, int dir)
 {
 	player_type *p_ptr = Players[Ind], *q_ptr;
 	int Depth = p_ptr->dun_depth;

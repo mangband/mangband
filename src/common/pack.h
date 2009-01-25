@@ -176,17 +176,42 @@
 /*
  * PKT_COMMAND helpers
  */
-#define SCHEME_QUICK			0	/* %c - PKT */
-#define SCHEME_FULL				1 	/* %c%c%c%hd%s - PKT, item, dir, value, string */
-#define SCHEME_CONSUME_OBJECT	2	/* %c%c - PKT, item */
-#define SCHEME_ALTER_GRID	   	3	/* %c%c - PKT, dir */
-#define SCHEME_COMBINE_OBJECTS	4	/* %c%c - PKT, item1, item2 */
-#define SCHEME_AIM_OBJECT   	5	/* %c%c - PKT, item, dir */
-#define SCHEME_USE_OBJECTS  	6	/* %c%c - PKT, item, quantity */
-#define SCHEME_SINGLE_NUMERIC	7	/* %c%hd - PKT, value */
-#define SCHEME_SINGLE_STRING	8 	/* %c%s - PKT, string */
-#define SCHEME_OBJECT_STRING  	9 	/* %c%s - PKT, item, string */
+#define SCHEME_EMPTY        	0	/* %c - PKT */
+#define SCHEME_FULL         	1 	/* %c%c%c%ld%s - PKT, item, dir, value, string */
 
+#define SCHEME_ITEM         	2	/* %c%c - PKT, item */
+#define SCHEME_DIR          	3	/* %c%c - PKT, dir */
+#define SCHEME_VALUE        	4	/* %c%ld - PKT, value */
+#define SCHEME_SMALL        	5 	/* %c%c - PKT, value */
+#define SCHEME_STRING       	6 	/* %c%s - PKT, string */
+#define SCHEME_CHAR         	7 	/* %c%c - PKT, string */
+
+#define SCHEME_ITEM_DIR     	8	/* %c%c%c - PKT, item, dir */
+#define SCHEME_ITEM_VALUE   	9	/* %c%c%ld - PKT, item, value */
+#define SCHEME_ITEM_SMALL   	10	/* %c%c%c - PKT, item, value */
+#define SCHEME_ITEM_STRING  	11 	/* %c%c%s - PKT, item, string */
+#define SCHEME_ITEM_CHAR    	12 	/* %c%c%c - PKT, item, string */
+
+#define SCHEME_ITEM_VALUE_DIR	13	/* %c%ld%c - PKT, item, value, dir */
+#define SCHEME_ITEM_SMALL_DIR	14	/* %c%c%c - PKT, item, value, dir */
+
+#define SCHEME_WRITE \
+		S_START \
+		S_WRITE(ITEM,       	"%c")   	item\
+		S_WRITE(DIR,        	"%c")   	dir\
+		S_WRITE(VALUE,      	"%ld")  	value\
+		S_WRITE(SMALL,      	"%c")   	(byte)value\
+		S_WRITE(STRING,     	"%s")   	entry\
+		S_WRITE(CHAR,       	"%c")   	entry[0]\
+		S_WRITE(ITEM_DIR,   	"%c%c") 	item, dir\
+		S_WRITE(ITEM_VALUE, 	"%c%ld")	item, value\
+		S_WRITE(ITEM_SMALL, 	"%c%ld")	item, (byte)value\
+		S_WRITE(ITEM_STRING,	"%c%s") 	item, entry\
+		S_WRITE(ITEM_CHAR,  	"%c%c") 	item, entry[0]\
+		S_WRITE(ITEM_VALUE_DIR,	"%c%ld%c")	item, value, dir\
+		S_WRITE(ITEM_SMALL_DIR,	"%c%c%c")	item, (byte)value, dir\
+		S_WRITE(FULL,   	 "%c%c%ld%s") 	item, dir, value, entry\
+		S_DONE
 
 /*
  * PKT_TERM helpers

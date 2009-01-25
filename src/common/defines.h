@@ -766,7 +766,10 @@
 /*** Custom commands ***/
 #define MAX_CUSTOM_COMMANDS	63
 
-#define COMMAND_ITEM_QUICK  	0x00000004	/* Do not interact with player, while selecting item */
+#define COMMAND_TEST_ALIVE  	0x00000001  /* Test if player is alive */
+#define COMMAND_TEST_DEAD   	0x00000002  /* Test if player is dead */
+#define COMMAND_TEST_SPELL  	0x00000004  /* Test if player class is spell-able (by TV) */
+#define COMMAND_ITEM_QUICK  	0x00000008	/* Do not interact with player, while selecting item */
 
 #define COMMAND_ITEM_AMMOUNT  	0x00000010	/* Allow player to specify ammount from item stack */
 #define COMMAND_ITEM_INVEN  	0x00000020	/* Select item from inventory */
@@ -778,15 +781,15 @@
 #define COMMAND_SECOND_EQUIP	0x00000400	/* Select second item from equipment */
 #define COMMAND_SECOND_FLOOR	0x00000800	/* Select second item from floor */
 
-#define COMMAND_TARGET_DIR  	0x01000000	/* Pick direction */
-#define COMMAND_TARGET_ALLOW	0x02000000	/* Pick direction OR target */
-#define COMMAND_TARGET_XXX1 	0x04000000	/* XXX Unused */
-#define COMMAND_TARGET_XXX2 	0x08000000	/* XXX Unused */
+#define COMMAND_TARGET_DIR  	0x00010000	/* Pick direction */
+#define COMMAND_TARGET_ALLOW	0x00020000	/* Pick direction OR target */
+#define COMMAND_TARGET_XXX1 	0x00030000	/* XXX Unused */
+#define COMMAND_TARGET_XXX2 	0x00040000	/* XXX Unused */
 
-#define COMMAND_NEED_VALUE  	0x00010000	/* Ask for s32b value */
-#define COMMAND_NEED_CONFIRM   	0x00020000	/* Ask for confirmation */
-#define COMMAND_NEED_CHAR   	0x00040000	/* Ask for "char" */
-#define COMMAND_NEED_STRING  	0x00080000	/* Ask for "string" (60 chars) */
+#define COMMAND_NEED_VALUE  	0x01000000	/* Ask for s32b value */
+#define COMMAND_NEED_CONFIRM	0x02000000	/* Ask for confirmation */
+#define COMMAND_NEED_CHAR   	0x04000000	/* Ask for "char" */
+#define COMMAND_NEED_STRING  	0x08000000	/* Ask for "string" (60 chars) */
 
 #define COMMAND_NEED_ITEM   	(COMMAND_ITEM_INVEN | \
 								 COMMAND_ITEM_EQUIP | \
@@ -800,6 +803,11 @@
 								 COMMAND_TARGET_ALLOW  | \
 								 COMMAND_TARGET_XXX1   | \
 								 COMMAND_TARGET_XXX2)
+
+#define COMMAND_SECOND_XXX2 	0x10000000  /* XXX Unused */
+#define COMMAND_SECOND_VALUE	0x20000000  /* Put second item into value */
+#define COMMAND_SECOND_DIR  	0x40000000  /* Put second item into dir */
+#define COMMAND_SECOND_CHAR 	0x80000000  /* Put second item into entry[0] */
 
 /*
  * Number of keymap modes

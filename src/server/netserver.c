@@ -3644,7 +3644,7 @@ static int Receive_fire(int ind)
 
 	if (connp->id != -1 && p_ptr->energy >= (level_speed(p_ptr->dun_depth) / p_ptr->num_fire))
 	{
-		do_cmd_fire(player, dir, item);
+		do_cmd_fire(player, item, dir);
 		return 2;
 	}
 	else if (player)
@@ -4154,7 +4154,7 @@ static int Receive_throw(int ind)
 
 	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
-		do_cmd_throw(player, dir, item);
+		do_cmd_throw(player, item, dir);
 		return 2;
 	}
 	else if (player)
@@ -5120,8 +5120,8 @@ static int Receive_custom_command(int ind)
 	s32b value;
 	int n, player;
 	char ch, dir;
-	char item, item2;
-	byte i, j;
+	char item;
+	byte i, j, tmp;
 	char entry[60];
 	
 
@@ -5165,19 +5165,35 @@ static int Receive_custom_command(int ind)
 	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].pkt)
 		return Receive_undefined(ind);		
 	
+#define S_START case SCHEME_EMPTY: n = (1
+#define S_READ(A, B) ); break; case SCHEME_ ## A: Packet_scanf(&connp->r, (B),
+#define S_SET(A) ); A; (tmp=0
+#define S_DONE ); break;
+ 
 	/* Command body */
 	switch (custom_commands[i].scheme)
 	{
-		case SCHEME_QUICK:                                                               		break;
-		case SCHEME_FULL:n = Packet_scanf(&connp->r, "%c%c%hd%s", &item, &dir, &value, entry); 	break;
-		case SCHEME_CONSUME_OBJECT:    	n = Packet_scanf(&connp->r, "%c", &item);           	break;
-		case SCHEME_ALTER_GRID:     	n = Packet_scanf(&connp->r, "%c", &dir);            	break;
-		case SCHEME_COMBINE_OBJECTS:	n = Packet_scanf(&connp->r, "%c%c", &item, &item2); 	break;
-		case SCHEME_AIM_OBJECT:     	n = Packet_scanf(&connp->r, "%c%c", &item, &dir);   	break;
-		case SCHEME_USE_OBJECTS:     	n = Packet_scanf(&connp->r, "%c%ld", &item, &value);	break;
-		case SCHEME_SINGLE_NUMERIC:    	n = Packet_scanf(&connp->r, "%ld", &value);         	break;
-		case SCHEME_SINGLE_STRING:  	n = Packet_scanf(&connp->r, "%s", entry);           	break;
-		case SCHEME_OBJECT_STRING:  	n = Packet_scanf(&connp->r, "%c%s", &item, entry);     	break;
+		S_START
+		
+		S_READ( FULL,	    "%c%c%hd%s")	&item, &dir, &value, entry
+
+		S_READ( ITEM,       	"%c")   	&item
+		S_READ( DIR,        	"%c")   	&dir
+		S_READ( VALUE,      	"%ld")  	&value
+		S_READ( SMALL,      	"%c")   	&tmp            	S_SET(value=tmp)
+		S_READ( STRING,     	"%s")   	entry
+		S_READ( CHAR,       	"%c")   	&entry[0]
+		
+		S_READ( ITEM_DIR,   	"%c%c") 	&item, &dir
+		S_READ( ITEM_VALUE, 	"%c%ld")	&item, &value
+		S_READ( ITEM_SMALL, 	"%c%c") 	&item, &tmp     	S_SET(value=tmp)
+		S_READ( ITEM_STRING,	"%c%s") 	&item, entry
+		S_READ( ITEM_CHAR,  	"%c%c") 	&item, &entry[0]
+
+		S_READ( ITEM_SMALL_DIR, "%c%c%c")	&item, &tmp, &dir 	S_SET(value=tmp)
+		S_READ( ITEM_VALUE_DIR, "%c%ld%c")	&item, &value, &dir
+
+		S_DONE		
 	}
 	if (n <= 0) /* Error ! */
 	{
@@ -5185,6 +5201,8 @@ static int Receive_custom_command(int ind)
 			Destroy_connection(ind, "read error");
 		return n;
 	}	
+
+#define S_WRITE(A, B) ); break; case SCHEME_ ## A: n = Packet_printf(&connp->q, (B),
 
 	/* Does it cost energy? */
 	if (custom_commands[i].energy_cost)
@@ -5196,56 +5214,33 @@ static int Receive_custom_command(int ind)
 			if (ch == (char)PKT_COMMAND) Packet_printf(&connp->q, "%c", i);
 			switch (custom_commands[i].scheme)
 			{
-				case SCHEME_QUICK:                                                         		break;
-				case SCHEME_FULL:Packet_printf(&connp->q, "%c%c%hd%s", item, dir, value, entry);break;				
-				case SCHEME_CONSUME_OBJECT:    	Packet_printf(&connp->q, "%c", item);          	break;
-				case SCHEME_ALTER_GRID:     	Packet_printf(&connp->q, "%c", dir);          	break;
-				case SCHEME_COMBINE_OBJECTS:	Packet_printf(&connp->q, "%c%c", item, item2); 	break;
-				case SCHEME_AIM_OBJECT:     	Packet_printf(&connp->q, "%c%c", item, dir);   	break;
-				case SCHEME_USE_OBJECTS:     	Packet_printf(&connp->q, "%c%ld", item, value);	break;
-				case SCHEME_SINGLE_NUMERIC:    	Packet_printf(&connp->q, "%ld", value);       	break;
-				case SCHEME_SINGLE_STRING:  	Packet_printf(&connp->q, "%s", entry);         	break;
-				case SCHEME_OBJECT_STRING:  	Packet_printf(&connp->q, "%c%s", item, entry); 	break;
+				SCHEME_WRITE;
 			}
 			/* Report lack of energy */
 			return 2;
 		} 
 	}	
 
+#define S_ARG (custom_commands[i].do_cmd_callback) 
+#define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;
+ 
 	/* Execute command */
 	switch (custom_commands[i].scheme)
 	{
-		case SCHEME_QUICK:
-		    (*(void (*)(int))(custom_commands[i].do_cmd_callback))
-		    (player);
-		break;
-		case SCHEME_CONSUME_OBJECT:
-			(*(void (*)(int, char))(custom_commands[i].do_cmd_callback))
-			(player, item);
-		break;
-		case SCHEME_ALTER_GRID:
-			(*(void (*)(int, char))(custom_commands[i].do_cmd_callback))
-			(player, dir);
-		break;		
-		case SCHEME_COMBINE_OBJECTS:
-			(*(void (*)(int, char, char))(custom_commands[i].do_cmd_callback))
-			(player, item, item2);
-		break;
-		case SCHEME_USE_OBJECTS:
-			(*(void (*)(int, char, int))(custom_commands[i].do_cmd_callback))
-			(player, item, value);
-		break;
-		case SCHEME_SINGLE_NUMERIC:
-			(*(void (*)(int, int))(custom_commands[i].do_cmd_callback))
-			(player, value);
-		break;
-		case SCHEME_SINGLE_STRING:
-			(*(void (*)(int, char*))(custom_commands[i].do_cmd_callback))
-			(player, entry);
-		case SCHEME_OBJECT_STRING:
-			(*(void (*)(int, char, char*))(custom_commands[i].do_cmd_callback))
-			(player, item, entry);
-		break;
+		S_EXEC( EMPTY,	 				(int),  		 				(player))
+		S_EXEC( ITEM,					(int, char),    				(player, item))
+		S_EXEC(	DIR,					(int, char),    				(player, dir))
+		S_EXEC(	VALUE,					(int, int), 					(player, value))
+		S_EXEC(	SMALL,					(int, int),  					(player, value))
+		S_EXEC(	STRING,					(int, char*),   				(player, entry))
+		S_EXEC(	CHAR,					(int, char),    				(player, entry[0]))
+		S_EXEC(	ITEM_DIR,	 			(int, char, char),  			(player, item, dir))
+		S_EXEC(	ITEM_VALUE,	 			(int, char, int),   			(player, item, value))
+		S_EXEC(	ITEM_SMALL,	 			(int, char, int),   			(player, item, value))
+		S_EXEC(	ITEM_STRING,	 		(int, char, char*),		 		(player, item, entry))
+		S_EXEC(	ITEM_CHAR,  	 		(int, char, char),		 		(player, item, entry[0]))
+		S_EXEC( ITEM_VALUE_DIR,			(int, int, char, char),			(player, item, value, dir))
+		S_EXEC( ITEM_SMALL_DIR,			(int, int, char, char),			(player, item, value, dir))
 	}
 	
 	/* Report success */

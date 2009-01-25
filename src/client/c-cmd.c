@@ -19,11 +19,43 @@ void cmd_custom(byte i)
 	prompt = cc_ptr->prompt;
 	entry[0] = '\0';
 	
+	/* Pre-tests */
+	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
+	{
+		if (p_ptr->ghost)
+		{
+			if (!STRZERO(prompt)) c_msg_print(prompt);
+			return;
+		}
+		prompt = prompt + strlen(prompt) + 1;
+	}
+	if (cc_ptr->flag & COMMAND_TEST_DEAD)
+	{
+		if (!p_ptr->ghost)
+		{
+			if (!STRZERO(prompt)) c_msg_print(prompt);
+			return;
+		}
+		prompt = prompt + strlen(prompt) + 1;
+	}
+	if (cc_ptr->flag & COMMAND_TEST_SPELL)
+	{
+		if (c_info[class].spell_book != cc_ptr->tval)
+		{
+			if (!STRZERO(prompt)) c_msg_print(prompt);
+			return;
+		}
+		prompt = prompt + strlen(prompt) + 1;
+	}
 	/* Search for an item (automatic) */
 	if (cc_ptr->flag & COMMAND_ITEM_QUICK)
 	{
 		if (!c_check_item(&item, cc_ptr->tval))
+		{
+			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
+		}
+		prompt = prompt + strlen(prompt) + 1;
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
@@ -57,10 +89,9 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_SECOND_INVEN), 
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR)))
 				return;
-		value = (s32b)item2;
 		prompt = prompt + strlen(prompt) + 1;
 	}
-	if (cc_ptr->flag & COMMAND_TARGET_DIR) 
+	if (cc_ptr->flag & COMMAND_NEED_TARGET) 
 	{
 		if (!c_get_dir(&dir, prompt, ((cc_ptr->flag & COMMAND_TARGET_ALLOW) ? TRUE : FALSE) ))
 			return;
@@ -94,7 +125,21 @@ void cmd_custom(byte i)
 		if (!get_check(prompt))
 			return;
 		prompt = prompt + strlen(prompt) + 1;
+	}
+	/* Post-effects */
+	if (cc_ptr->flag & COMMAND_SECOND_VALUE)
+	{
+		value = (s32b)item2;
+	}
+	if (cc_ptr->flag & COMMAND_SECOND_DIR)
+	{
+		dir = item2;
 	}	
+	if (cc_ptr->flag & COMMAND_SECOND_CHAR)
+	{
+		entry[0] = item2;
+		entry[1] = '\0';
+	}
 
 
 	Send_custom_command(i, item, dir, value, entry);
@@ -132,14 +177,14 @@ void process_command()
 		}
 
 		/*** Movement Commands ***/
-
+#ifndef COMMAND_OVERLOAD
 		/* Dig a tunnel*/
 		case '+':
 		{
 			cmd_tunnel();
 			break;
 		}
-
+#endif
 		/* Move */
 		case ';':
 		{
@@ -174,7 +219,7 @@ void process_command()
 			cmd_locate();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		/* Search */
 		case 's':
 		{
@@ -188,14 +233,14 @@ void process_command()
 			cmd_toggle_search();
 			break;
 		}
-
+#endif
 		/* Rest */
 		case 'R':
 		{
 			cmd_rest();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		/*** Stairs and doors and chests ***/
 
 		/* Go up */
@@ -239,7 +284,7 @@ void process_command()
 			cmd_disarm();
 			break;
 		}
-
+#endif
 		/*** Inventory commands ***/
 		case 'i':
 		{
@@ -252,19 +297,19 @@ void process_command()
 			cmd_equip();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		case 'd':
 		{
 			cmd_drop();
 			break;
 		}
-
+#endif
 		case '$':
 		{
 			cmd_drop_gold();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		case 'w':
 		{
 			cmd_wield();
@@ -276,13 +321,13 @@ void process_command()
 			cmd_take_off();
 			break;
 		}
-
+#endif
 		case 'k':
 		{
 			cmd_destroy();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		case 'I':
 		{
 			cmd_observe();
@@ -304,12 +349,6 @@ void process_command()
 		case 'j':
 		{
 			cmd_spike();
-			break;
-		}
-
-		case 'J':
-		{
-			cmd_steal();
 			break;
 		}
 
@@ -372,7 +411,7 @@ void process_command()
 		{
 			cmd_throw();
 			break;
-		}
+		}#endif
 		/*** Spell casting ***/
 		case 'b':
 		{
@@ -460,12 +499,6 @@ void process_command()
 			break;
 		}
 
-		case '/':
-		{
-			cmd_query_symbol();
-			break;
-		}
-
 		/*** Miscellaneous ***/
 		case ':':
 		{
@@ -540,12 +573,6 @@ void process_command()
 		case '%':
 		{
 			interact_macros();
-			break;
-		}
-
-		case 'h':
-		{
-			cmd_purchase_house();
 			break;
 		}
 
@@ -1013,16 +1040,6 @@ void cmd_spike(void)
 	Send_spike(dir);
 }
 
-void cmd_steal(void)
-{
-	int dir;
-
-	get_dir(&dir);
-
-	/* Send it */
-	Send_steal(dir);
-}
-
 void cmd_quaff(void)
 {
 	int item;
@@ -1380,16 +1397,6 @@ void cmd_help(void)
 
 	/* Call the file perusal */
 	peruse_file();
-}
-
-void cmd_query_symbol(void)
-{
-	char sym;
-	
-	/* Get a character or abort */
-	if (!get_com("Enter character to be identified: ", &sym)) return;
-	
-	Send_symbol(sym);	
 }
 
 void cmd_chat()
@@ -1770,17 +1777,6 @@ void cmd_redraw(void)
 {
 	Send_redraw();
 	//keymap_init();
-}
-
-void cmd_purchase_house(void)
-{
-	int dir;
-
-	if (!get_dir(&dir))
-		return;
-	
-	/* Send it */
-	Send_purchase_house(dir);
 }
 
 void cmd_suicide(void)

@@ -39,39 +39,173 @@
  *  prompt - new-line separated string of prompts for each (flags) group.
  */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
-{
-#ifdef COMMAND_OVERLOAD
-	{ /* Inscribe Item */	
-		'{', PKT_INSCRIBE, SCHEME_OBJECT_STRING, 0, (cccb)do_cmd_inscribe,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
-		0, "Inscribe what? \nInscription: "
+{	
+	/*** Simpliest, one-off commands ***/
+	{ /* Go Up by stairs */
+		'<', PKT_GO_UP, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,
+		(0),		0, ""
 	},
-	{ /* Drop Item */	
-		'd', PKT_DROP, SCHEME_USE_OBJECTS, 1, (cccb)do_cmd_drop,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
-		0, "Drop what? \nHow much? "
+	{ /* Go Down by stairs */
+		'>', PKT_GO_DOWN, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
+		(0),		0, ""
 	},
-	{ /* Eat */
-		'E', PKT_EAT, SCHEME_CONSUME_OBJECT, 1, (cccb)do_cmd_eat_food,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR), 
-		TV_FOOD, "Eat what? "
+	{ /* Search */
+		's', PKT_SEARCH, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
+		(0),		0, ""
 	},
-	{ /* Drop Gold */	
-		'$', PKT_DROP_GOLD, SCHEME_SINGLE_NUMERIC, 1, (cccb)do_cmd_drop_gold,
-		(COMMAND_NEED_VALUE), 
-		0, "How much gold? "
+	{ /* Toggle Search */
+		'S', PKT_SEARCH_MODE, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
+		(0),		0, ""
 	},
-	{ /* Steal */
-		'J', PKT_STEAL, SCHEME_ALTER_GRID, 1, (cccb)do_cmd_steal,
+
+	/*** Simple grid altering commands ***/
+	{ /* Tunnel */
+		'+', PKT_TUNNEL, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+	{ /* Bash a door */
+		'B', PKT_BASH, SCHEME_DIR, 1, (cccb)do_cmd_bash,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+	{ /* Disarm a trap or chest */
+		'D', PKT_DISARM, SCHEME_DIR, 1, (cccb)do_cmd_disarm,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+	{ /* Open door or chest */
+		'o', PKT_OPEN, SCHEME_DIR, 1, (cccb)do_cmd_open,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+	{ /* Close door */
+		'c', PKT_CLOSE, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+
+	/*** Complex grid altering ***/
+	{ /* Spike door */
+		'j', PKT_SPIKE, SCHEME_DIR, 1, (cccb)do_cmd_spike,
+		(COMMAND_ITEM_QUICK | COMMAND_ITEM_INVEN | COMMAND_TARGET_DIR),
+		TV_SPIKE, "You have no spikes!"
+	},
+	{ /* Steal (MAngband-specific) */
+		'J', PKT_STEAL, SCHEME_DIR, 1, (cccb)do_cmd_steal,
 		(COMMAND_TARGET_DIR),
 		0, "Touch in what "
 	},
-	{ /* Purchase/Sell/Examine House */
-		'h', (char)PKT_COMMAND, SCHEME_ALTER_GRID, 1, (cccb)do_cmd_purchase_house,
+	{ /* Purchase/Sell/Examine House (MAngband-specific) */
+		'h', (char)PKT_COMMAND, SCHEME_DIR, 1, (cccb)do_cmd_purchase_house,
 		(COMMAND_TARGET_DIR),
 		0, "Knock in what "
 	},
-#endif	
+
+	/*** Inventory commands ***/
+	{ /* Wear/Wield Item */
+		'w', PKT_WIELD, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		0, "Wear/Wield which item? "
+	},
+	{ /* Takeoff */
+		't', PKT_TAKE_OFF, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
+		(COMMAND_ITEM_EQUIP),
+		0, "Takeoff which item? "
+	},
+	{ /* Drop Item */
+		'd', PKT_TAKE_OFF, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Drop what? \nHow much? "
+	},
+	{ /* Inscribe Item */
+		'{', PKT_INSCRIBE, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
+		0, "Inscribe what? \nInscription: "
+	},
+	{ /* Uninscribe what?  */
+		'}', PKT_UNINSCRIBE, SCHEME_ITEM, 0, (cccb)do_cmd_uninscribe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
+		0, "Uninscribe what? "
+	},
+	{ /* Observe/Examine item  */
+		'I', (char)PKT_OBSERVE, SCHEME_ITEM, 0, (cccb)do_cmd_observe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
+		0, "Examine what? "
+	},
+
+	/*** Inventory "usage" commands ***/
+	/* Magic devices */
+	{ /* Read scroll */
+		'r', PKT_READ, SCHEME_ITEM, 1, (cccb)do_cmd_read_scroll,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_SCROLL, "Read which scroll? "
+	},
+	{ /* Aim wand */
+		'a', PKT_AIM_WAND, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_WAND, "Aim which wand? "
+	},
+	{ /* Use staff */
+		'u', PKT_USE, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_STAFF, "Use which staff? "
+	},
+	{ /* Zap rod */
+		'z', PKT_ZAP, SCHEME_ITEM, 1, (cccb)do_cmd_zap_rod,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_ROD, "Use which rod? "
+	},
+	{ /* Activate */
+		'A', PKT_ACTIVATE, SCHEME_ITEM, 1, (cccb)do_cmd_activate,
+		(COMMAND_ITEM_EQUIP),
+		0, "Activate what? "
+	},
+	/* Common items */
+	{ /* Refill */
+		'F', PKT_FILL, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		0, "Refill with which light? "
+	},
+	{ /* Drink */
+		'q', PKT_EAT, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_POTION, "Quaff which potion? "
+	},
+	{ /* Eat */
+		'E', PKT_EAT, SCHEME_ITEM, 1, (cccb)do_cmd_eat_food,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_FOOD, "Eat what? "
+	},
+
+	/*** Firing and throwing ***/
+	{ /* Fire an object */
+		'f', PKT_FIRE, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
+		0, "Fire which ammo? "
+	},
+	{ /* Throw an object */
+		'v', PKT_THROW, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
+		0, "Throw what? "
+	},
+
+	/*** Spell-casting ***/
+
+	/*** Miscellaneous; MAngband-specific ***/
+#if 0
+	{ /* Suicide */
+		'Q', PKT_SUICIDE, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,
+		(COMMAND_NEED_CONFIRM | COMMAND_NEED_CHAR),
+		0, "Please verify SUICIDE by typing the '@' sign: \nDo you really want to commit suicide? "
+	},
+#endif
+	{ /* Drop Gold */
+		'$', PKT_DROP_GOLD, SCHEME_VALUE, 1, (cccb)do_cmd_drop_gold,
+		(COMMAND_NEED_VALUE),
+		0, "How much gold? "
+	},
+	{ /* Symbol Query */
+		'/', PKT_SYMBOL_QUERY, SCHEME_CHAR, 0, (cccb)do_cmd_query_symbol,
+		(COMMAND_NEED_CHAR),
+		0, "Symbol: "
+	},
+
 	/* End-of-array */
 	{ 0,0,0,0,0,0,0 }
 };

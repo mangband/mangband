@@ -2038,7 +2038,7 @@ s32b c_get_quantity(cptr prompt, s32b max)
 	if (!prompt)
 	{
 		/* Build a prompt */
-		sprintf(tmp, "Quantity (1-%d): ", max);
+		sprintf(tmp, "Quantity (1-%ld): ", max);
 
 		/* Use that prompt */
 		prompt = tmp;
