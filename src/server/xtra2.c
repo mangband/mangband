@@ -4107,6 +4107,36 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	return;
 }
 
+/*
+ * Given a "source" and "target" location, extract a "direction",
+ * which will move one step from the "source" towards the "target".
+ *
+ * Note that we use "diagonal" motion whenever possible.
+ *
+ * We return "5" if no motion is needed.
+ */
+int motion_dir(int y1, int x1, int y2, int x2)
+{
+	/* No movement required */
+	if ((y1 == y2) && (x1 == x2)) return (5);
+
+	/* South or North */
+	if (x1 == x2) return ((y1 < y2) ? 2 : 8);
+
+	/* East or West */
+	if (y1 == y2) return ((x1 < x2) ? 6 : 4);
+
+	/* South-east or South-west */
+	if (y1 < y2) return ((x1 < x2) ? 3 : 1);
+
+	/* North-east or North-west */
+	if (y1 > y2) return ((x1 < x2) ? 9 : 7);
+
+	/* Paranoia */
+	return (5);
+}
+
+
 
 /*
  * Extract a direction (or zero) from a character
@@ -4691,6 +4721,45 @@ bool get_rep_dir(int *dp)
 }
 #endif
 
+/*
+ * Apply confusion, if needed, to a direction
+ *
+ * Display a message and return TRUE if direction changes.
+ */
+bool confuse_dir(bool confused, int *dp)
+{
+	int dir;
+
+	/* Default */
+	dir = (*dp);
+
+	/* Apply "confusion" */
+	if (confused)
+	{
+		/* Apply confusion XXX XXX XXX */
+		if ((dir == 5) || (rand_int(100) < 75))
+		{
+			/* Random direction */
+			dir = ddd[rand_int(8)];
+		}
+	}
+
+	/* Notice confusion */
+	if ((*dp) != dir)
+	{
+		/* Warn the user */
+		/* msg_print("You are confused."); */
+
+		/* Save direction */
+		(*dp) = dir;
+
+		/* Confused */
+		return (TRUE);
+	}
+
+	/* Not confused */
+	return (FALSE);
+}
 
 /* this has finally earned its own function, to make it easy for restoration to do this also */
 
