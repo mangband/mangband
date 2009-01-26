@@ -1329,9 +1329,17 @@ static int Enter_player(int ind)
 
 	for (i = 0; i < MAX_F_IDX; i++)
 	{
-		p_ptr->f_attr[i] = connp->Client_setup.f_attr[i];
-		p_ptr->f_char[i] = connp->Client_setup.f_char[i];
-
+		/* Ignore mimics */
+		if (f_info[i].mimic != i)
+		{ 
+			p_ptr->f_attr[i] = connp->Client_setup.f_attr[f_info[i].mimic];
+			p_ptr->f_char[i] = connp->Client_setup.f_char[f_info[i].mimic];
+		}
+		else
+		{
+			p_ptr->f_attr[i] = connp->Client_setup.f_attr[i];
+			p_ptr->f_char[i] = connp->Client_setup.f_char[i];
+		}
 		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].z_attr;
 		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].z_char;
 	}
