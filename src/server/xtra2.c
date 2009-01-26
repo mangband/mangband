@@ -2246,8 +2246,6 @@ void monster_death(int Ind, int m_idx)
 					do_cmd_suicide(i);
 			}
 		}
-
-		return;
 	}
 
 
@@ -2258,15 +2256,14 @@ void monster_death(int Ind, int m_idx)
 	for (i = 0; i < MAX_Q_IDX; i++)
 	{
 		/* Hack -- note completed quests */
-		if (q_list[i].level == r_ptr->level) q_list[i].level = 0;
+		if (p_ptr->q_list[i].level == r_ptr->level) p_ptr->q_list[i].level = 0;
 
 		/* Count incomplete quests */
-		if (q_list[i].level) total++;
+		if (p_ptr->q_list[i].level) total++;
 	}
 
 
 	/* Need some stairs */
-	if (total)
 	{
 		/* Stagger around */
 		while (!cave_valid_bold(Depth, y, x))
@@ -2291,6 +2288,10 @@ void monster_death(int Ind, int m_idx)
 
 		/* Create stairs down */
 		c_ptr->feat = FEAT_MORE;
+		
+		/* (Re)Set starting location for people coming up */
+		level_up_y[Depth] = y;
+		level_up_x[Depth] = x;
 
 		/* Note the spot */
 		note_spot_depth(Depth, y, x);

@@ -564,8 +564,10 @@ monster_type *m_list;
 
 /*
  * Hack -- Quest array
+ *
+ * Also moved to player info 
  */
-quest q_list[MAX_Q_IDX];
+/* quest q_list[MAX_Q_IDX]; */
 
 
 /*

@@ -477,6 +477,7 @@ extern void update_health(int m_idx);
 extern void monster_race_track(int Ind, int r_idx);
 extern void disturb(int Ind, int stop_search, int flush_output);
 extern bool is_quest(int level);
+extern bool is_quest_level(int Ind, int level);
 extern void update_players(void);
 extern void update_cursor(int);
 extern void cursor_track(int Ind, int m_idx);

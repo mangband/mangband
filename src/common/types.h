@@ -1551,6 +1551,7 @@ struct player_type
 	u32b old_turn;		/* Turn when player entered current level */
 	
 	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
+	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
 };
 
 

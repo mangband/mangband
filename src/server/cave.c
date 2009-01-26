@@ -4022,20 +4022,47 @@ void disturb(int Ind, int stop_search, int unused_flag)
 
 
 /*
- * Hack -- Check if a level is a "quest" level
+ * Hack -- Check if player is on a "quest" level
  */
-bool is_quest(int level)
+bool is_quest_level(int Ind, int level)
 {
 	int i;
-
-	/* Town is never a quest */
-	if (!level) return (FALSE);
+	
+	/* Town or Wilderness are never a quest */
+	if (level <= 0) return (FALSE);
 
 	/* Check quests */
 	for (i = 0; i < MAX_Q_IDX; i++)
 	{
 		/* Check for quest */
-		if (q_list[i].level == level) return (TRUE);
+		if (Players[Ind]->q_list[i].level == level) return (TRUE);
+	}
+	
+	/* Nope */
+	return (FALSE);
+}
+/*
+ * Hack -- Check if a level is a "quest" level
+ */
+bool is_quest(int level)
+{
+	int i, j;
+
+	/* Town or Wilderness are never a quest */
+	if (level <= 0) return (FALSE);
+
+	/* Check each player */
+	for (j = 1; j < NumPlayers + 1; j++)
+	{
+		if (Players[j]->dun_depth == level)
+		{
+			/* Check his quests */
+			for (i = 0; i < MAX_Q_IDX; i++)
+			{
+				/* Check for quest */
+				if (Players[j]->q_list[i].level == level) return (TRUE);
+			}
+		}
 	}
 
 	/* Nope */

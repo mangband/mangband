@@ -840,6 +840,17 @@ static bool wr_savefile_new(int Ind)
 	}
 	end_section("event_history");
 
+	/* write (un)completed quests */
+	start_section("quests");
+	tmp16u = MAX_Q_IDX;
+	write_int("max_q_idx",tmp16u);	
+	for (i = 0; i < MAX_Q_IDX; i++)
+	{
+		tmp16u = p_ptr->q_list[i].level;
+		write_int("level", tmp16u);
+	}
+	end_section("quests");
+
 	/* write the artifacts sold list */
 	start_section("sold_artifacts");
 	tmp16u = MAX_A_IDX;

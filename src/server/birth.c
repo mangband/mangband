@@ -524,6 +524,16 @@ static void player_wipe(int Ind)
 		l_ptr->pkills = 0;
 		p_ptr->r_killed[i] = 0;
 	}
+	
+	/* Start with no quests */
+	for (i = 1; i < MAX_Q_IDX; i++)
+	{
+		p_ptr->q_list[i].level = 0;
+	}
+	
+	/* Hack -- Add Sauron & Morgoth quests */
+	p_ptr->q_list[0].level = 99;
+	p_ptr->q_list[1].level = 100;
 
 	/* Hack -- Well fed player */
 	p_ptr->food = PY_FOOD_FULL - 1;

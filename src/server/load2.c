@@ -1709,6 +1709,19 @@ static errr rd_savefile_new_aux(int Ind)
 		end_section_read("event_history");
 	}
 
+	/* Read the characters quest list */
+	if(section_exists("quests"))
+	{
+		start_section_read("quests");
+		tmp16u = read_int("max_q_idx");
+		for(i = 0; i < MAX_Q_IDX; i++)
+		{
+			tmp16u = read_int("level");
+			p_ptr->q_list[i].level = tmp16u;
+		}
+		end_section_read("quests");
+	}
+
 	/* Read the characters sold artifact list */
 	if(section_exists("sold_artifacts"))
 	{
