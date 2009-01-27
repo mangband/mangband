@@ -508,6 +508,7 @@ extern void do_cmd_go_up(int Ind);
 extern void do_cmd_go_down(int Ind);
 extern void do_cmd_search(int Ind);
 extern void do_cmd_toggle_search(int Ind);
+extern void do_cmd_alter(int Ind, int dir);
 extern void do_cmd_open(int Ind, int dir);
 extern void do_cmd_close(int Ind, int dir);
 extern void do_cmd_tunnel(int Ind, int dir);

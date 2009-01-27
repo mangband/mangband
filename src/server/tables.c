@@ -59,8 +59,12 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 
 	/*** Simple grid altering commands ***/
+	{ /* Alter */
+		'+', (char)(PKT_COMMAND+1), SCHEME_DIR, 1, (cccb)do_cmd_alter,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
 	{ /* Tunnel */
-		'+', PKT_TUNNEL, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		'T', PKT_TUNNEL, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Bash a door */
@@ -76,7 +80,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Close door */
-		'c', PKT_CLOSE, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		'c', PKT_CLOSE, SCHEME_DIR, 1, (cccb)do_cmd_close,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 
