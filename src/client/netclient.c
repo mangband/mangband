@@ -2449,6 +2449,7 @@ int Receive_custom_command(void)
 	}
 
 	if (custom_commands >= MAX_CUSTOM_COMMANDS) return 0;
+	if (scheme >= MAX_SCHEMES) return 0;
 
 	cc_ptr = &custom_command[custom_commands];
 	WIPE(cc_ptr, custom_command_type);

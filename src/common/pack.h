@@ -192,8 +192,25 @@
 #define SCHEME_ITEM_STRING  	11 	/* %c%c%s - PKT, item, string */
 #define SCHEME_ITEM_CHAR    	12 	/* %c%c%c - PKT, item, string */
 
-#define SCHEME_ITEM_VALUE_DIR	13	/* %c%ld%c - PKT, item, value, dir */
-#define SCHEME_ITEM_SMALL_DIR	14	/* %c%c%c - PKT, item, value, dir */
+#define SCHEME_DIR_VALUE    	13 	/* %c%c - PKT, dir, value */
+#define SCHEME_DIR_SMALL    	14 	/* %c%ld - PKT, dir, value */
+#define SCHEME_DIR_STRING   	15 	/* %c%s - PKT, dir, string */
+#define SCHEME_DIR_CHAR     	16 	/* %c%c - PKT, dir, string */
+
+#define SCHEME_VALUE_STRING 	17 	/* %c%ld%s - PKT, value, string */
+#define SCHEME_VALUE_CHAR   	18 	/* %c%ld%c - PKT, value, string */
+#define SCHEME_SMALL_STRING 	19 	/* %c%c%s - PKT, value, string */
+#define SCHEME_SMALL_CHAR   	20 	/* %c%c%c - PKT, value, string */
+
+#define SCHEME_ITEM_DIR_VALUE	21	/* %c%c%c%ld - PKT, item, dir, value */
+#define SCHEME_ITEM_DIR_SMALL	22	/* %c%c%c%c - PKT, item, dir, value */
+#define SCHEME_ITEM_DIR_STRING	23	/* %c%c%c%s - PKT, item, dir, string */
+#define SCHEME_ITEM_DIR_CHAR	24	/* %c%c%c%c - PKT, item, dir, string */
+
+#define SCHEME_ITEM_VALUE_STRING 25	/* %c%c%ld%s - PKT, item, value, string */
+#define SCHEME_ITEM_VALUE_CHAR   26	/* %c%c%ld%c - PKT, item, value, string */
+#define SCHEME_ITEM_SMALL_STRING 27	/* %c%c%c%s - PKT, item, value, string */
+#define SCHEME_ITEM_SMALL_CHAR   28	/* %c%c%c%c - PKT, item, value, string */
 
 #define SCHEME_WRITE \
 		S_START \
@@ -203,13 +220,27 @@
 		S_WRITE(SMALL,      	"%c")   	(byte)value\
 		S_WRITE(STRING,     	"%s")   	entry\
 		S_WRITE(CHAR,       	"%c")   	entry[0]\
+		S_WRITE(DIR_VALUE,     	"%c%ld")   	dir, value\
+		S_WRITE(DIR_SMALL,     	"%c%c")   	dir, (byte)value\
+		S_WRITE(DIR_STRING,    	"%c%s")   	dir, entry\
+		S_WRITE(DIR_CHAR,     	"%c%c")   	dir, entry[0]\
+		S_WRITE(VALUE_STRING,  	"%ld%s")   	value, entry\
+		S_WRITE(VALUE_CHAR,  	"%ld%c")   	value, entry[0]\
+		S_WRITE(SMALL_STRING,  	"%c%s")   	(byte)value, entry\
+		S_WRITE(SMALL_CHAR,  	"%c%c")   	(byte)value, entry[0]\
 		S_WRITE(ITEM_DIR,   	"%c%c") 	item, dir\
 		S_WRITE(ITEM_VALUE, 	"%c%ld")	item, value\
-		S_WRITE(ITEM_SMALL, 	"%c%ld")	item, (byte)value\
+		S_WRITE(ITEM_SMALL, 	"%c%c") 	item, (byte)value\
 		S_WRITE(ITEM_STRING,	"%c%s") 	item, entry\
 		S_WRITE(ITEM_CHAR,  	"%c%c") 	item, entry[0]\
-		S_WRITE(ITEM_VALUE_DIR,	"%c%ld%c")	item, value, dir\
-		S_WRITE(ITEM_SMALL_DIR,	"%c%c%c")	item, (byte)value, dir\
+		S_WRITE(ITEM_DIR_VALUE,	"%c%c%ld") 	item, dir, value\
+		S_WRITE(ITEM_DIR_SMALL,	"%c%c%c") 	item, dir, (byte)value\
+		S_WRITE(ITEM_DIR_STRING,"%c%c%s") 	item, dir, entry\
+		S_WRITE(ITEM_DIR_CHAR,	"%c%c%c") 	item, dir, entry[0]\
+		S_WRITE(ITEM_VALUE_STRING,"%c%ld%s")	item, value, entry\
+		S_WRITE(ITEM_VALUE_CHAR,"%c%c%c") 	item, value, entry[0]\
+		S_WRITE(ITEM_SMALL_STRING,"%c%c%ld")	item, (byte)value, entry\
+		S_WRITE(ITEM_SMALL_CHAR,"%c%c%ld") 	item, (byte)value, entry[0]\
 		S_WRITE(FULL,   	 "%c%c%ld%s") 	item, dir, value, entry\
 		S_DONE
 

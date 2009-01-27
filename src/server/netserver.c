@@ -5182,7 +5182,7 @@ static int Receive_custom_command(int ind)
 	switch (custom_commands[i].scheme)
 	{
 		S_START
-		
+
 		S_READ( FULL,	    "%c%c%hd%s")	&item, &dir, &value, entry
 
 		S_READ( ITEM,       	"%c")   	&item
@@ -5191,15 +5191,32 @@ static int Receive_custom_command(int ind)
 		S_READ( SMALL,      	"%c")   	&tmp            	S_SET(value=tmp)
 		S_READ( STRING,     	"%s")   	entry
 		S_READ( CHAR,       	"%c")   	&entry[0]
-		
+
 		S_READ( ITEM_DIR,   	"%c%c") 	&item, &dir
 		S_READ( ITEM_VALUE, 	"%c%ld")	&item, &value
 		S_READ( ITEM_SMALL, 	"%c%c") 	&item, &tmp     	S_SET(value=tmp)
 		S_READ( ITEM_STRING,	"%c%s") 	&item, entry
 		S_READ( ITEM_CHAR,  	"%c%c") 	&item, &entry[0]
 
-		S_READ( ITEM_SMALL_DIR, "%c%c%c")	&item, &tmp, &dir 	S_SET(value=tmp)
-		S_READ( ITEM_VALUE_DIR, "%c%ld%c")	&item, &value, &dir
+		S_READ( DIR_VALUE,  	"%c%ld") 	&dir, &tmp  		S_SET(value=tmp)
+		S_READ( DIR_SMALL,  	"%c%c") 	&dir, &value
+		S_READ( DIR_STRING,  	"%c%s") 	&dir, entry
+		S_READ( DIR_CHAR,   	"%c%c") 	&dir, &entry[0]
+
+		S_READ( VALUE_STRING,  	"%ld%s") 	&value, entry
+		S_READ( VALUE_CHAR,  	"%ld%s") 	&value, &entry[0]
+		S_READ( SMALL_STRING,  	"%c%s") 	&tmp, entry 		S_SET(value=tmp)
+		S_READ( SMALL_CHAR,  	"%c%s") 	&tmp, &entry[0]		S_SET(value=tmp)
+
+		S_READ( ITEM_DIR_VALUE,	"%c%c%ld") 	&item, &dir, &value
+		S_READ( ITEM_DIR_SMALL,	"%c%c%c") 	&item, &dir, &tmp	S_SET(value=tmp)
+		S_READ( ITEM_DIR_STRING,"%c%c%s") 	&item, &dir, entry
+		S_READ( ITEM_DIR_CHAR,	"%c%c%c") 	&item, &dir, &entry[0]
+
+		S_READ( ITEM_VALUE_STRING,"%c%ld%s")	&item, &value, entry
+		S_READ( ITEM_VALUE_CHAR, "%c%ld%c")	&item, &value, &entry[0]
+		S_READ( ITEM_SMALL_STRING,"%c%c%s")	&item, &tmp, entry  	S_SET(value=tmp)
+		S_READ( ITEM_SMALL_CHAR,  "%c%c%c")	&item, &tmp, &entry[0]	S_SET(value=tmp)
 
 		S_DONE		
 	}
@@ -5247,8 +5264,22 @@ static int Receive_custom_command(int ind)
 		S_EXEC(	ITEM_SMALL,	 			(int, char, int),   			(player, item, value))
 		S_EXEC(	ITEM_STRING,	 		(int, char, char*),		 		(player, item, entry))
 		S_EXEC(	ITEM_CHAR,  	 		(int, char, char),		 		(player, item, entry[0]))
-		S_EXEC( ITEM_VALUE_DIR,			(int, int, char, char),			(player, item, value, dir))
-		S_EXEC( ITEM_SMALL_DIR,			(int, int, char, char),			(player, item, value, dir))
+		S_EXEC(	DIR_VALUE,  	 		(int, char, int),		 		(player, dir, value))
+		S_EXEC(	DIR_SMALL,  	 		(int, char, int),		 		(player, dir, value))
+		S_EXEC(	DIR_STRING,  	 		(int, char, char*),		 		(player, dir, entry))
+		S_EXEC(	DIR_CHAR,   	 		(int, char, char),		 		(player, dir, entry[0]))
+		S_EXEC(	VALUE_STRING,  	 		(int, int, char*),		 		(player, value, entry))
+		S_EXEC(	VALUE_CHAR,  	 		(int, int, char),		 		(player, value, entry[0]))
+		S_EXEC(	SMALL_STRING,  	 		(int, int, char*),		 		(player, value, entry))
+		S_EXEC(	SMALL_CHAR,  	 		(int, int, char),		 		(player, value, entry[0]))
+		S_EXEC(	ITEM_DIR_VALUE,	 		(int, char, char, int),				(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_SMALL,	 		(int, char, char, int),				(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_STRING, 		(int, char, char, char*),			(player, item, dir, entry))
+		S_EXEC(	ITEM_DIR_CHAR,	 		(int, char, char, char),			(player, item, dir, entry[0]))
+		S_EXEC(	ITEM_VALUE_STRING, 		(int, char, int, char*),			(player, item, value, entry))
+		S_EXEC(	ITEM_VALUE_CHAR, 		(int, char, int, char),				(player, item, value, entry[0]))
+		S_EXEC(	ITEM_SMALL_STRING, 		(int, char, int, char*),			(player, item, value, entry))
+		S_EXEC(	ITEM_SMALL_CHAR, 		(int, char, int, char),				(player, item, value, entry[0]))
 	}
 	
 	/* Report success */

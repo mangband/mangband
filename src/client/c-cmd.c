@@ -11,6 +11,7 @@ void cmd_custom(byte i)
 	s32b value;
 	cptr prompt;
 	char entry[60];
+	bool need_second, need_target;
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
@@ -18,6 +19,9 @@ void cmd_custom(byte i)
 	dir = item = value = 0;
 	prompt = cc_ptr->prompt;
 	entry[0] = '\0';
+	
+	need_second = (cc_ptr->flag & COMMAND_NEED_SECOND ? TRUE : FALSE);
+	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);	
 	
 	/* Pre-tests */
 	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
@@ -82,7 +86,7 @@ void cmd_custom(byte i)
 		}
 	}
 	/* Second item? */
-	if (cc_ptr->flag & COMMAND_NEED_SECOND)
+	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (!c_get_item(&item2, prompt, 
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP), 
@@ -91,7 +95,8 @@ void cmd_custom(byte i)
 				return;
 		prompt = prompt + strlen(prompt) + 1;
 	}
-	if (cc_ptr->flag & COMMAND_NEED_TARGET) 
+	/* Target? */
+	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */ 
 	{
 		if (!c_get_dir(&dir, prompt, ((cc_ptr->flag & COMMAND_TARGET_ALLOW) ? TRUE : FALSE) ))
 			return;
@@ -129,11 +134,11 @@ void cmd_custom(byte i)
 	/* Post-effects */
 	if (cc_ptr->flag & COMMAND_SECOND_VALUE)
 	{
-		value = (s32b)item2;
+		value = (s32b)(0 - item2);
 	}
 	if (cc_ptr->flag & COMMAND_SECOND_DIR)
 	{
-		dir = item2;
+		dir = -item2;
 	}	
 	if (cc_ptr->flag & COMMAND_SECOND_CHAR)
 	{

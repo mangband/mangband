@@ -163,7 +163,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		0, "Refill with which light? "
 	},
 	{ /* Drink */
-		'q', PKT_EAT, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
+		'q', PKT_QUAFF, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		TV_POTION, "Quaff which potion? "
 	},
