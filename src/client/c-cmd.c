@@ -66,9 +66,9 @@ void cmd_custom(byte i)
 	{
 		item_tester_tval = cc_ptr->tval;
 		if (!c_get_item(&item, prompt, 
-				(cc_ptr->flag & COMMAND_ITEM_EQUIP), 
-				(cc_ptr->flag & COMMAND_ITEM_INVEN), 
-				(cc_ptr->flag & COMMAND_ITEM_FLOOR)))
+				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE), 
+				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE), 
+				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
 		prompt = prompt + strlen(prompt) + 1;
 
@@ -85,21 +85,65 @@ void cmd_custom(byte i)
 			value = c_get_quantity(prompt, floor_amt);
 		}
 	}
+	/* Spell? */
+	if (cc_ptr->flag & COMMAND_NEED_SPELL)
+	{
+		int index, spell;
+		cptr p = prompt;
+		prompt = prompt + strlen(prompt) + 1;
+		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
+		{
+			if (!get_spell(&spell, p, prompt, &item, FALSE)) return;
+			index = item * SPELLS_PER_BOOK + spell;
+		}
+		else
+		{
+			int book = cc_ptr->tval;
+			if (!get_spell(&spell, p, prompt, &book, FALSE)) return;
+			spell += (book - cc_ptr->tval) / 2;
+			index = book * SPELLS_PER_BOOK + spell;
+		}
+		prompt = prompt + strlen(prompt) + 1;
+		if (cc_ptr->flag & COMMAND_SPELL_INDEX)
+		{
+			value = index;
+		}
+		else
+		{
+			value = spell;
+		}
+
+		/* Dirty Hack -- Reset! */
+		if (cc_ptr->flag & COMMAND_SPELL_RESET)
+		{
+			need_second = need_target = FALSE;
+			dir = item2 = 0;
+			if (spell >= PY_MAX_SPELLS)	need_target = TRUE;
+			else
+			{
+				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
+				need_second = (spell_flag[index] & PY_SPELL_ITEM ? TRUE : FALSE);
+			}
+		}
+	} 
 	/* Second item? */
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
+		if (STRZERO(prompt)) prompt = "Which item? ";
 		if (!c_get_item(&item2, prompt, 
-				(cc_ptr->flag & COMMAND_SECOND_EQUIP), 
-				(cc_ptr->flag & COMMAND_SECOND_INVEN), 
-				(cc_ptr->flag & COMMAND_SECOND_FLOOR)))
+				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE), 
+				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE), 
+				(cc_ptr->flag & COMMAND_SECOND_FLOOR ? TRUE : FALSE)))
 				return;
 		prompt = prompt + strlen(prompt) + 1;
 	}
 	/* Target? */
 	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */ 
 	{
-		if (!c_get_dir(&dir, prompt, ((cc_ptr->flag & COMMAND_TARGET_ALLOW) ? TRUE : FALSE) ))
-			return;
+		if (!c_get_dir(&dir, prompt, 
+				(cc_ptr->flag & COMMAND_TARGET_ALLOW ? TRUE : FALSE),
+				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
+				return;
 		prompt = prompt + strlen(prompt) + 1;
 	}
 	/* Need values? */
@@ -134,11 +178,13 @@ void cmd_custom(byte i)
 	/* Post-effects */
 	if (cc_ptr->flag & COMMAND_SECOND_VALUE)
 	{
-		value = (s32b)(0 - item2);
+		if (!value) value = (s32b)item2;
+		else		value = -value;
 	}
 	if (cc_ptr->flag & COMMAND_SECOND_DIR)
 	{
-		dir = -item2;
+		if (!dir) dir = item2;
+		else 	  dir = -dir;
 	}	
 	if (cc_ptr->flag & COMMAND_SECOND_CHAR)
 	{
@@ -1670,7 +1716,7 @@ void cmd_browse(void)
 
 	if (p_ptr->ghost)
 	{
-		show_browse(0);
+		show_browse(10);
 		return;
 	}
 

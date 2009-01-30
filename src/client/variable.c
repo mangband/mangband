@@ -26,7 +26,8 @@ byte floor_tval;
 int  floor_amt;		
 byte floor_attr;
 
-char spell_info[26][9][80];		/* Spell information */
+char spell_info[26][SPELLS_PER_BOOK+1][80];		/* Spell information */
+byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
 
 char party_info[160];			/* Information about your party */
 channel_type channels[MAX_CHANNELS];

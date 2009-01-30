@@ -581,6 +581,12 @@
 #define PY_SPELL_LEARNED    0x01 /* Spell has been learned */
 #define PY_SPELL_WORKED     0x02 /* Spell has been successfully tried */
 #define PY_SPELL_FORGOTTEN  0x04 /* Spell has been forgotten */
+/*
+ * MAngband-specific spell_flags[]
+ */
+#define PY_SPELL_AIM		0x10 /* Spell requires a target */
+#define PY_SPELL_ITEM		0x20 /* Spell requires an item */
+#define PY_SPELL_PROJECT	0x40 /* Spell could be projected */
 
 
 /* Randart rarity */
@@ -767,9 +773,9 @@
 #define MAX_SCHEMES	25
 #define MAX_CUSTOM_COMMANDS	63
 
-#define COMMAND_TEST_ALIVE  	0x00000001  /* Test if player is alive */
-#define COMMAND_TEST_DEAD   	0x00000002  /* Test if player is dead */
-#define COMMAND_TEST_SPELL  	0x00000004  /* Test if player class is spell-able (by TV) */
+#define COMMAND_TEST_ALIVE  	0x00000001	/* Test if player is alive */
+#define COMMAND_TEST_DEAD   	0x00000002	/* Test if player is dead */
+#define COMMAND_TEST_SPELL  	0x00000004	/* Test if player class is spell-able (by TV) */
 #define COMMAND_ITEM_QUICK  	0x00000008	/* Do not interact with player, while selecting item */
 
 #define COMMAND_ITEM_AMMOUNT  	0x00000010	/* Allow player to specify ammount from item stack */
@@ -784,13 +790,23 @@
 
 #define COMMAND_TARGET_DIR  	0x00010000	/* Pick direction */
 #define COMMAND_TARGET_ALLOW	0x00020000	/* Pick direction OR target */
-#define COMMAND_TARGET_XXX1 	0x00030000	/* XXX Unused */
+#define COMMAND_TARGET_FRIEND	0x00030000	/* Allow friendly targeting */
 #define COMMAND_TARGET_XXX2 	0x00040000	/* XXX Unused */
 
-#define COMMAND_NEED_VALUE  	0x01000000	/* Ask for s32b value */
-#define COMMAND_NEED_CONFIRM	0x02000000	/* Ask for confirmation */
-#define COMMAND_NEED_CHAR   	0x04000000	/* Ask for "char" */
-#define COMMAND_NEED_STRING  	0x08000000	/* Ask for "string" (60 chars) */
+#define COMMAND_SPELL_BOOK  	0x00001000	/* Choose a spell from TV book */
+#define COMMAND_SPELL_CUSTOM	0x00002000	/* Choose a spell from an offset */
+#define COMMAND_SPELL_RESET  	0x00004000	/* Set its own "Second" and "Target" needs */
+#define COMMAND_SPELL_INDEX  	0x00008000	/* XXX Unused */
+ 
+#define COMMAND_NEED_VALUE  	0x00100000	/* Ask for s32b value */
+#define COMMAND_NEED_CONFIRM	0x00200000	/* Ask for confirmation */
+#define COMMAND_NEED_CHAR   	0x00400000	/* Ask for "char" */
+#define COMMAND_NEED_STRING  	0x00800000	/* Ask for "string" (60 chars) */
+
+#define COMMAND_NEED_SPELL		(COMMAND_SPELL_BOOK   | \
+								 COMMAND_SPELL_CUSTOM | \
+								 COMMAND_SPELL_RESET  | \
+								 COMMAND_SPELL_INDEX)
 
 #define COMMAND_NEED_ITEM   	(COMMAND_ITEM_INVEN | \
 								 COMMAND_ITEM_EQUIP | \
@@ -802,13 +818,13 @@
 								 COMMAND_SECOND_XXX1)
 #define COMMAND_NEED_TARGET     (COMMAND_TARGET_DIR    | \
 								 COMMAND_TARGET_ALLOW  | \
-								 COMMAND_TARGET_XXX1   | \
+								 COMMAND_TARGET_FRIEND | \
 								 COMMAND_TARGET_XXX2)
 
-#define COMMAND_SECOND_XXX2 	0x10000000  /* XXX Unused */
-#define COMMAND_SECOND_VALUE	0x20000000  /* Put second item into value */
-#define COMMAND_SECOND_DIR  	0x40000000  /* Put second item into dir */
-#define COMMAND_SECOND_CHAR 	0x80000000  /* Put second item into entry[0] */
+#define COMMAND_SECOND_XXX2 	0x10000000	/* XXX Unused */
+#define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */
+#define COMMAND_SECOND_DIR  	0x40000000	/* Put second item into dir */
+#define COMMAND_SECOND_CHAR 	0x80000000	/* Put second item into entry[0] */
 
 /*
  * Number of keymap modes
@@ -3335,9 +3351,14 @@ extern int PlayerUID;
 
 
 /*
+ * Spell "realms"
+ */
+#define MAX_SPELL_REALMS 3
+
+/*
  * Ghost spell "realm"
  */
-#define GHOST_SPELLS	2
+#define GHOST_REALM 	2
 
 
 /* Mental links */

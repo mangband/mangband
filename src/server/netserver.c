@@ -3012,6 +3012,15 @@ int Send_custom_command(int ind, int command)
 		return 0;
 	}
 	
+	/* XXX XXX XXX HACK !!! Use different Study command for Priests/Palladins */
+	if (cc_ptr->catch == 'G' && !(c_info[Players[ind]->pclass].flags & CF_CHOOSE_SPELLS))
+	{
+		return Packet_printf(&connp->c, "%c%c%c%hd%lu%c%S", 
+			 PKT_COMMAND, cc_ptr->pkt, cc_ptr->scheme,
+			 cc_ptr->catch, (COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+			 c_info[Players[ind]->pclass].spell_book, "You cannot gain spells!\nGain from which book? ");
+	}
+	
 	return Packet_printf(&connp->c, "%c%c%c%hd%lu%c%S", 
 			 PKT_COMMAND, cc_ptr->pkt, cc_ptr->scheme,
 			 cc_ptr->catch, cc_ptr->flag,
@@ -5198,8 +5207,8 @@ static int Receive_custom_command(int ind)
 		S_READ( ITEM_STRING,	"%c%s") 	&item, entry
 		S_READ( ITEM_CHAR,  	"%c%c") 	&item, &entry[0]
 
-		S_READ( DIR_VALUE,  	"%c%ld") 	&dir, &tmp  		S_SET(value=tmp)
-		S_READ( DIR_SMALL,  	"%c%c") 	&dir, &value
+		S_READ( DIR_VALUE,  	"%c%ld") 	&dir, &value
+		S_READ( DIR_SMALL,  	"%c%c") 	&dir, &tmp  		S_SET(value=tmp)
 		S_READ( DIR_STRING,  	"%c%s") 	&dir, entry
 		S_READ( DIR_CHAR,   	"%c%c") 	&dir, &entry[0]
 

@@ -297,6 +297,7 @@ extern player_type **Players;
 extern party_type parties[MAX_PARTIES];
 extern channel_type channels[MAX_CHANNELS];
 extern house_type houses[MAX_HOUSES];
+extern byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 extern int num_houses;
 extern long GetInd[];
 /*extern char player_name[32];
@@ -567,14 +568,15 @@ extern void do_cmd_check_other(int Ind, int line);
 /* cmd5.c */
 extern void do_cmd_browse(int Ind, int book);
 extern void do_cmd_study(int Ind, int book, int spell);
+extern void do_cmd_cast_pre(int Ind, int book, int dir, int spell);
 extern void do_cmd_cast(int Ind, int book, int spell);
 extern void do_cmd_cast_fin(int Ind);
+extern void do_cmd_pray_pre(int Ind, int book, int dir, int spell);
 extern void do_cmd_pray(int Ind, int book, int spell);
 extern void show_ghost_spells(int Ind);
+extern void do_cmd_ghost_power_pre(int Ind, int dir, int ability);
 extern void do_cmd_ghost_power(int Ind, int ability);
 extern void do_cmd_ghost_power_fin(int Ind);
-extern void do_cmd_sorc(int Ind, int book, int spell);
-extern void do_cmd_sorc_aux(int Ind, int dir);
 
 
 /* cmd6.c */
@@ -1143,11 +1145,13 @@ extern bool master_player(int Ind, char * parms);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 
 /* x-spell.c */
-extern cptr spell_names[3][64];
+extern cptr spell_names[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 extern magic_type ghost_spells[8];
+extern void spells_init();
 extern int get_spell_index(int Ind, const object_type *o_ptr, int index);
 extern cptr get_spell_name(int tval, int index);
 extern cptr get_spell_info(int Ind, int index);
+extern byte get_spell_flag(int tval, int spell, byte player_flag);
 extern bool cast_spell(int Ind, int tval, int index);
 
 /* use-obj.c */

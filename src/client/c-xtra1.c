@@ -1512,7 +1512,7 @@ static void fix_spells(void)
 			if (item_tester_okay(&inventory[b]))
 			{
 				/* Dump the spells */
-				for (i = 0; i < 9; i++)
+				for (i = 0; i < SPELLS_PER_BOOK; i++)
 				{
 					/* Check for end of the book */
 					if (spell_info[b][i][0] == '\0')

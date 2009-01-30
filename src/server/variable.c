@@ -387,6 +387,9 @@ channel_type channels[MAX_CHANNELS];
 house_type houses[MAX_HOUSES];
 int num_houses;
 
+/* This information will help client */
+byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
+
 /* An array to access a Player's ID */
 long GetInd[MAX_ID];
 

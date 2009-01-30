@@ -56,7 +56,8 @@ extern int store_prices[STORE_INVEN_MAX];
 extern char store_names[STORE_INVEN_MAX][80];
 extern s16b store_num;
 
-extern char spell_info[26][9][80];
+extern char spell_info[26][SPELLS_PER_BOOK+1][80];
+extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
@@ -372,7 +373,7 @@ extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
 extern void request_command(bool shopping);
 extern int target_dir(char ch);
-extern bool c_get_dir(char *dp, cptr prompt, bool allow_target);
+extern bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend);
 extern bool get_dir(int *dp);
 extern void c_put_str(byte attr, cptr str, int row, int col);
 extern void put_str(cptr str, int row, int col);
@@ -399,6 +400,7 @@ extern void do_cmd_options(void);
 extern bool get_string_masked(cptr prompt, char *buf, int len);
 
 /* c-spell.c */
+extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);
 extern void show_browse(int book);
 extern void do_study(int book);
 extern void do_cast(int book);
@@ -487,6 +489,7 @@ extern int Send_msg(cptr message);
 extern int Send_fire(int item, int dir);
 extern int Send_throw(int item, int dir);
 extern int Send_item(int item);
+extern int Send_direction(int dir);
 extern int Send_gain(int book, int spell);
 extern int Send_cast(int book, int spell);
 extern int Send_pray(int book, int spell);
@@ -506,8 +509,6 @@ extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
 extern int Send_pass(cptr newpass);
 
-/* x-spell.c */
-extern cptr get_spell_name(int tval, int index);
 
 
 /*

@@ -1982,10 +1982,10 @@ int Receive_spell_info(void)
 
     /* Save the info... */
 	strcpy(spell_info[book][line], buf);
-	p_ptr->spell_flags[book*SPELLS_PER_BOOK+line] = flag;
+	spell_flag[book*SPELLS_PER_BOOK+line] = flag;
 
     /* ... and wipe the next line */
-    if (line < 8) spell_info[book][line+1][0] = '\0';
+    if (line < SPELLS_PER_BOOK) spell_info[book][line+1][0] = '\0';
     
     /* Update spell list */
     p_ptr->window |= PW_SPELL;
@@ -3086,6 +3086,18 @@ int Send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 	}
 	if (n <= 0) /* Error ! */
 		return n;
+
+	return 1;
+}
+
+int Send_direction(int dir)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_DIRECTION, dir)) <= 0)
+	{
+		return n;
+	}
 
 	return 1;
 }

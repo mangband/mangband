@@ -166,6 +166,73 @@
 #define GHOSTLY_NETHER_BALL             5
 #define GHOSTLY_DARKNESS_STORM          6
 
+#define SPELL_CASE_AIM \
+	case SPELL_MAGIC_MISSILE: \
+	case SPELL_STINKING_CLOUD: \
+	case SPELL_CONFUSE_MONSTER: \
+	case SPELL_LIGHTNING_BOLT: \
+	case SPELL_SLEEP_MONSTER: \
+	case SPELL_SPEAR_OF_LIGHT: \
+	case SPELL_FROST_BOLT: \
+	case SPELL_TURN_STONE_TO_MUD: \
+	case SPELL_WONDER: \
+	case SPELL_POLYMORPH_OTHER: \
+	case SPELL_FIRE_BOLT: \
+	case SPELL_SLOW_MONSTER: \
+	case SPELL_FROST_BALL: \
+	case SPELL_TELEPORT_OTHER: \
+	case SPELL_BEDLAM: \
+	case SPELL_FIRE_BALL: \
+	case SPELL_ACID_BOLT: \
+	case SPELL_CLOUD_KILL: \
+	case SPELL_ACID_BALL: \
+	case SPELL_ICE_STORM: \
+	case SPELL_METEOR_SWARM: \
+	case SPELL_MANA_STORM: \
+	case SPELL_SHOCK_WAVE: \
+	case SPELL_EXPLOSION: \
+	case SPELL_RIFT: \
+	case SPELL_REND_SOUL: \
+	case SPELL_CHAOS_STRIKE:
+
+#define PRAYER_CASE_AIM \
+	case PRAYER_TELEPORT_OTHER: \
+	case PRAYER_SCARE_MONSTER: \
+	case PRAYER_ORB_OF_DRAINING: \
+	case PRAYER_ANNIHILATION:
+
+#define SPELL_CASE_ITEM \
+	case SPELL_ENCHANT_ARMOR: \
+	case SPELL_ENCHANT_WEAPON: \
+	case SPELL_ELEMENTAL_BRAND: \
+	case SPELL_IDENTIFY: \
+	case SPELL_RECHARGE_ITEM_I: \
+	case SPELL_RECHARGE_ITEM_II:
+
+#define PRAYER_CASE_PROJ \
+	case PRAYER_CURE_LIGHT_WOUNDS: \
+	case PRAYER_CURE_SERIOUS_WOUNDS: \
+	case PRAYER_CURE_CRITICAL_WOUNDS: \
+	case PRAYER_CURE_MORTAL_WOUNDS: \
+	case PRAYER_HEAL: \
+	case PRAYER_CURE_SERIOUS_WOUNDS2: \
+	case PRAYER_CURE_MORTAL_WOUNDS2: \
+	case PRAYER_HEALING:
+
+#define PRAYER_CASE_ITEM \
+	case PRAYER_PERCEPTION: \
+	case PRAYER_RECHARGING: \
+	case PRAYER_ENCHANT_WEAPON: \
+	case PRAYER_ENCHANT_ARMOUR: \
+	case PRAYER_ELEMENTAL_BRAND:
+
+#define GHOSTLY_CASE_AIM \
+	case GHOSTLY_SCARE_MONSTER: \
+	case GHOSTLY_CONFUSE_MONSTER: \
+	case GHOSTLY_NETHER_BOLT: \
+	case GHOSTLY_NETHER_BALL: \
+	case GHOSTLY_DARKNESS_STORM:
+
 
 /*
  * Spells in each book (mage spells then priest spells)
@@ -438,7 +505,7 @@ magic_type ghost_spells[8] =
 /*
  * Names of the spells (mage spells then priest spells)
  */
-cptr spell_names[3][PY_MAX_SPELLS] =
+cptr spell_names[MAX_SPELL_REALMS][PY_MAX_SPELLS] =
 {
 	/*** Mage Spells ***/
 
@@ -563,7 +630,7 @@ cptr spell_names[3][PY_MAX_SPELLS] =
 		"Cure Serious Wounds",
 		"Cure Mortal Wounds",
 		"Healing",
-		"Restoration",
+		"Life Restoration",
 		"Remembrance",
 
 		/* Wrath of God (sval 8) */
@@ -676,6 +743,39 @@ cptr spell_names[3][PY_MAX_SPELLS] =
 	}
 };
 
+void spells_init()
+{
+	int i, j;
+	for (j = 0; j < MAX_SPELL_REALMS; j++)
+	{
+		for (i = 0; i < PY_MAX_SPELLS; i++)
+		{
+			byte flag = 0;
+			switch (j)
+			{
+				case 0:
+				{
+					switch(i) { SPELL_CASE_AIM flag |= PY_SPELL_AIM; 	break; default:	break; }
+					switch(i) { SPELL_CASE_ITEM flag |= PY_SPELL_ITEM; 	break; default:	break; }
+					break;
+				}
+				case 1:
+				{
+					switch(i) { PRAYER_CASE_AIM flag |= PY_SPELL_AIM;	break; default:	break; }
+					switch(i) { PRAYER_CASE_ITEM flag |= PY_SPELL_ITEM; 	break; default:	break; }
+					switch(i) { PRAYER_CASE_PROJ flag |= PY_SPELL_PROJECT; 	break; default:	break; }
+					break;
+				}
+				case 2:
+				{
+					switch(i) { GHOSTLY_CASE_AIM flag |= PY_SPELL_AIM;	break; default:	break; }
+					break;
+				}
+			}
+			spell_flags[j][i] = flag;
+		}
+	}
+}
 int get_spell_book(int Ind, int spell)
 {
 	player_type *p_ptr = Players[Ind];
@@ -724,6 +824,19 @@ int get_spell_index(int Ind, const object_type *o_ptr, int index)
 		spell_type = 1;
 
 	return spell_list[spell_type][sval][index];
+}
+
+byte get_spell_flag(int tval, int spell, byte player_flag)
+{
+	if (!(player_flag & PY_SPELL_LEARNED))
+		return player_flag;
+
+	if (tval == TV_MAGIC_BOOK)
+		return (spell_flags[0][spell] | player_flag);
+	else if (tval == TV_PRAYER_BOOK)
+		return (spell_flags[1][spell] | player_flag);
+	else
+		return (spell_flags[GHOST_REALM][spell] | player_flag);
 }
 
 cptr get_spell_name(int tval, int spell)
@@ -1788,21 +1901,27 @@ static bool cast_priest_spell(int Ind, int spell)
 			(void)heal_player_ball(Ind, dir, 2000);
 			break;
 		}
-
+		/* With MAngband-specific addon: ressurect ghosts */
 		case PRAYER_RESTORATION:
 		{
-			(void)do_res_stat(Ind, A_STR);
-			(void)do_res_stat(Ind, A_INT);
-			(void)do_res_stat(Ind, A_WIS);
-			(void)do_res_stat(Ind, A_DEX);
-			(void)do_res_stat(Ind, A_CON);
-			(void)do_res_stat(Ind, A_CHR);
+			if (!do_scroll_life(Ind))
+			{
+				(void)do_res_stat(Ind, A_STR);
+				(void)do_res_stat(Ind, A_INT);
+				(void)do_res_stat(Ind, A_WIS);
+				(void)do_res_stat(Ind, A_DEX);
+				(void)do_res_stat(Ind, A_CON);
+				(void)do_res_stat(Ind, A_CHR);
+			}
 			break;
 		}
-
+		/* With Mangband-sepcific addon: restore others */
 		case PRAYER_REMEMBRANCE:
 		{
-			(void)restore_level(Ind);
+			if (!do_restoreXP_other(Ind))
+			{
+				(void)restore_level(Ind);
+			}
 			break;
 		}
 

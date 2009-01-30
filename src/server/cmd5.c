@@ -64,7 +64,7 @@ static s16b spell_chance(int Ind, int spell)
 	chance -= 3 * (p_ptr->lev - s_ptr->slevel);
 
 	/* Reduce failure rate by INT/WIS adjustment */
-    //chance -= 3 * (adj_mag_stat[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]] - 1);
+    /*chance -= 3 * (adj_mag_stat[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]] - 1);*/
     chance -= adj_mag_stat[p_ptr->stat_ind[p_ptr->cp_ptr->spell_stat]];
 
 	/* Not enough mana to cast */
@@ -196,7 +196,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		Send_spell_info(Ind, book, i, p_ptr->spell_flags[j], out_val);
+		Send_spell_info(Ind, book, i, get_spell_flag(p_ptr->cp_ptr->spell_book,j,p_ptr->spell_flags[j]), out_val);
 	}
 }
 
@@ -486,6 +486,15 @@ void do_cmd_study(int Ind, int book, int spell)
  * until the player hits a direction key, and we try very hard not to have
  * any undue slowness in the server. --KLJ--
  */
+void do_cmd_cast_pre(int Ind, int book, int dir, int spell)
+{
+	if (dir < 0)
+		Players[Ind]->command_dir = -dir;
+	else
+		Players[Ind]->command_arg = dir;
+
+	do_cmd_cast(Ind, book, spell);	
+}
 void do_cmd_cast(int Ind, int book, int spell)
 {
 	player_type *p_ptr = Players[Ind];
@@ -676,6 +685,15 @@ void do_cmd_cast_fin(int Ind)
  * After prayer is cast, do_cmd_cast_fin() will be called !
  * If we need to separate them later, we could...
  */
+void do_cmd_pray_pre(int Ind, int book, int dir, int spell)
+{
+	if (dir < 0)
+		Players[Ind]->command_dir = -dir;
+	else
+		Players[Ind]->command_arg = dir;
+
+	do_cmd_pray(Ind, book, spell);	
+}
 void do_cmd_pray(int Ind, int book, int spell)
 {
     player_type *p_ptr = Players[Ind];
@@ -812,9 +830,8 @@ void do_cmd_pray(int Ind, int book, int spell)
 void show_ghost_spells(int Ind)
 {
 	magic_type *s_ptr;
-	int i, j = 0;
+	int i;
 	char out_val[80];
-	cptr comment = "";
 
 	/* Check each spell */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
@@ -822,23 +839,29 @@ void show_ghost_spells(int Ind)
 		s_ptr = &ghost_spells[i];
 
 		/* Check for existance */
-		if (s_ptr->slevel >= 99) continue;
+		if (s_ptr->slevel >= 99) break;
 
 		/* Format information */
-		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
-                I2A(j), spell_names[GHOST_SPELLS][i], s_ptr->slevel, s_ptr->smana, 0, comment);
+		sprintf(out_val, "  %c) %-30s%2d %4d %3d",
+                I2A(i), spell_names[GHOST_REALM][i], s_ptr->slevel, s_ptr->smana, 0);
 
 		/* Send it */
-		Send_spell_info(Ind, 0, j, PY_SPELL_WORKED, out_val);
-
-		/* Next spell */
-		j++;
+		Send_spell_info(Ind, 10, i, get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED)), out_val);
 	}
 }
 
 /*
  * Use a ghostly ability. --KLJ--
  */
+void do_cmd_ghost_power_pre(int Ind, int dir, int ability)
+{
+	if (dir < 0)
+		Players[Ind]->command_dir = -dir;
+	else
+		Players[Ind]->command_arg = dir;
+
+	do_cmd_ghost_power(Ind, ability);	
+}
 void do_cmd_ghost_power(int Ind, int ability)
 {
 	player_type *p_ptr = Players[Ind];
@@ -863,7 +886,7 @@ void do_cmd_ghost_power(int Ind, int ability)
 		s_ptr = &ghost_spells[i];
 
 		/* Check for existance */
-		if (s_ptr->slevel >= 99) continue;
+		if (s_ptr->slevel >= 99) break;
 
 		/* Next spell */
 		if (j++ == ability) break;

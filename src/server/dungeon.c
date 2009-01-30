@@ -2406,6 +2406,7 @@ void play_game(bool new_game)
 
 	/* Hack -- Enter wizard mode */
 	/*if (arg_wizard && enter_wizard_mode()) wizard = TRUE;*/
+	spells_init();
 
 
 	/* Flavor the objects */
