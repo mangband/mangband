@@ -1514,6 +1514,9 @@ static void fix_spells(void)
 				/* Dump the spells */
 				for (i = 0; i < SPELLS_PER_BOOK; i++)
 				{
+					/* End of terminal */
+					if (y >= h) break;
+
 					/* Check for end of the book */
 					if (spell_info[b][i][0] == '\0')
 					break;
@@ -1523,17 +1526,19 @@ static void fix_spells(void)
 					continue;
 					
 					/* skip uncastable */
-					if (!(p_ptr->spell_flags[b*SPELLS_PER_BOOK+i] & PY_SPELL_LEARNED))
+					if (!(spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_LEARNED))
 					continue;
 					
+					/* skip forgotten */
+					if (spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_FORGOTTEN)
+					continue;
+
 					/* Dump the info */
 					prt(format("%c", index_to_label(b)), y, 0);
 					prt(spell_info[b][i], y, 1);
 					
 					y++;
 					
-					/* End of terminal */
-					if (y > h) break;
 				}
 			}
 		}
