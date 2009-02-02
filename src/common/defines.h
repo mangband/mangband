@@ -588,8 +588,10 @@
 #define PY_SPELL_ITEM		0x20 /* Spell requires an item */
 #define PY_SPELL_PROJECT	0x40 /* Spell could be projected */
 
+/* Offset for projected spells*/
+#define SPELL_PROJECTED (PY_MAX_SPELLS*2)
 
-/* Randart rarity */
+/* Randart rarity */
 #define RANDART_RARITY	60
 
 

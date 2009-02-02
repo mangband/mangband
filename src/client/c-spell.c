@@ -32,8 +32,9 @@ static void print_spells(int book)
 		prt(spell_info[book][j], 2 + i, col);
 
 		/* Hack -- allow book overflow */
-		if (j++ >= SPELLS_PER_BOOK)
+		if (j++ == SPELLS_PER_BOOK)
 		{
+			i--;
 			j = 0;
 			book++;
 		} 
@@ -68,8 +69,9 @@ int count_spells_in_book(int book, int *book_over)
         num++;
         
     	/* Hack -- allow book overflow */
-		if (j++ >= SPELLS_PER_BOOK)
+		if (j++ == SPELLS_PER_BOOK)
 		{
+			i--;
 			j = 0;
 			book++;
 			(*book_over)++;
@@ -207,13 +209,11 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 		/* hack for CAPITAL prayers (heal other) */
 		if (isupper(choice))
 		{
-			int tmp;
 			i = (choice - 'A');
 			if (i >= num) i = -1;
-			else if ((tmp = book * SPELLS_PER_BOOK + i) > PY_MAX_SPELLS) i = -1;
-			else if (!(spell_flag[tmp] & PY_SPELL_PROJECT)) i = -1;
+			else if (!(spell_flag[(book * SPELLS_PER_BOOK + i)] & PY_SPELL_PROJECT)) i = -1;
 			if (i != -1)
-				i += PY_MAX_SPELLS;
+				i += SPELL_PROJECTED;
 		}
 		/* lowercase */
 		else if (islower(choice))
@@ -388,7 +388,7 @@ void do_ghost(void)
 	if (!get_spell(&j, "power", "Use which power? ", &book, FALSE)) return;
 
 	/* Additional */	
-	if (!do_cast_xtra(book, j+(book-10)/2)) return;
+	if (!do_cast_xtra(book, j)) return;
 
 	/* Tell the server */
 	Send_ghost(j);

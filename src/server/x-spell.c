@@ -1602,7 +1602,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_LIGHT_WOUNDS + PY_MAX_SPELLS:
+		case PRAYER_CURE_LIGHT_WOUNDS + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(2, 8));
@@ -1666,7 +1666,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_SERIOUS_WOUNDS + PY_MAX_SPELLS:
+		case PRAYER_CURE_SERIOUS_WOUNDS + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(4, 10));
@@ -1727,7 +1727,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_CRITICAL_WOUNDS + PY_MAX_SPELLS:
+		case PRAYER_CURE_CRITICAL_WOUNDS + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(6, 10));
@@ -1766,7 +1766,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_MORTAL_WOUNDS + PY_MAX_SPELLS:
+		case PRAYER_CURE_MORTAL_WOUNDS + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(8, 10));
@@ -1799,7 +1799,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_HEAL + PY_MAX_SPELLS:
+		case PRAYER_HEAL + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, 300);
@@ -1865,7 +1865,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_SERIOUS_WOUNDS2 + PY_MAX_SPELLS:
+		case PRAYER_CURE_SERIOUS_WOUNDS2 + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(4, 10));
@@ -1880,7 +1880,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_CURE_MORTAL_WOUNDS2 + PY_MAX_SPELLS:
+		case PRAYER_CURE_MORTAL_WOUNDS2 + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, damroll(8, 10));
@@ -1895,7 +1895,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			break;
 		}
 		/* MAngband-specific: Heal Projectile */
-		case PRAYER_HEALING + PY_MAX_SPELLS:
+		case PRAYER_HEALING + SPELL_PROJECTED:
 		{
 			if (!get_aim_dir(Ind, &dir)) return FALSE;
 			(void)heal_player_ball(Ind, dir, 2000);

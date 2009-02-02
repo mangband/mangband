@@ -784,10 +784,10 @@ void do_cmd_pray(int Ind, int book, int spell)
     now. -AD- */
     
     /* normal prayers */
-    if (spell < 64) j = spells[spell];
+    if (spell < SPELL_PROJECTED) j = spells[spell];
     
     /* heal other prayers */
-    else j = spells[spell-64];
+    else j = spells[spell-SPELL_PROJECTED];
 
     if (!spell_okay(Ind, j, 1))
     {
@@ -818,9 +818,8 @@ void do_cmd_pray(int Ind, int book, int spell)
 
     /* Success */
 
-	if (spell >= 64) j += 64;
+	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
-	if (spell >= 64) j -= 64; 
 }
 
 

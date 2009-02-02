@@ -88,7 +88,7 @@ void cmd_custom(byte i)
 	/* Spell? */
 	if (cc_ptr->flag & COMMAND_NEED_SPELL)
 	{
-		int index, spell;
+		int index, spell, indoff = 0;
 		cptr p = prompt;
 		prompt = prompt + strlen(prompt) + 1;
 		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
@@ -100,13 +100,13 @@ void cmd_custom(byte i)
 		{
 			int book = cc_ptr->tval;
 			if (!get_spell(&spell, p, prompt, &book, FALSE)) return;
-			spell += (book - cc_ptr->tval) / 2;
 			index = book * SPELLS_PER_BOOK + spell;
+			indoff = cc_ptr->tval * SPELLS_PER_BOOK;
 		}
 		prompt = prompt + strlen(prompt) + 1;
 		if (cc_ptr->flag & COMMAND_SPELL_INDEX)
 		{
-			value = index;
+			value = index - indoff;
 		}
 		else
 		{
@@ -118,7 +118,7 @@ void cmd_custom(byte i)
 		{
 			need_second = need_target = FALSE;
 			dir = item2 = 0;
-			if (spell >= PY_MAX_SPELLS)	need_target = TRUE;
+			if (spell >= SPELL_PROJECTED)	need_target = TRUE;
 			else
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
