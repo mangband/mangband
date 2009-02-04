@@ -2326,7 +2326,7 @@ static errr macro_dump(cptr fname)
 	return (0);
 }
 
-static void get_macro_trigger(char *buf)
+static bool get_macro_trigger(char *buf)
 {
 	int i, n = 0;
 
@@ -2340,6 +2340,9 @@ static void get_macro_trigger(char *buf)
 
 	/* First key */
 	i = inkey();
+	
+	/* Escape on Escape */
+	if (i == ESCAPE) return FALSE;
 
 	/* Read the pattern */
 	while (i)
@@ -2369,6 +2372,8 @@ static void get_macro_trigger(char *buf)
 
 	/* Hack -- display the trigger */
 	Term_addstr(-1, TERM_WHITE, tmp);
+	
+	return TRUE;
 }
 
 /*
@@ -2568,7 +2573,7 @@ void interact_macros(void)
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
-			get_macro_trigger(buf);
+			if (!get_macro_trigger(buf)) continue;
 
 			/* Link the macro */
 			macro_add(buf, macro__buf, FALSE);
