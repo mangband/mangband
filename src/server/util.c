@@ -2634,7 +2634,7 @@ void msg_format_type(int Ind, u16b type, cptr fmt, ...)
  * by a player.  The message is not sent to the player who performed
  * the action.
  */
-void msg_print_near(int Ind, cptr msg)
+void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth, y, x, i;
@@ -2653,6 +2653,9 @@ void msg_print_near(int Ind, cptr msg)
 		/* Don't send the message to the player who caused it */
 		if (Ind == i) continue;
 
+		/* Don't send the message to the second ignoree */
+		if (Ind2 == i) continue;
+		
 		/* Make sure this player is at this depth */
 		if (p_ptr->dun_depth != Depth) continue;
 
@@ -2660,15 +2663,37 @@ void msg_print_near(int Ind, cptr msg)
 		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
 		{
 			/* Send the message */
-			msg_print(i, msg);
+			msg_print_aux(i, msg, type);
 		}
 	}
+}
+void msg_print_near(int Ind, cptr msg)
+{
+	msg_print_complex_near(Ind, Ind, MSG_GENERIC, msg);
 }
 
 
 /*
  * Same as above, except send a formatted message.
  */
+void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...)
+{
+	va_list vp;
+
+	char buf[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Display */
+	msg_print_complex_near(Ind, Ind2, type, buf);
+}
 void msg_format_near(int Ind, cptr fmt, ...)
 {
 	va_list vp;

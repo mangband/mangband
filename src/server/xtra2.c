@@ -4836,6 +4836,292 @@ int level_speed(int Ind)
  * hacking them together here to start.
  */
 
+
+/* List all 'socials' */
+struct social_type
+{
+	cptr	name;
+	int min_victim_position;
+
+	/* No argument was supplied */
+	cptr char_no_arg;
+	cptr others_no_arg;
+
+	/* An argument was there, and a victim was found */
+	cptr char_found;		/* if NULL, read no further, ignore args */
+	cptr others_found;
+	cptr vict_found;
+} *socials;
+int max_socials = 0; /* Store total number of socials */
+void boot_socials()
+{
+	FILE *fp;	
+	char buf[1024];
+	static bool initialised = FALSE;
+	int curr = -1, barr = 0; /* current social, and current line ('barrel') */
+	/*** Load the ascii template file ***/
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "socials.txt");
+
+	/* Open the file */
+	fp = my_fopen(buf, "r");
+
+	/* Parse it */
+	if (!fp) 
+	{
+		plog("Cannot open 'socials.txt' file.");
+		return;
+	}
+
+	/* Parse the file */
+	while (0 == my_fgets(fp, buf, 1024))
+	{
+		/* Skip comments and blank lines */
+		if (!buf[0] || (buf[0] == '#')) continue;
+
+		/* Verify correct "colon" format */
+		if (buf[1] != ':') continue;
+		
+		/* Array size */
+		if (buf[0] == 'Z')
+		{
+			int len;
+
+			/* Scan for the value */
+			if (1 != sscanf(buf+2, "%d", &len)) break;
+
+			/*** Init ***/
+			C_MAKE(socials, len, struct social_type);
+			initialised = TRUE;
+			max_socials = len;
+			continue;
+		}
+		if (!initialised) break;
+
+		/* New social */
+		if (buf[0] == 'N')
+		{
+			int pos;
+			char name[60];
+			
+			/* Scan for the values */
+			if (2 != sscanf(buf+2, "%d:%s", &pos, name)) break;
+			
+			/* Advance */
+			curr += 1;
+			barr = 0;
+
+			/* Error */			
+			if (curr >= max_socials) break;
+			
+			/* Save */
+			socials[curr].name = string_make(name);
+			socials[curr].min_victim_position = pos;
+			socials[curr].char_no_arg = socials[curr].others_no_arg = 
+			socials[curr].char_found = socials[curr].others_found = 
+			socials[curr].vict_found = NULL;
+		}
+		if (curr == -1) break;
+
+		/* Single line (assign acording to 'barrel') */		
+		if (buf[0] == 'L')
+		{
+			switch(barr++)
+			{
+				case 0:
+					socials[curr].char_no_arg = string_make(buf+2);	
+					break;
+				case 1:
+					socials[curr].others_no_arg = string_make(buf+2);	
+					break;
+				case 2:
+					socials[curr].char_found = string_make(buf+2);	
+					break;
+				case 3:
+					socials[curr].others_found = string_make(buf+2);	
+					break;
+				case 4:
+					socials[curr].vict_found = string_make(buf+2);	
+					break;
+				default:
+					break;
+			}
+			if (barr > 4) barr = 0;
+		}
+		/* "Multi-message" substitute for 'L' */
+		if (buf[0] == 'F' || buf[0] == 'E')
+		{
+			char chars[MSG_LEN];
+			char others[MSG_LEN];
+			char victs[MSG_LEN];
+			int i, j1 = 0, j2 = 0, j3 = 0;
+			bool y = FALSE;
+			for (i = 2; i < strlen(buf); i++)
+			{
+				if (buf[i] == '$')
+				{
+					others[j2++] = '%';
+					others[j2++] = 's';
+					if ((y = !y) == TRUE)
+					{
+						chars[j1++] = 'Y';
+						chars[j1++] = 'o';
+						chars[j1++] = 'u';
+						victs[j3++] = '%';
+						victs[j3++] = 's';
+					} 
+					else 
+					{
+						chars[j1++] = '%';
+						chars[j1++] = 's';
+						victs[j3++] = 'y';
+						victs[j3++] = 'o';
+						victs[j3++] = 'u';
+					}
+					continue;
+				}
+				if (buf[i] == '~')
+				{
+					others[j2++] = 's';
+					victs[j3++] = 's';
+					continue;
+				}
+				chars[j1++] = buf[i];
+				others[j2++] = buf[i];
+				victs[j3++] = buf[i];
+			}
+			chars[j1] = '\0';
+			others[j2] = '\0';
+			victs[j3] = '\0';
+			if (buf[0] == 'E')
+			{
+				socials[curr].char_found = string_make(chars);
+				socials[curr].others_found = string_make(others);
+				socials[curr].vict_found = string_make(victs);
+				barr = 0; 
+			}
+			if (buf[0] == 'F')
+			{
+				socials[curr].char_no_arg = string_make(chars);
+				socials[curr].others_no_arg = string_make(others);
+				barr = 2; 
+			}
+		}
+	}
+
+	/* Close it */
+	my_fclose(fp);
+}
+void show_socials(int Ind)
+{
+	/*player_type *p_ptr = Players[Ind];*/
+	struct social_type *s_ptr;
+	int i, j, b, bi;
+	char out_val[80];
+	byte flag;
+
+	j = b = bi = 0;
+
+	/* Check each social */
+	for (i = 0; i < max_socials; i++)
+	{
+		s_ptr = &socials[i];
+
+		/* Format information */
+		sprintf(out_val, "  %c) %-30s",
+                I2A(j), s_ptr->name);
+
+		/* Prepare flag */        
+		flag = (PY_SPELL_LEARNED | PY_SPELL_WORKED);
+
+		if (s_ptr->min_victim_position != 0)
+			flag |= PY_SPELL_PROJECT;
+
+		if (s_ptr->min_victim_position < 0)
+			flag |= PY_SPELL_AIM;
+
+		/* Send it */
+		Send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		j++;
+		bi++;
+
+		/* Adjust indicies, handle overflow */
+		if (bi >= SPELLS_PER_BOOK) 
+		{ 
+			Send_spell_info(Ind, 12 + b, bi, 0, " ");
+			bi = 0; 
+			b++; 
+		} 
+		if (j == (SPELLS_PER_BOOK*2)+1) 
+		{ 
+			j = 0;
+			bi = 0; 
+			b++; 
+		}
+	}
+}
+static cptr ddd_names[10] =
+{"", "south-east", "south", "south-west", "east", 
+ "", "west", "north-east", "north", "north-west" };
+/* Perform a 'social' action */
+void do_cmd_social(int Ind, int dir, int i)
+{
+	player_type *p_ptr = Players[Ind];
+	struct social_type *s_ptr;
+	bool catch = FALSE;
+
+	/* Ghosts don't socialize */
+	if (p_ptr->ghost || p_ptr->fruit_bat) return;
+
+	/* Adjust index */
+	if (i >= SPELL_PROJECTED)
+	{
+		i -= SPELL_PROJECTED;
+		catch = TRUE;
+	}
+	i -= (i / SPELLS_PER_BOOK / 3) * (SPELLS_PER_BOOK - 1);
+
+	s_ptr = &socials[i];
+
+	if (catch && s_ptr->min_victim_position != 0)
+	{
+		int d;
+		if (dir != 5 || !target_okay(Ind)) return;
+		d = distance(p_ptr->py, p_ptr->px, p_ptr->target_row, p_ptr->target_col);
+		if (s_ptr->min_victim_position < 1 || d <= s_ptr->min_victim_position)
+		{
+			char victim[80];
+			if (p_ptr->target_who > 0)
+			{
+				monster_desc(Ind, victim, p_ptr->target_who, 0);
+				if (s_ptr->others_found)
+					msg_format_complex_near(Ind, Ind, MSG_SOCIAL, 
+						s_ptr->others_found, p_ptr->name, victim); 
+			}
+			if (p_ptr->target_who < 0)
+			{
+				sprintf(victim, "%s", Players[0 - p_ptr->target_who]->name);
+				if (s_ptr->others_found)
+					msg_format_complex_near(Ind, 0-p_ptr->target_who, MSG_SOCIAL, 
+						s_ptr->others_found, p_ptr->name, victim);
+				if (s_ptr->vict_found) 
+					msg_format_type(0 - p_ptr->target_who, MSG_SOCIAL, 
+						s_ptr->vict_found, p_ptr->name);
+			}
+			if (s_ptr->char_found)
+				msg_format_type(Ind, MSG_SOCIAL, s_ptr->char_found, victim);
+		} 
+	}
+	else
+	{
+		if (s_ptr->char_no_arg)
+			msg_format_type(Ind, MSG_SOCIAL, s_ptr->char_no_arg, ddd_names[dir]);
+		if (s_ptr->others_no_arg)
+			msg_format_complex_near(Ind, Ind, MSG_SOCIAL, s_ptr->others_no_arg, p_ptr->name, ddd_names[dir]);
+	}
+}
+
 /* static or unstatic a level */
 bool master_level(int Ind, char * parms)
 {

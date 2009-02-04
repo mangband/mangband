@@ -215,6 +215,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},	
 
 	/*** Miscellaneous; MAngband-specific ***/
+	{ /* 'Social' */
+		KTRL('S'), PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_social,
+		(COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_SPELL_INDEX | COMMAND_TARGET_ALLOW),
+		(12), "Socials\nDo what? "
+	},
 #if 0
 	{ /* Suicide */
 		'Q', PKT_SUICIDE, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,

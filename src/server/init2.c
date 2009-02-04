@@ -1961,6 +1961,9 @@ static errr init_other(void)
 
 	/*** Init the wild_info array... for more information see wilderness.c ***/
 	init_wild_info();
+	
+	/*** Socials ***/
+	boot_socials();
 
 	/*** Prepare the various "bizarre" arrays ***/
 

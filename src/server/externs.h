@@ -1052,6 +1052,8 @@ extern void msg_format(int Ind, cptr fmt, ...);
 extern void msg_format_type(int Ind, u16b type, cptr fmt, ...);
 extern void msg_print_near(int Ind, cptr msg);
 extern void msg_format_near(int Ind, cptr fmt, ...);
+extern void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg);
+extern void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...);
 extern void player_talk(int Ind, char *msg);
 extern void channel_join(int Ind, cptr channel, bool quiet);
 extern void channel_leave(int Ind, cptr channel);
@@ -1132,6 +1134,9 @@ extern int motion_dir(int y1, int x1, int y2, int x2);
 extern bool do_scroll_life(int Ind);
 extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
+extern void boot_socials();
+extern void show_socials(int Ind);
+extern void do_cmd_social(int Ind, int dir, int i);
 
 extern bool master_level(int Ind, char * parms);
 extern bool master_build(int Ind, char * parms);

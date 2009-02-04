@@ -1413,6 +1413,9 @@ static int Enter_player(int ind)
 	/* Send him his history */
 	prt_history(NumPlayers);	
 	
+	/* Send him 'socials' */
+	show_socials(NumPlayers);	
+	
 	/* Hack -- terminate the data stream sent to the client 
 	if (Packet_printf(&connp->c, "%c", PKT_END) <= 0)
 	{
