@@ -362,6 +362,55 @@ void party_msg_format(int party_id, cptr fmt, ...)
 	party_msg(party_id, buf);
 }
 
+/* Message nearby party members */
+void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
+{
+	player_type *p_ptr = Players[Ind];
+	va_list vp;
+	char buf[1024];
+	int i;
+	int 	Depth = p_ptr->dun_depth;
+	int 		y = p_ptr->py;
+	int 		x = p_ptr->px;
+	int 	party = p_ptr->party;
+
+	/* Not a member of any party */
+	if (!party) return;
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Display */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		/* Check this player */
+		p_ptr = Players[i];
+		
+		/* Don't send the message to the player who caused it */
+		if (Ind == i) continue;
+
+		/* Make sure this player is at this depth */
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Meh, different party */		
+		if (!player_in_party(party, i)) continue;
+
+		/* Can he see this player? */
+		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		{
+			/* Send the message */
+			msg_print_aux(i, buf, type);
+		}
+	}
+}
+
+
 /*
  * Split some experience among party members.
  *

@@ -1116,7 +1116,7 @@ static void spell_wonder(int Ind, int dir)
 }
 
 
-
+#define msg_spell(A) msg_format_complex_near(Ind, Ind, MSG_PY_SPELL, (A), p_ptr->name)
 static bool cast_mage_spell(int Ind, int spell)
 {
 	player_type 	*p_ptr = Players[Ind];
@@ -1138,6 +1138,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_MAGIC_MISSILE:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s fires a magic missile.");
 			fire_bolt_or_beam(Ind, beam-10, GF_MISSILE, dir,
 			                  damroll(3 + ((plev - 1) / 5), 4));
 			break;
@@ -1151,6 +1152,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_PHASE_DOOR:
 		{
+			msg_spell("%s blinks away!");
 			teleport_player(Ind, 10);
 			break;
 		}
@@ -1193,6 +1195,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_STINKING_CLOUD:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a stinking cloud.");
 			fire_ball(Ind, GF_POIS, dir, 10 + (plev / 2), 2);
 			break;
 		}
@@ -1200,6 +1203,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_CONFUSE_MONSTER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a complicated gesture.");
 			(void)confuse_monster(Ind, dir, plev);
 			break;
 		}
@@ -1207,6 +1211,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_LIGHTNING_BOLT:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a lightning bolt.");
 			fire_beam(Ind, GF_ELEC, dir,
 			          damroll(3+((plev-5)/6), 6));
 			break;
@@ -1221,6 +1226,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_SLEEP_MONSTER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s gestures and mumbles calmly.");
 			(void)sleep_monster(Ind, dir);
 			break;
 		}
@@ -1233,6 +1239,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_TELEPORT_SELF:
 		{
+			msg_spell("%s teleports away!");
 			teleport_player(Ind, plev * 5);
 			break;
 		}
@@ -1241,6 +1248,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
 			msg_print(Ind, "A line of blue shimmering light appears.");
+			msg_spell("A line of blue shimmering light appears out of %s's hands.");
 			lite_line(Ind, dir);
 			break;
 		}
@@ -1248,6 +1256,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_FROST_BOLT:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a frost bolt.");
 			fire_bolt_or_beam(Ind, beam-10, GF_COLD, dir,
 			                  damroll(5+((plev-5)/4), 8));
 			break;
@@ -1256,6 +1265,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_TURN_STONE_TO_MUD:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a moving gesture.");
 			(void)wall_to_mud(Ind, dir);
 			break;
 		}
@@ -1281,6 +1291,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_POLYMORPH_OTHER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s discharges an everchanging blast of energy.");
 			(void)poly_monster(Ind, dir);
 			break;
 		}
@@ -1299,6 +1310,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_FIRE_BOLT:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a fire bolt.");
 			fire_bolt_or_beam(Ind, beam, GF_FIRE, dir,
 			                  damroll(6+((plev-5)/4), 8));
 			break;
@@ -1307,6 +1319,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_SLOW_MONSTER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a lengthy gesture.");
 			(void)slow_monster(Ind, dir);
 			break;
 		}
@@ -1314,6 +1327,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_FROST_BALL:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a frost ball.");
 			fire_ball(Ind, GF_COLD, dir, 30 + (plev), 2);
 			break;
 		}
@@ -1326,6 +1340,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_TELEPORT_OTHER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a rush gesture.");
 			(void)teleport_monster(Ind, dir);
 			break;
 		}
@@ -1333,6 +1348,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_BEDLAM:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s creates confusion.");
 			fire_ball(Ind, GF_OLD_CONF, dir, plev, 4);
 			break;
 		}
@@ -1340,12 +1356,14 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_FIRE_BALL:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a fire ball.");
 			fire_ball(Ind, GF_FIRE, dir, 55 + (plev), 2);
 			break;
 		}
 
 		case SPELL_WORD_OF_DESTRUCTION:
 		{
+			msg_spell("%s unleashes great power!"); 
 			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
@@ -1376,6 +1394,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_EARTHQUAKE:
 		{
+		  	msg_spell("%s casts a spell, and the ground shakes!"); 
 			earthquake(Depth, py, px, 10);
 			break;
 		}
@@ -1390,6 +1409,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_ACID_BOLT:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an acid bolt.");
 			fire_bolt_or_beam(Ind, beam, GF_ACID, dir, damroll(8+((plev-5)/4), 8));
 			break;
 		}
@@ -1397,6 +1417,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_CLOUD_KILL:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a cloud of death.");
 			fire_ball(Ind, GF_POIS, dir, 40 + (plev / 2), 3);
 			break;
 		}
@@ -1404,6 +1425,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_ACID_BALL:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an acid ball.");
 			fire_ball(Ind, GF_ACID, dir, 40 + (plev), 2);
 			break;
 		}
@@ -1411,6 +1433,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_ICE_STORM:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s invokes an ice storm.");
 			fire_ball(Ind, GF_ICE, dir, 50 + (plev * 2), 3);
 			break;
 		}
@@ -1418,6 +1441,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_METEOR_SWARM:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a meteor shower.");
 			fire_swarm(Ind, 2 + plev / 20, GF_METEOR, dir, 30 + plev / 2, 1);
 			break;
 		}
@@ -1425,6 +1449,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_MANA_STORM:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a mana ball.");
 			fire_ball(Ind, GF_MANA, dir, 300 + (plev * 2), 3);
 			break;
 		}
@@ -1443,6 +1468,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_SHOCK_WAVE:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a shock wave.");
 			fire_ball(Ind, GF_SOUND, dir, 10 + plev, 2);
 			break;
 		}
@@ -1450,6 +1476,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_EXPLOSION:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an explosion.");
 			fire_ball(Ind, GF_SHARDS, dir, 20 + (plev * 2), 2);
 			break;
 		}
@@ -1506,12 +1533,14 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_SHIELD:
 		{
+			msg_spell("%s forms a mystic shield."); 
 			(void)set_shield(Ind, p_ptr->shield + randint(20) + 30);
 			break;
 		}
 
 		case SPELL_BERSERKER:
 		{
+			msg_spell("%s enters a battle rage!");
 			(void)hp_player(Ind, 30);
 			(void)set_shero(Ind, p_ptr->shero + randint(25) + 25);
 			(void)set_afraid(Ind, 0);
@@ -1520,6 +1549,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_HASTE_SELF:
 		{
+			msg_spell("%s starts moving faster."); 
 			if (!p_ptr->fast)
 			{
 				(void)set_fast(Ind, randint(20) + plev);
@@ -1534,6 +1564,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_RIFT:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("Space warps in a beam from %s.");
 			fire_beam(Ind, GF_GRAVITY, dir,	40 + damroll(plev, 7));
 			break;
 		}
@@ -1541,6 +1572,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_REND_SOUL: /* rend soul */
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a nether ball.");
 			fire_bolt_or_beam(Ind, beam / 4, GF_NETHER, dir, damroll(11, plev));
 			break;
 		}
@@ -1548,12 +1580,14 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_CHAOS_STRIKE: /* chaos strike */
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a ball of chaos.");
 			fire_bolt_or_beam(Ind, beam, GF_CHAOS, dir, damroll(13, plev));
 			break;
 		}
 
 		case SPELL_RUNE_OF_PROTECTION: /* rune of protection */
 		{
+			msg_spell("%s lays down a rune of protection."); 
 			(void)warding_glyph(Ind);
 			break;
 		}
@@ -1574,7 +1608,7 @@ static bool cast_mage_spell(int Ind, int spell)
 	return (TRUE);
 }
 
-
+#define msg_prayer(A) msg_format_complex_near(Ind, Ind, MSG_PY_PRAYER, (A), p_ptr->name)
 static bool cast_priest_spell(int Ind, int spell)
 {
 	player_type 	*p_ptr = Players[Ind];
@@ -1623,6 +1657,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_CALL_LIGHT:
 		{
+			msg_prayer("%s calls light.");
 			(void)lite_area(Ind, damroll(2, (plev / 2)), (plev / 10) + 1);
 			break;
 		}
@@ -1655,6 +1690,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_PORTAL:
 		{
+			msg_prayer("%s blinks away!");
 			teleport_player(Ind, plev * 3);
 			break;
 		}
@@ -1681,6 +1717,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_SANCTUARY:
 		{
+			msg_prayer("For a brief moment, %s is enclosed by a deep blue aura.");
 			(void)sleep_monsters_touch(Ind);
 			break;
 		}
@@ -1713,6 +1750,7 @@ static bool cast_priest_spell(int Ind, int spell)
 		case PRAYER_ORB_OF_DRAINING:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s fires a holy orb!"); 
 			fire_ball(Ind, GF_HOLY_ORB, dir,
 			          (damroll(3, 6) + plev +
 			           (plev / ((p_ptr->cp_ptr->flags & CF_BLESS_WEAPON) ? 2 : 4))),
@@ -1748,6 +1786,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_EARTHQUAKE:
 		{
+			msg_prayer("%s murmurs, and the ground shakes!");
 			earthquake(Depth, py, px, 10);
 			break;
 		}
@@ -1775,6 +1814,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_TURN_UNDEAD:
 		{
+			msg_prayer("%s tries to turn undead.");
 			(void)turn_undead(Ind);
 			break;
 		}
@@ -1787,6 +1827,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_DISPEL_UNDEAD:
 		{
+			msg_prayer("%s dispells undead.");
 			(void)dispel_undead(Ind, randint(plev * 3));
 			break;
 		}
@@ -1808,18 +1849,21 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_DISPEL_EVIL:
 		{
+			msg_prayer("%s dispells evil.");
 			(void)dispel_evil(Ind, randint(plev * 3));
 			break;
 		}
 
 		case PRAYER_GLYPH_OF_WARDING:
 		{
+			msg_prayer("%s lays down a glyph of warding.");
 			warding_glyph(Ind);
 			break;
 		}
 
 		case PRAYER_HOLY_WORD:
 		{
+			msg_prayer("%s shouts the holy word.");
 			(void)dispel_evil(Ind, randint(plev * 4));
 			(void)hp_player(Ind, 1000);
 			(void)set_afraid(Ind, 0);
@@ -1854,6 +1898,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_CLAIRVOYANCE:
 		{
+			msg_prayer("An image of your surroundings forms in your mind...");
 			wiz_lite(Ind);
 			break;
 		}
@@ -1927,18 +1972,21 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_DISPEL_UNDEAD2:
 		{
+			msg_prayer("%s dispells undead.");
 			(void)dispel_undead(Ind, randint(plev * 4));
 			break;
 		}
 
 		case PRAYER_DISPEL_EVIL2:
 		{
+			msg_prayer("%s dispells evil.");
 			(void)dispel_evil(Ind, randint(plev * 4));
 			break;
 		}
 
 		case PRAYER_BANISH_EVIL:
 		{
+			msg_prayer("%s speaks a holy curse on nearby evil!");
 			if (banish_evil(Ind, 100))
 			{
 				msg_print(Ind, "The power of your god banishes evil!");
@@ -1948,6 +1996,7 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_WORD_OF_DESTRUCTION:
 		{
+			msg_prayer("%s unleashes a spell of great power!");
 			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
@@ -1955,12 +2004,14 @@ static bool cast_priest_spell(int Ind, int spell)
 		case PRAYER_ANNIHILATION:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s fires a massive bolt filled with pure energy!");
 			drain_life(Ind, dir, 200);
 			break;
 		}
 
 		case PRAYER_UNBARRING_WAYS:
 		{
+			msg_prayer("%s sways his hands.");
 			(void)destroy_doors_touch(Ind);
 			break;
 		}
@@ -1994,12 +2045,14 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_BLINK:
 		{
+			msg_prayer("%s blinks away!");
 			teleport_player(Ind, 10);
 			break;
 		}
 
 		case PRAYER_TELEPORT_SELF:
 		{
+			msg_prayer("%s teleports away!");
 			teleport_player(Ind, plev * 8);
 			break;
 		}
@@ -2007,6 +2060,7 @@ static bool cast_priest_spell(int Ind, int spell)
 		case PRAYER_TELEPORT_OTHER:
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s prays for divine intervention.");
 			(void)teleport_monster(Ind, dir);
 			break;
 		}

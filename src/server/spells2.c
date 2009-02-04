@@ -1093,11 +1093,13 @@ void set_recall(int Ind, object_type * o_ptr)
 		p_ptr->recall_depth = recall_depth;
 		p_ptr->word_recall = (s16b)rand_int(20) + 15;
 		msg_print(Ind, "The air about you becomes charged...");
+		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "The air about %s becomes charged...", p_ptr->name); 
 	}
 	else
 	{
 		p_ptr->word_recall = 0;
 		msg_print(Ind, "A tension leaves the air around you...");
+		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "A tension leaves the air around %s...", p_ptr->name);
 	}	
 
 }
@@ -1288,6 +1290,7 @@ bool detect_treasure(int Ind)
 	/* Describe */
 	if (detect)
 	{
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of buried treasure!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of buried treasure!");
 	}
 
@@ -1468,6 +1471,7 @@ bool detect_invisible(int Ind, bool pause)
 	if (flag && pause)
 	{
 		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of invisible creatures!");
 		msg_print(Ind, NULL);
 
@@ -1548,6 +1552,7 @@ bool detect_evil(int Ind)
 	if (flag)
 	{
 		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of evil creatures!");
 		msg_print(Ind, NULL);
 
@@ -1652,6 +1657,7 @@ bool detect_creatures(int Ind, bool pause)
 	if (flag && pause)
 	{
 		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of creatures!");
 		msg_print(Ind, NULL);
 
@@ -1689,6 +1695,7 @@ bool detection(int Ind)
 	{
 		detect = TRUE;
 		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
 		msg_print(Ind, "You sense the presence of creatures!");
 		msg_print(Ind, NULL);
 

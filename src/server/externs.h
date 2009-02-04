@@ -863,6 +863,7 @@ extern int party_remove(int remover, cptr name);
 extern void party_leave(int Ind);
 extern void party_msg(int party_id, cptr msg);
 extern void party_msg_format(int party_id, cptr fmt, ...);
+extern void party_msg_format_near(int Ind, u16b type, cptr fmt, ...);
 extern void party_gain_exp(int Ind, int party_id, s32b amount);
 extern bool add_hostility(int Ind, cptr name);
 extern bool remove_hostility(int Ind, cptr name);

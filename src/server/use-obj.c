@@ -10,6 +10,7 @@
 
 #include "angband.h"
 
+#define msg_misc(A) msg_format_complex_near(Ind, Ind, MSG_PY_MISC, (A), p_ptr->name)
 static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 {
 	player_type *p_ptr = Players[Ind];
@@ -251,6 +252,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		case SV_POTION_SALT_WATER:
 		{
 			msg_print(Ind, "The potion makes you vomit!");
+			msg_misc("%s vomits!"); 
 			(void)set_food(Ind, PY_FOOD_STARVE - 1);
 			(void)set_poisoned(Ind, 0);
 			(void)set_paralyzed(Ind, p_ptr->paralyzed + 4);
@@ -370,6 +372,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		case SV_POTION_DETONATIONS:
 		{
 			msg_print(Ind, "Massive explosions rupture your body!");
+			msg_misc("%s blows up!");
 			take_hit(Ind, damroll(50, 20), "a potion of Detonation");
 			(void)set_stun(Ind, p_ptr->stun + 75);
 			(void)set_cut(Ind, p_ptr->cut + 5000);
@@ -1110,6 +1113,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_TELEPORTATION:
 		{
+		    msg_misc("%s teleports away!"); 
 			teleport_player(Ind, 100);
 			*ident = TRUE;
 			break;
@@ -1148,6 +1152,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_LITE:
 		{
+			msg_misc("%s calls light."); 
 			if (lite_area(Ind, damroll(2, 8), 2)) *ident = TRUE;
 			break;
 		}
@@ -1301,6 +1306,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_EARTHQUAKES:
 		{
+			msg_misc("%s causes the ground to shake!"); 
 			earthquake(Depth, py, px, 10);
 			*ident = TRUE;
 			break;
@@ -1308,6 +1314,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_DESTRUCTION:
 		{
+			msg_misc("%s unleashes great power!"); 
 			destroy_area(Depth, py, px, 15, TRUE);
 			*ident = TRUE;
 			break;
@@ -1474,6 +1481,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_STINKING_CLOUD:
 		{
+			msg_misc("%s fires a stinking cloud."); 
 			fire_ball(Ind, GF_POIS, dir, 12, 2);
 			*ident = TRUE;
 			break;
@@ -1481,6 +1489,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_MAGIC_MISSILE:
 		{
+			msg_misc("%s fires a magic missile.");
 			fire_bolt_or_beam(Ind, 20, GF_MISSILE, dir, damroll(3, 4));
 			*ident = TRUE;
 			break;
@@ -1488,6 +1497,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_ACID_BOLT:
 		{
+			msg_misc("%s fires an acid bolt.");
 			fire_bolt_or_beam(Ind, 20, GF_ACID, dir, damroll(10, 8));
 			*ident = TRUE;
 			break;
@@ -1495,6 +1505,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_ELEC_BOLT:
 		{
+			msg_misc("%s fires a lightning bolt.");
 			fire_bolt_or_beam(Ind, 20, GF_ELEC, dir, damroll(6, 6));
 			*ident = TRUE;
 			break;
@@ -1502,6 +1513,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_FIRE_BOLT:
 		{
+			msg_misc("%s fires a fire bolt.");
 			fire_bolt_or_beam(Ind, 20, GF_FIRE, dir, damroll(12, 8));
 			*ident = TRUE;
 			break;
@@ -1509,6 +1521,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_COLD_BOLT:
 		{
+			msg_misc("%s fires a frost bolt.");
 			fire_bolt_or_beam(Ind, 20, GF_COLD, dir, damroll(6, 8));
 			*ident = TRUE;
 			break;
@@ -1516,6 +1529,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_ACID_BALL:
 		{
+			msg_misc("%s fires a ball of acid.");
 			fire_ball(Ind, GF_ACID, dir, 120, 2);
 			*ident = TRUE;
 			break;
@@ -1523,6 +1537,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_ELEC_BALL:
 		{
+			msg_misc("%s fires a ball of electricity.");
 			fire_ball(Ind, GF_ELEC, dir, 64, 2);
 			*ident = TRUE;
 			break;
@@ -1530,6 +1545,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_FIRE_BALL:
 		{
+			msg_misc("%s fires a fire ball.");
 			fire_ball(Ind, GF_FIRE, dir, 144, 2);
 			*ident = TRUE;
 			break;
@@ -1537,6 +1553,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_COLD_BALL:
 		{
+			msg_misc("%s fires a frost ball.");
 			fire_ball(Ind, GF_COLD, dir, 96, 2);
 			*ident = TRUE;
 			break;
@@ -1550,6 +1567,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_DRAGON_FIRE:
 		{
+			msg_misc("%s shoots dragon fire!");
 			fire_ball(Ind, GF_FIRE, dir, 200, 3);
 			*ident = TRUE;
 			break;
@@ -1557,6 +1575,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_DRAGON_COLD:
 		{
+			msg_misc("%s shoots dragon frost!");
 			fire_ball(Ind, GF_COLD, dir, 160, 3);
 			*ident = TRUE;
 			break;
@@ -1568,30 +1587,35 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 			{
 				case 1:
 				{
+					msg_misc("%s shoots dragon acid!");
 					fire_ball(Ind, GF_ACID, dir, 200, 3);
 					break;
 				}
 
 				case 2:
 				{
+					msg_misc("%s shoots dragon lightning!");
 					fire_ball(Ind, GF_ELEC, dir, 160, 3);
 					break;
 				}
 
 				case 3:
 				{
+					msg_misc("%s shoots dragon fire!");
 					fire_ball(Ind, GF_FIRE, dir, 200, 3);
 					break;
 				}
 
 				case 4:
 				{
+					msg_misc("%s shoots dragon frost!");
 					fire_ball(Ind, GF_COLD, dir, 160, 3);
 					break;
 				}
 
 				default:
 				{
+					msg_misc("%s shoots dragon poison!");
 					fire_ball(Ind, GF_POIS, dir, 120, 3);
 					break;
 				}
@@ -1708,6 +1732,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_ILLUMINATION:
 		{
+		 	msg_misc("%s calls light.");
 			if (lite_area(Ind, damroll(2, 8), 2)) *ident = TRUE;
 			break;
 		}
@@ -1822,6 +1847,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_ACID_BOLT:
 		{
+			msg_misc("%s fires an acid bolt.");
 			fire_bolt_or_beam(Ind, 10, GF_ACID, dir, damroll(12, 8));
 			*ident = TRUE;
 			break;
@@ -1829,6 +1855,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_ELEC_BOLT:
 		{
+			msg_misc("%s fires a lightning bolt.");
 			fire_bolt_or_beam(Ind, 10, GF_ELEC, dir, damroll(6, 6));
 			*ident = TRUE;
 			break;
@@ -1836,6 +1863,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_FIRE_BOLT:
 		{
+			msg_misc("%s fires a fire bolt.");
 			fire_bolt_or_beam(Ind, 10, GF_FIRE, dir, damroll(16, 8));
 			*ident = TRUE;
 			break;
@@ -1843,6 +1871,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_COLD_BOLT:
 		{
+			msg_misc("%s fires a frost bolt.");
 			fire_bolt_or_beam(Ind, 10, GF_COLD, dir, damroll(10, 8));
 			*ident = TRUE;
 			break;
@@ -1850,6 +1879,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_ACID_BALL:
 		{
+			msg_misc("%s fires an acid ball.");
 			fire_ball(Ind, GF_ACID, dir, 120, 2);
 			*ident = TRUE;
 			break;
@@ -1857,6 +1887,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_ELEC_BALL:
 		{
+			msg_misc("%s fires a lightning ball.");
 			fire_ball(Ind, GF_ELEC, dir, 64, 2);
 			*ident = TRUE;
 			break;
@@ -1864,6 +1895,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_FIRE_BALL:
 		{
+			msg_misc("%s fires a fire ball.");
 			fire_ball(Ind, GF_FIRE, dir, 144, 2);
 			*ident = TRUE;
 			break;
@@ -1871,6 +1903,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_COLD_BALL:
 		{
+			msg_misc("%s fires a frost ball.");
 			fire_ball(Ind, GF_COLD, dir, 96, 2);
 			*ident = TRUE;
 			break;
