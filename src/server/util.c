@@ -2713,18 +2713,61 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
+#define VIRTUAL_CHANNELS 8
+cptr virt_channels[] = { NULL, "&say", NULL };
 int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
 	cptr problem = "";
 	player_type *q_ptr;
+	bool party_trap = FALSE;
+	bool channel_trap = FALSE;
 
 	/* Acquire length of search string */
 	len = strlen(search);
+	
+	/* Virtual channels ? */
+	if (len && search[0] == '&')
+	{
+		channel_trap = TRUE;
+		
+		/* Find one */
+		for (i = 1; i < VIRTUAL_CHANNELS; i++)
+		{
+			/* Done */
+			if (!virt_channels[i]) break;
+		
+			/* Compare names */
+			if (!strncasecmp(virt_channels[i], search, len))
+			{
+					/* Set target if not set already or an exact match */
+					if ((!target) || (len == strlen(virt_channels[i])))
+					{
+						target = i;
+						problem = "";
+					}
+					else
+					{
+						/* Matching too many */
+						/* Make sure we don't already have an exact match */
+						if (len != strlen(parties[0 - target].name))
+							problem = "channels";
+					}
+					break;
+			}
+		}
+	}
 
 	/* Look for a recipient who matches the search string */
-	if (len)
+	if (len && !channel_trap)
 	{
+		/* Check for party hinter */
+		if (search[0] == '^')
+		{
+			party_trap = TRUE;
+			search = search + 1;
+		}	
+	
 		/* First check parties */
 		for (i = 1; i < MAX_PARTIES; i++)
 		{
@@ -2763,6 +2806,8 @@ int find_chat_target(cptr search, char *error)
 			}
 		}
 
+		/* Was hinting at party, Ignore players */
+		if (!party_trap)		{
 		/* Then check players */
 		for (i = 1; i <= NumPlayers; i++)
 		{
@@ -2791,6 +2836,7 @@ int find_chat_target(cptr search, char *error)
 				else	problem = "players or parties";
 			}
 		}
+		/* End party hinter */	}
 	}
 
 	/* Check for recipient set but no match found */
@@ -2812,6 +2858,9 @@ int find_chat_target(cptr search, char *error)
 		/* Give up */
 		return 0;
 	}
+	
+	/* Hack -- pack player targets and virtual channels together */
+	if (target > 0 && !channel_trap) target += VIRTUAL_CHANNELS;
 
 	return target;
 }
@@ -2832,10 +2881,15 @@ void assist_whisper(int Ind, cptr search)
 		/* Give up */
 		return;
 	}
+	/* Virtual channel -- what he sent */
+	else if (target > 0 && target < VIRTUAL_CHANNELS)
+	{
+		Send_channel(Ind, 255, virt_channels[target]);
+	}
 	/* A Player */
 	else if (target > 0)
 	{
-		Send_channel(Ind, 255, Players[target]->name);
+		Send_channel(Ind, 255, Players[target - VIRTUAL_CHANNELS]->name);
 	}
 	/* A Party */
 	else if (target < 0)
@@ -3071,6 +3125,48 @@ void player_talk_aux(int Ind, cptr message)
 	if (!msg_off)
 	{
 		colon = message;
+	}
+
+	
+	/* Send to a virtual channel */
+	if (target > 0)
+	{
+		/* Make sure it's a channel, not player */
+		if (target < VIRTUAL_CHANNELS)
+		{
+			cptr verb = "say";
+			char punct = '.';
+			char msg[60];
+			strncpy(msg, colon, 60);
+			switch (target)
+			{
+				case 1: /* "&say" */
+					for (i = strlen(msg) - 1; i > 0; i--)
+					{
+						switch (msg[i])
+						{
+							case ' ':
+								continue;
+							case '?':
+								verb = "ask";
+							case '!':
+							case '.':
+								punct = msg[i]; 
+								msg[i] = '\0';
+							default:
+								break;
+						}
+						break;
+					}
+					/* Send somewhere */
+					msg_format_type(Ind, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_near(Ind, Ind, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
+				break;
+			}
+			return;
+		}
+		/* It was a player */
+		else target -= VIRTUAL_CHANNELS;
 	}
 
 	/* Send to appropriate player */

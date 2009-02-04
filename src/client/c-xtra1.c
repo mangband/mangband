@@ -1691,6 +1691,13 @@ int find_whisper_tab(cptr msg, char *text)
 		pmsg = msg + (pmsg - msg) + 2;
 		sprintf(text, "[%s] %s", from_us, pmsg);
 	}
+	/* HACK -- "&xxx" */
+	else if (msg[0] == '&')
+	{
+		/* Dest. */
+		strcpy(buf, msg);
+		buf[strlen(msg)] = '\0';
+	}
 	
 	if (STRZERO(buf)) return 0;
 	
@@ -1787,6 +1794,12 @@ void fix_special_message(void)
 		else if (message_type(c-1) >= MSG_CHAT) 
 		{
 			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
+		}
+		else if (message_type(c-1) == MSG_TALK)
+		{
+		 	/* hack -- "&say" */
+			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
 		}
 		else continue;
 		

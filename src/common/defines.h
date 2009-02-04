@@ -3307,6 +3307,7 @@ extern int PlayerUID;
 #define MSG_DRAIN_STAT      148
 #define MSG_MULTIPLY        149
 /* MAngband-specific */
+#define MSG_TALK            250
 #define MSG_SOCIAL          251
 #define MSG_PY_SPELL        252
 #define MSG_PY_PRAYER       253
