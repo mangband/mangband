@@ -1439,8 +1439,8 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 			/*     (j_ptr->ident & ID_SENSE)) return (0); */
 
 			/* require identical bonuses */
-
-			if (o_ptr->pval != j_ptr->pval) return (0);
+			/* hack -- MAngband-specific bonus */
+			if (o_ptr->bpval != j_ptr->bpval) return (0);
 
 			/* Fall through */
 		}
