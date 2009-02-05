@@ -2108,6 +2108,12 @@ static bool cast_priest_spell(int Ind, int spell)
 			
 			break;
 		}
+		/* Paranoia: shouldn't happen with safe clients */
+		default:
+		{
+			msg_print(Ind, "You cannot project that spell on other players.");
+			return (FALSE);
+		}
 	}
 
 	/* Success */
