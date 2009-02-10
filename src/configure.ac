@@ -5,6 +5,7 @@ AC_PREREQ(2.56)
 AC_INIT(mangband, 1.0.0, jug@mangband.org)
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
+AC_CANONICAL_HOST
 
 
 # We don't like -02 in cflags
@@ -13,6 +14,14 @@ cflags_save="$CFLAGS"
 AC_PROG_CC
 # But we do like our debug symbols and warnings
 CFLAGS="$cflags_save -Wall -g -pipe"
+
+# Evil Hack -- Check for Host OS
+case "${host_os}" in
+	freebsd*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LIBS="$LIBS -L/usr/local/lib" 
+	;;
+esac
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lX11':
@@ -30,7 +39,6 @@ AC_CHECK_LIB([ws2_32], [main],[
     LIBS="$LIBS -lws2_32"
     ON_WINDOWS="yes"
 ])
-
 
 AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Ignore winsock presense]), ON_WINDOWS=$withval)
 
@@ -157,4 +165,4 @@ AC_OUTPUT
 
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
-#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS"
+echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"
