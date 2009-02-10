@@ -17,6 +17,9 @@ CFLAGS="$cflags_save -Wall -g -pipe"
 
 # Evil Hack -- Check for Host OS
 case "${host_os}" in
+	darwin*)
+	LIBS="$LIBS -L/usr/X11R6/lib"
+	;;
 	freebsd*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LIBS="$LIBS -L/usr/local/lib" 
