@@ -84,14 +84,14 @@ fi
 if test "x$enabled_gcu" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_GCU"
-    DISPMOD="$DISMOD GCU"
+    DISPMOD="$DISPMOD GCU"
 fi
 #X11
 if test "x$enabled_x11" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_X11"
     LIBS="$LIBS -lX11"
-    DISPMOD="$DISMOD X11"
+    DISPMOD="$DISPMOD X11"
 fi
 #SDL
 if test "x$enabled_sdl" = xyes
@@ -99,7 +99,7 @@ then
     TERMDEFS="$TERMDEFS -DUSE_SDL"
     LIBS="$LIBS `sdl-config --libs`"
     CFLAGS="$CFLAGS `sdl-config --cflags`"
-    DISPMOD="$DISMOD SDL"
+    DISPMOD="$DISPMOD SDL"
 fi
 
 
@@ -122,7 +122,7 @@ then
 	    AC_CHECK_LIB([gdi32], [main], [LIBS="$LIBS -lgdi32"], AC_ERROR([lib gdi32 not found]))
 	    AC_CHECK_LIB([comdlg32], [main], [LIBS="$LIBS -lcomdlg32"], AC_ERROR([lib comdlg32 not found]))
 	    CLI_MAIN="CLI_MAIN = client/main-win.c"
-	    DISPMOD="$DISMOD WIN32"
+	    DISPMOD="$DISPMOD WIN32"
 	else
 	    CLI_DMAIN="CLI_DMAIN=-Dmain=SDL_main"
 	fi

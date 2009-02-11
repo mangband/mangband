@@ -2557,14 +2557,14 @@ fi
 if test "x$enabled_gcu" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_GCU"
-    DISPMOD="$DISMOD GCU"
+    DISPMOD="$DISPMOD GCU"
 fi
 #X11
 if test "x$enabled_x11" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_X11"
     LIBS="$LIBS -lX11"
-    DISPMOD="$DISMOD X11"
+    DISPMOD="$DISPMOD X11"
 fi
 #SDL
 if test "x$enabled_sdl" = xyes
@@ -2572,7 +2572,7 @@ then
     TERMDEFS="$TERMDEFS -DUSE_SDL"
     LIBS="$LIBS `sdl-config --libs`"
     CFLAGS="$CFLAGS `sdl-config --cflags`"
-    DISPMOD="$DISMOD SDL"
+    DISPMOD="$DISPMOD SDL"
 fi
 
 
@@ -2816,7 +2816,7 @@ echo "$as_me: error: lib comdlg32 not found" >&2;}
 fi
 
 	    CLI_MAIN="CLI_MAIN = client/main-win.c"
-	    DISPMOD="$DISMOD WIN32"
+	    DISPMOD="$DISPMOD WIN32"
 	else
 	    CLI_DMAIN="CLI_DMAIN=-Dmain=SDL_main"
 	fi
