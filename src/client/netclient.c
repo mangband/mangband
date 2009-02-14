@@ -25,9 +25,10 @@
 #endif
 
 static u32b last_keepalive;
+static huge last_sent;
 
 int			ticks = 0; // Keeps track of time in 100ms "ticks"
-u32b		mticks = 0; // Keeps track of time in 1ms "ticks"
+huge			mticks = 0; // Keeps track of time in 0.1ms "ticks"
 static bool		request_redraw;
 
 sockbuf_t	rbuf, cbuf, wbuf, qbuf;
@@ -1802,9 +1803,8 @@ int Receive_keepalive(void)
 	/* make sure it's the same one we sent... */
 
 	if(cticks == last_keepalive) {
-		if (!screen_icky && !shopping) {
-			prt_lag(cticks,mticks-cticks);
-		} 
+		if (!screen_icky && !shopping)
+			prt_lag(mticks, mticks-last_sent);
 		last_keepalive=0;
 	};
 
@@ -2570,17 +2570,10 @@ int Send_keepalive(void)
 {
 	int	n;
 
-	if( lag_ok) {
-		if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE,last_keepalive=mticks)) <= 0)
-		{
-			return n;
-		}
-	} else {
-		if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE)) <= 0)
-		{
-			return n;
-		}
-	};
+	if ((n = Packet_printf(&wbuf, "%c%ld", PKT_KEEPALIVE,last_keepalive=mticks)) <= 0)
+	{
+		return n;
+	}
 
 	return 1;
 }
@@ -3218,6 +3211,7 @@ void update_ticks()
 	struct timeval cur_time;
 	int newticks;
 	float scale = 100000;
+	float mscale = 100;
 	int mins,hours;
 
 // [grk] We do this slightly differently on WIN32 
@@ -3233,12 +3227,14 @@ void update_ticks()
 	mins = lpst->wMinute; 
 	hours = lpst->wHour; 
 	scale = 100;
+	mscale = 0.1;
 #else
 /* 	
 	hours = time(NULL) % 86400;
 	mins = time(NULL) % 3600;
 */
 	gettimeofday(&cur_time, NULL);
+	hours = mins = 0;
 #endif
 
 	// Set the new ticks to the old ticks rounded down to the number of seconds.
@@ -3252,8 +3248,8 @@ void update_ticks()
 	/*RLS*/
 	mticks = (long)(hours*3600*100) + 
 		(long)(mins*60*100) +
-		(long)(cur_time.tv_sec*100) +
-		cur_time.tv_usec/((scale/100)/10) ;
+		(cur_time.tv_sec*10000) +
+		(long)(cur_time.tv_usec/mscale);
 /* 
 	mticks = (long)(ticks*1000 ) + cur_time.tv_usec/(scale/100) ;
 	mticks = (long) ticks;
@@ -3268,27 +3264,19 @@ void update_ticks()
  */
 void do_keepalive()
 {
-static u32b last_sent;
 	// Check to see if it has been 2 seconds since we last sent anything.  Assume
 	// that each game turn lasts 100 ms.
 	//if ((ticks - last_send_anything) >= 10)
-	if(lag_ok) { 
-		if ((mticks - last_sent) > 10000)  /* 1 second */
-		{
-			if(last_keepalive) { 
-				if (!screen_icky && !shopping) {
-					prt_lag(999999999, mticks-last_keepalive); 
-				} 
-				last_keepalive=0;
-			};
-			Send_keepalive(); 
-			last_sent=mticks;
-		}
-	} else {
-		if ((ticks - last_sent) > 20) {  /* 2 seconds */
-			Send_stay();
-		 	last_sent=ticks;
-		}
+	if ((mticks - last_sent) > 10000)  /* 1 second */
+	{
+		if(last_keepalive) { 
+			if (!screen_icky && !shopping) {
+				prt_lag(mticks, 10000);
+			} 
+			last_keepalive=0;
+		};
+		Send_keepalive(); 
+		last_sent=mticks;
 	}
 }
 

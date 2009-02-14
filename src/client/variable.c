@@ -34,7 +34,7 @@ s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
 s16b cur_line;				/* Current displayed line of "special" info */
 
-int lag_ok;				/* server understands lag-check packets */
+s16b lag_minus;
 
 player_type player;			/* The client-side copy of some of the player information */
 player_type *p_ptr = &player;

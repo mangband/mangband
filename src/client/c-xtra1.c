@@ -514,17 +514,14 @@ void prt_lag(u32b mark, u32b num)
 
 	/* Default to "unknown" */
 
-	num/=10;
-	if(num>30000) return; // sometimes we catch a negative flip, just ignore it.
-
 
 	Term_erase(COL_LAG, ROW_LAG, 12);
 	/* Term_putstr(COL_LAG, ROW_LAG, 12, (flipper%2)?TERM_WHITE:TERM_L_DARK, "LAG: [-----]"); */
 
 	Term_putstr(COL_LAG, ROW_LAG, 12, TERM_L_DARK, "LAG:[------]"); 
 
-	if( mark == 999999999L ) {
-		c_msg_print(format("Time out Mark: %lu, Last: %lu", mark,last));
+	if( num == 10000 ) {
+		c_msg_print(format("Time out Mark: %lu, Last: %lu", mark,last));	
 		if( num < last ) {
 			num=last;
 		} else {
@@ -537,7 +534,7 @@ void prt_lag(u32b mark, u32b num)
 
 	num=last=(num+last)/2L;
 		
-	num /= (500/6);
+	num /= (4000/6);
 	if(!attr) {
 		attr=TERM_L_GREEN;
 		if(num > 3L) attr=TERM_YELLOW;

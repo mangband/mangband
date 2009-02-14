@@ -392,7 +392,7 @@ extern void do_cmd_messages(void);
 /* netclient.c */
 extern sockbuf_t rbuf, cbuf, wbuf, qbuf;
 extern int ticks;
-extern int lag_ok;
+extern s16b lag_minus;
 extern void update_ticks();
 extern void do_keepalive();
 extern int Net_setup(void);
