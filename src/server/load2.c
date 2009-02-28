@@ -162,6 +162,27 @@ uint read_uint(char* name)
 	return value;
 }
 
+/* Read a signed long */
+huge read_huge(char* name)
+{
+	char seek_name[80];
+	bool matched = FALSE;
+	huge value;
+		
+	fgets(file_buf, sizeof(file_buf)-1, file_handle);
+	line_counter++;
+	if(sscanf(file_buf,"%s = %ld",seek_name,&value) == 2)
+	{
+		matched = !strcmp(seek_name,name);
+	}
+	if(!matched)
+	{		
+		plog(format("Missing signed long.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		exit(1);
+	}
+	return value;
+}
+
 /* Read a string */
 /* Returns TRUE if the string could be read */
 void read_str(char* name, char* value)
@@ -769,7 +790,7 @@ static errr rd_store(int n)
 	start_section_read("store");
 
 	/* Read the basic info */
-	st_ptr->store_open = read_uint("store_open");
+	st_ptr->store_open = read_huge("store_open");
 	st_ptr->insult_cur = read_int("insult_cur");
 	own = read_int("owner");
 	num = read_int("stock_num");
@@ -1538,14 +1559,14 @@ static errr rd_savefile_new_aux(int Ind)
 	
 	/* Turn this character was born on */
 	if(value_exists("birth_turn"))
-		p_ptr->birth_turn = read_uint("birth_turn");
+		p_ptr->birth_turn = read_huge("birth_turn");
 	else
 		/* Disable character event logging if no birth turn */
 		p_ptr->birth_turn = 0;
 
 	/* Player turns (actually time spent playing) */
 	if(value_exists("player_turn"))
-		p_ptr->turn = read_uint("player_turn");
+		p_ptr->turn = read_huge("player_turn");
 	else
 		p_ptr->turn = 0;
 	
@@ -2058,7 +2079,7 @@ errr rd_server_savefile()
 
 	player_id = read_int("player_id");
 
-	turn = read_int("turn");
+	turn = read_huge("turn");
 
         /* Hack -- no ghosts */
         r_info[MAX_R_IDX-1].max_num = 0;

@@ -117,8 +117,8 @@ s16b special_levels[MAX_SPECIAL_LEVELS]; /* List of depths which are special sta
 
 char summon_kin_type;		/* Hack -- See summon_specific() */
 
-s32b turn;			/* Current game turn */
-s32b old_turn;			/* Turn when level began (feelings) */
+huge turn;			/* Current game turn */
+huge old_turn;			/* Turn when level began (feelings) */
 
 s32b player_id;			/* Current player ID */
 
