@@ -45,7 +45,8 @@ bool player_in_party(int party_id, int Ind)
 int party_create(int Ind, cptr name)
 {
 	player_type *p_ptr = Players[Ind];
-	int index = 0, i, oldest = turn;
+	int index = 0, i;
+	huge oldest = turn;
 
 	/* Check for already existing party by that name */
 	if (party_lookup(name) != -1)

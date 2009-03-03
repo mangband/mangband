@@ -3010,7 +3010,8 @@ extern void log_history_event(int Ind, char *msg)
 {
 	char buf[100];
 	char eventtime[12];
-	int i, days, hours, mins, seconds;
+	int i, days, hours, mins;
+	huge seconds;
 	player_type *p_ptr = Players[Ind];
 	
 	/* Don't record if we have no space */

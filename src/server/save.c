@@ -53,6 +53,12 @@ static void write_uint(char* name, unsigned int value)
 	fprintf(file_handle,"%s%s = %u\n",xml_prefix,name,value);
 }
 
+/* Write an signed long value */
+static void write_huge(char* name, huge value)
+{
+	fprintf(file_handle,"%s%s = %ld\n",xml_prefix,name,value);
+}
+
 /* Write a string */
 static void write_str(char* name, char* value)
 {
@@ -263,7 +269,7 @@ static void wr_store(store_type *st_ptr)
 	start_section("store");
 
 	/* Save the "open" counter */
-	write_uint("store_open",st_ptr->store_open);
+	write_huge("store_open",st_ptr->store_open);
 
 	/* Save the "insults" */
 	write_uint("insult_cur",st_ptr->insult_cur);
@@ -713,13 +719,13 @@ static bool wr_savefile_new(int Ind)
 	write_int("sf_saves",sf_saves);
 	
 	/* Write the server turn */
-	write_int("turn",turn);
+	write_huge("turn",turn);
 
 	/* Write the players birth turn */
-	write_uint("birth_turn",p_ptr->birth_turn);
+	write_huge("birth_turn",p_ptr->birth_turn);
 
 	/* Write the players turn */
-	write_uint("player_turn",p_ptr->turn);
+	write_huge("player_turn",p_ptr->turn);
 
 	/* Dump the object memory */
 	start_section("object_memory");
@@ -1347,7 +1353,7 @@ static bool wr_server_savefile(void)
 	write_uint("seed_town",seed_town);
 
 	write_uint("player_id",player_id);
-	write_uint("turn",turn);
+	write_huge("turn",turn);
 
 	end_section("mangband_server_save");
 
