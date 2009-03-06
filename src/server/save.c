@@ -56,7 +56,7 @@ static void write_uint(char* name, unsigned int value)
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %ld\n",xml_prefix,name,value);
+	fprintf(file_handle,"%s%s = %lld\n",xml_prefix,name,value);
 }
 
 /* Write a string */
@@ -327,7 +327,7 @@ static void wr_party(party_type *party_ptr)
 
 	/* Save the number of people and creation time */
 	write_int("num",party_ptr->num);
-	write_uint("created",party_ptr->created);
+	write_huge("created",party_ptr->created);
 	
 	end_section("party");
 }
