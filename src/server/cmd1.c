@@ -1641,55 +1641,59 @@ void move_player(int Ind, int dir, int do_pickup)
 		player_type *q_ptr = Players[0 - c_ptr->m_idx];
 		int Ind2 = 0 - c_ptr->m_idx;
 
-		/* Check for an attack */
-		if (pvp_okay(Ind, Ind2, 1))
-			py_attack(Ind, y, x);
-
-		/* If both want to switch, do it */
-		else if ((!p_ptr->ghost && !q_ptr->ghost &&
-		         (ddy[q_ptr->last_dir] == -(ddy[dir])) &&
-		         (ddx[q_ptr->last_dir] == (-ddx[dir]))) ||
-			(is_dm_p(q_ptr)))
+		/* Don't bump into self! */
+		if (Ind2 != Ind)
 		{
-			c_ptr->m_idx = 0 - Ind;
-			cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - Ind2;
+			/* Check for an attack */
+			if (pvp_okay(Ind, Ind2, 1))
+				py_attack(Ind, y, x);
 
-			q_ptr->py = p_ptr->py;
-			q_ptr->px = p_ptr->px;
-
-			p_ptr->py = y;
-			p_ptr->px = x;
-
-			/* Tell both of them */
-			/* Don't tell people they bumped into the Dungeon Master */
-			if (!is_dm_p(q_ptr))
+			/* If both want to switch, do it */
+			else if ((!p_ptr->ghost && !q_ptr->ghost &&
+					 (ddy[q_ptr->last_dir] == -(ddy[dir])) &&
+					 (ddx[q_ptr->last_dir] == (-ddx[dir]))) ||
+				(is_dm_p(q_ptr)))
 			{
-				msg_format(Ind, "You switch places with %s.", q_ptr->name);
-				msg_format(Ind2, "You switch places with %s.", p_ptr->name);
+				c_ptr->m_idx = 0 - Ind;
+				cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - Ind2;
+
+				q_ptr->py = p_ptr->py;
+				q_ptr->px = p_ptr->px;
+
+				p_ptr->py = y;
+				p_ptr->px = x;
+
+				/* Tell both of them */
+				/* Don't tell people they bumped into the Dungeon Master */
+				if (!is_dm_p(q_ptr))
+				{
+					msg_format(Ind, "You switch places with %s.", q_ptr->name);
+					msg_format(Ind2, "You switch places with %s.", p_ptr->name);
+				}
+
+				/* Disturb both of them */
+				disturb(Ind, 1, 0);
+				disturb(Ind2, 1, 0);
+
+				/* Unhack both of them */
+				q_ptr->last_dir = p_ptr->last_dir = 5;
+
+				/* Re-show both grids */
+				everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
+				everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
 			}
 
-			/* Disturb both of them */
-			disturb(Ind, 1, 0);
-			disturb(Ind2, 1, 0);
+			/* Hack -- the Dungeon Master cannot bump people */
+			else if (!is_dm_p(p_ptr))
+			{
+				/* Tell both about it */
+				msg_format(Ind, "You bump into %s.", q_ptr->name);
+				msg_format(Ind2, "%s bumps into you.", p_ptr->name);
 
-			/* Unhack both of them */
-			q_ptr->last_dir = p_ptr->last_dir = 5;
-
-			/* Re-show both grids */
-			everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
-			everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
-		}
-
-		/* Hack -- the Dungeon Master cannot bump people */
-		else if (!is_dm_p(p_ptr))
-		{
-			/* Tell both about it */
-			msg_format(Ind, "You bump into %s.", q_ptr->name);
-			msg_format(Ind2, "%s bumps into you.", p_ptr->name);
-
-			/* Disturb both parties */
-			disturb(Ind, 1, 0);
-			disturb(Ind2, 1, 0);
+				/* Disturb both parties */
+				disturb(Ind, 1, 0);
+				disturb(Ind2, 1, 0);
+			}
 		}
 	}
 
