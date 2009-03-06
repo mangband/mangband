@@ -635,6 +635,12 @@ s16b get_mon_num(int level)
 			continue;
 		}
 
+		/* Unique Monsters never appear in the wilderness */
+		if ((r_ptr->flags1 & RF1_UNIQUE) && (level < 0))
+		{
+			continue;
+		}
+
 		/* Accept */
 		table[i].prob3 = table[i].prob2;
 
