@@ -171,7 +171,7 @@ huge read_huge(char* name)
 		
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
 	line_counter++;
-	if(sscanf(file_buf,"%s = %lld",seek_name,&value) == 2)
+	if(sscanf(file_buf,"%s = %llu",seek_name,&value) == 2)
 	{
 		matched = !strcmp(seek_name,name);
 	}

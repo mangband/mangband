@@ -56,7 +56,7 @@ static void write_uint(char* name, unsigned int value)
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %lld\n",xml_prefix,name,value);
+	fprintf(file_handle,"%s%s = %llu\n",xml_prefix,name,value);
 }
 
 /* Write a string */
