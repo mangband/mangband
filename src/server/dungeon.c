@@ -1907,7 +1907,7 @@ void dungeon(void)
 		if (Players[i]->death)
 		{
 			/* Paranoia -- postpone death if no level -- THIS HACK IS DANGEROUS */
-			if (cave[Players[i]->dun_depth])
+			if (players_on_depth[Players[i]->dun_depth])
 			/* Kill him */
 			player_death(i);
 		}

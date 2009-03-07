@@ -32,7 +32,7 @@ typedef struct {
 	sockbuf_t	w;
 	sockbuf_t	c;
 	sockbuf_t	q;
-	long		start;
+	huge		start;
 	long		timeout;
 	long		last_send_loops;
 	long		reliable_offset;

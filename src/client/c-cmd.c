@@ -2618,4 +2618,3 @@ void cmd_master(void)
 	/* Flush any events */
 	Flush_queue();
 }
-

@@ -1640,6 +1640,9 @@ void move_player(int Ind, int dir, int do_pickup)
 	{
 		player_type *q_ptr = Players[0 - c_ptr->m_idx];
 		int Ind2 = 0 - c_ptr->m_idx;
+		
+	if (Ind2 != Ind)
+	{
 
 		/* Check for an attack */
 		if (check_hostile(Ind, Ind2))
@@ -1691,6 +1694,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			disturb(Ind, 1, 0);
 			disturb(Ind2, 1, 0);
 		}
+	}
 	}
 
 	/* Hack -- attack monsters */
