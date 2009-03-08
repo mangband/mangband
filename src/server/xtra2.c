@@ -2438,7 +2438,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	/* don't dump ghosts */
     if(p_ptr->alive || (p_ptr->total_winner && p_ptr->retire_timer == 0)) { 
 		/* Character dump here, before we start dropping items */
-		sprintf(dumpname,"%s-%i.txt",p_ptr->name,(int)turn);
+		sprintf(dumpname,"%s-%llu.txt",p_ptr->name,(int)turn);
 		file_character_server(Ind,dumpname);
     }
 
