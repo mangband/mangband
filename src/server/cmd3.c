@@ -1043,6 +1043,18 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 		p_ptr->redraw |= (PR_FLOOR);
 	}
 
+	/* Handle empty inscription as removal */
+	if (inscription == "")
+	{
+		if (!o_ptr->note) 
+		{
+			msg_print(Ind, "You've entered no inscription.");
+			return;
+		}
+		do_cmd_uninscribe(Ind, item);
+		return;
+	}
+
 	/* Don't allow certain inscriptions when selling */
 	if ((c = strstr(inscription,"for sale"))) 
 	{	
