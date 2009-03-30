@@ -584,8 +584,16 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		sound(Ind, SOUND_DEATH);
 
 		/* Hack -- Note death */
-		msg_print(Ind, "You die.");
-		msg_print(Ind, NULL);
+		if (!p_ptr->ghost) 
+		{
+			msg_print(Ind, "You die.");
+			msg_print(Ind, NULL);
+		}
+		else
+		{
+			msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
+			msg_print(Ind, NULL);
+		}
 
 		/* Note cause of death */
 		/* To preserve the players original (pre-ghost) cause
@@ -594,7 +602,8 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		
 		(void)strcpy(p_ptr->died_from, hit_from);
 		if (!p_ptr->ghost) 
-		{	strcpy(p_ptr->died_from_list, hit_from);
+		{
+			strcpy(p_ptr->died_from_list, hit_from);
 			p_ptr->died_from_depth = p_ptr->dun_depth;
 		}
 
