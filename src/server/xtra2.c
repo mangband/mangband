@@ -2771,6 +2771,8 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
     /* Killing an unique multiple times is cheezy! */
     bool cheeze = ((r_ptr->flags1 & RF1_UNIQUE) && p_ptr->r_killed[m_ptr->r_idx]);
 
+	/* Handle calling this when the monster is no longer there */
+	if (m_idx == 0) return TRUE;
 
 	/* Redraw (later) if needed */
 	update_health(m_idx);
