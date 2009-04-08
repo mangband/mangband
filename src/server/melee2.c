@@ -2907,7 +2907,7 @@ static void process_monster(int Ind, int m_idx)
 					msg_print(Ind, "You hear a door burst open!");
 
 					/* Disturb (sometimes) */
-					if (p_ptr->disturb_minor) disturb(Ind, 0, 0);
+					if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 
 					/* The door was bashed open */
 					did_bash_door = TRUE;
@@ -3086,9 +3086,9 @@ static void process_monster(int Ind, int m_idx)
 
 			/* Possible disturb */
 			if (p_ptr->mon_vis[m_idx] &&
-			    (p_ptr->disturb_move ||
+			    (option_p(p_ptr,DISTURB_MOVE) ||
 			     (p_ptr->mon_los[m_idx] &&
-			      p_ptr->disturb_near)))
+			      option_p(p_ptr,DISTURB_NEAR))))
 			{
 				/* Disturb */
 				disturb(Ind, 0, 0);

@@ -480,9 +480,6 @@ static byte mh_attr(void)
  */
 static byte spell_color(int type)
 {
-	/* Hack -- fake monochrome */
-	if (!use_color) return (TERM_WHITE);
-
 	/* Analyze */
 	switch (type)
 	{
@@ -539,7 +536,7 @@ void take_hit(int Ind, int damage, cptr hit_from)
 	player_type *p_ptr = Players[Ind];
 
 	// This is probably unused
-	int warning = (p_ptr->mhp * hitpoint_warn / 10);
+	int warning = 0;//(p_ptr->mhp * p_ptr->hitpoint_warn / 10);
 
 	// The "number" that the character is displayed as before the hit
 	int old_num = (p_ptr->chp * 95) / (p_ptr->mhp*10); 
@@ -4165,7 +4162,9 @@ static u16b bolt_pict(int Ind, int y, int x, int ny, int nx, int typ)
 		else base = 0x30;
 
 		/* Basic spell color */
-		k = spell_color(typ);
+		if (!option_p(p_ptr,USE_COLOR)) k = TERM_WHITE;
+		else
+			k = spell_color(typ);
 
 		/* Obtain attr/char */
 		a = p_ptr->misc_attr[base+k];

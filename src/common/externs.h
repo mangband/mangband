@@ -52,7 +52,7 @@ extern owner_type owners[MAX_STORES][MAX_OWNERS];
 extern byte extract_energy[200];
 extern s32b player_exp[PY_MAX_LEVEL];
 extern player_race race_info[MAX_RACES];
-//extern player_class c_info[MAX_CLASS];
+/*extern player_class c_info[MAX_CLASS];*/
 extern player_magic magic_info[MAX_CLASS];
 extern u32b spell_flags[3][9][2];
 extern cptr spell_names[3][64];

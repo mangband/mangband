@@ -756,7 +756,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW && feat == FEAT_FLOOR)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						if (p_ptr->use_graphics == 1) { a = 0xCF; c = (char)0x8F; }
 						if (p_ptr->use_graphics == 2) { c += 2; }
@@ -768,17 +768,21 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		else 
 		{
 			/* Hack -- MAngband-specific: Wilderness Special lighting effects */
-			if (p_ptr->view_special_lite && p_ptr->view_yellow_lite && (a == TERM_GREEN))
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) &&
+				(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
 			{
 				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
 				{
-					/* Use light green for grass */
-					a = TERM_ORANGE;
+					/* Use "yellow" */
+					if (option_p(p_ptr,VIEW_ORANGE_LITE))
+						a = TERM_ORANGE;
+					else
+						a = TERM_YELLOW;
 				}
 			}
 			
 			/* Special lighting effects */
-			if (p_ptr->view_special_lite && (a == TERM_WHITE))
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && (a == TERM_WHITE))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
@@ -791,11 +795,13 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				else if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						/* Use "yellow" */
-						/* a = TERM_YELLOW; */
-						a = TERM_ORANGE;
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
 					}
 				}
 
@@ -810,7 +816,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				else if (!(*w_ptr & CAVE_VIEW))
 				{
 					/* Special flag */
-					if (p_ptr->view_bright_lite)
+					if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 					{
 						/* Use "gray" */
 						a = TERM_SLATE;
@@ -831,17 +837,21 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		c = f_char_ptr[feat];
 		
 		/* Hack -- MAngband-specific: Wilderness Special lighting effects */
-		if (p_ptr->view_special_lite && p_ptr->view_yellow_lite && (a == TERM_GREEN))
+		if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) && 
+			(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
 		{
 			if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
 			{
-				/* Use light green for trees! */
-				a = TERM_ORANGE;
+				/* Use "yellow" */
+				if (option_p(p_ptr,VIEW_ORANGE_LITE))
+					a = TERM_ORANGE;
+				else
+					a = TERM_YELLOW;
 			}
 		}
 	
 		/* Special lighting effects */
-		if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
+		if (option_p(p_ptr,VIEW_GRANITE_LITE) && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
 		{
 			/* Handle "blind" */
 			if (p_ptr->blind)
@@ -854,16 +864,18 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			else if (*w_ptr & CAVE_LITE)
 			{
 				/* Torch lite */
-				if (p_ptr->view_yellow_lite)
+				if (option_p(p_ptr,VIEW_YELLOW_LITE))
 				{
 					/* Use "yellow" */
-					/* a = TERM_YELLOW; */
-					a = TERM_ORANGE;
+					if (option_p(p_ptr,VIEW_ORANGE_LITE))
+						a = TERM_ORANGE;
+					else
+						a = TERM_YELLOW;
 				}
 			}
 
 			/* Handle "view_bright_lite" */
-			else if (p_ptr->view_bright_lite)
+			else if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 			{
 				/* Not viewable */
 				if (!(*w_ptr & CAVE_VIEW))
@@ -936,7 +948,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			a = f_attr_ptr[c_ptr->feat];
 
 			/* Special lighting effects */
-			if (p_ptr->view_special_lite && (a == TERM_WHITE))
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && (a == TERM_WHITE))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
@@ -949,11 +961,13 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				else if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						/* Use "yellow" */
-						/* a = TERM_YELLOW; */
-						a = TERM_ORANGE;
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
 					}
 				}
 
@@ -968,7 +982,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				else if (!(*w_ptr & CAVE_VIEW))
 				{
 					/* Special flag */
-					if (p_ptr->view_bright_lite)
+					if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 					{
 						/* Use "gray" */
 						a = TERM_SLATE;
@@ -1018,7 +1032,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			a = f_attr_ptr[feat];
 
 			/* Special lighting effects */
-			if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
+			if (option_p(p_ptr,VIEW_GRANITE_LITE) && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
@@ -1031,16 +1045,18 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 				else if (*w_ptr & CAVE_LITE)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						/* Use "yellow" */
-						/* a = TERM_YELLOW; */
-						a = TERM_ORANGE;
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
 					}
 				}
 
 				/* Handle "view_bright_lite" */
-				else if (p_ptr->view_bright_lite)
+				else if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 				{
 					/* Not viewable */
 					if (!(*w_ptr & CAVE_VIEW))
@@ -1144,7 +1160,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			c = r_char_ptr[m_ptr->r_idx];
 
 			/* Ignore weird codes */
-			if (avoid_other)
+			if (option_p(p_ptr,AVOID_OTHER))
 			{
 				/* Use char */
 				(*cp) = c;
@@ -1315,14 +1331,14 @@ void note_spot(int Ind, int y, int x)
 			}
 
 			/* Option -- memorize all perma-lit floors */
-			else if (p_ptr->view_perma_grids && (c_ptr->info & CAVE_GLOW))
+			else if (option_p(p_ptr,VIEW_PERMA_GRIDS) && (c_ptr->info & CAVE_GLOW))
 			{
 				/* Memorize */
 				*w_ptr |= CAVE_MARK;
 			}
 
 			/* Option -- memorize all torch-lit floors */
-			else if (p_ptr->view_torch_grids && (c_ptr->info & CAVE_LITE))
+			else if (option_p(p_ptr,VIEW_TORCH_GRIDS) && (c_ptr->info & CAVE_LITE))
 			{
 				/* Memorize */
 				*w_ptr |= CAVE_MARK;
@@ -1407,7 +1423,7 @@ void lite_spot(int Ind, int y, int x)
 		}
 
 		/* Hack -- fake monochrome */
-		if (!use_color) a = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) a = TERM_WHITE;
 
 		dispx = x - p_ptr->panel_col_prt;
 		dispy = y - p_ptr->panel_row_prt;
@@ -1478,7 +1494,7 @@ void prt_map(int Ind)
 			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 
 			/* Hack -- fake monochrome */
-			if (!use_color) a = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) a = TERM_WHITE;
 
 			dispx = x - p_ptr->panel_col_prt;
 
@@ -1685,12 +1701,12 @@ void display_map(int Ind, bool quiet)
 	if ((map_wid < 1) || (map_hgt < 1)) return;
 
 	/* Save lighting effects */
-	old_view_special_lite = p_ptr->view_special_lite;
-	old_view_granite_lite = p_ptr->view_granite_lite;
+	old_view_special_lite = option_p(p_ptr,VIEW_SPECIAL_LITE);
+	old_view_granite_lite = option_p(p_ptr,VIEW_GRANITE_LITE);
 
 	/* Disable lighting effects */
-	p_ptr->view_special_lite = FALSE;
-	p_ptr->view_granite_lite = FALSE;
+	option_p(p_ptr,VIEW_SPECIAL_LITE) = FALSE;
+	option_p(p_ptr,VIEW_GRANITE_LITE) = FALSE;
 
 
 	/* Clear the chars and attributes */
@@ -1776,7 +1792,7 @@ void display_map(int Ind, bool quiet)
 			tc = mc[y][x];
 
 			/* Hack -- fake monochrome */
-			if (!use_color) ta = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) ta = TERM_WHITE;
 
 			/* Add the character */
 			p_ptr->scr_info[y][x].c = tc;
@@ -1802,8 +1818,8 @@ void display_map(int Ind, bool quiet)
 		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 
 	/* Restore lighting effects */
-	p_ptr->view_special_lite = old_view_special_lite;
-	p_ptr->view_granite_lite = old_view_granite_lite;
+	option_p(p_ptr,VIEW_SPECIAL_LITE) = old_view_special_lite;
+	option_p(p_ptr,VIEW_GRANITE_LITE) = old_view_granite_lite;
 }
 
 
@@ -1945,7 +1961,7 @@ void wild_display_map(int Ind)
 			tc = mc[y][x];
 
 			/* Hack -- fake monochrome */
-			if (!use_color) ta = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) ta = TERM_WHITE;
 
 			/* Add the character */
 			p_ptr->scr_info[y][x].c = tc;
@@ -2851,7 +2867,7 @@ void update_view(int Ind)
 	/*** Initialize ***/
 
 	/* Optimize */
-	if (p_ptr->view_reduce_view && !Depth)
+	if (option_p(p_ptr,VIEW_REDUCE_VIEW) && !Depth)
 	{
 		/* Full radius (10) */
 		full = MAX_SIGHT / 2;
@@ -3582,7 +3598,7 @@ void wiz_lite(int Ind)
 					}
 
 					/* Normally, memorize floors (see above) */
-					if (p_ptr->view_perma_grids && !p_ptr->view_torch_grids)
+					if (option_p(p_ptr,VIEW_PERMA_GRIDS) && !option_p(p_ptr,VIEW_TORCH_GRIDS))
 					{
 						/* Memorize the grid */
 						*w_ptr |= CAVE_MARK;
@@ -4014,7 +4030,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	}
 
 	/* Flush the input if requested */
-	if (flush_disturb) flush();
+	/*if (flush_disturb) flush();*/
 }
 
 

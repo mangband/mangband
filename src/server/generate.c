@@ -2098,7 +2098,7 @@ static void build_type5(int Depth, int yval, int xval)
 
 
 	/* Describe */
-	if (cheat_room)
+	/*if (cheat_room)*/
 	{
 		/* Room type */
 		/*msg_format("Monster nest (%s)", name);*/
@@ -4309,11 +4309,15 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
+	
+	/* Default room align */
+	dungeon_align = TRUE;
 
 	/* get the player context, if any */
 	if(Ind)
 	{
 		p_ptr = Players[Ind];
+		dungeon_align = option_p(p_ptr,DUNGEON_ALIGN);
 	}
 
 	/* Generate */
@@ -4468,6 +4472,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 				/* Try again */
 			    ((Depth >= 40) && (feeling > 5)))
 			{
+#if 0			
 				/* Give message to cheaters */
 				if (cheat_room || cheat_hear ||
 				    cheat_peek || cheat_xtra)
@@ -4475,7 +4480,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 					/* Message */
 					why = "boring level";
 				}
-
+#endif
 				/* Try again */
 				okay = FALSE;
 			}

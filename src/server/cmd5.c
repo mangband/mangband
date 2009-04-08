@@ -604,7 +604,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Failed spell */
 	if (rand_int(100) < chance)
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "You failed to get the spell off!");
 		return;
 	}
@@ -811,7 +811,7 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Check for failure */
     if (rand_int(100) < chance)
     {
-        if (flush_failure) flush();
+        /*if (flush_failure) flush();*/
         msg_print(Ind, "You failed to concentrate hard enough!");
         return;
     }

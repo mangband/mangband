@@ -3,6 +3,7 @@
  * file, and some various "pref files".
  */
 
+#define CLIENT
 #include "angband.h"
 
 
@@ -935,35 +936,32 @@ errr process_pref_file_command(char *buf)
 
 
         /* Process "X:<str>" -- turn option off */
-        else if (buf[0] == 'X')
-        {
-                for (i = 0; option_info[i].o_desc; i++)
-                {
-                        if (option_info[i].o_var &&
-                            option_info[i].o_text &&
-                            streq(option_info[i].o_text, buf + 2))
-                        {
-                                (*option_info[i].o_var) = FALSE;
-				Client_setup.options[i] = FALSE;
-                                return (0);
-                        }
-                }
-        }
-
         /* Process "Y:<str>" -- turn option on */
-        else if (buf[0] == 'Y')
+        else if (buf[0] == 'X' || buf[0] == 'Y')
         {
-                for (i = 0; option_info[i].o_desc; i++)
-                {
-                        if (option_info[i].o_var &&
-                            option_info[i].o_text &&
-                            streq(option_info[i].o_text, buf + 2))
-                        {
-                                (*option_info[i].o_var) = TRUE;
-				Client_setup.options[i] = TRUE;
-                                return (0);
-                        }
-                }
+        	bool opt_value = TRUE;
+        	if (buf[0] == 'X') opt_value = FALSE;
+			for (i = 0; local_option_info[i].o_desc; i++)
+			{
+				if (local_option_info[i].o_var &&
+					local_option_info[i].o_text &&
+					streq(local_option_info[i].o_text, buf + 2))
+				{
+					(*local_option_info[i].o_var) = opt_value;
+				}
+			}
+			for (i = 0; i < options_max; i++)
+			{
+				if (option_info[i].o_page &&
+					option_info[i].o_text &&
+					streq(option_info[i].o_text, buf + 2))
+				{
+					Client_setup.options[i] = opt_value;
+				}
+        	}
+
+			/* Success, even if option name was unrecognized */
+			return (0);
         }
 
 	/* Process "W:<num>:<use>" -- specify window action */
@@ -1059,6 +1057,7 @@ errr Save_options(void)
     FILE *fp;
 
     char buf[1024];
+    byte last_page;
 
 	windows = Save_windows();
 	
@@ -1079,22 +1078,43 @@ errr Save_options(void)
 	fprintf(fp, "# Also remember that not all options are used.\n\n");
 
 	/* Process "X:<str>" and "Y:<str>" */
-    for (i = 0; option_info[i].o_desc; i++)
+	last_page = 0;
+    for (i = 0; local_option_info[i].o_desc; i++)
     {
-		if ((*option_info[i].o_var) == FALSE)
+		if ((*local_option_info[i].o_var) == FALSE)
+		{
+            if (local_option_info[i].o_text)
+				fprintf(fp, "X:%s\n", local_option_info[i].o_text);
+		}
+		else if ((*local_option_info[i].o_var) == TRUE)
+		{
+            if (local_option_info[i].o_text)
+				fprintf(fp, "Y:%s\n", local_option_info[i].o_text);
+		}
+		else
+			fprintf(fp, "\n");
+		if (last_page != local_option_info[i].o_page)
+			fprintf(fp, "\n");
+		last_page = local_option_info[i].o_page;
+    }
+    last_page = 0;
+    for (i = 0; i < options_max; i++)
+    {
+		if (Client_setup.options[i] == FALSE)
 		{
             if (option_info[i].o_text)
 				fprintf(fp, "X:%s\n", option_info[i].o_text);
 		}
-		else if ((*option_info[i].o_var) == TRUE)
+		else if (Client_setup.options[i] == TRUE)
 		{
             if (option_info[i].o_text)
 				fprintf(fp, "Y:%s\n", option_info[i].o_text);
 		}
 		else
 			fprintf(fp, "\n");
-		if ((i == 15) || (i == 27) || (i == 43) || (i == 59))
+		if (last_page != option_info[i].o_page)
 			fprintf(fp, "\n");
+		last_page = option_info[i].o_page;
     }
 
 	/* Close the file */

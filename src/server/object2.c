@@ -1,4 +1,4 @@
-/* File: object.c */
+/* File: object.c */ 
 
 /* Purpose: misc code for objects */
 
@@ -1383,7 +1383,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_WAND:
 		{
 			/* Require permission */
-			if (!p_ptr->stack_allow_wands) return (0);
+			if (!option_p(p_ptr,STACK_ALLOW_WANDS)) return (0);
 
 			/* Require either knowledge or known empty for both wands/staves */
 			if ((!(o_ptr->ident & (ID_EMPTY)) &&
@@ -1399,7 +1399,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_ROD:
 		{
 			/* Require permission */
-			if (!p_ptr->stack_allow_wands) return (0);
+			if (!option_p(p_ptr,STACK_ALLOW_WANDS)) return (0);
 #if 0
 			/* Require identical charges */
 			if (o_ptr->pval != j_ptr->pval)
@@ -1432,7 +1432,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_DRAG_ARMOR:
 		{
 			/* Require permission */
-			if (!p_ptr->stack_allow_items) return (0);
+			if (!option_p(p_ptr,STACK_ALLOW_ITEMS)) return (0);
 
 			/* XXX XXX XXX Require identical "sense" status */
 			/* if ((o_ptr->ident & ID_SENSE) != */
@@ -1519,10 +1519,10 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 	if (o_ptr->note && j_ptr->note && (o_ptr->note != j_ptr->note)) return (0);
 
 	/* Hack -- normally require matching "inscriptions" */
-	if (!p_ptr->stack_force_notes && (o_ptr->note != j_ptr->note)) return (0);
+	if (!option_p(p_ptr,STACK_FORCE_NOTES) && (o_ptr->note != j_ptr->note)) return (0);
 
 	/* Hack -- normally require matching "discounts" */
-	if (!p_ptr->stack_force_costs && (o_ptr->discount != j_ptr->discount)) return (0);
+	if (!option_p(p_ptr,STACK_FORCE_COSTS) && (o_ptr->discount != j_ptr->discount)) return (0);
 
 
 	/* Maximal "stacking" limit */

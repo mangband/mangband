@@ -2698,18 +2698,7 @@ that keeps many algorithms happy.
 	 RF3_DEMON | RF3_UNDEAD | RF3_EVIL | RF3_ANIMAL)
 
 /*** Option Definitions ***/
-
-/*
- * Option indexes (offsets)
- *
- * These values are hard-coded by savefiles (and various pieces of code).
- */
-#define OPT_BIRTH					128
-#define OPT_CHEAT					160
-#define OPT_ADULT					192
-#define OPT_SCORE					224
-#define OPT_NONE					255
-#define OPT_MAX						256
+#define MAX_OPTIONS 256
 
 
 /* 

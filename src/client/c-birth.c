@@ -116,7 +116,7 @@ static void choose_sex(void)
 
 	while (1)
 	{
-		put_str("Choose a sex (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a sex (= for Options, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		if ((c == 'm') || (c == 'M'))
@@ -130,6 +130,10 @@ static void choose_sex(void)
 			sex = FALSE;
 			c_put_str(TERM_L_BLUE, "Female", 4, 15);
 			break;
+		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth();
 		}
 		else if (c == '?')
 		{
@@ -177,7 +181,7 @@ static void choose_race(void)
 
 	while (1)
 	{
-		put_str("Choose a race (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a race (= for Options, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
@@ -188,6 +192,10 @@ static void choose_race(void)
 			c_put_str(TERM_L_BLUE, p_name + rp_ptr->name, 5, 15);
 			break;
 		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth();
+		}		
 		else if (c == '?')
 		{
 			/*do_cmd_help("help.hlp");*/
@@ -237,7 +245,7 @@ static void choose_class(void)
 	/* Get a class */
 	while (1)
 	{
-		put_str("Choose a class (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a class (= for Options, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
@@ -247,6 +255,10 @@ static void choose_class(void)
 			cp_ptr = &c_info[j];
 			c_put_str(TERM_L_BLUE, c_name + cp_ptr->name, 6, 15);
 			break;
+		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth();
 		}
 		else if (c == '?')
 		{
@@ -299,7 +311,7 @@ void choose_stat_order(void)
 		/* Get a stat */
 		while (1)
 		{
-			put_str("Choose your stat order (? for Help, Q to Quit): ", 20, 2);
+			put_str("Choose your stat order (= for Options, Q to Quit): ", 20, 2);
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
@@ -310,6 +322,10 @@ void choose_stat_order(void)
 				avail[j] = 0;
 				break;
 			}
+			else if (c == '=')
+			{
+				do_cmd_options_birth();
+			}			
 			else if (c == '?')
 			{
 				/*do_cmd_help("help.hlp");*/

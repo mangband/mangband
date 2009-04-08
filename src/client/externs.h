@@ -17,7 +17,8 @@ extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
 extern owner_type owners[MAX_STORES][MAX_OWNERS];
-extern option_type option_info[];
+extern option_type local_option_info[MAX_OPTIONS];
+extern cptr local_option_group[];
 extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
 extern cptr ang_term_name[8];
@@ -180,69 +181,17 @@ extern bool use_sound;
 
 extern cave_view_type trans[40][88];
 
+extern option_type *option_info;
+extern cptr *option_group;
+extern int options_max;
+extern int options_groups_max;
+
 extern bool rogue_like_commands;
-extern bool quick_messages;
-extern bool other_query_flag;
-extern bool carry_query_flag;
-extern bool use_old_target;
-extern bool always_pickup;
-extern bool always_repeat;
+extern bool auto_accept;
 extern bool depth_in_feet;
-extern bool stack_force_notes;
-extern bool stack_force_costs;
-extern bool show_labels;
 extern bool show_weights;
-extern bool show_choices;
-extern bool show_details;
 extern bool ring_bell;
 extern bool use_color;
-
-extern bool find_ignore_stairs;
-extern bool find_ignore_doors;
-extern bool find_cut;
-extern bool find_examine;
-extern bool disturb_move;
-extern bool disturb_near;
-extern bool disturb_panel;
-extern bool disturb_state;
-extern bool disturb_minor;
-extern bool disturb_other;
-extern bool alert_hitpoint;
-extern bool alert_failure;
-
-extern bool no_ghost;
-extern bool auto_scum;
-extern bool stack_allow_items;
-extern bool stack_allow_wands;
-extern bool expand_look;
-extern bool expand_list;
-extern bool view_perma_grids;
-extern bool view_torch_grids;
-extern bool dungeon_align;
-extern bool dungeon_stair;
-extern bool flow_by_sound;
-extern bool flow_by_smell;
-extern bool track_follow;
-extern bool track_target;
-extern bool smart_learn;
-extern bool smart_cheat;
-
-extern bool view_reduce_lite;
-extern bool view_reduce_view;
-extern bool avoid_abort;
-extern bool avoid_other;
-extern bool flush_failure;
-extern bool flush_disturb;
-extern bool flush_command;
-extern bool fresh_before;
-extern bool fresh_after;
-extern bool fresh_message;
-extern bool compress_savefile;
-extern bool hilite_player;
-extern bool view_yellow_lite;
-extern bool view_bright_lite;
-extern bool view_granite_lite;
-extern bool view_special_lite;
 
 extern int char_screen_mode;
 extern bool target_recall;
@@ -397,6 +346,7 @@ extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);
 extern void do_cmd_options(void);
+extern void do_cmd_options_birth(void);
 extern bool get_string_masked(cptr prompt, char *buf, int len);
 
 /* c-spell.c */

@@ -11,7 +11,7 @@
  */
 
 #include "angband.h"
-
+#include "defines.h"
 
 /*
  *  Global array of "custom commands".
@@ -1814,18 +1814,141 @@ cptr window_flag_desc[32] =
 };
 
 
+
 /*
- * Available Options
- *
  * Option Screen Sets:
  *
- *	Set 1: User Interface
- *	Set 2: Disturbance
- *	Set 3: Inventory
- *	Set 4: Game Play
- *
- * Note that bits 28-31 of set 0 are currently unused.
+ *	(define MAX_OPTION_GROUPS to match)
  */
+cptr option_group[] = 
+{
+	"Birth Options",
+	"Dungeon / Inventory Options",
+	"Running / Disturbance Options",
+	"Lighting Options",
+	NULL
+};
+/* 
+ * *** Options ***
+ */
+#define OPT_INFO(A) ((byte)OPT_ ## A)
+option_type option_info[] =
+{
+	/*** Birth Options ***/
+	{ OPT_INFO(NO_GHOST),     		FALSE,	1,	0, 0,
+	"no_ghost",	    			"Death is permanent" },
+	
+	/*** Game-play ***/
+	/* Dungeon */
+	{ OPT_INFO(AUTO_SCUM),				FALSE,	2,	0, 0,
+	"auto_scum",    			"Auto-scum for good levels" },	
+
+	{ OPT_INFO(DUNGEON_ALIGN),		TRUE,	2,	0, 0,
+	"dungeon_align",    		"Generate dungeons with aligned rooms" },
+
+	{ OPT_INFO(CARRY_QUERY_FLAG), 	FALSE,	2,	0, 0,
+	"carry_query_flag",	    	"Prompt before picking things up" },
+
+	{ OPT_INFO(ALWAYS_PICKUP),		FALSE,	2,	0, 0,
+	"always_pickup",    		"Pick things up by default" },
+	/* Targeting */
+	{ OPT_INFO(EXPAND_LOOK),			FALSE,	2,	0, 0,
+	"expand_look",  			"Expand the power of the look command" },
+
+	{ OPT_INFO(USE_OLD_TARGET),		FALSE,	2,	0, 0,
+	"use_old_target",   		"Use old target by default" },
+
+	{ OPT_INFO(SHOW_DETAILS), 		TRUE,	2,	0, 0,
+	"show_details",	    		"Show details on monster recall" },
+	/* Stacking */
+	{ OPT_INFO(STACK_ALLOW_ITEMS),	TRUE,	2,	0, 0,
+	"stack_allow_items",    	"Allow weapons and armor to stack" },
+
+	{ OPT_INFO(STACK_ALLOW_WANDS),	TRUE,	2,	0, 0,
+	"stack_allow_wands",    	"Allow wands/staffs/rods to stack" },
+
+	{ OPT_INFO(STACK_FORCE_NOTES),	FALSE,	2,	0, 0,
+	"stack_force_notes",    	"Merge inscriptions when stacking" },
+
+	{ OPT_INFO(STACK_FORCE_COSTS),	FALSE,	2,	0, 0,
+	"stack_force_costs",    	"Merge discounts when stacking" },
+
+	/*** Running Options ***/
+	{ OPT_INFO(FIND_IGNORE_STAIRS),	TRUE,	3,	0, 0,
+	"find_ignore_stairs",   	"Run past stairs" },
+
+	{ OPT_INFO(FIND_IGNORE_DOORS),	TRUE,	3,	0, 0,
+	"find_ignore_doors",    	"Run through open doors" },
+
+	{ OPT_INFO(FIND_CUT), 			TRUE,	3,	0, 0,
+	"find_cut",	    			"Run past known corners" },
+
+	{ OPT_INFO(FIND_EXAMINE), 		TRUE,	3,	0, 0,
+	"find_examine", 			"Run into potential corners" },
+
+	{ OPT_INFO(DISTURB_MOVE), 		TRUE,	3,	0, 0,
+	"disturb_move", 			"Disturb whenever any monster moves" },
+
+	{ OPT_INFO(DISTURB_NEAR), 		TRUE,	3,	0, 0,
+	"disturb_near", 			"Disturb whenever viewable monster moves" },
+
+	{ OPT_INFO(DISTURB_PANEL),		TRUE,	3,	0, 0,
+	"disturb_panel",    		"Disturb whenever map panel changes" },
+
+	{ OPT_INFO(DISTURB_STATE),		TRUE,	3,	0, 0,
+	"disturb_state",    		"Disturb whenever player state changes" },
+
+	{ OPT_INFO(DISTURB_MINOR),		TRUE,	3,	0, 0,
+	"disturb_minor",    		"Disturb whenever boring things happen" },
+
+	{ OPT_INFO(DISTURB_OTHER),		TRUE,	3,	0, 0,
+	"disturb_other",    		"Disturb whenever various things happen" },
+
+	/*** Lighting Options ***/
+	{ OPT_INFO(VIEW_PERMA_GRIDS),    	TRUE,	4,	0, 0,
+	"view_perma_grids", 		"Map remembers all perma-lit grids" },
+
+	{ OPT_INFO(VIEW_TORCH_GRIDS),    	FALSE,	4,	0, 0,
+	"view_torch_grids", 		"Map remembers all torch-lit grids" },
+
+	{ OPT_INFO(VIEW_REDUCE_LITE), 	FALSE,	4,	0, 0,
+	"view_reduce_lite", 		"Reduce lite-radius when running" },
+
+	{ OPT_INFO(VIEW_REDUCE_VIEW), 	FALSE,	4,	0, 0,
+	"view_reduce_view", 		"Reduce view-radius in town" },
+		
+	{ OPT_INFO(VIEW_YELLOW_LITE), 	FALSE,	4,	0, 0,
+	"view_yellow_lite", 		"Use special colors for torch-lit grids" },
+
+	{ OPT_INFO(VIEW_ORANGE_LITE), 	TRUE,	4,	0, 0,
+	"view_orange_lite",     	"Use orange color for torch-lit grids (Haloween)" },
+
+	{ OPT_INFO(VIEW_BRIGHT_LITE), 	FALSE,	4,	0, 0,
+	"view_bright_lite", 		"Use special colors for 'viewable' grids" },
+
+	{ OPT_INFO(VIEW_GRANITE_LITE),	FALSE,	4,	0, 0,
+	"view_granite_lite",    	"Use special colors for wall grids" },
+
+	{ OPT_INFO(VIEW_SPECIAL_LITE),	FALSE,	4,	0, 0,
+	"view_special_lite",    	"Use special colors for floor grids" },
+
+	{ OPT_INFO(AVOID_OTHER),      	FALSE,	4,	0, 0,
+	"avoid_other",      		"Avoid processing weird colors" },
+
+
+	/*** Hidden Options ***/
+	{ OPT_INFO(USE_COLOR),    		TRUE,	0,	0, 0,
+	"use_color",    			"Use color if possible" },
+
+	{ OPT_INFO(DEPTH_IN_FEET),    	TRUE,	0,	0, 0,
+	"depth_in_feet",    		"Show dungeon level in feet" },	
+
+	/*** End of Table ***/
+
+	{ 0,			0, 0, 0, 0,
+	NULL,			NULL }
+};
+#if 0
 option_type option_info[] =
 {
 	/*** User-Interface ***/
@@ -2025,7 +2148,7 @@ option_type option_info[] =
 	{ NULL,			0, 0, 0, 0,
 	NULL,			NULL }
 };
-
+#endif
 #define _TILE(A,C) {(A),(byte)(C)}
 /* Hack -- player images for graphic mode */
 cave_view_type player_presets[3][MAX_CLASS+1][MAX_RACES+1] = {

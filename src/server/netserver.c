@@ -1186,42 +1186,7 @@ void Conn_set_console_setting(int ind, int set, bool val)
  */
 static void sync_options(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
 
-	/* Do the dirty work */
-	p_ptr->carry_query_flag = p_ptr->options[3];
-	p_ptr->use_old_target = p_ptr->options[4];
-	p_ptr->always_pickup = p_ptr->options[5];
-	p_ptr->stack_force_notes = p_ptr->options[8];
-	p_ptr->stack_force_costs = p_ptr->options[9];
-	p_ptr->find_ignore_stairs = p_ptr->options[16];
-	p_ptr->find_ignore_doors = p_ptr->options[17];
-	p_ptr->find_cut = p_ptr->options[18];
-	p_ptr->find_examine = p_ptr->options[19];
-	p_ptr->disturb_move = p_ptr->options[20];
-	p_ptr->disturb_near = p_ptr->options[21];
-	p_ptr->disturb_panel = p_ptr->options[22];
-	p_ptr->disturb_state = p_ptr->options[23];
-	p_ptr->disturb_minor = p_ptr->options[24];
-	p_ptr->disturb_other = p_ptr->options[25];
-	p_ptr->stack_allow_items = p_ptr->options[30];
-	p_ptr->stack_allow_wands = p_ptr->options[31];
-	p_ptr->view_perma_grids = p_ptr->options[34];
-	p_ptr->view_torch_grids = p_ptr->options[35];
-	p_ptr->view_reduce_lite = p_ptr->options[44];
-	p_ptr->view_reduce_view = p_ptr->options[45];
-	p_ptr->view_yellow_lite = p_ptr->options[56];
-	p_ptr->view_bright_lite = p_ptr->options[57];
-	p_ptr->view_granite_lite = p_ptr->options[58];
-	p_ptr->view_special_lite = p_ptr->options[59];
-	
-	/* Read the "no ghost" option, allow it to be changed at level 1 */
-	if (p_ptr->lev <= 1)
-	{
-		/* Get the clients setting */
-		p_ptr->no_ghost = p_ptr->options[28];
-	}
-	
 }
 /* Same as above, but for settings
  * Yeah, still kinda crappy */
@@ -1316,9 +1281,13 @@ static int Enter_player(int ind)
 
 
 	/* Copy the client preferences to the player struct */
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < OPT_MAX; i++)
 	{
-		p_ptr->options[i] = connp->Client_setup.options[i];
+		p_ptr->options[(int)option_info[i].o_var] = option_info[i].o_norm;
+		/* Ignore birth options if not generating new character */
+		if (option_info[i].o_page == 1 && character_loaded) continue;
+		if (option_info[i].o_bit) continue; /* Ignore locked options */
+		p_ptr->options[(int)option_info[i].o_var] = connp->Client_setup.options[i];
 	}
 
 	for (i = 0; i < MAX_FLVR_IDX; i++) 
@@ -2065,6 +2034,8 @@ static int Receive_play(int ind)
 	
 		Send_basic_info_conn(ind);
 		
+		Send_option_info_conn(ind);		
+		
 		Send_race_info_conn(ind);
 		Send_class_info_conn(ind);
 
@@ -2276,6 +2247,62 @@ int Send_motd_conn(int ind, int offset)
 	
 	return 1; 
 } 
+int Send_option_info_conn(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	u32b i;
+	if (!BIT(connp->state, CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for option info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	/* Option groups! */
+	if (Packet_printf(&connp->c, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OPTGROUP) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+	if (Packet_printf(&connp->c, "%hu%lu%lu", MAX_OPTION_GROUPS, 0, 0) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	} 
+	for (i = 0; i < MAX_OPTION_GROUPS; i++)
+	{
+		if (Packet_printf(&connp->c, "%s", option_group[i]) <= 0)
+		{
+			Destroy_connection(ind, "write error");
+			return -1;
+		}
+	}
+	
+	/* Options! */
+	if (Packet_printf(&connp->c, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OPTION) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+	
+	if (Packet_printf(&connp->c, "%hu%lu%lu", OPT_MAX, 0, 0) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	} 
+
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		/* Transfer other fields here */
+		if (Packet_printf(&connp->c, "%c%s%s", option_info[i].o_page, option_info[i].o_text, option_info[i].o_desc) <= 0)
+		{
+			Destroy_connection(ind, "write error");
+			return -1;
+		}
+	}
+	return 1;
+}
 int Send_race_info_conn(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -3423,7 +3450,7 @@ static int Receive_walk(int ind)
 
 	if (player && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
-		do_cmd_walk(player, dir, p_ptr->always_pickup);
+		do_cmd_walk(player, dir, option_p(p_ptr,ALWAYS_PICKUP));
 		return 2;
 	}
 	else
@@ -5576,7 +5603,7 @@ static int Receive_options(int ind)
 	}		
 
 
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < OPT_MAX; i++)
 	{
 		n = Packet_scanf(&connp->r, "%c", &connp->Client_setup.options[i]);
 		if (n <= 0)
@@ -5584,9 +5611,10 @@ static int Receive_options(int ind)
 			Destroy_connection(ind, "read error");
 			return n;
 		}
-		if (player)
+		if (player && (option_info[i].o_page != 1 && !option_info[i].o_bit))
 		{
-			p_ptr->options[i] = connp->Client_setup.options[i];
+			/* ^ ignore Birth and Locked options */
+			p_ptr->options[(int)option_info[i].o_var] = connp->Client_setup.options[i];
 		}
 	}
 

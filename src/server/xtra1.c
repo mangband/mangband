@@ -1777,7 +1777,7 @@ static void calc_torch(int Ind)
 	}
 
 	/* Reduce lite when running if requested */
-	if (p_ptr->running && p_ptr->view_reduce_lite)
+	if (p_ptr->running && option_p(p_ptr,VIEW_REDUCE_LITE))
 	{
 		/* Reduce the lite radius if needed */
 		if (p_ptr->cur_lite > 1) p_ptr->cur_lite = 1;

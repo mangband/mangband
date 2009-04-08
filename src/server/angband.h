@@ -49,6 +49,9 @@
 #include "../common/defines.h"
 #include "../common/types.h"
 #include "externs.h"
+#ifndef CLIENT
+#include "defines.h"
+#endif
 
 
 

@@ -1087,7 +1087,7 @@ static void describe_monster_exp(int Ind, int r_idx, const monster_lore *l_ptr)
 }
 
 
-static void describe_monster_movement(int r_idx, const monster_lore *l_ptr)
+static void describe_monster_movement(int r_idx, const monster_lore *l_ptr, bool depth_in_feet)
 {
 	const monster_race *r_ptr = &r_info[r_idx];
 
@@ -1325,18 +1325,18 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 	describe_monster_name(r_idx);
 
 	/* Cheat -- know everything */
-	if (cheat_know || spoilers) cheat_monster_lore(r_idx, &lore);
+	if (p_ptr->dm_flags & DM_SEE_MONSTERS || spoilers) cheat_monster_lore(r_idx, &lore);
 
 	/* Show kills of monster vs. player(s) */
-	if (!spoilers && show_details)
+	if (!spoilers && option_p(p_ptr,SHOW_DETAILS))
 		describe_monster_kills(r_idx, &lore);
 
 	/* Monster description */
-	if (spoilers || show_details)
+	if (spoilers || option_p(p_ptr,SHOW_DETAILS))
 		describe_monster_desc(r_idx);
 
 	/* Describe the movement and level of the monster */
-	describe_monster_movement(r_idx, &lore);
+	describe_monster_movement(r_idx, &lore, option_p(p_ptr, DEPTH_IN_FEET));
 
 	/* Describe experience */
 	if (!spoilers) describe_monster_exp(Ind, r_idx, &lore);

@@ -706,7 +706,7 @@ void carry(int Ind, int pickup, int confirm)
 			int okay = TRUE;
 
 			/* Hack -- query every item */
-			if (p_ptr->carry_query_flag && !confirm)
+			if (option_p(p_ptr,CARRY_QUERY_FLAG) && !confirm)
 			{
 				char out_val[160];
 				sprintf(out_val, "Pick up %s? ", o_name);
@@ -1610,7 +1610,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
 			
 			/* disturb if necessary */
-			if (p_ptr->disturb_panel) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_PANEL)) disturb(Ind, 0, 0);
 						
 			players_on_depth[p_ptr->dun_depth]++;
 			p_ptr->new_level_flag = TRUE;
@@ -2399,7 +2399,7 @@ static bool run_test(int Ind)
 				case FEAT_BROKEN:
 				{
 					/* Option -- ignore */
-					if (p_ptr->find_ignore_doors) notice = FALSE;
+					if (option_p(p_ptr,FIND_IGNORE_DOORS)) notice = FALSE;
 
 					/* Done */
 					break;
@@ -2410,7 +2410,7 @@ static bool run_test(int Ind)
 				case FEAT_MORE:
 				{
 					/* Option -- ignore */
-					if (p_ptr->find_ignore_stairs) notice = FALSE;
+					if (option_p(p_ptr,FIND_IGNORE_STAIRS)) notice = FALSE;
 
 					/* Done */
 					break;
@@ -2575,7 +2575,7 @@ static bool run_test(int Ind)
 		}
 
 		/* Two options, examining corners */
-		else if (p_ptr->find_examine && !p_ptr->find_cut)
+		else if (option_p(p_ptr,FIND_EXAMINE) && !option_p(p_ptr,FIND_CUT))
 		{
 			/* Primary option */
 			p_ptr->find_current = option;
@@ -2598,7 +2598,7 @@ static bool run_test(int Ind)
 			{
 				/* Can not see anything ahead and in the direction we */
 				/* are turning, assume that it is a potential corner. */
-				if (p_ptr->find_examine &&
+				if (option_p(p_ptr,FIND_EXAMINE) &&
 				    see_nothing(option, Ind, row, col) &&
 				    see_nothing(option2, Ind, row, col))
 				{
@@ -2614,7 +2614,7 @@ static bool run_test(int Ind)
 			}
 
 			/* This corner is seen to be enclosed; we cut the corner. */
-			else if (p_ptr->find_cut)
+			else if (option_p(p_ptr,FIND_CUT))
 			{
 				p_ptr->find_current = option2;
 				p_ptr->find_prevdir = option2;
@@ -2724,5 +2724,5 @@ void run_step(int Ind, int dir)
 	if (--(p_ptr->running) <= 0) return;
 
 	/* Move the player, using the "pickup" flag */
-	move_player(Ind, p_ptr->find_current, p_ptr->always_pickup);
+	move_player(Ind, p_ptr->find_current, option_p(p_ptr,ALWAYS_PICKUP));
 }

@@ -547,14 +547,6 @@ static void player_wipe(int Ind)
 	}
 
 
-	/* Clear "cheat" options */
-	cheat_peek = FALSE;
-	cheat_hear = FALSE;
-	cheat_room = FALSE;
-	cheat_xtra = FALSE;
-	cheat_know = FALSE;
-	cheat_live = FALSE;
-
 	/* Assume no winning game */
 	p_ptr->total_winner = FALSE;
 
@@ -1011,8 +1003,7 @@ static void player_setup(int Ind)
 		{
 			/* Build a new level and put him on it */
 			alloc_dungeon_level(Depth);
-			/* option 29 is auto_scum for the player */
-			generate_cave(Ind, Depth, p_ptr->options[29]);
+			generate_cave(Ind, Depth, option_p(p_ptr,AUTO_SCUM));
 		}
 		else
 		/* rebuild the wilderness level */

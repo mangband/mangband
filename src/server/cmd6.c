@@ -505,7 +505,7 @@ void do_cmd_use_staff(int Ind, int item)
 	/* Roll for usage */
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "You failed to use the staff properly.");
 		return;
 	}
@@ -570,7 +570,7 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	/* Use a single charge */
 	o_ptr->pval--;
 
-	if (!p_ptr->stack_allow_wands) 
+	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) 
 	{
 		/* XXX Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
@@ -713,7 +713,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Roll for usage */
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "You failed to use the wand properly.");
 		return;
 	}
@@ -721,7 +721,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* The wand is already empty! */
 	if (o_ptr->pval <= 0)
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "The wand has no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 
@@ -758,7 +758,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Use a single charge */
 	o_ptr->pval--;
 
-	if (!p_ptr->stack_allow_wands) {
+	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) {
 		/* Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
 		{
@@ -912,7 +912,7 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
     /* Drain the charge */
     o_ptr->timeout += k_ptr->pval;
 
-	if (!p_ptr->stack_allow_wands) {
+	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) {
 		/* XXX Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
 		{
@@ -1039,7 +1039,7 @@ void do_cmd_activate(int Ind, int item)
 	/* Roll for usage */
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "You failed to activate it properly.");
 		return;
 	}

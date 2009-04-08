@@ -107,7 +107,7 @@ bool set_blind(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Forget stuff */
 	p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE);
@@ -175,7 +175,7 @@ bool set_confused(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Redraw the "confused" */
 	p_ptr->redraw |= (PR_CONFUSED);
@@ -227,7 +227,7 @@ bool set_poisoned(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Redraw the "poisoned" */
 	p_ptr->redraw |= (PR_POISONED);
@@ -281,7 +281,7 @@ bool set_afraid(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Redraw the "afraid" */
 	p_ptr->redraw |= (PR_AFRAID);
@@ -335,7 +335,7 @@ bool set_paralyzed(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Redraw the state */
 	p_ptr->redraw |= (PR_STATE);
@@ -389,7 +389,7 @@ bool set_image(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Redraw map */
 	p_ptr->redraw |= (PR_MAP);
@@ -449,7 +449,7 @@ bool set_fast(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -503,7 +503,7 @@ bool set_slow(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -555,7 +555,7 @@ bool set_shield(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -608,7 +608,7 @@ bool set_blessed(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -660,7 +660,7 @@ bool set_hero(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -715,7 +715,7 @@ bool set_shero(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -770,7 +770,7 @@ bool set_protevil(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Handle stuff */
 	handle_stuff(Ind);
@@ -819,7 +819,7 @@ bool set_invuln(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -871,7 +871,7 @@ bool set_tim_invis(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -926,7 +926,7 @@ bool set_tim_infra(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -981,7 +981,7 @@ bool set_oppose_acid(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1032,7 +1032,7 @@ bool set_oppose_elec(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1083,7 +1083,7 @@ bool set_oppose_fire(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1134,7 +1134,7 @@ bool set_oppose_cold(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1185,7 +1185,7 @@ bool set_oppose_pois(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1304,7 +1304,7 @@ bool set_stun(int Ind, int v)
 			case 0:
 			msg_format_near(Ind, "%s is no longer stunned.", p_ptr->name);
 			msg_print(Ind, "You are no longer stunned.");
-			if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 			break;
 		}
 
@@ -1319,7 +1319,7 @@ bool set_stun(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -1502,7 +1502,7 @@ bool set_cut(int Ind, int v)
 			/* None */
 			case 0:
 			msg_print(Ind, "You are no longer bleeding.");
-			if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 			break;
 		}
 
@@ -1517,7 +1517,7 @@ bool set_cut(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -1737,7 +1737,7 @@ bool set_food(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (p_ptr->disturb_state) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -2328,7 +2328,7 @@ void player_death(int Ind)
 	//int pkill=0;  /* verifies we have a pkill */
 
 	/* If this is our final death, clear any houses */
-	if (p_ptr->ghost || p_ptr->no_ghost)
+	if (p_ptr->ghost || option_p(p_ptr, NO_GHOST))
 	{
 		/* Disown any houses he owns */
 		for(i=0; i<num_houses;i++)
@@ -3016,7 +3016,7 @@ void verify_panel(int Ind)
 	if ((prow == p_ptr->panel_row) && (pcol == p_ptr->panel_col)) return;
 
 	/* Hack -- optional disturb on "panel change" */
-	if (p_ptr->disturb_panel) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_PANEL)) disturb(Ind, 0, 0);
 
 	/* Save the new panel info */
 	p_ptr->panel_row = prow;
@@ -3818,7 +3818,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 			if (!in_bounds(Depth, y, x)) continue;//bounds_fully
 
 			/* Require line of sight, unless "look" is "expanded" */
-			if (!expand_look && !player_has_los_bold(Ind, y, x)) continue;
+			if (!option_p(p_ptr,EXPAND_LOOK) && !player_has_los_bold(Ind, y, x)) continue;
 
 			/* Require "interesting" contents */
 			if (!target_set_interactive_accept(Ind, y, x)) continue;
@@ -4313,7 +4313,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				if (++p_ptr->look_index == p_ptr->target_n)
 				{
 					p_ptr->look_index = 0;
-					if (!expand_list) done = TRUE;
+					if (!option_p(p_ptr,EXPAND_LOOK)) done = TRUE;
 				}
 				break;
 			}
@@ -4323,7 +4323,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				if (p_ptr->look_index-- == 0)
 				{
 					p_ptr->look_index = p_ptr->target_n - 1;
-					if (!expand_list) done = TRUE;
+					if (!option_p(p_ptr,EXPAND_LOOK)) done = TRUE;
 				}
 				break;
 			}
@@ -4612,7 +4612,7 @@ bool get_aim_dir(int Ind, int *dp)
 	p_ptr->command_dir = 0;
 
 	/* Hack -- auto-target if requested */
-	if (p_ptr->use_old_target && target_okay(Ind)) dir = 5;
+	if (option_p(p_ptr,USE_OLD_TARGET) && target_okay(Ind)) dir = 5;
 	
 	/* No direction -- Ask */
 	if (!dir)  

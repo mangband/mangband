@@ -158,69 +158,20 @@ bool use_sound;
 
 cave_view_type trans[40][88];
 
+option_type *option_info;
+cptr *option_group;
+int options_max;
+int options_groups_max;
+
 bool rogue_like_commands;
-bool quick_messages;
-bool other_query_flag;
-bool carry_query_flag;
-bool use_old_target;
-bool always_pickup;
-bool always_repeat;
 bool depth_in_feet;
-bool stack_force_notes;
-bool stack_force_costs;
-bool show_labels;
+bool auto_accept;
 bool show_weights;
-bool show_choices;
-bool show_details;
 bool ring_bell;
 bool use_color;
 
-bool find_ignore_stairs;
-bool find_ignore_doors;
-bool find_cut;
-bool find_examine;
-bool disturb_move;
-bool disturb_near;
-bool disturb_panel;
-bool disturb_state;
-bool disturb_minor;
-bool disturb_other;
-bool alert_hitpoint;
-bool alert_failure;
+bool use_old_target;
 
-bool no_ghost;
-bool auto_scum;
-bool stack_allow_items;
-bool stack_allow_wands;
-bool expand_look;
-bool expand_list;
-bool view_perma_grids;
-bool view_torch_grids;
-bool dungeon_align;
-bool dungeon_stair;
-bool flow_by_sound;
-bool flow_by_smell;
-bool track_follow;
-bool track_target;
-bool smart_learn;
-bool smart_cheat;
-
-bool view_reduce_lite;
-bool view_reduce_view;
-bool avoid_abort;
-bool avoid_other;
-bool flush_failure;
-bool flush_disturb;
-bool flush_command;
-bool fresh_before;
-bool fresh_after;
-bool fresh_message;
-bool compress_savefile;
-bool hilite_player;
-bool view_yellow_lite;
-bool view_bright_lite;
-bool view_granite_lite;
-bool view_special_lite;
 
 int char_screen_mode;
 bool target_recall;

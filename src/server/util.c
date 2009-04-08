@@ -1351,6 +1351,7 @@ static char original_commands(char command)
  *
  * You can map a key to "tab" to make it "non-functional".
  */
+#if 0
 void keymap_init(void)
 {
 	int i, k;
@@ -1387,6 +1388,7 @@ void keymap_init(void)
 	/* Save the "rogue_like_commands" setting */
 	old_rogue_like = rogue_like_commands;
 }
+#endif
 
 
 

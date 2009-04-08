@@ -284,7 +284,7 @@ static void sense_inventory(int Ind)
 		if (!feel) continue;
 
 		/* Stop everything */
-		if (p_ptr->disturb_minor) disturb(Ind, 0, 0);
+		if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 
 		/* Get an object description */
 		object_desc(Ind, o_name, o_ptr, FALSE, 0);
@@ -527,7 +527,7 @@ static void process_world(int Ind)
 							c_ptr->info |= CAVE_GLOW;
 
 							/* Hack -- Memorize lit grids if allowed */
-							if ((!Depth) && (p_ptr->view_perma_grids)) *w_ptr |= CAVE_MARK;
+							if ((!Depth) && option_p(p_ptr,VIEW_PERMA_GRIDS)) *w_ptr |= CAVE_MARK;
 
 							/* Hack -- Notice spot */
 							note_spot(Ind, y, x);						
@@ -1410,7 +1410,7 @@ static void process_player_end(int Ind)
 				/* The light is getting dim */
 				else if ((o_ptr->pval < 100) && (!(o_ptr->pval % 10)))
 				{
-					if (p_ptr->disturb_minor) disturb(Ind, 0, 0);
+					if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 					msg_print(Ind, "Your light is growing faint.");
 				}
 			}
@@ -1950,8 +1950,7 @@ void dungeon(void)
 			alloc_dungeon_level(Depth);
 
 			/* Generate a dungeon level there */
-			/* option 29 is auto_scum */
-			generate_cave(i, Depth, p_ptr->options[29]);
+			generate_cave(i, Depth, option_p(p_ptr,AUTO_SCUM));
 			
 			/* Give a level feeling to this player */
 	    /* No feeling outside the dungeon */
@@ -2336,31 +2335,6 @@ void play_game(bool new_game)
 
 		/* Seed the "complex" RNG */
 		Rand_state_init(seed);
-	}
-
-	/* Extract the options */
-	for (i = 0; option_info[i].o_desc; i++)
-	{
-		int os = option_info[i].o_set;
-		int ob = option_info[i].o_bit;
-
-		/* Set the "default" options */
-		if (option_info[i].o_var)
-		{
-			/* Set */
-			if (option_flag[os] & (1L << ob))
-			{
-				/* Set */
-				(*option_info[i].o_var) = TRUE;
-			}
-			
-			/* Clear */
-			else
-			{
-				/* Clear */
-				(*option_info[i].o_var) = FALSE;
-			}
-		}
 	}
 
 	/* Roll new town */

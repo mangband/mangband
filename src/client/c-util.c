@@ -1,3 +1,4 @@
+#define CLIENT
 #include "angband.h"
 
 #define MACRO_USE_CMD	0x01
@@ -1454,6 +1455,9 @@ bool get_check(cptr prompt)
 	int i;
 
 	char buf[80];
+	
+	/* Option -- "auto_accept" */
+	if (auto_accept) return (TRUE);
 
 	/* Hack -- Build a "useful" prompt */
 	strnfmt(buf, 78, "%.70s[y/n] ", prompt);
@@ -1468,7 +1472,6 @@ bool get_check(cptr prompt)
 	while (TRUE)
 	{
 		i = inkey();
-		if (quick_messages) break;
 		if (i == ESCAPE) break;
 		if (strchr("YyNn", i)) break;
 		bell();
@@ -2662,7 +2665,7 @@ void interact_macros(void)
 /*
  * Interact with some options
  */
-static void do_cmd_options_aux(int page, cptr info)
+static void do_cmd_options_aux(int page, bool local, cptr info)
 {
 	char	ch;
 
@@ -2677,10 +2680,23 @@ static void do_cmd_options_aux(int page, cptr info)
 	for (i = 0; i < 24; i++) opt[i] = 0;
 
 	/* Scan the options */
-	for (i = 0; option_info[i].o_desc; i++)
+	if (local)
 	{
-		/* Notice options on this "page" */
-		if (option_info[i].o_page == page) opt[n++] = i;
+		/* Local */
+		for (i = 0; local_option_info[i].o_desc; i++)
+		{
+			/* Notice options on this "page" */
+			if (local_option_info[i].o_page == page) opt[n++] = i;
+		}
+	} 
+	else 
+	{
+		/* Server */
+		for (i = 0; i < options_max; i++)
+		{
+			/* Notice options on this "page" */
+			if (option_info[i].o_page == page) opt[n++] = i;
+		}
 	}
 
 
@@ -2690,8 +2706,12 @@ static void do_cmd_options_aux(int page, cptr info)
 	/* Interact with the player */
 	while (TRUE)
 	{
+		bool set_must = FALSE;
+		bool set_what;
+		int  set_id;
+
 		/* Prompt XXX XXX XXX */
-		sprintf(buf, "%s (RET to advance, y/n to set, ESC to accept) ", info);
+		sprintf(buf, "%-30s (RET to advance, y/n to set, ESC to accept) ", info);
 		prt(buf, 0, 0);
 	
 		/* Display the options */
@@ -2703,10 +2723,20 @@ static void do_cmd_options_aux(int page, cptr info)
 			if (i == k) a = TERM_L_BLUE;
 
 			/* Display the option text */
-			sprintf(buf, "%-48s: %s  (%s)",
-			        option_info[opt[i]].o_desc,
-			        (*option_info[opt[i]].o_var ? "yes" : "no "),
-			        option_info[opt[i]].o_text);
+			if (local)
+			{
+				sprintf(buf, "%-48s: %s  (%s)",
+				        local_option_info[opt[i]].o_desc,
+				        (*local_option_info[opt[i]].o_var ? "yes" : "no "),
+				        local_option_info[opt[i]].o_text);
+			}
+			else
+			{
+				sprintf(buf, "%-48s: %s  (%s)",
+				        option_info[opt[i]].o_desc,
+				        (Client_setup.options[opt[i]] ? "yes" : "no "),
+				        option_info[opt[i]].o_text);
+			}
 			c_prt(a, buf, i + 2, 0);
 		}
 
@@ -2744,8 +2774,9 @@ static void do_cmd_options_aux(int page, cptr info)
 			case 'Y':
 			case '6':
 			{
-				(*option_info[opt[k]].o_var) = TRUE;
-				Client_setup.options[opt[k]] = TRUE;
+				set_must = TRUE;
+				set_what = TRUE;
+				set_id = k;
 				k = (k + 1) % n;
 				break;
 			}
@@ -2754,8 +2785,9 @@ static void do_cmd_options_aux(int page, cptr info)
 			case 'N':
 			case '4':
 			{
-				(*option_info[opt[k]].o_var) = FALSE;
-				Client_setup.options[opt[k]] = FALSE;
+				set_must = TRUE;
+				set_what = FALSE;
+				set_id = k;
 				k = (k + 1) % n;
 				break;
 			}
@@ -2765,6 +2797,30 @@ static void do_cmd_options_aux(int page, cptr info)
 				bell();
 				break;
 			}
+		}
+		/* Set option */
+		if (set_must)
+		{
+			int on_opt = -1;
+			int on_var = -1;
+			if (local)
+			{
+				if (local_option_info[opt[set_id]].o_set)
+				{
+					on_opt = local_option_info[opt[set_id]].o_set;
+				}
+				on_var = opt[set_id];					
+			}
+			else
+			{
+				if (option_info[opt[set_id]].o_set)
+					on_var = option_info[opt[set_id]].o_set;
+				on_opt = opt[set_id]; 
+			}
+			if (on_opt != -1)
+				Client_setup.options[on_opt] = set_what;
+			if (on_var != -1)
+				(*local_option_info[on_var].o_var) = set_what;
 		}
 	}
 }
@@ -2965,6 +3021,7 @@ static void do_cmd_options_win(void)
 void do_cmd_options(void)
 {
 	int k;
+	int col, i, label;
 
 
 	/* Enter "icky" mode */
@@ -2983,17 +3040,28 @@ void do_cmd_options(void)
 		/* Why are we here */
 		prt("MAngband options", 2, 0);
 
+		/* Prepare */
+		i = label = 0;
+		col = 4;
+		
 		/* Give some choices */
-		prt("(1) User Interface Options", 4, 5);
-		prt("(2) Disturbance Options", 5, 5);
-		prt("(3) Game-Play Options", 6, 5);
-		prt("(4) Efficiency Options", 7, 5);
+		for (k = 0; local_option_group[k]; k++)
+		{
+			prt(format("(%d) %s", ++i, local_option_group[k]), col++, 5);
+		}
+		label = k+1;
+		for (k = 0; k < options_groups_max; k++)
+		{
+			prt(format("(%d) %s", ++i, option_group[k]), col++, 5);
+		}
 
 		/* Window flags */
-		prt("(W) Window flags", 9, 5);
+		col += 2;
+		prt("(W) Window flags", col, 5);
 
 		/* Prompt */
-		prt("Command: ", 11, 0);
+		col += 2;
+		prt("Command: ", col, 0);
 
 		/* Get command */
 		k = inkey();
@@ -3001,32 +3069,27 @@ void do_cmd_options(void)
 		/* Exit */
 		if (k == ESCAPE) break;
 
-		/* General Options */
-		if (k == '1')
+		/* Entered some group */
+		if (isdigit(k))
 		{
-			/* Process the general options */
-			do_cmd_options_aux(1, "User Interface Options");
-		}
-
-		/* Disturbance Options */
-		else if (k == '2')
-		{
-			/* Process the running options */
-			do_cmd_options_aux(2, "Disturbance Options");
-		}
-
-		/* Inventory Options */
-		else if (k == '3')
-		{
-			/* Process the running options */
-			do_cmd_options_aux(3, "Game-Play Options");
-		}
-
-		/* Efficiency Options */
-		else if (k == '4')
-		{
-			/* Process the efficiency options */
-			do_cmd_options_aux(4, "Efficiency Options");
+			i = D2I(k);
+			/* Unknown digit ? */
+			if (i > options_groups_max + label) 
+			{
+				/* Oops */
+				bell();
+				continue;
+			}
+			/* Local */
+			if (i < label)
+			{
+				do_cmd_options_aux(i, TRUE, local_option_group[i - 1]);
+			}
+			/* Server */
+			else
+			{
+				do_cmd_options_aux(i - label + 1, FALSE, option_group[i - label]);
+			}
 		}
 
 		/* Window flags */
@@ -3062,7 +3125,20 @@ void do_cmd_options(void)
 	/* Send a redraw request */
 	Send_redraw();
 }
+void do_cmd_options_birth()
+{
+	/* Save the screen */
+	Term_save();
 
+	/* Hack -- asume Group 1 (index0) as "Birth Options" */
+	do_cmd_options_aux(1, FALSE, option_group[0]);
+	
+	/* Restore the screen */
+	Term_load();
+	
+	/* Save options to file */
+	Save_options();
+}
 
 
 

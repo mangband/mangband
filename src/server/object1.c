@@ -2833,7 +2833,7 @@ void display_inven(int Ind)
 		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
-		if (!use_color) attr = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) attr = TERM_WHITE;
 
 		/* Display the weight if needed */
 		wgt = o_ptr->weight * o_ptr->number;
@@ -2884,7 +2884,7 @@ void display_equip(int Ind)
 		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
-		if (!use_color) attr = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) attr = TERM_WHITE;
 
 		/* Display the weight (if needed) */
 		wgt = o_ptr->weight * o_ptr->number;

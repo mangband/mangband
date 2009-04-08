@@ -433,7 +433,7 @@ void do_cmd_check_uniques(int Ind, int line)
 		if (r_ptr->flags1 & RF1_UNIQUE)
 		{
 			/* Only display "known" uniques */
-			if (cheat_know || r_ptr->r_sights)
+			if ((Players[Ind]->dm_flags & DM_SEE_MONSTERS) || r_ptr->r_sights)
 			{
 				l = 0;
 				while (l < total)
@@ -582,7 +582,7 @@ void do_cmd_check_players(int Ind, int line)
 		fprintf(fff, "%c", attr);
 
 		/* Print a message */
-		if(q_ptr->no_ghost)
+		if(option_p(q_ptr, NO_GHOST))
 		{
 			fprintf(fff, "     %s the Brave %s %s (Level %d, %s)",
 			q_ptr->name, p_name + p_info[q_ptr->prace].name,

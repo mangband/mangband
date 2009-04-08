@@ -1214,6 +1214,60 @@ int Receive_struct_info(void)
 	/* Witch struct */
 	switch (typ)
 	{
+		/* Option groups */
+		case STRUCT_INFO_OPTGROUP:
+			/* Alloc */
+			C_MAKE(option_group, max, cptr);
+			options_groups_max = max;
+			
+			/* Fill */
+			for (i = 0; i < max; i++)
+			{
+				if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
+				{
+					return n;
+				}
+				
+				/* Transfer */
+				option_group[i] = string_make(name);
+			}
+		break;
+		/* Options */
+		case STRUCT_INFO_OPTION:
+			/* Alloc */
+			C_MAKE(option_info, max, option_type);
+			options_max = max;
+			
+			/* Fill */
+			for (i = 0; i < max; i++)
+			{
+				option_type *opt_ptr = NULL;
+				opt_ptr = &option_info[i];
+
+				byte opt_page = 0;
+				char desc[MAX_CHARS];
+				
+				if ((n = Packet_scanf(&rbuf, "%c%s%s", &opt_page, name, desc)) <= 0)
+				{
+					return n;
+				}
+				
+				/* Transfer */
+				opt_ptr->o_page = opt_page;
+				opt_ptr->o_text = string_make(name);
+				opt_ptr->o_desc = string_make(desc);
+				opt_ptr->o_set = 0;
+				/* Link to local */
+				for (n = 0; local_option_info[n].o_desc; n++)
+				{
+					if (!strcmp(local_option_info[n].o_text, name))
+					{
+						local_option_info[n].o_set = i;
+						opt_ptr->o_set = n;
+					}				
+				}
+			}
+		break;
 		/* Player Races */
 		case STRUCT_INFO_RACE:
 			/* Alloc */
@@ -3524,7 +3578,7 @@ int Send_options(bool settings)
 	}
 
 	/* Send each option */
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < options_max; i++)
 	{
 		Packet_printf(&wbuf, "%c", Client_setup.options[i]);
 	}

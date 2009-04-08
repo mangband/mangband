@@ -454,31 +454,13 @@ errr process_pref_file_aux(char *buf)
 	/* Process "X:<str>" -- turn option off */
 	else if (buf[0] == 'X')
 	{
-		for (i = 0; option_info[i].o_desc; i++)
-		{
-			if (option_info[i].o_var &&
-			    option_info[i].o_text &&
-			    streq(option_info[i].o_text, buf + 2))
-			{
-				(*option_info[i].o_var) = FALSE;
-				return (0);
-			}
-		}
+		return (0);
 	}
 
 	/* Process "Y:<str>" -- turn option on */
 	else if (buf[0] == 'Y')
 	{
-		for (i = 0; option_info[i].o_desc; i++)
-		{
-			if (option_info[i].o_var &&
-			    option_info[i].o_text &&
-			    streq(option_info[i].o_text, buf + 2))
-			{
-				(*option_info[i].o_var) = TRUE;
-				return (0);
-			}
-		}
+		return (0);
 	}
 
 	/* Process "W:<num>:<use> -- set window use */

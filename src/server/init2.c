@@ -2079,7 +2079,7 @@ static errr init_other(void)
 
 
 	/*** Prepare the options ***/
-
+#if 0
 	/* Scan the options */
 	for (i = 0; option_info[i].o_desc; i++)
 	{
@@ -2129,7 +2129,7 @@ static errr init_other(void)
 			}
 		}
 	}
-
+#endif
 	/* Success */
 	return (0);
 }
@@ -2363,6 +2363,19 @@ static errr init_p_info(void)
 	return (err);
 }
 
+/* Attempt to bind cfg_ server option to .prf Y: X: option */
+static void enforce_option(char * name, bool set_what)
+{
+	int i;
+	for (i = 0; option_info[i].o_desc; i++)
+	{
+		if (!strcasecmp(option_info[i].o_text, name))
+		{
+			option_info[i].o_norm = set_what; /* Change default */
+			option_info[i].o_bit = 1; /* Forbid changes */ 
+		}
+	}
+}
 /* Try to set a server option.  This is handled very sloppily right now,
  * since server options are manually mapped to global variables.  Maybe
  * the handeling of this will be unified in the future with some sort of 
@@ -2419,6 +2432,14 @@ void set_server_option(char * option, char * value)
 		if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
 			cfg_tcp_port = 18346;
 	}
+	else if (!strcmp(option,"ENFORCE_OPTION_1"))
+	{
+		enforce_option(value, TRUE);
+	}
+	else if (!strcmp(option,"ENFORCE_OPTION_0"))
+	{
+		enforce_option(value, FALSE);
+	}	
 	else if (!strcmp(option,"MAGE_HITPOINT_BONUS"))
 	{
 		cfg_mage_hp_bonus = str_to_boolean(value);

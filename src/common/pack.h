@@ -168,10 +168,12 @@
 /*
  * PKT_STRUCT_INFO helpers
  */
-#define STRUCT_INFO_UNKNOWN	0
-#define STRUCT_INFO_LIMITS	 1
-#define STRUCT_INFO_RACE	 2
-#define STRUCT_INFO_CLASS	 3
+#define STRUCT_INFO_UNKNOWN 	0
+#define STRUCT_INFO_LIMITS  	1
+#define STRUCT_INFO_RACE    	2
+#define STRUCT_INFO_CLASS   	3
+#define STRUCT_INFO_OPTION  	6
+#define STRUCT_INFO_OPTGROUP	7
 
 /*
  * PKT_COMMAND helpers

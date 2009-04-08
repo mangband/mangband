@@ -13,7 +13,7 @@
 /*
  * Only a little of the file is used for the client, the rest is commented out.
  */
-
+#define CLIENT
 #include "angband.h"
 
 
@@ -457,151 +457,46 @@ cptr window_flag_desc[32] =
 	NULL
 };
 
-#if 0
-
-Uncomment this when we are ready to redefine the interface for sending options
-to the server. (the useless options have been removed)  Uncommenting it prior to
-this would break the option reading on the server.
-
 /*
  * Available Options
  *
  * Option Screen Sets:
  *
  *	Set 1: User Interface
- *	Set 2: Disturbance
- *	Set 3: Inventory
- *	Set 4: Game Play
- *
- * Note that bits 28-31 of set 0 are currently unused.
  */
-option_type option_info[] =
+cptr local_option_group[] = 
+{
+	"User-interace options",
+	NULL /* End */
+};
+option_type local_option_info[] =
 {
 	/*** User-Interface ***/
-
 	{ &rogue_like_commands,	FALSE,	1,	0, 0,
 	"rogue_like_commands",	"Rogue-like commands" },
 
-	{ &quick_messages,	 	FALSE,	1,	0, 1,
-	"quick_messages",		"Activate quick messages" },
-
-	{ &carry_query_flag,	FALSE,	1,	0, 3,
-	"carry_query_flag",		"Prompt before picking things up" },
-
-	{ &use_old_target,		FALSE,	1,	0, 4,
-	"use_old_target",		"Use old target by default" },
-
-	{ &always_pickup,		TRUE,	1,	0, 5,
-	"always_pickup",		"Pick things up by default" },
-
-	{ &depth_in_feet,		FALSE,	1,	0, 7,
-	"depth_in_feet",		"Show dungeon level in feet" },
-
-	{ &stack_force_notes,	FALSE,	1,	0, 8,
-	"stack_force_notes",	"Merge inscriptions when stacking" },
-
-	{ &stack_force_costs,	FALSE,	1,	0, 9,
-	"stack_force_costs",	"Merge discounts when stacking" },
-
-	{ &show_weights,		FALSE,	1,	0, 11,
-	"show_weights",			"Show weights in object listings" },
-
-	{ &ring_bell,			TRUE,	1,	0, 14,
+	{ &ring_bell,			TRUE,	1,	0, 0,
 	"ring_bell",			"Audible bell (on errors, etc)" },
 
-	{ &use_color,			TRUE,	1,	0, 15,
-	"use_color",			"Use color if possible (slow)" },
+	{ &use_color,			TRUE,	1,	0, 0,
+	"use_color",			"Use color if possible" },
+	
+	{ &depth_in_feet,		TRUE,	1,	0, 0,
+	"depth_in_feet",		"Show dungeon level in feet" },
+	
+	{ &show_weights,		TRUE,	1,	0, 0,
+	"show_weights",			"Show weights in object listings" },
 
-
-	/*** Disturbance ***/
-
-	{ &find_ignore_stairs,	TRUE,	2,	0, 16,
-	"find_ignore_stairs",	"Run past stairs" },
-
-	{ &find_ignore_doors,	TRUE,	2,	0, 17,
-	"find_ignore_doors",	"Run through open doors" },
-
-	{ &find_cut,			TRUE,	2,	0, 18,
-	"find_cut",				"Run past known corners" },
-
-	{ &find_examine,		TRUE,	2,	0, 19,
-	"find_examine",			"Run into potential corners" },
-
-	{ &disturb_move,		TRUE,	2,	0, 20,
-	"disturb_move",			"Disturb whenever any monster moves" },
-
-	{ &disturb_near,		TRUE,	2,	0, 21,
-	"disturb_near",			"Disturb whenever viewable monster moves" },
-
-	{ &disturb_panel,		TRUE,	2,	0, 22,
-	"disturb_panel",		"Disturb whenever map panel changes" },
-
-	{ &disturb_state,		TRUE,	2,	0, 23,
-	"disturb_state",		"Disturb whenever player state changes" },
-
-	{ &disturb_minor,		TRUE,	2,	0, 24,
-	"disturb_minor",		"Disturb whenever boring things happen" },
-
-	{ &disturb_other,		TRUE,	2,	0, 25,
-	"disturb_other",		"Disturb whenever various things happen" },
-
-
-	/*** Game-Play ***/
-
-	{ &stack_allow_items,	TRUE,	3,	1, 2,
-	"stack_allow_items",	"Allow weapons and armor to stack" },
-
-	{ &stack_allow_wands,	TRUE,	3,	1, 3,
-	"stack_allow_wands",	"Allow wands/staffs/rods to stack" },
-
-	{ &view_perma_grids,	TRUE,	3,	1, 6,
-	"view_perma_grids",		"Map remembers all perma-lit grids" },
-
-	{ &view_torch_grids,	FALSE,	3,	1, 7,
-	"view_torch_grids",		"Map remembers all torch-lit grids" },
-
-	/*** Efficiency ***/
-
-	{ &view_reduce_lite,	FALSE,	4,	1, 16,
-	"view_reduce_lite",		"Reduce lite-radius when running" },
-
-	{ &view_reduce_view,	FALSE,	4,	1, 17,
-	"view_reduce_view",		"Reduce view-radius in town" },
-
-	{ &view_yellow_lite,	FALSE,	4,	1, 28,
-	"view_yellow_lite",		"Use special colors for torch-lit grids" },
-
-	{ &view_bright_lite,	FALSE,	4,	1, 29,
-	"view_bright_lite",		"Use special colors for 'viewable' grids" },
-
-	{ &view_granite_lite,	FALSE,	4,	1, 30,
-	"view_granite_lite",	"Use special colors for wall grids (slow)" },
-
-	{ &view_special_lite,	FALSE,	4,	1, 31,
-	"view_special_lite",	"Use special colors for floor grids (slow)" },
-
+	{ &auto_accept, 		FALSE,	1,	0, 0,
+	"auto_accept",			"Always say Yes to Yes/No prompts" },
 
 	/*** End of Table ***/
 
 	{ NULL,			0, 0, 0, 0,
 	NULL,			NULL }
 };
-#endif
 
-/*
- * Available Options
- *
- * Option Screen Sets:
- *
- *	Set 1: User Interface
- *	Set 2: Disturbance
- *	Set 3: Inventory
- *	Set 4: Game Play
- *
- * Note that bits 28-31 of set 0 are currently unused.
- */
-option_type option_info[] =
-{
+#if 0
 	/*** User-Interface ***/
 
 /* 00 */{ &rogue_like_commands,	FALSE,	1,	0, 0,
@@ -799,3 +694,5 @@ option_type option_info[] =
 	{ NULL,			0, 0, 0, 0,
 	NULL,			NULL }
 };
+#endif
+

@@ -2238,7 +2238,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 	}
 	else
 	{
-		if (flush_failure) flush();
+		/*if (flush_failure) flush();*/
 		msg_print(Ind, "The Branding failed.");
 	}
 }
@@ -4657,7 +4657,7 @@ bool brand_bolts(int Ind)
 	}
 
 	/* Flush */
-	if (flush_failure) flush();
+	/*if (flush_failure) flush();*/
 
 	/* Fail */
 	msg_print(Ind, "The fiery enchantment failed.");

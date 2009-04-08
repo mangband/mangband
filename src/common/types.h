@@ -165,7 +165,11 @@ struct client_setup_t
 
 struct option_type
 {
+#ifdef CLIENT
 	bool	*o_var;
+#else /* Cheap Dirty Hack */
+	byte	o_var;
+#endif
 
 	byte	o_norm;
 
@@ -1100,7 +1104,7 @@ struct player_other
 	char full_name[32];		/* Full name */
 	char base_name[32];		/* Base name */
 
-	bool opt[OPT_MAX];		/* Options */
+	bool opt[MAX_OPTIONS];		/* Options */
 
 	u32b window_flag[ANGBAND_TERM_MAX];	/* Window flags */
 
@@ -1274,7 +1278,7 @@ struct player_type
 
 	monster_lore *l_list; /* Character's monster lore */
 
-	bool options[64];	/* Player's options */
+	bool options[MAX_OPTIONS];	/* Player's options */
 	byte d_attr[MAX_K_IDX];
 	char d_char[MAX_K_IDX];
 	byte f_attr[MAX_F_IDX];
@@ -1291,32 +1295,6 @@ struct player_type
 	byte use_graphics;
 	byte screen_wid;
 	byte screen_hgt;
-
-	bool carry_query_flag;
-	bool use_old_target;
-	bool always_pickup;
-	bool stack_force_notes;
-	bool stack_force_costs;
-	bool find_ignore_stairs;
-	bool find_ignore_doors;
-	bool find_cut;
-	bool find_examine;
-	bool disturb_move;
-	bool disturb_near;
-	bool disturb_panel;
-	bool disturb_state;
-	bool disturb_minor;
-	bool disturb_other;
-	bool stack_allow_items;
-	bool stack_allow_wands;
-	bool view_perma_grids;
-	bool view_torch_grids;
-	bool view_reduce_lite;
-	bool view_reduce_view;
-	bool view_yellow_lite;
-	bool view_bright_lite;
-	bool view_granite_lite;
-	bool view_special_lite;
 
 	s16b max_panel_rows;
 	s16b max_panel_cols;
