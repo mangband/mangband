@@ -818,8 +818,8 @@ static void hit_trap(int Ind)
 	{
 		case FEAT_TRAP_HEAD + 0x00:
 		{
-			/* MEGAHACK: Ignore Wilderness trap doors. */
-			if( p_ptr->dun_depth<0) {
+			/* MEGAHACK: Ignore Wilderness (or Questlevels) trap doors. */
+			if( p_ptr->dun_depth<0 || is_quest_level(Ind, Depth)) {
 				msg_print(Ind, "You feel quite certain something really awfull just happened..");
 				break;
 			}

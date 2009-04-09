@@ -362,7 +362,7 @@ void teleport_player_level(int Ind)
 	}
 	
 	/* sometimes go down */
-	if ((!Depth) || ((rand_int(100) < 50) && (Depth < MAX_DEPTH-1)))
+	if ((!Depth) || ((rand_int(100) < 50) && (Depth < MAX_DEPTH-1) && !is_quest_level(Ind, Depth)))
 	{
 		new_depth = Depth+1;
 		msg = "You sink through the floor.";

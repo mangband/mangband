@@ -135,22 +135,8 @@ void do_cmd_go_down(int Ind)
 		/* Can't go down on a "quest" level */
 		if (is_quest_level(Ind, p_ptr->dun_depth))
 		{
-			/* Hack -- crumble stairs */
-			if (!p_ptr->ghost)
-			{
-				/* Inform */
-				msg_print(Ind, "The stairs crumble below you.");
-				msg_format_near(Ind, "The staircase crumbles below %s.", p_ptr->name);
-				
-				/* Remove the stairs */
-				c_ptr->feat = FEAT_FLOOR;
-	
-				/* Notice */
-				note_spot_depth(Depth, p_ptr->py, p_ptr->px);
-	
-				/* Redraw */
-				everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
-			}
+			/* Inform */
+			msg_print(Ind, "An unvanquished adversary pulls you back, you can descend no further.");
 			return; 
 		}
 		
