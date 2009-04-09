@@ -60,7 +60,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 
 	/*** Simple grid altering commands ***/
 	{ /* Alter */
-		'+', (char)(PKT_COMMAND+1), SCHEME_DIR, 1, (cccb)do_cmd_alter,
+		'+', PKT_ALTER, SCHEME_DIR, 1, (cccb)do_cmd_alter,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Tunnel */

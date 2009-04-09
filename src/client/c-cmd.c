@@ -231,6 +231,7 @@ void process_command()
 #ifndef COMMAND_OVERLOAD
 		/* Dig a tunnel*/
 		case '+':
+		case 'T':		
 		{
 			cmd_tunnel();
 			break;
