@@ -1851,6 +1851,9 @@ option_type option_info[] =
 
 	{ OPT_INFO(ALWAYS_PICKUP),		FALSE,	2,	0, 0,
 	"always_pickup",    		"Pick things up by default" },
+
+	{ OPT_INFO(EASY_ALTER),			TRUE,	2,	0, 0,
+	"easy_alter",    			"Open/Disarm doors/traps on movement" },
 	/* Targeting */
 	{ OPT_INFO(EXPAND_LOOK),			FALSE,	2,	0, 0,
 	"expand_look",  			"Expand the power of the look command" },

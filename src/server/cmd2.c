@@ -2944,18 +2944,19 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 				dir = ddd[rand_int(8)];
 		}
 
-		/* Handle the cfg_door_bump_open option */
-		if (cfg_door_bump_open)
+		/* Handle the "easy_alter" option */
+		if (option_p(p_ptr,EASY_ALTER))
 		{
 			/* Get requested grid */
 			c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]];
 
-			if (((c_ptr->feat >= FEAT_DOOR_HEAD) && 
+			if ((p_ptr->cave_flag[p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]] & (CAVE_MARK)) && 
+				(((c_ptr->feat >= FEAT_TRAP_HEAD) && 
 			      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
 			    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
-			      (c_ptr->feat <= FEAT_HOME_TAIL))) 
+			      (c_ptr->feat <= FEAT_HOME_TAIL)))) 
 			{
-				do_cmd_open(Ind, dir);
+				do_cmd_alter(Ind, dir);
 				return;
 			}
 		}
@@ -3005,22 +3006,23 @@ int do_cmd_run(int Ind, int dir)
 		/* Make sure we have an empty space to run into */
 		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px) && p_ptr->energy >= level_speed(p_ptr->dun_depth))
 		{
-			/* Handle the cfg_door_bump option */
-			if (cfg_door_bump_open)
+			/* Handle the "easy_alter" option */
+			if (option_p(p_ptr,EASY_ALTER))
 			{
 				/* Get requested grid */
 				c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]];
 
-				if (((c_ptr->feat >= FEAT_DOOR_HEAD) && 
+				if ((p_ptr->cave_flag[p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]] & (CAVE_MARK)) && 
+					(((c_ptr->feat >= FEAT_TRAP_HEAD) && 
 				      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
 				    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
-				      (c_ptr->feat <= FEAT_HOME_TAIL))) 
+				      (c_ptr->feat <= FEAT_HOME_TAIL)))) 
 				{
-					/* Check if we have enough energy to open the door */
+					/* Check if we have enough energy to alter grid */
 					if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 					{
-						/* If so, open it. */
-						do_cmd_open(Ind, dir);
+						/* If so, do it. */
+						do_cmd_alter(Ind, dir);
 					}
 					return 2;
 				}

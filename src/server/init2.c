@@ -2456,10 +2456,6 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_ghost_diving = str_to_boolean(value);
 	}
-	else if (!strcmp(option,"DOOR_BUMP_OPEN"))
-	{
-		cfg_door_bump_open = str_to_boolean(value);
-	}
 	else if (!strcmp(option,"LEVEL_UNSTATIC_CHANCE"))
 	{
 		cfg_level_unstatic_chance = atoi(value);
