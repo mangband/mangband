@@ -1178,7 +1178,12 @@ static bool do_cmd_open_test(int Ind, int y, int x)
 
 	/* Must be a closed door */
 	if (!((c_ptr->feat >= FEAT_DOOR_HEAD) &&
-	      (c_ptr->feat <= FEAT_DOOR_TAIL)))
+	      (c_ptr->feat <= FEAT_DOOR_TAIL)) &&
+	      /* OR MAngband-specific: Player house doors */
+	    !((c_ptr->feat >= FEAT_HOME_HEAD) &&
+	      (c_ptr->feat <= FEAT_HOME_TAIL)) &&
+	      /* OR MAngband-specific: House Creation */
+	     !(c_ptr->feat == FEAT_PERM_EXTRA))
 	{
 		/* Message */
 		msg_print_aux(Ind, "You see nothing there to open.", MSG_NOTHING_TO_OPEN);
@@ -2736,6 +2741,20 @@ void do_cmd_alter(int Ind, int dir)
 		py_attack(Ind, y, x);
 	}
 
+	/* MAngband-specific: Open closed House doors */
+	else if (feat >= FEAT_HOME_HEAD && feat <= FEAT_HOME_TAIL)
+	{
+		/* Open */
+		more = do_cmd_open_aux(Ind, y, x);
+	}
+
+	/* MAngband-specific: Open walls (House Creation) */
+	else if (feat == FEAT_PERM_EXTRA)
+	{
+		/* Open */
+		more = do_cmd_open_aux(Ind, y, x);
+	}
+
 	/* Tunnel through walls */
 	else if (feat >= FEAT_SECRET)
 	{
@@ -2746,21 +2765,21 @@ void do_cmd_alter(int Ind, int dir)
 	/* Bash jammed doors */
 	else if (feat >= FEAT_DOOR_HEAD + 0x08)
 	{
-		/* Tunnel */
+		/* Bash */
 		more = do_cmd_bash_aux(Ind, y, x);
 	}
 #endif /* 0 */
 	/* Open closed doors */
 	else if (feat >= FEAT_DOOR_HEAD)
 	{
-		/* Tunnel */
+		/* Open */
 		more = do_cmd_open_aux(Ind, y, x);
 	}
 
 	/* Disarm traps */
 	else if (feat >= FEAT_TRAP_HEAD)
 	{
-		/* Tunnel */
+		/* Disarm */
 		more = do_cmd_disarm_aux(Ind, y, x, dir);
 	}
 #if 0
