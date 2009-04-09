@@ -197,12 +197,21 @@ static cptr do_cmd_feeling_text[11] =
  */
 void do_cmd_feeling(int Ind)
 {
+	player_type *p_ptr = Players[Ind];
+	
 	/* Verify the feeling */
-	if (feeling < 0) feeling = 0;
-	if (feeling > 10) feeling = 10;
+	if (p_ptr->feeling < 0) p_ptr->feeling = 0;
+	if (p_ptr->feeling > 10) p_ptr->feeling = 10;
+
+	/* No useful feeling in town */
+	if (!p_ptr->dun_depth)
+	{
+		msg_print(Ind, "Looks like a typical town.");
+		return;
+	}
 
 	/* Display the feeling */
-	msg_print(Ind, do_cmd_feeling_text[feeling]);
+	msg_print(Ind, do_cmd_feeling_text[p_ptr->feeling]);
 }
 
 

@@ -1523,6 +1523,7 @@ struct player_type
 	s16b pspeed;		/* Current speed */
 	
     s16b r_killed[MAX_R_IDX];	/* Monsters killed */
+    s16b feeling;		/* Most recent feeling */
     
 	huge birth_turn;	/* Server turn on which player was born */
 	huge turn;			/* Actual player turns */

@@ -1953,6 +1953,7 @@ void dungeon(void)
 			generate_cave(i, Depth, option_p(p_ptr,AUTO_SCUM));
 			
 			/* Give a level feeling to this player */
+			p_ptr->feeling = feeling;
 	    /* No feeling outside the dungeon */
             if (Depth > 0) do_cmd_feeling(i);
 		}

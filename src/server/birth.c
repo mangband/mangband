@@ -556,6 +556,9 @@ static void player_wipe(int Ind)
 	/* Assume no cheating */
 	p_ptr->noscore = 0;
 	
+	/* Feelings don't carry-on between saves (sorry) */
+	p_ptr->feeling = 0;
+
 	/* clear the wilderness map */
 	for (i = 0; i < MAX_WILD/8; i++) p_ptr->wild_map[i] = 0;
 

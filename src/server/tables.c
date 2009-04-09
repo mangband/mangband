@@ -57,6 +57,10 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		'S', PKT_SEARCH_MODE, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
 		(0),		0, ""
 	},
+	{ /* Repeat Feeling */
+		KTRL('F'), (char)(PKT_COMMAND+1), SCHEME_EMPTY, 1, (cccb)do_cmd_feeling,
+		(0),		0, ""
+	},
 
 	/*** Simple grid altering commands ***/
 	{ /* Alter */
