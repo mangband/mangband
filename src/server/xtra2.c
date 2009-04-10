@@ -4638,7 +4638,7 @@ bool get_aim_dir(int Ind, int *dp)
 }
 
 
-bool get_item(int Ind, int *cp)
+bool get_item(int Ind, int *cp, byte tval_hook)
 {
 	int		item = 0;
 	player_type *p_ptr = Players[Ind];
@@ -4652,7 +4652,7 @@ bool get_item(int Ind, int *cp)
 	if (item == -2)  
 	{
 		/* Ask player */
-		Send_item_request(Ind);
+		Send_item_request(Ind, tval_hook);
 		
 		/* Cancel selection (for now) */
 		return (FALSE);

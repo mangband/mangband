@@ -264,6 +264,12 @@
 
 
 /*
+ * Hack -- Maximum number of item testers and TVals in them (server/defines.h)
+ */
+#define MAX_ITEM_TESTERS	16
+#define MAX_ITH_TVAL    	16
+
+/*
  * Hack -- Maximum number of quests
  */
 #define MAX_Q_IDX	4

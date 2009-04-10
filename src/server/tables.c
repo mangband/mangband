@@ -109,7 +109,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	{ /* Wear/Wield Item */
 		'w', PKT_WIELD, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		0, "Wear/Wield which item? "
+		item_test(WEAR), "Wear/Wield which item? "
 	},
 	{ /* Takeoff */
 		't', PKT_TAKE_OFF, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
@@ -162,13 +162,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	{ /* Activate */
 		'A', PKT_ACTIVATE, SCHEME_ITEM, 1, (cccb)do_cmd_activate,
 		(COMMAND_ITEM_EQUIP),
-		0, "Activate what? "
+		item_test(ACTIVATE), "Activate what? "
 	},
 	/* Common items */
 	{ /* Refill */
 		'F', PKT_FILL, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		0, "Refill with which light? "
+		item_test(REFILL), "Refill with which light? "
 	},
 	{ /* Drink */
 		'q', PKT_QUAFF, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
@@ -185,7 +185,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	{ /* Fire an object */
 		'f', PKT_FIRE, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
-		0, "Fire which ammo? "
+		item_test(AMMO), "Fire which ammo? "
 	},
 	{ /* Throw an object */
 		'v', PKT_THROW, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
@@ -244,6 +244,50 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 
 	/* End-of-array */
 	{ 0,0,0,0,0,0,0 }
+};
+
+/* Item testers */
+byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL] = 
+{
+	/* item_tester_hook_wear (ITH_WEAR) */
+	{ 0 },
+	/* item_tester_hook_weapon (ITH_WEAPON) */
+	{ TV_SWORD, TV_HAFTED, TV_POLEARM, TV_DIGGING, TV_BOW, TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+	/* item_tester_hook_armour (ITH_ARMOR) */
+	{ TV_DRAG_ARMOR, TV_HARD_ARMOR, TV_SOFT_ARMOR, TV_SHIELD, TV_CLOAK, TV_CROWN, TV_HELM, TV_BOOTS, TV_GLOVES, 0 },
+	/* item_tester_hook_ammo (ITH_AMMO) */
+	{ TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+	/* item_tester_hook_recharge (ITH_RECHARGE) */
+	{ TV_STAFF, TV_WAND, 0 },
+	/* item_tester_hook_activate (ITH_ACTIVATE) */
+	{ 0 },
+	/* item_tester_refill_lantern (ITH_REFILL) */
+	{ 0 }, /*{ TV_FLASK, TV_LITE, 0 },*/
+	/* item_tester_refill_torch (ITH_REFILL) */
+	{ 0 }, /*{ TV_LITE, 0 } */
+
+	{ 0 }, /* End of array */
+};
+byte item_tester_flags[MAX_ITEM_TESTERS] = 
+{
+	/* item_tester_hook_wear (ITH_WEAR) */
+	(ITF_WEAR),
+	/* item_tester_hook_weapon (ITH_WEAPON) */
+	0,
+	/* item_tester_hook_armour (ITH_ARMOR) */
+	0,
+	/* item_tester_hook_ammo (ITH_AMMO) */
+	0,
+	/* item_tester_hook_recharge (ITH_RECHARGE) */
+	0,
+	/* item_tester_hook_activate (ITH_ACTIVATE) */
+	(ITF_ACT),
+	/* item_tester_refill_lantern (ITH_REFILL_LANTERN) */
+	(ITF_FUEL),
+	/* item_tester_refill_torch (ITH_REFILL_TORCH) */
+	(ITF_FUEL),
+
+	0, /* End of array */
 };
 
 

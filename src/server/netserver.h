@@ -136,6 +136,7 @@ static int Receive_custom_command(int ind);
 
 static void Handle_item(int Ind, int item);
 int Setup_net_server(void);
+void Send_item_testers(int ind);
 void Send_custom_commands(int ind);
 int Send_game_start_conn(int ind);
 int Send_motd_conn(int ind, int offset);

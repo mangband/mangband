@@ -1370,6 +1370,9 @@ static int Enter_player(int ind)
 	//Conn_set_state(connp, CONN_READY, CONN_PLAYING);
 	Conn_set_state(connp, CONN_PLAYING, CONN_PLAYING);
 
+	/* Send item testers */
+	Send_item_testers(NumPlayers);
+
 	/* Send custom commands */
 	Send_custom_commands(NumPlayers);
 
@@ -2515,7 +2518,7 @@ int Send_history(int ind, int line, cptr hist)
 	return Packet_printf(&connp->c, "%c%hu%s", PKT_HISTORY, line, hist);
 }
 
-int Send_floor(int ind, byte attr, int amt, byte tval, cptr name)
+int Send_floor(int ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2527,10 +2530,10 @@ int Send_floor(int ind, byte attr, int amt, byte tval, cptr name)
 		return 0;
 	}
 
-	return Packet_printf(&connp->c, "%c%c%hd%c%s", PKT_FLOOR, attr, amt, tval, name);
+	return Packet_printf(&connp->c, "%c%c%hd%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name);
 }
 
-int Send_inven(int ind, char pos, byte attr, int wgt, int amt, byte tval, cptr name)
+int Send_inven(int ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2541,10 +2544,10 @@ int Send_inven(int ind, char pos, byte attr, int wgt, int amt, byte tval, cptr n
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c%c%c%hu%hd%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, name);
+	return Packet_printf(&connp->c, "%c%c%c%hu%hd%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name);
 }
 
-int Send_equip(int ind, char pos, byte attr, int wgt, byte tval, cptr name)
+int Send_equip(int ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2555,7 +2558,7 @@ int Send_equip(int ind, char pos, byte attr, int wgt, byte tval, cptr name)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c%c%c%hu%c%s", PKT_EQUIP, pos, attr, wgt, tval, name);
+	return Packet_printf(&connp->c, "%c%c%c%hu%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name);
 }
 
 int Send_title(int ind, cptr title)
@@ -2789,7 +2792,7 @@ int Send_spell_info(int ind, int book, int i, byte flag, cptr out_val)
 }
 
 
-int Send_item_request(int ind)
+int Send_item_request(int ind, byte tval_hook)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2800,7 +2803,7 @@ int Send_item_request(int ind)
 			ind, connp->state, connp->id));
 		return 0;
 	}
-	return Packet_printf(&connp->c, "%c", PKT_ITEM);
+	return Packet_printf(&connp->c, "%c%c", PKT_ITEM, tval_hook);
 }
 
 int Send_flush(int ind)
@@ -3067,6 +3070,24 @@ void Send_custom_commands(int ind)
 		
 		/* Send command */
 		Send_custom_command(ind, i);
+	} 
+}
+
+void Send_item_testers(int ind)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+	int i, j;
+	for (i = 0; i < MAX_ITEM_TESTERS; i++)
+	{
+		/* Hack -- end of array */
+		if (item_tester_tvals[i][0] == 0 && item_tester_flags[i] == 0) break;
+		
+		/* Send tester */
+		Packet_printf(&connp->c, "%c%c%c", PKT_ITEM_TESTER, (byte)i, item_tester_flags[i]);
+		for (j = 0; j < MAX_ITH_TVAL; j++)
+		{
+			Packet_printf(&connp->c, "%c", item_tester_tvals[i][j]);
+		}
 	} 
 }
 

@@ -2506,7 +2506,7 @@ bool create_artifact(int Ind)
 {
   int item;
 
-  if (!get_item(Ind, &item)) return FALSE;
+  if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
   
   create_artifact_aux(Ind, item);  
   
@@ -2604,7 +2604,7 @@ bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 {
 	int item;
 
-	if (!get_item(Ind, &item)) return (FALSE);
+	if (!get_item(Ind, &item, (num_ac ? item_test(ARMOR) : item_test(WEAPON)))) return (FALSE);
 
 	enchant_spell_aux(Ind, item, num_hit, num_dam, num_ac);
 
@@ -2691,7 +2691,7 @@ bool ident_spell(int Ind)
 {
 	int item;
 	
-	if (!get_item(Ind, &item)) return FALSE;
+	if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
 	
 	ident_spell_aux(Ind, item);	
 	
@@ -2773,7 +2773,7 @@ bool identify_fully(int Ind)
 {
 	int item;
 
-	if (!get_item(Ind, &item)) return FALSE;
+	if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
 
 	identify_fully_item(Ind, item);	
 
@@ -2884,7 +2884,7 @@ bool recharge(int Ind, int num)
 {
 	int item;
 
-	if (!get_item(Ind, &item)) return FALSE;
+	if (!get_item(Ind, &item, item_test(RECHARGE))) return FALSE;
 	
 	recharge_aux(Ind, item, num);	
 	

@@ -148,6 +148,7 @@
 #define PKT_OBJFLAGS		163
 #define PKT_CHANNEL		165
 #define PKT_TERM  		167
+#define PKT_ITEM_TESTER	169
 
 /* Packet types 191-254 are for custom commands, DO NOT USE THAT SPACE */
 #define PKT_COMMAND		191

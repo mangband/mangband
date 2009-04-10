@@ -54,3 +54,30 @@
 #define OPT_VIEW_ORANGE_LITE	33
 #define OPT_EASY_ALTER			34
 #define option_p(A,B) (A->options[OPT_ ## B])
+
+
+/*
+ * item_tester_hook defines 
+ */
+#define ITH_WEAR        	1
+#define ITH_WEAPON      	2
+#define ITH_ARMOR       	3
+#define ITH_AMMO        	4
+#define ITH_RECHARGE       	5
+#define ITH_ACTIVATE    	6
+#define ITH_REFILL			7
+#define item_test(A) (TV_MAX + (ITH_ ## A))
+#define ITEM_ANY        	0
+
+/*
+ * item_tester_flag defines 
+ */
+#define ITF_WEAR	0x01 /* Can wear/wield item */
+#define ITF_ACT 	0x02 /* Can activate item */
+#define ITF_FUEL 	0x04 /* Can be used as fuel */
+#define ITF_FLAG_0 	0x08 
+
+#define ITF_FLAG_1 	0x10 /* Variant-specific */
+#define ITF_FLAG_2 	0x20 /* Variant-specific */
+#define ITF_FLAG_3 	0x40
+#define ITF_FLAG_4 	0x80

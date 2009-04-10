@@ -80,6 +80,7 @@ int Receive_floor(void);
 int Receive_pickup_check(void);
 int Receive_party(void);
 int Receive_channel(void);
+int Receive_item_tester(void);
 int Receive_custom_command(void);
 int Receive_skills(void);
 int Receive_pause(void);

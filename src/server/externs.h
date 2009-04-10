@@ -26,6 +26,8 @@ extern int Init_setup();
 
 /* tables.c */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
+extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
+extern byte item_tester_flags[MAX_ITEM_TESTERS]; 
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -665,9 +667,9 @@ extern int Send_stat(int Ind, int stat, int max, int cur);
 extern int Send_maxstat(int Ind, int stat, int max);
 extern int Send_objflags(int Ind, int line);
 extern int Send_history(int Ind, int line, cptr hist);
-extern int Send_floor(int ind, byte attr, int amt, byte tval, cptr name);
-extern int Send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, cptr name);
-extern int Send_equip(int Ind, char pos, byte attr, int wgt, byte tval, cptr name);
+extern int Send_floor(int ind, byte attr, int amt, byte tval, byte flag, cptr name);
+extern int Send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name);
+extern int Send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name);
 extern int Send_title(int Ind, cptr title);
 /*extern int Send_level(int Ind, int max, int cur);*/
 /*extern void Send_exp(int Ind, s32b max, s32b cur);*/
@@ -687,7 +689,7 @@ extern int Send_direction(int Ind);
 extern int Send_message(int Ind, cptr msg, u16b typ);
 extern int Send_char(int Ind, int x, int y, byte a, char c, byte ta, char tc);
 extern int Send_spell_info(int Ind, int book, int i, byte flag, cptr out_val);
-extern int Send_item_request(int Ind);
+extern int Send_item_request(int Ind, byte tval_hook);
 extern int Send_state(int Ind, bool paralyzed, bool searching, bool resting);
 extern int Send_flush(int Ind);
 extern int Send_term_info(int Ind, int mode, u16b arg);
@@ -754,6 +756,7 @@ extern void wipe_o_list(int Depth);
 extern s16b o_pop(void);
 extern errr get_obj_num_prep(void);
 extern s16b get_obj_num(int level);
+extern byte object_tester_flag(int Ind, object_type *o_ptr);
 extern void object_known(object_type *o_ptr);
 extern void object_aware(int Ind, object_type *o_ptr);
 extern void object_tried(int Ind, object_type *o_ptr);
@@ -1054,7 +1057,7 @@ extern bool target_okay(int Ind);
 extern s16b target_pick(int Ind, int y1, int x1, int dy, int dx);
 extern bool target_set_interactive(int Ind, int mode, char query);
 extern bool get_aim_dir(int Ind, int *dp);
-extern bool get_item(int Ind, int *cp);
+extern bool get_item(int Ind, int *cp, byte tval_hook);
 extern bool confuse_dir(bool confused, int *dp);
 extern int motion_dir(int y1, int x1, int y2, int x2);
 extern bool do_scroll_life(int Ind);

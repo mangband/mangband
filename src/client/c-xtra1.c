@@ -784,10 +784,11 @@ void display_floor_item(void)
 	byte i = INVEN_TOTAL - INVEN_WIELD;
 	/* Floor item! */
 	Term_erase(0, i, 255);
-	if (floor_tval) 
+	if (floor_item.tval) 
 	{
-		Term_putstr(0, i, 4, TERM_WHITE, "-)");
-		Term_putstr(3, i, strlen(floor_name), floor_attr, floor_name);
+		if (item_tester_okay(&floor_item))
+			Term_putstr(0, i, 4, TERM_WHITE, "-)");
+		Term_putstr(3, i, strlen(floor_name), floor_item.sval, floor_name);
 	}
 }
 

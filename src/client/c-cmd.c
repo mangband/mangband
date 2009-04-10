@@ -79,10 +79,10 @@ void cmd_custom(byte i)
 			value = c_get_quantity(prompt, inventory[item].number);
 		}
 		/* Get an amount - from floor */
-		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item < 0 && floor_amt > 1)
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item < 0 && floor_item.number > 1)
 		{
 			if (STRZERO(prompt)) prompt = "How many? ";
-			value = c_get_quantity(prompt, floor_amt);
+			value = c_get_quantity(prompt, floor_item.number);
 		}
 	}
 	/* Spell? */
@@ -985,14 +985,14 @@ void cmd_destroy(void)
 	else 
 	{
 		/* Get an amount */
-		if (floor_amt > 1)
+		if (floor_item.number > 1)
 		{
-			amt = c_get_quantity("How many? ", floor_amt);
+			amt = c_get_quantity("How many? ", floor_item.number);
 		}
 		else amt = 1;
 
 		/* Sanity check */
-		if (floor_amt == amt)
+		if (floor_item.number == amt)
 			sprintf(out_val, "Really destroy %s? ", floor_name);
 		else 
 			sprintf(out_val, "Really destroy %d of %s? ", amt, floor_name);

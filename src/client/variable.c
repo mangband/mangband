@@ -13,6 +13,9 @@ int server_port;
 object_type inventory[INVEN_TOTAL];	/* The client-side copy of the inventory */
 char inventory_name[INVEN_TOTAL][80];	/* The client-side copy of the inventory names */
 
+object_type floor_item;
+char floor_name[80]; 	/* Client-side copy of floor item */
+
 store_type store;			/* The general info about the current store */
 owner_type store_owner;			/* The current owner of the store */
 char player_owner[MAX_NAME_LEN]; /* The store owner for player owned stores */
@@ -20,11 +23,6 @@ char player_store_name[MAX_CHARS];			/* Shop name for player owned stores */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
 char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
-
-char floor_name[80]; 	/* Client-side copy of floor item */
-byte floor_tval;		
-int  floor_amt;		
-byte floor_attr;
 
 char spell_info[26][SPELLS_PER_BOOK+1][80];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
@@ -67,6 +65,8 @@ s16b command_wrk;
 bool item_tester_full;
 byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);
+byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
+byte item_tester_flags[MAX_ITEM_TESTERS];
 
 int special_line_type;
 char special_line_header[80];

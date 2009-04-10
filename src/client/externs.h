@@ -44,10 +44,8 @@ extern int server_port;
 extern object_type inventory[INVEN_TOTAL];
 extern char inventory_name[INVEN_TOTAL][80];
 
+extern object_type floor_item;
 extern char floor_name[80];
-extern byte floor_tval;		
-extern int  floor_amt;		
-extern byte floor_attr;
 
 extern store_type store;
 extern owner_type store_owner;
@@ -92,6 +90,8 @@ extern s16b command_wrk;
 extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
+extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
+extern byte item_tester_flags[MAX_ITEM_TESTERS];
 
 extern int special_line_type;
 extern char special_line_header[80];

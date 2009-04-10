@@ -10,6 +10,23 @@ s16b index_to_label(int i)
 }
 
 
+bool item_tester_hack(object_type *o_ptr, int i)
+{
+	int j;
+
+	/* STOP on flag mismatch */
+	if (item_tester_flags[i] && !(o_ptr->ident & item_tester_flags[i])) return (FALSE);
+	
+	/* OK on tval match */
+	for (j = 0; j < MAX_ITH_TVAL; j++)
+	{
+		if (item_tester_tvals[i][j] == 0) break;
+		if (item_tester_tvals[i][j] == o_ptr->tval) return (TRUE);
+	}
+
+	return ( (!j) ? (TRUE) : (FALSE) );
+}
+
 bool item_tester_okay(object_type *o_ptr)
 {
 	/* Hack -- allow testing empty slots */
@@ -24,7 +41,13 @@ bool item_tester_okay(object_type *o_ptr)
 	/* Check the tval */
 	if (item_tester_tval)
 	{
-		if (!(item_tester_tval == o_ptr->tval)) return (FALSE);
+		/* Check the fake hook */
+		if (item_tester_tval > TV_MAX)
+		{
+			return (item_tester_hack(o_ptr, item_tester_tval - TV_MAX - 1)); 
+		}
+		/* Or direct (mis)match */
+		else if (!(item_tester_tval == o_ptr->tval)) return (FALSE);
 	}
 
 	/* Check the hook */
@@ -216,7 +239,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
-	bool	equip_up, inven_up;
+	bool	equip_up, inven_up, window_up;
 	
 	bool allow_floor = FALSE;
 
@@ -233,7 +256,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	item = FALSE;
 
 	/* No window updates needed */
-	equip_up = inven_up = FALSE;
+	window_up = equip_up = inven_up = FALSE;
 
 	/* Default to "no item" */
 	*cp = -1;
@@ -266,10 +289,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Update window (later, twice) */
 	if ((e1 != INVEN_WIELD) || (e2 != INVEN_TOTAL - 1)) equip_up = TRUE;
 
-	/* Check floor thing */
-	if (floor_tval && floor) {
-		if( (!item_tester_tval) || (item_tester_tval && floor_tval == item_tester_tval)) allow_floor = TRUE;
-	}
+	/* Hack -- restrict floor choice */
+	if (floor_item.tval && floor) allow_floor = item_tester_okay(&floor_item);
 	
 	if ((i1 > i2) && (e1 > e2) && !allow_floor)
 	{
@@ -316,9 +337,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	}
 
 	/* Update windows with possible choices */
-	if (inven_up) p_ptr->window |= PW_INVEN;
-	if (equip_up) p_ptr->window |= PW_EQUIP;
-	window_stuff();
+	if (!done)
+	{
+		if (inven_up) p_ptr->window |= PW_INVEN;
+		if (equip_up) p_ptr->window |= PW_EQUIP;
+		window_stuff();
+		window_up = TRUE;
+	}
 	
 	/* Repeat while done */
 	while (!done)
@@ -629,10 +654,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Forget the item_tester_hook restriction */
 	item_tester_hook = 0;
 
-	/* Fix windows */	
-	if (inven_up) p_ptr->window |= PW_INVEN;
-	if (equip_up) p_ptr->window |= PW_EQUIP;
-	window_stuff();
+	/* Fix windows */
+	if (window_up)
+	{
+		if (inven_up) p_ptr->window |= PW_INVEN;
+		if (equip_up) p_ptr->window |= PW_EQUIP;
+		window_stuff();
+	}
 
 	/* Clear the prompt line */
 	prt("", 0, 0);

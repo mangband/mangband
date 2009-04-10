@@ -748,7 +748,55 @@ s16b get_obj_num(int level)
 
 
 
+byte object_tester_flag(int Ind, object_type *o_ptr)
+{
+	byte flag = 0;
+	u32b f1, f2, f3;
+	object_type *lamp_o_ptr;
+	
+	/* item_tester_hook_wear: */
+	if (wield_slot(Ind, o_ptr) >= INVEN_WIELD)
+	{ 
+		flag |= ITF_WEAR;
+	}
+	
+	/* item_tester_hook_activate: */
+	if (object_known_p(Ind, o_ptr)) 
+	{
+		object_flags(o_ptr, &f1, &f2, &f3);
+		if (f3 & TR3_ACTIVATE) flag |= ITF_ACT;
+	}
+	
+	/* refill light ? */
+	lamp_o_ptr = &(Players[Ind]->inventory[INVEN_LITE]);
+	if (lamp_o_ptr->tval == TV_LITE)
+	{
+		/* It's a lamp */
+		if (lamp_o_ptr->sval == SV_LITE_LANTERN)
+		{
+			/* item_tester_refill_lantern: */
+			if (!o_ptr->name3 &&
+				(o_ptr->tval == TV_FLASK ||
+				(o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_LANTERN)))
+			{
+				flag |= ITF_FUEL;
+			}
+		}
+		/* It's a torch */
+		if (lamp_o_ptr->sval == SV_LITE_TORCH)
+		{
+			/* item_tester_refill_torch: */
+			if (o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_TORCH)
+			{	
+				flag |= ITF_FUEL;
+			}
+		}		
+	}
 
+	
+	/* Return Flag */
+	return flag;
+}
 
 
 
@@ -4036,11 +4084,11 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 		o_ptr = &o_list[o_idx];
 		/* Describe the object */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-		Send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, o_name);
+		Send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
 	}
 	else
 	{
-		Send_floor(Ind, 0, 0, 0, "");
+		Send_floor(Ind, 0, 0, 0, 0, "");
 	}
 }
 

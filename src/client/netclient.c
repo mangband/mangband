@@ -132,6 +132,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_PARTY]		= Receive_party;
 	receive_tbl[PKT_CHANNEL]	= Receive_channel;
 	receive_tbl[PKT_COMMAND]	= Receive_custom_command;
+	receive_tbl[PKT_ITEM_TESTER]= Receive_item_tester;
 	receive_tbl[PKT_SKILLS]		= Receive_skills;
 	receive_tbl[PKT_PAUSE]		= Receive_pause;
 	receive_tbl[PKT_CURSOR]		= Receive_cursor;
@@ -1042,18 +1043,21 @@ int Receive_floor(void)
 	int	n;
 	char	ch;
 	byte tval, attr;
+	byte flag;
 	s16b amt;
 	char name[80];
 
-	if ((n = Packet_scanf(&rbuf, "%c%c%hd%c%s", &ch, &attr, &amt, &tval, name)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%hd%c%c%s", &ch, &attr, &amt, &tval, &flag, name)) <= 0)
 	{
 		return n;
 	}
 
 	/* Remember for later */
-	floor_amt = amt;
-	floor_tval = tval;
-	floor_attr = attr;
+	floor_item.sval = attr; /* Hack -- Store "attr" in "sval" */
+	floor_item.tval = tval;
+	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
+	floor_item.number = amt;
+
 	
 	strncpy(floor_name, name, 79);
 	fix_floor();
@@ -1065,10 +1069,11 @@ int Receive_inven(void)
 	int	n;
 	char	ch;
 	char pos, attr, tval;
+	byte flag;
 	s16b wgt, amt;
 	char name[80];
 
-	if ((n = Packet_scanf(&rbuf, "%c%c%c%hu%hd%c%s", &ch, &pos, &attr, &wgt, &amt, &tval, name)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%hu%hd%c%c%s", &ch, &pos, &attr, &wgt, &amt, &tval, &flag, name)) <= 0)
 	{
 		return n;
 	}
@@ -1076,6 +1081,7 @@ int Receive_inven(void)
 	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
 	inventory[pos - 'a'].sval = attr;
 	inventory[pos - 'a'].tval = tval;
+	inventory[pos - 'a'].ident = flag;
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
 
@@ -1092,16 +1098,18 @@ int Receive_equip(void)
 	int	n;
 	char 	ch;
 	char pos, attr, tval;
+	byte flag;
 	s16b wgt;
 	char name[80];
 
-	if ((n = Packet_scanf(&rbuf, "%c%c%c%hu%c%s", &ch, &pos, &attr, &wgt, &tval, name)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%hu%c%c%s", &ch, &pos, &attr, &wgt, &tval, &flag, name)) <= 0)
 	{
 		return n;
 	}
 
 	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
 	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
 	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
 
@@ -1993,9 +2001,10 @@ int Receive_stun(void)
 int Receive_item(void)
 {
 	char	ch;
+	byte	tval_hook;
 	int	n, item;
 
-	if ((n = Packet_scanf(&rbuf, "%c", &ch)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c", &ch, &tval_hook)) <= 0)
 	{
 		return n;
 	}
@@ -2003,7 +2012,7 @@ int Receive_item(void)
 	if (!screen_icky && !topline_icky)
 	{
 		c_msg_print(NULL);
-		item_tester_tval = 0;
+		item_tester_tval = tval_hook;
 
 		if (!c_get_item(&item, "Which item? ", TRUE, TRUE, TRUE))
 		{
@@ -2483,6 +2492,42 @@ int Receive_sound(void)
 	/* Make a sound (if allowed) */
 	if (use_sound) Term_xtra(TERM_XTRA_SOUND, sound);
 
+	return 1;
+}
+
+int Receive_item_tester(void)
+{
+	int n, j;
+	char ch;
+	byte flag, tval, i;
+	
+	flag = tval = i = 0;
+
+	/* Read header */
+	if ((n = Packet_scanf(&rbuf, "%c%c%c", &ch, &i, &flag)) <= 0)
+	{
+		return n;
+	}
+	/* Error */
+	if (i > MAX_ITEM_TESTERS) return 0;
+	
+	/* Save flag */
+	item_tester_flags[i] = flag;
+	 
+	/* Read tvals */
+	for (j = 0; j < MAX_ITH_TVAL; j++)
+	{
+		if ((n = Packet_scanf(&rbuf, "%c", &tval)) <= 0)
+		{
+			return n;
+		}
+		/* Error */
+		if (tval > TV_MAX) return 0;
+
+		/* Save tval */
+		item_tester_tvals[i][j] = tval;
+	}
+	
 	return 1;
 }
 

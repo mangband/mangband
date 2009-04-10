@@ -1501,7 +1501,7 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_ELEMENTAL_BRAND: /* elemental brand */
 		{
-			if (!get_item(Ind, &dir)) return (FALSE);
+			if (!get_item(Ind, &dir, item_test(AMMO))) return (FALSE);
 			(void)brand_ammo(Ind, dir);
 			break;
 		}
