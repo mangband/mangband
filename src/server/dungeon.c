@@ -852,30 +852,16 @@ static void player_track_monster(int Ind)
 	int i;
 	bool changed = FALSE;
 
-	static int old_monster_race_idx = 0;
-
-	static u32b	old_flags1 = 0L;
-	static u32b	old_flags2 = 0L;
-	static u32b	old_flags3 = 0L;
-	static u32b	old_flags4 = 0L;
-	static u32b	old_flags5 = 0L;
-	static u32b	old_flags6 = 0L;
-
-	static byte old_blows[MONSTER_BLOW_MAX];
-
-	static byte	old_cast_innate = 0;
-	static byte	old_cast_spell = 0;
-
-
 	/* Tracking a monster */
 	if (p_ptr->monster_race_idx)
 	{
-		/* Get the monster lore */
+		/* Get the monster lore pointers */
 		monster_lore *l_ptr = p_ptr->l_list + p_ptr->monster_race_idx;
+		monster_lore *old_l = &p_ptr->old_l;
 
 		for (i = 0; i < MONSTER_BLOW_MAX; i++)
 		{
-			if (old_blows[i] != l_ptr->blows[i])
+			if (old_l->blows[i] != l_ptr->blows[i])
 			{
 				changed = TRUE;
 				break;
@@ -884,34 +870,34 @@ static void player_track_monster(int Ind)
 		
 		/* Check for change of any kind */
 		if (changed ||
-		    (old_monster_race_idx != p_ptr->monster_race_idx) ||
-		    (old_flags1 != l_ptr->flags1) ||
-		    (old_flags2 != l_ptr->flags2) ||
-		    (old_flags3 != l_ptr->flags3) ||
-		    (old_flags4 != l_ptr->flags4) ||
-		    (old_flags5 != l_ptr->flags5) ||
-		    (old_flags6 != l_ptr->flags6) ||
-		    (old_cast_innate != l_ptr->cast_innate) ||
-		    (old_cast_spell != l_ptr->cast_spell))
+		    (p_ptr->old_monster_race_idx != p_ptr->monster_race_idx) ||
+		    (old_l->flags1 != l_ptr->flags1) ||
+		    (old_l->flags2 != l_ptr->flags2) ||
+		    (old_l->flags3 != l_ptr->flags3) ||
+		    (old_l->flags4 != l_ptr->flags4) ||
+		    (old_l->flags5 != l_ptr->flags5) ||
+		    (old_l->flags6 != l_ptr->flags6) ||
+		    (old_l->cast_innate != l_ptr->cast_innate) ||
+		    (old_l->cast_spell != l_ptr->cast_spell))
 		{
 			/* Memorize old race */
-			old_monster_race_idx = p_ptr->monster_race_idx;
+			p_ptr->old_monster_race_idx = p_ptr->monster_race_idx;
 
 			/* Memorize flags */
-			old_flags1 = l_ptr->flags1;
-			old_flags2 = l_ptr->flags2;
-			old_flags3 = l_ptr->flags3;
-			old_flags4 = l_ptr->flags4;
-			old_flags5 = l_ptr->flags5;
-			old_flags6 = l_ptr->flags6;
+			old_l->flags1 = l_ptr->flags1;
+			old_l->flags2 = l_ptr->flags2;
+			old_l->flags3 = l_ptr->flags3;
+			old_l->flags4 = l_ptr->flags4;
+			old_l->flags5 = l_ptr->flags5;
+			old_l->flags6 = l_ptr->flags6;
 
 			/* Memorize blows */
 			for (i = 0; i < MONSTER_BLOW_MAX; i++)
-				old_blows[i] = l_ptr->blows[i];
+				old_l->blows[i] = l_ptr->blows[i];
 
 			/* Memorize castings */
-			old_cast_innate = l_ptr->cast_innate;
-			old_cast_spell = l_ptr->cast_spell;
+			old_l->cast_innate = l_ptr->cast_innate;
+			old_l->cast_spell = l_ptr->cast_spell;
 
 			/* Window stuff */
 			p_ptr->window |= (PW_MONSTER);

@@ -482,6 +482,7 @@ static void player_wipe(int Ind)
 	player_type *p_ptr = Players[Ind];
 	object_type *old_inven;
 	monster_lore *old_lore;
+	monster_lore *l_ptr;
 	int i;
 
 
@@ -518,12 +519,18 @@ static void player_wipe(int Ind)
 	/* Reset the "monsters" */
 	for (i = 1; i < z_info->r_max; i++)
 	{
-		monster_lore *l_ptr = p_ptr->l_list + i;
+		l_ptr = p_ptr->l_list + i;
 
 		/* Clear player kills */
 		l_ptr->pkills = 0;
 		p_ptr->r_killed[i] = 0;
 	}
+	/* Clean "old_lore" */
+	l_ptr = &p_ptr->old_l;
+	for (i = 0; i < MONSTER_BLOW_MAX; i++) l_ptr->blows[i] = 0;	
+	l_ptr->flags1 = l_ptr->flags2 = l_ptr->flags3 = l_ptr->flags4 = l_ptr->flags5 = l_ptr->flags6 = 0L;   
+	l_ptr->cast_innate = l_ptr->cast_spell = 0; 
+	p_ptr->old_monster_race_idx = 0;
 	
 	/* Start with no quests */
 	for (i = 1; i < MAX_Q_IDX; i++)

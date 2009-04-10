@@ -1243,6 +1243,7 @@ struct player_type
 	s16b health_who;	/* Who's shown on the health bar */
 	s16b cursor_who;	/* Who's tracked by cursor */
 	s16b monster_race_idx; /* Monster race trackee */
+	s16b old_monster_race_idx; /* Old Monster race trackee ? */
 
 	s16b view_n;		/* Array of grids viewable to player */
 	byte view_y[VIEW_MAX];
@@ -1277,6 +1278,7 @@ struct player_type
 	bool obj_tried[MAX_K_IDX]; /* Has the player tried this obj type? */
 
 	monster_lore *l_list; /* Character's monster lore */
+	monster_lore old_l; /* Old monster lore (for delta checks) */
 
 	bool options[MAX_OPTIONS];	/* Player's options */
 	byte d_attr[MAX_K_IDX];
