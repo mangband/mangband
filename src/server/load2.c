@@ -625,6 +625,16 @@ static void rd_item(object_type *o_ptr)
 
 		/* Hack -- extract the "broken" flag */
 		if (!e_ptr->cost) o_ptr->ident |= ID_BROKEN;
+
+		/* Mega-Hack - Enforce the special broken items */
+		if ((o_ptr->name2 == EGO_BLASTED) ||
+			(o_ptr->name2 == EGO_SHATTERED))
+		{
+			/* These were set to k_info values by preceding code */
+			o_ptr->ac = 0;
+			o_ptr->dd = 0;
+			o_ptr->ds = 0;
+		}
 	}
 }
 
