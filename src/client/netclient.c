@@ -1249,11 +1249,13 @@ int Receive_struct_info(void)
 			/* Fill */
 			for (i = 0; i < max; i++)
 			{
-				option_type *opt_ptr = NULL;
-				opt_ptr = &option_info[i];
-
-				byte opt_page = 0;
+				option_type *opt_ptr;
+				byte opt_page;
 				char desc[MAX_CHARS];
+
+				opt_ptr = &option_info[i];
+				opt_page = 0;
+				
 				
 				if ((n = Packet_scanf(&rbuf, "%c%s%s", &opt_page, name, desc)) <= 0)
 				{

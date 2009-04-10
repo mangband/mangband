@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="mangclient"
 	ProjectGUID="{CD8D8F3C-FF08-4E71-9B37-38A973AD79CE}"
 	RootNamespace="Mangclient"
@@ -321,11 +321,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\common\angband.h"
+				RelativePath="..\..\src\client\angband.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\angband.h"
+				RelativePath="..\..\src\common\angband.h"
 				>
 			</File>
 			<File
@@ -342,6 +342,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\defines.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
