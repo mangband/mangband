@@ -4277,7 +4277,7 @@ void combine_pack(int Ind)
 				invwipe(&p_ptr->inventory[k]);
 
 				/* Window stuff */
-				p_ptr->window |= (PW_INVEN | PW_EQUIP);
+				p_ptr->window |= (PW_INVEN | PW_EQUIP |  PW_SPELL);
 
 				/* Done */
 				break;
