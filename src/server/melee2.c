@@ -2645,8 +2645,8 @@ static void process_monster(int Ind, int m_idx)
 
 	/* attempt to "mutiply" if able and allowed */
 
-	/* Hack -- No reproduction close to town center */
-	if (Depth <= 0 ? (wild_info[Depth].radius > 2) : 1)
+	/* Hack -- No reproduction in the wilderness */
+	if (Depth > 0)
 		if ((r_ptr->flags2 & RF2_MULTIPLY) && (num_repro < MAX_REPRO))
 		{
 			int k, y, x;
