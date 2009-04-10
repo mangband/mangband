@@ -349,121 +349,17 @@ void process_command()
 			cmd_equip();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		case 'd':
-		{
-			cmd_drop();
-			break;
-		}
-#endif
+
 		case '$':
 		{
 			cmd_drop_gold();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		case 'w':
-		{
-			cmd_wield();
-			break;
-		}
-
-		case 't':
-		{
-			cmd_take_off();
-			break;
-		}
-#endif
 		case 'k':
 		{
 			cmd_destroy();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		case 'I':
-		{
-			cmd_observe();
-			break;
-		}
-
-		case '{':
-		{
-			cmd_inscribe();
-			break;
-		}
-
-		case '}':
-		{
-			cmd_uninscribe();
-			break;
-		}
-
-		case 'j':
-		{
-			cmd_spike();
-			break;
-		}
-
-		/*** Inventory "usage" commands ***/
-		case 'q':
-		{
-			cmd_quaff();
-			break;
-		}
-
-		case 'r':
-		{
-			cmd_read_scroll();
-			break;
-		}
-
-		case 'a':
-		{
-			cmd_aim_wand();
-			break;
-		}
-
-		case 'u':
-		{
-			cmd_use_staff();
-			break;
-		}
-
-		case 'z':
-		{
-			cmd_zap_rod();
-			break;
-		}
-
-		case 'F':
-		{
-			cmd_refill();
-			break;
-		}
-		case 'E':
-		{
-			cmd_eat();
-			break;
-		}
-
-		case 'A':
-		{
-			cmd_activate();
-			break;
-		}
-
-		/*** Firing and throwing ***/
-		case 'f':
-		{
-			cmd_fire();
-			break;
-		}
-
-		case 'v':
-		{
-			cmd_throw();
-			break;
-		}#endif
 		/*** Spell casting ***/
 		case 'b':
 		{
