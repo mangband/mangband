@@ -46,7 +46,8 @@ This is a quick reference guide, see http://mangband.org/help/ for full help!
  (l) look around
  
  --- Message commands ---
- (:) send a chat message     (Ctrl P) view message history
+ (:) send a chat message     (Ctrl p) view message history
+ (Ctrl d) describe an item in your inventory
  
  --- Player house commands ---
  (h) buy or sell a house if used outside a house
@@ -60,11 +61,11 @@ This is a quick reference guide, see http://mangband.org/help/ for full help!
  (=) game options            (%) edit macros            
  
  --- Saving and exiting commands ---
- (Ctrl X) exit the game (saves your character) 
+ (Ctrl x) exit the game (saves your character) 
  (Q) commit suicide (destroys your character)
  
  --- Extra commands ---
- (Ctrl R) redraw the screen  (J) steal
+ (Ctrl r) redraw the screen  (J) steal
                     
 
 
