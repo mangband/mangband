@@ -415,7 +415,7 @@ extern bool test_hit_fire(int chance, int ac, int vis);
 extern bool test_hit_norm(int chance, int ac, int vis);
 extern s16b critical_shot(int Ind, int weight, int plus, int dam);
 extern s16b critical_norm(int Ind, int weight, int plus, int dam);
-extern s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr);
+extern s16b tot_dam_aux(int Ind, object_type *o_ptr, int tdam, monster_type *m_ptr, bool ml);
 extern s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr);
 extern void search(int Ind);
 extern void carry(int Ind, int pickup, int confirm);

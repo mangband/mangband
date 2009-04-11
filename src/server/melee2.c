@@ -2973,7 +2973,7 @@ static void process_monster(int Ind, int m_idx)
 		    (r_ptr->flags1 & RF1_NEVER_BLOW))
 		{
 			/* Hack -- memorize lack of attacks */
-			/* if (m_ptr->ml) l_ptr->flags1 |= RF1_NEVER_BLOW; */
+			if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_NEVER_BLOW;
 
 			/* Do not move */
 			do_move = FALSE;
@@ -2998,7 +2998,7 @@ static void process_monster(int Ind, int m_idx)
 		if (do_move && (r_ptr->flags1 & RF1_NEVER_MOVE))
 		{
 			/* Hack -- memorize lack of attacks */
-			/* if (m_ptr->ml) l_ptr->flags1 |= RF1_NEVER_MOVE; */
+			if (p_ptr->mon_vis[m_idx]) l_ptr->flags1 |= RF1_NEVER_MOVE;
 
 			/* Do not move */
 			do_move = FALSE;

@@ -3703,7 +3703,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				}
 
 				/* Apply special damage XXX XXX XXX */
-				tdam = tot_dam_aux(o_ptr, tdam, m_ptr);
+				tdam = tot_dam_aux(Ind, o_ptr, tdam, m_ptr, p_ptr->mon_vis[c_ptr->m_idx]);
 				tdam = critical_shot(Ind, o_ptr->weight, o_ptr->to_h, tdam);
 
 				/* No negative damage */
@@ -4128,7 +4128,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 				}
 
 				/* Apply special damage XXX XXX XXX */
-				tdam = tot_dam_aux(o_ptr, tdam, m_ptr);
+				tdam = tot_dam_aux(Ind, o_ptr, tdam, m_ptr, p_ptr->mon_vis[c_ptr->m_idx]);
 				tdam = critical_shot(Ind, o_ptr->weight, o_ptr->to_h, tdam);
 
 				/* No negative damage */

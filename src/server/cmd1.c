@@ -174,17 +174,21 @@ s16b critical_norm(int Ind, int weight, int plus, int dam)
  *
  * Note that most brands and slays are x3, except Slay Animal (x2),
  * Slay Evil (x2), and Kill dragon (x5).
+ * 
+ * Note that this function also allows player to learn more about monster,
+ * so a player index is passed to populate the lore struct. (ml--mon_vis)
  */
-s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
+s16b tot_dam_aux(int Ind, object_type *o_ptr, int tdam, monster_type *m_ptr, bool ml)
 {
 	int mult = 1;
 
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
-
-        u32b f1, f2, f3;
+	monster_lore *l_ptr = Players[Ind]->l_list + m_ptr->r_idx;
+	
+	u32b f1, f2, f3;
 
 	/* Extract the flags */
-        object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Some "weapons" and "ammo" do extra damage */
 	switch (o_ptr->tval)
@@ -201,7 +205,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_ANIMAL) &&
 			    (r_ptr->flags3 & RF3_ANIMAL))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_ANIMAL;*/
+				if (ml) l_ptr->flags3 |= RF3_ANIMAL;
 
 				if (mult < 2) mult = 2;
 			}
@@ -210,7 +214,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_EVIL) &&
 			    (r_ptr->flags3 & RF3_EVIL))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_EVIL;*/
+				if (ml) l_ptr->flags3 |= RF3_EVIL;
 
 				if (mult < 2) mult = 2;
 			}
@@ -219,7 +223,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_UNDEAD) &&
 			    (r_ptr->flags3 & RF3_UNDEAD))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_UNDEAD;*/
+				if (ml) l_ptr->flags3 |= RF3_UNDEAD;
 
 				if (mult < 3) mult = 3;
 			}
@@ -228,7 +232,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_DEMON) &&
 			    (r_ptr->flags3 & RF3_DEMON))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_DEMON;*/
+				if (ml) l_ptr->flags3 |= RF3_DEMON;
 
 				if (mult < 3) mult = 3;
 			}
@@ -237,7 +241,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_ORC) &&
 			    (r_ptr->flags3 & RF3_ORC))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_ORC;*/
+				if (ml) l_ptr->flags3 |= RF3_ORC;
 
 				if (mult < 3) mult = 3;
 			}
@@ -246,7 +250,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_TROLL) &&
 			    (r_ptr->flags3 & RF3_TROLL))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_TROLL;*/
+				if (ml) l_ptr->flags3 |= RF3_TROLL;
 
 				if (mult < 3) mult = 3;
 			}
@@ -255,7 +259,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_GIANT) &&
 			    (r_ptr->flags3 & RF3_GIANT))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_GIANT;*/
+				if (ml) l_ptr->flags3 |= RF3_GIANT;
 
 				if (mult < 3) mult = 3;
 			}
@@ -264,7 +268,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_SLAY_DRAGON) &&
 			    (r_ptr->flags3 & RF3_DRAGON))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_DRAGON;*/
+				if (ml) l_ptr->flags3 |= RF3_DRAGON;
 
 				if (mult < 3) mult = 3;
 			}
@@ -273,7 +277,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 			if ((f1 & TR1_KILL_DRAGON) &&
 			    (r_ptr->flags3 & RF3_DRAGON))
 			{
-				/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_DRAGON;*/
+				if (ml) l_ptr->flags3 |= RF3_DRAGON;
 
 				if (mult < 5) mult = 5;
 			}
@@ -282,7 +286,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
             if ((f1 & TR1_KILL_DEMON) &&
                 (r_ptr->flags3 & RF3_DEMON))
             {
-                /*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_DEMON;*/
+                if (ml) l_ptr->flags3 |= RF3_DEMON;
 
                 if (mult < 5) mult = 5;
             }
@@ -291,7 +295,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
             if ((f1 & TR1_KILL_UNDEAD) &&
                 (r_ptr->flags3 & RF3_UNDEAD))
             {
-                /*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_UNDEAD;*/
+                if (ml) l_ptr->flags3 |= RF3_UNDEAD;
 
                 if (mult < 5) mult = 5;
             }
@@ -303,7 +307,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 				/* Notice immunity */
 				if (r_ptr->flags3 & RF3_IM_ACID)
 				{
-					/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_IM_ACID;*/
+					if (ml) l_ptr->flags3 |= RF3_IM_ACID;
 				}
 
 				/* Otherwise, take the damage */
@@ -319,7 +323,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 				/* Notice immunity */
 				if (r_ptr->flags3 & RF3_IM_ELEC)
 				{
-					/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_IM_ELEC;*/
+					if (ml) l_ptr->flags3 |= RF3_IM_ELEC;
 				}
 
 				/* Otherwise, take the damage */
@@ -335,7 +339,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 				/* Notice immunity */
 				if (r_ptr->flags3 & RF3_IM_FIRE)
 				{
-					/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_IM_FIRE;*/
+					if (ml) l_ptr->flags3 |= RF3_IM_FIRE;
 				}
 
 				/* Otherwise, take the damage */
@@ -351,7 +355,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
 				/* Notice immunity */
 				if (r_ptr->flags3 & RF3_IM_COLD)
 				{
-					/*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_IM_COLD;*/
+					if (ml) l_ptr->flags3 |= RF3_IM_COLD;
 				}
 
 				/* Otherwise, take the damage */
@@ -367,7 +371,7 @@ s16b tot_dam_aux(object_type *o_ptr, int tdam, monster_type *m_ptr)
                 /* Notice immunity */
                 if (r_ptr->flags3 & RF3_IM_POIS)
                 {
-                    /*if (m_ptr->ml) r_ptr->r_flags3 |= RF3_IM_POIS;*/
+                    if (ml) l_ptr->flags3 |= RF3_IM_POIS;
                 }
 
                 /* Otherwise, take the damage */
@@ -1349,7 +1353,7 @@ void py_attack_mon(int Ind, int y, int x)
 			if (o_ptr->k_idx)
 			{
 				k = damroll(o_ptr->dd, o_ptr->ds);
-				k = tot_dam_aux(o_ptr, k, m_ptr);
+				k = tot_dam_aux(Ind, o_ptr, k, m_ptr, p_ptr->mon_vis[c_ptr->m_idx]);
 				if (backstab)
 				{
 					backstab = FALSE;
