@@ -2513,6 +2513,10 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 			if (!(r_ptr->flags1 & RF1_UNIQUE))
 				continue;
 
+			/* Never respawn Morgoth */
+			if (r_ptr->flags1 & RF1_DROP_CHOSEN)
+				continue;
+				
 			/* If we have killed this unique, bring it back */
 			if (p_ptr->r_killed[i])
 			{
