@@ -2891,10 +2891,6 @@ int Receive_monster_health(void)
 	health_track_attr = attr;
 	p_ptr->redraw |= PR_HEALTH;
 
-	/* Hack -- Force redraw */
-	if (ROW_INFO >= section_icky_row)
-		health_redraw(ROW_INFO, COL_INFO);
-
 	return 1;
 }
 
