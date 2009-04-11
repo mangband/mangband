@@ -75,6 +75,10 @@ void init_stuff(void)
 
 #endif /* AMIGA / VM */
 
+			/* Read/Write path from config file */
+			strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
+			conf_set_string("MAngband", "LibDir", path);
+
         /* Initialize */
         init_file_paths(path);
 }

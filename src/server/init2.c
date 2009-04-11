@@ -613,7 +613,7 @@ static errr init_info(cptr filename, header *head)
 		fp = my_fopen(buf, "r");
 
 		/* Parse it */
-		if (!fp) quit(format("Cannot open '%s.txt' file.", filename));
+		if (!fp) quit(format("Cannot open '%s' file.", buf));
 
 		/* Parse the file */
 		err = init_info_txt(fp, buf, head, head->parse_info_txt);
@@ -2388,6 +2388,18 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_report_to_meta = str_to_boolean(value);
 	}
+	else if (!strcmp(option,"DATA_DIR"))
+	{
+		ANGBAND_DIR_DATA = strdup(value);
+	}
+	else if (!strcmp(option,"EDIT_DIR"))
+	{
+		ANGBAND_DIR_EDIT = strdup(value);
+	}
+	else if (!strcmp(option,"SAVE_DIR"))
+	{
+		ANGBAND_DIR_SAVE = strdup(value);
+	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
 		cfg_meta_address = strdup(value);
@@ -2588,24 +2600,33 @@ void load_server_cfg_aux(FILE * cfg)
 /* Load in the mangband.cfg file.  This is a file that holds many
  * options thave have historically been #defined in config.h.
  */
-
+cptr possible_cfg_dir[] = 
+{
+	"mangband.cfg",
+	"/etc/mangband.cfg",
+	"/usr/local/etc/mangband.cfg",
+	"/usr/etc/mangband.cfg",
+	NULL
+};
 void load_server_cfg(void)
 {
-	FILE * cfg;
+	FILE * cfg = 0;
+	int i = 0;
 
 	/* Attempt to open the file */
-	cfg = fopen("mangband.cfg", "r");
+	while (cfg <= 0 && possible_cfg_dir[i++])
+	{
+		cfg = fopen(possible_cfg_dir[i-1], "r");
+	}
 
-	/* Failure, try /etc then stop trying */
+	/* Failure, try several dirs, then stop trying */
 	if (cfg <= 0)
 	{
-		cfg = fopen("/etc/mangband.cfg", "r");
-		if (cfg <= 0)
-	    	{
-			plog("Error : cannot open file mangband.cfg");
-			return;
-		}
+		plog("Error : cannot open file mangband.cfg");
+		return;
 	}
+
+	plog(format("Loading %s", possible_cfg_dir[i-1]));
 
 	/* Actually parse the file */
 	load_server_cfg_aux(cfg);
