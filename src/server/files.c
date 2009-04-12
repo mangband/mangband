@@ -2821,7 +2821,7 @@ static errr top_twenty(int Ind)
 	the_score.gold[9] = '\0';
 
 	/* Save the current turn */
-	sprintf(the_score.turns, "%9lu", turn);
+	sprintf(the_score.turns, "%9llu", turn);
 	the_score.turns[9] = '\0';
 
 #ifdef HIGHSCORE_DATE_HACK
@@ -2913,7 +2913,7 @@ static errr predict_score(int Ind, int line)
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
 
 	/* Save the current turn */
-	sprintf(the_score.turns, "%9lu", turn);
+	sprintf(the_score.turns, "%9llu", turn);
 
 	/* Hack -- no time needed */
 	strcpy(the_score.day, "TODAY");
