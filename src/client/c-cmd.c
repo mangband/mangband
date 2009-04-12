@@ -2156,7 +2156,7 @@ void cmd_master_aux_player_inside(void)
 				break; 
 		}	
 		
-		if (buf)
+		if (!STRZERO(buf))
 		{
 			buf[2] = '\0';
 			Send_master(MASTER_PLAYER, buf);
