@@ -1044,7 +1044,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 
 	/* Handle empty inscription as removal */
-	if (inscription == "")
+	if (STRZERO(inscription))
 	{
 		if (!o_ptr->note) 
 		{
