@@ -2110,7 +2110,8 @@ int Receive_flush(void)
 
 int Receive_term_info(void)
 {
-	char ch, n, mode;
+	char ch, mode;
+	byte n;
 	u16b arg;
 	
 	mode = arg = 0;	
