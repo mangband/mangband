@@ -110,8 +110,11 @@ typedef unsigned int uint;
 /* typedef long long; */
 
 /* The largest possible unsigned integer */
-typedef unsigned long huge;
-
+#ifdef _MSC_VER /* Visual Studio */
+typedef unsigned __int64 huge;
+#else
+typedef unsigned long long huge;
+#endif
 
 /* Signed/Unsigned 16 bit value */
 typedef signed short s16b;
