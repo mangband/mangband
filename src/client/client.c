@@ -18,8 +18,8 @@ static void read_credentials(void)
 #endif
 
 #ifdef WINDOWS
-	LPSTR buffer[20] = {'\0'};
-	LPDWORD bufferLen = sizeof(buffer);
+	char buffer[20] = {'\0'};
+	DWORD bufferLen = sizeof(buffer);
 #endif
 
 	/* Initial defaults */
