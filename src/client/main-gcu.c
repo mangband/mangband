@@ -275,21 +275,6 @@ static void keymap_norm(void)
 }
 
 
-/* [grk]
- * A gross hack to allow the client to scroll the dungeon display.
- * This is required for large graphical tiles where we cant have an
- * 66x22 tile display except in very high screen resolutions.
- * When the server supports player recentering this can go.
- *
- * When we receive a request to plot a tile at a location, we
- * shift the x-coordinate by this value. If the resultant
- * x-coordinate is negative we just ignore it and plot nothing.
- *
- * We only need scrolling along the x axis.
- */
-
-static x_offset = 0;
-
 
 /*
  * Place the "keymap" into the "game" state
