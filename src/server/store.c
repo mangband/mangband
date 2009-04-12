@@ -1293,6 +1293,9 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	/* Small sales tax */
 	total = (total * 90) / 100;
 	
+	/* Hack -- incase payment is '0 gold' (worthless item) */
+	if (!total) have_space = FALSE;
+
 	/* Did we find a pile of gold suitable for leaving a deposit? */
 	if (have_gold)
 	{
