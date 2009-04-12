@@ -471,6 +471,7 @@ extern void do_cmd_look(int Ind, char dir);
 extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
+extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
 
 /* cmd4.c */
 extern void do_cmd_redraw(void);
