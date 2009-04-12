@@ -1038,7 +1038,7 @@ void set_recall(int Ind, object_type * o_ptr)
 {
 	int recall_depth = 0;
 	player_type * p_ptr = Players[Ind];
-	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+	char * inscription = (char *) quark_str(o_ptr->note);
 
 	/* Ironmen don't recall unless they've won */
 	if (cfg_ironman && !p_ptr->total_winner)

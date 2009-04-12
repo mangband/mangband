@@ -16,27 +16,27 @@
 
 int get_player(int Ind, object_type *o_ptr)
 {
-        //player_type *p_ptr = Players[Ind];
-        bool ok = FALSE;
-        int Ind2;
+	/* player_type *p_ptr = Players[Ind]; */
+	bool ok = FALSE;
+	int Ind2;
 
-	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+	char * inscription = ( char *) quark_str(o_ptr->note);
 
-       	/* check for a valid inscription */
+	/* check for a valid inscription */
 	if (inscription == NULL)
-	  {
-	    msg_print(Ind, "Nobody to use the power with.");
-	    return 0;
-	  }
-	
+	{
+		msg_print(Ind, "Nobody to use the power with.");
+		return 0;
+	}
+
 	/* scan the inscription for @P */
 	while ((*inscription != '\0') && !ok)
 	{
-		
+
 		if (*inscription == '@')
 		{
 			inscription++;
-			
+
 			/* a valid @P has been located */
 			if (*inscription == 'P')
 			{			
@@ -48,12 +48,12 @@ int get_player(int Ind, object_type *o_ptr)
 		}
 		inscription++;
 	}
-	
-        if (!ok)
-	  {
-	    msg_print(Ind, "Player is not on.");
-	    return 0;
-	  }
+
+	if (!ok)
+	{
+		msg_print(Ind, "Player is not on.");
+		return 0;
+	}
 
 	return Ind2;
 }

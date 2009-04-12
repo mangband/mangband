@@ -959,7 +959,7 @@ void display_player_server(int Ind, char buffer[100][82])
 	int i;
 	char buf[80];
 	cptr desc;
-	bool hist = FALSE;
+/*	bool hist = FALSE;*/
 	player_type *p_ptr = Players[Ind];
 
     int show_tohit = p_ptr->dis_to_h;
@@ -1991,7 +1991,7 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
 {
 	int i, k = 0;
 	char local_base[MAX_CHARS];
-	char *basename = base;
+	char *basename = (char*) base;
 
 	
 	/* Cannot be too long */
@@ -2072,7 +2072,7 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
 #endif /* VM */
 
 		/* Build the filename */
-		path_build(name, 1024, ANGBAND_DIR_SAVE, temp);
+		path_build((char*)name, 1024, ANGBAND_DIR_SAVE, temp);
 	}
 
 	/* Success */

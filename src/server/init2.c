@@ -715,8 +715,8 @@ static errr init_info(cptr filename, header *head)
 		/* MegaHack -- Free the "fake" arrays */
 		if (z_info)
 		{
-			KILL(head->name_ptr, cptr);
-			KILL(head->text_ptr, cptr);
+			KILL(head->name_ptr, char);
+			KILL(head->text_ptr, char);
 		}
 
 #endif /* ALLOW_TEMPLATES */
@@ -1936,8 +1936,10 @@ static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
  */
 static errr init_other(void)
 {
-	int i, k, n;
-
+	int i, k;
+#if 0
+	int n;
+#endif
 
 	/*** Prepare the "dungeon" information ***/
 

@@ -1171,7 +1171,7 @@ void ascii_to_text(char *buf, cptr str)
 }
 
 
-
+#if 0
 /*
  * Variable used by the functions below
  */
@@ -1351,7 +1351,7 @@ static char original_commands(char command)
  *
  * You can map a key to "tab" to make it "non-functional".
  */
-#if 0
+
 void keymap_init(void)
 {
 	int i, k;

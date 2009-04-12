@@ -64,12 +64,12 @@ static void write_str(char* name, char* value)
 {
 	fprintf(file_handle,"%s%s = %s\n",xml_prefix,name,value);
 }
-
+#if 0
 static void write_float(char* name, float value)
 {
 	fprintf(file_handle,"%s%s = %f\n",xml_prefix,name,value);
 }
-
+#endif
 /* Write binary data */
 static void write_binary(char* name, char* data)
 {
@@ -140,7 +140,7 @@ static void wr_item(object_type *o_ptr)
 	/* Save the inscription (if any) */
 	if (o_ptr->note)
 	{
-		write_str("inscription",quark_str(o_ptr->note));
+		write_str("inscription",(char*)quark_str(o_ptr->note));
 	}
 	else
 	{
@@ -188,7 +188,7 @@ static void wr_lore(int Ind, int r_idx)
 	int i;
 
 	player_type *p_ptr = Players[Ind];
-	monster_race *r_ptr = &r_info[r_idx];
+//	monster_race *r_ptr = &r_info[r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
 	start_section("lore");
@@ -569,7 +569,7 @@ static void wr_player_names(void)
 		write_uint("id",id_list[i]);
 
 		/* Store the player name */
-		write_str("name",lookup_player_name(id_list[i]));
+		write_str("name",(char*)lookup_player_name(id_list[i]));
 		
 		end_section("player");
 	}
