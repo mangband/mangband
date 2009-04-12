@@ -5,6 +5,7 @@ AC_PREREQ(2.56)
 AC_INIT(mangband, 1.0.0, jug@mangband.org)
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
+AC_CANONICAL_HOST
 
 
 # We don't like -02 in cflags
@@ -13,6 +14,20 @@ cflags_save="$CFLAGS"
 AC_PROG_CC
 # But we do like our debug symbols and warnings
 CFLAGS="$cflags_save -Wall -g -pipe"
+
+# Evil Hack -- Check for Host OS
+case "${host_os}" in
+	mingw*)
+	ON_WINDOWS="yes"
+	;;
+	darwin*)
+	LIBS="$LIBS -L/usr/X11R6/lib"
+	;;
+	freebsd*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LIBS="$LIBS -L/usr/local/lib" 
+	;;
+esac
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lX11':
@@ -26,13 +41,8 @@ AC_CHECK_LIB([ncurses], [main],,[
     AC_CHECK_LIB([curses], [main],, have_curs="no")
     ])
 
-AC_CHECK_LIB([ws2_32], [main],[
-    LIBS="$LIBS -lws2_32"
-    ON_WINDOWS="yes"
-])
 
-
-AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Ignore winsock presense]), ON_WINDOWS=$withval)
+AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$withval)
 
 AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=yes]]), with_x11=$withval, with_x11="yes")
 AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=yes]]), with_gcu=$withval, with_gcu="yes")
@@ -74,12 +84,14 @@ fi
 if test "x$enabled_gcu" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_GCU"
+    DISPMOD="$DISPMOD GCU"
 fi
 #X11
 if test "x$enabled_x11" = xyes
 then
     TERMDEFS="$TERMDEFS -DUSE_X11"
     LIBS="$LIBS -lX11"
+    DISPMOD="$DISPMOD X11"
 fi
 #SDL
 if test "x$enabled_sdl" = xyes
@@ -87,6 +99,7 @@ then
     TERMDEFS="$TERMDEFS -DUSE_SDL"
     LIBS="$LIBS `sdl-config --libs`"
     CFLAGS="$CFLAGS `sdl-config --cflags`"
+    DISPMOD="$DISPMOD SDL"
 fi
 
 
@@ -101,6 +114,7 @@ SERV_LIBS="#"
 if test "x$ON_WINDOWS" = xyes
 then
     AC_MSG_NOTICE([Forcing Windows32 mode. Use --disable-win to change this.])
+	AC_CHECK_LIB([ws2_32], [main],[LIBS="$LIBS -lws2_32"], AC_ERROR([lib ws2_32 not found]))
 	if test "x$enabled_sdl" != xyes
 	then
 	    LIBS="$LIBS -mwindows"
@@ -108,6 +122,7 @@ then
 	    AC_CHECK_LIB([gdi32], [main], [LIBS="$LIBS -lgdi32"], AC_ERROR([lib gdi32 not found]))
 	    AC_CHECK_LIB([comdlg32], [main], [LIBS="$LIBS -lcomdlg32"], AC_ERROR([lib comdlg32 not found]))
 	    CLI_MAIN="CLI_MAIN = client/main-win.c"
+	    DISPMOD="$DISPMOD WIN32"
 	else
 	    CLI_DMAIN="CLI_DMAIN=-Dmain=SDL_main"
 	fi
@@ -152,9 +167,10 @@ AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit floor ftruncate gethostbyaddr gethostbyname gethostname gettimeofday inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strncasecmp strpbrk strrchr strspn strstr strtol])
 
+AC_MSG_NOTICE([enabled -$DISPMOD])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
-#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS"
+#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"
