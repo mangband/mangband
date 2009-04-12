@@ -123,6 +123,19 @@ static void read_mangrc(void)
 				if ( p ) strcpy(pass, p);
 			}
 
+			/* Library Path line */
+			if (!strncasecmp(buf, "libdir", 6))
+			{
+				char *l;
+
+				/* Extract dir */
+				l = strtok(buf, " =\t\n");
+				l = strtok(NULL, " =\t\n");
+
+				/* Default dir */
+				ANGBAND_DIR = string_make(l);
+			}
+
 			/*** Everything else is ignored ***/
 		}
 	}
@@ -134,6 +147,9 @@ int main(int argc, char **argv)
 
 	/* Save the program name */
 	argv0 = argv[0];
+
+	/* Attempt to read default name/password from mangrc file */
+	read_mangrc();
 
 	/* Attempt to initialize a visual module */
 #ifdef USE_SDL
@@ -203,9 +219,6 @@ int main(int argc, char **argv)
 		printf("Unable to initialize a display module!\n");
 		exit(1);
 	}
-
-	/* Attempt to read default name/password from mangrc file */
-	read_mangrc();
 
 #ifdef UNIX_SOCKETS
 	/* Always call with NULL argument */
