@@ -3,7 +3,7 @@
 /* Purpose: server-side global constants and macro definitions */
 
 
-#define	OPT_MAX 			34
+#define	OPT_MAX 			35
 #define	MAX_OPTION_GROUPS   4
 
 /*
