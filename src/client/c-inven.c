@@ -583,7 +583,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			default:
 			{
 				/* Extract "query" setting */
-				ver = isupper(which);
+				ver = ( isupper(which) ? TRUE : FALSE );
 				if (ver) which = tolower(which);
 
 				/* Convert letter to inventory index */
