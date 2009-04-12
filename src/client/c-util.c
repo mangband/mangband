@@ -1833,12 +1833,12 @@ void c_message_add(cptr str, u16b type)
  * TODO: Remove it completly */
 void c_message_del(s16b age)
 {
-	static char buf[1024];
+	/* static char buf[1024]; */
 	s16b x;
 	u16b o;
 
 	/* Forgotten messages have no text */
-	if ((age < 0) || (age >= message_num())) return ("");
+	if ((age < 0) || (age >= message_num())) return;
 
 	/* Get the "logical" index */
 	x = message_age2idx(age);
@@ -1925,9 +1925,9 @@ void c_msg_print_aux(cptr msg, u16b type)
 	static int p = 0;
 
 	int n;
-
+#if 0
 	char *t;
-
+#endif
 	char buf[1024];
 
 
