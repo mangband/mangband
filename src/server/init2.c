@@ -2538,6 +2538,26 @@ void set_server_option(char * option, char * value)
     {
 			cfg_pvp_safelevel = atoi(value);
     }
+    else if (!strcmp(option,"PARTY_SHARE_EXP"))
+    {
+			cfg_party_share_exp = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"PARTY_SHARE_QUEST"))
+    {
+			cfg_party_share_quest = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"PARTY_SHARE_KILL"))
+    {
+			cfg_party_share_kill = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"PARTY_SHARE_WIN"))
+    {
+			cfg_party_share_win = str_to_boolean(value);
+    }
+    else if (!strcmp(option,"PARTY_SHARELEVEL"))
+    {
+			cfg_party_sharelevel = atoi(value);
+    }
     
 
 

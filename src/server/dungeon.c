@@ -465,6 +465,12 @@ static void regen_monsters(void)
 			/* Update health bars */
 			update_health(i);
 		}
+		/* HACK !!! Act like nobody ever hurt this monster */
+		else
+		{
+			for (frac = 1; frac < NumPlayers + 1; frac++)
+				Players[frac]->mon_hrt[i] = FALSE;
+		}
 	}
 }
 

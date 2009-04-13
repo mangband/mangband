@@ -3649,8 +3649,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		strcpy(killer, Players[0 - who]->name);
 
 		/* Do not become hostile if it was a healing or teleport spell */
-		
-	if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
+		if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
 		{
 			if (!pvp_okay(0 - who, Ind, (p_ptr->target_who == who ? 2 : 3))) 
 			{
@@ -3659,6 +3658,11 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			
 			/* XXX Reduce damage by 1/3 */
 			dam = (dam + 2) / 3;			
+		}
+		/* Hack -- share monster hurt during healing */
+		else if (typ == GF_HEAL_PLAYER)
+		{
+			party_share_hurt(0 - who, Ind);
 		}
 	}
 

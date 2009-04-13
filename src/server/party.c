@@ -446,20 +446,21 @@ void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
     -APD-
     */
  
-void party_gain_exp(int Ind, int party_id, s32b amount)
+void party_gain_exp(int Ind, int party_id, s32b amount, int m_idx)
 {
 	player_type *p_ptr;
 	int i, Depth = Players[Ind]->dun_depth;
 	s32b new_exp, new_exp_frac, average_lev = 0, num_members = 0;
 	s32b modified_level;
 
+	/* Mark needed people */
+	num_members = party_mark_members(Ind, m_idx);
+	
 	/* Calculate the average level */
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		p_ptr = Players[i];
-
-		/* Check for his existance in the party */
-		if (player_in_party(party_id, i) && p_ptr->dun_depth == Depth)
+		if (p_ptr->in_hack)
 		{
 			/* Increase the "divisor" */
 			average_lev += p_ptr->lev;
@@ -472,8 +473,8 @@ void party_gain_exp(int Ind, int party_id, s32b amount)
 	{
 		p_ptr = Players[i];
 
-		/* Check for existance in the party */
-		if (player_in_party(party_id, i) && p_ptr->dun_depth == Depth)
+		/* Check for his involvment */
+		if (p_ptr->in_hack)
 		{
 			/* Calculate this guy's experience */
 			
@@ -514,6 +515,48 @@ void party_gain_exp(int Ind, int party_id, s32b amount)
 			/* Gain experience */
 			gain_exp(i, new_exp);
 		}
+	}
+}
+int party_mark_members(int Ind, int m_idx)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
+	int i, total = 0;
+	
+	/* Determine players involved in killing */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		q_ptr = Players[i];
+		q_ptr->in_hack = FALSE;
+		if ((i == Ind) || ((p_ptr->party) &&
+			(!m_idx || q_ptr->mon_hrt[m_idx]) &&
+			(q_ptr->dun_depth == p_ptr->dun_depth) &&
+			(q_ptr->party == p_ptr->party) &&
+			((cfg_party_sharelevel == -1) || (abs(p_ptr->lev - p_ptr->lev) <= cfg_party_sharelevel))
+			))
+		{
+			q_ptr->in_hack = TRUE;
+			total++;
+		}
+	}
+	
+	return total;
+}
+void party_share_hurt(int Ind, int target) 
+{
+	int i;
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr = Players[target];
+	
+	/* Not in party, or not the same party */
+	if (!p_ptr->party || p_ptr->party != q_ptr->party) 
+		return;
+
+	/* Copy hurt */
+	for (i = 0; i < MAX_M_IDX; i++)
+	{
+		if (q_ptr->mon_hrt[i])
+			p_ptr->mon_hrt[i] = TRUE;
 	}
 }
 

@@ -80,6 +80,9 @@ void delete_monster_idx(int i)
 		Players[Ind]->mon_vis[i] = FALSE;
 		Players[Ind]->mon_los[i] = FALSE;
 
+		/* Hack -- remove hurt flag */
+		Players[Ind]->mon_hrt[i] = FALSE;
+
 		/* Hack -- remove target monster */
 		if (i == Players[Ind]->target_who) Players[Ind]->target_who = 0;
 
@@ -194,6 +197,9 @@ static void compact_monsters_aux(int i1, int i2)
 
 		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
 		Players[Ind]->mon_los[i2] = Players[Ind]->mon_los[i1];
+		
+		/* Hack -- copy hurt flag */
+		Players[Ind]->mon_hrt[i2] = Players[Ind]->mon_hrt[i1];;
 
 		/* Hack -- Update the target */
 		if (Players[Ind]->target_who == (int)(i1)) Players[Ind]->target_who = i2;
@@ -1758,6 +1764,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	{
 		Players[Ind]->mon_los[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_vis[c_ptr->m_idx] = FALSE;
+		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
 
 	strcpy(buf, (r_name + r_ptr->name));

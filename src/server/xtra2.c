@@ -1993,7 +1993,6 @@ void monster_death(int Ind, int m_idx)
 
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 
-	bool visible = (p_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE));
 
 	bool good = (r_ptr->flags1 & RF1_DROP_GOOD) ? TRUE : FALSE;
 	bool great = (r_ptr->flags1 & RF1_DROP_GREAT) ? TRUE : FALSE;
@@ -2118,106 +2117,103 @@ void monster_death(int Ind, int m_idx)
 		}
 	}
 
-
-	/* Take note of any dropped treasure */
-	if (visible && (dump_item || dump_gold))
-	{
-		/* Take notes on treasure */
-		lore_treasure(Ind, m_idx, dump_item, dump_gold);
-	}
-
-    if (p_ptr->r_killed[m_ptr->r_idx] < 1000)
-	{
-		/* Remember */
-		p_ptr->r_killed[m_ptr->r_idx]++;
-	}
-
-
-	/* Take note of the killer */
+	/* Determine players involved in killing */
+	total = party_mark_members(Ind, m_idx);
+	
+	/* Take note of the killer (message) */
 	if (r_ptr->flags1 & RF1_UNIQUE)
 	{
-		/* Remember */
-        //r_ptr->killer = p_ptr->id;
-		
-		/* give credit to the killer by default */
+		/* default message */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
 		msg_print(Ind, buf);
-
-		/* message for event history */
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
 		
-		/* give credit to the party if there is a teammate on the 
-		level, and the level is not 0 (the town)  */
-		if (p_ptr->party)
+		/* party version */		
+		if (total > 1) 
 		{
-			for (i = 1; i <= NumPlayers; i++)
-			{
-				if ( (Players[i]->party == p_ptr->party) && (Players[i]->dun_depth == p_ptr->dun_depth) && (i != Ind) && (p_ptr->dun_depth) )
-				{
-					sprintf(buf, "%s was slain by %s.",(r_name + r_ptr->name),parties[p_ptr->party].name);
-					/* message for event history */
-					sprintf(logbuf,"Helped to kill %s",(r_name + r_ptr->name));
-					break; 
-				} 
-			
-			}
+			sprintf(buf, "%s was slain by %s.",(r_name + r_ptr->name),parties[p_ptr->party].name);
+			sprintf(logbuf,"Helped to kill %s",(r_name + r_ptr->name));
+		}
 		
-		} 
-		         
-  
-    		/* Tell every player */
-    		msg_broadcast(Ind, buf);
+		/* Tell every player */
+		msg_broadcast(Ind, buf);
 
 		/* Record this kill in the event history */
 		log_history_event(Ind, logbuf);
-		
 	}
 
-	/* Mega-Hack -- drop "winner" treasures */
-	if (r_ptr->flags1 & RF1_DROP_CHOSEN)
+	/* Perform various tasks for several players */
+	total = 0; /* reset counter for quests */
+	for (i = 1; i <= NumPlayers; i++)
 	{
-		/* Hack -- an "object holder" */
-		object_type prize;
-
-
-		/* Mega-Hack -- Prepare to make "Grond" */
-		invcopy(&prize, lookup_kind(TV_HAFTED, SV_GROND));
-
-		/* Mega-Hack -- Mark this item as "Grond" */
-		prize.name1 = ART_GROND;
-	prize.note = quark;
-
-		/* Mega-Hack -- Actually create "Grond" */
-		apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
-
-		/* Drop it in the dungeon */
-		drop_near(&prize, -1, Depth, y, x);
-
-
-		/* Mega-Hack -- Prepare to make "Morgoth" */
-		invcopy(&prize, lookup_kind(TV_CROWN, SV_MORGOTH));
-
-		/* Mega-Hack -- Mark this item as "Morgoth" */
-		prize.name1 = ART_MORGOTH;
-	prize.note = quark;
-
-		/* Mega-Hack -- Actually create "Morgoth" */
-		apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
-
-		/* Drop it in the dungeon */
-		drop_near(&prize, -1, Depth, y, x);
-
-		/* Nothing left, game over... */
-		for (i = 1; i <= NumPlayers; i++)
+		q_ptr = Players[i];
+		if (q_ptr->in_hack)
 		{
-			q_ptr = Players[i];
-			/* Make everyone in the game in the same party on the
-			 * same level greater than or equal to level 40 total
-			 * winners.
-			 */
-			if ((((p_ptr->party) && (q_ptr->party == p_ptr->party)) ||
-			   (q_ptr == p_ptr) ) && q_ptr->lev >= 40 && p_ptr->dun_depth == q_ptr->dun_depth)
+			bool visible = (q_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE));
+			
+			/* Take note of the killer (message) */
+			if ((r_ptr->flags1 & RF1_UNIQUE) && (i != Ind))
 			{
+				/*log_history_event(i, logbuf);*/
+			}
+			/* Take note of any dropped treasure */
+			if (visible && (dump_item || dump_gold))
+			{
+				/* Take notes on treasure */
+				lore_treasure(i, m_idx, dump_item, dump_gold);
+			}
+			/* Death count */
+			if ((cfg_party_share_kill || i == Ind))
+			{
+				/* In lore array */
+				if (visible)
+				{
+					/* Grab pointer */
+					monster_lore *l_ptr = q_ptr->l_list + m_ptr->r_idx;
+
+					/* Count kills this life */
+					if (l_ptr->pkills < MAX_SHORT) l_ptr->pkills++;
+	
+					/* Count kills in all lives */
+					if (l_ptr->tkills < MAX_SHORT) l_ptr->tkills++;
+				}
+				/* Remember */
+				if (q_ptr->r_killed[m_ptr->r_idx] < 1000)
+					q_ptr->r_killed[m_ptr->r_idx]++;
+			}
+			/* Mega-Hack -- drop "winner" treasures AND set winners */
+			if ((r_ptr->flags1 & RF1_DROP_CHOSEN)  && (cfg_party_share_win || i == Ind))
+			{ 
+				/* Hack -- an "object holder" */
+				object_type prize;
+
+				/* Mega-Hack -- Prepare to make "Grond" */
+				invcopy(&prize, lookup_kind(TV_HAFTED, SV_GROND));
+	
+				/* Mega-Hack -- Mark this item as "Grond" */
+				prize.name1 = ART_GROND;
+				prize.note = quark;
+			
+				/* Mega-Hack -- Actually create "Grond" */
+				apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
+			
+				/* Drop it in the dungeon */
+				drop_near(&prize, -1, Depth, y, x);
+			
+			
+				/* Mega-Hack -- Prepare to make "Morgoth" */
+				invcopy(&prize, lookup_kind(TV_CROWN, SV_MORGOTH));
+			
+				/* Mega-Hack -- Mark this item as "Morgoth" */
+				prize.name1 = ART_MORGOTH;
+				prize.note = quark;
+			
+				/* Mega-Hack -- Actually create "Morgoth" */
+				apply_magic(Depth, &prize, -1, TRUE, TRUE, TRUE);
+			
+				/* Drop it in the dungeon */
+				drop_near(&prize, -1, Depth, y, x);
+				
 				/* Total winner */
 				q_ptr->total_winner = TRUE;
 
@@ -2234,34 +2230,30 @@ void monster_death(int Ind, int m_idx)
 				{
 					q_ptr->retire_timer = cfg_retire_timer;
 				}
-			}
-		}	
-		/* Hack -- instantly retire any new winners if neccecary */
-		if (cfg_retire_timer == 0)
-		{
-			for (i = 1; i <= NumPlayers; i++)
-			{
-				p_ptr = Players[i];
-				if (p_ptr->total_winner)
+				/* Hack -- instantly retire any new winners if neccecary */
+				if (cfg_retire_timer == 0)
+				{
 					do_cmd_suicide(i);
+				}
 			}
-		}
+			/* Process "Quest Monsters" */
+			if ((r_ptr->flags1 & RF1_QUESTOR) && (cfg_party_share_quest || i == Ind)) 
+			{
+				/* Hack -- Mark quests as complete */
+				for (j = 0; j < MAX_Q_IDX; j++)
+				{
+					/* Hack -- note completed quests */
+					if (q_ptr->q_list[j].level == r_ptr->level) q_ptr->q_list[j].level = 0;
+
+					/* Count incomplete quests */
+					if (q_ptr->q_list[j].level) total++;
+				}
+			}
+		} 
 	}
 
-
-	/* Only process "Quest Monsters" */
+	/* Only need stairs after "Quest Monsters" */
 	if (!(r_ptr->flags1 & RF1_QUESTOR)) return;
-
-	/* Hack -- Mark quests as complete */
-	for (i = 0; i < MAX_Q_IDX; i++)
-	{
-		/* Hack -- note completed quests */
-		if (p_ptr->q_list[i].level == r_ptr->level) p_ptr->q_list[i].level = 0;
-
-		/* Count incomplete quests */
-		if (p_ptr->q_list[i].level) total++;
-	}
-
 
 	/* Need some stairs */
 	{
@@ -2766,8 +2758,6 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
-	
-	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	s32b		new_exp, new_exp_frac;
 
@@ -2776,6 +2766,9 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 
 	/* Handle calling this when the monster is no longer there */
 	if (m_idx == 0) return TRUE;
+
+	/* Remember that he hurt it */
+	p_ptr->mon_hrt[m_idx] = TRUE;
 
 	/* Redraw (later) if needed */
 	update_health(m_idx);
@@ -2828,69 +2821,62 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			msg_format(Ind, "You have slain %s.", m_name);
 		}
 
-	/* Cheezy kills give neither xp nor loot! */
-	if (!cheeze)
-	{
-
-		/* Split experience if in a party */
-		if (p_ptr->party == 0)
+		/* Cheezy kills give neither xp nor loot! */
+		if (cheeze)
 		{
-			/* Give some experience */
-			new_exp = ((long)r_ptr->mexp * r_ptr->level) / p_ptr->lev;
-			new_exp_frac = ((((long)r_ptr->mexp * r_ptr->level) % p_ptr->lev)
-					* 0x10000L / p_ptr->lev) + p_ptr->exp_frac;
+			/* Cheezy escape mega-hack */
+			delete_monster_idx(m_idx);
+			(*fear) = FALSE;
+			return (TRUE);
+		}
 
-			/* Keep track of experience */
-			if (new_exp_frac >= 0x10000L)
+		/* HACK -- Breeders give no XP */
+		if (!(r_ptr->flags2 & RF2_MULTIPLY))
+		{
+			/* Split experience if in a party */
+			if (p_ptr->party && cfg_party_share_exp)
 			{
-				new_exp++;
-				p_ptr->exp_frac = new_exp_frac - 0x10000L;
+				party_gain_exp(Ind, p_ptr->party, (long)r_ptr->mexp * r_ptr->level, m_idx);
 			}
+			/* Single-player */
 			else
 			{
-				p_ptr->exp_frac = new_exp_frac;
+				/* Give some experience */
+				new_exp = ((long)r_ptr->mexp * r_ptr->level) / p_ptr->lev;
+				new_exp_frac = ((((long)r_ptr->mexp * r_ptr->level) % p_ptr->lev)
+						* 0x10000L / p_ptr->lev) + p_ptr->exp_frac;
+	
+				/* Keep track of experience */
+				if (new_exp_frac >= 0x10000L)
+				{
+					new_exp++;
+					p_ptr->exp_frac = new_exp_frac - 0x10000L;
+				}
+				else
+				{
+					p_ptr->exp_frac = new_exp_frac;
+				}
+	
+				/* Gain experience */
+				gain_exp(Ind, new_exp);
 			}
-
-			// if (cfg_ironman)
-			// {
-			/* Ironmen don't need experience from breeders */
-            			if (r_ptr->flags2 & RF2_MULTIPLY) new_exp = 0;
-			// }
-
-			/* Gain experience */
-			gain_exp(Ind, new_exp);
-		}
-		else
-		{
-			/* Give experience to that party */
-			/* Ironmen parties don't need experience from breeders */
-			if (!(/* cfg_ironman && */(r_ptr->flags2 & RF2_MULTIPLY)))
-			party_gain_exp(Ind, p_ptr->party, (long)r_ptr->mexp * r_ptr->level);
-           		
 		}
 
 		/* Generate treasure */
 		monster_death(Ind, m_idx);
 
 		/* When the player kills a Unique, it stays dead */
-        	//if (r_ptr->flags1 & RF1_UNIQUE) r_ptr->max_num = 0;
+		//if (r_ptr->flags1 & RF1_UNIQUE) r_ptr->max_num = 0;
 
 		/* Recall even invisible uniques or winners */
 		if (p_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE))
 		{
-			/* Count kills this life */
-			if (l_ptr->pkills < MAX_SHORT) l_ptr->pkills++;
-
-			/* Count kills in all lives */
-			if (l_ptr->tkills < MAX_SHORT) l_ptr->tkills++;
-
-			/* Count kills by all players */			
+			/* Count kills by all players */
 			if (r_ptr->r_tkills < MAX_SHORT) r_ptr->r_tkills++;
 
 			/* Hack -- Auto-recall */
 			monster_race_track(Ind, m_ptr->r_idx);
 		}
-	}
 
 		/* Delete the monster */
 		delete_monster_idx(m_idx);

@@ -1266,6 +1266,8 @@ struct player_type
 
 	byte cave_flag[MAX_HGT][MAX_WID]; /* Can the player see this grid? */
 
+	bool mon_hrt[MAX_M_IDX]; /* Have this player hurt these monsters? */
+
 	bool mon_vis[MAX_M_IDX];  /* Can this player see these monsters? */
 	bool mon_los[MAX_M_IDX];
 
@@ -1533,6 +1535,7 @@ struct player_type
 	
 	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
+	bool in_hack;		/* Temporary flag, not guaranteed to stay same between function calls */
 };
 
 

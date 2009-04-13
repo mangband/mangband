@@ -200,6 +200,11 @@ s16b cfg_pvp_safehostility = 3;
 s16b cfg_pvp_safedepth = -1;
 s16b cfg_pvp_saferadius = -1;
 s16b cfg_pvp_safelevel = -1;
+bool cfg_party_share_exp = TRUE;
+bool cfg_party_share_quest = FALSE;
+bool cfg_party_share_kill = FALSE;
+bool cfg_party_share_win = TRUE;
+s16b cfg_party_sharelevel = -1;
 
 
 
