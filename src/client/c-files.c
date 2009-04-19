@@ -1317,7 +1317,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			/* Game version */
 			else if (streq(b+1, "VERSION"))
 			{
-				v = CLIENT_VERSION;
+				sprintf(v,%d.%d.%d,CLIENT_VERSION_MAJOR,CLIENT_VERSION_MINOR,CLIENT_VERSION_PATCH);
 			}
 		}
 
