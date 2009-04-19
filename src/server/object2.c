@@ -746,6 +746,28 @@ s16b get_obj_num(int level)
 	return (table[i].index);
 }
 
+#define ITEM_ACT_CASE_AIM \
+	case ACT_FIRE3: \
+	case ACT_FROST5: \
+	case ACT_ELEC2: \
+	case ACT_BIZZARE: \
+	case ACT_MISSILE: \
+	case ACT_FIRE1: \
+	case ACT_FROST1: \
+	case ACT_LIGHTNING_BOLT: \
+	case ACT_ACID1: \
+	case ACT_ARROW: \
+	case ACT_STINKING_CLOUD: \
+	case ACT_FROST2: \
+	case ACT_FROST4: \
+	case ACT_FROST3: \
+	case ACT_FIRE2: \
+	case ACT_DRAIN_LIFE2: \
+	case ACT_STONE_TO_MUD: \
+	case ACT_TELE_AWAY: \
+	case ACT_CONFUSE: \
+	case ACT_DRAIN_LIFE1: \
+	case ACT_MANA_BOLT:
 
 
 byte object_tester_flag(int Ind, object_type *o_ptr)
@@ -764,7 +786,28 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	if (object_known_p(Ind, o_ptr)) 
 	{
 		object_flags(o_ptr, &f1, &f2, &f3);
-		if (f3 & TR3_ACTIVATE) flag |= ITF_ACT;
+		if (f3 & TR3_ACTIVATE)
+		{ 
+			flag |= ITF_ACT;
+
+			/* Hack: ask for direction ? (FOR ACTIVATION) */
+			/* Artifacts */
+			if (o_ptr->name1) switch(o_ptr->sval) { ITEM_ACT_CASE_AIM flag |= ITEM_ASK_AIM; 	break; default:	break; }
+			/* Hack -- Dragon Scale Mail can be activated as well (use-obj.c) */
+			if (o_ptr->tval == TV_DRAG_ARMOR) flag |= ITEM_ASK_AIM;
+			/* Hack -- some Rings can be activated for double resist and element ball (use-obj.c) */
+			if (o_ptr->tval == TV_RING) flag |= ITEM_ASK_AIM;
+		}
+	}
+	
+	/* ask for direction ? (FOR RODS) */
+	if (o_ptr->tval == TV_ROD)
+	{
+		/* Get a direction (unless KNOWN not to need it) */
+		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(Ind, o_ptr))
+		{
+			flag |= ITEM_ASK_AIM;
+		}
 	}
 	
 	/* refill light ? */

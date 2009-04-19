@@ -84,6 +84,23 @@ void cmd_custom(byte i)
 			if (STRZERO(prompt)) prompt = "How many? ";
 			value = c_get_quantity(prompt, floor_item.number);
 		}
+		
+		/* Dirty Hack -- Reset! */
+		if (cc_ptr->flag & COMMAND_ITEM_RESET)
+		{
+			need_second = need_target = FALSE;
+			dir = item2 = 0;
+			if (item >= 0)
+			{
+				need_target = (inventory[item].ident & ITEM_ASK_AIM  ? TRUE : FALSE);
+				need_second = (inventory[item].ident & ITEM_ASK_ITEM ? TRUE : FALSE);
+			}
+			else
+			{
+				need_target = (floor_item.ident & ITEM_ASK_AIM  ? TRUE : FALSE);
+				need_second = (floor_item.ident & ITEM_ASK_ITEM ? TRUE : FALSE);
+			}
+		}		
 	}
 	/* Spell? */
 	if (cc_ptr->flag & COMMAND_NEED_SPELL)

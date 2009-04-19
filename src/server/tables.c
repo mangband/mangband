@@ -155,13 +155,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		TV_STAFF, "Use which staff? "
 	},
 	{ /* Zap rod */
-		'z', PKT_ZAP, SCHEME_ITEM, 1, (cccb)do_cmd_zap_rod,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		'z', PKT_ZAP, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
 		TV_ROD, "Use which rod? "
 	},
 	{ /* Activate */
-		'A', PKT_ACTIVATE, SCHEME_ITEM, 1, (cccb)do_cmd_activate,
-		(COMMAND_ITEM_EQUIP),
+		'A', PKT_ACTIVATE, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_activate_dir,
+		(COMMAND_ITEM_EQUIP | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
 		item_test(ACTIVATE), "Activate what? "
 	},
 	/* Common items */

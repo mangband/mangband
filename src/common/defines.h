@@ -602,6 +602,12 @@
 
 
 /*
+ * MAngband-specific item targeting flags
+ */
+#define ITEM_ASK_AIM		0x10 /* Object requires a target */
+#define ITEM_ASK_ITEM		0x20 /* Object requires an item */
+
+/*
  * Maximum number of "normal" pack slots, and the index of the "overflow"
  * slot, which can hold an item, but only temporarily, since it causes the
  * pack to "overflow", dropping the "last" item onto the ground.  Since this
@@ -791,7 +797,7 @@
 #define COMMAND_ITEM_EQUIP  	0x00000040	/* Select item from equipment */
 #define COMMAND_ITEM_FLOOR  	0x00000080	/* Select item from floor */
 
-#define COMMAND_SECOND_XXX1   	0x00000100	/* XXX Unused */
+#define COMMAND_ITEM_RESET   	0x00000100	/* Item sets its own "Second" and "Target" needs */
 #define COMMAND_SECOND_INVEN	0x00000200	/* Select second item from inventory */
 #define COMMAND_SECOND_EQUIP	0x00000400	/* Select second item from equipment */
 #define COMMAND_SECOND_FLOOR	0x00000800	/* Select second item from floor */
@@ -822,8 +828,7 @@
 								 COMMAND_ITEM_AMMOUNT)
 #define COMMAND_NEED_SECOND     (COMMAND_SECOND_INVEN | \
 								 COMMAND_SECOND_EQUIP | \
-								 COMMAND_SECOND_FLOOR | \
-								 COMMAND_SECOND_XXX1)
+								 COMMAND_SECOND_FLOOR)
 #define COMMAND_NEED_TARGET     (COMMAND_TARGET_DIR    | \
 								 COMMAND_TARGET_ALLOW  | \
 								 COMMAND_TARGET_FRIEND | \

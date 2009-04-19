@@ -804,6 +804,13 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
  * Hack -- rods of perception/genocide can be "cancelled"
  * All rods can be cancelled at the "Direction?" prompt
  */
+void do_cmd_zap_rod_pre(int Ind, int item, int dir)
+{
+	if (dir > 0) 
+		Players[Ind]->command_dir = dir; 
+
+	do_cmd_zap_rod(Ind, item); 
+}
 void do_cmd_zap_rod(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
@@ -1046,4 +1053,11 @@ void do_cmd_activate(int Ind, int item)
 
 	/* Activate the object */
 	(void)use_object(Ind, o_ptr, item, &ident); 
+}
+void do_cmd_activate_dir(int Ind, int item, int dir)
+{
+	if (dir > 0)
+		Players[Ind]->command_dir = dir; 
+
+	do_cmd_activate(Ind, item); 
 }

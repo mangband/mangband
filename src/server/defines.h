@@ -77,7 +77,7 @@
 #define ITF_FUEL 	0x04 /* Can be used as fuel */
 #define ITF_FLAG_0 	0x08 
 
-#define ITF_FLAG_1 	0x10 /* Variant-specific */
-#define ITF_FLAG_2 	0x20 /* Variant-specific */
-#define ITF_FLAG_3 	0x40
-#define ITF_FLAG_4 	0x80
+#define ITF_FLAG_1 	ITEM_ASK_AIM  /* Reserved */ 
+#define ITF_FLAG_2 	ITEM_ASK_ITEM /* Reserved */
+#define ITF_FLAG_3 	0x40 /* Variant-specific */
+#define ITF_FLAG_4 	0x80 /* Variant-specific */

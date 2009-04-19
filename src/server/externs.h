@@ -520,10 +520,11 @@ extern void do_cmd_read_scroll_end(int Ind, int item, bool ident);
 extern void do_cmd_aim_wand(int Ind, int item, int dir);
 extern void do_cmd_use_staff(int Ind, int item);
 extern void do_cmd_use_staff_discharge(int Ind, int item, bool ident);
+extern void do_cmd_zap_rod_pre(int Ind, int item, int dir);
 extern void do_cmd_zap_rod(int Ind, int item);
 extern void do_cmd_zap_rod_discharge(int Ind, int dir, bool ident);
 extern void do_cmd_activate(int Ind, int item);
-extern void do_cmd_activate_dir(int Ind, int dir);
+extern void do_cmd_activate_dir(int Ind, int item, int dir);
 
 /* control.c */
 extern void NewConsole(int fd, int arg);
