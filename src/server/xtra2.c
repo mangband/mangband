@@ -5076,6 +5076,9 @@ void do_cmd_social(int Ind, int dir, int i)
 	}
 	i -= (i / SPELLS_PER_BOOK / 3) * (SPELLS_PER_BOOK - 1);
 
+	/* Check bounds */
+	if ((i < 0) || (i >= max_socials)) return;
+
 	s_ptr = &socials[i];
 
 	if (catch && s_ptr->min_victim_position != 0)
