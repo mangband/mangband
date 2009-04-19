@@ -221,6 +221,8 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 			i = A2I(choice);
 			if (i >= num) i = -1;
 		}
+		/* not a letter */
+		else i = -1;
 
 		/* Totally Illegal */
 		if (i < 0)
