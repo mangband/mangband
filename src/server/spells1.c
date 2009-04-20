@@ -4068,6 +4068,23 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		
 		break;
 		
+		case GF_OLD_SLEEP:
+
+		if (fuzzy) msg_print(Ind, "Something makes you very sleepy!");
+		else msg_format(Ind, "%^s makes you very sleepy!", killer);
+
+		if (p_ptr->free_act)
+		{
+			msg_print(Ind, "You are unaffected!");
+		}
+		else if (rand_int(100) < p_ptr->skill_sav)
+		{
+			msg_print(Ind, "You resist the effects!");
+		}
+		else set_paralyzed(Ind, p_ptr->paralyzed + 1 + randint(6));
+
+		break;
+
 		case GF_TURN_ALL:
 		
 		if (fuzzy) msg_print(Ind, "Something mumbles, and you hear scary noises!");
