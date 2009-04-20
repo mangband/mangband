@@ -117,7 +117,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		0, "Takeoff which item? "
 	},
 	{ /* Drop Item */
-		'd', PKT_TAKE_OFF, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
+		'd', PKT_DROP, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? "
 	},
