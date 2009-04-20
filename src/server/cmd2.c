@@ -3824,6 +3824,10 @@ void do_cmd_throw(int Ind, int item, int dir)
 		return;	
 	}	
 
+	/* Get a direction (or cancel) */
+	p_ptr->command_dir = dir;
+	if (!get_aim_dir(Ind, &dir)) return;
+
 	/* Create a "local missile object" */
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
