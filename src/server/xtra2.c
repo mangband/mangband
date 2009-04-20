@@ -4214,7 +4214,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 	bool prompt_int = FALSE; /* Display info about interesting grid */
 
 	char info[80];
+	int old_target = 0;
 
+	/* Hack -- remember "Old Target" */
+	if (!(mode & TARGET_LOOK) && option_p(p_ptr,USE_OLD_TARGET) && (p_ptr->target_set && p_ptr->target_who)) 
+	{
+		old_target = p_ptr->target_who;
+	}
 
 	/* Cancel target */
 	target_set_monster(Ind, 0);
@@ -4235,6 +4241,22 @@ bool target_set_interactive(int Ind, int mode, char query)
 	
 	/* Prepare the "temp" array */
 	target_set_interactive_prepare(Ind, mode);
+	
+	/* Hack -- restore "Old Target" if it's still ok */
+	if (!(p_ptr->target_flag & TARGET_GRID) && old_target && p_ptr->target_n) 
+	{
+		Depth = p_ptr->dun_depth;
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			y = p_ptr->target_y[i];
+			x = p_ptr->target_x[i];
+			if ((cave[Depth][y][x].m_idx == old_target) && target_able(Ind, cave[Depth][y][x].m_idx))
+			{
+				p_ptr->look_index = i;			
+				break;
+			}
+		}
+	}
 
 	/* No targets */
 	if (!(p_ptr->target_flag & TARGET_GRID) && !p_ptr->target_n)

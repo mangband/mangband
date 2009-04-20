@@ -3380,9 +3380,9 @@ void do_cmd_fire(int Ind, int item, int dir)
     if ((o_ptr->sval == SV_AMMO_MAGIC) || artifact_p(o_ptr))
 	magic = TRUE;
 
-	/* Only fire in direction 5 if we have a target */
-	if ((dir == 5) && !target_okay(Ind))
-		return;
+	/* Get a direction (or cancel) */
+	p_ptr->command_dir = dir;
+	if (!get_aim_dir(Ind, &dir)) return;
 
 	/* Create a "local missile object" */
 	throw_obj = *o_ptr;

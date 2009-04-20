@@ -146,7 +146,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 	{ /* Aim wand */
 		'a', PKT_AIM_WAND, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
 		TV_WAND, "Aim which wand? "
 	},
 	{ /* Use staff */
