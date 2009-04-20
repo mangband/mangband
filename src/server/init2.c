@@ -411,7 +411,15 @@ static cptr err_str[8] =
 	"non-sequential records",
 	"invalid flag specification",
 	"undefined directive",
-	"out of memory"
+	"out of memory",
+	"value out of bounds",
+	"too few arguments",
+	"too many arguments",
+	"too many allocation entries",
+	"invalid spell frequency",
+	"invalid number of items (0-99)",
+	"too many entries",
+	"vault too big",
 };
 
 
