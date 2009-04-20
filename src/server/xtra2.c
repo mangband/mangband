@@ -3472,8 +3472,11 @@ bool target_okay(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
+	/* No target */
+	if (!p_ptr->target_set) return (FALSE);	
+		
 	/* Accept stationary targets */
-	if (p_ptr->target_who > MAX_M_IDX) return (TRUE);
+	if (p_ptr->target_who == 0) return (TRUE);
 
 	/* Check moving monsters */
 	if (p_ptr->target_who > 0)
@@ -4265,7 +4268,8 @@ bool target_set_interactive(int Ind, int mode, char query)
 		if (!(query == ESCAPE || query == 'q'))
 			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, 
 			"Nothing to target. [p, ESC]");
-		return FALSE;
+		if (query != 'p')
+			return FALSE;
 #else
 		/* "Emulate Angband" Hack -- switch to manual targeting */ 
 		query = 'p';
