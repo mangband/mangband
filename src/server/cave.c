@@ -539,7 +539,13 @@ int player_pict(int Ind, int who)
 
 		/* Get the "player" attr */
 		a = player_color(who);
-		
+
+		/* MEGAHACK -- Hilite party leader! */
+		if (p_ptr->party && option_p(p_ptr,HILITE_LEADER) &&
+			player_in_party(p_ptr->party, who) && 
+			streq(parties[p_ptr->party].owner, q_ptr->name))
+		a = TERM_YELLOW;
+
 		/* Handle himself -- can we say code duplication? Yes! */
 		if (who == Ind) 
 		{

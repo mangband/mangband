@@ -1989,6 +1989,8 @@ option_type option_info[] =
 	{ OPT_INFO(AVOID_OTHER),      	FALSE,	4,	0, 0,
 	"avoid_other",      		"Avoid processing weird colors" },
 
+	{ OPT_INFO(HILITE_LEADER),     	FALSE,	4,	0, 0,
+	"hilite_leader",      		"Use special color for party leader" },
 
 	/*** Hidden Options ***/
 	{ OPT_INFO(USE_COLOR),    		TRUE,	0,	0, 0,
