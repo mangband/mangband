@@ -1219,6 +1219,9 @@ static int sync_settings(int ind)
 		Send_term_resize_ack(ind);
 	}
 	
+	/* Set hitpoint warning */
+	p_ptr->hitpoint_warn = connp->Client_setup.settings[3];
+	
 	return 1;
 }
 /*

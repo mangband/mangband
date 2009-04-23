@@ -535,8 +535,8 @@ void take_hit(int Ind, int damage, cptr hit_from)
 {
 	player_type *p_ptr = Players[Ind];
 
-	// This is probably unused
-	int warning = 0;//(p_ptr->mhp * p_ptr->hitpoint_warn / 10);
+	int old_chp = p_ptr->chp;
+	int warning = (p_ptr->mhp * p_ptr->hitpoint_warn / 10);
 
 	// The "number" that the character is displayed as before the hit
 	int old_num = (p_ptr->chp * 95) / (p_ptr->mhp*10); 
@@ -620,9 +620,11 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		/* Hack -- bell on first notice */
 		/*if (alert_hitpoint && (old_chp > warning)) bell();*/
 
-		/* Message */
-		msg_print(Ind, "*** LOW HITPOINT WARNING! ***");
-		msg_print(Ind, NULL);
+		/* HACK -- Message on first notice*/
+		if (option_p(p_ptr,ALERT_HITPOINT) && (old_chp > warning)) {
+			msg_print(Ind, "*** LOW HITPOINT WARNING! ***");
+			msg_print(Ind, NULL);
+		}
 	}
 }
 

@@ -1283,6 +1283,7 @@ struct player_type
 	monster_lore old_l; /* Old monster lore (for delta checks) */
 
 	bool options[MAX_OPTIONS];	/* Player's options */
+	byte hitpoint_warn;
 	byte d_attr[MAX_K_IDX];
 	char d_char[MAX_K_IDX];
 	byte f_attr[MAX_F_IDX];

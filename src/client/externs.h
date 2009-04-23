@@ -81,8 +81,6 @@ extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;
 
-extern byte hitpoint_warn;
-
 extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;

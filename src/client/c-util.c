@@ -3056,8 +3056,20 @@ void do_cmd_options(void)
 		}
 
 		/* Window flags */
-		col += 2;
-		prt("(W) Window flags", col, 5);
+		col += 1;
+		prt("(W) Window flags", col++, 5);
+
+		/* Load and Append
+		col += 1;
+		prt("(L) Load a user pref file", col++, 5);
+		prt("(A) Append options to a file", col++, 5); */
+
+		/* Special choices */
+		col += 1;
+		/* prt("(D) Base Delay Factor", col++, 5); */
+		prt("(H) Hitpoint Warning", col++, 5);
+
+
 
 		/* Prompt */
 		col += 2;
@@ -3074,7 +3086,7 @@ void do_cmd_options(void)
 		{
 			i = D2I(k);
 			/* Unknown digit ? */
-			if (i > options_groups_max + label) 
+			if (i >= options_groups_max + label) 
 			{
 				/* Oops */
 				bell();
@@ -3099,6 +3111,27 @@ void do_cmd_options(void)
 			do_cmd_options_win();
 		}
 
+		/* Hack -- hitpoint warning factor */
+		else if ((k == 'H') || (k == 'h'))
+		{
+			/* Prompt */
+			prt("Command: Hitpoint Warning", col, 0);
+
+			/* Get a new value */
+			while (1)
+			{
+				char cx;
+				prt(format("Current hitpoint warning: %2d%%",
+				           p_ptr->hitpoint_warn * 10), col+2, 0);
+				prt("New hitpoint warning (0-9 or ESC to accept): ", col+1, 0);
+
+				cx = inkey();
+				if (cx == ESCAPE) break;
+				if (isdigit((unsigned char)cx)) p_ptr->hitpoint_warn = D2I(cx);
+				else bell();/*"Illegal hitpoint warning!");*/
+			}
+		}
+
 		/* Unknown option */
 		else
 		{
@@ -3115,7 +3148,11 @@ void do_cmd_options(void)
 	screen_icky = FALSE;
 	Flush_queue();
 
-
+	/* HACK -- hitpoint warning changed */
+	if (p_ptr->hitpoint_warn != Client_setup.settings[3]) {
+		Client_setup.settings[3] = p_ptr->hitpoint_warn;
+		Send_options(TRUE); 
+	} else
 	/* Resend options to server */
 	Send_options(FALSE);
 

@@ -56,8 +56,6 @@ player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
 
-byte hitpoint_warn;
-
 s16b command_see;
 s16b command_gap;
 s16b command_wrk;

@@ -1955,6 +1955,9 @@ option_type option_info[] =
 	{ OPT_INFO(DISTURB_OTHER),		TRUE,	3,	0, 0,
 	"disturb_other",    		"Disturb whenever various things happen" },
 
+	{ OPT_INFO(ALERT_HITPOINT),		FALSE,	3,	0, 0,
+	"alert_hitpoint",    		"Display a message whenever hit points are low" },
+
 	/*** Lighting Options ***/
 	{ OPT_INFO(VIEW_PERMA_GRIDS),    	TRUE,	4,	0, 0,
 	"view_perma_grids", 		"Map remembers all perma-lit grids" },

@@ -964,6 +964,23 @@ errr process_pref_file_command(char *buf)
 			return (0);
         }
 
+	/* MAngband-specific hack: read hitpoint warning */
+	else if (buf[0] == 'H')
+	{
+		if (tokenize(buf + 2, 1, zz) == 1)
+		{
+			i = strtol(zz[0], NULL, 0);
+			
+			/* Bounds */
+			if (i < 0) i = 0;
+			if (i > 9) i = 9;
+			
+			p_ptr->hitpoint_warn = i;		
+		}
+		/* Whatever the value is, we accept it */
+		return (0);				
+	}
+
 	/* Process "W:<num>:<use>" -- specify window action */
 	else if (buf[0] == 'W')
 	{
@@ -1116,6 +1133,9 @@ errr Save_options(void)
 			fprintf(fp, "\n");
 		last_page = option_info[i].o_page;
     }
+
+	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
+	fprintf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
 
 	/* Close the file */
 	my_fclose(fp);

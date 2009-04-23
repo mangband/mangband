@@ -178,7 +178,6 @@ static void prt_cur_hp(int row, int col)
 	char tmp[32];
 
 	byte color;
-	hitpoint_warn = 1; /* TODO: Make it a real option */
 
 	put_str("Cur HP ", row, col);
 
@@ -188,7 +187,7 @@ static void prt_cur_hp(int row, int col)
 	{
 		color = TERM_L_GREEN;
 	}
-	else if (p_ptr->chp > (p_ptr->mhp * hitpoint_warn) / 10)
+	else if (p_ptr->chp > (p_ptr->mhp * p_ptr->hitpoint_warn) / 10)
 	{
 		color = TERM_YELLOW;
 	}
