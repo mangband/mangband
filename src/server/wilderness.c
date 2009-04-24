@@ -783,17 +783,16 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 
 
 	/* hack -- restore the old object selection function */
-		
 	get_obj_num_hook = NULL;
 	get_obj_num_prep();
-	
+
+
 	/* add the inhabitants */
-	
 	if (at_home)
 	{
 		/* determine the home owners species*/
 		get_mon_num_hook = wild_monst_aux_home_owner;
-		get_mon_num_prep();		
+		get_mon_num_prep();
 		/* homeowners can be tough */
 		r_idx = get_mon_num(w_ptr->radius);
 		
@@ -802,11 +801,10 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 		y = rand_range(y1,y2)+rand_int(16)-8;
 		
 		/* place the owner */
-		
 		place_monster_aux(Depth, y,x, r_idx, FALSE, FALSE);
 	}
-	
-	
+
+
 	/* add the invaders */	
 	if (taken_over)
 	{	
@@ -824,7 +822,14 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 			}
 		}
 	}
-	
+
+	/* hack -- restore the monster selection function */
+	if (taken_over || at_home)
+	{
+		get_mon_num_hook = NULL;
+		get_mon_num_prep();	
+	}
+
 	/* hack -- restore the RNG */
 	Rand_value = old_seed;
 }
