@@ -265,7 +265,7 @@ struct hostile_type
 
 struct channel_type
 {
-	char name[MAX_CHAN_LEN];
+	char name[MAX_CHARS];
 	s32b id;
 	s32b num;
 };

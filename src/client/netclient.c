@@ -2686,7 +2686,7 @@ int Receive_channel(void)
 {
 	int n, j, free = -1;
 	byte i;
-	char ch, buf[MAX_CHAN_LEN];
+	char ch, buf[MAX_CHARS];
 
 	if ((n = Packet_scanf(&rbuf, "%c%c%s", &ch, &i, buf)) <= 0)
 	{

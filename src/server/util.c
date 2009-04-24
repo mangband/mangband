@@ -3063,6 +3063,7 @@ void player_talk_aux(int Ind, cptr message)
 			/* Channel name followed by text? Extract the channel name */
 			strncpy(tmp_chan, message, chan_prefix - message);
 			tmp_chan[chan_prefix - message] = '\0';
+			dest_chan = -1;
 			for (i = 0; i < MAX_CHANNELS; i++)
 			{
 				if (!strcmp(channels[i].name, tmp_chan))
@@ -3112,6 +3113,11 @@ void player_talk_aux(int Ind, cptr message)
 		{
 			assist_whisper(Ind, search);
 			return;
+		}
+		/* Hack -- empty 'party hinter' hints to own party */		
+		if (search[0] == '^' && p_ptr->party && search[1] == '\0')
+		{
+			strcpy(search, parties[p_ptr->party].name);
 		}
 		if (!(target = find_chat_target(search, error)))
 		{
@@ -3203,6 +3209,9 @@ void player_talk_aux(int Ind, cptr message)
 		/* Done */
 		return;
 	}
+
+	/* Total failure... */
+	if (dest_chan == -1) return;
 
 	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)

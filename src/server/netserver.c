@@ -4997,6 +4997,7 @@ static int Receive_channel(int ind)
 	}
 	else if (buf[0] == '#')
 	{
+		buf[MAX_CHAN_LEN] = '\0';
 		channel_join(player, buf, TRUE);
 		/* Hack: Secondary channel */
 		Players[player]->second_channel[0] = '\0';
