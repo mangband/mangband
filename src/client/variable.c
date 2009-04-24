@@ -18,8 +18,9 @@ char floor_name[80]; 	/* Client-side copy of floor item */
 
 store_type store;			/* The general info about the current store */
 owner_type store_owner;			/* The current owner of the store */
-char player_owner[MAX_NAME_LEN]; /* The store owner for player owned stores */
-char player_store_name[MAX_CHARS];			/* Shop name for player owned stores */
+char store_owner_name[MAX_CHARS]; /* Shop owner name */
+char store_name[MAX_CHARS];			/* Shop name */
+byte store_flag = 0;  		 	/* Shop type */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
 char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
@@ -40,6 +41,7 @@ char health_track_num;
 byte health_track_attr;
 
 bool shopping;				/* Are we in a store? */
+bool leave_store; 		/* Time to leave store */
 
 s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
@@ -73,6 +75,8 @@ bool special_line_onscreen = TRUE;
 bool inkey_base = FALSE;
 bool inkey_scan = FALSE;
 bool inkey_flag = FALSE;
+
+bool inkey_exit = FALSE;
 
 bool first_escape = FALSE;
 

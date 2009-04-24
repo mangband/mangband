@@ -120,7 +120,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_SPECIAL_OTHER]	= Receive_special_other;
 	receive_tbl[PKT_STORE]		= Receive_store;
 	receive_tbl[PKT_STORE_INFO]	= Receive_store_info;
-	receive_tbl[PKT_PLAYER_STORE_INFO]	= Receive_player_store_info;
+	receive_tbl[PKT_STORE_LEAVE]	= Receive_store_leave;
 	receive_tbl[PKT_SELL]		= Receive_sell;
 	receive_tbl[PKT_TARGET_INFO]	= Receive_target_info;
 	receive_tbl[PKT_SOUND]		= Receive_sound;
@@ -2154,6 +2154,12 @@ int Receive_term_info(void)
 			Flush_queue();
 			Term_fresh();
 			break;
+		case NTERM_HOLD:
+			if (arg == 0) 
+			{
+				inkey_exit = TRUE;			
+			}
+			break;
 	}
 	return 1;
 } 
@@ -2346,24 +2352,18 @@ int Receive_store_info(void)
 {
 	int	n;
 	char	ch;
-	s16b	owner_num, num_items;
+	s16b	num_items;
+	s32b	max_cost;
+	byte 	flag;
 
-	if ((n = Packet_scanf(&rbuf, "%c%hd%hd%hd", &ch, &store_num, &owner_num, &num_items)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c%c%s%s%hd%ld", &ch, &flag, store_name, store_owner_name, &num_items, &max_cost)) <= 0)
 	{
 		return n;
 	}
 
+	store_flag = flag;
 	store.stock_num = num_items;
-	/* The shopkeeper of the BM looks after his "back room" */
-	if (store_num != 8)
-	{
-		store_owner = owners[store_num][owner_num];
-	}
-	else
-	{
-		/* BM shopkeeper looks after this */
-		store_owner = owners[6][owner_num];
-	}
+	store_owner.max_cost = max_cost;
 
 	/* Only enter "display_store" if we're not already shopping */
 	if (!shopping)
@@ -2374,25 +2374,21 @@ int Receive_store_info(void)
 	return 1;
 }
 
-int Receive_player_store_info(void)
+int Receive_store_leave(void)
 {
 	int	n;
 	char	ch;
-	s16b	num_items;// owner_num;
 
-	if ((n = Packet_scanf(&rbuf, "%c%s%s%hd", &ch, player_store_name, player_owner, &num_items)) <= 0)
+	if ((n = Packet_scanf(&rbuf, "%c", &ch)) <= 0)
 	{
 		return n;
 	}
 
-	store_num = 8;
-	store.stock_num = num_items;
-
-	/* Only enter "display_store" if we're not already shopping */
-	if (!shopping)
-		display_store();
-	else
-		display_inventory();
+	if (shopping)
+	{
+		leave_store = TRUE;
+		inkey_exit = TRUE; /* Cancel input */
+	}
 
 	return 1;
 }

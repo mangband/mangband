@@ -457,6 +457,11 @@
 #define STORE_MAX_KEEP	36		/* Max slots to "always" keep full */
 #define STORE_SHUFFLE	35		/* 1/Chance (per day) of an owner changing */
 #define STORE_TURNS	250		/* Number of turns between turnovers */
+/* MAngband-specific: */
+#define	STORE_NPC	0x01
+#define	STORE_PC	0x02
+#define	STORE_HOME	0x04
+#define	STORE_OWN	0x08
 
 
 /*

@@ -1419,7 +1419,18 @@ byte old_blows_table[11][12] =
  * Store owners (exactly four "possible" owners per store, chosen randomly)
  * { name, purse, max greed, min greed, haggle_per, tolerance, race, unused }
  */
-
+cptr store_names[MAX_STORES] = 
+{
+	"General store",
+	"Armoury",
+	"Weapon Smith",
+	"Temple",
+	"Alchemist",
+	"Magic Shop",
+	"Black Market",
+	"Your home",
+	"The Back Room"
+};
 /* Store price maxes (purse) have now been increased by 5x from Angband 3.0.6 */
 owner_type owners[MAX_STORES][MAX_OWNERS] =
 {

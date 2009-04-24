@@ -2945,7 +2945,7 @@ int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cpt
 	return Packet_printf(&connp->c, "%c%c%c%hd%hd%d%s", PKT_STORE, pos, attr, wgt, number, price, name);
 }
 
-int Send_store_info(int ind, int num, int owner, int items)
+int Send_store_info(int ind, byte flag, cptr name, char *owner, int items, long purse)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
 
@@ -2959,24 +2959,7 @@ int Send_store_info(int ind, int num, int owner, int items)
 		return 0;
 	}
 
-    return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_STORE_INFO, num, owner, count);
-}
-
-int Send_player_store_info(int ind, char *name, char *owner, int items)
-{
-	connection_t *connp = &Conn[Players[ind]->conn];
-
-    int count = items;
-
-	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
-	{
-		errno = 0;
-		plog(format("Connection not ready for store info (%d.%d.%d)",
-			ind, connp->state, connp->id));
-		return 0;
-	}
-
-    return Packet_printf(&connp->c, "%c%s%s%hd", PKT_PLAYER_STORE_INFO, name, owner, count);
+    return Packet_printf(&connp->c, "%c%c%s%s%hd%ld", PKT_STORE_INFO, flag, name, owner, count, purse);
 }
 
 int Send_store_sell(int ind, int price)
@@ -2992,6 +2975,21 @@ int Send_store_sell(int ind, int price)
 	}
 
 	return Packet_printf(&connp->c, "%c%d", PKT_SELL, price);
+}
+
+int Send_store_leave(int ind)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for store leave (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+    return Packet_printf(&connp->c, "%c", PKT_STORE_LEAVE);
 }
 
 int Send_target_info(int ind, int x, int y, cptr str)
@@ -5094,6 +5092,9 @@ static int Receive_store_leave(int ind)
 	}
 
 	if (!player) return -1;
+	
+	/* Already left */
+	if (p_ptr->store_num == -1) return 1;
 
         /* Update stuff */
         p_ptr->update |= (PU_VIEW | PU_LITE);

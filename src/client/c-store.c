@@ -4,7 +4,6 @@
 
 #include "angband.h"
 
-static bool leave_store;
 static int store_top;
 
 static void display_entry(int pos)
@@ -386,7 +385,6 @@ static void store_process_command(void)
 void display_store(void)
 {
 	char buf[1024];
-	cptr feature = "feature variable";
 	
 	/* The screen is "icky" */
 	screen_icky = TRUE;
@@ -397,36 +395,22 @@ void display_store(void)
 	/* Clear screen */
 	Term_clear();
 
-	/* Find the "store name" */
-	switch (store_num)
+	/* Store name and owner (race) */
+	if (store_flag & STORE_NPC)
 	{
-		case 0: feature = "General store"; break;
-		case 1: feature = "Armoury"; break;
-		case 2: feature = "Weapon Smith"; break;
-		case 3: feature = "Temple"; break;
-		case 4: feature = "Alchemist"; break;
-		case 5: feature = "Magic Shop"; break;
-		case 6: feature = "Black Market"; break;
-		case 7: feature = "Your home"; break;
-		case 8: feature = "The Back Room"; break;
-	}	
-	
-	/* Put the owner name and race */
-	if (store_num != 8)
-	{
-		sprintf(buf, "%s (%s)", store_owner.owner_name, p_name + race_info[store_owner.owner_race].name);
+		/* NPC store */
+		sprintf(buf, "%s", store_owner_name);		
 		put_str(buf, 3, 10);
 
 		/* Show the max price in the store (above prices) */
-		sprintf(buf, "%s (%ld)", feature, (long)(store_owner.max_cost));
-		prt(buf, 3, 50);
-
+		sprintf(buf, "%s (%ld)", store_name, (long)(store_owner.max_cost));
+		prt(buf, 3, 50);		
 	}
-	else
+	else if (store_flag & STORE_PC)
 	{
 		/* A player owned store */
-		sprintf(buf, "%s's %s", player_owner, player_store_name );
-		put_str(buf, 3, 10);		
+		sprintf(buf, "%s's %s", store_owner_name, store_name );
+		put_str(buf, 3, 10);	
 	}
 
 	/* Label the item descriptions */
@@ -479,7 +463,7 @@ void display_store(void)
                 }
 
                 /* Home commands */
-                if (store_num == 7)
+                if (store_flag & STORE_HOME)
                 {
                         prt(" g) Get an item.", 22, 30);
                         prt(" d) Drop an item.", 23, 30);
@@ -490,7 +474,7 @@ void display_store(void)
                 {
                         prt(" p) Purchase an item.", 22, 30);
 						/* We don't sell things in some shops  */
-						if (store_num != 8)
+						if (!(store_flag & STORE_PC))
 						{
                         	prt(" s) Sell an item.", 23, 30);
                         }
@@ -501,7 +485,7 @@ void display_store(void)
                 prt("You may: ", 21, 0);
 
 		/* Get a command */
-		while (!command_cmd)
+		while (!command_cmd && !leave_store)
 		{
 			/* Re-fresh the screen */
 			Term_fresh();
@@ -537,9 +521,12 @@ void display_store(void)
 				window_stuff();
 			}
 		}
-
-                /* Process the command */
-                store_process_command();
+		
+		if (command_cmd)
+		{
+			/* Process the command */
+			store_process_command();
+		}
 
 		/* Clear the old command */
 		command_cmd = 0;

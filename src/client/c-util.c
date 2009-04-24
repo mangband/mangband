@@ -245,6 +245,9 @@ static char inkey_aux(void)
 		}
 
 
+		/* Unset hack before we start */
+		inkey_exit = FALSE;
+
 		/* Wait for keypress, while also checking for net input */
 		do
 		{
@@ -283,6 +286,13 @@ static char inkey_aux(void)
 				{
 					window_stuff();
 				}
+			}
+
+			/* Hack: perform emergency network-ordered escape */
+			if (inkey_exit)
+			{
+				inkey_exit = FALSE;
+				return (ESCAPE);
 			}
 		} while (!ch);
 	}

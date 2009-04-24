@@ -12,11 +12,10 @@
  * Not-so-Automatically generated "variable" declarations
  */
 
-/* tables.c */
+/* c-tables.c */
 extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
-extern owner_type owners[MAX_STORES][MAX_OWNERS];
 extern option_type local_option_info[MAX_OPTIONS];
 extern cptr local_option_group[];
 extern cptr stat_names[6];
@@ -49,8 +48,9 @@ extern char floor_name[80];
 
 extern store_type store;
 extern owner_type store_owner;
-extern char player_owner[MAX_NAME_LEN];
-extern char player_store_name[MAX_CHARS];
+extern char store_owner_name[MAX_CHARS];
+extern char store_name[MAX_CHARS];
+extern byte store_flag;
 extern int store_prices[STORE_INVEN_MAX];
 extern char store_names[STORE_INVEN_MAX][80];
 extern s16b store_num;
@@ -69,6 +69,7 @@ char health_track_num;
 byte health_track_attr;
 
 extern bool shopping;
+extern bool leave_store;
 
 extern s16b last_line_info;
 extern s16b cur_line;
@@ -98,6 +99,8 @@ extern bool special_line_onscreen;
 extern bool inkey_base;
 extern bool inkey_scan;
 extern bool inkey_flag;
+
+extern bool inkey_exit;
 
 extern bool first_escape;
 

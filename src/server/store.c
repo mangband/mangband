@@ -1172,15 +1172,18 @@ static void display_store(int Ind)
 	/* Send the store info for normal stores */
 	if (p_ptr->store_num != 8)
 	{
-		Send_store_info(Ind, p_ptr->store_num, st_ptr->owner, stockcount);
+		owner_type *sto_ptr = owners[st_ptr->owner];
+		sprintf(store_name, "%s (%s)", sto_ptr->owner_name, p_name + p_info[sto_ptr->owner_race].name); 
+		Send_store_info(Ind, (STORE_NPC), &store_names[p_ptr->store_num][0], 
+			store_name, stockcount, sto_ptr->max_cost);
 	}
 	/* Player owned stores */
 	else
 	{
 		/* Get the store name if any */
 		get_player_store_name(p_ptr->player_store_num, &store_name[0]);
-		Send_player_store_info(Ind, store_name, 
-			houses[p_ptr->player_store_num].owned, stockcount);		
+		Send_store_info(Ind, (STORE_PC), store_name, 
+			houses[p_ptr->player_store_num].owned, stockcount, 0);		
 	}
 
 }
