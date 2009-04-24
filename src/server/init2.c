@@ -402,7 +402,7 @@ u32b fake_text_size;
 /*
  * Standard error message text
  */
-static cptr err_str[8] =
+static cptr err_str[PARSE_ERROR_MAX] =
 {
 	NULL,
 	"parse error",
