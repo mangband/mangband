@@ -3621,18 +3621,17 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Player cannot hurt himself */
 	if (0 - who == Ind) return (FALSE);
 
+	/* Hack -- Never do excessive damage */
+	if (dam > 1600) dam = 1600;
+
 	/* Extract radius */
 	div = r + 1;
 
 	/* Decrease damage */
-	dam = dam / div;
-
+	dam = (dam + r) / div;
 
 	/* Hack -- always do at least one point of damage */
 	if (dam <= 0) dam = 1;
-
-	/* Hack -- Never do excessive damage */
-	if (dam > 1600) dam = 1600;
 
 
 	/* If the player is blind, be more descriptive */
