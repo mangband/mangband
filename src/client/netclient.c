@@ -1643,7 +1643,7 @@ int Receive_char(void)
 		}
 	}
 
-	if (screen_icky || section_icky_row) draw = FALSE;
+	if (screen_icky || section_icky_row || shopping) draw = FALSE;
 	if (section_icky_row)
 	{
 		if (y >= section_icky_row) draw = TRUE;
@@ -2227,6 +2227,9 @@ int Receive_line_info(void)
 				rle_decode(&rbuf, p_ptr->trn_info[y]+DUNGEON_OFFSET_X, cols, RLE_LARGE);
 
 			draw = !screen_icky;
+			
+			/* Ugly Hack - Shopping */
+			if (shopping) draw = FALSE;
 
 			/* Hang on! Icky section! */
 			if (section_icky_row && y < section_icky_row)

@@ -463,7 +463,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 					screen_icky = FALSE;
 
 					/* Flush any events */
-					Flush_queue();
+					if (!shopping)
+						Flush_queue();
 				}
 				break;
 			}
@@ -490,7 +491,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				if (command_see)
 				{
 					Term_load();
-					Flush_queue();
+					if (!shopping)
+						Flush_queue();
 					Term_save();
 				}
 
@@ -642,7 +644,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	topline_icky = FALSE;
 
 	/* Flush any events */
-	Flush_queue();
+	if (!shopping)
+		Flush_queue();
 
 	/* Hack -- Cancel "display" */
 	command_see = FALSE;
