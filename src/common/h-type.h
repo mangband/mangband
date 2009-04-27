@@ -124,9 +124,11 @@ typedef unsigned short u16b;
 #ifdef L64	/* 64 bit longs */
 typedef signed int s32b;
 typedef unsigned int u32b;
+#define fmt32b "%d"
 #else
 typedef signed long s32b;
 typedef unsigned long u32b;
+#define fmt32b "%ld"
 #endif
 
 

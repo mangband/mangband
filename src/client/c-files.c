@@ -1722,7 +1722,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 void conf_set_int(cptr section, cptr name, s32b value)
 {
 	char s_value[100];
-	sprintf(s_value, "%ld", value);
+	sprintf(s_value, fmt32b, value);
 	WritePrivateProfileString(section, name, s_value, config_name);
 }
 #else
@@ -1855,7 +1855,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 void conf_set_int(cptr section, cptr name, s32b value)
 {
 	char s_value[100];
-	sprintf(s_value, "%ld", value);
+	sprintf(s_value, "%d", value);
 	conf_set_string(section, name, s_value);
 }
 /* 
@@ -1865,7 +1865,7 @@ void conf_set_int(cptr section, cptr name, s32b value)
  * Not recommended for external usage, use "conf_get_int" and
  * "conf_get_string" instead.
  */
-int conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
+long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 {
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;
@@ -1880,19 +1880,19 @@ int conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 				{
 					if (is_int)
 						return atoi(v_ptr->value);
-					return (int)v_ptr->value;
+					return (long)v_ptr->value;
 				}
 			}
 		}
 	}
 	if (is_int)
 		return atoi(default_value);
-	return (int)default_value;
+	return (long)default_value;
 }
 s32b conf_get_int(cptr section, cptr name, s32b default_value)
 {
 	char v_value[100];
-	sprintf(v_value, "%ld", default_value);
+	sprintf(v_value, fmt32b, default_value);
 	return (u32b)conf_get_value(section, name, v_value, TRUE);
 }
 cptr conf_get_string(cptr section, cptr name, cptr default_value)
