@@ -7,7 +7,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband Server"
-!define PRODUCT_VERSION "1.1.2 (alpha)"
+!define PRODUCT_VERSION "1.1.2"
 !define VER "112"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
