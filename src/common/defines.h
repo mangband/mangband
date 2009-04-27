@@ -47,7 +47,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define VERSION_EXTRA	1
+#define VERSION_EXTRA	0
 
 
 /*
