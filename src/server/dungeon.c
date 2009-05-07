@@ -918,20 +918,30 @@ static void player_track_monster(int Ind)
 static void process_player_begin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int energy;
 
 	/* Increment turn count */
 	p_ptr->turn++;
 
+	/* How much energy should we get? */
+	energy = extract_energy[p_ptr->pspeed];
+	
+	/* Scale depending upon our time bubble */
+	p_ptr->bubble_speed = time_factor(Ind);
+	energy = energy * ((float)p_ptr->bubble_speed / 100);
+	
+	/* In town, give everyone a RoS when they are running */
+	if ((!p_ptr->dun_depth) && (p_ptr->running))
+	{
+		energy = energy * ((float)RUNNING_FACTOR / 100);
+	}
+
 	/* Give the player some energy */
-	p_ptr->energy += extract_energy[p_ptr->pspeed];
+	p_ptr->energy += energy;
 
 	/* Make sure they don't have too much */
-	/* But let them store up some extra */
-	/* Storing up extra energy lets us perform actions while we are running */
-	//if (p_ptr->energy > (level_speed(p_ptr->dun_depth)*6)/5)
-	//	p_ptr->energy = (level_speed(p_ptr->dun_depth)*6)/5;
-	if (p_ptr->energy > (level_speed(p_ptr->dun_depth)*2) - 1)
-		p_ptr->energy = (level_speed(p_ptr->dun_depth)*2) - 1;
+	if (p_ptr->energy > (level_speed(p_ptr->dun_depth)))
+		p_ptr->energy = (level_speed(p_ptr->dun_depth));
 
 	/* Check "resting" status */
 	if (p_ptr->resting)
@@ -944,9 +954,6 @@ static void process_player_begin(int Ind)
 	/* Handle paralysis here */
 	if (p_ptr->paralyzed || p_ptr->stun >= 100)
 		p_ptr->energy = 0;
-
-	/* Hack -- semi-constant hallucination (but not in stores) */
-	if (p_ptr->image && p_ptr->store_num == -1 && (randint(10) == 1)) p_ptr->redraw |= (PR_MAP);
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
 	if ((p_ptr->teleport) && (rand_int(100) < 1))
@@ -965,7 +972,7 @@ static void process_player_end(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int	i, j, new_depth, new_world_x, new_world_y;
+	int	i, j, new_depth, new_world_x, new_world_y, time, timefactor;
 	int	regen_amount, NumPlayers_old=NumPlayers;
 	char	attackstatus;
     int minus;
@@ -991,13 +998,18 @@ static void process_player_end(int Ind)
 		}
 	}
 
-	/* Handle running -- 5 times the speed of walking */
-	while (p_ptr->running && p_ptr->energy >= (level_speed(p_ptr->dun_depth)*6)/5)
+	/* If we are are in a slow time condition, give visual warning */
+	timefactor = base_time_factor(Ind,0);
+	if(timefactor < NORMAL_TIME)
 	{
-		run_step(Ind, 0);
-		p_ptr->energy -= level_speed(p_ptr->dun_depth) / 5;
+		lite_spot(Ind, p_ptr->py, p_ptr->px);
 	}
 
+	/* Handle running */
+	if((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && p_ptr->running)
+	{
+		run_step(Ind, 0);
+	}
 
 	/* Notice stuff */
 	if (p_ptr->notice) notice_stuff(Ind);
@@ -1040,14 +1052,67 @@ static void process_player_end(int Ind)
 	}
 
 
-	/* Process things such as regeneration. */
-	/* This used to be processed every 10 turns, but I am changing it to be
-	 * processed once every 5/6 of a "dungeon turn". This will make healing
-	 * and poison faster with respect to real time < 1750 feet and slower >
-	 * 1750 feet.
-	 */
-	if (!(turn%(level_speed(p_ptr->dun_depth)/12)))
+	/* Process things such as regeneration, poison, cuts, etc. */
+	
+	/* Determine basic frequency of regen in game turns */
+	time = level_speed(p_ptr->dun_depth)/1000;
+	
+	/* Scale frequency by players local time bubble */
+	time = time / ((float)timefactor / 100);
+
+	/* Use food, 10 times slower than other regen effects */
+	if ( !(turn % (time*10)) )
 	{
+		/* Ghosts don't need food and noone uses food in town */
+		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
+		{
+			/* Digest normally */
+			if (p_ptr->food < PY_FOOD_MAX)
+			{
+				/* Basic digestion rate based on speed */
+				i = (extract_energy[p_ptr->pspeed]/100) * 2;
+
+				/* Regeneration takes more food */
+				if (p_ptr->regenerate) i += 30;
+
+				/* Slow digestion takes less food */
+				if (p_ptr->slow_digest) i -= 10;
+
+				/* Digest some food */
+				(void)set_food(Ind, p_ptr->food - i);
+
+				/* Hack -- check to see if we have been kicked off
+				 * due to starvation 
+	 */
+
+				if (NumPlayers != NumPlayers_old) return;
+			}
+
+			/* Digest quickly when gorged */
+			else
+	{
+				/* Digest a lot of food */
+				(void)set_food(Ind, p_ptr->food - 100);
+			}
+
+			/* Starve to death (slowly) */
+			if (p_ptr->food < PY_FOOD_STARVE)
+			{
+				/* Calculate damage */
+				i = (PY_FOOD_STARVE - p_ptr->food) / 10;
+
+				/* Take damage */
+				take_hit(Ind, i, "starvation");
+			}
+		}
+	}
+
+	if ( !(turn % time) )
+	{
+
+		/* Semi-constant hallucination (but not in stores) */
+		if (p_ptr->image && p_ptr->store_num == -1) p_ptr->redraw |= (PR_MAP);
+
 		/*** Damage over Time ***/
 
 		/* Take damage from poison */
@@ -1176,16 +1241,15 @@ static void process_player_end(int Ind)
 		}
 
 		/* Resting */
-		if (p_ptr->resting && !p_ptr->searching)
+		if (p_ptr->resting || p_ptr->searching)
 		{
-			regen_amount = regen_amount * 3;
+			regen_amount = regen_amount * 2;
 		}
 
 		/* Regenerate the mana */
-		/* Hack -- regenerate mana 5/3 times faster */
 		if (p_ptr->csp < p_ptr->msp)
 		{
-			regenmana(Ind, (regen_amount * 5) / 3 );
+			regenmana(Ind, regen_amount);
 		}
 
 		/* Poisoned or cut yields no healing */

@@ -497,7 +497,7 @@ int player_pict(int Ind, int who)
 	player_type *q_ptr = Players[who];
 	byte a;
 	char c;
-	int health;
+	int health, timefactor;
 
 	/* Decide on player image */
 	if (p_ptr->use_graphics) 
@@ -555,6 +555,29 @@ int player_pict(int Ind, int who)
 			/* Get the "player" char */
 			c = p_ptr->r_char[0];
 		}
+	}
+	
+	/* If we are in a slow time bubble, give a visual warning */
+	timefactor = base_time_factor(Ind,0);
+	if( (who == Ind) && (timefactor < NORMAL_TIME) )
+	{
+		if( (turn-p_ptr->bubble_change) > (10+((NORMAL_TIME-timefactor))))
+		{
+			p_ptr->bubble_change = turn;
+			if(p_ptr->bubble_colour == TERM_VIOLET)
+			{
+				p_ptr->bubble_colour = p_ptr->r_attr[0];
+			}
+			else
+			{
+				p_ptr->bubble_colour = TERM_VIOLET;
+			}
+		}
+		a = p_ptr->bubble_colour;
+	}
+	else if( who == Ind )
+	{
+		a = p_ptr->r_attr[0];
 	}
 	
 	/* Reflect players current hitpoints in the player symbol */

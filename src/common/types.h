@@ -791,7 +791,7 @@ struct monster_type
 	s16b csleep;		/* Inactive counter */
 
 	byte mspeed;		/* Monster "speed" */
-	s16b energy;		/* Monster "energy" */
+	u16b energy;		/* Monster "energy" */
 
 	byte stunned;		/* Monster is stunned */
 	byte confused;		/* Monster is confused */
@@ -1351,13 +1351,12 @@ struct player_type
 	s16b running;		/* Are we running */
 	byte find_current;	/* These are used for the running code */
 	byte find_prevdir;
+	byte run_request;
 	bool find_openarea;
 	bool find_breakright;
 	bool find_breakleft;
 
 	bool resting;		/* Are we resting? */
-
-	s16b energy_use;	/* How much energy has been used */
 
 	s16b command_dir; /* Direction being used */
 	s16b command_arg; /* Item being used */
@@ -1400,7 +1399,7 @@ struct player_type
 
 	s16b word_recall;	/* Word of recall counter */
 
-	s16b energy;		/* Current energy */
+	u16b energy;		/* Current energy */
 
 	s16b food;			/* Current nutrition */
 
@@ -1537,6 +1536,11 @@ struct player_type
 	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
 	bool in_hack;		/* Temporary flag, not guaranteed to stay same between function calls */
+
+	bool bubble_checked;	/* Have we been included in a time bubble check? */
+	s32b bubble_speed;		/* What was our last time bubble scale factor */
+	u32b bubble_change;		/* Server turn we last changed colour */
+	byte bubble_colour;		/* Current warning colour for slow time bubbles */
 };
 
 

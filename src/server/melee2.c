@@ -3306,7 +3306,7 @@ static void process_monster(int Ind, int m_idx)
  
 void process_monsters(void)
 {
-	int			k, i, e, pl;
+	int			k, i, e, pl, bubble;
 	int			fx, fy;
 
 	bool		test;
@@ -3340,22 +3340,6 @@ void process_monsters(void)
 			continue;
 		}
 
-
-		/* Obtain the energy boost */
-		e = extract_energy[m_ptr->mspeed];
-
-		/* Give this monster some energy */
-		m_ptr->energy += e;
-
-		/* Make sure we don't store up too much energy */
-		if (m_ptr->energy > level_speed(m_ptr->dun_depth))
-			m_ptr->energy = level_speed(m_ptr->dun_depth);
-
-		/* Not enough energy to move */
-		if (m_ptr->energy < level_speed(m_ptr->dun_depth)) continue;
-		
-		/* Use some energy */
-		m_ptr->energy -= level_speed(m_ptr->dun_depth);
 
 		/* Find the closest player */
 		for (pl = 1; pl < NumPlayers + 1; pl++)
@@ -3400,6 +3384,28 @@ void process_monsters(void)
 			lowhp = p_ptr->chp;
 			closest_in_los = in_los;
 		}
+
+		/* Obtain the energy boost */
+		e = extract_energy[m_ptr->mspeed];
+		
+		/* If we are within a players time bubble, scale our energy */
+		if(closest > -1)
+		{
+			e = e * ((float)time_factor(closest) / 100);	
+		}
+
+		/* Give this monster some energy */
+		m_ptr->energy += e;
+
+		/* Make sure we don't store up too much energy */
+		if (m_ptr->energy > level_speed(m_ptr->dun_depth))
+			m_ptr->energy = level_speed(m_ptr->dun_depth);
+
+		/* Not enough energy to move */
+		if (m_ptr->energy < level_speed(m_ptr->dun_depth)) continue;
+		
+		/* Use some energy */
+		m_ptr->energy -= level_speed(m_ptr->dun_depth);
 
 		/* Paranoia -- Make sure we found a closest player */
 		if (closest == -1)

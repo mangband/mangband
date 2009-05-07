@@ -1336,7 +1336,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 	if (!get_aim_dir(Ind, &dir)) return (FALSE);
 
 	/* Take a turn */
-	p_ptr->energy_use = 100;
+	/*p_ptr->energy_use = 100; */
 
 	/* Not identified yet */
 	*ident = FALSE;

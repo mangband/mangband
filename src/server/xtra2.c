@@ -4852,6 +4852,130 @@ int level_speed(int Ind)
 	else return level_speeds[Ind]*5;
 }
 
+/* Determine the speed of a given players "time bubble" and return a percentage 
+ * scaling factor which should be applied to any amount of energy granted to 
+ * players/monsters within the bubble.
+ * 
+ * We check this player and then any other players recursively, the time of the
+ * slowest bubble below normal time overrules other adjoining bubbles. This is 
+ * to support the senario where a long chain of players may be stood just within 
+ * each others range. Forming a time bubble chain. :)
+ * 
+ * When calling this function pass slowest as zero, which acts as a flag
+ * that this is the main call, not a recursive call.
+ */
+int base_time_factor(int Ind, int slowest)
+{
+	player_type * p_ptr = Players[Ind];
+	player_type * q_ptr;
+	int scale, i, dist, health, timefactor;
+	bool los;
+	
+	/* If this is the initial call, reset all players time bubble check */
+	if(!slowest)
+	{
+		for (i = 1; i < NumPlayers + 1; i++)
+		{
+			q_ptr = Players[i];
+			if(q_ptr) q_ptr->bubble_checked = FALSE;
+		}		
+	}
+	
+	/* Normal time scale */
+	timefactor = NORMAL_TIME;
+	
+	/* What's our percentage health? */
+	health = (p_ptr->chp * 100) / p_ptr->mhp;
+	
+	/* Don't allow time to slow asymptotically towards infinity */
+	if(health < MIN_TIME_SCALE) health = MIN_TIME_SCALE;
+
+	/* Scale depending on health if HP are low enough */
+	if(health <= p_ptr->hitpoint_warn * 10)
+		timefactor = timefactor * ((float)health / 100);
+
+	/* Resting speeds up time disregarding health time scaling */
+	if(p_ptr->resting) timefactor = MAX_TIME_SCALE;
+	
+	/* If this is a check for another player give way to their time
+	 * bubble if we aren't doing anything important */
+	if(slowest && (timefactor == NORMAL_TIME))
+	{
+		/* If nothing in LoS */
+		los = FALSE;
+		for (i = 0; i < m_max; i++)
+		{
+			/* Check this monster */
+			if ((p_ptr->mon_los[i] && !m_list[i].csleep))
+			{
+				los = TRUE;
+				break;
+			}
+		}
+		if(!los)
+		{
+			/* We don't really care about our time */
+			timefactor = MAX_TIME_SCALE;
+		}
+	}
+
+	/* We have checked our time bubble */
+	p_ptr->bubble_checked = TRUE;
+
+	/* Check all other players within our range */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		q_ptr = Players[i];
+		/* Only check them if they haven't already been checked */
+		if(q_ptr && (!q_ptr->bubble_checked))
+		{
+			/* Skip him if he's on a different dungeon level */
+			if (p_ptr->dun_depth != p_ptr->dun_depth) continue;
+			
+			/* How far away is he? */
+			dist = distance(p_ptr->py, p_ptr->px, q_ptr->py, q_ptr->px);
+			
+			/* Skip him if he's too far away */
+			if(dist > MAX_SIGHT) continue;
+			
+			/* Find the slowest time bubble chain we are part of */
+			slowest = base_time_factor(i, timefactor);
+			
+			/* Use the slowest time bubble */
+			if(slowest < timefactor) timefactor = slowest;
+		}
+	}		
+		
+	return timefactor;
+}
+
+/*
+ * Determine the given players current time factor.
+ */
+int time_factor(int Ind)
+{
+	player_type * p_ptr = Players[Ind];
+	int timefactor, scale;
+
+	/* Normal time scale, 100% */
+	scale = NORMAL_TIME;
+
+	/* Forget all about time scaling in town */
+	if(!p_ptr->dun_depth) return scale;
+		
+	/* Running speeds up time */
+	if(p_ptr->running) scale = RUNNING_FACTOR;
+
+	/* Determine our time scaling factor */
+	timefactor = base_time_factor(Ind, 0);
+	
+	/* Scale our time by our bubbles time factor */
+	scale = scale * ((float)timefactor / 100);
+
+	return scale;
+}
+
+
 /* these Dungeon Master commands should probably be added somewhere else, but I am
  * hacking them together here to start.
  */

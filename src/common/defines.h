@@ -575,6 +575,14 @@
 
 
 /*
+ * Time bubble scale factors in percentage terms
+ */
+#define MAX_TIME_SCALE	1000
+#define MIN_TIME_SCALE	10
+#define RUNNING_FACTOR	500		/* Increase time by this percentage when running */
+#define NORMAL_TIME		100		/* 100% */
+
+/*
  * Maximum number of players spells
  */
 #define PY_MAX_SPELLS 64

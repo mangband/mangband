@@ -3522,22 +3522,16 @@ static int Receive_run(int ind)
 	/* If not the dungeon master, who can always run */
 	if (!(p_ptr->dm_flags & DM_NEVER_DISTURB)) 
 	{
-		/* Check for monsters in sight or confusion */
-		for (i = 0; i < m_max; i++)
+		/* Don't allow running when confused */
+		if (p_ptr->confused)
 		{
-			/* Check this monster */
-			/* Level 0 monsters do not disturb */
-			if ((p_ptr->mon_los[i] && !m_list[i].csleep && r_info[m_list[i].r_idx].level) || (p_ptr->confused))
-			{
-				// Treat this as a walk request
-				// Hack -- send the same connp->r "arguments" to Receive_walk
-				// Hack -- Always allow running in town.
-				if(p_ptr->dun_depth) {	
+			/* Treat this as a walk request */
+			if (p_ptr->dun_depth)
+		{
 					return Receive_walk(ind);
 				}
 			}
 		}
-	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
 	{
@@ -3546,31 +3540,11 @@ static int Receive_run(int ind)
 		return n;
 	}
 
-	/* Disturb if we want to change directions */
-	//if (dir != p_ptr->find_current) disturb(player, 0, 0);
-
 	/* Hack -- Fix the running in '5' bug */
-	if (dir == 5)
-		return 1;
+	if (dir == 5) return 1;
 
-	// If we don't want to queue the command, return now.
-	if ((n = do_cmd_run(player,dir)) == 2)
-	{
-		return -1;
-	}
-	// If do_cmd_run returns a 0, then there wasn't enough energy
-	// to execute the run command.  Queue the run command if desired.
-	else if (n == 0)
-	{
-		// Only buffer a run request if we have no previous commands
-		// buffered, and it is a new direction or we aren't already
-		// running.
-		if (((!connp->q.len) && (dir != p_ptr->find_current)) || (!p_ptr->running))
-		{
-			Packet_printf(&connp->q, "%c%c", ch, dir);
-				return 0;
-		}
-	}
+	/* Start running */
+	do_cmd_run(player, dir);
 
 	return 1;
 }
@@ -5489,8 +5463,8 @@ static int Receive_rest(int ind)
 			return 2;
 		}
 
-		/* Resting takes a lot of energy! */
-		if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)*2)-1)
+		/* Start resting */
+		if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)))
 		{
 
 			/* Set flag */
@@ -5500,7 +5474,7 @@ static int Receive_rest(int ind)
 			p_ptr->running = FALSE;
 
 			/* Take a lot of energy to enter "rest mode" */
-			p_ptr->energy -= (level_speed(p_ptr->dun_depth)*2)-1;
+			p_ptr->energy -= (level_speed(p_ptr->dun_depth));
 
 			/* Redraw */
 			p_ptr->redraw |= (PR_STATE);

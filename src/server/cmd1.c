@@ -1595,9 +1595,6 @@ void move_player(int Ind, int dir, int do_pickup)
 			forget_lite(Ind);
 			forget_view(Ind);			
 		
-			/* Hack -- take a turn */
-			p_ptr->energy -= level_speed(p_ptr->dun_depth);
-			
 			/* A player has left this depth */
 			players_on_depth[p_ptr->dun_depth]--;
 			
@@ -2654,60 +2651,23 @@ static bool run_test(int Ind)
 void run_step(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
-	#if 0
-	cave_type *c_ptr;
-	#endif
 
 	/* Check for just changed level */
 	if (p_ptr->new_level_flag) return;
 
 	/* Start running */
-	if (dir)
-	{
-		// Running into walls and doors is now checked in do_cmd_run.
-		#if 0
-		/* Hack -- do not start silly run */
-		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px))
-		{
-			/* If we are trying to run into a door and bump_open is enabled,
-			 * try to open the door
-			 */
-			if (cfg_door_bump_open)
+	if (p_ptr->run_request)
 			{
-				/* Get requested grid */
-				c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]];
-
-				/* If a door, open it */
-				if (((c_ptr->feat >= FEAT_DOOR_HEAD) && 
-				      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
-				    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
-				      (c_ptr->feat <= FEAT_HOME_TAIL))) 
-					{
-						do_cmd_open(Ind, dir);
-						return;
-					}
-			}
-
-			/* Message */
-			msg_print(Ind, "You cannot run in that direction.");
-
-			/* Disturb */
-			disturb(Ind, 0, 0);
-
-			/* Done */
-			return;
-		}
-		#endif
-
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);
 
 		/* Initialize */
-		run_init(Ind, dir);
+		run_init(Ind, p_ptr->run_request);
+		
+		/* We are running */
+		p_ptr->run_request = 0;
+		p_ptr->running = TRUE;
 
-		/* check if we have enough energy to move */
-		if (p_ptr->energy < (level_speed(p_ptr->dun_depth)/5))
-			return;
 	}
 
 	/* Keep running */
@@ -2724,8 +2684,8 @@ void run_step(int Ind, int dir)
 		}
 	}
 
-	/* Decrease the run counter */
-	if (--(p_ptr->running) <= 0) return;
+	/* Take a turn */
+	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Move the player, using the "pickup" flag */
 	move_player(Ind, p_ptr->find_current, option_p(p_ptr,ALWAYS_PICKUP));

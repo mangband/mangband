@@ -2999,12 +2999,6 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 /*
  * Start running.
  */
-/* Hack -- since this command has different cases of energy requirements and
- * if we don't have enough energy sometimes we want to queue and sometimes we
- * don't, we do all of the energy checking within this function.  If after all
- * is said and done we want to queue the command, we return a 0.  If we don't,
- * we return a 2.
- */
 int do_cmd_run(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
@@ -3013,11 +3007,11 @@ int do_cmd_run(int Ind, int dir)
 	if (p_ptr->confused)
 	{
 	    msg_print(Ind, "You are too confused!");
-	    return 2;
+	    return 0;
 	}
 
 	/* Ignore if we are already running in this direction */
-	if (p_ptr->running && (dir == p_ptr->find_current) ) return 2;
+	if (p_ptr->running && (dir == p_ptr->find_current) ) return 1;
 
 	/* Get a "repeated" direction */
 	if (dir)
@@ -3043,7 +3037,7 @@ int do_cmd_run(int Ind, int dir)
 						/* If so, do it. */
 						do_cmd_alter(Ind, dir);
 					}
-					return 2;
+					return 1;
 				}
 			}
 
@@ -3053,32 +3047,15 @@ int do_cmd_run(int Ind, int dir)
 			/* Disturb */
 			disturb(Ind, 0, 0);
 
-			/* Waste a little bit of energy for trying */
-			p_ptr->energy -= level_speed(p_ptr->dun_depth)/5;
-			
-			return 2;
+			return 1;
 		}
 
-		/* Make sure we have enough energy to start running */
-		if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
-		{
-			/* Hack -- Set the run counter */
-			p_ptr->running = (command_arg ? command_arg : 1000);
+		/* Initialise running */
+		p_ptr->run_request = dir;
+		p_ptr->running = TRUE;
 
-			/* First step */
-			run_step(Ind, dir);
-
-			/* Reset the player's energy so he can't sprint several spaces
-			 * in the first round of running.  */
-			p_ptr->energy = level_speed(p_ptr->dun_depth);
-			return 2;
-		}
-		/* If we don't have enough energy to run and monsters aren't around,
-		 * try to queue the run command.
-		 */
-		else return 0;
 	}
-	return 2;
+	return 1;
 }
 
 

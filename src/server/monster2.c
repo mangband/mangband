@@ -1736,19 +1736,19 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	if (!(r_ptr->flags1 & RF1_UNIQUE))
 	{
 		/* Allow some small variation per monster */
-		i = extract_energy[r_ptr->speed] / 10;
+		i = (extract_energy[r_ptr->speed]/100) / 10;
 		if (i) m_ptr->mspeed += rand_spread(0, i);
 	}
 
 
 	/* Give a random starting energy */
-	m_ptr->energy = rand_int(100);
+	m_ptr->energy = rand_int(level_speed(0));
 
 	/* Hack -- Reduce risk of "instant death by breath weapons" */
 	if (r_ptr->flags1 & RF1_FORCE_SLEEP)
 	{
 		/* Start out with minimal energy */
-		m_ptr->energy = rand_int(10);
+		m_ptr->energy = rand_int(level_speed(0) >> 4);
 	}
 
 
