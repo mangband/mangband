@@ -433,6 +433,7 @@ static void regenmana(int Ind, int percent)
 static void regen_monsters(void)
 {
 	int i, frac;
+	int time, timefactor;
 
 	/* Regenerate everyone */
 	for (i = 1; i < m_max; i++)
@@ -443,6 +444,21 @@ static void regen_monsters(void)
 
 		/* Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
+
+		/* Check if it's time to regenerate */
+
+		/* Determine basic frequency of regen in game turns */
+		time = 100; /* Default is every 100 turns (level_speed(m_ptr->dun_depth)/1000) */;
+		
+		/* Scale frequency by players local time bubble */
+		if (m_ptr->closest_player > 0 && m_ptr->closest_player <= NumPlayers)
+		{
+			timefactor = base_time_factor(m_ptr->closest_player,0);
+			time = time / ((float)timefactor / 100);
+		}
+
+		/* Not yet */
+		if ((turn % time)) continue;
 
 		/* Allow regeneration (if needed) */
 		if (m_ptr->hp < m_ptr->maxhp)
@@ -1002,6 +1018,8 @@ static void process_player_end(int Ind)
 	timefactor = base_time_factor(Ind,0);
 	if(timefactor < NORMAL_TIME)
 	{
+		/* Paranoia: cave pointer not set */
+		if (p_ptr->new_level_flag == FALSE)
 		lite_spot(Ind, p_ptr->py, p_ptr->px);
 	}
 
@@ -2268,7 +2286,7 @@ void dungeon(void)
 	process_various();
 
 	/* Hack -- Regenerate the monsters every hundred game turns */
-	if (!(turn % 100)) regen_monsters();
+	regen_monsters();
 
 	/* Refresh everybody's displays */
 	for (i = 1; i < NumPlayers + 1; i++)

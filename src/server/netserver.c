@@ -1362,6 +1362,7 @@ static int Enter_player(int ind)
 	setup_panel(NumPlayers + 1, TRUE);
 
 	sync_options(NumPlayers + 1);
+	sync_settings(NumPlayers + 1)
 
 	GetInd[Id] = NumPlayers + 1;
 

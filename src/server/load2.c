@@ -655,7 +655,7 @@ static void rd_monster(monster_type *m_ptr)
 	m_ptr->maxhp = read_int("maxhp");
 	m_ptr->csleep = read_int("csleep");
 	m_ptr->mspeed = read_int("mspeed");
-	m_ptr->energy = read_int("energy");
+	m_ptr->energy = read_uint("energy");
 	m_ptr->stunned = read_int("stunned");
 	m_ptr->confused = read_int("confused");
 	m_ptr->monfear = read_int("afraid");
@@ -999,7 +999,7 @@ static bool rd_extra(int Ind, bool had_header)
 	p_ptr->paralyzed = read_int("paralyzed");
 	p_ptr->confused = read_int("confused");
 	p_ptr->food = read_int("food");
-	p_ptr->energy = read_int("energy");
+	p_ptr->energy = read_uint("energy");
 	p_ptr->fast = read_int("fast");
 	p_ptr->slow = read_int("slow");
 	p_ptr->afraid = read_int("afraid");

@@ -4930,7 +4930,7 @@ int base_time_factor(int Ind, int slowest)
 		if(q_ptr && (!q_ptr->bubble_checked))
 		{
 			/* Skip him if he's on a different dungeon level */
-			if (p_ptr->dun_depth != p_ptr->dun_depth) continue;
+			if (q_ptr->dun_depth != p_ptr->dun_depth) continue;
 			
 			/* How far away is he? */
 			dist = distance(p_ptr->py, p_ptr->px, q_ptr->py, q_ptr->px);
