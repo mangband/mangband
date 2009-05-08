@@ -3578,6 +3578,110 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
 
 
 /*
+ * Swap the players/monsters (if any) at two locations
+ */
+static void monster_swap(int Depth, int y1, int x1, int y2, int x2)
+{
+	int m1, m2;
+	monster_type *m_ptr;
+	cave_type *c_ptr1, *c_ptr2;
+	player_type *p_ptr;
+
+	/* Access the grids */
+	c_ptr1 = &cave[Depth][y1][x1];
+	c_ptr2 = &cave[Depth][y2][x2];
+
+	/* Monsters */
+	m1 = c_ptr1->m_idx;
+	m2 = c_ptr2->m_idx;
+
+	/* Update grids */
+	c_ptr1->m_idx = m2;
+	c_ptr2->m_idx = m1;
+
+	/* Monster 1 */
+	if (m1 > 0)
+	{
+		m_ptr = &m_list[m1];
+
+		/* Move monster */
+		m_ptr->fy = y2;
+		m_ptr->fx = x2;
+
+		/* Update monster */
+		update_mon(m1, TRUE);
+	}
+
+	/* Player 1 */
+	else if (m1 < 0)
+	{
+		p_ptr = Players[0 - m1];
+
+		/* Move player */
+		p_ptr->py = y2;
+		p_ptr->px = x2;
+
+		/* Update the panel */
+		verify_panel(0 - m1);
+
+		/* Update the visuals (and monster distances) */
+		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);
+
+		/* Update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD);
+	}
+
+	/* Monster 2 */
+	if (m2 > 0)
+	{
+		m_ptr = &m_list[m2];
+
+		/* Move monster */
+		m_ptr->fy = y1;
+		m_ptr->fx = x1;
+
+		/* Update monster */
+		update_mon(m2, TRUE);
+	}
+
+	/* Player 2 */
+	else if (m2 < 0)
+	{
+		p_ptr = Players[0 - m2];
+
+		/* Move player */
+		p_ptr->py = y1;
+		p_ptr->px = x1;
+
+		/* Update the panel */
+		verify_panel(0 - m2);
+
+		/* Update the visuals (and monster distances) */
+		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);
+
+		/* Update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD);
+	}
+
+	/* Redraw */
+	everyone_lite_spot(Depth, y1, x1);
+	everyone_lite_spot(Depth, y2, x2);
+}
+
+
+/*
  * Induce an "earthquake" of the given radius at the given location.
  *
  * This will turn some walls into floors and some floors into walls.
@@ -3589,36 +3693,26 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
  * otherwise they will be "buried" in the rubble, disappearing from
  * the level in the same way that they do when genocided.
  *
- * Note that thus the player and monsters (except eaters of walls and
- * passers through walls) will never occupy the same grid as a wall.
- * Note that as of now (2.7.8) no monster may occupy a "wall" grid, even
- * for a single turn, unless that monster can pass_walls or kill_walls.
- * This has allowed massive simplification of the "monster" code.
+ * Note that players and monsters (except eaters of walls and passers
+ * through walls) will never occupy the same grid as a wall (or door).
  */
 void earthquake(int Depth, int cy, int cx, int r)
 {
-	int		i, t, y, x, yy, xx, dy, dx, oy, ox;
-
-	int		damage = 0;
-
-	int		sn = 0, sy = 0, sx = 0;
-
+	int y, x, yy, xx, dy, dx, i, t, j;
+	bool map[32][32];
+	cave_type *c_ptr;
+	int hurt[MAX_PLAYERS];
+	int count = 0;
 	int Ind;
-
 	player_type *p_ptr;
-
-	/*bool	hurt = FALSE;*/
-
-	cave_type	*c_ptr;
-
-	bool	map[32][32];
-
+	int sn, sy, sx;
+	int damage;
 
 	/* Don't hurt town or surrounding areas */
 	if (Depth <= 0 ? wild_info[Depth].radius <= 2 : 0)
 		return;
 
-	/* Paranoia -- Dnforce maximum range */
+	/* Paranoia -- Enforce maximum range */
 	if (r > 12) r = 12;
 
 	/* Clear the "maximal blast" area */
@@ -3648,6 +3742,13 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Access the grid */
 			c_ptr = &cave[Depth][yy][xx];
 
+			/* Take note of any player */
+			if (c_ptr->m_idx < 0)
+			{
+				hurt[count] = c_ptr->m_idx;
+				count++;
+			}
+
 			/* Hack -- ICKY spaces are protected outside of the dungeon */
 			if ((Depth < 0) && (c_ptr->info & CAVE_ICKY)) continue;
 
@@ -3668,139 +3769,109 @@ void earthquake(int Depth, int cy, int cx, int r)
 			map[16+yy-cy][16+xx-cx] = TRUE;
 
 			/* Hack -- Take note of player damage */
-			if (c_ptr->m_idx < 0)
-			{
-				Ind = 0 - c_ptr->m_idx;
-				p_ptr = Players[Ind];
-
-				/* Check around the player */
-				for (i = 0; i < 8; i++)
-				{
-					/* Access the location */
-					y = p_ptr->py + ddy[i];
-					x = p_ptr->px + ddx[i];
-
-					/* Skip non-empty grids */
-					if (!cave_empty_bold(Depth, y, x)) continue;
-
-					/* Important -- Skip "quake" grids */
-					if (map[16+y-cy][16+x-cx]) continue;
-
-					/* Count "safe" grids */
-					sn++;
-
-					/* Randomize choice */
-					if (rand_int(sn) > 0) continue;
-
-					/* Save the safe location */
-					sy = y; sx = x;
-				}
-
-				/* Random message */
-				switch (randint(3))
-				{
-					case 1:
-					{
-						msg_print(Ind, "The cave ceiling collapses!");
-						break;
-					}
-					case 2:
-					{
-						msg_print(Ind, "The cave floor twists in an unnatural way!");
-						break;
-					}
-					default:
-					{
-						msg_print(Ind, "The cave quakes!  You are pummeled with debris!");
-						break;
-					}
-				}
-
-				/* Hurt the player a lot */
-				if (!sn)
-				{
-					/* Message and damage */
-					msg_print(Ind, "You are severely crushed!");
-					damage = 300;
-				}
-
-				/* Destroy the grid, and push the player to safety */
-				else
-				{
-					/* Calculate results */
-					switch (randint(3))
-					{
-						case 1:
-						{
-							msg_print(Ind, "You nimbly dodge the blast!");
-							damage = 0;
-							break;
-						}
-						case 2:
-						{
-							msg_print(Ind, "You are bashed by rubble!");
-							damage = damroll(10, 4);
-							(void)set_stun(Ind, p_ptr->stun + randint(50));
-							break;
-						}
-						case 3:
-						{
-							msg_print(Ind, "You are crushed between the floor and ceiling!");
-							damage = damroll(10, 4);
-							(void)set_stun(Ind, p_ptr->stun + randint(50));
-							break;
-						}
-					}
-		
-					/* Save the old location */
-					oy = p_ptr->py;
-					ox = p_ptr->px;
-
-					/* Move the player to the safe location */
-					p_ptr->py = sy;
-					p_ptr->px = sx;
-
-					/* Update the cave player indices */
-					cave[Depth][oy][ox].m_idx = 0;
-					cave[Depth][sy][sx].m_idx = 0 - Ind;
-
-					/* Redraw the old spot */
-					everyone_lite_spot(Depth, oy, ox);
-
-					/* Redraw the new spot */
-					everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
-
-					/* Check for new panel */
-					verify_panel(Ind);
-				}
-
-				/* Important -- no wall on player */
-				map[16+p_ptr->py-cy][16+p_ptr->px-cx] = FALSE;
-
-				/* Take some damage */
-				if (damage) take_hit(Ind, damage, "an earthquake");
-
-				/* Mega-Hack -- Forget the view and lite */
-				p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE);
-
-				/* Update stuff */
-				p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
-
-				/* Update the monsters */
-				p_ptr->update |= (PU_DISTANCE);
-
-				/* Update the health bar */
-				p_ptr->redraw |= (PR_HEALTH);
-
-				/* Redraw map */
-				p_ptr->redraw |= (PR_MAP);
-
-				/* Window stuff */
-				p_ptr->window |= (PW_OVERHEAD);
-			}
+			if (c_ptr->m_idx < 0) hurt[count-1] = - hurt[count-1];
 		}
 	}
 
+	/* First, affect the players (if necessary) */
+	for (j = 0; j < count; j++)
+	{
+		Ind = hurt[j];
+
+		/* Skip undamaged players */
+		if (Ind < 0) continue;
+
+		p_ptr = Players[Ind];
+
+		sn = 0; sy = 0; sx = 0; damage = 0;
+
+		/* Check around the player */
+		for (i = 0; i < 8; i++)
+		{
+			/* Get the location */
+			y = p_ptr->py + ddy_ddd[i];
+			x = p_ptr->px + ddx_ddd[i];
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, y, x)) continue;
+
+			/* Skip non-empty grids */
+			if (!cave_empty_bold(Depth, y, x)) continue;
+
+			/* Important -- Skip "quake" grids */
+			if (map[16+y-cy][16+x-cx]) continue;
+
+			/* Count "safe" grids, apply the randomizer */
+			if ((++sn > 1) && (rand_int(sn) != 0)) continue;
+
+			/* Save the safe location */
+			sy = y; sx = x;
+		}
+
+		/* Random message */
+		switch (randint(3))
+		{
+			case 1:
+			{
+				msg_print(Ind, "The cave ceiling collapses!");
+				break;
+			}
+			case 2:
+			{
+				msg_print(Ind, "The cave floor twists in an unnatural way!");
+				break;
+			}
+			default:
+			{
+				msg_print(Ind, "The cave quakes!");
+				msg_print(Ind, "You are pummeled with debris!");
+				break;
+			}
+		}
+
+		/* Hurt the player a lot */
+		if (!sn)
+		{
+			/* Message and damage */
+			msg_print(Ind, "You are severely crushed!");
+			damage = 300;
+		}
+
+		/* Destroy the grid, and push the player to safety */
+		else
+		{
+			/* Calculate results */
+			switch (randint(3))
+			{
+				case 1:
+				{
+					msg_print(Ind, "You nimbly dodge the blast!");
+					damage = 0;
+					break;
+				}
+				case 2:
+				{
+					msg_print(Ind, "You are bashed by rubble!");
+					damage = damroll(10, 4);
+					(void)set_stun(Ind, p_ptr->stun + randint(50));
+					break;
+				}
+				case 3:
+				{
+					msg_print(Ind, "You are crushed between the floor and ceiling!");
+					damage = damroll(10, 4);
+					(void)set_stun(Ind, p_ptr->stun + randint(50));
+					break;
+				}
+			}
+
+			/* Move player */
+			monster_swap(Depth, p_ptr->py, p_ptr->px, sy, sx);
+		}
+
+		/* Take some damage */
+		if (damage) take_hit(Ind, damage, "an earthquake");
+	}
 
 	/* Examine the quaked region */
 	for (dy = -r; dy <= r; dy++)
@@ -3810,6 +3881,9 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Extract the location */
 			yy = cy + dy;
 			xx = cx + dx;
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, yy, xx)) continue;
 
 			/* Skip unaffected grids */
 			if (!map[16+yy-cy][16+xx-cx]) continue;
@@ -3825,8 +3899,10 @@ void earthquake(int Depth, int cy, int cx, int r)
 
 				/* Most monsters cannot co-exist with rock */
 				if (!(r_ptr->flags2 & RF2_KILL_WALL) &&
-				    !(r_ptr->flags2 & RF2_PASS_WALL))
+					!(r_ptr->flags2 & RF2_PASS_WALL))
 				{
+					char m_name[MAX_CHARS];
+
 					/* Assume not safe */
 					sn = 0;
 
@@ -3836,9 +3912,12 @@ void earthquake(int Depth, int cy, int cx, int r)
 						/* Look for safety */
 						for (i = 0; i < 8; i++)
 						{
-							/* Access the grid */
-							y = yy + ddy[i];
-							x = xx + ddx[i];
+							/* Get the grid */
+							y = yy + ddy_ddd[i];
+							x = xx + ddx_ddd[i];
+
+							/* Skip illegal grids */
+							if (!in_bounds(Depth, y, x)) continue;
 
 							/* Skip non-empty grids */
 							if (!cave_empty_bold(Depth, y, x)) continue;
@@ -3849,22 +3928,28 @@ void earthquake(int Depth, int cy, int cx, int r)
 							/* Important -- Skip "quake" grids */
 							if (map[16+y-cy][16+x-cx]) continue;
 
-							/* Count "safe" grids */
-							sn++;
-
-							/* Randomize choice */
-							if (rand_int(sn) > 0) continue;
+							/* Count "safe" grids, apply the randomizer */
+							if ((++sn > 1) && (rand_int(sn) != 0)) continue;
 
 							/* Save the safe grid */
 							sy = y; sx = x;
 						}
 					}
 
-					/* Describe the monster */
-					/*monster_desc(Ind, m_name, c_ptr->m_idx, 0);*/
+					/* Give players a message */
+					for (j = 0; j < count; j++)
+					{
+						/* Get player */
+						Ind = hurt[j];
+						if (Ind < 0) Ind = -Ind;
+						p_ptr = Players[Ind];
 
-					/* Scream in pain */
-					/*msg_format("%^s wails out in pain!", m_name);*/
+						/* Describe the monster */
+						monster_desc(Ind, m_name, c_ptr->m_idx, 0);
+
+						/* Scream in pain */
+						msg_format(Ind, "%^s wails out in pain!", m_name);
+					}
 
 					/* Take damage from the quake */
 					damage = (sn ? damroll(4, 8) : (m_ptr->hp + 1));
@@ -3878,8 +3963,20 @@ void earthquake(int Depth, int cy, int cx, int r)
 					/* Delete (not kill) "dead" monsters */
 					if (m_ptr->hp < 0)
 					{
-						/* Message */
-						/*msg_format("%^s is embedded in the rock!", m_name);*/
+						/* Give players a message */
+						for (j = 0; j < count; j++)
+						{
+							/* Get player */
+							Ind = hurt[j];
+							if (Ind < 0) Ind = -Ind;
+							p_ptr = Players[Ind];
+
+							/* Describe the monster */
+							monster_desc(Ind, m_name, c_ptr->m_idx, 0);
+
+							/* Message */
+							msg_format(Ind, "%^s is embedded in the rock!", m_name);
+						}
 
 						/* Delete the monster */
 						delete_monster(Depth, yy, xx);
@@ -3891,33 +3988,25 @@ void earthquake(int Depth, int cy, int cx, int r)
 					/* Hack -- Escape from the rock */
 					if (sn)
 					{
-						int m_idx = cave[Depth][yy][xx].m_idx;
-
-						/* Update the new location */
-						cave[Depth][sy][sx].m_idx = m_idx;
-
-						/* Update the old location */
-						cave[Depth][yy][xx].m_idx = 0;
-
 						/* Move the monster */
-						m_ptr->fy = sy;
-						m_ptr->fx = sx;
-
-						/* Update the monster (new location) */
-						update_mon(m_idx, TRUE);
-
-						/* Redraw the old grid */
-						everyone_lite_spot(Depth, yy, xx);
-
-						/* Redraw the new grid */
-						everyone_lite_spot(Depth, sy, sx);
+						monster_swap(Depth, yy, xx, sy, sx);
 					}
 				}
 			}
 		}
 	}
 
+	/* Important -- no wall on players */
+	for (j = 0; j < count; j++)
+	{
+		/* Get player */
+		Ind = hurt[j];
+		if (Ind < 0) Ind = -Ind;
+		p_ptr = Players[Ind];
 
+		map[16+p_ptr->py-cy][16+p_ptr->px-cx] = FALSE;
+	}
+	
 	/* Examine the quaked region */
 	for (dy = -r; dy <= r; dy++)
 	{
@@ -3926,6 +4015,9 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Extract the location */
 			yy = cy + dy;
 			xx = cx + dx;
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, yy, xx)) continue;
 
 			/* Skip unaffected grids */
 			if (!map[16+yy-cy][16+xx-cx]) continue;
@@ -3978,6 +4070,29 @@ void earthquake(int Depth, int cy, int cx, int r)
 		}
 	}
 
+	for (j = 0; j < count; j++)
+	{
+		/* Get player */
+		Ind = hurt[j];
+		if (Ind < 0) Ind = -Ind;
+		p_ptr = Players[Ind];
+
+		/* Fully update the visuals */
+		p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE | PU_VIEW | PU_LITE | PU_MONSTERS);
+
+		/* Fully update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Update the health bar */
+		p_ptr->redraw |= (PR_HEALTH);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD | PW_MONSTER);
+	}
+
 	/* Examine the quaked region */
 	for (dy = -r; dy <= r; dy++)
 	{
@@ -3994,7 +4109,6 @@ void earthquake(int Depth, int cy, int cx, int r)
 			everyone_lite_spot(Depth,yy,xx);
 		}
 	}
-
 }
 
 
