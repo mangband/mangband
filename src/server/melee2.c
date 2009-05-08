@@ -1482,6 +1482,9 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_HEAL */
 		case 160+2:
 		{
+			/* No stupid message when at full health */ 
+			if (m_ptr->hp == m_ptr->maxhp) break;
+			
 			disturb(Ind, 1, 0);
 
 			/* Message */
