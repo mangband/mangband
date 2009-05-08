@@ -3624,6 +3624,9 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Hack -- Never do excessive damage */
 	if (dam > 1600) dam = 1600;
 
+	/* The damage has already been applied! */
+	if (p_ptr->project_hurt) return FALSE;
+
 	/* Extract radius */
 	div = r + 1;
 
@@ -4137,6 +4140,8 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		break;
 	}
 
+	/* The damage has been applied */
+	p_ptr->project_hurt = TRUE;
 
 	/* Disturb */
 	disturb(Ind, 1, 0);
@@ -4885,6 +4890,14 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 	{
 		/* Start with "dist" of zero */
 		dist = 0;
+
+		/* Players didn't get hurt yet */
+		for (j = 1; j < NumPlayers + 1; j++)
+		{
+			player_type *p_ptr = Players[j];
+			if (p_ptr->dun_depth != Depth) continue;
+			p_ptr->project_hurt = FALSE;
+		}
 
 		/* Mega-Hack */
 		project_m_n = 0;

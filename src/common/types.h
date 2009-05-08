@@ -1541,6 +1541,8 @@ struct player_type
 	s32b bubble_speed;		/* What was our last time bubble scale factor */
 	u32b bubble_change;		/* Server turn we last changed colour */
 	byte bubble_colour;		/* Current warning colour for slow time bubbles */
+
+	bool project_hurt;		/* Player has been hurt in project_p() */
 };
 
 
