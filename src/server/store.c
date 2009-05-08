@@ -1511,9 +1511,47 @@ void store_handle_charges(int st, int item, int rem)
 }
 
 /*
+ * Update store display for several shoopers
+ */
+void refresh_store(int st, int item, bool info, bool stock, bool single, cptr buf)
+{
+	player_type *q_ptr;
+	int i;
+
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		q_ptr = Players[i];
+		if ((st < 0 && q_ptr->player_store_num == 0 - st)
+		 ||	(st > -1 && q_ptr->store_num == st))
+		{
+			if (info == TRUE)
+			{
+				/* Resend the basic store info */
+				display_store(i);
+			}
+			if (stock == TRUE)
+			{
+				/* Redraw everything */
+				display_inventory(i);				
+			}
+			if (single == TRUE)
+			{
+				/* Redraw the item */
+				display_entry(i, item);		
+			}
+			if (!STRZERO(buf))
+			{
+				/* Message */
+				msg_print(i, buf);
+			}
+		}
+	}
+}
+
+/*
  * Buy an item from a store				-RAK-
  */
-void store_purchase(int Ind, int item, int amt)
+void store_purchase(int Ind, int item, int amt, u32b offer)
 {
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
@@ -1526,6 +1564,8 @@ void store_purchase(int Ind, int item, int amt)
 	char		o_name[80];
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
+	bool info, stock, single;
+	char buf[80];
 
 	/* Empty && Not player-owned? */
 	if (st != 8 && st_ptr->stock_num <= 0)
@@ -1556,12 +1596,9 @@ void store_purchase(int Ind, int item, int amt)
 		{
 			if(house_inside(i, p_ptr->player_store_num))
 			{
-				/* FIXME Here we should eject the player from the shop for his own
-				 * protection. The shop keeper can exploit him if he is inside the
-				 * shop when another player is shopping.
-				 */
-				/* msg_print(Ind, "The shopkeeper is currently restocking."); */
-				msg_print(Ind, "WARNING: Shop keeper is restocking, please leave!");
+				p_ptr->store_num = -1;
+				Send_store_leave(Ind);
+				msg_print(Ind, "The shopkeeper is currently restocking.");
 				return;		
 			}
 		}
@@ -1611,6 +1648,13 @@ void store_purchase(int Ind, int item, int amt)
 
 	/* Go directly to the "best" deal */
 	price = (best * sell_obj.number);
+
+	/* Protect deal - incoherent price */
+	if (price != offer) 
+	{
+		msg_print(Ind, "The shopkeeper rearranges his stock, preventing you from making a purchase.");
+		return;
+	}
 
 	/* Player wants it */
 	if (choice == 0)
@@ -1690,19 +1734,22 @@ void store_purchase(int Ind, int item, int amt)
 			
 			store_handle_charges(st, item, sell_obj.pval);
 
+			info = stock = single = FALSE;
+			buf[0] = '\0';
+
 			if (p_ptr->store_num == 8)
 			{
-				display_store(Ind);
+				info = TRUE;
 			}
 			else
 			{
 				/* Remove the bought items from the store */
 				store_item_increase(st, item, -amt);
 				store_item_optimize(st, item);
-												
-				/* Resend the basic store info */
-				display_store(Ind);
 
+				/* Resend the basic store info */
+				info = TRUE;
+		
 				/* Store is empty */
 				if (st_ptr->stock_num == 0)
 				{
@@ -1710,43 +1757,46 @@ void store_purchase(int Ind, int item, int amt)
 					if (rand_int(STORE_SHUFFLE) == 0)
 					{
 						/* Message */
-						msg_print(Ind, "The shopkeeper retires.");
-	
+						sprintf(buf, "The shopkeeper retires.");
+
 						/* Shuffle the store */
-						store_shuffle(p_ptr->store_num);
+						store_shuffle(st);
 					}
-	
+
 					/* Maintain */
 					else
 					{
 						/* Message */
-						msg_print(Ind, "The shopkeeper brings out some new stock.");
+						sprintf(buf, "The shopkeeper brings out some new stock.");
 					}
 
 					/* New inventory */
 					for (i = 0; i < 10; i++)
 					{
 						/* Maintain the store */
-						store_maint(p_ptr->store_num);
+						store_maint(st);
 					}
 
 					/* Redraw everything */
-					display_inventory(Ind);
+					stock = TRUE;
 				}
 				/* The item is gone */
 				else if (st_ptr->stock_num != i)
 				{
 					/* Redraw everything */
-					display_inventory(Ind);
+					stock = TRUE;
 				}
 
 				/* Item is still here */
 				else
 				{
 					/* Redraw the item */
-					display_entry(Ind, item);
+					single = TRUE;
 				}
 			}
+	
+			/* Actual screen refresh */
+			refresh_store(st, item, info, stock, single, &buf[0]); 
 		}
 
 		/* Player cannot afford it */
@@ -1970,13 +2020,8 @@ void store_confirm(int Ind)
 	item_pos = store_carry(p_ptr->store_num, &sold_obj);
 
 	/* Resend the basic store info */
-	display_store(Ind);
-
 	/* Re-display if item is now in store */
-	if (item_pos >= 0)
-	{
-		display_inventory(Ind);
-	}
+	refresh_store(p_ptr->store_num, 0, TRUE, (item_pos >= 0 ? TRUE : FALSE), FALSE, "");
 	
 	/* If this was an artifact, remember the player doesn't want it */
 	if( artifact_p(o_ptr) )
@@ -2014,7 +2059,8 @@ void do_cmd_store(int Ind, int pstore)
 	/* Normal store */
 	if (pstore < 0)
 	{
-
+	if (pstore < -1) { which = 0 - (pstore+2); }
+	else {
 		/* Access the player grid */
 		c_ptr = &cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px];
 
@@ -2028,7 +2074,7 @@ void do_cmd_store(int Ind, int pstore)
 	
 		/* Extract the store code */
 		which = (c_ptr->feat - FEAT_SHOP_HEAD);
-
+	}
 		/* Hack -- Check the "locked doors" */
 		if (store[which].store_open >= turn)
 		{

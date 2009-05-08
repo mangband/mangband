@@ -1233,21 +1233,19 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 		if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 		{
 
-			/* If someone is in our store, we can't enter (anti-exploit) */
-			/* FIXME This can be removed once we have a mechanism to eject a
-			 * client from a shop.  See store_purchase. 
-			 */
+			/* If someone is in our store, we eject them (anti-exploit) */
 			for (k = 1; k <= NumPlayers; k++ )
 			{
-				/* We don't block the owner from getting out! */
+				/* We don't block if the owner is getting out! */
 				player_type *q_ptr = Players[k];
 				if(q_ptr && Ind != k)
 				{
-					/* We do block the owner getting in */
+					/* We do block if the owner is getting in */
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
 					{
-						msg_print(Ind, "The shoppers block the entrance!");
-						return (FALSE);		
+						q_ptr->store_num = -1;
+						Send_store_leave(k);
+						msg_print(k, "The shopkeeper locks the doors.");
 					}
 				}				
 			}

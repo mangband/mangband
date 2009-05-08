@@ -41,6 +41,7 @@ char health_track_num;
 byte health_track_attr;
 
 bool shopping;				/* Are we in a store? */
+bool shopping_buying;		/* Are we buying? */ 
 bool leave_store; 		/* Time to leave store */
 
 s16b last_line_info;			/* Last line of info we've received */

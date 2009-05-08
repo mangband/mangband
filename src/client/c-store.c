@@ -210,6 +210,7 @@ static void store_purchase(void)
 {
         int                     i, amt;
         int                     item;
+        u32b                    price;
 
         object_type             *o_ptr;
 
@@ -252,6 +253,9 @@ static void store_purchase(void)
 
         /* Assume the player wants just one of them */
         amt = 1;
+        
+        /* Hack -- save price */
+        price = store_prices[item];
 
         /* Find out how many the player wants */
         if (o_ptr->number > 1)
@@ -259,18 +263,27 @@ static void store_purchase(void)
                 /* Hack -- note cost of "fixed" items */
                 if (store_num != 7)
                 {
-                        c_msg_print(format("That costs %ld gold per item.", (long)(store_prices[item])));
+                        c_msg_print(format("That costs %ld gold per item.", (long)price));
                 }
+
+                /* Hack -- set buying */
+                shopping_buying = TRUE;
 
                 /* Get a quantity */
                 amt = c_get_quantity(NULL, o_ptr->number);
+
+                /* Hack -- unset buying */
+                shopping_buying = FALSE;
 
                 /* Allow user abort */
                 if (amt <= 0) return;
         }
 
+	/* Hack -- multiply price */
+	price *= amt;
+
 	/* Tell the server */
-	Send_store_purchase(item, amt);
+	Send_store_purchase(item, amt, price);
 }
 
 static void store_sell(void)
@@ -391,6 +404,9 @@ void display_store(void)
  
 	/* We are "shopping" */
 	shopping = TRUE;
+	
+	/* Reset 'buying' */
+	shopping_buying = FALSE;
 
 	/* Clear screen */
 	Term_clear();

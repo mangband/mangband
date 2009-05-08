@@ -69,6 +69,7 @@ char health_track_num;
 byte health_track_attr;
 
 extern bool shopping;
+extern bool shopping_buying; 
 extern bool leave_store;
 
 extern s16b last_line_info;
@@ -447,7 +448,7 @@ extern int Send_pray(int book, int spell);
 extern int Send_ghost(int ability);
 extern int Send_map(void);
 extern int Send_locate(int dir);
-extern int Send_store_purchase(int item, int amt);
+extern int Send_store_purchase(int item, int amt, u32b price);
 extern int Send_store_sell(int item, int amt);
 extern int Send_store_leave(void);
 extern int Send_store_confirm(void);

@@ -1808,6 +1808,16 @@ void move_player(int Ind, int dir, int do_pickup)
 		disturb(Ind, 0, 0);
 	}
 
+	/* Player bumping shop door */
+	else if (!p_ptr->ghost && c_ptr->feat >= FEAT_SHOP_HEAD && c_ptr->feat <= FEAT_SHOP_TAIL - 1)
+	{
+		/* Disturb */
+		disturb(Ind, 0, 0);
+	
+		/* Note "FEAT_SHOP_TAIL - 1" above, means we exclude tavern */
+		do_cmd_store(Ind, -2 -(c_ptr->feat - FEAT_SHOP_HEAD));
+	}
+	
 	/* Normal movement */
 	else
 	{
@@ -1875,12 +1885,14 @@ void move_player(int Ind, int dir, int do_pickup)
 			/* Disturb */
 			disturb(Ind, 0, 0);
 
+#if 0
 			/* Hack -- Enter store */
 			if (c_ptr->feat != FEAT_SHOP_HEAD+7)
 			{
 				command_new = '_';
 				do_cmd_store(Ind,-1);
 			}
+#endif
 		}
 
 		/* Handle resurrection */

@@ -2345,6 +2345,7 @@ int Receive_store(void)
 	/* Make sure that we're in a store */
 	if (shopping)
 	{
+		if (shopping_buying) inkey_exit = TRUE; /* Cancel input */
 		display_inventory();
 	}
 
@@ -3503,11 +3504,11 @@ int Send_locate(int dir)
 	return 1;
 }
 
-int Send_store_purchase(int item, int amt)
+int Send_store_purchase(int item, int amt, u32b price)
 {
 	int 	n;
 
-	if ((n = Packet_printf(&wbuf, "%c%hd%hd", PKT_PURCHASE, item, amt)) <= 0)
+	if ((n = Packet_printf(&wbuf, "%c%hd%hd%lu", PKT_PURCHASE, item, amt, price)) <= 0)
 	{
 		return n;
 	}

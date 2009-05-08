@@ -942,7 +942,7 @@ extern bool curse_weapon(int Ind);
 /* store.c */
 extern bool get_store_item(int Ind, int item, object_type *i_ptr);
 extern int get_player_store_name(int num, char *name);
-extern void store_purchase(int Ind, int item, int amt);
+extern void store_purchase(int Ind, int item, int amt, u32b offer);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
 extern void do_cmd_store(int Ind, int pstore);

@@ -4990,6 +4990,7 @@ static int Receive_purchase(int ind)
 	char ch;
 	int n, player;
 	s16b item, amt;
+	u32b price;
 
 	if (connp->id != -1)
 	{
@@ -4998,7 +4999,7 @@ static int Receive_purchase(int ind)
 	}
 	else player = 0;
 
-	if ((n = Packet_scanf(&connp->r, "%c%hd%hd", &ch, &item, &amt)) <= 0)
+	if ((n = Packet_scanf(&connp->r, "%c%hd%hd%lu", &ch, &item, &amt, &price)) <= 0)
 	{
 		if (n == -1)
 			Destroy_connection(ind, "read error");
@@ -5006,7 +5007,7 @@ static int Receive_purchase(int ind)
 	}
 
 	if (player && p_ptr->store_num > -1)
-		store_purchase(player, item, amt);
+		store_purchase(player, item, amt, price);
 	else if (player)
 		do_cmd_purchase_house(player, item);
 
