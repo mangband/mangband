@@ -3557,8 +3557,11 @@ void do_cmd_fire(int Ind, int item, int dir)
 
 			q_ptr = Players[0 - c_ptr->m_idx];
 
-			/* AD hack -- "pass over" players in same party */
-			if ((!player_in_party(p_ptr->party, 0 - c_ptr->m_idx)) || (p_ptr->party == 0)){ 
+			/* AD hack cntd -- "pass over" if players aren't hostile */
+			if (!pvp_okay(Ind, 0 - c_ptr->m_idx, (p_ptr->target_who == c_ptr->m_idx ? 2 : 3) ))
+			{
+				continue;
+			}
 
 			/* Check the visibility */
 			visible = p_ptr->play_vis[0 - c_ptr->m_idx];
@@ -3573,12 +3576,6 @@ void do_cmd_fire(int Ind, int item, int dir)
 
 				/* Get the name */
 				strcpy(pvp_name, q_ptr->name);
-
-				/* Don't allow if players aren't hostile */
-				if (!pvp_okay(Ind, 0 - c_ptr->m_idx, (p_ptr->target_who == c_ptr->m_idx ? 2 : 3) ))
-				{
-					return;
-				}
 
 				/* Handle unseen player */
 				if (!visible)
@@ -3615,8 +3612,6 @@ void do_cmd_fire(int Ind, int item, int dir)
 				/* Stop looking */
 				break;
 			}
-			
-			} /* end hack */
 		}
 
 		/* Monster here, Try to hit it */
@@ -4000,17 +3995,6 @@ void do_cmd_throw(int Ind, int item, int dir)
 			/* Did we hit him (penalize range) */
 			if (test_hit_fire(chance - cur_dis, q_ptr->ac + q_ptr->to_a, visible))
 			{
-				char pvp_name[80];
-
-				/* Get the name */
-				strcpy(pvp_name, q_ptr->name);
-
-				/* Don't allow if players aren't hostile */
-				if (!check_hostile(Ind, 0 - c_ptr->m_idx) || !check_hostile(0 - c_ptr->m_idx, Ind))
-				{
-					return;
-				}
-
 				/* Handle unseen player */
 				if (!visible)
 				{
@@ -4019,11 +4003,27 @@ void do_cmd_throw(int Ind, int item, int dir)
 					msg_format(0 - c_ptr->m_idx, "You are hit by a %s!", o_name);
 				}
 				
+				/* Don't do damage if players aren't hostile */
+				if (!pvp_okay(Ind, 0 - c_ptr->m_idx, 0))
+				{
+					hit_body = FALSE;
+
+					/* Messages */
+					if (visible)
+					{
+						msg_format(Ind, "%s shrugs off the %s.", q_ptr->name, o_name);
+						msg_format(0 - c_ptr->m_idx, "%s throws you %s %s!", p_ptr->name, 
+											(is_a_vowel(o_name[0]) ? "an" : "a"), o_name);
+					}
+					/* Stop */
+					break;
+				}
+				
 				/* Handle visible player */
-				else
+				if (visible)
 				{
 					/* Messages */
-					msg_format(Ind, "The %s hits %s.", o_name, pvp_name);
+					msg_format(Ind, "The %s hits %s.", o_name, q_ptr->name);
 					msg_format(0 - c_ptr->m_idx, "%s hits you with a %s!", p_ptr->name, o_name);
 
 					/* Track player's health */
@@ -4156,6 +4156,10 @@ void do_cmd_throw(int Ind, int item, int dir)
 
 	/* Chance of breakage (during attacks) */
 	j = (hit_body ? breakage_chance(o_ptr) : 0);
+
+	/* Hack -- newbies_cannot_drop -- break item when throwing */
+	if ((p_ptr->lev == 1) && (cfg_newbies_cannot_drop))
+		j = 100;
 
 	/* Drop (or break) near that location */
 	drop_near(o_ptr, j, Depth, y, x);
