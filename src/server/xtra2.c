@@ -1791,10 +1791,6 @@ void check_experience(int Ind)
 	/* Redraw experience */
 	p_ptr->redraw |= (PR_EXP);
 
-	/* Handle stuff */
-	handle_stuff(Ind);
-
-
 	/* Lose levels while possible */
 	while ((p_ptr->lev > 1) &&
 	       (p_ptr->exp < (player_exp[p_ptr->lev-2] *
@@ -1822,9 +1818,6 @@ void check_experience(int Ind)
 
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
-
-		/* Handle stuff */
-		handle_stuff(Ind);
 	}
 
 
@@ -1868,10 +1861,10 @@ void check_experience(int Ind)
 
 		/* Window stuff */
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
-
-		/* Handle stuff */
-		handle_stuff(Ind);
 	}
+	
+	/* Handle stuff */
+	handle_stuff(Ind);
 }
 
 
