@@ -2536,6 +2536,12 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 
 	cave_type *c_ptr;
 
+	/* The edge is defined by 0 0 MAX_WID-1 MAX_HGT-1 */
+	if ((xval == 0) || /* At the left edge */
+		(yval == 0) || /* At the top edge */
+		(xmax == MAX_WID-1) || /* At the right edge */
+		(ymax == MAX_HGT-1)) /* At the bottom edge */
+		return; /* Abort if any side of the vault is at the edge of the dungeon */
 
 	/* Place dungeon features and objects */
 	for (t = data, dy = 0; dy < ymax; dy++)

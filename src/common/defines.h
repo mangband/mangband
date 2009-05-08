@@ -2915,7 +2915,7 @@ that keeps many algorithms happy.
  */
 #define in_bounds(DEPTH,Y,X) \
    ((DEPTH ? (((Y) > 0) && ((X) > 0) && ((Y) < MAX_HGT-1) && ((X) < MAX_WID-1)) \
-      : (((Y) > 0) && ((X) > 0) && ((Y) < MAX_HGT-1) && ((X) < MAX_WID-1))))
+           : (((Y) > 0) && ((X) > 0) && ((Y) < MAX_HGT-1) && ((X) < MAX_WID-1))))
 
 
 /*
