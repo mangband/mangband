@@ -2297,6 +2297,166 @@ void monster_death(int Ind, int m_idx)
 }
 
 
+/* Find player on arena "a", who is not player "Ind" */
+int pick_arena_opponent(int Ind, int a)
+{
+#if 1
+	int i;	
+	/* Count other players in this arena */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+	 	if (Players[i]->arena_num == a)
+	 	{
+			/* Found some one */
+	 		if (Ind != i) 
+	 			return i;
+	 	}
+	}	
+#else
+	int y,x,Depth = arenas[a].depth;
+	/* Paranoia */
+	if (!cave[Depth]) return -1;
+
+	for (y = arenas[a].y_1; y < arenas[a].y_2; y++) 
+	{
+		for (x = arenas[a].x_1; x < arenas[a].x_2; x++) 
+		{
+			if (cave[Depth][y][x].m_idx < 0) 
+			{
+				/* Found some one */
+				if (Ind != (0-cave[Depth][y][x].m_idx)) 
+					return (0-cave[Depth][y][x].m_idx);
+			}
+		}
+	}
+#endif
+	/* No one found */
+	return -1;
+}
+/* Find arena by those coordinates */
+int pick_arena(int Depth, int y, int x)
+{
+	int i;
+	for (i = 0; i < num_arenas; i++) 
+	{
+		if (arenas[i].depth != Depth) continue;
+		if (x < arenas[i].x_1 || x > arenas[i].x_2) continue;
+		if (y < arenas[i].y_1 || y > arenas[i].y_2) continue;
+		
+		/* Found */
+		return i; 
+	}
+	
+	/* Failure */
+	return -1;
+}
+/*
+ * Access Arena (Player touches it's wall in "py","px")
+ */
+void access_arena(int Ind, int py, int px) {
+	player_type *p_ptr = Players[Ind];
+	int a, tmp_id = -1, tmp_count = 0;
+	
+	/* Allready inside one */
+	if (p_ptr->arena_num != -1)
+	{
+		a = p_ptr->arena_num;
+		tmp_count++;
+	}
+	else
+	{
+		a = pick_arena(p_ptr->dun_depth, py, px);
+	}
+
+	/* Count other players in this arena */
+	if ((tmp_id = pick_arena_opponent(Ind, a)) != -1)
+	{
+		tmp_count++;
+	}
+
+	/* Player tries to leave the arena */
+	if (p_ptr->arena_num == a) 
+	{
+		/* If he is alone, leave */
+		if (tmp_count < 2)
+		{
+			msg_print(Ind, "You leave the arena.");
+			p_ptr->arena_num = -1;  
+			teleport_player(Ind, 20);
+		}
+		else
+			msg_print(Ind, "There is a wall blocking your way.");
+	}
+	/* Player tries to enter the arena */ 
+	else 
+	{   
+		/* If arena is not 'full' -- Enter it */
+		if (tmp_count < 2) 
+		{
+			msg_print(Ind, "You enter an ancient fighting pit.");
+			teleport_player_to(Ind, arenas[a].y_1+1+randint(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint(arenas[a].x_2-arenas[a].x_1-2) );
+			p_ptr->arena_num = a;
+		}
+		else
+			msg_print(Ind, "Arena is currently occupied.");
+		
+		/* Both players are ready! */
+		if (tmp_count == 1) 
+		{
+			/* Declare hostility */
+			add_hostility(Ind, Players[tmp_id]->name);	
+			add_hostility(tmp_id, Players[Ind]->name);	
+		}
+	}
+    
+
+}
+/* Cleanup after PvP Fight in the arena */
+void evacuate_arena(int Ind) {
+	char buf[100];
+	int a, tmp_id = 0;
+	buf[0] = '\0';
+	player_type *p_ptr = Players[Ind];
+	a = p_ptr->arena_num;
+	tmp_id = pick_arena_opponent(Ind, a);
+	
+	/* Loser */
+	if (tmp_id != -1 && tmp_id != Ind) 
+	{
+		/* Friendship */
+		remove_hostility(tmp_id, Players[Ind]->name);
+		remove_hostility(Ind, Players[tmp_id]->name);
+
+		/* Messages */
+		sprintf(buf, "You knock %s out.", p_ptr->name);
+		msg_print(tmp_id, buf);
+		sprintf(buf, "%s was defeated by %s.", p_ptr->name, Players[tmp_id]->name);
+		msg_broadcast(0, buf); //Notice broadcast
+		msg_print(Ind, "You recover oneself outside the arena.");
+		msg_print(tmp_id, "You gloriously leave the arena.");
+		
+		/* Heal */		
+		Players[tmp_id]->chp = Players[tmp_id]->mhp - 1;
+		Players[tmp_id]->chp_frac = 0;
+		
+		/* Teleport */
+		Players[tmp_id]->arena_num = -1;
+		teleport_player(tmp_id, 20);
+	}
+	
+	/* Winner */
+	{
+		/* Heal */
+		p_ptr->chp = p_ptr->mhp - 1;
+		p_ptr->chp_frac = 0;
+		
+		/* Teleport */
+		p_ptr->arena_num = -1;
+		teleport_player(Ind, 20);
+	}
+}
+
+
 /*
  * Handle the death of a player and drop their stuff.
  */
@@ -2316,8 +2476,34 @@ void player_death(int Ind)
 	int i;
 	u32b uniques;
 	s16b item_weight = 0;
-	//int tmp;  /* used to check for pkills */
-	//int pkill=0;  /* verifies we have a pkill */
+#if defined( PKILL )	
+	int tmp;  /* used to check for pkills */
+	int pkill=0;  /* verifies we have a pkill */
+#endif
+
+	/* Sound */
+	sound(Ind, SOUND_DEATH);
+
+	/* Hack -- Don't die in Arena! */
+	if (p_ptr->arena_num != -1) 
+	{
+	    p_ptr->death = FALSE;
+	    msg_print(Ind, "You lose consciousness.");
+	    evacuate_arena(Ind);
+	    return;
+	}
+
+	/* Note death */
+	if (!p_ptr->ghost) 
+	{
+		msg_print(Ind, "You die.");
+		msg_print(Ind, NULL);
+	}
+	else
+	{
+		msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
+		msg_print(Ind, NULL);
+	}
 
 	/* If this is our final death, clear any houses */
 	if (p_ptr->ghost || option_p(p_ptr, NO_GHOST))

@@ -882,6 +882,26 @@ static void rd_house(int n)
 
 }
 
+/*
+ * Read some arena info
+ */
+static void rd_arena(int n)
+{
+	arena_type *arena_ptr = &arenas[n];
+
+	start_section_read("arena");
+
+	/* coordinates of corners of house */
+	arena_ptr->x_1 = read_int("x1");
+	arena_ptr->y_1 = read_int("y1");
+	arena_ptr->x_2 = read_int("x2");
+	arena_ptr->y_2 = read_int("y2");
+	
+	arena_ptr->depth = read_int("depth");
+
+	end_section_read("arena");
+}
+
 static void rd_wild(int n)
 {
 	wilderness_type *w_ptr = &wild_info[-n];
@@ -2035,6 +2055,28 @@ errr rd_server_savefile()
 		}
 		num_houses = tmp16u;
 		end_section_read("houses");
+
+		/* Read arenas info */
+		if (section_exists("arenas")) 
+		{
+			start_section_read("arenas");
+			tmp16u = read_int("num_arenas");
+	
+			/* Incompatible save files */
+			if (tmp16u > MAX_ARENAS)
+			{
+				note(format("Too many (%u) arenas!", tmp16u));
+				return (27);
+			}
+	
+			/* Read the available records */
+			for (i = 0; i < tmp16u; i++)
+			{
+				rd_arena(i);
+			}
+			num_arenas = tmp16u;
+			end_section_read("arenas");
+		}
 
 		/* Read wilderness info */
 		start_section_read("wilderness");

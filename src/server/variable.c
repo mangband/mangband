@@ -257,6 +257,10 @@ party_type parties[MAX_PARTIES];
 /* Chat channels */
 channel_type channels[MAX_CHANNELS];
 
+/* Arenas information */ 
+arena_type arenas[MAX_ARENAS];
+int num_arenas;
+
 /* The information about houses */
 house_type houses[MAX_HOUSES];
 int num_houses;

@@ -1089,6 +1089,14 @@ static void player_setup(int Ind)
 			break;			
 		}
 	}
+	
+	/* Don't allow placement inside an arena */
+	if (pick_arena(p_ptr->dun_depth, p_ptr->py, p_ptr->px) != -1)
+	{
+		reposition = TRUE;
+	}
+	/* Reset */
+	p_ptr->arena_num = -1;
 
 	/* If we need to reposition to the player, do it */
 	if(reposition)

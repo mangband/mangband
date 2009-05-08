@@ -853,6 +853,8 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	bool rand_old = Rand_quick;
 	int rand_bonus=0;
 	
+	byte floor_info = CAVE_ICKY;	
+	
 	/* Hack -- Use the "simple" RNG */
 	Rand_quick = TRUE;
 	
@@ -954,6 +956,11 @@ static void wild_add_dwelling(int Depth, int x, int y)
 #else
 		if (rand_int(100) < 80) type = WILD_TOWN_HOME;
 #endif
+	/* hack -- sometimes large houses turn into arenas */
+	if (!has_moat && area >= 70 && num_houses < MAX_HOUSES)
+	{
+		if (rand_int(100) < 30) type = WILD_ARENA; 
+	}
 	
 	switch (type)
 	{
@@ -978,6 +985,18 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			/* doors are locked 60% of the time */
 			if (rand_int(100) < 60) door_feature = FEAT_DOOR_HEAD + rand_int(7);
 			else door_feature = FEAT_DOOR_HEAD;			
+			break;
+		case WILD_ARENA:
+			wall_feature = FEAT_PVP_ARENA;
+			door_feature = FEAT_PVP_ARENA;
+			floor_info = CAVE_ROOM | CAVE_GLOW | CAVE_ICKY;
+			
+			arenas[num_arenas].x_1 = h_x1;
+			arenas[num_arenas].y_1 = h_y1;
+			arenas[num_arenas].x_2 = h_x2;
+			arenas[num_arenas].y_2 = h_y2;
+			arenas[num_arenas].depth = Depth;
+		
 			break;
 		case WILD_TOWN_HOME:
 			wall_feature = FEAT_PERM_EXTRA;
@@ -1101,8 +1120,8 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			/* Fill with floor */
 			c_ptr->feat = FEAT_FLOOR;
 
-			/* Make it "icky" */
-			c_ptr->info |= CAVE_ICKY;			
+			/* Make it "icky" and/or "glowing" */
+			c_ptr->info |= floor_info;			
 		}
 	}
 		
@@ -1139,6 +1158,15 @@ static void wild_add_dwelling(int Depth, int x, int y)
 		cave[Depth][drawbridge_y[2]][drawbridge_x[2]].info |= CAVE_ICKY;
 	}
 	
+	/* Hack -- finish making arena */
+	if (type == WILD_ARENA)
+	{
+		/* hack -- only add arena if it is not already in memory */
+		if ((tmp = pick_arena(Depth, door_y, door_x)) == -1)
+		{
+			num_arenas++;
+		}
+	}
  	/* Hack -- finish making a town house */
 	
 	if (type == WILD_TOWN_HOME)

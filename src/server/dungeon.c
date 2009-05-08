@@ -1672,6 +1672,8 @@ static void process_player_end(int Ind)
 				p_ptr->dun_depth = new_depth;
 				p_ptr->world_x = new_world_x;
 				p_ptr->world_y = new_world_y;
+				/* XXX Hack -- arena paranoia */
+				p_ptr->arena_num = -1;
 
 				/* One more person here */
 				players_on_depth[p_ptr->dun_depth]++;

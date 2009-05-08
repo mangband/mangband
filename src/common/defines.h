@@ -235,6 +235,11 @@
 #define MAX_HOUSES	1024
 
 /*
+ * Total number of arenas
+ */
+#define MAX_ARENAS	10
+
+/*
  * Number of entries in the player name hash table.
  * This must be a power of 2!
  */
@@ -914,6 +919,7 @@ that keeps many algorithms happy.
 #define FEAT_DRAWBRIDGE	0x50
 #define FEAT_LOGS			0x60
 #define FEAT_PERM_CLEAR	0x70	
+#define FEAT_PVP_ARENA 	0x5F	
 
 /* Trees */
 #define FEAT_TREE			0x61
@@ -2749,6 +2755,7 @@ that keeps many algorithms happy.
 #define		WILD_PERM_HOME		2	
 #define		WILD_SHACK		3
 #define		WILD_TOWN_HOME		4
+#define		WILD_ARENA		8
 
 /* types of crops */
 #define		WILD_CROP_POTATO	0

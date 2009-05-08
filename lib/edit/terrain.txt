@@ -446,6 +446,13 @@ N:81:opened door
 G:':U
 M:4
 
+# 0x5F --> arena door
+
+N:95:arena entrance
+G:#:b
+M:60
+
+
 # 0x60 --> logs, used for log cabin
 
 N:96:log

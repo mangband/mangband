@@ -2778,8 +2778,8 @@ static void process_monster(int Ind, int m_idx)
 		y_ptr = &m_list[c_ptr->m_idx];
 
 
-		/* Tavern entrance? */
-		if (c_ptr->feat == FEAT_SHOP_HEAD+7)
+		/* Tavern entrance? PVP Arena? */
+		if (c_ptr->feat == FEAT_SHOP_HEAD+7 || c_ptr->feat == FEAT_PVP_ARENA)
 		{
 			/* Nothing */
 		}

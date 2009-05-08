@@ -360,6 +360,21 @@ static void wr_house(house_type *house)
 	end_section("house");
 }
 
+/*
+ * Write the information about an arena
+ */
+static void wr_arena(arena_type *arena)
+{
+	start_section("arena");
+	write_int("x1",arena->x_1);
+	write_int("y1",arena->y_1);
+	write_int("x2",arena->x_2);
+	write_int("y2",arena->y_2);
+	
+	write_int("depth",arena->depth);
+	end_section("arena");
+}
+
 static void wr_header(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -1538,6 +1553,14 @@ static bool wr_server_savefile(void)
 	for (i = 0; i < tmp16u; i++) wr_house(&houses[i]); 
 	end_section("houses");
 
+	start_section("arenas");
+	/* Note the number of arenas */
+	tmp16u = num_arenas;
+	write_int("num_arenas",tmp16u);
+	/* Dump the areans */
+	for (i = 0; i < tmp16u; i++) wr_arena(&arenas[i]); 
+	end_section("arenas");
+		
 	start_section("wilderness");
 	/* Note the size of the wilderness 
 	 change this to num_wild ? */

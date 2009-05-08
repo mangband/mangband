@@ -1182,9 +1182,6 @@ void py_attack_player(int Ind, int y, int x)
 			/* No negative damage */
 			if (k < 0) k = 0;
 
-			/* XXX Reduce damage by 1/3 */
-			k = (k + 2) / 3;
-
 			/* Damage */
 			take_hit(0 - c_ptr->m_idx, k, p_ptr->name);
 
@@ -1723,6 +1720,11 @@ void move_player(int Ind, int dir, int do_pickup)
 		}
 		/* Attack */
 		else py_attack(Ind, y, x);
+	}
+	/* Arena */
+	else if (c_ptr->feat == FEAT_PVP_ARENA)
+	{
+		access_arena(Ind, y, x);
 	}
 
 	/* Player can not walk through "walls", but ghosts can */

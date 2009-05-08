@@ -209,6 +209,24 @@ struct cave_view_type
 };
 
 /*
+ * Information about "Arena" (special building for pvp)
+ */
+typedef struct arena_type arena_type;
+struct arena_type
+{
+	byte x_1;
+	byte y_1; 
+	byte x_2;
+	byte y_2;
+	
+	s32b depth;
+	
+	int player1;
+	int player2;
+};
+
+
+/*
  * Information about a "party"
  */
 
@@ -1370,6 +1388,7 @@ struct player_type
 	int current_house; /* Which house is he pointing */
 	int store_num;		/* What store this guy is in */
 	int player_store_num;		/* What player store this guy is in */
+	int arena_num;		/* What arena this guy is in */
 
 	s16b fast;			/* Timed -- Fast */
 	s16b slow;			/* Timed -- Slow */

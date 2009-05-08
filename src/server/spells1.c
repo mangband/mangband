@@ -175,6 +175,14 @@ void teleport_player(int Ind, int dis)
 
 	bool look = TRUE;
 
+	/* XXX XXX Hack -- hijack teleport in Arena */
+	if (p_ptr->arena_num != -1)
+	{
+		i = p_ptr->arena_num;
+		teleport_player_to(Ind, arenas[i].y_1+1+randint(arenas[i].y_2-arenas[i].y_1-2) , arenas[i].x_1+1+randint(arenas[i].x_2-arenas[i].x_1-2) );
+		return;
+	}
+
 	/* Minimum distance */
 	min = dis / 2;
 
@@ -358,8 +366,8 @@ void teleport_player_level(int Ind)
 	int Depth = p_ptr->dun_depth, new_depth, new_world_x = 0, new_world_y = 0;
 	char *msg;
 
-	/* Ironmen don't teleport level */
-	if (cfg_ironman)
+	/* Ironmen OR Arena fighters don't teleport level */
+	if (cfg_ironman || p_ptr->arena_num != -1)
 	{
 		msg_print(Ind,"Nothing happens.");
 		return;
@@ -531,9 +539,6 @@ static byte spell_color(int type)
  *
  * XXX XXX XXX Invulnerability needs to be changed into a "shield"
  *
- * XXX XXX XXX Hack -- this function allows the user to save (or quit)
- * the game when he dies, since the "You die." message is shown before
- * setting the player to "dead".
  */
 void take_hit(int Ind, int damage, cptr hit_from)
 {
@@ -581,21 +586,6 @@ void take_hit(int Ind, int damage, cptr hit_from)
 	/* Dead player */
 	if (p_ptr->chp < 0)
 	{
-		/* Sound */
-		sound(Ind, SOUND_DEATH);
-
-		/* Hack -- Note death */
-		if (!p_ptr->ghost) 
-		{
-			msg_print(Ind, "You die.");
-			msg_print(Ind, NULL);
-		}
-		else
-		{
-			msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
-			msg_print(Ind, NULL);
-		}
-
 		/* Note cause of death */
 		/* To preserve the players original (pre-ghost) cause
 		   of death, use died_from_list.  To preserve the original
