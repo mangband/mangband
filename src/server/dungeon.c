@@ -534,7 +534,7 @@ static void process_world(int Ind)
 				msg_print(Ind, "The sun has risen.");
 	
 				/* Make sure we're not in a store */
-				if ((Depth == 0) && (p_ptr->store_num != -1))
+				if ((Depth == 0) && (p_ptr->store_num = -1))
 				{
 					/* Hack -- Scan the level */
 					for (y = 0; y < MAX_HGT; y++)
@@ -565,7 +565,7 @@ static void process_world(int Ind)
 				msg_print(Ind, "The sun has fallen.");
 
 				/* Make sure we're not in a store */
-				if ((Depth == 0) && (p_ptr->store_num != -1))
+				if ((Depth == 0) && (p_ptr->store_num = -1))
 				{
 					 /* Hack -- Scan the level */
 					for (y = 0; y < MAX_HGT; y++)
