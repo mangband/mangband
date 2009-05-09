@@ -2294,17 +2294,21 @@ void monster_death(int Ind, int m_idx)
 int pick_arena_opponent(int Ind, int a)
 {
 #if 1
-	int i;	
+	int i, found = -1, count = 0;	
 	/* Count other players in this arena */
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
 	 	if (Players[i]->arena_num == a)
 	 	{
 			/* Found some one */
-	 		if (Ind != i) 
-	 			return i;
+	 		if (Ind != i)
+	 		{
+	 			count++;
+	 			found = i; 
+	 		}
 	 	}
-	}	
+	}
+	if (count > 1) found = -2;
 #else
 	int y,x,Depth = arenas[a].depth;
 	/* Paranoia */
@@ -2324,7 +2328,7 @@ int pick_arena_opponent(int Ind, int a)
 	}
 #endif
 	/* No one found */
-	return -1;
+	return found;
 }
 /* Find arena by those coordinates */
 int pick_arena(int Depth, int y, int x)
@@ -2366,6 +2370,7 @@ void access_arena(int Ind, int py, int px) {
 	{
 		tmp_count++;
 	}
+	if (tmp_id == -2) tmp_count++;
 
 	/* Player tries to leave the arena */
 	if (p_ptr->arena_num == a) 
@@ -2375,7 +2380,7 @@ void access_arena(int Ind, int py, int px) {
 		{
 			msg_print(Ind, "You leave the arena.");
 			p_ptr->arena_num = -1;  
-			teleport_player(Ind, 20);
+			teleport_player(Ind, 1);
 		}
 		else
 			msg_print(Ind, "There is a wall blocking your way.");
@@ -2431,6 +2436,7 @@ void evacuate_arena(int Ind) {
 		/* Heal */		
 		Players[tmp_id]->chp = Players[tmp_id]->mhp - 1;
 		Players[tmp_id]->chp_frac = 0;
+		Players[tmp_id]->redraw |= PR_HP;
 		
 		/* Teleport */
 		Players[tmp_id]->arena_num = -1;
@@ -2442,6 +2448,7 @@ void evacuate_arena(int Ind) {
 		/* Heal */
 		p_ptr->chp = p_ptr->mhp - 1;
 		p_ptr->chp_frac = 0;
+		p_ptr->redraw |= PR_HP;
 		
 		/* Teleport */
 		p_ptr->arena_num = -1;

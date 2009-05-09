@@ -865,6 +865,18 @@ static void Delete_player(int Ind)
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 	}
 	
+	/* Gross hack -- Arena friendship */
+	if (p_ptr->arena_num != -1) 
+	{
+		int tmp_id;
+		if ((tmp_id = pick_arena_opponent(Ind, p_ptr->arena_num)) != -1)
+		{
+			/* Friendship */
+			remove_hostility(tmp_id, Players[Ind]->name);
+			remove_hostility(Ind, Players[tmp_id]->name);
+		}
+	}
+	
 	/* Leave chat channels */
 	channels_leave(Ind);
 
@@ -5672,6 +5684,9 @@ static int Receive_party(int ind)
 
 	if (player)
 	{
+		/* Hack -- silently fail in arena */
+		if (Players[player]->arena_num != -1) return 1;
+
 		switch (command)
 		{
 			case PARTY_CREATE:

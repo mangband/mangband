@@ -3847,6 +3847,9 @@ bool projectable_wall(int Depth, int y1, int x1, int y2, int x2)
 		/* Check for arrival at "final target" */
 		if ((x == x2) && (y == y2)) return (TRUE);
 
+		/* HACK -- Never go through walls -- ARENA WALLS */
+		if (dist && cave[Depth][y][x].feat ==  FEAT_PVP_ARENA) break;
+
 		/* Never go through walls */
 		if (dist && !cave_floor_bold(Depth, y, x)) break;
 
