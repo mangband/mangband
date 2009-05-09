@@ -2413,8 +2413,8 @@ void access_arena(int Ind, int py, int px) {
 void evacuate_arena(int Ind) {
 	char buf[100];
 	int a, tmp_id = 0;
-	buf[0] = '\0';
 	player_type *p_ptr = Players[Ind];
+	buf[0] = '\0';
 	a = p_ptr->arena_num;
 	tmp_id = pick_arena_opponent(Ind, a);
 	
