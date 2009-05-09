@@ -1279,7 +1279,7 @@ static int Enter_player(int ind)
 	if (!player_birth(NumPlayers + 1, connp->nick, connp->pass, ind, connp->race, connp->class, connp->sex, connp->stat_order))
 	{
 		/* Failed, connection destroyed */
-		return -2;
+		return -1;
 	}
 
 	p_ptr = Players[NumPlayers + 1];
