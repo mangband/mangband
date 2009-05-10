@@ -1012,10 +1012,59 @@ static void player_setup(int Ind)
 		}
 	}
 
+	/* Re-Place the player correctly */
+	reposition = FALSE;
+
 	/* Default location if just starting */
 	if (!Depth && !p_ptr->py && !p_ptr->px)
 	{
-		/* Put them in the Tavern */
+		reposition = TRUE;
+	}
+
+	/* Don't allow placement inside a shop if someone is shopping or 
+	 * if we don't own it (anti-exploit) */
+	for (i = 0; i < num_houses; i++)
+	{
+		/* Are we inside this house? */
+		if (house_inside(Ind, i))
+		{
+			/* If we don't own it, get out of it */
+			if( !house_owned_by(Ind, i) )
+			{
+				reposition = TRUE;
+				break;
+			}
+			/* Is anyone shopping in it? */
+			for (k = 1; k <= NumPlayers; k++ )
+			{
+				q_ptr = Players[k];
+				if(q_ptr && Ind != k)
+				{
+					/* Someone in here? */
+					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
+					{
+						reposition = TRUE;
+						break;
+					}
+				}				
+			}
+			break;			
+		}
+	}
+
+	/* If we need to reposition the player, do it */
+	if(reposition)
+	{
+		/* Moving from wilderness to town */
+		if (Depth < 0)
+		{
+			players_on_depth[Depth]--;
+			Depth = p_ptr->dun_depth = 0;
+			players_on_depth[Depth]++;
+			p_ptr->world_x = 0;
+			p_ptr->world_y = 0;
+		}
+		/* Put us in the tavern */
 		p_ptr->py = level_down_y[0];
 		p_ptr->px = level_down_x[0];
 	}
@@ -1039,49 +1088,9 @@ static void player_setup(int Ind)
 			}
 		}
 	}
-
-	/* Re-Place the player correctly */
-
-	/* Don't allow placement inside a shop if someone is shopping or 
-	 * if we don't own it (anti-exploit) */
-	reposition = FALSE;
-	for (i = 0; i < num_houses; i++)
-	{
-		/* Are we inside this house? */
-		if (house_inside(Ind, i))
-		{
-			/* If we don't own it, get out of it */
-			if( !house_owned_by(Ind, i) )
-			{
-				reposition = TRUE;
-				break;
-			}
-			/* Is anyone shopping in it? */
-			for (k = 1; k <= NumPlayers; k++ )
-			{
-				q_ptr = Players[k];
-				if(q_ptr && Ind != k)
-				{
-					/* Someone in here? */
-					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
-					{
-						reposition = TRUE;
-					}
-				}				
-			}
-			break;			
-		}
-	}
-
-	/* If we need to reposition to the player, do it */
-	if(reposition)
-	{
-		/* Put us in the tavern */
-		p_ptr->dun_depth = 0;
-		p_ptr->py = level_down_y[0];
-		p_ptr->px = level_down_x[0];
-	}
-
+	/* hack -- update night/day in wilderness levels */ 
+	if ((Depth < 0) && (IS_DAY)) wild_apply_day(Depth); 
+	if ((Depth < 0) && (IS_NIGHT)) wild_apply_night(Depth); 
 
 	// Hack -- don't require line of sight if we are stuck in something 
 	// solid, such as rock.  This might happen if the level unstatics
