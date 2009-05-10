@@ -2631,12 +2631,12 @@ static errr term_data_init(term_data *td, int i)
 	/* Read config file */
 	strcpy(font_name, conf_get_string(settings, "Font", font));
 	font = font_name;
-	rows = conf_get_int(settings, "Rows", 0);
-	cols = conf_get_int(settings, "Cols", 0);
+	rows = conf_get_int(settings, "Rows", 80);
+	cols = conf_get_int(settings, "Cols", 24);
 	x = conf_get_int(settings, "PositionX", 0);
 	y = conf_get_int(settings, "PositionX", 0);
-	td->tile_wid = conf_get_int(settings, "ScaleX", 0);
-	td->tile_hgt = conf_get_int(settings, "ScaleY", 0);
+	td->tile_wid = conf_get_int(settings, "ScaleX", 8);
+	td->tile_hgt = conf_get_int(settings, "ScaleY", 8);
 	
 
 	/*
