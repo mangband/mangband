@@ -2514,9 +2514,6 @@ errr init_sdl(void)
 	
 	ANGBAND_SYS = "sdl"; 
 
-	/* Prepare config */
-	conf_init(0);
-
 	/* Read config for main window */
 	use_graphics = conf_get_int("SDL", "Graphics", 0);
 	use_sound = conf_get_int("SDL", "Sound", 0);

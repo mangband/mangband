@@ -65,6 +65,9 @@ int main(int argc, char **argv)
 	/* Save the program name */
 	argv0 = argv[0];
 
+	/* Client Config-file */
+	conf_init(NULL);
+
 	/* Attempt to initialize a visual module */
 #ifdef USE_SDL
 	/* Attempt to use the "main-sdl.c" support */

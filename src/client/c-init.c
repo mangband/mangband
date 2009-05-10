@@ -310,9 +310,6 @@ void client_init(char *argv1)
 	u16b conntype = CONNTYPE_PLAYER;
 	bool done = 0;
 
-	/* Client Config-file */
-	conf_init(NULL);
-	
 	/* Setup the file paths */
 	init_stuff();
 

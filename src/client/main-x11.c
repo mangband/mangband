@@ -2514,28 +2514,31 @@ static errr Term_pict_x11_28x(int x, int y, byte a, char c)
 #define VERSION_NAME "MAngband"
 static void save_prefs(void)
 {
-	FILE *fff;
 	int i;
 
-	/* Open the settings file */
-	fff = my_fopen(settings, "w");
-
-	/* Oops */
-	if (!fff) return;
-
-	/* Header */
-	fprintf(fff, "# %s X11 settings\n\n", VERSION_NAME);
+	/* Global */
+	conf_set_int("X11", "Graphics", use_graphics);
 
 	/* Save window prefs */
 	for (i = 0; i < MAX_TERM_DATA; i++)
 	{
 		term_data *td = &data[i];
 
+		/* Header */
+		sprintf(settings, "X11-%s", ang_term_name[i]);
+		conf_set_int(settings, "Visible", td->t.mapped_flag);
+
 		if (!td->t.mapped_flag) continue;
 
-		/* Header */
-		fprintf(fff, "# Term %d\n", i);
-
+		conf_set_int(settings, "PositionX", td->win->x);
+		conf_set_int(settings, "PositionY", td->win->y);
+		conf_set_int(settings, "Cols", td->t.wid);
+		conf_set_int(settings, "Rows", td->t.hgt);
+		conf_set_int(settings, "ScaleX", td->tile_wid);
+		conf_set_int(settings, "ScaleY", td->tile_hgt);
+		
+		conf_set_string(settings, "Font", td->fnt->name);
+		
 #if 0
 		/*
 		 * ToDo: Fix
@@ -2549,7 +2552,6 @@ static void save_prefs(void)
 
 		/* Window specific location (y) */
 		fprintf(fff, "AT_Y_%d=%d\n", i, td->win->y);
-#endif /* 0 */
 
 		/* Window specific cols */
 		fprintf(fff, "COLS_%d=%d\n", i, td->t.wid);
@@ -2574,9 +2576,13 @@ static void save_prefs(void)
 
 		/* Footer */
 		fprintf(fff, "\n");
+#endif /* 0 */		
 	}
-}
 
+	/* Save */
+	conf_save();
+}
+static void Term_nuke_x11(term *t) { save_prefs(); }
 
 /*
  * Initialize a term_data
@@ -2585,7 +2591,7 @@ static errr term_data_init(term_data *td, int i)
 {
 	term *t = &td->t;
 
-	cptr name = "Term";//angband_term_name[i];
+	cptr name = ang_term_name[i];
 
 	cptr font;
 
@@ -2611,146 +2617,28 @@ static errr term_data_init(term_data *td, int i)
 
 	XSizeHints *sh;
 
-	FILE *fff;
-
 	char buf[1024];
-	char cmd[40];
 	char font_name[256];
 
-	int line = 0;
+	/* Term Name */	
+	sprintf(settings, "X11-%s", ang_term_name[i]);
 
+	if (i && (bool)conf_get_int(settings, "Visible", 0) == FALSE) return 1;
+	
 	/* Get default font for this term */
 	font = get_default_font(i);
-#if 0
-	/* Build the filename */
-	path_build(settings, sizeof(settings), ANGBAND_DIR_USER, "x11-settings.prf");
 
-	/* Open the file */
-	fff = my_fopen(settings, "r");
+	/* Read config file */
+	strcpy(font_name, conf_get_string(settings, "Font", font));
+	font = font_name;
+	rows = conf_get_int(settings, "Rows", 0);
+	cols = conf_get_int(settings, "Cols", 0);
+	x = conf_get_int(settings, "PositionX", 0);
+	y = conf_get_int(settings, "PositionX", 0);
+	td->tile_wid = conf_get_int(settings, "ScaleX", 0);
+	td->tile_hgt = conf_get_int(settings, "ScaleY", 0);
+	
 
-	/* File exists */
-	if (fff)
-	{
-		/* Process the file */
-		while (0 == my_fgets(fff, buf, sizeof(buf)))
-		{
-			/* Count lines */
-			line++;
-
-			/* Skip "empty" lines */
-			if (!buf[0]) continue;
-
-			/* Skip "blank" lines */
-			if (isspace((unsigned char)buf[0])) continue;
-
-			/* Skip comments */
-			if (buf[0] == '#') continue;
-
-			/* Window specific location (x) */
-			sprintf(cmd, "AT_X_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				x = (str != NULL) ? atoi(str + 1) : -1;
-				continue;
-			}
-
-			/* Window specific location (y) */
-			sprintf(cmd, "AT_Y_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				y = (str != NULL) ? atoi(str + 1) : -1;
-				continue;
-			}
-
-			/* Window specific cols */
-			sprintf(cmd, "COLS_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) cols = val;
-				continue;
-			}
-
-			/* Window specific rows */
-			sprintf(cmd, "ROWS_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) rows = val;
-				continue;
-			}
-
-			/* Window specific inner border offset (ox) */
-			sprintf(cmd, "IBOX_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) ox = val;
-				continue;
-			}
-
-			/* Window specific inner border offset (oy) */
-			sprintf(cmd, "IBOY_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) oy = val;
-				continue;
-			}
-
-			/* Window specific font name */
-			sprintf(cmd, "FONT_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				if (str != NULL)
-				{
-					my_strcpy(font_name, str + 1, sizeof(font_name));
-					font = font_name;
-				}
-				continue;
-			}
-
-			/* Window specific tile width */
-			sprintf(cmd, "TILE_WIDTH_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) td->tile_wid = val;
-				continue;
-			}
-
-			/* Window specific tile height */
-			sprintf(cmd, "TILE_HEIGHT_%d", i);
-
-			if (prefix(buf, cmd))
-			{
-				str = strstr(buf, "=");
-				val = (str != NULL) ? atoi(str + 1) : -1;
-				if (val > 0) td->tile_hgt = val;
-				continue;
-			}
-		}
-
-		/* Close */
-		my_fclose(fff);
-	}
-#endif
 	/*
 	 * Env-vars overwrite the settings in the settings file
 	 */
@@ -2922,6 +2810,8 @@ static errr term_data_init(term_data *td, int i)
 	t->wipe_hook = Term_wipe_x11;
 	t->text_hook = Term_text_x11;
 
+	t->nuke_hook = Term_nuke_x11;
+
 	/* Save the data */
 	t->data = td;
 
@@ -2959,7 +2849,7 @@ errr init_x11(int argc, char **argv)
 
 	cptr dpy_name = "";
 
-	int num_term = 1;
+	int num_term = 8;
 
 #ifdef USE_GRAPHICS
 
@@ -2973,6 +2863,9 @@ errr init_x11(int argc, char **argv)
 
 #endif /* USE_GRAPHICS */
 
+	/* Global config */
+	num_term = conf_get_int("X11", "Terms", num_term);
+	use_graphics = conf_get_int("X11", "Graphics", use_graphics);
 
 	/* Parse args */
 	for (i = 1; i < argc; i++)
@@ -3077,10 +2970,11 @@ errr init_x11(int argc, char **argv)
 		term_data *td = &data[i];
 
 		/* Initialize the term_data */
-		term_data_init(td, i);
-
-		/* Save global entry */
-		ang_term[i] = Term;
+		if (!term_data_init(td, i))
+		{
+			/* Save global entry */
+			ang_term[i] = Term;
+		}
 	}
 
 	/* Raise the "Angband" window */
