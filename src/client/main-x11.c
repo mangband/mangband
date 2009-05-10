@@ -2130,6 +2130,7 @@ static errr CheckEvent(bool wait)
 		/* Move and/or Resize */
 		case ConfigureNotify:
 		{
+			static int ocols, orows, ccols, crows;
 			int cols, rows, wid, hgt;
 
 			int ox = Infowin->ox;
@@ -2146,22 +2147,48 @@ static errr CheckEvent(bool wait)
 			rows = ((Infowin->h - (oy + oy)) / td->tile_hgt);
 
 			/* Hack -- minimal size */
-			if (cols < 1) cols = 1;
+			if (cols < 3) cols = 3;
 			if (rows < 1) rows = 1;
 
-			if (window == 0)
+			/*if (window == 0)
 			{
-				/* Hack the main window must be at least 80x24 */
+				// Hack the main window must be at least 80x24 
 				if (cols < 80) cols = 80;
 				if (rows < 24) rows = 24;
+			}*/
+
+			/* Network resize (if needed) */
+			if (window == 0)
+			{
+				/* HACK -- Boundries */
+				if (cols < Setup.min_col+SCREEN_CLIP_X) { cols = Setup.min_col+SCREEN_CLIP_X; }
+				if (rows < Setup.min_row+SCREEN_CLIP_Y) { rows = Setup.min_row+SCREEN_CLIP_Y; }
+				if (cols > Setup.max_col+SCREEN_CLIP_X) { cols = Setup.max_col+SCREEN_CLIP_X; }
+				if (rows > Setup.max_row+SCREEN_CLIP_Y) { rows = Setup.max_row+SCREEN_CLIP_Y; }
+										
+				/* Notice Change */
+				if (cols == ccols && rows == crows)
+				{
+					if (cols != ocols || rows != orows)
+					{
+						/* Dungeon size hack! */
+						if (conn_state)
+							net_term_resize(cols, rows - SCREEN_CLIP_L);
+						
+						ocols = cols;
+						orows = rows;
+					}
+				}
+				ccols = cols;
+				crows = rows;
+			} else {
+				/* Resize the Term (if needed) */
+				(void)Term_resize(cols, rows);
 			}
 
 			/* Desired size of window */
 			wid = cols * td->tile_wid + (ox + ox);
 			hgt = rows * td->tile_hgt + (oy + oy);
-
-			/* Resize the Term (if needed) */
-			(void)Term_resize(cols, rows);
 
 			/* Resize the windows if any "change" is needed */
 			if ((Infowin->w != wid) || (Infowin->h != hgt))
