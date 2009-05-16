@@ -2581,10 +2581,27 @@ void msg_broadcast(int Ind, cptr msg)
 	 }
 	 
 	/* Send to console */
-	console_print((char*)msg);
+	console_print((char*)msg, 0);
 	 
 }
 
+void msg_channel(int chan, cptr msg)
+{
+	int i;
+	/* Log to file */
+	if (channels[chan].mode & CM_PLOG)
+	{
+		plog(msg);	
+	}
+	/* Tell every player */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		if (Players[i]->on_channel[chan] & UCM_EAR)
+			msg_print_aux(i, msg, MSG_CHAT + chan);
+	}
+	/* And every console */
+	console_print((char*)msg, chan);
+}
 
 
 /*
@@ -2913,11 +2930,20 @@ void channel_join(int Ind, cptr channel, bool quiet)
 		/* Name match */
 		if (!strcmp(channels[i].name, channel))
 		{
-			if (!p_ptr->on_channel[i])
-			/* Enter channel */
+			/* Not present on this channel */
+			if (!on_channel(p_ptr, i))
 			{
+				/* Hack -- can't join due to modes? */
+				if (((channels[i].mode & CM_KEYLOCK) && !is_dm_p(p_ptr)) ||
+					(p_ptr->on_channel[i] & UCM_BAN) ) 
+				{
+					/* Hack -- route to "unable to join" message */
+					last_free = 0;
+					break;
+				}
+				/* Enter channel */
 				channels[i].num++;
-				p_ptr->on_channel[i] = TRUE;
+				p_ptr->on_channel[i] |= UCM_EAR;
 				Send_channel(Ind, i, NULL);
 				if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
 			}
@@ -2940,7 +2966,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 		/* Create channel */
 		strcpy(channels[last_free].name, channel);
 		channels[last_free].num = 1;
-		p_ptr->on_channel[last_free] = TRUE;
+		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
 		Send_channel(Ind, last_free, FALSE);
 		if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
 	}
@@ -2954,11 +2980,11 @@ void channel_join(int Ind, cptr channel, bool quiet)
 void channel_leave_id(int Ind, int i, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
-	if (!i || !p_ptr->on_channel[i]) return;
+	if (!i || !(p_ptr->on_channel[i] & UCM_EAR)) return;
 	
 	channels[i].num--;
 	if (!quiet) msg_format(Ind,"Left channel %s",channels[i].name);
-	if (channels[i].num <= 0)
+	if (channels[i].num <= 0 && !(channels[i].mode & CM_SERVICE))
 	{
 		channels[i].name[0] = '\0';
 		channels[i].id = 0;
@@ -2967,7 +2993,7 @@ void channel_leave_id(int Ind, int i, bool quiet)
 	{
 		p_ptr->main_channel = 0;
 	}
-	p_ptr->on_channel[i] = FALSE;
+	p_ptr->on_channel[i] &= ~(UCM_LEAVE);
 	if (!quiet)
 		Send_channel(Ind, i, "-");
 }
@@ -2992,7 +3018,7 @@ void channels_leave(int Ind)
 
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
-		if (p_ptr->on_channel[i])
+		if (p_ptr->on_channel[i] & UCM_EAR)
 		{
 			channel_leave_id(Ind, i, TRUE);
 		}
@@ -3212,12 +3238,13 @@ void player_talk_aux(int Ind, cptr message)
 
 	/* Total failure... */
 	if (dest_chan == -1) return;
+	else if (!can_talk(p_ptr, dest_chan)) return; 
 
 	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		q_ptr = Players[i];
-		if(q_ptr->on_channel[dest_chan])
+		if(q_ptr->on_channel[dest_chan] & UCM_EAR)
 		{
 			/* Send message */
 			if(Ind)
@@ -3231,11 +3258,8 @@ void player_talk_aux(int Ind, cptr message)
 		}
 	}
 
-	/* Send to the console too if it's a public message */
-	if(dest_chan == 0)
-	{
-		console_print(format("[%s] %s", sender, message));
-	}
+	/* Send to the console too */
+	console_print(format("[%s] %s", sender, message), dest_chan);
 }
 
 

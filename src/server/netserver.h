@@ -48,6 +48,7 @@ typedef struct {
 	client_setup_t	Client_setup;
 	bool		console_authenticated;
 	bool		console_listen;
+	byte		console_channels[MAX_CHANNELS];
 } connection_t;
 
 static void Contact(int fd, int arg);

@@ -483,12 +483,14 @@ static void player_wipe(int Ind)
 	object_type *old_inven;
 	monster_lore *old_lore;
 	monster_lore *l_ptr;
+	byte *old_channels;
 	int i;
 
 
 	/* Hack -- save the inventory and lore pointers */
 	old_inven = p_ptr->inventory;
 	old_lore = p_ptr->l_list;
+	old_channels = p_ptr->on_channel;
 
 	/* Hack -- zero the struct */
 	WIPE(p_ptr, player_type);
@@ -496,6 +498,7 @@ static void player_wipe(int Ind)
 	/* Hack -- reset the inventory and lore pointers */
 	p_ptr->inventory = old_inven;
 	p_ptr->l_list = old_lore;
+	p_ptr->on_channel = old_channels;
 	
 	/* Wipe the history */
 	for (i = 0; i < 4; i++)
@@ -575,10 +578,13 @@ static void player_wipe(int Ind)
 	/* Hack -- assume the player has an initial knowledge of the area close to town */
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
+	/* Clear old channels */
+	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
+
 	/* Listen on the default chat channel */
 	p_ptr->main_channel = 0;
 	strcpy(p_ptr->second_channel, "");
-	p_ptr->on_channel[0] = TRUE;
+	p_ptr->on_channel[0] |= UCM_EAR;
 	
 	/* Output to default terminal */
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
@@ -1246,6 +1252,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Set pointer */
 	p_ptr = Players[Ind];
+
+	/* Copy channels pointer */
+	p_ptr->on_channel = Conn_get_console_channels(conn);
 
 	/* Clear old information */
 	player_wipe(Ind);

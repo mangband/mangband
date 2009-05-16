@@ -88,6 +88,7 @@ void init_minor(void)
 {
 	int i;
 	/* Chat channels */
+	C_MAKE(p_ptr->on_channel, MAX_CHANNELS, byte);
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		channels[i].name[0] = '\0';

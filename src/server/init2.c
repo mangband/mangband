@@ -2001,8 +2001,21 @@ static errr init_other(void)
 		channels[i].name[0] = '\0';
 		channels[i].id = 0;
 		channels[i].num = 0;
+		channels[i].mode = 0;
+		chan_audit = chan_debug = chan_cheat = 0;
 	}
 	strcpy(channels[0].name, DEFAULT_CHANNEL);
+	channels[0].mode = CM_SERVICE | CM_PLOG;
+	for (i = 1; i < 4; i++)
+	{
+		channels[i].id = i;
+		channels[i].mode = (CM_SECRET | CM_KEYLOCK | CM_SERVICE);
+		switch (i) {
+			case 1:chan_audit=i;strcpy(channels[i].name, "#audit");break;
+			case 2:chan_debug=i;strcpy(channels[i].name, "#debug");break;
+			case 3:chan_cheat=i;strcpy(channels[i].name, "#cheat");break;
+		}
+	}
 
 	/*** Prepare the Player inventory ***/
 

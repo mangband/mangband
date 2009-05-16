@@ -22,6 +22,7 @@ extern void* console_buffer(int ind, bool read);
 extern bool Conn_is_alive(int ind);
 extern void Conn_set_console_setting(int ind, int set, bool val);
 extern bool Conn_get_console_setting(int ind, int set);
+extern byte* Conn_get_console_channels(int ind);
 extern int Init_setup();
 
 /* tables.c */
@@ -232,6 +233,9 @@ extern byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 extern arena_type arenas[MAX_ARENAS];
 extern int num_houses;
 extern int num_arenas;
+extern int chan_audit;
+extern int chan_debug;
+extern int chan_cheat;
 extern long GetInd[];
 /*extern char player_name[32];
 extern char player_base[32];
@@ -531,7 +535,7 @@ extern void do_cmd_activate_dir(int Ind, int item, int dir);
 /* control.c */
 extern void NewConsole(int fd, int arg);
 extern bool InitNewConsole(int write_fd);
-extern void console_print(char *msg);
+extern void console_print(char *msg, int chan);
 
 /* dungeon.c */
 extern bool is_boring(byte feat);
@@ -989,6 +993,7 @@ extern void message_add(cptr msg);
 extern void msg_print(int Ind, cptr msg);
 extern void msg_print_aux(int Ind, cptr msg, u16b type);
 extern void msg_broadcast(int Ind, cptr msg);
+extern void msg_channel(int chan, cptr msg);
 extern void msg_format(int Ind, cptr fmt, ...);
 extern void msg_format_type(int Ind, u16b type, cptr fmt, ...);
 extern void msg_print_near(int Ind, cptr msg);

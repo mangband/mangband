@@ -23,27 +23,30 @@ extern int command_len;
 /*
  * Output some text to the console, if we are listening
  */
-void console_print(char *msg)
+void console_print(char *msg, int chan)
 {
 	int i;
 	sockbuf_t *console_buf_w;
+	byte *chan_ptr;
+	bool hint;
 	for (i = 0; i < max_connections; i++)
 	{
 		if (Conn_is_alive(i)) {
-			 if( Conn_get_console_setting(i, CONSOLE_LISTEN) )
+			chan_ptr = Conn_get_console_channels(i);
+			hint = FALSE;
+			 if( chan_ptr[chan] || (chan == 0 && (hint = Conn_get_console_setting(i, CONSOLE_LISTEN))) )
 			 {
 			 	console_buf_w = (sockbuf_t*)console_buffer(i, FALSE);
+			 	if (!hint) 
+			 	{	/* Name channel */
+			 		Packet_printf(console_buf_w, "%s", channels[chan].name);
+			 		Packet_printf(console_buf_w, "%s", " ");
+			 	}
 			 	Packet_printf(console_buf_w, "%s%c",msg,'\n');
 				Sockbuf_flush(console_buf_w);
 			 }
 		}
 	}
-	/*
-	if (console_listen)
-	{
-		Packet_printf(&console_buf, "%s%c",msg,'\n');
-		Sockbuf_flush(&console_buf);
-	}*/
 }
 
 /*
@@ -85,8 +88,21 @@ static void console_debug(int ind, char *useless)
 /*
  * Start listening to game server messages
  */
-static void console_listen(int ind, char *useless)
+static void console_listen(int ind, char *channel)
 {
+	int i;
+	byte *chan;
+	if (channel && !STRZERO(channel)) {
+		chan = Conn_get_console_channels(ind);
+		for (i = 0; i < MAX_CHANNELS; i++)
+		{
+			if (!strcmp(channels[i].name, channel))
+			{
+				chan[i] = 1; 
+				break;
+			}
+		}
+	}
 	Conn_set_console_setting(ind, CONSOLE_LISTEN, TRUE);
 }
 
@@ -325,7 +341,6 @@ static void console_help(int ind, char *name)
 	bool done = FALSE;
 	
 	/* Root */
-	printf("[%s]\n", name);
 	if (!name || name[0] == ' ' || name[0] == '\0')
 	{
 		for (i = 0; i < command_len; i++) 
@@ -341,7 +356,7 @@ static void console_help(int ind, char *name)
 	{
 		for (i = 0; i < command_len; i++) 
 		{
-			/* Find it */
+			/* Found it */
 			if (!strcmp(console_commands[i].name, name))
 			{
 				Packet_printf(console_buf_w, "%s", console_commands[i].name);
@@ -524,7 +539,7 @@ void NewConsole(int read_fd, int arg)
 
 console_command_ops console_commands[] = {
 	{ "help",      console_help,        "[TOPIC]\nExplain a command or list all avaliable"	},
-  	{ "listen",    console_listen,      "\nAttach self" 												},
+  	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
   	{ "who",       console_who,         "\nList players"												},
   	{ "shutdown",  console_shutdown,    "\nKill server"												},
   	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"							},

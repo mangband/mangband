@@ -286,6 +286,7 @@ struct channel_type
 	char name[MAX_CHARS];
 	s32b id;
 	s32b num;
+	byte mode;
 };
  
 /**** Available Structs ****/
@@ -1354,7 +1355,7 @@ struct player_type
 	
 	u16b main_channel; /* main chat channel the player is in */
 	char second_channel[80]; /* where his legacy 'privates' are sent */	
-	bool on_channel[MAX_CHANNELS]; /* listening to what channels */
+	byte *on_channel; /* listening to what channels */
 	
 	u16b total_winner;	/* Is this guy the winner */
 	u16b retire_timer;	/* The number of minutes this guy can play until

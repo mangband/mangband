@@ -256,6 +256,7 @@ party_type parties[MAX_PARTIES];
 
 /* Chat channels */
 channel_type channels[MAX_CHANNELS];
+int chan_audit, chan_debug, chan_cheat;
 
 /* Arenas information */ 
 arena_type arenas[MAX_ARENAS];

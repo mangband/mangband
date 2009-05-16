@@ -1175,6 +1175,11 @@ bool Conn_is_alive(int ind)
 	if (connp->state != CONN_CONSOLE) return FALSE;
 	return TRUE;
 }
+byte* Conn_get_console_channels(int ind)
+{
+	connection_t		*connp = &Conn[ind];
+	return connp->console_channels;
+}
 bool Conn_get_console_setting(int ind, int set)
 {
 	connection_t		*connp = &Conn[ind];
@@ -1419,6 +1424,10 @@ static int Enter_player(int ind)
 	
 
 	num_logins++;
+
+	/* Report */
+	sprintf(buf, "%s=%s@%s (%s) connected.", p_ptr->name, p_ptr->realname, p_ptr->hostname, p_ptr->addr);
+	debug(buf);
 
 	/* Handle the cfg_secret_dungeon_master option */
 	if (p_ptr->dm_flags & DM_SECRET_PRESENCE) return 0;
