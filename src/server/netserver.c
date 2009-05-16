@@ -215,6 +215,8 @@ static void Init_receive(void)
 	playing_receive[PKT_REDRAW]		= Receive_redraw;
 	playing_receive[PKT_REST]		= Receive_rest;
 	playing_receive[PKT_SPECIAL_LINE]	= 	Receive_special_line;
+	playing_receive[PKT_SPECIAL_OTHER]	= Receive_interactive;
+	playing_receive[PKT_KEY]        	= Receive_term_key;
 	playing_receive[PKT_SYMBOL_QUERY]	= 	Receive_symbol_query;
 	playing_receive[PKT_PARTY]		= Receive_party;
 	playing_receive[PKT_GHOST]		= Receive_ghost;
@@ -5564,6 +5566,59 @@ static int Receive_special_line(int ind)
 
 	return 1;
 }
+
+
+static int Receive_interactive(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	int player, n;
+	char ch, type;
+
+	if (connp->id != -1) player = GetInd[connp->id];
+		else player = 0;
+
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &type)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	if (player)
+	{
+		Players[player]->special_file_type = type;
+		do_cmd_interactive(player, 0);
+	}
+
+	return 1;
+}
+ 	
+static int Receive_term_key(int ind)
+{
+	connection_t *connp = &Conn[ind];
+
+	char ch, ky;
+
+	int n, player;
+
+	if (connp->id != -1) player = GetInd[connp->id];
+		else player = 0;
+
+	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &ky)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	if (player && Players[player]->special_file_type)
+	{
+		do_cmd_interactive(player, ky);
+	}
+
+	return 1;
+}
+	
 
 static int Receive_symbol_query(int ind)
 {

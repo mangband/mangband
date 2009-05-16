@@ -1282,6 +1282,7 @@ struct player_type
 	s16b target_idx[TEMP_MAX];
 
 	byte special_file_type;	/* Is he using *ID* or Self Knowledge? */
+	s16b interactive_line;	/* Which line is he on? */
 
 	byte cave_flag[MAX_HGT][MAX_WID]; /* Can the player see this grid? */
 

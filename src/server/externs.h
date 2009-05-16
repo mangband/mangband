@@ -503,6 +503,8 @@ extern void do_cmd_check_artifacts(int Ind, int line);
 extern void do_cmd_check_uniques(int Ind, int line);
 extern void do_cmd_check_players(int Ind, int line);
 extern void do_cmd_check_other(int Ind, int line);
+extern void do_cmd_knowledge(int Ind, char query);
+extern void do_cmd_interactive(int Ind, char query);
 
 /* cmd5.c */
 extern void do_cmd_browse(int Ind, int book);

@@ -51,6 +51,20 @@ void cmd_custom(byte i)
 		}
 		prompt = prompt + strlen(prompt) + 1;
 	}
+	if (cc_ptr->flag & COMMAND_SPECIAL_FILE)
+	{
+		special_line_type = cc_ptr->tval;
+		strcpy(special_line_header, prompt);
+		peruse_file();
+		return;
+	}
+	else if (cc_ptr->flag & COMMAND_INTERACTIVE)
+	{
+		special_line_type = cc_ptr->tval;
+		strcpy(special_line_header, prompt);
+		cmd_interactive();
+		return;
+	}
 	/* Search for an item (automatic) */
 	if (cc_ptr->flag & COMMAND_ITEM_QUICK)
 	{
@@ -433,7 +447,7 @@ void process_command()
 			cmd_character();
 			break;
 		}
-
+#if 0
 		case '~':
 		{
 			cmd_artifacts();
@@ -454,7 +468,8 @@ void process_command()
 
 		case '#':
 		{
-			cmd_high_scores();
+			cmd_knowledge();
+			/* cmd_high_scores(); */
 			break;
 		}
 
@@ -463,7 +478,7 @@ void process_command()
 			cmd_help();
 			break;
 		}
-
+#endif
 		/*** Miscellaneous ***/
 		case ':':
 		{
@@ -1303,6 +1318,57 @@ void cmd_character(void)
 
 
 
+void cmd_interactive()
+{
+	char ch;
+	bool done = FALSE;
+
+	/* Hack -- if the screen is already icky, ignore this command */
+	if (screen_icky) return;
+
+	/* The screen is icky */
+	screen_icky = TRUE;
+	
+	special_line_onscreen = TRUE;
+
+	/* Save the screen */
+	Term_save();
+
+	/* Send the request */
+	Send_interactive(special_line_type);
+
+	/* Wait until we get the whole thing */
+	while (!done)
+	{
+		/* Wait for net input, or a key */
+		ch = inkey();
+
+		if (!ch)
+			continue;
+
+		Send_term_key(ch);
+
+		/* Check for user abort */
+		if (ch == ESCAPE)
+			break;
+	}
+
+	/* Reload the screen */
+	Term_load();
+
+	/* The screen is OK now */
+	screen_icky = FALSE;
+
+	/* HACK -- FIXME -- When all special_files are like that!
+	special_line_onscreen = FALSE; */
+	
+	special_line_type = 0;//SPECIAL_FILE_NONE;
+
+	/* Flush any queued events */
+	Flush_queue();
+	
+}
+#if 0
 void cmd_artifacts(void)
 {
 	/* Set the hook */
@@ -1340,6 +1406,18 @@ void cmd_players(void)
 	peruse_file();
 }
 
+void cmd_knowledge(void)
+{
+	/* Set the hook */
+	special_line_type = SPECIAL_FILE_KNOWLEDGE;
+	
+	/* Set the header */
+	strcpy(special_line_header, "Knowledge");
+
+	/* Interactive terminal */
+	cmd_interactive();
+}
+
 void cmd_high_scores(void)
 {
 	/* Set the hook */
@@ -1363,7 +1441,7 @@ void cmd_help(void)
 	/* Call the file perusal */
 	peruse_file();
 }
-
+#endif
 void cmd_chat()
 {
 	char com;

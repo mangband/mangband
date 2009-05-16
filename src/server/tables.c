@@ -218,6 +218,40 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? "
 	},	
 
+	/*** Knowledge query ***/
+	{ /* Help */
+		'?', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		(COMMAND_SPECIAL_FILE),
+		SPECIAL_FILE_HELP, "Help"
+	},
+#if 1
+	{ /* Knowledge */
+		'#', PKT_COMMAND, SCHEME_SMALL, 0, (cccb)do_cmd_knowledge,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
+	},
+#endif
+	{ /* Artifacts */
+		'~', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		(COMMAND_SPECIAL_FILE),
+		SPECIAL_FILE_ARTIFACT, "Artifacts"
+	},
+	{ /* Uniques */
+		'|', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		(COMMAND_SPECIAL_FILE),
+		SPECIAL_FILE_UNIQUE, "Uniques"
+	},
+	{ /* Players */
+		'@', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		(COMMAND_SPECIAL_FILE),
+		SPECIAL_FILE_PLAYER, "Players"
+	},
+	{ /* Scores */
+		'#', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		(COMMAND_SPECIAL_FILE),
+		SPECIAL_FILE_SCORES, "Highscores"
+	},
+
 	/*** Miscellaneous; MAngband-specific ***/
 	{ /* 'Social' */
 		KTRL('S'), PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_social,

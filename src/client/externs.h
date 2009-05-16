@@ -210,6 +210,7 @@ extern bool get_server_name(void);
 /* c-cmd.c */
 extern void process_command(void);
 extern void cmd_custom(byte i);
+extern void cmd_interactive(void);
 extern void cmd_tunnel(void);
 extern void cmd_walk(void);
 extern void cmd_run(void);
@@ -454,6 +455,8 @@ extern int Send_store_leave(void);
 extern int Send_store_confirm(void);
 extern int Send_redraw(void);
 extern int Send_special_line(int type, int line);
+extern int Send_interactive(int type);
+extern int Send_term_key(char ch);
 extern int Send_party(s16b command, cptr buf);
 extern int Send_suicide(void);
 extern int Send_options(bool settings);

@@ -705,3 +705,152 @@ void do_cmd_check_other(int Ind, int line)
 	fd_kill(file_name);
 #endif
 }
+
+void common_peruse(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	switch (query) {
+		case 0:case '7': 
+			p_ptr->interactive_line = 0;
+			break;
+		case '2':case '\n':case '\r':
+			p_ptr->interactive_line++;
+			break;
+		case ' ':
+			p_ptr->interactive_line += 20;
+			break;
+		case '8':case '=':
+			p_ptr->interactive_line--;
+			break;
+		case '-':
+			p_ptr->interactive_line -= 10;
+			break;
+		case ESCAPE:
+			p_ptr->special_file_type = SPECIAL_FILE_NONE;
+			break;
+	}
+	if (p_ptr->interactive_line < 0) 
+		p_ptr->interactive_line = 0;
+}
+
+void do_cmd_interactive_aux(int Ind, int type, char query)
+{
+	player_type *p_ptr = Players[Ind];
+
+	switch (type)
+	{
+		case SPECIAL_FILE_NONE:
+			p_ptr->special_file_type = FALSE;
+			break;
+		case SPECIAL_FILE_UNIQUE:
+			common_peruse(Ind, query);
+			do_cmd_check_uniques(Ind, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_ARTIFACT:
+			common_peruse(Ind, query);
+			do_cmd_check_artifacts(Ind, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_PLAYER:
+			common_peruse(Ind, query);
+			do_cmd_check_players(Ind, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_OTHER:
+			common_peruse(Ind, query);
+			do_cmd_check_other(Ind, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_SCORES:
+			common_peruse(Ind, query);
+			display_scores(Ind, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_HELP:
+			common_peruse(Ind, query);
+			do_cmd_help(Ind, p_ptr->interactive_line);
+			break;	
+		case SPECIAL_FILE_KNOWLEDGE:
+			do_cmd_knowledge(Ind, query);
+			break;
+	}
+}
+
+void do_cmd_knowledge(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	bool changed = FALSE;
+	int i;
+	
+	/* Display */
+	if (query == 0)
+	{
+		/* Prepare */
+		text_out_init(Ind);
+		
+		/* Ask for a choice */
+		text_out(" \n");
+		text_out(" \n");
+		text_out(" \n");
+		text_out("Display current knowledge\n");
+		text_out(" \n");
+
+		/* Give some choices */
+		text_out("    (1) Display known artifacts\n");
+		text_out("    (2) Display known uniques\n");
+		text_out("    (3) Display known objects\n");
+		text_out("    (4) Display hall of fame\n");
+		text_out("    (5) Display kill counts\n");
+
+		/* Prompt */
+		text_out(" \n");
+		text_out("Command: \n");
+		
+		text_out_done();
+		
+		/* Send */
+		Send_term_info(Ind, NTERM_CLEAR, 1);
+		for (i = 0; i < MAX_TXT_INFO; i++)
+		{
+			if (i > p_ptr->last_info_line) break;
+			Send_remote_line(Ind, i);
+		}
+		Send_term_info(Ind, NTERM_FLUSH, 0);
+	}
+
+	/* Proccess command - Switch mode */	
+	switch (query)
+	{
+		case '1':
+			Send_special_other(Ind, "Artifacts");
+			p_ptr->special_file_type = SPECIAL_FILE_ARTIFACT;
+			changed = TRUE;
+			break;
+		case '2':
+			Send_special_other(Ind, "Uniques");
+			p_ptr->special_file_type = SPECIAL_FILE_UNIQUE;
+			changed = TRUE;
+			break;
+		case '4':
+			Send_special_other(Ind, "High Scores");
+			p_ptr->special_file_type = SPECIAL_FILE_SCORES;
+			changed = TRUE;
+			break;
+	}
+	
+	/* HACK! - Move to another menu */
+	if (changed)
+	{	
+		do_cmd_interactive_aux(Ind, p_ptr->special_file_type, 0);
+	}
+}
+
+void do_cmd_interactive(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Hack -- use special term */
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+
+	/* Perform action */	
+	do_cmd_interactive_aux(Ind, p_ptr->special_file_type, query);
+
+	/* Hack -- return to main term */
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+}

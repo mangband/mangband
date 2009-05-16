@@ -1745,7 +1745,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 #endif
 
 		/* Restart when necessary */
-		if (line >= size) line = 0;
+		if (line >= size) Players[Ind]->interactive_line = line = 0;
 
 
 		/* Re-open the file if needed */

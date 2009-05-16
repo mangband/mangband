@@ -439,17 +439,6 @@
 #define LEVEL_OUTSIDE_RAND 5
 
 
-/*
- * The types of special file perusal.
- */
-#define SPECIAL_FILE_NONE	0
-#define SPECIAL_FILE_UNIQUE	1
-#define SPECIAL_FILE_ARTIFACT	2
-#define SPECIAL_FILE_PLAYER	3
-#define SPECIAL_FILE_OTHER	4
-#define SPECIAL_FILE_SCORES	5
-#define SPECIAL_FILE_HELP	6
-
 
 /*
  * Store constants
@@ -851,6 +840,9 @@
 								 COMMAND_TARGET_ALLOW  | \
 								 COMMAND_TARGET_FRIEND | \
 								 COMMAND_TARGET_XXX2)
+
+#define COMMAND_SPECIAL_FILE  	0x010000000	/* Begin file perusal with mode "tval" */
+#define COMMAND_INTERACTIVE  	0x020000000	/* Begin interactive mode "tval" */
 
 #define COMMAND_SECOND_XXX2 	0x10000000	/* XXX Unused */
 #define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */

@@ -1551,7 +1551,7 @@ void peruse_file(void)
 	if (!special_line_onscreen)
 	{
 			Send_special_line(special_line_type, cur_line);
-			Send_special_line(SPECIAL_FILE_NONE, 0);
+			Send_special_line(0, 0);/*(SPECIAL_FILE_NONE, 0);*/
 			special_line_type = 0;
 			return;
 	}
@@ -1582,7 +1582,7 @@ void peruse_file(void)
 		k = inkey();
 
 		/* Hack -- make any key escape if we're in popup mode */
-		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == SPECIAL_FILE_OTHER) k = ESCAPE;
+		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == 1) k = ESCAPE;/*SPECIAL_FILE_OTHER*/
 		
 		/* Hack -- go to a specific line */
 		if (k == '#')
@@ -1653,7 +1653,7 @@ void peruse_file(void)
 	}
 
 	/* Tell the server we're done looking */
-	Send_special_line(SPECIAL_FILE_NONE, 0);
+	Send_special_line(0,0);/*(SPECIAL_FILE_NONE, 0);*/
 
 	/* No longer using file perusal */
 	special_line_type = 0;

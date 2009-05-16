@@ -120,3 +120,14 @@
 #define audit(M) clog(audit, (M))
 #define debug(M) clog(debug, (M))
 #define cheat(M) clog(cheat, (M))
+/*
+ * The types of special file perusal.
+ */
+#define SPECIAL_FILE_NONE	0
+#define SPECIAL_FILE_OTHER	1
+#define SPECIAL_FILE_ARTIFACT	2
+#define SPECIAL_FILE_PLAYER	3
+#define SPECIAL_FILE_UNIQUE	4
+#define SPECIAL_FILE_SCORES	5
+#define SPECIAL_FILE_HELP	6
+#define SPECIAL_FILE_KNOWLEDGE	7

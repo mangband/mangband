@@ -1612,7 +1612,7 @@ int Receive_char(void)
 	{
 		return n;
 	}
-	
+
 	/* Hack -- Use ANOTHER terminal */
 	if ((n = p_ptr->remote_term))
 	{
@@ -2127,8 +2127,14 @@ int Receive_term_info(void)
 			p_ptr->remote_term = arg;
 			break;
 		case NTERM_CLEAR:
+			if (arg == 1) 
+				Term_clear();
 			last_remote_line[p_ptr->remote_term] = 0;
 			break;	
+		case NTERM_FLUSH:
+			for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
+			break;
 		case NTERM_FRESH:
 			switch (p_ptr->remote_term)
 			{
@@ -2252,7 +2258,7 @@ int Receive_line_info(void)
 
 	/* Decode the attr/char stream */		
 	rle_decode(&rbuf, dest, cols, mode);
-	
+
 	/* Put data to screen */
 	if (draw)
 		caveprt(dest+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
@@ -2308,8 +2314,11 @@ int Receive_special_other(void)
 	/* Set file perusal header */
 	strcpy(special_line_header, buf);
 
+	/* HACK!!!! */	
+	if (screen_icky) return 1;
+
 	/* Set file perusal method to "other" */
-	special_line_type = SPECIAL_FILE_OTHER;
+	special_line_type = 1;/*SPECIAL_FILE_OTHER;*/
 
 	/* Disable to-screen */
 	//special_line_onscreen = FALSE;
@@ -2604,7 +2613,7 @@ int Receive_special_line(void)
 		/* (but first copy header to local buffer!) */
 		cavestr(remote_info[r][0], special_line_header, TERM_YELLOW, 80);
 	
-		if (max > (SCREEN_HGT - 2)/2 || special_line_type != SPECIAL_FILE_OTHER) 
+		if (max > (SCREEN_HGT - 2)/2 || special_line_type != 1)/*SPECIAL_FILE_OTHER)*/ 
 		{
 			/* Clear the screen */
 			Term_clear();
@@ -3572,6 +3581,30 @@ int Send_special_line(int type, int line)
 	int	n;
 
 	if ((n = Packet_printf(&wbuf, "%c%c%hd", PKT_SPECIAL_LINE, type, line)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
+
+int Send_interactive(int type)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_SPECIAL_OTHER, type)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
+int Send_term_key(char ch)
+{
+	int n;
+	if ((n = Packet_printf(&wbuf, "%c%c", PKT_KEY, ch)) <= 0)
 	{
 		return n;
 	}
