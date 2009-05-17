@@ -255,6 +255,7 @@ static void quit_hook(cptr s)
 
 void gather_settings()
 {
+	int i;
 	/* Graphics */
 	Client_setup.settings[0] = use_graphics;
 
@@ -266,6 +267,11 @@ void gather_settings()
 
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;
+	
+	/* Terminal subscriptions */
+	Client_setup.settings[4] = 0;
+	for (i = 0; i < 8; i++)
+		Client_setup.settings[4] |= window_flag[i];
 }
 
 /*

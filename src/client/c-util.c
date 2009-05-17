@@ -3033,6 +3033,8 @@ void do_cmd_options(void)
 	int k;
 	int col, i, label;
 
+	int old_hitpoint_warn = Client_setup.settings[3];
+	int old_window_flags = Client_setup.settings[4];
 
 	/* Enter "icky" mode */
 	screen_icky = TRUE;
@@ -3159,10 +3161,11 @@ void do_cmd_options(void)
 	Flush_queue();
 
 	/* HACK -- hitpoint warning changed */
-	if (p_ptr->hitpoint_warn != Client_setup.settings[3]) {
-		Client_setup.settings[3] = p_ptr->hitpoint_warn;
-		Send_options(TRUE); 
-	} else
+	gather_settings();
+	if (old_hitpoint_warn != Client_setup.settings[3] ||
+		old_window_flags != Client_setup.settings[4]) 
+	Send_options(TRUE); 
+	else
 	/* Resend options to server */
 	Send_options(FALSE);
 

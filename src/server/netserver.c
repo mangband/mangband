@@ -1240,7 +1240,10 @@ static int sync_settings(int ind)
 	
 	/* Set hitpoint warning */
 	p_ptr->hitpoint_warn = connp->Client_setup.settings[3];
-	
+
+	/* Set window flags */
+	p_ptr->window_flag = connp->Client_setup.settings[4];
+
 	return 1;
 }
 /*

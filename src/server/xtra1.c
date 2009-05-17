@@ -3202,7 +3202,7 @@ void window_stuff(int Ind)
 		fix_player(Ind);
 	}
 
-	/* Display overhead view */
+	/* Display message view */
 	if (p_ptr->window & PW_MESSAGE)
 	{
 		p_ptr->window &= ~(PW_MESSAGE);
@@ -3220,6 +3220,7 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MAP)
 	{
 		p_ptr->window &= ~(PW_MAP);
+	if (p_ptr->window_flag & PW_MAP)
 		fix_map(Ind);
 	}
 
@@ -3227,6 +3228,7 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONSTER)
 	{
 		p_ptr->window &= ~(PW_MONSTER);
+	if (p_ptr->window_flag & PW_MONSTER)	
 		fix_monster(Ind);
 	}
 
@@ -3234,6 +3236,7 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONLIST)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
+	if (p_ptr->window_flag & PW_MONLIST)	
 		fix_monlist(Ind);
 	}
 }

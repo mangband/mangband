@@ -1341,6 +1341,7 @@ struct player_type
 	cave_view_type info[MAX_TXT_INFO][80];
 	s16b last_info_line;
 	byte remote_term;
+	u32b window_flag;
 
 	char died_from[80];	/* What off-ed him */
 	char died_from_list[80]; /* what goes on the high score list */
