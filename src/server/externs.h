@@ -660,6 +660,7 @@ extern int race_index_fuzzy(char * name);
 extern bool is_detected(u32b flag, u32b esp);
 extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
+extern void display_monlist(int Ind);
 
 /* netserver.c */
 /*extern void Contact(int fd, void *arg);*/
