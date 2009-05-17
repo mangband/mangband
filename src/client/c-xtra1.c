@@ -1591,7 +1591,6 @@ static void fix_remote_term(byte rterm, u32b windows)
 		{
 			caveprt(remote_info[rterm][y], w, 0, y);
 		}
-
 		/* Erase rest */
 		for (y = y-1; y < h; y++)
 		{
@@ -2736,5 +2735,12 @@ void window_stuff(void)
 	{
 		p_ptr->window &= ~(PW_MONSTER);
 		fix_remote_term(NTERM_WIN_MONSTER, PW_MONSTER);
+	}
+
+	/* Display Monster list */
+	if (p_ptr->window & (PW_MONLIST))
+	{
+		p_ptr->window &= ~(PW_MONLIST);
+		fix_remote_term(NTERM_WIN_MONLIST, PW_MONLIST);
 	}
 }

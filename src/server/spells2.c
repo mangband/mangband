@@ -1470,6 +1470,10 @@ bool detect_invisible(int Ind, bool pause)
 	/* Describe result, and clean up */
 	if (flag && pause)
 	{
+		/* Handle Window stuff */
+		p_ptr->window |= (PW_MONLIST);
+		handle_stuff(Ind);
+	
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of invisible creatures!");
@@ -1481,6 +1485,7 @@ bool detect_invisible(int Ind, bool pause)
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		p_ptr->window &= ~(PW_MONLIST);
 	}
 
 	/* Result */
@@ -1551,6 +1556,10 @@ bool detect_evil(int Ind)
 	/* Note effects and clean up */
 	if (flag)
 	{
+		/* Handle Window stuff */
+		p_ptr->window |= (PW_MONLIST);
+		handle_stuff(Ind);
+
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of evil creatures!");
@@ -1561,6 +1570,7 @@ bool detect_evil(int Ind)
 
 		/* Mega-Hack -- Fix the monsters */
 		update_monsters(FALSE);
+		p_ptr->window &= ~(PW_MONLIST);
 	}
 
 	/* Result */
@@ -1656,6 +1666,10 @@ bool detect_creatures(int Ind, bool pause)
 	/* Describe and clean up */
 	if (flag && pause)
 	{
+		/* Handle Window stuff */
+		p_ptr->window |= (PW_MONLIST);
+		handle_stuff(Ind);
+
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of creatures!");
@@ -1667,6 +1681,7 @@ bool detect_creatures(int Ind, bool pause)
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		p_ptr->window &= ~(PW_MONLIST);
 	}
 
 	/* Result */
@@ -1693,6 +1708,10 @@ bool detection(int Ind)
 	/* Describe result, and clean up */
 	if (detected_creatures || detected_invis)
 	{
+		/* Handle Window stuff */
+		Players[Ind]->window |= (PW_MONLIST);
+		handle_stuff(Ind);
+
 		detect = TRUE;
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
@@ -1705,6 +1724,7 @@ bool detection(int Ind)
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		Players[Ind]->window &= ~(PW_MONLIST);
 	}
 
 	/* Result */

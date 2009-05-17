@@ -1145,7 +1145,28 @@ static void health_redraw(int Ind)
 
 
 
+/*
+ * Hack -- display monsters in sub-windows
+ */
+static void fix_monlist(int Ind)
+{
+	int i;
 
+	/* Display visible monsters */
+	display_monlist(Ind);
+	
+	/* Notify player */
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MONLIST);
+	Send_term_info(Ind, NTERM_CLEAR, 0);
+	
+	for (i = 0; i < Players[Ind]->last_info_line; i++)
+		Send_remote_line(Ind, i);
+	
+	Send_term_info(Ind, NTERM_FRESH, 0);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+	
+	return;
+}
 
 
 /*
@@ -3207,6 +3228,13 @@ void window_stuff(int Ind)
 	{
 		p_ptr->window &= ~(PW_MONSTER);
 		fix_monster(Ind);
+	}
+
+	/* Display monster list */
+	if (p_ptr->window & PW_MONLIST)
+	{
+		p_ptr->window &= ~(PW_MONLIST);
+		fix_monlist(Ind);
 	}
 }
 

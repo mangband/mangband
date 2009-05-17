@@ -269,7 +269,7 @@
 #define NTERM_WIN_XXXX2 	3
 #define NTERM_WIN_OBJECT	4
 #define NTERM_WIN_MONSTER	5
-#define NTERM_WIN_XXXX3 	6
+#define NTERM_WIN_MONLIST 	6
 #define NTERM_WIN_SPECIAL 	7
 
 /*

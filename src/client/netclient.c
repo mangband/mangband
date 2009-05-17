@@ -2142,6 +2142,7 @@ int Receive_term_info(void)
 				case NTERM_WIN_MAP:     	p_ptr->window |= PW_MAP;   	break;
 				case NTERM_WIN_MONSTER: 	p_ptr->window |= PW_MONSTER;	break;
 				case NTERM_WIN_OBJECT:  	p_ptr->window |= PW_OBJECT;	break;
+				case NTERM_WIN_MONLIST:  	p_ptr->window |= PW_MONLIST;	break;
 			}
 			if (arg != NTERM_POP) break;
 			/* fall */

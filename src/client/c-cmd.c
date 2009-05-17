@@ -997,10 +997,6 @@ void cmd_describe(void)
 	
 	if (buf[0] != '\0')
 				Send_msg(buf);
-				
-	///* Get an inscription */
-	//if (get_string("Inscription: ", buf, 59))
-	//	Send_inscribe(item, buf);
 }
 
 void cmd_spike(void)

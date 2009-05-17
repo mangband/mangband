@@ -727,6 +727,143 @@ s16b get_mon_num(int level)
 }
 
 
+/*
+ * Display visible monsters in a window
+ */
+void display_monlist(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int idx, n;
+	int line = 0;
+
+	char *m_name;
+	char buf[80];
+
+	monster_type *m_ptr;
+	monster_race *r_ptr;
+	player_type  *q_ptr;
+
+	u16b *race_counts;
+
+
+	/* Allocate the array */
+	C_MAKE(race_counts, z_info->r_max, u16b);
+
+	/* Iterate over mon_list */
+	for (idx = 1; idx < m_max; idx++)
+	{
+		m_ptr = &m_list[idx];
+
+		/* Only visible monsters */
+		if (!p_ptr->mon_vis[idx]) continue;
+
+		/* Bump the count for this race */
+		race_counts[m_ptr->r_idx]++;
+	}
+	
+	text_out_init(Ind);
+
+	/* Iterate over mon_list ( again :-/ ) */
+	for (idx = 1; idx < m_max; idx++)
+	{
+		m_ptr = &m_list[idx];
+
+		/* Only visible monsters */
+		if (!p_ptr->mon_vis[idx]) continue;
+
+		/* Do each race only once */
+		if (!race_counts[m_ptr->r_idx]) continue;
+
+		/* Get monster race */
+		r_ptr = &r_info[m_ptr->r_idx];
+
+		/* Get the monster name */
+		m_name = r_name + r_ptr->name;
+
+		/* Obtain the length of the description */
+		n = strlen(m_name);
+
+		/* Display the entry itself */
+		text_out_c(TERM_WHITE, m_name);
+
+		/* Append the "standard" attr/char info */
+		text_out_c(TERM_WHITE, " ('");
+		text_out_c(r_ptr->d_attr, format("%c",r_ptr->d_char));
+		text_out_c(TERM_WHITE, "')");
+		n += 6;
+
+		/* Append the "optional" attr/char info */
+		text_out_c(TERM_WHITE, "/('");
+
+		text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
+
+		if (p_ptr->use_graphics)
+		{
+			if (r_ptr->x_attr & 0x80)
+				text_out_c(255, " ");
+			else
+				text_out_c(0, " ");
+
+			n++;
+		}
+
+		text_out_c(TERM_WHITE, "'):");
+		n += 7;
+
+		/* Add race count */
+		sprintf(buf, "%d", race_counts[m_ptr->r_idx]);
+		text_out_c(TERM_WHITE, "[");
+		text_out_c(TERM_WHITE, buf);
+		text_out_c(TERM_WHITE, "]");
+		n += strlen(buf) + 2;
+
+		/* Don't do this race again */
+		race_counts[m_ptr->r_idx] = 0;
+
+		/* Erase the rest of the line */
+		text_out("\n");
+
+		/* Bump line counter */
+		line++;
+	}
+	
+	/* Iterate over player list  */
+	for (idx = 1; idx < NumPlayers+1; idx++)
+	{
+		/* Only visible players */
+		if (!p_ptr->play_vis[idx]) continue;
+
+		q_ptr = Players[idx];
+
+		/* Describe player */
+		if (q_ptr->ghost)
+			strnfmt(buf, 80, "a ghost of %s", q_ptr->name);		
+		else
+			strnfmt(buf, 80, "%s, the %s %s",
+				q_ptr->name, p_name + p_info[q_ptr->prace].name, 
+				c_text + q_ptr->cp_ptr->title[(q_ptr->lev-1)/5]);
+		text_out_c(TERM_WHITE, buf);
+
+		n = player_pict(Ind, idx);
+		text_out_c(TERM_WHITE, " ('");
+		text_out_c(PICT_A(n), format("%c", PICT_C(n)));
+		text_out_c(TERM_WHITE, "')");
+#if 0
+		text_out_c(TERM_WHITE, ":[");
+		text_out_c(TERM_WHITE, look_player_desc(idx));
+		text_out_c(TERM_WHITE, "]");
+#endif
+		text_out("\n");
+	}
+
+	/* Free the race counters */
+	FREE(race_counts, u16b);
+
+	/* Done */
+	text_out_done();
+}
+
+
 
 
 
@@ -1305,6 +1442,9 @@ void update_mon(int m_idx, bool dist)
 
 				/* Disturb on appearance */
 				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+
+				/* Window stuff */
+				p_ptr->window |= PW_MONLIST;
 			}
 
 			/* Memorize various observable flags */
@@ -1334,6 +1474,9 @@ void update_mon(int m_idx, bool dist)
 
 				/* Disturb on disappearance*/
 				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+
+				/* Window stuff */
+				p_ptr->window |= PW_MONLIST;				
 			}
 		}
 
@@ -1506,6 +1649,9 @@ void update_player(int Ind)
 					/* Disturb */
 					disturb(i, 1, 0);
 				}
+
+				/* Window stuff */
+				p_ptr->window |= PW_MONLIST;
 			}
 		}
 
@@ -1527,6 +1673,9 @@ void update_player(int Ind)
 					/* Disturb */
 					disturb(i, 1, 0);
 				}
+
+				/* Window stuff */
+				p_ptr->window |= PW_MONLIST;
 			}
 		}
 
