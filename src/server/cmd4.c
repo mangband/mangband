@@ -572,9 +572,9 @@ void do_cmd_check_players(int Ind, int line)
 			continue;
 
 		/* don't display the dungeon master if the secret_dungeon_master
-		 * option is set 
+		 * option is set (unless you're a DM yourself)
 		 */
-        if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
+        if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
 
 		/*** Determine color ***/
 
