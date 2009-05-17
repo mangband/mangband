@@ -1175,6 +1175,7 @@ errr file_character_server(int Ind, cptr name)
 	char		o_name[80];
 	char		today[10];
 	char		buf[1024];
+	cave_view_type status[80];
 	player_type *p_ptr = Players[Ind];
 	char		buffer[100][82];
 	time_t ct = time((time_t*)0);
@@ -1338,13 +1339,27 @@ errr file_character_server(int Ind, cptr name)
 		x1 = x1 - (x2-(MAX_WID-1));
 		x2 = MAX_WID-1;
 	}
+	/* Prepare status line */
+	c_prt_status_line(Ind, &status[0], 80);
+
 	/* Describe each row */
-	for(y=y1;y<=y2;y++)
+	for(y=y1;y<=y2+1;y++)
 	{
 		for(x=x1;x<=x2;x++)
 		{
 			/* Get the features */
-			map_info(Ind, y, x, &a, &c, &a, &c, TRUE);
+			if (y > y2)
+			{
+				/* Hack -- read from status line */
+				if (x-x1 < 80) {
+					a = status[x-x1].a;
+					c = status[x-x1].c;
+				} else { 
+					a = TERM_WHITE; c = ' '; 
+				}
+			}
+			else
+				map_info(Ind, y, x, &a, &c, &a, &c, TRUE);
 			/* Hack for the player who is already dead and gone */
 			if( (x == p_ptr->px) && (y == p_ptr->py))
 			{

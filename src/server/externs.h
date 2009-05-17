@@ -1025,6 +1025,7 @@ extern void redraw_stuff(int Ind);
 extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 extern void prt_history(int Ind);
+extern void c_prt_status_line(int Ind, cave_view_type *dest, int len);
 
 /* xtra2.c */
 extern int get_player(int Ind, object_type *o_ptr);

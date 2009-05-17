@@ -425,6 +425,158 @@ static void prt_stun(int Ind)
 
 	Send_stun(Ind, s);
 }
+
+/*
+ * Hack - Display the status line
+ */
+int cv_put_str(cave_view_type* dest, byte attr, cptr str, int col, int max_col)
+{
+	int i;
+	for (i = 0; i < max_col; i++)
+	{
+		dest[i+col].a = attr;
+		dest[i+col].c = str[i];
+	}
+	return 1;
+}
+void c_prt_status_line(int Ind, cave_view_type *dest, int len)
+{
+	player_type *p_ptr = Players[Ind];
+	char buf[32];
+	int col = 0;
+	int i, a;
+	
+	/* Clear */
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = TERM_WHITE;
+		dest[i].c = ' ';
+	}
+
+	/* Hungry */
+	/* Fainting / Starving */
+	if (p_ptr->food < PY_FOOD_FAINT)
+		cv_put_str(dest, TERM_RED, "Weak  ", COL_HUNGRY, 6);
+	/* Weak */
+	else if (p_ptr->food < PY_FOOD_WEAK)
+		cv_put_str(dest, TERM_ORANGE, "Weak  ", COL_HUNGRY, 6);
+	/* Hungry */
+	else if (p_ptr->food < PY_FOOD_ALERT)
+		cv_put_str(dest, TERM_YELLOW, "Hungry", COL_HUNGRY, 6);
+	/* Normal */
+	else if (p_ptr->food < PY_FOOD_FULL)
+		cv_put_str(dest, TERM_L_GREEN, "      ", COL_HUNGRY, 6);
+	/* Full */
+	else if (p_ptr->food < PY_FOOD_MAX)
+		cv_put_str(dest, TERM_L_GREEN, "Full  ", COL_HUNGRY, 6);
+	/* Gorged */
+	else
+		cv_put_str(dest, TERM_GREEN, "Gorged", COL_HUNGRY, 6);
+
+	/* Blind */
+	if (p_ptr->blind)
+		cv_put_str(dest, TERM_ORANGE, "Blind", COL_BLIND, 5);
+
+	/* Confused */
+	if (p_ptr->confused)
+		cv_put_str(dest, TERM_ORANGE, "Confused", COL_CONFUSED, 8);
+
+	/* Afraid */
+	if (p_ptr->poisoned)
+		cv_put_str(dest, TERM_ORANGE, "Afraid", COL_AFRAID, 6);
+
+	/* Poisoned */
+	if (p_ptr->poisoned)
+		cv_put_str(dest, TERM_ORANGE, "Poisoned", COL_POISONED, 8);
+
+	/* State */
+	a = TERM_WHITE;
+	if (p_ptr->paralyzed)
+	{
+		a = TERM_RED;
+		strcpy(buf, "Paralyzed!");
+	}
+	else if (p_ptr->searching)
+	{
+		if (p_ptr->pclass != CLASS_ROGUE)
+		{
+			strcpy(buf, "Searching ");			
+		}
+		else
+		{
+			a = TERM_L_DARK;
+			strcpy(buf,"Stlth Mode");
+		}
+	}
+	else if (p_ptr->resting)
+	{
+		strcpy(buf, "Resting   ");
+	}
+	else
+	{
+		strcpy(buf, "          ");
+	}
+	cv_put_str(dest, a, buf, COL_STATE, 9);
+	
+	/* Speed */
+	a = TERM_WHITE;
+	i = p_ptr->pspeed - 110;
+	buf[0] = '\0';
+	if (p_ptr->searching) i += 10;
+	if (i > 0)
+	{
+		a = TERM_L_GREEN;
+		sprintf(buf, "Fast (+%d)", i);
+	}
+	else if (i < 0)
+	{
+		a = TERM_L_UMBER;
+		sprintf(buf, "Slow (%d)", i);
+	}
+	if (!STRZERO(buf))
+		cv_put_str(dest, a, format("%-14s", buf), COL_SPEED, 14);
+
+	/* Study */
+	if (p_ptr->new_spells)
+		cv_put_str(dest, TERM_WHITE, "Study", COL_STUDY, 5);
+
+	/* Depth */
+	buf[0] = '\0';	
+	if (!p_ptr->dun_depth)
+		strcpy(buf, "Town");
+	else if (option_p(p_ptr,DEPTH_IN_FEET))
+		sprintf(buf, "%d ft", p_ptr->dun_depth * 50);
+	else
+		sprintf(buf, "Lev %d", p_ptr->dun_depth);
+	cv_put_str(dest, TERM_WHITE, format("%7s", buf), COL_DEPTH, 7);
+	
+	/* Temp. resists */
+	col = COL_OPPOSE_ELEMENTS;
+	i = MIN((len - COL_OPPOSE_ELEMENTS) / 5, 5);
+	if (i > 0)
+	{
+		if (p_ptr->oppose_acid)
+			cv_put_str(dest, TERM_SLATE, "Acid ", col, i);
+		col += i;
+
+		if (p_ptr->oppose_elec)
+			cv_put_str(dest, TERM_BLUE, "Elec ", col, i);
+		col += i;
+
+		if (p_ptr->oppose_fire)
+			cv_put_str(dest, TERM_RED, "Fire ", col, i);
+		col += i;
+
+		if (p_ptr->oppose_cold)
+			cv_put_str(dest, TERM_WHITE, "Cold ", col, i);
+		col += i;
+
+		if (p_ptr->oppose_pois)
+			cv_put_str(dest, TERM_GREEN, "Pois ", col, i);
+		col += i; /* Unused */
+	}	
+}
+
 /* !! */
 /*
  * Obtain the "flags" for the player as if he was an item
