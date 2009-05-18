@@ -2886,7 +2886,7 @@ void resurrect_player(int Ind)
 	check_experience(Ind);
 
 	/* If we resurrect in town, we get a little cash */
-	if (!p_ptr->dun_depth)
+	if (!p_ptr->dun_depth && p_ptr->lev >= 5)
 	{
 		p_ptr->au = 100;
 	}
