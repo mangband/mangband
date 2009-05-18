@@ -2508,7 +2508,7 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 	s16b ptr;
 	
 	/* We don't need to log *everything* */
-	if(msg && strchr("[",*msg))
+	if(type > MSG_CHAT || (msg && strchr("[",*msg)))
 	{
 		log = FALSE;
 	}
