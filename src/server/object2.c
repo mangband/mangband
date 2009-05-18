@@ -158,6 +158,10 @@ void object_prep(object_type *o_ptr, int k_idx)
 	o_ptr->dd = k_ptr->dd;
 	o_ptr->ds = k_ptr->ds;
 
+	/* Default owner (none) */
+	o_ptr->owner_id = 0;
+	o_ptr->owner_name = 0;
+
 	/* Hack -- worthless items are always "broken" */
 	if (k_ptr->cost <= 0) o_ptr->ident |= (ID_BROKEN);
 
@@ -4228,6 +4232,8 @@ s16b inven_carry(int Ind, object_type *o_ptr)
 
 	object_type	*j_ptr;
 
+	/* Hack -- change ownee! */
+	object_own(Ind, o_ptr);
 
 	/* Check for combining */
 	for (j = 0; j < INVEN_PACK; j++)
@@ -4774,4 +4780,26 @@ void reduce_charges(object_type *o_ptr, int amt)
 	}
 }
 
+void object_own(int Ind, object_type *o_ptr)
+{
+	player_type *p_ptr = Players[Ind];
 
+	if (o_ptr->owner_id && o_ptr->owner_id != p_ptr->id)
+	{
+		char o_name[80];
+		char buf[512];
+		/* Log transaction */
+		sprintf(buf,"TR %s-%d | %s-%d $ %d", 
+			quark_str(o_ptr->owner_name), o_ptr->owner_id,
+			p_ptr->name, p_ptr->id, object_value(Ind, o_ptr));
+		audit(buf);
+		/* Object name */
+		object_desc(0, o_name, o_ptr, TRUE, 3);
+		sprintf(buf,"TR+%s", o_name);
+		audit(buf); 
+	}
+
+	o_ptr->owner_id = p_ptr->id;
+	o_ptr->owner_name = quark_add(p_ptr->name);
+		
+}

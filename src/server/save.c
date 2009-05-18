@@ -146,7 +146,18 @@ static void wr_item(object_type *o_ptr)
 	{
 		write_str("inscription","");
 	}
-	
+
+	/* Save owner information (if any) - name, */
+	if (o_ptr->owner_name)
+	{
+		write_str("owner_name",(char*)quark_str(o_ptr->owner_name));
+	}
+	else
+	{
+		write_str("owner_name","");
+	} /* and his id: */
+	write_int("owner_id", o_ptr->owner_id);
+
 	/* Held by monster index */ 
    write_int("held_m_idx", o_ptr->held_m_idx);
 	

@@ -1716,6 +1716,20 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 			/* Message */
 			msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
 
+			/* MEGA-HACK -- Ensure item owner=store owner */
+			if (st == 8)
+			{
+				sell_obj.owner_name = quark_add(houses[p_ptr->player_store_num].owned);
+				sell_obj.owner_id = lookup_player_id(houses[p_ptr->player_store_num].owned);
+				/* Hack -- use o_name for audit :/ */
+				sprintf(o_name, "PS %s-%d | %s-%d $ %ld",
+					p_ptr->name, (int)p_ptr->id,
+					houses[p_ptr->player_store_num].owned, 
+					(int)sell_obj.owner_id,	(long)price);
+				audit(o_name);
+				audit("PS+gold");
+			}
+
 			/* Let the player carry it (as if he picked it up) */
 			item_new = inven_carry(Ind, &sell_obj);
 

@@ -722,6 +722,9 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	/* Setup the "worth" */
 	tmp_obj.pval = amt;
 
+	/* MEGA-HACK -- Set "owner" of this pile */
+	object_own(Ind, &tmp_obj);
+
 	/* Drop it */
 	drop_near(&tmp_obj, 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 

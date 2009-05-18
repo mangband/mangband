@@ -666,6 +666,9 @@ void carry(int Ind, int pickup, int confirm)
 		/* Disturb */
 		disturb(Ind, 0, 0);
 
+		/* MEGA HACK -- Change "owner" of this pile */
+		object_own(Ind, o_ptr);
+
 		/* Message */
 		msg_format(Ind, "You have found %ld gold pieces worth of %s.",
 		           (long)o_ptr->pval, o_name);

@@ -778,6 +778,8 @@ struct object_type
 	s32b askprice;		/* Item sale price */
 
 	/*byte marked;	*/	/* Object is marked */
+	u16b owner_name;	/* Owner name (index) */
+	s32b owner_id;		/* His unique id */
 
 	u16b note;			/* Inscription index */
 	
