@@ -3333,11 +3333,8 @@ void do_cmd_fire(int Ind, int item, int dir)
 		o_ptr = &o_list[0 - item];
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'f' )) {
-      		msg_print(Ind, "The item's inscription prevents it");
-                return;
-        }
-
+	/* Check guard inscription '!f' */
+	__trap(Ind, CGI(o_ptr, 'f'));
 
 	if (o_ptr->tval != p_ptr->tval_ammo)
 	{
@@ -3782,10 +3779,8 @@ void do_cmd_throw(int Ind, int item, int dir)
                 return;
 	};
 
-	if( check_guard_inscription( o_ptr->note, 'v' )) {
-		msg_print(Ind, "The item's inscription prevents it");
-		return;
-	};
+	/* Check guard inscription '!v' */ 
+	__trap(Ind, CGI(o_ptr, 'v'));
 
 	/* Never throw artifacts */
 	if (artifact_p(o_ptr))

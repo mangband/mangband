@@ -43,11 +43,8 @@ static void inven_takeoff(int Ind, int item, int amt)
 	/* Paranoia */
 	if (amt <= 0) return;
 
-        if( check_guard_inscription( o_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-                return;
-        };
-
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(o_ptr, 't'));
 
 	/* Verify */
 	if (amt > o_ptr->number) amt = o_ptr->number;
@@ -130,11 +127,7 @@ static void inven_drop(int Ind, int item, int amt)
 	if (amt <= 0) return;
 
 	/* check for !d  or !* in inscriptions */
-
-	if( check_guard_inscription( o_ptr->note, 'd' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
 	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
@@ -367,13 +360,12 @@ void do_cmd_wield(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		/* Hack -- wearing from floor is similar to pickup */
+		__trap(Ind, CGI(o_ptr, 'g'));
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'w' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!w' */
+	__trap(Ind, CGI(o_ptr, 'w'));
 
 	if (!item_tester_hook_wear(Ind, o_ptr))
 	{
@@ -400,10 +392,8 @@ void do_cmd_wield(int Ind, int item)
 
 	x_ptr = &(p_ptr->inventory[slot]);
 
-	if( check_guard_inscription( x_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(x_ptr,'t'));
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
 	if (item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
@@ -479,6 +469,9 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Wear the new stuff */
 	*o_ptr = tmp_obj;
+
+	/* MEGA-HACK -- Wearing from floor changes ownership */
+	object_own(p_ptr, o_ptr);
 
 	/* Increase the weight */
 	p_ptr->total_weight += o_ptr->weight;
@@ -574,11 +567,8 @@ void do_cmd_takeoff(int Ind, int item)
 		return;
 	}
 
-	if( check_guard_inscription( o_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(o_ptr, 't'));
 
 	/* Item is cursed */
 	if (cursed_p(o_ptr))
@@ -642,11 +632,8 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	}
 	*/
 
-	if( check_guard_inscription( o_ptr->note, 'd' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!d' */
+	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Cannot remove cursed items */
 	if ((item >= INVEN_WIELD) && cursed_p(o_ptr))
@@ -816,10 +803,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	o_ptr->number = old_number;
 	*/
-	if( check_guard_inscription( o_ptr->note, 'k' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+
+	/* Check guard inscription '!k' */
+	__trap(Ind, CGI(o_ptr, 'k'));
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -989,6 +975,9 @@ void do_cmd_uninscribe(int Ind, int item)
 		p_ptr->redraw |= (PR_FLOOR);
 	}
 
+	/* Check guard inscription '!}' */
+	__trap(Ind, protected_p(p_ptr, o_ptr, '}'));
+
 	/* Nothing to remove */
 	if (!o_ptr->note)
 	{
@@ -1045,6 +1034,9 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 		o_ptr = &o_list[0 - item];
 		p_ptr->redraw |= (PR_FLOOR);
 	}
+
+	/* Check guard inscription '!{' */
+	__trap(Ind, protected_p(p_ptr, o_ptr, '{'));
 
 	/* Handle empty inscription as removal */
 	if (STRZERO(inscription))
@@ -1510,10 +1502,8 @@ void do_cmd_refill(int Ind, int item)
 	/* Get the light */
 	o_ptr = &(p_ptr->inventory[INVEN_LITE]);
 
-	if( check_guard_inscription( o_ptr->note, 'F' )) {
-		msg_print(Ind, "The item's incription prevents it.");
-		return;
-	};
+	/* Check guard inscription '!F' */
+	__trap(Ind, CGI(o_ptr, 'F'));
 
 	/* It is nothing */
 	if (o_ptr->tval != TV_LITE)

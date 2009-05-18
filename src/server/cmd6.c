@@ -100,11 +100,8 @@ void do_cmd_eat_food(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-        if( check_guard_inscription( o_ptr->note, 'E' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
-
+	/* Check guard inscription '!E' */
+	__trap(Ind, CGI(o_ptr, 'E'));
 
 	if (o_ptr->tval != TV_FOOD)
 	{
@@ -206,12 +203,8 @@ void do_cmd_quaff_potion(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-        if( check_guard_inscription( o_ptr->note, 'q' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
-
-
+	/* Check guard inscription '!q' */
+	__trap(Ind, CGI(o_ptr, 'q'));
 
 	if (o_ptr->tval != TV_POTION)
 	{
@@ -328,10 +321,8 @@ void do_cmd_read_scroll(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-        if( check_guard_inscription( o_ptr->note, 'r' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
+	/* Check guard inscription '!r' */
+	__trap(Ind, CGI(o_ptr, 'r'));
 
 	if (o_ptr->tval != TV_SCROLL)
 	{
@@ -450,10 +441,8 @@ void do_cmd_use_staff(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'u' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        }; 
+	/* Check guard inscription '!u' */
+	__trap(Ind, CGI(o_ptr, 'u')); 
 
 	if (o_ptr->tval != TV_STAFF)
 	{
@@ -661,10 +650,10 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 		}
 		o_ptr = &o_list[0 - item];
 	}
-	if( check_guard_inscription( o_ptr->note, 'a' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        }; 
+
+	/* Check guard inscription '!a' */
+	__trap(Ind, CGI(o_ptr, 'a'));
+
 	/* Mega-Hack -- refuse to aim a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
@@ -845,11 +834,9 @@ void do_cmd_zap_rod(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 		p_ptr->redraw |= (PR_FLOOR);
 	}
-	if( check_guard_inscription( o_ptr->note, 'z' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        }; 
 
+	/* Check guard inscription '!z' */
+	__trap(Ind, CGI(o_ptr, 'z')); 
 
 	if (o_ptr->tval != TV_ROD)
 	{
@@ -1007,10 +994,8 @@ void do_cmd_activate(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'A' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        }; 
+	/* Check guard inscription '!A' */
+	__trap(Ind, CGI(o_ptr, 'A')); 
 
 	/* Test the item */
 	if (!item_tester_hook_activate(Ind, o_ptr))

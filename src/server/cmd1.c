@@ -712,6 +712,8 @@ void carry(int Ind, int pickup, int confirm)
 		{
 			int okay = TRUE;
 
+			if (protected_p(p_ptr, o_ptr, 'g')) return;
+
 			/* Hack -- query every item */
 			if (option_p(p_ptr,CARRY_QUERY_FLAG) && !confirm)
 			{

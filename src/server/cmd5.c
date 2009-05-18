@@ -563,10 +563,8 @@ void do_cmd_cast(int Ind, int book, int spell)
 		return;
 	}
 
-        if( check_guard_inscription( o_ptr->note, 'm' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
+	/* Check guard inscription '!m' */
+	__trap(Ind, CGI(o_ptr, 'm'));
 
 	/* Access the item's sval */
 	sval = o_ptr->sval;
@@ -763,10 +761,9 @@ void do_cmd_pray(int Ind, int book, int spell)
         /* Tried to pray prayer from bad book */
         return;
     }
-        if( check_guard_inscription( o_ptr->note, 'p' )) {
-                msg_print(Ind, "The item's inscription prevents it");
-                return;
-        };
+
+    /* Check guard inscription '!p' */
+	__trap(Ind, CGI(o_ptr, 'p'));
 
     /* Access the item's sval */
     sval = o_ptr->sval;

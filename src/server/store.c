@@ -1886,10 +1886,7 @@ void store_sell(int Ind, int item, int amt)
 #endif
 
 	/* Make sure he hasn't protected it*/
-	if( check_guard_inscription( o_ptr->note, 's' )) {
-	    msg_print(Ind, "The item's inscription prevents it");
-	    return;
-	};
+	__trap(Ind, CGI(o_ptr,'s'));
 
 	/* Create the object to be sold (structure copy) */
 	sold_obj = *o_ptr;

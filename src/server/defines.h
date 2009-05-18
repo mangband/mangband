@@ -132,3 +132,12 @@
 #define SPECIAL_FILE_SCORES	5
 #define SPECIAL_FILE_HELP	6
 #define SPECIAL_FILE_KNOWLEDGE	7
+
+/* Hack -- check if object is owned by player */
+#define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
+/* Hack -- shorthand alias for "check_guard_description" */
+#define CGI(O,M) check_guard_inscription( (O)->note, (M) )
+/* Hack -- overloaded guard-inscriptions */
+#define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
+/* Hack -- check guard inscription and abort (chunk of code) */ 
+#define __trap(I,X) if ((X)) { msg_print((I), "The item's inscription prevents it."); return; }

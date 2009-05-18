@@ -2172,8 +2172,11 @@ bool check_guard_inscription( s16b quark, char what ) {
 	    }
 	    if(*ax =='*') {
 		switch( what ) { /* check for paraniod tags */
+		    case '{': /* no inscribe */
+		    case '}': /* no unscribe */
+		    case 'g': /* no pickup! */
+			/* ^ Owner must override those */
 		    case 'd': /* no drop */
-		    case 'h': /* no house ( sell a a key ) */
 		    case 'k': /* no destroy */
 #if 0
 		    case 's': /* no sell */
