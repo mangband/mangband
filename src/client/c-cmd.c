@@ -3,6 +3,7 @@
 #include "../common/md5.h"
 
 /* Handle custom commands */
+#define advance_prompt() prompt = prompt + strlen(prompt) + 1
 void cmd_custom(byte i)
 {
 	custom_command_type *cc_ptr;
@@ -31,7 +32,7 @@ void cmd_custom(byte i)
 			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
 		}
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_TEST_DEAD)
 	{
@@ -40,7 +41,7 @@ void cmd_custom(byte i)
 			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
 		}
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_TEST_SPELL)
 	{
@@ -49,8 +50,8 @@ void cmd_custom(byte i)
 			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
 		}
-		prompt = prompt + strlen(prompt) + 1;
-	}
+		advance_prompt();
+		}
 	if (cc_ptr->flag & COMMAND_SPECIAL_FILE)
 	{
 		special_line_type = cc_ptr->tval;
@@ -73,7 +74,7 @@ void cmd_custom(byte i)
 			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
 		}
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
@@ -84,21 +85,26 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE), 
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 
-		/* Get an amount - from inventory */
-		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item >= 0 && inventory[item].number > 1)
+		/* Get an amount */
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT))
 		{
-			if (STRZERO(prompt)) prompt = "How many? ";
-			value = c_get_quantity(prompt, inventory[item].number);
+			value = 1;
+			/* - from inventory */
+			if (item >= 0 && inventory[item].number > 1)
+			{
+				if (STRZERO(prompt)) prompt = "How many? ";			
+				value = c_get_quantity(prompt, inventory[item].number);
+			}
+			/* - from floor */
+			if (item < 0 && floor_item.number > 1)
+			{
+				if (STRZERO(prompt)) prompt = "How many? ";			
+				value = c_get_quantity(prompt, floor_item.number);
+			}
 		}
-		/* Get an amount - from floor */
-		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT) && item < 0 && floor_item.number > 1)
-		{
-			if (STRZERO(prompt)) prompt = "How many? ";
-			value = c_get_quantity(prompt, floor_item.number);
-		}
-		
+
 		/* Dirty Hack -- Reset! */
 		if (cc_ptr->flag & COMMAND_ITEM_RESET)
 		{
@@ -121,7 +127,7 @@ void cmd_custom(byte i)
 	{
 		int index, spell, indoff = 0;
 		cptr p = prompt;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
 		{
 			if (!get_spell(&spell, p, prompt, &item, FALSE)) return;
@@ -134,7 +140,7 @@ void cmd_custom(byte i)
 			index = book * SPELLS_PER_BOOK + spell;
 			indoff = cc_ptr->tval * SPELLS_PER_BOOK;
 		}
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 		if (cc_ptr->flag & COMMAND_SPELL_INDEX)
 		{
 			value = index - indoff;
@@ -166,7 +172,7 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE), 
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR ? TRUE : FALSE)))
 				return;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	/* Target? */
 	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */ 
@@ -175,14 +181,14 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_TARGET_ALLOW ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
 				return;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	/* Need values? */
 	if (cc_ptr->flag & COMMAND_NEED_VALUE)
 	{
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}		
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
 	{
@@ -190,21 +196,21 @@ void cmd_custom(byte i)
 		if (!get_com(prompt, &entry[0])) 
 			return;
 		entry[1] = '\0';
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}	
 	else if (cc_ptr->flag & COMMAND_NEED_STRING)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
 		if (!get_string(prompt, entry, sizeof(entry)))
 			return;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_NEED_CONFIRM)
 	{
 		if (STRZERO(prompt)) prompt = "Really perform said action ? ";
 		if (!get_check(prompt))
 			return;
-		prompt = prompt + strlen(prompt) + 1;
+		advance_prompt();
 	}
 	/* Post-effects */
 	if (cc_ptr->flag & COMMAND_SECOND_VALUE)
