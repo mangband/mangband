@@ -3,7 +3,7 @@
 /* Purpose: server-side global constants and macro definitions */
 
 
-#define	OPT_MAX 			37
+#define	OPT_MAX 			38
 #define	MAX_OPTION_GROUPS   4
 
 /*
@@ -55,6 +55,7 @@
 #define OPT_EASY_ALTER			34
 #define OPT_ALERT_HITPOINT		35
 #define OPT_HILITE_LEADER   	36
+#define OPT_PAUSE_AFTER_DETECT 	37
 #define option_p(A,B) (A->options[OPT_ ## B])
 
 

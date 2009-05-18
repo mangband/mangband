@@ -1290,11 +1290,13 @@ struct player_type
 
 	bool mon_vis[MAX_M_IDX];  /* Can this player see these monsters? */
 	bool mon_los[MAX_M_IDX];
+	byte mon_det[MAX_M_IDX]; /* Were these monsters detected by this player? */
 
 	bool obj_vis[MAX_O_IDX];  /* Can this player see these objcets? */
 
 	bool play_vis[MAX_PLAYERS];	/* Can this player see these players? */
 	bool play_los[MAX_PLAYERS];
+	byte play_det[MAX_PLAYERS]; /* Were these players detected by this player? */
 
 	bool obj_aware[MAX_K_IDX]; /* Is the player aware of this obj type? */
 	bool obj_tried[MAX_K_IDX]; /* Has the player tried this obj type? */

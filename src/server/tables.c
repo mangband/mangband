@@ -1956,6 +1956,9 @@ option_type option_info[] =
 
 	{ OPT_INFO(SHOW_DETAILS), 		TRUE,	2,	0, 0,
 	"show_details",	    		"Show details on monster recall" },
+
+	{ OPT_INFO(PAUSE_AFTER_DETECT),	TRUE,	2,	0, 0,
+	"pause_after_detect",  		"Freeze screen after detecting monsters" },
 	/* Stacking */
 	{ OPT_INFO(STACK_ALLOW_ITEMS),	TRUE,	2,	0, 0,
 	"stack_allow_items",    	"Allow weapons and armor to stack" },

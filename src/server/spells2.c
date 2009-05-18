@@ -1376,7 +1376,27 @@ bool detect_objects_magic(int Ind)
 
 
 
+/*
+ * Increment magical detection counter for a monster/player
+ */
+void give_detect(int Ind, int m_idx)
+{
+	player_type *p_ptr = Players[Ind];
 
+	/* Players */
+	if (m_idx < 0)
+	{
+		m_idx = 0 - m_idx;
+		if (p_ptr->play_det[m_idx] < 255);
+			p_ptr->play_det[m_idx]++;
+	}
+	/* Monsters */
+	else
+	{
+		if (p_ptr->mon_det[m_idx] < 255);
+			p_ptr->mon_det[m_idx]++;
+	}
+}
 
 /*
  * Locates and displays all invisible creatures on current panel -RAK-
@@ -1433,9 +1453,8 @@ bool detect_invisible(int Ind, bool pause)
 			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
 				p_ptr->window |= PW_MONSTER;
 
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+			/* Increment detection counter */
+			give_detect(Ind, i);
 			flag = TRUE;
 		}
 	}
@@ -1460,9 +1479,8 @@ bool detect_invisible(int Ind, bool pause)
 		/* Detect all invisible players but not the dungeon master */
 		if (q_ptr->ghost) 
 		{
-			/* Mega-Hack -- Show the player */
-			p_ptr->play_vis[i] = TRUE;
-			lite_spot(Ind, py, px);
+			/* Increment detection counter */
+			give_detect(Ind, 0 - i); 
 			flag = TRUE;
 		}
 	}
@@ -1470,8 +1488,10 @@ bool detect_invisible(int Ind, bool pause)
 	/* Describe result, and clean up */
 	if (flag && pause)
 	{
+		/* Mega-Hack -- Fix the monsters and players */
+		update_monsters(FALSE);
+		update_players();
 		/* Handle Window stuff */
-		p_ptr->window |= (PW_MONLIST);
 		handle_stuff(Ind);
 	
 		/* Describe, and wait for acknowledgement */
@@ -1479,13 +1499,9 @@ bool detect_invisible(int Ind, bool pause)
 		msg_print(Ind, "You sense the presence of invisible creatures!");
 		msg_print(Ind, NULL);
 
-		/* Wait */
-		Send_pause(Ind);
-
-		/* Mega-Hack -- Fix the monsters and players */
-		update_monsters(FALSE);
-		update_players();
-		p_ptr->window &= ~(PW_MONLIST);
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(Ind);
 	}
 
 	/* Result */
@@ -1546,9 +1562,8 @@ bool detect_evil(int Ind)
 			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
 				p_ptr->window |= PW_MONSTER;
 
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+			/* Increment detection counter */
+			give_detect(Ind, i);
 			flag = TRUE;
 		}
 	}
@@ -1556,8 +1571,9 @@ bool detect_evil(int Ind)
 	/* Note effects and clean up */
 	if (flag)
 	{
+		/* Mega-Hack -- Fix the monsters */
+		update_monsters(FALSE);
 		/* Handle Window stuff */
-		p_ptr->window |= (PW_MONLIST);
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */
@@ -1565,12 +1581,9 @@ bool detect_evil(int Ind)
 		msg_print(Ind, "You sense the presence of evil creatures!");
 		msg_print(Ind, NULL);
 
-		/* Wait */
-		Send_pause(Ind);
-
-		/* Mega-Hack -- Fix the monsters */
-		update_monsters(FALSE);
-		p_ptr->window &= ~(PW_MONLIST);
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(Ind);
 	}
 
 	/* Result */
@@ -1626,9 +1639,8 @@ bool detect_creatures(int Ind, bool pause)
 		/* Detect all non-invisible monsters */
 		if (!(r_ptr->flags2 & (RF2_INVISIBLE)))
 		{
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+			/* Increment detection counter */
+			give_detect(Ind, i);
 			flag = TRUE;
 		}
 	}
@@ -1656,9 +1668,8 @@ bool detect_creatures(int Ind, bool pause)
 		/* Detect all non-invisible players */
 		if (!q_ptr->ghost)
 		{
-			/* Mega-Hack -- Show the player */
-			p_ptr->play_vis[i] = TRUE;
-			lite_spot(Ind, py, px);
+			/* Increment detection counter */
+			give_detect(Ind, 0 - i);
 			flag = TRUE;
 		}
 	}
@@ -1666,8 +1677,10 @@ bool detect_creatures(int Ind, bool pause)
 	/* Describe and clean up */
 	if (flag && pause)
 	{
-		/* Handle Window stuff */
-		p_ptr->window |= (PW_MONLIST);
+		/* Mega-Hack -- Fix the monsters and players */
+		update_monsters(FALSE);
+		update_players();
+		/* Handle Window stuff */		
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */
@@ -1675,13 +1688,9 @@ bool detect_creatures(int Ind, bool pause)
 		msg_print(Ind, "You sense the presence of creatures!");
 		msg_print(Ind, NULL);
 
-		/* Wait */
-		Send_pause(Ind);
-
-		/* Mega-Hack -- Fix the monsters and players */
-		update_monsters(FALSE);
-		update_players();
-		p_ptr->window &= ~(PW_MONLIST);
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(Ind);
 	}
 
 	/* Result */
@@ -1708,8 +1717,10 @@ bool detection(int Ind)
 	/* Describe result, and clean up */
 	if (detected_creatures || detected_invis)
 	{
+		/* Mega-Hack -- Fix the monsters and players */
+		update_monsters(FALSE);
+		update_players();
 		/* Handle Window stuff */
-		Players[Ind]->window |= (PW_MONLIST);
 		handle_stuff(Ind);
 
 		detect = TRUE;
@@ -1718,13 +1729,9 @@ bool detection(int Ind)
 		msg_print(Ind, "You sense the presence of creatures!");
 		msg_print(Ind, NULL);
 
-		/* Wait */
-		Send_pause(Ind);
-
-		/* Mega-Hack -- Fix the monsters and players */
-		update_monsters(FALSE);
-		update_players();
-		Players[Ind]->window &= ~(PW_MONLIST);
+		/* Hack -- Pause */
+		if (option_p(Players[Ind], PAUSE_AFTER_DETECT))
+			Send_pause(Ind);
 	}
 
 	/* Result */

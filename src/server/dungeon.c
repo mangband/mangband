@@ -1127,6 +1127,28 @@ static void process_player_end(int Ind)
 
 	if ( !(turn % time) )
 	{
+		/* Hack -- Fade monster Detect over time */
+		for (i = 0; i < m_max; i++)
+		{
+			if (p_ptr->mon_det[i]) 
+			{
+				if (--p_ptr->mon_det[i] == 0) 
+				{
+					update_mon(i, FALSE);
+				}
+			}
+		}
+		/* Hack -- Fade player Detect over time */
+		for (i = 1; i <= NumPlayers; i++)
+		{
+			if (p_ptr->play_det[i])
+			{
+				if (--p_ptr->play_det[i] == 0)
+				{
+					update_player(i);
+				}
+			}
+		}
 
 		/* Semi-constant hallucination (but not in stores) */
 		if (p_ptr->image && p_ptr->store_num == -1) p_ptr->redraw |= (PR_MAP);

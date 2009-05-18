@@ -79,6 +79,7 @@ void delete_monster_idx(int i)
 	{
 		Players[Ind]->mon_vis[i] = FALSE;
 		Players[Ind]->mon_los[i] = FALSE;
+		Players[Ind]->mon_det[i] = 0;
 
 		/* Hack -- remove hurt flag */
 		Players[Ind]->mon_hrt[i] = FALSE;
@@ -197,6 +198,7 @@ static void compact_monsters_aux(int i1, int i2)
 
 		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
 		Players[Ind]->mon_los[i2] = Players[Ind]->mon_los[i1];
+		Players[Ind]->mon_det[i2] = Players[Ind]->mon_det[i1];
 		
 		/* Hack -- copy hurt flag */
 		Players[Ind]->mon_hrt[i2] = Players[Ind]->mon_hrt[i1];;
@@ -1323,6 +1325,7 @@ void update_mon(int m_idx, bool dist)
 		{
 			p_ptr->mon_vis[m_idx] = FALSE;
 			p_ptr->mon_los[m_idx] = FALSE;
+			p_ptr->mon_det[m_idx] = 0;
 			continue;
 		}
 
@@ -1344,8 +1347,11 @@ void update_mon(int m_idx, bool dist)
 		/* Save the distance (in a byte) */
 		m_ptr->cdis = (d < 255) ? d : 255;
 
+		/* HACK ! - Detected via magical means */
+		if (p_ptr->mon_det[m_idx]) flag = TRUE;
+
 		/* Nearby */
-		if (m_ptr->cdis <= MAX_SIGHT)
+		else if (m_ptr->cdis <= MAX_SIGHT)
 		{
 
 			/* Process "nearby" monsters on the current "panel" */
@@ -1583,8 +1589,11 @@ void update_player(int Ind)
 		/* Compute distance */
 		dis = distance(py, px, p_ptr->py, p_ptr->px);
 
+		/* HACK ! - Detected via magical means */
+		if (p_ptr->play_det[Ind]) flag = TRUE;
+
 		/* Process players on current panel */
-		if (panel_contains(py, px))
+		else if (panel_contains(py, px))
 		{
 			cave_type *c_ptr = &cave[p_ptr->dun_depth][py][px];
 			byte *w_ptr = &p_ptr->cave_flag[py][px];
@@ -1913,6 +1922,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	{
 		Players[Ind]->mon_los[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_vis[c_ptr->m_idx] = FALSE;
+		Players[Ind]->mon_det[c_ptr->m_idx] = 0;
 		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
 
