@@ -959,6 +959,7 @@ extern void do_cmd_store(int Ind, int pstore);
 extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
+extern s32b player_price_item(int Ind, object_type *o_ptr);
 extern int Send_player_store_info(int ind, char *name, char *owner, int items);
 
 /* util.c */

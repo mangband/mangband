@@ -2664,8 +2664,8 @@ int Receive_pickup_check(void)
 	/* Get a check */
 	if (get_check(buf))
 	{
-		/* Pick it up */
-		Send_stay();
+		/* Pick it up (Hack -- use 'store_confirm' PKT) */
+		Send_store_confirm();
 	}
 
 	return 1;

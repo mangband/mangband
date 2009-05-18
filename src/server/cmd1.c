@@ -693,12 +693,14 @@ void carry(int Ind, int pickup, int confirm)
 		if (!p_ptr->ghost)
 			disturb(Ind, 0, 0);
 
+		/* Refresh floor */
+		floor_item_notify(Ind, c_ptr->o_idx, FALSE);
+			
 		/* Describe the object */
 		if (!pickup)
 		{
 			if (!p_ptr->ghost)
 				msg_format(Ind, "You see %s.", o_name);
-			floor_item_notify(Ind, c_ptr->o_idx, FALSE);
 		}
 
 		/* Note that the pack is too full */
@@ -712,7 +714,75 @@ void carry(int Ind, int pickup, int confirm)
 		{
 			int okay = TRUE;
 
-			if (protected_p(p_ptr, o_ptr, 'g')) return;
+			if (protected_p(p_ptr, o_ptr, 'g')) 
+			{
+				/* Major Hack -- allow purchase from floor */
+				s32b price;
+				okay = FALSE;
+				if ((price = player_price_item(Ind, o_ptr)) >= 0)
+				{
+					if (!confirm)
+					{
+						char out_val[160];
+						object_desc(Ind, o_name, o_ptr, TRUE, 2); /* shorten name */
+						sprintf(out_val, "Purchase %s for %ld gold? ", o_name, (long)price);
+						Send_pickup_check(Ind, out_val);
+						return;
+					} 
+					else 
+					{
+						/* Attempt to buy this object */
+						player_type *q_ptr;
+						int i;
+						/* Seller must be online */
+						for (i = 1; i < NumPlayers+1; i++)
+						{
+							q_ptr = Players[i];
+							if (obj_own_p(q_ptr,o_ptr))
+							{
+								okay = p_ptr->play_los[i];
+								break;
+							}
+						}
+						if (!okay)
+						{
+							msg_print(Ind, "Item owner must be nearby!");
+							return;
+						}
+						else if (p_ptr->au < price)
+						{
+							/* Simple message (no insult) */
+							msg_print(Ind, "You do not have enough gold.");
+							return;
+						}
+						else
+						{
+							char msg[80];
+							/* Perfrom the transaction */
+							p_ptr->au -= price;
+							q_ptr->au += price;
+							p_ptr->redraw |= PR_GOLD;
+							q_ptr->redraw |= PR_GOLD;
+							/* ALLOW PICKUP! */
+							o_ptr->note = 0;
+							/* Message */
+							object_desc(Ind, o_name, o_ptr, TRUE, 2);/* short name */							
+							msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
+							msg_format(i, "You sold %s for %ld gold.", o_name, (long)price);							
+							/* Audit */
+							sprintf(msg, "PS %s-%d | %s-%d $ %ld",
+									p_ptr->name, (int)p_ptr->id,
+									q_ptr->name, (int)q_ptr->id,
+									(long)price);
+							audit(msg);
+							audit("PS+gold");
+							okay = TRUE;
+						}
+					}
+				}
+				/* Finalize hack */
+				__trap(Ind, !okay);
+			}
 
 			/* Hack -- query every item */
 			if (option_p(p_ptr,CARRY_QUERY_FLAG) && !confirm)

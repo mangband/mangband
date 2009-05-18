@@ -3120,7 +3120,7 @@ void do_cmd_stay(int Ind, int pickup)
 
 
 	/* Try to Pick up anything under us */
-	carry(Ind, pickup, 1);
+	carry(Ind, pickup, 0);
 }
 
 

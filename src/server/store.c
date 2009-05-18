@@ -82,6 +82,44 @@ static byte rgold_adj[MAX_RACES][MAX_RACES] =
 };
 
 
+/*
+ * Determine the price of an item for direct sale
+ */
+s32b player_price_item(int Ind, object_type *o_ptr)
+{
+	s32b price = -1;
+	s32b askprice = -1;
+	char *c;
+
+	/* Is this item for sale? */
+	if (o_ptr->note && (c = strstr(quark_str(o_ptr->note),"for sale")))
+	{
+		askprice = 0;
+
+		/* Skip "for sale" and find space */
+		c += 8; if(*c == ' ') askprice = atoi(c);
+
+		/* Get the real value  */
+		price = object_value(Ind, o_ptr);
+
+		/* BM Prices */
+		price = price * 3;
+
+		if (askprice > price)
+		{
+			price = askprice;
+		}
+	}
+
+	/* Save */
+	if (askprice != -1) o_ptr->askprice = askprice;
+
+	/* Multiply */
+	if (price != -1) price *= o_ptr->number;
+
+	/* Done */
+	return price;		
+}
 
 
 /*
