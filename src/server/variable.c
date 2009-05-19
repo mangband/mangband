@@ -171,6 +171,7 @@ char * cfg_bind_name = NULL;
 char * cfg_console_password = "change_me";
 bool cfg_console_local_only = FALSE;
 char * cfg_dungeon_master = "DungeonMaster";
+char * cfg_load_pref_file = NULL;
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
 s32b cfg_tcp_port = 18346;

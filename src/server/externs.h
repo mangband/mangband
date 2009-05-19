@@ -170,6 +170,7 @@ extern char * cfg_report_address;
 extern char * cfg_console_password;
 extern bool cfg_console_local_only;
 extern char * cfg_dungeon_master;
+extern char * cfg_load_pref_file;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern s32b cfg_tcp_port;

@@ -2479,8 +2479,16 @@ void play_game(bool new_game)
 	/* Reset the visual mappings */
 	reset_visuals();
 
+	/* Load requested "pref" file */
+	if (cfg_load_pref_file)
+	{
+		plog(format("Loading pref file: %s", cfg_load_pref_file));
+		process_pref_file(cfg_load_pref_file);
+	}
+#if 0
 	/* Load the "pref" files */
 	load_all_pref_files();
+#endif
 
 	/* Verify the keymap */
 	/*keymap_init();*/

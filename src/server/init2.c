@@ -2405,6 +2405,10 @@ void set_server_option(char * option, char * value)
 	{
 		ANGBAND_DIR_SAVE = string_make(value);
 	}
+	else if (!strcmp(option,"LOAD_PREF_FILE"))
+	{
+		cfg_load_pref_file = string_make(value);
+	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
 		cfg_meta_address = strdup(value);
@@ -2580,6 +2584,7 @@ void unload_server_cfg()
 	str_undup(cfg_report_address);
 	str_undup(cfg_console_password);
 	str_undup(cfg_dungeon_master);
+	str_undup(cfg_load_pref_file);
 }
 
 
