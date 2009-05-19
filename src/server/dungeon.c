@@ -1612,16 +1612,19 @@ static void process_player_end(int Ind)
 			/* Count down towards recall */
 			p_ptr->word_recall--;
 
-		       /* MEGA HACK: no recall if icky, or in a shop */
-			if( ! p_ptr->word_recall ) 
+
+			/* Hack -- prevent recall */
+			if(!p_ptr->word_recall) 
 			{
-				if( character_icky || (p_ptr->store_num > 0)) {
+				if (p_ptr->store_num > 0 ||  /* in stores */
+					p_ptr->new_level_method) /* new level */
+				{
+					/* Delay for 1 turn */
 				    p_ptr->word_recall++;
 				}
 			}
 
 			/* Activate the recall */
-			
 			if (!p_ptr->word_recall)
 			{
 				/* Disturbing! */
