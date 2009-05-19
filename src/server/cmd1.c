@@ -1582,32 +1582,6 @@ void move_player(int Ind, int dir, int do_pickup)
 	y = p_ptr->py + ddy[dir];
 	x = p_ptr->px + ddx[dir];
 
-  if (cfg_ironman || cfg_town_wall)
-  {
-	/* 
-	 * Ironmen don't go wandering in the countryside...
-	 */
-	if (!in_bounds(Depth, y, x))
-	{
-		if(Depth == 0 && !cfg_town_wall)
-		{
-			switch(rand_int(5))
-			{
-				case 0: msg_print(Ind, "You don't feel like going to pick flowers right now."); break;
-				case 1: msg_print(Ind, "Where do you think you are going?"); break; /* [Warrior] */
-				case 2: msg_print(Ind, "Morgoth the potato farmer? - get real!"); break; /* [Warrior] */
-				case 3: msg_print(Ind, "Morgoth awaits you in the depths not in the fields."); break; 
-				case 4: msg_print(Ind, "Something draws your attention back to the stairs."); break; 
-			}	
-		}
-		else
-			msg_print(Ind, "There is a wall blocking your way.");			
-		disturb(Ind, 1, 0);
-		return;
-	}	 
-  }
-  else
-  {
 	/* Update wilderness positions */
 	if (p_ptr->dun_depth <= 0)
 	{
@@ -1621,6 +1595,27 @@ void move_player(int Ind, int dir, int do_pickup)
 		/* we have gone off the map */
 		if (!in_bounds(Depth, y, x))
 		{
+			/* Leaving Town -- DENY! */
+			if (!Depth && (cfg_town_wall || cfg_ironman))
+			{
+				if (!cfg_town_wall)
+					switch(rand_int(5))
+					{
+						case 0: msg_print(Ind, "You don't feel like going to pick flowers right now."); break;
+						case 1: msg_print(Ind, "Where do you think you are going?"); break; /* [Warrior] */
+						case 2: msg_print(Ind, "Morgoth the potato farmer? - get real!"); break; /* [Warrior] */
+						case 3: msg_print(Ind, "Morgoth awaits you in the depths not in the fields."); break; 
+						case 4: msg_print(Ind, "Something draws your attention back to the stairs."); break; 
+					}
+				else 
+					msg_print(Ind, "There is a wall blocking your way.");
+				disturb(Ind, 1, 0);
+				return;
+			}
+			/* Leaving Town -- ALLOW, BUT WARN */
+			else if (!Depth && p_ptr->lev == 1)
+				msg_print(Ind, "Really enter the wilderness? The dungeon entrance is in the town!");
+
 			/* find his new location */
 			if (y <= 0)
 			{	
@@ -1692,7 +1687,6 @@ void move_player(int Ind, int dir, int do_pickup)
 			return;
 		}
 	}
-  }
 
 	
 	/* Examine the destination */
