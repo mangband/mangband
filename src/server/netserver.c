@@ -917,6 +917,9 @@ static void Delete_player(int Ind)
 		if (p_ptr->inventory)
 			C_KILL(p_ptr->inventory, INVEN_TOTAL, object_type);
 
+		if (p_ptr->l_list)
+			C_KILL(p_ptr->l_list, z_info->r_max, monster_lore);
+
 		history_wipe(p_ptr->charhist);
 
 		KILL(p_ptr, player_type);
