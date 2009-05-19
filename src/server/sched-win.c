@@ -31,7 +31,7 @@
 #include <winsock2.h>
 #include "angband.h"   
 #include <mmsystem.h>
-#include <winbase.h> 
+#include <winbase.h> 
 
 static volatile long timer_ticks;  
 static long frame_count;  
