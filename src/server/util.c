@@ -3455,7 +3455,6 @@ void history_wipe(history_event *evt) {
 
 		/* Recall */
 		evt = NULL;	if (next) evt = next;
-		}		
 	}
 }
 
