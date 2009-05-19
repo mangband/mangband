@@ -3393,12 +3393,11 @@ cptr attr_to_text(byte a)
 /* 
  * Record a message in the character history
  */
-extern void log_history_event(int Ind, char *msg)
+extern void log_history_event(int Ind, char *msg, bool unique)
 {
 	int  days, hours, mins;
 	huge seconds;
 	player_type *p_ptr = Players[Ind];
-	bool unique = TRUE;/* FIXME -- make function argument */
 
 	history_event *evt;
 	history_event *last = NULL;
@@ -3453,6 +3452,17 @@ void history_wipe(history_event *evt) {
 		/* Recall */
 		evt = NULL;	if (next) evt = next;
 	}
+}
+/*
+ * Format 1 string of event history
+ */
+cptr format_history_event(history_event *evt)
+{
+	static char buf[160];
+	sprintf(buf, "%02i:%02i:%02i   %4ift   %2i   %s",
+			evt->days, evt->hours, evt->mins,
+			evt->depth*50, evt->level, quark_str(evt->message));
+	return &buf[0];
 }
 
 

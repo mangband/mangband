@@ -1844,7 +1844,7 @@ void check_experience(int Ind)
 		if(!(p_ptr->lev % 5))
 		{
 			sprintf(buf,"Reached level %d",p_ptr->lev);
-			log_history_event(Ind, buf);
+			log_history_event(Ind, buf, TRUE);
 		}
 
 		/* Update some stuff */
@@ -2130,7 +2130,7 @@ void monster_death(int Ind, int m_idx)
 		msg_broadcast(Ind, buf);
 
 		/* Record this kill in the event history */
-		log_history_event(Ind, logbuf);
+		log_history_event(Ind, logbuf, TRUE);
 	}
 
 	/* Perform various tasks for several players */

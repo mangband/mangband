@@ -815,7 +815,7 @@ void carry(int Ind, int pickup, int confirm)
 					char msg[80];
 					object_desc(0, artname, o_ptr, FALSE, 0);
 					sprintf(msg,"Found The %s",artname);					
-					log_history_event(Ind, msg);
+					log_history_event(Ind, msg, TRUE);
 				}
 					
 				/* Delete original */

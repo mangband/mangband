@@ -870,7 +870,7 @@ static bool wr_savefile_new(int Ind)
 		char buf[160];
 		sprintf(buf, "%02i:%02i:%02i   %4ift   %2i   %s",evt->days, evt->hours, evt->mins,
 				evt->depth*50, evt->level, quark_str(evt->message));		
-		write_str("hist",buf);
+		write_str("hist", (char*)format_history_event(evt));
 	}
 	end_section("event_history");
 

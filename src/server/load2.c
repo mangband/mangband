@@ -1760,11 +1760,11 @@ static errr rd_savefile_new_aux(int Ind)
 	/* Read the character event history */
 	if(section_exists("event_history"))
 	{
-		start_section_read("event_history");
 		char buf[160];
 		cptr msg;
 		history_event evt;
 		history_event *last = NULL;
+		start_section_read("event_history");
 		while(value_exists("hist"))
 		{
 			int depth, level;
