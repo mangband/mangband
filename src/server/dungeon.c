@@ -2375,14 +2375,8 @@ void play_game(bool new_game)
 {
 	int i, n;
 
-
-	/* Hack -- Character is "icky" */
-	/*character_icky = TRUE;*/
-
-
-	/* Hack -- turn off the cursor */
-	/*(void)Term_set_cursor(0);*/
-
+	/* Flash a message */
+	plog("Please wait...");
 
 	/* Attempt to load the server state information */
 	if (!load_server_info())
@@ -2473,50 +2467,24 @@ void play_game(bool new_game)
 	}
 
 
-	/* Flash a message */
-	plog("Please wait...");
-
-	/* Flush the message */
-	/*Term_fresh();*/
-
-
-	/* Hack -- Enter wizard mode */
-	/*if (arg_wizard && enter_wizard_mode()) wizard = TRUE;*/
+	/* Prepare the spells */	
 	spells_init();
 
 
 	/* Flavor the objects */
 	flavor_init();
-
 	plog("Object flavors initialized...");
 
 	/* Reset the visual mappings */
 	reset_visuals();
 
-	/* Window stuff */
-	/*p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);*/
-
-	/* Window stuff */
-	/*p_ptr->window |= (PW_MONSTER);*/
-
-	/* Window stuff */
-	/*window_stuff();*/
-
-
 	/* Load the "pref" files */
 	load_all_pref_files();
-
-	/* Set or clear "rogue_like_commands" if requested */
-	/*if (arg_force_original) rogue_like_commands = FALSE;
-	if (arg_force_roguelike) rogue_like_commands = TRUE;*/
 
 	/* Verify the keymap */
 	/*keymap_init();*/
 
-	/* React to changes */
-	/*Term_xtra(TERM_XTRA_REACT, 0);*/
-
-
+#if 0
 	/* Make a town if necessary */
 	if (!server_dungeon)
 	{
@@ -2526,6 +2494,7 @@ void play_game(bool new_game)
 		/* Actually generate the town */
 		generate_cave(0, 0, 0);
 	}
+#endif
 
 	/* Finish initializing dungeon monsters */
 	setup_monsters();
@@ -2537,15 +2506,7 @@ void play_game(bool new_game)
 	server_generated = TRUE;
 
 
-	/* Hack -- Character is no longer "icky" */
-	/*character_icky = FALSE;*/
 
-
-	/* Start game */
-	/*alive = TRUE;*/
-
-	/* Hack -- Enforce "delayed death" */
-	/*if (p_ptr->chp < 0) death = TRUE;*/
 
 	/* Set up the contact socket, so we can allow players to connect */
 	setup_contact_socket();

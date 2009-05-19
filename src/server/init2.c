@@ -63,33 +63,27 @@
  * to succeed even if the strings have not been allocated yet,
  * as long as the variables start out as "NULL".
  */
+#define string_ifree(S) if ((S)) string_free((S)); (S) = NULL
+void free_file_paths()
+{
+	/* Free the main path */
+	string_ifree(ANGBAND_DIR);
+
+	/* Free the sub-paths */
+	string_ifree(ANGBAND_DIR_DATA);
+	string_ifree(ANGBAND_DIR_EDIT);
+	string_ifree(ANGBAND_DIR_SAVE);
+	string_ifree(ANGBAND_DIR_USER);
+	string_ifree(ANGBAND_DIR_GAME);
+	string_ifree(ANGBAND_DIR_TEXT);
+}
 void init_file_paths(char *path)
 {
 	char *tail;
 
 
 	/*** Free everything ***/
-
-	/* Free the main path */
-	string_free(ANGBAND_DIR);
-
-	/* Free the sub-paths */
-/*	string_free(ANGBAND_DIR_APEX);*/
-/*	string_free(ANGBAND_DIR_BONE);*/
-	string_free(ANGBAND_DIR_DATA);
-	string_free(ANGBAND_DIR_EDIT);
-/*	string_free(ANGBAND_DIR_FILE);*/
-/*	string_free(ANGBAND_DIR_HELP);*/
-/*	string_free(ANGBAND_DIR_INFO);*/
-	string_free(ANGBAND_DIR_SAVE);
-/*	string_free(ANGBAND_DIR_PREF);*/
-	string_free(ANGBAND_DIR_USER);
-/*	string_free(ANGBAND_DIR_XTRA);*/
-/*	string_free(ANGBAND_DIR_SCRIPT);*/
-
-	string_free(ANGBAND_DIR_GAME);
-	string_free(ANGBAND_DIR_TEXT);
-
+	free_file_paths();
 
 	/*** Prepare the "path" ***/
 
@@ -758,7 +752,6 @@ static errr init_info(cptr filename, header *head)
 	return (0);
 }
 
-#if 0
 /*
  * Free the allocated memory for the info-, name-, and text- arrays.
  */
@@ -776,7 +769,6 @@ static errr free_info(header *head)
 	/* Success */
 	return (0);
 }
-#endif
 
 /*
  * Initialize the "z_info" array
@@ -1959,15 +1951,7 @@ static errr init_other(void)
 
 
 	/* Allocate "permament" space for the town */
-	C_MAKE(cave[0], MAX_HGT, cave_type *);
-
-	/* Allocate and wipe each line of the town level */
-	for (i = 0; i < MAX_HGT; i++)
-	{
-		/* Allocate one row of the cave */
-		C_MAKE(cave[0][i], MAX_WID, cave_type);
-	}
-
+	/* alloc_dungeon_level(0); */
 
 	/*** Init the wild_info array... for more information see wilderness.c ***/
 	init_wild_info();
@@ -2413,15 +2397,15 @@ void set_server_option(char * option, char * value)
 	}
 	else if (!strcmp(option,"DATA_DIR"))
 	{
-		ANGBAND_DIR_DATA = strdup(value);
+		ANGBAND_DIR_DATA = string_make(value);
 	}
 	else if (!strcmp(option,"EDIT_DIR"))
 	{
-		ANGBAND_DIR_EDIT = strdup(value);
+		ANGBAND_DIR_EDIT = string_make(value);
 	}
 	else if (!strcmp(option,"SAVE_DIR"))
 	{
-		ANGBAND_DIR_SAVE = strdup(value);
+		ANGBAND_DIR_SAVE = string_make(value);
 	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
@@ -2446,7 +2430,7 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
-	plog(format("Dugeon Master Set as [%s]",cfg_dungeon_master));
+		plog_fmt("Dugeon Master Set as [%s]",cfg_dungeon_master);
     }
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
@@ -2584,6 +2568,21 @@ void set_server_option(char * option, char * value)
 
 	else plog(format("Error : unrecognized mangband.cfg option %s", option));
 }
+/*
+ * Dirty hack -- unset server options
+ */
+void unload_server_cfg()
+{
+#define str_undup(S) if ((S)) KILL((S), char)
+	string_ifree(ANGBAND_DIR_DATA);
+	string_ifree(ANGBAND_DIR_EDIT);
+	string_ifree(ANGBAND_DIR_SAVE);
+	str_undup(cfg_meta_address);
+	str_undup(cfg_bind_name);
+	str_undup(cfg_report_address);
+	str_undup(cfg_console_password);
+	str_undup(cfg_dungeon_master);
+}
 
 
 /* Parse the loaded mangband.cfg file, and if a valid expression was found
@@ -2657,19 +2656,19 @@ void load_server_cfg(void)
 	int i = 0;
 
 	/* Attempt to open the file */
-	while (cfg <= 0 && possible_cfg_dir[i++])
+	while (!cfg && possible_cfg_dir[i++])
 	{
 		cfg = fopen(possible_cfg_dir[i-1], "r");
 	}
 
 	/* Failure, try several dirs, then stop trying */
-	if (cfg <= 0)
+	if (!cfg)
 	{
 		plog("Error : cannot open file mangband.cfg");
 		return;
 	}
 
-	plog(format("Loading %s", possible_cfg_dir[i-1]));
+	plog_fmt("Loading %s", possible_cfg_dir[i-1]);
 
 	/* Actually parse the file */
 	load_server_cfg_aux(cfg);
@@ -2746,4 +2745,109 @@ void init_some_arrays(void)
 
 	/* Hack -- all done */
 	plog("[Initializing arrays... done]");
+}
+
+void cleanup_angband(void)
+{
+	int i;
+
+	/* Caves */
+	for (i = -MAX_DEPTH; i < MAX_DEPTH; i++)
+	{
+		if (cave[i])
+		{
+			dealloc_dungeon_level(i);
+		}
+	}
+
+	/* Network */
+	Stop_net_server();
+
+	/* Free options from mangband.cfg */		
+	unload_server_cfg();
+
+	/* Misc */
+	wipe_player_names();
+	
+	/* Free the scripting support 
+	script_free(); */
+
+	/* Free the macros */
+	C_FREE(macro__pat, MACRO_MAX, cptr);
+	C_FREE(macro__act, MACRO_MAX, cptr);
+	C_FREE(macro__cmd, MACRO_MAX, bool);
+	C_FREE(macro__buf, 1024, char);
+
+
+	/* Free the allocation tables */
+	C_FREE(alloc_race_table, alloc_race_size, alloc_entry);	
+	C_FREE(alloc_kind_table, alloc_kind_size, alloc_entry);
+
+	/* Free socials */
+	wipe_socials();
+
+	/* Free the stores */
+	if (store)
+	{
+		/* Free the store inventories */
+		for (i = 0; i < MAX_STORES; i++)
+		{
+			/* Get the store */
+			store_type *st_ptr = &store[i];
+			/* Free the store inventory */
+			C_FREE(st_ptr->table, st_ptr->table_size, s16b);			
+			FREE(st_ptr->stock, store_type);
+		}
+	}
+	C_FREE(store, MAX_STORES, store_type);
+
+	/* Free the quest list  
+	FREE(q_list); // -- per player */
+
+	/* Free the lore, monster, and object lists */
+	C_FREE(m_list, MAX_M_IDX, monster_type);
+	C_FREE(o_list, MAX_O_IDX, object_type);
+
+
+	/* Free the messages */
+	C_FREE(message__ptr, MESSAGE_MAX, u16b);
+	C_FREE(message__buf, MESSAGE_BUF, char);
+
+	/* Free the "quarks" */
+	for (i = 1; i < quark__num; i++)
+	{
+		string_free(quark__str[i]);
+	}
+	/* Free the list of "quarks" */
+	FREE((void*)quark__str, char);
+
+	/* Free the info, name, and text arrays */
+	free_info(&flavor_head);
+	free_info(&g_head);
+	free_info(&b_head);
+	free_info(&c_head);
+	free_info(&p_head);
+	free_info(&h_head);
+
+#define Ifree_info(L,T) \
+	free_info((header*)L ## _head); \
+	FREE(L ## _head, header); \ 
+	FREE(L ## _info, T); \
+	FREE(L ## _name, char); \
+	FREE(L ## _text, char);
+
+	Ifree_info(v, vault_type);
+	Ifree_info(r, monster_race);
+	Ifree_info(e, ego_item_type);
+	Ifree_info(a, artifact_type);
+	Ifree_info(k, object_kind);
+	Ifree_info(f, feature_type);
+
+	free_info(&z_head);
+
+	/* Free the format() buffer */
+	vformat_kill();
+
+	/* Free the directories */
+	free_file_paths();
 }

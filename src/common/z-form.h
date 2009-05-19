@@ -31,6 +31,9 @@ extern uint strfmt(char *buf, cptr fmt, ...);
 /* Format arguments into a static resizing buffer */
 extern char *vformat(cptr fmt, va_list vp);
 
+/* Clean memory after vformat use */
+extern void vformat_kill(void);
+
 /* Simple interface to "vformat()" */
 extern char *format(cptr fmt, ...);
 

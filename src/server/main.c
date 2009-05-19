@@ -86,6 +86,7 @@ static void quit_hook(cptr s)
 #ifdef UNIX_SOCKETS
 	SocketCloseAll();
 #endif
+	cleanup_angband();
 #if 0
 	int j;
 

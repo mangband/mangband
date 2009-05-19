@@ -607,8 +607,11 @@ extern errr init_r_info_txt(FILE *fp, char *buf);
 
 /* init.c */
 extern void init_file_paths(char *path);
+extern void free_file_paths(void);
 extern void init_some_arrays(void);
 extern void load_server_cfg(void);
+extern void unload_server_cfg(void);
+extern void cleanup_angband(void);
 
 /* load1.c */
 /*extern errr rd_savefile_old(void);*/
@@ -669,6 +672,7 @@ extern int Net_output(void);
 extern void setup_contact_socket(void);
 extern bool Report_to_meta(int flag);
 extern int Setup_net_server(void);
+extern void Stop_net_server(void);
 extern bool Destroy_connection(int Ind, char *reason);
 extern int Send_plusses(int Ind, int tohit, int todam);
 extern int Send_oppose(int ind, int acid, int elec, int fire, int cold, int pois);
@@ -821,6 +825,7 @@ extern int lookup_player_id(cptr name);
 extern void add_player_name(cptr name, int id);
 extern void delete_player_id(int id);
 extern void delete_player_name(cptr name);
+extern void wipe_player_names();
 extern int player_id_list(int **list);
 extern bool pvp_okay(int attacker, int target, int mode);
 extern int ego_kind_index_fuzzy(char * name);
@@ -839,6 +844,7 @@ extern bool save_server_info(void);
 extern void install_timer_tick(void (*func)(void), int freq);
 extern void install_input(void (*func)(int, int), int fd, int arg);
 extern void remove_input(int fd);
+extern void free_input(void);
 extern void sched(void);
 extern void block_timer(void);
 extern void allow_timer(void);
@@ -1091,6 +1097,7 @@ extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
 extern int time_factor(int Ind);
 extern int base_time_factor(int Ind, int slowest);
+extern void wipe_socials();
 extern void boot_socials();
 extern void show_socials(int Ind);
 extern void do_cmd_social(int Ind, int dir, int i);

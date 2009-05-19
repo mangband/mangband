@@ -5183,6 +5183,22 @@ struct social_type
 	cptr vict_found;
 } *socials;
 int max_socials = 0; /* Store total number of socials */
+void wipe_socials()
+{
+#define string_ifree(S) if ((S)) string_free((S))
+	int i;
+	/*** Free ***/
+	for (i = 0; i < max_socials; i++)
+	{
+		string_ifree(socials[i].name);
+		string_ifree(socials[i].char_no_arg);
+		string_ifree(socials[i].others_no_arg);		
+		string_ifree(socials[i].char_found);
+		string_ifree(socials[i].others_found);
+		string_ifree(socials[i].vict_found);
+	}
+	C_FREE(socials, max_socials, struct social_type);
+}
 void boot_socials()
 {
 	FILE *fp;	

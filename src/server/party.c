@@ -986,6 +986,34 @@ void delete_player_name(cptr name)
 }
 
 /*
+ * Free player names from memory
+ */
+void wipe_player_names()
+{
+	int i;
+	hash_entry *ptr;
+	hash_entry *next;
+
+	/* Entry points */
+	for (i = 0; i < NUM_HASH_ENTRIES; i++)
+	{
+		/* Acquire this chain */
+		ptr = hash_table[i];
+
+		/* Check this chain */
+		while (ptr)
+		{
+			next = ptr->next;
+
+			if (ptr->name) 
+				string_free(ptr->name);
+			KILL(ptr, hash_entry);
+
+			ptr = next;
+		}
+	}
+}
+/*
  * Return a list of the player ID's stored in the table.
  */
 int player_id_list(int **list)

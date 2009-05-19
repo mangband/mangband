@@ -3506,12 +3506,8 @@ static void handle_signal_simple(int sig)
 	/* Allow suicide (after 5) */
 	if (signal_count >= 5)
 	{
-		/* Tell the metaserver that we've quit */
-		Report_to_meta(META_DIE);
-
-		/* Save everything and quit the game */
-		exit_game_panic();
-		quit("quit");
+		/* Perform a "clean" shutdown */
+		shutdown_server();
 	}
 
 	/* Give warning (after 4) */

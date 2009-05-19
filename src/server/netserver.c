@@ -503,6 +503,20 @@ void setup_contact_socket(void)
 	install_input(Contact, Socket, 0);
 }
 
+void Stop_net_server(void)
+{
+	/* Dealloc player array */
+	C_FREE(Players, max_connections, player_type*);
+
+	/* Remove listening socket */
+	remove_input(Socket);
+	Sockbuf_cleanup(&ibuf);
+
+	/* Destroy networking */
+	free_input();
+	free(Conn);
+}
+
 static int Reply(char *host_addr, int fd)
 {
 	int result;
@@ -684,7 +698,11 @@ static void Contact(int fd, int arg)
 	/* Get the IP address of the client, without using the broken DgramLastAddr() */
 	len = sizeof sin;
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
-		strcpy(host_addr, inet_ntoa(sin.sin_addr));  
+	{
+		cptr s_addr = inet_ntoa(sin.sin_addr);
+		strncpy(host_addr, s_addr, 24);
+		free((char*)s_addr);
+	}  
 
 	/* Read first data he sent us -- connection type */
 	if (Packet_scanf(&ibuf, "%hu", &conntype) <= 0)
@@ -1005,6 +1023,8 @@ bool Destroy_connection(int ind, char *reason)
 		free(connp->addr);
 	if (connp->host != NULL)
 		free(connp->host);
+	if (connp->pass != NULL)
+		free(connp->pass);
 	Sockbuf_cleanup(&connp->w);
 	Sockbuf_cleanup(&connp->r);
 	Sockbuf_cleanup(&connp->c);
