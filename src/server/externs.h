@@ -420,6 +420,7 @@ extern bool is_quest_level(int Ind, int level);
 extern void update_players(void);
 extern void update_cursor(int);
 extern void cursor_track(int Ind, int m_idx);
+extern int player_pict(int Ind, int who);
 
 /* cmd1.c */
 extern bool test_hit_fire(int chance, int ac, int vis);
