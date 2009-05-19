@@ -2494,11 +2494,13 @@ void player_death(int Ind)
 	/* Note death */
 	if (!p_ptr->ghost) 
 	{
+		log_history_event(Ind, format("Was killed by %s", p_ptr->died_from), FALSE);
 		msg_print(Ind, "You die.");
 		msg_print(Ind, NULL);
 	}
 	else
 	{
+		/* log_history_event(Ind, format("Destroyed by %s", p_ptr->died_from), TRUE); */
 		msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
 		msg_print(Ind, NULL);
 	}
@@ -2888,7 +2890,10 @@ void resurrect_player(int Ind)
 	{
 		p_ptr->au = 100;
 	}
-	
+
+	/* Log event */
+	log_history_event(Ind, "Resurrected", FALSE);
+
 	/* Message */
 	msg_print(Ind, "You feel life return to your body.");
 
