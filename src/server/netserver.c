@@ -697,9 +697,9 @@ static void Contact(int fd, int arg)
 	len = sizeof sin;
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
 	{
-		cptr s_addr = inet_ntoa(sin.sin_addr);
+		char* s_addr = inet_ntoa(sin.sin_addr);
 		strncpy(host_addr, s_addr, 24);
-		free((char*)s_addr);
+		FREE(s_addr, char);
 	}  
 
 	/* Read first data he sent us -- connection type */
