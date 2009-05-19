@@ -2,7 +2,7 @@
  * Support for the "party" system.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 /*
  * Lookup a party number by name.

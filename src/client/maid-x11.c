@@ -22,7 +22,7 @@
  * which will have already "included" several relevant header files.
  */
 
-#include "angband.h"
+#include "c-angband.h"
 
 #if defined(USE_X11) || defined(USE_XAW) || defined(USE_XPJ) || defined(USE_GTK)
 

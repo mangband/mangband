@@ -2,9 +2,7 @@
 
 /* Purpose: interact with savefiles */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 #include "../common/md5.h"
 
 /*

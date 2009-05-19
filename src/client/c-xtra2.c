@@ -1,6 +1,6 @@
 /* More extra client things */
 
-#include "angband.h"
+#include "c-angband.h"
 
 /*
  * Show previous messages to the user   -BEN-

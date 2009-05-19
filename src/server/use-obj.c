@@ -8,7 +8,7 @@
  * are included in all such copies.  Other copyrights may also apply.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 #define msg_misc(A) msg_format_complex_near(Ind, Ind, MSG_PY_MISC, (A), p_ptr->name)
 static bool eat_food(int Ind, object_type *o_ptr, bool *ident)

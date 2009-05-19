@@ -17,7 +17,7 @@
 
 
 #define CLIENT
-#include "angband.h"
+#include "c-angband.h"
 #include "netclient.h"
 
 #ifndef WIN32

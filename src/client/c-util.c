@@ -1,5 +1,4 @@
-#define CLIENT
-#include "angband.h"
+#include "c-angband.h"
 
 #define MACRO_USE_CMD	0x01
 #define MACRO_USE_STD	0x02

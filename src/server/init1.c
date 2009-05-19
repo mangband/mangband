@@ -2,9 +2,7 @@
 
 /* Purpose: Initialization (part 1) -BEN- */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 /*
  * This file is used to initialize various variables and arrays for the

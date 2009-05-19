@@ -8,7 +8,7 @@
  * are included in all such copies.  Other copyrights may also apply.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 /*
  * Maximum number of spells per realm

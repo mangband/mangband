@@ -13,8 +13,7 @@
 /*
  * Only a little of the file is used for the client, the rest is commented out.
  */
-#define CLIENT
-#include "angband.h"
+#include "c-angband.h"
 
 
 

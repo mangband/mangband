@@ -22,9 +22,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 #include <signal.h>
 
 /*char sched_version[] = VERSION;*/

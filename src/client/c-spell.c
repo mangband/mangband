@@ -1,6 +1,6 @@
 /* Client-side spell stuff */
 
-#include "angband.h"
+#include "c-angband.h"
 
 static void print_spells(int book)
 {

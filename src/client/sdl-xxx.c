@@ -9,7 +9,7 @@
  */
 
 
-#include "angband.h"
+#include "c-angband.h"
 #include "main-sdl.h"
 
 #ifdef USE_XXX

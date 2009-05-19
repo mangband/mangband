@@ -10,8 +10,7 @@
  * included in all such copies.
  */
 
-#include "angband.h"
-#include "defines.h"
+#include "mangband.h"
 
 /*
  *  Global array of "custom commands".

@@ -31,7 +31,7 @@
 #include "../common/z-rand.h"
 
 #ifdef CLIENT
-#include "z-term.h"
+#include "../client/z-term.h"
 #endif
 
 
@@ -48,7 +48,13 @@
  */
 #include "../common/defines.h"
 #include "../common/types.h"
-#include "externs.h"
+#ifdef CLIENT
+#include "../client/c-defines.h"
+#include "../client/c-externs.h"
+#else
+#include "../server/mdefines.h"
+#include "../server/externs.h"
+#endif
 
 
 

@@ -2,7 +2,7 @@
 
 
 
-#include "angband.h"
+#include "c-angband.h"
 
 /*
  * Print character info at given row, column in a 13 char field

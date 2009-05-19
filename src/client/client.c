@@ -7,7 +7,7 @@
  * "c-init.c".
  */
 
-#include "angband.h"
+#include "c-angband.h"
 
 
 static void read_credentials(void)

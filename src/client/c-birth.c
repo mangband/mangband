@@ -12,7 +12,7 @@
 
 #define CLIENT
 
-#include "angband.h"
+#include "c-angband.h"
 #include "../common/md5.h"
 
 

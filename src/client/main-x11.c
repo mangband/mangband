@@ -7,7 +7,7 @@
  * and not for profit purposes provided that this copyright and statement
  * are included in all such copies.
  */
-#include "angband.h"
+#include "c-angband.h"
 
 int use_transparency;
 int use_bigtile;
@@ -117,9 +117,6 @@ byte angband_color_table[256][4] =
  *
  */
 
-
-
-#include "angband.h"
 
 
 #ifdef USE_X11

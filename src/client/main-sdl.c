@@ -26,7 +26,7 @@
 #undef SINGLE_SURFACE /* Eat more CPU, but less RAM (only signifcant when drawing GUI) */
 #define USE_BITMASK	/* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
 
-#include "angband.h"
+#include "c-angband.h"
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 

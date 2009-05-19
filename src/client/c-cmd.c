@@ -1,4 +1,4 @@
-#include "angband.h"
+#include "c-angband.h"
 #include "netclient.h"
 #include "../common/md5.h"
 

@@ -9,10 +9,8 @@
  * included in all such copies.
  */
 
-#define SERVER
+#include "mangband.h"
 
-#include "angband.h"
-#include "externs.h"
 
 bool is_boring(byte feat)
 {

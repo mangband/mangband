@@ -3,8 +3,7 @@
  * file, and some various "pref files".
  */
 
-#define CLIENT
-#include "angband.h"
+#include "c-angband.h"
 
 
 /*

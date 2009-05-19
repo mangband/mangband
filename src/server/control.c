@@ -4,7 +4,7 @@
  * have a devoted tty.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 #define CONSOLE_AUTH 	1
 #define CONSOLE_LISTEN	0
