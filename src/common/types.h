@@ -55,6 +55,7 @@ typedef struct cave_view_type cave_view_type;
 typedef struct party_type party_type;
 typedef struct house_type house_type;
 typedef struct hostile_type hostile_type;
+typedef struct history_event history_event;
 typedef struct channel_type channel_type;
 typedef struct custom_command_type custom_command_type;
 
@@ -275,6 +276,24 @@ struct hostile_type
 {
 	s32b id;		/* ID of player we are hostile to */
 	hostile_type *next;	/* Next in list */
+};
+
+/*
+ * A single history event
+ */
+
+struct history_event
+{
+	int days;	/* Timestamp */
+	int hours;
+	int mins;
+	
+	s16b depth;	/* Position */
+	s16b level;
+	
+	u16b message; /* Message quark */
+	
+	history_event *next;	/* Next in list */
 };
 
 /*
@@ -1356,8 +1375,7 @@ struct player_type
 	s16b msg_hist_dupe; /* Count duplicate messages for collapsing */
 	u16b msg_last_type; /* Last message type sent */
 
-	char char_hist[MAX_CHAR_HIST][MAX_CHARS];	/* Character event history */
-	s16b char_hist_ptr;	/* Where will the next event be stored */
+	history_event *charhist; /* Character event history */
 	
 	u16b main_channel; /* main chat channel the player is in */
 	char second_channel[80]; /* where his legacy 'privates' are sent */	

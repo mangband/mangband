@@ -337,7 +337,7 @@
  * OPTION: Maximum number of "quarks" (see "io.c")
  * Default: assume at most 512 different inscriptions are used
  */
-#define QUARK_MAX	4120
+#define QUARK_MAX	5656
 
 /*
  * OPTION: Maximum number of messages to remember (see "io.c")

@@ -492,6 +492,9 @@ static void player_wipe(int Ind)
 	old_lore = p_ptr->l_list;
 	old_channels = p_ptr->on_channel;
 
+	/* Clear character history ! */
+	history_wipe(p_ptr->charhist);
+
 	/* Hack -- zero the struct */
 	WIPE(p_ptr, player_type);
 
@@ -499,8 +502,8 @@ static void player_wipe(int Ind)
 	p_ptr->inventory = old_inven;
 	p_ptr->l_list = old_lore;
 	p_ptr->on_channel = old_channels;
-	
-	/* Wipe the history */
+
+	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
 	{
 		strcpy(p_ptr->history[i], "");
@@ -1255,6 +1258,9 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 
 	/* Copy channels pointer */
 	p_ptr->on_channel = Conn_get_console_channels(conn);
+
+	/* Hack -- initialize history */
+	p_ptr->charhist = NULL;
 
 	/* Clear old information */
 	player_wipe(Ind);

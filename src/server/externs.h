@@ -1011,6 +1011,7 @@ extern void channel_leave(int Ind, cptr channel);
 extern void channels_leave(int Ind);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg);
+extern void history_wipe(history_event *evt);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);

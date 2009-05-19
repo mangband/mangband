@@ -1290,12 +1290,16 @@ errr file_character_server(int Ind, cptr name)
 	/* Dump character history */
 	if(p_ptr->birth_turn)
 	{
+		history_event *evt;
+		char eventtime[12];
 		fprintf(fff, "  [Character History]\n\n");
 		fprintf(fff, "Time       Dungeon Char  Event\n");
 		fprintf(fff, "           Level   Level\n\n");
-		for(j=0;j<p_ptr->char_hist_ptr;j++)
+		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s\n",p_ptr->char_hist[j]);
+			fprintf(fff, "%02i:%02i:%02i   %4ift   %2i   %s\n",
+				evt->days, evt->hours, evt->mins,
+				evt->depth*50, evt->level, quark_str(evt->message));
 		}
 		fprintf(fff, "\n\n");
 	}

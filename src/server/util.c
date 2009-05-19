@@ -3398,37 +3398,65 @@ cptr attr_to_text(byte a)
  */
 extern void log_history_event(int Ind, char *msg)
 {
-	char buf[100];
-	char eventtime[12];
-	int i, days, hours, mins;
+	int  days, hours, mins;
 	huge seconds;
 	player_type *p_ptr = Players[Ind];
-	
-	/* Don't record if we have no space */
-	if (p_ptr->char_hist_ptr >= MAX_CHAR_HIST-1)
-		return;
-	
-	/* Never record duplicate entries */
-	for(i=0;i<p_ptr->char_hist_ptr;i++)
+	bool unique = TRUE;/* FIXME -- make function argument */
+
+	history_event *evt;
+	history_event *last = NULL;
+	history_event *evt_forge = NULL;
+
+	u16b note = quark_add(msg);
+
+	/* Walk throu event list */
+	for (evt = p_ptr->charhist; evt; evt = evt->next) 
 	{
-		if(strstr(p_ptr->char_hist[i],msg) != NULL)
+		/* Duplicate entries not allowed */
+		if (evt->message == note && unique)
 			return;
+		/* Find last in chain */
+		last = evt;
 	}
-	
-	/* Convert turn real time */
+
+	/* Convert turn counter to real time */
 	seconds = p_ptr->turn / cfg_fps;
 	days = seconds / 86400;
 	hours = (seconds / 3600) - (24 * days);
 	mins = (seconds / 60) % 60;
-	sprintf(eventtime,"%02i:%02i:%02i",days,hours,mins);
 
-	/* Format to time, depth, clevel, message */
-	sprintf(buf,"%s   %4ift   %2i   %s",eventtime,p_ptr->dun_depth*50,p_ptr->lev,msg);
-	
-	/* Add the message to the history */
-	strncpy(p_ptr->char_hist[p_ptr->char_hist_ptr], buf, 78);
-	p_ptr->char_hist[p_ptr->char_hist_ptr++][78] = '\0';
-	
+	/* Create new entry */
+	MAKE(evt_forge, history_event);
+	evt_forge->days = days;
+	evt_forge->hours = hours;
+	evt_forge->mins = mins;
+	evt_forge->depth = p_ptr->dun_depth;
+	evt_forge->level = p_ptr->lev;
+	evt_forge->message = note;
+
+	/* Add to chain */
+	if (!p_ptr->charhist)
+		p_ptr->charhist = evt_forge;
+	else
+		last->next = evt_forge;
+}
+/*
+ * Destroy player's history
+ */
+void history_wipe(history_event *evt) {
+	history_event *next;
+	while (evt)
+	{
+		/* Remember */
+		next = NULL; if (evt->next)	next = evt->next;
+
+		/* KILL */
+		KILL(evt, history_event);
+
+		/* Recall */
+		evt = NULL;	if (next) evt = next;
+		}		
+	}
 }
 
 

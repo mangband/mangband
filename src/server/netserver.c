@@ -917,6 +917,8 @@ static void Delete_player(int Ind)
 		if (p_ptr->inventory)
 			C_KILL(p_ptr->inventory, INVEN_TOTAL, object_type);
 
+		history_wipe(p_ptr->charhist);
+
 		KILL(p_ptr, player_type);
 	}
 

@@ -1763,10 +1763,38 @@ static errr rd_savefile_new_aux(int Ind)
 	if(section_exists("event_history"))
 	{
 		start_section_read("event_history");
-		p_ptr->char_hist_ptr = 0;
+		char buf[160];
+		cptr msg;
+		history_event evt;
+		history_event *last = NULL;
 		while(value_exists("hist"))
 		{
-			read_str("hist",p_ptr->char_hist[p_ptr->char_hist_ptr++]);
+			int depth, level;
+			history_event *n_evt = NULL;
+			read_str("hist", buf);
+			if (sscanf(buf, "%02i:%02i:%02i   %4ift   %2i   ", &evt.days, &evt.hours, &evt.mins,
+				&depth, &level) == 5)
+			{
+				msg = &buf[25];/* skip 25 characters ^ */
+				evt.depth = depth / 50;
+				evt.message = quark_add(msg);
+			}
+			/* Allocate */
+			MAKE(n_evt, history_event);
+			n_evt->days = evt.days; n_evt->hours = evt.hours; n_evt->mins = evt.mins;
+			n_evt->depth = evt.depth; n_evt->level = level;
+			n_evt->message = evt.message;
+			/* Add to chain */
+			if (!last)
+			{
+				p_ptr->charhist = n_evt;
+				last = n_evt;
+			}
+			else
+			{
+				last->next = n_evt;
+				last = n_evt;
+			}
 		}
 		end_section_read("event_history");
 	}

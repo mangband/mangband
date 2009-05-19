@@ -728,6 +728,7 @@ void wr_cave_memory(Ind)
 static bool wr_savefile_new(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	history_event *evt;
 
 	int        i;
 
@@ -866,9 +867,12 @@ static bool wr_savefile_new(int Ind)
 	
 	/* write character event history */
 	start_section("event_history");
-	for(i=0;i<p_ptr->char_hist_ptr;i++)
+	for (evt = p_ptr->charhist; evt; evt = evt->next)
 	{
-		write_str("hist",p_ptr->char_hist[i]);
+		char buf[160];
+		sprintf(buf, "%02i:%02i:%02i   %4ift   %2i   %s",evt->days, evt->hours, evt->mins,
+				evt->depth*50, evt->level, quark_str(evt->message));		
+		write_str("hist",buf);
 	}
 	end_section("event_history");
 
