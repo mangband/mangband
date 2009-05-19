@@ -1799,6 +1799,12 @@ void move_player(int Ind, int dir, int do_pickup)
 	/* Arena */
 	else if (c_ptr->feat == FEAT_PVP_ARENA)
 	{
+		/* Hack -- ghosts can't access arena */
+		if (p_ptr->ghost)
+		{
+			msg_print(Ind, "The wall blocks your movement.");
+			disturb(Ind, 0, 0);
+		} else
 		access_arena(Ind, y, x);
 	}
 

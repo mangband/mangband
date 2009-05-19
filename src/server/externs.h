@@ -1078,6 +1078,7 @@ extern void verify_panel(int Ind);
 extern void setup_panel(int Ind, bool adjust);
 extern cptr look_mon_desc(int m_idx);
 extern int pick_arena(int Depth, int y, int x);
+extern int pick_arena_opponent(int Depth, int a);
 extern void access_arena(int Ind, int y, int x);
 extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
 extern void ang_sort(int Ind, vptr u, vptr v, int n);
