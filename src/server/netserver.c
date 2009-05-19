@@ -1320,7 +1320,7 @@ static int Enter_player(int ind)
 		p_ptr->options[(int)option_info[i].o_var] = connp->Client_setup.options[i];
 	}
 
-	for (i = 0; i < MAX_FLVR_IDX; i++) 
+	for (i = 0; i < MIN(MAX_FLVR_IDX,z_info->flavor_max); i++) 
 	{ 
 		if (!connp->Client_setup.flvr_x_attr[i]) connp->Client_setup.flvr_x_attr[i] = flavor_info[i].x_attr;
 		if (!connp->Client_setup.flvr_x_char[i]) connp->Client_setup.flvr_x_char[i] = flavor_info[i].x_char;
