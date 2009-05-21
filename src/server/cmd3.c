@@ -469,7 +469,7 @@ void do_cmd_wield(int Ind, int item)
 	*o_ptr = tmp_obj;
 
 	/* MEGA-HACK -- Wearing from floor changes ownership */
-	object_own(p_ptr, o_ptr);
+	object_own(Ind, o_ptr);
 
 	/* Increase the weight */
 	p_ptr->total_weight += o_ptr->weight;
