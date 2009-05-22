@@ -5276,7 +5276,8 @@ void boot_socials()
 		/* Single line (assign acording to 'barrel') */		
 		if (buf[0] == 'L')
 		{
-			switch(barr++)
+			if (!STRZERO(buf+2))
+			switch(barr)
 			{
 				case 0:
 					socials[curr].char_no_arg = string_make(buf+2);	
@@ -5296,7 +5297,7 @@ void boot_socials()
 				default:
 					break;
 			}
-			if (barr > 4) barr = 0;
+			if (++barr > 4) barr = 0;
 		}
 		/* "Multi-message" substitute for 'L' */
 		if (buf[0] == 'F' || buf[0] == 'E')
@@ -5438,27 +5439,46 @@ void do_cmd_social(int Ind, int dir, int i)
 
 	if (catch && s_ptr->min_victim_position != 0)
 	{
-		int d;
-		if (dir != 5 || !target_okay(Ind)) return;
-		d = distance(p_ptr->py, p_ptr->px, p_ptr->target_row, p_ptr->target_col);
-		if (s_ptr->min_victim_position < 1 || d <= s_ptr->min_victim_position)
+		int d, x, y, target;
+		if (dir != 5)
+		{
+			y = p_ptr->py;
+			x = p_ptr->px;
+			target = 0;
+			for (d=1;;d++)
+			{
+				y += ddy[dir];
+				x += ddx[dir];
+				if (!in_bounds(p_ptr->dun_depth, y, x)) break;
+				if ((target = cave[p_ptr->dun_depth][y][x].m_idx)) break;
+			}
+		}
+		else if (!target_okay(Ind)) {return;}
+		else
+		{
+			target = p_ptr->target_who;
+			y = p_ptr->target_row;
+			x = p_ptr->target_col;
+			d = distance(p_ptr->py, p_ptr->px, y, x);
+		}
+		if (target && (s_ptr->min_victim_position < 1 || d <= s_ptr->min_victim_position))
 		{
 			char victim[80];
-			if (p_ptr->target_who > 0)
+			if (target > 0)
 			{
-				monster_desc(Ind, victim, p_ptr->target_who, 0);
+				monster_desc(Ind, victim, target, 0);
 				if (s_ptr->others_found)
 					msg_format_complex_near(Ind, Ind, MSG_SOCIAL, 
 						s_ptr->others_found, p_ptr->name, victim); 
 			}
-			if (p_ptr->target_who < 0)
+			if (target < 0)
 			{
-				sprintf(victim, "%s", Players[0 - p_ptr->target_who]->name);
+				sprintf(victim, "%s", Players[0 - target]->name);
 				if (s_ptr->others_found)
-					msg_format_complex_near(Ind, 0-p_ptr->target_who, MSG_SOCIAL, 
+					msg_format_complex_near(Ind, 0-target, MSG_SOCIAL, 
 						s_ptr->others_found, p_ptr->name, victim);
 				if (s_ptr->vict_found) 
-					msg_format_type(0 - p_ptr->target_who, MSG_SOCIAL, 
+					msg_format_type(0 - target, MSG_SOCIAL, 
 						s_ptr->vict_found, p_ptr->name);
 			}
 			if (s_ptr->char_found)

@@ -3238,7 +3238,7 @@ void player_talk_aux(int Ind, cptr message)
 
 	/* Total failure... */
 	if (dest_chan == -1) return;
-	else if (!can_talk(p_ptr, dest_chan)) return; 
+	else if (Ind && !can_talk(p_ptr, dest_chan)) return; 
 
 	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)
