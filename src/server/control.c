@@ -54,13 +54,21 @@ void console_print(char *msg, int chan)
  */
 static void console_who(int ind, char *useless)
 {
-	int k;
+	int k, num = 0;
 	char brave[15];
 
 	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 
+	/* Ugly Hack -- Count players */
+	for (k = 1; k <= NumPlayers; k++)
+	{
+		player_type *p_ptr = Players[k];
+		if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE))
+			num++;
+	}
+
 	/* Packet header */
-	Packet_printf(console_buf_w, "%s",format("%d players online\n", NumPlayers));
+	Packet_printf(console_buf_w, "%s",format("%d players online\n", num));
 	
 	/* Scan the player list */
 	for (k = 1; k <= NumPlayers; k++)
