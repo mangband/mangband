@@ -1949,7 +1949,7 @@ static errr init_other(void)
 
 
 	/* Allocate "permament" space for the town */
-	/* alloc_dungeon_level(0); */
+	alloc_dungeon_level(0);
 
 	/*** Init the wild_info array... for more information see wilderness.c ***/
 	init_wild_info();

@@ -2493,17 +2493,12 @@ void play_game(bool new_game)
 	/* Verify the keymap */
 	/*keymap_init();*/
 
-#if 0
 	/* Make a town if necessary */
 	if (!server_dungeon)
 	{
-		/* Allocate space for it */
-		alloc_dungeon_level(0);
-
 		/* Actually generate the town */
 		generate_cave(0, 0, 0);
 	}
-#endif
 
 	/* Finish initializing dungeon monsters */
 	setup_monsters();
