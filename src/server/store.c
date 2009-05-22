@@ -2063,12 +2063,16 @@ void store_confirm(int Ind)
 	/* Handle stuff */
 	handle_stuff(Ind);
 
+/* Evil Hack -- Ironmen don't exploit shops by doing 2k->Town trades */
+if (!cfg_ironman)
+{
 	/* The store gets that (known) item */
 	item_pos = store_carry(p_ptr->store_num, &sold_obj);
 
 	/* Resend the basic store info */
 	/* Re-display if item is now in store */
 	refresh_store(p_ptr->store_num, 0, TRUE, (item_pos >= 0 ? TRUE : FALSE), FALSE, "");
+}
 	
 	/* If this was an artifact, remember the player doesn't want it */
 	if( artifact_p(o_ptr) )
