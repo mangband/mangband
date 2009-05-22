@@ -4787,9 +4787,9 @@ void object_own(int Ind, object_type *o_ptr)
 		char o_name[80];
 		char buf[512];
 		/* Log transaction */
-		sprintf(buf,"TR %s-%d | %s-%d $ %d", 
-			quark_str(o_ptr->owner_name), o_ptr->owner_id,
-			p_ptr->name, p_ptr->id, object_value(Ind, o_ptr));
+		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld", 
+			quark_str(o_ptr->owner_name), (long)o_ptr->owner_id,
+			p_ptr->name, (long)p_ptr->id, (long)object_value(Ind, o_ptr));
 		audit(buf);
 		/* Object name */
 		object_desc(0, o_name, o_ptr, TRUE, 3);
