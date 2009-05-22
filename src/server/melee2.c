@@ -3476,7 +3476,7 @@ void process_monsters(void)
 	}
 
 	/* Only when needed, every five game turns */
-	if (scan_monsters && (!(turn%5)))
+	if (scan_monsters && (!(turn.turn%5)))
 	{
 		/* Shimmer multi-hued monsters */
 		for (i = 1; i < m_max; i++)

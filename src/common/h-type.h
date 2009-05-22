@@ -109,13 +109,6 @@ typedef unsigned int uint;
 /* The largest possible signed integer (pre-defined) */
 /* typedef long long; */
 
-/* The largest possible unsigned integer */
-#ifdef _MSC_VER /* Visual Studio */
-typedef unsigned __int64 huge;
-#else
-typedef unsigned long long huge;
-#endif
-
 /* Signed/Unsigned 16 bit value */
 typedef signed short s16b;
 typedef unsigned short u16b;
@@ -131,6 +124,30 @@ typedef unsigned long u32b;
 #define fmt32b "%ld"
 #endif
 
+/* Signed/Unsigned 64 bit value */
+typedef signed long s64b;
+typedef unsigned long u64b;
+
+/* The largest possible unsigned integer */
+typedef u64b huge;
+
+/* Turn counter type "huge turn" (largest number ever) */
+#define HTURN_ERA_FLIP 1000000 
+typedef struct hturn {
+	huge era;
+	huge turn;
+} hturn;
+/* You must use those function instead of math operations with hturns: */
+#define ht_eq(A,B) (((A)->turn == (A)->turn) && ((B)->era == (B)->era))
+#define ht_fix_up(H) while((H)->turn >= HTURN_ERA_FLIP) { \
+	(H)->turn -= HTURN_ERA_FLIP; (H)->era++; }
+#define ht_fix_down(H) while((H)->turn < 0) { \
+	(H)->turn += HTURN_ERA_FLIP; (H)->era--; }
+#define ht_add_ht(H,Q) (H)->era += (Q)->era;(H)->turn += (Q)->turn;ht_fix_up((Q))
+#define ht_subst_ht(H,Q) (H)->era -= (Q)->era;(H)->turn -= (Q)->turn;ht_fix_down((Q))
+#define ht_subst(H,T) (H)->turn -= (T);ht_fix_down((H))
+#define ht_add(H,T) (H)->turn += (T);ht_fix_up((H))
+#define ht_clr(H) (H)->era = (H)->turn = 0;
 
 
 

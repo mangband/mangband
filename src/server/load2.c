@@ -160,7 +160,7 @@ uint read_uint(char* name)
 	return value;
 }
 
-/* Read a signed long */
+/* Read a 'huge' */
 huge read_huge(char* name)
 {
 	char seek_name[80];
@@ -169,7 +169,7 @@ huge read_huge(char* name)
 		
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
 	line_counter++;
-	if(sscanf(file_buf,"%s = %llu",seek_name,&value) == 2)
+	if(sscanf(file_buf,"%s = %lu",seek_name,&value) == 2)
 	{
 		matched = !strcmp(seek_name,name);
 	}
@@ -179,6 +179,32 @@ huge read_huge(char* name)
 		exit(1);
 	}
 	return value;
+}
+
+/* Read an hturn */
+void read_hturn(char* name, hturn *value)
+{
+	char seek_name[80];	
+	bool matched = FALSE;
+	s64b era, turn;
+
+	fgets(file_buf, sizeof(file_buf)-1, file_handle);
+	line_counter++;
+	if (sscanf(file_buf, "%s = %ld %ld",seek_name, &era, &turn) == 3)
+	{
+		matched = !strcmp(seek_name,name);
+	}
+	
+	if(!matched)
+	{		
+		plog(format("Missing hturn.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		exit(1);
+	}
+	
+	value->era = era;
+	value->turn = turn;
+
+	return;
 }
 
 /* Read a string */
@@ -799,7 +825,7 @@ static errr rd_store(int n)
 	start_section_read("store");
 
 	/* Read the basic info */
-	st_ptr->store_open = read_huge("store_open");
+	read_hturn("store_open", &st_ptr->store_open);
 	st_ptr->insult_cur = read_int("insult_cur");
 	own = read_int("owner");
 	num = read_int("stock_num");
@@ -854,7 +880,7 @@ static void rd_party(int n)
 
 	/* Number of people and creation time */
 	party_ptr->num = read_int("num");
-	party_ptr->created = read_huge("created");
+	read_hturn("created", &party_ptr->created);
 
 	end_section_read("party");
 }
@@ -1588,16 +1614,16 @@ static errr rd_savefile_new_aux(int Ind)
 	
 	/* Turn this character was born on */
 	if(value_exists("birth_turn"))
-		p_ptr->birth_turn = read_huge("birth_turn");
+		read_hturn("birth_turn", &p_ptr->birth_turn);
 	else
 		/* Disable character event logging if no birth turn */
-		p_ptr->birth_turn = 0;
+		ht_clr(&p_ptr->birth_turn);
 
 	/* Player turns (actually time spent playing) */
 	if(value_exists("player_turn"))
-		p_ptr->turn = read_huge("player_turn");
+		read_hturn("player_turn", &p_ptr->turn);
 	else
-		p_ptr->turn = 0;
+		ht_clr(&p_ptr->turn);
 	
 	
 	/* Monster Memory */
@@ -2158,7 +2184,7 @@ errr rd_server_savefile()
 
 	player_id = read_int("player_id");
 
-	turn = read_huge("turn");
+	read_hturn("turn", &turn);
 
         /* Hack -- no ghosts */
         r_info[MAX_R_IDX-1].max_num = 0;

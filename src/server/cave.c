@@ -559,7 +559,7 @@ int player_pict(int Ind, int who)
 	timefactor = base_time_factor(Ind,0);
 	if( (who == Ind) && (timefactor < NORMAL_TIME) )
 	{
-		if( (turn-p_ptr->bubble_change) > (10+((NORMAL_TIME-timefactor))))
+		if( ht_passed(&turn, &p_ptr->bubble_change, (10+((NORMAL_TIME-timefactor)))))
 		{
 			p_ptr->bubble_change = turn;
 			if(p_ptr->bubble_colour == TERM_VIOLET)

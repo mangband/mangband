@@ -3395,8 +3395,8 @@ cptr attr_to_text(byte a)
  */
 extern void log_history_event(int Ind, char *msg, bool unique)
 {
-	int  days, hours, mins;
-	huge seconds;
+	int  days, hours, mins, i;
+	huge seconds, turn;
 	player_type *p_ptr = Players[Ind];
 
 	history_event *evt;
@@ -3416,10 +3416,16 @@ extern void log_history_event(int Ind, char *msg, bool unique)
 	}
 
 	/* Convert turn counter to real time */
-	seconds = p_ptr->turn / cfg_fps;
-	days = seconds / 86400;
-	hours = (seconds / 3600) - (24 * days);
-	mins = (seconds / 60) % 60;
+	seconds = days = hours = mins = turn = 0;
+	for (i = 0; i < p_ptr->turn.era+2; i++)
+	{
+		turn = HTURN_ERA_FLIP;
+		if (i == p_ptr->turn.era+1) turn = p_ptr->turn.turn; 
+		seconds = turn / cfg_fps;
+		days += seconds / 86400;
+		hours += (seconds / 3600) - (24 * days);
+		mins += (seconds / 60) % 60;
+	}
 
 	/* Create new entry */
 	MAKE(evt_forge, history_event);

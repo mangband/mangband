@@ -528,8 +528,8 @@
 
 /* Macros for determing if it is night or day */
 
-#define		IS_DAY	 ((turn % (10L * TOWN_DAWN)) <= (10L * TOWN_DAWN / 2))
-#define		IS_NIGHT ((turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))	
+#define		IS_DAY	 ((turn.turn % (10L * TOWN_DAWN)) <= (10L * TOWN_DAWN / 2))
+#define		IS_NIGHT ((turn.turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))	
 
 
 /*

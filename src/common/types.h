@@ -236,7 +236,7 @@ struct party_type
 	char name[80];		/* Name of the party */
 	char owner[20];		/* Owner's name */
 	s32b num;		/* Number of people in the party */
-	huge created;		/* Creation (or disband-tion) time */
+	hturn created;		/* Creation (or disband-tion) time */
 };
 
 /*
@@ -952,7 +952,7 @@ struct store_type
 	s16b good_buy;			/* Number of "good" buys */
 	s16b bad_buy;			/* Number of "bad" buys */
 
-	huge store_open;		/* Closed until this turn */
+	hturn store_open;		/* Closed until this turn */
 
 	s32b store_wrap;		/* Unused for now */
 
@@ -1573,9 +1573,9 @@ struct player_type
     s16b r_killed[MAX_R_IDX];	/* Monsters killed */
     s16b feeling;		/* Most recent feeling */
     
-	huge birth_turn;	/* Server turn on which player was born */
-	huge turn;			/* Actual player turns */
-	huge old_turn;		/* Turn when player entered current level */
+	hturn birth_turn;	/* Server turn on which player was born */
+	hturn turn;			/* Actual player turns */
+	hturn old_turn;		/* Turn when player entered current level */
 	
 	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
@@ -1583,7 +1583,7 @@ struct player_type
 
 	bool bubble_checked;	/* Have we been included in a time bubble check? */
 	s32b bubble_speed;		/* What was our last time bubble scale factor */
-	u32b bubble_change;		/* Server turn we last changed colour */
+	hturn bubble_change;		/* Server turn we last changed colour */
 	byte bubble_colour;		/* Current warning colour for slow time bubbles */
 
 	bool project_hurt;		/* Player has been hurt in project_p() */

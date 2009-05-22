@@ -62,6 +62,10 @@ extern errr func_failure(void);
 extern bool func_true(void);
 extern bool func_false(void);
 
+/* Function that work with hturn */
+extern int ht_passed(hturn *new_ht, hturn *old_ht, huge passed);
+extern char* ht_show(hturn *ht_ptr, int mode);
+
 /* Case insensitive comparison between two strings */
 extern int my_stricmp(const char *s1, const char *s2);
 extern int my_strnicmp(cptr a, cptr b, int n);

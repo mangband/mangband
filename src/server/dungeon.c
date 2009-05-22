@@ -456,7 +456,7 @@ static void regen_monsters(void)
 		}
 
 		/* Not yet */
-		if ((turn % time)) continue;
+		if ((turn.turn % time)) continue;
 
 		/* Allow regeneration (if needed) */
 		if (m_ptr->hp < m_ptr->maxhp)
@@ -505,7 +505,7 @@ static void process_world(int Ind)
 
 
 	/* Every 50 game turns */
-	if (turn % 50) return;
+	if (turn.turn % 50) return;
 
 
 	/*** Check the Time and Load ***/
@@ -517,13 +517,13 @@ static void process_world(int Ind)
 	if (p_ptr->dun_depth <= 0)
 	{
 		/* Hack -- Daybreak/Nighfall in town */
-		if (!(turn % ((10L * TOWN_DAWN) / 2)))
+		if (!(turn.turn % ((10L * TOWN_DAWN) / 2)))
 		{
 			int Depth = p_ptr->dun_depth;
 			bool dawn;
 
 			/* Check for dawn */
-			dawn = (!(turn % (10L * TOWN_DAWN)));
+			dawn = (!(turn.turn % (10L * TOWN_DAWN)));
 
 			/* Day breaks */
 			if (dawn)
@@ -935,7 +935,7 @@ static void process_player_begin(int Ind)
 	int energy;
 
 	/* Increment turn count */
-	p_ptr->turn++;
+	ht_add(&p_ptr->turn,1);
 
 	/* How much energy should we get? */
 	energy = extract_energy[p_ptr->pspeed];
@@ -1077,7 +1077,7 @@ static void process_player_end(int Ind)
 	time = time / ((float)timefactor / 100);
 
 	/* Use food, 10 times slower than other regen effects */
-	if ( !(turn % (time*10)) )
+	if ( !(turn.turn % (time*10)) )
 	{
 		/* Ghosts don't need food and noone uses food in town */
 		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
@@ -1123,7 +1123,7 @@ static void process_player_end(int Ind)
 		}
 	}
 
-	if ( !(turn % time) )
+	if ( !(turn.turn % time) )
 	{
 		/* Hack -- Fade monster Detect over time */
 		for (i = 0; i < m_max; i++)
@@ -1196,7 +1196,7 @@ static void process_player_end(int Ind)
 			if (p_ptr->food < PY_FOOD_MAX)
 			{
 				/* Every 50/6 level turns */
-			        if (!(turn%((level_speed(p_ptr->dun_depth)/12)*10)))
+			        if (!(turn.turn%((level_speed(p_ptr->dun_depth)/12)*10)))
 				{
 					/* Basic digestion rate based on speed */
 					i = extract_energy[p_ptr->pspeed] * 2;
@@ -1744,7 +1744,7 @@ static void process_various(void)
 	//char buf[1024];
 
 	/* Save the server state occasionally */
-	if (!(turn % (cfg_fps * 60 * SERVER_SAVE)))
+	if (!(turn.turn % (cfg_fps * 60 * SERVER_SAVE)))
 	{
 		save_server_info();
 
@@ -1757,7 +1757,7 @@ static void process_various(void)
 	}
 
 	/* Handle certain things once a minute */
-	if (!(turn % (cfg_fps * 60)))
+	if (!(turn.turn % (cfg_fps * 60)))
 	{
 		/* Update the player retirement timers */
 		for (i = 1; i <= NumPlayers; i++)
@@ -1854,7 +1854,7 @@ static void process_various(void)
 
 
 	/* Grow trees very occasionally */
-	if (!(turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
+	if (!(turn.turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
 	{
 		/* Find a suitable location */
 		for (i = 1; i < 1000; i++)
@@ -1888,7 +1888,7 @@ static void process_various(void)
 	}
 
 	/* Update the stores */
-	if (!(turn % (10L * STORE_TURNS)))
+	if (!(turn.turn % (10L * STORE_TURNS)))
 	{
 		int n;
 
@@ -1908,12 +1908,12 @@ static void process_various(void)
 	}
 
 	/* Hack -- Daybreak/Nightfall outside the dungeon */
-	if (!(turn % ((10L * TOWN_DAWN) / 2)))
+	if (!(turn.turn % ((10L * TOWN_DAWN) / 2)))
 	{
 		bool dawn;
 
 		/* Check for dawn */
-		dawn = (!(turn % (10L * TOWN_DAWN)));
+		dawn = (!(turn.turn % (10L * TOWN_DAWN)));
 		/* Day breaks */
 		if (dawn)
 		{
@@ -2078,7 +2078,7 @@ void dungeon(void)
 		/* Memorize the town and all wilderness levels close to town */
 		if (Depth <= 0 ? (wild_info[Depth].radius <= 2) : 0)
 		{
-			bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
+			bool dawn = ((turn.turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
 
 			setup_panel(i, FALSE);
 			
@@ -2285,7 +2285,7 @@ void dungeon(void)
 
 
 	///*** BEGIN NEW TURN ***///
-	turn++;
+	ht_add(&turn,1);
 
 	/* Do some beginning of turn processing for each player */
 	for (i = 1; i < NumPlayers + 1; i++)
@@ -2454,7 +2454,8 @@ void play_game(bool new_game)
 		server_birth();
 
 		/* Hack -- enter the world */
-		turn = 1;
+		ht_clr(&turn);
+		ht_add(&turn,1);
 
 		/* Initialize the stores */
 		for (n = 0; n < MAX_STORES; n++)

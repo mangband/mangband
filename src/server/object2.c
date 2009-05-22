@@ -4564,7 +4564,7 @@ void process_objects(void)
 
 
 	/* Hack -- only every ten game turns */
-	if ((turn % 10) != 5) return;
+	if ((turn.turn % 10) != 5) return;
 
 
 	/* Process objects */

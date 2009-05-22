@@ -54,7 +54,13 @@ static void write_uint(char* name, unsigned int value)
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %llu\n",xml_prefix,name,value);
+	fprintf(file_handle,"%s%s = %lu\n",xml_prefix,name,value);
+}
+
+/* Write an hturn */
+static void write_hturn(char* name, hturn *value)
+{
+	fprintf(file_handle,"%s%s = %ld %ld\n",xml_prefix,name,value->era,value->turn);
 }
 
 /* Write a string */
@@ -298,7 +304,7 @@ static void wr_store(store_type *st_ptr)
 	start_section("store");
 
 	/* Save the "open" counter */
-	write_huge("store_open",st_ptr->store_open);
+	write_hturn("store_open",&st_ptr->store_open);
 
 	/* Save the "insults" */
 	write_uint("insult_cur",st_ptr->insult_cur);
@@ -336,7 +342,7 @@ static void wr_party(party_type *party_ptr)
 
 	/* Save the number of people and creation time */
 	write_int("num",party_ptr->num);
-	write_huge("created",party_ptr->created);
+	write_hturn("created",&party_ptr->created);
 	
 	end_section("party");
 }
@@ -781,13 +787,13 @@ static bool wr_savefile_new(int Ind)
 	write_int("sf_saves",sf_saves);
 	
 	/* Write the server turn */
-	write_huge("turn",turn);
+	write_hturn("turn",&turn);
 
 	/* Write the players birth turn */
-	write_huge("birth_turn",p_ptr->birth_turn);
+	write_hturn("birth_turn",&p_ptr->birth_turn);
 
 	/* Write the players turn */
-	write_huge("player_turn",p_ptr->turn);
+	write_hturn("player_turn",&p_ptr->turn);
 
 	/* Dump the monster lore */
 	start_section("monster_lore");
@@ -1352,7 +1358,7 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Invalid turn */
-		if (!turn) err = -1;
+		if (turn.era <= 0 || turn.turn <= 0) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";
@@ -1592,7 +1598,7 @@ static bool wr_server_savefile(void)
 	write_uint("seed_town",seed_town);
 
 	write_uint("player_id",player_id);
-	write_huge("turn",turn);
+	write_hturn("turn",&turn);
 
 	end_section("mangband_server_save");
 

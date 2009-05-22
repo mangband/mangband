@@ -1286,7 +1286,7 @@ errr file_character_server(int Ind, cptr name)
 	fprintf(fff, "\n\n");
 	
 	/* Dump character history */
-	if(p_ptr->birth_turn)
+	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
 		fprintf(fff, "  [Character History]\n\n");
@@ -2456,7 +2456,7 @@ struct high_score
 
 	char gold[10];		/* Total Gold (number) */
 
-	char turns[10];		/* Turns Taken (number) */
+	char turns[20];		/* Turns Taken (number) */
 
 	char day[10];		/* Time stamp (string) */
 
@@ -2836,8 +2836,7 @@ static errr top_twenty(int Ind)
 	the_score.gold[9] = '\0';
 
 	/* Save the current turn */
-	sprintf(the_score.turns, "%9llu", turn);
-	the_score.turns[9] = '\0';
+	strcpy(the_score.turns, ht_show(&turn,0));
 
 #ifdef HIGHSCORE_DATE_HACK
 	/* Save the date in a hacked up form (9 chars) */
@@ -2928,7 +2927,7 @@ static errr predict_score(int Ind, int line)
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
 
 	/* Save the current turn */
-	sprintf(the_score.turns, "%9llu", turn);
+	strcpy(the_score.turns, ht_show(&turn,0));	
 
 	/* Hack -- no time needed */
 	strcpy(the_score.day, "TODAY");

@@ -2123,7 +2123,7 @@ void do_cmd_store(int Ind, int pstore)
 		which = (c_ptr->feat - FEAT_SHOP_HEAD);
 	}
 		/* Hack -- Check the "locked doors" */
-		if (store[which].store_open >= turn)
+		if (ht_passed(&turn, &store[which].store_open, 0))
 		{
 			msg_print(Ind, "The doors are locked.");
 			return;
@@ -2198,7 +2198,7 @@ void store_shuffle(int which)
 
 	/* Reset the owner data */
 	st_ptr->insult_cur = 0;
-	st_ptr->store_open = 0;
+	ht_clr(&st_ptr->store_open);
 	st_ptr->good_buy = 0;
 	st_ptr->bad_buy = 0;
 
@@ -2345,7 +2345,7 @@ void store_init(int which)
 
 
 	/* Initialize the store */
-	st_ptr->store_open = 0;
+	ht_clr(&st_ptr->store_open);
 	st_ptr->insult_cur = 0;
 	st_ptr->good_buy = 0;
 	st_ptr->bad_buy = 0;

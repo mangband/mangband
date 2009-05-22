@@ -4197,7 +4197,7 @@ static void town_gen(void)
 
 
 	/* Day Light */
-	if ((turn % (10L * TOWN_DAWN)) < ((10L * TOWN_DAWN) / 2))
+	if ((turn.turn % (10L * TOWN_DAWN)) < ((10L * TOWN_DAWN) / 2))
 	{	
 		/* Lite up the town */ 
 		for (y = 0; y < MAX_HGT; y++)
@@ -4432,7 +4432,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 		if (!cfg_ironman && p_ptr)
 		{
 			/* It takes 1000 game turns for "feelings" to recharge */
-			if ((turn - p_ptr->old_turn) < 1000)
+			if (ht_passed(&turn, &p_ptr->old_turn, 1000))
 			{
 				feeling = 0;
 				scum = FALSE;

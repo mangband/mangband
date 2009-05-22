@@ -29,7 +29,7 @@ typedef struct {
 	sockbuf_t	w;
 	sockbuf_t	c;
 	sockbuf_t	q;
-	huge		start;
+	hturn		start;
 	long		timeout;
 	int		client_setup;
 	u16b		conntype;

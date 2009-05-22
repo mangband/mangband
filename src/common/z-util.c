@@ -117,7 +117,33 @@ bool func_false(void)
 }
 
 
+/*
+ * Determine if "passed" turns passed since "old_ht" in "new_ht"
+ */
+int ht_passed(hturn *new_ht, hturn *old_ht, huge passed)
+{
+	hturn temp;
+	temp.era = new_ht->era;
+	temp.turn = new_ht->turn;
+	ht_subst_ht(&temp, old_ht);
+	ht_subst(&temp, passed);
+	return !(temp.era >= 0);
+}
 
+/*
+ * Format "hturn" into string (NOTE: static buffer!)
+ */
+char* ht_show(hturn *ht_ptr, int mode)
+{
+	static char ret[1024];
+	if (!mode) {
+		if (!ht_ptr->era) sprintf (ret, "%ld", (long)ht_ptr->turn);
+		else sprintf (ret, "%ld%ld", (long)ht_ptr->era, (long)ht_ptr->turn);
+	}
+	else if (mode == 1) sprintf (ret, "%ld %ld", (long)ht_ptr->era, (long)ht_ptr->turn);
+	else sprintf (ret, "%04x %ld", (int)ht_ptr->era, (long)ht_ptr->turn);
+	return &ret[0];
+}
 
 /*
  * Determine if string "t" is equal to string "t"

@@ -1766,7 +1766,7 @@ int Net_input(void)
 			continue;
 		if (connp->state == CONN_CONSOLE)
 			continue;
-		if (connp->start + connp->timeout * cfg_fps < turn)
+		if (ht_passed(&turn, &connp->start, connp->timeout * cfg_fps))
 		{
             /*if (connp->state & (CONN_PLAYING | CONN_READY))
 			{
@@ -1882,7 +1882,7 @@ int Net_output(void)
 	}
 
 	/* Every fifteen seconds, update the info sent to the metaserver */
-	if (!(turn % (15 * cfg_fps)))
+	if (!(turn.turn % (15 * cfg_fps)))
 		Report_to_meta(META_UPDATE);
 
 	return 1;

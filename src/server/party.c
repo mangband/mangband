@@ -46,7 +46,7 @@ int party_create(int Ind, cptr name)
 {
 	player_type *p_ptr = Players[Ind];
 	int index = 0, i;
-	huge oldest = turn;
+	hturn oldest = turn;
 
 	/* Check for already existing party by that name */
 	if (party_lookup(name) != -1)
@@ -66,7 +66,7 @@ int party_create(int Ind, cptr name)
 	for (i = 1; i < MAX_PARTIES; i++)
 	{
 		/* Check deletion time of disbanded parties */
-		if (parties[i].num == 0 && parties[i].created < oldest)
+		if (parties[i].num == 0 && ht_passed(&oldest, &parties[i].created, 0))
 		{
 			/* Track oldest */
 			oldest = parties[i].created;
@@ -75,7 +75,7 @@ int party_create(int Ind, cptr name)
 	}
 
 	/* Make sure we found an empty slot */
-	if (index == 0 || oldest == turn)
+	if (index == 0 || ht_eq(&oldest, &turn))
 	{
 		/* Error */
 		msg_print(Ind, "There aren't enough party slots!");
