@@ -1854,7 +1854,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 void conf_set_int(cptr section, cptr name, s32b value)
 {
 	char s_value[100];
-	sprintf(s_value, "%d", value);
+	sprintf(s_value, fmt32b, value);
 	conf_set_string(section, name, s_value);
 }
 /* 
