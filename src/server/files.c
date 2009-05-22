@@ -1284,7 +1284,36 @@ errr file_character_server(int Ind, cptr name)
 		        index_to_label(i), paren, o_name);
 	}
 	fprintf(fff, "\n\n");
-	
+
+	/* Dump house inventory */
+	fprintf(fff, "  [House Storage]\n");
+	for (i = 0; i < num_houses; i++)
+	{
+		if (house_owned_by(Ind, i)) 
+		{
+			int Depth = houses[i].depth;
+			cave_type *c_ptr;
+
+			fprintf(fff, "\n"); j = 0;
+			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
+			{
+				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
+				{
+					c_ptr = &cave[Depth][y][x];
+					if (c_ptr->o_idx)
+					{
+						if (j > 20) { fprintf(fff, "\n"); j = 0; }					
+						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
+						fprintf(fff, "%c%s %s\n",
+			        		index_to_label(j), paren, o_name);
+						j++;
+					}
+				}
+			}
+		}
+	}
+	fprintf(fff, "\n\n");
+
 	/* Dump character history */
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
