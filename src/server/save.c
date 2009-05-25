@@ -1358,7 +1358,7 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Invalid turn */
-		if (turn.era <= 0 || turn.turn <= 0) err = -1;
+		if (turn.era < 0 || turn.turn < 0) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";
