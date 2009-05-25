@@ -1746,6 +1746,14 @@ void move_player(int Ind, int dir, int do_pickup)
 				/* Re-show both grids */
 				everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 				everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
+
+				/* Update stuff for both */
+				p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
+				q_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
+
+				/* Update the monsters */
+				p_ptr->update |= (PU_DISTANCE);
+				q_ptr->update |= (PU_DISTANCE);
 			}
 
 			/* Hack -- the Dungeon Master cannot bump people */
