@@ -591,6 +591,7 @@ extern void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr 
 
 /* wilderness.c */
 extern int world_index(int world_x, int world_y);
+extern void wild_cat_depth(int Depth, char *buf); 
 extern void init_wild_info(void);
 extern void wild_apply_day(int Depth);
 extern void wild_apply_night(int Depth);

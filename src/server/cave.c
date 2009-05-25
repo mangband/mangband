@@ -1965,11 +1965,9 @@ void wild_display_map(int Ind)
 	//sprintf(buf, " [%d, %d] ", p_ptr->world_y * -1, p_ptr->world_x);
 	/* [12N, 10E] */
 	buf[0] = '\0';
-	strcat(buf, " [");
-	if (p_ptr->world_y) strcat(buf, format("%d%c", abs(p_ptr->world_y), (p_ptr->world_y > 0 ? 'N' : 'S')));
-	if (p_ptr->world_y && p_ptr->world_x) strcat(buf, ", ");
-	if (p_ptr->world_x) strcat(buf, format("%d%c", abs(p_ptr->world_x), (p_ptr->world_x > 0 ? 'E' : 'W')));
-	strcat(buf, "] ");
+	strcat(buf, " ");
+	wild_cat_depth(p_ptr->dun_depth, &buf[0]);
+	strcat(buf, " ");
 
 	/* Print string at the bottom */
 	col = map_wid - strlen(buf);

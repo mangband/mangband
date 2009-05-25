@@ -243,6 +243,58 @@ void do_cmd_save_screen(void)
 
 
 
+/* MAngband-specific: show list of owned houses */
+void display_houses(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	int i, j = 0;
+	char buf[160];
+	
+	int sy, sx;
+	char dpt[8];
+
+	if (query == ESCAPE) return;
+
+	/* Prepare */
+	text_out_init(Ind);
+	text_out("Owned Houses");
+	text_out("\n");
+	text_out("\n");
+
+	for (i = 0; i < num_houses; i++) 
+	{
+		if (house_owned_by(Ind, i)) 
+		{
+			if (j++ < p_ptr->interactive_line) continue;
+			
+			dpt[0] = '\0';
+			wild_cat_depth(houses[i].depth, &dpt[0]);
+			
+			sx = (houses[i].x_1 / SCREEN_WID) * 2;
+			sy = (houses[i].y_1 / SCREEN_HGT) * 2;
+			
+			sprintf(buf, "  %c) House %d %s %s, sector [%d,%d]", index_to_label(j-1), j, 
+					(!houses[i].depth ? "in" : "at"), dpt, sy, sx);
+			text_out(buf);
+			text_out("\n");
+		}
+	}
+	if (!j)
+		text_out("You do not own any.\n");
+
+	/* Done */
+	text_out_done();
+	
+	/* Send */
+	Send_term_info(Ind, NTERM_CLEAR, 1);
+	for (i = 0; i < MAX_TXT_INFO; i++)
+	{
+		if (i >= p_ptr->last_info_line) break;
+		Send_remote_line(Ind, i);
+	}
+	Send_term_info(Ind, NTERM_FLUSH, 0);
+	
+}
 
 /*
  * Check the status of "artifacts"
@@ -760,6 +812,10 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 			common_peruse(Ind, query);
 			display_scores(Ind, p_ptr->interactive_line);
 			break;
+		case SPECIAL_FILE_HOUSES:
+			common_peruse(Ind, query);
+			display_houses(Ind, query);
+			break;			
 		case SPECIAL_FILE_HELP:
 			common_peruse(Ind, query);
 			do_cmd_help(Ind, p_ptr->interactive_line);
@@ -795,6 +851,7 @@ void do_cmd_knowledge(int Ind, char query)
 		text_out("    (3) Display known objects\n");
 		text_out("    (4) Display hall of fame\n");
 		text_out("    (5) Display kill counts\n");
+		text_out("    (6) Display owned houses\n");		
 
 		/* Prompt */
 		text_out(" \n");
@@ -806,7 +863,7 @@ void do_cmd_knowledge(int Ind, char query)
 		Send_term_info(Ind, NTERM_CLEAR, 1);
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
-			if (i > p_ptr->last_info_line) break;
+			if (i >= p_ptr->last_info_line) break;
 			Send_remote_line(Ind, i);
 		}
 		Send_term_info(Ind, NTERM_FLUSH, 0);
@@ -828,6 +885,11 @@ void do_cmd_knowledge(int Ind, char query)
 		case '4':
 			Send_special_other(Ind, "High Scores");
 			p_ptr->special_file_type = SPECIAL_FILE_SCORES;
+			changed = TRUE;
+			break;
+		case '6':
+			Send_special_other(Ind, "Owned Houses");
+			p_ptr->special_file_type = SPECIAL_FILE_HOUSES;
 			changed = TRUE;
 			break;
 	}

@@ -88,6 +88,27 @@ int neighbor_index(int Depth, char dir)
 
 
 
+/* Add wilderness position in "03N, 12E" format to string "buf" */
+void wild_cat_depth(int Depth, char *buf) 
+{
+	int cur_x, cur_y, neigh_idx;
+	
+	if (!Depth) 
+	{
+		strcat(buf, "Town");
+		return;
+	}
+
+	cur_x = wild_info[Depth].world_x;
+	cur_y = wild_info[Depth].world_y;
+
+	strcat(buf, "[");
+	if (cur_y) strcat(buf, format("%d%c", abs(cur_y), (cur_y > 0 ? 'N' : 'S')));
+	if (cur_y && cur_x) strcat(buf, ", ");
+	if (cur_x) strcat(buf, format("%d%c", abs(cur_x), (cur_x > 0 ? 'E' : 'W')));
+	strcat(buf, "]");
+}
+
 /* Initialize the wild_info coordinates and radius. Uses a recursive fill algorithm.
    This may seem a bit out of place, but I think it is too complex to go in init2.c.
    Note that the flags for these structures are loaded from the server savefile.

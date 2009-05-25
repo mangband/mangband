@@ -132,6 +132,7 @@
 #define SPECIAL_FILE_SCORES	5
 #define SPECIAL_FILE_HELP	6
 #define SPECIAL_FILE_KNOWLEDGE	7
+#define SPECIAL_FILE_HOUSES	8
 
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
