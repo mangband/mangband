@@ -636,6 +636,31 @@ uint vstrnfmt(char *buf, uint max, cptr fmt, va_list vp)
 	return (n);
 }
 
+/*
+ * Add a formatted string to the end of a string
+ */
+void strnfcat(char *str, size_t max, size_t *end, cptr fmt, ...)
+{
+	size_t len;
+
+	va_list vp;
+
+	/* Paranoia */
+	if (*end >= max) return;
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Build the string */
+	len = vstrnfmt(&str[*end], max - *end, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Change the end value */
+	*end += len;
+}
+
 
 /*
  * Do a vstrnfmt (see above) into a (growable) static buffer.

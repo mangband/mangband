@@ -53,6 +53,51 @@ void flush_now(void)
 }
 
 /*
+ * Free the macro trigger package
+ */
+errr macro_trigger_free(void)
+{
+	int i;
+	int num;
+
+	if (macro_template != NULL)
+	{
+		/* Free the template */
+		string_free(macro_template);
+		macro_template = NULL;
+
+		/* Free the trigger names and keycodes */
+		for (i = 0; i < max_macrotrigger; i++)
+		{
+			string_free(macro_trigger_name[i]);
+
+			string_free(macro_trigger_keycode[0][i]);
+			string_free(macro_trigger_keycode[1][i]);
+		}
+
+		/* No more macro triggers */
+		max_macrotrigger = 0;
+
+		/* Count modifier-characters */
+		num = strlen(macro_modifier_chr);
+
+		/* Free modifier names */
+		for (i = 0; i < num; i++)
+		{
+			string_free(macro_modifier_name[i]);
+		}
+
+		/* Free modifier chars */
+		string_free(macro_modifier_chr);
+		macro_modifier_chr = NULL;
+	}
+
+	/* Success */
+	return (0);
+}
+
+
+/*
  * Check for possibly pending macros
  */
 static int macro_maybe(cptr buf, int n)
@@ -2199,8 +2244,79 @@ void prt_lnum(cptr header, s32b num, int row, int col, byte color)
 	c_put_str(color, out_val, row, col + len);
 }
 
+/*
+ * Transform macro trigger key code ('^_O_64\r' or etc..) 
+ * into macro trigger name ('\[alt-D]' etc..)
+ */
+static size_t trigger_ascii_to_text(char *buf, size_t max, cptr *strptr)
+{
+	cptr str = *strptr;
+	char key_code[100];
+	int i;
+	cptr tmp;
+	size_t current_len = strlen(buf);
+	
 
-void ascii_to_text(char *buf, cptr str)
+	/* No definition of trigger names */
+	if (macro_template == NULL) return 0;
+
+	/* Trigger name will be written as '\[name]' */
+	strnfcat(buf, max, &current_len, "\\[");
+
+	/* Use template to read key-code style trigger */
+	for (i = 0; macro_template[i]; i++)
+	{
+		int j;
+		char ch = macro_template[i];
+
+		switch(ch)
+		{
+		case '&':
+			/* Read modifier */
+			while ((tmp = strchr(macro_modifier_chr, *str)))
+			{
+				j = (int)(tmp - macro_modifier_chr);
+				strnfcat(buf, max, &current_len, "%s", macro_modifier_name[j]);
+				str++;
+			}
+			break;
+		case '#':
+			/* Read key code */
+			for (j = 0; *str && (*str != '\r') && (j < sizeof(key_code) - 1); j++)
+				key_code[j] = *str++;
+			key_code[j] = '\0';
+			break;
+		default:
+			/* Skip fixed strings */
+			if (ch != *str) return 0;
+			str++;
+		}
+	}
+
+	/* Key code style triggers always end with '\r' */
+	if (*str++ != '\r') return 0;
+
+	/* Look for trigger name with given keycode (normal or shifted keycode) */
+	for (i = 0; i < max_macrotrigger; i++)
+	{
+		if (!my_stricmp(key_code, macro_trigger_keycode[0][i]) ||
+		    !my_stricmp(key_code, macro_trigger_keycode[1][i]))
+			break;
+	}
+
+	/* Not found? */
+	if (i == max_macrotrigger) return 0;
+
+	/* Write trigger name + "]" */
+	strnfcat(buf, max, &current_len, "%s]", macro_trigger_name[i]);
+
+	/* Succeed */
+	*strptr = str;
+	return current_len;
+}
+
+
+void ascii_to_text(char *buf, size_t len, cptr str)
 {
 	char *s = buf;
 
@@ -2248,6 +2364,25 @@ void ascii_to_text(char *buf, cptr str)
 		{
 			*s++ = '\\';
 			*s++ = '\\';
+		}
+		/* Macro Trigger */
+		else if (i == 31)
+		{
+			size_t offset;
+
+			/* Terminate before appending the trigger */
+			*s = '\0';
+
+			offset = trigger_ascii_to_text(buf, len, &str);
+			
+			if (offset == 0)
+			{
+				/* No trigger found */
+				*s++ = '^';
+				*s++ = '_';
+			}
+			else
+				s += offset;
 		}
 		else if (i < 32)
 		{
@@ -2310,13 +2445,13 @@ static errr macro_dump(cptr fname)
 		fprintf(fff, "# Macro '%d'\n\n", i);
 
 		/* Extract the action */
-		ascii_to_text(buf, macro__act[i]);
+		ascii_to_text(buf, sizeof(buf), macro__act[i]);
 
 		/* Dump the macro */
 		fprintf(fff, "A:%s\n", buf);
 
 		/* Extract the action */
-		ascii_to_text(buf, macro__pat[i]);
+		ascii_to_text(buf, sizeof(buf), macro__pat[i]);
 
 		/* Dump command macro */
 		if (macro__cmd[i]) fprintf(fff, "C:%s\n", buf);
@@ -2380,10 +2515,10 @@ static bool get_macro_trigger(char *buf)
 
 
 	/* Convert the trigger */
-	ascii_to_text(tmp, buf);
+	ascii_to_text(tmp, sizeof(tmp), buf);
 
 	/* Hack -- display the trigger */
-	Term_addstr(-1, TERM_WHITE, tmp);
+	Term_addstr(-1, TERM_WHITE, tmp);	
 	
 	return TRUE;
 }
@@ -2414,8 +2549,9 @@ void interact_macros(void)
 {
 	int i;
 
-	char tmp[160], buf[1024];
+	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
+	tmp_buf[0] = '\0';
 
 	/* Screen is icky */
 	screen_icky = TRUE;
@@ -2433,11 +2569,18 @@ void interact_macros(void)
 		Term_putstr(0, 2, -1, TERM_WHITE, "Interact with Macros");
 
 
+		/* Describe the trigger */
+		if (!STRZERO(tmp_buf))
+		{
+			Term_putstr(0, 17, -1, TERM_WHITE, "Current trigger: ");
+			Term_addstr(-1, TERM_WHITE, tmp_buf);
+		}
+
 		/* Describe that action */
 		Term_putstr(0, 19, -1, TERM_WHITE, "Current action (if any) shown below:");
 
 		/* Analyze the current action */
-		ascii_to_text(buf, macro__buf);
+		ascii_to_text(buf, sizeof(buf), macro__buf);
 
 		/* Display the current action */
 		Term_putstr(0, 21, -1, TERM_WHITE, buf);
@@ -2535,7 +2678,9 @@ void interact_macros(void)
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Query key for macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);			
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+			
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
@@ -2565,27 +2710,56 @@ void interact_macros(void)
 				my_strcpy(macro__buf, macro__act[k], strlen(macro__buf)+1);
 
 				/* Analyze the current action */
-				ascii_to_text(tmp, macro__buf);
+				ascii_to_text(tmp, sizeof(tmp), macro__buf);
 
 				/* Display the current action */
-				prt(tmp, 22, 0);
+				prt(tmp, 21, 0);
 
 				/* Prompt */
 				c_msg_print("Found a macro.");
+				
+				/* Save key for delayed prompt */
+				ascii_to_text(tmp_buf, sizeof(tmp), buf);
 			}
 		}
 
 		/* Create a normal macro */
-		else if (i == '5')
+		else if (i == '5' || i == '%')
 		{
 			/* Prompt */
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a normal macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
 			if (!get_macro_trigger(buf)) continue;
+
+			/* Interactive mode */
+			if (i == '%')
+			{
+				/* Clear */
+				clear_from(20);
+	
+				/* Prompt */
+				Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action   ");
+	
+				/* Go to the correct location */
+				Term_gotoxy(0, 21);
+	
+				/* Copy 'current action' */
+				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
+	
+				/* Get an encoded action */
+				if (!askfor_aux(tmp, 80, 0)) continue;
+	
+				/* Convert to ascii */
+				text_to_ascii(macro__buf, tmp);
+			}
+
+			/* Save key for later */
+			ascii_to_text(tmp_buf, sizeof(tmp), buf);
 
 			/* Link the macro */
 			macro_add(buf, macro__buf, FALSE);
@@ -2594,7 +2768,7 @@ void interact_macros(void)
 			c_msg_print("Created a new normal macro.");
 		}
 
-		/* Create an identity macro */
+		/* Remove a macro */
 		else if (i == '6')
 		{
 			/* Prompt */

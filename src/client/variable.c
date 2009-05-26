@@ -99,6 +99,14 @@ u16b *message__count;
 bool msg_flag;
 
 
+int max_macrotrigger = 0;
+cptr macro_template = NULL;
+cptr macro_modifier_chr;
+cptr macro_modifier_name[MAX_MACRO_MOD];
+cptr macro_trigger_name[MAX_MACRO_TRIGGER];
+cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
+
+
 term *ang_term[8];
 u32b window_flag[8];
 

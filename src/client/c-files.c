@@ -105,6 +105,131 @@ static int dehex(char c)
         return (0);
 }
 
+/*
+ * Transform macro trigger name ('\[alt-D]' etc..)
+ * into macro trigger key code ('^_O_64\r' or etc..)
+ */
+static size_t trigger_text_to_ascii(char *buf, size_t max, cptr *strptr)
+{
+	cptr str = *strptr;
+	bool mod_status[MAX_MACRO_MOD];
+
+	int i, len = 0;
+	int shiftstatus = 0;
+	cptr key_code;
+	
+	size_t current_len = strlen(buf);
+
+	/* No definition of trigger names */
+	if (macro_template == NULL) return 0;
+
+	/* Initialize modifier key status */	
+	for (i = 0; macro_modifier_chr[i]; i++)
+		mod_status[i] = FALSE;
+
+	str++;
+
+	/* Examine modifier keys */
+	while (1)
+	{
+		/* Look for modifier key name */
+		for (i = 0; macro_modifier_chr[i]; i++)
+		{
+			len = strlen(macro_modifier_name[i]);
+
+			if (!my_strnicmp(str, macro_modifier_name[i], len))
+				break;
+		}
+
+		/* None found? */
+		if (!macro_modifier_chr[i]) break;
+
+		/* Proceed */
+		str += len;
+
+		/* This modifier key is pressed */
+		mod_status[i] = TRUE;
+
+		/* Shift key might be going to change keycode */
+		if ('S' == macro_modifier_chr[i])
+			shiftstatus = 1;
+	}
+
+	/* Look for trigger name */
+	for (i = 0; i < max_macrotrigger; i++)
+	{
+		len = strlen(macro_trigger_name[i]);
+
+		/* Found it and it is ending with ']' */
+		if (!my_strnicmp(str, macro_trigger_name[i], len) && (']' == str[len]))
+			break;
+	}
+
+	/* Invalid trigger name? */
+	if (i == max_macrotrigger)
+	{
+		/*
+		 * If this invalid trigger name is ending with ']',
+		 * skip whole of it to avoid defining strange macro trigger
+		 */
+		str = strchr(str, ']');
+
+		if (str)
+		{
+			strnfcat(buf, max, &current_len, "\x1F\r");
+
+			*strptr = str; /* where **strptr == ']' */
+		}
+
+		return current_len;
+	}
+
+	/* Get keycode for this trigger name */
+	key_code = macro_trigger_keycode[shiftstatus][i];
+
+	/* Proceed */
+	str += len;
+
+	/* Begin with '^_' */
+	strnfcat(buf, max, &current_len, "\x1F");
+
+	/* Write key code style trigger using template */
+	for (i = 0; macro_template[i]; i++)
+	{
+		char ch = macro_template[i];
+		int j;
+
+		switch(ch)
+		{
+		case '&':
+			/* Modifier key character */
+			for (j = 0; macro_modifier_chr[j]; j++)
+			{
+				if (mod_status[j])
+					strnfcat(buf, max, &current_len, "%c", macro_modifier_chr[j]);
+			}
+			break;
+		case '#':
+			/* Key code */
+			strnfcat(buf, max, &current_len, "%s", key_code);
+			break;
+		default:
+			/* Fixed string */
+			strnfcat(buf, max, &current_len, "%c", ch);
+			break;
+		}
+	}
+
+	/* End with '\r' */
+	strnfcat(buf, max, &current_len, "\r");
+
+	/* Succeed */
+	*strptr = str; /* where **strptr == ']' */
+	
+	return current_len;
+}
+
+
 
 /*
  * Hack -- convert a printable string into real ascii
@@ -126,8 +251,17 @@ void text_to_ascii(char *buf, cptr str)
                         /* Skip the backslash */
                         str++;
 
+						/* Macro Trigger */
+						if (*str == '[')
+						{
+							/* Terminate before appending the trigger */
+							*s = '\0';
+							
+							s += trigger_text_to_ascii(buf, sizeof(buf), &str);
+						}
+
                         /* Hex-mode XXX */
-                        if (*str == 'x')
+                        else if (*str == 'x')
                         {
                                 *s = 16 * dehex(*++str);
                                 *s++ += dehex(*++str);
@@ -816,11 +950,7 @@ errr process_pref_file_command(char *buf)
 			
 					return (0);
 			}
-			else if (buf[0] == 'T')
-			{
-				return (0);
-			}
-#if 0
+
 			/* set macro trigger names and a template */
 			/* Process "T:<trigger>:<keycode>:<shift-keycode>" */
 			/* Process "T:<template>:<modifier chr>:<modifier name>:..." */
@@ -869,7 +999,7 @@ errr process_pref_file_command(char *buf)
 		
 					if (max_macrotrigger >= MAX_MACRO_TRIGGER)
 					{
-						msg_print("Too many macro triggers!");
+						c_msg_print("Too many macro triggers!");
 						return 1;
 					}
 		
@@ -893,7 +1023,7 @@ errr process_pref_file_command(char *buf)
 					macro_trigger_name[max_macrotrigger] = string_make(buf);
 		
 					/* Free the buffer */
-					FREE(buf);
+					FREE(buf, char*);
 		
 					/* Normal keycode */
 					macro_trigger_keycode[0][max_macrotrigger] = string_make(zz[1]);
@@ -915,7 +1045,7 @@ errr process_pref_file_command(char *buf)
 		
 				return 0;
 			}
-#endif
+
         /* Process "V:<num>:<kv>:<rv>:<gv>:<bv>" -- visual info */
         else if (buf[0] == 'V')
         {

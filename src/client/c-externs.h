@@ -12,6 +12,13 @@
  * Not-so-Automatically generated "variable" declarations
  */
 
+extern int max_macrotrigger;
+extern cptr macro_template;
+extern cptr macro_modifier_chr;
+extern cptr macro_modifier_name[MAX_MACRO_MOD];
+extern cptr macro_trigger_name[MAX_MACRO_TRIGGER];
+extern cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
+
 /* c-tables.c */
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -317,6 +324,7 @@ extern void flush(void);
 extern void flush_now(void);
 extern void set_graphics(int mode);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
+extern errr macro_trigger_free(void);
 extern char inkey(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);

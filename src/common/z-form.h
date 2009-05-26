@@ -28,6 +28,9 @@ extern uint strnfmt(char *buf, uint max, cptr fmt, ...);
 /* Simple interface to "vstrnfmt()", assuming infinite length */
 extern uint strfmt(char *buf, cptr fmt, ...);
 
+/* Add a formatted string to the end of a string */
+extern void strnfcat(char *str, size_t max, size_t *end, cptr fmt, ...);
+
 /* Format arguments into a static resizing buffer */
 extern char *vformat(cptr fmt, va_list vp);
 

@@ -28,3 +28,9 @@
 #define CLIENT_VERSION ( CLIENT_VERSION_MAJOR << 12 | CLIENT_VERSION_MINOR << 8 \
   | CLIENT_VERSION_PATCH << 4 | CLIENT_VERSION_EXTRA)
 
+/*
+ * Maximum number of macro trigger names
+ */
+#define MAX_MACRO_TRIGGER 200
+#define MAX_MACRO_MOD 12
+
