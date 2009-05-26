@@ -1105,7 +1105,7 @@ int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
 		plog(format("Savefile does not exist for player %s", nick));
 
 		/* Inform caller */
-		return 0;			
+		err = 1;			
 	}
 #endif	
 
