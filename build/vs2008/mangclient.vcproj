@@ -321,15 +321,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\src\client\angband.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\angband.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\common\bit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\c-angband.h"
 				>
 			</File>
 			<File
@@ -341,11 +341,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\defines.h"
+				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\defines.h"
+				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
 			<File
@@ -452,6 +452,10 @@
 			>
 			<File
 				RelativePath="..\..\src\client\Angband.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\Angband.rc"
 				>
 			</File>
 		</Filter>

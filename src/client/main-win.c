@@ -69,7 +69,7 @@
  */
 
 
-#include "angband.h"
+#include "c-angband.h"
 
 #ifdef WINDOWS
 

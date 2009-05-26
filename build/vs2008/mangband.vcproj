@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="mangband"
 	ProjectGUID="{5DB0807D-EAE2-4712-A7F2-D4AAEBADA778}"
 	RootNamespace="Mang100"
@@ -237,6 +237,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\md5.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\melee1.c"
 				>
 			</File>
@@ -266,10 +270,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\server\obj-info.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\server\use-obj.c"
 				>
 			</File>
 			<File
@@ -314,6 +314,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\server\tables.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\server\use-obj.c"
 				>
 			</File>
 			<File
@@ -367,10 +371,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\angband.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\bit.h"
 				>
 			</File>
@@ -384,10 +384,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\server\externs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\externs.h"
 				>
 			</File>
 			<File
@@ -419,11 +415,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\md5.c"
+				RelativePath="..\..\src\server\mangband.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\common\md5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\server\mdefines.h"
 				>
 			</File>
 			<File

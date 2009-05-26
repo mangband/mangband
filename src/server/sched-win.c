@@ -305,6 +305,11 @@ void remove_input(int fd)
   }
 }
 
+void free_input()
+{
+	free(input_handlers);
+}
+
 static int sched_running;
 
 void stop_sched(void)
