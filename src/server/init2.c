@@ -2834,7 +2834,7 @@ void cleanup_angband(void)
 
 #define Ifree_info(L,T) \
 	free_info((header*)L ## _head); \
-	FREE(L ## _head, header); \ 
+	FREE(L ## _head, header); \
 	FREE(L ## _info, T); \
 	FREE(L ## _name, char); \
 	FREE(L ## _text, char);
