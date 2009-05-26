@@ -1385,13 +1385,13 @@ void give_detect(int Ind, int m_idx)
 	if (m_idx < 0)
 	{
 		m_idx = 0 - m_idx;
-		if (p_ptr->play_det[m_idx] < 255);
+		if (p_ptr->play_det[m_idx] < 255)
 			p_ptr->play_det[m_idx]++;
 	}
 	/* Monsters */
 	else
 	{
-		if (p_ptr->mon_det[m_idx] < 255);
+		if (p_ptr->mon_det[m_idx] < 255)
 			p_ptr->mon_det[m_idx]++;
 	}
 }
