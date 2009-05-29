@@ -141,7 +141,7 @@ typedef struct hturn {
 #define ht_eq(A,B) (((A)->turn == (B)->turn) && ((A)->era == (B)->era))
 #define ht_fix_up(H) while((H)->turn >= HTURN_ERA_FLIP) { \
 	(H)->turn -= HTURN_ERA_FLIP; (H)->era++; }
-#define ht_fix_down(H) while((sign)(H)->turn < 0) { \
+#define ht_fix_down(H) while((signed)(H)->turn < 0) { \
 	(H)->turn += HTURN_ERA_FLIP; (H)->era--; }
 #define ht_add_ht(H,Q) (H)->era += (Q)->era;(H)->turn += (Q)->turn;ht_fix_up((Q))
 #define ht_subst_ht(H,Q) (H)->era -= (Q)->era;(H)->turn -= (Q)->turn;ht_fix_down((Q))
