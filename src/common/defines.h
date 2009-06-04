@@ -3186,3 +3186,14 @@ extern int PlayerUID;
 
 /* Login constants */
 #define BAD_PASSWORD 35
+
+/*
+ * Per-player artifact states
+ */
+#define ARTS_NOT_FOUND  1
+#define ARTS_FOUND      2
+#define ARTS_SOLD       3
+#define ARTS_ABANDONED  4
+
+#define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)
+

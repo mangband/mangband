@@ -737,8 +737,10 @@ void carry(int Ind, int pickup, int confirm)
 					object_desc(0, artname, o_ptr, FALSE, 0);
 					sprintf(msg,"Found The %s",artname);					
 					log_history_event(Ind, msg);
+					/* Mark artifact as found */
+					set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
 				}
-					
+
 				/* Delete original */
 				delete_object(Depth, p_ptr->py, p_ptr->px);
 

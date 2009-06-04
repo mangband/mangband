@@ -491,6 +491,21 @@ void wipe_o_list(int Depth)
 
 			/* Mega-Hack -- Preserve the artifact */
 			a_info[o_ptr->name1].cur_num = 0;
+
+			/* Ultra-Hack -- If this artifact belongs to player, set abandoned */
+			if (o_ptr->owner_id)
+			{
+				int j;
+				for (j = 1; j < NumPlayers+1; j++)
+				{
+					/* Only works when player is ingame */
+					if ((Players[j]->id == o_ptr->owner_id) && object_known_p(j, o_ptr))
+					{
+						set_artifact_p(Players[j], o_ptr->name1, ARTS_ABANDONED);
+						break;
+					}
+				}
+			}
 		}
 
 		/* Monster */
@@ -1888,7 +1903,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
  */
 static bool make_artifact(int Depth, object_type *o_ptr)
 {
-	int i;
+	int i, j;
     char o_name[80];
 
 	/* No artifacts in the town */
@@ -1901,6 +1916,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 	for (i = ART_MIN_NORMAL; i < MAX_A_IDX; i++)
 	{
 		artifact_type *a_ptr = &a_info[i];
+		bool okay = TRUE;
 
 		/* Skip "empty" items */
 		if (!a_ptr->name) continue;
@@ -1924,6 +1940,21 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 
 		/* We must make the "rarity roll" */
 		if (rand_int(a_ptr->rarity) != 0) continue;
+
+		/* MEGA-HACK! GAMEPLAY BREAKER! */
+		for (j = 1; j < NumPlayers + 1; j++)
+		{
+			player_type *p_ptr = Players[j];
+			/* There's a player on a level who already found this artifact once
+			 * -- this causes ALL other players on level to suffer */
+			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] > 0))
+			{
+				/* Artifact WON'T be generated! */
+				okay = FALSE;
+				break;
+			}
+		}
+		if (!okay) continue;
 
 		/* Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;

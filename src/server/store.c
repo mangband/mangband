@@ -1915,6 +1915,12 @@ void store_confirm(int Ind)
 	/* Analyze the prices (and comment verbally) */
 	/*purchase_analyze(price, value, dummy);*/
 
+	/* If this was an artifact, remember the player doesn't want it */
+	if (artifact_p(o_ptr))
+	{
+		set_artifact_p(p_ptr, o_ptr->name1, ARTS_SOLD);
+	}
+
 	/* Take the item from the player, describe the result */
 	inven_item_increase(Ind, item, -amt);
 	inven_item_describe(Ind, item);
@@ -1933,12 +1939,6 @@ void store_confirm(int Ind)
 	if (item_pos >= 0)
 	{
 		display_inventory(Ind);
-	}
-	
-	/* If this was an artifact, remember the player doesn't want it */
-	if( artifact_p(o_ptr) )
-	{
-		p_ptr->sold_arts[o_ptr->name1] = TRUE;
 	}
 }
 

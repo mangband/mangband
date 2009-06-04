@@ -1549,7 +1549,7 @@ struct player_type
 	huge turn;			/* Actual player turns */
 	huge old_turn;		/* Turn when player entered current level */
 	
-	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
+	byte a_info[MAX_A_IDX]; /* Artifacts player has encountered */
 };
 
 
