@@ -2544,7 +2544,176 @@ int macro_find_exact(cptr pat)
 	return (-1);
 }
 
+/* Display macros as a list and allow user to navigate through it 
+ * Logic in this function is somewhat broken.
+ */
+void browse_macros(void)
+{
+	int i;
+	int total;
+	int hgt = Term->hgt - 4;
+	int j = 0;	
+	int o = 0;
+	int sel = -1;
+	char tmp_buf[120];
+	char buf[120];
+	char act[120];
+	char a = TERM_WHITE;
 
+	/* Process requests until done */
+	while (1)
+	{
+		/* Clear screen */
+		Term_clear();
+
+		/* Describe */
+		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (D delete, A/T to set, ESC to accept)");
+
+		/* Dump them */
+		for (i = 0, total = 0; i < macro__num; i++)
+		{
+			int k = total; 
+
+			/* Skip command macro */
+			if (macro__cmd[i]) continue;
+		
+			/* Extract the action */
+			ascii_to_text(act, sizeof(act), macro__act[i]);
+
+			/* Most likely a system action */			
+			if (strlen(act) == 1) continue;
+
+			/* Extract the trigger */
+			ascii_to_text(buf, sizeof(buf), macro__pat[i]);
+
+			/* Deleted macro */
+			if (!strcmp(buf, act)) continue;
+
+			/* It's ok */
+			total++;
+
+			/* Too early */
+			if (k < o) continue;
+
+			/* Too late */			
+			if (k - o >= hgt-2) continue;
+
+			/* Selected */
+			a = TERM_WHITE;
+			if (j == k) 
+			{
+				a = TERM_L_BLUE;
+				sel = i;
+			}
+
+			/* Dump the trigger */
+			Term_putstr(00, 2+k-o, -1, a, buf);
+
+			/* Dump the action */
+			Term_putstr(20, 2+k-o, -1, a, act);
+		}
+
+		/* Get a key */
+		i = inkey();
+
+		/* Leave */
+		if (i == ESCAPE) break;
+
+		else if (i == 'D') /* Delete */
+		{
+			/* Keep atleast 1 */
+			if (total == 1) continue;		
+
+			/* Get a macro trigger */
+			strcpy(buf, macro__pat[sel]);
+
+			/* (un)Link the macro */
+			macro_add(buf, buf, FALSE);
+
+			/* Change offsets */
+			if (j >= total-1) j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+
+		else if (i == 'T') /* Change trigger */
+		{
+			/* Get current action */
+			strcpy(act, macro__act[sel]);
+
+			/* Prompt */	
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Trigger: ");
+
+			/* Get a macro trigger */
+			get_macro_trigger(buf);
+			text_to_ascii(tmp_buf, buf);
+
+			/* Same */
+			if (!strcmp(macro__pat[sel], tmp_buf)) continue;
+
+			/* (re)Link the macro */
+			macro_add(tmp_buf, act, FALSE);
+		}
+
+		else if (i == 'A') /* Change action */
+		{
+			/* Prompt */	
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Action: ");
+
+			/* Copy 'current action' */
+			ascii_to_text(act, sizeof(act), macro__act[sel]);			
+
+			/* Get an encoded action */
+			if (!askfor_aux(act, 80, 0)) continue;
+
+			/* Convert to ascii */
+			text_to_ascii(tmp_buf, act);
+			tmp_buf[strlen(act)] = '\0';
+
+			/* Do not allow empty OR short */
+			if (strlen(tmp_buf) <= 1) continue;
+
+			/* (re)Link the macro */
+			macro_add(macro__pat[sel], tmp_buf, FALSE);
+		}
+
+		else if (i == '2') /* Down */
+		{
+			j++;
+			if (j > total-1) j = total-1;
+			else if (j - o > hgt/2 && j < total) o++;
+		}
+		else if (i == '7') /* Home */
+		{
+			o = j = 0;
+		}
+		else if (i == '9') /* Page up */
+		{
+			j -= hgt;
+			if (j < 0) j = 0;
+			o = j;
+		}
+		else if (i == '3') /* Page down */
+		{
+			j += Term->hgt;
+			if (j > total-1) j = total-1;
+			o = j - hgt/2;
+		}
+		else if (i == '1') /* End */ 
+		{
+			j = total - 1;
+			o = j - hgt/2;
+		}
+		else if (i == '8') /* Up */
+		{
+			j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+	}
+}
 void interact_macros(void)
 {
 	int i;
@@ -2593,6 +2762,7 @@ void interact_macros(void)
 		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Query key for macro");
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
+		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
 #if 0
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
@@ -2608,6 +2778,9 @@ void interact_macros(void)
 
 		/* Leave */
 		if (i == ESCAPE) break;
+
+		/* Browse */
+		else if (i == '7') browse_macros();
 
 		/* Load a pref file */
 		else if (i == '1')
@@ -2775,6 +2948,7 @@ void interact_macros(void)
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Remove a macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
@@ -2786,7 +2960,7 @@ void interact_macros(void)
 			/* Message */
 			c_msg_print("Removed a macro.");
 		}
-
+#if 0
 		/* Create an empty macro */
 		else if (i == '7')
 		{
@@ -2794,6 +2968,7 @@ void interact_macros(void)
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create an empty macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
@@ -2805,7 +2980,7 @@ void interact_macros(void)
 			/* Message */
 			c_msg_print("Created a new empty macro.");
 		}
-#if 0		
+
 		/* Create a command macro */
 		else if (i == '8')
 		{
@@ -2813,6 +2988,7 @@ void interact_macros(void)
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
