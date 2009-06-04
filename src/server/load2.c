@@ -1837,9 +1837,9 @@ static errr rd_savefile_new_aux(int Ind)
 	}
 
 	/* Read the characters sold artifact list */
-	if(section_exists("sold_artifacts"))
+	if(section_exists("found_artifacts"))
 	{
-		start_section_read("sold_artifacts");
+		start_section_read("found_artifacts");
 		tmp16u = read_int("max_a_idx");
 		tmp32u = tmp16u;
 		/* If we have an unexpected number of arts, just reset our list
@@ -1854,11 +1854,11 @@ static errr rd_savefile_new_aux(int Ind)
 		{
 			if(i < tmp32u)
 			{
-				if(!clear) tmp16u = read_int("sold_art");
+				if(!clear) tmp16u = read_int("a_info");
 			}
-			p_ptr->sold_arts[i] = tmp16u;
+			p_ptr->a_info[i] = tmp16u;
 		}
-		end_section_read("sold_artifacts");
+		end_section_read("found_artifacts");
 	}
 
 	/* Hack -- no ghosts */

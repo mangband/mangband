@@ -142,3 +142,13 @@
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
 /* Hack -- check guard inscription and abort (chunk of code) */ 
 #define __trap(I,X) if ((X)) { msg_print((I), "The item's inscription prevents it."); return; }
+
+/*
+ * Per-player artifact states
+ */
+#define ARTS_NOT_FOUND	1
+#define ARTS_FOUND  	2
+#define ARTS_SOLD   	3
+#define ARTS_ABANDONED	4
+
+#define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)

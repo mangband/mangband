@@ -1577,7 +1577,7 @@ struct player_type
 	hturn turn;			/* Actual player turns */
 	hturn old_turn;		/* Turn when player entered current level */
 	
-	bool sold_arts[MAX_A_IDX]; /* Artifacts player has sold to the shop */
+	byte a_info[MAX_A_IDX]; /* Artifacts player has encountered */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
 	bool in_hack;		/* Temporary flag, not guaranteed to stay same between function calls */
 

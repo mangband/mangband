@@ -766,7 +766,9 @@ void carry(int Ind, int pickup, int confirm)
 							/* Message */
 							object_desc(Ind, o_name, o_ptr, TRUE, 2);/* short name */							
 							msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
-							msg_format(i, "You sold %s for %ld gold.", o_name, (long)price);							
+							msg_format(i, "You sold %s for %ld gold.", o_name, (long)price);
+							/* Mark artifact as sold */
+							if (artifact_p(o_ptr)) set_artifact_p(q_ptr, o_ptr->name1, ARTS_SOLD);
 							/* Audit */
 							sprintf(msg, "PS %s-%d | %s-%d $ %ld",
 									p_ptr->name, (int)p_ptr->id,
@@ -816,8 +818,10 @@ void carry(int Ind, int pickup, int confirm)
 					object_desc(0, artname, o_ptr, FALSE, 0);
 					sprintf(msg,"Found The %s",artname);					
 					log_history_event(Ind, msg, TRUE);
+					/* Mark artifact as found */
+					set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
 				}
-					
+
 				/* Delete original */
 				delete_object(Depth, p_ptr->py, p_ptr->px);
 

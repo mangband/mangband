@@ -892,15 +892,15 @@ static bool wr_savefile_new(int Ind)
 	end_section("quests");
 
 	/* write the artifacts sold list */
-	start_section("sold_artifacts");
+	start_section("found_artifacts");
 	tmp16u = MAX_A_IDX;
 	write_int("max_a_idx",tmp16u);
 	for (i = 0; i < MAX_A_IDX; i++)
 	{
-		tmp16u = p_ptr->sold_arts[i];
-		write_int("sold_art",tmp16u);
+		tmp16u = p_ptr->a_info[i];
+		write_int("a_info",tmp16u);
 	}
-	end_section("sold_artifacts");
+	end_section("found_artifacts");
 
 	end_section("mangband_player_save");
 
