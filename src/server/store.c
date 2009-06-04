@@ -1617,11 +1617,11 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 		return;
 	} 
 
-	/* Fill o_ptr with correct item */
-	if (!get_store_item(Ind, item, o_ptr)) 
+	/* Fill o_ptr with correct item and check guard inscription */
+	if (!get_store_item(Ind, item, o_ptr) || CGI(o_ptr, 'p')) 
 	{
 			/* Disguise our bug as a feature */ 
-			msg_print(Ind,"Sorry, this item is reserved.");
+			msg_print(Ind, "Sorry, this item is reserved.");
 			return;
 	}
 	
@@ -2048,7 +2048,7 @@ void store_confirm(int Ind)
 
 	/* Get the description all over again */
 	object_desc(Ind, o_name, &sold_obj, TRUE, 3);
-
+ 
 	/* Describe the result (in message buffer) */
 	msg_format(Ind, "You sold %s for %ld gold.", o_name, (long)price);
 
