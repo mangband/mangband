@@ -1242,6 +1242,7 @@ struct player_type
 
 	s16b inven_cnt;		/* Number of items in inventory */
 	s16b equip_cnt;		/* Number of items in equipment */
+	bool prevents[128];	/* Cache of "^" inscriptions */
 
 	s16b max_plv;		/* Max Player Level */
 	s16b max_dlv;		/* Max level explored */

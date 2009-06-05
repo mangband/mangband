@@ -313,6 +313,9 @@ void do_cmd_study(int Ind, int book, int spell)
 	byte spells[PY_MAX_SPELLS], num = 0;
 	int index; /* spell index */
 
+	/* Check preventive inscription '^G' */
+	__trap(Ind, CPI(p_ptr, 'G'));
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !is_dm_p(p_ptr) )
 	{
@@ -505,6 +508,9 @@ void do_cmd_cast(int Ind, int book, int spell)
 	magic_type		*s_ptr;
 
 	byte spells[PY_MAX_SPELLS], num = 0;
+
+	/* Check preventive inscription '^m' */
+	__trap(Ind, CPI(p_ptr, 'm'));
 
 	/* Require spell ability */
 	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
@@ -702,6 +708,9 @@ void do_cmd_pray(int Ind, int book, int spell)
     magic_type  *s_ptr;
 
     byte spells[PY_MAX_SPELLS], num = 0;
+
+	/* Check preventive inscription '^p' */
+	__trap(Ind, CPI(p_ptr, 'p'));
 
     /* Restrict ghosts */
     if (p_ptr->ghost || p_ptr->fruit_bat)

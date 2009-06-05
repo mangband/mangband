@@ -28,6 +28,9 @@ void do_cmd_go_up(int Ind)
 	if (p_ptr->new_level_flag)
 		return;
 
+	/* Check preventive inscription '^<' */	
+	__trap(Ind, CPI(p_ptr, '<'));
+
 	/* Player grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
 
@@ -112,6 +115,9 @@ void do_cmd_go_down(int Ind)
 	/* Make sure he hasn't just changed depth */
 	if (p_ptr->new_level_flag)
 		return;
+
+	/* Check preventive inscription '^>' */
+	__trap(Ind, CPI(p_ptr, '>'));
 
 	/* Player grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
@@ -1659,6 +1665,9 @@ void do_cmd_close(int Ind, int dir)
 
 	bool more = FALSE;
 
+	/* Check preventive inscription '^c' */
+	__trap(Ind, CPI(p_ptr, 'c'));
+
 #if 0
 	/* Easy Close */
 	if (p_ptr->easy_open)
@@ -2071,6 +2080,8 @@ void do_cmd_tunnel(int Ind, int dir)
 
 	bool more = FALSE;
 
+	/* Check preventive inscription '^T' */
+	__trap(Ind, CPI(p_ptr, 'T'));
 
 	/* Get a direction (or abort) */
 	/*if (!get_rep_dir(&dir)) return;*/
@@ -2313,6 +2324,9 @@ void do_cmd_disarm(int Ind, int dir)
 	s16b o_idx;
 
 	bool more = FALSE;
+
+	/* Check preventive inscription '^D' */
+	__trap(Ind, CPI(p_ptr, 'D'));
 
 #if 0		
 	/* Easy Disarm */
@@ -2598,6 +2612,8 @@ void do_cmd_bash(int Ind, int dir)
 	
 	int y, x;
 
+	/* Check preventive inscription '^B' */
+	__trap(Ind, CPI(p_ptr, 'B'));
 
 	/* Get a direction (or abort) */
 	/* if (!get_rep_dir(&dir)) return; */
@@ -2694,6 +2710,9 @@ void do_cmd_alter(int Ind, int dir)
 	bool more = FALSE;
 	
 	cave_type		*c_ptr;
+
+	/* Check preventive inscription '^+' */
+	__trap(Ind, CPI(p_ptr, '+'));
 
 	/* Get a direction */
 	if (!dir) return;
@@ -2846,6 +2865,8 @@ void do_cmd_spike(int Ind, int dir)
 
 	cave_type		*c_ptr;
 
+	/* Check preventive inscription '^j' */
+	__trap(Ind, CPI(p_ptr, 'j'));
 
 	/* Ghosts cannot spike */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -2929,6 +2950,8 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 
 	bool more = FALSE;
 
+	/* Check preventive inscription '^;' */
+	__trap(Ind, CPI(p_ptr, ';'));
 
 	/* Make sure he hasn't just switched levels */
 	if (p_ptr->new_level_flag) return;
@@ -2999,6 +3022,9 @@ int do_cmd_run(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
+
+	/* Check preventive inscription '^.' */
+	if (CPI(p_ptr, '.')) { msg_print(Ind, "The item's inscription prevents it."); return 0; }
 
 	if (p_ptr->confused)
 	{
@@ -3292,6 +3318,9 @@ void do_cmd_fire(int Ind, int item, int dir)
 
 	char		o_name[80];
     bool                magic = FALSE;
+
+	/* Check preventive inscription '^f' */	
+	__trap(Ind, CPI(p_ptr, 'f'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -3753,6 +3782,9 @@ void do_cmd_throw(int Ind, int item, int dir)
 
 	char		o_name[80];
 
+	/* Check preventive inscription '^v' */
+	__trap(Ind, CPI(p_ptr, 'v'));
+
 	/*int			msec = delay_factor * delay_factor * delay_factor;*/
 
 	/* Restrict ghosts */
@@ -4173,6 +4205,9 @@ void do_cmd_purchase_house(int Ind, int dir)
 
 	int y, x, i, factor, price;
 	cave_type *c_ptr;
+
+	/* Check preventive inscription '^h' */
+	__trap(Ind, CPI(p_ptr, 'h'));
 
 	/* Ghosts cannot buy houses */
 	if(!(p_ptr->dm_flags & DM_HOUSE_CONTROL))  {

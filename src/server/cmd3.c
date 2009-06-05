@@ -596,6 +596,9 @@ void do_cmd_drop(int Ind, int item, int quantity)
 
 	object_type *o_ptr;
 
+	/* Check preventive inscription '^d' */
+	__trap(Ind, CPI(p_ptr, 'd'));
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
@@ -748,6 +751,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	
 	char		o_name[80];
 
+	/* Check preventive inscription '^k' */
+	__trap(Ind, CPI(p_ptr, 'k'));
+	
 	/* Restrict ghosts */
 	if (p_ptr->ghost || p_ptr->fruit_bat)
 	{
@@ -989,6 +995,9 @@ void do_cmd_uninscribe(int Ind, int item)
 	/* Remove the incription */
 	o_ptr->note = 0;
 
+	/* Update global "preventive inscriptions" */
+	update_prevent_inscriptions(Ind);
+
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
 
@@ -1080,6 +1089,9 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	/* Save the inscription */
 	o_ptr->note = quark_add(inscription);
 
+	/* Update global "preventive inscriptions" */
+	update_prevent_inscriptions(Ind);
+
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
 
@@ -1098,6 +1110,9 @@ void do_cmd_steal(int Ind, int dir)
 
 	int success, notice;
 	bool fail = TRUE;
+
+	/* Check preventive inscription '^J' */
+	__trap(Ind, CPI(p_ptr, 'J'));
 
 	/* Ghosts cannot steal */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )

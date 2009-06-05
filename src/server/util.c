@@ -2146,6 +2146,68 @@ cptr quark_str(s16b i)
 	return (q);
 }
 
+
+#define end_of_segment(A) ((A) == ' ' || (A) == '!' || (A) == '@' || (A) == '^')
+#define min(A,B) ((A) < (B) ? (A) : (B))
+/*
+ * Parse item's inscriptons, extract "^abc" and "^a ^b ^c"
+ * cases and cache them. (adapted from check_guard_inscription)
+ */
+void fill_prevent_inscription(bool *arr, s16b quark)
+{
+	const char *ax;
+
+	/* Init quark */
+	ax = quark_str(quark);
+	if (ax == NULL) return;
+
+	/* Find start of segment */
+	while((ax = strchr(ax, '^')) != NULL) 
+	{
+		/* Parse segment */
+		while(ax++ != NULL) 
+		{
+			/* Reached end of quark, stop */
+			if (*ax == 0) break;
+
+			/* Reached end of segment, stop */
+			if (end_of_segment(*ax)) break;
+
+			/* Found a "Preventing Inscription" */
+			arr[min(127,(byte)(*ax))] = TRUE;
+	    }
+	}
+}
+/*
+ * Refresh combined list of player's preventive inscriptons
+ * after an update to his equipment was made. 
+ */
+void update_prevent_inscriptions(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	int i;
+
+	/* Clear flags */
+	for (i = 0; i < 128; i++)
+	{
+		p_ptr->prevents[i] = FALSE;
+	}
+
+	/* Scan equipment */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+	{
+		o_ptr = &p_ptr->inventory[i];
+
+		/* Item exists and has inscription */
+		if (o_ptr->tval && o_ptr->note)
+		{
+			/* Fill */
+			fill_prevent_inscription(p_ptr->prevents, o_ptr->note);
+		}
+	}
+}
+
 /*
  * Check to make sure they haven't inscribed an item against what
  * they are trying to do -Crimson

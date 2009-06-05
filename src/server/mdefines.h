@@ -136,7 +136,9 @@
 
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
-/* Hack -- shorthand alias for "check_guard_description" */
+/* Hack -- shorthand alias for "check_prevent_inscription" */
+#define CPI(P,M) (P)->prevents[(byte)(M)]
+/* Hack -- shorthand alias for "check_guard_inscription" */
 #define CGI(O,M) check_guard_inscription( (O)->note, (M) )
 /* Hack -- overloaded guard-inscriptions */
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))

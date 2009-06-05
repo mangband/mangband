@@ -3220,6 +3220,9 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_OFLAGS);
 		prt_flags(Ind);
+		/* HACK - since OFLAGS mostly indicates changes in equipment,
+		 * we can use it trigger inscription updates. FIXME? */
+		update_prevent_inscriptions(Ind);
 	}
 
 	if (p_ptr->redraw & PR_VARIOUS)

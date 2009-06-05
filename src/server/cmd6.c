@@ -71,6 +71,9 @@ void do_cmd_eat_food(int Ind, int item)
 	
 	object_type		*o_ptr;
 
+	/* Check preventive inscription '^E' */
+	__trap(Ind, CPI(p_ptr, 'E'));
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
@@ -174,6 +177,9 @@ void do_cmd_quaff_potion(int Ind, int item)
 
 	object_type	*o_ptr;
 
+	/* Check preventive inscription '^q' */
+	__trap(Ind, CPI(p_ptr, 'q'));
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
@@ -275,6 +281,8 @@ void do_cmd_read_scroll(int Ind, int item)
 	object_type	*o_ptr;
 	bool ident;
 
+	/* Check preventive inscription '^r' */
+	__trap(Ind, CPI(p_ptr, 'r'));
 
 	/* Check some conditions */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -411,6 +419,9 @@ void do_cmd_use_staff(int Ind, int item)
 	bool ident;
 
 	object_type		*o_ptr;
+
+	/* Check preventive inscription '^u' */
+	__trap(Ind, CPI(p_ptr, 'u'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -622,6 +633,9 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 
 	object_type		*o_ptr;
 
+	/* Check preventive inscription '^a' */
+	__trap(Ind, CPI(p_ptr, 'a'));
+
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
@@ -804,6 +818,9 @@ void do_cmd_zap_rod(int Ind, int item)
 
 	bool ident;
 	object_type		*o_ptr;
+
+	/* Check preventive inscription '^z' */
+	__trap(Ind, CPI(p_ptr, 'z'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )

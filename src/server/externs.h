@@ -999,6 +999,8 @@ extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern char inkey(void);
 extern cptr quark_str(s16b num);
 extern s16b quark_add(cptr str);
+extern void fill_prevent_inscription(bool *arr, s16b quark);
+extern void update_prevent_inscriptions(int Ind);
 extern bool check_guard_inscription( s16b quark, char what);
 extern s16b message_num(void);
 extern cptr message_str(s16b age);
