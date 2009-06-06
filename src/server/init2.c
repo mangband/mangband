@@ -2465,6 +2465,10 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_mage_hp_bonus = str_to_boolean(value);
 	}
+	else if (!strcmp(option,"SAFE_RECHARGE"))
+	{
+		cfg_safe_recharge = str_to_boolean(value);
+	}
 	else if (!strcmp(option,"NO_STEAL"))
 	{
 		cfg_no_steal = str_to_boolean(value);

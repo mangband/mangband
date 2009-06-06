@@ -2994,8 +2994,29 @@ bool recharge_aux(int Ind, int item, int num)
 	{
 		msg_print(Ind, "There is a bright flash of light.");
 
-		/* Drain the power */
-		o_ptr->pval = 0;
+		/* Dangerous Hack -- Destroy the item */ 
+		if (!cfg_safe_recharge)
+		{
+			/* Reduce and describe inventory */ 
+			if (item >= 0) 
+			{ 
+				inven_item_increase(Ind, item, -1); 
+				inven_item_describe(Ind, item); 
+				inven_item_optimize(Ind, item); 
+			} 
+			/* Reduce and describe floor item */ 
+			else 
+			{ 
+				floor_item_increase(0 - item, -1); 
+				floor_item_describe(0 - item); 
+				floor_item_optimize(0 - item); 
+			}
+		}
+		else
+		{ 
+			/* Drain the power */
+			o_ptr->pval = 0;
+		}
 
 		/* *Identified* items keep the knowledge about the charges */
 		if (!(o_ptr->ident & ID_MENTAL))
