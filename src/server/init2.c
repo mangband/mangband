@@ -2447,6 +2447,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_random_artifacts = str_to_boolean(value);
     }
+    else if (!strcmp(option,"PRESERVE_ARTIFACTS"))
+    {
+        cfg_preserve_artifacts = atoi(value);
+    }
     else if (!strcmp(option,"IRONMAN"))
     {
         cfg_ironman = str_to_boolean(value);

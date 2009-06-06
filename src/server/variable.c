@@ -185,6 +185,7 @@ bool cfg_ghost_diving = 0;
 bool cfg_door_bump_open = 1;
 s32b cfg_level_unstatic_chance = 60;
 bool cfg_random_artifacts = 0; /* No randarts by default */
+s16b cfg_preserve_artifacts = 3;
 s32b cfg_retire_timer = -1;
 bool cfg_ironman = 0;
 bool cfg_town_wall = 0;
