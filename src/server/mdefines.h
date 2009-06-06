@@ -148,9 +148,9 @@
 /*
  * Per-player artifact states
  */
-#define ARTS_NOT_FOUND	1
-#define ARTS_FOUND  	2
+#define ARTS_NOT_FOUND	0
+#define ARTS_FOUND  	1
+#define ARTS_ABANDONED	2
 #define ARTS_SOLD   	3
-#define ARTS_ABANDONED	4
 
 #define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)

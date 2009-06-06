@@ -2029,7 +2029,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 			player_type *p_ptr = Players[j];
 			/* There's a player on a level who already found this artifact once
 			 * -- this causes ALL other players on level to suffer */
-			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] > 0))
+			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] >= cfg_preserve_artifacts))
 			{
 				/* Artifact WON'T be generated! */
 				okay = FALSE;
