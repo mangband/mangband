@@ -2002,20 +2002,18 @@ void monster_death(int Ind, int m_idx)
 		/* Get the next object */
 		next_o_idx = o_ptr->next_o_idx;
 
-		/* Paranoia */
-		o_ptr->held_m_idx = 0;
-		
-		o_ptr->next_o_idx = 0;
-
 		/* Get local object */
 		i_ptr = &object_type_body;
 
 		/* Copy the object */
-		//object_copy(i_ptr, o_ptr);
-		COPY(i_ptr, o_ptr, object_type);
+		object_copy(i_ptr, o_ptr);
 
 		/* Delete the object */
 		delete_object_idx(this_o_idx);
+
+		/* Paranoia */
+		i_ptr->held_m_idx = 0;
+		i_ptr->next_o_idx = 0;
 
 		/* Drop it */
 		drop_near(i_ptr, -1, Depth, y, x);

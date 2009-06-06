@@ -106,9 +106,6 @@ void delete_monster_idx(int i)
 		/* Get the next object */
 		next_o_idx = o_ptr->next_o_idx;
 
-		/* Hack -- efficiency */
-		o_ptr->held_m_idx = 0;
-
 		/* Delete the object */
 		delete_object_idx(this_o_idx);
 	}
