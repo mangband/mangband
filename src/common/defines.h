@@ -2878,6 +2878,8 @@ that keeps many algorithms happy.
      (p_ptr->k_char[(T)->k_idx]) : \
      (p_ptr->d_char[(T)->k_idx]))
 
+/* Copy object */
+#define object_copy(D,S) COPY((D), (S), object_type);
 
 
 /*

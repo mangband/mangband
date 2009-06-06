@@ -1646,30 +1646,19 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 		amt = o_ptr->number;
 	}
 
-	/* Hack -- get a "sample" object */
-	sell_obj = *o_ptr;
-	sell_obj.number = amt;
-
-	/* Hack -- require room in pack */
-	if (!inven_carry_okay(Ind, &sell_obj))
-	{
-		msg_print(Ind, "You cannot carry that many different items.");
-		return;
-	}
+	/* Create the object to be sold (structure copy) */
+	object_copy(&sell_obj, o_ptr);
 
 	/* Determine the "best" price (per item) */
 	best = price_item(Ind, &sell_obj, ot_ptr->min_inflate, FALSE);
 
-	/* Create the object to be sold (structure copy) */
-	sell_obj = *o_ptr;
-		
 	/*
 	 * Hack -- If a rod or wand, allocate total maximum timeouts or charges
 	 * between those purchased and left on the shelf.
 	 */
 	reduce_charges(&sell_obj, sell_obj.number - amt);
-	//distribute_charges(o_ptr, &sell_obj, amt);	
 
+	/* Copy ammount */
 	sell_obj.number = amt;
 
 	/* Hack -- require room in pack */
@@ -1924,21 +1913,21 @@ void store_sell(int Ind, int item, int amt)
 	/* Make sure he hasn't protected it*/
 	__trap(Ind, CGI(o_ptr,'s'));
 
-	/* Create the object to be sold (structure copy) */
-	sold_obj = *o_ptr;
-	
-	/*
-	 * Hack -- Allocate charges between those wands, staves, or rods
-	 * sold and retained, unless all are being sold.
-	 */
-	//reduce_charges(&sold_obj, sold_obj.number - amt);
-	tmp_pval = o_ptr->pval;
-	tmp_time = o_ptr->timeout;
-	distribute_charges(o_ptr, &sold_obj, amt);
-	o_ptr->pval = tmp_pval;
-	o_ptr->timeout = tmp_time;
-	
+	/* Get a copy of the object */
+	object_copy(&sold_obj, o_ptr);
+
+	/* Modify quantity */
 	sold_obj.number = amt;
+
+	/* Hack -- If a rod, wand, or staff, allocate total maximum
+	 * timeouts or charges to those being sold.
+	 */
+	if ((o_ptr->tval == TV_ROD) ||
+	    (o_ptr->tval == TV_WAND) ||
+	    (o_ptr->tval == TV_STAFF))
+	{
+		sold_obj.pval = o_ptr->pval * amt / o_ptr->number;
+	}
 
 	/* Get a full description */
 	object_desc(Ind, o_name, &sold_obj, TRUE, 3);
