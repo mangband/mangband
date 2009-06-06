@@ -165,12 +165,12 @@ s32b m_top = 0;			/* Monster top size */
  */
 
 bool cfg_report_to_meta = 0;
-char * cfg_meta_address;
+char * cfg_meta_address = NULL;
 char * cfg_report_address = NULL;
 char * cfg_bind_name = NULL;
-char * cfg_console_password = "change_me";
-bool cfg_console_local_only = FALSE;
-char * cfg_dungeon_master = "DungeonMaster";
+char * cfg_console_password = NULL;
+bool cfg_console_local_only = NULL;
+char * cfg_dungeon_master = NULL;
 char * cfg_load_pref_file = NULL;
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;

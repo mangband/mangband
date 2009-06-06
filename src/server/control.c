@@ -480,7 +480,7 @@ void NewConsole(int read_fd, int arg)
 		if (buflen && passwd[buflen-1] == '\r') passwd[buflen-1] = '\0';
 		
 		/* Check for illegal accesses */
-		if (strcmp(passwd, cfg_console_password))
+		if (!cfg_console_password || strcmp(passwd, cfg_console_password))
 		{
 			/* Clear buffer */
 			Sockbuf_clear(console_buf_w);

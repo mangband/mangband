@@ -1213,7 +1213,7 @@ static void player_admin(int Ind)
 #ifdef DEBUG
 	p_ptr->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
 #endif
-	if (!strcmp(p_ptr->name,cfg_dungeon_master))
+	if (cfg_dungeon_master && !strcmp(p_ptr->name, cfg_dungeon_master))
 	{
 		/* All DM powers ! */
 		p_ptr->dm_flags = 0xFFFFFFFF;
