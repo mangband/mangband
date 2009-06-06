@@ -312,6 +312,7 @@ void display_houses(int Ind, char query)
  */
 void do_cmd_check_artifacts(int Ind, int line)
 {
+	player_type *p_ptr = Players[Ind];
 	int i, j, k, z, Depth, y, x;
 
 	FILE *fff;
@@ -347,6 +348,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 		/* Skip "empty" artifacts */
 		if (!a_ptr->name) continue;
 
+		/* Hack -- allow found artifacts */
+		if (!p_ptr->a_info[k])
 		/* Skip "uncreated" artifacts */
 		if (!a_ptr->cur_num) continue;
 
@@ -413,6 +416,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	for (k = 0; k < MAX_A_IDX; k++)
 	{
 		artifact_type *a_ptr = &a_info[k];
+		char highlite = 'D';
 
 		/* List "dead" ones */
 		if (!okay[k]) continue;
@@ -438,15 +442,19 @@ void do_cmd_check_artifacts(int Ind, int line)
 			object_desc_store(Ind, base_name, &forge, FALSE, 0);
 		}
 
+		/* Determine if it's relevant to the player asking */
+		if (p_ptr->a_info[k]) highlite = 'w';
+		if (p_ptr->a_info[k] >= cfg_preserve_artifacts) highlite = 'W';
+
 		/* Hack -- Build the artifact name */
-		fprintf(fff, "     The %s\n", base_name);
+		fprintf(fff, "%c     The %s\n", highlite, base_name);
 	}
 
 	/* Close the file */
 	my_fclose(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Artifacts Seen", line, 0);
+	show_file(Ind, file_name, "Artifacts Seen", line, 1);
 
 	/* Remove the file */
 	fd_kill(file_name);
