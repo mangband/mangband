@@ -893,9 +893,9 @@ static bool wr_savefile_new(int Ind)
 
 	/* write the artifacts sold list */
 	start_section("found_artifacts");
-	tmp16u = MAX_A_IDX;
+	tmp16u = z_info->a_max;
 	write_int("max_a_idx",tmp16u);
-	for (i = 0; i < MAX_A_IDX; i++)
+	for (i = 0; i < z_info->a_max; i++)
 	{
 		tmp16u = p_ptr->a_info[i];
 		write_int("a_info",tmp16u);
@@ -1492,7 +1492,7 @@ static bool wr_server_savefile(void)
 
         /* Hack -- Dump the artifacts */
 		start_section("artifacts");
-        tmp16u = MAX_A_IDX;
+        tmp16u = z_info->a_max;
 		write_uint("max_a_idx",tmp16u);
         for (i = 0; i < tmp16u; i++)
         {

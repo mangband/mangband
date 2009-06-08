@@ -1845,12 +1845,12 @@ static errr rd_savefile_new_aux(int Ind)
 		/* If we have an unexpected number of arts, just reset our list
 		 * of sold artifacts. It's not so important we want to break
 		 * save file compatability for it. */
-		if( tmp16u != MAX_A_IDX )
+		if( tmp16u != z_info->a_max )
 		{
 			clear = TRUE;
 			tmp16u = 0;
 		}
-		for(i = 0; i < MAX_A_IDX; i++)
+		for(i = 0; i < z_info->a_max; i++)
 		{
 			if(i < tmp32u)
 			{
@@ -1982,7 +1982,7 @@ errr rd_server_savefile()
 		tmp16u = read_int("max_a_idx");
 
         /* Incompatible save files */
-        if (tmp16u > MAX_A_IDX)
+        if (tmp16u > z_info->a_max)
         {
                 note(format("Too many (%u) artifacts!", tmp16u));
                 return (24);

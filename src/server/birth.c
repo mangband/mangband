@@ -482,6 +482,7 @@ static void player_wipe(int Ind)
 	monster_lore *old_lore;
 	monster_lore *l_ptr;
 	byte *old_channels;
+	byte *old_arts;
 	int i;
 
 
@@ -489,6 +490,7 @@ static void player_wipe(int Ind)
 	old_inven = p_ptr->inventory;
 	old_lore = p_ptr->l_list;
 	old_channels = p_ptr->on_channel;
+	old_arts = p_ptr->a_info;
 
 	/* Clear character history ! */
 	history_wipe(p_ptr->charhist);
@@ -500,6 +502,7 @@ static void player_wipe(int Ind)
 	p_ptr->inventory = old_inven;
 	p_ptr->l_list = old_lore;
 	p_ptr->on_channel = old_channels;
+	p_ptr->a_info = old_arts;
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -1221,6 +1224,49 @@ static void player_admin(int Ind)
 	}
 }
 
+/*
+ * Allocate player structure
+ */
+player_type* player_alloc(int Ind)
+{
+	/* Allocate memory for him */
+	MAKE(Players[Ind], player_type);
+
+	/* Allocate memory for his inventory */
+	C_MAKE(Players[Ind]->inventory, INVEN_TOTAL, object_type);
+
+	/* Allocate memory for his lore array */
+	C_MAKE(Players[Ind]->l_list, z_info->r_max, monster_lore);
+
+	/* Allocate memory for his artifact array */
+	C_MAKE(Players[Ind]->a_info, z_info->a_max, byte);
+
+	/* Hack -- initialize history */
+	Players[Ind]->charhist = NULL;
+
+	/* Set pointer */
+	return Players[Ind];
+}
+/* 
+ * Free player structure
+ */
+void player_free(player_type *p_ptr)
+{
+	if (!p_ptr) return;
+
+	if (p_ptr->inventory)
+		C_KILL(p_ptr->inventory, INVEN_TOTAL, object_type);
+
+	if (p_ptr->l_list)
+		C_KILL(p_ptr->l_list, z_info->r_max, monster_lore);
+
+	if (p_ptr->a_info)
+		C_KILL(p_ptr->a_info, z_info->a_max, byte);
+
+	history_wipe(p_ptr->charhist);
+
+	KILL(p_ptr, player_type);
+}
 
 /*
  * Create a character.  Then wait for a moment.
@@ -1242,23 +1288,11 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	if (class < 0 || class >= z_info->c_max) class = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
-	/* Allocate memory for him */
-	MAKE(Players[Ind], player_type);
-
-	/* Allocate memory for his inventory */
-	C_MAKE(Players[Ind]->inventory, INVEN_TOTAL, object_type);
-
-	/* Allocate memory for his lore array */
-	C_MAKE(Players[Ind]->l_list, z_info->r_max, monster_lore);
-
-	/* Set pointer */
-	p_ptr = Players[Ind];
+	/* Allocate player and set pointer */
+	p_ptr = player_alloc(Ind);
 
 	/* Copy channels pointer */
 	p_ptr->on_channel = Conn_get_console_channels(conn);
-
-	/* Hack -- initialize history */
-	p_ptr->charhist = NULL;
 
 	/* Clear old information */
 	player_wipe(Ind);

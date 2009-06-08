@@ -425,9 +425,9 @@ header z_head;
 /*header v_head;
 header f_head;
 header k_head;
-header a_head;
 header e_head;
 header r_head;*/
+header a_head;
 header p_head;
 header c_head;
 header h_head;
@@ -991,86 +991,31 @@ static errr init_k_info(void)
  * Note that we let each entry have a unique "name" and "text" string,
  * even if the string happens to be empty (everyone has a unique '\0').
  */
+/*
+ * Initialize the "a_info" array
+ */
 static errr init_a_info(void)
 {
 	errr err;
 
-	FILE *fp;
+	/* Init the header */
+	init_header(&a_head, z_info->a_max, sizeof(artifact_type));
 
-	/* General buffer */
-	char buf[1024];
+#ifdef ALLOW_TEMPLATES
 
+	/* Save a pointer to the parsing function */
+	a_head.parse_info_txt = parse_a_info;
 
-	/*** Make the "header" ***/
+#endif /* ALLOW_TEMPLATES */
 
-	/* Allocate the "header" */
-	MAKE(a_head, header);
+	err = init_info("artifact", &a_head);
 
-	/* Save the "version" */
-	a_head->v_major = SERVER_VERSION_MAJOR;
-	a_head->v_minor = SERVER_VERSION_MINOR;
-	a_head->v_patch = SERVER_VERSION_PATCH;
-	a_head->v_extra = 0;
+	/* Set the global variables */
+	a_info = a_head.info_ptr;
+	a_name = a_head.name_ptr;
+	a_text = a_head.text_ptr;
 
-	/* Save the "record" information */
-	a_head->info_num = MAX_A_IDX;
-	a_head->info_len = sizeof(artifact_type);
-
-	/* Save the size of "a_head" and "a_info" */
-	a_head->head_size = sizeof(header);
-	a_head->info_size = a_head->info_num * a_head->info_len;
-
-	/*** Make the fake arrays ***/
-
-	/* Fake the size of "a_name" and "a_text" */
-	fake_name_size = 20 * 1024L;
-	fake_text_size = 60 * 1024L;
-
-	/* Allocate the "a_info" array */
-	C_MAKE(a_info, a_head->info_num, artifact_type);
-
-	/* Hack -- make "fake" arrays */
-	C_MAKE(a_name, fake_name_size, char);
-	C_MAKE(a_text, fake_text_size, char);
-
-
-	/*** Load the ascii template file ***/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "artifact.txt");
-
-	/* Open the file */
-	fp = my_fopen(buf, "r");
-
-	/* Parse it */
-	if (!fp) quit("Cannot open 'artifact.txt' file.");
-
-	/* Parse the file */
-	err = init_a_info_txt(fp, buf);
-
-	/* Close it */
-	my_fclose(fp);
-
-	/* Errors */
-	if (err)
-	{
-		cptr oops;
-
-		/* Error string */
-		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
-
-		/* Oops */
-		plog(format("Error %d at line %d of 'artifact.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
-		/*msg_print(NULL);*/
-
-		/* Quit */
-		quit("Error in 'artifact.txt' file.");
-	}
-
-	/* Success */
-	return (0);
+	return (err);
 }
 
 
@@ -2904,6 +2849,7 @@ void cleanup_angband(void)
 	free_info(&c_head);
 	free_info(&p_head);
 	free_info(&h_head);
+	free_info(&a_head);
 
 #define Ifree_info(L,T) \
 	free_info((header*)L ## _head); \
@@ -2915,7 +2861,6 @@ void cleanup_angband(void)
 	Ifree_info(v, vault_type);
 	Ifree_info(r, monster_race);
 	Ifree_info(e, ego_item_type);
-	Ifree_info(a, artifact_type);
 	Ifree_info(k, object_kind);
 	Ifree_info(f, feature_type);
 

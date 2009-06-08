@@ -928,18 +928,8 @@ static void Delete_player(int Ind)
 	/* Recalculate player-player visibility */
 	update_players();
 
-	if (p_ptr)
-	{
-		if (p_ptr->inventory)
-			C_KILL(p_ptr->inventory, INVEN_TOTAL, object_type);
-
-		if (p_ptr->l_list)
-			C_KILL(p_ptr->l_list, z_info->r_max, monster_lore);
-
-		history_wipe(p_ptr->charhist);
-
-		KILL(p_ptr, player_type);
-	}
+	/* Free memory */
+	player_free(p_ptr);
 
 	/* Clear the player slot previously used */
 	Players[NumPlayers] = NULL;

@@ -321,7 +321,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 	char base_name[80];
 
-	bool okay[MAX_A_IDX];
+	bool *okay;
 
 
 	/* Temporary file */
@@ -336,9 +336,12 @@ void do_cmd_check_artifacts(int Ind, int line)
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
 	}
+	
+	/* Init Array */
+	C_MAKE(okay, z_info->a_max, bool);
 
 	/* Scan the artifacts */
-	for (k = 0; k < MAX_A_IDX; k++)
+	for (k = 0; k < z_info->a_max; k++)
 	{
 		artifact_type *a_ptr = &a_info[k];
 
@@ -413,7 +416,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	}
 
 	/* Scan the artifacts */
-	for (k = 0; k < MAX_A_IDX; k++)
+	for (k = 0; k < z_info->a_max; k++)
 	{
 		artifact_type *a_ptr = &a_info[k];
 		char highlite = 'D';
@@ -449,6 +452,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 		/* Hack -- Build the artifact name */
 		fprintf(fff, "%c     The %s\n", highlite, base_name);
 	}
+	
+	/* Free array */
+	FREE(okay, bool);
 
 	/* Close the file */
 	my_fclose(fff);

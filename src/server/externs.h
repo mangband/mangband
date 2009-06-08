@@ -306,7 +306,6 @@ extern s16b player_hp[PY_MAX_LEVEL];*/
 extern header *v_head;
 extern header *f_head;
 extern header *k_head;
-extern header *a_head;
 extern header *e_head;
 extern header *r_head;
 extern vault_type *v_info;
@@ -379,6 +378,7 @@ extern const player_sex sex_info[MAX_SEXES];
  */
 
 /* birth.c */
+extern void player_free(player_type *p_ptr);
 extern bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[]);
 extern void server_birth(void);
 extern bool client_version_ok(u16b version);

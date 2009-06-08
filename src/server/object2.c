@@ -1995,7 +1995,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 	if (o_ptr->number != 1) return (FALSE);
 
 	/* Check the artifact list (skip the "specials") */
-	for (i = ART_MIN_NORMAL; i < MAX_A_IDX; i++)
+	for (i = ART_MIN_NORMAL; i < z_info->a_max; i++)
 	{
 		artifact_type *a_ptr = &a_info[i];
 		bool okay = TRUE;

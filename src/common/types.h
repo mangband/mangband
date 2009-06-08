@@ -515,8 +515,8 @@ struct object_kind
 
 struct artifact_type
 {
-	u16b name;			/* Name (offset) */
-	u16b text;			/* Text (offset) */
+	u32b name;			/* Name (offset) */
+	u32b text;			/* Text (offset) */
 
 	byte tval;			/* Artifact type */
 	byte sval;			/* Artifact sub type */
@@ -1578,7 +1578,7 @@ struct player_type
 	hturn turn;			/* Actual player turns */
 	hturn old_turn;		/* Turn when player entered current level */
 	
-	byte a_info[MAX_A_IDX]; /* Artifacts player has encountered */
+	byte *a_info; /* Artifacts player has encountered */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
 	bool in_hack;		/* Temporary flag, not guaranteed to stay same between function calls */
 
