@@ -160,6 +160,7 @@
 #define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)
 
 /* 
- * Stores
+ * MAngband-specific miscellaneous hacks
  */
-#define PURSE_MULTIPLIER 5 
+#define PURSE_MULTIPLIER 5 /* For store owners */
+#define RIFT_RESIST_TELEPORT 127 /* For monsters */

@@ -2757,7 +2757,11 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		case GF_GRAVITY:
 		{
 			if (seen) obvious = TRUE;
-			do_dist = 10;
+
+			/* Higher level monsters can resist the teleportation better */
+			if (randint(RIFT_RESIST_TELEPORT) > r_ptr->level)
+				do_dist = 10;
+
 			if (r_ptr->flags4 & RF4_BR_GRAV)
 			{
 				note = " resists.";
@@ -3976,7 +3980,10 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		case GF_GRAVITY:
 		if (fuzzy) msg_print(Ind, "You are hit by something strange!");
 		msg_print(Ind, "Gravity warps around you.");
-		teleport_player(Ind, 5);
+		/* Higher level players can resist the teleportation better */
+		if (randint(127) > p_ptr->lev)
+			teleport_player(Ind, 5);		
+
 		(void)set_slow(Ind, p_ptr->slow + rand_int(4) + 4);
 		if (!p_ptr->resist_sound)
 		{
