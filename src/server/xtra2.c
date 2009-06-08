@@ -5724,6 +5724,26 @@ bool master_summon(int Ind, char * parms)
 	
 	switch (summon_type)
 	{
+		/* find monster */
+		case 'f':
+		{
+			/* figure out who to summon */
+			r_idx = master_summon_aux_monster_type(monster_type, monster_parms);
+			
+			break;
+		}
+		case '<':
+		{
+			/* prev monster */
+			if (r_idx > 0) r_idx--;
+			break;
+		}		
+		case '>':
+		{
+			/* next monster */
+			if (r_idx < z_info->r_max-2) r_idx++;
+			break;
+		}	
 		/* summon x here */
 		case 'x':
 		{
@@ -5737,9 +5757,6 @@ bool master_summon(int Ind, char * parms)
 					break;
 				}
 
-				/* figure out who to summon */
-				r_idx = master_summon_aux_monster_type(monster_type, monster_parms);
-
 				/* summon the monster, if we have a valid one */
 				if (r_idx)
 					summon_specific_race(p_ptr->dun_depth, p_ptr->py, p_ptr->px, r_idx, 1);
@@ -5752,8 +5769,6 @@ bool master_summon(int Ind, char * parms)
 		{
 			for (c = 0; c < summon_parms; c++)
 			{
-				/* figure out who to summon */
-				r_idx = master_summon_aux_monster_type(monster_type, monster_parms);
 				/* summon the monster at a random location */
 				if (r_idx)
 					summon_specific_race_somewhere(p_ptr->dun_depth,r_idx, 1);
@@ -5766,8 +5781,7 @@ bool master_summon(int Ind, char * parms)
 		{
 			/* figure out how many to summon */
 			size = rand_int(rand_int(50)) + 2;
-			/* figure out who to summon */
-			r_idx = master_summon_aux_monster_type(monster_type, monster_parms);
+
 			/* summon the group here */
 			summon_specific_race(p_ptr->dun_depth, p_ptr->py, p_ptr->px, r_idx, size);
 			break;
@@ -5777,8 +5791,7 @@ bool master_summon(int Ind, char * parms)
 		{
 			/* figure out how many to summon */
 			size = rand_int(rand_int(50)) + 2;
-			/* figure out who to summon */
-			r_idx = master_summon_aux_monster_type(monster_type, monster_parms);
+
 			/* someone the group at a random location */
 			summon_specific_race_somewhere(p_ptr->dun_depth, r_idx, size);
 			break;
@@ -5800,6 +5813,18 @@ bool master_summon(int Ind, char * parms)
 			break;
 		}
 	}
+
+	/* Display */
+	if (r_idx) 
+	{
+		monster_race *r_ptr = &r_info[r_idx];
+		Send_special_line(Ind, 16, 21, TERM_WHITE, format("Monster: %s", r_name + r_ptr->name ));
+	} 
+	else 
+	{											   
+		Send_special_line(Ind, 16, 21, TERM_WHITE, "Monster: <None/Genocide>                                    ");
+	}
+
 
 	return TRUE;
 }

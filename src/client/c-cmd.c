@@ -2718,6 +2718,13 @@ void cmd_master_aux_summon(void)
 			default : bell(); redo_hack = 1; break;
 		}
 
+		/* Hack -- inform server about monster */
+		buf[0] = 'f';
+		buf[1] = ' ';
+		Send_master(MASTER_SUMMON, buf);
+		/* do not resend name later */
+		buf[2] = '\0';
+
 		/* get how it should be summoned */
 
 		/* hack -- make sure our method is unset so we only send 
@@ -2744,9 +2751,11 @@ void cmd_master_aux_summon(void)
 			Term_putstr(5, 6, -1, TERM_WHITE, "(3) Group here");
 			Term_putstr(5, 7, -1, TERM_WHITE, "(4) Group at random location");
 			Term_putstr(5, 8, -1, TERM_WHITE, "(5) Summoning mode");
+			Term_putstr(5, 9, -1, TERM_WHITE, "(>) Next monster");
+			Term_putstr(5,10, -1, TERM_WHITE, "(>) Previous monster");
 
 			/* Prompt */
-			Term_putstr(0, 10, -1, TERM_WHITE, "Command: ");
+			Term_putstr(0, 12, -1, TERM_WHITE, "Command: ");
 
 			/* Get a key */
 			i = inkey();
@@ -2757,6 +2766,13 @@ void cmd_master_aux_summon(void)
 			/* get the type of summoning */
 			switch (i)
 			{
+				/* next/prev */
+				case '<':
+				case '>':
+				{
+					buf[0] = i;
+					break;
+				}
 				/* X here */
 				case '1': 
 				{

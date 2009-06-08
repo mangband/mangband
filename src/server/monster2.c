@@ -2931,10 +2931,15 @@ int race_index_fuzzy(char * name)
 	char monster[MAX_CHARS];
 	char* str;
 	char* dst;
+	char* fnd;
 	int i;
+	bool must_start = FALSE;
 
 	/* Lowercase our search string */
 	for(str=name;*str;str++) *str=tolower(*str);
+	
+	/* extract search hints */
+	if (name[0] == '^') { name++; must_start = TRUE; }
 
 	/* for each monster race */
 	for (i = 1; i <= alloc_race_size; i++)
@@ -2947,7 +2952,7 @@ int race_index_fuzzy(char * name)
 		}
 		*dst++ = '\0';
 		/* If cleaned name matches our search string, return it */
-		if (strstr(monster,name)) return i;
+		if ((fnd = strstr(monster,name)) && (!must_start || fnd == monster)) return i;
 	}
 	return 0;
 }
