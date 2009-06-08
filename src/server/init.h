@@ -66,7 +66,8 @@ extern s16b error_line;
  * File headers
  */
 extern header z_head;
-/*extern header v_head;
+extern header v_head;
+/*
 extern header f_head;
 extern header k_head;
 extern header r_head;*/

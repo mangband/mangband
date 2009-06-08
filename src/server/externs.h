@@ -303,7 +303,6 @@ extern u32b spell_forgotten1;
 extern u32b spell_forgotten2;
 extern byte spell_order[64];
 extern s16b player_hp[PY_MAX_LEVEL];*/
-extern header *v_head;
 extern header *f_head;
 extern header *k_head;
 extern header *r_head;

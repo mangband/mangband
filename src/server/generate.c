@@ -2696,7 +2696,7 @@ static void build_type7(int Depth, int yval, int xval)
 	while (TRUE)
 	{
 		/* Access a random vault record */
-		v_ptr = &v_info[rand_int(MAX_V_IDX)];
+		v_ptr = &v_info[rand_int(z_info->v_max)];
 
 		/* Accept the first lesser vault */
 		if (v_ptr->typ == 7) break;
@@ -2732,7 +2732,7 @@ static void build_type8(int Depth, int yval, int xval)
 	while (TRUE)
 	{
 		/* Access a random vault record */
-		v_ptr = &v_info[rand_int(MAX_V_IDX)];
+		v_ptr = &v_info[rand_int(z_info->v_max)];
 
 		/* Accept the first greater vault */
 		if (v_ptr->typ == 8) break;

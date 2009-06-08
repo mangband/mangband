@@ -422,7 +422,8 @@ static cptr err_str[PARSE_ERROR_MAX] =
  * File headers
  */
 header z_head;
-/*header v_head;
+header v_head;
+/*
 header f_head;
 header k_head;
 header r_head;*/
@@ -1263,91 +1264,30 @@ static errr init_r_info(void)
 
 
 /*
- * Initialize the "v_info" array (Vault handling)
- *
- * Note that we let each entry have a unique "name" and "text" string,
- * even if the string happens to be empty (everyone has a unique '\0').
+ * Initialize the "v_info" array
  */
 static errr init_v_info(void)
 {
 	errr err;
 
-	FILE *fp;
+	/* Init the header */
+	init_header(&v_head, z_info->v_max, sizeof(vault_type));
 
-	/* General buffer */
-	char buf[1024];
+#ifdef ALLOW_TEMPLATES
 
+	/* Save a pointer to the parsing function */
+	v_head.parse_info_txt = parse_v_info;
 
-	/*** Make the header ***/
+#endif /* ALLOW_TEMPLATES */
 
-	/* Allocate the "header" */
-	MAKE(v_head, header);
+	err = init_info("vault", &v_head);
 
-	/* Save the "version" */
-	v_head->v_major = SERVER_VERSION_MAJOR;
-	v_head->v_minor = SERVER_VERSION_MINOR;
-	v_head->v_patch = SERVER_VERSION_PATCH;
-	v_head->v_extra = 0;
+	/* Set the global variables */
+	v_info = v_head.info_ptr;
+	v_name = v_head.name_ptr;
+	v_text = v_head.text_ptr;
 
-	/* Save the "record" information */
-	v_head->info_num = MAX_V_IDX;
-	v_head->info_len = sizeof(vault_type);
-
-	/* Save the size of "v_head" and "v_info" */
-	v_head->head_size = sizeof(header);
-	v_head->info_size = v_head->info_num * v_head->info_len;
-
-	/*** Make the fake arrays ***/
-
-	/* Fake the size of "v_name" and "v_text" */
-	fake_name_size = 20 * 1024L;
-	fake_text_size = 120 * 1024L;
-
-	/* Allocate the "k_info" array */
-	C_MAKE(v_info, v_head->info_num, vault_type);
-
-	/* Hack -- make "fake" arrays */
-	C_MAKE(v_name, fake_name_size, char);
-	C_MAKE(v_text, fake_text_size, char);
-
-
-	/*** Load the ascii template file ***/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "vault.txt");
-
-	/* Open the file */
-	fp = my_fopen(buf, "r");
-
-	/* Parse it */
-	if (!fp) quit("Cannot open 'vault.txt' file.");
-
-	/* Parse the file */
-	err = init_v_info_txt(fp, buf);
-
-	/* Close it */
-	my_fclose(fp);
-
-	/* Errors */
-	if (err)
-	{
-		cptr oops;
-
-		/* Error string */
-		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
-
-		/* Oops */
-		plog(format("Error %d at line %d of 'vault.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
-		/*msg_print(NULL);*/
-
-		/* Quit */
-		quit("Error in 'vault.txt' file.");
-	}
-
-	/* Success */
-	return (0);
+	return (err);
 }
 
 
@@ -2786,6 +2726,7 @@ void cleanup_angband(void)
 	free_info(&g_head);
 	free_info(&b_head);
 	free_info(&c_head);
+	free_info(&v_head);	
 	free_info(&p_head);
 	free_info(&h_head);
 	free_info(&e_head);	
@@ -2798,7 +2739,6 @@ void cleanup_angband(void)
 	FREE(L ## _name, char); \
 	FREE(L ## _text, char);
 
-	Ifree_info(v, vault_type);
 	Ifree_info(r, monster_race);
 	Ifree_info(k, object_kind);
 	Ifree_info(f, feature_type);

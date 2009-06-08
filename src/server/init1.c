@@ -925,174 +925,100 @@ errr parse_z_info(char *buf, header *head)
 /*
  * Initialize the "v_info" array, by parsing an ascii "template" file
  */
-errr init_v_info_txt(FILE *fp, char *buf)
+errr parse_v_info(char *buf, header *head)
 {
 	int i;
 
 	char *s;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	vault_type *v_ptr = NULL;
+	static vault_type *v_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Prepare the "fake" stuff */
-	v_head->name_size = 0;
-	v_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf, "V:%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != v_head->v_major) ||
-			    (v2 != v_head->v_minor) ||
-			    (v3 != v_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		v_ptr = (vault_type*)head->info_ptr + i;
 
-
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i <= error_idx) return (4);
-
-			/* Verify information */
-			if (i >= v_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			v_ptr = &v_info[i];
-
-			/* Hack -- Verify space */
-			if (v_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!v_ptr->name) v_ptr->name = ++v_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(v_name + v_head->name_size, s);
-
-			/* Advance the index */
-			v_head->name_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current v_ptr */
-		if (!v_ptr) return (3);
-
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (v_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!v_ptr->text) v_ptr->text = ++v_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(v_text + v_head->text_size, s);
-
-			/* Advance the index */
-			v_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Process 'X' for "Extra info" (one line only) */
-		if (buf[0] == 'X')
-		{
-			int typ, rat, hgt, wid;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%d",
-			                &typ, &rat, &hgt, &wid)) return (1);
-
-			/* Save the values */
-			v_ptr->typ = typ;
-			v_ptr->rat = rat;
-			v_ptr->hgt = hgt;
-			v_ptr->wid = wid;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Store the name */
+		if (!(v_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 	}
 
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current v_ptr */
+		if (!v_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
-	/* Complete the "name" and "text" sizes */
-	++v_head->name_size;
-	++v_head->text_size;
+		/* Get the text */
+		s = buf+2;
 
+		/* Store the text */
+		if (!add_text(&v_ptr->text, head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
 
-	/* No version yet */
-	if (!okay) return (2);
+	/* Process 'X' for "Extra info" (one line only) */
+	else if (buf[0] == 'X')
+	{
+		int typ, rat, hgt, wid;
 
+		/* There better be a current v_ptr */
+		if (!v_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &typ, &rat, &hgt, &wid)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		v_ptr->typ = typ;
+		v_ptr->rat = rat;
+		v_ptr->hgt = hgt;
+		v_ptr->wid = wid;
+
+		/* Check for maximum vault sizes */
+		if ((v_ptr->typ == 7) && ((v_ptr->wid > 33) || (v_ptr->hgt > 22)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+
+		if ((v_ptr->typ == 8) && ((v_ptr->wid > 66) || (v_ptr->hgt > 44)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+
+		/* HACK -- Allow Gigantic vaults */
+		if ((v_ptr->typ == 9) && ((v_ptr->wid > 99) || (v_ptr->hgt > 66)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+		if ((v_ptr->typ == 9)) v_ptr->typ = 8;
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);

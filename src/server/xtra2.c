@@ -5833,9 +5833,9 @@ vault_type *get_vault(char *name)
 {
 	int i;
 	
-	for(i=0; i<MAX_V_IDX; i++)
+	for(i = 0; i < z_info->v_max; i++)
 	{
-		if(strstr(v_name + v_info[i].name, name))
+		if(my_stristr(v_name + v_info[i].name, name))
 			return &v_info[i];
 	}
 
