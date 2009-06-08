@@ -133,6 +133,10 @@
 #define SPECIAL_FILE_HELP	6
 #define SPECIAL_FILE_KNOWLEDGE	7
 #define SPECIAL_FILE_HOUSES	8
+#define SPECIAL_FILE_OBJECT	9
+#define SPECIAL_FILE_KILL	10
+#define SPECIAL_FILE_HISTORY	11
+#define SPECIAL_FILE_SELF	12
 
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))

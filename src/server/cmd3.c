@@ -1881,13 +1881,12 @@ static cptr ident_info[] =
 
 
 /*
- * Sorting hook -- Comp function -- see below
+ * Sorting hook -- Comp function -- "by monster something"
  *
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform on "u".
  */
-#if 0
-static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
+bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 {
 	u16b *who = (u16b*)(u);
 
@@ -1904,8 +1903,12 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 	if (*why >= 4)
 	{
 		/* Extract player kills */
-		z1 = r_info[w1].r_pkills;
-		z2 = r_info[w2].r_pkills;
+		player_type  *p_ptr = Players[Ind];
+		monster_lore *l1_ptr = p_ptr->l_list + w1;
+		monster_lore *l2_ptr = p_ptr->l_list + w2;
+
+		z1 = l1_ptr->pkills;
+		z2 = l2_ptr->pkills;
 
 		/* Compare player kills */
 		if (z1 < z2) return (TRUE);
@@ -1955,33 +1958,27 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 	/* Compare indexes */
 	return (w1 <= w2);
 }
-#endif
 
 
 /*
- * Sorting hook -- Swap function -- see below
+ * Sorting hook -- Swap function -- "for u16b"
  *
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform.
  */
-#if 0
-static void ang_sort_swap_hook(int Ind, vptr u, vptr v, int a, int b)
+void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b)
 {
 	u16b *who = (u16b*)(u);
-
 	u16b holder;
 
 	/* XXX XXX */
 	v = v ? v : 0;
-
-	Ind = Ind;
 
 	/* Swap */
 	holder = who[a];
 	who[a] = who[b];
 	who[b] = holder;
 }
-#endif
 
 
 /*

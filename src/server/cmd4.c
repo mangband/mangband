@@ -691,6 +691,156 @@ void do_cmd_check_players(int Ind, int line)
 
 
 /*
+ * Display known objects
+ */
+static void do_cmd_knowledge_object(int Ind, int line)
+{
+	int k;
+
+	FILE *fff;
+
+	char o_name[80];
+
+	char file_name[1024];
+
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Temporary file */
+	if (path_temp(file_name, 1024)) return;
+
+	/* Open a new file */
+	fff = my_fopen(file_name, "w");
+
+	/* Failure */
+	if (!fff) return;
+
+	/* Scan the object kinds */
+	for (k = 1; k < z_info->k_max; k++)
+	{
+		object_kind *k_ptr = &k_info[k];
+
+		/* Hack -- skip artifacts */
+		if (k_ptr->flags3 & (TR3_INSTA_ART)) continue;
+
+		/* List known flavored objects */
+		if (k_ptr->flavor && p_ptr->obj_aware[k])
+		{
+			object_type *i_ptr;
+			object_type object_type_body;
+			char flav[80];
+
+			/* Get local object */
+			i_ptr = &object_type_body;
+
+			/* Create fake object */
+			object_prep(i_ptr, k);
+
+			/* Describe the object */
+			object_desc(Ind, o_name, i_ptr, FALSE, 0);
+			/*object_desc_spoil(o_name, sizeof(o_name), i_ptr, FALSE, 0);*/
+
+			/* HACK -- Append flavour */
+			strcat(o_name, " (");
+			flavor_copy(flav, k_ptr->flavor, i_ptr); 
+			strcat(o_name, flav);
+			strcat(o_name, ")");
+
+			/* Print a message */
+			fprintf(fff, "     %s\n", o_name);
+		}
+	}
+
+	/* Close the file */
+	my_fclose(fff);
+
+	/* Display the file contents */
+	show_file(Ind, file_name, "Known Objects", line, 0);
+
+	/* Remove the file */
+	fd_kill(file_name);
+}
+
+
+
+/*
+ * Display kill counts
+ */
+static void do_cmd_knowledge_kills(int Ind, int line)
+{
+	int n, i;
+
+	FILE *fff;
+
+	char file_name[1024];
+
+	u16b *who;
+	u16b why = 4;
+
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Temporary file */
+	if (path_temp(file_name, 1024)) return;
+
+	/* Open a new file */
+	fff = my_fopen(file_name, "w");
+
+	/* Failure */
+	if (!fff) return;
+
+
+	/* Allocate the "who" array */
+	C_MAKE(who, z_info->r_max, u16b);
+
+	/* Collect matching monsters */
+	for (n = 0, i = 1; i < z_info->r_max - 1; i++)
+	{
+		monster_race *r_ptr = &r_info[i];
+		monster_lore *l_ptr = p_ptr->l_list + i;
+
+		/* Require non-unique monsters */
+		if (r_ptr->flags1 & RF1_UNIQUE) continue;
+
+		/* Collect "appropriate" monsters */
+		if (l_ptr->pkills > 0) who[n++] = i;
+	}
+
+	/* Select the sort method */
+	ang_sort_comp = ang_sort_comp_monsters;
+	ang_sort_swap = ang_sort_swap_u16b;
+
+	/* Sort by kills (and level) */
+	ang_sort(Ind, who, &why, n);
+
+	/* Print the monsters (highest kill counts first) */
+	for (i = n - 1; i >= 0; i--)
+	{
+		monster_race *r_ptr = &r_info[who[i]];
+		monster_lore *l_ptr = p_ptr->l_list + who[i];
+
+		/* Print a message */
+		fprintf(fff, "     %-40s  %5d\n",
+		        (r_name + r_ptr->name), l_ptr->pkills);
+	}
+
+	/* Free the "who" array */
+	FREE(who, u16b);
+
+	/* Close the file */
+	my_fclose(fff);
+
+	/* Display the file contents */
+	show_file(Ind, file_name, "Kill counts", line, 0);
+
+	/* Remove the file */
+	fd_kill(file_name);
+}
+
+
+
+
+/*
  * Scroll through *ID* or Self Knowledge information.
  */
 void do_cmd_check_other(int Ind, int line)
@@ -816,6 +966,14 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 			common_peruse(Ind, query);
 			do_cmd_check_other(Ind, p_ptr->interactive_line);
 			break;
+		case SPECIAL_FILE_OBJECT:
+			common_peruse(Ind, query);
+			do_cmd_knowledge_object(Ind, p_ptr->interactive_line);	
+			break;
+		case SPECIAL_FILE_KILL:
+			common_peruse(Ind, query);
+			do_cmd_knowledge_kills(Ind, p_ptr->interactive_line);	
+			break;			
 		case SPECIAL_FILE_SCORES:
 			common_peruse(Ind, query);
 			display_scores(Ind, p_ptr->interactive_line);
@@ -890,9 +1048,19 @@ void do_cmd_knowledge(int Ind, char query)
 			p_ptr->special_file_type = SPECIAL_FILE_UNIQUE;
 			changed = TRUE;
 			break;
+		case '3':
+			Send_special_other(Ind, "Objects");
+			p_ptr->special_file_type = SPECIAL_FILE_OBJECT;
+			changed = TRUE;
+			break;
 		case '4':
 			Send_special_other(Ind, "High Scores");
 			p_ptr->special_file_type = SPECIAL_FILE_SCORES;
+			changed = TRUE;
+			break;
+		case '5':
+			Send_special_other(Ind, "Kill Count");
+			p_ptr->special_file_type = SPECIAL_FILE_KILL;
 			changed = TRUE;
 			break;
 		case '6':

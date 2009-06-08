@@ -486,6 +486,8 @@ extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
+extern bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b);
+extern void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b);
 
 /* cmd4.c */
 extern void do_cmd_redraw(void);
@@ -744,6 +746,8 @@ extern void Handle_direction(int Ind, int dir);
 extern void object_info_screen(const object_type *o_ptr);
 extern void flavor_init(void);
 extern void reset_visuals(void);
+extern void flavor_copy(char *buf, u16b flavor, object_type *o_ptr);
+extern void object_prep(object_type *o_ptr, int k_idx);
 extern void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
 extern void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
 extern void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode);

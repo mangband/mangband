@@ -621,6 +621,21 @@ static void flavor_assign_random(byte tval)
 	}
 }
 
+/* Copy object flavor into string */
+void flavor_copy(char *buf, u16b flavor, object_type *o_ptr)
+{
+	buf[0] = '\0';
+	if (o_ptr->tval == TV_SCROLL)
+	{
+		strcat(buf, "\"");
+		strcat(buf, scroll_adj[o_ptr->sval]);
+		strcat(buf, "\"");
+	}
+	else
+	{
+		strcpy(buf, flavor_text + flavor_info[flavor].text);
+	}
+}
 
 /*
  * Prepare the "variable" part of the "k_info" array.
