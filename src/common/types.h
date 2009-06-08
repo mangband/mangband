@@ -558,31 +558,29 @@ struct artifact_type
 
 struct ego_item_type
 {
-	u16b name;			/* Name (offset) */
-	u16b text;			/* Text (offset) */
-
-	byte rating;		/* Rating boost */
-		byte xtra;			/* Random powers (sustain, resist, ability) */
-
-	byte level;			/* Minimum level */
-	byte rarity;		/* Object rarity */
-
-    char max_to_h;		/* Maximum to-hit bonus */
-    char max_to_d;		/* Maximum to-dam bonus */
-    char max_to_a;		/* Maximum to-ac bonus */
-
-    char max_pval;		/* Maximum pval */
+	u32b name;			/* Name (offset) */
+	u32b text;			/* Text (offset) */
 
 	s32b cost;			/* Ego-item "cost" */
-
-    byte tval[3];		/* Possible tval for base item */
-    byte min_sval[3];	/* Mininum sval for base item */
-    byte max_sval[3];	/* Maximum sval for base item */
 
 	u32b flags1;		/* Ego-Item Flags, set 1 */
 	u32b flags2;		/* Ego-Item Flags, set 2 */
 	u32b flags3;		/* Ego-Item Flags, set 3 */
-    u32b flags4;		/* Ego-Item Flags, set 4 */
+
+	byte level;			/* Minimum level */
+	byte rarity;		/* Object rarity */
+	byte rating;		/* Rating boost */
+
+    byte tval[EGO_TVALS_MAX];		/* Possible tval for base item */
+    byte min_sval[EGO_TVALS_MAX];	/* Mininum sval for base item */
+    byte max_sval[EGO_TVALS_MAX];	/* Maximum sval for base item */
+
+    char max_to_h;		/* Maximum to-hit bonus */
+    char max_to_d;		/* Maximum to-dam bonus */
+    char max_to_a;		/* Maximum to-ac bonus */
+    char max_pval;		/* Maximum pval */
+
+	byte xtra;			/* Random powers (sustain, resist, ability) */
 };
 
 

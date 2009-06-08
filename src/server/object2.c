@@ -2326,7 +2326,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
     /* Retrieve an ego item randomly */
     while (--nbtries)
     {
-    	idx = rand_int(MAX_E_IDX);
+    	idx = rand_int(z_info->e_max);
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
@@ -2433,7 +2433,7 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
     /* Retrieve an ego item randomly */
     while (--nbtries)
     {
-    	idx = rand_int(MAX_E_IDX);
+    	idx = rand_int(z_info->e_max);
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
@@ -4735,7 +4735,7 @@ int ego_kind_index_fuzzy(char * name)
 	for(str=name;*str;str++) *str=tolower(*str);
 
 	/* for each ego kind race */
-	for (i = 1; i <= MAX_E_IDX; i++)
+	for (i = 1; i <= z_info->e_max; i++)
 	{
 		/* Clean up it's name */
 		dst = match;

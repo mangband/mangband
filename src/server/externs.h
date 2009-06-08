@@ -306,7 +306,6 @@ extern s16b player_hp[PY_MAX_LEVEL];*/
 extern header *v_head;
 extern header *f_head;
 extern header *k_head;
-extern header *e_head;
 extern header *r_head;
 extern vault_type *v_info;
 extern char *v_name;

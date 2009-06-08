@@ -2036,7 +2036,7 @@ void cmd_master_aux_generate_item(void)
 			/* Ego by number */
 			buf[1] = 'e';
 			buf[2] = '#';
-			buf[3] = c_get_quantity("EGO id? ", MAX_E_IDX);
+			buf[3] = c_get_quantity("EGO id? ", 255);
 			if(!buf[3]) redo_hack = 1;
 			buf[4] = 0;
 		}

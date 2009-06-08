@@ -6027,13 +6027,13 @@ bool master_generate(int Ind, char * parms)
 					/* best ego kind for selected base */
 					else if (parms[2] == 'e')
 					{
-						int i, rnd_offset = rand_int(MAX_E_IDX);
+						int i, rnd_offset = rand_int(z_info->e_max);
 						if (dm_obj.name2) rnd_offset = dm_obj.name2 + 1;
 
 						/* no base */
 						if (!last_k_idx) break;
 						
-						for (i = rnd_offset; i < MAX_E_IDX; i++)
+						for (i = rnd_offset; i < z_info->e_max; i++)
 						{
 							if (check_ego(&dm_obj, e_info[i].level, 0, i))
 							{
@@ -6123,7 +6123,7 @@ bool master_generate(int Ind, char * parms)
 				dm_updated = TRUE;
 			}
 			 
-			if ((last_e_idx != e_idx) && (e_idx > -1 && e_idx < MAX_E_IDX)) {
+			if ((last_e_idx != e_idx) && (e_idx > -1 && e_idx < z_info->e_max)) {
 				last_e_idx = e_idx; 
 				dm_updated = TRUE;
 			}			
