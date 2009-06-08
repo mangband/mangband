@@ -1058,7 +1058,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 
 	/* Don't allow certain inscriptions when selling */
-	if ((c = strstr(inscription,"for sale"))) 
+	if ((c = my_stristr(inscription,"for sale"))) 
 	{	
 		/* Can't sell unindentified items */
 		if (!object_known_p(Ind, o_ptr))

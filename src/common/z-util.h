@@ -69,6 +69,7 @@ extern char* ht_show(hturn *ht_ptr, int mode);
 /* Case insensitive comparison between two strings */
 extern int my_stricmp(const char *s1, const char *s2);
 extern int my_strnicmp(cptr a, cptr b, int n);
+extern const char *my_stristr(const char *haystack, const char *needle);
 
 /* Copy a string */
 extern size_t my_strcpy(char *buf, const char *src, size_t bufsize);

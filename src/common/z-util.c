@@ -228,6 +228,38 @@ int my_strnicmp(cptr a, cptr b, int n)
 	return 0;
 }
 
+/*
+ * Case insensitive strstr by Dave Sinkula
+ */
+const char *my_stristr(const char *haystack, const char *needle)
+{
+   if ( !*needle )
+   {
+      return haystack;
+   }
+   for ( ; *haystack; ++haystack )
+   {
+      if ( toupper(*haystack) == toupper(*needle) )
+      {
+         /*
+          * Matched starting char -- loop through remaining chars.
+          */
+         const char *h, *n;
+         for ( h = haystack, n = needle; *h && *n; ++h, ++n )
+         {
+            if ( toupper(*h) != toupper(*n) )
+            {
+               break;
+            }
+         }
+         if ( !*n ) /* matched all of 'needle' to null termination */
+         {
+            return haystack; /* return the start of the match */
+         }
+      }
+   }
+   return NULL;
+}
 
 /*
  * The my_strcpy() function copies up to 'bufsize'-1 characters from 'src'

@@ -48,7 +48,7 @@ s32b player_price_item(int Ind, object_type *o_ptr)
 	char *c;
 
 	/* Is this item for sale? */
-	if (o_ptr->note && (c = strstr(quark_str(o_ptr->note),"for sale")))
+	if (o_ptr->note && (c = my_stristr(quark_str(o_ptr->note), "for sale")))
 	{
 		askprice = 0;
 
@@ -1058,7 +1058,7 @@ static int display_inventory(int Ind)
 				{
 							
 					/* Is this item for sale? */
-					if((c = strstr(quark_str(o_ptr->note),"for sale")))
+					if((c = my_stristr(quark_str(o_ptr->note), "for sale")))
 					{
 						/* Get ask price */
 						c += 8; /* skip "for sale" */
@@ -1121,7 +1121,7 @@ int get_player_store_name(int num, char *name)
 			{
 							
 				/* Is this item for sale? */
-				if((c = strstr(quark_str(o_ptr->note),"store name")))
+				if((c = my_stristr(quark_str(o_ptr->note), "store name")))
 				{
 					/* Get name */
 					c += 10; /* skip "for sale" */
@@ -1313,7 +1313,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 						
 			/* Is this item for sale? */
 			if (!o_ptr->note) continue;
-			if((c = strstr(quark_str(o_ptr->note),"for sale")))
+			if((c = my_stristr(quark_str(o_ptr->note), "for sale")))
 			{
 				/* Get ask price */
 				c += 8; /* skip "for sale" */
@@ -1451,7 +1451,7 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 					if (o_ptr->note)
 					{
 						/* Is this item for sale? */
-						if((c = strstr(quark_str(o_ptr->note),"for sale")))
+						if((c = my_stristr(quark_str(o_ptr->note), "for sale")))
 						{
 							/* Is this the item we are looking for? */
 							if (item == stocked)
