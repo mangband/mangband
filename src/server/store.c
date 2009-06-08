@@ -37,48 +37,6 @@ static void say_comment_1(int Ind)
  */
 static int store_num = 7;
 
-/*
- * Buying and selling adjustments for race combinations.
- * Entry[owner][player] gives the basic "cost inflation".
- */
-static byte rgold_adj[MAX_RACES][MAX_RACES] =
-{
-    /*Hum, HfE, Elf, Hal, Gno, Dwa, HfO, HfT, Dun, HiE */
-
-	/* Human */
-    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105, 120 },
-
-	/* Half-Elf */
-    { 110, 100, 100, 105, 110, 120, 125, 130, 110, 100, 115 },
-
-	/* Elf */
-    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100, 115 },
-
-	/* Halfling */
-    { 115, 110, 105,  95, 105, 110, 115, 130, 115, 105, 115 },
-
-	/* Gnome */
-    { 115, 115, 110, 105,  95, 110, 115, 130, 115, 110, 125 },
-
-	/* Dwarf */
-    { 115, 120, 120, 110, 110,  95, 125, 135, 115, 120, 115 },
-
-	/* Half-Orc */
-    { 115, 120, 125, 115, 115, 130, 110, 115, 115, 125, 110 },
-
-	/* Half-Troll */
-    { 110, 115, 115, 110, 110, 130, 110, 110, 110, 115, 110 },
-
-	/* Dunedain  */
-    { 100, 105, 105, 110, 113, 115, 120, 125, 100, 105, 120 },
-
-	/* High_Elf */
-    { 110, 105, 100, 105, 110, 120, 125, 130, 110, 100, 125 },
-
-	/* Kobold */
-    { 110, 115, 120, 110, 105, 110, 110, 120, 110, 125,  90 }
-};
-
 
 /*
  * Determine the price of an item for direct sale
@@ -166,7 +124,7 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 
 
 	/* Compute the racial factor */
-	factor = rgold_adj[ot_ptr->owner_race][p_ptr->prace];
+	factor = g_info[(ot_ptr->owner_race * z_info->p_max) + p_ptr->prace];
 
 	/* Add in the charisma factor */
 	factor += adj_chr_gold[p_ptr->stat_ind[A_CHR]];

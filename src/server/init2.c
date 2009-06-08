@@ -1162,6 +1162,34 @@ static errr init_b_info(void)
 
 
 /*
+ * Initialize the "g_info" array
+ */
+static errr init_g_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&g_head, (u16b)(z_info->p_max * z_info->p_max), sizeof(byte));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	g_head.parse_info_txt = parse_g_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("cost_adj", &g_head);
+
+	/* Set the global variables */
+	g_info = g_head.info_ptr;
+	g_name = g_head.name_ptr;
+	g_text = g_head.text_ptr;
+
+	return (err);
+}
+
+
+/*
  * Initialize the "e_info" array (Ego item handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
@@ -2774,6 +2802,10 @@ void init_some_arrays(void)
 	/* Initialize owners info */
 	plog("[Initializing arrays... (owners)]");
 	if (init_b_info()) quit("Cannot initialize owners");
+
+	/* Initialize price info */
+	plog("[Initializing arrays... (prices)]");
+	if (init_g_info()) quit("Cannot initialize prices");
 
 	/* Initialize flavor info */
 	plog("[Initializing arrays... (flavors)]");
