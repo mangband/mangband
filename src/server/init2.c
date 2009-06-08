@@ -2464,7 +2464,7 @@ void set_server_option(char * option, char * value)
 	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
-		cfg_load_pref_file = string_make(value);
+		cfg_load_pref_file = strdup(value);
 	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
