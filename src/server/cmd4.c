@@ -837,6 +837,48 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	fd_kill(file_name);
 }
 
+void do_cmd_knowledge_history(int Ind, int line)
+{
+	FILE *fff;
+
+	char file_name[1024];
+
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Temporary file */
+	if (path_temp(file_name, 1024)) return;
+
+	/* Open a new file */
+	fff = my_fopen(file_name, "w");
+
+	/* Failure */
+	if (!fff) return;
+
+
+	/* Dump character history */
+	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
+	{
+		history_event *evt;
+		fprintf(fff, "Time       Depth   CLev  Event\n");
+		//fprintf(fff, "           Level   Level\n\n");
+		for(evt = p_ptr->charhist; evt; evt = evt->next)
+		{
+			fprintf(fff, format_history_event(evt));
+			fprintf(fff, "\n");
+		}
+		fprintf(fff, "\n\n");
+	}
+
+	/* Close the file */
+	my_fclose(fff);
+
+	/* Display the file contents */
+	show_file(Ind, file_name, "Character History", line, 0);
+
+	/* Remove the file */
+	fd_kill(file_name);
+}
 
 
 
@@ -964,6 +1006,8 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 			break;
 		case SPECIAL_FILE_OTHER:
 			common_peruse(Ind, query);
+			if (p_ptr->interactive_line > p_ptr->last_info_line)
+				p_ptr->interactive_line = p_ptr->last_info_line;
 			do_cmd_check_other(Ind, p_ptr->interactive_line);
 			break;
 		case SPECIAL_FILE_OBJECT:
@@ -973,7 +1017,11 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 		case SPECIAL_FILE_KILL:
 			common_peruse(Ind, query);
 			do_cmd_knowledge_kills(Ind, p_ptr->interactive_line);	
-			break;			
+			break;
+		case SPECIAL_FILE_HISTORY:
+			common_peruse(Ind, query);
+			do_cmd_knowledge_history(Ind, p_ptr->interactive_line);
+			break;
 		case SPECIAL_FILE_SCORES:
 			common_peruse(Ind, query);
 			display_scores(Ind, p_ptr->interactive_line);
@@ -981,7 +1029,7 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 		case SPECIAL_FILE_HOUSES:
 			common_peruse(Ind, query);
 			display_houses(Ind, query);
-			break;			
+			break;
 		case SPECIAL_FILE_HELP:
 			common_peruse(Ind, query);
 			do_cmd_help(Ind, p_ptr->interactive_line);
@@ -1017,7 +1065,9 @@ void do_cmd_knowledge(int Ind, char query)
 		text_out("    (3) Display known objects\n");
 		text_out("    (4) Display hall of fame\n");
 		text_out("    (5) Display kill counts\n");
-		text_out("    (6) Display owned houses\n");		
+		text_out("    (6) Display owned houses\n");
+		text_out("    (7) Display character history\n");
+		text_out("    (8) Display self-knowledge\n");
 
 		/* Prompt */
 		text_out(" \n");
@@ -1068,6 +1118,16 @@ void do_cmd_knowledge(int Ind, char query)
 			p_ptr->special_file_type = SPECIAL_FILE_HOUSES;
 			changed = TRUE;
 			break;
+		case '7':
+			Send_special_other(Ind, "Character History");
+			p_ptr->special_file_type = SPECIAL_FILE_HISTORY;
+			changed = TRUE;
+			break;
+		case '8':
+			self_knowledge(Ind, FALSE);
+			p_ptr->special_file_type = SPECIAL_FILE_OTHER;
+			changed = TRUE;
+			break;			
 	}
 	
 	/* HACK! - Move to another menu */

@@ -495,7 +495,66 @@ bool restore_level(int Ind)
 	return (FALSE);
 }
 
+/*
+ * Obtain the "flags" for the player as if he was an item.
+ *
+ * Include all spoilery bits.
+ *
+ * This function works alot like "calc_bonuses()", but in reverse.
+ */
+void player_flags_spoil(int Ind, u32b *f1, u32b * f2, u32b *f3)
+{
+	player_type *p_ptr = Players[Ind];
 
+	/* Non-spoiler flags */
+	player_flags(Ind, f1, f2, f3);
+
+	/* Spoilers: */
+	if (p_ptr->aggravate)	 *f3 |= TR3_AGGRAVATE; 
+	if (p_ptr->see_infra)	 *f1 |= TR1_INFRA;
+	if (p_ptr->see_inv)	     *f3 |= TR3_SEE_INVIS;
+	if (p_ptr->feather_fall) *f3 |= TR3_FEATHER;
+	if (p_ptr->free_act)	 *f3 |= TR3_FREE_ACT;
+	if (p_ptr->regenerate)	 *f3 |= TR3_REGEN;
+	if (p_ptr->slow_digest)	 *f3 |= TR3_SLOW_DIGEST;
+	if (p_ptr->telepathy == TR3_TELEPATHY)	 *f3 |= TR3_TELEPATHY;
+	if (p_ptr->hold_life)	 *f3 |= TR3_HOLD_LIFE;
+	if (p_ptr->lite)	     *f3 |= TR3_LITE;
+
+	if (p_ptr->immune_acid) *f2 |= TR2_IM_ACID;
+	if (p_ptr->resist_acid) *f2 |= TR2_RES_ACID;
+
+	if (p_ptr->immune_elec) *f2 |= TR2_IM_ELEC;
+	if (p_ptr->resist_elec) *f2 |= TR2_RES_ELEC;
+
+	if (p_ptr->immune_fire) *f2 |= TR2_IM_FIRE;
+	if (p_ptr->resist_fire) *f2 |= TR2_RES_FIRE;
+
+	if (p_ptr->immune_cold) *f2 |= TR2_IM_COLD;
+	if (p_ptr->resist_cold) *f2 |= TR2_RES_COLD;
+
+	if (p_ptr->resist_pois) *f2 |= TR2_RES_POIS;
+
+	if (p_ptr->resist_lite)	 *f2 |= TR2_RES_LITE;
+	if (p_ptr->resist_dark)	 *f2 |= TR2_RES_DARK;
+	if (p_ptr->resist_conf)	 *f2 |= TR2_RES_CONFU;
+	if (p_ptr->resist_sound) *f2 |= TR2_RES_SOUND;
+	if (p_ptr->resist_disen) *f2 |= TR2_RES_DISEN;
+	if (p_ptr->resist_chaos) *f2 |= TR2_RES_CHAOS;
+	if (p_ptr->resist_shard) *f2 |= TR2_RES_SHARD;
+	if (p_ptr->resist_nexus) *f2 |= TR2_RES_NEXUS;
+	if (p_ptr->resist_neth)	 *f2 |= TR2_RES_NETHR;
+	if (p_ptr->resist_fear)	 *f2 |= TR2_RES_FEAR;
+	if (p_ptr->resist_blind) *f2 |= TR2_RES_BLIND;
+
+	if (p_ptr->sustain_str) *f2 |= TR2_SUST_STR;
+	if (p_ptr->sustain_int) *f2 |= TR2_SUST_INT;
+	if (p_ptr->sustain_wis) *f2 |= TR2_SUST_WIS;
+	if (p_ptr->sustain_dex) *f2 |= TR2_SUST_DEX;
+	if (p_ptr->sustain_con) *f2 |= TR2_SUST_CON;
+	if (p_ptr->sustain_chr) *f2 |= TR2_SUST_CHR;
+}
+ 
 /*
  * self-knowledge... idea from nethack.  Useful for determining powers and
  * resistences of items.  It saves the screen, clears it, then starts listing
@@ -509,19 +568,23 @@ bool restore_level(int Ind)
  *
  * XXX XXX XXX Use the "show_file()" method, perhaps.
  */
-void self_knowledge(int Ind)
+void self_knowledge(int Ind, bool spoil)
 {
 	player_type *p_ptr = Players[Ind];
 
 	int		i = 0, k;
 
 	u32b	f1 = 0L, f2 = 0L, f3 = 0L;
-
+	u32b	o1 = 0L, o2 = 0L, o3 = 0L;
+	u32b t1, t2, t3;
+ 
 	object_type	*o_ptr;
 
 	int j,e; /* copy hack */
 	static cptr s_info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
 	cptr	*info = s_info;
+	
+
 
 	/* Clear the info area first. */
 	memset(s_info,0,sizeof(s_info));
@@ -532,15 +595,17 @@ void self_knowledge(int Ind)
 	/* Acquire item flags from equipment */
 	for (k = INVEN_WIELD; k < INVEN_TOTAL; k++)
 	{
-	        u32b t1, t2, t3;
-
+		t1 = t2 = t3 = 0L;
 		o_ptr = &p_ptr->inventory[k];
 
 		/* Skip empty items */
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the flags */
-	        object_flags(o_ptr, &t1, &t2, &t3);
+		if (spoil)
+			object_flags(o_ptr, &t1, &t2, &t3);
+		else
+			object_flags_known(Ind, o_ptr, &t1, &t2, &t3);
 
 		/* Extract flags */
 		f1 |= t1;
@@ -548,7 +613,22 @@ void self_knowledge(int Ind)
 		f3 |= t3;
 	}
 
+	/* Save object-only flags */
+	o1 = f1; o2 = f2; o3 = f3;
 
+	/* Acquire player flags */
+	t1 = t2 = t3 = 0L;	
+	if (!spoil)
+		player_flags(Ind, &t1, &t2, &t3);
+	else
+		player_flags_spoil(Ind, &t1, &t2, &t3);
+	/* Combine flags */
+	f1 |= t1;
+	f2 |= t2;
+	f3 |= t3;
+
+
+	/* Status */
 	if (p_ptr->blind)
 	{
 		info[i++] = "You cannot see.";
@@ -577,16 +657,12 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You are hallucinating.";
 	}
-
-	if (p_ptr->aggravate)
-	{
-		info[i++] = "You aggravate monsters.";
-	}
 	if (p_ptr->teleport)
 	{
         info[i++] = "You are teleporting.";
 	}
 
+	/* Spell effects */
 	if (p_ptr->blessed)
 	{
         info[i++] = "You feel righteous.";
@@ -627,173 +703,185 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You will soon be recalled.";
 	}
-	if (p_ptr->see_infra)
+
+	/* Equipment-related */
+	if (f3 & TR3_AGGRAVATE)
+	{
+		info[i++] = "You aggravate monsters.";
+	}
+	if (f1 & TR1_INFRA)
 	{
 		info[i++] = "Your eyes are sensitive to infrared light.";
 	}
-	if (p_ptr->see_inv)
+	if (f3 & TR3_SEE_INVIS)
 	{
 		info[i++] = "You can see invisible creatures.";
 	}
-	if (p_ptr->feather_fall)
+	if (f3 & TR3_FEATHER)
 	{
 		info[i++] = "You land gently.";
 	}
-	if (p_ptr->free_act)
+	if (f3 & TR3_FREE_ACT)
 	{
 		info[i++] = "You have free action.";
 	}
-	if (p_ptr->regenerate)
+	if (f3 & TR3_REGEN)
 	{
 		info[i++] = "You regenerate quickly.";
 	}
-	if (p_ptr->slow_digest)
+	if (f3 & TR3_SLOW_DIGEST)
 	{
 		info[i++] = "Your appetite is small.";
 	}
-    if (p_ptr->telepathy == TR3_TELEPATHY)
+    if (f3 & TR3_TELEPATHY)
 	{
 		info[i++] = "You have ESP.";
 	}
-	if (p_ptr->hold_life)
+	if (f3 & TR3_HOLD_LIFE)
 	{
 		info[i++] = "You have a firm hold on your life force.";
 	}
-	if (p_ptr->lite)
+	if (f3 & TR3_LITE)
 	{
 		info[i++] = "You are carrying a permanent light.";
 	}
-	if (p_ptr->immune_acid)
+	if (f2 & TR2_IM_ACID)
 	{
 		info[i++] = "You are completely immune to acid.";
 	}
-	else if ((p_ptr->resist_acid) && (p_ptr->oppose_acid))
+	else if ((f2 & TR2_RES_ACID) && (p_ptr->oppose_acid))
 	{
 		info[i++] = "You resist acid exceptionally well.";
 	}
-	else if ((p_ptr->resist_acid) || (p_ptr->oppose_acid))
+	else if ((f2 & TR2_RES_ACID) || (p_ptr->oppose_acid))
 	{
 		info[i++] = "You are resistant to acid.";
 	}
 
-	if (p_ptr->immune_elec)
+	if (f2 & TR2_IM_ELEC)
 	{
 		info[i++] = "You are completely immune to lightning.";
 	}
-	else if ((p_ptr->resist_elec) && (p_ptr->oppose_elec))
+	else if ((f2 & TR2_RES_ELEC) && (p_ptr->oppose_elec))
 	{
 		info[i++] = "You resist lightning exceptionally well.";
 	}
-	else if ((p_ptr->resist_elec) || (p_ptr->oppose_elec))
+	else if ((f2 & TR2_RES_ELEC) || (p_ptr->oppose_elec))
 	{
 		info[i++] = "You are resistant to lightning.";
 	}
 
-	if (p_ptr->immune_fire)
+	if (f2 & TR2_IM_FIRE)
 	{
 		info[i++] = "You are completely immune to fire.";
 	}
-	else if ((p_ptr->resist_fire) && (p_ptr->oppose_fire))
+	else if ((f2 & TR2_RES_FIRE) && (p_ptr->oppose_fire))
 	{
 		info[i++] = "You resist fire exceptionally well.";
 	}
-	else if ((p_ptr->resist_fire) || (p_ptr->oppose_fire))
+	else if ((f2 & TR2_RES_FIRE) || (p_ptr->oppose_fire))
 	{
 		info[i++] = "You are resistant to fire.";
 	}
 
-	if (p_ptr->immune_cold)
+	if (f2 & TR2_IM_COLD)
 	{
 		info[i++] = "You are completely immune to cold.";
 	}
-	else if ((p_ptr->resist_cold) && (p_ptr->oppose_cold))
+	else if ((f2 & TR2_RES_COLD) && (p_ptr->oppose_cold))
 	{
 		info[i++] = "You resist cold exceptionally well.";
 	}
-	else if ((p_ptr->resist_cold) || (p_ptr->oppose_cold))
+	else if ((f2 & TR2_RES_COLD) || (p_ptr->oppose_cold))
 	{
 		info[i++] = "You are resistant to cold.";
 	}
 
-	if ((p_ptr->resist_pois) && (p_ptr->oppose_pois))
+	if ((f2 & TR2_RES_POIS) && (p_ptr->oppose_pois))
 	{
 		info[i++] = "You resist poison exceptionally well.";
 	}
-	else if ((p_ptr->resist_pois) || (p_ptr->oppose_pois))
+	else if ((f2 & TR2_RES_POIS) || (p_ptr->oppose_pois))
 	{
 		info[i++] = "You are resistant to poison.";
 	}
 
-	if (p_ptr->resist_lite)
+	if (f2 & TR2_RES_LITE)
 	{
 		info[i++] = "You are resistant to bright light.";
 	}
-	if (p_ptr->resist_dark)
+	if (f2 & TR2_RES_DARK)
 	{
 		info[i++] = "You are resistant to darkness.";
 	}
-	if (p_ptr->resist_conf)
+	if (f2 & TR2_RES_CONFU)
 	{
 		info[i++] = "You are resistant to confusion.";
 	}
-	if (p_ptr->resist_sound)
+	if (f2 & TR2_RES_SOUND)
 	{
 		info[i++] = "You are resistant to sonic attacks.";
 	}
-	if (p_ptr->resist_disen)
+	if (f2 & TR2_RES_DISEN)
 	{
 		info[i++] = "You are resistant to disenchantment.";
 	}
-	if (p_ptr->resist_chaos)
+	if (f2 & TR2_RES_CHAOS)
 	{
 		info[i++] = "You are resistant to chaos.";
 	}
-	if (p_ptr->resist_shard)
+	if (f2 & TR2_RES_SHARD)
 	{
 		info[i++] = "You are resistant to blasts of shards.";
 	}
-	if (p_ptr->resist_nexus)
+	if (f2 & TR2_RES_NEXUS)
 	{
 		info[i++] = "You are resistant to nexus attacks.";
 	}
-	if (p_ptr->resist_neth)
+	if (f2 & TR2_RES_NETHR)
 	{
 		info[i++] = "You are resistant to nether forces.";
 	}
-	if (p_ptr->resist_fear)
+	if (f2 & TR2_RES_FEAR)
 	{
 		info[i++] = "You are completely fearless.";
 	}
-	if (p_ptr->resist_blind)
+	if (f2 & TR2_RES_BLIND)
 	{
 		info[i++] = "Your eyes are resistant to blindness.";
 	}
 
-	if (p_ptr->sustain_str)
+	if (f2 & TR2_SUST_STR)
 	{
 		info[i++] = "Your strength is sustained.";
 	}
-	if (p_ptr->sustain_int)
+	if (f2 & TR2_SUST_INT)
 	{
 		info[i++] = "Your intelligence is sustained.";
 	}
-	if (p_ptr->sustain_wis)
+	if (f2 & TR2_SUST_WIS)
 	{
 		info[i++] = "Your wisdom is sustained.";
 	}
-	if (p_ptr->sustain_con)
+	if (f2 & TR2_SUST_CON)
 	{
 		info[i++] = "Your constitution is sustained.";
 	}
-	if (p_ptr->sustain_dex)
+	if (f2 & TR2_SUST_DEX)
 	{
 		info[i++] = "Your dexterity is sustained.";
 	}
-	if (p_ptr->sustain_chr)
+	if (f2 & TR2_SUST_CHR)
 	{
 		info[i++] = "Your charisma is sustained.";
 	}
 
+	/* Remove player flags */
+	f1 = o1;
+	f2 = o2;
+	f3 = o3;
+	
+	/* Equipment itself */
 	if (f1 & TR1_STR)
 	{
 		info[i++] = "Your strength is affected by your equipment.";
@@ -933,7 +1021,7 @@ void self_knowledge(int Ind)
             info[i++] = "Your weapon is a great bane of undead.";
         }
 	}
-	
+
 	/* HACK !!! --- Copy to rem_info */
 	for (k = 0; k < i; k++)
 	{

@@ -888,7 +888,7 @@ extern void message_pain(int Ind, int m_idx, int dam);
 extern bool remove_curse(int Ind);
 extern bool remove_all_curse(int Ind);
 extern bool restore_level(int Ind);
-extern void self_knowledge(int Ind);
+extern void self_knowledge(int Ind, bool spoil);
 extern bool lose_all_info(int Ind);
 extern void map_area(int Ind);
 extern bool detect_treasure(int Ind);
@@ -1047,6 +1047,7 @@ extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 extern void prt_history(int Ind);
 extern void c_prt_status_line(int Ind, cave_view_type *dest, int len);
+extern void player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3);
 
 /* xtra2.c */
 extern int get_player(int Ind, object_type *o_ptr);
