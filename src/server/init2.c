@@ -1133,6 +1133,35 @@ static errr init_h_info(void)
 
 
 /*
+ * Initialize the "b_info" array
+ */
+static errr init_b_info(void)
+{
+	errr err;
+
+	/* Init the header */
+	init_header(&b_head, (u16b)(MAX_STORES * z_info->b_max), sizeof(owner_type));
+
+#ifdef ALLOW_TEMPLATES
+
+	/* Save a pointer to the parsing function */
+	b_head.parse_info_txt = parse_b_info;
+
+#endif /* ALLOW_TEMPLATES */
+
+	err = init_info("shop_own", &b_head);
+
+	/* Set the global variables */
+	b_info = b_head.info_ptr;
+	b_name = b_head.name_ptr;
+	b_text = b_head.text_ptr;
+
+	return (err);
+}
+
+
+
+/*
  * Initialize the "e_info" array (Ego item handling)
  *
  * Note that we let each entry have a unique "name" and "text" string,
@@ -2741,6 +2770,10 @@ void init_some_arrays(void)
 	/* Initialize class info */
 	plog("[Initializing arrays... (classes)]");
 	if (init_c_info()) quit("Cannot initialize classes");
+
+	/* Initialize owners info */
+	plog("[Initializing arrays... (owners)]");
+	if (init_b_info()) quit("Cannot initialize owners");
 
 	/* Initialize flavor info */
 	plog("[Initializing arrays... (flavors)]");

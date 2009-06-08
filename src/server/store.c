@@ -142,7 +142,7 @@ s32b player_price_item(int Ind, object_type *o_ptr)
 static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 {
 	player_type *p_ptr = Players[Ind];
-	owner_type *ot_ptr = &owners[p_ptr->store_num][store[p_ptr->store_num].owner];
+	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + store[p_ptr->store_num].owner];
 	int     factor;
 	int     adjust;
 	s32b    price;
@@ -961,7 +961,7 @@ static void display_entry(int Ind, int pos)
 {
 	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
-	owner_type *ot_ptr = &owners[p_ptr->store_num][st_ptr->owner];
+	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + store[p_ptr->store_num].owner];
 
 	object_type		*o_ptr;
 	s32b		x;
@@ -1001,7 +1001,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 {
 	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
-	owner_type *ot_ptr = &owners[p_ptr->store_num][st_ptr->owner];
+	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];
 	u32b		x;
 	char		o_name[80];
 	byte		attr;
@@ -1208,8 +1208,9 @@ static void display_store(int Ind)
 	/* Send the store info for normal stores */
 	if (p_ptr->store_num != 8)
 	{
-		owner_type *sto_ptr = owners[st_ptr->owner];
-		sprintf(store_name, "%s (%s)", sto_ptr->owner_name, p_name + p_info[sto_ptr->owner_race].name); 
+		owner_type *sto_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];
+		cptr owner_name = &(b_name[sto_ptr->owner_name]);
+		sprintf(store_name, "%s (%s)", owner_name, p_name + p_info[sto_ptr->owner_race].name); 
 		Send_store_info(Ind, (STORE_NPC), &store_names[p_ptr->store_num][0], 
 			store_name, stockcount, sto_ptr->max_cost);
 	}
@@ -1235,8 +1236,7 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 {
 	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
-
-	owner_type *ot_ptr = &owners[p_ptr->store_num][st_ptr->owner];
+	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];	
 
 	s32b               purse, cur_ask, final_ask;
 
@@ -1592,7 +1592,7 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
 	store_type *st_ptr = &store[st];
-	owner_type *ot_ptr = &owners[st][st_ptr->owner];
+	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];	
 	int			i, choice, sold;
 	int			item_new;
 	s32b		price, best;
@@ -1858,7 +1858,7 @@ void store_sell(int Ind, int item, int amt)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			choice, tmp_pval, tmp_time;
+	int			choice;
 
 	s32b		price;
 
@@ -2187,7 +2187,7 @@ void store_shuffle(int which)
 	}
 
 	/* Activate the new owner */
-	ot_ptr = &owners[store_num][st_ptr->owner];
+	ot_ptr = &b_info[(store_num * z_info->b_max) + st_ptr->owner];	
 
 
 	/* Reset the owner data */
@@ -2249,7 +2249,7 @@ void store_maint(int which)
 	st_ptr = &store[store_num];
 
 	/* Activate the owner */
-	ot_ptr = &owners[store_num][st_ptr->owner];
+	ot_ptr = &b_info[(store_num * z_info->b_max) + st_ptr->owner];	
 
 	/* Store keeper forgives the player */
 	st_ptr->insult_cur = 0;
@@ -2335,7 +2335,7 @@ void store_init(int which)
 	st_ptr->owner = rand_int(MAX_OWNERS);
 
 	/* Activate the new owner */
-	ot_ptr = &owners[store_num][st_ptr->owner];
+	ot_ptr = &b_info[(store_num * z_info->b_max) + st_ptr->owner];
 
 
 	/* Initialize the store */

@@ -918,7 +918,7 @@ struct quest
 
 struct owner_type
 {
-	cptr owner_name;	/* Name */
+	u32b owner_name;	/* Name */
 
 	s32b max_cost;		/* Purse limit */
 

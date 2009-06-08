@@ -1527,6 +1527,111 @@ errr parse_h_info(char *buf, header *head)
 
 
 /*
+ * Initialize the "b_info" array, by parsing an ascii "template" file
+ */
+errr parse_b_info(char *buf, header *head)
+{
+	int i, j;
+
+	char *s, *t;
+
+	/* Current entry */
+	static owner_type *ot_ptr = NULL;
+
+
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
+	{
+		/* Find the colon before the subindex */
+		s = strchr(buf+2, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the subindex */
+		*s++ = '\0';
+
+		/* Get the index */
+		i = atoi(buf+2);
+
+		/* Find the colon before the name */
+		t = strchr(s, ':');
+
+		/* Verify that colon */
+		if (!t) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the name */
+		*t++ = '\0';
+
+		/* Paranoia -- require a name */
+		if (!*t) return (PARSE_ERROR_GENERIC);
+
+		/* Get the subindex */
+		j = atoi(s);
+
+		/* Verify information */
+		if (j >= z_info->b_max) return (PARSE_ERROR_TOO_MANY_ENTRIES);
+
+		/* Get the *real* index */
+		i = (i * z_info->b_max) + j;
+
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
+
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
+
+		/* Save the index */
+		error_idx = i;
+
+		/* Point at the "info" */
+		ot_ptr = (owner_type*)head->info_ptr + i;
+
+		/* Store the name */
+		if (!(ot_ptr->owner_name = add_name(head, t)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
+
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int idx, gld, inflate, max_inflate  = 0;
+
+		/* There better be a current ot_ptr */
+		if (!ot_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &idx, &gld, &inflate, &max_inflate))
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &idx, &gld, &inflate)) return (PARSE_ERROR_GENERIC);
+
+		/* Hack */
+		if (!max_inflate) max_inflate = inflate;
+
+		/* Save the values */
+		ot_ptr->owner_race = idx;
+		ot_ptr->max_cost = gld * PURSE_MULTIPLIER;
+		/*ot_ptr->inflate = inflate;*/
+		ot_ptr->max_inflate = max_inflate;
+		ot_ptr->min_inflate = inflate;
+		printf("Loaded shop owner %s, min: %d, max: %d\n", ">", inflate, max_inflate);
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
+
+	/* Success */
+	return (0);
+}
+
+
+
+
+
+/*
  * Initialize the "f_info" array, by parsing an ascii "template" file
  */
 errr init_f_info_txt(FILE *fp, char *buf)

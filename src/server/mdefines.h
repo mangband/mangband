@@ -154,3 +154,8 @@
 #define ARTS_SOLD   	3
 
 #define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)
+
+/* 
+ * Stores
+ */
+#define PURSE_MULTIPLIER 5 
