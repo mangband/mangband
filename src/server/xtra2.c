@@ -1991,6 +1991,11 @@ void monster_death(int Ind, int m_idx)
 	bool do_gold = (!(r_ptr->flags1 & RF1_ONLY_ITEM));
 	bool do_item = (!(r_ptr->flags1 & RF1_ONLY_GOLD));
 
+	bool unique  = (r_ptr->flags1 & RF1_UNIQUE) 	 ? TRUE : FALSE;
+	bool questor = (r_ptr->flags1 & RF1_QUESTOR)	 ? TRUE : FALSE;
+	bool winner  = (r_ptr->flags1 & RF1_DROP_CHOSEN) ? TRUE : FALSE;
+	bool share = cfg_party_share_kill;
+
 	int force_coin = get_coin_type(r_ptr);
 
     u16b quark = 0;
@@ -2041,9 +2046,9 @@ void monster_death(int Ind, int m_idx)
 	if (r_ptr->flags1 & RF1_DROP_4D2) number += damroll(4, 2);
 
     /* Hack -- inscribe items that a unique drops */
-    if (r_ptr->flags1 & RF1_UNIQUE)
+    if (unique)
     {
-	quark = quark_add(r_name + r_ptr->name);
+		quark = quark_add(r_name + r_ptr->name);
     }
 
 	/* Drop some objects */
@@ -2108,22 +2113,26 @@ void monster_death(int Ind, int m_idx)
 
 	/* Determine players involved in killing */
 	total = party_mark_members(Ind, m_idx);
-	
+
+	/* Unshare winners and questors */
+	if (winner && !cfg_party_share_win)	share = FALSE;
+	if (questor && !cfg_party_share_quest) share = FALSE;
+
 	/* Take note of the killer (message) */
-	if (r_ptr->flags1 & RF1_UNIQUE)
+	if (unique)
 	{
 		/* default message */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
 		msg_print(Ind, buf);
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
-		
+
 		/* party version */		
 		if (total > 1) 
 		{
 			sprintf(buf, "%s was slain by %s.",(r_name + r_ptr->name),parties[p_ptr->party].name);
 			sprintf(logbuf,"Helped to kill %s",(r_name + r_ptr->name));
 		}
-		
+
 		/* Tell every player */
 		msg_broadcast(Ind, buf);
 
@@ -2138,10 +2147,10 @@ void monster_death(int Ind, int m_idx)
 		q_ptr = Players[i];
 		if (q_ptr->in_hack)
 		{
-			bool visible = (q_ptr->mon_vis[m_idx] || (r_ptr->flags1 & RF1_UNIQUE));
-			
+			bool visible = (q_ptr->mon_vis[m_idx] || unique);
+
 			/* Take note of the killer (message) */
-			if ((r_ptr->flags1 & RF1_UNIQUE) && (i != Ind))
+			if (unique && (i != Ind))
 			{
 				/*log_history_event(i, logbuf);*/
 			}
@@ -2152,7 +2161,7 @@ void monster_death(int Ind, int m_idx)
 				lore_treasure(i, m_idx, dump_item, dump_gold);
 			}
 			/* Death count */
-			if ((cfg_party_share_kill || i == Ind))
+			if ((share || i == Ind))
 			{
 				/* In lore array */
 				if (visible)
@@ -2171,7 +2180,7 @@ void monster_death(int Ind, int m_idx)
 					q_ptr->r_killed[m_ptr->r_idx]++;
 			}
 			/* Mega-Hack -- drop "winner" treasures AND set winners */
-			if ((r_ptr->flags1 & RF1_DROP_CHOSEN)  && (cfg_party_share_win || i == Ind))
+			if (winner && (share || i == Ind))
 			{ 
 				/* Hack -- an "object holder" */
 				object_type prize;
@@ -2226,7 +2235,7 @@ void monster_death(int Ind, int m_idx)
 				}
 			}
 			/* Process "Quest Monsters" */
-			if ((r_ptr->flags1 & RF1_QUESTOR) && (cfg_party_share_quest || i == Ind)) 
+			if (questor && (share || i == Ind)) 
 			{
 				/* Hack -- Mark quests as complete */
 				for (j = 0; j < MAX_Q_IDX; j++)
@@ -2242,7 +2251,7 @@ void monster_death(int Ind, int m_idx)
 	}
 
 	/* Only need stairs after "Quest Monsters" */
-	if (!(r_ptr->flags1 & RF1_QUESTOR)) return;
+	if (!questor) return;
 
 	/* Need some stairs */
 	{
