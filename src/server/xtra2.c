@@ -2477,6 +2477,9 @@ void player_death(int Ind)
 	int pkill=0;  /* verifies we have a pkill */
 #endif
 
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
+
 	/* Sound */
 	sound(Ind, SOUND_DEATH);
 

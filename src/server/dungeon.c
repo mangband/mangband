@@ -503,6 +503,8 @@ static void process_world(int Ind)
 	cave_type		*c_ptr;
 	byte			*w_ptr;
 
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Every 50 game turns */
 	if (turn.turn % 50) return;
@@ -934,6 +936,9 @@ static void process_player_begin(int Ind)
 	player_type *p_ptr = Players[Ind];
 	int energy;
 
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
+
 	/* Increment turn count */
 	ht_add(&p_ptr->turn,1);
 
@@ -993,6 +998,9 @@ static void process_player_end(int Ind)
 
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
+
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Try to execute any commands on the command queue. */
 	/* NB: process_pending may have deleted the connection! */
@@ -1613,15 +1621,11 @@ static void process_player_end(int Ind)
 			p_ptr->word_recall--;
 
 
-			/* Hack -- prevent recall */
-			if(!p_ptr->word_recall) 
+			/* MEGA HACK: no recall if in shop */
+			if(!p_ptr->word_recall && p_ptr->store_num) 
 			{
-				if (p_ptr->store_num > 0 ||  /* in stores */
-					p_ptr->new_level_method) /* new level */
-				{
-					/* Delay for 1 turn */
-				    p_ptr->word_recall++;
-				}
+				/* Delay for 1 turn */
+			    p_ptr->word_recall++;
 			}
 
 			/* Activate the recall */
@@ -2004,8 +2008,6 @@ void dungeon(void)
 		/* Check for death */
 		if (Players[i]->death)
 		{
-			/* Paranoia -- postpone death if no level -- THIS HACK IS DANGEROUS */
-			if (players_on_depth[Players[i]->dun_depth])
 			/* Kill him */
 			player_death(i);
 		}
