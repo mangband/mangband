@@ -21,6 +21,7 @@
 # B:spell number:level:mana:fail:exp
 # T:title
 # E:tval:sval:min:max
+# Y:tval:sval:min:max
 # F:class flags
 
 # 'N' indicates the beginning of an entry. The serial number must
@@ -57,6 +58,8 @@
 # 'E' is for starting equipment - tval of the item, sval of the item,
 # minimum amount, maximum amount.
 
+# 'Y' is the same as 'E', but will only work in ironman mode.
+
 # 'F' is for class flags.
 
 
@@ -75,6 +78,11 @@ M:0:0:0:0
 E:75:33:1:1
 E:23:16:1:1
 E:37:4:1:1
+Y:75:33:1:1
+Y:23:16:1:1
+Y:37:4:1:1
+Y:70:9:10:10
+Y:75:35:5:5
 F:BRAVERY_30 | PSEUDO_ID_HEAVY | PSEUDO_ID_IMPROV
 T:Rookie
 T:Soldier
@@ -97,6 +105,10 @@ M:90:1:1:300
 E:90:0:1:1
 E:23:4:1:1
 E:70:11:1:1
+Y:90:0:1:1
+Y:90:2:1:1
+Y:23:4:1:1
+Y:70:9:5:5
 F:CUMBER_GLOVE | ZERO_FAIL | BEAM | CHOOSE_SPELLS
 T:Novice
 T:Apprentice
@@ -183,6 +195,11 @@ M:91:2:1:350
 E:91:0:1:1
 E:21:5:1:1
 E:75:37:1:1
+Y:91:0:1:1
+Y:91:2:1:1
+Y:21:5:1:1
+Y:75:37:1:1
+Y:70:9:5:5
 F:BLESS_WEAPON | ZERO_FAIL | PSEUDO_ID_IMPROV
 T:Believer
 T:Acolyte
@@ -269,6 +286,10 @@ M:90:1:5:350
 E:90:0:1:1
 E:23:8:1:1
 E:36:4:1:1
+Y:90:0:1:1
+Y:23:8:1:1
+Y:36:4:1:1
+Y:70:9:10:10
 F:CUMBER_GLOVE | CHOOSE_SPELLS | PSEUDO_ID_HEAVY | PSEUDO_ID_IMPROV
 T:Vagabond
 T:Cutpurse
@@ -356,6 +377,12 @@ E:90:0:1:1
 E:23:16:1:1
 E:19:13:1:1
 E:17:1:15:20
+Y:90:0:1:1
+Y:90:1:1:1
+Y:23:16:1:1
+Y:19:13:1:1
+Y:17:1:15:20
+Y:70:9:5:5
 F:CUMBER_GLOVE | EXTRA_SHOT | CHOOSE_SPELLS | PSEUDO_ID_IMPROV
 T:Runner
 T:Strider
@@ -442,6 +469,10 @@ M:91:2:1:400
 E:91:0:1:1
 E:23:16:1:1
 E:70:37:1:1
+Y:91:0:1:1
+Y:23:16:1:1
+Y:70:37:1:1
+Y:70:9:5:5
 F:PSEUDO_ID_HEAVY | PSEUDO_ID_IMPROV
 T:Gallant
 T:Keeper

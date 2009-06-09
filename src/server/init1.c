@@ -1309,11 +1309,14 @@ errr parse_c_info(char *buf, header *head)
 	}
 
 	/* Process 'E' for "Starting Equipment" */
-	else if (buf[0] == 'E')
+	else if (buf[0] == 'E' || buf[0] == 'Y')
 	{
 		int tval, sval, min, max;
 
 		start_item *e_ptr;
+
+		/* Skip (non)Ironman items */
+		if ((buf[0] == 'E' && cfg_ironman) || (buf[0] == 'Y' && !cfg_ironman)) return (0);
 
 		/* There better be a current pc_ptr */
 		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);

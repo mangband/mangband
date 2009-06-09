@@ -617,103 +617,24 @@ static void player_wipe(int Ind)
 
 
 /*
- * Each player starts out with a few items, given as tval/sval pairs.
- * In addition, he always has some food and a few torches.
+ * Hard-coded items to give DM at his birth.
  */
-
-static byte player_init[MAX_CLASS][3][2] =
+static byte dm_player_outfit[][4] =
 {
-	{
-		/* Warrior */
-		{ TV_POTION, SV_POTION_BERSERK_STRENGTH },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_HARD_ARMOR, SV_CHAIN_MAIL }
-	},
+	{ TV_POTION, SV_POTION_AUGMENTATION,	20, 0 },	
+	{ TV_POTION, SV_POTION_EXPERIENCE,  	30, 0 },
+	{ TV_POTION, SV_POTION_HEALING,     	15, 0 },
 
-	{
-		/* Mage */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_DAGGER },
-		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL }
-	},
+	{ TV_SCROLL, SV_SCROLL_STAR_IDENTIFY,	25, 0 },
+	{ TV_SCROLL, SV_SCROLL_TELEPORT,    	30, 0 },
+	{ TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT,20, 0 },
 
-	{
-		/* Priest */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_HAFTED, SV_MACE },
-		{ TV_POTION, SV_POTION_CURE_CRITICAL }
-	},
+	{ TV_RING,   SV_RING_SPEED,	1, 30 },
+	{ TV_AMULET, SV_AMULET_ESP,	1, 10 },
 
-	{
-		/* Rogue */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_SMALL_SWORD },
-		{ TV_SOFT_ARMOR, SV_SOFT_LEATHER_ARMOR }
-	},
-
-	{
-		/* Ranger */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_BOW, SV_LONG_BOW }
-    }
-
-    ,{
-		/* Paladin */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL }
-	}
+	{ 0, 0, 0, 0 }
 };
 
-static byte ironman_player_init[MAX_CLASS][3][2] =
-{
-	{
-		/* Warrior */
-		{ TV_LITE, SV_LITE_LANTERN },
-		{ TV_FLASK, 0 },
-		{ TV_FLASK, 0 },
-	},
-
-	{
-		/* Mage */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Priest */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_PRAYER_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Rogue */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Ranger */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_LITE, SV_LITE_LANTERN },
-		{ TV_BOW, SV_LONG_BOW }
-    }
-    ,{
-		/* Paladin */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_PRAYER_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-    },
-
-};
-
-#if 0
-// This is a very good function to use. The shortcoming is that it is missing all the usefull
-// ironman and debug addons, and for some reason food + lite is not bundled with it.
 /*
  * Init players with some belongings
  *
@@ -728,6 +649,14 @@ static void player_outfit(int Ind)
 	object_type *i_ptr;
 	object_type object_type_body;
 
+#define player_outfit_i(P, K, N, PV) \
+	i_ptr = &object_type_body; \ 
+	object_prep(i_ptr, (K)); \
+	i_ptr->number = (N); \
+	i_ptr->pval = (PV); \
+	object_aware((P), i_ptr); \
+	object_known(i_ptr); \
+	(void)inven_carry((P), i_ptr)
 
 	/* Hack -- Give the player his equipment */
 	for (i = 0; i < MAX_START_ITEMS; i++)
@@ -747,249 +676,44 @@ static void player_outfit(int Ind)
 			/* Valid item? */
 			if (!k_idx) continue;
 
-			/* Prepare the item */
-			object_prep(i_ptr, k_idx);
-			i_ptr->number = (byte)rand_range(e_ptr->min, e_ptr->max);
-
-			object_aware(Ind, i_ptr);
-			object_known(i_ptr);
-			(void)inven_carry(Ind, i_ptr);
+			/* Give item */
+			player_outfit_i(Ind, k_idx, (byte)rand_range(e_ptr->min, e_ptr->max), 0); 
 		}
 	}
-}
-#endif
 
-/*
- * Init players with some belongings
- *
- * Having an item makes the player "aware" of its purpose.
- */
-static void player_outfit(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-	int		i, tv, sv;
+	/* Give food */
+	player_outfit_i(Ind,lookup_kind(TV_FOOD, SV_FOOD_RATION), rand_range(3, 7) * (cfg_ironman+1), 0);
 
-	object_type	forge;
-	object_type	*o_ptr = &forge;
-
-
-
-	/* Hack -- Give the player some food */
-	invcopy(o_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION));
-	o_ptr->number = rand_range(3, 7);
-    if (cfg_ironman) o_ptr->number *= 2;
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-
-    if (cfg_ironman)
-    {
-	/* Hack -- Give the player some oil */
-	invcopy(o_ptr, lookup_kind(TV_FLASK, 0));
-	o_ptr->number = rand_range(6, 14);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);	
-    }
-    else
-    {
-	/* Hack -- Give the player some torches */
-	invcopy(o_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH));
-	o_ptr->number = rand_range(3, 7);
-	o_ptr->pval = rand_range(3, 7) * 500;
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-    }
-
-    if (cfg_ironman)
-    {
-	/* More items for Ironmen */
-
-	/* Scrolls of teleportation */
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-	o_ptr->number = 5;
-	/* Warrior and rogues get twice as many */
-	if( (p_ptr->pclass == CLASS_WARRIOR) || (p_ptr->pclass == CLASS_ROGUE) )
-		o_ptr->number *= 2;
-	o_ptr->discount = 0;
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-	
-	/* Warriors get cure serious wounds */
-	if( (p_ptr->pclass == CLASS_WARRIOR) )
+	/* Give lite */
+	if (!cfg_ironman)
 	{
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_CURE_SERIOUS));
-		o_ptr->number = 5;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-	
-	/* Mages get third book */
-	if( (p_ptr->pclass == CLASS_MAGE) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 2));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-
-	/* Priests get third book */
-	if( (p_ptr->pclass == CLASS_PRIEST) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 2));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-
-    	/* Rangers get second book */
-	if( (p_ptr->pclass == CLASS_RANGER) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 1));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-    }
-
-	/* 
-     * Give the DM some interesting stuff or all players if this is dev mode
-	 */
-
-#ifndef DEBUG
-	if (is_dm_p(p_ptr))
-	{
-#endif
-		p_ptr->au = 10000000;
-
-		/* All deep books */
-		if ((p_ptr->pclass == CLASS_MAGE) || (p_ptr->pclass == CLASS_RANGER) ||
-			(p_ptr->pclass == CLASS_ROGUE))
-		{
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 4));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 5));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 6));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 7));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 8));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-		} 
-		if ((p_ptr->pclass == CLASS_PRIEST) || (p_ptr->pclass == CLASS_PALADIN))
-		{
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 5));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 6));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 7));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 8));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-		} 
-
-		/* Useful potions */
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
-		o_ptr->number = 20;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_EXPERIENCE));
-		o_ptr->number = 30;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
-		o_ptr->number = 15;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		/* Useful scrolls */
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-		o_ptr->number = 25;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-		o_ptr->number = 30;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT));
-		o_ptr->number = 20;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		
-		/* Useful equipment */
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_SPEED));
-		o_ptr->pval = 30;
-		o_ptr->number = 1;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_ESP));
-		o_ptr->pval = 10;
-		o_ptr->number = 1;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		
-#ifndef DEBUG
-	}
-#endif
-	
-	/* Hack -- Give the player three useful objects */
-	for (i = 0; i < 3; i++)
-	{
-	if (cfg_ironman)
-	{
-		tv = ironman_player_init[p_ptr->pclass][i][0];
-        	sv = ironman_player_init[p_ptr->pclass][i][1];
+		/* Torches */
+		player_outfit_i(Ind,lookup_kind(TV_LITE, SV_LITE_TORCH), rand_range(3, 7), rand_range(3, 7) * 500);
 	}
 	else
 	{
-		tv = player_init[p_ptr->pclass][i][0];
-		sv = player_init[p_ptr->pclass][i][1];
+		/* Lantern + Oil */
+		player_outfit_i(Ind,lookup_kind(TV_LITE, SV_LITE_LANTERN), 1, 0);
+		player_outfit_i(Ind,lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
 	}
-		invcopy(o_ptr, lookup_kind(tv, sv));
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
+
+	/*
+     * Give the DM some interesting stuff or all players if this is dev mode
+	 */
+#ifndef DEBUG
+	if (!is_dm_p(p_ptr)) return;
+#endif
+	/* High Spell books */
+	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
+	{
+		player_outfit_i(Ind, lookup_kind(cp_ptr->spell_book, i), 1, 0);
 	}
-	
+	/* Other items */
+	for (i = 0; dm_player_outfit[i][0]; i++)
+	{
+		player_outfit_i(Ind, lookup_kind(dm_player_outfit[i][0], dm_player_outfit[i][1]), 
+			dm_player_outfit[i][2], dm_player_outfit[i][3]);
+	}
 }
 
 static void player_setup(int Ind)
