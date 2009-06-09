@@ -578,7 +578,6 @@ byte f_attr_s[MAX_F_IDX];
 /*
  * The object kind arrays
  */
-header *k_head;
 object_kind *k_info;
 char *k_name;
 char *k_text;

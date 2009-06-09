@@ -424,8 +424,8 @@ static cptr err_str[PARSE_ERROR_MAX] =
 header z_head;
 header v_head;
 header f_head;
-/*
 header k_head;
+/*
 header r_head;*/
 header e_head;
 header a_head;
@@ -825,90 +825,30 @@ static errr init_f_info(void)
 
 
 /*
- * Initialize the "k_info" array (Object handling)
- *
- * Note that we let each entry have a unique "name" and "text" string,
- * even if the string happens to be empty (everyone has a unique '\0').
+ * Initialize the "k_info" array
  */
 static errr init_k_info(void)
 {
 	errr err;
 
-	FILE *fp;
+	/* Init the header */
+	init_header(&k_head, z_info->k_max, sizeof(object_kind));
 
-	/* General buffer */
-	char buf[1024];
+#ifdef ALLOW_TEMPLATES
 
-	/*** Make the header ***/
+	/* Save a pointer to the parsing function */
+	k_head.parse_info_txt = parse_k_info;
 
-	/* Allocate the "header" */
-	MAKE(k_head, header);
+#endif /* ALLOW_TEMPLATES */
 
-	/* Save the "version" */
-	k_head->v_major = SERVER_VERSION_MAJOR;
-	k_head->v_minor = SERVER_VERSION_MINOR;
-	k_head->v_patch = SERVER_VERSION_PATCH;
-	k_head->v_extra = 0;
+	err = init_info("object", &k_head);
 
-	/* Save the "record" information */
-	k_head->info_num = MAX_K_IDX;
-	k_head->info_len = sizeof(object_kind);
+	/* Set the global variables */
+	k_info = k_head.info_ptr;
+	k_name = k_head.name_ptr;
+	k_text = k_head.text_ptr;
 
-	/* Save the size of "k_head" and "k_info" */
-	k_head->head_size = sizeof(header);
-	k_head->info_size = k_head->info_num * k_head->info_len;
-
-	/*** Make the farrays ***/
-
-	/* Fake the size of "k_name" and "k_text" */
-	fake_name_size = 20 * 1024L;
-	fake_text_size = 60 * 1024L;
-
-	/* Allocate the "k_info" array */
-	C_MAKE(k_info, k_head->info_num, object_kind);
-
-	/* Hack -- make "fake" arrays */
-	C_MAKE(k_name, fake_name_size, char);
-	C_MAKE(k_text, fake_text_size, char);
-
-
-	/*** Load the ascii template file ***/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "object.txt");
-
-	/* Open the file */
-	fp = my_fopen(buf, "r");
-
-	/* Parse it */
-	if (!fp) quit("Cannot open 'object.txt' file.");
-
-	/* Parse the file */
-	err = init_k_info_txt(fp, buf);
-
-	/* Close it */
-	my_fclose(fp);
-
-	/* Errors */
-	if (err)
-	{
-		cptr oops;
-
-		/* Error string */
-		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
-
-		/* Oops */
-		plog(format("Error %d at line %d of 'object.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
-		/*msg_print(NULL);*/
-
-		/* Quit */
-		quit("Error in 'object.txt' file.");
-	}
-
-	/* Success */
-	return (0);
+	return (err);
 }
 
 
@@ -2657,6 +2597,7 @@ void cleanup_angband(void)
 	free_info(&v_head);	
 	free_info(&p_head);
 	free_info(&h_head);
+	free_info(&k_head);	
 	free_info(&e_head);	
 	free_info(&a_head);
 	free_info(&f_head);
@@ -2669,7 +2610,6 @@ void cleanup_angband(void)
 	FREE(L ## _text, char);
 
 	Ifree_info(r, monster_race);
-	Ifree_info(k, object_kind);
 
 	free_info(&z_head);
 
