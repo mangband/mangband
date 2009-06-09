@@ -31,6 +31,9 @@ static void init_arrays(void)
 
 	/* Initialize room for the store's stock */
     C_MAKE(store.stock, STORE_INVEN_MAX, object_type);
+    
+    /* Clear client_setup */
+    Client_setup.k_attr = NULL;
 }
 
 /*

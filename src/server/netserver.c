@@ -503,6 +503,22 @@ void setup_contact_socket(void)
 
 void Stop_net_server(void)
 {
+	int i;
+	/* Hack -- free client setup tables */
+	for (i = 0; i < max_connections; i++)
+	{
+		connection_t* connp = &Conn[i];
+		if (connp->client_setup)
+		{
+			FREE(connp->Client_setup.k_attr, byte);
+			FREE(connp->Client_setup.k_char, char);
+			FREE(connp->Client_setup.r_attr, byte);
+			FREE(connp->Client_setup.r_char, char);
+			FREE(connp->Client_setup.f_attr, byte);
+			FREE(connp->Client_setup.f_char, char);
+		}
+	}
+
 	/* Dealloc player array */
 	C_FREE(Players, max_connections, player_type*);
 
@@ -943,6 +959,47 @@ static void Delete_player(int Ind)
 
 
 /*
+ * HACK -- reset all connection values
+ *  but keep visual verify tables
+ */
+void wipe_connection(connection_t *connp)
+{
+	byte *k_attr;
+	char *k_char;
+	byte *r_attr;
+	char *r_char;
+	byte *f_attr;
+	char *f_char;
+	int save_setup_tables = connp->client_setup;
+
+	/* SAVE */
+	if (save_setup_tables)
+	{
+		k_attr = connp->Client_setup.k_attr;
+		r_attr = connp->Client_setup.r_attr;
+		f_attr = connp->Client_setup.f_attr;
+		k_char = connp->Client_setup.k_char;
+		r_char = connp->Client_setup.r_char;
+		f_char = connp->Client_setup.f_char;
+	}
+
+	/* -- WIPE -- */
+	memset(connp, 0, sizeof(*connp));
+	
+	/* RESTORE */
+	if (save_setup_tables)
+	{
+		connp->client_setup = save_setup_tables;
+		connp->Client_setup.k_attr = k_attr;
+		connp->Client_setup.r_attr = r_attr;
+		connp->Client_setup.f_attr = f_attr;
+		connp->Client_setup.k_char = k_char;
+		connp->Client_setup.r_char = r_char;
+		connp->Client_setup.f_char = f_char;
+	}
+}
+
+/*
  * Cleanup a connection.  The client may not know yet that it is thrown out of
  * the game so we send it a quit packet if our connection to it has not already
  * closed.  If our connection to it has been closed, then connp->w.sock will
@@ -1017,7 +1074,8 @@ bool Destroy_connection(int ind, char *reason)
 	Sockbuf_cleanup(&connp->r);
 	Sockbuf_cleanup(&connp->c);
 	Sockbuf_cleanup(&connp->q);
-	memset(connp, 0, sizeof(*connp));
+
+	wipe_connection(connp);
 
 	num_logouts++;
 
@@ -1140,7 +1198,18 @@ int Setup_connection(char *real, char *nick, char *addr, char *host, char *pass,
 		connp->class = class;
 		connp->sex = sex;
 		connp->start = turn;
-	
+
+		if (connp->client_setup == 0)
+		{
+			C_MAKE(connp->Client_setup.k_attr, z_info->k_max, byte);
+			C_MAKE(connp->Client_setup.k_char, z_info->k_max, char);
+			C_MAKE(connp->Client_setup.r_attr, z_info->r_max, byte);
+			C_MAKE(connp->Client_setup.r_char, z_info->r_max, char);
+			C_MAKE(connp->Client_setup.f_attr, z_info->f_max, byte);
+			C_MAKE(connp->Client_setup.f_char, z_info->f_max, char);
+			connp->client_setup = 1;
+		}
+
 		connp->timeout = SETUP_TIMEOUT;		
 		
 		if (connp->real == NULL || connp->nick == NULL || connp->pass == NULL || connp->host == NULL)
@@ -1334,7 +1403,7 @@ static int Enter_player(int ind)
 		if (!connp->Client_setup.flvr_x_char[i]) connp->Client_setup.flvr_x_char[i] = flavor_info[i].x_char;
 	}
 
-	for (i = 0; i < MAX_F_IDX; i++)
+	for (i = 0; i < z_info->f_max; i++)
 	{
 		/* Ignore mimics */
 		if (f_info[i].mimic != i)
@@ -1351,7 +1420,7 @@ static int Enter_player(int ind)
 		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
 	}
 
-	for (i = 0; i < MAX_K_IDX; i++)
+	for (i = 0; i < z_info->k_max; i++)
 	{
 		p_ptr->k_attr[i] = connp->Client_setup.k_attr[i];
 		p_ptr->k_char[i] = connp->Client_setup.k_char[i];
@@ -1363,7 +1432,7 @@ static int Enter_player(int ind)
 		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? connp->Client_setup.flvr_x_char[k_info[i].flavor]: k_info[i].d_char);
 	}
 
-	for (i = 0; i < MAX_R_IDX; i++)
+	for (i = 0; i < z_info->r_max; i++)
 	{
 		p_ptr->r_attr[i] = connp->Client_setup.r_attr[i];
 		p_ptr->r_char[i] = connp->Client_setup.r_char[i];
@@ -2080,7 +2149,9 @@ static int Receive_play(int ind)
 	
 		Send_basic_info_conn(ind);
 		
-		Send_option_info_conn(ind);		
+		Send_option_info_conn(ind);
+
+		Send_visual_limits_conn(ind);
 		
 		Send_race_info_conn(ind);
 		Send_class_info_conn(ind);
@@ -2347,6 +2418,26 @@ int Send_option_info_conn(int ind)
 			return -1;
 		}
 	}
+	return 1;
+}
+int Send_visual_limits_conn(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	if (!BIT(connp->state, CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for visual limits (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	if (Packet_printf(&connp->c, "%c%c%hu%lu%lu%lu", PKT_STRUCT_INFO, STRUCT_INFO_LIMITS, 3,
+			z_info->k_max, z_info->r_max, z_info->f_max) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+
 	return 1;
 }
 int Send_race_info_conn(int ind)
@@ -3385,17 +3476,17 @@ static int Receive_verify_visual(int ind)
 			char_ref = connp->Client_setup.flvr_x_char;
 			break;
 		case 1:
-			local_size = MAX_F_IDX;
+			local_size = z_info->f_max;
 			attr_ref = connp->Client_setup.f_attr;
 			char_ref = connp->Client_setup.f_char;
 			break;
 		case 2:
-			local_size = MAX_K_IDX;
+			local_size = z_info->k_max;
  			attr_ref = connp->Client_setup.k_attr;
   			char_ref = connp->Client_setup.k_char;
   			break;
   		case 3:
-			local_size = MAX_R_IDX;
+			local_size = z_info->r_max;
 			attr_ref = connp->Client_setup.r_attr;
 			char_ref = connp->Client_setup.r_char;
 			break;

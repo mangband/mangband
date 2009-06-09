@@ -142,10 +142,16 @@ bool cursor_icky;
  */
 char *p_name;
 player_race *race_info;
+/*
+ * The player class arrays
+ */
 char *c_name;
 char *c_text;
 player_class *c_info;
-//limits
+
+/*
+ * Known limits
+ */
 maxima z_info;
 
 cptr ANGBAND_GRAF = "none";

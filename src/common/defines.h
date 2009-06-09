@@ -246,14 +246,6 @@
 #define NUM_HASH_ENTRIES	256
 
 
-/*
- * Maximum array bounds for template based arrays
- */
- 
-#define MAX_F_IDX	128	/* Max size for "f_info[]" */
-#define MAX_K_IDX	544	/* Max size for "k_info[]" */
-#define MAX_R_IDX	620	/* Max size for "r_info[]" */
-
 
 /*
  * Maximum array bounds for entity list arrays

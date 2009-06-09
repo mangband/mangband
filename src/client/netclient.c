@@ -152,17 +152,17 @@ int Send_verify_visual(int type)
 			char_ref = Client_setup.flvr_x_char;
 			break;
 		case 1:
-			size = MAX_F_IDX;
+			size = z_info.f_max;
 			attr_ref = Client_setup.f_attr;
 			char_ref = Client_setup.f_char;
 			break;
 		case 2:
-			size = MAX_K_IDX;
+			size = z_info.k_max;
  			attr_ref = Client_setup.k_attr;
   			char_ref = Client_setup.k_char;
   			break;
   		case 3:
-			size = MAX_R_IDX;
+			size = z_info.r_max;
 			attr_ref = Client_setup.r_attr;
 			char_ref = Client_setup.r_char;
 			break;
@@ -1277,6 +1277,35 @@ int Receive_struct_info(void)
 					}				
 				}
 			}
+		break;
+		/* Various Limits */
+		case STRUCT_INFO_LIMITS:
+			if ((n = Packet_scanf(&rbuf, "%lu", &off)) <= 0)
+			{
+				return n;
+			}		
+			/* k_info */
+			z_info.k_max = fake_name_size;
+			C_MAKE(Client_setup.k_attr, z_info.k_max, byte);
+			C_MAKE(Client_setup.k_char, z_info.k_max, char);
+			C_MAKE(p_ptr->k_attr, z_info.k_max, byte);
+			C_MAKE(p_ptr->k_char, z_info.k_max, char);
+			C_MAKE(p_ptr->d_attr, z_info.k_max, byte);
+			C_MAKE(p_ptr->d_char, z_info.k_max, char);
+
+			/* r_info */
+			z_info.r_max = fake_text_size;
+			C_MAKE(Client_setup.r_attr, z_info.r_max, byte);
+			C_MAKE(Client_setup.r_char, z_info.r_max, char);
+			C_MAKE(p_ptr->r_attr, z_info.r_max, byte);
+			C_MAKE(p_ptr->r_char, z_info.r_max, char);
+
+			/* f_info */
+			z_info.f_max = off;
+			C_MAKE(Client_setup.f_attr, z_info.f_max, byte);
+			C_MAKE(Client_setup.f_char, z_info.f_max, char);
+			C_MAKE(p_ptr->f_attr, z_info.f_max, byte);
+			C_MAKE(p_ptr->f_char, z_info.f_max, char);
 		break;
 		/* Player Races */
 		case STRUCT_INFO_RACE:

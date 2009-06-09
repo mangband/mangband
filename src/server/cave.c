@@ -721,7 +721,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 	int Depth = p_ptr->dun_depth;
 
 	char *f_char_ptr;
-	unsigned char *f_attr_ptr;
+	byte *f_attr_ptr;
 	char *r_char_ptr;
 	byte *r_attr_ptr;
 

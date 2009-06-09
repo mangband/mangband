@@ -572,8 +572,8 @@ char *v_text;
 feature_type *f_info;
 char *f_name;
 char *f_text;
-char f_char_s[MAX_F_IDX];
-byte f_attr_s[MAX_F_IDX];
+char *f_char_s; /* copy of f_info characters */
+byte *f_attr_s; /* copy of f_info attributes */
 
 /*
  * The object kind arrays
@@ -603,8 +603,8 @@ char *e_text;
 monster_race *r_info;
 char *r_name;
 char *r_text;
-char r_char_s[MAX_R_IDX];
-byte r_attr_s[MAX_R_IDX];
+char *r_char_s; /* copy of r_info charcartes */
+byte *r_attr_s; /* copy of r_info attributes */
 
 
 /*

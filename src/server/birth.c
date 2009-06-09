@@ -483,14 +483,26 @@ static void player_wipe(int Ind)
 	monster_lore *l_ptr;
 	byte *old_channels;
 	byte *old_arts;
+	bool *old_obj_aware;
+	bool *old_obj_tried;
+	s16b *old_r_killed;	
+	byte *f_attr, *k_attr, *d_attr, *r_attr;
+	char *f_char, *k_char, *d_char, *r_char;
 	int i;
 
 
-	/* Hack -- save the inventory and lore pointers */
+	/* Hack -- save pointers */
 	old_inven = p_ptr->inventory;
 	old_lore = p_ptr->l_list;
 	old_channels = p_ptr->on_channel;
 	old_arts = p_ptr->a_info;
+	old_obj_aware = p_ptr->obj_aware;
+	old_obj_tried = p_ptr->obj_tried;
+	old_r_killed = p_ptr->r_killed;
+	f_attr = p_ptr->f_attr; f_char = p_ptr->f_char;
+	r_attr = p_ptr->r_attr; r_char = p_ptr->r_char;
+	k_attr = p_ptr->k_attr; k_char = p_ptr->k_char;
+	d_attr = p_ptr->d_attr; d_char = p_ptr->d_char;
 
 	/* Clear character history ! */
 	history_wipe(p_ptr->charhist);
@@ -498,11 +510,18 @@ static void player_wipe(int Ind)
 	/* Hack -- zero the struct */
 	WIPE(p_ptr, player_type);
 
-	/* Hack -- reset the inventory and lore pointers */
+	/* Hack -- restore pointers */
 	p_ptr->inventory = old_inven;
 	p_ptr->l_list = old_lore;
 	p_ptr->on_channel = old_channels;
 	p_ptr->a_info = old_arts;
+	p_ptr->obj_aware = old_obj_aware;
+	p_ptr->obj_tried = old_obj_tried;
+	p_ptr->r_killed = old_r_killed;
+	p_ptr->f_attr = f_attr; p_ptr->f_char = f_char;
+	p_ptr->r_attr = r_attr; p_ptr->r_char = r_char;
+	p_ptr->k_attr = k_attr; p_ptr->k_char = k_char;
+	p_ptr->d_attr = d_attr; p_ptr->d_char = d_char;
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -1227,25 +1246,42 @@ static void player_admin(int Ind)
 /*
  * Allocate player structure
  */
-player_type* player_alloc(int Ind)
+player_type* player_alloc()
 {
+	player_type *p_ptr;
+
 	/* Allocate memory for him */
-	MAKE(Players[Ind], player_type);
+	MAKE(p_ptr, player_type);
 
 	/* Allocate memory for his inventory */
-	C_MAKE(Players[Ind]->inventory, INVEN_TOTAL, object_type);
+	C_MAKE(p_ptr->inventory, INVEN_TOTAL, object_type);
 
 	/* Allocate memory for his lore array */
-	C_MAKE(Players[Ind]->l_list, z_info->r_max, monster_lore);
+	C_MAKE(p_ptr->l_list, z_info->r_max, monster_lore);
 
 	/* Allocate memory for his artifact array */
-	C_MAKE(Players[Ind]->a_info, z_info->a_max, byte);
+	C_MAKE(p_ptr->a_info, z_info->a_max, byte);
+
+	/* Allocate memory for his dungeon flags array */
+	C_MAKE(p_ptr->obj_aware, z_info->k_max, bool);
+	C_MAKE(p_ptr->obj_tried, z_info->k_max, bool);
+	C_MAKE(p_ptr->r_killed,  z_info->r_max, s16b);
+
+	/* Allocate memory for his visuals */
+	C_MAKE(p_ptr->f_attr, z_info->f_max, byte);
+	C_MAKE(p_ptr->f_char, z_info->f_max, char);
+	C_MAKE(p_ptr->k_attr, z_info->k_max, byte);
+	C_MAKE(p_ptr->k_char, z_info->k_max, char);
+	C_MAKE(p_ptr->d_attr, z_info->k_max, byte);
+	C_MAKE(p_ptr->d_char, z_info->k_max, char);	
+	C_MAKE(p_ptr->r_attr, z_info->r_max, byte);
+	C_MAKE(p_ptr->r_char, z_info->r_max, char);
 
 	/* Hack -- initialize history */
-	Players[Ind]->charhist = NULL;
+	p_ptr->charhist = NULL;
 
 	/* Set pointer */
-	return Players[Ind];
+	return p_ptr;
 }
 /* 
  * Free player structure
@@ -1262,6 +1298,19 @@ void player_free(player_type *p_ptr)
 
 	if (p_ptr->a_info)
 		C_KILL(p_ptr->a_info, z_info->a_max, byte);
+
+	if (p_ptr->obj_aware)	C_KILL(p_ptr->obj_aware, z_info->k_max, bool);
+	if (p_ptr->obj_tried)	C_KILL(p_ptr->obj_tried, z_info->k_max, bool);
+	if (p_ptr->r_killed)	C_KILL(p_ptr->r_killed,  z_info->r_max, s16b);
+
+	if (p_ptr->f_attr)		C_KILL(p_ptr->f_attr, z_info->f_max, byte);
+	if (p_ptr->f_char)		C_KILL(p_ptr->f_char, z_info->f_max, char);
+	if (p_ptr->k_attr)		C_KILL(p_ptr->k_attr, z_info->k_max, byte);
+	if (p_ptr->k_char)		C_KILL(p_ptr->k_char, z_info->k_max, char);
+	if (p_ptr->d_attr)		C_KILL(p_ptr->d_attr, z_info->k_max, byte);
+	if (p_ptr->d_char)		C_KILL(p_ptr->d_char, z_info->k_max, char);
+	if (p_ptr->r_attr)		C_KILL(p_ptr->r_attr, z_info->r_max, byte);
+	if (p_ptr->r_char)		C_KILL(p_ptr->r_char, z_info->r_max, char);
 
 	history_wipe(p_ptr->charhist);
 
@@ -1289,7 +1338,8 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	if (sex < 0 || sex > 1) sex = 0;
 
 	/* Allocate player and set pointer */
-	p_ptr = player_alloc(Ind);
+	p_ptr = player_alloc();
+	Players[Ind] = p_ptr;
 
 	/* Copy channels pointer */
 	p_ptr->on_channel = Conn_get_console_channels(conn);

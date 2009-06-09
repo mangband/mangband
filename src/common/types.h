@@ -131,14 +131,14 @@ struct client_setup_t
 	byte flvr_x_attr[MAX_FLVR_IDX];
 	char flvr_x_char[MAX_FLVR_IDX];
 
-	byte f_attr[MAX_F_IDX];
-	char f_char[MAX_F_IDX];
+	byte *f_attr;
+	char *f_char;
 
-	byte k_attr[MAX_K_IDX];
-	char k_char[MAX_K_IDX];
+	byte *k_attr;
+	char *k_char;
 
-	byte r_attr[MAX_R_IDX];
-	char r_char[MAX_R_IDX];
+	byte *r_attr;
+	char *r_char;
 	
 	byte misc_attr[256];
 	char misc_char[256];
@@ -1316,22 +1316,22 @@ struct player_type
 	bool play_los[MAX_PLAYERS];
 	byte play_det[MAX_PLAYERS]; /* Were these players detected by this player? */
 
-	bool obj_aware[MAX_K_IDX]; /* Is the player aware of this obj type? */
-	bool obj_tried[MAX_K_IDX]; /* Has the player tried this obj type? */
+	bool *obj_aware; /* Is the player aware of this obj type? */
+	bool *obj_tried; /* Has the player tried this obj type? */
 
 	monster_lore *l_list; /* Character's monster lore */
 	monster_lore old_l; /* Old monster lore (for delta checks) */
 
 	bool options[MAX_OPTIONS];	/* Player's options */
 	byte hitpoint_warn;
-	byte d_attr[MAX_K_IDX];
-	char d_char[MAX_K_IDX];
-	byte f_attr[MAX_F_IDX];
-	char f_char[MAX_F_IDX];
-	byte k_attr[MAX_K_IDX];
-	char k_char[MAX_K_IDX];
-	byte r_attr[MAX_R_IDX];
-	char r_char[MAX_R_IDX];
+	byte *d_attr;
+	char *d_char;
+	byte *k_attr;
+	char *k_char;
+	byte *r_attr;
+	char *r_char;
+	byte *f_attr;
+	char *f_char;
 	byte misc_attr[256];
 	char misc_char[256];
 	byte tval_attr[128];
@@ -1567,7 +1567,7 @@ struct player_type
 
 	s16b pspeed;		/* Current speed */
 	
-    s16b r_killed[MAX_R_IDX];	/* Monsters killed */
+    s16b *r_killed;	/* Monsters killed */
     s16b feeling;		/* Most recent feeling */
     
 	hturn birth_turn;	/* Server turn on which player was born */

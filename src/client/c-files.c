@@ -806,7 +806,7 @@ errr process_pref_file_command(char *buf)
                         i = (huge)strtol(zz[0], NULL, 0);
                         n1 = strtol(zz[1], NULL, 0);
                         n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_R_IDX) return (1);
+                        if (i >= z_info.r_max) return (1);
                         if (n1) Client_setup.r_attr[i] = n1;
                         if (n2) Client_setup.r_char[i] = n2;
                         return (0);
@@ -822,7 +822,7 @@ errr process_pref_file_command(char *buf)
                         i = (huge)strtol(zz[0], NULL, 0);
                         n1 = strtol(zz[1], NULL, 0);
                         n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_K_IDX) return (1);
+                        if (i >= z_info.k_max) return (1);
                         if (n1) Client_setup.k_attr[i] = n1;
                         if (n2) Client_setup.k_char[i] = n2;
                         return (0);
@@ -838,7 +838,7 @@ errr process_pref_file_command(char *buf)
                         i = (huge)strtol(zz[0], NULL, 0);
                         n1 = strtol(zz[1], NULL, 0);
                         n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_F_IDX) return (1);
+                        if (i >= z_info.f_max) return (1);
                         if (n1) Client_setup.f_attr[i] = n1;
                         if (n2) Client_setup.f_char[i] = n2;
                         return (0);

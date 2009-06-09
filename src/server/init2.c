@@ -1602,6 +1602,24 @@ static errr init_other(void)
 	int n;
 #endif
 
+	/*** Prepare global arrays for local features ***/
+	/* Feature */
+	C_MAKE(f_char_s, z_info->f_max, char);
+	C_MAKE(f_attr_s, z_info->f_max, byte);
+	for (i = 0; i < z_info->f_max; i++)
+	{
+		f_char_s[i] = f_info[i].x_char;
+		f_attr_s[i] = f_info[i].x_attr;
+	}
+	/* Monster */
+	C_MAKE(r_char_s, z_info->r_max, char);
+	C_MAKE(r_attr_s, z_info->r_max, byte);
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		r_char_s[i] = r_info[i].x_char;
+		r_attr_s[i] = r_info[i].x_attr;
+	}
+
 	/*** Prepare the "dungeon" information ***/
 
 	/* Allocate and Wipe the object list */
@@ -2485,6 +2503,12 @@ void cleanup_angband(void)
 
 	/* Free the quest list  
 	FREE(q_list); // -- per player */
+
+	/* Free attr/chars used for dumps */
+	FREE(f_char_s, char);
+	FREE(f_attr_s, byte);
+	FREE(r_char_s, char);
+	FREE(r_attr_s, byte);
 
 	/* Free the lore, monster, and object lists */
 	C_FREE(m_list, MAX_M_IDX, monster_type);
