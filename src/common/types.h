@@ -726,7 +726,7 @@ struct monster_lore
 
 struct vault_type
 {
-	u16b name;			/* Name (offset) */
+	u32b name;			/* Name (offset) */
 	u32b text;			/* Text (offset) */
 
 	byte typ;			/* Vault type */
