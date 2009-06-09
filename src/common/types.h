@@ -628,8 +628,8 @@ struct monster_blow
 
 struct monster_race
 {
-	u16b name;				/* Name (offset) */
-	u16b text;				/* Text (offset) */
+	u32b name;				/* Name (offset) */
+	u32b text;				/* Text (offset) */
 
 	byte hdice;				/* Creatures hit dice count */
 	byte hside;				/* Creatures hit dice sides */
@@ -673,11 +673,9 @@ struct monster_race
 	byte cur_num;			/* Monster population on current level */
 
 
-	s32b killer;			/* ID of the player who killed him */
-
 	s16b r_sights;			/* Count sightings of this monster by all players*/
 	s16b r_tkills;			/* Count monsters killed by all players */
-	  
+
 	s32b respawn_timer;			/* The amount of time until the unique respawns */
 };
 

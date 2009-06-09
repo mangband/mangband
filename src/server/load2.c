@@ -1086,7 +1086,7 @@ static bool rd_extra(int Ind, bool had_header)
 
 	/* Read the unique list info */
 	start_section_read("uniques");
-	for (i = 0; i < MAX_R_IDX; i++) p_ptr->r_killed[i] = read_int("unique");
+	for (i = 0; i < z_info->r_max; i++) p_ptr->r_killed[i] = read_int("unique");
 	end_section_read("uniques");
 
 	/* Special stuff */
@@ -1862,7 +1862,7 @@ static errr rd_savefile_new_aux(int Ind)
 	}
 
 	/* Hack -- no ghosts */
-	r_info[MAX_R_IDX-1].max_num = 0;
+	/* r_info[z_info->r_max - 1].max_num = 0; */
 
   end_section_read("mangband_player_save");
   
@@ -1956,7 +1956,7 @@ errr rd_server_savefile()
 		tmp16u = read_int("max_r_idx");
 
         /* Incompatible save files */
-        if (tmp16u > MAX_R_IDX)
+        if (tmp16u > z_info->r_max)
         {
                 note(format("Too many (%u) monster races!", tmp16u));
                 return (21);
@@ -2187,7 +2187,7 @@ errr rd_server_savefile()
 	read_hturn("turn", &turn);
 
         /* Hack -- no ghosts */
-        r_info[MAX_R_IDX-1].max_num = 0;
+        /*r_info[z_info->r_max - 1].max_num = 0;*/
 
 	end_section_read("mangband_server_save");
 

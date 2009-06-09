@@ -481,7 +481,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	int k, l, i, space, namelen, total = 0, width = 78;
 	FILE *fff;
 	char file_name[1024], buf[1024];
-	int idx[MAX_R_IDX];
+	u16b *idx;
 	monster_race *r_ptr, *curr_ptr;
 
 	/* Temporary file */
@@ -489,7 +489,7 @@ void do_cmd_check_uniques(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
-	
+
 	/* Paranoia */
 	if (!fff) 
 	{
@@ -497,8 +497,11 @@ void do_cmd_check_uniques(int Ind, int line)
 		return;
 	}
 
+	/* Allocate the "idx" array */
+	C_MAKE(idx, z_info->r_max, u16b);
+
 	/* Scan the monster races */
-	for (k = 1; k < MAX_R_IDX-1; k++)
+	for (k = 1; k < z_info->r_max; k++)
 	{
 		r_ptr = &r_info[k];
 
@@ -586,6 +589,9 @@ void do_cmd_check_uniques(int Ind, int line)
 		}
 	}
 	else fprintf(fff, "wNo uniques are witnessed so far.\n");
+
+	/* Free the "ind" array */
+	FREE(idx, u16b);
 
 	/* Close the file */
 	my_fclose(fff);

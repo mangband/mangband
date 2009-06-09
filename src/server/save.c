@@ -525,7 +525,7 @@ static void wr_extra(int Ind)
 
 	/* Dump the monster lore */
 	start_section("uniques");
-	for (i = 0; i < MAX_R_IDX; i++) write_int("unique",p_ptr->r_killed[i]);
+	for (i = 0; i < z_info->r_max; i++) write_int("unique",p_ptr->r_killed[i]);
 	end_section("uniques");
 
 	/* Special stuff */
@@ -1485,7 +1485,7 @@ static bool wr_server_savefile(void)
 
         /* Dump the monster (unique) lore */
 		start_section("monster_lore");
-        tmp16u = MAX_R_IDX;
+        tmp16u = z_info->r_max;
 		write_uint("max_r_idx",tmp16u);
         for (i = 0; i < tmp16u; i++) wr_u_lore(i);
 		end_section("monster_lore");

@@ -865,7 +865,7 @@ void reset_visuals(void)
 	}
 
 	/* Extract some info about monsters */
-	for (i = 0; i < MAX_R_IDX; i++)
+	for (i = 0; i < z_info->r_max; i++)
 	{
 		/* Extract the "underlying" attr */
 		r_info[i].x_attr = r_info[i].d_attr;

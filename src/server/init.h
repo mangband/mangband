@@ -69,8 +69,7 @@ extern header z_head;
 extern header v_head;
 extern header f_head;
 extern header k_head;
-/*
-extern header r_head;*/
+extern header r_head;
 extern header p_head;
 extern header c_head;
 extern header h_head;

@@ -2702,7 +2702,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	if (p_ptr->fruit_bat != -1)
 	{
 		/* Bring back to life the uniques he slew */
-		for (i = 1; i < MAX_R_IDX; i++)
+		for (i = 1; i < z_info->r_max; i++)
 		{
 			monster_race *r_ptr = &r_info[i];
 

@@ -1425,7 +1425,7 @@ void server_birth(void)
 	int i;
 
 	/* Initialize uniques */
-	for (i = 0; i < MAX_R_IDX; i++)
+	for (i = 0; i < z_info->r_max; i++)
 	{
 		/* Make sure we have a unique */
 		if (!(r_info[i].flags1 & RF1_UNIQUE))

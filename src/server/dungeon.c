@@ -1781,7 +1781,7 @@ static void process_various(void)
 		}
 
 		/* Update the unique respawn timers */
-		for (i = 1; i < MAX_R_IDX-1; i++)
+		for (i = 1; i < z_info->r_max; i++)
 		{
 			monster_race *r_ptr = &r_info[i];
 	                                                

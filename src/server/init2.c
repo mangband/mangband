@@ -425,8 +425,7 @@ header z_head;
 header v_head;
 header f_head;
 header k_head;
-/*
-header r_head;*/
+header r_head;
 header e_head;
 header a_head;
 header p_head;
@@ -1032,100 +1031,30 @@ static errr init_e_info(void)
 
 
 /*
- * Initialize the "r_info" array (Monster handling)
- *
- * Note that we let each entry have a unique "name" and "text" string,
- * even if the string happens to be empty (everyone has a unique '\0').
+ * Initialize the "r_info" array
  */
 static errr init_r_info(void)
 {
 	errr err;
-	int i;
-	FILE *fp;
 
-	/* General buffer */
-	char buf[1024];
+	/* Init the header */
+	init_header(&r_head, z_info->r_max, sizeof(monster_race));
 
+#ifdef ALLOW_TEMPLATES
 
-	/*** Make the header ***/
+	/* Save a pointer to the parsing function */
+	r_head.parse_info_txt = parse_r_info;
 
-	/* Allocate the "header" */
-	MAKE(r_head, header);
+#endif /* ALLOW_TEMPLATES */
 
-	/* Save the "version" */
-	r_head->v_major = SERVER_VERSION_MAJOR;
-	r_head->v_minor = SERVER_VERSION_MINOR;
-	r_head->v_patch = SERVER_VERSION_PATCH;
-	r_head->v_extra = 0;
+	err = init_info("monster", &r_head);
 
-	/* Save the "record" information */
-	r_head->info_num = MAX_R_IDX;
-	r_head->info_len = sizeof(monster_race);
+	/* Set the global variables */
+	r_info = r_head.info_ptr;
+	r_name = r_head.name_ptr;
+	r_text = r_head.text_ptr;
 
-	/* Save the size of "r_head" and "r_info" */
-	r_head->head_size = sizeof(header);
-	r_head->info_size = r_head->info_num * r_head->info_len;
-
-
-	/*** Make the fake arrays ***/
-
-	/* Assume the size of "r_name" and "r_text" */
-	fake_name_size = 20 * 1024L;
-	fake_text_size = 60 * 1024L;
-
-	/* Allocate the "r_info" array */
-	C_MAKE(r_info, r_head->info_num, monster_race);
-
-	/* Hack -- make "fake" arrays */
-	C_MAKE(r_name, fake_name_size, char);
-	C_MAKE(r_text, fake_text_size, char);
-
-
-	/*** Load the ascii template file ***/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "monster.txt");
-
-	/* Open the file */
-	fp = my_fopen(buf, "r");
-
-	/* Parse it */
-	if (!fp) quit("Cannot open 'monster.txt' file.");
-
-	/* Parse the file */
-	err = init_r_info_txt(fp, buf);
-
-	/* Close it */
-	my_fclose(fp);
-
-	/* Errors */
-	if (err)
-	{
-		cptr oops;
-
-		/* Error string */
-		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
-
-		/* Oops */
-		plog(format("Error %d at line %d of 'monster.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
-		/*msg_print(NULL);*/
-
-		/* Quit */
-		quit("Error in 'monster.txt' file.");
-	}
-
-	/* Keep a copy of server side char/attrs in the same format as in  the player 
-	 * structure for use later in map_info() rendering server side scenes */
-	for(i=0; i<MAX_R_IDX; i++)
-	{
-		r_char_s[i] = r_info[i].d_char;
-		r_attr_s[i] = r_info[i].d_attr;
-	}
-
-	/* Success */
-	return (0);
+	return (err);
 }
 
 
@@ -2009,7 +1938,7 @@ static errr init_alloc(void)
 	alloc_race_size = 0;
 
 	/* Scan the monsters (not the ghost) */
-	for (i = 1; i < MAX_R_IDX - 1; i++)
+	for (i = 1; i < z_info->r_max - 1; i++)
 	{
 		/* Get the i'th race */
 		r_ptr = &r_info[i];
@@ -2045,7 +1974,7 @@ static errr init_alloc(void)
 	table = alloc_race_table;
 
 	/* Scan the monsters (not the ghost) */
-	for (i = 1; i < MAX_R_IDX - 1; i++)
+	for (i = 1; i < z_info->r_max - 1; i++)
 	{
 		/* Get the i'th race */
 		r_ptr = &r_info[i];
@@ -2601,6 +2530,7 @@ void cleanup_angband(void)
 	free_info(&e_head);	
 	free_info(&a_head);
 	free_info(&f_head);
+	free_info(&r_head);
 
 #define Ifree_info(L,T) \
 	free_info((header*)L ## _head); \
@@ -2609,7 +2539,6 @@ void cleanup_angband(void)
 	FREE(L ## _name, char); \
 	FREE(L ## _text, char);
 
-	Ifree_info(r, monster_race);
 
 	free_info(&z_head);
 
