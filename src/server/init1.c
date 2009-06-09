@@ -1024,6 +1024,7 @@ errr parse_v_info(char *buf, header *head)
 	return (0);
 }
 
+
 /*
  * Grab one flag from a textual string
  */
@@ -1044,8 +1045,6 @@ static errr grab_one_flag(u32b *flags, cptr names[], cptr what)
 	return (-1);
 }
 
-
-
 /*
  * Grab one flag in a player class from a textual string
  */
@@ -1060,7 +1059,6 @@ static errr grab_one_class_flag(player_class *pc_ptr, cptr what)
 	/* Error */
 	return (PARSE_ERROR_GENERIC);
 }
-
 
 /*
  * Initialize the "c_info" array, by parsing an ascii "template" file
@@ -1742,8 +1740,6 @@ errr parse_f_info(char *buf, header *head)
 
 
 
-
-
 /*
  * Grab one flag in a player_race from a textual string
  */
@@ -1764,8 +1760,6 @@ static errr grab_one_racial_flag(player_race *pr_ptr, cptr what)
 	/* Error */
 	return (PARSE_ERROR_GENERIC);
 }
-
-
 
 /*
  * Initialize the "p_info" array, by parsing an ascii "template" file
@@ -2008,6 +2002,7 @@ errr parse_p_info(char *buf, header *head)
 }
 
 
+
 /*
  * Grab one flag in an object_kind from a textual string
  */
@@ -2063,8 +2058,6 @@ static errr grab_one_kind_flag(object_kind *k_ptr, cptr what)
 	/* Error */
 	return (1);
 }
-
-
 
 /*
  * Initialize the "k_info" array, by parsing an ascii "template" file
@@ -2299,6 +2292,7 @@ errr parse_k_info(char *buf, header *head)
 }
 
 
+
 /*
  * Grab one flag in an artifact_type from a textual string
  */
@@ -2378,7 +2372,6 @@ static errr grab_one_activation(artifact_type *a_ptr, cptr what)
 	/* Error */
 	return (1);
 }
-
 
 /*
  * Initialize the "a_info" array, by parsing an ascii "template" file
@@ -2573,6 +2566,7 @@ errr parse_a_info(char *buf, header *head)
 }
 
 
+
 /*
  * Grab one flag in a ego-item_type from a textual string
  */
@@ -2628,9 +2622,6 @@ static bool grab_one_ego_item_flag(ego_item_type *e_ptr, cptr what)
 	/* Error */
 	return (1);
 }
-
-
-
 
 /*
  * Initialize the "e_info" array, by parsing an ascii "template" file
@@ -2861,7 +2852,6 @@ static errr grab_one_basic_flag(monster_race *r_ptr, cptr what)
 	return (1);
 }
 
-
 /*
  * Grab one (spell) flag in a monster_race from a textual string
  */
@@ -2905,9 +2895,6 @@ static errr grab_one_spell_flag(monster_race *r_ptr, cptr what)
 	/* Failure */
 	return (1);
 }
-
-
-
 
 /*
  * Initialize the "r_info" array, by parsing an ascii "template" file
@@ -3228,6 +3215,7 @@ errr parse_r_info(char *buf, header *head)
 	/* Success */
 	return (0);
 }
+
 
 
 /*

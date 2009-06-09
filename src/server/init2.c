@@ -425,9 +425,9 @@ header z_head;
 header v_head;
 header f_head;
 header k_head;
-header r_head;
-header e_head;
 header a_head;
+header e_head;
+header r_head;
 header p_head;
 header c_head;
 header h_head;
@@ -822,7 +822,6 @@ static errr init_f_info(void)
 }
 
 
-
 /*
  * Initialize the "k_info" array
  */
@@ -851,14 +850,6 @@ static errr init_k_info(void)
 }
 
 
-
-
-/*
- * Initialize the "a_info" array (Artifact handling)
- *
- * Note that we let each entry have a unique "name" and "text" string,
- * even if the string happens to be empty (everyone has a unique '\0').
- */
 /*
  * Initialize the "a_info" array
  */
@@ -885,7 +876,6 @@ static errr init_a_info(void)
 
 	return (err);
 }
-
 
 
 /*
@@ -916,7 +906,6 @@ static errr init_c_info(void)
 }
 
 
-
 /*
  * Initialize the "h_info" array
  */
@@ -942,7 +931,6 @@ static errr init_h_info(void)
 
 	return (err);
 }
-
 
 
 /*
@@ -971,7 +959,6 @@ static errr init_b_info(void)
 
 	return (err);
 }
-
 
 
 /*
@@ -1056,8 +1043,6 @@ static errr init_r_info(void)
 
 	return (err);
 }
-
-
 
 
 /*
@@ -2523,23 +2508,14 @@ void cleanup_angband(void)
 	free_info(&g_head);
 	free_info(&b_head);
 	free_info(&c_head);
-	free_info(&v_head);	
 	free_info(&p_head);
 	free_info(&h_head);
-	free_info(&k_head);	
+	free_info(&v_head);	
+	free_info(&r_head);
 	free_info(&e_head);	
 	free_info(&a_head);
+	free_info(&k_head);	
 	free_info(&f_head);
-	free_info(&r_head);
-
-#define Ifree_info(L,T) \
-	free_info((header*)L ## _head); \
-	FREE(L ## _head, header); \
-	FREE(L ## _info, T); \
-	FREE(L ## _name, char); \
-	FREE(L ## _text, char);
-
-
 	free_info(&z_head);
 
 	/* Free the format() buffer */
