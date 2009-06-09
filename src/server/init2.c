@@ -423,8 +423,8 @@ static cptr err_str[PARSE_ERROR_MAX] =
  */
 header z_head;
 header v_head;
-/*
 header f_head;
+/*
 header k_head;
 header r_head;*/
 header e_head;
@@ -796,103 +796,31 @@ static errr init_z_info(void)
 
 
 /*
- * Initialize the "f_info" array (Terrain handling)
- *
- * Note that we let each entry have a unique "name" and "text" string,
- * even if the string happens to be empty (everyone has a unique '\0').
+ * Initialize the "f_info" array
  */
 static errr init_f_info(void)
 {
-	int i;
 	errr err;
 
-	FILE *fp;
+	/* Init the header */
+	init_header(&f_head, z_info->f_max, sizeof(feature_type));
 
-	/* General buffer */
-	char buf[1024];
+#ifdef ALLOW_TEMPLATES
 
+	/* Save a pointer to the parsing function */
+	f_head.parse_info_txt = parse_f_info;
 
-	/*** Make the header ***/
+#endif /* ALLOW_TEMPLATES */
 
-	/* Allocate the "header" */
-	MAKE(f_head, header);
+	err = init_info("terrain", &f_head);
 
-	/* Save the "version" */
-	f_head->v_major = SERVER_VERSION_MAJOR;
-	f_head->v_minor = SERVER_VERSION_MINOR;
-	f_head->v_patch = SERVER_VERSION_PATCH;
-	f_head->v_extra = 0;
+	/* Set the global variables */
+	f_info = f_head.info_ptr;
+	f_name = f_head.name_ptr;
+	f_text = f_head.text_ptr;
 
-	/* Save the "record" information */
-	f_head->info_num = MAX_F_IDX;
-	f_head->info_len = sizeof(feature_type);
-
-	/* Save the size of "f_head" and "f_info" */
-	f_head->head_size = sizeof(header);
-	f_head->info_size = f_head->info_num * f_head->info_len;
-
-
-	/*** Make the fake arrays ***/
-
-	/* Fake the size of "f_name" and "f_text" */
-	fake_name_size = 20 * 1024L;
-	fake_text_size = 60 * 1024L;
-
-	/* Allocate the "f_info" array */
-	C_MAKE(f_info, f_head->info_num, feature_type);
-
-	/* Hack -- make "fake" arrays */
-	C_MAKE(f_name, fake_name_size, char);
-	C_MAKE(f_text, fake_text_size, char);
-
-
-	/*** Load the ascii template file ***/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "terrain.txt");
-
-	/* Open the file */
-	fp = my_fopen(buf, "r");
-
-	/* Parse it */
-	if (!fp) quit("Cannot open 'terrain.txt' file.");
-
-	/* Parse the file */
-	err = init_f_info_txt(fp, buf);
-
-	/* Close it */
-	my_fclose(fp);
-
-	/* Errors */
-	if (err)
-	{
-		cptr oops;
-
-		/* Error string */
-		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
-
-		/* Oops */
-		plog(format("Error %d at line %d of 'terrain.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
-		/*msg_print(NULL);*/
-
-		/* Quit */
-		quit("Error in 'terrain.txt' file.");
-	}
-
-	/* Keep a copy of server side char/attrs in the same format as in  the player 
-	 * structure for use later in map_info() rendering server side scenes */
-	for(i=0; i<MAX_F_IDX; i++)
-	{
-		f_char_s[i] = f_info[i].f_char;
-		f_attr_s[i] = f_info[i].f_attr;
-	}
-
-	/* Success */
-	return (0);
+	return (err);
 }
-
 
 
 
@@ -2731,6 +2659,7 @@ void cleanup_angband(void)
 	free_info(&h_head);
 	free_info(&e_head);	
 	free_info(&a_head);
+	free_info(&f_head);
 
 #define Ifree_info(L,T) \
 	free_info((header*)L ## _head); \
@@ -2741,7 +2670,6 @@ void cleanup_angband(void)
 
 	Ifree_info(r, monster_race);
 	Ifree_info(k, object_kind);
-	Ifree_info(f, feature_type);
 
 	free_info(&z_head);
 

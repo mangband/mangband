@@ -1657,7 +1657,7 @@ static byte priority(byte a, char c)
 		f_ptr = &f_info[p0];
 
 		/* Check character and attribute, accept matches */
-		if ((f_ptr->z_char == c) && (f_ptr->z_attr == a)) return (p1);
+		if ((f_ptr->x_char == c) && (f_ptr->x_attr == a)) return (p1);
 	}
 
 	/* Default */

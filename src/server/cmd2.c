@@ -3925,7 +3925,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 				/* Find suitable color */
 				for (i = FEAT_HOME_HEAD; i < FEAT_HOME_TAIL + 1; i++)
 				{
-					if (f_info[i].z_attr == missile_attr || f_info[i].z_attr == color_opposite(missile_attr)) 
+					if (f_info[i].x_attr == missile_attr || f_info[i].x_attr == color_opposite(missile_attr)) 
 					{
 						/* Pick a house */
 						if ((j = pick_house(Depth, ny, nx)) == -1) break;

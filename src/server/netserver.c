@@ -1347,8 +1347,8 @@ static int Enter_player(int ind)
 			p_ptr->f_attr[i] = connp->Client_setup.f_attr[i];
 			p_ptr->f_char[i] = connp->Client_setup.f_char[i];
 		}
-		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].z_attr;
-		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].z_char;
+		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].x_attr;
+		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
 	}
 
 	for (i = 0; i < MAX_K_IDX; i++)

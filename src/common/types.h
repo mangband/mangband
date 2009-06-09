@@ -432,8 +432,8 @@ struct maxima
 
 struct feature_type
 {
-	u16b name;			/* Name (offset) */
-	u16b text;			/* Text (offset) */
+	u32b name;			/* Name (offset) */
+	u32b text;			/* Text (offset) */
 
 	byte mimic;			/* Feature to mimic */
 
@@ -441,11 +441,11 @@ struct feature_type
 
 	s16b unused;		/* Extra bytes (unused) */
 
-	byte f_attr;		/* Object "attribute" */
-	char f_char;		/* Object "symbol" */
+	byte d_attr;		/* Default feature attribute */
+	char d_char;		/* Default feature character */
 
-	byte z_attr;		/* The desired attr for this feature */
-	char z_char;		/* The desired char for this feature */
+	byte x_attr;		/* Desired feature attribute */
+	char x_char;		/* Desired feature character */
 };
 
 

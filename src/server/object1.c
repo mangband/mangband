@@ -844,8 +844,8 @@ void reset_visuals(void)
 		feature_type *f_ptr = &f_info[i];
 
 		/* Assume we will use the underlying values */
-		f_ptr->z_attr = f_ptr->f_attr;
-		f_ptr->z_char = f_ptr->f_char;
+		f_ptr->x_attr = f_ptr->d_attr;
+		f_ptr->x_char = f_ptr->d_char;
 	}
 
 	/* Extract some info about objects */

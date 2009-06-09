@@ -326,8 +326,8 @@ errr process_pref_file_aux(char *buf)
 			n2 = strtol(zz[2], NULL, 0);
 			if (i >= MAX_F_IDX) return (1);
 			f_ptr = &f_info[i];
-			if (n1) f_ptr->z_attr = n1;
-			if (n2) f_ptr->z_char = n2;
+			if (n1) f_ptr->x_attr = n1;
+			if (n2) f_ptr->x_char = n2;
 			return (0);
 		}
 	}

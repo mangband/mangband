@@ -1627,201 +1627,114 @@ errr parse_g_info(char *buf, header *head)
 /*
  * Initialize the "f_info" array, by parsing an ascii "template" file
  */
-errr init_f_info_txt(FILE *fp, char *buf)
+errr parse_f_info(char *buf, header *head)
 {
 	int i;
 
 	char *s;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	feature_type *f_ptr = NULL;
+	static feature_type *f_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Prepare the "fake" stuff */
-	f_head->name_size = 0;
-	f_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != f_head->v_major) ||
-			    (v2 != f_head->v_minor) ||
-			    (v3 != f_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		f_ptr = (feature_type*)head->info_ptr + i;
 
+		/* Store the name */
+		if (!(f_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i <= error_idx) return (4);
-
-			/* Verify information */
-			if (i >= f_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			f_ptr = &f_info[i];
-
-			/* Hack -- Verify space */
-			if (f_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!f_ptr->name) f_ptr->name = ++f_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(f_name + f_head->name_size, s);
-
-			/* Advance the index */
-			f_head->name_size += strlen(s);
-
-			/* Default "mimic" */
-			f_ptr->mimic = i;
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current f_ptr */
-		if (!f_ptr) return (3);
-
-
-#if 0
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (f_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!f_ptr->text) f_ptr->text = ++f_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(f_text + f_head->text_size, s);
-
-			/* Advance the index */
-			f_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-#endif
-
-
-		/* Process 'M' for "Mimic" (one line only) */
-		if (buf[0] == 'M')
-		{
-			int mimic;
-
-			/* Scan for the values */
-			if (1 != sscanf(buf+2, "%d",
-			                &mimic)) return (1);
-
-			/* Save the values */
-			f_ptr->mimic = mimic;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Process 'G' for "Graphics" (one line only) */
-		if (buf[0] == 'G')
-		{
-			int tmp;
-
-			/* Paranoia */
-			if (!buf[2]) return (1);
-			if (!buf[3]) return (1);
-			if (!buf[4]) return (1);
-
-			/* Extract the color */
-			tmp = color_char_to_attr(buf[4]);
-			if (tmp < 0) return (1);
-
-			/* Save the values */
-			f_ptr->f_char = buf[2];
-			f_ptr->f_attr = tmp;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Default "mimic" */
+		f_ptr->mimic = i;
 	}
 
+	/* Process 'M' for "Mimic" (one line only) */
+	else if (buf[0] == 'M')
+	{
+		int mimic;
 
-	/* Complete the "name" and "text" sizes */
-	++f_head->name_size;
-	++f_head->text_size;
+		/* There better be a current f_ptr */
+		if (!f_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
+		/* Scan for the values */
+		if (1 != sscanf(buf+2, "%d",
+			            &mimic)) return (PARSE_ERROR_GENERIC);
 
-	/* No version yet */
-	if (!okay) return (2);
+		/* Save the values */
+		f_ptr->mimic = mimic;
+	}
 
+	/* Process 'G' for "Graphics" (one line only) */
+	else if (buf[0] == 'G')
+	{
+		char d_char;
+		int d_attr;
+
+		/* There better be a current f_ptr */
+		if (!f_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Paranoia */
+		if (!buf[2]) return (PARSE_ERROR_GENERIC);
+		if (!buf[3]) return (PARSE_ERROR_GENERIC);
+		if (!buf[4]) return (PARSE_ERROR_GENERIC);
+
+		/* Extract d_char */
+		d_char = buf[2];
+
+		/* If we have a longer string than expected ... */
+		if (buf[5])
+		{
+			/* Advance "buf" on by 4 */
+			buf += 4;
+
+			/* Extract the colour */
+			d_attr = color_text_to_attr(buf);
+		}
+		else
+		{
+			/* Extract the attr */
+			d_attr = color_char_to_attr(buf[4]);
+		}
+
+		/* Paranoia */
+		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		f_ptr->d_attr = d_attr;
+		f_ptr->d_char = d_char;
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
