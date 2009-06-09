@@ -521,7 +521,7 @@ static byte default_tval_to_char(int tval)
 	int i;
 
 	/* Hack -- Guess at "correct" values for tval_to_char[] */
-	for (i = 1; i < MAX_K_IDX; i++)
+	for (i = 1; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
 
@@ -849,7 +849,7 @@ void reset_visuals(void)
 	}
 
 	/* Extract some info about objects */
-	for (i = 0; i < MAX_K_IDX; i++)
+	for (i = 0; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
 

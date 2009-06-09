@@ -1652,7 +1652,7 @@ static errr rd_savefile_new_aux(int Ind)
 	tmp16u = read_int("max_k_idx");
 
 	/* Incompatible save files */
-	if (tmp16u > MAX_K_IDX)
+	if (tmp16u > z_info->k_max)
 	{
 		note(format("Too many (%u) object kinds!", tmp16u));
 		return (22);

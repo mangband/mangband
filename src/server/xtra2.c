@@ -6118,7 +6118,7 @@ bool master_generate(int Ind, char * parms)
 			}					
 			
 	
-			if ((last_k_idx != k_idx) && (k_idx > 0 && k_idx < MAX_K_IDX)) {
+			if ((last_k_idx != k_idx) && (k_idx > 0 && k_idx < z_info->k_max)) {
 				last_k_idx = k_idx;
 				dm_updated = TRUE;
 			}

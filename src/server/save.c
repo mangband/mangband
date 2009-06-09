@@ -804,7 +804,7 @@ static bool wr_savefile_new(int Ind)
 	
 	/* Dump the object memory */
 	start_section("object_memory");
-	tmp16u = MAX_K_IDX;
+	tmp16u = z_info->k_max;
 	write_int("max_k_idx",tmp16u);
 	for (i = 0; i < tmp16u; i++) wr_xtra(Ind, i);
 	end_section("object_memory");

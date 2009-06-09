@@ -2014,7 +2014,7 @@ void cmd_master_aux_generate_item(void)
 			/* Kind by number */
 			buf[1] = 'k';
 			buf[2] = '#';
-			tmp_quan = c_get_quantity("Item number? ", MAX_K_IDX);
+			tmp_quan = c_get_quantity("Item number? ", 255*2);
 			if (tmp_quan > 255) 
 			{buf[3] = tmp_quan-255;buf[4] = tmp_quan-(tmp_quan-255);}
 			else

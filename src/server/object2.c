@@ -1697,7 +1697,7 @@ s16b lookup_kind(int tval, int sval)
 	int k;
 
 	/* Look for it */
-	for (k = 1; k < MAX_K_IDX; k++)
+	for (k = 1; k < z_info->k_max; k++)
 	{
 		object_kind *k_ptr = &k_info[k];
 
@@ -4705,7 +4705,7 @@ int item_kind_index_fuzzy(char * name)
 	for(str=name;*str;str++) *str=tolower(*str);
 
 	/* for each item kind race */
-	for (i = 1; i <= MAX_K_IDX; i++)
+	for (i = 1; i <= z_info->k_max; i++)
 	{
 		/* Clean up it's name */
 		dst = match;

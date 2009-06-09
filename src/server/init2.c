@@ -1710,7 +1710,7 @@ static errr init_other(void)
 	    }
 
 			/* Look for it */
-			for (k_idx = 1; k_idx < MAX_K_IDX; k_idx++)
+			for (k_idx = 1; k_idx < z_info->k_max; k_idx++)
 			{
 				object_kind *k_ptr = &k_info[k_idx];
 
@@ -1719,7 +1719,7 @@ static errr init_other(void)
 			}
 
 			/* Catch errors */
-			if (k_idx == MAX_K_IDX) continue;
+			if (k_idx == z_info->k_max) continue;
 
 			/* Add that item index to the table */
 			st_ptr->table[st_ptr->table_num++] = k_idx;
@@ -1834,7 +1834,7 @@ static errr init_alloc(void)
 	alloc_kind_size = 0;
 
 	/* Scan the objects */
-	for (i = 1; i < MAX_K_IDX; i++)
+	for (i = 1; i < z_info->k_max; i++)
 	{
 		k_ptr = &k_info[i];
 
@@ -1873,7 +1873,7 @@ static errr init_alloc(void)
 	table = alloc_kind_table;
 
 	/* Scan the objects */
-	for (i = 1; i < MAX_K_IDX; i++)
+	for (i = 1; i < z_info->k_max; i++)
 	{
 		k_ptr = &k_info[i];
 
