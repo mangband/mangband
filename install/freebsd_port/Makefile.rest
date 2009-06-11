@@ -5,69 +5,60 @@ MAINTAINER=	flambard@mangband.org
 COMMENT=	Free online multiplayer real-time roguelike game
 
 ALL_TARGET=	mangclient mangband
-#IS_INTERACTIVE=yes
-WRKSRC= 	${WRKDIR}/${DISTNAME}/src
+WRKSRC=	${WRKDIR}/${DISTNAME}/src
 GNU_CONFIGURE=yes
 USE_GMAKE=	yes
 
-OPTIONS=GCU "Display module GCU" On \
-	X11 "Display module X11" Off \
-	SDL "Display module SDL" Off \
+MAKE_ARGS="DATADIR=${DATADIR}"
+
+OPTIONS=	GCU "Display module GCU" On \
+			X11 "Display module X11" Off \
+			SDL "Display module SDL" Off \
 
 .include <bsd.port.pre.mk>
 
 .if defined(WITH_GCU)
-LIB_DEPENDS+=       ncurses:${PORTSDIR}/devel/ncurses
-CONFIGURE_ARGS+=    --with-gcu
+LIB_DEPENDS+=	ncurses:${PORTSDIR}/devel/ncurses
+CONFIGURE_ARGS+=	--with-gcu
 .else
-CONFIGURE_ARGS+=    --without-gcu
+CONFIGURE_ARGS+=	--without-gcu
 .endif
 
 .if defined(WITH_X11)
-LIB_DEPENDS+=       X11.6:${PORTSDIR}/x11/libX11
-CONFIGURE_ARGS+=    --with-x11
+LIB_DEPENDS+=	X11.6:${PORTSDIR}/x11/libX11
+CONFIGURE_ARGS+=	--with-x11
 .else
-CONFIGURE_ARGS+=    --without-x11
+CONFIGURE_ARGS+=	--without-x11
 .endif
 
 .if defined(WITH_SDL)
-LIB_DEPENDS+=       SDL-1.2:${PORTSDIR}/devel/sdl12
-CONFIGURE_ARGS+=    --with-sdl
+LIB_DEPENDS+=	SDL-1.2:${PORTSDIR}/devel/sdl12
+CONFIGURE_ARGS+=	--with-sdl
 .else
-CONFIGURE_ARGS+=    --without-sdl
+CONFIGURE_ARGS+=	--without-sdl
 .endif
 
-WRKTOP= 	${WRKDIR}/${DISTNAME}
-# do-install Originally written for 060
-# by adam-ports@blacktabby.org
-MALIB=	${PREFIX}/share/games/mangband
 do-install:
 	@${INSTALL_PROGRAM} -o root -g games -m 2550 \
 		${WRKSRC}/mangband ${PREFIX}/bin
 	@${INSTALL_PROGRAM} ${WRKSRC}/mangclient ${PREFIX}/bin
-	@${ECHO_MSG} "   LIBDIR "
-	@${ECHO_MSG} "       : ${MALIB} "
-	@${ECHO_MSG} "  "
-	@${MKDIR} ${MALIB}/file
-	@${CP} ${WRKTOP}/mangband.cfg ${PREFIX}/etc
+	@${CP} ${WRKDIR}/${DISTNAME}/mangband.cfg ${PREFIX}/etc
+
 	@echo "# FreeBSD Hacks" >> ${PREFIX}/etc/mangband.cfg
-	@echo "EDIT_DIR = \"${MALIB}/edit\"" >> ${PREFIX}/etc/mangband.cfg
-	@echo "SAVE_DIR = \"${MALIB}/save\"" >> ${PREFIX}/etc/mangband.cfg
-	@echo "DATA_DIR = \"${MALIB}/data\"" >> ${PREFIX}/etc/mangband.cfg
-	@cd ${WRKSRC}/../lib && ${PAX} -rw * ${MALIB}
-	@${CHMOD} 750 ${MALIB}/*
-	@${CHMOD} 755 ${MALIB}/user
-	@${CHMOD} 755 ${MALIB}/xtra
-	@${CHOWN} -R root:games ${MALIB}/*
-	@${CHOWN} ${SHAREOWN}:${SHAREGRP} ${MALIB}
-	@${ECHO_MSG} "   SERVER "
-	@${ECHO_MSG} "    bin: ${PREFIX}/bin/mangband"
-	@${ECHO_MSG} " config: ${PREFIX}/etc/mangband.cfg"
-	@${ECHO_MSG} "  "
-	@echo "[MAngband]" >> ${HOME}/.mangrc
-	@echo "LibDir ${MALIB}/" >> ${HOME}/.mangrc
-	@${ECHO_MSG} "   CLIENT "
-	@${ECHO_MSG} "    bin: ${PREFIX}/bin/mangclient"
-	@${ECHO_MSG} " config: ~/.mangrc (see ${HOME}/.mangrc)"
+	@echo "EDIT_DIR = \"${DATADIR}/edit\"" >> ${PREFIX}/etc/mangband.cfg
+	@echo "SAVE_DIR = \"${DATADIR}/save\"" >> ${PREFIX}/etc/mangband.cfg
+	@echo "DATA_DIR = \"${DATADIR}/data\"" >> ${PREFIX}/etc/mangband.cfg
+
+	@${MKDIR} ${EXAMPLESDIR}
+	@echo "[MAngband]" >> ${EXAMPLESDIR}/mangrc
+	@echo "LibDir ${DATADIR}" >> ${EXAMPLESDIR}/mangrc
+
+	@${MKDIR} ${DATADIR}
+	@cd ${WRKSRC}/../lib && ${PAX} -rw * ${DATADIR}
+	@${CHMOD} 750 ${DATADIR}/*
+	@${CHMOD} 755 ${DATADIR}/user
+	@${CHMOD} 755 ${DATADIR}/xtra
+	@${CHOWN} -R root:games ${DATADIR}/*
+	@${CHOWN} ${SHAREOWN}:${SHAREGRP} ${DATADIR}
 
 .include <bsd.port.post.mk>

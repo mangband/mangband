@@ -42,8 +42,11 @@ make makesum
 echo "Generating PR and DIFF"
 rm -rf mangband
 mkdir mangband
+mkdir mangband/files
 cp ./pkg-* ./mangband
 cp Makefile mangband/
 cp distinfo mangband/
-shar `find ./mangband` > mangband-${VER}-PR
+cp patches/* mangband/files
+
+shar `find mangband` > mangband-${VER}-PR
 diff -ruN /usr/ports/games/mangband ./mangband > mangband-${VER}-DIFF

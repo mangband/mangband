@@ -39,6 +39,12 @@ system "cp ../../* $newdir";
 system "cp -R ../../src $newdir/";
 system "cp -R ../../lib $newdir/";
 
+# Remove executables
+system "rm $newdir/mangband";
+system "rm $newdir/mangclient";
+system "rm $newdir/src/mangband";
+system "rm $newdir/src/mangclient";
+
 # Step 3
 # Tar it!
 
