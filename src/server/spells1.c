@@ -3990,11 +3990,6 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			int k = (randint((dam > 90) ? 35 : (dam / 3 + 5)));
 			(void)set_stun(Ind, p_ptr->stun + k);
 		}
-		/* Feather fall lets us resist gravity */
-		if (p_ptr->feather_fall)
-		{
-			dam *= 6; dam /= (randint(6) + 6);
-		}
 		take_hit(Ind, dam, killer);
 		break;
 
