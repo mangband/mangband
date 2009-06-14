@@ -220,7 +220,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/*** Knowledge query ***/
 	{ /* Help */
 		'?', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
-		(COMMAND_SPECIAL_FILE),
+		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_HELP, "Help"
 	},
 #if 1

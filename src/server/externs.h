@@ -505,6 +505,7 @@ extern void do_cmd_check_players(int Ind, int line);
 extern void do_cmd_check_other(int Ind, int line);
 extern void do_cmd_knowledge(int Ind, char query);
 extern void do_cmd_interactive(int Ind, char query);
+extern void common_peruse(int Ind, char query);
 
 /* cmd5.c */
 extern void do_cmd_browse(int Ind, int book);
@@ -563,6 +564,8 @@ extern errr check_load(void);
 extern void read_times(void);
 extern void show_news(void);
 extern errr show_file(int Ind, cptr name, cptr what, int line, int color);
+extern void common_file_peruse(int Ind, char query);
+extern void copy_file_info(int Ind, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
 extern bool process_player_name(int Ind, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);

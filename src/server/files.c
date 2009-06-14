@@ -1642,7 +1642,201 @@ errr file_character(cptr name, bool full)
 #endif
 
 
+/*
+ * On-Line help.
+ *
+ * Process user commands, access sub-menu entries and browse files. 
+ * This function manages a virtual 'window' which buffers file
+ * contents using "copy_file_info" function.
+ */
+void common_file_peruse(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	int next = p_ptr->interactive_next;
 
+	/* Enter sub-menu */
+	if (isalpha(query))
+	{
+		/* Extract the requested menu item */
+		int k = A2I(query);
+
+		/* Verify the menu item */
+		if ((k >= 0) && (k <= 25) && !STRZERO(p_ptr->interactive_hook[k]))
+		{
+			/* Select that file */
+			p_ptr->interactive_file = string_make(p_ptr->interactive_hook[k]);
+			/* Hack: enforce update */
+			p_ptr->interactive_next = -1;
+			next = 0;
+			/* Query processed */
+			query = 0;
+		}
+	}
+
+	/* Use default file */
+	if (!p_ptr->interactive_file)
+	{
+		p_ptr->interactive_file = "mangband.hlp";
+		/* Hack: enforce update */
+		p_ptr->interactive_next = -1;
+		next = 0;
+	}
+
+	/* We're just starting. Reset counter */
+	if (!query)
+	{
+		p_ptr->interactive_line = 0;
+	}
+
+	/* We're done. Clear file, exit */
+	if (query == ESCAPE)
+	{
+		if (p_ptr->interactive_file)
+		{
+			if (!streq(p_ptr->interactive_file, "mangband.hlp"))
+				string_free(p_ptr->interactive_file);
+			p_ptr->interactive_file = NULL;
+		}
+		return;
+	}
+
+	/* Process query */
+	if (query)
+	{
+		if (query == '1') /* 'End' */ 
+			p_ptr->interactive_line = p_ptr->interactive_size-20; 
+		else 	/* Other keys */
+			common_peruse(Ind, query);
+
+		/* Adjust viewport boundaries */
+		if (p_ptr->interactive_line > p_ptr->interactive_size-20)
+			p_ptr->interactive_line = p_ptr->interactive_size-20;
+
+		/* Shift window! */
+		if ((p_ptr->interactive_line+20 > p_ptr->interactive_next+MAX_TXT_INFO)
+			|| (p_ptr->interactive_line < p_ptr->interactive_next))
+		{
+			next = p_ptr->interactive_line - MAX_TXT_INFO / 2;
+		}
+
+		/* Adjust window boundaries */
+		if (next > p_ptr->interactive_size - MAX_TXT_INFO)
+			next = p_ptr->interactive_size - MAX_TXT_INFO;
+		if (next < 0) next = 0;
+	}
+
+	/* Update file */
+	if (next != p_ptr->interactive_next)
+	{
+		p_ptr->interactive_next = next;
+		copy_file_info(Ind, p_ptr->interactive_file, next, 0);
+	}
+}
+
+/*
+ * Read a file and copy a portion of it into player's "info[]" array.
+ *
+ * TODO: Add 'search' from do_cmd_help_aux()
+ *
+ */
+void copy_file_info(int Ind, cptr name, int line, int color)
+{
+	player_type *p_ptr = Players[Ind];
+	int i = 0, k;
+
+	/* Current help file */
+	FILE	*fff = NULL;
+
+	/* Number of "real" lines passed by */
+	int		next = 0;
+
+	/* Path buffer */
+	char	path[1024];
+
+	/* General buffer */
+	char	buf[1024];
+
+	/* Build the filename */
+	path_build(path, 1024, ANGBAND_DIR_TEXT, name);
+
+	/* Open the file */
+	fff = my_fopen(path, "r");
+
+	/* Oops */
+	if (!fff)
+	{
+		/* Message */
+		msg_format(Ind, "Cannot open '%s'.", name);
+		msg_print(Ind, NULL);
+
+		/* Oops */
+		return;
+	}
+
+	/* Wipe the hooks */
+	for (k = 0; k < 10; k++) p_ptr->interactive_hook[k][0] = '\0';
+
+	/* Parse the file */
+	while (TRUE)
+	{
+		byte attr = TERM_WHITE;
+				
+		/* Read a line or stop */
+		if (my_fgets(fff, buf, 1024)) break;
+
+		/* XXX Parse "menu" items */
+		if (prefix(buf, "***** "))
+		{
+			char b1 = '[', b2 = ']';
+
+			/* Notice "menu" requests */
+			if ((buf[6] == b1) && isalpha(buf[7]) &&
+			    (buf[8] == b2) && (buf[9] == ' '))
+			{
+				/* Extract the menu item */
+				k = A2I(buf[7]);
+
+				/* Store the menu item (if valid) */
+				if ((k >= 0) && (k < 26))
+					my_strcpy(p_ptr->interactive_hook[k], buf + 10, sizeof(p_ptr->interactive_hook[0]));
+			}
+
+			/* Skip this */
+			continue;
+		}
+
+		/* Count the "real" lines */
+		next++;
+
+		/* Wait for needed one */
+		if (next <= line) continue;
+
+		/* Too much */
+		if (line + MAX_TXT_INFO < next) continue;
+
+		/* Extract color */
+		if (color) attr = color_char_to_attr(buf[0]);
+
+		/* Dump the line */
+		for (k = color; k < 80; k++)
+		{
+			p_ptr->info[i][k-color].a = attr;
+			p_ptr->info[i][k-color].c = buf[k];
+		}
+
+		/* Count the "info[]" lines */
+		i++;
+	}
+
+	/* Save last "real" line */
+	p_ptr->interactive_size = next;
+
+	/* Save last dumped line */
+	p_ptr->last_info_line = i;
+
+	/* Close the file */
+	my_fclose(fff);
+}
 /*
  * Recursive "help file" perusal.  Return FALSE on "ESCAPE".
  *

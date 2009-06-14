@@ -978,8 +978,11 @@ void common_peruse(int Ind, char query)
 		case '2':case '\n':case '\r':
 			p_ptr->interactive_line++;
 			break;
-		case ' ':
+		case ' ':case '3':
 			p_ptr->interactive_line += 20;
+			break;
+		case '9':
+			p_ptr->interactive_line -= 20;
 			break;
 		case '8':case '=':
 			p_ptr->interactive_line--;
@@ -1043,8 +1046,8 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 			display_houses(Ind, query);
 			break;
 		case SPECIAL_FILE_HELP:
-			common_peruse(Ind, query);
-			do_cmd_help(Ind, p_ptr->interactive_line);
+			common_file_peruse(Ind, query);
+			do_cmd_check_other(Ind, p_ptr->interactive_line - p_ptr->interactive_next);
 			break;	
 		case SPECIAL_FILE_KNOWLEDGE:
 			do_cmd_knowledge(Ind, query);

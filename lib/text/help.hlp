@@ -1,23 +1,30 @@
 Welcome to the Angband Online Help System.
 
 Please choose one of the following online help files:
+    (a) General Information        (general.txt)
+    (b) Creating a Character       (birth.txt)
+    (c) Exploring the Dungeon      (dungeon.txt)
+    (d) Attacking Monsters         (attack.txt)
+    (e) Playing the Game           (playing.txt)
+    (f) Command Descriptions       (command.txt)
+    (g) Option Descriptions        (option.txt)
+    (h) Version Information        (version.txt)
+    (i) Spoiler Menu (if any)      (spoiler.hlp)
+    (j) User Menu (if any)         (user.hlp)
 
-    (1) General Information        (general.txt)
-    (2) Creating a Character       (birth.txt)
-    (3) Exploring the Dungeon      (dungeon.txt)
-    (4) Attacking Monsters         (attack.txt)
-    (5) List of Commands           (command.txt)
-    (6) List of Options            (option.txt)
-    (7) Version Information        (version.txt)
-    (8) User menu (if any)         (user.hlp)
-    (9) Spoiler menu (if any)      (spoiler.hlp)
+Browser/help commands:
+  #     go to line         %  go to file         ?  go to last file/main menu
+  SPACE advance 1 page     -  back up 1 page     /  search for text
+  RET   advance 1 line     =  back up 1 line     &  show (highlight) some text
+  +     advance 1/2 page   _  back up 1/2 page   !  toggle case sentitivity
+***** [a] general.txt
+***** [b] birth.txt
+***** [c] dungeon.txt
+***** [d] attack.txt
+***** [e] playing.txt
+***** [f] command.txt
+***** [g] option.txt
+***** [h] version.txt
+***** [i] spoiler.hlp
+***** [j] user.hlp
 
-***** [1] general.txt
-***** [2] birth.txt
-***** [3] dungeon.txt
-***** [4] attack.txt
-***** [5] command.txt
-***** [6] option.txt
-***** [7] version.txt
-***** [8] user.hlp
-***** [9] spoiler.hlp

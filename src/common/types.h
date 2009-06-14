@@ -1301,6 +1301,10 @@ struct player_type
 
 	byte special_file_type;	/* Is he using *ID* or Self Knowledge? */
 	s16b interactive_line;	/* Which line is he on? */
+	cptr interactive_file;	/* Which file is he reading? */
+	s16b interactive_next;	/* Which line is he on 'in the file' ? */
+	s16b interactive_size;	/* Total number of lines in file */
+	char interactive_hook[26][32];	/* Sub-menu information */
 
 	byte cave_flag[MAX_HGT][MAX_WID]; /* Can the player see this grid? */
 
