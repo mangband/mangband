@@ -3596,3 +3596,138 @@ int usleep(long microSeconds)
 	return 0;
 }
 #endif /* WIN32 */
+
+
+/* HACK -- Count samples in "val" sound */
+int sound_count(int val)
+{
+	int i;
+
+	/* No sound */
+	if (!use_sound) return (0);
+
+	/* Illegal sound */
+	if ((val < 0) || (val >= MSG_MAX)) return (0);
+
+
+	/* Count the samples */
+	for (i = 0; i < SAMPLE_MAX; i++)
+	{
+		if (!sound_file[val][i])
+			break;
+	}
+
+	/* Return number of samples (might be 0) */
+	return (i);
+}
+
+#ifdef USE_SOUND
+
+/*
+ * XXX XXX XXX - Taken from files.c.
+ *
+ * Extract "tokens" from a buffer
+ *
+ * This function uses "whitespace" as delimiters, and treats any amount of
+ * whitespace as a single delimiter.  We will never return any empty tokens.
+ * When given an empty buffer, or a buffer containing only "whitespace", we
+ * will return no tokens.  We will never extract more than "num" tokens.
+ *
+ * By running a token through the "text_to_ascii()" function, you can allow
+ * that token to include (encoded) whitespace, using "\s" to encode spaces.
+ *
+ * We save pointers to the tokens in "tokens", and return the number found.
+ */
+static s16b tokenize_whitespace(char *buf, s16b num, char **tokens)
+{
+	int k = 0;
+	char *s = buf;
+
+	/* Process */
+	while (k < num)
+	{
+		char *t;
+
+		/* Skip leading whitespace */
+		for ( ; *s && isspace((unsigned char)*s); ++s) /* loop */;
+
+		/* All done */
+		if (!*s) break;
+
+		/* Find next whitespace, if any */
+		for (t = s; *t && !isspace((unsigned char)*t); ++t) /* loop */;
+
+		/* Nuke and advance (if necessary) */
+		if (*t) *t++ = '\0';
+
+		/* Save the token */
+		tokens[k++] = s;
+
+		/* Advance */
+		s = t;
+	}
+
+	/* Count */
+	return (k);
+}
+
+
+/*
+ * Check to see if a file exists, by opening it read-only.
+ *
+ * Return TRUE if it does, FALSE if it does not.
+ */
+static bool my_fexists(const char *fname)
+{
+	FILE* fd;
+
+	/* Try to open it */
+	fd = my_fopen(fname, "r");
+
+	/* It worked */
+	if (fd)
+	{
+		my_fclose(fd);
+		return TRUE;
+	}
+
+    return FALSE;
+}
+
+
+void load_sound_prefs(void)
+{
+	int i, j, num;
+	char tmp[MSG_LEN];
+	char ini_path[MSG_LEN];
+	char wav_path[MSG_LEN];
+	char *zz[SAMPLE_MAX];
+
+	/* Access the sound.cfg */
+	path_build(ini_path, sizeof(ini_path), ANGBAND_DIR_XTRA_SOUND, "sound.cfg");
+
+	/* Add it to 'global config' */
+	conf_append_section("Sound", ini_path);
+
+	for (i = 0; i < MSG_MAX; i++)
+	{
+		/* Ignore empty sound strings */
+		if (!angband_sound_name[i][0]) continue;
+
+		strncpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
+
+		num = tokenize_whitespace(tmp, SAMPLE_MAX, zz);
+
+		for (j = 0; j < num; j++)
+		{
+			/* Access the sound */
+			path_build(wav_path, sizeof(wav_path), ANGBAND_DIR_XTRA_SOUND, zz[j]);
+
+			/* Save the sound filename, if it exists */
+			if (my_fexists(wav_path))
+				sound_file[i][j] = string_make(zz[j]);
+		}
+	}
+}
+
+#endif /* USE_SOUND */

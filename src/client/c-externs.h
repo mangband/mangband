@@ -29,6 +29,7 @@ extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
 extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
+extern cptr angband_sound_name[MSG_MAX];
 
 /* set_focus.c */
 extern void set_chat_focus( void );
@@ -183,10 +184,13 @@ extern cptr ANGBAND_DIR_SAVE;
 extern cptr ANGBAND_DIR_USER;
 extern cptr ANGBAND_DIR_PREF;
 extern cptr ANGBAND_DIR_XTRA;
+extern cptr ANGBAND_DIR_XTRA_SOUND;
 
 extern int use_graphics;
 extern bool big_tile;
 extern bool use_sound;
+
+extern cptr sound_file[MSG_MAX][SAMPLE_MAX];
 
 extern cave_view_type trans[40][88];
 
@@ -305,6 +309,7 @@ extern cptr conf_get_string(cptr section, cptr name, cptr default_value);
 extern s32b conf_get_int(cptr section, cptr name, s32b default_value);
 extern void conf_set_string(cptr section, cptr name, cptr value);
 extern void conf_set_int(cptr section, cptr name, s32b value);
+extern void conf_append_section(cptr section, cptr filename);
 
 /* c-init.c */
 extern bool client_ready(void);
@@ -323,6 +328,7 @@ extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);
 extern void set_graphics(int mode);
+extern int sound_count(int val);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern errr macro_trigger_free(void);
 extern char inkey(void);
@@ -359,6 +365,9 @@ extern void interact_macros(void);
 extern void do_cmd_options(void);
 extern void do_cmd_options_birth(void);
 extern bool get_string_masked(cptr prompt, char *buf, int len);
+#ifdef USE_SOUND
+extern void load_sound_prefs();
+#endif
 
 /* c-spell.c */
 extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);

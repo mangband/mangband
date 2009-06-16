@@ -1732,22 +1732,6 @@ cptr color_names[16] =
 };
 
 
-/*
- * Hack -- the "basic" sound names (see "SOUND_xxx")
- */
-cptr sound_names[SOUND_MAX] =
-{
-	"",
-	"hit",
-	"miss",
-	"flee",
-	"drop",
-	"kill",
-	"level",
-	"death",
-};
-
-
 
 /*
  * Abbreviations of healthy stats

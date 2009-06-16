@@ -34,3 +34,6 @@
 #define MAX_MACRO_TRIGGER 200
 #define MAX_MACRO_MOD 12
 
+
+/* Sound */
+#define SAMPLE_MAX 16

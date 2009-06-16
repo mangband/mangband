@@ -456,6 +456,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Mention the result */
 	msg_format(Ind, "You have learned the %s of %s.",
 	           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
+	sound(Ind, MSG_STUDY);
 
 	/* One less spell available */
 	p_ptr->new_spells--;
@@ -612,6 +613,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Cast spell */
+	sound(Ind, MSG_SPELL);
 	cast_spell(Ind, p_ptr->cp_ptr->spell_book, j);
 }
 void do_cmd_cast_fin(int Ind)
@@ -823,6 +825,7 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Success */
 
 	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
+	sound(Ind, MSG_PRAYER);
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
 }
 

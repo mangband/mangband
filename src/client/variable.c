@@ -167,11 +167,14 @@ cptr ANGBAND_DIR_SAVE;
 cptr ANGBAND_DIR_USER;
 cptr ANGBAND_DIR_PREF;
 cptr ANGBAND_DIR_XTRA;
+cptr ANGBAND_DIR_XTRA_SOUND;
 
 
 int use_graphics;
 bool big_tile;
 bool use_sound;
+
+cptr sound_file[MSG_MAX][SAMPLE_MAX];
 
 cave_view_type trans[40][88];
 

@@ -3312,6 +3312,9 @@ extern int PlayerUID;
 #define MSG_KILL_KING       147
 #define MSG_DRAIN_STAT      148
 #define MSG_MULTIPLY        149
+
+#define MSG_MAX             150
+
 /* MAngband-specific */
 #define MSG_TALK            250
 #define MSG_SOCIAL          251
@@ -3321,28 +3324,6 @@ extern int PlayerUID;
 #define MSG_LOCAL 		255
 #define MSG_WHISPER		256
 #define MSG_CHAT  		257
-
-
-/*** Sound constants ***/
-
-
-/*
- * Mega-Hack -- some primitive sound support (see "main-win.c")
- *
- * Some "sound" constants for "Term_xtra(TERM_XTRA_SOUND, val)"
- */
-#define SOUND_HIT	1
-#define SOUND_MISS	2
-#define SOUND_FLEE	3
-#define SOUND_DROP	4
-#define SOUND_KILL	5
-#define SOUND_LEVEL	6
-#define SOUND_DEATH	7
-
-/*
- * Mega-Hack -- maximum known sounds
- */
-#define SOUND_MAX	8
 
 
 /*** Hack ***/

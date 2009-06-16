@@ -69,7 +69,6 @@ extern player_magic magic_info[MAX_CLASS];
 extern byte chest_traps[64];
 extern cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5];
 extern cptr color_names[16];
-extern cptr sound_names[SOUND_MAX];
 extern cptr stat_names[6];
 extern cptr stat_names_reduced[6];
 extern cptr stat_names_full[6];

@@ -32,7 +32,6 @@ bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
-static cptr ANGBAND_DIR_XTRA_SOUND;
 
 static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
@@ -43,6 +42,9 @@ static cptr GFXNAME[] = { 0, "old", "new", "david" };
 #include <string.h>
 
 
+/* local functions */
+static void play_sound_end(bool wait);
+static void play_sound(int v, int s);
 
 /* this stuff was moved to sdl-maim.c */
 extern SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src, Uint32 t_oldw, Uint32 t_oldh, Uint32 t_neww, Uint32 t_newh, int dealloc_src);
@@ -1421,6 +1423,10 @@ static errr Term_xtra_sdl(int n, int v)
 
 		case TERM_XTRA_FRESH:
 
+		/* HACK !!! */
+		/* Terminate current sound if necessary */
+		if (use_sound) play_sound_end(TRUE);
+
 		/* XXX XXX XXX Flush output (optional) */
 		/* This action should make sure that all "output" to the */
 		/* window will actually appear on the window. */
@@ -1446,16 +1452,9 @@ static errr Term_xtra_sdl(int n, int v)
 
 		case TERM_XTRA_SOUND:
 
-		/* XXX XXX XXX Make a sound (optional) */
-		/* This action should produce sound number "v", where */
-		/* the "name" of that sound is "sound_names[v]". */
-		/* This action is optional, and not important. */
-
-#ifdef USE_SDL_MIXER
-		/* TODO make some noise. */
-#else
-		/* TODO We can actually make noise without the mixer too... */
-#endif
+		/* Make a sound */
+		i = sound_count(v);
+		if (i) play_sound (v, rand_int(i));
 
 		return (0);
 
@@ -2493,10 +2492,118 @@ void init_extra_paths()
 	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
 	ANGBAND_DIR_XTRA_GRAF = string_make(path);
 
+#ifdef USE_SOUND
 	/* Sound */
 	path_build(path, 1024, ANGBAND_DIR_XTRA, "sound");
 	ANGBAND_DIR_XTRA_SOUND = string_make(path);
+#endif
 }
+
+static Uint8* wav_buffer = NULL;
+static Uint32 wav_length = 0, wav_pos = 0;
+static bool wav_playing = FALSE;
+
+static void wav_play(void *userdata, Uint8 *stream, int len)
+{
+	/* Paranoia */
+	Uint32 tocopy = ((wav_length - wav_pos > len)? len: wav_length - wav_pos);
+
+	/* Copy data to audio buffer */
+	memcpy(stream, wav_buffer + wav_pos, tocopy);
+
+	/* Advance */
+	wav_pos += tocopy;
+}
+
+static void play_sound_end(bool wait)
+{
+	bool end_sound = (wait? (wav_pos == wav_length): TRUE);
+
+	/* Wait for end of audio thread */
+	if ((wav_length != 0) && end_sound && wav_playing)
+	{
+		/* Stop playing */
+		SDL_PauseAudio(1);
+		wav_playing = FALSE;
+
+		/* Close the audio device */
+		SDL_CloseAudio();
+	}
+}
+
+/*
+ * Make a sound
+ */
+static void play_sound(int v, int s)
+{
+	SDL_AudioSpec wav_spec;
+	SDL_AudioSpec wav_desired, wav_obtained;
+	SDL_AudioCVT wav_cvt;
+	char buf[MSG_LEN];
+
+	/* If another sound is currently playing, stop it */
+	play_sound_end(FALSE);
+
+	/* Desired audio parameters */
+	wav_desired.freq = 44100;
+	wav_desired.format = AUDIO_U16SYS;
+	wav_desired.channels = 2;
+	wav_desired.samples = 512;
+	wav_desired.callback = &wav_play;
+	wav_desired.userdata = NULL;
+
+	/* Open the audio device */
+	if (SDL_OpenAudio(&wav_desired, &wav_obtained) != 0)
+	{
+		plog_fmt("Could not open audio: %s", SDL_GetError());
+		return;
+	}
+
+	/* Build the path */
+	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);
+
+	/* Load the WAV */
+	if (SDL_LoadWAV(buf, &wav_spec, &wav_buffer, &wav_length) == NULL)
+	{
+		plog_fmt("Could not open %s: %s", buf, SDL_GetError());
+		return;
+	}
+
+	/* Build the audio converter */
+	if (SDL_BuildAudioCVT(&wav_cvt, wav_spec.format, wav_spec.channels, wav_spec.freq,
+		wav_obtained.format, wav_obtained.channels, wav_obtained.freq) < 0)
+	{
+		plog_fmt("Could not build audio converter: %s", SDL_GetError());
+		return;
+	}
+
+	/* Allocate a buffer for the audio converter */
+	wav_cvt.buf = malloc(wav_length * wav_cvt.len_mult);
+	wav_cvt.len = wav_length;
+	memcpy(wav_cvt.buf, wav_buffer, wav_length);
+
+	/* Convert audio data to correct format */
+	if (SDL_ConvertAudio(&wav_cvt) != 0)
+	{
+		plog_fmt("Could not convert audio file: %s", SDL_GetError());
+		return;
+	}
+
+	/* Free the WAV */
+	SDL_FreeWAV(wav_buffer);
+
+	/* Allocate a buffer for the audio data */
+	wav_buffer = malloc(wav_cvt.len_cvt);
+	memcpy(wav_buffer, wav_cvt.buf, wav_cvt.len_cvt);
+	free(wav_cvt.buf);
+	wav_length = wav_cvt.len_cvt;
+
+	/* Start playing */
+	wav_pos = 0;
+	wav_playing = TRUE;
+	SDL_PauseAudio(0);
+}
+
 /*
  * A "normal" system uses "main.c" for the "main()" function, and
  * simply adds a call to "init_xxx()" to that function, conditional
@@ -2512,7 +2619,7 @@ errr init_sdl(void)
 	term_data *td;
 	Uint32 initflags = SDL_INIT_VIDEO; /* What's the point, if not video? */
 	
-	ANGBAND_SYS = "sdl"; 
+	ANGBAND_SYS = "sdl";
 
 	/* Read config for main window */
 	use_graphics = conf_get_int("SDL", "Graphics", 0);
@@ -2521,7 +2628,7 @@ errr init_sdl(void)
 	width =  conf_get_int("SDL", "Width", 0);
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
-	
+
 	/* Read gui style */
 	gui_color_back_ground = sdl_string_color(conf_get_string("SDL-Colors", "BackGround", "0"));
 	gui_color_back_active = sdl_string_color(conf_get_string("SDL-Colors", "BackGroundActive", "#222225")); 
@@ -2529,8 +2636,8 @@ errr init_sdl(void)
 	gui_color_term_header = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleBar", "#595961"));
 	gui_color_term_title  = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleText", "#ededf9"));
 
-#ifdef USE_SDL_MIXER
-	if (use_sound) initflags |= SDL_INIT_AUDIO;
+#ifdef USE_SOUND
+	initflags |= SDL_INIT_AUDIO;
 #endif
 
 	/* Force core dumps in Debug mode. Leave friendly stack traces for Normal mode. */ 
@@ -2579,7 +2686,7 @@ errr init_sdl(void)
 	height = bigface->h;
 	bpp = bigface->format->BitsPerPixel;
 
-	/* Exit handler */	 
+	/* Exit handler */
  	atexit(SDL_Quit); 
 
 	/* Some SDL settings */
@@ -2604,6 +2711,10 @@ errr init_sdl(void)
 	
 	init_extra_paths();
 
+	/* Sound */
+#ifdef USE_SOUND
+	load_sound_prefs();
+#endif
 
 	/* Init all 'Terminals' */
 	init_all_terms();

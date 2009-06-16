@@ -3873,8 +3873,6 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			/* Draw the spot */
 			everyone_lite_spot(Depth, ny, nx);
 
-			/* Sound */
-			/*sound(SOUND_DROP);*/
 
 			/* Mega-Hack -- no message if "dropped" by player */
 			/* Message when an object falls under the player */
@@ -3882,6 +3880,7 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			{
 				if (chance) msg_print(0 - c_ptr->m_idx, "You feel something roll beneath your feet.");
 				floor_item_notify(0 - c_ptr->m_idx, o_idx, TRUE);
+				sound(0 - c_ptr->m_idx, MSG_DROP);
 			}
 	}
 

@@ -287,6 +287,8 @@ static void sense_inventory(int Ind)
 		/* Get an object description */
 		object_desc(Ind, o_name, o_ptr, FALSE, 0);
 
+		sound(Ind, MSG_PSEUDOID);
+
 		/* Message (equipment) */
 		if (i >= INVEN_WIELD)
 		{
@@ -489,6 +491,50 @@ static void regen_monsters(void)
 }
 
 
+static void play_ambient_sound(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+
+	if (Depth < 0) return;
+
+	/* Town sound */
+	if (Depth == 0)
+	{
+		/* Hack - is it daytime or nighttime? */
+		if (IS_DAY)
+		{
+			/* It's day. */
+			sound(Ind, MSG_AMBIENT_DAY);
+		}
+		else
+		{
+			/* It's night. */
+			sound(Ind, MSG_AMBIENT_NITE);
+        }
+    }
+
+    /* Dungeon level 1-20 */
+	else if (Depth <= 20)
+		sound(Ind, MSG_AMBIENT_DNG1);
+
+    /* Dungeon level 21-40 */
+	else if (Depth <= 40)
+		sound(Ind, MSG_AMBIENT_DNG2);
+
+	/* Dungeon level 41-60 */
+	else if (Depth <= 60)
+		sound(Ind, MSG_AMBIENT_DNG3);
+
+	/* Dungeon level 61-80 */
+	else if (Depth <= 80)
+		sound(Ind, MSG_AMBIENT_DNG4);
+
+	/* Dungeon level 80- */
+	else
+		sound(Ind, MSG_AMBIENT_DNG5);
+}
+
 
 /*
  * Handle certain things once every 50 game turns
@@ -512,6 +558,9 @@ static void process_world(int Ind)
 
 	/*** Check the Time and Load ***/
 	/* The server will never quit --KLJ-- */
+
+	/* Play an ambient sound at regular intervals. */
+	if (!(turn.turn % ((10L * TOWN_DAWN) / 4))) play_ambient_sound(Ind);
 
 	/*** Handle the "town" (stores and sunshine) ***/
 
@@ -1633,6 +1682,9 @@ static void process_player_end(int Ind)
 			{
 				/* Disturbing! */
 				disturb(Ind, 0, 0);
+
+				/* Sound */
+				sound(Ind, MSG_TPLEVEL);
 
 				/* Determine the level */
 				if (p_ptr->dun_depth > 0)

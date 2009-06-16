@@ -78,6 +78,7 @@ void do_cmd_go_up(int Ind)
 	if (c_ptr->feat == FEAT_LESS)
 	{
 		msg_print(Ind, "You enter a maze of up staircases.");
+		sound(Ind, MSG_STAIRS_UP);
 		p_ptr->new_level_method = LEVEL_UP;
 	}
 	else
@@ -176,6 +177,7 @@ void do_cmd_go_down(int Ind)
 	if (c_ptr->feat == FEAT_MORE)
 	{
 		msg_print(Ind, "You enter a maze of down staircases.");
+		sound(Ind, MSG_STAIRS_DOWN);
 		p_ptr->new_level_method = LEVEL_DOWN;
 	}
 	else
@@ -426,6 +428,7 @@ static void chest_trap(int Ind, int y, int x, object_type *o_ptr)
 	{
 		int num = 2 + randint(3);
 		msg_print(Ind, "You are enveloped in a cloud of smoke!");
+		sound(Ind, MSG_SUM_MONSTER);
 		for (i = 0; i < num; i++)
 		{
 			(void)summon_specific(p_ptr->dun_depth, y, x, p_ptr->dun_depth, 0);
@@ -996,6 +999,7 @@ static bool do_cmd_open_chest(int Ind, int y, int x, s16b o_idx)
 		if (rand_int(100) < j)
 		{
 			msg_print_aux(Ind, "You have picked the lock.", MSG_LOCKPICK);
+			sound(Ind, MSG_LOCKPICK);
 			gain_exp(Ind, 1);
 			flag = TRUE;
 		}
@@ -1007,6 +1011,7 @@ static bool do_cmd_open_chest(int Ind, int y, int x, s16b o_idx)
 			more = TRUE;
 			/*if (flush_failure) flush();*/
 			msg_print_aux(Ind, "You failed to pick the lock.", MSG_LOCKPICK_FAIL);
+			sound(Ind, MSG_LOCKPICK_FAIL);
 		}
 	}
 
@@ -1076,6 +1081,7 @@ static bool do_cmd_disarm_chest(int Ind, int y, int x, s16b o_idx)
 	else if (rand_int(100) < j)
 	{
 		msg_print_aux(Ind, "You have disarmed the chest.", MSG_DISARM);
+		sound(Ind, MSG_DISARM);
 		gain_exp(Ind, o_ptr->pval);
 		o_ptr->pval = (0 - o_ptr->pval);
 	}
@@ -1191,6 +1197,7 @@ static bool do_cmd_open_test(int Ind, int y, int x)
 	{
 		/* Message */
 		msg_print_aux(Ind, "You see nothing there to open.", MSG_NOTHING_TO_OPEN);
+		sound(Ind, MSG_NOTHING_TO_OPEN);
 
 		/* Nope */
 		return (FALSE);
@@ -1226,7 +1233,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 	/* Get grid and contents */
 	c_ptr = &cave[Depth][y][x];
 	
-	
+
 	/* We put MAngband-specific tests on top, as new FEATs are larger */
 	/* Player Houses */
 	if (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL)
@@ -1334,6 +1341,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 		{
 			/* Message */
 			msg_print_aux(Ind, "You have picked the lock.", MSG_LOCKPICK);
+			sound(Ind, MSG_LOCKPICK);
 
 			/* Open the door */
 			c_ptr->feat = FEAT_OPEN;
@@ -1359,6 +1367,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 
 			/* Message */
 			msg_print_aux(Ind, "You failed to pick the lock.", MSG_LOCKPICK_FAIL);
+			sound(Ind, MSG_LOCKPICK_FAIL);
 
 			/* We may keep trying */
 			more = TRUE;
@@ -1382,7 +1391,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
 
 		/* Sound */
-		/*sound(MSG_OPENDOOR);*/
+		sound(Ind, MSG_OPENDOOR);
 	}
 
 	/* Result */
@@ -1643,7 +1652,7 @@ static bool do_cmd_close_aux(int Ind, int y, int x)
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
 		
 		/* Sound */
-		/*sound(Ind, MSG_SHUTDOOR);*/
+		sound(Ind, MSG_SHUTDOOR);
 	}
 
 	/* Result */
@@ -1850,7 +1859,7 @@ static bool do_cmd_tunnel_aux(int Ind, int y, int x)
 	c_ptr = &cave[Depth][y][x];
 
 	/* Sound XXX XXX XXX */
-	/* sound(MSG_DIG); */
+	sound(Ind, MSG_DIG);
 
 	/* Hack -- We put MAngband-specific terrain features on top, as they are higher */
 	
@@ -2256,6 +2265,7 @@ static bool do_cmd_disarm_aux(int Ind, int y, int x, int dir)
 	{
 		/* Message */
 		msg_format_type(Ind, MSG_DISARM, "You have disarmed the %s.", name);
+		sound(Ind, MSG_DISARM);
 
 		/* Reward */
 		gain_exp(Ind, power);
@@ -2535,6 +2545,7 @@ static bool do_cmd_bash_aux(int Ind, int y, int x)
 	{
 		/* Message */
 		msg_print_aux(Ind, "The door crashes open!", MSG_OPENDOOR);
+		sound(Ind, MSG_OPENDOOR);
 
 		/* Break down the door */
 		if (rand_int(100) < 50)
@@ -3409,6 +3420,9 @@ void do_cmd_fire(int Ind, int item, int dir)
 	/* Use the missile object */
 	o_ptr = &throw_obj;
 
+	/* Sound */
+	sound(Ind, MSG_SHOOT);
+
 	/* Describe the object */
 	object_desc(Ind, o_name, o_ptr, FALSE, 3);
 
@@ -3606,6 +3620,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				{
 					/* Invisible player */
 					msg_format(Ind, "The %s finds a mark.", o_name);
+					sound(Ind, MSG_SHOOT_HIT);
 					msg_format(0 - c_ptr->m_idx, "You are hit by a %s!", o_name);
 				}
 
@@ -3614,6 +3629,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				{
 					/* Messages */
 					msg_format(Ind, "The %s hits %s.", o_name, pvp_name);
+					sound(Ind, MSG_SHOOT_HIT);
 					msg_format(0 - c_ptr->m_idx, "%^s hits you with a %s.", p_ptr->name, o_name);
 
 					/* Track this player's health */
@@ -3728,7 +3744,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 						char m_name[80];
 
 						/* Sound */
-						sound(Ind, SOUND_FLEE);
+						sound(Ind, MSG_FLEE);
 
 						/* Get the monster name (or "it") */
 						monster_desc(Ind, m_name, c_ptr->m_idx, 0);
@@ -4163,7 +4179,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 						char m_name[80];
 
 						/* Sound */
-						sound(Ind, SOUND_FLEE);
+						sound(Ind, MSG_FLEE);
 
 						/* Get the monster name (or "it") */
 						monster_desc(Ind, m_name, c_ptr->m_idx, 0);

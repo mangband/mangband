@@ -110,6 +110,8 @@ void do_cmd_eat_food(int Ind, int item)
 		return;
 	}
 
+	/* Sound */
+	sound(Ind, MSG_EAT);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -215,6 +217,9 @@ void do_cmd_quaff_potion(int Ind, int item)
 		/* Tried to quaff non-potion */
 		return;
 	}
+
+	/* Sound */
+	sound(Ind, MSG_QUAFF);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -475,6 +480,8 @@ void do_cmd_use_staff(int Ind, int item)
 		    !get_check("Your pack might overflow.  Continue? ")) return;
 	}*/
 
+	/* Sound */
+	sound(Ind, MSG_USE_STAFF);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -1050,6 +1057,9 @@ void do_cmd_activate(int Ind, int item)
 		msg_print(Ind, "You failed to activate it properly.");
 		return;
 	}
+
+	/* Sound */	
+	sound(Ind, MSG_ACT_ARTIFACT);
 
 	/* Activate the object */
 	(void)use_object(Ind, o_ptr, item, &ident); 

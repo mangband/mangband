@@ -32,6 +32,88 @@ static void say_comment_1(int Ind)
 	msg_print(Ind, comment_1[rand_int(MAX_COMMENT_1)]);
 }
 
+
+/*** Flavour text stuff ***/
+
+/*
+ * Messages for reacting to purchase prices.
+ */
+static const char *comment_worthless[] =
+{
+	"Arrgghh!",
+	"You bastard!",
+	"You hear someone sobbing...",
+	"The shopkeeper howls in agony!",
+	"The shopkeeper wails in anguish!",
+	"The shopkeeper beats his head against the counter."
+};
+
+static const char *comment_bad[] =
+{
+	"Damn!",
+	"You fiend!",
+	"The shopkeeper curses at you.",
+	"The shopkeeper glares at you."
+};
+
+static const char *comment_good[] =
+{
+	"Cool!",
+	"You've made my day!",
+	"The shopkeeper sniggers.",
+	"The shopkeeper giggles.",
+	"The shopkeeper laughs loudly."
+};
+
+static const char *comment_great[] =
+{
+	"Yipee!",
+	"I think I'll retire!",
+	"The shopkeeper jumps for joy.",
+	"The shopkeeper smiles gleefully.",
+	"Wow. I'm going to name my new villa in your honour."
+};
+
+/* Randomly select one of the entries in an array */
+#define ONE_OF(x) x[rand_int(N_ELEMENTS(x))]
+
+
+/*
+ * Display a message and play the associated sound.
+ */
+static void message(int Ind, u16b message_type, cptr msg)
+{
+	sound(Ind, message_type);
+
+	msg_print_aux(Ind, msg, message_type);
+}
+
+
+/*
+ * Let a shop-keeper React to a purchase
+ *
+ * We paid "price", it was worth "value", and we thought it was worth "guess"
+ */
+static void purchase_analyze(int Ind, s32b price, s32b value, s32b guess)
+{
+	/* Item was worthless, but we bought it */
+	if ((value <= 0) && (price > value))
+		message(Ind, MSG_STORE1, ONE_OF(comment_worthless));
+
+	/* Item was cheaper than we thought, and we paid more than necessary */
+	else if ((value < guess) && (price > value))
+		message(Ind, MSG_STORE2, ONE_OF(comment_bad));
+
+	/* Item was a good bargain, and we got away with it */
+	else if ((value > guess) && (value < (4 * guess)) && (price < value))
+		message(Ind, MSG_STORE3, ONE_OF(comment_good));
+
+	/* Item was a great bargain, and we got away with it */
+	else if ((value > guess) && (price < value))
+		message(Ind, MSG_STORE4, ONE_OF(comment_great));
+}
+
+
 /*
  * We store the current "store number" here so everyone can access it
  */
@@ -1698,6 +1780,7 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 
 			/* Message */
 			msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
+			sound(Ind, MSG_STORE5);
 
 			/* MEGA-HACK -- Ensure item owner=store owner */
 			if (st == 8)
@@ -1930,11 +2013,13 @@ void store_sell(int Ind, int item, int amt)
 void store_confirm(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	int item, amt, price, value;
+	int item, amt, price, value, guess;
 
 	object_type *o_ptr, sold_obj;
 	char o_name[80];
 	int item_pos;
+	object_type *i_ptr;
+	object_type object_type_body;
 
 	/* Abort if we shouldn't be getting called */
 	if (p_ptr->current_selling == -1)
@@ -1966,6 +2051,26 @@ void store_confirm(int Ind)
 
 	/* Get the inventory item */
 	o_ptr = &p_ptr->inventory[item];
+
+	/* Get local object */
+	i_ptr = &object_type_body;
+
+	/* Get a copy of the object */
+	object_copy(i_ptr, o_ptr);
+
+	/* Modify quantity */
+	i_ptr->number = amt;
+
+	/*
+	 * XXX Stacking
+	 * If a rod, wand, or staff, allocate total maximum timeouts or charges
+	 * to those being sold.
+	 */
+	if ((o_ptr->tval == TV_ROD) || (o_ptr->tval == TV_WAND) || (o_ptr->tval == TV_STAFF))
+		i_ptr->pval = o_ptr->pval * amt / o_ptr->number;
+
+	/* Get the "apparent" value */
+	guess = object_value(Ind, i_ptr) * i_ptr->number;
 
 	/* Become "aware" of the item */
 	object_aware(Ind, o_ptr);
@@ -2000,7 +2105,7 @@ void store_confirm(int Ind)
 	msg_format(Ind, "You sold %s for %ld gold.", o_name, (long)price);
 
 	/* Analyze the prices (and comment verbally) */
-	/*purchase_analyze(price, value, dummy);*/
+	purchase_analyze(Ind, price, value, guess);
 
 	/* If this was an artifact, remember the player doesn't want it */
 	if (artifact_p(o_ptr))

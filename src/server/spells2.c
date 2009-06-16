@@ -285,6 +285,7 @@ bool do_dec_stat(int Ind, int stat)
 	{
 		/* Message */
 		msg_format(Ind, "You feel very %s.", desc_stat_neg[stat]);
+		sound(Ind, MSG_DRAIN_STAT);
 
 		/* Notice effect */
 		return (TRUE);
@@ -2803,11 +2804,11 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 bool ident_spell(int Ind)
 {
 	int item;
-	
+
 	if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
 	
-	ident_spell_aux(Ind, item);	
-	
+	ident_spell_aux(Ind, item);
+
 	return TRUE;
 }
 
@@ -2859,6 +2860,23 @@ bool ident_spell_aux(int Ind, int item)
 
 	/* Description */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+
+	/* Possibly play a sound depending on object quality. */
+	if (cursed_p(o_ptr) || broken_p(o_ptr))
+	{
+		/* This is a bad item. */
+		sound(Ind, MSG_IDENT_BAD);
+	}
+	else if (artifact_p(o_ptr))
+	{
+		/* We have a good artifact. */
+		sound(Ind, MSG_IDENT_ART);
+	}
+	else if (ego_item_p(o_ptr))
+	{
+		/* We have a good ego item. */
+		sound(Ind, MSG_IDENT_EGO);
+	}
 
 	/* Describe */
 	if (item >= INVEN_WIELD)
@@ -4817,6 +4835,10 @@ bool fear_monster(int Ind, int dir, int plev)
 bool teleport_monster(int Ind, int dir)
 {
 	int flg = PROJECT_BEAM | PROJECT_KILL;
+
+	/* Sound */
+	sound(Ind, MSG_TPOTHER);
+
 	return (project_hook(Ind, GF_AWAY_ALL, dir, MAX_SIGHT * 5, flg));
 }
 

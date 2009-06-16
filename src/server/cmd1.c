@@ -135,30 +135,36 @@ s16b critical_norm(int Ind, int weight, int plus, int dam)
 		if (k < 400)
 		{
 			msg_print(Ind, "It was a good hit!");
+			sound(Ind, MSG_HIT_GOOD);
 			dam = 2 * dam + 5;
 		}
 		else if (k < 700)
 		{
 			msg_print(Ind, "It was a great hit!");
+			sound(Ind, MSG_HIT_GREAT);
 			dam = 2 * dam + 10;
 		}
 		else if (k < 900)
 		{
 			msg_print(Ind, "It was a superb hit!");
+			sound(Ind, MSG_HIT_SUPERB);
 			dam = 3 * dam + 15;
 		}
 		else if (k < 1300)
 		{
 			msg_print(Ind, "It was a *GREAT* hit!");
+			sound(Ind, MSG_HIT_HI_GREAT);
 			dam = 3 * dam + 20;
 		}
 		else
 		{
 			msg_print(Ind, "It was a *SUPERB* hit!");
+			sound(Ind, MSG_HIT_HI_SUPERB);
 			dam = ((7 * dam) / 2) + 25;
 		}
 	}
 
+	sound(Ind, MSG_HIT);
 	return (dam);
 }
 
@@ -636,7 +642,7 @@ void carry(int Ind, int pickup, int confirm)
 	object_type *o_ptr;
 
 	char	o_name[80];
-
+	int 	sound_msg;
 
 	/* Hack -- nothing here to pick up */
 	if (!(c_ptr->o_idx)) return;
@@ -666,6 +672,12 @@ void carry(int Ind, int pickup, int confirm)
 
 		/* MEGA HACK -- Change "owner" of this pile */
 		object_own(Ind, o_ptr);
+
+		/* Determine which sound to play */
+		if (o_ptr->pval < 200) sound_msg = MSG_MONEY1;
+		else if (o_ptr->pval < 600) sound_msg = MSG_MONEY2;
+		else sound_msg = MSG_MONEY3;
+		sound(Ind, sound_msg);
 
 		/* Message */
 		msg_format(Ind, "You have found %ld gold pieces worth of %s.",
@@ -1028,6 +1040,7 @@ static void hit_trap(int Ind)
 		case FEAT_TRAP_HEAD + 0x04:
 		{
 			msg_print(Ind, "You are enveloped in a cloud of smoke!");
+			sound(Ind, MSG_SUM_MONSTER);
 			c_ptr->feat = FEAT_FLOOR;
 			*w_ptr &= ~CAVE_MARK;
 			note_spot_depth(Depth, p_ptr->py, p_ptr->px);
@@ -1227,9 +1240,6 @@ void py_attack_player(int Ind, int y, int x)
 		/* Test for hit */
 		if (test_hit_norm(chance, q_ptr->ac + q_ptr->to_a, 1))
 		{
-			/* Sound */
-			sound(Ind, SOUND_HIT);
-
 			/* Messages */
 			msg_format(Ind, "You hit %s.", pvp_name);
 			msg_format(0 - c_ptr->m_idx, "%s hits you.", p_ptr->name);
@@ -1307,7 +1317,7 @@ void py_attack_player(int Ind, int y, int x)
 		else
 		{
 			/* Sound */
-			sound(Ind, SOUND_MISS);
+			sound(Ind, MSG_MISS);
 
 			/* Messages */
 			msg_format(Ind, "You miss %s.", pvp_name);
@@ -1402,9 +1412,6 @@ void py_attack_mon(int Ind, int y, int x)
 		/* Test for hit */
 		if (test_hit_norm(chance, r_ptr->ac, p_ptr->mon_vis[c_ptr->m_idx]))
 		{
-			/* Sound */
-			sound(Ind, SOUND_HIT);
-
 			/* Message */
 			if ((!backstab) && (!stab_fleeing))
 				msg_format(Ind, "You hit %s.", m_name);
@@ -1501,7 +1508,7 @@ void py_attack_mon(int Ind, int y, int x)
 		else
 		{
 			/* Sound */
-			sound(Ind, SOUND_MISS);
+			sound(Ind, MSG_MISS);
 
 			backstab = FALSE;
 
@@ -1515,7 +1522,7 @@ void py_attack_mon(int Ind, int y, int x)
 	if (fear && p_ptr->mon_vis[c_ptr->m_idx] && !(r_ptr->flags2 & RF2_WANDERER))
 	{
 		/* Sound */
-		sound(Ind, SOUND_FLEE);
+		sound(Ind, MSG_FLEE);
 
 		/* Message */
 		msg_format(Ind, "%^s flees in terror!", m_name);
@@ -1826,6 +1833,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			if (c_ptr->feat == FEAT_RUBBLE)
 			{
 				msg_print(Ind, "You feel some rubble blocking your way.");
+				sound(Ind, MSG_HITWALL);
 				*w_ptr |= CAVE_MARK;
 				everyone_lite_spot(Depth, y, x);
 			}
@@ -1835,6 +1843,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			         (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL))
 			{
 				msg_print(Ind, "You feel a closed door blocking your way.");
+				sound(Ind, MSG_HITWALL);
 				*w_ptr |= CAVE_MARK;
 				everyone_lite_spot(Depth, y, x);
 			}
@@ -1843,6 +1852,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			else if (c_ptr->feat == FEAT_TREE)
 			{
 				msg_print(Ind, "You feel a tree blocking your way.");
+				sound(Ind, MSG_HITWALL);
 				*w_ptr |= CAVE_MARK;
 				everyone_lite_spot(Depth, y, x);
 			}
@@ -1851,6 +1861,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			else
 			{
 				msg_print(Ind, "You feel a wall blocking your way.");
+				sound(Ind, MSG_HITWALL);
 				*w_ptr |= CAVE_MARK;
 				everyone_lite_spot(Depth, y, x);
 			}
@@ -1863,6 +1874,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			if (c_ptr->feat == FEAT_RUBBLE)
 			{
 				msg_print(Ind, "There is rubble blocking your way.");
+				sound(Ind, MSG_HITWALL);
 			}
 
 			/* Closed doors */
@@ -1870,18 +1882,21 @@ void move_player(int Ind, int dir, int do_pickup)
 			         (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL))
 			{
 				msg_print(Ind, "There is a closed door blocking your way.");
+				sound(Ind, MSG_HITWALL);
 			}
 
 			/* Tree */
 			else if (c_ptr->feat == FEAT_TREE)
 			{
 				msg_print(Ind, "There is a tree blocking your way.");
+				sound(Ind, MSG_HITWALL);
 			}
 
 			/* Wall (or secret door) */
 			else
 			{
 				msg_print(Ind, "There is a wall blocking your way.");
+				sound(Ind, MSG_HITWALL);
 			}
 		}
 	}

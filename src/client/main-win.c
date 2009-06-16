@@ -409,11 +409,6 @@ static HWND hwndSaver;
 #endif
 
 /*
- * An array of sound file names
- */
-static cptr sound_file[SOUND_MAX];
-
-/*
  * Full path to ANGBAND.INI
  */
 static cptr ini_file = NULL;
@@ -434,8 +429,16 @@ static int loaded_graphics = 0;
  */
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
-static cptr ANGBAND_DIR_XTRA_SOUND;
 #define ANGBAND_DIR_XTRA_HELP ".\\lib\\text"
+
+#ifdef USE_SOUND
+
+/*
+ * Flag set once "sound" has been initialized
+ */
+static bool can_use_sound = FALSE;
+
+#endif /* USE_SOUND */
 
 /*
  * The Angband color set:
@@ -902,39 +905,6 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->pos_y =	conf_get_int(sec_name, "PositionY", td->pos_y);
 }
 
-
-/*
- * Hack -- load a "sound" preference by index and name
- */
-#ifdef USE_SOUND
-
-extern cptr sound_names[SOUND_MAX];
-static void load_prefs_sound(int i)
-{
-	char aux[128];
-	char wav[128];
-	char tmp[128];
-	char buf[1024];
-
-	/* Capitalize the sound name */
-	strcpy(aux, sound_names[i]);
-	aux[0] = FORCEUPPER(aux[0]);
-
-	/* Default to standard name plus ".wav" */
-	strcpy(wav, sound_names[i]);
-	strcat(wav, ".wav");
-
-	/* Look up the sound by its proper name, using default */
-	strcpy(tmp, conf_get_string("Sound", aux, wav));
-
-	/* Access the sound */
-	path_build(buf, 1024, ANGBAND_DIR_XTRA_SOUND, extract_file_name(tmp));
-
-	/* Save the sound filename, if it exists */
-	if (check_file(buf)) sound_file[i] = string_make(buf);
-}
-#endif
-
 /*
  * Load the preferences from the .INI file
  */
@@ -977,12 +947,6 @@ static void load_prefs(void)
 	load_prefs_aux(&data[6], "Term-6 window");
 
 	load_prefs_aux(&data[7], "Term-7 window");
-
-
-#ifdef USE_SOUND
-	/* Prepare the sounds */
-	for (i = 1; i < SOUND_MAX; i++) load_prefs_sound(i);
-#endif
 
 	/* Pull nick/pass */
 	strcpy(nick, conf_get_string("MAngband", "nick", "PLAYER"));
@@ -1117,6 +1081,28 @@ static void new_palette(void)
 	/* Save new palette */
 	hPal = hNewPal;
 }
+
+
+#ifdef USE_SOUND
+/*
+ * Initialize sound
+ */
+static bool init_sound(void)
+{
+	/* Initialize once */
+	if (!can_use_sound)
+	{
+		/* Load the prefs */
+		load_sound_prefs();
+
+		/* Sound available */
+		can_use_sound = TRUE;
+	}
+
+	/* Result */
+	return (can_use_sound);
+}
+#endif /* USE_SOUND */
 
 
 /*
@@ -1614,6 +1600,18 @@ static errr Term_xtra_win_react(void)
 	}
 #endif	/* no color support -gp */
 
+#ifdef USE_SOUND
+    /* Initialize sound (if needed) */
+    if (use_sound && !init_sound())
+    {
+        /* Warning */
+        plog("Cannot initialize sound!");
+
+        /* Cannot enable */
+        use_sound = FALSE;
+    }
+#endif /* USE_SOUND */
+
 #ifdef USE_GRAPHICS
 
 	/* XXX XXX XXX Check "use_graphics" */
@@ -1759,32 +1757,24 @@ static errr Term_xtra_win_noise(void)
 /*
  * Hack -- make a sound
  */
-static errr Term_xtra_win_sound(int v)
+static void Term_xtra_win_sound(int v)
 {
-	/* Unknown sound */
-	if ((v < 0) || (v >= SOUND_MAX)) return (1);
-
-	/* Unknown sound */
-	if (!sound_file[v]) return (1);
-
 #ifdef USE_SOUND
+	char buf[MSG_LEN];
+	int s = sound_count(v);
 
-#ifdef WIN32
+	/* Illegal sound */
+	if (!s) return;
 
-	/* Play the sound, catch errors */
-	return (PlaySound(sound_file[v], 0, SND_FILENAME | SND_ASYNC));
+	/* Random sample */
+	s = rand_int(i);
 
-#else /* WIN32 */
+	/* Build the path */
+	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);
 
-	/* Play the sound, catch errors */
-	return (sndPlaySound(sound_file[v], SND_ASYNC));
-
-#endif /* WIN32 */
-
+	/* Play the sound */
+	PlaySound(buf, 0, SND_FILENAME | SND_ASYNC);
 #endif /* USE_SOUND */
-
-	/* Oops */
-	return (1);
 }
 
 
@@ -3412,7 +3402,7 @@ static void hack_plog(cptr str)
 static void hack_quit(cptr str)
 {
     int i;
-    
+
 	/* Force saving of preferences on any quit [grk] */
 	save_prefs();
 	
@@ -3491,6 +3481,9 @@ static void hook_quit(cptr str)
 {
 	int i;
 
+#ifdef USE_SOUND
+	int j;
+#endif /* USE_SOUND */
 
 	/* Give a warning */
 	if (str) MessageBox(data[0].w, str, "Error", MB_OK | MB_ICONSTOP);
@@ -3514,6 +3507,20 @@ static void hook_quit(cptr str)
 	FreeDIB(&infGraph);
 	FreeDIB(&infMask);
 #endif
+
+#ifdef USE_SOUND
+	/* Free the sound names */
+	for (i = 0; i < MSG_MAX; i++)
+	{
+		for (j = 0; j < SAMPLE_MAX; j++)
+		{
+			if (!sound_file[i][j]) break;
+
+			string_free(sound_file[i][j]);
+		}
+	}
+#endif /* USE_SOUND */
+
 	term_force_font(&data[0], NULL);
 	if (data[0].font_want) string_free(data[0].font_want);
 	if (data[0].graf_want) string_free(data[0].graf_want);
@@ -3532,6 +3539,11 @@ static void hook_quit(cptr str)
 	if (hIcon) DestroyIcon(hIcon);
 
 	WSACleanup();
+
+	/* Free strings */
+#ifdef USE_SOUND	
+	string_free(ANGBAND_DIR_XTRA_SOUND);
+#endif
 
 	exit(0);
 }

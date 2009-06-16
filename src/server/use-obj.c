@@ -1380,8 +1380,6 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 
 	/* sound */
-	/* TODO: Create wand sound?  Do the individual effects have sounds? */
-	/* sound(Ind, MSG_ZAP_ROD); */
 
 
 	/* XXX Hack -- Extract the "sval" effect */

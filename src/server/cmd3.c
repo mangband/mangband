@@ -81,6 +81,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(posn));
+	sound(Ind, MSG_WIELD);
 
 	/* Delete (part of) it */
 	inven_item_increase(Ind, item, -amt);
@@ -500,12 +501,14 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(slot));
+	sound(Ind, MSG_WIELD);
 
 	/* Cursed! */
 	if (cursed_p(o_ptr))
 	{
 		/* Warn the player */
 		msg_print(Ind, "Oops! It feels deathly cold!");
+		sound(Ind, MSG_CURSED);
 
 		/* Note the curse */
 		o_ptr->ident |= ID_SENSE;
@@ -857,6 +860,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
+	sound(Ind, MSG_DESTROY);
 	
 	/* Reduce the charges of rods/wands/staves */
 	reduce_charges(o_ptr, quantity);
