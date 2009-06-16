@@ -844,10 +844,6 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
  */
 static void save_prefs(void)
 {
-#if defined(USE_GRAPHICS) || defined(USE_SOUND)
-	char       buf[32];
-#endif
-
 #ifdef USE_GRAPHICS
 	conf_set_int("Windows32", "Graphics", next_graphics);
 #endif
@@ -910,10 +906,6 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
  */
 static void load_prefs(void)
 {
-#ifdef USE_SOUND
-	int i;
-#endif
-
 	char buffer[20] = {'\0'};
 	DWORD bufferLen = sizeof(buffer);
 
@@ -1545,6 +1537,7 @@ static errr Term_user_win(int n)
 static errr Term_xtra_win_react(void)
 {
 	int i;
+
 /*	I added this USE_GRAPHICS because we lost color support as well. -GP */
 #ifdef USE_GRAPHICS
 	static old_use_graphics = FALSE;
@@ -1757,23 +1750,26 @@ static errr Term_xtra_win_noise(void)
 /*
  * Hack -- make a sound
  */
-static void Term_xtra_win_sound(int v)
+static errr Term_xtra_win_sound(int v)
 {
 #ifdef USE_SOUND
 	char buf[MSG_LEN];
 	int s = sound_count(v);
 
 	/* Illegal sound */
-	if (!s) return;
+	if (!s) return (-1);
 
 	/* Random sample */
-	s = rand_int(i);
+	s = rand_int(s);
 
 	/* Build the path */
 	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);
 
 	/* Play the sound */
-	PlaySound(buf, 0, SND_FILENAME | SND_ASYNC);
+	return PlaySound(buf, NULL, SND_FILENAME | SND_ASYNC);
+#else
+	/* Oops */
+	return (1);
 #endif /* USE_SOUND */
 }
 
@@ -2325,6 +2321,10 @@ static void init_windows(void)
 
 #endif
 
+#ifdef USE_SOUND
+	/* Handle sound module */
+	Term_xtra_win_react();
+#endif
 
 	/* New palette XXX XXX XXX */
 	new_palette();
@@ -2726,6 +2726,7 @@ static void process_menus(WORD wCmd)
 		case IDM_OPTIONS_SOUND:
 		{
 			use_sound = !use_sound;
+			Term_xtra_win_react();
 			break;
 		}
 
