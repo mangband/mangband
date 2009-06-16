@@ -1742,6 +1742,7 @@ void fix_special_message(void)
 	Term_get_size(&w, &h);
 
 	/* Dump header */
+	x = y = 0; /* Temp. values */
 	c = t = 0; /* Hor. & Vert. Offsets */
 	for (j = 0; j < MAX_CHANNELS; j++)
 	{
