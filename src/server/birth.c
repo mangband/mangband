@@ -649,8 +649,8 @@ static void player_outfit(int Ind)
 	object_type *i_ptr;
 	object_type object_type_body;
 
-#define player_outfit_i(P, K, N, PV) \
-	i_ptr = &object_type_body; \ 
+#define player_outfit_i(P,K,N,PV) \
+	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
 	i_ptr->pval = (PV); \
