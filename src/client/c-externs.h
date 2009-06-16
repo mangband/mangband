@@ -294,6 +294,7 @@ extern void cmd_observe(void);
 extern void text_to_ascii(char *buf, cptr str);
 extern FILE *my_fopen(cptr file, cptr mode);
 extern errr my_fclose(FILE *fff);
+extern bool my_exists(char *path);
 extern void init_stuff();
 extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);

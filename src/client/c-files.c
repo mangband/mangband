@@ -531,6 +531,28 @@ errr my_fgets(FILE *fff, char *buf, huge n)
         return (1);
 }
 
+/*
+ * Check to see if a file exists, by opening it read-only.
+ *
+ * Return TRUE if it does, FALSE if it does not.
+ */
+bool my_fexists(const char *fname)
+{
+	FILE* fd;
+
+	/* Try to open it */
+	fd = my_fopen(fname, "r");
+
+	/* It worked */
+	if (fd)
+	{
+		my_fclose(fd);
+		return TRUE;
+	}
+
+    return FALSE;
+}
+
 
 /*
  * Find the default paths to all of our important sub-directories.
@@ -1808,9 +1830,22 @@ void conf_init(void* param)
 	char path[1024];
 	HINSTANCE hInstance = param;
 
+	/* Search for file in user directory */
+	if (GetEnvironmentVariable("USERPROFILE", path, 512))
+	{
+		strcat(path, "\\mangclient.ini");
+
+		/* Ok */
+		if (my_fexists(path))
+		{
+			strcpy(config_name, path);
+			return;
+		}
+	}
+
+	/* Get full path to executable */
 	GetModuleFileName(hInstance, path, 512);
 	strcpy(path + strlen(path) - 4, ".ini");
-
 	strcpy(config_name, path);
 }
 void conf_save()
@@ -1857,23 +1892,22 @@ void conf_set_int(cptr section, cptr name, s32b value)
 /* HACK: Append section from other file */
 void conf_append_section(cptr section, cptr filename)
 {
-	char keys[1024];
+	char keys[2024];
 	char value[1024];
 	int n;
 	size_t i;
 
 	/* Get all keys */
-	n = GetPrivateProfileString(section, NULL, NULL, keys, 1024, filename);
-	if (n != 1024 - 2)
+	n = GetPrivateProfileString(section, NULL, NULL, keys, 2024, filename);
+	if (n != 2024 - 2)
 	{
 		for (i = 0; keys[i]; i += (strlen(&keys[i]) + 1))
 		{
 			/* Extract key */
-			GetPrivateProfileString(sound, keys[i], "",value, sizeof(value), filename);
-
+			GetPrivateProfileString("Sound", &keys[i], "", value, sizeof(value), filename);
 			/* MEGA-HACK: Append key to original config */
 			value[100] = '\0'; /* FIXME: change "strings" len */
-			conf_set_string(section, keys[i], value);
+			conf_set_string(section, &keys[i], value);
 		}
 	}
 }

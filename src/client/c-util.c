@@ -3672,28 +3672,6 @@ static s16b tokenize_whitespace(char *buf, s16b num, char **tokens)
 }
 
 
-/*
- * Check to see if a file exists, by opening it read-only.
- *
- * Return TRUE if it does, FALSE if it does not.
- */
-static bool my_fexists(const char *fname)
-{
-	FILE* fd;
-
-	/* Try to open it */
-	fd = my_fopen(fname, "r");
-
-	/* It worked */
-	if (fd)
-	{
-		my_fclose(fd);
-		return TRUE;
-	}
-
-    return FALSE;
-}
-
 
 void load_sound_prefs(void)
 {
