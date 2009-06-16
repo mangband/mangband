@@ -1854,6 +1854,29 @@ void conf_set_int(cptr section, cptr name, s32b value)
 	sprintf(s_value, fmt32b, value);
 	WritePrivateProfileString(section, name, s_value, config_name);
 }
+/* HACK: Append section from other file */
+void conf_append_section(cptr section, cptr filename)
+{
+	char keys[1024];
+	char value[1024];
+	int n;
+	size_t i;
+
+	/* Get all keys */
+	n = GetPrivateProfileString(section, NULL, NULL, keys, 1024, filename);
+	if (n != 1024 - 2)
+	{
+		for (i = 0; keys[i]; i += (strlen(&keys[i]) + 1))
+		{
+			/* Extract key */
+			GetPrivateProfileString(sound, keys[i], "",value, sizeof(value), filename);
+
+			/* MEGA-HACK: Append key to original config */
+			value[100] = '\0'; /* FIXME: change "strings" len */
+			conf_set_string(section, keys[i], value);
+		}
+	}
+}
 #else
 typedef struct value_conf_type value_conf_type;
 typedef struct section_conf_type section_conf_type;
@@ -2028,80 +2051,18 @@ cptr conf_get_string(cptr section, cptr name, cptr default_value)
 {
 	return (cptr)conf_get_value(section, name, default_value, FALSE);
 }
-/* Initialize global config tree */
-void conf_init(void* param)
+void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_ptr)
 {
-	section_conf_type	*s_ptr = NULL;
 	section_conf_type	*s_forge = NULL;
-	value_conf_type	*v_ptr = NULL;
 	value_conf_type	*v_forge = NULL;
 
-	FILE *config;
 	char buf[1024];
 	char s_name[100], *name, *value;
 	int n;
 
-	/*
-	 * Prepare root node 
-	 */
-
-	/* Forge root */	
-	if (!root_node)
-		MAKE(root_node, section_conf_type);
-	
-	/* Prepare */
-	strcpy(root_node->name, "MAngband");
-	root_node->next = NULL;
-	root_node->first = NULL;
-	
-	/* Attach */
-	s_ptr = root_node;
-	v_ptr = root_node->first;
-
-	/*
-	 * Get File name 
-	 */
-
-	/* EMX Hack */
-#ifdef USE_EMX
-	strcpy(buf, "\\mang.rc");
-#else
-	strcpy(buf, "/.mangrc");
-#endif
-
-	/* Try to find home directory */
-	if (getenv("HOME"))
-	{
-		/* Use home directory as base */
-		strcpy(config_name, getenv("HOME"));
-
-		/* Append filename */
-		strcat(config_name, buf);
-
-		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
-	}
-
-	/* Otherwise use current directory */
-	if (!config)
-	{
-		/* Current directory */
-		strcpy(config_name, ".");
-
-		/* Append filename */
-		strcat(config_name, buf);
-
-		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
-	}
-
-	/*
-	 * Read data 
-	 */
-	
-	/* File is opened */
-	if (config)
-	{
+ 	/* File is opened (paranoia) */
+ 	if (config)
+ 	{
 		/* Read until end */
 		while (!feof(config))
 		{
@@ -2178,7 +2139,81 @@ void conf_init(void* param)
 				v_ptr = v_forge;
 			}
 		}
-		
+	}
+} 
+/* Initialize global config tree */
+void conf_init(void* param)
+{
+	section_conf_type	*s_ptr = NULL;
+	value_conf_type	*v_ptr = NULL;
+
+	FILE *config;
+	char buf[1024];
+
+	/*
+	 * Prepare root node 
+	 */
+
+	/* Forge root */	
+	if (!root_node)
+		MAKE(root_node, section_conf_type);
+
+	/* Prepare */
+	strcpy(root_node->name, "MAngband");
+	root_node->next = NULL;
+	root_node->first = NULL;
+
+	/* Attach */
+	s_ptr = root_node;
+	v_ptr = root_node->first;
+
+	/*
+	 * Get File name 
+	 */
+
+	/* EMX Hack */
+#ifdef USE_EMX
+	strcpy(buf, "\\mang.rc");
+#else
+	strcpy(buf, "/.mangrc");
+#endif
+
+	/* Try to find home directory */
+	if (getenv("HOME"))
+	{
+		/* Use home directory as base */
+		strcpy(config_name, getenv("HOME"));
+
+		/* Append filename */
+		strcat(config_name, buf);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r");
+	}
+
+	/* Otherwise use current directory */
+	if (!config)
+	{
+		/* Current directory */
+		strcpy(config_name, ".");
+
+		/* Append filename */
+		strcat(config_name, buf);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r");
+	}
+
+	/*
+	 * Read data 
+	 */
+
+ 	/* File is opened */
+	if (config)
+	{
+		/* Use auxilary function */
+		conf_read_file(config, s_ptr, v_ptr);
+
 		/* Done reading */
 		my_fclose(config);
 	}
@@ -2231,6 +2266,31 @@ void conf_timer(int ticks)
 	{
 		conf_save();
 		last_update = ticks;
+	}
+}
+/* HACK: Append section from other file */
+void conf_append_section(cptr section, cptr filename)
+{
+	FILE *config;
+
+	section_conf_type *s_ptr;
+	value_conf_type 	*v_ptr;
+
+	/* Find pointers */
+	s_ptr = conf_add_section_aux(section);
+	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next) { }
+
+	/* Try opening this 'other file' */
+	config = my_fopen(filename, "r");
+
+ 	/* File is opened */
+	if (config)
+	{
+		/* Use auxilary function */
+		conf_read_file(config, s_ptr, v_ptr);
+
+		/* Done reading */
+		my_fclose(config);
 	}
 }
 #endif
