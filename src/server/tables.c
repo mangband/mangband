@@ -1926,6 +1926,9 @@ option_type option_info[] =
 	{ OPT_INFO(DISTURB_OTHER),		TRUE,	3,	0, 0,
 	"disturb_other",    		"Disturb whenever various things happen" },
 
+	{ OPT_INFO(DISTURB_LOOK),		TRUE,	3,	0, 0,
+	"disturb_look",     		"Stop looking around when disturbed" },
+
 	{ OPT_INFO(ALERT_HITPOINT),		FALSE,	3,	0, 0,
 	"alert_hitpoint",    		"Display a message whenever hit points are low" },
 

@@ -4057,6 +4057,18 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		p_ptr->redraw |= (PR_STATE);
 	}
 
+	/* Cancel looking around if requested and allowed */
+	if (stop_search && option_p(p_ptr,DISTURB_LOOK) &&
+		(p_ptr->panel_row != p_ptr->panel_row_old || 
+		p_ptr->panel_col != p_ptr->panel_col_old))
+	{
+		/* Cancel input */
+		Send_term_info(Ind, NTERM_HOLD, 0);
+
+		/* Stop locating */
+		do_cmd_locate(Ind, 0);
+	}
+
 	/* Flush the input if requested */
 	/*if (flush_disturb) flush();*/
 }
