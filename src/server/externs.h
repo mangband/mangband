@@ -512,7 +512,7 @@ extern void do_cmd_browse(int Ind, int book);
 extern void do_cmd_study(int Ind, int book, int spell);
 extern void do_cmd_cast_pre(int Ind, int book, int dir, int spell);
 extern void do_cmd_cast(int Ind, int book, int spell);
-extern void do_cmd_cast_fin(int Ind);
+extern void do_cmd_cast_fin(int Ind, bool tried);
 extern void do_cmd_pray_pre(int Ind, int book, int dir, int spell);
 extern void do_cmd_pray(int Ind, int book, int spell);
 extern void show_ghost_spells(int Ind);

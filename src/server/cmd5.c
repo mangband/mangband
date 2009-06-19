@@ -616,20 +616,25 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Spell failure chance */
 	chance = spell_chance(Ind, j);
 
+	/* Add "projection" offset */
+	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
+
 	/* Failed spell */
 	if (rand_int(100) < chance)
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(Ind, "You failed to get the spell off!");
+		/* Hack: Spend Mana */
+		p_ptr->current_spell = j;
+		do_cmd_cast_fin(Ind, FALSE);
 		return;
 	}
 
 	/* Cast spell */
-	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
 	sound(Ind, MSG_SPELL);
 	cast_spell(Ind, p_ptr->cp_ptr->spell_book, j);
 }
-void do_cmd_cast_fin(int Ind)
+void do_cmd_cast_fin(int Ind, bool tried)
 {
 	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
@@ -647,7 +652,7 @@ void do_cmd_cast_fin(int Ind)
 	s_ptr = &p_ptr->mp_ptr->info[j];
 
 	/* A spell was tried */
-	if (!(p_ptr->spell_flags[j] & PY_SPELL_WORKED))
+	if (!(p_ptr->spell_flags[j] & PY_SPELL_WORKED) && tried)
 	{
 		int e = s_ptr->sexp;
 
@@ -849,17 +854,21 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Spell failure chance */
     chance = spell_chance(Ind, j);
 
+	/* Add projection offset */
+	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
+
     /* Check for failure */
     if (rand_int(100) < chance)
     {
         /*if (flush_failure) flush();*/
         msg_print(Ind, "You failed to concentrate hard enough!");
+		/* Hack: Spend Mana */
+		p_ptr->current_spell = j;
+        do_cmd_cast_fin(Ind, FALSE);
         return;
     }
 
     /* Success */
-
-	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
 	sound(Ind, MSG_PRAYER);
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
 }

@@ -211,6 +211,7 @@
 
 #define SPELL_CASE_PROJ \
 	case SPELL_DETECT_MONSTERS: \
+	case SPELL_ELEMENTAL_BRAND: \
 	case SPELL_SATISFY_HUNGER:
 
 #define PRAYER_CASE_PROJ \
@@ -2178,12 +2179,12 @@ bool cast_spell(int Ind, int tval, int index)
 	if (tval == TV_MAGIC_BOOK)
 	{
 		done = cast_mage_spell(Ind, index);
-		if (done) do_cmd_cast_fin(Ind);
+		if (done) do_cmd_cast_fin(Ind, TRUE);
 	}
 	else if (tval == TV_PRAYER_BOOK)
 	{
 		done = cast_priest_spell(Ind, index);
-		if (done) do_cmd_cast_fin(Ind);
+		if (done) do_cmd_cast_fin(Ind, TRUE);
 	}
 	else
 	{
