@@ -312,7 +312,7 @@ static void get_history(int Ind)
 	player_type *p_ptr = Players[Ind];
 	int		i, n, chart, roll, social_class;
 
-	char	*s, *t;
+	char	*s, *t, *p;
 
 	char	buf[240];
 
@@ -324,6 +324,10 @@ static void get_history(int Ind)
 
 	/* Clear the history text */
 	buf[0] = '\0';
+
+	/* Set pointers */
+	t = &buf[0];
+	p = &p_ptr->descrip[0];
 
 	/* Initial social class */
 	social_class = randint(4);
@@ -344,7 +348,30 @@ static void get_history(int Ind)
 		while ((chart != h_info[i].chart) || (roll > h_info[i].roll)) i++;
 
 		/* Acquire the textual history */
-		(void)strcat(buf, h_text + h_info[i].text);
+		for (s = h_text + h_info[i].text; *s; s++)
+		{
+#define g_strcat(P, T) n = strlen((T)); strncpy((P), (T), n); (P) += n 
+#define P_CASE(C, F, T) case (C): g_strcat(t, (F)); g_strcat(p, (T)); break
+#define G_CASE(C, F, TM, TF) case (C): g_strcat(t, (F)); g_strcat(p, (p_ptr->male ? (TM) : (TF)) ); break
+			switch (*s)
+			{
+			case '$':
+			case '~':
+				s++;
+				switch (*s) 
+				{
+					G_CASE('u', "You", "He", "She");
+					G_CASE('r', "Your", "His", "Her");
+					P_CASE('a', "are", "is");
+					P_CASE('h', "have", "has");
+					default: continue;
+				}
+			break;
+			default:			
+				*t++ = *p++ = *s;
+			}
+		}
+		*t = *p = '\0';
 
 		/* Add in the social class */
 		social_class += (int)(h_info[i].bonus) - 50;

@@ -975,6 +975,8 @@ static bool rd_extra(int Ind, bool had_header)
 	{
 		read_str("history",p_ptr->history[i]); /* 60 */
 	}
+	if (value_exists("descrip"))
+	read_str("descrip",p_ptr->descrip); /* 240?! */
 	end_section_read("history");
 
 	/* Class/Race/Gender/Party */

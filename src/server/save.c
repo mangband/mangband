@@ -429,6 +429,7 @@ static void wr_extra(int Ind)
 	{
 		write_str("history",p_ptr->history[i]);
 	}
+	write_str("descrip",p_ptr->descrip);
 	end_section("history");
 
 	/* Race/Class/Gender/Party */

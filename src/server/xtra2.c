@@ -4229,7 +4229,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		/* Hack -- track cursor for this player */
 		if (!(p_ptr->target_flag & TARGET_GRID))
 			cursor_track(Ind, m_idx);
-		
+
 		/* Describe player */
 		if (q_ptr->ghost)
 			strnfmt(x_name, sizeof(x_name), "a ghost of %s (%s)", 
@@ -4239,8 +4239,20 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 				q_ptr->name, p_name + p_info[q_ptr->prace].name, 
 				c_text + q_ptr->cp_ptr->title[(q_ptr->lev-1)/5],
 				look_player_desc(0 - m_idx)	);
-		
+
 		name = x_name;
+		i1 = "r,";
+
+		/* Hack -- show "player recall" */
+		if (p_ptr->target_flag & TARGET_READ)
+		{
+			/* Hack -- cancel monster tracking */
+			monster_race_track(Ind, 0);
+			/* Hack -- call descriptive function */
+			do_cmd_monster_desc_aux(Ind, m_idx, TRUE);
+			/* Hack -- pop up immediatly */
+			force_recall = TRUE;
+		}
 	}
 
 	/* Visible monster */
@@ -5574,6 +5586,88 @@ void do_cmd_social(int Ind, int dir, int i)
 		if (s_ptr->others_no_arg)
 			msg_format_complex_near(Ind, Ind, MSG_SOCIAL, s_ptr->others_no_arg, p_ptr->name, ddd_names[dir]);
 	}
+}
+
+void describe_player(int Ind, int Ind2)
+{
+	player_type *p_ptr = Players[Ind2];
+	object_type *o_ptr;
+	char buf[240];
+	char *s;
+
+	int i, j = 0;
+
+	bool is_rogue = (Players[Ind]->pclass == CLASS_ROGUE ? TRUE : FALSE);
+
+
+	/* Describe name */
+	text_out(p_ptr->name);
+	text_out(", the ");
+	text_out(c_text + p_ptr->cp_ptr->title[(p_ptr->lev-1)/5]);
+	text_out(".\n  ");
+	s = p_name + p_info[p_ptr->prace].name;
+	sprintf(buf, "%s is %s %s %s. ",
+		(p_ptr->male ? "He" : "She"), 
+		is_a_vowel(tolower(s[0])) ? "an" : "a", s,  
+		c_name + c_info[p_ptr->pclass].name);
+	text_out(buf);
+/*	text_out("\n  "); */
+
+
+	/* Describe Equipment */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+	{
+		byte old_ident;
+		char o_name[80];
+		o_ptr = &p_ptr->inventory[i];
+
+		if (!o_ptr->tval) continue;
+
+		/* Note! Only rogues can see jewelry */
+		if (!is_rogue && (i == INVEN_NECK || i == INVEN_LEFT || i == INVEN_RIGHT)) continue;
+
+		/* HACK! Remove ident */
+		old_ident = o_ptr->ident;
+		o_ptr->ident = 0;
+
+		/* Extract name */
+		object_desc(Ind, o_name, o_ptr, TRUE, 0);
+
+		/* Restore original ident */
+		o_ptr->ident = old_ident;
+
+		/* Prepare string */
+		sprintf(buf, describe_use(0, i), o_name, (p_ptr->male ? "his" : "her"));
+
+		/* Very first mention of equipment */
+		if (!j)
+		{
+			text_out((p_ptr->male ? "He" : "She"));
+			text_out(" is ");
+			j = 1;
+		}
+		else
+		{
+			/*buf[0] = toupper(buf[0]);*/
+			text_out(", ");
+		}
+
+		/* Append */
+		text_out(buf);
+	}
+	if (j) 	text_out(". ");
+
+
+	/* Describe History */	
+	strncpy(buf, p_ptr->descrip, 240);
+	s = strtok(buf, " \n");
+	while (s)
+	{
+		text_out(s);
+		text_out(" ");
+		s = strtok(NULL, " \n");
+	}
+	text_out("\n");
 }
 
 /* static or unstatic a level */

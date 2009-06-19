@@ -1052,6 +1052,7 @@ extern void player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3);
 
 /* xtra2.c */
 extern int get_player(int Ind, object_type *o_ptr);
+extern void describe_player(int Ind, int who);
 extern bool set_blind(int Ind, int v);
 extern bool set_confused(int Ind, int v);
 extern bool set_poisoned(int Ind, int v);

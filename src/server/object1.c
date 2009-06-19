@@ -2722,6 +2722,27 @@ cptr describe_use(int Ind, int i)
 
 	cptr p;
 
+	/* HACK: return a template */
+	if (!Ind)
+	switch (i)
+	{
+		case INVEN_WIELD: p = "attacking monsters with %s"; break;
+		case INVEN_BOW:   p = "shooting missiles with %s"; break;
+		case INVEN_LEFT:  p = "wearing %s on %s left hand"; break;
+		case INVEN_RIGHT: p = "wearing %s on %s right hand"; break;
+		case INVEN_NECK:  p = "wearing %s around %s neck"; break;
+		case INVEN_LITE:  p = "using %s to light the way"; break;
+		case INVEN_BODY:  p = "wearing %s on %s body"; break;
+		case INVEN_OUTER: p = "wearing %s on %s back"; break;
+		case INVEN_ARM:   p = "wearing %s on %s arm"; break;
+		case INVEN_HEAD:  p = "wearing %s on %s head"; break;
+		case INVEN_HANDS: p = "wearing %s on %s hands"; break;
+		case INVEN_FEET:  p = "wearing %s on %s feet"; break;
+		default:          p = "carrying %s in %s pack"; break;
+	}
+	if (!Ind) return p;
+	/* ENDHACK */
+
 	switch (i)
 	{
 		case INVEN_WIELD: p = "attacking monsters with"; break;
