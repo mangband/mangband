@@ -140,7 +140,7 @@ static void sense_inventory(int Ind)
 
 	int		plev = p_ptr->lev;
 
-	bool	heavy = FALSE;
+	bool	heavy = ((p_ptr->cp_ptr->flags & CF_PSEUDO_ID_HEAVY) ? TRUE : FALSE);
 
 	cptr	feel;
 
@@ -155,73 +155,15 @@ static void sense_inventory(int Ind)
 	/* No sensing when confused */
 	if (p_ptr->confused) return;
 
-	/* Analyze the class */
-	switch (p_ptr->pclass)
+	if (p_ptr->cp_ptr->flags & CF_PSEUDO_ID_IMPROV)
 	{
-		case CLASS_WARRIOR:
-		{
-			/* Good sensing */
-			if (0 != rand_int(9000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_MAGE:
-		{
-			/* Very bad (light) sensing */
-			if (0 != rand_int(240000L / (plev + 5))) return;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_PRIEST:
-		{
-			/* Good (light) sensing */
-			if (0 != rand_int(10000L / (plev * plev + 40))) return;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_ROGUE:
-		{
-			/* Okay sensing */
-			if (0 != rand_int(20000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_RANGER:
-		{
-			if (0 != rand_int(20000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_PALADIN:
-		{
-			/* Bad sensing */
-			if (0 != rand_int(80000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
+		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev * plev + p_ptr->cp_ptr->sense_div)))
+			return;
+	}
+	else
+	{
+		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev + p_ptr->cp_ptr->sense_div)))
+			return;
 	}
 
 
