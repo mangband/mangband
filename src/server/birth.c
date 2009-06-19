@@ -730,6 +730,7 @@ static void player_outfit(int Ind)
 #ifndef DEBUG
 	if (!is_dm_p(p_ptr)) return;
 #endif
+	p_ptr->au = 10000000; 
 	/* High Spell books */
 	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
 	{
