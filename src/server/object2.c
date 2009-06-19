@@ -1250,7 +1250,7 @@ s32b object_value(int Ind, object_type *o_ptr)
 
 
 	/* Unknown items -- acquire a base value */
-	if (Ind == 0 || object_known_p(Ind, o_ptr))
+	if (Ind == 0 || (object_known_p(Ind, o_ptr) && object_aware_p(Ind, o_ptr)))
 	{
 		/* Broken items -- worthless */
 		if (broken_p(o_ptr)) return (0L);
