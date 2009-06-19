@@ -205,8 +205,38 @@ static void sense_inventory(int Ind)
 			}
 		}
 
-		/* Skip non-sense machines */
-		if (!okay) continue;
+		/* Hack non-sense machines */
+		if (!okay)
+		{
+#ifdef SHARE_ITEM_AWARENESS
+			/* ID'ed by someone else */
+			if (object_known_p(Ind, o_ptr) && !object_aware_p(Ind, o_ptr))
+			{
+				/* Learn flavor */
+				object_aware(Ind, o_ptr);
+
+				/* Stop everything */
+				if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
+
+				/* Get an object description */
+				object_desc(Ind, o_name, o_ptr, TRUE, 0);
+
+				sound(Ind, MSG_PSEUDOID);
+
+				/* Message */
+				sprintf(o_inscribe, describe_use(0, i), o_name, "your");
+				msg_format(Ind, "You realize you are %s (%c).",
+				           o_inscribe, index_to_label(i));
+
+				/* Combine / Reorder the pack (later) */
+				p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+				/* Window stuff */
+				p_ptr->window |= (PW_INVEN | PW_EQUIP);
+			}
+#endif
+			continue;
+		}
 
 		/* We know about it already, do not tell us again */
 		if (o_ptr->ident & ID_SENSE) continue;

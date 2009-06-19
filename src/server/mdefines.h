@@ -166,6 +166,7 @@
 #define PURSE_MULTIPLIER 5 /* For store owners */
 #define RIFT_RESIST_TELEPORT 127 /* For monsters */
 #define PROJECTED_CHANCE_RATIO 50 /* (1.5) For players */
+#define SHARE_ITEM_AWARENESS /* Undefine to disable */ 
 
 /*
  * Maximum number of "normal" pack slots, and the index of the "overflow"
