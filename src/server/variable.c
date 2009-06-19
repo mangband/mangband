@@ -554,6 +554,9 @@ player_magic *mp_ptr;*/
 /*s16b player_hp[PY_MAX_LEVEL];*/
 
 
+/* Length of equipment slot names combined */
+u32b eq_name_size;
+
 /*
  * Structure (not array) of size limits
  */

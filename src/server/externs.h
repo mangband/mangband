@@ -162,6 +162,7 @@ extern s32b m_max;
 extern s32b o_top;
 extern s32b m_top;
 extern maxima *z_info;
+extern u32b eq_name_size;
 
 extern bool cfg_report_to_meta;
 extern char * cfg_meta_address;

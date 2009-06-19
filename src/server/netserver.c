@@ -2153,6 +2153,8 @@ static int Receive_play(int ind)
 
 		Send_visual_limits_conn(ind);
 		
+		Send_inven_info_conn(ind);
+
 		Send_race_info_conn(ind);
 		Send_class_info_conn(ind);
 
@@ -2438,6 +2440,49 @@ int Send_visual_limits_conn(int ind)
 		return -1;
 	}
 
+	return 1;
+}
+int Send_inven_info_conn(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	u32b i, name_size, off;
+	char buf[80];
+	if (!BIT(connp->state, CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for inventory info (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	if (Packet_printf(&connp->c, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	}
+	
+	buf[0] = '\0';
+	if (Packet_printf(&connp->c, "%hu%lu%lu%lu", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
+	{
+		Destroy_connection(ind, "write error");
+		return -1;
+	} 
+
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		off += strlen(buf)+1;
+		if (i < INVEN_WIELD)
+		{
+			off = 0;
+		}
+		strcpy(buf, mention_use(0, i));
+		buf[strlen(buf)] = '\0';
+		if (Packet_printf(&connp->c, "%s%lu", buf, off) <= 0)
+		{
+			Destroy_connection(ind, "write error");
+			return -1;
+		}
+	}
 	return 1;
 }
 int Send_race_info_conn(int ind)

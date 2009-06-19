@@ -1744,6 +1744,12 @@ static errr init_other(void)
 		}
 	}
 
+	/*** Pre-calculate inventory slot names length ***/
+	for (i = INVEN_PACK, eq_name_size = 0; i < INVEN_TOTAL; i++)
+	{
+		eq_name_size += strlen(mention_use(0, i)) + 1;
+	}
+
 
 	/*** Pre-allocate the basic "auto-inscriptions" ***/
 

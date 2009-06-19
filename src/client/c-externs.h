@@ -48,8 +48,8 @@ extern char real_name[80];
 extern char server_name[80];
 extern int server_port;
 
-extern object_type inventory[INVEN_TOTAL];
-extern char inventory_name[INVEN_TOTAL][80];
+extern object_type *inventory;
+extern char **inventory_name;
 
 extern object_type floor_item;
 extern char floor_name[80];
@@ -129,13 +129,19 @@ extern u16b *message__type;
 extern u16b *message__count;
 
 
+extern char *eq_name;
 extern char *c_name;
 extern char *c_text;
 extern char *p_name;
 extern player_race *race_info;
 extern player_class *c_info;
+extern s16b *eq_names;
 
 extern maxima z_info;
+
+extern s16b INVEN_TOTAL;
+extern s16b INVEN_WIELD;
+extern s16b INVEN_PACK;
 
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
@@ -202,6 +208,7 @@ extern int options_groups_max;
 extern bool rogue_like_commands;
 extern bool auto_accept;
 extern bool depth_in_feet;
+extern bool show_labels;
 extern bool show_weights;
 extern bool ring_bell;
 extern bool use_color;

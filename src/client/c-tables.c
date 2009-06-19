@@ -554,10 +554,13 @@ option_type local_option_info[] =
 
 	{ &use_color,			TRUE,	1,	0, 0,
 	"use_color",			"Use color if possible" },
-	
+
 	{ &depth_in_feet,		TRUE,	1,	0, 0,
 	"depth_in_feet",		"Show dungeon level in feet" },
-	
+
+	{ &show_labels, 		FALSE,	1,	0, 0,
+	"show_labels",			"Show labels in equipment listings" },
+
 	{ &show_weights,		TRUE,	1,	0, 0,
 	"show_weights",			"Show weights in object listings" },
 

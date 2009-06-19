@@ -1307,6 +1307,47 @@ int Receive_struct_info(void)
 			C_MAKE(p_ptr->f_attr, z_info.f_max, byte);
 			C_MAKE(p_ptr->f_char, z_info.f_max, char);
 		break;
+		/* Inventory Slots */
+		case STRUCT_INFO_INVEN:
+		{
+			s16b last_off = -1;
+			/* Alloc */
+			C_MAKE(eq_name, fake_name_size, char);
+			C_MAKE(eq_names, max, s16b);
+			C_MAKE(inventory_name, max, char*);
+			C_MAKE(inventory, max, object_type);
+			INVEN_TOTAL = max;
+			INVEN_WIELD = fake_text_size;
+			
+			/* Read extra */
+			fake_text_size = 0;
+			if ((n = Packet_scanf(&rbuf, "%lu", &fake_text_size)) <= 0)
+			{
+				return n;
+			}
+			INVEN_PACK = fake_text_size;
+
+			/* Fill */
+			for (i = 0; i < max; i++) 
+			{
+				C_MAKE(inventory_name[i], 80, char);
+
+				off = 0;
+
+				if ((n = Packet_scanf(&rbuf, "%s%lu", &name, &off)) <= 0)
+				{
+					return n;
+				}
+
+				if (last_off != off)
+				{
+					strcpy(eq_name + off, name);
+				}
+
+				eq_names[i] = last_off = (s16b)off;
+			}
+		}
+		break;		
 		/* Player Races */
 		case STRUCT_INFO_RACE:
 			/* Alloc */

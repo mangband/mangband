@@ -145,6 +145,7 @@ int Send_game_start_conn(int ind);
 int Send_motd_conn(int ind, int offset);
 int Send_option_info_conn(int ind);
 int Send_basic_info_conn(int ind);
+int Send_inven_info_conn(int ind);
 int Send_race_info_conn(int ind);
 int Send_class_info_conn(int ind);
 int Send_char_info_conn(int ind);

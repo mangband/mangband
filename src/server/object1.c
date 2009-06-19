@@ -2658,9 +2658,11 @@ s16b wield_slot(int Ind, object_type *o_ptr)
  */
 cptr mention_use(int Ind, int i)
 {
-	player_type *p_ptr = Players[Ind];
+	player_type *p_ptr;
 
 	cptr p;
+
+	if (Ind) p_ptr = Players[Ind];
 
 	/* Examine the location */
 	switch (i)
@@ -2679,6 +2681,9 @@ cptr mention_use(int Ind, int i)
 		case INVEN_FEET:  p = "On feet"; break;
 		default:          p = "In pack"; break;
 	}
+
+	/* Hack -- quit quietly */
+	if (!Ind) return (p);
 
 	/* Hack -- Heavy weapon */
 	if (i == INVEN_WIELD)

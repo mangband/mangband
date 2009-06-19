@@ -164,3 +164,34 @@
  */
 #define PURSE_MULTIPLIER 5 /* For store owners */
 #define RIFT_RESIST_TELEPORT 127 /* For monsters */
+
+/*
+ * Maximum number of "normal" pack slots, and the index of the "overflow"
+ * slot, which can hold an item, but only temporarily, since it causes the
+ * pack to "overflow", dropping the "last" item onto the ground.  Since this
+ * value is used as an actual slot, it must be less than "INVEN_WIELD" (below).
+ * Note that "INVEN_PACK" is probably hard-coded by its use in savefiles, and
+ * by the fact that the screen can only show 23 items plus a one-line prompt.
+ */
+#define INVEN_PACK		23
+
+/*
+ * Indexes used for various "equipment" slots (hard-coded by savefiles, etc).
+ */
+#define INVEN_WIELD		24
+#define INVEN_BOW       25
+#define INVEN_LEFT      26
+#define INVEN_RIGHT     27
+#define INVEN_NECK      28
+#define INVEN_LITE      29
+#define INVEN_BODY      30
+#define INVEN_OUTER     31
+#define INVEN_ARM       32
+#define INVEN_HEAD      33
+#define INVEN_HANDS     34
+#define INVEN_FEET      35
+
+/*
+ * Total number of inventory slots (hard-coded).
+ */
+#define INVEN_TOTAL	36

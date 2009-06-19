@@ -798,6 +798,7 @@ static void display_equip(void)
 {
 	int	i, n;
 	int	wgt;
+	int	col;
 
 	object_type *o_ptr;
 
@@ -838,12 +839,20 @@ static void display_equip(void)
 		/* Erase the rest of the line */
 		Term_erase(3+n, i - INVEN_WIELD, 255);
 
+		/* Display the slot description (if needed) */
+		if (show_labels)
+		{
+			Term_putstr(61, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
+			Term_putstr(65, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
+		}
+
 		/* Display the weight if needed */
 		if (show_weights && o_ptr->weight)
 		{
 			wgt = o_ptr->weight;
+			col = (show_labels ? 52 : 71);
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			Term_putstr(71, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
+			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
 		}
 	}
 

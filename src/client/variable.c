@@ -10,8 +10,8 @@ char real_name[80];
 char server_name[80];
 int server_port;
 
-object_type inventory[INVEN_TOTAL];	/* The client-side copy of the inventory */
-char inventory_name[INVEN_TOTAL][80];	/* The client-side copy of the inventory names */
+object_type *inventory; 	/* The client-side copy of the inventory */
+char **inventory_name;  	/* The client-side copy of the inventory names */
 
 object_type floor_item;
 char floor_name[80]; 	/* Client-side copy of floor item */
@@ -137,6 +137,10 @@ byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 
+/* Player equipment refrence array */
+char *eq_name;
+s16b *eq_names;
+
 /*
  * The player race arrays
  */
@@ -153,6 +157,10 @@ player_class *c_info;
  * Known limits
  */
 maxima z_info;
+
+s16b INVEN_TOTAL = 36;
+s16b INVEN_WIELD = 24;
+s16b INVEN_PACK  = 23;
 
 cptr ANGBAND_GRAF = "none";
 cptr ANGBAND_DIR;
@@ -186,6 +194,7 @@ int options_groups_max;
 bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
+bool show_labels;
 bool show_weights;
 bool ring_bell;
 bool use_color;
