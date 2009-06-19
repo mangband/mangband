@@ -2093,34 +2093,10 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_ALTER_REALITY:
 		{
-			/* Which dungeon level are we changing? */
-			int Depth = p_ptr->dun_depth, i;
-        
-			/* Don't allow this in towns or the wilderness */
-			if( (Depth <= 0) || (check_special_level(Depth)) )
-				break;
-					
-			/* Search for players on this depth */
-			for (i = 1; i < NumPlayers + 1; i++)
-			{
-				player_type *q_ptr = Players[i];
-				
-				/* Only players on this depth */
-				if(q_ptr->dun_depth == Depth)
-				{
-					/* Tell the player about it */
-					msg_print(i, "The world changes!");
-					q_ptr->new_level_flag = TRUE;
-					q_ptr->new_level_method = LEVEL_RAND;
-				}
-			}
-
-			/* Deallocate the level */
-			dealloc_dungeon_level(Depth);
-			cave[Depth] = 0;
-			
+			(void)alter_reality(Ind, FALSE);
 			break;
 		}
+
 		/* Paranoia: shouldn't happen with safe clients */
 		default:
 		{

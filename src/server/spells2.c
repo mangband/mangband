@@ -4842,6 +4842,55 @@ bool teleport_monster(int Ind, int dir)
 	return (project_hook(Ind, GF_AWAY_ALL, dir, MAX_SIGHT * 5, flg));
 }
 
+bool alter_reality(int Ind, bool power)
+{
+	player_type *p_ptr = Players[Ind];
+	byte multiplier;
+
+	/* Which dungeon level are we changing? */
+	int Depth = p_ptr->dun_depth, i;
+
+	/* Don't allow this in towns or the wilderness */
+	if( (Depth <= 0) || (check_special_level(Depth) && !power) )
+		return (FALSE);
+
+	/* Search for players on this depth */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		player_type *q_ptr = Players[i];
+		multiplier = 4; /* Hack: "adjust" fos */
+
+		/* Only players on this depth */
+		if(q_ptr->dun_depth == Depth)
+		{
+			if (!power && (i != Ind))
+			{
+				if (pvp_okay(Ind, i, 0)) multiplier = 6;
+				if (p_ptr->party && p_ptr->party != q_ptr->party) multiplier = 0;
+
+				/* Saving throw: perception */
+				if (rand_int(127) < q_ptr->skill_fos * multiplier)
+				{
+					msg_format(Ind, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
+					msg_format(i, "You resist %s's attempt to alter reality.", (q_ptr->play_los[Ind] ? p_ptr->name : "someone") );
+					return (FALSE);
+				}
+			}
+			/* Tell the player about it */
+			msg_print(i, "The world changes!");
+			q_ptr->new_level_flag = TRUE;
+			q_ptr->new_level_method = LEVEL_RAND;
+		}
+	}
+
+	/* Deallocate the level */
+	dealloc_dungeon_level(Depth);
+	cave[Depth] = 0;
+
+	/* Reality altered */	
+	return (TRUE);
+}
+
 bool heal_player_ball(int Ind, int dir, int dam)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;

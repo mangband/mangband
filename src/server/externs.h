@@ -946,6 +946,7 @@ extern bool fear_monster(int Ind, int dir, int plev);
 extern bool poly_monster(int Ind, int dir);
 extern bool clone_monster(int Ind, int dir);
 extern bool teleport_monster(int Ind, int dir);
+extern bool alter_reality(int Ind, bool power);
 extern bool heal_player_ball(int Ind, int dir, int dam);
 extern bool project_spell_ball(int Ind, int dir, int spell);
 extern bool project_prayer_ball(int Ind, int dir, int spell);
