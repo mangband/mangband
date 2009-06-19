@@ -617,7 +617,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 	chance = spell_chance(Ind, j);
 
 	/* Add "projection" offset */
-	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
+	if (spell >= SPELL_PROJECTED)
+	{
+		j += SPELL_PROJECTED;
+		chance -= chance * PROJECTED_CHANCE_RATIO / 100;
+	}
 
 	/* Failed spell */
 	if (rand_int(100) < chance)
@@ -639,14 +643,9 @@ void do_cmd_cast_fin(int Ind, bool tried)
 	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
 	int j = p_ptr->current_spell;
-	bool harder = FALSE;
 
 	/* Remove "projection" offset */
-	if (j >= SPELL_PROJECTED) 
-	{
-		j -= SPELL_PROJECTED;
-		harder = TRUE;
-	}
+	if (j >= SPELL_PROJECTED) j -= SPELL_PROJECTED;
 
 	/* Set pointer */
 	s_ptr = &p_ptr->mp_ptr->info[j];
@@ -674,12 +673,6 @@ void do_cmd_cast_fin(int Ind, bool tried)
 	{
 		/* Use some mana */
 		p_ptr->csp -= s_ptr->smana;
-
-		/* Use even more mana */
-		if (harder)
-		{
-			p_ptr->csp -= s_ptr->smana / PROJECTED_MANA_RATIO;
-		}
 	}
 	/* Over-exert the player */
 	else
@@ -854,8 +847,12 @@ void do_cmd_pray(int Ind, int book, int spell)
     /* Spell failure chance */
     chance = spell_chance(Ind, j);
 
-	/* Add projection offset */
-	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
+	/* Add "projection" offset */
+	if (spell >= SPELL_PROJECTED) 
+	{
+		j += SPELL_PROJECTED;
+		chance -= chance * PROJECTED_CHANCE_RATIO / 100;
+	}
 
     /* Check for failure */
     if (rand_int(100) < chance)
