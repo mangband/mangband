@@ -3660,7 +3660,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		strcpy(killer, Players[0 - who]->name);
 
 		/* Do not become hostile if it was a healing or teleport spell */
-		if ((typ != GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
+		if ((typ < GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
 		{
 			if (!pvp_okay(0 - who, Ind, (p_ptr->target_who == who ? 2 : 3))) 
 			{
@@ -3671,7 +3671,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			dam = (dam + 2) / 3;			
 		}
 		/* Hack -- share monster hurt during healing */
-		else if (typ == GF_HEAL_PLAYER)
+		else if (typ >= GF_HEAL_PLAYER)
 		{
 			party_share_hurt(0 - who, Ind);
 		}
@@ -4041,6 +4041,26 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		hp_player(Ind, dam);
 		set_cut(Ind, Players[Ind]->cut - 10);
 		
+		break;
+
+		/* MAngband-specific: projected spell */
+		case GF_PROJECT_SPELL:
+ 
+		if (fuzzy) msg_print(Ind, "You are hit by something good!");		
+		else msg_format(Ind, "%^s does something to you!", killer);
+
+		cast_spell_hack(Ind, TV_MAGIC_BOOK, dam);
+
+		break;
+
+		/* MAngband-specific: projected prayer */
+		case GF_PROJECT_PRAYER:
+
+		if (fuzzy) msg_print(Ind, "You are hit by something good!");		
+		else msg_format(Ind, "%^s prays on your behalf!", killer);
+
+		cast_spell_hack(Ind, TV_PRAYER_BOOK, dam);
+
 		break;
 
 		case GF_OLD_CONF:
@@ -4557,7 +4577,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			if (c_ptr->m_idx > 0) break;
 			
 			/* healing spells hit everybody */			
-			if (typ == GF_HEAL_PLAYER) break;
+			if (typ >= GF_HEAL_PLAYER) break;
 			
 			/* neutral people hit each other */			
 			if (who < 0 && !Players[0 - who]->party) break;

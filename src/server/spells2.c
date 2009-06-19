@@ -4848,7 +4848,17 @@ bool heal_player_ball(int Ind, int dir, int dam)
 	return (project_hook(Ind, GF_HEAL_PLAYER, dir, dam, flg));
 }
 
+bool project_prayer_ball(int Ind, int dir, int spell)
+{
+	int flg = PROJECT_STOP | PROJECT_KILL;
+	return (project_hook(Ind, GF_PROJECT_PRAYER, dir, spell, flg));
+}
 
+bool project_spell_ball(int Ind, int dir, int spell)
+{
+	int flg = PROJECT_STOP | PROJECT_KILL;
+	return (project_hook(Ind, GF_PROJECT_SPELL, dir, spell, flg));
+}
 
 /*
  * Hooks -- affect adjacent grids (radius 1 ball attack)

@@ -209,6 +209,10 @@
 	case SPELL_RECHARGE_ITEM_I: \
 	case SPELL_RECHARGE_ITEM_II:
 
+#define SPELL_CASE_PROJ \
+	case SPELL_DETECT_MONSTERS: \
+	case SPELL_SATISFY_HUNGER:
+
 #define PRAYER_CASE_PROJ \
 	case PRAYER_CURE_LIGHT_WOUNDS: \
 	case PRAYER_CURE_SERIOUS_WOUNDS: \
@@ -757,6 +761,7 @@ void spells_init()
 				{
 					switch(i) { SPELL_CASE_AIM flag |= PY_SPELL_AIM; 	break; default:	break; }
 					switch(i) { SPELL_CASE_ITEM flag |= PY_SPELL_ITEM; 	break; default:	break; }
+					switch(i) { SPELL_CASE_PROJ flag |= PY_SPELL_PROJECT; 	break; default:	break; }
 					break;
 				}
 				case 1:
@@ -1131,6 +1136,14 @@ static bool cast_mage_spell(int Ind, int spell)
 
 	/* Hack -- chance of "beam" instead of "bolt" */
 	int beam = beam_chance(Ind);
+
+	/* MAngband-specific: Projected */
+	if (spell >= SPELL_PROJECTED)
+	{
+		if (!get_aim_dir(Ind, &dir)) return (FALSE);
+		(void)project_spell_ball(Ind, dir, spell - SPELL_PROJECTED);
+		return (TRUE);
+	}
 
 	/* Spells. */
 	switch (spell)
@@ -2202,6 +2215,34 @@ bool cast_spell(int Ind, int tval, int index)
 		if (done) do_cmd_ghost_power_fin(Ind);
 	}
 	
+	/* DONE */
+	if (done) p_ptr->current_spell = -1;
+
+	return done;
+}
+
+/* Copy of "cast_spell", but with no "finalization" */
+bool cast_spell_hack(int Ind, int tval, int index)
+{
+	player_type *p_ptr = Players[Ind];
+	bool done;
+
+	/* START */
+	p_ptr->current_spell = index;
+
+	if (tval == TV_MAGIC_BOOK)
+	{
+		done = cast_mage_spell(Ind, index);
+	}
+	else if (tval == TV_PRAYER_BOOK)
+	{
+		done = cast_priest_spell(Ind, index);
+	}
+	else
+	{
+		done = cast_undead_spell(Ind, index);
+	}
+
 	/* DONE */
 	if (done) p_ptr->current_spell = -1;
 

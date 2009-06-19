@@ -947,6 +947,8 @@ extern bool poly_monster(int Ind, int dir);
 extern bool clone_monster(int Ind, int dir);
 extern bool teleport_monster(int Ind, int dir);
 extern bool heal_player_ball(int Ind, int dir, int dam);
+extern bool project_spell_ball(int Ind, int dir, int spell);
+extern bool project_prayer_ball(int Ind, int dir, int spell);
 extern bool door_creation(int Ind);
 extern bool trap_creation(int Ind);
 extern bool destroy_doors_touch(int Ind);
@@ -1133,6 +1135,7 @@ extern cptr get_spell_name(int tval, int index);
 extern cptr get_spell_info(int Ind, int index);
 extern byte get_spell_flag(int tval, int spell, byte player_flag);
 extern bool cast_spell(int Ind, int tval, int index);
+extern bool cast_spell_hack(int Ind, int tval, int index);
 
 /* use-obj.c */
 extern bool use_object(int Ind, object_type *o_ptr, int item, bool *ident);

@@ -2098,6 +2098,8 @@ that keeps many algorithms happy.
 #define GF_DISP_EVIL	68
 #define GF_DISP_ALL	69
 #define	GF_HEAL_PLAYER	70
+#define GF_PROJECT_SPELL 71
+#define GF_PROJECT_PRAYER 72
 
 /*
  * Some things which induce learning

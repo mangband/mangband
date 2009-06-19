@@ -585,6 +585,18 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Set the spell number */
 	j = spells[spell];
 
+	/* Projected spells */
+	if (spell >= SPELL_PROJECTED)
+	{
+		j = spells[spell - SPELL_PROJECTED];
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		{
+			msg_print(Ind, "You cannot project that spell.");
+        	return;
+		}
+	}
+
+	/* Regular test */
 	if (!spell_okay(Ind, j, 1))
 	{
 		msg_print(Ind, "You cannot cast that spell.");
@@ -613,14 +625,26 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Cast spell */
+	if (spell >= SPELL_PROJECTED) j += SPELL_PROJECTED;
 	sound(Ind, MSG_SPELL);
 	cast_spell(Ind, p_ptr->cp_ptr->spell_book, j);
 }
 void do_cmd_cast_fin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	magic_type *s_ptr = &p_ptr->mp_ptr->info[p_ptr->current_spell];
+	magic_type *s_ptr;
 	int j = p_ptr->current_spell;
+	bool harder = FALSE;
+
+	/* Remove "projection" offset */
+	if (j >= SPELL_PROJECTED) 
+	{
+		j -= SPELL_PROJECTED;
+		harder = TRUE;
+	}
+
+	/* Set pointer */
+	s_ptr = &p_ptr->mp_ptr->info[j];
 
 	/* A spell was tried */
 	if (!(p_ptr->spell_flags[j] & PY_SPELL_WORKED))
@@ -645,6 +669,12 @@ void do_cmd_cast_fin(int Ind)
 	{
 		/* Use some mana */
 		p_ptr->csp -= s_ptr->smana;
+
+		/* Use even more mana */
+		if (harder)
+		{
+			p_ptr->csp -= s_ptr->smana / PROJECTED_MANA_RATIO;
+		}
 	}
 	/* Over-exert the player */
 	else
@@ -784,17 +814,22 @@ void do_cmd_pray(int Ind, int book, int spell)
 		/* Collect this spell */
     	if (index != -1) spells[num++] = index;
     }
-    
-    /* OK, this is a unsightly kludge to get some extra (heal other) 
-    prayers without modifying the spell_flags... but it should work for 
-    now. -AD- */
-    
-    /* normal prayers */
-    if (spell < SPELL_PROJECTED) j = spells[spell];
-    
-    /* heal other prayers */
-    else j = spells[spell-SPELL_PROJECTED];
 
+	/* Set the prayer number */
+	j = spells[spell];
+
+	/* Projected prayers */
+	if (spell >= SPELL_PROJECTED)
+	{
+		j = spells[spell - SPELL_PROJECTED];
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		{
+			msg_print(Ind, "You cannot project that prayer.");
+        	return;
+		}
+	}
+
+	/* Regular test */
     if (!spell_okay(Ind, j, 1))
     {
         msg_print(Ind, "You cannot pray that prayer.");
