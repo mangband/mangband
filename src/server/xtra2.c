@@ -4247,7 +4247,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		if (p_ptr->target_flag & TARGET_READ)
 		{
 			/* Hack -- cancel monster tracking */
-			monster_race_track(Ind, 0);
+			monster_race_track(Ind, -1);
 			/* Hack -- call descriptive function */
 			do_cmd_monster_desc_aux(Ind, m_idx, TRUE);
 			/* Hack -- pop up immediatly */
@@ -5606,11 +5606,12 @@ void describe_player(int Ind, int Ind2)
 	text_out(c_text + p_ptr->cp_ptr->title[(p_ptr->lev-1)/5]);
 	text_out(".\n  ");
 	s = p_name + p_info[p_ptr->prace].name;
-	sprintf(buf, "%s is %s %s %s. ",
+	sprintf(buf, "%s is %s %s ",
 		(p_ptr->male ? "He" : "She"), 
-		is_a_vowel(tolower(s[0])) ? "an" : "a", s,  
-		c_name + c_info[p_ptr->pclass].name);
+		is_a_vowel(tolower(s[0])) ? "an" : "a", s);  
 	text_out(buf);
+	text_out_c(c_info[p_ptr->pclass].attr, c_name + c_info[p_ptr->pclass].name);
+	text_out(". ");
 /*	text_out("\n  "); */
 
 
@@ -5637,7 +5638,9 @@ void describe_player(int Ind, int Ind2)
 		o_ptr->ident = old_ident;
 
 		/* Prepare string */
-		sprintf(buf, describe_use(0, i), o_name, (p_ptr->male ? "his" : "her"));
+		strcpy(buf, describe_use(0, i));
+		s = strstr(buf, "%");
+		*s = '\0';	s += 2;
 
 		/* Very first mention of equipment */
 		if (!j)
@@ -5654,6 +5657,10 @@ void describe_player(int Ind, int Ind2)
 
 		/* Append */
 		text_out(buf);
+		/* text_out_c(object_attr(o_ptr), o_name); //intersting effect */
+		text_out_c(p_ptr->tval_attr[o_ptr->tval % 128], o_name);
+		sprintf(o_name, s, (p_ptr->male ? "his" : "her"));
+		text_out(o_name);
 	}
 	if (j) 	text_out(". ");
 
