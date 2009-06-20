@@ -1384,7 +1384,7 @@ void py_attack_mon(int Ind, int y, int x)
 		return;
 	}
 
-	if (p_ptr->pclass == CLASS_ROGUE)
+	if (p_ptr->cp_ptr->flags & CF_BACK_STAB)
 	{
 		if (p_ptr->mon_vis[c_ptr->m_idx])
 		{

@@ -2366,11 +2366,11 @@ that keeps many algorithms happy.
 #define CF_XXX14			0x00002000L
 #define CF_XXX15			0x00004000L
 #define CF_XXX16			0x00008000L
-#define CF_XXX17			0x00010000L
-#define CF_XXX18			0x00020000L
-#define CF_XXX19			0x00040000L
-#define CF_XXX20			0x00080000L
-#define CF_XXX21			0x00100000L
+#define CF_BACK_STAB   		0x00010000L /* Extra damage to sleeping or fleeing creatures */
+#define CF_STEALTH_MODE		0x00020000L /* Trade speed for stealth instead of searching */
+#define CF_STEALING_IMPROV 	0x00040000L /* Stealing improves quicker with player-level */
+#define CF_SPEED_BONUS 		0x00080000L /* Gain 1 additional speed point every 5 levels */
+#define CF_HP_BONUS			0x00100000L /* Gain 1 additional hit point on levelup */
 #define CF_XXX22			0x00200000L
 #define CF_XXX23			0x00400000L
 #define CF_XXX24			0x00800000L

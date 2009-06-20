@@ -558,11 +558,11 @@ static cptr c_info_flags[] =
 	"XXX14",
 	"XXX15",
 	"XXX16",
-	"XXX17",
-	"XXX18",
-	"XXX19",
-	"XXX20",
-	"XXX21",
+	"BACK_STAB",
+	"STEALTH_MODE",
+	"STEALING_IMPROV",
+	"SPEED_BONUS",
+	"HP_BONUS",
 	"XXX22",
 	"XXX23",
 	"XXX24",
@@ -1113,6 +1113,9 @@ errr parse_c_info(char *buf, header *head)
 		/* No titles and equipment yet */
 		cur_title = 0;
 		cur_equip = 0;
+
+		/* MAngband-specific hack: default color! */
+		pc_ptr->attr = TERM_WHITE;
 	}
 
 	/* Process 'S' for "Stats" (one line only) */
@@ -1371,6 +1374,28 @@ errr parse_c_info(char *buf, header *head)
 			/* Start the next entry */
 			s = t;
 		}
+	}
+
+	/* MAngband-specific HACK -- Process 'G' for class color */
+	else if (buf[0] == 'G')
+	{
+		/* There better be a current pr_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Find the colon before the color */
+		s = strchr(buf+1, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the color */
+		*s++ = '\0';
+
+		/* Paranoia -- require a color */
+		if (!*s) return (PARSE_ERROR_GENERIC);
+
+		/* Get the color */
+		pc_ptr->attr = color_char_to_attr(s[0]);
 	}
 	else
 	{

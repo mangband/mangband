@@ -1168,7 +1168,7 @@ void do_cmd_steal(int Ind, int dir)
 	notice = 5 * (adj_mag_stat[q_ptr->stat_ind[A_INT]] - p_ptr->skill_stl);
 
 	/* Hack -- Rogues get bonuses to chances */
-	if (p_ptr->pclass == CLASS_ROGUE)
+	if (p_ptr->cp_ptr->flags & CF_STEALING_IMPROV)
 	{
 		/* Increase chance by level */
 		success += 3 * p_ptr->lev;

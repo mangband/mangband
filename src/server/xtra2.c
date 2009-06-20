@@ -5597,7 +5597,7 @@ void describe_player(int Ind, int Ind2)
 
 	int i, j = 0;
 
-	bool is_rogue = (Players[Ind]->pclass == CLASS_ROGUE ? TRUE : FALSE);
+	bool is_rogue = (c_info[Players[Ind]->pclass].flags & CF_STEALING_IMPROV ? TRUE : FALSE);
 
 
 	/* Describe name */

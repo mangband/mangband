@@ -1853,7 +1853,10 @@ option_type option_info[] =
 	/*** Birth Options ***/
 	{ OPT_INFO(NO_GHOST),     		FALSE,	1,	0, 0,
 	"no_ghost",	    			"Death is permanent" },
-	
+
+	{ OPT_INFO(UNSETH_BONUS),  		FALSE,	1,	0, 0,
+	"unset_class_bonus",		"Discard extra speed and hit points" },
+
 	/*** Game-play ***/
 	/* Dungeon */
 	{ OPT_INFO(AUTO_SCUM),				FALSE,	2,	0, 0,

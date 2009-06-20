@@ -463,28 +463,10 @@ static byte player_color(int Ind)
 	if (p_ptr->ghost) return TERM_L_DARK;
 
 	/* Bats are orange */
-	
 	if (p_ptr->fruit_bat) return TERM_ORANGE;
 
 	/* Color is based off of class */
-	switch (p_ptr->pclass)
-	{
-		case CLASS_WARRIOR:
-			return TERM_UMBER;
-		case CLASS_MAGE:
-			return TERM_RED;
-		case CLASS_PRIEST:
-			return TERM_GREEN;
-		case CLASS_ROGUE:
-			return TERM_BLUE;
-		case CLASS_RANGER:
-			return TERM_L_WHITE;
-		case CLASS_PALADIN:
-			return TERM_L_BLUE;
-	}
-
-	/* Oops */
-	return TERM_WHITE;
+	return p_ptr->cp_ptr->attr;
 }
 /*
  * Return the correct attr/char pair for any player

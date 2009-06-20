@@ -1113,6 +1113,8 @@ struct player_class
 	start_item start_items[MAX_START_ITEMS];/* The starting inventory */
 
 	player_magic spells; /* Magic spells */
+
+	byte attr;      	/* Class color */
 };
 
 

@@ -23,6 +23,7 @@
 # E:tval:sval:min:max
 # Y:tval:sval:min:max
 # F:class flags
+# G:attr
 
 # 'N' indicates the beginning of an entry. The serial number must
 # increase for each new class.
@@ -62,6 +63,16 @@
 
 # 'F' is for class flags.
 
+# Note: MAngband supports several additional flags you might want
+# to take care of when porting this file from Angband/other variant.
+#  HP_BONUS - gives an extra hitpoint per level. This makes the game
+#   a bit easier for the mage (!), especially in the beginning.
+#  STEALING_IMPROV - better chance at stealing
+#  SPEED_BONUS - +1 speed at level 5,20,35,50 for rogues (!) -APD- 
+#  STEALTH_MODE - turns "Searching Mode" into "Stealh Mode".
+#  BACK_STAB - deal extra damage to sleeping and fleeing creatures.
+
+# 'G' is for color. MAngband-specific. See 'terrain.txt' for colors.
 
 # Version stamp (required)
 
@@ -69,6 +80,7 @@ V:1.2.0
 
 
 N:0:Warrior
+G:u
 S:5:-2:-2:2:2:-1
 C:25:18:18:1:14:2:70:55
 X:10:7:10:0:0:0:45:45
@@ -96,6 +108,7 @@ T:Hero
 T:Lord
 
 N:1:Mage
+G:r
 S:-5:3:0:1:-2:1
 C:30:36:30:2:16:20:34:20
 X:7:13:9:0:0:0:15:15
@@ -110,6 +123,7 @@ Y:90:2:1:1
 Y:23:4:1:1
 Y:70:9:5:5
 F:CUMBER_GLOVE | ZERO_FAIL | BEAM | CHOOSE_SPELLS
+F:HP_BONUS
 T:Novice
 T:Apprentice
 T:Trickster
@@ -186,6 +200,7 @@ B:62:38:35:90:40
 B:63:42:30:95:200
 
 N:2:Priest
+G:g
 S:-1:-3:3:-1:0:2
 C:25:30:32:2:16:8:48:35
 X:7:10:12:0:0:0:20:20
@@ -277,6 +292,7 @@ B:62:99:0:0:0
 B:63:99:0:0:0
 
 N:3:Rogue
+G:b
 S:2:1:-2:3:1:-1
 C:45:32:28:5:32:24:60:66
 X:15:10:10:0:0:0:40:30
@@ -290,7 +306,8 @@ Y:90:0:1:1
 Y:23:8:1:1
 Y:36:4:1:1
 Y:70:9:10:10
-F:CUMBER_GLOVE | CHOOSE_SPELLS | PSEUDO_ID_HEAVY | PSEUDO_ID_IMPROV
+F:CUMBER_GLOVE | CHOOSE_SPELLS | PSEUDO_ID_HEAVY | PSEUDO_ID_IMPROV 
+F:BACK_STAB | STEALING_IMPROV | SPEED_BONUS | STEALTH_MODE
 T:Vagabond
 T:Cutpurse
 T:Footpad
@@ -367,6 +384,7 @@ B:62:99:0:0:0
 B:63:99:0:0:0
 
 N:4:Ranger
+G:W
 S:2:2:0:1:1:1
 C:30:32:28:3:24:16:56:72
 X:8:10:10:0:0:0:30:45
@@ -460,6 +478,7 @@ B:62:99:0:0:0
 B:63:99:0:0:0
 
 N:5:Paladin
+G:B
 S:3:-3:1:0:2:2
 C:20:24:25:1:12:2:68:40
 X:7:10:11:0:0:0:35:30

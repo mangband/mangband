@@ -496,7 +496,7 @@ void c_prt_status_line(int Ind, cave_view_type *dest, int len)
 	}
 	else if (p_ptr->searching)
 	{
-		if (p_ptr->pclass != CLASS_ROGUE)
+		if (!(p_ptr->cp_ptr->flags & CF_STEALTH_MODE))
 		{
 			strcpy(buf, "Searching ");			
 		}
@@ -575,13 +575,13 @@ void c_prt_status_line(int Ind, cave_view_type *dest, int len)
 	}	
 }
 
-/* !! */
 /*
- * Obtain the "flags" for the player as if he was an item
+ * XXX XXX Obtain the "flags" for the player as if he was an item
  */
 void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 {
 	player_type *p_ptr = Players[Ind];
+	u32b cf = c_info[p_ptr->pclass].flags;
 	/* Clear */
 	(*f1) = (*f2) = (*f3) = 0L;
 
@@ -592,13 +592,15 @@ void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
 	(*f2) |= p_info[p_ptr->prace].flags2;
 	(*f3) |= p_info[p_ptr->prace].flags3;
 
-	if (c_info[p_ptr->pclass].flags & CF_BRAVERY_30)
+	if (cf & CF_BRAVERY_30)
 	{
 		if (p_ptr->lev >= 30) (*f2) |= (TR2_RES_FEAR);
 	}
-	
+
 	/* MAngband-specific: Rogues & Fruit Bats */
-	if (p_ptr->pclass == CLASS_ROGUE || p_ptr->fruit_bat) *f1 |= TR1_SPEED;
+	if ( ((cf & CF_SPEED_BONUS) && !option_p(p_ptr,UNSETH_BONUS)) ||
+		 p_ptr->fruit_bat)
+			*f1 |= TR1_SPEED;
 
 	/* MAngband-specific: Ghost */
 	if (p_ptr->ghost) {
@@ -1867,9 +1869,9 @@ static void calc_hitpoints(int Ind)
 	/* Always have at least one hitpoint per level */
 	if (mhp < p_ptr->lev + 1) mhp = p_ptr->lev + 1;
 
-    /* Option : give (most!) mages a bonus hitpoint / lvl */
-    if (cfg_mage_hp_bonus && (p_ptr->pclass == CLASS_MAGE) 
-    	&& (strcmp(p_ptr->name,"Seth")) )
+	/* Option : give (most!) mages a bonus hitpoint / lvl */
+	if ((p_ptr->cp_ptr->flags & CF_HP_BONUS) 
+		&& !option_p(p_ptr,UNSETH_BONUS))
 	mhp += p_ptr->lev;
 
 	/* Factor in the hero / superhero settings */
@@ -2231,8 +2233,8 @@ static void calc_bonuses(int Ind)
 	}
 
 
-	/* -APD- Hack -- rogues +1 speed at 5,20,35,50. this may be out of place, but.... */
-	if (p_ptr->pclass == CLASS_ROGUE) 
+	/* Option : give (most!) rogues a bonus speed point on level 5,20,35,50 -APD- */
+	if ((p_ptr->cp_ptr->flags & CF_SPEED_BONUS) && !option_p(p_ptr,UNSETH_BONUS)) 
 	{
 		if (p_ptr->lev >= 5)
 		{
@@ -2639,7 +2641,7 @@ static void calc_bonuses(int Ind)
 	/* -APD- adding "stealth mode" for rogues... will probably need to tweek this */
 	if (p_ptr->searching) 
 	{
-		if (p_ptr->pclass != CLASS_ROGUE) p_ptr->pspeed -= 10;
+		if (!(p_ptr->cp_ptr->flags & CF_STEALTH_MODE)) p_ptr->pspeed -= 10;
 		else 
 		{
 			p_ptr->pspeed -= 10;
