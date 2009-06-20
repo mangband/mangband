@@ -3695,19 +3695,15 @@ static int Receive_run(int ind)
 		p_ptr = Players[player];
 	}
 
-	/* If not the dungeon master, who can always run */
-	if (!(p_ptr->dm_flags & DM_NEVER_DISTURB)) 
+	/* Don't allow running when confused */
+	if (p_ptr->confused)
 	{
-		/* Don't allow running when confused */
-		if (p_ptr->confused)
+		/* Treat this as a walk request */
+		if (p_ptr->dun_depth)
 		{
-			/* Treat this as a walk request */
-			if (p_ptr->dun_depth)
-		{
-					return Receive_walk(ind);
-				}
-			}
+			return Receive_walk(ind);
 		}
+	}
 
 	if ((n = Packet_scanf(&connp->r, "%c%c", &ch, &dir)) <= 0)
 	{

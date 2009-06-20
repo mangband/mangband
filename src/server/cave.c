@@ -3994,6 +3994,11 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	/* Cancel auto-commands */
 	/* command_new = 0; */
 
+	/* Dungeon Master is never disturbed */
+	if (p_ptr->dm_flags & DM_NEVER_DISTURB)
+	{
+		return;
+	}
 #if 0
 	/* Cancel repeated commands */
 	if (command_rep)
