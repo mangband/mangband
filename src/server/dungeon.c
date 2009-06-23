@@ -49,7 +49,20 @@ int find_player_name(char *name)
 	return 0;
 }
 
+int count_players(int Depth) 
+{ 
+ 	int i, count = 0; 
 
+	/* Count players on this depth */ 
+	for (i = 1; i <= NumPlayers; i++) 
+ 	{ 
+ 		/* Count */ 
+ 		if (Players[i]->dun_depth == Depth) count++; 
+ 	} 
+
+	return count; 
+} 
+ 	
 /*
  * Return a "feeling" (or NULL) about an item.  Method 1 (Heavy).
  */

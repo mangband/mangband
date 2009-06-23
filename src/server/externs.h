@@ -548,6 +548,7 @@ extern void dungeon(void);
 extern bool check_special_level(s16b special_depth);
 extern int find_player_name(char *name);
 extern int find_player(s32b id);
+extern int count_players(int Depth);
 
 /* files.c */
 extern void safe_setuid_drop(void);
