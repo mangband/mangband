@@ -370,6 +370,8 @@ static char inkey_aux(void)
 	/* Efficiency -- Ignore inactive macros */
 	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
 
+	/* Efficiency/Hack -- Ignore escape key for macros */
+	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
 
 	/* Save the first key, advance */
 	buf[p++] = ch;
