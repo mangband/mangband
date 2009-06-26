@@ -137,6 +137,8 @@ byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 
+byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
+
 /* Player equipment refrence array */
 char *eq_name;
 s16b *eq_names;

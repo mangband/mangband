@@ -257,6 +257,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_SPELL_INDEX | COMMAND_TARGET_ALLOW),
 		(12), "Socials\nDo what? "
 	},
+	{ /* 'DM Menu' */
+		'!', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_dungeon_master,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_MASTER, "Dungeon Master"
+	},	
 #if 0
 	{ /* Suicide */
 		'Q', PKT_SUICIDE, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,

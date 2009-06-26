@@ -1263,7 +1263,7 @@ static errr rd_hostilities(int Ind)
  *
  */
 
-static errr rd_dungeon(void)
+static errr rd_dungeon(bool ext, int Depth)
 {
 	s32b depth;
 	u16b max_y, max_x;
@@ -1280,6 +1280,7 @@ static errr rd_dungeon(void)
 	depth = read_int("depth");
 	max_y = read_int("max_height");
 	max_x = read_int("max_width");
+	if (ext) depth = Depth;
 
 	/* players on this depth */
 	players_on_depth[depth] = read_int("players_on_depth");
@@ -1298,6 +1299,16 @@ static errr rd_dungeon(void)
 		level_rand_y[depth] = read_int("level_rand_y");
 		level_rand_x[depth] = read_int("level_rand_x");
 		
+	}
+	/* HACK */
+	else if (value_exists("level_up_y"))
+	{
+		skip_value("level_up_y");
+		skip_value("level_up_x");
+		skip_value("level_down_y");
+		skip_value("level_down_x");
+		skip_value("level_rand_y");
+		skip_value("level_rand_x");	
 	}
 
 	/* allocate the memory for the dungoen if it has not already */
@@ -1386,7 +1397,7 @@ static errr rd_dungeon_special()
 			server_handle = file_handle;
 			file_handle = fhandle;
 			/* load the level */
-			rd_dungeon();
+			rd_dungeon(FALSE, 0);
 			/* swap the file pointers back */
 			file_handle = server_handle;
 			/* close the level file */
@@ -1403,6 +1414,38 @@ static errr rd_dungeon_special()
 	}
 	return 0;
 }
+
+/* HACK -- Read from file */
+bool rd_dungeon_special_ext(int Depth, cptr levelname)
+{
+	char filename[1024];
+	FILE *fhandle;
+	FILE *server_handle;
+	
+	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
+
+	fhandle = my_fopen(filename, "r");
+
+	if (fhandle)
+	{
+			/* swap out the main file pointer for our level file */
+			server_handle = file_handle;
+			file_handle = fhandle;
+
+			/* load the level */
+			rd_dungeon(TRUE, Depth);
+
+			/* swap the file pointers back */
+			file_handle = server_handle;
+
+			/* close the level file */
+			my_fclose(fhandle);
+
+			return TRUE;
+	}
+	return FALSE;
+}
+
 
 /* Reads in a players memory of the level he is currently on, in run-length encoded
  * format.  Simmilar to the above function.
@@ -2031,7 +2074,7 @@ errr rd_server_savefile()
 		/* read the number of levels to be loaded */
 		tmp32u = read_uint("num_levels");
 		/* load the levels */
-		for (i = 0; i < tmp32u; i++) rd_dungeon();
+		for (i = 0; i < tmp32u; i++) rd_dungeon(FALSE, 0);
 		/* load any special static levels */
 		rd_dungeon_special();
 		end_section_read("dungeon_levels");

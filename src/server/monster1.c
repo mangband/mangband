@@ -1365,6 +1365,17 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 }
 
 
+/* Hack -- calculate monster "treasure factor" */
+int monster_richness(int r_idx)
+{
+	/* Making it a function and not a macro because 
+	 * it's supposed to get more complicated later - TODO! */
+	return (r_info[r_idx].flags1 & RF1_DROP_USEFUL)*6 +
+			(r_info[r_idx].flags1 & RF1_DROP_GREAT)*4 +
+			(r_info[r_idx].flags1 & RF1_DROP_GOOD)*3 +
+			(r_info[r_idx].flags1 & RF1_DROP_90)*2 +
+			(r_info[r_idx].flags1 & RF1_DROP_60)*1;
+}
 
 
 /*

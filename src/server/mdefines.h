@@ -139,6 +139,8 @@
 #define SPECIAL_FILE_KILL	10
 #define SPECIAL_FILE_HISTORY	11
 #define SPECIAL_FILE_SELF	12
+#define SPECIAL_FILE_MASTER	13
+#define SPECIAL_FILE_INPUT	14
 
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
@@ -161,6 +163,20 @@
 
 #define set_artifact_p(P, A, I) if ((P)->a_info[(A)] < (I)) (P)->a_info[(A)] = (I)
 
+/*
+ * Monster sorting flags
+ */
+#define SORT_EXP	0x0001
+#define SORT_LEVEL	0x0002
+#define SORT_PKILL	0x0004
+#define SORT_TKILL	0x0008
+#define SORT_EASY	0x000F
+#define SORT_RARITY	0x0010
+#define SORT_RICH	0x0020
+#define SORT_UNIQUE	0x0040
+#define SORT_QUEST	0x0080
+
+
 /* 
  * MAngband-specific miscellaneous hacks
  */
@@ -168,6 +184,50 @@
 #define RIFT_RESIST_TELEPORT 127 /* For monsters */
 #define PROJECTED_CHANCE_RATIO 50 /* (1.5) For players */
 #define SHARE_ITEM_AWARENESS /* Undefine to disable */ 
+
+/*
+ * Dungeon master flags
+ */
+#define DM_IS_MASTER    	0x00000001
+#define DM_SECRET_PRESENCE	0x00000002	/* cfg_secret_dungeon_master helper */
+#define DM_CAN_MUTATE_SELF	0x00000004	/* This option allows change of the DM_ options */
+#define DM_CAN_ASSIGN   	0x00000008
+#define DM___MENU       	0x000000F0	/* Dungeon Master Menu: (shortcut to set all) */
+#define DM_CAN_BUILD    	0x00000010  /*  building menu */
+#define DM_LEVEL_CONTROL	0x00000020	/*  static/unstatic level */ 
+#define DM_CAN_SUMMON   	0x00000040	/*  summon monsters */
+#define DM_CAN_GENERATE 	0x00000080	/*  generate vaults / items */
+#define DM_MONSTER_FRIEND	0x00000100
+#define DM_INVULNERABLE 	0x00000200
+#define DM_GHOST_HANDS  	0x00000400	/* Can interact with world (like open/close doors) even as a ghost */ 
+#define DM_GHOST_BODY   	0x00000800	/* Can carry/wield items even as a ghost */
+#define DM_NEVER_DISTURB	0x00001000
+#define DM_SEE_LEVEL    	0x00002000	/* See all level */
+#define DM_SEE_MONSTERS 	0x00004000	/* Free ESP + Monster spoilers */
+#define DM_SEE_PLAYERS  	0x00008000	/* Full Info + "Player spoilers" */
+#define DM_HOUSE_CONTROL	0x00010000	/* Can reset houses */
+#define DM_KEEP_LITE    	0x00020000	/* Lite radius never changes */
+#define DM_OBJECT_CONTROL	0x00040000	/* Can reset objects */
+#define DM_ARTIFACT_CONTROL	0x00080000	/* Can reset artifacts */
+#define DM_MISC_XXX1    	0x10000000
+#define DM_MISC_XXX2    	0x20000000	/* DM_MISC_XXX -- For grouping some minor features together */
+#define DM_MISC_XXX3    	0x40000000
+#define DM_MISC_XXX4    	0x80000000
+
+#define is_dm(IND) \
+	((Players[IND]->dm_flags & DM_IS_MASTER) ? TRUE : FALSE)
+
+#define is_dm_p(P) \
+	(((P)->dm_flags & DM_IS_MASTER) ? TRUE : FALSE)
+	
+#define dm_flag(IND,F) \
+	((Players[(IND)]->dm_flags & & DM_ ## F) ? TRUE : FALSE)
+
+#define dm_flag_p(P,F) \
+	(((P)->dm_flags & DM_ ## F) ? TRUE : FALSE)
+
+#define c_put_p(P,A,C,Y,X) { (P)->info[(Y)][(X)].a = (A); (P)->info[(Y)][(X)].c = (C); }
+#define c_put(IND,A,C,Y,X) c_put_p(Players[IND],A,C,Y,X)
 
 /*
  * Maximum number of "normal" pack slots, and the index of the "overflow"
@@ -199,3 +259,22 @@
  * Total number of inventory slots (hard-coded).
  */
 #define INVEN_TOTAL	36
+
+/*
+ * Legal restrictions for "summon_specific()"
+ */
+#define SUMMON_ANIMAL		1
+#define SUMMON_SPIDER		2
+#define SUMMON_HOUND		3
+#define SUMMON_HYDRA		4
+#define SUMMON_ANGEL		5
+#define SUMMON_DEMON		6
+#define SUMMON_UNDEAD		7
+#define SUMMON_DRAGON		8
+#define SUMMON_HI_UNDEAD	9
+#define SUMMON_HI_DRAGON	10
+#define SUMMON_HI_DEMON		11
+#define SUMMON_WRAITH		12
+#define SUMMON_UNIQUE		13
+#define SUMMON_KIN			14
+#define SUMMON_ORC			15

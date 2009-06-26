@@ -1959,6 +1959,13 @@ static void calc_torch(int Ind)
 	/* Notice changes in the "lite radius" */
 	if (p_ptr->old_lite != p_ptr->cur_lite)
 	{
+		/* Hack - Dungeon Master keeps his light */
+		if (dm_flag_p(p_ptr,KEEP_LITE))
+		{
+			p_ptr->cur_lite = p_ptr->old_lite;
+			return;
+		}
+
 		/* Update the lite */
 		p_ptr->update |= (PU_LITE);
 

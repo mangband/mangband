@@ -4498,7 +4498,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	bool done = FALSE;
 	bool prompt_arb = FALSE; /* Display info about arbitary grid */
 	bool prompt_int = FALSE; /* Display info about interesting grid */
-
+	
 	char info[80];
 	int old_target = 0;
 
@@ -4567,7 +4567,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		{
 			p_ptr->target_flag &= ~TARGET_READ;
 			query = '\0';
-		} 
+		}
 	}
 	else if (query == 'r') 
 	{
@@ -4588,7 +4588,9 @@ bool target_set_interactive(int Ind, int mode, char query)
 		/* Shortcuts: */
 		y = p_ptr->target_y[p_ptr->look_index];
 		x = p_ptr->target_x[p_ptr->look_index];
-			
+
+		/* DM Hook! */
+		master_new_hook(Ind, query, y, x);
 
 		/* Analyze */
 		switch (query)
@@ -4710,6 +4712,9 @@ bool target_set_interactive(int Ind, int mode, char query)
 		/* Assume no direction */
 		d = 0;
 
+		/* DM Hook! */		
+		master_new_hook(Ind, query, p_ptr->look_y, p_ptr->look_x);
+
 		/* Analyze the keypress */
 		switch (query)
 		{
@@ -4814,7 +4819,6 @@ bool target_set_interactive(int Ind, int mode, char query)
 				/* Recalculate interesting grids */
 				target_set_interactive_prepare(Ind, mode);
 			}
-
 		}
 	}
 	
@@ -4857,7 +4861,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	{
 		/* Describe and Prompt */
 		target_set_interactive_aux(Ind, y, x, mode, info);
-		
+
 		/* Cancel tracking */
 		/* health_track(0); */
 	}
@@ -5597,8 +5601,8 @@ void describe_player(int Ind, int Ind2)
 
 	int i, j = 0;
 
-	bool is_rogue = (c_info[Players[Ind]->pclass].flags & CF_STEALING_IMPROV ? TRUE : FALSE);
-
+	bool spoilers = (Players[Ind]->dm_flags & DM_SEE_PLAYERS ? TRUE : FALSE);
+	bool is_rogue = (c_info[Players[Ind]->pclass].flags & CF_STEALING_IMPROV ? TRUE : FALSE);	
 
 	/* Describe name */
 	text_out(p_ptr->name);
@@ -5625,14 +5629,15 @@ void describe_player(int Ind, int Ind2)
 		if (!o_ptr->tval) continue;
 
 		/* Note! Only rogues can see jewelry */
-		if (!is_rogue && (i == INVEN_NECK || i == INVEN_LEFT || i == INVEN_RIGHT)) continue;
+		if (!spoilers && !is_rogue && (i == INVEN_NECK || i == INVEN_LEFT || i == INVEN_RIGHT)) continue;
 
 		/* HACK! Remove ident */
 		old_ident = o_ptr->ident;
-		o_ptr->ident = 0;
+		if (!spoilers)			
+			o_ptr->ident = 0;
 
 		/* Extract name */
-		object_desc(Ind, o_name, o_ptr, TRUE, 0);
+		object_desc(Ind, o_name, o_ptr, TRUE, (spoilers ? 4 : 0));
 
 		/* Restore original ident */
 		o_ptr->ident = old_ident;
@@ -5675,6 +5680,1448 @@ void describe_player(int Ind, int Ind2)
 		s = strtok(NULL, " \n");
 	}
 	text_out("\n");
+}
+
+void snapshot_player(int Ind, int who)
+{
+	player_type *p_ptr = Players[who];
+	cave_view_type status[80];
+	int x1,y1, y, x;
+	char c;
+	byte a;
+
+	/* Determine boundaries */
+	x1 = MAX(0, p_ptr->px - 40);
+	y1 = MAX(0, p_ptr->py - 13);
+	if ((x = MAX_WID - (x1 + 80)) < 0) { x1 += x; }
+	if ((y = MAX_HGT - (y1 + 23)) < 0) { y1 += y; }
+
+	/* Draw! */
+
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
+	Send_term_info(Ind, NTERM_CLEAR, 1);	
+
+	for (y = 0; y < 23; y++)
+	{
+		for (x = 0; x < 80; x++)
+		{
+			map_info(who, y1+y, x1+x, &a, &c, &a, &c, FALSE);
+			Send_char(Ind, x, y, a, c, a, c);
+		}
+	}
+
+	c_prt_status_line(who, status, 80);
+	for (x = 0; x < 80; x++)
+	{
+		Send_char(Ind, x, y, status[x].a, status[x].c, status[x].a, status[x].c);
+	}
+
+	y = player_pict(Ind, who);
+	a = PICT_A(y);
+	c = PICT_C(y);
+	Send_char(Ind, p_ptr->px-x1, p_ptr->py-y1, a, c, a, c);
+
+	Send_term_info(Ind, NTERM_FRESH, 0);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);	
+}
+
+void preview_vault(int Ind, int v_idx)
+{
+	player_type	*p_ptr = Players[Ind];
+	vault_type 	*v_ptr = &v_info[v_idx];
+
+	cptr 	t;
+	byte	feat, a;
+	char	c;
+	int 	dy, dx;
+
+
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
+	Send_term_info(Ind, NTERM_CLEAR, 1);	
+
+	for (t = v_text + v_ptr->text, dy = 0; dy < v_ptr->hgt; dy++)
+	{
+		for (dx = 0; dx < 80; dx++)
+		{
+			c = *t; a = TERM_WHITE; feat = 0;
+
+			if (dx < v_ptr->wid)
+			{ 
+				switch (c)
+				{
+					case '.': feat = FEAT_FLOOR; break;
+					case '%': feat = FEAT_WALL_OUTER; break;
+					case '#': feat = FEAT_WALL_INNER; break;
+					case 'X': feat = FEAT_PERM_INNER; break;
+					case '^': feat = FEAT_TRAP_HEAD+6; break;
+					case '+': feat = FEAT_DOOR_HEAD; break;
+					case '*': a = TERM_ORANGE; break;
+					case '&': case '@': a = TERM_RED; break;
+					case '9': case '8': case ',': a = TERM_YELLOW; break;
+				}
+				t++;
+			}
+			else c = ' ';
+
+			if (feat)
+			{
+				/*feature_type *f_ptr = &f_info[feat];
+				c = f_ptr->x_char; 
+				a = f_ptr->x_attr;*/
+				c = p_ptr->f_char[feat];
+				a = p_ptr->f_attr[feat];
+			}
+
+			Send_char(Ind, dx, dy, a, c, a, c);
+		}
+	}
+
+	Send_term_info(Ind, NTERM_FRESH, 0);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+}
+
+/**
+ ** 
+ ** DUNGEON MASTER MENU
+ **
+ **/
+#define DM_PAGES	7
+#define DM_PAGE_WORLD	0
+#define DM_PAGE_PLAYER	1
+#define DM_PAGE_LEVEL	2
+#define DM_PAGE_FEATURE	3
+#define DM_PAGE_MONSTER	4
+#define DM_PAGE_VAULT	5
+#define DM_PAGE_ITEM	6
+#define DM_PAGE_PLOT	7
+#define MASTER_SELECT   0x10000000
+#define MASTER_BRUSH    0x20000000
+static cptr dm_pages[DM_PAGES+1] =
+{
+	"World",
+	"Player",
+	"Level",
+	"Build",
+	"Summon",
+	"Encounter",
+	"Forge",
+	"Plot", /* not really a page; brush */
+};
+/*
+ * ACCESS TO DM PAGES! Notice 2 slots for each page: 
+ *  triggering either grants access. 
+ */
+static u32b dm_access[DM_PAGES*2] = 
+{
+	(DM___MENU),(DM_IS_MASTER),
+	(DM_CAN_ASSIGN),(DM_CAN_MUTATE_SELF),
+	(DM_LEVEL_CONTROL),(DM_IS_MASTER),
+	(DM_CAN_BUILD),(DM_IS_MASTER),
+	(DM_CAN_SUMMON),(DM_IS_MASTER),
+	(DM_CAN_GENERATE | DM_CAN_BUILD),(DM_IS_MASTER),
+	(DM_CAN_GENERATE),(DM_IS_MASTER),
+};
+/* This "table" is used to provide XTRA2 descriptions */ 
+static cptr extra_mods[][12] =
+{
+	{"None"},
+	{"Sustain STR", "Sustain DEX", "Sustain CON", "Sustain INT", "Sustain WIS", "Sustain CHR"},
+	{"Poison", "Fear", "Light", "Dark", "Blindness", "Confusion", "Sound", "Shards", "Nexus", "Nether", "Chaos", "Disen"},
+	{"Slow Digestion", "Feather Falling", "Permanent Lite", "Regeneration", "Telepathy", "See Invisible", "Free Action", "Hold Life"}
+};
+/* Names for each DM flag */
+static cptr dm_flags_str[32] =
+{
+	"Dungeon Master",
+	"Presence Hidden",
+	"Change Self",
+	"Change Others",
+	"Build Menu",
+	"Level Menu",
+	"Summon Menu",
+	"Generate Menu",
+	"Monster Friend",
+	"*Invulnerable*",
+	"Ghostly Hands",
+	"Ghostly Body",
+	"Never Disturbed",	
+	"See Level",
+	"See Monsters",
+	"See Players",
+	"Landlord",
+	"Keep Lite",
+	"Can Reset Items",
+	"Artifact Master",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+	"(unused)",
+};
+/* Possible Filters.
+ * Those are used to fill lists in the "master_fill_..." functions. */
+#define FILT_ANIMAL	0x00010000
+#define FILT_DEMON	0x00200000
+#define FILT_UNDEAD	0x00400000
+#define FILT_DRAGON	0x00800000
+#define FILT_UNIQUE	0x08000000
+#define FILT_ORC	0x10000000
+#define FILT___EGO  (FILT_WEAPON | FILT_GEAR)
+#define FILT___ANY	0xFFFF0000
+#define FILT_REVERS	0x00008000
+#define SORT_REVERS	0x00004000
+#define FILT_EGO 	0x00010000
+#define FILT_WEAPON	0x00020000
+#define FILT_GEAR 	0x00040000
+#define FILT_POTION	0x00100000
+#define FILT_SCROLL	0x00200000
+#define FILT_FOOD 	0x00400000
+#define FILT_MAGIC 	0x00800000
+/* Fill monsters and object using the constants above.
+ * NOTE: Uses p_ptr->target_idx array to store the outcome - this is dangerous.*/
+void master_fill_objects(int Ind, u32b how)
+{
+	player_type *p_ptr = Players[Ind];
+	int i, n, j = 0;
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		object_kind *k_ptr = &k_info[i];
+		bool okay = (how & FILT___ANY ? FALSE : TRUE);		
+		if ((how & FILT_EGO) && !(how & FILT_REVERS)) break;
+		if ((how & FILT_WEAPON) &&   
+			(k_ptr->tval == TV_SWORD || k_ptr->tval == TV_HAFTED || k_ptr->tval == TV_POLEARM  || 
+			k_ptr->tval == TV_BOW || k_ptr->tval == TV_DIGGING))
+			okay = TRUE;
+		if ((how & FILT_GEAR) &&   
+			(k_ptr->tval == TV_SOFT_ARMOR || k_ptr->tval == TV_HARD_ARMOR || k_ptr->tval == TV_DRAG_ARMOR || 
+			k_ptr->tval == TV_SHIELD ||	k_ptr->tval == TV_HELM || k_ptr->tval == TV_CROWN || 
+			k_ptr->tval == TV_CLOAK || k_ptr->tval == TV_GLOVES || k_ptr->tval == TV_BOOTS))
+			okay = TRUE;
+		if ((how & FILT_MAGIC) && 
+			(k_ptr->tval == TV_WAND || k_ptr->tval == TV_STAFF || k_ptr->tval == TV_ROD))
+			okay = TRUE;
+		if ((how & FILT_SCROLL) && (k_ptr->tval == TV_SCROLL)) okay = TRUE;
+		if ((how & FILT_POTION) && (k_ptr->tval == TV_POTION)) okay = TRUE;
+		if ((how & FILT_FOOD) && (k_ptr->tval == TV_FOOD)) okay = TRUE;
+		if (okay == ((how & FILT___ANY) && (how & FILT_REVERS) ? TRUE : FALSE)) continue;
+		p_ptr->target_idx[j] = i;
+		j++;
+	}
+	for (i = 1; i < z_info->e_max; i++)
+	{
+		ego_item_type *e_ptr = &e_info[i];
+		bool okay = (how & FILT___EGO ? FALSE : TRUE);
+		if ((how & FILT_EGO) && (how & FILT_REVERS)) break;
+		for (n = 0; n < EGO_TVALS_MAX; n++)
+		{
+			if ((how & FILT_WEAPON) && 
+				(e_ptr->tval[n] == TV_SWORD || e_ptr->tval[n] == TV_HAFTED || e_ptr->tval[n] == TV_POLEARM  || 
+				e_ptr->tval[n] == TV_BOW || e_ptr->tval[n] == TV_DIGGING ))
+				okay = TRUE;
+			if ((how & FILT_GEAR) &&  
+				(e_ptr->tval[n] == TV_SOFT_ARMOR || e_ptr->tval[n] == TV_HARD_ARMOR || e_ptr->tval[n] == TV_DRAG_ARMOR ||
+				e_ptr->tval[n] == TV_SHIELD || e_ptr->tval[n] == TV_HELM || e_ptr->tval[n] == TV_CROWN || 
+				e_ptr->tval[n] == TV_CLOAK || e_ptr->tval[n] == TV_GLOVES || e_ptr->tval[n] == TV_BOOTS))
+				okay = TRUE;
+		}
+		if (okay == ((how & FILT___EGO) && (how & FILT_REVERS) ? TRUE : FALSE)) continue;
+		p_ptr->target_idx[j] = 0 - i;
+		j++;
+	}
+	/* Save number ! */
+	p_ptr->target_n = j;
+}
+void master_fill_monsters(int Ind, u32b how)
+{
+	player_type *p_ptr = Players[Ind];
+	int i, n;
+	u16b why = how;
+
+	#define MASTER_COMPARE_MONSTER(TYPE) \
+		if ( (how & FILT_ ## TYPE) && (summon_specific_okay_aux(i, SUMMON_ ## TYPE) == (how & FILT_REVERS ? TRUE : FALSE)) ) \
+			continue
+
+	if (how & FILT___ANY)
+	{
+		for (i = 0, n = 0; i < z_info->r_max; i++)
+		{
+
+			MASTER_COMPARE_MONSTER(UNIQUE);
+			MASTER_COMPARE_MONSTER(UNDEAD);
+			MASTER_COMPARE_MONSTER(DEMON);
+			MASTER_COMPARE_MONSTER(DRAGON);
+			MASTER_COMPARE_MONSTER(ORC);
+			MASTER_COMPARE_MONSTER(ANIMAL);
+			 
+			p_ptr->target_idx[n++] = i;
+		}
+	}
+	else for (i = 0, n = z_info->r_max; i < n; i++) 
+		p_ptr->target_idx[i] = i;
+
+	/* Save number ! */
+	p_ptr->target_n = n;
+
+	if (!why) return;
+
+	/* Select the sort method */
+	ang_sort_comp = ang_sort_comp_monsters;
+	ang_sort_swap = ang_sort_swap_u16b;
+
+	/* Sort! */
+	ang_sort(Ind, p_ptr->target_idx, &why, p_ptr->target_n);
+
+	/* Switch ascending/descending */
+	if (why & SORT_REVERS)	for (i = 0; i < n / 2; i++)
+	{
+		why = p_ptr->target_idx[i];
+		p_ptr->target_idx[i] = p_ptr->target_idx[n - 1 - i];
+		p_ptr->target_idx[n - 1 - i] = why;
+	}
+}
+/*
+ * Helper function for "do_cmd_dungeon_master". Utilizes same 
+ * "switch/DM_PAGE" (See below). Search the list by string,
+ * supports offset.
+ */
+s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	s16b before = -1;
+	s16b after = -1;
+
+	bool exact = FALSE;
+	int len = strlen(needle);
+
+	if (needle[0] == '^')
+	{
+		exact = TRUE;
+		needle++; len--;
+	}
+
+#define MASTER_SEARCH_COMPARE(HAYSTACK) \
+			if ((exact && !strncasecmp((HAYSTACK), needle, len)) || \
+				(!exact && my_stristr((HAYSTACK), needle)) ) \
+			{ \
+				if (i <= offset) \
+				{ \
+					if (before == -1) before = i; \
+				} \
+				else \
+				{ \
+					after = i; break; \
+				} \
+			}
+
+	switch (what)
+	{
+	case DM_PAGE_PLAYER:
+		for (i = 0; i < NumPlayers; i++)
+		{
+			player_type *q_ptr = Players[i+1];
+			MASTER_SEARCH_COMPARE(q_ptr->name);
+		} 
+	break;
+	case DM_PAGE_FEATURE:
+		for (i = 0; i < z_info->f_max; i++)
+		{
+			feature_type *f_ptr = &f_info[i];
+			MASTER_SEARCH_COMPARE(f_name + f_ptr->name);
+		}
+	break;
+	case DM_PAGE_MONSTER:
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			monster_race *r_ptr = &r_info[p_ptr->target_idx[i]];
+			MASTER_SEARCH_COMPARE(r_name + r_ptr->name);
+		}
+	break;
+	case DM_PAGE_VAULT:
+		for (i = 0; i < z_info->v_max; i++)
+		{
+			vault_type *v_ptr = &v_info[i];
+			MASTER_SEARCH_COMPARE(v_name + v_ptr->name);
+		}
+	break;	
+	case DM_PAGE_ITEM:
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			if (p_ptr->target_idx[i] < 0)
+			{
+				ego_item_type *e_ptr = &e_info[0 - p_ptr->target_idx[i]];
+				MASTER_SEARCH_COMPARE(e_name + e_ptr->name); 
+			}
+			else
+			{
+				object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
+				MASTER_SEARCH_COMPARE(k_name + k_ptr->name); 
+			}
+		}
+	}
+
+	if (after == -1)
+	{
+		if (before == -1)
+		{
+			return offset;
+		}
+		return before;
+	}	
+	return after;
+
+}
+/*
+ * Given the slot number, hook id and hook arguments, fills the
+ * string with a human-readable description.
+ */
+void master_hook_desc(char *buf, byte i, byte hook, u32b args)
+{
+	char nums[MASTER_MAX_HOOKS] = "xazv";
+	*(buf++) = nums[i];
+	*(buf++) = ':';
+	*(buf++) = ' ';
+	if (hook)
+	{
+		strcpy(buf, dm_pages[hook]);
+		buf+= strlen(dm_pages[hook]);
+		*(buf++) = ' ';
+		switch (hook)
+		{
+			case DM_PAGE_FEATURE:strcpy(buf, f_name + f_info[args].name); break;
+			case DM_PAGE_MONSTER:strcpy(buf, r_name + r_info[args].name); break;
+			case DM_PAGE_VAULT:strcpy(buf, v_name + v_info[args].name); break;
+			case DM_PAGE_PLOT:
+			{
+				byte x1, y1, x2, y2;
+				x1 = (args >>  0) & 0xFF;
+				y1 = (args >>  8) & 0xFF;
+				x2 = (args >> 16) & 0xFF;
+				y2 = (args >> 24);
+				strfmt(buf, "Selection %02dx%02d", ABS(x2-x1), ABS(y2-y1));
+			}
+			break;
+		}
+	}
+	else
+	{
+		strcpy(buf, "<none>");	
+	}
+}
+/*
+ * Dungeon Master Menu
+ *
+ *  This is the main function to handle the DM menu. 
+ * 
+ * Menu handling consists of those stages:
+ *
+ * INPUT
+ *  (Common input) - navigate tabs
+ *  (Page input) - each page has it's own set of keypresses
+ * OUTPUT
+ *  (Header) - displays page names 
+ *  (Content) - page-specific contents, own for each page
+ *   Commonly, content is as follows:
+ *    (List) - a sortable/searchable list of elements
+ *    (Sidebar) - quick actions for page/element
+ *    (Selection) - currently selected list element
+ *  (Error) - if there was an error, shows it
+ *  (Footer) - displays hooks
+ *
+ * Most interesting, for adding new features, are the "Page input" 
+ * and "Content" sections, the rest handle the menu itself.
+ * 
+ * Note that a "switch (current_page)" is employed several times during
+ * the course of this routine, with DM_PAGE_XXX defines as arguments.
+ * This should probably be separated into different functions.
+ *
+ * Note that each keypress, even uncounted for, makes whole screen
+ * redraw itself and send a new copy over network.
+ *
+ */
+void do_cmd_dungeon_master(int Ind, char query)
+{
+	player_type	*p_ptr = Players[Ind];
+	static char	numero[5];
+	char buf[80], *s = NULL;
+	int old_tab, skip_line, old_line;	
+	int i, j, x, y;
+	int hgt = p_ptr->screen_hgt;
+	bool access = FALSE;
+	bool prompt_hooks = TRUE;
+	cptr error = NULL;
+
+	/* Done */
+	if (query == ESCAPE)
+	{
+		p_ptr->special_file_type = SPECIAL_FILE_NONE;
+		return;
+	}
+
+	/* Init */
+	if (!query)
+	{
+		/* Go to first page */
+		p_ptr->interactive_next = 0;
+		/* Reset list */
+		p_ptr->interactive_line = 0;		
+		p_ptr->interactive_size = 0;
+		/* Reset argument */
+		p_ptr->master_parm = 0;
+	}
+
+	/* Notice changes */
+ 	old_tab = p_ptr->interactive_next;
+ 	old_line = p_ptr->interactive_line;
+
+	/** Common Input **/
+	switch (query)
+	{
+		/* Navigate HOOKS */
+		case ' ': p_ptr->master_flag++; break; /* Next */
+		case 'x': p_ptr->master_flag = 0; break; /* Jump to hook */
+		case 'a': p_ptr->master_flag = 1; break; /* Jump to hook */
+		case 'z': p_ptr->master_flag = 2; break; /* Jump to hook */
+		case 'v': p_ptr->master_flag = 3; break; /* Jump to hook */
+		/* ACTION! Delete Hooks: */		
+		case 127: p_ptr->master_hook[p_ptr->master_flag] = 0; break; /* Del */
+
+		/* Navigate PAGES */
+		case '6': p_ptr->interactive_next++; break; /* Right */
+		case '4': p_ptr->interactive_next--; break; /* Left */
+		case '@': /* Jump to + Select ('Edit Self')*/
+			old_tab = p_ptr->interactive_next = DM_PAGE_PLAYER;
+			p_ptr->interactive_line = Ind - 1;
+			p_ptr->master_parm = p_ptr->id;
+		break;
+
+		/* Navigate LIST */
+		case '8': p_ptr->interactive_line--; break; /* Up */
+		case '2': p_ptr->interactive_line++; break; /* Down */
+		case '9': p_ptr->interactive_line -= 20; break; /* PgUp */
+		case '3': p_ptr->interactive_line += 20; break; /* PgDn */
+		case '7': p_ptr->interactive_line = 0; break; /* Home */
+		case '1': p_ptr->interactive_line = p_ptr->interactive_size; break; /* End? */
+		case '#': /* Goto */
+			if (!askfor_aux(Ind, query, buf, 1, 0, "Goto line: ", "", TERM_WHITE, TERM_WHITE)) return;
+			p_ptr->interactive_line = atoi(buf);
+		break;
+		case '/': /* Find */
+			if (!askfor_aux(Ind, query, buf, 1, 0, "Search: ", "", TERM_WHITE, TERM_WHITE)) return;
+			p_ptr->interactive_line = master_search_for(Ind, p_ptr->interactive_next, buf, p_ptr->interactive_line);
+		break;
+	}
+	/* Additional Input: */
+	for (i = 0; i < DM_PAGES; i++)
+	{
+		/* Provide shortcuts for each "Page" as Ctrl+"p" */	
+		if (query == KTRL(tolower(dm_pages[i][0])))
+		{
+			p_ptr->interactive_next = i;
+			break;
+		}
+	}
+
+	/* Page & Hook Boundaries */
+	if (p_ptr->interactive_next <= 0)
+		p_ptr->interactive_next = 0;
+	if (p_ptr->interactive_next > DM_PAGES - 1)
+		p_ptr->interactive_next = DM_PAGES - 1;
+	if (p_ptr->master_flag >= MASTER_MAX_HOOKS) 
+		p_ptr->master_flag = 0;		
+
+	/* Changed page (Sub-Init!) */
+	if (old_tab != p_ptr->interactive_next)
+	{
+		/* Reset list */
+		p_ptr->interactive_line = 0;
+		p_ptr->interactive_size = 0;
+		/* Reset argument */
+		p_ptr->master_parm = 0;
+	}
+
+	/* Hack -- deny keypress */
+	access = (dm_access[p_ptr->interactive_next * 2] & p_ptr->dm_flags) || 
+			(dm_access[p_ptr->interactive_next * 2 + 1] & p_ptr->dm_flags);
+	if (!access) query = 0;
+
+	/** Input **/
+	switch (p_ptr->interactive_next)
+	{
+		case DM_PAGE_PLAYER:
+			if (query == '\r') 
+			{
+				if (p_ptr->interactive_line < NumPlayers)
+				{
+					y = p_ptr->interactive_line + 1; /* Note +1! */
+					if ((y != Ind) && !dm_flag_p(p_ptr,CAN_ASSIGN))
+					{
+						error = "Can't change other players";
+						break;
+					}
+					if ((y == Ind) && !dm_flag_p(p_ptr,CAN_MUTATE_SELF))
+					{
+						error = "Can't change self";
+						break;
+					}
+					p_ptr->master_parm = Players[y]->id;
+					/*HACK:*/
+					do_cmd_monster_desc_aux(Ind, 0 - y, TRUE);
+					if (dm_flag_p(p_ptr,SEE_PLAYERS))
+						snapshot_player(Ind, y);
+					Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+				}
+			}
+			/* For selected player: */
+			if (p_ptr->master_parm)
+			{
+				player_type *q_ptr;
+				y = find_player(p_ptr->master_parm);
+				if (!y) break;
+				q_ptr = Players[y];				
+				switch (query)
+				{
+					case 'W':
+						if (y == Ind) { error = "Can't wrath self"; break; }
+						if (!askfor_aux(Ind, query, buf, 1, 0, 
+						format("Are you sure you want to call wrath on %s ? [y/n]", q_ptr->name), 
+						"*", TERM_WHITE, TERM_WHITE)) return;
+						if (buf[0] != 'y' && buf[0] != 'Y') break;
+						debug(format("%s invokes wrath on %s", p_ptr->name, q_ptr->name));
+						take_hit(y, 1000, "a small kobold"); 
+					break;
+					case 'K':
+						if (y == Ind) { error = "Can't kick self"; break; }
+						if (!askfor_aux(Ind, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
+						if (STRZERO(buf)) break;
+						debug(format("%s kicks %s (reason:%s)", p_ptr->name, q_ptr->name, buf));
+						Destroy_connection(q_ptr->conn, "kicked out");
+					break;
+					case 'I':
+						if (y == Ind) { error = "Can't invoke self"; break; }
+						if (q_ptr->dun_depth == p_ptr->dun_depth ) { teleport_player_to(y, p_ptr->py, p_ptr->px); break; }
+						if (!askfor_aux(Ind, query, buf, 1, 0, 
+						format("Recall %s to your depth ? [y/n]", q_ptr->name), 
+						"*", TERM_WHITE, TERM_WHITE)) return;
+						if (buf[0] != 'y' && buf[0] != 'Y') break;
+						debug(format("%s invokes %s to lev %d", p_ptr->name, q_ptr->name, p_ptr->dun_depth));
+						msg_print(y, "The air about you becomes charged...");
+						msg_format_complex_near(y, y, MSG_PY_MISC, "The air about %s becomes charged...", q_ptr->name);
+						q_ptr->word_recall = 1;
+						q_ptr->recall_depth = p_ptr->dun_depth;
+					break;
+					case '-': case '_':
+						q_ptr->cur_lite = --q_ptr->old_lite;
+					break;
+					case '=': case '+':
+						q_ptr->cur_lite = ++q_ptr->old_lite;
+					break;
+					case 'G':
+						q_ptr->ghost = 1 - q_ptr->ghost;
+					break;
+					case 'C':
+						q_ptr->noscore = 1 - q_ptr->noscore;
+					break;
+					case 'V':
+						q_ptr->invuln = (q_ptr->invuln ? 0 : -1);
+					break;
+					default:
+						if (isalpha(query))
+						{
+							x = A2I(query) - 1;
+							if (x >= 0 && x <= 20)
+							{
+								if (y != Ind && !(p_ptr->dm_flags & (0x1L << x)))
+								{ error = "Can't assign unmastered power"; break; }
+								TOGGLE_BIT(q_ptr->dm_flags, (0x1L << x));
+							}
+						}
+					break;
+				}
+			}
+		break;
+		case DM_PAGE_LEVEL:
+		{
+        	switch (query)
+        	{
+				case 'S': players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth) + 1; break;
+				case 'U': players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth); break;
+#ifdef HANDLE_DIRECTORIES				
+				case 'I':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Really import selected file ? [y/n]", "*", TERM_WHITE, TERM_WHITE)) return;
+				if (STRZERO(buf)) break;
+				p_ptr->master_parm = p_ptr->interactive_line + 1;
+				break;
+#else
+				case 'I':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (STRZERO(buf)) break;
+				if (strncasecmp(&buf[0], "server-", 7))
+				{
+					error = "Incorrect filename. Must have 'server-something' format!";
+				}
+				else if (!rd_dungeon_special_ext(p_ptr->dun_depth, &buf[0]))
+				{
+					error = "File not found";
+				}
+				else
+				{
+					players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth);
+					msg_format(Ind, "Loading file '%s'", &buf[0]);
+					debug(format("* %s imports lev %d from file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
+				} 
+
+				break;
+#endif
+				case 'E':
+
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (strncasecmp(&buf[0], "server-", 7))
+				{
+					error = "Incorrect filename. Must have 'server-something' format!";
+				}
+				else if (!wr_dungeon_special_ext(p_ptr->dun_depth, &buf[0]))
+				{
+					error = "Failed to write a file";
+				} 
+				else 
+				{
+					msg_format(Ind, "Saved file '%s'", &buf[0]);
+					debug(format("* %s exports lev %d into file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
+				}
+
+				break;
+        	}
+		}
+		break;
+		case DM_PAGE_FEATURE:
+			s = (char*)1; /* TRUE */
+			switch (query)
+			{
+				/* QUICK! */
+				case 'm': p_ptr->interactive_line = FEAT_MAGMA; break;
+				case 'w': p_ptr->interactive_line = FEAT_WALL_EXTRA; break;
+				case 'p': p_ptr->interactive_line = FEAT_PERM_EXTRA; break;
+				case 'f': p_ptr->interactive_line = FEAT_FLOOR; break;
+				case 'g': p_ptr->interactive_line = FEAT_GRASS; break;
+				case 'd': p_ptr->interactive_line = FEAT_DIRT; break;
+				case 't': p_ptr->interactive_line = FEAT_TREE; break;
+				case 'T': p_ptr->interactive_line = FEAT_EVIL_TREE; break;
+				case '\r': break; /* ! */
+				default: s = NULL; break;
+			}
+			/* Start Building! */
+			if (s)
+			{
+				p_ptr->master_hook[p_ptr->master_flag] = DM_PAGE_FEATURE;
+				p_ptr->master_args[p_ptr->master_flag] = p_ptr->interactive_line;
+			}
+		break;
+		case DM_PAGE_MONSTER:
+			switch (query) 
+			{
+				/* SORT */
+				case 'd': TOGGLE_BIT(p_ptr->master_parm, SORT_LEVEL); break;
+				case 'e': TOGGLE_BIT(p_ptr->master_parm, SORT_EXP); break;
+				case 'r': TOGGLE_BIT(p_ptr->master_parm, SORT_RARITY); break;
+				case 't': TOGGLE_BIT(p_ptr->master_parm, SORT_RICH); break;
+				case 'u': TOGGLE_BIT(p_ptr->master_parm, SORT_UNIQUE); break;
+				case 'q': TOGGLE_BIT(p_ptr->master_parm, SORT_QUEST); break;
+				case 'f': TOGGLE_BIT(p_ptr->master_parm, SORT_REVERS); break;
+				case 'F': TOGGLE_BIT(p_ptr->master_parm, FILT_REVERS); break;
+				case 'Q': TOGGLE_BIT(p_ptr->master_parm, FILT_UNIQUE); break;
+				case 'G': TOGGLE_BIT(p_ptr->master_parm, FILT_UNDEAD); break;				
+				case 'U': TOGGLE_BIT(p_ptr->master_parm, FILT_DEMON); break;
+				case 'D': TOGGLE_BIT(p_ptr->master_parm, FILT_DRAGON); break;
+				case 'O': TOGGLE_BIT(p_ptr->master_parm, FILT_ORC); break;
+				case 'A': TOGGLE_BIT(p_ptr->master_parm, FILT_ANIMAL); break;
+				case '\r': 
+				{
+					/* Start Summoning! */
+					p_ptr->master_hook[p_ptr->master_flag] = DM_PAGE_MONSTER;
+					p_ptr->master_args[p_ptr->master_flag] = p_ptr->target_idx[p_ptr->interactive_line];
+					break;
+				} 
+			}
+			/* PREPARE */
+			master_fill_monsters(Ind, p_ptr->master_parm);
+			p_ptr->interactive_size = p_ptr->target_n - 1;
+		break;
+		case DM_PAGE_VAULT:
+			if (query == '\r') 
+			{
+				/* Start Building! */
+				p_ptr->master_hook[p_ptr->master_flag] = DM_PAGE_VAULT;
+				p_ptr->master_args[p_ptr->master_flag] = p_ptr->interactive_line;
+			}
+		break;
+		case DM_PAGE_ITEM:
+			switch (query)
+			{
+				/* SORT */
+				case '*': TOGGLE_BIT(p_ptr->master_parm, FILT_EGO); break;
+				case '\\': 
+				case '|': TOGGLE_BIT(p_ptr->master_parm, FILT_WEAPON); break;
+				case '(': case ')': case '[':
+				case ']': TOGGLE_BIT(p_ptr->master_parm, FILT_GEAR); break;
+				case '-': TOGGLE_BIT(p_ptr->master_parm, FILT_MAGIC); break;
+				case '!': TOGGLE_BIT(p_ptr->master_parm, FILT_POTION); break;
+				case '?': TOGGLE_BIT(p_ptr->master_parm, FILT_SCROLL); break;
+				case ',': TOGGLE_BIT(p_ptr->master_parm, FILT_FOOD); break;
+				case 'F': TOGGLE_BIT(p_ptr->master_parm, FILT_REVERS); break;
+				/* FORGE */
+				case 'n':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Quantity: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].number = atoi(buf);
+				break;
+				case 'r':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Base Armor Class: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].ac = atoi(buf);
+				break;
+				case 'R':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic Armor Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].to_a = atoi(buf);
+				break;
+				case 'h':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic To-Hit Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].to_h = atoi(buf);
+				break;
+				case 'd':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic To-Dam Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].to_d = atoi(buf);
+				break;				
+				case 'p':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "<Pval>: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].pval = atoi(buf);
+				break;
+				case 'E':
+				p_ptr->inventory[0].xtra2++;
+				break;
+				case 'e':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Hidden Ability: ", "", TERM_WHITE, TERM_WHITE)) return;
+				p_ptr->inventory[0].xtra2 = atoi(buf);
+				break;
+				case 'D':
+				if (!askfor_aux(Ind, query, buf, 1, 0, "Damage Dice (2d6): ", "", TERM_WHITE, TERM_WHITE)) return;
+				s = strtok(buf, "d");
+				p_ptr->inventory[0].dd = atoi(s);
+				s = strtok(NULL, "d");
+				p_ptr->inventory[0].ds = atoi(s);
+				break;
+				case '\r':
+				i = p_ptr->target_idx[p_ptr->interactive_line];
+				if (i >= 0)
+				{
+					/* Copy Base Kind */
+					object_kind *k_ptr = &k_info[i];
+					p_ptr->inventory[0].k_idx = i;
+					p_ptr->inventory[0].tval = k_ptr->tval;
+					p_ptr->inventory[0].sval = k_ptr->sval;
+					p_ptr->inventory[0].pval = k_ptr->pval;
+					p_ptr->inventory[0].ds = k_ptr->ds;
+					p_ptr->inventory[0].dd = k_ptr->dd;
+					p_ptr->inventory[0].name2 = 0;
+					p_ptr->inventory[0].xtra2 = 0;					
+				} 
+				else 
+				{
+					/* Assign Ego Kind */
+					ego_item_type *e_ptr = &e_info[0 - i];
+					for (j = 0; j < EGO_TVALS_MAX; j++)
+					{
+						if (p_ptr->inventory[0].tval == e_ptr->tval[j] &&
+							p_ptr->inventory[0].tval >= e_ptr->min_sval[j] &&
+							p_ptr->inventory[0].tval <= e_ptr->max_sval[j])
+						{
+							p_ptr->inventory[0].name2 = 0 - i;
+						}
+					}
+				}
+				break;
+			}
+			/* PREPARE */
+			master_fill_objects(Ind, p_ptr->master_parm);
+			p_ptr->interactive_size = p_ptr->target_n - 1;
+		break;
+	}
+
+	/* List Boundaries */
+	if (p_ptr->interactive_line <= 0)
+		p_ptr->interactive_line = 0;
+	if (p_ptr->interactive_line > p_ptr->interactive_size)
+		p_ptr->interactive_line = p_ptr->interactive_size;
+
+	/** Output **/
+	clear_from(Ind, 0);
+
+	/* Header */
+	for (i = 0, x = 3, y = 0; i < DM_PAGES; i++)
+	{
+		byte attr = TERM_SLATE;
+		j = strlen(dm_pages[i]);
+		if (x + j >= 80) { x = 3; y++; }
+		if (i == p_ptr->interactive_next) attr = TERM_L_BLUE;
+		c_prt(Ind, attr, dm_pages[i], y, x);
+		x += j + 3;
+	}
+
+	hgt = MAX(2, hgt - (y + 9));
+
+	skip_line = p_ptr->interactive_line - hgt / 2;
+	if (skip_line < 0) skip_line = 0;
+	if (skip_line > p_ptr->interactive_size - hgt)
+		skip_line = p_ptr->interactive_size - hgt;
+
+#define MASTER_COMMON_LIMIT() \
+				byte attr = TERM_SLATE; \
+				if (i < skip_line) continue; \
+				if (j > hgt) break;	\
+				if (i == p_ptr->interactive_line) attr = TERM_L_BLUE
+
+#define MASTER_DUMP_I() \
+				strnfmt(numero, 4, "%03d ", i); \
+				c_prt(Ind, attr, numero, 2 + j, 1);
+
+#define MASTER_DUMP_AC(A,C) \
+				numero[0] = (C);	numero[1] = '\0'; \
+				c_prt(Ind, (A), numero, 2 + j, 6);
+
+	/* Content */
+	if (!access)
+	{
+		c_prt(Ind, TERM_RED, "Access Denied", 12, 33);
+	}
+	else
+	{
+		switch (p_ptr->interactive_next)
+		{
+			case DM_PAGE_WORLD:
+
+			c_prt(Ind, TERM_WHITE, "HELLO WORLD :)", 5, 5);
+
+			/* Sidebar */
+			j = 2; numero[0] = '^'; numero[2] = ')'; numero[3] = '\0';
+			c_prt(Ind, TERM_WHITE, "Quickbar: ", j++, 60);
+			for (i = 0; i < DM_PAGES; i++)
+			{
+				numero[1] = dm_pages[i][0];
+				c_prt(Ind, TERM_L_WHITE, numero, j, 59);
+				c_prt(Ind, TERM_L_WHITE, dm_pages[i], j++, 62);
+			}
+			c_prt(Ind, TERM_L_WHITE, "@)Edit Self", j++, 60);
+
+			break;
+
+			case DM_PAGE_PLAYER:
+
+			for (i = 0, j = 0, y = 0; i < NumPlayers; i++)
+			{
+				player_type *q_ptr = Players[i+1]; 
+				MASTER_COMMON_LIMIT();
+				if (q_ptr->id == p_ptr->master_parm) 
+				{ 
+					/* Selected */
+					attr = TERM_WHITE;
+					y = i+1;
+				}
+				numero[0] = (dm_flag_p(q_ptr,CAN_MUTATE_SELF) ? '@' :
+							(dm_flag_p(q_ptr,CAN_ASSIGN) || is_dm_p(q_ptr) ? '%' :
+							(q_ptr->dm_flags ? '+' : ' ')));
+				numero[1] = '\0';
+				c_prt(Ind, attr, numero, 2 + j, 1);
+				c_prt(Ind, attr, q_ptr->name, 2 + j++, 3);
+			}
+
+			p_ptr->interactive_size = NumPlayers - 1;
+
+			/* Footer (Selection) */
+			if (y)
+			{
+				player_type *q_ptr = Players[y];
+				if (2 + (j++) >= hgt) prompt_hooks = FALSE; 
+
+				c_prt(Ind, (q_ptr->ghost ? TERM_WHITE : TERM_L_WHITE), "G) ghost", 2 + j, 0); 
+				c_prt(Ind, (q_ptr->noscore ? TERM_WHITE : TERM_L_WHITE), "C) cheater", 2 + j, 19);
+				c_prt(Ind, (q_ptr->invuln ? TERM_WHITE : TERM_L_WHITE), "V) invuln", 2 + j - 1, 19);
+
+				c_prt(Ind, TERM_SLATE, "Actions: W)wrath   K)kick   I)invoke", 2 + j - 1, 38);
+				c_prt(Ind, TERM_SLATE, format("Lite: -) %d +)", q_ptr->cur_lite), 2 + j, 38);
+
+				j++;
+				for (i = 0, y = 0; i < 4; i++)
+				{
+					for (x = 0; x < 5; x++)
+					{
+						c_prt(Ind, (q_ptr->dm_flags & (0x1L << y) ? TERM_WHITE : TERM_L_WHITE), format("%c) %s", 
+						index_to_label(y+1), dm_flags_str[y]), 2 + j + x, i * 19);
+						
+						y++;
+					} 
+				} 
+			}
+
+			break;
+
+			case DM_PAGE_LEVEL:
+			{
+#ifdef HANDLE_DIRECTORIES
+				DIR	*dip;
+        		struct dirent	*dit;
+#endif        	
+				int dun_players = players_on_depth[p_ptr->dun_depth];	
+        		int num_players = count_players(p_ptr->dun_depth);
+#ifdef HANDLE_DIRECTORIES        		
+				if ((dip = opendir(ANGBAND_DIR_SAVE)) != NULL)
+        		{
+					for (i = 0, j = 0; (dit = readdir(dip)) != NULL; i++)
+					{
+						MASTER_COMMON_LIMIT();
+
+						if (strncasecmp(dit->d_name, "server-", 7)) { i--; continue; }
+
+                		MASTER_DUMP_I()
+
+	                	c_prt(Ind, attr, dit->d_name, 2 + j, 5);
+                		j++;
+
+                		if (p_ptr->master_parm && p_ptr->master_parm - 1 == i)
+                		{
+                			msg_format(Ind, "Loading file '%s'", dit->d_name);
+                			rd_dungeon_special_ext(p_ptr->dun_depth, dit->d_name);
+                			players_on_depth[p_ptr->dun_depth] = num_players;
+                		}
+                	}
+	 	        	closedir(dip); /* Don't care about error */
+	 	        }
+#else
+	i = 1;
+#endif
+				p_ptr->interactive_size = i - 1;
+
+				/* Sidebar */
+				j = 2;
+				c_prt(Ind, TERM_WHITE, "Action: ", j++, 60);
+				c_prt(Ind, TERM_L_WHITE, "I)Import", j++, 60);
+				c_prt(Ind, TERM_L_WHITE, "E)Export", j++, 60);
+				c_prt(Ind, (dun_players > num_players ? TERM_WHITE : TERM_L_WHITE), "S)Static", j++, 60);			
+				c_prt(Ind, (dun_players <= num_players ? TERM_WHITE : TERM_L_WHITE), "U)Unstatic", j++, 60);
+
+				break;
+			}
+
+			case DM_PAGE_FEATURE:
+
+			for (i = 0, j = 0; i < z_info->f_max; i++)
+			{
+				feature_type *f_ptr = &f_info[i];
+
+				MASTER_COMMON_LIMIT();
+				MASTER_DUMP_I()
+				MASTER_DUMP_AC(f_ptr->x_attr, f_ptr->x_char); 
+
+				c_prt(Ind, attr, f_name + f_ptr->name, 2 + j++, 8);
+			}
+
+			p_ptr->interactive_size = z_info->f_max - 1;
+
+			/* Sidebar */
+			j = 2;
+			c_prt(Ind, TERM_WHITE, "Quickbar: ", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "f)floor", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "w)wall", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "p)permawall", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "m)magmawall", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "g)grass", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "d)dirt", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "T)evil t)tree", j++, 60);
+
+			break;
+
+			case DM_PAGE_MONSTER:
+
+			for (i = 0, j = 0; i < p_ptr->target_n; i++)
+			{
+				monster_race *r_ptr = &r_info[p_ptr->target_idx[i]];
+
+				MASTER_COMMON_LIMIT();
+				MASTER_DUMP_I()
+				MASTER_DUMP_AC(r_ptr->x_attr, r_ptr->x_char); 
+
+				c_prt(Ind, attr	, r_name + r_ptr->name, 2 + j++, 8);
+			}
+
+			p_ptr->interactive_size = p_ptr->target_n - 1;
+
+			monster_race_track(Ind, p_ptr->target_idx[p_ptr->interactive_line]);
+
+			/* Sidebar */
+			c_prt(Ind, TERM_WHITE, "Sort by: ", 2, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "u)unique ", 7, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_QUEST  ? TERM_WHITE : TERM_L_WHITE ), "q)quest ", 8, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_RICH   ? TERM_WHITE : TERM_L_WHITE ), "t)treasure ", 6, 60);			
+			c_prt(Ind, (p_ptr->master_parm & SORT_LEVEL  ? TERM_WHITE : TERM_L_WHITE ), "d)depth ", 3, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_EXP    ? TERM_WHITE : TERM_L_WHITE ), "e)exp ", 4, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_RARITY ? TERM_WHITE : TERM_L_WHITE ), "r)rarity ", 5, 60);
+			c_prt(Ind, (p_ptr->master_parm & SORT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "f)flip ", 9, 60);
+			c_prt(Ind, TERM_WHITE, "Filter: ", 11, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "Q)unique ", 12, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_UNDEAD ? TERM_WHITE : TERM_L_WHITE ), "G)undead ", 13, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_DEMON  ? TERM_WHITE : TERM_L_WHITE ), "U)demon ", 14, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_DRAGON ? TERM_WHITE : TERM_L_WHITE ), "D)dragon ", 15, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_ORC    ? TERM_WHITE : TERM_L_WHITE ), "O)orc ", 16, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_ANIMAL ? TERM_WHITE : TERM_L_WHITE ), "A)animal ", 17, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", 18, 60);			
+
+			break;
+
+			case DM_PAGE_VAULT:
+
+			for (i = 0, j = 0; i < z_info->v_max; i++)
+			{
+				vault_type *v_ptr = &v_info[i];
+
+				MASTER_COMMON_LIMIT();
+				MASTER_DUMP_I()
+				MASTER_DUMP_AC(v_ptr->typ, (v_ptr->typ == 8 ? 'G' : (v_ptr->typ == 7 ? 'L' : '?')));
+
+				c_prt(Ind, attr, v_name + v_ptr->name, 2 + j++, 8);
+			}
+
+			p_ptr->interactive_size = z_info->v_max - 1;
+
+			if (old_line != p_ptr->interactive_line)
+				preview_vault(Ind, p_ptr->interactive_line);
+
+			break;
+
+			case DM_PAGE_ITEM:
+
+			for (i = 0, j = 0; i < p_ptr->target_n; i++)
+			{
+				MASTER_COMMON_LIMIT();				
+				MASTER_DUMP_I()
+
+				if (p_ptr->target_idx[i] >= 0) 
+				{
+					/* Base Kind */
+					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
+					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char); 
+					c_prt(Ind, attr	, k_name + k_ptr->name, 2 + j++, 8);
+				} 
+				else 
+				{
+					/* Ego Item */
+					ego_item_type *e_ptr = &e_info[0 - p_ptr->target_idx[i]];
+					for (x = 0; x < EGO_TVALS_MAX; x++)
+					{
+						numero[1] = '\0';
+						numero[0] = p_ptr->tval_char[e_ptr->tval[x]];
+						c_prt(Ind, p_ptr->tval_attr[e_ptr->tval[x]], numero, 2 + j, 5 + x);
+					}
+					c_prt(Ind, attr, e_name + e_ptr->name, 2 + j++, 9);
+				}
+			}
+
+			p_ptr->interactive_size = p_ptr->target_n - 1;			
+
+			if (1) /* ? Display Object even if it's buggy ? */
+			{
+				j++;
+				/* Extract Name */
+				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
+
+				/* Print it */
+				c_prt(Ind, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
+
+				/* Obtain XTRA2 modifier */
+				if (p_ptr->inventory[0].name2)
+				{
+					ego_item_type *e_ptr = &e_info[p_ptr->inventory[0].name2];
+					int xtra_mod = 0;
+					byte xtra_val = 0;
+
+					if (e_ptr->xtra == EGO_XTRA_SUSTAIN) { xtra_val = 1; xtra_mod = OBJECT_XTRA_SIZE_SUSTAIN; }
+					else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = OBJECT_XTRA_SIZE_RESIST; } 
+					else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = OBJECT_XTRA_SIZE_POWER; }
+					else { xtra_val = 0; xtra_mod = 1; }
+					if (p_ptr->inventory[0].xtra2 >= xtra_mod) p_ptr->inventory[0].xtra2 %= xtra_mod;
+					c_prt(Ind, TERM_L_WHITE, "Hidden Abilitiy: ", 2 + j, 1); 
+					c_prt(Ind, TERM_L_WHITE, extra_mods[xtra_val][p_ptr->inventory[0].xtra2], 2 + j++, 18);
+				}
+			}
+
+			/* Sidebar */
+			j = 2;
+			c_prt(Ind, TERM_WHITE, "Action: ", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "n)number", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "r)ac R)to ac", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "D)dice   ", j++, 60);			
+			c_prt(Ind, TERM_L_WHITE, "to h)it d)am", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "p)pval   ", j++, 60);
+			c_prt(Ind, TERM_L_WHITE, "e/E)ability  ", j++, 60);
+			j++;
+			c_prt(Ind, TERM_WHITE, "Filter: ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_EGO    ? TERM_WHITE : TERM_L_WHITE ), "*)ego ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_WEAPON ? TERM_WHITE : TERM_L_WHITE ), "|)weapon ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_GEAR   ? TERM_WHITE : TERM_L_WHITE ), "])armor ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_MAGIC  ? TERM_WHITE : TERM_L_WHITE ), "-)magic ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_SCROLL ? TERM_WHITE : TERM_L_WHITE ), "?)scroll ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_POTION ? TERM_WHITE : TERM_L_WHITE ), "!)potion ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_FOOD   ? TERM_WHITE : TERM_L_WHITE ), ",)food ", j++, 60);
+			c_prt(Ind, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", j++, 60);			
+
+			break;			
+		}
+	}
+
+	/** Common: **/
+	/* Error */
+	if (error)
+	{
+		c_prt(Ind, TERM_RED, error, 1, 1);
+	}
+
+	/* Footer */
+	if (prompt_hooks)
+	{
+		j = hgt + 7;
+		c_prt(Ind, TERM_L_DARK, "RET) Select    |", j++, 1);
+		c_prt(Ind, TERM_L_DARK, "SPC) Next      |", j++, 1);
+		c_prt(Ind, TERM_L_DARK, "DEL) Clear     |", j++, 1);
+		c_prt(Ind, TERM_L_DARK, "ESC) Done      |", j++, 1);
+		j-=4;
+		for (i = 0; i < MASTER_MAX_HOOKS; i++)
+		{
+			byte attr = TERM_L_WHITE;
+			if (!p_ptr->master_hook[i]) attr = TERM_L_DARK;
+			if (i == p_ptr->master_flag) attr = TERM_L_BLUE;
+			master_hook_desc(&buf[0], i, p_ptr->master_hook[i], p_ptr->master_args[i]);
+			c_prt(Ind, attr, buf, j, 20);
+			j++;
+		}
+	}
+
+	/* Send */
+	Send_term_info(Ind, NTERM_CLEAR, 1);
+	for (i = 0; i < p_ptr->screen_hgt+2; i++)
+	{
+		Send_remote_line(Ind, i);
+	}
+	Send_term_info(Ind, NTERM_FLUSH, 0);
+
+}
+
+/* Hack -- describe currently used hooks as fake status line */
+void master_desc_all(int Ind)
+{
+	byte ok[MASTER_MAX_HOOKS];
+	player_type *p_ptr = Players[Ind];
+	int i, n = 0, l;
+	char buf[80];
+
+	for (i = 0; i < MASTER_MAX_HOOKS; i++)
+	{
+		if (p_ptr->master_hook[i]) ok[n++] = i;
+	}
+	if (!n) return;
+
+	l = p_ptr->screen_wid / n;
+	if (l <= 0) return;
+
+	clear_line(Ind, 23);
+	for (i = 0; i < n; i++)
+	{
+		master_hook_desc(&buf[0], ok[i], p_ptr->master_hook[ok[i]], p_ptr->master_args[ok[i]]);
+		buf[l] = '\0';  
+		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, 23, i * (l+1));
+	}
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	Send_remote_line(Ind, 23);
+	Send_term_info(Ind, NTERM_FLUSH, -23-1);
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+	
+}
+
+/* Auxilary functon for "master_new_hook", performs actual action */
+void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+
+	/* Hack -- Delete Monster/Object */
+	if (hook_type == 127)
+	{
+		cave_type *c_ptr = &cave[Depth][oy][ox];
+		delete_object(Depth, oy, ox);
+		if (c_ptr->m_idx > 0)
+		{
+			delete_monster_idx(c_ptr->m_idx);
+		}
+		everyone_lite_spot(Depth, oy, ox);		
+		return;
+	}
+
+	switch(p_ptr->master_hook[hook_type])
+	{
+		case DM_PAGE_VAULT:
+		{
+			vault_type *v_ptr = &v_info[p_ptr->master_args[hook_type]];
+			build_vault(Ind, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
+			break;
+		}
+		case DM_PAGE_FEATURE:
+		{
+			cave_type *c_ptr = &cave[Depth][oy][ox];
+			c_ptr->feat = (byte)p_ptr->master_args[hook_type];
+			break;
+		}	
+		case DM_PAGE_MONSTER:
+		{
+			place_monster_aux(Depth, oy, ox, p_ptr->master_args[hook_type], FALSE, TRUE);
+		}
+		break;
+	}
+
+	everyone_lite_spot(Depth, oy, ox); 
+
+}
+/*
+ * New dungeon master hook function. Determines hook type, selects a brush,
+ * does some hacky things such as selection and copy & paste and actually
+ * calls "master_new_hook_aux". 
+ */
+void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+
+	cave_type *c_ptr = &cave[Depth][oy][ox];	
+	byte hook_type = 0;
+	byte x1, x2, y1, y2, xs, ys;
+
+#define MASTER_CONFIRM_AC(A,C,Y,X) \
+		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min + 1, (A), (C), (A), (C))
+
+	/* Find selection */
+	if (p_ptr->master_parm & MASTER_SELECT)
+	{
+		xs = (p_ptr->master_parm >> 0) & 0xFF;
+		ys = (p_ptr->master_parm >> 8) & 0xFF;
+		if (ys <= oy) 
+			 { y1 = ys; y2 = oy; }
+		else { y1 = oy; y2 = ys; } 
+		if (xs <= ox) 
+			 { x1 = xs; x2 = ox; }
+		else { x1 = ox; x2 = xs; }
+	}
+
+	switch (hook_q)
+	{
+		case 'k': case 127: hook_type = 128; break; /* Del */
+		case 's': /* Select */	
+
+		p_ptr->master_parm = (MASTER_SELECT | (u32b)ox | ((u32b)oy << 8));
+
+		MASTER_CONFIRM_AC(TERM_YELLOW, '&', oy, ox);
+
+		break;
+		case 'c': /* Pick */
+
+		if (p_ptr->master_parm & MASTER_SELECT)
+		{
+			p_ptr->master_hook[3] = DM_PAGE_PLOT;
+			p_ptr->master_args[3] = ((u32b)x1 | ((u32b)y1 << 8) | ((u32b)x2 << 16) | ((u32b)y2 << 24));
+
+			MASTER_CONFIRM_AC(TERM_YELLOW, '&', ys, xs);
+			MASTER_CONFIRM_AC(TERM_YELLOW, '&', ys, ox);
+			MASTER_CONFIRM_AC(TERM_YELLOW, '&', oy, xs);
+		}
+		else
+		{
+			if (c_ptr->m_idx > 0)
+			{
+				p_ptr->master_hook[3] = DM_PAGE_MONSTER;
+				p_ptr->master_args[3] = m_list[c_ptr->m_idx].r_idx;
+			}
+			else
+			{
+				p_ptr->master_hook[3] = DM_PAGE_FEATURE;
+				p_ptr->master_args[3] = c_ptr->feat;
+			}
+		}
+
+		MASTER_CONFIRM_AC(TERM_YELLOW, '^', oy, ox);
+		p_ptr->master_parm = 0;
+
+		break;
+		case 'x': hook_type = 1; break; 
+		case 'a': hook_type = 2; break;
+		case 'v': hook_type = 4; break;
+		case 'z': TOGGLE_BIT(p_ptr->master_parm, MASTER_BRUSH); break;		
+		default:  if (p_ptr->master_parm & MASTER_BRUSH) hook_type = 3; break; /* z */
+	}
+
+	/* Success */
+	if (hook_type--)
+	{
+		if (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT)
+		{
+			byte old_hook = p_ptr->master_hook[hook_type];
+			u32b old_args = p_ptr->master_args[hook_type];
+			s16b tmp;
+
+			x1 = (old_args >>  0) & 0xFF;
+			y1 = (old_args >>  8) & 0xFF;
+			x2 = (old_args >> 16) & 0xFF;
+			y2 = (old_args >> 24); 
+
+			ox = ox - x1;
+			oy = oy - y1;
+
+			if ((tmp = MAX_WID - 2 - x2 - ox) < 0) x2 += tmp;
+			if ((tmp = MAX_HGT - 2 - y2 - oy) < 0) y2 += tmp;
+
+			p_ptr->master_parm = 0;
+
+			for (ys = y1; ys <= y2; ys++)
+			{ 
+				for (xs = x1; xs <= x2; xs++)
+				{
+					master_new_hook(Ind, 'c', ys, xs);
+					master_new_hook_aux(Ind, hook_type, ys+oy, xs+ox);
+				}
+			}
+			p_ptr->master_hook[hook_type] = old_hook;
+			p_ptr->master_args[hook_type] = old_args;
+		}
+		else if (p_ptr->master_parm & MASTER_SELECT)
+		{
+			for (ys = y1; ys <= y2; ys++)
+			{ 
+				for (xs = x1; xs <= x2; xs++)
+				{
+					master_new_hook_aux(Ind, hook_type, ys, xs);
+				}
+			}
+
+			MASTER_CONFIRM_AC(TERM_YELLOW, '#', y1, x1);
+			MASTER_CONFIRM_AC(TERM_YELLOW, '#', y2, x2);
+		
+			p_ptr->master_parm = 0;
+		}
+		else
+		{
+			master_new_hook_aux(Ind, hook_type, oy, ox);		
+		}
+	}
+	master_desc_all(Ind);
 }
 
 /* static or unstatic a level */
@@ -6027,26 +7474,6 @@ vault_type *get_vault(char *name)
 	return NULL;
 }
 
-static cptr dm_flags_str[17] =
-{
-	"Dungeon Master",
-	"Presence Hidden",
-	"Can Change Self",
-	"Can Change Others",
-	"Access to Build Menu",
-	"Access to Level Menu",
-	"Access to Summon Menu",
-	"Access to Generate Menu",
-	"Monster Friend",
-	"*Invulnerable*",
-	"Ghostly Hands",
-	"Ghostly Body",
-	"Never Disturbed",	
-	"See Level",
-	"See Monsters",
-	"See Players",
-	"Landlord"
-};
 bool master_player(int Ind, char * parms)
 {
 	static int dm_player;
@@ -6149,14 +7576,6 @@ bool master_player(int Ind, char * parms)
 		return FALSE;
 }
 
-/* This "table" is used to provide XTRA2 descriptions */ 
-static cptr extra_mods[][12] =
-{
-	{"Regular"},
-	{"Sustain STR", "Sustain DEX", "Sustain CON", "Sustain INT", "Sustain WIS", "Sustain CHR"},
-	{"Poison", "Fear", "Light", "Dark", "Blindness", "Confusion", "Sound", "Shards", "Nexus", "Nether", "Chaos", "Disen"},
-	{"Slow.Digestion", "Feather", "PermaLite", "Regeneration", "Telepathy", "SeeInvis", "Free Action", "Hold Life"}
-};
 
 /* Generate something */
 bool master_generate(int Ind, char * parms)

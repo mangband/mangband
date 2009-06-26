@@ -1351,7 +1351,7 @@ void cmd_interactive()
 		Send_term_key(ch);
 
 		/* Check for user abort */
-		if (ch == ESCAPE)
+		if (ch == ESCAPE && !icky_levels)
 			break;
 	}
 

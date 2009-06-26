@@ -48,6 +48,9 @@
 
 #include <time.h>
 
+#ifdef HANDLE_DIRECTORIES
+# include <dirent.h>
+#endif
 
 
 #ifdef MACINTOSH

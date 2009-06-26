@@ -2197,12 +2197,14 @@ int Receive_term_info(void)
 			p_ptr->remote_term = arg;
 			break;
 		case NTERM_CLEAR:
-			if (arg == 1) 
+			if (arg == 2 || (arg == 1 && screen_icky))
 				Term_clear();
 			last_remote_line[p_ptr->remote_term] = 0;
 			break;	
 		case NTERM_FLUSH:
-			for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+			if ((s16b)arg >= 0) { if (!screen_icky) break; }
+			else { arg = 0 - (s16b)arg - 1; }
+			for (n = arg; n < last_remote_line[p_ptr->remote_term]+1; n++)
 				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
 			break;
 		case NTERM_FRESH:
@@ -2235,6 +2237,14 @@ int Receive_term_info(void)
 			if (arg == 0) 
 			{
 				inkey_exit = TRUE;			
+			}
+			if (arg == 1 && screen_icky)
+			{
+				icky_levels++;
+			}
+			if (arg == 2 && icky_levels)
+			{
+				icky_levels--;
 			}
 			break;
 	}
@@ -2915,7 +2925,7 @@ int Receive_cursor(void)
 	/* Hack: Manipulate offset */
 	x += DUNGEON_OFFSET_X;
 	
-	if (cursor_icky)
+	if (cursor_icky || vis == CURSOR_HACK)
 		Term_consolidate_cursor(vis, x, y);
 
 	return 1;

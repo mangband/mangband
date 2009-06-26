@@ -696,6 +696,37 @@ static void wr_dungeon(int Depth)
 	end_section("dungeon_level");
 }
 
+/* HACK -- Write to file */
+bool wr_dungeon_special_ext(int Depth, cptr levelname)
+{
+	char filename[1024];
+	FILE *fhandle;
+	FILE *server_handle;
+	
+	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
+
+	fhandle = my_fopen(filename, "w");
+
+	if (fhandle)
+	{
+			/* swap out the main file pointer for our level file */
+			server_handle = file_handle;
+			file_handle = fhandle;
+
+			/* save the level */
+			wr_dungeon(Depth);
+
+			/* swap the file pointers back */
+			file_handle = server_handle;
+
+			/* close the level file */
+			my_fclose(fhandle);
+
+			return TRUE;
+	}
+	return FALSE;
+}
+
 /* Write a players memory of a cave, simmilar to the above function. */
 void wr_cave_memory(Ind)
 {

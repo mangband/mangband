@@ -1905,7 +1905,7 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 	Ind = Ind;
 
 	/* Sort by player kills */
-	if (*why >= 4)
+	if (*why & SORT_PKILL)
 	{
 		/* Extract player kills */
 		player_type  *p_ptr = Players[Ind];
@@ -1922,7 +1922,7 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 
 
 	/* Sort by total kills */
-	if (*why >= 3)
+	if (*why & SORT_TKILL)
 	{
 		/* Extract total kills */
 		z1 = r_info[w1].r_tkills;
@@ -1934,8 +1934,47 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 	}
 
 
+	/* Sort by monster unique-ness */
+	if (*why & SORT_UNIQUE)
+	{
+		/* Extract unique-ness */
+		z1 = (r_info[w1].flags1 & RF1_UNIQUE);
+		z2 = (r_info[w2].flags1 & RF1_UNIQUE);
+
+		/* Compare unique-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
+	/* Sort by monster quest-ness */
+	if (*why & SORT_QUEST)
+	{
+		/* Extract unique-ness */
+		z1 = (r_info[w1].flags1 & RF1_QUESTOR);
+		z2 = (r_info[w2].flags1 & RF1_QUESTOR);
+
+		/* Compare unique-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
+	/* Sort by monster rich-ness */
+	if (*why & SORT_RICH)
+	{
+		/* Extract rich-ness (HACKY) */
+		z1 = monster_richness(w1);
+		z2 = monster_richness(w2);
+
+		/* Compare rich-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
 	/* Sort by monster level */
-	if (*why >= 2)
+	if (*why & SORT_LEVEL)
 	{
 		/* Extract levels */
 		z1 = r_info[w1].level;
@@ -1946,9 +1985,8 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 		if (z1 > z2) return (FALSE);
 	}
 
-
 	/* Sort by monster experience */
-	if (*why >= 1)
+	if (*why & SORT_EXP)
 	{
 		/* Extract experience */
 		z1 = r_info[w1].mexp;
@@ -1959,6 +1997,17 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 		if (z1 > z2) return (FALSE);
 	}
 
+	/* Sort by monster rarity */
+	if (*why & SORT_RARITY)
+	{
+		/* Extract rarity */
+		z1 = r_info[w1].rarity;
+		z2 = r_info[w2].rarity;
+
+		/* Compare rarity */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
 
 	/* Compare indexes */
 	return (w1 <= w2);

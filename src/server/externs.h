@@ -505,6 +505,7 @@ extern void do_cmd_check_players(int Ind, int line);
 extern void do_cmd_check_other(int Ind, int line);
 extern void do_cmd_knowledge(int Ind, char query);
 extern void do_cmd_interactive(int Ind, char query);
+extern void do_cmd_interactive_input(int Ind, char query);
 extern void common_peruse(int Ind, char query);
 
 /* cmd5.c */
@@ -625,6 +626,7 @@ extern void cleanup_angband(void);
 extern errr rd_savefile_new(int Ind);
 extern errr rd_server_savefile(void);
 extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex);
+extern bool rd_dungeon_special_ext(int Depth, cptr levelname);
 
 /* melee1.c */
 /* melee2.c */
@@ -663,11 +665,13 @@ extern int race_index(char * name);
 extern bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char num);
 extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char num);
 extern int race_index_fuzzy(char * name);
+extern int monster_richness(int r_idx);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
 extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
+extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 /* netserver.c */
@@ -845,6 +849,7 @@ extern int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
 extern bool load_player(int Ind);
 extern bool load_server_info(void);
 extern bool save_server_info(void);
+extern bool wr_dungeon_special_ext(int Depth, cptr levelname);
 
 
 /* sched.c */
@@ -1038,6 +1043,12 @@ extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
 extern void text_out_done();
+extern void c_prt(int Ind, byte attr, cptr str, int row, int col);
+extern void prt(int Ind, cptr str, int row, int col);
+extern void clear_line(int Ind, int row);
+extern void clear_from(int Ind, int row);
+extern bool ask_for(int Ind, char query, char *buf); 
+extern bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);
@@ -1117,6 +1128,9 @@ extern void wipe_socials();
 extern void boot_socials();
 extern void show_socials(int Ind);
 extern void do_cmd_social(int Ind, int dir, int i);
+extern void do_cmd_dungeon_master(int Ind, char query);
+
+extern void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox);
 
 extern bool master_level(int Ind, char * parms);
 extern bool master_build(int Ind, char * parms);

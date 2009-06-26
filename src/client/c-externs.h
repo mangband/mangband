@@ -176,6 +176,7 @@ extern byte section_icky_row;
 extern bool party_mode;
 extern bool cursor_icky;
 
+extern byte icky_levels;
 
 extern cptr ANGBAND_GRAF;
 extern cptr ANGBAND_DIR;

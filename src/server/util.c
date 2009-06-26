@@ -3667,3 +3667,108 @@ void text_out(cptr str)
 {
 	text_out_c(TERM_WHITE, str);
 }
+
+
+void c_prt(int Ind, byte attr, cptr str, int row, int col)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Paranoia */
+	if (row > MAX_TXT_INFO) return;
+
+	while (*str)
+	{
+		/* Limit */
+		if (col > 80) break;
+
+		p_ptr->info[row][col].c = *str;
+		p_ptr->info[row][col].a = attr; 
+
+		col++;
+		str++;
+	}
+}
+void prt(int Ind, cptr str, int row, int col)
+{
+	c_prt(Ind, TERM_WHITE, str, row, col);	
+}
+void clear_line(int Ind, int row)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	for (i = 0; i < 80; i++)
+	{
+		p_ptr->info[row][i].c = ' ';
+		p_ptr->info[row][i].a = TERM_WHITE; 
+	}
+}
+void clear_from(int Ind, int row)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	while (row < MAX_TXT_INFO)
+	{
+		for (i = 0; i < 80; i++)
+		{
+			p_ptr->info[row][i].c = ' ';
+			p_ptr->info[row][i].a = TERM_DARK; 
+		}
+		row++;
+	}
+}
+
+bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr)
+{
+	player_type *p_ptr = Players[Ind];
+
+	char * mark = &(p_ptr->interactive_hook[0][1]);
+	char * len = &(p_ptr->interactive_hook[0][2]);
+	char * y = &(p_ptr->interactive_hook[0][3]);
+	char * x = &(p_ptr->interactive_hook[0][4]);
+	char * attr = &(p_ptr->interactive_hook[0][5]);
+	char * mlen = &(p_ptr->interactive_hook[0][6]);
+	char * str = p_ptr->interactive_hook[1];	
+
+	if (*mark)
+	{
+		*mark = 0;	
+		strncpy(buf, str, *len);
+		buf[(byte)*len] = '\0';
+		return TRUE;
+	}
+	else
+	{
+		*mark = query;
+		*attr = input_attr;
+		*y = row;
+		*x = col;
+		*len = 0;
+		*mlen =0;
+
+		if (!STRZERO(prompt))
+		{
+ 			(*x) += strlen(prompt);
+ 			clear_line(Ind, row);
+			c_prt(Ind, prompt_attr, prompt, row, col);
+			Send_remote_line(Ind, row);
+ 		}
+ 		if (!STRZERO(default_value))
+ 		{
+ 			/* Hack: ask for 1 character */
+ 			if (default_value[0] == '*') *mlen =1;
+ 			else
+ 			{
+				*len = strlen(default_value);
+ 				strncpy(str, default_value, *len);
+ 			}
+ 		}
+
+		do_cmd_interactive_input(Ind, 0); /* ! */
+
+		return FALSE;
+	}
+}
+bool ask_for(int Ind, char query, char *buf) 
+{
+	return askfor_aux(Ind, query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
+}

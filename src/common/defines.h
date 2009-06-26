@@ -385,40 +385,7 @@
 #define	MASTER_SUMMON_SPEFIC	0	
 #define	MASTER_SUMMON_
 
-/*
- * Dungeon master flags
- */
-#define DM_IS_MASTER			0x00000001	
-#define DM_SECRET_PRESENCE	0x00000002	/* cfg_secret_dungeon_master helper */
-#define DM_CAN_MUTATE_SELF	0x00000004	/* This option allows change of the DM_ options */
-#define DM_CAN_ASSIGN		0x00000008
-#define DM___MENU				0x000000F0	/* Dungeon Master Menu: (shortcut to set all) */
-#define DM_CAN_BUILD			0x00000010  /*  building menu) */
-#define DM_LEVEL_CONTROL	0x00000020	/*  static/unstatic level */ 
-#define DM_CAN_SUMMON		0x00000040	/*  summon monsters */
-#define DM_CAN_GENERATE		0x00000080	/*  generate vaults / items */
-#define DM_MONSTER_FRIEND	0x00000100	
-#define DM_INVULNERABLE 	0x00000200	
-#define DM_GHOST_HANDS		0x00000400	/* Can interact with world (like open/close doors) even as a ghost */ 
-#define DM_GHOST_BODY		0x00000800	/* Can carry/wield items even as a ghost */
-#define DM_NEVER_DISTURB	0x00001000	
-#define DM_SEE_LEVEL			0x00002000	/* See all level */
-#define DM_SEE_MONSTERS		0x00004000	/* Free ESP */
-#define DM_SEE_PLAYERS		0x00008000	/* Unused! */
-#define DM_HOUSE_CONTROL	0x00010000	/* Can reset houses */
-#define DM_MISC_XXX1			0x10000000	
-#define DM_MISC_XXX2			0x20000000	/* DM_MISC_XXX -- For grouping some minor features together */
-#define DM_MISC_XXX3			0x40000000
-#define DM_MISC_XXX4			0x80000000
-
-
-#define is_dm(IND) \
-	((Players[IND]->dm_flags & DM_IS_MASTER) ? TRUE : FALSE)
-
-#define is_dm_p(P) \
-	(((P)->dm_flags & DM_IS_MASTER) ? TRUE : FALSE)
- 
-
+#define MASTER_MAX_HOOKS	4	/* Total number of hooks per DM */
 
 /*
  * Methods of leaving a level
@@ -2026,24 +1993,6 @@ that keeps many algorithms happy.
 
 
 /*
- * Legal restrictions for "summon_specific()"
- */
-#define SUMMON_ANIMAL			11
-#define SUMMON_SPIDER		12
-#define SUMMON_HOUND		13
-#define SUMMON_HYDRA		14
-#define SUMMON_ANGEL		15
-#define SUMMON_DEMON		16
-#define SUMMON_UNDEAD		17
-#define SUMMON_DRAGON		18
-#define SUMMON_HI_UNDEAD	21
-#define SUMMON_HI_DRAGON	22
-#define SUMMON_HI_DEMON		26
-#define SUMMON_WRAITH		31
-#define SUMMON_UNIQUE		32
-#define SUMMON_KIN			33
-
-/*
  * Spell types used by project(), and related functions.
  */
 #define GF_ELEC         1
@@ -3301,6 +3250,7 @@ extern int PlayerUID;
 
 /*** Hack ***/
 
+#define CURSOR_HACK 2
 
 /*
  * Hack -- attempt to reduce various values

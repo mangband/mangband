@@ -2738,6 +2738,10 @@ void do_cmd_alter(int Ind, int dir)
 	y = p_ptr->py + ddy[dir];
 	x = p_ptr->px + ddx[dir];
 
+	/* MEGA-HACK! DM HOOK! */
+	if (p_ptr->master_hook[1])
+		master_new_hook(Ind, 'a', y, x);
+
 	/* Get grid */
 	c_ptr = &cave[Depth][y][x];
 	

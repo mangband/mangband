@@ -1591,6 +1591,11 @@ struct player_type
 	byte bubble_colour;		/* Current warning colour for slow time bubbles */
 
 	bool project_hurt;		/* Player has been hurt in project_p() */
+
+	byte master_hook[MASTER_MAX_HOOKS];	/* Dungeon Master hook slots */
+	u32b master_args[MASTER_MAX_HOOKS];	/* Arguments for the hooks */
+	u32b master_parm;		/* Page settings (DM menu) or brush flags */
+	byte master_flag;		/* Currently selected brush (in DM menu) */
 };
 
 

@@ -2320,11 +2320,18 @@ bool alloc_monster(int Depth, int dis, int slp)
  */
 static int summon_specific_type = 0;
 
+/*
+ * Hack -- call with default value
+ */
+static bool summon_specific_okay(int r_idx)
+{
+	return summon_specific_okay_aux(r_idx, summon_specific_type);
+}
 
 /*
  * Hack -- help decide if a monster race is "okay" to summon
  */
-static bool summon_specific_okay(int r_idx)
+bool summon_specific_okay_aux(int r_idx, int summon_type)
 {
 	monster_race *r_ptr = &r_info[r_idx];
 
@@ -2332,11 +2339,11 @@ static bool summon_specific_okay(int r_idx)
 
 
 	/* Hack -- no specific type specified */
-	if (!summon_specific_type) return (TRUE);
+	if (!summon_type) return (TRUE);
 
 
 	/* Check our requirements */
-	switch (summon_specific_type)
+	switch (summon_type)
 	{
 		case SUMMON_ANIMAL:
 		{
@@ -2433,6 +2440,12 @@ static bool summon_specific_okay(int r_idx)
 			okay = (r_ptr->flags1 & RF1_UNIQUE);
 			break;
 		}
+		
+		case SUMMON_ORC:
+		{
+			okay = (r_ptr->d_char == 'o');
+			break;
+		}		
 	}
 
 	/* Result */

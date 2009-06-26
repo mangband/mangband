@@ -787,7 +787,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	char file_name[1024];
 
 	u16b *who;
-	u16b why = 4;
+	u16b why = (SORT_EASY);
 
 	player_type *p_ptr = Players[Ind];
 
@@ -1052,6 +1052,12 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 		case SPECIAL_FILE_KNOWLEDGE:
 			do_cmd_knowledge(Ind, query);
 			break;
+		case SPECIAL_FILE_MASTER:
+			do_cmd_dungeon_master(Ind, query);
+			break;
+		case SPECIAL_FILE_INPUT:
+			do_cmd_interactive_input(Ind, query);			
+			break;
 	}
 }
 
@@ -1150,6 +1156,76 @@ void do_cmd_knowledge(int Ind, char query)
 	{	
 		do_cmd_interactive_aux(Ind, p_ptr->special_file_type, 0);
 	}
+}
+
+void do_cmd_interactive_input(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	bool done = FALSE;
+
+	/* XXX HACK XXX Will be using "hook" to store info */
+	char * old_file_type = &(p_ptr->interactive_hook[0][0]);
+	char * mark = &(p_ptr->interactive_hook[0][1]);
+	char * len = &(p_ptr->interactive_hook[0][2]);
+	char * y = &(p_ptr->interactive_hook[0][3]);
+	char * x = &(p_ptr->interactive_hook[0][4]);
+	char * attr = &(p_ptr->interactive_hook[0][5]);
+	char * mlen = &(p_ptr->interactive_hook[0][6]);	
+	char * str = p_ptr->interactive_hook[1];
+
+	switch(query)
+	{
+		case 0:
+
+		*old_file_type = p_ptr->special_file_type;
+		p_ptr->special_file_type = SPECIAL_FILE_INPUT;
+		Send_term_info(Ind, NTERM_HOLD, 1);
+
+		break;
+
+		case ESCAPE:
+
+		*len = 0;
+
+		case '\n':
+		case '\r':
+
+		done = TRUE;
+		
+		break;
+
+		case 0x7F:
+		case '\010':
+
+		if (*len) (*len)--;
+
+		break;
+
+		default:
+
+		if (*len < 80 && isprint(query))
+		{	
+			str[(byte)(*len)++] = query;
+		}
+	}
+
+	if (done || (*mlen && (*len >= *mlen)))
+	{
+		p_ptr->special_file_type = *old_file_type;
+		Send_term_info(Ind, NTERM_HOLD, 2);
+		do_cmd_interactive_aux(Ind, *old_file_type, *mark);
+		return; 
+	}
+
+	/* Refresh client screen */
+	for (i = 0; i < *len; i++)
+	{
+		Send_char(Ind, *x + i, *y, *attr, str[i], *attr, str[i]);
+	}
+	Send_char(Ind, *x + i, *y, TERM_WHITE, ' ', TERM_WHITE, ' ');
+
+	Send_term_info(Ind, NTERM_FLUSH, 0);	
 }
 
 void do_cmd_interactive(int Ind, char query)

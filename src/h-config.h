@@ -293,4 +293,9 @@
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
 
+/*
+ * HACK -- Allow inclusion of "dirent.h" from libc
+ */
+#define HANDLE_DIRECTORIES
+
 #endif

@@ -2035,7 +2035,8 @@ void move_player(int Ind, int dir, int do_pickup)
 		 * is set, call it.  This is used to make things like building walls
 		 * and summoning monster armies easier.
 		 */
-
+		if (p_ptr->master_hook[0])
+			master_new_hook(Ind, 'x', oy, ox);
 		if (is_dm_p(p_ptr) && master_move_hook)
 			master_move_hook(Ind, NULL);
 	}
