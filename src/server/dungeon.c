@@ -825,7 +825,10 @@ static int auto_retaliate(int Ind)
 
 	/* The dungeon master does not fight his or her offspring */
 	if (p_ptr->dm_flags & DM_MONSTER_FRIEND) return FALSE;
-	
+
+	/* Check preventive inscription '^O' */ 
+	if (CPI(p_ptr, 'O')) return FALSE;
+
 	/* How many possible targets around us? */
 	targets = 0;
 	for(i = 0; i < 8; i++)

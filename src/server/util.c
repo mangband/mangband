@@ -2148,7 +2148,6 @@ cptr quark_str(s16b i)
 
 
 #define end_of_segment(A) ((A) == ' ' || (A) == '!' || (A) == '@' || (A) == '^')
-#define min(A,B) ((A) < (B) ? (A) : (B))
 /*
  * Parse item's inscriptons, extract "^abc" and "^a ^b ^c"
  * cases and cache them. (adapted from check_guard_inscription)
@@ -2174,7 +2173,7 @@ void fill_prevent_inscription(bool *arr, s16b quark)
 			if (end_of_segment(*ax)) break;
 
 			/* Found a "Preventing Inscription" */
-			arr[min(127,(byte)(*ax))] = TRUE;
+			arr[MIN(127,(byte)(*ax))] = TRUE;
 	    }
 	}
 }
