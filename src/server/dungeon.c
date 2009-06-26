@@ -1656,7 +1656,7 @@ static void process_player_end(int Ind)
 
 
 			/* MEGA HACK: no recall if in shop */
-			if(!p_ptr->word_recall && p_ptr->store_num) 
+			if(!p_ptr->word_recall && p_ptr->store_num != -1)
 			{
 				/* Delay for 1 turn */
 			    p_ptr->word_recall++;
