@@ -6040,46 +6040,6 @@ static int Receive_master(int ind)
 		return n;
 	}
 
-	if (player)
-	{
-		switch (command)
-		{
-			case MASTER_LEVEL:
-			{
-				if (!(Players[player]->dm_flags & DM_LEVEL_CONTROL)) return 2;
-				master_level(player, buf);
-				break;
-			}
-
-			case MASTER_BUILD:
-			{
-				if (!(Players[player]->dm_flags & DM_CAN_BUILD)) return 2;
-				master_build(player, buf);
-				break;
-			}
-
-			case MASTER_SUMMON:
-			{
-				if (!(Players[player]->dm_flags & DM_CAN_SUMMON)) return 2;
-				master_summon(player, buf);
-				break;
-			}
-		
-			case MASTER_GENERATE:
-			{
-				if (!(Players[player]->dm_flags & DM_CAN_GENERATE)) return 2;
-				master_generate(player, buf);
-				break;
-			}
-			
-			case MASTER_PLAYER:
-			{
-				master_player(player, buf);
-				break;
-			}
-		}
-	}
-
 	return 2;
 }
 

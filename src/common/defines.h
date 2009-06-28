@@ -375,16 +375,6 @@
 /* 
  * Dungeon master commands
  */
-#define	MASTER_NULL	0
-#define	MASTER_LEVEL	1
-#define MASTER_BUILD	2
-#define	MASTER_SUMMON	3
-#define MASTER_GENERATE	4
-#define	MASTER_PLAYER	5
-
-#define	MASTER_SUMMON_SPEFIC	0	
-#define	MASTER_SUMMON_
-
 #define MASTER_MAX_HOOKS	4	/* Total number of hooks per DM */
 
 /*
