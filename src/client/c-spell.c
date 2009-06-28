@@ -299,13 +299,12 @@ void show_browse(int book)
 void do_study(int book)
 {
 	int j;
-	cptr p = ((class == CLASS_PRIEST || class == CLASS_PALADIN) ? "prayer" : "spell");
 
 	/* Mage -- Learn a selected spell */
-	if (!strcmp(p, "spell"))
+	if (c_info[class].spell_book == TV_MAGIC_BOOK)
 	{
 		/* Ask for a spell, allow cancel */
-		if (!get_spell(&j, p, "Study which spell? ", &book, FALSE)) return;
+		if (!get_spell(&j, "spell", "Study which spell? ", &book, FALSE)) return;
 	}
 
 	/* Priest -- Learn random spell */

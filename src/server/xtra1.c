@@ -354,6 +354,8 @@ static void prt_state(int Ind)
 	if (p_ptr->searching)
 	{
 		s = TRUE;
+		/* Hack -- stealth mode */
+		if (p_ptr->cp_ptr->flags & CF_STEALTH_MODE) s = 2;
 	}
 	else
 	{

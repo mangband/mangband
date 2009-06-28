@@ -409,19 +409,16 @@ static void prt_state(int row, int col)
 		strcpy(text, "Paralyzed!");
 	}
 
+	else if (p_ptr->searching == 2)
+	{	
+		attr = TERM_L_DARK;
+
+		strcpy(text, "Stlth Mode");
+	}
+
 	else if (p_ptr->searching)
 	{
-		if (player.pclass != CLASS_ROGUE)
-		{
-			strcpy(text, "Searching ");			
-		}
-		
-		else
-		{
-			attr = TERM_L_DARK;
-			strcpy(text,"Stlth Mode");
-		}
-		
+		strcpy(text, "Searching ");
 	}
 
 	else if (p_ptr->resting)
