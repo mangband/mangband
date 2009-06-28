@@ -56,6 +56,13 @@ int get_player(int Ind, object_type *o_ptr)
 	return Ind2;
 }
 
+void player_dump(int Ind)
+{
+	char dumpname[42];
+	strfmt(dumpname, "%s-%s.txt", Players[Ind]->name, ht_show(&turn,0));
+	file_character_server(Ind,dumpname);
+}
+
 /*
  * Set "p_ptr->blind", notice observable changes
  *
@@ -2524,32 +2531,189 @@ void evacuate_arena(int Ind) {
 /*
  * Handle the death of a player and drop their stuff.
  */
- 
- /* 
-  HACKED to handle fruit bat 
-  changed so players remain in the team when killed
-  changed so when leader ghosts perish the team is disbanded
-  -APD-
- */
- 
+
+/* Bring back to life the uniques player slew */
+void ressurect_uniques(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	u32b uniques;
+	int i;
+
+	/* Bring back to life the uniques he slew */
+	for (i = 1; i < z_info->r_max; i++)
+	{
+		monster_race *r_ptr = &r_info[i];
+
+		/* Check for unique-ness */
+		if (!(r_ptr->flags1 & RF1_UNIQUE))
+			continue;
+
+		/* Never respawn Morgoth */
+		if (r_ptr->flags1 & RF1_DROP_CHOSEN)
+			continue;
+			
+		/* If we have killed this unique, bring it back */
+		if (p_ptr->r_killed[i])
+		{
+			/* Bring back if unique_depth > our_max_depth - 35% */
+			uniques = p_ptr->max_dlv-((p_ptr->max_dlv*11468)>>15);
+			if (r_ptr->level > uniques )
+			{
+				cheat(format("r_ptr->level = %d, uniques = %d\n",r_ptr->level,(int)uniques));
+				p_ptr->r_killed[i] = 0;
+
+				/* Tell the player */ 
+				msg_format(Ind, "%s rises from the dead!",(r_name + r_ptr->name));
+			}
+		}
+	}
+}
+
+/* Drop all inventory */
+void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect)
+{
+	player_type *p_ptr = Players[Ind];
+	char o_inscribe[80];
+	s16b item_weight = 0;
+	int i;
+
+	/* Drop gold if player has any */
+	if (gold && p_ptr->au)
+	{
+		/* Put the player's gold in the overflow slot */
+		invcopy(&p_ptr->inventory[INVEN_PACK], lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
+
+		/* Drop no more than 32000 gold */
+		if (p_ptr->au > 32000) p_ptr->au = 32000;
+
+		/* Set the amount */
+		p_ptr->inventory[INVEN_PACK].pval = p_ptr->au;
+	}
+
+	/* No more gold */	
+	p_ptr->au = 0;
+
+
+	/* Setup the sorter */
+	ang_sort_comp = ang_sort_comp_value;
+	ang_sort_swap = ang_sort_swap_value;
+
+	/* Sort the player's inventory according to value */
+	ang_sort(Ind, p_ptr->inventory, NULL, INVEN_TOTAL);
+
+	/* Starting with the most valuable, drop things one by one */
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		/* Make sure we have an object */
+		if (p_ptr->inventory[i].k_idx == 0)	continue;
+
+		/* Handle artifacts */
+		if (artifact_p(&p_ptr->inventory[i])) 
+		{
+			/* Can't drop em */
+			if (!artifacts)
+			{
+				/* Mark as unfound */
+				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+				continue;
+			}
+		}
+		/* Hack -- do not drop objects */
+		else if (!objects) continue;
+
+		/* Hack - reinscribe with name */
+		if (protect)
+		{
+			strcpy(o_inscribe, "!* - ");
+			strcat(o_inscribe, p_ptr->name);
+			p_ptr->inventory[i].note = quark_add(o_inscribe);
+		} else p_ptr->inventory[i].note = quark_add(p_ptr->name);
+
+		/* Drop this one */
+		item_weight = p_ptr->inventory[i].weight * p_ptr->inventory[i].number;
+		drop_near(&p_ptr->inventory[i], 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+
+		/* Be careful if the item was destroyed when we dropped it */
+		if (!p_ptr->inventory[i].k_idx)
+		{
+			p_ptr->total_weight -= item_weight;
+			/* If it was an artifact, mark it as unfound */
+			if (artifact_p(&p_ptr->inventory[i]))
+			{
+				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+			}
+		}
+		else
+		{
+			/* We dropped the item on the floor */
+			inven_item_increase(Ind, i, -p_ptr->inventory[i].number);
+		}
+		/* forget about it */
+		WIPE(&p_ptr->inventory[i], object_type);
+	}
+
+	/* He is carrying nothing */
+	p_ptr->inven_cnt = 0;
+}
+
+/* Destroy the character completely */
+void player_funeral(int Ind, char *reason)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+
+	/* Disown any houses he owns */
+	for(i=0; i< num_houses; i++)
+	{
+		if (house_owned_by(Ind,i))
+		{
+			disown_house(i);
+		}
+	}
+
+	/* Remove him from his party -APD- */
+	if (p_ptr->party)
+	{
+		/* He leaves */
+		party_leave(Ind);
+	}
+
+	/* Kill him */
+	p_ptr->death = TRUE;
+
+	/* One less player here */
+	players_on_depth[p_ptr->dun_depth]--;
+
+	/* Remove him from the player name database */
+	delete_player_name(p_ptr->name);
+
+	/* Put him on the high score list */
+	add_high_score(Ind);
+
+	/* Get rid of him */
+	Destroy_connection(p_ptr->conn, reason);
+
+	/* Done */
+	return;
+}
+
+
+/* Handle player death, cheating it when nessecary */
+/* HACKED to handle fruit bat -APD- */ 
 void player_death(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	char buf[1024];
-	char dumpname[42];
-	int i;
-	u32b uniques;
-	s16b item_weight = 0;
-#if defined( PKILL )	
-	int tmp;  /* used to check for pkills */
-	int pkill=0;  /* verifies we have a pkill */
-#endif
+	bool hide = dm_flag_p(p_ptr, SECRET_PRESENCE);	
+	buf[0] = '\0';
 
 	/* HACK -- Do not proccess while changing levels */
 	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Sound */
 	sound(Ind, MSG_DEATH);
+
+	/** Cheat death **/
 
 	/* Hack -- Don't die in Arena! */
 	if (p_ptr->arena_num != -1) 
@@ -2559,6 +2723,16 @@ void player_death(int Ind)
 	    evacuate_arena(Ind);
 	    return;
 	}
+
+	/* Hack -- DM can't die */
+	if (dm_flag_p(p_ptr, INVULNERABLE))
+	{
+		p_ptr->death = FALSE;
+		p_ptr->chp = p_ptr->chp_frac = 0;
+		return;
+	}
+
+	/** DIE **/
 
 	/* Note death */
 	if (!p_ptr->ghost) 
@@ -2574,322 +2748,93 @@ void player_death(int Ind)
 		msg_print(Ind, NULL);
 	}
 
-	/* If this is our final death, clear any houses */
-	if (p_ptr->ghost || option_p(p_ptr, NO_GHOST))
-	{
-		/* Disown any houses he owns */
-		for(i=0; i<num_houses;i++)
-		{ 
-			if(house_owned_by(Ind,i))
-			{ 
-				disown_house(i);
-			}
-		}
-	}
-
-	/* Get rid of him if he's a ghost */
-	if (p_ptr->ghost)
-	{
-
-		/* Tell players */
-		sprintf(buf, "%s's ghost was destroyed by %s.",
-				p_ptr->name, p_ptr->died_from);
-
-		msg_broadcast(Ind, buf);
-		
-		/* Remove him from his party */
-		if (p_ptr->party)
-		{
-			/* He leaves */
-			party_leave(Ind);
-		}
-
-		/* One less player here */
-		players_on_depth[p_ptr->dun_depth]--;
-
-		/* Remove him from the player name database */
-		delete_player_name(p_ptr->name);
-
-		/* Put him on the high score list */
-		add_high_score(Ind);
-
-		/* Format string */
-		sprintf(buf, "Killed by %s", p_ptr->died_from);
-
-		/* Get rid of him */
-		Destroy_connection(p_ptr->conn, buf);
-
-		/* Done */
-		return;
-	}
-
-	/* Tell everyone he died */
-	
-	if (p_ptr->fruit_bat == -1)
-		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-	else if (p_ptr->alive && !p_ptr->no_ghost)
-		sprintf(buf, "%s was killed by %s.", p_ptr->name, p_ptr->died_from);
-	else if (p_ptr->alive && p_ptr->no_ghost)
-		sprintf(buf, "The brave hero %s was killed by %s.", p_ptr->name, p_ptr->died_from);
-	else if (!p_ptr->total_winner)
-		sprintf(buf, "%s committed suicide.", p_ptr->name);
-	else
-		sprintf(buf, "The unbeatable %s has retired to a warm, sunny climate.", p_ptr->name);
-
-#if defined( PKILL )
-/****************
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
-**********************/
-
-	/* 
-		Check for, and handle player killing player here.
-		NB: doesn't check for players named after monsters, or common deaths.
-		(e.g. Player naming themselves "Starved to Death");
-
-		--Crimson
-	*/
-	if(tmp = lookup_player_id(p_ptr->died_from)) { 
-
-		player_type *ptmp = Players[tmp];
-
-		pkill++; 	/* he was pkilled.... Drop an ear(?) */
-		if( ptmp != NULL) { /* Safty First! */
-			if (!strcasecmp(p_ptr->addr, ptmp->addr)) {
-				/* naughty, naughty... same player trying to cheat! kill both characters, 
-				 * dropping nothing note this means the offender drops nothing too! we do 
-				 * this in an offhand way, allowing the main dungeon loop to carry it out, 
-				 * so we don't end up tripping on our toes on the way out  This process 
-				 * reduces the killer to a ghost, and the character that got killed to rubble.
-				 * Crimson... */
-				strcpy(ptmp->died_from, p_ptr->name);
-				ptmp->total_winner = FALSE;
-				ptmp->death = TRUE;
-
-			} else {
-				sprintf(buf, "%s just got his butt kicked by %s.", p_ptr->name, p_ptr->died_from);
-			};
-		};
-	};
-#endif
-	
-
-	/* Tell the players */
-	/* handle the secret_dungeon_master option */
-	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) {
-		/* RLS: Don't broadcast level 1 suicides */
-		if((!strstr(buf,"suicide")) || (p_ptr->lev > 1)) {
-			msg_broadcast(Ind, buf);
-		};
-	};
-
-	/* don't dump ghosts */
-    if(p_ptr->alive || (p_ptr->total_winner && p_ptr->retire_timer == 0)) { 
-		/* Character dump here, before we start dropping items */
-		sprintf(dumpname,"%s-%s.txt",p_ptr->name,ht_show(&turn,0));
-		file_character_server(Ind,dumpname);
-    }
-
-	/* Drop gold if player has any */
-	if (p_ptr->alive && p_ptr->au)
-	{
-		/* Put the player's gold in the overflow slot */
-		invcopy(&p_ptr->inventory[INVEN_PACK], lookup_kind(TV_GOLD,SV_PLAYER_GOLD));
-
-		/* Drop no more than 32000 gold */
-		if (p_ptr->au > 32000) p_ptr->au = 32000;
-
-		/* Set the amount */
-		p_ptr->inventory[INVEN_PACK].pval = p_ptr->au;
-
-		/* No more gold */
-		p_ptr->au = 0;
-	}
-
-	/* Setup the sorter */
-	ang_sort_comp = ang_sort_comp_value;
-	ang_sort_swap = ang_sort_swap_value;
-
-	/* Sort the player's inventory according to value */
-	ang_sort(Ind, p_ptr->inventory, NULL, INVEN_TOTAL);
-
-	/* Starting with the most valuable, drop things one by one */
-	for (i = 0; i < INVEN_TOTAL; i++)
-	{
-		/* Make sure we have an object */
-		if (p_ptr->inventory[i].k_idx == 0)
-			continue;
-		if (p_ptr->inventory[i].k_idx == 0)
-			continue;
-#if defined( PKILL )
-
-		/* hack: pkills drop *nothing* - except artifacts */
-		if (pkill && !artifact_p(&p_ptr->inventory[i])) continue;
-#endif
-
-		/* If we committed suicide, only drop artifacts */
-		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
-
-		/* hack -- total winners do not drop artifacts when they suicide */
-		/* If we committed suicide, and we're on the town level, don't even drop artifacts */
-#if !defined( PKILL )
-		if ((!p_ptr->alive && p_ptr->total_winner && artifact_p(&p_ptr->inventory[i])) ||
-			(!p_ptr->alive && !p_ptr->dun_depth && artifact_p(&p_ptr->inventory[i]))
-#else
-		/* hack -- neither do pkills */
-			|| (!pkill && p_ptr->total_winner && artifact_p(&p_ptr->inventory[i]))
-#endif
-			)
-		{
-			/* set the artifact as unfound */
-			a_info[p_ptr->inventory[i].name1].cur_num = 0;
-			
-			/* Don't drop the artifact */
-			continue;
-		};
-
-		/* Drop this one */
-		item_weight = p_ptr->inventory[i].weight * p_ptr->inventory[i].number;
-		drop_near(&p_ptr->inventory[i], 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
-		
-		/* Be careful if the item was destroyed when we dropped it */
-		if (!p_ptr->inventory[i].k_idx)
-		{
-			p_ptr->total_weight -= item_weight;
-			/* If it was an artifact, mark it as unfound */
-			if (artifact_p(&p_ptr->inventory[i]))
-			{
-				a_info[p_ptr->inventory[i].name1].cur_num = 0;
-			}
-
-		}
-		else
-		{
-			/* We dropped the item on the floor, forget about it */
-			inven_item_increase(Ind, i, -p_ptr->inventory[i].number);
-			WIPE(&p_ptr->inventory[i], object_type);			
-		}
-	}
-
-	if (p_ptr->fruit_bat != -1)
-	{
-		/* Bring back to life the uniques he slew */
-		for (i = 1; i < z_info->r_max; i++)
-		{
-			monster_race *r_ptr = &r_info[i];
-
-			/* Check for unique-ness */
-			if (!(r_ptr->flags1 & RF1_UNIQUE))
-				continue;
-
-			/* Never respawn Morgoth */
-			if (r_ptr->flags1 & RF1_DROP_CHOSEN)
-				continue;
-				
-			/* If we have killed this unique, bring it back */
-			if (p_ptr->r_killed[i])
-			{
-				/* Bring back if unique_depth > our_max_depth - 35% */
-				uniques = p_ptr->max_dlv-((p_ptr->max_dlv*11468)>>15);
-				if (r_ptr->level > uniques )
-				{
-					printf("r_ptr->level = %d, uniques = %d\n",r_ptr->level,(int)uniques);
-					p_ptr->r_killed[i] = 0;
-
-					/* Tell the player */ 
-					sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));							
-					msg_print(Ind, buf);
-				}
-			}
-		}
-	}
+	/* Bring back all the uniques he slew */
+	ressurect_uniques(Ind);
 
 	/* Handle suicide */
 	if (!p_ptr->alive)
 	{
-		/* Remove him from his party */
-		if (p_ptr->party)
-		{
-			/* He leaves */
-			party_leave(Ind);
-		}
-	
-		/* Kill him */
-		p_ptr->death = TRUE;
+		if (!p_ptr->total_winner)
+			sprintf(buf, "%s committed suicide.", p_ptr->name);
+		else
+			sprintf(buf, "The unbeatable %s has retired to a warm, sunny climate.", p_ptr->name);
 
-		/* One less player here */
-		players_on_depth[p_ptr->dun_depth]--;
+		/* Don't announce level 1 suicides */
+		if (p_ptr->lev < 2) hide = TRUE;
 
-		/* Remove him from the player name database */
-		delete_player_name(p_ptr->name);
+		/* Tell players */
+		if (!hide) msg_broadcast(Ind, buf);
 
-		/* Put him on the high score list */
-		add_high_score(Ind);
+		/* HACK - Drop artifacts */
+		player_strip(Ind, FALSE, FALSE, TRUE, FALSE);
 
 		/* Get rid of him */
-		Destroy_connection(p_ptr->conn, "Committed suicide");
+		player_funeral(Ind, "Commited suicide");
 
 		/* Done */
 		return;
 	}
 
-	if (p_ptr->fruit_bat == -1) 
+	/* Destroy ghosts */
+	if (p_ptr->ghost)
 	{
-		p_ptr->mhp = p_ptr->lev + 2;
-		p_ptr->chp = p_ptr->mhp;
-		p_ptr->chp_frac = 0;
+		/* Tell players */
+		if (!hide) msg_broadcast(Ind, format("%s's ghost was destroyed by %s.", p_ptr->name, p_ptr->died_from));
+
+		/* Get rid of him */
+		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
+
+		/* Done */
+		return;
 	}
+
+	/* Normal death */
+	if (p_ptr->fruit_bat == -1)
+		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
+	else if (!cfg_ironman) /* Notice bravery */
+		sprintf(buf, "The brave hero %s was killed by %s.", p_ptr->name, p_ptr->died_from);
 	else
+		sprintf(buf, "%s was killed by %s.", p_ptr->name, p_ptr->died_from);
+
+	/* Tell the players */
+	if (!hide) msg_broadcast(Ind, buf);
+
+	/* Character dump here, before we start dropping items */
+	player_dump(Ind);
+
+	/* Drop all items on floor */
+	player_strip(Ind, TRUE, TRUE, TRUE, TRUE);
+
+	/* Last chance to survive death: */
+	if (cfg_ironman || p_ptr->no_ghost)
 	{
+		/* Get rid of him */
+		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
 
-	/* Tell him */
-	msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
-
-  if (cfg_ironman || p_ptr->no_ghost)
-  {
-	/* 
-	 * Ironmen don't get turned into ghosts.
-	 */
-
-	/* Remove him from his party */
-	if (p_ptr->party)
-	{
-		/* He leaves */
-		party_leave(Ind);
+		/* Done */
+		return;
 	}
 
-	/* One less player here */
-	players_on_depth[p_ptr->dun_depth]--;
-
-	/* Remove him from the player name database */
-	delete_player_name(p_ptr->name);
-
-	/* Put him on the high score list */
-	add_high_score(Ind);  
-	
-	/* Format string */
-	sprintf(buf, "Killed by %s", p_ptr->died_from);
-
-	/* Get rid of him */
-	Destroy_connection(p_ptr->conn, buf);
-
-	/* Done */
-	return;
-  }
-
-	/* Turn him into a ghost */
-	p_ptr->ghost = 1;
+	/** Survived death **/
 
 	/* Give him his hit points back */
+	p_ptr->mhp = p_ptr->lev + 2;
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
-	
-	/* Teleport him */
-	teleport_player(Ind, 200);
 
+	/* Ghost! */
+	if (p_ptr->fruit_bat != -1) 
+	{
+		/* Tell him */
+		msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
+
+		/* Turn him into a ghost */
+		p_ptr->ghost = 1;
+
+		/* Teleport him */
+		teleport_player(Ind, 200);
 	}
-	
-	
-	
+
 	/* Cure him from various maladies */
 	if (p_ptr->image) (void)set_image(Ind, 0);
 	if (p_ptr->blind) (void)set_blind(Ind, 0);
@@ -2901,14 +2846,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 	if (p_ptr->shero) (void)set_shero(Ind, 0);
 	if (p_ptr->fruit_bat != -1) (void)set_food(Ind, PY_FOOD_MAX - 1);
 	else p_ptr->fruit_bat = 2;
+
 	/* Remove the death flag */
 	p_ptr->death = 0;
 
 	/* Cancel any WOR spells */
 	p_ptr->word_recall = 0;
-
-	/* He is carrying nothing */
-	p_ptr->inven_cnt = 0;
 
 	/* Update bonus */
 	p_ptr->update |= (PU_BONUS);
