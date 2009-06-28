@@ -1286,7 +1286,7 @@ errr file_character_server(int Ind, cptr name)
 	fprintf(fff, "\n\n");
 
 	/* Dump house inventory */
-	fprintf(fff, "  [House Storage]\n");
+	fprintf(fff, "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
 		if (house_owned_by(Ind, i)) 
@@ -1302,7 +1302,7 @@ errr file_character_server(int Ind, cptr name)
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
-						if (j > 20) { fprintf(fff, "\n"); j = 0; }					
+						if (j > 12) { fprintf(fff, "\n"); j = 0; }					
 						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
 						fprintf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
@@ -1441,205 +1441,6 @@ errr file_character_server(int Ind, cptr name)
 }
 
 
-
-
-/*
- * Hack -- Dump a character description file
- *
- * XXX XXX XXX Allow the "full" flag to dump additional info,
- * and trigger its usage from various places in the code.
- *
- * FIXME -- This is currently disabled, because either the character dump
- *  will just end up on the server, or a lot more network interface will have
- *  to be defined to transfer this back to the client machine.  Ugh.
- */
-#if 0
-errr file_character(cptr name, bool full)
-{
-	int			i, x, y;
-
-	byte		a;
-	char		c;
-
-#if 0
-	cptr		other = "(";
-#endif
-
-	cptr		paren = ")";
-
-	int			fd = -1;
-
-	FILE		*fff = NULL;
-
-	store_type		*st_ptr = &store[7];
-
-	char		o_name[80];
-
-	char		buf[1024];
-
-
-	/* Drop priv's */
-	safe_setuid_drop();
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_USER, name);
-
-	/* File type is "TEXT" */
-	FILE_TYPE(FILE_TYPE_TEXT);
-
-	/* Check for existing file */
-	fd = fd_open(buf, O_RDONLY);
-
-	/* Existing file */
-	if (fd >= 0)
-	{
-		char out_val[160];
-
-		/* Close the file */
-		(void)fd_close(fd);
-
-		/* Build query */
-		(void)sprintf(out_val, "Replace existing file %s? ", buf);
-
-		/* Ask */
-		if (get_check(out_val)) fd = -1;
-	}
-
-	/* Open the non-existing file */
-	if (fd < 0) fff = my_fopen(buf, "w");
-
-	/* Grab priv's */
-	safe_setuid_grab();
-
-
-	/* Invalid file */
-	if (!fff)
-	{
-		/* Message */
-		msg_format("Character dump failed!");
-		msg_print(NULL);
-
-		/* Error */
-		return (-1);
-	}
-
-
-	/* Begin dump */
-    fprintf(fff, "  [MAngband %d.%d.%d Character Dump]\n\n",
-	        VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-
-
-	/* Save screen */
-	Term_save();
-
-	/* Display the player (with various) */
-	display_player(FALSE);
-
-	/* Dump part of the screen */
-	for (y = 2; y < 22; y++)
-	{
-		/* Dump each row */
-		for (x = 0; x < 79; x++)
-		{
-			/* Get the attr/char */
-			(void)(Term_what(x, y, &a, &c));
-
-			/* Dump it */
-			buf[x] = c;
-		}
-
-		/* Terminate */
-		buf[x] = '\0';
-
-		/* End the row */
-		fprintf(fff, "%s\n", buf);
-	}
-
-	/* Display the player (with history) */
-	display_player(TRUE);
-
-	/* Dump part of the screen */
-	for (y = 15; y < 20; y++)
-	{
-		/* Dump each row */
-		for (x = 0; x < 79; x++)
-		{
-			/* Get the attr/char */
-			(void)(Term_what(x, y, &a, &c));
-
-			/* Dump it */
-			buf[x] = c;
-		}
-
-		/* Terminate */
-		buf[x] = '\0';
-
-		/* End the row */
-		fprintf(fff, "%s\n", buf);
-	}
-
-	/* Restore screen */
-	Term_load();
-
-	/* Skip some lines */
-	fprintf(fff, "\n\n");
-
-
-	/* Dump the equipment */
-	if (equip_cnt)
-	{
-		fprintf(fff, "  [Character Equipment]\n\n");
-		for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
-		{
-			object_desc(o_name, &inventory[i], TRUE, 3);
-			fprintf(fff, "%c%s %s\n",
-			        index_to_label(i), paren, o_name);
-		}
-		fprintf(fff, "\n\n");
-	}
-
-	/* Dump the inventory */
-	fprintf(fff, "  [Character Inventory]\n\n");
-	for (i = 0; i < INVEN_PACK; i++)
-	{
-		object_desc(o_name, &inventory[i], TRUE, 3);
-		fprintf(fff, "%c%s %s\n",
-		        index_to_label(i), paren, o_name);
-	}
-	fprintf(fff, "\n\n");
-
-
-	/* Dump the Home (page 1) */
-	fprintf(fff, "  [Home Inventory (page 1)]\n\n");
-	for (i = 0; i < 12; i++)
-	{
-		object_desc(o_name, &st_ptr->stock[i], TRUE, 3);
-		fprintf(fff, "%c%s %s\n", I2A(i%12), paren, o_name);
-	}
-	fprintf(fff, "\n\n");
-
-	/* Dump the Home (page 2) */
-	fprintf(fff, "  [Home Inventory (page 2)]\n\n");
-	for (i = 12; i < 24; i++)
-	{
-		object_desc(o_name, &st_ptr->stock[i], TRUE, 3);
-		fprintf(fff, "%c%s %s\n", I2A(i%12), paren, o_name);
-	}
-	fprintf(fff, "\n\n");
-
-
-	/* Close it */
-	my_fclose(fff);
-
-
-	/* Message */
-	msg_print("Character dump successful.");
-	msg_print(NULL);
-
-	/* Success */
-	return (0);
-}
-#endif
 
 
 /*
