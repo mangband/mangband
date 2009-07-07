@@ -1718,12 +1718,13 @@ int Receive_char(void)
 	{
 		if (y >= section_icky_row) draw = TRUE;
 		else if (section_icky_col > 0 && x >= section_icky_col) draw = TRUE;
-		else if (section_icky_col < 0 && x >= 0-section_icky_col) draw = TRUE;
+		else if (section_icky_col < 0 && x < Term->wid + section_icky_col) draw = TRUE;
 	}
 	
 	p_ptr->scr_info[y][x-x_off].a = a;
 	p_ptr->scr_info[y][x-x_off].c = c;
 
+	Term_mem_ch(x, y, a, c);
 
 	if (draw)
 	{
@@ -1733,6 +1734,7 @@ int Receive_char(void)
 		Term_gotoxy(x, y);
 	}
 	/* Queue for later */
+	/*
 	else
 	{
 		n = Packet_printf(&qbuf, "%c%c%c%c%c", ch, x-x_off, y, a, c);
@@ -1740,6 +1742,7 @@ int Receive_char(void)
 			n -= Packet_printf(&qbuf, "%c%c", tap, tcp);
 		if (n <= 0)	return n;
 	}
+	*/
 
 	return 1;
 }
@@ -2226,6 +2229,8 @@ int Receive_term_info(void)
 			for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
 				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
 			c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+1, 0);
+			/* section_icky_col = 80;
+			section_icky_row = last_remote_line[p_ptr->remote_term]+4; */
 			screen_icky = TRUE;
 			inkey();
 			screen_icky = FALSE;
@@ -2263,6 +2268,7 @@ int Receive_line_info(void)
 	s16b 	cols, xoff, coff;
 	byte 	r;
 	bool 	draw = FALSE;
+	bool	save = FALSE;
 
 	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
 	{
@@ -2321,15 +2327,12 @@ int Receive_line_info(void)
 			/* Hang on! Icky section! */
 			if (section_icky_row && y < section_icky_row)
 			{
-				if (section_icky_col > 0) xoff = section_icky_col;
+				if (section_icky_col > 0) xoff = section_icky_col - DUNGEON_OFFSET_X;
 				if (section_icky_col < 0) coff = section_icky_col;
 				if (xoff >= cols || cols-coff <= 0) draw = FALSE;
 			}
 
-			//TODO: Remove this:					
-			/* Request a redraw if the line was icky */
-			if (!draw)
-				request_redraw = TRUE;
+			save = TRUE;
 		}
 	}
 	
@@ -2339,6 +2342,10 @@ int Receive_line_info(void)
 
 	/* Decode the attr/char stream */		
 	rle_decode(&rbuf, dest, cols, mode);
+
+	/* Remember screen */
+	if (save)
+		cavemem(dest, cols, DUNGEON_OFFSET_X, y);
 
 	/* Put data to screen */
 	if (draw)
@@ -2396,7 +2403,7 @@ int Receive_special_other(void)
 	strcpy(special_line_header, buf);
 
 	/* HACK!!!! */	
-	if (screen_icky) return 1;
+	if (screen_icky || looking) return 1;
 
 	/* Set file perusal method to "other" */
 	special_line_type = 1;/*SPECIAL_FILE_OTHER;*/
@@ -2520,10 +2527,11 @@ int Receive_target_info(void)
 	/* Hack -- information recall */
 	if (buf[0] == ' ')
 	{ 
+		if (!looking) return 0;
 		if (buf[1] == 'm') win = NTERM_WIN_MONSTER;
 
 		/* Very Dirty Hack -- Force Redraw */
-		prt_player_hack(TRUE);
+		prt_player_hack();
 		
 		for (n = 0; n < last_remote_line[win]+2; n++)
 			Term_erase(0, n, 80);
@@ -2541,25 +2549,27 @@ int Receive_target_info(void)
 		}
 
 		target_recall = TRUE;		
-		topline_icky = TRUE;
 		section_icky_row = last_remote_line[win] + 2;
 		section_icky_col = 80;
 	} 
 	else 
 	{
-		char *s;
-		
-		/* Very Dirty Hack -- Force Redraw */
-		prt_player_hack(TRUE);
+		/* Print the message */
+		prt(buf, 0, 0);
 
 		/* Store prompt */			
-		s = strchr(buf, '[');
-		strcpy(target_prompt, s);
-	}
+		strcpy(target_prompt, strchr(buf, '['));
 
-	/* Print the message */
-	if (!target_recall)
-		prt(buf, 0, 0);
+		if (target_recall)
+		{
+		  	/* Very Dirty Hack -- Force Redraw */
+			prt_player_hack();
+			prt_map_easy();
+
+			target_recall = FALSE;
+			section_icky_row = section_icky_col = 0;
+	  	}
+	}
 
 	/* Hack: Manipulate offset */
 	x += DUNGEON_OFFSET_X;
@@ -2686,7 +2696,7 @@ int Receive_special_line(void)
 	/* Maximum */
 	max_line = max;
 
-	if (!screen_icky) return 1;
+	if (!screen_icky || looking) return 1;
 
 	/* Hack -- decide to go popup/fullon mode */
 	if (line == 0)

@@ -136,6 +136,7 @@ s16b section_icky_col;
 byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
+bool looking;
 
 byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 

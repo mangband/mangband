@@ -765,26 +765,22 @@ void cmd_disarm(void)
 
 void cmd_inven(void)
 {
-	/* The whole screen is "icky" */
-	screen_icky = TRUE;
-
-	/* First, erase our current location */
-
-	/* Then, save the screen */
+	/* Save the screen */
 	Term_save();
 
 	command_gap = 50;
 
+	/* Show inven and *make screen icky* */
 	show_inven();
 
+	/* Pause */
 	(void)inkey();
 
-	/* restore the screen */
+	/* Restore the screen */
 	Term_load();
-	/* print our new location */
 
 	/* The screen is OK now */
-	screen_icky = FALSE;
+	section_icky_row = section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -1160,8 +1156,10 @@ int cmd_target_interactive(int mode)
 	bool done = FALSE;
 	char ch;
 
+	looking = TRUE;
 	cursor_icky = TRUE;
-	
+	topline_icky = TRUE;
+
 	/* Tell the server to init targetting */
 	Send_target_interactive(mode, 0);
 
@@ -1171,9 +1169,6 @@ int cmd_target_interactive(int mode)
 
 		if (target_recall)
 		{
-			target_recall = FALSE;
-
-			topline_icky = FALSE;
 			section_icky_row = section_icky_col = 0;
 		}
 
@@ -1188,18 +1183,22 @@ int cmd_target_interactive(int mode)
 			case '5':
 			case '0':
 			case '.':
+			case ESCAPE:
 				done = TRUE;
 				break;
 		}
-		if (ch == ESCAPE)
-		{
-			prt("", 0, 0);
-			/* Very Dirty Hack -- Force Redraw */
-			prt_player_hack(FALSE);
-			prt_map_easy();
-			break;
-		}
 	}
+
+	if (target_recall)
+	{
+		target_recall = FALSE;
+		/* Very Dirty Hack -- Force Redraw */
+		prt_player_hack();
+		prt_map_easy();
+	}
+
+	looking = FALSE;
+	topline_icky = FALSE;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;

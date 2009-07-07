@@ -85,6 +85,21 @@ static void prt_title(int row, int col)
 	prt_field(ptitle, ROW_TITLE, COL_TITLE);
 }
 
+/*
+ * Prints "class"
+ */
+static void prt_pclass(int row, int col)
+{
+	prt_field(c_name + c_info[class].name, row, col);
+}
+
+/*
+ * Prints "title", including "wizard" or "winner" as needed.
+ */
+static void prt_prace(int row, int col)
+{
+	prt_field(p_name + race_info[race].name, row, col);
+}
 
 /*
  * Prints level
@@ -541,13 +556,13 @@ static void prt_stun(int row, int col)
 /*
  * Display temp. resists
  */
-static void prt_oppose_elements(int row, int col, int wid)
+static void prt_oppose_elements(int row, int col)
 {
 	/* Number of resists to display */
 	int count = 5;
 
 	/* Print up to 5 letters of the resist */
-	int n = MIN(wid / count, 5);
+	int n = MIN((Term->wid - col) / count, 5);
 
 	/* Check space */
 	if (n <= 0) return;
@@ -603,16 +618,14 @@ void prt_map_easy()
 	} 
 }
 /* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
-void prt_player_hack(bool force)
+void prt_player_hack(void)
 {
 	int n;
 	if (window_flag[0] & PW_PLAYER_2)
 	{
-		for (n = 0; n < 22; n++)
+		for (n = 1; n < 22; n++)
 			Term_erase(0, n, 13);
 		p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
-		if (force)
-			redraw_stuff();
 	}
 }
 
@@ -889,10 +902,10 @@ void show_inven(void)
 	col = command_gap;
 
 	/* Default "max-length" */
-	len = 79 - col;
+	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = 79 - 3;
+	lim = Term->wid - 1 - 3;
 
 	/* Require space for weight (if needed) */
 	lim -= 9;
@@ -940,7 +953,7 @@ void show_inven(void)
 	}
 
 	/* Find the column to start in */
-	col = (len > 76) ? 0 : (79 - len);
+	col = (len > Term->wid - 4) ? 0 : (Term->wid - 1 - len);
 
 	/* Output each entry */
 	for (j = 0; j < k; j++)
@@ -968,7 +981,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, 71);
+			put_str(tmp_val, j + 1, lim);
 		}
 	}
 
@@ -977,6 +990,10 @@ void show_inven(void)
 
 	/* Save the new column */
 	command_gap = col;
+
+	/* Make screen icky */
+	section_icky_row = j + 2;
+	section_icky_col = 0 - (Term->wid - col) - 2;
 }
 
 
@@ -1389,8 +1406,7 @@ static void prt_status_line(void)
 	prt_depth(row, COL_DEPTH);
 
 	/* Temp. resists */
-	prt_oppose_elements(row, COL_OPPOSE_ELEMENTS,
-	                    Term->wid - COL_OPPOSE_ELEMENTS);
+	prt_oppose_elements(row, COL_OPPOSE_ELEMENTS);
 }
 
 
@@ -2442,15 +2458,105 @@ void display_player(int screen_mode)
 
 }
 
+typedef void (*pfcb) (int, int); /* "Print Field Call-Back" */ 
+struct field
+{
+	u32b	trigger;
+	s16b	row;
+	s16b	col;
+
+	pfcb	field_cb;
+	byte	win;
+};
+struct field fields[] = 
+{
+	/* Compact display (win = 0) */
+	{ (PR_MISC),	ROW_RACE,	COL_RACE,	(pfcb)prt_prace,	0},
+	{ (PR_MISC),	ROW_CLASS,	COL_CLASS,	(pfcb)prt_pclass,	0},
+	{ (PR_TITLE),	ROW_TITLE,	COL_TITLE,	(pfcb)prt_title,	0},
+	{ (PR_LEV), 	ROW_LEVEL,	COL_LEVEL,	(pfcb)prt_level,	0},
+	{ (PR_EXP), 	ROW_EXP,	COL_EXP,	(pfcb)prt_exp,  	0},
+	{ (PR_GOLD), 	ROW_GOLD,	COL_GOLD,	(pfcb)prt_gold, 	0},	
+
+	/* { (PR_EQUIPPY), ROW_EQUIPPY,COL_EQUIPPY, (pfcb)prt_equippy, }, */
+	{(PR_LAG_METER),ROW_LAG,	COL_LAG,	(pfcb)prt_lag,  	0},
+
+	{ (PR_STATS),	ROW_STAT+0,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ (PR_STATS),	ROW_STAT+1,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ (PR_STATS),	ROW_STAT+2,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ (PR_STATS),	ROW_STAT+3,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ (PR_STATS),	ROW_STAT+4,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ (PR_STATS),	ROW_STAT+5,	COL_STAT,	0,/*prt_stat*/ 0},
+
+	{ (PR_ARMOR), 	ROW_AC, 	COL_AC, 	(pfcb)prt_ac, 0},
+	{ (PR_HP),  	ROW_CURHP,	COL_CURHP,	(pfcb)prt_cur_hp, 0},
+	{ (PR_HP),  	ROW_MAXHP,	COL_MAXHP,	(pfcb)prt_max_hp, 0},
+	{ (PR_MANA),  	ROW_CURSP,	COL_CURSP,	(pfcb)prt_cur_sp, 0},
+	{ (PR_MANA),  	ROW_MAXSP,	COL_MAXSP,	(pfcb)prt_max_sp, 0},
+
+	{ (PR_HEALTH),	ROW_INFO,	COL_INFO,	(pfcb)health_redraw, 0},
+	{ (PR_CUT), 	ROW_CUT,	COL_CUT,	(pfcb)prt_cut, 0},
+
+	/* Status line (win = 1) */
+	{ (PR_HUNGER), 	-1,	COL_HUNGRY,	(pfcb)prt_hunger,	1},
+	{ (PR_BLIND), 	-1,	COL_BLIND,	(pfcb)prt_blind,	1},
+	{ (PR_STUN), 	-1,	COL_STUN,	(pfcb)prt_stun, 	1},
+	{ (PR_CONFUSED),-1, COL_CONFUSED,(pfcb)prt_confused,1},
+	{ (PR_AFRAID),  -1,	COL_AFRAID,	(pfcb)prt_afraid,	1},
+	{ (PR_POISONED),-1,	COL_POISONED,(pfcb)prt_poisoned,1},
+	{ (PR_STATE), 	-1,	COL_STATE,	(pfcb)prt_state,	1},
+	{ (PR_SPEED), 	-1,	COL_SPEED,	(pfcb)prt_speed,	1},
+	{ (PR_STUDY), 	-1,	COL_STUDY,	(pfcb)prt_study,	1},
+	{ (PR_DEPTH), 	-1,	COL_DEPTH,	(pfcb)prt_depth,	1},
+	{ (PR_OPPOSE_ELEMENTS), -1, COL_OPPOSE_ELEMENTS, (pfcb)prt_oppose_elements,	1},
+
+	/* END */
+	{ 0, 0, 0, 0, 0 }
+};
+
 /*
  * Handle "p_ptr->redraw"
  */
 void redraw_stuff(void)
 {
+	struct field *f;
+	u32b win;
+	s16b row;
+	int i = 0; 
+
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;
 
+	/* For each field */
+	for (f = &fields[0]; f->trigger; f++)
+	{
+		if (p_ptr->redraw & f->trigger)
+		{
+			/* Hack: count rows from bottom? */
+			row = (f->row < 0 ? (Term->hgt + f->row) : f->row);
 
+			if ((row < section_icky_row) && 
+				((section_icky_col >= 0 && f->col < section_icky_col) ||
+				 (section_icky_col < 0 && f->col < 0-section_icky_col))) continue;
+			if (screen_icky && !section_icky_row) continue;
+
+			/* Update extra window */
+			win = (f->win ? PW_STATUS : PW_PLAYER_2);
+			p_ptr->window |= win;
+
+			/* Player disabled display */
+			if (!(window_flag[0] & win)) continue;
+
+			/* Display field */
+			if (f->field_cb) (f->field_cb)(row, f->col);
+			/* HACK: for stats: */
+			else prt_stat(i++, row, f->col);
+
+			/* Remove from next update */
+			if (f->trigger != (f+1)->trigger)
+				p_ptr->redraw &= ~(f->trigger);
+		}
+	}
 	/* Character is not ready yet, no screen updates */
 	//if (!character_generated) return;
 
@@ -2459,7 +2565,7 @@ void redraw_stuff(void)
 
 	/* Character is in "icky" mode, no screen updates */
 	if (screen_icky) return;
-
+#if 0
 	/* HACK - Redraw window "Display player (compact)" if necessary */
 	if (p_ptr->redraw & (PR_MISC | PR_TITLE | PR_LEV | PR_EXP |
 	                     PR_STATS | PR_ARMOR | PR_HP | PR_MANA |
@@ -2489,13 +2595,13 @@ void redraw_stuff(void)
 	                     PR_DEPTH | PR_OPPOSE_ELEMENTS);
 		}
 	}
-#if 0
+
 	if (p_ptr->redraw & (PR_MAP))
 	{
 		p_ptr->redraw &= ~(PR_MAP);
 		prt_map();
 	}
-#endif
+
 	if (p_ptr->redraw & (PR_MISC))
 	{
 		p_ptr->redraw &= ~(PR_MISC);
@@ -2568,7 +2674,7 @@ void redraw_stuff(void)
 		p_ptr->redraw &= ~(PR_LAG_METER);
 		prt_lag(ROW_LAG, COL_LAG);
 	}
-	
+
 	if (p_ptr->redraw & (PR_DEPTH))
 	{
 		p_ptr->redraw &= ~(PR_DEPTH);
@@ -2578,8 +2684,7 @@ void redraw_stuff(void)
 	if (p_ptr->redraw & PR_OPPOSE_ELEMENTS)
 	{
 		p_ptr->redraw &= ~PR_OPPOSE_ELEMENTS;
-		prt_oppose_elements(ROW_OPPOSE_ELEMENTS, COL_OPPOSE_ELEMENTS,
-		                    Term->wid - COL_OPPOSE_ELEMENTS);
+		prt_oppose_elements(ROW_OPPOSE_ELEMENTS, COL_OPPOSE_ELEMENTS);
 	}
 
 	if (p_ptr->redraw & (PR_HEALTH))
@@ -2647,7 +2752,7 @@ void redraw_stuff(void)
 		p_ptr->redraw &= ~(PR_STUDY);
 		prt_study(ROW_STUDY, COL_STUDY);
 	}
-
+#endif
 }
 
 

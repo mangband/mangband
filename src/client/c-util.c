@@ -280,6 +280,11 @@ static char inkey_aux(void)
 			return -1;
 		}
 		Net_packet();
+		/* Redraw stuff if necessary */
+		if (p_ptr->redraw)
+		{
+			redraw_stuff();
+		}
 		/* Update the screen */
 		Term_fresh();
 		/* Redraw windows if necessary */
@@ -320,6 +325,12 @@ static char inkey_aux(void)
 				if ((result = Net_input()) == -1)
 				{
 					quit(NULL);
+				}
+
+				/* Redraw stuff if necessary */
+				if (p_ptr->redraw)
+				{
+					redraw_stuff();
 				}
 
 				/* Update the screen */
@@ -2193,6 +2204,17 @@ void clear_from(int row)
 		/* Erase part of the screen */
 		Term_erase(0, y, 255);
 	}
+}
+
+int cavemem(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		Term_mem_ch(i + x, y, src[i].a, src[i].c);
+	}
+	return 1;
 }
 
 int caveprt(cave_view_type* src, int len, s16b x, s16b y)

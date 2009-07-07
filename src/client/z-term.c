@@ -1530,6 +1530,25 @@ errr Term_gotoxy(int x, int y)
 }
 
 
+errr Term_mem_ch(int x, int y, byte a, char c)
+{
+	int w = Term->wid;
+	int h = Term->hgt;
+
+	/* Verify location */
+	if ((x < 0) || (x >= w)) return (-1);
+	if ((y < 0) || (y >= h)) return (-1);
+
+	/* Paranoia -- illegal char */
+	if (!c) return (-2);
+
+	Term->mem->a[y][x] = a;
+	Term->mem->c[y][x] = c;	
+
+	/* Success */
+	return (0);
+}
+
 /*
  * At a given location, place an attr/char
  * Do not change the cursor position
