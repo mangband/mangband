@@ -908,25 +908,17 @@ void do_cmd_check_other(int Ind, int line)
 	if (!p_ptr->special_file_type) return;
 
 	/* Dump the next 20 lines of the file */
+	Send_term_info(Ind, NTERM_CLEAR, 1);
 	for (i = 0; i < 20; i++)
 	{
-		byte attr = TERM_WHITE;
-
 		/* We're done */
 		if (line + i > MAX_TXT_INFO) break;
 		if (line + i > p_ptr->last_info_line) break; 
 		
-		/* Extract string */
-		for (j = 0; j < size; j++)
-		{
-			buf[j] = p_ptr->info[line+i][j].c;
-		}
-		attr = p_ptr->info[line+i][0].a;
-		buf[j] = '\0';
-
-		/* Dump the line */
-		Send_special_line(Ind, p_ptr->last_info_line+1, i, attr, &buf[0]);
+		Send_special_line(Ind, line + i, i);
 	}
+	Send_term_info(Ind, NTERM_FLUSH, 0);
+	
 #if 0
 	int n = 0;
 	FILE *fff;
@@ -998,6 +990,40 @@ void common_peruse(int Ind, char query)
 		p_ptr->interactive_line = 0;
 }
 
+void special_file_peruse(int Ind, int type, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	int next = p_ptr->interactive_next;
+
+	/* We're just starting. Reset counter */
+	if (!query)
+	{
+		p_ptr->interactive_line = 0;
+		p_ptr->interactive_next = -1;
+		next = 0;
+	}
+	/* We're done. */
+	else if (query == ESCAPE) return;
+	/* Process query */
+	else next = file_peruse_next(Ind, query, next);
+
+	/* Update file */
+	if (next != p_ptr->interactive_next)
+	{
+		p_ptr->interactive_next = next;
+		switch (type)
+		{
+			case SPECIAL_FILE_UNIQUE:	do_cmd_check_uniques(Ind, next); 	break;
+			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(Ind, next);	break;
+			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(Ind, next);	break;
+			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(Ind, next);	break;
+			case SPECIAL_FILE_KILL:		do_cmd_knowledge_kills(Ind, next);	break;
+			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);break;
+			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
+		}
+	}
+}
+
 void do_cmd_interactive_aux(int Ind, int type, char query)
 {
 	player_type *p_ptr = Players[Ind];
@@ -1008,16 +1034,14 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 			p_ptr->special_file_type = FALSE;
 			break;
 		case SPECIAL_FILE_UNIQUE:
-			common_peruse(Ind, query);
-			do_cmd_check_uniques(Ind, p_ptr->interactive_line);
-			break;
 		case SPECIAL_FILE_ARTIFACT:
-			common_peruse(Ind, query);
-			do_cmd_check_artifacts(Ind, p_ptr->interactive_line);
-			break;
 		case SPECIAL_FILE_PLAYER:
-			common_peruse(Ind, query);
-			do_cmd_check_players(Ind, p_ptr->interactive_line);
+		case SPECIAL_FILE_OBJECT:
+		case SPECIAL_FILE_KILL:
+		case SPECIAL_FILE_HISTORY:
+		case SPECIAL_FILE_SCORES:
+			special_file_peruse(Ind, type, query);
+			do_cmd_check_other(Ind, p_ptr->interactive_line - p_ptr->interactive_next);
 			break;
 		case SPECIAL_FILE_OTHER:
 			common_peruse(Ind, query);
@@ -1025,30 +1049,13 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 				p_ptr->interactive_line = p_ptr->last_info_line;
 			do_cmd_check_other(Ind, p_ptr->interactive_line);
 			break;
-		case SPECIAL_FILE_OBJECT:
-			common_peruse(Ind, query);
-			do_cmd_knowledge_object(Ind, p_ptr->interactive_line);	
-			break;
-		case SPECIAL_FILE_KILL:
-			common_peruse(Ind, query);
-			do_cmd_knowledge_kills(Ind, p_ptr->interactive_line);	
-			break;
-		case SPECIAL_FILE_HISTORY:
-			common_peruse(Ind, query);
-			do_cmd_knowledge_history(Ind, p_ptr->interactive_line);
-			break;
-		case SPECIAL_FILE_SCORES:
-			common_peruse(Ind, query);
-			display_scores(Ind, p_ptr->interactive_line);
-			break;
-		case SPECIAL_FILE_HOUSES:
-			common_peruse(Ind, query);
-			display_houses(Ind, query);
-			break;
 		case SPECIAL_FILE_HELP:
 			common_file_peruse(Ind, query);
 			do_cmd_check_other(Ind, p_ptr->interactive_line - p_ptr->interactive_next);
-			break;	
+			break;
+		case SPECIAL_FILE_HOUSES:
+			display_houses(Ind, query);
+			break;
 		case SPECIAL_FILE_KNOWLEDGE:
 			do_cmd_knowledge(Ind, query);
 			break;

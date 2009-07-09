@@ -212,7 +212,7 @@ static void Init_receive(void)
 	playing_receive[PKT_DROP_GOLD]		= Receive_drop_gold;
 	playing_receive[PKT_REDRAW]		= Receive_redraw;
 	playing_receive[PKT_REST]		= Receive_rest;
-	playing_receive[PKT_SPECIAL_LINE]	= 	Receive_special_line;
+	/*playing_receive[PKT_SPECIAL_LINE]	= 	Receive_special_line;*/
 	playing_receive[PKT_SPECIAL_OTHER]	= Receive_interactive;
 	playing_receive[PKT_KEY]        	= Receive_term_key;
 	playing_receive[PKT_SYMBOL_QUERY]	= 	Receive_symbol_query;
@@ -2023,7 +2023,56 @@ int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 	}
 	/* report total bytes */ return b;
 }
+/* Similar to RLE encoding, but uses "Special line" method instead of RLE.
+ * Basicly, all "chars" are sent as is, but "attrs" are sent in 'spans' 
+ * This is usefull for sending text data (opposed to dungeon/cave data) */
+int color_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col)
+{
+	int i, n;
+	byte a;
+	/* count bytes */ int b = 0;
 
+	/* Each column */
+	for (i = 0; i < max_col; i++)
+	{
+		/* Obtain the char/attr pair */
+		a = (lineref[i]).a;
+
+		/* Start with count of 1 */
+		n = 1;
+
+		/* Count repetitions of this color */
+		while ((i+n) < max_col && lineref[(i+n)].a == a)
+		{
+			/* Increment count and column */
+			n++;
+		}
+
+		/* if there are at least 3 similar grids in a row */
+		if (n >= 3)
+		{
+			/* Set bit 0x40 of a */
+			a |= 0x40;
+
+			/* Output the attr */
+			Packet_printf(buf, "%c%c", a, n);
+			/* count bytes */ b+=2+n;			
+			/* Output the chars */
+			while (n--)
+			{
+				Packet_printf(buf, "%c", (lineref[i++]).c);
+			}
+		}
+		else
+		{
+			/* Normal, single grid */
+			Packet_printf(buf, "%c%c", a, (lineref[i]).c);
+			/* count bytes */ b+=2;
+		}
+				
+	}
+	/* report total bytes */ return b;
+}
 /*
  * Send a reply to a special client request.
  * Not used consistently everywhere.
@@ -3060,6 +3109,28 @@ int Send_line_info(int ind, int y)
 	return 1;
 }
 
+int Send_special_line(int ind, int line, int y)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for special line (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	/* Packet header */
+	Packet_printf(&connp->c, "%c%hd", PKT_SPECIAL_LINE, y);
+
+	/* Packet body */
+	color_encode(&connp->c, p_ptr->info[line], 80);
+
+	return 1;
+}
+
 int Send_remote_line(int ind, int y)
 {
 	player_type *p_ptr = Players[ind];
@@ -3267,7 +3338,7 @@ void Send_item_testers(int ind)
 		}
 	} 
 }
-
+#if 0
 int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
@@ -3285,7 +3356,7 @@ int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
 	temp[79] = '\0';
 	return Packet_printf(&connp->c, "%c%hd%hd%c%s", PKT_SPECIAL_LINE, max, line, attr, temp);
 }
-
+#endif
 int Send_pickup_check(int ind, cptr buf)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
@@ -5668,7 +5739,7 @@ static int Receive_rest(int ind)
 
 	return 1;
 }
-
+#if 0
 static int Receive_special_line(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -5716,6 +5787,7 @@ static int Receive_special_line(int ind)
 
 	return 1;
 }
+#endif
 
 
 static int Receive_interactive(int ind)

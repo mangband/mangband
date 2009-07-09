@@ -232,22 +232,22 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 #endif
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
-		(COMMAND_SPECIAL_FILE),
+		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_ARTIFACT, "Artifacts"
 	},
 	{ /* Uniques */
 		'|', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
-		(COMMAND_SPECIAL_FILE),
+		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_UNIQUE, "Uniques"
 	},
 	{ /* Players */
 		'@', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
-		(COMMAND_SPECIAL_FILE),
+		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_PLAYER, "Players"
 	},
 	{ /* Scores */
 		'#', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
-		(COMMAND_SPECIAL_FILE),
+		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_SCORES, "Highscores"
 	},
 

@@ -1443,6 +1443,40 @@ errr file_character_server(int Ind, cptr name)
 
 
 
+int file_peruse_next(int Ind, char query, int next)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Process query */
+	if (query)
+	{
+		if (query == '1') /* 'End' */ 
+			p_ptr->interactive_line = p_ptr->interactive_size-20; 
+		else 	/* Other keys */
+			common_peruse(Ind, query);
+
+		/* Adjust viewport boundaries */
+		if (p_ptr->interactive_line > p_ptr->interactive_size-20)
+			p_ptr->interactive_line = p_ptr->interactive_size-20;
+		if (p_ptr->interactive_line < 0)
+			p_ptr->interactive_line = 0;			
+
+		/* Shift window! */
+		if ((p_ptr->interactive_line+20 > p_ptr->interactive_next+MAX_TXT_INFO)
+			|| (p_ptr->interactive_line < p_ptr->interactive_next))
+		{
+			next = p_ptr->interactive_line - MAX_TXT_INFO / 2;
+		}
+
+		/* Adjust window boundaries */
+		if (next > p_ptr->interactive_size - MAX_TXT_INFO)
+			next = p_ptr->interactive_size - MAX_TXT_INFO;
+		if (next < 0) next = 0;
+	}
+	return next;
+}
+
+
 /*
  * On-Line help.
  *
@@ -1504,26 +1538,7 @@ void common_file_peruse(int Ind, char query)
 	/* Process query */
 	if (query)
 	{
-		if (query == '1') /* 'End' */ 
-			p_ptr->interactive_line = p_ptr->interactive_size-20; 
-		else 	/* Other keys */
-			common_peruse(Ind, query);
-
-		/* Adjust viewport boundaries */
-		if (p_ptr->interactive_line > p_ptr->interactive_size-20)
-			p_ptr->interactive_line = p_ptr->interactive_size-20;
-
-		/* Shift window! */
-		if ((p_ptr->interactive_line+20 > p_ptr->interactive_next+MAX_TXT_INFO)
-			|| (p_ptr->interactive_line < p_ptr->interactive_next))
-		{
-			next = p_ptr->interactive_line - MAX_TXT_INFO / 2;
-		}
-
-		/* Adjust window boundaries */
-		if (next > p_ptr->interactive_size - MAX_TXT_INFO)
-			next = p_ptr->interactive_size - MAX_TXT_INFO;
-		if (next < 0) next = 0;
+		next = file_peruse_next(Ind, query, next);
 	}
 
 	/* Update file */
@@ -1556,6 +1571,9 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 
 	/* General buffer */
 	char	buf[1024];
+
+	/* Strlen */
+	int 	len;
 
 	/* Build the filename */
 	path_build(path, 1024, ANGBAND_DIR_TEXT, name);
@@ -1606,6 +1624,9 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 			continue;
 		}
 
+		/* Get length */
+		len = strlen(buf);
+
 		/* Count the "real" lines */
 		next++;
 
@@ -1618,11 +1639,17 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 		/* Extract color */
 		if (color) attr = color_char_to_attr(buf[0]);
 
-		/* Dump the line */
-		for (k = color; k < 80; k++)
+		/* Clear rest of line with spaces */
+		for (k = len; k < 80 + color; k++)
 		{
-			p_ptr->info[i][k-color].a = attr;
-			p_ptr->info[i][k-color].c = buf[k];
+			buf[k] = ' ';
+		}
+
+		/* Dump the line */
+		for (k = 0; k < 80; k++)
+		{
+			p_ptr->info[i][k].a = attr;
+			p_ptr->info[i][k].c = buf[k+color];
 		}
 
 		/* Count the "info[]" lines */
@@ -1638,6 +1665,8 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 	/* Close the file */
 	my_fclose(fff);
 }
+
+#if 0
 /*
  * Recursive "help file" perusal.  Return FALSE on "ESCAPE".
  *
@@ -1992,7 +2021,7 @@ void do_cmd_help(int Ind, int line)
 	/* Peruse the main help file */
 	(void)do_cmd_help_aux(Ind, name, NULL, line, FALSE);
 }
-
+#endif
 
 
 /*
@@ -2003,20 +2032,14 @@ void do_cmd_help(int Ind, int line)
  */
 errr show_file(int Ind, cptr name, cptr what, int line, int color)
 {
-	/* Enter "icky" mode */
-	/*character_icky = TRUE;*/
-
-	/* Save the screen */
-	/*Term_save();*/
+	/* Prepare */
+	clear_from(Ind, 0);
 
 	/* Peruse the requested file */
-	(void)do_cmd_help_aux(Ind, name, what, line, color);
-
-	/* Restore the screen */
-	/*Term_load();*/
-
-	/* Leave "icky" mode */
-	/*character_icky = FALSE;*/
+	copy_file_info(Ind, name, line, color);
+	
+	/* Send header */
+	Send_special_other(Ind, (char*)what);
 
 	/* Success */
 	return (0);

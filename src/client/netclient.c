@@ -798,7 +798,52 @@ int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 	}
 	return 0;
 }
+/* Companion function for "color_encode" in netserver.c */ 
+int color_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col)
+{
+	int	x, i;
+	char c;
+	byte a, n;
+		
+	for (x = 0; x < max_col;)
+	{
+		/* Read the attr */
+		Packet_scanf(buf, "%c", &a);
 
+		/* RLE-C - Check for bit 0x40 on the attribute */
+		if ((a & 0x40))
+		{
+			/* First, clear the bit */
+			a &= ~(0x40);
+
+			/* Read the number of repetitions */
+			Packet_scanf(buf, "%c", &n);
+		}
+		else
+		{
+			/* No RLE, just one instance */
+			n = 1;
+		}
+
+		/* Draw a character n times */
+		for (i = 0; i < n; i++)
+		{
+			/* Read the char */
+			Packet_scanf(buf, "%c", &c);
+
+			if (lineref)
+			{
+				/* Memorize */
+				lineref[x+i].a = a;
+				lineref[x+i].c = c;
+			}
+		}
+		/* Reset 'x' to the correct value */
+		x += n;
+	}
+
+	return 0;
+}
 
 int old_Receive_reliable(void)
 {
@@ -2256,6 +2301,29 @@ int Receive_term_info(void)
 	return 1;
 } 
 
+int Receive_special_line(void)
+{
+	char	ch, n;
+	s16b	y = 0;
+	byte	r;
+
+	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
+	{
+		return n;
+	}
+
+	r = p_ptr->remote_term;
+
+	/* Check the max line count */
+	if (y > last_remote_line[r])
+		last_remote_line[r] = y;
+
+	/* Decode the attr/char stream */		
+	color_decode(&rbuf, remote_info[r][y], 80);
+
+	return 1;
+}
+
 #define DUNGEON_RLE_MODE (use_graphics ? RLE_LARGE : RLE_CLASSIC) 
 int Receive_line_info(void)
 {
@@ -2674,6 +2742,7 @@ int Receive_custom_command(void)
 	return 1;
 }
 
+#if 0
 int Receive_special_line(void)
 {
 	int	n;
@@ -2740,7 +2809,7 @@ int Receive_special_line(void)
 
 	return 1;
 }
-
+#endif
 int Receive_pickup_check(void)
 {
 	int	n;

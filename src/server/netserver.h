@@ -124,7 +124,7 @@ static int Receive_drop_gold(int ind);
 static int Receive_redraw(int ind);
 static int Receive_rest(int ind);
 static int Receive_party(int ind);
-static int Receive_special_line(int ind);
+/*static int Receive_special_line(int ind);*/
 static int Receive_interactive(int ind);
 static int Receive_term_key(int ind);
 static int Receive_symbol_query(int ind);

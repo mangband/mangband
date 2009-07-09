@@ -566,6 +566,7 @@ extern errr check_load(void);
 extern void read_times(void);
 extern void show_news(void);
 extern errr show_file(int Ind, cptr name, cptr what, int line, int color);
+extern int file_peruse_next(int Ind, char query, int next);
 extern void common_file_peruse(int Ind, char query);
 extern void copy_file_info(int Ind, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
@@ -731,7 +732,8 @@ extern int Send_store_sell(int Ind, int price);
 extern int Send_store_leave(int Ind);
 extern int Send_target_info(int ind, int x, int y, cptr buf);
 extern int Send_sound(int ind, int sound);
-extern int Send_special_line(int ind, int max, int line, byte attr, cptr buf);
+/*extern int Send_special_line(int ind, int max, int line, byte attr, cptr buf);*/
+extern int Send_special_line(int ind, int line, int y);
 extern int Send_pickup_check(int ind, cptr buf);
 extern int Send_party(int ind);
 extern int Send_channel(int ind, int n, cptr virtual);
