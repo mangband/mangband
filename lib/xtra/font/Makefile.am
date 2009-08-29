@@ -1,0 +1,6 @@
+
+fontdir = $(pkgdatadir)/xtra/font
+font_DATA = 10X20.FON 12X24.FON 16x16.FON 5X8.FON 6X10.FON 6X12.FON 6X13.FON 6X13B.FON 6X9.FON 7X13.FON 7X13B.FON \
+            8X13.FON 8X13B.FON 9X15.FON 9X15B.FON misc6x13.hex nethack10x19-10.hex
+
+EXTRA_DIST = $(font_DATA)

@@ -14,5 +14,5 @@ read TMP_PAUSE
 wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD"
 wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD"
 
-mv config.sub ../../src/config.sub
-mv config.guess ../../src/config.guess
+mv config.sub ../../config.sub
+mv config.guess ../../config.guess
