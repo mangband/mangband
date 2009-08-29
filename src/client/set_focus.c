@@ -1,4 +1,4 @@
-#if !defined(WIN32) || (defined(WIN32) && defined(USE_SDL))
+#ifndef USE_WIN
 
 /* Hack -- set focus to chat message control */
 void set_chat_focus( void )

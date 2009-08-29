@@ -7,6 +7,7 @@
  * "c-init.c".
  */
 
+#ifndef USE_WIN
 #include "c-angband.h"
 
 
@@ -161,3 +162,5 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
+#endif

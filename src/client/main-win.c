@@ -71,7 +71,7 @@
 
 #include "c-angband.h"
 
-#ifdef WINDOWS
+#ifdef USE_WIN
 
 #define MNU_SUPPORT
 #define GRAPHICS

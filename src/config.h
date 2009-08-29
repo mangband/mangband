@@ -29,7 +29,7 @@
  * important compile time options, like what visual module to use.
  */
 
-/*
+/* 
  * define this if you wish to limit players to one character playing
  * at a time on the server.  Note this doesn't stop them from just
  * using two computers side by side, but most won't have this.
@@ -42,7 +42,7 @@
  * players on.  Define this to be an empty string if you don't want to
  * report to a metaserver.
  */
-#define	META_ADDRESS "mangband.org"
+#define	META_ADDRESS "mangband.org"  
 
 
 /*
@@ -232,7 +232,7 @@
 #define WIDE_CORRIDORS
 
 /*
- * OPTION: Do not switch to manual targeting if there are no
+ * OPTION: Do not switch to manual targeting if there are no 
  * targets in the vicinity of player (un-Angband), display a prompt instead
  */
 #define NOTARGET_PROMPT
@@ -242,7 +242,7 @@
  * Command overloads eat more bandwitch, but give more flexibility.
  */
 #define COMMAND_OVERLOAD
-
+ 
 /*
  * OPTION: Hack -- Compile in support for "Cyborg" mode
  */

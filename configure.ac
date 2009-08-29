@@ -5,7 +5,7 @@ AC_PREREQ(2.56)
 AC_INIT(mangband, 1.2.0, team@mangband.org)
 AM_INIT_AUTOMAKE(mangband, 1.2.0)
 AM_CONFIG_HEADER(config.h)
-
+AC_CANONICAL_HOST
 
 # We don't like -02 in cflags
 cflags_save="$CFLAGS"
@@ -15,6 +15,15 @@ AM_PROG_CC_STDC
 AC_PROG_RANLIB
 # But we do like our debug symbols and warnings
 CFLAGS="$cflags_save -Wall -g -pipe"
+
+# Defaults
+CLIENT_LDFLAGS=""
+SERVER_LDFLAGS=""
+SERVER_CFLAGS=""
+CLIENT_CFLAGS=""
+
+# Evil Hack -- Check for presence of Windres
+AM_CONDITIONAL(HAVE_WINDRES, which windres > /dev/null)
 
 # Evil Hack -- Check for Host OS
 case "${host_os}" in
@@ -84,65 +93,46 @@ fi
 #GCU
 if test "x$enabled_gcu" = xyes
 then
-    TERMDEFS="$TERMDEFS -DUSE_GCU"
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_GCU -I/usr/include/ncurses"
     DISPMOD="$DISPMOD GCU"
 fi
 #X11
 if test "x$enabled_x11" = xyes
 then
-    TERMDEFS="$TERMDEFS -DUSE_X11"
-    LIBS="$LIBS -lX11"
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_X11"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lX11"
     DISPMOD="$DISPMOD X11"
 fi
 #SDL
 if test "x$enabled_sdl" = xyes
 then
-    TERMDEFS="$TERMDEFS -DUSE_SDL"
-    LIBS="$LIBS `sdl-config --libs`"
-    CFLAGS="$CFLAGS `sdl-config --cflags`"
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL `sdl-config --cflags`"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl-config --libs`"
     DISPMOD="$DISPMOD SDL"
 fi
 
 
-# Entering Windows_Hacks zone
-RES_FILE="#"
-CLI_MAIN="#"
-CLI_DMAIN="#"
-CLI_LIBS="#"
-SERV_LIBS="#"
-
-# Winsock suggests windows!
+#WIN (might be SDL on Windows)
 if test "x$ON_WINDOWS" = xyes
 then
     AC_MSG_NOTICE([Forcing Windows32 mode. Use --disable-win to change this.])
 	AC_CHECK_LIB([ws2_32], [main],[LIBS="$LIBS -lws2_32"], AC_ERROR([lib ws2_32 not found]))
+	AC_CHECK_LIB([winmm], [main], [LIBS="$LIBS -lwinmm"], AC_ERROR([lib winmm not found]))
 	if test "x$enabled_sdl" != xyes
 	then
-	    LIBS="$LIBS -mwindows"
-	    AC_CHECK_LIB([winmm], [main], [LIBS="$LIBS -lwinmm"], AC_ERROR([lib winmm not found]))
-	    AC_CHECK_LIB([gdi32], [main], [LIBS="$LIBS -lgdi32"], AC_ERROR([lib gdi32 not found]))
-	    AC_CHECK_LIB([comdlg32], [main], [LIBS="$LIBS -lcomdlg32"], AC_ERROR([lib comdlg32 not found]))
-	    CLI_MAIN="CLI_MAIN = client/main-win.c"
+	    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -mwindows"
+	    AC_CHECK_LIB([gdi32], [main], [CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lgdi32"], AC_ERROR([lib gdi32 not found]))
+	    AC_CHECK_LIB([comdlg32], [main], [CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lcomdlg32"], AC_ERROR([lib comdlg32 not found]))
+	    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_WIN"
 	    DISPMOD="$DISPMOD WIN32"
-	else
-	    CLI_DMAIN="CLI_DMAIN=-Dmain=SDL_main"
 	fi
-    CLI_LIBS="CLI_LIBS = $LIBS"
-    SERV_LIBS="SERV_LIBS = -lws2_32 -lwinmm"
-    LIBS=""
-    RES_FILE="RES = windres -I client -o client/res.o client/Angband.rc"
 fi
 
-
-AC_SUBST(RES_FILE)
-AC_SUBST(CLI_DMAIN)
-AC_SUBST(CLI_MAIN)
-AC_SUBST(CLI_LIBS)
-AC_SUBST(SERV_LIBS)
-# Leaving Windows_Hacks Zone
-
 # Add Terminal Flags:
-CFLAGS="$CFLAGS $TERMDEFS -I/usr/include/ncurses"
+AC_SUBST(CLIENT_CFLAGS)
+AC_SUBST(CLIENT_LDFLAGS)
+AC_SUBST(SERVER_CFLAGS)
+AC_SUBST(CLIENT_LDFLAGS)
 
 # Checks for header files.
 AC_HEADER_STDC

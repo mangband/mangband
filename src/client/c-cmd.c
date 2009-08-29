@@ -1524,9 +1524,9 @@ void cmd_chat_cycle(int dir)
 void cmd_message(void)
 {
 	//[flm] powerhack to prevent next hack:
-	bool refocus_chat = TRUE;
-#ifdef USE_SDL
-	refocus_chat = FALSE;
+	bool refocus_chat = FALSE;
+#ifdef USE_WIN
+	refocus_chat = TRUE;
 #endif
 # define PMSG_TERM 4
 	// [hack] hack to just change the window focus in WIN32 client
