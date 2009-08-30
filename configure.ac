@@ -7,14 +7,11 @@ AM_INIT_AUTOMAKE(mangband, 1.2.0)
 AM_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
-# We don't like -02 in cflags
-cflags_save="$CFLAGS"
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_STDC
 AC_PROG_RANLIB
-# But we do like our debug symbols and warnings
-CFLAGS="$cflags_save -Wall -g -pipe"
+#CFLAGS="$CFLAGS -Wall -g -pipe"
 
 # Defaults
 CLIENT_LDFLAGS=""
