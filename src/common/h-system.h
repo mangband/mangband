@@ -48,7 +48,7 @@
 
 #include <time.h>
 
-#ifdef HANDLE_DIRECTORIES
+#ifdef HAVE_DIRENT_H
 # include <dirent.h>
 #endif
 

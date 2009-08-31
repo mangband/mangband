@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy $(OutDir)\src\config.h.in $(OutDir)\src\config.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -392,6 +393,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\h-basic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\h-config.h"
 				>
 			</File>
 			<File

@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy $(OutDir)\src\config.h.in $(OutDir)\src\config.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -39,6 +40,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/D &quot;USE_WIN&quot;"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;HAS_STRICMP;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
@@ -341,11 +343,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\defines.h"
+				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\defines.h"
+				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
@@ -358,6 +360,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\h-basic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\h-config.h"
 				>
 			</File>
 			<File

@@ -6300,7 +6300,7 @@ void do_cmd_dungeon_master(int Ind, char query)
         	{
 				case 'S': players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth) + 1; break;
 				case 'U': players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth); break;
-#ifdef HANDLE_DIRECTORIES				
+#ifdef HAVE_DIRENT_H
 				case 'I':
 				if (!askfor_aux(Ind, query, buf, 1, 0, "Really import selected file ? [y/n]", "*", TERM_WHITE, TERM_WHITE)) return;
 				if (STRZERO(buf)) break;
@@ -6618,13 +6618,13 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 			case DM_PAGE_LEVEL:
 			{
-#ifdef HANDLE_DIRECTORIES
+#ifdef HAVE_DIRENT_H
 				DIR	*dip;
         		struct dirent	*dit;
 #endif        	
 				int dun_players = players_on_depth[p_ptr->dun_depth];	
         		int num_players = count_players(p_ptr->dun_depth);
-#ifdef HANDLE_DIRECTORIES        		
+#ifdef HAVE_DIRENT_H
 				if ((dip = opendir(ANGBAND_DIR_SAVE)) != NULL)
         		{
 					for (i = 0, j = 0; (dit = readdir(dip)) != NULL; i++)
