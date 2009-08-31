@@ -40,11 +40,11 @@ static void init_arrays(void)
  * Initialize and verify the file paths, and the score file.
  *
  * Use the ANGBAND_PATH environment var if possible, else use
- * DEFAULT_PATH, and in either case, branch off appropriately.
+ * PKGDATADIR, and in either case, branch off appropriately.
  *
  * First, we'll look for the ANGBAND_PATH environment variable,
  * and then look for the files in there.  If that doesn't work,
- * we'll try the DEFAULT_PATH constant.  So be sure that one of
+ * we'll try the PKGDATADIR constant.  So be sure that one of
  * these two things works...
  *
  * We must ensure that the path ends with "PATH_SEP" if needed,
@@ -71,7 +71,7 @@ void init_stuff(void)
         tail = getenv("ANGBAND_PATH");
 
         /* Use the angband_path, or a default */
-        strcpy(path, tail ? tail : DEFAULT_PATH);
+        strcpy(path, tail ? tail : PKGDATADIR);
 
         /* Hack -- Add a path separator (only if needed) */
         if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);

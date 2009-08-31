@@ -2,7 +2,7 @@
 bin_PROGRAMS = mangband
 
 LDADD = ../common/libcommon.a $(SERVER_LDFLAGS)
-AM_CFLAGS = -DDEFAULT_PATH=\"$(pkgdatadir)\" $(SERVER_CFLAGS)
+AM_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
 
 mangband_SOURCES = birth.c cave.c cmd1.c cmd2.c cmd3.c cmd4.c cmd5.c \
 		   cmd6.c control.c dungeon.c files.c generate.c init1.c init2.c \

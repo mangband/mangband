@@ -1,6 +1,6 @@
 
 noinst_LIBRARIES = libcommon.a
-AM_CFLAGS = -DDEFAULT_PATH=\"$(pkgdatadir)\"
+AM_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\"
 
 libcommon_a_SOURCES = md5.c net-ibm.c net-unix.c net-win.c sockbuf.c z-form.c z-rand.c \
 		      z-util.c z-virt.c \

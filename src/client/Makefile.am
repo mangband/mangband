@@ -2,7 +2,7 @@
 bin_PROGRAMS = mangclient
 
 LDADD = ../common/libcommon.a $(CLIENT_LDFLAGS)
-AM_CFLAGS = -DDEFAULT_PATH=\"$(pkgdatadir)\" $(CLIENT_CFLAGS)
+AM_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" $(CLIENT_CFLAGS)
 
 if HAVE_WINDRES
 

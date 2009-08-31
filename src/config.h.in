@@ -469,8 +469,8 @@
  * actual location of the "lib" folder, for example, "/tmp/angband/lib/"
  * or "/usr/games/lib/angband/", or "/pkg/angband/lib".
  */
-#ifndef DEFAULT_PATH
-# define DEFAULT_PATH "./lib/"
+#ifndef PKGDATADIR
+# define PKGDATADIR DEFAULT_PATH
 #endif
 
 

@@ -2343,6 +2343,9 @@ void load_server_cfg_aux(FILE * cfg)
 cptr possible_cfg_dir[] = 
 {
 	"mangband.cfg",
+#ifdef CONFIG_PATH
+	CONFIG_PATH,
+#endif
 	"/etc/mangband.cfg",
 	"/usr/local/etc/mangband.cfg",
 	"/usr/etc/mangband.cfg",
