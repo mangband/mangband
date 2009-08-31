@@ -3,22 +3,23 @@
 # Greet user.
 echo "MAngband Autogen/Helper"
 
-# Use getopt to fetch flags.
-flags=`getopt hndrcfva $*`
+# Use getopt(s) to fetch flags.
 usage=0; norma=0; devel=0; distr=0; clean=0;
 force=0; verbo=0; autoc=0;
-set -- $flags
-for flag; do
+# you can use either line depending of getopt(s) availiablity
+#flags=`getopt hndrcfva $*`; set -- $flags; for flag; do
+while getopts  "hndrcfva" flag; do flag="-$flag"
     case "$flag" in
-	-h ) usage=1; shift ;;
-	-n ) norma=1; shift ;;
-	-d ) devel=1; shift ;;
-	-r ) distr=1; shift ;;
-	-c ) clean=1; shift ;;	
-	-f ) force=1; shift ;;
-	-v ) verbo=1; shift ;;
-	-a ) autoc=1; shift ;;		
-	-- ) shift; break ;;
+	-\? ) usage=1 ;;
+	-h ) usage=1 ;;
+	-n ) norma=1 ;;
+	-d ) devel=1 ;;
+	-r ) distr=1 ;;
+	-c ) clean=1 ;;
+	-f ) force=1 ;;
+	-v ) verbo=1 ;;
+	-a ) autoc=1 ;;
+	-- ) break ;;
     esac
 done
 # Test flags for errors
