@@ -440,7 +440,8 @@ void compact_objects(int size)
             x = o_ptr->ix; 
 
                 /* Hack -- only compact items in houses in emergencies */ 
-                if (!o_ptr->dun_depth && (cave[0][y][x].info & CAVE_ICKY)) 
+			    /* Make sure that houses in the wilderness are dealt with too! */
+                if ((o_ptr->dun_depth <= 0) && (cave[0][y][x].info & CAVE_ICKY)) 
                 { 
                     /* Grant immunity except in emergencies */ 
                     if (cnt < 1000) chance = 100; 
