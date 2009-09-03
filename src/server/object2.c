@@ -363,6 +363,22 @@ void compact_objects(int size)
 
    /*** Try destroying objects ***/ 
 
+   /* First do crops */ 
+   for (i = 1; (i < o_max) && (size); i++) 
+   { 
+      object_type *o_ptr = &o_list[i]; 
+
+      /* Nuke crops */ 
+      if (o_ptr->tval == TV_FOOD) 
+      { 
+		  if ((o_ptr->sval >= SV_FOOD_POTATO) && (o_ptr->sval < SV_FOOD_BISCUIT))
+		  {
+			  delete_object_idx(i); 
+			  size--; 
+		  }
+      } 
+   } 
+
    /* First do gold */ 
    for (i = 1; (i < o_max) && (size); i++) 
    { 
