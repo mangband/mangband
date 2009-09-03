@@ -1071,3 +1071,113 @@ void do_cmd_activate_dir(int Ind, int item, int dir)
 
 	do_cmd_activate(Ind, item); 
 }
+/*
+ * Quaff a potion (from the pack or the floor)
+ */
+void do_cmd_refill_potion(int Ind, int item)
+{
+	player_type *p_ptr = Players[Ind];
+
+	bool ident, good = FALSE;
+
+	object_type	*o_ptr;
+
+	/* Check preventive inscription '^R' */
+	__trap(Ind, CPI(p_ptr, 'R'));
+
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot refill potions!");
+		return;
+	}
+
+	/* Restrict choices to empty bottles */
+	item_tester_tval = TV_BOTTLE;
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
+		o_ptr = &o_list[0 - item];
+	}
+
+	/* Check guard inscription '!R' */
+	__trap(Ind, CGI(o_ptr, 'R'));
+
+	if (o_ptr->tval != TV_BOTTLE)
+	{
+		/* Tried to refill non-bottle */
+		return;
+	}
+
+	/* Verify our feet are wet (standing in water) */
+	if (cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].feat == FEAT_WATER)
+	{
+		/* Better chance result is water bottle */
+		if (rand_int(100) < 70)
+			good = TRUE;
+	}
+	else if (cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].feat == FEAT_MUD)
+	{
+		/* Better chance result is bad */
+		if (rand_int(100) < 30)
+			good = TRUE;
+	}
+	else /* No water with which to fill bottle */
+		return;
+
+	/* Take a turn */
+	p_ptr->energy -= level_speed(p_ptr->dun_depth);
+
+	/* Not identified */
+	ident = FALSE;
+
+	/* Object Changes from bottle to potion */
+	o_ptr->tval = TV_POTION;
+	if (good)
+	{
+		if (rand_int(100) < 5)
+			o_ptr->sval = SV_POTION_CURE_CRITICAL;
+		else
+			o_ptr->sval = SV_POTION_WATER;
+	}
+	else
+	{
+		if (rand_int(100) < 50)
+			o_ptr->sval = SV_POTION_SLIME_MOLD;
+		else if (rand_int(100) < 50)
+			o_ptr->sval = SV_POTION_SALT_WATER;
+		else if (rand_int(100) < 50)
+			o_ptr->sval = SV_POTION_SLEEP;
+		else if (rand_int(100) < 50)
+			o_ptr->sval = SV_POTION_CONFUSION;
+		else if (rand_int(100) < 30)
+			o_ptr->sval = SV_POTION_BLINDNESS;
+		else if (rand_int(100) < 50)
+			o_ptr->sval = SV_POTION_POISON;
+		else if (rand_int(100) < 70)
+			o_ptr->sval = SV_POTION_LOSE_MEMORIES;
+		else
+			o_ptr->sval = SV_POTION_DEATH;
+	}
+	o_ptr->weight = 4; /* HACK - We should get this from the new tval/sval combo */
+
+	msg_print(Ind, "The bottle shimmers and changes color.");
+
+	/* Combine / Reorder the pack (later) */
+	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+}
