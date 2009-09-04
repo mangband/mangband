@@ -71,6 +71,7 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_DATA);
 	string_ifree(ANGBAND_DIR_EDIT);
 	string_ifree(ANGBAND_DIR_SAVE);
+	string_ifree(ANGBAND_DIR_PREF);
 	string_ifree(ANGBAND_DIR_USER);
 	string_ifree(ANGBAND_DIR_GAME);
 	string_ifree(ANGBAND_DIR_TEXT);
@@ -106,6 +107,7 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_GAME = string_make("");
 	ANGBAND_DIR_SAVE = string_make("");
 	ANGBAND_DIR_TEXT = string_make("");
+	ANGBAND_DIR_PREF = string_make("");
 	ANGBAND_DIR_USER = string_make("");
 
 
@@ -133,11 +135,11 @@ void init_file_paths(char *path)
 	/* Build a path name */
 	strcpy(tail, "info");
 	ANGBAND_DIR_INFO = string_make(path);
-
+#endif
 	/* Build a path name */
 	strcpy(tail, "pref");
 	ANGBAND_DIR_PREF = string_make(path);
-#endif
+
 	/* Build a path name */
 	strcpy(tail, "save");
 	ANGBAND_DIR_SAVE = string_make(path);

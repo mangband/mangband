@@ -604,6 +604,7 @@ void init_file_paths(char *path)
         string_free(ANGBAND_DIR_HELP);
         string_free(ANGBAND_DIR_INFO);
         string_free(ANGBAND_DIR_SAVE);
+        string_free(ANGBAND_DIR_PREF);
         string_free(ANGBAND_DIR_USER);
         string_free(ANGBAND_DIR_XTRA);
 
@@ -631,6 +632,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_HELP = string_make("");
         ANGBAND_DIR_INFO = string_make("");
         ANGBAND_DIR_SAVE = string_make("");
+        ANGBAND_DIR_PREF = string_make("");
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
 
@@ -671,6 +673,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "save");
         ANGBAND_DIR_SAVE = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "pref");
+        ANGBAND_DIR_PREF = string_make(path);
 
         /* Build a path name */
         strcpy(tail, "user");
@@ -1631,14 +1637,14 @@ errr process_pref_file(cptr name)
 	errr err = 0;
 
 
-	/* Build the filename -- SHOULD BE _DIR_PREF ! */
-	path_build(buf, 1024, ANGBAND_DIR_USER, name);
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_PREF, name);
 
 	/* Process the pref file */
 	err = process_pref_file_aux(buf);
-#if 0
+
 	/* Stop at parser errors, but not at non-existing file */
-	if (err < 1)
+	if (err == -1)
 	{
 		/* Build the filename */
 		path_build(buf, sizeof(buf), ANGBAND_DIR_USER, name);
@@ -1646,7 +1652,7 @@ errr process_pref_file(cptr name)
 		/* Process the pref file */
 		err = process_pref_file_aux(buf);
 	}
-#endif
+
 	/* Result */
 	return (err);
 }

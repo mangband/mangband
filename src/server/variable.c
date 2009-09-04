@@ -693,6 +693,7 @@ cptr ANGBAND_DIR_SAVE;
  * User "preference" files (ascii)
  * These files are rarely portable between platforms
  */
+cptr ANGBAND_DIR_PREF;
 cptr ANGBAND_DIR_USER;
 
 
