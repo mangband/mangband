@@ -3395,6 +3395,10 @@ void process_monsters(void)
 
 			p_ptr = Players[pl];
 
+			/* Hack -- notice death or departure */
+			if (!p_ptr->alive || p_ptr->death || p_ptr->new_level_flag)
+				continue;
+
 			/* Make sure he's on the same dungeon level */
 			if (p_ptr->dun_depth != m_ptr->dun_depth)
 				continue;
@@ -3515,9 +3519,6 @@ void process_monsters(void)
 
 		/* Process the monster */
 		process_monster(closest, i);
-
-		/* Hack -- notice death or departure */
-		if (!p_ptr->alive || p_ptr->death || p_ptr->new_level_flag) break;
 	}
 
 	/* Only when needed, every five game turns */
