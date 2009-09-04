@@ -535,6 +535,7 @@ extern void do_cmd_zap_rod(int Ind, int item);
 extern void do_cmd_zap_rod_discharge(int Ind, int dir, bool ident);
 extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int item, int dir);
+extern void do_cmd_refill_potion(int Ind, int item);
 
 /* control.c */
 extern void NewConsole(int fd, int arg);
