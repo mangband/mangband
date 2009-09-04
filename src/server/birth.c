@@ -954,6 +954,7 @@ static void player_setup(int Ind)
 	p_ptr->command_dir = 0;
 	p_ptr->current_spell = p_ptr->current_object = -1;
 	p_ptr->current_house = p_ptr->current_selling = p_ptr->store_num = -1;
+	p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 	/* Make sure his party still exists */
 	if (p_ptr->party && parties[p_ptr->party].num == 0)

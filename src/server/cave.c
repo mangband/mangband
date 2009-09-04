@@ -4046,6 +4046,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 
 	/* Cancel looking around if requested and allowed */
 	if (stop_search && option_p(p_ptr,DISTURB_LOOK) &&
+		(p_ptr->panel_row_old != -1) &&
 		(p_ptr->panel_row != p_ptr->panel_row_old || 
 		p_ptr->panel_col != p_ptr->panel_col_old))
 	{

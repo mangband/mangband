@@ -1692,6 +1692,9 @@ void do_cmd_locate(int Ind, int dir)
 		/* Recenter map around the player */
 		verify_panel(Ind);
 
+		/* Reset "old" */
+		p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
+
 		/* Update stuff */
 		p_ptr->update |= (PU_MONSTERS);
 
