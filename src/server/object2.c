@@ -109,7 +109,7 @@ static void excise_object_idx(int o_idx)
 
         /* No one can see it anymore */ 
         for (i = 1; i < NumPlayers + 1; i++) 
-            Players[i]->obj_vis[c_ptr->o_idx] = FALSE; 
+            Players[i]->obj_vis[o_idx] = FALSE; 
    } 
 } 
 
