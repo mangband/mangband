@@ -310,7 +310,7 @@ void compact_monsters(int size)
 	m_top = 0;
 
 	/* Collect "live" monsters */
-	for (i = 0; i < m_max; i++)
+	for (i = 1; i < m_max; i++)
 	{
 		/* Collect indexes */
 		m_fast[m_top++] = i;
@@ -2908,16 +2908,19 @@ void update_smart_learn(int m_idx, int what)
 void setup_monsters(void)
 {
 	int i;
-	monster_type *r_ptr;
-	
-	for (i = 0; i < m_max; i++)
+
+	for (i = 1; i < m_max; i++)
 	{
-		r_ptr = &m_list[i];
-		/* setup the cave m_idx if the level has been 
-		 * allocated.
-		 */
-		if (cave[r_ptr->dun_depth]) 
-			cave[r_ptr->dun_depth][r_ptr->fy][r_ptr->fx].m_idx = i;
+		monster_type *r_ptr = &m_list[i];
+
+		/* Skip dead monsters */
+		if (!r_ptr->r_idx) continue;
+
+		/* Skip monsters on depths that aren't allocated */
+		if (!cave[r_ptr->dun_depth]) continue;
+
+		/* Set the m_idx correctly */
+		cave[r_ptr->dun_depth][r_ptr->fy][r_ptr->fx].m_idx = i;
 	}
 }
 

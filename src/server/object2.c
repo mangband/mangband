@@ -349,7 +349,7 @@ void compact_objects(int size)
         o_top = 0; 
 
         /* Collect "live" objects */ 
-        for (i = 0; i < o_max; i++) 
+        for (i = 1; i < o_max; i++) 
         { 
             /* Collect indexes */ 
             o_fast[o_top++] = i; 
@@ -4690,7 +4690,7 @@ void setup_objects(void)
 {
 	int i;
 
-	for (i = 0; i < o_max; i++)
+	for (i = 1; i < o_max; i++)
 	{
 		object_type *o_ptr = &o_list[i];
 

@@ -1582,7 +1582,7 @@ static bool wr_server_savefile(void)
 	tmp32u = m_max;
 	write_int("max_monsters",tmp32u);
 	/* Dump the monsters */
-	for (i = 0; i < tmp32u; i++) wr_monster(&m_list[i]);
+	for (i = 1; i < tmp32u; i++) wr_monster(&m_list[i]);
 	end_section("monsters");
 
 	start_section("objects");
@@ -1592,7 +1592,7 @@ static bool wr_server_savefile(void)
 	tmp16u = o_max;
 	write_int("max_objects",tmp16u);
 	/* Dump the objects */
-	for (i = 0; i < tmp16u; i++) wr_item(&o_list[i]);
+	for (i = 1; i < tmp16u; i++) wr_item(&o_list[i]);
 	end_section("objects");
 
 	start_section("houses");

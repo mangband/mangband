@@ -5137,7 +5137,7 @@ int base_time_factor(int Ind, int slowest)
 	{
 		/* If nothing in LoS */
 		los = FALSE;
-		for (i = 0; i < m_max; i++)
+		for (i = 1; i < m_max; i++)
 		{
 			/* Check this monster */
 			if ((p_ptr->mon_los[i] && !m_list[i].csleep))

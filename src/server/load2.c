@@ -2088,7 +2088,7 @@ errr rd_server_savefile()
 			return (29);
 		}
 		/* load the monsters */
-		for (i = 0; i < tmp32u; i++)
+		for (i = 1; i < tmp32u; i++)
 		{
 			rd_monster(&m_list[m_pop()]);
 		}
@@ -2106,7 +2106,7 @@ errr rd_server_savefile()
 		}
 
 		/* Read the available records */
-		for (i = 0; i < tmp16u; i++)
+		for (i = 1; i < tmp16u; i++)
 		{		
 			rd_item(&o_list[i]);
 		}
