@@ -2290,8 +2290,8 @@ void monster_death(int Ind, int m_idx)
 				msg_print(i, "You may retire (commit suicide) when you are ready.");
 
 				/* "Winner dump" */
-				(void)strcpy(p_ptr->died_from_list, "winner");
-				player_dump(Ind);
+				(void)strcpy(q_ptr->died_from_list, "winner");
+				player_dump(i);
 
 				/* Set his retire_timer if neccecary */
 				if (cfg_retire_timer >= 0)
