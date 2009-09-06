@@ -2494,7 +2494,7 @@ int Send_visual_limits_conn(int ind)
 int Send_inven_info_conn(int ind)
 {
 	connection_t *connp = &Conn[ind];
-	u32b i, name_size, off;
+	u32b i, name_size, off = 0;
 	char buf[80];
 	if (!BIT(connp->state, CONN_SETUP))
 	{
