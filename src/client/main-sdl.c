@@ -2707,8 +2707,6 @@ errr init_sdl(void)
 	 */
 	init_color_data_sdl();
 
-	init_stuff();
-	
 	init_extra_paths();
 
 	/* Sound */

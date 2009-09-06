@@ -37,7 +37,7 @@ static void init_arrays(void)
 }
 
 /*
- * Initialize and verify the file paths, and the score file.
+ * Initialize and verify the file paths.
  *
  * Use the ANGBAND_PATH environment var if possible, else use
  * PKGDATADIR, and in either case, branch off appropriately.
@@ -51,39 +51,28 @@ static void init_arrays(void)
  * since the "init_file_paths()" function will simply append the
  * relevant "sub-directory names" to the given path.
  *
- * Note that the "path" must be "Angband:" for the Amiga, and it
- * is ignored for "VM/ESA", so I just combined the two.
  */
 void init_stuff(void)
 {
-        char path[1024];
+	char path[1024];
 
-#if defined(AMIGA) || defined(VM)
+	cptr tail;
 
-        /* Hack -- prepare "path" */
-        strcpy(path, "Angband:");
+	/* Get the environment variable */
+	tail = getenv("ANGBAND_PATH");
 
-#else /* AMIGA / VM */
+	/* Use the angband_path, or a default */
+	strcpy(path, tail ? tail : PKGDATADIR);
 
-        cptr tail;
+	/* Hack -- Add a path separator (only if needed) */
+	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
-        /* Get the environment variable */
-        tail = getenv("ANGBAND_PATH");
+	/* Read/Write path from config file */
+	strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
+	conf_set_string("MAngband", "LibDir", path);
 
-        /* Use the angband_path, or a default */
-        strcpy(path, tail ? tail : PKGDATADIR);
-
-        /* Hack -- Add a path separator (only if needed) */
-        if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
-
-#endif /* AMIGA / VM */
-
-			/* Read/Write path from config file */
-			strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
-			conf_set_string("MAngband", "LibDir", path);
-
-        /* Initialize */
-        init_file_paths(path);
+	/* Initialize */
+	init_file_paths(path);
 }
 
 /* Init minor arrays */
@@ -321,7 +310,7 @@ void client_init(char *argv1)
 	bool done = 0;
 
 	/* Setup the file paths */
-	init_stuff();
+	/*init_stuff(); -- Moved elsewhere */
 
 	/* Initialize various arrays */
 	init_arrays();

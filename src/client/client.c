@@ -69,6 +69,9 @@ int main(int argc, char **argv)
 	/* Client Config-file */
 	conf_init(NULL);
 
+	/* Setup the file paths */
+	init_stuff();
+
 	/* Attempt to initialize a visual module */
 #ifdef USE_SDL
 	/* Attempt to use the "main-sdl.c" support */
