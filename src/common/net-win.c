@@ -2037,4 +2037,7 @@ SocketWrite(int fd, char *buf, int size)
 } /* SocketWrite */
 
 /*#endif	//SERVER function? */
+
+void	SocketCloseAll(void) { }
+
 #endif

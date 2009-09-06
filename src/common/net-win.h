@@ -76,6 +76,7 @@ extern int SetSocketNoDelay(int, int);
 extern int SocketAccept(int);
 extern int SocketLinger(int);
 extern int CreateServerSocket(int);
+extern void	SocketCloseAll(void);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\
