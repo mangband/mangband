@@ -227,10 +227,7 @@ static void quit_hook(cptr s)
 	int j;
 
 	Net_cleanup();
-
-#ifdef UNIX_SOCKETS
 	SocketCloseAll();
-#endif
 
 	/* Nuke each term */
 	for (j = 8 - 1; j >= 0; j--)
@@ -328,7 +325,7 @@ void client_init(char *argv1)
 	quit_aux = quit_hook;
 #endif
 	server_port = conf_get_int("MAngband", "Port", 18346);
-#ifndef UNIX_SOCKETS
+
 	/* Check whether we should query the metaserver */
 	if (argv1 == NULL)
 	{
@@ -351,7 +348,6 @@ void client_init(char *argv1)
 
 	/* Fix "localhost" */
 	if (!strcmp(server_name, "localhost"))
-#endif
 		strcpy(server_name, host_name);
 
 	/* Default nickname and password */

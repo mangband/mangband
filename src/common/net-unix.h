@@ -95,7 +95,6 @@ extern int	SocketReadable(int);
 extern int	SocketRead(int, char *, int);
 extern int	SocketWrite(int, char *, int);
 extern int	SocketClose(int);
-extern void	SocketCloseAll(void);
 extern int	CreateDgramSocket(int);
 extern int	CreateDgramAddrSocket(char *, int);
 extern int	DgramBind(int fd, char *dotaddr, int port);
@@ -148,6 +147,7 @@ extern int	DgramLastport();
 extern void	DgramClose();
 extern void	GetLocalHostName();
 #endif /* __STDC__ */
+extern void	SocketCloseAll(void);
 
 #if !defined(select) && defined(__linux__)
 #define select(N, R, W, E, T)	select((N),		\

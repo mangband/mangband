@@ -144,11 +144,8 @@ int main(int argc, char **argv)
 	/* Attempt to read default name/real name from OS */
 	read_credentials();
 
-#ifdef UNIX_SOCKETS
-	/* Always call with NULL argument */
-	client_init(NULL);
-#else
 
+	/** Initialize client and run main loop **/
 	if (argc == 2)
 	{
 		/* Initialize with given server name */
@@ -159,8 +156,6 @@ int main(int argc, char **argv)
 		/* Initialize and query metaserver */
 		client_init(NULL);
 	}
-
-#endif
 
 
 	return 0;

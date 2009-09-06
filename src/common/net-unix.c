@@ -208,15 +208,18 @@ delete_bound_socket(char *path)
          strcpy(bound_socket[i], bound_socket[--num_bound_sockets]);
 }
 
+#endif
 void
 SocketCloseAll()
 {
+#ifdef UNIX_SOCKETS
    register int i;
 
    for (i=0; i<num_bound_sockets; i++)
       unlink(bound_socket[i]);
-}
 #endif
+}
+
 
 
 /*
