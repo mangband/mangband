@@ -363,7 +363,7 @@ void compact_objects(int size)
 
    /*** Try destroying objects ***/ 
 
-   /* First do crops */ 
+   /* First do crops, junk and skeletons */ 
    for (i = 1; (i < o_max) && (size); i++) 
    { 
       object_type *o_ptr = &o_list[i]; 
@@ -377,19 +377,13 @@ void compact_objects(int size)
 			  size--; 
 		  }
       } 
-   } 
 
-   /* First do gold */ 
-   for (i = 1; (i < o_max) && (size); i++) 
-   { 
-      object_type *o_ptr = &o_list[i]; 
-
-      /* Nuke gold */ 
-      if (o_ptr->tval == TV_GOLD) 
+      /* Nuke junk items and skeletons */ 
+      if ((o_ptr->tval == TV_SKELETON) || (o_ptr->tval == TV_JUNK))
       { 
-         delete_object_idx(i); 
-         size--; 
-      } 
+		  delete_object_idx(i); 
+		  size--; 
+	  }
    } 
 
    /* Compact at least 'size' objects */ 
