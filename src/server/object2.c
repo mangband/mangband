@@ -33,92 +33,92 @@ void delete_object_ptr(object_type * o_ptr)
 /* 
  * Excise a dungeon object from any stacks 
  */ 
-static void excise_object_idx(int o_idx) 
-{ 
-   object_type *j_ptr; 
-   s16b this_o_idx, next_o_idx = 0; 
-   s16b prev_o_idx = 0; 
+static void excise_object_idx(int o_idx)
+{
+	object_type *j_ptr;
+	s16b this_o_idx, next_o_idx = 0;
+	s16b prev_o_idx = 0;
 
-   /* Object */ 
-   j_ptr = &o_list[o_idx]; 
+	/* Object */
+	j_ptr = &o_list[o_idx];
 
-   /* Monster */ 
-   if (j_ptr->held_m_idx) 
-   { 
-      monster_type *m_ptr; 
+	/* Monster */
+	if (j_ptr->held_m_idx)
+	{
+		monster_type *m_ptr;
 
-      /* Monster */ 
-      m_ptr = &m_list[j_ptr->held_m_idx]; 
+		/* Monster */
+		m_ptr = &m_list[j_ptr->held_m_idx];
 
-      /* Scan all objects in the grid */ 
-      for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx) 
-      { 
-         object_type *o_ptr; 
+		/* Scan all objects in the grid */
+		for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+		{
+			object_type *o_ptr;
 
-         /* Get the object */ 
-         o_ptr = &o_list[this_o_idx]; 
+			/* Get the object */
+			o_ptr = &o_list[this_o_idx];
 
-         /* Get the next object */ 
-         next_o_idx = o_ptr->next_o_idx; 
+			/* Get the next object */
+			next_o_idx = o_ptr->next_o_idx;
 
-         /* Done */ 
-         if (this_o_idx == o_idx) 
-         { 
-            /* No previous */ 
-            if (prev_o_idx == 0) 
-            { 
-               /* Remove from list */ 
-               m_ptr->hold_o_idx = next_o_idx; 
-            } 
+			/* Done */
+			if (this_o_idx == o_idx)
+			{
+				/* No previous */
+				if (prev_o_idx == 0)
+				{
+					/* Remove from list */
+					m_ptr->hold_o_idx = next_o_idx;
+				}
 
-            /* Real previous */ 
-            else 
-            { 
-               object_type *i_ptr; 
+				/* Real previous */
+				else
+				{
+					object_type *i_ptr;
 
-               /* Previous object */ 
-               i_ptr = &o_list[prev_o_idx]; 
+					/* Previous object */
+					i_ptr = &o_list[prev_o_idx];
 
-               /* Remove from list */ 
-               i_ptr->next_o_idx = next_o_idx; 
-            } 
+					/* Remove from list */
+					i_ptr->next_o_idx = next_o_idx;
+				}
 
-            /* Forget next pointer */ 
-            o_ptr->next_o_idx = 0; 
+				/* Forget next pointer */
+				o_ptr->next_o_idx = 0;
+				
+				/* Done */
+				break;
+			}
 
-            /* Done */ 
-            break; 
-         } 
+			/* Save prev_o_idx */
+			prev_o_idx = this_o_idx;
+		}
+	}
 
-         /* Save prev_o_idx */ 
-         prev_o_idx = this_o_idx; 
-      } 
-   } 
+	/* Dungeon */
+	else
+	{
+		int y = j_ptr->iy;
+		int x = j_ptr->ix;
+		int Depth = j_ptr->dun_depth;
+		cave_type *c_ptr = &cave[Depth][y][x];
+		int i;
 
-   /* Dungeon */ 
-   else 
-   { 
-      int y = j_ptr->iy; 
-      int x = j_ptr->ix; 
-        int Depth = j_ptr->dun_depth; 
-        cave_type *c_ptr = &cave[Depth][y][x]; 
-        int i; 
+		/* Object is gone */
+		c_ptr->o_idx = 0;
 
-        /* Object is gone */ 
-        c_ptr->o_idx = 0; 
-
-        /* No one can see it anymore */ 
-        for (i = 1; i < NumPlayers + 1; i++) 
-            Players[i]->obj_vis[o_idx] = FALSE; 
-   } 
-} 
+		/* No one can see it anymore */
+		for (i = 1; i < NumPlayers + 1; i++)
+			Players[i]->obj_vis[o_idx] = FALSE;
+	}
+}
 
 
 static void object_wipe(object_type* o_ptr) 
 { 
-    /* Wipe the object */ 
-    WIPE(o_ptr, object_type); 
-} 
+	/* Wipe the object */
+	WIPE(o_ptr, object_type);
+}
 
 /*
  * Prepare an object based on an object kind.
@@ -173,33 +173,33 @@ void object_prep(object_type *o_ptr, int k_idx)
 /* 
  * Delete a dungeon object 
  */ 
-void delete_object_idx(int o_idx) 
+void delete_object_idx(int o_idx)
 { 
-    object_type *j_ptr; 
+	object_type *j_ptr;
 
-   /* Excise */ 
-   excise_object_idx(o_idx); 
+	/* Excise */
+	excise_object_idx(o_idx);
+	
+	/* Object */
+	j_ptr = &o_list[o_idx];
 
-   /* Object */ 
-   j_ptr = &o_list[o_idx]; 
+	/* Dungeon floor */
+	if (!j_ptr->held_m_idx)
+	{
+		int y, x, Depth;
 
-   /* Dungeon floor */ 
-   if (!j_ptr->held_m_idx) 
-   { 
-      int y, x, Depth; 
+		/* Location */
+		y = j_ptr->iy;
+		x = j_ptr->ix;
+		Depth = j_ptr->dun_depth;
 
-      /* Location */ 
-      y = j_ptr->iy; 
-      x = j_ptr->ix; 
-      Depth = j_ptr->dun_depth; 
+		/* Visual update */
+		everyone_lite_spot(Depth, y, x);
+	}
 
-      /* Visual update */ 
-      everyone_lite_spot(Depth, y, x); 
-   } 
-
-   /* Wipe the object */ 
-   object_wipe(j_ptr); 
-} 
+	/* Wipe the object */
+	object_wipe(j_ptr);
+}
 
 
 /* 
@@ -207,23 +207,23 @@ void delete_object_idx(int o_idx)
  */ 
 void delete_object(int Depth, int y, int x) 
 { 
-    cave_type *c_ptr; 
+	cave_type *c_ptr;
 
-    /* Paranoia */ 
-    if (!in_bounds(Depth, y, x)) return; 
+	/* Paranoia */ 
+	if (!in_bounds(Depth, y, x)) return;
 
-    /* Paranoia -- make sure the level has been allocated */ 
-    if (!cave[Depth]) 
-    { 
-        plog(format("Error : tried to delete object on unallocated level %d",Depth));
-        return; 
-    } 
+	/* Paranoia -- make sure the level has been allocated */ 
+	if (!cave[Depth])
+	{
+		plog(format("Error : tried to delete object on unallocated level %d",Depth));
+		return;
+	}
 
-    /* Find where it was */ 
-    c_ptr = &cave[Depth][y][x]; 
+	/* Find where it was */
+	c_ptr = &cave[Depth][y][x];
 
-    /* Delete the object */ 
-    if (c_ptr->o_idx) delete_object_idx(c_ptr->o_idx); 
+	/* Delete the object */
+	if (c_ptr->o_idx) delete_object_idx(c_ptr->o_idx);
 } 
 
 
@@ -232,75 +232,75 @@ void delete_object(int Depth, int y, int x)
  */ 
 static void compact_objects_aux(int i1, int i2) 
 { 
-   int i, Ind; 
-   object_type *o_ptr; 
+	int i, Ind;
+	object_type *o_ptr;
 
-   /* Do nothing */ 
-   if (i1 == i2) return; 
+	/* Do nothing */
+	if (i1 == i2) return;
 
-   /* Repair objects */
-   for (i = 1; i < o_max; i++) 
-   { 
-      /* Get the object */ 
-      o_ptr = &o_list[i]; 
+	/* Repair objects */
+	for (i = 1; i < o_max; i++)
+	{
+		/* Get the object */
+		o_ptr = &o_list[i];
 
-      /* Skip "dead" objects */ 
-      if (!o_ptr->k_idx) continue; 
+		/* Skip "dead" objects */
+		if (!o_ptr->k_idx) continue;
 
-      /* Repair "next" pointers */ 
-      if (o_ptr->next_o_idx == i1) 
-      { 
-         /* Repair */ 
-         o_ptr->next_o_idx = i2; 
-      } 
-   } 
-	
-      		
-   /* Get the object */ 
-   o_ptr = &o_list[i1]; 
-   /* Monster */ 
-   if (o_ptr->held_m_idx) 
-   {
-      monster_type *m_ptr; 
+		/* Repair "next" pointers */
+		if (o_ptr->next_o_idx == i1)
+		{
+			/* Repair */
+			o_ptr->next_o_idx = i2;
+		}
+	}
 
-      /* Get the monster */ 
-      m_ptr = &m_list[o_ptr->held_m_idx]; 
+	/* Get the object */
+	o_ptr = &o_list[i1];
+ 
+	/* Monster */
+	if (o_ptr->held_m_idx)
+	{
+		monster_type *m_ptr;
 
-      /* Repair monster */ 
-      if (m_ptr->hold_o_idx == i1) 
-      { 
-         /* Repair */ 
-         m_ptr->hold_o_idx = i2;
-      } 
-   } 
+		/* Get the monster */
+		m_ptr = &m_list[o_ptr->held_m_idx];
 
-   /* Dungeon */ 
-   else 
-   { 
-      int y, x, Depth; 
+		/* Repair monster */
+		if (m_ptr->hold_o_idx == i1)
+		{
+			/* Repair */
+			m_ptr->hold_o_idx = i2;
+		}
+	}
 
-      /* Get location */ 
-      y = o_ptr->iy; 
-      x = o_ptr->ix; 
-        Depth = o_ptr->dun_depth; 
+	/* Dungeon */
+	else
+	{
+		int y, x, Depth;
 
-      /* Repair grid */ 
-        if (cave[Depth] && (cave[Depth][y][x].o_idx == i1)) 
-      { 
-         /* Repair */ 
-         cave[Depth][y][x].o_idx = i2; 
-      } 
-   } 
+		/* Get location */
+		y = o_ptr->iy;
+		x = o_ptr->ix;
+		Depth = o_ptr->dun_depth;
 
-    /* Copy the visibility flags for each player */ 
-    for (Ind = 1; Ind < NumPlayers + 1; Ind++) 
-        Players[Ind]->obj_vis[i2] = Players[Ind]->obj_vis[i1]; 
+		/* Repair grid */
+		if (cave[Depth] && (cave[Depth][y][x].o_idx == i1))
+		{
+			/* Repair */
+			cave[Depth][y][x].o_idx = i2;
+		}
+	}
 
-   /* Hack -- move object */
-   COPY(&o_list[i2], &o_list[i1], object_type); 
+	/* Copy the visibility flags for each player */
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+		Players[Ind]->obj_vis[i2] = Players[Ind]->obj_vis[i1];
 
-   /* Hack -- wipe hole */
-   object_wipe(o_ptr); 
+	/* Hack -- move object */
+	COPY(&o_list[i2], &o_list[i1], object_type);
+
+	/* Hack -- wipe hole */
+	object_wipe(o_ptr);
 } 
 
 
@@ -309,9 +309,8 @@ static void compact_objects_aux(int i1, int i2)
  * 
  * This function can be very dangerous, use with caution! 
  * 
- * When compacting objects, we first destroy gold, on the basis that by the 
- * time item compaction becomes an issue, the player really won't care. 
- * We also nuke items marked as squelch. 
+ * When compacting objects, we first destroy crops, junk and skeletons, on the basis that
+ * those are the least important objects with almost no gameplay value (MAngband-specific).
  * 
  * When compacting other objects, we base the saving throw on a combination of 
  * object level, distance from player, and current "desperation". 
@@ -321,141 +320,133 @@ static void compact_objects_aux(int i1, int i2)
  */ 
 void compact_objects(int size) 
 { 
-    int i, y, x, cnt; 
-   int cur_lev, cur_val, chance; 
+	int i, y, x, cnt;
+	int cur_lev, cur_val, chance;
 
-   /* Reorder objects when not passed a size */ 
-   if (!size) 
-   { 
-      /* Excise dead objects (backwards!) */ 
-      for (i = o_max - 1; i >= 1; i--) 
-      { 
-         object_type *o_ptr = &o_list[i]; 
+	/* Reorder objects when not passed a size */
+	if (!size)
+	{
+		/* Excise dead objects (backwards!) */
+		for (i = o_max - 1; i >= 1; i--)
+		{
+			object_type *o_ptr = &o_list[i];
 
-         /* Skip real objects */ 
-         if (o_ptr->k_idx) continue; 
+			/* Skip real objects */
+			if (o_ptr->k_idx) continue;
 
-         /* Move last object into open hole */ 
-         compact_objects_aux(o_max - 1, i); 
+			/* Move last object into open hole */
+			compact_objects_aux(o_max - 1, i);
 
-         /* Compress "o_max" */ 
-         o_max--; 
-      } 
+			/* Compress "o_max" */
+			o_max--;
+		}
 
-        /* Reset "o_nxt" */ 
-        o_nxt = o_max; 
+		/* Reset "o_nxt" */
+		o_nxt = o_max;
 
-        /* Reset "o_top" */ 
-        o_top = 0; 
+		/* Reset "o_top" */
+		o_top = 0;
 
-        /* Collect "live" objects */ 
-        for (i = 1; i < o_max; i++) 
-        { 
-            /* Collect indexes */ 
-            o_fast[o_top++] = i; 
-        } 
+		/* Collect "live" objects */
+		for (i = 1; i < o_max; i++)
+		{
+			/* Collect indexes */
+			o_fast[o_top++] = i;
+		}
 
-      return; 
-   } 
+		return;
+	}
 
-   /* Message */ 
-   plog("Compacting objects..."); 
+	/* Message */
+	plog("Compacting objects...");
 
-   /*** Try destroying objects ***/ 
+	/*** Try destroying objects ***/
 
-   /* First do crops, junk and skeletons */ 
-   for (i = 1; (i < o_max) && (size); i++) 
-   { 
-      object_type *o_ptr = &o_list[i]; 
+	/* First do crops, junk and skeletons */
+	for (i = 1; (i < o_max) && (size); i++)
+	{
+		object_type *o_ptr = &o_list[i];
 
-      /* Nuke crops */ 
-      if (o_ptr->tval == TV_FOOD) 
-      { 
-		  if ((o_ptr->sval >= SV_FOOD_POTATO) && (o_ptr->sval < SV_FOOD_BISCUIT))
-		  {
-			  delete_object_idx(i); 
-			  size--; 
-		  }
-      } 
+		/* Nuke crops */
+		if (((o_ptr->tval == TV_FOOD) && (o_ptr->sval >= SV_FOOD_POTATO) && (o_ptr->sval < SV_FOOD_BISCUIT)) ||
+		/* Nuke junk items and skeletons */
+		((o_ptr->tval == TV_SKELETON) || (o_ptr->tval == TV_JUNK)))
+		{
+			delete_object_idx(i);
+			size--;
+		}
+	}
 
-      /* Nuke junk items and skeletons */ 
-      if ((o_ptr->tval == TV_SKELETON) || (o_ptr->tval == TV_JUNK))
-      { 
-		  delete_object_idx(i); 
-		  size--; 
-	  }
-   } 
+	/* Compact at least 'size' objects */ 
+	for (cnt = 1; size; cnt++) 
+	{ 
+		/* Get more vicious each iteration */ 
+		cur_lev = 5 * cnt; 
 
-   /* Compact at least 'size' objects */ 
-   for (cnt = 1; size; cnt++) 
-   { 
-      /* Get more vicious each iteration */ 
-      cur_lev = 5 * cnt; 
+		/* Destroy more valuable items each iteration */ 
+		cur_val = 500 * (cnt - 1); 
 
-      /* Destroy more valuable items each iteration */ 
-      cur_val = 500 * (cnt - 1); 
+		/* Examine the objects */ 
+		for (i = 1; (i < o_max) && (size); i++) 
+		{ 
+			object_type *o_ptr = &o_list[i]; 
+			object_kind *k_ptr = &k_info[o_ptr->k_idx]; 
 
-      /* Examine the objects */ 
-      for (i = 1; (i < o_max) && (size); i++) 
-      { 
-         object_type *o_ptr = &o_list[i]; 
-         object_kind *k_ptr = &k_info[o_ptr->k_idx]; 
+			/* Skip dead objects */ 
+			if (!o_ptr->k_idx) continue; 
 
-         /* Skip dead objects */ 
-         if (!o_ptr->k_idx) continue; 
+			/* Hack -- High level objects start out "immune" */ 
+			if (k_ptr->level > cur_lev) continue; 
 
-         /* Hack -- High level objects start out "immune" */ 
-         if (k_ptr->level > cur_lev) continue; 
+			/* Valuable objects start out "immune" */ 
+			if (object_value(0, o_ptr) > cur_val) continue; 
 
-            /* Valuable objects start out "immune" */ 
-            if (object_value(0, o_ptr) > cur_val) continue; 
+			/* Saving throw */ 
+			chance = 90; 
 
-         /* Saving throw */ 
-         chance = 90; 
+			/* Monster */ 
+			if (o_ptr->held_m_idx) 
+			{ 
+				monster_type *m_ptr; 
 
-         /* Monster */ 
-         if (o_ptr->held_m_idx) 
-         { 
-            monster_type *m_ptr; 
+				/* Get the monster */ 
+				m_ptr = &m_list[o_ptr->held_m_idx]; 
 
-            /* Get the monster */ 
-            m_ptr = &m_list[o_ptr->held_m_idx]; 
+				/* Monsters protect their objects */ 
+				//if (magik(90)) 
+				continue; 
+			}
 
-            /* Monsters protect their objects */ 
-            //if (magik(90)) 
-            continue; 
-         } 
+			/* Dungeon */ 
+			else
+			{
+				/* Get the location */ 
+				y = o_ptr->iy; 
+				x = o_ptr->ix; 
 
-         /* Dungeon */ 
-         else 
-         { 
-            /* Get the location */ 
-            y = o_ptr->iy; 
-            x = o_ptr->ix; 
+				/* Hack -- only compact items in houses in emergencies */ 
+				/* Make sure that houses in the wilderness are dealt with too! */
+				if ((o_ptr->dun_depth <= 0) && (cave[0][y][x].info & CAVE_ICKY)) 
+				{ 
+					/* Grant immunity except in emergencies */ 
+					if (cnt < 1000) chance = 100; 
+				} 
+			}
 
-                /* Hack -- only compact items in houses in emergencies */ 
-			    /* Make sure that houses in the wilderness are dealt with too! */
-                if ((o_ptr->dun_depth <= 0) && (cave[0][y][x].info & CAVE_ICKY)) 
-                { 
-                    /* Grant immunity except in emergencies */ 
-                    if (cnt < 1000) chance = 100; 
-                } 
-         } 
+			/* Hack -- only compact artifacts in emergencies */ 
+			if (artifact_p(o_ptr) && (cnt < 1000)) chance = 100; 
+		
+			/* Apply the saving throw */ 
+			if (magik(chance)) continue; 
 
-         /* Hack -- only compact artifacts in emergencies */ 
-         if (artifact_p(o_ptr) && (cnt < 1000)) chance = 100; 
+			/* Delete the object */ 
+			delete_object_idx(i); 
+			size--; 
+		}
+	} 
 
-         /* Apply the saving throw */ 
-         if (magik(chance)) continue; 
-
-         /* Delete the object */ 
-         delete_object_idx(i); 
-         size--; 
-      } 
-   } 
-
-   /* Reorder objects */ 
-   compact_objects(0); 
+	/* Reorder objects */ 
+	compact_objects(0); 
 }
 
 
