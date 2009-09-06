@@ -3423,9 +3423,10 @@ LPTOP_LEVEL_EXCEPTION_FILTER old_handler;
  */
 BOOL ctrl_handler( DWORD fdwCtrlType ) 
 {
-	
 	/* Save everything and quit the game */
-	shutdown_server();	 
+	shutdown_server();
+
+	return TRUE;
 }
 
 /* Global unhandled exception handler */
