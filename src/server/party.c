@@ -532,7 +532,7 @@ int party_mark_members(int Ind, int m_idx)
 			(!m_idx || q_ptr->mon_hrt[m_idx]) &&
 			(q_ptr->dun_depth == p_ptr->dun_depth) &&
 			(q_ptr->party == p_ptr->party) &&
-			((cfg_party_sharelevel == -1) || (abs(p_ptr->lev - p_ptr->lev) <= cfg_party_sharelevel))
+			((cfg_party_sharelevel == -1) || (abs(q_ptr->lev - p_ptr->lev) <= cfg_party_sharelevel))
 			))
 		{
 			q_ptr->in_hack = TRUE;
