@@ -3712,7 +3712,7 @@ P:0:1d1:0:0:0
 F:EASY_KNOW
 D:It inflicts 5000 points of damage.
 D:  Death can only be avoided if you have magical invulnerability, which
-D: just happens to be unavailable in the current version of Angband.
+D: just happens to be unavailable in the current version of MAngband.
 
 N:416:Ruination
 G:!:d
