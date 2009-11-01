@@ -571,6 +571,9 @@ void search(int Ind)
 
 					/* Disturb */
 					disturb(Ind, 0, 0);
+
+					/* Give the player an EXP bump */
+					p_ptr->exp += 1;
 				}
 
 				/* Search chests */
