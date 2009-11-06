@@ -294,5 +294,8 @@
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
 
+#ifdef WINDOWS
+#undef HANDLE_DIRECTORIES
+#endif
 
 #endif
