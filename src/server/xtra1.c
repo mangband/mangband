@@ -1314,7 +1314,7 @@ static void fix_monlist(int Ind)
 	Send_term_info(Ind, NTERM_CLEAR, 0);
 	
 	for (i = 0; i < Players[Ind]->last_info_line; i++)
-		Send_remote_line(Ind, i);
+		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
 	
 	Send_term_info(Ind, NTERM_FRESH, 0);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);

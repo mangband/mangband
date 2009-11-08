@@ -162,6 +162,9 @@ extern s16b command_dir;
 extern custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 extern s16b custom_commands;
 
+extern stream_type streams[MAX_STREAMS];
+extern byte known_streams;
+
 extern s16b race;
 extern s16b class;
 extern s16b sex;
@@ -309,6 +312,9 @@ extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
+extern void prepare_popup(void);
+extern void show_popup(void);
+extern void show_peruse(s16b line);
 extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init(void* param);									/* Client config section */
@@ -370,6 +376,8 @@ extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern int cavestr(cave_view_type* dest, cptr src, byte attr, int max_col);
+extern void show_line(int y, s16b cols);
+extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);

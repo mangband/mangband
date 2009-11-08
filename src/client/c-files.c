@@ -1687,6 +1687,96 @@ void show_motd(void)
 	Term_clear();
 }
 
+void prepare_popup(void)
+{
+	/* Hack -- if the screen is already icky, ignore this command */
+	if (screen_icky) return;
+
+	/* Save the screen */
+	Term_save();
+
+	/* Send the request */
+	Send_interactive(special_line_type);
+
+	/* Wait until we get the whole thing */
+	{
+		inkey();
+	}
+
+	/* Remove partial ickyness */
+	section_icky_col = section_icky_row = 0;
+
+	/* Reload the screen */
+	Term_load();
+
+	/* Flush any queued events */
+	Flush_queue();
+}
+
+void show_popup(void)
+{
+	byte n;
+
+	/* Hack -- if the screen is already icky, ignore this command */
+	if (screen_icky) return;
+
+	/* Draw "shadow" */
+	for (n = 0; n < last_remote_line[p_ptr->remote_term]+6; n++)
+	{
+		Term_erase(0, n, 80);
+	}
+
+	/* Draw text */
+	for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+	{
+		caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n + 2 );
+	}
+
+	/* Show a specific "title" -- header */
+	c_put_str(TERM_YELLOW, special_line_header, 0, 0);
+
+	/* Prompt */
+	c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+3, 0);
+
+	/* Ickify section of screen */
+	section_icky_col = 80;
+	section_icky_row = last_remote_line[p_ptr->remote_term]+6;
+}
+
+void show_peruse(s16b line)
+{
+	byte n;
+	s16b last = last_remote_line[p_ptr->remote_term];
+
+	/* Draw text */
+	for (n = 2; n < Term->hgt-2; n++)
+	{
+		if (n + line > last + 2 || !last) break;
+		caveprt(remote_info[p_ptr->remote_term][n + line - 2], 80, 0, n);
+	}
+
+	/* Erase the rest */
+	for (n = n; n < Term->hgt; n++)
+	{ 
+		Term_erase(0, n, 80);
+	}
+
+	/* Show a general "title" + header */
+	special_line_header[60] = '\0';
+	prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR, 
+	CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, special_line_header), 0, 0);
+
+	/* Prompt (check if we have extra pages) */
+	if (last > Term->hgt - 6) 
+		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
+	else
+		prt("[Press ESC to exit.]", Term->hgt - 1, 0);				
+
+	/* Enforce interactivity if not on */
+	special_line_type = 1;
+	if (!screen_icky) cmd_interactive();		
+}
+
 /*
  * Peruse a file sent by the server.
  *

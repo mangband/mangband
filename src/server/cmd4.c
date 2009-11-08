@@ -290,7 +290,7 @@ void display_houses(int Ind, char query)
 	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (i >= p_ptr->last_info_line) break;
-		Send_remote_line(Ind, i);
+		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
 	}
 	Send_term_info(Ind, NTERM_FLUSH, 0);
 	
@@ -901,24 +901,23 @@ void do_cmd_check_other(int Ind, int line)
 {
 	player_type *p_ptr = Players[Ind];
 
-	char buf[1024];
-	int i, j, size = 80;
+	int i, hgt = p_ptr->screen_hgt - 2;
 
 	/* Make sure the player is allowed to */
 	if (!p_ptr->special_file_type) return;
 
-	/* Dump the next 20 lines of the file */
+	/* Dump the next N lines */
 	Send_term_info(Ind, NTERM_CLEAR, 1);
-	for (i = 0; i < 20; i++)
+	for (i = line; i < line + hgt; i++)
 	{
-		/* We're done */
-		if (line + i > MAX_TXT_INFO) break;
-		if (line + i > p_ptr->last_info_line) break; 
-		
-		Send_special_line(Ind, line + i, i);
+		/* (Unless we're done) */
+		if (i >= MAX_TXT_INFO || i > p_ptr->last_info_line) break;
+
+		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
 	}
-	Send_term_info(Ind, NTERM_FLUSH, 0);
-	
+	/* Browse or popup that data remotely */
+	Send_term_info(Ind, (p_ptr->last_info_line > hgt ? NTERM_BROWSE : NTERM_POP), line);
+
 #if 0
 	int n = 0;
 	FILE *fff;
@@ -994,6 +993,7 @@ void special_file_peruse(int Ind, int type, char query)
 {
 	player_type *p_ptr = Players[Ind];
 	int next = p_ptr->interactive_next;
+	int i;
 
 	/* We're just starting. Reset counter */
 	if (!query)
@@ -1021,7 +1021,16 @@ void special_file_peruse(int Ind, int type, char query)
 			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);break;
 			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
 		}
+		/* Send *everything* to client */
+		Send_term_info(Ind, NTERM_CLEAR, 1);
+		for (i = 0; i < p_ptr->last_info_line; i++)
+		{
+			Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
+		}
+		/* Send_term_info(Ind, NTERM_FLUSH, 0); */
 	}
+	/* Instruct client to browse locally */
+	Send_term_info(Ind, NTERM_BROWSE, p_ptr->interactive_line);
 }
 
 void do_cmd_interactive_aux(int Ind, int type, char query)
@@ -1041,7 +1050,6 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 		case SPECIAL_FILE_HISTORY:
 		case SPECIAL_FILE_SCORES:
 			special_file_peruse(Ind, type, query);
-			do_cmd_check_other(Ind, p_ptr->interactive_line - p_ptr->interactive_next);
 			break;
 		case SPECIAL_FILE_OTHER:
 			common_peruse(Ind, query);
@@ -1108,7 +1116,7 @@ void do_cmd_knowledge(int Ind, char query)
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
 			if (i >= p_ptr->last_info_line) break;
-			Send_remote_line(Ind, i);
+			Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
 		}
 		Send_term_info(Ind, NTERM_FLUSH, 0);
 	}
@@ -1117,37 +1125,30 @@ void do_cmd_knowledge(int Ind, char query)
 	switch (query)
 	{
 		case '1':
-			Send_special_other(Ind, "Artifacts");
 			p_ptr->special_file_type = SPECIAL_FILE_ARTIFACT;
 			changed = TRUE;
 			break;
 		case '2':
-			Send_special_other(Ind, "Uniques");
 			p_ptr->special_file_type = SPECIAL_FILE_UNIQUE;
 			changed = TRUE;
 			break;
 		case '3':
-			Send_special_other(Ind, "Objects");
 			p_ptr->special_file_type = SPECIAL_FILE_OBJECT;
 			changed = TRUE;
 			break;
 		case '4':
-			Send_special_other(Ind, "High Scores");
 			p_ptr->special_file_type = SPECIAL_FILE_SCORES;
 			changed = TRUE;
 			break;
 		case '5':
-			Send_special_other(Ind, "Kill Count");
 			p_ptr->special_file_type = SPECIAL_FILE_KILL;
 			changed = TRUE;
 			break;
 		case '6':
-			Send_special_other(Ind, "Owned Houses");
 			p_ptr->special_file_type = SPECIAL_FILE_HOUSES;
 			changed = TRUE;
 			break;
 		case '7':
-			Send_special_other(Ind, "Character History");
 			p_ptr->special_file_type = SPECIAL_FILE_HISTORY;
 			changed = TRUE;
 			break;
@@ -1228,9 +1229,9 @@ void do_cmd_interactive_input(int Ind, char query)
 	/* Refresh client screen */
 	for (i = 0; i < *len; i++)
 	{
-		Send_char(Ind, *x + i, *y, *attr, str[i], *attr, str[i]);
+		Send_char(Ind, *x + i, *y, *attr, str[i]);
 	}
-	Send_char(Ind, *x + i, *y, TERM_WHITE, ' ', TERM_WHITE, ' ');
+	Send_char(Ind, *x + i, *y, TERM_WHITE, ' ');
 
 	Send_term_info(Ind, NTERM_FLUSH, 0);	
 }

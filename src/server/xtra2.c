@@ -5634,8 +5634,8 @@ void snapshot_player(int Ind, int who)
 	player_type *p_ptr = Players[who];
 	cave_view_type status[80];
 	int x1,y1, y, x;
-	char c;
-	byte a;
+	char c, tc;
+	byte a, ta;
 
 	/* Determine boundaries */
 	x1 = MAX(0, p_ptr->px - 40);
@@ -5652,21 +5652,21 @@ void snapshot_player(int Ind, int who)
 	{
 		for (x = 0; x < 80; x++)
 		{
-			map_info(who, y1+y, x1+x, &a, &c, &a, &c, FALSE);
-			Send_char(Ind, x, y, a, c, a, c);
+			map_info(who, y1+y, x1+x, &a, &c, &ta, &tc, FALSE);
+			Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), y, x, a, c, ta, tc);
 		}
 	}
 
 	c_prt_status_line(who, status, 80);
 	for (x = 0; x < 80; x++)
 	{
-		Send_char(Ind, x, y, status[x].a, status[x].c, status[x].a, status[x].c);
+		Send_char(Ind, x, y, status[x].a, status[x].c);
 	}
 
 	y = player_pict(Ind, who);
 	a = PICT_A(y);
 	c = PICT_C(y);
-	Send_char(Ind, p_ptr->px-x1, p_ptr->py-y1, a, c, a, c);
+	Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
 
 	Send_term_info(Ind, NTERM_FRESH, 0);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);	
@@ -5719,7 +5719,7 @@ void preview_vault(int Ind, int v_idx)
 				a = p_ptr->f_attr[feat];
 			}
 
-			Send_char(Ind, dx, dy, a, c, a, c);
+			Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), dy, dx, a, c, 0, 0);//a, c);
 		}
 	}
 
@@ -6859,7 +6859,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	Send_term_info(Ind, NTERM_CLEAR, 1);
 	for (i = 0; i < p_ptr->screen_hgt+2; i++)
 	{
-		Send_remote_line(Ind, i);
+		Stream_line(Ind, STREAM_ACTIVE_MIXED, i); 
 	}
 	Send_term_info(Ind, NTERM_FLUSH, 0);
 
@@ -6890,10 +6890,9 @@ void master_desc_all(int Ind)
 		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, 23, i * (l+1));
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
-	Send_remote_line(Ind, 23);
-	Send_term_info(Ind, NTERM_FLUSH, -23-1);
+	Stream_line(Ind, STREAM_ACTIVE_TEXT, 23);
+	Send_term_info(Ind, NTERM_FLUSH, -1- 23);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
-	
 }
 
 /* Auxilary functon for "master_new_hook", performs actual action */
@@ -6961,7 +6960,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min + 1, (A), (C), (A), (C))
+		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min + 1, (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)

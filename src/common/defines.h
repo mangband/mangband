@@ -361,6 +361,7 @@
 #define RLE_NONE 0
 #define RLE_CLASSIC 1
 #define RLE_LARGE 2
+#define RLE_COLOR 3
 
 /*
  * Party commands
@@ -768,6 +769,11 @@
 #define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */
 #define COMMAND_SECOND_DIR  	0x40000000	/* Put second item into dir */
 #define COMMAND_SECOND_CHAR 	0x80000000	/* Put second item into entry[0] */
+
+/*
+ * Max number of data streams
+ */
+#define MAX_STREAMS 20
 
 /*
  * Number of keymap modes

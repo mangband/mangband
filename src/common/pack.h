@@ -151,6 +151,9 @@
 #define PKT_KEY  		168
 #define PKT_ITEM_TESTER	169
 
+/* Packet types 170-190 are for data streams, DO NOT USE THAT SPACE */
+#define PKT_STREAM		170
+
 /* Packet types 191-254 are for custom commands, DO NOT USE THAT SPACE */
 #define PKT_COMMAND		191
 
@@ -263,6 +266,7 @@
 #define NTERM_FRESH  	7
 #define NTERM_POP    	8
 #define NTERM_FLUSH 	9
+#define NTERM_BROWSE	10
 /* NTERM_ACTIVATE */
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1
@@ -272,6 +276,7 @@
 #define NTERM_WIN_MONSTER	5
 #define NTERM_WIN_MONLIST 	6
 #define NTERM_WIN_SPECIAL 	7
+#define NTERM_WIN_CURRENT	255
 
 /*
  * Some commands send to the server

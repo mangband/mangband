@@ -1656,12 +1656,12 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 
 	/* Notify player */
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MONSTER);
-	Send_term_info(Ind, NTERM_CLEAR, NTERM_WIN_MONSTER);
+	Send_term_info(Ind, NTERM_CLEAR, 0);// NTERM_WIN_MONSTER);
 
 	for (i = 0; i < p_ptr->last_info_line; i++)
-		Send_remote_line(Ind, i);
+		Stream_line(Ind, STREAM_ACTIVE_MIXED, i);
 
-	Send_term_info(Ind, NTERM_FRESH, (quiet ? 0 : NTERM_POP));
+	Send_term_info(Ind, NTERM_FRESH, 0);//(quiet ? 0 : NTERM_POP));
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 	
 	return;

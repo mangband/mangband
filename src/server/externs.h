@@ -27,6 +27,7 @@ extern int Init_setup();
 
 /* tables.c */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
+const stream_type streams[MAX_STREAMS];
 extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
 extern byte item_tester_flags[MAX_ITEM_TESTERS]; 
 extern s16b ddd[9];
@@ -396,7 +397,7 @@ extern void everyone_forget_spot(int Depth, int y, int x);
 extern void lite_spot(int Ind, int y, int x);
 extern void prt_map(int Ind);
 extern void display_map(int Ind, bool quiet);
-extern void do_cmd_view_map(int Ind);
+extern void do_cmd_view_map(int Ind, char query);
 extern void forget_lite(int Ind);
 extern void update_lite(int Ind);
 extern void forget_view(int Ind);
@@ -719,15 +720,18 @@ extern int Send_cut(int Ind, int cut);
 extern int Send_stun(int Ind, int stun);
 extern int Send_direction(int Ind);
 extern int Send_message(int Ind, cptr msg, u16b typ);
-extern int Send_char(int Ind, int x, int y, byte a, char c, byte ta, char tc);
+extern int Stream_line_as(int ind, int st, int y, int as_y);
+extern int Stream_char(int ind, int st, int y, int x);
+extern int Stream_char_raw(int ind, int st, int y, int x, byte a, char c, byte ta, char tc);
+/*extern int Send_char(int Ind, int x, int y, byte a, char c, byte ta, char tc);*/
 extern int Send_spell_info(int Ind, int book, int i, byte flag, cptr out_val);
 extern int Send_item_request(int Ind, byte tval_hook);
 extern int Send_state(int Ind, bool paralyzed, bool searching, bool resting);
 extern int Send_flush(int Ind);
 extern int Send_term_info(int Ind, int mode, u16b arg);
-extern int Send_line_info(int Ind, int y);
-extern int Send_mini_map(int Ind, int y, s16b w);
-extern int Send_remote_line(int Ind, int y);
+/*extern int Send_line_info(int Ind, int y);*/
+/*extern int Send_mini_map(int Ind, int y, s16b w);*/
+/*extern int Send_remote_line(int Ind, int y);*/
 extern int Send_store(int Ind, char pos, byte attr, int wgt, int number, int price, cptr name);
 extern int Send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
 extern int Send_store_sell(int Ind, int price);
@@ -735,7 +739,7 @@ extern int Send_store_leave(int Ind);
 extern int Send_target_info(int ind, int x, int y, cptr buf);
 extern int Send_sound(int ind, int sound);
 /*extern int Send_special_line(int ind, int max, int line, byte attr, cptr buf);*/
-extern int Send_special_line(int ind, int line, int y);
+/*extern int Send_special_line(int ind, int line, int y);*/
 extern int Send_pickup_check(int ind, cptr buf);
 extern int Send_party(int ind);
 extern int Send_channel(int ind, int n, cptr virtual);

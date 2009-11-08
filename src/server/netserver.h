@@ -104,7 +104,7 @@ static int Receive_disarm(int ind);
 static int Receive_eat(int ind);
 static int Receive_fill(int ind);
 static int Receive_locate(int ind);
-static int Receive_map(int ind);
+/*static int Receive_map(int ind);*/
 static int Receive_search_mode(int ind);
 
 static int Receive_close(int ind);
@@ -141,6 +141,7 @@ static void Handle_item(int Ind, int item);
 int Setup_net_server(void);
 void Send_item_testers(int ind);
 void Send_custom_commands(int ind);
+void Send_streams(int ind);
 int Send_game_start_conn(int ind);
 int Send_motd_conn(int ind, int offset);
 int Send_option_info_conn(int ind);

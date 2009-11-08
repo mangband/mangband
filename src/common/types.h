@@ -58,6 +58,7 @@ typedef struct hostile_type hostile_type;
 typedef struct history_event history_event;
 typedef struct channel_type channel_type;
 typedef struct custom_command_type custom_command_type;
+typedef struct stream_type stream_type;
 
 
 /**** MAngband specific structs ****/
@@ -1302,6 +1303,7 @@ struct player_type
 	byte target_x[TEMP_MAX];
 	s16b target_idx[TEMP_MAX];
 
+	byte special_handler;	/* Which custom command is handling interactive terminal? */	
 	byte special_file_type;	/* Is he using *ID* or Self Knowledge? */
 	s16b interactive_line;	/* Which line is he on? */
 	cptr interactive_file;	/* Which file is he reading? */
@@ -1344,6 +1346,7 @@ struct player_type
 	byte tval_attr[128];
 	char tval_char[128];
    
+	byte dungeon_stream;
 	byte use_graphics;
 	byte screen_wid;
 	byte screen_hgt;
@@ -1369,6 +1372,7 @@ struct player_type
 	s16b last_info_line;
 	byte remote_term;
 	u32b window_flag;
+
 
 	char died_from[80];	/* What off-ed him */
 	char died_from_list[80]; /* what goes on the high score list */
@@ -1626,4 +1630,24 @@ struct custom_command_type
 	u32b flag;
 	byte tval; 
 	char prompt[MSG_LEN];
+};
+
+/* 
+ * Data streams
+ */
+struct stream_type
+{
+	byte pkt;	/* Network packet used for it */
+
+	byte addr;	/* Destination "window" */
+
+	byte rle;	/* RLE mode */
+	bool trn;	/* Secondary stream for transparency? */
+
+	byte min_row;	/* Size */
+	byte min_col;
+	byte max_row;
+	byte max_col;	
+
+	cptr mark;	/* Hack -- name */
 };

@@ -45,7 +45,7 @@ int Receive_gold(void);
 int Receive_sp(void);
 int Receive_objflags(void);
 int Receive_history(void);
-int Receive_char(void);
+/*int Receive_char(void);*/
 int Receive_message(void);
 int Receive_state(void);
 int Receive_title(void);
@@ -65,7 +65,7 @@ int Receive_spell_info(void);
 int Receive_direction(void);
 int Receive_flush(void);
 int Receive_term_info(void);
-int Receive_line_info(void);
+/*int Receive_line_info(void);*/
 int Receive_floor(void);
 int Receive_special_other(void);
 int Receive_store(void);
@@ -75,8 +75,8 @@ int Receive_player_store_info(void);
 int Receive_sell(void);
 int Receive_target_info(void);
 int Receive_sound(void);
-int Receive_mini_map(void);
-int Receive_special_line(void);
+/*int Receive_mini_map(void);*/
+/*int Receive_special_line(void);*/
 int Receive_floor(void);
 int Receive_pickup_check(void);
 int Receive_party(void);
@@ -87,5 +87,7 @@ int Receive_skills(void);
 int Receive_pause(void);
 int Receive_cursor(void);
 int Receive_monster_health(void);
+int Receive_stream_info(void);
+int Receive_stream(void);
 
 extern int Send_clear(void);

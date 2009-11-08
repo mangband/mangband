@@ -193,7 +193,7 @@ static void Init_receive(void)
 	playing_receive[PKT_EAT]		= Receive_eat;
 	playing_receive[PKT_FILL]		= Receive_fill;
 	playing_receive[PKT_LOCATE]		= Receive_locate;
-	playing_receive[PKT_MAP]		= Receive_map;
+	/*playing_receive[PKT_MAP]		= Receive_map;*/
 	playing_receive[PKT_SEARCH_MODE]	= Receive_search_mode;
 
 	playing_receive[PKT_CLOSE]		= Receive_close;
@@ -1478,6 +1478,9 @@ static int Enter_player(int ind)
 	//Conn_set_state(connp, CONN_READY, CONN_PLAYING);
 	Conn_set_state(connp, CONN_PLAYING, CONN_PLAYING);
 
+	/* Send data streams defenitions */
+	Send_streams(NumPlayers);
+
 	/* Send item testers */
 	Send_item_testers(NumPlayers);
 
@@ -1962,7 +1965,10 @@ int Net_output(void)
  *
  * Note! To sucessfully decode, client MUST use the same "mode"
  */
-int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
+#define rle_encode(B, L, C, M) \
+	{ if ((M) == RLE_COLOR) { color_encode((B), (L), (C)); } \
+	else { rle_encode_aux((B), (L), (C), (M)); } }
+int rle_encode_aux(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 {
 	int x1, i, n, a;
 	char c;
@@ -2019,7 +2025,6 @@ int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 			Packet_printf(buf, "%c%c", c, a);
 			/* count bytes */ b+=2;
 		}
-				
 	}
 	/* report total bytes */ return b;
 }
@@ -2993,7 +2998,7 @@ int Send_message(int ind, cptr msg, u16b typ)
 
 	return Packet_printf(&connp->c, "%c%s%hd", PKT_MESSAGE, buf, typ);
 }
-
+#if 0
 int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
 {
 	if (!BIT(Conn[Players[ind]->conn].state, CONN_PLAYING | CONN_READY))
@@ -3004,7 +3009,7 @@ int Send_char(int ind, int x, int y, byte a, char c, byte ta, char tc)
 	else
 		return Packet_printf(&Conn[Players[ind]->conn].c, "%c%c%c%c%c", PKT_CHAR, x, y, a, c);
 }
-
+#endif
 int Send_spell_info(int ind, int book, int i, byte flag, cptr out_val)
 {
 	connection_t *connp = &Conn[Players[ind]->conn];
@@ -3071,6 +3076,7 @@ int Send_term_info(int ind, int mode, u16b arg)
 	return Packet_printf(&connp->c, "%c%c%hu", PKT_TERM, mode, arg);
 }
 
+#if 0
 /*
  * As an attempt to lower bandwidth requirements, each line is run length
  * encoded.  Non-encoded grids are sent as normal, but if a grid is
@@ -3108,7 +3114,101 @@ int Send_line_info(int ind, int y)
 	
 	return 1;
 }
+#endif
 
+int Stream_char_raw(int ind, int st, int y, int x, byte a, char c, byte ta, char tc)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+	const stream_type *stream = &streams[st];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+/*
+		errno = 0;
+		plog(format("Connection not ready for a/c char (%d.%d.%d)",
+			ind, connp->state, connp->id)); 
+*/
+		return 0;
+	}
+
+	/* Header + Body (with or without transperancy) */
+	if (stream->trn) 
+		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , a, c, ta, tc);
+	else
+		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , a, c);
+
+	return 1;
+}
+
+int Stream_char(int ind, int st, int y, int x)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+	const stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+/*
+		errno = 0;
+		plog(format("Connection not ready for a/c char (%d.%d.%d)",
+			ind, connp->state, connp->id)); 
+*/
+		return 0;
+	}
+
+	/* Hacks for Dungeon: */
+	source = (stream->addr ? p_ptr->info[y] : p_ptr->scr_info[y]);
+
+	/* Header + Body (with or without transperancy) */
+	if (stream->trn) 
+		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
+	else
+		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c);
+
+	return 1;
+}
+
+int Stream_line_as(int ind, int st, int y, int as_y)
+{
+	player_type *p_ptr = Players[ind];
+	connection_t *connp = &Conn[p_ptr->conn];
+	const stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	s16b	cols = 80;
+	byte	rle = stream->rle;
+	byte	trn = stream->trn;
+	source 	= p_ptr->info[y];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for a/c stream (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	/* Hacks for Dungeon: */
+	if (!stream->addr)
+	{
+		cols = p_ptr->screen_wid;
+		source = p_ptr->scr_info[y];
+	}
+
+	/* Packet header */
+	Packet_printf(&connp->c, "%c%hd", stream->pkt, as_y);
+
+	/* (Secondary) */
+	if (trn) rle_encode(&connp->c, p_ptr->trn_info[y], cols, rle);
+
+	/* Packet body */
+	rle_encode(&connp->c, source, cols, rle);
+
+	return 1;
+}
+#if 0
 int Send_special_line(int ind, int line, int y)
 {
 	player_type *p_ptr = Players[ind];
@@ -3176,6 +3276,7 @@ int Send_mini_map(int ind, int y, s16b w)
 	
 	return 1;
 }
+#endif
 
 int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cptr name)
 {
@@ -3274,6 +3375,38 @@ int Send_sound(int ind, int sound)
 	}
 
 	return Packet_printf(&connp->c, "%c%c", PKT_SOUND, sound);
+}
+
+int Send_stream(int ind, int stream)
+{
+	connection_t *connp = &Conn[Players[ind]->conn];
+	const stream_type *s_ptr = &streams[stream];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	{
+		errno = 0;
+		plog(format("Connection not ready for stream definition (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	return Packet_printf(&connp->c, "%c%c%c%c%c%s%c%c%c%c", 
+		 PKT_STREAM, s_ptr->pkt, s_ptr->addr,
+		 s_ptr->rle, s_ptr->trn, s_ptr->mark,
+		 s_ptr->min_row, s_ptr->min_col,
+		 s_ptr->max_row, s_ptr->max_col);
+}
+
+void Send_streams(int ind)
+{
+	int i;
+	/* Make sure "streams" ends with 
+	 * an empty entry, or face crash */
+	for (i = 0; streams[i].pkt != 0; i++)
+	{
+		/* Send stream definition */
+		(void)Send_stream(ind, i);
+	} 
 }
 
 /*
@@ -4862,6 +4995,7 @@ static int Receive_locate(int ind)
 	return 1;
 }
 
+#if 0
 static int Receive_map(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -4889,6 +5023,7 @@ static int Receive_map(int ind)
 
 	return 1;
 }
+#endif
 
 static int Receive_search_mode(int ind)
 {
@@ -5809,6 +5944,21 @@ static int Receive_interactive(int ind)
 	if (player)
 	{
 		Players[player]->special_file_type = type;
+		/* Find custom handler / TODO: lookup-table! */
+		for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
+		{
+			/* custom_command *cc_ptr = &custom_commands[n]; */
+			if (custom_commands[n].pkt == 0) break;
+			if (custom_commands[n].tval == type && (custom_commands[n].flag & COMMAND_INTERACTIVE) && custom_commands[n].do_cmd_callback)
+			{
+				Players[player]->special_handler = n;
+				(*(void (*)(int, char))(custom_commands[n].do_cmd_callback))(player, 0);
+				
+				/* Breakout */
+				return 1;
+			}	
+		}
+		/* Use the default handler */
 		do_cmd_interactive(player, 0);
 	}
 
@@ -5833,9 +5983,12 @@ static int Receive_term_key(int ind)
 		return n;
 	}
 
-	if (player && Players[player]->special_file_type)
+	if (player)
 	{
-		do_cmd_interactive(player, ky);
+		if ((n = Players[player]->special_handler))
+			(*(void (*)(int, char))(custom_commands[n].do_cmd_callback))(player, ky);
+		else if (Players[player]->special_file_type)
+			do_cmd_interactive(player, ky);
 	}
 
 	return 1;

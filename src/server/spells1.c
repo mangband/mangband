@@ -4557,7 +4557,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				{
 					p_ptr->scr_info[dispy][dispx].c = '*';
 					p_ptr->scr_info[dispy][dispx].a = attr;
-					Send_char(j, dispx, dispy, attr, '*', p_ptr->trn_info[dispy][dispx].a, p_ptr->trn_info[dispy][dispx].c);
+					Stream_tile(j, p_ptr, dispy, dispx);
 				}
 			}
 		}
@@ -4642,7 +4642,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 
 				if (randint(density) == 1) 
 				{
-					Send_char(j, dispx, dispy, attr, ch, p_ptr->trn_info[dispy][dispx].a, p_ptr->trn_info[dispy][dispx].c);
+					Stream_tile(j, p_ptr, dispy, dispx);
 					Send_flush(j);
 				}
 			}
@@ -4759,7 +4759,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					p_ptr->scr_info[dispy][dispx].c = ch;
 					p_ptr->scr_info[dispy][dispx].a = attr;
 
-					Send_char(j, dispx, dispy, attr, ch, p_ptr->trn_info[dispy][dispx].a, p_ptr->trn_info[dispy][dispx].c);
+					Stream_tile(j, p_ptr, dispy, dispx);
 
 					drawn = TRUE;
 

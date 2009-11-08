@@ -51,15 +51,15 @@ void cmd_custom(byte i)
 			return;
 		}
 		advance_prompt();
-		}
-	if (cc_ptr->flag & COMMAND_SPECIAL_FILE)
+	}
+	/* if (cc_ptr->flag & COMMAND_SPECIAL_FILE)
 	{
 		special_line_type = cc_ptr->tval;
 		strcpy(special_line_header, prompt);
 		peruse_file();
 		return;
 	}
-	else if (cc_ptr->flag & COMMAND_INTERACTIVE)
+	else */ if (cc_ptr->flag & COMMAND_INTERACTIVE)
 	{
 		special_line_type = cc_ptr->tval;
 		strcpy(special_line_header, prompt);
@@ -294,14 +294,14 @@ void process_command()
 			cmd_stay();
 			break;
 		}
-
+#ifndef COMMAND_OVERLOAD
 		/* Get the mini-map */
 		case 'M':
 		{
 			cmd_map();
 			break;
 		}
-
+#endif
 		/* Recenter map */
 		case 'L':
 		{
@@ -1306,7 +1306,6 @@ void cmd_character(void)
 	/* Flush any events */
 	Flush_queue();
 }
-
 
 
 void cmd_interactive()

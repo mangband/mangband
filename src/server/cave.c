@@ -1451,7 +1451,7 @@ void lite_spot(int Ind, int y, int x)
 			p_ptr->trn_info[dispy][dispx].a = ta;
 
 			/* Tell client to redraw this grid */
-			(void)Send_char(Ind, dispx, dispy, a, c, ta, tc);
+			Stream_tile(Ind, p_ptr, dispy, dispx);
 		} 
 	}
 }
@@ -1515,7 +1515,7 @@ void prt_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_line_info(Ind, dispy);
+		Stream_line(Ind, DUNGEON_STREAM_p(p_ptr), dispy);
 	}
 
 	/* Display player */
@@ -1809,7 +1809,7 @@ void display_map(int Ind, bool quiet)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y, (!quiet ? 0 :map_wid+2));
+		Stream_line(Ind, (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -1821,6 +1821,10 @@ void display_map(int Ind, bool quiet)
 		}
 	}
 
+	if (!quiet)
+		Send_term_info(Ind, NTERM_FLUSH, 0);
+	else
+		Send_term_info(Ind, NTERM_FRESH, 0);		
 
 	/* Restore main window */
 	if (quiet)
@@ -1976,7 +1980,7 @@ void wild_display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y, 0);
+		Stream_line(Ind, MINIMAP_STREAM_p(p_ptr), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -1999,8 +2003,10 @@ void wild_display_map(int Ind)
     "wilderness map" mode now that will represent each level with one character.
  */
  
-void do_cmd_view_map(int Ind)
+void do_cmd_view_map(int Ind, char query)
 {
+	if (query) return;
+
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */

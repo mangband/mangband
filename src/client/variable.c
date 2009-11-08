@@ -122,6 +122,9 @@ s16b command_dir;
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 s16b custom_commands;
 
+stream_type streams[MAX_STREAMS];
+byte known_streams;
+
 s16b race;
 s16b class;
 s16b sex;

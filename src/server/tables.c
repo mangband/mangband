@@ -219,34 +219,34 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 
 	/*** Knowledge query ***/
 	{ /* Help */
-		'?', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		'?', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_HELP, "Help"
 	},
 #if 1
 	{ /* Knowledge */
-		'#', PKT_COMMAND, SCHEME_SMALL, 0, (cccb)do_cmd_knowledge,
+		'#', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
 #endif
 	{ /* Artifacts */
-		'~', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		'~', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_ARTIFACT, "Artifacts"
 	},
 	{ /* Uniques */
-		'|', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		'|', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_UNIQUE, "Uniques"
 	},
 	{ /* Players */
-		'@', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		'@', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_PLAYER, "Players"
 	},
 	{ /* Scores */
-		'#', PKT_COMMAND, SCHEME_SMALL, 0, NULL,
+		'#', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_SCORES, "Highscores"
 	},
@@ -258,9 +258,14 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(12), "Socials\nDo what? "
 	},
 	{ /* 'DM Menu' */
-		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_dungeon_master,
+		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_MASTER, "Dungeon Master"
+	},
+	{ /* Mini-Map' */
+		'M', PKT_MINI_MAP, SCHEME_SMALL, 0, (cccb)do_cmd_view_map,
+		(COMMAND_INTERACTIVE),
+		99, "Mini-Map"
 	},	
 #if 0
 	{ /* Suicide */
@@ -328,6 +333,69 @@ byte item_tester_flags[MAX_ITEM_TESTERS] =
 	0, /* End of array */
 };
 
+
+/*
+ * Global array for "data streams"
+ *
+*	byte pkt;
+*
+*	byte addr;
+*
+*	byte rle;
+*	bool trn;
+*
+*	byte min_row;
+*	byte min_col;
+*	byte max_row;
+*	byte max_col;	
+*
+*	cptr mark;
+ */
+#define STREAM_PKT(A) PKT_STREAM + 1 + STREAM_ ## A
+const stream_type streams[MAX_STREAMS] = 
+{
+	{	/* 0 */
+		STREAM_PKT(DUNGEON_ASCII), NTERM_WIN_OVERHEAD,	RLE_CLASSIC,	FALSE,
+		SCREEN_HGT / 2 + 1, SCREEN_WID / 3 + 1, MAX_HGT, MAX_WID, "DUNGEON_ASCII"
+	},
+	{	/* 1 */
+		STREAM_PKT(DUNGEON_GRAF1), NTERM_WIN_OVERHEAD,	RLE_LARGE,	FALSE,
+		SCREEN_HGT / 2 + 1, SCREEN_WID / 3 + 1, MAX_HGT, MAX_WID, "DUNGEON_GRAF1"
+	},
+	{	/* 2 */
+		STREAM_PKT(DUNGEON_GRAF2), NTERM_WIN_OVERHEAD,	RLE_LARGE,	TRUE,
+		SCREEN_HGT / 2 + 1, SCREEN_WID / 3 + 1, MAX_HGT, MAX_WID, "DUNGEON_GRAF2"
+	},
+	{	/* 3 */
+		STREAM_PKT(MINIMAP_ASCII), NTERM_WIN_OVERHEAD,	RLE_CLASSIC,	FALSE,
+		SCREEN_HGT / 2 + 1, SCREEN_WID / 3 + 1, MAX_HGT, MAX_WID, "MINIMAP_ASCII"
+	},
+	{	/* 4 */
+		STREAM_PKT(MINIMAP_GRAF), NTERM_WIN_OVERHEAD,	RLE_LARGE,	FALSE,
+		SCREEN_HGT / 2 + 1, SCREEN_WID / 3 + 1, MAX_HGT, MAX_WID, "MINIMAP_GRAF"
+	},
+	{	/* 5 */
+		STREAM_PKT(BGMAP_ASCII), NTERM_WIN_MAP,	RLE_CLASSIC,	FALSE,
+		20, 80, 20, 80, "BGMAP_ASCII"
+	},	
+	{	/* 6 */
+		STREAM_PKT(BGMAP_GRAF), NTERM_WIN_MAP,	RLE_LARGE,	FALSE,
+		20, 80, 20, 80, "BGMAP_GRAF"
+	},	
+	{	/* 7 */
+		STREAM_PKT(ACTIVE_MIXED), NTERM_WIN_CURRENT,	RLE_CLASSIC,	FALSE,
+		20, 80, 20, 80,	"ACTIVE_MIXED"
+	},
+	{	/* 8 */
+		STREAM_PKT(ACTIVE_TEXT), NTERM_WIN_CURRENT,	RLE_COLOR,	FALSE,
+		20, 80, 20, 80,	"ACTIVE_TEXT"
+	},
+	
+	/* Tail */
+	{
+		0, 0, 0, 0, 0, 0, 0, 0, NULL
+	}
+};
 
 /*
  * Global array for looping through the "keypad directions"

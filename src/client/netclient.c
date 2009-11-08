@@ -33,6 +33,7 @@ huge			mticks = 0; // Keeps track of time in 0.1ms "ticks"
 static bool		request_redraw;
 
 sockbuf_t	rbuf, cbuf, wbuf, qbuf;
+static byte	stream_ref[256];
 static int		(*receive_tbl[256])(void),
 					(*setup_tbl[256])(void);
 static long		last_send_anything,
@@ -57,6 +58,7 @@ static void Receive_init(void)
 
 	for (i = 0; i < 256; i++)
 	{
+		stream_ref[i] = 0;
 		receive_tbl[i] = NULL;
 		setup_tbl[i] = NULL;
 	}
@@ -97,7 +99,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_SP]		= Receive_sp;
 	receive_tbl[PKT_HISTORY]	= Receive_history;
 	receive_tbl[PKT_OBJFLAGS]	= Receive_objflags;
-	receive_tbl[PKT_CHAR]		= Receive_char;
+	/*receive_tbl[PKT_CHAR]		= Receive_char;*/
 	receive_tbl[PKT_MESSAGE]	= Receive_message;
 	receive_tbl[PKT_STATE]		= Receive_state;
 	receive_tbl[PKT_TITLE]		= Receive_title;
@@ -116,7 +118,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_DIRECTION]	= Receive_direction;
 	receive_tbl[PKT_FLUSH]		= Receive_flush;
 	receive_tbl[PKT_TERM]		= Receive_term_info;
-	receive_tbl[PKT_LINE_INFO]	= Receive_line_info;
+	/* receive_tbl[PKT_LINE_INFO]	= Receive_line_info; */
 	receive_tbl[PKT_SPECIAL_OTHER]	= Receive_special_other;
 	receive_tbl[PKT_STORE]		= Receive_store;
 	receive_tbl[PKT_STORE_INFO]	= Receive_store_info;
@@ -124,9 +126,9 @@ static void Receive_init(void)
 	receive_tbl[PKT_SELL]		= Receive_sell;
 	receive_tbl[PKT_TARGET_INFO]	= Receive_target_info;
 	receive_tbl[PKT_SOUND]		= Receive_sound;
-	receive_tbl[PKT_MINI_MAP]	= Receive_line_info;
+	/* receive_tbl[PKT_MINI_MAP]	= Receive_line_info; */
 	/* reliable_tbl[PKT_MINI_MAP]	= Receive_mini_map; */
-	receive_tbl[PKT_SPECIAL_LINE]	= Receive_special_line;
+	/* receive_tbl[PKT_SPECIAL_LINE]	= Receive_special_line; */
 	receive_tbl[PKT_FLOOR]		= Receive_floor;
 	receive_tbl[PKT_PICKUP_CHECK]	= Receive_pickup_check;
 	receive_tbl[PKT_PARTY]		= Receive_party;
@@ -138,6 +140,7 @@ static void Receive_init(void)
 	receive_tbl[PKT_CURSOR]		= Receive_cursor;
 	receive_tbl[PKT_MONSTER_HEALTH]	= Receive_monster_health;
 	receive_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
+	receive_tbl[PKT_STREAM]	= Receive_stream_info;
 }
 
 int Send_verify_visual(int type)
@@ -738,8 +741,11 @@ int Send_ack(long rel_loops)
  *
  * Note -- if "lineref" is NULL, the packets will be read from 
  * the queue for no effect (usefull for discarding)
- */ 
-int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
+ */
+#define rle_decode(B, L, C, M) \
+	{ if ((M) == RLE_COLOR) { color_decode((B), (L), (C)); } \
+	else { rle_decode_aux((B), (L), (C), (M)); } }
+int rle_decode_aux(sockbuf_t* buf, cave_view_type* lineref, int max_col, int mode)
 {
 	int	x, i;
 	char c;
@@ -2252,8 +2258,12 @@ int Receive_term_info(void)
 		case NTERM_FLUSH:
 			if ((s16b)arg >= 0) { if (!screen_icky) break; }
 			else { arg = 0 - (s16b)arg - 1; }
-			for (n = arg; n < last_remote_line[p_ptr->remote_term]+1; n++)
-				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
+			if (p_ptr->remote_term)
+				for (n = arg; n < last_remote_line[p_ptr->remote_term]+1; n++)
+					caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
+			else
+				for (n = arg; n < Term->hgt; n++)
+					caveprt(p_ptr->scr_info[n], Term->wid, DUNGEON_OFFSET_X, n);
 			break;
 		case NTERM_FRESH:
 			switch (p_ptr->remote_term)
@@ -2267,21 +2277,13 @@ int Receive_term_info(void)
 			if (arg != NTERM_POP) break;
 			/* fall */
 		case NTERM_POP:
-			/* Popup Hack */
-			Term_save();
-			for (n = 0; n < last_remote_line[p_ptr->remote_term]+4; n++)
-				Term_erase(0, n, 80);
-			for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
-				caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
-			c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+1, 0);
-			/* section_icky_col = 80;
-			section_icky_row = last_remote_line[p_ptr->remote_term]+4; */
-			screen_icky = TRUE;
-			inkey();
-			screen_icky = FALSE;
-			Term_load();
-			Flush_queue();
-			Term_fresh();
+			if (!screen_icky) {	show_popup(); break; }
+			/* fall */
+		case NTERM_BROWSE:
+			if ((s16b)arg >= 0) { if (!screen_icky) break; }
+			else { arg = 0 - (s16b)arg - 1; }
+			/* Browse NTerm contents locally */
+			show_peruse(arg);
 			break;
 		case NTERM_HOLD:
 			if (arg == 0) 
@@ -2301,6 +2303,7 @@ int Receive_term_info(void)
 	return 1;
 } 
 
+#if 0
 int Receive_special_line(void)
 {
 	char	ch, n;
@@ -2323,6 +2326,7 @@ int Receive_special_line(void)
 
 	return 1;
 }
+#endif
 
 #define DUNGEON_RLE_MODE (use_graphics ? RLE_LARGE : RLE_CLASSIC) 
 int Receive_line_info(void)
@@ -2467,24 +2471,18 @@ int Receive_special_other(void)
 		return n;
 	}
 	
-	/* Set file perusal header */
+	/* Save file perusal header */
 	strcpy(special_line_header, buf);
-
-	/* HACK!!!! */	
-	if (screen_icky || looking) return 1;
 
 	/* Set file perusal method to "other" */
 	special_line_type = 1;/*SPECIAL_FILE_OTHER;*/
 
-	/* Disable to-screen */
-	//special_line_onscreen = FALSE;
-	
-	/* Peruse the file we're about to get */
-	peruse_file();
+	/* Ignore it if we're busy */	
+	if (screen_icky || looking) return 1;
 
-	/* Restore */
-	special_line_onscreen = TRUE;
-	
+	/* Popup route */
+	prepare_popup();
+
 	return 1;
 }
 
@@ -2701,6 +2699,136 @@ int Receive_item_tester(void)
 	
 	return 1;
 }
+
+int Receive_stream_info(void)
+{
+	int n;
+	char ch;
+	byte pkt, addr, trn, rle;
+	byte min_col, min_row, max_col, max_row;
+	char buf[MSG_LEN];
+
+	stream_type *s_ptr;
+
+	buf[0] = '\0';
+	pkt = addr = trn = rle = 0;
+	min_col = min_row = max_col = max_row = 0;	
+
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c%s%c%c%c%c", &ch, &pkt, &addr, &rle, &trn, buf, 
+			&min_row, &min_col, &max_row, &max_col)) <= 0)
+	{
+		return n;
+	}
+
+	if (known_streams >= MAX_CUSTOM_COMMANDS) return 0;
+
+	s_ptr = &streams[known_streams];
+	WIPE(s_ptr, stream_type);
+
+	s_ptr->pkt = pkt;
+	s_ptr->addr = addr;	
+	s_ptr->rle = rle;
+	
+	/*s_ptr->scr = (!addr ? p_ptr->scr_info : remote_info[addr] );
+	s_ptr->trn = (!trn ? NULL : p_ptr->trn_info);*/
+
+	s_ptr->min_row = min_row;
+	s_ptr->min_col = min_col;
+	s_ptr->max_row = max_row;
+	s_ptr->max_col = max_col;
+
+	if (!STRZERO(buf))
+	{
+		s_ptr->mark = strdup(buf);
+	}
+
+	stream_ref[pkt] = known_streams;
+	receive_tbl[pkt] = Receive_stream;
+
+	known_streams++;	
+
+	return 1;
+}
+
+int read_stream_char(byte addr, bool trn, s16b y, s16b x)
+{
+	int 	n;
+	byte	a, ta = 0;
+	char	c, tc = 0;
+
+	cave_view_type *dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
+
+	if (trn)
+	{
+		if ((n = Packet_scanf(&rbuf, "%c%c", &ta, &tc)) <= 0)
+		{
+			return n;
+		}
+	}
+
+	if ((n = Packet_scanf(&rbuf, "%c%c", &a, &c)) <= 0)
+	{
+		return n;
+	}
+
+	dest[x].a = a;
+	dest[x].c = c;
+
+	if (y > last_remote_line[addr]) 
+		last_remote_line[addr] = y; 
+
+	if (!addr)
+		show_char(y, x, a, c, ta, tc);
+
+	return 1;
+}
+int Receive_stream(void)
+{
+	int 	n;
+	char	ch;
+	s16b	cols, y = 0;
+	s16b	*line;
+	byte	addr;
+	cave_view_type	*dest;
+
+	stream_type 	*stream;
+
+	if ((n = Packet_scanf(&rbuf, "%c%hd", &ch, &y)) <= 0)
+	{
+		return n;
+	}
+
+	stream = &streams[stream_ref[(byte)ch]];
+	addr = (stream->addr == NTERM_WIN_CURRENT ? p_ptr->remote_term : stream->addr);
+	line = &last_remote_line[addr];
+
+	/* Hack -- single char */
+	if (y & 0xFF00)	return 
+		read_stream_char(addr, stream->trn,	(y & 0x00FF), (y >> 8)-1);
+
+	/* FIXME: Negotiate size */
+	cols = (addr ? 80 : Client_setup.settings[1]);
+	dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
+
+	/* Decode the secondary attr/char stream */
+	if (stream->trn)
+		rle_decode(&rbuf, p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols, stream->rle);
+
+	/* Decode the attr/char stream */		
+	rle_decode(&rbuf, dest, cols, stream->rle);
+
+	/* Check the min/max line count */
+	if ((*line) < y)
+		(*line) = y;
+	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
+
+	/* Put data to screen ? */		
+	if (!addr)
+		show_line(y, cols);
+
+	return 1;
+}
+
 
 int Receive_custom_command(void)
 {

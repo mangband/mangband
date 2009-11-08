@@ -2249,6 +2249,74 @@ int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 	return 1;
 }
 
+/* Draw (or don't) a char depending on screen ickyness */
+void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc)
+{
+	bool draw = TRUE;
+
+	/* Manipulate offset: */
+	x += DUNGEON_OFFSET_X;	
+
+	/* Update secondary layer */
+	if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
+	{
+		p_ptr->trn_info[y][x].a = ta;
+		p_ptr->trn_info[y][x].c = tc;
+		/* Hack -- force refresh of that grid no matter what */
+		Term->scr->a[y][x] = 0;
+		Term->scr->c[y][x] = 0;
+		Term->old->a[y][x] = 0;
+		Term->old->c[y][x] = 0;
+	}
+
+	/* Test ickyness */
+	if (screen_icky || section_icky_row || shopping) draw = FALSE;
+	if (section_icky_row)
+	{
+		if (y >= section_icky_row) draw = TRUE;
+		else if (section_icky_col > 0 && x >= section_icky_col) draw = TRUE;
+		else if (section_icky_col < 0 && x < Term->wid + section_icky_col) draw = TRUE;
+	}
+
+	Term_mem_ch(x, y, a, c);
+
+	if (draw)
+		Term_draw(x, y, a, c);
+}
+
+/* Show (or don't) a line depending on screen ickyness */
+void show_line(int y, s16b cols)
+{
+	s16b xoff, coff;
+	bool draw;
+
+	draw = !screen_icky;
+	xoff = coff = 0;
+
+	/* Ugly Hack - Shopping */
+	if (shopping) draw = FALSE;
+
+	/* Hang on! Icky section! */
+	if (section_icky_row && y < section_icky_row)
+	{
+		if (section_icky_col > 0) xoff = section_icky_col - DUNGEON_OFFSET_X;
+		if (section_icky_col < 0) coff = section_icky_col;
+		if (xoff >= cols || cols-coff <= 0) draw = FALSE;
+	}
+
+	/* Check the max line count */
+	if (last_line_info < y)
+		last_line_info = y;
+
+	/* Remember screen */
+	cavemem(p_ptr->scr_info[y], cols, DUNGEON_OFFSET_X, y);
+
+	/* Put data to screen */
+	if (draw)
+		caveprt(p_ptr->scr_info[y]+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
+}
+
+
 void prt_num(cptr header, int num, int row, int col, byte color)
 {
 	int len = strlen(header);
