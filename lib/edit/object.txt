@@ -4268,6 +4268,7 @@ G:~:b
 I:39:2:10000
 W:20:0:10:2000
 A:20/20
+F:EASY_KNOW | IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 D:It is equippable as a light source and grants you permanent light
 D: with a radius of 2 squares.
 
@@ -4276,6 +4277,7 @@ G:~:B
 I:39:3:10000
 W:40:0:10:6000
 A:40/10
+F:EASY_KNOW | IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 D:It is equippable as a light source and grants you permanent light
 D: with a radius of 3 squares.
 
