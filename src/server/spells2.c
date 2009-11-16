@@ -4807,16 +4807,15 @@ bool clone_monster(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
 
-	/* Never in the town */
-	if(!p_ptr->dun_depth) return(FALSE);
-	
 	/* Restricted in MAngband. This behaviour is not in vanilla Angband, in vanilla however,
 	 * cloning 100 Great Hell Wyrms effects only the cloner. In MAngband this effects all 
 	 * players and the whole game economy as the game is flooded with great items */
 	if(p_ptr->lev >= 10)
 	{
-		msg_print(Ind, "You hear a loud crackling sound. Nothing else happens.");
-		return(TRUE);
+		/* Standard clone effect, less the actual cloning */
+		int flg = PROJECT_STOP | PROJECT_KILL;
+		msg_print(Ind, "You hear a loud crackling sound.");
+		return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
 	}
 	else
 	{

@@ -2867,10 +2867,16 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			/* Speed up */
 			if (m_ptr->mspeed < 150) m_ptr->mspeed += 10;
 
-			/* Attempt to clone. */
-			if (multiply_monster(c_ptr->m_idx))
+			/* Never in the town */
+			if(!p_ptr->dun_depth) break;
+
+			if(p_ptr->lev < 10)
 			{
-				note = " spawns!";
+				/* Attempt to clone. */
+				if (multiply_monster(c_ptr->m_idx))
+				{
+					note = " spawns!";
+				}
 			}
 
 			/* No "real" damage */
