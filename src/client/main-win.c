@@ -1610,11 +1610,9 @@ static errr Term_xtra_win_react(void)
 	/* XXX XXX XXX Check "use_graphics" */
 	if (use_graphics && !old_use_graphics)
 	{
-		/* Hack -- set the player picture */
-		Client_setup.r_attr[0] = 0x81;
-		Client_setup.r_char[0] = 0x81;
-		//r_info[0].x_attr = 0x87;
-		//r_info[0].x_char = 0x80 | (10 * p_ptr->pclass + p_ptr->prace);
+		/* 
+		 * Code for reacting to graphical changes.
+		 */
 	}
 
 	/* Remember */
