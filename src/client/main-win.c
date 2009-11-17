@@ -1611,10 +1611,6 @@ static errr Term_xtra_win_react(void)
 	if (use_graphics && !old_use_graphics)
 	{
 		/* Hack -- set the player picture */
-		if (Client_setup.r_attr == NULL)
-			C_MAKE(Client_setup.r_attr, 1, byte);
-		if (Client_setup.r_char == NULL)
-			C_MAKE(Client_setup.r_char, 1, char);
 		Client_setup.r_attr[0] = 0x81;
 		Client_setup.r_char[0] = 0x81;
 		//r_info[0].x_attr = 0x87;
