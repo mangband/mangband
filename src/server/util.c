@@ -3176,6 +3176,9 @@ void player_talk_aux(int Ind, cptr message)
 		colon = NULL;
 	}
 
+	/* Ignore colon when messanger is undefined */
+	if (!Ind) colon = NULL;
+
 	/* Form a search string if we found a colon */
 	if (colon)
 	{
