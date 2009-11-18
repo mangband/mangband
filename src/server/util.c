@@ -3169,15 +3169,12 @@ void player_talk_aux(int Ind, cptr message)
 	/* Look for a player's name followed by a colon */
 	colon = strchr(message, ':');
 
-	/* Ignore "smileys" */
-	if (colon && *(colon + 1) && strchr(")(-|\\/", *(colon + 1)))
+	/* Pretend colon wasn't there */
+	if (colon)
 	{
-		/* Pretend colon wasn't there */
-		colon = NULL;
+		/* messanger is undefined OR colon is last symbol OR colon is part of "smiley" */
+		if (!Ind || !*(colon + 1) || strchr(")(-|\\/", *(colon + 1))) colon = NULL;
 	}
-
-	/* Ignore colon when messanger is undefined */
-	if (!Ind) colon = NULL;
 
 	/* Form a search string if we found a colon */
 	if (colon)
