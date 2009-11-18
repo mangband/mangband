@@ -3591,6 +3591,9 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 	int div;
 
+	/* Hack -- adjust damage */
+	bool adjust = TRUE;
+
 	/* Hack -- assume obvious */
 	bool obvious = TRUE;
 
@@ -3626,21 +3629,11 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Player cannot hurt himself */
 	if (0 - who == Ind) return (FALSE);
 
-	/* Hack -- Never do excessive damage */
-	if (dam > 1600) dam = 1600;
-
 	/* The damage has already been applied! */
 	if (p_ptr->project_hurt) return FALSE;
 
 	/* Extract radius */
 	div = r + 1;
-
-	/* Decrease damage */
-	dam = (dam + r) / div;
-
-	/* Hack -- always do at least one point of damage */
-	if (dam <= 0) dam = 1;
-
 
 	/* If the player is blind, be more descriptive */
 	if (blind) fuzzy = TRUE;
@@ -3681,8 +3674,25 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		{
 			party_share_hurt(0 - who, Ind);
 		}
+		/* Hack -- do not modify "dam" variable if it contains spell index */
+		if (typ >= GF_PROJECT_SPELL)
+		{
+			adjust = FALSE;
+		}
 	}
 
+	/* Adjust damage */
+	if (adjust)
+	{	
+		/* Decrease damage */
+		dam = (dam + r) / div;
+
+		/* Hack -- always do at least one point of damage */
+		if (dam <= 0) dam = 1;
+
+		/* Hack -- Never do excessive damage */
+		if (dam > 1600) dam = 1600;
+	}
 
 	/* Analyze the damage */
 	switch (typ)
