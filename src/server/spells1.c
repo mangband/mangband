@@ -3683,15 +3683,15 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 	/* Adjust damage */
 	if (adjust)
-	{	
+	{
+		/* Hack -- Never do excessive damage */
+		if (dam > 1600) dam = 1600;
+
 		/* Decrease damage */
 		dam = (dam + r) / div;
 
 		/* Hack -- always do at least one point of damage */
 		if (dam <= 0) dam = 1;
-
-		/* Hack -- Never do excessive damage */
-		if (dam > 1600) dam = 1600;
 	}
 
 	/* Analyze the damage */
