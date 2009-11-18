@@ -3626,9 +3626,6 @@ void do_cmd_options_birth()
 	
 	/* Restore the screen */
 	Term_load();
-	
-	/* Save options to file */
-	Save_options();
 }
 
 

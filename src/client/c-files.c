@@ -1251,45 +1251,34 @@ errr Save_options(void)
 	fprintf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
 	fprintf(fp, "# Also remember that not all options are used.\n\n");
 
-	/* Process "X:<str>" and "Y:<str>" */
+	/* Dump local options with "X:<str>" and "Y:<str>" */
 	last_page = 0;
-    for (i = 0; local_option_info[i].o_desc; i++)
-    {
-		if ((*local_option_info[i].o_var) == FALSE)
+	for (i = 0; local_option_info[i].o_desc; i++)
+	{
+		if (local_option_info[i].o_text)
 		{
-            if (local_option_info[i].o_text)
-				fprintf(fp, "X:%s\n", local_option_info[i].o_text);
+			fprintf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
 		}
-		else if ((*local_option_info[i].o_var) == TRUE)
-		{
-            if (local_option_info[i].o_text)
-				fprintf(fp, "Y:%s\n", local_option_info[i].o_text);
-		}
-		else
-			fprintf(fp, "\n");
 		if (last_page != local_option_info[i].o_page)
+		{
 			fprintf(fp, "\n");
+		}
 		last_page = local_option_info[i].o_page;
-    }
-    last_page = 0;
-    for (i = 0; i < options_max; i++)
-    {
-		if (Client_setup.options[i] == FALSE)
+	}
+	/* Dump remote options, skipping linked ones */
+	last_page = 0;
+	for (i = 0; i < options_max; i++)
+	{
+		if (!option_info[i].o_set && option_info[i].o_text)
 		{
-            if (option_info[i].o_text)
-				fprintf(fp, "X:%s\n", option_info[i].o_text);
+			fprintf(fp, "%c:%s\n", (Client_setup.options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
 		}
-		else if (Client_setup.options[i] == TRUE)
-		{
-            if (option_info[i].o_text)
-				fprintf(fp, "Y:%s\n", option_info[i].o_text);
-		}
-		else
-			fprintf(fp, "\n");
 		if (last_page != option_info[i].o_page)
+		{
 			fprintf(fp, "\n");
+		}
 		last_page = option_info[i].o_page;
-    }
+	}
 
 	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
 	fprintf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
