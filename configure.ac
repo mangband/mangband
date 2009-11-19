@@ -156,7 +156,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit floor ftruncate gethostbyaddr gethostbyname gethostname gettimeofday inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strncasecmp strpbrk strrchr strspn strstr strtol])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
-AC_OUTPUT( src/client/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/save/Makefile lib/text/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile lib/edit/Makefile Makefile src/config.h ) 
+AC_OUTPUT( src/client/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/save/Makefile lib/help/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile lib/edit/Makefile Makefile src/config.h ) 
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
 #echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"
