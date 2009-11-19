@@ -1576,7 +1576,7 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 	int 	len;
 
 	/* Build the filename */
-	path_build(path, 1024, ANGBAND_DIR_TEXT, name);
+	path_build(path, 1024, ANGBAND_DIR_HELP, name);
 
 	/* Open the file */
 	fff = my_fopen(path, "r");
@@ -1747,7 +1747,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 		sprintf(caption, "Help file '%s'", name);
 
 		/* Build the filename */
-		path_build(path, 1024, ANGBAND_DIR_TEXT, name);
+		path_build(path, 1024, ANGBAND_DIR_HELP, name);
 
 		/* Open the file */
 		fff = my_fopen(path, "r");
@@ -3219,7 +3219,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, file_name);
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, file_name);
 
 	/* Open the file */
 	fp = my_fopen(buf, "r");

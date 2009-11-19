@@ -254,7 +254,7 @@ int Init_setup(void)
 	Setup.max_col = MAX_WID;
 	Setup.max_row = MAX_HGT;
 
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, "news.txt");
+	path_build(buf, 1024, ANGBAND_DIR_HELP, "news.txt");
 
 	/* Open the news file */
 	fp = my_fopen(buf, "r");

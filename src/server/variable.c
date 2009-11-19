@@ -681,7 +681,7 @@ cptr ANGBAND_DIR_EDIT;
  * Various user editable text files (ascii), such as the help and greeting
  * screen. These files may be portable between platforms
  */
-cptr ANGBAND_DIR_TEXT;
+cptr ANGBAND_DIR_HELP;
 
 /*
  * Savefiles for current characters (binary)

@@ -36,7 +36,7 @@ static bool is_wizard(int uid)
 
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, "wizards.txt");
+	path_build(buf, 1024, ANGBAND_DIR_EDIT, "wizards.txt");
 
 	/* Open the wizard file */
 	fp = my_fopen(buf, "r");
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 
 			case 'i':
 			case 'I':
-			ANGBAND_DIR_TEXT = &argv[0][2];
+			ANGBAND_DIR_HELP = &argv[0][2];
 			break;
 
 			case 'r':

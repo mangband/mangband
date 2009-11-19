@@ -74,7 +74,7 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_PREF);
 	string_ifree(ANGBAND_DIR_USER);
 	string_ifree(ANGBAND_DIR_GAME);
-	string_ifree(ANGBAND_DIR_TEXT);
+	string_ifree(ANGBAND_DIR_HELP);
 }
 void init_file_paths(char *path)
 {
@@ -106,7 +106,7 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_DATA = string_make("");
 	ANGBAND_DIR_GAME = string_make("");
 	ANGBAND_DIR_SAVE = string_make("");
-	ANGBAND_DIR_TEXT = string_make("");
+	ANGBAND_DIR_HELP = string_make("");
 	ANGBAND_DIR_PREF = string_make("");
 	ANGBAND_DIR_USER = string_make("");
 
@@ -123,35 +123,27 @@ void init_file_paths(char *path)
 	/* Build a path name */
 	strcpy(tail, "edit");
 	ANGBAND_DIR_EDIT = string_make(path);
-#if 0
+
 	/* Build a path name */
-	strcpy(tail, "file");
-	ANGBAND_DIR_FILE = string_make(path);
+	strcpy(tail, "save");
+	ANGBAND_DIR_SAVE = string_make(path);
 
 	/* Build a path name */
 	strcpy(tail, "help");
 	ANGBAND_DIR_HELP = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "info");
-	ANGBAND_DIR_INFO = string_make(path);
-#endif
-	/* Build a path name */
 	strcpy(tail, "pref");
 	ANGBAND_DIR_PREF = string_make(path);
-
-	/* Build a path name */
-	strcpy(tail, "save");
-	ANGBAND_DIR_SAVE = string_make(path);
-	
-	/* Build a path name */
-	strcpy(tail, "text");
-	ANGBAND_DIR_TEXT = string_make(path);
 
 	/* Build a path name */
 	strcpy(tail, "user");
 	ANGBAND_DIR_USER = string_make(path);
 #if 0
+	/* Build a path name */
+	strcpy(tail, "text");
+	ANGBAND_DIR_TEXT = string_make(path);
+
 	/* Build a path name */
 	strcpy(tail, "apex");
 	ANGBAND_DIR_APEX = string_make(path);
@@ -163,6 +155,14 @@ void init_file_paths(char *path)
 	/* Build a path name */
 	strcpy(tail, "xtra");
 	ANGBAND_DIR_XTRA = string_make(path);
+
+	/* Build a path name */
+	strcpy(tail, "file");
+	ANGBAND_DIR_FILE = string_make(path);
+
+	/* Build a path name */
+	strcpy(tail, "info");
+	ANGBAND_DIR_INFO = string_make(path);
 #endif
 #endif /* VM */
 
@@ -272,7 +272,7 @@ void show_news(void)
 	/*** Verify the "news" file ***/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, "news.txt");
+	path_build(buf, 1024, ANGBAND_DIR_HELP, "news.txt");
 
 	/* Attempt to open the file */
 	fd = fd_open(buf, O_RDONLY);
@@ -299,7 +299,7 @@ void show_news(void)
 	/*Term_clear();*/
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, "news.txt");
+	path_build(buf, 1024, ANGBAND_DIR_HELP, "news.txt");
 
 	/* Open the News file */
 	fp = my_fopen(buf, "r");
@@ -2096,7 +2096,7 @@ void set_server_option(char * option, char * value)
 	}
 	else if (!strcmp(option,"HELP_DIR"))
 	{
-		ANGBAND_DIR_TEXT = string_make(value);
+		ANGBAND_DIR_HELP = string_make(value);
 	}
 	else if (!strcmp(option,"USER_DIR"))
 	{
