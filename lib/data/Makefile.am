@@ -1,4 +1,4 @@
 
 datdir = $(pkgdatadir)/data
-dat_DATA = scores.raw
+dat_DATA = delete.me
 EXTRA_DIST = $(dat_DATA)
