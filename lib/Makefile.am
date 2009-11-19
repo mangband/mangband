@@ -1,5 +1,4 @@
 
 filedir = $(pkgdatadir)/file
-#helpdir = $(pkgdatadir)/help
 
-SUBDIRS = data edit pref save help user xtra
+SUBDIRS = bone data edit help pref save user xtra

@@ -72,8 +72,7 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_EDIT);
 	string_ifree(ANGBAND_DIR_SAVE);
 	string_ifree(ANGBAND_DIR_PREF);
-	string_ifree(ANGBAND_DIR_USER);
-	string_ifree(ANGBAND_DIR_GAME);
+	string_ifree(ANGBAND_DIR_BONE);
 	string_ifree(ANGBAND_DIR_HELP);
 }
 void init_file_paths(char *path)
@@ -104,11 +103,10 @@ void init_file_paths(char *path)
 
 	/* Use "blank" path names */
 	ANGBAND_DIR_DATA = string_make("");
-	ANGBAND_DIR_GAME = string_make("");
 	ANGBAND_DIR_SAVE = string_make("");
 	ANGBAND_DIR_HELP = string_make("");
 	ANGBAND_DIR_PREF = string_make("");
-	ANGBAND_DIR_USER = string_make("");
+	ANGBAND_DIR_BONE = string_make("");
 
 
 #else /* VM */
@@ -137,8 +135,8 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_PREF = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "user");
-	ANGBAND_DIR_USER = string_make(path);
+	strcpy(tail, "bone");
+	ANGBAND_DIR_BONE = string_make(path);
 #if 0
 	/* Build a path name */
 	strcpy(tail, "text");
@@ -149,8 +147,8 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_APEX = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "bone");
-	ANGBAND_DIR_BONE = string_make(path);
+	strcpy(tail, "user");
+	ANGBAND_DIR_USER = string_make(path);
 
 	/* Build a path name */
 	strcpy(tail, "xtra");
@@ -2098,9 +2096,9 @@ void set_server_option(char * option, char * value)
 	{
 		ANGBAND_DIR_HELP = string_make(value);
 	}
-	else if (!strcmp(option,"USER_DIR"))
+	else if (!strcmp(option,"BONE_DIR"))
 	{
-		ANGBAND_DIR_USER = string_make(value);
+		ANGBAND_DIR_BONE = string_make(value);
 	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{

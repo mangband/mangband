@@ -1190,7 +1190,7 @@ errr file_character_server(int Ind, cptr name)
 	safe_setuid_drop();
 
 	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_USER, name);
+	path_build(buf, 1024, ANGBAND_DIR_BONE, name);
 
 	/* File type is "TEXT" */
 	FILE_TYPE(FILE_TYPE_TEXT);

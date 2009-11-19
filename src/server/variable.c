@@ -674,7 +674,6 @@ cptr ANGBAND_DIR_DATA;
  * Textual template files for the "*_info" arrays (ascii)
  * These files are portable between platforms
  */
-cptr ANGBAND_DIR_GAME;
 cptr ANGBAND_DIR_EDIT;
 
 /*
@@ -690,11 +689,17 @@ cptr ANGBAND_DIR_HELP;
 cptr ANGBAND_DIR_SAVE;
 
 /*
+ * Bone files for player ghosts (ascii)
+ * These files are portable between platforms
+ * (Used for death dumps in MAngband)
+ */
+cptr ANGBAND_DIR_BONE;
+
+/*
  * User "preference" files (ascii)
  * These files are rarely portable between platforms
  */
 cptr ANGBAND_DIR_PREF;
-cptr ANGBAND_DIR_USER;
 
 
 /*

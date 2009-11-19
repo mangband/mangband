@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
 		{
 			case 'c':
 			case 'C':
-			ANGBAND_DIR_USER = &argv[0][2];
+			ANGBAND_DIR_BONE = &argv[0][2];
 			break;
 
 #ifndef VERIFY_SAVEFILE
