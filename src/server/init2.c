@@ -2094,6 +2094,14 @@ void set_server_option(char * option, char * value)
 	{
 		ANGBAND_DIR_SAVE = string_make(value);
 	}
+	else if (!strcmp(option,"HELP_DIR"))
+	{
+		ANGBAND_DIR_TEXT = string_make(value);
+	}
+	else if (!strcmp(option,"USER_DIR"))
+	{
+		ANGBAND_DIR_USER = string_make(value);
+	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
 		cfg_load_pref_file = strdup(value);
