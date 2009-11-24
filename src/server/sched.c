@@ -470,7 +470,7 @@ void sched(void)
 
 	    n = select(max_fd, &readmask, 0, 0, tvp);
 	    if (n < 0) {
-		if (errno != EINTR) {
+        if (timer_handler && (errno != EINTR)) {
                     plog(format("Errno: %d\n",errno));
 		    core("sched select error");
 		    exit(1);
@@ -504,6 +504,12 @@ void sched(void)
 #endif
 	}
     }
+}
+
+void remove_timer_tick(void)
+{
+	/* TODO: stop timer (?) */
+	timer_handler = NULL;
 }
 
 #endif

@@ -2478,6 +2478,7 @@ void cleanup_angband(void)
 	}
 
 	/* Network */
+	remove_timer_tick();
 	Stop_net_server();
 
 	/* Free options from mangband.cfg */		
