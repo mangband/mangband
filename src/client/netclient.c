@@ -2382,6 +2382,16 @@ int Receive_line_info(void)
 		/* Mini Map */
 		if (ch == PKT_MINI_MAP)
 		{
+			int xx;
+			cave_view_type *trn_info = p_ptr->trn_info[y] +  DUNGEON_OFFSET_X;
+
+			/* Reinitialize the secondary attr/char stream */
+			for (xx = 0; xx < cols; xx++)
+			{
+				trn_info[xx].c = 0;
+				trn_info[xx].a = 0;
+			}
+
 			draw = screen_icky;
 		}
 		/* Dungeon */
