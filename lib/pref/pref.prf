@@ -210,6 +210,21 @@ C:1:X
 A:^V
 C:1:'
 
+# Roguelike keymap: Describe an item in the chat window
+A:^D
+C:1:^I
+
+# Roguelike keymap: Buy or sell a house (Mortgage)
+A:h
+C:1:M
+
+# Roguelike keymap: Use undead (Ghost) powers
+A:U
+C:1:^G
+
+# Roguelike keymap: View top player Scores list
+# A:#
+# C:1:^S
 
 # Message colors -- disabled in mangband
 # %:message.prf
