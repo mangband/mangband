@@ -185,6 +185,7 @@ bool cfg_random_artifacts = 0; /* No randarts by default */
 s16b cfg_preserve_artifacts = 3;
 s32b cfg_retire_timer = -1;
 bool cfg_ironman = 0;
+bool cfg_more_towns = 0;
 bool cfg_town_wall = 0;
 s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
