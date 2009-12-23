@@ -2194,7 +2194,11 @@ void set_server_option(char * option, char * value)
     }
     else if (!strcmp(option,"IRONMAN"))
     {
-        cfg_ironman = str_to_boolean(value);
+        cfg_ironman = str_to_boolean(value);cfg_more_towns
+    }
+    else if (!strcmp(option,"MORE_TOWNS"))
+    {
+        cfg_more_towns = str_to_boolean(value);
     }
     else if (!strcmp(option,"TOWN_WALL"))
     {

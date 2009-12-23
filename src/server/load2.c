@@ -1372,7 +1372,7 @@ static errr rd_dungeon_special()
 	char levelname[32];
 	FILE *fhandle;
 	FILE *server_handle;
-	int i,num_levels;
+	int i,num_levels,j=0,k=0;
 	
 	/* Clear all the special levels */
 	for(i=0;i<MAX_SPECIAL_LEVELS;i++)
@@ -1381,13 +1381,18 @@ static errr rd_dungeon_special()
 	}
 	
 	/* Vanilla Mangand doesn't have special static pre-designed levels */
-	if (!cfg_ironman) return 0;
+	if ((!cfg_ironman) || (!cfg_more_towns)) return 0;
 	
 	num_levels = 0;
+	/* k = E/W, J = N/S for wilderness towns */
+/*	for(k=0;k<MAX_DEPTH;k++)
+	{
+	for(j=0;j<MAX_DEPTH;j++)
+	{*/
 	for(i=0;i<MAX_DEPTH;i++)
 	{
 		/* build a file name */
-		sprintf(levelname,"server-level-%i",i);
+		sprintf(levelname,"server.level.%k.%j.%i",k,j,i);
 		path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 		/* open the file if it exists */
 		fhandle = my_fopen(filename, "r");
@@ -1412,6 +1417,8 @@ static errr rd_dungeon_special()
 			}
 		}
 	}
+/*	}
+	}*/
 	return 0;
 }
 
