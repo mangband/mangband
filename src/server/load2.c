@@ -1392,7 +1392,7 @@ static errr rd_dungeon_special()
 	for(i=0;i<MAX_DEPTH;i++)
 	{
 		/* build a file name */
-		sprintf(levelname,"server.level.%k.%j.%i",k,j,i);
+		sprintf(levelname,"server.level.%i.%i.%i",k,j,i);
 		path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 		/* open the file if it exists */
 		fhandle = my_fopen(filename, "r");

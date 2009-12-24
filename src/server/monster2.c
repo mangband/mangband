@@ -535,13 +535,18 @@ s16b get_mon_num(int level)
 
 	alloc_entry		*table = alloc_race_table;
 
-  if (cfg_ironman)
-  {
-	/* 
-	 * Ironmen don't kill townies, also don't generate any monsters on special levels..
-	 */
-	if((level == 0) || check_special_level(level)) return(0);
-  }
+	if (cfg_ironman)
+	{
+		/* 
+		 * Ironmen don't kill townies, also don't generate any monsters on special levels..
+		 */
+		if((level == 0) || check_special_level(level)) return(0);
+	}
+	if (cfg_more_towns)
+	{
+		/* don't generate any monsters on special levels. */
+		if (check_special_level(level)) return(0);
+	}
 
 	/* Limit the total number of townies */
 	j = 0;
