@@ -1347,7 +1347,7 @@ struct player_type
 	char tval_char[128];
    
 	byte dungeon_stream;
-	byte use_graphics;
+	int use_graphics;
 	byte screen_wid;
 	byte screen_hgt;
 

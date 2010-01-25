@@ -136,7 +136,7 @@ s16b coin_type;			/* Hack -- force coin type */
 
 bool opening_chest;		/* Hack -- prevent chest generation */
 
-bool use_graphics;		/* Hack -- Assume no graphics mapping */
+int use_graphics;		/* Hack -- Assume no graphics mapping */
 
 bool use_sound;			/* Hack -- Assume no special sounds */
 
