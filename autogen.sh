@@ -120,12 +120,12 @@ if [ "$devel" = "1" ]; then
 echo " * Preparing debug environment"
 CFG="./mangband.cfg"
 TMP="./$(basename $0).$$.tmp"
-sed "/*\{0,3\}\(EDIT\|DATA\|SAVE|USER|HELP\)_DIR = /d" ${CFG} > ${TMP}
+sed "/*\{0,3\}\(BONE\|EDIT\|DATA\|SAVE\|USER\|HELP\)_DIR = /d" ${CFG} > ${TMP}
 echo "EDIT_DIR = \"./lib/edit\"" >> ${TMP}
 echo "DATA_DIR = \"./lib/data\"" >> ${TMP}
 echo "SAVE_DIR = \"./lib/save\"" >> ${TMP}
-echo "USER_DIR = \"./lib/user\"" >> ${TMP}
-echo "HELP_DIR = \"./lib/text\"" >> ${TMP}
+echo "BONE_DIR = \"./lib/user\"" >> ${TMP}
+echo "HELP_DIR = \"./lib/help\"" >> ${TMP}
 mv ${TMP} ${CFG}
 echo "LibDir ./lib/" > ./.mangrc
 fi
