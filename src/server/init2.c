@@ -205,7 +205,6 @@ void init_file_paths(char *path)
 }
 
 
-#if 0
 /*
  * Hack -- Explain a broken "lib" folder and quit (see below).
  *
@@ -231,7 +230,6 @@ static void show_news_aux(cptr why)
 	/* Quit with error */
 	quit("Fatal Error.");
 }
-#endif
 
 /*
  * Hack -- verify some files, and display the "news.txt" file
@@ -257,7 +255,6 @@ static void show_news_aux(cptr why)
  */
 void show_news(void)
 {
-#if 0
 	int		fd = -1;
 
 	int		mode = 0644;
@@ -291,6 +288,7 @@ void show_news(void)
 	(void)fd_close(fd);
 
 
+#if 0
 	/*** Display the "news" file ***/
 
 	/* Clear screen */
@@ -319,6 +317,7 @@ void show_news(void)
 
 	/* Flush it */
 	/*Term_fresh();*/
+#endif
 
 
 	/*** Verify (or create) the "high score" file ***/
@@ -353,7 +352,6 @@ void show_news(void)
 
 	/* Close it */
 	(void)fd_close(fd);
-#endif
 }
 
 

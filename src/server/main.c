@@ -551,6 +551,9 @@ int main(int argc, char *argv[])
 	/* Load the mangband.cfg options */
 	load_server_cfg();
 
+	/* Test existance of 'news.txt' and 'scores.raw' */
+	show_news();
+
 	/* Initialize the arrays */
 	init_some_arrays();
 
