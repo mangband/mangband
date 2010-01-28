@@ -1532,6 +1532,7 @@ void common_file_peruse(int Ind, char query)
 				string_free(p_ptr->interactive_file);
 			p_ptr->interactive_file = NULL;
 		}
+		p_ptr->special_file_type = NULL;
 		return;
 	}
 
@@ -1539,6 +1540,12 @@ void common_file_peruse(int Ind, char query)
 	if (query)
 	{
 		next = file_peruse_next(Ind, query, next);
+	}
+
+	/* Hack -- something overwrote "info" */
+	if (!p_ptr->last_info_line)
+	{
+		p_ptr->interactive_next = -1;
 	}
 
 	/* Update file */

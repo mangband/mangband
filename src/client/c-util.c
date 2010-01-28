@@ -2206,6 +2206,19 @@ void clear_from(int row)
 	}
 }
 
+int caveclr(cave_view_type* dest, int len)
+{
+	int i;
+	/* Erase a character n times */
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = 0;
+		dest[i].c = 0;
+	}
+	return 1;
+}
+
+
 int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 {
 	int i;
@@ -2250,7 +2263,7 @@ int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 }
 
 /* Draw (or don't) a char depending on screen ickyness */
-void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc)
+void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 {
 	bool draw = TRUE;
 
@@ -2278,14 +2291,15 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc)
 		else if (section_icky_col < 0 && x < Term->wid + section_icky_col) draw = TRUE;
 	}
 
-	Term_mem_ch(x, y, a, c);
+	if (mem)
+		Term_mem_ch(x, y, a, c);
 
 	if (draw)
 		Term_draw(x, y, a, c);
 }
 
 /* Show (or don't) a line depending on screen ickyness */
-void show_line(int y, s16b cols)
+void show_line(int y, s16b cols, bool mem)
 {
 	s16b xoff, coff;
 	bool draw;
@@ -2309,7 +2323,8 @@ void show_line(int y, s16b cols)
 		last_line_info = y;
 
 	/* Remember screen */
-	cavemem(p_ptr->scr_info[y], cols, DUNGEON_OFFSET_X, y);
+	if (mem)
+		cavemem(p_ptr->scr_info[y], cols, DUNGEON_OFFSET_X, y);
 
 	/* Put data to screen */
 	if (draw)

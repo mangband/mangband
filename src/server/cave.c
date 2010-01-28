@@ -1790,7 +1790,7 @@ void display_map(int Ind, bool quiet)
 	/* Activate mini-map window */
 	if (quiet)
 		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	
+
 	/* Display each map line in order */
 	for (y = 0; y < map_hgt+2; ++y)
 	{
@@ -1821,10 +1821,8 @@ void display_map(int Ind, bool quiet)
 		}
 	}
 
-	if (!quiet)
-		Send_term_info(Ind, NTERM_FLUSH, 0);
-	else
-		Send_term_info(Ind, NTERM_FRESH, 0);		
+	/* Flush main window / Fresh extra window */
+	Send_term_info(Ind, (quiet ? NTERM_FRESH : NTERM_FLUSH), 0);
 
 	/* Restore main window */
 	if (quiet)
@@ -1991,6 +1989,8 @@ void wild_display_map(int Ind)
 			p_ptr->trn_info[y][x].a = 0;
 		}
 	}
+
+	Send_term_info(Ind, NTERM_FLUSH, 0);
 
 }
 

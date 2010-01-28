@@ -1653,17 +1653,9 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	/* Restore height and width of current dungeon level */
 	text_out_done();
 
+	/* Send this text */
+	send_prepared_info(Ind, NTERM_WIN_MONSTER, STREAM_ACTIVE_TEXT);
 
-	/* Notify player */
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MONSTER);
-	Send_term_info(Ind, NTERM_CLEAR, 0);// NTERM_WIN_MONSTER);
-
-	for (i = 0; i < p_ptr->last_info_line; i++)
-		Stream_line(Ind, STREAM_ACTIVE_MIXED, i);
-
-	Send_term_info(Ind, NTERM_FRESH, 0);//(quiet ? 0 : NTERM_POP));
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
-	
 	return;
 }
 void do_cmd_monster_desc(int Ind, int m_idx) {

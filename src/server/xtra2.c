@@ -6870,7 +6870,7 @@ void master_desc_all(int Ind)
 {
 	byte ok[MASTER_MAX_HOOKS];
 	player_type *p_ptr = Players[Ind];
-	int i, n = 0, l;
+	int i, n = 0, l, j = p_ptr->screen_hgt+1;
 	char buf[80];
 
 	for (i = 0; i < MASTER_MAX_HOOKS; i++)
@@ -6882,16 +6882,16 @@ void master_desc_all(int Ind)
 	l = p_ptr->screen_wid / n;
 	if (l <= 0) return;
 
-	clear_line(Ind, 23);
+	clear_line(Ind, j);
 	for (i = 0; i < n; i++)
 	{
 		master_hook_desc(&buf[0], ok[i], p_ptr->master_hook[ok[i]], p_ptr->master_args[ok[i]]);
 		buf[l] = '\0';  
-		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, 23, i * (l+1));
+		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
-	Stream_line(Ind, STREAM_ACTIVE_TEXT, 23);
-	Send_term_info(Ind, NTERM_FLUSH, -1- 23);
+	Stream_line(Ind, STREAM_ACTIVE_TEXT, j);
+	Send_term_info(Ind, NTERM_FLUSH, -1- j);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }
 

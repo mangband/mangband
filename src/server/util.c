@@ -3532,6 +3532,29 @@ cptr format_history_event(history_event *evt)
 	return &buf[0];
 }
 
+void send_prepared_info(int Ind, byte win, byte stream) {
+	player_type	*p_ptr = Players[Ind];
+	byte old_term;
+	int i;	
+
+	/* Save 'current' terminal */
+	old_term = p_ptr->remote_term;
+
+	/* Activte new terminal */
+	Send_term_info(Ind, NTERM_ACTIVATE, win);
+
+	/* Clear, Send, Refresh */
+	Send_term_info(Ind, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line; i++)
+		Stream_line(Ind, stream, i);
+	Send_term_info(Ind, NTERM_FRESH, 0);
+
+	/* Restore active term */
+	Send_term_info(Ind, NTERM_ACTIVATE, old_term);
+	
+	/* Hack -- erase 'prepared info' */
+	p_ptr->last_info_line = 0;
+}
 
 void text_out_init(int Ind) {
 	player_type	*p_ptr = Players[Ind];

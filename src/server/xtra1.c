@@ -1304,21 +1304,13 @@ static void health_redraw(int Ind)
  */
 static void fix_monlist(int Ind)
 {
-	int i;
 
-	/* Display visible monsters */
+	/* Prepare 'visible monsters' list */
 	display_monlist(Ind);
-	
-	/* Notify player */
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MONLIST);
-	Send_term_info(Ind, NTERM_CLEAR, 0);
-	
-	for (i = 0; i < Players[Ind]->last_info_line; i++)
-		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
-	
-	Send_term_info(Ind, NTERM_FRESH, 0);
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
-	
+
+	/* Send it */
+	send_prepared_info(Ind, NTERM_WIN_MONLIST, STREAM_ACTIVE_TEXT);
+
 	return;
 }
 

@@ -774,6 +774,10 @@
  * Max number of data streams
  */
 #define MAX_STREAMS 20
+/* Stream Flags */
+#define STREAM_GENERIC  	0x00	/* No special flags */
+#define STREAM_TRANSPARENT	0x01	/* Stream has secondary layer */
+#define STREAM_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
 
 /*
  * Number of keymap modes

@@ -2328,6 +2328,7 @@ int Receive_special_line(void)
 }
 #endif
 
+#if 0
 #define DUNGEON_RLE_MODE (use_graphics ? RLE_LARGE : RLE_CLASSIC) 
 int Receive_line_info(void)
 {
@@ -2346,7 +2347,7 @@ int Receive_line_info(void)
 	{
 		return n;
 	}
-	
+
 	/* Defaults */
 	cols = Client_setup.settings[1]; // Dungeon Width
 	mode = DUNGEON_RLE_MODE;
@@ -2469,6 +2470,7 @@ int Receive_mini_map(void)
 
 	return 1;
 }
+#endif
 
 int Receive_special_other(void)
 {
@@ -2738,7 +2740,9 @@ int Receive_stream_info(void)
 	s_ptr->pkt = pkt;
 	s_ptr->addr = addr;	
 	s_ptr->rle = rle;
-	
+
+	s_ptr->trn = trn;
+
 	/*s_ptr->scr = (!addr ? p_ptr->scr_info : remote_info[addr] );
 	s_ptr->trn = (!trn ? NULL : p_ptr->trn_info);*/
 
@@ -2760,7 +2764,7 @@ int Receive_stream_info(void)
 	return 1;
 }
 
-int read_stream_char(byte addr, bool trn, s16b y, s16b x)
+int read_stream_char(byte addr, bool trn, bool mem, s16b y, s16b x)
 {
 	int 	n;
 	byte	a, ta = 0;
@@ -2788,7 +2792,7 @@ int read_stream_char(byte addr, bool trn, s16b y, s16b x)
 		last_remote_line[addr] = y; 
 
 	if (!addr)
-		show_char(y, x, a, c, ta, tc);
+		show_char(y, x, a, c, ta, tc, mem);
 
 	return 1;
 }
@@ -2814,17 +2818,20 @@ int Receive_stream(void)
 
 	/* Hack -- single char */
 	if (y & 0xFF00)	return 
-		read_stream_char(addr, stream->trn,	(y & 0x00FF), (y >> 8)-1);
+		read_stream_char(addr, (stream->trn & STREAM_TRANSPARENT), !(stream->trn & STREAM_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
 	/* FIXME: Negotiate size */
 	cols = (addr ? 80 : Client_setup.settings[1]);
 	dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
 
 	/* Decode the secondary attr/char stream */
-	if (stream->trn)
-		rle_decode(&rbuf, p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols, stream->rle);
+	if (stream->trn & STREAM_TRANSPARENT) { 
+		rle_decode(&rbuf, p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols, stream->rle); }
+	/* OR clear it ! */ 
+	else if (stream->trn & STREAM_OVERLAYED)
+		caveclr(p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols);
 
-	/* Decode the attr/char stream */		
+	/* Decode the attr/char stream */
 	rle_decode(&rbuf, dest, cols, stream->rle);
 
 	/* Check the min/max line count */
@@ -2834,7 +2841,7 @@ int Receive_stream(void)
 
 	/* Put data to screen ? */		
 	if (!addr)
-		show_line(y, cols);
+		show_line(y, cols, !(stream->trn & STREAM_OVERLAYED));
 
 	return 1;
 }

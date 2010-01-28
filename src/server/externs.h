@@ -1049,6 +1049,7 @@ extern cptr format_history_event(history_event *evt);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
+extern void send_prepared_info(int Ind, byte win, byte stream);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);

@@ -2067,6 +2067,7 @@ int color_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col)
 			{
 				Packet_printf(buf, "%c", (lineref[i++]).c);
 			}
+			i--;
 		}
 		else
 		{
@@ -3133,7 +3134,7 @@ int Stream_char_raw(int ind, int st, int y, int x, byte a, char c, byte ta, char
 	}
 
 	/* Header + Body (with or without transperancy) */
-	if (stream->trn) 
+	if (stream->trn & STREAM_TRANSPARENT) 
 		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , a, c, ta, tc);
 	else
 		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , a, c);
@@ -3160,9 +3161,11 @@ int Stream_char(int ind, int st, int y, int x)
 
 	/* Hacks for Dungeon: */
 	source = (stream->addr ? p_ptr->info[y] : p_ptr->scr_info[y]);
+	/* EVIL HACK: */
+	if (stream->addr == NTERM_WIN_MAP) source = p_ptr->scr_info[y];
 
 	/* Header + Body (with or without transperancy) */
-	if (stream->trn) 
+	if (stream->trn & STREAM_TRANSPARENT) 
 		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
 	else
 		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c);
@@ -3179,7 +3182,7 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 
 	s16b	cols = 80;
 	byte	rle = stream->rle;
-	byte	trn = stream->trn;
+	byte	trn = (stream->trn & STREAM_TRANSPARENT);
 	source 	= p_ptr->info[y];
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
@@ -3194,6 +3197,11 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 	if (!stream->addr)
 	{
 		cols = p_ptr->screen_wid;
+		source = p_ptr->scr_info[y];
+	}
+	/* EVIL HACK: */
+	else if (stream->addr == NTERM_WIN_MAP)
+	{
 		source = p_ptr->scr_info[y];
 	}
 
