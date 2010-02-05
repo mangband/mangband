@@ -2749,7 +2749,7 @@ int Send_objflags(int Ind, int line)
 	Packet_printf(&connp->c, "%c%hu", PKT_OBJFLAGS, line);
 
 	/* Encode and send the attr/char stream */
-	rle_encode(&connp->c, p_ptr->hist_flags[line], 13, RLE_CLASSIC); 	
+	rle_encode(&connp->c, p_ptr->hist_flags[line], 13, ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC ) ); 	
 
 	/* No RLE mode
 	for (i = 0; i < 13; i++) {

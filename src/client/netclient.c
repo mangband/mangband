@@ -1709,7 +1709,7 @@ int Receive_objflags(void)
 		return n;
 	}
 	
-	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, RLE_CLASSIC);
+	rle_decode(&rbuf, p_ptr->hist_flags[y], 13, ( use_graphics ? RLE_LARGE : RLE_CLASSIC ) );
 	
 	p_ptr->redraw |= PR_EQUIPPY; 
 
