@@ -116,6 +116,9 @@ extern errr string_free(cptr str);
 #define FREE(P,T) \
         (rnfree(P,SIZE(T)))
 
+/* Free one thing at P, return NULL */
+#define A_FREE(P) \
+	(rnfree(P, sizeof(P)))
 
 /* Allocate and return an array of N things of type T */
 #define C_NEW(N,T) \
@@ -152,6 +155,9 @@ extern errr string_free(cptr str);
 #define KILL(P,T) \
         (FREE(P,T), (P)=(T*)NULL)
 
+/* Free a thing at location P and set P to NULL */
+#define A_KILL(P) \
+	((P)=A_FREE(P))
 
 
 /* Mega-Hack -- Cleanly "grow" 'P' from N1 T's to N2 T's */
