@@ -502,7 +502,7 @@ cptr window_flag_desc[32] =
 	"Display player (basic)",
 	"Display player (extra)",
 	"Display player (compact)",
-	"Display map view",
+	NULL,//"Display map view",
 	"Display messages",
 	NULL,//"Display overhead view",
 	"Display monster recall",

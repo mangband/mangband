@@ -125,6 +125,9 @@ s16b custom_commands;
 stream_type streams[MAX_STREAMS];
 byte known_streams;
 
+byte window_to_stream[ANGBAND_TERM_MAX];
+byte known_window_streams;
+
 s16b race;
 s16b class;
 s16b sex;

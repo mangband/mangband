@@ -71,6 +71,8 @@ static void Receive_init(void)
 	setup_tbl[PKT_STRUCT_INFO] = Receive_struct_info;
 	setup_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 	setup_tbl[PKT_END]		= Receive_end;
+	setup_tbl[PKT_STREAM]	= Receive_stream_info;
+	setup_tbl[PKT_ACK] = Receive_ack;
 
 	receive_tbl[PKT_MOTD] = Receive_motd;
 	receive_tbl[PKT_ACK] = Receive_ack;
@@ -140,7 +142,6 @@ static void Receive_init(void)
 	receive_tbl[PKT_CURSOR]		= Receive_cursor;
 	receive_tbl[PKT_MONSTER_HEALTH]	= Receive_monster_health;
 	receive_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
-	receive_tbl[PKT_STREAM]	= Receive_stream_info;
 }
 
 int Send_verify_visual(int type)
@@ -1496,6 +1497,7 @@ int Receive_ack(void)
 	int 	n;
 	byte 	typ;
 	byte	x, y;
+	byte	st, stg, addr;
 
 	typ = x = y = 0;
 
@@ -1513,7 +1515,6 @@ int Receive_ack(void)
 			{
 				return n;
 			}
-
 			/* Hack -- Interface offsets */
 			y += SCREEN_CLIP_L;	/* Top Line */
 			x += DUNGEON_OFFSET_X; /* Compact */
@@ -1531,6 +1532,29 @@ int Receive_ack(void)
 			/* Redraw compact */
 			p_ptr->redraw |= PR_COMPACT;
 			
+		break;
+		/* Let's say all other cases are for stream resize... meh... */
+		default:
+			if ((n = Packet_scanf(&rbuf, "%c%c", &y, &x)) <= 0)
+			{
+				return n;
+			}
+			/* Hack: */
+			stg = typ - 1;
+
+			/* Ensure it is valid and start from there */
+			if (stg < MAX_STREAMS) addr = streams[stg].addr;
+
+			/* Affect the whole group */
+			for (st = stg; st < MAX_STREAMS; st++)
+			{
+				/* Stop when we move on to the next group */
+				if (streams[st].addr != addr) break;
+
+				/* Save new size */			
+				p_ptr->stream_width[st] = x;
+				p_ptr->stream_height[st] = y;
+			}
 		break;
 	}	
 	
@@ -2266,10 +2290,10 @@ int Receive_term_info(void)
 					caveprt(p_ptr->scr_info[n], Term->wid, DUNGEON_OFFSET_X, n);
 			break;
 		case NTERM_FRESH:
+			p_ptr->window |= streams[window_to_stream[p_ptr->remote_term]].window_flag;
 			switch (p_ptr->remote_term)
 			{
 				case NTERM_WIN_OVERHEAD:	p_ptr->window |= PW_OVERHEAD;	break;
-				case NTERM_WIN_MAP:     	p_ptr->window |= PW_MAP;   	break;
 				case NTERM_WIN_MONSTER: 	p_ptr->window |= PW_MONSTER;	break;
 				case NTERM_WIN_OBJECT:  	p_ptr->window |= PW_OBJECT;	break;
 				case NTERM_WIN_MONLIST:  	p_ptr->window |= PW_MONLIST;	break;
@@ -2732,7 +2756,7 @@ int Receive_stream_info(void)
 		return n;
 	}
 
-	if (known_streams >= MAX_CUSTOM_COMMANDS) return 0;
+	if (known_streams >= MAX_STREAMS) return 0;
 
 	s_ptr = &streams[known_streams];
 	WIPE(s_ptr, stream_type);
@@ -2754,6 +2778,39 @@ int Receive_stream_info(void)
 	if (!STRZERO(buf))
 	{
 		s_ptr->mark = strdup(buf);
+	}
+
+	/* Collect stream groups */
+	if (addr != NTERM_WIN_CURRENT) 
+	{
+		int k = 0;
+		/* Go to next group */
+		if (!known_streams || streams[known_streams-1].addr != addr) 
+		{
+			window_to_stream[known_window_streams] = known_streams;
+			known_window_streams++;
+		}
+		/* Find free slot in the window options */
+		k = known_window_streams - 1;
+		for (n = 0; n < 32; n++) 
+		{
+			/* Found an unused slot */
+			if (!window_flag_desc[n]) 
+			{
+				/* Allready in use by another group */ 
+				if (k) 
+				{
+					/* Skip it */
+					k--;
+				}
+				/* Slot is totally free */
+				else
+				{
+					streams[known_streams].window_flag = (1L << n);
+					break;
+				}
+			}
+		}
 	}
 
 	stream_ref[pkt] = known_streams;
@@ -2821,7 +2878,7 @@ int Receive_stream(void)
 		read_stream_char(addr, (stream->trn & STREAM_TRANSPARENT), !(stream->trn & STREAM_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
 	/* FIXME: Negotiate size */
-	cols = (addr ? 80 : Client_setup.settings[1]);
+	cols = (addr ? p_ptr->stream_width[window_to_stream[addr]] : Client_setup.settings[1]);
 	dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
 
 	/* Decode the secondary attr/char stream */
@@ -3992,6 +4049,18 @@ int Send_clear(void)
 	return 1;
 }
 
+int Send_stream_size(int st, int rows, int cols)
+{
+	int	n;
+
+	if ((n = Packet_printf(&wbuf, "%c%c%c%c", PKT_STREAM, (byte)st, (byte)rows, (byte)cols)) <= 0)
+	{
+		return n;
+	}
+
+	return 1;
+}
+
 void net_term_resize(int cols, int rows)
 {
 	/* Defaults */
@@ -4020,6 +4089,124 @@ void net_term_resize(int cols, int rows)
 	/* Send */
 	Send_options(TRUE);
 }
+/*
+ * Manage Stream Subscriptions.
+ * This function tests ALL active windows for changes.
+ *  The changes are provided in form of 2 sets of flags - old and new.  It is caller's 
+ *  responsibility to prepare those sets. An empty (zero-filled) array for old_flags is 
+ *  acceptable. Both arrays shouldn't exceed ANGBAND_TERM_MAX. 
+ *  If 'clear' is set to TRUE, each affected window is also cleared.
+ * Returns a local window update mask.
+ *  Applying it to p-ptr->window should redraw all affected windows.
+ */
+u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
+{
+	int j;
+	int k;
+
+	/* Track changes */
+	s16b st_y[MAX_STREAMS];
+	s16b st_x[MAX_STREAMS];
+	u32b st_flag = 0;
+
+	/* Clear changes */
+	for (j = 0; j < MAX_STREAMS; j++)
+	{
+		/* Default change is 'unchanged' */
+		st_y[j] = -1;
+		st_x[j] = -1;
+	}
+
+	/* Now, find actual changes by comparing old and new */ 
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* Dead window */
+		if (!ang_term[j]) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Determine stream groups affected by this window */
+		for (k = 0; k < known_window_streams; k++) 
+		{
+			byte st = window_to_stream[k];
+			stream_type* st_ptr = &streams[st];
+
+			/* The stream is unchanged or turned off */
+			if (st_y[st] == -1 || st_y[st] == 0)
+			{
+				/* It's now active */
+				if ((new_flag[j] & st_ptr->window_flag))
+				{
+					/* It wasn't active or it's size changed. Subscribe! */
+					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_width[st] || Term->hgt != p_ptr->stream_height[st]) 
+					{
+						st_y[st] = Term->hgt;
+						st_x[st] = Term->wid;
+					}
+				}
+				/* Trying to turn it off */
+				else if ((old_flag[j] & st_ptr->window_flag))
+				{
+					st_y[st] = 0;
+					st_x[st] = 0;
+				}
+			}
+		}
+
+		/* Ignore visible changes */
+		if (clear)
+		{
+			/* Erase */ 
+			Term_clear();
+
+			/* Refresh */
+			Term_fresh();
+		}
+
+		/* Restore */
+		Term_activate(old);
+	}
+
+	/* Send subscriptions */
+	for (j = 0; j < known_streams; j++) 
+	{
+		/* A change is scheduled */
+		if (st_y[j] != -1) 
+		{
+			/* We try to subscribe/resize */
+			if (st_y[j]) 
+			{ 
+				/* Test bounds */
+				if (st_x[j] < streams[j].min_col) st_x[j] = streams[j].min_col;
+				if (st_x[j] > streams[j].max_col) st_x[j] = streams[j].max_col;
+				if (st_y[j] < streams[j].min_row) st_y[j] = streams[j].min_row;
+				if (st_y[j] > streams[j].max_row) st_y[j] = streams[j].max_row;
+				/* If we changed nothing, bail out */
+				if (st_x[j] == p_ptr->stream_width[j] && st_y[j] == p_ptr->stream_height[j]) continue;
+			}
+
+			/* Hack -- request resize for dungeon */
+			if (j == 0)
+			{
+				net_term_resize(0, 0);
+				continue;
+			}
+
+			/* Send it! */
+			Send_stream_size(j, st_y[j], st_x[j]);
+
+			/* Toggle update flag */
+			st_flag |= streams[j].window_flag;
+		}
+	}
+
+	/* Return update flags */
+	return st_flag;
+}
+
 
 // Update the current time, which is stored in 100 ms "ticks".
 // I hope that Windows systems have gettimeofday on them by default.

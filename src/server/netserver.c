@@ -151,6 +151,7 @@ static void Init_receive(void)
 	setup_receive[PKT_KEEPALIVE]	= Receive_keepalive;
 	setup_receive[PKT_OPTIONS]		= Receive_options;
 	setup_receive[PKT_VERIFY]		= Receive_verify_visual;
+	setup_receive[PKT_STREAM]		= Receive_stream_size;
 	setup_receive[PKT_MOTD]			= Receive_motd;
 	setup_receive[PKT_QUIT]			= Receive_quit;
 	
@@ -226,6 +227,7 @@ static void Init_receive(void)
 
 	playing_receive[PKT_STEAL]		= Receive_steal;
 	playing_receive[PKT_COMMAND]		= Receive_custom_command;
+	playing_receive[PKT_STREAM]		= Receive_stream_size;
 	
 	playing_receive[PKT_CLEAR] = Receive_clear;
 	playing_receive[PKT_CHANGEPASS] = Receive_pass;
@@ -1324,7 +1326,7 @@ static int sync_settings(int ind)
 	p_ptr->hitpoint_warn = connp->Client_setup.settings[3];
 
 	/* Set window flags */
-	p_ptr->window_flag = connp->Client_setup.settings[4];
+	//p_ptr->window_flag = connp->Client_setup.settings[4];
 
 	return 1;
 }
@@ -1456,6 +1458,14 @@ static int Enter_player(int ind)
 		p_ptr->misc_char[i] = connp->Client_setup.misc_char[i];
 	}
 
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		p_ptr->stream_width[i] = connp->Client_setup.stream_width[i];
+		p_ptr->stream_height[i] = connp->Client_setup.stream_height[i];
+
+		if (p_ptr->stream_height[i]) p_ptr->window_flag |= streams[i].window_flag;
+	}
+
 	/* Hack -- graphic option */
 	p_ptr->use_graphics = connp->Client_setup.settings[0];
 
@@ -1477,9 +1487,6 @@ static int Enter_player(int ind)
 
 	//Conn_set_state(connp, CONN_READY, CONN_PLAYING);
 	Conn_set_state(connp, CONN_PLAYING, CONN_PLAYING);
-
-	/* Send data streams defenitions */
-	Send_streams(NumPlayers);
 
 	/* Send item testers */
 	Send_item_testers(NumPlayers);
@@ -2213,6 +2220,8 @@ static int Receive_play(int ind)
 		Send_race_info_conn(ind);
 		Send_class_info_conn(ind);
 
+		Send_streams_conn(ind);
+
 		Send_char_info_conn(ind);
 
 	} else {
@@ -2649,6 +2658,20 @@ int Send_term_resize_ack(int ind)
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c%c%c", PKT_ACK, 0, Players[ind]->screen_wid, Players[ind]->screen_hgt);
+}
+int Send_stream_resize_ack(int ind, int st, int y, int x)
+{
+	connection_t *connp = &Conn[ind];
+
+	if (!BIT(connp->state, CONN_PLAYING | CONN_READY | CONN_SETUP))
+	{
+		errno = 0;
+		plog(format("Connection not ready for stream resize ack (%d.%d.%d)",
+			ind, connp->state, connp->id));
+		return 0;
+	}
+
+	return Packet_printf(&connp->c, "%c%c%c%c", PKT_ACK, (byte)st, (byte)y, (byte)x);
 }
 
 int Send_char_info(int ind, int race, int class, int sex)
@@ -3180,7 +3203,7 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
 
-	s16b	cols = 80;
+	s16b	cols = p_ptr->stream_width[st];
 	byte	rle = stream->rle;
 	byte	trn = (stream->trn & STREAM_TRANSPARENT);
 	source 	= p_ptr->info[y];
@@ -3385,12 +3408,12 @@ int Send_sound(int ind, int sound)
 	return Packet_printf(&connp->c, "%c%c", PKT_SOUND, sound);
 }
 
-int Send_stream(int ind, int stream)
+int Send_stream_conn(int ind, int stream)
 {
-	connection_t *connp = &Conn[Players[ind]->conn];
+	connection_t *connp = &Conn[ind];
 	const stream_type *s_ptr = &streams[stream];
 
-	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
+	if (!BIT(connp->state, CONN_SETUP))
 	{
 		errno = 0;
 		plog(format("Connection not ready for stream definition (%d.%d.%d)",
@@ -3405,7 +3428,7 @@ int Send_stream(int ind, int stream)
 		 s_ptr->max_row, s_ptr->max_col);
 }
 
-void Send_streams(int ind)
+int Send_streams_conn(int ind)
 {
 	int i;
 	/* Make sure "streams" ends with 
@@ -3413,8 +3436,9 @@ void Send_streams(int ind)
 	for (i = 0; streams[i].pkt != 0; i++)
 	{
 		/* Send stream definition */
-		(void)Send_stream(ind, i);
+		(void)Send_stream_conn(ind, i);
 	} 
+	return 1;
 }
 
 /*
@@ -6021,6 +6045,84 @@ static int Receive_symbol_query(int ind)
 
 	/* Perform query */
 	do_cmd_query_symbol(player, sym);
+
+	return 1;
+}
+
+static int Receive_stream_size(int ind)
+{
+	connection_t *connp = &Conn[ind];
+	player_type *p_ptr;
+	int player, n;
+	char ch;
+	byte stg, y, x;
+	byte st, addr;
+
+	if (connp->id != -1)
+	{
+		player = GetInd[connp->id];
+		p_ptr = Players[player];
+	}
+	else
+	{
+		player = 0;
+		p_ptr = NULL;
+	}
+
+	if ((n = Packet_scanf(&connp->r, "%c%c%c%c", &ch, &stg, &y, &x)) <= 0)
+	{
+		if (n == -1)
+			Destroy_connection(ind, "read error");
+		return n;
+	}
+
+	/* Set stream group starting point */
+	if (stg < MAX_STREAMS) addr = streams[stg].addr;
+
+	/* Do the whole group */
+	for (st = stg; st < MAX_STREAMS; st++)
+	{
+		/* Stop when we move to the next group */
+		if (streams[st].addr != addr) break;
+
+		/* Test bounds (if we're subscribing) */
+		if (y)
+		{
+			if (y < streams[st].min_row) y = streams[st].min_row;
+			if (y > streams[st].max_row) y = streams[st].max_row;
+			if (x < streams[st].min_col) x = streams[st].min_col;
+			if (x > streams[st].max_col) x = streams[st].max_col;
+		}
+
+		/* Save to player */
+		if (player)
+		{
+			/* Set width and height */
+			p_ptr->stream_width[st] = x;
+			p_ptr->stream_height[st] = y;
+
+			/* Subscribe / Unsubscribe */
+			if (y) 
+			{
+				p_ptr->window_flag |= streams[st].window_flag;
+				p_ptr->window |= streams[st].window_flag; /* + Schedule actual update */
+			}
+			else
+			{
+				p_ptr->window_flag &= ~streams[st].window_flag;
+			}
+		}
+		/* Save to connection */
+		else
+		{
+			/* Set width and height */
+			connp->Client_setup.stream_width[st] = x;
+			connp->Client_setup.stream_height[st] = y;
+		}
+	}
+
+	/* Ack it */
+	Send_stream_resize_ack(ind, 1 + stg, y, x);
 
 	return 1;
 }

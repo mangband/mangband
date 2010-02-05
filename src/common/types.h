@@ -146,6 +146,9 @@ struct client_setup_t
 		
 	byte tval_attr[128];
 	char tval_char[128];
+
+	byte stream_width[MAX_STREAMS];
+	byte stream_height[MAX_STREAMS];
 };
 
 
@@ -1364,6 +1367,9 @@ struct player_type
 	s16b panel_row_old;
 	s16b panel_col_old;
 
+	byte stream_width[MAX_STREAMS];	/* Client's chosen stream output size (or default..?) */	
+	byte stream_height[MAX_STREAMS];/* Set 'height' to 0 to disable stream completly */ 
+
 				/* What he should be seeing */
 	cave_view_type scr_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
 	cave_view_type trn_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
@@ -1650,4 +1656,5 @@ struct stream_type
 	byte max_col;	
 
 	cptr mark;	/* Hack -- name */
+	u32b window_flag; /* "Window" flag */
 };

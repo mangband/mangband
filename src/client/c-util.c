@@ -3323,6 +3323,8 @@ static void do_cmd_options_win(void)
 	/* Interact */
 	while (go)
 	{
+		byte st = 0;
+
 		/* Prompt XXX XXX XXX */
 		prt("Window flags (<dir>, t, y, n, ESC) ", 0, 0);
 
@@ -3349,6 +3351,14 @@ static void do_cmd_options_win(void)
 
 			/* Use color */
 			if (use_color && (i == y)) a = TERM_L_BLUE;
+
+			/* Unused option; try streams */
+			if (!str && st < known_window_streams)
+			{
+				str = streams[window_to_stream[st++]].mark;
+				/* HACK: Hide Dungeon View */
+				if (st - 1 == 0) str = NULL;
+			}
 
 			/* Unused option */
 			if (!str) str = "(Unused option)";
@@ -3439,34 +3449,7 @@ static void do_cmd_options_win(void)
 	}
 
 	/* Notice changes */
-	for (j = 0; j < 8; j++)
-	{
-		term *old = Term;
-
-		/* Dead window */
-		if (!ang_term[j]) continue;
-
-		/* Ignore non-changes */
-		if (window_flag[j] == old_flag[j]) continue;
-
-		/* Activate */
-		Term_activate(ang_term[j]);
-
-		/* Hack -- request resize for dungeon */
-		if (j == 0)
-		{
-			net_term_resize(0, 0);
-		}
-
-		/* Erase */
-		Term_clear();
-
-		/* Refresh */
-		Term_fresh();
-
-		/* Restore */
-		Term_activate(old);
-	}
+	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
 
 	/* Update windows */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_STATUS);

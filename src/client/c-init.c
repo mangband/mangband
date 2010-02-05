@@ -91,6 +91,11 @@ void init_minor(void)
 	
 	/* Term channels */
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
+
+	/* Server-defined network behavior */
+	known_streams = 0;
+	known_window_streams = 0;
+	window_to_stream[0] = 0;
 }
 
 
@@ -263,6 +268,23 @@ void gather_settings()
 		Client_setup.settings[4] |= window_flag[i];
 }
 
+
+/* Trick "net_term_manage" into subscribing by passing an empty array */
+void init_subscriptions() 
+{
+	int i;
+
+	u32b empty_flag[ANGBAND_TERM_MAX];
+
+	for (i = 0; i < ANGBAND_TERM_MAX; i++)
+	{
+		empty_flag[i] = 0L;
+	}
+
+	net_term_manage(&empty_flag[0], &window_flag[0], FALSE);
+}
+
+
 /*
  * Client is ready to play call-back
  */
@@ -280,6 +302,9 @@ bool client_ready()
 
 	/* Send visual preferences */
 	Net_verify();
+
+	/* Subscribe to data streams */
+	init_subscriptions();
 
 	/* Hack -- don't enter the game if waiting for motd */
 	if (Setup.wait && !Setup.ready)

@@ -165,6 +165,10 @@ extern s16b custom_commands;
 extern stream_type streams[MAX_STREAMS];
 extern byte known_streams;
 
+extern byte window_to_stream[ANGBAND_TERM_MAX];
+extern byte known_window_streams;
+
+
 extern s16b race;
 extern s16b class;
 extern s16b sex;
@@ -427,6 +431,7 @@ extern int lag_ok;
 extern void update_ticks();
 extern void do_keepalive();
 extern void net_term_resize(int rows, int cols);
+extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern bool Net_Send(int Socket, sockbuf_t* ibuf);
 extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
 extern int Net_setup(void);
@@ -497,6 +502,7 @@ extern int Send_term_key(char ch);
 extern int Send_party(s16b command, cptr buf);
 extern int Send_suicide(void);
 extern int Send_options(bool settings);
+extern int Send_stream_size(int st, int y, int x);
 extern int Send_master(s16b command, cptr buf);
 extern int Send_observe(int item);
 extern int Send_pass(cptr newpass);

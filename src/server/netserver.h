@@ -135,13 +135,13 @@ static int Receive_options(int ind);
 static int Receive_suicide(int ind);
 static int Receive_master(int ind);
 static int Receive_clear(int ind);
+static int Receive_stream_size(int ind);
 static int Receive_custom_command(int ind);
 
 static void Handle_item(int Ind, int item);
 int Setup_net_server(void);
 void Send_item_testers(int ind);
 void Send_custom_commands(int ind);
-void Send_streams(int ind);
 int Send_game_start_conn(int ind);
 int Send_motd_conn(int ind, int offset);
 int Send_option_info_conn(int ind);
@@ -149,6 +149,7 @@ int Send_basic_info_conn(int ind);
 int Send_inven_info_conn(int ind);
 int Send_race_info_conn(int ind);
 int Send_class_info_conn(int ind);
+int Send_streams_conn(int ind);
 int Send_char_info_conn(int ind);
 int Send_term_resize_ack(int ind);
 

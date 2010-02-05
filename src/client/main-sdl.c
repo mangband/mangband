@@ -872,14 +872,11 @@ void gui_term_unctrl() {
 
 	if (m_resized) {
 		term_close(i);
-		if (i == 0) {	/* Dungeon size */
-			net_term_resize(sel_term->cols, sel_term->rows - SCREEN_CLIP_L);
-		} else {				/* Other windows */
-			Term_activate(&sel_term->t);
-			Term_resize(sel_term->cols, sel_term->rows);
-			Term_activate(term_screen);
-		}
+		Term_activate(&sel_term->t);
+		Term_resize(sel_term->cols, sel_term->rows);
+		Term_activate(term_screen);
 		term_open(i);
+		net_term_manage(window_flag, window_flag, FALSE);
 		m_resized = FALSE;
 		m_subterm = m_term = -1;
 		need_render = TRUE;

@@ -1156,12 +1156,12 @@ errr process_pref_file_command(char *buf)
 			/* Ignore illegal flags */
 			if ((flag < 0) || (flag >= 32)) return (0);
 
-			/* Require a real flag */
-			if (window_flag_desc[flag])
-			{
+			/* Require a real flag 
+			if (window_flag_desc[flag] || )
+			{ */
 				/* Turn flag on */
 				window_flag[win] |= (1L << flag);
-			}
+			/* } // No need to be so strict in MAngband, might be server-defined window */
 
 			/* Success */
 			return (0);

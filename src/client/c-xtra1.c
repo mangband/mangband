@@ -1447,6 +1447,60 @@ static void fix_status(void)
 
 
 /*
+ * Hack -- display some remote view in sub-windows.
+ */
+static void fix_stream(byte win)
+{
+	int j, y;
+	int sw, sh;
+	int w, h;
+	int k = window_to_stream[win];
+
+	/* Get stream bounds */	
+	sw = p_ptr->stream_width[k];
+	sh = MAX(p_ptr->stream_height[k], last_remote_line[win] + 1);
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (streams[k].window_flag))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Get term bounds */
+		Term_get_size(&w, &h);
+
+		/* Adjust bounds (clamp stream size by window size) */
+		if (sw > w) sw = w;
+		if (sh > h) sh = h;
+
+		/* Print it */
+		for (y = 0; y < sh; y++)
+		{
+			Term_erase(0, y, sw);
+			caveprt(remote_info[win][y], sw, 0, y);
+		}
+
+		/* Erase rest */
+		clear_from(y);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
  * Hack -- display dungeon map view in sub-windows.
  */
 static void fix_map(void)
@@ -2762,6 +2816,8 @@ void redraw_stuff(void)
  */
 void window_stuff(void)
 {
+	int i;
+
 	/* Window stuff */
 	if (!p_ptr->window) return;
 
@@ -2806,13 +2862,24 @@ void window_stuff(void)
 		p_ptr->window &= ~(PW_PLAYER_2);
 		fix_player_compact();
 	}
-	
+#if 0
 	/* Display map view */
 	if (p_ptr->window & (PW_MAP))
 	{
 		p_ptr->window &= ~(PW_MAP);
 		fix_map();
 	}
+#endif
+	/* Display server-defined stream */
+	for (i = 0; i < known_window_streams; i++) {
+		if (!streams[window_to_stream[i]].window_flag) continue;//TODO: Remove this
+		/* Use classic code: */
+		if (p_ptr->window & (streams[window_to_stream[i]].window_flag))
+		{
+			p_ptr->window &= ~(streams[window_to_stream[i]].window_flag);
+			fix_stream((byte)i);
+		}
+ 	} 
 
 	/* Display spell list */
 	if (p_ptr->window & (PW_SPELL))
