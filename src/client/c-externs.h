@@ -432,7 +432,6 @@ extern int ticks;
 extern int lag_ok;
 extern void update_ticks();
 extern void do_keepalive();
-extern void net_term_resize(int rows, int cols);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern bool Net_Send(int Socket, sockbuf_t* ibuf);
 extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);

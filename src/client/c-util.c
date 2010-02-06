@@ -2576,18 +2576,6 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	/* Manipulate offset: */
 	x += DUNGEON_OFFSET_X;	
 
-	/* Update secondary layer */
-	if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
-	{
-		p_ptr->trn_info[y][x].a = ta;
-		p_ptr->trn_info[y][x].c = tc;
-		/* Hack -- force refresh of that grid no matter what */
-		Term->scr->a[y][x] = 0;
-		Term->scr->c[y][x] = 0;
-		Term->old->a[y][x] = 0;
-		Term->old->c[y][x] = 0;
-	}
-
 	/* Test ickyness */
 	if (screen_icky || section_icky_row || shopping) draw = FALSE;
 	if (section_icky_row)
@@ -2597,11 +2585,28 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 		else if (section_icky_col < 0 && x < Term->wid + section_icky_col) draw = TRUE;
 	}
 
+	/* Test terminal size */
+	if (x > Term->wid || y > Term->hgt) mem = draw = FALSE;
+
 	if (mem)
 		Term_mem_ch(x, y, a, c);
 
 	if (draw)
+	{
+		/* Update secondary layer */
+		if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
+		{
+			p_ptr->trn_info[y][x].a = ta;
+			p_ptr->trn_info[y][x].c = tc;
+			/* Hack -- force refresh of that grid no matter what */
+			Term->scr->a[y][x] = 0;
+			Term->scr->c[y][x] = 0;
+			Term->old->a[y][x] = 0;
+			Term->old->c[y][x] = 0;
+		}
+
 		Term_draw(x, y, a, c);
+	}
 }
 
 /* Show (or don't) a line depending on screen ickyness */
@@ -2623,6 +2628,10 @@ void show_line(int y, s16b cols, bool mem)
 		if (section_icky_col < 0) coff = section_icky_col;
 		if (xoff >= cols || cols-coff <= 0) draw = FALSE;
 	}
+
+	/* Another possible issue - terminal is too small */
+	if (cols+coff > Term->wid) coff -= (Term->wid - (cols+coff));
+	if (y > Term->hgt || cols+coff <= 0) mem = draw = FALSE;
 
 	/* Check the max line count */
 	if (last_line_info < y)
@@ -3662,8 +3671,6 @@ static void do_cmd_options_win(void)
 			if (!str && st < known_window_streams)
 			{
 				str = streams[window_to_stream[st++]].mark;
-				/* HACK: Hide Dungeon View */
-				if (st - 1 == 0) str = NULL;
 			}
 
 			/* Unused option */
@@ -3711,12 +3718,18 @@ static void do_cmd_options_win(void)
 				/* Clear windows */
 				for (j = 0; j < 8; j++)
 				{
+					/* Ignore screen (but not for Status AND Compact)*/
+					if ((j == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
+
 					window_flag[j] &= ~(1L << y);
 				}
 
 				/* Clear flags */
 				for (i = 0; i < 16; i++)
 				{
+					/* Ignore screen (but not for Status AND Compact)*/
+					if ((x == 0) && ((1L << i) != PW_STATUS) && ((1L << i) != PW_PLAYER_2)) break;
+
 					window_flag[x] &= ~(1L << i);
 				}
 
@@ -3737,6 +3750,9 @@ static void do_cmd_options_win(void)
 			case 'n':
 			case 'N':
 			{
+				/* Ignore screen (but not for Status AND Compact)*/
+				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
+
 				/* Clear flag */
 				window_flag[x] &= ~(1L << y);
 				break;

@@ -249,23 +249,11 @@ static void quit_hook(cptr s)
 
 void gather_settings()
 {
-	int i;
 	/* Graphics */
 	Client_setup.settings[0] = use_graphics;
 
-	/* Dungeon Size */
-	Client_setup.settings[1] = Term->wid;
-	Client_setup.settings[2] = Term->hgt - SCREEN_CLIP_L; // Top Line
-	Client_setup.settings[1] -= DUNGEON_OFFSET_X; // Compact
-	Client_setup.settings[2] -= DUNGEON_OFFSET_Y; // Status line
-
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;
-	
-	/* Terminal subscriptions */
-	Client_setup.settings[4] = 0;
-	for (i = 0; i < 8; i++)
-		Client_setup.settings[4] |= window_flag[i];
 }
 
 

@@ -1298,35 +1298,8 @@ static int sync_settings(int ind)
 	connection_t *connp = &Conn[Players[ind]->conn];
 	player_type *p_ptr = Players[ind];
 
-	/* Resize */	
-	if (connp->Client_setup.settings[1] != p_ptr->screen_wid ||  connp->Client_setup.settings[2] != p_ptr->screen_hgt)
-	{
-		p_ptr->screen_wid = connp->Client_setup.settings[1];
-		p_ptr->screen_hgt = connp->Client_setup.settings[2];
-		
-		if (p_ptr->screen_hgt < Setup.min_row || p_ptr->screen_hgt > Setup.max_row || 
-		    p_ptr->screen_wid < Setup.min_col || p_ptr->screen_wid > Setup.max_col)
-		{	
-			errno = 0;
-			Destroy_connection(p_ptr->conn, "Incompatible screen size");
-			return -1;
-		}
-
-		setup_panel(ind, TRUE);
-		verify_panel(ind);
-
-		/* Redraw map */
-		p_ptr->redraw |= (PR_MAP);
-		
-		/* Very important - ack term resize */
-		Send_term_resize_ack(ind);
-	}
-	
 	/* Set hitpoint warning */
 	p_ptr->hitpoint_warn = connp->Client_setup.settings[3];
-
-	/* Set window flags */
-	//p_ptr->window_flag = connp->Client_setup.settings[4];
 
 	return 1;
 }
@@ -1362,11 +1335,11 @@ static int Enter_player(int ind)
 	}
 
 	/* XXX - HACK - Ensure his settings are allowed, disconnect otherwise */
-	if (connp->Client_setup.settings[1] < Setup.min_col || connp->Client_setup.settings[1] > Setup.max_col || 
-	    connp->Client_setup.settings[2] < Setup.min_row || connp->Client_setup.settings[2] > Setup.max_row)
+	if (connp->Client_setup.stream_width[0] < Setup.min_col || connp->Client_setup.stream_width[0] > Setup.max_col || 
+	    connp->Client_setup.stream_height[0] < Setup.min_row || connp->Client_setup.stream_height[0] > Setup.max_row)
 	{
 		Destroy_connection(ind, format("Incompatible screen size %dx%d (min %dx%d, max %dx%d).", 
-		connp->Client_setup.settings[1], connp->Client_setup.settings[2], Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row)); 
+		connp->Client_setup.stream_width[0], connp->Client_setup.stream_height[0], Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row)); 
 		return -1;
 	}
 
@@ -1470,8 +1443,8 @@ static int Enter_player(int ind)
 	p_ptr->use_graphics = connp->Client_setup.settings[0];
 
 	/* Hack -- dungeon screen size */
-	p_ptr->screen_wid = connp->Client_setup.settings[1];
-	p_ptr->screen_hgt = connp->Client_setup.settings[2];
+	p_ptr->screen_wid = connp->Client_setup.stream_width[0];
+	p_ptr->screen_hgt = connp->Client_setup.stream_height[0];
 	
 	setup_panel(NumPlayers + 1, TRUE);
 
@@ -2646,19 +2619,7 @@ int Send_char_info_conn(int ind)
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd%hd%hd", PKT_CHAR_INFO, connp->char_state, connp->race, connp->class, connp->sex);
 }
-int Send_term_resize_ack(int ind)
-{
-	connection_t *connp = &Conn[Players[ind]->conn];
 
-	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
-	{
-		errno = 0;
-		plog(format("Connection not ready for term resize ack (%d.%d.%d)",
-			ind, connp->state, connp->id));
-		return 0;
-	}
-	return Packet_printf(&connp->c, "%c%c%c%c", PKT_ACK, 0, Players[ind]->screen_wid, Players[ind]->screen_hgt);
-}
 int Send_stream_resize_ack(int ind, int st, int y, int x)
 {
 	connection_t *connp = &Conn[ind];
@@ -3183,9 +3144,11 @@ int Stream_char(int ind, int st, int y, int x)
 	}
 
 	/* Hacks for Dungeon: */
-	source = (stream->addr ? p_ptr->info[y] : p_ptr->scr_info[y]);
-	/* EVIL HACK: */
-	if (stream->addr == NTERM_WIN_MAP) source = p_ptr->scr_info[y];
+	if (stream->addr == NTERM_WIN_OVERHEAD
+	 || stream->addr == NTERM_WIN_MAP)
+	{
+		source = p_ptr->scr_info[y];
+	}
 
 	/* Header + Body (with or without transperancy) */
 	if (stream->trn & STREAM_TRANSPARENT) 
@@ -3217,17 +3180,11 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 	}
 
 	/* Hacks for Dungeon: */
-	if (!stream->addr)
-	{
-		cols = p_ptr->screen_wid;
-		source = p_ptr->scr_info[y];
-	}
-	/* EVIL HACK: */
-	else if (stream->addr == NTERM_WIN_MAP)
+	if (stream->addr == NTERM_WIN_OVERHEAD
+	 || stream->addr == NTERM_WIN_MAP)
 	{
 		source = p_ptr->scr_info[y];
 	}
-
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", stream->pkt, as_y);
 
@@ -6106,6 +6063,15 @@ static int Receive_stream_size(int ind)
 			{
 				p_ptr->window_flag |= streams[st].window_flag;
 				p_ptr->window |= streams[st].window_flag; /* + Schedule actual update */
+				/* HACK! Resizing dungeon view! */
+				if (streams[st].addr == NTERM_WIN_OVERHEAD)
+				{
+					p_ptr->screen_wid = p_ptr->stream_width[0];
+					p_ptr->screen_hgt = p_ptr->stream_height[0];
+					setup_panel(player, TRUE);
+					verify_panel(player);
+					p_ptr->redraw |= (PR_MAP);
+				}
 			}
 			else
 			{
@@ -6122,7 +6088,7 @@ static int Receive_stream_size(int ind)
 	}
 
 	/* Ack it */
-	Send_stream_resize_ack(ind, 1 + stg, y, x);
+	Send_stream_resize_ack(ind, stg, y, x);
 
 	return 1;
 }

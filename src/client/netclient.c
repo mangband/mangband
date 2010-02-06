@@ -72,10 +72,10 @@ static void Receive_init(void)
 	setup_tbl[PKT_KEEPALIVE]	= Receive_keepalive;
 	setup_tbl[PKT_END]		= Receive_end;
 	setup_tbl[PKT_STREAM]	= Receive_stream_info;
-	setup_tbl[PKT_ACK] = Receive_ack;
+	setup_tbl[PKT_ACK] = Receive_resize_ack;
 
 	receive_tbl[PKT_MOTD] = Receive_motd;
-	receive_tbl[PKT_ACK] = Receive_ack;
+	receive_tbl[PKT_ACK] = Receive_resize_ack;
 	receive_tbl[PKT_QUIT]		= Receive_quit;
 	receive_tbl[PKT_START]		= Receive_start;
 	receive_tbl[PKT_END]		= Receive_end;
@@ -1491,73 +1491,45 @@ int Receive_char_info_conn(void)
 	
 	return 1;
 }
-int Receive_ack(void)
+int Receive_resize_ack(void)
 {
 	char 	ch;
 	int 	n;
-	byte 	typ;
 	byte	x, y;
 	byte	st, stg, addr;
 
-	typ = x = y = 0;
+	stg = x = y = 0;
 
-	if ((n = Packet_scanf(&rbuf, "%c%c", &ch, &typ) <= 0))
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%c", &ch, &stg, &y, &x) <= 0))
 	{
 		return n;
 	}
 
-	/* What was acknowledged?! */
-	switch (typ)
+	/* Ensure it is valid and start from there */
+	if (stg < MAX_STREAMS) addr = streams[stg].addr;
+
+	/* Affect the whole group */
+	for (st = stg; st < MAX_STREAMS; st++)
 	{
-		/* No defines yet.. Let's say "0" is for "Term_Resize" */
-		case 0:
-			if ((n = Packet_scanf(&rbuf, "%c%c", &x, &y)) <= 0)
-			{
-				return n;
-			}
-			/* Hack -- Interface offsets */
-			y += SCREEN_CLIP_L;	/* Top Line */
-			x += DUNGEON_OFFSET_X; /* Compact */
-			y += DUNGEON_OFFSET_Y;	/* Status line */
+		/* Stop when we move on to the next group */
+		if (streams[st].addr != addr) break;
 
-			/* Send event */
-			Term_xtra(TERM_XTRA_REACT, 0);
+		/* Save new size */
+		p_ptr->stream_width[st] = x;
+		p_ptr->stream_height[st] = y;
+	}
 
-			/* Term resize! */
-			Term_resize(x, y);
+	/* HACK - Dungeon display resize */
+	if (streams[stg].addr == NTERM_WIN_OVERHEAD)
+	{
+		/* Redraw status line */
+		Term_erase(0, y-1, x);
+		p_ptr->redraw |= PR_STATUS;
+		/* Redraw compact */
+		p_ptr->redraw |= PR_COMPACT;
+	}
 
-			/* Redraw status line */
-			Term_erase(0, y-1, x);
-			p_ptr->redraw |= PR_STATUS;
-			/* Redraw compact */
-			p_ptr->redraw |= PR_COMPACT;
-			
-		break;
-		/* Let's say all other cases are for stream resize... meh... */
-		default:
-			if ((n = Packet_scanf(&rbuf, "%c%c", &y, &x)) <= 0)
-			{
-				return n;
-			}
-			/* Hack: */
-			stg = typ - 1;
 
-			/* Ensure it is valid and start from there */
-			if (stg < MAX_STREAMS) addr = streams[stg].addr;
-
-			/* Affect the whole group */
-			for (st = stg; st < MAX_STREAMS; st++)
-			{
-				/* Stop when we move on to the next group */
-				if (streams[st].addr != addr) break;
-
-				/* Save new size */			
-				p_ptr->stream_width[st] = x;
-				p_ptr->stream_height[st] = y;
-			}
-		break;
-	}	
-	
 	return 1;
 }
 
@@ -2806,7 +2778,9 @@ int Receive_stream_info(void)
 				/* Slot is totally free */
 				else
 				{
-					streams[known_streams].window_flag = (1L << n);
+					s_ptr->window_flag = (1L << n);
+					/* HACK! Enforce Dungeon View on window 0 */
+					if (s_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
 					break;
 				}
 			}
@@ -2877,8 +2851,7 @@ int Receive_stream(void)
 	if (y & 0xFF00)	return 
 		read_stream_char(addr, (stream->trn & STREAM_TRANSPARENT), !(stream->trn & STREAM_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
-	/* FIXME: Negotiate size */
-	cols = (addr ? p_ptr->stream_width[window_to_stream[addr]] : Client_setup.settings[1]);
+	cols = p_ptr->stream_width[window_to_stream[addr]];
 	dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
 
 	/* Decode the secondary attr/char stream */
@@ -4061,33 +4034,9 @@ int Send_stream_size(int st, int rows, int cols)
 	return 1;
 }
 
-void net_term_resize(int cols, int rows)
+void net_term_clamp(byte win, byte *y, byte *x)
 {
-	/* Defaults */
-	if (!cols && !rows)
-	{
-		cols = Term->wid;
-		rows = Term->hgt - SCREEN_CLIP_L;
-	}
 
-	/* Compact display */
-	cols -= DUNGEON_OFFSET_X;
-
-	/* Status line */
-	rows -= DUNGEON_OFFSET_Y;
-	
-	/* Check */
-	if (cols < Setup.min_col) cols = Setup.min_col;
-	if (rows < Setup.min_row) rows = Setup.min_row; 
-	if (cols > Setup.max_col) cols = Setup.max_col;
-	if (rows > Setup.max_row) rows = Setup.max_row;
-
-	/* Save */
-	Client_setup.settings[1] = cols;
-	Client_setup.settings[2] = rows;
-	
-	/* Send */
-	Send_options(TRUE);
 }
 /*
  * Manage Stream Subscriptions.
@@ -4135,7 +4084,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 			stream_type* st_ptr = &streams[st];
 
 			/* The stream is unchanged or turned off */
-			if (st_y[st] == -1 || st_y[st] == 0)
+			if (st_y[st] <= 0)
 			{
 				/* It's now active */
 				if ((new_flag[j] & st_ptr->window_flag))
@@ -4179,6 +4128,15 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 			/* We try to subscribe/resize */
 			if (st_y[j]) 
 			{ 
+				/* HACK -- Dungeon Display Offsets */
+				if (streams[j].addr == NTERM_WIN_OVERHEAD)
+				{
+					/* Compact display */
+					st_x[j] = st_x[j] - DUNGEON_OFFSET_X;
+					/* Status and top line */
+					st_y[j] = st_y[j] - SCREEN_CLIP_L - DUNGEON_OFFSET_Y;
+				}
+
 				/* Test bounds */
 				if (st_x[j] < streams[j].min_col) st_x[j] = streams[j].min_col;
 				if (st_x[j] > streams[j].max_col) st_x[j] = streams[j].max_col;
@@ -4186,13 +4144,6 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if (st_y[j] > streams[j].max_row) st_y[j] = streams[j].max_row;
 				/* If we changed nothing, bail out */
 				if (st_x[j] == p_ptr->stream_width[j] && st_y[j] == p_ptr->stream_height[j]) continue;
-			}
-
-			/* Hack -- request resize for dungeon */
-			if (j == 0)
-			{
-				net_term_resize(0, 0);
-				continue;
 			}
 
 			/* Send it! */

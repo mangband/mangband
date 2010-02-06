@@ -611,10 +611,10 @@ static void prt_oppose_elements(int row, int col)
 void prt_map_easy()
 {
 	int y;
-	for (y = 0; y < Client_setup.settings[2]; y++)
+	for (y = 0; y < Term->hgt; y++)
 	{
-		Term_erase(y, 0, Client_setup.settings[1]);
-		caveprt(p_ptr->scr_info[y], Client_setup.settings[1], DUNGEON_OFFSET_X, y);
+		Term_erase(y, 0, Term->wid);
+		caveprt(p_ptr->scr_info[y], Term->wid, DUNGEON_OFFSET_X, y);
 	} 
 }
 /* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */

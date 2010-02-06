@@ -872,9 +872,9 @@ void gui_term_unctrl() {
 
 	if (m_resized) {
 		term_close(i);
-		Term_activate(&sel_term->t);
+		if (i) Term_activate(&sel_term->t);
 		Term_resize(sel_term->cols, sel_term->rows);
-		Term_activate(term_screen);
+		if (i) Term_activate(term_screen);
 		term_open(i);
 		net_term_manage(window_flag, window_flag, FALSE);
 		m_resized = FALSE;
