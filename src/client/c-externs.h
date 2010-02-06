@@ -36,7 +36,8 @@ extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
 
-
+/* z-term.c */
+extern event_type inkey_ex(void);
 
 
 /* variable.c */
@@ -106,6 +107,7 @@ extern char special_line_header[80];
 extern bool special_line_onscreen;
 
 extern bool inkey_base;
+extern bool inkey_xtra;
 extern bool inkey_scan;
 extern bool inkey_flag;
 
