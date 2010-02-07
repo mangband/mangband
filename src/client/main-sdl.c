@@ -166,7 +166,7 @@ Uint32 gui_color_term_title;
 bool term_set_font(int i, cptr fontname);
 bool init_one_term(int i, bool force);
 void term_rescale(int i, bool create, bool redraw);
-void term_spawn();
+bool term_spawn();
 void term_open(int i);
 void term_close(int i);
 void term_redraw(int i);
@@ -683,18 +683,19 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 
 /* Grab term (+LMB) */
-void gui_term_grab(int i) {
-	if (i == -1) return;
+bool gui_term_grab(int i) {
+	if (i == -1) return FALSE;
 	m_term = i;
 	m_subterm = -1;
 	sel_term = &data[i];
 	need_render = TRUE; /* highlight our selection */
+	return TRUE;
 }
 /* Drag term (MM) */
-void gui_term_drag(int nmx, int nmy) {
+bool gui_term_drag(int nmx, int nmy) {
 	int mx = 0, my = 0, hold_x = 0, hold_y = 0;
 
-	if (m_term == -1) return;
+	if (m_term == -1) return FALSE;
 
 	/* Thresholder */
 	hold_x = sel_term->w,
@@ -713,7 +714,7 @@ void gui_term_drag(int nmx, int nmy) {
 		if (tmy < -hold_y) { my =-1; tmy += hold_y; }
 		
 		/* Nothing happend! */
-		if (!mx && !my) return;
+		if (!mx && !my) return FALSE;
 
   		sel_term->cols += mx;
   		sel_term->rows += my;
@@ -730,7 +731,7 @@ void gui_term_drag(int nmx, int nmy) {
 		}		
 
   		/* Nothing happend! */
-		if (!mx && !my) return;
+		if (!mx && !my) return FALSE;
 
   		sel_term->width  = sel_term->w * sel_term->cols;
 		sel_term->height = sel_term->h * sel_term->rows;
@@ -751,7 +752,7 @@ void gui_term_drag(int nmx, int nmy) {
 		if (tmy < -hold_y) { my =-1; tmy = 0; }
 		
 		/* Nothing happend! */
-		if (!mx && !my) return;
+		if (!mx && !my) return FALSE;
 		
   		sel_term->w += mx;
   		sel_term->h += my;
@@ -760,7 +761,7 @@ void gui_term_drag(int nmx, int nmy) {
 		if (sel_term->h < sel_term->fd->h) { sel_term->h = sel_term->fd->h; my = 0; }		
 
 		/* Nothing happend! */
-		if (!mx && !my) return;
+		if (!mx && !my) return FALSE;
 
 		sel_term->width  = sel_term->w * sel_term->cols;
 		sel_term->height = sel_term->h * sel_term->rows;
@@ -785,14 +786,15 @@ void gui_term_drag(int nmx, int nmy) {
 		if ((int)sel_term->xoff < 0) sel_term->xoff = 0;  
 		if ((int)sel_term->yoff < 0) sel_term->yoff = 0;
 		
-		if (mx == sel_term->xoff && my == sel_term->yoff) return;
+		if (mx == sel_term->xoff && my == sel_term->yoff) return FALSE;
 		
 		m_moved = TRUE;
 		need_render = TRUE;
 	}
+	return TRUE;
 }
 /* Drop term (-LMB) */
-void gui_term_drop() {
+bool gui_term_drop() {
 	if (m_term != -1) {
 		if (m_resized && !m_control)
 			m_resized = FALSE;
@@ -804,13 +806,20 @@ void gui_term_drop() {
 		m_moved = FALSE;
 	   need_render = TRUE; /* highlight lack of selection */
 	}
+	else return FALSE;
+	return TRUE;
 }
 /* Slap term (RMB) */
-void gui_term_slap(int i) {
-	if (i > 0) 
-   	term_close(i);
+bool gui_term_slap(int i) {
+	if (i > 0)
+	{ 
+   		term_close(i);
+   		return TRUE;
+   	}
 	else 
-		term_spawn();
+	{
+		return term_spawn();
+	}
 }
 
 /* Flip term (TAB) */
@@ -830,59 +839,158 @@ bool gui_term_next() {
 }
 
 /* Hold shift on term (+SHIFT) */
-void gui_term_shift() {
+bool gui_term_shift() {
 	m_shift = TRUE;
 	tmx = 0;
 	tmy = 0;
+	return TRUE;
 }
 /* Release shift on term (-SHIFT) */
-void gui_term_unshift() {
+bool gui_term_unshift() {
 	int i = m_term;
 	
 	m_shift = FALSE;
 	
 	if (i == -1) i = m_subterm;
-	if (i == -1) return;
+	if (i == -1) return FALSE;
 	
-	if (m_rescaled) 
-	{
-			term_close(i);
-			term_rescale(i, TRUE, TRUE);
-			term_open(i);
-			m_rescaled = FALSE;
-			m_subterm = m_term = -1;
-			need_render = TRUE;
-	}
+	if (!m_rescaled) return FALSE; 
+
+	term_close(i);
+	term_rescale(i, TRUE, TRUE);
+	term_open(i);
+	m_rescaled = FALSE;
+	m_subterm = m_term = -1;
+	need_render = TRUE;
+
+	return TRUE;
 }
 
 /* Hold ctrl on term (+CTRL) */
-void gui_term_ctrl() {
+bool gui_term_ctrl() {
 	m_control = TRUE;
 	tmx = 0;
 	tmy = 0;
+	return TRUE;
 }
 /* Release ctrl on term (-CTRL) */
-void gui_term_unctrl() {
+bool gui_term_unctrl() {
 	int i = m_term;
 	
 	m_control = FALSE;
 	
 	if (i == -1) i = m_subterm;
-	if (i == -1) return;	
+	if (i == -1) return FALSE;	
 
-	if (m_resized) {
-		term_close(i);
-		if (i) Term_activate(&sel_term->t);
-		Term_resize(sel_term->cols, sel_term->rows);
-		if (i) Term_activate(term_screen);
-		term_open(i);
-		net_term_manage(window_flag, window_flag, FALSE);
-		m_resized = FALSE;
-		m_subterm = m_term = -1;
-		need_render = TRUE;
-	}
+	if (!m_resized) return FALSE;
+
+	term_close(i);
+	if (i) Term_activate(&sel_term->t);
+	Term_resize(sel_term->cols, sel_term->rows);
+	if (i) Term_activate(term_screen);
+	term_open(i);
+	net_term_manage(window_flag, window_flag, FALSE);
+	m_resized = FALSE;
+	m_subterm = m_term = -1;
+	need_render = TRUE;
+
+	return TRUE;
 }
+/* Take a screenshot of the whole screen and dump it to a .bmp file */
+void gui_take_snapshot() {
+	char buf[1024];
+	FILE *tmp;
+	int i;
 
+	term_data *td = (term_data*)(Term->data);
+
+	if (SDL_SaveBMP(td->face, "newshot.bmp")) 
+	{
+		plog("You fail to get the screenshot off!");
+		return;
+	}
+	for (i = 0; i < 999; ++i) 
+	{
+		snprintf(buf, 1024, "%03d.bmp", i);
+		if ((tmp = fopen(buf, "rb")) != NULL)
+		{
+			fclose(tmp);
+			continue;
+		}
+		rename("newshot.bmp", buf);
+	}
+	plog("*click*");
+}
+/* Handle SDL_event/gui */
+bool gui_term_event(SDL_Event* event) {
+	bool taken = FALSE;
+	switch (event->type)
+	{
+		case SDL_QUIT:
+		quit("Goodbye.");
+		break;
+
+		case SDL_MOUSEMOTION:
+		taken = gui_term_drag(event->motion.xrel, event->motion.yrel);
+		break;
+
+		case SDL_MOUSEBUTTONUP:
+		if( event->button.button == SDL_BUTTON_LEFT )
+		{
+			taken = gui_term_drop();
+		}
+		if( event->button.button == SDL_BUTTON_RIGHT )
+		{
+			taken = gui_term_slap(pick_term(event->button.x, event->button.y));
+		}
+		break; 
+
+		case SDL_MOUSEBUTTONDOWN: 
+   		if( event->button.button == SDL_BUTTON_LEFT )
+   		{
+			taken = gui_term_grab(pick_term(event->button.x, event->button.y));
+	 	}
+		break;
+
+		case SDL_KEYUP: 
+		if (event->key.keysym.sym == SDLK_RSHIFT || event->key.keysym.sym == SDLK_LSHIFT)
+		{
+			taken = gui_term_unshift();
+		}
+		if (event->key.keysym.sym == SDLK_RCTRL || event->key.keysym.sym == SDLK_LCTRL)
+		{
+			taken = gui_term_unctrl();
+		}
+		break;
+
+		case SDL_KEYDOWN: 
+		if (event->key.keysym.sym == SDLK_RSHIFT || event->key.keysym.sym == SDLK_LSHIFT)
+		{
+			gui_term_shift();
+			taken = FALSE;
+		}
+		if (event->key.keysym.sym == SDLK_LCTRL || event->key.keysym.sym == SDLK_LCTRL)
+		{
+			gui_term_ctrl();
+			taken = FALSE;
+		}
+		/* Various frivolous hacks. */
+		if (event->key.keysym.sym == SDLK_TAB)
+		{
+			taken = gui_term_next(); 
+			break;
+		}
+		if (event->key.keysym.sym == SDLK_F12 && (event->key.keysym.mod & KMOD_ALT))
+		{ 
+			gui_take_snapshot();
+			taken = TRUE;
+		}
+		break;
+
+		default:	break;
+	}
+	return taken;
+}
 
 /*#define SCALETOCOLOR(x) (x=((x)*63+((x)-1)))*/
 #define ScaleToColor(x) ((x)=((x)*60)+15)
@@ -1263,103 +1371,24 @@ static errr Term_xtra_sdl(int n, int v)
 	switch (n)
 	{
 		case TERM_XTRA_EVENT:
-		if (1 == 1) {
-		do {
+		while (1) {
 			if (v) 
 			{
 				if (!SDL_WaitEvent(&event)) return(0); /* TODO handle errors */
 				v = 0;
 			} else 
 			{
-				if(!SDL_PollEvent(&event)) return(0);
+				if (!SDL_PollEvent(&event)) return(0);
 			}
-			if (event.type == SDL_QUIT) 
-			{
-				quit("Goodbye.");
-			} else
-			if (event.type == SDL_MOUSEMOTION)
-			{
-				gui_term_drag(event.motion.xrel, event.motion.yrel);
-			} else
-			if (event.type == SDL_MOUSEBUTTONUP) 
-			{
-        		if( event.button.button == SDL_BUTTON_LEFT )
-        		{
-        			gui_term_drop();
-        		}
-        		if( event.button.button == SDL_BUTTON_RIGHT )
-        		{
-        			gui_term_slap(pick_term(event.button.x, event.button.y));
-        		}
-        	} else
-			if (event.type == SDL_MOUSEBUTTONDOWN) 
-			{
-        		if( event.button.button == SDL_BUTTON_LEFT )
-        		{
-        			gui_term_grab(pick_term(event.button.x, event.button.y));
-         	}
-			} else
-			if (event.type == SDL_KEYUP) 
-			{
-				if (event.key.keysym.sym == SDLK_RSHIFT || event.key.keysym.sym == SDLK_LSHIFT)
-				{
-					gui_term_unshift();
-				}
-				if (event.key.keysym.sym == SDLK_RCTRL || event.key.keysym.sym == SDLK_LCTRL)
-				{
-					gui_term_unctrl();
-				}
-			} else
-			if (event.type == SDL_KEYDOWN) 
-			{
-				if (event.key.keysym.sym == SDLK_RSHIFT || event.key.keysym.sym == SDLK_LSHIFT)
-				{
-					gui_term_shift();
-				}
-				if (event.key.keysym.sym == SDLK_LCTRL || event.key.keysym.sym == SDLK_LCTRL)
-				{
-					gui_term_ctrl();
-				}
-				/* Various frivolous hacks. */
-				switch(event.key.keysym.sym)
-				{
-				case SDLK_TAB:	if (
-				
-						gui_term_next()
-						
-						) return (0);
-					break;		
-				/* Try to save a screenshot. */
-				case SDLK_F12:
-					if (event.key.keysym.mod & KMOD_ALT) {
-						if (SDL_SaveBMP(td->face, "newshot.bmp")) 
-						{
-							plog("You fail to get the screenshot off!");
-							break;
-						}
-						for (i = 0; i < 999; ++i) {
-							snprintf(buf, 1024, "%03d.bmp", i);
-							if ((tmp = fopen(buf, "rb")) != NULL)
-							{
-								fclose(tmp);
-								continue;
-							}
-							rename("newshot.bmp", buf);
-						}
-						plog("*click*");
-					}
-					break;
-				default:
-					break;
-				} /* switch */
-				
-			/* PASS Keypress to Angband Terminals finally */
-			Multikeypress(SDL_keysymtostr(&event.key.keysym));
-			
-			} 
-		} while (SDL_PollEvent(NULL));
-		} /* before do */
 
+			if (gui_term_event(&event)) continue;
+
+			if (event.type == SDL_KEYDOWN)
+			{
+				/* PASS Keypress to Angband Terminals finally */
+				Multikeypress(SDL_keysymtostr(&event.key.keysym));
+			}
+		}
 		return (0);
 
 		case TERM_XTRA_FLUSH:
@@ -2020,7 +2049,7 @@ void term_open(int j)
 	if (j == PMSG_TERM) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
 	window_stuff();
 }
-void term_spawn()
+bool term_spawn()
 {
 	int j;
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
@@ -2030,9 +2059,10 @@ void term_spawn()
 			term_open(j);
 			term_stack(j);
 			need_render = TRUE;
-			break;
+			return TRUE;
 		}
 	}
+	return FALSE;
 }
 /* Draw a 'window decoration' aka 'border' around terminal */
 void term_draw_border(term_data *td) {
