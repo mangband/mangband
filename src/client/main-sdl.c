@@ -884,12 +884,11 @@ bool gui_term_unctrl() {
 
 	if (!m_resized) return FALSE;
 
-	term_close(i);
 	if (i) Term_activate(&sel_term->t);
 	Term_resize(sel_term->cols, sel_term->rows);
 	if (i) Term_activate(term_screen);
+	term_close(i);
 	term_open(i);
-	net_term_manage(window_flag, window_flag, FALSE);
 	m_resized = FALSE;
 	m_subterm = m_term = -1;
 	need_render = TRUE;
@@ -1836,7 +1835,7 @@ static void term_data_link(int i)
 	term_data *td = &(data[i]);
 	term *t = &(td->t);
 
-	int j = 0;
+	int j = 1;
 	if (i == 0) j = 256;
 
 	/* Initialize the term */
