@@ -415,7 +415,7 @@ int Net_packet(void)
 	/* Process all of the received client updates */
 	while (rbuf.buf + rbuf.len > rbuf.ptr)
 	{
-		type = (byte)(*rbuf.ptr & 0xFF);
+		type = (*rbuf.ptr & 0xFF);
 		if (ack_tbl[type] == NULL)
 		{
 			errno = 0;
@@ -440,7 +440,7 @@ int Net_packet(void)
 			if (result == -2)
 			{
 				ack_tbl = (conn_state == CONN_PLAYING ? receive_tbl : setup_tbl);
-				continue;
+				break;
 			}
 			Sockbuf_clear(&rbuf);
 			break;
