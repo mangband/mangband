@@ -2934,7 +2934,10 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 			if (!conn_state) return 1;
 
 			if (td->t.wid != td->cols || td->t.hgt != td->rows)
-				net_term_resize(td->cols, td->rows-DUNGEON_OFFSET_Y);
+			{
+				Term_resize(td->cols, td->rows);
+				net_term_manage(window_flag, window_flag, FALSE);
+			}
 			
 			return 0;
 		}
@@ -2983,9 +2986,10 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 					}
 
 					/* Changed size (before loggin in) */
+					Term_resize(td->cols, td->rows);
 					if (!conn_state)
 					{
-						Term_resize(td->cols, td->rows);
+						net_term_manage(window_flag, window_flag, FALSE);
 					}
 
 					return 0;
