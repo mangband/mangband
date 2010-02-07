@@ -440,7 +440,7 @@ int Net_packet(void)
 			if (result == -2)
 			{
 				ack_tbl = (conn_state == CONN_PLAYING ? receive_tbl : setup_tbl);
-				break;
+				continue;
 			}
 			Sockbuf_clear(&rbuf);
 			break;
