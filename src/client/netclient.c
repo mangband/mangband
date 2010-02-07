@@ -4157,6 +4157,8 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 	/* Return update flags */
 	return st_flag;
 }
+/* Helper caller for "net_term_manage" */
+u32b net_term_update(bool clear) { return net_term_manage(window_flag, window_flag, clear); }
 
 
 // Update the current time, which is stored in 100 ms "ticks".

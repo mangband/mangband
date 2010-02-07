@@ -2356,6 +2356,9 @@ errr Term_resize(int w, int h)
 	Term->y1 = 0;
 	Term->y2 = h - 1;
 
+	/* Inform network layer */
+	net_term_update(FALSE);
+
 	/* Push a resize event onto the stack */
 	Term_event_push(&evt);
 
