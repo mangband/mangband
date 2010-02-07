@@ -415,7 +415,7 @@ int Net_packet(void)
 	/* Process all of the received client updates */
 	while (rbuf.buf + rbuf.len > rbuf.ptr)
 	{
-		type = (*rbuf.ptr & 0xFF);
+		type = (byte)(*rbuf.ptr & 0xFF);
 		if (ack_tbl[type] == NULL)
 		{
 			errno = 0;
