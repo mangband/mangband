@@ -1656,6 +1656,7 @@ void show_motd(void)
 {
 	int i;
 	char ch;
+	event_type chkey;
 
 	/* Clear the screen */
 	Term_clear();
@@ -1670,7 +1671,8 @@ void show_motd(void)
 	Term_fresh();
 
 	/* Wait for a keypress */
-	Term_inkey(&ch, TRUE, TRUE);
+	Term_inkey(&chkey, TRUE, TRUE);
+	ch = chkey.key;
 
 	/* Clear the screen again */
 	Term_clear();
