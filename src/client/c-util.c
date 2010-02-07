@@ -2588,7 +2588,8 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	/* Test terminal size */
 	if (x > Term->wid || y > Term->hgt) mem = draw = FALSE;
 
-	if (mem)
+	/* TODO: also test for ->mem stack */
+	if (mem && Term->mem)
 		Term_mem_ch(x, y, a, c);
 
 	if (draw)
@@ -2638,7 +2639,7 @@ void show_line(int y, s16b cols, bool mem)
 		last_line_info = y;
 
 	/* Remember screen */
-	if (mem)
+	if (mem && Term->mem)
 		cavemem(p_ptr->scr_info[y], cols, DUNGEON_OFFSET_X, y);
 
 	/* Put data to screen */
