@@ -1044,30 +1044,30 @@ void player_free(player_type *p_ptr)
 	if (!p_ptr) return;
 
 	if (p_ptr->inventory)
-		C_KILL(p_ptr->inventory, INVEN_TOTAL, object_type);
+		KILL(p_ptr->inventory);
 
 	if (p_ptr->l_list)
-		C_KILL(p_ptr->l_list, z_info->r_max, monster_lore);
+		KILL(p_ptr->l_list);
 
 	if (p_ptr->a_info)
-		C_KILL(p_ptr->a_info, z_info->a_max, byte);
+		KILL(p_ptr->a_info);
 
-	if (p_ptr->obj_aware)	C_KILL(p_ptr->obj_aware, z_info->k_max, bool);
-	if (p_ptr->obj_tried)	C_KILL(p_ptr->obj_tried, z_info->k_max, bool);
-	if (p_ptr->r_killed)	C_KILL(p_ptr->r_killed,  z_info->r_max, s16b);
+	if (p_ptr->obj_aware)	KILL(p_ptr->obj_aware);
+	if (p_ptr->obj_tried)	KILL(p_ptr->obj_tried);
+	if (p_ptr->r_killed)	KILL(p_ptr->r_killed);
 
-	if (p_ptr->f_attr)		C_KILL(p_ptr->f_attr, z_info->f_max, byte);
-	if (p_ptr->f_char)		C_KILL(p_ptr->f_char, z_info->f_max, char);
-	if (p_ptr->k_attr)		C_KILL(p_ptr->k_attr, z_info->k_max, byte);
-	if (p_ptr->k_char)		C_KILL(p_ptr->k_char, z_info->k_max, char);
-	if (p_ptr->d_attr)		C_KILL(p_ptr->d_attr, z_info->k_max, byte);
-	if (p_ptr->d_char)		C_KILL(p_ptr->d_char, z_info->k_max, char);
-	if (p_ptr->r_attr)		C_KILL(p_ptr->r_attr, z_info->r_max, byte);
-	if (p_ptr->r_char)		C_KILL(p_ptr->r_char, z_info->r_max, char);
+	if (p_ptr->f_attr)		KILL(p_ptr->f_attr);
+	if (p_ptr->f_char)		KILL(p_ptr->f_char);
+	if (p_ptr->k_attr)		KILL(p_ptr->k_attr);
+	if (p_ptr->k_char)		KILL(p_ptr->k_char);
+	if (p_ptr->d_attr)		KILL(p_ptr->d_attr);
+	if (p_ptr->d_char)		KILL(p_ptr->d_char);
+	if (p_ptr->r_attr)		KILL(p_ptr->r_attr);
+	if (p_ptr->r_char)		KILL(p_ptr->r_char);
 
 	history_wipe(p_ptr->charhist);
 
-	KILL(p_ptr, player_type);
+	KILL(p_ptr);
 }
 
 /*

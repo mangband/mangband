@@ -3514,7 +3514,7 @@ void history_wipe(history_event *evt) {
 		next = NULL; if (evt->next)	next = evt->next;
 
 		/* KILL */
-		KILL(evt, history_event);
+		KILL(evt);
 
 		/* Recall */
 		evt = NULL;	if (next) evt = next;

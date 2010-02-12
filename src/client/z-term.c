@@ -301,20 +301,20 @@ term *Term = NULL;
 static errr term_win_nuke(term_win *s)
 {
 	/* Free the window access arrays */
-	A_KILL(s->a);
-	A_KILL(s->c);
+	KILL(s->a);
+	KILL(s->c);
 
 	/* Free the window content arrays */
-	A_KILL(s->va);
-	A_KILL(s->vc);
+	KILL(s->va);
+	KILL(s->vc);
 
 	/* Free the terrain access arrays */
-	A_KILL(s->ta);
-	A_KILL(s->tc);
+	KILL(s->ta);
+	KILL(s->tc);
 
 	/* Free the terrain content arrays */
-	A_KILL(s->vta);
-	A_KILL(s->vtc);
+	KILL(s->vta);
+	KILL(s->vtc);
 
 	/* Success */
 	return (0);
@@ -2286,14 +2286,14 @@ errr Term_resize(int w, int h)
 	}
 
 	/* Free some arrays */
-	A_FREE(hold_x1);
-	A_FREE(hold_x2);
+	FREE(hold_x1);
+	FREE(hold_x2);
 
 	/* Nuke */
 	term_win_nuke(hold_old);
 
 	/* Kill */
-	A_FREE(hold_old);
+	FREE(hold_old);
 
 	/* Illegal cursor */
 	if (Term->old->cx >= w) Term->old->cu = 1;
@@ -2303,7 +2303,7 @@ errr Term_resize(int w, int h)
 	term_win_nuke(hold_scr);
 
 	/* Kill */
-	A_FREE(hold_scr);
+	FREE(hold_scr);
 
 	/* Illegal cursor */
 	if (Term->scr->cx >= w) Term->scr->cu = 1;
@@ -2316,7 +2316,7 @@ errr Term_resize(int w, int h)
 		term_win_nuke(hold_mem);
 
 		/* Kill */
-		A_FREE(hold_mem);
+		FREE(hold_mem);
 
 		/* Illegal cursor */
 		if (Term->mem->cx >= w) Term->mem->cu = 1;
@@ -2330,7 +2330,7 @@ errr Term_resize(int w, int h)
 		term_win_nuke(hold_tmp);
 
 		/* Kill */
-		A_FREE(hold_tmp);
+		FREE(hold_tmp);
 
 		/* Illegal cursor */
 		if (Term->tmp->cx >= w) Term->tmp->cu = 1;
@@ -2433,13 +2433,13 @@ errr term_nuke(term *t)
 	term_win_nuke(t->old);
 
 	/* Kill "displayed" */
-	A_KILL(t->old);
+	KILL(t->old);
 
 	/* Nuke "requested" */
 	term_win_nuke(t->scr);
 
 	/* Kill "requested" */
-	A_KILL(t->scr);
+	KILL(t->scr);
 
 	/* If needed */
 	if (t->mem)
@@ -2448,7 +2448,7 @@ errr term_nuke(term *t)
 		term_win_nuke(t->mem);
 
 		/* Kill "memorized" */
-		A_KILL(t->mem);
+		KILL(t->mem);
 	}
 
 	/* If needed */
@@ -2458,15 +2458,15 @@ errr term_nuke(term *t)
 		term_win_nuke(t->tmp);
 
 		/* Kill "temporary" */
-		A_KILL(t->tmp);
+		KILL(t->tmp);
 	}
 
 	/* Free some arrays */
-	A_KILL(t->x1);
-	A_KILL(t->x2);
+	KILL(t->x1);
+	KILL(t->x2);
 
 	/* Free the input queue */
-	A_KILL(t->key_queue);
+	KILL(t->key_queue);
 
 	/* Success */
 	return (0);

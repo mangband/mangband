@@ -716,7 +716,7 @@ bool remove_hostility(int Ind, cptr name)
 				msg_format(Ind, "No longer hostile toward %s.", name);
 
 				/* Delete node */
-				KILL(h_ptr, hostile_type);
+				KILL(h_ptr);
 
 				/* Success */
 				return TRUE;
@@ -949,7 +949,7 @@ void delete_player_id(int id)
 			free((char *)(ptr->name));
 
 			/* Free the memory for this struct */
-			KILL(ptr, hash_entry);
+			KILL(ptr);
 
 			/* Done */
 			return;
@@ -1007,7 +1007,7 @@ void wipe_player_names()
 
 			if (ptr->name) 
 				string_free(ptr->name);
-			KILL(ptr, hash_entry);
+			KILL(ptr);
 
 			ptr = next;
 		}

@@ -59,7 +59,7 @@ int get_player(int Ind, object_type *o_ptr)
 void player_dump(int Ind)
 {
 	char dumpname[42];
-	strfmt(dumpname, "%s-%s.txt", Players[Ind]->name, ht_show(&turn,0));
+	strnfmt(dumpname, 42, "%s-%s.txt", Players[Ind]->name, ht_show(&turn,0));
 	file_character_server(Ind,dumpname);
 }
 
@@ -5245,7 +5245,7 @@ void wipe_socials()
 		string_ifree(socials[i].others_found);
 		string_ifree(socials[i].vict_found);
 	}
-	C_FREE(socials, max_socials, struct social_type);
+	FREE(socials);
 }
 void boot_socials()
 {
@@ -6052,7 +6052,7 @@ void master_hook_desc(char *buf, byte i, byte hook, u32b args)
 				y1 = (args >>  8) & 0xFF;
 				x2 = (args >> 16) & 0xFF;
 				y2 = (args >> 24);
-				strfmt(buf, "Selection %02dx%02d", ABS(x2-x1), ABS(y2-y1));
+				strnfmt(buf, 20, "Selection %02dx%02d", ABS(x2-x1), ABS(y2-y1));
 			}
 			break;
 		}

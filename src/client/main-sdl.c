@@ -2236,7 +2236,7 @@ void term_unload_font(int i)
 			string_free(td->fd->name);
 			td->fd->name = 0;
 		}
-		FREE(td->fd, font_data);
+		FREE(td->fd);
 	}
 	td->fd = NULL;
 	term_rescale(i, FALSE, FALSE);
@@ -2256,7 +2256,7 @@ void term_unload_graf(int i)
 		string_free(td->gt->name);
 		td->gt->name = 0;
 	}
-	FREE(td->gt, graf_tiles);
+	FREE(td->gt);
 	td->gt = NULL;
 }
 /* Attempt to load a graphical tileset */

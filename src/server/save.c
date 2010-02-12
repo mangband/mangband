@@ -606,7 +606,7 @@ static void wr_player_names(void)
 	}
 
 	/* Free the memory in the list */
-	C_KILL(id_list, num, int);
+	KILL(id_list);
 }
 
 

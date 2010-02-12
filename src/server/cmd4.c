@@ -454,7 +454,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	}
 	
 	/* Free array */
-	FREE(okay, bool);
+	FREE(okay);
 
 	/* Close the file */
 	my_fclose(fff);
@@ -591,7 +591,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	else fprintf(fff, "wNo uniques are witnessed so far.\n");
 
 	/* Free the "ind" array */
-	FREE(idx, u16b);
+	FREE(idx);
 
 	/* Close the file */
 	my_fclose(fff);
@@ -837,7 +837,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	}
 
 	/* Free the "who" array */
-	FREE(who, u16b);
+	FREE(who);
 
 	/* Close the file */
 	my_fclose(fff);

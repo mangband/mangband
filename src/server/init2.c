@@ -708,13 +708,13 @@ static errr init_info(cptr filename, header *head)
 		/*** Kill the fake arrays ***/
 
 		/* Free the "*_info" array */
-		KILL(head->info_ptr, vptr);
+		KILL(head->info_ptr);
 
 		/* MegaHack -- Free the "fake" arrays */
 		if (z_info)
 		{
-			KILL(head->name_ptr, char);
-			KILL(head->text_ptr, char);
+			KILL(head->name_ptr);
+			KILL(head->text_ptr);
 		}
 
 #endif /* ALLOW_TEMPLATES */
@@ -754,13 +754,13 @@ static errr init_info(cptr filename, header *head)
 static errr free_info(header *head)
 {
 	if (head->info_size)
-		FREE(head->info_ptr, vptr);
+		FREE(head->info_ptr);
 
 	if (head->name_size)
-		FREE(head->name_ptr, cptr);
+		FREE(head->name_ptr);
 
 	if (head->text_size)
-		FREE(head->text_ptr, cptr);
+		FREE(head->text_ptr);
 
 	/* Success */
 	return (0);
@@ -2280,7 +2280,7 @@ void set_server_option(char * option, char * value)
  */
 void unload_server_cfg()
 {
-#define str_undup(S) if ((S)) KILL((S), char)
+#define str_undup(S) if ((S)) KILL((S))
 	string_ifree(ANGBAND_DIR_DATA);
 	string_ifree(ANGBAND_DIR_EDIT);
 	string_ifree(ANGBAND_DIR_SAVE);
@@ -2493,15 +2493,15 @@ void cleanup_angband(void)
 	script_free(); */
 
 	/* Free the macros */
-	C_FREE(macro__pat, MACRO_MAX, cptr);
-	C_FREE(macro__act, MACRO_MAX, cptr);
-	C_FREE(macro__cmd, MACRO_MAX, bool);
-	C_FREE(macro__buf, 1024, char);
+	FREE(macro__pat);
+	FREE(macro__act);
+	FREE(macro__cmd);
+	FREE(macro__buf);
 
 
 	/* Free the allocation tables */
-	C_FREE(alloc_race_table, alloc_race_size, alloc_entry);	
-	C_FREE(alloc_kind_table, alloc_kind_size, alloc_entry);
+	FREE(alloc_race_table);	
+	FREE(alloc_kind_table);
 
 	/* Free socials */
 	wipe_socials();
@@ -2515,29 +2515,29 @@ void cleanup_angband(void)
 			/* Get the store */
 			store_type *st_ptr = &store[i];
 			/* Free the store inventory */
-			C_FREE(st_ptr->table, st_ptr->table_size, s16b);			
-			FREE(st_ptr->stock, store_type);
+			FREE(st_ptr->table);			
+			FREE(st_ptr->stock);
 		}
 	}
-	C_FREE(store, MAX_STORES, store_type);
+	FREE(store);
 
 	/* Free the quest list  
 	FREE(q_list); // -- per player */
 
 	/* Free attr/chars used for dumps */
-	FREE(f_char_s, char);
-	FREE(f_attr_s, byte);
-	FREE(r_char_s, char);
-	FREE(r_attr_s, byte);
+	FREE(f_char_s);
+	FREE(f_attr_s);
+	FREE(r_char_s);
+	FREE(r_attr_s);
 
 	/* Free the lore, monster, and object lists */
-	C_FREE(m_list, MAX_M_IDX, monster_type);
-	C_FREE(o_list, MAX_O_IDX, object_type);
+	FREE(m_list);
+	FREE(o_list);
 
 
 	/* Free the messages */
-	C_FREE(message__ptr, MESSAGE_MAX, u16b);
-	C_FREE(message__buf, MESSAGE_BUF, char);
+	FREE(message__ptr);
+	FREE(message__buf);
 
 	/* Free the "quarks" */
 	for (i = 1; i < quark__num; i++)
@@ -2545,7 +2545,7 @@ void cleanup_angband(void)
 		string_free(quark__str[i]);
 	}
 	/* Free the list of "quarks" */
-	FREE((void*)quark__str, char);
+	FREE((void*)quark__str);
 
 	/* Free the info, name, and text arrays */
 	free_info(&flavor_head);

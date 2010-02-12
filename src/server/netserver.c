@@ -512,17 +512,17 @@ void Stop_net_server(void)
 		connection_t* connp = &Conn[i];
 		if (connp->client_setup)
 		{
-			FREE(connp->Client_setup.k_attr, byte);
-			FREE(connp->Client_setup.k_char, char);
-			FREE(connp->Client_setup.r_attr, byte);
-			FREE(connp->Client_setup.r_char, char);
-			FREE(connp->Client_setup.f_attr, byte);
-			FREE(connp->Client_setup.f_char, char);
+			FREE(connp->Client_setup.k_attr);
+			FREE(connp->Client_setup.k_char);
+			FREE(connp->Client_setup.r_attr);
+			FREE(connp->Client_setup.r_char);
+			FREE(connp->Client_setup.f_attr);
+			FREE(connp->Client_setup.f_char);
 		}
 	}
 
 	/* Dealloc player array */
-	C_FREE(Players, max_connections, player_type*);
+	FREE(Players);
 
 	/* Remove listening socket */
 	remove_input(Socket);

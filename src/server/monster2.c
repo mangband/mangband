@@ -859,7 +859,7 @@ void display_monlist(int Ind)
 	}
 
 	/* Free the race counters */
-	FREE(race_counts, u16b);
+	FREE(race_counts);
 
 	/* Done */
 	text_out_done();

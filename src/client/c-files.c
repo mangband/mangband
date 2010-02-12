@@ -1051,7 +1051,7 @@ errr process_pref_file_command(char *buf)
 					macro_trigger_name[max_macrotrigger] = string_make(buf);
 		
 					/* Free the buffer */
-					FREE(buf, char*);
+					FREE(buf);
 		
 					/* Normal keycode */
 					macro_trigger_keycode[0][max_macrotrigger] = string_make(zz[1]);

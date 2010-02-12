@@ -4283,11 +4283,11 @@ void dealloc_dungeon_level(int Depth)
 	for (i = 0; i < MAX_HGT; i++)
 	{
 		/* Dealloc that row */
-		C_FREE(cave[Depth][i], MAX_WID, cave_type);
+		FREE(cave[Depth][i]);
 	}
 
 	/* Deallocate the array of rows */
-	C_FREE(cave[Depth], MAX_HGT, cave_type *);
+	FREE(cave[Depth]);
 
 	/* Set that level to "ungenerated" */
 	cave[Depth] = NULL; 
