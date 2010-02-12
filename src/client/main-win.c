@@ -1043,14 +1043,14 @@ static void new_palette(void)
 	}
 
 	/* Free something */
-	if (lppe) rnfree(lppe, lppeSize);
+	if (lppe) FREE(lppe);
 
 	/* Create a new palette, or fail */
 	hNewPal = CreatePalette(pLogPal);
 	if (!hNewPal) quit("Cannot create palette");
 
 	/* Free the palette */
-	rnfree(pLogPal, pLogPalSize);
+	FREE(pLogPal);
 
 
 	hdc = GetDC(data[0].w);
