@@ -1,7 +1,7 @@
 #include "h-basic.h"
 #include "z-form.h"
-#include "z-term.h"
-#include "ui.h"
+#include "../client/z-term.h"
+/* #include "ui.h" */
 #include "z-type.h"
 
 #define TYPE_FUN(v2u, tv, T, v)	\
@@ -17,7 +17,7 @@ TYPE_FUN(c2u, T_CHAR, char, c)
 TYPE_FUN(f2u, T_FLOAT, float, f)
 TYPE_FUN(s2u, T_STRING, const char *, s)
 
-
+/*
 void display_panel(const data_panel *panel, int count, bool left_adj, const region *bounds)
 {
 	int i;
@@ -52,3 +52,4 @@ void display_panel(const data_panel *panel, int count, bool left_adj, const regi
 			Term_putstr(col+w-len, row, len, panel[i].color, buffer);
 	}
 }
+*/
