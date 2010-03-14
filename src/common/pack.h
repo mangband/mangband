@@ -276,7 +276,7 @@
 #define NTERM_WIN_MONSTER	5
 #define NTERM_WIN_MONLIST 	6
 #define NTERM_WIN_SPECIAL 	7
-#define NTERM_WIN_CURRENT	255
+#define NTERM_WIN_NONE  	0xFF
 
 /*
  * Some commands send to the server

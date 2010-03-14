@@ -724,10 +724,7 @@ bool gui_term_drag(int nmx, int nmy) {
 		/* Dungeon display hack */		
 		if (!m_term) {
 			if (!conn_state) { mx = 0; my = 0; }
-			if (sel_term->cols < Setup.min_col+SCREEN_CLIP_X) { sel_term->cols = Setup.min_col+SCREEN_CLIP_X; mx = 0; }
-			if (sel_term->rows < Setup.min_row+SCREEN_CLIP_Y) { sel_term->rows = Setup.min_row+SCREEN_CLIP_Y; my = 0; }
-			if (sel_term->cols > Setup.max_col+SCREEN_CLIP_X) { sel_term->cols = Setup.max_col+SCREEN_CLIP_X; mx = 0; }
-			if (sel_term->rows > Setup.max_row+SCREEN_CLIP_Y) { sel_term->rows = Setup.max_row+SCREEN_CLIP_Y; my = 0; }
+			if (net_term_clamp(m_term, &sel_term->rows, &sel_term->cols)) { mx = 1; my = 1; }
 		}		
 
   		/* Nothing happend! */

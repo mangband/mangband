@@ -3772,7 +3772,7 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
  			(*x) += strlen(prompt);
  			clear_line(Ind, row);
 			c_prt(Ind, prompt_attr, prompt, row, col);
-			Stream_line(Ind, STREAM_ACTIVE_TEXT, row);
+			Stream_line(Ind, STREAM_SPECIAL_TEXT, row);
  		}
  		if (!STRZERO(default_value))
  		{

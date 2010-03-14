@@ -6859,7 +6859,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	Send_term_info(Ind, NTERM_CLEAR, 1);
 	for (i = 0; i < p_ptr->screen_hgt+2; i++)
 	{
-		Stream_line(Ind, STREAM_ACTIVE_MIXED, i); 
+		Stream_line(Ind, STREAM_SPECIAL_MIXED, i); 
 	}
 	Send_term_info(Ind, NTERM_FLUSH, 0);
 
@@ -6890,7 +6890,7 @@ void master_desc_all(int Ind)
 		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
-	Stream_line(Ind, STREAM_ACTIVE_TEXT, j);
+	Stream_line(Ind, STREAM_SPECIAL_TEXT, j);
 	Send_term_info(Ind, NTERM_FLUSH, -1- j);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }

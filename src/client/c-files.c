@@ -1156,12 +1156,12 @@ errr process_pref_file_command(char *buf)
 			/* Ignore illegal flags */
 			if ((flag < 0) || (flag >= 32)) return (0);
 
-			/* Require a real flag 
-			if (window_flag_desc[flag] || )
-			{ */
+			/* Require a real flag */ 
+			if (window_flag_desc[flag])
+			{
 				/* Turn flag on */
 				window_flag[win] |= (1L << flag);
-			/* } // No need to be so strict in MAngband, might be server-defined window */
+			} // No need to be so strict in MAngband, might be server-defined window */
 
 			/* Success */
 			return (0);
@@ -1720,7 +1720,7 @@ void show_popup(void)
 	/* Draw text */
 	for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
 	{
-		caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n + 2 );
+		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n + 2 );
 	}
 
 	/* Show a specific "title" -- header */
@@ -1738,18 +1738,19 @@ void show_peruse(s16b line)
 {
 	byte n;
 	s16b last = last_remote_line[p_ptr->remote_term];
+	int k = window_to_stream[p_ptr->remote_term];
 
 	/* Draw text */
 	for (n = 2; n < Term->hgt-2; n++)
 	{
 		if (n + line > last + 2 || !last) break;
-		caveprt(remote_info[p_ptr->remote_term][n + line - 2], 80, 0, n);
+		caveprt(stream_cave(k, (n + line - 2)), p_ptr->stream_wid[k], 0, n);
 	}
 
 	/* Erase the rest */
 	for (n = n; n < Term->hgt; n++)
 	{ 
-		Term_erase(0, n, 80);
+		Term_erase(0, n, p_ptr->stream_wid[k]);
 	}
 
 	/* Show a general "title" + header */

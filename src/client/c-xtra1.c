@@ -614,7 +614,7 @@ void prt_map_easy()
 	for (y = 0; y < Term->hgt; y++)
 	{
 		Term_erase(y, 0, Term->wid);
-		caveprt(p_ptr->scr_info[y], Term->wid, DUNGEON_OFFSET_X, y);
+		caveprt(stream_cave(0, y), p_ptr->stream_wid[0], DUNGEON_OFFSET_X, y);
 	} 
 }
 /* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
@@ -1457,8 +1457,8 @@ static void fix_stream(byte win)
 	int k = window_to_stream[win];
 
 	/* Get stream bounds */	
-	sw = p_ptr->stream_width[k];
-	sh = MAX(p_ptr->stream_height[k], last_remote_line[win] + 1);
+	sw = p_ptr->stream_wid[k];
+	sh = MIN(p_ptr->stream_hgt[k], last_remote_line[win] + 1);
 
 	/* Scan windows */
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
@@ -1485,7 +1485,7 @@ static void fix_stream(byte win)
 		for (y = 0; y < sh; y++)
 		{
 			Term_erase(0, y, sw);
-			caveprt(remote_info[win][y], sw, 0, y);
+			caveprt(stream_cave(k,y), sw, 0, y);
 		}
 
 		/* Erase rest */
@@ -1528,7 +1528,7 @@ static void fix_map(void)
 		/* Print map */
 		for (y = 0; y < last_remote_line[NTERM_WIN_MAP]+1; y++)
 		{
-			caveprt(remote_info[NTERM_WIN_MAP][y], w, 0, y);
+			caveprt(stream_cave(window_to_stream[NTERM_WIN_MAP], y), w, 0, y);
 		}
 
 		/* Erase rest */
@@ -1665,7 +1665,7 @@ static void fix_remote_term(byte rterm, u32b windows)
 		/* Print data */
 		for (y = 0; y < last_remote_line[rterm]+1; y++)
 		{
-			caveprt(remote_info[rterm][y], w, 0, y);
+			caveprt(stream_cave(window_to_stream[rterm], y), w, 0, y);
 		}
 		/* Erase rest */
 		for (y = y-1; y < h; y++)
@@ -2001,7 +2001,7 @@ static void fix_special_info(void)
 		/* Print map */
 		for (y = 0; y < last_remote_line[0]+1; y++)
 		{
-			caveprt(remote_info[0][y], w, 0, y);
+			caveprt(stream_cave(window_to_stream[j], y), w, 0, y);
 		}
 
 		/* Erase rest */
@@ -2871,12 +2871,12 @@ void window_stuff(void)
 	}
 #endif
 	/* Display server-defined stream */
-	for (i = 0; i < known_window_streams; i++) {
-		if (!streams[window_to_stream[i]].window_flag) continue;//TODO: Remove this
+	for (i = 0; i < stream_groups; i++) 
+	{
 		/* Use classic code: */
-		if (p_ptr->window & (streams[window_to_stream[i]].window_flag))
+		if (p_ptr->window & (streams[stream_group[i]].window_flag))
 		{
-			p_ptr->window &= ~(streams[window_to_stream[i]].window_flag);
+			p_ptr->window &= ~(streams[stream_group[i]].window_flag);
 			fix_stream((byte)i);
 		}
  	} 

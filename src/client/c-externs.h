@@ -85,8 +85,9 @@ extern s16b last_line_info;
 extern s16b cur_line;
 extern s16b max_line;
 
-extern cave_view_type remote_info[8][MAX_TXT_INFO][80];
+extern cave_view_type* remote_info[8];
 extern s16b last_remote_line[8];
+extern cptr stream_desc[32];
 
 extern player_type player;
 extern player_type *p_ptr;
@@ -168,7 +169,8 @@ extern stream_type streams[MAX_STREAMS];
 extern byte known_streams;
 
 extern byte window_to_stream[ANGBAND_TERM_MAX];
-extern byte known_window_streams;
+extern byte stream_group[MAX_STREAMS];
+extern byte stream_groups;
 
 
 extern s16b race;
@@ -334,6 +336,7 @@ extern void conf_set_int(cptr section, cptr name, s32b value);
 extern void conf_append_section(cptr section, cptr filename);
 
 /* c-init.c */
+extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
 extern bool client_ready(void);
 extern void initialize_all_pref_files(void);
 extern void client_init(char *argv1);
@@ -432,6 +435,7 @@ extern int ticks;
 extern int lag_ok;
 extern void update_ticks();
 extern void do_keepalive();
+extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
 extern bool Net_Send(int Socket, sockbuf_t* ibuf);

@@ -2640,11 +2640,11 @@ void show_line(int y, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(p_ptr->scr_info[y], cols, DUNGEON_OFFSET_X, y);
+		cavemem(stream_cave(0, y), cols, DUNGEON_OFFSET_X, y);
 
 	/* Put data to screen */
 	if (draw)
-		caveprt(p_ptr->scr_info[y]+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
+		caveprt(stream_cave(0, y)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
 }
 
 
@@ -3667,12 +3667,6 @@ static void do_cmd_options_win(void)
 
 			/* Use color */
 			if (use_color && (i == y)) a = TERM_L_BLUE;
-
-			/* Unused option; try streams */
-			if (!str && st < known_window_streams)
-			{
-				str = streams[window_to_stream[st++]].mark;
-			}
 
 			/* Unused option */
 			if (!str) str = "(Unused option)";

@@ -775,9 +775,12 @@
  */
 #define MAX_STREAMS 20
 /* Stream Flags */
-#define STREAM_GENERIC  	0x00	/* No special flags */
-#define STREAM_TRANSPARENT	0x01	/* Stream has secondary layer */
-#define STREAM_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
+#define SF_NONE     	0x00	/* No special flags */
+#define SF_TRANSPARENT	0x01	/* Stream has secondary layer */
+#define SF_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
+#define SF_KEEP_X   	0x10	/* Stream respects window's X offset */
+#define SF_KEEP_Y   	0x20	/* Stream respects window's Y offset */
+#define SF_HIDE     	0x80	/* Hide stream subscription from UI */
 
 /*
  * Number of keymap modes

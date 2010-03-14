@@ -94,8 +94,17 @@ void init_minor(void)
 
 	/* Server-defined network behavior */
 	known_streams = 0;
-	known_window_streams = 0;
-	window_to_stream[0] = 0;
+	stream_groups = 0;
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		stream_group[i] = 0;
+		p_ptr->stream_cave[i] = NULL;
+	}
+	for (i = 0; i < ANGBAND_TERM_MAX; i++)
+	{
+		window_to_stream[i] = NTERM_WIN_NONE;
+		remote_info[i] = NULL;
+	}
 }
 
 
@@ -260,9 +269,79 @@ void gather_settings()
 /* Trick "net_term_manage" into subscribing by passing an empty array */
 void init_subscriptions() 
 {
-	int i;
+	int i, j, k, n;
 
 	u32b empty_flag[ANGBAND_TERM_MAX];
+	
+	stream_type* st_ptr;
+	s16b last_addr = -1; 
+
+	/* Fill stream_groups, window_to_stream, stream_to, stream_desc, etc */
+#if 1 
+	for (i = 0; i < known_streams; i++)
+	{
+		/* Handle single streams */
+		st_ptr = &streams[i];
+		
+		/* Set stream_to refrence */
+		p_ptr->stream_cave[i] = remote_info[st_ptr->addr];
+
+		/* Special case: unresizable stream */
+		if ((st_ptr->min_col == st_ptr->max_col)
+		 && (st_ptr->min_row == st_ptr->max_row)
+		 && (st_ptr->max_row != 0))
+		{
+			/* Silently auto-subscribe */
+			p_ptr->stream_wid[i] = st_ptr->min_col;
+			p_ptr->stream_hgt[i] = st_ptr->min_row;
+			/* Hide this stream from UI */
+			st_ptr->flag |= SF_HIDE;
+
+			/* Allocate memory (once) */
+			if (!remote_info[st_ptr->addr])
+			{
+				C_MAKE(remote_info[st_ptr->addr], (st_ptr->max_row+1) * st_ptr->max_col, cave_view_type);
+			}				
+			/* Save pointer */
+			p_ptr->stream_cave[i] = remote_info[st_ptr->addr]; 
+		}
+
+		/* Handle stream groups */
+		if (last_addr != -1 && last_addr == st_ptr->addr) continue;
+
+		stream_group[stream_groups] = i;
+		window_to_stream[st_ptr->addr] = i;
+
+		stream_groups++;
+		last_addr = st_ptr->addr;
+	}
+	
+	/* Advance some streams to the UI */
+	n = 0;
+	for (i = 0; i < stream_groups; i++) 
+	{
+		/* Get top member */
+		st_ptr = &streams[stream_group[i]];
+
+		/* Hidden stream */
+		if (st_ptr->flag & SF_HIDE) continue;
+
+		/* Find an unused slot */
+		while (window_flag_desc[n] && n < 32) n++;
+
+		/* Found */
+		if (!window_flag_desc[n])
+		{
+			st_ptr->window_flag = (1L << n);
+	 		/* HACK! Enforce Dungeon View on window 0 */
+			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
+			
+			/* Save "string" */
+			window_flag_desc[n] = st_ptr->mark; 
+			break;
+		}
+	}
+#endif
 
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
 	{

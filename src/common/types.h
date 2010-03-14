@@ -147,8 +147,8 @@ struct client_setup_t
 	byte tval_attr[128];
 	char tval_char[128];
 
-	byte stream_width[MAX_STREAMS];
-	byte stream_height[MAX_STREAMS];
+	byte stream_wid[MAX_STREAMS];
+	byte stream_hgt[MAX_STREAMS];
 };
 
 
@@ -1367,17 +1367,16 @@ struct player_type
 	s16b panel_row_old;
 	s16b panel_col_old;
 
-	byte stream_width[MAX_STREAMS];	/* Client's chosen stream output size (or default..?) */	
-	byte stream_height[MAX_STREAMS];/* Set 'height' to 0 to disable stream completly */ 
-
+	byte stream_wid[MAX_STREAMS]; /* Client's chosen stream output size (or default..?) */	
+	byte stream_hgt[MAX_STREAMS]; /* Set 'height' to 0 to disable stream completly */ 
+	cave_view_type* stream_cave[MAX_STREAMS]; /* Helper array of stream-to-cave pointers */
 				/* What he should be seeing */
-	cave_view_type scr_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
-	cave_view_type trn_info[MAX_HGT + SCREEN_CLIP_Y][MAX_WID + SCREEN_CLIP_X];
-			/* Additional remote terms  -- WARNING -- THIS IS AROUND 250KB ! -- PRETTY EXCESSIVE */
-	cave_view_type info[MAX_TXT_INFO][80];
+	cave_view_type scr_info[MAX_HGT][MAX_WID];
+	cave_view_type trn_info[MAX_HGT][MAX_WID];
+	cave_view_type info[MAX_TXT_INFO][MAX_WID];
 	s16b last_info_line;
 	byte remote_term;
-	u32b window_flag;
+	u32b window_flag; /* What updates is he subscribed to? */
 
 
 	char died_from[80];	/* What off-ed him */
@@ -1648,13 +1647,13 @@ struct stream_type
 	byte addr;	/* Destination "window" */
 
 	byte rle;	/* RLE mode */
-	bool trn;	/* Secondary stream for transparency? */
+	byte flag;	/* Important flags (i.e. transperancy) */
 
 	byte min_row;	/* Size */
 	byte min_col;
 	byte max_row;
 	byte max_col;	
 
-	cptr mark;	/* Hack -- name */
 	u32b window_flag; /* "Window" flag */
+	cptr mark;	/* Hack -- name */
 };

@@ -1309,7 +1309,7 @@ static void fix_monlist(int Ind)
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(Ind, NTERM_WIN_MONLIST, STREAM_ACTIVE_TEXT);
+	send_prepared_info(Ind, NTERM_WIN_MONLIST, STREAM_SPECIAL_TEXT);
 
 	return;
 }

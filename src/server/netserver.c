@@ -1335,11 +1335,11 @@ static int Enter_player(int ind)
 	}
 
 	/* XXX - HACK - Ensure his settings are allowed, disconnect otherwise */
-	if (connp->Client_setup.stream_width[0] < Setup.min_col || connp->Client_setup.stream_width[0] > Setup.max_col || 
-	    connp->Client_setup.stream_height[0] < Setup.min_row || connp->Client_setup.stream_height[0] > Setup.max_row)
+	if (connp->Client_setup.stream_wid[0] < Setup.min_col || connp->Client_setup.stream_wid[0] > Setup.max_col || 
+	    connp->Client_setup.stream_hgt[0] < Setup.min_row || connp->Client_setup.stream_hgt[0] > Setup.max_row)
 	{
 		Destroy_connection(ind, format("Incompatible screen size %dx%d (min %dx%d, max %dx%d).", 
-		connp->Client_setup.stream_width[0], connp->Client_setup.stream_height[0], Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row)); 
+		connp->Client_setup.stream_wid[0], connp->Client_setup.stream_hgt[0], Setup.min_col, Setup.min_row, Setup.max_col, Setup.max_row)); 
 		return -1;
 	}
 
@@ -1433,18 +1433,20 @@ static int Enter_player(int ind)
 
 	for (i = 0; i < MAX_STREAMS; i++)
 	{
-		p_ptr->stream_width[i] = connp->Client_setup.stream_width[i];
-		p_ptr->stream_height[i] = connp->Client_setup.stream_height[i];
+		p_ptr->stream_wid[i] = connp->Client_setup.stream_wid[i];
+		p_ptr->stream_hgt[i] = connp->Client_setup.stream_hgt[i];
 
-		if (p_ptr->stream_height[i]) p_ptr->window_flag |= streams[i].window_flag;
+		if (p_ptr->stream_hgt[i]) p_ptr->window_flag |= streams[i].window_flag;
+		if (streams[i].addr == NTERM_WIN_OVERHEAD) p_ptr->stream_cave[i] = p_ptr->scr_info;
+		else p_ptr->stream_cave[i] = p_ptr->info;
 	}
 
 	/* Hack -- graphic option */
 	p_ptr->use_graphics = connp->Client_setup.settings[0];
 
 	/* Hack -- dungeon screen size */
-	p_ptr->screen_wid = connp->Client_setup.stream_width[0];
-	p_ptr->screen_hgt = connp->Client_setup.stream_height[0];
+	p_ptr->screen_wid = connp->Client_setup.stream_wid[0];
+	p_ptr->screen_hgt = connp->Client_setup.stream_hgt[0];
 	
 	setup_panel(NumPlayers + 1, TRUE);
 
@@ -3117,8 +3119,11 @@ int Stream_char_raw(int ind, int st, int y, int x, byte a, char c, byte ta, char
 		return 0;
 	}
 
+	/* Do not send streams not subscribed to */
+	if (!p_ptr->stream_hgt[st]) return 1;
+
 	/* Header + Body (with or without transperancy) */
-	if (stream->trn & STREAM_TRANSPARENT) 
+	if (stream->flag & SF_TRANSPARENT) 
 		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , a, c, ta, tc);
 	else
 		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , a, c);
@@ -3131,7 +3136,7 @@ int Stream_char(int ind, int st, int y, int x)
 	player_type *p_ptr = Players[ind];
 	connection_t *connp = &Conn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
-	cave_view_type *source;
+	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -3143,15 +3148,11 @@ int Stream_char(int ind, int st, int y, int x)
 		return 0;
 	}
 
-	/* Hacks for Dungeon: */
-	if (stream->addr == NTERM_WIN_OVERHEAD
-	 || stream->addr == NTERM_WIN_MAP)
-	{
-		source = p_ptr->scr_info[y];
-	}
+	/* Do not send streams not subscribed to */
+	if (!p_ptr->stream_hgt[st]) return 1;
 
 	/* Header + Body (with or without transperancy) */
-	if (stream->trn & STREAM_TRANSPARENT) 
+	if (stream->flag & SF_TRANSPARENT) 
 		Packet_printf(&connp->c, "%c%hd%c%c%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
 	else
 		Packet_printf(&connp->c, "%c%hd%c%c", stream->pkt, y | ((x+1) << 8) , source[x].a, source[x].c);
@@ -3166,10 +3167,10 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
 
-	s16b	cols = p_ptr->stream_width[st];
+	s16b	cols = p_ptr->stream_wid[st];
 	byte	rle = stream->rle;
-	byte	trn = (stream->trn & STREAM_TRANSPARENT);
-	source 	= p_ptr->info[y];
+	byte	trn = (stream->flag & SF_TRANSPARENT);
+	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
@@ -3179,12 +3180,9 @@ int Stream_line_as(int ind, int st, int y, int as_y)
 		return 0;
 	}
 
-	/* Hacks for Dungeon: */
-	if (stream->addr == NTERM_WIN_OVERHEAD
-	 || stream->addr == NTERM_WIN_MAP)
-	{
-		source = p_ptr->scr_info[y];
-	}
+	/* Do not send streams not subscribed to */
+	if (!cols) return 1;
+
 	/* Packet header */
 	Packet_printf(&connp->c, "%c%hd", stream->pkt, as_y);
 
@@ -3378,9 +3376,16 @@ int Send_stream_conn(int ind, int stream)
 		return 0;
 	}
 
+	/* Hack -- Auto-Subscribe */
+	if (s_ptr->min_row == s_ptr->max_row && s_ptr->min_col == s_ptr->max_col)
+	{
+		connp->Client_setup.stream_hgt[stream] = s_ptr->min_row;
+		connp->Client_setup.stream_wid[stream] = s_ptr->min_col; 
+	}
+
 	return Packet_printf(&connp->c, "%c%c%c%c%c%s%c%c%c%c", 
 		 PKT_STREAM, s_ptr->pkt, s_ptr->addr,
-		 s_ptr->rle, s_ptr->trn, s_ptr->mark,
+		 s_ptr->rle, s_ptr->flag, s_ptr->mark,
 		 s_ptr->min_row, s_ptr->min_col,
 		 s_ptr->max_row, s_ptr->max_col);
 }
@@ -6055,8 +6060,8 @@ static int Receive_stream_size(int ind)
 		if (player)
 		{
 			/* Set width and height */
-			p_ptr->stream_width[st] = x;
-			p_ptr->stream_height[st] = y;
+			p_ptr->stream_wid[st] = x;
+			p_ptr->stream_hgt[st] = y;
 
 			/* Subscribe / Unsubscribe */
 			if (y) 
@@ -6066,8 +6071,8 @@ static int Receive_stream_size(int ind)
 				/* HACK! Resizing dungeon view! */
 				if (streams[st].addr == NTERM_WIN_OVERHEAD)
 				{
-					p_ptr->screen_wid = p_ptr->stream_width[0];
-					p_ptr->screen_hgt = p_ptr->stream_height[0];
+					p_ptr->screen_wid = p_ptr->stream_wid[0];
+					p_ptr->screen_hgt = p_ptr->stream_hgt[0];
 					setup_panel(player, TRUE);
 					verify_panel(player);
 					p_ptr->redraw |= (PR_MAP);
@@ -6082,8 +6087,8 @@ static int Receive_stream_size(int ind)
 		else
 		{
 			/* Set width and height */
-			connp->Client_setup.stream_width[st] = x;
-			connp->Client_setup.stream_height[st] = y;
+			connp->Client_setup.stream_wid[st] = x;
+			connp->Client_setup.stream_hgt[st] = y;
 		}
 	}
 

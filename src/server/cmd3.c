@@ -1654,7 +1654,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	text_out_done();
 
 	/* Send this text */
-	send_prepared_info(Ind, NTERM_WIN_MONSTER, STREAM_ACTIVE_TEXT);
+	send_prepared_info(Ind, NTERM_WIN_MONSTER, STREAM_SPECIAL_TEXT);
 
 	return;
 }

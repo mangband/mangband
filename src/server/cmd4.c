@@ -290,7 +290,7 @@ void display_houses(int Ind, char query)
 	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (i >= p_ptr->last_info_line) break;
-		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
+		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 	}
 	Send_term_info(Ind, NTERM_FLUSH, 0);
 	
@@ -901,7 +901,7 @@ void do_cmd_check_other(int Ind, int line)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i, hgt = p_ptr->screen_hgt - 2;
+	int i, hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] - 2;
 
 	/* Make sure the player is allowed to */
 	if (!p_ptr->special_file_type) return;
@@ -911,9 +911,9 @@ void do_cmd_check_other(int Ind, int line)
 	for (i = line; i < line + hgt; i++)
 	{
 		/* (Unless we're done) */
-		if (i >= MAX_TXT_INFO || i > p_ptr->last_info_line) break;
+		if (i >= p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] || i > p_ptr->last_info_line) break;
 
-		Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
+		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 	}
 	/* Browse or popup that data remotely */
 	Send_term_info(Ind, (p_ptr->last_info_line > hgt ? NTERM_BROWSE : NTERM_POP), line);
@@ -1025,7 +1025,7 @@ void special_file_peruse(int Ind, int type, char query)
 		Send_term_info(Ind, NTERM_CLEAR, 1);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
-			Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
+			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 		}
 		/* Send_term_info(Ind, NTERM_FLUSH, 0); */
 	}
@@ -1116,7 +1116,7 @@ void do_cmd_knowledge(int Ind, char query)
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
 			if (i >= p_ptr->last_info_line) break;
-			Stream_line(Ind, STREAM_ACTIVE_TEXT, i);
+			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 		}
 		Send_term_info(Ind, NTERM_FLUSH, 0);
 	}

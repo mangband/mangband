@@ -1506,21 +1506,35 @@ int Receive_resize_ack(void)
 	}
 
 	/* Ensure it is valid and start from there */
-	if (stg < MAX_STREAMS) addr = streams[stg].addr;
+	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
+
+	/* Fetch target "window" */	
+	addr = streams[stg].addr;
+
+	/* (Re)Allocate memory */
+	if (remote_info[addr])
+	{
+		KILL(remote_info[addr]);
+	}
+	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
+	last_remote_line[addr] = 0;
 
 	/* Affect the whole group */
-	for (st = stg; st < MAX_STREAMS; st++)
+	for (st = stg; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
 		if (streams[st].addr != addr) break;
 
 		/* Save new size */
-		p_ptr->stream_width[st] = x;
-		p_ptr->stream_height[st] = y;
+		p_ptr->stream_wid[st] = x;
+		p_ptr->stream_hgt[st] = y;
+
+		/* Save pointer */
+		p_ptr->stream_cave[st] = remote_info[addr];
 	}
 
 	/* HACK - Dungeon display resize */
-	if (streams[stg].addr == NTERM_WIN_OVERHEAD)
+	if (addr == NTERM_WIN_OVERHEAD)
 	{
 		/* Redraw status line */
 		Term_erase(0, y-1, x);
@@ -1733,10 +1747,11 @@ int Receive_char(void)
 	/* Hack -- Use ANOTHER terminal */
 	if ((n = p_ptr->remote_term))
 	{
+		cave_view_type *line = stream_cave(n, y);
 		if (y > last_remote_line[n]) 
-			last_remote_line[n] = y; 
-		remote_info[n][y][x].a = a;
-		remote_info[n][y][x].c = c;
+			last_remote_line[n] = y;
+		line[x].a = a;
+		line[x].c = c;
 		return 1; 
 	}
 	
@@ -2256,10 +2271,10 @@ int Receive_term_info(void)
 			else { arg = 0 - (s16b)arg - 1; }
 			if (p_ptr->remote_term)
 				for (n = arg; n < last_remote_line[p_ptr->remote_term]+1; n++)
-					caveprt(remote_info[p_ptr->remote_term][n], 80, 0, n );
+					caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n );
 			else
 				for (n = arg; n < Term->hgt; n++)
-					caveprt(p_ptr->scr_info[n], Term->wid, DUNGEON_OFFSET_X, n);
+					caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), Term->wid, DUNGEON_OFFSET_X, n);
 			break;
 		case NTERM_FRESH:
 			p_ptr->window |= streams[window_to_stream[p_ptr->remote_term]].window_flag;
@@ -2592,6 +2607,7 @@ int Receive_target_info(void)
 	int	n;
 	char	ch, x, y, buf[80];
 	byte win = 0;
+	int st = 0;
 
 	if ((n = Packet_scanf(&rbuf, "%c%c%c%s", &ch, &x, &y, buf)) <= 0)
 	{
@@ -2603,19 +2619,21 @@ int Receive_target_info(void)
 	{ 
 		if (!looking) return 0;
 		if (buf[1] == 'm') win = NTERM_WIN_MONSTER;
+		st = window_to_stream[win];
 
 		/* Very Dirty Hack -- Force Redraw */
 		prt_player_hack();
 		
 		for (n = 0; n < last_remote_line[win]+2; n++)
-			Term_erase(0, n, 80);
+			Term_erase(0, n, p_ptr->stream_wid[st]);
 		for (n = 0; n < last_remote_line[win]+1; n++)
-			caveprt(remote_info[win][n], 80, 0, n );
+			caveprt(stream_cave(st, n), p_ptr->stream_wid[st], 0, n );
 		
 		/* Hack -- apend target prompt after ':' */
-		for (n = 0; n < 80-2; n++)
+		for (n = 0; n < p_ptr->stream_wid[st]-2; n++)
 		{
-			if (remote_info[win][0][n].c == ':')
+			cave_view_type *line = stream_cave(st, 0);
+			if (line[n].c == ':')
 			{
 				prt(target_prompt, 0, n + 2);
 				break;
@@ -2626,7 +2644,7 @@ int Receive_target_info(void)
 		section_icky_row = last_remote_line[win] + 2;
 		section_icky_col = 80;
 	} 
-	else 
+	else
 	{
 		/* Print the message */
 		prt(buf, 0, 0);
@@ -2710,19 +2728,19 @@ int Receive_item_tester(void)
 
 int Receive_stream_info(void)
 {
-	int n;
+	int n, k;
 	char ch;
-	byte pkt, addr, trn, rle;
+	byte pkt, addr, flag, rle;
 	byte min_col, min_row, max_col, max_row;
 	char buf[MSG_LEN];
 
 	stream_type *s_ptr;
 
 	buf[0] = '\0';
-	pkt = addr = trn = rle = 0;
-	min_col = min_row = max_col = max_row = 0;	
+	pkt = addr = flag = rle = 0;
+	min_col = min_row = max_col = max_row = 0;
 
-	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c%s%c%c%c%c", &ch, &pkt, &addr, &rle, &trn, buf, 
+	if ((n = Packet_scanf(&rbuf, "%c%c%c%c%c%s%c%c%c%c", &ch, &pkt, &addr, &rle, &flag, buf, 
 			&min_row, &min_col, &max_row, &max_col)) <= 0)
 	{
 		return n;
@@ -2737,7 +2755,7 @@ int Receive_stream_info(void)
 	s_ptr->addr = addr;	
 	s_ptr->rle = rle;
 
-	s_ptr->trn = trn;
+	s_ptr->flag = flag;
 
 	/*s_ptr->scr = (!addr ? p_ptr->scr_info : remote_info[addr] );
 	s_ptr->trn = (!trn ? NULL : p_ptr->trn_info);*/
@@ -2752,40 +2770,6 @@ int Receive_stream_info(void)
 		s_ptr->mark = strdup(buf);
 	}
 
-	/* Collect stream groups */
-	if (addr != NTERM_WIN_CURRENT) 
-	{
-		int k = 0;
-		/* Go to next group */
-		if (!known_streams || streams[known_streams-1].addr != addr) 
-		{
-			window_to_stream[known_window_streams] = known_streams;
-			known_window_streams++;
-		}
-		/* Find free slot in the window options */
-		k = known_window_streams - 1;
-		for (n = 0; n < 32; n++) 
-		{
-			/* Found an unused slot */
-			if (!window_flag_desc[n]) 
-			{
-				/* Allready in use by another group */ 
-				if (k) 
-				{
-					/* Skip it */
-					k--;
-				}
-				/* Slot is totally free */
-				else
-				{
-					s_ptr->window_flag = (1L << n);
-					/* HACK! Enforce Dungeon View on window 0 */
-					if (s_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
-					break;
-				}
-			}
-		}
-	}
 
 	stream_ref[pkt] = known_streams;
 	receive_tbl[pkt] = Receive_stream;
@@ -2795,13 +2779,13 @@ int Receive_stream_info(void)
 	return 1;
 }
 
-int read_stream_char(byte addr, bool trn, bool mem, s16b y, s16b x)
+int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
 	int 	n;
 	byte	a, ta = 0;
 	char	c, tc = 0;
 
-	cave_view_type *dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
+	cave_view_type *dest = stream_cave(st, y);
 
 	if (trn)
 	{
@@ -2822,7 +2806,7 @@ int read_stream_char(byte addr, bool trn, bool mem, s16b y, s16b x)
 	if (y > last_remote_line[addr]) 
 		last_remote_line[addr] = y; 
 
-	if (!addr)
+	if (addr == NTERM_WIN_OVERHEAD)
 		show_char(y, x, a, c, ta, tc, mem);
 
 	return 1;
@@ -2830,10 +2814,10 @@ int read_stream_char(byte addr, bool trn, bool mem, s16b y, s16b x)
 int Receive_stream(void)
 {
 	int 	n;
-	char	ch;
+	char	ch = 0;
 	s16b	cols, y = 0;
 	s16b	*line;
-	byte	addr;
+	byte	addr, id;
 	cave_view_type	*dest;
 
 	stream_type 	*stream;
@@ -2843,23 +2827,24 @@ int Receive_stream(void)
 		return n;
 	}
 
-	stream = &streams[stream_ref[(byte)ch]];
-	addr = (stream->addr == NTERM_WIN_CURRENT ? p_ptr->remote_term : stream->addr);
-	line = &last_remote_line[addr];
+	id = stream_ref[(byte)ch];
+	stream = &streams[id];
+	addr = stream->addr;
 
 	/* Hack -- single char */
 	if (y & 0xFF00)	return 
-		read_stream_char(addr, (stream->trn & STREAM_TRANSPARENT), !(stream->trn & STREAM_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
-	cols = p_ptr->stream_width[window_to_stream[addr]];
-	dest = (addr ? remote_info[addr][y] : p_ptr->scr_info[y]);
+	cols = p_ptr->stream_wid[id];
+	dest = p_ptr->stream_cave[id] + y * cols;
+ 	line = &last_remote_line[addr];
 
 	/* Decode the secondary attr/char stream */
-	if (stream->trn & STREAM_TRANSPARENT) { 
-		rle_decode(&rbuf, p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols, stream->rle); }
+	if (stream->flag & SF_TRANSPARENT) { 
+		rle_decode(&rbuf, p_ptr->trn_info[y], cols, stream->rle); }
 	/* OR clear it ! */ 
-	else if (stream->trn & STREAM_OVERLAYED)
-		caveclr(p_ptr->trn_info[y] + DUNGEON_OFFSET_X, cols);
+	else if (stream->flag & SF_OVERLAYED)
+		caveclr(p_ptr->trn_info[y], cols);
 
 	/* Decode the attr/char stream */
 	rle_decode(&rbuf, dest, cols, stream->rle);
@@ -2870,8 +2855,8 @@ int Receive_stream(void)
 	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
 
 	/* Put data to screen ? */		
-	if (!addr)
-		show_line(y, cols, !(stream->trn & STREAM_OVERLAYED));
+	if (addr == NTERM_WIN_OVERHEAD)
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
 
 	return 1;
 }
@@ -4034,9 +4019,47 @@ int Send_stream_size(int st, int rows, int cols)
 	return 1;
 }
 
-void net_term_clamp(byte win, byte *y, byte *x)
+bool net_term_clamp(byte win, byte *y, byte *x)
 {
+	stream_type* st_ptr;
+	s16b nx = (*x);
+	s16b ny = (*y);
+	s16b xoff = 0;
+	s16b yoff = 0;
 
+	st_ptr = &streams[window_to_stream[win]];
+
+	/* Shift expectations */
+	if (st_ptr->addr == NTERM_WIN_OVERHEAD) 
+	{
+		yoff = SCREEN_CLIP_L;
+		if (st_ptr->flag & SF_KEEP_X)	xoff += DUNGEON_OFFSET_X;
+		if (st_ptr->flag & SF_KEEP_Y)	yoff += DUNGEON_OFFSET_Y;
+	} 
+	else 
+	{
+		if (st_ptr->flag & SF_KEEP_X)	xoff = SCREEN_CLIP_X;
+		if (st_ptr->flag & SF_KEEP_Y)	yoff = SCREEN_CLIP_Y;
+	}	
+
+	/* Perform actual clamping */
+	if (nx < st_ptr->min_col + xoff) nx = st_ptr->min_col + xoff; 
+	if (nx > st_ptr->max_col + xoff) nx = st_ptr->max_col + xoff; 
+
+	if (ny < st_ptr->min_row + yoff) ny = st_ptr->min_row + yoff; 
+	if (ny > st_ptr->max_row + yoff) ny = st_ptr->max_row + yoff;
+
+	/* Compare old and new values */
+	if (nx != (*x) || ny != (*y))
+	{
+		/* Update */
+		(*x) = (byte)nx;
+		(*y) = (byte)ny;
+		/* Return change */
+		return TRUE;
+	}
+	/* Return no change */
+	return FALSE;
 }
 /*
  * Manage Stream Subscriptions.
@@ -4078,9 +4101,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(ang_term[j]);
 
 		/* Determine stream groups affected by this window */
-		for (k = 0; k < known_window_streams; k++) 
+		for (k = 0; k < stream_groups; k++) 
 		{
-			byte st = window_to_stream[k];
+			byte st = stream_group[k];
 			stream_type* st_ptr = &streams[st];
 
 			/* The stream is unchanged or turned off */
@@ -4090,7 +4113,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if ((new_flag[j] & st_ptr->window_flag))
 				{
 					/* It wasn't active or it's size changed. Subscribe! */
-					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_width[st] || Term->hgt != p_ptr->stream_height[st]) 
+					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_wid[st] || Term->hgt != p_ptr->stream_hgt[st]) 
 					{
 						st_y[st] = Term->hgt;
 						st_x[st] = Term->wid;
@@ -4143,7 +4166,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if (st_y[j] < streams[j].min_row) st_y[j] = streams[j].min_row;
 				if (st_y[j] > streams[j].max_row) st_y[j] = streams[j].max_row;
 				/* If we changed nothing, bail out */
-				if (st_x[j] == p_ptr->stream_width[j] && st_y[j] == p_ptr->stream_height[j]) continue;
+				if (st_x[j] == p_ptr->stream_wid[j] && st_y[j] == p_ptr->stream_hgt[j]) continue;
 			}
 
 			/* Send it! */
