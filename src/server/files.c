@@ -2155,10 +2155,8 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
  * Extract a clean "base name".
  * Build the savefile name if needed.
  */
-bool process_player_name(int Ind, bool sf)
+bool process_player_name(player_type *p_ptr, bool sf)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int ret;
 	
 #ifdef SAVEFILE_MUTABLE

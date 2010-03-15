@@ -14,65 +14,6 @@
 
 
 /*
- * Some machines have a "main()" function in their "main-xxx.c" file,
- * all the others use this file for their "main()" function.
- */
-
-
-#if !defined(MACINTOSH) && !defined(ACORN)
-
-#ifdef SET_UID
-
-/*
- * Check "wizard permissions"
- */
-static bool is_wizard(int uid)
-{
-	FILE	*fp;
-
-	bool	allow = FALSE;
-
-	char	buf[1024];
-
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_EDIT, "wizards.txt");
-
-	/* Open the wizard file */
-	fp = my_fopen(buf, "r");
-
-	/* No file, allow everyone */
-	if (!fp) return (TRUE);
-
-	/* Scan the wizard file */
-	while (0 == my_fgets(fp, buf, 1024))
-	{
-		int test;
-
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
-
-		/* Look for valid entries */
-		if (sscanf(buf, "%d", &test) != 1) continue;
-
-		/* Look for matching entries */
-		if (test == uid) allow = TRUE;
-
-		/* Done */
-		if (allow) break;
-	}
-
-	/* Close the file */
-	my_fclose(fp);
-
-	/* Result */
-	return (allow);
-}
-
-#endif
-
-
-/*
  * A hook for "quit()".
  *
  * Close down, then fall back into "quit()".
@@ -81,9 +22,6 @@ static bool is_wizard(int uid)
  */
 static void quit_hook(cptr s)
 {
-
-	SocketCloseAll();
-
 	cleanup_angband();
 #if 0
 	int j;
@@ -229,92 +167,8 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-
-#ifdef SET_UID
-
-	/* Default permissions on files */
-	(void)umask(022);
-
-# ifdef SECURE
-	/* Authenticate */
-	Authenticate();
-# endif
-
-#endif
-
-
 	/* Get the file paths */
 	init_stuff();
-
-#ifdef SET_UID
-
-	/* Get the user id (?) */
-	player_uid = getuid();
-
-#ifdef VMS
-	/* Mega-Hack -- Factor group id */
-	player_uid += (getgid() * 1000);
-#endif
-
-# ifdef SAFE_SETUID
-
-#  ifdef _POSIX_SAVED_IDS
-
-	/* Save some info for later */
-	player_euid = geteuid();
-	player_egid = getegid();
-
-#  endif
-
-#  if 0	/* XXX XXX XXX */
-
-	/* Redundant setting necessary in case root is running the game */
-	/* If not root or game not setuid the following two calls do nothing */
-
-	if (setgid(getegid()) != 0)
-	{
-		quit("setgid(): cannot set permissions correctly!");
-	}
-
-	if (setuid(geteuid()) != 0)
-	{
-		quit("setuid(): cannot set permissions correctly!");
-	}
-
-#  endif
-
-# endif
-
-#endif
-
-
-	/* Assume "Wizard" permission */
-	can_be_wizard = TRUE;
-
-#ifdef SET_UID
-
-	/* Check for "Wizard" permission */
-	can_be_wizard = is_wizard(player_uid);
-
-	/* Initialize the "time" checker */
-	if (check_time_init() || check_time())
-	{
-		quit("The gates to Angband are closed (bad time).");
-	}
-
-	/* Initialize the "load" checker */
-	if (check_load_init() || check_load())
-	{
-		quit("The gates to Angband are closed (bad load).");
-	}
-
-#if 0
-	/* Acquire the "user name" as a default player name */
-	user_name(player_name, player_uid);
-#endif
-
-#endif
-
 
 	/* Process the command line arguments */
 	for (--argc, ++argv; argc > 0; --argc, ++argv)
@@ -352,36 +206,10 @@ int main(int argc, char *argv[])
 			arg_fiddle = TRUE;
 			break;
 
-#ifdef SET_UID
-#if 0
-			case 'P':
-			case 'p':
-			if (can_be_wizard)
-			{
-				player_uid = atoi(&argv[0][2]);
-				user_name(player_name, player_uid);
-			}
-			break;
-#endif
-#endif
-
-			case 'W':
-			case 'w':
-			if (can_be_wizard) arg_wizard = TRUE;
-			break;
-
 			case 'Z':
 			case 'z':
 			catch_signals = FALSE;
 			break;
-
-#if 0
-			case 'u':
-			case 'U':
-			if (!argv[0][2]) goto usage;
-			strcpy(player_name, &argv[0][2]);
-			break;
-#endif
 
 			default:
 			usage:
@@ -402,140 +230,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-#if 0
-
-	/* Process the player name */
-	process_player_name(TRUE);
-#endif
-
-/* This is all removed, as there is no need for the server to open a term */
-#if 0
-
-	/* Drop privs (so X11 will work correctly) */
-	safe_setuid_drop();
-
-
-#ifdef USE_XAW
-	/* Attempt to use the "main-xaw.c" support */
-	if (!done)
-	{
-		extern errr init_xaw(void);
-		if (0 == init_xaw()) done = TRUE;
-		if (done) ANGBAND_SYS = "xaw";
-	}
-#endif
-
-#ifdef USE_X11
-	/* Attempt to use the "main-x11.c" support */
-	if (!done)
-	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
-		if (done) ANGBAND_SYS = "x11";
-	}
-#endif
-
-
-#ifdef USE_GCU
-	/* Attempt to use the "main-gcu.c" support */
-	if (!done)
-	{
-		extern errr init_gcu(void);
-		if (0 == init_gcu()) done = TRUE;
-		if (done) ANGBAND_SYS = "gcu";
-	}
-#endif
-
-#ifdef USE_CAP
-	/* Attempt to use the "main-cap.c" support */
-	if (!done)
-	{
-		extern errr init_cap(void);
-		if (0 == init_cap()) done = TRUE;
-		if (done) ANGBAND_SYS = "cap";
-	}
-#endif
-
-
-#ifdef USE_IBM
-	/* Attempt to use the "main-ibm.c" support */
-	if (!done)
-	{
-		extern errr init_ibm(void);
-		if (0 == init_ibm()) done = TRUE;
-		if (done) ANGBAND_SYS = "ibm";
-	}
-#endif
-
-#ifdef USE_EMX
-	/* Attempt to use the "main-emx.c" support */
-	if (!done)
-	{
-		extern errr init_emx(void);
-		if (0 == init_emx()) done = TRUE;
-		if (done) ANGBAND_SYS = "emx";
-	}
-#endif
-
-
-#ifdef USE_SLA
-	/* Attempt to use the "main-sla.c" support */
-	if (!done)
-	{
-		extern errr init_sla(void);
-		if (0 == init_sla()) done = TRUE;
-		if (done) ANGBAND_SYS = "sla";
-	}
-#endif
-
-
-#ifdef USE_LSL
-	/* Attempt to use the "main-lsl.c" support */
-	if (!done)
-	{
-		extern errr init_lsl(void);
-		if (0 == init_lsl()) done = TRUE;
-		if (done) ANGBAND_SYS = "lsl";
-	}
-#endif
-
-
-#ifdef USE_AMI
-	/* Attempt to use the "main-ami.c" support */
-	if (!done)
-	{
-		extern errr init_ami(void);
-		if (0 == init_ami()) done = TRUE;
-		if (done) ANGBAND_SYS = "ami";
-	}
-#endif
-
-
-#ifdef USE_VME
-	/* Attempt to use the "main-vme.c" support */
-	if (!done)
-	{
-		extern errr init_vme(void);
-		if (0 == init_vme()) done = TRUE;
-		if (done) ANGBAND_SYS = "vme";
-	}
-#endif
-
-
-	/* Grab privs (dropped above for X11) */
-	safe_setuid_grab();
-
-
-#endif
-
-#if 0
-	/* Make sure we have a display! */
-	if (!done) quit("Unable to prepare any 'display module'!");
-#endif
-
 	/* Tell "quit()" to call "Term_nuke()" */
 	quit_aux = quit_hook;
-
 
 	/* Catch nasty signals */
 	if (catch_signals == TRUE)
@@ -557,11 +253,21 @@ int main(int argc, char *argv[])
 	/* Initialize the arrays */
 	init_some_arrays();
 
-	/* Wait for response */
-	/*pause_line(23);*/
 
-	/* Play the game */
+	/* Prepare the game */
 	play_game(new_game);
+
+	/* Set up the network server */
+	setup_network_server();
+
+	/* Loop forever */
+	network_loop();
+
+	/* This should never, ever happen */
+	plog("FATAL ERROR network_loop() returned!");
+
+	/* Close stuff */
+	close_game();
 
 	/* Quit */
 	quit(NULL);
@@ -569,5 +275,3 @@ int main(int argc, char *argv[])
 	/* Exit */
 	return (0);
 }
-
-#endif

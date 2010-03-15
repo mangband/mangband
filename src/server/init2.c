@@ -641,13 +641,13 @@ static errr init_info(cptr filename, header *head)
 			int mode = 0644;
 
 			/* Grab permissions */
-			safe_setuid_grab();
+			/*safe_setuid_grab();*/
 
 			/* Create a new file */
 			fd = fd_make(buf, mode);
 
 			/* Drop permissions */
-			safe_setuid_drop();
+			/*safe_setuid_drop();*/
 
 			/* Failure */
 			if (fd < 0)
@@ -664,13 +664,13 @@ static errr init_info(cptr filename, header *head)
 		fd_close(fd);
 
 		/* Grab permissions */
-		safe_setuid_grab();
+		/*safe_setuid_grab();*/
 
 		/* Attempt to create the raw file */
 		fd = fd_open(buf, O_WRONLY);
 
 		/* Drop permissions */
-		safe_setuid_drop();
+		/*safe_setuid_drop();*/
 
 		/* Failure */
 		if (fd < 0)
@@ -2135,7 +2135,7 @@ void set_server_option(char * option, char * value)
 	{
 		cfg_fps = atoi(value);
 		/* Hack -- reinstall the timer handler to match the new FPS */
-		install_timer_tick(dungeon, cfg_fps);
+		//TODO: DO THIS! install_timer_tick(dungeon, cfg_fps);
 	}
 	else if (!strcmp(option,"TCP_PORT"))
 	{
@@ -2480,8 +2480,7 @@ void cleanup_angband(void)
 	}
 
 	/* Network */
-	remove_timer_tick();
-	Stop_net_server();
+	close_network_server();
 
 	/* Free options from mangband.cfg */		
 	unload_server_cfg();

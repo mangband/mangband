@@ -77,7 +77,7 @@ struct term_data
 
 #define MAX_TERM_DATA 4
 
-static term_data data[MAX_TERM_DATA];
+static term_data tdata[MAX_TERM_DATA];
 
 
 /*
@@ -1038,7 +1038,7 @@ errr init_gcu(void)
 
 		if (rows <= 0 || cols <= 0) continue;
 
-		term_data_init(&data[next_win], rows, cols, y, x);
+		term_data_init(&tdata[next_win], rows, cols, y, x);
 
 		ang_term[next_win] = Term;
 
@@ -1046,9 +1046,9 @@ errr init_gcu(void)
 	}
 
 	/* Activate the "Angband" window screen */
-	Term_activate(&data[0].t);
+	Term_activate(&tdata[0].t);
 
-	term_screen = &data[0].t;
+	term_screen = &tdata[0].t;
 
 	/* Success */
 	return (0);

@@ -1380,7 +1380,7 @@ void everyone_lite_spot(int Depth, int y, int x)
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
 			continue;
-
+printf("Liting spot for %d\n", i);
 		/* Actually lite that spot for that player */
 		lite_spot(i, y, x);
 	}

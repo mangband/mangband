@@ -8,7 +8,7 @@
 
 #include "c-angband.h"
 
-static int Socket;
+char host_name[80];
 
 static void init_arrays(void)
 {
@@ -80,7 +80,7 @@ void init_minor(void)
 {
 	int i;
 	/* Chat channels */
-	C_MAKE(p_ptr->on_channel, MAX_CHANNELS, byte);
+	//C_MAKE(p_ptr->on_channel, MAX_CHANNELS, byte);
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		channels[i].name[0] = '\0';
@@ -137,51 +137,56 @@ void initialize_all_pref_files(void)
 
 
 /*
- * Loop, looking for net input and responding to keypresses.
+ * Send handshake to the server and do the loop
  */
-static void Input_loop(void)
+static void Setup_loop()
 {
-	int	netfd, result;
+	int old_state = -1;
+	u16b conntype = CONNTYPE_PLAYER;
 
-	if (Net_flush() == -1)
-		return;
+	send_handshake(conntype);
 
-	if ((netfd = Net_fd()) == -1)
+	while(1) 
 	{
-		plog("Bad socket filedescriptor");
-		return;
-	}
+		network_loop();
 
-	for (;;)
-	{
-		// Send out a keepalive packet if need be
-		// do_keepalive();
-
-		if (Net_flush() == -1)
+		if (old_state != state && state) 
 		{
-			plog("Bad net flush");
-			return;
-		}
-
-		/* Set the timeout on the network socket */
-		/* This polling should probably be replaced with a select
-		 * call that combines the net and keyboard input.
-		 * This REALLY needs to be replaced since under my Linux
-		 * system calling usleep seems to have a 10 ms overhead
-		 * attached to it.
-		 */
-		//SetTimeout(0, 1000000 / Setup.frames_per_second);
-		SetTimeout(0, 1000000 / 1000);
-
-		/* Only take input if we got some */
-		if (SocketReadable(netfd))
-		{
-			if ((result = Net_input()) == -1)
+			printf("NEW sTATE:%d (WAS: %d)\n", state, old_state);
+			if (state < PLAYER_SHAPED)
 			{
-				/*plog("Bad net input"); */
-				return;
+				get_char_info();
+				send_char_info();
+				send_play();			
+			}
+			if (state == PLAYER_FULL)
+			{
+				send_play();
+			}
+			if (state > PLAYER_FULL)
+			{
+				break;
+			}
+			if (state == PLAYER_SHAPED)
+			{
+				send_play();
+				break;
 			}
 		}
+		old_state = state;		
+	}
+	client_ready();
+}
+
+/*
+ * Loop, looking for net input and responding to keypresses.
+ */
+static void Game_loop(void)
+{
+	while (1)
+	{
+		/* Do networking */
+		network_loop();	
 
 		/* See if we have a command waiting */
 		request_command(FALSE);
@@ -192,9 +197,6 @@ static void Input_loop(void)
 			/* Process it */
 			process_command();
 
-			/* XXX Unused */
-			//last_sent = time(NULL);
-
 			/* Clear previous command */
 			command_cmd = 0;
 
@@ -202,32 +204,25 @@ static void Input_loop(void)
 			request_command(FALSE);
 		}
 
-		// Update our internal timer, which is used to figure out when
-		// to send keepalive packets.
-		update_ticks();
-		
+		/* Flush input (now!) */
+		flush_now();
+
 		/* Redraw status etc if necessary */
 		if (p_ptr->redraw)
 		{
 			redraw_stuff();
 		}
 
-		/* Hack -- don't redraw the screen until we have all of it */
-		if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
-
-		/* Flush input (now!) */
-		flush_now();
-
-		/* Update the screen */
-		Term_fresh();
-
 		/* Redraw windows if necessary */
 		if (p_ptr->window)
 		{
 			window_stuff();
 		}
-		do_keepalive(); // [grk] - wasn't keeping connection alive
 
+		/* Hack -- don't redraw the screen until we have all of it */
+		//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
+		/* Update the screen */
+		Term_fresh();
 	}
 }	
 
@@ -240,8 +235,7 @@ static void quit_hook(cptr s)
 {
 	int j;
 
-	Net_cleanup();
-	SocketCloseAll();
+	cleanup_network_client();
 
 	/* Nuke each term */
 	for (j = 8 - 1; j >= 0; j--)
@@ -353,22 +347,32 @@ void init_subscriptions()
 
 
 /*
+ * Client is ready to setup call-back
+ */
+bool client_setup()
+{
+	u16b version = CLIENT_VERSION;
+
+	send_login(version, real_name, host_name, nick, pass);
+}
+
+/*
  * Client is ready to play call-back
  */
 bool client_ready()
 {
 	/* Send request for MOTD to read (optional) */
-	Send_motd(0); // pass -1 to receive motd off-screen 
+	//Send_motd(0); // pass -1 to receive motd off-screen 
 	
 	/* Initialize the pref files */
 	initialize_all_pref_files();
 
-	gather_settings();
+	//gather_settings();
 
-	Send_options(TRUE);
+	//Send_options(TRUE);
 
 	/* Send visual preferences */
-	Net_verify();
+	//Net_verify();
 
 	/* Subscribe to data streams */
 	init_subscriptions();
@@ -376,13 +380,57 @@ bool client_ready()
 	/* Hack -- don't enter the game if waiting for motd */
 	if (Setup.wait && !Setup.ready)
 	{
-		return FALSE;
+		//return FALSE;
 	}		
 		
 	/* Request gameplay */
-	Send_play(1);
+	//Send_play(1);
+	
+	Term_clear();
+	Term_fresh();
+	
+	Game_loop();
 	
 	return TRUE;
+}
+
+/* Return 1 to continue, 0 to cancel */ 
+int client_failed()
+{
+	static int try_count = 0;
+	event_type chkey;	
+	char ch = 0;
+	char buf[80];
+	byte star = 0;
+
+	if (try_count++ > 2000)
+	{
+		try_count = 0;
+		/* Prompt for auto-retry [grk] */
+		put_str("Couldn't connect to server, keep trying? [Y/N]", 21, 1);
+		/* Make sure the message is shown */
+		Term_fresh();
+
+		while (ch != 'Y' && ch !='y' && ch != 'N' && ch != 'n')
+		{
+			/* Get a key */
+			(void)(Term_inkey(&chkey, FALSE, TRUE));
+			ch = chkey.key;
+		}
+		/* If we dont want to retry, exit with error */
+		if(ch == 'N' || ch == 'n') return 0;
+		put_str("Connecting to server                          ", 21, 1);
+	}
+
+	/* Hack -- show "animation" */
+	star = (try_count % 300) / 100;
+	put_str(".   ", 21, 21);
+	if (star) 
+	do { put_str(".", 21, 22 + star); }
+	while (star--);	
+	Term_fresh();
+	
+	return 1;
 }
 
 /*
@@ -390,12 +438,8 @@ bool client_ready()
  */
 void client_init(char *argv1)
 {
-	sockbuf_t ibuf;
 	unsigned char status;
-	int trycount;
-	char host_name[80], trymsg[80], c, *s;
-	u16b version = CLIENT_VERSION;
-	u16b conntype = CONNTYPE_PLAYER;
+	char c, *s;
 	bool done = 0;
 
 	/* Setup the file paths */
@@ -403,11 +447,15 @@ void client_init(char *argv1)
 
 	/* Initialize various arrays */
 	init_arrays();
-	
+
 	/* Initialize minor arrays */
 	init_minor();
 
+	/* Init network */
+	setup_network_client();
+
 	GetLocalHostName(host_name, 80);
+	host_name[0] = 'a'; host_name[1] = '\0';
 
 	/* Set the "quit hook" */
 	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code
@@ -439,129 +487,25 @@ void client_init(char *argv1)
 	}
 
 	/* Fix "localhost" */
-	if (!strcmp(server_name, "localhost"))
-		strcpy(server_name, host_name);
+//	if (!strcmp(server_name, "localhost"))
+//		strcpy(server_name, host_name);
 
 	/* Default nickname and password */
 	strcpy(nick, conf_get_string("MAngband", "nick", nick));
 	strcpy(pass, conf_get_string("MAngband", "pass", pass));
-	
-	
-	/* Get character name and pass */
 
+	/* Get character name and pass */
 	get_char_name();
 
-	/* Capitalize the name */
-	nick[0] = toupper(nick[0]);
-
-	// Create the net socket and make the TCP connection
-	if ((Socket = CreateClientSocket(server_name, server_port)) == -1)
+	/* Create a "caller" socket which makes the TCP connection */
+	if (call_server(server_name, server_port) == -1) 
 	{
-	    while (!done) {
-		/* Prompt for auto-retry [grk] */
-		put_str("Couldn't connect to server, keep trying? [Y/N]", 21, 1);
-		/* Make sure the message is shown */
-		Term_fresh();
-		c = 0;
-		while (c != 'Y' && c!='y' && c != 'N' && c != 'n')
-			/* Get a key */
-			c = inkey();
-
-		/* If we dont want to retry, exit with error */
-		if(c=='N' || c=='n')
-			quit("That server either isn't up, or you mistyped the hostname.\n");
-
-		/* ...else, keep trying until socket connected */
-		trycount = 1;
-		while( (Socket = CreateClientSocket(server_name, server_port)) == -1)
-		{
-			if (trycount > 200) break;
-			/* Progress Message */
-			sprintf(trymsg, "Connecting to server [%i]                      ",trycount++);
-			put_str(trymsg, 21, 1);
-			/* Make sure the message is shown */
-			Term_redraw(); /* Hmm maybe not the proper way to force an os poll */
-			Term_flush();
-		}
-		if (Socket != -1) done = 1;
-	    }
+		quit("That server either isn't up, or you mistyped the hostname.\n");
 	}
 
-	/* Create a socket buffer */
-	if (Sockbuf_init(&ibuf, Socket, CLIENT_SEND_SIZE,
-		SOCKBUF_READ | SOCKBUF_WRITE) == -1)
-	{
-		quit("No memory for socket buffer\n");
-	}
+	/* Init setup */
+	Setup_loop();
 
-	/* Make it non-blocking 
-	if (SetSocketNonBlocking(Socket, 1) == -1)
-	{	
-		quit("Can't make socket non-blocking\n");
-	} */
-
-	/* Clear it */
-	Sockbuf_clear(&ibuf);
-
-	/* Put the contact info in it */
-	Packet_printf(&ibuf, "%hu", conntype);
-	Packet_printf(&ibuf, "%hu", version);
-	Packet_printf(&ibuf, "%s%s%s%s", real_name, host_name, nick, pass);
-	
-	/* Send it */
-	if (!Net_Send(Socket, &ibuf))
-		quit("Couldn't send contact information\n");
-
-	/* Wait for reply */
-	if (!Net_WaitReply(Socket, &ibuf, 10))
-		quit("Server didn't respond!\n");
-
-	/* Read what he sent */
-	Packet_scanf(&ibuf, "%c", &status);
-	
-	/* Some error */
-	if (status)
-	{
-		/* The server didn't like us.... */
-		switch (status)
-		{
-			case E_NEED_INFO: break;
-			case E_VERSION:
-				quit("This version of the client will not work with that server.");
-			case E_SOCKET:
-				quit("Socket error");
-			case E_BAD_PASS:
-				quit("The password you supplied is incorrect");
-			case E_READ_ERR:
-				quit("There was an error accessing your savefile");
-			case E_GAME_FULL:
-				quit("Sorry, the game is full.  Try again later.");
-			case E_IN_USE:
-				quit("That nickname is already in use.  If it is your nickname, wait 30 seconds and try again.");
-			case E_INVAL:
-				quit("The server didn't like your nickname, realname, or hostname.");
-			case E_TWO_PLAYERS:
-				quit("There is already another character from this user/machine on the server.");
-			default:
-				quit(format("Connection failed with status %d.", status));
-		}
-	}
-	
-	/* Server agreed to talk, initialize the buffers */
-	if (Net_init(Socket) == -1)
-	{
-		quit("Network initialization failed!\n");
-	}
-	
-	/* Send request for anything needed for play	*/
-	Send_play(0);
-
-	/* Main loop */
-	Input_loop();
-
-	/* Cleanup network stuff */
-	Net_cleanup();
-
-	/* Quit, closing term windows */
+	/* Quit */
 	quit(NULL);
 }

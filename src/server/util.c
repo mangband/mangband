@@ -2622,7 +2622,7 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 	p_ptr->msg_last_type = type;	
 	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
-	Send_message(Ind, msg, type);
+	send_message(Ind, msg, type);
 }
 
 void msg_broadcast(int Ind, cptr msg)
@@ -2636,7 +2636,7 @@ void msg_broadcast(int Ind, cptr msg)
 		/* Skip the specified player */
 		if (i == Ind)
 			continue;	
-			
+			printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
 	 	msg_print_aux(i, msg, MSG_CHAT);
 	 }

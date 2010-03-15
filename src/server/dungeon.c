@@ -1040,9 +1040,8 @@ static void process_player_end(int Ind)
 	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Try to execute any commands on the command queue. */
-	/* NB: process_pending may have deleted the connection! */
-	if(process_pending_commands(p_ptr->conn)) return;
-
+	process_player_commands(Ind);
+return;//HACK!!! TODO: REMOVE
 	/* Check for auto-retaliate */
 	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused)
 	{
@@ -1756,16 +1755,16 @@ static void process_player_end(int Ind)
 	/* HACK -- redraw stuff a lot, this should reduce perceived latency. */
 	/* This might not do anything, I may have been silly when I added this. -APD */
 	/* Notice stuff (if needed) */
-	if (p_ptr->notice) notice_stuff(Ind);
+	//if (p_ptr->notice) notice_stuff(Ind);
 
 	/* Update stuff (if needed) */
-	if (p_ptr->update) update_stuff(Ind);
+	//if (p_ptr->update) update_stuff(Ind);
 	
 	/* Redraw stuff (if needed) */
-	if (p_ptr->redraw) redraw_stuff(Ind);
+	//if (p_ptr->redraw) redraw_stuff(Ind);
 
 	/* Redraw stuff (if needed) */
-	if (p_ptr->window) window_stuff(Ind);
+	//if (p_ptr->window) window_stuff(Ind);
 }
 
 
@@ -2294,9 +2293,6 @@ void dungeon(void)
 		p_ptr->new_level_flag = FALSE;
 	}
 
-	/* Handle any network stuff */
-	Net_input();
-
 	/* Hack -- Compact the object list occasionally */
 	if (o_top + 16 > MAX_O_IDX) compact_objects(32);
 
@@ -2372,9 +2368,6 @@ void dungeon(void)
 		/* Window stuff */
 		if (p_ptr->window) window_stuff(i);
 	}
-
-	/* Send any information over the network */
-	Net_output();
 }
 
 		
@@ -2517,7 +2510,6 @@ void play_game(bool new_game)
 
 	/* Flavor the objects */
 	flavor_init();
-	plog("Object flavors initialized...");
 
 	/* Reset the visual mappings */
 	reset_visuals();
@@ -2532,9 +2524,6 @@ void play_game(bool new_game)
 	/* Load the "pref" files */
 	load_all_pref_files();
 #endif
-
-	/* Verify the keymap */
-	/*keymap_init();*/
 
 	/* Make a town if necessary */
 	if (!server_dungeon)
@@ -2551,31 +2540,6 @@ void play_game(bool new_game)
 
 	/* Server initialization is now "complete" */
 	server_generated = TRUE;
-
-
-
-
-	/* Set up the contact socket, so we can allow players to connect */
-	setup_contact_socket();
-
-	/* Set up the network server */
-	if (Setup_net_server() == -1)
-		quit("Couldn't set up net server");
-
-	/* Set up the main loop */
-	install_timer_tick(dungeon, cfg_fps);
-
-	/* Loop forever */
-	sched();
-
-	/* This should never, ever happen */
-	plog("FATAL ERROR sched() returned!");
-
-	/* Close stuff */
-	close_game();
-
-	/* Quit */
-	quit(NULL);
 }
 
 
@@ -2595,10 +2559,10 @@ void shutdown_server(void)
 		strcpy(p_ptr->died_from, "server shutdown");
 
 		/* Try to save */
-		if (!save_player(1)) Destroy_connection(p_ptr->conn, "Server shutdown (save failed)");
+		if (!player_leave(1)) player_kill(1, "Server shutdown (save failed)");
 
 		/* Successful save */
-		Destroy_connection(p_ptr->conn, "Server shutdown (save succeeded)");
+		player_kill(1, "Server shutdown (save succeeded)");
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */
@@ -2612,7 +2576,7 @@ void shutdown_server(void)
 	if (!save_server_info()) quit("Server state save failed!");
 
 	/* Tell the metaserver that we're gone */
-	Report_to_meta(META_DIE);
+	//Report_to_meta(META_DIE);
 
 	quit("Server state saved");
 }

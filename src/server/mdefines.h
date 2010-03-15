@@ -124,6 +124,11 @@
 #define debug(M) clog(debug, (M))
 #define cheat(M) clog(cheat, (M))
 
+/* Transitional networking helpers */
+#define ConnPlayers(IND) players->list[IND]->data2
+#define NumPlayers p_max
+#define Players p_list
+
 /* 
  * Stream-related 
  */

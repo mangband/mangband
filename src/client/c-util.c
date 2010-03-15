@@ -256,7 +256,41 @@ static char inkey_aux(void)
 	cptr	pat, act;
 
 	char	buf[1024];
+	
 
+	/* Fetch keypress */
+	/* Unset hack before we start */
+	inkey_exit = FALSE;
+
+	/* Wait for keypress, while also checking for net input */
+	do
+	{
+		int result;
+
+		/* Look for a keypress */
+		(void)(Term_inkey(&chkey, FALSE, TRUE));
+		ch = chkey.key;
+
+		/* If we got a key, break */
+		if (ch) break;
+
+		/* Do networking */
+		network_loop();
+
+		/* Update our timer and if neccecary send a keepalive packet
+		 */
+		//update_ticks();
+		//do_keepalive();
+		/* Hack: perform emergency network-ordered escape */
+		if (inkey_exit)
+		{
+			inkey_exit = FALSE;
+			return (ESCAPE);
+		}
+	} while (!ch);
+
+	
+#if 0
 	int net_fd;
 
 	/* Acquire and save maximum file descriptor */
@@ -355,6 +389,7 @@ static char inkey_aux(void)
 			}
 		} while (!ch);
 	}
+#endif
 
 
 	/* End of internal macro */

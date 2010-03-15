@@ -18,6 +18,7 @@
 #define PKT_END			11
 #define PKT_KEEPALIVE		12
 #define PKT_STRUCT_INFO		13
+#define PKT_LOGIN	14
 
 
 /* Packet types 20-59 are info that is sent to the client */
@@ -279,15 +280,20 @@
 #define NTERM_WIN_NONE  	0xFF
 
 /*
- * Some commands send to the server
- */
-#define ENTER_GAME_pack	0x00
-#define CONTACT_pack	0x31
-
-/*
  * Connection types
  */
-#define CONNTYPE_PLAYER	0x00
-#define CONNTYPE_CONSOLE	0x01
-#define CONNTYPE_MONITOR	0x02
+#define CONNTYPE_PLAYER 	0x01
+#define CONNTYPE_CONSOLE	0x02
+#define CONNTYPE_OLDPLAYER	0x00
 #define CONNTYPE_ERROR		0xFF
+
+/* 
+ * Player states 
+ */
+#define PLAYER_EMPTY	0 /* Freshly allocated structure, empty */
+#define PLAYER_NAMED	1 /* Empty structure with name & password fields filled */
+#define PLAYER_SHAPED	2 /* Name, race, class, sex and stat order are filled (ready for roll) */
+#define PLAYER_BONE 	3 /* A complete (but dead) character (ready for roll/resurrect)  */
+#define PLAYER_FULL 	4 /* A complete and living character, ready for playing */
+#define PLAYER_PLAYING 	5 /* -Playing the game- */
+#define PLAYER_LEAVING 	6 /* Leaving the game */

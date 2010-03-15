@@ -52,40 +52,58 @@
  *
  * ----------------------------------------------------------------------------
  *
- * Mangband uses part of the TRACE project.
- * "Copyright (C) 1991 by Arne Helme, The TRACE project
+ * MAngband uses "RSA Data Security, Inc. MD5 Message-Digest Algorithm"
+ * to compute it's MD5 hashes, avaliable under following license:
+ * Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All
+ * rights reserved.
+ * 
+ * License to copy and use this software is granted provided that it
+ * is identified as the "RSA Data Security, Inc. MD5 Message-Digest
+ * Algorithm" in all material mentioning or referencing this software
+ * or this function.
  *
- * Rights to use this source is granted for all non-commercial and research
- * uses. Creation of derivate forms of this software may be subject to
- * restriction. Please obtain written permission from the author.
+ * License is also granted to make and use derivative works provided
+ * that such works are identified as "derived from the RSA Data
+ * Security, Inc. MD5 Message-Digest Algorithm" in all material
+ * mentioning or referencing the derived work.
  *
- * This software is provided "as is" without any express or implied warranty."
+ * RSA Data Security, Inc. makes no representations concerning either
+ * the merchantability of this software or the suitability of this
+ * software for any particular purpose. It is provided "as is"
+ * without express or implied warranty of any kind.
  *
+ * These notices must be retained in any copies of any part of this
+ * documentation and/or software.
+ * 
  * ----------------------------------------------------------------------------
- * 
- * Mangband at least once used portions of the XPilot system. 
- * Though these have been largely replaced, their copyright 
- * appears below for mostly historical reasons.
- * "Copyright (C) 1991-95 by
- * 
- *      Bjørn Stabell        (bjoerns@staff.cs.uit.no)
- *      Ken Ronny Schouten   (kenrsc@stud.cs.uit.no)
- *      Bert Gÿsbers         (bert@mc.bio.uva.nl)
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MAngband uses portions of networking code covered by this license:
+ * Copyright (c) 2010 Vitaly Driedfruit. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions
+ * are met:
  * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA."
+ * 1. Redistributions of source code must retain the above copyright 
+ *    notice, this list of conditions and the following disclaimer.
  * 
+ * 2. Redistributions in binary form must reproduce the above copyright 
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Vitaly Driedfruit ``AS IS'' AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Vitaly Driedfruit OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+ * SUCH DAMAGE.
+ *
  * ----------------------------------------------------------------------------
  *
  * This software may be copied and distributed for educational, research, and not for 
@@ -95,8 +113,9 @@
  * available upon request, and accurate instructions for doing so must be provided 
  * with those works.
  *
- * Mangband is distributed for entertainment, educational, and not for profit purposes only,
- * in the hope that it will be useful.  No warentee is provided whatsoever, express, or implied.
+ * Mangband is distributed for entertainment, educational, and not for profit 
+ * purposes only, in the hope that it will be useful.  No warentee is provided
+ * whatsoever, express, or implied.
  *
  * The MAngband license ends here.
  *

@@ -52,9 +52,8 @@ static s16b		stat_use[6];
  *
  * The "p_ptr->maximize" code is important	-BEN-
  */
-static int adjust_stat(int Ind, int value, s16b amount, int auto_roll)
+static int adjust_stat(player_type *p_ptr, int value, s16b amount, int auto_roll)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 
 	/* Negative amounts */
@@ -119,9 +118,8 @@ static int adjust_stat(int Ind, int value, s16b amount, int auto_roll)
  *
  * For efficiency, we include a chunk of "calc_bonuses()".
  */
-static void get_stats(int Ind, int stat_order[6])
+static void get_stats(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, j;
 	int		bonus;
 	int		dice[18];
@@ -136,13 +134,13 @@ static void get_stats(int Ind, int stat_order[6])
 	for (i = 0; i < 6; i++)
 	{
 		/* Check range */
-		if (stat_order[i] < 0 || stat_order[i] > 5)
+		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > 5)
 		{
-			stat_order[i] = 1;
+			p_ptr->stat_order[i] = 1;
 		}
 
 		/* Check for duplicated entries */
-		if (stats[stat_order[i]] == 1)
+		if (stats[p_ptr->stat_order[i]] == 1)
 		{
 			/* Find a stat that hasn't been specified yet */
 			for (j = 0; j < 6; j++)
@@ -150,12 +148,12 @@ static void get_stats(int Ind, int stat_order[6])
 				if (stats[j])
 					continue;
 
-				stat_order[i] = j;
+				p_ptr->stat_order[i] = j;
 			}
 		}
 
 		/* Set flag */
-		stats[stat_order[i]] = 1;
+		stats[p_ptr->stat_order[i]] = 1;
 	}
 
     /* Ensure that the primary stat is 17, secondary stat >= 16 and
@@ -217,7 +215,7 @@ static void get_stats(int Ind, int stat_order[6])
 	/* Now, put them in the correct order */
 	for (i = 0; i < 6; i++)
 	{
-		p_ptr->stat_max[stat_order[i]] = stats[i];
+		p_ptr->stat_max[p_ptr->stat_order[i]] = stats[i];
 	}
 
 	/* Adjust the stats */
@@ -240,7 +238,7 @@ static void get_stats(int Ind, int stat_order[6])
 		else
 		{
 			/* Apply the bonus to the stat (somewhat randomly) */
-			stat_use[i] = adjust_stat(Ind, p_ptr->stat_max[i], bonus, FALSE);
+			stat_use[i] = adjust_stat(p_ptr, p_ptr->stat_max[i], bonus, FALSE);
 
 			/* Save the resulting stat maximum */
 			p_ptr->stat_cur[i] = p_ptr->stat_max[i] = stat_use[i];
@@ -252,9 +250,8 @@ static void get_stats(int Ind, int stat_order[6])
 /*
  * Roll for some info that the auto-roller ignores
  */
-static void get_extra(int Ind)
+static void get_extra(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, j, min_value, max_value;
 
 
@@ -307,9 +304,8 @@ static void get_extra(int Ind)
 /*
  * Get the racial history, and social class, using the "history charts".
  */
-static void get_history(int Ind)
+static void get_history(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, n, chart, roll, social_class;
 
 	char	*s, *t, *p;
@@ -440,10 +436,8 @@ static void get_history(int Ind)
 /*
  * Computes character's age, height, and weight
  */
-static void get_ahw(int Ind)
+static void get_ahw(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Calculate the age */
 	p_ptr->age = p_ptr->rp_ptr->b_age + randint(p_ptr->rp_ptr->m_age);
 
@@ -468,9 +462,8 @@ static void get_ahw(int Ind)
 /*
  * Get the player's starting money
  */
-static void get_money(int Ind)
+static void get_money(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int        i, gold;
 
 	/* Social Class determines starting gold */
@@ -502,13 +495,12 @@ static void get_money(int Ind)
 /*
  * Clear all the global "character" data
  */
-static void player_wipe(int Ind)
+void player_wipe(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type *old_inven;
 	monster_lore *old_lore;
 	monster_lore *l_ptr;
-	byte *old_channels;
+	//byte *old_channels;
 	byte *old_arts;
 	bool *old_obj_aware;
 	bool *old_obj_tried;
@@ -521,7 +513,7 @@ static void player_wipe(int Ind)
 	/* Hack -- save pointers */
 	old_inven = p_ptr->inventory;
 	old_lore = p_ptr->l_list;
-	old_channels = p_ptr->on_channel;
+	//old_channels = p_ptr->on_channel;
 	old_arts = p_ptr->a_info;
 	old_obj_aware = p_ptr->obj_aware;
 	old_obj_tried = p_ptr->obj_tried;
@@ -540,7 +532,7 @@ static void player_wipe(int Ind)
 	/* Hack -- restore pointers */
 	p_ptr->inventory = old_inven;
 	p_ptr->l_list = old_lore;
-	p_ptr->on_channel = old_channels;
+	//p_ptr->on_channel = old_channels;
 	p_ptr->a_info = old_arts;
 	p_ptr->obj_aware = old_obj_aware;
 	p_ptr->obj_tried = old_obj_tried;
@@ -606,16 +598,13 @@ static void player_wipe(int Ind)
 		p_ptr->spell_order[i] = 99;
 	}
 
-
 	/* Assume no winning game */
 	p_ptr->total_winner = FALSE;
-
-	/* Assume no panic save */
-	panic_save = 0;
 
 	/* Assume no cheating */
 	p_ptr->noscore = 0;
 	
+
 	/* Feelings don't carry-on between saves (sorry) */
 	p_ptr->feeling = 0;
 
@@ -744,7 +733,7 @@ static void player_outfit(int Ind)
 	}
 }
 
-static void player_setup(int Ind)
+void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
@@ -1080,9 +1069,9 @@ void player_free(player_type *p_ptr)
  * Note that we may be called with "junk" leftover in the various
  * fields, so we must be sure to clear them first.
  */
-bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[6])
+bool player_birth(int ind, int race, int class, int sex, int stat_order[6])
 {
-	player_type *p_ptr;
+	player_type *p_ptr = ConnPlayers(ind);
 	int i;
 
 	/* Do some consistency checks */
@@ -1090,60 +1079,11 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	if (class < 0 || class >= z_info->c_max) class = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
-	/* Allocate player and set pointer */
-	p_ptr = player_alloc();
-	Players[Ind] = p_ptr;
-
-	/* Copy channels pointer */
-	p_ptr->on_channel = Conn_get_console_channels(conn);
-
-	/* Clear old information */
-	player_wipe(Ind);
-
-	/* Copy his name and connection info */
-	strcpy(p_ptr->name, name);
-	strcpy(p_ptr->pass, pass);
-	p_ptr->conn = conn;
-
-	/* DM powers? */
-	player_admin(Ind);
-
-	/* Verify his name and create a savefile name */
-	if (!process_player_name(Ind, TRUE)) return FALSE;
-
-	/* Attempt to load from a savefile */
-	character_loaded = FALSE;
-
-	/* Try to load */
-	if (!load_player(Ind))
-	{
-		/* Loading failed badly */
-		return FALSE;
-	}
-
-	/* Did loading succeed? */
-	if (character_loaded)
-	{
-		/* Loading succeeded */		
-		player_setup(Ind);
-		return TRUE;		
-	}
-
-	/* Else, loading failed, but we just create a new character */
-
-	/* Hack -- rewipe the player info if load failed */
-	player_wipe(Ind);
-
-	/* Copy his name and connection info */
-	strcpy(p_ptr->name, name);
-	strcpy(p_ptr->pass, pass);
-	p_ptr->conn = conn;
-
 	/* Reprocess his name */
-	if (!process_player_name(Ind, TRUE)) return FALSE;
+	//if (!process_player_name(Ind, TRUE)) return FALSE;
 
 	/* DM powers? */
-	player_admin(Ind);
+	//player_admin(Ind);
 
 	/* Set info */
 	p_ptr->prace = race;
@@ -1168,19 +1108,19 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	p_ptr->birth_turn = turn;
 
 	/* No autoroller */
-	get_stats(Ind, stat_order);
+	get_stats(p_ptr);
 
 	/* Roll for base hitpoints */
-	get_extra(Ind);
+	get_extra(p_ptr);
 
 	/* Roll for age/height/weight */
-	get_ahw(Ind);
+	get_ahw(p_ptr);
 
 	/* Roll for social class */
-	get_history(Ind);
+	get_history(p_ptr);
 
 	/* Roll for gold */
-	get_money(Ind);
+	get_money(p_ptr);
 	
 	/* Hack -- grant some Dungeon Master powers */
 	if (is_dm_p(p_ptr))
@@ -1196,7 +1136,7 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	}
 
 	/* Hack -- outfit the player */
-	player_outfit(Ind);
+//	player_outfit(p_ptr);
 	
 	/* Hack -- Give him "awareness" of certain objects */
 	for (i = 0; i < z_info->k_max; i++) 
@@ -1211,7 +1151,7 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	}
 
 	/* Set his location, panel, etc. */
-	player_setup(Ind);
+	//player_setup(Ind);
 
 	/* Success */
 	return TRUE;
@@ -1249,29 +1189,4 @@ void server_birth(void)
 
 	/* First player's ID should be 1 */
 	player_id = 1;
-}
-
-/*
- * Check if we can work with this version.
- * Add more interesting checks if needed
- */
-bool client_version_ok(u16b version)
-{
-	if (version == SERVER_VERSION) 
-		return TRUE;
-	else
-		return FALSE;
-}
-
-/*
- * Check if the given connection type is valid.
- */
-u16b connection_type_ok(u16b conntype)
-{
-	if (conntype == CONNTYPE_PLAYER)
-		return CONNTYPE_PLAYER;
-	if (conntype == 8202 || conntype == 8205)
-		return CONNTYPE_CONSOLE;
-
-	return CONNTYPE_ERROR;
 }

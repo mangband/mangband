@@ -1264,10 +1264,8 @@ int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
  * Note that we always try to load the "current" savefile, even if
  * there is no such file, so we must check for "empty" savefile names.
  */
-bool load_player(int Ind)
+bool load_player(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		fd = -1;
 
 	errr	err = 0;
@@ -1278,6 +1276,7 @@ bool load_player(int Ind)
 
 
 	/* Paranoia */
+	character_loaded = FALSE;
 	/*turn = 0;*/
 
 	/* Paranoia */
@@ -1379,7 +1378,7 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Attempt to load */
-		err = rd_savefile_new(Ind);
+		err = rd_savefile_new(p_ptr);
 
 		/* Message (below) */
 		if (err) what = "Cannot parse savefile";

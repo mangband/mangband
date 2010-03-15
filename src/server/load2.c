@@ -705,11 +705,10 @@ static void rd_monster(monster_type *m_ptr)
 /*
  * Read the monster lore
  */
-static void rd_lore(int Ind, int r_idx)
+static void rd_lore(player_type *p_ptr, int r_idx)
 {
 	int i;
 	
-	player_type *p_ptr = Players[Ind];
 	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
 	start_section_read("lore");
@@ -951,10 +950,8 @@ static void rd_wild(int n)
  * Read/Write the "extra" information
  */
 
-static bool rd_extra(int Ind, bool had_header)
+static bool rd_extra(player_type *p_ptr, bool had_header)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i = 0;
 
 	start_section_read("player");
@@ -1120,10 +1117,8 @@ static bool rd_extra(int Ind, bool had_header)
  *
  * Note that the inventory is "re-sorted" later by "dungeon()".
  */
-static errr rd_inventory(int Ind)
+static errr rd_inventory(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int slot = 0;
 
 	object_type forge;
@@ -1214,9 +1209,8 @@ static errr rd_inventory(int Ind)
  *
  * Note that this function is responsible for deleting stale entries
  */
-static errr rd_hostilities(int Ind)
+static errr rd_hostilities(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	hostile_type *h_ptr;
 	int i;
 	s32b id;
@@ -1458,9 +1452,8 @@ bool rd_dungeon_special_ext(int Depth, cptr levelname)
  * format.  Simmilar to the above function.
  */
 
-static errr rd_cave_memory(int Ind)
+static errr rd_cave_memory(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	u16b max_y, max_x;
 	int y, x;
 	char cave_row[MAX_WID+1];
@@ -1615,10 +1608,8 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *cla
  * Actually read the savefile
  *
  */
-static errr rd_savefile_new_aux(int Ind)
+static errr rd_savefile_new_aux(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 	u16b tmp16u;
@@ -1694,7 +1685,7 @@ static errr rd_savefile_new_aux(int Ind)
 	for (i = 0; i < tmp16u; i++)
 	{
 		/* Read the lore */
-		rd_lore(Ind, i);
+		rd_lore(p_ptr, i);
 	}
 	end_section_read("monster_lore");
 	}
@@ -1717,15 +1708,15 @@ static errr rd_savefile_new_aux(int Ind)
 
 		tmp8u = read_int("flags");
 
-		Players[Ind]->obj_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
-		Players[Ind]->obj_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
+		p_ptr->obj_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
+		p_ptr->obj_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
 	}
 	end_section_read("object_memory");
 
 	/*if (arg_fiddle) note("Loaded Object Memory");*/
 
 	/* Read the extra stuff */
-	rd_extra(Ind, had_header);
+	rd_extra(p_ptr, had_header);
 
 	/*if (arg_fiddle) note("Loaded extra information");*/
 
@@ -1804,18 +1795,18 @@ static errr rd_savefile_new_aux(int Ind)
 	end_section_read("spell_order");
 
 	/* Read the inventory */
-	if (rd_inventory(Ind))
+	if (rd_inventory(p_ptr))
 	{
 		/*note("Unable to read inventory");*/
 		return (21);
 	}
 
 	/* Read hostility information if new enough */
-	if (rd_hostilities(Ind))
+	if (rd_hostilities(p_ptr))
 	{
 		return (22);
 	}
-	rd_cave_memory(Ind);
+	rd_cave_memory(p_ptr);
 	
 	/* read the wilderness map */
 	start_section_read("wilderness");
@@ -1929,10 +1920,8 @@ static errr rd_savefile_new_aux(int Ind)
  * Angband 2.8.0 will completely replace this code, see "save.c",
  * though this code will be kept to read pre-2.8.0 savefiles.
  */
-errr rd_savefile_new(int Ind)
+errr rd_savefile_new(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	errr err;
 
 	/* The savefile is a text file */
@@ -1942,7 +1931,7 @@ errr rd_savefile_new(int Ind)
 	if (!file_handle) return (-1);
 
 	/* Call the sub-function */
-	err = rd_savefile_new_aux(Ind);
+	err = rd_savefile_new_aux(p_ptr);
 
 	/* Check for errors */
 	if (ferror(file_handle)) err = -1;

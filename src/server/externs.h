@@ -12,19 +12,6 @@
  * Automatically generated "variable" declarations
  */
 
-/* #include "netserver.h" */
-
-/* netserver.c */
-extern int NumPlayers;
-extern int process_pending_commands(int Ind);
-extern int max_connections;
-extern void* console_buffer(int ind, bool read);
-extern bool Conn_is_alive(int ind);
-extern void Conn_set_console_setting(int ind, int set, bool val);
-extern bool Conn_get_console_setting(int ind, int set);
-extern byte* Conn_get_console_channels(int ind);
-extern int Init_setup();
-
 /* tables.c */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
 const stream_type streams[MAX_STREAMS];
@@ -85,6 +72,7 @@ extern byte version_major;
 extern byte version_minor;
 extern byte version_patch;
 extern byte version_extra;
+extern u16b shutdown_timer;
 extern u32b sf_xtra;
 extern u32b sf_when;
 extern u16b sf_lives;
@@ -162,6 +150,7 @@ extern s32b o_max;
 extern s32b m_max;
 extern s32b o_top;
 extern s32b m_top;
+extern s32b p_max;
 extern maxima *z_info;
 extern u32b eq_name_size;
 
@@ -225,11 +214,11 @@ extern s16b target_col;
 extern s16b target_row;*/
 /* extern s16b health_who; */
 extern s16b recent_idx;
+extern element_group* players;
 extern int player_uid;
 extern int player_euid;
 extern int player_egid;
 extern int player_textout;
-extern player_type **Players;
 extern party_type parties[MAX_PARTIES];
 extern channel_type channels[MAX_CHANNELS];
 extern house_type houses[MAX_HOUSES];
@@ -279,6 +268,7 @@ extern cave_type ***cave;
 extern wilderness_type *wild_info;
 extern object_type *o_list;
 extern monster_type *m_list;
+extern player_type **p_list;
 extern quest q_list[MAX_Q_IDX];
 extern store_type *store;
 /*extern object_type *inventory;*/
@@ -376,11 +366,12 @@ extern const player_sex sex_info[MAX_SEXES];
  */
 
 /* birth.c */
+extern player_type* player_alloc(void);
 extern void player_free(player_type *p_ptr);
-extern bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[]);
+extern void player_wipe(player_type *p_ptr);
+extern bool player_birth(int ind, int race, int class, int sex, int stat_order[]);
 extern void server_birth(void);
-extern bool client_version_ok(u16b version);
-extern u16b connection_type_ok(u16b version);
+extern void player_setup(int Ind);
 
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);
@@ -574,7 +565,7 @@ extern int file_peruse_next(int Ind, char query, int next);
 extern void common_file_peruse(int Ind, char query);
 extern void copy_file_info(int Ind, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
-extern bool process_player_name(int Ind, bool sf);
+extern bool process_player_name(player_type *p_ptr, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);
 extern void get_name(int Ind);
 extern void do_cmd_suicide(int Ind);
@@ -628,7 +619,7 @@ extern void cleanup_angband(void);
 /*extern errr rd_savefile_old(void);*/
 
 /* load2.c */
-extern errr rd_savefile_new(int Ind);
+extern errr rd_savefile_new(player_type *p_ptr);
 extern errr rd_server_savefile(void);
 extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex);
 extern bool rd_dungeon_special_ext(int Depth, cptr levelname);
@@ -679,77 +670,68 @@ extern bool monster_can_carry(int m_idx);
 extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
-/* netserver.c */
-/*extern void Contact(int fd, void *arg);*/
-extern int Net_input(void);
-extern int Net_output(void);
-extern void setup_contact_socket(void);
-extern bool Report_to_meta(int flag);
-extern int Setup_net_server(void);
-extern void Stop_net_server(void);
-extern bool Destroy_connection(int Ind, char *reason);
-extern int Send_plusses(int Ind, int tohit, int todam);
-extern int Send_oppose(int ind, int acid, int elec, int fire, int cold, int pois);
-extern int Send_ac(int Ind, int base, int plus);
-extern int Send_experience(int Ind, int lev, int max_exp, int cur_exp, s32b adv_exp);
-extern int Send_gold(int Ind, s32b gold);
-extern int Send_hp(int Ind, int mhp, int chp);
-extern int Send_sp(int Ind, int msp, int csp);
-extern int Send_char_info(int Ind, int race, int class, int sex);
-extern int Send_various(int Ind, int height, int weight, int age, int sc);
-extern int Send_stat(int Ind, int stat, int max, int cur);
-extern int Send_maxstat(int Ind, int stat, int max);
-extern int Send_objflags(int Ind, int line);
-extern int Send_history(int Ind, int line, cptr hist);
-extern int Send_floor(int ind, byte attr, int amt, byte tval, byte flag, cptr name);
-extern int Send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name);
-extern int Send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name);
-extern int Send_title(int Ind, cptr title);
-/*extern int Send_level(int Ind, int max, int cur);*/
-/*extern void Send_exp(int Ind, s32b max, s32b cur);*/
-extern int Send_depth(int Ind, int depth);
-extern int Send_food(int Ind, int food);
-extern int Send_blind(int Ind, bool blind);
-extern int Send_confused(int Ind, bool confused);
-extern int Send_fear(int Ind, bool afraid);
-extern int Send_poison(int Ind, bool poisoned);
-extern int Send_paralyzed(int Ind, bool paralyzed);
-extern int Send_searching(int Ind, bool searching);
-extern int Send_speed(int Ind, int speed);
-extern int Send_study(int Ind, bool study);
-extern int Send_cut(int Ind, int cut);
-extern int Send_stun(int Ind, int stun);
-extern int Send_direction(int Ind);
-extern int Send_message(int Ind, cptr msg, u16b typ);
-extern int Stream_line_as(int ind, int st, int y, int as_y);
-extern int Stream_char(int ind, int st, int y, int x);
-extern int Stream_char_raw(int ind, int st, int y, int x, byte a, char c, byte ta, char tc);
-/*extern int Send_char(int Ind, int x, int y, byte a, char c, byte ta, char tc);*/
-extern int Send_spell_info(int Ind, int book, int i, byte flag, cptr out_val);
-extern int Send_item_request(int Ind, byte tval_hook);
-extern int Send_state(int Ind, bool paralyzed, bool searching, bool resting);
-extern int Send_flush(int Ind);
-extern int Send_term_info(int Ind, int mode, u16b arg);
-/*extern int Send_line_info(int Ind, int y);*/
-/*extern int Send_mini_map(int Ind, int y, s16b w);*/
-/*extern int Send_remote_line(int Ind, int y);*/
-extern int Send_store(int Ind, char pos, byte attr, int wgt, int number, int price, cptr name);
-extern int Send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
-extern int Send_store_sell(int Ind, int price);
-extern int Send_store_leave(int Ind);
-extern int Send_target_info(int ind, int x, int y, cptr buf);
-extern int Send_sound(int ind, int sound);
-/*extern int Send_special_line(int ind, int max, int line, byte attr, cptr buf);*/
-/*extern int Send_special_line(int ind, int line, int y);*/
-extern int Send_pickup_check(int ind, cptr buf);
-extern int Send_party(int ind);
-extern int Send_channel(int ind, int n, cptr virtual);
-extern int Send_special_other(int ind, char *header);
-extern int Send_skills(int ind);
-extern int Send_pause(int ind);
-extern int Send_monster_health(int ind, int num, byte attr);
-extern int Send_cursor(int ind, char vis, char x, char y);
-extern void Handle_direction(int Ind, int dir);
+// Transitional network hacks
+#define Send_play(IND, A) send_play(PConn[IND], A)
+#define Send_term_info(IND, A, B) plog("Send_term_info unimplemented\n")
+#define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
+#define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
+#define Send_direction(IND) plog("Send_direction unimplemented\n")
+#define Send_spell_info(IND, book, i, flag, out_val) plog("Send_spell_info unimplemented\n")
+#define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
+#define Stream_line_as(IND, st, y, as_y) plog("Stream_line_as unimplemented\n")
+#define Stream_char_raw(IND, st, y, x, a, c, ta, tc) plog("Stream_char_raw unimplemented\n")
+#define Send_monster_health(IND, num, attr) plog("Send_monster_health unimplemented\n")
+#define Send_char_info(IND, race, class, sex) plog("Send_char_info unimplemented\n")
+#define Send_gold(IND, au) plog("Send_gold unimplemented\n")
+#define Send_experience(IND, lev, max, cur, adv) plog("Send_experience unimplemented\n")
+#define Send_history(IND, line, hist) plog("Send_history unimplemented\n")
+#define Send_floor(IND, attr, amt, tval, flag, name) plog("Send_floor unimplemented\n")
+#define Send_equip(IND, pos, attr, wgt, tval, flag, name) plog("Send_equip unimplemented\n")
+#define Send_inven(IND, pos, attr, wgt, amt, tval, flag, name) plog("Send_inven unimplemented\n")
+#define Send_poison(IND, poisoned) plog("Send_poison unimplemented\n")
+#define Send_fear(IND, fear) plog("Send_fear unimplemented\n")
+#define Send_blind(IND, blind) plog("Send_blind unimplemented\n")
+#define Send_confused(IND, confused) plog("Send_confused unimplemented\n")
+#define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
+#define Send_sp(IND, msp, csp)  plog("Send_sp unimplemented\n")
+#define Send_study(IND, study)  plog("Send_study unimplemented\n")
+#define Send_cut(IND, cut)  plog("Send_cut unimplemented\n")
+#define Send_skills(IND) plog("Send_skills unimplemented\n")
+#define Send_depth(IND,depth) plog("Send_depth unimplemented\n")
+#define Send_hp(IND,mhp,chp) plog("Send_hp unimplemented\n")
+#define Send_various(IND,hgt,wgt,age,sc) plog("Send_various unimplemented\n")
+#define Send_food(IND,food) plog("Send_food unimplemented\n")
+#define Send_speed(IND,speed) plog("Send_speed unimplemented\n")
+#define Send_state(IND,paralyzed,searching,resting) plog("Send_state unimplemented\n")
+#define Send_stun(IND,stun) plog("Send_stun unimplemented\n")
+#define Send_oppose(IND,acid,elec,fire,cold,pois) plog("Send_oppose unimplemented\n")
+#define Send_sound(IND, sound) plog("Send_sound unimplemented\n") 
+#define Send_stat(IND, stat, max, cur) plog("Send_stat unimplemented\n")
+#define Send_maxstat(IND, stat, max) plog("Send_maxstat unimplemented\n")
+#define Send_plusses(IND, tohit, todam) plog("Send_plusses unimplemented\n")
+#define Send_objflags(IND, line) plog("Send_objflags unimplemented\n")
+#define Send_ac(IND, base, plus) plog("Send_ac unimplemented\n")
+#define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
+#define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
+#define Send_title(IND, title) plog("Send_title unimplemented\n")
+#define Send_special_other(IND, header) plog("Send_special_other unimplemented\n")
+#define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
+#define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
+#define Send_flush(IND) plog("Send_flush unimplemented\n")
+#define Send_pause(IND) plog("Send_pause unimplemented\n")
+#define Send_party(IND) plog("Send_party unimplemented\n")
+#define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
+#define Send_store_sell(IND, price) plog("Send_store_sell unimplemented\n")
+#define Stream_char(IND, st, y, x) plog("Stream_char unimplemented\n")
+#define Send_pickup_check(IND, buf) plog("Send_pickup_check unimplemented\n");
+
+/* net-server.c */
+extern void setup_network_server();
+extern void network_loop();
+extern void close_network_server();
+
+/* net-game.c */
+extern int process_player_commands(int ind);
 
 
 /* obj-info.c */
@@ -855,7 +837,7 @@ extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge,
 /* save.c */
 extern bool save_player(int Ind);
 extern int scoop_player(char *nick, char *pass, int *race, int *class, int *sex);
-extern bool load_player(int Ind);
+extern bool load_player(player_type *p_ptr);
 extern bool load_server_info(void);
 extern bool save_server_info(void);
 extern bool wr_dungeon_special_ext(int Depth, cptr levelname);

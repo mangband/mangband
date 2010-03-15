@@ -12,6 +12,8 @@
 
 #include "mangband.h"
 
+#define TOGGLE_BIT(WHAT, BIT) (WHAT) ^= (BIT)
+
 int get_player(int Ind, object_type *o_ptr)
 {
 	/* player_type *p_ptr = Players[Ind]; */
@@ -2695,7 +2697,7 @@ void player_funeral(int Ind, char *reason)
 	add_high_score(Ind);
 
 	/* Get rid of him */
-	Destroy_connection(p_ptr->conn, reason);
+	//\\Destroy_connection(Conn[p_ptr->conn], reason);
 
 	/* Done */
 	return;

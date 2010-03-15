@@ -37,6 +37,8 @@ byte version_patch = SERVER_VERSION_PATCH;
 byte version_extra = SERVER_VERSION_EXTRA;
 
 
+u16b shutdown_timer;	/* Shutdown server in (seconds) */
+
 /*
  * Hack -- Savefile information
  */
@@ -159,6 +161,7 @@ s32b m_max = 1;			/* Monster heap size */
 s32b o_top = 0;			/* Object top size */
 s32b m_top = 0;			/* Monster top size */
 
+s32b p_max = 0;			/* Player heap size */ 
 
 /*
  * Server options, set in mangband.cfg
@@ -243,6 +246,9 @@ s16b health_who;
 s16b recent_idx;
 
 
+
+/* Collection of connections/players */
+element_group* players = NULL;
 
 /* User info */
 int player_uid = 0;
@@ -444,6 +450,11 @@ object_type *o_list;
  * The array of dungeon monsters [MAX_M_IDX]
  */
 monster_type *m_list;
+
+/*
+ * The array of dungeon players [MAX_PLAYERS]
+ */
+player_type **p_list;
 
 /*
  * Hack -- Quest array

@@ -47,6 +47,7 @@
  * Note that the externs are NOT common.
  */
 #include "../common/defines.h"
+#include "../common/net-basics.h"
 #include "../common/types.h"
 #ifdef CLIENT
 #include "../client/c-defines.h"

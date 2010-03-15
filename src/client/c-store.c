@@ -500,44 +500,7 @@ void display_store(void)
                 /* Prompt */
                 prt("You may: ", 21, 0);
 
-		/* Get a command */
-		while (!command_cmd && !leave_store)
-		{
-			/* Re-fresh the screen */
-			Term_fresh();
-
-			/* Update our timer and send a keepalive packet if
-			 * neccecary */
-			update_ticks();
-			do_keepalive();
-
-			if (Net_flush() == -1)
-			{
-				plog("Bad net flush");
-				return;
-			}
-
-			/* Set the timeout */
-			SetTimeout(0, 1000);
-
-			/* Only take input if we got some */
-			if (SocketReadable(Net_fd()))
-				if (Net_input() == -1)
-					return;
-
-	                /* Get a command */
-	                request_command(TRUE);
-
-			/* Flush */
-			flush_now();
-
-			/* Redraw windows if necessary */
-			if (p_ptr->window)
-			{
-				window_stuff();
-			}
-		}
-		
+		command_cmd =inkey();		
 		if (command_cmd)
 		{
 			/* Process the command */

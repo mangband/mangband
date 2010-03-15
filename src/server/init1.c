@@ -1075,7 +1075,6 @@ errr parse_c_info(char *buf, header *head)
 	static int cur_title = 0;
 	static int cur_equip = 0;
 
-
 	/* Process 'N' for "New/Number/Name" */
 	if (buf[0] == 'N')
 	{

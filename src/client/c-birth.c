@@ -364,6 +364,9 @@ void get_char_name(void)
 
 	/* Enter password */
 	enter_password();
+	
+	/* Capitalize the name */
+	nick[0] = toupper(nick[0]);
 
 	/* Message */
 	put_str("Connecting to server....", 21, 1);
@@ -456,6 +459,8 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
+return enter_server_name();//TODO:: FIX THIS!
+#if 0
 	int i, j, y, bytes, socket, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
@@ -584,4 +589,5 @@ bool get_server_name(void)
 
 	/* Success */
 	return TRUE;
+#endif
 }

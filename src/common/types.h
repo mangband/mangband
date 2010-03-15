@@ -1182,12 +1182,17 @@ struct player_type
 	char hostname[MAX_CHARS];	/* His hostname */
 	char addr[MAX_CHARS];		/* His IP address */
 	unsigned int version;		/* His version */
+	
+	int state;	/* Player state, see "pack.h" */
+	int idle; /* Number of seconds this player is idle */
+	cq cbuf; /* Command Queue */
 
 	s32b id;		/* Unique ID to each player */
 
 	hostile_type *hostile;	/* List of players we wish to attack */
 
 	char savefile[1024];	/* Name of the savefile */
+	int stat_order[6];
 
 	bool alive;		/* Are we alive */
 	bool death;		/* Have we died */
@@ -1392,7 +1397,7 @@ struct player_type
 	
 	u16b main_channel; /* main chat channel the player is in */
 	char second_channel[80]; /* where his legacy 'privates' are sent */	
-	byte *on_channel; /* listening to what channels */
+	byte on_channel[MAX_CHANNELS]; /* listening to what channels */
 	
 	u16b total_winner;	/* Is this guy the winner */
 	u16b retire_timer;	/* The number of minutes this guy can play until

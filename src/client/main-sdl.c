@@ -131,7 +131,7 @@ struct term_data
 	errr (*pict_hook)(int x, int y, byte a, char c);
 };
 
-static term_data data[ANGBAND_TERM_MAX];
+static term_data tdata[ANGBAND_TERM_MAX];
 
 
 /* XXX XXX SDL surface + window size and params */
@@ -352,10 +352,10 @@ int pick_term(int x, int y)
 	int i = 0;
 	for (i = ANGBAND_TERM_MAX; i > -1; i--) {
 	
-		if (!data[i].online) continue;
+		if (!tdata[i].online) continue;
 		
-		if (x >= data[i].xoff && x <= data[i].xoff + data[i].width &&
-			 y >= data[i].yoff && y <= data[i].yoff + data[i].height) 
+		if (x >= tdata[i].xoff && x <= tdata[i].xoff + tdata[i].width &&
+			 y >= tdata[i].yoff && y <= tdata[i].yoff + tdata[i].height) 
 		{
 			r = i;
 			break;        						
@@ -687,7 +687,7 @@ bool gui_term_grab(int i) {
 	if (i == -1) return FALSE;
 	m_term = i;
 	m_subterm = -1;
-	sel_term = &data[i];
+	sel_term = &tdata[i];
 	need_render = TRUE; /* highlight our selection */
 	return TRUE;
 }
@@ -1829,7 +1829,7 @@ static errr Term_text_sdl(int x, int y, int n, byte a, cptr s)
  */
 static void term_data_link(int i)
 {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	term *t = &(td->t);
 
 	int j = 1;
@@ -1882,7 +1882,7 @@ static void term_data_link(int i)
  * If both 'create' and 'redraw' are false, this will only clean them.
 */
 void term_rescale(int i, bool create, bool redraw) {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	
 	if (td->sfd.face) {
 		SDL_FreeSurface(td->sfd.face);
@@ -1941,14 +1941,14 @@ bool terms_collide(int i, int j) {
     int top1, top2;
     int bottom1, bottom2;
 
-    left1 = data[i].xoff;
-    left2 = data[j].xoff;
-    right1 = data[i].xoff + data[i].width;
-    right2 = data[j].xoff + data[j].width;
-    top1 = data[i].yoff;
-    top2 = data[j].yoff;
-    bottom1 = data[i].yoff + data[i].height;
-    bottom2 = data[j].yoff + data[j].height;
+    left1 = tdata[i].xoff;
+    left2 = tdata[j].xoff;
+    right1 = tdata[i].xoff + tdata[i].width;
+    right2 = tdata[j].xoff + tdata[j].width;
+    top1 = tdata[i].yoff;
+    top2 = tdata[j].yoff;
+    bottom1 = tdata[i].yoff + tdata[i].height;
+    bottom2 = tdata[j].yoff + tdata[j].height;
 
     if (bottom1 < top2) return(FALSE);
     if (top1 >= bottom2) return(FALSE);
@@ -1960,7 +1960,7 @@ bool terms_collide(int i, int j) {
 }
 
 void term_stack(int i) {
-	term_data *td = &data[i];
+	term_data *td = &tdata[i];
 	int j;
 	bool found = FALSE;
 
@@ -1975,18 +1975,18 @@ void term_stack(int i) {
 			
 			if (i == j) continue; /* Skip self */
 			
-			if (data[j].online == FALSE) continue; /* Skip offline terminals */
+			if (tdata[j].online == FALSE) continue; /* Skip offline terminals */
 			
 			/* Collision! */
 			if (terms_collide(i, j)) { 
 				/* Move right if there is still space */
-				if (td->xoff + td->width + data[j].width < width) {
-					td->xoff = td->xoff + data[j].width;
+				if (td->xoff + td->width + tdata[j].width < width) {
+					td->xoff = td->xoff + tdata[j].width;
 					found = FALSE;
 					break;
 				}
 				/* Perform a carriage return */
-				if (td->yoff + 1 + data[i].height < height) {
+				if (td->yoff + 1 + tdata[i].height < height) {
 					td->yoff = td->yoff + 1;
 					td->xoff = 0;
 					found = FALSE;
@@ -1995,7 +1995,7 @@ void term_stack(int i) {
 
 				/* Turn off! 
 				plog("turning off");
-				data[i].online = FALSE;
+				tdata[i].online = FALSE;
 				found = TRUE;
 				break; */
 			}
@@ -2005,7 +2005,7 @@ void term_stack(int i) {
 
 void term_close(int i)
 {
-	term_data *td = &data[i];
+	term_data *td = &tdata[i];
 	
 	td->online = FALSE;
 	need_render = TRUE;
@@ -2024,21 +2024,21 @@ void term_open(int j)
 	if (j == -1) return;
 
 	/* Init, if it's dead */
-	if (!data[j].name)
+	if (!tdata[j].name)
 	{
 		init_one_term(j, TRUE);
 		term_data_link(j);
 	}
 	
 	/* Link (doesn't matter if "term_data_link" was called) */
-	ang_term[j] = &data[j].t;
+	ang_term[j] = &tdata[j].t;
 
 #ifndef SINGLE_SURFACE
-	if (!data[j].face)
-		data[j].face = SDL_CreateRGBSurface(SDL_SWSURFACE, data[j].width, data[j].height, 32,0,0,0,0);
+	if (!tdata[j].face)
+		tdata[j].face = SDL_CreateRGBSurface(SDL_SWSURFACE, tdata[j].width, tdata[j].height, 32,0,0,0,0);
 #endif
 	need_render = TRUE;
-	data[j].online = TRUE;
+	tdata[j].online = TRUE;
 
 	term_redraw(j);
 	p_ptr->window |= window_flag[j];
@@ -2050,7 +2050,7 @@ bool term_spawn()
 	int j;
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
-		if (!data[j].online)
+		if (!tdata[j].online)
 		{
 			term_open(j);
 			term_stack(j);
@@ -2123,18 +2123,18 @@ void term_display_all() {
 
 	/* Bring every online terminal to front */
 	for (i = 0; i < 8; i++) {
-		if (!data[i].online) continue;
+		if (!tdata[i].online) continue;
 #ifdef SINGLE_SURFACE
 		term_redraw(i);
 #endif
-		SDL_FrontTerm(&data[i], FALSE);
+		SDL_FrontTerm(&tdata[i], FALSE);
 #ifndef SINGLE_SURFACE
-		if (data[i].cursor_on)
+		if (tdata[i].cursor_on)
 			term_cursor(i);
 #endif		
-		if (m_term == i || m_subterm == i || data[i].rows == 1)
+		if (m_term == i || m_subterm == i || tdata[i].rows == 1)
 		{	
-			term_draw_border(&data[i]);
+			term_draw_border(&tdata[i]);
 		}
 	}
 	/* SDL_Flip(bigface); */
@@ -2146,7 +2146,7 @@ void term_display_all() {
 void term_redraw(int i) {
 #ifdef SINGLE_SURFACE
 	/* Use customized redrawing function to avoid flickering caused by Term_clear() */ 
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	int y, x, ty, tx;
 	Uint8 a, c;
 		
@@ -2179,7 +2179,7 @@ void term_redraw(int i) {
 	}
 #else
 	/* Use standart Angband facilities */
-	term_data *td = &data[i];
+	term_data *td = &tdata[i];
 	
 	/* Activate the term */
 	Term_activate(&td->t);
@@ -2194,7 +2194,7 @@ void term_redraw(int i) {
 /* SDL_DrawCursor wrapper */
 void term_cursor(int i)
 {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	SDL_Rect dr;
 	if (td->cx == -1 || td->cy == -1) return;
 	SDL_GetCharRect(td, td->cx, td->cy, &dr);
@@ -2203,7 +2203,7 @@ void term_cursor(int i)
 
 void term_unload_font(int i)
 {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	bool in_use = FALSE;
 	int j;
 	
@@ -2212,8 +2212,8 @@ void term_unload_font(int i)
 	/* See if it's in use */
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
-		if (i == j || !data[j].fd) continue;
-		if (!strcmp(data[j].fd->name, data[i].fd->name))
+		if (i == j || !tdata[j].fd) continue;
+		if (!strcmp(tdata[j].fd->name, tdata[i].fd->name))
 		{
 			in_use = TRUE;
 			break;
@@ -2241,7 +2241,7 @@ void term_unload_font(int i)
 
 void term_unload_graf(int i)
 {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	if (!td->gt) return;
 	if (td->gt->face)
 	{
@@ -2260,7 +2260,7 @@ void term_unload_graf(int i)
 bool term_load_graf(int i, cptr filename, cptr maskname)
 {
 	graf_tiles *load_tiles;
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 
 	/* Some tileset allready loaded */
 	if (td->gt)
@@ -2294,7 +2294,7 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 bool term_set_font(int i, cptr fontname)
 {
 	font_data *load_font;
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	int j;
 	
 	/* Some font allready loaded */
@@ -2309,10 +2309,10 @@ bool term_set_font(int i, cptr fontname)
 	/* Attempt to use pre-loaded font */
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
-		if (i == j || !data[j].fd) continue;
-		if (!strcmp(data[j].fd->name, fontname))
+		if (i == j || !tdata[j].fd) continue;
+		if (!strcmp(tdata[j].fd->name, fontname))
 		{
-			td->fd = data[j].fd;
+			td->fd = tdata[j].fd;
 			break;
 		}	
 	}
@@ -2346,7 +2346,7 @@ bool term_set_font(int i, cptr fontname)
 /* JIC */
 void term_unload(int i)
 {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	bool need_render_hack;
 	
 	/* We do not want unloading mess with display */
@@ -2378,7 +2378,7 @@ void term_unload_ptr(term_data *td)
 {
 	int i;
 	for (i = 0; i < ANGBAND_TERM_MAX; i++) {
-		if (&(data[i]) == td) {
+		if (&(tdata[i]) == td) {
 			term_unload(i);
 			break;
 		}
@@ -2398,7 +2398,7 @@ void init_all_terms()
 	/* Clear */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
 	{
-		td = &(data[i]);
+		td = &(tdata[i]);
 		(void)WIPE(td, term_data);
 		td->name = 0;
 	}
@@ -2421,7 +2421,7 @@ bool init_one_term(int i, bool force)
 	char sec_name[30];
 	char fontname[100];
 	term_data *td;
-	td = &(data[i]);
+	td = &(tdata[i]);
 	term_name[0] = '\0';
 	
 	switch (i)
@@ -2739,7 +2739,7 @@ errr init_sdl(void)
 
 	/* Init all 'Terminals' */
 	init_all_terms();
-	td = &(data[0]);
+	td = &(tdata[0]);
 
 	/* Activate the "Angband" window screen */
 	Term_activate(term_screen);
@@ -2759,7 +2759,7 @@ errr init_sdl(void)
 }
 /* Save settings ! */
 void save_one_term(int i) {
-	term_data *td = &(data[i]);
+	term_data *td = &(tdata[i]);
 	char sec_name[30];
 	char term_name[30];
 

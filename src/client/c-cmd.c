@@ -1,5 +1,5 @@
 #include "c-angband.h"
-#include "netclient.h"
+#include "net-client.h"
 #include "../common/md5.h"
 
 /* Handle custom commands */
@@ -265,15 +265,6 @@ void process_command()
 		}
 
 		/*** Movement Commands ***/
-#ifndef COMMAND_OVERLOAD
-		/* Dig a tunnel*/
-		case '+':
-		case 'T':		
-		{
-			cmd_tunnel();
-			break;
-		}
-#endif
 		/* Move */
 		case ';':
 		{
@@ -294,86 +285,18 @@ void process_command()
 			cmd_stay();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		/* Get the mini-map */
-		case 'M':
-		{
-			cmd_map();
-			break;
-		}
-#endif
 		/* Recenter map */
 		case 'L':
 		{
 			cmd_locate();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		/* Search */
-		case 's':
-		{
-			cmd_search();
-			break;
-		}
-
-		/* Toggle Search Mode */
-		case 'S':
-		{
-			cmd_toggle_search();
-			break;
-		}
-#endif
 		/* Rest */
 		case 'R':
 		{
 			cmd_rest();
 			break;
 		}
-#ifndef COMMAND_OVERLOAD
-		/*** Stairs and doors and chests ***/
-
-		/* Go up */
-		case '<':
-		{
-			cmd_go_up();
-			break;
-		}
-
-		/* Go down */
-		case '>':
-		{
-			cmd_go_down();
-			break;
-		}
-
-		/* Open a door */
-		case 'o':
-		{
-			cmd_open();
-			break;
-		}
-
-		/* Close a door */
-		case 'c':
-		{
-			cmd_close();
-			break;
-		}
-
-		/* Bash a door */
-		case 'B':
-		{
-			cmd_bash();
-			break;
-		}
-
-		/* Disarm a trap or chest */
-		case 'D':
-		{
-			cmd_disarm();
-			break;
-		}
-#endif
 		/*** Inventory commands ***/
 		case 'i':
 		{
@@ -453,38 +376,6 @@ void process_command()
 			cmd_character();
 			break;
 		}
-#if 0
-		case '~':
-		{
-			cmd_artifacts();
-			break;
-		}
-
-		case '|':
-		{
-			cmd_uniques();
-			break;
-		}
-
-		case '@':
-		{
-			cmd_players();
-			break;
-		}
-
-		case '#':
-		{
-			cmd_knowledge();
-			/* cmd_high_scores(); */
-			break;
-		}
-
-		case '?':
-		{
-			cmd_help();
-			break;
-		}
-#endif
 		/*** Miscellaneous ***/
 		case ':':
 		{
@@ -565,18 +456,6 @@ void process_command()
 
 
 
-void cmd_tunnel(void)
-{
-	int dir = command_dir;
-
-	if (!dir)
-	{
-		get_dir(&dir);
-	}
-
-	Send_tunnel(dir);
-}
-
 void cmd_walk(void)
 {
 	int dir = command_dir;
@@ -586,7 +465,7 @@ void cmd_walk(void)
 		get_dir(&dir);
 	}
 
-	Send_walk(dir);
+	send_walk(dir);
 }
 
 void cmd_run(void)
@@ -604,46 +483,6 @@ void cmd_run(void)
 void cmd_stay(void)
 {
 	Send_stay();
-}
-
-void cmd_map(void)
-{
-	char ch;
-
-	/* Hack -- if the screen is already icky, ignore this command */
-	if (screen_icky) return;
-
-	/* The screen is icky */
-	screen_icky = TRUE;
-
-	/* Save the screen */
-	Term_save();
-
-	/* Send the request */
-	Send_map();
-
-	/* Reset the line counter */
-	last_line_info = 0;
-
-	/* Wait until we get the whole thing */
-	while (last_line_info < Term->hgt-SCREEN_CLIP_L)
-	{
-		/* Wait for net input, or a key */
-		ch = inkey();
-
-		/* Check for user abort */
-		if (ch == ESCAPE)
-			break;
-	}
-
-	/* Reload the screen */
-	Term_load();
-
-	/* The screen is OK now */
-	screen_icky = FALSE;
-
-	/* Flush any queued events */
-	Flush_queue();
 }
 
 void cmd_locate(void)
@@ -690,77 +529,9 @@ void cmd_locate(void)
 	c_msg_print(NULL);
 }
 
-void cmd_search(void)
-{
-	Send_search();
-}
-
-void cmd_toggle_search(void)
-{
-	Send_toggle_search();
-}
-
 void cmd_rest(void)
 {
 	Send_rest();
-}
-
-void cmd_go_up(void)
-{
-	Send_go_up();
-}
-
-void cmd_go_down(void)
-{
-	Send_go_down();
-}
-
-void cmd_open(void)
-{
-	int dir = command_dir;
-
-	if (!dir)
-	{
-		get_dir(&dir);
-	}
-
-	Send_open(dir);
-}
-
-void cmd_close(void)
-{
-	int dir = command_dir;
-
-	if (!dir)
-	{
-		get_dir(&dir);
-	}
-
-	Send_close(dir);
-}
-
-void cmd_bash(void)
-{
-	int dir = command_dir;
-
-	if (!dir)
-	{
-		get_dir(&dir);
-	}
-
-	Send_bash(dir);
-}
-
-void cmd_disarm(void)
-{
-	int dir = command_dir;
-
-	if (!dir)
-	{
-		get_dir(&dir);
-	}
-
-	Send_disarm(dir);
 }
 
 void cmd_inven(void)
@@ -814,26 +585,6 @@ void cmd_equip(void)
 	Flush_queue();
 }
 
-void cmd_drop(void)
-{
-	int item, amt;
-
-	if (!c_get_item(&item, "Drop what? ", TRUE, TRUE, FALSE))
-	{
-		return;
-	}
-
-	/* Get an amount */
-	if (inventory[item].number > 1)
-	{
-		amt = c_get_quantity("How many? ", inventory[item].number);
-	}
-	else amt = 1;
-
-	/* Send it */
-	Send_drop(item, amt);
-}
-
 void cmd_drop_gold(void)
 {
 	s32b amt = 0;
@@ -846,33 +597,6 @@ void cmd_drop_gold(void)
 	if (amt)
 		Send_drop_gold(amt);
 }
-
-void cmd_wield(void)
-{
-	int item;
-
-	if (!c_get_item(&item, "Wear/Wield which item? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_wield(item);
-}
-
-void cmd_take_off(void)
-{
-	int item;
-
-	if (!c_get_item(&item, "Takeoff which item? ", TRUE, FALSE, FALSE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_take_off(item);
-}
-
 
 void cmd_destroy(void)
 {
@@ -924,51 +648,6 @@ void cmd_destroy(void)
 	Send_destroy(item, amt);
 }
 
-
-void cmd_observe(void)
-{
-	int item;
-
-	if (!c_get_item(&item, "Examine what? ", TRUE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_observe(item);
-}
-
-
-void cmd_inscribe(void)
-{
-	int item;
-	char buf[1024];
-
-	if (!c_get_item(&item, "Inscribe what? ", TRUE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	buf[0] = '\0';
-
-	/* Get an inscription */
-	if (get_string("Inscription: ", buf, 59))
-		Send_inscribe(item, buf);
-}
-
-void cmd_uninscribe(void)
-{
-	int item;
-
-	if (!c_get_item(&item, "Uninscribe what? ", TRUE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_uninscribe(item);
-}
-
 void cmd_describe(void)
 {
 	int item;
@@ -989,166 +668,6 @@ void cmd_describe(void)
 	
 	if (buf[0] != '\0')
 				Send_msg(buf);
-}
-
-void cmd_spike(void)
-{
-	int dir;
-
-	if (!c_get_spike()) 
-	{
-			/* Message */
-			c_msg_print("You have no spikes!");
-			return;
-	}
-
-	get_dir(&dir);
-
-	/* Send it */
-	Send_spike(dir);
-}
-
-void cmd_quaff(void)
-{
-	int item;
-
-	item_tester_tval = TV_POTION;
-
-	if (!c_get_item(&item, "Quaff which potion? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_quaff(item);
-}
-
-void cmd_read_scroll(void)
-{
-	int item;
-
-	item_tester_tval = TV_SCROLL;
-
-	if (!c_get_item(&item, "Read which scroll? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_read(item);
-}
-
-void cmd_aim_wand(void)
-{
-	int item, dir;
-
-	item_tester_tval = TV_WAND;
-
-	if (!c_get_item(&item, "Aim which wand? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	get_dir(&dir);
-	
-	/* Send it */
-	if (dir)
-		Send_aim(item, dir);
-}
-
-void cmd_use_staff(void)
-{
-	int item;
-
-	item_tester_tval = TV_STAFF;
-
-	if (!c_get_item(&item, "Use which staff? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_use(item);
-}
-
-void cmd_zap_rod(void)
-{
-	int item;
-
-	item_tester_tval = TV_ROD;
-
-	if (!c_get_item(&item, "Use which rod? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_zap(item);
-}
-
-void cmd_refill(void)
-{
-	int item;
-	cptr p;
-
-#if 0
-	if (inventory[INVEN_LITE].tval == TV_TORCH)
-	{
-		item_tester_tval = TV_TORCH;
-		p = "Refill with which torch? ";
-	}
-
-	else if (inventory[INVEN_LITE].tval == TV_LANTERN)
-	{
-		item_tester_tval = TV_FLASK;
-		p = "Refill with which flask? ";
-	}
-
-	else
-	{
-		c_msg_print("Your light cannot be refilled.");
-		return;
-	}
-#endif
-
-	p = "Refill with which light? ";
-
-	if (!c_get_item(&item, p, FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_fill(item);
-}
-
-void cmd_eat(void)
-{
-	int item;
-
-	item_tester_tval = TV_FOOD;
-
-	if (!c_get_item(&item, "Eat what? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_eat(item);
-}
-
-
-void cmd_activate(void)
-{
-	int item;
-
-	if (!c_get_item(&item, "Activate what? ", TRUE, FALSE, FALSE))
-	{
-		return;
-	}
-
-	/* Send it */
-	Send_activate(item);
 }
 
 int cmd_target_interactive(int mode)
@@ -1358,80 +877,7 @@ void cmd_interactive()
 	Flush_queue();
 	
 }
-#if 0
-void cmd_artifacts(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_ARTIFACT;
 
-	/* Set the header */
-	strcpy(special_line_header, "Artifacts");
-
-	/* Call the file perusal */
-	peruse_file();
-}
-
-void cmd_uniques(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_UNIQUE;
-	
-	/* Set the header */
-	strcpy(special_line_header, "Uniques");
-
-	/* Call the file perusal */
-	peruse_file();
-}
-
-void cmd_players(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_PLAYER;
-
-	/* Set the header */
-	strcpy(special_line_header, "Players");
-
-
-	/* Call the file perusal */
-	peruse_file();
-}
-
-void cmd_knowledge(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_KNOWLEDGE;
-	
-	/* Set the header */
-	strcpy(special_line_header, "Knowledge");
-
-	/* Interactive terminal */
-	cmd_interactive();
-}
-
-void cmd_high_scores(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_SCORES;
-
-	/* Set the header */
-	strcpy(special_line_header, "Highscores");
-
-	/* Call the file perusal */
-	peruse_file();
-}
-
-void cmd_help(void)
-{
-	/* Set the hook */
-	special_line_type = SPECIAL_FILE_HELP;
-	
-	/* Set the header */
-	strcpy(special_line_header, "Help");
-
-	/* Call the file perusal */
-	peruse_file();
-}
-#endif
 void cmd_chat()
 {
 	char com;
@@ -1538,7 +984,7 @@ void cmd_message(void)
 
 		if (get_string("Message: ", buf, 59))
 			if (buf[0] != '\0')
-				Send_msg(buf);
+				send_msg(buf);
 	};
 }
 
@@ -1659,38 +1105,6 @@ void cmd_party(void)
 	Flush_queue();
 }
 
-
-void cmd_fire(void)
-{
-	int item, dir;
-
-	if (!c_get_item(&item, "Fire which ammo? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	if (!get_dir(&dir))
-		return;
-	
-	/* Send it */
-	Send_fire(item, dir);
-}
-
-void cmd_throw(void)
-{
-	int item, dir;
-
-	if (!c_get_item(&item, "Throw what? ", FALSE, TRUE, TRUE))
-	{
-		return;
-	}
-
-	if (!get_dir(&dir))
-		return;
-
-	/* Send it */
-	Send_throw(item, dir);
-}
 
 void cmd_browse(void)
 {

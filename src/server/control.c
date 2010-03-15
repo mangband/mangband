@@ -3,48 +3,161 @@
  * perform server maintenance without requiring that the server
  * have a devoted tty.
  */
-
 #include "mangband.h"
+#include "net-server.h"
 
 #define CONSOLE_AUTH 	1
 #define CONSOLE_LISTEN	0
 #define CONSOLE_WRITE	TRUE
 #define CONSOLE_READ 	FALSE
 
-typedef void (*console_cb) (int ind, char *params);
+typedef struct console_connection {
+	connection_type	conn;	/* id */
+	bool	auth;	/* logged in? */
+	bool	listen; /* legacy listener */
+	byte	on_channel[MAX_CHANNELS];
+} console_connection;
+typedef void (*console_cb) (connection_type *ct, char *params);
 typedef struct console_command_ops {
-	char*			name;
+	char*   	name;
 	console_cb	call_back;
-	char*			comment;
+	char*   	comment;
 } console_command_ops;
-extern console_command_ops console_commands[];
-extern int command_len;
- 
+console_command_ops console_commands[];
+int command_len;
+
+eptr first_console = NULL;
+
+int accept_console(data data1, data data2) {
+	eptr new_connection;
+	eptr new_console;
+	bool old = (data2 == NULL ? TRUE : FALSE);
+	connection_type *ct = NULL;
+	console_connection *cn = NULL;	
+
+	/* Add connection */
+	if (!old)
+	{
+		new_connection = add_connection(first_connection, (int)data1, console_read, console_close);
+		if (!first_connection) first_connection = new_connection;
+		ct = new_connection->data2;
+	}
+	/* Update connection */
+	else
+	{
+		ct = (connection_type *)data1;
+		ct->receive_cb = console_read;
+		ct->close_cb = console_close;
+	}
+
+	/* Add console */
+	MAKE(cn, console_connection);
+	WIPE(cn, console_connection);
+	new_console = e_add(first_console, ct, cn);
+	if (!first_console) first_console = new_console;
+	
+	/* save pointer to console in connection */
+	ct->user = (data)cn;
+
+	/* Initial states */
+	cn->auth = cn->listen = FALSE;
+
+	/* Inform */
+	cq_printf(&ct->wbuf, "%s", "Connected\n");
+
+	return 0;
+}
+int console_close(data data1, data data2) {
+	connection_type *ct = (connection_type*)data2;
+	console_connection *cn = ct->user;
+
+	KILL(cn);
+
+	return 0;
+}
+int console_read(data data1, data data2) { /* return -1 on error */
+	connection_type *ct = data2;
+	console_connection *cn = ct->user;//e_find(first_console, ct, NULL);
+
+	int start_pos;
+	int buflen;
+	int i, j;
+
+	char buf[1024];
+	char *params;	
+
+	/* Parse "read buffer" */
+	while (	cq_len(&ct->rbuf) )
+	{
+		/* Ensure string is ready */
+		start_pos = ct->rbuf.pos;
+		if (cq_scanf(&ct->rbuf, "%T", buf) < 1)
+		{
+			/* String not ready */
+			ct->rbuf.pos = start_pos;
+			return 0;
+		}
+
+		/* Hijack input for login */
+		if (cn->auth == FALSE)
+		{
+			/* Check for illegal accesses */
+			if (!cfg_console_password || strcmp(buf, cfg_console_password))
+			{
+				/* Bail out! */
+				plog(format("{CON} Authentication failure %s", ct->host_addr));				
+				cq_printf(&ct->wbuf, "%s", "Invalid password\n");
+				return -1;		
+			}
+			/* Move on */
+			cn->auth = TRUE;
+			cq_printf(&ct->wbuf, "%s", "Authenticated\n");
+			continue;
+		}
+
+		/* Paranoia to ease ops-coder's life later */
+		if (STRZERO(buf)) break;
+
+		/* Split up command and params */
+		if( (params = strstr(buf," ")) )
+		{
+			*params++ = '\0';
+		}
+		else
+		{
+			params = NULL;
+		}
+
+		/* Execute console command */
+		for (i = 0; i < command_len; i++) 
+		{
+	 		if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
+	 		{
+				(console_commands[i].call_back)(ct, params);				
+	 			break;
+	 		}
+		}
+	}
+
+	/* Ok */
+	return 0;
+}
+
 /*
  * Output some text to the console, if we are listening
  */
 void console_print(char *msg, int chan)
 {
-	int i;
-	sockbuf_t *console_buf_w;
-	byte *chan_ptr;
-	bool hint;
-	for (i = 0; i < max_connections; i++)
+	eptr console;
+	for (console = first_console; console; console = console->next)
 	{
-		if (Conn_is_alive(i)) {
-			chan_ptr = Conn_get_console_channels(i);
-			hint = FALSE;
-			 if( chan_ptr[chan] || (chan == 0 && (hint = Conn_get_console_setting(i, CONSOLE_LISTEN))) )
-			 {
-			 	console_buf_w = (sockbuf_t*)console_buffer(i, FALSE);
-			 	if (!hint) 
-			 	{	/* Name channel */
-			 		Packet_printf(console_buf_w, "%s", channels[chan].name);
-			 		Packet_printf(console_buf_w, "%s", " ");
-			 	}
-			 	Packet_printf(console_buf_w, "%s%c",msg,'\n');
-				Sockbuf_flush(console_buf_w);
-			 }
+		connection_type *ct = console->data1;
+		console_connection *cn = console->data2;
+		bool hint = FALSE;
+		if( cn->on_channel[chan] || (chan == 0 && (hint = cn->listen)) )
+		{
+			if (!hint) cq_printf(&ct->wbuf, "%s%c", channels[chan].name, ' ');
+			cq_printf(&ct->wbuf, "%s%c", msg, '\n');
 		}
 	}
 }
@@ -52,12 +165,10 @@ void console_print(char *msg, int chan)
 /*
  * Return the list of players
  */
-static void console_who(int ind, char *useless)
+static void console_who(connection_type* ct, char *useless)
 {
 	int k, num = 0;
 	char brave[15];
-
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 
 	/* Ugly Hack -- Count players */
 	for (k = 1; k <= NumPlayers; k++)
@@ -68,7 +179,7 @@ static void console_who(int ind, char *useless)
 	}
 
 	/* Packet header */
-	Packet_printf(console_buf_w, "%s",format("%d players online\n", num));
+	cq_printf(&ct->wbuf, "%s",format("%d players online\n", num));
 	
 	/* Scan the player list */
 	for (k = 1; k <= NumPlayers; k++)
@@ -77,18 +188,37 @@ static void console_who(int ind, char *useless)
 
 		/* Add an entry */
 		(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-		Packet_printf(console_buf_w, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+		cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
 			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 			
 	}
-	Sockbuf_flush(console_buf_w);
+}
+
+/*
+ * Return the list of connections
+ */
+static void console_conn(connection_type* ct, char *useless)
+{
+	char conn_type[MAX_PLAYERS];
+	cq_printf(&ct->wbuf, "%s", "Listing connections\n");
+
+	eptr iter;
+	int j = 0;
+	for (iter = first_connection; iter; iter = iter->next)
+	{
+		char buf[80];
+		connection_type* c_ptr = iter->data2; 
+		j++;
+		sprintf(buf, "Connection %d - %s\n", j, c_ptr->host_addr);
+		cq_printf(&ct->wbuf, "%s", buf);
+	}
 }
 
 /*
  * Utility function, change locally as required when testing
  */
-static void console_debug(int ind, char *useless)
+static void console_debug(connection_type* ct, char *useless)
 {
 	return;
 }
@@ -96,34 +226,33 @@ static void console_debug(int ind, char *useless)
 /*
  * Start listening to game server messages
  */
-static void console_listen(int ind, char *channel)
+static void console_listen(connection_type* ct, char *channel)
 {
+	console_connection *cn = ct->user;
 	int i;
-	byte *chan;
 	if (channel && !STRZERO(channel)) {
-		chan = Conn_get_console_channels(ind);
 		for (i = 0; i < MAX_CHANNELS; i++)
 		{
 			if (!strcmp(channels[i].name, channel))
 			{
-				chan[i] = 1; 
+				cn->on_channel[i] = 1; 
 				break;
 			}
 		}
 	}
-	Conn_set_console_setting(ind, CONSOLE_LISTEN, TRUE);
+	cn->listen = TRUE;
 }
 
 /*
  * Return information about a specific player
  */
-static void console_whois(int ind, char *name)
+static void console_whois(connection_type* ct, char *name)
 {
 	int i, len;
 	u16b major, minor, patch, extra;
 	char brave[15]; //output[1024]; 
 	player_type *p_ptr, *p_ptr_search;
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
+
 	p_ptr = 0;
 
 	/* Find this player */
@@ -138,8 +267,7 @@ static void console_whois(int ind, char *name)
 	}
 	if (!p_ptr)
 	{
-		Packet_printf(console_buf_w, "%s%c","No such player",'\n');
-		Sockbuf_flush(console_buf_w);
+		cq_printf(&ct->wbuf, "%s","No such player\n");
 		return;
 	}
 	
@@ -147,7 +275,7 @@ static void console_whois(int ind, char *name)
 
 	/* General character description */
 	(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-	Packet_printf(console_buf_w, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+	cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
 		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
@@ -158,41 +286,36 @@ static void console_whois(int ind, char *name)
 	extra = (p_ptr->version & 0xF);
 
 	/* Player connection info */
-	Packet_printf(console_buf_w, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
+	cq_printf(&ct->wbuf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
 		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
 				
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
-		Packet_printf(console_buf_w, "%s",format("Has resurected %d times.\n", p_ptr->lives));
+		cq_printf(&ct->wbuf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
 	if ( p_ptr->max_dlv == 0 )
-		Packet_printf(console_buf_w, "%s",format("Has never left the town!\n"));
+		cq_printf(&ct->wbuf, "%s",format("Has never left the town!\n"));
 	else
-		Packet_printf(console_buf_w, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
+		cq_printf(&ct->wbuf, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
 	i = p_ptr->msg_hist_ptr-1;
 	if( i >= 0 )
 	{
 		if (p_ptr->msg_log[i])
 		{
-			Packet_printf(console_buf_w, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
+			cq_printf(&ct->wbuf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
 		}
 	}
-		
-
-	Sockbuf_flush(console_buf_w);
-	
 }
 
-static void console_message(int ind, char *buf)
+static void console_message(connection_type* ct, char *buf)
 {
 	/* Send the message */
 	player_talk(0, buf);
 }
 
-static void console_kick_player(int ind, char *name)
+static void console_kick_player(connection_type* ct, char *name)
 {
 	int i, len;
 	player_type *p_ptr, *p_ptr_search;
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 	p_ptr = 0;
 
 	/* Check the players in the game */
@@ -213,15 +336,13 @@ static void console_kick_player(int ind, char *name)
 		/* Kick him */
 		Destroy_connection(p_ptr->conn, "kicked out");
 		/* Success */
-		Packet_printf(console_buf_w, "%s", "Kicked player\n");
-		Sockbuf_flush(console_buf_w);
+		cq_printf(&ct->wbuf, "%s", "Kicked player\n");
 		return;
 	}
 	else
 	{
 		/* Failure */
-		Packet_printf(console_buf_w, "%s", "No such player\n");
-		Sockbuf_flush(console_buf_w);
+		cq_printf(&ct->wbuf, "%s", "No such player\n");
 	}
 
 }
@@ -229,9 +350,8 @@ static void console_kick_player(int ind, char *name)
 /*
  * Test the integrity of the RNG
  */
-static void console_rng_test(int ind, char *useless)
+static void console_rng_test(connection_type* ct, char *useless)
 {
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 	int i;
 	u32b outcome;
 	/* This is the expected outcome, generated on our reference platform */
@@ -245,8 +365,7 @@ static void console_rng_test(int ind, char *useless)
 	/* Don't run this if any players are connected */
 	if(NumPlayers > 0)
 	{
-		Packet_printf(console_buf_w, "%s", "Can't run the RNG test with players connected!\n");
-		Sockbuf_flush(console_buf_w);
+		cq_printf(&ct->wbuf, "%s", "Can't run the RNG test with players connected!\n");
 		return;
 	}
 	
@@ -261,8 +380,8 @@ static void console_rng_test(int ind, char *useless)
 	outcome = 0;
 
 	/* Let the operator know we are busy */
-	Packet_printf(console_buf_w, "%s", "Torturing the RNG for 100 million iterations...\n");
-	Sockbuf_flush(console_buf_w);
+	cq_printf(&ct->wbuf, "%s", "Torturing the RNG for 100 million iterations...\n");
+	//DOESN'T WORK RIGHT WITHOUT IMMEDIATE FLUSH...
 
 	/* Torture the RNG for a hundred million iterations */
 	for(i=0;i<100000000;i++)
@@ -276,13 +395,12 @@ static void console_rng_test(int ind, char *useless)
 	/* Display the results */
 	if(outcome == reference)
 	{
-		Packet_printf(console_buf_w, "%s","RNG is working perfectly\n");
+		cq_printf(&ct->wbuf, "%s","RNG is working perfectly\n");
 	} else {
-		Packet_printf(console_buf_w, "%s","RNG integrity check FAILED\n");
-		Packet_printf(console_buf_w, "%s",
+		cq_printf(&ct->wbuf, "%s","RNG integrity check FAILED\n");
+		cq_printf(&ct->wbuf, "%s",
 			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
 	}
-	Sockbuf_flush(console_buf_w);
 	
 	/* Restore the RNG state */
 	Rand_quick = randquick;
@@ -291,9 +409,8 @@ static void console_rng_test(int ind, char *useless)
 	for( i=0; i<RAND_DEG; i++ ) Rand_state[i] = randstate[i];
 }
 
-static void console_reload(int ind, char *mod)
+static void console_reload(connection_type* ct, char *mod)
 {
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 	bool done = FALSE;
 
 	if (mod && !strcmp(mod, "config"))
@@ -306,7 +423,8 @@ static void console_reload(int ind, char *mod)
 	else if (mod && !strcmp(mod, "news"))
 	{
 		/* Reload the news file */
-		Init_setup();
+		//Init_setup();
+		//TODO....
 
 		done = TRUE;
 	}
@@ -315,36 +433,41 @@ static void console_reload(int ind, char *mod)
 	if (done)
 	{
 		/* Packet header */
-		Packet_printf(console_buf_w, "%s", "Reloaded\n");
+		cq_printf(&ct->wbuf, "%s", "Reloaded\n");
 	}
 	else
 	{
 		/* Packet header */
-		Packet_printf(console_buf_w, "%s", "Reload failed\n");
+		cq_printf(&ct->wbuf, "%s", "Reload failed\n");
 	}
-	
-	/* Write the output */
-	Sockbuf_flush(console_buf_w);
 }
 
-static void console_shutdown(int ind, char *useless)
+static void console_shutdown(connection_type* ct, char *when)
 {
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
-	
-	/* Packet header */
-	Packet_printf(console_buf_w, "%s", "Server shutdown\n");
+	int min = 0;
+	//if (!strcasecmp(when, "NOW")) min = 0;
+	//else if (IS_VALID_NUMBER(when)) min = when
 
-	/* Write the output */
-	Sockbuf_flush(console_buf_w);
+	/* Now */
+	if (min == 0) 
+	{
+		/* Tell */
+		cq_printf(&ct->wbuf, "%s", "Server shutdown\n");
 
-	/* Shutdown */
-	shutdown_server();
+		/* Shutdown */
+		shutdown_server();
+	} 
+	else 
+	/* Delayed */	
+	{
+		/* Set timer (in seconds) */
+		shutdown_timer= min * 60;
+	}
 }
 
 /* Return list of available console commands */
-static void console_help(int ind, char *name)
+static void console_help(connection_type* ct, char *name)
 {
-	sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 	int i;
 	bool done = FALSE;
 	
@@ -353,10 +476,10 @@ static void console_help(int ind, char *name)
 	{
 		for (i = 0; i < command_len; i++) 
 		{
-			Packet_printf(console_buf_w, "%s", console_commands[i].name);
-			Packet_printf(console_buf_w, "%s", " ");
+			cq_printf(&ct->wbuf, "%s", console_commands[i].name);
+			cq_printf(&ct->wbuf, "%s", " ");
 		}
-		Packet_printf(console_buf_w, "%s", "\n");
+		cq_printf(&ct->wbuf, "%s", "\n");
 		done = TRUE;
 	}
 	/* Specific command */
@@ -367,194 +490,31 @@ static void console_help(int ind, char *name)
 			/* Found it */
 			if (!strcmp(console_commands[i].name, name))
 			{
-				Packet_printf(console_buf_w, "%s", console_commands[i].name);
-				Packet_printf(console_buf_w, "%s", " ");
-				Packet_printf(console_buf_w, "%s", console_commands[i].comment);
-				Packet_printf(console_buf_w, "%s", "\n");
+				cq_printf(&ct->wbuf, "%s", console_commands[i].name);
+				cq_printf(&ct->wbuf, "%s", " ");
+				cq_printf(&ct->wbuf, "%s", console_commands[i].comment);
+				cq_printf(&ct->wbuf, "%s", "\n");
 				done = TRUE;
 			}
 		}
 	}
 	
 	if (!done)
-		Packet_printf(console_buf_w, "%s", "Unrecognized command\n");	
-	
-	Sockbuf_flush(console_buf_w);
+		cq_printf(&ct->wbuf, "%s", "Unrecognized command\n");	
+
 } 
-
-/*
- * This is the response function when incoming data is received on the
- * control pipe.
- */
-void NewConsole(int read_fd, int arg)
-{
-	char passwd[80], buf[1024];
-	char *params;
-	int bytes, buflen, ind;
-	int newsock = 0;
-	int i, j;
-
-	sockbuf_t *console_buf_w = NULL;
-	sockbuf_t *console_buf_r = NULL;
-	
-	if (arg < 0) 
-	{
-		ind = abs(arg) - 1;
-		arg = 1;
-	} 
-	else 
-	{
-		ind = arg;
-		arg = 0;	
-	}
-	
-	console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
-	console_buf_r = (sockbuf_t*)console_buffer(ind, CONSOLE_READ);
-
-	/* Make a TCP connection */
-	/* Hack -- check if this data has arrived on the contact socket or not.
-	 * If it has, then we have not created a connection with the client yet, 
-	 * and so we must do so.
-	 */
-	if (arg)
-	{
-		newsock = read_fd;
-
-		if (newsock) remove_input(newsock);
-
-		console_buf_r->sock = console_buf_w->sock = newsock;
-
-		if (SetSocketNonBlocking(newsock, 1) == -1)
-		{
-			plog("Can't make contact socket non-blocking");
-		}
-		
-		install_input(NewConsole, newsock, ind);
-		
-		Conn_set_console_setting(ind, CONSOLE_AUTH, FALSE);
-		Conn_set_console_setting(ind, CONSOLE_LISTEN, FALSE);
-
-		Sockbuf_clear(console_buf_w);
-		Packet_printf(console_buf_w, "%s","Connected\n");
-		Sockbuf_flush(console_buf_w);
-
-		return;
-	}
-
-	newsock = console_buf_r->sock;
-
-	/* Clear the buffer */
-	Sockbuf_clear(console_buf_r);
-	/* Read the message */
-	bytes = DgramReceiveAny(read_fd, console_buf_r->buf, console_buf_r->size);
-
-	/* If this happens our TCP connection has probably been severed. Remove the input. */
-	if(!bytes && errno != EAGAIN && errno != EWOULDBLOCK)
-	{
-		Destroy_connection(ind, "console down");
-		return;
-	}
-	if (bytes < 0)
-	{
-		/* Hack - ignore these errors */
-		if(errno == EAGAIN || errno == EINTR)
-		{ 
-			GetSocketError(newsock);
-			return;
-		}
-		/* We have a socket error, disconnect */
-		Destroy_connection(ind, "console down");
-		return;
-	}
-
-	/* Set length */
-	console_buf_r->len = bytes;
-
-	/* Get the password if not authenticated */
-	if(!Conn_get_console_setting(ind, CONSOLE_AUTH))
-	{
-		Packet_scanf(console_buf_r, "%N",passwd);
-
-		/* Hack: comply with telnet */
-		buflen = strlen(passwd);
-		if (buflen && passwd[buflen-1] == '\r') passwd[buflen-1] = '\0';
-		
-		/* Check for illegal accesses */
-		if (!cfg_console_password || strcmp(passwd, cfg_console_password))
-		{
-			/* Clear buffer */
-			Sockbuf_clear(console_buf_w);
-	
-			/* Put an "illegal access" reply in the buffer */
-			Packet_printf(console_buf_w, "%s", "Invalid password\n");
-			
-			/* Send it */
-			DgramWrite(read_fd, console_buf_w->buf, console_buf_w->len);
-
-			/* Log this to the local console */
-			plog(format("Incorrect console password from %s.", DgramLastname()));
-			
-			/* Kill him */
-			Destroy_connection(ind, "console down");
-			return;
-		}
-		else 
-		{
-			/* Clear buffer */
-			Sockbuf_clear(console_buf_w);
-			Conn_set_console_setting(ind, CONSOLE_AUTH, TRUE);
-			Packet_printf(console_buf_w, "%s","Authenticated\n");
-			Sockbuf_flush(console_buf_w);
-			return;
-		}
-	}
-
-	/* Acquire command in the form: <command> <params> */
-	Packet_scanf(console_buf_r, "%N", buf);
-	buflen = strlen(buf);
-
-	/* Hack: comply with telnet */
-	if (buflen && buf[buflen-1] == '\r') buf[buflen-1] = '\0';
-		
-	/* Split up command and params */
-	if( (params = strstr(buf," ")) )
-	{
-		*params++ = '\0';
-	}
-	else
-	{
-		params = NULL;//buf;
-	}
-
-	/* Clear buffer */
-	Sockbuf_clear(console_buf_r);
-	
-	/* Paranoia to ease ops-coder's life later */
-	if (STRZERO(buf)) return;
-	
-	/* Execute console command */
-	buflen = strlen(buf);
-	for (i = 0; i < command_len; i++) 
-	{
-	 	if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
-	 	{
-			(console_commands[i].call_back)(ind, params);				
-	 		break;
-	 	}
-	}
-	
-}
 
 console_command_ops console_commands[] = {
 	{ "help",      console_help,        "[TOPIC]\nExplain a command or list all avaliable"	},
   	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
-  	{ "who",       console_who,         "\nList players"												},
-  	{ "shutdown",  console_shutdown,    "\nKill server"												},
-  	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"							},
-  	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"				},
-  	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"		},
-  	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"				},
-  	{ "rngtest",   console_rng_test,    "\nPerform RNG test"											},
-  	{ "debug",     console_debug,       "\nUnused"														},
+  	{ "who",       console_who,         "\nList players"                                	},
+  	{ "conn",      console_conn,         "\nList connections"                              	},
+  	{ "shutdown",  console_shutdown,    "[TIME|NOW]\nKill server in TIME minutes or 'NOW'" 	},
+  	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"                  	},
+  	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"         	},
+  	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"  	},
+  	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"       	},
+  	{ "rngtest",   console_rng_test,    "\nPerform RNG test"                            	},
+  	{ "debug",     console_debug,       "\nUnused"                                      	},
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);

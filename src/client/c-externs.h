@@ -428,91 +428,61 @@ extern void do_cmd_messages(void);
 
 /* client.c */
 
-/* netclient.c */
-extern int conn_state;			/* Similar to server's connp->state */
-extern sockbuf_t rbuf, cbuf, wbuf, qbuf;
-extern int ticks;
-extern int lag_ok;
-extern void update_ticks();
-extern void do_keepalive();
+/* net-client.c */
+extern s16b state;
 extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
-extern bool Net_Send(int Socket, sockbuf_t* ibuf);
-extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
-extern int Net_setup(void);
-extern int Net_verify(void);
-extern int Net_init(int port);
-extern void Net_cleanup(void);
-extern int Net_flush(void);
-extern int Net_fd(void);
-extern int Net_input(void);
-extern int Net_packet(void);
-extern int Flush_queue(void);
-
-extern int Send_motd(int offset);
-extern int Send_play(int mode);
-
-extern int Send_custom_command(byte i, char item, char dir, s32b value, char *entry);
-
-extern int Send_search(void);
-extern int Send_walk(int dir);
-extern int Send_run(int dir);
-extern int Send_drop(int item, int amt);
-extern int Send_drop_gold(s32b amt);
-extern int Send_tunnel(int dir);
-extern int Send_stay(void);
-extern int Send_toggle_search(void);
-extern int Send_rest(void);
-extern int Send_go_up(void);
-extern int Send_go_down(void);
-extern int Send_open(int dir);
-extern int Send_close(int dir);
-extern int Send_bash(int dir);
-extern int Send_disarm(int dir);
-extern int Send_wield(int item);
-extern int Send_take_off(int item);
-extern int Send_destroy(int item, int amt);
-extern int Send_inscribe(int item, cptr buf);
-extern int Send_uninscribe(int item);
-extern int Send_spike(int dir);
-extern int Send_quaff(int item);
-extern int Send_read(int item);
-extern int Send_aim(int item, int dir);
-extern int Send_use(int item);
-extern int Send_zap(int item);
-extern int Send_fill(int item);
-extern int Send_eat(int item);
-extern int Send_activate(int item);
-extern int Send_target_interactive(int mode, char dir);
-extern int Send_chan(cptr channel);
-extern int Send_msg(cptr message);
-extern int Send_fire(int item, int dir);
-extern int Send_throw(int item, int dir);
-extern int Send_item(int item);
-extern int Send_direction(int dir);
-extern int Send_gain(int book, int spell);
-extern int Send_cast(int book, int spell);
-extern int Send_pray(int book, int spell);
-extern int Send_ghost(int ability);
-extern int Send_map(void);
-extern int Send_locate(int dir);
-extern int Send_store_purchase(int item, int amt, u32b price);
-extern int Send_store_sell(int item, int amt);
-extern int Send_store_leave(void);
-extern int Send_store_confirm(void);
-extern int Send_redraw(void);
-extern int Send_special_line(int type, int line);
-extern int Send_interactive(int type);
-extern int Send_term_key(char ch);
-extern int Send_party(s16b command, cptr buf);
-extern int Send_suicide(void);
-extern int Send_options(bool settings);
-extern int Send_stream_size(int st, int y, int x);
-extern int Send_master(s16b command, cptr buf);
-extern int Send_observe(int item);
-extern int Send_pass(cptr newpass);
-
+//TRANSITIONAL HACKAGE:
+#define conn_state state
+#define update_ticks() plog("update_ticks unimplemented!")
+#define do_keepalive() plog("do_keepalive unimplemented!")
+#define Net_Send(Socket, ibuf) plog("Net_Send unimplemented!")
+#define Net_WaitReply(Socket, ibuf, retries) plog("Net_WaitReply unimplemented!")
+#define Net_setup() plog("Net_setup unimplemented!")
+#define Net_verify() plog("Net_verify unimplemented!")
+#define Net_init(port) plog("Net_init unimplemented!")
+#define Net_cleanup(void) plog("Net_cleanup unimplemented!")
+#define Net_flush(void) plog("Net_flush unimplemented!")
+#define Net_fd(void) plog("Net_fd unimplemented!")
+#define Net_input() plog("Net_input unimplemented!")
+#define Net_packet() plog("Net_packet unimplemented!")
+#define Flush_queue() plog("Flush_queue unimplemented!")
+#define SocketCloseAll() plog("SocketCloseAll unimplemented!")
+#define GetLocalHostName(X, Y) plog("GetLocalHostName unimplemented!")
+#define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
+#define Send_clear() plog("Send_clear unimplemented!")
+#define Send_walk(dir) plog("Send_walk unimplemented!")
+#define Send_run(dir) plog("Send_run unimplemented!")
+#define Send_drop_gold(amt) plog("Send_drop_gold unimplemented!")
+#define Send_stay() plog("Send_stay unimplemented!")
+#define Send_rest() plog("Send_rest unimplemented!")
+#define Send_destroy(item, amt) plog("Send_destroy unimplemented!")
+#define Send_target_interactive(mode, dir) plog("Send_target_interactive unimplemented!")
+#define Send_chan(channel) plog("Send_chan unimplemented!")
+#define Send_msg(message) plog("Send_msg unimplemented!")
+#define Send_item(item) plog("Send_item unimplemented!")
+#define Send_direction(dir) plog("Send_direction unimplemented!")
+#define Send_gain(book, spell) plog("Send_gain unimplemented!")
+#define Send_cast(book, spell) plog("Send_cast unimplemented!")
+#define Send_pray(book, spell) plog("Send_pray unimplemented!")
+#define Send_ghost(ability) plog("Send_ghost unimplemented!")
+#define Send_locate(dir) plog("Send_locate unimplemented!")
+#define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
+#define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
+#define Send_store_leave() plog("Send_store_leave unimplemented!")
+#define Send_store_confirm() plog("Send_store_confirm unimplemented!")
+#define Send_redraw() plog("Send_redraw unimplemented!")
+#define Send_special_line(type, line) plog("Send_special_line unimplemented!")
+#define Send_interactive(type) plog("Send_interactive unimplemented!")
+#define Send_term_key(ch) plog("Send_term_key unimplemented!")
+#define Send_party(command, buf) plog("Send_party unimplemented!")
+#define Send_suicide() plog("Send_suicide unimplemented!")
+#define Send_options(settings) plog("Send_options unimplemented!")
+#define Send_stream_size(st, y, x) plog("Send_stream_size unimplemented!")
+#define Send_master(command, buf) plog("Send_master unimplemented!")
+#define Send_observe(item) plog("Send_observe unimplemented!")
+#define Send_pass(newpass) plog("Send_pass unimplemented!")
 
 
 /*
