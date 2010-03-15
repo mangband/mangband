@@ -44,6 +44,7 @@ extern long static_timer(int id);
 extern void network_reset();
 extern void network_pause(long timeout);
 extern void denaglefd(int fd);
+extern void unblockfd(int fd);
 
 extern int cq_printf(cq *charq, char *str, ...); 
 extern int cq_copyf(cq *src, const char *str, cq *dst);

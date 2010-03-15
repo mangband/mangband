@@ -22,25 +22,22 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <netdb.h> //TODO: Wrap those into configure.ac!!
+#include "angband.h" 
+
+//TODO: Wrap those into configure.ac!!
+#ifdef WINDOWS
+#include "winsock2.h"
+#define EINPROGRESS WSAEINPROGRESS
+#define sockerr WSAGetLastError()
+#define socklen_t int
+#else
+#include <netdb.h> 
 #include <netinet/tcp.h>
-//#include <netinet/in.h> 
-
-//#include <fcntl.h> //TODO: Check those on Wndows!!
-//#include <errno.h>
-
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <stdarg.h>
-//#include <unistd.h>
-
-//#include <sys/time.h>
+#define sockerr errno
+#endif
 
 #include "net-basics.h"
 #include "net-imps.h"
-
-#include "angband.h"
 
 fd_set rd;
 int nfds;
@@ -58,14 +55,14 @@ struct caller_type {
 
 eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail_cb) {
 	struct caller_type *new_c;
-	struct hostent *hp, *gethostbyname();
+	struct hostent *hp;
 	int callerfd;
 	
 	/* Init socket */
 	callerfd = socket(AF_INET, SOCK_STREAM, 0);
 	
 	/* Set to non-blocking. */
-	fcntl(callerfd, F_SETFL, O_NONBLOCK);
+	unblockfd(callerfd);
 
 	/* Allocate memory */
 	new_c = malloc(sizeof(struct caller_type));
@@ -90,7 +87,7 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 eptr add_listener(eptr root, int port, callback cb) {
 	struct listener_type *new_l;
 	struct sockaddr_in servaddr;
-	int listenfd, on;
+	int listenfd; char on;
 
 	/* Init socket */	
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -100,7 +97,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) );   
 
 	/* Set to non-blocking. */
-	fcntl(listenfd, F_SETFL, O_NONBLOCK);
+	unblockfd(listenfd);
 
 	/* Bind & Listen */
 	bzero(&servaddr,sizeof(servaddr));
@@ -198,7 +195,7 @@ eptr handle_connections(eptr root) {
 				if (n < 0) ct->close = 1; 	
 			}
 			/* Error while receiving */
-			else if (n == 0 || !(errno == EAGAIN || errno == EWOULDBLOCK)) ct->close = 1;	
+			else if (n == 0 || !(sockerr == EAGAIN || sockerr == EWOULDBLOCK)) ct->close = 1;	
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))
@@ -246,9 +243,11 @@ eptr handle_callers(eptr root) {
 		int n = 0;
 
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
-		
+#ifdef WINDOWS
+		if (sockerr == WSAEISCONN) n = 0;
+#endif
 		if (n == 0) ct->connect_cb((data)callerfd, (data)ct);
-		else if (errno == EINPROGRESS) continue;
+		else if (sockerr == EINPROGRESS) continue;
 		else {
 			n = ct->failure_cb((data)callerfd, (data)ct); 
 			close(callerfd);
@@ -291,7 +290,7 @@ eptr handle_listeners(eptr root) {
 		connfd = accept(listenfd,(struct sockaddr *)&cliaddr,&clilen);
 		if (connfd == -1) continue;
 
-		fcntl(connfd, F_SETFL, O_NONBLOCK);
+		unblockfd(connfd);
 
 		cnfds = MATH_MAX(connfd, cnfds);
 
@@ -354,6 +353,13 @@ eptr handle_timers(eptr root, micro microsec) {
 }
 
 void network_reset() {
+#ifdef WINDOWS
+	WSADATA wsadata;
+
+	/* Initialize WinSock */
+	WSAStartup(MAKEWORD(1, 1), &wsadata);	
+#endif
+
 	FD_ZERO (&rd);
 }
 
@@ -367,9 +373,19 @@ void network_pause(micro timeout) {
 	select (nfds + 1, &rd, NULL, NULL, &tv);
 }
 
+/* Set socket as non-blocking */
+void unblockfd(int fd) {
+#ifdef WINDOWS
+	u_long iMode = 1;
+	ioctlsocket(fd, FIONBIO, &iMode);
+#else
+	fcntl(fd, F_SETFL, O_NONBLOCK);
+#endif
+}
+
 /* Disable Nagle's algorithm (required for MAngband) */
 void denaglefd(int fd) {
-	int on = 1;
+	char on = 1;
 	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );   
 }
 

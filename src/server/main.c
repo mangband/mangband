@@ -136,9 +136,6 @@ int main(int argc, char *argv[])
 {
 	bool new_game = FALSE;
 	int catch_signals = TRUE;
-#ifdef WINDOWS
-  WSADATA wsadata;
-#endif
 
 	/* Setup our logging hook */
 	plog_aux = server_log;	
@@ -155,8 +152,6 @@ int main(int argc, char *argv[])
 	LoadLibrary("exchndl.dll");
 	
 	/* Initialise WinSock */
-	/* Initialize WinSock */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);	
 #endif
 
 #ifdef USE_286

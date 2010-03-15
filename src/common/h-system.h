@@ -27,6 +27,9 @@
 # include <stdlib.h>
 #endif
 
+#ifdef WINDOWS
+#include "windows.h"
+#endif
 
 #ifdef SET_UID
 
