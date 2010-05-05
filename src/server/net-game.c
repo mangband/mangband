@@ -27,6 +27,16 @@ int send_quit(connection_type *ct, char *reason)
 	return cq_printf(&ct->wbuf, "%c%S", PKT_QUIT, reason);
 }
 
+int send_server_info(connection_type *ct)
+{
+	if (!cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_BASIC_INFO, serv_info.val1, serv_info.val2, serv_info.val3, serv_info.val4))
+	{
+		client_withdraw(ct);
+	}
+	
+	return 1;
+}
+
 int send_char_info(connection_type *ct, player_type *p_ptr)
 {
 	return cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_CHAR_INFO, p_ptr->state, p_ptr->prace, p_ptr->pclass, p_ptr->male);
@@ -38,15 +48,13 @@ int send_race_info(connection_type *ct)
 
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_RACE) <= 0)
 	{
-		//client_kill(ct, "write error");
-		return -1;
+		client_withdraw(ct);
 	}
 	
 	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
-		//client_kill(ct, "write error");
-		return -1;
+		client_withdraw(ct);
 	} 
 
 	for (i = 0; i < z_info->p_max; i++)
@@ -54,8 +62,7 @@ int send_race_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul",  p_name + p_info[i].name, p_info[i].name) <= 0)
 		{
-			//client_kill(ct, "write error");
-			return -1;
+			client_withdraw(ct);
 		}
 	}
 	return 1;
@@ -67,15 +74,13 @@ int send_class_info(connection_type *ct)
 
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_CLASS) <= 0)
 	{
-		//client_kill(ct, "write error");
-		return -1;
+		client_withdraw(ct);
 	}
 	
 	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
-		//client_kill(ct, "write error");
-		return -1;
+		client_withdraw(ct);
 	} 
 
 	for (i = 0; i < z_info->c_max; i++)
@@ -83,20 +88,19 @@ int send_class_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul%c",  c_name + c_info[i].name, c_info[i].name, c_info[i].spell_book) <= 0)
 		{
-			//client_kill(ind, "write error");
-			return -1;
+			client_withdraw(ct);
 		}
 	}
 
 	return 1;	
 }
 
-
-
 int send_message(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
 	char buf[80];
+
+	if (!ct) return -1;
 
 	if (msg == NULL)
 		return 1;
@@ -131,7 +135,6 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 /* Default handler for all the gameplay commands. */
 int recv_command(connection_type *ct, player_type *p_ptr) 
 {
-
 	/* Write header */
 	cq_printf(&p_ptr->cbuf, "%c", next_pkt);
 
@@ -196,13 +199,24 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		player_enter((int)ct->user);
 	}
 
-	//Send_basic_info_conn(Ind);
-	//Send_option_info_conn(Ind);
+	return 1;
+}
 
-	//Send_race_info_conn(Ind);
-	//Send_class_info_conn(Ind);
+int recv_basic_request(connection_type *ct, player_type *p_ptr) {
+	char mode;
+	u16b id;
 
-	//Send_char_info_conn(Ind);
+	if (cq_scanf(&ct->rbuf, "%c%ud", &mode, &id) < 2) 
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	switch (mode) 
+	{
+		/* TODO: Populate with actual info sendouts */
+		default: break;
+	}
 
 	return 1;
 }
@@ -240,7 +254,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 		p_ptr->state = PLAYER_FULL;
 	}
 
-	/* Infrom client */
+	/* Inform client */
 	send_char_info(ct, p_ptr);
 
 	return 1;
@@ -316,6 +330,7 @@ int process_player_commands(int p_idx)
 void setup_tables(sccb receiv[256], cptr *scheme)
 {
 	int i;
+
 	for (i = 0; i < 256; i++) {
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;

@@ -23,6 +23,11 @@ s16b state = 0;
 static int		(*handlers[256])(connection_type *ct);
 static cptr		(schemes[256]);
 
+byte next_pkt;
+cptr next_scheme;
+
+server_setup_t serv_info;
+
 /* Init */
 void setup_tables(void);
 void setup_network_client()
@@ -61,15 +66,16 @@ int client_read(data data1, data data2) { /* return -1 on error */
 	char *recv = data1;
 
 	/* parse */
-	byte pkt;
-	int result;
+	int result = 1;
 	int start_pos;
 	while (	cq_len(&ct->rbuf) )
 	{
 		/* save */
 		start_pos = ct->rbuf.pos; 
-		pkt = CQ_GET(&ct->rbuf);
-		result = (*handlers[pkt])(ct);
+		next_pkt = CQ_GET(&ct->rbuf);
+		next_scheme = schemes[next_pkt];
+
+		result = (*handlers[next_pkt])(ct);
 
 		/* Unable to continue */
 		if (result != 1) break;
@@ -80,6 +86,24 @@ int client_read(data data1, data data2) { /* return -1 on error */
 		/* load */
 		ct->rbuf.pos = start_pos;
 	}
+	/* Slide buffer to the left */
+#if 0
+	/* Fast version */
+	else if (result == 1)
+	{
+		CQ_CLEAR(&ct->rbuf);
+	}
+#else
+	/* Slow, but safer version */
+	if (ct->rbuf.pos)
+	{
+		char buf[PD_SMALL_BUFFER];
+		strncpy(buf, &ct->rbuf.buf[ct->rbuf.pos], ct->rbuf.len);
+		strncpy(ct->rbuf.buf, buf, ct->rbuf.len);
+		ct->rbuf.len -= ct->rbuf.pos;
+		ct->rbuf.pos = 0;
+	}	
+#endif
 
 	return result;
 }
@@ -174,6 +198,9 @@ int send_keepalive(u32b last_keepalive) {
 	return cq_printf(&serv->wbuf, "%c%l", PKT_KEEPALIVE, last_keepalive);
 }
 
+int send_request(byte mode, u16b id) {
+	return cq_printf(&serv->wbuf, "%c%c%ud", PKT_BASIC_INFO, mode, id);
+}
 
 
 
@@ -239,6 +266,18 @@ int recv_quit(connection_type *ct) {
 	}
 
 	quit(format("Quitting: %s", reason));
+}
+
+int recv_basic_info(connection_type *ct) {
+
+	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4) 
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Ok */
+	return 1;
 }
 
 /* Play packet, server is promoting us */

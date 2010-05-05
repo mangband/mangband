@@ -108,15 +108,26 @@ struct cave_type
  */
 struct server_setup_t
 {
-	s16b frames_per_second;
-	int motd_len;
-	byte min_col;
-	byte max_col;
-	byte min_row;
-	byte max_row;
-	bool ready;
-	bool wait;
-	char motd[80 * 23];
+	/* For now, revert to no-name variable names */
+	byte val1;
+	byte val2;
+	byte val3;
+	byte val4;
+
+	byte val5;
+	byte val6;
+	byte val7;
+	byte val8;
+
+	byte val9;
+	byte val10;
+	byte val11;
+	byte val12;
+
+	byte val13;
+	byte val14;
+	byte val15;
+	byte val16;
 };
 
 /*

@@ -144,37 +144,45 @@ static void Setup_loop()
 	int old_state = -1;
 	u16b conntype = CONNTYPE_PLAYER;
 
-	send_handshake(conntype);
+	bool data_ready = TRUE;
+	bool char_ready = FALSE;
 
-	while(1) 
+	send_handshake(conntype);
+	
+	do
 	{
 		network_loop();
 
-		if (old_state != state && state) 
+		/* Check and Prepare data */
+		data_ready = TRUE;
+
+		/* Check and Prepare character */
+		if (old_state != state && state)
 		{
-			printf("NEW sTATE:%d (WAS: %d)\n", state, old_state);
+			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
 			if (state < PLAYER_SHAPED)
 			{
 				get_char_info();
 				send_char_info();
-				send_play();			
+				send_play();
 			}
 			if (state == PLAYER_FULL)
 			{
-				send_play();
+				char_ready = TRUE;
 			}
 			if (state > PLAYER_FULL)
 			{
-				break;
+				//char_ready = TRUE;
 			}
 			if (state == PLAYER_SHAPED)
 			{
-				send_play();
-				break;
+				char_ready = TRUE;
 			}
 		}
-		old_state = state;		
-	}
+		old_state = state;
+	} while (!(char_ready && data_ready));
+
+	send_play();
 	client_ready();
 }
 
@@ -378,7 +386,7 @@ bool client_ready()
 	init_subscriptions();
 
 	/* Hack -- don't enter the game if waiting for motd */
-	if (Setup.wait && !Setup.ready)
+	//if (Setup.wait && !Setup.ready)
 	{
 		//return FALSE;
 	}		

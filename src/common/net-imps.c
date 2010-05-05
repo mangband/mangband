@@ -141,7 +141,7 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	cq_init(&new_c->rbuf, PD_SMALL_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
-		strcpy(new_c->host_addr, inet_ntoa(sin.sin_addr));  	
+		strcpy(new_c->host_addr, (char*)inet_ntoa(sin.sin_addr));  	
 
 	/* Add to list */
 	return e_add(root, NULL, new_c);
@@ -187,12 +187,16 @@ eptr handle_connections(eptr root) {
 			if (n > 0) 
 			{
 				/* Got 'n' bytes */
-				cq_nwrite(&ct->rbuf, mesg, n);
-				mesg[n] = '\0';
-				n = ct->receive_cb(mesg, ct);
-	
-				/* Error while handling input */
-				if (n < 0) ct->close = 1; 	
+				if (cq_nwrite(&ct->rbuf, mesg, n))
+				{
+					mesg[n] = '\0';
+					n = ct->receive_cb(mesg, ct);
+
+					/* Error while handling input */
+					if (n < 0) ct->close = 1;
+				}
+				/* Error while filling buffer */
+				else ct->close = 1;
 			}
 			/* Error while receiving */
 			else if (n == 0 || !(sockerr == EAGAIN || sockerr == EWOULDBLOCK)) ct->close = 1;	
@@ -249,9 +253,9 @@ eptr handle_callers(eptr root) {
 		if (n == 0) ct->connect_cb((data)callerfd, (data)ct);
 		else if (sockerr == EINPROGRESS) continue;
 		else {
-			n = ct->failure_cb((data)callerfd, (data)ct); 
+			n = ct->failure_cb((data)callerfd, (data)ct);
+			if (n) continue;
 			close(callerfd);
-			if (n) continue; 
 		}
 
 		to_remove += (ct->remove = 1);
@@ -503,7 +507,6 @@ int cq_printf(cq *charq, char *str, ...) {
 	if (error) {
 		plog(format("Error in cq_printf('...%s'): %s [%d.%d]\n", str, pf_errors[error], str_size, charq->len)); 
 		bytes = 0;
-		exit(0);
 	} else {
 		bytes = (wptr - start);
 		charq->len += bytes;

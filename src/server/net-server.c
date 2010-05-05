@@ -51,6 +51,24 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name);
 cptr next_scheme = NULL;
 byte next_pkt = 0;
 
+server_setup_t serv_info = 
+{
+	0,
+	0,
+	0,
+	0,
+	
+	0,
+	0,
+	0,
+	0,
+	
+	0,
+	0,
+	0,
+	0
+};
+
 /* Grab memory */
 void alloc_server_memory()
 {
@@ -447,7 +465,7 @@ int client_login(data data1, data data2) { /* return -1 on error */
 	connection_type *ct = data2;
 	/* char *recv = data1; // Unused */
 	player_type *p_ptr = NULL;
-printf("Doing login\n");
+
 	byte pkt;
 	int start_pos;
 
@@ -540,6 +558,7 @@ printf("Doing login\n");
 	/* Since LOGIN is the first command ever, it's a good time to send basics */
 	send_race_info(ct);
 	send_class_info(ct);
+	send_server_info(ct);
 
 	/* Finally send char info: */
 	send_char_info(ct, p_ptr);

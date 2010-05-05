@@ -6,7 +6,9 @@
 #ifdef PACKET
 	PACKET(PKT_KEEPALIVE,	"%l",       	recv_keepalive)
 	PACKET(PKT_CHAR_INFO,	NULL,       	recv_char_info)
-	PACKET(PKT_PLAY,    	"%c",       	recv_play)	
+	PACKET(PKT_PLAY,    	"%c",       	recv_play)
+
+	PACKET(PKT_BASIC_INFO,	"%c%d",     	recv_basic_request)
 
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
 

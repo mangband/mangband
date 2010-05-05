@@ -23,6 +23,7 @@ extern cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
 extern s16b ddx[10];
 extern s16b ddy[10];
 extern char hexsym[16];
+extern byte ascii_to_color[128]; 
 extern option_type local_option_info[MAX_OPTIONS];
 extern cptr local_option_group[];
 extern cptr stat_names[6];
@@ -69,7 +70,6 @@ extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
-extern server_setup_t Setup;
 extern client_setup_t Client_setup;
 
 s16b lag_mark;
@@ -433,6 +433,7 @@ extern s16b state;
 extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
+extern server_setup_t serv_info;
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")

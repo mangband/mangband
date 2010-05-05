@@ -2784,8 +2784,8 @@ void save_one_term(int i) {
 	conf_set_string(sec_name, "Font", td->fd->name);
 	
 	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-	if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; /* Compact */
-	if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; /* Status line */	
+	//if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; /* Compact */
+	//if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; /* Status line */	
 	
 	conf_set_int(sec_name, "Cols", td->cols);
 	conf_set_int(sec_name, "Rows", td->rows);

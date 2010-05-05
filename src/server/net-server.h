@@ -13,6 +13,7 @@
 typedef int (*sccb)	(connection_type *ct, player_type *p_ptr); /* "Static Command Call-Back" */ 
 
 /** net-server.c **/
+extern server_setup_t serv_info;
 extern eptr first_connection;
 
 extern cptr next_scheme;
@@ -25,6 +26,10 @@ extern connection_type **PConn; /* Pass "Ind", get "connection_type" */
 
 #define client_abort(CT, REASON) send_quit(CT, REASON); return -1
 extern int client_kill(connection_type *ct, cptr reason);
+#ifdef DEBUG
+#define client_withdraw(CT) client_kill(CT, format("write error :%d", __LINE__)); return -1
+#endif
+#define client_withdraw(CT) client_kill(CT, "write error"); return -1
 
 extern int player_enter(int ind);
 extern int player_leave(int p_idx);

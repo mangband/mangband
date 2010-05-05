@@ -20,38 +20,17 @@
 #define PKT_STRUCT_INFO		13
 #define PKT_LOGIN	14
 
-
 /* Packet types 20-59 are info that is sent to the client */
-#define PKT_OPPOSE		18
-#define PKT_MAXSTAT		19
 #define PKT_PLUSSES		20
-#define PKT_AC			21
-#define PKT_EXPERIENCE		22
-#define PKT_GOLD		23
-#define PKT_HP			24
-#define PKT_SP			25
 #define PKT_CHAR_INFO		26
 #define PKT_VARIOUS		27
-#define PKT_STAT		28
 #define PKT_HISTORY		29
 
 #define PKT_INVEN		30
 #define PKT_EQUIP		31
-#define PKT_TITLE		32
-#define PKT_LEVEL		33
-#define PKT_DEPTH		34
-#define PKT_FOOD		35
-#define PKT_BLIND		36
-#define PKT_CONFUSED		37
-#define PKT_FEAR		38
-#define PKT_POISON		39
 
-#define PKT_STATE		40
 #define PKT_LINE_INFO		41
-#define PKT_SPEED		42
 #define PKT_STUDY		43
-#define PKT_CUT			44
-#define PKT_STUN		45
 #define PKT_MESSAGE		46
 #define PKT_CHAR		47
 #define PKT_SPELL_INFO		48
@@ -66,7 +45,6 @@
 #define PKT_PICKUP_CHECK	56
 #define PKT_SKILLS		57
 #define PKT_PAUSE		58
-#define PKT_MONSTER_HEALTH	59
 
 
 /* Packet types 60-64 are sent from either the client or server */
@@ -159,18 +137,9 @@
 #define PKT_COMMAND		191
 
 /*
- * Possible error codes returned
+ * PKT_BASIC_INFO helpers
  */
-#define SUCCESS		0x00
-#define E_VERSION	0x01
-#define E_GAME_FULL	0x02
-#define E_NEED_INFO	0x03
-#define E_TWO_PLAYERS	0x04
-#define E_IN_USE	0x08
-#define E_SOCKET	0x09
-#define E_INVAL		0x0A
-#define E_READ_ERR   0x0B
-#define E_BAD_PASS	0x0C
+#define BASIC_INFO_UNKNOWN  	0
 
 /*
  * PKT_STRUCT_INFO helpers
