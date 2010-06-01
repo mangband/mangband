@@ -87,7 +87,8 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 eptr add_listener(eptr root, int port, callback cb) {
 	struct listener_type *new_l;
 	struct sockaddr_in servaddr;
-	int listenfd; char on;
+	int listenfd;
+	int on;
 
 	/* Init socket */	
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);

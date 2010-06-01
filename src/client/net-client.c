@@ -222,7 +222,7 @@ int send_walk(char dir)
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 
-	printf("Undefined packet came from server!\n");
+	printf("Undefined packet %d came from server!\n", next_pkt);
 
 	/* Disconnect client! */
 	return -1;

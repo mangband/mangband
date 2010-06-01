@@ -121,10 +121,8 @@ void e_free_all(eptr root) {
  * and return it's "data2" */
 data e_find(eptr root, data data1, compare func) {
 	eptr iter;
-	printf("Searching!\n");
 	for (iter = root; iter; iter=iter->next)
 	{
-		printf("Comparing %d to %d\n",data1 , iter->data1);
 		if ((!func && (data1 == iter->data1)) ||
 			(func && (func(data1, iter->data1))) )
 			return iter->data2;

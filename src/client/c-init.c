@@ -462,8 +462,8 @@ void client_init(char *argv1)
 	/* Init network */
 	setup_network_client();
 
-	GetLocalHostName(host_name, 80);
-	host_name[0] = 'a'; host_name[1] = '\0';
+	/* Fetch machine name */
+	gethostname(host_name, 80);
 
 	/* Set the "quit hook" */
 	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code
@@ -495,8 +495,8 @@ void client_init(char *argv1)
 	}
 
 	/* Fix "localhost" */
-//	if (!strcmp(server_name, "localhost"))
-//		strcpy(server_name, host_name);
+	if (!strcmp(server_name, "localhost"))
+		strcpy(server_name, host_name);
 
 	/* Default nickname and password */
 	strcpy(nick, conf_get_string("MAngband", "nick", nick));

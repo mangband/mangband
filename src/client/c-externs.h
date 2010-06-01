@@ -450,7 +450,6 @@ extern server_setup_t serv_info;
 #define Net_packet() plog("Net_packet unimplemented!")
 #define Flush_queue() plog("Flush_queue unimplemented!")
 #define SocketCloseAll() plog("SocketCloseAll unimplemented!")
-#define GetLocalHostName(X, Y) plog("GetLocalHostName unimplemented!")
 #define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
 #define Send_clear() plog("Send_clear unimplemented!")
 #define Send_walk(dir) plog("Send_walk unimplemented!")
