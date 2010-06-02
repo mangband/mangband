@@ -68,7 +68,7 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	new_c = malloc(sizeof(struct caller_type));
 
 	/* Set addr and others */
-	bzero(&new_c->addr, sizeof(new_c->addr));	
+	WIPE(&new_c->addr, struct sockaddr_in);
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
 	hp = gethostbyname(host);
@@ -101,7 +101,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	unblockfd(listenfd);
 
 	/* Bind & Listen */
-	bzero(&servaddr,sizeof(servaddr));
+	WIPE(&servaddr, struct sockaddr_in);
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(port);
