@@ -201,10 +201,10 @@ static void console_who(connection_type* ct, char *useless)
 static void console_conn(connection_type* ct, char *useless)
 {
 	char conn_type[MAX_PLAYERS];
-	cq_printf(&ct->wbuf, "%s", "Listing connections\n");
-
 	eptr iter;
 	int j = 0;
+	cq_printf(&ct->wbuf, "%s", "Listing connections\n");
+
 	for (iter = first_connection; iter; iter = iter->next)
 	{
 		char buf[80];

@@ -26,7 +26,12 @@
 
 //TODO: Wrap those into configure.ac!!
 #ifdef WINDOWS
-#include "winsock2.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+# ifndef _WINSOCK2API_
+# include <winsock2.h>
+# endif
 #define EINPROGRESS WSAEINPROGRESS
 #define sockerr WSAGetLastError()
 #define socklen_t int

@@ -71,6 +71,7 @@ extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
 extern char party_info[160];
 
 extern client_setup_t Client_setup;
+extern server_setup_t Setup;
 
 s16b lag_mark;
 s16b lag_minus;
