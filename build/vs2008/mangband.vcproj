@@ -258,15 +258,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-ibm.c"
+				RelativePath="..\..\src\common\net-basics.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-win.c"
+				RelativePath="..\..\src\server\net-game.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\netserver.c"
+				RelativePath="..\..\src\common\net-imps.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\server\net-server.c"
 				>
 			</File>
 			<File
@@ -287,18 +291,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\server\save.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\server\sched-win.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\server\sched.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\sockbuf.c"
 				>
 			</File>
 			<File
@@ -372,14 +364,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\bit.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\const.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
@@ -432,15 +416,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-ibm.h"
+				RelativePath="..\..\src\common\net-basics.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-win.h"
+				RelativePath="..\..\src\server\net-game.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\netserver.h"
+				RelativePath="..\..\src\common\net-imps.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\server\net-server.h"
 				>
 			</File>
 			<File

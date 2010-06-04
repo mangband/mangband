@@ -261,19 +261,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-ibm.c"
+				RelativePath="..\..\src\common\net-basics.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-unix.c"
+				RelativePath="..\..\src\client\net-client.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-win.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\client\netclient.c"
+				RelativePath="..\..\src\common\net-imps.c"
 				>
 			</File>
 			<File
@@ -286,10 +282,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\set_focus.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\sockbuf.c"
 				>
 			</File>
 			<File
@@ -327,10 +319,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\bit.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\client\c-angband.h"
 				>
 			</File>
@@ -343,15 +331,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\defines.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\externs.h"
+				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
 			<File
@@ -391,19 +375,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-ibm.h"
+				RelativePath="..\..\src\common\net-basics.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-unix.h"
+				RelativePath="..\..\src\client\net-client.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\net-win.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\client\netclient.h"
+				RelativePath="..\..\src\common\net-imps.h"
 				>
 			</File>
 			<File
@@ -416,10 +396,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\resource.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\sockbuf.h"
 				>
 			</File>
 			<File

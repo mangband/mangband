@@ -90,7 +90,7 @@ void alloc_server_memory()
 /* Release it */
 void free_server_memory() {
 	/* Player list */
-	eg_free(players);
+	if (players) eg_free(players);
 	KILL(players);
 
 	/* Legacy player-list */

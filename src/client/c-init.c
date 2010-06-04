@@ -463,7 +463,7 @@ void client_init(char *argv1)
 	setup_network_client();
 
 	/* Fetch machine name */
-	gethostname(host_name, 80);
+	fillhostname(host_name, 80);
 
 	/* Set the "quit hook" */
 	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code

@@ -309,12 +309,21 @@ eptr handle_listeners(eptr root) {
 micro static_timer(int id) {
 	static micro times[5] = { 0, 0, 0, 0, 0 };
 	
-	struct timeval tv;
-	micro microsec;
 	micro passed;
-	 
+#ifndef WINDOWS /* TODO: HAVE_GETTIMEOFDAY */
+	micro microsec;
+	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	microsec = tv.tv_sec * 1000000 + tv.tv_usec;
+#else
+	unsigned __int64 microsec = 0;
+	FILETIME tv;
+	GetSystemTimeAsFileTime(&tv);
+	microsec |= tv.dwHighDateTime;
+	microsec <<= 32;
+	microsec |= tv.dwLowDateTime;
+	microsec /= 10;
+#endif
 /*	
 	printf("OLD: %ld\n", times[id]);
 	printf("NEW: %ld\n", microsec);
@@ -393,6 +402,11 @@ void unblockfd(int fd) {
 void denaglefd(int fd) {
 	char on = 1;
 	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );   
+}
+
+/* Get local machine hostname */
+int fillhostname(char *str, int len) {
+	return gethostname(str, len);
 }
 
 #define PACK_PTR_8(PT, VAL) * PT ++ = VAL 

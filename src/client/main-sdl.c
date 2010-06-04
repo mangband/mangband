@@ -2634,11 +2634,6 @@ static void play_sound(int v, int s)
  */
 errr init_sdl(void)
 {
-#ifdef WINDOWS
-	/* Initialize WinSock */
-	WSADATA wsadata;
-	WSAStartup(MAKEWORD(1, 1), &wsadata);
-#endif
 	term_data *td;
 	Uint32 initflags = SDL_INIT_VIDEO; /* What's the point, if not video? */
 	
