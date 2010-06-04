@@ -41,9 +41,6 @@
 #define sockerr errno
 #endif
 
-#include "net-basics.h"
-#include "net-imps.h"
-
 fd_set rd;
 int nfds;
 int cnfds;
@@ -70,10 +67,9 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	unblockfd(callerfd);
 
 	/* Allocate memory */
-	new_c = malloc(sizeof(struct caller_type));
+	MAKE(new_c, struct caller_type);
 
 	/* Set addr and others */
-	WIPE(&new_c->addr, struct sockaddr_in);
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
 	hp = gethostbyname(host);
@@ -121,7 +117,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	}
 
 	/* Allocate memory */
-	new_l = malloc(sizeof(struct listener_type));
+	MAKE(new_l, struct listener_type);
 
 	new_l->port = port;
 	new_l->accept_cb = cb;
@@ -137,7 +133,7 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	unsigned int len = sizeof sin;
 
 	/* Allocate memory */
-	new_c = malloc(sizeof(struct connection_type));
+	MAKE(new_c, struct connection_type);
 
 	new_c->conn_fd = fd;
 	new_c->receive_cb = read;
@@ -157,7 +153,7 @@ eptr add_timer(eptr root, int interval, callback timeout) {
 	struct timer_type *new_t;
 
 	/* Allocate memory */
-	new_t = malloc(sizeof(struct timer_type));
+	MAKE(new_t, struct timer_type);
 
 	new_t->interval = interval;
 	new_t->delay = interval;

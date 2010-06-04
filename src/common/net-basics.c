@@ -22,9 +22,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <stdlib.h>
-#include <string.h> //TODO: CHECK! "bzero"
-#include "net-basics.h"
+#include "angband.h"
 
 /** Elements **/
 /* 
@@ -49,8 +47,7 @@ eptr e_add(eptr root, data data1, data data2) {
 	eptr new_e;
 
 	/* Create "node" from "data1" and "data2" */
-	new_e = malloc(sizeof(element_type));
-	bzero(new_e,sizeof(element_type)); 
+	MAKE(new_e, element_type);
 
 	new_e->data1 = data1;
 	new_e->data2 = data2;
@@ -144,8 +141,7 @@ data e_find(eptr root, data data1, compare func) {
 eptr* eg_init(element_group* grp, int max) {
 	grp->max = max;
 	grp->num = 0;
-	grp->list = malloc(sizeof(eptr)*max);
-	bzero(grp->list, sizeof(eptr)*max);
+	C_MAKE(grp->list, max, eptr);
 	return grp->list;
 }
 
@@ -251,8 +247,7 @@ data eg_find(element_group* grp, data data1, compare func) {
 
 /* Initialize. Must call this on cq structure before using any of the cq_ functions! */
 void cq_init(cq *charq, int max) {
-	charq->buf = malloc(sizeof(char) * max);
-	bzero(charq->buf,sizeof(char) * max);
+	C_MAKE(charq->buf, max, char);
 
 	charq->pos = 0;
 	charq->len = 0;
