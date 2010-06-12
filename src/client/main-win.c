@@ -543,7 +543,7 @@ static BYTE win_pal[16] =
  *
  * We only need scrolling along the x axis.
  */
-static x_offset = 0;
+static char x_offset = 0;
 
 /* Hack -- set focus to chat message control */
 void set_chat_focus( void )
