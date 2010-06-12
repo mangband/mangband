@@ -167,7 +167,7 @@ int send_play(byte mode) {
 
 int send_char_info() {
 	int	n, i;
-	if (n = cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, class, sex) <= 0)
+	if (n = cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, pclass, sex) <= 0)
 	{
 		return n;
 	}
@@ -302,9 +302,9 @@ int recv_play(connection_type *ct) {
 int recv_char_info(connection_type *ct) {
 		state = 0;
 		race = 0;
-		class = 0;
+		pclass = 0;
 		sex = 0;
-	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &state, &race, &class, &sex) < 4)
+	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &state, &race, &pclass, &sex) < 4)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -312,7 +312,7 @@ int recv_char_info(connection_type *ct) {
 
 	p_ptr->state = state;
 	p_ptr->prace = race;
-	p_ptr->pclass = class;
+	p_ptr->pclass = pclass;
 	p_ptr->male = sex;
 
 	/* Ok */

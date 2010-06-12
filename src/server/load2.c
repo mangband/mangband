@@ -1488,7 +1488,7 @@ static errr rd_cave_memory(player_type *p_ptr)
  *
  * See "scoop_player" in "save.c" for more info.  
  */
-errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex)
+errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex)
 {
 	errr err;
 
@@ -1534,7 +1534,7 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *cla
 		if (!strcmp(read, "pclass"))
 		{
 			read = strtok(NULL, " \t\n=");
-			*class = atoi(read);
+			*pclass = atoi(read);
 			read_class = TRUE;
 			continue;
 		}

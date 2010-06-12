@@ -90,7 +90,7 @@ static void prt_title(int row, int col)
  */
 static void prt_pclass(int row, int col)
 {
-	prt_field(c_name + c_info[class].name, row, col);
+	prt_field(c_name + c_info[pclass].name, row, col);
 }
 
 /*
@@ -240,7 +240,7 @@ static void prt_cur_sp(int row, int col)
 
 
 	/* Do not show mana unless it matters */
-	if (!c_info[class].spell_book) return;
+	if (!c_info[pclass].spell_book) return;
 
 	put_str("Cur SP ", row, col);
 
@@ -272,7 +272,7 @@ static void prt_max_sp(int row, int col)
 	char tmp[32];
 
 	/* Do not show mana unless it matters */
-	if (!c_info[class].spell_book) return;
+	if (!c_info[pclass].spell_book) return;
 
 	put_str("Max SP ", row, col);
 
@@ -1281,7 +1281,7 @@ static void prt_frame_compact(void)
 	
 	/* Race and Class */
 	prt_field(p_name + race_info[race].name, row++, col);
-	prt_field(c_name +c_info[class].name, row++, col);
+	prt_field(c_name +c_info[pclass].name, row++, col);
 
 	/* Title */
 	prt_field(ptitle, row++, col);
@@ -1580,7 +1580,7 @@ static void fix_spells(void)
 		
 		/* Hack: Hijack item tester */
 		old_tester = item_tester_tval;
-		item_tester_tval = c_info[class].spell_book;
+		item_tester_tval = c_info[pclass].spell_book;
 
 		/* For each book */
 		for (b = 0; b < INVEN_PACK - 1; b++)
@@ -2428,7 +2428,7 @@ void display_player(int screen_mode)
      c_put_str(TERM_L_BLUE, nick, 2, 15);
      c_put_str(TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
      c_put_str(TERM_L_BLUE, p_name + race_info[race].name, 4, 15);
-     c_put_str(TERM_L_BLUE, c_name + c_info[class].name, 5, 15);
+     c_put_str(TERM_L_BLUE, c_name + c_info[pclass].name, 5, 15);
 
 	display_player_stats_info();
 
@@ -2660,7 +2660,7 @@ void redraw_stuff(void)
 	{
 		p_ptr->redraw &= ~(PR_MISC);
 		prt_field(p_name + race_info[race].name, ROW_RACE, COL_RACE);
-		prt_field(c_name + c_info[class].name, ROW_CLASS, COL_CLASS);
+		prt_field(c_name + c_info[pclass].name, ROW_CLASS, COL_CLASS);
 	}
 
 	if (p_ptr->redraw & (PR_TITLE))

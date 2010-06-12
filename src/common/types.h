@@ -1642,7 +1642,7 @@ struct flavor_type
 typedef int (*cccb)	(void); /* "Custom Command Call-Back" */ 
 struct custom_command_type
 {
-	char catch;     	/* Actual command (such as 'j'). */
+	char m_catch;     	/* Actual command (such as 'j'). */
 	char pkt;
 	byte scheme;
 	byte energy_cost;  	/* In 1/Nth of level_speed; 0 == free */

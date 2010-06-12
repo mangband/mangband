@@ -175,7 +175,7 @@ extern byte stream_groups;
 
 
 extern s16b race;
-extern s16b class;
+extern s16b pclass;
 extern s16b sex;
 extern char ptitle[80];
 
@@ -380,7 +380,7 @@ extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
-extern bool askfor_aux(char *buf, int len, char private);
+extern bool askfor_aux(char *buf, int len, char m_private);
 extern void clear_from(int row);
 extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);

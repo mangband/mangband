@@ -369,7 +369,7 @@ extern const player_sex sex_info[MAX_SEXES];
 extern player_type* player_alloc(void);
 extern void player_free(player_type *p_ptr);
 extern void player_wipe(player_type *p_ptr);
-extern bool player_birth(int ind, int race, int class, int sex, int stat_order[]);
+extern bool player_birth(int ind, int race, int pclass, int sex, int stat_order[]);
 extern void server_birth(void);
 extern void player_setup(int Ind);
 
@@ -621,7 +621,7 @@ extern void cleanup_angband(void);
 /* load2.c */
 extern errr rd_savefile_new(player_type *p_ptr);
 extern errr rd_server_savefile(void);
-extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *class, int *sex);
+extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex);
 extern bool rd_dungeon_special_ext(int Depth, cptr levelname);
 
 /* melee1.c */
@@ -681,7 +681,7 @@ extern void display_monlist(int Ind);
 #define Stream_line_as(IND, st, y, as_y) plog("Stream_line_as unimplemented\n")
 #define Stream_char_raw(IND, st, y, x, a, c, ta, tc) plog("Stream_char_raw unimplemented\n")
 #define Send_monster_health(IND, num, attr) plog("Send_monster_health unimplemented\n")
-#define Send_char_info(IND, race, class, sex) plog("Send_char_info unimplemented\n")
+#define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
 #define Send_gold(IND, au) plog("Send_gold unimplemented\n")
 #define Send_experience(IND, lev, max, cur, adv) plog("Send_experience unimplemented\n")
 #define Send_history(IND, line, hist) plog("Send_history unimplemented\n")
@@ -836,7 +836,7 @@ extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge,
 
 /* save.c */
 extern bool save_player(int Ind);
-extern int scoop_player(char *nick, char *pass, int *race, int *class, int *sex);
+extern int scoop_player(char *nick, char *pass, int *race, int *pclass, int *sex);
 extern bool load_player(player_type *p_ptr);
 extern bool load_server_info(void);
 extern bool save_server_info(void);

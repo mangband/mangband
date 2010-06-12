@@ -45,7 +45,7 @@ void cmd_custom(byte i)
 	}
 	if (cc_ptr->flag & COMMAND_TEST_SPELL)
 	{
-		if (c_info[class].spell_book != cc_ptr->tval)
+		if (c_info[pclass].spell_book != cc_ptr->tval)
 		{
 			if (!STRZERO(prompt)) c_msg_print(prompt);
 			return;
@@ -238,7 +238,7 @@ void process_command()
 	byte i;
 	for (i = 0; i < custom_commands; i++) 
 	{
-		if (custom_command[i].catch == command_cmd) 
+		if (custom_command[i].m_catch == command_cmd) 
 		{
 			cmd_custom(i);
 			return;	
@@ -1116,13 +1116,13 @@ void cmd_browse(void)
 		return;
 	}
 
-	if (!c_info[class].spell_book)
+	if (!c_info[pclass].spell_book)
 	{
 		c_msg_print("You cannot read books!");
 		return;
 	}
 
-	item_tester_tval = c_info[class].spell_book;
+	item_tester_tval = c_info[pclass].spell_book;
 
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
@@ -1138,13 +1138,13 @@ void cmd_study(void)
 {
 	int item;
 
-	if (!c_info[class].spell_book)
+	if (!c_info[pclass].spell_book)
 	{
 		c_msg_print("You cannot gain spells!");
 		return;
 	}
 
-	item_tester_tval = c_info[class].spell_book;
+	item_tester_tval = c_info[pclass].spell_book;
 
 	if (!c_get_item(&item, "Gain from which book? ", FALSE, TRUE, FALSE))
 	{
@@ -1160,7 +1160,7 @@ void cmd_cast(void)
 {
 	int item;
 
-   if (c_info[class].spell_book != TV_MAGIC_BOOK)
+   if (c_info[pclass].spell_book != TV_MAGIC_BOOK)
 	{
 		c_msg_print("You cannot cast spells!");
 		return;
@@ -1182,7 +1182,7 @@ void cmd_pray(void)
 {
 	int item;
 
-	if (c_info[class].spell_book != TV_PRAYER_BOOK)
+	if (c_info[pclass].spell_book != TV_PRAYER_BOOK)
 	{
 		c_msg_print("Pray hard enough and your prayers may be answered.");
 		return;

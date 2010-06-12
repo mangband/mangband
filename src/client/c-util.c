@@ -1373,7 +1373,7 @@ void prt(cptr str, int row, int col)
  */
 
 /* APD -- added private so passwords will not be displayed. */
-bool askfor_aux(char *buf, int len, char private)
+bool askfor_aux(char *buf, int len, char m_private)
 {
 	int y, x;
 
@@ -1453,7 +1453,7 @@ bool askfor_aux(char *buf, int len, char private)
 		buf[k] = '\0';
 
 		/* Update the entry */
-		if (!private)
+		if (!m_private)
 		{
 			Term_erase(x, y, len);
 			Term_putstr(x, y, -1, TERM_WHITE, buf);

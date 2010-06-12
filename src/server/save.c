@@ -1113,7 +1113,7 @@ bool save_player(int Ind)
  * The actual read is performed by "rd_savefile_new_scoop_aux" from "load2.c", which
  * is a simplified code duplcation from player loading routines.
  */
-int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
+int scoop_player(char *nick, char *pass, int *race, int *pclass, int *sex)
 {
 	int		fd = -1;
 	errr	err = 0;
@@ -1215,7 +1215,7 @@ int scoop_player(char *nick, char *pass, int *race, int *class, int *sex)
 	if (!err)
 	{
 		/* Attempt to load */
- 		err = rd_savefile_new_scoop_aux( tmp , pass , race, class, sex );
+ 		err = rd_savefile_new_scoop_aux( tmp , pass , race, pclass, sex );
 		
 		/* Message (below) */
 		if (err == -1) what = "Cannot parse savefile";

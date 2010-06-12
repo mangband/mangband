@@ -301,7 +301,7 @@ void do_study(int book)
 	int j;
 
 	/* Mage -- Learn a selected spell */
-	if (c_info[class].spell_book == TV_MAGIC_BOOK)
+	if (c_info[pclass].spell_book == TV_MAGIC_BOOK)
 	{
 		/* Ask for a spell, allow cancel */
 		if (!get_spell(&j, "spell", "Study which spell? ", &book, FALSE)) return;

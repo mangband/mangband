@@ -1069,14 +1069,14 @@ void player_free(player_type *p_ptr)
  * Note that we may be called with "junk" leftover in the various
  * fields, so we must be sure to clear them first.
  */
-bool player_birth(int ind, int race, int class, int sex, int stat_order[6])
+bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 {
 	player_type *p_ptr = ConnPlayers(ind);
 	int i;
 
 	/* Do some consistency checks */
 	if (race < 0 || race >= z_info->p_max) race = 0;
-	if (class < 0 || class >= z_info->c_max) class = 0;
+	if (pclass < 0 || pclass >= z_info->c_max) pclass = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
 	/* Reprocess his name */
@@ -1087,13 +1087,13 @@ bool player_birth(int ind, int race, int class, int sex, int stat_order[6])
 
 	/* Set info */
 	p_ptr->prace = race;
-	p_ptr->pclass = class;
+	p_ptr->pclass = pclass;
 	p_ptr->male = sex;
 
 	/* Set pointers */
 	p_ptr->rp_ptr = &p_info[p_ptr->prace];
-	p_ptr->cp_ptr = &c_info[class];
-	p_ptr->mp_ptr = &c_info[class].spells;
+	p_ptr->cp_ptr = &c_info[pclass];
+	p_ptr->mp_ptr = &c_info[pclass].spells;
 
 	/* Set his ID */
 	p_ptr->id = player_id++;

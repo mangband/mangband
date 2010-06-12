@@ -5466,7 +5466,7 @@ void do_cmd_social(int Ind, int dir, int i)
 {
 	player_type *p_ptr = Players[Ind];
 	struct social_type *s_ptr;
-	bool catch = FALSE;
+	bool m_catch = FALSE;
 
 	/* Ghosts don't socialize */
 	if (p_ptr->ghost || p_ptr->fruit_bat) return;
@@ -5475,7 +5475,7 @@ void do_cmd_social(int Ind, int dir, int i)
 	if (i >= SPELL_PROJECTED)
 	{
 		i -= SPELL_PROJECTED;
-		catch = TRUE;
+		m_catch = TRUE;
 	}
 	i -= (i / SPELLS_PER_BOOK / 3) * (SPELLS_PER_BOOK - 1);
 
@@ -5484,7 +5484,7 @@ void do_cmd_social(int Ind, int dir, int i)
 
 	s_ptr = &socials[i];
 
-	if (catch && s_ptr->min_victim_position != 0)
+	if (m_catch && s_ptr->min_victim_position != 0)
 	{
 		int d, x, y, target;
 		if (dir != 5)

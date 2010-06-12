@@ -132,7 +132,7 @@ byte stream_group[MAX_STREAMS];
 byte stream_groups;
 
 s16b race;
-s16b class;
+s16b pclass;
 s16b sex;
 char ptitle[80];
 
