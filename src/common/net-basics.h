@@ -32,7 +32,7 @@ typedef struct char_queue {
 	int flush;
 } cq;
 typedef int (*compare) (data,data);
-typedef int (*callback) (data,data);
+typedef int (*callback) (int,data);
 
 /** Operations **/
 /* Elements */

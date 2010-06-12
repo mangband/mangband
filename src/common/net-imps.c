@@ -252,10 +252,10 @@ eptr handle_callers(eptr root) {
 #ifdef WINDOWS
 		if (sockerr == WSAEISCONN) n = 0;
 #endif
-		if (n == 0) ct->connect_cb((data)callerfd, (data)ct);
+		if (n == 0) ct->connect_cb(callerfd, (data)ct);
 		else if (sockerr == EINPROGRESS) continue;
 		else {
-			n = ct->failure_cb((data)callerfd, (data)ct);
+			n = ct->failure_cb(callerfd, (data)ct);
 			if (n) continue;
 			close(callerfd);
 		}
@@ -300,7 +300,7 @@ eptr handle_listeners(eptr root) {
 
 		cnfds = MATH_MAX(connfd, cnfds);
 
-		lt->accept_cb((data)connfd, lt);
+		lt->accept_cb(connfd, lt);
 	}
 	return root;
 }
@@ -343,7 +343,7 @@ eptr handle_timers(eptr root, micro microsec) {
 		timer->delay -= microsec;
 		while (timer->delay <= 0) {
 			timer->delay += timer->interval;
-			n = timer->timeout_cb((data)microsec, timer);
+			n = timer->timeout_cb((int)(microsec / 1000000), timer);
 			if (!n) {
 				timer->interval = 0;
 				to_close++;

@@ -54,16 +54,15 @@ void network_loop()
 	network_pause(1000); /* 0.001 ms "sleep" */
 }
 
-int client_close(data data1, data data2) {
+int client_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	/* 0_0` */
 	quit(NULL);
 }
 
-int client_read(data data1, data data2) { /* return -1 on error */
+int client_read(int data1, data data2) { /* return -1 on error */
 	cq queue;
 	connection_type *ct = data2;
-	char *recv = data1;
 
 	/* parse */
 	int result = 1;
@@ -109,7 +108,7 @@ int client_read(data data1, data data2) { /* return -1 on error */
 }
 
 					/* data1 is (int)fd */
-int connected_to_server(data data1, data data2) {
+int connected_to_server(int data1, data data2) {
 	int fd = (int)data1;
 
 	/* Unset 'caller' */
@@ -136,7 +135,7 @@ int connected_to_server(data data1, data data2) {
 }
 
 /* Return 1 to continue, 0 to cancel */
-int failed_connection_to_server(data data1, data data2) {
+int failed_connection_to_server(int data1, data data2) {
 	/* Ask user */ 
 	int r = client_failed();
 	if (r == 0) connected = -1;

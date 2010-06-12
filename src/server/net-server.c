@@ -32,7 +32,7 @@ connection_type **Conn; /* Pass "ind", get "connection_type" */
 connection_type **PConn; /* Pass "Ind", get "connection_type" */
 
 /* Callbacks */
-#define def_cb(A) int A(data data1, data data2)
+#define def_cb(A) int A(int data1, data data2)
 def_cb(second_tick); 
 def_cb(dungeon_tick);
 def_cb(accept_client);
@@ -314,7 +314,7 @@ void close_network_server()
 }
 
 
-int second_tick(data data1, data data2) {
+int second_tick(int data1, data data2) {
 	int i;
 
 	/* plog("A Second Passed"); */ ticks = 0;
@@ -351,7 +351,7 @@ int second_tick(data data1, data data2) {
 	return 1;
 }
 
-int dungeon_tick(data data1, data data2) {
+int dungeon_tick(int data1, data data2) {
 	/* plog("The Clock Ticked"); */ ticks++;
 
 	/* Game Turn */
@@ -359,7 +359,7 @@ int dungeon_tick(data data1, data data2) {
 	return 2;
 }
 					/* data1 is (int)fd */
-int accept_client(data data1, data data2) {
+int accept_client(int data1, data data2) {
 	eptr new_connection;
 	int fd = (int)data1;
 
@@ -373,7 +373,7 @@ int accept_client(data data1, data data2) {
 	return 0;
 }
 
-int hub_read(data data1, data data2) { /* return -1 on error */
+int hub_read(int data1, data data2) { /* return -1 on error */
 	/* char *recv = data1; // Unused */
 	connection_type *ct = (connection_type*)data2;
 
@@ -422,14 +422,14 @@ int hub_read(data data1, data data2) { /* return -1 on error */
 	cq_clear(&ct->rbuf);
 	return okay;
 }
-int hub_close(data data1, data data2) {
+int hub_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	debug(format("{HUB} Lost connection to %s", ct->host_addr));
 	return 0;
 }
 
 
-int client_read(data data1, data data2) { /* return -1 on error */
+int client_read(int data1, data data2) { /* return -1 on error */
 	connection_type *ct = data2;
 	player_type *p_ptr = players->list[(int)ct->user]->data2; 
 
@@ -461,7 +461,7 @@ int client_read(data data1, data data2) { /* return -1 on error */
 }
 
 /* Hack -- imagine "recv_login" and "client_read" rolled into one. */
-int client_login(data data1, data data2) { /* return -1 on error */
+int client_login(int data1, data data2) { /* return -1 on error */
 	connection_type *ct = data2;
 	/* char *recv = data1; // Unused */
 	player_type *p_ptr = NULL;
@@ -568,7 +568,7 @@ int client_login(data data1, data data2) { /* return -1 on error */
 }
 
 /* This function gets called when the connection is over */
-int client_close(data data1, data data2) {
+int client_close(int data1, data data2) {
 	connection_type *c_ptr = data2;
 	int ind = (int)c_ptr->user;
 
