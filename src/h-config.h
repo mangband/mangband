@@ -287,12 +287,6 @@
 # endif
 #endif
 
-/*
- * Several Windows compilers don't include EWOULDBLOCK
- */
-#ifdef WINDOWS
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#endif
 
 
 #endif
