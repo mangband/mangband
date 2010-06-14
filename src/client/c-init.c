@@ -474,8 +474,10 @@ void client_init(char *argv1)
 #endif
 	server_port = conf_get_int("MAngband", "Port", 18346);
 
+	strcpy(server_name, conf_get_string("MAngband", "host", ""));
+
 	/* Check whether we should query the metaserver */
-	if (argv1 == NULL)
+	if ((argv1 == NULL) && (server_name == ""))
 	{
 		/* Query metaserver */
 		if (!get_server_name())
@@ -483,8 +485,11 @@ void client_init(char *argv1)
 	}
 	else
 	{
-		/* Set the server's name */
-		strcpy(server_name, argv1);
+		if (argv1) /* We're using the command line to set server name */
+		{
+			/* Set the server's name */
+			strcpy(server_name, argv1);
+		}
 		/* Set server port */
 		s = strchr(server_name, ':');
 		if (s) 
