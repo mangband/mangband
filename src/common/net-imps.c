@@ -42,12 +42,14 @@
 #include <netdb.h> 
 #include <netinet/tcp.h>
 #define sockerr errno
+#define closesocket close
 #endif
 
 fd_set rd;
 int nfds;
 int cnfds;
 int lnfds;
+int crfds;
 
 struct caller_type {
 	struct sockaddr_in addr;
@@ -92,7 +94,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	struct listener_type *new_l;
 	struct sockaddr_in servaddr;
 	int listenfd;
-	int on;
+	char on;
 
 	/* Init socket */	
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -133,7 +135,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 eptr add_connection(eptr root, int fd, callback read, callback close) {
 	struct connection_type *new_c;
 	struct sockaddr_in sin;
-	unsigned int len = sizeof sin;
+	int len = sizeof sin;
 
 	/* Allocate memory */
 	MAKE(new_c, struct connection_type);
@@ -175,18 +177,13 @@ eptr handle_connections(eptr root) {
 	static socklen_t clilen = sizeof(cliaddr);
 
 	for (iter=root; iter; iter=iter->next) {
-		ct = iter->data2;
+		ct = (connection_type*)iter->data2;
 		connfd = ct->conn_fd;	
 
 		FD_SET(connfd, &rd);
 
-		/* Finalized connection */
-		if (ct->close)
-		{
-			cnfds = 0;		
-		}
-		/* Receive */		
-		else
+		/* Receive (Connection is not yet closed) */
+		if (!ct->close)
 		{
 			n = recvfrom(connfd,mesg,PD_SMALL_BUFFER,0,(struct sockaddr *)&cliaddr,&clilen);
 			if (n > 0) 
@@ -194,8 +191,7 @@ eptr handle_connections(eptr root) {
 				/* Got 'n' bytes */
 				if (cq_nwrite(&ct->rbuf, mesg, n))
 				{
-					mesg[n] = '\0';
-					n = ct->receive_cb(mesg, ct);
+					n = ct->receive_cb(0, ct);
 
 					/* Error while handling input */
 					if (n < 0) ct->close = 1;
@@ -204,7 +200,7 @@ eptr handle_connections(eptr root) {
 				else ct->close = 1;
 			}
 			/* Error while receiving */
-			else if (n == 0 || !(sockerr == EAGAIN || sockerr == EWOULDBLOCK)) ct->close = 1;	
+			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;	
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))
@@ -219,13 +215,13 @@ eptr handle_connections(eptr root) {
 		/* Done for? */
 		to_close += ct->close;
 	}
-	
+	if (to_close) cnfds = 0;		
 	while (to_close) {
 		for (iter=root; iter; iter=iter->next) {
-			ct = iter->data2;
+			ct = (connection_type*)iter->data2;
 			if (ct->close)
 			{
-				close(ct->conn_fd);
+				closesocket(ct->conn_fd);
 				FD_CLR(ct->conn_fd, &rd);
 				ct->close_cb(0, ct);
 				free(ct);
@@ -251,6 +247,7 @@ eptr handle_callers(eptr root) {
 		int callerfd = ct->caller_fd;
 		int n = 0;
 
+		FD_SET(callerfd, &rd);
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
 #ifdef WINDOWS
 		if (sockerr == WSAEISCONN) n = 0;
@@ -260,21 +257,25 @@ eptr handle_callers(eptr root) {
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
 			if (n) continue;
-			close(callerfd);
+			closesocket(callerfd);
 		}
 
 		to_remove += (ct->remove = 1);
 	}
+	if (to_remove) crfds = 0;
 	while (to_remove) {
 		for (iter=root; iter; iter=iter->next) {
 			struct caller_type *ct = iter->data2;
 			if (ct->remove)
 			{
+				FD_CLR(ct->caller_fd, &rd);
 				free(ct);
 				if (e_del(&root, iter) == 0)
 					root = NULL;
 				to_remove--;
 				break;
+			} else {
+				crfds = MATH_MAX(crfds, ct->caller_fd);
 			}
 		}
 	}
@@ -319,13 +320,12 @@ micro static_timer(int id) {
 	gettimeofday(&tv, NULL);
 	microsec = tv.tv_sec * 1000000 + tv.tv_usec;
 #else
-	unsigned __int64 microsec = 0;
+	micro microsec = 0;
 	FILETIME tv;
+	SYSTEMTIME tv2;
 	GetSystemTimeAsFileTime(&tv);
-	microsec |= tv.dwHighDateTime;
-	microsec <<= 32;
-	microsec |= tv.dwLowDateTime;
-	microsec /= 10;
+	FileTimeToSystemTime(&tv, &tv2);
+	microsec = tv2.wSecond * 1000000 + tv2.wMilliseconds * 1000;
 #endif
 /*	
 	printf("OLD: %ld\n", times[id]);
@@ -382,11 +382,12 @@ void network_reset() {
 }
 
 void network_pause(micro timeout) {
-	struct timeval tv;
-	
+	struct timeval tv = { 0, 0 };
+
 	TV_SET(tv, timeout); /* 200000 = 0.2 seconds */
 
 	nfds = MATH_MAX(lnfds, cnfds);
+	nfds = MATH_MAX(nfds, crfds);
 
 	select (nfds + 1, &rd, NULL, NULL, &tv);
 }
@@ -413,8 +414,8 @@ int fillhostname(char *str, int len) {
 }
 
 #define PACK_PTR_8(PT, VAL) * PT ++ = VAL 
-#define PACK_PTR_16(PT, VAL) * PT ++ = VAL >> 8, * PT ++ = VAL
-#define PACK_PTR_32(PT, VAL) * PT ++ = VAL >> 24, * PT ++ = VAL >> 16, * PT ++ = VAL >> 8, * PT ++ = VAL
+#define PACK_PTR_16(PT, VAL) * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
+#define PACK_PTR_32(PT, VAL) * PT ++ = (char)(VAL >> 24), * PT ++ = (char)(VAL >> 16), * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
 #define PACK_PTR_STR(PT, VAL) while ((* PT ++ = * VAL ++) != '\0')
 
 const cptr pf_errors[] = {

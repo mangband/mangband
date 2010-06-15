@@ -339,8 +339,10 @@ extern void conf_append_section(cptr section, cptr filename);
 /* c-init.c */
 extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
 extern bool client_ready(void);
+extern bool client_setup(void);
 extern void initialize_all_pref_files(void);
 extern void client_init(char *argv1);
+extern  int client_failed(void);
 
 /* c-inven.c */
 extern s16b index_to_label(int i);
@@ -434,7 +436,19 @@ extern s16b state;
 extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
+extern void setup_network_client();
+extern void cleanup_network_client();
+extern void network_loop();
+extern int call_server(char *server_name, int server_port);
 extern server_setup_t serv_info;
+extern int send_handshake(u16b conntype);
+extern int send_login(u16b version, char* real_name, char* host_name, char* user_name, char* pass_word);
+extern int send_play(byte mode);
+extern int send_char_info();
+extern int send_keepalive(u32b last_keepalive);
+extern int send_request(byte mode, u16b id);
+extern int send_msg(cptr message);
+extern int send_walk(char dir);
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")

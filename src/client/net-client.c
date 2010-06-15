@@ -17,7 +17,7 @@ eptr server_connection = NULL;
 connection_type *serv = NULL;
 
 /* Global Flags */
-byte connected = 0;
+s16b connected = 0;
 s16b state = 0;
 
 static int		(*handlers[256])(connection_type *ct);
@@ -58,6 +58,7 @@ int client_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	/* 0_0` */
 	quit(NULL);
+	return 0;
 }
 
 int client_read(int data1, data data2) { /* return -1 on error */
@@ -265,6 +266,7 @@ int recv_quit(connection_type *ct) {
 	}
 
 	quit(format("Quitting: %s", reason));
+	return 1;
 }
 
 int recv_basic_info(connection_type *ct) {
@@ -311,9 +313,9 @@ int recv_char_info(connection_type *ct) {
 	}
 
 	p_ptr->state = state;
-	p_ptr->prace = race;
-	p_ptr->pclass = pclass;
-	p_ptr->male = sex;
+	p_ptr->prace = (byte)race;
+	p_ptr->pclass = (byte)pclass;
+	p_ptr->male = (byte)sex;
 
 	/* Ok */
 	return 1;
@@ -330,7 +332,7 @@ int recv_struct_info(connection_type *ct)
 	u32b 	off, fake_name_size, fake_text_size;
 	byte	spell_book;
 
-	typ = max = off = fake_name_size = fake_text_size = 0;
+	off = fake_name_size = fake_text_size = max = typ = 0;
 
 	if (cq_scanf(&ct->rbuf, "%c%ud%ul%ul", &typ, &max, &fake_name_size, &fake_text_size) < 4)
 	{
@@ -442,7 +444,7 @@ int recv_struct_info(connection_type *ct)
 						
 				if (cq_scanf(&ct->rbuf, "%s%ul%c", &name, &off, &spell_book) < 3)
 				{
-					return n;
+					return 0;
 				}
 
 				strcpy(c_name + off, name);

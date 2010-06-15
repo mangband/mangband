@@ -39,7 +39,7 @@ extern eptr handle_listeners(eptr root);
 extern eptr handle_connections(eptr root);
 extern eptr handle_callers(eptr root);
 extern eptr handle_timers(eptr root, long microsec);
-extern long static_timer(int id);
+extern micro static_timer(int id);
 
 extern void network_reset();
 extern void network_pause(long timeout);

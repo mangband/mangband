@@ -164,7 +164,7 @@ static void Setup_loop()
 			{
 				get_char_info();
 				send_char_info();
-				send_play();
+				send_play(0);
 			}
 			if (state == PLAYER_FULL)
 			{
@@ -182,7 +182,7 @@ static void Setup_loop()
 		old_state = state;
 	} while (!(char_ready && data_ready));
 
-	send_play();
+	send_play(0);
 	client_ready();
 }
 
@@ -362,6 +362,8 @@ bool client_setup()
 	u16b version = CLIENT_VERSION;
 
 	send_login(version, real_name, host_name, nick, pass);
+
+	return TRUE;
 }
 
 /*
@@ -403,7 +405,7 @@ bool client_ready()
 }
 
 /* Return 1 to continue, 0 to cancel */ 
-int client_failed()
+int client_failed(void)
 {
 	static int try_count = 0;
 	event_type chkey;	
