@@ -472,24 +472,16 @@ void client_init(char *argv1)
 #ifndef WINDOWS
 	quit_aux = quit_hook;
 #endif
-	server_port = conf_get_int("MAngband", "Port", 18346);
 
+	/* Default server host and port */
+	server_port = conf_get_int("MAngband", "port", 18346);
 	strcpy(server_name, conf_get_string("MAngband", "host", ""));
 
 	/* Check whether we should query the metaserver */
-	if ((argv1 == NULL) && (server_name == ""))
+	if (argv1 != NULL)
 	{
-		/* Query metaserver */
-		if (!get_server_name())
-			quit("No server specified.");
-	}
-	else
-	{
-		if (argv1) /* We're using the command line to set server name */
-		{
-			/* Set the server's name */
-			strcpy(server_name, argv1);
-		}
+		/* Set the server's name */
+		strcpy(server_name, argv1);
 		/* Set server port */
 		s = strchr(server_name, ':');
 		if (s) 
@@ -497,6 +489,14 @@ void client_init(char *argv1)
 		    sscanf(s, ":%d", &server_port);
 		    strcpy (s, "\0");
 		}
+	}
+
+	/* Check whether we should query the metaserver */
+	if (STRZERO(server_name))
+	{
+		/* Query metaserver */
+		if (!get_server_name())
+			quit("No server specified.");
 	}
 
 	/* Fix "localhost" */
