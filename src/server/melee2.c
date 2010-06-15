@@ -825,7 +825,7 @@ bool make_attack_spell(int Ind, int m_idx)
 			sound(Ind, MSG_BR_INERTIA);
 			if (blind) msg_format(Ind, "%^s breathes.", m_name);
 			else msg_format(Ind, "%^s breathes inertia.", m_name);
-			breath(Ind, m_idx, GF_INERTIA,
+			breath(Ind, m_idx, GF_INERT,
 			       ((m_ptr->hp / 6) > 200 ? 200 : (m_ptr->hp / 6)));
 			break;
 		}

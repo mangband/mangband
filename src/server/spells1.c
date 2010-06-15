@@ -515,7 +515,7 @@ static byte spell_color(int type)
 		case GF_SOUND:		return (TERM_YELLOW);
 		case GF_SHARDS:		return (TERM_UMBER);
 		case GF_FORCE:		return (TERM_UMBER);
-		case GF_INERTIA:	return (TERM_L_WHITE);
+		case GF_INERT:	return (TERM_L_WHITE);
 		case GF_GRAVITY:	return (TERM_L_WHITE);
 		case GF_TIME:		return (TERM_L_BLUE);
 		case GF_LITE_WEAK:	return (TERM_ORANGE);
@@ -2737,7 +2737,7 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		}
 
 			/* Inertia -- breathers resist */
-		case GF_INERTIA:
+		case GF_INERT:
 		{
 			if (seen) obvious = TRUE;
 			if (r_ptr->flags4 & RF4_BR_INER)
@@ -3921,7 +3921,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		break;
 
 		/* Inertia -- slowness */
-		case GF_INERTIA:
+		case GF_INERT:
 		if (fuzzy) msg_print(Ind, "You are hit by something strange!");
 		(void)set_slow(Ind, p_ptr->slow + rand_int(4) + 4);
 		take_hit(Ind, dam, killer);
