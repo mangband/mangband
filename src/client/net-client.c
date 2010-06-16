@@ -63,7 +63,7 @@ int client_close(int data1, data data2) {
 
 int client_read(int data1, data data2) { /* return -1 on error */
 	cq queue;
-	connection_type *ct = data2;
+	connection_type *ct = (connection_type *)data2;
 
 	/* parse */
 	int result = 1;
@@ -123,7 +123,7 @@ int connected_to_server(int data1, data data2) {
 	denaglefd(fd);
 
 	/* Set usability pointer */	
-	serv = server_connection->data2;
+	serv = (connection_type *)server_connection->data2;
 	
 	/* Prepare packet-handling tables */
 	setup_tables();

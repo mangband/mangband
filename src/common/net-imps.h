@@ -22,7 +22,8 @@ struct connection_type {
 	char host_addr[24];
 	cq rbuf;
 	cq wbuf;
-	data user; /* User-defined data, unused by us */
+	int user; /* User-defined data, unused by us */
+	data uptr;
 };
 struct timer_type {
 	micro interval;

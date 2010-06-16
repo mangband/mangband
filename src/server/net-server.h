@@ -28,8 +28,9 @@ extern connection_type **PConn; /* Pass "Ind", get "connection_type" */
 extern int client_kill(connection_type *ct, cptr reason);
 #ifdef DEBUG
 #define client_withdraw(CT) client_kill(CT, format("write error :%d", __LINE__)); return -1
-#endif
+#else
 #define client_withdraw(CT) client_kill(CT, "write error"); return -1
+#endif
 
 extern int player_enter(int ind);
 extern int player_leave(int p_idx);
@@ -43,6 +44,7 @@ extern u16b connection_type_ok(u16b version);
 /* Setup */
 extern void setup_tables(sccb receiv[256], cptr *playing_schemes);
 /* Send */
+extern int send_server_info(connection_type *ct);
 extern int send_play(connection_type *ct, byte mode);
 extern int send_quit(connection_type *ct, char *reason);
 extern int send_char_info(connection_type *ct, player_type *p_ptr);
@@ -53,8 +55,8 @@ extern int send_class_info(connection_type *ct);
 //extern int recv_undef(connection_type *ct, player_type *p_ptr);
 
 /** control.c **/
-int accept_console(data data1, data data2);
-int console_read(data data1, data data2);
-int console_close(data data1, data data2);
+int accept_console(int data1, data data2);
+int console_read(int data1, data data2);
+int console_close(int data1, data data2);
 
 #endif

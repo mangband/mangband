@@ -249,7 +249,7 @@ void player_drop(int ind)
 		Conn[ind] = c_ptr;
 		/* Set "ind" index to both of them */
 		p_ptr->conn = ind;
-		c_ptr->user = (data)ind;
+		c_ptr->user = ind;
 	}
 }
 /* Fast termination of connection (used by shutdown routine) */
@@ -398,14 +398,14 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 			ct->receive_cb = client_login;
 			ct->close_cb = client_close;
 
-			ct->user = (data)-1;
+			ct->user = -1;
 
 			send_play(ct, 0);
 
 		break;
 		case CONNTYPE_CONSOLE:
 		
-			accept_console((data)ct, NULL);
+			accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
@@ -430,7 +430,7 @@ int hub_close(int data1, data data2) {
 
 
 int client_read(int data1, data data2) { /* return -1 on error */
-	connection_type *ct = data2;
+	connection_type *ct = (connection_type *)data2;
 	player_type *p_ptr = players->list[(int)ct->user]->data2; 
 
 	byte pkt;
@@ -546,7 +546,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 
 	/* ADD TO LIST */
 	p_ptr->conn = eg_add(players, ct, p_ptr);
-	ct->user = (data)p_ptr->conn;
+	ct->user = p_ptr->conn;
 	Conn[p_ptr->conn] = ct;
 
 	/* Init "command buffer" */

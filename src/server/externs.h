@@ -729,9 +729,12 @@ extern void display_monlist(int Ind);
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();
+extern int player_leave(int p_idx);
+extern int player_kill(int p_idx, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
+extern int send_message(int Ind, cptr msg, u16b typ);
 
 
 /* obj-info.c */

@@ -94,7 +94,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	struct listener_type *new_l;
 	struct sockaddr_in servaddr;
 	int listenfd;
-	char on;
+	int on;
 
 	/* Init socket */	
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -144,11 +144,12 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	new_c->receive_cb = read;
 	new_c->close_cb = close;
 	new_c->close = 0;
+	new_c->uptr = NULL;
 	cq_init(&new_c->wbuf, PD_SMALL_BUFFER);
 	cq_init(&new_c->rbuf, PD_SMALL_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
-		strcpy(new_c->host_addr, (char*)inet_ntoa(sin.sin_addr));  	
+		inet_ntop(AF_INET, &sin.sin_addr, new_c->host_addr, 24);
 
 	/* Add to list */
 	return e_add(root, NULL, new_c);

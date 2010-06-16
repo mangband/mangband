@@ -189,14 +189,14 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	/* Ready for rolling */
 	if (p_ptr->state == PLAYER_SHAPED)
 	{
-		player_birth((int)ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
+		player_birth(ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
 		p_ptr->state = PLAYER_FULL;
 	}
 
 	/* Imagine we're good to go */
 	if (p_ptr->state == PLAYER_FULL)
 	{
-		player_enter((int)ct->user);
+		player_enter(ct->user);
 	}
 
 	return 1;
@@ -250,7 +250,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	/* Ready for rolling */
 	if (p_ptr->state == PLAYER_SHAPED)
 	{
-		player_birth((int)ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
+		player_birth(ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
 		p_ptr->state = PLAYER_FULL;
 	}
 

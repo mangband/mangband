@@ -28,24 +28,24 @@ int command_len;
 
 eptr first_console = NULL;
 
-int accept_console(data data1, data data2) {
+int accept_console(int data1, data data2) {
 	eptr new_connection;
 	eptr new_console;
-	bool old = (data2 == NULL ? TRUE : FALSE);
+	bool old = (data1 == -1 ? TRUE : FALSE);
 	connection_type *ct = NULL;
 	console_connection *cn = NULL;	
 
 	/* Add connection */
 	if (!old)
 	{
-		new_connection = add_connection(first_connection, (int)data1, console_read, console_close);
+		new_connection = add_connection(first_connection, data1, console_read, console_close);
 		if (!first_connection) first_connection = new_connection;
 		ct = new_connection->data2;
 	}
 	/* Update connection */
 	else
 	{
-		ct = (connection_type *)data1;
+		ct = (connection_type *)data2;
 		ct->receive_cb = console_read;
 		ct->close_cb = console_close;
 	}
@@ -57,7 +57,7 @@ int accept_console(data data1, data data2) {
 	if (!first_console) first_console = new_console;
 	
 	/* save pointer to console in connection */
-	ct->user = (data)cn;
+	ct->uptr = (data)cn;
 
 	/* Initial states */
 	cn->auth = cn->listen = FALSE;
@@ -67,17 +67,17 @@ int accept_console(data data1, data data2) {
 
 	return 0;
 }
-int console_close(data data1, data data2) {
+int console_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
-	console_connection *cn = ct->user;
+	console_connection *cn = ct->uptr;
 
 	KILL(cn);
 
 	return 0;
 }
-int console_read(data data1, data data2) { /* return -1 on error */
+int console_read(int data1, data data2) { /* return -1 on error */
 	connection_type *ct = data2;
-	console_connection *cn = ct->user;//e_find(first_console, ct, NULL);
+	console_connection *cn = ct->uptr;//e_find(first_console, ct, NULL);
 
 	int start_pos;
 	int buflen;
@@ -228,7 +228,7 @@ static void console_debug(connection_type* ct, char *useless)
  */
 static void console_listen(connection_type* ct, char *channel)
 {
-	console_connection *cn = ct->user;
+	console_connection *cn = ct->uptr;
 	int i;
 	if (channel && !STRZERO(channel)) {
 		for (i = 0; i < MAX_CHANNELS; i++)
