@@ -9,6 +9,9 @@
  * This file simply includes other low level header files.
  */
 
+/* System Configuration (autocollected) */
+#include "../config.h"
+
 /* System Configuration */
 #include "../h-config.h"
 
