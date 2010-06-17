@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="copy $(OutDir)\src\config.h.in $(OutDir)\src\config.h"
+				CommandLine="echo // &gt; $(OutDir)\src\config.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -331,11 +331,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\defines.h"
+				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\defines.h"
+				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
@@ -384,6 +384,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\net-imps.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\options.h"
 				>
 			</File>
 			<File
