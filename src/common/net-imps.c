@@ -45,7 +45,7 @@
 #define closesocket close
 #endif
 
-#ifdef _WIN32 /* This may only work in Vista and later OSes */
+#ifdef HAVE_INET_NTOP /* This will only work in Vista and later OSes */
 #undef socklen_t
 #include <Ws2tcpip.h>
 #endif

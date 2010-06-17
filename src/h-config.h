@@ -140,6 +140,12 @@
 # endif
 #endif
 
+/*
++ * HACK: Extract some configure-like defines from the compiler
++ */
+#if _WIN32_WINNT >= _WIN32_WINNT_VISTA
+#define HAVE_INET_NTOP
+#endif
 
 
 /*
