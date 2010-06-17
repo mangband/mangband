@@ -45,6 +45,11 @@
 #define closesocket close
 #endif
 
+#ifdef _WIN32 /* This may only work in Vista and later OSes */
+#undef socklen_t
+#include <Ws2tcpip.h>
+#endif
+
 fd_set rd;
 int nfds;
 int cnfds;
@@ -101,7 +106,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	/* Enable address reuse */
 	on = 1;
-	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) );   
+	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on) );   
 
 	/* Set to non-blocking. */
 	unblockfd(listenfd);
