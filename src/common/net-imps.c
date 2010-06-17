@@ -154,7 +154,11 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	cq_init(&new_c->rbuf, PD_SMALL_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
+#ifdef HAVE_INET_NTOP
 		inet_ntop(AF_INET, &sin.sin_addr, new_c->host_addr, 24);
+#else
+		strcpy(new_c->host_addr, (char*)inet_ntoa(sin.sin_addr));
+#endif
 
 	/* Add to list */
 	return e_add(root, NULL, new_c);
