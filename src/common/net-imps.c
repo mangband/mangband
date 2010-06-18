@@ -31,13 +31,13 @@
 #endif
 # ifndef _WINSOCK2API_
 # include <winsock2.h>
+# include <ws2tcpip.h>
 # endif
 #undef EWOULDBLOCK
 #undef EINPROGRESS
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define EINPROGRESS WSAEINPROGRESS
 #define sockerr WSAGetLastError()
-#define socklen_t int
 #else
 #include <netdb.h> 
 #include <netinet/tcp.h>
@@ -45,10 +45,6 @@
 #define closesocket close
 #endif
 
-#ifdef HAVE_INET_NTOP /* This will only work in Vista and later OSes */
-#undef socklen_t
-#include <Ws2tcpip.h>
-#endif
 
 fd_set rd;
 int nfds;

@@ -141,10 +141,15 @@
 #endif
 
 /*
-+ * HACK: Extract some configure-like defines from the compiler
-+ */
+ * HACK: Extract some configure-like defines from the compiler
+ */
+#ifdef WINDOWS
+#ifndef _WIN32_WINNT_VISTA
+#define _WIN32_WINNT_VISTA 0x0600 /* _WIN32_WINNT_LONGHORN */
+#endif
 #if _WIN32_WINNT >= _WIN32_WINNT_VISTA
 #define HAVE_INET_NTOP
+#endif
 #endif
 
 
