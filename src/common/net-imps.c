@@ -35,11 +35,15 @@
 # endif
 #undef EWOULDBLOCK
 #undef EINPROGRESS
+#undef EISCONN
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define EINPROGRESS WSAEINPROGRESS
+#define EISCONN WSAEISCONN
 #define sockerr WSAGetLastError()
 #else
 #include <netdb.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #define sockerr errno
 #define closesocket close
@@ -78,8 +82,12 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	/* Set addr and others */
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
-	hp = gethostbyname(host);
-	memcpy (&(new_c->addr.sin_addr), hp->h_addr, hp->h_length);
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+	memcpy (&(new_c->addr.sin_addr), hp->h_addr, sizeof(new_c->addr.sin_addr));
 
 	new_c->port = port;
 	new_c->connect_cb = conn_cb;
@@ -188,9 +196,10 @@ eptr handle_connections(eptr root) {
 
 		FD_SET(connfd, &rd);
 
-		/* Receive (Connection is not yet closed) */
+		/* /Connection is not yet closed/ */
 		if (!ct->close)
 		{
+			/* Receive */
 			n = recvfrom(connfd,mesg,PD_SMALL_BUFFER,0,(struct sockaddr *)&cliaddr,&clilen);
 			if (n > 0) 
 			{
@@ -212,7 +221,7 @@ eptr handle_connections(eptr root) {
 		if (cq_len(&ct->wbuf))
 		{
 			n = cq_read(&ct->wbuf, &mesg[0], PD_SMALL_BUFFER);
-			n = sendto(connfd,mesg,n,0,(struct sockaddr *)&cliaddr,clilen);
+			n = sendto(connfd,mesg,n,0,(struct sockaddr *)&cliaddr,sizeof(struct sockaddr));
 
 			/* Error while sending */
 			if (n <= 0) ct->close = 1;
@@ -255,10 +264,8 @@ eptr handle_callers(eptr root) {
 
 		FD_SET(callerfd, &rd);
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
-#ifdef WINDOWS
-		if (sockerr == WSAEISCONN) n = 0;
-#endif
-		if (n == 0) ct->connect_cb(callerfd, (data)ct);
+		if (n == 0 || sockerr == EISCONN)
+			ct->connect_cb(callerfd, (data)ct);
 		else if (sockerr == EINPROGRESS) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
