@@ -103,7 +103,8 @@ int send_indicator_info(connection_type *ct, int id)
 	if (cq_printf(&ct->wbuf, "%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR, 
 		i_ptr->pkt, i_ptr->tiny, i_ptr->coffer, i_ptr->row, i_ptr->col, i_ptr->flag, i_ptr->prompt, i_ptr->mark) <= 0)
 	{
-		client_withdraw(ct);
+		/* Hack -- instead of "client_withdraw(ct);", we simply */
+		return 0;
 	}
 
 	/* Ok */
@@ -284,7 +285,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 	switch (mode) 
 	{
 		case BASIC_INFO_INDICATORS:
-			if (id < MAX_INDICATORS) send_indicator_info(ct, id);
+			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id)) break;
 		break;
 		default: break;
 	}

@@ -137,6 +137,22 @@ void initialize_all_pref_files(void)
 
 
 /*
+ * Sync a piece of server data via "send_request()" call.
+ */
+void sync_data_piece(int rq, int* ask, int rcv, int max, bool* ready)
+{
+	if (rcv < max)
+	{
+		if ((*ask) < rcv)
+		{
+			send_request(rq, rcv);
+			(*ask) = rcv;
+		}
+		(*ready) = FALSE;
+	}
+}
+
+/*
  * Send handshake to the server and do the loop
  */
 static void Setup_loop()
@@ -144,7 +160,7 @@ static void Setup_loop()
 	int old_state = -1;
 	u16b conntype = CONNTYPE_PLAYER;
 
-	bool asked = FALSE;
+	int asked_indicators = -1;
 
 	bool data_ready = TRUE;
 	bool char_ready = FALSE;
@@ -157,21 +173,13 @@ static void Setup_loop()
 		network_loop();
 
 		/* Check and Prepare data */
-		data_ready = TRUE;
-		if (asked == FALSE)
-		{
-			/* Do not do anything untill we logged in */
-			if (old_state >= PLAYER_EMPTY)
-			{
-				send_request(RQ_INDI, 0);
-				asked = TRUE;
-			}
-		}
-		else if 
-		(
-			(!serv_info.val1 || (known_indicators < serv_info.val1)) //||
-		)
 		data_ready = FALSE;
+		if (old_state >= PLAYER_EMPTY)
+		{
+			data_ready = TRUE;
+			/* Indicators */
+			sync_data_piece(RQ_INDI, &asked_indicators, known_indicators, serv_info.val1, &data_ready);
+		}
 
 		/* Check and Prepare character */
 		if (old_state != state && state)
@@ -197,8 +205,8 @@ static void Setup_loop()
 			{
 				char_ready = TRUE;
 			}
+			old_state = state;
 		}
-		old_state = state;
 	} while (!(char_ready && data_ready));
 
 	send_play(0);

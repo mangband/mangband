@@ -590,9 +590,6 @@ int recv_indicator_info(connection_type *ct) {
 	/* Register a possible local overload */
 	register_indicator(known_indicators - 1);
 
-	/* Ask for another one */
-	send_request(RQ_INDI, known_indicators);
-
 	return 1;
 }
 
