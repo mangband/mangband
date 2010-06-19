@@ -144,24 +144,43 @@ static void Setup_loop()
 	int old_state = -1;
 	u16b conntype = CONNTYPE_PLAYER;
 
+	bool asked = FALSE;
+
 	bool data_ready = TRUE;
 	bool char_ready = FALSE;
 
 	send_handshake(conntype);
-	
+
 	do
 	{
+
 		network_loop();
 
 		/* Check and Prepare data */
 		data_ready = TRUE;
+		if (asked == FALSE)
+		{
+			/* Do not do anything untill we logged in */
+			if (old_state >= PLAYER_EMPTY)
+			{
+				send_request(RQ_INDI, 0);
+				asked = TRUE;
+			}
+		}
+		else if 
+		(
+			(!serv_info.val1 || (known_indicators < serv_info.val1)) //||
+		)
+		data_ready = FALSE;
 
 		/* Check and Prepare character */
 		if (old_state != state && state)
 		{
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+			/* No character is ready */
 			if (state < PLAYER_SHAPED)
 			{
+				/* Generate one */
 				get_char_info();
 				send_char_info();
 				send_play(0);

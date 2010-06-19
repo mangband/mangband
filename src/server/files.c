@@ -791,22 +791,22 @@ static void display_player_middle(int Ind)
 	if (object_known_p(Ind, o_ptr)) show_todam += o_ptr->to_d;
 
 	/* Dump the bonuses to hit/dam */
-	Send_plusses(Ind, show_tohit, show_todam);
+	//Send_plusses(Ind, show_tohit, show_todam);
 
 	/* Dump the armor class bonus */
-	Send_ac(Ind, p_ptr->dis_ac, p_ptr->dis_to_a);
+	//Send_ac(Ind, p_ptr->dis_ac, p_ptr->dis_to_a);
 
 	if (p_ptr->lev >= PY_MAX_LEVEL)
 		adv_exp = 0;
 	else adv_exp = (s32b)(player_exp[p_ptr->lev - 1] * p_ptr->expfact / 100L);
 
-	Send_experience(Ind, p_ptr->lev, p_ptr->max_exp, p_ptr->exp, adv_exp);
+	//Send_experience(Ind, p_ptr->lev, p_ptr->max_exp, p_ptr->exp, adv_exp);
 
-	Send_gold(Ind, p_ptr->au);
+	//Send_gold(Ind, p_ptr->au);
 
-	Send_hp(Ind, p_ptr->mhp, p_ptr->chp);
+	//Send_hp(Ind, p_ptr->mhp, p_ptr->chp);
 
-	Send_sp(Ind, p_ptr->msp, p_ptr->csp);
+	//Send_sp(Ind, p_ptr->msp, p_ptr->csp);
 }
 
 
@@ -824,23 +824,23 @@ void display_player(int Ind)
 
 
 	/* Send basic information */
-	Send_char_info(Ind, p_ptr->prace, p_ptr->pclass, p_ptr->male);
+	//Send_char_info(Ind, p_ptr->prace, p_ptr->pclass, p_ptr->male);
 
 	/* Age, Height, Weight, Social */
-	Send_various(Ind, p_ptr->ht, p_ptr->wt, p_ptr->age, p_ptr->sc);
+	//Send_various(Ind, p_ptr->ht, p_ptr->wt, p_ptr->age, p_ptr->sc);
 
 	/* Send all the stats */
 	for (i = 0; i < 6; i++)
 	{
-		Send_stat(Ind, i, p_ptr->stat_top[i], p_ptr->stat_use[i]);
-		Send_maxstat(Ind, i, p_ptr->stat_max[i]);
+		//Send_stat(Ind, i, p_ptr->stat_top[i], p_ptr->stat_use[i]);
+		//Send_maxstat(Ind, i, p_ptr->stat_max[i]);
 	}
 
 	/* Extra info */
 	display_player_middle(Ind);
 
 	/* Display "history" info */
-	Send_history(Ind, i, p_ptr->history[i]);
+	//Send_history(Ind, i, p_ptr->history[i]);
 }
 
 

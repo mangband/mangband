@@ -106,9 +106,9 @@ s16b modify_stat_value(int value, int amount)
 static void prt_stat(int Ind, int stat)
 {	
 	player_type *p_ptr = Players[Ind];
-
-	Send_stat(Ind, stat, p_ptr->stat_top[stat], p_ptr->stat_use[stat]);
-    Send_maxstat(Ind, stat, p_ptr->stat_max[stat]);
+	send_indication(Ind, IN_STAT0 + stat,
+		// TODO: Actually send stat max instead of 18 + 200 ! Or top_stat + 1 if not maxed, and top_stat if maxed.  
+		18 + 200, p_ptr->stat_top[stat], p_ptr->stat_use[stat]);
 }
 
 
@@ -139,7 +139,7 @@ static void prt_title(int Ind)
 	if (p_ptr->ghost)
 		p = "Ghost";
 
-	Send_title(Ind, p);
+	send_indication(Ind, IN_TITLE, p);
 }
 
 
@@ -150,13 +150,7 @@ static void prt_level(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int adv_exp;
-
-	if (p_ptr->lev >= PY_MAX_LEVEL)
-		adv_exp = 0;
-	else adv_exp = (s32b)(player_exp[p_ptr->lev - 1] * p_ptr->expfact / 100L);
-
-	Send_experience(Ind, p_ptr->lev, p_ptr->max_exp, p_ptr->exp, adv_exp);
+	send_indication(Ind, IN_LEVEL, MAX(p_ptr->max_plv, p_ptr->lev), p_ptr->lev);
 }
 
 
@@ -173,7 +167,7 @@ static void prt_exp(int Ind)
 		adv_exp = 0;
 	else adv_exp = (s32b)(player_exp[p_ptr->lev - 1] * p_ptr->expfact / 100L);
 
-	Send_experience(Ind, p_ptr->lev, p_ptr->max_exp, p_ptr->exp, adv_exp);
+	send_indication(Ind, IN_EXP, p_ptr->max_exp, p_ptr->exp, adv_exp);
 }
 
 
@@ -184,7 +178,7 @@ static void prt_gold(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_gold(Ind, p_ptr->au);
+	send_indication(Ind, IN_GOLD, p_ptr->au);
 }
 
 
@@ -195,8 +189,7 @@ static void prt_gold(int Ind)
 static void prt_ac(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
-	Send_ac(Ind, p_ptr->dis_ac, p_ptr->dis_to_a);
+	send_indication(Ind, IN_ARMOR, p_ptr->dis_ac, p_ptr->dis_to_a );
 }
 
 
@@ -207,7 +200,7 @@ static void prt_hp(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_hp(Ind, p_ptr->mhp, p_ptr->chp);
+	send_indication(Ind, IN_HP, p_ptr->chp-2, p_ptr->mhp );
 }
 
 /*
@@ -218,9 +211,14 @@ static void prt_sp(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Do not show mana unless it matters */
-    if (!p_ptr->cp_ptr->spell_book) Send_sp(Ind, 0, 0);
-
-	else Send_sp(Ind, p_ptr->msp, p_ptr->csp);
+	if (p_ptr->cp_ptr->spell_book)
+	{
+		send_indication(Ind, IN_SP, p_ptr->csp, p_ptr->msp);
+	}
+	else
+	{
+		send_indication(Ind, IN_SP, 0, 0);
+	}
 }
 
 
@@ -231,7 +229,7 @@ static void prt_depth(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_depth(Ind, p_ptr->dun_depth);
+	send_indication(Ind, IN_DEPTH, p_ptr->dun_depth);
 }
 
 
@@ -241,8 +239,45 @@ static void prt_depth(int Ind)
 static void prt_hunger(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	byte f = 0;
 
-	Send_food(Ind, p_ptr->food);
+	/* Fainting / Starving */
+	if (p_ptr->food < PY_FOOD_FAINT)
+	{
+		f = 0;
+	}
+ 
+	/* Weak */
+	else if (p_ptr->food < PY_FOOD_WEAK)
+	{
+		f = 1;
+	}
+
+	/* Hungry */
+	else if (p_ptr->food < PY_FOOD_ALERT)
+	{
+		f = 2;
+	}
+
+	/* Normal */
+	else if (p_ptr->food < PY_FOOD_FULL)
+	{
+		f = 3;
+	}
+
+	/* Full */
+	else if (p_ptr->food < PY_FOOD_MAX)
+	{
+		f = 4;
+	}
+
+	/* Gorged */
+	else
+	{
+		f = 5;
+	}
+
+	send_indication(Ind, IN_FOOD, f);
 }
 
 
@@ -255,11 +290,11 @@ static void prt_blind(int Ind)
 
 	if (p_ptr->blind)
 	{
-		Send_blind(Ind, TRUE);
+		send_indication(Ind, IN_BLIND, TRUE);
 	}
 	else
 	{
-		Send_blind(Ind, FALSE);
+		send_indication(Ind, IN_BLIND, FALSE);
 	}
 }
 
@@ -273,11 +308,11 @@ static void prt_confused(int Ind)
 
 	if (p_ptr->confused)
 	{
-		Send_confused(Ind, TRUE);
+		send_indication(Ind, IN_CONFUSED, TRUE);
 	}
 	else
 	{
-		Send_confused(Ind, FALSE);
+		send_indication(Ind, IN_CONFUSED, FALSE);
 	}
 }
 
@@ -291,11 +326,11 @@ static void prt_afraid(int Ind)
 
 	if (p_ptr->afraid)
 	{
-		Send_fear(Ind, TRUE);
+		send_indication(Ind, IN_AFRAID, TRUE);
 	}
 	else
 	{
-		Send_fear(Ind, FALSE);
+		send_indication(Ind, IN_AFRAID, FALSE);
 	}
 }
 
@@ -309,11 +344,11 @@ static void prt_poisoned(int Ind)
 
 	if (p_ptr->poisoned)
 	{
-		Send_poison(Ind, TRUE);
+		send_indication(Ind, IN_POISONED, TRUE);
 	}
 	else
 	{
-		Send_poison(Ind, FALSE);
+		send_indication(Ind, IN_POISONED, FALSE);
 	}
 }
 
@@ -324,7 +359,7 @@ static void prt_oppose_elements(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_oppose(Ind, p_ptr->oppose_acid, p_ptr->oppose_elec, p_ptr->oppose_fire, p_ptr->oppose_cold, p_ptr->oppose_pois);
+	send_indication(Ind, IN_OPPOSE, p_ptr->oppose_acid+1, p_ptr->oppose_elec, p_ptr->oppose_fire, p_ptr->oppose_cold+1, p_ptr->oppose_pois+1 );
 }
 
 /*
@@ -372,7 +407,7 @@ static void prt_state(int Ind)
 		r = FALSE;
 	}
 
-	Send_state(Ind, p, s, r);
+	send_indication(Ind, IN_STATE, p, s, r);
 }
 
 
@@ -388,7 +423,7 @@ static void prt_speed(int Ind)
 	/* Hack -- Visually "undo" the Search Mode Slowdown */
 	if (p_ptr->searching) i += 10;
 
-	Send_speed(Ind, i - 110);
+	send_indication(Ind, IN_SPEED, i - 110 + 9 );
 }
 
 static void prt_study(int Ind)
@@ -397,11 +432,11 @@ static void prt_study(int Ind)
 
 	if (p_ptr->new_spells)
 	{
-		Send_study(Ind, TRUE);
+		send_indication(Ind, IN_STUDY, TRUE);
 	}
 	else
 	{
-		Send_study(Ind, FALSE);
+		send_indication(Ind, IN_STUDY, FALSE);
 	}
 }
 
@@ -411,8 +446,41 @@ static void prt_cut(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int c = p_ptr->cut;
+	int s = 0;
+	if (c > 1000)
+	{
+		s = 7;
+	}
+	else if (c > 200)
+	{
+		s = 6;
+	}
+	else if (c > 100)
+	{
+		s = 5;
+	}
+	else if (c > 50)
+	{
+		s = 4;
+	}
+	else if (c > 25)
+	{
+		s = 3;
+	}
+	else if (c > 10)
+	{
+		s = 2;
+	}
+	else if (c)
+	{
+		s = 1;
+	}
+	else
+	{
+		s = 0;
+	}
 
-	Send_cut(Ind, c);
+	send_indication(Ind, IN_CUT, s);
 }
 
 
@@ -422,8 +490,26 @@ static void prt_stun(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int s = p_ptr->stun;
+	int r;
 
-	Send_stun(Ind, s);
+	if (s > 100)
+	{
+		r = 3;
+	}
+	else if (s > 50)
+	{
+		r = 2;
+	}
+	else if (s)
+	{
+		r = 1;
+	}
+	else
+	{
+		r = 0;
+	}
+
+	send_indication(Ind, IN_STUN, r);
 }
 
 /*
@@ -1153,19 +1239,20 @@ static void health_redraw(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 #ifdef DRS_SHOW_HEALTH_BAR
+	byte attr = 0;
+	int len = 0;
 
 	/* Not tracking */
 	if (p_ptr->health_who == 0)
 	{
 		/* Erase the health bar */
-		Send_monster_health(Ind, 0, 0);
 	}
 
 	/* Tracking a hallucinatory monster */
 	else if (p_ptr->image)
 	{
 		/* Indicate that the monster health is "unknown" */
-		Send_monster_health(Ind, 0, TERM_WHITE);
+		attr = TERM_WHITE;
 	}
 
 	/* Tracking a player */
@@ -1176,10 +1263,8 @@ static void health_redraw(int Ind)
 		if (0 - p_ptr->health_who > NumPlayers)
 		{
 			/* Invalid index -- erase the health bar */
-			Send_monster_health(Ind, 0, 0);
 			/* Reset the index */
 			p_ptr->health_who = 0;
-			return;
 		}
 		
 		q_ptr = Players[0 - p_ptr->health_who];
@@ -1188,23 +1273,22 @@ static void health_redraw(int Ind)
 		if (!q_ptr)
 		{
 			/* Erase the health bar */
-			Send_monster_health(Ind, 0, 0);
 		}
 
 		/* Tracking an unseen player */
 		else if (!p_ptr->play_vis[0 - p_ptr->health_who])
 		{
 			/* Indicate that the player health is "unknown" */
-			Send_monster_health(Ind, 0, TERM_WHITE);
+			attr = TERM_WHITE;
 		}
 
 		/* Tracking a visible player */
 		else
 		{
-			int pct, len;
+			int pct;
 
 			/* Default to almost dead */
-			byte attr = TERM_RED;
+			attr = TERM_RED;
 
 			/* Extract the "percent" of health */
 			pct = 100L * q_ptr->chp / q_ptr->mhp;
@@ -1229,9 +1313,6 @@ static void health_redraw(int Ind)
 
 			/* Convert percent into "health" */
 			len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
-
-			/* Send the health */
-			Send_monster_health(Ind, len, attr);
 		}
 	}
 
@@ -1239,32 +1320,31 @@ static void health_redraw(int Ind)
 	else if (!m_list[p_ptr->health_who].r_idx)
 	{
 		/* Erase the health bar */
-		Send_monster_health(Ind, 0, 0);
 	}
 
 	/* Tracking an unseen monster */
 	else if (!p_ptr->mon_vis[p_ptr->health_who])
 	{
 		/* Indicate that the monster health is "unknown" */
-		Send_monster_health(Ind, 0, TERM_WHITE);
+		attr = TERM_WHITE;
 	}
 
 	/* Tracking a dead monster (???) */
 	else if (m_list[p_ptr->health_who].hp < 0)
 	{
 		/* Indicate that the monster health is "unknown" */
-		Send_monster_health(Ind, 0, TERM_WHITE);
+		attr = TERM_WHITE;
 	}
 
 	/* Tracking a visible monster */
 	else
 	{
-		int pct, len;
+		int pct;
 
 		monster_type *m_ptr = &m_list[p_ptr->health_who];
 
 		/* Default to almost dead */
-		byte attr = TERM_RED;
+		attr = TERM_RED;
 
 		/* Extract the "percent" of health */
 		pct = 100L * m_ptr->hp / m_ptr->maxhp;
@@ -1289,12 +1369,10 @@ static void health_redraw(int Ind)
 
 		/* Convert percent into "health" */
 		len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
-
-		/* Send the health */
-		Send_monster_health(Ind, len, attr);
 	}
-#endif
 
+	send_indication(Ind, IN_MON_HEALTH, (s16b)attr, (s16b)len);
+#endif
 }
 
 

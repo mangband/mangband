@@ -1855,7 +1855,7 @@ void check_experience(int Ind)
 	if (p_ptr->exp > p_ptr->max_exp) p_ptr->max_exp = p_ptr->exp;
 
 	/* Redraw experience */
-	p_ptr->redraw |= (PR_EXP);
+	p_ptr->redraw |= (PR_EXP | PR_LEV);
 
 	/* Lose levels while possible */
 	while ((p_ptr->lev > 1) &&

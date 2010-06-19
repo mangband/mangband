@@ -62,6 +62,129 @@
 
 
 /*
+ * indicators / print-fields defines
+ */
+#define MAX_INDICATORS 30
+
+/* Those IDs must match the order of indicators[] array from tables.c */
+/* Player compact */
+#define IN_RACE     	0
+#define IN_CLASS    	1
+#define IN_TITLE    	2
+#define IN_LEVEL    	3
+#define IN_EXP      	4
+#define IN_GOLD     	5
+#define IN_STAT0    	6
+#define IN_STAT1    	7
+#define IN_STAT2    	8
+#define IN_STAT3    	9
+#define IN_STAT4    	10
+#define IN_STAT5    	11
+#define IN_ARMOR    	12
+#define IN_HP       	13
+#define IN_SP       	14
+#define IN_MON_HEALTH	15
+#define IN_CUT      	16
+/* Status line */
+#define IN_FOOD     	17
+#define IN_BLIND    	18
+#define IN_STUN     	19
+#define IN_CONFUSED 	20
+#define IN_AFRAID   	21
+#define IN_POISONED 	22
+#define IN_STATE    	23
+#define IN_SPEED    	24
+#define IN_STUDY    	25
+#define IN_DEPTH    	26
+#define IN_OPPOSE   	27
+
+
+/*** Screen Locations ***/
+
+#define ROW_RACE    	1
+#define COL_RACE    	0	/* <race name> */
+
+#define ROW_CLASS   	2
+#define COL_CLASS   	0	/* <class name> */
+
+#define ROW_TITLE   	3
+#define COL_TITLE   	0	/* <title> or <mode> */
+
+#define ROW_LEVEL   	4
+#define COL_LEVEL   	0	/* "LEVEL xxxxxx" */
+
+#define ROW_EXP     	5
+#define COL_EXP     	0	/* "EXP xxxxxxxx" */
+
+#define ROW_GOLD    	6
+#define COL_GOLD    	0	/* "AU xxxxxxxxx" */
+
+#define ROW_EQUIPPY 	14
+#define COL_EQUIPPY 	0	/* equippy chars */
+
+#define ROW_LAG     	7
+#define COL_LAG     	0	/* "LAG xxxxxxxx" */
+
+#define ROW_STAT    	8
+#define COL_STAT    	0	/* "xxx   xxxxxx" */
+/* takes up 6 rows... */
+
+#define ROW_AC      	15
+#define COL_AC      	0	/* "Cur AC xxxxx" */
+
+#define ROW_MAXHP   	16
+#define COL_MAXHP   	0	/* "Max HP xxxxx" */
+
+#define ROW_CURHP   	17
+#define COL_CURHP   	0	/* "Cur HP xxxxx" */
+
+#define ROW_MAXSP   	18
+#define COL_MAXSP   	0	/* "Max SP xxxxx" */
+
+#define ROW_CURSP   	19
+#define COL_CURSP   	0	/* "Cur SP xxxxx" */
+
+#define ROW_INFO    	20
+#define COL_INFO    	0	/* "xxxxxxxxxxxx" */
+
+#define ROW_CUT     	21
+#define COL_CUT     	0	/* <cut> */
+
+#define ROW_STUN    	22
+#define COL_STUN    	0	/* <stun> */
+
+#define ROW_HUNGRY  	-1
+#define COL_HUNGRY  	0	/* "Weak" / "Hungry" / "Full" / "Gorged" */
+
+#define ROW_BLIND   	-1
+#define COL_BLIND   	7	/* "Blind" */
+
+#define ROW_CONFUSED	-1
+#define COL_CONFUSED	13	/* "Confused" */
+
+#define ROW_AFRAID  	-1
+#define COL_AFRAID  	22	/* "Afraid" */
+
+#define ROW_POISONED	-1
+#define COL_POISONED	29	/* "Poisoned" */
+
+#define ROW_STATE   	-1
+#define COL_STATE   	38	/* <state> */
+
+#define ROW_SPEED   	-1
+#define COL_SPEED   	49	/* "Slow (-NN)" or "Fast (+NN)" */
+
+#define ROW_STUDY   	-1
+#define COL_STUDY   	64	/* "Study" */
+
+#define ROW_DEPTH   	-1
+#define COL_DEPTH   	70	/* "Lev NNN" / "NNNN ft" */
+
+#define ROW_OPPOSE_ELEMENTS	-1
+#define COL_OPPOSE_ELEMENTS	80	/* "Acid Elec Fire Cold Pois" */
+
+
+/*
  * item_tester_hook defines 
  */
 #define ITH_WEAR        	1

@@ -53,7 +53,7 @@ byte next_pkt = 0;
 
 server_setup_t serv_info = 
 {
-	0,
+	MAX_INDICATORS, /* Must be replaced with real indicator count at run-time */
 	0,
 	0,
 	0,

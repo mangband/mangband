@@ -28,6 +28,8 @@ cptr next_scheme;
 
 server_setup_t serv_info;
 
+byte indicator_refs[256]; /* PKT to ID: Indicators */
+
 /* Init */
 void setup_tables(void);
 void setup_network_client()
@@ -456,6 +458,141 @@ int recv_struct_info(connection_type *ct)
 		break;
 	}	
 	
+	return 1;
+}
+
+/* Read and update specific indicator */
+int recv_indicator(connection_type *ct) {
+
+	indicator_type *i_ptr; 
+	int id = indicator_refs[next_pkt];
+	int i, coff;
+
+	signed char tiny_c;
+	s16b normal_c;
+	s32b large_c;
+	char* text_c;
+
+	/* Error -- unknown indicator */
+	if (id > known_indicators) return -1;
+
+	i_ptr = &indicators[id];
+	coff = coffer_refs[id];
+
+	/* Read (i_ptr->coffer) values of type (s16b/byte) */
+	for (i = 0; i < i_ptr->coffer; i++) 
+	{
+		/* Read */
+		s16b val = 0, n = 0;
+		if (i_ptr->tiny  == INDITYPE_TINY)
+		{
+			n = cq_scanf(&ct->rbuf, "%c", &tiny_c);
+			val = (s32b)tiny_c;
+		} 
+		else if (i_ptr->tiny == INDITYPE_NORMAL)
+		{
+			n = cq_scanf(&ct->rbuf, "%d", &normal_c);
+			val = (s32b)normal_c;
+		}
+		else if (i_ptr->tiny == INDITYPE_LARGE)
+		{
+			n = cq_scanf(&ct->rbuf, "%l", &normal_c);
+			val = (s32b)normal_c;
+		}
+
+		/* Error ? */
+		if (n < 1) return 0;
+
+		/* Save */
+		coffers[coff + i] = val;
+	}
+
+	/* Schedule redraw */
+	p_ptr->redraw |= i_ptr->redraw;
+	
+	return 1;
+}
+
+int recv_indicator_str(connection_type *ct) {
+	indicator_type *i_ptr;
+	int id = indicator_refs[next_pkt];
+	char buf[MAX_CHARS]; 
+
+	/* Error -- unknown indicator */
+	if (id > known_indicators) return -1;
+
+	i_ptr = &indicators[id];
+
+	/* Read the string */
+	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
+
+	/* Store the string in indicator's 'prompt' */
+	strncpy(i_ptr->prompt, buf, MAX_CHARS);
+
+	/* Schedule redraw */
+	p_ptr->redraw |= i_ptr->redraw;
+	
+	return 1;
+}
+
+/* Learn about certain indicator from server */
+int recv_indicator_info(connection_type *ct) {
+	byte
+		pkt = 0,
+		tiny = 0,
+		amnt = 0;
+	char buf[MSG_LEN]; //TODO: check this 
+	char mark[MAX_CHARS];
+	s16b row = 0,
+		col = 0;
+	u32b flag = 0;
+	int n;
+
+	indicator_type *i_ptr;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c%d%d%ul%S%s", &pkt, &tiny, &amnt, &row, &col, &flag, buf, mark) < 8) return 0;
+
+	/* Check for errors */
+	if (known_indicators >= MAX_INDICATORS)
+	{
+		plog("No more indicator slots! (MAX_INDICATORS)");
+		return -1;
+	}
+	if (known_coffers + amnt + 1 >= MAX_COFFERS)
+	{
+		plog("Not enougth coffer slots! (MAX_COFFERS)");
+		return -1;
+	}
+
+	/* Get it */
+	i_ptr = &indicators[known_indicators];
+
+	i_ptr->pkt = pkt;
+	i_ptr->tiny = tiny;
+	i_ptr->coffer = amnt;
+	i_ptr->redraw = (1L << (known_indicators));
+	i_ptr->row = row;
+	i_ptr->col = col;
+	i_ptr->flag = flag;
+
+	i_ptr->mark = strdup(mark);
+	i_ptr->prompt = strdup(buf);
+
+	handlers[pkt] = ((tiny != INDITYPE_STRING) ? recv_indicator : recv_indicator_str);
+	schemes[pkt] = NULL; /* HACK */
+
+	indicator_refs[pkt] = known_indicators;
+	coffer_refs[known_indicators] = known_coffers;
+
+	known_coffers += amnt;
+	known_indicators++;
+
+	/* Register a possible local overload */
+	register_indicator(known_indicators - 1);
+
+	/* Ask for another one */
+	send_request(RQ_INDI, known_indicators);
+
 	return 1;
 }
 

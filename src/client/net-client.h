@@ -10,6 +10,8 @@
 	PACKET(PKT_BASIC_INFO,	"%d%d%d%d",	recv_basic_info)
 	PACKET(PKT_CHAR_INFO,	"%d%d%d%d",	recv_char_info)
 	PACKET(PKT_STRUCT_INFO,	NULL,   	recv_struct_info)
-	
+
+	PACKET(PKT_INDICATOR,	"%c%c%c%c",	recv_indicator_info)
+
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
 #endif

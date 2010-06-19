@@ -17,6 +17,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS];
 const stream_type streams[MAX_STREAMS];
 extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
 extern byte item_tester_flags[MAX_ITEM_TESTERS]; 
+const indicator_type indicators[MAX_INDICATORS];
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -680,40 +681,19 @@ extern void display_monlist(int Ind);
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Stream_line_as(IND, st, y, as_y) plog("Stream_line_as unimplemented\n")
 #define Stream_char_raw(IND, st, y, x, a, c, ta, tc) plog("Stream_char_raw unimplemented\n")
-#define Send_monster_health(IND, num, attr) plog("Send_monster_health unimplemented\n")
 #define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
-#define Send_gold(IND, au) plog("Send_gold unimplemented\n")
-#define Send_experience(IND, lev, max, cur, adv) plog("Send_experience unimplemented\n")
 #define Send_history(IND, line, hist) plog("Send_history unimplemented\n")
 #define Send_floor(IND, attr, amt, tval, flag, name) plog("Send_floor unimplemented\n")
 #define Send_equip(IND, pos, attr, wgt, tval, flag, name) plog("Send_equip unimplemented\n")
 #define Send_inven(IND, pos, attr, wgt, amt, tval, flag, name) plog("Send_inven unimplemented\n")
-#define Send_poison(IND, poisoned) plog("Send_poison unimplemented\n")
-#define Send_fear(IND, fear) plog("Send_fear unimplemented\n")
-#define Send_blind(IND, blind) plog("Send_blind unimplemented\n")
-#define Send_confused(IND, confused) plog("Send_confused unimplemented\n")
 #define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
-#define Send_sp(IND, msp, csp)  plog("Send_sp unimplemented\n")
-#define Send_study(IND, study)  plog("Send_study unimplemented\n")
-#define Send_cut(IND, cut)  plog("Send_cut unimplemented\n")
 #define Send_skills(IND) plog("Send_skills unimplemented\n")
-#define Send_depth(IND,depth) plog("Send_depth unimplemented\n")
-#define Send_hp(IND,mhp,chp) plog("Send_hp unimplemented\n")
 #define Send_various(IND,hgt,wgt,age,sc) plog("Send_various unimplemented\n")
-#define Send_food(IND,food) plog("Send_food unimplemented\n")
-#define Send_speed(IND,speed) plog("Send_speed unimplemented\n")
-#define Send_state(IND,paralyzed,searching,resting) plog("Send_state unimplemented\n")
-#define Send_stun(IND,stun) plog("Send_stun unimplemented\n")
-#define Send_oppose(IND,acid,elec,fire,cold,pois) plog("Send_oppose unimplemented\n")
 #define Send_sound(IND, sound) plog("Send_sound unimplemented\n") 
-#define Send_stat(IND, stat, max, cur) plog("Send_stat unimplemented\n")
-#define Send_maxstat(IND, stat, max) plog("Send_maxstat unimplemented\n")
 #define Send_plusses(IND, tohit, todam) plog("Send_plusses unimplemented\n")
 #define Send_objflags(IND, line) plog("Send_objflags unimplemented\n")
-#define Send_ac(IND, base, plus) plog("Send_ac unimplemented\n")
 #define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
 #define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
-#define Send_title(IND, title) plog("Send_title unimplemented\n")
 #define Send_special_other(IND, header) plog("Send_special_other unimplemented\n")
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")

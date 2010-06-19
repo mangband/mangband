@@ -110,7 +110,7 @@ static void prt_level(int row, int col)
 
 	sprintf(tmp, "%6d", p_ptr->lev);
 
-	if (p_ptr->lev >= p_ptr->lev) // :( used to be max_lev
+	if (p_ptr->lev >= p_ptr->max_plv)
 	{
 		put_str("LEVEL ", row, col);
 		c_put_str(TERM_L_GREEN, tmp, row, col + 6);
@@ -285,9 +285,10 @@ static void prt_max_sp(int row, int col)
 /*
  * Prints depth into the dungeon
  */
-static void prt_depth(int row, int col)
+static void prt_depth(int row, int col, int id)
 {
 	char depths[32];
+	p_ptr->dun_depth = coffers[coffer_refs[id]];
 
 	if (!p_ptr->dun_depth)
 	{
@@ -1403,7 +1404,7 @@ static void prt_status_line(void)
 	prt_study(row, COL_STUDY);
 
 	/* Depth */
-	prt_depth(row, COL_DEPTH);
+	prt_depth(row, COL_DEPTH, -1);
 
 	/* Temp. resists */
 	prt_oppose_elements(row, COL_OPPOSE_ELEMENTS);
@@ -2512,10 +2513,11 @@ void display_player(int screen_mode)
 
 }
 
-typedef void (*pfcb) (int, int); /* "Print Field Call-Back" */ 
+typedef void (*pfcb) (int, int, int); /* "Print Field Call-Back" */
+pfcb prt_functions[MAX_INDICATORS];
 struct field
 {
-	u32b	trigger;
+	cptr	mark;
 	s16b	row;
 	s16b	col;
 
@@ -2524,49 +2526,298 @@ struct field
 };
 struct field fields[] = 
 {
+#if 0
 	/* Compact display (win = 0) */
-	{ (PR_MISC),	ROW_RACE,	COL_RACE,	(pfcb)prt_prace,	0},
-	{ (PR_MISC),	ROW_CLASS,	COL_CLASS,	(pfcb)prt_pclass,	0},
-	{ (PR_TITLE),	ROW_TITLE,	COL_TITLE,	(pfcb)prt_title,	0},
-	{ (PR_LEV), 	ROW_LEVEL,	COL_LEVEL,	(pfcb)prt_level,	0},
-	{ (PR_EXP), 	ROW_EXP,	COL_EXP,	(pfcb)prt_exp,  	0},
-	{ (PR_GOLD), 	ROW_GOLD,	COL_GOLD,	(pfcb)prt_gold, 	0},	
+	{ "race_",	ROW_RACE,	COL_RACE,	(pfcb)prt_prace,	0},
+	{ "class_",	ROW_CLASS,	COL_CLASS,	(pfcb)prt_pclass,	0},
+	{ "title_",	ROW_TITLE,	COL_TITLE,	(pfcb)prt_title,	0},
+	{ "level",  ROW_LEVEL,	COL_LEVEL,	(pfcb)prt_level,	0},
+	{ "exp", 	ROW_EXP,	COL_EXP,	(pfcb)prt_exp,  	0},
+	{ "gold", 	ROW_GOLD,	COL_GOLD,	(pfcb)prt_gold, 	0},	
 
 	/* { (PR_EQUIPPY), ROW_EQUIPPY,COL_EQUIPPY, (pfcb)prt_equippy, }, */
-	{(PR_LAG_METER),ROW_LAG,	COL_LAG,	(pfcb)prt_lag,  	0},
+	{"",(PR_LAG_METER),ROW_LAG,	COL_LAG,	(pfcb)prt_lag,  	0},
 
-	{ (PR_STATS),	ROW_STAT+0,	COL_STAT,	0,/*prt_stat*/ 0},
-	{ (PR_STATS),	ROW_STAT+1,	COL_STAT,	0,/*prt_stat*/ 0},
-	{ (PR_STATS),	ROW_STAT+2,	COL_STAT,	0,/*prt_stat*/ 0},
-	{ (PR_STATS),	ROW_STAT+3,	COL_STAT,	0,/*prt_stat*/ 0},
-	{ (PR_STATS),	ROW_STAT+4,	COL_STAT,	0,/*prt_stat*/ 0},
-	{ (PR_STATS),	ROW_STAT+5,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat0",	ROW_STAT+0,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat1",	ROW_STAT+1,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat2",	ROW_STAT+2,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat3",	ROW_STAT+3,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat4",	ROW_STAT+4,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat5",	ROW_STAT+5,	COL_STAT,	0,/*prt_stat*/ 0},
 
-	{ (PR_ARMOR), 	ROW_AC, 	COL_AC, 	(pfcb)prt_ac, 0},
-	{ (PR_HP),  	ROW_CURHP,	COL_CURHP,	(pfcb)prt_cur_hp, 0},
-	{ (PR_HP),  	ROW_MAXHP,	COL_MAXHP,	(pfcb)prt_max_hp, 0},
-	{ (PR_MANA),  	ROW_CURSP,	COL_CURSP,	(pfcb)prt_cur_sp, 0},
-	{ (PR_MANA),  	ROW_MAXSP,	COL_MAXSP,	(pfcb)prt_max_sp, 0},
+	{ "ac", 	ROW_AC, 	COL_AC, 	(pfcb)prt_ac, 0},
+	{ "hp",  	ROW_CURHP,	COL_CURHP,	(pfcb)prt_cur_hp, 0},
+	{ "hp",  	ROW_MAXHP,	COL_MAXHP,	(pfcb)prt_max_hp, 0},
+	{ "sp",  	ROW_CURSP,	COL_CURSP,	(pfcb)prt_cur_sp, 0},
+	{ "sp",  	ROW_MAXSP,	COL_MAXSP,	(pfcb)prt_max_sp, 0},
 
-	{ (PR_HEALTH),	ROW_INFO,	COL_INFO,	(pfcb)health_redraw, 0},
-	{ (PR_CUT), 	ROW_CUT,	COL_CUT,	(pfcb)prt_cut, 0},
+	{ "track",	ROW_INFO,	COL_INFO,	(pfcb)health_redraw, 0},
+	{ "cut", 	ROW_CUT,	COL_CUT,	(pfcb)prt_cut, 0},
 
 	/* Status line (win = 1) */
-	{ (PR_HUNGER), 	-1,	COL_HUNGRY,	(pfcb)prt_hunger,	1},
-	{ (PR_BLIND), 	-1,	COL_BLIND,	(pfcb)prt_blind,	1},
-	{ (PR_STUN), 	-1,	COL_STUN,	(pfcb)prt_stun, 	1},
-	{ (PR_CONFUSED),-1, COL_CONFUSED,(pfcb)prt_confused,1},
-	{ (PR_AFRAID),  -1,	COL_AFRAID,	(pfcb)prt_afraid,	1},
-	{ (PR_POISONED),-1,	COL_POISONED,(pfcb)prt_poisoned,1},
-	{ (PR_STATE), 	-1,	COL_STATE,	(pfcb)prt_state,	1},
-	{ (PR_SPEED), 	-1,	COL_SPEED,	(pfcb)prt_speed,	1},
-	{ (PR_STUDY), 	-1,	COL_STUDY,	(pfcb)prt_study,	1},
-	{ (PR_DEPTH), 	-1,	COL_DEPTH,	(pfcb)prt_depth,	1},
-	{ (PR_OPPOSE_ELEMENTS), -1, COL_OPPOSE_ELEMENTS, (pfcb)prt_oppose_elements,	1},
-
+	{ "hunger", 	-1,	COL_HUNGRY,	(pfcb)prt_hunger,	1},
+	{ "blind",  	-1,	COL_BLIND,	(pfcb)prt_blind,	1},
+	{ "stund",  	-1,	COL_STUN,	(pfcb)prt_stun, 	1},
+	{ "confused",	-1, COL_CONFUSED,(pfcb)prt_confused,1},
+	{ "afraid", 	-1,	COL_AFRAID,	(pfcb)prt_afraid,	1},
+	{ "poisoned",	-1,	COL_POISONED,(pfcb)prt_poisoned,1},
+	{ "state",  	-1,	COL_STATE,	(pfcb)prt_state,	1},
+	{ "speed",  	-1,	COL_SPEED,	(pfcb)prt_speed,	1},
+	{ "study",  	-1,	COL_STUDY,	(pfcb)prt_study,	1},
+#endif
+	{ "depth",  	-1,	COL_DEPTH,	(pfcb)prt_depth,	1},
+#if 0	
+	{ "oppose", 	-1, COL_OPPOSE_ELEMENTS, (pfcb)prt_oppose_elements,	1},
+#endif
 	/* END */
-	{ 0, 0, 0, 0, 0 }
+	{ NULL, 0, 0, 0, 0, 0 }
 };
+/* Hack -- return a RED-YELLOW-GREEN color based on 2 values weight against each other */
+byte color_spotlight(s16b cur, s16b max, bool warn)
+{
+	s16b n = 1;
+	byte color;
+	if (warn)
+	{
+		n = p_ptr->hitpoint_warn;
+	}
+	if (cur >= max)
+	{
+		color = TERM_L_GREEN;
+	}
+	else if (cur > (max * n) / 10)
+	{
+		color = TERM_YELLOW;
+	}
+	else
+	{
+		color = TERM_RED;
+	}
+	return color;
+}
+/* Hack -- our own version of strlen() which treats any control character as lineend */
+static int strend(cptr str)
+{
+	cptr hold = str;
+	while(*str > 31) str++;
+	return (str - hold);
+}
+/*
+ * Indicator display code.
+ * Very heavy, should be optimized/rewritten.
+ *
+ * Travels along the indicator's "prompt" field, sending ascii characters to screen.
+ * Control characters move the carret and the bell (\a) code is overloaded to change
+ * colors. '%' symbol starts a printf-like segment, ending with any control character.
+ * For example, "Armor: \ar %d", would first display "Armor", then change color to 'r'ed,
+ * and then display indicator's value in '%d' format.
+ *
+ * Each time a piece of data is about to be sent to screen, a series of STRIDING TESTS
+ * might occur. Those are defined by populating indicator's "flags" field with 
+ * "IN_STRIDE_XXX" bits. If the test doesn't pass, the data is not displayed.
+ * Striding tests do not affect control characters, only the actual visual data.
+ *
+ * A "Vertical Tab" (\v) control character is wildcard modificator with no default 
+ * behavior. It is defined in the indicator's "flags" field via "IN_VT_XXX" bits.
+ * For example, by setting "IN_VT_CR" bit, each vertical tab whould be treated as
+ * a "Carriage Return" (\r) character. 
+ *
+ * Several other hacks are ofcourse in place. Most are related to the various
+ * "IN_" flags, described in "common/defines.h". See also "server/tables.c" for 
+ * the actual indicator declarations.
+ */
+#define advance_coffer() coff++; if (--amnt <= 0) return; val = coffers[coff] 
+void prt_indicator(int first_row, int first_col, int id)
+{
+	indicator_type *i_ptr = &indicators[id];
+	int coff = coffer_refs[id];
+	char tmp[32], tmp2[32];
+
+	cptr prompt = i_ptr->prompt;
+
+	u32b flag = i_ptr->flag;
+	byte amnt = i_ptr->coffer;
+
+	s16b row = first_row;
+	u16b col = first_col;
+
+	byte color = TERM_BLUE;
+
+	s16b val = coffers[coff];
+
+	bool value, warn = FALSE, stride = TRUE;
+	int n, cut = 0;
+
+	/* Hack -- count rows from bottom of term */
+	if (row < 0) row += Term->hgt;
+
+	/* Hack -- count auto-cut */
+	if (flag & IN_AUTO_CUT) cut = MIN((Term->wid - col) / amnt, strend(prompt));
+
+	/* Parse prompt */
+	for (; !STRZERO(prompt); prompt++)
+	{
+		value = FALSE;
+		switch(*prompt)
+		{
+ 			/* Horizontal tab (Move right) */
+			case '\t':
+			{
+				col++;
+				continue;
+			}
+			/* Backspace (Move left) */
+			case '\b':
+			{
+				col--;
+				continue;
+			}
+			/* Carriage return */
+			case '\r':
+			{
+				col = first_col;
+				continue;
+			}
+			/* Line feed */
+			case '\0':
+			case '\n':
+			{
+				row++;
+				continue;
+			}
+			/* Form feed (Next coffer) */
+			case '\f':
+			{
+				advance_coffer();
+				continue;
+			}
+			/* Vertical Tab (Do something flag told us) */
+			case '\v':
+			{
+				if (flag & IN_VT_CR) col = first_col;
+				if (flag & IN_VT_LF) row++;
+				if (flag & IN_VT_COLOR_RESET) color = TERM_BLUE;
+				if (flag & IN_VT_DEC_VALUE) val--;
+				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
+				if (flag & IN_VT_FF) { advance_coffer(); }
+				if (!(flag & IN_VT_COLOR_SET)) continue;
+			}			
+			/* Bell (Change color) */
+			case '\a':
+			{
+				/* Read out the color-code */
+				prompt++;
+				switch (*prompt) 
+				{
+					case '@': warn = TRUE;
+					case '#': color = color_spotlight(val, coffers[coff + 1], warn);
+					break;
+					case '!': color = (val ? 1 : 0);
+					break;
+					case ' ': color = (byte) val;
+					break;
+					default: color = ascii_to_color[*prompt];
+					break;
+				}
+				continue;
+			}
+			/* String Format (enable VALUE mode and fall thru) */
+			case '%':
+			{
+				value = TRUE;
+			}
+			/* Not a control character! */
+			default: if (n = strend(prompt)) 
+			{
+				cptr out = tmp;
+
+				/* Skip this value */
+				if (stride)
+				{
+					/* Hack -- quit prematurely */
+				   	if ((flag & IN_STOP_EMPTY) && (val == 0)) return;
+
+					/* Perfrom striding tests */
+				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) ) ||
+						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) )) || 
+						    ((amnt > 1) && 
+						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) ) ||
+							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) )
+						)))
+					{
+						/* The code above checks if the test itself is enabled (by flag & IN_STRIDE bit),
+						 * then performs the test. The _EMPTY and _LARGER tests require at least one succeeding
+						 * value step to perfrom. If any of the tests succeeds, the value is being stepped over. */  
+						continue;
+					}
+				}
+
+				/* Readout value */
+				strncpy(tmp, prompt, n);
+				tmp[n] = '\0';
+
+				/* Advance prompt */
+				prompt = prompt + n - 1; 
+
+				/* Format output */
+				if ((value) || (flag & IN_TEXT_LABEL))
+				{
+					if (flag & IN_TEXT_STAT)
+					{
+						cnv_stat(val, tmp);
+					}
+					else if (flag & IN_TEXT_CUT)
+					{
+						out++;
+						cut = val + 1;
+					}
+					else if (!(flag & IN_TEXT_LABEL))
+					{
+						sprintf(tmp2, tmp, val);
+						strcpy(tmp, tmp2);
+					}
+					value = TRUE;
+				}
+
+				/* Cut */
+				if (cut)
+				{
+					tmp[(n = cut)] = '\0';
+				}
+
+				/* Send to terminal */
+				c_put_str(color, out, row, col);
+				col = col + n;
+
+				/* Hack -- quit prematurely */
+				if ((flag & IN_STOP_ONCE) && (value == TRUE)) return;
+			}
+			break;
+		}
+	}
+}
+/* See if a there's a client overload for a server-defined
+ * indicator, and if there is, use that instead */
+int register_indicator(int id)
+{
+	struct field *f;
+	indicator_type *i = &indicators[id];
+	bool found = FALSE;
+
+	/* For each field */
+	for (f = &fields[0]; f->field_cb; f++)
+	{
+			if (!strcasecmp(f->mark, i->mark))
+			{
+				prt_functions[id] = f->field_cb;
+				found = TRUE;
+			}
+	}
+
+	/* No overloads, use default */
+	if (found == FALSE)
+		prt_functions[id] = prt_indicator;
+}
 
 /*
  * Handle "p_ptr->redraw"
@@ -2581,11 +2832,45 @@ void redraw_stuff(void)
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;
 
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (p_ptr->redraw & i_ptr->redraw)
+		{
+			/* Hack: count rows from bottom? */
+			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+#if 0
+			if ((row < section_icky_row) && 
+				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+			if (screen_icky && !section_icky_row) continue;
+
+			/* Update extra window */
+			win = (i_ptr->win ? PW_STATUS : PW_PLAYER_2);
+			p_ptr->window |= win;
+
+			/* Player disabled display */
+			if (!(window_flag[0] & win)) continue;
+#endif
+			/* Display field */
+			(prt_functions[i])(row, i_ptr->col, i);
+
+			/* Remove from next update */
+			if (i_ptr->redraw != (i_ptr+1)->redraw)
+			{
+				p_ptr->redraw &= ~(i_ptr->redraw);
+			}
+		}
+	}
+#if 0
 	/* For each field */
-	for (f = &fields[0]; f->trigger; f++)
+	for (f = &fields[0]; f->field_cb; f++)
 	{
 		if (p_ptr->redraw & f->trigger)
 		{
+#if 0
 			/* Hack: count rows from bottom? */
 			row = (f->row < 0 ? (Term->hgt + f->row) : f->row);
 
@@ -2600,7 +2885,7 @@ void redraw_stuff(void)
 
 			/* Player disabled display */
 			if (!(window_flag[0] & win)) continue;
-
+#endif
 			/* Display field */
 			if (f->field_cb) (f->field_cb)(row, f->col);
 			/* HACK: for stats: */
@@ -2610,201 +2895,6 @@ void redraw_stuff(void)
 			if (f->trigger != (f+1)->trigger)
 				p_ptr->redraw &= ~(f->trigger);
 		}
-	}
-	/* Character is not ready yet, no screen updates */
-	//if (!character_generated) return;
-
-	/* Character is shopping, hold on */
-	/*if (shopping) return;*/
-
-	/* Character is in "icky" mode, no screen updates */
-	if (screen_icky) return;
-#if 0
-	/* HACK - Redraw window "Display player (compact)" if necessary */
-	if (p_ptr->redraw & (PR_MISC | PR_TITLE | PR_LEV | PR_EXP |
-	                     PR_STATS | PR_ARMOR | PR_HP | PR_MANA |
-	                     PR_GOLD | PR_HEALTH | PR_EQUIPPY | PR_CUT |
-	                     PR_STUN | PR_LAG_METER))
-	{
-		p_ptr->window |= PW_PLAYER_2;
-		/* HACK - Player disabled compact view on main terminal */
-		if (!(window_flag[0] & PW_PLAYER_2)) {
-			p_ptr->redraw &= ~(PR_MISC | PR_TITLE | PR_LEV | PR_EXP |
-	                     PR_STATS | PR_ARMOR | PR_HP | PR_MANA |
-	                     PR_GOLD | PR_HEALTH | PR_EQUIPPY | PR_CUT |
-	                     PR_STUN | PR_LAG_METER);
-		}
-	}
-
-	/* HACK - Redraw window "Display status" if necessary */
-	if (p_ptr->redraw & (PR_HUNGER | PR_BLIND | PR_CONFUSED | PR_AFRAID |
-	                     PR_POISONED | PR_STATE | PR_SPEED | PR_STUDY |
-	                     PR_DEPTH | PR_OPPOSE_ELEMENTS))
-	{
-		p_ptr->window |= PW_STATUS;
-		/* HACK - Player disabled status on main terminal */
-		if (!(window_flag[0] & PW_STATUS) || Term->wid < 80) {
-			p_ptr->redraw &= ~(PR_HUNGER | PR_BLIND | PR_CONFUSED | PR_AFRAID |
-	                     PR_POISONED | PR_STATE | PR_SPEED | PR_STUDY |
-	                     PR_DEPTH | PR_OPPOSE_ELEMENTS);
-		}
-	}
-
-	if (p_ptr->redraw & (PR_MAP))
-	{
-		p_ptr->redraw &= ~(PR_MAP);
-		prt_map();
-	}
-
-	if (p_ptr->redraw & (PR_MISC))
-	{
-		p_ptr->redraw &= ~(PR_MISC);
-		prt_field(p_name + race_info[race].name, ROW_RACE, COL_RACE);
-		prt_field(c_name + c_info[pclass].name, ROW_CLASS, COL_CLASS);
-	}
-
-	if (p_ptr->redraw & (PR_TITLE))
-	{
-		p_ptr->redraw &= ~(PR_TITLE);
-		prt_title(ROW_TITLE, COL_TITLE);
-	}
-
-	if (p_ptr->redraw & (PR_LEV))
-	{
-		p_ptr->redraw &= ~(PR_LEV);
-		prt_level(ROW_LEVEL, COL_LEVEL);
-	}
-
-	if (p_ptr->redraw & (PR_EXP))
-	{
-		p_ptr->redraw &= ~(PR_EXP);
-		prt_exp(ROW_EXP, COL_EXP);
-	}
-
-	if (p_ptr->redraw & (PR_STATS))
-	{
-		int i;
-
-		for (i = 0; i < A_MAX; i++)
-			prt_stat(i, ROW_STAT + i, COL_STAT);
-
-		p_ptr->redraw &= ~(PR_STATS);
-	}
-
-	if (p_ptr->redraw & (PR_ARMOR))
-	{
-		p_ptr->redraw &= ~(PR_ARMOR);
-		prt_ac(ROW_AC, COL_AC);
-	}
-
-	if (p_ptr->redraw & (PR_HP))
-	{
-		p_ptr->redraw &= ~(PR_HP);
-		prt_cur_hp(ROW_CURHP, COL_CURHP);
-		prt_max_hp(ROW_MAXHP, COL_MAXHP);
-	}
-
-	if (p_ptr->redraw & (PR_MANA))
-	{
-		p_ptr->redraw &= ~(PR_MANA);
-		prt_cur_sp(ROW_CURSP, COL_CURSP);
-		prt_max_sp(ROW_MAXSP, COL_MAXSP);
-	}
-
-	if (p_ptr->redraw & (PR_GOLD))
-	{
-		p_ptr->redraw &= ~(PR_GOLD);
-		prt_gold(ROW_GOLD, COL_GOLD);
-	}
-
-	if (p_ptr->redraw & (PR_EQUIPPY))
-	{
-		p_ptr->redraw &= ~(PR_EQUIPPY);
-		//prt_equippy(ROW_EQUIPPY, COL_EQUIPPY);
-	}
-
-	if (p_ptr->redraw & (PR_LAG_METER))
-	{
-		p_ptr->redraw &= ~(PR_LAG_METER);
-		prt_lag(ROW_LAG, COL_LAG);
-	}
-
-	if (p_ptr->redraw & (PR_DEPTH))
-	{
-		p_ptr->redraw &= ~(PR_DEPTH);
-		prt_depth(ROW_DEPTH, COL_DEPTH);
-	}
-
-	if (p_ptr->redraw & PR_OPPOSE_ELEMENTS)
-	{
-		p_ptr->redraw &= ~PR_OPPOSE_ELEMENTS;
-		prt_oppose_elements(ROW_OPPOSE_ELEMENTS, COL_OPPOSE_ELEMENTS);
-	}
-
-	if (p_ptr->redraw & (PR_HEALTH))
-	{
-		p_ptr->redraw &= ~(PR_HEALTH);
-		health_redraw(ROW_INFO, COL_INFO);
-	}
-
-	if (p_ptr->redraw & (PR_CUT))
-	{
-		p_ptr->redraw &= ~(PR_CUT);
-		prt_cut(ROW_CUT, COL_CUT);
-	}
-
-	if (p_ptr->redraw & (PR_STUN))
-	{
-		p_ptr->redraw &= ~(PR_STUN);
-		prt_stun(ROW_STUN, COL_STUN);
-	}
-
-	if (p_ptr->redraw & (PR_HUNGER))
-	{
-		p_ptr->redraw &= ~(PR_HUNGER);
-		prt_hunger(ROW_HUNGRY, COL_HUNGRY);
-	}
-
-	if (p_ptr->redraw & (PR_BLIND))
-	{
-		p_ptr->redraw &= ~(PR_BLIND);
-		prt_blind(ROW_BLIND, COL_BLIND);
-	}
-
-	if (p_ptr->redraw & (PR_CONFUSED))
-	{
-		p_ptr->redraw &= ~(PR_CONFUSED);
-		prt_confused(ROW_CONFUSED, COL_CONFUSED);
-	}
-
-	if (p_ptr->redraw & (PR_AFRAID))
-	{
-		p_ptr->redraw &= ~(PR_AFRAID);
-		prt_afraid(ROW_AFRAID, COL_AFRAID);
-	}
-
-	if (p_ptr->redraw & (PR_POISONED))
-	{
-		p_ptr->redraw &= ~(PR_POISONED);
-		prt_poisoned(ROW_POISONED, COL_POISONED);
-	}
-
-	if (p_ptr->redraw & (PR_STATE))
-	{
-		p_ptr->redraw &= ~(PR_STATE);
-		prt_state(ROW_STATE, COL_STATE);
-	}
-
-	if (p_ptr->redraw & (PR_SPEED))
-	{
-		p_ptr->redraw &= ~(PR_SPEED);
-		prt_speed(ROW_SPEED, COL_SPEED);
-	}
-
-	if (p_ptr->redraw & (PR_STUDY))
-	{
-		p_ptr->redraw &= ~(PR_STUDY);
-		prt_study(ROW_STUDY, COL_STUDY);
 	}
 #endif
 }

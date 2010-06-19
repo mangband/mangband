@@ -419,6 +419,249 @@ const stream_type streams[MAX_STREAMS] =
 };
 
 /*
+ * Global array of "indicators"
+ */
+/*
+	byte pkt;
+	bool tiny;
+	byte coffer;
+
+	byte win;
+	u16b row;
+	u16b col;
+
+	u32b flag;
+	cptr prompt;
+	u32b redraw;
+	cptr mark;
+*/
+#define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N
+const indicator_type indicators[MAX_INDICATORS] = 
+{
+	{
+		INDICATOR_PKT(RACE, STRING, 0), 	0,	ROW_RACE,	COL_RACE,
+		(0), "",
+		(PR_TITLE), "race_"
+	},
+	{
+		INDICATOR_PKT(CLASS, STRING, 0),	0,	ROW_CLASS,	COL_CLASS,
+		(0), "",
+		(PR_TITLE), "class_"
+	},
+	{
+		INDICATOR_PKT(TITLE, STRING, 0),	0,	ROW_TITLE,	COL_TITLE,
+		(0), "",
+		(PR_TITLE), "title_"
+	},
+	{
+		INDICATOR_PKT(LEVEL, TINY, 2),  	0,	ROW_LEVEL,	COL_LEVEL,
+		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(PR_LEV), "level"
+	},
+	{
+		INDICATOR_PKT(EXP, LARGE, 3),   	0,	ROW_EXP,	COL_EXP,
+		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
+		(PR_EXP), "exp"
+	},
+	{
+		INDICATOR_PKT(GOLD, LARGE, 1),    	0,	ROW_GOLD,	COL_GOLD,
+		(0), "AU \v%9ld",
+		(PR_GOLD), "gold"
+	},
+#if 1
+	/* Stats, classic way */
+	{
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	0,	ROW_STAT+0,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"STR:  \aU%\vSTR:  \aG%\vStr:  \ay%",
+		(PR_STATS), "stat0"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+1,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"INT:  \aU%\vINT:  \aG%\vInt:  \ay%",
+		(PR_STATS), "stat1"
+	},
+	{
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	0,	ROW_STAT+2,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"WIS:  \aU%\vWIS:  \aG%\vWis:  \ay%",
+		(PR_STATS), "stat2"
+	},
+	{
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	0,	ROW_STAT+3,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"DEX:  \aU%\vDEX:  \aG%\vDex:  \ay%",
+		(PR_STATS), "stat3"
+	},
+	{
+		INDICATOR_PKT(STAT4, NORMAL, 3), 	0,	ROW_STAT+4,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CON:  \aU%\vCON:  \aG%\vCon:  \ay%",
+		(PR_STATS), "stat4"
+	},
+	{
+		INDICATOR_PKT(STAT5, NORMAL, 3), 	0,	ROW_STAT+5,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CHR:  \aU%\vCHR:  \aG%\vChr:  \ay%",
+		(PR_STATS), "stat5"
+	},
+#else
+	/* Stats, modern way */
+	{
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	0,	ROW_STAT+0,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"STR!  \aG%\vSTR:  \aG%\vStr:  \ay%",
+		(PR_STATS), "stat0"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+1,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"INT!  \aG%\vINT:  \aG%\vInt:  \ay%",
+		(PR_STATS), "stat1"
+	},
+	{
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	0,	ROW_STAT+2,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"WIS!  \aG%\vWIS:  \aG%\vWis:  \ay%",
+		(PR_STATS), "stat2"
+	},
+	{
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	0,	ROW_STAT+3,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"DEX!  \aG%\vDEX:  \aG%\vDex:  \ay%",
+		(PR_STATS), "stat3"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+4,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CON!  \aG%\vCON:  \aG%\vCon:  \ay%",
+		(PR_STATS), "stat4"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+5,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CHR!  \aG%\vCHR:  \aG%\vChr:  \ay%",
+		(PR_STATS), "stat5"
+	},
+#endif
+	{
+		INDICATOR_PKT(ARMOR, NORMAL, 2),   	0,	ROW_AC,	COL_AC,
+		(0), "",
+		(PR_ARMOR), "armor"
+	},
+#if 0
+	/* Classic HP/SP indicators */
+	{
+		INDICATOR_PKT(HP, NORMAL,	2),     	0,	ROW_CURHP,	COL_CURHP,
+		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
+		(PR_HP), "hp"
+	},
+	{
+		INDICATOR_PKT(SP, NORMAL,	2),     	0,	ROW_CURSP,	COL_CURSP,
+		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
+		(PR_MANA), "sp"
+	},
+#else
+	/* Modern (1-line) HP/SP indicators */
+	{
+		INDICATOR_PKT(HP, NORMAL, 2),     	0,	ROW_CURHP,	COL_CURHP,
+		(0), "HP \a@% 4d\f\aw/\aG% 4d",
+		(PR_HP), "hp"
+	},
+	{
+		INDICATOR_PKT(SP, NORMAL, 2),     	0,	ROW_CURSP,	COL_CURSP,
+		(0), "SP \a#% 4d\f\aw/\aG% 4d",
+		(PR_MANA), "sp"
+	},
+#endif
+	{
+		INDICATOR_PKT(MON_HEALTH, TINY, 2),	0,	ROW_INFO,	COL_INFO,
+		(IN_TEXT_CUT), "\a![----------]\a \r\f\t%**********", 
+		(PR_HEALTH), "track"	
+	},
+	{
+		INDICATOR_PKT(CUT, TINY, 1),    	1,	ROW_CUT, COL_CUT,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"            \v\ayGraze       \v\ayLight cut   \v\aoBad cut     \v\aoNasty cut   \v\arSevere cut  \v\arDeep gash   \v\aRMortal wound",
+		(PR_CUT),  "cut"
+	},
+	{
+		INDICATOR_PKT(FOOD, TINY, 1),   	1,	ROW_HUNGRY, COL_HUNGRY,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"\arWeak  \v\aoWeak  \v\ayHungry\v\aG      \v\aGFull  \v\agGorged",
+		 (PR_HUNGER),  "hunger"	
+	},
+	{
+		INDICATOR_PKT(BLIND, TINY, 1),   	1,	ROW_BLIND, COL_BLIND,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"     \v\aoBlind",
+		(PR_BLIND),  "blind"
+	},
+	{
+		INDICATOR_PKT(STUN, TINY, 1),   	1,	ROW_STUN, COL_STUN,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"            \v\aoStun        \v\aoHeavy stun  \v\arKnocked out ",
+		(PR_STUN),  "stun"
+	},
+	{
+		INDICATOR_PKT(CONFUSED, TINY, 1),   	1,	ROW_CONFUSED, COL_CONFUSED,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"        \v\aoConfused",
+		(PR_CONFUSED),  "confused"
+	},
+	{
+		INDICATOR_PKT(AFRAID, TINY, 1),     	1,	ROW_AFRAID, COL_AFRAID,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"      \v\aoAfraid",
+		(PR_STUN),  "afraid"
+	},
+	{
+		INDICATOR_PKT(POISONED, TINY, 1),   	1,	ROW_POISONED, COL_POISONED,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"        \v\aoPoisoned",
+		(PR_STUN),  "poisoned"
+	},
+	{
+		INDICATOR_PKT(STATE, TINY, 3),      	1,	ROW_STATE,	COL_STATE,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_EMPTY | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"%\v\arParalyzed!\f%\v\awSearching  \v\aDStlth Mode\f\aw          \v\awResting   ",
+		(PR_STATE),  "state"
+	},
+	{
+		INDICATOR_PKT(SPEED, NORMAL, 1),  	1,	ROW_SPEED,	COL_SPEED,
+		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR), 
+		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
+		(PR_SPEED), "speed"	
+	},
+	{
+		INDICATOR_PKT(STUDY, TINY, 1),   	1,	ROW_STUDY, COL_STUDY,
+		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		"     \vStudy",
+		(PR_STUDY),  "study"
+	},
+	{
+		INDICATOR_PKT(DEPTH, TINY, 1),   	1,	ROW_DEPTH, COL_DEPTH,
+		(0),
+		"Town   \vLev  \b%d",
+		(PR_DEPTH),  "depth"
+	},
+	{
+		INDICATOR_PKT(OPPOSE, TINY, 5), 	1,	ROW_OPPOSE_ELEMENTS,	COL_OPPOSE_ELEMENTS,
+		(IN_AUTO_CUT | IN_TEXT_LABEL | IN_STRIDE_NONZERO | IN_VT_DEC_VALUE),
+		"     \v\asAcid \f     \v\abElec \f     \v\arFire \f     \v\awCold \f     \v\agPois ",
+		(PR_OPPOSE_ELEMENTS), "oppose"
+	},
+
+	/* Tail */
+	{
+		0, 0, 0, 0, 0, 0,
+		0, "",
+		0, ""
+	}
+};
+
+/*
  * Global array for looping through the "keypad directions"
  */
 s16b ddd[9] =

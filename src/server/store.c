@@ -1228,7 +1228,7 @@ static void store_prt_gold(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_gold(Ind, p_ptr->au);
+	send_indication(Ind, IN_GOLD, p_ptr->au);
 }
 
 

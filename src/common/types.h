@@ -59,6 +59,7 @@ typedef struct history_event history_event;
 typedef struct channel_type channel_type;
 typedef struct custom_command_type custom_command_type;
 typedef struct stream_type stream_type;
+typedef struct indicator_type indicator_type;
 
 
 /**** MAngband specific structs ****/
@@ -108,7 +109,6 @@ struct cave_type
  */
 struct server_setup_t
 {
-	/* For now, revert to no-name variable names */
 	byte val1;
 	byte val2;
 	byte val3;
@@ -1672,4 +1672,20 @@ struct stream_type
 
 	u32b window_flag; /* "Window" flag */
 	cptr mark;	/* Hack -- name */
+};
+
+struct indicator_type
+{
+	byte pkt;   	/* Network packet used for it */
+	bool tiny;  	/* TRUE for bytes, FALSE for integers */
+	byte coffer;	/* Ammount of variables (or offset) */
+
+	byte win;   	/* Destination "window" */
+	s16b row;   	/* Position there */ 
+	s16b col;
+
+	u32b flag;  	/* Indicator flags */
+	cptr prompt;	/* Hack -- display what additional info..? */
+	u32b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */	
+	cptr mark;  	/* Hack -- name */
 };

@@ -95,6 +95,75 @@ int send_class_info(connection_type *ct)
 	return 1;	
 }
 
+int send_indicator_info(connection_type *ct, int id)
+{
+	indicator_type *i_ptr = &indicators[id];
+	if (!i_ptr->pkt) return 1; /* Last one */
+
+	if (cq_printf(&ct->wbuf, "%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR, 
+		i_ptr->pkt, i_ptr->tiny, i_ptr->coffer, i_ptr->row, i_ptr->col, i_ptr->flag, i_ptr->prompt, i_ptr->mark) <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int send_indication(int Ind, byte id, ...)
+{
+	connection_type *ct = PConn[Ind];
+	indicator_type *i_ptr = &indicators[id];
+	int i = 0, n;
+
+	signed char tiny_c;
+	s16b normal_c;
+	s32b large_c;
+	char* text_c;
+
+	va_list marker;
+
+	if (!ct) return -1;
+
+	if (!cq_printf(&ct->wbuf, "%c", i_ptr->pkt))
+	{
+		client_withdraw(ct);
+	}
+
+	va_start( marker, id );
+
+	do
+	{
+		if (i_ptr->tiny == INDITYPE_TINY)
+		{
+			tiny_c = (signed char) va_arg (marker, unsigned int);
+			n = cq_printf(&ct->wbuf, "%c", tiny_c);
+		}
+		else if (i_ptr->tiny == INDITYPE_NORMAL)
+		{
+			normal_c = (s16b) va_arg (marker, unsigned int);
+			n = cq_printf(&ct->wbuf, "%d", normal_c);
+		}
+		else if (i_ptr->tiny == INDITYPE_LARGE)
+		{
+			large_c = (s32b) va_arg (marker, s32b);
+			n = cq_printf(&ct->wbuf, "%l", large_c);
+		}
+		else if (i_ptr->tiny == INDITYPE_STRING)
+		{
+			text_c = (char*) va_arg (marker, char*);
+			n = cq_printf(&ct->wbuf, "%s", text_c);
+		}
+		/* Result */
+		if (!n)
+		{
+			client_withdraw(ct);
+		}		
+	} while (++i < i_ptr->coffer);
+
+	va_end( marker );
+}
+
 int send_message(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
@@ -214,7 +283,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 
 	switch (mode) 
 	{
-		/* TODO: Populate with actual info sendouts */
+		case BASIC_INFO_INDICATORS:
+			if (id < MAX_INDICATORS) send_indicator_info(ct, id);
+		break;
 		default: break;
 	}
 
@@ -343,6 +414,12 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	pcommands[PKT] = FUNC;
 #include "net-game.h"
 #undef PACKET
+
+	/* Count indicators */
+	i = 0;
+	while (i < MAX_INDICATORS && indicators[i].pkt != 0) i++;
+	serv_info.val1 = i;	
+	
 }
 
 void free_tables() 

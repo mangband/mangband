@@ -56,6 +56,13 @@ extern char **inventory_name;
 extern object_type floor_item;
 extern char floor_name[80];
 
+
+extern indicator_type indicators[MAX_INDICATORS];
+extern byte known_indicators;
+extern s32b coffers[MAX_INDICATORS];
+extern byte coffer_refs[MAX_INDICATORS];
+extern int known_coffers;
+
 extern store_type store;
 extern owner_type store_owner;
 extern char store_owner_name[MAX_CHARS];
@@ -414,6 +421,7 @@ extern void display_inventory(void);
 extern void display_store(void);
 
 /* c-xtra1.c */
+extern int register_indicator(int id);
 extern void show_inven(void);
 extern void show_equip(void);
 extern void fix_message(void);

@@ -16,6 +16,13 @@ char **inventory_name;  	/* The client-side copy of the inventory names */
 object_type floor_item;
 char floor_name[80]; 	/* Client-side copy of floor item */
 
+indicator_type indicators[MAX_INDICATORS];
+byte known_indicators;
+
+s32b coffers[MAX_INDICATORS]; /* Client-side copy of various player variables */
+byte coffer_refs[MAX_INDICATORS]; /* ID to INDEX: Coffers */
+int known_coffers;
+
 store_type store;			/* The general info about the current store */
 owner_type store_owner;			/* The current owner of the store */
 char store_owner_name[MAX_CHARS]; /* Shop owner name */
