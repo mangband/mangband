@@ -496,8 +496,8 @@ int recv_indicator(connection_type *ct) {
 		}
 		else if (i_ptr->tiny == INDITYPE_LARGE)
 		{
-			n = cq_scanf(&ct->rbuf, "%l", &normal_c);
-			val = (s32b)normal_c;
+			n = cq_scanf(&ct->rbuf, "%l", &large_c);
+			val = (s32b)large_c;
 		}
 
 		/* Error ? */
