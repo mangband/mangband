@@ -2570,7 +2570,7 @@ struct field fields[] =
 	{ "oppose", 	-1, COL_OPPOSE_ELEMENTS, (pfcb)prt_oppose_elements,	1},
 #endif
 	/* END */
-	{ NULL, 0, 0, 0, 0, 0 }
+	{ NULL, 0, 0, 0, 0 }
 };
 /* Hack -- return a RED-YELLOW-GREEN color based on 2 values weight against each other */
 byte color_spotlight(s16b cur, s16b max, bool warn)
