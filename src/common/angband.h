@@ -30,32 +30,12 @@
 #include "../common/z-form.h"
 #include "../common/z-rand.h"
 
-#ifdef CLIENT
-#include "../client/z-term.h"
-#endif
-
-
-/*
- * Include the "Angband" configuration header
- */
-#include "../options.h"
-
 
 /*
  * Now, include the define's, the type's, and the extern's
- *
- * Note that the externs are NOT common.
  */
 #include "../common/defines.h"
-#include "../common/net-basics.h"
 #include "../common/types.h"
-#ifdef CLIENT
-#include "../client/c-defines.h"
-#include "../client/c-externs.h"
-#else
-#include "../server/mdefines.h"
-#include "../server/externs.h"
-#endif
 
 
 

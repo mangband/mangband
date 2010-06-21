@@ -503,10 +503,6 @@ magic_type ghost_spells[8] =
 	{ 99,   0, 0, 0},
 };
 
-#ifdef CLIENT
-	C_MAKE(Players, 1, player_type *);
-#endif
-
 /*
  * Names of the spells (mage spells then priest spells)
  */

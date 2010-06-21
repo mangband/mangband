@@ -10,8 +10,6 @@
  * included in all such copies.
  */
 
-#define CLIENT
-
 #include "c-angband.h"
 #include "../common/md5.h"
 
