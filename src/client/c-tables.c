@@ -588,30 +588,30 @@ cptr local_option_group[] =
 option_type local_option_info[] =
 {
 	/*** User-Interface ***/
-	{ &rogue_like_commands,	FALSE,	1,	0, 0,
+	{ &rogue_like_commands,	0,FALSE,	1,	0, 0,
 	"rogue_like_commands",	"Rogue-like commands" },
 
-	{ &ring_bell,			TRUE,	1,	0, 0,
+	{ &ring_bell,			0,TRUE,	1,	0, 0,
 	"ring_bell",			"Audible bell (on errors, etc)" },
 
-	{ &use_color,			TRUE,	1,	0, 0,
+	{ &use_color,			0,TRUE,	1,	0, 0,
 	"use_color",			"Use color if possible" },
 
-	{ &depth_in_feet,		TRUE,	1,	0, 0,
+	{ &depth_in_feet,		0,TRUE,	1,	0, 0,
 	"depth_in_feet",		"Show dungeon level in feet" },
 
-	{ &show_labels, 		FALSE,	1,	0, 0,
+	{ &show_labels, 		0,FALSE,	1,	0, 0,
 	"show_labels",			"Show labels in equipment listings" },
 
-	{ &show_weights,		TRUE,	1,	0, 0,
+	{ &show_weights,		0,TRUE,	1,	0, 0,
 	"show_weights",			"Show weights in object listings" },
 
-	{ &auto_accept, 		FALSE,	1,	0, 0,
+	{ &auto_accept, 		0,FALSE,	1,	0, 0,
 	"auto_accept",			"Always say Yes to Yes/No prompts" },
 
 	/*** End of Table ***/
 
-	{ NULL,			0, 0, 0, 0,
+	{ NULL,			0, 0, 0, 0, 0,
 	NULL,			NULL }
 };
 

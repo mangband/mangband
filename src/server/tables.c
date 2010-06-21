@@ -2184,7 +2184,7 @@ cptr option_group[] =
 /* 
  * *** Options ***
  */
-#define OPT_INFO(A) ((byte)OPT_ ## A)
+#define OPT_INFO(A) NULL, ((byte)OPT_ ## A)
 option_type option_info[] =
 {
 	/*** Birth Options ***/

@@ -167,6 +167,8 @@ struct client_setup_t
  * Available "options"
  *
  *	- Address of actual option variable (or NULL)
+ * 
+ *	- Unique option ID (or 0)
  *
  *	- Normal Value (TRUE or FALSE)
  *
@@ -181,11 +183,8 @@ struct client_setup_t
 
 struct option_type
 {
-#ifdef CLIENT
 	bool	*o_var;
-#else /* Cheap Dirty Hack */
-	byte	o_var;
-#endif
+	byte	o_uid;
 
 	byte	o_norm;
 
