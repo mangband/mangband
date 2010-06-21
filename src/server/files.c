@@ -2325,7 +2325,7 @@ long total_points(int Ind)
 	/* We award a 50% score bonus for bravery with no_ghost characters */
 	if (p_ptr->no_ghost && !cfg_ironman)
 	{
-		return ((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
+		return (long)((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
 	}
 	/* Standard scoring */
 	return (p_ptr->max_exp + (100 * p_ptr->max_dlv));

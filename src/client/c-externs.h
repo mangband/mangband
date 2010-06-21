@@ -342,6 +342,7 @@ extern s32b conf_get_int(cptr section, cptr name, s32b default_value);
 extern void conf_set_string(cptr section, cptr name, cptr value);
 extern void conf_set_int(cptr section, cptr name, s32b value);
 extern void conf_append_section(cptr section, cptr filename);
+extern bool my_fexists(const char *fname);
 
 /* c-init.c */
 extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
@@ -350,6 +351,7 @@ extern bool client_setup(void);
 extern void initialize_all_pref_files(void);
 extern void client_init(char *argv1);
 extern  int client_failed(void);
+extern void gather_settings(void);
 
 /* c-inven.c */
 extern s16b index_to_label(int i);

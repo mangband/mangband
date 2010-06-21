@@ -2817,6 +2817,8 @@ int register_indicator(int id)
 	/* No overloads, use default */
 	if (found == FALSE)
 		prt_functions[id] = prt_indicator;
+
+	return 0;
 }
 
 /*

@@ -163,6 +163,8 @@ int send_indication(int Ind, byte id, ...)
 	} while (++i < i_ptr->coffer);
 
 	va_end( marker );
+
+	return 0;
 }
 
 int send_message(int Ind, cptr msg, u16b typ)

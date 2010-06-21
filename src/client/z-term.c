@@ -10,6 +10,7 @@
 
 /* Purpose: a generic, efficient, terminal window package -BEN- */
 
+#include "c-angband.h"
 #include "z-term.h"
 
 #include "../common/z-virt.h"

@@ -5891,7 +5891,7 @@ void master_fill_monsters(int Ind, u32b how)
 {
 	player_type *p_ptr = Players[Ind];
 	int i, n;
-	u16b why = how;
+	u32b why = how;
 
 	#define MASTER_COMPARE_MONSTER(TYPE) \
 		if ( (how & FILT_ ## TYPE) && (summon_specific_okay_aux(i, SUMMON_ ## TYPE) == (how & FILT_REVERS ? TRUE : FALSE)) ) \
