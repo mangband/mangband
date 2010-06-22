@@ -504,7 +504,6 @@ extern int send_walk(char dir);
 #define Send_party(command, buf) plog("Send_party unimplemented!")
 #define Send_suicide() plog("Send_suicide unimplemented!")
 #define Send_options(settings) plog("Send_options unimplemented!")
-#define Send_stream_size(st, y, x) plog("Send_stream_size unimplemented!")
 #define Send_master(command, buf) plog("Send_master unimplemented!")
 #define Send_observe(item) plog("Send_observe unimplemented!")
 #define Send_pass(newpass) plog("Send_pass unimplemented!")

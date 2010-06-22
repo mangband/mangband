@@ -617,6 +617,9 @@ void player_wipe(player_type *p_ptr)
 	/* Hack -- assume the player has an initial knowledge of the area close to town */
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
+	/* Setup stream pointers */
+	for (i = 0; i < MAX_STREAMS; i++) p_ptr->stream_cave[i] = (streams[i].addr == NTERM_WIN_OVERHEAD ? p_ptr->scr_info : p_ptr->info);
+
 	/* Clear old channels */
 	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
 

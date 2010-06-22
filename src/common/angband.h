@@ -37,6 +37,10 @@
 #include "../common/defines.h"
 #include "../common/types.h"
 
+/*
+ * Include net-work packagers late in the game (to be aware of types).
+ */
+#include "../common/net-pack.h"
 
 
 /***** Some copyright messages follow below *****/

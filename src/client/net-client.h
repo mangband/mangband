@@ -12,6 +12,8 @@
 	PACKET(PKT_STRUCT_INFO,	NULL,   	recv_struct_info)
 
 	PACKET(PKT_INDICATOR,	NULL,   	recv_indicator_info)
+	PACKET(PKT_STREAM,  	NULL,   	recv_stream_info)
+	PACKET(PKT_RESIZE,     	NULL,   	recv_stream_size)
 
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
 #endif

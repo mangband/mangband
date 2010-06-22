@@ -48,9 +48,6 @@ extern void denaglefd(int fd);
 extern  int fillhostname(char *str, int len);
 extern void unblockfd(int fd);
 
-extern int cq_printf(cq *charq, char *str, ...); 
-extern int cq_copyf(cq *src, const char *str, cq *dst);
-extern int cq_scanf(cq *charq, char *str, ...);
-
 extern void e_release_all(eptr node, int d1, int d2);
+
 #endif

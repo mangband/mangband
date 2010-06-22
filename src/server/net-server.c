@@ -510,6 +510,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 
 	/* Allocate memory */
 	p_ptr = player_alloc();
+	player_wipe(p_ptr);
 
 	/* Copy his name and connection info */
 	strcpy(p_ptr->name, nick_name);

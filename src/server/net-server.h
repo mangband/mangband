@@ -46,7 +46,7 @@ extern void setup_tables(sccb receiv[256], cptr *playing_schemes);
 /* Send */
 extern int send_server_info(connection_type *ct);
 extern int send_play(connection_type *ct, byte mode);
-extern int send_quit(connection_type *ct, char *reason);
+extern int send_quit(connection_type *ct, const char *reason);
 extern int send_char_info(connection_type *ct, player_type *p_ptr);
 extern int send_race_info(connection_type *ct);
 extern int send_class_info(connection_type *ct);

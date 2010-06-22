@@ -1,7 +1,7 @@
 #ifndef __NET_BASICS_H_
 #define __NET_BASICS_H_
 
-#define PD_SMALL_BUFFER		1024
+#define PD_SMALL_BUFFER		1024 * 6
 #define MATH_MAX(A,B) (A > B ? A : B)
 
 /** Defenitions **/

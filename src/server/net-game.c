@@ -21,10 +21,17 @@ int send_play(connection_type *ct, byte mode)
 	return cq_printf(&ct->wbuf, "%c%b", PKT_PLAY, mode);
 }
 
-int send_quit(connection_type *ct, char *reason) 
+int send_quit(connection_type *ct, const char *reason) 
 {
-	printf("Sending quit msg: %s\n", reason);
-	return cq_printf(&ct->wbuf, "%c%S", PKT_QUIT, reason);
+	/* Initial attempt might fail due to buffer overflow */
+	if (cq_printf(&ct->wbuf, "%c%S", PKT_QUIT, reason) > 0) return 1;
+
+	/* In this case, clear the buffer and try again */
+	cq_clear(&ct->wbuf);
+	cq_printf(&ct->wbuf, "%c%S", PKT_QUIT, reason);
+
+	/* We did all we could, but it's an error */
+	return -1;
 }
 
 int send_server_info(connection_type *ct)
@@ -167,6 +174,128 @@ int send_indication(int Ind, byte id, ...)
 	return 0;
 }
 
+int send_stream_info(connection_type *ct, int id)
+{
+	const stream_type *s_ptr = &streams[id];
+	if (!s_ptr->pkt) return 1; /* Last one */
+
+	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%s%c%c%c%c", PKT_STREAM,
+ 		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag, s_ptr->mark, 
+ 		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
+	{
+		/* Hack -- instead of "client_withdraw(ct);", we simply */
+		return 0;
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int send_stream_size(connection_type *ct, int st, int y, int x)
+{
+	if (!ct) return -1;
+
+	/* Acknowledge new size for stream */
+	if (cq_printf(&ct->wbuf, "%c%c%c%c", PKT_RESIZE, (byte)st, (byte)y, (byte)x) <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
+int stream_char_raw(int Ind, int st, int y, int x, byte a, char c, byte ta, char tc)
+{
+	player_type *p_ptr = Players[Ind];
+	connection_type *ct = PConn[Ind];
+	const stream_type *stream = &streams[st];
+	int n;
+
+	if (!ct) return -1;
+
+	/* Do not send streams not subscribed to */
+	if (!p_ptr->stream_hgt[st]) return 1;
+
+	/* Header + Body (with or without transperancy) */
+	if (stream->flag & SF_TRANSPARENT)
+		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, y | ((x+1) << 8), a, c, a, c);
+	else
+		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, y | ((x+1) << 8), a, c);		
+	if (n <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int stream_char(int Ind, int st, int y, int x)
+{
+	player_type *p_ptr = Players[Ind];
+	connection_type *ct = PConn[Ind];
+	const stream_type *stream = &streams[st];
+	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
+	s16b l;
+	int n;
+
+	if (!ct) return -1;
+
+	/* Do not send streams not subscribed to */
+	if (!p_ptr->stream_hgt[st]) return 1;
+
+	/* Header + Body (with or without transperancy) */
+	l = y | ((x+1) << 8);
+	if (stream->flag & SF_TRANSPARENT)
+		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, l, source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
+	else
+		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, l, source[x].a, source[x].c);
+	if (n <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int stream_line_as(int Ind, int st, int y, int as_y)
+{
+	player_type *p_ptr = Players[Ind];
+	connection_type *ct = PConn[Ind];
+	const stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	s16b	cols = p_ptr->stream_wid[st];
+	byte	rle = stream->rle;
+	byte	trn = (stream->flag & SF_TRANSPARENT);
+	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
+
+	if (!ct) return -1;
+
+	/* Do not send streams not subscribed to */
+	if (!cols) return 1;
+
+	/* Packet header */
+	if (cq_printf(&ct->wbuf, "%c%d", stream->pkt, as_y) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	/* (Secondary) */
+	if (trn && cq_printc(&ct->wbuf, rle, p_ptr->trn_info[y], cols) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	/* Packet body */
+	if (cq_printc(&ct->wbuf, rle, source, cols) <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	/* Ok */
+	return 1;
+}
+
 int send_message(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
@@ -289,6 +418,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		case BASIC_INFO_INDICATORS:
 			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id++)) break;
 		break;
+		case BASIC_INFO_STREAMS:
+			while (id < MAX_STREAMS) if (!send_stream_info(ct, id++)) break;
+		break;
 		default: break;
 	}
 
@@ -330,6 +462,68 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 
 	/* Inform client */
 	send_char_info(ct, p_ptr);
+
+	return 1;
+}
+
+int recv_stream_size(connection_type *ct, player_type *p_ptr) {
+	int Ind = Get_Ind[p_ptr->conn];
+	byte
+		stg = 0,
+		y = 0,
+		x = 0;
+	byte st, addr;
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) 
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Set stream group starting point */
+	if (stg < MAX_STREAMS) addr = streams[stg].addr;
+
+	/* Do the whole group */
+	for (st = stg; st < MAX_STREAMS; st++)
+	{
+		/* Stop when we move to the next group */
+		if (streams[st].addr != addr) break;
+
+		/* Test bounds (if we're subscribing) */
+		if (y)
+		{
+			if (y < streams[st].min_row) y = streams[st].min_row;
+			if (y > streams[st].max_row) y = streams[st].max_row;
+			if (x < streams[st].min_col) x = streams[st].min_col;
+			if (x > streams[st].max_col) x = streams[st].max_col;
+		}
+
+		/* Set width and height */
+		p_ptr->stream_wid[st] = x;
+		p_ptr->stream_hgt[st] = y;
+
+		/* Subscribe / Unsubscribe */
+		if (y) 
+		{
+			p_ptr->window_flag |= streams[st].window_flag;
+			p_ptr->window |= streams[st].window_flag; /* + Schedule actual update */
+			/* HACK! Resizing dungeon view! */
+			if (streams[st].addr == NTERM_WIN_OVERHEAD)
+			{
+				p_ptr->screen_wid = p_ptr->stream_wid[0];
+				p_ptr->screen_hgt = p_ptr->stream_hgt[0];
+				setup_panel(Ind, TRUE);
+				verify_panel(Ind);
+				p_ptr->redraw |= (PR_MAP);
+			}
+		}
+		else
+		{
+			p_ptr->window_flag &= ~streams[st].window_flag;
+		}
+	}
+
+	/* Ack it */
+	send_stream_size(ct, stg, y, x);
 
 	return 1;
 }
@@ -423,6 +617,10 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	while (i < MAX_INDICATORS && indicators[i].pkt != 0) i++;
 	serv_info.val1 = i;	
 	
+	/* Count streams */
+	i = 0;
+	while (i < MAX_STREAMS && streams[i].pkt != 0) i++;
+	serv_info.val2 = i;
 }
 
 void free_tables() 

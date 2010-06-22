@@ -161,6 +161,7 @@ static void Setup_loop()
 	u16b conntype = CONNTYPE_PLAYER;
 
 	int asked_indicators = -1;
+	int asked_streams = -1;
 
 	bool data_ready = TRUE;
 	bool char_ready = FALSE;
@@ -179,6 +180,8 @@ static void Setup_loop()
 			data_ready = TRUE;
 			/* Indicators */
 			sync_data_piece(RQ_INDI, &asked_indicators, known_indicators, serv_info.val1, &data_ready);
+			/* Streams */
+			sync_data_piece(RQ_STRM, &asked_streams, known_streams, serv_info.val2, &data_ready);
 		}
 
 		/* Check and Prepare character */

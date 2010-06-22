@@ -20,6 +20,8 @@
 #define PKT_STRUCT_INFO		13
 #define PKT_LOGIN	14
 
+#define PKT_RESIZE	16
+
 #define PKT_INDICATOR	17
 /* Packet types 20-59 are info that is sent to the client */
 #define PKT_PLUSSES		20
@@ -142,7 +144,9 @@
  */
 #define BASIC_INFO_UNKNOWN  	0
 #define BASIC_INFO_INDICATORS  	1
+#define BASIC_INFO_STREAMS  	2
 #define RQ_INDI	BASIC_INFO_INDICATORS
+#define RQ_STRM	BASIC_INFO_STREAMS
 
 /*
  * PKT_STRUCT_INFO helpers

@@ -265,15 +265,15 @@
 #define STREAM_SPECIAL_MIXED 	7
 #define STREAM_SPECIAL_TEXT  	8
 
-#define Stream_line(I,S,L) Stream_line_as(I,S,L,L)
+#define Stream_line(I,S,L) stream_line_as(I,S,L,L)
 
 #define DUNGEON_STREAM_p(P) ((P)->use_graphics > 1 ? STREAM_DUNGEON_GRAF2 : ((P)->use_graphics ? STREAM_DUNGEON_GRAF1 : STREAM_DUNGEON_ASCII ))
 #define MINIMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_MINIMAP_GRAF : STREAM_MINIMAP_ASCII)
 #define BGMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_BGMAP_GRAF : STREAM_BGMAP_ASCII)
 
-#define Send_char(I,X,Y,A,C) Stream_char_raw(I,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
-#define Send_tile(I,P,Y,X,A,C,TA,TC) Stream_char_raw(I,DUNGEON_STREAM_p(P),Y,X,A,C,TA,TC)
-#define Stream_tile(I,P,Y,X) Stream_char(I,DUNGEON_STREAM_p(P),Y,X);
+#define Send_char(I,X,Y,A,C) stream_char_raw(I,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
+#define Send_tile(I,P,Y,X,A,C,TA,TC) stream_char_raw(I,DUNGEON_STREAM_p(P),Y,X,A,C,TA,TC)
+#define Stream_tile(I,P,Y,X) stream_char(I,DUNGEON_STREAM_p(P),Y,X);
 
 /*
  * The types of special file perusal.

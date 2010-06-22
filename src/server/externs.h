@@ -672,15 +672,12 @@ extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
-#define Send_play(IND, A) send_play(PConn[IND], A)
 #define Send_term_info(IND, A, B) plog("Send_term_info unimplemented\n")
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_spell_info(IND, book, i, flag, out_val) plog("Send_spell_info unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Stream_line_as(IND, st, y, as_y) plog("Stream_line_as unimplemented\n")
-#define Stream_char_raw(IND, st, y, x, a, c, ta, tc) plog("Stream_char_raw unimplemented\n")
 #define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
 #define Send_history(IND, line, hist) plog("Send_history unimplemented\n")
 #define Send_floor(IND, attr, amt, tval, flag, name) plog("Send_floor unimplemented\n")
@@ -702,7 +699,6 @@ extern void display_monlist(int Ind);
 #define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
 #define Send_store_sell(IND, price) plog("Send_store_sell unimplemented\n")
-#define Stream_char(IND, st, y, x) plog("Stream_char unimplemented\n")
 #define Send_pickup_check(IND, buf) plog("Send_pickup_check unimplemented\n");
 
 /* net-server.c */
@@ -714,6 +710,9 @@ extern int player_kill(int p_idx, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
+extern int stream_char_raw(int Ind, int st, int y, int x, byte a, char c, byte ta, char tc);
+extern int stream_char(int Ind, int st, int y, int x);
+extern int stream_line_as(int Ind, int st, int y, int x);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 

@@ -5655,7 +5655,7 @@ void snapshot_player(int Ind, int who)
 		for (x = 0; x < 80; x++)
 		{
 			map_info(who, y1+y, x1+x, &a, &c, &ta, &tc, FALSE);
-			Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), y, x, a, c, ta, tc);
+			stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), y, x, a, c, ta, tc);
 		}
 	}
 
@@ -5668,7 +5668,7 @@ void snapshot_player(int Ind, int who)
 	y = player_pict(Ind, who);
 	a = PICT_A(y);
 	c = PICT_C(y);
-	Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
+	stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
 
 	Send_term_info(Ind, NTERM_FRESH, 0);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);	
@@ -5721,7 +5721,7 @@ void preview_vault(int Ind, int v_idx)
 				a = p_ptr->f_attr[feat];
 			}
 
-			Stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), dy, dx, a, c, 0, 0);//a, c);
+			stream_char_raw(Ind, BGMAP_STREAM_p(p_ptr), dy, dx, a, c, 0, 0);//a, c);
 		}
 	}
 

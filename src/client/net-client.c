@@ -29,6 +29,7 @@ cptr next_scheme;
 server_setup_t serv_info;
 
 byte indicator_refs[256]; /* PKT to ID: Indicators */
+byte stream_ref[256]; ;/* PKT to ID: Streams */
 
 /* Init */
 void setup_tables(void);
@@ -204,6 +205,9 @@ int send_request(byte mode, u16b id) {
 	return cq_printf(&serv->wbuf, "%c%c%ud", PKT_BASIC_INFO, mode, id);
 }
 
+int send_stream_size(byte id, int rows, int cols) {
+	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
+}
 
 
 int send_msg(cptr message)
@@ -593,6 +597,194 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+/* ... */
+int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
+{
+	int 	n;
+	byte
+		a = 0,
+		ta = 0;
+	char
+		c = 0,
+		tc = 0;
+
+	cave_view_type *dest = stream_cave(st, y);
+
+	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
+
+	if (trn && cq_scanf(&serv->rbuf, "%c%c", &ta, &tc) < 2) return 0;
+
+	dest[x].a = a;
+	dest[x].c = c;
+
+	if (y > last_remote_line[addr]) 
+		last_remote_line[addr] = y; 
+
+	if (addr == NTERM_WIN_OVERHEAD)
+		show_char(y, x, a, c, ta, tc, mem);
+
+	return 1;
+}
+int recv_stream(connection_type *ct) {
+	s16b	cols, y = 0;
+	s16b	*line;
+	byte	addr, id;
+	cave_view_type	*dest;
+
+	stream_type 	*stream;
+
+	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
+
+	id = stream_ref[next_pkt];
+	stream = &streams[id];
+	addr = stream->addr;
+
+	/* Hack -- single char */
+	if (y & 0xFF00)	return 
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+
+	cols = p_ptr->stream_wid[id];
+	dest = p_ptr->stream_cave[id] + y * cols;
+ 	line = &last_remote_line[addr];
+
+	/* Decode the secondary attr/char stream */
+	if ((stream->flag & SF_TRANSPARENT))
+	{
+		if (cq_scanc(&ct->rbuf, stream->rle, p_ptr->trn_info[y], cols) <= 0) return -1;
+	}
+	/* OR clear it ! */ 
+	else if (stream->flag & SF_OVERLAYED)
+		caveclr(p_ptr->trn_info[y], cols);
+
+	/* Decode the attr/char stream */
+	if (cq_scanc(&ct->rbuf, stream->rle, dest, cols) <= 0) return -1;
+
+	/* Check the min/max line count */
+	if ((*line) < y)
+		(*line) = y;
+	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
+
+	/* Put data to screen ? */		
+	if (addr == NTERM_WIN_OVERHEAD)
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
+
+	return 1;
+}
+
+int recv_stream_size(connection_type *ct) {
+	byte
+		stg = 0,
+		x = 0,
+		y = 0;
+	byte	st, addr;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
+
+	/* Ensure it is valid and start from there */
+	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
+
+	/* Fetch target "window" */	
+	addr = streams[stg].addr;
+
+	/* (Re)Allocate memory */
+	if (remote_info[addr])
+	{
+		KILL(remote_info[addr]);
+	}
+	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
+	last_remote_line[addr] = 0;
+
+	/* Affect the whole group */
+	for (st = stg; st < known_streams; st++)
+	{
+		/* Stop when we move on to the next group */
+		if (streams[st].addr != addr) break;
+
+		/* Save new size */
+		p_ptr->stream_wid[st] = x;
+		p_ptr->stream_hgt[st] = y;
+
+		/* Save pointer */
+		p_ptr->stream_cave[st] = remote_info[addr];
+	}
+
+	/* HACK - Dungeon display resize */
+	if (addr == NTERM_WIN_OVERHEAD)
+	{
+		/* Redraw status line */
+		Term_erase(0, y-1, x);
+		p_ptr->redraw |= PR_STATUS;
+		/* Redraw compact */
+		p_ptr->redraw |= PR_COMPACT;
+	}
+
+
+	return 1;
+}
+
+/* Learn about certain stream from server */
+int recv_stream_info(connection_type *ct) {
+	byte
+		pkt = 0,
+		addr = 0,
+		flag = 0,
+		rle = 0;
+	byte
+		min_col = 0,
+		min_row = 0,
+		max_col = 0,
+		max_row = 0;
+	char buf[MSG_LEN]; //TODO: check this 
+	int n;
+
+	stream_type *s_ptr;
+
+	buf[0] = '\0';
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c%s%c%c%c%c", &pkt, &addr, &rle, &flag, buf, 
+			&min_row, &min_col, &max_row, &max_col) < 9) return 0;
+
+	/* Check for errors */
+	if (known_streams >= MAX_STREAMS)
+	{
+		plog("No more stream slots! (MAX_STREAMS)");
+		return -1;
+	}
+
+	/* Get it */
+	s_ptr = &streams[known_streams];
+	WIPE(s_ptr, stream_type);
+
+	s_ptr->pkt = pkt;
+	s_ptr->addr = addr;	
+	s_ptr->rle = rle;
+
+	s_ptr->flag = flag;
+
+	/*s_ptr->scr = (!addr ? p_ptr->scr_info : remote_info[addr] );
+	s_ptr->trn = (!trn ? NULL : p_ptr->trn_info);*/
+
+	s_ptr->min_row = min_row;
+	s_ptr->min_col = min_col;
+	s_ptr->max_row = max_row;
+	s_ptr->max_col = max_col;
+
+	if (!STRZERO(buf))
+	{
+		s_ptr->mark = strdup(buf);
+	}
+
+
+	handlers[pkt] = recv_stream;
+	schemes[pkt] = NULL; /* HACK */
+
+	stream_ref[pkt] = known_streams;
+
+	known_streams++;	
+
+
+	return 1;
+}
 
 int recv_message(connection_type *ct) {
 	char 
@@ -779,7 +971,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 			}
 
 			/* Send it! */
-			Send_stream_size(j, st_y[j], st_x[j]);
+			send_stream_size(j, st_y[j], st_x[j]);
 
 			/* Toggle update flag */
 			st_flag |= streams[j].window_flag;
