@@ -11,7 +11,7 @@
  */
 
 #include "mangband.h"
-#include "net-server.h"
+
 
 
 

@@ -97,7 +97,7 @@ int send_class_info(connection_type *ct)
 
 int send_indicator_info(connection_type *ct, int id)
 {
-	indicator_type *i_ptr = &indicators[id];
+	const indicator_type *i_ptr = &indicators[id];
 	if (!i_ptr->pkt) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR, 
@@ -114,7 +114,7 @@ int send_indicator_info(connection_type *ct, int id)
 int send_indication(int Ind, byte id, ...)
 {
 	connection_type *ct = PConn[Ind];
-	indicator_type *i_ptr = &indicators[id];
+	const indicator_type *i_ptr = &indicators[id];
 	int i = 0, n;
 
 	signed char tiny_c;
@@ -287,7 +287,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 	switch (mode) 
 	{
 		case BASIC_INFO_INDICATORS:
-			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id)) break;
+			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id++)) break;
 		break;
 		default: break;
 	}

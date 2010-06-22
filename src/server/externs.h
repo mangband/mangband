@@ -714,6 +714,7 @@ extern int player_kill(int p_idx, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
+extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 
 
