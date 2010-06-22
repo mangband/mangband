@@ -273,6 +273,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\net-pack.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\readdib.c"
 				>
 			</File>
@@ -331,11 +335,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\defines.h"
+				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\defines.h"
+				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
 			<File
@@ -384,6 +388,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\net-imps.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\net-pack.h"
 				>
 			</File>
 			<File

@@ -270,6 +270,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\net-pack.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\net-server.c"
 				>
 			</File>
@@ -425,6 +429,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\net-imps.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\net-pack.h"
 				>
 			</File>
 			<File

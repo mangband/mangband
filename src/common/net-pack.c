@@ -728,9 +728,7 @@ cvcb cave_codecs[MAX_CAVE_CODECS][2] = {
 	/* RLE_LARGE */
 	{ cv_encode_rle2, cv_decode_rle2 },
 	/* RLE_COLOR */
-	{ cv_encode_rle3, cv_decode_rle3 },
-	/* Tail */
-	{ 0, 0 }
+	{ cv_encode_rle3, cv_decode_rle3 }
 };
 
 int cq_printc(cq *charq, unsigned int mode, cave_view_type *from, int len) { 
