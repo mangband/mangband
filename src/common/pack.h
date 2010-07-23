@@ -20,6 +20,8 @@
 #define PKT_STRUCT_INFO		13
 #define PKT_LOGIN	14
 
+#define PKT_VISUAL_INFO 	15
+
 #define PKT_RESIZE	16
 
 #define PKT_INDICATOR	17
@@ -160,6 +162,16 @@
 #define STRUCT_INFO_OPTGROUP	7
 
 /*
+ * PKT_VISUAL_INFO helpers
+ */
+#define VISUAL_INFO_FLVR	0
+#define VISUAL_INFO_F   	1
+#define VISUAL_INFO_K   	2
+#define VISUAL_INFO_R   	3 
+#define VISUAL_INFO_TVAL	4
+#define VISUAL_INFO_MISC	5
+
+/*
  * PKT_COMMAND helpers
  */
 #define SCHEME_EMPTY        	0	/* %c - PKT */
@@ -264,12 +276,21 @@
 #define CONNTYPE_ERROR		0xFF
 
 /* 
- * Player states 
+ * Player states (s2c PKT_PLAY helpers)
  */
 #define PLAYER_EMPTY	0 /* Freshly allocated structure, empty */
 #define PLAYER_NAMED	1 /* Empty structure with name & password fields filled */
 #define PLAYER_SHAPED	2 /* Name, race, class, sex and stat order are filled (ready for roll) */
 #define PLAYER_BONE 	3 /* A complete (but dead) character (ready for roll/resurrect)  */
 #define PLAYER_FULL 	4 /* A complete and living character, ready for playing */
-#define PLAYER_PLAYING 	5 /* -Playing the game- */
-#define PLAYER_LEAVING 	6 /* Leaving the game */
+#define PLAYER_READY	5 /* All suplimentary data has been transfered */
+#define PLAYER_PLAYING 	6 /* -Playing the game- */
+#define PLAYER_LEAVING 	7 /* Leaving the game */
+
+/*
+ * Player states in verb form (c2s PKT_PLAY helpers)
+ */
+#define PLAY_ROLL	PLAYER_FULL
+#define PLAY_KILL	PLAYER_BONE
+#define PLAY_ENTER	PLAYER_READY
+#define PLAY_PLAY	PLAYER_PLAYING

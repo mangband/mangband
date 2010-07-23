@@ -36,7 +36,11 @@ int send_quit(connection_type *ct, const char *reason)
 
 int send_server_info(connection_type *ct)
 {
-	if (!cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_BASIC_INFO, serv_info.val1, serv_info.val2, serv_info.val3, serv_info.val4))
+	if (!cq_printf(&ct->wbuf, "%c%b%b%b%b", PKT_BASIC_INFO, serv_info.val1, serv_info.val2, serv_info.val3, serv_info.val4))
+	{
+		client_withdraw(ct);
+	}
+	if (!cq_printf(&ct->wbuf, "%ul%ul%ul%ul", serv_info.val9, serv_info.val10, serv_info.val11, serv_info.val12))
 	{
 		client_withdraw(ct);
 	}
@@ -353,7 +357,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 /* Undefined packet "handler" */
 static int recv_undef(connection_type *ct, player_type *p_ptr) 
 { 
-	client_abort(ct, "Undefined packet!");
+	client_abort(ct, format("Undefined packet! %d", next_pkt));
 }
 
 int recv_keepalive(connection_type *ct, player_type *p_ptr) 
@@ -387,18 +391,58 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		/* ....? Some kind of error */
 	}
 
-	/* Ready for rolling */
-	if (p_ptr->state == PLAYER_SHAPED)
+	/* Client asks for a (re)roll */
+	if (mode == PLAY_ROLL)
 	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_SHAPED) 
+		{
+			client_abort(ct, "Character not suitable for rolling!");
+		}
+
+		/* Do it */
 		player_birth(ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
+
+		/* Consequences: */
 		p_ptr->state = PLAYER_FULL;
 	}
-
-	/* Imagine we're good to go */
-	if (p_ptr->state == PLAYER_FULL)
+	/* Client asks for to enter game */
+	else if (mode == PLAY_ENTER)
 	{
-		player_enter(ct->user);
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_FULL) 
+		{
+			client_abort(ct, "Character not ready to enter a game!");
+		}
+
+		/* Do it */
+		player_verify_visual(p_ptr);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_READY;
 	}
+	/* Client asks for active gameplay */
+	else if (mode == PLAY_PLAY)
+	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_READY)
+		{
+			client_abort(ct, "Character not ready to play a game!");
+		}
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		{
+			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
+		}
+
+		/* Do it */
+		player_enter(ct->user);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_PLAYING;
+	}
+
+	/* Inform client */
+	send_play(ct, p_ptr->state);
 
 	return 1;
 }
@@ -466,6 +510,78 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	return 1;
 }
 
+int recv_visual_info(connection_type *ct, player_type *p_ptr) {
+	int n, i, local_size;
+	byte at;
+	char *char_ref;
+	byte *attr_ref = NULL;
+	byte
+		type = 0;
+	u16b
+		size = 0;
+	if (cq_scanf(&ct->rbuf, "%c%d", &type, &size) < 2)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	if (IS_PLAYING(p_ptr))
+	{
+		client_abort(ct, "Can't change visual info during gameplay");
+	}
+
+	/* Gather type */
+	switch (type) 
+	{
+		case VISUAL_INFO_FLVR:
+			local_size = MAX_FLVR_IDX;//MIN(MAX_FLVR_IDX, z_info->flavor_max)
+			attr_ref = p_ptr->flvr_attr;
+			char_ref = p_ptr->flvr_char;
+			break;
+		case VISUAL_INFO_F:
+			local_size = z_info->f_max;
+			attr_ref = p_ptr->f_attr;
+			char_ref = p_ptr->f_char;
+			break;
+		case VISUAL_INFO_K:
+			local_size = z_info->k_max;
+ 			attr_ref = p_ptr->k_attr;
+  			char_ref = p_ptr->k_char;
+  			break;
+  		case VISUAL_INFO_R:
+			local_size = z_info->r_max;
+			attr_ref = p_ptr->r_attr;
+			char_ref = p_ptr->r_char;
+			break;
+		case VISUAL_INFO_TVAL:
+	 		local_size = 128;
+			attr_ref = p_ptr->tval_attr;
+			char_ref = p_ptr->tval_char;
+			break;
+		case VISUAL_INFO_MISC:
+			local_size = 256;
+			attr_ref = p_ptr->misc_attr;
+			char_ref = p_ptr->misc_char;
+			break;
+		default: break;
+	}
+	/* Ensure size is compatible */
+	if (local_size != size)
+	{
+		attr_ref = NULL;
+	}
+
+	/* Finally, Read the data */
+	if ((n = cq_scanac(&ct->rbuf, RLE_NONE, attr_ref, char_ref, size)) < size)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Ok */
+	return 1;
+}
+
 int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
 	byte
@@ -511,9 +627,12 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 			{
 				p_ptr->screen_wid = p_ptr->stream_wid[0];
 				p_ptr->screen_hgt = p_ptr->stream_hgt[0];
-				setup_panel(Ind, TRUE);
-				verify_panel(Ind);
-				p_ptr->redraw |= (PR_MAP);
+				if (IS_PLAYING(p_ptr))
+				{
+					setup_panel(Ind, TRUE);
+					verify_panel(Ind);
+					p_ptr->redraw |= (PR_MAP);
+				}
 			}
 		}
 		else
@@ -621,6 +740,11 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	i = 0;
 	while (i < MAX_STREAMS && streams[i].pkt != 0) i++;
 	serv_info.val2 = i;
+
+	/* 'Count' info */
+	serv_info.val9 = z_info->k_max;
+	serv_info.val10 = z_info->r_max;
+	serv_info.val11 = z_info->f_max;
 }
 
 void free_tables() 

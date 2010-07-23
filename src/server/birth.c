@@ -618,7 +618,7 @@ void player_wipe(player_type *p_ptr)
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
 	/* Setup stream pointers */
-	for (i = 0; i < MAX_STREAMS; i++) p_ptr->stream_cave[i] = (streams[i].addr == NTERM_WIN_OVERHEAD ? p_ptr->scr_info : p_ptr->info);
+	for (i = 0; i < MAX_STREAMS; i++) p_ptr->stream_cave[i] = (streams[i].addr == NTERM_WIN_OVERHEAD ? &p_ptr->scr_info[0][0] : &p_ptr->info[0][0]);
 
 	/* Clear old channels */
 	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
@@ -632,8 +632,52 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
 }
 
+/* 
+ * Verify / Overwrite visual data with server defaults 
+ */
+void player_verify_visual(player_type *p_ptr)
+{
+	int i;
 
+	for (i = 0; i < MIN(MAX_FLVR_IDX, z_info->flavor_max); i++) 
+	{
+		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].x_attr;
+		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].x_char;
+	}
 
+	for (i = 0; i < z_info->f_max; i++)
+	{
+		/* Overwrite mimics */
+		if (f_info[i].mimic != i)
+		{ 
+			p_ptr->f_attr[i] = p_ptr->f_attr[f_info[i].mimic];
+			p_ptr->f_char[i] = p_ptr->f_char[f_info[i].mimic];
+		}
+		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].x_attr;
+		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
+	}
+
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].x_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].x_char);
+
+		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
+		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
+	}
+
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].x_attr;
+		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].x_char;
+	}
+
+	for (i = 0; i < 128; i++) 
+	{
+		if (!p_ptr->tval_attr[i]) p_ptr->tval_attr[i] = tval_to_attr[i]; 
+		if (!p_ptr->tval_char[i]) p_ptr->tval_char[i] = tval_to_char[i];
+	}
+}
 
 /*
  * Hard-coded items to give DM at his birth.

@@ -111,13 +111,6 @@ int player_enter(int ind)
 	connection_type *ct = players->list[ind]->data1;
 	player_type *p_ptr = players->list[ind]->data2;
 
-// SUPER-HACK! Remove this asap:
-p_ptr->screen_wid = 80;
-p_ptr->screen_hgt = 20;
-
-	/* Inform client */
-	send_play(ct, 1);
-
 	/* Add him to the end of the list */
 	p_max++;
 	p_list[p_max] = p_ptr;
@@ -127,11 +120,13 @@ p_ptr->screen_hgt = 20;
 	Get_Conn[p_max] = ind;
 	PConn[p_max] = ct; 
 
-	/* Mark him as ready */
+	/* Mark him as playing */
 	p_ptr->state = PLAYER_PLAYING;
 
 	/* Setup his locaton */
 	player_setup(p_max);
+	setup_panel(p_max, TRUE);
+	verify_panel(p_max);
 
 	return 0;
 }
@@ -400,7 +395,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 
 			ct->user = -1;
 
-			send_play(ct, 0);
+			send_play(ct, PLAYER_EMPTY);
 
 		break;
 		case CONNTYPE_CONSOLE:

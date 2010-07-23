@@ -346,6 +346,7 @@ extern bool my_fexists(const char *fname);
 
 /* c-init.c */
 extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
+extern bool client_login(void);
 extern bool client_ready(void);
 extern bool client_setup(void);
 extern void initialize_all_pref_files(void);
@@ -457,6 +458,7 @@ extern int send_play(byte mode);
 extern int send_char_info();
 extern int send_keepalive(u32b last_keepalive);
 extern int send_request(byte mode, u16b id);
+extern int send_visual_info(byte type);
 extern int send_msg(cptr message);
 extern int send_walk(char dir);
 //TRANSITIONAL HACKAGE:
@@ -466,7 +468,6 @@ extern int send_walk(char dir);
 #define Net_Send(Socket, ibuf) plog("Net_Send unimplemented!")
 #define Net_WaitReply(Socket, ibuf, retries) plog("Net_WaitReply unimplemented!")
 #define Net_setup() plog("Net_setup unimplemented!")
-#define Net_verify() plog("Net_verify unimplemented!")
 #define Net_init(port) plog("Net_init unimplemented!")
 #define Net_cleanup(void) plog("Net_cleanup unimplemented!")
 #define Net_flush(void) plog("Net_flush unimplemented!")

@@ -107,6 +107,30 @@ void init_minor(void)
 	}
 }
 
+/* Init info arrays */
+void init_info(void)
+{
+	/* k_info */
+	C_MAKE(Client_setup.k_attr, z_info.k_max, byte);
+	C_MAKE(Client_setup.k_char, z_info.k_max, char);
+	C_MAKE(p_ptr->k_attr, z_info.k_max, byte);
+	C_MAKE(p_ptr->k_char, z_info.k_max, char);
+	/* d_info hack */
+	C_MAKE(p_ptr->d_attr, z_info.k_max, byte);
+	C_MAKE(p_ptr->d_char, z_info.k_max, char);
+
+	/* r_info */
+	C_MAKE(Client_setup.r_attr, z_info.r_max, byte);
+	C_MAKE(Client_setup.r_char, z_info.r_max, char);
+	C_MAKE(p_ptr->r_attr, z_info.r_max, byte);
+	C_MAKE(p_ptr->r_char, z_info.r_max, char);
+
+	/* f_info */
+	C_MAKE(Client_setup.f_attr, z_info.f_max, byte);
+	C_MAKE(Client_setup.f_char, z_info.f_max, char);
+	C_MAKE(p_ptr->f_attr, z_info.f_max, byte);
+	C_MAKE(p_ptr->f_char, z_info.f_max, char);
+}
 
 /*
  * Open all relevant pref files.
@@ -139,7 +163,7 @@ void initialize_all_pref_files(void)
 /*
  * Sync a piece of server data via "send_request()" call.
  */
-void sync_data_piece(int rq, int* ask, int rcv, int max, bool* ready)
+static void sync_data_piece(int rq, int* ask, int rcv, int max, bool* ready)
 {
 	if (rcv < max)
 	{
@@ -151,6 +175,8 @@ void sync_data_piece(int rq, int* ask, int rcv, int max, bool* ready)
 		(*ready) = FALSE;
 	}
 }
+/* HACK! Declare Game_loop so we can call it */
+static void Game_loop(void);
 
 /*
  * Send handshake to the server and do the loop
@@ -162,6 +188,7 @@ static void Setup_loop()
 
 	int asked_indicators = -1;
 	int asked_streams = -1;
+	bool asked_game = FALSE;
 
 	bool data_ready = TRUE;
 	bool char_ready = FALSE;
@@ -170,7 +197,7 @@ static void Setup_loop()
 
 	do
 	{
-
+		/* Do networking */
 		network_loop();
 
 		/* Check and Prepare data */
@@ -194,26 +221,36 @@ static void Setup_loop()
 				/* Generate one */
 				get_char_info();
 				send_char_info();
-				send_play(0);
+				send_play(PLAY_ROLL);
 			}
-			if (state == PLAYER_FULL)
+			if (old_state < PLAYER_SHAPED)
 			{
-				char_ready = TRUE;
+				client_setup();
+				send_play(PLAY_ENTER);
 			}
-			if (state > PLAYER_FULL)
-			{
-				//char_ready = TRUE;
-			}
-			if (state == PLAYER_SHAPED)
+			if (state >= PLAYER_READY)
 			{
 				char_ready = TRUE;
 			}
 			old_state = state;
 		}
+		if (asked_game == FALSE)
+		{
+			if (state == PLAYER_READY && data_ready)
+			{
+				asked_game = TRUE;
+			}
+		}
 	} while (!(char_ready && data_ready));
 
-	send_play(0);
 	client_ready();
+	send_play(PLAY_PLAY);
+
+	/* Advance to next loop */
+	Term_clear();
+	Term_fresh();
+
+	Game_loop();
 }
 
 /*
@@ -385,9 +422,9 @@ void init_subscriptions()
 
 
 /*
- * Client is ready to setup call-back
+ * Client is ready to login call-back
  */
-bool client_setup()
+bool client_login()
 {
 	u16b version = CLIENT_VERSION;
 
@@ -397,25 +434,28 @@ bool client_setup()
 }
 
 /*
- * Client is ready to play call-back
+ * Client is ready to setup call-back
  */
-bool client_ready()
+bool client_setup()
 {
+	int i;
+
+	/* Initialize info arrays */
+	init_info();
+
+	/* Initialize the pref files */
+	initialize_all_pref_files();
+	
 	/* Send request for MOTD to read (optional) */
 	//Send_motd(0); // pass -1 to receive motd off-screen 
 	
-	/* Initialize the pref files */
-	initialize_all_pref_files();
-
 	//gather_settings();
 
 	//Send_options(TRUE);
 
 	/* Send visual preferences */
-	//Net_verify();
-
-	/* Subscribe to data streams */
-	init_subscriptions();
+	for (i = VISUAL_INFO_FLVR; i < VISUAL_INFO_MISC +1; i++) 
+		send_visual_info(i);
 
 	/* Hack -- don't enter the game if waiting for motd */
 	//if (Setup.wait && !Setup.ready)
@@ -426,11 +466,18 @@ bool client_ready()
 	/* Request gameplay */
 	//Send_play(1);
 	
-	Term_clear();
-	Term_fresh();
-	
-	Game_loop();
-	
+	return TRUE;
+}
+
+/*
+ * Client is ready to play call-back
+ */
+bool client_ready()
+{
+
+	/* Subscribe to data streams */
+	init_subscriptions();
+
 	return TRUE;
 }
 

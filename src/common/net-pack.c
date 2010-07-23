@@ -748,3 +748,50 @@ int cq_scanc(cq *charq, unsigned int mode, cave_view_type *to, int len) {
 	}
 	return n;
 }
+
+/* Sometimes, cave view is stored in a pair of attr/char arrays. 
+ * For such cases, we copy them to temporary cave_view_type buffers
+ * and call the regular function on them. This is much less optiomal
+ * but also much rarer.
+ */
+int cq_printac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
+	cave_view_type buf[PD_SMALL_BUFFER]; 
+	int i, n = 0;
+	if (len < PD_SMALL_BUFFER)
+	{
+		if (mode < MAX_CAVE_CODECS) 
+		{
+			for (i = 0; i < len; i++)
+			{
+				buf[i].a = a[i];
+				buf[i].c = c[i];
+			}		
+			n = (cave_codecs[mode][CV_ENCODE]) (&buf[0], charq, len); 
+		}
+	}
+	return n;
+}
+
+/* Note: pass "NULL" as "a" to discard the result */
+int cq_scanac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
+	cave_view_type buf[PD_SMALL_BUFFER]; 
+	int i, n = 0;
+	if (len < PD_SMALL_BUFFER) 
+	{
+		if (mode < MAX_CAVE_CODECS) 
+		{
+			if ((n = (cave_codecs[mode][CV_DECODE]) (&buf[0], charq, len)) == len)
+			{
+				if (a != NULL)
+				{
+					for (i = 0; i < len; i++)
+					{
+						a[i] = buf[i].a;
+						c[i] = buf[i].c;
+					}
+				}
+			}
+		}
+	}
+	return n;
+}

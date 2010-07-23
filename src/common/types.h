@@ -119,10 +119,10 @@ struct server_setup_t
 	byte val7;
 	byte val8;
 
-	byte val9;
-	byte val10;
-	byte val11;
-	byte val12;
+	u32b val9;
+	u32b val10;
+	u32b val11;
+	u32b val12;
 
 	byte val13;
 	byte val14;
@@ -1359,6 +1359,8 @@ struct player_type
 	char *r_char;
 	byte *f_attr;
 	char *f_char;
+	byte flvr_attr[MAX_FLVR_IDX];
+	char flvr_char[MAX_FLVR_IDX];
 	byte misc_attr[256];
 	char misc_char[256];
 	byte tval_attr[128];

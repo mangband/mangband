@@ -9,6 +9,7 @@
 	PACKET(PKT_PLAY,    	"%c",       	recv_play)
 
 	PACKET(PKT_BASIC_INFO,	"%c%d",     	recv_basic_request)
+	PACKET(PKT_VISUAL_INFO,	NULL,       	recv_visual_info)
 	PACKET(PKT_RESIZE,    	"c%c%c",    	recv_stream_size)
 
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)

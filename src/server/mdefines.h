@@ -294,6 +294,12 @@
 #define SPECIAL_FILE_MASTER	13
 #define SPECIAL_FILE_INPUT	14
 
+
+/* 
+ * Miscelanious hacks
+ */
+/* Hack -- see if player is playing the game already */ 
+#define IS_PLAYING(P) ((P)->state == PLAYER_PLAYING ? TRUE : FALSE)
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
 /* Hack -- shorthand alias for "check_prevent_inscription" */

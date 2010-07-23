@@ -373,6 +373,7 @@ extern void player_wipe(player_type *p_ptr);
 extern bool player_birth(int ind, int race, int pclass, int sex, int stat_order[]);
 extern void server_birth(void);
 extern void player_setup(int Ind);
+extern void player_verify_visual(player_type *p_ptr);
 
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);

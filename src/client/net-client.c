@@ -209,6 +209,57 @@ int send_stream_size(byte id, int rows, int cols) {
 	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
 }
 
+int send_visual_info(byte type) {
+	int	n, i, size;
+	byte *attr_ref;
+	char *char_ref;
+	switch (type) 
+	{
+		case VISUAL_INFO_FLVR:
+			size = MAX_FLVR_IDX;
+			attr_ref = Client_setup.flvr_x_attr;
+			char_ref = Client_setup.flvr_x_char;
+			break;
+		case VISUAL_INFO_F:
+			size = z_info.f_max;
+			attr_ref = Client_setup.f_attr;
+			char_ref = Client_setup.f_char;
+			break;
+		case VISUAL_INFO_K:
+			size = z_info.k_max;
+ 			attr_ref = Client_setup.k_attr;
+  			char_ref = Client_setup.k_char;
+  			break;
+  		case VISUAL_INFO_R:
+			size = z_info.r_max;
+			attr_ref = Client_setup.r_attr;
+			char_ref = Client_setup.r_char;
+			break;
+		case VISUAL_INFO_TVAL:
+	 		size = 128;
+			attr_ref = Client_setup.tval_attr;
+			char_ref = Client_setup.tval_char;
+			break;
+		case VISUAL_INFO_MISC:
+			size = 256;
+			attr_ref =	Client_setup.misc_attr;
+			char_ref =	Client_setup.misc_char;
+			break;
+		default:
+			return 0;
+	}
+
+	if (cq_printf(&serv->wbuf, "%c%c%d", PKT_VISUAL_INFO, type, size) <= 0)
+	{
+		return 0;
+	}
+	if (cq_printac(&serv->wbuf, RLE_NONE, attr_ref, char_ref, size) <= 0)
+	{
+		return 0;
+	}
+
+	return 1;
+}
 
 int send_msg(cptr message)
 {
@@ -277,11 +328,20 @@ int recv_quit(connection_type *ct) {
 
 int recv_basic_info(connection_type *ct) {
 
-	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4) 
+	if (cq_scanf(&ct->rbuf, "%b%b%b%b", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4) 
 	{
 		/* Not enough bytes */
 		return 0;
 	}
+	if (cq_scanf(&ct->rbuf, "%ul%ul%ul%ul", &serv_info.val9, &serv_info.val10, &serv_info.val11, &serv_info.val12) < 4) 
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	z_info.k_max = serv_info.val9;
+	z_info.r_max = serv_info.val10;
+	z_info.f_max = serv_info.val11;
 
 	/* Ok */
 	return 1;
@@ -299,8 +359,8 @@ int recv_play(connection_type *ct) {
 	}
 
 	/* React */
-	if (mode == 0) client_setup();
-	if (mode == 1) state = PLAYER_SHAPED;
+	if (mode == PLAYER_EMPTY) client_login();
+	else state = mode;
 
 	/* Ok */
 	return 1;
