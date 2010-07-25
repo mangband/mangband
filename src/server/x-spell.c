@@ -1597,8 +1597,10 @@ static bool cast_mage_spell(int Ind, int spell)
 
 		case SPELL_RUNE_OF_PROTECTION: /* rune of protection */
 		{
-			msg_spell("%s lays down a rune of protection."); 
-			(void)warding_glyph(Ind);
+			if (warding_glyph(Ind))
+			{
+				msg_spell("%s lays down a rune of protection."); 
+			}
 			break;
 		}
 
@@ -1866,8 +1868,10 @@ static bool cast_priest_spell(int Ind, int spell)
 
 		case PRAYER_GLYPH_OF_WARDING:
 		{
-			msg_prayer("%s lays down a glyph of warding.");
-			warding_glyph(Ind);
+			if (warding_glyph(Ind))
+			{
+				msg_prayer("%s lays down a glyph of warding.");
+			}
 			break;
 		}
 
