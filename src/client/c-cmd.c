@@ -230,7 +230,7 @@ void cmd_custom(byte i)
 	}
 
 
-	Send_custom_command(i, item, dir, value, entry);
+	send_custom_command(i, item, dir, value, entry);
 }
 /* Handle all commands */
 void process_command()

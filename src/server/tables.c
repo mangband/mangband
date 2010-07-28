@@ -24,7 +24,7 @@
  * LEGEND:
  *  key - char, single keypress	:	'j'
  *  PKT - packet type to use	: To use default command set PKT_COMMAND
- * 								: To declare new command use PKT_COMMAND+n (up to MAX_CUSTOM_COMMANDS)
+ * 								: To declare new command use PKT_UNDEFINED
  *								: To overload existing command use it's PKT_ (i.e. PKT_EAT)
  *  SCHEME - see pack.h			:	 SCHEME CONTROLS BOTH PACKET PARSING
  *								: 		AND DO_CMD_CALLBACK ARGUMENTS
@@ -2519,6 +2519,46 @@ option_type option_info[] =
 	NULL,			NULL }
 };
 #endif
+
+const cptr custom_command_schemes[SCHEME_LAST+1] = 
+{
+	CCS_EMPTY,
+	CCS_FULL,
+
+	CCS_ITEM,
+	CCS_DIR,
+	CCS_VALUE,
+	CCS_SMALL,
+	CCS_STRING,
+	CCS_CHAR,
+
+	CCS_ITEM_DIR,
+	CCS_ITEM_VALUE,
+	CCS_ITEM_SMALL,
+	CCS_ITEM_STRING,
+	CCS_ITEM_CHAR,
+
+	CCS_DIR_VALUE,
+	CCS_DIR_SMALL,
+	CCS_DIR_STRING,
+	CCS_DIR_CHAR,
+
+	CCS_VALUE_STRING,
+	CCS_VALUE_CHAR,
+	CCS_SMALL_STRING,
+	CCS_SMALL_CHAR,
+
+	CCS_ITEM_DIR_VALUE,
+	CCS_ITEM_DIR_SMALL,
+	CCS_ITEM_DIR_STRING,
+	CCS_ITEM_DIR_CHAR,
+
+	CCS_ITEM_VALUE_STRING,
+	CCS_ITEM_VALUE_CHAR,
+	CCS_ITEM_SMALL_STRING,
+	CCS_ITEM_SMALL_CHAR,
+};
+
 #define _TILE(A,C) {(A),(byte)(C)}
 /* Hack -- player images for graphic mode */
 cave_view_type player_presets[3][MAX_CLASS+1][MAX_RACES+1] = {

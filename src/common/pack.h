@@ -147,8 +147,12 @@
 #define BASIC_INFO_UNKNOWN  	0
 #define BASIC_INFO_INDICATORS  	1
 #define BASIC_INFO_STREAMS  	2
+#define BASIC_INFO_ITEM_TESTERS	3
+#define BASIC_INFO_COMMANDS  	4
 #define RQ_INDI	BASIC_INFO_INDICATORS
 #define RQ_STRM	BASIC_INFO_STREAMS
+#define RQ_ITEM	BASIC_INFO_ITEM_TESTERS
+#define RQ_CMDS	BASIC_INFO_COMMANDS
 
 /*
  * PKT_STRUCT_INFO helpers
@@ -174,73 +178,82 @@
 /*
  * PKT_COMMAND helpers
  */
-#define SCHEME_EMPTY        	0	/* %c - PKT */
-#define SCHEME_FULL         	1 	/* %c%c%c%ld%s - PKT, item, dir, value, string */
+#define SCHEME_EMPTY        	0
+#define SCHEME_FULL         	1
 
-#define SCHEME_ITEM         	2	/* %c%c - PKT, item */
-#define SCHEME_DIR          	3	/* %c%c - PKT, dir */
-#define SCHEME_VALUE        	4	/* %c%ld - PKT, value */
-#define SCHEME_SMALL        	5 	/* %c%c - PKT, value */
-#define SCHEME_STRING       	6 	/* %c%s - PKT, string */
-#define SCHEME_CHAR         	7 	/* %c%c - PKT, string */
+#define SCHEME_ITEM         	2
+#define SCHEME_DIR          	3
+#define SCHEME_VALUE        	4
+#define SCHEME_SMALL        	5
+#define SCHEME_STRING       	6
+#define SCHEME_CHAR         	7
 
-#define SCHEME_ITEM_DIR     	8	/* %c%c%c - PKT, item, dir */
-#define SCHEME_ITEM_VALUE   	9	/* %c%c%ld - PKT, item, value */
-#define SCHEME_ITEM_SMALL   	10	/* %c%c%c - PKT, item, value */
-#define SCHEME_ITEM_STRING  	11 	/* %c%c%s - PKT, item, string */
-#define SCHEME_ITEM_CHAR    	12 	/* %c%c%c - PKT, item, string */
+#define SCHEME_ITEM_DIR     	8
+#define SCHEME_ITEM_VALUE   	9
+#define SCHEME_ITEM_SMALL   	10
+#define SCHEME_ITEM_STRING  	11
+#define SCHEME_ITEM_CHAR    	12
 
-#define SCHEME_DIR_VALUE    	13 	/* %c%c - PKT, dir, value */
-#define SCHEME_DIR_SMALL    	14 	/* %c%ld - PKT, dir, value */
-#define SCHEME_DIR_STRING   	15 	/* %c%s - PKT, dir, string */
-#define SCHEME_DIR_CHAR     	16 	/* %c%c - PKT, dir, string */
+#define SCHEME_DIR_VALUE    	13
+#define SCHEME_DIR_SMALL    	14
+#define SCHEME_DIR_STRING   	15
+#define SCHEME_DIR_CHAR     	16
 
-#define SCHEME_VALUE_STRING 	17 	/* %c%ld%s - PKT, value, string */
-#define SCHEME_VALUE_CHAR   	18 	/* %c%ld%c - PKT, value, string */
-#define SCHEME_SMALL_STRING 	19 	/* %c%c%s - PKT, value, string */
-#define SCHEME_SMALL_CHAR   	20 	/* %c%c%c - PKT, value, string */
+#define SCHEME_VALUE_STRING 	17
+#define SCHEME_VALUE_CHAR   	18
+#define SCHEME_SMALL_STRING 	19
+#define SCHEME_SMALL_CHAR   	20
 
-#define SCHEME_ITEM_DIR_VALUE	21	/* %c%c%c%ld - PKT, item, dir, value */
-#define SCHEME_ITEM_DIR_SMALL	22	/* %c%c%c%c - PKT, item, dir, value */
-#define SCHEME_ITEM_DIR_STRING	23	/* %c%c%c%s - PKT, item, dir, string */
-#define SCHEME_ITEM_DIR_CHAR	24	/* %c%c%c%c - PKT, item, dir, string */
+#define SCHEME_ITEM_DIR_VALUE	21
+#define SCHEME_ITEM_DIR_SMALL	22
+#define SCHEME_ITEM_DIR_STRING	23
+#define SCHEME_ITEM_DIR_CHAR	24
 
-#define SCHEME_ITEM_VALUE_STRING 25	/* %c%c%ld%s - PKT, item, value, string */
-#define SCHEME_ITEM_VALUE_CHAR   26	/* %c%c%ld%c - PKT, item, value, string */
-#define SCHEME_ITEM_SMALL_STRING 27	/* %c%c%c%s - PKT, item, value, string */
-#define SCHEME_ITEM_SMALL_CHAR   28	/* %c%c%c%c - PKT, item, value, string */
+#define SCHEME_ITEM_VALUE_STRING 25
+#define SCHEME_ITEM_VALUE_CHAR   26
+#define SCHEME_ITEM_SMALL_STRING 27
+#define SCHEME_ITEM_SMALL_CHAR   28
 
-#define SCHEME_WRITE \
-		S_START \
-		S_WRITE(ITEM,       	"%c")   	item\
-		S_WRITE(DIR,        	"%c")   	dir\
-		S_WRITE(VALUE,      	"%ld")  	value\
-		S_WRITE(SMALL,      	"%c")   	(byte)value\
-		S_WRITE(STRING,     	"%s")   	entry\
-		S_WRITE(CHAR,       	"%c")   	entry[0]\
-		S_WRITE(DIR_VALUE,     	"%c%ld")   	dir, value\
-		S_WRITE(DIR_SMALL,     	"%c%c")   	dir, (byte)value\
-		S_WRITE(DIR_STRING,    	"%c%s")   	dir, entry\
-		S_WRITE(DIR_CHAR,     	"%c%c")   	dir, entry[0]\
-		S_WRITE(VALUE_STRING,  	"%ld%s")   	value, entry\
-		S_WRITE(VALUE_CHAR,  	"%ld%c")   	value, entry[0]\
-		S_WRITE(SMALL_STRING,  	"%c%s")   	(byte)value, entry\
-		S_WRITE(SMALL_CHAR,  	"%c%c")   	(byte)value, entry[0]\
-		S_WRITE(ITEM_DIR,   	"%c%c") 	item, dir\
-		S_WRITE(ITEM_VALUE, 	"%c%ld")	item, value\
-		S_WRITE(ITEM_SMALL, 	"%c%c") 	item, (byte)value\
-		S_WRITE(ITEM_STRING,	"%c%s") 	item, entry\
-		S_WRITE(ITEM_CHAR,  	"%c%c") 	item, entry[0]\
-		S_WRITE(ITEM_DIR_VALUE,	"%c%c%ld") 	item, dir, value\
-		S_WRITE(ITEM_DIR_SMALL,	"%c%c%c") 	item, dir, (byte)value\
-		S_WRITE(ITEM_DIR_STRING,"%c%c%s") 	item, dir, entry\
-		S_WRITE(ITEM_DIR_CHAR,	"%c%c%c") 	item, dir, entry[0]\
-		S_WRITE(ITEM_VALUE_STRING,"%c%ld%s")	item, value, entry\
-		S_WRITE(ITEM_VALUE_CHAR,"%c%c%c") 	item, value, entry[0]\
-		S_WRITE(ITEM_SMALL_STRING,"%c%c%ld")	item, (byte)value, entry\
-		S_WRITE(ITEM_SMALL_CHAR,"%c%c%ld") 	item, (byte)value, entry[0]\
-		S_WRITE(FULL,   	 "%c%c%ld%s") 	item, dir, value, entry\
-		S_DONE
+#define SCHEME_LAST 	SCHEME_ITEM_SMALL_CHAR
+
+/*
+ * Actual "Custom Command Schemes" (CCS)
+ */
+#define CCS_EMPTY        	NULL
+#define CCS_FULL         	CCS_ITEM CCS_DIR CCS_VALUE CCS_STRING
+
+#define CCS_ITEM         	"%c"
+#define CCS_DIR          	"%c"
+#define CCS_VALUE        	"%l"
+#define CCS_SMALL        	"%c"
+#define CCS_STRING       	"%s"
+#define CCS_CHAR         	"%c"
+
+#define CCS_ITEM_DIR     	CCS_ITEM CCS_DIR
+#define CCS_ITEM_VALUE   	CCS_ITEM CCS_VALUE
+#define CCS_ITEM_SMALL   	CCS_ITEM CCS_SMALL
+#define CCS_ITEM_STRING  	CCS_ITEM CCS_STRING
+#define CCS_ITEM_CHAR    	CCS_ITEM CCS_CHAR
+
+#define CCS_DIR_VALUE    	CCS_DIR CCS_VALUE
+#define CCS_DIR_SMALL    	CCS_DIR CCS_SMALL
+#define CCS_DIR_STRING   	CCS_DIR CCS_STRING
+#define CCS_DIR_CHAR     	CCS_DIR CCS_CHAR
+
+#define CCS_VALUE_STRING 	CCS_VALUE CCS_STRING
+#define CCS_VALUE_CHAR   	CCS_VALUE CCS_CHAR
+#define CCS_SMALL_STRING 	CCS_SMALL CCS_STRING
+#define CCS_SMALL_CHAR   	CCS_SMALL CCS_CHAR
+
+#define CCS_ITEM_DIR_VALUE	CCS_ITEM CCS_DIR CCS_VALUE
+#define CCS_ITEM_DIR_SMALL	CCS_ITEM CCS_DIR CCS_SMALL
+#define CCS_ITEM_DIR_STRING	CCS_ITEM CCS_DIR CCS_STRING
+#define CCS_ITEM_DIR_CHAR	CCS_ITEM CCS_DIR CCS_CHAR
+
+#define CCS_ITEM_VALUE_STRING CCS_ITEM CCS_VALUE CCS_STRING
+#define CCS_ITEM_VALUE_CHAR   CCS_ITEM CCS_VALUE CCS_CHAR
+#define CCS_ITEM_SMALL_STRING CCS_ITEM CCS_SMALL CCS_STRING
+#define CCS_ITEM_SMALL_CHAR   CCS_ITEM CCS_SMALL CCS_CHAR
 
 /*
  * PKT_TERM helpers

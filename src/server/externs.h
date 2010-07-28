@@ -65,6 +65,7 @@ extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
 extern cptr option_group[];
 extern option_type option_info[];
+const cptr custom_command_schemes[SCHEME_LAST+1];
 extern cave_view_type player_presets[3][MAX_CLASS+1][MAX_RACES+1];
 
 /* variable.c */

@@ -272,9 +272,68 @@ int send_walk(char dir)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_WALK, dir);
 }
 
+/* Custom command */
+int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
+{
+	custom_command_type *cc_ptr = &custom_command[i];
+	int 	n;
 
+	/* Command header */
+	if (cc_ptr->pkt == (char)PKT_COMMAND)
+		n = cq_printf(&serv->wbuf, "%c%c", PKT_COMMAND, i);
+	else
+		n = cq_printf(&serv->wbuf, "%c", cc_ptr->pkt);
+	if (n <= 0) /* Error ! */
+		return 0;
 
+#define S_START case SCHEME_EMPTY: n = (1
+#define S_WRITE(A) ); break; case SCHEME_ ## A: n = cq_printf(&serv->wbuf, ( CCS_ ## A ),
+#define S_DONE ); break;
 
+	/* Command body */
+	switch (cc_ptr->scheme)
+	{
+		S_START \
+		S_WRITE(ITEM)           	item\
+		S_WRITE(DIR)            	dir\
+		S_WRITE(VALUE)          	value\
+		S_WRITE(SMALL)          	(byte)value\
+		S_WRITE(STRING)         	entry\
+		S_WRITE(CHAR)           	entry[0]\
+		S_WRITE(DIR_VALUE)      	dir, value\
+		S_WRITE(DIR_SMALL)      	dir, (byte)value\
+		S_WRITE(DIR_STRING)     	dir, entry\
+		S_WRITE(DIR_CHAR)       	dir, entry[0]\
+		S_WRITE(VALUE_STRING)   	value, entry\
+		S_WRITE(VALUE_CHAR)     	value, entry[0]\
+		S_WRITE(SMALL_STRING)   	(byte)value, entry\
+		S_WRITE(SMALL_CHAR)     	(byte)value, entry[0]\
+		S_WRITE(ITEM_DIR)       	item, dir\
+		S_WRITE(ITEM_VALUE)     	item, value\
+		S_WRITE(ITEM_SMALL)     	item, (byte)value\
+		S_WRITE(ITEM_STRING)    	item, entry\
+		S_WRITE(ITEM_CHAR)      	item, entry[0]\
+		S_WRITE(ITEM_DIR_VALUE) 	item, dir, value\
+		S_WRITE(ITEM_DIR_SMALL) 	item, dir, (byte)value\
+		S_WRITE(ITEM_DIR_STRING) 	item, dir, entry\
+		S_WRITE(ITEM_DIR_CHAR)  	item, dir, entry[0]\
+		S_WRITE(ITEM_VALUE_STRING)	item, value, entry\
+		S_WRITE(ITEM_VALUE_CHAR) 	item, value, entry[0]\
+		S_WRITE(ITEM_SMALL_STRING)	item, (byte)value, entry\
+		S_WRITE(ITEM_SMALL_CHAR) 	item, (byte)value, entry[0]\
+		S_WRITE(FULL)           	item, dir, value, entry\
+		S_DONE
+
+	}
+	if (n <= 0) /* Error ! */
+		return 0;
+
+#undef S_START
+#undef S_WRITE
+#undef S_DONE
+
+	return 1;
+}
 
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
@@ -858,8 +917,53 @@ int recv_message(connection_type *ct) {
 	return 1;
 }
 
+int recv_custom_command_info(connection_type *ct) {
+	byte
+		pkt = 0,
+		tval = 0,
+		scheme = 0;
+	char buf[MSG_LEN]; //TODO: check this 
+	s16b m_catch = 0;
+	u32b flag = 0;
+	int n;
 
+	custom_command_type *cc_ptr;
 
+	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
+
+	/* Check for errors */
+	if (known_indicators >= MAX_CUSTOM_COMMANDS)
+	{
+		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
+		return -1;
+	}
+	if (scheme >= MAX_SCHEMES)
+	{
+		plog("Undefined CC scheme!");
+		return -1;
+	}
+
+	/* Get it */
+	cc_ptr = &custom_command[custom_commands];
+	WIPE(cc_ptr, custom_command_type);
+
+	cc_ptr->m_catch = m_catch;
+	cc_ptr->pkt = pkt;
+	cc_ptr->scheme = scheme;
+	cc_ptr->flag = flag;
+	cc_ptr->tval = tval;
+
+	buf[strlen(buf)+1] = '\0';
+	for (n = 0; n < sizeof(buf); n++) 
+	{
+		if (buf[n] == '\n') buf[n] = '\0';
+		cc_ptr->prompt[n] = buf[n];
+	}
+
+	custom_commands++;
+
+	return 1;
+}
 
 void setup_tables()
 {

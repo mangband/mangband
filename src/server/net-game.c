@@ -15,6 +15,7 @@
 #include "net-server.h"
 
 static int		(*pcommands[256])(player_type *p_ptr);
+static byte		command_pkt[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
@@ -300,6 +301,23 @@ int stream_line_as(int Ind, int st, int y, int as_y)
 	return 1;
 }
 
+int send_custom_command_info(connection_type *ct, int id)
+{
+	const custom_command_type *cc_ptr = &custom_commands[id];
+
+	if (!cc_ptr->m_catch) return 1; /* Last one */
+
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_COMMAND,
+		cc_ptr->pkt, cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt) <= 0)
+	{
+		/* Hack -- instead of "client_withdraw(ct);", we simply */
+		return 0;
+	}
+
+	/* Ok */
+	return 1;
+}
+
 int send_message(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
@@ -343,8 +361,15 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	/* Write header */
 	cq_printf(&p_ptr->cbuf, "%c", next_pkt);
 
+	/* Hack -- for custom commands, 'id' is sometimes needed */
+	if ((next_pkt == PKT_COMMAND) && cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) <= 0)
+	{
+		/* Unable to... */
+		return -1;
+	}
+
 	/* Copy command to player's "command buffer" */
-	if (cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) <= 0)
+	if (next_scheme && cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) <= 0)
 	{
 		/* Unable to... */
 		return -1;
@@ -464,6 +489,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		break;
 		case BASIC_INFO_STREAMS:
 			while (id < MAX_STREAMS) if (!send_stream_info(ct, id++)) break;
+		break;
+		case BASIC_INFO_COMMANDS:
+			while (id < MAX_CUSTOM_COMMANDS) if (!send_custom_command_info(ct, id++)) break;
 		break;
 		default: break;
 	}
@@ -683,6 +711,164 @@ static int recv_walk(player_type *p_ptr) {
 	return 0;
 }
 
+/* By the time we're parsing command queue, we're guaranteed to have all the bytes,
+ * so it's not neccessary to do error checks on that. */
+static int recv_custom_command(player_type *p_ptr)
+{
+	s32b value;
+	int n, player;
+	char
+		dir,
+		item;
+	byte id;
+	byte i, j, tmp;
+	char entry[60];
+
+	if (IS_PLAYING(p_ptr))
+	{
+		player = Get_Ind[p_ptr->conn];
+	}
+	else
+	{
+		printf("Not playing\n");
+		return -1;
+	}
+
+	/* Direct? */
+	if (next_pkt == (char)PKT_COMMAND)
+	{
+		if (cq_scanf(&p_ptr->cbuf, "%c", &i) < 1)
+		{
+			printf("Weird error\n");
+			return -1;
+		}
+	}
+	/* Find */
+	else
+	{
+		/* TODO: replace this with lookup table */
+		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
+		{
+			if (command_pkt[j] == next_pkt)
+			{
+				i = j;
+				break;
+			}
+		}
+	}
+
+	/* Undefined */
+	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
+	{
+		printf("Unknown command\n");
+		return -1;
+	}
+
+	/* Does it cost energy? */
+	if (custom_commands[i].energy_cost)
+	{
+		/* Not enough! ABORT! */
+		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
+		{
+			/* Report lack of energy */
+			printf("Lack energy\n");
+			return 0;
+		} 
+	}
+
+	/* Read the arguments from command buffer */
+#define S_START case SCHEME_EMPTY: n = (1
+#define S_READ(A) ); break; case SCHEME_ ## A: cq_scanf(&p_ptr->cbuf, (CCS_ ## A),
+#define S_SET(A) ); A; (tmp=0
+#define S_DONE ); break;
+	switch (custom_commands[i].scheme)
+	{
+		S_START
+
+		S_READ( FULL )          	&item, &dir, &value, entry
+
+		S_READ( ITEM )          	&item
+		S_READ( DIR )           	&dir
+		S_READ( VALUE )         	&value
+		S_READ( SMALL )         	&tmp            	S_SET(value=tmp)
+		S_READ( STRING )        	entry
+		S_READ( CHAR )          	&entry[0]
+
+		S_READ( ITEM_DIR )      	&item, &dir
+		S_READ( ITEM_VALUE )    	&item, &value
+		S_READ( ITEM_SMALL )    	&item, &tmp     	S_SET(value=tmp)
+		S_READ( ITEM_STRING )   	&item, entry
+		S_READ( ITEM_CHAR )     	&item, &entry[0]
+
+		S_READ( DIR_VALUE )     	&dir, &value
+		S_READ( DIR_SMALL )     	&dir, &tmp      	S_SET(value=tmp)
+		S_READ( DIR_STRING )    	&dir, entry
+		S_READ( DIR_CHAR )      	&dir, &entry[0]
+
+		S_READ( VALUE_STRING )  	&value, entry
+		S_READ( VALUE_CHAR )    	&value, &entry[0]
+		S_READ( SMALL_STRING )  	&tmp, entry     	S_SET(value=tmp)
+		S_READ( SMALL_CHAR )    	&tmp, &entry[0] 	S_SET(value=tmp)
+
+		S_READ( ITEM_DIR_VALUE )	&item, &dir, &value
+		S_READ( ITEM_DIR_SMALL )	&item, &dir, &tmp	S_SET(value=tmp)
+		S_READ( ITEM_DIR_STRING )	&item, &dir, entry
+		S_READ( ITEM_DIR_CHAR ) 	&item, &dir, &entry[0]
+
+		S_READ( ITEM_VALUE_STRING )	&item, &value, entry
+		S_READ( ITEM_VALUE_CHAR )	&item, &value, &entry[0]
+		S_READ( ITEM_SMALL_STRING )	&item, &tmp, entry  	S_SET(value=tmp)
+		S_READ( ITEM_SMALL_CHAR )	&item, &tmp, &entry[0]	S_SET(value=tmp)
+
+		S_DONE
+	}
+#undef S_START
+#undef S_READ
+#undef S_SET
+#undef S_DONE
+
+
+	/* Call the callback ("execute command") */
+#define S_ARG (custom_commands[i].do_cmd_callback) 
+#define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;
+	switch (custom_commands[i].scheme)
+	{
+		S_EXEC( EMPTY,          	(int),                  	(player))
+		S_EXEC( ITEM,           	(int, char),            	(player, item))
+		S_EXEC(	DIR,            	(int, char),            	(player, dir))
+		S_EXEC(	VALUE,          	(int, int),             	(player, value))
+		S_EXEC(	SMALL,          	(int, int),             	(player, value))
+		S_EXEC(	STRING,         	(int, char*),           	(player, entry))
+		S_EXEC(	CHAR,           	(int, char),            	(player, entry[0]))
+		S_EXEC(	ITEM_DIR,       	(int, char, char),      	(player, item, dir))
+		S_EXEC(	ITEM_VALUE,     	(int, char, int),       	(player, item, value))
+		S_EXEC(	ITEM_SMALL,     	(int, char, int),       	(player, item, value))
+		S_EXEC(	ITEM_STRING,    	(int, char, char*),     	(player, item, entry))
+		S_EXEC(	ITEM_CHAR,      	(int, char, char),      	(player, item, entry[0]))
+		S_EXEC(	DIR_VALUE,      	(int, char, int),       	(player, dir, value))
+		S_EXEC(	DIR_SMALL,      	(int, char, int),       	(player, dir, value))
+		S_EXEC(	DIR_STRING,     	(int, char, char*),     	(player, dir, entry))
+		S_EXEC(	DIR_CHAR,       	(int, char, char),      	(player, dir, entry[0]))
+		S_EXEC(	VALUE_STRING,   	(int, int, char*),      	(player, value, entry))
+		S_EXEC(	VALUE_CHAR,     	(int, int, char),       	(player, value, entry[0]))
+		S_EXEC(	SMALL_STRING,   	(int, int, char*),      	(player, value, entry))
+		S_EXEC(	SMALL_CHAR,     	(int, int, char),       	(player, value, entry[0]))
+		S_EXEC(	ITEM_DIR_VALUE, 	(int, char, char, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_SMALL, 	(int, char, char, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_STRING,	(int, char, char, char*),	(player, item, dir, entry))
+		S_EXEC(	ITEM_DIR_CHAR,  	(int, char, char, char),	(player, item, dir, entry[0]))
+		S_EXEC(	ITEM_VALUE_STRING,	(int, char, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_VALUE_CHAR,	(int, char, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	ITEM_SMALL_STRING,	(int, char, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_SMALL_CHAR, 	(int, char, int, char), 	(player, item, value, entry[0]))
+	}
+#undef S_ARG 
+#undef S_EXEC
+
+	/* Done */
+	return 1;
+}
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */
@@ -717,12 +903,16 @@ int process_player_commands(int p_idx)
 void setup_tables(sccb receiv[256], cptr *scheme)
 {
 	int i;
+	byte next_free = 0;
 
+	/* Clear packet and command handlers */ 
 	for (i = 0; i < 256; i++) {
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;
+		pcommands[i] = NULL;
 	}
 
+	/* Set default handlers */
 #define PACKET(PKT, SCHEME, FUNC) \
 	receiv[PKT] = FUNC; \
 	scheme[PKT] = SCHEME;
@@ -730,6 +920,26 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	pcommands[PKT] = FUNC;
 #include "net-game.h"
 #undef PACKET
+#undef PCOMMAND
+
+	/* Setup custom commands */
+	for (i = 0; i < MAX_CUSTOM_COMMANDS; i++)
+	{
+		byte pkt = (byte)custom_commands[i].pkt;
+		if (!custom_commands[i].m_catch) break;
+		if (pkt == PKT_UNDEFINED)
+		{
+			while (pcommands[next_free] != NULL && next_free < 255) next_free++;
+			pkt = next_free;
+		}
+		pcommands[pkt] = recv_custom_command;
+		command_pkt[i] = pkt;
+
+		receiv[pkt] = recv_command;
+		scheme[pkt] = custom_command_schemes[custom_commands[i].scheme];
+	}
+	/* 'Count' commands */
+	serv_info.val3 = i;
 
 	/* Count indicators */
 	i = 0;
