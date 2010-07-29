@@ -245,6 +245,11 @@ int send_visual_info(byte type) {
 			attr_ref =	Client_setup.misc_attr;
 			char_ref =	Client_setup.misc_char;
 			break;
+		case VISUAL_INFO_PR:
+			size = (z_info.c_max + 1) * z_info.p_max;
+			attr_ref =	p_ptr->pr_attr;
+			char_ref =	p_ptr->pr_char;
+			break;
 		default:
 			return 0;
 	}

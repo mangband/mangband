@@ -174,6 +174,7 @@
 #define VISUAL_INFO_R   	3 
 #define VISUAL_INFO_TVAL	4
 #define VISUAL_INFO_MISC	5
+#define VISUAL_INFO_PR  	6
 
 /*
  * PKT_COMMAND helpers

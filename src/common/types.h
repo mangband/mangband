@@ -1365,6 +1365,8 @@ struct player_type
 	char misc_char[256];
 	byte tval_attr[128];
 	char tval_char[128];
+	byte *pr_attr;
+	byte *pr_char;
    
 	byte dungeon_stream;
 	int use_graphics;

@@ -130,6 +130,10 @@ void init_info(void)
 	C_MAKE(Client_setup.f_char, z_info.f_max, char);
 	C_MAKE(p_ptr->f_attr, z_info.f_max, byte);
 	C_MAKE(p_ptr->f_char, z_info.f_max, char);
+
+	/* pr_info */
+	C_MAKE(p_ptr->pr_attr, (z_info.c_max+1)*z_info.p_max, byte);
+	C_MAKE(p_ptr->pr_char, (z_info.c_max+1)*z_info.p_max, char);
 }
 
 /*
@@ -457,7 +461,7 @@ bool client_setup()
 	//Send_options(TRUE);
 
 	/* Send visual preferences */
-	for (i = VISUAL_INFO_FLVR; i < VISUAL_INFO_MISC +1; i++) 
+	for (i = 0; i < VISUAL_INFO_PR +1; i++) 
 		send_visual_info(i);
 
 	/* Hack -- don't enter the game if waiting for motd */

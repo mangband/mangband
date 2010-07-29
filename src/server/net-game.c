@@ -591,6 +591,11 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 			attr_ref = p_ptr->misc_attr;
 			char_ref = p_ptr->misc_char;
 			break;
+		case VISUAL_INFO_PR:
+			local_size = (z_info->c_max + 1) * z_info->p_max;
+			attr_ref = p_ptr->pr_attr;
+			char_ref = p_ptr->pr_char;
+			break;
 		default: break;
 	}
 	/* Ensure size is compatible */

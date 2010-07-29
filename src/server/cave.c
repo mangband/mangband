@@ -482,8 +482,8 @@ int player_pict(int Ind, int who)
 	/* Decide on player image */
 	if (p_ptr->use_graphics) 
 	{
-		a = (player_presets[p_ptr->use_graphics-1][q_ptr->pclass][q_ptr->prace]).a;
-		c = (player_presets[p_ptr->use_graphics-1][q_ptr->pclass][q_ptr->prace]).c;
+		a = p_ptr->pr_attr[q_ptr->pclass * z_info->p_max + q_ptr->prace];
+		c = p_ptr->pr_char[q_ptr->pclass * z_info->p_max + q_ptr->prace];
 
 		/* Handle himself */
 		if (who == Ind) 
@@ -498,14 +498,14 @@ int player_pict(int Ind, int who)
 		/* Hack -- handle ghosts */
 		if (q_ptr->ghost)
 		{
-			a = (player_presets[p_ptr->use_graphics-1][6][0]).a;
-			c = (player_presets[p_ptr->use_graphics-1][6][0]).c;
+			a = p_ptr->pr_attr[z_info->c_max * z_info->p_max + 0];
+			c = p_ptr->pr_char[z_info->c_max * z_info->p_max + 0];
 		}
 		/* Hack -- handle fruitbats */
 		if (q_ptr->fruit_bat)
 		{
-			a = (player_presets[p_ptr->use_graphics-1][6][1]).a;
-			c = (player_presets[p_ptr->use_graphics-1][6][1]).c;
+			a = p_ptr->pr_attr[z_info->c_max * z_info->p_max + 1];
+			c = p_ptr->pr_char[z_info->c_max * z_info->p_max + 1];
 		}
 	}
 	/* Non-graphical opponent */

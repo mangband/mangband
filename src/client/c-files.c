@@ -7,6 +7,67 @@
 
 
 /*
+ * MAngband-specific R:0 loader hack.
+ * An image for a Race/Class combo is stored in client pref files. Traditionally (as in V),
+ * [ EQU $RACE ] [ EQU $CLASS ] are used to load those into the r_info[0] slot accordingly
+ * to character's race and class. In MAngband, however, players can encounter other 
+ * characters and thus need the infromation for ALL the Race/Class combos there are.
+ * To load this information, a 'virtual mode' hack is used, which resolves *ALL* [ EQU $RACE ]
+ * [ EQU $CLASS ] as true, storing the 'fake' races in the global variables.
+ * 'Virtual mode' only works with 'R:0:...' lines, doesn't allow includes and cancels itself
+ * after each pref command executed or not. 
+ *
+ * Note: player's own race and class image will be loaded into r_info[0] slot as usual.
+ *
+ * Note: we support a fake class called 'Special' (hopefully no variants ever need this 
+ * as valid class name), to load several MAngband-specific images. Index 0 is 'Ghost'
+ * and Index 1 is 'Fruitbat'.
+ *
+ * Note: for this hack to work, we also support digits as race 'names', i.e.
+ * [ EQU $RACE 0 ] *will* work with our parser. 
+ * 
+ */
+int fake_race = -1;
+int fake_class = -1;
+static int find_race(cptr name)
+{
+	int i;
+
+	/* Hack: allow digit as race name, directly converting it */ 
+	if (isdigit(name[0])) 
+	{
+		i = D2I(name[0]);
+		if (i < 0 || i >= z_info.p_max) return -1;
+		return i;
+	}
+
+	/* Find race by name */
+	for (i = 0; i < z_info.p_max; i++)
+	{
+		const char* v = p_name + race_info[i].name;
+		if (!strncasecmp(v, name, strlen(v))) 
+			return i;
+	}
+	return -1;
+}
+static int find_class(cptr name)
+{
+	int i;
+
+	/* Hack: allow "Special" as class name, return last entry */
+	if (!strncasecmp("Special", name, 7)) return z_info.c_max;
+
+	/* Find class by name */
+	for (i = 0; i < z_info.c_max; i++)
+	{
+		const char* v = c_name + c_info[i].name;
+		if (!strncasecmp(v, name, strlen(v)))
+			return i;
+	}
+	return -1;
+}
+
+/*
  * Extract the first few "tokens" from a buffer
  *
  * This function uses "colon" and "slash" as the delimeter characters.
@@ -802,7 +863,7 @@ errr process_pref_file_command(char *buf)
 	int n1, n2;
 
         char *zz[16];
-
+        bool virt = ((fake_class == -1 || fake_race == -1) ? FALSE : TRUE);
 
         /* Skip "empty" lines */
         if (!buf[0]) return (0);
@@ -817,6 +878,12 @@ errr process_pref_file_command(char *buf)
         /* Require "?:*" format */
         if (buf[1] != ':') return (1);
 
+
+		/* MAngband-specific hack: ignore non-R in fake mode */
+		if (virt == TRUE && buf[0] != 'R')
+		{
+			return (0);
+		}
 
         /* Process "%:<fname>" */
         if (buf[0] == '%')
@@ -834,7 +901,17 @@ errr process_pref_file_command(char *buf)
                         i = (huge)strtol(zz[0], NULL, 0);
                         n1 = strtol(zz[1], NULL, 0);
                         n2 = strtol(zz[2], NULL, 0);
+
                         if (i >= z_info.r_max) return (1);
+                        /* MAngband-specific hack: fill the 'pr' array */
+                        if (virt == TRUE)
+                        {
+                            /* Ignore non-zero index */
+                            if (i != 0) return (0);
+                            if (n1) p_ptr->pr_attr[fake_class * z_info.p_max + fake_race] = n1;
+                            if (n2) p_ptr->pr_char[fake_class * z_info.p_max + fake_race] = n2;
+                            return (0);
+                        }
                         if (n1) Client_setup.r_attr[i] = n1;
                         if (n2) Client_setup.r_char[i] = n2;
                         return (0);
@@ -1466,12 +1543,24 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			else if (streq(b+1, "RACE"))
 			{
 				v = p_name + race_info[p_ptr->prace].name;
+				/* MAngband-specific hack: enter virtual mode */	
+				if (s && !streq(s, v))
+				{
+					v = s;
+					fake_race = find_race(s);
+				}
 			}
 
 			/* Class */
 			else if (streq(b+1, "CLASS"))
 			{
 				v = c_name + c_info[p_ptr->pclass].name;
+				/* MAngband-specific hack: enter virtual mode */
+				if (s && !streq(s, v))
+				{
+					v = s;
+					fake_class = find_class(s);
+				}
 			}
 
 			/* Player */
@@ -1587,6 +1676,9 @@ static errr process_pref_file_aux(cptr name)
 
 		/* Process the line */
 		err = process_pref_file_command(buf);
+
+		/* Hack - cancel 'virtual' mode */
+		fake_class = fake_race = -1;
 
 		/* Oops */
 		if (err) break;

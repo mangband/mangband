@@ -505,8 +505,8 @@ void player_wipe(player_type *p_ptr)
 	bool *old_obj_aware;
 	bool *old_obj_tried;
 	s16b *old_r_killed;	
-	byte *f_attr, *k_attr, *d_attr, *r_attr;
-	char *f_char, *k_char, *d_char, *r_char;
+	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
+	char *f_char, *k_char, *d_char, *r_char, *pr_char;
 	int i;
 
 
@@ -522,6 +522,7 @@ void player_wipe(player_type *p_ptr)
 	r_attr = p_ptr->r_attr; r_char = p_ptr->r_char;
 	k_attr = p_ptr->k_attr; k_char = p_ptr->k_char;
 	d_attr = p_ptr->d_attr; d_char = p_ptr->d_char;
+	pr_attr = p_ptr->pr_attr; pr_char = p_ptr->pr_char;
 
 	/* Clear character history ! */
 	history_wipe(p_ptr->charhist);
@@ -541,6 +542,7 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->r_attr = r_attr; p_ptr->r_char = r_char;
 	p_ptr->k_attr = k_attr; p_ptr->k_char = k_char;
 	p_ptr->d_attr = d_attr; p_ptr->d_char = d_char;
+	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -676,6 +678,12 @@ void player_verify_visual(player_type *p_ptr)
 	{
 		if (!p_ptr->tval_attr[i]) p_ptr->tval_attr[i] = tval_to_attr[i]; 
 		if (!p_ptr->tval_char[i]) p_ptr->tval_char[i] = tval_to_char[i];
+	}
+
+	for (i = 0; i < (z_info->c_max+1)*z_info->p_max; i++)
+	{
+		if (!p_ptr->pr_attr[i]) p_ptr->pr_attr[i] = p_ptr->r_attr[0];
+		if (!p_ptr->pr_char[i]) p_ptr->pr_char[i] = p_ptr->r_char[0];
 	}
 }
 
@@ -1065,6 +1073,8 @@ player_type* player_alloc()
 	C_MAKE(p_ptr->d_char, z_info->k_max, char);	
 	C_MAKE(p_ptr->r_attr, z_info->r_max, byte);
 	C_MAKE(p_ptr->r_char, z_info->r_max, char);
+	C_MAKE(p_ptr->pr_attr, (z_info->c_max+1)*z_info->p_max, byte);
+	C_MAKE(p_ptr->pr_char, (z_info->c_max+1)*z_info->p_max, char);
 
 	/* Hack -- initialize history */
 	p_ptr->charhist = NULL;
@@ -1100,6 +1110,8 @@ void player_free(player_type *p_ptr)
 	if (p_ptr->d_char)		KILL(p_ptr->d_char);
 	if (p_ptr->r_attr)		KILL(p_ptr->r_attr);
 	if (p_ptr->r_char)		KILL(p_ptr->r_char);
+	if (p_ptr->pr_attr)		KILL(p_ptr->pr_attr);
+	if (p_ptr->pr_char)		KILL(p_ptr->pr_char);
 
 	history_wipe(p_ptr->charhist);
 
