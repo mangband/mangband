@@ -54,13 +54,13 @@ static void write_uint(char* name, unsigned int value)
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %lu\n",xml_prefix,name,value);
+	fprintf(file_handle,"%s%s = %" PRIu64 "\n",xml_prefix,name,value);
 }
 
 /* Write an hturn */
 static void write_hturn(char* name, hturn *value)
 {
-	fprintf(file_handle,"%s%s = %ld %ld\n",xml_prefix,name,value->era,value->turn);
+	fprintf(file_handle,"%s%s = %" PRIu64 " " PRIu64 "\n",xml_prefix,name,value->era,value->turn);
 }
 
 /* Write a string */

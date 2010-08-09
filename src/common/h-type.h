@@ -34,9 +34,6 @@
  * These include <stdio.h> and <sys/types>, which define some types
  * In particular, uint is defined so we do not have to define it
  *
- * Also, see <limits.h> for min/max values for sind, uind, long, huge
- * (SHRT_MIN, SHRT_MAX, USHRT_MAX, LONG_MIN, LONG_MAX, ULONG_MAX)
- * These limits should be verified and coded into "h-constant.h".
  */
 
 
@@ -50,9 +47,6 @@ typedef void *vptr;
 /* A simple pointer (to unmodifiable strings) */
 typedef const char *cptr;
 
-
-/* Since float's are silly, hard code real numbers as doubles */
-typedef double real;
 
 
 /* Error codes for function return values */
@@ -109,6 +103,45 @@ typedef unsigned int uint;
 /* The largest possible signed integer (pre-defined) */
 /* typedef long long; */
 
+/*
+ * NOT A HACK
+ *
+ * Gets basic "types" from <inttypes.h>/"stdint.h".
+ * When those files are in place, our task is *extremely* simplified. "stdin.h"
+ * already contains all the types we need, and we simply re-map them to Angband
+ * equivalents.
+ *
+ * To use functions like "printf" and "scanf", we also need to know correct
+ * format specifiers (i.e. "%d" might mean either 16, either 32, either 64 bits
+ * depending on a machine, so we can't use it reliably). Those are provided
+ * by <inttypes.h> too, excplicitly requested by __STDC_FORMAT_MACROS define.
+ * This gives us: 
+ *  PRId16 SCNd16	s16b
+ *  PRIu16 SCNu16	u16b
+ *  PRId32 SCNd32	s32b
+ *  PRIu32 SCNu32	u32b
+ *  PRId64 SCNd64	s64b
+ *  PRIu64 SCNu64	u64b, huge
+ * With usage like:
+ *  printf("%" PRIu16, (u16b)variable); 
+ *
+ * (The _rest_ of this file indeed is a hack!)
+ */
+#ifdef HAVE_INTTYPES_H
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+#include <inttypes.h>
+
+typedef uint16_t u16b;
+typedef  int16_t s16b;
+typedef uint32_t u32b;
+typedef  int32_t s32b;
+typedef uint64_t u64b;
+typedef  int64_t s64b;
+#else
+/* If we don't have <inttypes.h>, revert to old method: */
+
 /* Signed/Unsigned 16 bit value */
 typedef signed short s16b;
 typedef unsigned short u16b;
@@ -117,16 +150,22 @@ typedef unsigned short u16b;
 #ifdef L64	/* 64 bit longs */
 typedef signed int s32b;
 typedef unsigned int u32b;
-#define fmt32b "%d"
+#define PRId32 "%d"
 #else
 typedef signed long s32b;
 typedef unsigned long u32b;
-#define fmt32b "%ld"
+#define PRId32 "%ld"
 #endif
 
 /* Signed/Unsigned 64 bit value */
 typedef signed long s64b;
 typedef unsigned long u64b;
+
+/* printf and scanf formats for 64-bit value */
+#define PRIu64 "%ld"
+#define SCNu64 "%ld"
+
+#endif /* !HAVE_INTTYPES_H
 
 /* The largest possible unsigned integer */
 typedef u64b huge;
@@ -153,14 +192,12 @@ typedef struct hturn {
 
 /*** Pointers to all the basic types defined above ***/
 
-typedef real *real_ptr;
 typedef errr *errr_ptr;
 typedef char *char_ptr;
 typedef byte *byte_ptr;
 typedef bool *bool_ptr;
 typedef sint *sint_ptr;
 typedef uint *uint_ptr;
-typedef long *long_ptr;
 typedef huge *huge_ptr;
 typedef s16b *s16b_ptr;
 typedef u16b *u16b_ptr;
@@ -180,7 +217,6 @@ typedef byte	(*func_byte)();
 typedef bool	(*func_bool)();
 typedef sint	(*func_sint)();
 typedef uint	(*func_uint)();
-typedef real	(*func_real)();
 typedef vptr	(*func_vptr)();
 typedef cptr	(*func_cptr)();
 

@@ -169,7 +169,7 @@ huge read_huge(char* name)
 		
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
 	line_counter++;
-	if(sscanf(file_buf,"%s = %lu",seek_name,&value) == 2)
+	if(sscanf(file_buf,"%s = %" SCNu64 ,seek_name,&value) == 2)
 	{
 		matched = !strcmp(seek_name,name);
 	}
@@ -190,7 +190,7 @@ void read_hturn(char* name, hturn *value)
 
 	fgets(file_buf, sizeof(file_buf)-1, file_handle);
 	line_counter++;
-	if (sscanf(file_buf, "%s = %ld %ld",seek_name, &era, &turn) == 3)
+	if (sscanf(file_buf, "%s = %" SCNu64 " %" SCNu64, seek_name, &era, &turn) == 3)
 	{
 		matched = !strcmp(seek_name,name);
 	}
