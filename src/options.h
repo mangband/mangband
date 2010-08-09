@@ -62,12 +62,6 @@
 */
 
 
-/*
- * OPTION: Include "ncurses.h" instead of "curses.h" in "main-gcu.c"
- */
-#define USE_NCURSES
-
-
 
 /*
  * OPTION: Allow the use of "sound" in various places.
