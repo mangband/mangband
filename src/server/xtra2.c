@@ -2074,37 +2074,6 @@ void monster_death(int Ind, int m_idx)
 	x = m_ptr->fx;
 	Depth = m_ptr->dun_depth;
 
-	/* Drop objects being carried */
-	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
-	{
-		object_type *o_ptr;
-
-		/* Get the object */
-		o_ptr = &o_list[this_o_idx];
-
-		/* Get the next object */
-		next_o_idx = o_ptr->next_o_idx;
-
-		/* Get local object */
-		i_ptr = &object_type_body;
-
-		/* Copy the object */
-		object_copy(i_ptr, o_ptr);
-
-		/* Delete the object */
-		delete_object_idx(this_o_idx);
-
-		/* Paranoia */
-		i_ptr->held_m_idx = 0;
-		i_ptr->next_o_idx = 0;
-
-		/* Drop it */
-		drop_near(i_ptr, -1, Depth, y, x);
-	}
-
-	/* Forget objects */
-	m_ptr->hold_o_idx = 0;
-
 	/* Determine how much we can drop */
 	if ((r_ptr->flags1 & RF1_DROP_60) && (rand_int(100) < 60)) number++;
 	if ((r_ptr->flags1 & RF1_DROP_90) && (rand_int(100) < 90)) number++;
@@ -2178,6 +2147,37 @@ void monster_death(int Ind, int m_idx)
 			break;
 		}
 	}
+
+	/* Drop objects being carried */
+	for (this_o_idx = m_ptr->hold_o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Get local object */
+		i_ptr = &object_type_body;
+
+		/* Copy the object */
+		object_copy(i_ptr, o_ptr);
+
+		/* Delete the object */
+		delete_object_idx(this_o_idx);
+
+		/* Paranoia */
+		i_ptr->held_m_idx = 0;
+		i_ptr->next_o_idx = 0;
+
+		/* Drop it */
+		drop_near(i_ptr, -1, Depth, y, x);
+	}
+
+	/* Forget objects */
+	m_ptr->hold_o_idx = 0;
 
 	/* Determine players involved in killing */
 	total = party_mark_members(Ind, m_idx);
