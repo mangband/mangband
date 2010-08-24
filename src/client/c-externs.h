@@ -108,8 +108,8 @@ extern s16b command_wrk;
 extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
-extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
-extern byte item_tester_flags[MAX_ITEM_TESTERS];
+extern item_tester_type item_tester[MAX_ITEM_TESTERS];
+extern byte known_item_testers;
 
 extern int special_line_type;
 extern char special_line_header[80];

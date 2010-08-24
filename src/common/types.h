@@ -60,6 +60,7 @@ typedef struct channel_type channel_type;
 typedef struct custom_command_type custom_command_type;
 typedef struct stream_type stream_type;
 typedef struct indicator_type indicator_type;
+typedef struct item_tester_type item_tester_type;
 
 
 /**** MAngband specific structs ****/
@@ -1691,4 +1692,10 @@ struct indicator_type
 	cptr prompt;	/* Hack -- display what additional info..? */
 	u32b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */	
 	cptr mark;  	/* Hack -- name */
+};
+
+struct item_tester_type
+{
+	byte tval[MAX_ITH_TVAL];	/* Array of matching TVALs */
+	byte flag;              	/* Pre-calculated flag */
 };

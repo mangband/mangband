@@ -318,6 +318,30 @@ int send_custom_command_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_item_tester_info(connection_type *ct, int id)
+{
+	const item_tester_type *it_ptr = &item_tester[id];
+	int i;
+
+	if (!it_ptr->tval[0] && !it_ptr->flag) return 1; /* Last one */
+
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_ITEM_TESTER,
+		(byte)id, item_tester[id].flag) <= 0)
+	{
+		return 0;
+	}
+	for (i = 0; i < MAX_ITH_TVAL; i++) 
+	{ 
+	 	if (cq_printf(&ct->wbuf, "%c", item_tester[id].tval[i]) <= 0)
+		{
+			return 0;
+		} 
+	}  
+
+	/* Ok */
+	return 1;
+}
+
 int send_message(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
@@ -492,6 +516,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		break;
 		case BASIC_INFO_COMMANDS:
 			while (id < MAX_CUSTOM_COMMANDS) if (!send_custom_command_info(ct, id++)) break;
+		break;
+		case BASIC_INFO_ITEM_TESTERS:
+			while (id < MAX_ITEM_TESTERS) if (!send_item_tester_info(ct, id++)) break;
 		break;
 		default: break;
 	}
@@ -955,6 +982,11 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	i = 0;
 	while (i < MAX_STREAMS && streams[i].pkt != 0) i++;
 	serv_info.val2 = i;
+
+	/* Count item_testers */
+	i = 0;
+	while (i < MAX_ITEM_TESTERS && !(!item_tester[i].tval[0] && !item_tester[i].flag)) i++;
+	serv_info.val4 = i;
 
 	/* 'Count' info */
 	serv_info.val9 = z_info->k_max;

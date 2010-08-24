@@ -74,8 +74,8 @@ s16b command_wrk;
 bool item_tester_full;
 byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);
-byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
-byte item_tester_flags[MAX_ITEM_TESTERS];
+item_tester_type item_tester[MAX_ITEM_TESTERS];
+byte known_item_testers;
 
 int special_line_type;
 char special_line_header[80];

@@ -970,6 +970,42 @@ int recv_custom_command_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_item_tester_info(connection_type *ct) {
+	byte
+		id = 0,
+		flag = 0,
+		tval = 0;
+	int n;
+
+	item_tester_type *it_ptr;
+
+	if (cq_scanf(&ct->rbuf, "%c%c", &id, &flag) < 2) return 0;
+
+	/* Check for errors */
+	if (id >= MAX_ITEM_TESTERS)
+	{
+		plog("No more item_tester slots! (MAX_ITEM_TESTERS)");
+		return -1;
+	}
+
+	/* Get it */
+	it_ptr = &item_tester[id];
+	WIPE(it_ptr, item_tester_type);
+
+	it_ptr->flag = flag;
+
+	for (n = 0; n < MAX_ITH_TVAL; n++) 
+	{
+		tval = 0;
+		if (cq_scanf(&ct->rbuf, "%c", &tval) < 1) return 0;
+		it_ptr->tval[n] = tval;
+	}
+
+	if (id < known_item_testers) known_item_testers = id;
+
+	return 1;
+}
+
 void setup_tables()
 {
 	/* Setup receivers */

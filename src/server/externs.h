@@ -15,8 +15,7 @@
 /* tables.c */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
 const stream_type streams[MAX_STREAMS];
-extern byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL];
-extern byte item_tester_flags[MAX_ITEM_TESTERS]; 
+extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 const indicator_type indicators[MAX_INDICATORS];
 extern s16b ddd[9];
 extern s16b ddx[10];

@@ -15,6 +15,7 @@
 	PACKET(PKT_STREAM,  	NULL,   	recv_stream_info)
 	PACKET(PKT_RESIZE,     	NULL,   	recv_stream_size)
 	PACKET(PKT_COMMAND,  	NULL,   	recv_custom_command_info)
+	PACKET(PKT_ITEM_TESTER,	NULL,   	recv_item_tester_info)
 
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
 #endif

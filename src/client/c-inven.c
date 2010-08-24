@@ -15,13 +15,13 @@ bool item_tester_hack(object_type *o_ptr, int i)
 	int j;
 
 	/* STOP on flag mismatch */
-	if (item_tester_flags[i] && !(o_ptr->ident & item_tester_flags[i])) return (FALSE);
+	if (item_tester[i].flag && !(o_ptr->ident & item_tester[i].flag)) return (FALSE);
 	
 	/* OK on tval match */
 	for (j = 0; j < MAX_ITH_TVAL; j++)
 	{
-		if (item_tester_tvals[i][j] == 0) break;
-		if (item_tester_tvals[i][j] == o_ptr->tval) return (TRUE);
+		if (item_tester[i].tval[j] == 0) break;
+		if (item_tester[i].tval[j] == o_ptr->tval) return (TRUE);
 	}
 
 	return ( (!j) ? (TRUE) : (FALSE) );

@@ -290,49 +290,54 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 };
 
 /* Item testers */
-byte item_tester_tvals[MAX_ITEM_TESTERS][MAX_ITH_TVAL] = 
+item_tester_type item_tester[MAX_ITEM_TESTERS] =
 {
 	/* item_tester_hook_wear (ITH_WEAR) */
-	{ 0 },
+	{
+		{ 0 },	
+		(ITF_WEAR),
+	},
 	/* item_tester_hook_weapon (ITH_WEAPON) */
-	{ TV_SWORD, TV_HAFTED, TV_POLEARM, TV_DIGGING, TV_BOW, TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+	{
+		{ TV_SWORD, TV_HAFTED, TV_POLEARM, TV_DIGGING, TV_BOW, TV_BOLT, TV_ARROW, TV_SHOT, 0 }, 
+		(0),
+	},
 	/* item_tester_hook_armour (ITH_ARMOR) */
-	{ TV_DRAG_ARMOR, TV_HARD_ARMOR, TV_SOFT_ARMOR, TV_SHIELD, TV_CLOAK, TV_CROWN, TV_HELM, TV_BOOTS, TV_GLOVES, 0 },
+	{
+		{ TV_DRAG_ARMOR, TV_HARD_ARMOR, TV_SOFT_ARMOR, TV_SHIELD, TV_CLOAK, TV_CROWN, TV_HELM, TV_BOOTS, TV_GLOVES, 0 }, 
+		(0),
+	},
 	/* item_tester_hook_ammo (ITH_AMMO) */
-	{ TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+	{
+		{ TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+		(0),
+	},
 	/* item_tester_hook_recharge (ITH_RECHARGE) */
-	{ TV_STAFF, TV_WAND, 0 },
+	{
+		{ TV_STAFF, TV_WAND, 0 },
+		(0),
+	},
 	/* item_tester_hook_activate (ITH_ACTIVATE) */
-	{ 0 },
+	{
+		{ 0 },
+		(ITF_ACT),
+	},
 	/* item_tester_refill_lantern (ITH_REFILL) */
-	{ 0 }, /*{ TV_FLASK, TV_LITE, 0 },*/
+	{
+		{ 0 },/*{ TV_FLASK, TV_LITE, 0 },*/
+		(ITF_FUEL),
+	},
 	/* item_tester_refill_torch (ITH_REFILL) */
-	{ 0 }, /*{ TV_LITE, 0 } */
+	{
+		{ 0 },/*{ TV_LITE, 0 } */
+		(ITF_FUEL),
+	},
 
-	{ 0 }, /* End of array */
+	/* End of array */
+	{
+		{ 0 }, 0
+	}
 };
-byte item_tester_flags[MAX_ITEM_TESTERS] = 
-{
-	/* item_tester_hook_wear (ITH_WEAR) */
-	(ITF_WEAR),
-	/* item_tester_hook_weapon (ITH_WEAPON) */
-	0,
-	/* item_tester_hook_armour (ITH_ARMOR) */
-	0,
-	/* item_tester_hook_ammo (ITH_AMMO) */
-	0,
-	/* item_tester_hook_recharge (ITH_RECHARGE) */
-	0,
-	/* item_tester_hook_activate (ITH_ACTIVATE) */
-	(ITF_ACT),
-	/* item_tester_refill_lantern (ITH_REFILL_LANTERN) */
-	(ITF_FUEL),
-	/* item_tester_refill_torch (ITH_REFILL_TORCH) */
-	(ITF_FUEL),
-
-	0, /* End of array */
-};
-
 
 /*
  * Global array for "data streams"
