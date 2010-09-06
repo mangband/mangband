@@ -1682,6 +1682,10 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 	}
 
 	/* Sanity check the number of items */
+	if (amt < 1)
+	{
+		amt = 1;
+	}
 	if (amt > o_ptr->number)
 	{
 		amt = o_ptr->number;
