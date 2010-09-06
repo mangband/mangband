@@ -2522,32 +2522,49 @@ void init_extra_paths()
 #endif
 }
 
-static Uint8* wav_buffer = NULL;
-static Uint32 wav_length = 0, wav_pos = 0;
-static bool wav_playing = FALSE;
+#ifdef USE_SOUND
+typedef struct sound_wave 
+{
+	Uint8* buffer;
+	Uint32 length;
+	Uint32 pos;
+	bool playing;
+} sound_wave;
+sound_wave sound_data[MSG_MAX][SAMPLE_MAX];
+sound_wave *now_playing = NULL;
+
+SDL_AudioSpec wav_obtained;
 
 static void wav_play(void *userdata, Uint8 *stream, int len)
 {
+	/* Grab */
+	sound_wave * wav = now_playing;
+
 	/* Paranoia */
-	Uint32 tocopy = ((wav_length - wav_pos > len)? len: wav_length - wav_pos);
+	Uint32 tocopy = ((wav->length - wav->pos > len)? len: wav->length - wav->pos);
 
 	/* Copy data to audio buffer */
-	memcpy(stream, wav_buffer + wav_pos, tocopy);
+	memcpy(stream, wav->buffer + wav->pos, tocopy);
 
 	/* Advance */
-	wav_pos += tocopy;
+	wav->pos += tocopy;
 }
 
 static void play_sound_end(bool wait)
 {
-	bool end_sound = (wait? (wav_pos == wav_length): TRUE);
+	bool end_sound;
+	sound_wave * wav = now_playing;
+
+	if (wav == NULL) return;
+
+	end_sound = (wait? (wav->pos == wav->length): TRUE);
 
 	/* Wait for end of audio thread */
-	if ((wav_length != 0) && end_sound && wav_playing)
+	if ((wav->length != 0) && end_sound && wav->playing)
 	{
 		/* Stop playing */
 		SDL_PauseAudio(1);
-		wav_playing = FALSE;
+		wav->playing = FALSE;
 
 		/* Close the audio device */
 		SDL_CloseAudio();
@@ -2555,17 +2572,13 @@ static void play_sound_end(bool wait)
 }
 
 /*
- * Make a sound
+ * Init sound
  */
-static void play_sound(int v, int s)
-{
-	SDL_AudioSpec wav_spec;
-	SDL_AudioSpec wav_desired, wav_obtained;
-	SDL_AudioCVT wav_cvt;
-	char buf[MSG_LEN];
 
-	/* If another sound is currently playing, stop it */
-	play_sound_end(FALSE);
+static void init_sound()
+{
+	SDL_AudioSpec wav_desired;
+	int i, j;
 
 	/* Desired audio parameters */
 	wav_desired.freq = 44100;
@@ -2582,11 +2595,47 @@ static void play_sound(int v, int s)
 		return;
 	}
 
+	/* Clear sound_data */
+	for (j = 0; j < MSG_MAX; j++)	for (i = 0; i < SAMPLE_MAX; i++)
+	{
+			(void)WIPE(&sound_data[j][i], sound_wave);
+	}
+}
+/*
+ * Close sound
+ */
+static void cleanup_sound()
+{
+	int j, i;
+
+	/* Close the audio device */
+ 	SDL_CloseAudio();
+
+ 	/* Free loaded wavs */
+ 	for (j = 0; j < MSG_MAX; j++)	for (i = 0; i < SAMPLE_MAX; i++)
+	{
+		if (sound_data[j][i].buffer != NULL)
+		{
+			free(sound_data[j][i].buffer);
+		}
+	}
+}
+/* 
+ * Load a sound
+ */
+static void load_sound(int v, int s)
+{
+	SDL_AudioSpec wav_spec;
+	SDL_AudioCVT wav_cvt;
+	char buf[MSG_LEN];
+
+	sound_wave * wav = &sound_data[v][s];
+
 	/* Build the path */
 	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);
 
 	/* Load the WAV */
-	if (SDL_LoadWAV(buf, &wav_spec, &wav_buffer, &wav_length) == NULL)
+	if (SDL_LoadWAV(buf, &wav_spec, &wav->buffer, &wav->length) == NULL)
 	{
 		plog_fmt("Could not open %s: %s", buf, SDL_GetError());
 		return;
@@ -2601,9 +2650,9 @@ static void play_sound(int v, int s)
 	}
 
 	/* Allocate a buffer for the audio converter */
-	wav_cvt.buf = malloc(wav_length * wav_cvt.len_mult);
-	wav_cvt.len = wav_length;
-	memcpy(wav_cvt.buf, wav_buffer, wav_length);
+	wav_cvt.buf = malloc(wav->length * wav_cvt.len_mult);
+	wav_cvt.len = wav->length;
+	memcpy(wav_cvt.buf, wav->buffer, wav->length);
 
 	/* Convert audio data to correct format */
 	if (SDL_ConvertAudio(&wav_cvt) != 0)
@@ -2613,19 +2662,35 @@ static void play_sound(int v, int s)
 	}
 
 	/* Free the WAV */
-	SDL_FreeWAV(wav_buffer);
+	SDL_FreeWAV(wav->buffer);
 
 	/* Allocate a buffer for the audio data */
-	wav_buffer = malloc(wav_cvt.len_cvt);
-	memcpy(wav_buffer, wav_cvt.buf, wav_cvt.len_cvt);
+	wav->buffer = malloc(wav_cvt.len_cvt);
+	memcpy(wav->buffer, wav_cvt.buf, wav_cvt.len_cvt);
 	free(wav_cvt.buf);
-	wav_length = wav_cvt.len_cvt;
+	wav->length = wav_cvt.len_cvt;
+}
+/*
+ * Make a sound
+ */
+static void play_sound(int v, int s)
+{
+	sound_wave * wav = &sound_data[v][s];
+
+	/* If another sound is currently playing, stop it */
+	play_sound_end(FALSE);
+
+	/* If sound isn't loaded, load it */
+	if (wav->buffer == NULL) load_sound(v,s);
 
 	/* Start playing */
-	wav_pos = 0;
-	wav_playing = TRUE;
+	wav->pos = 0;
+	wav->playing = TRUE;
 	SDL_PauseAudio(0);
+
+	now_playing = wav;
 }
+#endif
 
 /*
  * A "normal" system uses "main.c" for the "main()" function, and
