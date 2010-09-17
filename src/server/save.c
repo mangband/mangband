@@ -60,7 +60,7 @@ static void write_huge(char* name, huge value)
 /* Write an hturn */
 static void write_hturn(char* name, hturn *value)
 {
-	fprintf(file_handle,"%s%s = %" PRIu64 " " PRIu64 "\n",xml_prefix,name,value->era,value->turn);
+	fprintf(file_handle,"%s%s = %" PRIu64 " %" PRIu64 "\n",xml_prefix,name,value->era,value->turn);
 }
 
 /* Write a string */
