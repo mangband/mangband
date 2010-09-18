@@ -307,7 +307,7 @@ int send_custom_command_info(connection_type *ct, int id)
 
 	if (!cc_ptr->m_catch) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_COMMAND,
+	if (cq_printf(&ct->wbuf, "%c%c%c", PKT_COMMAND,
 		cc_ptr->pkt, cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt) <= 0)
 	{
 		/* Hack -- instead of "client_withdraw(ct);", we simply */

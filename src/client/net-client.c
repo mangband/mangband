@@ -1001,7 +1001,7 @@ int recv_item_tester_info(connection_type *ct) {
 		it_ptr->tval[n] = tval;
 	}
 
-	if (id < known_item_testers) known_item_testers = id;
+	if (id + 1 > known_item_testers) known_item_testers = id + 1;
 
 	return 1;
 }
