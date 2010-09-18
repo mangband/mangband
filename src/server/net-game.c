@@ -949,7 +949,9 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	receiv[PKT] = FUNC; \
 	scheme[PKT] = SCHEME;
 #define PCOMMAND(PKT, SCHEME, FUNC) \
-	pcommands[PKT] = FUNC;
+	pcommands[PKT] = FUNC; \
+	receiv[PKT] = recv_command; \
+	scheme[PKT] = SCHEME;
 #include "net-game.h"
 #undef PACKET
 #undef PCOMMAND
@@ -961,8 +963,9 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		if (!custom_commands[i].m_catch) break;
 		if (pkt == PKT_UNDEFINED)
 		{
-			while (pcommands[next_free] != NULL && next_free < 255) next_free++;
+			while (receiv[next_free] != recv_undef && next_free < 255) next_free++;
 			pkt = next_free;
+			if (pkt == 255) plog("ERROR! Out of custom command slots!");
 		}
 		pcommands[pkt] = recv_custom_command;
 		command_pkt[i] = pkt;

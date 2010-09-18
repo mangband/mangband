@@ -24,7 +24,9 @@
 
 #define PKT_RESIZE	16
 
-#define PKT_INDICATOR	17
+#define PKT_COMMAND		17
+
+#define PKT_INDICATOR	18
 /* Packet types 20-59 are info that is sent to the client */
 #define PKT_PLUSSES		20
 #define PKT_CHAR_INFO		26
@@ -58,64 +60,27 @@
 #define PKT_SELL		62
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
-#define PKT_SYMBOL_QUERY	65
 
 #define PKT_PLAYER_STORE_INFO 67
 
 /* Packet types 70-116 are sent from the client */
 #define PKT_WALK		70
 #define PKT_RUN			71
-#define PKT_TUNNEL		72
-#define PKT_AIM_WAND		73
-#define PKT_DROP		74
-#define PKT_FIRE		75
 #define PKT_STAND		76
-#define PKT_DESTROY		77
 #define PKT_LOOK		78
-#define PKT_SPELL		79
 
-#define PKT_OPEN		80
-#define PKT_PRAY		81
-#define PKT_QUAFF		82
-#define PKT_READ		83
-#define PKT_SEARCH		84
-#define PKT_TAKE_OFF		85
-#define PKT_USE			86
-#define PKT_THROW		87
-#define PKT_WIELD		88
-#define PKT_ZAP			89
-
-#define PKT_TARGET		90
-#define PKT_INSCRIBE		91
-#define PKT_UNINSCRIBE		92
-#define PKT_ACTIVATE		93
-#define PKT_BASH		94
-#define PKT_DISARM		95
-#define PKT_EAT			96
-#define PKT_FILL		97
 #define PKT_LOCATE		98
 #define PKT_MAP			99
 
-#define PKT_SEARCH_MODE		100	
-#define PKT_ALTER		102
-#define PKT_CLOSE		103
-#define PKT_GAIN		104
-#define PKT_GO_UP		105
-#define PKT_GO_DOWN		106
 #define PKT_PURCHASE		107
 #define PKT_STORE_LEAVE		108
 #define PKT_STORE_CONFIRM	109
 
-#define PKT_DROP_GOLD		110
 #define PKT_REDRAW		111
-#define PKT_REST		112
-#define PKT_GHOST		113
 #define PKT_SUICIDE		114
-#define PKT_SPIKE 		115
 #define PKT_OPTIONS		116
 #define PKT_TARGET_FRIENDLY	117
 #define PKT_MASTER		118 /* dungeon master commands */
-#define PKT_STEAL		 	119 
 
 /* Packet types 121-123 are more administrative stuff */
 #define PKT_FAILURE		121
@@ -138,8 +103,6 @@
 /* Packet types 170-190 are for data streams, DO NOT USE THAT SPACE */
 #define PKT_STREAM		170
 
-/* Packet types 191-254 are for custom commands, DO NOT USE THAT SPACE */
-#define PKT_COMMAND		191
 
 /*
  * PKT_BASIC_INFO helpers

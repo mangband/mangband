@@ -41,97 +41,97 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 {	
 	/*** Simpliest, one-off commands ***/
 	{ /* Go Up by stairs */
-		'<', PKT_GO_UP, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,
+		'<', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,
 		(0),		0, ""
 	},
 	{ /* Go Down by stairs */
-		'>', PKT_GO_DOWN, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
+		'>', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
 		(0),		0, ""
 	},
 	{ /* Search */
-		's', PKT_SEARCH, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
+		's', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
 		(0),		0, ""
 	},
 	{ /* Toggle Search */
-		'S', PKT_SEARCH_MODE, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
+		'S', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
 		(0),		0, ""
 	},
 	{ /* Repeat Feeling */
-		KTRL('F'), (char)(PKT_COMMAND+1), SCHEME_EMPTY, 1, (cccb)do_cmd_feeling,
+		KTRL('F'), PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_feeling,
 		(0),		0, ""
 	},
 
 	/*** Simple grid altering commands ***/
 	{ /* Alter */
-		'+', PKT_ALTER, SCHEME_DIR, 1, (cccb)do_cmd_alter,
+		'+', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_alter,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Tunnel */
-		'T', PKT_TUNNEL, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		'T', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Bash a door */
-		'B', PKT_BASH, SCHEME_DIR, 1, (cccb)do_cmd_bash,
+		'B', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_bash,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Disarm a trap or chest */
-		'D', PKT_DISARM, SCHEME_DIR, 1, (cccb)do_cmd_disarm,
+		'D', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_disarm,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Open door or chest */
-		'o', PKT_OPEN, SCHEME_DIR, 1, (cccb)do_cmd_open,
+		'o', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_open,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Close door */
-		'c', PKT_CLOSE, SCHEME_DIR, 1, (cccb)do_cmd_close,
+		'c', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_close,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 
 	/*** Complex grid altering ***/
 	{ /* Spike door */
-		'j', PKT_SPIKE, SCHEME_DIR, 1, (cccb)do_cmd_spike,
+		'j', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_spike,
 		(COMMAND_ITEM_QUICK | COMMAND_ITEM_INVEN | COMMAND_TARGET_DIR),
 		TV_SPIKE, "You have no spikes!"
 	},
 	{ /* Steal (MAngband-specific) */
-		'J', PKT_STEAL, SCHEME_DIR, 1, (cccb)do_cmd_steal,
+		'J', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_steal,
 		(COMMAND_TARGET_DIR),
 		0, "Touch in what "
 	},
 	{ /* Purchase/Sell/Examine House (MAngband-specific) */
-		'h', (char)PKT_COMMAND, SCHEME_DIR, 1, (cccb)do_cmd_purchase_house,
+		'h', PKT_COMMAND, SCHEME_DIR, 1, (cccb)do_cmd_purchase_house,
 		(COMMAND_TARGET_DIR),
 		0, "Knock in what "
 	},
 
 	/*** Inventory commands ***/
 	{ /* Wear/Wield Item */
-		'w', PKT_WIELD, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
+		'w', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		item_test(WEAR), "Wear/Wield which item? "
 	},
 	{ /* Takeoff */
-		't', PKT_TAKE_OFF, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
+		't', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
 		(COMMAND_ITEM_EQUIP),
 		0, "Takeoff which item? "
 	},
 	{ /* Drop Item */
-		'd', PKT_DROP, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
+		'd', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? "
 	},
 	{ /* Inscribe Item */
-		'{', PKT_INSCRIBE, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
+		'{', PKT_UNDEFINED, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
 		0, "Inscribe what? \nInscription: "
 	},
 	{ /* Uninscribe what?  */
-		'}', PKT_UNINSCRIBE, SCHEME_ITEM, 0, (cccb)do_cmd_uninscribe,
+		'}', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_uninscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
 		0, "Uninscribe what? "
 	},
 	{ /* Observe/Examine item  */
-		'I', (char)PKT_OBSERVE, SCHEME_ITEM, 0, (cccb)do_cmd_observe,
+		'I', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_observe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
 		0, "Examine what? "
 	},
@@ -139,79 +139,79 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/*** Inventory "usage" commands ***/
 	/* Magic devices */
 	{ /* Read scroll */
-		'r', PKT_READ, SCHEME_ITEM, 1, (cccb)do_cmd_read_scroll,
+		'r', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_read_scroll,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		TV_SCROLL, "Read which scroll? "
 	},
 	{ /* Aim wand */
-		'a', PKT_AIM_WAND, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
+		'a', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
 		TV_WAND, "Aim which wand? "
 	},
 	{ /* Use staff */
-		'u', PKT_USE, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
+		'u', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		TV_STAFF, "Use which staff? "
 	},
 	{ /* Zap rod */
-		'z', PKT_ZAP, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
+		'z', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
 		TV_ROD, "Use which rod? "
 	},
 	{ /* Activate */
-		'A', PKT_ACTIVATE, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_activate_dir,
+		'A', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_activate_dir,
 		(COMMAND_ITEM_EQUIP | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
 		item_test(ACTIVATE), "Activate what? "
 	},
 	/* Common items */
 	{ /* Refill */
-		'F', PKT_FILL, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
+		'F', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		item_test(REFILL), "Refill with which light? "
 	},
 	{ /* Drink */
-		'q', PKT_QUAFF, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
+		'q', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		TV_POTION, "Quaff which potion? "
 	},
 	{ /* Eat */
-		'E', PKT_EAT, SCHEME_ITEM, 1, (cccb)do_cmd_eat_food,
+		'E', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_eat_food,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
 		TV_FOOD, "Eat what? "
 	},
 
 	/*** Firing and throwing ***/
 	{ /* Fire an object */
-		'f', PKT_FIRE, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
+		'f', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
 		item_test(AMMO), "Fire which ammo? "
 	},
 	{ /* Throw an object */
-		'v', PKT_THROW, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
+		'v', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
 		0, "Throw what? "
 	},
 
 	/*** Spell-casting ***/
 	{ /* Study spell */
-		'G', PKT_STUDY, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
 		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? "
 	},
 	{ /* Cast spell */
-		'm', PKT_SPELL, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
+		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		TV_MAGIC_BOOK, "You cannot cast spells!\nCast from what book? \nSpells\nCast which spell? "
 	},
 	{ /* Use ghost power */
-		'U', PKT_GHOST, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_ghost_power_pre,
+		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_ghost_power_pre,
 		(COMMAND_TEST_DEAD | COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_TARGET_ALLOW | 
 		 COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		(10), "You are not undead.\nPowers\nUse which power? "
 	},
 	{ /* Cast cleric spell */
-		'p', PKT_PRAY, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_pray_pre,
+		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_pray_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_TARGET_FRIEND | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? "
@@ -263,24 +263,24 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		SPECIAL_FILE_MASTER, "Dungeon Master"
 	},
 	{ /* Mini-Map' */
-		'M', PKT_MINI_MAP, SCHEME_SMALL, 0, (cccb)do_cmd_view_map,
+		'M', PKT_UNDEFINED, SCHEME_SMALL, 0, (cccb)do_cmd_view_map,
 		(COMMAND_INTERACTIVE),
 		99, "Mini-Map"
 	},	
 #if 0
 	{ /* Suicide */
-		'Q', PKT_SUICIDE, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,
+		'Q', PKT_UNDEFINED, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,
 		(COMMAND_NEED_CONFIRM | COMMAND_NEED_CHAR),
 		0, "Please verify SUICIDE by typing the '@' sign: \nDo you really want to commit suicide? "
 	},
 #endif
 	{ /* Drop Gold */
-		'$', PKT_DROP_GOLD, SCHEME_VALUE, 1, (cccb)do_cmd_drop_gold,
+		'$', PKT_UNDEFINED, SCHEME_VALUE, 1, (cccb)do_cmd_drop_gold,
 		(COMMAND_NEED_VALUE),
 		0, "How much gold? "
 	},
 	{ /* Symbol Query */
-		'/', PKT_SYMBOL_QUERY, SCHEME_CHAR, 0, (cccb)do_cmd_query_symbol,
+		'/', PKT_UNDEFINED, SCHEME_CHAR, 0, (cccb)do_cmd_query_symbol,
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
