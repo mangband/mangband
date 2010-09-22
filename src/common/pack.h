@@ -2,23 +2,19 @@
  * Packet types
  */
 
-/* Packet types 0-11 are "administrative" */
-#define PKT_UNDEFINED		0
-#define PKT_VERIFY		1
-#define PKT_REPLY		2
-#define PKT_PLAY		3
-#define PKT_QUIT		4
-#define PKT_LEAVE		5
+/* Packet types 0-11 are "administrative", most of those are sent both ways */
+#define PKT_UNDEFINED   	0
+#define PKT_LOGIN       	1
+#define PKT_PLAY        	3
+#define PKT_QUIT        	4
+#define PKT_LEAVE       	5
 #define PKT_MOTD		6
 #define PKT_BASIC_INFO		7
-#define PKT_ACK			8
+
 #define PKT_TALK		9
 
-#define PKT_START		10
-#define PKT_END			11
 #define PKT_KEEPALIVE		12
 #define PKT_STRUCT_INFO		13
-#define PKT_LOGIN	14
 
 #define PKT_VISUAL_INFO 	15
 
@@ -26,7 +22,6 @@
 
 #define PKT_COMMAND		17
 
-#define PKT_INDICATOR	18
 /* Packet types 20-59 are info that is sent to the client */
 #define PKT_PLUSSES		20
 #define PKT_CHAR_INFO		26
@@ -103,6 +98,8 @@
 /* Packet types 170-190 are for data streams, DO NOT USE THAT SPACE */
 #define PKT_STREAM		170
 
+/* Packet types 191-254 are for indicators, DO NOT USE THAT SPACE */
+#define PKT_INDICATOR   	191
 
 /*
  * PKT_BASIC_INFO helpers

@@ -655,7 +655,7 @@ int recv_indicator_str(connection_type *ct) {
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Store the string in indicator's 'prompt' */
-	strncpy(i_ptr->prompt, buf, MAX_CHARS);
+	strncpy((char*)i_ptr->prompt, buf, MAX_CHARS);
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
