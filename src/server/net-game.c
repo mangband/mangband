@@ -107,6 +107,44 @@ int send_class_info(connection_type *ct)
 	return 1;	
 }
 
+int send_optgroups_info(connection_type *ct)
+{
+	u32b i, name_size;
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OPTGROUP) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OPTION_GROUPS, OPT_MAX, 0) <= 0)
+	{
+		client_withdraw(ct);
+	} 
+
+	for (i = 0; i < MAX_OPTION_GROUPS; i++)
+	{
+		/* Transfer other fields here */
+		if (cq_printf(&ct->wbuf, "%s",  option_group[i]) <= 0)
+		{
+			client_withdraw(ct);
+		}
+	}
+
+	return 1;
+}
+
+int send_option_info(connection_type *ct, int id)
+{
+	const option_type *opt_ptr = &option_info[id];
+
+	if (cq_printf(&ct->wbuf, "%c%c%s%s", PKT_OPTION, 
+		opt_ptr->o_page, opt_ptr->o_text, opt_ptr->o_desc) <= 0)
+	{
+		return 0;
+	}
+	return 1;
+}
+
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
@@ -520,6 +558,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		case BASIC_INFO_ITEM_TESTERS:
 			while (id < MAX_ITEM_TESTERS) if (!send_item_tester_info(ct, id++)) break;
 		break;
+		case BASIC_INFO_OPTIONS:
+			while (id < OPT_MAX) if (!send_option_info(ct, id++)) break;
+		break;
 		default: break;
 	}
 
@@ -636,6 +677,66 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 	{
 		/* Not enough bytes */
 		return 0;
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int recv_options(connection_type *ct, player_type *p_ptr) {
+	int n, i;
+	byte next, bit;
+
+	for (i = 0; i < OPT_MAX; i += 8)
+	{
+		next = 0;
+		if (cq_scanf(&ct->rbuf, "%b", &next) < 1)
+		{
+			/* Not enough bytes */
+			return 0;
+		}
+		/* Unpack 8 options */
+		for (bit = 0; bit < 8; bit++)
+		{
+			int n = i + bit;
+			if (n >= OPT_MAX) break;
+			/* Skip locked options */
+			if (option_info[n].o_bit) continue;
+			/* Skip birth options */
+			if (option_info[n].o_page == 1 && IS_PLAYING(p_ptr)) continue;
+			/* Set */
+			if (next & (1L << bit))
+			{
+				p_ptr->options[n] = TRUE;
+			}
+			else
+			{
+				p_ptr->options[n] = FALSE;
+			}
+		}
+	}
+
+	/* Ok */
+	return 1;
+}
+
+int recv_settings(connection_type *ct, player_type *p_ptr) {
+	int i;
+
+	for (i = 0; i < 16; i ++)
+	{
+		s16b val = 0;
+		if (cq_scanf(&ct->rbuf, "%d", &val) < 1)
+		{
+			/* Not enough bytes */
+			return 0;
+		}
+		switch (i)
+		{
+			//case 0:	p_ptr->use_graphics  = val; break;
+			case 3:	p_ptr->hitpoint_warn = val; break; 
+			default: break;
+		}
 	}
 
 	/* Ok */

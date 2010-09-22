@@ -266,6 +266,49 @@ int send_visual_info(byte type) {
 	return 1;
 }
 
+int send_options(void)
+{
+	byte next = 0;
+	byte bit = 0;
+	int i, n;
+
+	if ((n = cq_printf(&serv->wbuf, "%c", PKT_OPTIONS)) < 0) return n;
+
+	/* Pack each options as bit. Send every 8 options as byte */
+	for (i = 0; i < options_max; i++)
+	{
+		if (p_ptr->options[i] == TRUE) next |= (1L << bit);
+		bit++;
+		if (bit > 8) 
+		{
+			if ((n = cq_printf(&serv->wbuf, "%b", next)) < 0) return n;
+			next = 0;
+			bit = 0;
+		}
+	}
+	/* Leftovers */
+	if (bit != 0) 
+	{
+		if ((n = cq_printf(&serv->wbuf, "%b", next)) < 0) return n;
+	}
+
+	return 1;
+}
+int send_settings(void)
+{
+	byte next = 0;
+	byte bit = 0;
+	int i, n;
+
+	if ((n = cq_printf(&serv->wbuf, "%c", PKT_SETTINGS)) < 0) return n;
+
+	for (i = 0; i < 16; i++)
+	{
+		if ((n = cq_printf(&serv->wbuf, "%d", Client_setup.settings[i])) < 0) return n;
+	}
+
+	return 1;
+}
 int send_msg(cptr message)
 {
 	return cq_printf(&serv->wbuf, "%c%S", PKT_MESSAGE, message);
@@ -473,64 +516,28 @@ int recv_struct_info(connection_type *ct)
 	/* Which struct */
 	switch (typ)
 	{
-#if 0	
 		/* Option groups */
 		case STRUCT_INFO_OPTGROUP:
 			/* Alloc */
 			C_MAKE(option_group, max, cptr);
 			options_groups_max = max;
-			
+			/* (Hack: max options) */
+			C_MAKE(option_info, fake_name_size, option_type);
+			options_max = fake_name_size;
+
 			/* Fill */
 			for (i = 0; i < max; i++)
 			{
-				if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
+								
+				if (cq_scanf(&ct->rbuf, "%s", &name) < 1)
 				{
-					return n;
+					return 0;
 				}
 				
 				/* Transfer */
 				option_group[i] = string_make(name);
 			}
 		break;
-		/* Options */
-		case STRUCT_INFO_OPTION:
-			/* Alloc */
-			C_MAKE(option_info, max, option_type);
-			options_max = max;
-			
-			/* Fill */
-			for (i = 0; i < max; i++)
-			{
-				option_type *opt_ptr;
-				byte opt_page;
-				char desc[MAX_CHARS];
-
-				opt_ptr = &option_info[i];
-				opt_page = 0;
-				
-				
-				if ((n = Packet_scanf(&rbuf, "%c%s%s", &opt_page, name, desc)) <= 0)
-				{
-					return n;
-				}
-				
-				/* Transfer */
-				opt_ptr->o_page = opt_page;
-				opt_ptr->o_text = string_make(name);
-				opt_ptr->o_desc = string_make(desc);
-				opt_ptr->o_set = 0;
-				/* Link to local */
-				for (n = 0; local_option_info[n].o_desc; n++)
-				{
-					if (!strcmp(local_option_info[n].o_text, name))
-					{
-						local_option_info[n].o_set = i;
-						opt_ptr->o_set = n;
-					}				
-				}
-			}
-		break;
-#endif		
 		/* Player Races */
 		case STRUCT_INFO_RACE:
 			/* Alloc */
@@ -586,6 +593,45 @@ int recv_struct_info(connection_type *ct)
 		break;
 	}	
 	
+	return 1;
+}
+
+int recv_option_info(connection_type *ct) 
+{
+	option_type *opt_ptr;
+	int n;
+
+	char desc[MAX_CHARS];
+	char name[MAX_CHARS];
+	byte
+		opt_page = 0;
+
+	if (cq_scanf(&ct->rbuf, "%c%s%s", &opt_page, name, desc) <= 0)
+	{
+		return 0;
+	}
+
+	/* Grab */
+	opt_ptr = &option_info[known_options];
+
+	/* Fill */
+	opt_ptr->o_page = opt_page;
+	opt_ptr->o_text = string_make(name);
+	opt_ptr->o_desc = string_make(desc);
+	opt_ptr->o_set = 0;
+
+	/* Link to local */
+	for (n = 0; local_option_info[n].o_desc; n++)
+	{ 
+		if (!strcmp(local_option_info[n].o_text, name))
+		{
+			local_option_info[n].o_set = known_options;
+			opt_ptr->o_set = n;
+		}
+	}
+
+	known_options++;
+
 	return 1;
 }
 

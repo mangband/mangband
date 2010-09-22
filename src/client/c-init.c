@@ -194,6 +194,7 @@ static void Setup_loop()
 	int asked_streams = -1;
 	int asked_commands = -1;
 	int asked_testers = -1;
+	int asked_options = -1;
 	bool asked_game = FALSE;
 
 	bool data_ready = TRUE;
@@ -219,6 +220,8 @@ static void Setup_loop()
 			sync_data_piece(RQ_CMDS, &asked_commands, custom_commands, serv_info.val3, &data_ready);
 			/* Item Testerers */
 			sync_data_piece(RQ_ITEM, &asked_testers, known_item_testers, serv_info.val4, &data_ready);
+			/* Options */
+			sync_data_piece(RQ_OPTS, &asked_options, known_options, options_max, &data_ready);
 		}
 
 		/* Check and Prepare character */
@@ -459,9 +462,11 @@ bool client_setup()
 	/* Send request for MOTD to read (optional) */
 	//Send_motd(0); // pass -1 to receive motd off-screen 
 	
-	//gather_settings();
+	gather_settings();
 
-	//Send_options(TRUE);
+	send_settings();
+
+	send_options();
 
 	/* Send visual preferences */
 	for (i = 0; i < VISUAL_INFO_PR +1; i++) 

@@ -225,6 +225,7 @@ extern option_type *option_info;
 extern cptr *option_group;
 extern int options_max;
 extern int options_groups_max;
+extern int known_options;
 
 extern bool rogue_like_commands;
 extern bool auto_accept;
@@ -504,7 +505,6 @@ extern int send_walk(char dir);
 #define Send_term_key(ch) plog("Send_term_key unimplemented!")
 #define Send_party(command, buf) plog("Send_party unimplemented!")
 #define Send_suicide() plog("Send_suicide unimplemented!")
-#define Send_options(settings) plog("Send_options unimplemented!")
 #define Send_master(command, buf) plog("Send_master unimplemented!")
 #define Send_observe(item) plog("Send_observe unimplemented!")
 #define Send_pass(newpass) plog("Send_pass unimplemented!")

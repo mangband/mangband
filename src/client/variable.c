@@ -209,6 +209,7 @@ option_type *option_info;
 cptr *option_group;
 int options_max;
 int options_groups_max;
+int known_options;
 
 bool rogue_like_commands;
 bool depth_in_feet;

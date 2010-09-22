@@ -50,6 +50,8 @@ extern int send_quit(connection_type *ct, const char *reason);
 extern int send_char_info(connection_type *ct, player_type *p_ptr);
 extern int send_race_info(connection_type *ct);
 extern int send_class_info(connection_type *ct);
+extern int send_optgroups_info(connection_type *ct);
+extern int send_options_info(connection_type *ct, int id);
 extern int send_indicator_info(connection_type *ct, int id);
 /* Receive */
 //Not really needed .. //

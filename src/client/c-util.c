@@ -3955,10 +3955,10 @@ void do_cmd_options(void)
 	gather_settings();
 	if (old_hitpoint_warn != Client_setup.settings[3] ||
 		old_window_flags != Client_setup.settings[4]) 
-	Send_options(TRUE); 
-	else
+	send_settings();
+	
 	/* Resend options to server */
-	Send_options(FALSE);
+	send_options();
 
 	/* Save options to file */
 	Save_options();

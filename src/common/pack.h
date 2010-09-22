@@ -13,6 +13,8 @@
 
 #define PKT_TALK		9
 
+#define PKT_OPTION      	10
+
 #define PKT_KEEPALIVE		12
 #define PKT_STRUCT_INFO		13
 
@@ -73,6 +75,7 @@
 
 #define PKT_REDRAW		111
 #define PKT_SUICIDE		114
+#define PKT_SETTINGS	115
 #define PKT_OPTIONS		116
 #define PKT_TARGET_FRIENDLY	117
 #define PKT_MASTER		118 /* dungeon master commands */
@@ -109,10 +112,12 @@
 #define BASIC_INFO_STREAMS  	2
 #define BASIC_INFO_ITEM_TESTERS	3
 #define BASIC_INFO_COMMANDS  	4
+#define BASIC_INFO_OPTIONS  	5
 #define RQ_INDI	BASIC_INFO_INDICATORS
 #define RQ_STRM	BASIC_INFO_STREAMS
 #define RQ_ITEM	BASIC_INFO_ITEM_TESTERS
 #define RQ_CMDS	BASIC_INFO_COMMANDS
+#define RQ_OPTS	BASIC_INFO_OPTIONS
 
 /*
  * PKT_STRUCT_INFO helpers
