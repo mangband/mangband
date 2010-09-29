@@ -249,7 +249,7 @@ int send_stream_size(connection_type *ct, int st, int y, int x)
 
 int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc)
 {
-	connection_type *ct = PConn[p_ptr->conn];
+	connection_type *ct = Conn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	int n;
 
@@ -275,7 +275,7 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 
 int stream_char(player_type *p_ptr, int st, int y, int x)
 {
-	connection_type *ct = PConn[p_ptr->conn];
+	connection_type *ct = Conn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 	s16b l;
@@ -304,7 +304,7 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 
 int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 {
-	connection_type *ct = PConn[p_ptr->conn];
+	connection_type *ct = Conn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
 
