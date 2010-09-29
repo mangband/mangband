@@ -527,6 +527,10 @@ byte keymap_dirs[128];
  */
 byte color_table[256][4];
 
+/*
+ * Static arrays to hold text screen loaded from TEXTFILEs.
+ */
+char text_screen[MAX_TEXTFILES][TEXTFILE__WID * TEXTFILE__HGT];
 
 /*** Player information ***/
 

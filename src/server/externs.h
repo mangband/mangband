@@ -283,6 +283,7 @@ extern char tval_to_char[128];
 extern byte keymap_cmds[128];
 extern byte keymap_dirs[128];
 extern byte color_table[256][4];
+extern char text_screen[MAX_TEXTFILES][TEXTFILE__WID * TEXTFILE__HGT];
 /*extern player_type *p_ptr;*/
 /*extern player_race *rp_ptr;
 extern player_class *cp_ptr;

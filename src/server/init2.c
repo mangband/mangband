@@ -213,7 +213,7 @@ void init_file_paths(char *path)
  * functions are "supposed" to work under any conditions.
  */
 
-static void show_news_aux(cptr why)
+static void show_news_error(cptr why)
 {
 	/* Why */
 	plog(why);
@@ -229,6 +229,56 @@ static void show_news_aux(cptr why)
 
 	/* Quit with error */
 	quit("Fatal Error.");
+}
+
+/* 
+ * Note: "show_news*()" functions were hacked for MAngband to perform a bit 
+ * differently. Instead of dumping files directly to screen, we copy them
+ * into buffers for later use.
+ */
+static void show_news_aux(const char * filename, byte ind)
+{
+	int     	n = 0;
+
+	FILE        *fp;
+
+	char	buf[1024];
+
+	/* Paranoia - ignore erroneous index */
+	if (ind > MAX_TEXTFILES) return;
+
+	/* Build the filename */
+	/* MAngband-specific hack: using HELP and not FILE directory! */
+	path_build(buf, 1024, ANGBAND_DIR_HELP, filename);
+
+	/* Open the file */
+	fp = my_fopen(buf, "r");
+
+	/* Dump */
+	if (fp)
+	{
+		/* Dump the file into the buffer */
+		while (0 == my_fgets(fp, buf, 1024) && n < TEXTFILE__HGT)
+		{
+			strncpy(&text_screen[ind][n * TEXTFILE__WID], buf, TEXTFILE__WID);
+			n++;
+		}
+
+		/* Close */
+		my_fclose(fp);
+	}
+
+	/* Failure */
+	else
+	{
+		char why[1024];
+
+		/* Message */
+		sprintf(why, "Cannot access the '%s' file!", buf);
+
+		/* Crash and burn */
+		show_news_error(why);
+	}
 }
 
 /*
@@ -264,61 +314,11 @@ void show_news(void)
 	char	buf[1024];
 
 
-	/*** Verify the "news" file ***/
+	/*** Verify and load the "news" file ***/
+	show_news_aux("news.txt", TEXTFILE_MOTD);
 
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_HELP, "news.txt");
-
-	/* Attempt to open the file */
-	fd = fd_open(buf, O_RDONLY);
-
-	/* Failure */
-	if (fd < 0)
-	{
-		char why[1024];
-
-		/* Message */
-		sprintf(why, "Cannot access the '%s' file!", buf);
-
-		/* Crash and burn */
-		show_news_aux(why);
-	}
-
-	/* Close it */
-	(void)fd_close(fd);
-
-
-#if 0
-	/*** Display the "news" file ***/
-
-	/* Clear screen */
-	/*Term_clear();*/
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_HELP, "news.txt");
-
-	/* Open the News file */
-	fp = my_fopen(buf, "r");
-
-	/* Dump */
-	if (fp)
-	{
-		/* Dump the file to the screen */
-		while (0 == my_fgets(fp, buf, 1024))
-		{
-			/* Display and advance */
-			s_printf(buf);
-			s_printf("\n");
-		}
-
-		/* Close */
-		my_fclose(fp);
-	}
-
-	/* Flush it */
-	/*Term_fresh();*/
-#endif
-
+	/*** Verify and load the "dead" file ***/
+	show_news_aux("dead.txt", TEXTFILE_TOMB);
 
 	/*** Verify (or create) the "high score" file ***/
 
@@ -346,7 +346,7 @@ void show_news(void)
 			sprintf(why, "Cannot create the '%s' file!", buf);
 
 			/* Crash and burn */
-			show_news_aux(why);
+			show_news_error(why);
 		}
 	}
 

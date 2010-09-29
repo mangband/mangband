@@ -62,6 +62,16 @@
 
 
 /*
+ * Buffers for ".txt" text files
+ */
+#define MAX_TEXTFILES 2
+#define TEXTFILE__WID 80
+#define TEXTFILE__HGT 23
+#define TEXTFILE_MOTD 0
+#define TEXTFILE_TOMB 1
+
+
+/*
  * indicators / print-fields defines
  */
 #define MAX_INDICATORS 30
