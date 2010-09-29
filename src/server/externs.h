@@ -711,9 +711,9 @@ extern int player_kill(int p_idx, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
-extern int stream_char_raw(int Ind, int st, int y, int x, byte a, char c, byte ta, char tc);
-extern int stream_char(int Ind, int st, int y, int x);
-extern int stream_line_as(int Ind, int st, int y, int x);
+extern int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc);
+extern int stream_char(player_type *p_ptr, int st, int y, int x);
+extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 

@@ -247,14 +247,14 @@ int send_stream_size(connection_type *ct, int st, int y, int x)
 	return 1;
 }
 
-int stream_char_raw(int Ind, int st, int y, int x, byte a, char c, byte ta, char tc)
+int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc)
 {
-	player_type *p_ptr = Players[Ind];
-	connection_type *ct = PConn[Ind];
+	connection_type *ct = PConn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	int n;
 
-	if (!ct) return -1;
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -273,16 +273,16 @@ int stream_char_raw(int Ind, int st, int y, int x, byte a, char c, byte ta, char
 	return 1;
 }
 
-int stream_char(int Ind, int st, int y, int x)
+int stream_char(player_type *p_ptr, int st, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
-	connection_type *ct = PConn[Ind];
+	connection_type *ct = PConn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 	s16b l;
 	int n;
 
-	if (!ct) return -1;
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -302,10 +302,9 @@ int stream_char(int Ind, int st, int y, int x)
 	return 1;
 }
 
-int stream_line_as(int Ind, int st, int y, int as_y)
+int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 {
-	player_type *p_ptr = Players[Ind];
-	connection_type *ct = PConn[Ind];
+	connection_type *ct = PConn[p_ptr->conn];
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
 
@@ -314,7 +313,8 @@ int stream_line_as(int Ind, int st, int y, int as_y)
 	byte	trn = (stream->flag & SF_TRANSPARENT);
 	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
-	if (!ct) return -1;
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
 
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
