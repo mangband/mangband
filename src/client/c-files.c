@@ -2066,7 +2066,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 void conf_set_int(cptr section, cptr name, s32b value)
 {
 	char s_value[100];
-	sprintf(s_value, PRId32, value);
+	sprintf(s_value, "%" PRId32, value);
 	WritePrivateProfileString(section, name, s_value, config_name);
 }
 /* HACK: Append section from other file */
@@ -2221,7 +2221,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 void conf_set_int(cptr section, cptr name, s32b value)
 {
 	char s_value[100];
-	sprintf(s_value, PRId32, value);
+	sprintf(s_value, "%" PRId32, value);
 	conf_set_string(section, name, s_value);
 }
 /* 
@@ -2258,7 +2258,7 @@ long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 s32b conf_get_int(cptr section, cptr name, s32b default_value)
 {
 	char v_value[100];
-	sprintf(v_value, PRId32, default_value);
+	sprintf(v_value, "%" PRId32, default_value);
 	return (u32b)conf_get_value(section, name, v_value, TRUE);
 }
 cptr conf_get_string(cptr section, cptr name, cptr default_value)

@@ -150,11 +150,11 @@ typedef unsigned short u16b;
 #ifdef L64	/* 64 bit longs */
 typedef signed int s32b;
 typedef unsigned int u32b;
-#define PRId32 "%d"
+#define PRId32 "d"
 #else
 typedef signed long s32b;
 typedef unsigned long u32b;
-#define PRId32 "%ld"
+#define PRId32 "ld"
 #endif
 
 /* Signed/Unsigned 64 bit value */
@@ -162,8 +162,8 @@ typedef signed long s64b;
 typedef unsigned long u64b;
 
 /* printf and scanf formats for 64-bit value */
-#define PRIu64 "%ld"
-#define SCNu64 "%ld"
+#define PRIu64 "ld"
+#define SCNu64 "ld"
 
 #endif /* !HAVE_INTTYPES_H
 
