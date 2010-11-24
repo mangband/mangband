@@ -148,10 +148,12 @@ int send_option_info(connection_type *ct, int id)
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
-	if (!i_ptr->pkt) return 1; /* Last one */
+	if (!i_ptr->pkt && !i_ptr->coffer) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR, 
-		i_ptr->pkt, i_ptr->tiny, i_ptr->coffer, i_ptr->row, i_ptr->col, i_ptr->flag, i_ptr->prompt, i_ptr->mark) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR,
+		i_ptr->pkt, i_ptr->tiny, i_ptr->coffer,
+		i_ptr->win, i_ptr->row, i_ptr->col,
+		i_ptr->flag, i_ptr->prompt, i_ptr->mark) <= 0)
 	{
 		/* Hack -- instead of "client_withdraw(ct);", we simply */
 		return 0;
@@ -1079,7 +1081,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 
 	/* Count indicators */
 	i = 0;
-	while (i < MAX_INDICATORS && indicators[i].pkt != 0) i++;
+	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].coffer)) i++;
 	serv_info.val1 = i;	
 	
 	/* Count streams */

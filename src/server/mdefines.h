@@ -74,7 +74,7 @@
 /*
  * indicators / print-fields defines
  */
-#define MAX_INDICATORS 30
+#define MAX_INDICATORS 40
 
 /* Those IDs must match the order of indicators[] array from tables.c */
 /* Player compact */
@@ -107,7 +107,15 @@
 #define IN_STUDY    	25
 #define IN_DEPTH    	26
 #define IN_OPPOSE   	27
-
+/* Charsheet */
+#define IN_VARIOUS    	28
+#define IN_SKILLS    	29
+#define IN_SKILLS2    	30
+#define IN_PLUSSES    	31
+#define IN_HISTORY0 	32
+#define IN_HISTORY1 	33
+#define IN_HISTORY2 	34
+#define IN_HISTORY3 	35
 
 /*** Screen Locations ***/
 

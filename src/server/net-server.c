@@ -128,6 +128,9 @@ int player_enter(int ind)
 	setup_panel(p_max, TRUE);
 	verify_panel(p_max);
 
+	/* Hack, must find better place */
+	prt_history(p_max);
+
 	return 0;
 }
 

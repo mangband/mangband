@@ -2511,6 +2511,8 @@ void display_player(int screen_mode)
 		}
 	}
 
+	/* Hack? Display relevant indicators */
+	redraw_indicators(2 + screen_mode);
 }
 
 typedef void (*pfcb) (int, int, int); /* "Print Field Call-Back" */
@@ -2753,6 +2755,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
+				n = MIN(n, 32);
 				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
@@ -2765,6 +2768,11 @@ void prt_indicator(int first_row, int first_col, int id)
 					if (flag & IN_TEXT_STAT)
 					{
 						cnv_stat(val, tmp);
+					}
+					else if (flag & IN_TEXT_LIKERT)
+					{
+						strcpy(tmp, likert(val, coffers[coff + 1]));
+						color = likert_color;
 					}
 					else if (flag & IN_TEXT_CUT)
 					{
@@ -2820,6 +2828,35 @@ int register_indicator(int id)
 
 	return 0;
 }
+/*
+ * Redraw large ammount of indicators, filtered by window.
+ */
+void redraw_indicators(byte filter)
+{
+	struct field *f;
+	u32b win;
+	s16b row;
+	int i = 0; 
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+		if (i_ptr->win == filter)
+		{
+			/* Hack: count rows from bottom? */
+			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+#if 0
+			if ((row < section_icky_row) && 
+				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+			if (screen_icky && !section_icky_row) continue;
+#endif
+			/* Display field */
+			(prt_functions[i])(row, i_ptr->col, i);
+		}
+	}
+}
 
 /*
  * Handle "p_ptr->redraw"
@@ -2830,6 +2867,7 @@ void redraw_stuff(void)
 	u32b win;
 	s16b row;
 	int i = 0; 
+	u32b old_redraw = p_ptr->redraw;
 
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;
@@ -2839,7 +2877,10 @@ void redraw_stuff(void)
 	{
 		indicator_type *i_ptr = &indicators[i];
 
-		if (p_ptr->redraw & i_ptr->redraw)
+		/* Hack? Skip after "status line" */
+		if (i_ptr->win > 1) continue;
+
+		if (old_redraw & i_ptr->redraw)
 		{
 			/* Hack: count rows from bottom? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
@@ -2860,45 +2901,12 @@ void redraw_stuff(void)
 			(prt_functions[i])(row, i_ptr->col, i);
 
 			/* Remove from next update */
-			if (i_ptr->redraw != (i_ptr+1)->redraw)
+			if (i_ptr->redraw & p_ptr->redraw)
 			{
 				p_ptr->redraw &= ~(i_ptr->redraw);
 			}
 		}
 	}
-#if 0
-	/* For each field */
-	for (f = &fields[0]; f->field_cb; f++)
-	{
-		if (p_ptr->redraw & f->trigger)
-		{
-#if 0
-			/* Hack: count rows from bottom? */
-			row = (f->row < 0 ? (Term->hgt + f->row) : f->row);
-
-			if ((row < section_icky_row) && 
-				((section_icky_col >= 0 && f->col < section_icky_col) ||
-				 (section_icky_col < 0 && f->col < 0-section_icky_col))) continue;
-			if (screen_icky && !section_icky_row) continue;
-
-			/* Update extra window */
-			win = (f->win ? PW_STATUS : PW_PLAYER_2);
-			p_ptr->window |= win;
-
-			/* Player disabled display */
-			if (!(window_flag[0] & win)) continue;
-#endif
-			/* Display field */
-			if (f->field_cb) (f->field_cb)(row, f->col);
-			/* HACK: for stats: */
-			else prt_stat(i++, row, f->col);
-
-			/* Remove from next update */
-			if (f->trigger != (f+1)->trigger)
-				p_ptr->redraw &= ~(f->trigger);
-		}
-	}
-#endif
 }
 
 

@@ -35,8 +35,8 @@
 #define MAX_MACRO_MOD 12
 
 /* Indicators */
-#define MAX_INDICATORS	30
-#define MAX_COFFERS 	60
+#define MAX_INDICATORS	50
+#define MAX_COFFERS 	255
 
 /* Sound */
 #define SAMPLE_MAX 16

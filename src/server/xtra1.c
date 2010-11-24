@@ -1078,7 +1078,7 @@ void prt_history(int Ind)
 
 	for (i = 0; i < 4; i++)
 	{
-		Send_history(Ind, i, p_ptr->history[i]);
+		send_indication(Ind, IN_HISTORY0 + i, p_ptr->history[i]);
 	}
 }
 
@@ -1086,7 +1086,7 @@ static void prt_various(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	Send_various(Ind, p_ptr->ht, p_ptr->wt, p_ptr->age, p_ptr->sc);
+	send_indication(Ind, IN_VARIOUS, p_ptr->age, p_ptr->ht, p_ptr->wt, p_ptr->sc);
 }
 
 static void prt_plusses(int Ind)
@@ -1100,12 +1100,61 @@ static void prt_plusses(int Ind)
 	if (object_known_p(Ind, o_ptr)) show_tohit += o_ptr->to_h;
 	if (object_known_p(Ind, o_ptr)) show_todam += o_ptr->to_d;
 
-	Send_plusses(Ind, show_tohit, show_todam);
+	send_indication(Ind, IN_PLUSSES, show_tohit, show_todam);
 }
 
 static void prt_skills(int Ind)
 {
-	Send_skills(Ind);
+	player_type *p_ptr = Players[Ind];
+	s16b skills[11];
+	s16b factors[11];
+	int i, tmp;
+	object_type *o_ptr;
+
+	/* Fighting skill */
+	o_ptr = &p_ptr->inventory[INVEN_WIELD];
+	tmp = p_ptr->to_h + o_ptr->to_h;
+	skills[0] = p_ptr->skill_thn + (tmp * BTH_PLUS_ADJ);
+	factors[0] = 12;
+
+	/* Shooting skill */
+	o_ptr = &p_ptr->inventory[INVEN_BOW];
+	tmp = p_ptr->to_h + o_ptr->to_h;
+	skills[1] = p_ptr->skill_thb + (tmp * BTH_PLUS_ADJ);
+	factors[1] = 12;
+
+	/* Basic abilities */
+	skills[2] = p_ptr->skill_sav;
+	factors[2] = 6;
+	skills[3] = p_ptr->skill_stl;
+	factors[3] = 1;
+	skills[4] = p_ptr->skill_fos;
+	factors[4] = 6;
+	skills[5] = p_ptr->skill_srh;
+	factors[5] = 6;
+	skills[6] = p_ptr->skill_dis;
+	factors[6] = 8;
+	skills[7] = p_ptr->skill_dev;
+	factors[7] = 6;
+
+	/* Number of blows */
+	skills[8] = p_ptr->num_blow;
+	skills[9] = p_ptr->num_fire;
+
+	/* Infravision */
+	skills[10] = p_ptr->see_infra;
+
+	send_indication(Ind, IN_SKILLS,
+		skills[0], factors[0],
+		skills[4], factors[4],
+		skills[1], factors[1],
+		skills[5], factors[5],
+		skills[2], factors[2],
+		skills[6], factors[6],
+		skills[3], factors[3],
+		skills[7], factors[7]);
+
+	send_indication(Ind, IN_SKILLS2,	skills[8], skills[9], skills[10]);
 }
 
 /*

@@ -657,7 +657,7 @@ int recv_indicator(connection_type *ct) {
 	for (i = 0; i < i_ptr->coffer; i++) 
 	{
 		/* Read */
-		s16b val = 0, n = 0;
+		s32b val = 0, n = 0;
 		if (i_ptr->tiny  == INDITYPE_TINY)
 		{
 			n = cq_scanf(&ct->rbuf, "%c", &tiny_c);
@@ -714,7 +714,8 @@ int recv_indicator_info(connection_type *ct) {
 	byte
 		pkt = 0,
 		tiny = 0,
-		amnt = 0;
+		amnt = 0,
+		win = 0;
 	char buf[MSG_LEN]; //TODO: check this 
 	char mark[MAX_CHARS];
 	s16b row = 0,
@@ -724,7 +725,7 @@ int recv_indicator_info(connection_type *ct) {
 
 	indicator_type *i_ptr;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%d%d%ul%S%s", &pkt, &tiny, &amnt, &row, &col, &flag, buf, mark) < 8) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c%d%d%ul%S%s", &pkt, &tiny, &amnt, &win, &row, &col, &flag, buf, mark) < 9) return 0;
 
 	/* Check for errors */
 	if (known_indicators >= MAX_INDICATORS)
@@ -748,15 +749,42 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->row = row;
 	i_ptr->col = col;
 	i_ptr->flag = flag;
+	i_ptr->win = win;
 
 	i_ptr->mark = strdup(mark);
-	i_ptr->prompt = strdup(buf);
 
-	handlers[pkt] = ((tiny != INDITYPE_STRING) ? recv_indicator : recv_indicator_str);
-	schemes[pkt] = NULL; /* HACK */
+	n = strlen(buf);
+	if (n <= 0) n = MAX_CHARS;
+	C_MAKE(i_ptr->prompt, n, char);
+	strcpy(i_ptr->prompt, buf);
 
-	indicator_refs[pkt] = known_indicators;
-	coffer_refs[known_indicators] = known_coffers;
+	/* Indicator takes place of a PKT */
+	if (pkt)
+	{
+		handlers[pkt] = ((tiny != INDITYPE_STRING) ? recv_indicator : recv_indicator_str);
+		schemes[pkt] = NULL; /* HACK */
+
+		indicator_refs[pkt] = known_indicators;
+		coffer_refs[known_indicators] = known_coffers;
+	}
+	/* A 'hollow' indicator, which is just a clone */
+	else
+	{
+		/* Perform it's own error-checking */
+		if (tiny >= known_indicators)
+		{
+			plog("Attempting to clone indicator too far!");
+			return -1;
+		}
+		if (coffer_refs[tiny] + amnt + 1 >= known_coffers)
+		{
+			plog("Attempting to clone coffer too far!");
+			return -1;
+		}
+		i_ptr->redraw = indicators[tiny].redraw; 
+		coffer_refs[known_indicators] = coffer_refs[tiny];
+		amnt = 0;
+	}
 
 	known_coffers += amnt;
 	known_indicators++;

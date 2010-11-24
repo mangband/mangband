@@ -441,17 +441,18 @@ const stream_type streams[MAX_STREAMS] =
 	cptr mark;
 */
 #define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N
+#define INDICATOR_CLONE(T, N) 0, IN_ ## T, N
 const indicator_type indicators[MAX_INDICATORS] = 
 {
 	{
 		INDICATOR_PKT(RACE, STRING, 0), 	0,	ROW_RACE,	COL_RACE,
 		(0), "",
-		(PR_TITLE), "race_"
+		(PR_MISC), "race_"
 	},
 	{
 		INDICATOR_PKT(CLASS, STRING, 0),	0,	ROW_CLASS,	COL_CLASS,
 		(0), "",
-		(PR_TITLE), "class_"
+		(PR_MISC), "class_"
 	},
 	{
 		INDICATOR_PKT(TITLE, STRING, 0),	0,	ROW_TITLE,	COL_TITLE,
@@ -657,7 +658,65 @@ const indicator_type indicators[MAX_INDICATORS] =
 		"     \v\asAcid \f     \v\abElec \f     \v\arFire \f     \v\awCold \f     \v\agPois ",
 		(PR_OPPOSE_ELEMENTS), "oppose"
 	},
-
+	/** Character sheet **/
+	{
+		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	2,  	2,	32,
+		(IN_VT_CR | IN_VT_LF | IN_VT_FF | IN_VT_COLOR_RESET),
+		"Age             \aB%6ld\vHeight          \aB%6ld\vWeight          \aB%6ld\vSocial Class    \aB%6ld",
+		(PR_VARIOUS), "various"
+	},
+	{
+		INDICATOR_PKT(SKILLS, NORMAL, 16),   	2,  	16,	1,
+		(IN_TEXT_LIKERT | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Fighting    :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fPerception  :\t%\r\n\v\fBows/Throw  :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fSearching   :\t%\r\n\v\fSaving Throw:\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fDisarming   :\t%\r\n\v\fStealth     :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fMagic Device:\t%",
+		(PR_SKILLS), "skills"
+	},
+	{
+		INDICATOR_PKT(SKILLS2, NORMAL, 3),   	2,  	16,	55,
+		(IN_VT_COLOR_RESET | IN_VT_FF | IN_VT_CR | IN_VT_LF),
+		"Blows/Round:\t\t%d\vShots/Round:\t\t%d\v\nInfra-Vision:\t%d feet",
+		(PR_SKILLS), "skills2"
+	},
+	{
+		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	2,  	9,	1,
+		(IN_VT_COLOR_RESET | IN_VT_CR | IN_VT_LF | IN_VT_FF),
+		"+ To Hit    \t\t\t\aB%6ld\v+ To Damage \t\t\t\aB%6ld", 
+		(PR_PLUSSES), "plusses"
+	},
+	/* Those 4 indicators should be merged into one (once code allows it) */
+	{
+		INDICATOR_PKT(HISTORY0, STRING, 0), 	3,	16+0,	10,
+		(0), "",
+		(0), "history0_"
+	},
+	{
+		INDICATOR_PKT(HISTORY1, STRING, 0), 	3,	16+1,	10,
+		(0), "",
+		(0), "history1_"
+	},
+	{
+		INDICATOR_PKT(HISTORY2, STRING, 0), 	3,	16+2,	10,
+		(0), "",
+		(0), "history2_"
+	},
+	{
+		INDICATOR_PKT(HISTORY3, STRING, 0), 	3,	16+3,	10,
+		(0), "",
+		(0), "history3_"
+	},
+	/** Clones **/
+	{
+		INDICATOR_CLONE(HP, 2),   	2,  	9,	52,
+		(0),
+		"\vMax Hit Points  	 \aG%6ld", 
+		(PR_HP), "hist_mhp"
+	},
+ 	{
+		INDICATOR_CLONE(HP, 1),   	2,     10,	52,
+		(IN_VT_FF),
+		"Cur Hit Points    \a@%6ld",
+		(PR_HP), "hist_chp"
+	},
 	/* Tail */
 	{
 		0, 0, 0, 0, 0, 0,
