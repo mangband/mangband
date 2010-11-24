@@ -179,6 +179,39 @@ static void sync_data_piece(int rq, int* ask, int rcv, int max, bool* ready)
 		(*ready) = FALSE;
 	}
 }
+/*
+ * Sync required data structures.
+ * Returns TRUE when data is ready for active gameplay,
+ * FALSE when not.
+ */
+bool sync_data(void)
+{
+	bool data_ready = TRUE;
+
+	static int asked_indicators = -1;
+	static int asked_streams = -1;
+	static int asked_commands = -1;
+	static int asked_testers = -1;
+	static int asked_options = -1;
+
+	/* Indicators */
+	sync_data_piece(RQ_INDI, &asked_indicators, known_indicators, serv_info.val1, &data_ready);
+
+	/* Streams */
+	sync_data_piece(RQ_STRM, &asked_streams, known_streams, serv_info.val2, &data_ready);
+
+	/* Commands */
+	sync_data_piece(RQ_CMDS, &asked_commands, custom_commands, serv_info.val3, &data_ready);
+
+	/* Item Testerers */
+	sync_data_piece(RQ_ITEM, &asked_testers, known_item_testers, serv_info.val4, &data_ready);
+
+	/* Options */
+	sync_data_piece(RQ_OPTS, &asked_options, known_options, options_max, &data_ready);
+
+	return data_ready;
+}
+
 /* HACK! Declare Game_loop so we can call it */
 static void Game_loop(void);
 
@@ -190,14 +223,9 @@ static void Setup_loop()
 	int old_state = -1;
 	u16b conntype = CONNTYPE_PLAYER;
 
-	int asked_indicators = -1;
-	int asked_streams = -1;
-	int asked_commands = -1;
-	int asked_testers = -1;
-	int asked_options = -1;
 	bool asked_game = FALSE;
 
-	bool data_ready = TRUE;
+	bool data_ready = FALSE;
 	bool char_ready = FALSE;
 
 	send_handshake(conntype);
@@ -208,51 +236,41 @@ static void Setup_loop()
 		network_loop();
 
 		/* Check and Prepare data */
-		data_ready = FALSE;
-		if (old_state >= PLAYER_EMPTY)
-		{
-			data_ready = TRUE;
-			/* Indicators */
-			sync_data_piece(RQ_INDI, &asked_indicators, known_indicators, serv_info.val1, &data_ready);
-			/* Streams */
-			sync_data_piece(RQ_STRM, &asked_streams, known_streams, serv_info.val2, &data_ready);
-			/* Commands */
-			sync_data_piece(RQ_CMDS, &asked_commands, custom_commands, serv_info.val3, &data_ready);
-			/* Item Testerers */
-			sync_data_piece(RQ_ITEM, &asked_testers, known_item_testers, serv_info.val4, &data_ready);
-			/* Options */
-			sync_data_piece(RQ_OPTS, &asked_options, known_options, options_max, &data_ready);
-		}
+		data_ready = sync_data();
 
 		/* Check and Prepare character */
-		if (old_state != state && state)
+		if (old_state != state)
 		{
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
 			/* No character is ready */
-			if (state < PLAYER_SHAPED)
+			if (state == PLAYER_NAMED)
 			{
 				/* Generate one */
 				get_char_info();
 				send_char_info();
 				send_play(PLAY_ROLL);
 			}
-			if (old_state < PLAYER_SHAPED)
+			if (old_state < PLAYER_SHAPED && state >= PLAYER_SHAPED)
 			{
 				client_setup();
-				send_play(PLAY_ENTER);
 			}
-			if (state >= PLAYER_READY)
+			if (state == PLAYER_SHAPED)
+			{
+				send_play(PLAY_ROLL);
+			}
+			if (state == PLAYER_READY)
 			{
 				char_ready = TRUE;
 			}
 			old_state = state;
 		}
-		if (asked_game == FALSE)
+		if (state == PLAYER_FULL && data_ready == TRUE)
 		{
-			if (state == PLAYER_READY && data_ready)
+			if (asked_game == FALSE)
 			{
-				asked_game = TRUE;
+				send_play(PLAY_ENTER);
 			}
+			asked_game = TRUE;
 		}
 	} while (!(char_ready && data_ready));
 
