@@ -2402,6 +2402,48 @@ static void display_player_misc_info(void)
 	     }
 }
 
+typedef void (*pfcb) (int, int, int); /* "Print Field Call-Back" */
+pfcb prt_functions[MAX_INDICATORS];
+struct field
+{
+	cptr	mark;
+	s16b	row;
+	s16b	col;
+
+	pfcb	field_cb;
+	byte	win;
+};
+
+/*
+ * Redraw large ammount of indicators, filtered by window.
+ */
+void redraw_indicators(byte filter)
+{
+	struct field *f;
+	u32b win;
+	s16b row;
+	int i = 0; 
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+		if (i_ptr->win == filter)
+		{
+			/* Hack: count rows from bottom? */
+			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+#if 0
+			if ((row < section_icky_row) && 
+				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+			if (screen_icky && !section_icky_row) continue;
+#endif
+			/* Display field */
+			(prt_functions[i])(row, i_ptr->col, i);
+		}
+	}
+}
+
 /*
  * Display the character on the screen (3 different modes)
  *
@@ -2515,17 +2557,6 @@ void display_player(int screen_mode)
 	redraw_indicators(2 + screen_mode);
 }
 
-typedef void (*pfcb) (int, int, int); /* "Print Field Call-Back" */
-pfcb prt_functions[MAX_INDICATORS];
-struct field
-{
-	cptr	mark;
-	s16b	row;
-	s16b	col;
-
-	pfcb	field_cb;
-	byte	win;
-};
 struct field fields[] = 
 {
 #if 0
@@ -2827,35 +2858,6 @@ int register_indicator(int id)
 		prt_functions[id] = prt_indicator;
 
 	return 0;
-}
-/*
- * Redraw large ammount of indicators, filtered by window.
- */
-void redraw_indicators(byte filter)
-{
-	struct field *f;
-	u32b win;
-	s16b row;
-	int i = 0; 
-
-	/* For each indicator */
-	for (i = 0; i < known_indicators; i++)
-	{
-		indicator_type *i_ptr = &indicators[i];
-		if (i_ptr->win == filter)
-		{
-			/* Hack: count rows from bottom? */
-			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
-#if 0
-			if ((row < section_icky_row) && 
-				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
-				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
-			if (screen_icky && !section_icky_row) continue;
-#endif
-			/* Display field */
-			(prt_functions[i])(row, i_ptr->col, i);
-		}
-	}
 }
 
 /*
