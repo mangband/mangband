@@ -2662,6 +2662,7 @@ that keeps many algorithms happy.
      (p_ptr->d_char[(T)->k_idx]))
 
 
+#define object_copy(D,S) COPY((D), (S), object_type);
 
 /*
  * Artifacts use the "name1" field
