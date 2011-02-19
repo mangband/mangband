@@ -55,6 +55,11 @@ void network_loop()
 	//first_timer = handle_timers(first_timer, static_timer(0));
 
 	network_pause(1000); /* 0.001 ms "sleep" */
+
+	/* Update our timer and if neccecary send a keepalive packet
+	 * (or something similar via timer above) */
+	//update_ticks();
+	//do_keepalive();
 }
 
 int client_close(int data1, data data2) {

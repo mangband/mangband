@@ -355,6 +355,7 @@ extern void initialize_all_pref_files(void);
 extern void client_init(char *argv1);
 extern  int client_failed(void);
 extern void gather_settings(void);
+extern void flush_updates(void);
 
 /* c-inven.c */
 extern s16b index_to_label(int i);

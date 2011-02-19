@@ -284,6 +284,29 @@ static void Setup_loop()
 	Game_loop();
 }
 
+/* 
+ * Propogate all pending updates to the screen
+ */
+void flush_updates()
+{
+	/* Redraw status etc if necessary */
+	if (p_ptr->redraw)
+	{
+		redraw_stuff();
+	}
+
+	/* Redraw windows if necessary */
+	if (p_ptr->window)
+	{
+		window_stuff();
+	}
+
+	/* Hack -- don't redraw the screen until we have all of it */
+	//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
+	/* Update the screen */
+	Term_fresh();
+}
+
 /*
  * Loop, looking for net input and responding to keypresses.
  */
@@ -313,22 +336,8 @@ static void Game_loop(void)
 		/* Flush input (now!) */
 		flush_now();
 
-		/* Redraw status etc if necessary */
-		if (p_ptr->redraw)
-		{
-			redraw_stuff();
-		}
-
-		/* Redraw windows if necessary */
-		if (p_ptr->window)
-		{
-			window_stuff();
-		}
-
-		/* Hack -- don't redraw the screen until we have all of it */
-		//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
-		/* Update the screen */
-		Term_fresh();
+		/* Flush output */
+		flush_updates();
 	}
 }	
 

@@ -277,10 +277,9 @@ static char inkey_aux(void)
 		/* Do networking */
 		network_loop();
 
-		/* Update our timer and if neccecary send a keepalive packet
-		 */
-		//update_ticks();
-		//do_keepalive();
+		/* Update screen */
+		flush_updates();
+
 		/* Hack: perform emergency network-ordered escape */
 		if (inkey_exit)
 		{
