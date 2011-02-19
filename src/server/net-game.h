@@ -14,6 +14,9 @@
 	PACKET(PKT_OPTIONS,    	NULL,       	recv_options)
 	PACKET(PKT_SETTINGS,   	NULL,       	recv_settings)
 
+	PACKET(PKT_TERM_INIT,	"%c",       	recv_term_init)
+	PACKET(PKT_KEY,     	"%c",       	recv_term_key)
+
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
 
 	PACKET(PKT_WALK,    	"%c",       	recv_command)

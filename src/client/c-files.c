@@ -1832,6 +1832,9 @@ void show_peruse(s16b line)
 	s16b last = last_remote_line[p_ptr->remote_term];
 	int k = window_to_stream[p_ptr->remote_term];
 
+	/* Ugly hack :( Just assume 0 for now */
+	line = 0;
+
 	/* Draw text */
 	for (n = 2; n < Term->hgt-2; n++)
 	{

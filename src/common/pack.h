@@ -94,6 +94,7 @@
 #define PKT_CHANGEPASS		162
 #define PKT_OBJFLAGS		163
 #define PKT_CHANNEL		165
+#define PKT_TERM_INIT  	166
 #define PKT_TERM  		167
 #define PKT_KEY  		168
 #define PKT_ITEM_TESTER	169
@@ -224,17 +225,18 @@
 /*
  * PKT_TERM helpers
  */
-#define NTERM_ACTIVATE	0
-#define NTERM_CLEAR  	1
+#define NTERM_ACTIVATE	0x10
+#define NTERM_FLUSH 	0x20
+#define NTERM_BROWSE	0x40
+#define NTERM_HOLD    	0x80
+#define NTERM_CLEAR  	0x01
+#define NTERM_FRESH  	0x02
+#define NTERM_POP    	0x04
+#define NTERM_ICKY  	0x08
 #define NTERM_CURSOR 	2
 #define NTERM_SAVE   	3
 #define NTERM_LOAD   	4
 #define NTERM_KEY    	5
-#define NTERM_HOLD    	6
-#define NTERM_FRESH  	7
-#define NTERM_POP    	8
-#define NTERM_FLUSH 	9
-#define NTERM_BROWSE	10
 /* NTERM_ACTIVATE */
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1

@@ -844,7 +844,7 @@ void cmd_interactive()
 	Term_save();
 
 	/* Send the request */
-	Send_interactive(special_line_type);
+	send_interactive(special_line_type);
 
 	/* Wait until we get the whole thing */
 	while (!done)
@@ -855,7 +855,7 @@ void cmd_interactive()
 		if (!ch)
 			continue;
 
-		Send_term_key(ch);
+		send_term_key(ch);
 
 		/* Check for user abort */
 		if (ch == ESCAPE && !icky_levels)

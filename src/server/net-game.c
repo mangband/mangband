@@ -341,6 +341,38 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	return 1;
 }
 
+int send_term_info(player_type *p_ptr, byte flag, u16b line)
+{
+	connection_type *ct = Conn[p_ptr->conn];
+
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
+
+	/* Special hack when principal mode is "activate" */
+	if (flag & NTERM_ACTIVATE)
+	{
+		/* Do not change terminals too often */
+		if (p_ptr->remote_term == (byte)line) return 1;
+		/* Ensure change */
+		p_ptr->remote_term = (byte)line;
+	}
+
+	/* Send (with additional parameter?) */
+	if (flag & 0xF0)
+		return cq_printf(&ct->wbuf, "%c%b%ud", PKT_TERM, flag, line);
+	else
+		return cq_printf(&ct->wbuf, "%c%b", PKT_TERM, flag);
+}
+int send_term_header(player_type *p_ptr, cptr header)
+{
+	connection_type *ct = Conn[p_ptr->conn];
+
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
+
+	return cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header);
+}
+
 int send_custom_command_info(connection_type *ct, int id)
 {
 	const custom_command_type *cc_ptr = &custom_commands[id];
@@ -809,6 +841,63 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 
 	return 1;
 }
+/* */
+int recv_term_init(connection_type *ct, player_type *p_ptr)
+{
+	byte
+		type = 0;
+	int Ind = Get_Ind[p_ptr->conn];		
+	if (cq_scanf(&ct->rbuf, "%c", &type) < 1)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Hack */
+	if (type == 0 && !IS_PLAYING(p_ptr)) type = SPECIAL_FILE_HELP;
+
+
+	p_ptr->special_file_type = type;
+	int n;
+	for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
+	{
+		custom_command_type *cc_ptr = &custom_commands[n];
+		if (cc_ptr->pkt == 0) break;
+		if ((cc_ptr->tval == type) &&
+			(cc_ptr->flag & COMMAND_INTERACTIVE) &&
+			(cc_ptr->do_cmd_callback)) 
+		{
+			p_ptr->special_handler = n;
+			(*(void (*)(player_type*, char))(cc_ptr->do_cmd_callback))( Ind, 0);
+			return 1;
+		}
+			
+	}
+
+	do_cmd_interactive(	Ind, 0);
+
+	return 1;
+}
+/* */
+int recv_term_key(connection_type *ct, player_type *p_ptr)
+{
+	byte
+		key = 0;
+	int Ind = Get_Ind[p_ptr->conn];		
+	if (cq_scanf(&ct->rbuf, "%c", &key) < 1)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	int n;
+	if ((n = p_ptr->special_handler))
+		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(Ind, key);
+	else if (p_ptr->special_file_type)
+		do_cmd_interactive(Ind, key);
+
+}
+
 
 /** Gameplay commands **/
 /* Those return 

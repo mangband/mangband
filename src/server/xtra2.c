@@ -6102,7 +6102,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	char buf[80], *s = NULL;
 	int old_tab, skip_line, old_line;	
 	int i, j, x, y;
-	int hgt = p_ptr->screen_hgt;
+	int hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT];
 	bool access = FALSE;
 	bool prompt_hooks = TRUE;
 	cptr error = NULL;
@@ -6859,7 +6859,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 	/* Send */
 	Send_term_info(Ind, NTERM_CLEAR, 1);
-	for (i = 0; i < p_ptr->screen_hgt+2; i++)
+	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT]; i++)
 	{
 		Stream_line(Ind, STREAM_SPECIAL_MIXED, i); 
 	}

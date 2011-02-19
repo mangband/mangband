@@ -319,6 +319,15 @@ int send_msg(cptr message)
 	return cq_printf(&serv->wbuf, "%c%S", PKT_MESSAGE, message);
 }
 
+int send_interactive(byte type)
+{
+	return cq_printf(&serv->wbuf, "%c%c", PKT_TERM_INIT, type);
+}
+int send_term_key(char key)
+{
+	return cq_printf(&serv->wbuf, "%c%c", PKT_KEY, key);
+}
+
 /* Gameplay commands */
 int send_walk(char dir)
 {
@@ -846,6 +855,12 @@ int recv_stream(connection_type *ct) {
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
+	if (y > p_ptr->stream_hgt[id]) 
+	{
+		plog("Stream out of bounds");
+		return -1;
+	}
+
 	cols = p_ptr->stream_wid[id];
 	dest = p_ptr->stream_cave[id] + y * cols;
  	line = &last_remote_line[addr];
@@ -985,6 +1000,122 @@ int recv_stream_info(connection_type *ct) {
 
 	known_streams++;	
 
+
+	return 1;
+}
+
+/* Network/Terminals */
+int recv_term_info(connection_type *ct) {
+	byte win,
+		flag = 0;
+	u16b
+		line = 0;
+
+	if (cq_scanf(&ct->rbuf, "%b", &flag) < 1) return 0;
+
+	/* For principal modes, grab additional parameter */
+	if ((flag & 0xF0) && cq_scanf(&ct->rbuf, "%ud", &line) < 1) return 0;
+
+	/* Change terminal id */
+	if (flag & NTERM_ACTIVATE)
+	{
+		p_ptr->remote_term = (byte)line;
+		line = 0; /* Paranoia - reset line just in case */
+	}
+
+	/* Grab terminal id */
+	win = p_ptr->remote_term;
+
+	/* Reset counter */	
+	if (flag & NTERM_CLEAR)
+	{
+		last_remote_line[win] = 0;
+	}
+
+	/* Refresh window */
+	if (flag & NTERM_FRESH)
+	{
+		p_ptr->window |= streams[window_to_stream[win]].window_flag;
+	}
+
+	/* Icky test */
+	if ((flag & NTERM_ICKY) && !screen_icky) return 1;
+
+	/* Change terminal state */	
+	if (flag & NTERM_HOLD)
+	{
+		if (line == 0)
+		{
+			inkey_exit = TRUE;
+		}
+		if (line == 1 && screen_icky)
+		{
+			icky_levels++;
+		}
+		if (line == 2 && icky_levels)
+		{
+			icky_levels--;
+		}
+	}
+
+	/* Copy nterm contents to screen */
+	if (flag & NTERM_FLUSH)
+	{
+		u16b wid, hgt, off, n;
+		byte st;
+
+		off = 0;
+		st = window_to_stream[win];
+		hgt = last_remote_line[win] + 1;
+		wid = p_ptr->stream_wid[st];
+
+		/* HACK: */
+		if (!win) off = DUNGEON_OFFSET_X;
+
+		for (n = line; n < hgt; n++)
+		{
+			caveprt(stream_cave(st, n), wid, off, n );
+		}
+	}
+
+	/* Browse NTerm contents locally */
+	if (flag & NTERM_BROWSE)
+	{
+		show_peruse(line);
+	}
+	/* Pop-up NTerm contents */
+	if (flag & NTERM_POP)
+	{
+		show_popup();
+	}
+	/* Clear screen */
+	if (flag & NTERM_CLEAR)
+	{
+		Term_clear();
+	}
+	/* Refresh screen */
+	if (flag & NTERM_FRESH)
+	{
+		Term_fresh();
+	}
+	return 1;
+}
+int recv_term_header(connection_type *ct) {
+	char buf[80];
+
+	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
+
+	/* Save header */
+	strcpy(special_line_header, buf);
+
+	/* Enable perusal mode */
+	special_line_type = TRUE;
+
+	/* Ignore it if we're busy */
+	if (screen_icky || looking) return 1;
+
+	/* Prepare popup route */
+	prepare_popup();
 
 	return 1;
 }

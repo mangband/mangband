@@ -901,7 +901,7 @@ void do_cmd_check_other(int Ind, int line)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i, hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] - 2;
+	int i, hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT];
 
 	/* Make sure the player is allowed to */
 	if (!p_ptr->special_file_type) return;
@@ -911,12 +911,12 @@ void do_cmd_check_other(int Ind, int line)
 	for (i = line; i < line + hgt; i++)
 	{
 		/* (Unless we're done) */
-		if (i >= p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] || i > p_ptr->last_info_line) break;
+		if (i > p_ptr->last_info_line) break;
 
-		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	Send_term_info(Ind, (p_ptr->last_info_line > hgt ? NTERM_BROWSE : NTERM_POP), line);
+	Send_term_info(Ind, NTERM_BROWSE, line);
 
 #if 0
 	int n = 0;

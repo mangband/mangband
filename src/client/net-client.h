@@ -18,5 +18,7 @@
 	PACKET(PKT_ITEM_TESTER,	NULL,   	recv_item_tester_info)
 	PACKET(PKT_OPTION,	NULL,   	recv_option_info)
 
+	PACKET(PKT_TERM,    	"%b%ud",	recv_term_info)
+
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
 #endif

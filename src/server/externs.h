@@ -673,7 +673,7 @@ extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
-#define Send_term_info(IND, A, B) plog("Send_term_info unimplemented\n")
+#define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
