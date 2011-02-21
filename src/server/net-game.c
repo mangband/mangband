@@ -847,6 +847,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 	byte
 		type = 0;
 	int Ind = Get_Ind[p_ptr->conn];		
+	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &type) < 1)
 	{
 		/* Not enough bytes */
@@ -858,7 +859,6 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 
 
 	p_ptr->special_file_type = type;
-	int n;
 	for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
 	{
 		custom_command_type *cc_ptr = &custom_commands[n];
@@ -884,13 +884,13 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	byte
 		key = 0;
 	int Ind = Get_Ind[p_ptr->conn];		
+	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &key) < 1)
 	{
 		/* Not enough bytes */
 		return 0;
 	}
 
-	int n;
 	if ((n = p_ptr->special_handler))
 		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(Ind, key);
 	else if (p_ptr->special_file_type)
