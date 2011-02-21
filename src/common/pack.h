@@ -233,6 +233,9 @@
 #define NTERM_FRESH  	0x02
 #define NTERM_POP    	0x04
 #define NTERM_ICKY  	0x08
+#define NTERM_PUSH  	1
+#define NTERM_PULL  	2
+#define NTERM_ESCAPE	0
 #define NTERM_CURSOR 	2
 #define NTERM_SAVE   	3
 #define NTERM_LOAD   	4

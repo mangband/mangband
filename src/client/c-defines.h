@@ -42,7 +42,7 @@
 #define SAMPLE_MAX 16
 
 /* Get cave by stream */
-#define stream_cave(I, L) p_ptr->stream_cave[I] + L * p_ptr->stream_wid[I]
+#define stream_cave(I, L) (p_ptr->stream_cave[(I)] + (L) * p_ptr->stream_wid[(I)])
 
 /*** Screen Locations ***/
 

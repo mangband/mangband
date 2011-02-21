@@ -1049,15 +1049,15 @@ int recv_term_info(connection_type *ct) {
 	/* Change terminal state */	
 	if (flag & NTERM_HOLD)
 	{
-		if (line == 0)
+		if (line == NTERM_ESCAPE)
 		{
 			inkey_exit = TRUE;
 		}
-		if (line == 1 && screen_icky)
+		if (line == NTERM_PUSH && screen_icky)
 		{
 			icky_levels++;
 		}
-		if (line == 2 && icky_levels)
+		if (line == NTERM_PULL && icky_levels)
 		{
 			icky_levels--;
 		}

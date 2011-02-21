@@ -433,7 +433,11 @@ void init_subscriptions()
 		st_ptr = &streams[stream_group[i]];
 
 		/* Hidden stream */
-		if (st_ptr->flag & SF_HIDE) continue;
+		if (st_ptr->flag & SF_HIDE) 
+		{
+			st_ptr->window_flag = (1L << n);
+			continue;
+		}
 
 		/* Find an unused slot */
 		while (window_flag_desc[n] && n < 32) n++;

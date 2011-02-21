@@ -286,7 +286,7 @@ void display_houses(int Ind, char query)
 	text_out_done();
 	
 	/* Send */
-	Send_term_info(Ind, NTERM_CLEAR, 1);
+	Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
 	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (i >= p_ptr->last_info_line) break;
@@ -907,7 +907,7 @@ void do_cmd_check_other(int Ind, int line)
 	if (!p_ptr->special_file_type) return;
 
 	/* Dump the next N lines */
-	Send_term_info(Ind, NTERM_CLEAR, 1);
+	Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
 	for (i = line; i < line + hgt; i++)
 	{
 		/* (Unless we're done) */
@@ -1022,7 +1022,7 @@ void special_file_peruse(int Ind, int type, char query)
 			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
 		}
 		/* Send *everything* to client */
-		Send_term_info(Ind, NTERM_CLEAR, 1);
+		Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
 			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
@@ -1112,7 +1112,7 @@ void do_cmd_knowledge(int Ind, char query)
 		text_out_done();
 		
 		/* Send */
-		Send_term_info(Ind, NTERM_CLEAR, 1);
+		Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
 			if (i >= p_ptr->last_info_line) break;
@@ -1188,7 +1188,7 @@ void do_cmd_interactive_input(int Ind, char query)
 
 		*old_file_type = p_ptr->special_file_type;
 		p_ptr->special_file_type = SPECIAL_FILE_INPUT;
-		Send_term_info(Ind, NTERM_HOLD, 1);
+		Send_term_info(Ind, NTERM_HOLD, NTERM_PUSH);
 
 		break;
 
@@ -1221,7 +1221,7 @@ void do_cmd_interactive_input(int Ind, char query)
 	if (done || (*mlen && (*len >= *mlen)))
 	{
 		p_ptr->special_file_type = *old_file_type;
-		Send_term_info(Ind, NTERM_HOLD, 2);
+		Send_term_info(Ind, NTERM_HOLD, NTERM_PULL);
 		do_cmd_interactive_aux(Ind, *old_file_type, *mark);
 		return; 
 	}

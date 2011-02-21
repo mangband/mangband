@@ -4057,7 +4057,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		p_ptr->panel_col != p_ptr->panel_col_old))
 	{
 		/* Cancel input */
-		Send_term_info(Ind, NTERM_HOLD, 0);
+		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
 
 		/* Stop locating */
 		do_cmd_locate(Ind, 0);

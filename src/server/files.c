@@ -1532,7 +1532,7 @@ void common_file_peruse(int Ind, char query)
 				string_free(p_ptr->interactive_file);
 			p_ptr->interactive_file = NULL;
 		}
-		p_ptr->special_file_type = NULL;
+		p_ptr->special_file_type = 0;
 		return;
 	}
 
