@@ -478,7 +478,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 /* Undefined packet "handler" */
 static int recv_undef(connection_type *ct, player_type *p_ptr) 
 { 
-	client_abort(ct, format("Undefined packet! %d", next_pkt));
+	client_abort(ct, format("Undefined packet '%d'!", next_pkt));
 }
 
 int recv_keepalive(connection_type *ct, player_type *p_ptr) 

@@ -23,6 +23,7 @@ s16b state = 0;
 static int		(*handlers[256])(connection_type *ct);
 static cptr		(schemes[256]);
 
+byte last_pkt; /* last_pkt is used for debug purposes only */ 
 byte next_pkt;
 cptr next_scheme;
 
@@ -84,6 +85,7 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		next_scheme = schemes[next_pkt];
 
 		result = (*handlers[next_pkt])(ct);
+		last_pkt = next_pkt;
 
 		/* Unable to continue */
 		if (result != 1) break;
@@ -403,7 +405,7 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 
-	printf("Undefined packet %d came from server!\n", next_pkt);
+	printf("Undefined packet %d came from server! Last packet was: %d\n", next_pkt, last_pkt);
 
 	/* Disconnect client! */
 	return -1;

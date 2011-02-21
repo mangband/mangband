@@ -409,11 +409,11 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		case CONNTYPE_OLDPLAYER:
 			okay = -1;
 			cq_printf(&ct->wbuf, "%c", 0x01);
-			plog(format("Legacy connection requested from %s", ct->host_addr));	
+			debug(format("Legacy connection requested from %s", ct->host_addr));
 		break;
 		case CONNTYPE_ERROR:
 			okay = -1;
-			plog(format("Invalid connection type requested from %s", ct->host_addr));
+			debug(format("Invalid connection type requested from %s", ct->host_addr));
 		break;
 	}
 
@@ -499,10 +499,16 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	/** LOGIN **/
 	if (!client_version_ok(version))
 	{ 
+#ifdef DEBUG
+		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
+#endif
 		client_abort(ct, "Incompatible client version.");
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
+#ifdef DEBUG
+		debug(format("Rejecting %s for nick - %s, real - %s, host - %s", ct->host_addr, nick_name, real_name, host_name));
+#endif
 		client_abort(ct, "The server didn't like your nickname, realname, or hostname.");
 	}
 
@@ -563,6 +569,9 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	/* Finally send char info: */
 	send_char_info(ct, p_ptr);
 
+	/* Report */
+	plog(format("Welcome %s=%s@%s (%s) version (%04x)", nick_name, real_name, host_name, ct->host_addr, version ));
+
 	/* Return "1" to sustain connection */
 	return 1;
 }
@@ -577,6 +586,9 @@ int client_close(int data1, data data2) {
 	{
 		player_type *p_ptr = players->list[ind]->data2;
 		bool playing = (p_ptr->state == PLAYER_PLAYING ? TRUE : FALSE);		
+
+		/* Report */
+		plog(format("Goodbye %s=%s@%s (%s)", p_ptr->name, p_ptr->realname, p_ptr->hostname, c_ptr->host_addr));
 
 		/* Split player from connection */
 		player_drop(ind);
