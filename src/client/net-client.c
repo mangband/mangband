@@ -156,6 +156,9 @@ int call_server(char *server_name, int server_port)
 	server_caller = add_caller(first_caller, server_name, server_port, connected_to_server, failed_connection_to_server);
 	if (first_caller == NULL) first_caller = server_caller;
 
+	/* Early failure, probably DNS error */
+	if (server_caller == NULL) return -1;
+
 	/* Unset */	
 	connected = 0;
 
