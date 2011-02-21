@@ -1524,7 +1524,7 @@ static infoclr *xor;
 /*
  * The array of term data structures
  */
-static term_data data[MAX_TERM_DATA];
+static term_data tdata[MAX_TERM_DATA];
 
 
 /*
@@ -2001,9 +2001,9 @@ static errr CheckEvent(bool wait)
 	/* Scan the windows */
 	for (i = 0; i < MAX_TERM_DATA; i++)
 	{
-		if (xev->xany.window == data[i].win->win)
+		if (xev->xany.window == tdata[i].win->win)
 		{
-			td = &data[i];
+			td = &tdata[i];
 			iwin = td->win;
 			window = i;
 			break;
@@ -2158,10 +2158,10 @@ static errr CheckEvent(bool wait)
 			if (window == 0)
 			{
 				/* HACK -- Boundries */
-				if (cols < Setup.min_col+SCREEN_CLIP_X) { cols = Setup.min_col+SCREEN_CLIP_X; }
-				if (rows < Setup.min_row+SCREEN_CLIP_Y) { rows = Setup.min_row+SCREEN_CLIP_Y; }
-				if (cols > Setup.max_col+SCREEN_CLIP_X) { cols = Setup.max_col+SCREEN_CLIP_X; }
-				if (rows > Setup.max_row+SCREEN_CLIP_Y) { rows = Setup.max_row+SCREEN_CLIP_Y; }
+				//if (cols < Setup.min_col+SCREEN_CLIP_X) { cols = Setup.min_col+SCREEN_CLIP_X; }
+				//if (rows < Setup.min_row+SCREEN_CLIP_Y) { rows = Setup.min_row+SCREEN_CLIP_Y; }
+				//if (cols > Setup.max_col+SCREEN_CLIP_X) { cols = Setup.max_col+SCREEN_CLIP_X; }
+				//if (rows > Setup.max_row+SCREEN_CLIP_Y) { rows = Setup.max_row+SCREEN_CLIP_Y; }
 										
 				/* Notice Change */
 				if (cols == ccols && rows == crows)
@@ -2169,8 +2169,8 @@ static errr CheckEvent(bool wait)
 					if (cols != ocols || rows != orows)
 					{
 						/* Dungeon size hack! */
-						if (conn_state)
-							net_term_resize(cols, rows - SCREEN_CLIP_L);
+//						if (conn_state)
+//							net_term_resize(cols, rows - SCREEN_CLIP_L);
 						
 						ocols = cols;
 						orows = rows;
@@ -2519,7 +2519,7 @@ static void save_prefs(void)
 	/* Save window prefs */
 	for (i = 0; i < MAX_TERM_DATA; i++)
 	{
-		term_data *td = &data[i];
+		term_data *td = &tdata[i];
 
 		/* Header */
 		sprintf(settings, "X11-%s", ang_term_name[i]);
@@ -2632,8 +2632,8 @@ static errr term_data_init(term_data *td, int i)
 	cols = conf_get_int(settings, "Cols", 24);
 	x = conf_get_int(settings, "PositionX", 0);
 	y = conf_get_int(settings, "PositionX", 0);
-	td->tile_wid = conf_get_int(settings, "ScaleX", 8);
-	td->tile_hgt = conf_get_int(settings, "ScaleY", 8);
+	td->tile_wid = conf_get_int(settings, "ScaleX", 0);
+	td->tile_hgt = conf_get_int(settings, "ScaleY", 0);
 	
 
 	/*
@@ -2964,7 +2964,7 @@ errr init_x11(int argc, char **argv)
 	/* Initialize the windows */
 	for (i = 0; i < num_term; i++)
 	{
-		term_data *td = &data[i];
+		term_data *td = &tdata[i];
 
 		/* Initialize the term_data */
 		if (!term_data_init(td, i))
@@ -2975,11 +2975,11 @@ errr init_x11(int argc, char **argv)
 	}
 
 	/* Raise the "Angband" window */
-	Infowin_set(data[0].win);
+	Infowin_set(tdata[0].win);
 	Infowin_raise();
 
 	/* Activate the "Angband" window screen */
-	Term_activate(&data[0].t);
+	Term_activate(&tdata[0].t);
 
 
 #ifdef USE_GRAPHICS
@@ -3057,7 +3057,7 @@ errr init_x11(int argc, char **argv)
 		/* Initialize */
 		for (i = 0; i < num_term; i++)
 		{
-			term_data *td = &data[i];
+			term_data *td = &tdata[i];
 			td->tiles = NULL;
 		}
 
@@ -3074,7 +3074,7 @@ errr init_x11(int argc, char **argv)
 				int j;
 				bool same = FALSE;
 
-				term_data *td = &data[i];
+				term_data *td = &tdata[i];
 				term_data *o_td = NULL;
 
 				term *t = &td->t;
@@ -3088,7 +3088,7 @@ errr init_x11(int argc, char **argv)
 				/* Look for another term with same tile size */
 				for (j = 0; j < i; j++)
 				{
-					o_td = &data[j];
+					o_td = &tdata[j];
 
 					if ((td->tile_wid2 == o_td->tile_wid2) &&
 					    (td->tile_hgt == o_td->tile_hgt))
@@ -3113,13 +3113,13 @@ errr init_x11(int argc, char **argv)
 			}
 
 			/* Free tiles_raw */
-			FREE(tiles_raw, XImage);
+			FREE(tiles_raw);
 		}
                         
 		/* Initialize the transparency masks */
 		for (i = 0; i < num_term; i++)
 		{
-			term_data *td = &data[i];
+			term_data *td = &tdata[i];
 			int ii, jj;
 			int depth = DefaultDepth(dpy, DefaultScreen(dpy));
 			Visual *visual = DefaultVisual(dpy, DefaultScreen(dpy));
