@@ -542,6 +542,19 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		/* Consequences: */
 		p_ptr->state = PLAYER_READY;
 	}
+	/* Client asks to return to previously abandoned gameplay */
+	else if (mode == PLAY_PLAY && p_ptr->state == PLAYER_LEAVING)
+	{
+		/* Prerequisites: */
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		{
+			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
+		}
+
+		/* Do it */
+		player_verify_visual(p_ptr);
+		player_enter(ct->user);
+	}	
 	/* Client asks for active gameplay */
 	else if (mode == PLAY_PLAY)
 	{
@@ -605,7 +618,10 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	int i;
 	
 	/* TODO: Ensure p_ptr->state is correct of char_info and bail if not */
-	//return -1;
+	if (p_ptr->state != PLAYER_NAMED)
+	{ 
+		client_abort(ct, "Character not ready to be modified!");
+	}
 
 	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->prace, &p_ptr->male) < 3) 
 	{
@@ -626,13 +642,6 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 
 	/* Have Template */
 	p_ptr->state = PLAYER_SHAPED;
-
-	/* Ready for rolling */
-	if (p_ptr->state == PLAYER_SHAPED)
-	{
-		player_birth(ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
-		p_ptr->state = PLAYER_FULL;
-	}
 
 	/* Inform client */
 	send_char_info(ct, p_ptr);

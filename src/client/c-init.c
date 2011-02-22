@@ -262,6 +262,10 @@ static void Setup_loop()
 			{
 				char_ready = TRUE;
 			}
+			if (state == PLAYER_LEAVING)
+			{
+				char_ready = TRUE;
+			}
 			old_state = state;
 		}
 		if (state == PLAYER_FULL && data_ready == TRUE)

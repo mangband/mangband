@@ -107,26 +107,37 @@ void free_server_memory() {
 /* Player enters active gameplay */
 int player_enter(int ind) 
 {
+	int PInd;
 	/* Grab pointers */
 	connection_type *ct = players->list[ind]->data1;
 	player_type *p_ptr = players->list[ind]->data2;
 
 	/* Add him to the end of the list */
-	p_max++;
-	p_list[p_max] = p_ptr;
+	if (p_ptr->state != PLAYER_LEAVING)
+	{
+		p_max++;
+		PInd = p_max;
+	}
+	/* Already on the list, get him */
+	else
+	{
+		PInd = Get_Ind[ind];
+	}
+
+	p_list[PInd] = p_ptr;
 
 	/* Fix various refrence lists */
-	Get_Ind[ind] = p_max;
-	Get_Conn[p_max] = ind;
-	PConn[p_max] = ct; 
+	Get_Ind[ind] = PInd;
+	Get_Conn[PInd] = ind;
+	PConn[PInd] = ct; 
 
 	/* Mark him as playing */
 	p_ptr->state = PLAYER_PLAYING;
 
 	/* Setup his locaton */
-	player_setup(p_max);
-	setup_panel(p_max, TRUE);
-	verify_panel(p_max);
+	player_setup(PInd);
+	setup_panel(PInd, TRUE);
+	verify_panel(PInd);
 
 	/* Hack, must find better place */
 	prt_history(p_max);
@@ -463,6 +474,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	connection_type *ct = data2;
 	/* char *recv = data1; // Unused */
 	player_type *p_ptr = NULL;
+	int Ind;
 
 	byte pkt;
 	int start_pos;
@@ -493,7 +505,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		return 0;
 	}
 
-	/* Test for Resume, Drop, Block........ */
+	/** BLOCK **/
 	// ............. nothing here yet, TODO:!
 
 	/** LOGIN **/
@@ -512,41 +524,77 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		client_abort(ct, "The server didn't like your nickname, realname, or hostname.");
 	}
 
-	/* Allocate memory */
-	p_ptr = player_alloc();
-	player_wipe(p_ptr);
-
-	/* Copy his name and connection info */
-	strcpy(p_ptr->name, nick_name);
-	strcpy(p_ptr->pass, pass_word);
-	p_ptr->version = version;
-
-	/* Verify his name and create a savefile name */
-	if (!process_player_name(p_ptr, TRUE))
-	{ 
-		player_free(p_ptr); /* Unalloc back */
-		client_abort(ct, "Unacceptable nickname");
-	}
-
-	p_ptr->state = PLAYER_NAMED;
-
-	/* Attempt to load from a savefile */
-	if (!load_player(p_ptr))
+	/* RESUME/DROP */
+	/* See if a player with same nickname is already playing */
+	if ((Ind = find_player_name(nick_name)))
 	{
-		player_free(p_ptr); /* Unalloc back */
-		client_abort(ct, "Error loading savefile");
-	}
+		p_ptr = Players[Ind];
+		/* Resume */
+		if (p_ptr->conn == -1)
+		{
 
-	/* If loaded a character */
-	if (character_loaded)
-	{
-		p_ptr->state = PLAYER_BONE;
-		if (p_ptr->death == FALSE)
-			p_ptr->state = PLAYER_FULL;
+		}
+		/* Drop */
+		else
+		{
+
+		}
+		/* If playing, take his place */
+		if (p_ptr->state == PLAYER_PLAYING)
+		{
+			//p_ptr->state = PLAYER_FULL;
+		}
+		/* If leaving, bring back to game */
+		if (p_ptr->state == PLAYER_LEAVING)
+		{
+			//p_ptr->state = PLAYER_FULL;
+		}
+
+		/* Reset "command buffer" */
+		cq_clear(&p_ptr->cbuf);
 	}
+	/* NEW */
 	else
 	{
-		p_ptr->state = PLAYER_SHAPED;
+		/* Allocate memory */
+		p_ptr = player_alloc();
+		player_wipe(p_ptr);
+
+		/* Copy his name and connection info */
+		strcpy(p_ptr->name, nick_name);
+		strcpy(p_ptr->pass, pass_word);
+		p_ptr->version = version;
+
+		/* Verify his name and create a savefile name */
+		if (!process_player_name(p_ptr, TRUE))
+		{ 
+			player_free(p_ptr); /* Unalloc back */
+			client_abort(ct, "Unacceptable nickname");
+		}
+
+		p_ptr->state = PLAYER_NAMED;
+
+		/* Attempt to load from a savefile */
+		if (!load_player(p_ptr))
+		{
+			player_free(p_ptr); /* Unalloc back */
+			client_abort(ct, "Error loading savefile");
+		}
+
+		/* If loaded a character */
+		if (character_loaded)
+		{
+			p_ptr->state = PLAYER_BONE;
+			if (p_ptr->death == FALSE)
+				p_ptr->state = PLAYER_FULL;
+		}
+		else
+		{
+			//p_ptr->state = PLAYER_SHAPED;
+		}
+
+		/* Init "command buffer" */
+		cq_init(&p_ptr->cbuf, PD_SMALL_BUFFER);
 	}
 
 	/* ADD TO LIST */
@@ -554,8 +602,17 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	ct->user = p_ptr->conn;
 	Conn[p_ptr->conn] = ct;
 
-	/* Init "command buffer" */
-	cq_init(&p_ptr->cbuf, PD_SMALL_BUFFER);
+	if (p_ptr->state == PLAYER_LEAVING)
+	{
+		/* Fix other lists */
+		Get_Ind[p_ptr->conn] = Ind;
+		Get_Conn[Ind] = p_ptr->conn;
+		PConn[Ind] = ct; 
+	}
+
+	/* Copy host/real names */
+	strcpy(p_ptr->hostname, host_name);
+	strcpy(p_ptr->realname, real_name);
 
 	/* Advance to next stage */
 	ct->receive_cb = client_read;
