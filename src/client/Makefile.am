@@ -10,6 +10,8 @@ mangclient_RESOURCES = Angband.rc
 
 endif
 
+mangclient_SUBDIRS = osx
+
 mangclient_SOURCES = c-birth.c c-cmd.c c-files.c c-init.c c-inven.c c-spell.c c-store.c \
 		     c-tables.c c-util.c c-xtra1.c c-xtra2.c client.c maid-x11.c \
 		     maim-sdl.c main-cap.c main-gcu.c main-ibm.c main-sdl.c main-win.c \
@@ -18,6 +20,12 @@ mangclient_SOURCES = c-birth.c c-cmd.c c-files.c c-init.c c-inven.c c-spell.c c-
 		     $(mangclient_RESOURCES) \
 		     c-angband.h c-defines.h c-externs.h maid-x11.h main-sdl.h net-client.h \
 	             readdib.h resource.h z-term.h
+
+if USE_CRB
+
+mangclient_SOURCES += main-crb.c osx/osx_tables.h
+
+endif
 
 .rc.o:
 	windres $^ -o $@

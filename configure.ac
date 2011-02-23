@@ -86,6 +86,9 @@ if test "x$enabled_gcu" = xyes && test "x$have_curs" != xyes
 then
     AC_ERROR([For GCU visual module, ncurses library is required. Try getting libncurses5-dev package.])
 fi
+
+# Prepare conditionals
+AM_CONDITIONAL(USE_CRB, test "x$enabled_crb" = xyes)
 # Set flags
 #GCU
 if test "x$enabled_gcu" = xyes
@@ -156,7 +159,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit floor ftruncate getcurx gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strncasecmp strpbrk strrchr strspn strstr strtol])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
-AC_OUTPUT( src/client/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/bone/Makefile lib/edit/Makefile lib/save/Makefile lib/help/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile Makefile ) 
+AC_OUTPUT( src/client/Makefile src/client/osx/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/bone/Makefile lib/edit/Makefile lib/save/Makefile lib/help/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile Makefile ) 
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
 #echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"
