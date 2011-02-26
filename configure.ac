@@ -89,6 +89,8 @@ fi
 
 # Prepare conditionals
 AM_CONDITIONAL(USE_CRB, test "x$enabled_crb" = xyes)
+AM_CONDITIONAL(USE_X11, test "x$enabled_x11" = xyes)
+AM_CONDITIONAL(USE_SDL, test "x$enabled_sdl" = xyes)
 # Set flags
 #GCU
 if test "x$enabled_gcu" = xyes
