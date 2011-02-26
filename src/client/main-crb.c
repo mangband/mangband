@@ -171,18 +171,13 @@
  *   of variable-width fonts.
  */
 
-
-
-#include "angband.h"
-#include "externs.h"
-
 #include <sys/time.h>
 #include <Carbon/Carbon.h>
 #include <QuickTime/QuickTime.h>
 #include <CoreServices/CoreServices.h>
 #include <CoreFoundation/CoreFoundation.h>
 
-
+#include "c-angband.h"
 #include "osx/osx_tables.h"
 
 #define N_ELEMENTS(a) (sizeof(a) / sizeof((a)[0]))
@@ -211,6 +206,7 @@ term *ang_term[ANGBAND_TERM_MAX];
  * Width in pixels of white borders around the black screen.
  */
 #define BORDER_WID 1
+#define SOUND_MAX MSG_MAX
 
 bool arg_graphics;
 bool arg_sound;
@@ -220,10 +216,20 @@ static const bool show_events = 0;
 static int use_bigtile = 0;
 static int use_transparency = 0;
 
-extern cptr sound_names[SOUND_MAX];
-
-#define MSG_MAX SOUND_MAX
-
+/*
+ * Hack -- the "basic" sound names (see "SOUND_xxx")
+ */
+cptr sound_names[SOUND_MAX] =
+{
+"",
+"hit",
+"miss",
+"flee",
+"drop",
+"kill",
+"level",
+"death",
+};
 
 
 /*
@@ -267,7 +273,8 @@ static int graf_mode = 0;
 static int graf_height = 0;
 static int graf_width = 0;
 
-cptr ANGBAND_GRAF = "old";
+//defined elsewhere
+//cptr ANGBAND_GRAF = "old";
 
 /*
  * Creator signature and file type - Didn't I say that I abhor file name
@@ -373,7 +380,9 @@ struct GlyphInfo
 
 static GlyphInfo glyph_data[MAX_TERM_DATA+1];
 
-
+// defined in main-x11
+extern byte angband_color_table[256][4];
+#if 0
 byte angband_color_table[256][4] =
 {
 {0x00, 0x00, 0x00, 0x00},	/* TERM_DARK */
@@ -393,7 +402,7 @@ byte angband_color_table[256][4] =
 {0x00, 0x00, 0xFF, 0xFF},	/* TERM_L_BLUE */
 {0x00, 0xC0, 0x80, 0x40}	/* TERM_L_UMBER */
 };
-
+#endif
 
 static WindowRef aboutDialog;
 
@@ -468,7 +477,7 @@ static struct ActivePort focus; /* initialized to 0 */
 /*
  * An array of term_data's
  */
-static term_data data[MAX_TERM_DATA];
+static term_data tdata[MAX_TERM_DATA];
 
 
 /*
@@ -688,7 +697,7 @@ static void validate_main_window(void)
 	Rect r;
 
 	/* Get the main window */
-	w = data[0].w;
+	w = tdata[0].w;
 
 	/* Get its rectangle */
 	// TODO: find Quartz 2d equivalent
@@ -914,7 +923,7 @@ static void term_data_check_font(term_data *td)
  */
 static void term_data_check_size(term_data *td)
 {
-	if (td == &data[0])
+	if (td == &tdata[0])
 	{
 
 		/* Enforce minimal size */
@@ -994,7 +1003,7 @@ static void term_data_check_size(term_data *td)
 		/* Draw every character */
 		td->t->always_pict = TRUE;
 	}
-	else if (use_graphics && (td == &data[0]))
+	else if (use_graphics && (td == &tdata[0]))
 	{
 		/* Use higher pict whenever possible */
 		td->t->higher_pict = TRUE;
@@ -1139,7 +1148,7 @@ static CGImageRef GetTileImage(int row, int col, bool has_alpha)
 		return frame.tile_images[row*frame.cols+col];
 	}
 
-	term_data *td = &data[0];
+	term_data *td = &tdata[0];
 
 	size_t tile_wid = td->tile_wid *(1+use_bigtile);
 	size_t nbytes = (td->tile_hgt * tile_wid) * 4;
@@ -1370,12 +1379,12 @@ static errr graphics_nuke(void)
 /*
  * How many sound channels will be pooled
  */
-#define MAX_CHANNELS		8
+#define MAX_SND_CHANNELS		8
 
 /*
  * A pool of sound channels
  */
-static SndChannelPtr channels[MAX_CHANNELS];
+static SndChannelPtr snd_channels[MAX_SND_CHANNELS];
 
 /*
  * Status of the channel pool
@@ -1554,7 +1563,7 @@ void release_sound_resource(int num)
 /*
  * Clean up sound support - to be called when the game exits.
  *
- * Globals referenced: channels[], samples[], sample_refs[].
+ * Globals referenced: snd_channels[], samples[], sample_refs[].
  */
 static void cleanup_sound(void)
 {
@@ -1562,10 +1571,10 @@ static void cleanup_sound(void)
 	if (!channel_initialised) return;
 
 	/* Dispose channels */
-	for (int i = 0; i < MAX_CHANNELS; i++)
+	for (int i = 0; i < MAX_SND_CHANNELS; i++)
 	{
 		/* Drain sound commands and free the channel */
-		SndDisposeChannel(channels[i], TRUE);
+		SndDisposeChannel(snd_channels[i], TRUE);
 	}
 
 	/* Free sound data */
@@ -1593,9 +1602,9 @@ static void cleanup_sound(void)
  * hand, this lazy reclaiming strategy keeps things simple (no interrupt
  * time code) and provides a sort of cache for sound data.
  *
- * Globals referenced: channel_initialised, channels[], samples[],
+ * Globals referenced: channel_initialised, snd_channels[], samples[],
  *   sample_refs[], sound_volume.
- * Globals updated: channel_initialised, channels[], sample_refs[].
+ * Globals updated: channel_initialised, snd_channels[], sample_refs[].
  */
 
 static void play_sound(int num)
@@ -1607,7 +1616,7 @@ static void play_sound(int num)
 	SCStatus status;
 
 	static int next_chan;
-	static SInt16 channel_occupants[MAX_CHANNELS];
+	static SInt16 channel_occupants[MAX_SND_CHANNELS];
 	static SndCommand volume_cmd, quiet_cmd;
 
 	SInt16 vol = sound_volume;
@@ -1615,19 +1624,19 @@ static void play_sound(int num)
 	/* Initialise sound channels */
 	if (!channel_initialised)
 	{
-		for (int i = 0; i < MAX_CHANNELS; i++)
+		for (int i = 0; i < MAX_SND_CHANNELS; i++)
 		{
 			/* Paranoia - Clear occupant table */
 			/* channel_occupants[i] = 0; */
 
 			/* Create sound channel for all sounds to play from */
-			err = SndNewChannel(&channels[i], sampledSynth, initMono, NULL);
+			err = SndNewChannel(&snd_channels[i], sampledSynth, initMono, NULL);
 
 			/* Free channels */
 			if(err != noErr) {
 				while (--i >= 0)
 				{
-					SndDisposeChannel(channels[i], TRUE);
+					SndDisposeChannel(snd_channels[i], TRUE);
 				}
 	
 				/* Notify error */
@@ -1665,7 +1674,7 @@ static void play_sound(int num)
 	volume_cmd.param2 = ((SInt32)vol << 16) | vol;
 
 	/* Channel to use (round robin) */
-	chan = channels[next_chan];
+	chan = snd_channels[next_chan];
 
 	/* Attempt to get a new sound "resource" */
 	h = get_sound_resource(num);
@@ -1698,7 +1707,7 @@ static void play_sound(int num)
 
 	/* Schedule next channel (round robin) */
 	next_chan++;
-	if (next_chan >= MAX_CHANNELS) next_chan = 0;
+	if (next_chan >= MAX_SND_CHANNELS) next_chan = 0;
 }
 
 
@@ -2114,7 +2123,7 @@ static void term_data_link(int i)
 {
 	term *old = Term;
 
-	term_data *td = &data[i];
+	term_data *td = &tdata[i];
 
 	/* Only once */
 	if (td->t) return;
@@ -2126,7 +2135,7 @@ static void term_data_link(int i)
 	MAKE(td->t, term);
 
 	/* Initialize the term */
-	term_init(td->t, td->cols, td->rows, td == &data[0] ? 100 : 1);
+	term_init(td->t, td->cols, td->rows, td == &tdata[0] ? 100 : 1);
 
 	/* Use a "software" cursor */
 	td->t->soft_cursor = TRUE;
@@ -2327,10 +2336,10 @@ static bool load_pref_short(const char *key, short *vptr)
 static void cf_save_prefs()
 {
 	/* Version stamp */
-	save_pref_short("version.major", VERSION_MAJOR);
-	save_pref_short("version.minor", VERSION_MINOR);
-	save_pref_short("version.patch", VERSION_PATCH);
-	save_pref_short("version.extra", VERSION_EXTRA);
+	save_pref_short("version.major", CLIENT_VERSION_MAJOR);
+	save_pref_short("version.minor", CLIENT_VERSION_MINOR);
+	save_pref_short("version.patch", CLIENT_VERSION_PATCH);
+	save_pref_short("version.extra", CLIENT_VERSION_EXTRA);
 
 	/* Gfx settings */
 	/* sound */
@@ -2346,7 +2355,7 @@ static void cf_save_prefs()
 	/* Windows */
 	for (int i = 0; i < MAX_TERM_DATA; i++)
 	{
-		term_data *td = &data[i];
+		term_data *td = &tdata[i];
 
 		save_pref_short(format("term%d.mapped", i), td->mapped);
 
@@ -2401,10 +2410,10 @@ static void cf_load_prefs()
 
 
 	/* Check version */
-	if ((pref_major != VERSION_MAJOR) ||
-		(pref_minor != VERSION_MINOR) ||
-		(pref_patch != VERSION_PATCH) ||
-		(pref_extra != VERSION_EXTRA))
+	if ((pref_major != CLIENT_VERSION_MAJOR) ||
+		(pref_minor != CLIENT_VERSION_MINOR) ||
+		(pref_patch != CLIENT_VERSION_PATCH) ||
+		(pref_extra != CLIENT_VERSION_EXTRA))
 	{
 #if 1 // For 3.0.8 : pref file change!
 		/* Message */
@@ -2450,7 +2459,7 @@ static void cf_load_prefs()
 	/* Windows */
 	for (int i = 0; i < MAX_TERM_DATA; i++)
 	{
-		term_data *td = &data[i];
+		term_data *td = &tdata[i];
 
 		load_pref_short(format("term%d.mapped", i), &td->mapped);
 
@@ -2531,7 +2540,7 @@ static void init_windows(void)
 	for (int b = 0, i = MAX_TERM_DATA; i-- > 0; )
 	{
 		/* Obtain */
-		td = &data[i];
+		td = &tdata[i];
 
 		/* Defaults */
 		term_data_hack(td);
@@ -2566,7 +2575,7 @@ static void init_windows(void)
 	/*** Instantiate ***/
 
 	/* Main window */
-	td = &data[0];
+	td = &tdata[0];
 
 	/* Start visible */
 	td->mapped = TRUE;
@@ -2578,7 +2587,7 @@ static void init_windows(void)
 	}
 
 	/* Main window */
-	td = &data[0];
+	td = &tdata[0];
 
 	/* Main window */
 	Term_activate(td->t);
@@ -2795,7 +2804,7 @@ static void validate_menus(void)
 	td = (term_data*) GetWRefCon(w);
 	if(!td) return;
 
-	term_data *td0 = &data[0];
+	term_data *td0 = &tdata[0];
 	struct {
 		int menu;				/* Radio-style Menu ID to validate */
 		int cur;				/* Value in use (Compare to RefCon) */
@@ -2886,9 +2895,9 @@ static OSStatus AngbandGame(EventHandlerCallRef inCallRef,
 		EnableMenuItem(MyGetMenuHandle(kFileMenu), i);
 
 	/* Validate graphics, after bootstrapped opening of terminals */
-	for(int i = 0; i < N_ELEMENTS(data); i++) {
-		if(data[i].mapped)
-			RevalidateGraphics(&data[i], 0);
+	for(int i = 0; i < N_ELEMENTS(tdata); i++) {
+		if(tdata[i].mapped)
+			RevalidateGraphics(&tdata[i], 0);
 	}
 
 	/* Flush the prompt */
@@ -3017,7 +3026,7 @@ static OSStatus CloseCommand(EventHandlerCallRef inCallRef,
 
 	td = (term_data*) GetWRefCon(w);
 
-//	if(!game_in_progress && !character_generated && td == &data[0])
+//	if(!game_in_progress && !character_generated && td == &tdata[0])
 //		quit(0);
 
 	hibernate();
@@ -3170,7 +3179,7 @@ static void graphics_aux(int op)
 //	{
 //		reset_visuals(TRUE);
 //	}
-	RevalidateGraphics(&data[0], 0);
+	RevalidateGraphics(&tdata[0], 0);
 	Term_key_push(KTRL('R'));
 }
 
@@ -3225,7 +3234,7 @@ static OSStatus RestoreCommand(EventHandlerCallRef inCallRef,
 	/* Mapped */
 	td->mapped = TRUE;
 
-	int i = td - &data[0];
+	int i = td - &tdata[0];
 
 	/* Link */
 	term_data_link(i);
@@ -3263,7 +3272,7 @@ static OSStatus TerminalCommand(EventHandlerCallRef inCallRef,
 	if ((i < 0) || (i >= MAX_TERM_DATA)) return eventNotHandledErr;
 
 	/* Obtain the window */
-	term_data *td = &data[i];
+	term_data *td = &tdata[i];
 
 	/* Mapped */
 	td->mapped = TRUE;
@@ -3365,7 +3374,7 @@ static OSStatus ToggleCommand(EventHandlerCallRef inCallRef,
 		{
 			*toggle_defs[i].var = !(*toggle_defs[i].var);
 			if(toggle_defs[i].refresh == true) {
-				RevalidateGraphics(&data[0], inEvent);
+				RevalidateGraphics(&tdata[0], inEvent);
 				graphics_tiles_nuke();
 				// Force redraw.
 				Term_key_push(KTRL('R'));
@@ -3494,7 +3503,7 @@ static OSStatus MouseCommand ( EventHandlerCallRef inCallRef,
 
 	/* Relevant "term_data" */
 	term_data *td = (term_data *) GetWRefCon(w);
-	if(&data[0] != td)
+	if(&tdata[0] != td)
 		return eventNotHandledErr;
 
 	short button = 0;
@@ -3710,7 +3719,7 @@ static OSErr AEH_Reopen(const AppleEvent *theAppleEvent,
 	if (NULL == ActiveNonFloatingWindow())
 	{
 		/* Obtain the Angband window */
-		td = &data[0];
+		td = &tdata[0];
 
 		/* Mapped */
 		td->mapped = TRUE;
