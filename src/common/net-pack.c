@@ -18,6 +18,7 @@
 #define PACK_PTR_16(PT, VAL) * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
 #define PACK_PTR_32(PT, VAL) * PT ++ = (char)(VAL >> 24), * PT ++ = (char)(VAL >> 16), * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
 #define PACK_PTR_STR(PT, VAL) while ((* PT ++ = * VAL ++) != '\0')
+#define PACK_PTR_NSTR(PT, VAL, SIZE) while (SIZE--) { * PT ++ = * VAL ++ ; }
 
 #define UNPACK_PTR_8(PT, VAL) * PT = * VAL ++ 
 #define UNPACK_PTR_16(PT, VAL) * PT = * VAL ++ << 8, * PT |= (* VAL ++ & 0xFF)
@@ -45,6 +46,7 @@ const cptr pf_errors[] = {
 #define PACK_16(VAL) PACK_PTR_16(WPTRN, VAL)
 #define PACK_32(VAL) PACK_PTR_32(WPTRN, VAL)
 #define PACK_STR(VAL) PACK_PTR_STR(WPTRN, VAL)
+#define PACK_NSTR(VAL, SIZE) PACK_PTR_NSTR(WPTRN, VAL, SIZE)
 
 #define PACK_DEF	char * WSTRN, * WPTRN, * WENDN;
 #define PACK_INIT(CQ)	WSTRN = WPTRN = &(CQ)->buf[(CQ)->len]; \
@@ -56,6 +58,8 @@ const cptr pf_errors[] = {
 #define UNPACK_8(PT) UNPACK_PTR_8(PT, RPTRN)
 #define UNPACK_16(PT) UNPACK_PTR_16(PT, RPTRN)
 #define UNPACK_32(PT) UNPACK_PTR_32(PT, RPTRN)
+#define UNPACK_STR(PT) PACK_PTR_STR(PT, RPTRN)
+#define UNPACK_NSTR(PT, SIZE) PACK_PTR_NSTR(PT, RPTRN, SIZE)
 
 #define UNPACK_DEF	char * RSTRN, * RPTRN, * RENDN;
 #define UNPACK_INIT(CQ)	RSTRN = RPTRN = &(CQ)->buf[(CQ)->pos]; \
@@ -69,6 +73,8 @@ const cptr pf_errors[] = {
 #define REPACK_8 * WPTRN ++ = * RPTRN ++;
 #define REPACK_16 REPACK_8; REPACK_8  
 #define REPACK_32 REPACK_16; REPACK_16
+#define REPACK_STR PACK_PTR_STR(WPTRN, RPTRN)
+#define REPACK_NSTR(SIZE) PACK_PTR_NSTR(WPTRN, RPTRN, SIZE)
 
 
 int cq_printf(cq *charq, char *str, ...) {
@@ -137,28 +143,30 @@ int cq_printf(cq *charq, char *str, ...) {
 			case 'n': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text);
+				str_size = MIN(str_size, MAX_CHARS);
 				PF_ERROR_SIZE(str_size+1);
 				PACK_8(str_size);
-				PACK_STR(text);
+				PACK_NSTR(text, str_size);
 				break;}
 			case 'N': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text);
+				str_size = MIN(str_size, MSG_LEN);
 				PF_ERROR_SIZE(str_size+2);
 				PACK_16(str_size);
-				PACK_STR(text);
+				PACK_NSTR(text, str_size);
 				break;}
 			case 's': {
 				text = (char*) va_arg (marker, char *);
-				//str_size = MAX_CHARS;
-				str_size = MIN(strlen(text)+1, MAX_CHARS);
+				str_size = strlen(text)+1;
+				str_size = MIN(str_size, MAX_CHARS);
 				PF_ERROR_SIZE(str_size);
 				PACK_STR(text);
 				break;}
 			case 'S': {
 				text = (char*) va_arg (marker, char *);
-				str_size = MIN(strlen(text)+1, MSG_LEN);
-				//str_size = MSG_LEN;
+				str_size = strlen(text)+1;
+				str_size = MIN(str_size, MSG_LEN);
 				PF_ERROR_SIZE(str_size);
 				PACK_STR(text);
 				break;}
@@ -195,6 +203,8 @@ int cq_scanf(cq *charq, char *str, ...) {
 
 	UNPACK_INIT(charq);
 
+#define SF_BYTES_LEFT (RENDN - RPTRN)
+#define SF_ERROR_SIZE_STR(SIZE, WIDE) if (RPTRN + (SIZE) > RENDN) { error = 2; RPTRN -= WIDE; break; }
 #define SF_ERROR_SIZE(SIZE) if (RPTRN + SIZE > RENDN) { error = 2; break; }
 #define SF_ERROR_FRMT default: { error = 1; break; }
 
@@ -245,29 +255,33 @@ int cq_scanf(cq *charq, char *str, ...) {
 				SF_ERROR_SIZE(1)
 				_text = (char*) va_arg (marker, char*);
 				UNPACK_8(&str_size);
-				SF_ERROR_SIZE(str_size+1)
-				while(str_size--) *_text++ = *rptr++;
+				str_size = MIN(str_size, MAX_CHARS);
+				SF_ERROR_SIZE_STR(str_size, 1)
+				UNPACK_NSTR(_text, str_size);
+				*_text = 0;
 				break;}
 			case 'N': {
-				SF_ERROR_SIZE(1)
+				SF_ERROR_SIZE(2)
 				_text = (char*) va_arg (marker, char*);
 				UNPACK_16(&str_size);
-				SF_ERROR_SIZE(str_size+1)
-				while(str_size--) *_text++ = *rptr++;
+				str_size = MIN(str_size, MSG_LEN);
+				SF_ERROR_SIZE_STR(str_size, 2)
+				UNPACK_NSTR(_text, str_size);
+				*_text = 0;
 				break;}
 			case 's': {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
-				str_size = MIN(strlen(rptr), MAX_CHARS);
+				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MAX_CHARS));
 				SF_ERROR_SIZE(str_size)
-				while((*_text++ = *rptr++) != '\0') ;
+				UNPACK_STR(_text);
 				break;}
 			case 'S': {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
-				str_size = MIN(strlen(rptr), MSG_LEN);
+				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MSG_LEN));
 				SF_ERROR_SIZE(str_size)
-				while((*_text++ = *rptr++) != '\0') ;
+				UNPACK_STR(_text);
 				break;}
 			case 'T': {/* HACK! unlimited \n-terminated string (\r==\n here)*/
 				_text = (char*) va_arg (marker, char*);
@@ -342,21 +356,23 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 				CF_ERROR_SIZE(1)
 				UNPACK_8(&str_size);
 				CF_ERROR_SIZE(str_size+1)
-				while(str_size--) *wptr++ = *rptr++;
+				PACK_8(str_size);
+				REPACK_NSTR(str_size);
 				break;}
 			case 'N': {
 				CF_ERROR_SIZE(1)
 				UNPACK_16(&str_size);
-				CF_ERROR_SIZE(str_size+1)
-				while(str_size--) *wptr++ = *rptr++;
+				CF_ERROR_SIZE(str_size+2)
+				PACK_16(str_size);
+				REPACK_NSTR(str_size);
 				break;}
 			case 's': {
 				CF_ERROR_SIZE(MAX_CHARS)
-				while((*wptr++ = *rptr++) != '\0') ;
+				REPACK_STR
 				break;}
 			case 'S': {
 				CF_ERROR_SIZE(MSG_LEN)
-				while((*wptr++ = *rptr++) != '\0') ;
+				REPACK_STR
 				break;}				
 			CF_ERROR_FRMT
 		}
