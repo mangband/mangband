@@ -108,8 +108,8 @@ int client_read(int data1, data data2) { /* return -1 on error */
 	if (ct->rbuf.pos)
 	{
 		char buf[PD_SMALL_BUFFER];
-		strncpy(buf, &ct->rbuf.buf[ct->rbuf.pos], ct->rbuf.len);
-		strncpy(ct->rbuf.buf, buf, ct->rbuf.len);
+		memcpy(buf, &ct->rbuf.buf[ct->rbuf.pos], ct->rbuf.len);
+		memcpy(ct->rbuf.buf, buf, ct->rbuf.len);
 		ct->rbuf.len -= ct->rbuf.pos;
 		ct->rbuf.pos = 0;
 	}	
