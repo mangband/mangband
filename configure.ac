@@ -158,7 +158,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([alarm atexit floor ftruncate getcurx gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strncasecmp strpbrk strrchr strspn strstr strtol])
+AC_CHECK_FUNCS([alarm atexit floor ftruncate getcurx gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp strpbrk strrchr strspn strstr strtol])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
 AC_OUTPUT( src/client/Makefile src/client/osx/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/bone/Makefile lib/edit/Makefile lib/save/Makefile lib/help/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile Makefile ) 

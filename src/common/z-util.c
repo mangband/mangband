@@ -154,6 +154,24 @@ bool streq(cptr a, cptr b)
 }
 
 
+#ifndef HAVE_STRNLEN
+/*
+ * A copy of "strnlen".
+ */
+size_t strnlen(char *s, size_t n) {
+	size_t i = n, j = 0;
+	while (i--) 
+	{
+		if (*s++ == '\0') 
+		{
+			return j;
+		}
+		j++;
+	}
+	return n;
+}
+#endif
+
 #ifndef HAVE_STRDUP
 /*
  * A copy of "strdup"

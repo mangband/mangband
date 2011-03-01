@@ -86,6 +86,10 @@ extern bool suffix(cptr s, cptr t);
 extern char *strdup(cptr s);
 #endif
 
+/* Determine the length of a fixed-size string */
+#ifndef HAVE_STRNLEN
+extern size_t strnlen(char *s, size_t maxlen);
+#endif
 
 
 /* Print an error message */
