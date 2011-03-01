@@ -273,14 +273,14 @@ int cq_scanf(cq *charq, char *str, ...) {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
 				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MAX_CHARS));
-				SF_ERROR_SIZE(str_size)
+				SF_ERROR_SIZE(str_size + 1)
 				UNPACK_STR(_text);
 				break;}
 			case 'S': {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
 				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MSG_LEN));
-				SF_ERROR_SIZE(str_size)
+				SF_ERROR_SIZE(str_size + 1)
 				UNPACK_STR(_text);
 				break;}
 			case 'T': {/* HACK! unlimited \n-terminated string (\r==\n here)*/
