@@ -625,7 +625,7 @@ int recv_option_info(connection_type *ct)
 	byte
 		opt_page = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%s%s", &opt_page, name, desc) <= 3)
+	if (cq_scanf(&ct->rbuf, "%c%s%s", &opt_page, name, desc) < 3)
 	{
 		return 0;
 	}
