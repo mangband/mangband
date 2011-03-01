@@ -154,8 +154,7 @@ bool streq(cptr a, cptr b)
 }
 
 
-#ifdef ultrix
-
+#ifndef HAVE_STRDUP
 /*
  * A copy of "strdup"
  *
@@ -168,8 +167,7 @@ char *strdup(cptr s)
 	strcpy(dup, s);
 	return dup;
 }
-
-#endif /* ultrix */
+#endif
 
 
 /*

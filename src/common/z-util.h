@@ -82,7 +82,7 @@ extern bool streq(cptr s, cptr t);
 extern bool prefix(cptr s, cptr t);
 extern bool suffix(cptr s, cptr t);
 
-#ifdef ultrix
+#ifndef HAVE_STRDUP
 extern char *strdup(cptr s);
 #endif
 
