@@ -22,4 +22,7 @@
 	PACKET(PKT_TERM_INIT,  	"%s",   	recv_term_header)
 
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
+	PACKET(PKT_FLOOR,   	"%c%d%c%c%s",   	recv_floor)
+	PACKET(PKT_INVEN,   	"%c%c%ud%d%c%c%s",	recv_inven)
+	PACKET(PKT_EQUIP,   	"%c%c%ud%c%c%s",	recv_equip)
 #endif

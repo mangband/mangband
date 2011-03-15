@@ -4161,11 +4161,11 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 		o_ptr = &o_list[o_idx];
 		/* Describe the object */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-		Send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
+		send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
 	}
 	else
 	{
-		Send_floor(Ind, 0, 0, 0, 0, "");
+		send_floor(Ind, 0, 0, 0, 0, "");
 	}
 }
 

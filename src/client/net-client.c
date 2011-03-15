@@ -610,6 +610,47 @@ int recv_struct_info(connection_type *ct)
 				pc_ptr->spell_book = spell_book;
 			}
 		break;
+		/* Inventory slots */
+		case STRUCT_INFO_INVEN:
+		{
+			s16b last_off = -1;
+			/* Alloc */
+			C_MAKE(eq_name, fake_name_size, char);
+			C_MAKE(eq_names, max, s16b);
+			C_MAKE(inventory_name, max, char*);
+			C_MAKE(inventory, max, object_type);
+			INVEN_TOTAL = max;
+			INVEN_WIELD = fake_text_size;
+			
+			/* Read extra */
+			fake_text_size = 0;
+			if (cq_scanf(&ct->rbuf, "%ul", &fake_text_size) < 1)
+			{
+				return 0;
+			}
+			INVEN_PACK = fake_text_size;
+
+			/* Fill */
+			for (i = 0; i < max; i++) 
+			{
+				C_MAKE(inventory_name[i], 80, char);
+
+				off = 0;
+
+				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
+				{
+					return n;
+				}
+
+				if (last_off != off)
+				{
+					printf("Saving %s at pos %d\n", name, off);
+					strcpy(eq_name + off, name);
+				} else printf("Not Saving %s at pos %d\n", name, off);
+
+				eq_names[i] = last_off = (s16b)off;
+			}
+		}		
 	}	
 	
 	return 1;
@@ -1220,6 +1261,91 @@ int recv_item_tester_info(connection_type *ct) {
 
 	return 1;
 }
+
+
+int recv_floor(connection_type *ct)
+{
+	int	n;
+	char	ch;
+	byte tval, attr;
+	byte flag;
+	s16b amt;
+	char name[80];
+
+	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
+	{
+		return 0;
+	}
+
+	/* Remember for later */
+	floor_item.sval = attr; /* Hack -- Store "attr" in "sval" */
+	floor_item.tval = tval;
+	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
+	floor_item.number = amt;
+
+	strncpy(floor_name, name, 79);
+	fix_floor();
+	return 1;
+}
+
+int recv_inven(connection_type *ct)
+{
+	int	n;
+	char	ch;
+	char pos, attr, tval;
+	byte flag;
+	s16b wgt, amt;
+	char name[80];
+
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
+	{
+		return 0;
+	}
+
+	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
+	inventory[pos - 'a'].sval = attr;
+	inventory[pos - 'a'].tval = tval;
+	inventory[pos - 'a'].ident = flag;
+	inventory[pos - 'a'].weight = wgt;
+	inventory[pos - 'a'].number = amt;
+
+	strncpy(inventory_name[pos - 'a'], name, 79);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_INVEN);
+
+	return 1;
+}
+
+int recv_equip(connection_type *ct)
+{
+	int	n;
+	char 	ch;
+	char pos, attr, tval;
+	byte flag;
+	s16b wgt;
+	char name[80];
+
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
+	{
+		return 0;
+	}
+
+	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
+	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
+	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
+	inventory[pos - 'a' + INVEN_WIELD].number = 1;
+
+
+	strncpy(inventory_name[pos - 'a' + INVEN_WIELD], name, 79);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_EQUIP);
+
+	return 1;
+}
+
 
 void setup_tables()
 {

@@ -145,6 +145,41 @@ int send_option_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_inventory_info(connection_type *ct, int id)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul%ul", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
+	{
+		client_withdraw(ct);
+	} 
+
+	buf[0] = '\0';
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		off += strlen(buf) + 1;
+		if (i < INVEN_WIELD) 
+		{
+			off = 0;
+		}
+
+		strcpy(buf, mention_use(0, i));
+		buf[strlen(buf)] = '\0';
+
+		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
+		{
+			client_withdraw(ct);
+		}
+	}
+	return 1;
+}
+
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
@@ -413,6 +448,37 @@ int send_item_tester_info(connection_type *ct, int id)
 	/* Ok */
 	return 1;
 }
+
+int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
+{
+	connection_type *ct = PConn[Ind];
+	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
+{
+	connection_type *ct = PConn[Ind];
+	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
+{
+	connection_type *ct = PConn[Ind];
+	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 
 int send_message(int Ind, cptr msg, u16b typ)
 {
