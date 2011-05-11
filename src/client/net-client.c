@@ -914,14 +914,14 @@ int recv_stream(connection_type *ct) {
 	/* Decode the secondary attr/char stream */
 	if ((stream->flag & SF_TRANSPARENT))
 	{
-		if (cq_scanc(&ct->rbuf, stream->rle, p_ptr->trn_info[y], cols) <= 0) return -1;
+		if (cq_scanc(&ct->rbuf, stream->rle, p_ptr->trn_info[y], cols) < cols) return 0;
 	}
 	/* OR clear it ! */ 
 	else if (stream->flag & SF_OVERLAYED)
 		caveclr(p_ptr->trn_info[y], cols);
 
 	/* Decode the attr/char stream */
-	if (cq_scanc(&ct->rbuf, stream->rle, dest, cols) <= 0) return -1;
+	if (cq_scanc(&ct->rbuf, stream->rle, dest, cols) < cols) return 0;
 
 	/* Check the min/max line count */
 	if ((*line) < y)
