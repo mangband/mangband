@@ -90,6 +90,9 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		/* Unable to continue */
 		if (result != 1) break;
 	}
+#ifdef DEBUG
+	if (result == -1) printf("Error parsing packet %d\n", last_pkt);
+#endif
 	/* Not enough bytes */
 	if (result == 0) 
 	{

@@ -278,6 +278,9 @@ static void Setup_loop()
 		}
 	} while (!(char_ready && data_ready));
 
+#ifdef DEBUG
+    printf("Starting with %d indicators, %d commands and %d streams\n", known_indicators, custom_commands, known_streams);
+#endif
 	client_ready();
 	send_play(PLAY_PLAY);
 
