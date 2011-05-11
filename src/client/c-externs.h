@@ -450,6 +450,7 @@ extern s16b state;
 extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
+extern void setup_keepalive_timer();
 extern void setup_network_client();
 extern void cleanup_network_client();
 extern void network_loop();

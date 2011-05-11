@@ -2909,6 +2909,18 @@ void redraw_stuff(void)
 			}
 		}
 	}
+
+	/* MAangband-specific local indicator: Lag meter */
+	if ((ROW_LAG < section_icky_row) && 
+		((section_icky_col >= 0 && COL_LAG < section_icky_col) ||
+		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) lag_mark = 0;
+	if (screen_icky && !section_icky_row) lag_mark = 0;
+	if (lag_mark)
+	{
+		prt_lag(ROW_LAG, COL_LAG);
+		lag_mark = 0;
+	}
+	
 }
 
 

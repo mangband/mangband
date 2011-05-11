@@ -527,6 +527,8 @@ bool client_setup()
  */
 bool client_ready()
 {
+	/* Setup keepalive timer */
+	setup_keepalive_timer();
 
 	/* Subscribe to data streams */
 	init_subscriptions();

@@ -3,6 +3,12 @@
 #include "../common/net-basics.h"
 #include "../common/net-imps.h"
 
+#define ONE_SECOND	1000000 /* 1 million "microseconds" */
+
+/* Keepalive counters */
+int sent_pings = 0;
+int recd_pings = 0;
+
 /* List heads */
 eptr first_connection = NULL;
 eptr first_listener = NULL;
@@ -45,6 +51,8 @@ void cleanup_network_client()
 {
 	e_release_all(first_connection, 0, 1);
 	e_release_all(first_caller, 0, 1);
+
+	e_release_all(first_timer, 0, 1);
 }
 
 /* Iteration of the Loop */
@@ -53,14 +61,9 @@ void network_loop()
 	//first_listener = handle_listeners(first_listener);
 	first_connection = handle_connections(first_connection);
 	first_caller = handle_callers(first_caller);
-	//first_timer = handle_timers(first_timer, static_timer(0));
+	first_timer = handle_timers(first_timer, static_timer(0));
 
 	network_pause(1000); /* 0.001 ms "sleep" */
-
-	/* Update our timer and if neccecary send a keepalive packet
-	 * (or something similar via timer above) */
-	//update_ticks();
-	//do_keepalive();
 }
 
 int client_close(int data1, data data2) {
@@ -117,7 +120,6 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		ct->rbuf.pos = 0;
 	}	
 #endif
-
 	return result;
 }
 
@@ -177,6 +179,29 @@ int call_server(char *server_name, int server_port)
 	return connected;
 }
 
+/* Timer */
+int send_keepalive(u32b last_keepalive);
+int keepalive_timer(int data1, data data2) {
+	if (recd_pings == sent_pings) 
+	{
+		send_keepalive(sent_pings++);
+		static_timer(1); //reset timer
+	}
+	//TODO: test this!
+	else lag_mark = 10000;
+
+	return 1;
+}
+void setup_keepalive_timer() 
+{
+	/* Create timer */
+	eptr timer = add_timer(first_timer, ONE_SECOND, keepalive_timer);
+	if (!first_timer) first_timer = timer;
+
+	/* Reset counters */
+	sent_pings = 0;
+	recd_pings = 0;
+}
 
 int send_play(byte mode) {
 	return cq_printf(&serv->wbuf, "%c%c", PKT_PLAY, mode);
@@ -433,9 +458,18 @@ int recv_keepalive(connection_type *ct) {
 		} 
 		last_keepalive=0;
 	};
-#endif
-#if 1
-
+#else
+	/* make sure it's the same one we sent... */
+	if (cticks == sent_pings - 1) 
+	{
+		if (state == PLAYER_PLAYING) 
+		{
+			micro time_passed = static_timer(1);
+			time_passed /= 100;
+			lag_mark = (s16b)time_passed;
+			recd_pings++;
+		} 
+	}
 #endif 
 	/* Ok */
 	return 1;
