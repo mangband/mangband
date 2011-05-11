@@ -801,6 +801,7 @@ static void player_outfit(int Ind)
 	}
 }
 
+static void player_admin(player_type *p_ptr);
 void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -810,6 +811,9 @@ void player_setup(int Ind)
 	bool reposition;
 
 	bool dawn = ((turn.turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)), require_los = 1; 
+
+	/* DM powers? */
+	player_admin(p_ptr);
 
 	/* Count players on this depth */
 	for (i = 1; i <= NumPlayers; i++)
@@ -1037,10 +1041,8 @@ void player_setup(int Ind)
 	p_ptr->old_turn = turn;
 }
 
-static void player_admin(int Ind)
+static void player_admin(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	
 	/* Hack -- set Dungeon Master flags */
 #ifdef DEBUG
 	p_ptr->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
@@ -1155,7 +1157,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	//if (!process_player_name(Ind, TRUE)) return FALSE;
 
 	/* DM powers? */
-	//player_admin(Ind);
+	player_admin(p_ptr);
 
 	/* Set info */
 	p_ptr->prace = race;
