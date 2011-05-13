@@ -479,6 +479,23 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 	return 1;
 }
 
+int send_objflags(int Ind, int line)
+{
+	connection_type *ct = PConn[Ind];
+	//TODO: generalize this (merge with streams?)
+	byte rle = ( Players[Ind]->use_graphics ? RLE_LARGE : RLE_CLASSIC );
+	/* Header */
+	if (cq_printf(&ct->wbuf, "%c%d", PKT_OBJFLAGS, line) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	/* Body (39 grids of "cave") */
+	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], 39) <= 0)
+	{
+		client_withdraw(ct);
+	} 
+	return 1;
+}
 
 int send_message(int Ind, cptr msg, u16b typ)
 {

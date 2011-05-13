@@ -2184,8 +2184,8 @@ static void display_player_equippy(int y, int x)
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
 	{
 		/* Get attr/char for display */
-		a = p_ptr->hist_flags[0][i-INVEN_WIELD].a;
-		c = p_ptr->hist_flags[0][i-INVEN_WIELD].c;
+		a = p_ptr->hist_flags[i-INVEN_WIELD][0].a;
+		c = p_ptr->hist_flags[i-INVEN_WIELD][0].c;
 
 		/* Dump */
 		Term_putch(x+i-INVEN_WIELD, y, a, c);
@@ -2210,8 +2210,8 @@ static void display_player_sust_info(void)
 	{
 		for (i = 0; i < 13; ++i)
 		{
-			a = p_ptr->hist_flags[stat+1][i].a;
-			c = p_ptr->hist_flags[stat+1][i].c;
+			a = p_ptr->hist_flags[i][1+stat].a;
+			c = p_ptr->hist_flags[i][1+stat].c;
 			/* Dump proper character */
 			Term_putch(col+i, row+stat, a, c);
 			//c_put_str(a, c, col+i, row+stat);
@@ -2261,8 +2261,8 @@ static void display_player_flag_info(void)
 			/* Draw dots */
 			for (i = 0; i < 13; i++) 
 			{
-				a = p_ptr->hist_flags[off][i].a;
-				c = p_ptr->hist_flags[off][i].c;
+				a = p_ptr->hist_flags[i][off].a;
+				c = p_ptr->hist_flags[i][off].c;
 				/* Dump proper character */
 				Term_putch(col+6+i, row+1, a, c);
 			}			

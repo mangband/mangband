@@ -682,7 +682,6 @@ extern void display_monlist(int Ind);
 #define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
 #define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
 #define Send_sound(IND, sound) plog("Send_sound unimplemented\n") 
-#define Send_objflags(IND, line) plog("Send_objflags unimplemented\n")
 #define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
 #define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
 #define Send_special_other(IND, header) plog("Send_special_other unimplemented\n")

@@ -1393,6 +1393,32 @@ int recv_equip(connection_type *ct)
 	return 1;
 }
 
+int recv_objflags(connection_type *ct)
+{
+	s16b
+		y = 0;
+	byte rle = ( use_graphics ? RLE_LARGE : RLE_CLASSIC );
+
+	/* Header (line number) */
+	if (cq_scanf(&ct->rbuf, "%d", &y) < 1)
+	{
+		return 0;
+	}
+
+	/* Body (39 grids of cave) */
+	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
+	{ 
+		return 0;
+	}
+
+	//TODO: re-evalute those
+	/* Update relevant displays */
+	p_ptr->redraw |= PR_EQUIPPY;
+	p_ptr->window |= (PW_PLAYER_1);
+
+	/* Ok */
+	return 1;
+}
 
 void setup_tables()
 {

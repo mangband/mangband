@@ -1271,7 +1271,7 @@ struct player_type
 
 	char history[4][60];	/* The player's "history" */
 	char descrip[4 *60]; 	/* Same, but in 3rd person */
-	cave_view_type hist_flags[39][14]; /* Player' sustains/restists/flags */
+	cave_view_type hist_flags[14][39]; /* Player' sustains/restists/flags */
 
 	s16b world_x;	/* The wilderness x coordinate */
 	s16b world_y;	/* The wilderness y coordinate */

@@ -761,8 +761,8 @@ static void prt_player_equippy(int Ind)
 		}
 
 		/* Dump proper character */
-		p_ptr->hist_flags[0][i-INVEN_WIELD].a = a;
-		p_ptr->hist_flags[0][i-INVEN_WIELD].c = c;
+		p_ptr->hist_flags[i-INVEN_WIELD][0].a = a;
+		p_ptr->hist_flags[i-INVEN_WIELD][0].c = c;
 
 	}
 }
@@ -856,8 +856,8 @@ static void prt_player_sust_info(int Ind)
 				if (c == '.') c = 's';
 			}
 			/* Dump proper character */
-			p_ptr->hist_flags[stat+1][i-INVEN_WIELD].a = a;
-			p_ptr->hist_flags[stat+1][i-INVEN_WIELD].c = c;
+			p_ptr->hist_flags[i-INVEN_WIELD][1+stat].a = a;
+			p_ptr->hist_flags[i-INVEN_WIELD][1+stat].c = c;
 			//Term_putch(col, row+stat, a, c);
 		}
 		/* Advance */
@@ -879,8 +879,8 @@ static void prt_player_sust_info(int Ind)
 			c = 's';
 		}
 		/* Dump */
-		p_ptr->hist_flags[stat+1][12].a = a;
-		p_ptr->hist_flags[stat+1][12].c = c;
+		p_ptr->hist_flags[12][1+stat].a = a;
+		p_ptr->hist_flags[12][1+stat].c = c;
 		//Term_putch(col, row+stat, a, c);
 	}
 	/* Column */
@@ -984,8 +984,8 @@ static void prt_player_flag_info(int Ind)
 					attr = TERM_WHITE;
 					c = '*';
 					//c_put_str(TERM_WHITE, "*", row, col+n);
-					//p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-					//p_ptr->hist_flags[realY][realX].c = '*';
+					//p_ptr->hist_flags[realX][realY].a = TERM_WHITE;
+					//p_ptr->hist_flags[realX][realY].c = '*';
 				}
 
 				/* Check flags */
@@ -994,20 +994,20 @@ static void prt_player_flag_info(int Ind)
 					//c_put_str(TERM_WHITE, "+", row, col+n);
 					attr = TERM_WHITE;
 					c = '+';
-					//p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-					//p_ptr->hist_flags[realY][realX].c = '+';
+					//p_ptr->hist_flags[realX][realY].a = TERM_WHITE;
+					//p_ptr->hist_flags[realX][realY].c = '+';
 				}
 
 				/* Default */
 				else
 				{
 					//c_put_str(attr, ".", row, col+n);
-					//p_ptr->hist_flags[realY][realX].a = attr;
-					//p_ptr->hist_flags[realY][realX].c = c;
+					//p_ptr->hist_flags[realX][realY].a = attr;
+					//p_ptr->hist_flags[realX][realY].c = c;
 				}
 				
-				p_ptr->hist_flags[realY][realX].a = attr;
-				p_ptr->hist_flags[realY][realX].c = c;
+				p_ptr->hist_flags[realX][realY].a = attr;
+				p_ptr->hist_flags[realX][realY].c = c;
 				
 				realX++;
 			}
@@ -1020,23 +1020,23 @@ static void prt_player_flag_info(int Ind)
 
 			/* Default */
 			//c_put_str(TERM_SLATE, ".", row, col+n);
-			p_ptr->hist_flags[realY][realX].a = TERM_SLATE;
-			p_ptr->hist_flags[realY][realX].c = '.';
+			p_ptr->hist_flags[realX][realY].a = TERM_SLATE;
+			p_ptr->hist_flags[realX][realY].c = '.';
 
 			/* Hack -- Check immunities */
 			if ((x == 0) && (y < 4) &&
 			    (f[set] & ((TR2_IM_ACID) << y)))
 			{
 				//c_put_str(TERM_WHITE, "*", row, col+n);
-				p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-				p_ptr->hist_flags[realY][realX].c = '*';
+				p_ptr->hist_flags[realX][realY].a = TERM_WHITE;
+				p_ptr->hist_flags[realX][realY].c = '*';
 			}
 
 			/* Check flags */
 			else if (f[set] & flag) {
 				//c_put_str(TERM_WHITE, "+", row, col+n);
-				p_ptr->hist_flags[realY][realX].a = TERM_WHITE;
-				p_ptr->hist_flags[realY][realX].c = '+';
+				p_ptr->hist_flags[realX][realY].a = TERM_WHITE;
+				p_ptr->hist_flags[realX][realY].c = '+';
 			}
 
 			/* Advance */
@@ -1063,9 +1063,9 @@ static void prt_flags(int Ind)
 	prt_player_sust_info(Ind);
 	prt_player_flag_info(Ind);
 
-	for (i = 0; i < 39; i++)
+	for (i = 0; i < 13; i++)
 	{
-		Send_objflags(Ind, i);
+		send_objflags(Ind, i);
 	}
 	
 }
