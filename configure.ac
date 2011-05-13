@@ -7,9 +7,12 @@ AM_INIT_AUTOMAKE(mangband, 1.2.0)
 AM_CONFIG_HEADER(src/config.h)
 AC_CANONICAL_HOST
 
+# Enables SILENT RULES for automake >= 1.11
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
+
 # Checks for programs.
 AC_PROG_CC
-AM_PROG_CC_STDC
+AM_PROG_CC_C_O	# stops automake from complaining
 AC_PROG_RANLIB
 #CFLAGS="$CFLAGS -Wall -g -pipe"
 
@@ -44,8 +47,8 @@ AC_CHECK_LIB([SDL], [main], have_sdl="yes")
 
 # Try finding ncurses or curses...
 have_curs="yes"
-AC_CHECK_LIB([ncurses], [main],,[
-    AC_CHECK_LIB([curses], [main],, have_curs="no")
+AC_CHECK_LIB([ncurses], [main], have_curs_lib="ncurses", [
+    AC_CHECK_LIB([curses], [main], have_curs_lib="curses", have_curs="no")
     ])
 
 
@@ -96,6 +99,7 @@ AM_CONDITIONAL(USE_SDL, test "x$enabled_sdl" = xyes)
 if test "x$enabled_gcu" = xyes
 then
     CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_GCU -I/usr/include/ncurses"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -l$have_curs_lib"
     DISPMOD="$DISPMOD GCU"
 fi
 #X11
@@ -161,7 +165,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([alarm atexit floor ftruncate getcurx gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp strpbrk strrchr strspn strstr strtol])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
-AC_OUTPUT( src/client/Makefile src/client/osx/Makefile src/common/Makefile src/Makefile src/server/Makefile lib/bone/Makefile lib/edit/Makefile lib/save/Makefile lib/help/Makefile lib/data/Makefile lib/pref/Makefile lib/user/Makefile lib/xtra/sound/Makefile lib/xtra/graf/Makefile lib/xtra/font/Makefile lib/xtra/Makefile lib/Makefile Makefile ) 
+AC_OUTPUT( Makefile )
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
 #echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"

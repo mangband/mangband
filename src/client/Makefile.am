@@ -1,41 +1,44 @@
 
-bin_PROGRAMS = mangclient
+mangclient_LDADD = src/libcommon.a $(CLIENT_LDFLAGS)
+mangclient_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" $(CLIENT_CFLAGS)
 
-LDADD = ../common/libcommon.a $(CLIENT_LDFLAGS)
-AM_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" $(CLIENT_CFLAGS)
+include src/client/osx/Makefile.am
 
 if HAVE_WINDRES
 
-mangclient_RESOURCES = Angband.rc
+mangclient_RESOURCES = src/client/Angband.rc
 
 endif
 
-mangclient_SUBDIRS = osx
-
-mangclient_SOURCES = c-birth.c c-cmd.c c-files.c c-init.c c-inven.c c-spell.c c-store.c \
-		     c-tables.c c-util.c c-xtra1.c c-xtra2.c client.c \
-		     main-cap.c main-gcu.c main-ibm.c main-win.c \
-		     main-xaw.c net-client.c readdib.c set_focus.c \
-		     variable.c z-term.c \
-		     $(mangclient_RESOURCES) \
-		     c-angband.h c-defines.h c-externs.h net-client.h \
-	             readdib.h resource.h z-term.h
+mangclient_SOURCES = \
+		src/client/c-birth.c src/client/c-cmd.c src/client/c-files.c \
+		src/client/c-init.c src/client/c-inven.c src/client/c-spell.c \
+		src/client/c-store.c src/client/c-tables.c src/client/c-util.c \
+		src/client/c-xtra1.c src/client/c-xtra2.c src/client/client.c \
+		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
+		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
+		src/client/readdib.c src/client/set_focus.c src/client/variable.c \
+		src/client/z-term.c \
+		$(mangclient_RESOURCES) \
+		src/client/c-angband.h src/client/c-defines.h src/client/c-externs.h \
+		src/client/net-client.h src/client/readdib.h src/client/resource.h \
+		src/client/z-term.h
 
 if USE_CRB
 
-mangclient_SOURCES += main-crb.c osx/osx_tables.h
+mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h
 
 endif
 
 if USE_X11
 
-mangclient_SOURCES += maid-x11.c main-x11.c maid-x11.h
+mangclient_SOURCES += src/client/maid-x11.c src/client/main-x11.c src/client/maid-x11.h
 
 endif
 
 if USE_SDL
 
-mangclient_SOURCES += maim-sdl.c main-sdl.c sdl-xxx.c main-sdl.h
+mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/sdl-xxx.c src/client/main-sdl.h
 
 endif
 

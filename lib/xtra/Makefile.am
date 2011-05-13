@@ -1,3 +1,4 @@
 
-SUBDIRS = font graf sound
-xtradir = $(pkgdatadir)/xtra
+include lib/xtra/font/Makefile.am
+include lib/xtra/graf/Makefile.am
+include lib/xtra/sound/Makefile.am

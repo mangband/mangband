@@ -1,4 +1,12 @@
 
 savedir = $(pkgdatadir)/save
-save_DATA = server.level.0.0.100 server.level.0.0.120 server.level.0.0.20 server.level.0.0.40 server.level.0.0.60 server.level.0.0.80
-EXTRA_DIST = $(save_DATA)
+
+save_DATA = \
+		lib/save/server.level.0.0.20 \
+		lib/save/server.level.0.0.40 \
+		lib/save/server.level.0.0.60 \
+		lib/save/server.level.0.0.80 \
+		lib/save/server.level.0.0.100 \
+		lib/save/server.level.0.0.120
+
+EXTRA_DIST += $(save_DATA)

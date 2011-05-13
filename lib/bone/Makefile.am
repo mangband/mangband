@@ -1,4 +1,4 @@
 
 bonedir = $(pkgdatadir)/bone
-bone_DATA = delete.me
-EXTRA_DIST = $(bone_DATA)
+bone_DATA = lib/bone/delete.me
+EXTRA_DIST += $(bone_DATA)

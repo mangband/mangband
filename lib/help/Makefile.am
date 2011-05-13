@@ -1,5 +1,17 @@
 
 textdir = $(pkgdatadir)/text
-text_DATA = attack.txt birth.txt command.txt dead.txt dungeon.txt general.txt help.hlp mangband.hlp news.txt option.txt version.txt
 
-EXTRA_DIST = $(text_DATA)
+text_DATA = \
+		lib/help/attack.txt \
+		lib/help/birth.txt \
+		lib/help/command.txt \
+		lib/help/dead.txt \
+		lib/help/dungeon.txt \
+		lib/help/general.txt \
+		lib/help/help.hlp \
+		lib/help/mangband.hlp \
+		lib/help/news.txt \
+		lib/help/option.txt \
+		lib/help/version.txt
+
+EXTRA_DIST += $(text_DATA)

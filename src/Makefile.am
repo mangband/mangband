@@ -1,3 +1,6 @@
 
-SUBDIRS = common server client
-EXTRA_DIST = makefile.bcc h-config.h
+bin_PROGRAMS = mangclient mangband
+
+include src/common/Makefile.am
+include src/client/Makefile.am
+include src/server/Makefile.am

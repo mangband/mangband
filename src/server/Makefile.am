@@ -1,13 +1,21 @@
 
-bin_PROGRAMS = mangband
+mangband_LDADD = src/libcommon.a $(SERVER_LDFLAGS)
+mangband_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
 
-LDADD = ../common/libcommon.a $(SERVER_LDFLAGS)
-AM_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
-
-mangband_SOURCES = birth.c cave.c cmd1.c cmd2.c cmd3.c cmd4.c cmd5.c \
-		   cmd6.c control.c dungeon.c files.c generate.c init1.c init2.c \
-		   load2.c main.c melee1.c melee2.c monster1.c monster2.c net-server.c \
-		   obj-info.c object1.c object2.c party.c save.c net-game.c \
-		   spells1.c spells2.c store.c tables.c use-obj.c util.c \
-		   variable.c wilderness.c x-spell.c xtra1.c xtra2.c \
-		   externs.h init.h mangband.h mdefines.h net-server.h net-game.h
+mangband_SOURCES = \
+		src/server/birth.c src/server/cave.c \
+		src/server/cmd1.c src/server/cmd2.c src/server/cmd3.c \
+		src/server/cmd4.c src/server/cmd5.c src/server/cmd6.c \
+		src/server/control.c src/server/dungeon.c src/server/files.c \
+		src/server/generate.c src/server/init1.c src/server/init2.c \
+		src/server/load2.c src/server/main.c src/server/melee1.c \
+		src/server/melee2.c src/server/monster1.c src/server/monster2.c \
+		src/server/net-server.c \
+		src/server/obj-info.c src/server/object1.c src/server/object2.c \
+		src/server/party.c src/server/save.c src/server/net-game.c \
+		src/server/spells1.c src/server/spells2.c src/server/store.c \
+		src/server/tables.c src/server/use-obj.c src/server/util.c \
+		src/server/variable.c src/server/wilderness.c src/server/x-spell.c \
+		src/server/xtra1.c src/server/xtra2.c \
+		src/server/externs.h src/server/init.h src/server/mangband.h \
+		src/server/mdefines.h src/server/net-server.h src/server/net-game.h

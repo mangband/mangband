@@ -1,0 +1,20 @@
+
+ Both mangband and mangclient binaries rely on "lib dir" - a directory
+ with all the game data.
+
+ First, they'll look for the ANGBAND_PATH environment variable,
+ then they'll try the PKGDATADIR constant, then the directories
+ specified in config files (.mangrc and mangband.cfg).
+ 
+ PKGDATADIR is usually defined by system and ammounts to something 
+ like "/usr/local/games/mangband", if you want to run mangband
+ from the 'current' directory, that path is not for you.
+ 
+ ANGBAND_PATH can be used to select any directory in this manner:
+
+	ANGBAND_PATH=./lib ./mangband
+	ANGBAND_PATH=./lib ./mangclient
+
+  Config file directives consist of "LibDir" in ".mangrc" (for client)
+  and "EDIT_DIR", "DATA_DIR", "SAVE_DIR", "BONE_DIR" , "HELP_DIR" in
+  "mangband.cfg" (for server). Those overwrite any other paths. 
