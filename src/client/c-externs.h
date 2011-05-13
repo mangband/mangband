@@ -464,6 +464,7 @@ extern int send_keepalive(u32b last_keepalive);
 extern int send_request(byte mode, u16b id);
 extern int send_visual_info(byte type);
 extern int send_msg(cptr message);
+extern int send_redraw(void);
 extern int send_walk(char dir);
 //TRANSITIONAL HACKAGE:
 #define conn_state state
@@ -502,7 +503,6 @@ extern int send_walk(char dir);
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
 #define Send_store_leave() plog("Send_store_leave unimplemented!")
 #define Send_store_confirm() plog("Send_store_confirm unimplemented!")
-#define Send_redraw() plog("Send_redraw unimplemented!")
 #define Send_special_line(type, line) plog("Send_special_line unimplemented!")
 #define Send_interactive(type) plog("Send_interactive unimplemented!")
 #define Send_term_key(ch) plog("Send_term_key unimplemented!")

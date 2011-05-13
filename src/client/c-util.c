@@ -3963,7 +3963,7 @@ void do_cmd_options(void)
 	Save_options();
 
 	/* Send a redraw request */
-	Send_redraw();
+	send_redraw();
 }
 void do_cmd_options_birth()
 {

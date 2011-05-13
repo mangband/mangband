@@ -361,6 +361,11 @@ int send_term_key(char key)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_KEY, key);
 }
 
+int send_redraw(void)
+{
+	return cq_printf(&serv->wbuf, "%c", PKT_REDRAW);
+}
+
 /* Gameplay commands */
 int send_walk(char dir)
 {

@@ -1222,8 +1222,10 @@ void cmd_load_pref(void)
 
 void cmd_redraw(void)
 {
-	Send_redraw();
-	//keymap_init();
+	/* Request new data */
+	send_redraw();
+	/* Clear screen */
+	Term_clear();
 }
 
 void cmd_suicide(void)
