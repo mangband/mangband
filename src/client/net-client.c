@@ -103,23 +103,8 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		ct->rbuf.pos = start_pos;
 	}
 	/* Slide buffer to the left */
-#if 0
-	/* Fast version */
-	else if (result == 1)
-	{
-		CQ_CLEAR(&ct->rbuf);
-	}
-#else
-	/* Slow, but safer version */
-	if (ct->rbuf.pos)
-	{
-		char buf[PD_SMALL_BUFFER];
-		memcpy(buf, &ct->rbuf.buf[ct->rbuf.pos], ct->rbuf.len);
-		memcpy(ct->rbuf.buf, buf, ct->rbuf.len);
-		ct->rbuf.len -= ct->rbuf.pos;
-		ct->rbuf.pos = 0;
-	}	
-#endif
+	cq_slide(&ct->rbuf);
+
 	return result;
 }
 

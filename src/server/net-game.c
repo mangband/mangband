@@ -1229,6 +1229,8 @@ int process_player_commands(int p_idx)
 	}
 	/* not enough energy, step back */
 	if (result == 0) p_ptr->cbuf.pos = start_pos;
+	/* slide buffer to the left */
+	cq_slide(&p_ptr->cbuf);
 
 	/* ... */
 	return result;

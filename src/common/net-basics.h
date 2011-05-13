@@ -81,6 +81,7 @@ extern int cq_nread(cq *charq, char *str, int len);
 extern int cq_pread(cq *charq, char *str, int len);
 extern int cq_move(cq *srcq, cq *dstq, int len);
 extern int cq_copy(cq *srcq, cq *dstq, int len);
+extern void cq_slide(cq *charq);
 extern void cq_free(cq *charq);
 extern void printbuf(cq *charq);
 

@@ -378,6 +378,16 @@ int cq_copy(cq *srcq, cq *dstq, int len) {
 	return retval;
 }
 
+/* Move len bytes starting at pos in charq to the left */
+void cq_slide(cq *charq) {
+	if (charq->pos) {
+		if (charq->len != charq->pos)
+			memmove(charq->buf, &charq->buf[charq->pos], charq->len - charq->pos);
+		charq->len -= charq->pos;
+		charq->pos = 0;
+	}
+}
+
 /* Destructor. Call this when done. */
 void cq_free(cq *charq) {
 	free(charq->buf);
