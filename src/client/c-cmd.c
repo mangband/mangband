@@ -253,7 +253,7 @@ void process_command()
 		case ' ':
 		{
 			if (first_escape) 
-				Send_clear();
+				send_clear();
 			first_escape = FALSE;
 			break;
 		}

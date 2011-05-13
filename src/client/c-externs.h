@@ -465,6 +465,7 @@ extern int send_request(byte mode, u16b id);
 extern int send_visual_info(byte type);
 extern int send_msg(cptr message);
 extern int send_redraw(void);
+extern int send_clear(void);
 extern int send_walk(char dir);
 //TRANSITIONAL HACKAGE:
 #define conn_state state
@@ -482,7 +483,6 @@ extern int send_walk(char dir);
 #define Flush_queue() plog("Flush_queue unimplemented!")
 #define SocketCloseAll() plog("SocketCloseAll unimplemented!")
 #define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
-#define Send_clear() plog("Send_clear unimplemented!")
 #define Send_walk(dir) plog("Send_walk unimplemented!")
 #define Send_run(dir) plog("Send_run unimplemented!")
 #define Send_drop_gold(amt) plog("Send_drop_gold unimplemented!")

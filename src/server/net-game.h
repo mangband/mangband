@@ -18,6 +18,7 @@
 	PACKET(PKT_KEY,     	"%c",       	recv_term_key)
 
 	PACKET(PKT_REDRAW,    	"",         	recv_redraw)
+	PACKET(PKT_CLEAR,    	"",         	recv_clear)
 
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
 

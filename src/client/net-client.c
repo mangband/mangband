@@ -366,6 +366,11 @@ int send_redraw(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_REDRAW);
 }
 
+int send_clear(void)
+{
+	return cq_printf(&serv->wbuf, "%c", PKT_CLEAR);
+}
+
 /* Gameplay commands */
 int send_walk(char dir)
 {
