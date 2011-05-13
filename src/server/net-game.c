@@ -1030,6 +1030,24 @@ static int recv_walk(player_type *p_ptr) {
 		return -1;
 	}
 
+	/* Classic MAnghack #2. */
+	/* Always prefer last walk request */
+	/* Note: there's another arguably more elegant way to do this:
+	 * replace last walk request in "recv_command" or similar,
+	 * the way older code did it */
+	if (cq_len(&p_ptr->cbuf) && (CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK)
+	{
+		return 1;
+	}
+
+	/* Classic MAnghack #1. */
+	/* Disturb if running or resting */
+	if (p_ptr->running || p_ptr->resting)
+	{
+		disturb(Ind, 0, 0);
+		return 1;
+	}
+
 	/* Check energy */
 	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
@@ -1039,9 +1057,6 @@ static int recv_walk(player_type *p_ptr) {
 		/* End turn */
 		return 2;
 	}
-
-	/* Old MAngband code does several hacks to ensure smoother running, disturbing, etc...
-	 *  TODO !!! */
 
 	/* Not enough energy */
 	return 0;
