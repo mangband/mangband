@@ -301,7 +301,7 @@ void network_loop()
 		first_caller = handle_callers(first_caller);
 		first_timer = handle_timers(first_timer, static_timer(0));
 
-		network_pause(200000); /* 0.2 ms "sleep" */
+		network_pause(2000); /* 0.002 ms "sleep" */
 	}
 }
 

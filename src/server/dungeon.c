@@ -1041,7 +1041,7 @@ static void process_player_end(int Ind)
 
 	/* Try to execute any commands on the command queue. */
 	process_player_commands(Ind);
-return;//HACK!!! TODO: REMOVE
+
 	/* Check for auto-retaliate */
 	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused)
 	{
