@@ -3041,6 +3041,19 @@ int do_cmd_run(int Ind, int dir)
 	/* Check preventive inscription '^.' */
 	if (CPI(p_ptr, '.')) { msg_print(Ind, "The item's inscription prevents it."); return 0; }
 
+	/* Classic MAnghack #3. */
+	/* Treat this as a walk request 
+	 * -- instead of disallowing running when confused */
+	if (p_ptr->confused)
+	{
+		/* BUT NOT IN TOWN ... */
+		if (p_ptr->dun_depth)
+		{
+			do_cmd_walk(Ind, dir, option_p(p_ptr, ALWAYS_PICKUP));
+			return 1;
+		}
+	}	
+
 	if (p_ptr->confused)
 	{
 	    msg_print(Ind, "You are too confused!");
@@ -3101,7 +3114,7 @@ int do_cmd_run(int Ind, int dir)
  * Stay still.  Search.  Enter stores.
  * Pick up treasure if "pickup" is true.
  */
-void do_cmd_stay(int Ind, int pickup)
+void do_cmd_hold_or_stay(int Ind, int pickup)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
@@ -3162,7 +3175,23 @@ void do_cmd_stay(int Ind, int pickup)
 	carry(Ind, pickup, 0);
 }
 
+/*
+ * Hold still (usually pickup)
+ */
+void do_cmd_hold(int Ind)
+{
+	/* Hold still (usually pickup) */
+	do_cmd_hold_or_stay(Ind, option_p(Players[Ind],ALWAYS_PICKUP));
+}
 
+/*
+ * Stay still (usually do not pickup)
+ */
+void do_cmd_stay(int Ind)
+{
+	/* Stay still (usually do not pickup) */
+	do_cmd_hold_or_stay(Ind, !option_p(Players[Ind],ALWAYS_PICKUP));
+}
 
 
 

@@ -39,6 +39,26 @@
  */
 const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
 {	
+	/*** Moving around ***/
+#if 0	
+	{ /* Walk 1 grid */
+		';', PKT_WALK, SCHEME_DIR, 1, (cccb)do_cmd_walk,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+#endif	
+	{ /* Start running */
+		'.', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_run,
+		(COMMAND_TARGET_DIR),		0, ""
+	},
+	{ /* Stand still */
+		',', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_stay,
+		(0),		0, ""
+	},
+	{ /* Hold still */
+		'g', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_hold,
+		(0),		0, ""
+	},
+
 	/*** Simpliest, one-off commands ***/
 	{ /* Go Up by stairs */
 		'<', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,

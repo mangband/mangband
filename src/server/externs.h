@@ -449,8 +449,10 @@ extern void do_cmd_disarm(int Ind, int dir);
 extern void do_cmd_bash(int Ind, int dir);
 extern void do_cmd_spike(int Ind, int dir);
 extern void do_cmd_walk(int Ind, int dir, int pickup);
-extern void do_cmd_stay(int Ind, int pickup);
+extern void do_cmd_stay(int Ind);
 extern int do_cmd_run(int Ind, int dir);
+extern void do_cmd_hold(int Ind);
+extern void do_cmd_hold_or_stay(int Ind, int pickup);
 /*extern void do_cmd_rest(void);*/
 extern void do_cmd_fire(int Ind, int item, int dir);
 extern void do_cmd_throw(int Ind, int item, int dir);
