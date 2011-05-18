@@ -19,7 +19,7 @@ char floor_name[80]; 	/* Client-side copy of floor item */
 indicator_type indicators[MAX_INDICATORS];
 byte known_indicators;
 
-s32b coffers[MAX_INDICATORS]; /* Client-side copy of various player variables */
+s32b coffers[MAX_COFFERS]; /* Client-side copy of various player variables */
 byte coffer_refs[MAX_INDICATORS]; /* ID to INDEX: Coffers */
 int known_coffers;
 
