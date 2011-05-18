@@ -1237,7 +1237,7 @@ int process_player_commands(int p_idx)
 		/* remember position */
 		start_pos = p_ptr->cbuf.pos;
 		/* read out and execute command */
-		pkt = CQ_GET(&p_ptr->cbuf);
+		next_pkt = pkt = CQ_GET(&p_ptr->cbuf);
 		result = (*pcommands[pkt])(p_ptr);
 		/* not a "continuing success" */
 		if (result != 1) break;
