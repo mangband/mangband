@@ -1186,8 +1186,8 @@ errr file_character_server(int Ind, cptr name)
 		buffer[i][80] = '\0';
 	}
 
-	/* Drop priv's */
-	safe_setuid_drop();
+	/* Drop priv's 
+	safe_setuid_drop(); */
 
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_BONE, name);
@@ -1208,8 +1208,8 @@ errr file_character_server(int Ind, cptr name)
 	/* Open the non-existing file */
 	if (fd < 0) fff = my_fopen(buf, "w");
 
-	/* Grab priv's */
-	safe_setuid_grab();
+	/* Grab priv's 
+	safe_setuid_grab(); */
 
 
 	/* Invalid file */
