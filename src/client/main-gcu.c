@@ -454,6 +454,9 @@ static void keymap_game_prepare(void)
  */
 static errr Term_xtra_gcu_alive(int v)
 {
+	int x, y;
+
+
 	/* Suspend */
 	if (!v)
 	{
@@ -471,18 +474,11 @@ static errr Term_xtra_gcu_alive(int v)
 		/* Flush the curses buffer */
 		(void)refresh();
 
-#ifdef HAVE_GETCURX
-		/* this moves curses to bottom right corner */
-		mvcur(getcury(curscr), getcurx(curscr), LINES - 1, 0);
-#else
-#ifdef SPECIAL_BSD
-		/* this moves curses to bottom right corner */
-		mvcur(curscr->cury, curscr->curx, LINES - 1, 0);
-#else
-		/* this moves curses to bottom right corner */
-		mvcur(curscr->_cury, curscr->_curx, LINES - 1, 0);
-#endif
-#endif
+		/* Get current cursor position */
+		getyx(curscr, y, x);
+
+		/* Move the cursor to the bottom right corner */
+		mvcur(y, x, LINES - 1, 0);
 
 		/* Exit curses */
 		endwin();
@@ -543,6 +539,7 @@ static void Term_init_gcu(term *t)
  */
 static void Term_nuke_gcu(term *t)
 {
+	int x, y;
 	term_data *td = (term_data *)(t->data);
 
 	/* Delete this window */
@@ -554,18 +551,11 @@ static void Term_nuke_gcu(term *t)
 	/* Hack -- make sure the cursor is visible */
 	Term_xtra(TERM_XTRA_SHAPE, 1);
 
-#ifdef HAVE_GETCURX
-	/* This moves curses to bottom right corner */
-	mvcur(getcury(curscr), getcurx(curscr), LINES - 1, 0);
-#else
-#ifdef SPECIAL_BSD
-	/* This moves curses to bottom right corner */
-	mvcur(curscr->cury, curscr->curx, LINES - 1, 0);
-#else
-	/* This moves curses to bottom right corner */
-	mvcur(curscr->_cury, curscr->_curx, LINES - 1, 0);
-#endif
-#endif
+	/* Get current cursor position */
+	getyx(curscr, y, x);
+	
+	/* Move the cursor to bottom right corner */
+	mvcur(y, x, LINES - 1, 0);
 
 	/* Flush the curses buffer */
 	(void)refresh();

@@ -162,7 +162,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([alarm atexit floor getcurx gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp strpbrk strrchr strspn strstr strtol])
+AC_CHECK_FUNCS([alarm atexit floor gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp strpbrk strrchr strspn strstr strtol])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
 AC_OUTPUT( Makefile )
