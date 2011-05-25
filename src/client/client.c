@@ -48,13 +48,15 @@ static void read_credentials(void)
 #endif
 
 	/* Get user name from WINDOWS machine! */
-#ifdef WINDOWS	if ( GetUserName(buffer, &bufferLen) ) 
+#ifdef WINDOWS
+	if ( GetUserName(buffer, &bufferLen) ) 
 	{
 		/* Cut */
 		buffer[16] = '\0';
 		
 		/* Copy to real name */
-  		strcpy(real_name, buffer);	}
+  		strcpy(real_name, buffer);
+	}
 #endif
 
 }
