@@ -158,7 +158,7 @@ fi
 if test "x$enabled_crb" = xyes
 then
 	AC_MSG_NOTICE([Building Carbon version. Use --without-crb to change this.])
-	AC_PROG_OBJC
+	#AC_PROG_OBJC
 	#AC_LANG_PUSH([Objective C])
 
 	ARCH="-arch i386 -arch ppc"
@@ -172,6 +172,16 @@ then
 	AC_SUBST(OBJ_CFLAGS)
 	AC_SUBST(OBJ_CLIBS)
 fi
+
+#OSX -- App Bundle "support" (see src/client/osx/Makefile.am)
+CLIENT_BUNDLE=""
+if test "x$ON_OSX" = xyes
+then
+	AC_MSG_NOTICE([Going to create Application Bundle. Use --disable-osx to change this.])
+	CLIENT_BUNDLE="mangclient.app"
+	DISPMOD="$DISPMOD App.Bundle"
+fi
+AC_SUBST(CLIENT_BUNDLE)
 
 # Add Terminal Flags:
 AC_SUBST(CLIENT_CFLAGS)
