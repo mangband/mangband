@@ -28,6 +28,13 @@ if USE_CRB
 
 mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h
 
+# HACK -- Isolate JUST_CFLAGS from OBJ_CFLAGS
+src/client/mangclient-main-crb.o: src/client/main-crb.c
+	$(CC) $(AM_CFLAGS) $(OBJ_CFLAGS) -c -o $@ $<
+.o:.c
+	$(CC)  $(AM_CFLAGS) $(JUST_CFLAGS) -c -o $@ $<
+
+
 endif
 
 if USE_X11

@@ -380,9 +380,6 @@ struct GlyphInfo
 
 static GlyphInfo glyph_data[MAX_TERM_DATA+1];
 
-// defined in main-x11
-extern byte angband_color_table[256][4];
-#if 0
 byte angband_color_table[256][4] =
 {
 {0x00, 0x00, 0x00, 0x00},	/* TERM_DARK */
@@ -402,7 +399,6 @@ byte angband_color_table[256][4] =
 {0x00, 0x00, 0xFF, 0xFF},	/* TERM_L_BLUE */
 {0x00, 0xC0, 0x80, 0x40}	/* TERM_L_UMBER */
 };
-#endif
 
 static WindowRef aboutDialog;
 

@@ -31,6 +31,7 @@ case "${host_os}" in
 	ON_WINDOWS="yes"
 	;;
 	darwin*)
+	ON_OSX="yes"
 	LIBS="$LIBS -L/usr/X11R6/lib"
 	;;
 	freebsd*)
@@ -51,9 +52,17 @@ AC_CHECK_LIB([ncurses], [main], have_curs_lib="ncurses", [
     AC_CHECK_LIB([curses], [main], have_curs_lib="curses", have_curs="no")
     ])
 
+# Evil Hack -- assume Carbon on OSX.
+# We can't use AC_CHECK_LIB to test for Carbon, as it's invoked with
+# -framework switch and not -l.
+# We *could* use AC_CHECK_HEADER([Carbon/Carbon.h], have_crb="yes"),
+# but that messes with ./configure tests order.
+have_crb="$ON_OSX" # Note, that the "ON_OSX" itself is NOT reliable!!!
 
 AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$withval)
+AC_ARG_ENABLE(osx, AC_HELP_STRING([--disable-osx],[Disable Apple-OSX application bundling]), ON_OSX=$withval)
 
+AC_ARG_WITH(crb, AC_HELP_STRING([--with-crb],[Build with CRB support [default=yes]]), with_crb=$withval, with_crb="yes")
 AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=yes]]), with_x11=$withval, with_x11="yes")
 AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=yes]]), with_gcu=$withval, with_gcu="yes")
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
@@ -71,6 +80,10 @@ if test "x$have_sdl" = xyes && test "x$with_sdl" = xyes
 then
     enabled_sdl="yes"
 fi
+if test "x$have_crb" = xyes && test "x$with_crb" = xyes 
+then
+    enabled_crb="yes"
+fi
 # ]
 # If we have SDL+X11, disable X11
 if test "x$enabled_x11" = xyes && test "x$enabled_sdl" = xyes
@@ -79,11 +92,18 @@ then
 fi
 
 # If we have nothing, enable GCU
-if test "x$enabled_x11" != xyes && test "x$enabled_sdl" != xyes && test "x$ON_WINDOWS" != xyes
+if test "x$enabled_x11" != xyes && test "x$enabled_sdl" != xyes && test "x$enabled_crb" != xyes && test "x$ON_WINDOWS" != xyes
 then
     enabled_gcu="yes"
 fi
 
+# If we have CRB, disable everything else
+if test "x$enabled_crb" = xyes
+then
+    enabled_gcu="no"
+    enabled_x11="no"
+fi
+    
 # But if we try GCU without ncurses - quit with an error
 if test "x$enabled_gcu" = xyes && test "x$have_curs" != xyes
 then
@@ -134,6 +154,25 @@ then
 	fi
 fi
 
+#CRB
+if test "x$enabled_crb" = xyes
+then
+	AC_MSG_NOTICE([Building Carbon version. Use --without-crb to change this.])
+	AC_PROG_OBJC
+	#AC_LANG_PUSH([Objective C])
+
+	ARCH="-arch i386 -arch ppc"
+	WARNINGS="-W -Wall -Wno-unused-parameter -Wno-missing-field-initializers"
+	JUST_CFLAGS="-std=c99 -Wdeclaration-after-statement"
+	OBJ_CFLAGS="-std=c99 -x objective-c -mmacosx-version-min=10.0"
+	CLIENT_CFLAGS="$CLIENT_CFLAGS -I. $WARNINGS -DUSE_CRB -DMACH_O_CARBON -DHAVE_MKSTEMP -DPRIVATE_USER_PATH=\"~/Library/Preferences\" -DUSE_PRIVATE_PATHS $(ARCH)"
+	CLIENT_LDFLAGS="$CLIENT_LDFLAGS -framework CoreFoundation -framework QuickTime -framework Carbon -framework Cocoa"
+	DISPMOD="$DISPMOD Carbon"
+	AC_SUBST(JUST_CFLAGS)
+	AC_SUBST(OBJ_CFLAGS)
+	AC_SUBST(OBJ_CLIBS)
+fi
+
 # Add Terminal Flags:
 AC_SUBST(CLIENT_CFLAGS)
 AC_SUBST(CLIENT_LDFLAGS)
@@ -168,4 +207,4 @@ AC_MSG_NOTICE([enabled -$DISPMOD])
 AC_OUTPUT( Makefile )
 AC_MSG_NOTICE([Configured. Type 'make' to build.])
 #for debug you can use this:
-#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu WIN32: $ON_WINDOWS ; $host_os"
+#echo "SDL: $enabled_sdl X11: $enabled_x11 GCU: $enabled_gcu CRB: $enabled_crb WIN32: $ON_WINDOWS OSX: $ON_OSX ; $host_os"

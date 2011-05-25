@@ -7,7 +7,7 @@
  * "c-init.c".
  */
 
-#ifndef USE_WIN
+#if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
 
