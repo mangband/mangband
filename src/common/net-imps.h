@@ -5,6 +5,7 @@
 #define TV_MSEC(A) (A / 1000)
 #define TV_SET(A,B) {A.tv_sec = 0;A.tv_usec=B;}
 
+/* struct sender_type -- see imps.c */
 /* struct caller_type -- see imps.c */
 typedef struct listener_type listener_type;
 typedef struct connection_type connection_type;
@@ -31,11 +32,13 @@ struct timer_type {
 	callback timeout_cb; /* return 1 for infinite, 0 for one-shot, 2 for smooth */ 
 };
 
+extern eptr add_sender(eptr root, char *host, int port, micro interval, callback send_cb);
 extern eptr add_caller(eptr root, char *addr, int port, callback conn_cb, callback fail_cb);
 extern eptr add_listener(eptr root, int port, callback cb);
 extern eptr add_timer(eptr root, int interval, callback timeout);
 extern eptr add_connection(eptr root, int fd, callback read, callback close);
 
+extern eptr handle_senders(eptr root, micro microsec);
 extern eptr handle_listeners(eptr root);
 extern eptr handle_connections(eptr root);
 extern eptr handle_callers(eptr root);

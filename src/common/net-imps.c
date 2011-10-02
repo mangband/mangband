@@ -56,6 +56,15 @@ int cnfds;
 int lnfds;
 int crfds;
 
+struct sender_type {
+	struct sockaddr_in addr;
+	int send_fd;
+	micro interval;
+	micro delay;
+	callback send_cb; /* return 1 for infinite, 0 for one-shot, 2 for smooth */
+	cq wbuf;
+};
+
 struct caller_type {
 	struct sockaddr_in addr;
 	int port;
@@ -64,6 +73,40 @@ struct caller_type {
 	callback connect_cb;
 	callback failure_cb; /* return 1 to try again */
 };
+
+eptr add_sender(eptr root, char *host, int port, micro interval, callback send_cb) {
+	struct sender_type *new_s;
+	struct hostent *hp;
+	int senderfd;
+
+	/* Init socket */
+	senderfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	/* Set to non-blocking. */
+	//unblockfd(callerfd);
+
+	/* Allocate memory */
+	MAKE(new_s, struct sender_type);
+
+	/* Set addr and others */
+	new_s->addr.sin_family = AF_INET;
+	new_s->addr.sin_port = htons(port);
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+	memcpy (&(new_s->addr.sin_addr), hp->h_addr, sizeof(new_s->addr.sin_addr));
+
+	new_s->send_fd = senderfd;
+	new_s->send_cb = send_cb;
+	new_s->interval = interval;
+	new_s->delay = interval;
+	cq_init(&new_s->wbuf, PD_SMALL_BUFFER);
+
+	/* Add to list */	
+	return e_add(root, NULL, new_s);
+}
 
 eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail_cb) {
 	struct caller_type *new_c;
@@ -349,6 +392,54 @@ micro static_timer(int id) {
 	times[id] = microsec;
 
 	return passed;	
+}
+
+eptr handle_senders(eptr root, micro microsec) {
+	eptr iter;
+	int n, to_close = 0;
+	char mesg[PD_SMALL_BUFFER];
+
+	for (iter=root; iter; iter=iter->next) {
+		struct sender_type *sender = iter->data2;
+		sender->delay -= microsec;
+		while (sender->delay <= 0) {
+			sender->delay += sender->interval;
+			n = sender->send_cb((int)TV_SEC(sender->interval), &sender->wbuf);
+			if (!n) {
+				cq_clear(&sender->wbuf);
+				sender->interval = 0;
+				to_close++;
+			} else if (n != 2) 
+				sender->delay = sender->interval;
+		}
+		/* Send */
+		if (cq_len(&sender->wbuf))
+		{
+			n = cq_read(&sender->wbuf, &mesg[0], PD_SMALL_BUFFER);
+			n = sendto(sender->send_fd,mesg,n,0,(struct sockaddr *)&sender->addr,sizeof(struct sockaddr));
+
+			/* Error while sending */
+			if (n <= 0) {
+				sender->interval = 0;
+				to_close++;
+			}
+		}
+	}
+	while (to_close) {
+		for (iter=root; iter; iter=iter->next) {
+			struct sender_type *sender = iter->data2;
+			if (!sender->interval)
+			{
+				closesocket(sender->send_fd);
+				free(sender); 
+				if (e_del(&root, iter) == 0)
+					root = NULL;
+				to_close--;
+				break;
+			}
+		}
+	}
+	return root;
 }
 
 eptr handle_timers(eptr root, micro microsec) {

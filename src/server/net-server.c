@@ -22,7 +22,7 @@ int ticks = 0;
 /* List heads */
 eptr first_connection = NULL;
 eptr first_listener = NULL;
-eptr first_caller = NULL;
+eptr first_sender = NULL;
 eptr first_timer = NULL;
 
 /* Refrence lists */
@@ -33,6 +33,7 @@ connection_type **PConn; /* Pass "Ind", get "connection_type" */
 
 /* Callbacks */
 #define def_cb(A) int A(int data1, data data2)
+def_cb(report_to_meta);
 def_cb(second_tick); 
 def_cb(dungeon_tick);
 def_cb(accept_client);
@@ -273,6 +274,10 @@ void setup_network_server()
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
+	/** Add UDP */
+	/* Meta-server */
+	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
+
 	/** Prepare FD_SETS **/
 	network_reset();
 
@@ -298,7 +303,7 @@ void network_loop()
 	{
 		first_listener = handle_listeners(first_listener);
 		first_connection = handle_connections(first_connection);
-		first_caller = handle_callers(first_caller);
+		first_sender = handle_senders(first_sender, static_timer(1));
 		first_timer = handle_timers(first_timer, static_timer(0));
 
 		network_pause(2000); /* 0.002 ms "sleep" */
@@ -312,16 +317,124 @@ void close_network_server()
 	e_release_all(first_timer, 0, 1);
 	e_release_all(first_listener, 0, 1);
 
-	/* TODO: Inform meta ...? */	
+	/* TODO: Inform meta ...? */
 
 	/* Close all connections and callers (?) */
 	e_release_all(first_connection, 0, 1);
-	e_release_all(first_caller, 0, 1);
+	e_release_all(first_sender, 0, 1);
 
 	/* Release memory */
 	free_server_memory();
 }
 
+int report_to_meta(int data1, data data2) {
+	static char local_name[1024];
+	static int init = 0;
+	char buf[1024], temp[100];
+	cq *out = (cq*)data2;
+	int k, num = 0;
+
+	/* Abort if the user doesn't want to report */
+	if (!cfg_report_to_meta) return 1;
+	
+	/* If this is the first time called, initialize our hostname */
+	if (!init)
+	{
+		plog("Reporting to meta-server...");
+
+		/* Never do this again */
+		init = 1;
+
+		/* Get our hostname */
+		if (cfg_report_address)
+		{
+			strncpy(local_name, cfg_report_address, 1024);
+		}
+		else
+		{
+			if (cfg_bind_name)
+			{
+				strncpy(local_name, cfg_bind_name, 1024);
+			}
+			else
+			{
+				fillhostname(local_name, 1024);
+			}
+		}
+		strcat(local_name, ":");
+		sprintf(temp, "%d", (int) cfg_tcp_port);
+		strcat(local_name, temp);
+	}
+
+	/* Start with our address */
+	strcpy(buf, local_name);
+
+	/* Hack -- if we're shutting down, don't send player list and version */
+	if (shutdown_timer) 
+	{
+		/* Send address + whitepace, which metaserver recognizes as death report */
+		strcat(buf, " ");
+		cq_write(out, buf);
+		return;	
+	}
+
+	/* Ugly Hack -- Count players */
+	for (k = 1; k <= NumPlayers; k++)
+	{
+		player_type *p_ptr = Players[k];
+		if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE))
+			num++;
+	}
+
+	/* 'Number of players' */
+	strcat(buf, " Number of players: ");
+	sprintf(temp, "%d ", num);
+	strcat(buf, temp);
+
+	/* Scan the player list */
+	if (num) 
+	{
+		/* List player names */
+		strcat(buf, "Names: ");
+
+		for (k = 1; k <= NumPlayers; k++)
+		{
+			/* Hide dungeon master */
+			if (Players[k]->dm_flags & DM_SECRET_PRESENCE) continue;
+			/* Add an entry */
+			strcat(buf, Players[k]->basename);
+			strcat(buf, " ");
+		}
+	}
+
+	/* Append the version number */
+#ifndef SVNREV
+    if (cfg_ironman)
+    	sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR, 
+    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+    else
+    	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
+    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	/* Append the additional version info */
+	if (SERVER_VERSION_EXTRA == 1)
+		strcat(temp, "alpha");
+	if (SERVER_VERSION_EXTRA == 2)
+		strcat(temp, "beta");
+	if (SERVER_VERSION_EXTRA == 3)
+		strcat(temp, "development");
+#else
+    if (cfg_ironman)
+    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
+    else
+    	sprintf(temp, "Revision: %d ", atoi(SVNREV));
+#endif
+	strcat(buf, temp);
+
+	/* Send it */
+	cq_write(out, buf);
+
+	return 1;
+}
 
 int second_tick(int data1, data data2) {
 	int i;
