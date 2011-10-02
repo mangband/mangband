@@ -1187,6 +1187,8 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	u32b			total;
 	bool			have_gold, have_space;
 	char			*c;
+	object_type object_type_body;
+	object_type *i_ptr = &object_type_body;
 	
 	/* Search for the item in the player house(s) */
 	sold = 0;
@@ -1287,8 +1289,13 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold)
 	/* Bail out if there was a problem with the sale */
 	if (!sold) return(sold);
 	
+	/* Horrible hack -- use a known copy of the object to get its value */
+	/* All this mess NEEDS to be rewritten */
+	COPY(i_ptr, o_ptr_shop, object_type);
+	object_known(i_ptr);
+	
 	/* How much total gold is the seller receiving? */
-	total = object_value(Ind, o_ptr_shop) * 3;
+	total = object_value(Ind, i_ptr) * 3;
 	if (o_ptr_shop->askprice > total) total = o_ptr_shop->askprice;
 	total = total * sold;
 	/* Small sales tax */
@@ -1475,6 +1482,7 @@ void store_purchase(int Ind, int item, int amt)
 	}
 
 	/* Determine the "best" price (per item) */
+	object_known(&sell_obj);
 	best = price_item(Ind, &sell_obj, ot_ptr->min_inflate, FALSE);
 
 	/* Create the object to be sold (structure copy) */
