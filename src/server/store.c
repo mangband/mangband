@@ -200,6 +200,7 @@ static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
 		{
 			price = o_ptr->askprice;
 		}
+		return ((price <= 0)? 0L: price);
 	}
 
 	/* Worthless items */

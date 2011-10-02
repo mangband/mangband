@@ -97,3 +97,13 @@ N:7:2:Your home
 I:99:0:100
 N:7:3:Your home
 I:99:0:100
+
+# Player shop
+N:8:0:Player shop
+I:99:0:100
+N:8:1:Player shop
+I:99:0:100
+N:8:2:Player shop
+I:99:0:100
+N:8:3:Player shop
+I:99:0:100
