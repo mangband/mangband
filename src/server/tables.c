@@ -1202,6 +1202,13 @@ owner_type owners[MAX_STORES][MAX_OWNERS] =
 		{ "Your home",				0,      100, 100,  0, 99, 99},
 		{ "Your home",				0,      100, 100,  0, 99, 99},
 		{ "Your home",				0,      100, 100,  0, 99, 99}
+	},
+	{
+		/* Player shop */
+		{ "Player shop",			0,      100, 100,  0, 99, 99},
+		{ "Player shop",			0,      100, 100,  0, 99, 99},
+		{ "Player shop",			0,      100, 100,  0, 99, 99},
+		{ "Player shop",			0,      100, 100,  0, 99, 99}
 	}
 };
 
