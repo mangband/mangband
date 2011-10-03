@@ -579,7 +579,7 @@ int client_read(int data1, data data2) { /* return -1 on error */
 	if (result == 0) ct->rbuf.pos = start_pos;
 
 	/* Slide "read buffer" */
-	cq_slide(&ct->rbuf);
+	else if (result == 1) cq_slide(&ct->rbuf);
 
 	/* Returning "-1" kills the connection */
 	return result;

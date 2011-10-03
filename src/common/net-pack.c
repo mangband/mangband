@@ -28,6 +28,8 @@ const cptr pf_errors[] = {
 "", /* 0 */
 "Unrecognized format", /* 1 */
 "No space in buffer", /* 2 */
+"No space in read buffer", /* 3 */
+"No space in write buffer", /* 4 */
 "",
 };
 
@@ -313,7 +315,9 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 	REPACK_DEF
 	REPACK_INIT(src, dst);
 
-#define CF_ERROR_SIZE(SIZE) if (RPTRN + SIZE > RENDN || WPTRN + SIZE > WENDN) { error = 2; break; }
+#define CF_ERROR_SIZE(SIZE) \
+	if (RPTRN + SIZE > RENDN) { error = 3; break; } \
+	if (WPTRN + SIZE > WENDN) { error = 4; break; }
 #define CF_ERROR_FRMT default: { error = 1; break; }
 
 	while (!error && *str++ == '%') {
@@ -383,7 +387,7 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 
 	if (error) {
 		found = 0;
-		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]\n", str, pf_errors[error], str_size, src->len, dst->len));
+		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]\n", str, pf_errors[error], str_size, src->len, dst->max));
 	} else {
 		REPACK_FIN(src, dst);
 	}
