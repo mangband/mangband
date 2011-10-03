@@ -101,6 +101,33 @@ void enter_password(void)
 	clear_from(20);
 }
 
+/*
+ * Hack -- show birth options during birth
+ */
+void do_cmd_options_birth_call()
+{
+	/* Sync data */
+	while (sync_data() == FALSE)	network_loop();
+
+	/* Show */
+	do_cmd_options_birth();
+}
+
+
+/*
+ * Hack -- show help screen during birth
+ */
+void do_cmd_help_birth(void)
+{
+	/* Sync data */
+	while (sync_data() == FALSE)	network_loop();
+
+	/* Subscribe */
+	init_subscriptions();
+
+	/* Ask it */
+	cmd_interactive();
+}
 
 /*
  * Choose the character's sex				-JWT-
@@ -114,7 +141,7 @@ static void choose_sex(void)
 
 	while (1)
 	{
-		put_str("Choose a sex (= for Options, Q to Quit): ", 20, 2);
+		put_str("Choose a sex (= for Options, ? for Help, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		if ((c == 'm') || (c == 'M'))
@@ -135,7 +162,7 @@ static void choose_sex(void)
 		}
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -196,7 +223,7 @@ static void choose_race(void)
 		}		
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -260,7 +287,7 @@ static void choose_class(void)
 		}
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -326,7 +353,7 @@ void choose_stat_order(void)
 			}			
 			else if (c == '?')
 			{
-				/*do_cmd_help("help.hlp");*/
+				do_cmd_help_birth();
 			}
 			else
 			{

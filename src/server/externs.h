@@ -1097,6 +1097,8 @@ extern bool do_restoreXP_other(int Ind);
 extern int level_speed(int Ind);
 extern int time_factor(int Ind);
 extern int base_time_factor(int Ind, int slowest);
+extern void show_motd(player_type *p_ptr);
+extern void show_tombstone(int Ind);
 extern void wipe_socials();
 extern void boot_socials();
 extern void show_socials(int Ind);

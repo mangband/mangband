@@ -5211,6 +5211,53 @@ int time_factor(int Ind)
 	return scale;
 }
 
+/* MOTD, Summary, TOMBSTONE utils */
+void show_motd(player_type *p_ptr)
+{
+	int i, k;
+
+	/* Copy to info buffer */
+	for (i = 0; i < 20; i++)
+	{
+		for (k = 0; k < 80; k++)
+		{
+			p_ptr->info[i][k].a = TERM_WHITE;
+			p_ptr->info[i][k].c = text_screen[0][i * 80 + k];
+			printf("%c", p_ptr->info[i][k].c);
+		}
+		printf("\n");
+	}
+
+	/* Save last dumped line */
+	p_ptr->last_info_line = i;
+
+	//send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	//player_type	*p_ptr = Players[Ind];
+	byte old_term;
+	//int i;	
+
+	/* Save 'current' terminal */
+	old_term = p_ptr->remote_term;
+
+	/* Activte new terminal */
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+
+	/* Clear, Send, Refresh */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line; i++)
+		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
+
+	/* Restore active term */
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+	Send_pause(p_ptr);
+
+}
+/* TODO: Port this from V */
+void show_tombstone(int Ind)
+{
+
+}
 
 /* these Dungeon Master commands should probably be added somewhere else, but I am
  * hacking them together here to start.

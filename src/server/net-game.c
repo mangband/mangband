@@ -651,6 +651,9 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
 		}
 
+		/* Show MOTD */
+		show_motd(p_ptr);
+
 		/* Do it */
 		player_enter(ct->user);
 
