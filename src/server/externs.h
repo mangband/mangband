@@ -500,11 +500,11 @@ extern void do_cmd_save_screen(void);
 extern void do_cmd_check_artifacts(int Ind, int line);
 extern void do_cmd_check_uniques(int Ind, int line);
 extern void do_cmd_check_players(int Ind, int line);
-extern void do_cmd_check_other(int Ind, int line);
-extern void do_cmd_knowledge(int Ind, char query);
-extern void do_cmd_interactive(int Ind, char query);
-extern void do_cmd_interactive_input(int Ind, char query);
-extern void common_peruse(int Ind, char query);
+extern void do_cmd_check_other(player_type *p_ptr, int line);
+extern void do_cmd_knowledge(player_type *p_ptr, char query);
+extern void do_cmd_interactive(player_type *p_ptr, char query);
+extern void do_cmd_interactive_input(player_type *p_ptr, char query);
+extern void common_peruse(player_type *p_ptr, char query);
 
 /* cmd5.c */
 extern void do_cmd_browse(int Ind, int book);
@@ -565,9 +565,9 @@ extern errr check_load(void);
 extern void read_times(void);
 extern void show_news(void);
 extern errr show_file(int Ind, cptr name, cptr what, int line, int color);
-extern int file_peruse_next(int Ind, char query, int next);
-extern void common_file_peruse(int Ind, char query);
-extern void copy_file_info(int Ind, cptr name, int line, int color);
+extern int file_peruse_next(player_type *p_ptr, char query, int next);
+extern void common_file_peruse(player_type *p_ptr, char query);
+extern void copy_file_info(player_type *p_ptr, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
 extern bool process_player_name(player_type *p_ptr, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);
@@ -675,7 +675,10 @@ extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
+#define msg_format_p(P, M, ...) plog("msg_format_p unimplemented\n")
+#define msg_print_p(P, M) plog("msg_print_p unimplemented\n")
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
+#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
@@ -686,7 +689,6 @@ extern void display_monlist(int Ind);
 #define Send_sound(IND, sound) plog("Send_sound unimplemented\n") 
 #define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
 #define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
-#define Send_special_other(IND, header) plog("Send_special_other unimplemented\n")
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -697,6 +699,7 @@ extern void display_monlist(int Ind);
 #define Send_pickup_check(IND, buf) plog("Send_pickup_check unimplemented\n");
 
 /* net-server.c */
+extern int *Get_Ind;
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();
@@ -1008,7 +1011,7 @@ extern cptr format_history_event(history_event *evt);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
-extern void send_prepared_info(int Ind, byte win, byte stream);
+extern void send_prepared_info(player_type *p_ptr, byte win, byte stream);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);

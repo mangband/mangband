@@ -284,12 +284,14 @@
 #define STREAM_SPECIAL_TEXT  	8
 
 #define Stream_line(I,S,L) stream_line_as(Players[I],S,L,L)
+#define Stream_line_p(P,S,L) stream_line_as(P,S,L,L)
 
 #define DUNGEON_STREAM_p(P) ((P)->use_graphics > 1 ? STREAM_DUNGEON_GRAF2 : ((P)->use_graphics ? STREAM_DUNGEON_GRAF1 : STREAM_DUNGEON_ASCII ))
 #define MINIMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_MINIMAP_GRAF : STREAM_MINIMAP_ASCII)
 #define BGMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_BGMAP_GRAF : STREAM_BGMAP_ASCII)
 
 #define Send_char(I,X,Y,A,C) stream_char_raw(Players[I],STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
+#define Send_char_p(P,X,Y,A,C) stream_char_raw(P,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
 #define Send_tile(I,P,Y,X,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(P),Y,X,A,C,TA,TC)
 #define Stream_tile(I,P,Y,X) stream_char(Players[I],DUNGEON_STREAM_p(P),Y,X);
 

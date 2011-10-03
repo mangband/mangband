@@ -616,7 +616,7 @@
 #define CLASS_PALADIN	5
 
 /*** Custom commands ***/
-#define MAX_SCHEMES	25
+#define MAX_SCHEMES	30
 #define MAX_CUSTOM_COMMANDS	63
 
 #define COMMAND_TEST_ALIVE  	0x00000001	/* Test if player is alive */

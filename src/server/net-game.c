@@ -966,7 +966,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 			
 	}
 
-	do_cmd_interactive(	Ind, 0);
+	do_cmd_interactive(p_ptr, 0);
 
 	return 1;
 }
@@ -986,7 +986,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	if ((n = p_ptr->special_handler))
 		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(Ind, key);
 	else if (p_ptr->special_file_type)
-		do_cmd_interactive(Ind, key);
+		do_cmd_interactive(p_ptr, key);
 
 }
 
@@ -1171,6 +1171,8 @@ static int recv_custom_command(player_type *p_ptr)
 		S_READ( ITEM_SMALL_STRING )	&item, &tmp, entry  	S_SET(value=tmp)
 		S_READ( ITEM_SMALL_CHAR )	&item, &tmp, &entry[0]	S_SET(value=tmp)
 
+		S_READ( PPTR_CHAR )        	&entry[0]
+
 		S_DONE
 	}
 #undef S_START
@@ -1212,6 +1214,8 @@ static int recv_custom_command(player_type *p_ptr)
 		S_EXEC(	ITEM_VALUE_CHAR,	(int, char, int, char), 	(player, item, value, entry[0]))
 		S_EXEC(	ITEM_SMALL_STRING,	(int, char, int, char*),	(player, item, value, entry))
 		S_EXEC(	ITEM_SMALL_CHAR, 	(int, char, int, char), 	(player, item, value, entry[0]))
+
+		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0]))
 	}
 #undef S_ARG 
 #undef S_EXEC

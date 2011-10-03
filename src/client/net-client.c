@@ -86,7 +86,6 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		start_pos = ct->rbuf.pos; 
 		next_pkt = CQ_GET(&ct->rbuf);
 		next_scheme = schemes[next_pkt];
-
 		result = (*handlers[next_pkt])(ct);
 		last_pkt = next_pkt;
 
@@ -412,6 +411,7 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 		S_WRITE(ITEM_SMALL_STRING)	item, (byte)value, entry\
 		S_WRITE(ITEM_SMALL_CHAR) 	item, (byte)value, entry[0]\
 		S_WRITE(FULL)           	item, dir, value, entry\
+		S_WRITE(PPTR_CHAR)         	entry[0]\
 		S_DONE
 
 	}

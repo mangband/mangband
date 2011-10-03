@@ -897,17 +897,15 @@ void do_cmd_knowledge_history(int Ind, int line)
 /*
  * Scroll through *ID* or Self Knowledge information.
  */
-void do_cmd_check_other(int Ind, int line)
+void do_cmd_check_other(player_type *p_ptr, int line)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i, hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT];
 
 	/* Make sure the player is allowed to */
 	if (!p_ptr->special_file_type) return;
 
 	/* Dump the next N lines */
-	Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
+	send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY, 0);
 	for (i = line; i < line + hgt; i++)
 	{
 		/* (Unless we're done) */
@@ -916,52 +914,12 @@ void do_cmd_check_other(int Ind, int line)
 		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	Send_term_info(Ind, NTERM_BROWSE, line);
+	send_term_info(p_ptr, NTERM_BROWSE, line);
 
-#if 0
-	int n = 0;
-	FILE *fff;
-	char file_name[1024];
-	/* Temporary file */
-	if (path_temp(file_name, 1024)) return;
-
-	/* Open a new file */
-	fff = my_fopen(file_name, "w");
-
-	/* Paranoia */
-	if (!fff) 
-	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
-		return;
-	}
-
-	/* Scan "info" */
-	while (n < 128 && p_ptr->info[n] && strlen(p_ptr->info[n]))
-	{
-		/* Dump a line of info */
-		fprintf(fff, p_ptr->info[n]);
-
-		/* Newline */
-		fprintf(fff, "\n");
-
-		/* Next line */
-		n++;
-	}
-
-	/* Close the file */
-	my_fclose(fff);
-
-	/* Display the file contents */
-	show_file(Ind, file_name, "Extra Info", line, 0);
-
-	/* Remove the file */
-	fd_kill(file_name);
-#endif
 }
 
-void common_peruse(int Ind, char query)
+void common_peruse(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
 	switch (query) {
 		case 0:case '7': 
 			p_ptr->interactive_line = 0;
@@ -989,11 +947,20 @@ void common_peruse(int Ind, char query)
 		p_ptr->interactive_line = 0;
 }
 
-void special_file_peruse(int Ind, int type, char query)
+void special_file_peruse(player_type *p_ptr, int type, char query)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind;
 	int next = p_ptr->interactive_next;
 	int i;
+
+	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
+	{
+#ifdef DEBUG	
+		plog(format("Player %s attempted to do special_file_peruse too early"));
+#endif
+		return;
+	}
+	Ind = Get_Ind[p_ptr->conn];
 
 	/* We're just starting. Reset counter */
 	if (!query)
@@ -1005,7 +972,7 @@ void special_file_peruse(int Ind, int type, char query)
 	/* We're done. */
 	else if (query == ESCAPE) return;
 	/* Process query */
-	else next = file_peruse_next(Ind, query, next);
+	else next = file_peruse_next(p_ptr, query, next);
 
 	/* Update file */
 	if (next != p_ptr->interactive_next)
@@ -1022,21 +989,19 @@ void special_file_peruse(int Ind, int type, char query)
 			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
 		}
 		/* Send *everything* to client */
-		Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
+		send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
-			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 		}
 		/* Send_term_info(Ind, NTERM_FLUSH, 0); */
 	}
 	/* Instruct client to browse locally */
-	Send_term_info(Ind, NTERM_BROWSE, p_ptr->interactive_line);
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
 }
 
-void do_cmd_interactive_aux(int Ind, int type, char query)
+void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
 {
-	player_type *p_ptr = Players[Ind];
-
 	switch (type)
 	{
 		case SPECIAL_FILE_NONE:
@@ -1049,39 +1014,49 @@ void do_cmd_interactive_aux(int Ind, int type, char query)
 		case SPECIAL_FILE_KILL:
 		case SPECIAL_FILE_HISTORY:
 		case SPECIAL_FILE_SCORES:
-			special_file_peruse(Ind, type, query);
+			special_file_peruse(p_ptr, type, query);
 			break;
 		case SPECIAL_FILE_OTHER:
-			common_peruse(Ind, query);
+			common_peruse(p_ptr, query);
 			if (p_ptr->interactive_line > p_ptr->last_info_line)
 				p_ptr->interactive_line = p_ptr->last_info_line;
-			do_cmd_check_other(Ind, p_ptr->interactive_line);
+			do_cmd_check_other(p_ptr, p_ptr->interactive_line);
 			break;
 		case SPECIAL_FILE_HELP:
-			common_file_peruse(Ind, query);
-			do_cmd_check_other(Ind, p_ptr->interactive_line - p_ptr->interactive_next);
+			common_file_peruse(p_ptr, query);
+			do_cmd_check_other(p_ptr, p_ptr->interactive_line - p_ptr->interactive_next);
 			break;
 		case SPECIAL_FILE_HOUSES:
-			display_houses(Ind, query);
+			display_houses(Get_Ind[p_ptr->conn], query);
 			break;
 		case SPECIAL_FILE_KNOWLEDGE:
-			do_cmd_knowledge(Ind, query);
+			do_cmd_knowledge(p_ptr, query);
 			break;
 		case SPECIAL_FILE_MASTER:
-			do_cmd_dungeon_master(Ind, query);
+			do_cmd_dungeon_master(Get_Ind[p_ptr->conn], query);
 			break;
 		case SPECIAL_FILE_INPUT:
-			do_cmd_interactive_input(Ind, query);			
+			do_cmd_interactive_input(p_ptr, query);
 			break;
 	}
 }
 
-void do_cmd_knowledge(int Ind, char query)
+void do_cmd_knowledge(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind;
 	bool changed = FALSE;
 	int i;
 	
+	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
+	{
+#ifdef DEBUG	
+		debug(format("Player %s attempted to get knowledge too early", p_ptr->name));
+#endif
+		return;
+	}
+	Ind = Get_Ind[p_ptr->conn];
+
+
 	/* Display */
 	if (query == 0)
 	{
@@ -1162,13 +1137,12 @@ void do_cmd_knowledge(int Ind, char query)
 	/* HACK! - Move to another menu */
 	if (changed)
 	{	
-		do_cmd_interactive_aux(Ind, p_ptr->special_file_type, 0);
+		do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, 0);
 	}
 }
 
-void do_cmd_interactive_input(int Ind, char query)
+void do_cmd_interactive_input(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 	bool done = FALSE;
 
@@ -1188,7 +1162,7 @@ void do_cmd_interactive_input(int Ind, char query)
 
 		*old_file_type = p_ptr->special_file_type;
 		p_ptr->special_file_type = SPECIAL_FILE_INPUT;
-		Send_term_info(Ind, NTERM_HOLD, NTERM_PUSH);
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_PUSH);
 
 		break;
 
@@ -1221,31 +1195,29 @@ void do_cmd_interactive_input(int Ind, char query)
 	if (done || (*mlen && (*len >= *mlen)))
 	{
 		p_ptr->special_file_type = *old_file_type;
-		Send_term_info(Ind, NTERM_HOLD, NTERM_PULL);
-		do_cmd_interactive_aux(Ind, *old_file_type, *mark);
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_PULL);
+		do_cmd_interactive_aux(p_ptr, *old_file_type, *mark);
 		return; 
 	}
 
 	/* Refresh client screen */
 	for (i = 0; i < *len; i++)
 	{
-		Send_char(Ind, *x + i, *y, *attr, str[i]);
+		Send_char_p(p_ptr, *x + i, *y, *attr, str[i]);
 	}
-	Send_char(Ind, *x + i, *y, TERM_WHITE, ' ');
+	Send_char_p(p_ptr, *x + i, *y, TERM_WHITE, ' ');
 
-	Send_term_info(Ind, NTERM_FLUSH, 0);	
+	send_term_info(p_ptr, NTERM_FRESH, 0);
 }
 
-void do_cmd_interactive(int Ind, char query)
+void do_cmd_interactive(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Hack -- use special term */
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 
 	/* Perform action */	
-	do_cmd_interactive_aux(Ind, p_ptr->special_file_type, query);
+	do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, query);
 
 	/* Hack -- return to main term */
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }

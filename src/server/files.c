@@ -1443,17 +1443,15 @@ errr file_character_server(int Ind, cptr name)
 
 
 
-int file_peruse_next(int Ind, char query, int next)
+int file_peruse_next(player_type *p_ptr, char query, int next)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Process query */
 	if (query)
 	{
 		if (query == '1') /* 'End' */ 
 			p_ptr->interactive_line = p_ptr->interactive_size-20; 
 		else 	/* Other keys */
-			common_peruse(Ind, query);
+			common_peruse(p_ptr, query);
 
 		/* Adjust viewport boundaries */
 		if (p_ptr->interactive_line > p_ptr->interactive_size-20)
@@ -1484,9 +1482,8 @@ int file_peruse_next(int Ind, char query, int next)
  * This function manages a virtual 'window' which buffers file
  * contents using "copy_file_info" function.
  */
-void common_file_peruse(int Ind, char query)
+void common_file_peruse(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
 	int next = p_ptr->interactive_next;
 
 	/* Enter sub-menu */
@@ -1539,7 +1536,7 @@ void common_file_peruse(int Ind, char query)
 	/* Process query */
 	if (query)
 	{
-		next = file_peruse_next(Ind, query, next);
+		next = file_peruse_next(p_ptr, query, next);
 	}
 
 	/* Hack -- something overwrote "info" */
@@ -1552,7 +1549,7 @@ void common_file_peruse(int Ind, char query)
 	if (next != p_ptr->interactive_next)
 	{
 		p_ptr->interactive_next = next;
-		copy_file_info(Ind, p_ptr->interactive_file, next, 0);
+		copy_file_info(p_ptr, p_ptr->interactive_file, next, 0);
 	}
 }
 
@@ -1562,9 +1559,8 @@ void common_file_peruse(int Ind, char query)
  * TODO: Add 'search' from do_cmd_help_aux()
  *
  */
-void copy_file_info(int Ind, cptr name, int line, int color)
+void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 {
-	player_type *p_ptr = Players[Ind];
 	int i = 0, k;
 
 	/* Current help file */
@@ -1592,8 +1588,8 @@ void copy_file_info(int Ind, cptr name, int line, int color)
 	if (!fff)
 	{
 		/* Message */
-		msg_format(Ind, "Cannot open '%s'.", name);
-		msg_print(Ind, NULL);
+		msg_format_p(p_ptr, "Cannot open '%s'.", name);
+		msg_print_p(p_ptr, NULL);
 
 		/* Oops */
 		return;
@@ -2043,8 +2039,8 @@ errr show_file(int Ind, cptr name, cptr what, int line, int color)
 	clear_from(Ind, 0);
 
 	/* Peruse the requested file */
-	copy_file_info(Ind, name, line, color);
-	
+	copy_file_info(Players[Ind], name, line, color);
+
 	/* Send header */
 	Send_special_other(Ind, (char*)what);
 

@@ -239,34 +239,34 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 
 	/*** Knowledge query ***/
 	{ /* Help */
-		'?', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_HELP, "Help"
 	},
 #if 1
 	{ /* Knowledge */
-		'#', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
 #endif
 	{ /* Artifacts */
-		'~', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_ARTIFACT, "Artifacts"
 	},
 	{ /* Uniques */
-		'|', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'|', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_UNIQUE, "Uniques"
 	},
 	{ /* Players */
-		'@', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'@', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_PLAYER, "Players"
 	},
 	{ /* Scores */
-		'#', PKT_COMMAND, SCHEME_ITEM, 0, (cccb)do_cmd_interactive,
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_SCORES, "Highscores"
 	},

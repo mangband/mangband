@@ -3511,8 +3511,7 @@ cptr format_history_event(history_event *evt)
 	return &buf[0];
 }
 
-void send_prepared_info(int Ind, byte win, byte stream) {
-	player_type	*p_ptr = Players[Ind];
+void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	byte old_term;
 	int i;	
 
@@ -3520,16 +3519,16 @@ void send_prepared_info(int Ind, byte win, byte stream) {
 	old_term = p_ptr->remote_term;
 
 	/* Activte new terminal */
-	Send_term_info(Ind, NTERM_ACTIVATE, win);
+	send_term_info(p_ptr, NTERM_ACTIVATE, win);
 
 	/* Clear, Send, Refresh */
-	Send_term_info(Ind, NTERM_CLEAR, 0);
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->last_info_line; i++)
-		Stream_line(Ind, stream, i);
-	Send_term_info(Ind, NTERM_FRESH, 0);
+		stream_line_as(p_ptr, stream, i, i);
+	send_term_info(p_ptr, NTERM_FRESH, 0);
 
 	/* Restore active term */
-	Send_term_info(Ind, NTERM_ACTIVATE, old_term);
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
 	
 	/* Hack -- erase 'prepared info' */
 	p_ptr->last_info_line = 0;
