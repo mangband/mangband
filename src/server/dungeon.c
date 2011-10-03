@@ -1002,6 +1002,7 @@ static void process_player_end(int Ind)
 	int	regen_amount, NumPlayers_old=NumPlayers;
 	char	attackstatus;
     int minus;
+    int fatal_err;
 
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
@@ -1010,7 +1011,10 @@ static void process_player_end(int Ind)
 	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Try to execute any commands on the command queue. */
-	process_player_commands(Ind);
+	fatal_err = process_player_commands(Ind);
+
+	/* Paranoia -- buffered commands shouldn't even cause fatal errors */
+	if (fatal_err == -1) return;
 
 	/* Check for auto-retaliate */
 	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused)

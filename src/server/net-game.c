@@ -286,12 +286,12 @@ int send_stream_size(connection_type *ct, int st, int y, int x)
 
 int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 	const stream_type *stream = &streams[st];
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -312,14 +312,14 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 
 int stream_char(player_type *p_ptr, int st, int y, int x)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 	const stream_type *stream = &streams[st];
 	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 	s16b l;
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -537,21 +537,35 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 /* Default handler for all the gameplay commands. */
 int recv_command(connection_type *ct, player_type *p_ptr) 
 {
-	/* Write header */
-	cq_printf(&p_ptr->cbuf, "%c", next_pkt);
+	/* Hack -- remember position, and rewind to it upon failure */
+	int fail = 0;
+	int start_pos = p_ptr->cbuf.pos;
 
+	/* Write header */
+	if (cq_printf(&p_ptr->cbuf, "%c", next_pkt) <= 0)
+	{
+		fail = 1;
+	}
+	else
 	/* Hack -- for custom commands, 'id' is sometimes needed */
 	if ((next_pkt == PKT_COMMAND) && cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) <= 0)
 	{
 		/* Unable to... */
-		return -1;
+		fail = 1;		
 	}
 
 	/* Copy command to player's "command buffer" */
-	if (next_scheme && cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) <= 0)
+	if (!fail && next_scheme && cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) <= 0)
 	{
 		/* Unable to... */
-		return -1;
+		fail = 1;
+	}
+
+	if (fail)
+	{
+		/* Rewind, report lack of energy */
+		p_ptr->cbuf.pos = start_pos;
+		return 0;
 	}
 
 	/* OK */
@@ -1101,9 +1115,10 @@ static int recv_custom_command(player_type *p_ptr)
 	else
 	{
 		/* TODO: replace this with lookup table */
+		i = MAX_CUSTOM_COMMANDS + 1;
 		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
 		{
-			if (command_pkt[j] == next_pkt)
+			if (command_pkt[j] == (char)next_pkt)
 			{
 				i = j;
 				break;
@@ -1114,7 +1129,7 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Undefined */
 	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
 	{
-		printf("Unknown command\n");
+		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
 	}
 
@@ -1252,7 +1267,7 @@ int process_player_commands(int p_idx)
 	/* not enough energy, step back */
 	if (result == 0) p_ptr->cbuf.pos = start_pos;
 	/* slide buffer to the left */
-	cq_slide(&p_ptr->cbuf);
+	else if (result == 1) cq_slide(&p_ptr->cbuf);
 
 	/* ... */
 	return result;
