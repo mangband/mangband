@@ -5215,6 +5215,7 @@ int time_factor(int Ind)
 void show_motd(player_type *p_ptr)
 {
 	int i, k;
+	byte old_term;
 
 	/* Copy to info buffer */
 	for (i = 0; i < 20; i++)
@@ -5233,7 +5234,6 @@ void show_motd(player_type *p_ptr)
 
 	//send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
 	//player_type	*p_ptr = Players[Ind];
-	byte old_term;
 	//int i;	
 
 	/* Save 'current' terminal */
