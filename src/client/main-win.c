@@ -3400,7 +3400,8 @@ LRESULT FAR PASCAL _export AngbandSaverProc(HWND hWnd, UINT uMsg,
 static void hack_plog(cptr str)
 {
 	/* Give a warning */
-	if (str) MessageBox(NULL, str, "Warning", MB_OK);
+	if (str) c_msg_print(str);
+/*	if (str) MessageBox(NULL, str, "Warning", MB_OK); */
 }
 
 
