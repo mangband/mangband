@@ -1238,6 +1238,7 @@ errr file_character_server(int Ind, cptr name)
 		p_ptr->died_from_list,
 		SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
+#ifndef DEBUG
 	/* Leave it at that for characters lower than level 20 */
 	if( p_ptr->lev < 20 )
 	{
@@ -1247,6 +1248,7 @@ errr file_character_server(int Ind, cptr name)
 		/* Success */
 		return (0);	
 	}
+#endif
 
 	/* Begin dump */
     if (cfg_ironman)
