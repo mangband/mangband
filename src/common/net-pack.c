@@ -359,14 +359,14 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 			case 'n': {
 				CF_ERROR_SIZE(1)
 				UNPACK_8(&str_size);
-				CF_ERROR_SIZE(str_size+1)
+				CF_ERROR_SIZE(str_size)
 				PACK_8(str_size);
 				REPACK_NSTR(str_size);
 				break;}
 			case 'N': {
-				CF_ERROR_SIZE(1)
+				CF_ERROR_SIZE(2)
 				UNPACK_16(&str_size);
-				CF_ERROR_SIZE(str_size+2)
+				CF_ERROR_SIZE(str_size)
 				PACK_16(str_size);
 				REPACK_NSTR(str_size);
 				break;}
