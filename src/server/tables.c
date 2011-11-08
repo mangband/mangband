@@ -316,6 +316,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_STRING),
 		0, "Dump name: "
 	},
+	{ /* Temporary debug command #2 */
+		'Z', PKT_UNDEFINED, SCHEME_EMPTY, 0, (cccb)player_outfit,
+		(0),
+		0, ""
+	},
 #endif
 
 	/* End-of-array */
