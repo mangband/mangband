@@ -548,14 +548,14 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	}
 	else
 	/* Hack -- for custom commands, 'id' is sometimes needed */
-	if ((next_pkt == PKT_COMMAND) && cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) <= 0)
+	if ((next_pkt == PKT_COMMAND) && cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
 	{
 		/* Unable to... */
 		fail = 1;		
 	}
 
 	/* Copy command to player's "command buffer" */
-	if (!fail && next_scheme && cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) <= 0)
+	if (!fail && next_scheme && cq_copyf(&ct->rbuf, next_scheme, &p_ptr->cbuf) < 0)
 	{
 		/* Unable to... */
 		fail = 1;

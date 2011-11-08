@@ -386,7 +386,7 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 #undef CF_ERROR_FRMT
 
 	if (error) {
-		found = 0;
+		found = -1;
 		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]\n", str, pf_errors[error], str_size, src->len, dst->max));
 	} else {
 		REPACK_FIN(src, dst);
