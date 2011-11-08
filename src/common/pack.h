@@ -63,6 +63,7 @@
 /* Packet types 70-116 are sent from the client */
 #define PKT_WALK		70
 #define PKT_RUN			71
+#define PKT_REST		72
 #define PKT_STAND		76
 #define PKT_LOOK		78
 

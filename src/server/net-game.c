@@ -1079,6 +1079,40 @@ static int recv_walk(player_type *p_ptr) {
 	return 0;
 }
 
+static int recv_toggle_rest(player_type *p_ptr) {
+	int Ind = Get_Ind[p_ptr->conn];
+
+	if (p_ptr->resting)
+	{
+		disturb(Ind, 0, 0);
+		return 1;
+	}	
+
+	/* Don't rest if we are poisoned or at max hit points and max spell points */ 
+	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) && 
+	                       	(p_ptr->csp == p_ptr->msp)))
+	{
+		return 1;
+	}
+
+	/* Check energy */
+	if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)))
+	{
+		/* Start resting */
+		do_cmd_toggle_rest(Ind);
+
+		/* End turn */
+		return 2;
+	}
+	/* If we don't have enough energy to rest, disturb us (to stop
+	 * us from running) and queue the command.
+	 */
+	disturb(Ind, 0, 0);
+
+	/* Try again later */ 
+	return 0;
+}
+
 /* By the time we're parsing command queue, we're guaranteed to have all the bytes,
  * so it's not neccessary to do error checks on that. */
 static int recv_custom_command(player_type *p_ptr)

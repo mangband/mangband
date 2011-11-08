@@ -23,8 +23,10 @@
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
 
 	PACKET(PKT_WALK,    	"%c",       	recv_command)
+	PACKET(PKT_REST,    	"",         	recv_command)
 #endif
 
 #ifdef PCOMMAND
 	PCOMMAND(PKT_WALK,    	"%c",       	recv_walk)
+	PCOMMAND(PKT_REST,    	"",         	recv_toggle_rest)
 #endif

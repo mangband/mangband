@@ -361,6 +361,11 @@ int send_walk(char dir)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_WALK, dir);
 }
 
+int send_rest(void)
+{
+	return cq_printf(&serv->wbuf, "%c", PKT_REST);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {

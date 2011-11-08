@@ -467,6 +467,7 @@ extern int send_msg(cptr message);
 extern int send_redraw(void);
 extern int send_clear(void);
 extern int send_walk(char dir);
+extern int send_rest(void);
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")

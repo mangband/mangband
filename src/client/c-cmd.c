@@ -531,7 +531,7 @@ void cmd_locate(void)
 
 void cmd_rest(void)
 {
-	Send_rest();
+	send_rest();
 }
 
 void cmd_inven(void)

@@ -68,6 +68,12 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		'>', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
 		(0),		0, ""
 	},
+#if 0	
+	{ /* Toggle Rest */
+		'R', PKT_REST, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_rest,
+		(0),		0, ""
+	},
+#endif	
 	{ /* Search */
 		's', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
 		(0),		0, ""

@@ -3195,6 +3195,25 @@ void do_cmd_stay(int Ind)
 
 
 
+/*
+ * Toggle rest mode.
+ */
+void do_cmd_toggle_rest(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Set flag */
+	p_ptr->resting = TRUE;
+
+	/* Make sure we aren't running */
+	p_ptr->running = FALSE;
+
+	/* Take a lot of energy to enter "rest mode" */
+	p_ptr->energy -= (level_speed(p_ptr->dun_depth));
+
+	/* Redraw */
+	p_ptr->redraw |= (PR_STATE);
+}
 
 /*
  * Resting allows a player to safely restore his hp	-RAK-
