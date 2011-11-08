@@ -195,7 +195,7 @@
 #define CCS_DIR          	"%c"
 #define CCS_VALUE        	"%l"
 #define CCS_SMALL        	"%c"
-#define CCS_STRING       	"%s"
+#define CCS_STRING       	"%n"
 #define CCS_CHAR         	"%c"
 
 #define CCS_ITEM_DIR     	CCS_ITEM CCS_DIR
