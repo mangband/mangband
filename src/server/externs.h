@@ -371,7 +371,6 @@ extern player_type* player_alloc(void);
 extern void player_free(player_type *p_ptr);
 extern void player_wipe(player_type *p_ptr);
 extern bool player_birth(int ind, int race, int pclass, int sex, int stat_order[]);
-extern void player_outfit(player_type *p_ptr);
 extern void server_birth(void);
 extern void player_setup(int Ind);
 extern void player_verify_visual(player_type *p_ptr);

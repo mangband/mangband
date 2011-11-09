@@ -724,7 +724,7 @@ static byte dm_player_outfit[][4] =
  *
  * Having an item identifies it and makes the player "aware" of its purpose.
  */
-void player_outfit(player_type *p_ptr)
+static void player_outfit(player_type *p_ptr)
 {
 	player_class *cp_ptr = &c_info[p_ptr->pclass];
 	int i;
