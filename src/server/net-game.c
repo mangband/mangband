@@ -728,7 +728,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 		client_abort(ct, "Character not ready to be modified!");
 	}
 
-	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->prace, &p_ptr->male) < 3) 
+	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->pclass, &p_ptr->male) < 3) 
 	{
 		/* Not enough bytes */
 		return 0;
