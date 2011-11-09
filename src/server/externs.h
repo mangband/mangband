@@ -688,7 +688,6 @@ extern void display_monlist(int Ind);
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
 #define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
-#define Send_sound(IND, sound) plog("Send_sound unimplemented\n") 
 #define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
 #define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")

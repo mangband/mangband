@@ -1215,6 +1215,19 @@ int recv_message(connection_type *ct) {
 	return 1;
 }
 
+int recv_sound(connection_type *ct)
+{
+	char 
+		sound;
+
+	if (cq_scanf(&ct->rbuf, "%c", &sound) < 1) return 0;
+
+	/* Make a sound (if allowed) */
+	if (use_sound) Term_xtra(TERM_XTRA_SOUND, sound);
+
+	return 1;
+}
+
 int recv_custom_command_info(connection_type *ct) {
 	byte
 		pkt = 0,

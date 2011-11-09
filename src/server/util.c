@@ -1578,7 +1578,7 @@ void bell(void)
 void sound(int Ind, int val)
 {
 	/* Make a sound */
-	Send_sound(Ind, val);
+	send_sound(Ind, val);
 }
 
 

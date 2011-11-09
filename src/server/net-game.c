@@ -514,6 +514,11 @@ int send_message(int Ind, cptr msg, u16b typ)
 	return cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf);
 }
 
+int send_sound(int Ind, int sound)
+{
+	connection_type *ct = PConn[Ind];
+	return cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound);
+}
 
 int recv_message(connection_type *ct, player_type *p_ptr)
 {
