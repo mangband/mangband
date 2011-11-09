@@ -2661,8 +2661,8 @@ that keeps many algorithms happy.
 /*
  * Determine if a given inventory item is "aware"
  */
-#define object_aware_p(IND, T) \
-    (Players[IND]->obj_aware[(T)->k_idx])
+#define object_aware_p(PLR, T) \
+    ((PLR)->obj_aware[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "tried"

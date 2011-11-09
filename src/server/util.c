@@ -3763,7 +3763,7 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
  			}
  		}
 
-		do_cmd_interactive_input(Ind, 0); /* ! */
+		do_cmd_interactive_input(p_ptr, 0); /* ! */
 
 		return FALSE;
 	}

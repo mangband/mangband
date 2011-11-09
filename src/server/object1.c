@@ -1040,11 +1040,12 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
  */
 void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
+	player_type *p_ptr = Players[Ind];
 	bool aware, known;
 	
 	aware = known = FALSE;	
 	/* See if the object is "aware" */
-	if (object_aware_p(Ind, o_ptr)) aware = TRUE;
+	if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
 
 	/* See if the object is "known" */
 	if (object_known_p(Ind, o_ptr)) known = TRUE;
@@ -1233,6 +1234,8 @@ static char *object_desc_int(char *t, sint v)
  */
 void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode)
 {
+	player_type *p_ptr = Players[Ind];
+
 	cptr		basenm, modstr;
 	int		power, indexx;
 
@@ -1265,7 +1268,7 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	if (Ind)
 	{
 		/* See if the object is "aware" */
-		if (object_aware_p(Ind, o_ptr)) aware = TRUE;
+		if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
 
 		/* See if the object is "known" */
 		if (object_known_p(Ind, o_ptr)) known = TRUE;

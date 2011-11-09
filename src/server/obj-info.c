@@ -869,6 +869,7 @@ bool object_info_out(const object_type *o_ptr)
  */
 static bool screen_out_head(const object_type *o_ptr)
 {
+	player_type *p_ptr = Players[player_textout];
 	//char *o_name;
 	//int name_size = 80;//Term->wid;
 	bool has_description = FALSE;
@@ -898,7 +899,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	}
 
 	/* Display the known object description */
-	else if (object_aware_p(player_textout, o_ptr) || object_known_p(player_textout, o_ptr))
+	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(player_textout, o_ptr))
 	{
 		if (k_info[o_ptr->k_idx].text)
 		{

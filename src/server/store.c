@@ -578,7 +578,7 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
 				case TV_POLEARM:
                                 case TV_SWORD:
 					/* if Known, aware, and Blessed, yes. */
-					if (object_aware_p(Ind, o_ptr)) {
+					if (object_aware_p(p_ptr, o_ptr)) {
 						if (object_known_p(Ind, o_ptr)){
                             object_flags(o_ptr, &f1, &f2, &f3);
 							if (f3 & TR3_BLESSED) break;
@@ -1781,7 +1781,7 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 			store_prt_gold(Ind);
 
 			/* Hack -- buying an item makes you aware of it */
-			object_aware(Ind, &sell_obj);
+			object_aware(p_ptr, &sell_obj);
 
 			/* Hack -- clear the "fixed" flag from the item */
 			sell_obj.ident &= ~ID_FIXED;
@@ -1811,7 +1811,7 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 			}
 
 			/* Let the player carry it (as if he picked it up) */
-			item_new = inven_carry(Ind, &sell_obj);
+			item_new = inven_carry(p_ptr, &sell_obj);
 
 			/* Describe the final result */
 			object_desc(Ind, o_name, &p_ptr->inventory[item_new], TRUE, 3);
@@ -2087,7 +2087,7 @@ void store_confirm(int Ind)
 	guess = object_value(Ind, i_ptr) * i_ptr->number;
 
 	/* Become "aware" of the item */
-	object_aware(Ind, o_ptr);
+	object_aware(p_ptr, o_ptr);
 
 	/* Know the item fully */
 	object_known(o_ptr);

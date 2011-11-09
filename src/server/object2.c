@@ -791,6 +791,8 @@ s16b get_obj_num(int level)
 
 byte object_tester_flag(int Ind, object_type *o_ptr)
 {
+	player_type *p_ptr = Players[Ind];
+
 	byte flag = 0;
 	u32b f1, f2, f3;
 	object_type *lamp_o_ptr;
@@ -823,7 +825,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	if (o_ptr->tval == TV_ROD)
 	{
 		/* Get a direction (unless KNOWN not to need it) */
-		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(Ind, o_ptr))
+		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(p_ptr, o_ptr))
 		{
 			flag |= ITEM_ASK_AIM;
 		}
@@ -918,13 +920,13 @@ void object_known(object_type *o_ptr)
 /*
  * The player is now aware of the effects of the given object.
  */
-void object_aware(int Ind, object_type *o_ptr)
+void object_aware(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Fully aware of the effects */
-	Players[Ind]->obj_aware[o_ptr->k_idx] = TRUE;
+	p_ptr->obj_aware[o_ptr->k_idx] = TRUE;
 	
 	/* Update resistant flags */
-	Players[Ind]->redraw |= PR_OFLAGS;
+	p_ptr->redraw |= PR_OFLAGS;
 }
 
 
@@ -946,10 +948,11 @@ void object_tried(int Ind, object_type *o_ptr)
  */
 static s32b object_value_base(int Ind, object_type *o_ptr)
 {
+	player_type *p_ptr = Players[Ind];
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
 	/* Aware item -- use template cost */
-	if (Ind == 0 || object_aware_p(Ind, o_ptr)) return (k_ptr->cost);
+	if (Ind == 0 || object_aware_p(p_ptr, o_ptr)) return (k_ptr->cost);
 
 	/* Analyze the type */
 	switch (o_ptr->tval)
@@ -4253,9 +4256,9 @@ bool inven_carry_okay(int Ind, object_type *o_ptr)
  * before the pack is reordered, but (optionally) after the pack is
  * combined.  This may be tricky.  See "dungeon.c" for info.
  */
-s16b inven_carry(int Ind, object_type *o_ptr)
+s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind = Get_Ind[p_ptr->conn];
 
 	int         i, j, k;
 	int		n = -1;
@@ -4263,7 +4266,7 @@ s16b inven_carry(int Ind, object_type *o_ptr)
 	object_type	*j_ptr;
 
 	/* Hack -- change ownee! */
-	object_own(Ind, o_ptr);
+	object_own(p_ptr, o_ptr);
 
 	/* Check for combining */
 	for (j = 0; j < INVEN_PACK; j++)
@@ -4341,8 +4344,8 @@ s16b inven_carry(int Ind, object_type *o_ptr)
 			if (o_ptr->tval < j_ptr->tval) continue;
 
 			/* Non-aware (flavored) items always come last */
-			if (!object_aware_p(Ind, o_ptr)) continue;
-			if (!object_aware_p(Ind, j_ptr)) break;
+			if (!object_aware_p(p_ptr, o_ptr)) continue;
+			if (!object_aware_p(p_ptr, j_ptr)) break;
 
 			/* Objects sort by increasing sval */
 			if (o_ptr->sval < j_ptr->sval) break;
@@ -4536,8 +4539,8 @@ void reorder_pack(int Ind)
 			if (o_ptr->tval < j_ptr->tval) continue;
 
 			/* Non-aware (flavored) items always come last */
-			if (!object_aware_p(Ind, o_ptr)) continue;
-			if (!object_aware_p(Ind, j_ptr)) break;
+			if (!object_aware_p(p_ptr, o_ptr)) continue;
+			if (!object_aware_p(p_ptr, j_ptr)) break;
 
 			/* Objects sort by increasing sval */
 			if (o_ptr->sval < j_ptr->sval) break;
@@ -4810,10 +4813,10 @@ void reduce_charges(object_type *o_ptr, int amt)
 	}
 }
 
-void object_own(int Ind, object_type *o_ptr)
+void object_own(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
+	int Ind = Get_Ind[p_ptr->conn];
+	if (Ind)
 	if (o_ptr->owner_id && o_ptr->owner_id != p_ptr->id)
 	{
 		char o_name[80];

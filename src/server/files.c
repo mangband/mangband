@@ -2355,7 +2355,7 @@ static void show_info(int Ind)
 		o_ptr = &inventory[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(o_ptr);
+			object_aware(p_ptr, o_ptr);
 			object_known(o_ptr);
 		}
 	}
@@ -2366,7 +2366,7 @@ static void show_info(int Ind)
 		o_ptr = &st_ptr->stock[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(o_ptr);
+			object_aware(p_ptr, o_ptr);
 			object_known(o_ptr);
 		}
 	}

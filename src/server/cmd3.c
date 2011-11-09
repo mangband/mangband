@@ -74,7 +74,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 	}
 
 	/* Carry the object, saving the slot it went in */
-	posn = inven_carry(Ind, &tmp_obj);
+	posn = inven_carry(p_ptr, &tmp_obj);
 
 	/* Describe the result */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
@@ -470,7 +470,7 @@ void do_cmd_wield(int Ind, int item)
 	*o_ptr = tmp_obj;
 
 	/* MEGA-HACK -- Wearing from floor changes ownership */
-	object_own(Ind, o_ptr);
+	object_own(p_ptr, o_ptr);
 
 	/* Increase the weight */
 	p_ptr->total_weight += o_ptr->weight;
@@ -714,7 +714,7 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	tmp_obj.pval = amt;
 
 	/* MEGA-HACK -- Set "owner" of this pile */
-	object_own(Ind, &tmp_obj);
+	object_own(p_ptr, &tmp_obj);
 
 	/* Drop it */
 	drop_near(&tmp_obj, 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
@@ -1238,7 +1238,7 @@ void do_cmd_steal(int Ind, int dir)
 				 */
 				distribute_charges(o_ptr, &forge, 1);				
 				
-				inven_carry(Ind, &forge);
+				inven_carry(p_ptr, &forge);
 	
 				/* Take one from target */
 				inven_item_increase(0 - c_ptr->m_idx, item, -1);
@@ -1654,7 +1654,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	text_out_done();
 
 	/* Send this text */
-	send_prepared_info(Ind, NTERM_WIN_MONSTER, STREAM_SPECIAL_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_SPECIAL_TEXT);
 
 	return;
 }

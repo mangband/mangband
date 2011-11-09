@@ -724,9 +724,8 @@ static byte dm_player_outfit[][4] =
  *
  * Having an item identifies it and makes the player "aware" of its purpose.
  */
-void player_outfit(int Ind)
+void player_outfit(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	player_class *cp_ptr = &c_info[p_ptr->pclass];
 	int i;
 	const start_item *e_ptr;
@@ -761,24 +760,24 @@ void player_outfit(int Ind)
 			if (!k_idx) continue;
 
 			/* Give item */
-			player_outfit_i(Ind, k_idx, (byte)rand_range(e_ptr->min, e_ptr->max), 0); 
+			player_outfit_i(p_ptr, k_idx, (byte)rand_range(e_ptr->min, e_ptr->max), 0); 
 		}
 	}
 
 	/* Give food */
-	player_outfit_i(Ind,lookup_kind(TV_FOOD, SV_FOOD_RATION), rand_range(3, 7) * (cfg_ironman+1), 0);
+	player_outfit_i(p_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION), rand_range(3, 7) * (cfg_ironman+1), 0);
 
 	/* Give lite */
 	if (!cfg_ironman)
 	{
 		/* Torches */
-		player_outfit_i(Ind,lookup_kind(TV_LITE, SV_LITE_TORCH), rand_range(3, 7), rand_range(3, 7) * 500);
+		player_outfit_i(p_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH), rand_range(3, 7), rand_range(3, 7) * 500);
 	}
 	else
 	{
 		/* Lantern + Oil */
-		player_outfit_i(Ind,lookup_kind(TV_LITE, SV_LITE_LANTERN), 1, 0);
-		player_outfit_i(Ind,lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
+		player_outfit_i(p_ptr, lookup_kind(TV_LITE, SV_LITE_LANTERN), 1, 0);
+		player_outfit_i(p_ptr, lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
 	}
 
 	/*
@@ -791,12 +790,12 @@ void player_outfit(int Ind)
 	/* High Spell books */
 	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
 	{
-		player_outfit_i(Ind, lookup_kind(cp_ptr->spell_book, i), 1, 0);
+		player_outfit_i(p_ptr, lookup_kind(cp_ptr->spell_book, i), 1, 0);
 	}
 	/* Other items */
 	for (i = 0; dm_player_outfit[i][0]; i++)
 	{
-		player_outfit_i(Ind, lookup_kind(dm_player_outfit[i][0], dm_player_outfit[i][1]), 
+		player_outfit_i(p_ptr, lookup_kind(dm_player_outfit[i][0], dm_player_outfit[i][1]), 
 			dm_player_outfit[i][2], dm_player_outfit[i][3]);
 	}
 }
@@ -1210,7 +1209,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	}
 
 	/* Hack -- outfit the player */
-//	player_outfit(p_ptr);
+	//player_outfit(p_ptr);
 	
 	/* Hack -- Give him "awareness" of certain objects */
 	for (i = 0; i < z_info->k_max; i++) 

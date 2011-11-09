@@ -674,7 +674,7 @@ void carry(int Ind, int pickup, int confirm)
 		disturb(Ind, 0, 0);
 
 		/* MEGA HACK -- Change "owner" of this pile */
-		object_own(Ind, o_ptr);
+		object_own(p_ptr, o_ptr);
 
 		/* Determine which sound to play */
 		if (o_ptr->pval < 200) sound_msg = MSG_MONEY1;
@@ -814,7 +814,7 @@ void carry(int Ind, int pickup, int confirm)
 				int slot;
 
 				/* Carry the item */
-				slot = inven_carry(Ind, o_ptr);
+				slot = inven_carry(p_ptr, o_ptr);
 
 				/* Get the item again */
 				o_ptr = &(p_ptr->inventory[slot]);

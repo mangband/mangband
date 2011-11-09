@@ -1431,12 +1431,13 @@ static void health_redraw(int Ind)
  */
 static void fix_monlist(int Ind)
 {
+	player_type *p_ptr = Players[Ind];
 
 	/* Prepare 'visible monsters' list */
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(Ind, NTERM_WIN_MONLIST, STREAM_SPECIAL_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_SPECIAL_TEXT);
 
 	return;
 }

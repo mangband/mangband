@@ -1644,7 +1644,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 
 	/* Get a direction (unless KNOWN not to need it) */
-	if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(Ind, o_ptr))
+	if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(p_ptr, o_ptr))
 	{
 		/* Get a direction, allow cancel */
 		if (!get_aim_dir(Ind, &dir)) return FALSE;

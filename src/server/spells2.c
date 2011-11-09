@@ -371,7 +371,7 @@ void identify_pack(int Ind)
 		o_ptr = &p_ptr->inventory[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(Ind, o_ptr);
+			object_aware(p_ptr, o_ptr);
 			object_known(o_ptr);
 		}
 	}
@@ -2848,7 +2848,7 @@ bool ident_spell_aux(int Ind, int item)
 
 
 	/* Identify it fully */
-	object_aware(Ind, o_ptr);
+	object_aware(p_ptr, o_ptr);
 	object_known(o_ptr);
 
 	/* Recalculate bonuses */
@@ -2947,7 +2947,7 @@ bool identify_fully_item(int Ind, int item)
 
 
 	/* Identify it fully */
-	object_aware(Ind, o_ptr);
+	object_aware(p_ptr, o_ptr);
 	object_known(o_ptr);
 
 	/* Mark the item as fully known */

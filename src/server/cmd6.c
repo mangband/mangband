@@ -132,9 +132,9 @@ void do_cmd_eat_food(int Ind, int item)
 	object_tried(Ind, o_ptr);
 
 	/* The player is now aware of the object */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -240,9 +240,9 @@ void do_cmd_quaff_potion(int Ind, int item)
 	object_tried(Ind, o_ptr);
 
 	/* An identification was made */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -377,9 +377,9 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	lev = k_info[o_ptr->k_idx].level;
 
 	/* An identification was made */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -563,9 +563,9 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	object_tried(Ind, o_ptr);
 
 	/* An identification was made */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -590,7 +590,7 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
-			item = inven_carry(Ind, &tmp_obj);
+			item = inven_carry(p_ptr, &tmp_obj);
 	
 			/* Message */
 			msg_print(Ind, "You unstack your staff.");
@@ -753,9 +753,9 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	object_tried(Ind, o_ptr);
 
 	/* Apply identification */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -780,7 +780,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
-			item = inven_carry(Ind, &tmp_obj);
+			item = inven_carry(p_ptr, &tmp_obj);
 	
 			/* Message */
 			msg_print(Ind, "You unstack your wand.");
@@ -915,9 +915,9 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 	object_tried(Ind, o_ptr);
 
 	/* Successfully determined the object function */
-	if (ident && !object_aware_p(Ind, o_ptr))
+	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
-		object_aware(Ind, o_ptr);
+		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
@@ -942,7 +942,7 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
-			item = inven_carry(Ind, &tmp_obj);
+			item = inven_carry(p_ptr, &tmp_obj);
 	
 			/* Message */
 			msg_print(Ind, "You unstack your rod.");
