@@ -1209,7 +1209,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	}
 
 	/* Hack -- outfit the player */
-	//player_outfit(p_ptr);
+	player_outfit(p_ptr);
 	
 	/* Hack -- Give him "awareness" of certain objects */
 	for (i = 0; i < z_info->k_max; i++) 
