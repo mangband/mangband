@@ -293,7 +293,7 @@ void read_binary(char* name, char* value, int max_len)
 		sscanf(file_buf,"%s = ",seek_name);
 		if (!strcmp(seek_name,name))
 		{
-			matched == TRUE;
+			matched = TRUE;
 		}
 	}
 	if (!matched)
