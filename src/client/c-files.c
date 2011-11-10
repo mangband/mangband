@@ -2280,12 +2280,9 @@ void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_p
  	/* File is opened (paranoia) */
  	if (config)
  	{
-		/* Read until end */
-		while (!feof(config))
+		/* Read line (till end of file) */
+		while (fgets(buf, 1024, config))
 		{
-			/* Get a line */
-			fgets(buf, 1024, config);
-			
 			/* Skip comments, empty lines */
 			if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ';')
 				continue;

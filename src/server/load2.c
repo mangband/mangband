@@ -83,12 +83,14 @@ void start_section_read(char* name)
 	char got_section[80];
 	bool matched = FALSE;
 	
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	sprintf(seek_section,"<%s>",name);
-	if(sscanf(file_buf,"%s",got_section) == 1)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(got_section,seek_section);
+		line_counter++;
+		sprintf(seek_section,"<%s>",name);
+		if(sscanf(file_buf,"%s",got_section) == 1)
+		{
+			matched = !strcmp(got_section,seek_section);
+		}
 	}
 	if(!matched)
 	{
@@ -104,12 +106,14 @@ void end_section_read(char* name)
 	char got_section[80];
 	bool matched = FALSE;
 		
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	sprintf(seek_section,"</%s>",name);
-	if(sscanf(file_buf,"%s",got_section) == 1)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(got_section,seek_section);
+		line_counter++;
+		sprintf(seek_section,"</%s>",name);
+		if(sscanf(file_buf,"%s",got_section) == 1)
+		{
+			matched = !strcmp(got_section,seek_section);
+		}
 	}
 	if(!matched)
 	{
@@ -125,11 +129,13 @@ int read_int(char* name)
 	bool matched = FALSE;
 	int value;
 		
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if(sscanf(file_buf,"%s = %i",seek_name,&value) == 2)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(seek_name,name);
+		line_counter++;
+		if(sscanf(file_buf,"%s = %i",seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
 	}
 	if(!matched)
 	{
@@ -146,11 +152,13 @@ uint read_uint(char* name)
 	bool matched = FALSE;
 	uint value;
 		
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if(sscanf(file_buf,"%s = %u",seek_name,&value) == 2)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(seek_name,name);
+		line_counter++;
+		if(sscanf(file_buf,"%s = %u",seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
 	}
 	if(!matched)
 	{		
@@ -167,11 +175,13 @@ huge read_huge(char* name)
 	bool matched = FALSE;
 	huge value;
 		
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if(sscanf(file_buf,"%s = %" SCNu64 ,seek_name,&value) == 2)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(seek_name,name);
+		line_counter++;
+		if(sscanf(file_buf,"%s = %" SCNu64 ,seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
 	}
 	if(!matched)
 	{		
@@ -188,13 +198,14 @@ void read_hturn(char* name, hturn *value)
 	bool matched = FALSE;
 	s64b era, turn;
 
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if (sscanf(file_buf, "%s = %" SCNu64 " %" SCNu64, seek_name, &era, &turn) == 3)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(seek_name,name);
+		line_counter++;
+		if (sscanf(file_buf, "%s = %" SCNu64 " %" SCNu64, seek_name, &era, &turn) == 3)
+		{
+			matched = !strcmp(seek_name,name);
+		}
 	}
-	
 	if(!matched)
 	{		
 		plog(format("Missing hturn.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
@@ -212,12 +223,19 @@ void read_hturn(char* name, hturn *value)
 void read_str(char* name, char* value)
 {
 	char seek_name[80];
+	bool matched = FALSE;
 	char *c;
 	
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	sscanf(file_buf,"%s = ",seek_name);
-	if(strcmp(seek_name,name))
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	{
+		line_counter++;
+		sscanf(file_buf,"%s = ",seek_name);
+		if (!strcmp(seek_name,name))
+		{
+			matched = TRUE;
+		}
+	}
+	if (!matched)
 	{
 		plog(format("Missing string data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
 		exit(1);
@@ -226,7 +244,7 @@ void read_str(char* name, char* value)
 	c = file_buf;	
 	while(*c != '=') c++;
 	c+=2;
-	
+
 	while( *c >= 31 )
 	{
 		*value = *c; c++; value++;
@@ -242,11 +260,13 @@ float read_float(char* name)
 	bool matched = FALSE;
 	float value;
 	
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if(sscanf(file_buf,"%s = %f",seek_name,&value) == 2)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(seek_name,name);
+		line_counter++;
+		if(sscanf(file_buf,"%s = %f",seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
 	}
 	if(!matched)
 	{
@@ -260,16 +280,23 @@ float read_float(char* name)
 void read_binary(char* name, char* value, int max_len)
 {
 	char seek_name[80];
+	bool matched = FALSE;
 	char hex[3];
 	char *c;
 	char *bin;
 	unsigned int abyte;
 	hex[2] = '\0';
 
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	sscanf(file_buf,"%s = ",seek_name);
-	if(strcmp(seek_name,name))
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	{
+		line_counter++;
+		sscanf(file_buf,"%s = ",seek_name);
+		if (!strcmp(seek_name,name))
+		{
+			matched == TRUE;
+		}
+	}
+	if (!matched)
 	{
 		plog(format("Missing binary data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
 		exit(1);
@@ -299,16 +326,17 @@ void skip_value(char* name)
 	/* Remember where we are incase there is nothing to skip */
 	fpos = ftell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	line_counter++;
-	if(strstr(file_buf,seek_name) == NULL)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		/* Move back on seek failures */
-		fseek(file_handle,fpos,SEEK_SET);
-		line_counter--;
-		/* plog(format("Missing value.  Expected to skip '%s', found '%s' at line %i\n",name,seek_name,line_counter)); */
-		/* exit(1); */
-		
+		line_counter++;
+		if(strstr(file_buf,seek_name) == NULL)
+		{
+			/* Move back on seek failures */
+			fseek(file_handle,fpos,SEEK_SET);
+			line_counter--;
+			/* plog(format("Missing value.  Expected to skip '%s', found '%s' at line %i\n",name,seek_name,line_counter)); */
+			/* exit(1); */
+		}
 	}
 }
 
@@ -322,11 +350,13 @@ bool value_exists(char* name)
 	/* Remember where we are */
 	fpos = ftell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	matched = TRUE;
-	if(strstr(file_buf,seek_name) == NULL)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = FALSE;
+		matched = TRUE;
+		if(strstr(file_buf,seek_name) == NULL)
+		{
+			matched = FALSE;
+		}
 	}
 	/* Move back */
 	fseek(file_handle,fpos,SEEK_SET);
@@ -343,11 +373,13 @@ bool section_exists(char* name)
 	
 	/* Remember where we are */
 	fpos = ftell(file_handle);
-	fgets(file_buf, sizeof(file_buf)-1, file_handle);
-	sprintf(seek_section,"<%s>",name);
-	if(sscanf(file_buf,"%s",got_section) == 1)
+	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
 	{
-		matched = !strcmp(got_section,seek_section);
+		sprintf(seek_section,"<%s>",name);
+		if(sscanf(file_buf,"%s",got_section) == 1)
+		{
+			matched = !strcmp(got_section,seek_section);
+		}
 	}
 	/* Move back */
 	fseek(file_handle,fpos,SEEK_SET);
@@ -1512,10 +1544,8 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pcl
 	if (!file_handle) return (-1);
 
 	/* Try to fetch the data */
-	while (!feof(file_handle))
+	while (fgets(buf, 1024, file_handle))
 	{
-		fgets(buf, 1024, file_handle);
-
 		read = strtok(buf, " \t=");
 		if (!strcmp(read, "pass"))
 		{
