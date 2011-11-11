@@ -199,3 +199,86 @@ void do_cmd_messages(void)
 	/* Flush any queued events */
 	Flush_queue();
 }
+
+/** Open channel **/
+void do_chat_open(int id, cptr name)
+{
+	int i, free = -1;
+
+	/* Find free and duplicates */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (free == -1 && STRZERO(channels[i].name)) { free = i; continue; }
+		if (!strcmp(channels[i].name, name)) return;
+	}
+
+	/* Found free slot */
+	if ((i = free) != -1)
+	{
+		/* Copy info */
+		strcpy(channels[i].name, name);
+		channels[i].id = id;
+
+		/* Highlight 
+		p_ptr->on_channel[n] = TRUE; */
+
+		/* Window fix */
+		p_ptr->window |= PW_MESSAGE_CHAT;
+	}
+}
+
+/** Enforce channel **/
+void do_chat_select(int id)
+{
+	int i;
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (channels[i].id == id)
+		{
+			p_ptr->main_channel = view_channel = i;
+
+			/* Window update */
+			p_ptr->window |= PW_MESSAGE_CHAT;
+
+			break;
+		}
+	}
+}
+
+/** Close channel **/
+void do_chat_close(int id)
+{
+	int i, j;
+
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (channels[i].id == id)
+		{
+			if (view_channel == i)
+				cmd_chat_cycle(-1);
+
+			for (j = 0; j < message_num(); j++)
+			{
+				u16b type = message_type(j);
+				if (type == MSG_CHAT + id)
+				{
+					c_message_del(j);
+				}
+			}
+
+			channels[i].name[0] = '\0';
+			channels[i].id = 0;
+
+			if (p_ptr->main_channel == i)
+				p_ptr->main_channel = 0;
+
+			if (STRZERO(channels[view_channel].name))
+				cmd_chat_cycle(+1);
+
+			/* Window update */
+			p_ptr->window |= PW_MESSAGE_CHAT;
+
+			break;
+		}
+	}
+}

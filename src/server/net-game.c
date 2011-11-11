@@ -520,6 +520,12 @@ int send_sound(int Ind, int sound)
 	return cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound);
 }
 
+int send_channel(int Ind, char mode, int id, cptr name)
+{
+	connection_type *ct = PConn[Ind];
+	return cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
+}
+
 int recv_message(connection_type *ct, player_type *p_ptr)
 {
 	char buf[1024];

@@ -688,7 +688,6 @@ extern void display_monlist(int Ind);
 #define Send_char_info(IND, race, pclass, sex) plog("Send_char_info unimplemented\n")
 #define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
 #define Send_message(IND, msg, typ) plog("Send_message unimplemented\n")
-#define Send_channel(IND, n, virtual) plog("Send_channel unimplemented\n")
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -713,6 +712,7 @@ extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
+extern int send_channel(int Ind, char mode, u16b id, cptr name);
 
 
 /* obj-info.c */

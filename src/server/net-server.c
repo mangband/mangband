@@ -132,6 +132,9 @@ int player_enter(int ind)
 	Get_Conn[PInd] = ind;
 	PConn[PInd] = ct; 
 
+	/* Hack -- join '#public' channel */
+	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
+
 	/* Mark him as playing */
 	p_ptr->state = PLAYER_PLAYING;
 
@@ -167,6 +170,9 @@ int player_leave(int p_idx)
 
 	/* Try to save his character */
 	saved = save_player(p_idx);
+
+	/* Leave all chat channels */
+	channels_leave(p_idx);
 
 	/* Inform everyone */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));

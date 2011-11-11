@@ -442,6 +442,9 @@ extern void prt_player_hack(void);
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
+extern void do_chat_open(int id, cptr name);
+extern void do_chat_select(int id);
+extern void do_chat_close(int id);
 
 /* client.c */
 

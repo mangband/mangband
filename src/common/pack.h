@@ -257,6 +257,13 @@
 #define NTERM_WIN_NONE  	0xFF
 
 /*
+ * PKT_CHANNEL helpers
+ */
+#define CHAN_JOIN   	0
+#define CHAN_SELECT 	1
+#define CHAN_LEAVE  	2
+
+/*
  * Connection types
  */
 #define CONNTYPE_PLAYER 	0x01

@@ -21,6 +21,7 @@
 	PACKET(PKT_TERM,    	"%b%ud",	recv_term_info)
 	PACKET(PKT_TERM_INIT,  	"%s",   	recv_term_header)
 
+	PACKET(PKT_CHANNEL,  	"%ud%c%s", 	recv_channel)
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
 	PACKET(PKT_SOUND,   	"%c",   	recv_sound)	
 	PACKET(PKT_FLOOR,   	"%c%d%c%c%s",   	recv_floor)

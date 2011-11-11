@@ -1203,6 +1203,37 @@ int recv_term_header(connection_type *ct) {
 	return 1;
 }
 
+int recv_channel(connection_type *ct) {
+	u16b
+		id;
+	char
+		mode,
+		name[MAX_CHARS];
+	
+	if (cq_scanf(&ct->rbuf, "%ud%c%s", &id, &mode, name) < 3) return 0;
+
+	switch (mode)
+	{
+		case CHAN_JOIN:
+
+			do_chat_open(id, name);
+
+		break;
+		case CHAN_SELECT:
+
+			do_chat_select(id);
+
+		break;
+		case CHAN_LEAVE:
+
+			do_chat_close(id);
+
+		break;
+	}
+
+	return 1;
+}
+
 int recv_message(connection_type *ct) {
 	char 
 		mesg[80];

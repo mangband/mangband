@@ -2772,6 +2772,13 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
+/* Analyze the 'search' string and determine if it has any special
+ *  target.
+ * Returns  0 - on error, and an error string is put into 'error' 
+ * > 0 - player index
+ * < 0 - party index
+ */
+
 #define VIRTUAL_CHANNELS 8
 cptr virt_channels[] = { NULL, "&say", NULL };
 int find_chat_target(cptr search, char *error)
@@ -2917,13 +2924,14 @@ int find_chat_target(cptr search, char *error)
 		/* Give up */
 		return 0;
 	}
-	
+
 	/* Hack -- pack player targets and virtual channels together */
 	if (target > 0 && !channel_trap) target += VIRTUAL_CHANNELS;
 
 	return target;
 }
 
+/* Instruct client to listen on a specific channel for an incoming message. */ 
 void assist_whisper(int Ind, cptr search)
 {
 	int target;
@@ -2931,7 +2939,7 @@ void assist_whisper(int Ind, cptr search)
 
 	target = find_chat_target(search, error);
 
-	/* No match */	
+	/* No match */
 	if (!target)
 	{
 		/* Relay error */
@@ -2940,20 +2948,24 @@ void assist_whisper(int Ind, cptr search)
 		/* Give up */
 		return;
 	}
+
+	/* All 'virtual channels' occupy the MAX_CHANNELS slot,
+	 * while all real channels are < MAX_CHANNELS. */
+
 	/* Virtual channel -- what he sent */
 	else if (target > 0 && target < VIRTUAL_CHANNELS)
 	{
-		Send_channel(Ind, 255, virt_channels[target]);
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, virt_channels[target]);
 	}
 	/* A Player */
 	else if (target > 0)
 	{
-		Send_channel(Ind, 255, Players[target - VIRTUAL_CHANNELS]->name);
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, Players[target - VIRTUAL_CHANNELS]->name);
 	}
 	/* A Party */
 	else if (target < 0)
 	{
-		Send_channel(Ind, 255, parties[0 - target].name);
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, parties[0 - target].name);
 	}
 }
 
@@ -2966,7 +2978,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		if (!last_free && STRZERO(channels[i].name)) last_free = i;
-		
+
 		/* Name match */
 		if (!strcmp(channels[i].name, channel))
 		{
@@ -2984,22 +2996,22 @@ void channel_join(int Ind, cptr channel, bool quiet)
 				/* Enter channel */
 				channels[i].num++;
 				p_ptr->on_channel[i] |= UCM_EAR;
-				Send_channel(Ind, i, NULL);
+				send_channel(Ind, CHAN_JOIN, i, channel);
 				if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
 			}
 			/* Select channel */
 			else
 			{
 				p_ptr->main_channel = i;
-				Send_channel(Ind, i, "");
+				send_channel(Ind, CHAN_SELECT, i, channel);
 				if (!quiet) msg_format(Ind,"Channel changed to %s",channel);
 			}
 			return;
 		}
 	}
-	
+
 	/* No such channel */
-	
+
 	/* We have free space */
 	if (last_free)
 	{
@@ -3007,7 +3019,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 		strcpy(channels[last_free].name, channel);
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
-		Send_channel(Ind, last_free, FALSE);
+		send_channel(Ind, CHAN_JOIN, last_free, channel);
 		if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
 	}
 	/* All channel slots are used up */
@@ -3035,7 +3047,7 @@ void channel_leave_id(int Ind, int i, bool quiet)
 	}
 	p_ptr->on_channel[i] &= ~(UCM_LEAVE);
 	if (!quiet)
-		Send_channel(Ind, i, "-");
+		send_channel(Ind, CHAN_LEAVE, i, "");
 }
 /* Find channel by name and leave it */
 void channel_leave(int Ind, cptr channel)
