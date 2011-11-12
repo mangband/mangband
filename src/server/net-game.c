@@ -479,6 +479,12 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 	return 1;
 }
 
+int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
+{
+	connection_type *ct = PConn[Ind];
+	return cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val);
+}
+
 int send_character_info(player_type *p_ptr)
 {
 	connection_type *ct = Conn[p_ptr->conn];

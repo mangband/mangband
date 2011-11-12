@@ -166,7 +166,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		if (s_ptr->slevel >= 99)
 		{
 			sprintf(out_val, "  %c) %-30s", I2A(i), "(illegible)");
-			Send_spell_info(Ind, book, i, 0, out_val);
+			send_spell_info(Ind, book, i, 0, out_val);
 			continue;
 		}
 
@@ -193,7 +193,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		Send_spell_info(Ind, book, i, get_spell_flag(p_ptr->cp_ptr->spell_book,j,p_ptr->spell_flags[j]), out_val);
+		send_spell_info(Ind, book, i, get_spell_flag(p_ptr->cp_ptr->spell_book,j,p_ptr->spell_flags[j]), out_val);
 	}
 }
 
@@ -892,7 +892,7 @@ void show_ghost_spells(int Ind)
                 I2A(i), spell_names[GHOST_REALM][i], s_ptr->slevel, s_ptr->smana, 0);
 
 		/* Send it */
-		Send_spell_info(Ind, 10, i, get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED)), out_val);
+		send_spell_info(Ind, 10, i, get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED)), out_val);
 	}
 }
 

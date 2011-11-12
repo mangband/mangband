@@ -683,7 +683,6 @@ extern void display_monlist(int Ind);
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
-#define Send_spell_info(IND, book, i, flag, out_val) plog("Send_spell_info unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")

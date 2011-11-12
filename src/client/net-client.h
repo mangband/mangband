@@ -28,5 +28,6 @@
 	PACKET(PKT_FLOOR,   	"%c%d%c%c%s",   	recv_floor)
 	PACKET(PKT_INVEN,   	"%c%c%ud%d%c%c%s",	recv_inven)
 	PACKET(PKT_EQUIP,   	"%c%c%ud%c%c%s",	recv_equip)
+	PACKET(PKT_SPELL_INFO, 	"%c%ud%ud%s",   	recv_spell_info)
 	PACKET(PKT_OBJFLAGS,   	NULL,   	recv_objflags)
 #endif

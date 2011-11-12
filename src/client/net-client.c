@@ -1458,6 +1458,33 @@ int recv_equip(connection_type *ct)
 	return 1;
 }
 
+int recv_spell_info(connection_type *ct)
+{
+	char
+		flag;
+	u16b
+		book,
+		line;
+	char buf[MSG_LEN];//TODO: verify this
+
+	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
+	{
+		return 0;
+	}
+
+	/* Save the info */
+	strcpy(spell_info[book][line], buf);
+	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
+
+	/* and wipe the next line */
+	if (line < SPELLS_PER_BOOK) spell_info[book][line+1][0] = '\0';
+
+	/* Update spell list */
+	p_ptr->window |= PW_SPELL;
+
+	return 1;
+}
+
 int recv_objflags(connection_type *ct)
 {
 	s16b

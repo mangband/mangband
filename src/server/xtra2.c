@@ -5486,14 +5486,14 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		Send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		send_spell_info(Ind, 12 + b, bi, flag, out_val);
 		j++;
 		bi++;
 
 		/* Adjust indicies, handle overflow */
 		if (bi >= SPELLS_PER_BOOK) 
 		{ 
-			Send_spell_info(Ind, 12 + b, bi, 0, " ");
+			send_spell_info(Ind, 12 + b, bi, 0, " ");
 			bi = 0; 
 			b++; 
 		} 
