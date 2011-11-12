@@ -479,6 +479,16 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 	return 1;
 }
 
+int send_character_info(player_type *p_ptr)
+{
+	connection_type *ct = Conn[p_ptr->conn];
+
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1 || ct == NULL) return -1;
+
+	return send_char_info(ct, p_ptr);
+}
+
 int send_objflags(int Ind, int line)
 {
 	connection_type *ct = PConn[Ind];

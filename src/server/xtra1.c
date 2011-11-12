@@ -3267,7 +3267,7 @@ void redraw_stuff(int Ind)
 	if (p_ptr->redraw & PR_MISC)
 	{
 		p_ptr->redraw &= ~(PR_MISC);
-		Send_char_info(Ind, p_ptr->prace, p_ptr->pclass, p_ptr->male);
+		send_character_info(p_ptr);
 	}
 
 	if (p_ptr->redraw & PR_TITLE)
