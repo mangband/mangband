@@ -333,6 +333,16 @@ int send_settings(void)
 }
 int send_msg(cptr message)
 {
+	int n;
+
+	if (view_channel != p_ptr->main_channel)
+	{
+		p_ptr->main_channel = view_channel;
+
+		if ((n = send_channel(CHAN_SELECT, channels[view_channel].id, channels[view_channel].name)) <= 0)
+			return n;
+	}
+
 	return cq_printf(&serv->wbuf, "%c%S", PKT_MESSAGE, message);
 }
 
@@ -353,6 +363,11 @@ int send_redraw(void)
 int send_clear(void)
 {
 	return cq_printf(&serv->wbuf, "%c", PKT_CLEAR);
+}
+
+int send_channel(char mode, u16b id, cptr name)
+{
+	return cq_printf(&serv->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
 }
 
 /* Gameplay commands */

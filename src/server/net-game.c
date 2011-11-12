@@ -526,6 +526,52 @@ int send_channel(int Ind, char mode, u16b id, cptr name)
 	return cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
 }
 
+int recv_channel(connection_type *ct, player_type *p_ptr)
+{
+	u16b
+		id;
+	char
+		mode,
+		name[MAX_CHARS];
+
+	int Ind = Get_Ind[p_ptr->conn];
+
+	if (cq_scanf(&ct->rbuf, "%ud%c%s", &id, &mode, name) < 3) return 0;
+
+	switch (mode)
+	{
+		case CHAN_JOIN:
+		case CHAN_SELECT:
+
+			/* If channel is real */
+			if (name[0] == '#')
+			{
+				name[MAX_CHAN_LEN] = '\0';
+
+				channel_join(Ind, name, TRUE);
+
+				p_ptr->second_channel[0] = '\0';
+			}
+			/* If channel is virtual */
+			else
+			{
+				strncpy(p_ptr->second_channel, name, 80);
+			}
+
+		break;
+		case CHAN_LEAVE:
+
+			channel_leave_id(Ind, id, FALSE);
+
+		break;
+		default:
+			/*client_abort(ct, "Unrecognized channel mode.");*/
+		break;
+	}
+
+	return 1;
+}
+
 int recv_message(connection_type *ct, player_type *p_ptr)
 {
 	char buf[1024];

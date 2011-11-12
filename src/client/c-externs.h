@@ -469,6 +469,7 @@ extern int send_visual_info(byte type);
 extern int send_msg(cptr message);
 extern int send_redraw(void);
 extern int send_clear(void);
+extern int send_channel(char mode, u16b id, cptr name);
 extern int send_walk(char dir);
 extern int send_rest(void);
 //TRANSITIONAL HACKAGE:
@@ -494,7 +495,6 @@ extern int send_rest(void);
 #define Send_rest() plog("Send_rest unimplemented!")
 #define Send_destroy(item, amt) plog("Send_destroy unimplemented!")
 #define Send_target_interactive(mode, dir) plog("Send_target_interactive unimplemented!")
-#define Send_chan(channel) plog("Send_chan unimplemented!")
 #define Send_msg(message) plog("Send_msg unimplemented!")
 #define Send_item(item) plog("Send_item unimplemented!")
 #define Send_direction(dir) plog("Send_direction unimplemented!")

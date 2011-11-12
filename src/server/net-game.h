@@ -21,6 +21,7 @@
 	PACKET(PKT_CLEAR,    	"",         	recv_clear)
 
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
+	PACKET(PKT_CHANNEL,    	"%ud%c%s",     	recv_channel)
 
 	PACKET(PKT_WALK,    	"%c",       	recv_command)
 	PACKET(PKT_REST,    	"",         	recv_command)

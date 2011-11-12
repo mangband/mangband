@@ -904,8 +904,21 @@ void cmd_chat()
 		case 'o':
 		case 'j':
 			buf[0] = '\0';
-			if (get_string("Channel: ", buf, 59))
-				Send_chan(buf);
+			if (!get_string("Channel: ", buf, 59)) break;
+
+			/* Request channel join */
+			if (buf[0] == '#')
+			{
+				send_channel(CHAN_JOIN, 0, buf);
+			}
+			/* Open tab locally */
+			else
+			{
+				send_channel(CHAN_SELECT, 0, buf);
+
+				do_chat_open(MAX_CHANNELS, buf);
+			}
+
 			break;
 
 	}
@@ -919,8 +932,7 @@ void cmd_chat_close(int n)
 		/* Request channel leave */
 		if (channels[n].name[0] == '#')
 		{
-			sprintf(buf,"-%s",channels[n].name);
-			Send_chan(buf);
+			send_channel(CHAN_LEAVE, channels[n].id, channels[n].name); 
 		}
 		/* Close locally */
 		else
