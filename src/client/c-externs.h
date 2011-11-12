@@ -496,7 +496,6 @@ extern int send_rest(void);
 #define Send_rest() plog("Send_rest unimplemented!")
 #define Send_destroy(item, amt) plog("Send_destroy unimplemented!")
 #define Send_target_interactive(mode, dir) plog("Send_target_interactive unimplemented!")
-#define Send_msg(message) plog("Send_msg unimplemented!")
 #define Send_item(item) plog("Send_item unimplemented!")
 #define Send_direction(dir) plog("Send_direction unimplemented!")
 #define Send_gain(book, spell) plog("Send_gain unimplemented!")

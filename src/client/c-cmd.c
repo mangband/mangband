@@ -667,7 +667,7 @@ void cmd_describe(void)
 		strcpy(buf, inventory_name[item]);		
 	
 	if (buf[0] != '\0')
-				Send_msg(buf);
+				send_msg(buf);
 }
 
 int cmd_target_interactive(int mode)
