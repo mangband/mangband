@@ -282,3 +282,15 @@ void do_chat_close(int id)
 		}
 	}
 }
+
+/* Message from server */
+void do_handle_message(cptr mesg, u16b type)
+{
+
+	//TODO: older code used tons of hacks here, maybe return them
+
+
+	c_message_add(mesg, type);
+
+}
+

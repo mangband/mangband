@@ -35,6 +35,7 @@
 
 #define PKT_LINE_INFO		41
 #define PKT_STUDY		43
+#define PKT_MESSAGE_REPEAT	45
 #define PKT_MESSAGE		46
 #define PKT_CHAR		47
 #define PKT_SPELL_INFO		48

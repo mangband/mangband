@@ -514,6 +514,15 @@ int send_message(int Ind, cptr msg, u16b typ)
 	return cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf);
 }
 
+int send_message_repeat(int Ind, u16b typ)
+{
+	connection_type *ct = PConn[Ind];
+
+	if (!ct) return -1;
+
+	return cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ);
+}
+
 int send_sound(int Ind, int sound)
 {
 	connection_type *ct = PConn[Ind];

@@ -445,6 +445,7 @@ extern void do_cmd_messages(void);
 extern void do_chat_open(int id, cptr name);
 extern void do_chat_select(int id);
 extern void do_chat_close(int id);
+extern void do_handle_message(cptr mesg, u16b type);
 
 /* client.c */
 

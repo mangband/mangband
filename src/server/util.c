@@ -2593,7 +2593,7 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 	/* Hack -- repeated message of the same type */
 	if (dup && type == p_ptr->msg_last_type)
 	{
-		Send_message(Ind, " ", type); // a space
+		send_message_repeat(Ind, type);
 		return;
 	}
 	

@@ -1256,7 +1256,23 @@ int recv_message(connection_type *ct) {
 		type = 0;
 	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
 
-	c_message_add(mesg, type);	
+	do_handle_message(mesg, type);
+
+	return 1;
+}
+
+int recv_message_repeat(connection_type *ct) {
+
+	char 
+		mesg[80];
+	u16b 
+		type = 0;
+
+	if (cq_scanf(&ct->rbuf, "%ud", &type) < 1) return 0;
+
+	strcpy(mesg, message_last());
+
+	do_handle_message(mesg, type);
 
 	return 1;
 }
