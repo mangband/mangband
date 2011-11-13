@@ -1358,6 +1358,26 @@ static int recv_custom_command(player_type *p_ptr)
 	return 1;
 }
 
+int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name) 
+{
+	connection_type *ct = PConn[Ind];
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse)
+{
+	connection_type *ct = PConn[Ind];
+	if (cq_printf(&ct->wbuf, "%c%c%s%s%d%l", PKT_STORE_INFO, flag, name, owner, items, purse) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */

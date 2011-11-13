@@ -711,6 +711,8 @@ extern int send_character_info(player_type *p_ptr);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_channel(int Ind, char mode, u16b id, cptr name);
+extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
+extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
 
 
 /* obj-info.c */

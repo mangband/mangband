@@ -1033,7 +1033,7 @@ static void display_entry(int Ind, int pos)
 	x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
 
 	/* Send the info */
-	Send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /* 
@@ -1077,7 +1077,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 
 
 	/* Send the info */
-	Send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /*
@@ -1253,7 +1253,7 @@ static void display_store(int Ind)
 		owner_type *sto_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];
 		cptr owner_name = &(b_name[sto_ptr->owner_name]);
 		sprintf(store_name, "%s (%s)", owner_name, p_name + p_info[sto_ptr->owner_race].name); 
-		Send_store_info(Ind, (STORE_NPC), &store_names[p_ptr->store_num][0], 
+		send_store_info(Ind, (STORE_NPC), &store_names[p_ptr->store_num][0], 
 			store_name, stockcount, sto_ptr->max_cost);
 	}
 	/* Player owned stores */
@@ -1261,7 +1261,7 @@ static void display_store(int Ind)
 	{
 		/* Get the store name if any */
 		get_player_store_name(p_ptr->player_store_num, &store_name[0]);
-		Send_store_info(Ind, (STORE_PC), store_name, 
+		send_store_info(Ind, (STORE_PC), store_name, 
 			houses[p_ptr->player_store_num].owned, stockcount, 0);		
 	}
 

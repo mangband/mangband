@@ -445,6 +445,60 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 	return 1;
 }
 
+int recv_store(void)
+{
+	int	
+		price;
+	char	
+		name[1024];
+	byte	
+		pos,attr;
+	s16b	
+		wgt, num;
+
+	if (cq_scanf(&serv->rbuf, "%c%c%d%d%ul%s", &pos, &attr, &wgt, &num, &price, name) < 6) return 0;
+	
+
+	store.stock[pos].sval = attr;
+	store.stock[pos].weight = wgt;
+	store.stock[pos].number = num;
+	store_prices[(int) pos] = price;
+	strncpy(store_names[(int) pos], name, 80);
+
+	/* Make sure that we're in a store */
+	if (shopping)
+	{
+		if (shopping_buying) inkey_exit = TRUE; /* Cancel input */
+		display_inventory();
+	}
+
+	return 1;
+}
+
+int recv_store_info(void)
+{
+	s16b		
+		num_items;
+	s32b	
+		max_cost;
+	byte 	
+		flag;
+
+	if (cq_scanf(&serv->rbuf, "%c%s%s%d%l", &flag, store_name, store_owner_name, &num_items, &max_cost) < 5) return 0;
+	
+
+	store_flag = flag;
+	store.stock_num = num_items;
+	store_owner.max_cost = max_cost;
+
+	/* Only enter "display_store" if we're not already shopping */
+	if (!shopping)
+		display_store();
+	else
+		display_inventory();
+
+	return 1;
+}
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 
