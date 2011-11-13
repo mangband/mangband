@@ -312,7 +312,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 #ifdef DEBUG
 	{ /* Temporary debug command */
-		'P', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
+		'Z', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
 		(COMMAND_NEED_STRING),
 		0, "Dump name: "
 	},
