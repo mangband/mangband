@@ -1052,14 +1052,14 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 	p_ptr->special_file_type = type;
 	for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
 	{
-		custom_command_type *cc_ptr = &custom_commands[n];
+		const custom_command_type *cc_ptr = &custom_commands[n];
 		if (cc_ptr->pkt == 0) break;
 		if ((cc_ptr->tval == type) &&
 			(cc_ptr->flag & COMMAND_INTERACTIVE) &&
 			(cc_ptr->do_cmd_callback)) 
 		{
 			p_ptr->special_handler = n;
-			(*(void (*)(player_type*, char))(cc_ptr->do_cmd_callback))( Ind, 0);
+			(*(void (*)(player_type*, char))(cc_ptr->do_cmd_callback))(p_ptr, 0);
 			return 1;
 		}
 			
@@ -1083,7 +1083,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	}
 
 	if ((n = p_ptr->special_handler))
-		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(Ind, key);
+		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(p_ptr, key);
 	else if (p_ptr->special_file_type)
 		do_cmd_interactive(p_ptr, key);
 
