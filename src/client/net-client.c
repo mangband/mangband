@@ -381,6 +381,11 @@ int send_rest(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_REST);
 }
 
+int send_party(s16b command, cptr buf)
+{
+        return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {

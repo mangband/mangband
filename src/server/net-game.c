@@ -1110,6 +1110,67 @@ int recv_clear(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_party(connection_type *ct, player_type *p_ptr)
+{
+	int Ind = Get_Ind[p_ptr->conn];
+
+	char
+		buf[160];
+	s16b
+		command;
+
+	if (cq_scanf(&ct->rbuf, "%d%s", &command, buf) < 2)
+	{
+	    return 0;
+	}
+	if (Ind)
+	{
+		/* Hack -- silently fail in arena */
+		if (p_ptr->arena_num != -1) return 1;
+
+		switch (command)
+		{
+			case PARTY_CREATE:
+			{
+				party_create(Ind, buf);
+				break;
+			}
+
+			case PARTY_ADD:
+			{
+				party_add(Ind, buf);
+				break;
+			}
+
+			case PARTY_DELETE:
+			{
+				party_remove(Ind, buf);
+				break;
+			}
+
+			case PARTY_REMOVE_ME:
+			{
+				party_leave(Ind);
+				break;
+			}
+
+			case PARTY_HOSTILE:
+			{
+				add_hostility(Ind, buf);
+				break;
+			}
+
+			case PARTY_PEACE:
+			{
+				remove_hostility(Ind, buf);
+				break;
+			}
+		}
+	}
+
+	return 1;
+}
+
 /** Gameplay commands **/
 /* Those return 
 	* -1 on critical error

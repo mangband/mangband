@@ -1090,7 +1090,7 @@ void cmd_party(void)
 		{
 			/* Get party name */
 			if (get_string("Party name: ", buf, 79))
-				Send_party(PARTY_CREATE, buf);
+				send_party(PARTY_CREATE, buf);
 		}
 
 		/* Add player */
@@ -1098,7 +1098,7 @@ void cmd_party(void)
 		{
 			/* Get player name */
 			if (get_string("Add player: ", buf, 79))
-				Send_party(PARTY_ADD, buf);
+				send_party(PARTY_ADD, buf);
 		}
 
 		/* Delete player */
@@ -1106,14 +1106,14 @@ void cmd_party(void)
 		{
 			/* Get player name */
 			if (get_string("Delete player: ", buf, 79))
-				Send_party(PARTY_DELETE, buf);
+				send_party(PARTY_DELETE, buf);
 		}
 
 		/* Leave party */
 		else if (i == '4')
 		{
 			/* Send the command */
-			Send_party(PARTY_REMOVE_ME, "");
+			send_party(PARTY_REMOVE_ME, "");
 		}
 
 		/* Attack player/party */
@@ -1121,7 +1121,7 @@ void cmd_party(void)
 		{
 			/* Get player name */
 			if (get_string("Player/party to attack: ", buf, 79))
-				Send_party(PARTY_HOSTILE, buf);
+				send_party(PARTY_HOSTILE, buf);
 		}
 
 		/* Make peace with player/party */
@@ -1129,7 +1129,7 @@ void cmd_party(void)
 		{
 			/* Get player/party name */
 			if (get_string("Make peace with: ", buf, 79))
-				Send_party(PARTY_PEACE, buf);
+				send_party(PARTY_PEACE, buf);
 		}
 
 		/* Oops */
