@@ -578,7 +578,20 @@ void player_wipe(player_type *p_ptr)
 	l_ptr->flags1 = l_ptr->flags2 = l_ptr->flags3 = l_ptr->flags4 = l_ptr->flags5 = l_ptr->flags6 = 0L;   
 	l_ptr->cast_innate = l_ptr->cast_spell = 0; 
 	p_ptr->old_monster_race_idx = 0;
-	
+
+	/* Wipe item knowledge */
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		p_ptr->obj_aware[i] = FALSE;
+		p_ptr->obj_tried[i] = FALSE;
+	}
+
+	/* Clear "artifacts found" list */
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		p_ptr->a_info[i] = ARTS_NOT_FOUND;
+	}
+
 	/* Start with no quests */
 	for (i = 1; i < MAX_Q_IDX; i++)
 	{
