@@ -2378,7 +2378,7 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 			}
 /*RLS*/
 			if( msglen < 58 ){
-				Send_msg(pmsgbuf); 
+				send_msg(pmsgbuf); 
 			} else{ 
 				int offset,breakpoint,nicklen;
 				char * startmsg;
@@ -2423,7 +2423,7 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 					strncat(pmsg, startmsg+offset, breakpoint);
 					msglen -= breakpoint;
 					offset += breakpoint;
-					Send_msg(pmsg);
+					send_msg(pmsg);
 					Net_flush();
 				}
 			}
@@ -3204,7 +3204,7 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 				if( wParam == 13){
 					/* Get the controls text and send it */
 					GetWindowText(editmsg, pmsg, 59);
-					Send_msg(pmsg);
+					send_msg(pmsg);
 				}
 				/* If not return, ignore key */
 				return 0;
