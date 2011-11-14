@@ -130,6 +130,7 @@ u32b spell_flags[3][9][2] =
 
 };
 
+#if 0
 /*
  * Each chest has a certain set of traps, determined by pval
  * Each chest has a "pval" from 1 to the chest level (max 55)
@@ -305,7 +306,7 @@ cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5] =
     }
 
 };
-
+#endif
 
 
 /*

@@ -335,7 +335,7 @@ void process_command()
 			cmd_browse();
 			break;
 		}
-		
+#if 0		
 		case 'G':
 		{
 			cmd_study();
@@ -353,7 +353,7 @@ void process_command()
 			cmd_pray();
 			break;
 		}
-
+#endif
 		case 'U':
 		{
 			cmd_ghost();
@@ -1184,7 +1184,7 @@ void cmd_browse(void)
 	/* Show it */
 	show_browse(item);
 }
-
+#if 0
 void cmd_study(void)
 {
 	int item;
@@ -1250,7 +1250,7 @@ void cmd_pray(void)
 	/* Pick a spell and do it */
 	do_pray(item);
 }
-
+#endif
 void cmd_ghost(void)
 {
 	if (p_ptr->ghost)

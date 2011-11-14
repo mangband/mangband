@@ -293,6 +293,7 @@ void show_browse(int book)
 	Flush_queue();
 }
 
+#if 0
 /*
  * Study a book to gain a new spell/prayer
  */
@@ -314,6 +315,7 @@ void do_study(int book)
 	/* Note that if we are a priest, the server ignores the spell parameter */
 	Send_gain(book, j);
 }
+#endif
 
 /*
  * Extra arguments for spell-casting

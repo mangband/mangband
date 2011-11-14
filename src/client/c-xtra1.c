@@ -307,6 +307,7 @@ static void prt_depth(int row, int col, int id)
 	put_str(format("%7s", depths), row, col);
 }
 
+#if 0
 /*
  * Prints status of hunger
  */
@@ -348,6 +349,7 @@ static void prt_hunger(int row, int col)
 		c_put_str(TERM_GREEN, "Gorged", row, col);
 	}
 }
+#endif
 
 /*
  * Prints Blind status
@@ -1378,10 +1380,10 @@ static void fix_player_compact(void)
 static void prt_status_line(void)
 {
 	int row = 0;
-
+#if 0
 	/* Hungry */
 	prt_hunger(row, COL_HUNGRY);
-
+#endif
 	/* Blind */
 	prt_blind(row, COL_BLIND);
 

@@ -44,6 +44,14 @@
 /* Get cave by stream */
 #define stream_cave(I, L) (p_ptr->stream_cave[(I)] + (L) * p_ptr->stream_wid[(I)])
 
+/*** SERVER DEFINES ***/
+/* Sometimes, we just copy defines from server.
+ * Why not have them in common/ ? Because they ultimately are different values
+ */ //TODO: remove those!!!
+#define TV_SPIKE         5	/* Spikes ('~') */
+#define TV_GOLD         100	/* Gold can only be picked up by players */
+#define TV_MAX		100
+
 /*** Screen Locations ***/
 
 /*
