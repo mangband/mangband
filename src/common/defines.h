@@ -668,7 +668,7 @@
 
 #define COMMAND_SPECIAL_FILE  	0x01000000	/* Begin file perusal with mode "tval" */
 #define COMMAND_INTERACTIVE  	0x02000000	/* Begin interactive mode "tval" */
-#define COMMAND_HACK_XXX1    	0x04000000	/* XXX Unused */
+#define COMMAND_PROMPT_ITEM  	0x04000000	/* Auto-modify prompt using "item" and "value" */
 #define COMMAND_HACK_XXX2    	0x08000000	/* XXX Unused */
 
 #define COMMAND_SECOND_XXX2 	0x10000000	/* XXX Unused */

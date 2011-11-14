@@ -146,6 +146,12 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? "
 	},
+    { /* Detroy Item */
+        'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
+        (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
+         COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
+        0, "Destroy what? \nHow many? \nReally destroy "
+    },
 	{ /* Inscribe Item */
 		'{', PKT_UNDEFINED, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),

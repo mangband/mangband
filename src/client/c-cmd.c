@@ -2,6 +2,8 @@
 #include "net-client.h"
 #include "../common/md5.h"
 
+char* item_prompt(cptr prompt, int item, int amt);
+
 /* Handle custom commands */
 #define advance_prompt() prompt = prompt + strlen(prompt) + 1
 void cmd_custom(byte i)
@@ -184,6 +186,11 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
 				return;
 		advance_prompt();
+	}
+	/* Auto-modify prompt? */
+	if (cc_ptr->flag & COMMAND_PROMPT_ITEM)
+	{
+		prompt = item_prompt(prompt, item, value);
 	}
 	/* Need values? */
 	if (cc_ptr->flag & COMMAND_NEED_VALUE)
@@ -598,6 +605,36 @@ void cmd_drop_gold(void)
 	/* Send it */
 	if (amt)
 		Send_drop_gold(amt);
+}
+
+/* Given a 'prompt' prefix, an 'item' id and ammount ('amt'), 
+ * return a prompt string describing such item. */ 
+char* item_prompt(cptr prompt, int item, int amt)
+{
+	static char out_val[160];
+
+	/* Inventory/Equipment item */
+	if (item >= 0)
+	{
+		/* Whole stack */
+		if (inventory[item].number == amt)
+			sprintf(out_val, "%s%s? ", prompt, inventory_name[item]);
+		/* Part of stack */
+		else
+			sprintf(out_val, "%s%d of your %s? ", prompt, amt, inventory_name[item]);
+	}
+	/* Floor item */
+	else
+	{
+		/* Whole stack */
+		if (floor_item.number == amt)
+			sprintf(out_val, "%s%s? ", prompt, floor_name);
+		/* Part of stack */
+		else
+			sprintf(out_val, "%s%d of %s? ", prompt, amt, floor_name);
+	}
+
+	return out_val;
 }
 
 void cmd_destroy(void)
