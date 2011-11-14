@@ -634,15 +634,15 @@
 #define COMMAND_SECOND_EQUIP	0x00000400	/* Select second item from equipment */
 #define COMMAND_SECOND_FLOOR	0x00000800	/* Select second item from floor */
 
-#define COMMAND_TARGET_DIR  	0x00010000	/* Pick direction */
-#define COMMAND_TARGET_ALLOW	0x00020000	/* Pick direction OR target */
-#define COMMAND_TARGET_FRIEND	0x00030000	/* Allow friendly targeting */
-#define COMMAND_TARGET_XXX2 	0x00040000	/* XXX Unused */
+#define COMMAND_TARGET_DIR  	0x00001000	/* Pick direction */
+#define COMMAND_TARGET_ALLOW	0x00002000	/* Pick direction OR target */
+#define COMMAND_TARGET_FRIEND	0x00004000	/* Allow friendly targeting */
+#define COMMAND_TARGET_XXX2 	0x00008000	/* XXX Unused */
 
-#define COMMAND_SPELL_BOOK  	0x00001000	/* Choose a spell from TV book */
-#define COMMAND_SPELL_CUSTOM	0x00002000	/* Choose a spell from an offset */
-#define COMMAND_SPELL_RESET  	0x00004000	/* Set its own "Second" and "Target" needs */
-#define COMMAND_SPELL_INDEX  	0x00008000	/* XXX Unused */
+#define COMMAND_SPELL_BOOK  	0x00010000	/* Choose a spell from TV book */
+#define COMMAND_SPELL_CUSTOM	0x00020000	/* Choose a spell from an offset */
+#define COMMAND_SPELL_RESET  	0x00040000	/* Set its own "Second" and "Target" needs */
+#define COMMAND_SPELL_INDEX  	0x00080000	/* XXX Unused */
  
 #define COMMAND_NEED_VALUE  	0x00100000	/* Ask for s32b value */
 #define COMMAND_NEED_CONFIRM	0x00200000	/* Ask for confirmation */
@@ -666,8 +666,10 @@
 								 COMMAND_TARGET_FRIEND | \
 								 COMMAND_TARGET_XXX2)
 
-#define COMMAND_SPECIAL_FILE  	0x010000000	/* Begin file perusal with mode "tval" */
-#define COMMAND_INTERACTIVE  	0x020000000	/* Begin interactive mode "tval" */
+#define COMMAND_SPECIAL_FILE  	0x01000000	/* Begin file perusal with mode "tval" */
+#define COMMAND_INTERACTIVE  	0x02000000	/* Begin interactive mode "tval" */
+#define COMMAND_HACK_XXX1    	0x04000000	/* XXX Unused */
+#define COMMAND_HACK_XXX2    	0x08000000	/* XXX Unused */
 
 #define COMMAND_SECOND_XXX2 	0x10000000	/* XXX Unused */
 #define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */
