@@ -103,6 +103,7 @@ void cmd_custom(byte i)
 				if (STRZERO(prompt)) prompt = "How many? ";			
 				value = c_get_quantity(prompt, floor_item.number);
 			}
+			advance_prompt();
 		}
 
 		/* Dirty Hack -- Reset! */
