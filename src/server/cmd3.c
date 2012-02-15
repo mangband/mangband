@@ -1825,6 +1825,7 @@ void do_cmd_locate(int Ind, int dir)
 
 	char	out_val[160];
 
+  if (dir < 0 || dir > 10) return;
 
 	/* No direction, recenter */
 	if (!dir)

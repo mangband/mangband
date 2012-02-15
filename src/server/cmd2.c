@@ -634,7 +634,7 @@ void do_cmd_open(int Ind, int dir)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get requested location */
 		y = p_ptr->py + ddy[dir];
@@ -932,7 +932,7 @@ void do_cmd_close(int Ind, int dir)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get requested location */
 		y = p_ptr->py + ddy[dir];
@@ -1117,7 +1117,7 @@ void do_cmd_tunnel(int Ind, int dir)
 	}
 
 	/* Get a direction to tunnel, or Abort */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1401,7 +1401,7 @@ void do_cmd_disarm(int Ind, int dir)
 	}
 
 	/* Get a direction (or abort) */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1633,7 +1633,7 @@ void do_cmd_bash(int Ind, int dir)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Bash location */
 		y = p_ptr->py + ddy[dir];
@@ -1804,7 +1804,7 @@ void do_cmd_spike(int Ind, int dir)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1962,7 +1962,7 @@ int do_cmd_run(int Ind, int dir)
 	if (p_ptr->running && (dir == p_ptr->find_current) ) return 2;
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Make sure we have an empty space to run into */
 		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px) && p_ptr->energy >= level_speed(p_ptr->dun_depth))
@@ -3184,7 +3184,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 	}
 
 	/* Be sure we have a direction */
-	if (dir)
+	if (dir > 0 && dir < 10)
 	{
 		/* Get requested direction */
 		y = p_ptr->py + ddy[dir];

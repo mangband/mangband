@@ -1501,6 +1501,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	monster_type	*m_ptr;
 	byte			*w_ptr;
 
+  if (dir < 0 || dir > 10) return;
 
 	/* Find the result of moving */
 	y = p_ptr->py + ddy[dir];
@@ -1935,6 +1936,8 @@ int see_wall(int Ind, int dir, int y, int x)
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
+  if (dir < 0 || dir > 10) return FALSE;
+
 	/* Get the new location */
 	y += ddy[dir];
 	x += ddx[dir];
@@ -2178,6 +2181,7 @@ static void run_init(int Ind, int dir)
 	int		row, col, deepleft, deepright;
 	int		i, shortleft, shortright;
 
+  if (dir < 0 || dir > 10) return;
 
 	/* Save the direction */
 	p_ptr->find_current = dir;
