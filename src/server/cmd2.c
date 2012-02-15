@@ -1440,7 +1440,7 @@ void do_cmd_open(int Ind, int dir)
 #endif
 	/* Get a direction (or abort) */
 	/*if (!get_rep_dir(&dir)) return;*/
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -1690,7 +1690,7 @@ void do_cmd_close(int Ind, int dir)
 #endif
 	/* Get a direction (or abort) */
 	/*if (!get_rep_dir(&dir)) return;*/
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -2094,7 +2094,7 @@ void do_cmd_tunnel(int Ind, int dir)
 
 	/* Get a direction (or abort) */
 	/*if (!get_rep_dir(&dir)) return;*/
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -2361,7 +2361,7 @@ void do_cmd_disarm(int Ind, int dir)
 	/* Get a direction (or abort) */
 	if (!get_rep_dir(&dir)) return;
 #endif
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -2628,7 +2628,7 @@ void do_cmd_bash(int Ind, int dir)
 
 	/* Get a direction (or abort) */
 	/* if (!get_rep_dir(&dir)) return; */
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -2726,7 +2726,7 @@ void do_cmd_alter(int Ind, int dir)
 	__trap(Ind, CPI(p_ptr, '+'));
 
 	/* Get a direction */
-	if (!dir) return;
+	if (!VALID_DIR(dir)) return;
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -2893,7 +2893,7 @@ void do_cmd_spike(int Ind, int dir)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (VALID_DIR(dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2985,7 +2985,7 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 	}
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (VALID_DIR(dir))
 	{
 		/* Hack -- handle confusion */
 		if (p_ptr->confused)
@@ -3064,7 +3064,7 @@ int do_cmd_run(int Ind, int dir)
 	if (p_ptr->running && (dir == p_ptr->find_current) ) return 1;
 
 	/* Get a "repeated" direction */
-	if (dir)
+	if (VALID_DIR(dir))
 	{
 		/* Make sure we have an empty space to run into */
 		if (see_wall(Ind, dir, p_ptr->py, p_ptr->px) && p_ptr->energy >= level_speed(p_ptr->dun_depth))
@@ -4289,7 +4289,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 	}
 
 	/* Check for no-direction -- confirmation (when selling house) */
-	if (!dir)
+	if (!VALID_DIR(dir))
 	{
 			i = p_ptr->current_house;
 			p_ptr->current_house = -1;	
@@ -4338,7 +4338,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 	}
 
 	/* Be sure we have a direction */
-	if (dir)
+	if (VALID_DIR(dir))
 	{
 		/* Get requested direction */
 		y = p_ptr->py + ddy[dir];

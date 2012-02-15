@@ -5534,7 +5534,7 @@ void do_cmd_social(int Ind, int dir, int i)
 	if (m_catch && s_ptr->min_victim_position != 0)
 	{
 		int d, x, y, target;
-		if (dir != 5)
+		if (dir != 5 && VALID_DIR(dir))
 		{
 			y = p_ptr->py;
 			x = p_ptr->px;

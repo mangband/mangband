@@ -1125,6 +1125,9 @@ void do_cmd_steal(int Ind, int dir)
 	        return;
 	}	                                                        
 
+	/* Ensure "dir" is in ddx/ddy array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
+
 	/* Examine target grid */
 	c_ptr = &cave[p_ptr->dun_depth][p_ptr->py + ddy[dir]][p_ptr->px + ddx[dir]];
 
@@ -1717,6 +1720,9 @@ void do_cmd_locate(int Ind, int dir)
 	/* Initial panel */
 	y1 = p_ptr->panel_row_old;
 	x1 = p_ptr->panel_col_old;
+
+	/* Ensure "dir" is in ddy/ddx array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Apply the motion */
 	y2 += ddy[dir];

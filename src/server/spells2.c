@@ -4595,6 +4595,9 @@ bool fire_ball(int Ind, int typ, int dir, int dam, int rad)
 
 	int flg = PROJECT_STOP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
 
+	/* Ensure "dir" is in ddx/ddy array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
+
 	/* Use the given direction */
 	tx = p_ptr->px + 99 * ddx[dir];
 	ty = p_ptr->py + 99 * ddy[dir];
@@ -4628,6 +4631,9 @@ bool fire_swarm(int Ind, int num, int typ, int dir, int dam, int rad)
 	int ty, tx;
 
 	int flg = PROJECT_STOP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
+
+	/* Hack -- ensure "dir" is in ddy/ddx array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Use the given direction */
 	ty = py + 99 * ddy[dir];
