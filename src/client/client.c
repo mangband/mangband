@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 	/* No visual module worked */
 	if (!done)
 	{
-		Net_cleanup(FALSE);
+		Net_cleanup();
 		printf("Unable to initialize a display module!\n");
 		exit(1);
 	}
