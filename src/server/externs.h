@@ -888,7 +888,7 @@ extern bool project_hook(int Ind, int typ, int dir, int dam, int flg);
 extern void wipe_spell(int Depth, int cy, int cx, int r);
 extern bool hp_player(int Ind, int num);
 extern bool hp_player_quiet(int Ind, int num);
-extern void warding_glyph(int Ind);
+extern bool warding_glyph(int Ind);
 extern bool do_dec_stat(int Ind, int stat);
 extern bool do_res_stat(int Ind, int stat);
 extern bool do_inc_stat(int Ind, int stat);

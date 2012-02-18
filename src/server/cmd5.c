@@ -1352,8 +1352,11 @@ void do_cmd_cast(int Ind, int book, int spell)
 
 			case MSPELL_RUNE_OF_PROTECTION:
 			{
-                msg_format_near(Ind, "%s lays down a rune of protection.", p_ptr->name);
-				(void)warding_glyph(Ind);
+				if(warding_glyph(Ind))
+				{
+					msg_format_near(Ind, "%s lays down a rune of protection.",
+						p_ptr->name);
+				}
 				break;
 			}
 
@@ -2200,8 +2203,11 @@ void do_cmd_pray(int Ind, int book, int spell)
 
             case PSPELL_GLYPH_WARDING:
             {
-                msg_format_near(Ind, "%s lays down a glyph of warding.", p_ptr->name);
-                warding_glyph(Ind);
+                if(warding_glyph(Ind))
+                {
+                    msg_format_near(Ind, "%s lays down a glyph of warding.",
+                        p_ptr->name);
+                }
                 break;
             }
 
