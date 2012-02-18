@@ -214,6 +214,13 @@ bool warding_glyph(int Ind)
 	/* Access the player grid */
 	c_ptr = &cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px];
 
+	/* Don't allow glyphs inside houses */
+	if (p_ptr->dun_depth < 0 && c_ptr->info & CAVE_ICKY)
+	{
+		msg_print(Ind, "The floor of the house resists your spell.");
+		return FALSE;
+	}
+
 	/* Create a glyph of warding */
 	c_ptr->feat = FEAT_GLYPH;
 
