@@ -398,7 +398,7 @@ extern void do_keepalive();
 extern int Net_setup(void);
 extern int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class);
 extern int Net_init(char *server, int port);
-extern void Net_cleanup(void);
+extern void Net_cleanup(bool send_quit);
 extern int Net_flush(void);
 extern int Net_fd(void);
 extern int Net_start(void);

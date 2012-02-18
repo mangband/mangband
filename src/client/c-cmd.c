@@ -409,7 +409,7 @@ void process_command()
 
                 case KTRL('X'):
                 {
-                        Net_cleanup();
+                        Net_cleanup(TRUE);
                         quit(NULL);
                 }
 

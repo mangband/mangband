@@ -8,7 +8,7 @@ int Net_packet();
 int Net_setup(void);
 int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class);
 int Net_init(char *server, int fd);
-void Net_cleanup(void);
+void Net_cleanup(bool send_quit);
 int Net_flush(void);
 int Net_fd(void);
 int Net_start(void);

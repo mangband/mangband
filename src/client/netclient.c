@@ -458,15 +458,14 @@ int Net_init(char *server, int fd)
  * Cleanup all the network buffers and close the datagram socket.
  * Also try to send the server a quit packet if possible.
  */
-void Net_cleanup(void)
+void Net_cleanup(bool send_quit)
 {
 	int	sock = wbuf.sock;
-	char	ch;
 
 	if (sock > 2)
 	{
-		ch = PKT_QUIT;
-		if (DgramWrite(sock, &ch, 1) != 1)
+		char ch = PKT_QUIT;
+		if (send_quit && DgramWrite(sock, &ch, 1) != 1)
 		{
 			GetSocketError(sock);
 			DgramWrite(sock, &ch, 1);

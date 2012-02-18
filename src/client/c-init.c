@@ -149,17 +149,17 @@ void initialize_all_pref_files(void)
 /*
  * Loop, looking for net input and responding to keypresses.
  */
-static void Input_loop(void)
+static bool Input_loop(void)
 {
 	int	netfd, result;
 
 	if (Net_flush() == -1)
-		return;
+		return FALSE;
 
 	if ((netfd = Net_fd()) == -1)
 	{
 		plog("Bad socket filedescriptor");
-		return;
+		return FALSE;
 	}
 
 	for (;;)
@@ -170,7 +170,7 @@ static void Input_loop(void)
 		if (Net_flush() == -1)
 		{
 			plog("Bad net flush");
-			return;
+			return FALSE;
 		}
 
 		/* Set the timeout on the network socket */
@@ -189,7 +189,7 @@ static void Input_loop(void)
 			if ((result = Net_input()) == -1)
 			{
 				/*plog("Bad net input");*/
-				return;
+				return FALSE;
 			}
 		}
 
@@ -233,6 +233,7 @@ static void Input_loop(void)
 		do_keepalive(); // [grk] - wasn't keeping connection alive
 
 	}
+  return TRUE;
 }	
 
 /*
@@ -244,7 +245,7 @@ static void quit_hook(cptr s)
 {
 	int j;
 
-	Net_cleanup();
+	Net_cleanup(TRUE);
 
 #ifdef UNIX_SOCKETS
 	SocketCloseAll();
@@ -450,7 +451,7 @@ void client_init(char *argv1)
 	/* Check for failure */
 	if (retries >= 10)
 	{
-		Net_cleanup();
+		Net_cleanup(TRUE);
 		quit("Server didn't respond!\n");
 	}
 
@@ -499,14 +500,14 @@ void client_init(char *argv1)
 	/* Verify that we are on the correct port */
 	if (Net_verify(real_name, nick, pass, sex, race, class) == -1)
 	{
-		Net_cleanup();
+		Net_cleanup(TRUE);
 		quit("Network verify failed!\n");
 	}
 
 	/* Receive stuff like the MOTD */
 	if (Net_setup() == -1)
 	{
-		Net_cleanup();
+		Net_cleanup(TRUE);
 		quit("Network setup failed!\n");
 	}
 
@@ -519,15 +520,15 @@ void client_init(char *argv1)
 	/* Start the game */
 	if (Net_start() == -1)
 	{
-		Net_cleanup();
+		Net_cleanup(TRUE);
 		quit("Network start failed!\n");
 	}
 
 	/* Main loop */
-	Input_loop();
+	bool ok = Input_loop();
 
 	/* Cleanup network stuff */
-	Net_cleanup();
+	Net_cleanup(ok);
 
 	/* Quit, closing term windows */
 	quit(NULL);
