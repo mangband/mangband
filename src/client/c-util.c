@@ -1039,6 +1039,9 @@ bool askfor_aux(char *buf, int len, char private)
 			if ((k < len) && (isprint(i)))
 			{
 				buf[k++] = i;
+
+				/* Update the entry */
+				Term_putch(x+k-1, y, TERM_WHITE, private ? 'x' : buf[k-1]);
 			}
 			else
 			{
@@ -1047,21 +1050,11 @@ bool askfor_aux(char *buf, int len, char private)
 			break;
 		}
 
+		Term_erase(x+k, y, len - k);
+
 		/* Terminate */
 		buf[k] = '\0';
 
-		/* Update the entry */
-		if (!private)
-		{
-			Term_erase(x, y, len);
-			Term_putstr(x, y, -1, TERM_WHITE, buf);
-		}
-		else
-		{
-			/* Hack -- erase the default passwd exactly once */
-			if (k == 1) Term_erase(x, y, len);
-			Term_putch(x+k-1, y, TERM_WHITE, 'x');
-		}
 	}
 
 	/* The top line is OK now */
