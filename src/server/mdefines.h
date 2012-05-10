@@ -2884,6 +2884,11 @@ that keeps many algorithms happy.
 #define PICT_C(P) \
 	((char)((byte)(P)))
 
+/*
+ * Determine if a dungeon level of specific "depth" is a town.
+ */
+#define level_is_town(DEPTH) \
+	((DEPTH) == 0 || (cfg_more_towns && check_special_level((DEPTH))))
 
 
 /*

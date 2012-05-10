@@ -197,7 +197,7 @@ bool warding_glyph(int Ind)
 	cave_type *c_ptr;
 
 	/* Can't create in town */
-	if (p_ptr->dun_depth == 0)
+	if (level_is_town(p_ptr->dun_depth))
 	{
 		msg_print(Ind, "The very soil of the Town prevents you.");
 		return FALSE;
@@ -4939,7 +4939,7 @@ bool door_creation(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
-	if(p_ptr->dun_depth == 0 ) { return 0;};
+	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_DOOR, flg));
 }
 
@@ -4948,7 +4948,7 @@ bool trap_creation(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
-	if(p_ptr->dun_depth == 0 ) { return 0;};
+	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_TRAP, flg));
 }
 
