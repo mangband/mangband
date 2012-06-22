@@ -1294,5 +1294,5 @@ void cmd_suicide(void)
 	if (i != '@') return;
 
 	/* Send it */
-	Send_suicide();
+	send_suicide();
 }

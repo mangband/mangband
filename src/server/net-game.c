@@ -1171,6 +1171,15 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_suicide(connection_type *ct, player_type *p_ptr)
+{
+	int Ind = Get_Ind[p_ptr->conn];
+
+	/* Commit suicide */
+	do_cmd_suicide(Ind);
+	return 1;
+}
+
 /** Gameplay commands **/
 /* Those return 
 	* -1 on critical error

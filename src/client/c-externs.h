@@ -463,6 +463,7 @@ extern server_setup_t serv_info;
 extern int send_handshake(u16b conntype);
 extern int send_login(u16b version, char* real_name, char* host_name, char* user_name, char* pass_word);
 extern int send_play(byte mode);
+extern int send_suicide(void);
 extern int send_char_info();
 extern int send_keepalive(u32b last_keepalive);
 extern int send_request(byte mode, u16b id);
@@ -511,7 +512,6 @@ extern int send_party(s16b command, cptr buf);
 #define Send_special_line(type, line) plog("Send_special_line unimplemented!")
 #define Send_interactive(type) plog("Send_interactive unimplemented!")
 #define Send_term_key(ch) plog("Send_term_key unimplemented!")
-#define Send_suicide() plog("Send_suicide unimplemented!")
 #define Send_master(command, buf) plog("Send_master unimplemented!")
 #define Send_observe(item) plog("Send_observe unimplemented!")
 #define Send_pass(newpass) plog("Send_pass unimplemented!")

@@ -2246,17 +2246,8 @@ void do_cmd_suicide(int Ind)
 
 	if (p_ptr->total_winner) kingly(Ind);
 
-	/* Disown any houses he owns */
-	for(i=0; i<num_houses;i++)
-	{ 
-		if(house_owned_by(Ind,i))
-		{ 
-			disown_house(i);
-		}
-	}
-
-	/* Kill him */
-	player_death(Ind);
+	/* Queue "death", to be handled in dungeon() tick, so it happens inside game turns */
+	p_ptr->death = TRUE;
 }
 
 

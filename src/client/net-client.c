@@ -386,6 +386,11 @@ int send_party(s16b command, cptr buf)
         return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
 }
 
+int send_suicide(void)
+{
+	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {

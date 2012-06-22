@@ -2697,7 +2697,8 @@ void player_funeral(int Ind, char *reason)
 	add_high_score(Ind);
 
 	/* Get rid of him */
-	//\\Destroy_connection(Conn[p_ptr->conn], reason);
+	player_kill(Ind, reason); 	/* Disconnect client */
+	player_leave(Ind);	/* Remove from playerlist */
 
 	/* Done */
 	return;
