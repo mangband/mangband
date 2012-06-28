@@ -829,22 +829,22 @@ int recv_indicator(connection_type *ct) {
 	i_ptr = &indicators[id];
 	coff = coffer_refs[id];
 
-	/* Read (i_ptr->coffer) values of type (s16b/byte) */
-	for (i = 0; i < i_ptr->coffer; i++) 
+	/* Read (i_ptr->amnt) values of type (i_ptr->type) */
+	for (i = 0; i < i_ptr->amnt; i++) 
 	{
 		/* Read */
 		s32b val = 0, n = 0;
-		if (i_ptr->tiny  == INDITYPE_TINY)
+		if (i_ptr->type  == INDITYPE_TINY)
 		{
 			n = cq_scanf(&ct->rbuf, "%c", &tiny_c);
 			val = (s32b)tiny_c;
 		} 
-		else if (i_ptr->tiny == INDITYPE_NORMAL)
+		else if (i_ptr->type == INDITYPE_NORMAL)
 		{
 			n = cq_scanf(&ct->rbuf, "%d", &normal_c);
 			val = (s32b)normal_c;
 		}
-		else if (i_ptr->tiny == INDITYPE_LARGE)
+		else if (i_ptr->type == INDITYPE_LARGE)
 		{
 			n = cq_scanf(&ct->rbuf, "%l", &large_c);
 			val = (s32b)large_c;
@@ -889,7 +889,7 @@ int recv_indicator_str(connection_type *ct) {
 int recv_indicator_info(connection_type *ct) {
 	byte
 		pkt = 0,
-		tiny = 0,
+		type = 0,
 		amnt = 0,
 		win = 0;
 	char buf[MSG_LEN]; //TODO: check this 
@@ -901,7 +901,7 @@ int recv_indicator_info(connection_type *ct) {
 
 	indicator_type *i_ptr;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c%d%d%ul%S%s", &pkt, &tiny, &amnt, &win, &row, &col, &flag, buf, mark) < 9) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c%d%d%ul%S%s", &pkt, &type, &amnt, &win, &row, &col, &flag, buf, mark) < 9) return 0;
 
 	/* Check for errors */
 	if (known_indicators >= MAX_INDICATORS)
@@ -919,8 +919,8 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr = &indicators[known_indicators];
 
 	i_ptr->pkt = pkt;
-	i_ptr->tiny = tiny;
-	i_ptr->coffer = amnt;
+	i_ptr->type = type;
+	i_ptr->amnt = amnt;
 	i_ptr->redraw = (1L << (known_indicators));
 	i_ptr->row = row;
 	i_ptr->col = col;
@@ -937,7 +937,7 @@ int recv_indicator_info(connection_type *ct) {
 	/* Indicator takes place of a PKT */
 	if (pkt)
 	{
-		handlers[pkt] = ((tiny != INDITYPE_STRING) ? recv_indicator : recv_indicator_str);
+		handlers[pkt] = ((type != INDITYPE_STRING) ? recv_indicator : recv_indicator_str);
 		schemes[pkt] = NULL; /* HACK */
 
 		indicator_refs[pkt] = known_indicators;
@@ -946,19 +946,22 @@ int recv_indicator_info(connection_type *ct) {
 	/* A 'hollow' indicator, which is just a clone */
 	else
 	{
-		/* Perform it's own error-checking */
-		if (tiny >= known_indicators)
+		unsigned int ind = type;
+		unsigned int offset = amnt;
+		/* Perform it's own error-checking. */
+		if (ind >= known_indicators)
 		{
 			plog("Attempting to clone indicator too far!");
 			return -1;
 		}
-		if (coffer_refs[tiny] + amnt + 1 >= known_coffers)
+		if (offset >= indicators[ind].amnt)
 		{
 			plog("Attempting to clone coffer too far!");
 			return -1;
 		}
-		i_ptr->redraw = indicators[tiny].redraw; 
-		coffer_refs[known_indicators] = coffer_refs[tiny];
+		i_ptr->redraw = indicators[ind].redraw;
+		coffer_refs[known_indicators] = coffer_refs[ind];
+
 		amnt = 0;
 	}
 

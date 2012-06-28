@@ -2671,7 +2671,7 @@ void prt_indicator(int first_row, int first_col, int id)
 	cptr prompt = i_ptr->prompt;
 
 	u32b flag = i_ptr->flag;
-	byte amnt = i_ptr->coffer;
+	byte amnt = i_ptr->amnt;
 
 	s16b row = first_row;
 	u16b col = first_col;

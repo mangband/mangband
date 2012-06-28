@@ -183,10 +183,10 @@ int send_inventory_info(connection_type *ct, int id)
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
-	if (!i_ptr->pkt && !i_ptr->coffer) return 1; /* Last one */
+	if (!i_ptr->pkt && !i_ptr->amnt) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR,
-		i_ptr->pkt, i_ptr->tiny, i_ptr->coffer,
+		i_ptr->pkt, i_ptr->type, i_ptr->amnt,
 		i_ptr->win, i_ptr->row, i_ptr->col,
 		i_ptr->flag, i_ptr->prompt, i_ptr->mark) <= 0)
 	{
@@ -222,22 +222,22 @@ int send_indication(int Ind, byte id, ...)
 
 	do
 	{
-		if (i_ptr->tiny == INDITYPE_TINY)
+		if (i_ptr->type == INDITYPE_TINY)
 		{
 			tiny_c = (signed char) va_arg (marker, unsigned int);
 			n = cq_printf(&ct->wbuf, "%c", tiny_c);
 		}
-		else if (i_ptr->tiny == INDITYPE_NORMAL)
+		else if (i_ptr->type == INDITYPE_NORMAL)
 		{
 			normal_c = (s16b) va_arg (marker, unsigned int);
 			n = cq_printf(&ct->wbuf, "%d", normal_c);
 		}
-		else if (i_ptr->tiny == INDITYPE_LARGE)
+		else if (i_ptr->type == INDITYPE_LARGE)
 		{
 			large_c = (s32b) va_arg (marker, s32b);
 			n = cq_printf(&ct->wbuf, "%l", large_c);
 		}
-		else if (i_ptr->tiny == INDITYPE_STRING)
+		else if (i_ptr->type == INDITYPE_STRING)
 		{
 			text_c = (char*) va_arg (marker, char*);
 			n = cq_printf(&ct->wbuf, "%s", text_c);
@@ -247,7 +247,7 @@ int send_indication(int Ind, byte id, ...)
 		{
 			client_withdraw(ct);
 		}		
-	} while (++i < i_ptr->coffer);
+	} while (++i < i_ptr->amnt);
 
 	va_end( marker );
 
@@ -1527,7 +1527,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 
 	/* Count indicators */
 	i = 0;
-	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].coffer)) i++;
+	while (i < MAX_INDICATORS && !(!indicators[i].type)) i++;
 	serv_info.val1 = i;	
 	
 	/* Count streams */

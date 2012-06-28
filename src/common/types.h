@@ -1681,8 +1681,8 @@ struct stream_type
 struct indicator_type
 {
 	byte pkt;   	/* Network packet used for it */
-	bool tiny;  	/* TRUE for bytes, FALSE for integers */
-	byte coffer;	/* Ammount of variables (or offset) */
+	byte type;  	/* Variable type (int, string, etc...; see INDITYPE_ defines) */
+	byte amnt;  	/* Ammount of variables (or offset) */
 
 	byte win;   	/* Destination "window" */
 	s16b row;   	/* Position there */ 
