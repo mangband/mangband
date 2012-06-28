@@ -946,8 +946,12 @@ int recv_indicator_info(connection_type *ct) {
 	/* A 'hollow' indicator, which is just a clone */
 	else
 	{
+		/* Note: in indicator clones "type" is used as source indicator id,
+		 * and "amnt" is used as coffer sub-offset. For example:
+		 * Indicator [0, 12, 2] is a clone (pkt "0"), refers indicator 12 ("12"),
+		 * and uses indicator 12's coffer 1 ("2" - const 1). */
 		unsigned int ind = type;
-		unsigned int offset = amnt;
+		unsigned int offset = amnt - 1;
 		/* Perform it's own error-checking. */
 		if (ind >= known_indicators)
 		{
@@ -959,8 +963,10 @@ int recv_indicator_info(connection_type *ct) {
 			plog("Attempting to clone coffer too far!");
 			return -1;
 		}
+		i_ptr->type = indicators[ind].type;	/* Actual type is cloned */
+		i_ptr->amnt = indicators[ind].amnt - offset; /* Actual ammount is source_ammount - offset */
 		i_ptr->redraw = indicators[ind].redraw;
-		coffer_refs[known_indicators] = coffer_refs[ind];
+		coffer_refs[known_indicators] = coffer_refs[ind] + offset;
 
 		amnt = 0;
 	}
