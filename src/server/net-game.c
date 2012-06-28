@@ -1527,7 +1527,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 
 	/* Count indicators */
 	i = 0;
-	while (i < MAX_INDICATORS && !(!indicators[i].type)) i++;
+	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].amnt)) i++;
 	serv_info.val1 = i;	
 	
 	/* Count streams */
