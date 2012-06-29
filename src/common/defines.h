@@ -451,6 +451,7 @@
 #define IN_FILTER_SPELL_BOOK	0x10000000 /* Do not show if class is magic-less */
 
 #define IN_STOP_ONCE        	0x01000000 /* Only display one value */
+#define IN_STOP_STRIDE      	0x02000000 /* Stop parsing if striding test failed */
 #define IN_STOP_EMPTY       	0x04000000 /* Stop parsing if coffer is empty */
 #define IN_AUTO_CUT         	0x08000000 /* Squeeze indicator into terminal */
 
@@ -458,6 +459,9 @@
 #define IN_STRIDE_LARGER    	0x00200000 /* Step over to next coffer it's lower then current */ 
 #define IN_STRIDE_POSITIVE  	0x00400000 /* Step over values > 0 */
 #define IN_STRIDE_NONZERO   	0x00800000 /* Step over values != 0 */
+
+#define IN_STRIDE_LESSER    	0x00010000 /* Step over values < next coffer */
+#define IN_STRIDE_NOT       	0x00080000 /* Invert ALL the tests ("if not") */
 
 #define IN_VT_CR            	0x00000100 /* Do a carriage return on Vertical Tab */
 #define IN_VT_LF            	0x00000200 /* Do a line feed  on Vertical Tab */
@@ -468,6 +472,8 @@
 #define IN_VT_STRIDE_FLIP   	0x00002000 /* Enable/Disable striding on Vertical Tab */
 #define IN_VT_DEC_VALUE     	0x00004000 /* Decrease value on Vertical Tab */
 #define IN_VT_XXX_XXX_1     	0x00008000 /* Unused effect of Vertical Tab */
+
+#define IN_VT_COFFER_RESET  	0x00040000 /* Reset coffer back to 0 on Vertical Tab */
 
 #define IN_TEXT_LABEL       	0x00000001 /* Pick a string by value */
 #define IN_TEXT_PRINTF      	0x00000002 /* Display value via sprintf format */

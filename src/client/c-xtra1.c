@@ -2630,6 +2630,25 @@ byte color_spotlight(s16b cur, s16b max, bool warn)
 	}
 	return color;
 }
+/* Hack -- return YELLOW-GREEN or GREEN-UMBER color based on 2 values compared against each other */
+byte color_dualstat(s16b cur, s16b max, bool shift)
+{
+	byte colors[3] = { TERM_YELLOW, TERM_L_GREEN, TERM_L_UMBER };
+	byte color;
+	if (shift > 1)
+	{
+		shift = 1;
+	}
+	if (cur >= max)
+	{
+		color = colors[1 + shift];
+	}
+	else
+	{
+		color = colors[0 + shift];
+	}
+	return color;
+}
 /* Hack -- our own version of strlen() which treats any control character as lineend */
 static int strend(cptr str)
 {
@@ -2732,6 +2751,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				if (flag & IN_VT_CR) col = first_col;
 				if (flag & IN_VT_LF) row++;
 				if (flag & IN_VT_COLOR_RESET) color = TERM_BLUE;
+				if (flag & IN_VT_COFFER_RESET) val = coffers[(coff = coffer_refs[id])], amnt = i_ptr->amnt;
 				if (flag & IN_VT_DEC_VALUE) val--;
 				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
 				if (flag & IN_VT_FF) { advance_coffer(); }
@@ -2745,7 +2765,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				switch (*prompt) 
 				{
 					case '@': warn = TRUE;
-					case '#': color = color_spotlight(val, coffers[coff + 1], warn);
+					case '#': color = color_spotlight(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
+					break;
+					case ';': warn = TRUE;
+					case ':': color = color_dualstat(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
 					break;
 					case '!': color = (val ? 1 : 0);
 					break;
@@ -2754,6 +2777,7 @@ void prt_indicator(int first_row, int first_col, int id)
 					default: color = ascii_to_color[*prompt];
 					break;
 				}
+				warn = FALSE;
 				continue;
 			}
 			/* String Format (enable VALUE mode and fall thru) */
@@ -2769,6 +2793,8 @@ void prt_indicator(int first_row, int first_col, int id)
 				/* Skip this value */
 				if (stride)
 				{
+					bool passed = FALSE;
+
 					/* Hack -- quit prematurely */
 				   	if ((flag & IN_STOP_EMPTY) && (val == 0)) return;
 
@@ -2777,12 +2803,23 @@ void prt_indicator(int first_row, int first_col, int id)
 						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) )) || 
 						    ((amnt > 1) && 
 						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) ) ||
-							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) )
+							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) ) ||
+							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) )
 						)))
 					{
-						/* The code above checks if the test itself is enabled (by flag & IN_STRIDE bit),
-						 * then performs the test. The _EMPTY and _LARGER tests require at least one succeeding
-						 * value step to perfrom. If any of the tests succeeds, the value is being stepped over. */  
+						/* For each test, we see if it is enabled (flag & IN_STRIDE_* check),
+						 * then perform the test. The _EMPTY, _LARGER and _LESSER tests require
+						 * at least one succeeding value step to perfrom. */
+						passed = TRUE;
+					}
+
+					/* Hack -- test is inverted */
+					if (flag & IN_STRIDE_NOT) passed = 1 - passed;
+
+ 					/* If any of the tests succeeds, the value is being stepped over. */
+					if (passed)
+					{
+						/* Hack -- a stop is requested */ if (flag & IN_STOP_STRIDE) return;
 						continue;
 					}
 				}
@@ -2801,21 +2838,25 @@ void prt_indicator(int first_row, int first_col, int id)
 					if (flag & IN_TEXT_STAT)
 					{
 						cnv_stat(val, tmp);
+						n = 6;
 					}
 					else if (flag & IN_TEXT_LIKERT)
 					{
 						strcpy(tmp, likert(val, coffers[coff + 1]));
 						color = likert_color;
+						//n = 12;
 					}
 					else if (flag & IN_TEXT_CUT)
 					{
 						out++;
 						cut = val + 1;
+						//n--;
 					}
 					else if (!(flag & IN_TEXT_LABEL))
 					{
 						sprintf(tmp2, tmp, val);
 						strcpy(tmp, tmp2);
+						//n = strlen(tmp);
 					}
 					value = TRUE;
 				}
