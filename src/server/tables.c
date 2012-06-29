@@ -517,38 +517,38 @@ const indicator_type indicators[MAX_INDICATORS] =
 	/* Stats, classic way */
 	{
 		INDICATOR_PKT(STAT0, NORMAL, 3), 	0,	ROW_STAT+0,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"STR:  \aU%\vSTR:  \aG%\vStr:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Str:  \ay%\vSTR:  \aG%\vSTR:  \aU%",
 		(PR_STATS), "stat0"
 	},
 	{
 		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+1,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"INT:  \aU%\vINT:  \aG%\vInt:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Int:  \ay%\vINT:  \aG%\vINT:  \aU%",
 		(PR_STATS), "stat1"
 	},
 	{
 		INDICATOR_PKT(STAT2, NORMAL, 3), 	0,	ROW_STAT+2,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"WIS:  \aU%\vWIS:  \aG%\vWis:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Wis:  \ay%\vWIS:  \aG%\vWIS:  \aU%",
 		(PR_STATS), "stat2"
 	},
 	{
 		INDICATOR_PKT(STAT3, NORMAL, 3), 	0,	ROW_STAT+3,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"DEX:  \aU%\vDEX:  \aG%\vDex:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Dex:  \ay%\vDEX:  \aG%\vDEX:  \aU%",
 		(PR_STATS), "stat3"
 	},
 	{
 		INDICATOR_PKT(STAT4, NORMAL, 3), 	0,	ROW_STAT+4,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"CON:  \aU%\vCON:  \aG%\vCon:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Con:  \ay%\vCON:  \aG%\vCON:  \aU%",
 		(PR_STATS), "stat4"
 	},
 	{
 		INDICATOR_PKT(STAT5, NORMAL, 3), 	0,	ROW_STAT+5,	COL_STAT,
-		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
-		"CHR:  \aU%\vCHR:  \aG%\vChr:  \ay%",
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Chr:  \ay%\vCHR:  \aG%\vCHR:  \aU%",
 		(PR_STATS), "stat5"
 	},
 #else
@@ -756,6 +756,58 @@ const indicator_type indicators[MAX_INDICATORS] =
 		"Cur Hit Points    \a@%6ld",
 		(PR_HP), "hist_chp"
 	},
+	/* alternative way to create verbose stat indicators
+ 	{
+		INDICATOR_CLONE(STAT0, 1),   	2,     2+0,	61,
+		(IN_STOP_STRIDE | IN_TEXT_PRINTF | (IN_STRIDE_LESSER) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\vStr: \ay%d\f or \a;%d\v \v\f"
+		"\rSTR: \a;%d\v\f (of \b%d)",
+		(PR_STATS), "hist_stat0"
+	}, */
+	/* Stats, Verbose. Displays both injured and uninjured values. */
+	{
+		/* STR, Verbose */
+		INDICATOR_CLONE(STAT0, 1),   	2,     2+0,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fSTR: \a;%\v \v\rStr: \ay%\f \a;%",
+		(PR_STATS), "hist_stat0"
+	},
+	{
+		/* INT, Verbose */
+		INDICATOR_CLONE(STAT1, 1),   	2,     2+1,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fINT: \a;%\v \v\rInt: \ay%\f \a;%",
+		(PR_STATS), "hist_stat1"
+	},
+	{
+		/* WIS, Verbose */
+		INDICATOR_CLONE(STAT2, 1),   	2,     2+2,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fWIS: \a;%\v \v\rWis: \ay%\f \a;%",
+		(PR_STATS), "hist_stat2"
+	},
+	{
+		/* DEX, Verbose */
+		INDICATOR_CLONE(STAT3, 1),   	2,     2+3,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fDEX: \a;%\v \v\rDex: \ay%\f \a;%",
+		(PR_STATS), "hist_stat3"
+	},
+	{
+		/* CON, Verbose */
+		INDICATOR_CLONE(STAT4, 1),   	2,     2+4,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fCON: \a;%\v \v\rCon: \ay%\f \a;%",
+		(PR_STATS), "hist_stat4"
+	},
+	{
+		/* CHR, Verbose */
+		INDICATOR_CLONE(STAT5, 1),   	2,     2+5,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fCHR: \a;%\v \v\rChr: \ay%\f \a;%",
+		(PR_STATS), "hist_stat5"
+	},
+
 	/* Tail */
 	{
 		0, 0, 0, 0, 0, 0,

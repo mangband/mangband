@@ -106,9 +106,23 @@ s16b modify_stat_value(int value, int amount)
 static void prt_stat(int Ind, int stat)
 {	
 	player_type *p_ptr = Players[Ind];
+	int stat_max;
+
+	/* Stat is maxed */
+	if (p_ptr->stat_max[stat] == 18 + 100)
+	{
+		/* Assume top value *is* the max value */
+		stat_max = p_ptr->stat_top[stat];
+	}
+	else
+	{
+		/* Set max to an impossibly large value: */
+		stat_max = p_ptr->stat_top[stat] + 1;
+	}
+
 	send_indication(Ind, IN_STAT0 + stat,
-		// TODO: Actually send stat max instead of 18 + 200 ! Or top_stat + 1 if not maxed, and top_stat if maxed.  
-		18 + 200, p_ptr->stat_top[stat], p_ptr->stat_use[stat]);
+		p_ptr->stat_use[stat], p_ptr->stat_top[stat], stat_max);
+
 }
 
 
