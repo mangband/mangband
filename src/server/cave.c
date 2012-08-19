@@ -990,6 +990,10 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 
 			a = player_color(0 - c_ptr->m_idx);
 
+			/* MEGAHACK from 1.2.0 -- Hilite party leader! */
+			if (p_ptr->party &&  player_in_party(p_ptr->party, 0 - c_ptr->m_idx) && streq(parties[p_ptr->party].owner, Players[0 - c_ptr->m_idx]->name)) 
+			    a = TERM_YELLOW; 
+
 			(*cp) = c;
 	
 			(*ap) = a;
