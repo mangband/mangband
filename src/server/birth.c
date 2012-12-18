@@ -261,7 +261,7 @@ static void get_extra(int Ind)
 
 
 	/* Level one (never zero!) */
-	p_ptr->lev = 1;
+	p_ptr->max_plv = p_ptr->lev = 1;
 
 	/* Experience factor */
 	p_ptr->expfact = p_ptr->rp_ptr->r_exp + p_ptr->cp_ptr->c_exp;

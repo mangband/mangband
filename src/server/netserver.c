@@ -1488,7 +1488,7 @@ static void sync_options(int Ind)
 	p_ptr->view_special_lite = p_ptr->options[59];
 	
 	/* Read the "no ghost" option, allow it to be changed at level 1 */
-	if (p_ptr->lev <= 1)
+	if (p_ptr->max_plv <= 1)
 	{
 		/* Get the clients setting */
 		p_ptr->no_ghost = p_ptr->options[28];
