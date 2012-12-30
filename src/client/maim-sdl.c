@@ -107,111 +107,6 @@ inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
 
 
 /* This routine performs a scaling blit. It will shrink and magnify. :) */
-/* It uses floating point arithmetic (because I am lazy) so it's not too fast
- * but I only intend for it to be used in pre-processing, that is image 
- * processing at load time. It's fast enough for that, at least.
- * Actually on my machine it IS fast enough to scale fonts and bitmaps
- * in real-time. :) 
- * This routine uses a weighted average, the weight being based on overlapping
- * pixel area.
- */
-inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
-{
-	Uint8 r, g, b;
-
-	float rs, gs, bs; /* sums */
-
-	float area;
-
-	float sx, sy; /* current source x and y */
-	float dsx, dsy; /* source increment, per increment of 1 in destination */
-	
-	float wsx, wsy; 
-	/* width of source box. Equal to dsx,dsy except when either of then are
-	 * smaller than 1. This is a hack for smoother magnification. XXX */
-
-
-	float x, y; /* x and y in sub-area */
-
-	Uint32 tx, ty; /* "to" x and y */
-	Uint32 lx, ly;
-
-	float w, e, n, s; /* some temporary variables, named after orientations */
-
-
-	if (src == NULL || sr == NULL || dst == NULL || dr == NULL) return -1;
-
-	/* these are meaningless and would cause a divide by zero: */
-	if (!dr->w || !dr->h) return -1; 
-
-	wsx = dsx = ((float) sr->w) / dr->w;
-	if (wsx < 1) wsx = 1;
-	wsy = dsy = ((float) sr->h) / dr->h;
-	if (wsy < 1) wsy = 1;
-
-	lx = dr->x + dr->w; 
-	ly = dr->y + dr->h;
-
-	area = wsx * wsy;
-
-
-
-	for (ty = dr->y, sy = (float)sr->y; ty < ly; ++ty, sy+=dsy)
-	{
-		for (tx = dr->x, sx = (float)sr->x; tx < lx; ++tx, sx+=dsx)
-		{
-			rs = gs = bs = 0.0;
-			for (y = floor(sy) - 1; ceil(sy + wsy) > y; ++y)
-			{
-				for (x = floor(sx) - 1; ceil(sx + wsx) > x; ++x)
-				{
-					w = (x > sx) ? 0 : sx - x;
-					n = (y > sy) ? 0 : sy - y;
-
-					e = (sx+wsx >= x+1) ? 1 : sx+wsx - x;
-					s = (sy+wsy >= y+1) ? 1 : sy+wsy - y;
-
-					if (w > e || s < n ) continue;
-
-#define gsx ((Uint32)x >= sr->x+sr->w ? sr->x+sr->w-1 : (Uint32)x)
-#define gsy ((Uint32)y >= sr->y+sr->h ? sr->y+sr->h-1 : (Uint32)y)
-					SDL_GetPixel (src, gsx, gsy, &r, &g, &b);
-
-
-
-					rs += (e - w) * (s - n) * (float)r;
-					gs += (e - w) * (s - n) * (float)g;
-					bs += (e - w) * (s - n) * (float)b;
-				}
-			}
-			rs /= area;
-			gs /= area;
-			bs /= area;
-
-			if (rs >= 256.0 || gs >= 256.0 || bs > 256.0) 
-			{
-				plog("weighted average error!");
-				plog(format("Values: %f, %f, %f\n", rs, gs, bs));
-				/**((char *)0) = 0;*/
-			}
-			if (rs > 255.0) rs = 255.0;
-			if (gs > 255.0) gs = 255.0;
-			if (bs > 255.0) bs = 255.0;
-
-			r = (Uint8)rs;
-			g = (Uint8)gs;
-			b = (Uint8)bs;
-
-			SDL_PutPixel (dst, tx, ty, r, g, b);
-		}
-	}
-
-	return 0;
-#undef gsx
-#undef gsy
-}
-
-
 /* Integer math version of SDL_ScaleBlit().
  * Where necessary, a number uses the 16 high bits for the integer
  * and the 16 low bits for the decimal portion.
@@ -231,7 +126,7 @@ inline Uint32 iceil(Uint32 i)
 }
 
 
-errr SDL_FastScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
+errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
 {
 	Uint8 r, g, b;
 	Uint32 rs, gs, bs; /* sums. */
@@ -537,7 +432,7 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 			/* scale-blit one tile and check for error
 			 * although SDl_ScaleBlit() might not have any errors to return.
 			 */
-			if (SDL_FastScaleBlit(src, &sr, dst, &dr)) return NULL;
+			if (SDL_ScaleBlit(src, &sr, dst, &dr)) return NULL;
 		}
 	}
 
