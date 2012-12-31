@@ -275,7 +275,7 @@ void client_init(char *argv1)
 	char host_name[80], trymsg[80], c;
 	u16b version = MY_VERSION;
 	s32b temp;
-	bool done = 0;
+	bool done = 0, ok = 0;
 
 	/* Setup the file paths */
 	init_stuff();
@@ -525,7 +525,7 @@ void client_init(char *argv1)
 	}
 
 	/* Main loop */
-	bool ok = Input_loop();
+	ok = Input_loop();
 
 	/* Cleanup network stuff */
 	Net_cleanup(ok);

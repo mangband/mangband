@@ -3692,7 +3692,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		DispatchMessage(&msg);
 	}
 
-	Net_cleanup();
+	Net_cleanup(FALSE);
 
 	/* Paranoia */
 	quit(NULL);
