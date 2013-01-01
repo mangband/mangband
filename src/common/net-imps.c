@@ -230,8 +230,6 @@ eptr handle_connections(eptr root) {
 	eptr iter;
 	int connfd, n, to_close = 0;
 	struct connection_type *ct;
-	struct sockaddr_in cliaddr;
-	static socklen_t clilen = sizeof(cliaddr);
 
 	for (iter=root; iter; iter=iter->next) {
 		ct = (connection_type*)iter->data2;
@@ -243,7 +241,7 @@ eptr handle_connections(eptr root) {
 		if (!ct->close)
 		{
 			/* Receive */
-			n = recvfrom(connfd,mesg,PD_SMALL_BUFFER,0,(struct sockaddr *)&cliaddr,&clilen);
+			n = recvfrom(connfd,mesg,PD_SMALL_BUFFER,0, NULL,0);
 			if (n > 0) 
 			{
 				/* Got 'n' bytes */
@@ -264,7 +262,7 @@ eptr handle_connections(eptr root) {
 		if (cq_len(&ct->wbuf))
 		{
 			n = cq_read(&ct->wbuf, &mesg[0], PD_SMALL_BUFFER);
-			n = sendto(connfd,mesg,n,0,(struct sockaddr *)&cliaddr,sizeof(struct sockaddr));
+			n = sendto(connfd,mesg,n,0, NULL,0);
 
 			/* Error while sending */
 			if (n <= 0) ct->close = 1;
