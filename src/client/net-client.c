@@ -693,7 +693,7 @@ int recv_struct_info(connection_type *ct)
 					return 0;
 				}
 
-				strcpy(p_name + off, name);
+				my_strcpy(p_name + off, name, fake_name_size - off);
 			
 				pr_ptr->name = off;
 				/* Transfer other fields here */
@@ -719,7 +719,7 @@ int recv_struct_info(connection_type *ct)
 					return 0;
 				}
 
-				strcpy(c_name + off, name);
+				my_strcpy(c_name + off, name, fake_name_size - off);
 			
 				pc_ptr->name = off;
 				/* Transfer other fields here */
@@ -761,7 +761,7 @@ int recv_struct_info(connection_type *ct)
 				if (last_off != off)
 				{
 					printf("Saving %s at pos %d\n", name, off);
-					strcpy(eq_name + off, name);
+					my_strcpy(eq_name + off, name, fake_name_size - off);
 				} else printf("Not Saving %s at pos %d\n", name, off);
 
 				eq_names[i] = last_off = (s16b)off;
@@ -877,7 +877,7 @@ int recv_indicator_str(connection_type *ct) {
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Store the string in indicator's 'prompt' */
-	strncpy((char*)i_ptr->prompt, buf, MAX_CHARS);
+	my_strcpy((char*)i_ptr->prompt, buf, MAX_CHARS);
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
@@ -929,10 +929,10 @@ int recv_indicator_info(connection_type *ct) {
 
 	i_ptr->mark = strdup(mark);
 
-	n = strlen(buf);
-	if (n <= 0) n = MAX_CHARS;
+	n = strlen(buf) + 1;
+	if (n <= 0 || type == INDITYPE_STRING) n = MAX_CHARS;
 	C_MAKE(i_ptr->prompt, n, char);
-	strcpy(i_ptr->prompt, buf);
+	my_strcpy(i_ptr->prompt, buf, n);
 
 	/* Indicator takes place of a PKT */
 	if (pkt)
@@ -1399,12 +1399,12 @@ int recv_custom_command_info(connection_type *ct) {
 	cc_ptr->flag = flag;
 	cc_ptr->tval = tval;
 
-	buf[strlen(buf)+1] = '\0';
-	for (n = 0; n < sizeof(buf); n++) 
+	/* Replace \n with \0 before applying to ->prompt */
+	for (n = 0; n < strlen(buf)+1; n++) 
 	{
 		if (buf[n] == '\n') buf[n] = '\0';
-		cc_ptr->prompt[n] = buf[n];
 	}
+	my_strcpy(cc_ptr->prompt, buf, sizeof(cc_ptr->prompt));
 
 	custom_commands++;
 
