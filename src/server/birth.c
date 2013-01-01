@@ -587,7 +587,7 @@ void player_wipe(player_type *p_ptr)
 	}
 
 	/* Clear "artifacts found" list */
-	for (i = 0; i < z_info->k_max; i++)
+	for (i = 0; i < z_info->a_max; i++)
 	{
 		p_ptr->a_info[i] = ARTS_NOT_FOUND;
 	}
