@@ -629,11 +629,22 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 		fail = 1;
 	}
 	else
-	/* Hack -- for custom commands, 'id' is sometimes needed */
-	if ((next_pkt == PKT_COMMAND) && cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
+	/* Hack -- it's a "custom command" */
+	if (next_pkt == PKT_COMMAND)
 	{
-		/* Unable to... */
-		fail = 1;		
+		/* custtom command 'id' is used in those, so we copy it first */
+		if (cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
+		{
+			/* Unable to... */
+			fail = 1;
+		}
+		else
+		{
+			/* and the actual 'scheme' should be picked from a pcommand buffer */
+			byte cmd = ct->rbuf.buf[ct->rbuf.pos-1];
+			/* "cmd" is the 'id' we just copied above */
+			next_scheme = custom_command_schemes[custom_commands[cmd].scheme];
+		}
 	}
 
 	/* Copy command to player's "command buffer" */
