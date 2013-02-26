@@ -3023,9 +3023,6 @@ void kingly(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	/* Hack -- retire in town */
-	p_ptr->dun_depth = 0;
-
 	/* Fake death */
 	//(void)strcpy(p_ptr->died_from_list, "Ripe Old Age");
 	(void)strcpy(p_ptr->died_from_list, "winner");
