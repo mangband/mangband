@@ -1231,19 +1231,19 @@ int determine_wilderness_type(int Depth)
 	int neighbor_idx, closed_loop = -0xFFF;
 	wilderness_type *w_ptr = &wild_info[Depth];
 	bool rand_old = Rand_quick;
-	u32b old_seed = Rand_value;	
-				
+	u32b old_seed = Rand_value;
+
+	/* check if the town */
+	if (!Depth) return WILD_TOWN;
+
+	/* check if already defined */
+	if ((w_ptr->type != WILD_UNDEFINED) && (w_ptr->type != WILD_CLONE)) return w_ptr->type;
+
 	/* Hack -- Use the "simple" RNG */
 	Rand_quick = TRUE;
 
 	/* Hack -- Induce consistant wilderness */
 	Rand_value = seed_town + Depth * 600;
-		
-	/* check if the town */
-	if (!Depth) return WILD_TOWN;		
-		
-	/* check if already defined */
- 	if ((w_ptr->type != WILD_UNDEFINED) && (w_ptr->type != WILD_CLONE)) return w_ptr->type;
 
 	/* check for infinite loops */
 	if (w_ptr->type == WILD_CLONE)
