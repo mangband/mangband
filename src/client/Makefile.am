@@ -50,6 +50,6 @@ mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/sdl
 endif
 
 .rc.o:
-	windres $^ -o $@
+	windres $< -o $@
 %.o : %.rc
-	windres $^ -o $@
+	windres $< -o $@
