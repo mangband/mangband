@@ -325,7 +325,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 #endif
 
 	/* End-of-array */
-	{ 0,0,0,0,0,0,0 }
+	{ 0 }
 };
 
 /* Item testers */
@@ -457,9 +457,7 @@ const stream_type streams[MAX_STREAMS] =
 	},
 
 	/* Tail */
-	{
-		0, 0, 0, 0, 0, 0, 0, 0, NULL
-	}
+	{	0	}
 };
 
 /*
@@ -809,11 +807,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 
 	/* Tail */
-	{
-		0, 0, 0, 0, 0, 0,
-		0, "",
-		0, ""
-	}
+	{	0	}
 };
 
 /*
@@ -2470,8 +2464,7 @@ option_type option_info[] =
 
 	/*** End of Table ***/
 
-	{ 0,			0, 0, 0, 0,
-	NULL,			NULL }
+	{ 0 }
 };
 #if 0
 option_type option_info[] =
@@ -2670,8 +2663,7 @@ option_type option_info[] =
 
 	/*** End of Table ***/
 
-	{ NULL,			0, 0, 0, 0,
-	NULL,			NULL }
+	{ 0 }
 };
 #endif
 
