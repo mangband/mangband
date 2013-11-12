@@ -13,10 +13,10 @@
  */
 
 /* tables.c */
-const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
-const stream_type streams[MAX_STREAMS];
+extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
+extern const stream_type streams[MAX_STREAMS];
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
-const indicator_type indicators[MAX_INDICATORS];
+extern const indicator_type indicators[MAX_INDICATORS];
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -64,7 +64,7 @@ extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
 extern cptr option_group[];
 extern option_type option_info[];
-const cptr custom_command_schemes[SCHEME_LAST+1];
+extern const cptr custom_command_schemes[SCHEME_LAST+1];
 
 /* variable.c */
 extern cptr copyright[6];
