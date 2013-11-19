@@ -1,0 +1,48 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.hex
+
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+compile
+config.guess
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+mangband
+mangclient
+missing
+src/.dirstamp
+src/client/.deps/
+src/client/.dirstamp
+src/common/.deps/
+src/common/.dirstamp
+src/config.h
+src/config.h.in
+src/server/.deps/
+src/server/.dirstamp
+src/stamp-h1
+
