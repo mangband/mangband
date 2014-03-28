@@ -1,0 +1,11 @@
+mangband.exe
+mangclient.exe
+src/Makefile
+*.o
+src/config.log
+src/config.status
+lib/data/flavor.raw
+lib/data/limits.raw
+lib/data/p_class.raw
+lib/data/p_hist.raw
+lib/data/p_race.raw
