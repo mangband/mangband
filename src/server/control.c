@@ -312,6 +312,7 @@ void NewConsole(int read_fd, int arg)
 		remove_input(newsock);
 		close(newsock);
 		newsock = 0;
+		return;
 	}
 	if (bytes < 0)
 	{
