@@ -18,9 +18,6 @@ mkdir work
 mkdir distfiles
 cp ../tgz/mangband-${VER}.tar.gz ./distfiles/mangband-${VER}.tar.gz
 
-#HACK
-cp ./distfiles/mangband-${VER}.tar.gz /usr/ports/distfiles
-
 echo "Preparing makefile"
 
 echo "# New ports collection makefile for:   mangband" >./Makefile
@@ -37,7 +34,7 @@ echo "PORTVERSION=	$VER" >>./Makefile
 cat Makefile.rest >>./Makefile
 
 echo "Generating checksum"
-make makesum
+make makesum DISTDIR=${PWD}
 
 echo "Generating PR and DIFF"
 rm -rf mangband
