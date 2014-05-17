@@ -5,10 +5,10 @@ MAINTAINER=	flambard@mangband.org
 COMMENT=	Free online multiplayer real-time roguelike game
 
 ALL_TARGET=	mangclient mangband
-#IS_INTERACTIVE=yes
 WRKSRC= 	${WRKDIR}/${DISTNAME}/src
-GNU_CONFIGURE=yes
-USE_GMAKE=	yes
+GNU_CONFIGURE=	yes
+USES=   	dos2unix gmake ncurses
+DOS2UNIXFILES=	${WRKSRC}/client/main-sdl.c
 
 OPTIONS=GCU "Display module GCU" On \
 	X11 "Display module X11" Off \
