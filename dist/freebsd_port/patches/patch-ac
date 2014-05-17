@@ -1,6 +1,6 @@
 --- server/save.c.bak	Sat May  9 21:38:56 1998
 +++ server/save.c	Wed Dec 30 13:33:13 1998
-@@ -2305,7 +2305,7 @@
+@@ -944,7 +944,7 @@
  #ifdef VERIFY_SAVEFILE
  
  		/* Lock on savefile */

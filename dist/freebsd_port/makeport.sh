@@ -18,17 +18,10 @@ mkdir work
 mkdir distfiles
 cp ../tgz/mangband-${VER}.tar.gz ./distfiles/mangband-${VER}.tar.gz
 
-#HACK
-cp ./distfiles/mangband-${VER}.tar.gz /usr/ports/distfiles
-
 echo "Preparing makefile"
 
-echo "# New ports collection makefile for:   mangband" >./Makefile
-echo "# Date created:        " `date` >>./Makefile
-echo "# Whom:                " `whoami` >>./Makefile
-echo "#" >>./Makefile
+echo "# Created by:" `whoami` >./Makefile
 echo "# \$FreeBSD\$" >>./Makefile
-echo "#" >>./Makefile
 echo "" >>./Makefile
 
 echo "PORTNAME=	mangband" >>./Makefile
@@ -37,16 +30,15 @@ echo "PORTVERSION=	$VER" >>./Makefile
 cat Makefile.rest >>./Makefile
 
 echo "Generating checksum"
-make makesum
+make makesum DISTDIR=${PWD}
 
 echo "Generating PR and DIFF"
 rm -rf mangband
 mkdir mangband
 mkdir mangband/files
 cp ./pkg-* ./mangband
-cp Makefile mangband/
-cp distinfo mangband/
+mv Makefile mangband/
+mv distinfo mangband/
 cp patches/* mangband/files
-
-shar `find mangband` > mangband-${VER}-PR
+shar `find ./mangband` > mangband-${VER}-PR
 diff -ruN /usr/ports/games/mangband ./mangband > mangband-${VER}-DIFF
