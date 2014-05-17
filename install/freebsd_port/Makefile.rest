@@ -10,9 +10,11 @@ GNU_CONFIGURE=	yes
 USES=   	dos2unix gmake ncurses
 DOS2UNIXFILES=	${WRKSRC}/client/main-sdl.c
 
-OPTIONS=GCU "Display module GCU" On \
-	X11 "Display module X11" Off \
-	SDL "Display module SDL" Off \
+OPTIONS_DEFINE=	GCU X11 SDL
+OPTIONS_DEFAULT=	GCU
+GCU_DESC=	Display module GCU (curses)
+X11_DESC=	Display module X11
+SDL_DESC=	Display module SDL
 
 .include <bsd.port.pre.mk>
 
