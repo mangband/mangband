@@ -20,12 +20,8 @@ cp ../tgz/mangband-${VER}.tar.gz ./distfiles/mangband-${VER}.tar.gz
 
 echo "Preparing makefile"
 
-echo "# New ports collection makefile for:   mangband" >./Makefile
-echo "# Date created:        " `date` >>./Makefile
-echo "# Whom:                " `whoami` >>./Makefile
-echo "#" >>./Makefile
+echo "# Created by: " `whoami` >./Makefile
 echo "# \$FreeBSD\$" >>./Makefile
-echo "#" >>./Makefile
 echo "" >>./Makefile
 
 echo "PORTNAME=	mangband" >>./Makefile
