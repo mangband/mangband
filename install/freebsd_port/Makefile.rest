@@ -18,6 +18,8 @@ GCU_DESC=	Display module GCU (curses)
 X11_DESC=	Display module X11
 SDL_DESC=	Display module SDL
 
+#NEED_ROOT=	yes
+
 .include <bsd.port.options.mk>
 
 .if ${PORT_OPTIONS:MGCU}
@@ -43,26 +45,24 @@ CONFIGURE_ARGS+=	--without-sdl
 # do-install Originally written for 060
 # by adam-ports@blacktabby.org
 do-install:
-	@${INSTALL_PROGRAM} -o root -g games -m 2550 \
-		${WRKSRC}/mangband ${PREFIX}/bin
-	@${INSTALL_PROGRAM} ${WRKSRC}/mangclient ${PREFIX}/bin
-	@${CP} ${WRKDIR}/${DISTNAME}/mangband.cfg ${PREFIX}/etc
+	@${INSTALL_PROGRAM} -o root -g games -m 2555 \
+	        ${WRKSRC}/mangband ${STAGEDIR}${PREFIX}/bin
+	@${INSTALL_PROGRAM} ${WRKSRC}/mangclient ${STAGEDIR}${PREFIX}/bin
 
-	@echo "# FreeBSD Hacks" >> ${PREFIX}/etc/mangband.cfg
-	@echo "EDIT_DIR = \"${DATADIR}/edit\"" >> ${PREFIX}/etc/mangband.cfg
-	@echo "SAVE_DIR = \"${DATADIR}/save\"" >> ${PREFIX}/etc/mangband.cfg
-	@echo "DATA_DIR = \"${DATADIR}/data\"" >> ${PREFIX}/etc/mangband.cfg
+	@${CP} ${WRKDIR}/${DISTNAME}/mangband.cfg ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
+	@echo "# FreeBSD Hacks" >> ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
+	@echo "EDIT_DIR = \"${DATADIR}/edit\"" >> ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
+	@echo "SAVE_DIR = \"${DATADIR}/save\"" >> ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
+	@echo "DATA_DIR = \"${DATADIR}/data\"" >> ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
 
-	@${MKDIR} ${EXAMPLESDIR}
-	@echo "[MAngband]" >> ${EXAMPLESDIR}/mangrc
-	@echo "LibDir ${DATADIR}" >> ${EXAMPLESDIR}/mangrc
+	@${MKDIR} ${STAGEDIR}${EXAMPLESDIR}
+	@echo "[MAngband]" >> ${STAGEDIR}${EXAMPLESDIR}/mangrc
+	@echo "LibDir ${DATADIR}/" >> ${STAGEDIR}${EXAMPLESDIR}/mangrc
 
-	@${MKDIR} ${DATADIR}
-	@cd ${WRKSRC}/../lib && ${PAX} -rw * ${DATADIR}
-	@${CHMOD} 750 ${DATADIR}/*
-	@${CHMOD} 755 ${DATADIR}/user
-	@${CHMOD} 755 ${DATADIR}/xtra
-	@${CHOWN} -R root:games ${DATADIR}/*
-	@${CHOWN} ${SHAREOWN}:${SHAREGRP} ${DATADIR}
+	@(cd ${WRKDIR}/${DISTNAME}/lib && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR})
+	@${CHMOD} 750 ${STAGEDIR}${DATADIR}/*
+	@${CHMOD} 755 ${STAGEDIR}${DATADIR}/user
+	@${CHMOD} 755 ${STAGEDIR}${DATADIR}/xtra
+	@${CHOWN} -R root:games ${STAGEDIR}${DATADIR}/*
 
 .include <bsd.port.mk>
