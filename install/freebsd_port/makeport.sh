@@ -20,7 +20,7 @@ cp ../tgz/mangband-${VER}.tar.gz ./distfiles/mangband-${VER}.tar.gz
 
 echo "Preparing makefile"
 
-echo "# Created by: " `whoami` >./Makefile
+echo "# Created by:" `whoami` >./Makefile
 echo "# \$FreeBSD\$" >>./Makefile
 echo "" >>./Makefile
 
