@@ -36,7 +36,7 @@ echo "Generating PR and DIFF"
 rm -rf mangband
 mkdir mangband
 cp ./pkg-* ./mangband
-cp Makefile mangband/
-cp distinfo mangband/
+mv Makefile mangband/
+mv distinfo mangband/
 shar `find ./mangband` > mangband-${VER}-PR
 diff -ruN /usr/ports/games/mangband ./mangband > mangband-${VER}-DIFF

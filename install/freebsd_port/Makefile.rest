@@ -18,8 +18,6 @@ GCU_DESC=	Display module GCU (curses)
 X11_DESC=	Display module X11
 SDL_DESC=	Display module SDL
 
-#NEED_ROOT=	yes
-
 .include <bsd.port.options.mk>
 
 .if ${PORT_OPTIONS:MGCU}
@@ -45,8 +43,7 @@ CONFIGURE_ARGS+=	--without-sdl
 # do-install Originally written for 060
 # by adam-ports@blacktabby.org
 do-install:
-	@${INSTALL_PROGRAM} -o root -g games -m 2555 \
-	        ${WRKSRC}/mangband ${STAGEDIR}${PREFIX}/bin
+	@${INSTALL_PROGRAM} ${WRKSRC}/mangband ${STAGEDIR}${PREFIX}/bin
 	@${INSTALL_PROGRAM} ${WRKSRC}/mangclient ${STAGEDIR}${PREFIX}/bin
 
 	@${CP} ${WRKDIR}/${DISTNAME}/mangband.cfg ${STAGEDIR}${PREFIX}/etc/mangband.cfg.sample
@@ -60,9 +57,5 @@ do-install:
 	@echo "LibDir ${DATADIR}/" >> ${STAGEDIR}${EXAMPLESDIR}/mangrc
 
 	@(cd ${WRKDIR}/${DISTNAME}/lib && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR})
-	@${CHMOD} 750 ${STAGEDIR}${DATADIR}/*
-	@${CHMOD} 755 ${STAGEDIR}${DATADIR}/user
-	@${CHMOD} 755 ${STAGEDIR}${DATADIR}/xtra
-	@${CHOWN} -R root:games ${STAGEDIR}${DATADIR}/*
 
 .include <bsd.port.mk>

@@ -7,6 +7,7 @@ bin/mangband
 @sample etc/mangband.cfg.sample
 %%EXAMPLESDIR%%/mangrc
 @group games
+@mode 0750
 %%DATADIR%%/data/scores.raw
 %%DATADIR%%/edit/artifact.txt
 %%DATADIR%%/edit/ego_item.txt
@@ -38,6 +39,7 @@ bin/mangband
 %%DATADIR%%/text/news.txt
 %%DATADIR%%/text/option.txt
 %%DATADIR%%/text/version.txt
+@mode
 @mode 0755
 %%DATADIR%%/user/font-ami.prf
 %%DATADIR%%/user/font-ibm.prf
