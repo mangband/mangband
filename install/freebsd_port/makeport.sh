@@ -38,5 +38,6 @@ mkdir mangband
 cp ./pkg-* ./mangband
 mv Makefile mangband/
 mv distinfo mangband/
+cp -r files mangband/
 shar `find ./mangband` > mangband-${VER}-PR
 diff -ruN /usr/ports/games/mangband ./mangband > mangband-${VER}-DIFF
