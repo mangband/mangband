@@ -672,8 +672,10 @@ void strnfcat(char *str, size_t max, size_t *end, cptr fmt, ...)
 }
 
 
-static char *format_buf = NULL;
-static size_t format_len = 0;
+#define FORMAT_CYCLE_MAX 5
+static int format_cycle = 0;
+static char *format_buf[FORMAT_CYCLE_MAX] = { NULL };
+static size_t format_len[FORMAT_CYCLE_MAX] = { 0 };
 
 
 /*
@@ -682,15 +684,16 @@ static size_t format_len = 0;
  */
 char *vformat(cptr fmt, va_list vp)
 {
+	char *ret;
 	/* Initial allocation */
-	if (!format_buf)
+	if (!format_buf[format_cycle])
 	{
-		format_len = 1024;
-		C_MAKE(format_buf, format_len, char);
+		format_len[format_cycle] = 1024;
+		C_MAKE(format_buf[format_cycle], format_len[format_cycle], char);
 	}
 
 	/* Null format yields last result */
-	if (!fmt) return (format_buf);
+	if (!fmt) return (format_buf[format_cycle]);
 
 	/* Keep going until successful */
 	while (1)
@@ -698,24 +701,31 @@ char *vformat(cptr fmt, va_list vp)
 		size_t len;
 
 		/* Build the string */
-		len = vstrnfmt(format_buf, format_len, fmt, vp);
+		len = vstrnfmt(format_buf[format_cycle], format_len[format_cycle], fmt, vp);
 
 		/* Success */
-		if (len < format_len-1) break;
+		if (len < format_len[format_cycle]-1) break;
 
 		/* Grow the buffer */
-		KILL(format_buf);
-		format_len = format_len * 2;
-		C_MAKE(format_buf, format_len, char);
+		KILL(format_buf[format_cycle]);
+		format_len[format_cycle] = format_len[format_cycle] * 2;
+		C_MAKE(format_buf[format_cycle], format_len[format_cycle], char);
 	}
 
+	/* Increase cycle counter */
+	ret = format_buf[format_cycle];
+	format_cycle++;
+	if (format_cycle >= FORMAT_CYCLE_MAX) format_cycle = 0;
+
 	/* Return the new buffer */
-	return (format_buf);
+	return (ret);
 }
 
 void vformat_kill(void)
 {
-	KILL(format_buf);
+	int i;
+	for (i = 0; i < FORMAT_CYCLE_MAX; i++)
+		KILL(format_buf[i]);
 }
 
 
