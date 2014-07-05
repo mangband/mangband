@@ -288,9 +288,10 @@ void do_handle_message(cptr mesg, u16b type)
 {
 
 	//TODO: older code used tons of hacks here, maybe return them
-
-
-	c_message_add(mesg, type);
+	//TODO: maybe we need a wrapper interface, instead of calling 
+	// msg_print_aux() or c_message_add() directly?
+	//c_message_add(mesg, type);
+	c_msg_print_aux(mesg, type);
 
 }
 
