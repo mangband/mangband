@@ -271,23 +271,26 @@ eptr handle_connections(eptr root) {
 		/* Done for? */
 		to_close += ct->close;
 	}
-	if (to_close) cnfds = 0;		
-	while (to_close) {
+	if (to_close) {
+		while (to_close) {
+			for (iter=root; iter; iter=iter->next) {
+				ct = (connection_type*)iter->data2;
+				if (ct->close)
+				{
+					closesocket(ct->conn_fd);
+					FD_CLR(ct->conn_fd, &rd);
+					ct->close_cb(0, ct);
+					free(ct);
+					e_del(&root, iter);
+					to_close--;
+					break;
+				}
+			}
+		}
+		cnfds = 0;
 		for (iter=root; iter; iter=iter->next) {
 			ct = (connection_type*)iter->data2;
-			if (ct->close)
-			{
-				closesocket(ct->conn_fd);
-				FD_CLR(ct->conn_fd, &rd);
-				ct->close_cb(0, ct);
-				free(ct);
-				if (e_del(&root, iter) == 0)
-					root = NULL;
-				to_close--;
-				break;
-			} else {
-				cnfds = MATH_MAX(cnfds, ct->conn_fd);
-			}
+			cnfds = MATH_MAX(cnfds, ct->conn_fd);
 		}
 	}
 	/*nfds = MATH_MAX(lnfds, cnfds);*/
@@ -316,19 +319,22 @@ eptr handle_callers(eptr root) {
 
 		to_remove += (ct->remove = 1);
 	}
-	if (to_remove) crfds = 0;
-	while (to_remove) {
-		for (iter=root; iter; iter=iter->next) {
-			struct caller_type *ct = iter->data2;
-			if (ct->remove)
-			{
-				FD_CLR(ct->caller_fd, &rd);
-				free(ct);
-				if (e_del(&root, iter) == 0)
-					root = NULL;
-				to_remove--;
-				break;
-			} else {
+	if (to_remove) {
+		while (to_remove) {
+			for (iter=root; iter; iter=iter->next) {
+				struct caller_type *ct = iter->data2;
+				if (ct->remove)
+				{
+					FD_CLR(ct->caller_fd, &rd);
+					free(ct);
+					e_del(&root, iter);
+					to_remove--;
+					break;
+				}
+			}
+			crfds = 0;
+			for (iter=root; iter; iter=iter->next) {
+				struct caller_type *ct = iter->data2;
 				crfds = MATH_MAX(crfds, ct->caller_fd);
 			}
 		}
@@ -430,8 +436,7 @@ eptr handle_senders(eptr root, micro microsec) {
 			{
 				closesocket(sender->send_fd);
 				free(sender); 
-				if (e_del(&root, iter) == 0)
-					root = NULL;
+				e_del(&root, iter);
 				to_close--;
 				break;
 			}
@@ -462,8 +467,7 @@ eptr handle_timers(eptr root, micro microsec) {
 			if (!timer->interval)
 			{
 				free(timer);
-				if (e_del(&root, iter) == 0)
-					root = NULL;
+				e_del(&root, iter);
 				to_close--;
 				break;
 			}

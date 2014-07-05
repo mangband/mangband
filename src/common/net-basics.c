@@ -70,29 +70,27 @@ void e_free_aux(eptr node) {
 /* Detach "node" from "root" */
 /* Return:
  *   -1 on error,
- *    0 if "root" is now empty,
- *    N index of element just removed +1 (i.e. 1 for 0) */
+ *    N index of element just removed */
 int e_rem(eptr *root, eptr node) {
-	int i = -1;
+	int i = 0;
 	eptr iter = (*root);
 	eptr next = node->next;
 
 	if (iter == node) {
-		(*root) = next;		
-		i = 0; 	iter = NULL;
+		(*root) = next;
+		iter = NULL;
 	}
 	while(iter)	{ 
-		i++;
 		if (iter->next == node)	
 		{
 			iter->next = next;
-			i++;
-			break; 
+			return i;
 		}
 		iter = iter->next; 
+		i++;
 	}
 
-	return (i);
+	return -1;
 }
 
 /* Remove "node" from "root" and delete it */
