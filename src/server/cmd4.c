@@ -382,7 +382,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 					if (!artifact_p(o_ptr)) continue;
 
 					/* Ignore known items */
-					if (object_known_p(Ind, o_ptr)) continue;
+					if (object_known_p(p_ptr, o_ptr)) continue;
 
 					/* Note the artifact */
 					okay[o_ptr->name1] = FALSE;
@@ -408,7 +408,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 			if (!artifact_p(o_ptr)) continue;
 
 			/* Ignore known items */
-			if (object_known_p(Ind, o_ptr)) continue;
+			if (object_known_p(p_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;

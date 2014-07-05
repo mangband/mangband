@@ -1060,7 +1060,7 @@ static bool do_cmd_disarm_chest(int Ind, int y, int x, s16b o_idx)
 	if (j < 2) j = 2;
 
 	/* Must find the trap first. */
-	if (!object_known_p(Ind, o_ptr))
+	if (!object_known_p(p_ptr, o_ptr))
 	{
 		msg_print(Ind, "I don't see any traps.");
 	}

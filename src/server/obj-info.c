@@ -753,7 +753,7 @@ static bool describe_misc_magic(const object_type *o_ptr, u32b f3)
 	{
 		if (f3 & (TR3_PERMA_CURSE)) bad[bc++] = "is permanently cursed";
 		else if (f3 & (TR3_HEAVY_CURSE)) bad[bc++] = "is heavily cursed";
-		else if (object_known_p(player_textout, o_ptr)) bad[bc++] = "is cursed";
+		else if (object_known_p(Players[player_textout], o_ptr)) bad[bc++] = "is cursed";
 	}
 
 	/* Describe */
@@ -827,7 +827,7 @@ bool object_info_out(const object_type *o_ptr)
 	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3);
 	
 	/* Hack -- set bonus flags */
-	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(player_textout, o_ptr) )
+	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(Players[player_textout], o_ptr) )
 		fH = k_ptr->flags1;
 	/* Hack -- clear out any pval bonuses that are in the base item */
 	if (o_ptr->name2)
@@ -846,7 +846,7 @@ bool object_info_out(const object_type *o_ptr)
 	if (describe_ignores(o_ptr, f3)) something = TRUE;
 
 	/* Unknown extra powers (ego-item with random extras or artifact) */
-	if (object_known_p(player_textout, o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
+	if (object_known_p(Players[player_textout], o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
 	    ((o_ptr->xtra1) || artifact_p(o_ptr)))
 	{
 		/* Hack -- Put this in a separate paragraph if screen dump */
@@ -891,7 +891,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	/* Display the known artifact description */
 	//!adult_rand_artifacts
 	if (o_ptr->name1 &&
-	    object_known_p(player_textout, o_ptr) && a_info[o_ptr->name1].text)
+	    object_known_p(Players[player_textout], o_ptr) && a_info[o_ptr->name1].text)
 	{
 		p_text_out("\n\n   ");
 		p_text_out(a_text + a_info[o_ptr->name1].text);
@@ -899,7 +899,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	}
 
 	/* Display the known object description */
-	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(player_textout, o_ptr))
+	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(Players[player_textout], o_ptr))
 	{
 		if (k_info[o_ptr->k_idx].text)
 		{
@@ -909,7 +909,7 @@ static bool screen_out_head(const object_type *o_ptr)
 		}
 
 		/* Display an additional ego-item description */
-		if (o_ptr->name2 && object_known_p(player_textout, o_ptr) && e_info[o_ptr->name2].text)
+		if (o_ptr->name2 && object_known_p(Players[player_textout], o_ptr) && e_info[o_ptr->name2].text)
 		{
 			p_text_out("\n\n   ");
 			p_text_out(e_text + e_info[o_ptr->name2].text);
@@ -943,7 +943,7 @@ void object_info_screen(const object_type *o_ptr)
 	has_info = object_info_out(o_ptr);
 	new_paragraph = FALSE;
 
-	if (!object_known_p(player_textout, o_ptr))
+	if (!object_known_p(Players[player_textout], o_ptr))
 		p_text_out("\n\n   This item has not been identified.");
 	else if (!has_description && !has_info)
 		p_text_out("\n\n   This item does not seem to possess any special abilities.");

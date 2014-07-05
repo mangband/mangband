@@ -1065,7 +1065,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	if ((c = my_stristr(inscription,"for sale"))) 
 	{	
 		/* Can't sell unindentified items */
-		if (!object_known_p(Ind, o_ptr))
+		if (!object_known_p(p_ptr, o_ptr))
 		{
 			msg_print(Ind,"You must identify this item first");
 			return;

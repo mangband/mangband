@@ -225,7 +225,7 @@ static void sense_inventory(int Ind)
 		if (o_ptr->ident & ID_SENSE) continue;
 
 		/* It is fully known, no information needed */
-		if (object_known_p(Ind, o_ptr)) continue;
+		if (object_known_p(p_ptr, o_ptr)) continue;
 
 		/* Occasional failure on inventory items */
 		if ((i < INVEN_WIELD) && (0 != rand_int(5))) continue;

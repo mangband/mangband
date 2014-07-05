@@ -1111,8 +1111,8 @@ static void prt_plusses(int Ind)
 
 	object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
 
-	if (object_known_p(Ind, o_ptr)) show_tohit += o_ptr->to_h;
-	if (object_known_p(Ind, o_ptr)) show_todam += o_ptr->to_d;
+	if (object_known_p(p_ptr, o_ptr)) show_tohit += o_ptr->to_h;
+	if (object_known_p(p_ptr, o_ptr)) show_todam += o_ptr->to_d;
 
 	send_indication(Ind, IN_PLUSSES, show_tohit, show_todam);
 }
@@ -2561,7 +2561,7 @@ static void calc_bonuses(int Ind)
 		p_ptr->to_a += o_ptr->to_a;
 
 		/* Apply the mental bonuses to armor class, if known */
-		if (object_known_p(Ind, o_ptr)) p_ptr->dis_to_a += o_ptr->to_a;
+		if (object_known_p(p_ptr, o_ptr)) p_ptr->dis_to_a += o_ptr->to_a;
 
 		/* Hack -- do not apply "weapon" bonuses */
 		if (i == INVEN_WIELD) continue;
@@ -2574,8 +2574,8 @@ static void calc_bonuses(int Ind)
 		p_ptr->to_d += o_ptr->to_d;
 
 		/* Apply the mental bonuses tp hit/damage, if known */
-		if (object_known_p(Ind, o_ptr)) p_ptr->dis_to_h += o_ptr->to_h;
-		if (object_known_p(Ind, o_ptr)) p_ptr->dis_to_d += o_ptr->to_d;
+		if (object_known_p(p_ptr, o_ptr)) p_ptr->dis_to_h += o_ptr->to_h;
+		if (object_known_p(p_ptr, o_ptr)) p_ptr->dis_to_d += o_ptr->to_d;
 	}
 
 	

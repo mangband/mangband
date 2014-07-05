@@ -960,7 +960,7 @@ static bool item_tester_hook_activate(int Ind, object_type *o_ptr)
     u32b f1, f2, f3;
 
 	/* Not known */
-	if (!object_known_p(Ind, o_ptr)) return (FALSE);
+	if (!object_known_p(Players[Ind], o_ptr)) return (FALSE);
 
 	/* Extract the flags */
     object_flags(o_ptr, &f1, &f2, &f3);

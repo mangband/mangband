@@ -579,7 +579,7 @@ static bool store_will_buy(int Ind, object_type *o_ptr)
                                 case TV_SWORD:
 					/* if Known, aware, and Blessed, yes. */
 					if (object_aware_p(p_ptr, o_ptr)) {
-						if (object_known_p(Ind, o_ptr)){
+						if (object_known_p(p_ptr, o_ptr)){
                             object_flags(o_ptr, &f1, &f2, &f3);
 							if (f3 & TR3_BLESSED) break;
 						}

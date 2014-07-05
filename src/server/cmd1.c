@@ -580,7 +580,7 @@ void search(int Ind)
 				else if (o_ptr->tval == TV_CHEST)
 				{
 					/* Examine chests for traps */
-					if (!object_known_p(Ind, o_ptr) && (chest_traps[o_ptr->pval]))
+					if (!object_known_p(p_ptr, o_ptr) && (chest_traps[o_ptr->pval]))
 					{
 						/* Message */
 						msg_print(Ind, "You have discovered a trap on the chest!");

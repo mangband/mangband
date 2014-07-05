@@ -787,8 +787,8 @@ static void display_player_middle(int Ind)
 	object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
 
 	/* Hack -- add in weapon info if known */
-	if (object_known_p(Ind, o_ptr)) show_tohit += o_ptr->to_h;
-	if (object_known_p(Ind, o_ptr)) show_todam += o_ptr->to_d;
+	if (object_known_p(p_ptr, o_ptr)) show_tohit += o_ptr->to_h;
+	if (object_known_p(p_ptr, o_ptr)) show_todam += o_ptr->to_d;
 
 	/* Dump the bonuses to hit/dam */
 	//Send_plusses(Ind, show_tohit, show_todam);

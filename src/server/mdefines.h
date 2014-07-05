@@ -2579,10 +2579,10 @@ that keeps many algorithms happy.
  * Test One -- Check for special "known" tag
  * Test Two -- Check for "Easy Know" + "Aware"
  */
-#define object_known_p(IND, T) \
+#define object_known_p(PTR, T) \
 	(((T)->ident & (ID_KNOWN)) || \
 	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
-	  Players[IND]->obj_aware[(T)->k_idx]))
+	  (PTR)->obj_aware[(T)->k_idx]))
     
 
 #define object_felt_or_known_p(IND, T) \

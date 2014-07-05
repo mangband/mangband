@@ -492,7 +492,7 @@ void wipe_o_list(int Depth)
 				for (j = 1; j < NumPlayers+1; j++)
 				{
 					/* Only works when player is ingame */
-					if ((Players[j]->id == o_ptr->owner_id) && object_known_p(j, o_ptr))
+					if ((Players[j]->id == o_ptr->owner_id) && object_known_p(Players[j], o_ptr))
 					{
 						set_artifact_p(Players[j], o_ptr->name1, ARTS_ABANDONED);
 						break;
@@ -804,7 +804,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	}
 	
 	/* item_tester_hook_activate: */
-	if (object_known_p(Ind, o_ptr)) 
+	if (object_known_p(p_ptr, o_ptr))
 	{
 		object_flags(o_ptr, &f1, &f2, &f3);
 		if (f3 & TR3_ACTIVATE)
@@ -1255,7 +1255,7 @@ s32b object_value(int Ind, object_type *o_ptr)
 
 
 	/* Unknown items -- acquire a base value */
-	if (Ind == 0 || object_known_p(Ind, o_ptr))
+	if (Ind == 0 || object_known_p(Players[Ind], o_ptr))
 	{
 		/* Broken items -- worthless */
 		if (broken_p(o_ptr)) return (0L);
@@ -1462,9 +1462,8 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
  * Ego items may stack as long as they have the same ego-item type.
  * This is primarily to allow ego-missiles to stack.
  */
-bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
+bool object_similar(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int total = o_ptr->number + j_ptr->number;
 
 
@@ -1500,9 +1499,9 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 
 			/* Require either knowledge or known empty for both wands/staves */
 			if ((!(o_ptr->ident & (ID_EMPTY)) &&
-				!object_known_p(Ind, o_ptr)) ||
+				!object_known_p(p_ptr, o_ptr)) ||
 				(!(j_ptr->ident & (ID_EMPTY)) &&
-				!object_known_p(Ind, j_ptr))) return(0);
+				!object_known_p(p_ptr, j_ptr))) return(0);
 
 			/* Assume okay */
 			break;
@@ -1564,7 +1563,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_LITE:
 		{
 			/* Require full knowledge of both items */
-            if (!object_known_p(Ind, o_ptr) || !object_known_p(Ind, j_ptr) || (o_ptr->name3)) return (0);
+            if (!object_known_p(p_ptr, o_ptr) || !object_known_p(p_ptr, j_ptr) || (o_ptr->name3)) return (0);
 
 			/* Fall through */
 		}
@@ -1575,7 +1574,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_SHOT:
 		{
 			/* Require identical knowledge of both items */
-			if (object_known_p(Ind,o_ptr) != object_known_p(Ind,j_ptr)) return (FALSE);
+			if (object_known_p(p_ptr,o_ptr) != object_known_p(p_ptr,j_ptr)) return (FALSE);
 		
 			/* Require identical "bonuses" */
 			if (o_ptr->to_h != j_ptr->to_h) return (FALSE);
@@ -1613,7 +1612,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		default:
 		{
 			/* Require knowledge */
-			if (!object_known_p(Ind, o_ptr) || !object_known_p(Ind, j_ptr)) return (0);
+			if (!object_known_p(p_ptr, o_ptr) || !object_known_p(p_ptr, j_ptr)) return (0);
 
 			/* Probably okay */
 			break;
@@ -1660,7 +1659,7 @@ void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr)
 	o_ptr->number = ((total < MAX_STACK_SIZE) ? total : (MAX_STACK_SIZE - 1));
 
 	/* Hack -- blend "known" status */
-	if (object_known_p(Ind, j_ptr)) object_known(o_ptr);
+	if (object_known_p(Players[Ind], j_ptr)) object_known(o_ptr);
 
 	/* Hack -- blend "rumour" status */
 	if (j_ptr->ident & ID_RUMOUR) o_ptr->ident |= ID_RUMOUR;
@@ -3968,7 +3967,7 @@ void inven_item_charges(int Ind, int item)
 	if ((o_ptr->tval != TV_STAFF) && (o_ptr->tval != TV_WAND)) return;
 
 	/* Require known item */
-	if (!object_known_p(Ind, o_ptr)) return;
+	if (!object_known_p(p_ptr, o_ptr)) return;
 
 	/* Multiple charges */
 	if (o_ptr->pval != 1)
@@ -4234,7 +4233,7 @@ bool inven_carry_okay(int Ind, object_type *o_ptr)
 		object_type *j_ptr = &p_ptr->inventory[i];
 
 		/* Check if the two items can be combined */
-		if (object_similar(Ind, j_ptr, o_ptr)) return (TRUE);
+		if (object_similar(p_ptr, j_ptr, o_ptr)) return (TRUE);
 	}
 
 	/* Nope */
@@ -4280,7 +4279,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 		n = j;
 
 		/* Check if the two items can be combined */
-		if (object_similar(Ind, j_ptr, o_ptr))
+		if (object_similar(p_ptr, j_ptr, o_ptr))
 		{
 			/* Combine the items */
 			object_absorb(Ind, j_ptr, o_ptr);
@@ -4352,8 +4351,8 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 			if (o_ptr->sval > j_ptr->sval) continue;
 
 			/* Unidentified objects always come last */
-			if (!object_known_p(Ind, o_ptr)) continue;
-			if (!object_known_p(Ind, j_ptr)) break;
+			if (!object_known_p(p_ptr, o_ptr)) continue;
+			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
 			j_value = object_value(Ind, j_ptr);
@@ -4445,7 +4444,7 @@ void combine_pack(int Ind)
 			if (!j_ptr->k_idx) continue;
 
 			/* Can we drop "o_ptr" onto "j_ptr"? */
-			if (object_similar(Ind, j_ptr, o_ptr))
+			if (object_similar(p_ptr, j_ptr, o_ptr))
 			{
 				/* Take note */
 				flag = TRUE;
@@ -4547,8 +4546,8 @@ void reorder_pack(int Ind)
 			if (o_ptr->sval > j_ptr->sval) continue;
 
 			/* Unidentified objects always come last */
-			if (!object_known_p(Ind, o_ptr)) continue;
-			if (!object_known_p(Ind, j_ptr)) break;
+			if (!object_known_p(p_ptr, o_ptr)) continue;
+			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
 			j_value = object_value(Ind, j_ptr);
