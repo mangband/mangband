@@ -45,6 +45,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+
+#include <arpa/inet.h>
+
+#include <sys/errno.h>
+#include <sys/unistd.h>
+#include <sys/time.h>
+#include <sys/fcntl.h>
+
 #define sockerr errno
 #define closesocket close
 #endif
@@ -55,6 +63,10 @@ int nfds;
 int cnfds;
 int lnfds;
 int crfds;
+int refds;
+
+fd_set* get_fd_set() { return &rd; }
+int* get_fd_counter() { return &refds; }
 
 struct sender_type {
 	struct sockaddr_in addr;
@@ -86,7 +98,7 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	//unblockfd(callerfd);
 
 	/* Allocate memory */
-	MAKE(new_s, struct sender_type);
+	new_s = (struct sender_type*) RNEW(struct sender_type);
 
 	/* Set addr and others */
 	new_s->addr.sin_family = AF_INET;
@@ -120,7 +132,7 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	unblockfd(callerfd);
 
 	/* Allocate memory */
-	MAKE(new_c, struct caller_type);
+	new_c = (struct caller_type*) RNEW(struct caller_type);
 
 	/* Set addr and others */
 	new_c->addr.sin_family = AF_INET;
@@ -160,9 +172,11 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	/* Bind & Listen */
 	WIPE(&servaddr, struct sockaddr_in);
+
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(port);
+
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
 		plog("BIND FAILED");
 	   	return(NULL);
@@ -174,7 +188,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	}
 
 	/* Allocate memory */
-	MAKE(new_l, struct listener_type);
+	new_l = (struct listener_type*) RNEW(struct listener_type);
 
 	new_l->port = port;
 	new_l->accept_cb = cb;
@@ -187,10 +201,10 @@ eptr add_listener(eptr root, int port, callback cb) {
 eptr add_connection(eptr root, int fd, callback read, callback close) {
 	struct connection_type *new_c;
 	struct sockaddr_in sin;
-	int len = sizeof sin;
+	socklen_t len = sizeof sin;
 
 	/* Allocate memory */
-	MAKE(new_c, struct connection_type);
+	new_c = (struct connection_type*) RNEW(struct connection_type);
 
 	new_c->conn_fd = fd;
 	new_c->receive_cb = read;
@@ -215,7 +229,7 @@ eptr add_timer(eptr root, int interval, callback timeout) {
 	struct timer_type *new_t;
 
 	/* Allocate memory */
-	MAKE(new_t, struct timer_type);
+	new_t = (struct timer_type*) RNEW(struct timer_type);
 
 	new_t->interval = interval;
 	new_t->delay = interval;
@@ -280,7 +294,7 @@ eptr handle_connections(eptr root) {
 					closesocket(ct->conn_fd);
 					FD_CLR(ct->conn_fd, &rd);
 					ct->close_cb(0, ct);
-					free(ct);
+					FREE(ct);
 					e_del(&root, iter);
 					to_close--;
 					break;
@@ -302,7 +316,7 @@ eptr handle_callers(eptr root) {
 	int to_remove = 0;
 
 	for (iter=root; iter; iter=iter->next) {
-		struct caller_type *ct = iter->data2;
+		struct caller_type *ct = (struct caller_type *)iter->data2;
 		int callerfd = ct->caller_fd;
 		int n = 0;
 
@@ -322,11 +336,11 @@ eptr handle_callers(eptr root) {
 	if (to_remove) {
 		while (to_remove) {
 			for (iter=root; iter; iter=iter->next) {
-				struct caller_type *ct = iter->data2;
+				struct caller_type *ct = (struct caller_type *)iter->data2;
 				if (ct->remove)
 				{
 					FD_CLR(ct->caller_fd, &rd);
-					free(ct);
+					FREE(ct);
 					e_del(&root, iter);
 					to_remove--;
 					break;
@@ -334,7 +348,7 @@ eptr handle_callers(eptr root) {
 			}
 			crfds = 0;
 			for (iter=root; iter; iter=iter->next) {
-				struct caller_type *ct = iter->data2;
+				struct caller_type *ct = (struct caller_type *)iter->data2;
 				crfds = MATH_MAX(crfds, ct->caller_fd);
 			}
 		}
@@ -351,7 +365,7 @@ eptr handle_listeners(eptr root) {
 	int connfd;
 
 	for (iter=root; iter; iter=iter->next) {
-		struct listener_type *lt = iter->data2;
+		struct listener_type *lt = (struct listener_type *)iter->data2;
 		int listenfd = lt->listen_fd;	
 
 		FD_SET (listenfd, &rd);
@@ -372,7 +386,7 @@ eptr handle_listeners(eptr root) {
 /* Returns microseconds since last time this function was called */
 micro static_timer(int id) {
 	static micro times[5] = { 0, 0, 0, 0, 0 };
-	
+
 	micro passed;
 #ifndef WINDOWS /* TODO: HAVE_GETTIMEOFDAY */
 	micro microsec;
@@ -404,7 +418,7 @@ eptr handle_senders(eptr root, micro microsec) {
 	char mesg[PD_SMALL_BUFFER];
 
 	for (iter=root; iter; iter=iter->next) {
-		struct sender_type *sender = iter->data2;
+		struct sender_type *sender = (struct sender_type *)iter->data2;
 		sender->delay -= microsec;
 		while (sender->delay <= 0) {
 			sender->delay += sender->interval;
@@ -431,11 +445,11 @@ eptr handle_senders(eptr root, micro microsec) {
 	}
 	while (to_close) {
 		for (iter=root; iter; iter=iter->next) {
-			struct sender_type *sender = iter->data2;
+			struct sender_type *sender = (struct sender_type *)iter->data2;
 			if (!sender->interval)
 			{
 				closesocket(sender->send_fd);
-				free(sender); 
+				FREE(sender);
 				e_del(&root, iter);
 				to_close--;
 				break;
@@ -449,7 +463,7 @@ eptr handle_timers(eptr root, micro microsec) {
 	eptr iter;
 	int n, to_close = 0;
 	for (iter=root; iter; iter=iter->next) {
-		struct timer_type *timer = iter->data2;
+		struct timer_type *timer = (struct timer_type *)iter->data2;
 		timer->delay -= microsec;
 		while (timer->delay <= 0) {
 			timer->delay += timer->interval;
@@ -463,10 +477,10 @@ eptr handle_timers(eptr root, micro microsec) {
 	}
 	while (to_close) {
 		for (iter=root; iter; iter=iter->next) {
-			struct timer_type *timer = iter->data2;
+			struct timer_type *timer = (struct timer_type *)iter->data2;
 			if (!timer->interval)
 			{
-				free(timer);
+				FREE(timer);
 				e_del(&root, iter);
 				to_close--;
 				break;
@@ -485,6 +499,7 @@ void network_reset() {
 #endif
 
 	FD_ZERO (&rd);
+	nfds = cnfds = lnfds = crfds = refds = 0;
 }
 
 void network_pause(micro timeout) {
@@ -494,8 +509,9 @@ void network_pause(micro timeout) {
 
 	nfds = MATH_MAX(lnfds, cnfds);
 	nfds = MATH_MAX(nfds, crfds);
+	nfds = MATH_MAX(nfds, refds);
 
-	select (nfds + 1, &rd, NULL, NULL, &tv);
+	select(nfds + 1, &rd, NULL, NULL, &tv);
 }
 
 /* Set socket as non-blocking */
@@ -525,9 +541,8 @@ void e_release_all(eptr node, int d1, int d2) {
 	for (; node; node = next) {
 		next = node->next;
 		/* "!= NULL" saves us 1 syscall (or is useless?) */
-		if (d1 && node->data1 != NULL) free(node->data1);
-		if (d2 && node->data2 != NULL) free(node->data2);
+		if (d1 && node->data1 != NULL) FREE(node->data1);
+		if (d2 && node->data2 != NULL) FREE(node->data2);
 		e_free_aux(node);
 	}
 }
-

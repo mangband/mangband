@@ -47,7 +47,9 @@ eptr e_add(eptr root, data data1, data data2) {
 	eptr new_e;
 
 	/* Create "node" from "data1" and "data2" */
-	MAKE(new_e, element_type);
+	new_e = (eptr) RNEW(element_type);
+	/* Out of memory */
+	if (new_e == NULL) return NULL;
 
 	new_e->data1 = data1;
 	new_e->data2 = data2;
@@ -64,7 +66,7 @@ void e_free_aux(eptr node) {
 	node->data1 = NULL;
 	node->data2 = NULL;
 	node->next = NULL;
-	free(node);
+	FREE(node);
 }
 
 /* Detach "node" from "root" */
@@ -78,16 +80,16 @@ int e_rem(eptr *root, eptr node) {
 
 	if (iter == node) {
 		(*root) = next;
-		iter = NULL;
+		return 0;
 	}
-	while(iter)	{ 
-		if (iter->next == node)	
+	while(iter) {
+		i++;
+		if (iter->next == node)
 		{
 			iter->next = next;
 			return i;
 		}
 		iter = iter->next; 
-		i++;
 	}
 
 	return -1;
@@ -139,7 +141,7 @@ data e_find(eptr root, data data1, compare func) {
 eptr* eg_init(element_group* grp, int max) {
 	grp->max = max;
 	grp->num = 0;
-	C_MAKE(grp->list, max, eptr);
+	grp->list = (eptr*) C_RNEW(max, eptr);
 	return grp->list;
 }
 
@@ -150,7 +152,7 @@ void eg_free(element_group* grp) {
 	{
 		e_del(&grp->list[0], grp->list[i]);
 	}
-	free(grp->list);
+	FREE(grp->list);
 }
 
 /* Helper function to recalculate table */
@@ -216,6 +218,14 @@ int eg_plus(element_group* grp, eptr node) {
 	return (grp->num-1);
 }
 
+/* See if there's place in the group (1=yes,0=no) */
+int eg_can_add(element_group* grp) {
+	/* Can't */
+	if (grp->num >= grp->max) return 0;
+	/* Can */
+	return 1;
+}
+
 /* Create new element from "data" and add it to group */
 int eg_add(element_group* grp, data data1, data data2) {
 	eptr new_e;
@@ -225,6 +235,7 @@ int eg_add(element_group* grp, data data1, data data2) {
 
 	/* Add */	
 	new_e = e_add(grp->list[0], data1, data2);
+	if (new_e == NULL) return (-1);
 	grp->list[grp->num++] = new_e;
 
 	return (grp->num-1);
@@ -245,7 +256,7 @@ data eg_find(element_group* grp, data data1, compare func) {
 
 /* Initialize. Must call this on cq structure before using any of the cq_ functions! */
 void cq_init(cq *charq, int max) {
-	C_MAKE(charq->buf, max, char);
+	charq->buf = C_RNEW(max, char);
 
 	charq->pos = 0;
 	charq->len = 0;
@@ -388,6 +399,6 @@ void cq_slide(cq *charq) {
 
 /* Destructor. Call this when done. */
 void cq_free(cq *charq) {
-	free(charq->buf);
+	FREE(charq->buf);
 	charq->pos = charq->max = charq->len = 0;   
 }

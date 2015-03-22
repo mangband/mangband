@@ -38,6 +38,7 @@ typedef int (*callback) (int,data);
 /* Elements */
 #define E_CALL(FUNC) (void*)((fptr)FUNC)
 #define E_DO_CALL(ADDR) ((callback)(fptr)(ADDR))
+#define E_EX(ITEM, TYPE) (  TYPE  )ITEM ->data2
 extern void e_plus(eptr root, eptr node);
 extern eptr e_add(eptr root, data data1, data data2);
 extern int e_del(eptr *iter, eptr node);
@@ -51,6 +52,7 @@ extern void eg_free(element_group* grp);
 extern int eg_del(element_group* grp, int id);
 extern eptr eg_rem(element_group* grp, int id);
 extern int eg_plus(element_group* grp, eptr node);
+extern int eg_can_add(element_group* grp);
 extern int eg_add(element_group* grp, data data1, data data2);
 extern data eg_find(element_group* grp, data data1, compare func);
 /* CharQueue */
