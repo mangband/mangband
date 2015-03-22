@@ -221,6 +221,7 @@ bool use_color;
 
 bool use_old_target;
 
+bool ignore_birth_options;
 
 int char_screen_mode;
 bool target_recall;

@@ -296,18 +296,19 @@ int send_options(void)
 
 	if ((n = cq_printf(&serv->wbuf, "%c", PKT_OPTIONS)) < 0) return n;
 
-	/* Pack each options as bit. Send every 8 options as byte */
+	/* Pack each option as bit. Send every 8 options as byte */
 	for (i = 0; i < options_max; i++)
 	{
 		if (p_ptr->options[i] == TRUE) next |= (1L << bit);
 		bit++;
-		if (bit > 8) 
+		if (bit > 7)
 		{
 			if ((n = cq_printf(&serv->wbuf, "%b", next)) < 0) return n;
 			next = 0;
 			bit = 0;
 		}
 	}
+
 	/* Leftovers */
 	if (bit != 0) 
 	{

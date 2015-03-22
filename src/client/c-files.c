@@ -1181,16 +1181,26 @@ errr process_pref_file_command(char *buf)
 					local_option_info[i].o_text &&
 					streq(local_option_info[i].o_text, buf + 2))
 				{
+					if (local_option_info[i].o_set)
+					{
+						p_ptr->options[ local_option_info[i].o_set ] = opt_value;
+					}
 					(*local_option_info[i].o_var) = opt_value;
 				}
 			}
 			for (i = 0; i < options_max; i++)
 			{
+				if (option_info[i].o_page == 1 && ignore_birth_options == TRUE) continue;
 				if (option_info[i].o_page &&
 					option_info[i].o_text &&
 					streq(option_info[i].o_text, buf + 2))
 				{
-					Client_setup.options[i] = opt_value;
+					//printf("[%02d] %s = %s\n", option_info[i].o_page, option_info[i].o_text, opt_value ? "TRUE" : "FALSE");
+					if (option_info[i].o_set)
+					{
+						(*local_option_info[ option_info[i].o_set ].o_var) = opt_value;
+					}
+					p_ptr->options[i] = opt_value;
 				}
         	}
 
@@ -1348,7 +1358,7 @@ errr Save_options(void)
 	{
 		if (!option_info[i].o_set && option_info[i].o_text)
 		{
-			fprintf(fp, "%c:%s\n", (Client_setup.options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
+			fprintf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
 		}
 		if (last_page != option_info[i].o_page)
 		{

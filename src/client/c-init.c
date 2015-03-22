@@ -225,10 +225,13 @@ static void Setup_loop()
 
 	bool asked_game = FALSE;
 
+	bool data_sent = FALSE;
 	bool data_ready = FALSE;
 	bool char_ready = FALSE;
 
 	send_handshake(conntype);
+
+	ignore_birth_options = FALSE;
 
 	do
 	{
@@ -252,7 +255,7 @@ static void Setup_loop()
 			}
 			if (old_state < PLAYER_SHAPED && state >= PLAYER_SHAPED)
 			{
-				client_setup();
+				//client_setup();
 			}
 			if (state == PLAYER_SHAPED)
 			{
@@ -268,6 +271,15 @@ static void Setup_loop()
 			}
 			old_state = state;
 		}
+		if (state == PLAYER_FULL && data_sent == FALSE)
+		{
+			if (data_ready == TRUE)
+			{
+				client_setup();
+				data_sent = TRUE;
+			}
+		}
+		else
 		if (state == PLAYER_FULL && data_ready == TRUE)
 		{
 			if (asked_game == FALSE)
@@ -276,7 +288,7 @@ static void Setup_loop()
 			}
 			asked_game = TRUE;
 		}
-	} while (!(char_ready && data_ready));
+	} while (!(char_ready && data_ready && data_sent));
 
 #ifdef DEBUG
     printf("Starting with %d indicators, %d commands and %d streams\n", known_indicators, custom_commands, known_streams);

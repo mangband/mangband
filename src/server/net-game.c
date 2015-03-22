@@ -920,7 +920,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_options(connection_type *ct, player_type *p_ptr) {
-	int n, i;
+	int n, i, j;
 	byte next, bit;
 
 	for (i = 0; i < OPT_MAX; i += 8)
@@ -936,8 +936,13 @@ int recv_options(connection_type *ct, player_type *p_ptr) {
 		{
 			int n = i + bit;
 			if (n >= OPT_MAX) break;
+
+			/* Real index is in the o_uid! */
+			n = option_info[n].o_uid;
+
 			/* Skip locked options */
 			if (option_info[n].o_bit) continue;
+
 			/* Skip birth options */
 			if (option_info[n].o_page == 1 && IS_PLAYING(p_ptr)) continue;
 			/* Set */

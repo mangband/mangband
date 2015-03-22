@@ -235,6 +235,8 @@ extern bool show_weights;
 extern bool ring_bell;
 extern bool use_color;
 
+extern bool ignore_birth_options;
+
 extern int char_screen_mode;
 extern bool target_recall;
 extern char target_prompt[60];

@@ -3543,7 +3543,7 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 			{
 				sprintf(buf, "%-48s: %s  (%s)",
 				        option_info[opt[i]].o_desc,
-				        (Client_setup.options[opt[i]] ? "yes" : "no "),
+				        (p_ptr->options[opt[i]] ? "yes" : "no "),
 				        option_info[opt[i]].o_text);
 			}
 			c_prt(a, buf, i + 2, 0);
@@ -3623,11 +3623,13 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 			else
 			{
 				if (option_info[opt[set_id]].o_set)
+				{
 					on_var = option_info[opt[set_id]].o_set;
+				}
 				on_opt = opt[set_id]; 
 			}
 			if (on_opt != -1)
-				Client_setup.options[on_opt] = set_what;
+				p_ptr->options[on_opt] = set_what;
 			if (on_var != -1)
 				(*local_option_info[on_var].o_var) = set_what;
 		}
@@ -3965,6 +3967,9 @@ void do_cmd_options_birth()
 
 	/* Hack -- asume Group 1 (index0) as "Birth Options" */
 	do_cmd_options_aux(1, FALSE, option_group[0]);
+
+	/* Hack -- make those ones a priority above ones read from pref file */
+	ignore_birth_options = TRUE;
 	
 	/* Restore the screen */
 	Term_load();
