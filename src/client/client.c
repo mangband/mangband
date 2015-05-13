@@ -85,6 +85,15 @@ int main(int argc, char **argv)
 		if (done) ANGBAND_SYS = "sdl";
 	}
 #endif
+#ifdef USE_SDL2
+	if (!done)
+	{
+		extern errr init_sdl2(void);
+		if (init_sdl2() == 0) done = TRUE;
+		if (done) ANGBAND_SYS = "sdl2";
+	}
+#endif
+
 
 #ifdef USE_XAW
 	/* Attempt to use the "main-xaw.c" support */

@@ -1,0 +1,50 @@
+# File: pref-sdl2.prf
+#
+# This file provides some macros for use with versions of Angband compiled
+# using the "main-sdl2.c" file.
+#
+# Note the use of "\e\e\e\e" (four escapes) to allow the macros to work
+# even if the game is not yet ready for a command.
+#
+# Note the use of "\\." (for "run") and "\\+" (for "alter"), to make sure
+# that the macros will work regardless of the "keymap" being used.
+#
+
+# arrow keys
+A:4
+P:^__50\r
+
+A:2
+P:^__51\r
+
+A:6
+P:^__4F\r
+
+A:8
+P:^__52\r
+
+# arrow keys, running
+A:.4
+P:^_S_50\r
+
+A:.6
+P:^_S_4F\r
+
+A:.8
+P:^_S_52\r
+
+A:.2
+P:^_S_51\r
+
+# arrow keys, digging
+A:+4
+P:^_N_50\r
+
+A:+6
+P:^_N_4F\r
+
+A:+8
+P:^_N_52\r
+
+A:+2
+P:^_N_51\r

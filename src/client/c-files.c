@@ -1155,7 +1155,7 @@ errr process_pref_file_command(char *buf)
         else if (buf[0] == 'V')
         {
 		/* Do nothing */
-		return (0);
+		// return (0);  // @@@ Why was this here? -kts
 
                 if (tokenize(buf+2, 5, zz) == 5)
                 {
