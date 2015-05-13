@@ -5,9 +5,10 @@ mangclient_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" $(CLIENT_CFLAGS)
 include src/client/osx/Makefile.am
 
 if HAVE_WINDRES
-
+# Added this conditional as it broke Linux - why is it needed for *nix? -kts
+if ON_WINDOWS
 mangclient_RESOURCES = src/client/Angband.rc
-
+endif
 endif
 
 mangclient_SOURCES = \
@@ -46,6 +47,12 @@ endif
 if USE_SDL
 
 mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/sdl-xxx.c src/client/main-sdl.h
+
+endif
+
+if USE_SDL2
+
+mangclient_SOURCES += src/client/main-sdl2.c src/client/main-sdl2.h
 
 endif
 
