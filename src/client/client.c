@@ -10,6 +10,9 @@
 #if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
+#ifdef USE_SDL2
+#include <SDL.h> // needed for SDL_main remapping
+#endif
 
 static void read_credentials(void)
 {
