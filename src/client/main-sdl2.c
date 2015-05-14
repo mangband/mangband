@@ -1,6 +1,42 @@
-/* File: main-sdl.c */
+/* File: main-sdl2.c */
 /* Purpose: SDL2 frontend for mangband */
-/* Original SDL2 written by "kts of kettek (kettek1@kettek.net)". */
+/* Original SDL2 client written by "kts of kettek (kettek1@kettek.net)". */
+/* NOTES:
+  1. At the moment, we have a basic INI parser that reads "MAngband.ini" from the current working directory. This should be merged with the other MAngband frontends' methods for configuration loading/saving - all clients should, ideally, rely on the _same_ configuration file.
+  2. Many files in 'lib/user' and 'lib/xtra' are essential. These files and their purpose(s) are:
+    * 'lib/user/font-sdl2.prf'
+      - used to create the initial color palette - if non-existent, all text will be black on black
+    * 'lib/user/graf-sdl2.prf'
+      - used to load in 'graf-new.prf', for the pict table
+    * 'lib/user/graf-new.prf'
+      - pict table that corresponds to Adam Bolt's 16x16 tiles
+    * 'lib/user/keymap-sdl2.prf'
+      - keymap file for SDL2, required for arrow keys, also needs expansion
+    * 'lib/user/pref-sdl2.prf'
+      - loads 'graf-sdl2.prf', 'font-sdl2.prf', 'keymap-sdl2.prf', and 'windows-sdl2.prf'
+    * 'lib/user/windows-sdl2.prf'
+      - Specifies the use of each terminal via index (is this needed?)
+    * 'lib/xtra/graf/16x16.png'
+      - Modified version of Adam Bolt's 16x16 tiles - has a few added tiles
+    * 'lib/xtra/font/AnonymousPro.ttf'
+      - The default TTF font, licensed under the Open Font License
+      - NOTE: This can be overridden in MAngband.ini as "font_default" or "font_file".
+
+TODO:
+  * Actually use all possible settings in MAngband.ini
+  * Implement INI saving (will be annoying due to comment retention)
+  * Implement virtual terminals for single-window platforms (iOS, Android, etc.)
+    - some of the framework is already there
+  * Improve or replace Magical Mangband Menu(s)
+  * Figure out keymapping that doesn't require 'keymap-sdl2.prf'
+  * Get rid of FONT_NORMAL, FONT_SMALL, and PICT_NORMAL, replacing them with FontData/PictData on a per-term basis (ensure that FontData/PictData sharing is a thing, so there are never two FontData(s) wastefully existing with the same data).
+  * Get rid of as much hard-coded values as possible!
+
+NOTES:
+  * Are player PICT graphics possible?
+  * Is it possible to get the ch/attr pairs for a tile underneath another tile?
+  * Are sounds actually a thing? If so, it would be cool to implement.
+*/
 
 #include "c-angband.h"
 
@@ -26,7 +62,7 @@ static struct TermData terms[8];    // Our terminals
 static struct FontData fonts[8];    // Our fonts, tied to the term limit of 7
 static struct PictData picts[8];    // Our picts, ^
 char default_font[128];
-int default_font_size = 16;
+int default_font_size = 12;
 #define CONF_TERM_WINDOWED (1 << 0)
 #define CONF_TERM_VIRTUAL (1 << 1)
 int conf = CONF_TERM_WINDOWED;
@@ -74,19 +110,26 @@ errr init_sdl2(void) {
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
+  strcpy(default_font, "font/AnonymousPro.ttf"); // eww
   loadConfig();
   // **** Merge command-line ****
   // **** Load Fonts and Picts ****
   memset(fonts, 0, 3*sizeof(struct FontData));
-  if (ttfToFont(&fonts[FONT_NORMAL], "font/AnonymousPro.ttf", 12, TRUE) != 0) {
+  if (ttfToFont(&fonts[FONT_NORMAL], default_font, default_font_size, TRUE) != 0) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ttfToFont()", "error while loading", NULL);
+    return 1;
   }
-  if (ttfToFont(&fonts[FONT_SMALL], "font/AnonymousPro.ttf", 10, TRUE) != 0) {
+  if (ttfToFont(&fonts[FONT_SMALL], default_font, default_font_size-2, TRUE) != 0) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ttfToFont()", "error while loading", NULL);
+    cleanFontData(&fonts[FONT_NORMAL]);
+    return 2;
   }
   memset(picts, 0, 3*sizeof(struct PictData));
   if (imgToPict(&picts[PICT_NORMAL], "graf/16x16.png") != 0) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict()", "error while loading", NULL);
+    cleanFontData(&fonts[FONT_NORMAL]);
+    cleanFontData(&fonts[FONT_SMALL]);
+    return 3;
   }
   // **** Initialize z-terms ****
   initTermData(&terms[TERM_MAIN], term_title[TERM_MAIN], TERM_MAIN, NULL);
@@ -95,7 +138,7 @@ errr init_sdl2(void) {
   setTermCells(&terms[TERM_MAIN], picts[PICT_NORMAL].w, picts[PICT_NORMAL].h);
   setTermTitle(&terms[TERM_MAIN]);
   refreshTerm(&terms[TERM_MAIN]);
-  for (i = 1; i < 7; i++) { // FIXME: this was "i < 8"
+  for (i = 1; i < 8; i++) {
     if (terms[i].config & TERM_IS_HIDDEN) continue;
     initTermData(&terms[i], term_title[i], i, NULL);
     attachFont(&fonts[FONT_SMALL], &terms[i]);
@@ -105,6 +148,8 @@ errr init_sdl2(void) {
     ang_term[i] = &(terms[i].t);
   }
   // **** Activate Main z-term and gooo ****
+  attachPict(&picts[PICT_NORMAL], &terms[TERM_MAIN]);
+  setTermCells(&terms[TERM_MAIN], picts[PICT_NORMAL].w, picts[PICT_NORMAL].h);
   Term_activate(&(terms[TERM_MAIN].t));	// set active Term to terms[TERM_MAIN]
   term_screen = Term;                   // set term_screen to terms[TERM_MAIN]
 
@@ -114,16 +159,6 @@ errr init_sdl2(void) {
 static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   int width, height, key_queue;
   term *t = &td->t;
-  /*td->config = 0;
-  td->font_data = NULL;
-  td->pict_data = NULL;
-  td->font_texture = td->pict_texture = NULL;
-  td->window = NULL;
-  td->window_id = 0;
-  td->id = id;
-  td->renderer = NULL;
-  td->width = td->height = 0;
-  td->framebuffer = NULL;*/
 
   td->id = id;
 
@@ -278,7 +313,7 @@ This function creates an SDL_Texture from the given PictData's surface. It then 
 */
 errr attachPict(PictData *pd, TermData *td) {
   if ((td->pict_texture = SDL_CreateTextureFromSurface(td->renderer, pd->surface)) == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "attachFont Error", SDL_GetError(), td->window);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "attachPict Error", SDL_GetError(), td->window);
     return 1;
   }
   td->pict_data = pd;
@@ -305,25 +340,23 @@ static void nukeTermHook(term *t) {
   detachPict(td);
   // destroy self
   if (td->config & TERM_IS_VIRTUAL && td->id != 0) {
+    // TODO: if we're virtual, probably destroy a framebuffer
   } else{
     SDL_DestroyRenderer(td->renderer);
     SDL_DestroyWindow(td->window);
   }
   td->config &= ~TERM_IS_ONLINE;
-  // FIXME: nasty hack to clean up -- isn't there some sort of global quit hook? :S
+  // assume mangclient shutdown if the main terminal is getting nuked
+  // TODO: just move this to a quit_sdl2 or similar func
   if (td->id == TERM_MAIN) {
-    // Make sure our other windows are destroyed as well
-    int i;
-    for (i = 1; i < 7, terms[i].config & TERM_IS_ONLINE; i++) {
-      term_nuke(&(terms[i].t));
-    }
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Quit", "Adios, wish I could provide a quit message", NULL);
     // clean up our fonts and picts
+    cleanFontData(&fonts[FONT_NORMAL]);
+    cleanFontData(&fonts[FONT_SMALL]);
+    cleanPictData(&picts[PICT_NORMAL]);
     // close our libraries
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
-    //quit(NULL);
   }
 }
 static errr xtraTermHook(int n, int v) {
@@ -430,6 +463,10 @@ static errr xtraTermHook(int n, int v) {
           int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
+              if (i == TERM_MAIN) {
+                quit("Sayonara!");
+                break;
+              }
               term_nuke(&(terms[i].t));
               ang_term[i] = NULL;
             }
@@ -576,7 +613,7 @@ static errr pictTermHook(int x, int y, byte attr, char ch) {
   col = ch;
   row &= ~(1 << 7);
   col &= ~(1 << 7);
-  printf("pict at %dx%d(%dx%d)\n", row, col, attr, ch);
+  //printf("pict at %dx%d(%dx%d)\n", row, col, attr, ch);
   SDL_SetRenderDrawColor(td->renderer, 0, 0, 128, 255);
   cell_rect.x = x*(td->cell_w); cell_rect.y = y*(td->cell_h);
   cell_rect.w = td->cell_w; cell_rect.h = td->cell_h;
@@ -745,7 +782,6 @@ errr loadConfig() {
   memset(token2, 0, 1024);
 
   if ((fp = fopen("MAngband.ini", "r"))) {
-    printf("LOADING");
     while (!feof(fp)) {
       // Parse our line for tokens delimited by "=", token1 will be populated with key, token2 will be populated with value(or key if no delimiter exists)
       fgets(buffer, 1024, fp);
@@ -756,7 +792,7 @@ errr loadConfig() {
           memcpy(token1, start, p-start);
           token1[p-start] = '\0';
           start = p+1;
-        } else if (*p == '\0' || *p == ';') { // EOL and comments trigger parse end
+        } else if (*p == '\0' || *p == ';' || *p == '\n' || *p == '\r') { // EOL and comments trigger parse end
           memcpy(token2, start, p-start);
           token2[p-start] = '\0';
           break;
@@ -764,9 +800,9 @@ errr loadConfig() {
       } while(*p++);
       // Parse our acquired tokens
       if (token1[0] == '\0') { // It's either a value-less key, a section, or a comment
-        if (token2[0] == '[' && token2[p-start-2] == ']') { // section
-          memcpy(section, token2+1, p-start-3);
-          section[p-start-3] = '\0';
+        if (token2[0] == '[' && token2[p-start-1] == ']') { // section
+          memcpy(section, token2+1, p-start-1);
+          section[p-start-2] = '\0';
           token2[0] = '\0'; // 'null" our value token
         } else if (token2[0] != '\0') { // not a comment
           memcpy(token1, start, p-start); // copy to "key" token1
@@ -874,6 +910,7 @@ errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   fd->surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
   if (fd->surface == NULL) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ttfToFont Error", SDL_GetError(), NULL);
+    TTF_CloseFont(font);
     return 1;
   }
   // Painstakingly create each glyph as a surface and blit to our glyphs surface
@@ -904,7 +941,7 @@ errr imgToPict(PictData *pd, cptr filename) {
   Uint32 width, height;
   char buf[1036];
   if (pd->w || pd->h || pd->surface) return 1; // return if PictData is unclean
-  // Get and open our BMP from the xtra dir
+  // Get and open our image from the xtra dir
   path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
   // Load 'er up
   pd->surface = IMG_Load(buf);
@@ -916,11 +953,15 @@ errr imgToPict(PictData *pd, cptr filename) {
   width = 0, height = 0;
   if (strtoii(filename, &width, &height) != 0) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", "some strtoii error", NULL);
-    // TODO: free and return
+    SDL_FreeSurface(pd->surface);
+    pd->surface = NULL;
+    return 2;
   }
   if (width == 0 || height == 0) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", "width or height of 0 is not allowed!", NULL);
-    // TODO: free and return
+    SDL_FreeSurface(pd->surface);
+    pd->surface = NULL;
+    return 3;
   }
   // set up our PictData
   pd->w = width; pd->h = height;
