@@ -1,0 +1,10 @@
+# Usage: W:<window number>:<usage number>
+#
+# Valid usage numbers:
+#   0 - Inventory    1 - Equipment   3 - Character sheet
+#   6 - Messages
+
+W:1:3
+W:2:1
+W:3:0
+W:4:6

@@ -7,6 +7,7 @@ font_DATA = \
 		lib/xtra/font/6X13.FON lib/xtra/font/6X13B.FON lib/xtra/font/6X9.FON \
 		lib/xtra/font/7X13.FON lib/xtra/font/7X13B.FON lib/xtra/font/8X13.FON \
 		lib/xtra/font/8X13B.FON lib/xtra/font/9X15.FON lib/xtra/font/9X15B.FON \
-		lib/xtra/font/misc6x13.hex lib/xtra/font/nethack10x19-10.hex
+		lib/xtra/font/misc6x13.hex lib/xtra/font/nethack10x19-10.hex \
+		lib/xtra/font/AnonymousPro.ttf lib/xtra/font/AnonymousPro_OFL.txt
 
 EXTRA_DIST += $(font_DATA)

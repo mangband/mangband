@@ -7,7 +7,9 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifdef _WIN32
 #include "windows.h"
+#endif
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #endif

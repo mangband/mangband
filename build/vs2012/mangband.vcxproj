@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5DB0807D-EAE2-4712-A7F2-D4AAEBADA778}</ProjectGuid>
+    <RootNamespace>Mang100</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\..\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Command>echo // &gt; $(OutDir)src\config.h</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS;WIN32;HAS_STRICMP;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS;WIN32;HAS_STRICMP;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\server\birth.c" />
+    <ClCompile Include="..\..\src\server\cave.c" />
+    <ClCompile Include="..\..\src\server\cmd1.c" />
+    <ClCompile Include="..\..\src\server\cmd2.c" />
+    <ClCompile Include="..\..\src\server\cmd3.c" />
+    <ClCompile Include="..\..\src\server\cmd4.c" />
+    <ClCompile Include="..\..\src\server\cmd5.c" />
+    <ClCompile Include="..\..\src\server\cmd6.c" />
+    <ClCompile Include="..\..\src\server\control.c" />
+    <ClCompile Include="..\..\src\server\dungeon.c" />
+    <ClCompile Include="..\..\src\server\files.c" />
+    <ClCompile Include="..\..\src\server\generate.c" />
+    <ClCompile Include="..\..\src\server\init1.c" />
+    <ClCompile Include="..\..\src\server\init2.c" />
+    <ClCompile Include="..\..\src\server\load2.c" />
+    <ClCompile Include="..\..\src\server\main.c" />
+    <ClCompile Include="..\..\src\common\md5.c" />
+    <ClCompile Include="..\..\src\server\melee1.c" />
+    <ClCompile Include="..\..\src\server\melee2.c" />
+    <ClCompile Include="..\..\src\server\monster1.c" />
+    <ClCompile Include="..\..\src\server\monster2.c" />
+    <ClCompile Include="..\..\src\common\net-basics.c" />
+    <ClCompile Include="..\..\src\server\net-game.c" />
+    <ClCompile Include="..\..\src\common\net-imps.c" />
+    <ClCompile Include="..\..\src\common\net-pack.c" />
+    <ClCompile Include="..\..\src\server\net-server.c" />
+    <ClCompile Include="..\..\src\server\obj-info.c" />
+    <ClCompile Include="..\..\src\server\object1.c" />
+    <ClCompile Include="..\..\src\server\object2.c" />
+    <ClCompile Include="..\..\src\server\party.c" />
+    <ClCompile Include="..\..\src\server\save.c" />
+    <ClCompile Include="..\..\src\server\spells1.c" />
+    <ClCompile Include="..\..\src\server\spells2.c" />
+    <ClCompile Include="..\..\src\server\store.c" />
+    <ClCompile Include="..\..\src\server\tables.c" />
+    <ClCompile Include="..\..\src\server\use-obj.c" />
+    <ClCompile Include="..\..\src\server\util.c" />
+    <ClCompile Include="..\..\src\server\variable.c" />
+    <ClCompile Include="..\..\src\server\wilderness.c" />
+    <ClCompile Include="..\..\src\server\x-spell.c" />
+    <ClCompile Include="..\..\src\server\xtra1.c" />
+    <ClCompile Include="..\..\src\server\xtra2.c" />
+    <ClCompile Include="..\..\src\common\z-form.c" />
+    <ClCompile Include="..\..\src\common\z-rand.c" />
+    <ClCompile Include="..\..\src\common\z-util.c" />
+    <ClCompile Include="..\..\src\common\z-virt.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\common\angband.h" />
+    <ClInclude Include="..\..\src\common\defines.h" />
+    <ClInclude Include="..\..\src\server\externs.h" />
+    <ClInclude Include="..\..\src\common\global.h" />
+    <ClInclude Include="..\..\src\common\h-basic.h" />
+    <ClInclude Include="..\..\src\h-config.h" />
+    <ClInclude Include="..\..\src\common\h-define.h" />
+    <ClInclude Include="..\..\src\common\h-net.h" />
+    <ClInclude Include="..\..\src\common\h-system.h" />
+    <ClInclude Include="..\..\src\common\h-type.h" />
+    <ClInclude Include="..\..\src\server\init.h" />
+    <ClInclude Include="..\..\src\server\mangband.h" />
+    <ClInclude Include="..\..\src\common\md5.h" />
+    <ClInclude Include="..\..\src\server\mdefines.h" />
+    <ClInclude Include="..\..\src\common\net-basics.h" />
+    <ClInclude Include="..\..\src\server\net-game.h" />
+    <ClInclude Include="..\..\src\common\net-imps.h" />
+    <ClInclude Include="..\..\src\common\net-pack.h" />
+    <ClInclude Include="..\..\src\server\net-server.h" />
+    <ClInclude Include="..\..\src\options.h" />
+    <ClInclude Include="..\..\src\common\pack.h" />
+    <ClInclude Include="..\..\src\server\s-externs.h" />
+    <ClInclude Include="..\..\src\common\sockbuf.h" />
+    <ClInclude Include="..\..\src\common\types.h" />
+    <ClInclude Include="..\..\src\common\version.h" />
+    <ClInclude Include="..\..\src\common\z-form.h" />
+    <ClInclude Include="..\..\src\common\z-rand.h" />
+    <ClInclude Include="..\..\src\common\z-util.h" />
+    <ClInclude Include="..\..\src\common\z-virt.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="mangclient.vcxproj">
+      <Project>{cd8d8f3c-ff08-4e71-9b37-38a973ad79ce}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
