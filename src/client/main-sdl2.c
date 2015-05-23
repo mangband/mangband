@@ -89,7 +89,7 @@ errr init_sdl2(int argc, char **argv) {
   init_stuff(); // load in paths
   // **** Load in Configuration ****
   // The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
-  use_graphics = TRUE;
+  use_graphics = conf_get_int("SDL2", "graphics", 0);
   ANGBAND_SYS = "sdl2";
   // FIXME: this should be handled elsewhere, but we want colors now.
   sprintf(buf, "font-%s.prf", ANGBAND_SYS);
@@ -898,131 +898,136 @@ errr handleMenu(int x, int y) {
 // MMM END
 /* ==== Configuration loading/saving functions ==== */
 errr loadConfig() {
-  FILE *fp;
-  char buffer[1024];  // string up to 1024 chars
-  char *p, *start;    // pointer to buffer position(token end) and pointer to token begin position
-  char section[128];	// the "section" string, up to 127 chars
-  char token1[1024];  // the key of a key=>value pair
-  char token2[1024];  // the value of a key=>value pair
-  memset(section, 0, 128);
-  memset(token1, 0, 1024);
-  memset(token2, 0, 1024);
 
-  if ((fp = fopen("MAngband.ini", "r"))) {
-    while (!feof(fp)) {
-      // Parse our line for tokens delimited by "=", token1 will be populated with key, token2 will be populated with value(or key if no delimiter exists)
-      fgets(buffer, 1024, fp);
-      start = p = buffer; // default or token position pointers to beginning of string
-      token1[0] = token2[0] = '\0'; // "clear" the tokens
-      do {
-        if (*p == '=') { // check for key=>value delimiter (=) and collect the key
-          memcpy(token1, start, p-start);
-          token1[p-start] = '\0';
-          start = p+1;
-        } else if (*p == '\0' || *p == ';' || *p == '\n' || *p == '\r') { // EOL and comments trigger parse end
-          memcpy(token2, start, p-start);
-          token2[p-start] = '\0';
-          break;
-        }
-      } while(*p++);
-      // Parse our acquired tokens
-      if (token1[0] == '\0') { // It's either a value-less key, a section, or a comment
-        if (token2[0] == '[' && token2[p-start-1] == ']') { // section
-          memcpy(section, token2+1, p-start-1);
-          section[p-start-2] = '\0';
-          token2[0] = '\0'; // 'null" our value token
-        } else if (token2[0] != '\0') { // not a comment
-          memcpy(token1, start, p-start); // copy to "key" token1
-          token2[0] = '\0'; // "null" our value token
-        }
-      }
-      // At this point, token1 will always be a key, token2 will always be a value, and section might be set.
-      if (token1[0] != '\0') {
-        parseConfig(section, token1, token2);
-      }
-    }
+  char section[128];
+  cptr value;
+  int window_id;
+
+  value = conf_get_string("SDL2", "term_mode", "virtual");
+  if (strcmp(value, "window") == 0) {
+    conf |= CONF_TERM_WINDOWED;
+  } else if (strcmp(value, "virtual") == 0) {
+    conf |= CONF_TERM_VIRTUAL;
   }
 
-  return 0;
-}
-errr parseConfig(cptr section, cptr key, cptr value) {
-  if (strcmp(section, "SDL2") == 0) {
-    if (strcmp(key, "term_mode") == 0) {
-      if (strcmp(value, "window") == 0) {
-        conf |= CONF_TERM_WINDOWED;
-      } else if (strcmp(value, "virtual") == 0) {
-        conf |= CONF_TERM_VIRTUAL;
-      }
-    } else if (strcmp(key, "font_file") == 0) {
-      strcpy(default_font, value);
-    } else if (strcmp(key, "font_size") == 0) {
-      default_font_size = atoi(value);
+  value = conf_get_string("SDL2", "font_file", default_font);
+  if (strcmp(default_font, value) != 0) {
+    strcpy(default_font, value);
+  }
+
+  default_font_size = conf_get_int("SDL2", "font_size", default_font_size);
+
+  for (window_id = 0; window_id < 8; window_id++) {
+    sprintf(section, "SDL2-window-%d", window_id);
+    strncpy(terms[window_id].title, conf_get_string(section, "title", ""), 128);
+    strncpy(terms[window_id].pict_file, conf_get_string(section, "pict_file", ""), 128);
+
+	strncpy(terms[window_id].font_file, conf_get_string(section, "font_file", ""), 128);
+	terms[window_id].font_size = conf_get_int(section, "font_size", 0);
+
+	value = conf_get_string(section, "pict_mode", "static");
+    if (strcmp(value, "static") == 0) {
+      terms[window_id].pict_mode = TERM_PICT_STATIC;
+    } else if (strcmp(value, "stretch") == 0) {
+      terms[window_id].pict_mode = TERM_PICT_STRETCH;
+    } else if (strcmp(value, "scale") == 0) {
+      terms[window_id].pict_mode = TERM_PICT_SCALE;
     }
-  } else if (strncmp(section, "window", 6) == 0) {
-    // Since we refer to windows by their index, let's just extract that and do common operations on all
-    if (strlen(section) > 6) {
-      char *window = (char*)&(section[7]);
-      int window_id = atoi(window);
-      if (window_id >= 0 && window_id <= 7) {
-        if (strcmp(key, "title") == 0) {
-          strncpy(terms[window_id].title, value, 128);
-        } else if (strcmp(key, "pict_file") == 0) {
-          strncpy(terms[window_id].pict_file, value, 128);
-        } else if (strcmp(key, "pict_mode") == 0) {
-          if (strcmp(value, "static") == 0) {
-            terms[window_id].pict_mode = TERM_PICT_STATIC;
-          } else if (strcmp(value, "stretch") == 0) {
-            terms[window_id].pict_mode = TERM_PICT_STRETCH;
-          } else if (strcmp(value, "scale") == 0) {
-            terms[window_id].pict_mode = TERM_PICT_SCALE;
-          }
-        } else if (strcmp(key, "font_file") == 0) {
-          strncpy(terms[window_id].font_file, value, 128);
-        } else if (strcmp(key, "font_size") == 0) {
-          terms[window_id].font_size = atoi(value);
-        } else if (strcmp(key, "font_smoothing") == 0) {
-          if (strcmp(value, "true") == 0) {
-            terms[window_id].config |= TERM_FONT_SMOOTH;
-          }
-        } else if (strcmp(key, "char_mode") == 0) {
-          if (strcmp(value, "static") == 0) {
-            terms[window_id].char_mode = TERM_CHAR_STATIC;
-          } else if (strcmp(value, "stretch") == 0) {
-            terms[window_id].char_mode = TERM_CHAR_STRETCH;
-          } else if (strcmp(value, "scale") == 0) {
-            terms[window_id].char_mode = TERM_CHAR_SCALE;
-          }
-        } else if (strcmp(key, "cell_width") == 0) {
-          terms[window_id].orig_w = atoi(value);
-        } else if (strcmp(key, "cell_height") == 0) {
-          terms[window_id].orig_h = atoi(value);
-        } else if (strcmp(key, "cell_mode") == 0) {
-          if (strcmp(value, "pict") == 0) {
-            terms[window_id].cell_mode = TERM_CELL_PICT;
-          } else if (strcmp(value, "font") == 0) {
-            terms[window_id].cell_mode = TERM_CELL_FONT;
-          } else if (strcmp(value, "custom") == 0) {
-            terms[window_id].cell_mode = TERM_CELL_CUST;
-          }
-        } else if (strcmp(key, "hidden") == 0) {
-          if (atoi(value) == 1) {
-            terms[window_id].config |= TERM_IS_HIDDEN;
-          }
-        } else if (strcmp(key, "x") == 0) {
-          terms[window_id].x = atoi(value);
-        } else if (strcmp(key, "y") == 0) {
-          terms[window_id].y = atoi(value);
-        } else if (strcmp(key, "width") == 0) {
-          terms[window_id].width = atoi(value);
-        } else if (strcmp(key, "height") == 0) {
-          terms[window_id].height = atoi(value);
-        }
-      }
+
+    value = conf_get_string(section, "font_smoothing", "true");
+    if (strcmp(value, "true") == 0) {
+      terms[window_id].config |= TERM_FONT_SMOOTH;
     }
+
+    value = conf_get_string(section, "char_mode", "static");
+    if (strcmp(value, "static") == 0) {
+      terms[window_id].char_mode = TERM_CHAR_STATIC;
+    } else if (strcmp(value, "stretch") == 0) {
+      terms[window_id].char_mode = TERM_CHAR_STRETCH;
+    } else if (strcmp(value, "scale") == 0) {
+      terms[window_id].char_mode = TERM_CHAR_SCALE;
+    }
+
+    terms[window_id].orig_w = conf_get_int(section, "cell_width", 0);
+    terms[window_id].orig_w = conf_get_int(section, "cell_height", 0);
+
+    value = conf_get_string(section, "cell_mode", "pict");
+    if (strcmp(value, "pict") == 0) {
+      terms[window_id].cell_mode = TERM_CELL_PICT;
+    } else if (strcmp(value, "font") == 0) {
+      terms[window_id].cell_mode = TERM_CELL_FONT;
+    } else if (strcmp(value, "custom") == 0) {
+      terms[window_id].cell_mode = TERM_CELL_CUST;
+    }
+
+    if (conf_get_int(section, "hidden", 0) && window_id) {
+      terms[window_id].config |= TERM_IS_HIDDEN;
+    }
+
+    terms[window_id].x = conf_get_int(section, "x", 0);
+    terms[window_id].y = conf_get_int(section, "y", 0);
+    terms[window_id].width = conf_get_int(section, "width", 0);
+    terms[window_id].height = conf_get_int(section, "height", 0);
+
   }
   return 0;
 }
 errr saveConfig() {
+
+  char section[128];
+  int window_id;
+
+  conf_set_string("SDL2", "term_mode", (conf & CONF_TERM_WINDOWED) ? "window" : "virtual");
+
+  conf_set_string("SDL2", "font_file", default_font);
+  conf_set_int("SDL2", "font_size", default_font_size);
+
+  for (window_id = 0; window_id < 8; window_id++) {
+    sprintf(section, "SDL2-window-%d", window_id);
+    conf_set_string(section, "title", terms[window_id].title);
+    conf_set_string(section, "pict_file", terms[window_id].pict_file);
+
+	conf_set_string(section, "font_file", terms[window_id].font_file);
+	conf_set_int(section, "font_size", terms[window_id].font_size);
+
+    if (terms[window_id].pict_mode == TERM_PICT_STATIC) {
+      conf_set_string(section, "pict_mode", "static");
+    } else if (terms[window_id].pict_mode == TERM_PICT_STRETCH) {
+      conf_set_string(section, "pict_mode", "stretch");
+    } else if (terms[window_id].pict_mode == TERM_PICT_SCALE) {
+      conf_set_string(section, "pict_mode", "scale");
+    }
+
+    conf_set_string(section, "font_smoothing", (terms[window_id].config & TERM_FONT_SMOOTH) ? "true" : "false");
+
+    if (terms[window_id].char_mode == TERM_CHAR_STATIC) {
+      conf_set_string(section, "char_mode", "static");
+    } else if (terms[window_id].char_mode == TERM_CHAR_STRETCH) {
+      conf_set_string(section, "char_mode", "stretch");
+    } else if (terms[window_id].char_mode == TERM_CHAR_SCALE) {
+      conf_set_string(section, "char_mode", "scale");
+    }
+
+    conf_set_int(section, "cell_width", terms[window_id].orig_w);
+    conf_set_int(section, "cell_height", terms[window_id].orig_w);
+
+    if (terms[window_id].cell_mode == TERM_CELL_PICT) {
+      conf_set_string(section, "cell_mode", "pict");
+    } else if (terms[window_id].cell_mode == TERM_CELL_FONT) {
+      conf_set_string(section, "cell_mode", "font");
+    } else if (terms[window_id].cell_mode == TERM_CELL_CUST) {
+      conf_set_string(section, "cell_mode", "custom");
+    }
+
+    conf_set_int(section, "hidden", terms[window_id].config & TERM_IS_HIDDEN ? 1 : 0);
+
+    conf_set_int(section, "x", terms[window_id].x);
+    conf_set_int(section, "y", terms[window_id].y);
+    conf_set_int(section, "width", terms[window_id].width);
+    conf_set_int(section, "height", terms[window_id].height);
+
+  }
+
   return 0;
 }
 /* ==== Font-related functions ==== */
