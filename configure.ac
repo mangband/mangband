@@ -48,6 +48,9 @@ AC_CHECK_LIB([SDL], [main], have_sdl="yes")
 
 AC_CHECK_LIB([SDL2], [main], have_sdl2="yes")
 
+AC_CHECK_LIB([SDL2_image], [IMG_Load], have_sdl2_image="yes")
+AC_CHECK_LIB([SDL2_ttf], [TTF_Init], have_sdl2_ttf="yes")
+
 # Try finding ncurses or curses...
 have_curs="yes"
 AC_CHECK_LIB([ncurses], [main], have_curs_lib="ncurses", [
@@ -70,6 +73,9 @@ AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=ye
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
 AC_ARG_WITH(sdl2, AC_HELP_STRING([--with-sdl2],[Build with SDL2 support [default=yes]]), with_sdl2=$withval, with_sdl2="yes")
 
+AC_ARG_WITH(sdl2-image, AC_HELP_STRING([--with-sdl2-image],[Build with SDL2_Image support [default=yes]]), with_sdl2_image=$withval, with_sdl2_image="yes")
+AC_ARG_WITH(sdl2-ttf, AC_HELP_STRING([--with-sdl2-ttf],[Build with SDL2_TTF support [default=yes]]), with_sdl2_ttf=$withval, with_sdl2_ttf="yes")
+
 # HAVE + WITH = ENABLED [
 if test "x$have_x11" = xyes && test "x$with_x11" = xyes 
 then
@@ -86,6 +92,14 @@ fi
 if test "x$have_sdl2" = xyes && test "x$with_sdl2" = xyes 
 then
     enabled_sdl2="yes"
+fi
+if test "x$have_sdl2_image" = xyes && test "x$with_sdl2_image" = xyes 
+then
+    enabled_sdl2_image="yes"
+fi
+if test "x$have_sdl2_ttf" = xyes && test "x$with_sdl2_ttf" = xyes 
+then
+    enabled_sdl2_ttf="yes"
 fi
 
 if test "x$have_crb" = xyes && test "x$with_crb" = xyes 
@@ -154,7 +168,21 @@ fi
 if test "x$enabled_sdl2" = xyes
 then
     CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL2 `sdl2-config --cflags`"
-    CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl2-config --libs` -lSDL2_ttf -lSDL2_image -lm"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl2-config --libs` -lm"
+    DISPMOD="$DISPMOD SDL2"
+fi
+#SDL2_image
+if test "x$enabled_sdl2_image" = xyes
+then
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL2_IMAGE"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL2_image"
+    #DISPMOD="$DISPMOD SDL2_image"
+fi
+#SDL2_ttf
+if test "x$enabled_sdl2_ttf" = xyes
+then
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL2_TTF"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL2_ttf"
     DISPMOD="$DISPMOD SDL2"
 fi
 

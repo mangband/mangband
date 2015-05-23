@@ -99,14 +99,18 @@ errr init_sdl2(int argc, char **argv) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SDL_Init()", SDL_GetError(), NULL);
     return 1;
   }
+#ifdef USE_SDL2_IMAGE
   if (IMG_Init(IMG_INIT_PNG) == -1) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "IMG_Init()", IMG_GetError(), NULL);
     return 2;
   }
+#endif
+#ifdef USE_SDL2_TTF
   if (TTF_Init() == -1) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "TTF_Init()", TTF_GetError(), NULL);
     return 3;
   }
+#endif
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
@@ -301,6 +305,7 @@ This function attempts to load and attach the given font name and font size to t
 It first checks all existing FontData structures to see if a FontData with the same settings already exists, and if so, simply attaches that FontData. Otherwise, it will create the given FontData structure and attach it.
 */
 errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
+  char *font_error = NULL;
   int i;
   for (i = 0; i < TERM_MAX; i++) {
     if ((strcmp(terms[i].font_file, filename) == 0)
@@ -314,14 +319,21 @@ errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
   // font data does not exist, let's create it in the first available FontData slot
   for (i = 0; i < TERM_MAX; i++) {
     if (fonts[i].surface == NULL) {
+#ifdef USE_SDL2_TTF
       if (ttfToFont(&fonts[i], filename, fontsize, smoothing) != 0) {
+        font_error = TTF_GetError();
         break; // error!
       }
+#else
+      if (bmpToFont(&fonts[i], filename) != 0) {
+        font_error = SDL_GetError();
+        break; // error!      }
+#endif
       attachFont(&fonts[i], td);
       return 0;
     }
   }
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "loadFont()", TTF_GetError(), NULL);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "loadFont()", font_error, NULL);
   return 1;
 }
 /* unloadFont
@@ -448,8 +460,12 @@ static void nukeTermHook(term *t) {
   // TODO: just move this to a quit_sdl2 or similar func
   if (td->id == TERM_MAIN) {
     // close our libraries
+#ifdef USE_SDL2_IMAGE
     IMG_Quit();
+#endif
+#ifdef USE_SDL2_TTF
     TTF_Quit();
+#endif
     SDL_Quit();
   }
 }
@@ -1022,6 +1038,12 @@ errr cleanFontData(FontData *fd) {
   memset(fd, 0, sizeof(FontData));
   return 0;
 }
+errr bmpToFont(FontData *fd, cptr filename) {
+  //TODO: Implement
+  return 1;
+}
+
+#ifdef USE_SDL2_TTF
 /* ttfToFont
 This function takes the given FontData structure and attempts to make a Glyph Table texture from the filename at the point size fontsize with sharp or smooth rendering via the smoothing boolean.
 */
@@ -1072,6 +1094,7 @@ errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   TTF_CloseFont(font);
   return 0;
 }
+#endif
 /* ==== Pict-related functions ==== */
 errr cleanPictData(PictData *pd) {
   if (pd->surface) SDL_FreeSurface(pd->surface);
@@ -1082,13 +1105,20 @@ errr cleanPictData(PictData *pd) {
 errr imgToPict(PictData *pd, cptr filename) {
   Uint32 width, height;
   char buf[1036];
+  char *image_error;
   if (pd->w || pd->h || pd->surface) return 1; // return if PictData is unclean
   // Get and open our image from the xtra dir
   path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
   // Load 'er up
+#ifndef USE_SDL2_IMAGE
+  pd->surface = SDL_LoadBMP(buf);
+  if (pd->surface == NULL) image_error = SDL_GetError();
+#else
   pd->surface = IMG_Load(buf);
+  if (pd->surface == NULL) image_error = IMG_GetError();
+#endif
   if (pd->surface == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", IMG_GetError(), NULL);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", image_error, NULL);
     return 1;
   }
   // Cool, get our dimensions

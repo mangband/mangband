@@ -3,8 +3,12 @@
 /* Original SDL2 written by "kts of kettek (kettek1@kettek.net)". */
 
 #include <SDL.h>
+#ifdef USE_SDL2_IMAGE
 #include <SDL_image.h>
+#endif
+#ifdef USE_SDL2_TTF
 #include <SDL_ttf.h>
+#endif
 #ifdef __APPLE__
 // This is for setting the "root" path to the app's current dir on Mac OS X
 // see first few lines of init_sdl2()
@@ -142,7 +146,9 @@ errr loadPict(TermData *td, cptr filename);
 errr unloadPict(TermData *td);
 errr attachPict(PictData *pd, TermData *td);
 errr detachPict(TermData *td);
+#ifdef USE_SDL2_TTF
 errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing);
+#endif
 errr cleanFontData(FontData *fd);
 
 errr imgToPict(PictData *pd, cptr filename);
