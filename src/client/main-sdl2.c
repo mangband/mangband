@@ -96,18 +96,18 @@ errr init_sdl2(int argc, char **argv) {
   process_pref_file(buf);
   // **** Initialize SDL libraries ****
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SDL_Init()", SDL_GetError(), NULL);
+    plog_fmt("SDL_Init(): %s", SDL_GetError());
     return 1;
   }
 #ifdef USE_SDL2_IMAGE
   if (IMG_Init(IMG_INIT_PNG) == -1) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "IMG_Init()", IMG_GetError(), NULL);
+    plog_fmt("IMG_Init(): %s", IMG_GetError());
     return 2;
   }
 #endif
 #ifdef USE_SDL2_TTF
   if (TTF_Init() == -1) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "TTF_Init()", TTF_GetError(), NULL);
+    plog_fmt("TTF_Init(): %s", TTF_GetError());
     return 3;
   }
 #endif
@@ -159,14 +159,12 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
     /* Initialize SDL2 window */
     if ((td->window = SDL_CreateWindow(td->title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
       width, height, SDL_WINDOW_RESIZABLE)) == NULL) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create Window",
-          SDL_GetError(), NULL);
+        plog_fmt("Could not create Window: %s", SDL_GetError());
         return 1;
     }
     td->window_id = SDL_GetWindowID(td->window);
     if ((td->renderer = SDL_CreateRenderer(td->window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_TARGETTEXTURE)) == NULL) {
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create Renderer",
-        SDL_GetError(), NULL);
+      plog_fmt("Could not create Renderer: %s", SDL_GetError());
       return 1;
     }
   }
@@ -208,7 +206,7 @@ static errr applyTermConf(TermData *td) {
       // uhoh, let's try to load default
       if (loadFont(td, default_font, default_font_size, (td->config & TERM_FONT_SMOOTH ? 1 : 0)) != 0) {
         // UHOH, we even the default font doesn't work
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "applyTermConf", "Could not load any usable fonts!", td->window);
+        plog("Could not load any usable fonts!");
       }
     }
   }
@@ -218,7 +216,7 @@ static errr applyTermConf(TermData *td) {
   }
   if (td->pict_file[0] != '\0') {
     if (loadPict(td, td->pict_file) != 0) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "applyTermConf", "Could not load pict file!", td->window);
+        plog("Could not load pict file!");
     }
   }
   // apply cell mode settings
@@ -254,7 +252,7 @@ static errr refreshTerm(TermData *td) {
   if (td->framebuffer) SDL_DestroyTexture(td->framebuffer);
 
   if ((td->framebuffer = SDL_CreateTexture(td->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h)) == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "refreshTerm", SDL_GetError(), td->window);
+    plog_fmt("refreshTerm: %s", SDL_GetError());
     return 1;
   }
   td->width = w;
@@ -333,7 +331,7 @@ errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
       return 0;
     }
   }
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "loadFont()", font_error, NULL);
+  plog_fmt("loadFont(): %s", font_error, NULL);
   return 1;
 }
 /* unloadFont
@@ -358,8 +356,7 @@ needed Term options.
 */
 errr attachFont(FontData *fd, TermData *td) {
   if ((td->font_texture = SDL_CreateTextureFromSurface(td->renderer, fd->surface)) == NULL) {
-    //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "attachFont Error", SDL_GetError(), td->window);
-    printf("Error: attachFont(): %s\n", SDL_GetError());
+    plog_fmt("Error: attachFont(): %s\n", SDL_GetError());
     return 1;
   }
   SDL_SetTextureBlendMode(td->font_texture, SDL_BLENDMODE_BLEND);
@@ -398,7 +395,7 @@ errr loadPict(TermData *td, cptr filename) {
       return 0;
     }
   }
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "loadPict()", "Could not load pict data!", NULL);
+  plog_fmt("loadPict(): %s", "Could not load pict data!");
   return 1;
 }
 /* unloadPict
@@ -422,7 +419,7 @@ This function creates an SDL_Texture from the given PictData's surface. It then 
 */
 errr attachPict(PictData *pd, TermData *td) {
   if ((td->pict_texture = SDL_CreateTextureFromSurface(td->renderer, pd->surface)) == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "attachPict Error", SDL_GetError(), td->window);
+    plog_fmt("attachPict Error: %s", SDL_GetError());
     return 1;
   }
   td->pict_data = pd;
@@ -1057,7 +1054,7 @@ errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
   font = TTF_OpenFont(buf, fontsize);
   if (!font) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ttfToFont", TTF_GetError(), NULL);
+    plog_fmt("ttfToFont: %s", TTF_GetError());
     return 1;
   }
   // Poorly get our font metrics and maximum cell size in pixels
@@ -1073,7 +1070,7 @@ errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   // Create our glyph surface that will store 256 characters in a 16x16 matrix
   fd->surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
   if (fd->surface == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ttfToFont", SDL_GetError(), NULL);
+    plog_fmt("ttfToFont: %s", SDL_GetError());
     TTF_CloseFont(font);
     return 1;
   }
@@ -1118,19 +1115,19 @@ errr imgToPict(PictData *pd, cptr filename) {
   if (pd->surface == NULL) image_error = IMG_GetError();
 #endif
   if (pd->surface == NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", image_error, NULL);
+    plog_fmt("imgToPict: %s", image_error);
     return 1;
   }
   // Cool, get our dimensions
   width = 0, height = 0;
   if (strtoii(filename, &width, &height) != 0) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", "some strtoii error", NULL);
+    plog_fmt("imgToPict: %s", "some strtoii error");
     SDL_FreeSurface(pd->surface);
     pd->surface = NULL;
     return 2;
   }
   if (width == 0 || height == 0) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "imgToPict", "width or height of 0 is not allowed!", NULL);
+    plog_fmt("imgToPict: %s", "width or height of 0 is not allowed!");
     SDL_FreeSurface(pd->surface);
     pd->surface = NULL;
     return 3;
