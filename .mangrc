@@ -68,3 +68,30 @@ Cols 0
 Rows 0
 PositionX 0
 PositionY 0
+
+[SDL2]
+; term_mode may be: "window" or "virtual"
+term_mode=window
+; font_file is the default fallback font if "font_file is not declared in a window
+; font_file=font/AnonymousPro.ttf
+font_file=font/qbfat8x8.bmp
+; font_size is the fallback font size
+font_size=12
+
+[SDL2-window-0]
+title=MAngband
+pict_file=16x16.png
+font_size=16
+[SDL2-window-1]
+title=Character Sheet
+font_size=16
+[SDL2-window-2]
+title=Equipment
+[SDL2-window-3]
+title=Inventory
+[SDL2-window-4]
+title=Chat
+[SDL2-window-5]
+hidden=1
+[SDL2-window-6]
+hidden=1
