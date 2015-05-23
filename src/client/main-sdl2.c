@@ -114,7 +114,7 @@ errr init_sdl2(int argc, char **argv) {
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
-  strcpy(default_font, "font/AnonymousPro.ttf"); // eww
+  strcpy(default_font, conf_get_string("SDL2", "font_file", "font/qbfat8x8.bmp")); // eww
   loadConfig();
   // **** Merge command-line ****
   // **** Load Fonts and Picts ****
@@ -1041,8 +1041,45 @@ errr cleanFontData(FontData *fd) {
   return 0;
 }
 errr bmpToFont(FontData *fd, cptr filename) {
-  //TODO: Implement
-  return 1;
+  SDL_Color pal[2];
+  SDL_Surface *font;
+  int width, height;
+  int i;
+  char buf[1036];
+  if (fd->w || fd->h || fd->surface) return 1; // Return if FontData is not clean
+  // Get and open our BMP font from the xtra dir
+  path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
+  font = SDL_LoadBMP(buf);
+  if (!font) {
+    plog_fmt("bmpToFont: %s", SDL_GetError());
+    return 1;
+  }
+  // Poorly get our font metrics and maximum cell size in pixels
+  width = 0;
+  height = 0;
+  if (strtoii(filename, &width, &height) != 0) {
+
+  }
+  fd->w = fd->dw = width;
+  fd->h = fd->dh = height;
+
+  pal[0].r = pal[0].g = pal[0].b = pal[0].a = 0;
+
+  pal[1].r = 255;
+  pal[1].g = 255;
+  pal[1].b = 255;
+  pal[1].a = 255;
+  //SDL_SetColors(font, pal, 0, 2);//SDL1
+  SDL_SetPaletteColors(font->format->palette, pal, 0, 2);
+
+  // Create our glyph surface that will store 256 characters in a 16x16 matrix
+  fd->surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
+
+  SDL_Rect full_rect = { 0, 0, font->w, font->h };
+  SDL_BlitSurface(font, &full_rect, fd->surface, &full_rect);
+
+  plog_fmt("Loaded font: %s (%d x %d)", filename, width, height);
+  return 0;
 }
 
 #ifdef USE_SDL2_TTF
