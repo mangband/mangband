@@ -46,3 +46,4 @@ src/server/.deps/
 src/server/.dirstamp
 src/stamp-h1
 
+lib/data/*.raw
