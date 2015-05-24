@@ -974,7 +974,7 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		}
 		switch (i)
 		{
-			//case 0:	p_ptr->use_graphics  = val; break;
+			case 0:	p_ptr->use_graphics  = val; break;
 			case 3:	p_ptr->hitpoint_warn = val; break; 
 			default: break;
 		}
