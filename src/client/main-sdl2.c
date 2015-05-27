@@ -42,6 +42,7 @@ NOTES:
 
 #ifdef USE_SDL2
 #include "main-sdl2.h"
+#include "sdl-font.h"
 #ifdef WINDOWS
 #define snprintf _snprintf
 double fmin(double x, double y) {
@@ -105,16 +106,14 @@ errr init_sdl2(int argc, char **argv) {
     return 2;
   }
 #endif
-#ifdef USE_SDL2_TTF
-  if (TTF_Init() == -1) {
-    plog_fmt("TTF_Init(): %s", TTF_GetError());
+  if (sdl_font_init() == -1) {
+    plog("sdl_font_init(): fatal error");
     return 3;
   }
-#endif
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
-  strcpy(default_font, conf_get_string("SDL2", "font_file", "font/qbfat8x8.bmp")); // eww
+  strcpy(default_font, conf_get_string("SDL2", "font_file", "qbfat8x8.bmp")); // eww
   loadConfig();
   // **** Merge command-line ****
   // **** Load Fonts and Picts ****
@@ -317,16 +316,12 @@ errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
   // font data does not exist, let's create it in the first available FontData slot
   for (i = 0; i < TERM_MAX; i++) {
     if (fonts[i].surface == NULL) {
-#ifdef USE_SDL2_TTF
-      if (ttfToFont(&fonts[i], filename, fontsize, smoothing) != 0) {
-        font_error = TTF_GetError();
-        break; // error!
+
+      if (fileToFont(&fonts[i], filename, fontsize, smoothing) != 0) {
+        font_error = "Can't load font";
+        break; //error
       }
-#else
-      if (bmpToFont(&fonts[i], filename) != 0) {
-        font_error = SDL_GetError();
-        break; // error!      }
-#endif
+
       attachFont(&fonts[i], td);
       return 0;
     }
@@ -460,9 +455,7 @@ static void nukeTermHook(term *t) {
 #ifdef USE_SDL2_IMAGE
     IMG_Quit();
 #endif
-#ifdef USE_SDL2_TTF
-    TTF_Quit();
-#endif
+    sdl_font_quit();
     SDL_Quit();
   }
 }
@@ -1040,100 +1033,30 @@ errr cleanFontData(FontData *fd) {
   memset(fd, 0, sizeof(FontData));
   return 0;
 }
-errr bmpToFont(FontData *fd, cptr filename) {
-  SDL_Color pal[2];
-  SDL_Surface *font;
-  int width, height;
-  int i;
-  char buf[1036];
+errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
+  SDL_Rect info, full;
+  SDL_Surface *surface;
+
   if (fd->w || fd->h || fd->surface) return 1; // Return if FontData is not clean
-  // Get and open our BMP font from the xtra dir
-  path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
-  font = SDL_LoadBMP(buf);
-  if (!font) {
-    plog_fmt("bmpToFont: %s", SDL_GetError());
+
+  surface = sdl_font_load(filename, &info, fontsize, smoothing);
+
+  if (surface == NULL) {
     return 1;
   }
-  // Poorly get our font metrics and maximum cell size in pixels
-  width = 0;
-  height = 0;
-  if (strtoii(filename, &width, &height) != 0) {
 
-  }
-  fd->w = fd->dw = width;
-  fd->h = fd->dh = height;
+  fd->w = info.w;
+  fd->h = info.h;
 
-  pal[0].r = pal[0].g = pal[0].b = pal[0].a = 0;
+  /* Convert to 32bpp surface */
+  fd->surface = SDL_CreateRGBSurface(0, surface->w, surface->h, 32, 0, 0, 0, 0);
+  SDL_BlitSurface(surface, NULL, fd->surface, NULL);
+  SDL_SaveBMP(surface, "old.bmp");
+  SDL_SaveBMP(surface, "new.bmp");
+  SDL_FreeSurface(surface);
 
-  pal[1].r = 255;
-  pal[1].g = 255;
-  pal[1].b = 255;
-  pal[1].a = 255;
-  //SDL_SetColors(font, pal, 0, 2);//SDL1
-  SDL_SetPaletteColors(font->format->palette, pal, 0, 2);
-
-  // Create our glyph surface that will store 256 characters in a 16x16 matrix
-  fd->surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
-
-  SDL_Rect full_rect = { 0, 0, font->w, font->h };
-  SDL_BlitSurface(font, &full_rect, fd->surface, &full_rect);
-
-  plog_fmt("Loaded font: %s (%d x %d)", filename, width, height);
   return 0;
 }
-
-#ifdef USE_SDL2_TTF
-/* ttfToFont
-This function takes the given FontData structure and attempts to make a Glyph Table texture from the filename at the point size fontsize with sharp or smooth rendering via the smoothing boolean.
-*/
-errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
-  TTF_Font *font;
-  int minx, maxx, miny, maxy, width, height;
-  int i;
-  char buf[1036];
-  if (fd->w || fd->h || fd->surface) return 1; // Return if FontData is not clean
-  // Get and open our TTF font from the xtra dir
-  path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
-  font = TTF_OpenFont(buf, fontsize);
-  if (!font) {
-    plog_fmt("ttfToFont: %s", TTF_GetError());
-    return 1;
-  }
-  // Poorly get our font metrics and maximum cell size in pixels
-  width = 0;
-  height = 0;
-  for (i = 0; i < 255; i++) {
-    TTF_GlyphMetrics(font, (char)i, &minx, &maxx, &miny, &maxy, NULL);
-    if (minx+maxx > width) width = minx+maxx;
-    if (miny+maxy > height) height = miny+maxy;
-  }
-  fd->w = fd->dw = width;
-  fd->h = fd->dh = height;
-  // Create our glyph surface that will store 256 characters in a 16x16 matrix
-  fd->surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
-  if (fd->surface == NULL) {
-    plog_fmt("ttfToFont: %s", SDL_GetError());
-    TTF_CloseFont(font);
-    return 1;
-  }
-  // Painstakingly create each glyph as a surface and blit to our glyphs surface
-  {
-    int ch = 0;
-    for (ch = 0; ch < 256; ch++) {
-      SDL_Color color = { 255, 255, 255 };
-      SDL_Surface *char_surface = (smoothing ? TTF_RenderGlyph_Blended(font, ch, color) : TTF_RenderGlyph_Solid(font, ch, color));
-      int row = ch / 16;
-      int col = ch - (row*16);
-      SDL_Rect glyph_rect = { col*width, row*height, width, height };
-      SDL_BlitSurface(char_surface, NULL, fd->surface, &glyph_rect);
-      SDL_FreeSurface(char_surface);
-    }
-  }
-  // We're done with the font
-  TTF_CloseFont(font);
-  return 0;
-}
-#endif
 /* ==== Pict-related functions ==== */
 errr cleanPictData(PictData *pd) {
   if (pd->surface) SDL_FreeSurface(pd->surface);

@@ -48,6 +48,9 @@ AC_CHECK_LIB([SDL], [main], have_sdl="yes")
 
 AC_CHECK_LIB([SDL2], [main], have_sdl2="yes")
 
+AC_CHECK_LIB([SDL_image], [IMG_Load], have_sdl_image="yes")
+AC_CHECK_LIB([SDL_ttf], [TTF_Init], have_sdl_ttf="yes")
+
 AC_CHECK_LIB([SDL2_image], [IMG_Load], have_sdl2_image="yes")
 AC_CHECK_LIB([SDL2_ttf], [TTF_Init], have_sdl2_ttf="yes")
 
@@ -73,6 +76,8 @@ AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=ye
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
 AC_ARG_WITH(sdl2, AC_HELP_STRING([--with-sdl2],[Build with SDL2 support [default=yes]]), with_sdl2=$withval, with_sdl2="yes")
 
+AC_ARG_WITH(sdl-image, AC_HELP_STRING([--with-sdl-image],[Build with SDL_Image support [default=yes]]), with_sdl_image=$withval, with_sdl_image="yes")
+AC_ARG_WITH(sdl-ttf, AC_HELP_STRING([--with-sdl-ttf],[Build with SDL_TTF support [default=yes]]), with_sdl_ttf=$withval, with_sdl_ttf="yes")
 AC_ARG_WITH(sdl2-image, AC_HELP_STRING([--with-sdl2-image],[Build with SDL2_Image support [default=yes]]), with_sdl2_image=$withval, with_sdl2_image="yes")
 AC_ARG_WITH(sdl2-ttf, AC_HELP_STRING([--with-sdl2-ttf],[Build with SDL2_TTF support [default=yes]]), with_sdl2_ttf=$withval, with_sdl2_ttf="yes")
 
@@ -92,6 +97,14 @@ fi
 if test "x$have_sdl2" = xyes && test "x$with_sdl2" = xyes 
 then
     enabled_sdl2="yes"
+fi
+if test "x$have_sdl_image" = xyes && test "x$with_sdl_image" = xyes
+then
+    enabled_sdl_image="yes"
+fi
+if test "x$have_sdl_ttf" = xyes && test "x$with_sdl_ttf" = xyes
+then
+    enabled_sdl_ttf="yes"
 fi
 if test "x$have_sdl2_image" = xyes && test "x$with_sdl2_image" = xyes 
 then
@@ -116,6 +129,21 @@ fi
 if test "x$enabled_sdl" = xyes && test "x$enabled_sdl2" = xyes
 then
     enabled_sdl="no"
+fi
+
+# If we don't have SDL, disable SDL_image and SDL_ttf
+if test "x$enabled_sdl" != xyes
+then
+    enabled_sdl_image="no"
+    enabled_sdl_ttf="no"
+    AC_MSG_NOTICE([Disabling SDL helper libs.])
+fi
+# If we don't have SDL2, disable SDL2_image and SDL2_ttf
+if test "x$enabled_sdl2" != xyes
+then
+    enabled_sdl2_image="no"
+    enabled_sdl2_ttf="no"
+    AC_MSG_NOTICE([Disabling SDL2 helper libs.])
 fi
 
 # If we have nothing, enable GCU
@@ -171,6 +199,20 @@ then
     CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl2-config --libs` -lm"
     DISPMOD="$DISPMOD SDL2"
 fi
+#SDL_image
+if test "x$enabled_sdl_image" = xyes
+then
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL_IMAGE"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL_image"
+    DISPMOD="$DISPMOD SDL_image"
+fi
+#SDL_ttf
+if test "x$enabled_sdl_ttf" = xyes
+then
+    CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL_TTF"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL_ttf"
+    DISPMOD="$DISPMOD SDL_ttf"
+fi
 #SDL2_image
 if test "x$enabled_sdl2_image" = xyes
 then
@@ -183,7 +225,7 @@ if test "x$enabled_sdl2_ttf" = xyes
 then
     CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL2_TTF"
     CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL2_ttf"
-    DISPMOD="$DISPMOD SDL2"
+    #DISPMOD="$DISPMOD SDL2_ttf"
 fi
 
 #added this conditional for WINDRES causing linux build to bail - is this even right? -kts

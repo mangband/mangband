@@ -41,6 +41,7 @@ static cptr GFXNAME[] = { 0, "old", "new", "david" };
 #include <SDL/SDL.h>
 #include <string.h>
 
+#include "sdl-font.h"
 
 /* local functions */
 static void play_sound_end(bool wait);
@@ -432,251 +433,28 @@ errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 }
 
 /*
- * Load a HEX font.
- * See http://czyborra.com/unifont/
- *
- * XXX Note. Your file should not be all full-width glyphs. At least one
- * half-width glyph must be present for my lame algorithm to work.
- * It is OK to have all half-width glyphs.
- * 
- * This routine will try to use strtoii() to figure out the font's bounding
- * box from the filename. This seems to be an acceptable thing to try, 
- * as seen in main-win.c
- *
- * FIXME
- * BUGS: There is no attempt made at figuring out a righteous bounding box.
- *	      Certain HEX fonts can be *wider* than 16 pixels. They may break.
- *
- *	What we need is a BDF loader. It's not a high priority though.
- *
+ * Load SDL font.
+ * "load_HEX_font_sdl" was moved to sdl-font.c
  */
-
-#define highhextoi(x) (strchr("ABCDEF", (x))? 0xA + ((x)-'A'):0)
-#define hexchartoi(x) (strchr("0123456789", (x))? (x)-'0' : highhextoi((x)))
-
-#ifndef MAX_HEX_FONT_LINE
-#define MAX_HEX_FONT_LINE 1024
-#endif
- 
-errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
+errr load_ANY_font_sdl(font_data *fd, cptr filename)
 {
-	FILE *f;
-
-	char buf[1036]; /* 12 (or 11? ;->)extra bytes for good luck. */
-
-	char gs[MAX_HEX_FONT_LINE]; /* glyph string */
-
-	Uint32 i,j;
-
-	errr fail = 0; /* did we fail? */
-
-	Uint32 x; /* current x in fd->face */
-	Uint32 y; /* current y in fd->face */
-
-	Uint32 gn; /* current glyph n */
-
-	Uint32 n; /* current nibble or byte or whatever data from file */
-
-	Uint32 pos; /* position in the nasty string */
-
-	Uint32 bytesdone; /* bytes processed */
-
-	Uint32 mw, mh; /* for strtoii() */
-
-	Uint32 iw, ih; /* internal width and height. sometimes larger then final character size */
-
+	SDL_Rect info;
+	SDL_Surface *face;
 
 	/* check font_data */
-	if (fd->w || fd->h || fd->face) return 1; /* dealloc it first, dummy. */
+	if (fd->w || fd->h || fd->face) return -1; /* dealloc it first, dummy. */
 
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+	face = sdl_font_load(filename, &info, 0, 0);
 
-	f = fopen(buf, "r");
-
-	if (!f) 
+	if (!face)
 	{
-		plog(format("Couldn't open: %s", buf));
 		return -1;
 	}
 
-	
-
-	/* try hard to figure out the font metrics */
-
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
-	{
-		i = strlen(gs);
-
-		if (gs[i-1] == '\n') i--;
-		if (gs[i-1] == '\r') i--;
-		
-		i -= 5; /* each line begins with 1234: */
-
-		/* now i is the number of nibbles in the line */
-
-		if (i & 1)
-		{
-			plog("Error in HEX line measurment. Report to hmaon@bumba.net.");
-			fclose(f);
-			fail = -1;
-			break;
-		}
-
-		i >>= 1; /* i is number of bytes */
-
-		if (!fd->h)
-		{
-			fd->w = 8; /* a nasty guess. */
-			fd->h = i;
-			/*if (i & 1) break;*/ /* odd number of bytes. this is the height. */
-		} else 
-		{
-			if (i > fd->h) {
-				fd->w = 16; /* an even nastier guess (full-width glyphs here) */
-				if(fd -> h / 2 == i / 3)
-				{
-					/* this sucks. */
-					fd->h = i / 3;
-					fd->w = 24;
-				} else
-				if(i != (fd->h)*2) /* check sanity and file integrity */
-				{
-					plog("Error 2 in HEX measurement.");
-					/*fail = -1;*/
-				}
-				break; /* this is a full-width glyph. We have the height. */
-			} else
-			if (i < fd->h) {
-				if (i*2 != fd->h)
-				{
-					plog("Error 3 in HEX measurement.");
-					/*fail = -1;*/
-				}
-				fd->w = 16; /* the same nastier guess. */
-				fd->h = i; /* Ah, so this is the height */
-			}
-			/* they're equal. we can say nothing about the glyph height */
-		}
-	}
-
-	/* Use those dimensions for reading anyway */
-	iw = fd->w;
-	ih = fd->h;
-	
-	/* analyze the file name */
-	if(!strtoii(filename, &mw, &mh))
-	{
-		/* success! */
-		fd->w = mw;
-		fd->h = mh;
-	} else {
-		plog("You may wish to incude the dimensions of a font in its file name. ie \"vga8x16.hex\"");
-	}
-
-	if (justmetrics) 
-	{
-		fclose(f);
-		return fail;
-	}
-
-	/* Allocate the bitmap here. */
-	fd->face = SDL_CreateRGBSurface(SDL_SWSURFACE, iw, 256 * ih, 8,0,0,0,0); 
-	if(!(fd->face)) return -1;
-	SDL_SetAlpha(fd->face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
-
-	rewind(f);
-
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
-	{
-#ifdef FONT_LOAD_DEBUGGING
-		puts("");
-		puts(gs);
-#endif
-		/* figure out character code (aka index). xxxx:... */
-		if (sscanf(gs, "%4x", &gn) != 1)
-		{
-			plog("Broken HEX file.");
-			fail = -1;
-			break;
-		}
-
-#ifdef FONT_LOAD_DEBUGGING
-		printf("%4x:\n", gn);
-#endif
-		if (gn > 255) {
-			gn = 255;
-		}
-
-		x = 0; 
-		y = fd->h * gn;
-		
-		i = strlen(gs);
-
-		if (gs[i-1] == '\n') {
-			i--;
-			gs[i] = '\0';
-		}
-		if (gs[i-1] == '\r') 
-		{
-			i--;
-			gs[i] = '\0';
-		}
-		
-		i -= 5; /* each line begins with 1234: */
-		/* now i is the number of nibbles represented in the line */
-		i >>= 1; /* now bytes. */
-
-		pos = 5;
-		bytesdone = 0; 
-
-		while (gs[pos] != '\0' && pos < strlen(gs)) 
-		{
-			n  = (hexchartoi(gs[pos])) << 4; pos++; 
-			n += (hexchartoi(gs[pos])); pos++;
-			/* they're macros. do NOT pass a "pos++" to them! :) :) :) */
-
-			for(j = 0; j < 8; ++j, ++x, n <<= 1)
-			{
-				if (n & 0x80) 
-				{
-#ifdef FONT_LOAD_DEBUGGING
-					printf("#");
-#endif
-					((Uint8 *)fd->face->pixels)[x + y*fd->face->pitch] = 0xff;
-				} else
-				{
-#ifdef FONT_LOAD_DEBUGGING
-					printf("-");
-#endif
-					((Uint8 *)fd->face->pixels)[x + y*fd->face->pitch] = 0x00;
-				}
-			}
-			++bytesdone;
-
-			/* processing half-width glyph or just finished even byte */
-			if (i == ih || ((i == 2*ih) && !(bytesdone & 1))) 
-			{
-				x = 0;
-				++y;
-#ifdef FONT_LOAD_DEBUGGING
-				printf("\n");
-#endif
-			} else if (i == 2*ih)
-			{
-				/* XXX do nothing? */
-			} else 
-			{
-				/* XXX XXX XXX softer errors since HEX seems to actually permit
-				 * this situation
-				 */
-				/*plog("HEX measurement error, fd->h is not a multiple of i.");*/
-				/*fail = -1;*/
-			}
-		} /* while (gs[pos... */
-	} /* while (fgets... */
-
-	return fail;
+	fd->face = face;
+	fd->w = info.w;
+	fd->h = info.h;
+	return 0;
 }
 
 /* Helper functions end here. Let's do some GUI functions now */
@@ -1166,8 +944,8 @@ void SDL_PrintChar(term_data* td, int x, int y, Uint32 a, unsigned char c) {
 	dr.w = sr.w = td->fd->w;
 	dr.h = sr.h = td->fd->h;
 
-	sr.x = 0;
-	sr.y = c * td->fd->h;
+	sr.x = (c % 16) * td->fd->w;
+	sr.y = (c / 16) * td->fd->h;
 
 	dr.x = x * td->fd->w + td->xoff;
 	dr.y = y * td->fd->h + td->yoff;
@@ -1177,7 +955,8 @@ void SDL_PrintChar(term_data* td, int x, int y, Uint32 a, unsigned char c) {
 	dc.g = a >> 8;
 	dc.b = a;
 
-	SDL_SetColors(td->fd->face, &dc, 0xff, 1);
+	if (td->fd->face->format->BitsPerPixel == 8)
+	SDL_SetColors(td->fd->face, &dc, 0x01, 1);
 	SDL_SetColorKey(td->fd->face, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
 	SDL_BlitSurface(td->fd->face, &sr, bigface, &dr);
 	SDL_SetColorKey(td->fd->face, SDL_RLEACCEL, 0);
@@ -1204,14 +983,14 @@ void SDL_BlitChar_AUX(term_data* td, font_data *fd, int x, int y, byte a, unsign
 	sr.w = dr.w = fd->w;
 	sr.h = dr.h = fd->h;
 		
-	sr.x = 0;
-	sr.y = c * fd->h;
+	sr.x = (c % 16) * fd->w;
+	sr.y = (c / 16) * fd->h;
 
 	/* Tweaking pallete with SDL_SetColors is not optimal AT ALL */
 	if (td->fd->precolorized)
 		sr.x = a * fd->w;
 	else
-		SDL_SetColors(fd->face, &(color_data_sdl[a&0xf]), 0xff, 1);
+		SDL_SetColors(fd->face, &(color_data_sdl[a&0xf]), 0x01, 1);
 		
 #ifdef SINGLE_SURFACE
 	dr.x += td->xoff;
@@ -2323,7 +2102,7 @@ bool term_set_font(int i, cptr fontname)
 		MAKE(load_font, font_data);
 		memset(load_font, 0, sizeof(font_data));
 		load_font->face = NULL;
-		if (!load_HEX_font_sdl(load_font, fontname, 0)); 
+		if (!load_ANY_font_sdl(load_font, fontname));
 		{
 			load_font->name = string_make(fontname);
 			td->fd = load_font;
@@ -2796,6 +2575,9 @@ errr init_sdl(void)
 #ifdef USE_SOUND
 	load_sound_prefs();
 #endif
+
+	/* Init font loading sublibraries */
+	sdl_font_init();
 
 	/* Init all 'Terminals' */
 	init_all_terms();
