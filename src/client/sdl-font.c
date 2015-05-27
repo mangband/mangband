@@ -101,7 +101,7 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	SDL_SetPaletteColors(font->format->palette, pal, 0, 2);
 #endif
 
-	SDL_SaveBMP(font, "oldest.bmp");
+	//SDL_SaveBMP(font, "original_font.bmp");//debug
 
 	// Create our glyph surface that will store 256 characters in a 16x16 matrix
 	surface = SDL_CreateRGBSurface(0, width*16, height*16, font->format->BitsPerPixel, 0, 0, 0, 0);

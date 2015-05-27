@@ -1051,8 +1051,8 @@ errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   /* Convert to 32bpp surface */
   fd->surface = SDL_CreateRGBSurface(0, surface->w, surface->h, 32, 0, 0, 0, 0);
   SDL_BlitSurface(surface, NULL, fd->surface, NULL);
-  SDL_SaveBMP(surface, "old.bmp");
-  SDL_SaveBMP(surface, "new.bmp");
+  //SDL_SaveBMP(surface, "old_font.bmp");//debug
+  //SDL_SaveBMP(surface, "new_font.bmp");//debug
   SDL_FreeSurface(surface);
 
   return 0;
