@@ -546,21 +546,30 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		FONT_HEX,
 		FONT_TTF,
 		FONT_FON,
+		FONT_FNT,
 	} fonttype;
+	int fontdefault;
 	char* typenames[] = {
 		".bmp",
 		".hex",
 		".ttf",
-		".fon"
+		".fon",
+		".fnt",
 	};
+
+#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
+	fontdefault = FONT_TTF;
+#else
+	fontdefault = FONT_BMP;
+#endif
 
 	/* Extract file extension */
 	ext = strrchr(filename, '.');
 
-	/* Failed to get extension? Assume .. bmp font */
-	if (ext == NULL) 
+	/* Failed to get extension? */
+	if (ext == NULL)
 	{
-		fonttype = FONT_BMP;
+		fonttype = fontdefault;
 	}
 	else if (!strcasecmp(ext, typenames[FONT_HEX]))
 	{
@@ -570,9 +579,16 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	{
 		fonttype = FONT_TTF;
 	}
+	else if (!strcasecmp(ext, typenames[FONT_FON]))
+	{
+		fonttype = FONT_FON;
+	}
 	else if (!strcasecmp(ext, typenames[FONT_BMP]))
 	{
 		fonttype = FONT_BMP;
+	}
+	else {
+		fonttype = fontdefault;
 	}
 
 	SDL_Rect glyph_info;
@@ -583,15 +599,21 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		case FONT_HEX:
 			surface = load_HEX_font_sdl_(info, filename);
 		break;
+		case FONT_FON:
+		case FONT_FNT:
+		/*
+		* if we ever implement our own .FON loading, it will go here.
+		* for now, drop to SDL_ttf, which can actually load them
+		*
+		* //surface = fonToFont(info, filename, :raw_fnt => fonttype == FONT_FNT ? 1 : 0)
+		* //break;
+		*/
 		case FONT_TTF:
-		#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF) 
+		#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 			surface = ttfToFont(info, filename, fontsize, smoothing);
 		#else
 			plog_fmt("compiled without ttf support, can't load %s\n", filename);
 		#endif
-		break;
-		case FONT_FON:
-			plog("can't load FON files :(\n");
 		break;
 		default:
 		case FONT_BMP:
