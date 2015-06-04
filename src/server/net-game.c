@@ -452,6 +452,7 @@ int send_item_tester_info(connection_type *ct, int id)
 int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -462,6 +463,7 @@ int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -472,6 +474,7 @@ int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte f
 int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -482,6 +485,7 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	return cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val);
 }
 
@@ -542,12 +546,14 @@ int send_message_repeat(int Ind, u16b typ)
 int send_sound(int Ind, int sound)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	return cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound);
 }
 
 int send_channel(int Ind, char mode, u16b id, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	return cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
 }
 
