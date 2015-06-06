@@ -568,9 +568,7 @@ void cmd_inven(void)
 
 void cmd_equip(void)
 {
-	/* The whole screen is "icky" */
-	screen_icky = TRUE;
-
+	/* Save the screen */
 	Term_save();
 
 	command_gap = 50;
@@ -578,6 +576,7 @@ void cmd_equip(void)
 	/* Hack -- show empty slots */
 	item_tester_full = TRUE;
 
+	/* Show equip and *make screen icky */
 	show_equip();
 
 	/* Undo the hack above */
@@ -588,7 +587,7 @@ void cmd_equip(void)
 	Term_load();
 
 	/* The screen is OK now */
-	screen_icky = FALSE;
+	section_icky_row = section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();

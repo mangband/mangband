@@ -1102,6 +1102,10 @@ void show_equip(void)
 
 	/* Save the new column */
 	command_gap = col;
+
+	/* Make screen icky */
+	section_icky_row = j + 2;
+	section_icky_col = 0 - (Term->wid - col) - 2;
 }
 
 
