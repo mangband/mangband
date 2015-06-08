@@ -19,7 +19,11 @@ static byte		command_pkt[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
-	return cq_printf(&ct->wbuf, "%c%b", PKT_PLAY, mode);
+	if (!cq_printf(&ct->wbuf, "%c%b", PKT_PLAY, mode))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_quit(connection_type *ct, const char *reason) 
@@ -51,7 +55,11 @@ int send_server_info(connection_type *ct)
 
 int send_char_info(connection_type *ct, player_type *p_ptr)
 {
-	return cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_CHAR_INFO, p_ptr->state, p_ptr->prace, p_ptr->pclass, p_ptr->male);
+	if (!cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_CHAR_INFO, p_ptr->state, p_ptr->prace, p_ptr->pclass, p_ptr->male))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_race_info(connection_type *ct)
@@ -405,7 +413,11 @@ int send_term_header(player_type *p_ptr, cptr header)
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1 || ct == NULL) return -1;
 
-	return cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header);
+	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_custom_command_info(connection_type *ct, int id)
@@ -486,7 +498,11 @@ int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	return cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val);
+	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_character_info(player_type *p_ptr)
@@ -531,7 +547,11 @@ int send_message(int Ind, cptr msg, u16b typ)
 	strncpy(buf, msg, 78);
 	buf[78] = '\0';
 
-	return cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf);
+	if (!cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_message_repeat(int Ind, u16b typ)
@@ -540,21 +560,33 @@ int send_message_repeat(int Ind, u16b typ)
 
 	if (!ct) return -1;
 
-	return cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ);
+	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_sound(int Ind, int sound)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	return cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound);
+	if (!cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_channel(int Ind, char mode, u16b id, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	return cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
+	if (!cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int recv_channel(connection_type *ct, player_type *p_ptr)
