@@ -1512,7 +1512,7 @@ static errr rd_cave_memory(player_type *p_ptr)
 }
 
 /* XXX XXX XXX 
- * This function parses savefile as if it is a text file, searching for
+ * This function parses savefile as if it was a text file, searching for
  * pass = , prace = , etc strings. It ignores the 'xml' format for sake
  * of maintance simplicity (i.e. it doesn't care about savefile format
  * changes). It attempts to read out the race/class/sex info and 
@@ -1520,7 +1520,7 @@ static errr rd_cave_memory(player_type *p_ptr)
  *
  * See "scoop_player" in "save.c" for more info.  
  */
-errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex)
+errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex, int stat_order[6])
 {
 	errr err;
 
@@ -1534,8 +1534,10 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pcl
 	bool read_race = FALSE;
 	bool read_class = FALSE;
 	bool read_sex = FALSE;
+	bool read_stat_order = FALSE;
 
 	char buf[1024];
+	int i;
 
 	/* The savefile is a text file */
 	file_handle = my_fopen(sfile, "r");
@@ -1575,7 +1577,17 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pcl
 			read_sex = TRUE;
 			continue;
 		}
-		
+		if (!strcmp(read, "stat_order"))
+		{
+			for (i = 0; i < 6; i++)
+			{
+				read = strtok(NULL, " \t\n=");
+				stat_order[i] = atoi(read);
+			}
+			read_stat_order = TRUE;
+			continue;
+		}
+
 		if (read_pass && read_race && read_class && read_sex) break;
 	}
 
@@ -1646,6 +1658,7 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	u32b tmp32u;
 	bool clear = FALSE;
 	bool had_header = FALSE;
+	char stat_order_hack[6];
 
 	start_section_read("mangband_player_save");
 	start_section_read("version");
@@ -1666,7 +1679,11 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		p_ptr->prace = read_int("prace");
 		p_ptr->pclass = read_int("pclass");
 		p_ptr->male = read_int("male");
-		
+
+		read_binary("stat_order", stat_order_hack, 6);
+		for (i = 0; i < 6; i++)
+			p_ptr->stat_order[i] = stat_order_hack[i];
+
 		end_section_read("header");
 	}
 

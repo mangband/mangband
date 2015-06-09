@@ -627,7 +627,7 @@ extern void cleanup_angband(void);
 /* load2.c */
 extern errr rd_savefile_new(player_type *p_ptr);
 extern errr rd_server_savefile(void);
-extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex);
+extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex, int stat_order[6]);
 extern bool rd_dungeon_special_ext(int Depth, cptr levelname);
 
 /* melee1.c */

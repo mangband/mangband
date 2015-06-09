@@ -75,12 +75,11 @@ static void write_float(char* name, float value)
 }
 #endif
 /* Write binary data */
-static void write_binary(char* name, char* data)
+static void write_binary(char* name, char* data, int len)
 {
-	int i,len;
+	int i;
 	byte b;
 	fprintf(file_handle,"%s%s = ",xml_prefix,name);
-	len = MAX_WID;
 	for(i=0;i<len;i++)
 	{
 		b = data[i];
@@ -394,6 +393,11 @@ static void wr_header(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
+	/* Hack -- use array of chars */
+	char stat_order[6]; int i;
+	for (i = 0; i < 6; i++) stat_order[i] =
+		(char)p_ptr->stat_order[i];
+
 	start_section("header");
 
 	write_str("playername",p_ptr->name);
@@ -401,6 +405,7 @@ static void wr_header(int Ind)
 	write_int("prace",p_ptr->prace);
 	write_int("pclass",p_ptr->pclass);
 	write_int("male",p_ptr->male);
+	write_binary("stat_order",stat_order,6);
 	
 	end_section("header");
 }
@@ -675,7 +680,7 @@ static void wr_dungeon(int Depth)
 			cave_row[x] = c_ptr->feat;
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 	end_section("features");
 
@@ -689,7 +694,7 @@ static void wr_dungeon(int Depth)
 			cave_row[x] = c_ptr->info;
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 	end_section("info");
 
@@ -750,7 +755,7 @@ void wr_cave_memory(Ind)
 			cave_row[x] = p_ptr->cave_flag[y][x];
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 
 	end_section("cave_memory");
@@ -1121,6 +1126,7 @@ int scoop_player(char *nick, char *pass, int *race, int *pclass, int *sex)
 	cptr	what = "generic";
 
 	char tmp[MAX_CHARS];
+	int stat_order[6];
 
 	strcpy(tmp, nick);
 	if (process_player_name_aux( &tmp[0] , NULL, TRUE ) < 0)
@@ -1215,7 +1221,7 @@ int scoop_player(char *nick, char *pass, int *race, int *pclass, int *sex)
 	if (!err)
 	{
 		/* Attempt to load */
- 		err = rd_savefile_new_scoop_aux( tmp , pass , race, pclass, sex );
+		err = rd_savefile_new_scoop_aux( tmp , pass , race, pclass, sex, stat_order );
 		
 		/* Message (below) */
 		if (err == -1) what = "Cannot parse savefile";
