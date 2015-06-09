@@ -86,6 +86,7 @@ extern bool server_dungeon;
 extern bool server_state_loaded;
 extern bool server_saved;
 extern bool character_loaded;
+extern bool character_died;
 extern bool character_xtra;
 extern u32b seed_flavor;
 extern u32b seed_town;

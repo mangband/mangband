@@ -1277,6 +1277,7 @@ bool load_player(player_type *p_ptr)
 
 	/* Paranoia */
 	character_loaded = FALSE;
+	character_died = FALSE;
 	/*turn = 0;*/
 
 	/* Paranoia */
@@ -1403,6 +1404,9 @@ bool load_player(player_type *p_ptr)
 		{
 			/* Player is no longer "dead" */
 			p_ptr->death = FALSE;
+
+			/* Set global flag, for whoemever is interested */
+			character_died = TRUE;
 
 #if 0
 			/* Cheat death */

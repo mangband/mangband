@@ -61,6 +61,7 @@ bool server_state_loaded;	/* The server state was loaded from a savefile */
 bool server_saved;		/* The character was just saved to a savefile */
 
 bool character_loaded;		/* The character was loaded from a savefile */
+bool character_died;		/* The character in the savefile was dead */
 bool character_xtra;		/* The game is in an icky startup mode */
 
 u32b seed_flavor;		/* Hack -- consistent object colors */
