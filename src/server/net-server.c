@@ -599,7 +599,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	int Ind;
 
 	byte pkt;
-	int start_pos;
+	int start_pos, i;
 
 	u16b
 		version = 0;
@@ -646,31 +646,39 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		client_abort(ct, "The server didn't like your nickname, realname, or hostname.");
 	}
 
+	/* DROP */
+	/* See if a player with same nickname is already connected */
+	for (i = 0; i < players->num; i++)
+	{
+		connection_type *q_ct = players->list[i]->data1;
+		player_type *q_ptr = players->list[i]->data2;
+		if (q_ct != ct && !ct->close && !strcmp(q_ptr->name, nick_name))
+		{
+			/* Keep player pointer */
+			p_ptr = q_ptr;
+
+			/* Drop other connection... */
+			player_drop(i);
+			client_kill(q_ct, "Reconnect from other location.");
+			/* ...but manually detach it from player, as we're going to reuse it */
+			q_ct->user = -1;
+			q_ptr->conn = -1;
+		}
+	}
+
 	/* RESUME/DROP */
 	/* See if a player with same nickname is already playing */
 	if ((Ind = find_player_name(nick_name)))
 	{
 		p_ptr = Players[Ind];
-		/* Resume */
-		if (p_ptr->conn == -1)
-		{
 
-		}
-		/* Drop */
-		else
-		{
-
-		}
-		/* If playing, take his place */
-		if (p_ptr->state == PLAYER_PLAYING)
-		{
-			//p_ptr->state = PLAYER_FULL;
-		}
-		/* If leaving, bring back to game */
-		if (p_ptr->state == PLAYER_LEAVING)
-		{
-			//p_ptr->state = PLAYER_FULL;
-		}
+		/* Reset "command buffer" */
+		cq_clear(&p_ptr->cbuf);
+	}
+	/* Reuse kept player from the DROP operation */
+	else if (p_ptr)
+	{
+		Ind = (p_ptr->conn != -1) ? Get_Ind[p_ptr->conn] : 0;
 
 		/* Reset "command buffer" */
 		cq_clear(&p_ptr->cbuf);
@@ -703,12 +711,15 @@ int client_login(int data1, data data2) { /* return -1 on error */
 			client_abort(ct, "Error loading savefile");
 		}
 
-		/* If loaded a character */
-		if (character_loaded)
+		/* Dead */
+		if (character_died)
 		{
 			p_ptr->state = PLAYER_BONE;
-			if (p_ptr->death == FALSE)
-				p_ptr->state = PLAYER_FULL;
+		}
+		/* Alive and well */
+		else if (character_loaded)
+		{
+			p_ptr->state = PLAYER_FULL;
 		}
 		else
 		{
@@ -729,7 +740,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		/* Fix other lists */
 		Get_Ind[p_ptr->conn] = Ind;
 		Get_Conn[Ind] = p_ptr->conn;
-		PConn[Ind] = ct; 
+		PConn[Ind] = ct;
 	}
 
 	/* Copy host/real names */
@@ -766,6 +777,8 @@ int client_close(int data1, data data2) {
 	{
 		player_type *p_ptr = players->list[ind]->data2;
 		bool playing = (p_ptr->state == PLAYER_PLAYING ? TRUE : FALSE);		
+
+		if (p_ptr->state == PLAYER_LEAVING) playing = TRUE;
 
 		/* Report */
 		plog(format("Goodbye %s=%s@%s (%s)", p_ptr->name, p_ptr->realname, p_ptr->hostname, c_ptr->host_addr));

@@ -163,6 +163,17 @@ void initialize_all_pref_files(void)
         process_pref_file(buf);
 }
 
+int get_bone_decision() {
+#if 0
+	char k;
+	clear_from(20);
+	put_str("R - reroll, Any other key - restart", 21, 1);
+	Term_fresh();
+	k = inkey();
+	if (k == 'r' || k == 'R') return 1;
+#endif
+	return 0;
+}
 
 /*
  * Sync a piece of server data via "send_request()" call.
@@ -253,25 +264,43 @@ static void Setup_loop()
 				send_char_info();
 				send_play(PLAY_ROLL);
 			}
+			/* Character is dead! */
+			if (state == PLAYER_BONE)
+			{
+				if (get_bone_decision())
+				{
+					/* Ask for similar one */
+					send_play(PLAY_REROLL);
+				}
+				else
+				{
+					/* Generate new one */
+					send_play(PLAY_RESTART);
+				}
+			}
 			if (old_state < PLAYER_SHAPED && state >= PLAYER_SHAPED)
 			{
 				//client_setup();
 			}
+			/* Character is ready for rolling */
 			if (state == PLAYER_SHAPED)
 			{
+				/* Let's roll */
 				send_play(PLAY_ROLL);
 			}
+			/* Character is ready to play */
 			if (state == PLAYER_READY)
 			{
 				char_ready = TRUE;
 			}
+			/* Character was leaving the game */
 			if (state == PLAYER_LEAVING)
 			{
 				char_ready = TRUE;
 			}
 			old_state = state;
 		}
-		if (state == PLAYER_FULL && data_sent == FALSE)
+		if (state >= PLAYER_FULL && data_sent == FALSE)
 		{
 			if (data_ready == TRUE)
 			{
@@ -280,7 +309,7 @@ static void Setup_loop()
 			}
 		}
 		else
-		if (state == PLAYER_FULL && data_ready == TRUE)
+		if (state >= PLAYER_FULL && data_ready == TRUE)
 		{
 			if (asked_game == FALSE)
 			{

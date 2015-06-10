@@ -739,9 +739,38 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	{
 		/* ....? Some kind of error */
 	}
+	/* Client asks for a hard restart */
+	if (mode == PLAY_RESTART)
+	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_BONE)
+		{
+			client_abort(ct, "Character not suitable for restarting!");
+		}
 
+		/* Do it */
+		player_net_wipe(p_ptr, 0);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_NAMED;
+	}
+	/* Client asks for soft restart */
+	else if (mode == PLAY_REROLL)
+	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_BONE)
+		{
+			client_abort(ct, "Character not suitable for rerolling!");
+		}
+
+		/* Do it */
+		player_net_wipe(p_ptr, 1);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_SHAPED;
+	}
 	/* Client asks for a (re)roll */
-	if (mode == PLAY_ROLL)
+	else if (mode == PLAY_ROLL)
 	{
 		/* Prerequisites: */
 		if (p_ptr->state != PLAYER_SHAPED) 
