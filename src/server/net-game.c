@@ -178,7 +178,7 @@ int send_inventory_info(connection_type *ct, int id)
 		}
 
 		strcpy(buf, mention_use(0, i));
-		buf[strlen(buf)] = '\0';
+		buf[79] = '\0';
 
 		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
 		{
