@@ -666,6 +666,12 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		}
 	}
 
+	if (!eg_can_add(players))
+	{
+		debug(format("Rejecting %s because players array is full, nick - %s", ct->host_addr, nick_name));
+		client_abort(ct, "The server is full.");
+	}
+
 	/* RESUME/DROP */
 	/* See if a player with same nickname is already playing */
 	if ((Ind = find_player_name(nick_name)))
