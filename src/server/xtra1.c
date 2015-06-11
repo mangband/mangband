@@ -539,9 +539,8 @@ int cv_put_str(cave_view_type* dest, byte attr, cptr str, int col, int max_col)
 	}
 	return 1;
 }
-void c_prt_status_line(int Ind, cave_view_type *dest, int len)
+void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len)
 {
-	player_type *p_ptr = Players[Ind];
 	char buf[32];
 	int col = 0;
 	int i, a;

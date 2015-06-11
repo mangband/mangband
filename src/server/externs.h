@@ -1017,8 +1017,8 @@ extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
 extern void text_out_done();
-extern void c_prt(int Ind, byte attr, cptr str, int row, int col);
-extern void prt(int Ind, cptr str, int row, int col);
+extern void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col);
+extern void prt(player_type *p_ptr, cptr str, int row, int col);
 extern void clear_line(int Ind, int row);
 extern void clear_from(int Ind, int row);
 extern bool ask_for(int Ind, char query, char *buf); 
@@ -1033,7 +1033,7 @@ extern void redraw_stuff(int Ind);
 extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 extern void prt_history(int Ind);
-extern void c_prt_status_line(int Ind, cave_view_type *dest, int len);
+extern void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len);
 extern void player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3);
 
 /* xtra2.c */

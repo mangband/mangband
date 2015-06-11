@@ -5681,7 +5681,8 @@ void describe_player(int Ind, int Ind2)
 
 void snapshot_player(int Ind, int who)
 {
-	player_type *p_ptr = Players[who];
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr = Players[who];
 	cave_view_type status[80];
 	int x1,y1, y, x;
 	char c, tc;
@@ -5707,7 +5708,7 @@ void snapshot_player(int Ind, int who)
 		}
 	}
 
-	c_prt_status_line(who, status, 80);
+	c_prt_status_line(q_ptr, status, 80);
 	for (x = 0; x < 80; x++)
 	{
 		Send_char(Ind, x, y, status[x].a, status[x].c);
@@ -6565,7 +6566,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		j = strlen(dm_pages[i]);
 		if (x + j >= 80) { x = 3; y++; }
 		if (i == p_ptr->interactive_next) attr = TERM_L_BLUE;
-		c_prt(Ind, attr, dm_pages[i], y, x);
+		c_prt(p_ptr, attr, dm_pages[i], y, x);
 		x += j + 3;
 	}
 
@@ -6584,16 +6585,16 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 #define MASTER_DUMP_I() \
 				strnfmt(numero, 4, "%03d ", i); \
-				c_prt(Ind, attr, numero, 2 + j, 1);
+				c_prt(p_ptr, attr, numero, 2 + j, 1);
 
 #define MASTER_DUMP_AC(A,C) \
 				numero[0] = (C);	numero[1] = '\0'; \
-				c_prt(Ind, (A), numero, 2 + j, 6);
+				c_prt(p_ptr, (A), numero, 2 + j, 6);
 
 	/* Content */
 	if (!access)
 	{
-		c_prt(Ind, TERM_RED, "Access Denied", 12, 33);
+		c_prt(p_ptr, TERM_RED, "Access Denied", 12, 33);
 	}
 	else
 	{
@@ -6601,18 +6602,18 @@ void do_cmd_dungeon_master(int Ind, char query)
 		{
 			case DM_PAGE_WORLD:
 
-			c_prt(Ind, TERM_WHITE, "HELLO WORLD :)", 5, 5);
+			c_prt(p_ptr, TERM_WHITE, "HELLO WORLD :)", 5, 5);
 
 			/* Sidebar */
 			j = 2; numero[0] = '^'; numero[2] = ')'; numero[3] = '\0';
-			c_prt(Ind, TERM_WHITE, "Quickbar: ", j++, 60);
+			c_prt(p_ptr, TERM_WHITE, "Quickbar: ", j++, 60);
 			for (i = 0; i < DM_PAGES; i++)
 			{
 				numero[1] = dm_pages[i][0];
-				c_prt(Ind, TERM_L_WHITE, numero, j, 59);
-				c_prt(Ind, TERM_L_WHITE, dm_pages[i], j++, 62);
+				c_prt(p_ptr, TERM_L_WHITE, numero, j, 59);
+				c_prt(p_ptr, TERM_L_WHITE, dm_pages[i], j++, 62);
 			}
-			c_prt(Ind, TERM_L_WHITE, "@)Edit Self", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "@)Edit Self", j++, 60);
 
 			break;
 
@@ -6632,8 +6633,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 							(dm_flag_p(q_ptr,CAN_ASSIGN) || is_dm_p(q_ptr) ? '%' :
 							(q_ptr->dm_flags ? '+' : ' ')));
 				numero[1] = '\0';
-				c_prt(Ind, attr, numero, 2 + j, 1);
-				c_prt(Ind, attr, q_ptr->name, 2 + j++, 3);
+				c_prt(p_ptr, attr, numero, 2 + j, 1);
+				c_prt(p_ptr, attr, q_ptr->name, 2 + j++, 3);
 			}
 
 			p_ptr->interactive_size = NumPlayers - 1;
@@ -6644,19 +6645,19 @@ void do_cmd_dungeon_master(int Ind, char query)
 				player_type *q_ptr = Players[y];
 				if (2 + (j++) >= hgt) prompt_hooks = FALSE; 
 
-				c_prt(Ind, (q_ptr->ghost ? TERM_WHITE : TERM_L_WHITE), "G) ghost", 2 + j, 0); 
-				c_prt(Ind, (q_ptr->noscore ? TERM_WHITE : TERM_L_WHITE), "C) cheater", 2 + j, 19);
-				c_prt(Ind, (q_ptr->invuln ? TERM_WHITE : TERM_L_WHITE), "V) invuln", 2 + j - 1, 19);
+				c_prt(p_ptr, (q_ptr->ghost ? TERM_WHITE : TERM_L_WHITE), "G) ghost", 2 + j, 0);
+				c_prt(p_ptr, (q_ptr->noscore ? TERM_WHITE : TERM_L_WHITE), "C) cheater", 2 + j, 19);
+				c_prt(p_ptr, (q_ptr->invuln ? TERM_WHITE : TERM_L_WHITE), "V) invuln", 2 + j - 1, 19);
 
-				c_prt(Ind, TERM_SLATE, "Actions: W)wrath   K)kick   I)invoke", 2 + j - 1, 38);
-				c_prt(Ind, TERM_SLATE, format("Lite: -) %d +)", q_ptr->cur_lite), 2 + j, 38);
+				c_prt(p_ptr, TERM_SLATE, "Actions: W)wrath   K)kick   I)invoke", 2 + j - 1, 38);
+				c_prt(p_ptr, TERM_SLATE, format("Lite: -) %d +)", q_ptr->cur_lite), 2 + j, 38);
 
 				j++;
 				for (i = 0, y = 0; i < 4; i++)
 				{
 					for (x = 0; x < 5; x++)
 					{
-						c_prt(Ind, (q_ptr->dm_flags & (0x1L << y) ? TERM_WHITE : TERM_L_WHITE), format("%c) %s", 
+						c_prt(p_ptr, (q_ptr->dm_flags & (0x1L << y) ? TERM_WHITE : TERM_L_WHITE), format("%c) %s",
 						index_to_label(y+1), dm_flags_str[y]), 2 + j + x, i * 19);
 						
 						y++;
@@ -6685,7 +6686,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
                 		MASTER_DUMP_I()
 
-	                	c_prt(Ind, attr, dit->d_name, 2 + j, 5);
+						c_prt(p_ptr, attr, dit->d_name, 2 + j, 5);
                 		j++;
 
                 		if (p_ptr->master_parm && p_ptr->master_parm - 1 == i)
@@ -6704,11 +6705,11 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 				/* Sidebar */
 				j = 2;
-				c_prt(Ind, TERM_WHITE, "Action: ", j++, 60);
-				c_prt(Ind, TERM_L_WHITE, "I)Import", j++, 60);
-				c_prt(Ind, TERM_L_WHITE, "E)Export", j++, 60);
-				c_prt(Ind, (dun_players > num_players ? TERM_WHITE : TERM_L_WHITE), "S)Static", j++, 60);			
-				c_prt(Ind, (dun_players <= num_players ? TERM_WHITE : TERM_L_WHITE), "U)Unstatic", j++, 60);
+				c_prt(p_ptr, TERM_WHITE, "Action: ", j++, 60);
+				c_prt(p_ptr, TERM_L_WHITE, "I)Import", j++, 60);
+				c_prt(p_ptr, TERM_L_WHITE, "E)Export", j++, 60);
+				c_prt(p_ptr, (dun_players > num_players ? TERM_WHITE : TERM_L_WHITE), "S)Static", j++, 60);
+				c_prt(p_ptr, (dun_players <= num_players ? TERM_WHITE : TERM_L_WHITE), "U)Unstatic", j++, 60);
 
 				break;
 			}
@@ -6723,21 +6724,21 @@ void do_cmd_dungeon_master(int Ind, char query)
 				MASTER_DUMP_I()
 				MASTER_DUMP_AC(f_ptr->x_attr, f_ptr->x_char); 
 
-				c_prt(Ind, attr, f_name + f_ptr->name, 2 + j++, 8);
+				c_prt(p_ptr, attr, f_name + f_ptr->name, 2 + j++, 8);
 			}
 
 			p_ptr->interactive_size = z_info->f_max - 1;
 
 			/* Sidebar */
 			j = 2;
-			c_prt(Ind, TERM_WHITE, "Quickbar: ", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "f)floor", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "w)wall", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "p)permawall", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "m)magmawall", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "g)grass", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "d)dirt", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "T)evil t)tree", j++, 60);
+			c_prt(p_ptr, TERM_WHITE, "Quickbar: ", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "f)floor", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "w)wall", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "p)permawall", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "m)magmawall", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "g)grass", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "d)dirt", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "T)evil t)tree", j++, 60);
 
 			break;
 
@@ -6751,7 +6752,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				MASTER_DUMP_I()
 				MASTER_DUMP_AC(r_ptr->x_attr, r_ptr->x_char); 
 
-				c_prt(Ind, attr	, r_name + r_ptr->name, 2 + j++, 8);
+				c_prt(p_ptr, attr, r_name + r_ptr->name, 2 + j++, 8);
 			}
 
 			p_ptr->interactive_size = p_ptr->target_n - 1;
@@ -6759,22 +6760,22 @@ void do_cmd_dungeon_master(int Ind, char query)
 			monster_race_track(Ind, p_ptr->target_idx[p_ptr->interactive_line]);
 
 			/* Sidebar */
-			c_prt(Ind, TERM_WHITE, "Sort by: ", 2, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "u)unique ", 7, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_QUEST  ? TERM_WHITE : TERM_L_WHITE ), "q)quest ", 8, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_RICH   ? TERM_WHITE : TERM_L_WHITE ), "t)treasure ", 6, 60);			
-			c_prt(Ind, (p_ptr->master_parm & SORT_LEVEL  ? TERM_WHITE : TERM_L_WHITE ), "d)depth ", 3, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_EXP    ? TERM_WHITE : TERM_L_WHITE ), "e)exp ", 4, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_RARITY ? TERM_WHITE : TERM_L_WHITE ), "r)rarity ", 5, 60);
-			c_prt(Ind, (p_ptr->master_parm & SORT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "f)flip ", 9, 60);
-			c_prt(Ind, TERM_WHITE, "Filter: ", 11, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "Q)unique ", 12, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_UNDEAD ? TERM_WHITE : TERM_L_WHITE ), "G)undead ", 13, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_DEMON  ? TERM_WHITE : TERM_L_WHITE ), "U)demon ", 14, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_DRAGON ? TERM_WHITE : TERM_L_WHITE ), "D)dragon ", 15, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_ORC    ? TERM_WHITE : TERM_L_WHITE ), "O)orc ", 16, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_ANIMAL ? TERM_WHITE : TERM_L_WHITE ), "A)animal ", 17, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", 18, 60);			
+			c_prt(p_ptr, TERM_WHITE, "Sort by: ", 2, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "u)unique ", 7, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_QUEST  ? TERM_WHITE : TERM_L_WHITE ), "q)quest ", 8, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_RICH   ? TERM_WHITE : TERM_L_WHITE ), "t)treasure ", 6, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_LEVEL  ? TERM_WHITE : TERM_L_WHITE ), "d)depth ", 3, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_EXP    ? TERM_WHITE : TERM_L_WHITE ), "e)exp ", 4, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_RARITY ? TERM_WHITE : TERM_L_WHITE ), "r)rarity ", 5, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & SORT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "f)flip ", 9, 60);
+			c_prt(p_ptr, TERM_WHITE, "Filter: ", 11, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_UNIQUE ? TERM_WHITE : TERM_L_WHITE ), "Q)unique ", 12, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_UNDEAD ? TERM_WHITE : TERM_L_WHITE ), "G)undead ", 13, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_DEMON  ? TERM_WHITE : TERM_L_WHITE ), "U)demon ", 14, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_DRAGON ? TERM_WHITE : TERM_L_WHITE ), "D)dragon ", 15, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_ORC    ? TERM_WHITE : TERM_L_WHITE ), "O)orc ", 16, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_ANIMAL ? TERM_WHITE : TERM_L_WHITE ), "A)animal ", 17, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", 18, 60);
 
 			break;
 
@@ -6788,7 +6789,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				MASTER_DUMP_I()
 				MASTER_DUMP_AC(v_ptr->typ, (v_ptr->typ == 8 ? 'G' : (v_ptr->typ == 7 ? 'L' : '?')));
 
-				c_prt(Ind, attr, v_name + v_ptr->name, 2 + j++, 8);
+				c_prt(p_ptr, attr, v_name + v_ptr->name, 2 + j++, 8);
 			}
 
 			p_ptr->interactive_size = z_info->v_max - 1;
@@ -6810,7 +6811,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					/* Base Kind */
 					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
 					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char); 
-					c_prt(Ind, attr	, k_name + k_ptr->name, 2 + j++, 8);
+					c_prt(p_ptr, attr, k_name + k_ptr->name, 2 + j++, 8);
 				} 
 				else 
 				{
@@ -6820,9 +6821,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 					{
 						numero[1] = '\0';
 						numero[0] = p_ptr->tval_char[e_ptr->tval[x]];
-						c_prt(Ind, p_ptr->tval_attr[e_ptr->tval[x]], numero, 2 + j, 5 + x);
+						c_prt(p_ptr, p_ptr->tval_attr[e_ptr->tval[x]], numero, 2 + j, 5 + x);
 					}
-					c_prt(Ind, attr, e_name + e_ptr->name, 2 + j++, 9);
+					c_prt(p_ptr, attr, e_name + e_ptr->name, 2 + j++, 9);
 				}
 			}
 
@@ -6835,7 +6836,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
-				c_prt(Ind, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
+				c_prt(p_ptr, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
 
 				/* Obtain XTRA2 modifier */
 				if (p_ptr->inventory[0].name2)
@@ -6849,30 +6850,30 @@ void do_cmd_dungeon_master(int Ind, char query)
 					else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = OBJECT_XTRA_SIZE_POWER; }
 					else { xtra_val = 0; xtra_mod = 1; }
 					if (p_ptr->inventory[0].xtra2 >= xtra_mod) p_ptr->inventory[0].xtra2 %= xtra_mod;
-					c_prt(Ind, TERM_L_WHITE, "Hidden Abilitiy: ", 2 + j, 1); 
-					c_prt(Ind, TERM_L_WHITE, extra_mods[xtra_val][p_ptr->inventory[0].xtra2], 2 + j++, 18);
+					c_prt(p_ptr, TERM_L_WHITE, "Hidden Abilitiy: ", 2 + j, 1);
+					c_prt(p_ptr, TERM_L_WHITE, extra_mods[xtra_val][p_ptr->inventory[0].xtra2], 2 + j++, 18);
 				}
 			}
 
 			/* Sidebar */
 			j = 2;
-			c_prt(Ind, TERM_WHITE, "Action: ", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "n)number", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "r)ac R)to ac", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "D)dice   ", j++, 60);			
-			c_prt(Ind, TERM_L_WHITE, "to h)it d)am", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "p)pval   ", j++, 60);
-			c_prt(Ind, TERM_L_WHITE, "e/E)ability  ", j++, 60);
+			c_prt(p_ptr, TERM_WHITE, "Action: ", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "n)number", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "r)ac R)to ac", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "D)dice   ", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "to h)it d)am", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "p)pval   ", j++, 60);
+			c_prt(p_ptr, TERM_L_WHITE, "e/E)ability  ", j++, 60);
 			j++;
-			c_prt(Ind, TERM_WHITE, "Filter: ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_EGO    ? TERM_WHITE : TERM_L_WHITE ), "*)ego ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_WEAPON ? TERM_WHITE : TERM_L_WHITE ), "|)weapon ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_GEAR   ? TERM_WHITE : TERM_L_WHITE ), "])armor ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_MAGIC  ? TERM_WHITE : TERM_L_WHITE ), "-)magic ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_SCROLL ? TERM_WHITE : TERM_L_WHITE ), "?)scroll ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_POTION ? TERM_WHITE : TERM_L_WHITE ), "!)potion ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_FOOD   ? TERM_WHITE : TERM_L_WHITE ), ",)food ", j++, 60);
-			c_prt(Ind, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", j++, 60);			
+			c_prt(p_ptr, TERM_WHITE, "Filter: ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_EGO    ? TERM_WHITE : TERM_L_WHITE ), "*)ego ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_WEAPON ? TERM_WHITE : TERM_L_WHITE ), "|)weapon ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_GEAR   ? TERM_WHITE : TERM_L_WHITE ), "])armor ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_MAGIC  ? TERM_WHITE : TERM_L_WHITE ), "-)magic ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_SCROLL ? TERM_WHITE : TERM_L_WHITE ), "?)scroll ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_POTION ? TERM_WHITE : TERM_L_WHITE ), "!)potion ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_FOOD   ? TERM_WHITE : TERM_L_WHITE ), ",)food ", j++, 60);
+			c_prt(p_ptr, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", j++, 60);
 
 			break;			
 		}
@@ -6882,17 +6883,17 @@ void do_cmd_dungeon_master(int Ind, char query)
 	/* Error */
 	if (error)
 	{
-		c_prt(Ind, TERM_RED, error, 1, 1);
+		c_prt(p_ptr, TERM_RED, error, 1, 1);
 	}
 
 	/* Footer */
 	if (prompt_hooks)
 	{
 		j = hgt + 7;
-		c_prt(Ind, TERM_L_DARK, "RET) Select    |", j++, 1);
-		c_prt(Ind, TERM_L_DARK, "SPC) Next      |", j++, 1);
-		c_prt(Ind, TERM_L_DARK, "DEL) Clear     |", j++, 1);
-		c_prt(Ind, TERM_L_DARK, "ESC) Done      |", j++, 1);
+		c_prt(p_ptr, TERM_L_DARK, "RET) Select    |", j++, 1);
+		c_prt(p_ptr, TERM_L_DARK, "SPC) Next      |", j++, 1);
+		c_prt(p_ptr, TERM_L_DARK, "DEL) Clear     |", j++, 1);
+		c_prt(p_ptr, TERM_L_DARK, "ESC) Done      |", j++, 1);
 		j-=4;
 		for (i = 0; i < MASTER_MAX_HOOKS; i++)
 		{
@@ -6900,7 +6901,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			if (!p_ptr->master_hook[i]) attr = TERM_L_DARK;
 			if (i == p_ptr->master_flag) attr = TERM_L_BLUE;
 			master_hook_desc(&buf[0], i, p_ptr->master_hook[i], p_ptr->master_args[i]);
-			c_prt(Ind, attr, buf, j, 20);
+			c_prt(p_ptr, attr, buf, j, 20);
 			j++;
 		}
 	}
@@ -6937,7 +6938,7 @@ void master_desc_all(int Ind)
 	{
 		master_hook_desc(&buf[0], ok[i], p_ptr->master_hook[ok[i]], p_ptr->master_args[ok[i]]);
 		buf[l] = '\0';  
-		c_prt(Ind, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
+		c_prt(p_ptr, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 	Stream_line(Ind, STREAM_SPECIAL_TEXT, j);

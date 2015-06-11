@@ -3680,11 +3680,8 @@ void text_out(cptr str)
 	text_out_c(TERM_WHITE, str);
 }
 
-
-void c_prt(int Ind, byte attr, cptr str, int row, int col)
+void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Paranoia */
 	if (row > MAX_TXT_INFO) return;
 
@@ -3700,10 +3697,11 @@ void c_prt(int Ind, byte attr, cptr str, int row, int col)
 		str++;
 	}
 }
-void prt(int Ind, cptr str, int row, int col)
+void prt(player_type *p_ptr, cptr str, int row, int col)
 {
-	c_prt(Ind, TERM_WHITE, str, row, col);	
+	c_prt(p_ptr, TERM_WHITE, str, row, col);
 }
+
 void clear_line(int Ind, int row)
 {
 	player_type *p_ptr = Players[Ind];
@@ -3761,7 +3759,7 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
 		{
  			(*x) += strlen(prompt);
  			clear_line(Ind, row);
-			c_prt(Ind, prompt_attr, prompt, row, col);
+			c_prt(p_ptr, prompt_attr, prompt, row, col);
 			Stream_line(Ind, STREAM_SPECIAL_TEXT, row);
  		}
  		if (!STRZERO(default_value))

@@ -1371,7 +1371,7 @@ errr file_character_server(int Ind, cptr name)
 		x2 = MAX_WID-1;
 	}
 	/* Prepare status line */
-	c_prt_status_line(Ind, &status[0], 80);
+	c_prt_status_line(p_ptr, &status[0], 80);
 
 	/* Describe each row */
 	for(y=y1;y<=y2+1;y++)
