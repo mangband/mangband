@@ -17,12 +17,17 @@ eptr first_timer = NULL;
 
 /* Pointers */
 eptr meta_caller = NULL;
+eptr meta_connection = NULL;
 eptr server_caller = NULL;
 eptr server_connection = NULL;
 
+connection_type *meta = NULL;
 connection_type *serv = NULL;
 
 /* Global Flags */
+char *meta_buf;
+int meta_buf_max;
+s16b meta_connected = 0;
 s16b connected = 0;
 s16b state = 0;
 
@@ -1603,6 +1608,79 @@ void setup_tables()
 
 }
 
+
+/* META-SERVER STUFF */
+int meta_close(int data1, data data2) {
+	connection_type *ct = (connection_type*)data2;
+	memcpy(meta_buf, ct->rbuf.buf, MIN(ct->rbuf.len, meta_buf_max));
+	meta_connected = ct->rbuf.len;
+	return 0;
+}
+int meta_read(int data1, data data2) { /* return -1 on error */
+	connection_type *ct = (connection_type *)data2;
+	return 0;
+}
+int connected_to_meta(int data1, data data2) {
+	int fd = (int)data1;
+
+	/* Unset 'caller' */
+	meta_caller = NULL;
+
+	/* Setup 'connection' */
+	meta_connection = add_connection(first_connection, fd, meta_read, meta_close);
+	if (!first_connection) first_connection = meta_connection;
+
+	/* Set usability pointer */
+	meta = (connection_type *)meta_connection->data2;
+
+	/* OK */
+	meta_connected = 1;
+	return 1;
+}
+
+/* Return 1 to continue, 0 to cancel */
+int failed_connection_to_meta(int data1, data data2) {
+	/* NOT OK */
+	meta_connected = -1;
+	return 0;
+}
+
+int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
+{
+	meta_caller = add_caller(first_caller, server_name, server_port, connected_to_meta, failed_connection_to_meta);
+	if (first_caller == NULL) first_caller = meta_caller;
+
+	/* Early failure, probably DNS error */
+	if (meta_caller == NULL) return -1;
+
+	/* Unset */
+	meta_connected = 0;
+
+	meta_buf = buf;
+	meta_buf_max = buflen;
+
+	/* Try */
+	while (!meta_connected)
+	{
+		network_loop();
+		network_pause(100000); /* 0.1 ms "sleep" */
+	}
+	/* Will be either 1 either -1 */
+
+	/* Now let's try reading */
+	if (meta_connected == 1)
+	{
+		meta_connected = 0;
+		while (!meta_connected)
+		{
+			network_loop();
+		}
+	}
+	/* Will be either 2 either 1 either -1 */
+
+	return meta_connected;
+}
+/* END OF META-SERVER STUFF */
 
 
 bool net_term_clamp(byte win, byte *y, byte *x)

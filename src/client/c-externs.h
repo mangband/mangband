@@ -460,6 +460,7 @@ extern void setup_keepalive_timer();
 extern void setup_network_client();
 extern void cleanup_network_client();
 extern void network_loop();
+extern int call_metaserver(char *server_name, int server_port, char *buf, int buflen);
 extern int call_server(char *server_name, int server_port);
 extern server_setup_t serv_info;
 extern int send_handshake(u16b conntype);
