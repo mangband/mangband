@@ -2701,7 +2701,7 @@ void prt_indicator(int first_row, int first_col, int id)
 
 	byte color = TERM_BLUE;
 
-	s16b val = coffers[coff];
+	s32b val = coffers[coff];
 
 	bool value, warn = FALSE, stride = TRUE;
 	int n, cut = 0;
