@@ -324,6 +324,7 @@ eptr handle_callers(eptr root) {
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
 		if (n == 0 || sockerr == EISCONN)
 			ct->connect_cb(callerfd, (data)ct);
+		else if (sockerr == EALREADY) continue;
 		else if (sockerr == EINPROGRESS) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
