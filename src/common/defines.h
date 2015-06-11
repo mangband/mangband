@@ -630,6 +630,7 @@
 #define PW_BORG_1           0x00004000L /* Display borg messages */
 #define PW_BORG_2           0x00008000L /* Display borg status */
 #define PW_SPECIAL_INFO     0x00008000L /* Display special info (instead of borg status) */
+#define PW_PLAYER_3         0x00004000L /* Display player (history) (instead of borg messages) */
 
 #define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
  

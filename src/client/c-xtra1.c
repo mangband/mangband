@@ -2915,6 +2915,7 @@ void redraw_stuff(void)
 	struct field *f;
 	u32b win;
 	s16b row;
+	int test_ickyness;
 	int i = 0; 
 	u32b old_redraw = p_ptr->redraw;
 
@@ -2926,26 +2927,53 @@ void redraw_stuff(void)
 	{
 		indicator_type *i_ptr = &indicators[i];
 
-		/* Hack? Skip after "status line" */
-		if (i_ptr->win > 1) continue;
-
 		if (old_redraw & i_ptr->redraw)
 		{
 			/* Hack: count rows from bottom? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
-#if 0
-			if ((row < section_icky_row) && 
-				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
-				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
-			if (screen_icky && !section_icky_row) continue;
+
+			/* Hack: determine window */
+			test_ickyness = TRUE;
+			switch (i_ptr->win)
+			{
+				case 0:
+					win = PW_PLAYER_2;
+				break;
+				case 1:
+					win = PW_STATUS;
+				break;
+				case 2:
+					win = PW_PLAYER_0;
+					test_ickyness = FALSE;
+				break;
+				case 3:
+					win = PW_PLAYER_3;
+					test_ickyness = FALSE;
+				break;
+				case 4:
+					win = PW_PLAYER_2;
+					test_ickyness = FALSE;
+				break;
+				default:
+					continue;
+				break;
+			}
 
 			/* Update extra window */
-			win = (i_ptr->win ? PW_STATUS : PW_PLAYER_2);
 			p_ptr->window |= win;
+
+			/* HACK: For some indicators, perform ickyness test */
+			if (test_ickyness)
+			{
+				if ((row < section_icky_row) &&
+					((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+					 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+				if (screen_icky && !section_icky_row) continue;
+			}
 
 			/* Player disabled display */
 			if (!(window_flag[0] & win)) continue;
-#endif
+
 			/* Display field */
 			(prt_functions[i])(row, i_ptr->col, i);
 

@@ -554,7 +554,7 @@ cptr window_flag_desc[32] =
 	"Display status",
 	"Display chat messages",
 	"Display spell list",
-	NULL,//"Display borg messages",
+	"Display player (history)",//"Display borg messages",
 	"Display special info",//"Display borg status",
 	NULL,
 	NULL,

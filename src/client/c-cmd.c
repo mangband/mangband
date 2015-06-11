@@ -815,6 +815,10 @@ void cmd_character(void)
 	char ch = 0;
 	int done = 0;
 
+	u32b old_window;
+
+	old_window = window_flag[0];
+
 	/* Screen is icky */
 	screen_icky = TRUE;
 
@@ -838,6 +842,9 @@ void cmd_character(void)
 			/* Toggle */
 			char_screen_mode++;
 			if (char_screen_mode > 2) char_screen_mode = 0;
+			if (char_screen_mode == 0) window_flag[0] = old_window | PW_PLAYER_0;
+			if (char_screen_mode == 1) window_flag[0] = old_window | PW_PLAYER_3;
+			if (char_screen_mode == 2) window_flag[0] = old_window | PW_PLAYER_1;
 		}
 		
 		/* Check for "change password" */
@@ -853,6 +860,8 @@ void cmd_character(void)
 			done = 1;
 		}
 	}
+
+	window_flag[0] = old_window;
 
 	/* Reload screen */
 	Term_load();
