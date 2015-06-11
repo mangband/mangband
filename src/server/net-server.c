@@ -645,6 +645,14 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #endif
 		client_abort(ct, "The server didn't like your nickname, realname, or hostname.");
 	}
+	int race, pclass, sex;//TODO: remove those
+	if (scoop_player(nick_name, pass_word, &race, &pclass, &sex) < 0)
+	{
+#ifdef DEBUG
+		debug(format("Rejecting %s for wrong password nick - %s", ct->host_addr, nick_name));
+#endif
+		client_abort(ct, "Incorrect password.");
+	}
 
 	/* DROP */
 	/* See if a player with same nickname is already connected */
