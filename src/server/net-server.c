@@ -538,7 +538,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 		case CONNTYPE_OLDPLAYER:
 			okay = -1;
-			cq_printf(&ct->wbuf, "%c", 0x01);
+			cq_printf(&ct->wbuf, "%c%c%d", 0, 0x01, 0);
 			debug(format("Legacy connection requested from %s", ct->host_addr));
 		break;
 		case CONNTYPE_ERROR:
