@@ -5254,10 +5254,135 @@ void show_motd(player_type *p_ptr)
 	Send_pause(p_ptr);
 
 }
-/* TODO: Port this from V */
-void show_tombstone(int Ind)
+/*
+ * Centers a string within a 31 character string
+ */
+static void center_string(char *buf, size_t len, cptr str)
 {
+	int i, j;
 
+	/* Total length */
+	i = strlen(str);
+
+	/* Necessary border */
+	j = 15 - i / 2;
+
+	/* Mega-Hack */
+	strnfmt(buf, len, "%*s%s%*s", j, "", str, 31 - i - j, "");
+}
+/*
+ * Display a "tomb-stone"
+ * this is a verbatim port of "print_tomb" from V309
+ * //TODO: remove // comments and actually implement those things
+ */
+static void print_tomb(player_type *p_ptr)
+{
+	int i, k;
+	cptr p;
+	char tmp[160];
+	char buf[1024];
+
+	/* Copy to info buffer */
+	for (i = 0; i < 20; i++)
+	{
+		for (k = 0; k < 80; k++)
+		{
+			p_ptr->info[i][k].a = TERM_WHITE;
+			p_ptr->info[i][k].c = text_screen[1][i * 80 + k];
+			//printf("%c", p_ptr->info[i][k].c);
+		}
+		//printf("\n");
+	}
+
+	/* Save last dumped line */
+	p_ptr->last_info_line = i;
+
+	/* King or Queen */
+	if (p_ptr->total_winner || (p_ptr->lev > PY_MAX_LEVEL))
+	{
+		p = "Magnificent";
+	}
+
+	/* Normal */
+	else
+	{
+		p = c_text + p_ptr->cp_ptr->title[(p_ptr->lev - 1) / 5];
+	}
+
+	center_string(buf, sizeof(buf), p_ptr->name);
+	prt(p_ptr, buf, 6, 11);
+
+	center_string(buf, sizeof(buf), "the");
+	prt(p_ptr, buf, 7, 11);
+
+	center_string(buf, sizeof(buf), p);
+	prt(p_ptr, buf, 8, 11);
+
+
+	center_string(buf, sizeof(buf), c_name + c_info[p_ptr->pclass].name);
+	prt(p_ptr, buf, 10, 11);
+
+	strnfmt(tmp, sizeof(tmp), "Level: %d", (int)p_ptr->lev);
+	center_string(buf, sizeof(buf), tmp);
+	prt(p_ptr, buf, 11, 11);
+
+	strnfmt(tmp, sizeof(tmp), "Exp: %ld", (long)p_ptr->exp);
+	center_string(buf, sizeof(buf), tmp);
+	prt(p_ptr, buf, 12, 11);
+
+	strnfmt(tmp, sizeof(tmp), "AU: %ld", (long)p_ptr->au);
+	center_string(buf, sizeof(buf), tmp);
+	prt(p_ptr, buf, 13, 11);
+
+	strnfmt(tmp, sizeof(tmp), "Killed on Level %d", p_ptr->dun_depth);
+	center_string(buf, sizeof(buf), tmp);
+	prt(p_ptr, buf, 14, 11);
+
+	strnfmt(tmp, sizeof(tmp), "by %s.", p_ptr->died_from);
+	center_string(buf, sizeof(buf), tmp);
+	prt(p_ptr, buf, 15, 11);
+
+
+	//strnfmt(tmp, sizeof(tmp), "%-.24s", ctime(&death_time));
+	//center_string(buf, sizeof(buf), tmp);
+	//prt_p(p_ptr, buf, 17, 11);
+#ifdef DEBUG
+	for (i = 0; i < 20; i++)
+	{
+		for (k = 0; k < 80; k++)
+		{
+			printf("%c", p_ptr->info[i][k].c);
+		}
+		printf("\n");
+	}
+#endif
+}
+void show_tombstone(player_type *p_ptr)
+{
+	int i;
+	byte old_term;
+
+	print_tomb(p_ptr);
+
+	//send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	//player_type	*p_ptr = Players[Ind];
+	//int i;
+
+	/* Save 'current' terminal */
+	old_term = p_ptr->remote_term;
+
+	/* Activte new terminal */
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+
+	/* Clear, Send, Refresh */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line; i++)
+		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
+
+	/* Restore active term */
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+	Send_pause(p_ptr);
 }
 
 /* these Dungeon Master commands should probably be added somewhere else, but I am
