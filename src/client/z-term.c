@@ -1358,17 +1358,17 @@ errr Term_fresh(void)
 	if (Term->soft_cursor)
 	{
 		/* Draw the cursor */
-		if (!scr->cu && scr->cv)
+		if (!scr->cu && scr->bcv)
 		{
-			if ((scr->cx + 1 < w) && (old->a[scr->cy][scr->cx + 1] == 255))
+			if ((scr->bcx + 1 < w) && (old->a[scr->bcy][scr->bcx + 1] == 255))
 			{
 				/* Double width cursor for the Bigtile mode */
-				(void)((*Term->bigcurs_hook)(scr->cx, scr->cy));
+				(void)((*Term->bigcurs_hook)(scr->bcx, scr->bcy));
 			}
 			else
 			{
 				/* Call the cursor display routine */
-				(void)((*Term->curs_hook)(scr->cx, scr->cy));
+				(void)((*Term->curs_hook)(scr->bcx, scr->bcy));
 			}
 		}
 	}
@@ -1410,9 +1410,9 @@ errr Term_fresh(void)
 
 	/* Save the "cursor state" */
 	old->cu = scr->cu;
-	old->cv = scr->cv;
-	old->cx = scr->cx;
-	old->cy = scr->cy;
+	old->cv = scr->bcv;
+	old->cx = scr->bcx;
+	old->cy = scr->bcy;
 
 
 	/* Actually flush the output */
