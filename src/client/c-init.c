@@ -496,10 +496,9 @@ void init_subscriptions()
 			st_ptr->window_flag = (1L << n);
 	 		/* HACK! Enforce Dungeon View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
-			
+
 			/* Save "string" */
 			window_flag_desc[n] = st_ptr->mark; 
-			break;
 		}
 	}
 #endif
