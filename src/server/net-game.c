@@ -299,7 +299,8 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -327,7 +328,8 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -349,7 +351,7 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 
 int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
 
@@ -359,7 +361,8 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
@@ -380,16 +383,23 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 		client_withdraw(ct);
 	}
 
+int ii;
+printf(">>%2d:%2d>",st,as_y);
+for (ii = 0; ii < cols; ii++) printf("%c", source[ii].c);
+printf("\n");
+
 	/* Ok */
 	return 1;
 }
 
 int send_term_info(player_type *p_ptr, byte flag, u16b line)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
+	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Special hack when principal mode is "activate" */
 	if (flag & NTERM_ACTIVATE)
@@ -402,16 +412,24 @@ int send_term_info(player_type *p_ptr, byte flag, u16b line)
 
 	/* Send (with additional parameter?) */
 	if (flag & 0xF0)
-		return cq_printf(&ct->wbuf, "%c%b%ud", PKT_TERM, flag, line);
+		n = cq_printf(&ct->wbuf, "%c%b%ud", PKT_TERM, flag, line);
 	else
-		return cq_printf(&ct->wbuf, "%c%b", PKT_TERM, flag);
+		n = cq_printf(&ct->wbuf, "%c%b", PKT_TERM, flag);
+
+	if (n <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	return n;
 }
 int send_term_header(player_type *p_ptr, cptr header)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
 	{
@@ -533,10 +551,11 @@ int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 
 int send_character_info(player_type *p_ptr)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	return send_char_info(ct, p_ptr);
 }
@@ -546,6 +565,9 @@ int send_objflags(int Ind, int line)
 	connection_type *ct = PConn[Ind];
 	//TODO: generalize this (merge with streams?)
 	byte rle = ( Players[Ind]->use_graphics ? RLE_LARGE : RLE_CLASSIC );
+
+	if (!ct) return -1;
+
 	/* Header */
 	if (cq_printf(&ct->wbuf, "%c%d", PKT_OBJFLAGS, line) <= 0)
 	{
@@ -1575,6 +1597,7 @@ static int recv_custom_command(player_type *p_ptr)
 int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name) 
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -1585,6 +1608,7 @@ int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, 
 int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%s%s%d%l", PKT_STORE_INFO, flag, name, owner, items, purse) <= 0)
 	{
 		client_withdraw(ct);
