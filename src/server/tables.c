@@ -455,6 +455,12 @@ const stream_type streams[MAX_STREAMS] =
 		20, 80, 20, 80,
 		0, "SPECIAL_TEXT"
 	},
+	{	/* 9 */
+		STREAM_PKT(MONSTER_TEXT),	NTERM_WIN_MONSTER, 	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONSTER_TEXT"
+	},
 
 	/* Tail */
 	{	0	}

@@ -547,6 +547,7 @@
 #define STREAM_BGMAP_GRAF   	6
 #define STREAM_SPECIAL_MIXED 	7
 #define STREAM_SPECIAL_TEXT  	8
+#define STREAM_MONSTER_TEXT  	9
 
 #define Stream_line(I,S,L) stream_line_as(Players[I],S,L,L)
 #define Stream_line_p(P,S,L) stream_line_as(P,S,L,L)

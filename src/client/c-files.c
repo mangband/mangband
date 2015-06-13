@@ -1780,6 +1780,65 @@ void show_motd(void)
 	Term_clear();
 }
 
+void show_recall(byte win, cptr prompt)
+{
+	int n;
+
+	byte st = window_to_stream[win];
+	stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	byte cols = p_ptr->stream_wid[st];
+	byte rows = p_ptr->stream_hgt[st];
+
+	if (looking == FALSE)
+	{
+		return;
+	}
+
+	/* Already in icky mode */
+	if (section_icky_row)
+	{
+		/* Reflush */
+		Term_load();
+		Term_save();
+	}
+
+	/* HACK -- Actually hide recall popup */
+	if (win == NTERM_WIN_NONE)
+	{
+		target_recall = FALSE;
+		section_icky_row = section_icky_col = 0;
+		return;
+	}
+
+	for (n = 0; n < last_remote_line[win]+2; n++)
+	{
+		Term_erase(0, n, 80);
+	}
+
+	for (n = 0; n < last_remote_line[win]+1; n++)
+	{
+		source = stream_cave(st, n);
+		caveprt(source, 80, 0, n);
+	}
+
+	/* Hack -- append target prompt after ':' */
+	source = stream_cave(st, 0);
+	for (n = 0; n < 80-2; n++)
+	{
+		if (source[n].c == ':')
+		{
+			prt(prompt, 0, n + 2);
+			break;
+		}
+	}
+
+	target_recall = TRUE;
+	section_icky_row = last_remote_line[win] + 2;
+	section_icky_col = 80;
+}
+
 void prepare_popup(void)
 {
 	/* Hack -- if the screen is already icky, ignore this command */

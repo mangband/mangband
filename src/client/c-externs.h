@@ -331,6 +331,7 @@ extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
+extern void show_recall(byte win, cptr prompt);
 extern void prepare_popup(void);
 extern void show_popup(void);
 extern void show_peruse(s16b line);

@@ -1328,6 +1328,10 @@ int recv_target_info(connection_type *ct) {
 
 	if (!looking) return 1;
 
+	/* Hack -- information recall */
+	s = strchr(buf, '['); /* Store prompt starting at '[' character */
+	show_recall(win, s); /* Show/Hide recall window */
+
 	if (!target_recall)
 	{
 		prt(buf, 0, 0);

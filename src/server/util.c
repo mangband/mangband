@@ -3534,10 +3534,10 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	send_term_info(p_ptr, NTERM_ACTIVATE, win);
 
 	/* Clear, Send, Refresh */
-	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY, 0);
 	for (i = 0; i < p_ptr->last_info_line; i++)
 		stream_line_as(p_ptr, stream, i, i);
-	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
 
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
