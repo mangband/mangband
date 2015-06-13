@@ -350,10 +350,10 @@ int pick_term(int x, int y)
 {
 	int r = -1;
 	int i = 0;
-	for (i = ANGBAND_TERM_MAX; i > -1; i--) {
-	
+	for (i = ANGBAND_TERM_MAX - 1; i > -1; i--)
+	{
 		if (!tdata[i].online) continue;
-		
+
 		if (x >= tdata[i].xoff && x <= tdata[i].xoff + tdata[i].width &&
 			 y >= tdata[i].yoff && y <= tdata[i].yoff + tdata[i].height) 
 		{
