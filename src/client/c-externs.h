@@ -491,7 +491,7 @@ extern int send_party(s16b command, cptr buf);
 #define Net_fd(void) plog("Net_fd unimplemented!")
 #define Net_input() plog("Net_input unimplemented!")
 #define Net_packet() plog("Net_packet unimplemented!")
-#define Flush_queue() plog("Flush_queue unimplemented!")
+#define Flush_queue() flush_updates()
 #define SocketCloseAll() plog("SocketCloseAll unimplemented!")
 #define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
 #define Send_walk(dir) plog("Send_walk unimplemented!")
