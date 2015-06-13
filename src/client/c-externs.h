@@ -478,6 +478,7 @@ extern int send_channel(char mode, u16b id, cptr name);
 extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_party(s16b command, cptr buf);
+extern int send_target_interactive(int mode, char dir);
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")
@@ -500,7 +501,7 @@ extern int send_party(s16b command, cptr buf);
 #define Send_stay() plog("Send_stay unimplemented!")
 #define Send_rest() plog("Send_rest unimplemented!")
 #define Send_destroy(item, amt) plog("Send_destroy unimplemented!")
-#define Send_target_interactive(mode, dir) plog("Send_target_interactive unimplemented!")
+#define Send_target_interactive(mode, dir) send_target_interactive(mode, dir)
 #define Send_item(item) plog("Send_item unimplemented!")
 #define Send_direction(dir) plog("Send_direction unimplemented!")
 #define Send_gain(book, spell) plog("Send_gain unimplemented!")

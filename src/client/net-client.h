@@ -20,6 +20,8 @@
 
 	PACKET(PKT_TERM,    	"%b%ud",	recv_term_info)
 	PACKET(PKT_TERM_INIT,  	"%s",   	recv_term_header)
+	PACKET(PKT_CURSOR,  	"%c%c%c",  	recv_cursor)
+	PACKET(PKT_TARGET_INFO,	"%c%c%c%s",	recv_target_info)
 
 	PACKET(PKT_CHANNEL,  	"%ud%c%s", 	recv_channel)
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)

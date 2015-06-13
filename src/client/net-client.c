@@ -397,6 +397,15 @@ int send_suicide(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
 }
 
+int send_target_interactive(int mode, char dir)
+{
+	char c_mode;
+
+	c_mode = (mode & TARGET_FRND ? NTARGET_FRND : (mode & TARGET_KILL ? NTARGET_KILL : NTARGET_LOOK));
+
+	return cq_printf(&serv->wbuf, "%c%c%c", PKT_LOOK, c_mode, dir);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {
@@ -1293,6 +1302,43 @@ int recv_term_header(connection_type *ct) {
 
 	/* Prepare popup route */
 	prepare_popup();
+
+	return 1;
+}
+
+int recv_cursor(connection_type *ct) {
+	char vis, x, y;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &vis, &x, &y) < 3) return 0;
+
+	if (cursor_icky)
+	{
+		x += DUNGEON_OFFSET_X;
+		Term_consolidate_cursor(vis, x, y);
+	}
+
+	return 1;
+}
+
+int recv_target_info(connection_type *ct) {
+	char x, y, buf[80], *s;
+	byte win;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
+
+	if (!looking) return 1;
+
+	if (!target_recall)
+	{
+		prt(buf, 0, 0);
+	}
+
+	/* Move the cursor */
+	if (cursor_icky)
+	{
+		x += DUNGEON_OFFSET_X;
+		Term_consolidate_cursor(TRUE, x, y);
+	}
 
 	return 1;
 }

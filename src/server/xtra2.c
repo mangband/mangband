@@ -4128,6 +4128,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	int o_idx;
 	int h;
 
+	byte out_win = NTERM_WIN_NONE;
 	char out_val[256];
 	char x_name[80];
 	cptr name;
@@ -4316,23 +4317,26 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	/* Hack -- Force Recall */
 	if (force_recall)
 	{
-		out_val[0] = ' ';
-		out_val[1] = 'm';
-		out_val[2] = '\0';
+		if (p_ptr->stream_hgt[STREAM_MONSTER_TEXT])
+		{
+			out_win = NTERM_WIN_MONSTER;
+		}
+		else
+		{
+			out_win = NTERM_WIN_SPECIAL;
+		}
 	}
+
 	/* Prepare the message */
-	else
-	{
-		strnfmt(out_val, sizeof(out_val),
-		        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
-		if (is_dm_p(p_ptr))
-			strcat(out_val, format(" (%d:%d)", y, x));
-		/* Hack -- capitalize */
-		if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
-	}
+	strnfmt(out_val, sizeof(out_val),
+	        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
+	if (is_dm_p(p_ptr))
+		strcat(out_val, format(" (%d:%d)", y, x));
+	/* Hack -- capitalize */
+	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
 	/* Tell the client */
-	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
+	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_win, out_val);
 
 	/* Done */
 	return;
@@ -4500,7 +4504,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 #ifdef NOTARGET_PROMPT
 		if (!(query == ESCAPE || query == 'q'))
 			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, 
-			"Nothing to target. [p, ESC]");
+			NTERM_WIN_NONE, "Nothing to target. [p, ESC]");
 		if (query != 'p')
 			return FALSE;
 #else

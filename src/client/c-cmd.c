@@ -713,7 +713,12 @@ int cmd_target_interactive(int mode)
 	bool done = FALSE;
 	char ch;
 
+	/* Save screen */
+	Term_save();
+
+	/* Set modes */
 	looking = TRUE;
+	target_recall = FALSE;
 	cursor_icky = TRUE;
 	topline_icky = TRUE;
 
@@ -723,11 +728,6 @@ int cmd_target_interactive(int mode)
 	while (!done)
 	{
 		ch = inkey();
-
-		if (target_recall)
-		{
-			section_icky_row = section_icky_col = 0;
-		}
 
 		if (!ch)
 			continue;
@@ -746,16 +746,13 @@ int cmd_target_interactive(int mode)
 		}
 	}
 
-	if (target_recall)
-	{
-		target_recall = FALSE;
-		/* Very Dirty Hack -- Force Redraw */
-		prt_player_hack();
-		prt_map_easy();
-	}
+	/* Fix screen */
+	Term_load();
 
+	/* Unset modes */
 	looking = FALSE;
 	topline_icky = FALSE;
+	section_icky_row = section_icky_col = 0;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;

@@ -951,7 +951,7 @@ char inkey(void)
 
 
 	/* Access cursor state */
-	(void)Term_get_cursor(&v);
+	/*(void)Term_get_cursor(&v);*/
 
 	/* Show the cursor if waiting, except sometimes in "command" mode */
 	if (!inkey_scan && (!inkey_flag))
@@ -1145,7 +1145,7 @@ char inkey(void)
 
 
 	/* Restore the cursor */
-	Term_set_cursor(v);
+	/*Term_set_cursor(v);*/
 
 
 	/* Cancel the various "global parameters" */

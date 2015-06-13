@@ -420,6 +420,32 @@ int send_term_header(player_type *p_ptr, cptr header)
 	return 1;
 }
 
+int send_cursor(player_type *p_ptr, char vis, char x, char y)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%c", PKT_CURSOR, vis, x, y))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_target_info(player_type *p_ptr, int x, int y, byte win, cptr str)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%c%s", PKT_TARGET_INFO, x, y, win, str))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 int send_custom_command_info(connection_type *ct, int id)
 {
 	const custom_command_type *cc_ptr = &custom_commands[id];
@@ -1261,6 +1287,41 @@ int recv_suicide(connection_type *ct, player_type *p_ptr)
 	/* Commit suicide */
 	do_cmd_suicide(Ind);
 	return 1;
+}
+
+int recv_target(connection_type *ct, player_type *p_ptr)
+{
+	char mode, dir;
+	int Ind;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (cq_scanf(&ct->rbuf, "%c%c", &mode, &dir) < 2)
+	{
+		return 0;
+	}
+
+	switch (mode)
+	{
+		case NTARGET_FRND:
+
+			do_cmd_target_friendly(Ind, dir);
+
+		break;
+		case TARGET_KILL:
+
+			do_cmd_target(Ind, dir);
+
+		break;
+		case NTARGET_LOOK:
+		default:
+
+			do_cmd_look(Ind, dir);
+
+		break;
+	}
+
+    return 1;
 }
 
 /** Gameplay commands **/

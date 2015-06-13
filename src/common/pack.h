@@ -258,6 +258,13 @@
 #define NTERM_WIN_NONE  	0xFF
 
 /*
+ * PKT_LOOK helpers
+ */
+#define NTARGET_LOOK 0
+#define NTARGET_KILL 1
+#define NTARGET_FRND 2
+
+/*
  * PKT_CHANNEL helpers
  */
 #define CHAN_JOIN   	0
