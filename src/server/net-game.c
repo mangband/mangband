@@ -1184,7 +1184,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 	for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
 	{
 		const custom_command_type *cc_ptr = &custom_commands[n];
-		if (cc_ptr->pkt == 0) break;
+		if (cc_ptr->m_catch == 0) break;
 		if ((cc_ptr->tval == type) &&
 			(cc_ptr->flag & COMMAND_INTERACTIVE) &&
 			(cc_ptr->do_cmd_callback)) 
