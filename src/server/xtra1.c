@@ -3517,7 +3517,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MAP)
 	{
 		p_ptr->window &= ~(PW_MAP);
-	if (p_ptr->window_flag & PW_MAP)
 		fix_map(Ind);
 	}
 

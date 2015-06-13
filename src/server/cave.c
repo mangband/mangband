@@ -2003,14 +2003,24 @@ void wild_display_map(int Ind)
     "wilderness map" mode now that will represent each level with one character.
  */
  
-void do_cmd_view_map(int Ind, char query)
+void do_cmd_view_map(player_type *p_ptr, char query)
 {
-	if (query) return;
+	int Ind = Get_Ind[p_ptr->conn];
+
+	/* Treat any interactive userkey as ESCAPE.
+	 * Note: this is bad, because requires a full round-trip to server
+	 * to simply disable the minimap.
+	 */
+	if (query)
+	{
+		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
+		return;
+	}
 
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
-	if (Players[Ind]->dun_depth >= 0) display_map(Ind, FALSE);
+	if (p_ptr->dun_depth >= 0) display_map(Ind, FALSE);
 	/* do wilderness map */
 	else wild_display_map(Ind);
 }

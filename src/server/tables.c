@@ -295,7 +295,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		SPECIAL_FILE_MASTER, "Dungeon Master"
 	},
 	{ /* Mini-Map' */
-		'M', PKT_UNDEFINED, SCHEME_SMALL, 0, (cccb)do_cmd_view_map,
+		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
 		(COMMAND_INTERACTIVE),
 		99, "Mini-Map"
 	},	
@@ -434,13 +434,13 @@ const stream_type streams[MAX_STREAMS] =
 	{	/* 5 */
 		STREAM_PKT(BGMAP_ASCII),	NTERM_WIN_MAP,  	RLE_CLASSIC,
 		(0),
-		20, 80, 22, 80, 
+		20, 80, 24, 80,
 		PW_MAP, "BGMAP_ASCII" 
 	},
 	{	/* 6 */
 		STREAM_PKT(BGMAP_GRAF), 	NTERM_WIN_MAP,  	RLE_LARGE,
 		(0),
-		20, 80, 22, 80, 
+		20, 80, 24, 80,
 		PW_MAP, "BGMAP_GRAF" 
 	},
 	{	/* 7 */
