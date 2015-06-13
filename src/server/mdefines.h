@@ -339,7 +339,7 @@
 /*
  * indicators / print-fields defines
  */
-#define MAX_INDICATORS 50
+#define MAX_INDICATORS 64
 
 /* Those IDs must match the order of indicators[] array from tables.c */
 /* Player compact */

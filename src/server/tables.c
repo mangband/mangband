@@ -498,12 +498,12 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(LEVEL, TINY, 2),  	0,	ROW_LEVEL,	COL_LEVEL,
-		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
 		(PR_LEV), "level"
 	},
 	{
 		INDICATOR_PKT(EXP, LARGE, 3),   	0,	ROW_EXP,	COL_EXP,
-		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
 		(PR_EXP), "exp"
 	},
 	{
@@ -589,8 +589,8 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 #endif
 	{
-		INDICATOR_PKT(ARMOR, NORMAL, 2),   	0,	ROW_AC,	COL_AC,
-		(0), "",
+		INDICATOR_PKT(ARMOR, NORMAL, 3),   	0,	ROW_AC,	COL_AC,
+		(0), "Cur AC \aG%5d",
 		(PR_ARMOR), "armor"
 	},
 #if 0
@@ -753,6 +753,60 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(IN_VT_FF),
 		"Cur Hit Points    \a@%6ld",
 		(PR_HP), "hist_chp"
+	},
+	{
+		INDICATOR_CLONE(SP, 2),   	2,     11,	52,
+		(0),
+		"\vMax SP (Mana)     \aG%6ld",
+		(PR_HP), "hist_msp"
+	},
+	{
+		INDICATOR_CLONE(SP, 1),   	2,     12,	52,
+		(IN_VT_FF),
+		"Cur SP (Mana)     \a#%6ld",
+		(PR_HP), "hist_csp"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 3),   2, 	11,	1,
+		(0),
+		"+ To AC        \aB%6ld",
+		(PR_ARMOR), "hist_toac"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 2),   2, 	12,	1,
+		(0),
+		"  Base AC      \aB%6ld",
+		(PR_ARMOR), "hist_baseac"
+	},
+	{
+		INDICATOR_CLONE(LEVEL, 1), 2,	9,	28,
+		(0),
+		"Level      \aG%9ld",
+		(PR_LEV), "hist_level"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   2, 	10,	28,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"Experience    \aG%6ld\f\r\vExperience    \ay%6ld",
+		(PR_EXP), "hist_cexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   2, 	11,	28,
+		(0),
+		"Max Exp       \aG%6ld",
+		(PR_EXP), "hist_mexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 3),   2, 	12,	28,
+		(0),
+		"Exp to Adv.   \aG%6ld",
+		(PR_EXP), "hist_aexp"
+	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   2, 	13,	28,
+		(0),
+		"Gold       \aG%9ld",
+		(PR_GOLD), "hist_gold"
 	},
 	/* alternative way to create verbose stat indicators
  	{
