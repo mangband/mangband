@@ -730,7 +730,7 @@ int cv_decode_rle3(cave_view_type* dst, cq* src, int len) {
 			}
 		}
 		/* Reset 'x' to the correct value */
-		x += n;
+		x += n - 1;
 	}
 	UNPACK_FIN(src);
 	return len;
