@@ -636,7 +636,18 @@ void player_wipe(player_type *p_ptr)
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
 	/* Setup stream pointers */
-	for (i = 0; i < MAX_STREAMS; i++) p_ptr->stream_cave[i] = (streams[i].addr == NTERM_WIN_OVERHEAD ? &p_ptr->scr_info[0][0] : &p_ptr->info[0][0]);
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		if (streams[i].addr == NTERM_WIN_OVERHEAD
+		 || streams[i].addr == NTERM_WIN_MAP)
+		{
+			p_ptr->stream_cave[i] = &p_ptr->scr_info[0][0];
+		}
+		else
+		{
+			p_ptr->stream_cave[i] = &p_ptr->info[0][0];
+		}
+	}
 
 	/* Auto-subscribe to some streams */
 	for (i = 0; i < MAX_STREAMS; i++)

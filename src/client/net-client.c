@@ -1820,6 +1820,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 			byte st = stream_group[k];
 			stream_type* st_ptr = &streams[st];
 
+			/* Hack -- if stream is hidden from UI, don't touch it */
+			if (st_ptr->flag & SF_HIDE) continue;
+
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)
 			{

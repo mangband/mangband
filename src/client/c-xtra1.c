@@ -1456,12 +1456,12 @@ static void fix_status(void)
 /*
  * Hack -- display some remote view in sub-windows.
  */
-static void fix_stream(byte win)
+static void fix_stream(int k)
 {
 	int j, y;
 	int sw, sh;
 	int w, h;
-	int k = window_to_stream[win];
+	byte win = streams[k].addr;
 
 	/* Get stream bounds */	
 	sw = p_ptr->stream_wid[k];
@@ -1471,6 +1471,12 @@ static void fix_stream(byte win)
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
 		term *old = Term;
+
+		/* Hack -- there are many ways we can handle sub-window
+		 * streams on window 0, but instead of doing any of that,
+		 * we just bail out. Something else will take care of the
+		 * main window... */
+		if (j == 0) continue;
 
 		/* No window */
 		if (!ang_term[j]) continue;
@@ -1677,7 +1683,7 @@ static void fix_remote_term(byte rterm, u32b windows)
 		/* Erase rest */
 		for (y = y-1; y < h; y++)
 		{
-			Term_erase(0, 1+y, 255);
+			Term_erase(0, 1+y, w);
 		}
 
 		/* Fresh */
@@ -3066,7 +3072,7 @@ void window_stuff(void)
 		if (p_ptr->window & (streams[stream_group[i]].window_flag))
 		{
 			p_ptr->window &= ~(streams[stream_group[i]].window_flag);
-			fix_stream((byte)i);
+			fix_stream(stream_group[i]);
 		}
  	} 
 
