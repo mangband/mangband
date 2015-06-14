@@ -258,6 +258,18 @@
 #define NTERM_WIN_NONE  	0xFF
 
 /*
+ * PKT_INDICATOR* helpers
+ */
+#define IPW_1 0x01
+#define IPW_2 0x02
+#define IPW_3 0x04
+#define IPW_4 0x08
+#define IPW_5 0x10
+#define IPW_6 0x20
+#define IPW_7 0x40
+#define IPW_8 0x80
+
+/*
  * PKT_LOOK helpers
  */
 #define NTARGET_LOOK 0

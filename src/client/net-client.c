@@ -945,9 +945,17 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->mark = strdup(mark);
 
 	n = strlen(buf) + 1;
-	if (n <= 0 || type == INDITYPE_STRING) n = MAX_CHARS;
 	C_MAKE(i_ptr->prompt, n, char);
 	my_strcpy(i_ptr->prompt, buf, n);
+
+	/* Set local window_flag */
+	/* TODO: make it a ref. array in c-tables */
+	indicator_window[known_indicators] = 0;
+	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2;
+	if (win & IPW_2) indicator_window[known_indicators] |= PW_STATUS;
+	if (win & IPW_3) indicator_window[known_indicators] |= PW_PLAYER_0;
+	if (win & IPW_4) indicator_window[known_indicators] |= PW_PLAYER_3;
+	if (win & IPW_5) indicator_window[known_indicators] |= PW_PLAYER_1;
 
 	/* Indicator takes place of a PKT */
 	if (pkt)

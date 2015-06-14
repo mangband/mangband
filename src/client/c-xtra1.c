@@ -2429,7 +2429,7 @@ struct field
 /*
  * Redraw large ammount of indicators, filtered by window.
  */
-void redraw_indicators(byte filter)
+void redraw_indicators(u32b filter)
 {
 	struct field *f;
 	u32b win;
@@ -2440,7 +2440,8 @@ void redraw_indicators(byte filter)
 	for (i = 0; i < known_indicators; i++)
 	{
 		indicator_type *i_ptr = &indicators[i];
-		if (i_ptr->win == filter)
+
+		if (indicator_window[i] & filter)
 		{
 			/* Hack: count rows from bottom? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
@@ -2470,6 +2471,7 @@ void display_player(int screen_mode)
 {
 	int i;
 	cptr desc;
+	u32b filter; /* Indicator filter */
 
      /* Clear screen */
      Term_clear();
@@ -2566,7 +2568,11 @@ void display_player(int screen_mode)
 	}
 
 	/* Hack? Display relevant indicators */
-	redraw_indicators(2 + screen_mode);
+	if (screen_mode == 0) filter = PW_PLAYER_0;
+	if (screen_mode == 1) filter = PW_PLAYER_3;
+	if (screen_mode == 2) filter = PW_PLAYER_1;
+
+	redraw_indicators(filter);
 }
 
 struct field fields[] = 
@@ -2939,25 +2945,15 @@ void redraw_stuff(void)
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
 
 			/* Hack: determine window */
-			test_ickyness = TRUE;
 			switch (i_ptr->win)
 			{
-				case 0:
-					win = PW_PLAYER_2;
+				case IPW_1:
+				case IPW_2:
+					test_ickyness = TRUE;
 				break;
-				case 1:
-					win = PW_STATUS;
-				break;
-				case 2:
-					win = PW_PLAYER_0;
-					test_ickyness = FALSE;
-				break;
-				case 3:
-					win = PW_PLAYER_3;
-					test_ickyness = FALSE;
-				break;
-				case 4:
-					win = PW_PLAYER_2;
+				case IPW_3:
+				case IPW_4:
+				case IPW_5:
 					test_ickyness = FALSE;
 				break;
 				default:
@@ -2978,7 +2974,7 @@ void redraw_stuff(void)
 			}
 
 			/* Player disabled display */
-			if (!(window_flag[0] & win)) continue;
+			if (!(window_flag[0] & indicator_window[i])) continue;
 
 			/* Display field */
 			(prt_functions[i])(row, i_ptr->col, i);
