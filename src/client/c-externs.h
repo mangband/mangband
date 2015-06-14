@@ -60,6 +60,7 @@ extern char floor_name[80];
 extern indicator_type indicators[MAX_INDICATORS];
 extern byte known_indicators;
 extern u32b indicator_window[MAX_INDICATORS];
+extern char* str_coffers[MAX_COFFERS];
 extern s32b coffers[MAX_COFFERS];
 extern byte coffer_refs[MAX_INDICATORS];
 extern int known_coffers;

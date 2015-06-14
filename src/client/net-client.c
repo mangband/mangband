@@ -892,7 +892,7 @@ int recv_indicator_str(connection_type *ct) {
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Store the string in indicator's 'prompt' */
-	my_strcpy((char*)i_ptr->prompt, buf, MAX_CHARS);
+	my_strcpy((char*)str_coffers[id], buf, MAX_CHARS);
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
@@ -946,7 +946,9 @@ int recv_indicator_info(connection_type *ct) {
 
 	n = strlen(buf) + 1;
 	C_MAKE(i_ptr->prompt, n, char);
-	my_strcpy(i_ptr->prompt, buf, n);
+	my_strcpy((char*)i_ptr->prompt, buf, n);
+
+	str_coffers[known_indicators] = NULL;
 
 	/* Set local window_flag */
 	/* TODO: make it a ref. array in c-tables */
@@ -965,6 +967,13 @@ int recv_indicator_info(connection_type *ct) {
 
 		indicator_refs[pkt] = known_indicators;
 		coffer_refs[known_indicators] = known_coffers;
+
+		/* Indicator has it's own string coffer */
+		if (type == INDITYPE_STRING)
+		{
+			C_MAKE(str_coffers[known_indicators], MAX_CHARS, char);
+			str_coffers[known_indicators][0] = '\0';
+		}
 	}
 	/* A 'hollow' indicator, which is just a clone */
 	else
@@ -981,13 +990,19 @@ int recv_indicator_info(connection_type *ct) {
 			plog("Attempting to clone indicator too far!");
 			return -1;
 		}
-		if (offset >= indicators[ind].amnt)
+		if (indicators[ind].type == INDITYPE_STRING)
+		{
+			/* Allow string indicators to be flaky about regular coffers */
+			offset = 0;
+		}
+		else if (offset >= indicators[ind].amnt)
 		{
 			plog("Attempting to clone coffer too far!");
 			return -1;
 		}
 		i_ptr->type = indicators[ind].type;	/* Actual type is cloned */
 		i_ptr->amnt = indicators[ind].amnt - offset; /* Actual ammount is source_ammount - offset */
+		str_coffers[known_indicators] = str_coffers[ind]; /* String pointer is source string */
 		i_ptr->redraw = indicators[ind].redraw;
 		coffer_refs[known_indicators] = coffer_refs[ind] + offset;
 

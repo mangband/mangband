@@ -2841,8 +2841,8 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
-				n = MIN(n, 32);
-				strncpy(tmp, prompt, n);
+				n = MIN(n, sizeof(tmp));
+				my_strcpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
 				/* Advance prompt */
@@ -2851,7 +2851,11 @@ void prt_indicator(int first_row, int first_col, int id)
 				/* Format output */
 				if ((value) || (flag & IN_TEXT_LABEL))
 				{
-					if (flag & IN_TEXT_STAT)
+					if (i_ptr->type == INDITYPE_STRING)
+					{
+						out = str_coffers[id];
+					}
+					else if (flag & IN_TEXT_STAT)
 					{
 						cnv_stat(val, tmp);
 						n = 6;
