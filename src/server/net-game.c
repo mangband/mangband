@@ -1346,6 +1346,24 @@ int recv_target(connection_type *ct, player_type *p_ptr)
     return 1;
 }
 
+int recv_locate(connection_type *ct, player_type *p_ptr)
+{
+	char dir;
+	int Ind;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (cq_scanf(&ct->rbuf, "%c", &dir) < 1)
+	{
+		return 0;
+	}
+
+	do_cmd_locate(Ind, dir);
+
+	return 1;
+}
+
+
 /** Gameplay commands **/
 /* Those return 
 	* -1 on critical error

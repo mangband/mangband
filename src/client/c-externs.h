@@ -482,6 +482,8 @@ extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_party(s16b command, cptr buf);
 extern int send_target_interactive(int mode, char dir);
+extern int send_locate(char dir);
+
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")
@@ -511,7 +513,6 @@ extern int send_target_interactive(int mode, char dir);
 #define Send_cast(book, spell) plog("Send_cast unimplemented!")
 #define Send_pray(book, spell) plog("Send_pray unimplemented!")
 #define Send_ghost(ability) plog("Send_ghost unimplemented!")
-#define Send_locate(dir) plog("Send_locate unimplemented!")
 #define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
 #define Send_store_leave() plog("Send_store_leave unimplemented!")

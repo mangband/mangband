@@ -500,7 +500,7 @@ void cmd_locate(void)
 	char ch;
 
 	/* Initialize */
-	Send_locate(5);
+	send_locate(5);
 
 	/* Show panels until done */
 	while (1)
@@ -528,11 +528,11 @@ void cmd_locate(void)
 		if (!dir) break;
 
 		/* Send the command */
-		Send_locate(dir);
+		send_locate(dir);
 	}
 
 	/* Done */
-	Send_locate(0);
+	send_locate(0);
 	
 	/* Clear */
 	c_msg_print(NULL);

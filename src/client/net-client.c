@@ -406,6 +406,11 @@ int send_target_interactive(int mode, char dir)
 	return cq_printf(&serv->wbuf, "%c%c%c", PKT_LOOK, c_mode, dir);
 }
 
+int send_locate(char dir)
+{
+	return cq_printf(&serv->wbuf, "%c" "%c", PKT_LOCATE, dir);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {
