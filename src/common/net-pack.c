@@ -24,12 +24,16 @@
 #define UNPACK_PTR_16(PT, VAL) * PT = * VAL ++ << 8, * PT |= (* VAL ++ & 0xFF)
 #define UNPACK_PTR_32(PT, VAL) * PT = * VAL ++ << 24, * PT |= (* VAL ++ & 0xFF) << 16, * PT |= (* VAL ++ & 0xFF) << 8, * PT |= (* VAL ++ & 0xFF)
 
-const cptr pf_errors[] = {
+static const cptr pf_errors[] = {
 "", /* 0 */
 "Unrecognized format", /* 1 */
 "No space in buffer", /* 2 */
 "No space in read buffer", /* 3 */
 "No space in write buffer", /* 4 */
+"Unterminated string", /* 5 */
+"String too large for format", /* 6 */
+"", /* 7 */
+"Cave contains attrs unsuitable for this RLE method", /* 8 */
 "",
 };
 
@@ -176,8 +180,10 @@ int cq_printf(cq *charq, char *str, ...) {
 		}
 	}
 
+	charq->err = error;
+
 	if (error) {
-		printf("Error in cq_printf('...%s'): %s [%d.%d]\n", str, pf_errors[error], str_size, charq->len);
+		plog_fmt("Error in cq_printf('...%s'): %s [%d.%d]\n", str, pf_errors[error], str_size, charq->len);
 		bytes = 0;
 	} else {
 		PACK_FIN_R(charq, bytes);
@@ -296,6 +302,8 @@ int cq_scanf(cq *charq, char *str, ...) {
 		}
 	}
 
+	charq->err = error;
+
 	if (error) {
 		found = 0;
 		plog(format("Error in cq_scanf('...%s'): %s [%d]\n", str, pf_errors[error], str_size));
@@ -385,6 +393,9 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 #undef CF_ERROR_SIZE
 #undef CF_ERROR_FRMT
 
+	src->err = error;
+	dst->err = error;
+
 	if (error) {
 		found = -1;
 		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]\n", str, pf_errors[error], str_size, src->len, dst->max));
@@ -457,6 +468,13 @@ int cv_encode_rle1(cave_view_type* src, cq* dst, int len) {
 		/* Obtain the char/attr pair */
 		c = (src[i]).c;
 		a = (src[i]).a;
+
+		/* Error-check! */
+		if (a & 0x40)
+		{
+			dst->err = 8;
+			return 0;
+		}
 
 		/* Start with count of 1 */
 		n = 1;
@@ -556,6 +574,12 @@ int cv_encode_rle2(cave_view_type* src, cq* dst, int len) {
 		c = (src[i]).c;
 		a = (src[i]).a;
 
+		/* Error-check! */
+		if (a == 0xFF)
+		{
+			dst->err = 8;
+			return 0;
+		}
 		/* Start with count of 1 */
 		n = 1;
 
@@ -653,6 +677,13 @@ int cv_encode_rle3(cave_view_type* src, cq* dst, int len) {
 		/* Obtain the attr */
 		a = (src[i]).a;
 
+		/* Error-check! */
+		if (a & 0x40)
+		{
+			dst->err = 8;
+			return 0;
+		}
+
 		/* Start with count of 1 */
 		n = 1;
 
@@ -671,7 +702,7 @@ int cv_encode_rle3(cave_view_type* src, cq* dst, int len) {
 			/* Output the info */
 			PW_ERROR_SIZE(2 + n)		
 			PACK_PTR_8(wptr, (a | 0x40)); /* Set bit 0x40 of a */
-			PACK_PTR_8(wptr, n);
+			PACK_PTR_8(wptr, (byte)n);
 			/* Output the chars */
 			while (n--)	PACK_PTR_8(wptr, (src[i++]).c);
 			/* Start again after the run */
@@ -694,7 +725,7 @@ int cv_decode_rle3(cave_view_type* dst, cq* src, int len) {
 	UNPACK_INIT(src);
 	for (x = 0; x < len; x++)
 	{
-		int  i, n;
+		byte  i, n;
 		byte a;
 
 		/* Read the attr */
@@ -814,4 +845,12 @@ int cq_scanac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
 		}
 	}
 	return n;
+}
+
+char* cq_error(cq *charq) {
+	if (charq->err == 0) return "";
+	if (charq->err < 9) {
+		return pf_errors[charq->err];
+	}
+	return "";
 }

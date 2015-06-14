@@ -31,6 +31,7 @@ typedef struct char_queue {
 	int pos;
 	int max;
 	int flush;
+	int err;
 } cq;
 typedef int (*compare) (data,data);
 typedef int (*callback) (int,data);
