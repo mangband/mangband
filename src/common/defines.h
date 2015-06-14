@@ -323,7 +323,7 @@
 /*
  * Number of spells per book
  */
-#define SPELLS_PER_BOOK 9
+#define SPELLS_PER_BOOK 20
 
 /*
  * Spell "realms"
