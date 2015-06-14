@@ -242,7 +242,7 @@
 /*
  * Spells in each book (mage spells then priest spells)
  */
-static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
+static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK+1] =
 {
 	/* Mage spells */
 	{
@@ -257,6 +257,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_OBJECT_DETECTION,
 			SPELL_FIND_TRAPS_DOORS,
 			SPELL_STINKING_CLOUD,
+			-1,
 		},
 
 		/* Conjurings and Tricks */
@@ -270,6 +271,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_SPEAR_OF_LIGHT,
 			SPELL_FROST_BOLT,
 			SPELL_WONDER,
+			-1,
 		},
 
 		/* Incantations and Illusions */
@@ -283,6 +285,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_DETECT_INVISIBLE,
 			SPELL_ACID_BOLT,
 			SPELL_SLOW_MONSTER,
+			-1,
 		},
 
 		/* Sorcery and Evocations */
@@ -403,6 +406,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			PRAYER_SENSE_SURROUNDINGS,
 			PRAYER_CURE_MORTAL_WOUNDS,
 			PRAYER_TURN_UNDEAD,
+			-1,
 		},
 
 		/* Exorcism and Dispelling */

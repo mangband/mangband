@@ -282,9 +282,12 @@ void do_cmd_browse(int Ind, int book)
 	for (i = 0; i < SPELLS_PER_BOOK; i++)
 	{
 		spell = get_spell_index(Ind, o_ptr, i);
-		
+
 		/* Collect this spell */
 		if (spell != -1) spells[num++] = spell;
+
+		/* Hack? -- stop looking after first "-1" spell */
+		else break;
 	}
 
 	/* Display the spells */
