@@ -1093,6 +1093,11 @@ void prt_history(int Ind)
 	{
 		send_indication(Ind, IN_HISTORY0 + i, p_ptr->history[i]);
 	}
+
+	send_indication(Ind, IN_NAME, p_ptr->name);
+	send_indication(Ind, IN_GENDER, p_ptr->male ? "Male" : "Female");
+	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
+	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
 }
 
 static void prt_various(int Ind)

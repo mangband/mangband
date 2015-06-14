@@ -747,7 +747,29 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(0), "",
 		(0), "history3_"
 	},
+	/* Name and gender indicators */
+	{
+		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3,	2,	1,
+		(0), "Name:       : \aB%s",
+		(0), "hist_name_"
+	},
+	{
+		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3,	3,	1,
+		(0), "Sex         : \aB%s",
+		(0), "hist_gender_"
+	},
+
 	/** Clones **/
+	{
+		INDICATOR_CLONE(RACE, 0), 	IPW_3,	4,	1,
+		(0), "Race        : \aB%s",
+		(PR_MISC), "hist_race_"
+	},
+	{
+		INDICATOR_CLONE(CLASS, 0), 	IPW_3,	5,	1,
+		(0), "Class       : \aB%s",
+		(PR_MISC), "hist_class_"
+	},
 	{
 		INDICATOR_CLONE(HP, 2),   	IPW_3,  	9,	52,
 		(0),

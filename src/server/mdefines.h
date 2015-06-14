@@ -381,6 +381,8 @@
 #define IN_HISTORY1 	33
 #define IN_HISTORY2 	34
 #define IN_HISTORY3 	35
+#define IN_NAME     	36
+#define IN_GENDER   	37
 
 /*** Screen Locations ***/
 
