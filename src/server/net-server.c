@@ -149,6 +149,42 @@ int player_enter(int ind)
 	return 0;
 }
 
+/* AUX function to reset various player states */
+/* Note: this only deals with immediate network-related states, so we can
+ * stop sending various stuff.
+ * For "complete" player wipe, see "player_wipe()" in birth.c */
+void player_abandon(player_type *p_ptr)
+{
+	int p_idx = Get_Ind[p_ptr->conn];
+	int i;
+
+	/* Leave all chat channels */
+	/* No, let's keep them for now.
+	channels_leave(p_idx);
+	*/
+
+	/* Unsubscribe from all streams */
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		p_ptr->stream_wid[i] = 0;
+		p_ptr->stream_hgt[i] = 0;
+	}
+
+	/* Unschedule all indicators */
+	p_ptr->redraw = 0;
+
+	/* Disable all kinds of tracking */
+	p_ptr->health_who = 0;
+	p_ptr->cursor_who = 0;
+	p_ptr->target_set = FALSE;
+	p_ptr->target_flag = 0;
+	p_ptr->target_n = 0;
+	p_ptr->monster_race_idx = 0;
+
+	/* Disable message repeat */
+	p_ptr->msg_last_type = MSG_MAX;
+}
+
 /* Player leaves active gameplay (Remove player from p_list) */
 int player_leave(int p_idx)
 {
@@ -173,6 +209,9 @@ int player_leave(int p_idx)
 
 	/* Leave all chat channels */
 	channels_leave(p_idx);
+
+	/* Leave everything else */
+	player_abandon(p_ptr);
 
 	/* Inform everyone */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
@@ -228,6 +267,9 @@ void player_drop(int ind)
 	connection_type *c_ptr = players->list[ind]->data1;
 	player_type *p_ptr = players->list[ind]->data2;
 	int p_idx = Get_Ind[ind];
+
+	/* Leave everything (before we destroyed all pointers) */
+	player_abandon(p_ptr);
 
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
