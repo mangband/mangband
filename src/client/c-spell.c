@@ -23,7 +23,7 @@ static void print_spells(int book)
  
  		/* End of terminal */
 		if (i > rows) break; 
- 
+
 		/* Check for end of the book */
 		if (spell_info[book][j][0] == '\0')
 			break;
@@ -31,13 +31,8 @@ static void print_spells(int book)
  		/* Dump the info */
 		prt(spell_info[book][j], 2 + i, col);
 
-		/* Hack -- allow book overflow */
-		if (j++ == SPELLS_PER_BOOK)
-		{
-			i--;
-			j = 0;
-			book++;
-		} 
+		/* Next */
+		j++;
 	}
 
 	/* Clear the bottom line */
@@ -55,9 +50,9 @@ int count_spells_in_book(int book, int *book_over)
 	/* Check for available spells */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
-		/* End of terminal */	
+		/* End of terminal */
 		if (i > rows) break;
-		
+
 		/* Check for end of the book */
 		if (spell_info[book][j][0] == '\0') 
 		{
@@ -67,15 +62,9 @@ int count_spells_in_book(int book, int *book_over)
 
         /* Spell is available */
         num++;
-        
-    	/* Hack -- allow book overflow */
-		if (j++ == SPELLS_PER_BOOK)
-		{
-			i--;
-			j = 0;
-			book++;
-			(*book_over)++;
-		} 
+
+		/* Next */
+		j++;
 	}
 
 	return num;

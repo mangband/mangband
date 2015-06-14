@@ -5620,18 +5620,12 @@ void show_socials(int Ind)
 		j++;
 		bi++;
 
-		/* Adjust indicies, handle overflow */
+		/* Next book */
 		if (bi >= SPELLS_PER_BOOK) 
-		{ 
-			send_spell_info(Ind, 12 + b, bi, 0, " ");
-			bi = 0; 
-			b++; 
-		} 
-		if (j == (SPELLS_PER_BOOK*2)+1) 
-		{ 
+		{
 			j = 0;
-			bi = 0; 
-			b++; 
+			bi = 0;
+			b++;
 		}
 	}
 }
@@ -5654,7 +5648,6 @@ void do_cmd_social(int Ind, int dir, int i)
 		i -= SPELL_PROJECTED;
 		m_catch = TRUE;
 	}
-	i -= (i / SPELLS_PER_BOOK / 3) * (SPELLS_PER_BOOK - 1);
 
 	/* Check bounds */
 	if ((i < 0) || (i >= max_socials)) return;

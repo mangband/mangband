@@ -1624,12 +1624,18 @@ int recv_spell_info(connection_type *ct)
 		return 0;
 	}
 
+	if (line >= SPELLS_PER_BOOK)
+	{
+		plog(format("Spell out of bounds! Getting %d, SPELLS_PER_BOOK=%d!", line, SPELLS_PER_BOOK));
+		return -1;
+	}
+
 	/* Save the info */
 	strcpy(spell_info[book][line], buf);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
 
 	/* and wipe the next line */
-	if (line < SPELLS_PER_BOOK) spell_info[book][line+1][0] = '\0';
+	spell_info[book][line+1][0] = '\0';
 
 	/* Update spell list */
 	p_ptr->window |= PW_SPELL;
