@@ -729,22 +729,22 @@ const indicator_type indicators[MAX_INDICATORS] =
 	/* Those 4 indicators should be merged into one (once code allows it) */
 	{
 		INDICATOR_PKT(HISTORY0, STRING, 0), 	IPW_4,	16+0,	10,
-		(0), "",
+		(0), "%s",
 		(0), "history0_"
 	},
 	{
 		INDICATOR_PKT(HISTORY1, STRING, 0), 	IPW_4,	16+1,	10,
-		(0), "",
+		(0), "%s",
 		(0), "history1_"
 	},
 	{
 		INDICATOR_PKT(HISTORY2, STRING, 0), 	IPW_4,	16+2,	10,
-		(0), "",
+		(0), "%s",
 		(0), "history2_"
 	},
 	{
 		INDICATOR_PKT(HISTORY3, STRING, 0), 	IPW_4,	16+3,	10,
-		(0), "",
+		(0), "%s",
 		(0), "history3_"
 	},
 	/* Name and gender indicators */
