@@ -3568,14 +3568,13 @@ void text_out_done()
 void text_out_c(byte a, cptr buf)
 {
 	int i, j, shorten, buflen;
-   player_type	*p_ptr = Players[player_textout];
-   static char line_buf[80] = {'\0'};
-   
-   bool simple = FALSE;
-   bool warped = FALSE;
+	player_type	*p_ptr = Players[player_textout];
+	static char line_buf[80] = {'\0'};
+
+	bool simple = FALSE;
+	bool warped = FALSE;
 	i = j = shorten = 0;
-   buflen = strlen(buf);
-  
+	buflen = strlen(buf);
 
 #if 0
 	/* Add "auto-paragraph" spaces */
@@ -3587,23 +3586,23 @@ void text_out_c(byte a, cptr buf)
 	}
 #endif 
  
-   while (TRUE) {
-
-#if 0   	
-   	/* Add 1 space between stuff (auto-separate) */
-		if (buf[shorten] != ' ' && p_ptr->cur_wid) 
+	while (TRUE)
+	{
+#if 0
+		/* Add 1 space between stuff (auto-separate) */
+		if (buf[shorten] != ' ' && p_ptr->cur_wid)
 		{
-		    strcat(line_buf, " ");
-		    p_ptr->cur_wid += 1;
-		} 
-#endif  
-		
+			strcat(line_buf, " ");
+			p_ptr->cur_wid += 1;
+		}
+#endif
+
 		/* We can fit the info on the same line */
 		if (buflen - shorten < 80 - p_ptr->cur_wid) 
 		{
-				/* Set to copy whole buffer */
-				j = buflen - shorten;
-				simple = TRUE;
+			/* Set to copy whole buffer */
+			j = buflen - shorten;
+			simple = TRUE;
 		}
 		/* We can't, let's find a suitable wrap point */
 		else
@@ -3612,8 +3611,9 @@ void text_out_c(byte a, cptr buf)
 			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
+			{
 				if (buf[i] == ' ')
-				{ 
+				{
 					if (i - shorten < 80 - p_ptr->cur_wid)
 					{
 						j = i - shorten;
@@ -3623,53 +3623,64 @@ void text_out_c(byte a, cptr buf)
 						break;
 					}
 				}
+			}
 			simple = FALSE;
 			warped = TRUE;
 		}
-		
+
 		/* Copy first part */
 		for (i = 0; i < j; i++)
-				if (buf[i+shorten] != '\n')
-					line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
+		{
+			if (buf[i+shorten] != '\n')
+			{
+				line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
+			}
+			else
+			{
+				/* If we encounter a '\n', and it's our first
+				 * line ever, we ignore it... */
+				if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0)
+				{
+					p_ptr->cur_wid -= 1; //ignore, backup a bit
+				}
 				else
 				{
-					
-					if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0) 
-						p_ptr->cur_wid -= 1; //ignore, backup a bit
-					else {
-						j = i + 1;
-						simple = warped = FALSE;
-						break;
-					}
+					j = i + 1;
+					simple = warped = FALSE;
+					break;
 				}
+			}
+		}
 
-		/* Advance forward */			
+		/* Advance forward */
 		p_ptr->cur_wid += i;
 		
 		/* Fill the rest with spaces */
 		for (i = p_ptr->cur_wid; i < 80; i++)
+		{
 			line_buf[i] = ' ';
-		
+		}
+
 		/* Dump it */
 		for (i = p_ptr->cur_wid-j; i < 80; i++)
 		{
 			p_ptr->info[p_ptr->cur_hgt][i].c = line_buf[i];
 			p_ptr->info[p_ptr->cur_hgt][i].a = a;
 		}
-	   
+
 		/* End function for simple cases */
 		if (simple) break;
-		
+
 		/* Advance to next line */
 		p_ptr->cur_hgt += 1;
 		p_ptr->cur_wid = 0;
-		
-	   /* Shorten the text */
-	   shorten += j;
-			   
+
+		/* Shorten the text */
+		shorten += j;
+
 		/* Handle spaces */
 		if (warped && buf[shorten] == ' ') shorten++; 
-		
+
 		/* Finish when we're done */
 		if (shorten >= buflen) break; 
 	}
