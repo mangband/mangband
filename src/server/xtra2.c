@@ -3179,7 +3179,7 @@ void panel_bounds(int Ind)
 	p_ptr->panel_row_min = (p_ptr->panel_row * p_ptr->screen_hgt) / 2;
 	if (p_ptr->panel_row_min + p_ptr->screen_hgt > p_ptr->cur_hgt) p_ptr->panel_row_min = p_ptr->cur_hgt - p_ptr->screen_hgt;
 	p_ptr->panel_row_max = p_ptr->panel_row_min + p_ptr->screen_hgt - 1;
-	p_ptr->panel_row_prt = p_ptr->panel_row_min - SCREEN_CLIP_L;
+	p_ptr->panel_row_prt = p_ptr->panel_row_min - 1;
 	p_ptr->panel_col_min = (p_ptr->panel_col * p_ptr->screen_wid) / 2;
 	if (p_ptr->panel_col_min + p_ptr->screen_wid > p_ptr->cur_wid) p_ptr->panel_col_min = p_ptr->cur_wid - p_ptr->screen_wid; 
 	p_ptr->panel_col_max = p_ptr->panel_col_min + p_ptr->screen_wid - 1;

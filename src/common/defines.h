@@ -81,23 +81,6 @@
  */
 #define MAX_WID		198
 
-/*
- * Compact display (shows Race, Class, Title, HP etc; on the left)
- * 	Tradittionaly it is 13 characters wide. 
- *	Status line (shows Depth, Study at the bottom)
- *		1 row
- * Top Line (shows lots of stuff) - 1 row
- *
- * Depending if player enabled or disabled compact/status, 
- * different offsets should be used when drawing map on screen.
- */
-#define SCREEN_CLIP_X	13
-#define SCREEN_CLIP_Y	2
-#define SCREEN_CLIP_L	1
-#define DUNGEON_OFFSET_X \
-	((window_flag[0] & PW_PLAYER_2) ? SCREEN_CLIP_X : 0)
-#define DUNGEON_OFFSET_Y \
-	((window_flag[0] & PW_STATUS) ? SCREEN_CLIP_L : 0)
 	
 /*
  * Hack -- This is used to make sure that every player that has a structure
