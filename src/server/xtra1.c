@@ -203,7 +203,7 @@ static void prt_gold(int Ind)
 static void prt_ac(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	send_indication(Ind, IN_ARMOR, p_ptr->dis_ac, p_ptr->dis_to_a );
+	send_indication(Ind, IN_ARMOR, (p_ptr->dis_ac+p_ptr->dis_to_a), p_ptr->dis_ac, p_ptr->dis_to_a );
 }
 
 
