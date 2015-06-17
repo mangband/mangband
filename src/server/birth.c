@@ -649,19 +649,6 @@ void player_wipe(player_type *p_ptr)
 		}
 	}
 
-	/* Auto-subscribe to some streams */
-	for (i = 0; i < MAX_STREAMS; i++)
-	{
-		if (streams[i].max_row == 0) break;
-		if ((streams[i].min_row == streams[i].max_row) && 
-			(streams[i].min_col == streams[i].max_col))
-		{
-			p_ptr->stream_hgt[i] = streams[i].min_row;
-			p_ptr->stream_wid[i] = streams[i].min_col;
-		}
-	}	
-
-
 	/* Clear old channels */
 	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
 

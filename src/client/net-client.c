@@ -1837,6 +1837,19 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		st_x[j] = -1;
 	}
 
+	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
+	for (k = 0; k < stream_groups; k++)
+	{
+		byte st = stream_group[k];
+		stream_type* st_ptr = &streams[st];
+
+		if (st_ptr->flag & SF_HIDE)
+		{
+			st_x[st] = st_ptr->min_col;
+			st_y[st] = st_ptr->min_row;
+		}
+	}
+
 	/* Now, find actual changes by comparing old and new */ 
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{

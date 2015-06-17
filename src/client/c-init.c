@@ -448,19 +448,8 @@ void init_subscriptions()
 		 && (st_ptr->min_row == st_ptr->max_row)
 		 && (st_ptr->max_row != 0))
 		{
-			/* Silently auto-subscribe */
-			p_ptr->stream_wid[i] = st_ptr->min_col;
-			p_ptr->stream_hgt[i] = st_ptr->min_row;
 			/* Hide this stream from UI */
 			st_ptr->flag |= SF_HIDE;
-
-			/* Allocate memory (once) */
-			if (!remote_info[st_ptr->addr])
-			{
-				C_MAKE(remote_info[st_ptr->addr], (st_ptr->max_row+1) * st_ptr->max_col, cave_view_type);
-			}				
-			/* Save pointer */
-			p_ptr->stream_cave[i] = remote_info[st_ptr->addr]; 
 		}
 
 		/* Handle stream groups */
@@ -472,7 +461,7 @@ void init_subscriptions()
 		stream_groups++;
 		last_addr = st_ptr->addr;
 	}
-	
+
 	/* Advance some streams to the UI */
 	n = 0;
 	for (i = 0; i < stream_groups; i++) 
