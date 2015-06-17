@@ -813,8 +813,13 @@ void cmd_character(void)
 	int done = 0;
 
 	u32b old_window;
+	u32b tmp_window;
 
 	old_window = window_flag[0];
+	tmp_window = window_flag[0];
+
+	tmp_window &= ~PW_PLAYER_2;
+	tmp_window &= ~PW_STATUS;
 
 	/* Screen is icky */
 	screen_icky = TRUE;
@@ -824,6 +829,10 @@ void cmd_character(void)
 
 	while (!done)
 	{
+		if (char_screen_mode == 0) window_flag[0] = tmp_window | PW_PLAYER_0;
+		if (char_screen_mode == 1) window_flag[0] = tmp_window | PW_PLAYER_3;
+		if (char_screen_mode == 2) window_flag[0] = tmp_window | PW_PLAYER_1;
+
 		/* Display player info */
 		display_player(char_screen_mode);
 
@@ -839,9 +848,6 @@ void cmd_character(void)
 			/* Toggle */
 			char_screen_mode++;
 			if (char_screen_mode > 2) char_screen_mode = 0;
-			if (char_screen_mode == 0) window_flag[0] = old_window | PW_PLAYER_0;
-			if (char_screen_mode == 1) window_flag[0] = old_window | PW_PLAYER_3;
-			if (char_screen_mode == 2) window_flag[0] = old_window | PW_PLAYER_1;
 		}
 		
 		/* Check for "change password" */
@@ -865,6 +871,8 @@ void cmd_character(void)
 
 	/* Screen is no longer icky */
 	screen_icky = FALSE;
+
+	redraw_indicators(old_window);
 
 	/* Flush any events */
 	Flush_queue();
