@@ -129,6 +129,7 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		}
 
 		/* Execute console command */
+		buflen = strlen(buf);
 		for (i = 0; i < command_len; i++) 
 		{
 	 		if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
