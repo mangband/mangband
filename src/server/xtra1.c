@@ -3541,8 +3541,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONSTER)
 	{
 		p_ptr->window &= ~(PW_MONSTER);
-		if ((p_ptr->window_flag & PW_MONSTER) || 
-		(p_ptr->target_n && (p_ptr->target_flag & TARGET_READ)))	
 		fix_monster(Ind);
 	}
 
