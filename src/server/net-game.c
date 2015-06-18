@@ -216,7 +216,7 @@ int send_inventory_info(connection_type *ct, int id)
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
-	if (!i_ptr->pkt && !i_ptr->amnt) return 1; /* Last one */
+	if (!i_ptr->mark) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR,
 		i_ptr->pkt, i_ptr->type, i_ptr->amnt,
