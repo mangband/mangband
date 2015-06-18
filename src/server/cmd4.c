@@ -992,7 +992,7 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 		send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
-			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
+			Stream_line_p(p_ptr, STREAM_FILE_TEXT, i);
 		}
 		/* Send_term_info(Ind, NTERM_FLUSH, 0); */
 	}
