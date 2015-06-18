@@ -3578,9 +3578,17 @@ void text_out_init(int Ind) {
 
 void text_out_done()
 {
+	int i;
 	player_type	*p_ptr = Players[player_textout];
-	
-	p_ptr->last_info_line = p_ptr->cur_hgt;	
+
+	/* HACK!! Clear rest of the line */
+	for (i = p_ptr->cur_wid; i < 80; i++)
+	{
+		p_ptr->info[p_ptr->cur_hgt][i].c = ' ';
+		p_ptr->info[p_ptr->cur_hgt][i].a = TERM_WHITE;
+	}
+
+	p_ptr->last_info_line = p_ptr->cur_hgt;
 
 	/* Restore height and width of current dungeon level */
 	p_ptr->cur_hgt = MAX_HGT;
