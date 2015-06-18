@@ -553,7 +553,7 @@ int recv_confirm_request(connection_type *ct)
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 
-	printf("Undefined packet %d came from server! Last packet was: %d\n", next_pkt, last_pkt);
+	plog(format("Undefined packet %d came from server! Last packet was: %d\n", next_pkt, last_pkt));
 
 	/* Disconnect client! */
 	return -1;
