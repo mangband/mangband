@@ -2965,9 +2965,6 @@ void redraw_stuff(void)
 				break;
 			}
 
-			/* Update extra window */
-			p_ptr->window |= win;
-
 			/* HACK: For some indicators, perform ickyness test */
 			if (test_ickyness)
 			{

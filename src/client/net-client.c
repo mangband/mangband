@@ -901,7 +901,12 @@ int recv_indicator_str(connection_type *ct) {
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
-	
+
+	/* Update *all* windows that have this indicator */
+	for (i = 0; i < known_indicators; i++)
+		if (indicators[i].redraw == i_ptr->redraw)
+			p_ptr->window |= indicator_window[i];
+
 	return 1;
 }
 
