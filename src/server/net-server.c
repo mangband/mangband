@@ -173,6 +173,14 @@ void player_abandon(player_type *p_ptr)
 	/* Unschedule all indicators */
 	p_ptr->redraw = 0;
 
+	/* Stop all file perusal and interactivity */
+	string_free(p_ptr->interactive_file);
+	p_ptr->interactive_file = NULL;
+	p_ptr->last_info_line = -1;
+	p_ptr->special_handler = 0;
+	p_ptr->special_file_type = 0;
+	p_ptr->interactive_line = -1;
+
 	/* Disable all kinds of tracking */
 	p_ptr->health_who = 0;
 	p_ptr->cursor_who = 0;
