@@ -1800,6 +1800,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	/* Count indicators */
 	i = 0;
 	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].amnt)) i++;
+	if (i >= 254) plog("ERROR! Out of indicator PKTs!");
 	serv_info.val1 = i;	
 	
 	/* Count streams */
