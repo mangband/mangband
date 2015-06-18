@@ -486,12 +486,11 @@ int send_cursor(player_type *p_ptr, char vis, char x, char y)
 	return 1;
 }
 
-int send_target_info(player_type *p_ptr, int x, int y, byte win, cptr str)
+int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-
 	if (!cq_printf(&ct->wbuf, "%c" "%c%c%c%s", PKT_TARGET_INFO, x, y, win, str))
 	{
 		client_withdraw(ct);
