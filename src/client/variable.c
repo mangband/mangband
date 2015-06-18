@@ -87,6 +87,13 @@ bool interactive_anykey_flag = FALSE;
 
 bool special_line_requested = FALSE;
 
+bool confirm_requested = FALSE;
+char confirm_prompt[MAX_CHARS];
+byte confirm_id;
+byte confirm_type;
+
+bool pause_requested = FALSE;
+
 bool inkey_base = FALSE;
 bool inkey_xtra = FALSE;		/* See the "inkey()" function */
 bool inkey_scan = FALSE;
