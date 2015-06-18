@@ -912,7 +912,8 @@ int recv_indicator(connection_type *ct) {
 int recv_indicator_str(connection_type *ct) {
 	indicator_type *i_ptr;
 	int id = indicator_refs[next_pkt];
-	char buf[MAX_CHARS]; 
+	char buf[MAX_CHARS];
+	int i;
 
 	/* Error -- unknown indicator */
 	if (id > known_indicators) return -1;
