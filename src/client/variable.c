@@ -14,7 +14,7 @@ object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
 
 object_type floor_item;
-char floor_name[80]; 	/* Client-side copy of floor item */
+char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
 
 indicator_type indicators[MAX_INDICATORS];
 byte known_indicators;
@@ -31,10 +31,10 @@ char store_owner_name[MAX_CHARS]; /* Shop owner name */
 char store_name[MAX_CHARS];			/* Shop name */
 byte store_flag = 0;  		 	/* Shop type */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
-char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
+char store_names[STORE_INVEN_MAX][MAX_CHARS];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
 
-char spell_info[26][SPELLS_PER_BOOK+1][80];		/* Spell information */
+char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
 
 char party_info[160];			/* Information about your party */
@@ -81,7 +81,7 @@ item_tester_type item_tester[MAX_ITEM_TESTERS];
 byte known_item_testers;
 
 int special_line_type;
-char special_line_header[80];
+char special_line_header[MAX_CHARS];
 bool special_line_onscreen = TRUE;
 bool interactive_anykey_flag = FALSE;
 

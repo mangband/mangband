@@ -480,7 +480,7 @@ int recv_store(connection_type *ct)
 	int	
 		price;
 	char	
-		name[1024];
+		name[MAX_CHARS];
 	byte	
 		pos,attr;
 	s16b	
@@ -493,7 +493,7 @@ int recv_store(connection_type *ct)
 	store.stock[pos].weight = wgt;
 	store.stock[pos].number = num;
 	store_prices[(int) pos] = price;
-	strncpy(store_names[(int) pos], name, 80);
+	my_strcpy(store_names[(int) pos], name, MAX_CHARS);
 
 	/* Make sure that we're in a store */
 	if (shopping)
@@ -1354,12 +1354,12 @@ int recv_term_info(connection_type *ct) {
 	return 1;
 }
 int recv_term_header(connection_type *ct) {
-	char buf[80];
+	char buf[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Save header */
-	strcpy(special_line_header, buf);
+	my_strcpy(special_line_header, buf, MAX_CHARS);
 
 	/* Enable perusal mode */
 	special_line_type = TRUE;
@@ -1389,7 +1389,7 @@ int recv_cursor(connection_type *ct) {
 }
 
 int recv_target_info(connection_type *ct) {
-	char x, y, buf[80], *s;
+	char x, y, buf[MAX_CHARS], *s;
 	byte win;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
@@ -1448,7 +1448,7 @@ int recv_channel(connection_type *ct) {
 
 int recv_message(connection_type *ct) {
 	char 
-		mesg[80];
+		mesg[MAX_CHARS];
 	u16b 
 		type = 0;
 	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
@@ -1461,13 +1461,13 @@ int recv_message(connection_type *ct) {
 int recv_message_repeat(connection_type *ct) {
 
 	char 
-		mesg[80];
+		mesg[MAX_CHARS];
 	u16b 
 		type = 0;
 
 	if (cq_scanf(&ct->rbuf, "%ud", &type) < 1) return 0;
 
-	strcpy(mesg, message_last());
+	my_strcpy(mesg, message_last(), MAX_CHARS);
 
 	do_handle_message(mesg, type);
 
@@ -1579,7 +1579,7 @@ int recv_floor(connection_type *ct)
 	byte tval, attr;
 	byte flag;
 	s16b amt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
 	{
@@ -1592,7 +1592,7 @@ int recv_floor(connection_type *ct)
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
 
-	strncpy(floor_name, name, 79);
+	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
 	return 1;
 }
@@ -1604,7 +1604,7 @@ int recv_inven(connection_type *ct)
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt, amt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
 	{
@@ -1618,7 +1618,7 @@ int recv_inven(connection_type *ct)
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
 
-	strncpy(inventory_name[pos - 'a'], name, 79);
+	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
@@ -1633,7 +1633,7 @@ int recv_equip(connection_type *ct)
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
@@ -1647,7 +1647,7 @@ int recv_equip(connection_type *ct)
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
 
 
-	strncpy(inventory_name[pos - 'a' + INVEN_WIELD], name, 79);
+	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_EQUIP);
@@ -1662,7 +1662,7 @@ int recv_spell_info(connection_type *ct)
 	u16b
 		book,
 		line;
-	char buf[MSG_LEN];//TODO: verify this
+	char buf[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
 	{
@@ -1676,7 +1676,7 @@ int recv_spell_info(connection_type *ct)
 	}
 
 	/* Save the info */
-	strcpy(spell_info[book][line], buf);
+	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
 
 	/* and wipe the next line */

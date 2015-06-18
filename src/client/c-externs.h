@@ -54,7 +54,7 @@ extern object_type *inventory;
 extern char **inventory_name;
 
 extern object_type floor_item;
-extern char floor_name[80];
+extern char floor_name[MAX_CHARS];
 
 
 extern indicator_type indicators[MAX_INDICATORS];
@@ -71,10 +71,10 @@ extern char store_owner_name[MAX_CHARS];
 extern char store_name[MAX_CHARS];
 extern byte store_flag;
 extern int store_prices[STORE_INVEN_MAX];
-extern char store_names[STORE_INVEN_MAX][80];
+extern char store_names[STORE_INVEN_MAX][MAX_CHARS];
 extern s16b store_num;
 
-extern char spell_info[26][SPELLS_PER_BOOK+1][80];
+extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
@@ -115,7 +115,7 @@ extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern byte known_item_testers;
 
 extern int special_line_type;
-extern char special_line_header[80];
+extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
 extern bool interactive_anykey_flag;
 

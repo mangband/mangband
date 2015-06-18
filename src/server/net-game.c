@@ -177,11 +177,11 @@ int send_inventory_info(connection_type *ct, int id)
 			off = 0;
 		}
 
-		strcpy(buf, mention_use(0, i));
-		buf[79] = '\0';
+		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
 
 		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -666,7 +666,7 @@ int recv_channel(connection_type *ct, player_type *p_ptr)
 			/* If channel is virtual */
 			else
 			{
-				strncpy(p_ptr->second_channel, name, 80);
+				my_strcpy(p_ptr->second_channel, name, MAX_CHARS);
 			}
 
 		break;
@@ -859,7 +859,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		/* Do it */
 		player_verify_visual(p_ptr);
 		player_enter(ct->user);
-	}	
+	}
 	/* Client asks for active gameplay */
 	else if (mode == PLAY_PLAY)
 	{

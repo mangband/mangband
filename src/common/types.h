@@ -1411,7 +1411,7 @@ struct player_type
 	history_event *charhist; /* Character event history */
 	
 	u16b main_channel; /* main chat channel the player is in */
-	char second_channel[80]; /* where his legacy 'privates' are sent */	
+	char second_channel[MAX_CHARS]; /* where his legacy 'privates' are sent */
 	byte on_channel[MAX_CHANNELS]; /* listening to what channels */
 	
 	u16b total_winner;	/* Is this guy the winner */

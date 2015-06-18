@@ -746,8 +746,8 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		player_wipe(p_ptr);
 
 		/* Copy his name and connection info */
-		strcpy(p_ptr->name, nick_name);
-		strcpy(p_ptr->pass, pass_word);
+		my_strcpy(p_ptr->name, nick_name, MAX_CHARS);
+		my_strcpy(p_ptr->pass, pass_word, MAX_CHARS);
 		p_ptr->version = version;
 
 		/* Verify his name and create a savefile name */
@@ -799,8 +799,8 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	}
 
 	/* Copy host/real names */
-	strcpy(p_ptr->hostname, host_name);
-	strcpy(p_ptr->realname, real_name);
+	my_strcpy(p_ptr->hostname, host_name, MAX_CHARS);
+	my_strcpy(p_ptr->realname, real_name, MAX_CHARS);
 
 	/* Advance to next stage */
 	ct->receive_cb = client_read;
