@@ -1497,6 +1497,8 @@ void common_file_peruse(player_type *p_ptr, char query)
 		/* Verify the menu item */
 		if ((k >= 0) && (k <= 25) && !STRZERO(p_ptr->interactive_hook[k]))
 		{
+			/* Paranoia -- free string */
+			string_free(p_ptr->interactive_file);
 			/* Select that file */
 			p_ptr->interactive_file = string_make(p_ptr->interactive_hook[k]);
 			/* Hack: enforce update */
@@ -1510,7 +1512,7 @@ void common_file_peruse(player_type *p_ptr, char query)
 	/* Use default file */
 	if (!p_ptr->interactive_file)
 	{
-		p_ptr->interactive_file = "mangband.hlp";
+		p_ptr->interactive_file = string_make("mangband.hlp");
 		/* Hack: enforce update */
 		p_ptr->interactive_next = -1;
 		next = 0;
@@ -1527,8 +1529,7 @@ void common_file_peruse(player_type *p_ptr, char query)
 	{
 		if (p_ptr->interactive_file)
 		{
-			if (!streq(p_ptr->interactive_file, "mangband.hlp"))
-				string_free(p_ptr->interactive_file);
+			string_free(p_ptr->interactive_file);
 			p_ptr->interactive_file = NULL;
 		}
 		p_ptr->special_file_type = 0;
