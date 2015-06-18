@@ -418,11 +418,6 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 		client_withdraw(ct);
 	}
 
-int ii;
-printf(">>%2d:%2d>",st,as_y);
-for (ii = 0; ii < cols; ii++) printf("%c", source[ii].c);
-printf("\n");
-
 	/* Ok */
 	return 1;
 }
