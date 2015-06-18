@@ -947,7 +947,7 @@ void do_cmd_observe(int Ind, int item)
 	identify_fully_aux(Ind, o_ptr);
 
 	/* Notify player */
-	Send_special_other(Ind, o_name);
+	send_prepared_popup(Ind, o_name);
 }
 
 
@@ -1638,7 +1638,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 	/* Notify player */
 	Send_special_other(Ind, format("Monster Recall ('%c')", c));
-	
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
 	return;
 }
 

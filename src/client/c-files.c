@@ -1870,7 +1870,11 @@ void show_popup(void)
 	byte n;
 
 	/* Hack -- if the screen is already icky, ignore this command */
-	if (screen_icky) return;
+	if (screen_icky && !shopping) return;
+
+	/* Not waiting for popup, ignore this command */
+	if (special_line_onscreen == FALSE) return;
+
 
 	/* Draw "shadow" */
 	for (n = 0; n < last_remote_line[p_ptr->remote_term]+6; n++)

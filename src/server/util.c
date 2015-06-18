@@ -3525,7 +3525,7 @@ cptr format_history_event(history_event *evt)
 
 void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	byte old_term;
-	int i;	
+	int i;
 
 	/* Save 'current' terminal */
 	old_term = p_ptr->remote_term;
@@ -3546,9 +3546,29 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	p_ptr->last_info_line = 0;
 }
 
+void send_prepared_popup(int Ind, cptr header)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	byte old_term;
+
+	old_term = p_ptr->remote_term;
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	Send_special_other(Ind, header);
+
+	/* Clear, Send, Popup! */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
+		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i);
+	send_term_info(p_ptr, NTERM_POP, 0);
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+}
+
 void text_out_init(int Ind) {
 	player_type	*p_ptr = Players[Ind];
-	
+
 	player_textout = Ind;
 	p_ptr->cur_wid = 0;
 	p_ptr->cur_hgt = 0;
