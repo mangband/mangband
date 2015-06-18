@@ -381,6 +381,9 @@ static void Game_loop(void)
 			request_command(FALSE);
 		}
 
+		/* Process server-side requests */
+		process_requests();
+
 		/* Flush input (now!) */
 		flush_now();
 
