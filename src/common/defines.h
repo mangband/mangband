@@ -32,9 +32,15 @@
  */
 
 /*
- * Define the maximum number of characters to use in many things
+ * Define the maximum number of columns to use in many things
  */
-#define MAX_CHARS 80
+#define MAX_COLS 80
+
+/*
+ * Define the maximum number of characters to use in strlcpy-styled
+ * strings, where \0 terminator is *always* present (thus extra byte).
+ */
+#define MAX_CHARS (80+1)
 
 /*
  * Maximum message length
