@@ -1319,20 +1319,21 @@ int recv_term_info(connection_type *ct) {
 	/* Copy nterm contents to screen */
 	if (flag & NTERM_FLUSH)
 	{
-		u16b wid, hgt, off, n;
+		u16b wid, hgt, xoff, yoff, n;
 		byte st;
 
-		off = 0;
+		xoff = 0; yoff = 0;
 		st = window_to_stream[win];
 		hgt = old_remote_line + 1;/*last_remote_line[win] + 1;*/
 		wid = p_ptr->stream_wid[st];
 
 		/* HACK: */
-		if (!win) off = DUNGEON_OFFSET_X;
+		if (!win) xoff = DUNGEON_OFFSET_X;
+		if (!win) yoff = DUNGEON_OFFSET_Y;
 
 		for (n = line; n < hgt; n++)
 		{
-			caveprt(stream_cave(st, n), wid, off, n );
+			caveprt(stream_cave(st, n), wid, xoff, n + yoff);
 		}
 	}
 
@@ -1387,6 +1388,7 @@ int recv_cursor(connection_type *ct) {
 	if (cursor_icky)
 	{
 		x += DUNGEON_OFFSET_X;
+		y += DUNGEON_OFFSET_Y;
 		Term_consolidate_cursor(vis, x, y);
 	}
 
@@ -1414,6 +1416,7 @@ int recv_target_info(connection_type *ct) {
 	if (cursor_icky)
 	{
 		x += DUNGEON_OFFSET_X;
+		y += DUNGEON_OFFSET_Y;
 		Term_consolidate_cursor(TRUE, x, y);
 	}
 

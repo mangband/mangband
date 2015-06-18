@@ -2612,6 +2612,7 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 
 	/* Manipulate offset: */
 	x += DUNGEON_OFFSET_X;	
+	y += DUNGEON_OFFSET_Y;
 
 	/* Test ickyness */
 	if (screen_icky || section_icky_row || shopping) draw = FALSE;
@@ -2648,13 +2649,15 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 }
 
 /* Show (or don't) a line depending on screen ickyness */
-void show_line(int y, s16b cols, bool mem)
+void show_line(int sy, s16b cols, bool mem)
 {
 	s16b xoff, coff;
 	bool draw;
+	int y;
 
-	draw = !screen_icky;
+	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
+	y = sy + DUNGEON_OFFSET_Y;
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -2677,11 +2680,11 @@ void show_line(int y, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(stream_cave(0, y), cols, DUNGEON_OFFSET_X, y);
+		cavemem(stream_cave(0, sy), cols, DUNGEON_OFFSET_X, y);
 
 	/* Put data to screen */
 	if (draw)
-		caveprt(stream_cave(0, y)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
+		caveprt(stream_cave(0, sy)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
 }
 
 
