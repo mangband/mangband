@@ -854,6 +854,12 @@ const indicator_type indicators[MAX_INDICATORS] =
 		"Gold       \aG%9ld",
 		(PR_GOLD), "hist_gold"
 	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   IPW_6, 	19,	53,
+		(0),
+		"Gold Remaining:\aG%9ld",
+		(PR_GOLD), "store_gold"
+	},
 	/* alternative way to create verbose stat indicators
  	{
 		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,

@@ -445,7 +445,20 @@ static void store_process_command(void)
 void display_store(void)
 {
 	char buf[1024];
-	
+	u32b old_flag;
+	bool redraw = TRUE;
+
+	/* Entering store (called first time) */
+	if (shopping == FALSE)
+	{
+		old_flag = window_flag[0];
+		Term_save();
+
+		window_flag[0] |= PW_STORE;
+		window_flag[0] &= ~PW_STATUS;
+		window_flag[0] &= ~PW_PLAYER_2;
+	}
+
 	/* The screen is "icky" */
 	screen_icky = TRUE;
  
@@ -567,11 +580,13 @@ void display_store(void)
 	/* The screen is no longer icky */
 	screen_icky = FALSE;
 
-	/* Return map */
-	prt_map_easy();
-
 	/* We are no longer "shopping" */
 	shopping = FALSE;
+
+	/* Fix screen */
+	Term_load();
+	window_flag[0] = old_flag;
+	redraw_indicators(old_flag);
 
 	/* Flush any events that happened */
 	Flush_queue();

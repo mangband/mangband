@@ -995,6 +995,7 @@ int recv_indicator_info(connection_type *ct) {
 	if (win & IPW_3) indicator_window[known_indicators] |= PW_PLAYER_0;
 	if (win & IPW_4) indicator_window[known_indicators] |= PW_PLAYER_3;
 	if (win & IPW_5) indicator_window[known_indicators] |= PW_PLAYER_1;
+	if (win & IPW_6) indicator_window[known_indicators] |= PW_STORE;
 
 	/* Indicator takes place of a PKT */
 	if (pkt)

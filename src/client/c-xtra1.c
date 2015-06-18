@@ -2958,6 +2958,7 @@ void redraw_stuff(void)
 				case IPW_3:
 				case IPW_4:
 				case IPW_5:
+				case IPW_6:
 					test_ickyness = FALSE;
 				break;
 				default:
