@@ -3595,6 +3595,46 @@ void text_out_done()
 	p_ptr->cur_wid = MAX_WID;
 }
 
+/* Taking (bad) ques from client code, here we copy one
+ * buffer into another, instead of just storing pointer
+ * to the correct buffer somewhere... */
+/* The reason is all the current functions are hard-wired
+ * to use p_ptr->info, so instead of massive overhaul (like making
+ * *IT* a pointer), we add a literal workaround. */
+/* TODO: Kill this. */
+void text_out_save(player_type *p_ptr)
+{
+	int i, j;
+	/* memcpy is for cowards */
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->file[j][i].a = p_ptr->info[j][i].a;
+			p_ptr->file[j][i].c = p_ptr->info[j][i].c;
+		}
+	}
+	p_ptr->last_file_line = p_ptr->last_info_line;
+}
+void text_out_load(player_type *p_ptr)
+{
+	/* mindless code duplication. */
+	int i, j;
+
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->info[j][i].a = p_ptr->file[j][i].a;
+			p_ptr->info[j][i].c = p_ptr->file[j][i].c;
+		}
+	}
+	p_ptr->last_info_line = p_ptr->last_file_line;
+	/* I hope you'll delete those functions ASAP */
+	/* WHATEVER HAPPENS, PLEASE DON'T UPGRADE THIS */
+	/* TO ALLOW STACKING... */
+}
+
 void text_out_c(byte a, cptr buf)
 {
 	int i, j, shorten, buflen;

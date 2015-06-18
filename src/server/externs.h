@@ -1022,6 +1022,8 @@ extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
 extern void text_out_done();
+extern void text_out_save();
+extern void text_out_load();
 extern void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col);
 extern void prt(player_type *p_ptr, cptr str, int row, int col);
 extern void clear_line(int Ind, int row);

@@ -1394,7 +1394,9 @@ struct player_type
 	cave_view_type scr_info[MAX_HGT][MAX_WID];
 	cave_view_type trn_info[MAX_HGT][MAX_WID];
 	cave_view_type info[MAX_TXT_INFO][MAX_WID];
+	cave_view_type file[MAX_TXT_INFO][MAX_WID];
 	s16b last_info_line;
+	s16b last_file_line;
 	byte remote_term;
 	u32b window_flag; /* What updates is he subscribed to? */
 
