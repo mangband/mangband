@@ -1451,6 +1451,10 @@ static int recv_walk(player_type *p_ptr) {
 		return -1;
 	}
 
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	p_ptr->store_num = -1;
+
 	/* Classic MAnghack #2. */
 	/* Always prefer last walk request */
 	/* Note: there's another arguably more elegant way to do this:
@@ -1485,6 +1489,10 @@ static int recv_walk(player_type *p_ptr) {
 
 static int recv_toggle_rest(player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
+
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	p_ptr->store_num = -1;
 
 	if (p_ptr->resting)
 	{
@@ -1569,6 +1577,13 @@ static int recv_custom_command(player_type *p_ptr)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
+	}
+
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	if (!(custom_commands[i].flag & COMMAND_STORE))
+	{
+		p_ptr->store_num = -1;
 	}
 
 	/* Does it cost energy? */
