@@ -4300,38 +4300,38 @@ void do_cmd_purchase_house(int Ind, int dir)
 				msg_print(Ind, "You see nothing to sell there.");
 				return;
 			}
-			
+
 			/* Get requested grid */
 			c_ptr = &cave[Depth][houses[i].door_y][houses[i].door_x];
-				
+
 			/* Take player's CHR into account */
 			factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-        	price = (unsigned long) houses[i].price * factor / 100;
+			price = (unsigned long) houses[i].price * factor / 100;
 
 			if (house_owned(i))
 			{
 				/* Is it owned by this player? */
 				if (house_owned_by(Ind,i))
-				{	
+				{
 					/* house is no longer owned */
 					disown_house(i);
-					
+
 					msg_format(Ind, "You sell your house for %ld gold.", price/2);
-	
+
 					 /* Get the money */
 					p_ptr->au += price / 2;
-	
+
 					/* Window */
 					p_ptr->window |= (PW_INVEN);
-	
+
 					/* Redraw */
 					p_ptr->redraw |= (PR_GOLD);
-	
+
 					/* Done */
-					return;			
+					return;
 					}
 			}
-			
+
 			/* No house, message */
 			msg_print(Ind, "You don't own this house.");
 			return;
@@ -4357,7 +4357,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 
 		/* Take player's CHR into account */
 		factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-        price = (unsigned long) houses[i].price * factor / 100;
+		price = (unsigned long) houses[i].price * factor / 100;
 
 
 		/* Check for already-owned house */
@@ -4376,23 +4376,22 @@ void do_cmd_purchase_house(int Ind, int dir)
 				else
 				{
 					/* Delay house transaction */
-					p_ptr->current_house = i;			
-			
+					p_ptr->current_house = i;
 					/* Tell the client about the price */
 					Send_store_sell(Ind, price/2);
 				}
-				return;		
+				return;
 			}
-		
+
 			if (p_ptr->dm_flags & DM_HOUSE_CONTROL)
 			{
 				disown_house(i);
-				
+
 				msg_format(Ind, "The house has been reset.");
-				
+
 				return;
 			}
-		
+
 			/* Message */
 			msg_print(Ind, "That house is already owned.");
 			
@@ -4400,7 +4399,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 			return;
 		}
 
-		if(Depth == 0) 
+		if (Depth == 0)
 		{
 			/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
 			price =(unsigned long)price *5L; 
@@ -4413,7 +4412,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 			msg_print(Ind, "You do not have enough money.");
 			return;
 		}
-		
+
 		/* Check if we have too many houses already */
 		if( cfg_max_houses && houses_owned(Ind) >= cfg_max_houses )
 		{

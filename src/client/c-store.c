@@ -170,7 +170,41 @@ static int get_stock(int *com_val, cptr pmt, int i, int j)
         return (TRUE);
 }
 
+/* Public interface to get_stock function. */
+int get_store_stock(int *citem, cptr prompt)
+{
+	int                     i, amt;
+	int                     item;
+	u32b                    price;
 
+	object_type             *o_ptr;
+
+	char            out_val[160];
+
+	/* Empty? */
+	if (store.stock_num <= 0)
+	{
+		if (store_num == 7) c_msg_print("Your home is empty.");
+		else c_msg_print("I am currently out of stock.");
+		return 0;
+	}
+
+	/* Find the number of objects on this and following pages */
+	i = (store.stock_num - store_top);
+
+	/* And then restrict it to the current page */
+	if (i > 12) i = 12;
+
+	/* Get the item number to be bought */
+	if (!get_stock(&item, prompt, 0, i-1)) return 0;
+
+	/* Get the actual index */
+	item = item + store_top;
+
+	*citem = item;
+
+	return 1;
+}
 
 static void store_examine(void) 
 {
@@ -318,6 +352,18 @@ static void store_sell(void)
 
 static void store_process_command(void)
 {
+	/* Try custom commands */
+	byte i;
+	for (i = 0; i < custom_commands; i++)
+	{
+		if (custom_command[i].flag & COMMAND_STORE
+		 && custom_command[i].m_catch == command_cmd)
+		{
+			cmd_custom(i);
+			return;
+		}
+	}
+
         /* Parse the command */
         switch (command_cmd)
         {
@@ -343,6 +389,7 @@ static void store_process_command(void)
                         }
                         break;
                 }
+#if 0
                        /* Look (examine) */
                 case 'l':
                 {
@@ -364,7 +411,7 @@ static void store_process_command(void)
                         store_sell();
                         break;
                 }
-
+#endif
                         /* Ignore return */
                 case '\r':
                 {

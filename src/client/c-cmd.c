@@ -19,13 +19,13 @@ void cmd_custom(byte i)
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
 	cc_ptr = &custom_command[i];
-	dir = item = value = 0;
+	dir = item = item2 = value = 0;
 	prompt = cc_ptr->prompt;
 	entry[0] = '\0';
-	
+
 	need_second = (cc_ptr->flag & COMMAND_NEED_SECOND ? TRUE : FALSE);
 	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);	
-	
+
 	/* Pre-tests */
 	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
 	{
@@ -78,6 +78,35 @@ void cmd_custom(byte i)
 			return;
 		}
 		advance_prompt();
+	}
+	/* Ask for a store item (interactive) ? */
+	else if (cc_ptr->flag & COMMAND_ITEM_STORE)
+	{
+		if (!get_store_stock(&item, prompt)) return;
+		advance_prompt();
+
+		/* Get an amount */
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT))
+		{
+			value = 1;
+			/* - from stock */
+			if (store.stock[item].number > 1)
+			{
+				/* Hack -- note cost of "fixed" items */
+				if (store_num != 7)
+					c_msg_print(format("That costs %ld gold per item.", (long)store_prices[item]));
+
+				if (STRZERO(prompt)) prompt = "How many? ";
+				shopping_buying = TRUE;
+				value = c_get_quantity(prompt, store.stock[item].number);
+				shopping_buying = FALSE;
+			}
+			if (!value) return;
+			advance_prompt();
+        }
+
+		/* Dirty Hack -- save multiplied price as "entry" */
+		sprintf(entry, "%" PRId32, (uint32_t)(store_prices[item]*value));
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
@@ -248,6 +277,7 @@ void process_command()
 	byte i;
 	for (i = 0; i < custom_commands; i++) 
 	{
+		if (custom_command[i].flag & COMMAND_STORE) continue;
 		if (custom_command[i].m_catch == command_cmd) 
 		{
 			cmd_custom(i);

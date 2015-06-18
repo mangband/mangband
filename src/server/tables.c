@@ -316,6 +316,24 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
+
+	/*** Store/shopping commands ***/
+	{ /* [Get]/Purchase item */
+		'p', PKT_UNDEFINED, SCHEME_ITEM_VALUE_STRING, 1, (cccb)store_purchase,
+		(COMMAND_STORE | COMMAND_ITEM_STORE | COMMAND_ITEM_AMMOUNT),
+		0, "Which item are you interested in? \nHow many? "
+	},
+	{ /* [Drop]/Sell item */
+		's', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)store_sell,
+		(COMMAND_STORE | COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Sell what? \nHow many? "
+	},
+	{ /* [Examine]/Look at item */
+		'l', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_observe,
+		(COMMAND_STORE | COMMAND_ITEM_STORE),
+		0, "Which item do you want to examine? "
+	},
+
 #ifdef DEBUG
 	{ /* Temporary debug command */
 		'Z', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
