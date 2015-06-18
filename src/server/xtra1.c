@@ -1451,11 +1451,17 @@ static void fix_monlist(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
+	/* HACK -- Save other player info */
+	text_out_save(p_ptr);
+
 	/* Prepare 'visible monsters' list */
 	display_monlist(Ind);
 
 	/* Send it */
 	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT);
+
+	/* HACK -- Load other player info */
+	text_out_load(p_ptr);
 
 	return;
 }
@@ -1599,7 +1605,13 @@ static void fix_map(int Ind)
  */
 static void fix_monster(int Ind)
 {
+	/* HACK -- Save other player info */
+	text_out_save(Players[Ind]);
+
 	do_cmd_monster_desc_aux(Ind, Players[Ind]->monster_race_idx, TRUE);
+
+	/* HACK -- Load other player info */
+	text_out_load(Players[Ind]);
 }
 
 
