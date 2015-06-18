@@ -65,6 +65,7 @@ void cmd_custom(byte i)
 	{
 		special_line_type = cc_ptr->tval;
 		strcpy(special_line_header, prompt);
+		interactive_anykey_flag = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
 		cmd_interactive();
 		return;
 	}
@@ -883,13 +884,14 @@ void cmd_interactive()
 {
 	char ch;
 	bool done = FALSE;
+	bool use_anykey = interactive_anykey_flag; /* Copy it to local var, it might change */
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky) return;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
-	
+
 	special_line_onscreen = TRUE;
 
 	/* Save the screen */
@@ -907,12 +909,16 @@ void cmd_interactive()
 		if (!ch)
 			continue;
 
+		if (use_anykey) ch = ESCAPE;
+
 		send_term_key(ch);
 
 		/* Check for user abort */
 		if (ch == ESCAPE && !icky_levels)
 			break;
 	}
+
+	interactive_anykey_flag = FALSE;
 
 	/* Reload the screen */
 	Term_load();

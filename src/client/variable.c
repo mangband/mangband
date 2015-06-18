@@ -82,6 +82,7 @@ byte known_item_testers;
 int special_line_type;
 char special_line_header[80];
 bool special_line_onscreen = TRUE;
+bool interactive_anykey_flag = FALSE;
 
 bool inkey_base = FALSE;
 bool inkey_xtra = FALSE;		/* See the "inkey()" function */

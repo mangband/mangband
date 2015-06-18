@@ -116,6 +116,7 @@ extern byte known_item_testers;
 extern int special_line_type;
 extern char special_line_header[80];
 extern bool special_line_onscreen;
+extern bool interactive_anykey_flag;
 
 extern bool inkey_base;
 extern bool inkey_xtra;

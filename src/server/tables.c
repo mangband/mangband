@@ -296,7 +296,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 	{ /* Mini-Map' */
 		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
-		(COMMAND_INTERACTIVE),
+		(COMMAND_INTERACTIVE | COMMAND_INTERACTIVE_ANYKEY),
 		99, "Mini-Map"
 	},	
 #if 0

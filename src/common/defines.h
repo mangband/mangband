@@ -413,6 +413,13 @@
 #define COMMAND_SECOND_DIR  	0x40000000	/* Put second item into dir */
 #define COMMAND_SECOND_CHAR 	0x80000000	/* Put second item into entry[0] */
 
+/* Keen observer might notice that flags bellow collide with
+ * the ones already defined above.
+ * It's OK, as they are for the COMMAND_INTERACTIVE subset,
+ * which is almost an it's own thing and ignores most of the
+ * regular flags. */
+#define COMMAND_INTERACTIVE_ANYKEY 0x10000000 /* Quit on anykey. */
+
 /*
  * Max number of data streams
  */
