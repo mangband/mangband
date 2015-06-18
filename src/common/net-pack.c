@@ -24,6 +24,8 @@
 #define UNPACK_PTR_16(PT, VAL) * PT = * VAL ++ << 8, * PT |= (* VAL ++ & 0xFF)
 #define UNPACK_PTR_32(PT, VAL) * PT = * VAL ++ << 24, * PT |= (* VAL ++ & 0xFF) << 16, * PT |= (* VAL ++ & 0xFF) << 8, * PT |= (* VAL ++ & 0xFF)
 
+#define SOFTER_ERRORS //undefine this for better debug
+
 static const cptr pf_errors[] = {
 "", /* 0 */
 "Unrecognized format", /* 1 */
@@ -149,7 +151,15 @@ int cq_printf(cq *charq, char *str, ...) {
 			case 'n': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text);
-				str_size = MIN(str_size, MAX_CHARS);
+				if (str_size > MAX_CHARS - 1)
+				{
+					plog_fmt("Truncating string '%s', size=%d exceeds MAX_CHARS=%d",text,str_size,MAX_CHARS);
+				#ifndef SOFTER_ERRORS
+					error = 6;
+					break;
+				#endif
+					str_size = MAX_CHARS - 1;
+				}
 				PF_ERROR_SIZE(str_size+1);
 				PACK_8(str_size);
 				PACK_NSTR(text, str_size);
@@ -157,7 +167,15 @@ int cq_printf(cq *charq, char *str, ...) {
 			case 'N': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text);
-				str_size = MIN(str_size, MSG_LEN);
+				if (str_size > MSG_LEN - 1)
+				{
+					plog_fmt("Truncating string '%s', size=%d exceeds MSG_LEN=%d",text,str_size,MSG_LEN);
+				#ifndef SOFTER_ERRORS
+					error = 6;
+					break;
+				#endif
+					str_size = MSG_LEN - 1;
+				}
 				PF_ERROR_SIZE(str_size+2);
 				PACK_16(str_size);
 				PACK_NSTR(text, str_size);
@@ -165,16 +183,36 @@ int cq_printf(cq *charq, char *str, ...) {
 			case 's': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text)+1;
-				str_size = MIN(str_size, MAX_CHARS);
+				if (str_size > MAX_CHARS)
+				{
+					plog_fmt("Truncating string '%s', size=%d exceeds MAX_CHARS=%d",text,str_size,MAX_CHARS);
+				#ifndef SOFTER_ERRORS
+					error = 6;
+					break;
+				#endif
+					str_size = MAX_CHARS;
+				}
 				PF_ERROR_SIZE(str_size);
-				PACK_STR(text);
+				str_size--;
+				PACK_NSTR(text, str_size);
+				PACK_8('\0');
 				break;}
 			case 'S': {
 				text = (char*) va_arg (marker, char *);
 				str_size = strlen(text)+1;
-				str_size = MIN(str_size, MSG_LEN);
+				if (str_size > MSG_LEN)
+				{
+					plog_fmt("Truncating string '%s', size=%d exceeds MSG_LEN=%d",text,str_size,MSG_LEN);
+				#ifndef SOFTER_ERRORS
+					error = 6;
+					break;
+				#endif
+					str_size = MSG_LEN;
+				}
 				PF_ERROR_SIZE(str_size);
-				PACK_STR(text);
+				str_size--;
+				PACK_NSTR(text, str_size);
+				PACK_8('\0');
 				break;}
 			PF_ERROR_FRMT
 		}
@@ -214,6 +252,8 @@ int cq_scanf(cq *charq, char *str, ...) {
 #define SF_BYTES_LEFT (RENDN - RPTRN)
 #define SF_ERROR_SIZE_STR(SIZE, WIDE) if (RPTRN + (SIZE) > RENDN) { error = 2; RPTRN -= WIDE; break; }
 #define SF_ERROR_SIZE(SIZE) if (RPTRN + SIZE > RENDN) { error = 2; break; }
+#define SF_ERROR_STRSIZE(STRSIZE,MAX) if (STRSIZE > MAX) { error = 5; break; }
+#define SF_ERROR_NSTRSIZE(STRSIZE,MAX) if (STRSIZE > MAX) { error = 6; break; }
 #define SF_ERROR_FRMT default: { error = 1; break; }
 
 	while (!error && *str++ == '%') {
@@ -263,7 +303,7 @@ int cq_scanf(cq *charq, char *str, ...) {
 				SF_ERROR_SIZE(1)
 				_text = (char*) va_arg (marker, char*);
 				UNPACK_8(&str_size);
-				str_size = MIN(str_size, MAX_CHARS);
+				SF_ERROR_NSTRSIZE(str_size, MAX_CHARS - 1)
 				SF_ERROR_SIZE_STR(str_size, 1)
 				UNPACK_NSTR(_text, str_size);
 				*_text = 0;
@@ -272,7 +312,7 @@ int cq_scanf(cq *charq, char *str, ...) {
 				SF_ERROR_SIZE(2)
 				_text = (char*) va_arg (marker, char*);
 				UNPACK_16(&str_size);
-				str_size = MIN(str_size, MSG_LEN);
+				SF_ERROR_NSTRSIZE(str_size, MSG_LEN - 1)
 				SF_ERROR_SIZE_STR(str_size, 2)
 				UNPACK_NSTR(_text, str_size);
 				*_text = 0;
@@ -280,16 +320,20 @@ int cq_scanf(cq *charq, char *str, ...) {
 			case 's': {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
-				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MAX_CHARS));
-				SF_ERROR_SIZE(str_size + 1)
-				UNPACK_STR(_text);
+				SF_ERROR_SIZE(1);//at least 1 more byte should be present
+				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MAX_CHARS)) + 1;
+				SF_ERROR_STRSIZE(str_size, MAX_CHARS)
+				SF_ERROR_SIZE(str_size)
+				UNPACK_NSTR(_text, str_size);
 				break;}
 			case 'S': {
 				_text = (char*) va_arg (marker, char*);
 				//unsigned char str_size;
-				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MSG_LEN));
-				SF_ERROR_SIZE(str_size + 1)
-				UNPACK_STR(_text);
+				SF_ERROR_SIZE(1);//at least 1 more byte should be present
+				str_size = strnlen(rptr, MIN(SF_BYTES_LEFT, MSG_LEN)) + 1;
+				SF_ERROR_STRSIZE(str_size, MSG_LEN)
+				SF_ERROR_SIZE(str_size)
+				UNPACK_NSTR(_text, str_size);
 				break;}
 			case 'T': {/* HACK! unlimited \n-terminated string (\r==\n here)*/
 				_text = (char*) va_arg (marker, char*);
