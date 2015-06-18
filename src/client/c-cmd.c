@@ -499,6 +499,15 @@ void process_command()
 /* Note: this probably should be in some other file, but which? */
 void process_requests()
 {
+	if (pause_requested)
+	{
+		pause_requested = FALSE;
+		interactive_anykey_flag = TRUE;
+		section_icky_row = Term->hgt;
+		section_icky_col = Term->wid;
+		//cmd_interactive();
+		prepare_popup();
+	}
 	if (special_line_requested)
 	{
 		special_line_requested = FALSE;
@@ -980,14 +989,12 @@ void cmd_interactive()
 	/* The screen is OK now */
 	screen_icky = FALSE;
 
-	/* HACK -- FIXME -- When all special_files are like that!
-	special_line_onscreen = FALSE; */
-	
+	special_line_onscreen = FALSE;
+
 	special_line_type = 0;//SPECIAL_FILE_NONE;
 
 	/* Flush any queued events */
 	Flush_queue();
-	
 }
 
 void cmd_chat()

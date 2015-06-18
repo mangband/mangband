@@ -689,7 +689,7 @@ extern void display_monlist(int Ind);
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
-#define Send_pause(IND) plog("Send_pause unimplemented\n")
+#define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
 #define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
 #define Send_store_sell(IND, price) send_store_sell(Ind, price)

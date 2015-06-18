@@ -1314,9 +1314,20 @@ int recv_term_info(connection_type *ct) {
 		{
 			icky_levels--;
 		}
+		if (line == NTERM_PAUSE)
+		{
+			pause_requested = TRUE;
+			return 2;
+		}
 	}
 
-	/* Copy nterm contents to screen */
+	/* Clear screen */
+	if ((flag & NTERM_CLEAR) && (flag & (NTERM_FLUSH|NTERM_FRESH)))
+	{
+		Term_clear();
+	}
+
+	/* Copy NTerm contents to screen */
 	if (flag & NTERM_FLUSH)
 	{
 		u16b wid, hgt, xoff, yoff, n;
@@ -1346,11 +1357,6 @@ int recv_term_info(connection_type *ct) {
 	if (flag & NTERM_POP)
 	{
 		show_popup();
-	}
-	/* Clear screen */
-	if (flag & NTERM_CLEAR)
-	{
-		Term_clear();
 	}
 	/* Refresh screen */
 	if (flag & NTERM_FRESH)

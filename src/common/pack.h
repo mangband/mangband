@@ -246,6 +246,7 @@
 #define NTERM_SAVE   	3
 #define NTERM_LOAD   	4
 #define NTERM_KEY    	5
+#define NTERM_PAUSE     6
 /* NTERM_ACTIVATE */
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1
