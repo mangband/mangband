@@ -123,6 +123,7 @@ extern bool inkey_scan;
 extern bool inkey_flag;
 
 extern bool inkey_exit;
+extern bool inkey_nonblock;
 
 extern bool first_escape;
 

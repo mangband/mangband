@@ -286,6 +286,13 @@ static char inkey_aux(void)
 			inkey_exit = FALSE;
 			return (ESCAPE);
 		}
+
+		/* Return as soon as possible */
+		if (inkey_nonblock)
+		{
+			printf("Returning because nonblock...\n");
+			return (0);
+		}
 	} while (!ch);
 
 	
@@ -389,6 +396,7 @@ static char inkey_aux(void)
 		} while (!ch);
 	}
 #endif
+	/* ARCANE MAGIC STARTS BELOW: */
 
 
 	/* End of internal macro */
@@ -1040,6 +1048,8 @@ char inkey(void)
 		/* Get a key (see above) */
 		kk = ch = inkey_aux();
 
+		/* Hack -- special nonblock mode */
+		if (!ch && inkey_nonblock) return (0);
 
 		/* Finished a "control-underscore" sequence */
 		if (parse_under && (ch <= 32))

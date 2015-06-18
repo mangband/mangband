@@ -89,6 +89,7 @@ bool inkey_scan = FALSE;
 bool inkey_flag = FALSE;
 
 bool inkey_exit = FALSE;
+bool inkey_nonblock = FALSE;	/* Set to TRUE for a single non-blocking read. */
 
 bool first_escape = FALSE;
 
