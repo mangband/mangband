@@ -551,6 +551,7 @@
 #define STREAM_SPECIAL_TEXT  	8
 #define STREAM_MONSTER_TEXT  	9
 #define STREAM_MONLIST_TEXT  	10
+#define STREAM_FILE_TEXT    	11
 
 #define Stream_line(I,S,L) stream_line_as(Players[I],S,L,L)
 #define Stream_line_p(P,S,L) stream_line_as(P,S,L,L)

@@ -485,6 +485,12 @@ const stream_type streams[MAX_STREAMS] =
 		20, 80, 22, 80,
 		0, "MONLIST_TEXT"
 	},
+	{	/* 11 */
+		STREAM_PKT(FILE_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
+		(0),
+		255, 80, 255, 80,
+		0, "FILE_TEXT"
+	},
 
 	/* Tail */
 	{	0	}
