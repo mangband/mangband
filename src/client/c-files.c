@@ -1839,24 +1839,46 @@ void show_recall(byte win, cptr prompt)
 	section_icky_col = 80;
 }
 
+/* Despite it's name, this function is a sister to "cmd_interactive".
+ * Here, we *agree* to server's interactive request, so we don't
+ * INITIALLY send anything. "cmd_interactive", on the other hand,
+ * enters interactive mode by itself AND informs server that it did. */
 void prepare_popup(void)
 {
+	bool use_anykey = interactive_anykey_flag;
+	char ch;
+
 	/* Hack -- if the screen is already icky, ignore this command */
-	if (screen_icky) return;
+	if (screen_icky && !shopping) return;
+
+	/* Agree to SPECIAL stream */
+	special_line_onscreen = TRUE;
 
 	/* Save the screen */
 	Term_save();
 
-	/* Send the request */
-	Send_interactive(special_line_type);
-
 	/* Wait until we get the whole thing */
+	while (TRUE)
 	{
-		inkey();
+		ch = inkey();
+
+		if (!ch) continue;
+
+		if (use_anykey) break;
+
+		send_term_key(ch);
+
+		if (ch == ESCAPE) break;
 	}
+
+	/* Undo interactive_anykey_flag */
+	interactive_anykey_flag = FALSE;
 
 	/* Remove partial ickyness */
 	section_icky_col = section_icky_row = 0;
+
+	/* Stop it with SPECIAL stream */
+	special_line_onscreen = FALSE;
 
 	/* Reload the screen */
 	Term_load();

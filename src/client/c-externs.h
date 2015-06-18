@@ -117,6 +117,7 @@ extern byte known_item_testers;
 extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
+#define interactive_mode special_line_onscreen
 extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;

@@ -1292,7 +1292,7 @@ int recv_term_info(connection_type *ct) {
 	}
 
 	/* Icky test */
-	if ((flag & NTERM_ICKY) && !screen_icky) return 1;
+	if ((flag & NTERM_ICKY) && !interactive_mode) return 1;
 
 	/* Change terminal state */	
 	if (flag & NTERM_HOLD)
@@ -1365,7 +1365,7 @@ int recv_term_header(connection_type *ct) {
 	special_line_type = TRUE;
 
 	/* Ignore it if we're busy */
-	if (screen_icky || looking) return 1;
+	if ((screen_icky && !shopping) || looking) return 1;
 
 	/* Prepare popup route */
 	special_line_requested = TRUE;
