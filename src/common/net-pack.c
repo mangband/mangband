@@ -450,8 +450,8 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 	return found;
 }
 
-#define PW_ERROR_SIZE(SIZE) if (WPTRN + SIZE > WENDN) return 0;
-#define PR_ERROR_SIZE(SIZE) if (RPTRN + SIZE > RENDN) return 0;
+#define PW_ERROR_SIZE(SIZE) if (WPTRN + SIZE > WENDN) { dst->err = 2; return 0; }
+#define PR_ERROR_SIZE(SIZE) if (RPTRN + SIZE > RENDN) { src->err = 2; return 0; }
 
 int cv_encode_none(cave_view_type* src, cq* dst, int len) {
 	int i, bytes = 0;
