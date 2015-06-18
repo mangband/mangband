@@ -144,7 +144,8 @@ int player_enter(int ind)
 	verify_panel(PInd);
 
 	/* Hack, must find better place */
-	prt_history(p_max);
+	prt_history(PInd);
+	show_socials(PInd);
 
 	return 0;
 }
