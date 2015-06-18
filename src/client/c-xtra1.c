@@ -2842,7 +2842,7 @@ void prt_indicator(int first_row, int first_col, int id)
 
 				/* Readout value */
 				n = MIN(n, sizeof(tmp));
-				my_strcpy(tmp, prompt, n);
+				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
 				/* Advance prompt */
