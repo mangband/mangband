@@ -550,7 +550,7 @@ cptr window_flag_desc[32] =
 	NULL,//"Display overhead view",
 	NULL,//"Display monster recall",
 	NULL,//"Display object recall",
-	"Display monster list",
+	NULL,//"Display monster list",
 	"Display status",
 	"Display chat messages",
 	"Display spell list",

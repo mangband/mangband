@@ -481,6 +481,7 @@ extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
+extern void do_cmd_monster_desc_all(int Ind, char sym);
 extern bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b);
 extern void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b);
 

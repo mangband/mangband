@@ -479,6 +479,12 @@ const stream_type streams[MAX_STREAMS] =
 		20, 80, 22, 80,
 		0, "MONSTER_TEXT"
 	},
+	{	/* 10 */
+		STREAM_PKT(MONLIST_TEXT),	NTERM_WIN_MONLIST, 	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONLIST_TEXT"
+	},
 
 	/* Tail */
 	{	0	}

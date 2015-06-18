@@ -1455,7 +1455,7 @@ static void fix_monlist(int Ind)
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_SPECIAL_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT);
 
 	return;
 }
@@ -3538,7 +3538,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONLIST)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
-	if (p_ptr->window_flag & PW_MONLIST)	
 		fix_monlist(Ind);
 	}
 }
