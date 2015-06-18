@@ -3534,16 +3534,16 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	send_term_info(p_ptr, NTERM_ACTIVATE, win);
 
 	/* Clear, Send, Refresh */
-	send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY, 0);
-	for (i = 0; i < p_ptr->last_info_line; i++)
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		stream_line_as(p_ptr, stream, i, i);
 	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
 
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
-	
+
 	/* Hack -- erase 'prepared info' */
-	p_ptr->last_info_line = 0;
+	p_ptr->last_info_line = -1;
 }
 
 void send_prepared_popup(int Ind, cptr header)
@@ -3572,6 +3572,8 @@ void text_out_init(int Ind) {
 	player_textout = Ind;
 	p_ptr->cur_wid = 0;
 	p_ptr->cur_hgt = 0;
+
+	p_ptr->last_info_line = -1;
 }
 
 void text_out_done()

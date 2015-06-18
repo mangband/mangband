@@ -1688,7 +1688,7 @@ void display_map(int Ind, bool quiet)
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map size */
-	map_hgt = p_ptr->screen_hgt - 1;
+	map_hgt = p_ptr->screen_hgt - 2;
 	map_wid = p_ptr->screen_wid - 2;
 	
 	/* Hack -- classic mini-map */

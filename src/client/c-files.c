@@ -1904,8 +1904,9 @@ void show_popup(void)
 		Term_erase(0, n, 80);
 	}
 
+
 	/* Draw text */
-	for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+	for (n = 0; n < last_remote_line[p_ptr->remote_term] + 1; n++)
 	{
 		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n + 2 );
 	}

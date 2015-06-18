@@ -1264,6 +1264,8 @@ int recv_term_info(connection_type *ct) {
 	u16b
 		line = 0;
 
+	s32b old_remote_line;
+
 	if (cq_scanf(&ct->rbuf, "%b", &flag) < 1) return 0;
 
 	/* For principal modes, grab additional parameter */
@@ -1279,10 +1281,13 @@ int recv_term_info(connection_type *ct) {
 	/* Grab terminal id */
 	win = p_ptr->remote_term;
 
-	/* Reset counter */	
+	/* Save last_remote_line for sake of NTERM_FLUSH later */
+	old_remote_line = last_remote_line[win];
+
+	/* Reset counter */
 	if (flag & NTERM_CLEAR)
 	{
-		last_remote_line[win] = 0;
+		last_remote_line[win] = -1;
 	}
 
 	/* Refresh window */
@@ -1319,7 +1324,7 @@ int recv_term_info(connection_type *ct) {
 
 		off = 0;
 		st = window_to_stream[win];
-		hgt = last_remote_line[win] + 1;
+		hgt = old_remote_line + 1;/*last_remote_line[win] + 1;*/
 		wid = p_ptr->stream_wid[st];
 
 		/* HACK: */
