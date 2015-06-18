@@ -643,6 +643,10 @@ void player_wipe(player_type *p_ptr)
 		{
 			p_ptr->stream_cave[i] = &p_ptr->scr_info[0][0];
 		}
+		/*else if (i == STREAM_FILE_TEXT)
+		{
+			p_ptr->stream_cave[i] = &p_ptr->file[0][0];
+		}*/
 		else
 		{
 			p_ptr->stream_cave[i] = &p_ptr->info[0][0];
