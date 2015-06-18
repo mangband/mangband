@@ -857,7 +857,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	{
 		INDICATOR_CLONE(EXP, 3),   IPW_3, 	12,	28,
 		(0),
-		"Exp to Adv.   \aG%6ld",
+		"Exp to Adv.  \aG%7ld",
 		(PR_EXP), "hist_aexp"
 	},
 	{
