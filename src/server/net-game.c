@@ -1252,6 +1252,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	else if (p_ptr->special_file_type)
 		do_cmd_interactive(p_ptr, key);
 
+	return 1;
 }
 
 /* Client asks all-new data, so we enqueue ALL the updates */
