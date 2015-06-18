@@ -74,7 +74,7 @@ void network_loop()
 int client_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	/* 0_0` */
-	quit(NULL);
+	quit("Connection closed.");
 	return 0;
 }
 
