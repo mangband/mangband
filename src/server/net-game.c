@@ -41,15 +41,21 @@ int send_quit(connection_type *ct, const char *reason)
 
 int send_server_info(connection_type *ct)
 {
+	/* Begin cq "transaction" */
+	int start_pos = ct->wbuf.len;
+
 	if (!cq_printf(&ct->wbuf, "%c%b%b%b%b", PKT_BASIC_INFO, serv_info.val1, serv_info.val2, serv_info.val3, serv_info.val4))
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	if (!cq_printf(&ct->wbuf, "%ul%ul%ul%ul", serv_info.val9, serv_info.val10, serv_info.val11, serv_info.val12))
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
-	
+
+	/* OK */
 	return 1;
 }
 
@@ -66,14 +72,18 @@ int send_race_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_RACE) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -82,6 +92,7 @@ int send_race_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul",  p_name + p_info[i].name, p_info[i].name) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -92,14 +103,18 @@ int send_class_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_CLASS) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -108,6 +123,7 @@ int send_class_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul%c",  c_name + c_info[i].name, c_info[i].name, c_info[i].spell_book) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -119,13 +135,17 @@ int send_optgroups_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OPTGROUP) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OPTION_GROUPS, OPT_MAX, 0) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -134,6 +154,7 @@ int send_optgroups_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s",  option_group[i]) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -158,13 +179,17 @@ int send_inventory_info(connection_type *ct, int id)
 	u32b i, off = 0;
 	char buf[80];
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul%ul", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -219,10 +244,13 @@ int send_indication(int Ind, byte id, ...)
 
 	va_list marker;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (!ct) return -1;
 
 	if (!cq_printf(&ct->wbuf, "%c", i_ptr->pkt))
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 
@@ -354,6 +382,7 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	connection_type *ct;
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
+	int start_pos;
 
 	s16b	cols = p_ptr->stream_wid[st];
 	byte	rle = stream->rle;
@@ -367,19 +396,25 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
 
+	/* Begin cq "transaction" */
+	start_pos = ct->wbuf.len;
+
 	/* Packet header */
 	if (cq_printf(&ct->wbuf, "%c%d", stream->pkt, as_y) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	/* (Secondary) */
 	if (trn && cq_printc(&ct->wbuf, rle, p_ptr->trn_info[y], cols) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	/* Packet body */
 	if (cq_printc(&ct->wbuf, rle, source, cols) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 
