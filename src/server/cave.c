@@ -1822,7 +1822,7 @@ void display_map(int Ind, bool quiet)
 	}
 
 	/* Flush main window / Fresh extra window */
-	Send_term_info(Ind, (quiet ? NTERM_FRESH : NTERM_FLUSH), 0);
+	Send_term_info(Ind, (quiet ? NTERM_FRESH : (NTERM_FLUSH | NTERM_ICKY)), 0);
 
 	/* Restore main window */
 	if (quiet)
@@ -2013,7 +2013,6 @@ void do_cmd_view_map(player_type *p_ptr, char query)
 	 */
 	if (query)
 	{
-		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
 		return;
 	}
 

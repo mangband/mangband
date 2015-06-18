@@ -7029,12 +7029,12 @@ void do_cmd_dungeon_master(int Ind, char query)
 	}
 
 	/* Send */
-	Send_term_info(Ind, NTERM_CLEAR, 1);
+	Send_term_info(Ind, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT]; i++)
 	{
 		Stream_line(Ind, STREAM_SPECIAL_MIXED, i); 
 	}
-	Send_term_info(Ind, NTERM_FLUSH, 0);
+	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR, 0);
 
 }
 
