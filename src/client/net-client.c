@@ -475,7 +475,7 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 	return 1;
 }
 
-int recv_store(void)
+int recv_store(connection_type *ct)
 {
 	int	
 		price;
@@ -505,7 +505,7 @@ int recv_store(void)
 	return 1;
 }
 
-int recv_store_info(void)
+int recv_store_info(connection_type *ct)
 {
 	s16b		
 		num_items;
@@ -523,12 +523,33 @@ int recv_store_info(void)
 
 	/* Only enter "display_store" if we're not already shopping */
 	if (!shopping)
-		display_store();
+		enter_store = TRUE;
 	else
 		display_inventory();
 
 	return 1;
 }
+
+int send_confirm(byte type, byte id)
+{
+	return cq_printf(&serv->wbuf, "%c%c%c", PKT_CONFIRM, type, id);
+}
+int recv_confirm_request(connection_type *ct)
+{
+	byte type;
+	byte id;
+	char buf[MAX_CHARS];
+
+	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 1) return 0;
+
+	confirm_requested = TRUE;
+	confirm_type = type;
+	confirm_id = id;
+	my_strcpy(confirm_prompt, buf, MAX_CHARS);
+
+	return 1;
+}
+
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 

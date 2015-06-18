@@ -90,6 +90,7 @@ byte health_track_attr;
 extern bool shopping;
 extern bool shopping_buying; 
 extern bool leave_store;
+extern bool enter_store;
 
 extern s16b last_line_info;
 extern s16b cur_line;
@@ -119,6 +120,15 @@ extern bool special_line_onscreen;
 extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;
+
+extern bool confirm_requested;
+extern byte confirm_type;
+extern byte confirm_id;
+extern char confirm_prompt[MAX_CHARS];
+
+extern bool pause_requested;
+
+#define enter_store_requested enter_store
 
 extern bool inkey_base;
 extern bool inkey_xtra;

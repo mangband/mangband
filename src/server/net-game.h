@@ -31,6 +31,7 @@
 
 	PACKET(PKT_REDRAW,    	"",         	recv_redraw)
 	PACKET(PKT_CLEAR,    	"",         	recv_clear)
+	PACKET(PKT_CONFIRM, 	"%c%c",        	recv_confirm)
 
 	PACKET(PKT_SUICIDE,    	"",         	recv_suicide)
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)

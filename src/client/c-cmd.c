@@ -476,6 +476,16 @@ void process_requests()
 		//cmd_interactive();
 		prepare_popup();
 	}
+	if (confirm_requested)
+	{
+		confirm_requested = FALSE;
+		if (get_check(confirm_prompt)) send_confirm(confirm_type, confirm_id);
+	}
+	if (enter_store)
+	{
+		enter_store = FALSE;
+		display_store();
+	}
 }
 
 

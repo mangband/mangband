@@ -1363,6 +1363,39 @@ int recv_locate(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_confirm(connection_type *ct, player_type *p_ptr) {
+	int Ind;
+	byte type;
+	byte id;
+
+	if (cq_scanf(&ct->rbuf, "%c%c", &type, &id) < 2)
+	{
+		return 0;
+	}
+
+	/* TODO: increment and compare */
+	if (id != 0) return 1;
+
+	/* Don't do any "offline" purchases */
+	if (p_ptr->state != PLAYER_PLAYING) return 1;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (p_ptr->store_num > -1)
+	{
+		store_confirm(Ind);
+	}
+	else if (p_ptr->current_house > -1)
+	{
+		do_cmd_purchase_house(Ind, 0);
+	}
+	else
+	{
+		carry(Ind, 1, 1);
+	}
+
+	return 1;
+}
 
 /** Gameplay commands **/
 /* Those return 
@@ -1632,6 +1665,24 @@ int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long 
 		client_withdraw(ct);
 	}
 	return 1;
+}
+
+int send_confirm_request(int Ind, byte type, cptr buf)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%s", PKT_CONFIRM, type, 0x00, buf))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_store_sell(int Ind, u32b price)
+{
+	char buf[80];
+	sprintf(buf, "Accept %" PRId32 " gold?", price);
+	return send_confirm_request(Ind, 0x01, buf);
 }
 
 /* New version of "process_pending_commands"

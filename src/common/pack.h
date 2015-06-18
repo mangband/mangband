@@ -55,7 +55,7 @@
 /* Packet types 60-64 are sent from either the client or server */
 #define PKT_DIRECTION		60
 #define PKT_ITEM		61
-#define PKT_SELL		62
+#define PKT_CONFIRM		62
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
 

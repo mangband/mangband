@@ -34,4 +34,5 @@
 	PACKET(PKT_OBJFLAGS,   	NULL,   	recv_objflags)
 	PACKET(PKT_STORE,   	"%c%c%d%d%ul%s",	recv_store)
 	PACKET(PKT_STORE_INFO,	"%c%s%s%d%l",   	recv_store_info)
+	PACKET(PKT_CONFIRM,    	"%c%c%s",   	recv_confirm_request)
 #endif

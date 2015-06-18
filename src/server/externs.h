@@ -692,8 +692,8 @@ extern void display_monlist(int Ind);
 #define Send_pause(IND) plog("Send_pause unimplemented\n")
 #define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
-#define Send_store_sell(IND, price) plog("Send_store_sell unimplemented\n")
-#define Send_pickup_check(IND, buf) plog("Send_pickup_check unimplemented\n");
+#define Send_store_sell(IND, price) send_store_sell(Ind, price)
+#define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
 
 /* net-server.c */
 extern int *Get_Ind;
@@ -716,6 +716,9 @@ extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_channel(int Ind, char mode, u16b id, cptr name);
 extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
 extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
+extern int send_store_sell(int Ind, u32b price);
+extern int send_confirm_request(int Ind, byte type, cptr buf);
+
 
 
 /* obj-info.c */
@@ -949,7 +952,7 @@ extern bool curse_weapon(int Ind);
 /* store.c */
 extern bool get_store_item(int Ind, int item, object_type *i_ptr);
 extern int get_player_store_name(int num, char *name);
-extern void store_purchase(int Ind, int item, int amt, u32b offer);
+extern void store_purchase(int Ind, int item, int amt, cptr *checksum);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
 extern void do_cmd_store(int Ind, int pstore);
@@ -957,7 +960,6 @@ extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
 extern s32b player_price_item(int Ind, object_type *o_ptr);
-extern int Send_player_store_info(int ind, char *name, char *owner, int items);
 
 /* util.c */
 extern errr path_parse(char *buf, int max, cptr file);

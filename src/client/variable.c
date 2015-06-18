@@ -52,6 +52,7 @@ byte health_track_attr;
 bool shopping;				/* Are we in a store? */
 bool shopping_buying;		/* Are we buying? */ 
 bool leave_store; 		/* Time to leave store */
+bool enter_store; 		/* Time to enter store */
 
 s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
