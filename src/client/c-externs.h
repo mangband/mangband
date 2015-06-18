@@ -445,6 +445,7 @@ extern void do_ghost(void);
 /* c-store.c */
 extern void display_inventory(void);
 extern void display_store(void);
+extern int get_store_stock(int *citem, cptr prompt);
 
 /* c-xtra1.c */
 extern int register_indicator(int id);
