@@ -1075,13 +1075,19 @@ int recv_stream(connection_type *ct) {
 	stream = &streams[id];
 	addr = stream->addr;
 
+	if (!p_ptr->stream_hgt[id])
+	{
+		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		return -1;
+	}
+
 	/* Hack -- single char */
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
 	if (y > p_ptr->stream_hgt[id]) 
 	{
-		plog("Stream out of bounds");
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
