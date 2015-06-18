@@ -1926,11 +1926,11 @@ void show_peruse(s16b line)
 	if (last > Term->hgt - 6) 
 		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
 	else
-		prt("[Press ESC to exit.]", Term->hgt - 1, 0);				
+		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
 
 	/* Enforce interactivity if not on */
 	special_line_type = 1;
-	if (!screen_icky) cmd_interactive();		
+	if (!special_line_onscreen) special_line_requested = TRUE;
 }
 
 /*

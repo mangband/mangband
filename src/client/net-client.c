@@ -1334,9 +1334,10 @@ int recv_term_header(connection_type *ct) {
 	if (screen_icky || looking) return 1;
 
 	/* Prepare popup route */
-	prepare_popup();
+	special_line_requested = TRUE;
 
-	return 1;
+	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
+	return 2;
 }
 
 int recv_cursor(connection_type *ct) {

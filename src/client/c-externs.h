@@ -118,6 +118,8 @@ extern char special_line_header[80];
 extern bool special_line_onscreen;
 extern bool interactive_anykey_flag;
 
+extern bool special_line_requested;
+
 extern bool inkey_base;
 extern bool inkey_xtra;
 extern bool inkey_scan;
@@ -255,6 +257,7 @@ extern bool get_server_name(void);
 
 /* c-cmd.c */
 extern void process_command(void);
+extern void process_requests(void);
 extern void cmd_custom(byte i);
 extern void cmd_interactive(void);
 extern void cmd_tunnel(void);

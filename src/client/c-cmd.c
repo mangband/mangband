@@ -463,6 +463,20 @@ void process_command()
 
 
 
+/* Process server-side requests. We queue the actual requests in net-client.c
+ * and process them here at a later time, so we don't unexpectedly change state
+ * in the middle of a network frame. */
+/* Note: this probably should be in some other file, but which? */
+void process_requests()
+{
+	if (special_line_requested)
+	{
+		special_line_requested = FALSE;
+		interactive_anykey_flag = TRUE;
+		//cmd_interactive();
+		prepare_popup();
+	}
+}
 
 
 
