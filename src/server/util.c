@@ -3682,7 +3682,7 @@ void text_out_c(byte a, cptr buf)
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
 			{
-				if (buf[i] == ' ')
+				if (buf[i] == ' ' || buf[i] == '\n')
 				{
 					if (i - shorten < 80 - p_ptr->cur_wid)
 					{
