@@ -137,6 +137,8 @@ then
     DISPMOD="$DISPMOD SDL"
 fi
 
+#added this conditional for WINDRES causing linux build to bail - is this even right? -kts
+AM_CONDITIONAL(ON_WINDOWS, test "x$ON_WINDOWS" = xyes)
 
 #WIN (might be SDL on Windows)
 if test "x$ON_WINDOWS" = xyes
