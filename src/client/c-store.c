@@ -170,7 +170,41 @@ static int get_stock(int *com_val, cptr pmt, int i, int j)
         return (TRUE);
 }
 
+/* Public interface to get_stock function. */
+int get_store_stock(int *citem, cptr prompt)
+{
+	int                     i, amt;
+	int                     item;
+	u32b                    price;
 
+	object_type             *o_ptr;
+
+	char            out_val[160];
+
+	/* Empty? */
+	if (store.stock_num <= 0)
+	{
+		if (store_num == 7) c_msg_print("Your home is empty.");
+		else c_msg_print("I am currently out of stock.");
+		return 0;
+	}
+
+	/* Find the number of objects on this and following pages */
+	i = (store.stock_num - store_top);
+
+	/* And then restrict it to the current page */
+	if (i > 12) i = 12;
+
+	/* Get the item number to be bought */
+	if (!get_stock(&item, prompt, 0, i-1)) return 0;
+
+	/* Get the actual index */
+	item = item + store_top;
+
+	*citem = item;
+
+	return 1;
+}
 
 static void store_examine(void) 
 {
@@ -318,6 +352,18 @@ static void store_sell(void)
 
 static void store_process_command(void)
 {
+	/* Try custom commands */
+	byte i;
+	for (i = 0; i < custom_commands; i++)
+	{
+		if (custom_command[i].flag & COMMAND_STORE
+		 && custom_command[i].m_catch == command_cmd)
+		{
+			cmd_custom(i);
+			return;
+		}
+	}
+
         /* Parse the command */
         switch (command_cmd)
         {
@@ -343,6 +389,7 @@ static void store_process_command(void)
                         }
                         break;
                 }
+#if 0
                        /* Look (examine) */
                 case 'l':
                 {
@@ -364,7 +411,7 @@ static void store_process_command(void)
                         store_sell();
                         break;
                 }
-
+#endif
                         /* Ignore return */
                 case '\r':
                 {
@@ -398,7 +445,20 @@ static void store_process_command(void)
 void display_store(void)
 {
 	char buf[1024];
-	
+	u32b old_flag;
+	bool redraw = TRUE;
+
+	/* Entering store (called first time) */
+	if (shopping == FALSE)
+	{
+		old_flag = window_flag[0];
+		Term_save();
+
+		window_flag[0] |= PW_STORE;
+		window_flag[0] &= ~PW_STATUS;
+		window_flag[0] &= ~PW_PLAYER_2;
+	}
+
 	/* The screen is "icky" */
 	screen_icky = TRUE;
  
@@ -454,61 +514,80 @@ void display_store(void)
 	/* Display the inventory */
 	display_inventory();
 
+	redraw_indicators(PW_STORE);
+
 	/* Don't leave */
 	leave_store = FALSE;
 
-        /* Interact with player */
-        while (!leave_store)
-        {
+	/* Interact with player */
+	while (!leave_store)
+	{
 		/* Keep the screen icky */
 		screen_icky = TRUE;
 
-                /* Hack -- Clear line 1 */
-                prt("", 1, 0);
-
-                /* Clear */
-                clear_from(21);
-
-                /* Basic commands */
-                prt(" ESC) Exit from Building.", 22, 0);
-
-                /* Browse if necessary */
-                if (store.stock_num > 12)
-                {
-                        prt(" SPACE) Next page of stock.", 23, 0);
-                }
-
-                /* Home commands */
-                if (store_flag & STORE_HOME)
-                {
-                        prt(" g) Get an item.", 22, 30);
-                        prt(" d) Drop an item.", 23, 30);
-                }
-
-                /* Shop commands XXX XXX XXX */
-                else
-                {
-                        prt(" p) Purchase an item.", 22, 30);
-						/* We don't sell things in some shops  */
-						if (!(store_flag & STORE_PC))
-						{
-                        	prt(" s) Sell an item.", 23, 30);
-                        }
-                }
-					 prt (" l) Look at an item.", 22, 56);
-					 
-                /* Prompt */
-                prt("You may: ", 21, 0);
-
-		command_cmd =inkey();		
-		if (command_cmd)
+		if (redraw)
 		{
-			/* Process the command */
-			store_process_command();
+			redraw = FALSE;
+
+			/* Hack -- Clear line 1 */
+			prt("", 1, 0);
+
+			/* Clear */
+			clear_from(21);
+
+			/* Basic commands */
+			prt(" ESC) Exit from Building.", 22, 0);
+
+			/* Browse if necessary */
+			if (store.stock_num > 12)
+			{
+				prt(" SPACE) Next page of stock.", 23, 0);
+			}
+
+			/* Home commands */
+			if (store_flag & STORE_HOME)
+			{
+				prt(" g) Get an item.", 22, 30);
+				prt(" d) Drop an item.", 23, 30);
+			}
+
+			/* Shop commands XXX XXX XXX */
+			else
+			{
+				prt(" p) Purchase an item.", 22, 30);
+				/* We don't sell things in some shops  */
+				if (!(store_flag & STORE_PC))
+				{
+					prt(" s) Sell an item.", 23, 30);
+				}
+			}
+			prt (" l) Look at an item.", 22, 56);
+
+			/* Prompt */
+			prt("You may: ", 21, 0);
+
+			/* Ugh */
+			Term_fresh();
 		}
 
-		/* Clear the old command */
-		command_cmd = 0;
+		inkey_nonblock = TRUE;
+		command_cmd = inkey();
+		inkey_nonblock = FALSE;
+
+		if (command_cmd)
+		{
+			/* Process it */
+			store_process_command();
+
+			/* Clear previous command */
+			command_cmd = 0;
+
+			/* Redraw screen */
+			redraw = TRUE;
+		}
+
+		/* Process server-side requests */
+		process_requests();
 	}
 
 	/* Tell the server that we're outta here */
@@ -520,11 +599,13 @@ void display_store(void)
 	/* The screen is no longer icky */
 	screen_icky = FALSE;
 
-	/* Return map */
-	prt_map_easy();
-
 	/* We are no longer "shopping" */
 	shopping = FALSE;
+
+	/* Fix screen */
+	Term_load();
+	window_flag[0] = old_flag;
+	redraw_indicators(old_flag);
 
 	/* Flush any events that happened */
 	Flush_queue();

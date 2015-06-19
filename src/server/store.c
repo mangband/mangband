@@ -1636,7 +1636,7 @@ void refresh_store(int st, int item, bool info, bool stock, bool single, cptr bu
 /*
  * Buy an item from a store				-RAK-
  */
-void store_purchase(int Ind, int item, int amt, u32b offer)
+void store_purchase(int Ind, int item, int amt, cptr *checksum)
 {
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
@@ -1651,6 +1651,10 @@ void store_purchase(int Ind, int item, int amt, u32b offer)
 	object_type		*o_ptr = &tmp_obj;
 	bool info, stock, single;
 	char buf[80];
+	u32b offer;
+
+	/* Before doing anything else, extract "offer" from checksum */
+	offer = atoi(checksum);
 
 	/* Empty && Not player-owned? */
 	if (st != 8 && st_ptr->stock_num <= 0)

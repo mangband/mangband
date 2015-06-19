@@ -1597,7 +1597,7 @@ bool detect_invisible(int Ind, bool pause)
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
-			Send_pause(Ind);
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1679,7 +1679,7 @@ bool detect_evil(int Ind)
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
-			Send_pause(Ind);
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1786,7 +1786,7 @@ bool detect_creatures(int Ind, bool pause)
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
-			Send_pause(Ind);
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1827,7 +1827,7 @@ bool detection(int Ind)
 
 		/* Hack -- Pause */
 		if (option_p(Players[Ind], PAUSE_AFTER_DETECT))
-			Send_pause(Ind);
+			Send_pause(Players[Ind]);
 	}
 
 	/* Result */

@@ -1,7 +1,8 @@
 #ifndef __NET_BASICS_H_
 #define __NET_BASICS_H_
 
-#define PD_SMALL_BUFFER		1024 * 6
+#define PD_SMALL_BUFFER		1024 * 4
+#define PD_LARGE_BUFFER		1024 * 8
 #define MATH_MAX(A,B) (A > B ? A : B)
 
 /** Defenitions **/
@@ -30,6 +31,7 @@ typedef struct char_queue {
 	int pos;
 	int max;
 	int flush;
+	int err;
 } cq;
 typedef int (*compare) (data,data);
 typedef int (*callback) (int,data);

@@ -55,7 +55,7 @@
 /* Packet types 60-64 are sent from either the client or server */
 #define PKT_DIRECTION		60
 #define PKT_ITEM		61
-#define PKT_SELL		62
+#define PKT_CONFIRM		62
 #define PKT_PARTY		63
 #define PKT_SPECIAL_LINE	64
 
@@ -246,6 +246,7 @@
 #define NTERM_SAVE   	3
 #define NTERM_LOAD   	4
 #define NTERM_KEY    	5
+#define NTERM_PAUSE     6
 /* NTERM_ACTIVATE */
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1
@@ -256,6 +257,25 @@
 #define NTERM_WIN_MONLIST 	6
 #define NTERM_WIN_SPECIAL 	7
 #define NTERM_WIN_NONE  	0xFF
+
+/*
+ * PKT_INDICATOR* helpers
+ */
+#define IPW_1 0x01
+#define IPW_2 0x02
+#define IPW_3 0x04
+#define IPW_4 0x08
+#define IPW_5 0x10
+#define IPW_6 0x20
+#define IPW_7 0x40
+#define IPW_8 0x80
+
+/*
+ * PKT_LOOK helpers
+ */
+#define NTARGET_LOOK 0
+#define NTARGET_KILL 1
+#define NTARGET_FRND 2
 
 /*
  * PKT_CHANNEL helpers
@@ -291,3 +311,6 @@
 #define PLAY_KILL	PLAYER_BONE
 #define PLAY_ENTER	PLAYER_READY
 #define PLAY_PLAY	PLAYER_PLAYING
+
+#define PLAY_RESTART PLAYER_NAMED
+#define PLAY_REROLL  PLAYER_SHAPED

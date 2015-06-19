@@ -1780,24 +1780,105 @@ void show_motd(void)
 	Term_clear();
 }
 
+void show_recall(byte win, cptr prompt)
+{
+	int n;
+
+	byte st = window_to_stream[win];
+	stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	byte cols = p_ptr->stream_wid[st];
+	byte rows = p_ptr->stream_hgt[st];
+
+	if (looking == FALSE)
+	{
+		return;
+	}
+
+	/* Already in icky mode */
+	if (section_icky_row)
+	{
+		/* Reflush */
+		Term_load();
+		Term_save();
+	}
+
+	/* HACK -- Actually hide recall popup */
+	if (win == NTERM_WIN_NONE)
+	{
+		target_recall = FALSE;
+		section_icky_row = section_icky_col = 0;
+		return;
+	}
+
+	for (n = 0; n < last_remote_line[win]+2; n++)
+	{
+		Term_erase(0, n, 80);
+	}
+
+	for (n = 0; n < last_remote_line[win]+1; n++)
+	{
+		source = stream_cave(st, n);
+		caveprt(source, 80, 0, n);
+	}
+
+	/* Hack -- append target prompt after ':' */
+	source = stream_cave(st, 0);
+	for (n = 0; n < 80-2; n++)
+	{
+		if (source[n].c == ':')
+		{
+			prt(prompt, 0, n + 2);
+			break;
+		}
+	}
+
+	target_recall = TRUE;
+	section_icky_row = last_remote_line[win] + 2;
+	section_icky_col = 80;
+}
+
+/* Despite it's name, this function is a sister to "cmd_interactive".
+ * Here, we *agree* to server's interactive request, so we don't
+ * INITIALLY send anything. "cmd_interactive", on the other hand,
+ * enters interactive mode by itself AND informs server that it did. */
 void prepare_popup(void)
 {
+	bool use_anykey = interactive_anykey_flag;
+	char ch;
+
 	/* Hack -- if the screen is already icky, ignore this command */
-	if (screen_icky) return;
+	if (screen_icky && !shopping) return;
+
+	/* Agree to SPECIAL stream */
+	special_line_onscreen = TRUE;
 
 	/* Save the screen */
 	Term_save();
 
-	/* Send the request */
-	Send_interactive(special_line_type);
-
 	/* Wait until we get the whole thing */
+	while (TRUE)
 	{
-		inkey();
+		ch = inkey();
+
+		if (!ch) continue;
+
+		if (use_anykey) break;
+
+		send_term_key(ch);
+
+		if (ch == ESCAPE) break;
 	}
+
+	/* Undo interactive_anykey_flag */
+	interactive_anykey_flag = FALSE;
 
 	/* Remove partial ickyness */
 	section_icky_col = section_icky_row = 0;
+
+	/* Stop it with SPECIAL stream */
+	special_line_onscreen = FALSE;
 
 	/* Reload the screen */
 	Term_load();
@@ -1811,7 +1892,11 @@ void show_popup(void)
 	byte n;
 
 	/* Hack -- if the screen is already icky, ignore this command */
-	if (screen_icky) return;
+	if (screen_icky && !shopping) return;
+
+	/* Not waiting for popup, ignore this command */
+	if (special_line_onscreen == FALSE) return;
+
 
 	/* Draw "shadow" */
 	for (n = 0; n < last_remote_line[p_ptr->remote_term]+6; n++)
@@ -1819,8 +1904,9 @@ void show_popup(void)
 		Term_erase(0, n, 80);
 	}
 
+
 	/* Draw text */
-	for (n = 0; n < last_remote_line[p_ptr->remote_term]+1; n++)
+	for (n = 0; n < last_remote_line[p_ptr->remote_term] + 1; n++)
 	{
 		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n + 2 );
 	}
@@ -1842,8 +1928,9 @@ void show_peruse(s16b line)
 	s16b last = last_remote_line[p_ptr->remote_term];
 	int k = window_to_stream[p_ptr->remote_term];
 
-	/* Ugly hack :( Just assume 0 for now */
-	line = 0;
+	/* This was giving me endless trouble, so I'm just
+	 * putting it here --flm */
+	Term_clear();
 
 	/* Draw text */
 	for (n = 2; n < Term->hgt-2; n++)
@@ -1867,11 +1954,11 @@ void show_peruse(s16b line)
 	if (last > Term->hgt - 6) 
 		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
 	else
-		prt("[Press ESC to exit.]", Term->hgt - 1, 0);				
+		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
 
 	/* Enforce interactivity if not on */
 	special_line_type = 1;
-	if (!screen_icky) cmd_interactive();		
+	if (!special_line_onscreen) special_line_requested = TRUE;
 }
 
 /*

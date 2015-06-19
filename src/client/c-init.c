@@ -163,6 +163,17 @@ void initialize_all_pref_files(void)
         process_pref_file(buf);
 }
 
+int get_bone_decision() {
+#if 0
+	char k;
+	clear_from(20);
+	put_str("R - reroll, Any other key - restart", 21, 1);
+	Term_fresh();
+	k = inkey();
+	if (k == 'r' || k == 'R') return 1;
+#endif
+	return 0;
+}
 
 /*
  * Sync a piece of server data via "send_request()" call.
@@ -253,25 +264,43 @@ static void Setup_loop()
 				send_char_info();
 				send_play(PLAY_ROLL);
 			}
+			/* Character is dead! */
+			if (state == PLAYER_BONE)
+			{
+				if (get_bone_decision())
+				{
+					/* Ask for similar one */
+					send_play(PLAY_REROLL);
+				}
+				else
+				{
+					/* Generate new one */
+					send_play(PLAY_RESTART);
+				}
+			}
 			if (old_state < PLAYER_SHAPED && state >= PLAYER_SHAPED)
 			{
 				//client_setup();
 			}
+			/* Character is ready for rolling */
 			if (state == PLAYER_SHAPED)
 			{
+				/* Let's roll */
 				send_play(PLAY_ROLL);
 			}
+			/* Character is ready to play */
 			if (state == PLAYER_READY)
 			{
 				char_ready = TRUE;
 			}
+			/* Character was leaving the game */
 			if (state == PLAYER_LEAVING)
 			{
 				char_ready = TRUE;
 			}
 			old_state = state;
 		}
-		if (state == PLAYER_FULL && data_sent == FALSE)
+		if (state >= PLAYER_FULL && data_sent == FALSE)
 		{
 			if (data_ready == TRUE)
 			{
@@ -280,7 +309,7 @@ static void Setup_loop()
 			}
 		}
 		else
-		if (state == PLAYER_FULL && data_ready == TRUE)
+		if (state >= PLAYER_FULL && data_ready == TRUE)
 		{
 			if (asked_game == FALSE)
 			{
@@ -352,6 +381,9 @@ static void Game_loop(void)
 			request_command(FALSE);
 		}
 
+		/* Process server-side requests */
+		process_requests();
+
 		/* Flush input (now!) */
 		flush_now();
 
@@ -419,19 +451,8 @@ void init_subscriptions()
 		 && (st_ptr->min_row == st_ptr->max_row)
 		 && (st_ptr->max_row != 0))
 		{
-			/* Silently auto-subscribe */
-			p_ptr->stream_wid[i] = st_ptr->min_col;
-			p_ptr->stream_hgt[i] = st_ptr->min_row;
 			/* Hide this stream from UI */
 			st_ptr->flag |= SF_HIDE;
-
-			/* Allocate memory (once) */
-			if (!remote_info[st_ptr->addr])
-			{
-				C_MAKE(remote_info[st_ptr->addr], (st_ptr->max_row+1) * st_ptr->max_col, cave_view_type);
-			}				
-			/* Save pointer */
-			p_ptr->stream_cave[i] = remote_info[st_ptr->addr]; 
 		}
 
 		/* Handle stream groups */
@@ -443,7 +464,7 @@ void init_subscriptions()
 		stream_groups++;
 		last_addr = st_ptr->addr;
 	}
-	
+
 	/* Advance some streams to the UI */
 	n = 0;
 	for (i = 0; i < stream_groups; i++) 
@@ -467,10 +488,9 @@ void init_subscriptions()
 			st_ptr->window_flag = (1L << n);
 	 		/* HACK! Enforce Dungeon View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
-			
+
 			/* Save "string" */
 			window_flag_desc[n] = st_ptr->mark; 
-			break;
 		}
 	}
 #endif

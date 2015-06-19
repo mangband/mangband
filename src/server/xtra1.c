@@ -203,7 +203,7 @@ static void prt_gold(int Ind)
 static void prt_ac(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	send_indication(Ind, IN_ARMOR, p_ptr->dis_ac, p_ptr->dis_to_a );
+	send_indication(Ind, IN_ARMOR, (p_ptr->dis_ac+p_ptr->dis_to_a), p_ptr->dis_ac, p_ptr->dis_to_a );
 }
 
 
@@ -539,9 +539,8 @@ int cv_put_str(cave_view_type* dest, byte attr, cptr str, int col, int max_col)
 	}
 	return 1;
 }
-void c_prt_status_line(int Ind, cave_view_type *dest, int len)
+void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len)
 {
-	player_type *p_ptr = Players[Ind];
 	char buf[32];
 	int col = 0;
 	int i, a;
@@ -1094,6 +1093,11 @@ void prt_history(int Ind)
 	{
 		send_indication(Ind, IN_HISTORY0 + i, p_ptr->history[i]);
 	}
+
+	send_indication(Ind, IN_NAME, p_ptr->name);
+	send_indication(Ind, IN_GENDER, p_ptr->male ? "Male" : "Female");
+	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
+	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
 }
 
 static void prt_various(int Ind)
@@ -1447,11 +1451,17 @@ static void fix_monlist(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
+	/* HACK -- Save other player info */
+	text_out_save(p_ptr);
+
 	/* Prepare 'visible monsters' list */
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_SPECIAL_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT);
+
+	/* HACK -- Load other player info */
+	text_out_load(p_ptr);
 
 	return;
 }
@@ -1595,7 +1605,13 @@ static void fix_map(int Ind)
  */
 static void fix_monster(int Ind)
 {
+	/* HACK -- Save other player info */
+	text_out_save(Players[Ind]);
+
 	do_cmd_monster_desc_aux(Ind, Players[Ind]->monster_race_idx, TRUE);
+
+	/* HACK -- Load other player info */
+	text_out_load(Players[Ind]);
 }
 
 
@@ -3518,7 +3534,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MAP)
 	{
 		p_ptr->window &= ~(PW_MAP);
-	if (p_ptr->window_flag & PW_MAP)
 		fix_map(Ind);
 	}
 
@@ -3526,8 +3541,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONSTER)
 	{
 		p_ptr->window &= ~(PW_MONSTER);
-		if ((p_ptr->window_flag & PW_MONSTER) || 
-		(p_ptr->target_n && (p_ptr->target_flag & TARGET_READ)))	
 		fix_monster(Ind);
 	}
 
@@ -3535,7 +3548,6 @@ void window_stuff(int Ind)
 	if (p_ptr->window & PW_MONLIST)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
-	if (p_ptr->window_flag & PW_MONLIST)	
 		fix_monlist(Ind);
 	}
 }

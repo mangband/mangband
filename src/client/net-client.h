@@ -7,7 +7,7 @@
 	PACKET(PKT_KEEPALIVE,  	"%l",   	recv_keepalive)
 	PACKET(PKT_PLAY,    	"%c",   	recv_play)
 	PACKET(PKT_QUIT,    	"%S",   	recv_quit)
-	PACKET(PKT_BASIC_INFO,	"%d%d%d%d",	recv_basic_info)
+	PACKET(PKT_BASIC_INFO,	NULL,   	recv_basic_info)
 	PACKET(PKT_CHAR_INFO,	"%d%d%d%d",	recv_char_info)
 	PACKET(PKT_STRUCT_INFO,	NULL,   	recv_struct_info)
 
@@ -20,6 +20,8 @@
 
 	PACKET(PKT_TERM,    	"%b%ud",	recv_term_info)
 	PACKET(PKT_TERM_INIT,  	"%s",   	recv_term_header)
+	PACKET(PKT_CURSOR,  	"%c%c%c",  	recv_cursor)
+	PACKET(PKT_TARGET_INFO,	"%c%c%c%s",	recv_target_info)
 
 	PACKET(PKT_CHANNEL,  	"%ud%c%s", 	recv_channel)
 	PACKET(PKT_MESSAGE, 	"%s%d",   	recv_message)
@@ -32,4 +34,5 @@
 	PACKET(PKT_OBJFLAGS,   	NULL,   	recv_objflags)
 	PACKET(PKT_STORE,   	"%c%c%d%d%ul%s",	recv_store)
 	PACKET(PKT_STORE_INFO,	"%c%s%s%d%l",   	recv_store_info)
+	PACKET(PKT_CONFIRM,    	"%c%c%s",   	recv_confirm_request)
 #endif

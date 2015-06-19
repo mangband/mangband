@@ -19,7 +19,11 @@ static byte		command_pkt[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
-	return cq_printf(&ct->wbuf, "%c%b", PKT_PLAY, mode);
+	if (!cq_printf(&ct->wbuf, "%c%b", PKT_PLAY, mode))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_quit(connection_type *ct, const char *reason) 
@@ -37,35 +41,49 @@ int send_quit(connection_type *ct, const char *reason)
 
 int send_server_info(connection_type *ct)
 {
+	/* Begin cq "transaction" */
+	int start_pos = ct->wbuf.len;
+
 	if (!cq_printf(&ct->wbuf, "%c%b%b%b%b", PKT_BASIC_INFO, serv_info.val1, serv_info.val2, serv_info.val3, serv_info.val4))
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	if (!cq_printf(&ct->wbuf, "%ul%ul%ul%ul", serv_info.val9, serv_info.val10, serv_info.val11, serv_info.val12))
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
-	
+
+	/* OK */
 	return 1;
 }
 
 int send_char_info(connection_type *ct, player_type *p_ptr)
 {
-	return cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_CHAR_INFO, p_ptr->state, p_ptr->prace, p_ptr->pclass, p_ptr->male);
+	if (!cq_printf(&ct->wbuf, "%c%d%d%d%d", PKT_CHAR_INFO, p_ptr->state, p_ptr->prace, p_ptr->pclass, p_ptr->male))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_race_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_RACE) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -74,6 +92,7 @@ int send_race_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul",  p_name + p_info[i].name, p_info[i].name) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -84,14 +103,18 @@ int send_class_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_CLASS) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -100,6 +123,7 @@ int send_class_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s%ul%c",  c_name + c_info[i].name, c_info[i].name, c_info[i].spell_book) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -111,13 +135,17 @@ int send_optgroups_info(connection_type *ct)
 {
 	u32b i, name_size;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OPTGROUP) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 	
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OPTION_GROUPS, OPT_MAX, 0) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -126,6 +154,7 @@ int send_optgroups_info(connection_type *ct)
 		/* Transfer other fields here */
 		if (cq_printf(&ct->wbuf, "%s",  option_group[i]) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -150,13 +179,17 @@ int send_inventory_info(connection_type *ct, int id)
 	u32b i, off = 0;
 	char buf[80];
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul%ul", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	} 
 
@@ -169,11 +202,11 @@ int send_inventory_info(connection_type *ct, int id)
 			off = 0;
 		}
 
-		strcpy(buf, mention_use(0, i));
-		buf[strlen(buf)] = '\0';
+		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
 
 		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}
 	}
@@ -183,7 +216,7 @@ int send_inventory_info(connection_type *ct, int id)
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
-	if (!i_ptr->pkt && !i_ptr->amnt) return 1; /* Last one */
+	if (!i_ptr->mark) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%d%d%ul%S%s", PKT_INDICATOR,
 		i_ptr->pkt, i_ptr->type, i_ptr->amnt,
@@ -211,10 +244,13 @@ int send_indication(int Ind, byte id, ...)
 
 	va_list marker;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (!ct) return -1;
 
 	if (!cq_printf(&ct->wbuf, "%c", i_ptr->pkt))
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
 
@@ -291,7 +327,8 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -319,7 +356,8 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || (ct = Conn[p_ptr->conn]) == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!p_ptr->stream_hgt[st]) return 1;
@@ -341,9 +379,10 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 
 int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 	const stream_type *stream = &streams[st];
 	cave_view_type *source;
+	int start_pos;
 
 	s16b	cols = p_ptr->stream_wid[st];
 	byte	rle = stream->rle;
@@ -351,24 +390,31 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
 
+	/* Begin cq "transaction" */
+	start_pos = ct->wbuf.len;
+
 	/* Packet header */
 	if (cq_printf(&ct->wbuf, "%c%d", stream->pkt, as_y) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	/* (Secondary) */
 	if (trn && cq_printc(&ct->wbuf, rle, p_ptr->trn_info[y], cols) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 	/* Packet body */
 	if (cq_printc(&ct->wbuf, rle, source, cols) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
 	}
 
@@ -378,10 +424,12 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 
 int send_term_info(player_type *p_ptr, byte flag, u16b line)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
+	int n;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Special hack when principal mode is "activate" */
 	if (flag & NTERM_ACTIVATE)
@@ -394,18 +442,55 @@ int send_term_info(player_type *p_ptr, byte flag, u16b line)
 
 	/* Send (with additional parameter?) */
 	if (flag & 0xF0)
-		return cq_printf(&ct->wbuf, "%c%b%ud", PKT_TERM, flag, line);
+		n = cq_printf(&ct->wbuf, "%c%b%ud", PKT_TERM, flag, line);
 	else
-		return cq_printf(&ct->wbuf, "%c%b", PKT_TERM, flag);
+		n = cq_printf(&ct->wbuf, "%c%b", PKT_TERM, flag);
+
+	if (n <= 0)
+	{
+		client_withdraw(ct);
+	}
+
+	return n;
 }
 int send_term_header(player_type *p_ptr, cptr header)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
-	return cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header);
+	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_cursor(player_type *p_ptr, char vis, char x, char y)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%c", PKT_CURSOR, vis, x, y))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%c%s", PKT_TARGET_INFO, x, y, win, str))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_custom_command_info(connection_type *ct, int id)
@@ -452,6 +537,7 @@ int send_item_tester_info(connection_type *ct, int id)
 int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -462,6 +548,7 @@ int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -472,6 +559,7 @@ int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte f
 int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -482,15 +570,21 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
-	return cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val);
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_character_info(player_type *p_ptr)
 {
-	connection_type *ct = Conn[p_ptr->conn];
+	connection_type *ct;
 
 	/* Paranoia -- do not send to closed connection */
-	if (p_ptr->conn == -1 || ct == NULL) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	return send_char_info(ct, p_ptr);
 }
@@ -500,6 +594,9 @@ int send_objflags(int Ind, int line)
 	connection_type *ct = PConn[Ind];
 	//TODO: generalize this (merge with streams?)
 	byte rle = ( Players[Ind]->use_graphics ? RLE_LARGE : RLE_CLASSIC );
+
+	if (!ct) return -1;
+
 	/* Header */
 	if (cq_printf(&ct->wbuf, "%c%d", PKT_OBJFLAGS, line) <= 0)
 	{
@@ -527,7 +624,11 @@ int send_message(int Ind, cptr msg, u16b typ)
 	strncpy(buf, msg, 78);
 	buf[78] = '\0';
 
-	return cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf);
+	if (!cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_message_repeat(int Ind, u16b typ)
@@ -536,19 +637,33 @@ int send_message_repeat(int Ind, u16b typ)
 
 	if (!ct) return -1;
 
-	return cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ);
+	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_sound(int Ind, int sound)
 {
 	connection_type *ct = PConn[Ind];
-	return cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound);
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int send_channel(int Ind, char mode, u16b id, cptr name)
 {
 	connection_type *ct = PConn[Ind];
-	return cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name);
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 int recv_channel(connection_type *ct, player_type *p_ptr)
@@ -580,7 +695,7 @@ int recv_channel(connection_type *ct, player_type *p_ptr)
 			/* If channel is virtual */
 			else
 			{
-				strncpy(p_ptr->second_channel, name, 80);
+				my_strcpy(p_ptr->second_channel, name, MAX_CHARS);
 			}
 
 		break;
@@ -701,9 +816,38 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	{
 		/* ....? Some kind of error */
 	}
+	/* Client asks for a hard restart */
+	if (mode == PLAY_RESTART)
+	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_BONE)
+		{
+			client_abort(ct, "Character not suitable for restarting!");
+		}
 
+		/* Do it */
+		player_net_wipe(p_ptr, 0);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_NAMED;
+	}
+	/* Client asks for soft restart */
+	else if (mode == PLAY_REROLL)
+	{
+		/* Prerequisites: */
+		if (p_ptr->state != PLAYER_BONE)
+		{
+			client_abort(ct, "Character not suitable for rerolling!");
+		}
+
+		/* Do it */
+		player_net_wipe(p_ptr, 1);
+
+		/* Consequences: */
+		p_ptr->state = PLAYER_SHAPED;
+	}
 	/* Client asks for a (re)roll */
-	if (mode == PLAY_ROLL)
+	else if (mode == PLAY_ROLL)
 	{
 		/* Prerequisites: */
 		if (p_ptr->state != PLAYER_SHAPED) 
@@ -744,7 +888,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		/* Do it */
 		player_verify_visual(p_ptr);
 		player_enter(ct->user);
-	}	
+	}
 	/* Client asks for active gameplay */
 	else if (mode == PLAY_PLAY)
 	{
@@ -1069,7 +1213,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 	for (n = 0; n < MAX_CUSTOM_COMMANDS; n++)
 	{
 		const custom_command_type *cc_ptr = &custom_commands[n];
-		if (cc_ptr->pkt == 0) break;
+		if (cc_ptr->m_catch == 0) break;
 		if ((cc_ptr->tval == type) &&
 			(cc_ptr->flag & COMMAND_INTERACTIVE) &&
 			(cc_ptr->do_cmd_callback)) 
@@ -1103,6 +1247,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	else if (p_ptr->special_file_type)
 		do_cmd_interactive(p_ptr, key);
 
+	return 1;
 }
 
 /* Client asks all-new data, so we enqueue ALL the updates */
@@ -1196,6 +1341,92 @@ int recv_suicide(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_target(connection_type *ct, player_type *p_ptr)
+{
+	char mode, dir;
+	int Ind;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (cq_scanf(&ct->rbuf, "%c%c", &mode, &dir) < 2)
+	{
+		return 0;
+	}
+
+	switch (mode)
+	{
+		case NTARGET_FRND:
+
+			do_cmd_target_friendly(Ind, dir);
+
+		break;
+		case TARGET_KILL:
+
+			do_cmd_target(Ind, dir);
+
+		break;
+		case NTARGET_LOOK:
+		default:
+
+			do_cmd_look(Ind, dir);
+
+		break;
+	}
+
+    return 1;
+}
+
+int recv_locate(connection_type *ct, player_type *p_ptr)
+{
+	char dir;
+	int Ind;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (cq_scanf(&ct->rbuf, "%c", &dir) < 1)
+	{
+		return 0;
+	}
+
+	do_cmd_locate(Ind, dir);
+
+	return 1;
+}
+
+int recv_confirm(connection_type *ct, player_type *p_ptr) {
+	int Ind;
+	byte type;
+	byte id;
+
+	if (cq_scanf(&ct->rbuf, "%c%c", &type, &id) < 2)
+	{
+		return 0;
+	}
+
+	/* TODO: increment and compare */
+	if (id != 0) return 1;
+
+	/* Don't do any "offline" purchases */
+	if (p_ptr->state != PLAYER_PLAYING) return 1;
+
+	Ind = Get_Ind[p_ptr->conn];
+
+	if (p_ptr->store_num > -1)
+	{
+		store_confirm(Ind);
+	}
+	else if (p_ptr->current_house > -1)
+	{
+		do_cmd_purchase_house(Ind, 0);
+	}
+	else
+	{
+		carry(Ind, 1, 1);
+	}
+
+	return 1;
+}
+
 /** Gameplay commands **/
 /* Those return 
 	* -1 on critical error
@@ -1214,6 +1445,10 @@ static int recv_walk(player_type *p_ptr) {
 		/* Impossible! :( */
 		return -1;
 	}
+
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	p_ptr->store_num = -1;
 
 	/* Classic MAnghack #2. */
 	/* Always prefer last walk request */
@@ -1249,6 +1484,10 @@ static int recv_walk(player_type *p_ptr) {
 
 static int recv_toggle_rest(player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
+
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	p_ptr->store_num = -1;
 
 	if (p_ptr->resting)
 	{
@@ -1333,6 +1572,13 @@ static int recv_custom_command(player_type *p_ptr)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
+	}
+
+	/* New MAnghack */
+	/* Exit store on every non-store command */
+	if (!(custom_commands[i].flag & COMMAND_STORE))
+	{
+		p_ptr->store_num = -1;
 	}
 
 	/* Does it cost energy? */
@@ -1447,6 +1693,7 @@ static int recv_custom_command(player_type *p_ptr)
 int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name) 
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -1457,11 +1704,30 @@ int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, 
 int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse)
 {
 	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
 	if (cq_printf(&ct->wbuf, "%c%c%s%s%d%l", PKT_STORE_INFO, flag, name, owner, items, purse) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
+}
+
+int send_confirm_request(int Ind, byte type, cptr buf)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c" "%c%c%s", PKT_CONFIRM, type, 0x00, buf))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_store_sell(int Ind, u32b price)
+{
+	char buf[80];
+	sprintf(buf, "Accept %" PRId32 " gold?", price);
+	return send_confirm_request(Ind, 0x01, buf);
 }
 
 /* New version of "process_pending_commands"
@@ -1544,6 +1810,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	/* Count indicators */
 	i = 0;
 	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].amnt)) i++;
+	if (i >= 254) plog("ERROR! Out of indicator PKTs!");
 	serv_info.val1 = i;	
 	
 	/* Count streams */

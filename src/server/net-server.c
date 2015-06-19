@@ -144,9 +144,54 @@ int player_enter(int ind)
 	verify_panel(PInd);
 
 	/* Hack, must find better place */
-	prt_history(p_max);
+	prt_history(PInd);
+	show_socials(PInd);
 
 	return 0;
+}
+
+/* AUX function to reset various player states */
+/* Note: this only deals with immediate network-related states, so we can
+ * stop sending various stuff.
+ * For "complete" player wipe, see "player_wipe()" in birth.c */
+void player_abandon(player_type *p_ptr)
+{
+	int p_idx = Get_Ind[p_ptr->conn];
+	int i;
+
+	/* Leave all chat channels */
+	/* No, let's keep them for now.
+	channels_leave(p_idx);
+	*/
+
+	/* Unsubscribe from all streams */
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		p_ptr->stream_wid[i] = 0;
+		p_ptr->stream_hgt[i] = 0;
+	}
+
+	/* Unschedule all indicators */
+	p_ptr->redraw = 0;
+
+	/* Stop all file perusal and interactivity */
+	string_free(p_ptr->interactive_file);
+	p_ptr->interactive_file = NULL;
+	p_ptr->last_info_line = -1;
+	p_ptr->special_handler = 0;
+	p_ptr->special_file_type = 0;
+	p_ptr->interactive_line = -1;
+
+	/* Disable all kinds of tracking */
+	p_ptr->health_who = 0;
+	p_ptr->cursor_who = 0;
+	p_ptr->target_set = FALSE;
+	p_ptr->target_flag = 0;
+	p_ptr->target_n = 0;
+	p_ptr->monster_race_idx = 0;
+
+	/* Disable message repeat */
+	p_ptr->msg_last_type = MSG_MAX;
 }
 
 /* Player leaves active gameplay (Remove player from p_list) */
@@ -173,6 +218,9 @@ int player_leave(int p_idx)
 
 	/* Leave all chat channels */
 	channels_leave(p_idx);
+
+	/* Leave everything else */
+	player_abandon(p_ptr);
 
 	/* Inform everyone */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
@@ -228,6 +276,9 @@ void player_drop(int ind)
 	connection_type *c_ptr = players->list[ind]->data1;
 	player_type *p_ptr = players->list[ind]->data2;
 	int p_idx = Get_Ind[ind];
+
+	/* Leave everything (before we destroyed all pointers) */
+	player_abandon(p_ptr);
 
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
@@ -538,7 +589,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 		case CONNTYPE_OLDPLAYER:
 			okay = -1;
-			cq_printf(&ct->wbuf, "%c", 0x01);
+			cq_printf(&ct->wbuf, "%c%c%d", 0, 0x01, 0);
 			debug(format("Legacy connection requested from %s", ct->host_addr));
 		break;
 		case CONNTYPE_ERROR:
@@ -599,7 +650,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	int Ind;
 
 	byte pkt;
-	int start_pos;
+	int start_pos, i;
 
 	u16b
 		version = 0;
@@ -645,32 +696,53 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #endif
 		client_abort(ct, "The server didn't like your nickname, realname, or hostname.");
 	}
+	if (scoop_player(nick_name, pass_word) < 0)
+	{
+#ifdef DEBUG
+		debug(format("Rejecting %s for wrong password nick - %s", ct->host_addr, nick_name));
+#endif
+		client_abort(ct, "Incorrect password.");
+	}
+
+	/* DROP */
+	/* See if a player with same nickname is already connected */
+	for (i = 0; i < players->num; i++)
+	{
+		connection_type *q_ct = players->list[i]->data1;
+		player_type *q_ptr = players->list[i]->data2;
+		if (q_ct != ct && !ct->close && !strcmp(q_ptr->name, nick_name))
+		{
+			/* Keep player pointer */
+			p_ptr = q_ptr;
+
+			/* Drop other connection... */
+			player_drop(i);
+			client_kill(q_ct, "Reconnect from other location.");
+			/* ...but manually detach it from player, as we're going to reuse it */
+			q_ct->user = -1;
+			q_ptr->conn = -1;
+		}
+	}
+
+	if (!eg_can_add(players))
+	{
+		debug(format("Rejecting %s because players array is full, nick - %s", ct->host_addr, nick_name));
+		client_abort(ct, "The server is full.");
+	}
 
 	/* RESUME/DROP */
 	/* See if a player with same nickname is already playing */
 	if ((Ind = find_player_name(nick_name)))
 	{
 		p_ptr = Players[Ind];
-		/* Resume */
-		if (p_ptr->conn == -1)
-		{
 
-		}
-		/* Drop */
-		else
-		{
-
-		}
-		/* If playing, take his place */
-		if (p_ptr->state == PLAYER_PLAYING)
-		{
-			//p_ptr->state = PLAYER_FULL;
-		}
-		/* If leaving, bring back to game */
-		if (p_ptr->state == PLAYER_LEAVING)
-		{
-			//p_ptr->state = PLAYER_FULL;
-		}
+		/* Reset "command buffer" */
+		cq_clear(&p_ptr->cbuf);
+	}
+	/* Reuse kept player from the DROP operation */
+	else if (p_ptr)
+	{
+		Ind = (p_ptr->conn != -1) ? Get_Ind[p_ptr->conn] : 0;
 
 		/* Reset "command buffer" */
 		cq_clear(&p_ptr->cbuf);
@@ -683,8 +755,8 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		player_wipe(p_ptr);
 
 		/* Copy his name and connection info */
-		strcpy(p_ptr->name, nick_name);
-		strcpy(p_ptr->pass, pass_word);
+		my_strcpy(p_ptr->name, nick_name, MAX_CHARS);
+		my_strcpy(p_ptr->pass, pass_word, MAX_CHARS);
 		p_ptr->version = version;
 
 		/* Verify his name and create a savefile name */
@@ -703,12 +775,15 @@ int client_login(int data1, data data2) { /* return -1 on error */
 			client_abort(ct, "Error loading savefile");
 		}
 
-		/* If loaded a character */
-		if (character_loaded)
+		/* Dead */
+		if (character_died)
 		{
 			p_ptr->state = PLAYER_BONE;
-			if (p_ptr->death == FALSE)
-				p_ptr->state = PLAYER_FULL;
+		}
+		/* Alive and well */
+		else if (character_loaded)
+		{
+			p_ptr->state = PLAYER_FULL;
 		}
 		else
 		{
@@ -729,12 +804,12 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		/* Fix other lists */
 		Get_Ind[p_ptr->conn] = Ind;
 		Get_Conn[Ind] = p_ptr->conn;
-		PConn[Ind] = ct; 
+		PConn[Ind] = ct;
 	}
 
 	/* Copy host/real names */
-	strcpy(p_ptr->hostname, host_name);
-	strcpy(p_ptr->realname, real_name);
+	my_strcpy(p_ptr->hostname, host_name, MAX_CHARS);
+	my_strcpy(p_ptr->realname, real_name, MAX_CHARS);
 
 	/* Advance to next stage */
 	ct->receive_cb = client_read;
@@ -766,6 +841,8 @@ int client_close(int data1, data data2) {
 	{
 		player_type *p_ptr = players->list[ind]->data2;
 		bool playing = (p_ptr->state == PLAYER_PLAYING ? TRUE : FALSE);		
+
+		if (p_ptr->state == PLAYER_LEAVING) playing = TRUE;
 
 		/* Report */
 		plog(format("Goodbye %s=%s@%s (%s)", p_ptr->name, p_ptr->realname, p_ptr->hostname, c_ptr->host_addr));

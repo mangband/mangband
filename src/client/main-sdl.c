@@ -351,10 +351,10 @@ int pick_term(int x, int y)
 {
 	int r = -1;
 	int i = 0;
-	for (i = ANGBAND_TERM_MAX; i > -1; i--) {
-	
+	for (i = ANGBAND_TERM_MAX - 1; i > -1; i--)
+	{
 		if (!tdata[i].online) continue;
-		
+
 		if (x >= tdata[i].xoff && x <= tdata[i].xoff + tdata[i].width &&
 			 y >= tdata[i].yoff && y <= tdata[i].yoff + tdata[i].height) 
 		{
@@ -1384,25 +1384,25 @@ static errr Term_curs_sdl(int x, int y)
 {
 	term_data *td = (term_data*)(Term->data);
 	SDL_Rect dr;
-	
+
 	if (!td->cursor_on) return (0);
 
 	/* Erase old */
-	if (td->cx != -1 && td->cy != -1) {
-			SDL_FrontChar(td, td->cx, td->cy);			
-	}
+	//if (td->cx != -1 && td->cy != -1) {
+	//		SDL_FrontChar(td, td->cx, td->cy);
+	//}
 
 	/* No change */
-	/* if (td->cx == x && td->cy == y) return (0); */
+	if (td->cx == x && td->cy == y) return (0);
 
 	/* Asign & Redraw */
-	if (td->cursor_on) 
+	if (td->cursor_on)
 	{
 		td->cx = x;
 		td->cy = y;
 
 		/* if (x == -1 || y == -1) return; */
-			
+
 		SDL_GetCharRect(td, x, y, &dr);
 		SDL_DrawCursor(&dr);
 	}

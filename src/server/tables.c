@@ -295,8 +295,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		SPECIAL_FILE_MASTER, "Dungeon Master"
 	},
 	{ /* Mini-Map' */
-		'M', PKT_UNDEFINED, SCHEME_SMALL, 0, (cccb)do_cmd_view_map,
-		(COMMAND_INTERACTIVE),
+		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
+		(COMMAND_INTERACTIVE | COMMAND_INTERACTIVE_ANYKEY),
 		99, "Mini-Map"
 	},	
 #if 0
@@ -316,6 +316,24 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
+
+	/*** Store/shopping commands ***/
+	{ /* [Get]/Purchase item */
+		'p', PKT_UNDEFINED, SCHEME_ITEM_VALUE_STRING, 1, (cccb)store_purchase,
+		(COMMAND_STORE | COMMAND_ITEM_STORE | COMMAND_ITEM_AMMOUNT),
+		0, "Which item are you interested in? \nHow many? "
+	},
+	{ /* [Drop]/Sell item */
+		's', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)store_sell,
+		(COMMAND_STORE | COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Sell what? \nHow many? "
+	},
+	{ /* [Examine]/Look at item */
+		'l', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_observe,
+		(COMMAND_STORE | COMMAND_ITEM_STORE),
+		0, "Which item do you want to examine? "
+	},
+
 #ifdef DEBUG
 	{ /* Temporary debug command */
 		'Z', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
@@ -434,13 +452,13 @@ const stream_type streams[MAX_STREAMS] =
 	{	/* 5 */
 		STREAM_PKT(BGMAP_ASCII),	NTERM_WIN_MAP,  	RLE_CLASSIC,
 		(0),
-		20, 80, 22, 80, 
+		20, 80, 24, 80,
 		PW_MAP, "BGMAP_ASCII" 
 	},
 	{	/* 6 */
 		STREAM_PKT(BGMAP_GRAF), 	NTERM_WIN_MAP,  	RLE_LARGE,
 		(0),
-		20, 80, 22, 80, 
+		20, 80, 24, 80,
 		PW_MAP, "BGMAP_GRAF" 
 	},
 	{	/* 7 */
@@ -454,6 +472,24 @@ const stream_type streams[MAX_STREAMS] =
 		(0),
 		20, 80, 20, 80,
 		0, "SPECIAL_TEXT"
+	},
+	{	/* 9 */
+		STREAM_PKT(MONSTER_TEXT),	NTERM_WIN_MONSTER, 	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONSTER_TEXT"
+	},
+	{	/* 10 */
+		STREAM_PKT(MONLIST_TEXT),	NTERM_WIN_MONLIST, 	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONLIST_TEXT"
+	},
+	{	/* 11 */
+		STREAM_PKT(FILE_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
+		(0),
+		255, 80, 255, 80,
+		0, "FILE_TEXT"
 	},
 
 	/* Tail */
@@ -482,69 +518,69 @@ const stream_type streams[MAX_STREAMS] =
 const indicator_type indicators[MAX_INDICATORS] = 
 {
 	{
-		INDICATOR_PKT(RACE, STRING, 0), 	0,	ROW_RACE,	COL_RACE,
-		(0), "",
+		INDICATOR_PKT(RACE, STRING, 0), 	IPW_1,	ROW_RACE,	COL_RACE,
+		(0), "%s",
 		(PR_MISC), "race_"
 	},
 	{
-		INDICATOR_PKT(CLASS, STRING, 0),	0,	ROW_CLASS,	COL_CLASS,
-		(0), "",
+		INDICATOR_PKT(CLASS, STRING, 0),	IPW_1,	ROW_CLASS,	COL_CLASS,
+		(0), "%s",
 		(PR_MISC), "class_"
 	},
 	{
-		INDICATOR_PKT(TITLE, STRING, 0),	0,	ROW_TITLE,	COL_TITLE,
-		(0), "",
+		INDICATOR_PKT(TITLE, STRING, 0),	IPW_1,	ROW_TITLE,	COL_TITLE,
+		(0), "%s",
 		(PR_TITLE), "title_"
 	},
 	{
-		INDICATOR_PKT(LEVEL, TINY, 2),  	0,	ROW_LEVEL,	COL_LEVEL,
-		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		INDICATOR_PKT(LEVEL, TINY, 2),  	IPW_1,	ROW_LEVEL,	COL_LEVEL,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
 		(PR_LEV), "level"
 	},
 	{
-		INDICATOR_PKT(EXP, LARGE, 3),   	0,	ROW_EXP,	COL_EXP,
-		(IN_STRIDE_LARGER | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
+		INDICATOR_PKT(EXP, LARGE, 3),   	IPW_1,	ROW_EXP,	COL_EXP,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
 		(PR_EXP), "exp"
 	},
 	{
-		INDICATOR_PKT(GOLD, LARGE, 1),    	0,	ROW_GOLD,	COL_GOLD,
+		INDICATOR_PKT(GOLD, LARGE, 1),    	IPW_1,	ROW_GOLD,	COL_GOLD,
 		(0), "AU \v%9ld",
 		(PR_GOLD), "gold"
 	},
 #if 1
 	/* Stats, classic way */
 	{
-		INDICATOR_PKT(STAT0, NORMAL, 3), 	0,	ROW_STAT+0,	COL_STAT,
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	IPW_1,	ROW_STAT+0,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Str:  \ay%\vSTR:  \aG%\vSTR:  \aU%",
 		(PR_STATS), "stat0"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+1,	COL_STAT,
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+1,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Int:  \ay%\vINT:  \aG%\vINT:  \aU%",
 		(PR_STATS), "stat1"
 	},
 	{
-		INDICATOR_PKT(STAT2, NORMAL, 3), 	0,	ROW_STAT+2,	COL_STAT,
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	IPW_1,	ROW_STAT+2,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Wis:  \ay%\vWIS:  \aG%\vWIS:  \aU%",
 		(PR_STATS), "stat2"
 	},
 	{
-		INDICATOR_PKT(STAT3, NORMAL, 3), 	0,	ROW_STAT+3,	COL_STAT,
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	IPW_1,	ROW_STAT+3,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Dex:  \ay%\vDEX:  \aG%\vDEX:  \aU%",
 		(PR_STATS), "stat3"
 	},
 	{
-		INDICATOR_PKT(STAT4, NORMAL, 3), 	0,	ROW_STAT+4,	COL_STAT,
+		INDICATOR_PKT(STAT4, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Con:  \ay%\vCON:  \aG%\vCON:  \aU%",
 		(PR_STATS), "stat4"
 	},
 	{
-		INDICATOR_PKT(STAT5, NORMAL, 3), 	0,	ROW_STAT+5,	COL_STAT,
+		INDICATOR_PKT(STAT5, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Chr:  \ay%\vCHR:  \aG%\vCHR:  \aU%",
 		(PR_STATS), "stat5"
@@ -552,211 +588,293 @@ const indicator_type indicators[MAX_INDICATORS] =
 #else
 	/* Stats, modern way */
 	{
-		INDICATOR_PKT(STAT0, NORMAL, 3), 	0,	ROW_STAT+0,	COL_STAT,
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	IPW_1,	ROW_STAT+0,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"STR!  \aG%\vSTR:  \aG%\vStr:  \ay%",
 		(PR_STATS), "stat0"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+1,	COL_STAT,
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+1,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"INT!  \aG%\vINT:  \aG%\vInt:  \ay%",
 		(PR_STATS), "stat1"
 	},
 	{
-		INDICATOR_PKT(STAT2, NORMAL, 3), 	0,	ROW_STAT+2,	COL_STAT,
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	IPW_1,	ROW_STAT+2,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"WIS!  \aG%\vWIS:  \aG%\vWis:  \ay%",
 		(PR_STATS), "stat2"
 	},
 	{
-		INDICATOR_PKT(STAT3, NORMAL, 3), 	0,	ROW_STAT+3,	COL_STAT,
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	IPW_1,	ROW_STAT+3,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"DEX!  \aG%\vDEX:  \aG%\vDex:  \ay%",
 		(PR_STATS), "stat3"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+4,	COL_STAT,
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CON!  \aG%\vCON:  \aG%\vCon:  \ay%",
 		(PR_STATS), "stat4"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	0,	ROW_STAT+5,	COL_STAT,
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CHR!  \aG%\vCHR:  \aG%\vChr:  \ay%",
 		(PR_STATS), "stat5"
 	},
 #endif
 	{
-		INDICATOR_PKT(ARMOR, NORMAL, 2),   	0,	ROW_AC,	COL_AC,
-		(0), "",
+		INDICATOR_PKT(ARMOR, NORMAL, 3),   	IPW_1,	ROW_AC,	COL_AC,
+		(0), "Cur AC \aG%5d",
 		(PR_ARMOR), "armor"
 	},
 #if 0
 	/* Classic HP/SP indicators */
 	{
-		INDICATOR_PKT(HP, NORMAL,	2),     	0,	ROW_CURHP,	COL_CURHP,
+		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_CURHP,	COL_CURHP,
 		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
 		(PR_HP), "hp"
 	},
 	{
-		INDICATOR_PKT(SP, NORMAL,	2),     	0,	ROW_CURSP,	COL_CURSP,
+		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_CURSP,	COL_CURSP,
 		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
 		(PR_MANA), "sp"
 	},
 #else
 	/* Modern (1-line) HP/SP indicators */
 	{
-		INDICATOR_PKT(HP, NORMAL, 2),     	0,	ROW_CURHP,	COL_CURHP,
+		INDICATOR_PKT(HP, NORMAL, 2),     	IPW_1,	ROW_CURHP,	COL_CURHP,
 		(0), "HP \a@% 4d\f\aw/\aG% 4d",
 		(PR_HP), "hp"
 	},
 	{
-		INDICATOR_PKT(SP, NORMAL, 2),     	0,	ROW_CURSP,	COL_CURSP,
+		INDICATOR_PKT(SP, NORMAL, 2),     	IPW_1,	ROW_CURSP,	COL_CURSP,
 		(0), "SP \a#% 4d\f\aw/\aG% 4d",
 		(PR_MANA), "sp"
 	},
 #endif
 	{
-		INDICATOR_PKT(MON_HEALTH, TINY, 2),	0,	ROW_INFO,	COL_INFO,
+		INDICATOR_PKT(MON_HEALTH, TINY, 2),	IPW_1,	ROW_INFO,	COL_INFO,
 		(IN_TEXT_CUT), "\a![----------]\a \r\f\t%**********", 
 		(PR_HEALTH), "track"	
 	},
 	{
-		INDICATOR_PKT(CUT, TINY, 1),    	1,	ROW_CUT, COL_CUT,
+		INDICATOR_PKT(CUT, TINY, 1),    	IPW_2,	ROW_CUT, COL_CUT,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"            \v\ayGraze       \v\ayLight cut   \v\aoBad cut     \v\aoNasty cut   \v\arSevere cut  \v\arDeep gash   \v\aRMortal wound",
 		(PR_CUT),  "cut"
 	},
 	{
-		INDICATOR_PKT(FOOD, TINY, 1),   	1,	ROW_HUNGRY, COL_HUNGRY,
+		INDICATOR_PKT(FOOD, TINY, 1),   	IPW_2,	ROW_HUNGRY, COL_HUNGRY,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"\arWeak  \v\aoWeak  \v\ayHungry\v\aG      \v\aGFull  \v\agGorged",
 		 (PR_HUNGER),  "hunger"	
 	},
 	{
-		INDICATOR_PKT(BLIND, TINY, 1),   	1,	ROW_BLIND, COL_BLIND,
+		INDICATOR_PKT(BLIND, TINY, 1),   	IPW_2,	ROW_BLIND, COL_BLIND,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"     \v\aoBlind",
 		(PR_BLIND),  "blind"
 	},
 	{
-		INDICATOR_PKT(STUN, TINY, 1),   	1,	ROW_STUN, COL_STUN,
+		INDICATOR_PKT(STUN, TINY, 1),   	IPW_2,	ROW_STUN, COL_STUN,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"            \v\aoStun        \v\aoHeavy stun  \v\arKnocked out ",
 		(PR_STUN),  "stun"
 	},
 	{
-		INDICATOR_PKT(CONFUSED, TINY, 1),   	1,	ROW_CONFUSED, COL_CONFUSED,
+		INDICATOR_PKT(CONFUSED, TINY, 1),   	IPW_2,	ROW_CONFUSED, COL_CONFUSED,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"        \v\aoConfused",
 		(PR_CONFUSED),  "confused"
 	},
 	{
-		INDICATOR_PKT(AFRAID, TINY, 1),     	1,	ROW_AFRAID, COL_AFRAID,
+		INDICATOR_PKT(AFRAID, TINY, 1),     	IPW_2,	ROW_AFRAID, COL_AFRAID,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"      \v\aoAfraid",
 		(PR_STUN),  "afraid"
 	},
 	{
-		INDICATOR_PKT(POISONED, TINY, 1),   	1,	ROW_POISONED, COL_POISONED,
+		INDICATOR_PKT(POISONED, TINY, 1),   	IPW_2,	ROW_POISONED, COL_POISONED,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"        \v\aoPoisoned",
 		(PR_STUN),  "poisoned"
 	},
 	{
-		INDICATOR_PKT(STATE, TINY, 3),      	1,	ROW_STATE,	COL_STATE,
+		INDICATOR_PKT(STATE, TINY, 3),      	IPW_2,	ROW_STATE,	COL_STATE,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_EMPTY | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"%\v\arParalyzed!\f%\v\awSearching  \v\aDStlth Mode\f\aw          \v\awResting   ",
 		(PR_STATE),  "state"
 	},
 	{
-		INDICATOR_PKT(SPEED, NORMAL, 1),  	1,	ROW_SPEED,	COL_SPEED,
+		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
 		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR), 
 		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
-		INDICATOR_PKT(STUDY, TINY, 1),   	1,	ROW_STUDY, COL_STUDY,
+		INDICATOR_PKT(STUDY, TINY, 1),   	IPW_2,	ROW_STUDY, COL_STUDY,
 		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
 		"     \vStudy",
 		(PR_STUDY),  "study"
 	},
 	{
-		INDICATOR_PKT(DEPTH, TINY, 1),   	1,	ROW_DEPTH, COL_DEPTH,
+		INDICATOR_PKT(DEPTH, TINY, 1),   	IPW_2,	ROW_DEPTH, COL_DEPTH,
 		(0),
 		"Town   \vLev  \b%d",
 		(PR_DEPTH),  "depth"
 	},
 	{
-		INDICATOR_PKT(OPPOSE, TINY, 5), 	1,	ROW_OPPOSE_ELEMENTS,	COL_OPPOSE_ELEMENTS,
+		INDICATOR_PKT(OPPOSE, TINY, 5), 	IPW_2,	ROW_OPPOSE_ELEMENTS,	COL_OPPOSE_ELEMENTS,
 		(IN_AUTO_CUT | IN_TEXT_LABEL | IN_STRIDE_NONZERO | IN_VT_DEC_VALUE),
 		"     \v\asAcid \f     \v\abElec \f     \v\arFire \f     \v\awCold \f     \v\agPois ",
 		(PR_OPPOSE_ELEMENTS), "oppose"
 	},
 	/** Character sheet **/
 	{
-		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	2,  	2,	32,
+		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3,  	2,	32,
 		(IN_VT_CR | IN_VT_LF | IN_VT_FF | IN_VT_COLOR_RESET),
 		"Age             \aB%6ld\vHeight          \aB%6ld\vWeight          \aB%6ld\vSocial Class    \aB%6ld",
 		(PR_VARIOUS), "various"
 	},
 	{
-		INDICATOR_PKT(SKILLS, NORMAL, 16),   	2,  	16,	1,
+		INDICATOR_PKT(SKILLS, NORMAL, 16),   	IPW_3,  	16,	1,
 		(IN_TEXT_LIKERT | IN_VT_COLOR_RESET | IN_VT_FF),
 		"Fighting    :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fPerception  :\t%\r\n\v\fBows/Throw  :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fSearching   :\t%\r\n\v\fSaving Throw:\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fDisarming   :\t%\r\n\v\fStealth     :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fMagic Device:\t%",
 		(PR_SKILLS), "skills"
 	},
 	{
-		INDICATOR_PKT(SKILLS2, NORMAL, 3),   	2,  	16,	55,
+		INDICATOR_PKT(SKILLS2, NORMAL, 3),   	IPW_3,  	16,	55,
 		(IN_VT_COLOR_RESET | IN_VT_FF | IN_VT_CR | IN_VT_LF),
 		"Blows/Round:\t\t%d\vShots/Round:\t\t%d\v\nInfra-Vision:\t%d feet",
 		(PR_SKILLS), "skills2"
 	},
 	{
-		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	2,  	9,	1,
+		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3,  	9,	1,
 		(IN_VT_COLOR_RESET | IN_VT_CR | IN_VT_LF | IN_VT_FF),
 		"+ To Hit    \t\t\t\aB%6ld\v+ To Damage \t\t\t\aB%6ld", 
 		(PR_PLUSSES), "plusses"
 	},
 	/* Those 4 indicators should be merged into one (once code allows it) */
 	{
-		INDICATOR_PKT(HISTORY0, STRING, 0), 	3,	16+0,	10,
-		(0), "",
+		INDICATOR_PKT(HISTORY0, STRING, 0), 	IPW_4,	16+0,	10,
+		(0), "%s",
 		(0), "history0_"
 	},
 	{
-		INDICATOR_PKT(HISTORY1, STRING, 0), 	3,	16+1,	10,
-		(0), "",
+		INDICATOR_PKT(HISTORY1, STRING, 0), 	IPW_4,	16+1,	10,
+		(0), "%s",
 		(0), "history1_"
 	},
 	{
-		INDICATOR_PKT(HISTORY2, STRING, 0), 	3,	16+2,	10,
-		(0), "",
+		INDICATOR_PKT(HISTORY2, STRING, 0), 	IPW_4,	16+2,	10,
+		(0), "%s",
 		(0), "history2_"
 	},
 	{
-		INDICATOR_PKT(HISTORY3, STRING, 0), 	3,	16+3,	10,
-		(0), "",
+		INDICATOR_PKT(HISTORY3, STRING, 0), 	IPW_4,	16+3,	10,
+		(0), "%s",
 		(0), "history3_"
 	},
+	/* Name and gender indicators */
+	{
+		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3,	2,	1,
+		(0), "Name:       : \aB%s",
+		(0), "hist_name_"
+	},
+	{
+		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3,	3,	1,
+		(0), "Sex         : \aB%s",
+		(0), "hist_gender_"
+	},
+
 	/** Clones **/
 	{
-		INDICATOR_CLONE(HP, 2),   	2,  	9,	52,
+		INDICATOR_CLONE(RACE, 0), 	IPW_3,	4,	1,
+		(0), "Race        : \aB%s",
+		(PR_MISC), "hist_race_"
+	},
+	{
+		INDICATOR_CLONE(CLASS, 0), 	IPW_3,	5,	1,
+		(0), "Class       : \aB%s",
+		(PR_MISC), "hist_class_"
+	},
+	{
+		INDICATOR_CLONE(HP, 2),   	IPW_3,  	9,	52,
 		(0),
 		"\vMax Hit Points  	 \aG%6ld", 
 		(PR_HP), "hist_mhp"
 	},
  	{
-		INDICATOR_CLONE(HP, 1),   	2,     10,	52,
+		INDICATOR_CLONE(HP, 1),   	IPW_3,     10,	52,
 		(IN_VT_FF),
 		"Cur Hit Points    \a@%6ld",
 		(PR_HP), "hist_chp"
 	},
+	{
+		INDICATOR_CLONE(SP, 2),   	IPW_3,     11,	52,
+		(0),
+		"\vMax SP (Mana)     \aG%6ld",
+		(PR_HP), "hist_msp"
+	},
+	{
+		INDICATOR_CLONE(SP, 1),   	IPW_3,     12,	52,
+		(IN_VT_FF),
+		"Cur SP (Mana)     \a#%6ld",
+		(PR_HP), "hist_csp"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 3),   IPW_3, 	11,	1,
+		(0),
+		"+ To AC        \aB%6ld",
+		(PR_ARMOR), "hist_toac"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 2),   IPW_3, 	12,	1,
+		(0),
+		"  Base AC      \aB%6ld",
+		(PR_ARMOR), "hist_baseac"
+	},
+	{
+		INDICATOR_CLONE(LEVEL, 1), IPW_3,	9,	28,
+		(0),
+		"Level      \aG%9ld",
+		(PR_LEV), "hist_level"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   IPW_3, 	10,	28,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"Experience    \aG%6ld\f\r\vExperience    \ay%6ld",
+		(PR_EXP), "hist_cexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   IPW_3, 	11,	28,
+		(0),
+		"Max Exp       \aG%6ld",
+		(PR_EXP), "hist_mexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 3),   IPW_3, 	12,	28,
+		(0),
+		"Exp to Adv.  \aG%7ld",
+		(PR_EXP), "hist_aexp"
+	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   IPW_3, 	13,	28,
+		(0),
+		"Gold       \aG%9ld",
+		(PR_GOLD), "hist_gold"
+	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   IPW_6, 	19,	53,
+		(0),
+		"Gold Remaining:\aG%9ld",
+		(PR_GOLD), "store_gold"
+	},
 	/* alternative way to create verbose stat indicators
  	{
-		INDICATOR_CLONE(STAT0, 1),   	2,     2+0,	61,
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,
 		(IN_STOP_STRIDE | IN_TEXT_PRINTF | (IN_STRIDE_LESSER) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\vStr: \ay%d\f or \a;%d\v \v\f"
 		"\rSTR: \a;%d\v\f (of \b%d)",
@@ -765,42 +883,42 @@ const indicator_type indicators[MAX_INDICATORS] =
 	/* Stats, Verbose. Displays both injured and uninjured values. */
 	{
 		/* STR, Verbose */
-		INDICATOR_CLONE(STAT0, 1),   	2,     2+0,	61,
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fSTR: \a;%\v \v\rStr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat0"
 	},
 	{
 		/* INT, Verbose */
-		INDICATOR_CLONE(STAT1, 1),   	2,     2+1,	61,
+		INDICATOR_CLONE(STAT1, 1),   	IPW_3,     2+1,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fINT: \a;%\v \v\rInt: \ay%\f \a;%",
 		(PR_STATS), "hist_stat1"
 	},
 	{
 		/* WIS, Verbose */
-		INDICATOR_CLONE(STAT2, 1),   	2,     2+2,	61,
+		INDICATOR_CLONE(STAT2, 1),   	IPW_3,     2+2,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fWIS: \a;%\v \v\rWis: \ay%\f \a;%",
 		(PR_STATS), "hist_stat2"
 	},
 	{
 		/* DEX, Verbose */
-		INDICATOR_CLONE(STAT3, 1),   	2,     2+3,	61,
+		INDICATOR_CLONE(STAT3, 1),   	IPW_3,     2+3,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fDEX: \a;%\v \v\rDex: \ay%\f \a;%",
 		(PR_STATS), "hist_stat3"
 	},
 	{
 		/* CON, Verbose */
-		INDICATOR_CLONE(STAT4, 1),   	2,     2+4,	61,
+		INDICATOR_CLONE(STAT4, 1),   	IPW_3,     2+4,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCON: \a;%\v \v\rCon: \ay%\f \a;%",
 		(PR_STATS), "hist_stat4"
 	},
 	{
 		/* CHR, Verbose */
-		INDICATOR_CLONE(STAT5, 1),   	2,     2+5,	61,
+		INDICATOR_CLONE(STAT5, 1),   	IPW_3,     2+5,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCHR: \a;%\v \v\rChr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat5"

@@ -32,9 +32,15 @@
  */
 
 /*
- * Define the maximum number of characters to use in many things
+ * Define the maximum number of columns to use in many things
  */
-#define MAX_CHARS 80
+#define MAX_COLS 80
+
+/*
+ * Define the maximum number of characters to use in strlcpy-styled
+ * strings, where \0 terminator is *always* present (thus extra byte).
+ */
+#define MAX_CHARS (80+1)
 
 /*
  * Maximum message length
@@ -81,23 +87,6 @@
  */
 #define MAX_WID		198
 
-/*
- * Compact display (shows Race, Class, Title, HP etc; on the left)
- * 	Tradittionaly it is 13 characters wide. 
- *	Status line (shows Depth, Study at the bottom)
- *		1 row
- * Top Line (shows lots of stuff) - 1 row
- *
- * Depending if player enabled or disabled compact/status, 
- * different offsets should be used when drawing map on screen.
- */
-#define SCREEN_CLIP_X	13
-#define SCREEN_CLIP_Y	2
-#define SCREEN_CLIP_L	1
-#define DUNGEON_OFFSET_X \
-	((window_flag[0] & PW_PLAYER_2) ? SCREEN_CLIP_X : 0)
-#define DUNGEON_OFFSET_Y \
-	((window_flag[0] & PW_STATUS) ? SCREEN_CLIP_L : 0)
 	
 /*
  * Hack -- This is used to make sure that every player that has a structure
@@ -323,7 +312,7 @@
 /*
  * Number of spells per book
  */
-#define SPELLS_PER_BOOK 9
+#define SPELLS_PER_BOOK 20
 
 /*
  * Spell "realms"
@@ -423,12 +412,19 @@
 #define COMMAND_SPECIAL_FILE  	0x01000000	/* Begin file perusal with mode "tval" */
 #define COMMAND_INTERACTIVE  	0x02000000	/* Begin interactive mode "tval" */
 #define COMMAND_PROMPT_ITEM  	0x04000000	/* Auto-modify prompt using "item" and "value" */
-#define COMMAND_HACK_XXX2    	0x08000000	/* XXX Unused */
+#define COMMAND_STORE       	0x08000000	/* This command will only work is stores */
 
-#define COMMAND_SECOND_XXX2 	0x10000000	/* XXX Unused */
+#define COMMAND_ITEM_STORE  	0x10000000	/* Select item from store */
 #define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */
 #define COMMAND_SECOND_DIR  	0x40000000	/* Put second item into dir */
 #define COMMAND_SECOND_CHAR 	0x80000000	/* Put second item into entry[0] */
+
+/* Keen observer might notice that flags bellow collide with
+ * the ones already defined above.
+ * It's OK, as they are for the COMMAND_INTERACTIVE subset,
+ * which is almost an it's own thing and ignores most of the
+ * regular flags. */
+#define COMMAND_INTERACTIVE_ANYKEY 0x10000000 /* Quit on anykey. */
 
 /*
  * Max number of data streams
@@ -630,6 +626,8 @@
 #define PW_BORG_1           0x00004000L /* Display borg messages */
 #define PW_BORG_2           0x00008000L /* Display borg status */
 #define PW_SPECIAL_INFO     0x00008000L /* Display special info (instead of borg status) */
+#define PW_PLAYER_3         0x00004000L /* Display player (history) (instead of borg messages) */
+#define PW_STORE            0x00010000L /* Display shop */
 
 #define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
  

@@ -14,11 +14,13 @@ object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
 
 object_type floor_item;
-char floor_name[80]; 	/* Client-side copy of floor item */
+char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
 
 indicator_type indicators[MAX_INDICATORS];
 byte known_indicators;
 
+u32b indicator_window[MAX_INDICATORS]; /* Client-side mapping of indicators->PW_ flags */
+char *str_coffers[MAX_COFFERS]; /* Client-side copy of string variables */
 s32b coffers[MAX_COFFERS]; /* Client-side copy of various player variables */
 byte coffer_refs[MAX_INDICATORS]; /* ID to INDEX: Coffers */
 int known_coffers;
@@ -29,10 +31,10 @@ char store_owner_name[MAX_CHARS]; /* Shop owner name */
 char store_name[MAX_CHARS];			/* Shop name */
 byte store_flag = 0;  		 	/* Shop type */
 int store_prices[STORE_INVEN_MAX];	/* The prices of the items in the store */
-char store_names[STORE_INVEN_MAX][80];	/* The names of the stuff in the store */
+char store_names[STORE_INVEN_MAX][MAX_CHARS];	/* The names of the stuff in the store */
 s16b store_num;				/* The current store number */
 
-char spell_info[26][SPELLS_PER_BOOK+1][80];		/* Spell information */
+char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
 
 char party_info[160];			/* Information about your party */
@@ -50,6 +52,7 @@ byte health_track_attr;
 bool shopping;				/* Are we in a store? */
 bool shopping_buying;		/* Are we buying? */ 
 bool leave_store; 		/* Time to leave store */
+bool enter_store; 		/* Time to enter store */
 
 s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
@@ -78,8 +81,18 @@ item_tester_type item_tester[MAX_ITEM_TESTERS];
 byte known_item_testers;
 
 int special_line_type;
-char special_line_header[80];
+char special_line_header[MAX_CHARS];
 bool special_line_onscreen = TRUE;
+bool interactive_anykey_flag = FALSE;
+
+bool special_line_requested = FALSE;
+
+bool confirm_requested = FALSE;
+char confirm_prompt[MAX_CHARS];
+byte confirm_id;
+byte confirm_type;
+
+bool pause_requested = FALSE;
 
 bool inkey_base = FALSE;
 bool inkey_xtra = FALSE;		/* See the "inkey()" function */
@@ -87,6 +100,7 @@ bool inkey_scan = FALSE;
 bool inkey_flag = FALSE;
 
 bool inkey_exit = FALSE;
+bool inkey_nonblock = FALSE;	/* Set to TRUE for a single non-blocking read. */
 
 bool first_escape = FALSE;
 

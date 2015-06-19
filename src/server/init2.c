@@ -1677,6 +1677,9 @@ static errr init_other(void)
 			case 3:chan_cheat=i;strcpy(channels[i].name, "#cheat");break;
 		}
 	}
+#ifdef DEBUG
+	channels[chan_debug].mode |= CM_PLOG;
+#endif
 
 	/*** Prepare the Player inventory ***/
 

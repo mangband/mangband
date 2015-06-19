@@ -86,6 +86,7 @@ extern bool server_dungeon;
 extern bool server_state_loaded;
 extern bool server_saved;
 extern bool character_loaded;
+extern bool character_died;
 extern bool character_xtra;
 extern u32b seed_flavor;
 extern u32b seed_town;
@@ -391,7 +392,7 @@ extern void everyone_forget_spot(int Depth, int y, int x);
 extern void lite_spot(int Ind, int y, int x);
 extern void prt_map(int Ind);
 extern void display_map(int Ind, bool quiet);
-extern void do_cmd_view_map(int Ind, char query);
+extern void do_cmd_view_map(player_type *p_ptr, char query);
 extern void forget_lite(int Ind);
 extern void update_lite(int Ind);
 extern void forget_view(int Ind);
@@ -480,6 +481,7 @@ extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
+extern void do_cmd_monster_desc_all(int Ind, char sym);
 extern bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b);
 extern void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b);
 
@@ -626,7 +628,7 @@ extern void cleanup_angband(void);
 /* load2.c */
 extern errr rd_savefile_new(player_type *p_ptr);
 extern errr rd_server_savefile(void);
-extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word, int *race, int *pclass, int *sex);
+extern errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word);
 extern bool rd_dungeon_special_ext(int Depth, cptr levelname);
 
 /* melee1.c */
@@ -681,18 +683,18 @@ extern void display_monlist(int Ind);
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
-#define Send_target_info(IND, X, Y, STR) plog("Send_target_info unimplemented\n")
+#define Send_target_info(IND, X, Y, W, STR) send_target_info(Players[Ind], X, Y, W, STR)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_cursor(IND, vis, x, y) plog("Send_cursor unimplemented\n")
+#define Send_cursor(IND, vis, x, y) send_cursor(Players[Ind], vis, x, y)
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
-#define Send_pause(IND) plog("Send_pause unimplemented\n")
+#define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
 #define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
-#define Send_store_sell(IND, price) plog("Send_store_sell unimplemented\n")
-#define Send_pickup_check(IND, buf) plog("Send_pickup_check unimplemented\n");
+#define Send_store_sell(IND, price) send_store_sell(Ind, price)
+#define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
 
 /* net-server.c */
 extern int *Get_Ind;
@@ -707,12 +709,17 @@ extern int process_player_commands(int ind);
 extern int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc);
 extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
+extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
+extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_channel(int Ind, char mode, u16b id, cptr name);
 extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
 extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
+extern int send_store_sell(int Ind, u32b price);
+extern int send_confirm_request(int Ind, byte type, cptr buf);
+
 
 
 /* obj-info.c */
@@ -817,7 +824,7 @@ extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge,
 
 /* save.c */
 extern bool save_player(int Ind);
-extern int scoop_player(char *nick, char *pass, int *race, int *pclass, int *sex);
+extern int scoop_player(char *nick, char *pass);
 extern bool load_player(player_type *p_ptr);
 extern bool load_server_info(void);
 extern bool save_server_info(void);
@@ -946,7 +953,7 @@ extern bool curse_weapon(int Ind);
 /* store.c */
 extern bool get_store_item(int Ind, int item, object_type *i_ptr);
 extern int get_player_store_name(int num, char *name);
-extern void store_purchase(int Ind, int item, int amt, u32b offer);
+extern void store_purchase(int Ind, int item, int amt, cptr *checksum);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
 extern void do_cmd_store(int Ind, int pstore);
@@ -954,7 +961,6 @@ extern void store_shuffle(int which);
 extern void store_maint(int which);
 extern void store_init(int which);
 extern s32b player_price_item(int Ind, object_type *o_ptr);
-extern int Send_player_store_info(int ind, char *name, char *owner, int items);
 
 /* util.c */
 extern errr path_parse(char *buf, int max, cptr file);
@@ -1012,12 +1018,15 @@ extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 extern void send_prepared_info(player_type *p_ptr, byte win, byte stream);
+extern void send_prepared_popup(int Ind, cptr header);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
 extern void text_out_done();
-extern void c_prt(int Ind, byte attr, cptr str, int row, int col);
-extern void prt(int Ind, cptr str, int row, int col);
+extern void text_out_save();
+extern void text_out_load();
+extern void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col);
+extern void prt(player_type *p_ptr, cptr str, int row, int col);
 extern void clear_line(int Ind, int row);
 extern void clear_from(int Ind, int row);
 extern bool ask_for(int Ind, char query, char *buf); 
@@ -1032,7 +1041,7 @@ extern void redraw_stuff(int Ind);
 extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 extern void prt_history(int Ind);
-extern void c_prt_status_line(int Ind, cave_view_type *dest, int len);
+extern void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len);
 extern void player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3);
 
 /* xtra2.c */
@@ -1098,7 +1107,7 @@ extern int level_speed(int Ind);
 extern int time_factor(int Ind);
 extern int base_time_factor(int Ind, int slowest);
 extern void show_motd(player_type *p_ptr);
-extern void show_tombstone(int Ind);
+extern void show_tombstone(player_type *p_ptr);
 extern void wipe_socials();
 extern void boot_socials();
 extern void show_socials(int Ind);

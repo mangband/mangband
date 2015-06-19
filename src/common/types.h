@@ -1394,7 +1394,9 @@ struct player_type
 	cave_view_type scr_info[MAX_HGT][MAX_WID];
 	cave_view_type trn_info[MAX_HGT][MAX_WID];
 	cave_view_type info[MAX_TXT_INFO][MAX_WID];
+	cave_view_type file[MAX_TXT_INFO][MAX_WID];
 	s16b last_info_line;
+	s16b last_file_line;
 	byte remote_term;
 	u32b window_flag; /* What updates is he subscribed to? */
 
@@ -1411,7 +1413,7 @@ struct player_type
 	history_event *charhist; /* Character event history */
 	
 	u16b main_channel; /* main chat channel the player is in */
-	char second_channel[80]; /* where his legacy 'privates' are sent */	
+	char second_channel[MAX_CHARS]; /* where his legacy 'privates' are sent */
 	byte on_channel[MAX_CHANNELS]; /* listening to what channels */
 	
 	u16b total_winner;	/* Is this guy the winner */

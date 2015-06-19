@@ -1102,6 +1102,10 @@ void show_equip(void)
 
 	/* Save the new column */
 	command_gap = col;
+
+	/* Make screen icky */
+	section_icky_row = j + 2;
+	section_icky_col = 0 - (Term->wid - col) - 2;
 }
 
 
@@ -1452,12 +1456,12 @@ static void fix_status(void)
 /*
  * Hack -- display some remote view in sub-windows.
  */
-static void fix_stream(byte win)
+static void fix_stream(int k)
 {
 	int j, y;
 	int sw, sh;
 	int w, h;
-	int k = window_to_stream[win];
+	byte win = streams[k].addr;
 
 	/* Get stream bounds */	
 	sw = p_ptr->stream_wid[k];
@@ -1467,6 +1471,12 @@ static void fix_stream(byte win)
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
 		term *old = Term;
+
+		/* Hack -- there are many ways we can handle sub-window
+		 * streams on window 0, but instead of doing any of that,
+		 * we just bail out. Something else will take care of the
+		 * main window... */
+		if (j == 0) continue;
 
 		/* No window */
 		if (!ang_term[j]) continue;
@@ -1673,7 +1683,7 @@ static void fix_remote_term(byte rterm, u32b windows)
 		/* Erase rest */
 		for (y = y-1; y < h; y++)
 		{
-			Term_erase(0, 1+y, 255);
+			Term_erase(0, 1+y, w);
 		}
 
 		/* Fresh */
@@ -2419,7 +2429,7 @@ struct field
 /*
  * Redraw large ammount of indicators, filtered by window.
  */
-void redraw_indicators(byte filter)
+void redraw_indicators(u32b filter)
 {
 	struct field *f;
 	u32b win;
@@ -2430,7 +2440,8 @@ void redraw_indicators(byte filter)
 	for (i = 0; i < known_indicators; i++)
 	{
 		indicator_type *i_ptr = &indicators[i];
-		if (i_ptr->win == filter)
+
+		if (indicator_window[i] & filter)
 		{
 			/* Hack: count rows from bottom? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
@@ -2460,6 +2471,7 @@ void display_player(int screen_mode)
 {
 	int i;
 	cptr desc;
+	u32b filter; /* Indicator filter */
 
      /* Clear screen */
      Term_clear();
@@ -2556,7 +2568,11 @@ void display_player(int screen_mode)
 	}
 
 	/* Hack? Display relevant indicators */
-	redraw_indicators(2 + screen_mode);
+	if (screen_mode == 0) filter = PW_PLAYER_0;
+	if (screen_mode == 1) filter = PW_PLAYER_3;
+	if (screen_mode == 2) filter = PW_PLAYER_1;
+
+	redraw_indicators(filter);
 }
 
 struct field fields[] = 
@@ -2697,7 +2713,7 @@ void prt_indicator(int first_row, int first_col, int id)
 
 	byte color = TERM_BLUE;
 
-	s16b val = coffers[coff];
+	s32b val = coffers[coff];
 
 	bool value, warn = FALSE, stride = TRUE;
 	int n, cut = 0;
@@ -2825,7 +2841,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
-				n = MIN(n, 32);
+				n = MIN(n, sizeof(tmp));
 				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
@@ -2835,7 +2851,11 @@ void prt_indicator(int first_row, int first_col, int id)
 				/* Format output */
 				if ((value) || (flag & IN_TEXT_LABEL))
 				{
-					if (flag & IN_TEXT_STAT)
+					if (i_ptr->type == INDITYPE_STRING)
+					{
+						out = str_coffers[id];
+					}
+					else if (flag & IN_TEXT_STAT)
 					{
 						cnv_stat(val, tmp);
 						n = 6;
@@ -2911,6 +2931,7 @@ void redraw_stuff(void)
 	struct field *f;
 	u32b win;
 	s16b row;
+	int test_ickyness;
 	int i = 0; 
 	u32b old_redraw = p_ptr->redraw;
 
@@ -2922,26 +2943,41 @@ void redraw_stuff(void)
 	{
 		indicator_type *i_ptr = &indicators[i];
 
-		/* Hack? Skip after "status line" */
-		if (i_ptr->win > 1) continue;
-
 		if (old_redraw & i_ptr->redraw)
 		{
 			/* Hack: count rows from bottom? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
-#if 0
-			if ((row < section_icky_row) && 
-				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
-				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
-			if (screen_icky && !section_icky_row) continue;
 
-			/* Update extra window */
-			win = (i_ptr->win ? PW_STATUS : PW_PLAYER_2);
-			p_ptr->window |= win;
+			/* Hack: determine window */
+			switch (i_ptr->win)
+			{
+				case IPW_1:
+				case IPW_2:
+					test_ickyness = TRUE;
+				break;
+				case IPW_3:
+				case IPW_4:
+				case IPW_5:
+				case IPW_6:
+					test_ickyness = FALSE;
+				break;
+				default:
+					continue;
+				break;
+			}
+
+			/* HACK: For some indicators, perform ickyness test */
+			if (test_ickyness)
+			{
+				if ((row < section_icky_row) &&
+					((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+					 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+				if (screen_icky && !section_icky_row) continue;
+			}
 
 			/* Player disabled display */
-			if (!(window_flag[0] & win)) continue;
-#endif
+			if (!(window_flag[0] & indicator_window[i])) continue;
+
 			/* Display field */
 			(prt_functions[i])(row, i_ptr->col, i);
 
@@ -3034,7 +3070,7 @@ void window_stuff(void)
 		if (p_ptr->window & (streams[stream_group[i]].window_flag))
 		{
 			p_ptr->window &= ~(streams[stream_group[i]].window_flag);
-			fix_stream((byte)i);
+			fix_stream(stream_group[i]);
 		}
  	} 
 

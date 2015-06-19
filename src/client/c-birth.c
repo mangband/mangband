@@ -484,8 +484,6 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-return enter_server_name();//TODO:: FIX THIS!
-#if 0
 	int i, j, y, bytes, socket, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
@@ -501,21 +499,10 @@ return enter_server_name();//TODO:: FIX THIS!
 	Term_fresh();
 
 	/* Connect to metaserver */
-	socket = CreateClientSocket(META_ADDRESS, 8802);
+	buf[0] = '\0';
+	bytes = call_metaserver(META_ADDRESS, 8802, buf, 8192);
 
-	/* Check for failure */
-	if (socket == -1)
-	{
-		return enter_server_name();
-	}
-
-	/* Read */
-	bytes = SocketRead(socket, buf, 8192);
-
-	/* Close the socket */
-	SocketClose(socket);
-
-	/* Check for error while reading */
+	/* Some kind of failure */
 	if (bytes <= 0)
 	{
 		return enter_server_name();
@@ -546,10 +533,10 @@ return enter_server_name();//TODO:: FIX THIS!
 			/* Save port */			
 			ports[i] = atoi(ptr+1);
 		}
-		else if (*ptr != ' ') 		 
+		else if (*ptr != ' ')
 		{
 			server = TRUE;
-			
+
 			/* Save offset */
 			offsets[i] = ptr - buf;
 
@@ -559,7 +546,7 @@ return enter_server_name();//TODO:: FIX THIS!
 		else
 		{
 			server = FALSE;
-			
+
 			/* Display notices */
 			sprintf(out_val, "%s", ptr);			
 		}
@@ -567,18 +554,18 @@ return enter_server_name();//TODO:: FIX THIS!
 		if (info) {
 			/* Strip off offending characters */
 			out_val[strlen(out_val) - 1] = '\0';
-	
+
 			/* Print this entry */
 			prt(out_val, y + 1, 1);
-			
+
 			/* One more entry */
 			if (server) i++;
 			y++;
 		}
-		
+
 		/* Go to next metaserver entry */
 		ptr += strlen(ptr) + 1;
-	
+
 		/* We can't handle more than 20 entries -- BAD */
 		if (i > 20) break;
 	}
@@ -608,11 +595,10 @@ return enter_server_name();//TODO:: FIX THIS!
 
 	/* Extract server name */
 	sscanf(buf + offsets[j], "%s", server_name);
-	
+
 	/* Set port */
 	server_port = ports[j+1];
 
 	/* Success */
 	return TRUE;
-#endif
 }

@@ -896,9 +896,11 @@ void do_cmd_observe(int Ind, int item)
 	char		o_name[80];
 
 	/* Get the item (in the store) */
-	if (p_ptr->store_num != -1) {
+	if (p_ptr->store_num != -1)
+	{
 		object_type		tmp_obj;
 		o_ptr = &tmp_obj;
+
 		/* Fill o_ptr with correct item */
 		if (!get_store_item(Ind, item, o_ptr)) 
 		{
@@ -906,18 +908,20 @@ void do_cmd_observe(int Ind, int item)
 			msg_print(Ind,"Sorry, this item is exclusive.");
 			return;
 		}
-		
-			/* Get name */
-			object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
-			/* Identify this store item */
-			object_known(o_ptr);
-	} else {
+
+		/* Get name */
+		object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+		/* Identify this store item */
+		object_known(o_ptr);
+	}
+	else
+	{
 		/* Get the item (in the pack) */
 		if (item >= 0)
 		{
 			o_ptr = &(p_ptr->inventory[item]);
 		}
-	
+
 		/* Get the item (on the floor) */
 		else
 		{
@@ -928,7 +932,7 @@ void do_cmd_observe(int Ind, int item)
 			}
 			o_ptr = &o_list[0 - item];
 		}
-		
+
 		/* Get name */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	}
@@ -938,12 +942,12 @@ void do_cmd_observe(int Ind, int item)
 
 	/* Capitalize object name for header */
 	o_name[0] = toupper(o_name[0]);
-	
+
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	
+
 	/* Notify player */
-	Send_special_other(Ind, o_name);
+	send_prepared_popup(Ind, o_name);
 }
 
 
@@ -1634,7 +1638,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 	/* Notify player */
 	Send_special_other(Ind, format("Monster Recall ('%c')", c));
-	
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
 	return;
 }
 
@@ -1657,7 +1661,14 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	text_out_done();
 
 	/* Send this text */
-	send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_SPECIAL_TEXT);
+	if (p_ptr->stream_hgt[STREAM_MONSTER_TEXT])
+	{
+		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT);
+	}
+	else
+	{
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	}
 
 	return;
 }

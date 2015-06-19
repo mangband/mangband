@@ -286,13 +286,13 @@ void display_houses(int Ind, char query)
 	text_out_done();
 	
 	/* Send */
-	Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
+	Send_term_info(Ind, NTERM_CLEAR, 0);
 	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (i >= p_ptr->last_info_line) break;
 		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 	}
-	Send_term_info(Ind, NTERM_FLUSH, 0);
+	Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0);
 	
 }
 
@@ -687,7 +687,7 @@ void do_cmd_check_players(int Ind, int line)
 		/* Newline */
 		// -AD- will this work?
 		fprintf(fff, "\n");
-		fprintf(fff, "         %s@%s\n", q_ptr->realname, q_ptr->hostname);
+		fprintf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
 
@@ -905,7 +905,7 @@ void do_cmd_check_other(player_type *p_ptr, int line)
 	if (!p_ptr->special_file_type) return;
 
 	/* Dump the next N lines */
-	send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY, 0);
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = line; i < line + hgt; i++)
 	{
 		/* (Unless we're done) */
@@ -914,7 +914,7 @@ void do_cmd_check_other(player_type *p_ptr, int line)
 		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	send_term_info(p_ptr, NTERM_BROWSE, line);
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_ICKY, 0);//line);
 
 }
 
@@ -989,12 +989,12 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
 		}
 		/* Send *everything* to client */
-		send_term_info(p_ptr, NTERM_CLEAR | NTERM_ICKY);
+		send_term_info(p_ptr, NTERM_CLEAR);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
-			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
+			Stream_line_p(p_ptr, STREAM_FILE_TEXT, i);
 		}
-		/* Send_term_info(Ind, NTERM_FLUSH, 0); */
+		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
 	}
 	/* Instruct client to browse locally */
 	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
@@ -1087,13 +1087,13 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		text_out_done();
 		
 		/* Send */
-		Send_term_info(Ind, NTERM_CLEAR | NTERM_ICKY, 0);
+		Send_term_info(Ind, NTERM_CLEAR, 0);
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
 			if (i >= p_ptr->last_info_line) break;
 			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 		}
-		Send_term_info(Ind, NTERM_FLUSH, 0);
+		Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 	}
 
 	/* Proccess command - Switch mode */	

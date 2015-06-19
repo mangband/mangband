@@ -332,7 +332,6 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Hack -- start out in "display" mode */
 	if (command_see) 
 	{
-		screen_icky = TRUE;
 		Term_save();
 	}
 
@@ -354,7 +353,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			n1 = I2A(i1);
 			n2 = I2A(i2);
 
-			/* Redraw if needed */
+			/* Redraw if needed, make screen icky */
 			if (command_see) show_inven();
 		}
 
@@ -365,7 +364,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			n1 = I2A(e1 - INVEN_WIELD);
 			n2 = I2A(e2 - INVEN_WIELD);
 
-			/* Redraw if needed */
+			/* Redraw if needed, make screen icky */
 			if (command_see) show_equip();
 		}
 
@@ -450,8 +449,6 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* Show/hide the list */
 				if (!command_see)
 				{
-					screen_icky = TRUE;
-
 					Term_save();
 					command_see = TRUE;
 				}
@@ -460,7 +457,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 					Term_load();
 					command_see = FALSE;
 
-					screen_icky = FALSE;
+					section_icky_row = section_icky_col = 0;
 
 					/* Flush any events */
 					if (!shopping)
@@ -637,7 +634,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	if (command_see) 
 	{
 		Term_load();
-		screen_icky = FALSE;
+		section_icky_row = section_icky_col = 0;
 	}
 
 	/* Fix the top line */

@@ -1688,7 +1688,7 @@ void display_map(int Ind, bool quiet)
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map size */
-	map_hgt = p_ptr->screen_hgt - 1;
+	map_hgt = p_ptr->screen_hgt - 2;
 	map_wid = p_ptr->screen_wid - 2;
 	
 	/* Hack -- classic mini-map */
@@ -1822,7 +1822,7 @@ void display_map(int Ind, bool quiet)
 	}
 
 	/* Flush main window / Fresh extra window */
-	Send_term_info(Ind, (quiet ? NTERM_FRESH : NTERM_FLUSH), 0);
+	Send_term_info(Ind, (quiet ? NTERM_FRESH : (NTERM_FLUSH | NTERM_ICKY)), 0);
 
 	/* Restore main window */
 	if (quiet)
@@ -2003,14 +2003,23 @@ void wild_display_map(int Ind)
     "wilderness map" mode now that will represent each level with one character.
  */
  
-void do_cmd_view_map(int Ind, char query)
+void do_cmd_view_map(player_type *p_ptr, char query)
 {
-	if (query) return;
+	int Ind = Get_Ind[p_ptr->conn];
+
+	/* Treat any interactive userkey as ESCAPE.
+	 * Note: this is bad, because requires a full round-trip to server
+	 * to simply disable the minimap.
+	 */
+	if (query)
+	{
+		return;
+	}
 
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
-	if (Players[Ind]->dun_depth >= 0) display_map(Ind, FALSE);
+	if (p_ptr->dun_depth >= 0) display_map(Ind, FALSE);
 	/* do wilderness map */
 	else wild_display_map(Ind);
 }

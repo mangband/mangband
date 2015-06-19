@@ -507,6 +507,7 @@ void player_wipe(player_type *p_ptr)
 	s16b *old_r_killed;	
 	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
 	char *f_char, *k_char, *d_char, *r_char, *pr_char;
+	char *c_buf;
 	int i;
 
 
@@ -523,6 +524,7 @@ void player_wipe(player_type *p_ptr)
 	k_attr = p_ptr->k_attr; k_char = p_ptr->k_char;
 	d_attr = p_ptr->d_attr; d_char = p_ptr->d_char;
 	pr_attr = p_ptr->pr_attr; pr_char = p_ptr->pr_char;
+	c_buf = p_ptr->cbuf.buf;
 
 	/* Clear character history ! */
 	history_wipe(p_ptr->charhist);
@@ -543,6 +545,7 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->k_attr = k_attr; p_ptr->k_char = k_char;
 	p_ptr->d_attr = d_attr; p_ptr->d_char = d_char;
 	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
+	p_ptr->cbuf.buf = c_buf;
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -633,20 +636,22 @@ void player_wipe(player_type *p_ptr)
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
 	/* Setup stream pointers */
-	for (i = 0; i < MAX_STREAMS; i++) p_ptr->stream_cave[i] = (streams[i].addr == NTERM_WIN_OVERHEAD ? &p_ptr->scr_info[0][0] : &p_ptr->info[0][0]);
-
-	/* Auto-subscribe to some streams */
 	for (i = 0; i < MAX_STREAMS; i++)
 	{
-		if (streams[i].max_row == 0) break;
-		if ((streams[i].min_row == streams[i].max_row) && 
-			(streams[i].min_col == streams[i].max_col))
+		if (streams[i].addr == NTERM_WIN_OVERHEAD
+		 || streams[i].addr == NTERM_WIN_MAP)
 		{
-			p_ptr->stream_hgt[i] = streams[i].min_row;
-			p_ptr->stream_wid[i] = streams[i].min_col;
+			p_ptr->stream_cave[i] = &p_ptr->scr_info[0][0];
 		}
-	}	
-
+		/*else if (i == STREAM_FILE_TEXT)
+		{
+			p_ptr->stream_cave[i] = &p_ptr->file[0][0];
+		}*/
+		else
+		{
+			p_ptr->stream_cave[i] = &p_ptr->info[0][0];
+		}
+	}
 
 	/* Clear old channels */
 	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
@@ -658,6 +663,70 @@ void player_wipe(player_type *p_ptr)
 	
 	/* Output to default terminal */
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
+}
+
+/* XXX XXX XXX HACK -- Wipe player but keep some stuff... */
+void player_net_wipe(player_type *p_ptr, int reach)
+{
+	player_type p_tmp = { 0 };
+	int i;
+
+	p_tmp.conn = p_ptr->conn;
+	strcpy(p_tmp.name, p_ptr->name);
+	strcpy(p_tmp.pass, p_ptr->pass);
+	strcpy(p_tmp.basename, p_ptr->basename);
+	strcpy(p_tmp.realname, p_ptr->realname);
+	strcpy(p_tmp.hostname, p_ptr->hostname);
+	strcpy(p_tmp.addr, p_ptr->addr);
+	p_tmp.version = p_ptr->version;
+	p_tmp.state = p_ptr->state;
+	p_tmp.id = p_ptr->id;
+	strcpy(p_tmp.savefile, p_ptr->savefile);
+
+	p_tmp.cbuf.max = p_ptr->cbuf.max;
+
+	p_tmp.lives = p_ptr->lives;
+	p_tmp.no_ghost = p_ptr->no_ghost; /* ? */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_tmp.stat_order[i] = p_ptr->stat_order[i];
+	}
+
+	p_tmp.prace = p_ptr->prace;
+	p_tmp.pclass = p_ptr->pclass;
+	p_tmp.male = p_ptr->male;
+
+	player_wipe(p_ptr);
+
+	p_ptr->conn = p_tmp.conn;
+	strcpy(p_ptr->name, p_tmp.name);
+	strcpy(p_ptr->pass, p_tmp.pass);
+	strcpy(p_ptr->basename, p_tmp.basename);
+	strcpy(p_ptr->realname, p_tmp.realname);
+	strcpy(p_ptr->hostname, p_tmp.hostname);
+	strcpy(p_ptr->addr, p_tmp.addr);
+	p_ptr->version = p_tmp.version;
+	p_ptr->state = p_tmp.state;
+	p_ptr->id = p_tmp.id;
+	strcpy(p_ptr->savefile, p_tmp.savefile);
+
+	p_ptr->cbuf.max = p_tmp.cbuf.max;
+
+	p_ptr->lives = p_tmp.lives;
+	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
+
+	if (reach)
+	{
+		for (i = 0; i < 6; i++)
+		{
+			p_ptr->stat_order[i] = p_tmp.stat_order[i];
+		}
+
+		p_ptr->prace = p_tmp.prace;
+		p_ptr->pclass = p_tmp.pclass;
+		p_ptr->male = p_tmp.male;
+	}
 }
 
 /* 
@@ -882,6 +951,10 @@ void player_setup(int Ind)
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
 		}
 	}
+
+	/* Hack -- grid might already be occupied by us, clear it */
+	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - Ind)
+		cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0;
 
 	/* Re-Place the player correctly */
 	reposition = FALSE;

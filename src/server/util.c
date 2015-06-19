@@ -3525,7 +3525,7 @@ cptr format_history_event(history_event *evt)
 
 void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	byte old_term;
-	int i;	
+	int i;
 
 	/* Save 'current' terminal */
 	old_term = p_ptr->remote_term;
@@ -3535,47 +3535,116 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 
 	/* Clear, Send, Refresh */
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
-	for (i = 0; i < p_ptr->last_info_line; i++)
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		stream_line_as(p_ptr, stream, i, i);
-	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
 
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
-	
+
 	/* Hack -- erase 'prepared info' */
-	p_ptr->last_info_line = 0;
+	p_ptr->last_info_line = -1;
+}
+
+void send_prepared_popup(int Ind, cptr header)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	byte old_term;
+
+	old_term = p_ptr->remote_term;
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	Send_special_other(Ind, header);
+
+	/* Clear, Send, Popup! */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
+		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i);
+	send_term_info(p_ptr, NTERM_POP, 0);
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
 }
 
 void text_out_init(int Ind) {
 	player_type	*p_ptr = Players[Ind];
-	
+
 	player_textout = Ind;
 	p_ptr->cur_wid = 0;
 	p_ptr->cur_hgt = 0;
+
+	p_ptr->last_info_line = -1;
 }
 
 void text_out_done()
 {
+	int i;
 	player_type	*p_ptr = Players[player_textout];
-	
-	p_ptr->last_info_line = p_ptr->cur_hgt;	
+
+	/* HACK!! Clear rest of the line */
+	for (i = p_ptr->cur_wid; i < 80; i++)
+	{
+		p_ptr->info[p_ptr->cur_hgt][i].c = ' ';
+		p_ptr->info[p_ptr->cur_hgt][i].a = TERM_WHITE;
+	}
+
+	p_ptr->last_info_line = p_ptr->cur_hgt;
 
 	/* Restore height and width of current dungeon level */
 	p_ptr->cur_hgt = MAX_HGT;
 	p_ptr->cur_wid = MAX_WID;
 }
 
+/* Taking (bad) ques from client code, here we copy one
+ * buffer into another, instead of just storing pointer
+ * to the correct buffer somewhere... */
+/* The reason is all the current functions are hard-wired
+ * to use p_ptr->info, so instead of massive overhaul (like making
+ * *IT* a pointer), we add a literal workaround. */
+/* TODO: Kill this. */
+void text_out_save(player_type *p_ptr)
+{
+	int i, j;
+	/* memcpy is for cowards */
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->file[j][i].a = p_ptr->info[j][i].a;
+			p_ptr->file[j][i].c = p_ptr->info[j][i].c;
+		}
+	}
+	p_ptr->last_file_line = p_ptr->last_info_line;
+}
+void text_out_load(player_type *p_ptr)
+{
+	/* mindless code duplication. */
+	int i, j;
+
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->info[j][i].a = p_ptr->file[j][i].a;
+			p_ptr->info[j][i].c = p_ptr->file[j][i].c;
+		}
+	}
+	p_ptr->last_info_line = p_ptr->last_file_line;
+	/* I hope you'll delete those functions ASAP */
+	/* WHATEVER HAPPENS, PLEASE DON'T UPGRADE THIS */
+	/* TO ALLOW STACKING... */
+}
+
 void text_out_c(byte a, cptr buf)
 {
 	int i, j, shorten, buflen;
-   player_type	*p_ptr = Players[player_textout];
-   static char line_buf[80] = {'\0'};
-   
-   bool simple = FALSE;
-   bool warped = FALSE;
+	player_type	*p_ptr = Players[player_textout];
+	static char line_buf[80] = {'\0'};
+
+	bool simple = FALSE;
+	bool warped = FALSE;
 	i = j = shorten = 0;
-   buflen = strlen(buf);
-  
+	buflen = strlen(buf);
 
 #if 0
 	/* Add "auto-paragraph" spaces */
@@ -3587,23 +3656,23 @@ void text_out_c(byte a, cptr buf)
 	}
 #endif 
  
-   while (TRUE) {
-
-#if 0   	
-   	/* Add 1 space between stuff (auto-separate) */
-		if (buf[shorten] != ' ' && p_ptr->cur_wid) 
+	while (TRUE)
+	{
+#if 0
+		/* Add 1 space between stuff (auto-separate) */
+		if (buf[shorten] != ' ' && p_ptr->cur_wid)
 		{
-		    strcat(line_buf, " ");
-		    p_ptr->cur_wid += 1;
-		} 
-#endif  
-		
+			strcat(line_buf, " ");
+			p_ptr->cur_wid += 1;
+		}
+#endif
+
 		/* We can fit the info on the same line */
 		if (buflen - shorten < 80 - p_ptr->cur_wid) 
 		{
-				/* Set to copy whole buffer */
-				j = buflen - shorten;
-				simple = TRUE;
+			/* Set to copy whole buffer */
+			j = buflen - shorten;
+			simple = TRUE;
 		}
 		/* We can't, let's find a suitable wrap point */
 		else
@@ -3612,8 +3681,9 @@ void text_out_c(byte a, cptr buf)
 			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
-				if (buf[i] == ' ')
-				{ 
+			{
+				if (buf[i] == ' ' || buf[i] == '\n')
+				{
 					if (i - shorten < 80 - p_ptr->cur_wid)
 					{
 						j = i - shorten;
@@ -3623,53 +3693,64 @@ void text_out_c(byte a, cptr buf)
 						break;
 					}
 				}
+			}
 			simple = FALSE;
 			warped = TRUE;
 		}
-		
+
 		/* Copy first part */
 		for (i = 0; i < j; i++)
-				if (buf[i+shorten] != '\n')
-					line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
+		{
+			if (buf[i+shorten] != '\n')
+			{
+				line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
+			}
+			else
+			{
+				/* If we encounter a '\n', and it's our first
+				 * line ever, we ignore it... */
+				if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0)
+				{
+					p_ptr->cur_wid -= 1; //ignore, backup a bit
+				}
 				else
 				{
-					
-					if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0) 
-						p_ptr->cur_wid -= 1; //ignore, backup a bit
-					else {
-						j = i + 1;
-						simple = warped = FALSE;
-						break;
-					}
+					j = i + 1;
+					simple = warped = FALSE;
+					break;
 				}
+			}
+		}
 
-		/* Advance forward */			
+		/* Advance forward */
 		p_ptr->cur_wid += i;
 		
 		/* Fill the rest with spaces */
 		for (i = p_ptr->cur_wid; i < 80; i++)
+		{
 			line_buf[i] = ' ';
-		
+		}
+
 		/* Dump it */
 		for (i = p_ptr->cur_wid-j; i < 80; i++)
 		{
 			p_ptr->info[p_ptr->cur_hgt][i].c = line_buf[i];
 			p_ptr->info[p_ptr->cur_hgt][i].a = a;
 		}
-	   
+
 		/* End function for simple cases */
 		if (simple) break;
-		
+
 		/* Advance to next line */
 		p_ptr->cur_hgt += 1;
 		p_ptr->cur_wid = 0;
-		
-	   /* Shorten the text */
-	   shorten += j;
-			   
+
+		/* Shorten the text */
+		shorten += j;
+
 		/* Handle spaces */
 		if (warped && buf[shorten] == ' ') shorten++; 
-		
+
 		/* Finish when we're done */
 		if (shorten >= buflen) break; 
 	}
@@ -3680,11 +3761,8 @@ void text_out(cptr str)
 	text_out_c(TERM_WHITE, str);
 }
 
-
-void c_prt(int Ind, byte attr, cptr str, int row, int col)
+void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Paranoia */
 	if (row > MAX_TXT_INFO) return;
 
@@ -3700,10 +3778,11 @@ void c_prt(int Ind, byte attr, cptr str, int row, int col)
 		str++;
 	}
 }
-void prt(int Ind, cptr str, int row, int col)
+void prt(player_type *p_ptr, cptr str, int row, int col)
 {
-	c_prt(Ind, TERM_WHITE, str, row, col);	
+	c_prt(p_ptr, TERM_WHITE, str, row, col);
 }
+
 void clear_line(int Ind, int row)
 {
 	player_type *p_ptr = Players[Ind];
@@ -3761,7 +3840,7 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
 		{
  			(*x) += strlen(prompt);
  			clear_line(Ind, row);
-			c_prt(Ind, prompt_attr, prompt, row, col);
+			c_prt(p_ptr, prompt_attr, prompt, row, col);
 			Stream_line(Ind, STREAM_SPECIAL_TEXT, row);
  		}
  		if (!STRZERO(default_value))

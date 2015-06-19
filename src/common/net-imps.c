@@ -211,8 +211,8 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	new_c->close_cb = close;
 	new_c->close = 0;
 	new_c->uptr = NULL;
-	cq_init(&new_c->wbuf, PD_SMALL_BUFFER);
-	cq_init(&new_c->rbuf, PD_SMALL_BUFFER);
+	cq_init(&new_c->wbuf, PD_LARGE_BUFFER);
+	cq_init(&new_c->rbuf, PD_LARGE_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
 #ifdef HAVE_INET_NTOP
@@ -240,7 +240,7 @@ eptr add_timer(eptr root, int interval, callback timeout) {
 }
 
 eptr handle_connections(eptr root) {
-	char mesg[PD_SMALL_BUFFER];
+	char mesg[PD_LARGE_BUFFER];
 	eptr iter;
 	int connfd, n, to_close = 0;
 	struct connection_type *ct;
@@ -255,7 +255,7 @@ eptr handle_connections(eptr root) {
 		if (!ct->close)
 		{
 			/* Receive */
-			n = recvfrom(connfd,mesg,PD_SMALL_BUFFER,0, NULL,0);
+			n = recvfrom(connfd,mesg,PD_LARGE_BUFFER,0, NULL,0);
 			if (n > 0) 
 			{
 				/* Got 'n' bytes */
@@ -275,7 +275,7 @@ eptr handle_connections(eptr root) {
 		/* Send */
 		if (cq_len(&ct->wbuf))
 		{
-			n = cq_read(&ct->wbuf, &mesg[0], PD_SMALL_BUFFER);
+			n = cq_read(&ct->wbuf, &mesg[0], PD_LARGE_BUFFER);
 			n = sendto(connfd,mesg,n,0, NULL,0);
 
 			/* Error while sending */
@@ -324,6 +324,7 @@ eptr handle_callers(eptr root) {
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
 		if (n == 0 || sockerr == EISCONN)
 			ct->connect_cb(callerfd, (data)ct);
+		else if (sockerr == EALREADY) continue;
 		else if (sockerr == EINPROGRESS) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);

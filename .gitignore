@@ -47,3 +47,5 @@ src/server/.dirstamp
 src/stamp-h1
 
 lib/data/*.raw
+lib/save/*
+!lib/save/server.*

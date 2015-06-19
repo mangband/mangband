@@ -26,9 +26,12 @@
 
 	PACKET(PKT_TERM_INIT,	"%c",       	recv_term_init)
 	PACKET(PKT_KEY,      	"%c",       	recv_term_key)
+	PACKET(PKT_LOOK,      	"%c%c",       	recv_target)
+	PACKET(PKT_LOCATE,     	"%c",       	recv_locate)
 
 	PACKET(PKT_REDRAW,    	"",         	recv_redraw)
 	PACKET(PKT_CLEAR,    	"",         	recv_clear)
+	PACKET(PKT_CONFIRM, 	"%c%c",        	recv_confirm)
 
 	PACKET(PKT_SUICIDE,    	"",         	recv_suicide)
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)

@@ -54,11 +54,13 @@ extern object_type *inventory;
 extern char **inventory_name;
 
 extern object_type floor_item;
-extern char floor_name[80];
+extern char floor_name[MAX_CHARS];
 
 
 extern indicator_type indicators[MAX_INDICATORS];
 extern byte known_indicators;
+extern u32b indicator_window[MAX_INDICATORS];
+extern char* str_coffers[MAX_COFFERS];
 extern s32b coffers[MAX_COFFERS];
 extern byte coffer_refs[MAX_INDICATORS];
 extern int known_coffers;
@@ -69,10 +71,10 @@ extern char store_owner_name[MAX_CHARS];
 extern char store_name[MAX_CHARS];
 extern byte store_flag;
 extern int store_prices[STORE_INVEN_MAX];
-extern char store_names[STORE_INVEN_MAX][80];
+extern char store_names[STORE_INVEN_MAX][MAX_CHARS];
 extern s16b store_num;
 
-extern char spell_info[26][SPELLS_PER_BOOK+1][80];
+extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
@@ -88,6 +90,7 @@ byte health_track_attr;
 extern bool shopping;
 extern bool shopping_buying; 
 extern bool leave_store;
+extern bool enter_store;
 
 extern s16b last_line_info;
 extern s16b cur_line;
@@ -112,8 +115,21 @@ extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern byte known_item_testers;
 
 extern int special_line_type;
-extern char special_line_header[80];
+extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
+#define interactive_mode special_line_onscreen
+extern bool interactive_anykey_flag;
+
+extern bool special_line_requested;
+
+extern bool confirm_requested;
+extern byte confirm_type;
+extern byte confirm_id;
+extern char confirm_prompt[MAX_CHARS];
+
+extern bool pause_requested;
+
+#define enter_store_requested enter_store
 
 extern bool inkey_base;
 extern bool inkey_xtra;
@@ -121,6 +137,7 @@ extern bool inkey_scan;
 extern bool inkey_flag;
 
 extern bool inkey_exit;
+extern bool inkey_nonblock;
 
 extern bool first_escape;
 
@@ -251,6 +268,7 @@ extern bool get_server_name(void);
 
 /* c-cmd.c */
 extern void process_command(void);
+extern void process_requests(void);
 extern void cmd_custom(byte i);
 extern void cmd_interactive(void);
 extern void cmd_tunnel(void);
@@ -331,6 +349,7 @@ extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
+extern void show_recall(byte win, cptr prompt);
 extern void prepare_popup(void);
 extern void show_popup(void);
 extern void show_peruse(s16b line);
@@ -427,6 +446,7 @@ extern void do_ghost(void);
 /* c-store.c */
 extern void display_inventory(void);
 extern void display_store(void);
+extern int get_store_stock(int *citem, cptr prompt);
 
 /* c-xtra1.c */
 extern int register_indicator(int id);
@@ -460,6 +480,7 @@ extern void setup_keepalive_timer();
 extern void setup_network_client();
 extern void cleanup_network_client();
 extern void network_loop();
+extern int call_metaserver(char *server_name, int server_port, char *buf, int buflen);
 extern int call_server(char *server_name, int server_port);
 extern server_setup_t serv_info;
 extern int send_handshake(u16b conntype);
@@ -477,6 +498,9 @@ extern int send_channel(char mode, u16b id, cptr name);
 extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_party(s16b command, cptr buf);
+extern int send_target_interactive(int mode, char dir);
+extern int send_locate(char dir);
+
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")
@@ -490,7 +514,7 @@ extern int send_party(s16b command, cptr buf);
 #define Net_fd(void) plog("Net_fd unimplemented!")
 #define Net_input() plog("Net_input unimplemented!")
 #define Net_packet() plog("Net_packet unimplemented!")
-#define Flush_queue() plog("Flush_queue unimplemented!")
+#define Flush_queue() flush_updates()
 #define SocketCloseAll() plog("SocketCloseAll unimplemented!")
 #define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
 #define Send_walk(dir) plog("Send_walk unimplemented!")
@@ -499,14 +523,13 @@ extern int send_party(s16b command, cptr buf);
 #define Send_stay() plog("Send_stay unimplemented!")
 #define Send_rest() plog("Send_rest unimplemented!")
 #define Send_destroy(item, amt) plog("Send_destroy unimplemented!")
-#define Send_target_interactive(mode, dir) plog("Send_target_interactive unimplemented!")
+#define Send_target_interactive(mode, dir) send_target_interactive(mode, dir)
 #define Send_item(item) plog("Send_item unimplemented!")
 #define Send_direction(dir) plog("Send_direction unimplemented!")
 #define Send_gain(book, spell) plog("Send_gain unimplemented!")
 #define Send_cast(book, spell) plog("Send_cast unimplemented!")
 #define Send_pray(book, spell) plog("Send_pray unimplemented!")
 #define Send_ghost(ability) plog("Send_ghost unimplemented!")
-#define Send_locate(dir) plog("Send_locate unimplemented!")
 #define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
 #define Send_store_leave() plog("Send_store_leave unimplemented!")

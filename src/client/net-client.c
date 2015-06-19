@@ -17,12 +17,17 @@ eptr first_timer = NULL;
 
 /* Pointers */
 eptr meta_caller = NULL;
+eptr meta_connection = NULL;
 eptr server_caller = NULL;
 eptr server_connection = NULL;
 
+connection_type *meta = NULL;
 connection_type *serv = NULL;
 
 /* Global Flags */
+char *meta_buf;
+int meta_buf_max;
+s16b meta_connected = 0;
 s16b connected = 0;
 s16b state = 0;
 
@@ -69,7 +74,7 @@ void network_loop()
 int client_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	/* 0_0` */
-	quit(NULL);
+	quit("Connection closed.");
 	return 0;
 }
 
@@ -392,6 +397,20 @@ int send_suicide(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
 }
 
+int send_target_interactive(int mode, char dir)
+{
+	char c_mode;
+
+	c_mode = (mode & TARGET_FRND ? NTARGET_FRND : (mode & TARGET_KILL ? NTARGET_KILL : NTARGET_LOOK));
+
+	return cq_printf(&serv->wbuf, "%c%c%c", PKT_LOOK, c_mode, dir);
+}
+
+int send_locate(char dir)
+{
+	return cq_printf(&serv->wbuf, "%c" "%c", PKT_LOCATE, dir);
+}
+
 /* Custom command */
 int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 {
@@ -456,12 +475,12 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 	return 1;
 }
 
-int recv_store(void)
+int recv_store(connection_type *ct)
 {
 	int	
 		price;
 	char	
-		name[1024];
+		name[MAX_CHARS];
 	byte	
 		pos,attr;
 	s16b	
@@ -474,7 +493,7 @@ int recv_store(void)
 	store.stock[pos].weight = wgt;
 	store.stock[pos].number = num;
 	store_prices[(int) pos] = price;
-	strncpy(store_names[(int) pos], name, 80);
+	my_strcpy(store_names[(int) pos], name, MAX_CHARS);
 
 	/* Make sure that we're in a store */
 	if (shopping)
@@ -486,7 +505,7 @@ int recv_store(void)
 	return 1;
 }
 
-int recv_store_info(void)
+int recv_store_info(connection_type *ct)
 {
 	s16b		
 		num_items;
@@ -504,16 +523,37 @@ int recv_store_info(void)
 
 	/* Only enter "display_store" if we're not already shopping */
 	if (!shopping)
-		display_store();
+		enter_store = TRUE;
 	else
 		display_inventory();
 
 	return 1;
 }
+
+int send_confirm(byte type, byte id)
+{
+	return cq_printf(&serv->wbuf, "%c%c%c", PKT_CONFIRM, type, id);
+}
+int recv_confirm_request(connection_type *ct)
+{
+	byte type;
+	byte id;
+	char buf[MAX_CHARS];
+
+	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 1) return 0;
+
+	confirm_requested = TRUE;
+	confirm_type = type;
+	confirm_id = id;
+	my_strcpy(confirm_prompt, buf, MAX_CHARS);
+
+	return 1;
+}
+
 /* Undefined packet "handler" */
 int recv_undef(connection_type *ct) {
 
-	printf("Undefined packet %d came from server! Last packet was: %d\n", next_pkt, last_pkt);
+	plog(format("Undefined packet %d came from server! Last packet was: %d\n", next_pkt, last_pkt));
 
 	/* Disconnect client! */
 	return -1;
@@ -860,14 +900,20 @@ int recv_indicator(connection_type *ct) {
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
-	
+
+	/* Update *all* windows that have this indicator */
+	for (i = 0; i < known_indicators; i++)
+		if (indicators[i].redraw == i_ptr->redraw)
+			p_ptr->window |= indicator_window[i];
+
 	return 1;
 }
 
 int recv_indicator_str(connection_type *ct) {
 	indicator_type *i_ptr;
 	int id = indicator_refs[next_pkt];
-	char buf[MAX_CHARS]; 
+	char buf[MAX_CHARS];
+	int i;
 
 	/* Error -- unknown indicator */
 	if (id > known_indicators) return -1;
@@ -878,11 +924,16 @@ int recv_indicator_str(connection_type *ct) {
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Store the string in indicator's 'prompt' */
-	my_strcpy((char*)i_ptr->prompt, buf, MAX_CHARS);
+	my_strcpy((char*)str_coffers[id], buf, MAX_CHARS);
 
 	/* Schedule redraw */
 	p_ptr->redraw |= i_ptr->redraw;
-	
+
+	/* Update *all* windows that have this indicator */
+	for (i = 0; i < known_indicators; i++)
+		if (indicators[i].redraw == i_ptr->redraw)
+			p_ptr->window |= indicator_window[i];
+
 	return 1;
 }
 
@@ -931,9 +982,20 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->mark = strdup(mark);
 
 	n = strlen(buf) + 1;
-	if (n <= 0 || type == INDITYPE_STRING) n = MAX_CHARS;
 	C_MAKE(i_ptr->prompt, n, char);
-	my_strcpy(i_ptr->prompt, buf, n);
+	my_strcpy((char*)i_ptr->prompt, buf, n);
+
+	str_coffers[known_indicators] = NULL;
+
+	/* Set local window_flag */
+	/* TODO: make it a ref. array in c-tables */
+	indicator_window[known_indicators] = 0;
+	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2;
+	if (win & IPW_2) indicator_window[known_indicators] |= PW_STATUS;
+	if (win & IPW_3) indicator_window[known_indicators] |= PW_PLAYER_0;
+	if (win & IPW_4) indicator_window[known_indicators] |= PW_PLAYER_3;
+	if (win & IPW_5) indicator_window[known_indicators] |= PW_PLAYER_1;
+	if (win & IPW_6) indicator_window[known_indicators] |= PW_STORE;
 
 	/* Indicator takes place of a PKT */
 	if (pkt)
@@ -943,6 +1005,13 @@ int recv_indicator_info(connection_type *ct) {
 
 		indicator_refs[pkt] = known_indicators;
 		coffer_refs[known_indicators] = known_coffers;
+
+		/* Indicator has it's own string coffer */
+		if (type == INDITYPE_STRING)
+		{
+			C_MAKE(str_coffers[known_indicators], MAX_CHARS, char);
+			str_coffers[known_indicators][0] = '\0';
+		}
 	}
 	/* A 'hollow' indicator, which is just a clone */
 	else
@@ -959,13 +1028,19 @@ int recv_indicator_info(connection_type *ct) {
 			plog("Attempting to clone indicator too far!");
 			return -1;
 		}
-		if (offset >= indicators[ind].amnt)
+		if (indicators[ind].type == INDITYPE_STRING)
+		{
+			/* Allow string indicators to be flaky about regular coffers */
+			offset = 0;
+		}
+		else if (offset >= indicators[ind].amnt)
 		{
 			plog("Attempting to clone coffer too far!");
 			return -1;
 		}
 		i_ptr->type = indicators[ind].type;	/* Actual type is cloned */
 		i_ptr->amnt = indicators[ind].amnt - offset; /* Actual ammount is source_ammount - offset */
+		str_coffers[known_indicators] = str_coffers[ind]; /* String pointer is source string */
 		i_ptr->redraw = indicators[ind].redraw;
 		coffer_refs[known_indicators] = coffer_refs[ind] + offset;
 
@@ -1023,13 +1098,19 @@ int recv_stream(connection_type *ct) {
 	stream = &streams[id];
 	addr = stream->addr;
 
+	if (!p_ptr->stream_hgt[id])
+	{
+		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		return -1;
+	}
+
 	/* Hack -- single char */
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
 	if (y > p_ptr->stream_hgt[id]) 
 	{
-		plog("Stream out of bounds");
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
@@ -1183,6 +1264,8 @@ int recv_term_info(connection_type *ct) {
 	u16b
 		line = 0;
 
+	s32b old_remote_line;
+
 	if (cq_scanf(&ct->rbuf, "%b", &flag) < 1) return 0;
 
 	/* For principal modes, grab additional parameter */
@@ -1198,10 +1281,13 @@ int recv_term_info(connection_type *ct) {
 	/* Grab terminal id */
 	win = p_ptr->remote_term;
 
-	/* Reset counter */	
+	/* Save last_remote_line for sake of NTERM_FLUSH later */
+	old_remote_line = last_remote_line[win];
+
+	/* Reset counter */
 	if (flag & NTERM_CLEAR)
 	{
-		last_remote_line[win] = 0;
+		last_remote_line[win] = -1;
 	}
 
 	/* Refresh window */
@@ -1211,7 +1297,7 @@ int recv_term_info(connection_type *ct) {
 	}
 
 	/* Icky test */
-	if ((flag & NTERM_ICKY) && !screen_icky) return 1;
+	if ((flag & NTERM_ICKY) && !interactive_mode) return 1;
 
 	/* Change terminal state */	
 	if (flag & NTERM_HOLD)
@@ -1228,25 +1314,37 @@ int recv_term_info(connection_type *ct) {
 		{
 			icky_levels--;
 		}
+		if (line == NTERM_PAUSE)
+		{
+			pause_requested = TRUE;
+			return 2;
+		}
 	}
 
-	/* Copy nterm contents to screen */
+	/* Clear screen */
+	if ((flag & NTERM_CLEAR) && (flag & (NTERM_FLUSH|NTERM_FRESH)))
+	{
+		Term_clear();
+	}
+
+	/* Copy NTerm contents to screen */
 	if (flag & NTERM_FLUSH)
 	{
-		u16b wid, hgt, off, n;
+		u16b wid, hgt, xoff, yoff, n;
 		byte st;
 
-		off = 0;
+		xoff = 0; yoff = 0;
 		st = window_to_stream[win];
-		hgt = last_remote_line[win] + 1;
+		hgt = old_remote_line + 1;/*last_remote_line[win] + 1;*/
 		wid = p_ptr->stream_wid[st];
 
 		/* HACK: */
-		if (!win) off = DUNGEON_OFFSET_X;
+		if (!win) xoff = DUNGEON_OFFSET_X;
+		if (!win) yoff = DUNGEON_OFFSET_Y;
 
 		for (n = line; n < hgt; n++)
 		{
-			caveprt(stream_cave(st, n), wid, off, n );
+			caveprt(stream_cave(st, n), wid, xoff, n + yoff);
 		}
 	}
 
@@ -1260,11 +1358,6 @@ int recv_term_info(connection_type *ct) {
 	{
 		show_popup();
 	}
-	/* Clear screen */
-	if (flag & NTERM_CLEAR)
-	{
-		Term_clear();
-	}
 	/* Refresh screen */
 	if (flag & NTERM_FRESH)
 	{
@@ -1273,21 +1366,65 @@ int recv_term_info(connection_type *ct) {
 	return 1;
 }
 int recv_term_header(connection_type *ct) {
-	char buf[80];
+	char buf[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
 
 	/* Save header */
-	strcpy(special_line_header, buf);
+	my_strcpy(special_line_header, buf, MAX_CHARS);
 
 	/* Enable perusal mode */
 	special_line_type = TRUE;
 
 	/* Ignore it if we're busy */
-	if (screen_icky || looking) return 1;
+	if ((screen_icky && !shopping) || looking) return 1;
 
 	/* Prepare popup route */
-	prepare_popup();
+	special_line_requested = TRUE;
+
+	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
+	return 2;
+}
+
+int recv_cursor(connection_type *ct) {
+	char vis, x, y;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &vis, &x, &y) < 3) return 0;
+
+	if (cursor_icky)
+	{
+		x += DUNGEON_OFFSET_X;
+		y += DUNGEON_OFFSET_Y;
+		Term_consolidate_cursor(vis, x, y);
+	}
+
+	return 1;
+}
+
+int recv_target_info(connection_type *ct) {
+	char x, y, buf[MAX_CHARS], *s;
+	byte win;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
+
+	if (!looking) return 1;
+
+	/* Hack -- information recall */
+	s = strchr(buf, '['); /* Store prompt starting at '[' character */
+	show_recall(win, s); /* Show/Hide recall window */
+
+	if (!target_recall)
+	{
+		prt(buf, 0, 0);
+	}
+
+	/* Move the cursor */
+	if (cursor_icky)
+	{
+		x += DUNGEON_OFFSET_X;
+		y += DUNGEON_OFFSET_Y;
+		Term_consolidate_cursor(TRUE, x, y);
+	}
 
 	return 1;
 }
@@ -1325,7 +1462,7 @@ int recv_channel(connection_type *ct) {
 
 int recv_message(connection_type *ct) {
 	char 
-		mesg[80];
+		mesg[MAX_CHARS];
 	u16b 
 		type = 0;
 	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
@@ -1338,13 +1475,13 @@ int recv_message(connection_type *ct) {
 int recv_message_repeat(connection_type *ct) {
 
 	char 
-		mesg[80];
+		mesg[MAX_CHARS];
 	u16b 
 		type = 0;
 
 	if (cq_scanf(&ct->rbuf, "%ud", &type) < 1) return 0;
 
-	strcpy(mesg, message_last());
+	my_strcpy(mesg, message_last(), MAX_CHARS);
 
 	do_handle_message(mesg, type);
 
@@ -1456,7 +1593,7 @@ int recv_floor(connection_type *ct)
 	byte tval, attr;
 	byte flag;
 	s16b amt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
 	{
@@ -1469,7 +1606,7 @@ int recv_floor(connection_type *ct)
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
 
-	strncpy(floor_name, name, 79);
+	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
 	return 1;
 }
@@ -1481,7 +1618,7 @@ int recv_inven(connection_type *ct)
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt, amt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
 	{
@@ -1495,7 +1632,7 @@ int recv_inven(connection_type *ct)
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
 
-	strncpy(inventory_name[pos - 'a'], name, 79);
+	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
@@ -1510,7 +1647,7 @@ int recv_equip(connection_type *ct)
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt;
-	char name[80];
+	char name[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
@@ -1524,7 +1661,7 @@ int recv_equip(connection_type *ct)
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
 
 
-	strncpy(inventory_name[pos - 'a' + INVEN_WIELD], name, 79);
+	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_EQUIP);
@@ -1539,19 +1676,25 @@ int recv_spell_info(connection_type *ct)
 	u16b
 		book,
 		line;
-	char buf[MSG_LEN];//TODO: verify this
+	char buf[MAX_CHARS];
 
 	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
 	{
 		return 0;
 	}
 
+	if (line >= SPELLS_PER_BOOK)
+	{
+		plog(format("Spell out of bounds! Getting %d, SPELLS_PER_BOOK=%d!", line, SPELLS_PER_BOOK));
+		return -1;
+	}
+
 	/* Save the info */
-	strcpy(spell_info[book][line], buf);
+	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
 
 	/* and wipe the next line */
-	if (line < SPELLS_PER_BOOK) spell_info[book][line+1][0] = '\0';
+	spell_info[book][line+1][0] = '\0';
 
 	/* Update spell list */
 	p_ptr->window |= PW_SPELL;
@@ -1603,6 +1746,79 @@ void setup_tables()
 
 }
 
+
+/* META-SERVER STUFF */
+int meta_close(int data1, data data2) {
+	connection_type *ct = (connection_type*)data2;
+	memcpy(meta_buf, ct->rbuf.buf, MIN(ct->rbuf.len, meta_buf_max));
+	meta_connected = ct->rbuf.len;
+	return 0;
+}
+int meta_read(int data1, data data2) { /* return -1 on error */
+	connection_type *ct = (connection_type *)data2;
+	return 0;
+}
+int connected_to_meta(int data1, data data2) {
+	int fd = (int)data1;
+
+	/* Unset 'caller' */
+	meta_caller = NULL;
+
+	/* Setup 'connection' */
+	meta_connection = add_connection(first_connection, fd, meta_read, meta_close);
+	if (!first_connection) first_connection = meta_connection;
+
+	/* Set usability pointer */
+	meta = (connection_type *)meta_connection->data2;
+
+	/* OK */
+	meta_connected = 1;
+	return 1;
+}
+
+/* Return 1 to continue, 0 to cancel */
+int failed_connection_to_meta(int data1, data data2) {
+	/* NOT OK */
+	meta_connected = -1;
+	return 0;
+}
+
+int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
+{
+	meta_caller = add_caller(first_caller, server_name, server_port, connected_to_meta, failed_connection_to_meta);
+	if (first_caller == NULL) first_caller = meta_caller;
+
+	/* Early failure, probably DNS error */
+	if (meta_caller == NULL) return -1;
+
+	/* Unset */
+	meta_connected = 0;
+
+	meta_buf = buf;
+	meta_buf_max = buflen;
+
+	/* Try */
+	while (!meta_connected)
+	{
+		network_loop();
+		network_pause(100000); /* 0.1 ms "sleep" */
+	}
+	/* Will be either 1 either -1 */
+
+	/* Now let's try reading */
+	if (meta_connected == 1)
+	{
+		meta_connected = 0;
+		while (!meta_connected)
+		{
+			network_loop();
+		}
+	}
+	/* Will be either 2 either 1 either -1 */
+
+	return meta_connected;
+}
+/* END OF META-SERVER STUFF */
 
 
 bool net_term_clamp(byte win, byte *y, byte *x)
@@ -1675,6 +1891,19 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		st_x[j] = -1;
 	}
 
+	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
+	for (k = 0; k < stream_groups; k++)
+	{
+		byte st = stream_group[k];
+		stream_type* st_ptr = &streams[st];
+
+		if (st_ptr->flag & SF_HIDE)
+		{
+			st_x[st] = st_ptr->min_col;
+			st_y[st] = st_ptr->min_row;
+		}
+	}
+
 	/* Now, find actual changes by comparing old and new */ 
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
@@ -1691,6 +1920,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		{
 			byte st = stream_group[k];
 			stream_type* st_ptr = &streams[st];
+
+			/* Hack -- if stream is hidden from UI, don't touch it */
+			if (st_ptr->flag & SF_HIDE) continue;
 
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)

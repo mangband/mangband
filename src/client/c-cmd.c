@@ -19,13 +19,13 @@ void cmd_custom(byte i)
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
 	cc_ptr = &custom_command[i];
-	dir = item = value = 0;
+	dir = item = item2 = value = 0;
 	prompt = cc_ptr->prompt;
 	entry[0] = '\0';
-	
+
 	need_second = (cc_ptr->flag & COMMAND_NEED_SECOND ? TRUE : FALSE);
 	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);	
-	
+
 	/* Pre-tests */
 	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
 	{
@@ -65,6 +65,7 @@ void cmd_custom(byte i)
 	{
 		special_line_type = cc_ptr->tval;
 		strcpy(special_line_header, prompt);
+		interactive_anykey_flag = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
 		cmd_interactive();
 		return;
 	}
@@ -77,6 +78,35 @@ void cmd_custom(byte i)
 			return;
 		}
 		advance_prompt();
+	}
+	/* Ask for a store item (interactive) ? */
+	else if (cc_ptr->flag & COMMAND_ITEM_STORE)
+	{
+		if (!get_store_stock(&item, prompt)) return;
+		advance_prompt();
+
+		/* Get an amount */
+		if ((cc_ptr->flag & COMMAND_ITEM_AMMOUNT))
+		{
+			value = 1;
+			/* - from stock */
+			if (store.stock[item].number > 1)
+			{
+				/* Hack -- note cost of "fixed" items */
+				if (store_num != 7)
+					c_msg_print(format("That costs %ld gold per item.", (long)store_prices[item]));
+
+				if (STRZERO(prompt)) prompt = "How many? ";
+				shopping_buying = TRUE;
+				value = c_get_quantity(prompt, store.stock[item].number);
+				shopping_buying = FALSE;
+			}
+			if (!value) return;
+			advance_prompt();
+        }
+
+		/* Dirty Hack -- save multiplied price as "entry" */
+		sprintf(entry, "%" PRId32, (uint32_t)(store_prices[item]*value));
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
@@ -247,6 +277,7 @@ void process_command()
 	byte i;
 	for (i = 0; i < custom_commands; i++) 
 	{
+		if (custom_command[i].flag & COMMAND_STORE) continue;
 		if (custom_command[i].m_catch == command_cmd) 
 		{
 			cmd_custom(i);
@@ -462,6 +493,39 @@ void process_command()
 
 
 
+/* Process server-side requests. We queue the actual requests in net-client.c
+ * and process them here at a later time, so we don't unexpectedly change state
+ * in the middle of a network frame. */
+/* Note: this probably should be in some other file, but which? */
+void process_requests()
+{
+	if (pause_requested)
+	{
+		pause_requested = FALSE;
+		interactive_anykey_flag = TRUE;
+		section_icky_row = Term->hgt;
+		section_icky_col = Term->wid;
+		//cmd_interactive();
+		prepare_popup();
+	}
+	if (special_line_requested)
+	{
+		special_line_requested = FALSE;
+		interactive_anykey_flag = TRUE;
+		//cmd_interactive();
+		prepare_popup();
+	}
+	if (confirm_requested)
+	{
+		confirm_requested = FALSE;
+		if (get_check(confirm_prompt)) send_confirm(confirm_type, confirm_id);
+	}
+	if (enter_store)
+	{
+		enter_store = FALSE;
+		display_store();
+	}
+}
 
 
 
@@ -500,7 +564,7 @@ void cmd_locate(void)
 	char ch;
 
 	/* Initialize */
-	Send_locate(5);
+	send_locate(5);
 
 	/* Show panels until done */
 	while (1)
@@ -528,11 +592,11 @@ void cmd_locate(void)
 		if (!dir) break;
 
 		/* Send the command */
-		Send_locate(dir);
+		send_locate(dir);
 	}
 
 	/* Done */
-	Send_locate(0);
+	send_locate(0);
 	
 	/* Clear */
 	c_msg_print(NULL);
@@ -568,9 +632,7 @@ void cmd_inven(void)
 
 void cmd_equip(void)
 {
-	/* The whole screen is "icky" */
-	screen_icky = TRUE;
-
+	/* Save the screen */
 	Term_save();
 
 	command_gap = 50;
@@ -578,6 +640,7 @@ void cmd_equip(void)
 	/* Hack -- show empty slots */
 	item_tester_full = TRUE;
 
+	/* Show equip and *make screen icky */
 	show_equip();
 
 	/* Undo the hack above */
@@ -588,7 +651,7 @@ void cmd_equip(void)
 	Term_load();
 
 	/* The screen is OK now */
-	screen_icky = FALSE;
+	section_icky_row = section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -714,7 +777,12 @@ int cmd_target_interactive(int mode)
 	bool done = FALSE;
 	char ch;
 
+	/* Save screen */
+	Term_save();
+
+	/* Set modes */
 	looking = TRUE;
+	target_recall = FALSE;
 	cursor_icky = TRUE;
 	topline_icky = TRUE;
 
@@ -724,11 +792,6 @@ int cmd_target_interactive(int mode)
 	while (!done)
 	{
 		ch = inkey();
-
-		if (target_recall)
-		{
-			section_icky_row = section_icky_col = 0;
-		}
 
 		if (!ch)
 			continue;
@@ -747,16 +810,13 @@ int cmd_target_interactive(int mode)
 		}
 	}
 
-	if (target_recall)
-	{
-		target_recall = FALSE;
-		/* Very Dirty Hack -- Force Redraw */
-		prt_player_hack();
-		prt_map_easy();
-	}
+	/* Fix screen */
+	Term_load();
 
+	/* Unset modes */
 	looking = FALSE;
 	topline_icky = FALSE;
+	section_icky_row = section_icky_col = 0;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
@@ -816,6 +876,15 @@ void cmd_character(void)
 	char ch = 0;
 	int done = 0;
 
+	u32b old_window;
+	u32b tmp_window;
+
+	old_window = window_flag[0];
+	tmp_window = window_flag[0];
+
+	tmp_window &= ~PW_PLAYER_2;
+	tmp_window &= ~PW_STATUS;
+
 	/* Screen is icky */
 	screen_icky = TRUE;
 
@@ -824,6 +893,10 @@ void cmd_character(void)
 
 	while (!done)
 	{
+		if (char_screen_mode == 0) window_flag[0] = tmp_window | PW_PLAYER_0;
+		if (char_screen_mode == 1) window_flag[0] = tmp_window | PW_PLAYER_3;
+		if (char_screen_mode == 2) window_flag[0] = tmp_window | PW_PLAYER_1;
+
 		/* Display player info */
 		display_player(char_screen_mode);
 
@@ -855,11 +928,15 @@ void cmd_character(void)
 		}
 	}
 
+	window_flag[0] = old_window;
+
 	/* Reload screen */
 	Term_load();
 
 	/* Screen is no longer icky */
 	screen_icky = FALSE;
+
+	redraw_indicators(old_window);
 
 	/* Flush any events */
 	Flush_queue();
@@ -870,13 +947,14 @@ void cmd_interactive()
 {
 	char ch;
 	bool done = FALSE;
+	bool use_anykey = interactive_anykey_flag; /* Copy it to local var, it might change */
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky) return;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
-	
+
 	special_line_onscreen = TRUE;
 
 	/* Save the screen */
@@ -894,6 +972,8 @@ void cmd_interactive()
 		if (!ch)
 			continue;
 
+		if (use_anykey) ch = ESCAPE;
+
 		send_term_key(ch);
 
 		/* Check for user abort */
@@ -901,20 +981,20 @@ void cmd_interactive()
 			break;
 	}
 
+	interactive_anykey_flag = FALSE;
+
 	/* Reload the screen */
 	Term_load();
 
 	/* The screen is OK now */
 	screen_icky = FALSE;
 
-	/* HACK -- FIXME -- When all special_files are like that!
-	special_line_onscreen = FALSE; */
-	
+	special_line_onscreen = FALSE;
+
 	special_line_type = 0;//SPECIAL_FILE_NONE;
 
 	/* Flush any queued events */
 	Flush_queue();
-	
 }
 
 void cmd_chat()
