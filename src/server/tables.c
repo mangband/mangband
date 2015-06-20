@@ -146,7 +146,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? "
 	},
-    { /* Detroy Item */
+    { /* Destroy Item */
         'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
         (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
          COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
@@ -262,6 +262,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
 #endif
+	{ /* Scores */
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_SCORES, "Highscores"
+	},
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -276,11 +281,6 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		'@', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_PLAYER, "Players"
-	},
-	{ /* Scores */
-		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
-		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_SCORES, "Highscores"
 	},
 
 	/*** Miscellaneous; MAngband-specific ***/
