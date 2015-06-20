@@ -220,6 +220,10 @@ int send_login(u16b version, char* real_name, char* host_name, char* user_name, 
 	return cq_printf(&serv->wbuf, "%c%ud%s%s%s%s", PKT_LOGIN, version, real_name, host_name, user_name, pass_word);
 }
 
+int send_pass(char *new_password) {
+	return cq_printf(&serv->wbuf, "%c" "%S", PKT_CHANGEPASS, new_password);
+}
+
 int send_handshake(u16b conntype) {
 	return cq_printf(&serv->wbuf, "%ud", conntype);
 }

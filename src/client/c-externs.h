@@ -485,6 +485,7 @@ extern int call_server(char *server_name, int server_port);
 extern server_setup_t serv_info;
 extern int send_handshake(u16b conntype);
 extern int send_login(u16b version, char* real_name, char* host_name, char* user_name, char* pass_word);
+extern int send_pass(char *new_password);
 extern int send_play(byte mode);
 extern int send_suicide(void);
 extern int send_char_info();
@@ -539,7 +540,6 @@ extern int send_locate(char dir);
 #define Send_term_key(ch) plog("Send_term_key unimplemented!")
 #define Send_master(command, buf) plog("Send_master unimplemented!")
 #define Send_observe(item) plog("Send_observe unimplemented!")
-#define Send_pass(newpass) plog("Send_pass unimplemented!")
 
 
 /*

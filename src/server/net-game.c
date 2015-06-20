@@ -730,6 +730,22 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_pass(connection_type *ct, player_type *p_ptr)
+{
+	char buf[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%S", buf) < 1)
+	{
+		return 0;
+	}
+
+	my_strcpy(p_ptr->pass, buf, MAX_PASS_LEN);
+
+	/* BUG: the password is not actually saved until player_save,
+	 * which can make things very confusing during login :( */
+
+	return 1;
+}
 
 /* Default handler for all the gameplay commands. */
 int recv_command(connection_type *ct, player_type *p_ptr) 
