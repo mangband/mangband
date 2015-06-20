@@ -1506,10 +1506,10 @@ int recv_custom_command_info(connection_type *ct) {
 		pkt = 0,
 		tval = 0,
 		scheme = 0;
-	char buf[MSG_LEN]; //TODO: check this 
+	char buf[MSG_LEN];
 	s16b m_catch = 0;
 	u32b flag = 0;
-	int n;
+	int n, len;
 
 	custom_command_type *cc_ptr;
 
@@ -1538,11 +1538,13 @@ int recv_custom_command_info(connection_type *ct) {
 	cc_ptr->tval = tval;
 
 	/* Replace \n with \0 before applying to ->prompt */
-	for (n = 0; n < strlen(buf)+1; n++) 
+	len = strlen(buf) + 1;
+	for (n = 0; n < len; n++)
 	{
 		if (buf[n] == '\n') buf[n] = '\0';
 	}
-	my_strcpy(cc_ptr->prompt, buf, sizeof(cc_ptr->prompt));
+	buf[n] = '\0';
+	memcpy(cc_ptr->prompt, buf, MSG_LEN);
 
 	custom_commands++;
 
