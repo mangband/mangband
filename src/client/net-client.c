@@ -1752,7 +1752,9 @@ void setup_tables()
 /* META-SERVER STUFF */
 int meta_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
-	memcpy(meta_buf, ct->rbuf.buf, MIN(ct->rbuf.len, meta_buf_max));
+	int len = MIN(ct->rbuf.len, meta_buf_max);
+	memcpy(meta_buf, ct->rbuf.buf, len);
+	meta_buf[len-1] = '\0';
 	meta_connected = ct->rbuf.len;
 	return 0;
 }
