@@ -251,6 +251,18 @@ eptr handle_connections(eptr root) {
 
 		FD_SET(connfd, &rd);
 
+		/* Hack -- for packets still in read buffer, call callback again */
+		/* This is needed because the initial callback may choose to break
+		 * the parsing loop, leaving most of the buffer intact, which will
+		 * overflow on the next "cq_nwrite" call below. */
+		if (!ct->close && cq_len(&ct->rbuf))
+		{
+			n = ct->receive_cb(0, ct);
+
+			/* Error while handling input */
+			if (n < 0) ct->close = 1;
+		}
+
 		/* /Connection is not yet closed/ */
 		if (!ct->close)
 		{
