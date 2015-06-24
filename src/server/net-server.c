@@ -83,8 +83,8 @@ void alloc_server_memory()
 
 	/* Make refrence lists */
 	C_MAKE(Conn, MAX_PLAYERS, connection_type*);
-	C_MAKE(PConn, MAX_PLAYERS, connection_type*);
-	C_MAKE(Get_Conn, MAX_PLAYERS, int);
+	C_MAKE(PConn, MAX_PLAYERS + 1, connection_type*);
+	C_MAKE(Get_Conn, MAX_PLAYERS + 1, int);
 	C_MAKE(Get_Ind, MAX_PLAYERS, int);
 }
 
