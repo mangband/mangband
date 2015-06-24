@@ -35,9 +35,11 @@
 # endif
 #undef EWOULDBLOCK
 #undef EINPROGRESS
+#undef EALREADY
 #undef EISCONN
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define EINPROGRESS WSAEINPROGRESS
+#define EALREADY WSAEALREADY
 #define EISCONN WSAEISCONN
 #define sockerr WSAGetLastError()
 #else
