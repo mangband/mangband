@@ -141,7 +141,7 @@ data e_find(eptr root, data data1, compare func) {
 eptr* eg_init(element_group* grp, int max) {
 	grp->max = max;
 	grp->num = 0;
-	grp->list = (eptr*) C_RNEW(max, eptr);
+	grp->list = (eptr*) C_ZNEW(max, eptr);
 	return grp->list;
 }
 
@@ -153,6 +153,7 @@ void eg_free(element_group* grp) {
 		e_del(&grp->list[0], grp->list[i]);
 	}
 	FREE(grp->list);
+	grp->list = NULL;
 }
 
 /* Helper function to recalculate table */
