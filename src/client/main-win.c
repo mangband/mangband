@@ -3565,7 +3565,7 @@ static void hook_quit(cptr str)
 /*
  * Init some stuff
  */
-static void init_stuff(void)
+static void init_stuff_win(void)
 {
 	int   i;
 
@@ -3716,7 +3716,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	conf_init(hInstance);
 	
 	/* Prepare the filepaths */
-	init_stuff();
+	init_stuff_win();
 
 	/* Initialize WinSock */
 	WSAStartup(MAKEWORD(1, 1), &wsadata);
