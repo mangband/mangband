@@ -538,7 +538,7 @@ int recv_confirm_request(connection_type *ct)
 	byte id;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 1) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 3) return 0;
 
 	confirm_requested = TRUE;
 	confirm_type = type;
@@ -793,7 +793,7 @@ int recv_struct_info(connection_type *ct)
 
 				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
 				{
-					return n;
+					return 0;
 				}
 
 				if (last_off != off)
