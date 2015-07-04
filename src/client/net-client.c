@@ -79,7 +79,6 @@ int client_close(int data1, data data2) {
 }
 
 int client_read(int data1, data data2) { /* return -1 on error */
-	cq queue;
 	connection_type *ct = (connection_type *)data2;
 
 	/* parse */
@@ -88,7 +87,7 @@ int client_read(int data1, data data2) { /* return -1 on error */
 	while (	cq_len(&ct->rbuf) )
 	{
 		/* save */
-		start_pos = ct->rbuf.pos; 
+		start_pos = ct->rbuf.pos;
 		next_pkt = CQ_GET(&ct->rbuf);
 		next_scheme = schemes[next_pkt];
 		result = (*handlers[next_pkt])(ct);
@@ -197,19 +196,18 @@ int send_play(byte mode) {
 }
 
 int send_char_info() {
-	int	n, i;
-	if (n = cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, pclass, sex) <= 0)
+	int	i;
+	if (!cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, pclass, sex))
 	{
-		return n;
+		return 0;
 	}
 
 	/* Send the desired stat order */
 	for (i = 0; i < 6; i++)
 	{
-		n = cq_printf(&serv->wbuf, "%d", stat_order[i]);
-		if (n < 0) 
+		if (!cq_printf(&serv->wbuf, "%d", stat_order[i]))
 		{
-			return n;
+			return 0;
 		}
 	}
 
@@ -241,7 +239,7 @@ int send_stream_size(byte id, int rows, int cols) {
 }
 
 int send_visual_info(byte type) {
-	int	n, i, size;
+	int	size;
 	byte *attr_ref;
 	char *char_ref;
 	switch (type) 
@@ -328,29 +326,25 @@ int send_options(void)
 }
 int send_settings(void)
 {
-	byte next = 0;
-	byte bit = 0;
-	int i, n;
+	int i;
 
-	if ((n = cq_printf(&serv->wbuf, "%c", PKT_SETTINGS)) < 0) return n;
+	if (!cq_printf(&serv->wbuf, "%c", PKT_SETTINGS)) return 0;
 
 	for (i = 0; i < 16; i++)
 	{
-		if ((n = cq_printf(&serv->wbuf, "%d", Client_setup.settings[i])) < 0) return n;
+		if (!cq_printf(&serv->wbuf, "%d", Client_setup.settings[i])) return 0;
 	}
 
 	return 1;
 }
 int send_msg(cptr message)
 {
-	int n;
-
 	if (view_channel != p_ptr->main_channel)
 	{
 		p_ptr->main_channel = view_channel;
 
-		if ((n = send_channel(CHAN_SELECT, channels[view_channel].id, channels[view_channel].name)) <= 0)
-			return n;
+		if (!send_channel(CHAN_SELECT, channels[view_channel].id, channels[view_channel].name))
+			return 0;
 	}
 
 	return cq_printf(&serv->wbuf, "%c%S", PKT_MESSAGE, message);
@@ -393,7 +387,7 @@ int send_rest(void)
 
 int send_party(s16b command, cptr buf)
 {
-        return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
+	return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
 }
 
 int send_suicide(void)
@@ -677,8 +671,7 @@ int recv_char_info(connection_type *ct) {
 /* */
 int recv_struct_info(connection_type *ct)
 {
-	char 	ch;
-	int 	i, n;
+	int 	i;
 	byte 	typ;
 	u16b 	max;
 	char 	name[MAX_CHARS];
@@ -866,7 +859,6 @@ int recv_indicator(connection_type *ct) {
 	signed char tiny_c;
 	s16b normal_c;
 	s32b large_c;
-	char* text_c;
 
 	/* Error -- unknown indicator */
 	if (id > known_indicators) return -1;
@@ -1063,7 +1055,6 @@ int recv_indicator_info(connection_type *ct) {
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
-	int 	n;
 	byte
 		a = 0,
 		ta = 0;
@@ -1210,7 +1201,6 @@ int recv_stream_info(connection_type *ct) {
 		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
-	int n;
 
 	stream_type *s_ptr;
 
@@ -1594,8 +1584,6 @@ int recv_item_tester_info(connection_type *ct) {
 
 int recv_floor(connection_type *ct)
 {
-	int	n;
-	char	ch;
 	byte tval, attr;
 	byte flag;
 	s16b amt;
@@ -1619,8 +1607,6 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	int	n;
-	char	ch;
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt, amt;
@@ -1648,8 +1634,6 @@ int recv_inven(connection_type *ct)
 
 int recv_equip(connection_type *ct)
 {
-	int	n;
-	char 	ch;
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt;
