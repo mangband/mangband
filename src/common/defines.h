@@ -473,7 +473,7 @@
 
 #define IN_TEXT_LABEL       	0x00000001 /* Pick a string by value */
 #define IN_TEXT_PRINTF      	0x00000002 /* Display value via sprintf format */
-#define IN_TEXT_STAT        	0x00000004 /* Hack: Display in 18/*** format */
+#define IN_TEXT_STAT        	0x00000004 /* Hack: Display in 18/XXX format */
 #define IN_TEXT_CUT         	0x00000008 /* Display a string from prompt and cut it */
 #define IN_TEXT_LIKERT      	0x00000010 /* Hack: Display in "likert" format */
 

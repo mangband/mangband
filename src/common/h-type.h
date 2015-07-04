@@ -165,7 +165,7 @@ typedef unsigned long u64b;
 #define PRIu64 "ld"
 #define SCNu64 "ld"
 
-#endif /* !HAVE_INTTYPES_H
+#endif /* !HAVE_INTTYPES_H */
 
 /* The largest possible unsigned integer */
 typedef u64b huge;
