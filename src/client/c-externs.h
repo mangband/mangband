@@ -58,7 +58,7 @@ extern char floor_name[MAX_CHARS];
 
 
 extern indicator_type indicators[MAX_INDICATORS];
-extern byte known_indicators;
+extern int known_indicators;
 extern u32b indicator_window[MAX_INDICATORS];
 extern char* str_coffers[MAX_COFFERS];
 extern s32b coffers[MAX_COFFERS];
@@ -112,7 +112,7 @@ extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
-extern byte known_item_testers;
+extern int known_item_testers;
 
 extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
@@ -188,10 +188,10 @@ extern s16b command_cmd;
 extern s16b command_dir;
 
 extern custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
-extern s16b custom_commands;
+extern int custom_commands;
 
 extern stream_type streams[MAX_STREAMS];
-extern byte known_streams;
+extern int known_streams;
 
 extern byte window_to_stream[ANGBAND_TERM_MAX];
 extern byte stream_group[MAX_STREAMS];
