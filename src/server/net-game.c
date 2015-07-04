@@ -950,6 +950,8 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		return 0;
 	}
 
+	id = p_ptr->infodata_sent[mode];
+
 	switch (mode) 
 	{
 		case BASIC_INFO_INDICATORS:
@@ -970,6 +972,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		default: break;
 	}
 
+	p_ptr->infodata_sent[mode] = id;
+
+	/* OK */
 	return 1;
 }
 
