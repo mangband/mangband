@@ -378,11 +378,11 @@ eptr handle_callers(eptr root) {
 					break;
 				}
 			}
-			crfds = 0;
-			for (iter=root; iter; iter=iter->next) {
-				struct caller_type *ct = (struct caller_type *)iter->data2;
-				crfds = MATH_MAX(crfds, ct->caller_fd);
-			}
+		}
+		crfds = 0;
+		for (iter=root; iter; iter=iter->next) {
+			struct caller_type *ct = (struct caller_type *)iter->data2;
+			crfds = MATH_MAX(crfds, ct->caller_fd);
 		}
 	}
 	
