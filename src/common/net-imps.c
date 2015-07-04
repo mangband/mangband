@@ -37,10 +37,12 @@
 #undef EINPROGRESS
 #undef EALREADY
 #undef EISCONN
+#undef EINVAL
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define EINPROGRESS WSAEINPROGRESS
 #define EALREADY WSAEALREADY
 #define EISCONN WSAEISCONN
+#define EINVAL WSAEINVAL
 #define sockerr WSAGetLastError()
 #else
 #include <netdb.h> 
@@ -61,6 +63,7 @@
 
 
 fd_set rd;
+fd_set wd;
 int nfds;
 int cnfds;
 int lnfds;
@@ -152,6 +155,8 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	new_c->caller_fd = callerfd;
 	new_c->remove = 0; /* important */
 
+	crfds = MATH_MAX(crfds, callerfd);
+
 	/* Add to list */	
 	return e_add(root, NULL, new_c); 	
 }
@@ -217,11 +222,15 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	cq_init(&new_c->rbuf, PD_LARGE_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
+	{
 #ifdef HAVE_INET_NTOP
 		inet_ntop(AF_INET, &sin.sin_addr, new_c->host_addr, 24);
 #else
 		strcpy(new_c->host_addr, (char*)inet_ntoa(sin.sin_addr));
 #endif
+	}
+
+	cnfds = MAX(cnfds, new_c->conn_fd);
 
 	/* Add to list */
 	return e_add(root, NULL, new_c);
@@ -334,12 +343,20 @@ eptr handle_callers(eptr root) {
 		int callerfd = ct->caller_fd;
 		int n = 0;
 
-		FD_SET(callerfd, &rd);
+		/* if (FD_ISSET(callerfd, &wd)) {
+			//this is a good place to check if socket is connected
+		} */
+
+		FD_SET(callerfd, &wd);
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
 		if (n == 0 || sockerr == EISCONN)
 			ct->connect_cb(callerfd, (data)ct);
 		else if (sockerr == EALREADY) continue;
+		#ifdef WINDOWS
+		else if (sockerr == EINVAL) continue;
+		#endif
 		else if (sockerr == EINPROGRESS) continue;
+		else if (sockerr == EWOULDBLOCK) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
 			if (n) continue;
@@ -354,7 +371,7 @@ eptr handle_callers(eptr root) {
 				struct caller_type *ct = (struct caller_type *)iter->data2;
 				if (ct->remove)
 				{
-					FD_CLR(ct->caller_fd, &rd);
+					FD_CLR(ct->caller_fd, &wd);
 					FREE(ct);
 					e_del(&root, iter);
 					to_remove--;
@@ -391,7 +408,7 @@ eptr handle_listeners(eptr root) {
 
 		unblockfd(connfd);
 
-		cnfds = MATH_MAX(connfd, cnfds);
+		/* cnfds = MATH_MAX(connfd, cnfds); */
 
 		lt->accept_cb(connfd, lt);
 	}
@@ -510,11 +527,18 @@ void network_reset() {
 	WSADATA wsadata;
 
 	/* Initialize WinSock */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);	
+	WSAStartup(MAKEWORD(1, 1), &wsadata);
 #endif
 
 	FD_ZERO (&rd);
+	FD_ZERO (&wd);
 	nfds = cnfds = lnfds = crfds = refds = 0;
+}
+
+void network_done() {
+#ifdef WINDOWS
+	WSACleanup();
+#endif
 }
 
 void network_pause(micro timeout) {
@@ -526,7 +550,7 @@ void network_pause(micro timeout) {
 	nfds = MATH_MAX(nfds, crfds);
 	nfds = MATH_MAX(nfds, refds);
 
-	select(nfds + 1, &rd, NULL, NULL, &tv);
+	select(nfds + 1, &rd, &wd, NULL, &tv);
 }
 
 /* Set socket as non-blocking */
