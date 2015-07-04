@@ -64,12 +64,12 @@ void init_stuff(void)
 	/* Use the angband_path, or a default */
 	strcpy(path, tail ? tail : PKGDATADIR);
 
-	/* Hack -- Add a path separator (only if needed) */
-	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
-
 	/* Read/Write path from config file */
 	strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
 	conf_set_string("MAngband", "LibDir", path);
+
+	/* Hack -- Add a path separator (only if needed) */
+	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
 	/* Initialize */
 	init_file_paths(path);
