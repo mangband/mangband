@@ -236,6 +236,7 @@ int send_indication(int Ind, byte id, ...)
 	connection_type *ct = PConn[Ind];
 	const indicator_type *i_ptr = &indicators[id];
 	int i = 0, n;
+	int start_pos;
 
 	signed char tiny_c;
 	s16b normal_c;
@@ -244,9 +245,9 @@ int send_indication(int Ind, byte id, ...)
 
 	va_list marker;
 
-	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
-
 	if (!ct) return -1;
+
+	start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
 	if (!cq_printf(&ct->wbuf, "%c", i_ptr->pkt))
 	{
@@ -281,6 +282,7 @@ int send_indication(int Ind, byte id, ...)
 		/* Result */
 		if (!n)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
 		}		
 	} while (++i < i_ptr->amnt);
@@ -515,20 +517,24 @@ int send_item_tester_info(connection_type *ct, int id)
 	const item_tester_type *it_ptr = &item_tester[id];
 	int i;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (!it_ptr->tval[0] && !it_ptr->flag) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c", PKT_ITEM_TESTER,
 		(byte)id, item_tester[id].flag) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		return 0;
 	}
 	for (i = 0; i < MAX_ITH_TVAL; i++) 
 	{ 
 	 	if (cq_printf(&ct->wbuf, "%c", item_tester[id].tval[i]) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			return 0;
-		} 
-	}  
+		}
+	}
 
 	/* Ok */
 	return 1;
