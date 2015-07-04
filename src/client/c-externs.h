@@ -377,6 +377,7 @@ extern void client_init(char *argv1);
 extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
+extern void init_subscriptions(void);
 
 /* c-inven.c */
 extern s16b index_to_label(int i);
@@ -461,6 +462,8 @@ extern bool message_color(cptr msg, byte *ap);
 extern int find_whisper_tab(cptr msg, char *text);
 extern void prt_map_easy(void);
 extern void prt_player_hack(void);
+extern void redraw_indicators(u32b filter);
+
 
 /* c-xtra2.c */
 extern void do_cmd_messages(void);
@@ -486,6 +489,8 @@ extern server_setup_t serv_info;
 extern int send_handshake(u16b conntype);
 extern int send_login(u16b version, char* real_name, char* host_name, char* user_name, char* pass_word);
 extern int send_pass(char *new_password);
+extern int send_settings(void);
+extern int send_options(void);
 extern int send_play(byte mode);
 extern int send_suicide(void);
 extern int send_char_info();
@@ -498,9 +503,13 @@ extern int send_clear(void);
 extern int send_channel(char mode, u16b id, cptr name);
 extern int send_walk(char dir);
 extern int send_rest(void);
+extern int send_custom_command(byte i, char item, char dir, s32b value, char *entry);
 extern int send_party(s16b command, cptr buf);
 extern int send_target_interactive(int mode, char dir);
 extern int send_locate(char dir);
+extern int send_confirm(byte type, byte id);
+extern int send_interactive(byte type);
+extern int send_term_key(char key);
 
 //TRANSITIONAL HACKAGE:
 #define conn_state state

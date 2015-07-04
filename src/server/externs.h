@@ -712,6 +712,7 @@ extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
 extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
+extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, cptr desc);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_channel(int Ind, char mode, u16b id, cptr name);
