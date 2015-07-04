@@ -262,24 +262,35 @@ Uint32 sdl_shift_color2(SDL_Color *c)
 Uint32 sdl_string_color(cptr str)
 {
 	char *pt;
+	SDL_Color col;
+	Uint32 tmp;
 
 	/* Hex (HTML style) */
 	if (str[0] == '#')
 	{
-		return strtol(str+1, &pt, 16);
-	}	
+		tmp = strtol(str+1, &pt, 16);
+	}
 	/* Hex (C style) */
-	if (strlen(str) > 1 && str[0] == '0' && str[1] == 'x')
+	else if (strlen(str) > 1 && str[0] == '0' && str[1] == 'x')
 	{
-		return strtol(str+2, &pt, 16);
+		tmp = strtol(str+2, &pt, 16);
 	}
 	/* MAngband ('w') */
-	if (strlen(str) == 1 && isalpha(str[0]))
+	else if (strlen(str) == 1 && isalpha(str[0]))
 	{
-		return sdl_shift_color2(&(color_data_sdl[(byte)color_char_to_attr(str[0]) & 0xf]));	
+		tmp = sdl_shift_color2(&(color_data_sdl[(byte)color_char_to_attr(str[0]) & 0xf]));
 	}
 	/* Int */
-	return strtol(str, &pt, 10);
+	else
+	{
+		tmp = strtol(str, &pt, 10);
+	}
+
+	col.r = (tmp >> 16) & 0xFF;
+	col.g = (tmp >> 8 ) & 0xFF;
+	col.b = (tmp >> 0 ) & 0xFF;
+
+	return SDL_MapRGB(bigface->format, col.r, col.g, col.b);
 }
 /*
 void sdl_copy_rect(SDL_Rect *sr, SDL_Rect *dr) {
@@ -2712,13 +2723,6 @@ errr init_sdl(void)
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
 
-	/* Read gui style */
-	gui_color_back_ground = sdl_string_color(conf_get_string("SDL-Colors", "BackGround", "0"));
-	gui_color_back_active = sdl_string_color(conf_get_string("SDL-Colors", "BackGroundActive", "#222225")); 
-	gui_color_term_border = sdl_string_color(conf_get_string("SDL-Colors", "TermBorder", "#cccccc"));
-	gui_color_term_header = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleBar", "#595961"));
-	gui_color_term_title  = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleText", "#ededf9"));
-
 #ifdef USE_SOUND
 	initflags |= SDL_INIT_AUDIO;
 #endif
@@ -2768,6 +2772,13 @@ errr init_sdl(void)
 	width = bigface->w;
 	height = bigface->h;
 	bpp = bigface->format->BitsPerPixel;
+
+	/* Read gui style */
+	gui_color_back_ground = sdl_string_color(conf_get_string("SDL-Colors", "BackGround", "0"));
+	gui_color_back_active = sdl_string_color(conf_get_string("SDL-Colors", "BackGroundActive", "#222225"));
+	gui_color_term_border = sdl_string_color(conf_get_string("SDL-Colors", "TermBorder", "#cccccc"));
+	gui_color_term_header = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleBar", "#595961"));
+	gui_color_term_title  = sdl_string_color(conf_get_string("SDL-Colors", "TermTitleText", "#ededf9"));
 
 	/* Exit handler */
  	atexit(SDL_Quit); 
