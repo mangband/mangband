@@ -100,15 +100,17 @@ void* rnfree(void *p)
 cptr string_make(cptr str)
 {
 	char *res;
+	size_t siz;
 
 	/* Simple sillyness */
 	if (!str) return (str);
 
 	/* Allocate space for the string including terminator */
-	res = ralloc(strlen(str) + 1);
+	siz = strlen(str) + 1;
+	res = ralloc(siz);
 
 	/* Copy the string (with terminator) */
-	strcpy(res, str);
+	my_strcpy(res, str, siz);
 
 	/* Return the allocated and initialized string */
 	return (res);
