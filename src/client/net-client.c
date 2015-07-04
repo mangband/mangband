@@ -1510,7 +1510,7 @@ int recv_custom_command_info(connection_type *ct) {
 	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
 
 	/* Check for errors */
-	if (known_indicators >= MAX_CUSTOM_COMMANDS)
+	if (custom_commands >= MAX_CUSTOM_COMMANDS)
 	{
 		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
 		return -1;
