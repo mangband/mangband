@@ -93,6 +93,10 @@ void init_minor(void)
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 
 	/* Server-defined network behavior */
+	known_indicators = 0;
+	known_item_testers = 0;
+	custom_commands = 0;
+	known_options = 0;
 	known_streams = 0;
 	stream_groups = 0;
 	for (i = 0; i < MAX_STREAMS; i++)
