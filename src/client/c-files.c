@@ -2150,7 +2150,7 @@ bool conf_section_exists(cptr section)
 }
 cptr conf_get_string(cptr section, cptr name, cptr default_value)
 {
-	char value[100];
+	static char value[100];
 	GetPrivateProfileString(section, name, default_value,
 	                        value, 100, config_name);
 	return &value[0];
@@ -2357,7 +2357,7 @@ long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 }
 s32b conf_get_int(cptr section, cptr name, s32b default_value)
 {
-	char v_value[100];
+	static char v_value[100];
 	sprintf(v_value, "%" PRId32, default_value);
 	return (u32b)conf_get_value(section, name, v_value, TRUE);
 }
