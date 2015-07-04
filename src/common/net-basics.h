@@ -67,6 +67,8 @@ extern char* cq_peek(cq *charq);
 extern void cq_clear(cq *charq);
 #define CQ_CWRITE(C, SIZE) ((C)->len + SIZE < (C)->MAX ? 1 : 0)
 extern int cq_cwrite(cq *charq, int size);
+#define CQ_SPACE(C) ((C)->max - (C)->len)
+extern int cq_space(cq *charq);
 #define CQ_LEN(C) (((C)->len <= (C)->max) ? (C)->len-(C)->pos : \
  	(((C)->len - (C)->max < (C)->pos) ? ((C)->len-(C)->max-(C)->pos :  -1))
 extern int cq_len(cq *charq);

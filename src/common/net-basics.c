@@ -275,6 +275,12 @@ int cq_cwrite(cq *charq, int size) {
 	else return 0;
 }
 
+/* Return number of bytes left for writing */
+int cq_space(cq *charq) {
+	return charq->max - charq->len;
+}
+
+/* Return number of bytes left for readig */
 int cq_len(cq *charq) {
 	if (charq->len <= charq->max) 
 		return charq->len-charq->pos;
