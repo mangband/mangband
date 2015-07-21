@@ -328,7 +328,7 @@ int cq_nwrite(cq *charq, char *str, int len) {
 	char *wptr = &charq->buf[charq->len];
 
 	/* Return BUFFER OVERRUN :( */
-	if (charq->len + len >= charq->max) return 0; 
+	if (charq->len + len > charq->max) return 0;
 
 	while(i++ < len) *wptr++ = *str++;
 
