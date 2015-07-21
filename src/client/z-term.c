@@ -2169,6 +2169,9 @@ errr Term_load(void)
 
 		/* Free the old window */
 		(void)term_win_nuke(tmp);
+
+		/* Kill it */
+		FREE(tmp);
 	}
 
 	/* Assume change */
