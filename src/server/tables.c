@@ -486,6 +486,14 @@ const stream_type streams[MAX_STREAMS] =
 		0, "MONLIST_TEXT"
 	},
 	{	/* 11 */
+		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
+		 * "stream" concept. Here, it will only work because
+		 * width 80 == stream7 width 80. Same width.
+		 * height 255 > stream7 height 20. Larger height.
+		 * So we effectively redefine the buffer to be similar, but larger, so
+		 * streams 7 and 8 do not feel any ill-effects.
+		 * NOTE: This will ONLY WORK if the client has a special hack
+		 * for this situation! */
 		STREAM_PKT(FILE_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
 		(0),
 		255, 80, 255, 80,

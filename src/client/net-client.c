@@ -1160,11 +1160,13 @@ int recv_stream_size(connection_type *ct) {
 	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
 	last_remote_line[addr] = 0;
 
-	/* Affect the whole group */
-	for (st = stg; st < known_streams; st++)
+	/* Affect the whole group
+	for (st = stg; st < known_streams; st++) */
+	/* HACK -- Affect all streams we can ! */
+	for (st = 0; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) break;
+		if (streams[st].addr != addr) /*break;*/ continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
