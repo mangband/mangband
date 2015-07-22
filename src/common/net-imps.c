@@ -307,6 +307,8 @@ eptr handle_connections(eptr root) {
 					closesocket(ct->conn_fd);
 					FD_CLR(ct->conn_fd, &rd);
 					ct->close_cb(0, ct);
+					cq_free(&ct->rbuf);
+					cq_free(&ct->wbuf);
 					FREE(ct);
 					e_del(&root, iter);
 					to_close--;
@@ -472,6 +474,7 @@ eptr handle_senders(eptr root, micro microsec) {
 			{
 				closesocket(sender->send_fd);
 				FREE(sender);
+				cq_free(&sender->wbuf);
 				e_del(&root, iter);
 				to_close--;
 				break;
