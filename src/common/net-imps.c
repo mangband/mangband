@@ -334,6 +334,7 @@ eptr handle_callers(eptr root) {
 		struct caller_type *ct = (struct caller_type *)iter->data2;
 		int callerfd = ct->caller_fd;
 		int n = 0;
+		int err = 0;
 
 		/* if (FD_ISSET(callerfd, &wd)) {
 			//this is a good place to check if socket is connected
@@ -341,14 +342,24 @@ eptr handle_callers(eptr root) {
 
 		FD_SET(callerfd, &wd);
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
-		if (n == 0 || sockerr == EISCONN)
-			ct->connect_cb(callerfd, (data)ct);
-		else if (sockerr == EALREADY) continue;
+		err = sockerr;
 		#ifdef WINDOWS
-		else if (sockerr == EINVAL) continue;
+		if (err == EINVAL) {
+			int errVal;
+			int errLen = sizeof(int);
+			getsockopt(callerfd, SOL_SOCKET, SO_ERROR, (char*)&errVal, &errLen);
+			if (errVal) {
+				err = errVal;
+			} else {
+				err = EWOULDBLOCK;
+			}
+		}
 		#endif
-		else if (sockerr == EINPROGRESS) continue;
-		else if (sockerr == EWOULDBLOCK) continue;
+		if (n == 0 || err == EISCONN)
+			ct->connect_cb(callerfd, (data)ct);
+		else if (err == EALREADY) continue;
+		else if (err == EINPROGRESS) continue;
+		else if (err == EWOULDBLOCK) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
 			if (n) continue;
