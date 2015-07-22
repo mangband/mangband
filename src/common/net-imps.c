@@ -418,12 +418,13 @@ micro static_timer(int id) {
 	gettimeofday(&tv, NULL);
 	microsec = tv.tv_sec * 1000000 + tv.tv_usec;
 #else
-	micro microsec = 0;
-	FILETIME tv;
-	SYSTEMTIME tv2;
-	GetSystemTimeAsFileTime(&tv);
-	FileTimeToSystemTime(&tv, &tv2);
-	microsec = tv2.wSecond * 1000000 + tv2.wMilliseconds * 1000;
+	micro microsec;
+	LARGE_INTEGER PerformanceCount, Frequency;
+	__int64 tv;
+	QueryPerformanceFrequency(&Frequency);
+	QueryPerformanceCounter(&PerformanceCount);
+	tv = (PerformanceCount.QuadPart * 1000000) / Frequency.QuadPart;
+	microsec = tv;
 #endif
 /*	
 	printf("OLD: %ld\n", times[id]);
