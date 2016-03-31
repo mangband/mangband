@@ -37,7 +37,7 @@
  
 #define VERSION_MAJOR	1
 #define VERSION_MINOR	1
-#define VERSION_PATCH	2
+#define VERSION_PATCH	3
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
