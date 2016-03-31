@@ -5,7 +5,7 @@ echo "MAngband Autogen/Helper"
 
 # Use getopt(s) to fetch flags.
 usage=0; norma=0; devel=0; distr=0; clean=0;
-force=0; verbo=0; autoc=0;
+force=0; verbo=0; autoc=0; gitdl=0;
 # you can use either line depending of getopt(s) availiablity
 #flags=`getopt hndrcfva $*`; set -- $flags; for flag; do
 while getopts  "hndrcfva" flag; do flag="-$flag"
@@ -22,13 +22,27 @@ while getopts  "hndrcfva" flag; do flag="-$flag"
 	-- ) break ;;
     esac
 done
+# Detect .git checkout
+if [ -d .git ]; then
+echo " * Seeing .git, course-correcting."
+#cat README
+gitdl=1;
+fi
 # Test flags for errors
 TMODE=$((${norma} + ${devel} + ${distr} + ${clean} + ${usage}));
 #echo "NDR: $TMODE N: $norma D: $devel R: $distr C: $clean V: $verbo F: $force A: $autoc V: $verbo ?: $usage"
 
+
 if [ ${TMODE} -eq 0 ]; then
 echo " * No mode specified. Try -h flag to find out more!"
 norma=1;
+	if [ ${gitdl} -eq 1 ]; then
+		norma=0;
+		echo "--FAILED"
+		echo "Please specify one of the -n, -d, -r options explicitly. See -h for details."
+		#usage=1;
+		exit 1
+	fi
 fi
 if [ ${TMODE} -ge 2 ]; then
 echo " -- FAILED"
@@ -127,7 +141,12 @@ echo "SAVE_DIR = \"./lib/save\"" >> ${TMP}
 echo "BONE_DIR = \"./lib/user\"" >> ${TMP}
 echo "HELP_DIR = \"./lib/help\"" >> ${TMP}
 mv ${TMP} ${CFG}
-echo "LibDir ./lib/" > ./.mangrc
+CFG="${HOME}/.mangrc"
+TMP="./$(basename $0).$$.tmp"
+sed "/\(LibDir \|\[MAngband\]\)/d" ${CFG} > ${TMP}
+echo "[MAngband]" > ${HOME}/.mangrc
+echo "LibDir ./lib/" >> ${HOME}/.mangrc
+cat ${TMP} >> ${HOME}/.mangrc
 fi
 
 # Auto-run configure
