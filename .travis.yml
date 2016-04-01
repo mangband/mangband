@@ -1,5 +1,4 @@
 language: c
-script: "./autogen.sh -n && ./configure && make"
 
 env:
   global:
@@ -13,6 +12,8 @@ addons:
       name: "mangband/mangband"
       description: "Build submitted via Travis CI"
     notification_email: team@mangband.org
-    build_command_prepend: "./configure; make clean"
+    build_command_prepend: "./autogen.sh -n; ./configure; make clean"
     build_command: "make"
     branch_pattern: coverity_scan
+
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure && make ; fi
