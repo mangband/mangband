@@ -2,29 +2,34 @@ language: c
 
 os:
   - linux
-  - osx
+#  - osx
 
 compiler:
   - gcc
   - clang
 
-matrix:
-  include:
-      # linux, ncurses
-      - os: linux
-        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl" SDL=0
-      # linux, ncurses + x11
-      - os: linux
-        env: CONFIGURE_FLAGS="--enable-gcu --enable-x11 --disable-sdl" SDL=0
-      # linux, ncurses + sdl
-      - os: linux
-        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
-      # osx, carbon
-      - os: osx
-        env: CONFIGURE_FLAGS="--disable-gcu --disable-x11 --disable-sdl" SDL=0
-        # osx, sdl
-      - os: osx
-        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
+env:
+  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl"
+  - CONFIGURE_FLAGS="--enable-gcu --enable-x11  --disable-sdl"
+  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl"
+
+#matrix:
+# include:
+#      # linux, ncurses
+#      - os: linux
+#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl" SDL=0
+#      # linux, ncurses + x11
+#      - os: linux
+#        env: CONFIGURE_FLAGS="--enable-gcu --enable-x11 --disable-sdl" SDL=0
+#      # linux, ncurses + sdl
+#      - os: linux
+#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
+#      # osx, carbon
+#      - os: osx
+#        env: CONFIGURE_FLAGS="--disable-gcu --disable-x11 --disable-sdl" SDL=0
+#        # osx, sdl
+#      - os: osx
+#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
 
 env:
   global:
@@ -45,8 +50,9 @@ addons:
     build_command: "make"
     branch_pattern: coverity_scan
 
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew update     ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew install sdl; fi
+#travis-ci currently doesnt support osx
+#before_install:
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew update     ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew install sdl; fi
 
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure $CONFIGURE_FLAGS && make ; fi
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure ${CONFIGURE_FLAGS} && make ; fi
