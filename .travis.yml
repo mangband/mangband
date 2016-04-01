@@ -39,7 +39,7 @@ env:
 addons:
   apt:
     packages:
-    - sdl
+    - libsdl1.2-dev
   coverity_scan:
     project:
       name: "mangband/mangband"
