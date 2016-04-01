@@ -152,8 +152,12 @@ static void prt_title(int Ind)
 	/* Ghost */
 	if (p_ptr->ghost)
 		p = "Ghost";
+	/* Fruit bat */
+	if (p_ptr->fruit_bat)
+		p = "Fruitbat";
 
 	send_indication(Ind, IN_TITLE, p);
+	send_ghost(p_ptr);
 }
 
 

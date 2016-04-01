@@ -584,6 +584,26 @@ int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 	return 1;
 }
 
+int send_ghost(player_type *p_ptr)
+{
+	connection_type *ct;
+	s16b mode;
+
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	mode = PALIVE_ALIVE;
+	if (p_ptr->ghost) mode = PALIVE_GHOST;
+	else if (p_ptr->fruit_bat) mode = PALIVE_FRUITBAT;
+
+	if (!cq_printf(&ct->wbuf, "%c%d", PKT_GHOST, mode))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 int send_character_info(player_type *p_ptr)
 {
 	connection_type *ct;

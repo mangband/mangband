@@ -1584,6 +1584,28 @@ int recv_item_tester_info(connection_type *ct) {
 }
 
 
+int recv_ghost(connection_type *ct)
+{
+	s16b
+		mode;
+
+	if (cq_scanf(&ct->rbuf, "%d", &mode) < 1)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Unset all */
+	p_ptr->ghost = 0;
+	p_ptr->fruit_bat = 0;
+
+	/* Set one */
+	if (mode == PALIVE_GHOST   ) p_ptr->ghost = 1;
+	if (mode == PALIVE_FRUITBAT) p_ptr->fruit_bat = 1;
+
+	return 1;
+}
+
 int recv_floor(connection_type *ct)
 {
 	byte tval, attr;
