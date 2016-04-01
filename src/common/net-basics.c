@@ -282,11 +282,7 @@ int cq_space(cq *charq) {
 
 /* Return number of bytes left for readig */
 int cq_len(cq *charq) {
-	if (charq->len <= charq->max) 
-		return charq->len-charq->pos;
-	else if (charq->len - charq->max < charq->pos) 
-		return charq->len-charq->max-charq->pos;
-	return 0;
+	return charq->len - charq->pos;
 }
 
 /* Return current writing position and advance it */ 
@@ -294,10 +290,8 @@ int cq_wpos(cq *charq) {
 	int d;
 
 	d = -1;/* -1 on error */
-	if (charq->len < charq->max) 
-		d = charq->len++;	
-	else if (charq->len - charq->max < charq->pos) 
-		d = (charq->len++)-charq->max;
+	if (charq->len < charq->max)
+		d = charq->len++;
 
 	return d;
 }
@@ -309,8 +303,6 @@ int cq_rpos(cq *charq) {
 	s = -1;/* -1 on error */
 	if (charq->pos < charq->len)
 		s = charq->pos++;
-	else if (charq->pos - charq->max < charq->pos)
-		s = (charq->pos++)-charq->max;
 
 	return s;
 }
@@ -374,12 +366,7 @@ int cq_move(cq *srcq, cq *dstq, int len) {
 	for (i = 0; i < len; i++) {
 		if ((d = CQ_WPOS(dstq)) == -1) break; 
 		if (srcq->pos >= srcq->len) break;
-		if (srcq->pos >= srcq->max) {
-			if ((srcq->pos)-srcq->max >= j) break;
-			s = (srcq->pos++)-srcq->max;
-		}
-		else	
-			s = srcq->pos++;
+		s = srcq->pos++;
 		dstq->buf[d] = srcq->buf[s];
 	}
 	return i;
