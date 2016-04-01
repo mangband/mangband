@@ -1,4 +1,5 @@
 language: c
+script: "./autogen.sh && ./configure && make"
 
 env:
   global:
