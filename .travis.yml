@@ -8,11 +8,6 @@ compiler:
   - gcc
   - clang
 
-env:
-  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl"
-  - CONFIGURE_FLAGS="--enable-gcu --enable-x11  --disable-sdl"
-  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl"
-
 #matrix:
 # include:
 #      # linux, ncurses
@@ -32,6 +27,9 @@ env:
 #        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
 
 env:
+  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl"
+  - CONFIGURE_FLAGS="--enable-gcu --enable-x11  --disable-sdl"
+  - CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl"
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
