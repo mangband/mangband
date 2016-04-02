@@ -131,7 +131,14 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	struct caller_type *new_c;
 	struct hostent *hp;
 	int callerfd;
-	
+
+	/* Resolve addr */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	callerfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -144,11 +151,6 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	/* Set addr and others */
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_c->addr.sin_addr), hp->h_addr, sizeof(new_c->addr.sin_addr));
 
 	new_c->port = port;
