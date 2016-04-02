@@ -1170,6 +1170,8 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 
 		*len = 0;
 
+		/* fallthrough */
+
 		case '\n':
 		case '\r':
 
