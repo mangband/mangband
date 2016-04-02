@@ -96,6 +96,13 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	struct hostent *hp;
 	int senderfd;
 
+	/* Resolve host into "hp" */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	senderfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -108,11 +115,6 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	/* Set addr and others */
 	new_s->addr.sin_family = AF_INET;
 	new_s->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_s->addr.sin_addr), hp->h_addr, sizeof(new_s->addr.sin_addr));
 
 	new_s->send_fd = senderfd;
