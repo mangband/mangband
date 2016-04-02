@@ -432,7 +432,7 @@ int report_to_meta(int data1, data data2) {
 		/* Send address + whitepace, which metaserver recognizes as death report */
 		strcat(buf, " ");
 		cq_write(out, buf);
-		return;	
+		return 1;
 	}
 
 	/* Ugly Hack -- Count players */
