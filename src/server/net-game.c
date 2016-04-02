@@ -283,8 +283,9 @@ int send_indication(int Ind, byte id, ...)
 		if (!n)
 		{
 			ct->wbuf.len = start_pos; /* rollback */
+			va_end( marker );
 			client_withdraw(ct);
-		}		
+		}
 	} while (++i < i_ptr->amnt);
 
 	va_end( marker );
