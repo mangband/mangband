@@ -485,8 +485,8 @@ eptr handle_senders(eptr root, micro microsec) {
 			if (!sender->interval)
 			{
 				closesocket(sender->send_fd);
-				FREE(sender);
 				cq_free(&sender->wbuf);
+				FREE(sender);
 				e_del(&root, iter);
 				to_close--;
 				break;
