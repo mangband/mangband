@@ -188,11 +188,13 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
 		plog("BIND FAILED");
+		closesocket(listenfd);
 	   	return(NULL);
 	}
 
 	if (listen(listenfd,1024) < 0) {
 		plog("LISTEN FAILED");
+		closesocket(listenfd);
 		return(NULL);
 	}
 
