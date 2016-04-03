@@ -300,7 +300,7 @@ static void console_whois(connection_type* ct, char *name)
 	i = p_ptr->msg_hist_ptr-1;
 	if( i >= 0 )
 	{
-		if (p_ptr->msg_log[i])
+		if (!STRZERO(p_ptr->msg_log[i]))
 		{
 			cq_printf(&ct->wbuf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
 		}

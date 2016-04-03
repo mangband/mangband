@@ -1337,7 +1337,7 @@ errr file_character_server(int Ind, cptr name)
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
 		if(i >= MAX_MSG_HIST) i = 0;
-		if(p_ptr->msg_log[i])
+		if(!STRZERO(p_ptr->msg_log[i]))
 			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
