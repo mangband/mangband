@@ -709,6 +709,8 @@ extern int process_player_commands(int ind);
 extern int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, byte ta, char tc);
 extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
+extern int send_term_info(player_type *p_ptr, byte flag, u16b line);
+extern int send_term_header(player_type *p_ptr, cptr header);
 extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
 extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
