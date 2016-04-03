@@ -115,14 +115,30 @@ rm missing
 rm depcomp
 exit 0
 fi
+
+HAS_WGET=`which wget`
+HAS_CURL=`which curl`
+download_file() {
+    NAME=$1
+    URL=$2
+    if [ "$HAS_WGET" != "" ]; then
+        wget -O "$NAME" "$URL" >${VLOG} 2>${VLOG}
+    elif [ "$HAS_CURL" != "" ]; then
+        curl -o "$NAME" "$URL" >${VLOG} 2>${VLOG}
+    else
+        "No wget, no curl, can't download file $NAME"
+        return 1
+    fi
+    return $?
+}
 # Update GNU config.* files
-[ -f ./config.sub ] || { 
+[ -f ./config.sub ] || {
     echo " * Downloading 'config.sub' from GNU.org";
-    wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" >${VLOG} 2>${VLOG} ||
+    download_file "config.sub" "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" ||
     echo " -- FAILED"; }
-[ -f ./config.guess ] || { 
+[ -f ./config.guess ] || {
     echo " * Downloading 'config.guess' from GNU.org";
-    wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" >${VLOG} 2>${VLOG} ||
+    download_file "config.guess" "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" ||
     echo " -- FAILED"; }
 
 # The real purpose of autogen:
