@@ -288,7 +288,12 @@ static void prt_max_sp(int row, int col)
 static void prt_depth(int row, int col, int id)
 {
 	char depths[32];
-	p_ptr->dun_depth = coffers[coffer_refs[id]];
+
+	/* Hack -- if indicator index is passed, use value from coffers */
+	if (id != -1)
+	{
+		p_ptr->dun_depth = coffers[coffer_refs[id]];
+	}
 
 	if (!p_ptr->dun_depth)
 	{
