@@ -1648,8 +1648,11 @@ bool object_similar(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
 
 /*
  * Allow one item to "absorb" another, assuming they are similar
+ *
+ * Player pointer "p_ptr" is allowed to be NULL, when it is not
+ * NULL, "object known" statuses are also blended. 
  */
-void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr)
+void object_absorb(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
 {
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
@@ -1659,7 +1662,7 @@ void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr)
 	o_ptr->number = ((total < MAX_STACK_SIZE) ? total : (MAX_STACK_SIZE - 1));
 
 	/* Hack -- blend "known" status */
-	if (object_known_p(Players[Ind], j_ptr)) object_known(o_ptr);
+	if (p_ptr && object_known_p(p_ptr, j_ptr)) object_known(o_ptr);
 
 	/* Hack -- blend "rumour" status */
 	if (j_ptr->ident & ID_RUMOUR) o_ptr->ident |= ID_RUMOUR;
@@ -4282,7 +4285,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 		if (object_similar(p_ptr, j_ptr, o_ptr))
 		{
 			/* Combine the items */
-			object_absorb(Ind, j_ptr, o_ptr);
+			object_absorb(p_ptr, j_ptr, o_ptr);
 
 			/* Increase the weight */
 			p_ptr->total_weight += (o_ptr->number * o_ptr->weight);
@@ -4450,7 +4453,7 @@ void combine_pack(int Ind)
 				flag = TRUE;
 
 				/* Add together the item counts */
-				object_absorb(Ind, j_ptr, o_ptr);
+				object_absorb(p_ptr, j_ptr, o_ptr);
 
 				/* One object is gone */
 				p_ptr->inven_cnt--;
