@@ -1433,14 +1433,14 @@ static errr rd_dungeon_special()
 			file_handle = server_handle;
 			/* close the level file */
 			my_fclose(fhandle);
-			/* add this depth to the special level list */
-			special_levels[num_levels++] = i;
 			/* we have an arbitrary max number of levels */
-			if(num_levels > MAX_SPECIAL_LEVELS)
+			if(num_levels + 1 > MAX_SPECIAL_LEVELS)
 			{
 				note("Too many special pre-designed level files!");
 				break;
 			}
+			/* add this depth to the special level list */
+			special_levels[num_levels++] = i;
 		}
 	}
 /*	}

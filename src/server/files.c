@@ -1337,7 +1337,7 @@ errr file_character_server(int Ind, cptr name)
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
 		if(i >= MAX_MSG_HIST) i = 0;
-		if(p_ptr->msg_log[i])
+		if(!STRZERO(p_ptr->msg_log[i]))
 			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
@@ -2651,6 +2651,9 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 
 	/* Paranoia -- it may not have opened */
 	if (highscore_fd < 0) return;
+
+	/* Seek to the beginning (or abort) */
+	if (highscore_seek(0)) return;
 	
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -2670,9 +2673,6 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	to = 20;
 	if (to > MAX_HISCORES) to = MAX_HISCORES;
 
-
-	/* Seek to the beginning */
-	if (highscore_seek(0)) return;
 
 	/* Hack -- Count the high scores */
 	for (i = 0; i < MAX_HISCORES; i++)
