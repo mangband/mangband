@@ -527,17 +527,17 @@ const indicator_type indicators[MAX_INDICATORS] =
 {
 	{
 		INDICATOR_PKT(RACE, STRING, 0), 	IPW_1,	ROW_RACE,	COL_RACE,
-		(0), "%s",
+		(0), "\aB%s",
 		(PR_MISC), "race_"
 	},
 	{
 		INDICATOR_PKT(CLASS, STRING, 0),	IPW_1,	ROW_CLASS,	COL_CLASS,
-		(0), "%s",
+		(0), "\aB%s",
 		(PR_MISC), "class_"
 	},
 	{
 		INDICATOR_PKT(TITLE, STRING, 0),	IPW_1,	ROW_TITLE,	COL_TITLE,
-		(0), "%s",
+		(0), "\r\aB%s",
 		(PR_TITLE), "title_"
 	},
 	{
