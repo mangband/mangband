@@ -152,8 +152,12 @@ static void prt_title(int Ind)
 	/* Ghost */
 	if (p_ptr->ghost)
 		p = "Ghost";
+	/* Fruit bat */
+	if (p_ptr->fruit_bat)
+		p = "Fruitbat";
 
 	send_indication(Ind, IN_TITLE, p);
+	send_ghost(p_ptr);
 }
 
 
@@ -1096,6 +1100,13 @@ void prt_history(int Ind)
 
 	send_indication(Ind, IN_NAME, p_ptr->name);
 	send_indication(Ind, IN_GENDER, p_ptr->male ? "Male" : "Female");
+	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
+	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
+}
+void prt_misc(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	send_indication(Ind, IN_NAME, p_ptr->name);
 	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
 	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
 }
@@ -3298,6 +3309,8 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_MISC);
 		send_character_info(p_ptr);
+		prt_misc(Ind);
+		/*prt_history(Ind);*/
 	}
 
 	if (p_ptr->redraw & PR_TITLE)

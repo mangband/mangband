@@ -3811,7 +3811,7 @@ static void do_cmd_options_win(void)
 	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
 
 	/* Update windows */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_STATUS);
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
 	/* Update windows */
 	window_stuff();
