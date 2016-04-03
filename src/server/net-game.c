@@ -174,7 +174,7 @@ int send_option_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_inventory_info(connection_type *ct, int id)
+int send_inventory_info(connection_type *ct)
 {
 	u32b i, off = 0;
 	char buf[80];
@@ -191,7 +191,7 @@ int send_inventory_info(connection_type *ct, int id)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
-	} 
+	}
 
 	buf[0] = '\0';
 	for (i = 0; i < INVEN_TOTAL; i++)
