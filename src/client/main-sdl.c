@@ -976,7 +976,7 @@ bool gui_term_event(SDL_Event* event) {
 			gui_term_shift();
 			taken = FALSE;
 		}
-		if (event->key.keysym.sym == SDLK_LCTRL || event->key.keysym.sym == SDLK_LCTRL)
+		if (event->key.keysym.sym == SDLK_RCTRL || event->key.keysym.sym == SDLK_LCTRL)
 		{
 			gui_term_ctrl();
 			taken = FALSE;
