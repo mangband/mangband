@@ -96,6 +96,13 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	struct hostent *hp;
 	int senderfd;
 
+	/* Resolve host into "hp" */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	senderfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -108,11 +115,6 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	/* Set addr and others */
 	new_s->addr.sin_family = AF_INET;
 	new_s->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_s->addr.sin_addr), hp->h_addr, sizeof(new_s->addr.sin_addr));
 
 	new_s->send_fd = senderfd;
@@ -129,7 +131,14 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	struct caller_type *new_c;
 	struct hostent *hp;
 	int callerfd;
-	
+
+	/* Resolve addr */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	callerfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -142,11 +151,6 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	/* Set addr and others */
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_c->addr.sin_addr), hp->h_addr, sizeof(new_c->addr.sin_addr));
 
 	new_c->port = port;
@@ -186,11 +190,13 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
 		plog("BIND FAILED");
+		closesocket(listenfd);
 	   	return(NULL);
 	}
 
 	if (listen(listenfd,1024) < 0) {
 		plog("LISTEN FAILED");
+		closesocket(listenfd);
 		return(NULL);
 	}
 
@@ -485,8 +491,8 @@ eptr handle_senders(eptr root, micro microsec) {
 			if (!sender->interval)
 			{
 				closesocket(sender->send_fd);
-				FREE(sender);
 				cq_free(&sender->wbuf);
+				FREE(sender);
 				e_del(&root, iter);
 				to_close--;
 				break;

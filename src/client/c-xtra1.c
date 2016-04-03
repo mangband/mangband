@@ -2791,10 +2791,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				prompt++;
 				switch (*prompt) 
 				{
-					case '@': warn = TRUE;
+					case '@': warn = TRUE; /* fallhrough */
 					case '#': color = color_spotlight(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
 					break;
-					case ';': warn = TRUE;
+					case ';': warn = TRUE; /* fallhrough */
 					case ':': color = color_dualstat(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
 					break;
 					case '!': color = (val ? 1 : 0);

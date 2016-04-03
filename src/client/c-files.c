@@ -2489,6 +2489,9 @@ void conf_init(void* param)
 	strcpy(buf, "/.mangrc");
 #endif
 
+	/* We start with closed file */
+	config = NULL;
+
 	/* Try to find home directory */
 	if (getenv("HOME"))
 	{
