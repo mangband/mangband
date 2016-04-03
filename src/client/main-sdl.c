@@ -1370,8 +1370,6 @@ static errr Term_xtra_sdl(int n, int v)
 	SDL_Event event; /* just a temporary place to hold an event */
 
 	/* Used by hacks */
-	char buf[1024];
-	FILE *tmp;
 	int i;
 
 	/* Analyze */
