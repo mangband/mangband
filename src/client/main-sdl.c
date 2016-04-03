@@ -1431,9 +1431,8 @@ static errr Term_xtra_sdl(int n, int v)
 		/* if possible, to the requested value (0=off, 1=on) */
 		/* This action is optional, but can improve both the */
 		/* efficiency (and attractiveness) of the program. */
-		
 
-		td->cursor_on = n ? TRUE : FALSE;
+		td->cursor_on = v ? TRUE : FALSE;
 
 		return (0);
 
