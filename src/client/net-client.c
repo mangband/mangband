@@ -986,7 +986,7 @@ int recv_indicator_info(connection_type *ct) {
 	/* Set local window_flag */
 	/* TODO: make it a ref. array in c-tables */
 	indicator_window[known_indicators] = 0;
-	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2;
+	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2; /* compact */
 	if (win & IPW_2) indicator_window[known_indicators] |= PW_STATUS;
 	if (win & IPW_3) indicator_window[known_indicators] |= PW_PLAYER_0;
 	if (win & IPW_4) indicator_window[known_indicators] |= PW_PLAYER_3;

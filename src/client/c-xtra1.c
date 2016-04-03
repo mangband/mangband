@@ -1369,6 +1369,9 @@ static void fix_player_compact(void)
 		/* Display player */
 		prt_frame_compact();
 
+		/* Display relevant indicators */
+		redraw_indicators(PW_PLAYER_2);
+
 		/* Fresh */
 		Term_fresh();
 
@@ -1443,6 +1446,9 @@ static void fix_status(void)
 
 		/* Display status line */
 		prt_status_line();
+
+		/* Display relevant indicators */
+		redraw_indicators(PW_STATUS);
 
 		/* Fresh */
 		Term_fresh();

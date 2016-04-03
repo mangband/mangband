@@ -1103,6 +1103,13 @@ void prt_history(int Ind)
 	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
 	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
 }
+void prt_misc(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	send_indication(Ind, IN_NAME, p_ptr->name);
+	send_indication(Ind, IN_RACE, p_name + p_info[p_ptr->prace].name);
+	send_indication(Ind, IN_CLASS, c_name + c_info[p_ptr->pclass].name);
+}
 
 static void prt_various(int Ind)
 {
@@ -3302,6 +3309,8 @@ void redraw_stuff(int Ind)
 	{
 		p_ptr->redraw &= ~(PR_MISC);
 		send_character_info(p_ptr);
+		prt_misc(Ind);
+		/*prt_history(Ind);*/
 	}
 
 	if (p_ptr->redraw & PR_TITLE)
