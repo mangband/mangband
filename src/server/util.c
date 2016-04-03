@@ -3235,6 +3235,7 @@ void player_talk_aux(int Ind, cptr message)
 								continue;
 							case '?':
 								verb = "ask";
+								/* fallthrough */
 							case '!':
 							case '.':
 								punct = msg[i]; 
