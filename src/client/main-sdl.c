@@ -1919,7 +1919,7 @@ void term_rescale(int i, bool create, bool redraw) {
 		td->sfd.w = td->w;
 		td->sfd.h = td->h; 		
  		
- 		if (td->cursor_on);
+		if (td->cursor_on)
  			SDL_PrepareCursor(td->w, td->h);
  	}
  	
@@ -2334,7 +2334,7 @@ bool term_set_font(int i, cptr fontname)
 		MAKE(load_font, font_data);
 		memset(load_font, 0, sizeof(font_data));
 		load_font->face = NULL;
-		if (!load_HEX_font_sdl(load_font, fontname, 0)); 
+		if (!load_HEX_font_sdl(load_font, fontname, 0))
 		{
 			load_font->name = string_make(fontname);
 			td->fd = load_font;
