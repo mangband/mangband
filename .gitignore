@@ -46,6 +46,7 @@ src/server/.deps/
 src/server/.dirstamp
 src/stamp-h1
 
+lib/user/*.txt
 lib/data/*.raw
 lib/save/*
 !lib/save/server.*

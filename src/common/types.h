@@ -1205,6 +1205,8 @@ struct player_type
 	char savefile[1024];	/* Name of the savefile */
 	int stat_order[6];
 
+	int infodata_sent[6];
+
 	bool alive;		/* Are we alive */
 	bool death;		/* Have we died */
 	s16b ghost;		/* Are we a ghost */
@@ -1367,7 +1369,7 @@ struct player_type
 	byte tval_attr[128];
 	char tval_char[128];
 	byte *pr_attr;
-	byte *pr_char;
+	char *pr_char;
    
 	byte dungeon_stream;
 	int use_graphics;

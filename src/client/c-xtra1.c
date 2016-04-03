@@ -288,7 +288,12 @@ static void prt_max_sp(int row, int col)
 static void prt_depth(int row, int col, int id)
 {
 	char depths[32];
-	p_ptr->dun_depth = coffers[coffer_refs[id]];
+
+	/* Hack -- if indicator index is passed, use value from coffers */
+	if (id != -1)
+	{
+		p_ptr->dun_depth = coffers[coffer_refs[id]];
+	}
 
 	if (!p_ptr->dun_depth)
 	{
@@ -1369,6 +1374,9 @@ static void fix_player_compact(void)
 		/* Display player */
 		prt_frame_compact();
 
+		/* Display relevant indicators */
+		redraw_indicators(PW_PLAYER_2);
+
 		/* Fresh */
 		Term_fresh();
 
@@ -1443,6 +1451,9 @@ static void fix_status(void)
 
 		/* Display status line */
 		prt_status_line();
+
+		/* Display relevant indicators */
+		redraw_indicators(PW_STATUS);
 
 		/* Fresh */
 		Term_fresh();
@@ -2780,10 +2791,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				prompt++;
 				switch (*prompt) 
 				{
-					case '@': warn = TRUE;
+					case '@': warn = TRUE; /* fallhrough */
 					case '#': color = color_spotlight(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
 					break;
-					case ';': warn = TRUE;
+					case ';': warn = TRUE; /* fallhrough */
 					case ':': color = color_dualstat(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
 					break;
 					case '!': color = (val ? 1 : 0);

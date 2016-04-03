@@ -989,7 +989,7 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
 		}
 		/* Send *everything* to client */
-		send_term_info(p_ptr, NTERM_CLEAR);
+		send_term_info(p_ptr, NTERM_CLEAR, 0);
 		for (i = 0; i < p_ptr->last_info_line; i++)
 		{
 			Stream_line_p(p_ptr, STREAM_FILE_TEXT, i);
@@ -1169,6 +1169,8 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 		case ESCAPE:
 
 		*len = 0;
+
+		/* fallthrough */
 
 		case '\n':
 		case '\r':

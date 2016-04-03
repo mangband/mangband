@@ -26,6 +26,7 @@
 
 /* Packet types 20-59 are info that is sent to the client */
 #define PKT_PLUSSES		20
+#define PKT_GHOST		25
 #define PKT_CHAR_INFO		26
 #define PKT_VARIOUS		27
 #define PKT_HISTORY		29
@@ -276,6 +277,13 @@
 #define NTARGET_LOOK 0
 #define NTARGET_KILL 1
 #define NTARGET_FRND 2
+
+/*
+ * PKT_GHOST helpers
+ */
+#define PALIVE_ALIVE   	0
+#define PALIVE_GHOST   	1
+#define PALIVE_FRUITBAT	2
 
 /*
  * PKT_CHANNEL helpers

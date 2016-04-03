@@ -856,7 +856,7 @@ void cmd_changepass(void)
 		{
 			if (!strcmp(pass1,pass2)) {
 				MD5Password(pass1);
-				Send_pass(pass1);
+				send_pass(pass1);
 				prt(" Password changed [press any key]",0,0);
 			} else {
 				prt(" Not matching [paused]",0,0);

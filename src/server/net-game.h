@@ -34,6 +34,7 @@
 	PACKET(PKT_CONFIRM, 	"%c%c",        	recv_confirm)
 
 	PACKET(PKT_SUICIDE,    	"",         	recv_suicide)
+	PACKET(PKT_CHANGEPASS, 	"%S",         	recv_pass)
 	PACKET(PKT_MESSAGE,    	"%s",       	recv_message)
 	PACKET(PKT_CHANNEL,    	"%ud%c%s",  	recv_channel)
 	PACKET(PKT_PARTY,    	"%d%s",     	recv_party)

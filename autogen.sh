@@ -5,7 +5,7 @@ echo "MAngband Autogen/Helper"
 
 # Use getopt(s) to fetch flags.
 usage=0; norma=0; devel=0; distr=0; clean=0;
-force=0; verbo=0; autoc=0;
+force=0; verbo=0; autoc=0; gitdl=0;
 # you can use either line depending of getopt(s) availiablity
 #flags=`getopt hndrcfva $*`; set -- $flags; for flag; do
 while getopts  "hndrcfva" flag; do flag="-$flag"
@@ -22,13 +22,27 @@ while getopts  "hndrcfva" flag; do flag="-$flag"
 	-- ) break ;;
     esac
 done
+# Detect .git checkout
+if [ -d .git ]; then
+echo " * Seeing .git, course-correcting."
+#cat README
+gitdl=1;
+fi
 # Test flags for errors
 TMODE=$((${norma} + ${devel} + ${distr} + ${clean} + ${usage}));
 #echo "NDR: $TMODE N: $norma D: $devel R: $distr C: $clean V: $verbo F: $force A: $autoc V: $verbo ?: $usage"
 
+
 if [ ${TMODE} -eq 0 ]; then
 echo " * No mode specified. Try -h flag to find out more!"
 norma=1;
+	if [ ${gitdl} -eq 1 ]; then
+		norma=0;
+		echo "--FAILED"
+		echo "Please specify one of the -n, -d, -r options explicitly. See -h for details."
+		#usage=1;
+		exit 1
+	fi
 fi
 if [ ${TMODE} -ge 2 ]; then
 echo " -- FAILED"
@@ -101,14 +115,30 @@ rm missing
 rm depcomp
 exit 0
 fi
+
+HAS_WGET=`which wget`
+HAS_CURL=`which curl`
+download_file() {
+    NAME=$1
+    URL=$2
+    if [ "$HAS_WGET" != "" ]; then
+        wget -O "$NAME" "$URL" >${VLOG} 2>${VLOG}
+    elif [ "$HAS_CURL" != "" ]; then
+        curl -o "$NAME" "$URL" >${VLOG} 2>${VLOG}
+    else
+        "No wget, no curl, can't download file $NAME"
+        return 1
+    fi
+    return $?
+}
 # Update GNU config.* files
-[ -f ./config.sub ] || { 
+[ -f ./config.sub ] || {
     echo " * Downloading 'config.sub' from GNU.org";
-    wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" >${VLOG} 2>${VLOG} ||
+    download_file "config.sub" "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" ||
     echo " -- FAILED"; }
-[ -f ./config.guess ] || { 
+[ -f ./config.guess ] || {
     echo " * Downloading 'config.guess' from GNU.org";
-    wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" >${VLOG} 2>${VLOG} ||
+    download_file "config.guess" "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" ||
     echo " -- FAILED"; }
 
 # The real purpose of autogen:
@@ -127,7 +157,12 @@ echo "SAVE_DIR = \"./lib/save\"" >> ${TMP}
 echo "BONE_DIR = \"./lib/user\"" >> ${TMP}
 echo "HELP_DIR = \"./lib/help\"" >> ${TMP}
 mv ${TMP} ${CFG}
-echo "LibDir ./lib/" > ./.mangrc
+CFG="${HOME}/.mangrc"
+TMP="./$(basename $0).$$.tmp"
+sed "/\(LibDir \|\[MAngband\]\)/d" ${CFG} > ${TMP}
+echo "[MAngband]" > ${HOME}/.mangrc
+echo "LibDir ./lib/" >> ${HOME}/.mangrc
+cat ${TMP} >> ${HOME}/.mangrc
 fi
 
 # Auto-run configure

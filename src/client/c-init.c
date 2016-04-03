@@ -64,12 +64,12 @@ void init_stuff(void)
 	/* Use the angband_path, or a default */
 	strcpy(path, tail ? tail : PKGDATADIR);
 
-	/* Hack -- Add a path separator (only if needed) */
-	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
-
 	/* Read/Write path from config file */
 	strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
 	conf_set_string("MAngband", "LibDir", path);
+
+	/* Hack -- Add a path separator (only if needed) */
+	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
 	/* Initialize */
 	init_file_paths(path);
@@ -93,6 +93,10 @@ void init_minor(void)
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 
 	/* Server-defined network behavior */
+	known_indicators = 0;
+	known_item_testers = 0;
+	custom_commands = 0;
+	known_options = 0;
 	known_streams = 0;
 	stream_groups = 0;
 	for (i = 0; i < MAX_STREAMS; i++)

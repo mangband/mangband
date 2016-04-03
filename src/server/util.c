@@ -2780,7 +2780,7 @@ void msg_format_near(int Ind, cptr fmt, ...)
  */
 
 #define VIRTUAL_CHANNELS 8
-cptr virt_channels[] = { NULL, "&say", NULL };
+cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", NULL };
 int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
@@ -3235,6 +3235,7 @@ void player_talk_aux(int Ind, cptr message)
 								continue;
 							case '?':
 								verb = "ask";
+								/* fallthrough */
 							case '!':
 							case '.':
 								punct = msg[i]; 

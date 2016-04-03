@@ -1023,7 +1023,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	object_type		*o_ptr;
 	char		o_name[80];
 	s32b		price;
-	char		*c;
+	const char	*c;
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )

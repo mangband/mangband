@@ -174,7 +174,7 @@ int send_option_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_inventory_info(connection_type *ct, int id)
+int send_inventory_info(connection_type *ct)
 {
 	u32b i, off = 0;
 	char buf[80];
@@ -191,7 +191,7 @@ int send_inventory_info(connection_type *ct, int id)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
-	} 
+	}
 
 	buf[0] = '\0';
 	for (i = 0; i < INVEN_TOTAL; i++)
@@ -236,6 +236,7 @@ int send_indication(int Ind, byte id, ...)
 	connection_type *ct = PConn[Ind];
 	const indicator_type *i_ptr = &indicators[id];
 	int i = 0, n;
+	int start_pos;
 
 	signed char tiny_c;
 	s16b normal_c;
@@ -244,9 +245,9 @@ int send_indication(int Ind, byte id, ...)
 
 	va_list marker;
 
-	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
-
 	if (!ct) return -1;
+
+	start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
 	if (!cq_printf(&ct->wbuf, "%c", i_ptr->pkt))
 	{
@@ -281,8 +282,10 @@ int send_indication(int Ind, byte id, ...)
 		/* Result */
 		if (!n)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
+			va_end( marker );
 			client_withdraw(ct);
-		}		
+		}
 	} while (++i < i_ptr->amnt);
 
 	va_end( marker );
@@ -515,20 +518,24 @@ int send_item_tester_info(connection_type *ct, int id)
 	const item_tester_type *it_ptr = &item_tester[id];
 	int i;
 
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
 	if (!it_ptr->tval[0] && !it_ptr->flag) return 1; /* Last one */
 
 	if (cq_printf(&ct->wbuf, "%c%c%c", PKT_ITEM_TESTER,
 		(byte)id, item_tester[id].flag) <= 0)
 	{
+		ct->wbuf.len = start_pos; /* rollback */
 		return 0;
 	}
 	for (i = 0; i < MAX_ITH_TVAL; i++) 
 	{ 
 	 	if (cq_printf(&ct->wbuf, "%c", item_tester[id].tval[i]) <= 0)
 		{
+			ct->wbuf.len = start_pos; /* rollback */
 			return 0;
-		} 
-	}  
+		}
+	}
 
 	/* Ok */
 	return 1;
@@ -572,6 +579,26 @@ int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
 	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_ghost(player_type *p_ptr)
+{
+	connection_type *ct;
+	s16b mode;
+
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	mode = PALIVE_ALIVE;
+	if (p_ptr->ghost) mode = PALIVE_GHOST;
+	else if (p_ptr->fruit_bat) mode = PALIVE_FRUITBAT;
+
+	if (!cq_printf(&ct->wbuf, "%c%d", PKT_GHOST, mode))
 	{
 		client_withdraw(ct);
 	}
@@ -730,6 +757,22 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int recv_pass(connection_type *ct, player_type *p_ptr)
+{
+	char buf[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%S", buf) < 1)
+	{
+		return 0;
+	}
+
+	my_strcpy(p_ptr->pass, buf, MAX_PASS_LEN);
+
+	/* BUG: the password is not actually saved until player_save,
+	 * which can make things very confusing during login :( */
+
+	return 1;
+}
 
 /* Default handler for all the gameplay commands. */
 int recv_command(connection_type *ct, player_type *p_ptr) 
@@ -928,6 +971,8 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		return 0;
 	}
 
+	id = p_ptr->infodata_sent[mode];
+
 	switch (mode) 
 	{
 		case BASIC_INFO_INDICATORS:
@@ -948,6 +993,9 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 		default: break;
 	}
 
+	p_ptr->infodata_sent[mode] = id;
+
+	/* OK */
 	return 1;
 }
 

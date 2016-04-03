@@ -146,7 +146,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? "
 	},
-    { /* Detroy Item */
+    { /* Destroy Item */
         'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
         (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
          COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
@@ -262,6 +262,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
 #endif
+	{ /* Scores */
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_SCORES, "Highscores"
+	},
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -276,11 +281,6 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		'@', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_PLAYER, "Players"
-	},
-	{ /* Scores */
-		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
-		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_SCORES, "Highscores"
 	},
 
 	/*** Miscellaneous; MAngband-specific ***/
@@ -486,6 +486,14 @@ const stream_type streams[MAX_STREAMS] =
 		0, "MONLIST_TEXT"
 	},
 	{	/* 11 */
+		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
+		 * "stream" concept. Here, it will only work because
+		 * width 80 == stream7 width 80. Same width.
+		 * height 255 > stream7 height 20. Larger height.
+		 * So we effectively redefine the buffer to be similar, but larger, so
+		 * streams 7 and 8 do not feel any ill-effects.
+		 * NOTE: This will ONLY WORK if the client has a special hack
+		 * for this situation! */
 		STREAM_PKT(FILE_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
 		(0),
 		255, 80, 255, 80,
@@ -519,17 +527,17 @@ const indicator_type indicators[MAX_INDICATORS] =
 {
 	{
 		INDICATOR_PKT(RACE, STRING, 0), 	IPW_1,	ROW_RACE,	COL_RACE,
-		(0), "%s",
+		(0), "\aB%s",
 		(PR_MISC), "race_"
 	},
 	{
 		INDICATOR_PKT(CLASS, STRING, 0),	IPW_1,	ROW_CLASS,	COL_CLASS,
-		(0), "%s",
+		(0), "\aB%s",
 		(PR_MISC), "class_"
 	},
 	{
 		INDICATOR_PKT(TITLE, STRING, 0),	IPW_1,	ROW_TITLE,	COL_TITLE,
-		(0), "%s",
+		(0), "             \r\aB%s",
 		(PR_TITLE), "title_"
 	},
 	{

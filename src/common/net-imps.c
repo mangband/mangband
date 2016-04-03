@@ -35,10 +35,14 @@
 # endif
 #undef EWOULDBLOCK
 #undef EINPROGRESS
+#undef EALREADY
 #undef EISCONN
+#undef EINVAL
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define EINPROGRESS WSAEINPROGRESS
+#define EALREADY WSAEALREADY
 #define EISCONN WSAEISCONN
+#define EINVAL WSAEINVAL
 #define sockerr WSAGetLastError()
 #else
 #include <netdb.h> 
@@ -59,6 +63,7 @@
 
 
 fd_set rd;
+fd_set wd;
 int nfds;
 int cnfds;
 int lnfds;
@@ -91,6 +96,13 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	struct hostent *hp;
 	int senderfd;
 
+	/* Resolve host into "hp" */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	senderfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -103,11 +115,6 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	/* Set addr and others */
 	new_s->addr.sin_family = AF_INET;
 	new_s->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_s->addr.sin_addr), hp->h_addr, sizeof(new_s->addr.sin_addr));
 
 	new_s->send_fd = senderfd;
@@ -124,7 +131,14 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	struct caller_type *new_c;
 	struct hostent *hp;
 	int callerfd;
-	
+
+	/* Resolve addr */
+	if ((hp = gethostbyname(host)) == NULL)
+	{
+		/* plog("NAME RESOLUTION FAILED") */
+		return (NULL);
+	}
+
 	/* Init socket */
 	callerfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -137,11 +151,6 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	/* Set addr and others */
 	new_c->addr.sin_family = AF_INET;
 	new_c->addr.sin_port = htons(port);
-	if ((hp = gethostbyname(host)) == NULL)
-	{
-		/* plog("NAME RESOLUTION FAILED") */
-		return (NULL);
-	}
 	memcpy (&(new_c->addr.sin_addr), hp->h_addr, sizeof(new_c->addr.sin_addr));
 
 	new_c->port = port;
@@ -149,6 +158,8 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 	new_c->failure_cb = fail_cb;
 	new_c->caller_fd = callerfd;
 	new_c->remove = 0; /* important */
+
+	crfds = MATH_MAX(crfds, callerfd);
 
 	/* Add to list */	
 	return e_add(root, NULL, new_c); 	
@@ -179,11 +190,13 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
 		plog("BIND FAILED");
+		closesocket(listenfd);
 	   	return(NULL);
 	}
 
 	if (listen(listenfd,1024) < 0) {
 		plog("LISTEN FAILED");
+		closesocket(listenfd);
 		return(NULL);
 	}
 
@@ -215,11 +228,15 @@ eptr add_connection(eptr root, int fd, callback read, callback close) {
 	cq_init(&new_c->rbuf, PD_LARGE_BUFFER);
 
 	if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
+	{
 #ifdef HAVE_INET_NTOP
 		inet_ntop(AF_INET, &sin.sin_addr, new_c->host_addr, 24);
 #else
 		strcpy(new_c->host_addr, (char*)inet_ntoa(sin.sin_addr));
 #endif
+	}
+
+	cnfds = MAX(cnfds, new_c->conn_fd);
 
 	/* Add to list */
 	return e_add(root, NULL, new_c);
@@ -255,8 +272,10 @@ eptr handle_connections(eptr root) {
 		if (!ct->close)
 		{
 			/* Receive */
-			n = recvfrom(connfd,mesg,PD_LARGE_BUFFER,0, NULL,0);
-			if (n > 0) 
+			n = PD_LARGE_BUFFER;/* Paranoia */
+			n = MAX(1, MIN(cq_space(&ct->rbuf), PD_LARGE_BUFFER)); /* n = [1=>"bytes left in buffer"=>PD_LARGE_BUFFER] */
+			n = recvfrom(connfd, mesg, n, 0, NULL, 0);
+			if (n > 0)
 			{
 				/* Got 'n' bytes */
 				if (cq_nwrite(&ct->rbuf, mesg, n))
@@ -294,6 +313,8 @@ eptr handle_connections(eptr root) {
 					closesocket(ct->conn_fd);
 					FD_CLR(ct->conn_fd, &rd);
 					ct->close_cb(0, ct);
+					cq_free(&ct->rbuf);
+					cq_free(&ct->wbuf);
 					FREE(ct);
 					e_del(&root, iter);
 					to_close--;
@@ -319,13 +340,32 @@ eptr handle_callers(eptr root) {
 		struct caller_type *ct = (struct caller_type *)iter->data2;
 		int callerfd = ct->caller_fd;
 		int n = 0;
+		int err = 0;
 
-		FD_SET(callerfd, &rd);
+		/* if (FD_ISSET(callerfd, &wd)) {
+			//this is a good place to check if socket is connected
+		} */
+
+		FD_SET(callerfd, &wd);
 		n = connect(callerfd, (struct sockaddr *)&ct->addr, sizeof(ct->addr));
-		if (n == 0 || sockerr == EISCONN)
+		err = sockerr;
+		#ifdef WINDOWS
+		if (err == EINVAL) {
+			int errVal;
+			int errLen = sizeof(int);
+			getsockopt(callerfd, SOL_SOCKET, SO_ERROR, (char*)&errVal, &errLen);
+			if (errVal) {
+				err = errVal;
+			} else {
+				err = EWOULDBLOCK;
+			}
+		}
+		#endif
+		if (n == 0 || err == EISCONN)
 			ct->connect_cb(callerfd, (data)ct);
-		else if (sockerr == EALREADY) continue;
-		else if (sockerr == EINPROGRESS) continue;
+		else if (err == EALREADY) continue;
+		else if (err == EINPROGRESS) continue;
+		else if (err == EWOULDBLOCK) continue;
 		else {
 			n = ct->failure_cb(callerfd, (data)ct);
 			if (n) continue;
@@ -340,18 +380,18 @@ eptr handle_callers(eptr root) {
 				struct caller_type *ct = (struct caller_type *)iter->data2;
 				if (ct->remove)
 				{
-					FD_CLR(ct->caller_fd, &rd);
+					FD_CLR(ct->caller_fd, &wd);
 					FREE(ct);
 					e_del(&root, iter);
 					to_remove--;
 					break;
 				}
 			}
-			crfds = 0;
-			for (iter=root; iter; iter=iter->next) {
-				struct caller_type *ct = (struct caller_type *)iter->data2;
-				crfds = MATH_MAX(crfds, ct->caller_fd);
-			}
+		}
+		crfds = 0;
+		for (iter=root; iter; iter=iter->next) {
+			struct caller_type *ct = (struct caller_type *)iter->data2;
+			crfds = MATH_MAX(crfds, ct->caller_fd);
 		}
 	}
 	
@@ -377,7 +417,7 @@ eptr handle_listeners(eptr root) {
 
 		unblockfd(connfd);
 
-		cnfds = MATH_MAX(connfd, cnfds);
+		/* cnfds = MATH_MAX(connfd, cnfds); */
 
 		lt->accept_cb(connfd, lt);
 	}
@@ -395,12 +435,13 @@ micro static_timer(int id) {
 	gettimeofday(&tv, NULL);
 	microsec = tv.tv_sec * 1000000 + tv.tv_usec;
 #else
-	micro microsec = 0;
-	FILETIME tv;
-	SYSTEMTIME tv2;
-	GetSystemTimeAsFileTime(&tv);
-	FileTimeToSystemTime(&tv, &tv2);
-	microsec = tv2.wSecond * 1000000 + tv2.wMilliseconds * 1000;
+	micro microsec;
+	LARGE_INTEGER PerformanceCount, Frequency;
+	__int64 tv;
+	QueryPerformanceFrequency(&Frequency);
+	QueryPerformanceCounter(&PerformanceCount);
+	tv = (PerformanceCount.QuadPart * 1000000) / Frequency.QuadPart;
+	microsec = tv;
 #endif
 /*	
 	printf("OLD: %ld\n", times[id]);
@@ -450,6 +491,7 @@ eptr handle_senders(eptr root, micro microsec) {
 			if (!sender->interval)
 			{
 				closesocket(sender->send_fd);
+				cq_free(&sender->wbuf);
 				FREE(sender);
 				e_del(&root, iter);
 				to_close--;
@@ -496,11 +538,18 @@ void network_reset() {
 	WSADATA wsadata;
 
 	/* Initialize WinSock */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);	
+	WSAStartup(MAKEWORD(1, 1), &wsadata);
 #endif
 
 	FD_ZERO (&rd);
+	FD_ZERO (&wd);
 	nfds = cnfds = lnfds = crfds = refds = 0;
+}
+
+void network_done() {
+#ifdef WINDOWS
+	WSACleanup();
+#endif
 }
 
 void network_pause(micro timeout) {
@@ -512,7 +561,7 @@ void network_pause(micro timeout) {
 	nfds = MATH_MAX(nfds, crfds);
 	nfds = MATH_MAX(nfds, refds);
 
-	select(nfds + 1, &rd, NULL, NULL, &tv);
+	select(nfds + 1, &rd, &wd, NULL, &tv);
 }
 
 /* Set socket as non-blocking */

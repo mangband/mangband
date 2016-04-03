@@ -79,7 +79,6 @@ int client_close(int data1, data data2) {
 }
 
 int client_read(int data1, data data2) { /* return -1 on error */
-	cq queue;
 	connection_type *ct = (connection_type *)data2;
 
 	/* parse */
@@ -88,7 +87,7 @@ int client_read(int data1, data data2) { /* return -1 on error */
 	while (	cq_len(&ct->rbuf) )
 	{
 		/* save */
-		start_pos = ct->rbuf.pos; 
+		start_pos = ct->rbuf.pos;
 		next_pkt = CQ_GET(&ct->rbuf);
 		next_scheme = schemes[next_pkt];
 		result = (*handlers[next_pkt])(ct);
@@ -197,19 +196,18 @@ int send_play(byte mode) {
 }
 
 int send_char_info() {
-	int	n, i;
-	if (n = cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, pclass, sex) <= 0)
+	int	i;
+	if (!cq_printf(&serv->wbuf, "%c%ud%ud%ud", PKT_CHAR_INFO, race, pclass, sex))
 	{
-		return n;
+		return 0;
 	}
 
 	/* Send the desired stat order */
 	for (i = 0; i < 6; i++)
 	{
-		n = cq_printf(&serv->wbuf, "%d", stat_order[i]);
-		if (n < 0) 
+		if (!cq_printf(&serv->wbuf, "%d", stat_order[i]))
 		{
-			return n;
+			return 0;
 		}
 	}
 
@@ -218,6 +216,10 @@ int send_char_info() {
 
 int send_login(u16b version, char* real_name, char* host_name, char* user_name, char* pass_word) {
 	return cq_printf(&serv->wbuf, "%c%ud%s%s%s%s", PKT_LOGIN, version, real_name, host_name, user_name, pass_word);
+}
+
+int send_pass(char *new_password) {
+	return cq_printf(&serv->wbuf, "%c" "%S", PKT_CHANGEPASS, new_password);
 }
 
 int send_handshake(u16b conntype) {
@@ -237,7 +239,7 @@ int send_stream_size(byte id, int rows, int cols) {
 }
 
 int send_visual_info(byte type) {
-	int	n, i, size;
+	int	size;
 	byte *attr_ref;
 	char *char_ref;
 	switch (type) 
@@ -324,29 +326,25 @@ int send_options(void)
 }
 int send_settings(void)
 {
-	byte next = 0;
-	byte bit = 0;
-	int i, n;
+	int i;
 
-	if ((n = cq_printf(&serv->wbuf, "%c", PKT_SETTINGS)) < 0) return n;
+	if (!cq_printf(&serv->wbuf, "%c", PKT_SETTINGS)) return 0;
 
 	for (i = 0; i < 16; i++)
 	{
-		if ((n = cq_printf(&serv->wbuf, "%d", Client_setup.settings[i])) < 0) return n;
+		if (!cq_printf(&serv->wbuf, "%d", Client_setup.settings[i])) return 0;
 	}
 
 	return 1;
 }
 int send_msg(cptr message)
 {
-	int n;
-
 	if (view_channel != p_ptr->main_channel)
 	{
 		p_ptr->main_channel = view_channel;
 
-		if ((n = send_channel(CHAN_SELECT, channels[view_channel].id, channels[view_channel].name)) <= 0)
-			return n;
+		if (!send_channel(CHAN_SELECT, channels[view_channel].id, channels[view_channel].name))
+			return 0;
 	}
 
 	return cq_printf(&serv->wbuf, "%c%S", PKT_MESSAGE, message);
@@ -389,7 +387,7 @@ int send_rest(void)
 
 int send_party(s16b command, cptr buf)
 {
-        return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
+	return cq_printf(&serv->wbuf, "%c%d%s", PKT_PARTY, command, buf);
 }
 
 int send_suicide(void)
@@ -540,7 +538,7 @@ int recv_confirm_request(connection_type *ct)
 	byte id;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 1) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%c%s", &type, &id, buf) < 3) return 0;
 
 	confirm_requested = TRUE;
 	confirm_type = type;
@@ -673,8 +671,7 @@ int recv_char_info(connection_type *ct) {
 /* */
 int recv_struct_info(connection_type *ct)
 {
-	char 	ch;
-	int 	i, n;
+	int 	i;
 	byte 	typ;
 	u16b 	max;
 	char 	name[MAX_CHARS];
@@ -796,7 +793,7 @@ int recv_struct_info(connection_type *ct)
 
 				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
 				{
-					return n;
+					return 0;
 				}
 
 				if (last_off != off)
@@ -862,7 +859,6 @@ int recv_indicator(connection_type *ct) {
 	signed char tiny_c;
 	s16b normal_c;
 	s32b large_c;
-	char* text_c;
 
 	/* Error -- unknown indicator */
 	if (id > known_indicators) return -1;
@@ -990,7 +986,7 @@ int recv_indicator_info(connection_type *ct) {
 	/* Set local window_flag */
 	/* TODO: make it a ref. array in c-tables */
 	indicator_window[known_indicators] = 0;
-	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2;
+	if (win & IPW_1) indicator_window[known_indicators] |= PW_PLAYER_2; /* compact */
 	if (win & IPW_2) indicator_window[known_indicators] |= PW_STATUS;
 	if (win & IPW_3) indicator_window[known_indicators] |= PW_PLAYER_0;
 	if (win & IPW_4) indicator_window[known_indicators] |= PW_PLAYER_3;
@@ -1059,7 +1055,6 @@ int recv_indicator_info(connection_type *ct) {
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
-	int 	n;
 	byte
 		a = 0,
 		ta = 0;
@@ -1068,6 +1063,17 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 		tc = 0;
 
 	cave_view_type *dest = stream_cave(st, y);
+
+	if (x >= p_ptr->stream_wid[st])
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	if (y >= p_ptr->stream_hgt[st])
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
 
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
@@ -1108,7 +1114,7 @@ int recv_stream(connection_type *ct) {
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
-	if (y > p_ptr->stream_hgt[id]) 
+	if (y >= p_ptr->stream_hgt[id])
 	{
 		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
@@ -1163,13 +1169,15 @@ int recv_stream_size(connection_type *ct) {
 		KILL(remote_info[addr]);
 	}
 	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
-	last_remote_line[addr] = 0;
+	last_remote_line[addr] = -1;
 
-	/* Affect the whole group */
-	for (st = stg; st < known_streams; st++)
+	/* Affect the whole group
+	for (st = stg; st < known_streams; st++) */
+	/* HACK -- Affect all streams we can ! */
+	for (st = 0; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) break;
+		if (streams[st].addr != addr) /*break;*/ continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
@@ -1206,7 +1214,6 @@ int recv_stream_info(connection_type *ct) {
 		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
-	int n;
 
 	stream_type *s_ptr;
 
@@ -1506,17 +1513,17 @@ int recv_custom_command_info(connection_type *ct) {
 		pkt = 0,
 		tval = 0,
 		scheme = 0;
-	char buf[MSG_LEN]; //TODO: check this 
+	char buf[MSG_LEN];
 	s16b m_catch = 0;
 	u32b flag = 0;
-	int n;
+	int n, len;
 
 	custom_command_type *cc_ptr;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
 
 	/* Check for errors */
-	if (known_indicators >= MAX_CUSTOM_COMMANDS)
+	if (custom_commands >= MAX_CUSTOM_COMMANDS)
 	{
 		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
 		return -1;
@@ -1538,11 +1545,13 @@ int recv_custom_command_info(connection_type *ct) {
 	cc_ptr->tval = tval;
 
 	/* Replace \n with \0 before applying to ->prompt */
-	for (n = 0; n < strlen(buf)+1; n++) 
+	len = strlen(buf) + 1;
+	for (n = 0; n < len; n++)
 	{
 		if (buf[n] == '\n') buf[n] = '\0';
 	}
-	my_strcpy(cc_ptr->prompt, buf, sizeof(cc_ptr->prompt));
+	buf[n] = '\0';
+	memcpy(cc_ptr->prompt, buf, MSG_LEN);
 
 	custom_commands++;
 
@@ -1586,10 +1595,30 @@ int recv_item_tester_info(connection_type *ct) {
 }
 
 
+int recv_ghost(connection_type *ct)
+{
+	s16b
+		mode;
+
+	if (cq_scanf(&ct->rbuf, "%d", &mode) < 1)
+	{
+		/* Not enough bytes */
+		return 0;
+	}
+
+	/* Unset all */
+	p_ptr->ghost = 0;
+	p_ptr->fruit_bat = 0;
+
+	/* Set one */
+	if (mode == PALIVE_GHOST   ) p_ptr->ghost = 1;
+	if (mode == PALIVE_FRUITBAT) p_ptr->fruit_bat = 1;
+
+	return 1;
+}
+
 int recv_floor(connection_type *ct)
 {
-	int	n;
-	char	ch;
 	byte tval, attr;
 	byte flag;
 	s16b amt;
@@ -1613,8 +1642,6 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	int	n;
-	char	ch;
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt, amt;
@@ -1642,8 +1669,6 @@ int recv_inven(connection_type *ct)
 
 int recv_equip(connection_type *ct)
 {
-	int	n;
-	char 	ch;
 	char pos, attr, tval;
 	byte flag;
 	s16b wgt;
@@ -1750,7 +1775,9 @@ void setup_tables()
 /* META-SERVER STUFF */
 int meta_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
-	memcpy(meta_buf, ct->rbuf.buf, MIN(ct->rbuf.len, meta_buf_max));
+	int len = MIN(ct->rbuf.len, meta_buf_max);
+	memcpy(meta_buf, ct->rbuf.buf, len);
+	meta_buf[len-1] = '\0';
 	meta_connected = ct->rbuf.len;
 	return 0;
 }

@@ -67,14 +67,13 @@ extern char* cq_peek(cq *charq);
 extern void cq_clear(cq *charq);
 #define CQ_CWRITE(C, SIZE) ((C)->len + SIZE < (C)->MAX ? 1 : 0)
 extern int cq_cwrite(cq *charq, int size);
-#define CQ_LEN(C) (((C)->len <= (C)->max) ? (C)->len-(C)->pos : \
- 	(((C)->len - (C)->max < (C)->pos) ? ((C)->len-(C)->max-(C)->pos :  -1))
+#define CQ_SPACE(C) ((C)->max - (C)->len)
+extern int cq_space(cq *charq);
+#define CQ_LEN(C) ((C)->len - (C)->pos)
 extern int cq_len(cq *charq);
-#define CQ_WPOS(C) (((C)->len < (C)->max) ? (C)->len++ : \
- 	(((C)->len - (C)->max < (C)->pos) ? ((C)->len++)-(C)->max :  -1))
+#define CQ_WPOS(C) (((C)->len < (C)->max) ? (C)->len++ : -1)
 extern int cq_wpos(cq *charq);
-#define CQ_RPOS(C) (((C)->pos < (C)->len) ? (C)->pos++ : \
- 	(((C)->pos - (C)->max < (C)->pos) ? ((C)->pos++)-(C)->max :  -1))
+#define CQ_RPOS(C) (((C)->pos < (C)->len) ? (C)->pos++ : -1)
 extern int cq_rpos(cq *charq);
 #define CQ_PUT(C, CHR) (C)->buf[ CQ_WPOS((C)) ] = CHR
 extern void cq_put(cq *charq, char chr);

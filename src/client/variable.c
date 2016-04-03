@@ -17,7 +17,7 @@ object_type floor_item;
 char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
 
 indicator_type indicators[MAX_INDICATORS];
-byte known_indicators;
+int known_indicators;
 
 u32b indicator_window[MAX_INDICATORS]; /* Client-side mapping of indicators->PW_ flags */
 char *str_coffers[MAX_COFFERS]; /* Client-side copy of string variables */
@@ -78,7 +78,7 @@ bool item_tester_full;
 byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);
 item_tester_type item_tester[MAX_ITEM_TESTERS];
-byte known_item_testers;
+int known_item_testers;
 
 int special_line_type;
 char special_line_header[MAX_CHARS];
@@ -143,10 +143,10 @@ s16b command_cmd;
 s16b command_dir;
 
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
-s16b custom_commands;
+int custom_commands;
 
 stream_type streams[MAX_STREAMS];
-byte known_streams;
+int known_streams;
 
 byte window_to_stream[ANGBAND_TERM_MAX];
 byte stream_group[MAX_STREAMS];

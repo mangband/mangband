@@ -5229,17 +5229,11 @@ void show_motd(player_type *p_ptr)
 		{
 			p_ptr->info[i][k].a = TERM_WHITE;
 			p_ptr->info[i][k].c = text_screen[0][i * 80 + k];
-			printf("%c", p_ptr->info[i][k].c);
 		}
-		printf("\n");
 	}
 
 	/* Save last dumped line */
 	p_ptr->last_info_line = i;
-
-	//send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
-	//player_type	*p_ptr = Players[Ind];
-	//int i;	
 
 	/* Save 'current' terminal */
 	old_term = p_ptr->remote_term;
@@ -5247,17 +5241,19 @@ void show_motd(player_type *p_ptr)
 	/* Activte new terminal */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 
-	/* Clear, Send, Refresh */
+	/* Clear, send */
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
-	for (i = 0; i < p_ptr->last_info_line; i++)
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
-	send_term_info(p_ptr, NTERM_FLUSH, 0);
+
+	/* Pause and flush */
+	send_term_info(p_ptr, NTERM_HOLD, NTERM_PAUSE);
+	send_term_info(p_ptr, NTERM_FLUSH | NTERM_FRESH | NTERM_ICKY, 0);
 
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
-	Send_pause(p_ptr);
-
 }
+
 /*
  * Centers a string within a 31 character string
  */

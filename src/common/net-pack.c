@@ -340,7 +340,7 @@ int cq_scanf(cq *charq, char *str, ...) {
 				while(*rptr != '\0' && *rptr != '\n' && *rptr != '\r')
 				 *_text++ = *rptr++;
 				 *_text = '\0';
-				while(*rptr != '\0') *rptr++;
+				while(*rptr != '\0') rptr++;
 				break;}
 			SF_ERROR_FRMT
 		}

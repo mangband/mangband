@@ -184,7 +184,7 @@ static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef _WINSOCK2API_
-#include <winsock2.h>
+//#include <winsock2.h>
 #endif
 
 
@@ -3400,8 +3400,8 @@ LRESULT FAR PASCAL _export AngbandSaverProc(HWND hWnd, UINT uMsg,
 static void hack_plog(cptr str)
 {
 	/* Give a warning */
-	if (str) c_msg_print(str);
-/*	if (str) MessageBox(NULL, str, "Warning", MB_OK); */
+/*	if (str) c_msg_print(str); */
+	if (str) MessageBox(NULL, str, "Warning", MB_OK);
 }
 
 
@@ -3447,7 +3447,7 @@ static void hack_quit(cptr str)
 	if (hIcon) DestroyIcon(hIcon);
 
 	/* Cleanup WinSock */
-	WSACleanup();
+	//network_done();
 
 	/* Exit */
 	exit (0);
@@ -3547,7 +3547,7 @@ static void hook_quit(cptr str)
 
 	if (hIcon) DestroyIcon(hIcon);
 
-	WSACleanup();
+	//network_done();
 
 	/* Free strings */
 #ifdef USE_SOUND	
@@ -3565,7 +3565,7 @@ static void hook_quit(cptr str)
 /*
  * Init some stuff
  */
-static void init_stuff(void)
+static void init_stuff_win(void)
 {
 	int   i;
 
@@ -3668,7 +3668,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	WNDCLASS wc;
 	HDC      hdc;
 	MSG      msg;
-	WSADATA wsadata;
+	//WSADATA wsadata;
 
 	hInstance = hInst;  /* save in a global var */
 
@@ -3716,10 +3716,10 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	conf_init(hInstance);
 	
 	/* Prepare the filepaths */
-	init_stuff();
+	init_stuff_win();
 
 	/* Initialize WinSock */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);
+//	WSAStartup(MAKEWORD(1, 1), &wsadata);
 
 	/* Determine if display is 16/256/true color */
 	hdc = GetDC(NULL);
