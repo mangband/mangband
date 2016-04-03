@@ -1064,6 +1064,17 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 
 	cave_view_type *dest = stream_cave(st, y);
 
+	if (x >= p_ptr->stream_wid[st])
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	if (y >= p_ptr->stream_hgt[st])
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
+
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
 	if (trn && cq_scanf(&serv->rbuf, "%c%c", &ta, &tc) < 2) return 0;
@@ -1103,7 +1114,7 @@ int recv_stream(connection_type *ct) {
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
-	if (y > p_ptr->stream_hgt[id]) 
+	if (y >= p_ptr->stream_hgt[id])
 	{
 		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
@@ -1158,7 +1169,7 @@ int recv_stream_size(connection_type *ct) {
 		KILL(remote_info[addr]);
 	}
 	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
-	last_remote_line[addr] = 0;
+	last_remote_line[addr] = -1;
 
 	/* Affect the whole group
 	for (st = stg; st < known_streams; st++) */
