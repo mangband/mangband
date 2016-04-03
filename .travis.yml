@@ -28,9 +28,11 @@ compiler:
 
 env:
   matrix:
-    - CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl"
-    - CONFIGURE_FLAGS="--with-gcu --with-x11    --without-sdl"
-    - CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl"
+    - CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --without-sdl2"
+    - CONFIGURE_FLAGS="--with-gcu --with-x11    --without-sdl --without-sdl2"
+    - CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl    --without-sdl2"
+    - CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --with-sdl2"
+
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
@@ -40,6 +42,9 @@ addons:
   apt:
     packages:
     - libsdl1.2-dev
+    - libsdl-ttf2.0-dev
+    - libsdl2-dev
+    - libsdl2-ttf-dev
   coverity_scan:
     project:
       name: "mangband/mangband"
