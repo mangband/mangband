@@ -1,0 +1,37 @@
+#!/sbin/runscript
+# Copyright (c) 2016 MAngband Project Team <team@mangband.org>
+# Released under 2-clause BSD license.
+
+command="/usr/games/bin/mangband"
+pidfile="/var/run/mangband.pid"
+logfile="/var/log/mangband.log"
+user="games:games"
+
+description="Multiplayer Angband server"
+
+depend() {
+	need net
+}
+
+start() {
+	ebegin "Starting mangband server"
+#	start-stop-daemon --start --exec $command --background --make-pidfile --pidfile $pidfile
+	start-stop-daemon --start --user $user \
+	 --background --make-pidfile --pidfile $pidfile \
+	 --exec /bin/bash -- -c "exec $command > $logfile 2>&1"
+	eend $?
+}
+
+# Note: to stop mangband server, 5 INT signals must be sent.
+# We achive this with -R,--retry option and a schedule, sending 1 INT signal
+# every second.
+stop() {
+	ebegin "Stopping mangband server"
+	start-stop-daemon --stop --signal INT -R INT/1/INT/1/INT/1/INT/1/INT/1 --exec $command --pidfile $pidfile
+	eend $?
+}
+
+# mangband server does not support reload
+#reload() {
+#	start-stop-daemon --exec $command --signal HUP
+#}
