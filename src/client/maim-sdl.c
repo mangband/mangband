@@ -126,7 +126,7 @@ inline Uint32 iceil(Uint32 i)
  * eg:
  * float a = (float) (b >> 16) + (b & 0xFFFF)/65536.0;
  */
-inline errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
+errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *dr)
 {
 	Uint8 r, g, b;
 	Uint32 rs, gs, bs; /* sums. */
