@@ -106,7 +106,7 @@ void cmd_custom(byte i)
         }
 
 		/* Dirty Hack -- save multiplied price as "entry" */
-		sprintf(entry, "%" PRId32, (uint32_t)(store_prices[item]*value));
+		sprintf(entry, "%" PRId32, (u32b)(store_prices[item]*value));
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
