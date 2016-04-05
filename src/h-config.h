@@ -150,8 +150,13 @@
 #if _WIN32_WINNT >= _WIN32_WINNT_VISTA
 #define HAVE_INET_NTOP
 #endif
+#if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
+#define HAVE_STRDUP
+#define HAVE_STRNLEN
+#define HAVE_INTTYPES_H
+#define HAVE_INET_NTOP
 #endif
-
+#endif
 
 /*
  * OPTION: Define "L64" if a "long" is 64-bits.  See "h-types.h".
