@@ -46,7 +46,7 @@ CRCCheck Off
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "mangband-setup-${VER}.exe"
+OutFile "mangband-server-setup-${VER}.exe"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
