@@ -183,7 +183,7 @@ static void MD5Transform (state, block)
 u32b state[4];
 unsigned char block[64];
 {
-  u32b a = state[0], b = state[1], c = state[2], d = state[3], x[16] = { 0 };
+  u32b a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
   Decode (x, block, 64);
 
