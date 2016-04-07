@@ -130,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\c-angband.h" />
+    <ClInclude Include="..\..\src\client\c-defines.h" />
     <ClInclude Include="..\..\src\client\c-externs.h" />
     <ClInclude Include="..\..\src\client\main-sdl.h" />
     <ClInclude Include="..\..\src\client\net-client.h" />
@@ -137,7 +138,6 @@
     <ClInclude Include="..\..\src\client\resource.h" />
     <ClInclude Include="..\..\src\client\z-term.h" />
     <ClInclude Include="..\..\src\common\angband.h" />
-    <ClInclude Include="..\..\src\common\const.h" />
     <ClInclude Include="..\..\src\common\defines.h" />
     <ClInclude Include="..\..\src\common\global.h" />
     <ClInclude Include="..\..\src\common\h-basic.h" />
@@ -151,14 +151,12 @@
     <ClInclude Include="..\..\src\common\net-pack.h" />
     <ClInclude Include="..\..\src\common\pack.h" />
     <ClInclude Include="..\..\src\common\types.h" />
-    <ClInclude Include="..\..\src\common\version.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
     <ClInclude Include="..\..\src\h-config.h" />
     <ClInclude Include="..\..\src\options.h" />
-    <ClInclude Include="..\..\src\server\defines.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\src\client\Angband.ico" />

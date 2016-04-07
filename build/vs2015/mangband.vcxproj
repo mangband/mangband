@@ -151,9 +151,7 @@
     <ClInclude Include="..\..\src\common\net-imps.h" />
     <ClInclude Include="..\..\src\common\net-pack.h" />
     <ClInclude Include="..\..\src\common\pack.h" />
-    <ClInclude Include="..\..\src\common\sockbuf.h" />
     <ClInclude Include="..\..\src\common\types.h" />
-    <ClInclude Include="..\..\src\common\version.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
@@ -166,7 +164,6 @@
     <ClInclude Include="..\..\src\server\mdefines.h" />
     <ClInclude Include="..\..\src\server\net-game.h" />
     <ClInclude Include="..\..\src\server\net-server.h" />
-    <ClInclude Include="..\..\src\server\s-externs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
