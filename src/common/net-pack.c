@@ -36,8 +36,10 @@ static const cptr pf_errors[] = {
 "String too large for format", /* 6 */
 "", /* 7 */
 "Cave contains attrs unsuitable for this RLE method", /* 8 */
+"Cave contains length that is larger than possible width", /* 9 */
 "",
 };
+#define MAX_CQ_ERRORS 10
 
 /*
  * The macros below WILL define, initialize AND use the following variables.
@@ -582,6 +584,13 @@ int cv_decode_rle1(cave_view_type* dst, cq* src, int len) {
 			/* Read the number of repetitions */
 			PR_ERROR_SIZE(1)
 			UNPACK_PTR_8(&n, rptr);
+
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
 		}
 
 		/* 'Draw' a character n times */
@@ -891,10 +900,18 @@ int cq_scanac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
 	return n;
 }
 
-char* cq_error(cq *charq) {
+const char* cq_error(cq *charq) {
 	if (charq->err == 0) return "";
-	if (charq->err < 9) {
+	if (charq->err < MAX_CQ_ERRORS) {
 		return pf_errors[charq->err];
 	}
 	return "";
+}
+
+/* Returns true if there was a fatal error in charq.
+ * Note: we consider errors 2, 3 and 4 non-fatal. */
+bool cq_fatal(cq *charq) {
+	if (charq->err == 0) return FALSE;
+	if (charq->err >= 2 && charq->err <= 4) return FALSE;
+	return TRUE;
 }
