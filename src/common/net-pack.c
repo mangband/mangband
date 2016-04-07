@@ -563,7 +563,7 @@ int cv_decode_rle1(cave_view_type* dst, cq* src, int len) {
 	UNPACK_INIT(src);
 	for (x = 0; x < len; x++)
 	{
-		int  n;
+		byte n;
 		char c;
 		byte a;
 
