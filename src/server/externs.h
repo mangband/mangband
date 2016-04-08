@@ -1163,12 +1163,12 @@ extern bool use_object_current(int Ind);
 extern void user_name(char *buf, int id);
 #endif
 
-#ifndef HAS_MEMSET
+#ifndef HAVE_MEMSET
 /* util.c */
 extern char *memset(char*, int, huge);
 #endif
 
-#ifndef HAS_STRICMP
+#ifndef HAVE_STRICMP
 /* util.c */
 extern int stricmp(cptr a, cptr b);
 #endif

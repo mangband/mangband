@@ -126,6 +126,8 @@ void init_minor(void)
 	{
 		stream_group[i] = 0;
 		p_ptr->stream_cave[i] = NULL;
+		p_ptr->stream_wid[i] = 0;
+		p_ptr->stream_hgt[i] = 0;
 	}
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
 	{

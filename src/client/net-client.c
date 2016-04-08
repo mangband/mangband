@@ -96,9 +96,15 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		/* Unable to continue */
 		if (result != 1) break;
 	}
-#ifdef DEBUG
-	if (result == -1) printf("Error parsing packet %d\n", last_pkt);
-#endif
+	
+	/* Enforce connection error if there's a *fatal* buffer error */
+	if (result == 0 && cq_fatal(&ct->rbuf)) result = -1;
+	/* Report error */
+	if (result == -1)
+	{
+		//TODO: think about hiding this, or using printf (plog = MessageBox on windows)
+		plog(format("Error in packet %d, buffer state: %s\n", last_pkt, cq_error(&ct->rbuf) ));
+	}
 	/* Not enough bytes */
 	if (result == 0) 
 	{

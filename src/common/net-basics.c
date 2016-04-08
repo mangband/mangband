@@ -262,6 +262,8 @@ void cq_init(cq *charq, int max) {
 	charq->pos = 0;
 	charq->len = 0;
 	charq->max = max;
+
+	charq->err = 0;
 }
 
 /* Clear charqueue */
