@@ -63,11 +63,13 @@ static void read_credentials(void)
 
 int main(int argc, char **argv)
 {
-	char *use_server;
 	bool done = FALSE;
 
 	/* Save the program name */
 	argv0 = argv[0];
+
+	/* Save command-line arguments */
+	clia_init(argc, (const char**)argv);
 
 	/* Client Config-file */
 	conf_init(NULL);
@@ -147,22 +149,8 @@ int main(int argc, char **argv)
 	/* Attempt to read default name/real name from OS */
 	read_credentials();
 
-	/* By default, query the metaserver */
-	use_server = NULL;
-
-	/* Attempt to read server name from command line */
-	if (argc == 2)
-	{
-		/* Hack -- Ensure it's not MacOSX `-psn_APPID` handle (see #989) */
-		if (argv[1][0] != '-')
-		{
-			/* Use given server name */
-			use_server = argv[1];
-		}
-	}
-
 	/** Initialize client and run main loop **/
-	client_init(use_server);
+	client_init();
 
 	return 0;
 }

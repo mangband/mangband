@@ -62,17 +62,40 @@ void init_stuff(void)
 	tail = getenv("ANGBAND_PATH");
 
 	/* Use the angband_path, or a default */
-	strcpy(path, tail ? tail : PKGDATADIR);
+	my_strcpy(path, tail ? tail : PKGDATADIR, 1024);
 
 	/* Read/Write path from config file */
-	strncpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
+	my_strcpy(path, conf_get_string("MAngband", "LibDir", path), 1024);
 	conf_set_string("MAngband", "LibDir", path);
 
+	/* Read path from command-line */
+	clia_read_string(path, 1024, "libdir");
+
 	/* Hack -- Add a path separator (only if needed) */
-	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
+	if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
 	/* Initialize */
 	init_file_paths(path);
+
+	/* -------------------------- */
+	/* Overwrite ANGBAND_DIR_USER */
+
+	/* Read/Write path from config file or CLI */
+	my_strcpy(path, conf_get_string("MAngband", "UserDir", ""), 1024);
+	clia_read_string(path, 1024, "userdir");
+
+	/* We're onto something */
+	if (!STRZERO(path))
+	{
+		/* Hack -- Add a path separator (only if needed) */
+		if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
+
+		/* Overwrite "user" dir */
+		my_strcat(path, "user", 1024);
+		string_free(ANGBAND_DIR_USER);
+		ANGBAND_DIR_USER = string_make(path);
+	}
+
 }
 
 /* Init minor arrays */
@@ -614,7 +637,7 @@ int client_failed(void)
 /*
  * Initialize everything, contact the server, and start the loop.
  */
-void client_init(char *argv1)
+void client_init(void)
 {
 	unsigned char status;
 	char c, *s;
@@ -645,21 +668,11 @@ void client_init(char *argv1)
 
 	/* Default server host and port */
 	server_port = conf_get_int("MAngband", "port", 18346);
-	strcpy(server_name, conf_get_string("MAngband", "host", ""));
+	my_strcpy(server_name, conf_get_string("MAngband", "host", ""), sizeof(server_name));
 
-	/* Check whether we should query the metaserver */
-	if (argv1 != NULL)
-	{
-		/* Set the server's name */
-		strcpy(server_name, argv1);
-		/* Set server port */
-		s = strchr(server_name, ':');
-		if (s) 
-		{
-		    sscanf(s, ":%d", &server_port);
-		    strcpy (s, "\0");
-		}
-	}
+	/* Read host/port from the command line */
+	clia_read_string(server_name, sizeof(server_name), "host");
+	clia_read_int(&server_port, "port");
 
 	/* Check whether we should query the metaserver */
 	if (STRZERO(server_name))
@@ -676,6 +689,9 @@ void client_init(char *argv1)
 	/* Default nickname and password */
 	strcpy(nick, conf_get_string("MAngband", "nick", nick));
 	strcpy(pass, conf_get_string("MAngband", "pass", pass));
+
+	/* Nick from command line */
+	clia_read_string(nick, sizeof(nick), "nick");
 
 	/* Get character name and pass */
 	get_char_name();
