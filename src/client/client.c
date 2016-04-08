@@ -10,6 +10,11 @@
 #if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
+#ifdef USE_SDL
+/* This is needed on some platforms to replace main via dark magic */
+/* TODO: See if it breaks anything. Also, where is our ON_OSX define? */
+#include <SDL.h>
+#endif
 
 static void read_credentials(void)
 {
