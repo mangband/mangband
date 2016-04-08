@@ -2128,7 +2128,7 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
-		plog_fmt("Dugeon Master Set as [%s]",cfg_dungeon_master);
+		plog_fmt("Dungeon Master Set as [%s]",cfg_dungeon_master);
     }
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
