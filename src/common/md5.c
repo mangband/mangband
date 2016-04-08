@@ -333,7 +333,7 @@ unsigned int len;
 extern void MD5Password (char *string)
 {
   MD5_CTX context;
-  unsigned int len = (unsigned int)strlen (string);
+  size_t len = strlen(string);
   char temp[MAX_PASS_LEN];
   int i;
   char* dst;
@@ -341,7 +341,7 @@ extern void MD5Password (char *string)
 
   MD5Init (&context);
   MD5Update (&context, (unsigned char*)string, len);
-  MD5Final (string, &context);
+  MD5Final ((unsigned char*)string, &context);
 
   /* Convert to hex */
   strcpy(temp, "$1$");

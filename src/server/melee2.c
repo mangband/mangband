@@ -3420,7 +3420,7 @@ void process_monsters(void)
 			if (!in_los && closest_in_los) continue;
 			
 			/* Only check distance if they share LoS properties */		
-			else if ((closest_in_los == in_los)) 
+			else if (closest_in_los == in_los) 
 			{
 				/* Skip if further than closest */
 				if (j > dis_to_closest) continue;

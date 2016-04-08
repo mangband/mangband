@@ -876,7 +876,7 @@ void do_cmd_knowledge_history(int Ind, int line)
 		//fprintf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, format_history_event(evt));
+			fprintf(fff, "%s", format_history_event(evt));
 			fprintf(fff, "\n");
 		}
 		fprintf(fff, "\n\n");

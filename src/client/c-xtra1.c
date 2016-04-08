@@ -2813,7 +2813,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				value = TRUE;
 			}
 			/* Not a control character! */
-			default: if (n = strend(prompt)) 
+			default: if ((n = strend(prompt)))
 			{
 				cptr out = tmp;
 

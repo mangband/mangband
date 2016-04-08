@@ -1012,7 +1012,7 @@ errr parse_v_info(char *buf, header *head)
 		/* HACK -- Allow Gigantic vaults */
 		if ((v_ptr->typ == 9) && ((v_ptr->wid > 99) || (v_ptr->hgt > 66)))
 			return (PARSE_ERROR_VAULT_TOO_BIG);
-		if ((v_ptr->typ == 9)) v_ptr->typ = 8;
+		if (v_ptr->typ == 9) v_ptr->typ = 8;
 	}
 	else
 	{
