@@ -273,13 +273,13 @@
 
 
 /*
- * OPTION: Define "HAS_USLEEP" only if "usleep()" exists.
+ * OPTION: Define "HAVE_USLEEP" only if "usleep()" exists.
  * Note that this is only relevant for "SET_UID" machines
  */
 #ifdef SET_UID
 # if !defined(ultrix) && !defined(SOLARIS) && \
      !defined(SGI) && !defined(ISC) && !defined(USE_EMX)
-#  define HAS_USLEEP
+#  define HAVE_USLEEP
 # endif
 #endif
 

@@ -394,6 +394,9 @@ extern bool c_check_item(int *item, byte tval);
 extern bool c_get_spike(void);
 
 /* c-util.c */
+#ifndef HAVE_USLEEP
+extern int usleep(huge microSeconds);
+#endif
 extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);
