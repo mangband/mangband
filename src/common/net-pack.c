@@ -243,7 +243,7 @@ int cq_scanf(cq *charq, char *str, ...) {
 	s16b *_s16b;
 	u32b *_u32b;
 	s32b *_s32b;
-	char *_text = {'\0'};
+	char *_text;
 
 	UNPACK_DEF
 
