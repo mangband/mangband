@@ -660,6 +660,7 @@ int recv_char_info(connection_type *ct) {
 		race = 0;
 		pclass = 0;
 		sex = 0;
+
 	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &state, &race, &pclass, &sex) < 4)
 	{
 		/* Not enough bytes */
