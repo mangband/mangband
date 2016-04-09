@@ -6124,7 +6124,7 @@ s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
 	}
 
 #define MASTER_SEARCH_COMPARE(HAYSTACK) \
-			if ((exact && !strncasecmp((HAYSTACK), needle, len)) || \
+			if ((exact && !my_strnicmp((HAYSTACK), needle, len)) || \
 				(!exact && my_stristr((HAYSTACK), needle)) ) \
 			{ \
 				if (i <= offset) \
