@@ -2662,7 +2662,7 @@ int clia_find(const char *key)
 			else
 			{
 				/* Hack -- Ignore MacOSX `-psn_APPID` handle (see #989) */
-				if (p_argv[i], "-psn_") continue;
+				if (prefix(p_argv[i], "-psn_")) continue;
 
 				/* Could be hostname */
 				if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
