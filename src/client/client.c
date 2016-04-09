@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-x11.c" support */
 	if (!done)
 	{
-		extern errr init_x11(argc, argv);
+		extern errr init_x11(int argc, char **argv);
 		if (0 == init_x11(argc,argv)) done = TRUE;
 		if (done) ANGBAND_SYS = "x11";
 	}
