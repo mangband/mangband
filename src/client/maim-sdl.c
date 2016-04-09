@@ -39,7 +39,7 @@
 
 /* The most pedantic-a%& getpixel and putpixel ever, hopefully. */
 /* There may still be endianness bugs! These will be fixed after adequte testing. XXX XXX XXX */
-static inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
+static errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
 {
 	/*const Uint32 mask[] = {0x0, 0xff, 0xffff, 0xffffff, 0xffffffff};*/
 	Uint32 pixel;
@@ -79,7 +79,7 @@ static inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, U
 
 /* This function looks remarkably similar to the one above. Yes, it's cut
  * and paste. */
-static inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
+static errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
 {
 	Uint32 pixel;
 
