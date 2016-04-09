@@ -128,7 +128,7 @@ s32b player_price_item(int Ind, object_type *o_ptr)
 {
 	s32b price = -1;
 	s32b askprice = -1;
-	char *c;
+	const char *c;
 
 	/* Is this item for sale? */
 	if (o_ptr->note && (c = my_stristr(quark_str(o_ptr->note), "for sale")))
@@ -1095,7 +1095,7 @@ static int display_inventory(int Ind)
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
-	char 			*c;
+	const char 			*c;
 
 	/* Normal stores */
 	if (p_ptr->store_num != 8)
@@ -1178,7 +1178,7 @@ int get_player_store_name(int num, char *name)
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
-	char 			*c;
+	const char 			*c;
 
 	/* Default title */
 	strcpy(name, "Store\0");
@@ -1353,7 +1353,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 	//s32b			price_each = gold / number;
 	u32b			total;
 	bool			have_gold, have_space;
-	char			*c;
+	const char			*c;
 	object_type object_type_body;
 	object_type *i_ptr = &object_type_body;
 	
@@ -1517,7 +1517,7 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 	store_type *st_ptr = &store[st];
 	//object_type		tmp_obj;
 	cave_type		*c_ptr;
-	char			*c;	
+	const char			*c;	
 	int stocked,x,y;
 	object_type		*o_ptr;
 	
@@ -1636,7 +1636,7 @@ void refresh_store(int st, int item, bool info, bool stock, bool single, cptr bu
 /*
  * Buy an item from a store				-RAK-
  */
-void store_purchase(int Ind, int item, int amt, cptr *checksum)
+void store_purchase(int Ind, int item, int amt, cptr checksum)
 {
 	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
