@@ -1517,7 +1517,7 @@ bool get_store_item(int Ind, int item, object_type *i_ptr)
 	store_type *st_ptr = &store[st];
 	//object_type		tmp_obj;
 	cave_type		*c_ptr;
-	const char			*c;	
+	const char		*c;
 	int stocked,x,y;
 	object_type		*o_ptr;
 	
