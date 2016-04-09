@@ -1758,7 +1758,7 @@ bool set_food(int Ind, int v)
 			 * people from starving while afk, and not in the dungeon.)
 			 */
 
-			if ( (p_ptr->chp == p_ptr->mhp) /* && (p_ptr->dun_depth <=0) */ )
+			if (p_ptr->chp == p_ptr->mhp /* && (p_ptr->dun_depth <=0) */ )
 			{
 				/* Use the value */
 				p_ptr->food = v;
