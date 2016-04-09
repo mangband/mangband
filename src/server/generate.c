@@ -896,101 +896,6 @@ static void vault_objects(int Depth, int y, int x, int num)
 	}
 }
 
-void place_wall(int Depth, int y1, int y2, int x1, int x2, int wall_type)
-{
-	int y, x;
-
-	cave_type *c_ptr;
-
-	/* Place the outer walls */
-	for (y = y1 - 1; y <= y2 + 1; y++)
-	{
-		c_ptr = &cave[Depth][y][x1-1];
-		c_ptr->feat = wall_type;
-		c_ptr = &cave[Depth][y][x2+1];
-		c_ptr->feat = wall_type;
-	}
-	for (x = x1 - 1; x <= x2 + 1; x++)
-	{
-		c_ptr = &cave[Depth][y1-1][x];
-		c_ptr->feat = wall_type;
-		c_ptr = &cave[Depth][y2+1][x];
-		c_ptr->feat = wall_type;
-	}
-}
-
-void place_double_wall(int Depth, int y1, int y2, int x1, int x2)
-{
-	place_wall(Depth, y1, y2, x1, x2, FEAT_WALL_OUTER);
-	place_wall(Depth, y1 + 2, y2 - 2, x1 + 2, x2 - 2, FEAT_WALL_INNER);
-}
-
-void place_floor(int Depth, bool light, int y1, int y2, int x1, int x2)
-{
-	cave_type		*c_ptr;
-
-	int y, x;
-
-	/* Place a full floor under the room */
-	for (y = y1 - 1; y <= y2 + 1; y++)
-	{
-		for (x = x1 - 1; x <= x2 + 1; x++)
-		{
-			c_ptr = &cave[Depth][y][x];
-			c_ptr->feat = FEAT_FLOOR;
-			c_ptr->info |= CAVE_ROOM;
-			if (light) c_ptr->info |= CAVE_GLOW;
-		}
-	}
-}
-
-void place_double_room(int Depth, bool light, int y1, int y2, int x1, int x2)
-{
-	place_floor(Depth, light, y1, y2, x1, x2);
-
-  place_double_wall(Depth, y1, y2, x1, x2);
-}
-
-void place_cross_room(int Depth, bool light, int y1a, int y2a, int x1a, int x2a, int y1b, int y2b, int x1b, int x2b)
-{
-	int	y, x;
-
-	cave_type *c_ptr;
-
-	/* Place a full floor for room "a" */
-	place_floor(Depth, light, y1a, y2a, x1a, x2a);
-
-	/* Place a full floor for room "b" */
-	place_floor(Depth, light, y1b, y2b, x1b, x2b);
-
-
-	/* Place the walls around room "a" */
-	place_wall(Depth, y1a, y2a, x1a, x2a, FEAT_WALL_OUTER);
-
-	/* Place the walls around room "b" */
-	place_wall(Depth, y1b, y2b, x1b, x2b, FEAT_WALL_OUTER);
-
-
-	/* Replace the floor for room "a" */
-	for (y = y1a; y <= y2a; y++)
-	{
-		for (x = x1a; x <= x2a; x++)
-		{
-			c_ptr = &cave[Depth][y][x];
-			c_ptr->feat = FEAT_FLOOR;
-		}
-	}
-
-	/* Replace the floor for room "b" */
-	for (y = y1b; y <= y2b; y++)
-	{
-		for (x = x1b; x <= x2b; x++)
-		{
-			c_ptr = &cave[Depth][y][x];
-			c_ptr->feat = FEAT_FLOOR;
-		}
-	}
-}
 
 /*
  * Place a trap with a given displacement of point
@@ -1107,9 +1012,35 @@ static void build_type1(int Depth, int yval, int xval)
 	x1 = xval - randint(11);
 	x2 = xval + randint(11);
 
-	place_floor(Depth, light, y1, y2, x1, x2);
 
-	place_wall(Depth, y1, y2, x1, x2, FEAT_WALL_OUTER);
+	/* Place a full floor under the room */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		for (x = x1 - 1; x <= x2 + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+	/* Walls around the room */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
 
 	/* Hack -- Occasional pillar room */
 	if (rand_int(20) == 0)
@@ -1150,10 +1081,14 @@ static void build_type1(int Depth, int yval, int xval)
  */
 static void build_type2(int Depth, int yval, int xval)
 {
+	int			y, x;
 	int			y1a, x1a, y2a, x2a;
 	int			y1b, x1b, y2b, x2b;
 
 	bool		light;
+
+	cave_type *c_ptr;
+
 
 
 	/* Choose lite or dark */
@@ -1173,7 +1108,84 @@ static void build_type2(int Depth, int yval, int xval)
 	x2b = xval + randint(11);
 
 
-	place_cross_room(Depth, light, y1a, y2a, x1a, x2a, y1b, y2b, x1b, x2b);
+	/* Place a full floor for room "a" */
+	for (y = y1a - 1; y <= y2a + 1; y++)
+	{
+		for (x = x1a - 1; x <= x2a + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+	/* Place a full floor for room "b" */
+	for (y = y1b - 1; y <= y2b + 1; y++)
+	{
+		for (x = x1b - 1; x <= x2b + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+
+	/* Place the walls around room "a" */
+	for (y = y1a - 1; y <= y2a + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1a-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2a+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1a - 1; x <= x2a + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1a-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2a+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+	/* Place the walls around room "b" */
+	for (y = y1b - 1; y <= y2b + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1b-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2b+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1b - 1; x <= x2b + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1b-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2b+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+
+
+	/* Replace the floor for room "a" */
+	for (y = y1a; y <= y2a; y++)
+	{
+		for (x = x1a; x <= x2a; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+		}
+	}
+
+	/* Replace the floor for room "b" */
+	for (y = y1b; y <= y2b; y++)
+	{
+		for (x = x1b; x <= x2b; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+		}
+	}
 }
 
 
@@ -1229,7 +1241,84 @@ static void build_type3(int Depth, int yval, int xval)
 	x2b = xval + dx;
 
 
-	place_cross_room(Depth, light, y1a, y2a, x1a, x2a, y1b, y2b, x1b, x2b);
+	/* Place a full floor for room "a" */
+	for (y = y1a - 1; y <= y2a + 1; y++)
+	{
+		for (x = x1a - 1; x <= x2a + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+	/* Place a full floor for room "b" */
+	for (y = y1b - 1; y <= y2b + 1; y++)
+	{
+		for (x = x1b - 1; x <= x2b + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+
+	/* Place the walls around room "a" */
+	for (y = y1a - 1; y <= y2a + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1a-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2a+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1a - 1; x <= x2a + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1a-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2a+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+	/* Place the walls around room "b" */
+	for (y = y1b - 1; y <= y2b + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1b-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2b+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1b - 1; x <= x2b + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1b-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2b+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+
+	/* Replace the floor for room "a" */
+	for (y = y1a; y <= y2a; y++)
+	{
+		for (x = x1a; x <= x2a; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+		}
+	}
+
+	/* Replace the floor for room "b" */
+	for (y = y1b; y <= y2b; y++)
+	{
+		for (x = x1b; x <= x2b; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+		}
+	}
+
 
 
 	/* Special features (3/4) */
@@ -1369,16 +1458,69 @@ static void build_type4(int Depth, int yval, int xval)
 
 	cave_type *c_ptr;
 
+
+
+	/* Choose lite or dark */
+	light = (Depth <= randint(25));
+
+
 	/* Large room */
 	y1 = yval - 4;
 	y2 = yval + 4;
 	x1 = xval - 11;
 	x2 = xval + 11;
 
-	/* Choose lite or dark */
-	light = (Depth <= randint(25));
 
-	place_double_room(Depth, light, y1, y2, x1, x2);
+	/* Place a full floor under the room */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		for (x = x1 - 1; x <= x2 + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+			if (light) c_ptr->info |= CAVE_GLOW;
+		}
+	}
+
+	/* Outer Walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+
+	/* The inner room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
+
+	/* The inner walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
 
 
 	/* Inner room variations */
@@ -1819,6 +1961,8 @@ static void build_type5(int Depth, int yval, int xval)
 
 	s16b		what[64];
 
+	cave_type		*c_ptr;
+
 	cptr		name;
 
 	bool		empty = FALSE;
@@ -1830,7 +1974,57 @@ static void build_type5(int Depth, int yval, int xval)
 	x1 = xval - 11;
 	x2 = xval + 11;
 
-	place_double_room(Depth, FALSE, y1, y2, x1, x2);
+
+	/* Place the floor area */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		for (x = x1 - 1; x <= x2 + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+		}
+	}
+
+	/* Place the outer walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
+
+	/* The inner walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
+
 
 	/* Place a secret door */
 	switch (randint(4))
@@ -1985,7 +2179,10 @@ static void build_type6(int Depth, int yval, int xval)
 
 	bool		empty = FALSE;
 
+	cave_type		*c_ptr;
+
 	cptr		name;
+
 
 	/* Large room */
 	y1 = yval - 4;
@@ -1993,7 +2190,57 @@ static void build_type6(int Depth, int yval, int xval)
 	x1 = xval - 11;
 	x2 = xval + 11;
 
-	place_double_room(Depth, FALSE, y1, y2, x1, x2);
+
+	/* Place the floor area */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		for (x = x1 - 1; x <= x2 + 1; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			c_ptr->feat = FEAT_FLOOR;
+			c_ptr->info |= CAVE_ROOM;
+		}
+	}
+
+	/* Place the outer walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_OUTER;
+	}
+
+
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
+
+	/* The inner walls */
+	for (y = y1 - 1; y <= y2 + 1; y++)
+	{
+		c_ptr = &cave[Depth][y][x1-1];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y][x2+1];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
+	for (x = x1 - 1; x <= x2 + 1; x++)
+	{
+		c_ptr = &cave[Depth][y1-1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+		c_ptr = &cave[Depth][y2+1][x];
+		c_ptr->feat = FEAT_WALL_INNER;
+	}
+
 
 	/* Place a secret door */
 	switch (randint(4))
