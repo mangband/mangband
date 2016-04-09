@@ -150,10 +150,13 @@
 #if _WIN32_WINNT >= _WIN32_WINNT_VISTA
 #define HAVE_INET_NTOP
 #endif
-#if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
-#define HAVE_STRDUP
+#if defined (_MSC_VER) /* Any VS */
+#define HAVE_MEMSET
 #define HAVE_STRICMP
+#define HAVE_STRDUP
 #define HAVE_STRNLEN
+#endif
+#if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
 #define HAVE_INTTYPES_H
 #define HAVE_INET_NTOP
 #endif
@@ -267,30 +270,6 @@
 #endif
 
 
-/*
- * OPTION: Define "HAS_STRICMP" only if "stricmp()" exists.
- * Note that "stricmp()" is not actually used by Angband.
- */
-/* #define HAS_STRICMP */
-
-/*
- * Linux has "stricmp()" with a different name
- */
-#if defined(linux)
-# define HAS_STRICMP
-# define stricmp strcasecmp
-#endif
-
-#ifdef WIN32
-#define strcasecmp stricmp
-#endif
-
-
-/*
- * OPTION: Define "HAS_MEMSET" only if "memset()" exists.
- * Note that the "memset()" routines are used in "z-virt.h"
- */
-#define HAS_MEMSET
 
 
 /*

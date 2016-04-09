@@ -77,16 +77,25 @@ extern size_t my_strcpy(char *buf, const char *src, size_t bufsize);
 /* Concatenate two strings */
 extern size_t my_strcat(char *buf, const char *src, size_t bufsize);
 
-/* Test equality, prefix, suffix, and do "strdup" */
+/* Test equality, prefix, suffix */
 extern bool streq(cptr s, cptr t);
 extern bool prefix(cptr s, cptr t);
 extern bool suffix(cptr s, cptr t);
+
+/* Hack -- conditional (or "bizarre") externs */
+
+#ifndef HAVE_MEMSET
+extern void *memset(void*, int, size_t);
+#endif
+
+#ifndef HAVE_STRICMP
+extern int stricmp(cptr a, cptr b);
+#endif
 
 #ifndef HAVE_STRDUP
 extern char *strdup(cptr s);
 #endif
 
-/* Determine the length of a fixed-size string */
 #ifndef HAVE_STRNLEN
 extern size_t strnlen(char *s, size_t maxlen);
 #endif
