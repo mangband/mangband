@@ -735,7 +735,14 @@ bool gui_term_drag(int nmx, int nmy) {
 		/* Dungeon display hack */
 		if (!m_term) {
 			if (!conn_state) { mx = 0; my = 0; }
-			if (net_term_clamp(m_term, &sel_term->rows, &sel_term->cols)) { mx = 1; my = 1; }
+			byte rows = sel_term->rows;
+			byte cols = sel_term->rows;
+
+			if (net_term_clamp(m_term, &rows, &cols))
+			{
+				mx = 1;
+				my = 1;
+			}
 		}
 
 		/* Nothing happend! */
