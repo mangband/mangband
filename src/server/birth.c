@@ -690,6 +690,11 @@ void player_net_wipe(player_type *p_ptr, int reach)
 
 	for (i = 0; i < 6; i++)
 	{
+		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
+	}
+
+	for (i = 0; i < 6; i++)
+	{
 		p_tmp.stat_order[i] = p_ptr->stat_order[i];
 	}
 
@@ -715,6 +720,11 @@ void player_net_wipe(player_type *p_ptr, int reach)
 
 	p_ptr->lives = p_tmp.lives;
 	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = p_tmp.infodata_sent[i];
+	}
 
 	if (reach)
 	{
