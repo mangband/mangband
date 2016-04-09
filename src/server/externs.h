@@ -13,7 +13,7 @@
  */
 
 /* tables.c */
-extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
+extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS];
 extern const stream_type streams[MAX_STREAMS];
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern const indicator_type indicators[MAX_INDICATORS];
