@@ -1095,7 +1095,7 @@ static int display_inventory(int Ind)
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
-	const char 			*c;
+	const char		*c;
 
 	/* Normal stores */
 	if (p_ptr->store_num != 8)
@@ -1178,7 +1178,7 @@ int get_player_store_name(int num, char *name)
 	object_type		tmp_obj;
 	object_type		*o_ptr = &tmp_obj;
 	cave_type		*c_ptr;
-	const char 			*c;
+	const char		*c;
 
 	/* Default title */
 	strcpy(name, "Store\0");
@@ -1353,7 +1353,7 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 	//s32b			price_each = gold / number;
 	u32b			total;
 	bool			have_gold, have_space;
-	const char			*c;
+	const char		*c;
 	object_type object_type_body;
 	object_type *i_ptr = &object_type_body;
 	
