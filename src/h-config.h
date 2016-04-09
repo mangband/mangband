@@ -164,7 +164,7 @@
 
 /*
  * OPTION: Define "L64" if a "long" is 64-bits.  See "h-types.h".
- * (automatic for amd64 with gcc) 
+ * (automatic for amd64 with gcc)
  */
 #if defined(__alpha) || defined(__amd64__)
 # define L64
