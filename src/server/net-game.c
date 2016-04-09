@@ -79,13 +79,13 @@ int send_race_info(connection_type *ct)
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
-	
+
 	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
-	} 
+	}
 
 	for (i = 0; i < z_info->p_max; i++)
 	{
@@ -116,7 +116,7 @@ int send_class_info(connection_type *ct)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
-	} 
+	}
 
 	for (i = 0; i < z_info->c_max; i++)
 	{
@@ -128,7 +128,7 @@ int send_class_info(connection_type *ct)
 		}
 	}
 
-	return 1;	
+	return 1;
 }
 
 int send_optgroups_info(connection_type *ct)
@@ -142,12 +142,12 @@ int send_optgroups_info(connection_type *ct)
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
 	}
-	
+
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OPTION_GROUPS, OPT_MAX, 0) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
 		client_withdraw(ct);
-	} 
+	}
 
 	for (i = 0; i < MAX_OPTION_GROUPS; i++)
 	{
