@@ -2704,6 +2704,7 @@ bool clia_cpy_string(char *dst, int len, int i)
 		my_strcpy(dst, p_argv[i], len);
 		return TRUE;
 	}
+	return FALSE;
 }
 bool clia_cpy_int(s32b *dst, int i)
 {
