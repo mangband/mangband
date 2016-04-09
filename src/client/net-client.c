@@ -655,10 +655,9 @@ int recv_play(connection_type *ct) {
 
 /* Character info packet, important at setup stage */
 int recv_char_info(connection_type *ct) {
-	s16b
-		state = 0,
-		race = 0,
-		pclass = 0,
+		state = 0;
+		race = 0;
+		pclass = 0;
 		sex = 0;
 	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &state, &race, &pclass, &sex) < 4)
 	{
