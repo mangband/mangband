@@ -10,6 +10,11 @@
 #if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
+#ifdef USE_SDL
+/* This is needed on some platforms to replace main via dark magic */
+/* TODO: See if it breaks anything. Also, where is our ON_OSX define? */
+#include <SDL.h>
+#endif
 
 static void read_credentials(void)
 {
@@ -63,11 +68,13 @@ static void read_credentials(void)
 
 int main(int argc, char **argv)
 {
-	char *use_server;
 	bool done = FALSE;
 
 	/* Save the program name */
 	argv0 = argv[0];
+
+	/* Save command-line arguments */
+	clia_init(argc, (const char**)argv);
 
 	/* Client Config-file */
 	conf_init(NULL);
@@ -100,8 +107,8 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-x11.c" support */
 	if (!done)
 	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
+		extern errr init_x11(argc, argv);
+		if (0 == init_x11(argc,argv)) done = TRUE;
 		if (done) ANGBAND_SYS = "x11";
 	}
 #endif
@@ -147,22 +154,8 @@ int main(int argc, char **argv)
 	/* Attempt to read default name/real name from OS */
 	read_credentials();
 
-	/* By default, query the metaserver */
-	use_server = NULL;
-
-	/* Attempt to read server name from command line */
-	if (argc == 2)
-	{
-		/* Hack -- Ensure it's not MacOSX `-psn_APPID` handle (see #989) */
-		if (argv[1][0] != '-')
-		{
-			/* Use given server name */
-			use_server = argv[1];
-		}
-	}
-
 	/** Initialize client and run main loop **/
-	client_init(use_server);
+	client_init();
 
 	return 0;
 }

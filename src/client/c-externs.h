@@ -365,6 +365,13 @@ extern void conf_set_string(cptr section, cptr name, cptr value);
 extern void conf_set_int(cptr section, cptr name, s32b value);
 extern void conf_append_section(cptr section, cptr filename);
 extern bool my_fexists(const char *fname);
+extern void clia_init(int argc, const char *argv[]);
+extern int clia_find(const char *key); 
+extern bool clia_cpy_string(char *dst, int len, int i);
+extern bool clia_cpy_int(s32b *dst, int i);
+extern bool clia_read_string(char *dst, int len, const char *key);
+extern bool clia_read_int(s32b *dst, const char *key);
+extern bool clia_read_bool(s32b *dst, const char *key);
 
 /* c-init.c */
 extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
@@ -373,7 +380,7 @@ extern bool client_login(void);
 extern bool client_ready(void);
 extern bool client_setup(void);
 extern void initialize_all_pref_files(void);
-extern void client_init(char *argv1);
+extern void client_init(void);
 extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);

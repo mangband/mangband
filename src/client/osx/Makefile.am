@@ -29,11 +29,11 @@ mangclient.app: mangclient
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/graf
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/Sound
 	@cp mangclient mangclient.app/Contents/MacOS
-#	@cp src/client/osx/MAngclient.icns mangclient.app/Contents/Resources
+	@cp src/client/osx/launch_mangclient.sh mangclient.app/Contents/MacOS
+	@cp src/client/osx/mangclient.icns mangclient.app/Contents/Resources
 	@cp src/client/osx/Info.plist mangclient.app/Contents
 	@cp src/client/osx/PkgInfo mangclient.app/Contents
 	@cp src/client/osx/English.lproj/main.nib/*ib mangclient.app/Contents/Resources/English.lproj/main.nib
-	@cp lib/data/*raw mangclient.app/Contents/Resources/lib/data
 	@cp lib/edit/*txt mangclient.app/Contents/Resources/lib/edit
 	@cp lib/help/*txt mangclient.app/Contents/Resources/lib/help
 	@cp lib/help/*hlp mangclient.app/Contents/Resources/lib/help

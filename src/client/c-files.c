@@ -2478,6 +2478,16 @@ void conf_init(void* param)
 	s_ptr = root_node;
 	v_ptr = root_node->first;
 
+	/* We start with closed file */
+	config = NULL;
+
+	/* Try to get path to config file from command-line "--config" option */
+	if (clia_read_string(buf, 1024, "config"))
+	{
+		/* Attempt to open file */
+		config = my_fopen(buf, "r");
+	}
+
 	/*
 	 * Get File name 
 	 */
@@ -2489,14 +2499,11 @@ void conf_init(void* param)
 	strcpy(buf, "/.mangrc");
 #endif
 
-	/* We start with closed file */
-	config = NULL;
-
 	/* Try to find home directory */
-	if (getenv("HOME"))
+	if (!config && getenv("HOME"))
 	{
 		/* Use home directory as base */
-		strcpy(config_name, getenv("HOME"));
+		my_strcpy(config_name, getenv("HOME"), 1024);
 
 		/* Append filename */
 		strcat(config_name, buf);
@@ -2608,3 +2615,142 @@ void conf_append_section(cptr section, cptr filename)
 	}
 }
 #endif
+
+int p_argc = 0;
+const char **p_argv = NULL;
+void clia_init(int argc, const char **argv)
+{
+	/* If it's unsafe, we'll just copy */
+	p_argc = argc;
+	p_argv = argv;
+}
+int clia_find(const char *key)
+{
+	int i;
+	bool awaiting_argument = FALSE;
+	bool key_matched = FALSE;
+	bool got_hostname = FALSE;
+	for (i = 1; i < p_argc; i++)
+	{
+		if (prefix(p_argv[i], "--"))
+		{
+			const char *c = &p_argv[i][2];
+			if (awaiting_argument && key_matched)
+			{
+				/* Hack -- if this is second --longopt in a row, and the
+				 * last one was matching our key, assume we're done! */
+				return i - 1;
+			}
+			awaiting_argument = TRUE;
+			key_matched = FALSE;
+			if (!STRZERO(c) && streq(key, c))
+			{
+				key_matched = TRUE;
+			}
+		}
+		else
+		{
+			if (awaiting_argument)
+			{
+				awaiting_argument = FALSE;
+				if (key_matched)
+				{
+					/* Found */
+					return i;
+				}
+			}
+			else
+			{
+				/* Hack -- Ignore MacOSX `-psn_APPID` handle (see #989) */
+				if (prefix(p_argv[i], "-psn_")) continue;
+
+				/* Could be hostname */
+				if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
+				{
+					if (!got_hostname)
+					{
+						got_hostname = TRUE;
+						/* Host name */
+						if (streq(key, "host"))
+						{
+							/* Found */
+							return i;
+						}
+					}
+					else
+					{
+						/* Port! */
+						/* ... */
+						if (streq(key, "port"))
+						{
+							/* Found */
+							return i;
+						}
+					}
+				}
+				else
+				{
+					/* Error */
+				}
+			}
+		}
+	}
+	return -1;
+}
+bool clia_cpy_string(char *dst, int len, int i)
+{
+	if (i > 0 && i < p_argc)
+	{
+		my_strcpy(dst, p_argv[i], len);
+		return TRUE;
+	}
+}
+bool clia_cpy_int(s32b *dst, int i)
+{
+	if (i > 0 && i < p_argc)
+	{
+		*dst = atoi(p_argv[i]);
+		return TRUE;
+	}
+	return FALSE;
+}
+bool clia_read_bool(s32b *dst, const char *key)
+{
+	int i = clia_find(key);
+	if (i > 0 && i < p_argc)
+	{
+		const char *ckey;
+		if (strlen(p_argv[i]) > 2)
+		{
+			printf("STRLEN %s -- %d\n", p_argv[i], i);
+			/* It was a toggle option */
+			ckey = p_argv[i] + 2;
+			if (streq(key, ckey))
+			{
+				*dst = 1;
+				return TRUE;
+			}
+		}
+		if (streq(p_argv[i], "true") || streq(p_argv[i], "on"))
+		{
+			*dst = 1;
+			return TRUE;
+		}
+		if (streq(p_argv[i], "false") || streq(p_argv[i], "off"))
+		{
+			*dst = 0;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+bool clia_read_string(char *dst, int len, const char *key)
+{
+	int i = clia_find(key);
+	return clia_cpy_string(dst, len, i);
+}
+bool clia_read_int(s32b *dst, const char *key)
+{
+	int i = clia_find(key);
+	return clia_cpy_int(dst, i);
+}

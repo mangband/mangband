@@ -1325,7 +1325,7 @@ errr file_character_server(int Ind, cptr name)
 		fprintf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, format_history_event(evt));
+			fprintf(fff, "%s", format_history_event(evt));
 			fprintf(fff, "\n");
 		}
 		fprintf(fff, "\n\n");
@@ -3533,6 +3533,11 @@ static void handle_signal_simple(int sig)
 	/* Nothing to save, just quit */
 	if (!server_generated || server_saved) quit(NULL);
 
+	/* Hack -- on SIGTERM, quit right away */
+	if (sig == SIGTERM)
+	{
+		signal_count = 5;
+	}
 
 	/* Count the signals */
 	signal_count++;
@@ -3683,7 +3688,7 @@ void signals_init(void)
 #endif
 
 #ifdef SIGTERM
-	(void)signal(SIGTERM, handle_signal_abort);
+	(void)signal(SIGTERM, handle_signal_simple);
 #endif
 
 #ifdef SIGPIPE
