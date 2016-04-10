@@ -45,7 +45,7 @@ static int find_race(cptr name)
 	for (i = 0; i < z_info.p_max; i++)
 	{
 		const char* v = p_name + race_info[i].name;
-		if (!strncasecmp(v, name, strlen(v))) 
+		if (!my_strnicmp(v, name, strlen(v)))
 			return i;
 	}
 	return -1;
@@ -55,13 +55,13 @@ static int find_class(cptr name)
 	int i;
 
 	/* Hack: allow "Special" as class name, return last entry */
-	if (!strncasecmp("Special", name, 7)) return z_info.c_max;
+	if (!my_strnicmp("Special", name, 7)) return z_info.c_max;
 
 	/* Find class by name */
 	for (i = 0; i < z_info.c_max; i++)
 	{
 		const char* v = c_name + c_info[i].name;
-		if (!strncasecmp(v, name, strlen(v)))
+		if (!my_strnicmp(v, name, strlen(v)))
 			return i;
 	}
 	return -1;

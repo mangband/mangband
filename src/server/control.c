@@ -261,7 +261,7 @@ static void console_whois(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 		}
@@ -324,7 +324,7 @@ static void console_kick_player(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 			break;
