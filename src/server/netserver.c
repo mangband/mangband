@@ -1194,7 +1194,7 @@ static int Handle_listening(int ind)
 	s16b block_size;
 	bool old_client;
 	char p1,p2;
-	char nick[MAX_NAME_LEN], real[MAX_NAME_LEN], pass[MAX_PASS_LEN];
+	char nick[MAX_CHARS], real[MAX_CHARS], pass[MAX_CHARS];
 	s16b old_max_tv, old_max_f,old_max_k,old_max_r;
 
 	if (connp->state != CONN_LISTENING)
