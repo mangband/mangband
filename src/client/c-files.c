@@ -45,7 +45,7 @@ static int find_race(cptr name)
 	for (i = 0; i < z_info.p_max; i++)
 	{
 		const char* v = p_name + race_info[i].name;
-		if (!strncasecmp(v, name, strlen(v))) 
+		if (!my_strnicmp(v, name, strlen(v)))
 			return i;
 	}
 	return -1;
@@ -55,13 +55,13 @@ static int find_class(cptr name)
 	int i;
 
 	/* Hack: allow "Special" as class name, return last entry */
-	if (!strncasecmp("Special", name, 7)) return z_info.c_max;
+	if (!my_strnicmp("Special", name, 7)) return z_info.c_max;
 
 	/* Find class by name */
 	for (i = 0; i < z_info.c_max; i++)
 	{
 		const char* v = c_name + c_info[i].name;
-		if (!strncasecmp(v, name, strlen(v)))
+		if (!my_strnicmp(v, name, strlen(v)))
 			return i;
 	}
 	return -1;
@@ -2142,7 +2142,7 @@ bool conf_section_exists(cptr section)
 	if (n != 1024 - 2)
 	{
 		for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
-			if (!_stricmp(&sections[i], section))
+			if (!my_stricmp(&sections[i], section))
 				return TRUE;
 	}
 
@@ -2216,10 +2216,10 @@ section_conf_type* conf_get_section(cptr section)
 	section_conf_type *s_ptr;
 	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 	{
-		if ( !strcasecmp(section, s_ptr->name) )
+		if ( !my_stricmp(section, s_ptr->name) )
 		{
 			return s_ptr;
-		}	
+		}
 	}
 	return NULL;
 }
@@ -2284,7 +2284,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 	/* Find node to change */
 	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
 	{	
-		if ( !strcasecmp(name, v_ptr->name) )
+		if ( !my_stricmp(name, v_ptr->name) )
 		{
 			strcpy(v_ptr->value, value);
 			done = TRUE;
@@ -2338,11 +2338,11 @@ long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 	
 	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 	{
-		if ( !strcasecmp(section, s_ptr->name) )
+		if ( !my_stricmp(section, s_ptr->name) )
 		{
 			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
-			{	
-				if ( !strcasecmp(name, v_ptr->name) )
+			{
+				if ( !my_stricmp(name, v_ptr->name) )
 				{
 					if (is_int)
 						return atoi(v_ptr->value);
@@ -2704,6 +2704,7 @@ bool clia_cpy_string(char *dst, int len, int i)
 		my_strcpy(dst, p_argv[i], len);
 		return TRUE;
 	}
+	return FALSE;
 }
 bool clia_cpy_int(s32b *dst, int i)
 {

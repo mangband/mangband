@@ -330,7 +330,7 @@ cptr conf_find_font(term_data *td) {
 		strcpy(fontname, conf_get_string("SDL-Fonts", buf, "\0"));
 
 		/* it's the same as current */
-		if (!strcasecmp(fontname, td->fd->name))
+		if (!my_stricmp(fontname, td->fd->name))
 		{
 			j = i + 1;
 			break;

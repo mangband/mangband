@@ -6124,7 +6124,7 @@ s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
 	}
 
 #define MASTER_SEARCH_COMPARE(HAYSTACK) \
-			if ((exact && !strncasecmp((HAYSTACK), needle, len)) || \
+			if ((exact && !my_strnicmp((HAYSTACK), needle, len)) || \
 				(!exact && my_stristr((HAYSTACK), needle)) ) \
 			{ \
 				if (i <= offset) \
@@ -6479,7 +6479,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'I':
 				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
 				if (STRZERO(buf)) break;
-				if (strncasecmp(&buf[0], "server-", 7))
+				if (my_strnicmp(&buf[0], "server-", 7))
 				{
 					error = "Incorrect filename. Must have 'server-something' format!";
 				}
@@ -6499,7 +6499,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'E':
 
 				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
-				if (strncasecmp(&buf[0], "server-", 7))
+				if (my_strnicmp(&buf[0], "server-", 7))
 				{
 					error = "Incorrect filename. Must have 'server-something' format!";
 				}
@@ -6800,7 +6800,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					{
 						MASTER_COMMON_LIMIT();
 
-						if (strncasecmp(dit->d_name, "server-", 7)) { i--; continue; }
+						if (my_strnicmp(dit->d_name, "server-", 7)) { i--; continue; }
 
                 		MASTER_DUMP_I()
 

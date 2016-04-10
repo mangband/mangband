@@ -1167,7 +1167,7 @@ extern void user_name(char *buf, int id);
 
 #ifndef HAVE_MEMSET
 /* util.c */
-extern char *memset(char*, int, huge);
+extern void *memset(void*, int, size_t);
 #endif
 
 #ifndef HAVE_STRICMP

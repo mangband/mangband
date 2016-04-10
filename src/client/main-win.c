@@ -3750,7 +3750,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	initialized = TRUE;
 
 	/* Do network initialization, etc. */
-	client_init(NULL);
+	client_init();
 
 	/* Process messages forever */
 	while (GetMessage(&msg, NULL, 0, 0))

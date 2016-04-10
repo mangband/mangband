@@ -983,7 +983,7 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->flag = flag;
 	i_ptr->win = win;
 
-	i_ptr->mark = strdup(mark);
+	i_ptr->mark = string_make(mark);
 
 	n = strlen(buf) + 1;
 	C_MAKE(i_ptr->prompt, n, char);
@@ -1257,7 +1257,7 @@ int recv_stream_info(connection_type *ct) {
 
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = strdup(buf);
+		s_ptr->mark = string_make(buf);
 	}
 
 
