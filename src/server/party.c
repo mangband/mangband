@@ -905,7 +905,7 @@ void add_player_name(cptr name, int id)
 	MAKE(ptr, hash_entry);
 
 	/* Make a copy of the player name in the entry */
-	ptr->name = strdup(name);
+	ptr->name = string_make(name);
 
 	/* Set the entry's id */
 	ptr->id = id;
