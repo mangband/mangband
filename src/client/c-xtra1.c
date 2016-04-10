@@ -2920,7 +2920,7 @@ int register_indicator(int id)
 	/* For each field */
 	for (f = &fields[0]; f->field_cb; f++)
 	{
-			if (!strcasecmp(f->mark, i->mark))
+			if (!my_stricmp(f->mark, i->mark))
 			{
 				prt_functions[id] = f->field_cb;
 				found = TRUE;

@@ -446,7 +446,7 @@ static void console_reload(connection_type* ct, char *mod)
 static void console_shutdown(connection_type* ct, char *when)
 {
 	int min = 0;
-	//if (!strcasecmp(when, "NOW")) min = 0;
+	//if (!my_stricmp(when, "NOW")) min = 0;
 	//else if (IS_VALID_NUMBER(when)) min = when
 
 	/* Now */

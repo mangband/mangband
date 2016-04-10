@@ -2142,7 +2142,7 @@ bool conf_section_exists(cptr section)
 	if (n != 1024 - 2)
 	{
 		for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
-			if (!_stricmp(&sections[i], section))
+			if (!my_stricmp(&sections[i], section))
 				return TRUE;
 	}
 
@@ -2216,10 +2216,10 @@ section_conf_type* conf_get_section(cptr section)
 	section_conf_type *s_ptr;
 	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 	{
-		if ( !strcasecmp(section, s_ptr->name) )
+		if ( !my_stricmp(section, s_ptr->name) )
 		{
 			return s_ptr;
-		}	
+		}
 	}
 	return NULL;
 }
@@ -2284,7 +2284,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 	/* Find node to change */
 	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
 	{	
-		if ( !strcasecmp(name, v_ptr->name) )
+		if ( !my_stricmp(name, v_ptr->name) )
 		{
 			strcpy(v_ptr->value, value);
 			done = TRUE;
@@ -2338,11 +2338,11 @@ long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
 	
 	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 	{
-		if ( !strcasecmp(section, s_ptr->name) )
+		if ( !my_stricmp(section, s_ptr->name) )
 		{
 			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
-			{	
-				if ( !strcasecmp(name, v_ptr->name) )
+			{
+				if ( !my_stricmp(name, v_ptr->name) )
 				{
 					if (is_int)
 						return atoi(v_ptr->value);

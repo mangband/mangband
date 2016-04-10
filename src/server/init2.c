@@ -2026,7 +2026,7 @@ static errr init_alloc(void)
 bool str_to_boolean(char * str)
 {
 	/* false by default */
-	return !(strcasecmp(str, "true"));
+	return !(my_stricmp(str, "true"));
 }
 
 /*
@@ -2062,7 +2062,7 @@ static void enforce_option(char * name, bool set_what)
 	int i;
 	for (i = 0; option_info[i].o_desc; i++)
 	{
-		if (!strcasecmp(option_info[i].o_text, name))
+		if (!my_stricmp(option_info[i].o_text, name))
 		{
 			option_info[i].o_norm = set_what; /* Change default */
 			option_info[i].o_bit = 1; /* Forbid changes */ 
