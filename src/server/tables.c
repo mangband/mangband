@@ -640,12 +640,12 @@ const indicator_type indicators[MAX_INDICATORS] =
 #if 0
 	/* Classic HP/SP indicators */
 	{
-		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_CURHP,	COL_CURHP,
+		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
 		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
 		(PR_HP), "hp"
 	},
 	{
-		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_CURSP,	COL_CURSP,
+		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_MAXSP,	COL_MAXSP,
 		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
 		(PR_MANA), "sp"
 	},
