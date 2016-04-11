@@ -623,9 +623,9 @@ void do_cmd_check_players(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
-	
+
 	/* Paranoia */
-	if (!fff) 
+	if (!fff)
 	{
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
@@ -1083,9 +1083,9 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		/* Prompt */
 		text_out(" \n");
 		text_out("Command: \n");
-		
+
 		text_out_done();
-		
+
 		/* Send */
 		Send_term_info(Ind, NTERM_CLEAR, 0);
 		for (i = 0; i < MAX_TXT_INFO; i++)
@@ -1131,9 +1131,9 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 			self_knowledge(Ind, FALSE);
 			p_ptr->special_file_type = SPECIAL_FILE_OTHER;
 			changed = TRUE;
-			break;			
+			break;
 	}
-	
+
 	/* HACK! - Move to another menu */
 	if (changed)
 	{	
@@ -1189,7 +1189,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 		default:
 
 		if (*len < 80 && isprint(query))
-		{	
+		{
 			str[(byte)(*len)++] = query;
 		}
 	}
@@ -1199,7 +1199,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 		p_ptr->special_file_type = *old_file_type;
 		send_term_info(p_ptr, NTERM_HOLD, NTERM_PULL);
 		do_cmd_interactive_aux(p_ptr, *old_file_type, *mark);
-		return; 
+		return;
 	}
 
 	/* Refresh client screen */
@@ -1217,7 +1217,7 @@ void do_cmd_interactive(player_type *p_ptr, char query)
 	/* Hack -- use special term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 
-	/* Perform action */	
+	/* Perform action */
 	do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, query);
 
 	/* Hack -- return to main term */

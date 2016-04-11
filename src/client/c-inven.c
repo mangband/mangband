@@ -138,55 +138,55 @@ s16b c_label_to_equip(int c)
  */
 static int get_tag(int *cp, char tag)
 {
-        int i;
-        cptr s;
+	int i;
+	cptr s;
 
 
-        /* Check every object */
-        for (i = 0; i < INVEN_TOTAL; ++i)
-        {
-                char *buf = inventory_name[i];
+	/* Check every object */
+	for (i = 0; i < INVEN_TOTAL; ++i)
+	{
+		char *buf = inventory_name[i];
 		char *buf2;
 
-                /* Skip empty objects */
-                if (!buf[0]) continue;
+		/* Skip empty objects */
+		if (!buf[0]) continue;
 
-                /* Skip empty inscriptions */
-                if (!(buf2 = strchr(buf, '{'))) continue;
+		/* Skip empty inscriptions */
+		if (!(buf2 = strchr(buf, '{'))) continue;
 
-                /* Find a '@' */
-                s = strchr(buf2, '@');
+		/* Find a '@' */
+		s = strchr(buf2, '@');
 
-                /* Process all tags */
-                while (s)
-                {
-                        /* Check the normal tags */
-                        if (s[1] == tag)
-                        {
-                                /* Save the actual inventory ID */
-                                *cp = i;
+		/* Process all tags */
+		while (s)
+		{
+			/* Check the normal tags */
+			if (s[1] == tag)
+			{
+				/* Save the actual inventory ID */
+				*cp = i;
 
-                                /* Success */
-                                return (TRUE);
-                        }
+				/* Success */
+				return (TRUE);
+			}
 
-                        /* Check the special tags */
-                        if ((s[1] == command_cmd) && (s[2] == tag))
-                        {
-                                /* Save the actual inventory ID */
-                                *cp = i;
+			/* Check the special tags */
+			if ((s[1] == command_cmd) && (s[2] == tag))
+			{
+				/* Save the actual inventory ID */
+				*cp = i;
 
-                                /* Success */
-                                return (TRUE);
-                        }
+				/* Success */
+				return (TRUE);
+			}
 
-                        /* Find another '@' */
-                        s = strchr(s + 1, '@');
-                }
-        }
+			/* Find another '@' */
+			s = strchr(s + 1, '@');
+		}
+	}
 
-        /* No such tag */
-        return (FALSE);
+	/* No such tag */
+	return (FALSE);
 }
 
 bool c_check_item(int *item, byte tval)
@@ -206,7 +206,7 @@ bool c_check_item(int *item, byte tval)
 			return TRUE;
 		}
 	}	
-	
+
 	/* Oops */
 	return FALSE;
 }
@@ -249,7 +249,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* The top line is icky */
 	topline_icky = TRUE;
 
-	/* Not done */	
+	/* Not done */
 	done = FALSE;
 
 	/* No item selected */
@@ -297,7 +297,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		/* Cancel command_see */
 		command_see = FALSE;
 
-		/* Hack -- Nothing to choose */	
+		/* Hack -- Nothing to choose */
 		*cp = -2;
 
 		/* Done */
@@ -330,7 +330,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	}
 
 	/* Hack -- start out in "display" mode */
-	if (command_see) 
+	if (command_see)
 	{
 		Term_save();
 	}
@@ -371,7 +371,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		/* Viewing inventory */
 		if (!command_wrk)
 		{
-			/* Begin the prompt */	
+			/* Begin the prompt */
 			sprintf(out_val, "Inven:");
 
 			/* Some legal items */
@@ -467,7 +467,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			}
 			case '-':
 				/* Floor */
-				if (allow_floor) 
+				if (allow_floor)
 				{
 					(*cp) = -1;
 					item = TRUE;

@@ -64,10 +64,10 @@ extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
  * A font_data struct keeps the SDL_Surface and other info for tile graphics
  * which include fonts.
  */
- 
+
 typedef struct font_data font_data; /* must be here to avoid fwd. ref. */
 
-struct font_data 
+struct font_data
 {
 	SDL_Surface *face;
 	cptr name;
@@ -84,7 +84,7 @@ struct font_data
 
 
 /* tile graphics are very very similar to bitmap fonts. */
-typedef struct font_data graf_tiles; 
+typedef struct font_data graf_tiles;
 
 
 typedef struct term_data term_data;
@@ -97,17 +97,17 @@ struct term_data
 
 	SDL_Surface *face;
 
-	bool 		online;
+	bool		online;
 
 	int		rows;
 	int		cols;
 
 	Uint32 width, height;
 
-	font_data 	*fd;
+	font_data	*fd;
 	font_data	sfd;
 
-	graf_tiles 	*gt;
+	graf_tiles	*gt;
 	graf_tiles	sgt;
 
 	Uint8 w, h; /* width and height of an individual 2D element */
@@ -468,7 +468,7 @@ errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 #ifndef MAX_HEX_FONT_LINE
 #define MAX_HEX_FONT_LINE 1024
 #endif
- 
+
 errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 {
 	FILE *f;
@@ -511,7 +511,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 		return -1;
 	}
 
-	
+
 
 	/* try hard to figure out the font metrics */
 
@@ -621,7 +621,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 		x = 0; 
 		y = fd->h * gn;
-		
+
 		i = strlen(gs);
 
 		if (gs[i-1] == '\n') {
@@ -863,12 +863,12 @@ bool gui_term_shift() {
 /* Release shift on term (-SHIFT) */
 bool gui_term_unshift() {
 	int i = m_term;
-	
+
 	m_shift = FALSE;
-	
+
 	if (i == -1) i = m_subterm;
 	if (i == -1) return FALSE;
-	
+
 	if (!m_rescaled) return FALSE;
 
 	term_close(i);
@@ -963,7 +963,7 @@ bool gui_term_event(SDL_Event* event) {
 		if( event->button.button == SDL_BUTTON_LEFT )
 		{
 			taken = gui_term_grab(pick_term(event->button.x, event->button.y));
-	 	}
+		}
 		break;
 
 		case SDL_KEYUP:
@@ -1384,11 +1384,11 @@ static errr Term_xtra_sdl(int n, int v)
 	{
 		case TERM_XTRA_EVENT:
 		while (1) {
-			if (v) 
+			if (v)
 			{
 				if (!SDL_WaitEvent(&event)) return(0); /* TODO handle errors */
 				v = 0;
-			} else 
+			} else
 			{
 				if (!SDL_PollEvent(&event)) return(0);
 			}
@@ -1885,10 +1885,10 @@ static void term_data_link(int i)
 
 	/* Save pointer */
 	ang_term[i] = t;
-	
+
 	/* Special pointer for Main Window */
 	if (!i) term_screen = t;
-	
+
 	/* Activate it */
 	/* Term_activate(t); */
 }
@@ -2284,7 +2284,7 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 			return TRUE;
 		else
 			return FALSE;
-	}	
+	}
 
 	/* Load graf */
 	if (!td->gt)
@@ -2311,7 +2311,7 @@ bool term_set_font(int i, cptr fontname)
 	font_data *load_font;
 	term_data *td = &(tdata[i]);
 	int j;
-	
+
 	/* Some font allready loaded */
 	if (td->fd)
 	{
@@ -2320,7 +2320,7 @@ bool term_set_font(int i, cptr fontname)
 		else
 			term_unload_font(i);
 	}
-	
+
 	/* Attempt to use pre-loaded font */
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
@@ -2353,10 +2353,10 @@ bool term_set_font(int i, cptr fontname)
 	td->width = td->fd->w * td->cols;
 	td->height = td->fd->h * td->rows;
 
-	td->w = td->fd->w; 
+	td->w = td->fd->w;
 	td->h = td->fd->h;
-	
-	return TRUE; 
+
+	return TRUE;
 }
 /* JIC */
 void term_unload(int i)
@@ -2438,14 +2438,14 @@ bool init_one_term(int i, bool force)
 	term_data *td;
 	td = &(tdata[i]);
 	term_name[0] = '\0';
-	
+
 	switch (i)
 	{
-		case 0:			strcpy(term_name, "Angband");			break;
-		case 1:			strcpy(term_name, "Mirror");			break;
-		case 2:			strcpy(term_name, "Recall");			break;
-		case 3:			strcpy(term_name, "Choice");			break;
-		default:			sprintf(term_name, "%d", i);
+		case 0: 	strcpy(term_name, "Angband");	break;
+		case 1: 	strcpy(term_name, "Mirror");	break;
+		case 2: 	strcpy(term_name, "Recall");	break;
+		case 3: 	strcpy(term_name, "Choice");	break;
+		default:	sprintf(term_name, "%d", i);
 	}
 
 	sprintf(sec_name, "SDL-Term-%s", term_name);
@@ -2478,7 +2478,7 @@ bool init_one_term(int i, bool force)
 	}
 
 	/* If we are here,  consider "term" loaded */
-	
+
 	/* Name */
 	td->name = string_make(term_name);
 	td->face = NULL;
@@ -2505,7 +2505,7 @@ bool init_one_term(int i, bool force)
 	td->height = td->h * td->rows;
 
 	term_rescale(i, TRUE, FALSE);
-	
+
 #ifndef SINGLE_SURFACE
 	td->face = SDL_CreateRGBSurface(SDL_SWSURFACE, td->width, td->height, 32,0,0,0,0);
 #endif
@@ -2613,7 +2613,7 @@ static void init_sound()
 	/* Clear sound_data */
 	for (j = 0; j < MSG_MAX; j++)	for (i = 0; i < SAMPLE_MAX; i++)
 	{
-			(void)WIPE(&sound_data[j][i], sound_wave);
+		(void)WIPE(&sound_data[j][i], sound_wave);
 	}
 }
 /*
@@ -2635,7 +2635,7 @@ static void cleanup_sound()
 		}
 	}
 }
-/* 
+/*
  * Load a sound
  */
 static void load_sound(int v, int s)
@@ -2731,7 +2731,7 @@ errr init_sdl(void)
 	initflags |= SDL_INIT_AUDIO;
 #endif
 
-	/* Force core dumps in Debug mode. Leave friendly stack traces for Normal mode. */ 
+	/* Force core dumps in Debug mode. Leave friendly stack traces for Normal mode. */
 #ifdef DEBUG
 	initflags |= SDL_INIT_NOPARACHUTE;
 #endif
@@ -2841,15 +2841,15 @@ void save_one_term(int i) {
 	if (td->name)
 	{
 		sprintf(sec_name, "SDL-Term-%s", td->name);
-	} else 
-	{	
+	} else
+	{
 		switch (i)
 		{
-			case 0:			strcpy(term_name, "Angband");			break;
-			case 1:			strcpy(term_name, "Mirror");			break;
-			case 2:			strcpy(term_name, "Recall");			break;
-			case 3:			strcpy(term_name, "Choice");			break;
-			default:			sprintf(term_name, "%d", i);
+			case 0: 	strcpy(term_name, "Angband")	break;
+			case 1: 	strcpy(term_name, "Mirror");	break;
+			case 2: 	strcpy(term_name, "Recall");	break;
+			case 3: 	strcpy(term_name, "Choice");	break;
+			default:	sprintf(term_name, "%d", i);
 		}
 		sprintf(sec_name, "SDL-Term-%s", term_name);
 	}
@@ -2857,11 +2857,11 @@ void save_one_term(int i) {
 	conf_set_int(sec_name, "Visible", (int)td->online);
 	if (td->fd && td->fd->name)
 	conf_set_string(sec_name, "Font", td->fd->name);
-	
+
 	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
 	//if (!i && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; /* Compact */
 	//if (!i && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; /* Status line */	
-	
+
 	conf_set_int(sec_name, "Cols", td->cols);
 	conf_set_int(sec_name, "Rows", td->rows);
 	conf_set_int(sec_name, "PositionX", td->xoff);
@@ -2880,7 +2880,7 @@ void save_sdl_prefs() {
 	conf_set_int("SDL", "Fullscreen", fullscreen);
 	conf_set_int("SDL", "Graphics", use_graphics);
 	conf_set_int("SDL", "Sound", use_sound);
-	
+
 	/* Terms */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
 	{

@@ -22,7 +22,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "angband.h" 
+#include "angband.h"
 
 //TODO: Wrap those into configure.ac!!
 #ifdef WINDOWS
@@ -45,7 +45,7 @@
 #define EINVAL WSAEINVAL
 #define sockerr WSAGetLastError()
 #else
-#include <netdb.h> 
+#include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -123,7 +123,7 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	new_s->delay = interval;
 	cq_init(&new_s->wbuf, PD_SMALL_BUFFER);
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_s);
 }
 
@@ -161,8 +161,8 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 
 	crfds = MATH_MAX(crfds, callerfd);
 
-	/* Add to list */	
-	return e_add(root, NULL, new_c); 	
+	/* Add to list */
+	return e_add(root, NULL, new_c);
 }
 
 eptr add_listener(eptr root, int port, callback cb) {
@@ -171,12 +171,12 @@ eptr add_listener(eptr root, int port, callback cb) {
 	int listenfd;
 	int on;
 
-	/* Init socket */	
+	/* Init socket */
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
 	/* Enable address reuse */
 	on = 1;
-	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on) );   
+	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on) );
 
 	/* Set to non-blocking. */
 	unblockfd(listenfd);
@@ -191,7 +191,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
 		plog("BIND FAILED");
 		closesocket(listenfd);
-	   	return(NULL);
+		return(NULL);
 	}
 
 	if (listen(listenfd,1024) < 0) {
@@ -207,7 +207,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	new_l->accept_cb = cb;
 	new_l->listen_fd = listenfd;
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_l);
 }
 
@@ -252,7 +252,7 @@ eptr add_timer(eptr root, int interval, callback timeout) {
 	new_t->delay = interval;
 	new_t->timeout_cb = timeout;
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_t);
 }
 
@@ -264,7 +264,7 @@ eptr handle_connections(eptr root) {
 
 	for (iter=root; iter; iter=iter->next) {
 		ct = (connection_type*)iter->data2;
-		connfd = ct->conn_fd;	
+		connfd = ct->conn_fd;
 
 		FD_SET(connfd, &rd);
 
@@ -289,7 +289,7 @@ eptr handle_connections(eptr root) {
 				else ct->close = 1;
 			}
 			/* Error while receiving */
-			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;	
+			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))
@@ -443,15 +443,15 @@ micro static_timer(int id) {
 	tv = (PerformanceCount.QuadPart * 1000000) / Frequency.QuadPart;
 	microsec = tv;
 #endif
-/*	
+/*
 	printf("OLD: %ld\n", times[id]);
 	printf("NEW: %ld\n", microsec);
 	printf("DIF: %ld\n", microsec);
-*/	
+*/
 	passed = (!times[id] ? 0 : microsec - times[id]);
 	times[id] = microsec;
 
-	return passed;	
+	return passed;
 }
 
 eptr handle_senders(eptr root, micro microsec) {
@@ -577,7 +577,7 @@ void unblockfd(int fd) {
 /* Disable Nagle's algorithm (required for MAngband) */
 void denaglefd(int fd) {
 	char on = 1;
-	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );   
+	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );
 }
 
 /* Get local machine hostname */
