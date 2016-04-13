@@ -1749,6 +1749,13 @@ int recv_objflags(connection_type *ct)
 		return 0;
 	}
 
+	/* Verify */
+	if (y < 0 || y >= 14)
+	{
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, 14));
+		return -1;
+	}
+
 	/* Body (39 grids of cave) */
 	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
 	{ 
