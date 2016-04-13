@@ -692,6 +692,13 @@ int cv_decode_rle2(cave_view_type* dst, cq* src, int len) {
 			/* Get the number of repetitions */
 			n = c;
 
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
+
 			/* Read the attr/char pair */
 			PR_ERROR_SIZE(1)
 			UNPACK_PTR_8(&c, rptr);
@@ -797,6 +804,13 @@ int cv_decode_rle3(cave_view_type* dst, cq* src, int len) {
 			/* Read the number of repetitions */
 			PR_ERROR_SIZE(1)
 			UNPACK_PTR_8(&n, rptr);
+
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
 		}
 
 		/* 'Draw' a character n times */
