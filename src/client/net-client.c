@@ -1199,10 +1199,12 @@ int recv_stream_size(connection_type *ct) {
 	if (addr == NTERM_WIN_OVERHEAD)
 	{
 		/* Redraw status line */
-		Term_erase(0, y-1, x);
-		p_ptr->redraw |= PR_STATUS;
+		Term_erase(0, y + SCREEN_CLIP_L, x);
+		//p_ptr->redraw |= PR_STATUS;
+		schedule_redraw(PW_STATUS);
 		/* Redraw compact */
-		p_ptr->redraw |= PR_COMPACT;
+		//p_ptr->redraw |= PR_COMPACT;
+		schedule_redraw(PW_PLAYER_2);
 	}
 
 
@@ -1755,7 +1757,7 @@ int recv_objflags(connection_type *ct)
 
 	//TODO: re-evalute those
 	/* Update relevant displays */
-	p_ptr->redraw |= PR_EQUIPPY;
+	//p_ptr->redraw |= PR_EQUIPPY;
 	p_ptr->window |= (PW_PLAYER_1);
 
 	/* Ok */

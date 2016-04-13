@@ -472,6 +472,7 @@ extern bool message_color(cptr msg, byte *ap);
 extern int find_whisper_tab(cptr msg, char *text);
 extern void prt_map_easy(void);
 extern void prt_player_hack(void);
+extern void schedule_redraw(u32b filter);
 extern void redraw_indicators(u32b filter);
 
 

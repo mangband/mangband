@@ -134,6 +134,9 @@ void init_minor(void)
 		window_to_stream[i] = NTERM_WIN_NONE;
 		remote_info[i] = NULL;
 	}
+
+	/* Redraw flags */
+	p_ptr->redraw = 0;
 }
 
 /* Init info arrays */

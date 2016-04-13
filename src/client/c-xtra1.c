@@ -626,6 +626,7 @@ void prt_map_easy()
 	} 
 }
 /* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
+/* Note: this is currently not used by anything, but could prove useful */
 void prt_player_hack(void)
 {
 	int n;
@@ -633,7 +634,8 @@ void prt_player_hack(void)
 	{
 		for (n = 1; n < 22; n++)
 			Term_erase(0, n, 13);
-		p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		//p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		schedule_redraw(PW_PLAYER_2);
 	}
 }
 
@@ -2436,6 +2438,28 @@ struct field
 	pfcb	field_cb;
 	byte	win;
 };
+
+/*
+ * Schedule redrawing of some indicators based on their window flag.
+ *  This should be used instead of p_ptr->redraw |= PR_FOOBAR,
+ *  because from now on, PR_* flags are completely server-defined
+ *  and might mean something entirely different from what client thinks.
+ */
+void schedule_redraw(u32b filter)
+{
+	int i = 0;
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (indicator_window[i] & filter)
+		{
+			p_ptr->redraw |= i_ptr->redraw; 
+		}
+	}
+}
 
 /*
  * Redraw large ammount of indicators, filtered by window.
