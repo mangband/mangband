@@ -374,7 +374,6 @@ extern bool clia_read_int(s32b *dst, const char *key);
 extern bool clia_read_bool(s32b *dst, const char *key);
 
 /* c-init.c */
-extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
 extern bool sync_data(void);
 extern bool client_login(void);
 extern bool client_ready(void);
