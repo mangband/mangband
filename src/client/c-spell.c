@@ -148,6 +148,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				{
 					/* Restore the screen */
 					Term_load();
+					Term_save();
 	
 					/* Display a list of spells */
 					print_spells(book);
