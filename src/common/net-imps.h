@@ -29,7 +29,7 @@ struct connection_type {
 struct timer_type {
 	micro interval;
 	micro delay;
-	callback timeout_cb; /* return 1 for infinite, 0 for one-shot, 2 for smooth */ 
+	callback timeout_cb; /* return 1 for infinite, 0 for one-shot, 2 for smooth */
 };
 
 extern eptr add_sender(eptr root, char *host, int port, micro interval, callback send_cb);

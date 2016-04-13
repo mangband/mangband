@@ -123,7 +123,7 @@ typedef unsigned int uint;
  *  PRId64 SCNd64	s64b
  *  PRIu64 SCNu64	u64b, huge
  * With usage like:
- *  printf("%" PRIu16, (u16b)variable); 
+ *  printf("%" PRIu16, (u16b)variable);
  *
  * (The _rest_ of this file indeed is a hack!)
  */
@@ -171,7 +171,7 @@ typedef unsigned long u64b;
 typedef u64b huge;
 
 /* Turn counter type "huge turn" (largest number ever) */
-#define HTURN_ERA_FLIP 1000000 
+#define HTURN_ERA_FLIP 1000000
 typedef struct hturn {
 	huge era;
 	huge turn;

@@ -237,7 +237,7 @@ errr path_build(char *buf, int max, cptr path, cptr file)
 		/* Use the file itself */
 		strnfmt(buf, max, "%s", file);
 	}
-	
+
 	/* No path given */
 	else if (!path[0])
 	{

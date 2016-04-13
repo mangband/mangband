@@ -68,7 +68,7 @@ void do_cmd_eat_food(int Ind, int item)
 
 	int			lev;
 	bool ident;
-	
+
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^E' */
@@ -931,8 +931,8 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 
-    /* Drain the charge */
-    o_ptr->timeout += k_ptr->pval;
+	/* Drain the charge */
+	o_ptr->timeout += k_ptr->pval;
 
 	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) {
 		/* XXX Hack -- unstack if necessary */
@@ -944,12 +944,12 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 			tmp_obj.number = 1;
 			
 			distribute_charges(o_ptr, &tmp_obj, 1);
-	
+
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
 			item = inven_carry(p_ptr, &tmp_obj);
-	
+
 			/* Message */
 			msg_print(Ind, "You unstack your rod.");
 		}
@@ -963,13 +963,13 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
  */
 static bool item_tester_hook_activate(int Ind, object_type *o_ptr)
 {
-    u32b f1, f2, f3;
+	u32b f1, f2, f3;
 
 	/* Not known */
 	if (!object_known_p(Players[Ind], o_ptr)) return (FALSE);
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Check activation flag */
 	if (f3 & TR3_ACTIVATE) return (TRUE);

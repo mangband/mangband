@@ -24,16 +24,16 @@ static void init_arrays(void)
 	C_MAKE(message__ptr, MESSAGE_MAX, u16b);
 	C_MAKE(message__buf, MESSAGE_BUF, char);
 	C_MAKE(message__type, MESSAGE_MAX, u16b);
-	C_MAKE(message__count, MESSAGE_MAX, u16b);	
+	C_MAKE(message__count, MESSAGE_MAX, u16b);
 
 	/* Hack -- No messages yet */
 	message__tail = MESSAGE_BUF;
 
 	/* Initialize room for the store's stock */
-    C_MAKE(store.stock, STORE_INVEN_MAX, object_type);
-    
-    /* Clear client_setup */
-    Client_setup.k_attr = NULL;
+	C_MAKE(store.stock, STORE_INVEN_MAX, object_type);
+
+	/* Clear client_setup */
+	Client_setup.k_attr = NULL;
 }
 
 /*
@@ -108,10 +108,10 @@ void init_minor(void)
 	{
 		channels[i].name[0] = '\0';
 		channels[i].id = channels[i].num = 0;
-		p_ptr->on_channel[i] = FALSE; 
+		p_ptr->on_channel[i] = FALSE;
 	}
 	p_ptr->main_channel = 0;
-	
+
 	/* Term channels */
 	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 
@@ -173,26 +173,26 @@ void init_info(void)
  */
 void initialize_all_pref_files(void)
 {
-        char buf[1024];
+	char buf[1024];
 
-        /* Access the "basic" pref file */
- 	     strcpy(buf, "pref.prf");
+	/* Access the "basic" pref file */
+	strcpy(buf, "pref.prf");
 
-        /* Process that file */
-        process_pref_file(buf);
+	/* Process that file */
+	process_pref_file(buf);
 
-  	     /* Access the "user" pref file */
-        sprintf(buf, "user.prf");
+	/* Access the "user" pref file */
+	sprintf(buf, "user.prf");
 
-        /* Process that file */
-        process_pref_file(buf);
+	/* Process that file */
+	process_pref_file(buf);
 
-        /* Access the "character" pref file */
-        sprintf(buf, "%s.prf", nick);
-		  buf[0] = tolower(buf[0]);
-	
-        /* Process that file */
-        process_pref_file(buf);
+	/* Access the "character" pref file */
+	sprintf(buf, "%s.prf", nick);
+	buf[0] = tolower(buf[0]);
+
+	/* Process that file */
+	process_pref_file(buf);
 }
 
 int get_bone_decision() {
@@ -364,7 +364,7 @@ static void Setup_loop()
 	Game_loop();
 }
 
-/* 
+/*
  * Propogate all pending updates to the screen
  */
 void flush_updates()
@@ -422,7 +422,7 @@ static void Game_loop(void)
 		/* Flush output */
 		flush_updates();
 	}
-}	
+}
 
 /*
  * A hook for "quit()".
@@ -444,7 +444,7 @@ static void quit_hook(cptr s)
 		/* Nuke it */
 		term_nuke(ang_term[j]);
 	}
-	
+
 	conf_save();
 }
 
@@ -464,12 +464,12 @@ void init_subscriptions()
 	int i, j, k, n;
 
 	u32b empty_flag[ANGBAND_TERM_MAX];
-	
+
 	stream_type* st_ptr;
 	s16b last_addr = -1; 
 
 	/* Fill stream_groups, window_to_stream, stream_to, stream_desc, etc */
-#if 1 
+#if 1
 	for (i = 0; i < known_streams; i++)
 	{
 		/* Handle single streams */
@@ -518,7 +518,7 @@ void init_subscriptions()
 		if (!window_flag_desc[n])
 		{
 			st_ptr->window_flag = (1L << n);
-	 		/* HACK! Enforce Dungeon View on window 0 */
+			/* HACK! Enforce Dungeon View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
 
 			/* Save "string" */
@@ -560,10 +560,10 @@ bool client_setup()
 
 	/* Initialize the pref files */
 	initialize_all_pref_files();
-	
+
 	/* Send request for MOTD to read (optional) */
-	//Send_motd(0); // pass -1 to receive motd off-screen 
-	
+	//Send_motd(0); // pass -1 to receive motd off-screen
+
 	gather_settings();
 
 	send_settings();
@@ -571,18 +571,18 @@ bool client_setup()
 	send_options();
 
 	/* Send visual preferences */
-	for (i = 0; i < VISUAL_INFO_PR +1; i++) 
+	for (i = 0; i < VISUAL_INFO_PR +1; i++)
 		send_visual_info(i);
 
 	/* Hack -- don't enter the game if waiting for motd */
 	//if (Setup.wait && !Setup.ready)
 	{
 		//return FALSE;
-	}		
-		
+	}
+
 	/* Request gameplay */
 	//Send_play(1);
-	
+
 	return TRUE;
 }
 
@@ -600,11 +600,11 @@ bool client_ready()
 	return TRUE;
 }
 
-/* Return 1 to continue, 0 to cancel */ 
+/* Return 1 to continue, 0 to cancel */
 int client_failed(void)
 {
 	static int try_count = 0;
-	event_type chkey;	
+	event_type chkey;
 	char ch = 0;
 	char buf[80];
 	byte star = 0;
@@ -631,11 +631,11 @@ int client_failed(void)
 	/* Hack -- show "animation" */
 	star = (try_count % 300) / 100;
 	put_str(".   ", 21, 21);
-	if (star) 
-	do { put_str(".", 21, 22 + star); }
-	while (star--);	
+	if (star)
+		do { put_str(".", 21, 22 + star); }
+		while (star--);
 	Term_fresh();
-	
+
 	return 1;
 }
 

@@ -79,15 +79,15 @@
  * Maximum dungeon height in grids, must be a multiple of SCREEN_HGT,
  * probably hard-coded to SCREEN_HGT * 3.
  */
-#define MAX_HGT		66
+#define MAX_HGT 	66
 
 /*
  * Maximum dungeon width in grids, must be a multiple of SCREEN_WID,
  * probably hard-coded to SCREEN_WID * 3.
  */
-#define MAX_WID		198
+#define MAX_WID 	198
 
-	
+
 /*
  * Hack -- This is used to make sure that every player that has a structure
  * dedicated to them is actually connected
@@ -98,8 +98,8 @@
  * Maximum length for names and passwords
  *
  */
-#define MAX_NAME_LEN		15
-#define MAX_PASS_LEN		40
+#define MAX_NAME_LEN    	15
+#define MAX_PASS_LEN    	40
 
 /*
  * Maximum number of players playing at once.
@@ -117,7 +117,7 @@
 /*
  * Maximum amount of starting equipment
  */
-#define MAX_START_ITEMS	6
+#define MAX_START_ITEMS 6
 
 
 
@@ -126,10 +126,10 @@
 /*
  * Maximum array bounds for entity list arrays
  */
-#define MAX_O_IDX	32768	/* Max size for "o_list[]" */
-#define MAX_M_IDX 	32768	/* Max size for "m_list[]" */
+#define MAX_O_IDX	32768 /* Max size for "o_list[]" */
+#define MAX_M_IDX	32768 /* Max size for "m_list[]" */
 
-#define MAX_FLVR_IDX	330 /* Max size for flv_x_char[]/attr[] */ 
+#define MAX_FLVR_IDX	330 /* Max size for flv_x_char[]/attr[] */
 
 /*
  * Number of tval/min-sval/max-sval slots per ego_item
@@ -252,7 +252,7 @@
 /* 
  * Dungeon master commands
  */
-#define MASTER_MAX_HOOKS	4	/* Total number of hooks per DM */
+#define MASTER_MAX_HOOKS	4 /* Total number of hooks per DM */
 
 /*
  * Methods of leaving a level
@@ -322,7 +322,7 @@
 /*
  * Ghost spell "realm"
  */
-#define GHOST_REALM 	2
+#define GHOST_REALM	2
 
 
 /*
@@ -330,7 +330,7 @@
  */
 #define PY_MAX_EXP	99999999L	/* Maximum exp */
 #define PY_MAX_GOLD	999999999L	/* Maximum gold */
-#define PY_MAX_LEVEL	50		/* Maximum level */
+#define PY_MAX_LEVEL	50      	/* Maximum level */
 /*
  * Flags for player_type.spell_flags[]
  */
@@ -340,8 +340,8 @@
 /*
  * MAngband-specific spell_flags[]
  */
-#define PY_SPELL_AIM		0x10 /* Spell requires a target */
-#define PY_SPELL_ITEM		0x20 /* Spell requires an item */
+#define PY_SPELL_AIM    	0x10 /* Spell requires a target */
+#define PY_SPELL_ITEM   	0x20 /* Spell requires an item */
 #define PY_SPELL_PROJECT	0x40 /* Spell could be projected */
 
 /* Offset for projected spells*/
@@ -354,50 +354,50 @@
 /*
  * MAngband-specific item targeting flags
  */
-#define ITEM_ASK_AIM		0x10 /* Object requires a target */
-#define ITEM_ASK_ITEM		0x20 /* Object requires an item */
+#define ITEM_ASK_AIM	0x10 /* Object requires a target */
+#define ITEM_ASK_ITEM	0x20 /* Object requires an item */
 
 
 /*** Custom commands ***/
 #define MAX_SCHEMES	30
 #define MAX_CUSTOM_COMMANDS	63
 
-#define COMMAND_TEST_ALIVE  	0x00000001	/* Test if player is alive */
-#define COMMAND_TEST_DEAD   	0x00000002	/* Test if player is dead */
-#define COMMAND_TEST_SPELL  	0x00000004	/* Test if player class is spell-able (by TV) */
-#define COMMAND_ITEM_QUICK  	0x00000008	/* Do not interact with player, while selecting item */
+#define COMMAND_TEST_ALIVE	0x00000001	/* Test if player is alive */
+#define COMMAND_TEST_DEAD	0x00000002	/* Test if player is dead */
+#define COMMAND_TEST_SPELL	0x00000004	/* Test if player class is spell-able (by TV) */
+#define COMMAND_ITEM_QUICK	0x00000008	/* Do not interact with player, while selecting item */
 
-#define COMMAND_ITEM_AMMOUNT  	0x00000010	/* Allow player to specify ammount from item stack */
-#define COMMAND_ITEM_INVEN  	0x00000020	/* Select item from inventory */
-#define COMMAND_ITEM_EQUIP  	0x00000040	/* Select item from equipment */
-#define COMMAND_ITEM_FLOOR  	0x00000080	/* Select item from floor */
+#define COMMAND_ITEM_AMMOUNT	0x00000010	/* Allow player to specify ammount from item stack */
+#define COMMAND_ITEM_INVEN	0x00000020	/* Select item from inventory */
+#define COMMAND_ITEM_EQUIP	0x00000040	/* Select item from equipment */
+#define COMMAND_ITEM_FLOOR	0x00000080	/* Select item from floor */
 
-#define COMMAND_ITEM_RESET   	0x00000100	/* Item sets its own "Second" and "Target" needs */
+#define COMMAND_ITEM_RESET	0x00000100	/* Item sets its own "Second" and "Target" needs */
 #define COMMAND_SECOND_INVEN	0x00000200	/* Select second item from inventory */
 #define COMMAND_SECOND_EQUIP	0x00000400	/* Select second item from equipment */
 #define COMMAND_SECOND_FLOOR	0x00000800	/* Select second item from floor */
 
-#define COMMAND_TARGET_DIR  	0x00001000	/* Pick direction */
+#define COMMAND_TARGET_DIR	0x00001000	/* Pick direction */
 #define COMMAND_TARGET_ALLOW	0x00002000	/* Pick direction OR target */
 #define COMMAND_TARGET_FRIEND	0x00004000	/* Allow friendly targeting */
-#define COMMAND_TARGET_XXX2 	0x00008000	/* XXX Unused */
+#define COMMAND_TARGET_XXX2	0x00008000	/* XXX Unused */
 
-#define COMMAND_SPELL_BOOK  	0x00010000	/* Choose a spell from TV book */
+#define COMMAND_SPELL_BOOK	0x00010000	/* Choose a spell from TV book */
 #define COMMAND_SPELL_CUSTOM	0x00020000	/* Choose a spell from an offset */
-#define COMMAND_SPELL_RESET  	0x00040000	/* Set its own "Second" and "Target" needs */
-#define COMMAND_SPELL_INDEX  	0x00080000	/* XXX Unused */
+#define COMMAND_SPELL_RESET	0x00040000	/* Set its own "Second" and "Target" needs */
+#define COMMAND_SPELL_INDEX	0x00080000	/* XXX Unused */
  
-#define COMMAND_NEED_VALUE  	0x00100000	/* Ask for s32b value */
+#define COMMAND_NEED_VALUE	0x00100000	/* Ask for s32b value */
 #define COMMAND_NEED_CONFIRM	0x00200000	/* Ask for confirmation */
-#define COMMAND_NEED_CHAR   	0x00400000	/* Ask for "char" */
-#define COMMAND_NEED_STRING  	0x00800000	/* Ask for "string" (60 chars) */
+#define COMMAND_NEED_CHAR	0x00400000	/* Ask for "char" */
+#define COMMAND_NEED_STRING	0x00800000	/* Ask for "string" (60 chars) */
 
 #define COMMAND_NEED_SPELL		(COMMAND_SPELL_BOOK   | \
 								 COMMAND_SPELL_CUSTOM | \
 								 COMMAND_SPELL_RESET  | \
 								 COMMAND_SPELL_INDEX)
 
-#define COMMAND_NEED_ITEM   	(COMMAND_ITEM_INVEN | \
+#define COMMAND_NEED_ITEM	(COMMAND_ITEM_INVEN | \
 								 COMMAND_ITEM_EQUIP | \
 								 COMMAND_ITEM_FLOOR | \
 								 COMMAND_ITEM_AMMOUNT)
@@ -409,15 +409,15 @@
 								 COMMAND_TARGET_FRIEND | \
 								 COMMAND_TARGET_XXX2)
 
-#define COMMAND_SPECIAL_FILE  	0x01000000	/* Begin file perusal with mode "tval" */
-#define COMMAND_INTERACTIVE  	0x02000000	/* Begin interactive mode "tval" */
-#define COMMAND_PROMPT_ITEM  	0x04000000	/* Auto-modify prompt using "item" and "value" */
-#define COMMAND_STORE       	0x08000000	/* This command will only work is stores */
+#define COMMAND_SPECIAL_FILE	0x01000000	/* Begin file perusal with mode "tval" */
+#define COMMAND_INTERACTIVE	0x02000000	/* Begin interactive mode "tval" */
+#define COMMAND_PROMPT_ITEM	0x04000000	/* Auto-modify prompt using "item" and "value" */
+#define COMMAND_STORE   	0x08000000	/* This command will only work is stores */
 
-#define COMMAND_ITEM_STORE  	0x10000000	/* Select item from store */
+#define COMMAND_ITEM_STORE	0x10000000	/* Select item from store */
 #define COMMAND_SECOND_VALUE	0x20000000	/* Put second item into value */
-#define COMMAND_SECOND_DIR  	0x40000000	/* Put second item into dir */
-#define COMMAND_SECOND_CHAR 	0x80000000	/* Put second item into entry[0] */
+#define COMMAND_SECOND_DIR	0x40000000	/* Put second item into dir */
+#define COMMAND_SECOND_CHAR	0x80000000	/* Put second item into entry[0] */
 
 /* Keen observer might notice that flags bellow collide with
  * the ones already defined above.
@@ -431,12 +431,12 @@
  */
 #define MAX_STREAMS 20
 /* Stream Flags */
-#define SF_NONE     	0x00	/* No special flags */
+#define SF_NONE 	0x00	/* No special flags */
 #define SF_TRANSPARENT	0x01	/* Stream has secondary layer */
 #define SF_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
-#define SF_KEEP_X   	0x10	/* Stream respects window's X offset */
-#define SF_KEEP_Y   	0x20	/* Stream respects window's Y offset */
-#define SF_HIDE     	0x80	/* Hide stream subscription from UI */
+#define SF_KEEP_X	0x10	/* Stream respects window's X offset */
+#define SF_KEEP_Y	0x20	/* Stream respects window's Y offset */
+#define SF_HIDE 	0x80	/* Hide stream subscription from UI */
 
 /*** Indicators ***/
 #define INDITYPE_TINY   	0
@@ -525,16 +525,16 @@
 #define PU_BONUS	0x00000001L	/* Calculate bonuses */
 #define PU_TORCH	0x00000002L	/* Calculate torch radius */
 /* xxx (many) */
-#define PU_HP		0x00000010L	/* Calculate chp and mhp */
-#define PU_MANA		0x00000020L	/* Calculate csp and msp */
+#define PU_HP   	0x00000010L	/* Calculate chp and mhp */
+#define PU_MANA 	0x00000020L	/* Calculate csp and msp */
 #define PU_SPELLS	0x00000040L	/* Calculate spells */
 /* xxx (many) */
 /* xxx (many) */
 #define PU_UN_VIEW	0x00010000L	/* Forget view */
 #define PU_UN_LITE	0x00020000L	/* Forget lite */
 /* xxx (many) */
-#define PU_VIEW		0x00100000L	/* Update view */
-#define PU_LITE		0x00200000L	/* Update lite */
+#define PU_VIEW 	0x00100000L	/* Update view */
+#define PU_LITE 	0x00200000L	/* Update lite */
 /* xxx */
 #define PU_MONSTERS	0x01000000L	/* Update monsters */
 #define PU_DISTANCE	0x02000000L	/* Update distances */
@@ -546,20 +546,20 @@
 /*
  * Bit flags for the "p_ptr->redraw" variable
  */
-#define PR_MISC		0x00000001L	/* Display Race/Class */
+#define PR_MISC 	0x00000001L	/* Display Race/Class */
 #define PR_TITLE	0x00000002L	/* Display Title */
-#define PR_LEV		0x00000004L	/* Display Level */
-#define PR_EXP		0x00000008L	/* Display Experience */
+#define PR_LEV  	0x00000004L	/* Display Level */
+#define PR_EXP  	0x00000008L	/* Display Experience */
 #define PR_STATS	0x00000010L	/* Display Stats */
 #define PR_ARMOR	0x00000020L	/* Display Armor */
-#define PR_HP		0x00000040L	/* Display Hitpoints */
-#define PR_MANA		0x00000080L	/* Display Mana */
-#define PR_GOLD		0x00000100L	/* Display Gold */
+#define PR_HP   	0x00000040L	/* Display Hitpoints */
+#define PR_MANA 	0x00000080L	/* Display Mana */
+#define PR_GOLD 	0x00000100L	/* Display Gold */
 #define PR_DEPTH	0x00000200L	/* Display Depth */
 /* XXXX #define PR_HISTORY	0x00000400L	// Display History */
 #define PR_HEALTH	0x00000800L	/* Display Health Bar */
-#define PR_CUT		0x00001000L	/* Display Extra (Cut) */
-#define PR_STUN		0x00002000L	/* Display Extra (Stun) */
+#define PR_CUT  	0x00001000L	/* Display Extra (Cut) */
+#define PR_STUN 	0x00002000L	/* Display Extra (Stun) */
 #define PR_HUNGER	0x00004000L	/* Display Extra (Hunger) */
 #define PR_VARIOUS	0x00008000L	/* Display Various info (age, etc.) */
 #define PR_BLIND	0x00010000L	/* Display Extra (Blind) */
@@ -571,8 +571,8 @@
 #define PR_STUDY	0x00400000L	/* Display Extra (Study) */
 #define PR_PLUSSES	0x00800000L	/* Display Plusses to Hit/Damage */
 /*xxx*/
-#define PR_MAP		0x04000000L	/* Display Map */
-#define PR_WIPE		0x08000000L	/* Hack -- Total Redraw */
+#define PR_MAP  	0x04000000L	/* Display Map */
+#define PR_WIPE 	0x08000000L	/* Hack -- Total Redraw */
 #define PR_SKILLS	0x10000000L	/* Display Skills */
 #define PR_OFLAGS	0x20000000L	/* Display Object/Resistance Flags  */
 #define PR_EQUIPPY	0x20000000L	/* Display Equppy (Note! in MAngband it's same as OFLAGS)  */
@@ -605,7 +605,7 @@
 	(PR_MISC | PR_TITLE | PR_STATS | PR_LEV |\
 	 PR_EXP | PR_GOLD | PR_ARMOR | PR_HP |\
 	 PR_MANA | PR_HEALTH | PR_CUT)
-	 
+
 /*
  * Bit flags for the "p_ptr->window" variable (etc)
  */
@@ -630,7 +630,7 @@
 #define PW_STORE            0x00010000L /* Display shop */
 
 #define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
- 
+
 
 
 
@@ -647,7 +647,7 @@
 
 /* Is string empty? Beats calling strlen */
 #define STRZERO(S) \
-	((S)[0] == '\0') 
+	((S)[0] == '\0')
 
 /* Given an array, determine how many elements are in the array. */
 #define N_ELEMENTS(a) (sizeof(a) / sizeof((a)[0]))
@@ -709,68 +709,68 @@
 #define MSG_BELL            25
 #define MSG_NOTHING_TO_OPEN 26
 #define MSG_LOCKPICK_FAIL   27
-#define MSG_STAIRS_DOWN     28 
+#define MSG_STAIRS_DOWN     28
 #define MSG_HITPOINT_WARN   29
-#define MSG_ACT_ARTIFACT    30 
-#define MSG_USE_STAFF       31 
-#define MSG_DESTROY         32 
-#define MSG_MON_HIT         33 
-#define MSG_MON_TOUCH       34 
-#define MSG_MON_PUNCH       35 
-#define MSG_MON_KICK        36 
-#define MSG_MON_CLAW        37 
-#define MSG_MON_BITE        38 
-#define MSG_MON_STING       39 
-#define MSG_MON_BUTT        40 
-#define MSG_MON_CRUSH       41 
-#define MSG_MON_ENGULF      42 
-#define MSG_MON_CRAWL       43 
-#define MSG_MON_DROOL       44 
-#define MSG_MON_SPIT        45 
-#define MSG_MON_GAZE        46 
-#define MSG_MON_WAIL        47 
-#define MSG_MON_SPORE       48 
-#define MSG_MON_BEG         49 
-#define MSG_MON_INSULT      50 
-#define MSG_MON_MOAN        51 
-#define MSG_RECOVER         52 
-#define MSG_BLIND           53 
-#define MSG_CONFUSED        54 
-#define MSG_POISONED        55 
-#define MSG_AFRAID          56 
-#define MSG_PARALYZED       57 
-#define MSG_DRUGGED         58 
-#define MSG_SPEED           59 
-#define MSG_SLOW            60 
-#define MSG_SHIELD          61 
-#define MSG_BLESSED         62 
-#define MSG_HERO            63 
-#define MSG_BERSERK         64 
-#define MSG_PROT_EVIL       65 
-#define MSG_INVULN          66 
-#define MSG_SEE_INVIS       67 
-#define MSG_INFRARED        68 
-#define MSG_RES_ACID        69 
-#define MSG_RES_ELEC        70 
-#define MSG_RES_FIRE        71 
-#define MSG_RES_COLD        72 
-#define MSG_RES_POIS        73 
-#define MSG_STUN            74 
-#define MSG_CUT             75 
-#define MSG_STAIRS_UP       76 
-#define MSG_STORE_ENTER     77 
-#define MSG_STORE_LEAVE     78 
-#define MSG_STORE_HOME      79 
-#define MSG_MONEY1          80 
-#define MSG_MONEY2          81 
-#define MSG_MONEY3          82 
-#define MSG_SHOOT_HIT       83 
-#define MSG_STORE5          84 
-#define MSG_LOCKPICK        85 
-#define MSG_DISARM          86 
-#define MSG_IDENT_BAD       87 
-#define MSG_IDENT_EGO       88 
-#define MSG_IDENT_ART       89 
+#define MSG_ACT_ARTIFACT    30
+#define MSG_USE_STAFF       31
+#define MSG_DESTROY         32
+#define MSG_MON_HIT         33
+#define MSG_MON_TOUCH       34
+#define MSG_MON_PUNCH       35
+#define MSG_MON_KICK        36
+#define MSG_MON_CLAW        37
+#define MSG_MON_BITE        38
+#define MSG_MON_STING       39
+#define MSG_MON_BUTT        40
+#define MSG_MON_CRUSH       41
+#define MSG_MON_ENGULF      42
+#define MSG_MON_CRAWL       43
+#define MSG_MON_DROOL       44
+#define MSG_MON_SPIT        45
+#define MSG_MON_GAZE        46
+#define MSG_MON_WAIL        47
+#define MSG_MON_SPORE       48
+#define MSG_MON_BEG         49
+#define MSG_MON_INSULT      50
+#define MSG_MON_MOAN        51
+#define MSG_RECOVER         52
+#define MSG_BLIND           53
+#define MSG_CONFUSED        54
+#define MSG_POISONED        55
+#define MSG_AFRAID          56
+#define MSG_PARALYZED       57
+#define MSG_DRUGGED         58
+#define MSG_SPEED           59
+#define MSG_SLOW            60
+#define MSG_SHIELD          61
+#define MSG_BLESSED         62
+#define MSG_HERO            63
+#define MSG_BERSERK         64
+#define MSG_PROT_EVIL       65
+#define MSG_INVULN          66
+#define MSG_SEE_INVIS       67
+#define MSG_INFRARED        68
+#define MSG_RES_ACID        69
+#define MSG_RES_ELEC        70
+#define MSG_RES_FIRE        71
+#define MSG_RES_COLD        72
+#define MSG_RES_POIS        73
+#define MSG_STUN            74
+#define MSG_CUT             75
+#define MSG_STAIRS_UP       76
+#define MSG_STORE_ENTER     77
+#define MSG_STORE_LEAVE     78
+#define MSG_STORE_HOME      79
+#define MSG_MONEY1          80
+#define MSG_MONEY2          81
+#define MSG_MONEY3          82
+#define MSG_SHOOT_HIT       83
+#define MSG_STORE5          84
+#define MSG_LOCKPICK        85
+#define MSG_DISARM          86
+#define MSG_IDENT_BAD       87
+#define MSG_IDENT_EGO       88
+#define MSG_IDENT_ART       89
 #define MSG_BR_ELEMENTS     90
 #define MSG_BR_FROST        91
 #define MSG_BR_ELEC         92
@@ -840,9 +840,9 @@
 #define MSG_PY_SPELL        252
 #define MSG_PY_PRAYER       253
 #define MSG_PY_MISC         254
-#define MSG_LOCAL 		255
+#define MSG_LOCAL		255
 #define MSG_WHISPER		256
-#define MSG_CHAT  		257
+#define MSG_CHAT		257
 
 
 /*** Hack ***/

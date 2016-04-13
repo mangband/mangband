@@ -194,7 +194,7 @@ static void choose_race(void)
 	for (j = 0; j < z_info.p_max; j++)
 	{
 		rp_ptr = &race_info[j];
-    		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
+		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -220,7 +220,7 @@ static void choose_race(void)
 		else if (c == '=')
 		{
 			do_cmd_options_birth();
-		}		
+		}
 		else if (c == '?')
 		{
 			do_cmd_help_birth();
@@ -350,7 +350,7 @@ void choose_stat_order(void)
 			else if (c == '=')
 			{
 				do_cmd_options_birth();
-			}			
+			}
 			else if (c == '?')
 			{
 				do_cmd_help_birth();
@@ -464,7 +464,7 @@ static bool enter_server_name(void)
 	move_cursor(5, 1);
 
 	/* Default */
-    strcpy(server_name, "localhost");
+	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
 	result = askfor_aux(server_name, 80, 0);
@@ -530,7 +530,7 @@ bool get_server_name(void)
 		{
 			server = info = FALSE;
 
-			/* Save port */			
+			/* Save port */
 			ports[i] = atoi(ptr+1);
 		}
 		else if (*ptr != ' ')
@@ -548,7 +548,7 @@ bool get_server_name(void)
 			server = FALSE;
 
 			/* Display notices */
-			sprintf(out_val, "%s", ptr);			
+			sprintf(out_val, "%s", ptr);
 		}
 
 		if (info) {

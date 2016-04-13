@@ -861,7 +861,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
 	sound(Ind, MSG_DESTROY);
-	
+
 	/* Reduce the charges of rods/wands/staves */
 	reduce_charges(o_ptr, quantity);
 
@@ -1127,7 +1127,7 @@ void do_cmd_steal(int Ind, int dir)
 	{
 	        msg_print(Ind, "You cannot steal things!");
 	        return;
-	}	                                                        
+	}
 
 	/* Ensure "dir" is in ddx/ddy array bounds */
 	if (!VALID_DIR(dir)) dir = 5;
@@ -1305,8 +1305,8 @@ void do_cmd_steal(int Ind, int dir)
  */
 static bool item_tester_refill_lantern(object_type *o_ptr)
 {
-    /* Randarts are not refillable */
-    if (o_ptr->name3) return (FALSE);
+	/* Randarts are not refillable */
+	if (o_ptr->name3) return (FALSE);
 
 	/* Flasks of oil are okay */
 	if (o_ptr->tval == TV_FLASK) return (TRUE);
@@ -1499,7 +1499,7 @@ static void do_cmd_refill_torch(int Ind, int item)
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
-	
+
 	/* Hack - Force Equipment Update */
 	p_ptr->window |= (PW_EQUIP);
 }
@@ -1608,10 +1608,10 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
-	/* Prepare player structure for text */	
+	/* Prepare player structure for text */
 	text_out_init(Ind);
 
-	for (i = 1; i < z_info->r_max; i++) 
+	for (i = 1; i < z_info->r_max; i++)
 	{
 		/* Require at least 1 encounter */
 		if (p_ptr->l_list[i].sights && r_info[i].d_char == c)
@@ -1622,9 +1622,9 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 			/* Dump info into player */
 			describe_monster(Ind, i, FALSE);
 
-			/* Track first race */			
+			/* Track first race */
 			if (!found)
-				monster_race_track(Ind, i); 
+				monster_race_track(Ind, i);
 			
 			found = TRUE;
 		}
@@ -1648,7 +1648,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	player_type *p_ptr = Players[Ind];
 	int i;
 
-	/* Prepare player structure for text */	
+	/* Prepare player structure for text */
 	text_out_init(Ind);
 
 	/* Dump info into player */

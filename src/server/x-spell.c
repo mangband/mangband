@@ -786,7 +786,7 @@ int get_spell_book(int Ind, int spell)
 {
 	player_type *p_ptr = Players[Ind];
 	int i, j, index;
-	
+
 	/* Forget info about objects */
 	for (i = 0; i < INVEN_TOTAL; i++)
 	{
@@ -794,17 +794,17 @@ int get_spell_book(int Ind, int spell)
 		
 		/* Skip non-objects */
 		if (!o_ptr->k_idx) continue;
-		
-		/* Skip non-books */		
+
+		/* Skip non-books */
 		if (o_ptr->tval != p_ptr->cp_ptr->spell_book) continue;
-		
+
 		/* Test each spell */
 		for (j = 0; j < SPELLS_PER_BOOK; j++)
 		{
 			index = get_spell_index(Ind, o_ptr, j);
-		
+
 			/* Found nice spell */
- 			if (index == spell) return i;
+			if (index == spell) return i;
 		}
 	}
 	return -1;

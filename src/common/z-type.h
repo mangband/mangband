@@ -29,7 +29,7 @@ extern type_union s2u(const char *s);
 
 static const type_union END = { T_END, { 0 } };
 
-/* 
+/*
  * Helper classes for the display of typed data
 */
 
