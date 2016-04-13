@@ -2,10 +2,10 @@
 
 /* Client global variables */
 
-char nick[80];
-char pass[80];
+char nick[MAX_CHARS];
+char pass[MAX_CHARS];
 
-char real_name[80];
+char real_name[MAX_CHARS];
 
 char server_name[80];
 int server_port;

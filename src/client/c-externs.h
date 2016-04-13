@@ -42,10 +42,10 @@ extern event_type inkey_ex(void);
 
 
 /* variable.c */
-extern char nick[80];
-extern char pass[80];
+extern char nick[MAX_CHARS];
+extern char pass[MAX_CHARS];
 
-extern char real_name[80];
+extern char real_name[MAX_CHARS];
 
 extern char server_name[80];
 extern int server_port;
@@ -355,7 +355,7 @@ extern void show_popup(void);
 extern void show_peruse(s16b line);
 extern void peruse_file(void);
 extern errr Save_options(void);
-extern void conf_init(void* param);									/* Client config section */
+extern void conf_init(void* param);	/* Client config section */
 extern void conf_save();
 extern void conf_timer(int ticks);
 extern bool conf_section_exists(cptr section);
@@ -365,15 +365,21 @@ extern void conf_set_string(cptr section, cptr name, cptr value);
 extern void conf_set_int(cptr section, cptr name, s32b value);
 extern void conf_append_section(cptr section, cptr filename);
 extern bool my_fexists(const char *fname);
+extern void clia_init(int argc, const char *argv[]);
+extern int clia_find(const char *key); 
+extern bool clia_cpy_string(char *dst, int len, int i);
+extern bool clia_cpy_int(s32b *dst, int i);
+extern bool clia_read_string(char *dst, int len, const char *key);
+extern bool clia_read_int(s32b *dst, const char *key);
+extern bool clia_read_bool(s32b *dst, const char *key);
 
 /* c-init.c */
-extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
 extern bool sync_data(void);
 extern bool client_login(void);
 extern bool client_ready(void);
 extern bool client_setup(void);
 extern void initialize_all_pref_files(void);
-extern void client_init(char *argv1);
+extern void client_init(void);
 extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
@@ -387,6 +393,9 @@ extern bool c_check_item(int *item, byte tval);
 extern bool c_get_spike(void);
 
 /* c-util.c */
+#ifndef HAVE_USLEEP
+extern int usleep(huge microSeconds);
+#endif
 extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);
@@ -462,6 +471,7 @@ extern bool message_color(cptr msg, byte *ap);
 extern int find_whisper_tab(cptr msg, char *text);
 extern void prt_map_easy(void);
 extern void prt_player_hack(void);
+extern void schedule_redraw(u32b filter);
 extern void redraw_indicators(u32b filter);
 
 
@@ -558,16 +568,6 @@ extern int send_term_key(char key);
 #ifdef SET_UID
 /* util.c */
 extern void user_name(char *buf, int id);
-#endif
-
-#ifndef HAS_MEMSET
-/* util.c */
-extern char *memset(char*, int, huge);
-#endif
-
-#ifndef HAS_STRICMP
-/* util.c */
-extern int stricmp(cptr a, cptr b);
 #endif
 
 #ifdef MACINTOSH

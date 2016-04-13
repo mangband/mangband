@@ -124,7 +124,7 @@ static void get_stats(player_type *p_ptr)
 	int		bonus;
 	int		dice[18];
 	int		stats[6];
-    int         n17, n16, n15;
+	int         n17, n16, n15;
 
 	/* Clear "stats" array */
 	for (i = 0; i < 6; i++)
@@ -185,9 +185,9 @@ static void get_stats(player_type *p_ptr)
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
-          if (j == 17) n17++;
-	  if (j >= 16) n16++;
-	  if (j >= 15) n15++;
+		if (j == 17) n17++;
+		if (j >= 16) n16++;
+		if (j >= 15) n15++;
 
 		/* Save that value */
 		stats[i] = j;
@@ -354,7 +354,7 @@ static void get_history(player_type *p_ptr)
 			case '$':
 			case '~':
 				s++;
-				switch (*s) 
+				switch (*s)
 				{
 					G_CASE('u', "You", "He", "She");
 					G_CASE('r', "Your", "His", "Her");
@@ -363,7 +363,7 @@ static void get_history(player_type *p_ptr)
 					default: continue;
 				}
 			break;
-			default:			
+			default:
 				*t++ = *p++ = *s;
 			}
 		}
@@ -504,7 +504,7 @@ void player_wipe(player_type *p_ptr)
 	byte *old_arts;
 	bool *old_obj_aware;
 	bool *old_obj_tried;
-	s16b *old_r_killed;	
+	s16b *old_r_killed;
 	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
 	char *f_char, *k_char, *d_char, *r_char, *pr_char;
 	char *c_buf;
@@ -662,7 +662,7 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->on_channel[0] |= UCM_EAR;
 	
 	/* Output to default terminal */
-	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
+	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 }
 
 /* XXX XXX XXX HACK -- Wipe player but keep some stuff... */
@@ -687,6 +687,11 @@ void player_net_wipe(player_type *p_ptr, int reach)
 
 	p_tmp.lives = p_ptr->lives;
 	p_tmp.no_ghost = p_ptr->no_ghost; /* ? */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
+	}
 
 	for (i = 0; i < 6; i++)
 	{
@@ -716,6 +721,11 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_ptr->lives = p_tmp.lives;
 	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
 
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = p_tmp.infodata_sent[i];
+	}
+
 	if (reach)
 	{
 		for (i = 0; i < 6; i++)
@@ -730,7 +740,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 }
 
 /* 
- * Verify / Overwrite visual data with server defaults 
+ * Verify / Overwrite visual data with server defaults
  */
 void player_verify_visual(player_type *p_ptr)
 {
@@ -927,8 +937,8 @@ void player_setup(int Ind)
 	}
 
 	/* Rebuild the level if neccecary */
-	if (!cave[Depth]) 
-	{		
+	if (!cave[Depth])
+	{
 		/* If a level is unstaticed and a player is on it, he will now
 		 * stay in the dungeon and appear on the new level somewhere.
 		 */
@@ -990,12 +1000,12 @@ void player_setup(int Ind)
 						reposition = TRUE;
 						break;
 					}
-				}				
+				}
 			}
-			break;			
+			break;
 		}
 	}
-	
+
 	/* Don't allow placement inside an arena */
 	if (pick_arena(Depth, p_ptr->py, p_ptr->px) != -1)
 	{
@@ -1182,7 +1192,7 @@ player_type* player_alloc()
 	/* Set pointer */
 	return p_ptr;
 }
-/* 
+/*
  * Free player structure
  */
 void player_free(player_type *p_ptr)
@@ -1259,7 +1269,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 
 	/* Actually Generate */
 
- 	/* This enables maximize mode for new characters. --RLS */
+	/* This enables maximize mode for new characters. --RLS */
 
 	p_ptr->maximize=1;
 
@@ -1280,7 +1290,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 
 	/* Roll for gold */
 	get_money(p_ptr);
-	
+
 	/* Hack -- grant some Dungeon Master powers */
 	if (is_dm_p(p_ptr))
 	{

@@ -13,7 +13,7 @@
  */
 
 /* tables.c */
-extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS]; 
+extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS];
 extern const stream_type streams[MAX_STREAMS];
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern const indicator_type indicators[MAX_INDICATORS];
@@ -371,6 +371,7 @@ extern const player_sex sex_info[MAX_SEXES];
 extern player_type* player_alloc(void);
 extern void player_free(player_type *p_ptr);
 extern void player_wipe(player_type *p_ptr);
+extern void player_net_wipe(player_type *p_ptr, int reach);
 extern bool player_birth(int ind, int race, int pclass, int sex, int stat_order[]);
 extern void server_birth(void);
 extern void player_setup(int Ind);
@@ -965,7 +966,7 @@ extern bool curse_weapon(int Ind);
 /* store.c */
 extern bool get_store_item(int Ind, int item, object_type *i_ptr);
 extern int get_player_store_name(int num, char *name);
-extern void store_purchase(int Ind, int item, int amt, cptr *checksum);
+extern void store_purchase(int Ind, int item, int amt, cptr checksum);
 extern void store_sell(int Ind, int item, int amt);
 extern void store_confirm(int Ind);
 extern void do_cmd_store(int Ind, int pstore);
@@ -1021,6 +1022,7 @@ extern void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...)
 extern void player_talk(int Ind, char *msg);
 extern void channel_join(int Ind, cptr channel, bool quiet);
 extern void channel_leave(int Ind, cptr channel);
+extern void channel_leave_id(int Ind, int i, bool quiet);
 extern void channels_leave(int Ind);
 extern bool is_a_vowel(int ch);
 extern void log_history_event(int Ind, char *msg, bool unique);
@@ -1163,12 +1165,12 @@ extern bool use_object_current(int Ind);
 extern void user_name(char *buf, int id);
 #endif
 
-#ifndef HAS_MEMSET
+#ifndef HAVE_MEMSET
 /* util.c */
-extern char *memset(char*, int, huge);
+extern void *memset(void*, int, size_t);
 #endif
 
-#ifndef HAS_STRICMP
+#ifndef HAVE_STRICMP
 /* util.c */
 extern int stricmp(cptr a, cptr b);
 #endif

@@ -43,10 +43,10 @@ int count_spells_in_book(int book, int *book_over)
 {
 	int i, j = 0, num = 0;
 	int rows = 20;
-	
+
 	/* Paranoia */
 	if (book < 0) return -1;
-	
+
 	/* Check for available spells */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
@@ -60,8 +60,8 @@ int count_spells_in_book(int book, int *book_over)
 			break;
 		}
 
-        /* Spell is available */
-        num++;
+		/* Spell is available */
+		num++;
 
 		/* Next */
 		j++;
@@ -91,7 +91,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 
 	/* Check for available spells */
 	num = count_spells_in_book(book, &book_over);
-	
+
 	/* No "okay" spells */
 	if (!num) return (FALSE);
 
@@ -148,6 +148,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				{
 					/* Restore the screen */
 					Term_load();
+					Term_save();
 	
 					/* Display a list of spells */
 					print_spells(book);
@@ -194,7 +195,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 			/* Ask again */
 			continue;
 		}
-		
+
 		/* hack for CAPITAL prayers (heal other) */
 		if (isupper(choice))
 		{
@@ -262,7 +263,7 @@ void show_browse(int book)
 
 	/* Display the spells */
 	print_spells(book);
-	
+
 	/* Clear the top line */
 	prt("", 0, 0);
 
@@ -318,7 +319,7 @@ bool do_cast_xtra(int book, int spell)
 	if ((spell_flag[index] & PY_SPELL_AIM) || spell >= PY_MAX_SPELLS)
 	{
 		if (!get_dir(&dir))	return FALSE;
-		
+
 		if (dir)
 			Send_direction(dir);
 	}
@@ -361,9 +362,9 @@ void do_pray(int book)
 	/* Ask for a spell, allow cancel */
 	if (!get_spell(&j, "prayer", "Pray which prayer? ", &book, FALSE)) return;
 
-	/* Additional */	
+	/* Additional */
 	if (!do_cast_xtra(book, j)) return;
-	
+
 	/* Tell the server */
 	Send_pray(book, j);
 }
@@ -379,7 +380,7 @@ void do_ghost(void)
 	/* Ask for an ability, allow cancel */ 
 	if (!get_spell(&j, "power", "Use which power? ", &book, FALSE)) return;
 
-	/* Additional */	
+	/* Additional */
 	if (!do_cast_xtra(book, j)) return;
 
 	/* Tell the server */

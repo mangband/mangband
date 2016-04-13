@@ -24,7 +24,7 @@ void cmd_custom(byte i)
 	entry[0] = '\0';
 
 	need_second = (cc_ptr->flag & COMMAND_NEED_SECOND ? TRUE : FALSE);
-	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);	
+	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);
 
 	/* Pre-tests */
 	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
@@ -106,15 +106,15 @@ void cmd_custom(byte i)
         }
 
 		/* Dirty Hack -- save multiplied price as "entry" */
-		sprintf(entry, "%" PRId32, (uint32_t)(store_prices[item]*value));
+		sprintf(entry, "%" PRId32, (u32b)(store_prices[item]*value));
 	}
 	/* Ask for an item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
-		if (!c_get_item(&item, prompt, 
-				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE), 
-				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE), 
+		if (!c_get_item(&item, prompt,
+				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
+				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
 		advance_prompt();
@@ -126,13 +126,13 @@ void cmd_custom(byte i)
 			/* - from inventory */
 			if (item >= 0 && inventory[item].number > 1)
 			{
-				if (STRZERO(prompt)) prompt = "How many? ";			
+				if (STRZERO(prompt)) prompt = "How many? ";
 				value = c_get_quantity(prompt, inventory[item].number);
 			}
 			/* - from floor */
 			if (item < 0 && floor_item.number > 1)
 			{
-				if (STRZERO(prompt)) prompt = "How many? ";			
+				if (STRZERO(prompt)) prompt = "How many? ";
 				value = c_get_quantity(prompt, floor_item.number);
 			}
 			if (!value) return;
@@ -189,7 +189,7 @@ void cmd_custom(byte i)
 		{
 			need_second = need_target = FALSE;
 			dir = item2 = 0;
-			if (spell >= SPELL_PROJECTED)	need_target = TRUE;
+			if (spell >= SPELL_PROJECTED) need_target = TRUE;
 			else
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
@@ -201,17 +201,17 @@ void cmd_custom(byte i)
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (STRZERO(prompt)) prompt = "Which item? ";
-		if (!c_get_item(&item2, prompt, 
-				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE), 
-				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE), 
+		if (!c_get_item(&item2, prompt,
+				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
+				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR ? TRUE : FALSE)))
 				return;
 		advance_prompt();
 	}
 	/* Target? */
-	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */ 
+	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */
 	{
-		if (!c_get_dir(&dir, prompt, 
+		if (!c_get_dir(&dir, prompt,
 				(cc_ptr->flag & COMMAND_TARGET_ALLOW ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
 				return;
@@ -228,7 +228,7 @@ void cmd_custom(byte i)
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
 		advance_prompt();
-	}		
+	}
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
 	{
 		if (STRZERO(prompt)) prompt = "Command: ";
@@ -236,7 +236,7 @@ void cmd_custom(byte i)
 			return;
 		entry[1] = '\0';
 		advance_prompt();
-	}	
+	}
 	else if (cc_ptr->flag & COMMAND_NEED_STRING)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
@@ -278,10 +278,10 @@ void process_command()
 	for (i = 0; i < custom_commands; i++) 
 	{
 		if (custom_command[i].flag & COMMAND_STORE) continue;
-		if (custom_command[i].m_catch == command_cmd) 
+		if (custom_command[i].m_catch == command_cmd)
 		{
 			cmd_custom(i);
-			return;	
+			return;
 		}
 	}
 
@@ -728,7 +728,7 @@ void cmd_destroy(void)
 		if (!get_check(out_val)) return;
 	
 	}
-	else 
+	else
 	{
 		/* Get an amount */
 		if (floor_item.number > 1)
@@ -740,11 +740,10 @@ void cmd_destroy(void)
 		/* Sanity check */
 		if (floor_item.number == amt)
 			sprintf(out_val, "Really destroy %s? ", floor_name);
-		else 
+		else
 			sprintf(out_val, "Really destroy %d of %s? ", amt, floor_name);
 		if (!get_check(out_val)) return;
-			
-	} 
+	}
 
 	/* Send it */
 	Send_destroy(item, amt);
@@ -766,10 +765,10 @@ void cmd_describe(void)
 	if (item < 0) 
 		strcpy(buf, floor_name);
 	else
-		strcpy(buf, inventory_name[item]);		
-	
+		strcpy(buf, inventory_name[item]);
+
 	if (buf[0] != '\0')
-				send_msg(buf);
+		send_msg(buf);
 }
 
 int cmd_target_interactive(int mode)
@@ -850,9 +849,9 @@ void cmd_changepass(void)
 	pass2[0] = '\0';
 
 
-	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1)) 
+	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1))
 	{
-		if (get_string_masked("Confirm It: ", pass2, MAX_PASS_LEN-1)) 
+		if (get_string_masked("Confirm It: ", pass2, MAX_PASS_LEN-1))
 		{
 			if (!strcmp(pass1,pass2)) {
 				MD5Password(pass1);
@@ -1058,15 +1057,15 @@ void cmd_chat_close(int n)
 		{
 			if (view_channel == n)
 				cmd_chat_cycle(-1);
-				
+
 			channels[n].name[0] = '\0';
 			channels[n].id = 0;
-			
+
 			if (p_ptr->main_channel == n)
-				p_ptr->main_channel = 0;				
+				p_ptr->main_channel = 0;
 			if (STRZERO(channels[view_channel].name))
 				cmd_chat_cycle(+1);
-									
+
 			/* Window update */
 			p_ptr->window |= PW_MESSAGE_CHAT;
 		}
@@ -1291,7 +1290,7 @@ void cmd_cast(void)
 {
 	int item;
 
-   if (c_info[pclass].spell_book != TV_MAGIC_BOOK)
+	if (c_info[pclass].spell_book != TV_MAGIC_BOOK)
 	{
 		c_msg_print("You cannot cast spells!");
 		return;

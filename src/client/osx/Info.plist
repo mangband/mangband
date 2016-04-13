@@ -2,14 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleName</key>
+	<string>MAngband Client</string>
+	<key>CFBundleGetInfoString</key>
+	<string>MAngband 1.2.0</string>
+	<key>CFBundleShortVersion</key>
+	<string>1.2.0</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>MAngclient</string>
+	<string>launch_mangclient.sh</string>
 	<key>CFBundleIconFile</key>
-	<string>MAngclient.icns</string>
+	<string>mangclient.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.mangband.MAngclient</string>
+	<string>org.mangband.mangclient</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

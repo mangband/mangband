@@ -3992,7 +3992,7 @@ void do_cmd_options_birth()
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
+# ifndef HAVE_USLEEP
 
 /*
  * For those systems that don't have "usleep()" but need it.
@@ -4034,7 +4034,7 @@ int usleep(huge microSeconds)
 	return 0;
 }
 
-# endif /* HAS_USLEEP */
+# endif /* HAVE_USLEEP */
 
 #endif /* SET_UID */
 

@@ -19,7 +19,7 @@
  */
 void choose_name(void)
 {
-	char tmp[23];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your player's name above (or hit ESCAPE).", 21, 2);
@@ -31,10 +31,10 @@ void choose_name(void)
 		move_cursor(2, 15);
 
 		/* Save the player name */
-		strcpy(tmp, nick);
+		my_strcpy(tmp, nick, MAX_CHARS);
 
 		/* Get an input, ignore "Escape" */
-		if (askfor_aux(tmp, 15, 0)) strcpy(nick, tmp);
+		if (askfor_aux(tmp, MAX_NAME_LEN, 0)) my_strcpy(nick, tmp, MAX_CHARS);
 
 		/* All done */
 		break;
@@ -57,13 +57,13 @@ void choose_name(void)
 void enter_password(void)
 {
 	int c;
-	char tmp[MAX_PASS_LEN];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);
 
 	/* Default */
-	strcpy(tmp, pass);
+	my_strcpy(tmp, pass, MAX_CHARS);
 
 	/* Ask until happy */
 	while (1)
@@ -80,7 +80,7 @@ void enter_password(void)
 			    continue;
 			}
 			else
-				strcpy(pass, tmp);
+				my_strcpy(pass, tmp, MAX_CHARS);
 		}
 
 		/* All done */
@@ -194,7 +194,7 @@ static void choose_race(void)
 	for (j = 0; j < z_info.p_max; j++)
 	{
 		rp_ptr = &race_info[j];
-    		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
+		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -220,7 +220,7 @@ static void choose_race(void)
 		else if (c == '=')
 		{
 			do_cmd_options_birth();
-		}		
+		}
 		else if (c == '?')
 		{
 			do_cmd_help_birth();
@@ -350,7 +350,7 @@ void choose_stat_order(void)
 			else if (c == '=')
 			{
 				do_cmd_options_birth();
-			}			
+			}
 			else if (c == '?')
 			{
 				do_cmd_help_birth();
@@ -464,7 +464,7 @@ static bool enter_server_name(void)
 	move_cursor(5, 1);
 
 	/* Default */
-    strcpy(server_name, "localhost");
+	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
 	result = askfor_aux(server_name, 80, 0);
@@ -530,7 +530,7 @@ bool get_server_name(void)
 		{
 			server = info = FALSE;
 
-			/* Save port */			
+			/* Save port */
 			ports[i] = atoi(ptr+1);
 		}
 		else if (*ptr != ' ')
@@ -548,7 +548,7 @@ bool get_server_name(void)
 			server = FALSE;
 
 			/* Display notices */
-			sprintf(out_val, "%s", ptr);			
+			sprintf(out_val, "%s", ptr);
 		}
 
 		if (info) {

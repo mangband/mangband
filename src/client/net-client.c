@@ -96,9 +96,15 @@ int client_read(int data1, data data2) { /* return -1 on error */
 		/* Unable to continue */
 		if (result != 1) break;
 	}
-#ifdef DEBUG
-	if (result == -1) printf("Error parsing packet %d\n", last_pkt);
-#endif
+	
+	/* Enforce connection error if there's a *fatal* buffer error */
+	if (result == 0 && cq_fatal(&ct->rbuf)) result = -1;
+	/* Report error */
+	if (result == -1)
+	{
+		//TODO: think about hiding this, or using printf (plog = MessageBox on windows)
+		plog(format("Error in packet %d, buffer state: %s\n", last_pkt, cq_error(&ct->rbuf) ));
+	}
 	/* Not enough bytes */
 	if (result == 0) 
 	{
@@ -125,16 +131,16 @@ int connected_to_server(int data1, data data2) {
 	/* Disable Nagle's algorithm */
 	denaglefd(fd);
 
-	/* Set usability pointer */	
+	/* Set usability pointer */
 	serv = (connection_type *)server_connection->data2;
-	
+
 	/* Prepare packet-handling tables */
 	setup_tables();
 
 	/* Is connected! */
 	connected = 1;
 
-	/* OK */	
+	/* OK */
 	return 1;
 }
 
@@ -143,7 +149,7 @@ int failed_connection_to_server(int data1, data data2) {
 	/* Ask user */ 
 	int r = client_failed();
 	if (r == 0) connected = -1;
-	return r;  
+	return r;
 }
 
 int call_server(char *server_name, int server_port)
@@ -154,11 +160,11 @@ int call_server(char *server_name, int server_port)
 	/* Early failure, probably DNS error */
 	if (server_caller == NULL) return -1;
 
-	/* Unset */	
+	/* Unset */
 	connected = 0;
 
-	/* Try */	
-	while (!connected) 
+	/* Try */
+	while (!connected)
 	{
 		network_loop();
 	}
@@ -180,7 +186,7 @@ int keepalive_timer(int data1, data data2) {
 
 	return 1;
 }
-void setup_keepalive_timer() 
+void setup_keepalive_timer()
 {
 	/* Create timer */
 	eptr timer = add_timer(first_timer, ONE_SECOND, keepalive_timer);
@@ -219,7 +225,7 @@ int send_login(u16b version, char* real_name, char* host_name, char* user_name, 
 }
 
 int send_pass(char *new_password) {
-	return cq_printf(&serv->wbuf, "%c" "%S", PKT_CHANGEPASS, new_password);
+	return cq_printf(&serv->wbuf, "%c" "%s", PKT_CHANGEPASS, new_password);
 }
 
 int send_handshake(u16b conntype) {
@@ -242,7 +248,7 @@ int send_visual_info(byte type) {
 	int	size;
 	byte *attr_ref;
 	char *char_ref;
-	switch (type) 
+	switch (type)
 	{
 		case VISUAL_INFO_FLVR:
 			size = MAX_FLVR_IDX;
@@ -317,7 +323,7 @@ int send_options(void)
 	}
 
 	/* Leftovers */
-	if (bit != 0) 
+	if (bit != 0)
 	{
 		if ((n = cq_printf(&serv->wbuf, "%b", next)) < 0) return n;
 	}
@@ -452,14 +458,14 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 		S_WRITE(ITEM_CHAR)      	item, entry[0]\
 		S_WRITE(ITEM_DIR_VALUE) 	item, dir, value\
 		S_WRITE(ITEM_DIR_SMALL) 	item, dir, (byte)value\
-		S_WRITE(ITEM_DIR_STRING) 	item, dir, entry\
+		S_WRITE(ITEM_DIR_STRING)	item, dir, entry\
 		S_WRITE(ITEM_DIR_CHAR)  	item, dir, entry[0]\
 		S_WRITE(ITEM_VALUE_STRING)	item, value, entry\
-		S_WRITE(ITEM_VALUE_CHAR) 	item, value, entry[0]\
+		S_WRITE(ITEM_VALUE_CHAR)	item, value, entry[0]\
 		S_WRITE(ITEM_SMALL_STRING)	item, (byte)value, entry\
 		S_WRITE(ITEM_SMALL_CHAR) 	item, (byte)value, entry[0]\
 		S_WRITE(FULL)           	item, dir, value, entry\
-		S_WRITE(PPTR_CHAR)         	entry[0]\
+		S_WRITE(PPTR_CHAR)      	entry[0]\
 		S_DONE
 
 	}
@@ -475,17 +481,17 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 
 int recv_store(connection_type *ct)
 {
-	int	
+	int
 		price;
-	char	
+	char
 		name[MAX_CHARS];
-	byte	
+	byte
 		pos,attr;
-	s16b	
+	s16b
 		wgt, num;
 
 	if (cq_scanf(&serv->rbuf, "%c%c%d%d%ul%s", &pos, &attr, &wgt, &num, &price, name) < 6) return 0;
-	
+
 
 	store.stock[pos].sval = attr;
 	store.stock[pos].weight = wgt;
@@ -505,15 +511,15 @@ int recv_store(connection_type *ct)
 
 int recv_store_info(connection_type *ct)
 {
-	s16b		
+	s16b
 		num_items;
-	s32b	
+	s32b
 		max_cost;
-	byte 	
+	byte
 		flag;
 
 	if (cq_scanf(&serv->rbuf, "%c%s%s%d%l", &flag, store_name, store_owner_name, &num_items, &max_cost) < 5) return 0;
-	
+
 
 	store_flag = flag;
 	store.stock_num = num_items;
@@ -573,22 +579,22 @@ int recv_keepalive(connection_type *ct) {
 		if (conn_state == CONN_PLAYING) {
 			lag_mark = (mticks - last_sent);
 			p_ptr->redraw |= PR_LAG_METER;
-		} 
+		}
 		last_keepalive=0;
 	};
 #else
 	/* make sure it's the same one we sent... */
-	if (cticks == sent_pings - 1) 
+	if (cticks == sent_pings - 1)
 	{
-		if (state == PLAYER_PLAYING) 
+		if (state == PLAYER_PLAYING)
 		{
 			micro time_passed = static_timer(1);
 			time_passed /= 100;
 			lag_mark = (s16b)time_passed;
 			recd_pings++;
-		} 
+		}
 	}
-#endif 
+#endif
 	/* Ok */
 	return 1;
 }
@@ -598,7 +604,7 @@ int recv_quit(connection_type *ct) {
 	char
 		reason[MSG_LEN];
 
-	if (cq_scanf(&ct->rbuf, "%S", reason) < 1) 
+	if (cq_scanf(&ct->rbuf, "%S", reason) < 1)
 	{
 		strcpy(reason, "unknown reason");
 	}
@@ -609,12 +615,12 @@ int recv_quit(connection_type *ct) {
 
 int recv_basic_info(connection_type *ct) {
 
-	if (cq_scanf(&ct->rbuf, "%b%b%b%b", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4) 
+	if (cq_scanf(&ct->rbuf, "%b%b%b%b", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4)
 	{
 		/* Not enough bytes */
 		return 0;
 	}
-	if (cq_scanf(&ct->rbuf, "%ul%ul%ul%ul", &serv_info.val9, &serv_info.val10, &serv_info.val11, &serv_info.val12) < 4) 
+	if (cq_scanf(&ct->rbuf, "%ul%ul%ul%ul", &serv_info.val9, &serv_info.val10, &serv_info.val11, &serv_info.val12) < 4)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -633,7 +639,7 @@ int recv_play(connection_type *ct) {
 	byte
 		mode = 0;
 
-	if (cq_scanf(&ct->rbuf, "%b", &mode) < 1) 
+	if (cq_scanf(&ct->rbuf, "%b", &mode) < 1)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -649,10 +655,12 @@ int recv_play(connection_type *ct) {
 
 /* Character info packet, important at setup stage */
 int recv_char_info(connection_type *ct) {
+	/* Note: global variables! */
 		state = 0;
 		race = 0;
 		pclass = 0;
 		sex = 0;
+
 	if (cq_scanf(&ct->rbuf, "%d%d%d%d", &state, &race, &pclass, &sex) < 4)
 	{
 		/* Not enough bytes */
@@ -672,10 +680,10 @@ int recv_char_info(connection_type *ct) {
 int recv_struct_info(connection_type *ct)
 {
 	int 	i;
-	byte 	typ;
-	u16b 	max;
-	char 	name[MAX_CHARS];
-	u32b 	off, fake_name_size, fake_text_size;
+	byte	typ;
+	u16b	max;
+	char	name[MAX_CHARS];
+	u32b	off, fake_name_size, fake_text_size;
 	byte	spell_book;
 
 	off = fake_name_size = fake_text_size = max = typ = 0;
@@ -701,12 +709,12 @@ int recv_struct_info(connection_type *ct)
 			/* Fill */
 			for (i = 0; i < max; i++)
 			{
-								
+
 				if (cq_scanf(&ct->rbuf, "%s", &name) < 1)
 				{
 					return 0;
 				}
-				
+
 				/* Transfer */
 				option_group[i] = string_make(name);
 			}
@@ -723,9 +731,9 @@ int recv_struct_info(connection_type *ct)
 			{
 				player_race *pr_ptr = NULL;
 				pr_ptr = &race_info[i];
-	
+
 				off = 0;
-						
+
 				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
 				{
 					return 0;
@@ -751,14 +759,14 @@ int recv_struct_info(connection_type *ct)
 				pc_ptr = &c_info[i];
 	
 				off = spell_book = 0;
-						
+
 				if (cq_scanf(&ct->rbuf, "%s%ul%c", &name, &off, &spell_book) < 3)
 				{
 					return 0;
 				}
 
 				my_strcpy(c_name + off, name, fake_name_size - off);
-			
+
 				pc_ptr->name = off;
 				/* Transfer other fields here */
 				pc_ptr->spell_book = spell_book;
@@ -804,9 +812,9 @@ int recv_struct_info(connection_type *ct)
 
 				eq_names[i] = last_off = (s16b)off;
 			}
-		}		
-	}	
-	
+		}
+	}
+
 	return 1;
 }
 
@@ -867,7 +875,7 @@ int recv_indicator(connection_type *ct) {
 	coff = coffer_refs[id];
 
 	/* Read (i_ptr->amnt) values of type (i_ptr->type) */
-	for (i = 0; i < i_ptr->amnt; i++) 
+	for (i = 0; i < i_ptr->amnt; i++)
 	{
 		/* Read */
 		s32b val = 0, n = 0;
@@ -975,7 +983,7 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->flag = flag;
 	i_ptr->win = win;
 
-	i_ptr->mark = strdup(mark);
+	i_ptr->mark = string_make(mark);
 
 	n = strlen(buf) + 1;
 	C_MAKE(i_ptr->prompt, n, char);
@@ -1096,7 +1104,7 @@ int recv_stream(connection_type *ct) {
 	byte	addr, id;
 	cave_view_type	*dest;
 
-	stream_type 	*stream;
+	stream_type	*stream;
 
 	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
 
@@ -1191,10 +1199,12 @@ int recv_stream_size(connection_type *ct) {
 	if (addr == NTERM_WIN_OVERHEAD)
 	{
 		/* Redraw status line */
-		Term_erase(0, y-1, x);
-		p_ptr->redraw |= PR_STATUS;
+		Term_erase(0, y + SCREEN_CLIP_L, x);
+		//p_ptr->redraw |= PR_STATUS;
+		schedule_redraw(PW_STATUS);
 		/* Redraw compact */
-		p_ptr->redraw |= PR_COMPACT;
+		//p_ptr->redraw |= PR_COMPACT;
+		schedule_redraw(PW_PLAYER_2);
 	}
 
 
@@ -1234,7 +1244,7 @@ int recv_stream_info(connection_type *ct) {
 	WIPE(s_ptr, stream_type);
 
 	s_ptr->pkt = pkt;
-	s_ptr->addr = addr;	
+	s_ptr->addr = addr;
 	s_ptr->rle = rle;
 
 	s_ptr->flag = flag;
@@ -1249,7 +1259,7 @@ int recv_stream_info(connection_type *ct) {
 
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = strdup(buf);
+		s_ptr->mark = string_make(buf);
 	}
 
 
@@ -1306,7 +1316,7 @@ int recv_term_info(connection_type *ct) {
 	/* Icky test */
 	if ((flag & NTERM_ICKY) && !interactive_mode) return 1;
 
-	/* Change terminal state */	
+	/* Change terminal state */
 	if (flag & NTERM_HOLD)
 	{
 		if (line == NTERM_ESCAPE)
@@ -1468,9 +1478,9 @@ int recv_channel(connection_type *ct) {
 }
 
 int recv_message(connection_type *ct) {
-	char 
+	char
 		mesg[MAX_CHARS];
-	u16b 
+	u16b
 		type = 0;
 	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
 
@@ -1481,9 +1491,9 @@ int recv_message(connection_type *ct) {
 
 int recv_message_repeat(connection_type *ct) {
 
-	char 
+	char
 		mesg[MAX_CHARS];
-	u16b 
+	u16b
 		type = 0;
 
 	if (cq_scanf(&ct->rbuf, "%ud", &type) < 1) return 0;
@@ -1497,7 +1507,7 @@ int recv_message_repeat(connection_type *ct) {
 
 int recv_sound(connection_type *ct)
 {
-	char 
+	char
 		sound;
 
 	if (cq_scanf(&ct->rbuf, "%c", &sound) < 1) return 0;
@@ -1739,6 +1749,13 @@ int recv_objflags(connection_type *ct)
 		return 0;
 	}
 
+	/* Verify */
+	if (y < 0 || y >= 14)
+	{
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, 14));
+		return -1;
+	}
+
 	/* Body (39 grids of cave) */
 	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
 	{ 
@@ -1747,7 +1764,7 @@ int recv_objflags(connection_type *ct)
 
 	//TODO: re-evalute those
 	/* Update relevant displays */
-	p_ptr->redraw |= PR_EQUIPPY;
+	//p_ptr->redraw |= PR_EQUIPPY;
 	p_ptr->window |= (PW_PLAYER_1);
 
 	/* Ok */
@@ -1976,7 +1993,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		/* Ignore visible changes */
 		if (clear)
 		{
-			/* Erase */ 
+			/* Erase */
 			Term_clear();
 
 			/* Refresh */
@@ -1991,10 +2008,10 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 	for (j = 0; j < known_streams; j++) 
 	{
 		/* A change is scheduled */
-		if (st_y[j] != -1) 
+		if (st_y[j] != -1)
 		{
 			/* We try to subscribe/resize */
-			if (st_y[j]) 
+			if (st_y[j])
 			{ 
 				/* HACK -- Dungeon Display Offsets */
 				if (streams[j].addr == NTERM_WIN_OVERHEAD)

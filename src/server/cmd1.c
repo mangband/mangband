@@ -286,23 +286,23 @@ s16b tot_dam_aux(int Ind, object_type *o_ptr, int tdam, monster_type *m_ptr, boo
 				if (mult < 5) mult = 5;
 			}
 
-            /* Execute Demon */
-            if ((f1 & TR1_KILL_DEMON) &&
-                (r_ptr->flags3 & RF3_DEMON))
-            {
-                if (ml) l_ptr->flags3 |= RF3_DEMON;
+			/* Execute Demon */
+			if ((f1 & TR1_KILL_DEMON) &&
+			    (r_ptr->flags3 & RF3_DEMON))
+			{
+				if (ml) l_ptr->flags3 |= RF3_DEMON;
 
-                if (mult < 5) mult = 5;
-            }
+				if (mult < 5) mult = 5;
+			}
 
-            /* Execute Undead */
-            if ((f1 & TR1_KILL_UNDEAD) &&
-                (r_ptr->flags3 & RF3_UNDEAD))
-            {
-                if (ml) l_ptr->flags3 |= RF3_UNDEAD;
+			/* Execute Undead */
+			if ((f1 & TR1_KILL_UNDEAD) &&
+			    (r_ptr->flags3 & RF3_UNDEAD))
+			{
+				if (ml) l_ptr->flags3 |= RF3_UNDEAD;
 
-                if (mult < 5) mult = 5;
-            }
+				if (mult < 5) mult = 5;
+			}
 
 
 			/* Brand (Acid) */
@@ -369,21 +369,21 @@ s16b tot_dam_aux(int Ind, object_type *o_ptr, int tdam, monster_type *m_ptr, boo
 				}
 			}
 
-            /* Brand (Poison) */
-            if (f1 & TR1_BRAND_POIS)
-            {
-                /* Notice immunity */
-                if (r_ptr->flags3 & RF3_IM_POIS)
-                {
-                    if (ml) l_ptr->flags3 |= RF3_IM_POIS;
-                }
+			/* Brand (Poison) */
+			if (f1 & TR1_BRAND_POIS)
+			{
+				/* Notice immunity */
+				if (r_ptr->flags3 & RF3_IM_POIS)
+				{
+					if (ml) l_ptr->flags3 |= RF3_IM_POIS;
+				}
 
-                /* Otherwise, take the damage */
-                else
-                {
-                    if (mult < 3) mult = 3;
-                }
-            }
+				/* Otherwise, take the damage */
+				else
+				{
+					if (mult < 3) mult = 3;
+				}
+			}
 
 			break;
 		}
@@ -404,7 +404,7 @@ s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr)
 {
 	int mult = 1;
 
-        u32b f1, f2, f3;
+	u32b f1, f2, f3;
 
 	/* Extract the flags */
 	object_flags(o_ptr, &f1, &f2, &f3);
@@ -480,20 +480,20 @@ s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr)
 				}
 			}
 
-            /* Brand (Poison) */
-            if (f1 & TR1_BRAND_POIS)
-            {
-                /* Notice resistance */
-                if (p_ptr->resist_pois)
-                {
-                }
+			/* Brand (Poison) */
+			if (f1 & TR1_BRAND_POIS)
+			{
+				/* Notice resistance */
+				if (p_ptr->resist_pois)
+				{
+				}
 
-                /* Otherwise, take the damage */
-                else
-                {
-                    if (mult < 3) mult = 3;
-                }
-            }
+				/* Otherwise, take the damage */
+				else
+				{
+					if (mult < 3) mult = 3;
+				}
+			}
 
 			break;
 		}
@@ -507,7 +507,7 @@ s16b tot_dam_aux_player(object_type *o_ptr, int tdam, player_type *p_ptr)
 /*
  * Searches for hidden things.			-RAK-
  */
- 
+
 void search(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
@@ -831,7 +831,7 @@ void carry(int Ind, int pickup, int confirm)
 					char artname[80];
 					char msg[80];
 					object_desc(0, artname, o_ptr, FALSE, 0);
-					sprintf(msg,"Found The %s",artname);					
+					sprintf(msg,"Found The %s",artname);
 					log_history_event(Ind, msg, TRUE);
 					/* Mark artifact as found */
 					set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
@@ -1638,8 +1638,8 @@ void move_player(int Ind, int dir, int do_pickup)
 				p_ptr->py = MAX_HGT-2;
 			}
 			if (y >= 65)
-			{			
-				/* new player location */  
+			{
+				/* new player location */
 				p_ptr->world_y--;
 				p_ptr->py = 1;
 			}
@@ -1652,10 +1652,10 @@ void move_player(int Ind, int dir, int do_pickup)
 			if (x >= 197)
 			{
 				/* new player location */
-				p_ptr->world_x++;			
+				p_ptr->world_x++;
 				p_ptr->px = 1;
 			}
-		
+
 			/* check to make sure he hasnt hit the edge of the world */
 			if (world_index(p_ptr->world_x, p_ptr->world_y) <= -MAX_WILD) 
 			{
@@ -1668,14 +1668,14 @@ void move_player(int Ind, int dir, int do_pickup)
 			
 			/* Remove the player from the old location */
 			cave[Depth][oldy][oldx].m_idx = 0;
-			
+
 			/* Show everyone that's he left */
 			everyone_lite_spot(Depth, oldy, oldx);
-		
+
 			/* forget his light and viewing area */
 			forget_lite(Ind);
-			forget_view(Ind);			
-		
+			forget_view(Ind);
+
 			/* A player has left this depth */
 			players_on_depth[p_ptr->dun_depth]--;
 			
@@ -1687,13 +1687,13 @@ void move_player(int Ind, int dir, int do_pickup)
 			
 			/* Calculate the new level index */
 			p_ptr->dun_depth = world_index(p_ptr->world_x, p_ptr->world_y);
-		
+
 			/* update the wilderness map */
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
-			
+
 			/* disturb if necessary */
 			if (option_p(p_ptr,DISTURB_PANEL)) disturb(Ind, 0, 0);
-						
+
 			players_on_depth[p_ptr->dun_depth]++;
 			p_ptr->new_level_flag = TRUE;
 			p_ptr->new_level_method = LEVEL_OUTSIDE;
@@ -1702,7 +1702,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		}
 	}
 
-	
+
 	/* Examine the destination */
 	c_ptr = &cave[Depth][y][x];
 	w_ptr = &p_ptr->cave_flag[y][x];
@@ -1825,7 +1825,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	}
 
 	/* Player can not walk through "walls", but ghosts can */
-    else if ((!p_ptr->ghost) && (!cave_floor_bold(Depth, y, x)))
+	else if ((!p_ptr->ghost) && (!cave_floor_bold(Depth, y, x)))
 	{
 		/* Disturb the player */
 		disturb(Ind, 0, 0);
@@ -1907,7 +1907,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	}
 
 	/* Ghost trying to walk into a permanent wall */
-    else if (p_ptr->ghost && c_ptr->feat == FEAT_PERM_SOLID)
+	else if (p_ptr->ghost && c_ptr->feat == FEAT_PERM_SOLID)
 	{
 		/* Message */
 		msg_print(Ind, "The wall blocks your movement.");
@@ -1942,7 +1942,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		cave[Depth][oy][ox].m_idx = 0;
 		cave[Depth][y][x].m_idx = 0 - Ind;
 
-		
+
 
 		/* Redraw new spot */
 		everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
@@ -2062,7 +2062,7 @@ int see_wall(int Ind, int dir, int y, int x)
 	x += ddx[dir];
 
 	/* Ghosts run right through everything */
-    if (p_ptr->ghost) return (FALSE);
+	if (p_ptr->ghost) return (FALSE);
 
 	/* Do wilderness hack, keep running from one outside level to another */
 	if ( (!in_bounds(Depth, y, x)) && (Depth <= 0) ) return FALSE;
@@ -2309,7 +2309,7 @@ static void run_init(int Ind, int dir)
 	/* Assume running straight */
 	p_ptr->find_prevdir = dir;
 
-	/* Assume looking for open area */	
+	/* Assume looking for open area */
 	p_ptr->find_openarea = TRUE;
 
 	/* Assume not looking for breaks */
@@ -2347,7 +2347,7 @@ static void run_init(int Ind, int dir)
 		}
 	}
 
-	/* Check for walls */	
+	/* Check for walls */
 	if (see_wall(Ind, cycle[i-1], p_ptr->py, p_ptr->px))
 	{
 		/* if in the dungeon */
@@ -2424,7 +2424,7 @@ static bool run_test(int Ind)
 
 
 	/* XXX -- Ghosts never stop running */
-    if (p_ptr->ghost) return (FALSE);
+	if (p_ptr->ghost) return (FALSE);
 
 	/* No options yet */
 	option = 0;
@@ -2632,7 +2632,7 @@ static bool run_test(int Ind)
 			{
 				/* Looking to break right */
 				if (p_ptr->find_breakright)
-				{									
+				{
 					return (TRUE);
 				}
 			}
@@ -2642,7 +2642,7 @@ static bool run_test(int Ind)
 			{
 				/* Looking to break left */
 				if (p_ptr->find_breakleft)
-				{					
+				{
 					return (TRUE);
 				}
 			}
@@ -2661,7 +2661,7 @@ static bool run_test(int Ind)
 			{
 				/* Looking to break left */
 				if (p_ptr->find_breakleft)
-				{				
+				{
 					return (TRUE);
 				}
 			}
@@ -2780,7 +2780,7 @@ void run_step(int Ind, int dir)
 
 	/* Start running */
 	if (p_ptr->run_request)
-			{
+	{
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);
 

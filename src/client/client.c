@@ -10,8 +10,10 @@
 #if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
-#ifdef USE_SDL2
-#include <SDL.h> // needed for SDL_main remapping
+/* This is needed on some platforms to replace main via dark magic */
+/* TODO: See if it breaks anything. Also, where is our ON_OSX define? */
+#if defined(USE_SDL2) || defined(USE_SDL)
+#include <SDL.h>
 #endif
 
 static void read_credentials(void)
@@ -40,13 +42,13 @@ static void read_credentials(void)
 	if ((pw = getpwuid(player_uid)))
 	{
 		/* Pull login id */
-		strcpy(nick, pw->pw_name);
+		my_strcpy(nick, pw->pw_name, MAX_CHARS);
 
 		/* Cut */
-		nick[16] = '\0';
+		nick[MAX_NAME_LEN] = '\0';
 
 		/* Copy to real name */
-		strcpy(real_name, nick);
+		my_strcpy(real_name, nick, MAX_CHARS);
 	}
 #endif
 
@@ -55,10 +57,10 @@ static void read_credentials(void)
 	if ( GetUserName(buffer, &bufferLen) ) 
 	{
 		/* Cut */
-		buffer[16] = '\0';
+		buffer[MAX_NAME_LEN] = '\0';
 		
 		/* Copy to real name */
-  		strcpy(real_name, buffer);
+		my_strcpy(real_name, buffer, MAX_CHARS);
 	}
 #endif
 
@@ -66,11 +68,13 @@ static void read_credentials(void)
 
 int main(int argc, char **argv)
 {
-	char *use_server;
 	bool done = FALSE;
 
 	/* Save the program name */
 	argv0 = argv[0];
+
+	/* Save command-line arguments */
+	clia_init(argc, (const char**)argv);
 
 	/* Client Config-file */
 	conf_init(NULL);
@@ -112,8 +116,8 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-x11.c" support */
 	if (!done)
 	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
+		extern errr init_x11(int argc, char **argv);
+		if (0 == init_x11(argc,argv)) done = TRUE;
 		if (done) ANGBAND_SYS = "x11";
 	}
 #endif
@@ -159,22 +163,8 @@ int main(int argc, char **argv)
 	/* Attempt to read default name/real name from OS */
 	read_credentials();
 
-	/* By default, query the metaserver */
-	use_server = NULL;
-
-	/* Attempt to read server name from command line */
-	if (argc == 2)
-	{
-		/* Hack -- Ensure it's not MacOSX `-psn_APPID` handle (see #989) */
-		if (argv[1][0] != '-')
-		{
-			/* Use given server name */
-			use_server = argv[1];
-		}
-	}
-
 	/** Initialize client and run main loop **/
-	client_init(use_server);
+	client_init();
 
 	return 0;
 }

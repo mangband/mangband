@@ -18,64 +18,64 @@ static void display_entry(int pos)
 	/* Get the item */
 	o_ptr = &store.stock[pos];
 
-        /* Get the "offset" */
-        i = (pos % 12);
+	/* Get the "offset" */
+	i = (pos % 12);
 
-        /* Label it, clear the line --(-- */
-        (void)sprintf(out_val, "%c) ", I2A(i));
-        prt(out_val, i+6, 0);
+	/* Label it, clear the line --(-- */
+	(void)sprintf(out_val, "%c) ", I2A(i));
+	prt(out_val, i+6, 0);
 
-        /* Describe an item in the home */
-        if (store_num == 7)
-        {
-                maxwid = 75;
+	/* Describe an item in the home */
+	if (store_num == 7)
+	{
+		maxwid = 75;
 
-                /* Leave room for weights, if necessary -DRS- */
-                if (show_weights) maxwid -= 10;
+		/* Leave room for weights, if necessary -DRS- */
+		if (show_weights) maxwid -= 10;
 
                 /* Describe the object */
 		strcpy(o_name, store_names[pos]);
-                o_name[maxwid] = '\0';
-                c_put_str(o_ptr->sval, o_name, i+6, 3);
+		o_name[maxwid] = '\0';
+		c_put_str(o_ptr->sval, o_name, i+6, 3);
 
-                /* Show weights */
-                if (show_weights)
-                {
-                        /* Only show the weight of an individual item */
-                        int wgt = o_ptr->weight;
-                        (void)sprintf(out_val, "%3d.%d lb", wgt / 10, wgt % 10);
-                        put_str(out_val, i+6, 68);
-                }
-        }
+		/* Show weights */
+		if (show_weights)
+		{
+			/* Only show the weight of an individual item */
+			int wgt = o_ptr->weight;
+			(void)sprintf(out_val, "%3d.%d lb", wgt / 10, wgt % 10);
+			put_str(out_val, i+6, 68);
+		}
+	}
 
-        else
-        {
-                /* Must leave room for the "price" */
-                maxwid = 65;
+	else
+	{
+		/* Must leave room for the "price" */
+		maxwid = 65;
 
-                /* Leave room for weights, if necessary -DRS- */
-                if (show_weights) maxwid -= 7;
+		/* Leave room for weights, if necessary -DRS- */
+		if (show_weights) maxwid -= 7;
 
-                /* Describe the object (fully) */
+		/* Describe the object (fully) */
 		strcpy(o_name, store_names[pos]);
-                o_name[maxwid] = '\0';
-                c_put_str(o_ptr->sval, o_name, i+6, 3);
+		o_name[maxwid] = '\0';
+		c_put_str(o_ptr->sval, o_name, i+6, 3);
 
-                /* Show weights */
-                if (show_weights)
-                {
-                        /* Only show the weight of an individual item */
-                        int wgt = o_ptr->weight;
-                        (void)sprintf(out_val, "%3d.%d", wgt / 10, wgt % 10);
-                        put_str(out_val, i+6, 61);
-                }
+		/* Show weights */
+		if (show_weights)
+		{
+			/* Only show the weight of an individual item */
+			int wgt = o_ptr->weight;
+			(void)sprintf(out_val, "%3d.%d", wgt / 10, wgt % 10);
+			put_str(out_val, i+6, 61);
+		}
 
 		x = store_prices[pos];
 
 		/* Actually draw the price (not fixed) */
 		(void)sprintf(out_val, "%9ld  ", (long)x);
 		put_str(out_val, i+6, 68);
-        }
+	}
 }
 
 
@@ -100,21 +100,21 @@ void display_inventory(void)
 		display_entry(store_top + k);
 	}
 
-        /* Erase the extra lines and the "more" prompt */
-        for (i = k; i < 13; i++) prt("", i + 6, 0);
+	/* Erase the extra lines and the "more" prompt */
+	for (i = k; i < 13; i++) prt("", i + 6, 0);
 
-        /* Assume "no current page" */
-        put_str("        ", 5, 20);
+	/* Assume "no current page" */
+	put_str("        ", 5, 20);
 
-        /* Visual reminder of "more items" */
-        if (store.stock_num > 12)
-        {
-                /* Show "more" reminder (after the last item) */
-                prt("-more-", k + 6, 3);
+	/* Visual reminder of "more items" */
+	if (store.stock_num > 12)
+	{
+		/* Show "more" reminder (after the last item) */
+		prt("-more-", k + 6, 3);
 
-                /* Indicate the "current page" */
-                put_str(format("(Page %d)", store_top/12 + 1), 5, 20);
-        }
+		/* Indicate the "current page" */
+		put_str(format("(Page %d)", store_top/12 + 1), 5, 20);
+	}
 }
 
 /*
@@ -122,52 +122,52 @@ void display_inventory(void)
  */
 static int get_stock(int *com_val, cptr pmt, int i, int j)
 {
-        char    command;
+	char    command;
 
-        char    out_val[160];
-
-
-        /* Paranoia XXX XXX XXX */
-        c_msg_print(NULL);
+	char    out_val[160];
 
 
-        /* Assume failure */
-        *com_val = (-1);
+	/* Paranoia XXX XXX XXX */
+	c_msg_print(NULL);
 
-        /* Build the prompt */
-        (void)sprintf(out_val, "(Items %c-%c, ESC to exit) %s",
-                      I2A(i), I2A(j), pmt);
 
-        /* Ask until done */
-        while (TRUE)
-        {
-                int k;
+	/* Assume failure */
+	*com_val = (-1);
 
-                /* Escape */
-                if (!get_com(out_val, &command)) break;
+	/* Build the prompt */
+	(void)sprintf(out_val, "(Items %c-%c, ESC to exit) %s",
+		I2A(i), I2A(j), pmt);
 
-                /* Convert */
-                k = (islower(command) ? A2I(command) : -1);
+	/* Ask until done */
+	while (TRUE)
+	{
+		int k;
 
-                /* Legal responses */
-                if ((k >= i) && (k <= j))
-                {
-                        *com_val = k;
-                        break;
-                }
+		/* Escape */
+		if (!get_com(out_val, &command)) break;
 
-                /* Oops */
-                bell();
-        }
+		/* Convert */
+		k = (islower(command) ? A2I(command) : -1);
 
-        /* Clear the prompt */
-        prt("", 0, 0);
+		/* Legal responses */
+		if ((k >= i) && (k <= j))
+		{
+			*com_val = k;
+			break;
+		}
 
-        /* Cancel */
-        if (command == ESCAPE) return (FALSE);
+		/* Oops */
+		bell();
+	}
 
-        /* Success */
-        return (TRUE);
+	/* Clear the prompt */
+	prt("", 0, 0);
+
+	/* Cancel */
+	if (command == ESCAPE) return (FALSE);
+
+	/* Success */
+	return (TRUE);
 }
 
 /* Public interface to get_stock function. */
@@ -208,110 +208,110 @@ int get_store_stock(int *citem, cptr prompt)
 
 static void store_examine(void) 
 {
-        int                     i;
-        int                     item;
+	int                     i;
+	int                     item;
 
-        char            out_val[160];
+	char            out_val[160];
 
-        /* Empty? */
-        if (store.stock_num <= 0)
-        {
-                if (store_num == 7) c_msg_print("Your home is empty.");
-                else c_msg_print("I am currently out of stock.");
-                return;
-        }
+	/* Empty? */
+	if (store.stock_num <= 0)
+	{
+		if (store_num == 7) c_msg_print("Your home is empty.");
+		else c_msg_print("I am currently out of stock.");
+		return;
+	}
 
-        /* Find the number of objects on this and following pages */
-        i = (store.stock_num - store_top);
+	/* Find the number of objects on this and following pages */
+	i = (store.stock_num - store_top);
 
-        /* And then restrict it to the current page */
-        if (i > 12) i = 12;
+	/* And then restrict it to the current page */
+	if (i > 12) i = 12;
 
-        /* Prompt */
-        sprintf(out_val, "Which item do you want to examine? ");
+	/* Prompt */
+	sprintf(out_val, "Which item do you want to examine? ");
 
-        /* Get the item number to be bought */
-        if (!get_stock(&item, out_val, 0, i-1)) return;
+	/* Get the item number to be bought */
+	if (!get_stock(&item, out_val, 0, i-1)) return;
 
-        /* Get the actual index */
-        item = item + store_top;
+	/* Get the actual index */
+	item = item + store_top;
 
-		  /* Tell the server */
-		  Send_observe(item);
+	/* Tell the server */
+	Send_observe(item);
 }
 
 static void store_purchase(void)
 {
-        int                     i, amt;
-        int                     item;
-        u32b                    price;
+	int                     i, amt;
+	int                     item;
+	u32b                    price;
 
-        object_type             *o_ptr;
+	object_type             *o_ptr;
 
-        char            out_val[160];
-
-
-        /* Empty? */
-        if (store.stock_num <= 0)
-        {
-                if (store_num == 7) c_msg_print("Your home is empty.");
-                else c_msg_print("I am currently out of stock.");
-                return;
-        }
+	char                    out_val[160];
 
 
-        /* Find the number of objects on this and following pages */
-        i = (store.stock_num - store_top);
+	/* Empty? */
+	if (store.stock_num <= 0)
+	{
+		if (store_num == 7) c_msg_print("Your home is empty.");
+		else c_msg_print("I am currently out of stock.");
+		return;
+	}
 
-        /* And then restrict it to the current page */
-        if (i > 12) i = 12;
 
-        /* Prompt */
-        if (store_num == 7)
-        {
-                sprintf(out_val, "Which item do you want to take? ");
-        }
-        else
-        {
-                sprintf(out_val, "Which item are you interested in? ");
-        }
+	/* Find the number of objects on this and following pages */
+	i = (store.stock_num - store_top);
 
-        /* Get the item number to be bought */
-        if (!get_stock(&item, out_val, 0, i-1)) return;
+	/* And then restrict it to the current page */
+	if (i > 12) i = 12;
 
-        /* Get the actual index */
-        item = item + store_top;
+	/* Prompt */
+	if (store_num == 7)
+	{
+		sprintf(out_val, "Which item do you want to take? ");
+	}
+	else
+	{
+		sprintf(out_val, "Which item are you interested in? ");
+	}
 
-        /* Get the actual item */
-        o_ptr = &store.stock[item];
+	/* Get the item number to be bought */
+	if (!get_stock(&item, out_val, 0, i-1)) return;
 
-        /* Assume the player wants just one of them */
-        amt = 1;
-        
-        /* Hack -- save price */
-        price = store_prices[item];
+	/* Get the actual index */
+	item = item + store_top;
 
-        /* Find out how many the player wants */
-        if (o_ptr->number > 1)
-        {
-                /* Hack -- note cost of "fixed" items */
-                if (store_num != 7)
-                {
-                        c_msg_print(format("That costs %ld gold per item.", (long)price));
-                }
+	/* Get the actual item */
+	o_ptr = &store.stock[item];
 
-                /* Hack -- set buying */
-                shopping_buying = TRUE;
+	/* Assume the player wants just one of them */
+	amt = 1;
 
-                /* Get a quantity */
-                amt = c_get_quantity(NULL, o_ptr->number);
+	/* Hack -- save price */
+	price = store_prices[item];
+
+	/* Find out how many the player wants */
+	if (o_ptr->number > 1)
+	{
+		/* Hack -- note cost of "fixed" items */
+		if (store_num != 7)
+		{
+			c_msg_print(format("That costs %ld gold per item.", (long)price));
+		}
+
+		/* Hack -- set buying */
+		shopping_buying = TRUE;
+
+		/* Get a quantity */
+		amt = c_get_quantity(NULL, o_ptr->number);
 
                 /* Hack -- unset buying */
-                shopping_buying = FALSE;
+		shopping_buying = FALSE;
 
-                /* Allow user abort */
-                if (amt <= 0) return;
-        }
+		/* Allow user abort */
+		if (amt <= 0) return;
+	}
 
 	/* Hack -- multiply price */
 	price *= amt;
@@ -364,73 +364,72 @@ static void store_process_command(void)
 		}
 	}
 
-        /* Parse the command */
-        switch (command_cmd)
-        {
-                        /* Leave */
-                case ESCAPE:
-                {
-                        leave_store = TRUE;
-                        break;
-                }
-
-                        /* Browse */
-                case ' ':
-                {
-                        if (store.stock_num <= 12)
-                        {
-                                c_msg_print("Entire inventory is shown.");
-                        }
-                        else
-                        {
-                                store_top += 12;
-                                if (store_top >= store.stock_num) store_top = 0;
-                                display_inventory();
-                        }
-                        break;
-                }
+	/* Parse the command */
+	switch (command_cmd)
+	{
+			/* Leave */
+		case ESCAPE:
+		{
+			leave_store = TRUE;
+			break;
+		}
+			/* Browse */
+		case ' ':
+		{
+			if (store.stock_num <= 12)
+			{
+				c_msg_print("Entire inventory is shown.");
+			}
+			else
+			{
+				store_top += 12;
+				if (store_top >= store.stock_num) store_top = 0;
+				display_inventory();
+			}
+			break;
+		}
 #if 0
                        /* Look (examine) */
-                case 'l':
-                {
-                        store_examine();
-                        break;
-                }
+		case 'l':
+		{
+			store_examine();
+			break;
+		}
 
-                        /* Get (purchase) */
-                case 'g':
-                {
-                        store_purchase();
-                        break;
-                }
+		/* Get (purchase) */
+		case 'g':
+		{
+			store_purchase();
+			break;
+		}
 
-                        /* Drop (Sell) */
-                case 'd':
-                {
-                		if (store_num != 8)
-                        store_sell();
-                        break;
-                }
+			/* Drop (Sell) */
+		case 'd':
+		{
+			if (store_num != 8)
+				store_sell();
+			break;
+		}
 #endif
-                        /* Ignore return */
-                case '\r':
-                {
-                        break;
-                }
+			/* Ignore return */
+		case '\r':
+		{
+			break;
+		}
 
-                        /* Equipment list */
-                case 'e':
-                {
-                        cmd_equip();
-                        break;
-                }
+			/* Equipment list */
+		case 'e':
+		{
+			cmd_equip();
+			break;
+		}
 
-                        /* Inventory list */
-                case 'i':
-                {
-                        cmd_inven();
-                        break;
-                }
+			/* Inventory list */
+		case 'i':
+		{
+			cmd_inven();
+			break;
+		}
 
 
 		default:
@@ -461,10 +460,10 @@ void display_store(void)
 
 	/* The screen is "icky" */
 	screen_icky = TRUE;
- 
+
 	/* We are "shopping" */
 	shopping = TRUE;
-	
+
 	/* Reset 'buying' */
 	shopping_buying = FALSE;
 
@@ -475,18 +474,18 @@ void display_store(void)
 	if (store_flag & STORE_NPC)
 	{
 		/* NPC store */
-		sprintf(buf, "%s", store_owner_name);		
+		sprintf(buf, "%s", store_owner_name);
 		put_str(buf, 3, 10);
 
 		/* Show the max price in the store (above prices) */
 		sprintf(buf, "%s (%ld)", store_name, (long)(store_owner.max_cost));
-		prt(buf, 3, 50);		
+		prt(buf, 3, 50);
 	}
 	else if (store_flag & STORE_PC)
 	{
 		/* A player owned store */
 		sprintf(buf, "%s's %s", store_owner_name, store_name );
-		put_str(buf, 3, 10);	
+		put_str(buf, 3, 10);
 	}
 
 	/* Label the item descriptions */

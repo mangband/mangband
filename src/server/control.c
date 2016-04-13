@@ -132,11 +132,11 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		buflen = strlen(buf);
 		for (i = 0; i < command_len; i++) 
 		{
-	 		if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
-	 		{
+			if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
+			{
 				(console_commands[i].call_back)(ct, params);				
-	 			break;
-	 		}
+				break;
+			}
 		}
 	}
 
@@ -261,7 +261,7 @@ static void console_whois(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 		}
@@ -289,7 +289,7 @@ static void console_whois(connection_type* ct, char *name)
 	/* Player connection info */
 	cq_printf(&ct->wbuf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
 		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
-				
+
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
 		cq_printf(&ct->wbuf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
@@ -324,7 +324,7 @@ static void console_kick_player(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 			break;
@@ -357,7 +357,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 	u32b outcome;
 	/* This is the expected outcome, generated on our reference platform */
 	u32b reference = 0x0D3E5371;
-	
+
 	bool randquick = Rand_quick;
 	u32b randvalue = Rand_value;
 	u16b randplace = Rand_place;
@@ -369,7 +369,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 		cq_printf(&ct->wbuf, "%s", "Can't run the RNG test with players connected!\n");
 		return;
 	}
-	
+
 	/* Preserve current RNG state */
 	for( i=0; i<RAND_DEG; i++ ) randstate[i] = Rand_state[i];
 
@@ -390,7 +390,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 		/* Flip between the quick and the complex */
 		Rand_quick = (i % 2);
 		outcome ^= Rand_mod(0x0FFFFFFF);
-		outcome ^= Rand_div(0x0FFFFFFF);	
+		outcome ^= Rand_div(0x0FFFFFFF);
 	}
 
 	/* Display the results */
@@ -402,7 +402,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 		cq_printf(&ct->wbuf, "%s",
 			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
 	}
-	
+
 	/* Restore the RNG state */
 	Rand_quick = randquick;
 	Rand_value= randvalue;
@@ -446,11 +446,11 @@ static void console_reload(connection_type* ct, char *mod)
 static void console_shutdown(connection_type* ct, char *when)
 {
 	int min = 0;
-	//if (!strcasecmp(when, "NOW")) min = 0;
+	//if (!my_stricmp(when, "NOW")) min = 0;
 	//else if (IS_VALID_NUMBER(when)) min = when
 
 	/* Now */
-	if (min == 0) 
+	if (min == 0)
 	{
 		/* Tell */
 		cq_printf(&ct->wbuf, "%s", "Server shutdown\n");
@@ -458,8 +458,8 @@ static void console_shutdown(connection_type* ct, char *when)
 		/* Shutdown */
 		shutdown_server();
 	} 
-	else 
-	/* Delayed */	
+	else
+	/* Delayed */
 	{
 		/* Set timer (in seconds) */
 		shutdown_timer= min * 60;
@@ -471,11 +471,11 @@ static void console_help(connection_type* ct, char *name)
 {
 	int i;
 	bool done = FALSE;
-	
+
 	/* Root */
 	if (!name || name[0] == ' ' || name[0] == '\0')
 	{
-		for (i = 0; i < command_len; i++) 
+		for (i = 0; i < command_len; i++)
 		{
 			cq_printf(&ct->wbuf, "%s", console_commands[i].name);
 			cq_printf(&ct->wbuf, "%s", " ");
@@ -499,23 +499,23 @@ static void console_help(connection_type* ct, char *name)
 			}
 		}
 	}
-	
-	if (!done)
-		cq_printf(&ct->wbuf, "%s", "Unrecognized command\n");	
 
-} 
+	if (!done)
+		cq_printf(&ct->wbuf, "%s", "Unrecognized command\n");
+
+}
 
 console_command_ops console_commands[] = {
 	{ "help",      console_help,        "[TOPIC]\nExplain a command or list all avaliable"	},
-  	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
-  	{ "who",       console_who,         "\nList players"                                	},
-  	{ "conn",      console_conn,         "\nList connections"                              	},
-  	{ "shutdown",  console_shutdown,    "[TIME|NOW]\nKill server in TIME minutes or 'NOW'" 	},
-  	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"                  	},
-  	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"         	},
-  	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"  	},
-  	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"       	},
-  	{ "rngtest",   console_rng_test,    "\nPerform RNG test"                            	},
-  	{ "debug",     console_debug,       "\nUnused"                                      	},
+	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
+	{ "who",       console_who,         "\nList players"                                	},
+	{ "conn",      console_conn,         "\nList connections"                           	},
+	{ "shutdown",  console_shutdown,    "[TIME|NOW]\nKill server in TIME minutes or 'NOW'"	},
+	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"                  	},
+	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"         	},
+	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"  	},
+	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"       	},
+	{ "rngtest",   console_rng_test,    "\nPerform RNG test"                            	},
+	{ "debug",     console_debug,       "\nUnused"                                      	},
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);

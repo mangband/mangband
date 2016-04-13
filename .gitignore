@@ -19,6 +19,14 @@
 *.out
 *.app
 *.hex
+# VisualStudio
+*.exp
+*.iobj
+*.ipdb
+*.pdb
+build/vs*/*Debug
+build/vs*/*Release
+
 
 Makefile
 Makefile.in

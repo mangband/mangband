@@ -640,12 +640,12 @@ const indicator_type indicators[MAX_INDICATORS] =
 #if 0
 	/* Classic HP/SP indicators */
 	{
-		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_CURHP,	COL_CURHP,
+		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
 		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
 		(PR_HP), "hp"
 	},
 	{
-		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_CURSP,	COL_CURSP,
+		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_MAXSP,	COL_MAXSP,
 		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
 		(PR_MANA), "sp"
 	},
@@ -741,7 +741,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	/** Character sheet **/
 	{
-		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3,  	2,	32,
+		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3 | IPW_4,  	2,	32,
 		(IN_VT_CR | IN_VT_LF | IN_VT_FF | IN_VT_COLOR_RESET),
 		"Age             \aB%6ld\vHeight          \aB%6ld\vWeight          \aB%6ld\vSocial Class    \aB%6ld",
 		(PR_VARIOUS), "various"
@@ -759,7 +759,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(PR_SKILLS), "skills2"
 	},
 	{
-		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3,  	9,	1,
+		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3 | IPW_4,  	9,	1,
 		(IN_VT_COLOR_RESET | IN_VT_CR | IN_VT_LF | IN_VT_FF),
 		"+ To Hit    \t\t\t\aB%6ld\v+ To Damage \t\t\t\aB%6ld", 
 		(PR_PLUSSES), "plusses"
@@ -787,89 +787,89 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	/* Name and gender indicators */
 	{
-		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3,	2,	1,
-		(0), "Name:       : \aB%s",
+		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	2,	1,
+		(0), "Name        : \aB%s",
 		(0), "hist_name_"
 	},
 	{
-		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3,	3,	1,
+		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	3,	1,
 		(0), "Sex         : \aB%s",
 		(0), "hist_gender_"
 	},
 
 	/** Clones **/
 	{
-		INDICATOR_CLONE(RACE, 0), 	IPW_3,	4,	1,
+		INDICATOR_CLONE(RACE, 0), 	IPW_3 | IPW_4 | IPW_5,	4,	1,
 		(0), "Race        : \aB%s",
 		(PR_MISC), "hist_race_"
 	},
 	{
-		INDICATOR_CLONE(CLASS, 0), 	IPW_3,	5,	1,
+		INDICATOR_CLONE(CLASS, 0), 	IPW_3 | IPW_4 | IPW_5,	5,	1,
 		(0), "Class       : \aB%s",
 		(PR_MISC), "hist_class_"
 	},
 	{
-		INDICATOR_CLONE(HP, 2),   	IPW_3,  	9,	52,
+		INDICATOR_CLONE(HP, 2),   	IPW_3 | IPW_4,  	9,	52,
 		(0),
 		"\vMax Hit Points  	 \aG%6ld", 
 		(PR_HP), "hist_mhp"
 	},
  	{
-		INDICATOR_CLONE(HP, 1),   	IPW_3,     10,	52,
+		INDICATOR_CLONE(HP, 1),   	IPW_3 | IPW_4,     10,	52,
 		(IN_VT_FF),
 		"Cur Hit Points    \a@%6ld",
 		(PR_HP), "hist_chp"
 	},
 	{
-		INDICATOR_CLONE(SP, 2),   	IPW_3,     11,	52,
+		INDICATOR_CLONE(SP, 2),   	IPW_3 | IPW_4,     11,	52,
 		(0),
 		"\vMax SP (Mana)     \aG%6ld",
 		(PR_HP), "hist_msp"
 	},
 	{
-		INDICATOR_CLONE(SP, 1),   	IPW_3,     12,	52,
+		INDICATOR_CLONE(SP, 1),   	IPW_3 | IPW_4,     12,	52,
 		(IN_VT_FF),
 		"Cur SP (Mana)     \a#%6ld",
 		(PR_HP), "hist_csp"
 	},
 	{
-		INDICATOR_CLONE(ARMOR, 3),   IPW_3, 	11,	1,
+		INDICATOR_CLONE(ARMOR, 3),   IPW_3 | IPW_4, 	11,	1,
 		(0),
 		"+ To AC        \aB%6ld",
 		(PR_ARMOR), "hist_toac"
 	},
 	{
-		INDICATOR_CLONE(ARMOR, 2),   IPW_3, 	12,	1,
+		INDICATOR_CLONE(ARMOR, 2),   IPW_3 | IPW_4, 	12,	1,
 		(0),
 		"  Base AC      \aB%6ld",
 		(PR_ARMOR), "hist_baseac"
 	},
 	{
-		INDICATOR_CLONE(LEVEL, 1), IPW_3,	9,	28,
+		INDICATOR_CLONE(LEVEL, 1), IPW_3 | IPW_4,	9,	28,
 		(0),
 		"Level      \aG%9ld",
 		(PR_LEV), "hist_level"
 	},
 	{
-		INDICATOR_CLONE(EXP, 1),   IPW_3, 	10,	28,
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	10,	28,
 		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
 		"Experience    \aG%6ld\f\r\vExperience    \ay%6ld",
 		(PR_EXP), "hist_cexp"
 	},
 	{
-		INDICATOR_CLONE(EXP, 1),   IPW_3, 	11,	28,
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	11,	28,
 		(0),
 		"Max Exp       \aG%6ld",
 		(PR_EXP), "hist_mexp"
 	},
 	{
-		INDICATOR_CLONE(EXP, 3),   IPW_3, 	12,	28,
+		INDICATOR_CLONE(EXP, 3),   IPW_3 | IPW_4, 	12,	28,
 		(0),
 		"Exp to Adv.  \aG%7ld",
 		(PR_EXP), "hist_aexp"
 	},
 	{
-		INDICATOR_CLONE(GOLD, 1),   IPW_3, 	13,	28,
+		INDICATOR_CLONE(GOLD, 1),   IPW_3 | IPW_4, 	13,	28,
 		(0),
 		"Gold       \aG%9ld",
 		(PR_GOLD), "hist_gold"
@@ -891,42 +891,42 @@ const indicator_type indicators[MAX_INDICATORS] =
 	/* Stats, Verbose. Displays both injured and uninjured values. */
 	{
 		/* STR, Verbose */
-		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3 | IPW_4 | IPW_5,     2+0,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fSTR: \a;%\v \v\rStr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat0"
 	},
 	{
 		/* INT, Verbose */
-		INDICATOR_CLONE(STAT1, 1),   	IPW_3,     2+1,	61,
+		INDICATOR_CLONE(STAT1, 1),   	IPW_3 | IPW_4 | IPW_5,     2+1,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fINT: \a;%\v \v\rInt: \ay%\f \a;%",
 		(PR_STATS), "hist_stat1"
 	},
 	{
 		/* WIS, Verbose */
-		INDICATOR_CLONE(STAT2, 1),   	IPW_3,     2+2,	61,
+		INDICATOR_CLONE(STAT2, 1),   	IPW_3 | IPW_4 | IPW_5,     2+2,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fWIS: \a;%\v \v\rWis: \ay%\f \a;%",
 		(PR_STATS), "hist_stat2"
 	},
 	{
 		/* DEX, Verbose */
-		INDICATOR_CLONE(STAT3, 1),   	IPW_3,     2+3,	61,
+		INDICATOR_CLONE(STAT3, 1),   	IPW_3 | IPW_4 | IPW_5,     2+3,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fDEX: \a;%\v \v\rDex: \ay%\f \a;%",
 		(PR_STATS), "hist_stat3"
 	},
 	{
 		/* CON, Verbose */
-		INDICATOR_CLONE(STAT4, 1),   	IPW_3,     2+4,	61,
+		INDICATOR_CLONE(STAT4, 1),   	IPW_3 | IPW_4 | IPW_5,     2+4,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCON: \a;%\v \v\rCon: \ay%\f \a;%",
 		(PR_STATS), "hist_stat4"
 	},
 	{
 		/* CHR, Verbose */
-		INDICATOR_CLONE(STAT5, 1),   	IPW_3,     2+5,	61,
+		INDICATOR_CLONE(STAT5, 1),   	IPW_3 | IPW_4 | IPW_5,     2+5,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCHR: \a;%\v \v\rChr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat5"

@@ -35,14 +35,14 @@
 /* Attach existing "node" to "root" */
 void e_plus(eptr root, eptr node) {
 	if (root) {
-		eptr iter = root; 
-		while(iter->next) 
+		eptr iter = root;
+		while(iter->next)
 			{ iter=iter->next; }
 		iter->next = node;
 	}
 }
 
-/* Attach "data1" and "data2" to "root" */ 
+/* Attach "data1" and "data2" to "root" */
 eptr e_add(eptr root, data data1, data data2) {
 	eptr new_e;
 
@@ -61,7 +61,7 @@ eptr e_add(eptr root, data data1, data data2) {
 	return new_e;
 }
 
-/* Delete "node". Shouldn't be called on attached nodes. */ 
+/* Delete "node". Shouldn't be called on attached nodes. */
 void e_free_aux(eptr node) {
 	node->data1 = NULL;
 	node->data2 = NULL;
@@ -131,13 +131,13 @@ data e_find(eptr root, data data1, compare func) {
 /*
  * Groups are wrapers around elements lists,
  * designed to provide numerical ids to all
- * the elements. 
- * 
+ * the elements.
+ *
  * They might also pre-allocate some memory in 
  * the future.
  */
 
-/* Initialize. Must call this on eg structure before using any of the eg_ functions! */ 
+/* Initialize. Must call this on eg structure before using any of the eg_ functions! */
 eptr* eg_init(element_group* grp, int max) {
 	grp->max = max;
 	grp->num = 0;
@@ -234,7 +234,7 @@ int eg_add(element_group* grp, data data1, data data2) {
 	/* Can't */
 	if (grp->num >= grp->max) return (-1);
 
-	/* Add */	
+	/* Add */
 	new_e = e_add(grp->list[0], data1, data2);
 	if (new_e == NULL) return (-1);
 	grp->list[grp->num++] = new_e;
@@ -253,7 +253,7 @@ data eg_find(element_group* grp, data data1, compare func) {
  * a maximum limit.
  *
  * Note: many of those cq_ functions have macro versions, see the ".h" file
- */ 
+ */
 
 /* Initialize. Must call this on cq structure before using any of the cq_ functions! */
 void cq_init(cq *charq, int max) {
@@ -262,6 +262,8 @@ void cq_init(cq *charq, int max) {
 	charq->pos = 0;
 	charq->len = 0;
 	charq->max = max;
+
+	charq->err = 0;
 }
 
 /* Clear charqueue */
@@ -271,7 +273,7 @@ void cq_clear(cq *charq) {
 
 /* Test if writing of string SIZE to queue is possible */
 int cq_cwrite(cq *charq, int size) {
-	if (charq->len + size < charq->max)	return 1;
+	if (charq->len + size < charq->max) return 1;
 	else return 0;
 }
 
@@ -285,7 +287,7 @@ int cq_len(cq *charq) {
 	return charq->len - charq->pos;
 }
 
-/* Return current writing position and advance it */ 
+/* Return current writing position and advance it */
 int cq_wpos(cq *charq) {
 	int d;
 
@@ -333,7 +335,7 @@ int cq_nwrite(cq *charq, char *str, int len) {
 /* Returns a string from the char queue [Unsafe] */
 char* cq_peek(cq *charq) {return &(charq->buf[charq->pos]);}
 
-/* Move up-to len bytes from charq to str */ 
+/* Move up-to len bytes from charq to str */
 int cq_nread(cq *charq, char *str, int len) {
 	static int i, j;
 	j = charq->pos;
@@ -345,7 +347,7 @@ int cq_nread(cq *charq, char *str, int len) {
 	}
 	str[i] = '\0';
 	if (charq->pos == charq->len) CQ_CLEAR(charq);
-	/* Return number of bytes moved */ 
+	/* Return number of bytes moved */
 	return i;
 }
 
@@ -364,7 +366,7 @@ int cq_move(cq *srcq, cq *dstq, int len) {
 	int i, j, s, d;
 	j = srcq->pos;
 	for (i = 0; i < len; i++) {
-		if ((d = CQ_WPOS(dstq)) == -1) break; 
+		if ((d = CQ_WPOS(dstq)) == -1) break;
 		if (srcq->pos >= srcq->len) break;
 		s = srcq->pos++;
 		dstq->buf[d] = srcq->buf[s];
@@ -394,5 +396,5 @@ void cq_slide(cq *charq) {
 /* Destructor. Call this when done. */
 void cq_free(cq *charq) {
 	FREE(charq->buf);
-	charq->pos = charq->max = charq->len = 0;   
+	charq->pos = charq->max = charq->len = 0;
 }

@@ -5,97 +5,14 @@
 
 #include "mangband.h"
 
-#ifndef HAS_MEMSET
-
-/*
- * For those systems that don't have "memset()"
- *
- * Set the value of each of 'n' bytes starting at 's' to 'c', return 's'
- * If 'n' is negative, you will erase a whole lot of memory.
- */
-char *memset(char *s, int c, huge n)
-{
-	char *t;
-	for (t = s; len--; ) *t++ = c;
-	return (s);
-}
-
-#endif
 
 
 
-#ifndef HAS_STRICMP
 
-/*
- * For those systems that don't have "stricmp()"
- *
- * Compare the two strings "a" and "b" ala "strcmp()" ignoring case.
- */
-int stricmp(cptr a, cptr b)
-{
-	cptr s1, s2;
-	char z1, z2;
-
-	/* Scan the strings */
-	for (s1 = a, s2 = b; TRUE; s1++, s2++)
-	{
-		z1 = FORCEUPPER(*s1);
-		z2 = FORCEUPPER(*s2);
-		if (z1 < z2) return (-1);
-		if (z1 > z2) return (1);
-		if (!z1) return (0);
-	}
-}
-
-#endif
 
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
-
-/*
- * For those systems that don't have "usleep()" but need it.
- *
- * Fake "usleep()" function grabbed from the inl netrek server -cba
- */
-static int usleep(huge microSeconds)
-{
-	struct timeval      Timer;
-
-	int                 nfds = 0;
-
-#ifdef FD_SET
-	fd_set		*no_fds = NULL;
-#else
-	int			*no_fds = NULL;
-#endif
-
-
-	/* Was: int readfds, writefds, exceptfds; */
-	/* Was: readfds = writefds = exceptfds = 0; */
-
-
-	/* Paranoia -- No excessive sleeping */
-	if (microSeconds > 4000000L) core("Illegal usleep() call");
-
-
-	/* Wait for it */
-	Timer.tv_sec = (microSeconds / 1000000L);
-	Timer.tv_usec = (microSeconds % 1000000L);
-
-	/* Wait for it */
-	if (select(nfds, no_fds, no_fds, no_fds, &Timer) < 0)
-	{
-		/* Hack -- ignore interrupts */
-		if (errno != EINTR) return -1;
-	}
-
-	/* Success */
-	return 0;
-}
-
-# endif
 
 
 /*
@@ -320,7 +237,7 @@ errr path_build(char *buf, int max, cptr path, cptr file)
 		/* Use the file itself */
 		strnfmt(buf, max, "%s", file);
 	}
-	
+
 	/* No path given */
 	else if (!path[0])
 	{
@@ -2804,7 +2721,7 @@ int find_chat_target(cptr search, char *error)
 			if (!virt_channels[i]) break;
 		
 			/* Compare names */
-			if (!strncasecmp(virt_channels[i], search, len))
+			if (!my_strnicmp(virt_channels[i], search, len))
 			{
 					/* Set target if not set already or an exact match */
 					if ((!target) || (len == strlen(virt_channels[i])))
@@ -2841,7 +2758,7 @@ int find_chat_target(cptr search, char *error)
 			if (!parties[i].num) continue;
 
 			/* Check name */
-			if (!strncasecmp(parties[i].name, search, len))
+			if (!my_strnicmp(parties[i].name, search, len))
 			{
 				/* Make sure one of the party members is actually
 				 * logged on. */
@@ -2884,7 +2801,7 @@ int find_chat_target(cptr search, char *error)
 			if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 			/* Check name */
-			if (!strncasecmp(q_ptr->name, search, len))
+			if (!my_strnicmp(q_ptr->name, search, len))
 			{
 				/* Set target if not set already or an exact match */
 				if ((!target) || (len == strlen(q_ptr->name)))

@@ -14,13 +14,13 @@
  */
 #include "angband.h"
 
-#define PACK_PTR_8(PT, VAL) * PT ++ = VAL 
+#define PACK_PTR_8(PT, VAL) * PT ++ = VAL
 #define PACK_PTR_16(PT, VAL) * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
 #define PACK_PTR_32(PT, VAL) * PT ++ = (char)(VAL >> 24), * PT ++ = (char)(VAL >> 16), * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
 #define PACK_PTR_STR(PT, VAL) while ((* PT ++ = * VAL ++) != '\0')
 #define PACK_PTR_NSTR(PT, VAL, SIZE) while (SIZE--) { * PT ++ = * VAL ++ ; }
 
-#define UNPACK_PTR_8(PT, VAL) * PT = * VAL ++ 
+#define UNPACK_PTR_8(PT, VAL) * PT = * VAL ++
 #define UNPACK_PTR_16(PT, VAL) * PT = * VAL ++ << 8, * PT |= (* VAL ++ & 0xFF)
 #define UNPACK_PTR_32(PT, VAL) * PT = * VAL ++ << 24, * PT |= (* VAL ++ & 0xFF) << 16, * PT |= (* VAL ++ & 0xFF) << 8, * PT |= (* VAL ++ & 0xFF)
 
@@ -36,12 +36,14 @@ static const cptr pf_errors[] = {
 "String too large for format", /* 6 */
 "", /* 7 */
 "Cave contains attrs unsuitable for this RLE method", /* 8 */
+"Cave contains length that is larger than possible width", /* 9 */
 "",
 };
+#define MAX_CQ_ERRORS 10
 
 /*
  * The macros below WILL define, initialize AND use the following variables.
- * It is imperative you don't interfere. 
+ * It is imperative you don't interfere.
  */
 #define WPTRN wptr
 #define WSTRN wstart
@@ -79,7 +81,7 @@ static const cptr pf_errors[] = {
 #define REPACK_FIN(SRC,DST) 	UNPACK_FIN(SRC); PACK_FIN(DST)
 
 #define REPACK_8 * WPTRN ++ = * RPTRN ++;
-#define REPACK_16 REPACK_8; REPACK_8  
+#define REPACK_16 REPACK_8; REPACK_8
 #define REPACK_32 REPACK_16; REPACK_16
 #define REPACK_STR PACK_PTR_STR(WPTRN, RPTRN)
 #define REPACK_NSTR(SIZE) PACK_PTR_NSTR(WPTRN, RPTRN, SIZE)
@@ -241,7 +243,7 @@ int cq_scanf(cq *charq, char *str, ...) {
 	s16b *_s16b;
 	u32b *_u32b;
 	s32b *_s32b;
-	char *_text = {'\0'};
+	char *_text;
 
 	UNPACK_DEF
 
@@ -429,7 +431,7 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 			case 'S': {
 				CF_ERROR_SIZE(MSG_LEN)
 				REPACK_STR
-				break;}				
+				break;}
 			CF_ERROR_FRMT
 		}
 	}
@@ -561,7 +563,7 @@ int cv_decode_rle1(cave_view_type* dst, cq* src, int len) {
 	UNPACK_INIT(src);
 	for (x = 0; x < len; x++)
 	{
-		int  n;
+		byte n;
 		char c;
 		byte a;
 
@@ -582,6 +584,13 @@ int cv_decode_rle1(cave_view_type* dst, cq* src, int len) {
 			/* Read the number of repetitions */
 			PR_ERROR_SIZE(1)
 			UNPACK_PTR_8(&n, rptr);
+
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
 		}
 
 		/* 'Draw' a character n times */
@@ -641,7 +650,7 @@ int cv_encode_rle2(cave_view_type* src, cq* dst, int len) {
 		{
 			/* Output the info */
 			PW_ERROR_SIZE(4)
-			PACK_PTR_8(wptr, (byte)n); 	/* Number of repetitons */
+			PACK_PTR_8(wptr, (byte)n); /* Number of repetitons */
 			PACK_PTR_8(wptr, 0xFF); /* 0xFF marks the spot! */
 			PACK_PTR_8(wptr, c);
 			PACK_PTR_8(wptr, a);
@@ -682,6 +691,13 @@ int cv_decode_rle2(cave_view_type* dst, cq* src, int len) {
 		{
 			/* Get the number of repetitions */
 			n = c;
+
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
 
 			/* Read the attr/char pair */
 			PR_ERROR_SIZE(1)
@@ -744,11 +760,11 @@ int cv_encode_rle3(cave_view_type* src, cq* dst, int len) {
 		if (n >= 3)
 		{
 			/* Output the info */
-			PW_ERROR_SIZE(2 + n)		
+			PW_ERROR_SIZE(2 + n)
 			PACK_PTR_8(wptr, (a | 0x40)); /* Set bit 0x40 of a */
 			PACK_PTR_8(wptr, (byte)n);
 			/* Output the chars */
-			while (n--)	PACK_PTR_8(wptr, (src[i++]).c);
+			while (n--) PACK_PTR_8(wptr, (src[i++]).c);
 			/* Start again after the run */
 			i--;
 		}
@@ -788,10 +804,17 @@ int cv_decode_rle3(cave_view_type* dst, cq* src, int len) {
 			/* Read the number of repetitions */
 			PR_ERROR_SIZE(1)
 			UNPACK_PTR_8(&n, rptr);
+
+			/* Is it even legal? */
+			if (x + n > len)
+			{
+				src->err = 9;
+				return 0;
+			}
 		}
 
 		/* 'Draw' a character n times */
-		PR_ERROR_SIZE(n)		
+		PR_ERROR_SIZE(n)
 		for (i = 0; i < n; i++)
 		{
 			char c;
@@ -826,20 +849,20 @@ cvcb cave_codecs[MAX_CAVE_CODECS][2] = {
 	{ cv_encode_rle3, cv_decode_rle3 }
 };
 
-int cq_printc(cq *charq, unsigned int mode, cave_view_type *from, int len) { 
+int cq_printc(cq *charq, unsigned int mode, cave_view_type *from, int len) {
 	int n = 0;
 	if (mode < MAX_CAVE_CODECS) 
 	{
-		n = (cave_codecs[mode][CV_ENCODE]) (from, charq, len); 
+		n = (cave_codecs[mode][CV_ENCODE]) (from, charq, len);
 	}
 	return n;
 }
 
-int cq_scanc(cq *charq, unsigned int mode, cave_view_type *to, int len) { 
+int cq_scanc(cq *charq, unsigned int mode, cave_view_type *to, int len) {
 	int n = 0;
 	if (mode < MAX_CAVE_CODECS) 
 	{
-		n = (cave_codecs[mode][CV_DECODE]) (to, charq, len); 
+		n = (cave_codecs[mode][CV_DECODE]) (to, charq, len);
 	}
 	return n;
 }
@@ -854,14 +877,14 @@ int cq_printac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
 	int i, n = 0;
 	if (len < PD_SMALL_BUFFER)
 	{
-		if (mode < MAX_CAVE_CODECS) 
+		if (mode < MAX_CAVE_CODECS)
 		{
 			for (i = 0; i < len; i++)
 			{
 				buf[i].a = a[i];
 				buf[i].c = c[i];
-			}		
-			n = (cave_codecs[mode][CV_ENCODE]) (&buf[0], charq, len); 
+			}
+			n = (cave_codecs[mode][CV_ENCODE]) (&buf[0], charq, len);
 		}
 	}
 	return n;
@@ -869,11 +892,11 @@ int cq_printac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
 
 /* Note: pass "NULL" as "a" to discard the result */
 int cq_scanac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
-	cave_view_type buf[PD_SMALL_BUFFER]; 
+	cave_view_type buf[PD_SMALL_BUFFER];
 	int i, n = 0;
-	if (len < PD_SMALL_BUFFER) 
+	if (len < PD_SMALL_BUFFER)
 	{
-		if (mode < MAX_CAVE_CODECS) 
+		if (mode < MAX_CAVE_CODECS)
 		{
 			if ((n = (cave_codecs[mode][CV_DECODE]) (&buf[0], charq, len)) == len)
 			{
@@ -891,10 +914,18 @@ int cq_scanac(cq *charq, unsigned int mode, byte *a, char *c, int len) {
 	return n;
 }
 
-char* cq_error(cq *charq) {
+const char* cq_error(cq *charq) {
 	if (charq->err == 0) return "";
-	if (charq->err < 9) {
+	if (charq->err < MAX_CQ_ERRORS) {
 		return pf_errors[charq->err];
 	}
 	return "";
+}
+
+/* Returns true if there was a fatal error in charq.
+ * Note: we consider errors 2, 3 and 4 non-fatal. */
+bool cq_fatal(cq *charq) {
+	if (charq->err == 0) return FALSE;
+	if (charq->err >= 2 && charq->err <= 4) return FALSE;
+	return TRUE;
 }

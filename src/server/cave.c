@@ -1854,7 +1854,7 @@ void wild_display_map(int Ind)
 	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = p_ptr->screen_hgt - 1;
+	map_hgt = p_ptr->screen_hgt - 2;
 	map_wid = p_ptr->screen_wid - 2;
 	
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
