@@ -946,9 +946,9 @@ static void load_prefs(void)
 	load_prefs_aux(&win_data[7], "Term-7 window");
 
 	/* Pull nick/pass */
-	strcpy(nick, conf_get_string("MAngband", "nick", "PLAYER"));
-	strcpy(pass, conf_get_string("MAngband", "pass", "passwd"));
-	strcpy(server_name, conf_get_string("MAngband", "host", ""));
+	my_strcpy(nick, conf_get_string("MAngband", "nick", "PLAYER"), MAX_CHARS);
+	my_strcpy(pass, conf_get_string("MAngband", "pass", "passwd"), MAX_CHARS);
+	my_strcpy(server_name, conf_get_string("MAngband", "host", ""), MAX_CHARS);
 
 	/* Pull username from Windows */
 	if ( GetUserName(buffer, &bufferLen) ) {

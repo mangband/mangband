@@ -19,7 +19,7 @@
  */
 void choose_name(void)
 {
-	char tmp[23];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your player's name above (or hit ESCAPE).", 21, 2);
@@ -31,10 +31,10 @@ void choose_name(void)
 		move_cursor(2, 15);
 
 		/* Save the player name */
-		strcpy(tmp, nick);
+		my_strcpy(tmp, nick, MAX_CHARS);
 
 		/* Get an input, ignore "Escape" */
-		if (askfor_aux(tmp, 15, 0)) strcpy(nick, tmp);
+		if (askfor_aux(tmp, MAX_NAME_LEN, 0)) my_strcpy(nick, tmp, MAX_CHARS);
 
 		/* All done */
 		break;
@@ -57,13 +57,13 @@ void choose_name(void)
 void enter_password(void)
 {
 	int c;
-	char tmp[MAX_PASS_LEN];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);
 
 	/* Default */
-	strcpy(tmp, pass);
+	my_strcpy(tmp, pass, MAX_CHARS);
 
 	/* Ask until happy */
 	while (1)
@@ -80,7 +80,7 @@ void enter_password(void)
 			    continue;
 			}
 			else
-				strcpy(pass, tmp);
+				my_strcpy(pass, tmp, MAX_CHARS);
 		}
 
 		/* All done */

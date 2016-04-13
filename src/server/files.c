@@ -2063,7 +2063,7 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
 
 	
 	/* Cannot be too long */
-	if (strlen(name) > 15)
+	if (strlen(name) > MAX_NAME_LEN)
 	{
 		/* Abort */
 		return -1;

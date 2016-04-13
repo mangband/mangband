@@ -761,12 +761,12 @@ int recv_pass(connection_type *ct, player_type *p_ptr)
 {
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%S", buf) < 1)
+	if (cq_scanf(&ct->rbuf, "%s", buf) < 1)
 	{
 		return 0;
 	}
 
-	my_strcpy(p_ptr->pass, buf, MAX_PASS_LEN);
+	my_strcpy(p_ptr->pass, buf, MAX_CHARS);
 
 	/* BUG: the password is not actually saved until player_save,
 	 * which can make things very confusing during login :( */

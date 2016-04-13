@@ -42,10 +42,10 @@ extern event_type inkey_ex(void);
 
 
 /* variable.c */
-extern char nick[80];
-extern char pass[80];
+extern char nick[MAX_CHARS];
+extern char pass[MAX_CHARS];
 
-extern char real_name[80];
+extern char real_name[MAX_CHARS];
 
 extern char server_name[80];
 extern int server_port;

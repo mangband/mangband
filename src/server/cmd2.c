@@ -905,7 +905,7 @@ bool set_house_owner(int Ind, int house)
 	if (house_owned(house)) return FALSE;
 	
 	/* Set the player as the owner */
-	strncpy(houses[house].owned,p_ptr->name,MAX_NAME_LEN);
+	my_strcpy(houses[house].owned, p_ptr->name, MAX_NAME_LEN+1);
 	
 	return TRUE;
 }

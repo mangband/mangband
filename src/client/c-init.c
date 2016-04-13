@@ -692,11 +692,11 @@ void client_init(void)
 		strcpy(server_name, host_name);
 
 	/* Default nickname and password */
-	strcpy(nick, conf_get_string("MAngband", "nick", nick));
-	strcpy(pass, conf_get_string("MAngband", "pass", pass));
+	my_strcpy(nick, conf_get_string("MAngband", "nick", nick), MAX_CHARS);
+	my_strcpy(pass, conf_get_string("MAngband", "pass", pass), MAX_CHARS);
 
 	/* Nick from command line */
-	clia_read_string(nick, sizeof(nick), "nick");
+	clia_read_string(nick, MAX_CHARS, "nick");
 
 	/* Get character name and pass */
 	get_char_name();

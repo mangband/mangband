@@ -1127,7 +1127,7 @@ int scoop_player(char *nick, char *pass)
 
 	char tmp[MAX_CHARS];
 
-	strcpy(tmp, nick);
+	my_strcpy(tmp, nick, MAX_CHARS);
 	if (process_player_name_aux( &tmp[0] , NULL, TRUE ) < 0)
 	{
 		/* Error allready! */

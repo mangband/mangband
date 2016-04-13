@@ -98,7 +98,7 @@
  * Maximum length for names and passwords
  *
  */
-#define MAX_NAME_LEN		20
+#define MAX_NAME_LEN		15
 #define MAX_PASS_LEN		40
 
 /*
