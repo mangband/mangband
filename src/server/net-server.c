@@ -192,6 +192,12 @@ void player_abandon(player_type *p_ptr)
 
 	/* Disable message repeat */
 	p_ptr->msg_last_type = MSG_MAX;
+
+	/* Forget about setup data */
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = 0;
+	}
 }
 
 /* Player leaves active gameplay (Remove player from p_list) */
