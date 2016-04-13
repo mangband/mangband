@@ -673,6 +673,12 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Check guard inscription '!a' */
 	__trap(Ind, CGI(o_ptr, 'a'));
 
+	if (o_ptr->tval != TV_WAND)
+	{
+		/* Tried to aim non-wand */
+		return;
+	}
+
 	/* Mega-Hack -- refuse to aim a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
