@@ -775,7 +775,7 @@ int recv_pass(connection_type *ct, player_type *p_ptr)
 }
 
 /* Default handler for all the gameplay commands. */
-int recv_command(connection_type *ct, player_type *p_ptr) 
+int recv_command(connection_type *ct, player_type *p_ptr)
 {
 	/* Hack -- remember position, and rewind to it upon failure */
 	int fail = 0;
@@ -824,12 +824,12 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 }
 
 /* Undefined packet "handler" */
-static int recv_undef(connection_type *ct, player_type *p_ptr) 
-{ 
+static int recv_undef(connection_type *ct, player_type *p_ptr)
+{
 	client_abort(ct, format("Undefined packet '%d'!", next_pkt));
 }
 
-int recv_keepalive(connection_type *ct, player_type *p_ptr) 
+int recv_keepalive(connection_type *ct, player_type *p_ptr)
 {
 	s32b ctime;
 
@@ -845,11 +845,11 @@ int recv_keepalive(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
-int recv_play(connection_type *ct, player_type *p_ptr) 
+int recv_play(connection_type *ct, player_type *p_ptr)
 {
-	byte 
+	byte
 		mode = 0;
-	if (cq_scanf(&ct->rbuf, "%c", &mode) < 1) 
+	if (cq_scanf(&ct->rbuf, "%c", &mode) < 1)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -893,7 +893,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_ROLL)
 	{
 		/* Prerequisites: */
-		if (p_ptr->state != PLAYER_SHAPED) 
+		if (p_ptr->state != PLAYER_SHAPED)
 		{
 			client_abort(ct, "Character not suitable for rolling!");
 		}
@@ -908,7 +908,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_ENTER)
 	{
 		/* Prerequisites: */
-		if (p_ptr->state != PLAYER_FULL) 
+		if (p_ptr->state != PLAYER_FULL)
 		{
 			client_abort(ct, "Character not ready to enter a game!");
 		}
@@ -923,7 +923,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_PLAY && p_ptr->state == PLAYER_LEAVING)
 	{
 		/* Prerequisites: */
-		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0)
 		{
 			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
 		}
@@ -940,7 +940,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		{
 			client_abort(ct, "Character not ready to play a game!");
 		}
-		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0)
 		{
 			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
 		}
@@ -965,7 +965,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 	char mode;
 	u16b id;
 
-	if (cq_scanf(&ct->rbuf, "%c%ud", &mode, &id) < 2) 
+	if (cq_scanf(&ct->rbuf, "%c%ud", &mode, &id) < 2)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -973,7 +973,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 
 	id = p_ptr->infodata_sent[mode];
 
-	switch (mode) 
+	switch (mode)
 	{
 		case BASIC_INFO_INDICATORS:
 			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id++)) break;
@@ -1001,14 +1001,14 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 
 int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	int i;
-	
+
 	/* TODO: Ensure p_ptr->state is correct of char_info and bail if not */
 	if (p_ptr->state != PLAYER_NAMED)
-	{ 
+	{
 		client_abort(ct, "Character not ready to be modified!");
 	}
 
-	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->pclass, &p_ptr->male) < 3) 
+	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->pclass, &p_ptr->male) < 3)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -1018,7 +1018,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	for (i = 0; i < 6; i++)
 	{
 		p_ptr->stat_order[i] = 0;
-		if (cq_scanf(&ct->rbuf, "%d", &p_ptr->stat_order[i]) < 1) 
+		if (cq_scanf(&ct->rbuf, "%d", &p_ptr->stat_order[i]) < 1)
 		{
 			/* Not enough bytes */
 			return 0;
@@ -1055,7 +1055,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 	}
 
 	/* Gather type */
-	switch (type) 
+	switch (type)
 	{
 		case VISUAL_INFO_FLVR:
 			local_size = MAX_FLVR_IDX;//MIN(MAX_FLVR_IDX, z_info->flavor_max)
@@ -1212,7 +1212,7 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		p_ptr->stream_hgt[st] = y;
 
 		/* Subscribe / Unsubscribe */
-		if (y) 
+		if (y)
 		{
 			p_ptr->window_flag |= streams[st].window_flag;
 			p_ptr->window |= streams[st].window_flag; /* + Schedule actual update */
@@ -1245,7 +1245,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		type = 0;
-	int Ind = Get_Ind[p_ptr->conn];		
+	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &type) < 1)
 	{
@@ -1282,7 +1282,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		key = 0;
-	int Ind = Get_Ind[p_ptr->conn];		
+	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &key) < 1)
 	{
@@ -1330,7 +1330,7 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 
 	if (cq_scanf(&ct->rbuf, "%d%s", &command, buf) < 2)
 	{
-	    return 0;
+		return 0;
 	}
 	if (Ind)
 	{
@@ -1544,8 +1544,8 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	}	
 
 	/* Don't rest if we are poisoned or at max hit points and max spell points */ 
-	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) && 
-	                       	(p_ptr->csp == p_ptr->msp)))
+	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) &&
+	                          (p_ptr->csp == p_ptr->msp)))
 	{
 		return 1;
 	}
@@ -1564,7 +1564,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	 */
 	disturb(Ind, 0, 0);
 
-	/* Try again later */ 
+	/* Try again later */
 	return 0;
 }
 
@@ -1638,7 +1638,7 @@ static int recv_custom_command(player_type *p_ptr)
 			/* Report lack of energy */
 			printf("Lack energy\n");
 			return 0;
-		} 
+		}
 	}
 
 	/* Read the arguments from command buffer */
@@ -1696,7 +1696,7 @@ static int recv_custom_command(player_type *p_ptr)
 
 
 	/* Call the callback ("execute command") */
-#define S_ARG (custom_commands[i].do_cmd_callback) 
+#define S_ARG (custom_commands[i].do_cmd_callback)
 #define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;
 	switch (custom_commands[i].scheme)
 	{
@@ -1731,14 +1731,14 @@ static int recv_custom_command(player_type *p_ptr)
 
 		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0]))
 	}
-#undef S_ARG 
+#undef S_ARG
 #undef S_EXEC
 
 	/* Done */
 	return 1;
 }
 
-int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name) 
+int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
@@ -1783,7 +1783,7 @@ int send_store_sell(int Ind, u32b price)
  */
 int process_player_commands(int p_idx)
 {
-	player_type *p_ptr = p_list[p_idx]; 
+	player_type *p_ptr = p_list[p_idx];
 
 	byte pkt;
 	int result = 1;
@@ -1816,7 +1816,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	int i;
 	byte next_free = 0;
 
-	/* Clear packet and command handlers */ 
+	/* Clear packet and command handlers */
 	for (i = 0; i < 256; i++) {
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;
@@ -1859,8 +1859,8 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	i = 0;
 	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].amnt)) i++;
 	if (i >= 254) plog("ERROR! Out of indicator PKTs!");
-	serv_info.val1 = i;	
-	
+	serv_info.val1 = i;
+
 	/* Count streams */
 	i = 0;
 	while (i < MAX_STREAMS && streams[i].pkt != 0) i++;
@@ -1877,7 +1877,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	serv_info.val11 = z_info->f_max;
 }
 
-void free_tables() 
+void free_tables()
 {
 	/* No tables... */
 }

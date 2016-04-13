@@ -248,7 +248,7 @@ static void store_purchase(void)
 
 	object_type             *o_ptr;
 
-	char            out_val[160];
+	char                    out_val[160];
 
 
 	/* Empty? */

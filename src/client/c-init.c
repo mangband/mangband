@@ -441,7 +441,7 @@ static void quit_hook(cptr s)
 		/* Nuke it */
 		term_nuke(ang_term[j]);
 	}
-	
+
 	conf_save();
 }
 
@@ -515,7 +515,7 @@ void init_subscriptions()
 		if (!window_flag_desc[n])
 		{
 			st_ptr->window_flag = (1L << n);
-	 		/* HACK! Enforce Dungeon View on window 0 */
+			/* HACK! Enforce Dungeon View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
 
 			/* Save "string" */
@@ -557,7 +557,7 @@ bool client_setup()
 
 	/* Initialize the pref files */
 	initialize_all_pref_files();
-	
+
 	/* Send request for MOTD to read (optional) */
 	//Send_motd(0); // pass -1 to receive motd off-screen
 
