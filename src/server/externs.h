@@ -844,16 +844,6 @@ extern bool save_server_info(void);
 extern bool wr_dungeon_special_ext(int Depth, cptr levelname);
 
 
-/* sched.c */
-extern void install_timer_tick(void (*func)(void), int freq);
-extern void install_input(void (*func)(int, int), int fd, int arg);
-extern void remove_input(int fd);
-extern void free_input(void);
-extern void sched(void);
-extern void block_timer(void);
-extern void allow_timer(void);
-extern void remove_timer_tick(void);
-
 /* spells1.c */
 extern s16b poly_r_idx(int r_idx);
 extern void teleport_away(int m_idx, int dis);
