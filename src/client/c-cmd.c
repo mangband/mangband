@@ -449,7 +449,7 @@ void process_command()
 
 		case KTRL('X'):
 		{
-	        Net_cleanup();
+	        cleanup_network_client();
 	        quit(NULL);
 		}
 
