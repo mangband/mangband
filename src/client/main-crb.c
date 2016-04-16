@@ -99,20 +99,6 @@
  * You might wish to disable some SET_UID features for various reasons:
  * to have user folder within the lib folder, savefile names etc.
  *
- * For the best compatibility with the Classic ports and my PEF Carbon
- * ports, my_fopen, fd_make and fd_open [in util.c] should call
- *   (void)fsetfileinfo(buf, _fcreator, _ftype);
- * when a file is successfully opened.  Or you'll see odd icons for some files
- * in the lib folder.  In order to do so, extern.h should contain these lines,
- *
- *   extern int fsetfileinfo(char *path, u32b fcreator, u32b ftype);
- *   extern u32b _fcreator;
- *   extern u32b _ftype;
- * And enable the four FILE_TYPE macros in h-config.h for defined(MACH_O_CARBON)
- *
- * All calls to my_fopen should be preceded by the appropriate FILE_TYPE(xxx),
- * especially those in file.c and save.c
- *
  * 2. Installation
  *
  * The "angband" binary must be arranged this way for it to work:
