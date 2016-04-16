@@ -966,23 +966,6 @@ extern void store_init(int which);
 extern s32b player_price_item(int Ind, object_type *o_ptr);
 
 /* util.c */
-extern errr path_parse(char *buf, int max, cptr file);
-extern errr path_temp(char *buf, int max);
-extern errr path_build(char *buf, int max, cptr path, cptr file);
-extern FILE *my_fopen(cptr file, cptr mode);
-extern errr my_fgets(FILE *fff, char *buf, huge n);
-extern errr my_fputs(FILE *fff, cptr buf, huge n);
-extern errr my_fclose(FILE *fff);
-extern errr fd_kill(cptr file);
-extern errr fd_move(cptr file, cptr what);
-extern errr fd_copy(cptr file, cptr what);
-extern int fd_make(cptr file, int mode);
-extern int fd_open(cptr file, int flags);
-extern errr fd_lock(int fd, int what);
-extern errr fd_seek(int fd, huge n);
-extern errr fd_read(int fd, char *buf, huge n);
-extern errr fd_write(int fd, cptr buf, huge n);
-extern errr fd_close(int fd);
 extern void flush(void);
 extern void bell(void);
 extern void sound(int Ind, int num);

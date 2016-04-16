@@ -583,7 +583,7 @@ static cptr c_info_flags[] =
 /*
  * Initialize an "*_info" array, by parsing an ascii "template" file
  */
-errr init_info_txt(FILE *fp, char *buf, header *head,
+errr init_info_txt(ang_file* fp, char *buf, header *head,
                    parse_info_txt_func parse_info_txt_line)
 {
 	errr err;
@@ -603,7 +603,7 @@ errr init_info_txt(FILE *fp, char *buf, header *head,
 	head->text_size = 0;
 
 	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	while (file_getl(fp, buf, 1024))
 	{
 		/* Advance the line number */
 		error_line++;

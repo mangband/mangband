@@ -87,7 +87,8 @@ typedef enum
 {
 	MODE_WRITE,
 	MODE_READ,
-	MODE_APPEND
+	MODE_APPEND,
+	MODE_READWRITE, /* MAngband-specific hack, should be removed */
 } file_mode;
 
 /**
@@ -162,6 +163,12 @@ extern void (*file_open_hook)(const char *path, file_type ftype);
  */
 bool file_close(ang_file *f);
 
+/**
+ * See if there were any low-level errors while working on file handle `f`.
+ *
+ * Returns true if there were, false otherwise.
+ */
+bool file_error(ang_file *f);
 
 /** File locking **/
 
@@ -171,8 +178,8 @@ bool file_close(ang_file *f);
  *
  * If `f` is closed, the file is automatically unlocked.
  */
-void file_lock(ang_file *f);
-void file_unlock(ang_file *f);
+bool file_lock(ang_file *f);
+bool file_unlock(ang_file *f);
 
 
 /** Line-based IO **/

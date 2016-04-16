@@ -2489,54 +2489,6 @@ s32b c_get_quantity(cptr prompt, s32b max)
 	return (amt);
 }
 
-
-/*
- * Create a new path by appending a file (or directory) to a path
- *
- * This requires no special processing on simple machines, except
- * for verifying the size of the filename, but note the ability to
- * bypass the given "path" with certain special file-names.
- *
- * Note that the "file" may actually be a "sub-path", including
- * a path and a file.
- *
- * Note that this function yields a path which must be "parsed"
- * using the "parse" function above.
- */
-errr path_build(char *buf, int max, cptr path, cptr file)
-{
-        /* Special file */
-        if (file[0] == '~')
-        {
-                /* Use the file itself */
-                strnfmt(buf, max, "%s", file);
-        }
-
-        /* Absolute file, on "normal" systems */
-        else if (prefix(file, PATH_SEP) && !streq(PATH_SEP, ""))
-        {
-                /* Use the file itself */
-                strnfmt(buf, max, "%s", file);
-        }
-
-        /* No path given */
-        else if (!path[0])
-        {
-                /* Use the file itself */
-                strnfmt(buf, max, "%s", file);
-        }
-
-        /* Path and File */
-        else
-        {
-                /* Build the new path */
-                strnfmt(buf, max, "%s%s%s", path, PATH_SEP, file);
-        }
-
-        /* Success */
-        return (0);
-}
-
 void clear_from(int row)
 {
 	int y;
@@ -2880,7 +2832,7 @@ static errr macro_dump(cptr fname)
 {
 	int i;
 
-	FILE *fff;
+	ang_file* fff;
 
 	char buf[1024];
 
@@ -2889,48 +2841,48 @@ static errr macro_dump(cptr fname)
 	path_build(buf, 1024, ANGBAND_DIR_USER, fname);
 
 	/* Write to the file */
-	fff = my_fopen(buf, "w");
+	fff = file_open(buf, MODE_WRITE, FTYPE_TEXT);
 
 	/* Failure */
 	if (!fff) return (-1);
 
 
 	/* Skip space */
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 	/* Start dumping */
-	fprintf(fff, "# Automatic macro dump\n\n");
+	file_putf(fff, "# Automatic macro dump\n\n");
 
 	/* Dump them */
 	for (i = 0; i < macro__num; i++)
 	{
 		/* Start the macro */
-		fprintf(fff, "# Macro '%d'\n\n", i);
+		file_putf(fff, "# Macro '%d'\n\n", i);
 
 		/* Extract the action */
 		ascii_to_text(buf, sizeof(buf), macro__act[i]);
 
 		/* Dump the macro */
-		fprintf(fff, "A:%s\n", buf);
+		file_putf(fff, "A:%s\n", buf);
 
 		/* Extract the action */
 		ascii_to_text(buf, sizeof(buf), macro__pat[i]);
 
 		/* Dump command macro */
-		if (macro__cmd[i]) fprintf(fff, "C:%s\n", buf);
+		if (macro__cmd[i]) file_putf(fff, "C:%s\n", buf);
 
 		/* Dump normal macros */
-		else fprintf(fff, "P:%s\n", buf);
+		else file_putf(fff, "P:%s\n", buf);
 
 		/* End the macro */
-		fprintf(fff, "\n\n");
+		file_putf(fff, "\n\n");
 	}
 
 	/* Finish dumping */
-	fprintf(fff, "\n\n\n\n");
+	file_putf(fff, "\n\n\n\n");
 
 	/* Close */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Success */
 	return (0);
@@ -4151,7 +4103,7 @@ void load_sound_prefs(void)
 			path_build(wav_path, sizeof(wav_path), ANGBAND_DIR_XTRA_SOUND, zz[j]);
 
 			/* Save the sound filename, if it exists */
-			if (my_fexists(wav_path))
+			if (file_exists(wav_path))
 				sound_file[i][j] = string_make(zz[j]);
 		}
 	}

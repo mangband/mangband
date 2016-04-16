@@ -315,7 +315,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	player_type *p_ptr = Players[Ind];
 	int i, j, k, z, Depth, y, x;
 
-	FILE *fff;
+	ang_file* fff;
 
 	char file_name[1024];
 
@@ -328,7 +328,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 	
 	/* Paranoia */
 	if (!fff) 
@@ -450,20 +450,20 @@ void do_cmd_check_artifacts(int Ind, int line)
 		if (p_ptr->a_info[k] >= cfg_preserve_artifacts) highlite = 'W';
 
 		/* Hack -- Build the artifact name */
-		fprintf(fff, "%c     The %s\n", highlite, base_name);
+		file_putf(fff, "%c     The %s\n", highlite, base_name);
 	}
 	
 	/* Free array */
 	FREE(okay);
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Artifacts Seen", line, 1);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 
@@ -479,7 +479,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 void do_cmd_check_uniques(int Ind, int line)
 {
 	int k, l, i, space, namelen, total = 0, width = 78;
-	FILE *fff;
+	ang_file* fff;
 	char file_name[1024], buf[1024];
 	u16b *idx;
 	monster_race *r_ptr, *curr_ptr;
@@ -488,7 +488,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Paranoia */
 	if (!fff) 
@@ -560,7 +560,7 @@ void do_cmd_check_uniques(int Ind, int line)
 					if (space - namelen < 0 )
 					{
 						/* Out of space, flush the line */
-						fprintf(fff, "%c%s\n", highlight, buf);
+						file_putf(fff, "%c%s\n", highlight, buf);
 						strcpy(buf, "  \0");
 						k = 0;
 						space = width;
@@ -572,35 +572,35 @@ void do_cmd_check_uniques(int Ind, int line)
 			}
 			if(ok)
 			{
-				fprintf(fff, "%c%s\n", highlight, buf);
+				file_putf(fff, "%c%s\n", highlight, buf);
 			}
 			else
 			{
 				if (r_ptr->r_tkills)
 				{
-					fprintf(fff, "D%s has been killed by somebody.\n", r_name + r_ptr->name);
+					file_putf(fff, "D%s has been killed by somebody.\n", r_name + r_ptr->name);
 				}
 				else
 				{
-					fprintf(fff, "D%s has never been killed!\n", r_name + r_ptr->name);
+					file_putf(fff, "D%s has never been killed!\n", r_name + r_ptr->name);
 				}
 			}
 
 		}
 	}
-	else fprintf(fff, "wNo uniques are witnessed so far.\n");
+	else file_putf(fff, "wNo uniques are witnessed so far.\n");
 
 	/* Free the "ind" array */
 	FREE(idx);
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Known Uniques", line, 1);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 /*
@@ -612,7 +612,7 @@ void do_cmd_check_players(int Ind, int line)
 {
 	int k;
 
-	FILE *fff;
+	ang_file* fff;
 
 	char file_name[1024];
 
@@ -622,7 +622,7 @@ void do_cmd_check_players(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Paranoia */
 	if (!fff)
@@ -658,19 +658,19 @@ void do_cmd_check_players(int Ind, int line)
 		else if (cfg_pvp_notify == -1 || check_hostile(Ind, k) || (cfg_pvp_notify && check_hostile(k, Ind))) attr = 'r';
 
 		/* Output color byte */
-		fprintf(fff, "%c", attr);
+		file_putf(fff, "%c", attr);
 
 		/* Print a message */
 		if(option_p(q_ptr, NO_GHOST))
 		{
-			fprintf(fff, "     %s the Brave %s %s (Level %d, %s)",
+			file_putf(fff, "     %s the Brave %s %s (Level %d, %s)",
 			q_ptr->name, p_name + p_info[q_ptr->prace].name,
 			c_name + c_info[q_ptr->pclass].name, q_ptr->lev,
 			parties[q_ptr->party].name);
 		} 
 		else 
 		{
-			fprintf(fff, "     %s the %s %s (Level %d, %s)",
+			file_putf(fff, "     %s the %s %s (Level %d, %s)",
 			q_ptr->name, p_name + p_info[q_ptr->prace].name,
 			c_name + c_info[q_ptr->pclass].name, q_ptr->lev,
 			parties[q_ptr->party].name);
@@ -681,24 +681,24 @@ void do_cmd_check_players(int Ind, int line)
 		/* Hack -- always show extra info to dungeon master */
 		if ((attr != 'r' && cfg_pvp_hostility > 0) || (p_ptr->dm_flags & DM_SEE_PLAYERS))
 		{
-			fprintf(fff, " at %d ft", q_ptr->dun_depth * 50);
+			file_putf(fff, " at %d ft", q_ptr->dun_depth * 50);
 		}
 
 		/* Newline */
 		// -AD- will this work?
-		fprintf(fff, "\n");
-		fprintf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
+		file_putf(fff, "\n");
+		file_putf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Player list", line, 1);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 
@@ -709,7 +709,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 {
 	int k;
 
-	FILE *fff;
+	ang_file* fff;
 
 	char o_name[80];
 
@@ -722,7 +722,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Failure */
 	if (!fff) return;
@@ -759,18 +759,18 @@ static void do_cmd_knowledge_object(int Ind, int line)
 			strcat(o_name, ")");
 
 			/* Print a message */
-			fprintf(fff, "     %s\n", o_name);
+			file_putf(fff, "     %s\n", o_name);
 		}
 	}
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Known Objects", line, 0);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 
@@ -782,7 +782,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 {
 	int n, i;
 
-	FILE *fff;
+	ang_file* fff;
 
 	char file_name[1024];
 
@@ -796,7 +796,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Failure */
 	if (!fff) return;
@@ -832,7 +832,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 		monster_lore *l_ptr = p_ptr->l_list + who[i];
 
 		/* Print a message */
-		fprintf(fff, "     %-40s  %5d\n",
+		file_putf(fff, "     %-40s  %5d\n",
 		        (r_name + r_ptr->name), l_ptr->pkills);
 	}
 
@@ -840,18 +840,18 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	FREE(who);
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Kill counts", line, 0);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 void do_cmd_knowledge_history(int Ind, int line)
 {
-	FILE *fff;
+	ang_file* fff;
 
 	char file_name[1024];
 
@@ -862,7 +862,7 @@ void do_cmd_knowledge_history(int Ind, int line)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open a new file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Failure */
 	if (!fff) return;
@@ -872,24 +872,24 @@ void do_cmd_knowledge_history(int Ind, int line)
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "Time       Depth   CLev  Event\n");
-		//fprintf(fff, "           Level   Level\n\n");
+		file_putf(fff, "Time       Depth   CLev  Event\n");
+		//file_putf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			file_putf(fff, "%s", format_history_event(evt));
+			file_putf(fff, "\n");
 		}
-		fprintf(fff, "\n\n");
+		file_putf(fff, "\n\n");
 	}
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "Character History", line, 0);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 

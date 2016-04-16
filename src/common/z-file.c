@@ -415,6 +415,9 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 		case MODE_APPEND:
 			f->fh = fopen(buf, "a+");
 			break;
+		case MODE_READWRITE:
+			f->fh = fopen(buf, "r+b");
+			break;			
 		default:
 			assert(0);
 	}
@@ -449,13 +452,27 @@ bool file_close(ang_file *f)
 }
 
 
+/**
+ * Check errors in file handle 'f'.
+ */
+bool file_error(ang_file *f)
+{
+	if (ferror(f->fh) != 0)
+		return true;
+
+	if (f->mode == MODE_WRITE && fflush(f->fh) == EOF)
+		return true;
+
+	return false;
+}
+
 
 /** Locking functions **/
 
 /**
  * Lock a file using POSIX locks, on platforms where this is supported.
  */
-void file_lock(ang_file *f)
+bool file_lock(ang_file *f)
 {
 #if defined(HAVE_FCNTL_H) && defined(UNIX)
 	struct flock lock;
@@ -466,12 +483,13 @@ void file_lock(ang_file *f)
 	lock.l_pid = 0;
 	fcntl(fileno(f->fh), F_SETLKW, &lock);
 #endif /* HAVE_FCNTL_H && UNIX */
+	return true;
 }
 
 /**
  * Unlock a file locked using file_lock().
  */
-void file_unlock(ang_file *f)
+bool file_unlock(ang_file *f)
 {
 #if defined(HAVE_FCNTL_H) && defined(UNIX)
 	struct flock lock;
@@ -482,6 +500,7 @@ void file_unlock(ang_file *f)
 	lock.l_pid = 0;
 	fcntl(fileno(f->fh), F_SETLK, &lock);
 #endif /* HAVE_FCNTL_H && UNIX */
+	return true;
 }
 
 

@@ -28,88 +28,6 @@ volatile sig_atomic_t signalbusy = 0;
 
 
 /*
- * Hack -- drop permissions
- */
-void safe_setuid_drop(void)
-{
-
-#ifdef SET_UID
-
-# ifdef SAFE_SETUID
-
-#  ifdef SAFE_SETUID_POSIX
-
-	if (setuid(getuid()) != 0)
-	{
-		quit("setuid(): cannot set permissions correctly!");
-	}
-	if (setgid(getgid()) != 0)
-	{
-		quit("setgid(): cannot set permissions correctly!");
-	}
-
-#  else
-
-	if (setreuid(geteuid(), getuid()) != 0)
-	{
-		quit("setreuid(): cannot set permissions correctly!");
-	}
-	if (setregid(getegid(), getgid()) != 0)
-	{
-		quit("setregid(): cannot set permissions correctly!");
-	}
-
-#  endif
-
-# endif
-
-#endif
-
-}
-
-
-/*
- * Hack -- grab permissions
- */
-void safe_setuid_grab(void)
-{
-
-#ifdef SET_UID
-
-# ifdef SAFE_SETUID
-
-#  ifdef SAFE_SETUID_POSIX
-
-	if (setuid(player_euid) != 0)
-	{
-		quit("setuid(): cannot set permissions correctly!");
-	}
-	if (setgid(player_egid) != 0)
-	{
-		quit("setgid(): cannot set permissions correctly!");
-	}
-
-#  else
-
-	if (setreuid(geteuid(), getuid()) != 0)
-	{
-		quit("setreuid(): cannot set permissions correctly!");
-	}
-	if (setregid(getegid(), getgid()) != 0)
-	{
-		quit("setregid(): cannot set permissions correctly!");
-	}
-
-#  endif
-
-# endif
-
-#endif
-
-}
-
-
-/*
  * Extract the first few "tokens" from a buffer
  *
  * This function uses "colon" and "slash" as the delimeter characters.
@@ -487,7 +405,7 @@ errr process_pref_file_aux(char *buf)
  */
 errr process_pref_file(cptr name)
 {
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 
@@ -496,13 +414,13 @@ errr process_pref_file(cptr name)
 	path_build(buf, 1024, ANGBAND_DIR_PREF, name);
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Catch errors */
 	if (!fp) return (-1);
 
 	/* Process the file */
-	while (0 == my_fgets(fp, buf, 1024))
+	while (file_getl(fp, buf, 1024))
 	{
 		/* Process the line */
 		if (process_pref_file_aux(buf))
@@ -513,7 +431,7 @@ errr process_pref_file(cptr name)
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	/* Success */
 	return (0);
@@ -586,7 +504,7 @@ errr check_time_init(void)
 
 #ifdef CHECK_TIME
 
-	FILE        *fp;
+	ang_file* fp;
 
 	char	buf[1024];
 
@@ -604,7 +522,7 @@ errr check_time_init(void)
 	check_time_flag = TRUE;
 
 	/* Parse the file */
-	while (0 == my_fgets(fp, buf, 80))
+	while (file_getl(fp, buf, 80))
 	{
 		/* Skip comments and blank lines */
 		if (!buf[0] || (buf[0] == '#')) continue;
@@ -623,7 +541,7 @@ errr check_time_init(void)
 	}
 
 	/* Close it */
-	my_fclose(fp);
+	file_close(fp);
 
 #endif
 
@@ -707,7 +625,7 @@ errr check_load_init(void)
 
 #ifdef CHECK_LOAD
 
-	FILE        *fp;
+	ang_file* fp;
 
 	char	buf[1024];
 
@@ -731,7 +649,7 @@ errr check_load_init(void)
 	(void)gethostname(thishost, (sizeof thishost) - 1);
 
 	/* Parse it */
-	while (0 == my_fgets(fp, buf, 1024))
+	while (file_getl(fp, buf, 1024))
 	{
 		int value;
 
@@ -753,7 +671,7 @@ errr check_load_init(void)
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 #endif
 
@@ -1167,8 +1085,7 @@ errr file_character_server(int Ind, cptr name)
 	byte		a;
 	char		c, attr;
 	cptr		paren = ")";
-	int		fd = -1;
-	FILE		*fff = NULL;
+	ang_file*	fff = NULL;
 	char		o_name[80];
 	char		today[10];
 	char		buf[1024];
@@ -1191,25 +1108,14 @@ errr file_character_server(int Ind, cptr name)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_BONE, name);
 
-	/* File type is "TEXT" */
-	FILE_TYPE(FILE_TYPE_TEXT);
-
-	/* Check for existing file */
-	fd = fd_open(buf, O_RDONLY);
-
-	/* Existing file */
-	if (fd >= 0)
-	{
-		/* Close the file */
-		(void)fd_close(fd);
-	}
-
-	/* Open the non-existing file */
-	if (fd < 0) fff = my_fopen(buf, "w");
-
 	/* Grab priv's 
 	safe_setuid_grab(); */
-
+	
+	/* Open the non-existing file */
+	if (!file_exists(buf))
+	{
+		fff = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+	}
 
 	/* Invalid file */
 	if (!fff)
@@ -1222,7 +1128,7 @@ errr file_character_server(int Ind, cptr name)
 	 * not displayed when viewing a character dump online.
 	 */
 	strftime(today, 9, "%m/%d/%y", localtime(&ct));
-	fprintf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%d.%d.%d\n",
+	file_putf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%d.%d.%d\n",
 		(long)total_points(Ind),
 		(long)p_ptr->au,
 		today,
@@ -1242,7 +1148,7 @@ errr file_character_server(int Ind, cptr name)
 	if( p_ptr->lev < 20 )
 	{
 		/* Close dump file */
-		my_fclose(fff);
+		file_close(fff);
 
 		/* Success */
 		return (0);	
@@ -1251,10 +1157,10 @@ errr file_character_server(int Ind, cptr name)
 
 	/* Begin dump */
 	if (cfg_ironman)
-		fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
+		file_putf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	else
-		fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
+		file_putf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
@@ -1263,31 +1169,31 @@ errr file_character_server(int Ind, cptr name)
 	/* Dump the buffer */
 	for(i=0;i<26;i++)
 	{
-		fprintf(fff,"%s\n",buffer[i]);
+		file_putf(fff,"%s\n",buffer[i]);
 	}
 
 	/* Dump the equipment */
-	fprintf(fff, "  [Character Equipment]\n\n");
+	file_putf(fff, "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
-		fprintf(fff, "%c%s %s\n",
+		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 	/* Dump the inventory */
-	fprintf(fff, "  [Character Inventory]\n\n");
+	file_putf(fff, "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
-		fprintf(fff, "%c%s %s\n",
+		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 	/* Dump house inventory */
-	fprintf(fff, "  [Home Inventory]\n");
+	file_putf(fff, "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
 		if (house_owned_by(Ind, i)) 
@@ -1295,7 +1201,7 @@ errr file_character_server(int Ind, cptr name)
 			int Depth = houses[i].depth;
 			cave_type *c_ptr;
 
-			fprintf(fff, "\n"); j = 0;
+			file_putf(fff, "\n"); j = 0;
 			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
@@ -1303,9 +1209,9 @@ errr file_character_server(int Ind, cptr name)
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
-						if (j > 12) { fprintf(fff, "\n"); j = 0; }
+						if (j > 12) { file_putf(fff, "\n"); j = 0; }
 						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
-						fprintf(fff, "%c%s %s\n",
+						file_putf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
 						j++;
 					}
@@ -1313,37 +1219,37 @@ errr file_character_server(int Ind, cptr name)
 			}
 		}
 	}
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 	/* Dump character history */
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "  [Character History]\n\n");
-		fprintf(fff, "Time       Dungeon Char  Event\n");
-		fprintf(fff, "           Level   Level\n\n");
+		file_putf(fff, "  [Character History]\n\n");
+		file_putf(fff, "Time       Dungeon Char  Event\n");
+		file_putf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			file_putf(fff, "%s", format_history_event(evt));
+			file_putf(fff, "\n");
 		}
-		fprintf(fff, "\n\n");
+		file_putf(fff, "\n\n");
 	}
 
 	/* Dump last messages */
-	fprintf(fff, "  [Last Messages]\n\n");
+	file_putf(fff, "  [Last Messages]\n\n");
 	i = p_ptr->msg_hist_ptr;
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
 		if(i >= MAX_MSG_HIST) i = 0;
 		if(!STRZERO(p_ptr->msg_log[i]))
-			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
+			file_putf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 	/* Dump the scene of death */
-	fprintf(fff, "  [Scene of Death]\n\n");
+	file_putf(fff, "  [Scene of Death]\n\n");
 	/* Get an in bounds area */
 	x1 = p_ptr->px - 39;
 	x2 = p_ptr->px + 39;
@@ -1421,21 +1327,21 @@ errr file_character_server(int Ind, cptr name)
 			if(cfg_chardump_color)
 			{
 				/* Output with attr colour code */
-				fprintf(fff,"%c%c",attr,c);
+				file_putf(fff,"%c%c",attr,c);
 			}
 			else
 			{
 				/* Output plain ASCII */
-				fprintf(fff,"%c",c);
+				file_putf(fff,"%c",c);
 			}
 		}
-		fprintf(fff,"\n");
+		file_putf(fff,"\n");
 	}
-	fprintf(fff, "\n\n");
+	file_putf(fff, "\n\n");
 
 
 	/* Close it */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Success */
 	return (0);
@@ -1566,7 +1472,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	int i = 0, k;
 
 	/* Current help file */
-	FILE	*fff = NULL;
+	ang_file* fff = NULL;
 
 	/* Number of "real" lines passed by */
 	int		next = 0;
@@ -1584,7 +1490,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	path_build(path, 1024, ANGBAND_DIR_HELP, name);
 
 	/* Open the file */
-	fff = my_fopen(path, "r");
+	fff = file_open(path, MODE_READ, -1);
 
 	/* Oops */
 	if (!fff)
@@ -1606,7 +1512,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 		byte attr = TERM_WHITE;
 
 		/* Read a line or stop */
-		if (my_fgets(fff, buf, 1024)) break;
+		if (!file_getl(fff, buf, 1024)) break;
 
 		/* XXX Parse "menu" items */
 		if (prefix(buf, "***** "))
@@ -1668,7 +1574,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	p_ptr->last_info_line = i;
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 }
 
 #if 0
@@ -1695,7 +1601,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 	bool	menu = FALSE;
 
 	/* Current help file */
-	FILE	*fff = NULL;
+	ang_file* fff = NULL;
 
 	/* Find this string (if any) */
 	cptr	find = NULL;
@@ -1774,7 +1680,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 	while (TRUE)
 	{
 		/* Read a line or stop */
-		if (my_fgets(fff, buf, 1024)) break;
+		if (!file_getl(fff, buf, 1024)) break;
 
 		/* XXX Parse "menu" items */
 		if (prefix(buf, "***** "))
@@ -1825,7 +1731,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 		if (next > line)
 		{
 			/* Close it */
-			my_fclose(fff);
+			file_close(fff);
 
 			/* Hack -- Re-Open the file */
 			fff = my_fopen(path, "r");
@@ -1841,7 +1747,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 		for (; next < line; next++)
 		{
 			/* Skip a line */
-			if (my_fgets(fff, buf, 1024)) break;
+			if (!file_getl(fff, buf, 1024)) break;
 		}
 
 
@@ -1854,7 +1760,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 			if (!i) line = next;
 
 			/* Get a line of the file or stop */
-			if (my_fgets(fff, buf, 1024)) break;
+			if (!file_getl(fff, buf, 1024)) break;
 
 			/* Hack -- skip "special" lines */
 			if (prefix(buf, "***** ")) continue;
@@ -2004,7 +1910,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 #endif
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Escape */
 	if (k == ESCAPE) return (FALSE);
@@ -2522,7 +2428,7 @@ struct high_score
 /*
  * The "highscore" file descriptor, if available.
  */
-static int highscore_fd = -1;
+static ang_file* highscore_fd = NULL;
 
 
 /*
@@ -2531,7 +2437,7 @@ static int highscore_fd = -1;
 static int highscore_seek(int i)
 {
 	/* Seek for the requested record */
-	return (fd_seek(highscore_fd, (huge)(i) * sizeof(high_score)));
+	return (file_seek(highscore_fd, (huge)(i) * sizeof(high_score)));
 }
 
 
@@ -2541,7 +2447,7 @@ static int highscore_seek(int i)
 static errr highscore_read(high_score *score)
 {
 	/* Read the record, note failure */
-	return (fd_read(highscore_fd, (char*)(score), sizeof(high_score)));
+	return (file_read(highscore_fd, (char*)(score), sizeof(high_score)));
 }
 
 
@@ -2551,7 +2457,7 @@ static errr highscore_read(high_score *score)
 static int highscore_write(high_score *score)
 {
 	/* Write the record, note failure */
-	return (fd_write(highscore_fd, (char*)(score), sizeof(high_score)));
+	return (file_write(highscore_fd, (char*)(score), sizeof(high_score)));
 }
 
 
@@ -2645,7 +2551,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 
 	char	out_val[256];
 
-	FILE *fff;
+	ang_file* fff;
 	char file_name[1024];
 
 	/* Paranoia -- it may not have opened */
@@ -2658,7 +2564,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	if (path_temp(file_name, 1024)) return;
 
 	/* Open the temp file */
-	fff = my_fopen(file_name, "w");
+	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Paranoia */
 	if (!fff) 
@@ -2742,7 +2648,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 		if (mlev > clev) strcat(out_val, format(" (Max %d)", mlev));
 
 		/* Dump the first line */
-		fprintf(fff, "%s\n", out_val);
+		file_putf(fff, "%s\n", out_val);
 
 		/* Another line of info */
 		if (strcmp(the_score.how, "winner"))
@@ -2762,27 +2668,27 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 		if (mdun > cdun) strcat(out_val, format(" (Max %d)", mdun));
 
 		/* Dump the info */
-		fprintf(fff, "%s\n", out_val);
+		file_putf(fff, "%s\n", out_val);
 
 		/* And still another line of info */
 		sprintf(out_val,
 			"               (User %s, Date %s, Gold %s, Turn %s).",
 			user, when, gold, aged);
-		fprintf(fff, "%s\n", out_val);
+		file_putf(fff, "%s\n", out_val);
 
 		/* Print newline if this isn't the last one */
 		if (j < i - 1)
-			fprintf(fff, "\n");
+			file_putf(fff, "\n");
 	}
 
 	/* Close the file */
-	my_fclose(fff);
+	file_close(fff);
 
 	/* Display the file contents */
 	show_file(Ind, file_name, "High Scores", line, 0);
 
 	/* Remove the file */
-	fd_kill(file_name);
+	file_delete(file_name);
 }
 
 
@@ -2908,13 +2814,13 @@ static errr top_twenty(int Ind)
 
 
 	/* Lock (for writing) the highscore file, or fail */
-	if (fd_lock(highscore_fd, F_WRLCK)) return (1);
+	if (file_lock(highscore_fd)) return (1);
 
 	/* Add a new entry to the score list, see where it went */
 	j = highscore_add(&the_score);
 
 	/* Unlock the highscore file, or fail */
-	if (fd_lock(highscore_fd, F_UNLCK)) return (1);
+	if (file_unlock(highscore_fd)) return (1);
 
 
 #if 0
@@ -3052,13 +2958,13 @@ void add_high_score(int Ind)
 	path_build(buf, 1024, ANGBAND_DIR_DATA, "scores.raw");
 
 	/* Open the high score file, for reading/writing */
-	highscore_fd = fd_open(buf, O_RDWR);
+	highscore_fd = file_open(buf, MODE_READWRITE, FTYPE_RAW);
 
 	/* Add them */
 	top_twenty(Ind);
 
 	/* Shut the high score file */
-	(void)fd_close(highscore_fd);
+	(void)file_close(highscore_fd);
 
 	/* Forget the high score fd */
 	highscore_fd = -1;
@@ -3139,7 +3045,7 @@ void close_game(void)
 
 
 		/* Shut the high score file */
-		/*(void)fd_close(highscore_fd);*/
+		/*(void)file_close(highscore_fd);*/
 
 		/* Forget the high score fd */
 		/*highscore_fd = -1;*/
@@ -3167,7 +3073,7 @@ void display_scores(int Ind, int line)
 	path_build(buf, 1024, ANGBAND_DIR_DATA, "scores.raw");
 
 	/* Open the binary high score file, for reading */
-	highscore_fd = fd_open(buf, O_RDONLY);
+	highscore_fd = file_open(buf, MODE_READ, -1);
 
 	/* Paranoia -- No score file */
 	if (highscore_fd < 0)
@@ -3186,10 +3092,10 @@ void display_scores(int Ind, int line)
 	predict_score(Ind, line);
 
 	/* Shut the high score file */
-	(void)fd_close(highscore_fd);
+	(void)file_close(highscore_fd);
 
 	/* Forget the high score fd */
-	highscore_fd = -1;
+	highscore_fd = NULL;
 
 	/* Quit */
 	/* quit(NULL); */
@@ -3202,7 +3108,7 @@ void display_scores(int Ind, int line)
  */
 errr get_rnd_line(cptr file_name, int entry, char *output)
 {
-	FILE    *fp;
+	ang_file* fp;
 	char    buf[1024];
 	int     line, counter, test, numentries;
 	int     line_num = 0;
@@ -3213,7 +3119,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	path_build(buf, 1024, ANGBAND_DIR_EDIT, file_name);
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Failed */
 	if (!fp) return (-1);
@@ -3222,7 +3128,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	while (TRUE)
 	{
 		/* Get a line from the file */
-		if (my_fgets(fp, buf, 1024) == 0)
+		if (!file_getl(fp, buf, 1024))
 		{
 			/* Count the lines */
 			line_num++;
@@ -3249,7 +3155,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 				}
 				else
 				{
-					my_fclose(fp);
+					file_close(fp);
 					return (-1);
 				}
 			}
@@ -3257,7 +3163,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 		else
 		{
 			/* Reached end of file */
-			my_fclose(fp);
+			file_close(fp);
 			return (-1);
 		}
 
@@ -3267,7 +3173,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	while (TRUE)
 	{
 		/* Get the line */
-		if (my_fgets(fp, buf, 1024) == 0)
+		if (!file_getl(fp, buf, 1024))
 		{
 			/* Count the lines */
 			line_num++;
@@ -3285,7 +3191,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 			/* Count the lines */
 			line_num++;
 
-			my_fclose(fp);
+			file_close(fp);
 			return (-1);
 		}
 	}
@@ -3302,14 +3208,14 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 			line_num++;
 
 			/* Try to read the line */
-			if (my_fgets(fp, buf, 1024) == 0)
+			if (!file_getl(fp, buf, 1024))
 			{
 				/* Found the line */
 				if (counter == line) break;
 			}
 			else
 			{
-				my_fclose(fp);
+				file_close(fp);
 				return (-1);
 			}
 		}
@@ -3319,7 +3225,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	/* Success */
 	return (0);
