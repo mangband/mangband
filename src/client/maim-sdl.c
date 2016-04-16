@@ -290,10 +290,10 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 			if (SDL_ScaleBlit(src, &sr, dst, &dr)) return NULL;
 			/* XXX XXX XXX HACK -- stay online */
 			if (conn_state && rand_int(10) < 5) {
-				Net_packet();
+				//Net_packet();
 				update_ticks();
 				do_keepalive();
-				Net_flush();
+				//Net_flush();
 			}
 		}
 	}
