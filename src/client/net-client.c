@@ -1196,14 +1196,13 @@ int recv_stream_size(connection_type *ct) {
 	}
 
 	/* HACK - Dungeon display resize */
-	if (addr == NTERM_WIN_OVERHEAD)
+	if (addr == NTERM_WIN_OVERHEAD && state == PLAYER_PLAYING)
 	{
 		/* Redraw status line */
 		Term_erase(0, y + SCREEN_CLIP_L, x);
-		//p_ptr->redraw |= PR_STATUS;
 		schedule_redraw(PW_STATUS);
+
 		/* Redraw compact */
-		//p_ptr->redraw |= PR_COMPACT;
 		schedule_redraw(PW_PLAYER_2);
 	}
 
