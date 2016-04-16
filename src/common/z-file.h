@@ -211,6 +211,18 @@ bool file_vputf(ang_file *f, const char *fmt, va_list vp);
 bool file_skip(ang_file *f, int bytes);
 
 /**
+ * Skip 'bytes' bytes from beggining of file.
+ * \returns true if successful, false otherwise.
+ */
+bool file_seek(ang_file *f, int bytes);
+
+/**
+ * Return current position inside the file.
+ * \returns true if successful, false otherwise.
+ */
+int file_tell(ang_file *f);
+
+/**
  * Reads n bytes from file 'f' into buffer 'buf'.
  * \returns Number of bytes read; -1 on error
  */

@@ -488,11 +488,27 @@ void file_unlock(ang_file *f)
 /** Byte-based IO and functions **/
 
 /**
- * Seek to location 'pos' in file 'f'.
+ * Seek to location 'pos' in file 'f', from the current position.
  */
 bool file_skip(ang_file *f, int bytes)
 {
 	return (fseek(f->fh, bytes, SEEK_CUR) == 0);
+}
+
+/**
+ * Seek to location 'pos' in file 'f', from the start of file.
+ */
+bool file_seek(ang_file *f, int bytes)
+{
+	return (fseek(f->fh, bytes, SEEK_SET) == 0);
+}
+
+/**
+ * Return current location in file 'f'.
+ */
+int file_tell(ang_file *f)
+{
+	return ftell(f->fh);
 }
 
 /**
