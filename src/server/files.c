@@ -513,7 +513,7 @@ errr check_time_init(void)
 	path_build(buf, 1024, ANGBAND_DIR_DATA, "time.txt");
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* No file, no restrictions */
 	if (!fp) return (0);
@@ -637,7 +637,7 @@ errr check_load_init(void)
 	path_build(buf, 1024, ANGBAND_DIR_TEXT, "load.txt");
 
 	/* Open the "load" file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* No file, no restrictions */
 	if (!fp) return (0);
@@ -1648,7 +1648,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 		strcpy(path, name);
 
 		/* Open */
-		fff = my_fopen(path, "r");
+		fff = file_open(path, MODE_READ, -1);
 	}
 
 	/* Look in "help" */
@@ -1661,7 +1661,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 		path_build(path, 1024, ANGBAND_DIR_HELP, name);
 
 		/* Open the file */
-		fff = my_fopen(path, "r");
+		fff = file_open(path, MODE_READ, -1);
 	}
 
 	/* Oops */
@@ -1734,7 +1734,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 			file_close(fff);
 
 			/* Hack -- Re-Open the file */
-			fff = my_fopen(path, "r");
+			fff = file_open(path, MODE_READ, -1);
 
 			/* Oops */
 			if (!fff) return (FALSE);
