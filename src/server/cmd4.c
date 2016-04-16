@@ -1209,7 +1209,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 	}
 	Send_char_p(p_ptr, *x + i, *y, TERM_WHITE, ' ');
 
-	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
 }
 
 void do_cmd_interactive(player_type *p_ptr, char query)

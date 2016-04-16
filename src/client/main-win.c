@@ -2424,7 +2424,7 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 					msglen -= breakpoint;
 					offset += breakpoint;
 					send_msg(pmsg);
-					Net_flush();
+					//Net_flush();
 				}
 			}
 
@@ -3759,7 +3759,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		DispatchMessage(&msg);
 	}
 
-	Net_cleanup();
+	cleanup_network_client();
 
 	/* Paranoia */
 	quit(NULL);

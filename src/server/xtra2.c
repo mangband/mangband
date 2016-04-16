@@ -7012,7 +7012,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		c_prt(p_ptr, TERM_L_DARK, "SPC) Next      |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "DEL) Clear     |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "ESC) Done      |", j++, 1);
-		j-=4;
+		j -= 4;
 		for (i = 0; i < MASTER_MAX_HOOKS; i++)
 		{
 			byte attr = TERM_L_WHITE;
@@ -7024,9 +7024,21 @@ void do_cmd_dungeon_master(int Ind, char query)
 		}
 	}
 
+/* STREAM_SPECIAL_TEXT is defined as being "20" rows of height. The reason for this
+ * is that we use it on client-side "file perusal", which eats out 4 rows.
+ * (It shows the header, i.e. "Known Uniques" and a footer "[press space to avance]"
+ *  and "borders" around those, so, 4 rows.)
+ *
+ * However, for the DM menu we want all the lines we can get. So I'm adding 2 more.
+ * As far as I can tell, this SHOULD NOT and CAN NOT work. But for some reason it does,
+ * so there we go. Probably mangling some buffers in the process, and probably will
+ * stop working in the future.
+ */
+#define WEIRD_EXTRA_HACK 2
+
 	/* Send */
 	Send_term_info(Ind, NTERM_CLEAR, 0);
-	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT]; i++)
+	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] + WEIRD_EXTRA_HACK; i++)
 	{
 		Stream_line(Ind, STREAM_SPECIAL_MIXED, i); 
 	}
@@ -7060,7 +7072,7 @@ void master_desc_all(int Ind)
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 	Stream_line(Ind, STREAM_SPECIAL_TEXT, j);
-	Send_term_info(Ind, NTERM_FLUSH, -1- j);
+	Send_term_info(Ind, NTERM_FLUSH,  j);
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }
 
@@ -7129,7 +7141,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min + 1, (A), (C))
+		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)

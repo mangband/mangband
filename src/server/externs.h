@@ -1133,10 +1133,6 @@ extern bool use_object_current(int Ind);
  * Hack -- conditional (or "bizarre") externs
  */
 
-#ifdef SET_UID
-/* util.c */
-extern void user_name(char *buf, int id);
-#endif
 
 #ifndef HAVE_MEMSET
 /* util.c */
