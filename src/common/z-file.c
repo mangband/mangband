@@ -24,7 +24,14 @@
 #ifdef SET_UID
 #define UNUX
 #define SETGID
-#endif
+# if defined(SAFE_SETUID)
+#   if defined(SAFE_SETUID_POSIX)
+#      define HAVE_SETEGID
+#   else
+#      define HAVE_SETRESGID
+#   endif
+# endif
+#endif /* SET_UID */
 /* XXX */
 #include "h-basic.h"
 #include "z-file.h"
