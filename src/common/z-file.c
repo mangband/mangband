@@ -12,6 +12,20 @@
  *    and not for profit purposes provided that this copyright and statement
  *    are included in all such copies.  Other copyrights may also apply.
  */
+/* Forward-compatibility with V4XX */
+#undef true
+#undef false
+#define true TRUE
+#define false FALSE
+#define PATH_SEPC PATH_SEP[0]
+#define mem_zalloc ralloc
+#define assert(X) false
+#define mem_free rnfree
+#ifdef SET_UID
+#define UNUX
+#define SETGID
+#endif
+/* XXX */
 #include "h-basic.h"
 #include "z-file.h"
 #include "z-form.h"
