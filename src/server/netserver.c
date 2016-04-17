@@ -103,7 +103,6 @@ int			NumPlayers;
 int		MetaSocket = -1;
 
 int		ConsoleSocket = -1;
-bool	broken_client;
 
 char *showtime(void)
 {
@@ -1099,6 +1098,8 @@ int Setup_connection(char *real, char *nick, char *addr, char *host,
 	connp->rtt_timeouts = 0;
 	connp->acks = 0;
 	connp->setup = 0;
+	connp->broken_client = FALSE;
+
 	Conn_set_state(connp, CONN_LISTENING, CONN_FREE);
 	if (connp->w.buf == NULL || connp->r.buf == NULL || connp->c.buf == NULL
 		|| connp->q.buf == NULL || connp->real == NULL || connp->nick == NULL
@@ -1279,14 +1280,12 @@ static int Handle_listening(int ind)
 	}
 
 	/* Check for new protocol flag if this isn't a known legacy client */
-	broken_client = FALSE;
 	if(!old_client)
 	{
-		broken_client = TRUE;
 		n = Packet_scanf(&connp->r, "%c%c", &p1,&p2);
-		if( p1 == 'X' && p2 == 'X' )
+		if(p1 != 'X' || p2 != 'X' )
 		{
-			broken_client = FALSE;
+			connp->broken_client = TRUE;
 		}
 		/* In an ideal world we would just send a warning message to the client
 		 * here saying their software incompatible.  Sadly the legacy clients
@@ -2169,7 +2168,7 @@ static int Receive_play(int ind)
 
 	/* Disconnect the client if we know it's not compatible - this action has been
 	 * delayed from the initial connection stage */
-	if( broken_client )
+	if(connp->broken_client)
 	{
 			Destroy_connection(ind, "Incompatible client.\n"\
 				"Download at http://www.mangband.org");
