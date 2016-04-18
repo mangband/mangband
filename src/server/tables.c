@@ -701,13 +701,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 		INDICATOR_PKT(AFRAID, TINY, 1),     	IPW_2,	ROW_AFRAID, COL_AFRAID,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"      \v\aoAfraid",
-		(PR_STUN),  "afraid"
+		(PR_AFRAID),  "afraid"
 	},
 	{
 		INDICATOR_PKT(POISONED, TINY, 1),   	IPW_2,	ROW_POISONED, COL_POISONED,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"        \v\aoPoisoned",
-		(PR_STUN),  "poisoned"
+		(PR_POISONED),  "poisoned"
 	},
 	{
 		INDICATOR_PKT(STATE, TINY, 3),      	IPW_2,	ROW_STATE,	COL_STATE,
@@ -717,13 +717,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR), 
+		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
 		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
 		INDICATOR_PKT(STUDY, TINY, 1),   	IPW_2,	ROW_STUDY, COL_STUDY,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"     \vStudy",
 		(PR_STUDY),  "study"
 	},
