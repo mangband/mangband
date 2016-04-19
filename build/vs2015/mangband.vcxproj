@@ -99,6 +99,7 @@
     <ClCompile Include="..\..\src\common\z-rand.c" />
     <ClCompile Include="..\..\src\common\z-util.c" />
     <ClCompile Include="..\..\src\common\z-virt.c" />
+    <ClCompile Include="..\..\src\common\z-file.c" />
     <ClCompile Include="..\..\src\server\birth.c" />
     <ClCompile Include="..\..\src\server\cave.c" />
     <ClCompile Include="..\..\src\server\cmd1.c" />
@@ -157,6 +158,7 @@
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
+    <ClInclude Include="..\..\src\common\z-file.h" />
     <ClInclude Include="..\..\src\h-config.h" />
     <ClInclude Include="..\..\src\options.h" />
     <ClInclude Include="..\..\src\server\externs.h" />
