@@ -343,10 +343,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\global.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\h-basic.h"
 				>
 			</File>
