@@ -1010,14 +1010,14 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_ACQUIREMENT:
 		{
-			acquirement(py, px, 1, TRUE);
+			acquirement(Depth, py, px, 1, TRUE);
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ACQUIREMENT:
 		{
-			acquirement(py, px, randint(2) + 1, TRUE);
+			acquirement(Depth, py, px, randint(2) + 1, TRUE);
 			*ident = TRUE;
 			break;
 		}

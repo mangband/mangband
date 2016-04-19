@@ -3545,8 +3545,11 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 
 /*
  * Scatter some "great" objects near the player
+ *
+ * TODO: port version from 312 (!) (or later?)
+ * This version ignores the "great" bool
  */
-void acquirement(int Depth, int y1, int x1, int num)
+void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
 	int        y, x, i, d;
     bool ok = FALSE;
