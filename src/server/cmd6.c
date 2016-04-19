@@ -403,7 +403,12 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	} 
 
 }
+void do_cmd_read_scroll_on(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
 
+	do_cmd_read_scroll(Ind, item);
+}
 
 
 

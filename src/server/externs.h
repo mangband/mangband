@@ -529,6 +529,7 @@ extern void do_cmd_eat_food(int Ind, int item);
 extern void do_cmd_quaff_potion(int Ind, int item);
 extern void do_cmd_read_scroll(int Ind, int item);
 extern void do_cmd_read_scroll_end(int Ind, int item, bool ident);
+extern void do_cmd_read_scroll_on(int Ind, int item, int item2);
 extern void do_cmd_aim_wand(int Ind, int item, int dir);
 extern void do_cmd_use_staff(int Ind, int item);
 extern void do_cmd_use_staff_discharge(int Ind, int item, bool ident);
