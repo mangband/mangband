@@ -171,6 +171,10 @@ extern s16b INVEN_TOTAL;
 extern s16b INVEN_WIELD;
 extern s16b INVEN_PACK;
 
+extern s16b FLOOR_INDEX;
+extern bool FLOOR_NEGATIVE;
+extern s16b FLOOR_TOTAL;
+
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
 extern s16b view_channel;

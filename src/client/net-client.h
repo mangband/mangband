@@ -28,7 +28,7 @@
 	PACKET(PKT_MESSAGE_REPEAT,"%d", 	recv_message_repeat)
 	PACKET(PKT_SOUND,	"%c",   	recv_sound)
 	PACKET(PKT_GHOST,	"%d",   	recv_ghost)
-	PACKET(PKT_FLOOR,	"%c%d%c%c%s",   	recv_floor)
+	PACKET(PKT_FLOOR,	"%c%c%d%c%c%s",   	recv_floor)
 	PACKET(PKT_INVEN,	"%c%c%ud%d%c%c%s",	recv_inven)
 	PACKET(PKT_EQUIP,	"%c%c%ud%c%c%s",	recv_equip)
 	PACKET(PKT_SPELL_INFO,	"%c%ud%ud%s",   	recv_spell_info)

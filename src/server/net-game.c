@@ -213,6 +213,28 @@ int send_inventory_info(connection_type *ct)
 	return 1;
 }
 
+int send_floor_info(connection_type *ct)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_FLOOR) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", FLOOR_TOTAL, FLOOR_NEGATIVE ? 1 : 0, FLOOR_NEGATIVE ? -FLOOR_INDEX : FLOOR_INDEX) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
@@ -545,7 +567,7 @@ int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%c%c%s", PKT_FLOOR, 0, attr, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
 	}

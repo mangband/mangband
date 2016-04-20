@@ -813,6 +813,15 @@ int recv_struct_info(connection_type *ct)
 				eq_names[i] = last_off = (s16b)off;
 			}
 		}
+		break;
+		/* Floor slots */
+		case STRUCT_INFO_FLOOR:
+		{
+			FLOOR_TOTAL = max;
+			FLOOR_NEGATIVE = fake_name_size;
+			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
+		}
+		break;
 	}
 
 	return 1;
@@ -1628,14 +1637,21 @@ int recv_ghost(connection_type *ct)
 
 int recv_floor(connection_type *ct)
 {
-	byte tval, attr;
+	byte pos, tval, attr;
 	byte flag;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%c%s", &pos, &attr, &amt, &tval, &flag, name) < 5)
 	{
 		return 0;
+	}
+
+	/* Hack - we do not support piles  */
+	if (pos > 0)
+	{
+		/* Do nothing... */
+		return 1;
 	}
 
 	/* Remember for later */
