@@ -813,6 +813,15 @@ int recv_struct_info(connection_type *ct)
 				eq_names[i] = last_off = (s16b)off;
 			}
 		}
+		break;
+		/* Floor slots */
+		case STRUCT_INFO_FLOOR:
+		{
+			FLOOR_TOTAL = max;
+			FLOOR_NEGATIVE = fake_name_size;
+			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
+		}
+		break;
 	}
 
 	return 1;
@@ -1196,14 +1205,13 @@ int recv_stream_size(connection_type *ct) {
 	}
 
 	/* HACK - Dungeon display resize */
-	if (addr == NTERM_WIN_OVERHEAD)
+	if (addr == NTERM_WIN_OVERHEAD && state == PLAYER_PLAYING)
 	{
 		/* Redraw status line */
 		Term_erase(0, y + SCREEN_CLIP_L, x);
-		//p_ptr->redraw |= PR_STATUS;
 		schedule_redraw(PW_STATUS);
+
 		/* Redraw compact */
-		//p_ptr->redraw |= PR_COMPACT;
 		schedule_redraw(PW_PLAYER_2);
 	}
 
@@ -1629,14 +1637,21 @@ int recv_ghost(connection_type *ct)
 
 int recv_floor(connection_type *ct)
 {
-	byte tval, attr;
+	byte pos, tval, attr;
 	byte flag;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%c%s", &pos, &attr, &amt, &tval, &flag, name) < 5)
 	{
 		return 0;
+	}
+
+	/* Hack - we do not support piles  */
+	if (pos > 0)
+	{
+		/* Do nothing... */
+		return 1;
 	}
 
 	/* Remember for later */

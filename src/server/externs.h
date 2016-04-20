@@ -529,6 +529,7 @@ extern void do_cmd_eat_food(int Ind, int item);
 extern void do_cmd_quaff_potion(int Ind, int item);
 extern void do_cmd_read_scroll(int Ind, int item);
 extern void do_cmd_read_scroll_end(int Ind, int item, bool ident);
+extern void do_cmd_read_scroll_on(int Ind, int item, int item2);
 extern void do_cmd_aim_wand(int Ind, int item, int dir);
 extern void do_cmd_use_staff(int Ind, int item);
 extern void do_cmd_use_staff_discharge(int Ind, int item, bool ident);
@@ -721,6 +722,7 @@ extern int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte fla
 extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, cptr desc);
 extern int send_ghost(player_type *p_ptr);
 extern int send_inventory_info(connection_type *ct);
+extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_objflags(int Ind, int line);
 extern int send_message(int Ind, cptr msg, u16b typ);
@@ -793,7 +795,7 @@ extern void invcopy(object_type *o_ptr, int k_idx);
 extern bool check_ego(object_type *o_ptr, int level, int power, int idx);
 extern void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, bool great);
 extern bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark);
-extern void acquirement(int Depth, int y1, int x1, int num);
+extern void acquirement(int Depth, int y1, int x1, int num, bool great);
 extern void place_trap(int Depth, int y, int x);
 extern void place_gold(int Depth, int y, int x);
 extern void process_objects(void);
@@ -806,6 +808,7 @@ extern void setup_objects(void);
 extern void distribute_charges(object_type *o_ptr, object_type *q_ptr, int amt);
 extern void reduce_charges(object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
+extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
 
 /* party.c */
 extern int party_lookup(cptr name);
@@ -843,16 +846,6 @@ extern bool load_server_info(void);
 extern bool save_server_info(void);
 extern bool wr_dungeon_special_ext(int Depth, cptr levelname);
 
-
-/* sched.c */
-extern void install_timer_tick(void (*func)(void), int freq);
-extern void install_input(void (*func)(int, int), int fd, int arg);
-extern void remove_input(int fd);
-extern void free_input(void);
-extern void sched(void);
-extern void block_timer(void);
-extern void allow_timer(void);
-extern void remove_timer_tick(void);
 
 /* spells1.c */
 extern s16b poly_r_idx(int r_idx);
@@ -1160,10 +1153,6 @@ extern bool use_object_current(int Ind);
  * Hack -- conditional (or "bizarre") externs
  */
 
-#ifdef SET_UID
-/* util.c */
-extern void user_name(char *buf, int id);
-#endif
 
 #ifndef HAVE_MEMSET
 /* util.c */

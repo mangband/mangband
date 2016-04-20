@@ -830,6 +830,17 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 			flag |= ITEM_ASK_AIM;
 		}
 	}
+
+	/* ask for another item? (Id, Enchant, Curse, ...) */
+	if (o_ptr->tval == TV_SCROLL)
+	{
+		/* Get a second item (unless KNOWN not to need it) */
+		if ((o_ptr->sval >= SV_SCROLL_IDENTIFY
+		   && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON) || !object_aware_p(p_ptr, o_ptr))
+		{
+			flag |= ITEM_ASK_ITEM;
+		}
+	}
 	
 	/* refill light ? */
 	lamp_o_ptr = &(Players[Ind]->inventory[INVEN_LITE]);
@@ -3545,8 +3556,11 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 
 /*
  * Scatter some "great" objects near the player
+ *
+ * TODO: port version from 312 (!) (or later?)
+ * This version ignores the "great" bool
  */
-void acquirement(int Depth, int y1, int x1, int num)
+void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
 	int        y, x, i, d;
     bool ok = FALSE;
@@ -4837,4 +4851,50 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 	o_ptr->owner_id = p_ptr->id;
 	o_ptr->owner_name = quark_add(p_ptr->name);
 		
+}
+
+/*
+ * Select an item from an index provided by Player.
+ *
+ * Note: this function DOES test with item_tester_*
+ * framework.
+ *
+ * Note: if a floor item has been selected, "idx" is changed
+ * to reflect it's "o_list" index. For inven/equip items, "idx"
+ * is undefined.
+ *
+ */
+object_type* player_get_item(player_type *p_ptr, int item, int *idx)
+{
+	object_type *o_ptr;
+	int o_idx;
+
+	/* Get the item (in the pack) */
+	if (item >= 0 && item < INVEN_TOTAL)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		o_idx = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (o_idx == 0)
+		{
+			msg_print_p(p_ptr, "There is nothing on the floor.");
+			return NULL;
+		}
+		o_ptr = &o_list[o_idx];
+
+		/* HACK -- invert value */
+		*idx = 0 - o_idx;
+	}
+
+	/* Perform item test */
+	if (!item_tester_okay(o_ptr))
+	{
+		return NULL;
+	}
+
+	return o_ptr;
 }

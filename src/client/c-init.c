@@ -281,6 +281,9 @@ static void Setup_loop()
 		/* Do networking */
 		network_loop();
 
+		/** Give main-xxx a chance to handle OS events, since this is a tight loop **/
+		Term_xtra(TERM_XTRA_EVENT, /* Blocking=*/FALSE);
+
 		/* Check and Prepare data */
 		data_ready = sync_data();
 

@@ -171,6 +171,10 @@ extern s16b INVEN_TOTAL;
 extern s16b INVEN_WIELD;
 extern s16b INVEN_PACK;
 
+extern s16b FLOOR_INDEX;
+extern bool FLOOR_NEGATIVE;
+extern s16b FLOOR_TOTAL;
+
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
 extern s16b view_channel;
@@ -525,15 +529,6 @@ extern int send_term_key(char key);
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")
 #define do_keepalive() plog("do_keepalive unimplemented!")
-#define Net_Send(Socket, ibuf) plog("Net_Send unimplemented!")
-#define Net_WaitReply(Socket, ibuf, retries) plog("Net_WaitReply unimplemented!")
-#define Net_setup() plog("Net_setup unimplemented!")
-#define Net_init(port) plog("Net_init unimplemented!")
-#define Net_cleanup(void) plog("Net_cleanup unimplemented!")
-#define Net_flush(void) plog("Net_flush unimplemented!")
-#define Net_fd(void) plog("Net_fd unimplemented!")
-#define Net_input() plog("Net_input unimplemented!")
-#define Net_packet() plog("Net_packet unimplemented!")
 #define Flush_queue() flush_updates()
 #define SocketCloseAll() plog("SocketCloseAll unimplemented!")
 #define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")

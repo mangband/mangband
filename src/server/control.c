@@ -63,7 +63,7 @@ int accept_console(int data1, data data2) {
 	cn->auth = cn->listen = FALSE;
 
 	/* Inform */
-	cq_printf(&ct->wbuf, "%s", "Connected\n");
+	cq_printf(&ct->wbuf, "%T", "Connected\n");
 
 	return 0;
 }
@@ -106,12 +106,12 @@ int console_read(int data1, data data2) { /* return -1 on error */
 			{
 				/* Bail out! */
 				plog(format("{CON} Authentication failure %s", ct->host_addr));				
-				cq_printf(&ct->wbuf, "%s", "Invalid password\n");
+				cq_printf(&ct->wbuf, "%T", "Invalid password\n");
 				return -1;		
 			}
 			/* Move on */
 			cn->auth = TRUE;
-			cq_printf(&ct->wbuf, "%s", "Authenticated\n");
+			cq_printf(&ct->wbuf, "%T", "Authenticated\n");
 			continue;
 		}
 
@@ -157,8 +157,8 @@ void console_print(char *msg, int chan)
 		bool hint = FALSE;
 		if( cn->on_channel[chan] || (chan == 0 && (hint = cn->listen)) )
 		{
-			if (!hint) cq_printf(&ct->wbuf, "%s%c", channels[chan].name, ' ');
-			cq_printf(&ct->wbuf, "%s%c", msg, '\n');
+			if (!hint) cq_printf(&ct->wbuf, "%T%c", channels[chan].name, ' ');
+			cq_printf(&ct->wbuf, "%T%c", msg, '\n');
 		}
 	}
 }
@@ -180,7 +180,7 @@ static void console_who(connection_type* ct, char *useless)
 	}
 
 	/* Packet header */
-	cq_printf(&ct->wbuf, "%s",format("%d players online\n", num));
+	cq_printf(&ct->wbuf, "%T",format("%d players online\n", num));
 	
 	/* Scan the player list */
 	for (k = 1; k <= NumPlayers; k++)
@@ -189,7 +189,7 @@ static void console_who(connection_type* ct, char *useless)
 
 		/* Add an entry */
 		(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-		cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+		cq_printf(&ct->wbuf,"%T", format("%s is a %slevel %d %s %s at %d ft\n", 
 			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 			
@@ -204,7 +204,7 @@ static void console_conn(connection_type* ct, char *useless)
 	char conn_type[MAX_PLAYERS];
 	eptr iter;
 	int j = 0;
-	cq_printf(&ct->wbuf, "%s", "Listing connections\n");
+	cq_printf(&ct->wbuf, "%T", "Listing connections\n");
 
 	for (iter = first_connection; iter; iter = iter->next)
 	{
@@ -212,7 +212,7 @@ static void console_conn(connection_type* ct, char *useless)
 		connection_type* c_ptr = iter->data2; 
 		j++;
 		sprintf(buf, "Connection %d - %s\n", j, c_ptr->host_addr);
-		cq_printf(&ct->wbuf, "%s", buf);
+		cq_printf(&ct->wbuf, "%T", buf);
 	}
 }
 
@@ -268,7 +268,7 @@ static void console_whois(connection_type* ct, char *name)
 	}
 	if (!p_ptr)
 	{
-		cq_printf(&ct->wbuf, "%s","No such player\n");
+		cq_printf(&ct->wbuf, "%T", "No such player\n");
 		return;
 	}
 	
@@ -276,7 +276,7 @@ static void console_whois(connection_type* ct, char *name)
 
 	/* General character description */
 	(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-	cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+	cq_printf(&ct->wbuf, "%T", format("%s is a %slevel %d %s %s at %d ft\n", 
 		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
@@ -287,22 +287,22 @@ static void console_whois(connection_type* ct, char *name)
 	extra = (p_ptr->version & 0xF);
 
 	/* Player connection info */
-	cq_printf(&ct->wbuf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
+	cq_printf(&ct->wbuf, "%T", format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
 		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
 
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
-		cq_printf(&ct->wbuf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
+		cq_printf(&ct->wbuf, "%T", format("Has resurected %d times.\n", p_ptr->lives));
 	if ( p_ptr->max_dlv == 0 )
-		cq_printf(&ct->wbuf, "%s",format("Has never left the town!\n"));
+		cq_printf(&ct->wbuf, "%T", format("Has never left the town!\n"));
 	else
-		cq_printf(&ct->wbuf, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
+		cq_printf(&ct->wbuf, "%T", format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
 	i = p_ptr->msg_hist_ptr-1;
 	if( i >= 0 )
 	{
 		if (!STRZERO(p_ptr->msg_log[i]))
 		{
-			cq_printf(&ct->wbuf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
+			cq_printf(&ct->wbuf, "%T", format("Last message: %s\n", p_ptr->msg_log[i]));
 		}
 	}
 }
@@ -337,13 +337,13 @@ static void console_kick_player(connection_type* ct, char *name)
 		/* Kick him */
 		Destroy_connection(p_ptr->conn, "kicked out");
 		/* Success */
-		cq_printf(&ct->wbuf, "%s", "Kicked player\n");
+		cq_printf(&ct->wbuf, "%T", "Kicked player\n");
 		return;
 	}
 	else
 	{
 		/* Failure */
-		cq_printf(&ct->wbuf, "%s", "No such player\n");
+		cq_printf(&ct->wbuf, "%T", "No such player\n");
 	}
 
 }
@@ -366,7 +366,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 	/* Don't run this if any players are connected */
 	if(NumPlayers > 0)
 	{
-		cq_printf(&ct->wbuf, "%s", "Can't run the RNG test with players connected!\n");
+		cq_printf(&ct->wbuf, "%T", "Can't run the RNG test with players connected!\n");
 		return;
 	}
 
@@ -381,7 +381,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 	outcome = 0;
 
 	/* Let the operator know we are busy */
-	cq_printf(&ct->wbuf, "%s", "Torturing the RNG for 100 million iterations...\n");
+	cq_printf(&ct->wbuf, "%T", "Torturing the RNG for 100 million iterations...\n");
 	//DOESN'T WORK RIGHT WITHOUT IMMEDIATE FLUSH...
 
 	/* Torture the RNG for a hundred million iterations */
@@ -396,10 +396,10 @@ static void console_rng_test(connection_type* ct, char *useless)
 	/* Display the results */
 	if(outcome == reference)
 	{
-		cq_printf(&ct->wbuf, "%s","RNG is working perfectly\n");
+		cq_printf(&ct->wbuf, "%T", "RNG is working perfectly\n");
 	} else {
-		cq_printf(&ct->wbuf, "%s","RNG integrity check FAILED\n");
-		cq_printf(&ct->wbuf, "%s",
+		cq_printf(&ct->wbuf, "%T", "RNG integrity check FAILED\n");
+		cq_printf(&ct->wbuf, "%T",
 			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
 	}
 
@@ -434,12 +434,12 @@ static void console_reload(connection_type* ct, char *mod)
 	if (done)
 	{
 		/* Packet header */
-		cq_printf(&ct->wbuf, "%s", "Reloaded\n");
+		cq_printf(&ct->wbuf, "%T", "Reloaded\n");
 	}
 	else
 	{
 		/* Packet header */
-		cq_printf(&ct->wbuf, "%s", "Reload failed\n");
+		cq_printf(&ct->wbuf, "%T", "Reload failed\n");
 	}
 }
 
@@ -453,7 +453,7 @@ static void console_shutdown(connection_type* ct, char *when)
 	if (min == 0)
 	{
 		/* Tell */
-		cq_printf(&ct->wbuf, "%s", "Server shutdown\n");
+		cq_printf(&ct->wbuf, "%T", "Server shutdown\n");
 
 		/* Shutdown */
 		shutdown_server();
@@ -477,10 +477,10 @@ static void console_help(connection_type* ct, char *name)
 	{
 		for (i = 0; i < command_len; i++)
 		{
-			cq_printf(&ct->wbuf, "%s", console_commands[i].name);
-			cq_printf(&ct->wbuf, "%s", " ");
+			cq_printf(&ct->wbuf, "%T", console_commands[i].name);
+			cq_printf(&ct->wbuf, "%T", " ");
 		}
-		cq_printf(&ct->wbuf, "%s", "\n");
+		cq_printf(&ct->wbuf, "%T", "\n");
 		done = TRUE;
 	}
 	/* Specific command */
@@ -491,17 +491,17 @@ static void console_help(connection_type* ct, char *name)
 			/* Found it */
 			if (!strcmp(console_commands[i].name, name))
 			{
-				cq_printf(&ct->wbuf, "%s", console_commands[i].name);
-				cq_printf(&ct->wbuf, "%s", " ");
-				cq_printf(&ct->wbuf, "%s", console_commands[i].comment);
-				cq_printf(&ct->wbuf, "%s", "\n");
+				cq_printf(&ct->wbuf, "%T", console_commands[i].name);
+				cq_printf(&ct->wbuf, "%T", " ");
+				cq_printf(&ct->wbuf, "%T", console_commands[i].comment);
+				cq_printf(&ct->wbuf, "%T", "\n");
 				done = TRUE;
 			}
 		}
 	}
 
 	if (!done)
-		cq_printf(&ct->wbuf, "%s", "Unrecognized command\n");
+		cq_printf(&ct->wbuf, "%T", "Unrecognized command\n");
 
 }
 

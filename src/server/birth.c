@@ -828,7 +828,7 @@ static void player_outfit(player_type *p_ptr)
 	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
-	i_ptr->pval = (PV); \
+	if ( (PV) ) i_ptr->pval = (PV); \
 	object_aware((P), i_ptr); \
 	object_known(i_ptr); \
 	(void)inven_carry((P), i_ptr)
