@@ -289,7 +289,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\variable.c"
+				RelativePath="..\..\src\client\c-variable.c"
 				>
 			</File>
 			<File
@@ -340,10 +340,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\defines.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\global.h"
 				>
 			</File>
 			<File

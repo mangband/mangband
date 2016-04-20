@@ -19,7 +19,7 @@ mangclient_SOURCES = \
 		src/client/c-xtra1.c src/client/c-xtra2.c src/client/client.c \
 		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
 		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
-		src/client/readdib.c src/client/set_focus.c src/client/variable.c \
+		src/client/readdib.c src/client/set_focus.c src/client/c-variable.c \
 		src/client/z-term.c \
 		$(mangclient_RESOURCES) \
 		src/client/c-angband.h src/client/c-defines.h src/client/c-externs.h \

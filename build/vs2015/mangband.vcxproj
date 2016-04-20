@@ -141,7 +141,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\common\defines.h" />
-    <ClInclude Include="..\..\src\common\global.h" />
     <ClInclude Include="..\..\src\common\h-basic.h" />
     <ClInclude Include="..\..\src\common\h-define.h" />
     <ClInclude Include="..\..\src\common\h-net.h" />

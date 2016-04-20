@@ -891,6 +891,7 @@ void do_cmd_observe(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 
+	object_type		tmp_obj;
 	object_type		*o_ptr;
 
 	char		o_name[80];
@@ -898,7 +899,7 @@ void do_cmd_observe(int Ind, int item)
 	/* Get the item (in the store) */
 	if (p_ptr->store_num != -1)
 	{
-		object_type		tmp_obj;
+		/* We have to use temp. object because we're going to identify it */
 		o_ptr = &tmp_obj;
 
 		/* Fill o_ptr with correct item */

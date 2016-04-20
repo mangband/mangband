@@ -54,7 +54,10 @@ src/server/.deps/
 src/server/.dirstamp
 src/stamp-h1
 
+lib/bone/*.txt
 lib/user/*.txt
 lib/data/*.raw
 lib/save/*
 !lib/save/server.*
+
+*~ # backup files of my editor -flm
