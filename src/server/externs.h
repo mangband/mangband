@@ -808,6 +808,7 @@ extern void setup_objects(void);
 extern void distribute_charges(object_type *o_ptr, object_type *q_ptr, int amt);
 extern void reduce_charges(object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
+extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
 
 /* party.c */
 extern int party_lookup(cptr name);

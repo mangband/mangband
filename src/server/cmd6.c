@@ -83,32 +83,18 @@ void do_cmd_eat_food(int Ind, int item)
 
 	/* Restrict choices to food */
 	item_tester_tval = TV_FOOD;
+	item_tester_full = FALSE;
+	item_tester_hook = NULL;
 
-	/* Get the item (in the pack) */
-	if (item >= 0)
+	/* Get the item */
+	if ( !(o_ptr = player_get_item(p_ptr, item, &item)) )
 	{
-		o_ptr = &p_ptr->inventory[item];
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return;
-		}
-		o_ptr = &o_list[0 - item];
+		/* Paranoia */
+		return;
 	}
 
 	/* Check guard inscription '!E' */
 	__trap(Ind, CGI(o_ptr, 'E'));
-
-	if (o_ptr->tval != TV_FOOD)
-	{
-		/* Tried to eat non-food */
-		return;
-	}
 
 	/* Sound */
 	sound(Ind, MSG_EAT);
