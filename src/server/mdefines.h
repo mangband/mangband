@@ -713,7 +713,7 @@
  * This defines our way to index floor items
  * during client-server communications.
  */
-#define FLOOR_INDEX     (-1)
+#define FLOOR_INDEX     (-11)
 #define FLOOR_NEGATIVE  TRUE
 #define FLOOR_TOTAL     1
 
