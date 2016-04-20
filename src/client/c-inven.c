@@ -466,15 +466,20 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				break;
 			}
 			case '-':
+			{
+				/* Hack -- we only have 1 floor item */
+				s16b floor_item_pos = 0;
+
 				/* Floor */
 				if (allow_floor)
 				{
-					(*cp) = -1;
+					(*cp) = FLOOR_INDEX + (FLOOR_NEGATIVE ? 0 - floor_item_pos : floor_item_pos);
 					item = TRUE;
 					done = TRUE;
 				}
 
 				break;
+			}
 			case '/':
 			{
 				/* Verify legality */

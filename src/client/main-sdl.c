@@ -2628,7 +2628,7 @@ void save_one_term(int i) {
 	{
 		switch (i)
 		{
-			case 0: 	strcpy(term_name, "Angband")	break;
+			case 0: 	strcpy(term_name, "Angband");	break;
 			case 1: 	strcpy(term_name, "Mirror");	break;
 			case 2: 	strcpy(term_name, "Recall");	break;
 			case 3: 	strcpy(term_name, "Choice");	break;

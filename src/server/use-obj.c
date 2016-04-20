@@ -202,6 +202,19 @@ static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 			break;
 		}
 
+		case SV_FOOD_POTATO:
+		case SV_FOOD_HEAD_OF_CABBAGE:
+		case SV_FOOD_CARROT:
+		case SV_FOOD_BEET:
+		case SV_FOOD_SQUASH:
+		case SV_FOOD_EAR_OF_CORN:
+		{
+			hp_player(Ind, damroll(1, 4));
+			msg_print(Ind, "That tastes especially good.");
+			*ident = TRUE;
+			break;
+		}
+
 		case SV_FOOD_WAYBREAD:
 		{
 			msg_print(Ind, "That tastes good.");
@@ -699,6 +712,9 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		}
 	}
 
+	/* Potions can feed the player too */
+	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
+
 	return (TRUE);
 }
 
@@ -1010,14 +1026,14 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_ACQUIREMENT:
 		{
-			acquirement(py, px, 1, TRUE);
+			acquirement(Depth, py, px, 1, TRUE);
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ACQUIREMENT:
 		{
-			acquirement(py, px, randint(2) + 1, TRUE);
+			acquirement(Depth, py, px, randint(2) + 1, TRUE);
 			*ident = TRUE;
 			break;
 		}

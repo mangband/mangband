@@ -216,6 +216,22 @@ int cq_printf(cq *charq, char *str, ...) {
 				PACK_NSTR(text, str_size);
 				PACK_8('\0');
 				break;}
+			case 'T': { /* HACK - unterminated string. NOT equivalent to cq_scanf '%T' !  */
+				text = (char*) va_arg (marker, char *);
+				str_size = strlen(text)+1;
+				if (str_size > MSG_LEN)
+				{
+					plog_fmt("Truncating string '%s', size=%d exceeds MSG_LEN=%d",text,str_size,MSG_LEN);
+				#ifndef SOFTER_ERRORS
+					error = 6;
+					break;
+				#endif
+					str_size = MSG_LEN;
+				}
+				str_size--;
+				PF_ERROR_SIZE(str_size);
+				PACK_NSTR(text, str_size);
+				break;}				
 			PF_ERROR_FRMT
 		}
 	}
@@ -337,12 +353,16 @@ int cq_scanf(cq *charq, char *str, ...) {
 				SF_ERROR_SIZE(str_size)
 				UNPACK_NSTR(_text, str_size);
 				break;}
-			case 'T': {/* HACK! unlimited \n-terminated string (\r==\n here)*/
+			case 'T': {/* HACK! \n-terminated string (\r==\n here)*/
 				_text = (char*) va_arg (marker, char*);
-				while(*rptr != '\0' && *rptr != '\n' && *rptr != '\r')
+				str_size = 0;
+				while(str_size++ < MSG_LEN) {
 				 *_text++ = *rptr++;
+				 if (*rptr == '\n') { rptr++; break; }
+				}
 				 *_text = '\0';
-				while(*rptr != '\0') rptr++;
+				if (str_size > 1 && *(_text-1) == '\r') /* Chomp */
+				 *(_text-1) = '\0';
 				break;}
 			SF_ERROR_FRMT
 		}
