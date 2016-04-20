@@ -699,6 +699,9 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		}
 	}
 
+	/* Potions can feed the player too */
+	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
+
 	return (TRUE);
 }
 

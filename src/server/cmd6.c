@@ -127,11 +127,6 @@ void do_cmd_eat_food(int Ind, int item)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
-
-	/* Food can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
-
 	/* Destroy a food in the pack */
 	if (item >= 0)
 	{
@@ -234,11 +229,6 @@ void do_cmd_quaff_potion(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Potions can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
 
 	/* Destroy a potion in the pack */
 	if (item >= 0)
