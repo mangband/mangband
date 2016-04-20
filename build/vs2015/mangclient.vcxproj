@@ -118,7 +118,7 @@
     <ClCompile Include="..\..\src\client\readdib.c" />
     <ClCompile Include="..\..\src\client\sdl-xxx.c" />
     <ClCompile Include="..\..\src\client\set_focus.c" />
-    <ClCompile Include="..\..\src\client\variable.c" />
+    <ClCompile Include="..\..\src\client\c-variable.c" />
     <ClCompile Include="..\..\src\client\z-term.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
     <ClCompile Include="..\..\src\common\net-basics.c" />
