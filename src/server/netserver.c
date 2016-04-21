@@ -5009,7 +5009,7 @@ static int Receive_drop_gold(int ind)
 	player_type *p_ptr;
 	char ch;
 	int n, player;
-	s32b amt;
+	long amt;
 
 	if (connp->id != -1) 
 	{
