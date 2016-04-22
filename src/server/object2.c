@@ -831,6 +831,17 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 		}
 	}
 
+	/* ask for another iem? (FOR STAFFS) */
+	if (o_ptr->tval == TV_STAFF)
+	{
+		/* Get a direction (unless KNOWN not to need it) */
+		if ((o_ptr->sval >= SV_STAFF_IDENTIFY && o_ptr->sval <= SV_STAFF_REMOVE_CURSE)
+		|| !object_aware_p(p_ptr, o_ptr))
+		{
+			flag |= ITEM_ASK_ITEM;
+		}
+	}
+
 	/* ask for another item? (Id, Enchant, Curse, ...) */
 	if (o_ptr->tval == TV_SCROLL)
 	{

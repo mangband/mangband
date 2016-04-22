@@ -181,8 +181,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		TV_WAND, "Aim which wand? "
 	},
 	{ /* Use staff */
-		'u', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		'u', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_use_staff_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_STAFF, "Use which staff? "
 	},
 	{ /* Zap rod */
