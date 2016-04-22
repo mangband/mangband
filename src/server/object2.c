@@ -846,8 +846,9 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	if (o_ptr->tval == TV_SCROLL)
 	{
 		/* Get a second item (unless KNOWN not to need it) */
-		if ((o_ptr->sval >= SV_SCROLL_IDENTIFY
-		   && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON) || !object_aware_p(p_ptr, o_ptr))
+		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
+		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON)
+		|| !object_aware_p(p_ptr, o_ptr) )
 		{
 			flag |= ITEM_ASK_ITEM;
 		}

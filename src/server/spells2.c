@@ -2665,8 +2665,6 @@ bool create_artifact_aux(int Ind, int item)
 #if !defined(RANDART)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
-
-	return TRUE;
 #else
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
@@ -2702,7 +2700,7 @@ bool create_artifact_aux(int Ind, int item)
 		/* Forget the inscription */
                 o_ptr->note = 0;
         }
-
+#endif
 	/* Clear flags */
 	o_ptr->ident &= ~ID_KNOWN;
 	o_ptr->ident &= ~ID_SENSE;
@@ -2716,9 +2714,9 @@ bool create_artifact_aux(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
+/*
 	p_ptr->current_artifact = FALSE;
-#endif
+*/
 	return TRUE;
 }
 
