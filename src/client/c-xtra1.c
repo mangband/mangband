@@ -669,7 +669,8 @@ static void prt_lag(int row, int col)
 	Term_putstr(col, row, 12, TERM_L_DARK, "LAG:[------]"); 
 
 	if( lag_mark == 10000 ) {
-		c_msg_print_aux("Time Out", MSG_LOCAL);
+		/*c_msg_print_aux("Time Out", MSG_LOCAL);*/
+		do_handle_message("Time Out", MSG_LOCAL);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -3029,12 +3030,13 @@ void redraw_stuff(void)
 	/* MAangband-specific local indicator: Lag meter */
 	if ((ROW_LAG < section_icky_row) && 
 		((section_icky_col >= 0 && COL_LAG < section_icky_col) ||
-		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) lag_mark = 0;
-	if (screen_icky && !section_icky_row) lag_mark = 0;
-	if (lag_mark)
+		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) redraw_lag_meter = FALSE;
+	if (screen_icky && !section_icky_row) redraw_lag_meter = FALSE;
+	if (!(window_flag[0] & PW_PLAYER_2)) redraw_lag_meter = FALSE;
+	if (redraw_lag_meter)
 	{
 		prt_lag(ROW_LAG, COL_LAG);
-		lag_mark = 0;
+		redraw_lag_meter = FALSE;
 	}
 	
 }

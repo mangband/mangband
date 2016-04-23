@@ -46,6 +46,7 @@ client_setup_t Client_setup;		/* The information we give to the server */
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter = FALSE;
 char health_track_num;
 byte health_track_attr;
 

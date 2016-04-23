@@ -84,6 +84,7 @@ extern server_setup_t Setup;
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter;
 char health_track_num;
 byte health_track_attr;
 

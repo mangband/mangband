@@ -181,8 +181,13 @@ int keepalive_timer(int data1, data data2) {
 		send_keepalive(sent_pings++);
 		static_timer(1); //reset timer
 	}
-	//TODO: test this!
-	else lag_mark = 10000;
+	else
+	{
+		/* Display "horrible" lag */
+		lag_mark = 10000;
+		redraw_lag_meter = TRUE;
+		p_ptr->window |= (PW_PLAYER_2);
+	}
 
 	return 1;
 }
@@ -592,6 +597,8 @@ int recv_keepalive(connection_type *ct) {
 			time_passed /= 100;
 			lag_mark = (s16b)time_passed;
 			recd_pings++;
+			redraw_lag_meter = TRUE;
+			p_ptr->window |= (PW_PLAYER_2);
 		}
 	}
 #endif
