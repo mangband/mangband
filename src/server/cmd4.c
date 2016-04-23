@@ -657,7 +657,7 @@ void do_cmd_check_other(int Ind, int line)
 	while (n < 128 && p_ptr->info[n] && strlen(p_ptr->info[n]))
 	{
 		/* Dump a line of info */
-		fprintf(fff, p_ptr->info[n]);
+		fprintf(fff, "%s" ,p_ptr->info[n]);
 
 		/* Newline */
 		fprintf(fff, "\n");
