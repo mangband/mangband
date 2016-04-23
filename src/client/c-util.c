@@ -2687,6 +2687,81 @@ void show_line(int sy, s16b cols, bool mem)
 		caveprt(stream_cave(0, sy)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
 }
 
+/*
+ * Handle the air layer
+ */
+/*
+ * Each "air tile" has a delay and a fadeout value, stored in 
+ *  air_delay[][] and air_fade[][] arrays. The unit is milliseconds.
+ *
+ * Both "fade" and "delay" values constantly go down. As soon as "delay"
+ * reaches zero, the tile appears on-screen, and should stay there,
+ * until the "fade" value also reaches zero.  
+ *
+ * It's up for the client to select the fadeout threshold. 
+ *  A large value (i.e. 100) would draw air tiles with large tracers,
+ *  as tiles will "hang" in the air for quite some time. A small
+ *  value (i.e. 1 or 2) will make them much more flickerish.
+ *
+ * Feel free to play around with this (AIR_FADE_THRESHOLD define, see also
+ * "recv_air()" in net-client.c)
+ *
+ * Note: when "air tiles" are used to display projectiles which actually land
+ * and then appear on the ground (i.e. arrows, thrown items), the final
+ * tile is drawn BEFORE any of the air tiles have a chance to appear/fade.
+ *
+ * Note: *In theory* main-xxx ports might feel that they can handle the air
+ * layer by themselves and more gracefully (e.g. with alpha blendend fades).
+ * If you're working on this, and the direct Term_draw writes are too
+ * intrusive for you, set global variable "air_refresh" to FALSE.
+ * To disable this code completely, set "air_updates" to FALSE.
+ *
+ * Note: this function uses up the static_timer(2). This means you can't use
+ * static_timer(2) anywhere else from now on.
+ *
+ * Note: this function probably breaks graphics mode in some way. Untested.
+ */
+void update_air()
+{
+	micro passed = static_timer(2);
+	u16b milli = passed / 1000;
+	int j, i;
+	for (j = 0; j < MAX_HGT; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			if (air_delay[j][i] > 0)
+			{
+				air_delay[j][i] -= milli;
+				/* Delay timeout */
+				if (air_delay[j][i] <= 0)
+				{
+					if (!air_refresh) return;
+					/* Draw air tile */
+					show_char(j, i,
+						air_info[j][i].a, air_info[j][i].c,
+						p_ptr->trn_info[j][i].a,
+						p_ptr->trn_info[j][i].c, FALSE);
+				}
+			}
+			if (air_fade[j][i] > 0)
+			{
+				air_fade[j][i] -= milli;
+				if (air_fade[j][i] <= 0)
+				{
+					air_fade[j][i] = 0;
+					if (!air_refresh) return;
+					/* Erase air tile */
+					cave_view_type *scr_info = stream_cave(0, j);
+					show_char(j, i,
+						scr_info[i].a, scr_info[i].c,
+						p_ptr->trn_info[j][i].a,
+						p_ptr->trn_info[j][i].c, FALSE);
+				}
+			}
+		}
+	}
+}
 
 void prt_num(cptr header, int num, int row, int col, byte color)
 {

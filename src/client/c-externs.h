@@ -100,6 +100,12 @@ extern cave_view_type* remote_info[8];
 extern s16b last_remote_line[8];
 extern cptr stream_desc[32];
 
+cave_view_type air_info[MAX_HGT][MAX_WID];
+s32b air_delay[MAX_HGT][MAX_WID];
+s32b air_fade[MAX_HGT][MAX_WID];
+bool air_updates;
+bool air_refresh;
+
 extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;

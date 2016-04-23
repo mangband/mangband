@@ -384,6 +384,12 @@ void flush_updates()
 		window_stuff();
 	}
 
+	/* Redraw air? */
+	if (air_updates)
+	{
+		update_air();
+	}
+
 	/* Hack -- don't redraw the screen until we have all of it */
 	//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
 	/* Update the screen */

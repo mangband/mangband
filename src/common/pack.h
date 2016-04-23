@@ -96,6 +96,7 @@
 #define PKT_OBSERVE     	160
 #define PKT_CHANGEPASS  	162
 #define PKT_OBJFLAGS    	163
+#define PKT_AIR         	164
 #define PKT_CHANNEL     	165
 #define PKT_TERM_INIT   	166
 #define PKT_TERM        	167

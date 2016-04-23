@@ -717,6 +717,7 @@ extern int send_term_header(player_type *p_ptr, cptr header);
 extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
 extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
+extern int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade);
 extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name);
 extern int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name);
 extern int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name);

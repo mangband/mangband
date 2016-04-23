@@ -563,6 +563,18 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%c" "%ud%ud", PKT_AIR, y, x, a, c, delay, fade) <= 0)
+	{
+		/* No space in buffer, but we don't really care for this packet */
+		return 0;
+	}
+	return 1;
+}
+
 int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];

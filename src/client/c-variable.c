@@ -62,6 +62,12 @@ cave_view_type* remote_info[8]; /* Local copies for Special Info */
 s16b last_remote_line[8];
 cptr stream_desc[32];
 
+cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
+s32b air_delay[MAX_HGT][MAX_WID] = { 0 };
+s32b air_fade[MAX_HGT][MAX_WID] = { 0 };
+bool air_updates = TRUE;
+bool air_refresh = TRUE;
+
 int lag_ok;				/* server understands lag-check packets */
 
 player_type player;			/* The client-side copy of some of the player information */

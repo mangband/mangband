@@ -44,6 +44,9 @@
 /* Get cave by stream */
 #define stream_cave(I, L) (p_ptr->stream_cave[(I)] + (L) * p_ptr->stream_wid[(I)])
 
+/* Speed of air layer fadeout effects */
+#define AIR_FADE_THRESHOLD 10
+
 /*** SERVER DEFINES ***/
 /* Sometimes, we just copy defines from server.
  * Why not have them in common/ ? Because they ultimately are different values

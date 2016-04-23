@@ -1069,6 +1069,34 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_air(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0;
+	char
+		a = 0,
+		c = 0;
+	u16b
+		delay = 0,
+		fade = 0;
+
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c", &y, &x) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",  &delay) < 1) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",   &fade) < 1) return 0;
+
+	air_info[y][x].a = a;
+	air_info[y][x].c = c;
+	air_delay[y][x] = delay * AIR_FADE_THRESHOLD;
+	air_fade[y][x]  = air_delay[y][x] + fade * AIR_FADE_THRESHOLD;
+
+	return 1;
+}
+
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
