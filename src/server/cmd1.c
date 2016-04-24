@@ -644,6 +644,8 @@ void carry(int Ind, int pickup, int confirm)
 		if ((p_ptr->ghost) || (p_ptr->fruit_bat) ) return;
 	};
 
+	if(p_ptr->paralyzed) return;
+
 	/* Get the object */
 	o_ptr = &o_list[c_ptr->o_idx];
 
