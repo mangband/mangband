@@ -55,9 +55,11 @@ void setup_network_client()
 void cleanup_network_client()
 {
 	e_release_all(first_connection, 0, 1);
+	first_connection = NULL;
 	e_release_all(first_caller, 0, 1);
-
+	first_caller = NULL;
 	e_release_all(first_timer, 0, 1);
+	first_timer = NULL;
 }
 
 /* Iteration of the Loop */
