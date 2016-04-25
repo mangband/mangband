@@ -588,7 +588,7 @@ void do_cmd_check_uniques(int Ind, int line)
 
 		}
 	}
-	else fprintf(fff, "wNo uniques are witnessed so far.\n");
+	else fprintf(fff, "%s", "wNo uniques are witnessed so far.\n");
 
 	/* Free the "ind" array */
 	FREE(idx);
@@ -686,7 +686,7 @@ void do_cmd_check_players(int Ind, int line)
 
 		/* Newline */
 		// -AD- will this work?
-		fprintf(fff, "\n");
+		fprintf(fff, "%s", "\n");
 		fprintf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
@@ -872,14 +872,13 @@ void do_cmd_knowledge_history(int Ind, int line)
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "Time       Depth   CLev  Event\n");
+		fprintf(fff, "%s", "Time       Depth   CLev  Event\n");
 		//fprintf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			fprintf(fff, "%s\n", format_history_event(evt));
 		}
-		fprintf(fff, "\n\n");
+		fprintf(fff, "%s", "\n\n");
 	}
 
 	/* Close the file */

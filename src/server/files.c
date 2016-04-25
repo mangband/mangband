@@ -1251,10 +1251,10 @@ errr file_character_server(int Ind, cptr name)
 
 	/* Begin dump */
 	if (cfg_ironman)
-		fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
+		fprintf(fff, "%s", "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	else
-		fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
+		fprintf(fff, "%s", "  [Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
@@ -1267,27 +1267,27 @@ errr file_character_server(int Ind, cptr name)
 	}
 
 	/* Dump the equipment */
-	fprintf(fff, "  [Character Equipment]\n\n");
+	fprintf(fff, "%s", "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump the inventory */
-	fprintf(fff, "  [Character Inventory]\n\n");
+	fprintf(fff, "%s", "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump house inventory */
-	fprintf(fff, "  [Home Inventory]\n");
+	fprintf(fff, "%s", "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
 		if (house_owned_by(Ind, i)) 
@@ -1295,7 +1295,7 @@ errr file_character_server(int Ind, cptr name)
 			int Depth = houses[i].depth;
 			cave_type *c_ptr;
 
-			fprintf(fff, "\n"); j = 0;
+			fprintf(fff, "%s", "\n"); j = 0;
 			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
@@ -1303,7 +1303,7 @@ errr file_character_server(int Ind, cptr name)
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
-						if (j > 12) { fprintf(fff, "\n"); j = 0; }
+						if (j > 12) { fprintf(fff, "%s", "\n"); j = 0; }
 						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
 						fprintf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
@@ -1313,25 +1313,24 @@ errr file_character_server(int Ind, cptr name)
 			}
 		}
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump character history */
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "  [Character History]\n\n");
-		fprintf(fff, "Time       Dungeon Char  Event\n");
-		fprintf(fff, "           Level   Level\n\n");
+		fprintf(fff, "%s", "  [Character History]\n\n");
+		fprintf(fff, "%s", "Time       Dungeon Char  Event\n");
+		fprintf(fff, "%s", "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			fprintf(fff, "%s\n", format_history_event(evt));
 		}
-		fprintf(fff, "\n\n");
+		fprintf(fff, "%s", "\n\n");
 	}
 
 	/* Dump last messages */
-	fprintf(fff, "  [Last Messages]\n\n");
+	fprintf(fff, "%s", "  [Last Messages]\n\n");
 	i = p_ptr->msg_hist_ptr;
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
@@ -1340,10 +1339,10 @@ errr file_character_server(int Ind, cptr name)
 			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump the scene of death */
-	fprintf(fff, "  [Scene of Death]\n\n");
+	fprintf(fff, "%s", "  [Scene of Death]\n\n");
 	/* Get an in bounds area */
 	x1 = p_ptr->px - 39;
 	x2 = p_ptr->px + 39;
@@ -1429,9 +1428,9 @@ errr file_character_server(int Ind, cptr name)
 				fprintf(fff,"%c",c);
 			}
 		}
-		fprintf(fff,"\n");
+		fprintf(fff, "%s", "\n");
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 
 	/* Close it */
@@ -2772,7 +2771,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 
 		/* Print newline if this isn't the last one */
 		if (j < i - 1)
-			fprintf(fff, "\n");
+			fprintf(fff, "%s", "\n");
 	}
 
 	/* Close the file */
