@@ -91,7 +91,7 @@ int neighbor_index(int Depth, char dir)
 /* Add wilderness position in "03N, 12E" format to string "buf" */
 void wild_cat_depth(int Depth, char *buf) 
 {
-	int cur_x, cur_y, neigh_idx;
+	int cur_x, cur_y;
 
 	if (!Depth) 
 	{
@@ -660,6 +660,8 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 				/* are we a farmer? */
 				if (rand_int(100) < 50) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
 			}
+			break;
+
 		case WILD_ROCK_HOME:
 			/* hack -- no farms near the town */
 			if (w_ptr->radius > 1)
@@ -667,6 +669,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 				/* are we a farmer? */
 				if (rand_int(100) < 40) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
 			}
+			break;
 
 		case WILD_PERM_HOME:
 			if (inhabited)
@@ -1753,7 +1756,7 @@ void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end)
 void wild_bleed_level(int bleed_to, int bleed_from, char dir, int start, int end)
 {
 	int x, y;
-	int bleedmap[256+1], bleed_begin[MAX_WID], bleed_end[MAX_WID];
+	int bleedmap[256 + 1] = { 0 }, bleed_begin[MAX_WID] = { 0 }, bleed_end[MAX_WID] = { 0 };
 	terrain_type terrain;
 	
 	/* sanity check */
@@ -1799,6 +1802,8 @@ void wild_bleed_level(int bleed_to, int bleed_from, char dir, int start, int end
 				bleed_end[x] = MAX_HGT - 1;
 			}
 			break;
+		default: /* THIS CAN'T HAPPEN */ 
+			return;
 	}
 
 	if ((dir == DIR_EAST) || (dir == DIR_WEST))
