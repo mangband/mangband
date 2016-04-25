@@ -496,7 +496,7 @@ errr process_pref_file(cptr name)
 		if (process_pref_file_aux(buf))
 		{
 			/* Useful error message */
-			plog(format("Error in '%s' parsing '%s'.", buf, name));
+			plog_fmt("Error in '%s' parsing '%s'.", buf, name);
 		}
 	}
 
@@ -845,10 +845,12 @@ void c_put_str_b(char buffer[100][82], byte attr, cptr str, int row, int col)
 		str++;
 	}
 }
+
 void put_str_b(char buffer[100][82], cptr str, int row, int col)
 {
 	c_put_str_b(buffer,0,str,row,col);
 }
+
 void prt_num_b(char buffer[100][82], cptr header, int num, int row, int col, byte color)
 {
 	int len = strlen(header);
@@ -944,6 +946,7 @@ void display_player_server(int Ind, char buffer[100][82])
 {
 	int i;
 	char buf[80];
+	char tmp_buffer[80];
 	cptr desc;
 	bool hist = FALSE;
 	player_type *p_ptr = Players[Ind];
@@ -1057,13 +1060,16 @@ void display_player_server(int Ind, char buffer[100][82])
 
 
 		put_str_b(buffer,"Blows/Round:", 16, 55);
-		put_str_b(buffer,format("%d", p_ptr->num_blow), 16, 69);
+		strnfmt(tmp_buffer, sizeof tmp_buffer, "%d", p_ptr->num_blow);
+		put_str_b(buffer, tmp_buffer, 16, 69);
 
 		put_str_b(buffer,"Shots/Round:", 17, 55);
-		put_str_b(buffer,format("%d", p_ptr->num_fire), 17, 69);
+		strnfmt(tmp_buffer, sizeof tmp_buffer, "%d", p_ptr->num_fire);
+		put_str_b(buffer, tmp_buffer, 17, 69);
 
 		put_str_b(buffer,"Infra-Vision:", 19, 55);
-		put_str_b(buffer,format("%d feet", p_ptr->see_infra * 10), 19, 69);
+		strnfmt(tmp_buffer, sizeof tmp_buffer, "%d feet", p_ptr->see_infra * 10);
+		put_str_b(buffer, tmp_buffer, 19, 69);
 
         /* Dump the bonuses to hit/dam */
         if (o_ptr->k_idx)
@@ -2547,7 +2553,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 
@@ -2579,6 +2585,8 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 		int pr, pc, clev, mlev, cdun, mdun;
 
 		cptr user, gold, when, aged;
+
+		char fmt_buffer[80];
 
 
 		/* Hack -- indicate death in yellow */
@@ -2626,7 +2634,8 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 			clev);
 
 		/* Append a "maximum level" */
-		if (mlev > clev) strcat(out_val, format(" (Max %d)", mlev));
+		strnfmt(fmt_buffer, sizeof fmt_buffer, " (Max %d)", mlev);
+		if (mlev > clev) strcat(out_val, fmt_buffer);
 
 		/* Dump the first line */
 		fprintf(fff, "%s\n", out_val);
@@ -2646,7 +2655,8 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 		}
 
 		/* Append a "maximum level" */
-		if (mdun > cdun) strcat(out_val, format(" (Max %d)", mdun));
+		strnfmt(fmt_buffer, sizeof fmt_buffer, " (Max %d)", mdun);
+		if (mdun > cdun) strcat(out_val, fmt_buffer);
 
 		/* Dump the info */
 		fprintf(fff, "%s\n", out_val);
