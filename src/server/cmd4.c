@@ -273,7 +273,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 
@@ -420,7 +420,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 
@@ -548,7 +548,7 @@ void do_cmd_check_players(int Ind, int line)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 
@@ -649,7 +649,7 @@ void do_cmd_check_other(int Ind, int line)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 
