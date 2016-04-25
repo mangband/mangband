@@ -114,7 +114,7 @@ void display_inventory(void)
                 prt("-more-", k + 6, 3);
 
                 /* Indicate the "current page" */
-                put_str(format("(Page %d)", store_top/12 + 1), 5, 20);
+								c_put_fmt(TERM_WHITE, 5, 20, "(Page %d)", store_top/12 + 1);
         }
 }
 
@@ -260,7 +260,9 @@ static void store_purchase(void)
                 /* Hack -- note cost of "fixed" items */
                 if (store_num != 7)
                 {
-                        c_msg_print(format("That costs %ld gold per item.", (long)(store_prices[item])));
+									char buffer[80];
+									strnfmt(buffer, sizeof buffer, "That costs %ld gold per item.", (long)(store_prices[item]));
+									c_msg_print(buffer);
                 }
 
                 /* Get a quantity */

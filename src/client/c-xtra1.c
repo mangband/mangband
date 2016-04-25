@@ -223,7 +223,7 @@ void prt_depth(int depth)
 	}
 
 	/* Right-Adjust the "depth" and clear old values */
-	prt(format("%7s", depths), 23, COL_DEPTH);
+	prt_format(23, COL_DEPTH, "%7s", depths);
 }
 
 /*
@@ -386,7 +386,7 @@ void prt_speed(int speed)
 	}
 
 	/* Display the speed */
-	c_put_str(attr, format("%-14s", buf), ROW_SPEED, COL_SPEED);
+	c_put_fmt(attr, ROW_SPEED, COL_SPEED, "%-14s", buf);
 }
 
 /*
@@ -521,7 +521,9 @@ void prt_lag(u32b mark, u32b num)
 	Term_putstr(COL_LAG, ROW_LAG, 12, TERM_L_DARK, "LAG:[------]"); 
 
 	if( num == 10000 ) {
-		c_msg_print(format("Time out Mark: %lu, Last: %lu", mark,last));	
+		char buffer[80];
+		strnfmt(buffer, sizeof buffer, "Time out Mark: %lu, Last: %lu", mark, last);
+		c_msg_print(buffer);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -1672,13 +1674,13 @@ void display_player(void)
 	
 	
 			put_str("Blows/Round:", 16, 55);
-			put_str(format("%d", p_ptr->num_blow), 16, 69);
+			c_put_fmt(TERM_WHITE, 16, 69, "%d", p_ptr->num_blow);
 	
 			put_str("Shots/Round:", 17, 55);
-			put_str(format("%d", p_ptr->num_fire), 17, 69);
+			c_put_fmt(TERM_WHITE, 17, 69, "%d", p_ptr->num_fire);
 	
 			put_str("Infra-Vision:", 19, 55);
-			put_str(format("%d feet", p_ptr->see_infra * 10), 19, 69);
+			c_put_fmt(TERM_WHITE, 19, 69, "%d feet", p_ptr->see_infra * 10);
 		}
 	}
 

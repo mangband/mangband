@@ -85,6 +85,7 @@ void describe_item_activation(const object_type *o_ptr)
 	/* Artifact activations */
 	if (o_ptr->name1)
 	{
+		char format_buffer[80];
 		artifact_type *a_ptr = &a_info[o_ptr->name1];
 
 		if (!a_ptr->time && !a_ptr->randtime) text_out("[ERROR: missing `A:` line in artifact.txt] ");
@@ -96,14 +97,23 @@ void describe_item_activation(const object_type *o_ptr)
 		text_out(act_description[a_ptr->activation]); 
 
 		/* Output the number of turns */
-		
+
 		if (a_ptr->time && a_ptr->randtime)
-			text_out(format(" every %d+d%d turns", a_ptr->time, a_ptr->randtime));
+		{
+			strnfmt(format_buffer, sizeof format_buffer, " every %d+d%d turns", a_ptr->time, a_ptr->randtime);
+			text_out(format_buffer);
+		}
 		else if (a_ptr->time)
-			text_out(format(" every %d turns", a_ptr->time));
+		{
+			strnfmt(format_buffer, sizeof format_buffer, " every %d turns", a_ptr->time);
+			text_out(format_buffer);
+		}
 		else if (a_ptr->randtime)
-			text_out(format(" every d%d turns", a_ptr->randtime));
-		
+		{
+			strnfmt(format_buffer, sizeof format_buffer, " every d%d turns", a_ptr->randtime);
+			text_out(format_buffer);
+		}
+
 
 		return;
 	}
@@ -244,6 +254,16 @@ static void p_text_out(cptr str)
 	text_out(str);
 }
 
+static void p_text_fmt(cptr fmt, ...)
+{
+	va_list ap;
+	char buffer[80];
+	va_start(ap, fmt);
+	vstrnfmt(buffer, sizeof buffer, fmt, ap);
+	va_end(ap);
+	p_text_out(buffer);
+}
+
 
 static void output_list(cptr list[], int n)
 {
@@ -338,18 +358,18 @@ static bool describe_stats(const object_type *o_ptr, u32b f1, u32b fH)
 			/* Shorten to "all stats", if appropriate. */
 			if (cnt == A_MAX)
 			{
-				p_text_out(format("It %s all your stats", (pval[j] > 0 ? "increases" : "decreases")));
+				p_text_fmt("It %s all your stats", (pval[j] > 0 ? "increases" : "decreases"));
 			}
 			else
 			{
-				p_text_out(format("It %s your ", (pval[j] > 0 ? "increases" : "decreases")));
+				p_text_fmt("It %s your ", (pval[j] > 0 ? "increases" : "decreases"));
 		
 				/* Output list */
 				output_list(descs, cnt);
 			}
 		
 			/* Output end */
-			p_text_out(format(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]) ));
+			p_text_fmt(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]));
 			found = TRUE;
 		}
 	}
@@ -447,13 +467,13 @@ static bool describe_secondary(const object_type *o_ptr, u32b f1, u32b fH)
 		if (cnt != 0)
 		{
 			/* Start */
-			p_text_out(format("It %s your ", (pval[j] > 0 ? "increases" : "decreases")));
+			p_text_fmt("It %s your ", (pval[j] > 0 ? "increases" : "decreases"));
 
 			/* Output list */
 			output_list(descs, cnt);
 
 			/* Output end */
-			p_text_out(format(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]) ));
+			p_text_fmt(" by %i.  ", (pval[j] > 0 ? pval[j] : -pval[j]) );
 	
 			found = TRUE;
 		}
