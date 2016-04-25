@@ -1081,7 +1081,7 @@ void cmd_chat_cycle(int dir)
 	{
 		new_channel += dir;
 
-		if (new_channel > MAX_CHANNELS || new_channel < 0) return;
+		if (new_channel >= MAX_CHANNELS || new_channel < 0) return;
 		if (STRZERO(channels[new_channel].name)) continue; 
 
 		break;
