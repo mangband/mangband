@@ -56,7 +56,7 @@ void choose_name(void)
  */
 void enter_password(void)
 {
-	int c;
+	unsigned int c;
 	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
@@ -484,7 +484,7 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, socket, offsets[20];
+	int i, j, y, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
