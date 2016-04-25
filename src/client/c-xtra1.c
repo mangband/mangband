@@ -1858,7 +1858,7 @@ void fix_special_message(void)
 		if (view_channel == j) a = TERM_L_BLUE;
 
 		/* Carriage return */		
-		if (strlen(channels[j].name) + c + 1 >= w)
+		if ((int)strlen(channels[j].name) + c + 1 >= w)
 		{
 			/* Clear to end of line */
 			Term_erase(x, y, 255);
@@ -2467,8 +2467,6 @@ void schedule_redraw(u32b filter)
  */
 void redraw_indicators(u32b filter)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int i = 0; 
 
@@ -2966,8 +2964,6 @@ int register_indicator(int id)
  */
 void redraw_stuff(void)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
