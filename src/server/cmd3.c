@@ -375,6 +375,9 @@ void do_cmd_wield(int Ind, int item)
 	/* Check the slot */
 	slot = wield_slot(Ind, o_ptr);
 
+	/* Paranoia - can't really happen thanks to "item_tester_hook_wear" */
+	if (slot == -1) return;
+
 	/* Prevent wielding into a cursed slot */
 	if (cursed_p(&(p_ptr->inventory[slot])))
 	{
