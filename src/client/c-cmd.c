@@ -624,7 +624,8 @@ void cmd_inven(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -651,7 +652,8 @@ void cmd_equip(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -815,7 +817,8 @@ int cmd_target_interactive(int mode)
 	/* Unset modes */
 	looking = FALSE;
 	topline_icky = FALSE;
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
@@ -1043,7 +1046,6 @@ void cmd_chat()
 }
 void cmd_chat_close(int n)
 {
-	char buf[80];
 	
 	if (n)
 	{

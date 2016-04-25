@@ -1808,7 +1808,8 @@ void show_recall(byte win, cptr prompt)
 	if (win == NTERM_WIN_NONE)
 	{
 		target_recall = FALSE;
-		section_icky_row = section_icky_col = 0;
+		section_icky_row = 0;
+		section_icky_col = 0;
 		return;
 	}
 
@@ -1972,7 +1973,6 @@ void show_peruse(s16b line)
 void peruse_file(void)
 {
 	char k;
-	int n;
 
 	/* Initialize */
 	cur_line = 0;
