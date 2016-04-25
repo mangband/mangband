@@ -2885,6 +2885,9 @@ static void calc_bonuses(int Ind)
 	/* Limit Skill -- digging from 1 up */
 	if (p_ptr->skill_dig < 1) p_ptr->skill_dig = 1;
 
+	/* Limit final infravision to >= 0 */
+	if (p_ptr->see_infra < 0) p_ptr->see_infra = 0;
+
 	/* Obtain the "hold" value */
 	hold = adj_str_hold[p_ptr->stat_ind[A_STR]];
 
