@@ -4055,7 +4055,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		else msg_format(Ind, "%^s heals you!", killer);
 		
 		hp_player(Ind, dam);
-		set_cut(Ind, Players[Ind]->cut - 10);
+		(void)set_cut(Ind, Players[Ind]->cut - 10);
 		
 		break;
 
