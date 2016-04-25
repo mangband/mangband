@@ -3596,6 +3596,8 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 		}
 	}
 
+	/* Paranoia - zero options */
+	if (!n) return;
 
 	/* Clear screen */
 	Term_clear();
