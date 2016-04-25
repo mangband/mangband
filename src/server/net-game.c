@@ -1069,7 +1069,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_visual_info(connection_type *ct, player_type *p_ptr) {
-	int n, i, local_size;
+	int n, i, local_size = 0;
 	byte at;
 	char *char_ref;
 	byte *attr_ref = NULL;
