@@ -3656,7 +3656,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	}
 	else if (who < 0)
 	{
-		strcpy(killer, Players[0 - who]->name);
+		my_strcpy(killer, Players[0 - who]->name, 80);
 
 		/* Do not become hostile if it was a healing or teleport spell */
 		if ((typ < GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
