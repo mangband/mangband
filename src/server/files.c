@@ -1251,10 +1251,10 @@ errr file_character_server(int Ind, cptr name)
 
 	/* Begin dump */
 	if (cfg_ironman)
-		fprintf(fff, "%s", "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
+		fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	else
-		fprintf(fff, "%s", "  [Mangband %d.%d.%d Character Dump]\n\n",
+		fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
