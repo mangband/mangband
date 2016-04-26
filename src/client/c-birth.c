@@ -467,7 +467,7 @@ static bool enter_server_name(void)
 	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
-	result = askfor_aux(server_name, 80, 0);
+	result = askfor_aux(server_name, MAX_COLS, 0);
 
 	s = strchr(server_name, ':');
 	if (!s) return result;

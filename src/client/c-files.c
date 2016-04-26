@@ -2018,10 +2018,10 @@ void peruse_file(void)
 		/* Hack -- go to a specific line */
 		if (k == '#')
 		{
-			char tmp[80];
+			char tmp[MAX_CHARS];
 			prt("Goto Line: ", 23, 0);
 			strcpy(tmp, "0");
-			if (askfor_aux(tmp, 80, 0))
+			if (askfor_aux(tmp, MAX_COLS, 0))
 			{
 				cur_line = atoi(tmp);
 			}

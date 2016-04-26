@@ -7,7 +7,7 @@ char pass[MAX_CHARS];
 
 char real_name[MAX_CHARS];
 
-char server_name[80];
+char server_name[MAX_CHARS];
 int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */

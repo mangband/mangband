@@ -47,7 +47,7 @@ extern char pass[MAX_CHARS];
 
 extern char real_name[MAX_CHARS];
 
-extern char server_name[80];
+extern char server_name[MAX_CHARS];
 extern int server_port;
 
 extern object_type *inventory;

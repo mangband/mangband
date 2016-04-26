@@ -1372,6 +1372,7 @@ void prt(cptr str, int row, int col)
 /*
  * Get some input at the cursor location.
  * Assume the buffer is initialized to a default string.
+ * Note: "len" MUST BE LESS than total "buf" size.
  * Note that this string is often "empty" (see below).
  * The default buffer is displayed in yellow until cleared.
  * Pressing RETURN right away accepts the default entry.
@@ -1484,6 +1485,8 @@ bool askfor_aux(char *buf, int len, char m_private)
  * Get a string from the user
  *
  * The "prompt" should take the form "Prompt: "
+ *
+ * Note: "len" MUST BE LESS than total "buf" size.
  *
  * Note that the initial contents of the string is used as
  * the default response, so be sure to "clear" it if needed.
@@ -3377,10 +3380,10 @@ void interact_macros(void)
 			Term_gotoxy(0, 21);
 
 			/* Hack -- limit the value */
-			tmp[80] = '\0';
+			tmp[MAX_COLS] = '\0';
 
 			/* Get an encoded action */
-			if (!askfor_aux(buf, 80, 0)) continue;
+			if (!askfor_aux(buf, MAX_COLS, 0)) continue;
 
 			/* Extract an action */
 			text_to_ascii(macro__buf, buf);
@@ -3469,7 +3472,7 @@ void interact_macros(void)
 				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
 	
 				/* Get an encoded action */
-				if (!askfor_aux(tmp, 80, 0)) continue;
+				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
 	
 				/* Convert to ascii */
 				text_to_ascii(macro__buf, tmp);
