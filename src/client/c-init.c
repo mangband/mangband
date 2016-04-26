@@ -470,7 +470,7 @@ void gather_settings()
 /* Trick "net_term_manage" into subscribing by passing an empty array */
 void init_subscriptions() 
 {
-	int i, n;
+	int i, j, k, n;
 
 	u32b empty_flag[ANGBAND_TERM_MAX];
 
@@ -615,6 +615,7 @@ int client_failed(void)
 	static int try_count = 0;
 	event_type chkey;
 	char ch = 0;
+	char buf[80];
 	byte star = 0;
 
 	if (try_count++ > 2000)
@@ -652,6 +653,8 @@ int client_failed(void)
  */
 void client_init(void)
 {
+	unsigned char status;
+	char c, *s;
 	bool done = 0;
 
 	/* Setup the file paths */

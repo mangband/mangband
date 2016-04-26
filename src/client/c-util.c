@@ -265,6 +265,8 @@ static char inkey_aux(void)
 	/* Wait for keypress, while also checking for net input */
 	do
 	{
+		int result;
+
 		/* Look for a keypress */
 		(void)(Term_inkey(&chkey, FALSE, TRUE));
 		ch = chkey.key;
@@ -903,6 +905,8 @@ event_type inkey_ex(void)
  */
 char inkey(void)
 {
+	int v;
+
 	char kk, ch;
 	event_type chkey;
 
@@ -2222,7 +2226,7 @@ void c_message_add(cptr str, u16b type)
 	*v = '\0';
 
 	/* Advance the "head" pointer */
-	message__head += ((u16b)n + 1);
+	message__head += (n + 1);
 
 	/* Store the message type */
 	message__type[x] = type;
@@ -2720,7 +2724,7 @@ void show_line(int sy, s16b cols, bool mem)
 void update_air()
 {
 	micro passed = static_timer(2);
-	micro milli = passed / 1000;
+	u16b milli = passed / 1000;
 	int j, i;
 	for (j = 0; j < MAX_HGT; j++)
 	{
@@ -4112,10 +4116,9 @@ int usleep(huge microSeconds)
 #endif /* SET_UID */
 
 #ifdef WIN32
-int usleep(huge microSeconds)
+int usleep(long microSeconds)
 {
-	DWORD duration = (DWORD)microSeconds / 1000;
-	Sleep(duration); /* meassured in milliseconds not microseconds*/
+	Sleep(microSeconds/10); /* meassured in milliseconds not microseconds*/
 	return 0;
 }
 #endif /* WIN32 */
