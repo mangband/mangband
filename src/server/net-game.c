@@ -133,7 +133,7 @@ int send_class_info(connection_type *ct)
 
 int send_optgroups_info(connection_type *ct)
 {
-	u32b i, name_size;
+	u32b i;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -215,8 +215,7 @@ int send_inventory_info(connection_type *ct)
 
 int send_floor_info(connection_type *ct)
 {
-	u32b i, off = 0;
-	char buf[80];
+	u32b off = 0;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -257,7 +256,7 @@ int send_indication(int Ind, byte id, ...)
 {
 	connection_type *ct = PConn[Ind];
 	const indicator_type *i_ptr = &indicators[id];
-	int i = 0, n;
+	int i = 0, n = 0;
 	int start_pos;
 
 	signed char tiny_c;
@@ -892,6 +891,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	if (p_ptr == NULL || p_ptr->state < PLAYER_BONE)
 	{
 		/* ....? Some kind of error */
+		return 0; /* Can't imagine what would cause this, but better safe than sorry. */
 	}
 	/* Client asks for a hard restart */
 	if (mode == PLAY_RESTART)
@@ -1069,8 +1069,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_visual_info(connection_type *ct, player_type *p_ptr) {
-	int n, i, local_size;
-	byte at;
+	int n, local_size = 0;
 	char *char_ref;
 	byte *attr_ref = NULL;
 	byte
@@ -1146,7 +1145,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_options(connection_type *ct, player_type *p_ptr) {
-	int n, i, j;
+	int i;
 	byte next, bit;
 
 	for (i = 0; i < OPT_MAX; i += 8)
@@ -1201,7 +1200,7 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		switch (i)
 		{
 			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = val; break; 
+			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break; 
 			default: break;
 		}
 	}
@@ -1585,7 +1584,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	}
 
 	/* Check energy */
-	if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)))
+	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
 		/* Start resting */
 		do_cmd_toggle_rest(Ind);
@@ -1611,7 +1610,6 @@ static int recv_custom_command(player_type *p_ptr)
 	char
 		dir,
 		item;
-	byte id;
 	byte i, j, tmp;
 	char entry[60];
 
@@ -1650,7 +1648,11 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
+	if (i > MAX_CUSTOM_COMMANDS)
+	{
+		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+	}
+		else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
