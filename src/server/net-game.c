@@ -1649,11 +1649,12 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS)
+	if (i >= MAX_CUSTOM_COMMANDS)
 	{
 		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+		return -1;
 	}
-		else if (!custom_commands[i].m_catch)
+	else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
