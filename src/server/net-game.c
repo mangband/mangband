@@ -256,7 +256,7 @@ int send_indication(int Ind, byte id, ...)
 {
 	connection_type *ct = PConn[Ind];
 	const indicator_type *i_ptr = &indicators[id];
-	int i = 0, n;
+	int i = 0, n = 0;
 	int start_pos;
 
 	signed char tiny_c;
@@ -1648,7 +1648,11 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
+	if (i > MAX_CUSTOM_COMMANDS)
+	{
+		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+	}
+		else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
