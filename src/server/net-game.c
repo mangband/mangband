@@ -888,10 +888,11 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		return 0;
 	}
 
-	if (p_ptr == NULL || p_ptr->state < PLAYER_BONE)
+	if (p_ptr == NULL)
 	{
-		/* ....? Some kind of error */
-		return 0; /* Can't imagine what would cause this, but better safe than sorry. */
+		/* TODO: verify if this can or cannot happen (by contract) */
+		/* ... but better safe than sorry. */
+		return -1;
 	}
 	/* Client asks for a hard restart */
 	if (mode == PLAY_RESTART)
@@ -1648,11 +1649,12 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS)
+	if (i >= MAX_CUSTOM_COMMANDS)
 	{
 		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+		return -1;
 	}
-		else if (!custom_commands[i].m_catch)
+	else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;

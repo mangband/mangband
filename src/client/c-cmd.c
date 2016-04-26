@@ -240,7 +240,7 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_STRING)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
-		if (!get_string(prompt, entry, sizeof(entry)))
+		if (!get_string(prompt, entry, sizeof(entry) - 1))
 			return;
 		advance_prompt();
 	}

@@ -2724,7 +2724,7 @@ void show_line(int sy, s16b cols, bool mem)
 void update_air()
 {
 	micro passed = static_timer(2);
-	u16b milli = passed / 1000;
+	u16b milli = (u16b)(passed / 1000);
 	int j, i;
 	for (j = 0; j < MAX_HGT; j++)
 	{
