@@ -2986,12 +2986,12 @@ void player_talk_aux(int Ind, cptr message)
 	if (Ind)
 	{
 		/* Get player name */
-		strcpy(sender, p_ptr->name);
+		my_strcpy(sender, p_ptr->name, 80);
 	}
 	else
 	{
 		/* Default name */
-		strcpy(sender, "");
+		my_strcpy(sender, "", 80);
 	}
 
 	/* Default to no search string */
