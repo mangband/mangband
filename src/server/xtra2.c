@@ -2630,8 +2630,8 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 		/* Hack - reinscribe with name */
 		if (protect)
 		{
-			strcpy(o_inscribe, "!* - ");
-			strcat(o_inscribe, p_ptr->name);
+			my_strcpy(o_inscribe, "!* - ", 80);
+			my_strcat(o_inscribe, p_ptr->name, 80);
 			p_ptr->inventory[i].note = quark_add(o_inscribe);
 		} else p_ptr->inventory[i].note = quark_add(p_ptr->name);
 
