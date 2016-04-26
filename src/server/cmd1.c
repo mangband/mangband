@@ -1217,7 +1217,7 @@ void py_attack_player(int Ind, int y, int x)
 	disturb(0 - c_ptr->m_idx, 0, 0);
 
 	/* Extract name */
-	strcpy(pvp_name, q_ptr->name);
+	my_strcpy(pvp_name, q_ptr->name, 80);
 
 	/* Track player health */
 	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
