@@ -1515,7 +1515,7 @@ bool get_string_masked(cptr prompt, char *buf, int len)
 {
 	bool res;
 
-    /* Display prompt */
+	/* Display prompt */
 	prt(prompt, 0, 0);
 
 	/* Ask the user for a string */
