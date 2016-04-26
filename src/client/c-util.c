@@ -2736,27 +2736,33 @@ void update_air()
 				/* Delay timeout */
 				if (air_delay[j][i] <= 0)
 				{
-					if (!air_refresh) return;
-					/* Draw air tile */
-					show_char(j, i,
-						air_info[j][i].a, air_info[j][i].c,
-						p_ptr->trn_info[j][i].a,
-						p_ptr->trn_info[j][i].c, FALSE);
+					air_delay[j][i] = 0;
+					if (air_refresh)
+					{
+						/* Draw air tile */
+						show_char(j, i,
+							air_info[j][i].a, air_info[j][i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
 				}
 			}
 			if (air_fade[j][i] > 0)
 			{
 				air_fade[j][i] -= milli;
+				/* Fade timeout */
 				if (air_fade[j][i] <= 0)
 				{
 					air_fade[j][i] = 0;
-					if (!air_refresh) return;
-					/* Erase air tile */
-					cave_view_type *scr_info = stream_cave(0, j);
-					show_char(j, i,
-						scr_info[i].a, scr_info[i].c,
-						p_ptr->trn_info[j][i].a,
-						p_ptr->trn_info[j][i].c, FALSE);
+					if (air_refresh)
+					{
+						/* Erase air tile */
+						cave_view_type *scr_info = stream_cave(0, j);
+						show_char(j, i,
+							scr_info[i].a, scr_info[i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
 				}
 			}
 		}
