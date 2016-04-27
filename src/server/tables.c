@@ -316,6 +316,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
+#if 0
+	{ /* Refill bottle */
+		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_BOTTLE, "Refill which bottle? "
+	},
+#endif
 
 	/*** Store/shopping commands ***/
 	{ /* [Get]/Purchase item */
