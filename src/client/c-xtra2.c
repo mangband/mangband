@@ -58,7 +58,7 @@ void do_cmd_messages(void)
                         message_color(str, &a);
 
                         /* Apply horizontal scroll */
-                        str = (strlen(str) >= q) ? (str + q) : "";
+                        str = ((int)strlen(str) >= q) ? (str + q) : ""; /* strlen is very unlikely to ever return a negative int */
 
                         /* Handle "shower" */
                         if (shower[0] && strstr(str, shower)) a = TERM_YELLOW;

@@ -1,6 +1,6 @@
 #include "c-angband.h"
 
-s16b index_to_label(int i)
+char index_to_label(int i)
 {
 	/* Indices for "inven" are easy */
 	if (i < INVEN_WIELD) return (I2A(i));
