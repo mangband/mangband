@@ -1288,12 +1288,6 @@ static errr term_force_graf(term_data *td, cptr name)
 
 	char buf[1024];
 
-	HBITMAP scaled_gfx; 
-	HDC  hdc;
-	HDC hdcSrc;
-	HDC hdcDest;
-	HBITMAP hbmSrcOld;
-	
 	/* No name */
 	if (!name) return (1);
 
