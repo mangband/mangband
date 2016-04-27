@@ -1050,9 +1050,8 @@ void self_knowledge(int Ind, bool spoil)
 	/* Last line */
 	p_ptr->last_info_line = i - 1;
 
-
-	/* Let the client know to expect some info */
-	Send_special_other(Ind, "Self-Knowledge");
+	/* Let the client see it */
+	send_prepared_popup(Ind, "Self-Knowledge");
 }
 
 
@@ -2992,8 +2991,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	Send_special_other(Ind, o_name);
-
+	send_prepared_popup(Ind, o_name);
 
 	/* Success */
 	return (TRUE);
