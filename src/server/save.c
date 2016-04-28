@@ -547,6 +547,48 @@ static void wr_extra(int Ind)
 }
 
 /*
+ * Write player's birth options
+ */
+static void wr_birthoptions(player_type *p_ptr)
+{
+	u16b tmp16u;
+	s32b i;
+	s16b ind;
+	
+	tmp16u = 0;
+
+	/* Count number of records */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page == 1) tmp16u++;
+	}
+
+	/* No records for some reason */
+	if (!tmp16u) return;
+
+	start_section("options");
+
+	/* Save number */
+	write_int("num",tmp16u);
+
+	/* Save each record */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page != 1) continue;
+
+		/* Real index is in the o_uid! */
+		ind = option_info[i].o_uid;
+
+		/* Write it */
+		write_uint(opt_ptr->o_text, p_ptr->options[ind] ? 1 : 0);
+	}
+
+	end_section("options");
+}
+
+/*
  * Write the list of players a player is hostile toward
  */
 static void wr_hostilities(int Ind)
@@ -831,6 +873,9 @@ static bool wr_savefile_new(int Ind)
 
 	/* Write the players turn */
 	write_hturn("player_turn",&p_ptr->turn);
+
+	/* Dump birth options */
+	wr_birthoptions(p_ptr);
 
 	/* Dump the monster lore */
 	start_section("monster_lore");

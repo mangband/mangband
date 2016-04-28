@@ -1237,6 +1237,66 @@ static errr rd_inventory(player_type *p_ptr)
 }
 
 /*
+ * Read the birth options
+ */
+static errr rd_birthoptions(player_type *p_ptr)
+{
+	s32b i, id;
+	u16b tmp16u, ind;
+
+	if (!section_exists("options"))
+	{
+		/* Fine, no options */
+		return (0);
+	}
+
+	/* Begin */
+	start_section_read("options");
+
+	/* Read number */
+	tmp16u = read_int("num");
+
+	/* Read each record */
+	id = 0;
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page != 1) continue;
+
+		/* Next entry is what we expect */
+		if (value_exists(opt_ptr->o_text))
+		{
+			/* Read it */
+			u16b val = read_uint(opt_ptr->o_text);
+
+			/* Real index is in the o_uid! */
+			ind = option_info[i].o_uid;
+
+			/* Set it */
+			p_ptr->options[ind] = val ? TRUE : FALSE;
+		}
+		else
+		{
+			end_section_read("options");
+
+			/* Unexpected option */
+			return (29);
+		}
+
+		id++;
+		/* Don't read anymore */
+		if (id >= tmp16u) break;
+	}
+
+	/* Done */
+	end_section_read("options");
+
+	/* Success */
+	return (0);
+}
+
+
+/*
  * Read hostility information
  *
  * Note that this function is responsible for deleting stale entries
@@ -1678,8 +1738,13 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		read_hturn("player_turn", &p_ptr->turn);
 	else
 		ht_clr(&p_ptr->turn);
-	
-	
+
+	/* Read birth options */
+	if (rd_birthoptions(p_ptr))
+	{
+		return (28);
+	}
+
 	/* Monster Memory */
 	if (section_exists("monster_lore")) {
 	start_section_read("monster_lore");
