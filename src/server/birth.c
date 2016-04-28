@@ -686,7 +686,6 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_tmp.cbuf.max = p_ptr->cbuf.max;
 
 	p_tmp.lives = p_ptr->lives;
-	p_tmp.no_ghost = p_ptr->no_ghost; /* ? */
 
 	for (i = 0; i < 6; i++)
 	{
@@ -719,7 +718,8 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_ptr->cbuf.max = p_tmp.cbuf.max;
 
 	p_ptr->lives = p_tmp.lives;
-	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
+
+	/* TODO: also copy p_ptr->options? MAYBE */
 
 	for (i = 0; i < 6; i++)
 	{

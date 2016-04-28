@@ -2813,7 +2813,7 @@ void player_death(int Ind)
 	player_strip(Ind, TRUE, TRUE, TRUE, TRUE);
 
 	/* Last chance to survive death: */
-	if (cfg_ironman || p_ptr->no_ghost)
+	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
 	{
 		/* Get rid of him */
 		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));

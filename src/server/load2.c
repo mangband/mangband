@@ -1056,7 +1056,7 @@ static bool rd_extra(player_type *p_ptr, bool had_header)
 
 	if(value_exists("no_ghost"))
 	{
-		p_ptr->no_ghost = read_int("no_ghost");
+		(void)read_int("no_ghost");
 	}
 	
 	p_ptr->max_plv = read_int("max_plv");

@@ -2311,7 +2311,7 @@ long total_points(int Ind)
 	player_type *p_ptr = Players[Ind];
 	
 	/* We award a 50% score bonus for bravery with no_ghost characters */
-	if (p_ptr->no_ghost && !cfg_ironman)
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
 	{
 		return (long)((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
 	}
