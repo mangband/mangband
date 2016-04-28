@@ -1169,8 +1169,9 @@ int recv_options(connection_type *ct, player_type *p_ptr) {
 			/* Skip locked options */
 			if (option_info[n].o_bit) continue;
 
-			/* Skip birth options */
-			if (option_info[n].o_page == 1 && IS_PLAYING(p_ptr)) continue;
+			/* Skip birth options (if character is solid) */
+			if (option_info[n].o_page == 1 && p_ptr->state > PLAYER_FULL) continue;
+
 			/* Set */
 			if (next & (1L << bit))
 			{
