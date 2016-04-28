@@ -638,6 +638,12 @@ void self_knowledge(int Ind, bool spoil)
 	f3 |= t3;
 
 
+	/* Birth options */
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
+	{
+		info[i++] = "You never compromise.";
+	}
+
 	/* Status */
 	if (p_ptr->blind)
 	{
