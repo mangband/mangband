@@ -586,8 +586,10 @@ bool client_setup()
 	send_options();
 
 	/* Send visual preferences */
-	for (i = 0; i < VISUAL_INFO_PR +1; i++)
+	for (i = 0; i < VISUAL_INFO_PR + 1; i++)
+	{
 		send_visual_info(i);
+	}
 
 	/* Hack -- don't enter the game if waiting for motd */
 	//if (Setup.wait && !Setup.ready)

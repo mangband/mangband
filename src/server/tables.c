@@ -172,7 +172,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/* Magic devices */
 	{ /* Read scroll */
 		'r', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_read_scroll_on,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR ),
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_SCROLL, "Read which scroll? "
 	},
 	{ /* Aim wand */
