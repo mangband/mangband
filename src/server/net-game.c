@@ -1163,14 +1163,14 @@ int recv_options(connection_type *ct, player_type *p_ptr) {
 			int n = i + bit;
 			if (n >= OPT_MAX) break;
 
-			/* Real index is in the o_uid! */
-			n = option_info[n].o_uid;
-
 			/* Skip locked options */
 			if (option_info[n].o_bit) continue;
 
 			/* Skip birth options (if character is solid) */
 			if (option_info[n].o_page == 1 && p_ptr->state > PLAYER_FULL) continue;
+
+			/* Real index is in the o_uid! */
+			n = option_info[n].o_uid;
 
 			/* Set */
 			if (next & (1L << bit))

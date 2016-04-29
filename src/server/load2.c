@@ -1261,16 +1261,17 @@ static errr rd_birthoptions(player_type *p_ptr)
 	for (i = 0; i < OPT_MAX; i++)
 	{
 		const option_type *opt_ptr = &option_info[i];
+
+		/* Real index is in the o_uid! */
+		ind = option_info[i].o_uid;
+
 		if (opt_ptr->o_page != 1) continue;
 
 		/* Next entry is what we expect */
 		if (value_exists(opt_ptr->o_text))
 		{
 			/* Read it */
-			u16b val = read_uint(opt_ptr->o_text);
-
-			/* Real index is in the o_uid! */
-			ind = option_info[i].o_uid;
+			u32b val = read_uint(opt_ptr->o_text);
 
 			/* Set it */
 			p_ptr->options[ind] = val ? TRUE : FALSE;

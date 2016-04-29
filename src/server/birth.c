@@ -547,6 +547,17 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
 	p_ptr->cbuf.buf = c_buf;
 
+	/* Set default options */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		/* Option is locked */
+		if (opt_ptr->o_bit)
+		{
+			p_ptr->options[opt_ptr->o_uid] = opt_ptr->o_norm;
+		}
+	}
+
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
 	{
