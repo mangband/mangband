@@ -920,21 +920,35 @@ int player_kill(int p_idx, cptr reason)
 bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 {
 	char *ptr;
-printf("%s - nick, %s - real, %s - host\n", nick_name, real_name, host_name);
+
+	/** Realname / Hostname **/
 	if (real_name[0] == 0 || host_name[0] == 0) return FALSE;
+
+	/* Replace weird characters with '?' */
+	for (ptr = &real_name[strlen(real_name)]; ptr-- > real_name; )
+	{
+		if (!isascii(*ptr) || !isprint(*ptr)) *ptr = '?';
+	}
+	for (ptr = &host_name[strlen(host_name)]; ptr-- > host_name; )
+	{
+		if (!isascii(*ptr) || !isprint(*ptr)) *ptr = '?';
+	}
+
+	/** Playername **/
 
 	/* Any wierd characters here, bail out.  We allow letters, numbers and space */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
-		if ( (*ptr == 32) || ((*ptr >= 97) && (*ptr <= 122)) || ((*ptr >= 65) && (*ptr <= 90))
-		|| ((*ptr >= 48) && (*ptr <= 57)) )
+		if (!isascii(*ptr)) return FALSE;
+		if (!(isalpha(*ptr) || isdigit(*ptr) || *ptr == ' '))
 		{
-			/* ok */
-		} else {
 			return FALSE;
 		}
 	}
-	
+
+	/* Can't start with space */
+	if (nick_name[0] == ' ') return FALSE;
+
 	/* Right-trim nick */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
@@ -942,6 +956,9 @@ printf("%s - nick, %s - real, %s - host\n", nick_name, real_name, host_name);
 			*ptr = '\0';
 		else break;
 	}
+
+	/* Hack -- Reserved name */
+	if (!my_stricmp(nick_name, "server")) return FALSE;
 
 	return TRUE;
 }
