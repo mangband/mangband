@@ -109,6 +109,9 @@ void do_cmd_options_birth_call()
 	/* Sync data */
 	while (sync_data() == FALSE)	network_loop();
 
+	/* Hack -- preload "options.prf" */
+	process_pref_file("options.prf");
+
 	/* Show */
 	do_cmd_options_birth();
 }
@@ -158,7 +161,7 @@ static void choose_sex(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -219,7 +222,7 @@ static void choose_race(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -283,7 +286,7 @@ static void choose_class(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -336,7 +339,7 @@ void choose_stat_order(void)
 		/* Get a stat */
 		while (1)
 		{
-			put_str("Choose your stat order (= for Options, Q to Quit): ", 20, 2);
+			put_str("Choose your stat order (= for Options, ? for Help, Q to Quit): ", 20, 2);
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
@@ -349,7 +352,7 @@ void choose_stat_order(void)
 			}
 			else if (c == '=')
 			{
-				do_cmd_options_birth();
+				do_cmd_options_birth_call();
 			}
 			else if (c == '?')
 			{
