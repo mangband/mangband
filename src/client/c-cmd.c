@@ -227,6 +227,7 @@ void cmd_custom(byte i)
 	{
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
+		if (!value) return;
 		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
