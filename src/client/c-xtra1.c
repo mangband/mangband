@@ -2877,7 +2877,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
-				n = MIN(n, sizeof(tmp));
+				n = MIN(n, sizeof(tmp) - 1);
 				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
@@ -2910,8 +2910,8 @@ void prt_indicator(int first_row, int first_col, int id)
 					}
 					else if (!(flag & IN_TEXT_LABEL))
 					{
-						sprintf(tmp2, tmp, val);
-						strcpy(tmp, tmp2);
+						strnfmt(tmp2, sizeof(tmp2), tmp, val);
+						my_strcpy(tmp, tmp2, sizeof(tmp2));
 						//n = strlen(tmp);
 					}
 					value = TRUE;

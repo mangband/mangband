@@ -1002,9 +1002,7 @@ int recv_indicator_info(connection_type *ct) {
 
 	i_ptr->mark = string_make(mark);
 
-	n = strlen(buf) + 1;
-	C_MAKE(i_ptr->prompt, n, char);
-	my_strcpy((char*)i_ptr->prompt, buf, n);
+	i_ptr->prompt = string_make(buf);
 
 	str_coffers[known_indicators] = NULL;
 
