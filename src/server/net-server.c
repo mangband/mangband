@@ -147,6 +147,19 @@ int player_enter(int ind)
 	prt_history(PInd);
 	show_socials(PInd);
 
+	/* Inform everyone */
+	if (p_ptr->new_game)
+	{
+		msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+	}
+	else
+	{
+		msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+	}
+
+	/* Discard "New game" marker */
+	p_ptr->new_game = FALSE;
+
 	return 0;
 }
 

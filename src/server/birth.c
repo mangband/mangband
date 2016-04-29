@@ -1259,6 +1259,9 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	if (pclass < 0 || pclass >= z_info->c_max) pclass = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
+	/* Mark new game */
+	p_ptr->new_game = TRUE;
+
 	/* Reprocess his name */
 	//if (!process_player_name(Ind, TRUE)) return FALSE;
 
