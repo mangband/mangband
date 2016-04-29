@@ -291,6 +291,12 @@ static void Setup_loop()
 		if (old_state != state)
 		{
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+			/* Handshake complete */
+			if (state == PLAYER_EMPTY)
+			{
+				/* Send login */
+				client_login();
+			}
 			/* No character is ready */
 			if (state == PLAYER_NAMED)
 			{

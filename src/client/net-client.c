@@ -654,9 +654,8 @@ int recv_play(connection_type *ct) {
 		return 0;
 	}
 
-	/* React */
-	if (mode == PLAYER_EMPTY) client_login();
-	else state = mode;
+	/* Save new state. Reaction will happen in "Setup_loop" */
+	state = mode;
 
 	/* Ok */
 	return 1;
