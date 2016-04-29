@@ -886,7 +886,7 @@ int recv_indicator(connection_type *ct) {
 	s32b large_c;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 	coff = coffer_refs[id];
@@ -937,7 +937,7 @@ int recv_indicator_str(connection_type *ct) {
 	int i;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 
