@@ -391,6 +391,8 @@ struct sdl_keymapt {
 /* XXX XXX XXX the following keymap sucks. More comments below. */
 sdl_keymapt sdl_keymap[] =
 {
+	/* Note: those are wrong, please see pref-x11.prf for
+	 * correct ones. Compare to SDLK_F1-F12 below. */
 	/*{SDLK_UP, "[A", "Oa", "Ox"}, 
 	{SDLK_DOWN, "[B", "Ob", "Or"},
 	{SDLK_RIGHT, "[C", "Oc", "Ot"},
@@ -400,18 +402,18 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_END, "[4~", "[4^", "Oq"},
 	{SDLK_PAGEUP, "[5~", "[5^", "Oy"},
 	{SDLK_PAGEDOWN, "[6~", "[6^", "Os"},*/
-	{SDLK_F1, "[[A", NULL, NULL},
-	{SDLK_F2, "[[B", NULL, NULL},
-	{SDLK_F3, "[[C", NULL, NULL},
-	{SDLK_F4, "[[D", NULL, NULL},
-	{SDLK_F5, "[[E", NULL, NULL},
-	{SDLK_F6, "[[17~", NULL, NULL},
-	{SDLK_F7, "[[18~", NULL, NULL},
-	{SDLK_F8, "[[19~", NULL, NULL},
-	{SDLK_F9, "[[20~", NULL, NULL},
-	{SDLK_F10, "[[21~", NULL, NULL},
-	{SDLK_F11, "[[23~", NULL, NULL},
-	{SDLK_F12, "[[24~", NULL, NULL},
+	{SDLK_F1, "_FFBE", NULL, NULL},
+	{SDLK_F2, "_FFBF", NULL, NULL},
+	{SDLK_F3, "_FFC0", NULL, NULL},
+	{SDLK_F4, "_FFC1", NULL, NULL},
+	{SDLK_F5, "_FFC2", NULL, NULL},
+	{SDLK_F6, "_FFC3", NULL, NULL},
+	{SDLK_F7, "_FFC4", NULL, NULL},
+	{SDLK_F8, "_FFC5", NULL, NULL},
+	{SDLK_F9, "_FFC6", NULL, NULL},
+	{SDLK_F10, "_FFC7", NULL, NULL},
+	{SDLK_F11, "_FFC8", NULL, NULL},
+	{SDLK_F12, "_FFC9", NULL, NULL},
 	/* I have no machines with F13, F14, F15. Is that a Sun thing? */
 	{SDLK_F13, "", NULL, NULL}, 
 	{SDLK_F14, "", NULL, NULL},
