@@ -788,7 +788,7 @@ extern byte object_tester_flag(int Ind, object_type *o_ptr);
 extern void object_known(object_type *o_ptr);
 extern void object_aware(player_type *p_ptr, object_type *o_ptr);
 extern void object_tried(int Ind, object_type *o_ptr);
-extern s32b object_value(int Ind, object_type *o_ptr);
+extern s32b object_value(player_type *p_ptr, object_type *o_ptr);
 extern bool object_similar_floor(object_type *o_ptr, object_type *j_ptr);
 extern bool object_similar(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr);
 extern void object_absorb(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr);

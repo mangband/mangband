@@ -399,7 +399,7 @@ void compact_objects(int size)
 			if (k_ptr->level > cur_lev) continue; 
 
 			/* Valuable objects start out "immune" */ 
-			if (object_value(0, o_ptr) > cur_val) continue; 
+			if (object_value(NULL, o_ptr) > cur_val) continue; 
 
 			/* Saving throw */ 
 			chance = 90; 
@@ -969,13 +969,12 @@ void object_tried(int Ind, object_type *o_ptr)
  * Return the "value" of an "unknown" item
  * Make a guess at the value of non-aware items
  */
-static s32b object_value_base(int Ind, object_type *o_ptr)
+static s32b object_value_base(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
 	/* Aware item -- use template cost */
-	if (Ind == 0 || object_aware_p(p_ptr, o_ptr)) return (k_ptr->cost);
+	if (p_ptr == NULL || object_aware_p(p_ptr, o_ptr)) return (k_ptr->cost);
 
 	/* Analyze the type */
 	switch (o_ptr->tval)
@@ -1272,13 +1271,13 @@ static s32b object_value_real(object_type *o_ptr)
  * Note that discounted items stay discounted forever, even if
  * the discount is "forgotten" by the player via memory loss.
  */
-s32b object_value(int Ind, object_type *o_ptr)
+s32b object_value(player_type *p_ptr, object_type *o_ptr)
 {
 	s32b value;
 
 
 	/* Unknown items -- acquire a base value */
-	if (Ind == 0 || object_known_p(Players[Ind], o_ptr))
+	if (p_ptr == NULL || object_known_p(p_ptr, o_ptr))
 	{
 		/* Broken items -- worthless */
 		if (broken_p(o_ptr)) return (0L);
@@ -1300,7 +1299,7 @@ s32b object_value(int Ind, object_type *o_ptr)
 		if ((o_ptr->ident & ID_SENSE) && cursed_p(o_ptr)) return (0L);
 
 		/* Base value (see above) */
-		value = object_value_base(Ind, o_ptr);
+		value = object_value_base(p_ptr, o_ptr);
 	}
 
 
@@ -4375,7 +4374,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 		s32b		o_value, j_value;
 
 		/* Get the "value" of the item */
-		o_value = object_value(Ind, o_ptr);
+		o_value = object_value(p_ptr, o_ptr);
 
 		/* Scan every occupied slot */
 		for (j = 0; j < INVEN_PACK; j++)
@@ -4408,7 +4407,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
-			j_value = object_value(Ind, j_ptr);
+			j_value = object_value(p_ptr, j_ptr);
 
 			/* Objects sort by decreasing value */
 			if (o_value > j_value) break;
@@ -4569,7 +4568,7 @@ void reorder_pack(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Get the "value" of the item */
-		o_value = object_value(Ind, o_ptr);
+		o_value = object_value(p_ptr, o_ptr);
 
 		/* Scan every occupied slot */
 		for (j = 0; j < INVEN_PACK; j++)
@@ -4603,7 +4602,7 @@ void reorder_pack(int Ind)
 			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
-			j_value = object_value(Ind, j_ptr);
+			j_value = object_value(p_ptr, j_ptr);
 
 			/* Objects sort by decreasing value */
 			if (o_value > j_value) break;
@@ -4885,8 +4884,6 @@ void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 
 void object_own(player_type *p_ptr, object_type *o_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-	if (Ind)
 	if (o_ptr->owner_id && o_ptr->owner_id != p_ptr->id)
 	{
 		char o_name[80];
@@ -4894,7 +4891,7 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 		/* Log transaction */
 		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld", 
 			quark_str(o_ptr->owner_name), (long)o_ptr->owner_id,
-			p_ptr->name, (long)p_ptr->id, (long)object_value(Ind, o_ptr));
+			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr));
 		audit(buf);
 		/* Object name */
 		object_desc(0, o_name, o_ptr, TRUE, 3);

@@ -3582,8 +3582,8 @@ bool ang_sort_comp_value(int Ind, vptr u, vptr v, int a, int b)
 
 	if (inven[a].tval && inven[b].tval)
 	{
-		va = object_value(Ind, &inven[a]);
-		vb = object_value(Ind, &inven[b]);
+		va = object_value(Players[Ind], &inven[a]);
+		vb = object_value(Players[Ind], &inven[b]);
 
 		return (va >= vb);
 	}
