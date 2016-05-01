@@ -394,12 +394,12 @@ void do_cmd_check_artifacts(int Ind, int line)
 	/* Check the inventories */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		player_type *p_ptr = Players[i];
+		player_type *q_ptr = Players[i];
 		
 		/* Check this guy's */
 		for (j = 0; j < INVEN_PACK; j++)
 		{
-			object_type *o_ptr = &p_ptr->inventory[j];
+			object_type *o_ptr = &q_ptr->inventory[j];
 
 			/* Ignore non-objects */
 			if (!o_ptr->k_idx) continue;
@@ -408,7 +408,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 			if (!artifact_p(o_ptr)) continue;
 
 			/* Ignore known items */
-			if (object_known_p(p_ptr, o_ptr)) continue;
+			if (object_known_p(q_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;
