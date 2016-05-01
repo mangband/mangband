@@ -2890,6 +2890,12 @@ bool ident_spell_aux(int Ind, int item)
 		sound(Ind, MSG_IDENT_EGO);
 	}
 
+	/* Notice artifacts */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
+
 	/* Describe */
 	if (item >= INVEN_WIELD)
 	{
@@ -2971,6 +2977,12 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+
+	/* Handle artifact knowledge */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
 
 	/* Handle stuff */
 	handle_stuff(Ind);

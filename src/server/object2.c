@@ -4865,6 +4865,24 @@ void reduce_charges(object_type *o_ptr, int amt)
 	}
 }
 
+void artifact_notify(player_type *p_ptr, object_type *o_ptr)
+{
+	int Ind = Get_Ind[p_ptr->conn];
+	if (Ind)
+	/* If this is the first time, log it */
+	if (p_ptr->a_info[o_ptr->name1] == ARTS_NOT_FOUND)
+	{
+		char o_name[80];
+		char buf[80];
+		object_desc(0, o_name, o_ptr, FALSE, 0);
+		sprintf(buf, "Found The %s", o_name);
+		log_history_event(Ind, buf, TRUE);
+
+		/* Mark artifact as found */
+		set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
+	}
+}
+
 void object_own(player_type *p_ptr, object_type *o_ptr)
 {
 	int Ind = Get_Ind[p_ptr->conn];
@@ -4882,6 +4900,12 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 		object_desc(0, o_name, o_ptr, TRUE, 3);
 		sprintf(buf,"TR+%s", o_name);
 		audit(buf); 
+	}
+
+	/* Handle artifacts */
+	if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
 	}
 
 	o_ptr->owner_id = p_ptr->id;
