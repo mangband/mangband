@@ -447,7 +447,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 		/* Determine if it's relevant to the player asking */
 		if (p_ptr->a_info[k]) highlite = 'w';
-		if (p_ptr->a_info[k] >= cfg_preserve_artifacts) highlite = 'W';
+		if (p_ptr->a_info[k] > cfg_preserve_artifacts) highlite = 'W';
 
 		/* Hack -- Build the artifact name */
 		fprintf(fff, "%c     The %s\n", highlite, base_name);

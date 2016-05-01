@@ -2045,21 +2045,21 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 		{
 			/* Acquire the "out-of-depth factor" */
 			int d = (a_ptr->level - Depth) * 2;
-
+printf("Out of depth?\n");
 			/* Roll for out-of-depth creation */
 			if (rand_int(d) != 0) continue;
 		}
-
+printf("Art rarity roll...\n");
 		/* We must make the "rarity roll" */
 		if (rand_int(a_ptr->rarity) != 0) continue;
-
+printf("Passed!\n");
 		/* MEGA-HACK! GAMEPLAY BREAKER! */
 		for (j = 1; j < NumPlayers + 1; j++)
 		{
 			player_type *p_ptr = Players[j];
 			/* There's a player on a level who already found this artifact once
 			 * -- this causes ALL other players on level to suffer */
-			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] >= cfg_preserve_artifacts))
+			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] > cfg_preserve_artifacts))
 			{
 				/* Artifact WON'T be generated! */
 				okay = FALSE;
