@@ -129,7 +129,7 @@ static void inven_drop(int Ind, int item, int amt)
 	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
-	if (!item_drop_okay(o_ptr))
+	if (!inven_drop_okay(p_ptr, o_ptr))
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
