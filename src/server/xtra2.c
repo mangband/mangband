@@ -2659,6 +2659,7 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 	}
 
 	/* He is carrying nothing */
+	p_ptr->equip_cnt = 0;
 	p_ptr->inven_cnt = 0;
 }
 
