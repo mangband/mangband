@@ -766,6 +766,7 @@ extern void floor_item_describe(int item);
 extern void floor_item_increase(int item, int num);
 extern void floor_item_optimize(int item);
 extern void floor_item_notify(int Ind, s16b o_idx, bool force);
+extern bool inven_drop_okay(player_type *p_ptr, object_type *o_ptr);
 extern bool inven_carry_okay(int Ind, object_type *o_ptr);
 extern s16b inven_carry(player_type *p_ptr, object_type *o_ptr);
 extern bool item_tester_okay(object_type *o_ptr);

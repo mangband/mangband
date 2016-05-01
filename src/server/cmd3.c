@@ -129,7 +129,7 @@ static void inven_drop(int Ind, int item, int amt)
 	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
+	if (!item_drop_okay(o_ptr))
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
@@ -398,7 +398,7 @@ void do_cmd_wield(int Ind, int item)
 	__trap(Ind, CGI(x_ptr,'t'));
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
-	if (item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
+	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
 	{
 		object_desc(Ind, o_name, x_ptr, FALSE, 0);
 		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);

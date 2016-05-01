@@ -4247,7 +4247,24 @@ void floor_item_optimize(int item)
 }
 
 
-
+/*
+ * Check if we're allowed to get rid of an item easily.
+ */
+bool inven_drop_okay(player_type *p_ptr, object_type *o_ptr)
+{
+	/* Never drop artifacts above their base depth */
+	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level))
+	{
+		/* Do not apply this rule to ironman and DMs */
+		if (!cfg_ironman && !dm_flag_p(p_ptr,ARTIFACT_CONTROL))
+		{
+			return (FALSE);
+		}
+	}
+	/* If you add more rules here, make sure dm_flag_p(p_ptr,OBJECT_CONTROL)
+	 * overrides them ... */
+	return (TRUE);
+}
 
 
 /*
