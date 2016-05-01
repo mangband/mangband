@@ -3337,11 +3337,10 @@ cptr attr_to_text(byte a)
 /* 
  * Record a message in the character history
  */
-extern void log_history_event(int Ind, char *msg, bool unique)
+void log_history_event(player_type *p_ptr, char *msg, bool unique)
 {
 	int  days, hours, mins, i;
 	huge seconds, turn;
-	player_type *p_ptr = Players[Ind];
 
 	history_event *evt;
 	history_event *last = NULL;

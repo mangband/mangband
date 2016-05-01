@@ -4866,8 +4866,6 @@ void reduce_charges(object_type *o_ptr, int amt)
 
 void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-	if (Ind)
 	/* If this is the first time, log it */
 	if (p_ptr->a_info[o_ptr->name1] == ARTS_NOT_FOUND)
 	{
@@ -4875,7 +4873,7 @@ void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 		char buf[80];
 		object_desc(0, o_name, o_ptr, FALSE, 0);
 		sprintf(buf, "Found The %s", o_name);
-		log_history_event(Ind, buf, TRUE);
+		log_history_event(p_ptr, buf, TRUE);
 
 		/* Mark artifact as found */
 		set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
