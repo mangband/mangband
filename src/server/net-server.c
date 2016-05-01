@@ -935,6 +935,7 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 	}
 
 	/** Playername **/
+	if (nick_name[0] == '\0') return FALSE;
 
 	/* Any wierd characters here, bail out.  We allow letters, numbers and space */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
