@@ -137,7 +137,7 @@ static void inven_drop(int Ind, int item, int amt)
 	};
 
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
+	if (!cfg_ironman && artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
@@ -398,7 +398,7 @@ void do_cmd_wield(int Ind, int item)
 	};
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
-	if (item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
+	if (!cfg_ironman && item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
 	{
 		object_desc(Ind, o_name, x_ptr, FALSE, 0);
 		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);
