@@ -322,7 +322,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	char base_name[80];
 
 	bool *okay;
-
+	bool *highlights;
+	char *owners;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -339,6 +340,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	
 	/* Init Array */
 	C_MAKE(okay, z_info->a_max, bool);
+	C_MAKE(highlights, z_info->a_max, bool);
+	C_MAKE(owners, z_info->a_max * 80, bool);
 
 	/* Scan the artifacts */
 	for (k = 0; k < z_info->a_max; k++)
@@ -347,6 +350,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 		/* Default */
 		okay[k] = FALSE;
+		highlights[k] = FALSE;
+		owners[k * 80] = '\0';
 
 		/* Skip "empty" artifacts */
 		if (!a_ptr->name) continue;
@@ -381,6 +386,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 					/* Ignore non-artifacts */
 					if (!artifact_p(o_ptr)) continue;
 
+					/* Note location */
+					my_strcpy(&owners[o_ptr->name1 * 80], format(" (%d ft)", Depth * 50), 80);
+
 					/* Ignore known items */
 					if (object_known_p(p_ptr, o_ptr)) continue;
 
@@ -395,9 +403,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *q_ptr = Players[i];
-		
+
 		/* Check this guy's */
-		for (j = 0; j < INVEN_PACK; j++)
+		for (j = 0; j < INVEN_TOTAL; j++)
 		{
 			object_type *o_ptr = &q_ptr->inventory[j];
 
@@ -407,11 +415,18 @@ void do_cmd_check_artifacts(int Ind, int line)
 			/* Ignore non-artifacts */
 			if (!artifact_p(o_ptr)) continue;
 
+			/* Note owner */
+			my_strcpy(&owners[o_ptr->name1 * 80], format(" (%s)", q_ptr->name), 80);
+
+			/* Belongs to the target player and is known */
+			if (q_ptr->id == p_ptr->id) highlights[o_ptr->name1] = TRUE;
+
 			/* Ignore known items */
 			if (object_known_p(q_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;
+			highlights[o_ptr->name1] = FALSE;
 		}
 	}
 
@@ -445,16 +460,25 @@ void do_cmd_check_artifacts(int Ind, int line)
 			object_desc_store(Ind, base_name, &forge, FALSE, 0);
 		}
 
+		/* Dungeon Masters see extra info */
+		if (!dm_flag_p(p_ptr, ARTIFACT_CONTROL))
+		{
+			owners[k * 80] = '\0';
+		}
+
 		/* Determine if it's relevant to the player asking */
-		if (p_ptr->a_info[k]) highlite = 'w';
+		if (p_ptr->a_info[k]) highlite = 's';
 		if (p_ptr->a_info[k] > cfg_preserve_artifacts) highlite = 'W';
+		if (highlights[k]) highlite = 'w';
 
 		/* Hack -- Build the artifact name */
-		fprintf(fff, "%c     The %s\n", highlite, base_name);
+		fprintf(fff, "%c     The %s%s\n", highlite, base_name, &owners[k * 80]);
 	}
-	
+
 	/* Free array */
 	FREE(okay);
+	FREE(highlights);
+	FREE(owners);
 
 	/* Close the file */
 	my_fclose(fff);
