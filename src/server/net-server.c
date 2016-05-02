@@ -337,6 +337,14 @@ void player_drop(int ind)
 		p_ptr->conn = ind;
 		c_ptr->user = ind;
 	}
+
+	/* If player was in town, hurry his disconnection up */
+	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
+	{
+		/* LARGE value to trigger timeout ASAP */
+		p_ptr->idle = 60;
+		/* Alternatively, call player_leave(Ind)... */
+	}
 }
 /* Fast termination of connection (used by shutdown routine) */
 
