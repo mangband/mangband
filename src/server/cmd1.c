@@ -1650,10 +1650,17 @@ void move_player(int Ind, int dir, int do_pickup)
 			/* check to make sure he hasnt hit the edge of the world */
 			if (world_index(p_ptr->world_x, p_ptr->world_y) <= -MAX_WILD) 
 			{
+				switch(randint(2))
+				{
+					case 0: msg_print(Ind, "You have reached the Walls of the World. You can not pass."); break;
+					case 1: msg_print(Ind, "You cannot go beyond the Walls of the World."); break;
+				}
+				/* TODO: if wearing Crown of Morgoth, suicide! */
 				p_ptr->world_x = old_world_x;
 				p_ptr->world_y = old_world_y;
 				p_ptr->px = oldx;
 				p_ptr->py = oldy;
+				disturb(Ind, 1, 0);
 				return;
 			}
 			
