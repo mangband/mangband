@@ -446,8 +446,11 @@ static void console_reload(connection_type* ct, char *mod)
 static void console_shutdown(connection_type* ct, char *when)
 {
 	int min = 0;
-	//if (!my_stricmp(when, "NOW")) min = 0;
-	//else if (IS_VALID_NUMBER(when)) min = when
+	if (when)
+	{
+		if (!my_stricmp(when, "NOW")) min = 0;
+		else if (isdigit(when[0])) min = atoi(when);
+	}
 
 	/* Now */
 	if (min == 0)
@@ -463,6 +466,15 @@ static void console_shutdown(connection_type* ct, char *when)
 	{
 		/* Set timer (in seconds) */
 		shutdown_timer= min * 60;
+
+		/* Tell */
+		cq_printf(&ct->wbuf, "%T", format("Server shutdown in %d\n", min));
+
+		/* Log */
+		plog_fmt("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s");
+
+		/* Send the message -- TODO: is this the right function ?*/
+		player_talk(0, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
 	}
 }
 
