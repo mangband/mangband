@@ -128,7 +128,7 @@ struct term_data
 	errr (*curs_hook)(int x, int y);
 	errr (*wipe_hook)(int x, int y, int n);
 	errr (*text_hook)(int x, int y, int n, byte a, cptr s);
-	errr (*pict_hook)(int x, int y, byte a, char c);
+	errr (*pict_hook)(int x, int y, int n, byte *ap, char *cp, byte *tap, char *tcp);
 };
 
 static term_data tdata[ANGBAND_TERM_MAX];
@@ -1878,7 +1878,7 @@ static void term_data_link(int i)
 	td->text_hook = t->text_hook = Term_text_sdl;
 	td->xtra_hook = t->xtra_hook = Term_xtra_sdl;
 
-	td->pict_hook = t->pict_hook = Term_pict_sdl_28x;
+	td->pict_hook = t->pict_hook = Term_pict_sdl;
 
 	/* Remember where we came from */
 	t->data = (vptr)(td);
