@@ -439,6 +439,7 @@ extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char m_private);
 extern void clear_from(int row);
+extern int cavedraw(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveclr(cave_view_type* dest, int len);

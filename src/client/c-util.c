@@ -2564,10 +2564,39 @@ int caveclr(cave_view_type* dest, int len)
 int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 {
 	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+	
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
-		Term_mem_ch(i + x, y, src[i].a, src[i].c);
+		byte ta = p_ptr->trn_info[y][x].a;
+		char tc = p_ptr->trn_info[y][x].c;
+		Term_mem_ch(i + dx, dy, src[i].a, src[i].c, ta, tc);
+	}
+	return 1;
+}
+
+int cavedraw(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+
+	/* Paranoia - bounds */
+	if (dx < 0 || dx >= Term->wid) return -1;
+	if (dy < 0 || dy >= Term->hgt) return -1;
+
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		/* Don't draw on screen if character is 0 */
+		if (src[i].c)
+		{
+			byte ta = p_ptr->trn_info[y][x + i].a;
+			char tc = p_ptr->trn_info[y][x + i].c;
+			Term_queue_char(Term, i + dx, dy, src[i].a, src[i].c, ta, tc);
+		}
 	}
 	return 1;
 }
@@ -2575,12 +2604,17 @@ int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 int caveprt(cave_view_type* src, int len, s16b x, s16b y)
 {
 	int i;
+
+	/* Paranoia - bounds */
+	if (x < 0 || x >= Term->wid) return -1;
+	if (y < 0 || y >= Term->hgt) return -1;
+
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
 		/* Don't draw on screen if character is 0 */
 		if (src[i].c)
-		{				
+		{
 			Term_draw(i + x, y, src[i].a, src[i].c);
 		}
 	}
@@ -2623,19 +2657,17 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	}
 
 	/* Test terminal size */
-	if (x > Term->wid || y > Term->hgt) mem = draw = FALSE;
+	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
 
 	/* TODO: also test for ->mem stack */
 	if (mem && Term->mem)
-		Term_mem_ch(x, y, a, c);
+		Term_mem_ch(x, y, a, c, ta, tc);
 
 	if (draw)
 	{
 		/* Update secondary layer */
 		if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
 		{
-			p_ptr->trn_info[y][x].a = ta;
-			p_ptr->trn_info[y][x].c = tc;
 			/* Hack -- force refresh of that grid no matter what */
 			Term->scr->a[y][x] = 0;
 			Term->scr->c[y][x] = 0;
@@ -2643,7 +2675,7 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 			Term->old->c[y][x] = 0;
 		}
 
-		Term_draw(x, y, a, c);
+		Term_queue_char(Term, x, y, a, c, ta, tc);
 	}
 }
 
@@ -2656,7 +2688,7 @@ void show_line(int sy, s16b cols, bool mem)
 
 	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
-	y = sy + DUNGEON_OFFSET_Y;
+	y = sy;
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -2670,8 +2702,8 @@ void show_line(int sy, s16b cols, bool mem)
 	}
 
 	/* Another possible issue - terminal is too small */
-	if (cols+coff > Term->wid) coff -= (Term->wid - (cols+coff));
-	if (y > Term->hgt || cols+coff <= 0) mem = draw = FALSE;
+	if (cols+coff >= Term->wid) coff -= (Term->wid - (cols+coff));
+	if (y >= Term->hgt || cols+coff <= 0) mem = draw = FALSE;
 
 	/* Check the max line count */
 	if (last_line_info < y)
@@ -2679,11 +2711,11 @@ void show_line(int sy, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(stream_cave(0, sy), cols, DUNGEON_OFFSET_X, y);
+		cavemem(stream_cave(0, sy), cols, 0, sy);
 
 	/* Put data to screen */
 	if (draw)
-		caveprt(stream_cave(0, sy)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
+		cavedraw(stream_cave(0, sy)+xoff, cols+coff, xoff, sy);
 }
 
 /*
