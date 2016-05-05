@@ -1648,7 +1648,7 @@ static errr Term_curs_sdl(int x, int y)
 	return (0);
 }
 /* This one draws a graphical tile. */
-inline static errr Term_tile_sdl (int x, int y, Uint8 a, Uint8 c){
+static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 	SDL_Rect sr, dr, nsr;
 	/*int n;*/
 	term_data *td = (term_data*)(Term->data);
