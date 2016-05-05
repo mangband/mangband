@@ -345,8 +345,21 @@ struct _term_data
 };
 
 #ifdef USE_GRAPHICS
-	DIBINIT infMask;
-	DIBINIT infGraph;
+/*
+* Flag set once "graphics" has been initialized
+*/
+static bool can_use_graphics = FALSE;
+
+/*
+* The global bitmap
+*/
+static DIBINIT infGraph;
+
+/*
+* The global bitmap mask
+*/
+static DIBINIT infMask;
+
 #endif 
 /*
  * Maximum number of windows XXX XXX XXX XXX
@@ -558,22 +571,113 @@ void unset_chat_focus( void )
 	if(old_focus) SetFocus(old_focus);
 }
 
+
+/*
+* Write the "preference" data for single term
+*/
+static void save_prefs_aux(term_data *td, cptr sec_name)
+{
+	char buf[32];
+
+	RECT rc;
+
+	if (!td->w) return;
+
+	/* Visible (Sub-windows) */
+	if (td != &win_data[0])
+	{
+		//strcpy(buf, td->visible ? "1" : "0");
+		conf_set_int(sec_name, "Visible", td->visible);
+	}
+
+	/* Desired font */
+	if (td->font_file)
+	{
+		/* Short-hand */
+		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
+		{
+			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
+			conf_set_string(sec_name, "Font", buf);
+		}
+		else
+			/* Full path */
+			conf_set_string(sec_name, "Font", td->font_file);
+	}
+
+	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
+	/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
+
+	/* Current size (x) */
+	//wsprintf(buf, "%d", td->cols);
+	conf_set_int(sec_name, "Columns", td->cols);
+
+	/* Current size (y) */
+	//wsprintf(buf, "%d", td->rows);
+	conf_set_int(sec_name, "Rows", td->rows);
+
+	/* Acquire position */
+	if (GetWindowRect(td->w, &rc))
+	{
+		/* Current position (x) */
+		//wsprintf(buf, "%d", rc.left);
+		conf_set_int(sec_name, "PositionX", rc.left);
+
+		/* Current position (y) */
+		//wsprintf(buf, "%d", rc.top);
+		conf_set_int(sec_name, "PositionY", rc.top);
+	}
+}
+
+
+/*
+* Write the "preference" data to the .INI file
+*
+* We assume that the windows have all been initialized
+*/
+static void save_prefs(void)
+{
+#ifdef USE_GRAPHICS
+	conf_set_int("Windows32", "Graphics", next_graphics);
+#endif
+#ifdef USE_SOUND
+	conf_set_int("Windows32", "Sound", use_sound);
+#endif
+	save_prefs_aux(&win_data[0], "Main window");
+
+	/* XXX XXX XXX XXX */
+
+	save_prefs_aux(&win_data[1], "Mirror window");
+
+	save_prefs_aux(&win_data[2], "Recall window");
+
+	save_prefs_aux(&win_data[3], "Choice window");
+
+	save_prefs_aux(&win_data[4], "Term-4 window");
+
+	save_prefs_aux(&win_data[5], "Term-5 window");
+
+	save_prefs_aux(&win_data[6], "Term-6 window");
+
+	save_prefs_aux(&win_data[7], "Term-7 window");
+}
+
 void set_graphics_next(int mode)
 {
+	char buf[1024];
+
 	next_graphics = mode;
 	if (next_graphics != use_graphics)
 	{
 		MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);	
 		
-		/*
 		save_prefs();
-		*/
 
 		/* Access the "graphic" mappings */
-		//sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
+		sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
 
 		/* Load the file */
-		//process_pref_file(buf);
+		process_pref_file(buf);
 	}
 }
 
@@ -785,97 +889,6 @@ static void term_getsize(term_data *td)
 
 
 /*
- * Write the "preference" data for single term
- */
-static void save_prefs_aux(term_data *td, cptr sec_name)
-{
-	char buf[32];
-
-	RECT rc;
-
-	if (!td->w) return;
-
-	/* Visible (Sub-windows) */
-	if (td != &win_data[0])
-	{
-		//strcpy(buf, td->visible ? "1" : "0");
-		conf_set_int(sec_name, "Visible", td->visible);
-	}
-
-	/* Desired font */
-	if (td->font_file)
-	{
-		/* Short-hand */
-		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
-		{
-			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
-			conf_set_string(sec_name, "Font", buf);
-		}
-		else
-		/* Full path */
-		conf_set_string(sec_name, "Font", td->font_file);
-	}
-
-	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
-	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
-
-	/* Current size (x) */
-	//wsprintf(buf, "%d", td->cols);
-	conf_set_int(sec_name, "Columns", td->cols);
-
-	/* Current size (y) */
-	//wsprintf(buf, "%d", td->rows);
-	conf_set_int(sec_name, "Rows", td->rows);
-
-	/* Acquire position */
-	if (GetWindowRect(td->w, &rc))
-	{
-		/* Current position (x) */
-		//wsprintf(buf, "%d", rc.left);
-		conf_set_int(sec_name, "PositionX", rc.left);
-
-		/* Current position (y) */
-		//wsprintf(buf, "%d", rc.top);
-		conf_set_int(sec_name, "PositionY", rc.top);
-	}
-}
-
-
-/*
- * Write the "preference" data to the .INI file
- *
- * We assume that the windows have all been initialized
- */
-static void save_prefs(void)
-{
-#ifdef USE_GRAPHICS
-	conf_set_int("Windows32", "Graphics", next_graphics);
-#endif
-#ifdef USE_SOUND
-	conf_set_int("Windows32", "Sound", use_sound);
-#endif
-	save_prefs_aux(&win_data[0], "Main window");
-
-	/* XXX XXX XXX XXX */
-
-	save_prefs_aux(&win_data[1], "Mirror window");
-
-	save_prefs_aux(&win_data[2], "Recall window");
-
-	save_prefs_aux(&win_data[3], "Choice window");
-
-	save_prefs_aux(&win_data[4], "Term-4 window");
-
-	save_prefs_aux(&win_data[5], "Term-5 window");
-
-	save_prefs_aux(&win_data[6], "Term-6 window");
-
-	save_prefs_aux(&win_data[7], "Term-7 window");
-}
-
-
-/*
  * Load preference for a single term
  */
 static void load_prefs_aux(term_data *td, cptr sec_name)
@@ -894,8 +907,8 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->font_want = string_make(extract_file_name(tmp));
 
 	/* Desired graf, with default */
-	//strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
-	//td->graf_want = string_make(extract_file_name(tmp));
+	strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
+	td->graf_want = string_make(extract_file_name(tmp));
 
 	/* Window size */
 	td->cols = conf_get_int(sec_name, "Columns", td->cols);
@@ -971,7 +984,7 @@ static void load_prefs(void)
  *
  * This function is never called before all windows are ready.
  */
-static void new_palette(void)
+static int new_palette(void)
 {
 	HPALETTE       hBmPal;
 	HPALETTE       hNewPal;
@@ -984,8 +997,7 @@ static void new_palette(void)
 
 
 	/* Cannot handle palettes */
-	if (!paletted) return;
-
+	if (!paletted) return (TRUE);
 
 	/* No palette */
 	hBmPal = NULL;
@@ -1006,8 +1018,16 @@ static void new_palette(void)
 		lppeSize = 256*sizeof(PALETTEENTRY);
 		lppe = (LPPALETTEENTRY)ralloc(lppeSize);
 		nEntries = GetPaletteEntries(hBmPal, 0, 255, lppe);
-		if (nEntries == 0) quit("Corrupted bitmap palette");
-		if (nEntries > 220) quit("Bitmap must have no more than 220 colors");
+		if (nEntries == 0) {
+			plog("Corrupted bitmap palette");
+			FREE(lppe);
+			return (FALSE);
+		}
+		else if (nEntries > 220) {
+			plog("Bitmap must have no more than 220 colors");
+			FREE(lppe);
+			return (FALSE);
+		}
 	}
 
 #endif
@@ -1077,6 +1097,9 @@ static void new_palette(void)
 
 	/* Save new palette */
 	hPal = hNewPal;
+
+	/* Success */
+	return (TRUE);
 }
 
 
@@ -1288,6 +1311,12 @@ static errr term_force_graf(term_data *td, cptr name)
 
 	char buf[1024];
 
+	HBITMAP scaled_gfx;
+	HDC  hdc;
+	HDC hdcSrc;
+	HDC hdcDest;
+	HBITMAP hbmSrcOld;
+
 	/* No name */
 	if (!name) return (1);
 
@@ -1350,46 +1379,23 @@ static errr term_force_graf(term_data *td, cptr name)
 		}
 	}
 
-	/* More info */
-////	hdcSrc = CreateCompatibleDC(hdc);
-////	hbmSrcOld = SelectObject(hdcSrc, td->infGraph.hBitmap);
-
 	/* Copy the picture from the bitmap to the window */
 //	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
 
-
-	/* Pre-scale the gfx, so we don't need to scale each time a tile */
-	/* is plotted. [grk] */
-/*	hdc = GetDC(td->w);
-	hdcSrc = CreateCompatibleDC(hdc);
-	scaled_gfx = CreateCompatibleBitmap( hdcSrc, 8*32, 13*60);
-
-	hdcDest = CreateCompatibleDC(hdc);
-	hbmSrcOld = SelectObject(hdcDest, td->infGraph.hBitmap);
-	SelectObject(hdcSrc, scaled_gfx);
-
-	SetStretchBltMode(hdcSrc, COLORONCOLOR);
-	StretchBlt(hdcSrc, 0, 0, 8*32, 13*60, hdcDest, 0, 0, 16*32, 16*60, SRCCOPY);
-	td->infGraph.hBitmap = scaled_gfx;
-*/	
-	
-	/* Release */
-/*	SelectObject(hdcSrc, scaled_gfx);
-	DeleteDC(hdcSrc);
-	SelectObject(hdcDest, hbmSrcOld);
-	DeleteDC(hdcDest);
-*/
-	/* Release */
-/*	ReleaseDC(td->w, hdc);
-*/
-	// FIXME
-
-
 	/* Activate a palette */
-	new_palette();
+	if (!new_palette())
+	{
+		/* Free bitmap XXX XXX XXX */
+
+		/* Oops */
+		plog("Cannot activate palette!");
+		return (FALSE);
+	}
+	/* Graphics available */
+	can_use_graphics = use_graphics;
 
 	/* Success */
-	return (0);
+	return (can_use_graphics);
 }
 
 #endif
@@ -1588,7 +1594,7 @@ static errr Term_xtra_win_react(void)
 		}
 
 		/* Activate the palette if needed */
-		if (change) new_palette();
+		if (change) (void)new_palette();
 	}
 #endif	/* no color support -gp */
 
@@ -1936,7 +1942,8 @@ static errr Term_curs_win(int x, int y)
  * If we are called for anything but the "screen" window, or if the global
  * "use_graphics" flag is off, we simply "wipe" the given grid.
  */
-static errr Term_pict_win(int x, int y, byte a, char c)
+// static errr Term_pict_win(int x, int y, byte a, char c)
+static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp) 
 {
 	term_data *td = (term_data*)(Term->data);
 
@@ -1947,8 +1954,9 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	HDC hdcMask;
 	HBITMAP hbmSrcOld;
 	int row, col;
+	int i;
 	int x1, y1, w1, h1;
-	int x2, y2, w2, h2;
+	int x2, y2, w2, h2, tw2;
 	int x3, y3;
 
 	/* Paranoia -- handle weird requests */
@@ -1967,6 +1975,8 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	}
 #endif
 
+	Term_wipe_win(x, y, n);
+
 #ifdef USE_GRAPHICS
 	/* [grk] Client-side scrolling support 
 	 * This is a kludge see declaration of x_offset */
@@ -1977,20 +1987,21 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 #endif
 
 	/* Extract picture info */
-	row = (a & 0x7F);
-	col = (c & 0x7F);
+//	row = ((int)ap & 0x7F);
+//	col = ((int)cp & 0x7F);
 	
 	/* Size of bitmap cell */
 	w1 = infGraph.CellWidth;
 	h1 = infGraph.CellHeight;
 
 	/* Location of bitmap cell */
-	x1 = col * w1;
-	y1 = row * h1;
+//	x1 = col * w1;
+//	y1 = row * h1;
 
 	/* Size of window cell */
 	w2 = td->font_wid;
 	h2 = td->font_hgt;
+	tw2 = h2;
 
 	/* Location of window cell */
 	x2 = x * w2 + td->size_ow1;
@@ -2014,35 +2025,82 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 		hdcMask = NULL;
 	}
 	
-	//---new tiling---
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	/* Draw attr/char pairs */
+	for (i = 0; i < n; i++, x2 += w2)
+	{
+		byte a = ap[i];
+		char c = cp[i];
+
+		/* Extract picture */
+		int row = (a & 0x7F);
+		int col = (c & 0x7F);
+
+		/* Location of bitmap cell */
+		x1 = col * w1;
+		y1 = row * h1;
+
+		if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
+			(use_graphics == GRAPHICS_DAVID_GERVAIS))
 		{
+//			x3 = (tcp[i] & 0x7F) * w1;
+//			y3 = (tap[i] & 0x7F) * h1;
 			x3 = (p_ptr->trn_info[y][x].c & 0x7F) * w1;
 			y3 = (p_ptr->trn_info[y][x].a & 0x7F) * h1;
-			
-			SetStretchBltMode(hdc, COLORONCOLOR);
 
-			/* Copy the terrain picture from the bitmap to the window */
-			StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
-
-			/* Only draw if terrain and overlay are different */
-			if ((x1 != x3) || (y1 != y3))
+			/* Perfect size */
+			if ((w1 == tw2) && (h1 == h2))
 			{
+				/* Copy the terrain picture from the bitmap to the window */
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, SRCCOPY);
+
 				/* Mask out the tile */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+				BitBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, SRCAND);
 
 				/* Draw the tile */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCPAINT);
 			}
+
+			/* Need to stretch */
+			else
+			{
+				/* Set the correct mode for stretching the tiles */
+				SetStretchBltMode(hdc, COLORONCOLOR);
+
+				/* Copy the terrain picture from the bitmap to the window */
+				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
+
+				/* Only draw if terrain and overlay are different */
+				if ((x1 != x3) || (y1 != y3))
+				{
+					/* Mask out the tile */
+					StretchBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+
+					/* Draw the tile */
+					StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+				}
+			}
+		}
+		else
+		{
+			/* Perfect size */
+			if ((w1 == tw2) && (h1 == h2))
+			{
+				/* Copy the picture from the bitmap to the window */
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCCOPY);
+			}
+
+			/* Need to stretch */
+			else
+			{
+				/* Set the correct mode for stretching the tiles */
+				SetStretchBltMode(hdc, COLORONCOLOR);
+
+				/* Copy the picture from the bitmap to the window */
+				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+			}
+		}
 	}
-	else
-	{
-		/* Set the correct mode for stretching the tiles */
-		SetStretchBltMode(hdc, COLORONCOLOR);
-		/* Copy the terrain picture from the bitmap to the window */
-		StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
-	}
+
 	/* Release */
 	SelectObject(hdcSrc, hbmSrcOld);
 	DeleteDC(hdcSrc);
@@ -2264,7 +2322,7 @@ static void init_windows(void)
 	                           td_ptr->pos_x, td_ptr->pos_y,
 	                           td_ptr->size_wid, td_ptr->size_hgt,
 	                           HWND_DESKTOP, NULL, hInstance, NULL);
-	if (!td_ptr->w) quit("Failed to create Angband window");
+	if (!td_ptr->w) quit("Failed to create MAngband window");
 	td_ptr = NULL;
 	term_data_link(&win_data[0]);
 	ang_term[0] = &win_data[0].t;
@@ -2324,7 +2382,7 @@ static void init_windows(void)
 #endif
 
 	/* New palette XXX XXX XXX */
-	new_palette();
+	(void)new_palette();
 
 
 	/* Create a "brush" for drawing the "cursor" */
@@ -2587,8 +2645,6 @@ static void process_menus(WORD wCmd)
 #ifdef	MNU_SUPPORT
 	int i;
 
-	OPENFILENAME ofn;
-
 	/* Analyze */
 	switch (wCmd)
 	{
@@ -2605,11 +2661,11 @@ static void process_menus(WORD wCmd)
 
 #ifdef USE_GRAPHICS
 			/* XXX XXX XXX */
-			//if (use_graphics)
-			//{
-			//	term_change_bitmap(&win_data[0]);
-			//	break;
-			//}
+			if (use_graphics)
+			{
+				term_change_bitmap(&win_data[0]);
+				break;
+			}
 #endif
 
 			term_change_font(&win_data[0]);
