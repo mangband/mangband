@@ -720,7 +720,7 @@ int cv_decode_rle2(cave_view_type* dst, cq* src, int len) {
 			}
 
 			/* Read the attr/char pair */
-			PR_ERROR_SIZE(1)
+			PR_ERROR_SIZE(2)
 			UNPACK_PTR_8(&c, rptr);
 			UNPACK_PTR_8(&a, rptr);
 		}
