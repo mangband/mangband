@@ -128,7 +128,7 @@ struct term_data
 	errr (*curs_hook)(int x, int y);
 	errr (*wipe_hook)(int x, int y, int n);
 	errr (*text_hook)(int x, int y, int n, byte a, cptr s);
-	errr (*pict_hook)(int x, int y, int n, byte *ap, char *cp, byte *tap, char *tcp);
+	errr (*pict_hook)(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp);
 };
 
 static term_data tdata[ANGBAND_TERM_MAX];
@@ -1691,8 +1691,8 @@ inline static errr Term_tile_sdl (int x, int y, Uint8 a, Uint8 c){
 	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
 		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
 		{
-			nsr.x = (p_ptr->trn_info[y][x].c & 0x7F) * gt_ptr->w;
-			nsr.y = (p_ptr->trn_info[y][x].a & 0x7F) * gt_ptr->h;
+			nsr.x = (tc & 0x7F) * gt_ptr->w;
+			nsr.y = (ta & 0x7F) * gt_ptr->h;
 			SDL_BlitSurface(gt_ptr->face, &nsr, dst, &dr);
 
 			/* Only draw if terrain and overlay are different */
@@ -1747,7 +1747,7 @@ inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
  *
  */
 
-static errr Term_pict_sdl(int x, int y, int n, const byte *ap, const char *cp)
+static errr Term_pict_sdl(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp)
 {
 	term_data *td = (term_data*)(Term->data);
 
@@ -1759,8 +1759,11 @@ static errr Term_pict_sdl(int x, int y, int n, const byte *ap, const char *cp)
 	{
 		if (td->gt && td->gt->face) /* it never hurts (much) to check */
 		{
-			Term_tile_sdl(x, y, *ap, *cp); /* draw a graphical tile */
+			Term_tile_sdl(x, y, *ap, *cp, *tap, *tcp); /* draw a graphical tile */
 		}
+		/* Ugh... */
+		ap--; cp--; tap--; tcp--;
+		x++;
 	}
 
 	/* Success */
@@ -1772,7 +1775,7 @@ static errr Term_pict_sdl(int x, int y, int n, const byte *ap, const char *cp)
  */
 static errr Term_pict_sdl_28x(int x, int y, byte a, char c)
 {
-	return Term_pict_sdl(x, y, 1, &a, &c);
+	return Term_pict_sdl(x, y, 1, &a, &c, &a, &c);
 }
 
 /*
