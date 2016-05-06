@@ -2001,7 +2001,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	/* Size of window cell */
 	w2 = td->font_wid;
 	h2 = td->font_hgt;
-	tw2 = w2;
+	tw2 = h2;
 
 	/* Location of window cell */
 	x2 = x * w2 + td->size_ow1;
