@@ -21,6 +21,7 @@ typedef void (*console_cb) (connection_type *ct, char *params);
 typedef struct console_command_ops {
 	char*   	name;
 	console_cb	call_back;
+	int     	min_arguments;
 	char*   	comment;
 } console_command_ops;
 console_command_ops console_commands[];
@@ -82,6 +83,7 @@ int console_read(int data1, data data2) { /* return -1 on error */
 	int start_pos;
 	int buflen;
 	int i, j;
+	bool found;
 
 	char buf[1024];
 	char *params;	
@@ -118,6 +120,8 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		/* Paranoia to ease ops-coder's life later */
 		if (STRZERO(buf)) break;
 
+		found = FALSE;
+
 		/* Split up command and params */
 		if( (params = strstr(buf," ")) )
 		{
@@ -134,9 +138,20 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		{
 			if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
 			{
+				found = TRUE;
+				if (params == NULL && console_commands[i].min_arguments > 0)
+				{
+					cq_printf(&ct->wbuf, "%T", "Missing argument\n");
+					break;
+				}
+				/* Do it! */
 				(console_commands[i].call_back)(ct, params);				
 				break;
 			}
+		}
+		if (!found)
+		{
+			cq_printf(&ct->wbuf, "%T", "Unrecognized command\n");
 		}
 	}
 
@@ -414,14 +429,14 @@ static void console_reload(connection_type* ct, char *mod)
 {
 	bool done = FALSE;
 
-	if (mod && !strcmp(mod, "config"))
+	if (streq(mod, "config"))
 	{
 		/* Reload the server preferences */
 		load_server_cfg();
 
 		done = TRUE;
 	}
-	else if (mod && !strcmp(mod, "news"))
+	else if (streq(mod, "news"))
 	{
 		/* Reload the news file */
 		//Init_setup();
@@ -518,16 +533,16 @@ static void console_help(connection_type* ct, char *name)
 }
 
 console_command_ops console_commands[] = {
-	{ "help",      console_help,        "[TOPIC]\nExplain a command or list all avaliable"	},
-	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
-	{ "who",       console_who,         "\nList players"                                	},
-	{ "conn",      console_conn,         "\nList connections"                           	},
-	{ "shutdown",  console_shutdown,    "[TIME|NOW]\nKill server in TIME minutes or 'NOW'"	},
-	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"                  	},
-	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"         	},
-	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"  	},
-	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"       	},
-	{ "rngtest",   console_rng_test,    "\nPerform RNG test"                            	},
-	{ "debug",     console_debug,       "\nUnused"                                      	},
+	{ "help",      console_help,        0, "[TOPIC]\nExplain a command or list all avaliable"	},
+	{ "listen",    console_listen,      0, "[CHANNEL]\nAttach self to #public or specified"	},
+	{ "who",       console_who,         0, "\nList players"                                	},
+	{ "conn",      console_conn,        0, "\nList connections"                           	},
+	{ "shutdown",  console_shutdown,    0, "[TIME|NOW]\nKill server in TIME minutes or 'NOW'"	},
+	{ "msg",       console_message,     1, "MESSAGE\nBroadcast a message"                  	},
+	{ "kick",      console_kick_player, 1, "PLAYERNAME\nKick player from the game"         	},
+	{ "reload",    console_reload,      1, "config|news\nReload mangband.cfg or news.txt"  	},
+	{ "whois",     console_whois,       1, "PLAYERNAME\nDetailed player information"       	},
+	{ "rngtest",   console_rng_test,    0, "\nPerform RNG test"                            	},
+	{ "debug",     console_debug,       0, "\nUnused"                                      	},
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);
