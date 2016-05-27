@@ -2327,7 +2327,7 @@ static void init_windows(void)
 	                           td_ptr->pos_x, td_ptr->pos_y,
 	                           td_ptr->size_wid, td_ptr->size_hgt,
 	                           HWND_DESKTOP, NULL, hInstance, NULL);
-	if (!td_ptr->w) quit("Failed to create MAngband window");
+	if (!td_ptr->w) quit("Failed to create Angband window");
 	td_ptr = NULL;
 	term_data_link(&win_data[0]);
 	ang_term[0] = &win_data[0].t;
