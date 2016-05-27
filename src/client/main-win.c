@@ -2047,10 +2047,8 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
 			(use_graphics == GRAPHICS_DAVID_GERVAIS))
 		{
-//			x3 = (tcp[i] & 0x7F) * w1;
-//			y3 = (tap[i] & 0x7F) * h1;
-			x3 = (p_ptr->trn_info[y][x].c & 0x7F) * w1;
-			y3 = (p_ptr->trn_info[y][x].a & 0x7F) * h1;
+			x3 = (tcp[i] & 0x7F) * w1;
+			y3 = (tap[i] & 0x7F) * h1;
 
 			/* Perfect size */
 			if ((w1 == tw2) && (h1 == h2))
