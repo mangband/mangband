@@ -571,9 +571,6 @@ void unset_chat_focus( void )
 	if(old_focus) SetFocus(old_focus);
 }
 
-
-
-
 void set_graphics_next(int mode)
 {
 	// char buf[1024];
