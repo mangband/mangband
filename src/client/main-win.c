@@ -2058,11 +2058,15 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 				/* Copy the terrain picture from the bitmap to the window */
 				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, SRCCOPY);
 
-				/* Mask out the tile */
-				BitBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, SRCAND);
+				/* Only draw if terrain and overlay are different */
+				if ((x1 != x3) || (y1 != y3))
+				{
+					/* Mask out the tile */
+					BitBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, SRCAND);
 
-				/* Draw the tile */
-				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCPAINT);
+					/* Draw the tile */
+					BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCPAINT);
+				}
 			}
 
 			/* Need to stretch */
