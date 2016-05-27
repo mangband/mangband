@@ -664,20 +664,22 @@ static void save_prefs(void)
 
 void set_graphics_next(int mode)
 {
-	char buf[1024];
+	// char buf[1024];
 
 	next_graphics = mode;
 	if (next_graphics != use_graphics)
 	{
 		MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);	
 		
+		/*
 		save_prefs();
+		*/
 
 		/* Access the "graphic" mappings */
-		sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
+		//sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
 
 		/* Load the file */
-		process_pref_file(buf);
+		//process_pref_file(buf);
 	}
 }
 
