@@ -912,8 +912,8 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->font_want = string_make(extract_file_name(tmp));
 
 	/* Desired graf, with default */
-	strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
-	td->graf_want = string_make(extract_file_name(tmp));
+	//strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
+	//td->graf_want = string_make(extract_file_name(tmp));
 
 	/* Window size */
 	td->cols = conf_get_int(sec_name, "Columns", td->cols);
@@ -2666,11 +2666,11 @@ static void process_menus(WORD wCmd)
 
 #ifdef USE_GRAPHICS
 			/* XXX XXX XXX */
-			if (use_graphics)
-			{
-				term_change_bitmap(&win_data[0]);
-				break;
-			}
+			//if (use_graphics)
+			//{
+			//	term_change_bitmap(&win_data[0]);
+			//	break;
+			//}
 #endif
 
 			term_change_font(&win_data[0]);
