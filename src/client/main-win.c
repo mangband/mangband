@@ -830,12 +830,12 @@ static void save_prefs_aux(term_data *td, cptr sec_name)
 			conf_set_string(sec_name, "Font", buf);
 		}
 		else
-			/* Full path */
-			conf_set_string(sec_name, "Font", td->font_file);
+		/* Full path */
+		conf_set_string(sec_name, "Font", td->font_file);
 	}
 
 	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-	/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
 	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
 
 	/* Current size (x) */
