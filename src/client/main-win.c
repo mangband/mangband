@@ -572,95 +572,7 @@ void unset_chat_focus( void )
 }
 
 
-/*
-* Write the "preference" data for single term
-*/
-static void save_prefs_aux(term_data *td, cptr sec_name)
-{
-	char buf[32];
 
-	RECT rc;
-
-	if (!td->w) return;
-
-	/* Visible (Sub-windows) */
-	if (td != &win_data[0])
-	{
-		//strcpy(buf, td->visible ? "1" : "0");
-		conf_set_int(sec_name, "Visible", td->visible);
-	}
-
-	/* Desired font */
-	if (td->font_file)
-	{
-		/* Short-hand */
-		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
-		{
-			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
-			conf_set_string(sec_name, "Font", buf);
-		}
-		else
-			/* Full path */
-			conf_set_string(sec_name, "Font", td->font_file);
-	}
-
-	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-	/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
-	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
-
-	/* Current size (x) */
-	//wsprintf(buf, "%d", td->cols);
-	conf_set_int(sec_name, "Columns", td->cols);
-
-	/* Current size (y) */
-	//wsprintf(buf, "%d", td->rows);
-	conf_set_int(sec_name, "Rows", td->rows);
-
-	/* Acquire position */
-	if (GetWindowRect(td->w, &rc))
-	{
-		/* Current position (x) */
-		//wsprintf(buf, "%d", rc.left);
-		conf_set_int(sec_name, "PositionX", rc.left);
-
-		/* Current position (y) */
-		//wsprintf(buf, "%d", rc.top);
-		conf_set_int(sec_name, "PositionY", rc.top);
-	}
-}
-
-
-/*
-* Write the "preference" data to the .INI file
-*
-* We assume that the windows have all been initialized
-*/
-static void save_prefs(void)
-{
-#ifdef USE_GRAPHICS
-	conf_set_int("Windows32", "Graphics", next_graphics);
-#endif
-#ifdef USE_SOUND
-	conf_set_int("Windows32", "Sound", use_sound);
-#endif
-	save_prefs_aux(&win_data[0], "Main window");
-
-	/* XXX XXX XXX XXX */
-
-	save_prefs_aux(&win_data[1], "Mirror window");
-
-	save_prefs_aux(&win_data[2], "Recall window");
-
-	save_prefs_aux(&win_data[3], "Choice window");
-
-	save_prefs_aux(&win_data[4], "Term-4 window");
-
-	save_prefs_aux(&win_data[5], "Term-5 window");
-
-	save_prefs_aux(&win_data[6], "Term-6 window");
-
-	save_prefs_aux(&win_data[7], "Term-7 window");
-}
 
 void set_graphics_next(int mode)
 {
@@ -887,6 +799,97 @@ static void term_getsize(term_data *td)
 	/* Save the location */
 	td->pos_x = rc.left;
 	td->pos_y = rc.top;
+}
+
+
+/*
+ * Write the "preference" data for single term
+ */
+static void save_prefs_aux(term_data *td, cptr sec_name)
+{
+	char buf[32];
+
+	RECT rc;
+
+	if (!td->w) return;
+
+	/* Visible (Sub-windows) */
+	if (td != &win_data[0])
+	{
+		//strcpy(buf, td->visible ? "1" : "0");
+		conf_set_int(sec_name, "Visible", td->visible);
+	}
+
+	/* Desired font */
+	if (td->font_file)
+	{
+		/* Short-hand */
+		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
+		{
+			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
+			conf_set_string(sec_name, "Font", buf);
+		}
+		else
+			/* Full path */
+			conf_set_string(sec_name, "Font", td->font_file);
+	}
+
+	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
+	/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
+
+	/* Current size (x) */
+	//wsprintf(buf, "%d", td->cols);
+	conf_set_int(sec_name, "Columns", td->cols);
+
+	/* Current size (y) */
+	//wsprintf(buf, "%d", td->rows);
+	conf_set_int(sec_name, "Rows", td->rows);
+
+	/* Acquire position */
+	if (GetWindowRect(td->w, &rc))
+	{
+		/* Current position (x) */
+		//wsprintf(buf, "%d", rc.left);
+		conf_set_int(sec_name, "PositionX", rc.left);
+
+		/* Current position (y) */
+		//wsprintf(buf, "%d", rc.top);
+		conf_set_int(sec_name, "PositionY", rc.top);
+	}
+}
+
+
+/*
+ * Write the "preference" data to the .INI file
+ *
+ * We assume that the windows have all been initialized
+ */
+static void save_prefs(void)
+{
+#ifdef USE_GRAPHICS
+	conf_set_int("Windows32", "Graphics", next_graphics);
+#endif
+#ifdef USE_SOUND
+	conf_set_int("Windows32", "Sound", use_sound);
+#endif
+	save_prefs_aux(&win_data[0], "Main window");
+
+	/* XXX XXX XXX XXX */
+
+	save_prefs_aux(&win_data[1], "Mirror window");
+
+	save_prefs_aux(&win_data[2], "Recall window");
+
+	save_prefs_aux(&win_data[3], "Choice window");
+
+	save_prefs_aux(&win_data[4], "Term-4 window");
+
+	save_prefs_aux(&win_data[5], "Term-5 window");
+
+	save_prefs_aux(&win_data[6], "Term-6 window");
+
+	save_prefs_aux(&win_data[7], "Term-7 window");
 }
 
 
