@@ -59,6 +59,7 @@ typedef struct {
 	int		sex;
 	int		stat_order[6];
 	client_setup_t	Client_setup;
+	bool broken_client;
 } connection_t;
 
 static void Contact(int fd, int arg);
