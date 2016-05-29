@@ -1820,6 +1820,13 @@ int recv_objflags(connection_type *ct)
 	return 1;
 }
 
+/* HACK -- We have connected to server < 1.2.0 -- Remove this */
+int recv_oldserver_handshake()
+{
+	quit("Server version is too old.");
+	return -1;
+}
+
 void setup_tables()
 {
 	/* Setup receivers */
@@ -1828,6 +1835,9 @@ void setup_tables()
 		handlers[i] = recv_undef;
 		schemes[i] = NULL;	
 	}
+
+	/* HACK -- Remove this sometime in the future */
+	handlers[254] = recv_oldserver_handshake();
 
 #define PACKET(PKT, SCHEME, FUNC) \
 	handlers[PKT] = FUNC; \
