@@ -954,12 +954,14 @@ static void load_prefs(void)
 	if ( GetUserName(buffer, &bufferLen) ) {
 		/* Cut */
 		buffer[16] = '\0';
-  		strcpy(real_name, buffer);
+		strcpy(real_name, buffer);
 
 	}
-   	else
+	else
+	{
 		/* XXX Default real name */
 		strcpy(real_name, "PLAYER");
+	}
 }
 
 
