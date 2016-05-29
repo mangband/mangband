@@ -108,12 +108,12 @@ static errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
 	return 0;
 }
 
-static inline Uint32 ifloor(Uint32 i)
+static Uint32 ifloor(Uint32 i)
 {
 	return i & 0xFFFF0000;
 }
 
-static inline Uint32 iceil(Uint32 i)
+static Uint32 iceil(Uint32 i)
 {
 	return (i & 0xFFFF) ? i : ifloor(i) + (1<<16);
 }
