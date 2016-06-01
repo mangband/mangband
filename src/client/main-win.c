@@ -1958,7 +1958,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	int row, col;
 	int i;
 	int x1, y1, w1, h1;
-	int x2, y2, w2, h2, tw2;
+	int x2, y2, w2, h2;
 	int x3, y3;
 
 	/* Paranoia -- handle weird requests */
@@ -2003,7 +2003,6 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	/* Size of window cell */
 	w2 = td->font_wid;
 	h2 = td->font_hgt;
-	tw2 = w2;
 
 	/* Location of window cell */
 	x2 = x * w2 + td->size_ow1;
@@ -2048,19 +2047,19 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 			y3 = (tap[i] & 0x7F) * h1;
 
 			/* Perfect size */
-			if ((w1 == tw2) && (h1 == h2))
+			if ((w1 == w2) && (h1 == h2))
 			{
 				/* Copy the terrain picture from the bitmap to the window */
-				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, SRCCOPY);
+				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, SRCCOPY);
 
 				/* Only draw if terrain and overlay are different */
 				if ((x1 != x3) || (y1 != y3))
 				{
 					/* Mask out the tile */
-					BitBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, SRCAND);
+					BitBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, SRCAND);
 
 					/* Draw the tile */
-					BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCPAINT);
+					BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCPAINT);
 				}
 			}
 
@@ -2071,26 +2070,26 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 				SetStretchBltMode(hdc, COLORONCOLOR);
 
 				/* Copy the terrain picture from the bitmap to the window */
-				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
+				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
 
 				/* Only draw if terrain and overlay are different */
 				if ((x1 != x3) || (y1 != y3))
 				{
 					/* Mask out the tile */
-					StretchBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+					StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
 
 					/* Draw the tile */
-					StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+					StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
 				}
 			}
 		}
 		else
 		{
 			/* Perfect size */
-			if ((w1 == tw2) && (h1 == h2))
+			if ((w1 == w2) && (h1 == h2))
 			{
 				/* Copy the picture from the bitmap to the window */
-				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCCOPY);
+				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCCOPY);
 			}
 
 			/* Need to stretch */
@@ -2100,7 +2099,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 				SetStretchBltMode(hdc, COLORONCOLOR);
 
 				/* Copy the picture from the bitmap to the window */
-				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
 			}
 		}
 	}
