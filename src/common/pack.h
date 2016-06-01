@@ -96,6 +96,7 @@
 #define PKT_OBSERVE     	160
 #define PKT_CHANGEPASS  	162
 #define PKT_OBJFLAGS    	163
+#define PKT_AIR         	164
 #define PKT_CHANNEL     	165
 #define PKT_TERM_INIT   	166
 #define PKT_TERM        	167
@@ -133,6 +134,7 @@
 #define STRUCT_INFO_INVEN	5
 #define STRUCT_INFO_OPTION	6
 #define STRUCT_INFO_OPTGROUP	7
+#define STRUCT_INFO_FLOOR	8
 
 /*
  * PKT_VISUAL_INFO helpers

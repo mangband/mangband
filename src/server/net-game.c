@@ -133,7 +133,7 @@ int send_class_info(connection_type *ct)
 
 int send_optgroups_info(connection_type *ct)
 {
-	u32b i, name_size;
+	u32b i;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -213,6 +213,27 @@ int send_inventory_info(connection_type *ct)
 	return 1;
 }
 
+int send_floor_info(connection_type *ct)
+{
+	u32b off = 0;
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_FLOOR) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", FLOOR_TOTAL, FLOOR_NEGATIVE ? 1 : 0, FLOOR_NEGATIVE ? -FLOOR_INDEX : FLOOR_INDEX) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
@@ -235,7 +256,7 @@ int send_indication(int Ind, byte id, ...)
 {
 	connection_type *ct = PConn[Ind];
 	const indicator_type *i_ptr = &indicators[id];
-	int i = 0, n;
+	int i = 0, n = 0;
 	int start_pos;
 
 	signed char tiny_c;
@@ -541,11 +562,23 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%c" "%ud%ud", PKT_AIR, y, x, a, c, delay, fade) <= 0)
+	{
+		/* No space in buffer, but we don't really care for this packet */
+		return 0;
+	}
+	return 1;
+}
+
 int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%c%c%s", PKT_FLOOR, 0, attr, amt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -855,9 +888,11 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		return 0;
 	}
 
-	if (p_ptr == NULL || p_ptr->state < PLAYER_BONE)
+	if (p_ptr == NULL)
 	{
-		/* ....? Some kind of error */
+		/* TODO: verify if this can or cannot happen (by contract) */
+		/* ... but better safe than sorry. */
+		return -1;
 	}
 	/* Client asks for a hard restart */
 	if (mode == PLAY_RESTART)
@@ -1035,8 +1070,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_visual_info(connection_type *ct, player_type *p_ptr) {
-	int n, i, local_size;
-	byte at;
+	int n, local_size = 0;
 	char *char_ref;
 	byte *attr_ref = NULL;
 	byte
@@ -1112,7 +1146,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_options(connection_type *ct, player_type *p_ptr) {
-	int n, i, j;
+	int i;
 	byte next, bit;
 
 	for (i = 0; i < OPT_MAX; i += 8)
@@ -1129,14 +1163,15 @@ int recv_options(connection_type *ct, player_type *p_ptr) {
 			int n = i + bit;
 			if (n >= OPT_MAX) break;
 
-			/* Real index is in the o_uid! */
-			n = option_info[n].o_uid;
-
 			/* Skip locked options */
 			if (option_info[n].o_bit) continue;
 
-			/* Skip birth options */
-			if (option_info[n].o_page == 1 && IS_PLAYING(p_ptr)) continue;
+			/* Skip birth options (if character is solid) */
+			if (option_info[n].o_page == 1 && !p_ptr->new_game) continue;
+
+			/* Real index is in the o_uid! */
+			n = option_info[n].o_uid;
+
 			/* Set */
 			if (next & (1L << bit))
 			{
@@ -1167,7 +1202,7 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		switch (i)
 		{
 			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = val; break; 
+			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break; 
 			default: break;
 		}
 	}
@@ -1551,7 +1586,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	}
 
 	/* Check energy */
-	if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)))
+	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
 		/* Start resting */
 		do_cmd_toggle_rest(Ind);
@@ -1577,7 +1612,6 @@ static int recv_custom_command(player_type *p_ptr)
 	char
 		dir,
 		item;
-	byte id;
 	byte i, j, tmp;
 	char entry[60];
 
@@ -1616,7 +1650,12 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
+	if (i >= MAX_CUSTOM_COMMANDS)
+	{
+		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+		return -1;
+	}
+	else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
@@ -1701,33 +1740,33 @@ static int recv_custom_command(player_type *p_ptr)
 	switch (custom_commands[i].scheme)
 	{
 		S_EXEC( EMPTY,          	(int),                  	(player))
-		S_EXEC( ITEM,           	(int, char),            	(player, item))
-		S_EXEC(	DIR,            	(int, char),            	(player, dir))
+		S_EXEC( ITEM,           	(int, int),            	(player, item))
+		S_EXEC(	DIR,            	(int, int),            	(player, dir))
 		S_EXEC(	VALUE,          	(int, int),             	(player, value))
 		S_EXEC(	SMALL,          	(int, int),             	(player, value))
 		S_EXEC(	STRING,         	(int, char*),           	(player, entry))
 		S_EXEC(	CHAR,           	(int, char),            	(player, entry[0]))
-		S_EXEC(	ITEM_DIR,       	(int, char, char),      	(player, item, dir))
-		S_EXEC(	ITEM_VALUE,     	(int, char, int),       	(player, item, value))
-		S_EXEC(	ITEM_SMALL,     	(int, char, int),       	(player, item, value))
-		S_EXEC(	ITEM_STRING,    	(int, char, char*),     	(player, item, entry))
-		S_EXEC(	ITEM_CHAR,      	(int, char, char),      	(player, item, entry[0]))
-		S_EXEC(	DIR_VALUE,      	(int, char, int),       	(player, dir, value))
-		S_EXEC(	DIR_SMALL,      	(int, char, int),       	(player, dir, value))
-		S_EXEC(	DIR_STRING,     	(int, char, char*),     	(player, dir, entry))
-		S_EXEC(	DIR_CHAR,       	(int, char, char),      	(player, dir, entry[0]))
+		S_EXEC(	ITEM_DIR,       	(int, int, int),      	(player, item, dir))
+		S_EXEC(	ITEM_VALUE,     	(int, int, int),       	(player, item, value))
+		S_EXEC(	ITEM_SMALL,     	(int, int, int),       	(player, item, value))
+		S_EXEC(	ITEM_STRING,    	(int, int, char*),     	(player, item, entry))
+		S_EXEC(	ITEM_CHAR,      	(int, int, char),      	(player, item, entry[0]))
+		S_EXEC(	DIR_VALUE,      	(int, int, int),       	(player, dir, value))
+		S_EXEC(	DIR_SMALL,      	(int, int, int),       	(player, dir, value))
+		S_EXEC(	DIR_STRING,     	(int, int, char*),     	(player, dir, entry))
+		S_EXEC(	DIR_CHAR,       	(int, int, char),      	(player, dir, entry[0]))
 		S_EXEC(	VALUE_STRING,   	(int, int, char*),      	(player, value, entry))
 		S_EXEC(	VALUE_CHAR,     	(int, int, char),       	(player, value, entry[0]))
 		S_EXEC(	SMALL_STRING,   	(int, int, char*),      	(player, value, entry))
 		S_EXEC(	SMALL_CHAR,     	(int, int, char),       	(player, value, entry[0]))
-		S_EXEC(	ITEM_DIR_VALUE, 	(int, char, char, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_SMALL, 	(int, char, char, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_STRING,	(int, char, char, char*),	(player, item, dir, entry))
-		S_EXEC(	ITEM_DIR_CHAR,  	(int, char, char, char),	(player, item, dir, entry[0]))
-		S_EXEC(	ITEM_VALUE_STRING,	(int, char, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_VALUE_CHAR,	(int, char, int, char), 	(player, item, value, entry[0]))
-		S_EXEC(	ITEM_SMALL_STRING,	(int, char, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_SMALL_CHAR, 	(int, char, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	ITEM_DIR_VALUE, 	(int, int, int, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_SMALL, 	(int, int, int, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_STRING,	(int, int, int, char*),	(player, item, dir, entry))
+		S_EXEC(	ITEM_DIR_CHAR,  	(int, int, int, char),	(player, item, dir, entry[0]))
+		S_EXEC(	ITEM_VALUE_STRING,	(int, int, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_VALUE_CHAR,	(int, int, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	ITEM_SMALL_STRING,	(int, int, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_SMALL_CHAR, 	(int, int, int, char), 	(player, item, value, entry[0]))
 
 		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0]))
 	}

@@ -2397,7 +2397,7 @@ static errr Term_text_x11(int x, int y, int n, byte a, cptr s)
 /*
  * Draw some graphical characters.
  */
-static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp) /*, const byte *tap, const char *tcp)*/
+static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp)
 {
 	int i;
 	int x1 = 0, y1 = 0;
@@ -2413,8 +2413,6 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 	int k,l;
 
 	unsigned long pixel, blank;
-	//char *tcp = p_ptr->trn_info[y][x].c;
-	//char *tap = p_ptr->trn_info[y][x].a	;
 	term_data *td = (term_data*)(Term->data);
 	
 	x = ox;
@@ -2432,8 +2430,8 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 		a = *ap++;
 		c = *cp++;
 
-		ta = p_ptr->trn_info[oy][ox].a;//*tap++;
-		tc = p_ptr->trn_info[oy][ox].c;//*tcp++;
+		ta = *tap++;
+		tc = *tcp++;
 
 		/* For extra speed - cache these values */
 		x1 = (c & 0x7F) * td->tile_wid2;
@@ -2503,7 +2501,7 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 }
 static errr Term_pict_x11_28x(int x, int y, byte a, char c)
 {
-	return Term_pict_x11(x, y, 1, &a, &c);
+	return Term_pict_x11(x, y, 1, &a, &c, &a, &c);
 }
 
 #endif /* USE_GRAPHICS */
@@ -3080,7 +3078,7 @@ errr init_x11(int argc, char **argv)
 				term *t = &td->t;
 
 				/* Graphics hook */
-				t->pict_hook = Term_pict_x11_28x;
+				t->pict_hook = Term_pict_x11;
 
 				/* Use graphics sometimes */
 				t->higher_pict = TRUE;

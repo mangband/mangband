@@ -291,6 +291,12 @@ static void Setup_loop()
 		if (old_state != state)
 		{
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+			/* Handshake complete */
+			if (state == PLAYER_EMPTY)
+			{
+				/* Send login */
+				client_login();
+			}
 			/* No character is ready */
 			if (state == PLAYER_NAMED)
 			{
@@ -384,6 +390,12 @@ void flush_updates()
 		window_stuff();
 	}
 
+	/* Redraw air? */
+	if (air_updates)
+	{
+		update_air();
+	}
+
 	/* Hack -- don't redraw the screen until we have all of it */
 	//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
 	/* Update the screen */
@@ -464,7 +476,7 @@ void gather_settings()
 /* Trick "net_term_manage" into subscribing by passing an empty array */
 void init_subscriptions() 
 {
-	int i, j, k, n;
+	int i, n;
 
 	u32b empty_flag[ANGBAND_TERM_MAX];
 
@@ -574,8 +586,10 @@ bool client_setup()
 	send_options();
 
 	/* Send visual preferences */
-	for (i = 0; i < VISUAL_INFO_PR +1; i++)
+	for (i = 0; i < VISUAL_INFO_PR + 1; i++)
+	{
 		send_visual_info(i);
+	}
 
 	/* Hack -- don't enter the game if waiting for motd */
 	//if (Setup.wait && !Setup.ready)
@@ -609,7 +623,6 @@ int client_failed(void)
 	static int try_count = 0;
 	event_type chkey;
 	char ch = 0;
-	char buf[80];
 	byte star = 0;
 
 	if (try_count++ > 2000)
@@ -647,8 +660,6 @@ int client_failed(void)
  */
 void client_init(void)
 {
-	unsigned char status;
-	char c, *s;
 	bool done = 0;
 
 	/* Setup the file paths */

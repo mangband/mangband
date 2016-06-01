@@ -3656,7 +3656,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	}
 	else if (who < 0)
 	{
-		strcpy(killer, Players[0 - who]->name);
+		my_strcpy(killer, Players[0 - who]->name, 80);
 
 		/* Do not become hostile if it was a healing or teleport spell */
 		if ((typ < GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
@@ -4055,7 +4055,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		else msg_format(Ind, "%^s heals you!", killer);
 		
 		hp_player(Ind, dam);
-		set_cut(Ind, Players[Ind]->cut - 10);
+		(void)set_cut(Ind, Players[Ind]->cut - 10);
 		
 		break;
 
@@ -4571,9 +4571,11 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				/* Beams can have a slightly higher density */
 				if (randint(density>>1) == 1)
 				{
-					p_ptr->scr_info[dispy][dispx].c = '*';
-					p_ptr->scr_info[dispy][dispx].a = attr;
-					Stream_tile(j, p_ptr, dispy, dispx);
+					//p_ptr->scr_info[dispy][dispx].c = '*';
+					//p_ptr->scr_info[dispy][dispx].a = attr;
+					//Stream_tile(j, p_ptr, dispy, dispx);
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, '*', 1, density);
 				}
 			}
 		}
@@ -4653,13 +4655,14 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				//ch = bolt_char(y, x, y9, x9);
 				//attr = spell_color(typ);
 
-				p_ptr->scr_info[dispy][dispx].c = ch;
-				p_ptr->scr_info[dispy][dispx].a = attr;
-
 				if (randint(density) == 1) 
 				{
-					Stream_tile(j, p_ptr, dispy, dispx);
-					Send_flush(j);
+					//p_ptr->scr_info[dispy][dispx].c = ch;
+					//p_ptr->scr_info[dispy][dispx].a = attr;
+					//Stream_tile(j, p_ptr, dispy, dispx);
+					//Send_flush(j);
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, ch, 1, density);
 				}
 			}
 		}
@@ -4772,10 +4775,13 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					dispx = x - p_ptr->panel_col_prt;
 					dispy = y - p_ptr->panel_row_prt;
 
-					p_ptr->scr_info[dispy][dispx].c = ch;
-					p_ptr->scr_info[dispy][dispx].a = attr;
+					//p_ptr->scr_info[dispy][dispx].c = ch;
+					//p_ptr->scr_info[dispy][dispx].a = attr;
 
-					Stream_tile(j, p_ptr, dispy, dispx);
+					//Stream_tile(j, p_ptr, dispy, dispx);
+
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, ch, 1, density);
 
 					drawn = TRUE;
 
@@ -4791,15 +4797,15 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			}
 
 			/* Flush each "radius" seperately */
-			for (j = 0; j < num_can_see; j++)
-			{
+			//for (j = 0; j < num_can_see; j++)
+			//{
 				/* Show this radius and delay */
-				Send_flush(who_can_see[j]);
-			}
+				//Send_flush(who_can_see[j]);
+			//}
 		}
 
 		/* Flush the erasing */
-		if (TRUE)
+		if (FALSE)
 		{
 			/* Erase the explosion drawn above */
 			for (i = 0; i < grids; i++)

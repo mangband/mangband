@@ -1173,27 +1173,27 @@ errr file_character_server(int Ind, cptr name)
 	}
 
 	/* Dump the equipment */
-	file_putf(fff, "  [Character Equipment]\n\n");
+	file_putf(fff, "%s", "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	file_putf(fff, "\n\n");
+	file_putf(fff, "%s", "\n\n");
 
 	/* Dump the inventory */
-	file_putf(fff, "  [Character Inventory]\n\n");
+	file_putf(fff, "%s", "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	file_putf(fff, "\n\n");
+	file_putf(fff, "%s", "\n\n");
 
 	/* Dump house inventory */
-	file_putf(fff, "  [Home Inventory]\n");
+	file_putf(fff, "%s", "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
 		if (house_owned_by(Ind, i)) 
@@ -1201,7 +1201,7 @@ errr file_character_server(int Ind, cptr name)
 			int Depth = houses[i].depth;
 			cave_type *c_ptr;
 
-			file_putf(fff, "\n"); j = 0;
+			file_putf(fff, "%s", "\n"); j = 0;
 			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
@@ -1209,7 +1209,7 @@ errr file_character_server(int Ind, cptr name)
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
-						if (j > 12) { file_putf(fff, "\n"); j = 0; }
+						if (j > 12) { file_putf(fff, "%s", "\n"); j = 0; }
 						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
 						file_putf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
@@ -1219,25 +1219,24 @@ errr file_character_server(int Ind, cptr name)
 			}
 		}
 	}
-	file_putf(fff, "\n\n");
+	file_putf(fff, "%s", "\n\n");
 
 	/* Dump character history */
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		file_putf(fff, "  [Character History]\n\n");
-		file_putf(fff, "Time       Dungeon Char  Event\n");
-		file_putf(fff, "           Level   Level\n\n");
+		file_putf(fff, "%s", "  [Character History]\n\n");
+		file_putf(fff, "%s", "Time       Dungeon Char  Event\n");
+		file_putf(fff, "%s", "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			file_putf(fff, "%s", format_history_event(evt));
-			file_putf(fff, "\n");
+			file_putf(fff, "%s\n", format_history_event(evt));
 		}
-		file_putf(fff, "\n\n");
+		file_putf(fff, "%s", "\n\n");
 	}
 
 	/* Dump last messages */
-	file_putf(fff, "  [Last Messages]\n\n");
+	file_putf(fff, "%s", "  [Last Messages]\n\n");
 	i = p_ptr->msg_hist_ptr;
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
@@ -1246,10 +1245,10 @@ errr file_character_server(int Ind, cptr name)
 			file_putf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
-	file_putf(fff, "\n\n");
+	file_putf(fff, "%s", "\n\n");
 
 	/* Dump the scene of death */
-	file_putf(fff, "  [Scene of Death]\n\n");
+	file_putf(fff, "%s", "  [Scene of Death]\n\n");
 	/* Get an in bounds area */
 	x1 = p_ptr->px - 39;
 	x2 = p_ptr->px + 39;
@@ -1335,9 +1334,9 @@ errr file_character_server(int Ind, cptr name)
 				file_putf(fff,"%c",c);
 			}
 		}
-		file_putf(fff,"\n");
+		file_putf(fff, "%s", "\n");
 	}
-	file_putf(fff, "\n\n");
+	file_putf(fff, "%s", "\n\n");
 
 
 	/* Close it */
@@ -2218,7 +2217,7 @@ long total_points(int Ind)
 	player_type *p_ptr = Players[Ind];
 	
 	/* We award a 50% score bonus for bravery with no_ghost characters */
-	if (p_ptr->no_ghost && !cfg_ironman)
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
 	{
 		return (long)((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
 	}
@@ -2678,7 +2677,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 
 		/* Print newline if this isn't the last one */
 		if (j < i - 1)
-			file_putf(fff, "\n");
+			file_putf(fff, "%s", "\n");
 	}
 
 	/* Close the file */

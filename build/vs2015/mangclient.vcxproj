@@ -71,6 +71,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,7 +119,7 @@
     <ClCompile Include="..\..\src\client\readdib.c" />
     <ClCompile Include="..\..\src\client\sdl-xxx.c" />
     <ClCompile Include="..\..\src\client\set_focus.c" />
-    <ClCompile Include="..\..\src\client\variable.c" />
+    <ClCompile Include="..\..\src\client\c-variable.c" />
     <ClCompile Include="..\..\src\client\z-term.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
     <ClCompile Include="..\..\src\common\net-basics.c" />
@@ -141,7 +142,6 @@
     <ClInclude Include="..\..\src\client\z-term.h" />
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\common\defines.h" />
-    <ClInclude Include="..\..\src\common\global.h" />
     <ClInclude Include="..\..\src\common\h-basic.h" />
     <ClInclude Include="..\..\src\common\h-define.h" />
     <ClInclude Include="..\..\src\common\h-net.h" />

@@ -83,32 +83,18 @@ void do_cmd_eat_food(int Ind, int item)
 
 	/* Restrict choices to food */
 	item_tester_tval = TV_FOOD;
+	item_tester_full = FALSE;
+	item_tester_hook = NULL;
 
-	/* Get the item (in the pack) */
-	if (item >= 0)
+	/* Get the item */
+	if ( !(o_ptr = player_get_item(p_ptr, item, &item)) )
 	{
-		o_ptr = &p_ptr->inventory[item];
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return;
-		}
-		o_ptr = &o_list[0 - item];
+		/* Paranoia */
+		return;
 	}
 
 	/* Check guard inscription '!E' */
 	__trap(Ind, CGI(o_ptr, 'E'));
-
-	if (o_ptr->tval != TV_FOOD)
-	{
-		/* Tried to eat non-food */
-		return;
-	}
 
 	/* Sound */
 	sound(Ind, MSG_EAT);
@@ -140,11 +126,6 @@ void do_cmd_eat_food(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Food can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
 
 	/* Destroy a food in the pack */
 	if (item >= 0)
@@ -248,11 +229,6 @@ void do_cmd_quaff_potion(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Potions can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
 
 	/* Destroy a potion in the pack */
 	if (item >= 0)
@@ -403,7 +379,12 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	} 
 
 }
+void do_cmd_read_scroll_on(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
 
+	do_cmd_read_scroll(Ind, item);
+}
 
 
 
@@ -416,6 +397,12 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
  *
  * Hack -- staffs of identify can be "cancelled".
  */
+void do_cmd_use_staff_pre(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
+
+	do_cmd_use_staff(Ind, item);
+}
 void do_cmd_use_staff(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];

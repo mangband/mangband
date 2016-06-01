@@ -34,7 +34,7 @@ static void display_entry(int pos)
 		if (show_weights) maxwid -= 10;
 
                 /* Describe the object */
-		strcpy(o_name, store_names[pos]);
+		my_strcpy(o_name, store_names[pos], 80);
 		o_name[maxwid] = '\0';
 		c_put_str(o_ptr->sval, o_name, i+6, 3);
 
@@ -57,7 +57,7 @@ static void display_entry(int pos)
 		if (show_weights) maxwid -= 7;
 
 		/* Describe the object (fully) */
-		strcpy(o_name, store_names[pos]);
+		my_strcpy(o_name, store_names[pos], 80);
 		o_name[maxwid] = '\0';
 		c_put_str(o_ptr->sval, o_name, i+6, 3);
 
@@ -173,13 +173,7 @@ static int get_stock(int *com_val, cptr pmt, int i, int j)
 /* Public interface to get_stock function. */
 int get_store_stock(int *citem, cptr prompt)
 {
-	int                     i, amt;
-	int                     item;
-	u32b                    price;
-
-	object_type             *o_ptr;
-
-	char            out_val[160];
+	int                     i, item;
 
 	/* Empty? */
 	if (store.stock_num <= 0)

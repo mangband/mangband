@@ -547,6 +547,17 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
 	p_ptr->cbuf.buf = c_buf;
 
+	/* Set default options */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		/* Option is locked */
+		if (opt_ptr->o_bit)
+		{
+			p_ptr->options[opt_ptr->o_uid] = opt_ptr->o_norm;
+		}
+	}
+
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
 	{
@@ -686,7 +697,6 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_tmp.cbuf.max = p_ptr->cbuf.max;
 
 	p_tmp.lives = p_ptr->lives;
-	p_tmp.no_ghost = p_ptr->no_ghost; /* ? */
 
 	for (i = 0; i < 6; i++)
 	{
@@ -719,7 +729,8 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_ptr->cbuf.max = p_tmp.cbuf.max;
 
 	p_ptr->lives = p_tmp.lives;
-	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
+
+	/* TODO: also copy p_ptr->options? MAYBE */
 
 	for (i = 0; i < 6; i++)
 	{
@@ -828,7 +839,7 @@ static void player_outfit(player_type *p_ptr)
 	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
-	i_ptr->pval = (PV); \
+	if ( (PV) ) i_ptr->pval = (PV); \
 	object_aware((P), i_ptr); \
 	object_known(i_ptr); \
 	(void)inven_carry((P), i_ptr)
@@ -1247,6 +1258,9 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	if (race < 0 || race >= z_info->p_max) race = 0;
 	if (pclass < 0 || pclass >= z_info->c_max) pclass = 0;
 	if (sex < 0 || sex > 1) sex = 0;
+
+	/* Mark new game */
+	p_ptr->new_game = TRUE;
 
 	/* Reprocess his name */
 	//if (!process_player_name(Ind, TRUE)) return FALSE;

@@ -171,8 +171,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/*** Inventory "usage" commands ***/
 	/* Magic devices */
 	{ /* Read scroll */
-		'r', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_read_scroll,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		'r', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_read_scroll_on,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_SCROLL, "Read which scroll? "
 	},
 	{ /* Aim wand */
@@ -181,8 +181,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		TV_WAND, "Aim which wand? "
 	},
 	{ /* Use staff */
-		'u', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		'u', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_use_staff_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_STAFF, "Use which staff? "
 	},
 	{ /* Zap rod */
@@ -316,6 +316,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
+#if 0
+	{ /* Refill bottle */
+		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_BOTTLE, "Refill which bottle? "
+	},
+#endif
 
 	/*** Store/shopping commands ***/
 	{ /* [Get]/Purchase item */
@@ -701,13 +708,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 		INDICATOR_PKT(AFRAID, TINY, 1),     	IPW_2,	ROW_AFRAID, COL_AFRAID,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"      \v\aoAfraid",
-		(PR_STUN),  "afraid"
+		(PR_AFRAID),  "afraid"
 	},
 	{
 		INDICATOR_PKT(POISONED, TINY, 1),   	IPW_2,	ROW_POISONED, COL_POISONED,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"        \v\aoPoisoned",
-		(PR_STUN),  "poisoned"
+		(PR_POISONED),  "poisoned"
 	},
 	{
 		INDICATOR_PKT(STATE, TINY, 3),      	IPW_2,	ROW_STATE,	COL_STATE,
@@ -717,13 +724,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR), 
+		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
 		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
 		INDICATOR_PKT(STUDY, TINY, 1),   	IPW_2,	ROW_STUDY, COL_STUDY,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"     \vStudy",
 		(PR_STUDY),  "study"
 	},

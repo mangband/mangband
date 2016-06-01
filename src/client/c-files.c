@@ -1621,7 +1621,8 @@ void show_recall(byte win, cptr prompt)
 	if (win == NTERM_WIN_NONE)
 	{
 		target_recall = FALSE;
-		section_icky_row = section_icky_col = 0;
+		section_icky_row = 0;
+		section_icky_col = 0;
 		return;
 	}
 
@@ -1785,7 +1786,6 @@ void show_peruse(s16b line)
 void peruse_file(void)
 {
 	char k;
-	int n;
 
 	/* Initialize */
 	cur_line = 0;
@@ -1831,10 +1831,10 @@ void peruse_file(void)
 		/* Hack -- go to a specific line */
 		if (k == '#')
 		{
-			char tmp[80];
+			char tmp[MAX_CHARS];
 			prt("Goto Line: ", 23, 0);
 			strcpy(tmp, "0");
-			if (askfor_aux(tmp, 80, 0))
+			if (askfor_aux(tmp, MAX_COLS, 0))
 			{
 				cur_line = atoi(tmp);
 			}
@@ -1931,7 +1931,7 @@ void conf_init(void* param)
 		/* Ok */
 		if (my_fexists(path))
 		{
-			strcpy(config_name, path);
+			my_strcpy(config_name, path, 1024);
 			return;
 		}
 	}
@@ -1939,7 +1939,7 @@ void conf_init(void* param)
 	/* Get full path to executable */
 	GetModuleFileName(hInstance, path, 512);
 	strcpy(path + strlen(path) - 4, ".ini");
-	strcpy(config_name, path);
+	my_strcpy(config_name, path, 1024);
 }
 void conf_save()
 { }
@@ -2021,7 +2021,7 @@ struct section_conf_type
 };
 static section_conf_type *root_node = NULL;
 static bool conf_need_save = FALSE;	/* Scheduled save */
-static char config_name[100];	/* Config filename */
+static char config_name[1024];	/* Config filename */
 
 /* Find a section by name */
 section_conf_type* conf_get_section(cptr section)
@@ -2319,7 +2319,7 @@ void conf_init(void* param)
 		my_strcpy(config_name, getenv("HOME"), 1024);
 
 		/* Append filename */
-		strcat(config_name, buf);
+		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
 		config = file_open(config_name, MODE_READ, -1);
@@ -2329,10 +2329,10 @@ void conf_init(void* param)
 	if (!config)
 	{
 		/* Current directory */
-		strcpy(config_name, ".");
+		my_strcpy(config_name, ".", 1024);
 
 		/* Append filename */
-		strcat(config_name, buf);
+		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
 		config = file_open(config_name, MODE_READ, -1);

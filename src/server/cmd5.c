@@ -492,7 +492,7 @@ void do_cmd_study(int Ind, int book, int spell)
  */
 void do_cmd_cast_pre(int Ind, int book, int dir, int spell)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;
@@ -721,7 +721,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
  */
 void do_cmd_pray_pre(int Ind, int book, int dir, int spell)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;
@@ -905,7 +905,7 @@ void show_ghost_spells(int Ind)
  */
 void do_cmd_ghost_power_pre(int Ind, int dir, int ability)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;

@@ -1,6 +1,6 @@
 #include "c-angband.h"
 
-s16b index_to_label(int i)
+char index_to_label(int i)
 {
 	/* Indices for "inven" are easy */
 	if (i < INVEN_WIELD) return (I2A(i));
@@ -457,7 +457,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 					Term_load();
 					command_see = FALSE;
 
-					section_icky_row = section_icky_col = 0;
+					section_icky_row = 0;
+					section_icky_col = 0;
 
 					/* Flush any events */
 					if (!shopping)
@@ -466,15 +467,20 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				break;
 			}
 			case '-':
+			{
+				/* Hack -- we only have 1 floor item */
+				s16b floor_item_pos = 0;
+
 				/* Floor */
 				if (allow_floor)
 				{
-					(*cp) = -1;
+					(*cp) = FLOOR_INDEX + (FLOOR_NEGATIVE ? 0 - floor_item_pos : floor_item_pos);
 					item = TRUE;
 					done = TRUE;
 				}
 
 				break;
+			}
 			case '/':
 			{
 				/* Verify legality */
@@ -634,7 +640,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	if (command_see) 
 	{
 		Term_load();
-		section_icky_row = section_icky_col = 0;
+		section_icky_row = 0;
+		section_icky_col = 0;
 	}
 
 	/* Fix the top line */

@@ -322,7 +322,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	char base_name[80];
 
 	bool *okay;
-
+	bool *highlights;
+	char *owners;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -339,6 +340,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	
 	/* Init Array */
 	C_MAKE(okay, z_info->a_max, bool);
+	C_MAKE(highlights, z_info->a_max, bool);
+	C_MAKE(owners, z_info->a_max * 80, bool);
 
 	/* Scan the artifacts */
 	for (k = 0; k < z_info->a_max; k++)
@@ -347,6 +350,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 		/* Default */
 		okay[k] = FALSE;
+		highlights[k] = FALSE;
+		owners[k * 80] = '\0';
 
 		/* Skip "empty" artifacts */
 		if (!a_ptr->name) continue;
@@ -381,6 +386,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 					/* Ignore non-artifacts */
 					if (!artifact_p(o_ptr)) continue;
 
+					/* Note location */
+					my_strcpy(&owners[o_ptr->name1 * 80], format(" (%d ft)", Depth * 50), 80);
+
 					/* Ignore known items */
 					if (object_known_p(p_ptr, o_ptr)) continue;
 
@@ -394,12 +402,12 @@ void do_cmd_check_artifacts(int Ind, int line)
 	/* Check the inventories */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		player_type *p_ptr = Players[i];
-		
+		player_type *q_ptr = Players[i];
+
 		/* Check this guy's */
-		for (j = 0; j < INVEN_PACK; j++)
+		for (j = 0; j < INVEN_TOTAL; j++)
 		{
-			object_type *o_ptr = &p_ptr->inventory[j];
+			object_type *o_ptr = &q_ptr->inventory[j];
 
 			/* Ignore non-objects */
 			if (!o_ptr->k_idx) continue;
@@ -407,11 +415,18 @@ void do_cmd_check_artifacts(int Ind, int line)
 			/* Ignore non-artifacts */
 			if (!artifact_p(o_ptr)) continue;
 
+			/* Note owner */
+			my_strcpy(&owners[o_ptr->name1 * 80], format(" (%s)", q_ptr->name), 80);
+
+			/* Belongs to the target player and is known */
+			if (q_ptr->id == p_ptr->id) highlights[o_ptr->name1] = TRUE;
+
 			/* Ignore known items */
-			if (object_known_p(p_ptr, o_ptr)) continue;
+			if (object_known_p(q_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;
+			highlights[o_ptr->name1] = FALSE;
 		}
 	}
 
@@ -445,16 +460,25 @@ void do_cmd_check_artifacts(int Ind, int line)
 			object_desc_store(Ind, base_name, &forge, FALSE, 0);
 		}
 
+		/* Dungeon Masters see extra info */
+		if (!dm_flag_p(p_ptr, ARTIFACT_CONTROL))
+		{
+			owners[k * 80] = '\0';
+		}
+
 		/* Determine if it's relevant to the player asking */
-		if (p_ptr->a_info[k]) highlite = 'w';
-		if (p_ptr->a_info[k] >= cfg_preserve_artifacts) highlite = 'W';
+		if (p_ptr->a_info[k]) highlite = 's';
+		if (p_ptr->a_info[k] > cfg_preserve_artifacts) highlite = 'W';
+		if (highlights[k]) highlite = 'w';
 
 		/* Hack -- Build the artifact name */
-		file_putf(fff, "%c     The %s\n", highlite, base_name);
+		file_putf(fff, "%c     The %s%s\n", highlite, base_name, &owners[k * 80]);
 	}
-	
+
 	/* Free array */
 	FREE(okay);
+	FREE(highlights);
+	FREE(owners);
 
 	/* Close the file */
 	file_close(fff);
@@ -588,7 +612,7 @@ void do_cmd_check_uniques(int Ind, int line)
 
 		}
 	}
-	else file_putf(fff, "wNo uniques are witnessed so far.\n");
+	else file_putf(fff, "%s", "wNo uniques are witnessed so far.\n");
 
 	/* Free the "ind" array */
 	FREE(idx);
@@ -686,7 +710,7 @@ void do_cmd_check_players(int Ind, int line)
 
 		/* Newline */
 		// -AD- will this work?
-		file_putf(fff, "\n");
+		file_putf(fff, "%s", "\n");
 		file_putf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
@@ -872,14 +896,13 @@ void do_cmd_knowledge_history(int Ind, int line)
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		file_putf(fff, "Time       Depth   CLev  Event\n");
+		file_putf(fff, "%s", "Time       Depth   CLev  Event\n");
 		//file_putf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			file_putf(fff, "%s", format_history_event(evt));
-			file_putf(fff, "\n");
+			file_putf(fff, "%s\n", format_history_event(evt));
 		}
-		file_putf(fff, "\n\n");
+		file_putf(fff, "%s", "\n\n");
 	}
 
 	/* Close the file */

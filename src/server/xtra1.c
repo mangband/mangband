@@ -218,7 +218,7 @@ static void prt_hp(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	send_indication(Ind, IN_HP, p_ptr->chp-2, p_ptr->mhp );
+	send_indication(Ind, IN_HP, p_ptr->chp, p_ptr->mhp );
 }
 
 /*
@@ -441,7 +441,7 @@ static void prt_speed(int Ind)
 	/* Hack -- Visually "undo" the Search Mode Slowdown */
 	if (p_ptr->searching) i += 10;
 
-	send_indication(Ind, IN_SPEED, i - 110 + 9 );
+	send_indication(Ind, IN_SPEED, i - 110 );
 }
 
 static void prt_study(int Ind)
@@ -2884,6 +2884,9 @@ static void calc_bonuses(int Ind)
 
 	/* Limit Skill -- digging from 1 up */
 	if (p_ptr->skill_dig < 1) p_ptr->skill_dig = 1;
+
+	/* Limit final infravision to >= 0 */
+	if (p_ptr->see_infra < 0) p_ptr->see_infra = 0;
 
 	/* Obtain the "hold" value */
 	hold = adj_str_hold[p_ptr->stat_ind[A_STR]];
