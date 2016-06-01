@@ -1837,7 +1837,7 @@ void setup_tables()
 	}
 
 	/* HACK -- Remove this sometime in the future */
-	handlers[254] = recv_oldserver_handshake();
+	handlers[254] = recv_oldserver_handshake;
 
 #define PACKET(PKT, SCHEME, FUNC) \
 	handlers[PKT] = FUNC; \
