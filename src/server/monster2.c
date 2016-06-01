@@ -1197,7 +1197,7 @@ void update_mon(int m_idx, bool dist)
 				if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
 				{
 					/* Use "infravision" */
-					if (m_ptr->cdis <= (byte)(p_ptr->see_infra))
+					if (m_ptr->cdis <= p_ptr->see_infra)
 					{
 						/* Infravision only works on "warm" creatures */
 						/* Below, we will need to know that infravision failed */
@@ -1431,7 +1431,7 @@ void update_player(int Ind)
 			
 			if (*w_ptr & CAVE_VIEW) {
 				/* Check infravision */
-				if (dis <= (byte)(p_ptr->see_infra))
+				if (dis <= p_ptr->see_infra)
 				{
 					/* Visible */
 					easy = flag = TRUE;

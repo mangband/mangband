@@ -955,6 +955,9 @@ static bool curse_armor(int Ind)
 		/* Oops */
 		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
 
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+
 		/* Blast the armor */
 		o_ptr->name1 = 0;
 		o_ptr->name2 = EGO_BLASTED;
@@ -1021,6 +1024,9 @@ static bool curse_weapon(int Ind)
 	{
 		/* Oops */
 		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
 
 		/* Shatter the weapon */
 		o_ptr->name1 = 0;

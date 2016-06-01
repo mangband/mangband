@@ -36,7 +36,7 @@
 
 /* The most pedantic-a%& getpixel and putpixel ever, hopefully. */
 /* There may still be endianness bugs! These will be fixed after adequte testing. XXX XXX XXX */
-inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
+errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
 {
 	/*const Uint32 mask[] = {0x0, 0xff, 0xffff, 0xffffff, 0xffffffff};*/
 	Uint32 pixel;
@@ -76,7 +76,7 @@ inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g
 
 /* This function looks remarkably similar to the one above. Yes, it's cut
  * and paste. */
-inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
+errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
 {
 	Uint32 pixel;
 
@@ -115,12 +115,12 @@ inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
  * float a = (float) (b >> 16) + (b & 0xFFFF)/65536.0;
  */
 
-inline Uint32 ifloor(Uint32 i)
+Uint32 ifloor(Uint32 i)
 {
 	return i & 0xFFFF0000;
 }
 
-inline Uint32 iceil(Uint32 i)
+Uint32 iceil(Uint32 i)
 {
 	return (i & 0xFFFF) ? i : ifloor(i) + (1<<16);
 }

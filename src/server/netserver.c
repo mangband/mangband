@@ -103,7 +103,6 @@ int			NumPlayers;
 int		MetaSocket = -1;
 
 int		ConsoleSocket = -1;
-bool	broken_client;
 
 char *showtime(void)
 {
@@ -1099,6 +1098,8 @@ int Setup_connection(char *real, char *nick, char *addr, char *host,
 	connp->rtt_timeouts = 0;
 	connp->acks = 0;
 	connp->setup = 0;
+	connp->broken_client = FALSE;
+
 	Conn_set_state(connp, CONN_LISTENING, CONN_FREE);
 	if (connp->w.buf == NULL || connp->r.buf == NULL || connp->c.buf == NULL
 		|| connp->q.buf == NULL || connp->real == NULL || connp->nick == NULL
@@ -1194,7 +1195,7 @@ static int Handle_listening(int ind)
 	s16b block_size;
 	bool old_client;
 	char p1,p2;
-	char nick[MAX_NAME_LEN], real[MAX_NAME_LEN], pass[MAX_PASS_LEN];
+	char nick[MAX_CHARS], real[MAX_CHARS], pass[MAX_CHARS];
 	s16b old_max_tv, old_max_f,old_max_k,old_max_r;
 
 	if (connp->state != CONN_LISTENING)
@@ -1279,14 +1280,12 @@ static int Handle_listening(int ind)
 	}
 
 	/* Check for new protocol flag if this isn't a known legacy client */
-	broken_client = FALSE;
 	if(!old_client)
 	{
-		broken_client = TRUE;
 		n = Packet_scanf(&connp->r, "%c%c", &p1,&p2);
-		if( p1 == 'X' && p2 == 'X' )
+		if(p1 != 'X' || p2 != 'X' )
 		{
-			broken_client = FALSE;
+			connp->broken_client = TRUE;
 		}
 		/* In an ideal world we would just send a warning message to the client
 		 * here saying their software incompatible.  Sadly the legacy clients
@@ -2169,7 +2168,7 @@ static int Receive_play(int ind)
 
 	/* Disconnect the client if we know it's not compatible - this action has been
 	 * delayed from the initial connection stage */
-	if( broken_client )
+	if(connp->broken_client)
 	{
 			Destroy_connection(ind, "Incompatible client.\n"\
 				"Download at http://www.mangband.org");
@@ -3335,6 +3334,16 @@ static int Receive_keepalive(int ind)
         return 2;
 }
 
+static bool item_valid(int item)
+{
+	return item < INVEN_TOTAL;
+}
+
+static bool player_has_energy(player_type *p_ptr)
+{
+	return p_ptr->energy >= level_speed(p_ptr->dun_depth);
+}
+
 static int Receive_walk(int ind)
 {
 	connection_t *connp = &Conn[ind];
@@ -3364,7 +3373,7 @@ static int Receive_walk(int ind)
 		return 1;
 	}
 
-	if (player && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (player && player_has_energy(p_ptr))
 	{
 		do_cmd_walk(player, dir, p_ptr->always_pickup);
 		return 2;
@@ -3491,7 +3500,7 @@ static int Receive_tunnel(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_tunnel(player, dir);
 		return 2;
@@ -3499,6 +3508,8 @@ static int Receive_tunnel(int ind)
 
 	return 1;
 }
+
+
 
 static int Receive_aim_wand(int ind)
 {
@@ -3523,7 +3534,7 @@ static int Receive_aim_wand(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_aim_wand(player, item, dir);
 		return 2;
@@ -3560,7 +3571,7 @@ static int Receive_drop(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_drop(player, item, amt);
 		return 2;
@@ -3605,7 +3616,7 @@ static int Receive_fire(int ind)
 			dir = randint(9) + 1;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= (level_speed(p_ptr->dun_depth) / p_ptr->num_fire))
+	if (connp->id != -1 && p_ptr->energy >= (level_speed(p_ptr->dun_depth) / p_ptr->num_fire) && item_valid(item))
 	{
 		do_cmd_fire(player, dir, item);
 		return 2;
@@ -3674,7 +3685,7 @@ static int Receive_destroy(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_destroy(player, item, amt);
 		return 2;
@@ -3718,7 +3729,7 @@ static int Receive_observe(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_observe(player, item);
 		return 2;
@@ -3784,7 +3795,7 @@ static int Receive_spell(int ind)
         return n;
     }
 
-    if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+    if (connp->id != -1 && player_has_energy(p_ptr))
     {
 		do_cmd_cast(player, book, spell);
 		return 2;
@@ -3821,7 +3832,7 @@ static int Receive_open(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_open(player, dir);
 		return 2;
@@ -3859,7 +3870,7 @@ static int Receive_pray(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_pray(player, book, prayer);
 		return 2;
@@ -3898,7 +3909,7 @@ static int Receive_ghost(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_ghost_power(player, ability);
 		return 2;
@@ -3935,7 +3946,7 @@ static int Receive_quaff(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_quaff_potion(player, item);
 		return 2;
@@ -3972,7 +3983,7 @@ static int Receive_read(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_read_scroll(player, item);
 		return 2;
@@ -4008,7 +4019,7 @@ static int Receive_search(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_search(player);
 		return 2;
@@ -4041,7 +4052,7 @@ static int Receive_take_off(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_takeoff(player, item);
 		return 2;
@@ -4078,7 +4089,7 @@ static int Receive_use(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_use_staff(player, item);
 		return 2;
@@ -4115,7 +4126,7 @@ static int Receive_throw(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_throw(player, dir, item);
 		return 2;
@@ -4153,7 +4164,7 @@ static int Receive_wield(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_wield(player, item);
 		return 2;
@@ -4190,7 +4201,7 @@ static int Receive_zap(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_zap_rod(player, item);
 		return 2;
@@ -4289,7 +4300,7 @@ static int Receive_inscribe(int ind)
 		return n;
 	}
 
-	if (connp->id != -1)
+	if (connp->id != -1 && item_valid(item))
 		do_cmd_inscribe(player, item, inscription);
 
 	return 1;
@@ -4319,7 +4330,7 @@ static int Receive_uninscribe(int ind)
 		return n;
 	}
 
-	if (connp->id != -1)
+	if (connp->id != -1 && item_valid(item))
 		do_cmd_uninscribe(player, item);
 
 	return 1;
@@ -4349,7 +4360,7 @@ static int Receive_activate(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_activate(player, item);
 		return 2;
@@ -4385,7 +4396,7 @@ static int Receive_bash(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_bash(player, dir);
 		return 2;
@@ -4422,7 +4433,7 @@ static int Receive_disarm(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_disarm(player, dir);
 		return 2;
@@ -4459,7 +4470,7 @@ static int Receive_eat(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_eat_food(player, item);
 		return 2;
@@ -4497,7 +4508,7 @@ static int Receive_fill(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr) && item_valid(item))
 	{
 		do_cmd_refill(player, item);
 		return 2;
@@ -4617,7 +4628,7 @@ static int Receive_close(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_close(player, dir);
 		return 2;
@@ -4655,7 +4666,7 @@ static int Receive_gain(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_study(player, book, spell);
 		return 2;
@@ -4691,7 +4702,7 @@ static int Receive_go_up(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_go_up(player);
 		return 2;
@@ -4727,7 +4738,7 @@ static int Receive_go_down(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_go_down(player);
 		return 2;
@@ -4796,7 +4807,7 @@ static int Receive_item(int ind)
 		return n;
 	}
 
-	if (connp->id != -1)
+	if (connp->id != -1 && item_valid(item))
 		Handle_item(player, item);
 
 	return 1;
@@ -4886,6 +4897,11 @@ static int Receive_purchase(int ind)
 		return n;
 	}
 
+	if(!item_valid(item))
+	{
+		return 1;
+	}
+
 	if (player && p_ptr->store_num > -1)
 		store_purchase(player, item, amt);
 	else if (player)
@@ -4919,7 +4935,7 @@ static int Receive_sell(int ind)
 		return n;
 	}
 
-	if (player)
+	if (player && item_valid(item))
 		store_sell(player, item, amt);
 
 	return 1;
@@ -5009,7 +5025,7 @@ static int Receive_drop_gold(int ind)
 	player_type *p_ptr;
 	char ch;
 	int n, player;
-	s32b amt;
+	long amt;
 
 	if (connp->id != -1) 
 	{
@@ -5024,7 +5040,7 @@ static int Receive_drop_gold(int ind)
 		return n;
 	}
 
-	if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	if (connp->id != -1 && player_has_energy(p_ptr))
 	{
 		do_cmd_drop_gold(player, amt);
 		return 2;
@@ -5064,7 +5080,7 @@ static int Receive_steal(int ind)
 	
 #if 0
 	if (!cfg_no_steal) {
-		if (connp->id != -1 && p_ptr->energy >= level_speed(p_ptr->dun_depth))
+		if (connp->id != -1 && player_has_energy(p_ptr))
 		{
 			do_cmd_steal(player, dir);
 			return 2;

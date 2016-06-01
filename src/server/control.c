@@ -263,7 +263,7 @@ static void console_shutdown(void)
  */
 void NewConsole(int read_fd, int arg)
 {
-	char ch, passwd[80], buf[1024];
+	char ch, passwd[MSG_LEN], buf[MSG_LEN];
 	char *params;
 	int i, j, bytes, buflen;
 	static int newsock = 0;
