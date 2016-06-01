@@ -1,13 +1,13 @@
 #ifndef INCLUDED_CWIN_H
 #define INCLUDED_CWIN_H
 
-struct FontSpec {
+typedef struct FontSpec {
 	char *name;
 	int isbold;
 	int height;
 	int width;
 	int charset;
-};
+} FontSpec;
 
 /*
 * This structure is passed to event handler functions as the `dlg'

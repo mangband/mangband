@@ -70,6 +70,7 @@
 
 
 #include "c-angband.h"
+#include "../win/c-win.h"
 
 #ifdef USE_WIN
 
@@ -95,7 +96,6 @@ static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #ifdef BEN_HACK
 # undef USE_SOUND
 #endif
-
 
 /*
  * Menu constants -- see "ANGBAND.RC"
@@ -571,24 +571,113 @@ void unset_chat_focus( void )
 	if(old_focus) SetFocus(old_focus);
 }
 
+
+/*
+* Write the "preference" data for single term
+*/
+static void save_prefs_aux(term_data *td, cptr sec_name)
+{
+	char buf[32];
+
+	RECT rc;
+
+	if (!td->w) return;
+
+	/* Visible (Sub-windows) */
+	if (td != &win_data[0])
+	{
+		//strcpy(buf, td->visible ? "1" : "0");
+		conf_set_int(sec_name, "Visible", td->visible);
+	}
+
+	/* Desired font */
+	if (td->font_file)
+	{
+		/* Short-hand */
+		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
+		{
+			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
+			conf_set_string(sec_name, "Font", buf);
+		}
+		else
+			/* Full path */
+			conf_set_string(sec_name, "Font", td->font_file);
+	}
+
+	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
+	/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
+	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
+
+	/* Current size (x) */
+	//wsprintf(buf, "%d", td->cols);
+	conf_set_int(sec_name, "Columns", td->cols);
+
+	/* Current size (y) */
+	//wsprintf(buf, "%d", td->rows);
+	conf_set_int(sec_name, "Rows", td->rows);
+
+	/* Acquire position */
+	if (GetWindowRect(td->w, &rc))
+	{
+		/* Current position (x) */
+		//wsprintf(buf, "%d", rc.left);
+		conf_set_int(sec_name, "PositionX", rc.left);
+
+		/* Current position (y) */
+		//wsprintf(buf, "%d", rc.top);
+		conf_set_int(sec_name, "PositionY", rc.top);
+	}
+}
+
+
+/*
+* Write the "preference" data to the .INI file
+*
+* We assume that the windows have all been initialized
+*/
+static void save_prefs(void)
+{
+#ifdef USE_GRAPHICS
+	conf_set_int("Windows32", "Graphics", next_graphics);
+#endif
+#ifdef USE_SOUND
+	conf_set_int("Windows32", "Sound", use_sound);
+#endif
+	save_prefs_aux(&win_data[0], "Main window");
+
+	/* XXX XXX XXX XXX */
+
+	save_prefs_aux(&win_data[1], "Mirror window");
+
+	save_prefs_aux(&win_data[2], "Recall window");
+
+	save_prefs_aux(&win_data[3], "Choice window");
+
+	save_prefs_aux(&win_data[4], "Term-4 window");
+
+	save_prefs_aux(&win_data[5], "Term-5 window");
+
+	save_prefs_aux(&win_data[6], "Term-6 window");
+
+	save_prefs_aux(&win_data[7], "Term-7 window");
+}
+
 void set_graphics_next(int mode)
 {
-	// char buf[1024];
+	char buf[1024];
 
 	next_graphics = mode;
 	if (next_graphics != use_graphics)
 	{
 		MessageBox(NULL, "You need to restart MAngband in order for the changes to take effect","MAngband",MB_OK);	
 		
-		/*
 		save_prefs();
-		*/
 
 		/* Access the "graphic" mappings */
-		//sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
+		sprintf(buf, "%s-%s.prf", (use_graphics ? "graf" : "font"), ANGBAND_SYS);
 
 		/* Load the file */
-		//process_pref_file(buf);
+		process_pref_file(buf);
 	}
 }
 
@@ -800,97 +889,6 @@ static void term_getsize(term_data *td)
 
 
 /*
- * Write the "preference" data for single term
- */
-static void save_prefs_aux(term_data *td, cptr sec_name)
-{
-	char buf[32];
-
-	RECT rc;
-
-	if (!td->w) return;
-
-	/* Visible (Sub-windows) */
-	if (td != &win_data[0])
-	{
-		//strcpy(buf, td->visible ? "1" : "0");
-		conf_set_int(sec_name, "Visible", td->visible);
-	}
-
-	/* Desired font */
-	if (td->font_file)
-	{
-		/* Short-hand */
-		if (!strncmp(td->font_file, ANGBAND_DIR_XTRA_FONT, strlen(ANGBAND_DIR_XTRA_FONT)))
-		{
-			strcpy(buf, td->font_file + strlen(ANGBAND_DIR_XTRA_FONT) + 1);
-			conf_set_string(sec_name, "Font", buf);
-		}
-		else
-		/* Full path */
-		conf_set_string(sec_name, "Font", td->font_file);
-	}
-
-	/* Bad Hack :( -- since we allow slight overhead, make sure we're in bounds */
-/*	if (td == &win_data[0] && Setup.max_col && !(window_flag[0] & PW_PLAYER_2) && td->cols > Setup.max_col) td->cols = Setup.max_col; // Compact
-	if (td == &win_data[0] && Setup.max_row && !(window_flag[0] & PW_STATUS)   && td->rows > Setup.max_row) td->rows = Setup.max_row; // Status line	 */
-
-	/* Current size (x) */
-	//wsprintf(buf, "%d", td->cols);
-	conf_set_int(sec_name, "Columns", td->cols);
-
-	/* Current size (y) */
-	//wsprintf(buf, "%d", td->rows);
-	conf_set_int(sec_name, "Rows", td->rows);
-
-	/* Acquire position */
-	if (GetWindowRect(td->w, &rc))
-	{
-		/* Current position (x) */
-		//wsprintf(buf, "%d", rc.left);
-		conf_set_int(sec_name, "PositionX", rc.left);
-
-		/* Current position (y) */
-		//wsprintf(buf, "%d", rc.top);
-		conf_set_int(sec_name, "PositionY", rc.top);
-	}
-}
-
-
-/*
- * Write the "preference" data to the .INI file
- *
- * We assume that the windows have all been initialized
- */
-static void save_prefs(void)
-{
-#ifdef USE_GRAPHICS
-	conf_set_int("Windows32", "Graphics", next_graphics);
-#endif
-#ifdef USE_SOUND
-	conf_set_int("Windows32", "Sound", use_sound);
-#endif
-	save_prefs_aux(&win_data[0], "Main window");
-
-	/* XXX XXX XXX XXX */
-
-	save_prefs_aux(&win_data[1], "Mirror window");
-
-	save_prefs_aux(&win_data[2], "Recall window");
-
-	save_prefs_aux(&win_data[3], "Choice window");
-
-	save_prefs_aux(&win_data[4], "Term-4 window");
-
-	save_prefs_aux(&win_data[5], "Term-5 window");
-
-	save_prefs_aux(&win_data[6], "Term-6 window");
-
-	save_prefs_aux(&win_data[7], "Term-7 window");
-}
-
-
-/*
  * Load preference for a single term
  */
 static void load_prefs_aux(term_data *td, cptr sec_name)
@@ -909,8 +907,8 @@ static void load_prefs_aux(term_data *td, cptr sec_name)
 	td->font_want = string_make(extract_file_name(tmp));
 
 	/* Desired graf, with default */
-	//strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
-	//td->graf_want = string_make(extract_file_name(tmp));
+	strcpy(tmp, conf_get_string(sec_name, "Graf", GFXBMP[use_graphics]));
+	td->graf_want = string_make(extract_file_name(tmp));
 
 	/* Window size */
 	td->cols = conf_get_int(sec_name, "Columns", td->cols);
@@ -969,14 +967,12 @@ static void load_prefs(void)
 	if ( GetUserName(buffer, &bufferLen) ) {
 		/* Cut */
 		buffer[16] = '\0';
-		strcpy(real_name, buffer);
+  		strcpy(real_name, buffer);
 
 	}
-	else
-	{
+   	else
 		/* XXX Default real name */
 		strcpy(real_name, "PLAYER");
-	}
 }
 
 
@@ -1413,33 +1409,68 @@ static errr term_force_graf(term_data *td, cptr name)
 static void term_change_font(term_data *td)
 {
 	OPENFILENAME ofn;
+	CHOOSEFONT cf;
+	LOGFONT lf;
+	HDC hdc;
+	FontSpec *fs = {td->font_file, 0, td->font_hgt, td->font_wid, 0};
 
 	char tmp[128] = "";
 
 	/* Extract a default if possible */
-	if (td->font_file) strcpy(tmp, td->font_file);
+//	if (td->font_file) strcpy(tmp, td->font_file);
 
 	/* Ask for a choice */
-	memset(&ofn, 0, sizeof(ofn));
-	ofn.lStructSize = sizeof(ofn);
-	ofn.hwndOwner = win_data[0].w;
-	ofn.lpstrFilter = "Font Files (*.fon)\0*.fon\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = tmp;
-	ofn.nMaxFile = 128;
-	ofn.lpstrInitialDir = ANGBAND_DIR_XTRA_FONT;
-	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-	ofn.lpstrDefExt = "fon";
+//	memset(&ofn, 0, sizeof(ofn));
+//	ofn.lStructSize = sizeof(ofn);
+//	ofn.hwndOwner = win_data[0].w;
+//	ofn.lpstrFilter = "Font Files (*.fon)\0*.fon\0";
+//	ofn.nFilterIndex = 1;
+//	ofn.lpstrFile = tmp;
+//	ofn.nMaxFile = 128;
+//	ofn.lpstrInitialDir = ANGBAND_DIR_XTRA_FONT;
+//	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+//	ofn.lpstrDefExt = "fon";
 
 	/* Force choice if legal */
-	if (GetOpenFileName(&ofn))
-	{
+	//	if (GetOpenFileName(&ofn))
+	//	{
 		/* Force the font */
-		if (term_force_font(td, tmp))
-		{
+		//		if (term_force_font(td, tmp))
+		//		{
 			/* Oops */
-			(void)term_force_font(td, "8X13.FON");
-		}
+			//			(void)term_force_font(td, "8X13.FON");
+			//		}
+			//	}
+
+	hdc = GetDC(td->w);
+	lf.lfHeight = -MulDiv(fs->height,
+		GetDeviceCaps(hdc, LOGPIXELSY), 72);
+	ReleaseDC(0, hdc);
+	lf.lfWidth = lf.lfEscapement = lf.lfOrientation = 0;
+	lf.lfItalic = lf.lfUnderline = lf.lfStrikeOut = 0;
+	lf.lfWeight = (fs->isbold ? FW_BOLD : 0);
+	lf.lfCharSet = fs->charset;
+	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
+	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+	lf.lfQuality = DEFAULT_QUALITY;
+	lf.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
+	strncpy(lf.lfFaceName, fs->name,
+		sizeof(lf.lfFaceName) - 1);
+	lf.lfFaceName[sizeof(lf.lfFaceName) - 1] = '\0';
+
+	cf.lStructSize = sizeof(cf);
+	cf.hwndOwner = dp->hwnd;
+	cf.lpLogFont = &lf;
+	cf.Flags = (dp->fixed_pitch_fonts ? CF_FIXEDPITCHONLY : 0) |
+		CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
+
+	if (ChooseFont(&cf)) {
+		fs = fontspec_new(lf.lfFaceName, (lf.lfWeight == FW_BOLD),
+			cf.iPointSize / 10, lf.lfCharSet);
+		dlg_fontsel_set(ctrl, dp, fs);
+		fontspec_free(fs);
+
+		ctrl->generic.handler(ctrl, dp, dp->data, EVENT_VALCHANGE);
 	}
 }
 
@@ -1960,7 +1991,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	int row, col;
 	int i;
 	int x1, y1, w1, h1;
-	int x2, y2, w2, h2;
+	int x2, y2, w2, h2, tw2;
 	int x3, y3;
 
 	/* Paranoia -- handle weird requests */
@@ -2005,6 +2036,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	/* Size of window cell */
 	w2 = td->font_wid;
 	h2 = td->font_hgt;
+	tw2 = w2;
 
 	/* Location of window cell */
 	x2 = x * w2 + td->size_ow1;
@@ -2045,24 +2077,22 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
 			(use_graphics == GRAPHICS_DAVID_GERVAIS))
 		{
-			x3 = (tcp[i] & 0x7F) * w1;
-			y3 = (tap[i] & 0x7F) * h1;
+//			x3 = (tcp[i] & 0x7F) * w1;
+//			y3 = (tap[i] & 0x7F) * h1;
+			x3 = (p_ptr->trn_info[y][x].c & 0x7F) * w1;
+			y3 = (p_ptr->trn_info[y][x].a & 0x7F) * h1;
 
 			/* Perfect size */
-			if ((w1 == w2) && (h1 == h2))
+			if ((w1 == tw2) && (h1 == h2))
 			{
 				/* Copy the terrain picture from the bitmap to the window */
-				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, SRCCOPY);
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, SRCCOPY);
 
-				/* Only draw if terrain and overlay are different */
-				if ((x1 != x3) || (y1 != y3))
-				{
-					/* Mask out the tile */
-					BitBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, SRCAND);
+				/* Mask out the tile */
+				BitBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, SRCAND);
 
-					/* Draw the tile */
-					BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCPAINT);
-				}
+				/* Draw the tile */
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCPAINT);
 			}
 
 			/* Need to stretch */
@@ -2072,26 +2102,26 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 				SetStretchBltMode(hdc, COLORONCOLOR);
 
 				/* Copy the terrain picture from the bitmap to the window */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
+				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
 
 				/* Only draw if terrain and overlay are different */
 				if ((x1 != x3) || (y1 != y3))
 				{
 					/* Mask out the tile */
-					StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+					StretchBlt(hdc, x2, y2, tw2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
 
 					/* Draw the tile */
-					StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+					StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
 				}
 			}
 		}
 		else
 		{
 			/* Perfect size */
-			if ((w1 == w2) && (h1 == h2))
+			if ((w1 == tw2) && (h1 == h2))
 			{
 				/* Copy the picture from the bitmap to the window */
-				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCCOPY);
+				BitBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, SRCCOPY);
 			}
 
 			/* Need to stretch */
@@ -2101,7 +2131,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 				SetStretchBltMode(hdc, COLORONCOLOR);
 
 				/* Copy the picture from the bitmap to the window */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+				StretchBlt(hdc, x2, y2, tw2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
 			}
 		}
 	}
@@ -2327,7 +2357,7 @@ static void init_windows(void)
 	                           td_ptr->pos_x, td_ptr->pos_y,
 	                           td_ptr->size_wid, td_ptr->size_hgt,
 	                           HWND_DESKTOP, NULL, hInstance, NULL);
-	if (!td_ptr->w) quit("Failed to create Angband window");
+	if (!td_ptr->w) quit("Failed to create MAngband window");
 	td_ptr = NULL;
 	term_data_link(&win_data[0]);
 	ang_term[0] = &win_data[0].t;
@@ -2666,11 +2696,11 @@ static void process_menus(WORD wCmd)
 
 #ifdef USE_GRAPHICS
 			/* XXX XXX XXX */
-			//if (use_graphics)
-			//{
-			//	term_change_bitmap(&win_data[0]);
-			//	break;
-			//}
+			if (use_graphics)
+			{
+				term_change_bitmap(&win_data[0]);
+				break;
+			}
 #endif
 
 			term_change_font(&win_data[0]);
