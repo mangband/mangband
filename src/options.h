@@ -44,6 +44,12 @@
  */
 #define	META_ADDRESS "mangband.org"  
 
+/*
+ * HORRIBLE HACK: Redefine meta address during the development
+ * process. Remove this in the release branch/build!
+ */
+#undef META_ADDRESS
+#define META_ADDRESS "test.mangband.org"
 
 /*
  * OPTION: Set a vhost bind address.  This is used in two ways.
