@@ -39,10 +39,6 @@
 #  include <sys/time.h>
 # endif
 
-# if !defined(sgi) && !defined(ultrix)
-#  include <sys/timeb.h>
-# endif
-
 #endif
 
 
