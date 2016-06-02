@@ -338,10 +338,12 @@ void show_news(void)
 			/* Crash and burn */
 			show_news_error(why);
 		}
+		else
+		{
+			/* Close it */
+			(void)file_close(fp);
+		}
 	}
-
-	/* Close it */
-	(void)file_close(fp);
 }
 
 
@@ -2265,7 +2267,7 @@ void load_server_cfg_aux(ang_file* cfg)
 	while (file_getl(cfg, line, 256))
 	{
 		// Chomp off the end of line character
-		line[strlen(line)-1] = '\0';
+		//line[strlen(line)-1] = '\0';
 
 		/* Parse the line that has been read in */
 		// If the line begins with a # or is empty, ignore it
@@ -2325,7 +2327,7 @@ void load_server_cfg(void)
 	/* Attempt to open the file */
 	while (!cfg && possible_cfg_dir[i++])
 	{
-		cfg = fopen(possible_cfg_dir[i-1], "r");
+		cfg = file_open(possible_cfg_dir[i-1], MODE_READ, -1);
 	}
 
 	/* Failure, try several dirs, then stop trying */

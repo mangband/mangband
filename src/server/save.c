@@ -986,7 +986,7 @@ static bool wr_savefile_new(int Ind)
 	end_section("mangband_player_save");
 
 	/* Error in save */
-	if (ferror(file_handle)) return FALSE;
+	if (file_error(file_handle)) return FALSE;
 
 	/* Successful save */
 	return TRUE;
