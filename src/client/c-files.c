@@ -1929,7 +1929,7 @@ void conf_init(void* param)
 		strcat(path, "\\mangclient.ini");
 
 		/* Ok */
-		if (my_fexists(path))
+		if (file_exists(path))
 		{
 			my_strcpy(config_name, path, 1024);
 			return;
