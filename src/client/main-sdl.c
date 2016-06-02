@@ -503,7 +503,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 
-	f = fopen(buf, "r");
+	f = file_open(buf, MODE_READ, -1);
 
 	if (!f)
 	{
