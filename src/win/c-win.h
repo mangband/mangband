@@ -1,6 +1,15 @@
 #ifndef INCLUDED_CWIN_H
 #define INCLUDED_CWIN_H
 
+#define smalloc(z) malloc(z,1)
+#define snmalloc malloc
+#define snewn(n, type) ((type *)snmalloc((n), sizeof(type)))
+#define snew(type) ((type *)snmalloc(1, sizeof(type)))
+//#define snewn(n, type) ((type *)snmalloc((n), sizeof(type)))
+//#define sresize(ptr, n, type)                                           \
+//    ((type *)snrealloc(sizeof((type *)0 == (ptr)) ? (ptr) : (ptr),      \
+//                       (n), sizeof(type)))
+
 typedef struct FontSpec {
 	char *name;
 	int isbold;
@@ -8,6 +17,8 @@ typedef struct FontSpec {
 	int width;
 	int charset;
 } FontSpec;
+struct FontSpec *fontspec_new(const char *name,
+	int bold, int height, int charset);
 
 /*
 * This structure is passed to event handler functions as the `dlg'

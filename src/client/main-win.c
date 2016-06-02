@@ -1400,6 +1400,29 @@ static errr term_force_graf(term_data *td, cptr name)
 
 #endif
 
+char *dupstr(const char *s)
+{
+	char *p = NULL;
+	if (s) {
+		int len = strlen(s);
+		p = snewn(len + 1, char);
+		strcpy(p, s);
+	}
+	return p;
+}
+
+
+FontSpec *fontspec_new(const char *name,
+	int bold, int height, int charset)
+{
+	FontSpec *f = snew(FontSpec);
+	f->name = dupstr(name);
+	f->isbold = bold;
+	f->height = height;
+	f->charset = charset;
+	return f;
+}
+
 
 /*
  * Allow the user to change the font (and graf) for this window.
@@ -1412,7 +1435,7 @@ static void term_change_font(term_data *td)
 	CHOOSEFONT cf;
 	LOGFONT lf;
 	HDC hdc;
-	FontSpec *fs = {td->font_file, 0, td->font_hgt, td->font_wid, 0};
+	FontSpec fs = { td->font_file, 0, td->font_hgt, td->font_wid, 0 };
 
 	char tmp[128] = "";
 
@@ -1443,34 +1466,39 @@ static void term_change_font(term_data *td)
 			//	}
 
 	hdc = GetDC(td->w);
-	lf.lfHeight = -MulDiv(fs->height,
+	lf.lfHeight = -MulDiv(fs.height,
 		GetDeviceCaps(hdc, LOGPIXELSY), 72);
 	ReleaseDC(0, hdc);
 	lf.lfWidth = lf.lfEscapement = lf.lfOrientation = 0;
 	lf.lfItalic = lf.lfUnderline = lf.lfStrikeOut = 0;
-	lf.lfWeight = (fs->isbold ? FW_BOLD : 0);
-	lf.lfCharSet = fs->charset;
+	lf.lfWeight = (fs.isbold ? FW_BOLD : 0);
+	lf.lfCharSet = fs.charset;
 	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;
 	lf.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-	strncpy(lf.lfFaceName, fs->name,
+	strncpy(lf.lfFaceName, fs.name,
 		sizeof(lf.lfFaceName) - 1);
 	lf.lfFaceName[sizeof(lf.lfFaceName) - 1] = '\0';
 
 	cf.lStructSize = sizeof(cf);
-	cf.hwndOwner = dp->hwnd;
+	cf.hwndOwner = td->w;
 	cf.lpLogFont = &lf;
-	cf.Flags = (dp->fixed_pitch_fonts ? CF_FIXEDPITCHONLY : 0) |
+	cf.Flags = CF_FIXEDPITCHONLY |
 		CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
 
 	if (ChooseFont(&cf)) {
-		fs = fontspec_new(lf.lfFaceName, (lf.lfWeight == FW_BOLD),
+		fs = *fontspec_new(lf.lfFaceName, (lf.lfWeight == FW_BOLD),
 			cf.iPointSize / 10, lf.lfCharSet);
-		dlg_fontsel_set(ctrl, dp, fs);
-		fontspec_free(fs);
+//		dlg_fontsel_set(ctrl, dp, fs);
+//		fontspec_free(fs);
 
-		ctrl->generic.handler(ctrl, dp, dp->data, EVENT_VALCHANGE);
+//		ctrl->generic.handler(ctrl, dp, dp->data, EVENT_VALCHANGE);
+		if (term_force_font(td, fs.name))
+		{
+/* Oops */
+			(void)term_force_font(td, "8X13.FON");
+		}
 	}
 }
 
