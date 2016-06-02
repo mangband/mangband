@@ -262,13 +262,6 @@ static int graf_width = 0;
 //defined elsewhere
 //cptr ANGBAND_GRAF = "old";
 
-/*
- * Creator signature and file type - Didn't I say that I abhor file name
- * extentions?  Names and metadata are entirely different set of notions.
- */
-u32b _fcreator;
-u32b _ftype;
-
 typedef struct GlyphInfo GlyphInfo;
 
 typedef struct term_data term_data;
@@ -2590,6 +2583,23 @@ static void save_pref_file(void)
 
 #if 0
 
+/**
+ * Set HFS file type and creator codes on a path
+ */
+static void crb_file_open_hook(const char *path, file_type ftype)
+{
+	if (path)
+	{
+		u32b mac_type = 'TEXT';
+		if (ftype == FTYPE_RAW)
+			mac_type = 'DATA';
+		else if (ftype == FTYPE_SAVE)
+			mac_type = 'SAVE';
+		fsetfileinfo(path, ANGBAND_CREATOR, mac_type);
+	}
+}
+
+
 /*
  * Prepare savefile dialogue and set the variable
  * savefile accordingly. Returns true if it succeeds, false (or
@@ -4001,12 +4011,6 @@ int main(void)
 	 */
 	(void)Gestalt(gestaltSystemVersion, &mac_os_version);
 
-	/* Mark ourself as the file creator */
-	_fcreator = ANGBAND_CREATOR;
-	/* Default to saving a "text" file */
-	_ftype = 'TEXT';
-
-
 	/* Hook in some "z-virt.c" hooks */
 	rnfree_aux = NULL;
 	ralloc_aux = NULL;
@@ -4015,7 +4019,10 @@ int main(void)
 	/* Hooks in some "z-util.c" hooks */
 	plog_aux = hook_plog;
 	quit_aux = hook_quit;
-	
+
+	/* Hook in to the file_open routine */
+	file_open_hook = crb_file_open_hook;
+
 #ifdef DEBUG
 	fprintf(stderr,"quit_aux: %x\n",quit_aux);
 #endif
