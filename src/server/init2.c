@@ -1589,6 +1589,29 @@ static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
 
 
 
+/*
+ * Initialize server-side terrain/monster visual arrays
+ *
+ * This should happen AFTER we have populated x_char/x_attr values
+ * of f_info and r_info by
+ *  a) calling reset_visuals()
+ *  b) loading the font.prf file
+ *  (both of those happen in "play_game()")
+ */
+void apply_visuals(void)
+{
+	int i;
+	for (i = 0; i < z_info->f_max; i++)
+	{
+		f_char_s[i] = f_info[i].x_char;
+		f_attr_s[i] = f_info[i].x_attr;
+	}
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		r_char_s[i] = r_info[i].x_char;
+		r_attr_s[i] = r_info[i].x_attr;
+	}
+}
 
 /*
  * Initialize some other arrays
@@ -1604,19 +1627,12 @@ static errr init_other(void)
 	/* Feature */
 	C_MAKE(f_char_s, z_info->f_max, char);
 	C_MAKE(f_attr_s, z_info->f_max, byte);
-	for (i = 0; i < z_info->f_max; i++)
-	{
-		f_char_s[i] = f_info[i].x_char;
-		f_attr_s[i] = f_info[i].x_attr;
-	}
+
 	/* Monster */
 	C_MAKE(r_char_s, z_info->r_max, char);
 	C_MAKE(r_attr_s, z_info->r_max, byte);
-	for (i = 0; i < z_info->r_max; i++)
-	{
-		r_char_s[i] = r_info[i].x_char;
-		r_attr_s[i] = r_info[i].x_attr;
-	}
+
+	/* Note: those arrays are filled in "apply_visuals()" */
 
 	/*** Prepare the "dungeon" information ***/
 
