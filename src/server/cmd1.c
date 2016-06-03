@@ -655,6 +655,9 @@ void carry(int Ind, int pickup, int confirm)
 		if ((p_ptr->ghost) || (p_ptr->fruit_bat) ) return;
 	};
 
+	/* Paralyzed players can't pick things up */
+	if (p_ptr->paralyzed) return;
+
 	/* Get the object */
 	o_ptr = &o_list[c_ptr->o_idx];
 
@@ -824,18 +827,6 @@ void carry(int Ind, int pickup, int confirm)
 
 				/* Message */
 				msg_format(Ind, "You have %s (%c).", o_name, index_to_label(slot));
-
-				/* Hack - record finding artifacts in the event history */
-				if(artifact_p(o_ptr))
-				{
-					char artname[80];
-					char msg[80];
-					object_desc(0, artname, o_ptr, FALSE, 0);
-					sprintf(msg,"Found The %s",artname);
-					log_history_event(Ind, msg, TRUE);
-					/* Mark artifact as found */
-					set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
-				}
 
 				/* Delete original */
 				delete_object(Depth, p_ptr->py, p_ptr->px);
@@ -1214,7 +1205,7 @@ void py_attack_player(int Ind, int y, int x)
 	disturb(0 - c_ptr->m_idx, 0, 0);
 
 	/* Extract name */
-	strcpy(pvp_name, q_ptr->name);
+	my_strcpy(pvp_name, q_ptr->name, 80);
 
 	/* Track player health */
 	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
@@ -1659,10 +1650,17 @@ void move_player(int Ind, int dir, int do_pickup)
 			/* check to make sure he hasnt hit the edge of the world */
 			if (world_index(p_ptr->world_x, p_ptr->world_y) <= -MAX_WILD) 
 			{
+				switch(randint(2))
+				{
+					case 0: msg_print(Ind, "You have reached the Walls of the World. You can not pass."); break;
+					case 1: msg_print(Ind, "You cannot go beyond the Walls of the World."); break;
+				}
+				/* TODO: if wearing Crown of Morgoth, suicide! */
 				p_ptr->world_x = old_world_x;
 				p_ptr->world_y = old_world_y;
 				p_ptr->px = oldx;
 				p_ptr->py = oldy;
+				disturb(Ind, 1, 0);
 				return;
 			}
 			

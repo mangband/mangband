@@ -345,8 +345,21 @@ struct _term_data
 };
 
 #ifdef USE_GRAPHICS
-	DIBINIT infMask;
-	DIBINIT infGraph;
+/*
+* Flag set once "graphics" has been initialized
+*/
+static bool can_use_graphics = FALSE;
+
+/*
+* The global bitmap
+*/
+static DIBINIT infGraph;
+
+/*
+* The global bitmap mask
+*/
+static DIBINIT infMask;
+
 #endif 
 /*
  * Maximum number of windows XXX XXX XXX XXX
@@ -560,6 +573,8 @@ void unset_chat_focus( void )
 
 void set_graphics_next(int mode)
 {
+	// char buf[1024];
+
 	next_graphics = mode;
 	if (next_graphics != use_graphics)
 	{
@@ -954,12 +969,14 @@ static void load_prefs(void)
 	if ( GetUserName(buffer, &bufferLen) ) {
 		/* Cut */
 		buffer[16] = '\0';
-  		strcpy(real_name, buffer);
+		strcpy(real_name, buffer);
 
 	}
-   	else
+	else
+	{
 		/* XXX Default real name */
 		strcpy(real_name, "PLAYER");
+	}
 }
 
 
@@ -971,7 +988,7 @@ static void load_prefs(void)
  *
  * This function is never called before all windows are ready.
  */
-static void new_palette(void)
+static int new_palette(void)
 {
 	HPALETTE       hBmPal;
 	HPALETTE       hNewPal;
@@ -984,8 +1001,7 @@ static void new_palette(void)
 
 
 	/* Cannot handle palettes */
-	if (!paletted) return;
-
+	if (!paletted) return (TRUE);
 
 	/* No palette */
 	hBmPal = NULL;
@@ -1006,8 +1022,16 @@ static void new_palette(void)
 		lppeSize = 256*sizeof(PALETTEENTRY);
 		lppe = (LPPALETTEENTRY)ralloc(lppeSize);
 		nEntries = GetPaletteEntries(hBmPal, 0, 255, lppe);
-		if (nEntries == 0) quit("Corrupted bitmap palette");
-		if (nEntries > 220) quit("Bitmap must have no more than 220 colors");
+		if (nEntries == 0) {
+			plog("Corrupted bitmap palette");
+			FREE(lppe);
+			return (FALSE);
+		}
+		else if (nEntries > 220) {
+			plog("Bitmap must have no more than 220 colors");
+			FREE(lppe);
+			return (FALSE);
+		}
 	}
 
 #endif
@@ -1077,6 +1101,9 @@ static void new_palette(void)
 
 	/* Save new palette */
 	hPal = hNewPal;
+
+	/* Success */
+	return (TRUE);
 }
 
 
@@ -1288,12 +1315,12 @@ static errr term_force_graf(term_data *td, cptr name)
 
 	char buf[1024];
 
-	HBITMAP scaled_gfx; 
+	HBITMAP scaled_gfx;
 	HDC  hdc;
 	HDC hdcSrc;
 	HDC hdcDest;
 	HBITMAP hbmSrcOld;
-	
+
 	/* No name */
 	if (!name) return (1);
 
@@ -1356,46 +1383,23 @@ static errr term_force_graf(term_data *td, cptr name)
 		}
 	}
 
-	/* More info */
-////	hdcSrc = CreateCompatibleDC(hdc);
-////	hbmSrcOld = SelectObject(hdcSrc, td->infGraph.hBitmap);
-
 	/* Copy the picture from the bitmap to the window */
 //	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
 
-
-	/* Pre-scale the gfx, so we don't need to scale each time a tile */
-	/* is plotted. [grk] */
-/*	hdc = GetDC(td->w);
-	hdcSrc = CreateCompatibleDC(hdc);
-	scaled_gfx = CreateCompatibleBitmap( hdcSrc, 8*32, 13*60);
-
-	hdcDest = CreateCompatibleDC(hdc);
-	hbmSrcOld = SelectObject(hdcDest, td->infGraph.hBitmap);
-	SelectObject(hdcSrc, scaled_gfx);
-
-	SetStretchBltMode(hdcSrc, COLORONCOLOR);
-	StretchBlt(hdcSrc, 0, 0, 8*32, 13*60, hdcDest, 0, 0, 16*32, 16*60, SRCCOPY);
-	td->infGraph.hBitmap = scaled_gfx;
-*/	
-	
-	/* Release */
-/*	SelectObject(hdcSrc, scaled_gfx);
-	DeleteDC(hdcSrc);
-	SelectObject(hdcDest, hbmSrcOld);
-	DeleteDC(hdcDest);
-*/
-	/* Release */
-/*	ReleaseDC(td->w, hdc);
-*/
-	// FIXME
-
-
 	/* Activate a palette */
-	new_palette();
+	if (!new_palette())
+	{
+		/* Free bitmap XXX XXX XXX */
+
+		/* Oops */
+		plog("Cannot activate palette!");
+		return (FALSE);
+	}
+	/* Graphics available */
+	can_use_graphics = use_graphics;
 
 	/* Success */
-	return (0);
+	return (can_use_graphics);
 }
 
 #endif
@@ -1594,7 +1598,7 @@ static errr Term_xtra_win_react(void)
 		}
 
 		/* Activate the palette if needed */
-		if (change) new_palette();
+		if (change) (void)new_palette();
 	}
 #endif	/* no color support -gp */
 
@@ -1942,7 +1946,8 @@ static errr Term_curs_win(int x, int y)
  * If we are called for anything but the "screen" window, or if the global
  * "use_graphics" flag is off, we simply "wipe" the given grid.
  */
-static errr Term_pict_win(int x, int y, byte a, char c)
+// static errr Term_pict_win(int x, int y, byte a, char c)
+static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp) 
 {
 	term_data *td = (term_data*)(Term->data);
 
@@ -1953,6 +1958,7 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	HDC hdcMask;
 	HBITMAP hbmSrcOld;
 	int row, col;
+	int i;
 	int x1, y1, w1, h1;
 	int x2, y2, w2, h2;
 	int x3, y3;
@@ -1973,6 +1979,8 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	}
 #endif
 
+	Term_wipe_win(x, y, n);
+
 #ifdef USE_GRAPHICS
 	/* [grk] Client-side scrolling support 
 	 * This is a kludge see declaration of x_offset */
@@ -1983,16 +1991,16 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 #endif
 
 	/* Extract picture info */
-	row = (a & 0x7F);
-	col = (c & 0x7F);
+//	row = ((int)ap & 0x7F);
+//	col = ((int)cp & 0x7F);
 	
 	/* Size of bitmap cell */
 	w1 = infGraph.CellWidth;
 	h1 = infGraph.CellHeight;
 
 	/* Location of bitmap cell */
-	x1 = col * w1;
-	y1 = row * h1;
+//	x1 = col * w1;
+//	y1 = row * h1;
 
 	/* Size of window cell */
 	w2 = td->font_wid;
@@ -2020,35 +2028,84 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 		hdcMask = NULL;
 	}
 	
-	//---new tiling---
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
-		{
-			x3 = (p_ptr->trn_info[y][x].c & 0x7F) * w1;
-			y3 = (p_ptr->trn_info[y][x].a & 0x7F) * h1;
-			
-			SetStretchBltMode(hdc, COLORONCOLOR);
-
-			/* Copy the terrain picture from the bitmap to the window */
-			StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
-
-			/* Only draw if terrain and overlay are different */
-			if ((x1 != x3) || (y1 != y3))
-			{
-				/* Mask out the tile */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
-
-				/* Draw the tile */
-				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
-			}
-	}
-	else
+	/* Draw attr/char pairs */
+	for (i = 0; i < n; i++, x2 += w2)
 	{
-		/* Set the correct mode for stretching the tiles */
-		SetStretchBltMode(hdc, COLORONCOLOR);
-		/* Copy the terrain picture from the bitmap to the window */
-		StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+		byte a = ap[i];
+		char c = cp[i];
+
+		/* Extract picture */
+		int row = (a & 0x7F);
+		int col = (c & 0x7F);
+
+		/* Location of bitmap cell */
+		x1 = col * w1;
+		y1 = row * h1;
+
+		if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
+			(use_graphics == GRAPHICS_DAVID_GERVAIS))
+		{
+			x3 = (tcp[i] & 0x7F) * w1;
+			y3 = (tap[i] & 0x7F) * h1;
+
+			/* Perfect size */
+			if ((w1 == w2) && (h1 == h2))
+			{
+				/* Copy the terrain picture from the bitmap to the window */
+				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, SRCCOPY);
+
+				/* Only draw if terrain and overlay are different */
+				if ((x1 != x3) || (y1 != y3))
+				{
+					/* Mask out the tile */
+					BitBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, SRCAND);
+
+					/* Draw the tile */
+					BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCPAINT);
+				}
+			}
+
+			/* Need to stretch */
+			else
+			{
+				/* Set the correct mode for stretching the tiles */
+				SetStretchBltMode(hdc, COLORONCOLOR);
+
+				/* Copy the terrain picture from the bitmap to the window */
+				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
+
+				/* Only draw if terrain and overlay are different */
+				if ((x1 != x3) || (y1 != y3))
+				{
+					/* Mask out the tile */
+					StretchBlt(hdc, x2, y2, w2, h2, hdcMask, x1, y1, w1, h1, SRCAND);
+
+					/* Draw the tile */
+					StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCPAINT);
+				}
+			}
+		}
+		else
+		{
+			/* Perfect size */
+			if ((w1 == w2) && (h1 == h2))
+			{
+				/* Copy the picture from the bitmap to the window */
+				BitBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, SRCCOPY);
+			}
+
+			/* Need to stretch */
+			else
+			{
+				/* Set the correct mode for stretching the tiles */
+				SetStretchBltMode(hdc, COLORONCOLOR);
+
+				/* Copy the picture from the bitmap to the window */
+				StretchBlt(hdc, x2, y2, w2, h2, hdcSrc, x1, y1, w1, h1, SRCCOPY);
+			}
+		}
 	}
+
 	/* Release */
 	SelectObject(hdcSrc, hbmSrcOld);
 	DeleteDC(hdcSrc);
@@ -2330,7 +2387,7 @@ static void init_windows(void)
 #endif
 
 	/* New palette XXX XXX XXX */
-	new_palette();
+	(void)new_palette();
 
 
 	/* Create a "brush" for drawing the "cursor" */
@@ -2592,8 +2649,6 @@ static void process_menus(WORD wCmd)
 {
 #ifdef	MNU_SUPPORT
 	int i;
-
-	OPENFILENAME ofn;
 
 	/* Analyze */
 	switch (wCmd)

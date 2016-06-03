@@ -56,7 +56,7 @@ void choose_name(void)
  */
 void enter_password(void)
 {
-	int c;
+	unsigned int c;
 	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
@@ -109,6 +109,9 @@ void do_cmd_options_birth_call()
 	/* Sync data */
 	while (sync_data() == FALSE)	network_loop();
 
+	/* Hack -- preload "options.prf" */
+	process_pref_file("options.prf");
+
 	/* Show */
 	do_cmd_options_birth();
 }
@@ -158,7 +161,7 @@ static void choose_sex(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -219,7 +222,7 @@ static void choose_race(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -283,7 +286,7 @@ static void choose_class(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -336,7 +339,7 @@ void choose_stat_order(void)
 		/* Get a stat */
 		while (1)
 		{
-			put_str("Choose your stat order (= for Options, Q to Quit): ", 20, 2);
+			put_str("Choose your stat order (= for Options, ? for Help, Q to Quit): ", 20, 2);
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
@@ -349,7 +352,7 @@ void choose_stat_order(void)
 			}
 			else if (c == '=')
 			{
-				do_cmd_options_birth();
+				do_cmd_options_birth_call();
 			}
 			else if (c == '?')
 			{
@@ -467,7 +470,7 @@ static bool enter_server_name(void)
 	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
-	result = askfor_aux(server_name, 80, 0);
+	result = askfor_aux(server_name, MAX_COLS, 0);
 
 	s = strchr(server_name, ':');
 	if (!s) return result;
@@ -484,7 +487,7 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, socket, offsets[20];
+	int i, j, y, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];

@@ -638,6 +638,12 @@ void self_knowledge(int Ind, bool spoil)
 	f3 |= t3;
 
 
+	/* Birth options */
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
+	{
+		info[i++] = "You never compromise.";
+	}
+
 	/* Status */
 	if (p_ptr->blind)
 	{
@@ -1050,9 +1056,8 @@ void self_knowledge(int Ind, bool spoil)
 	/* Last line */
 	p_ptr->last_info_line = i - 1;
 
-
-	/* Let the client know to expect some info */
-	Send_special_other(Ind, "Self-Knowledge");
+	/* Let the client see it */
+	send_prepared_popup(Ind, "Self-Knowledge");
 }
 
 
@@ -2665,8 +2670,6 @@ bool create_artifact_aux(int Ind, int item)
 #if !defined(RANDART)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
-
-	return TRUE;
 #else
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
@@ -2702,7 +2705,7 @@ bool create_artifact_aux(int Ind, int item)
 		/* Forget the inscription */
                 o_ptr->note = 0;
         }
-
+#endif
 	/* Clear flags */
 	o_ptr->ident &= ~ID_KNOWN;
 	o_ptr->ident &= ~ID_SENSE;
@@ -2716,9 +2719,9 @@ bool create_artifact_aux(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
+/*
 	p_ptr->current_artifact = FALSE;
-#endif
+*/
 	return TRUE;
 }
 
@@ -2887,6 +2890,12 @@ bool ident_spell_aux(int Ind, int item)
 		sound(Ind, MSG_IDENT_EGO);
 	}
 
+	/* Notice artifacts */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
+
 	/* Describe */
 	if (item >= INVEN_WIELD)
 	{
@@ -2969,6 +2978,12 @@ bool identify_fully_item(int Ind, int item)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
+	/* Handle artifact knowledge */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
+
 	/* Handle stuff */
 	handle_stuff(Ind);
 
@@ -2994,8 +3009,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	Send_special_other(Ind, o_name);
-
+	send_prepared_popup(Ind, o_name);
 
 	/* Success */
 	return (TRUE);

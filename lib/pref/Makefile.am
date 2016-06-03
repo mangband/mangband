@@ -15,6 +15,8 @@ pref_DATA = \
 		lib/pref/graf-dvg.prf \
 		lib/pref/graf-new.prf \
 		lib/pref/graf-win.prf \
+		lib/pref/graf-sdl.prf \
+		lib/pref/graf-x11.prf \
 		lib/pref/graf-xxx.prf \
 		lib/pref/flvr-dvg.prf \
 		lib/pref/flvr-new.prf \

@@ -1480,7 +1480,7 @@ errr Term_gotoxy(int x, int y)
 	return (0);
 }
 
-errr Term_mem_ch(int x, int y, byte a, char c)
+errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 {
 	int w = Term->wid;
 	int h = Term->hgt;
@@ -1494,6 +1494,8 @@ errr Term_mem_ch(int x, int y, byte a, char c)
 	
 	Term->mem->a[y][x] = a;
 	Term->mem->c[y][x] = c; 
+	Term->mem->ta[y][x] = ta;
+	Term->mem->tc[y][x] = tc;
 	
 	/* Success */
 	return (0);

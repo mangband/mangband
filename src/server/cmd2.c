@@ -3616,17 +3616,20 @@ void do_cmd_fire(int Ind, int item, int dir)
 				dispx = x - p_ptr->panel_col_prt;
 
 				/* Remember the projectile */
-				p_ptr->scr_info[dispy][dispx].c = missile_char;
-				p_ptr->scr_info[dispy][dispx].a = missile_attr;
+				//p_ptr->scr_info[dispy][dispx].c = missile_char;
+				//p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Stream_tile(i, p_ptr, dispy, dispx);
+				//Stream_tile(i, p_ptr, dispy, dispx);
+
+				/* Tell the client */
+				(void)send_air_char(i, dispy, dispx, missile_attr, missile_char, cur_dis, 1);
 
 				/* Flush and wait */
-				if (cur_dis % tmul) Send_flush(i);
+				//if (cur_dis % tmul) Send_flush(i);
 
 				/* Restore */
-				lite_spot(i, y, x);
+				//lite_spot(i, y, x);
 			}
 
 			/* The player cannot see the missile */
@@ -4047,17 +4050,20 @@ void do_cmd_throw(int Ind, int item, int dir)
 				dispx = x - p_ptr->panel_col_prt;
 
 				/* Remember the projectile */
-				p_ptr->scr_info[dispy][dispx].c = missile_char;
-				p_ptr->scr_info[dispy][dispx].a = missile_attr;
+				//p_ptr->scr_info[dispy][dispx].c = missile_char;
+				//p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Stream_tile(i, p_ptr, dispy, dispx);
+				//Stream_tile(i, p_ptr, dispy, dispx);
+
+				/* Tell the client */
+				(void)send_air_char(i, dispy, dispx, missile_attr, missile_char, cur_dis, 1);
 
 				/* Flush and wait */
-				if (cur_dis % 2) Send_flush(i);
+				//if (cur_dis % 2) Send_flush(i);
 
 				/* Restore */
-				lite_spot(i, y, x);
+				//lite_spot(i, y, x);
 			}
 
 			/* The player cannot see the missile */

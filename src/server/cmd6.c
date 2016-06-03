@@ -397,6 +397,12 @@ void do_cmd_read_scroll_on(int Ind, int item, int item2)
  *
  * Hack -- staffs of identify can be "cancelled".
  */
+void do_cmd_use_staff_pre(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
+
+	do_cmd_use_staff(Ind, item);
+}
 void do_cmd_use_staff(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];

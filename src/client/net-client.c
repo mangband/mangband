@@ -55,9 +55,11 @@ void setup_network_client()
 void cleanup_network_client()
 {
 	e_release_all(first_connection, 0, 1);
+	first_connection = NULL;
 	e_release_all(first_caller, 0, 1);
-
+	first_caller = NULL;
 	e_release_all(first_timer, 0, 1);
+	first_timer = NULL;
 }
 
 /* Iteration of the Loop */
@@ -181,8 +183,13 @@ int keepalive_timer(int data1, data data2) {
 		send_keepalive(sent_pings++);
 		static_timer(1); //reset timer
 	}
-	//TODO: test this!
-	else lag_mark = 10000;
+	else
+	{
+		/* Display "horrible" lag */
+		lag_mark = 10000;
+		redraw_lag_meter = TRUE;
+		p_ptr->window |= (PW_PLAYER_2);
+	}
 
 	return 1;
 }
@@ -592,6 +599,8 @@ int recv_keepalive(connection_type *ct) {
 			time_passed /= 100;
 			lag_mark = (s16b)time_passed;
 			recd_pings++;
+			redraw_lag_meter = TRUE;
+			p_ptr->window |= (PW_PLAYER_2);
 		}
 	}
 #endif
@@ -645,9 +654,8 @@ int recv_play(connection_type *ct) {
 		return 0;
 	}
 
-	/* React */
-	if (mode == PLAYER_EMPTY) client_login();
-	else state = mode;
+	/* Save new state. Reaction will happen in "Setup_loop" */
+	state = mode;
 
 	/* Ok */
 	return 1;
@@ -878,7 +886,7 @@ int recv_indicator(connection_type *ct) {
 	s32b large_c;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 	coff = coffer_refs[id];
@@ -929,7 +937,7 @@ int recv_indicator_str(connection_type *ct) {
 	int i;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 
@@ -994,9 +1002,7 @@ int recv_indicator_info(connection_type *ct) {
 
 	i_ptr->mark = string_make(mark);
 
-	n = strlen(buf) + 1;
-	C_MAKE(i_ptr->prompt, n, char);
-	my_strcpy((char*)i_ptr->prompt, buf, n);
+	i_ptr->prompt = string_make(buf);
 
 	str_coffers[known_indicators] = NULL;
 
@@ -1065,6 +1071,34 @@ int recv_indicator_info(connection_type *ct) {
 
 	/* Register a possible local overload */
 	register_indicator(known_indicators - 1);
+
+	return 1;
+}
+
+int recv_air(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0;
+	char
+		a = 0,
+		c = 0;
+	u16b
+		delay = 0,
+		fade = 0;
+
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c", &y, &x) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",  &delay) < 1) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",   &fade) < 1) return 0;
+
+	air_info[y][x].a = a;
+	air_info[y][x].c = c;
+	air_delay[y][x] = delay * AIR_FADE_THRESHOLD;
+	air_fade[y][x]  = air_delay[y][x] + fade * AIR_FADE_THRESHOLD;
 
 	return 1;
 }
@@ -1786,6 +1820,13 @@ int recv_objflags(connection_type *ct)
 	return 1;
 }
 
+/* HACK -- We have connected to server < 1.2.0 -- Remove this */
+int recv_oldserver_handshake()
+{
+	quit("Server version is too old.");
+	return -1;
+}
+
 void setup_tables()
 {
 	/* Setup receivers */
@@ -1794,6 +1835,9 @@ void setup_tables()
 		handlers[i] = recv_undef;
 		schemes[i] = NULL;	
 	}
+
+	/* HACK -- Remove this sometime in the future */
+	handlers[254] = recv_oldserver_handshake;
 
 #define PACKET(PKT, SCHEME, FUNC) \
 	handlers[PKT] = FUNC; \

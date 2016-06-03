@@ -227,6 +227,7 @@ void cmd_custom(byte i)
 	{
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
+		if (!value) return;
 		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
@@ -240,7 +241,7 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_STRING)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
-		if (!get_string(prompt, entry, sizeof(entry)))
+		if (!get_string(prompt, entry, sizeof(entry) - 1))
 			return;
 		advance_prompt();
 	}
@@ -624,7 +625,8 @@ void cmd_inven(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -651,7 +653,8 @@ void cmd_equip(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -815,7 +818,8 @@ int cmd_target_interactive(int mode)
 	/* Unset modes */
 	looking = FALSE;
 	topline_icky = FALSE;
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
@@ -1043,7 +1047,6 @@ void cmd_chat()
 }
 void cmd_chat_close(int n)
 {
-	char buf[80];
 	
 	if (n)
 	{
@@ -1079,7 +1082,7 @@ void cmd_chat_cycle(int dir)
 	{
 		new_channel += dir;
 
-		if (new_channel > MAX_CHANNELS || new_channel < 0) return;
+		if (new_channel >= MAX_CHANNELS || new_channel < 0) return;
 		if (STRZERO(channels[new_channel].name)) continue; 
 
 		break;

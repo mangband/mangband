@@ -47,7 +47,7 @@ extern char pass[MAX_CHARS];
 
 extern char real_name[MAX_CHARS];
 
-extern char server_name[80];
+extern char server_name[MAX_CHARS];
 extern int server_port;
 
 extern object_type *inventory;
@@ -84,6 +84,7 @@ extern server_setup_t Setup;
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter;
 char health_track_num;
 byte health_track_attr;
 
@@ -99,6 +100,12 @@ extern s16b max_line;
 extern cave_view_type* remote_info[8];
 extern s16b last_remote_line[8];
 extern cptr stream_desc[32];
+
+cave_view_type air_info[MAX_HGT][MAX_WID];
+s32b air_delay[MAX_HGT][MAX_WID];
+s32b air_fade[MAX_HGT][MAX_WID];
+bool air_updates;
+bool air_refresh;
 
 extern player_type player;
 extern player_type *p_ptr;
@@ -181,6 +188,7 @@ extern s16b view_channel;
 
 extern term *ang_term[8];
 extern u32b window_flag[8];
+extern u32b window_flag_o[8];
 
 extern byte color_table[256][4];
 
@@ -390,7 +398,7 @@ extern void flush_updates(void);
 extern void init_subscriptions(void);
 
 /* c-inven.c */
-extern s16b index_to_label(int i);
+extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
@@ -432,6 +440,7 @@ extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char m_private);
 extern void clear_from(int row);
+extern int cavedraw(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveclr(cave_view_type* dest, int len);
@@ -439,6 +448,7 @@ extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern int cavestr(cave_view_type* dest, cptr src, byte attr, int max_col);
 extern void show_line(int y, s16b cols, bool mem);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
+extern void update_air(void);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);

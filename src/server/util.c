@@ -2986,12 +2986,12 @@ void player_talk_aux(int Ind, cptr message)
 	if (Ind)
 	{
 		/* Get player name */
-		strcpy(sender, p_ptr->name);
+		my_strcpy(sender, p_ptr->name, 80);
 	}
 	else
 	{
 		/* Default name */
-		strcpy(sender, "");
+		my_strcpy(sender, "", 80);
 	}
 
 	/* Default to no search string */
@@ -3337,11 +3337,10 @@ cptr attr_to_text(byte a)
 /* 
  * Record a message in the character history
  */
-extern void log_history_event(int Ind, char *msg, bool unique)
+void log_history_event(player_type *p_ptr, char *msg, bool unique)
 {
 	int  days, hours, mins, i;
 	huge seconds, turn;
-	player_type *p_ptr = Players[Ind];
 
 	history_event *evt;
 	history_event *last = NULL;

@@ -1912,7 +1912,7 @@ void check_experience(int Ind)
 		if(!(p_ptr->lev % 5))
 		{
 			sprintf(buf,"Reached level %d",p_ptr->lev);
-			log_history_event(Ind, buf, TRUE);
+			log_history_event(p_ptr, buf, TRUE);
 		}
 
 		/* Update some stuff */
@@ -2205,7 +2205,7 @@ void monster_death(int Ind, int m_idx)
 		msg_broadcast(Ind, buf);
 
 		/* Record this kill in the event history */
-		log_history_event(Ind, logbuf, TRUE);
+		log_history_event(p_ptr, logbuf, TRUE);
 	}
 
 	/* Perform various tasks for several players */
@@ -2220,7 +2220,7 @@ void monster_death(int Ind, int m_idx)
 			/* Take note of the killer (message) */
 			if (unique && (i != Ind))
 			{
-				/*log_history_event(i, logbuf);*/
+				/*log_history_event(q_ptr, logbuf);*/
 			}
 			/* Take note of any dropped treasure */
 			if (visible && (dump_item || dump_gold))
@@ -2630,8 +2630,8 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 		/* Hack - reinscribe with name */
 		if (protect)
 		{
-			strcpy(o_inscribe, "!* - ");
-			strcat(o_inscribe, p_ptr->name);
+			my_strcpy(o_inscribe, "!* - ", 80);
+			my_strcat(o_inscribe, p_ptr->name, 80);
 			p_ptr->inventory[i].note = quark_add(o_inscribe);
 		} else p_ptr->inventory[i].note = quark_add(p_ptr->name);
 
@@ -2659,6 +2659,7 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 	}
 
 	/* He is carrying nothing */
+	p_ptr->equip_cnt = 0;
 	p_ptr->inven_cnt = 0;
 }
 
@@ -2744,13 +2745,13 @@ void player_death(int Ind)
 	/* Note death */
 	if (!p_ptr->ghost) 
 	{
-		log_history_event(Ind, format("Was killed by %s", p_ptr->died_from), FALSE);
+		log_history_event(p_ptr, format("Was killed by %s", p_ptr->died_from), FALSE);
 		msg_print(Ind, "You die.");
 		msg_print(Ind, NULL);
 	}
 	else
 	{
-		/* log_history_event(Ind, format("Destroyed by %s", p_ptr->died_from), TRUE); */
+		/* log_history_event(p_ptr, format("Destroyed by %s", p_ptr->died_from), TRUE); */
 		msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
 		msg_print(Ind, NULL);
 	}
@@ -2813,7 +2814,7 @@ void player_death(int Ind)
 	player_strip(Ind, TRUE, TRUE, TRUE, TRUE);
 
 	/* Last chance to survive death: */
-	if (cfg_ironman || p_ptr->no_ghost)
+	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
 	{
 		/* Get rid of him */
 		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
@@ -2911,7 +2912,7 @@ void resurrect_player(int Ind)
 	}
 
 	/* Log event */
-	log_history_event(Ind, "Resurrected", FALSE);
+	log_history_event(p_ptr, "Resurrected", FALSE);
 
 	/* Message */
 	msg_print(Ind, "You feel life return to your body.");
@@ -3581,8 +3582,8 @@ bool ang_sort_comp_value(int Ind, vptr u, vptr v, int a, int b)
 
 	if (inven[a].tval && inven[b].tval)
 	{
-		va = object_value(Ind, &inven[a]);
-		vb = object_value(Ind, &inven[b]);
+		va = object_value(Players[Ind], &inven[a]);
+		vb = object_value(Players[Ind], &inven[b]);
 
 		return (va >= vb);
 	}

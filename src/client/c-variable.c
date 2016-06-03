@@ -7,7 +7,7 @@ char pass[MAX_CHARS];
 
 char real_name[MAX_CHARS];
 
-char server_name[80];
+char server_name[MAX_CHARS];
 int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
@@ -46,6 +46,7 @@ client_setup_t Client_setup;		/* The information we give to the server */
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter = FALSE;
 char health_track_num;
 byte health_track_attr;
 
@@ -61,6 +62,12 @@ s16b cur_line;				/* Current displayed line of "special" info */
 cave_view_type* remote_info[8]; /* Local copies for Special Info */
 s16b last_remote_line[8];
 cptr stream_desc[32];
+
+cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
+s32b air_delay[MAX_HGT][MAX_WID] = { 0 };
+s32b air_fade[MAX_HGT][MAX_WID] = { 0 };
+bool air_updates = TRUE;
+bool air_refresh = TRUE;
 
 int lag_ok;				/* server understands lag-check packets */
 
@@ -132,6 +139,7 @@ cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
 
 term *ang_term[8];
 u32b window_flag[8];
+u32b window_flag_o[8]; /* Flags as user intended, no state modifications */
 
 byte color_table[256][4];
 

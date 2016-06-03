@@ -21,8 +21,8 @@ void do_cmd_messages(void)
 {
         int i, j, k, n, q;
 
-        char shower[80] = "";
-        char finder[80] = "";
+        char shower[MAX_CHARS] = "";
+        char finder[MAX_CHARS] = "";
 
 
         /* Total messages */
@@ -58,7 +58,7 @@ void do_cmd_messages(void)
                         message_color(str, &a);
 
                         /* Apply horizontal scroll */
-                        str = (strlen(str) >= q) ? (str + q) : "";
+                        str = ((int)strlen(str) >= q) ? (str + q) : ""; /* strlen is very unlikely to ever return a negative int */
 
                         /* Handle "shower" */
                         if (shower[0] && strstr(str, shower)) a = TERM_YELLOW;
@@ -110,7 +110,7 @@ void do_cmd_messages(void)
                         prt("Show: ", 23, 0);
 
                         /* Get a "shower" string, or continue */
-                        if (!askfor_aux(shower, 80, 0)) continue;
+                        if (!askfor_aux(shower, MAX_COLS, 0)) continue;
 
                         /* Okay */
                         continue;
@@ -125,7 +125,7 @@ void do_cmd_messages(void)
                         prt("Find: ", 23, 0);
 
                         /* Get a "finder" string, or continue */
-                        if (!askfor_aux(finder, 80, 0)) continue;
+                        if (!askfor_aux(finder, MAX_COLS, 0)) continue;
 
                         /* Scan messages */
                         for (z = i + 1; z < n; z++)

@@ -669,7 +669,8 @@ static void prt_lag(int row, int col)
 	Term_putstr(col, row, 12, TERM_L_DARK, "LAG:[------]"); 
 
 	if( lag_mark == 10000 ) {
-		c_msg_print_aux("Time Out", MSG_LOCAL);
+		/*c_msg_print_aux("Time Out", MSG_LOCAL);*/
+		do_handle_message("Time Out", MSG_LOCAL);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -1857,7 +1858,7 @@ void fix_special_message(void)
 		if (view_channel == j) a = TERM_L_BLUE;
 
 		/* Carriage return */		
-		if (strlen(channels[j].name) + c + 1 >= w)
+		if ((int)strlen(channels[j].name) + c + 1 >= w)
 		{
 			/* Clear to end of line */
 			Term_erase(x, y, 255);
@@ -2466,8 +2467,6 @@ void schedule_redraw(u32b filter)
  */
 void redraw_indicators(u32b filter)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int i = 0; 
 
@@ -2807,6 +2806,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
 				if (flag & IN_VT_FF) { advance_coffer(); }
 				if (!(flag & IN_VT_COLOR_SET)) continue;
+				/* if IN_VT_COLOR_SET is not set, fallthrough */
 			}			
 			/* Bell (Change color) */
 			case '\a':
@@ -2844,18 +2844,22 @@ void prt_indicator(int first_row, int first_col, int id)
 				/* Skip this value */
 				if (stride)
 				{
+					bool test_for = TRUE;
 					bool passed = FALSE;
 
 					/* Hack -- quit prematurely */
 				   	if ((flag & IN_STOP_EMPTY) && (val == 0)) return;
 
+					/* Hack -- test is inverted */
+					if (flag & IN_STRIDE_NOT) test_for = FALSE;
+
 					/* Perfrom striding tests */
-				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) ) ||
-						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) )) || 
+				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) == test_for) ||
+						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) == test_for)) || 
 						    ((amnt > 1) && 
-						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) ) ||
-							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) ) ||
-							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) )
+						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) == test_for) ||
+							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) == test_for) ||
+							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) == test_for)
 						)))
 					{
 						/* For each test, we see if it is enabled (flag & IN_STRIDE_* check),
@@ -2863,9 +2867,6 @@ void prt_indicator(int first_row, int first_col, int id)
 						 * at least one succeeding value step to perfrom. */
 						passed = TRUE;
 					}
-
-					/* Hack -- test is inverted */
-					if (flag & IN_STRIDE_NOT) passed = 1 - passed;
 
  					/* If any of the tests succeeds, the value is being stepped over. */
 					if (passed)
@@ -2876,7 +2877,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
-				n = MIN(n, sizeof(tmp));
+				n = MIN(n, sizeof(tmp) - 1);
 				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
@@ -2909,8 +2910,8 @@ void prt_indicator(int first_row, int first_col, int id)
 					}
 					else if (!(flag & IN_TEXT_LABEL))
 					{
-						sprintf(tmp2, tmp, val);
-						strcpy(tmp, tmp2);
+						strnfmt(tmp2, sizeof(tmp2), tmp, val);
+						my_strcpy(tmp, tmp2, sizeof(tmp2));
 						//n = strlen(tmp);
 					}
 					value = TRUE;
@@ -2963,8 +2964,6 @@ int register_indicator(int id)
  */
 void redraw_stuff(void)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
@@ -3027,12 +3026,13 @@ void redraw_stuff(void)
 	/* MAangband-specific local indicator: Lag meter */
 	if ((ROW_LAG < section_icky_row) && 
 		((section_icky_col >= 0 && COL_LAG < section_icky_col) ||
-		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) lag_mark = 0;
-	if (screen_icky && !section_icky_row) lag_mark = 0;
-	if (lag_mark)
+		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) redraw_lag_meter = FALSE;
+	if (screen_icky && !section_icky_row) redraw_lag_meter = FALSE;
+	if (!(window_flag[0] & PW_PLAYER_2)) redraw_lag_meter = FALSE;
+	if (redraw_lag_meter)
 	{
 		prt_lag(ROW_LAG, COL_LAG);
-		lag_mark = 0;
+		redraw_lag_meter = FALSE;
 	}
 	
 }

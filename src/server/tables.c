@@ -172,7 +172,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/* Magic devices */
 	{ /* Read scroll */
 		'r', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_read_scroll_on,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR ),
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_SCROLL, "Read which scroll? "
 	},
 	{ /* Aim wand */
@@ -181,8 +181,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		TV_WAND, "Aim which wand? "
 	},
 	{ /* Use staff */
-		'u', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		'u', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_use_staff_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
 		TV_STAFF, "Use which staff? "
 	},
 	{ /* Zap rod */
@@ -316,6 +316,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: "
 	},
+#if 0
+	{ /* Refill bottle */
+		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_BOTTLE, "Refill which bottle? "
+	},
+#endif
 
 	/*** Store/shopping commands ***/
 	{ /* [Get]/Purchase item */

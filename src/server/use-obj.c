@@ -769,7 +769,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 			sound(Ind, MSG_SUM_MONSTER);
 			for (k = 0; k < randint(3); k++)
 			{
-				if (summon_specific(Ind, py, px, p_ptr->dun_depth, 0))
+				if (summon_specific(Depth, py, px, p_ptr->dun_depth, 0))
 				{
 					*ident = TRUE;
 				}
@@ -782,7 +782,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 			sound(Ind, MSG_SUM_UNDEAD);
 			for (k = 0; k < randint(3); k++)
 			{
-				if (summon_specific(Ind, py, px, p_ptr->dun_depth, SUMMON_UNDEAD))
+				if (summon_specific(Depth, py, px, p_ptr->dun_depth, SUMMON_UNDEAD))
 				{
 					*ident = TRUE;
 				}
@@ -1119,7 +1119,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 			sound(Ind, MSG_SUM_MONSTER);
 			for (k = 0; k < randint(4); k++)
 			{
-				if (summon_specific(Ind, py, px, p_ptr->dun_depth, 0))
+				if (summon_specific(Depth, py, px, p_ptr->dun_depth, 0))
 				{
 					*ident = TRUE;
 				}
