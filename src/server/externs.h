@@ -621,6 +621,7 @@ extern errr init_r_info_txt(FILE *fp, char *buf);
 extern void init_file_paths(char *path);
 extern void free_file_paths(void);
 extern void init_some_arrays(void);
+extern void apply_visuals(void);
 extern void load_server_cfg(void);
 extern void unload_server_cfg(void);
 extern void cleanup_angband(void);

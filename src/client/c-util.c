@@ -3921,6 +3921,12 @@ static void do_cmd_options_win(void)
 		}
 	}
 
+	/* Hack -- Store user choice */
+	for (j = 0; j < 8; j++)
+	{
+		window_flag_o[j] = window_flag[j];
+	}
+
 	/* Notice changes */
 	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
 

@@ -188,6 +188,7 @@ extern s16b view_channel;
 
 extern term *ang_term[8];
 extern u32b window_flag[8];
+extern u32b window_flag_o[8];
 
 extern byte color_table[256][4];
 

@@ -139,6 +139,7 @@ cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
 
 term *ang_term[8];
 u32b window_flag[8];
+u32b window_flag_o[8]; /* Flags as user intended, no state modifications */
 
 byte color_table[256][4];
 
