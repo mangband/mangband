@@ -16,6 +16,8 @@
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
 
+#define USE_BITMASK /* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
+
 /* strtoii
 Function that extracts the numerics from a string such as "sprites8x16.bmp"
 Taken from "maim_sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
@@ -79,6 +81,10 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	font = SDL_LoadBMP(buf);
 	if (!font) {
 		plog_fmt("bmpToFont: %s", SDL_GetError());
+		return NULL;
+	}
+	if (font->format->BitsPerPixel != 8) {
+		plog_fmt("bmpToFont: was expecting bitmap with a palette");
 		return NULL;
 	}
 	// Poorly get our font metrics and maximum cell size in pixels
@@ -627,4 +633,85 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	}
 
 	return surface;
+}
+
+/* Graphics loading API. */
+/*
+This function was known as "load_BMP_graf_sdl"
+Taken from "main-sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
+Updated to support SDL_Image
+*/
+SDL_Surface* sdl_graf_load(cptr filename, cptr maskname, SDL_Rect *info)
+{
+#ifdef USE_BITMASK
+	int x, y, mask_offset, tile_offset;
+	Uint8 *mask_pixels, *tile_pixels;
+	Uint8 sub_black; /* substitution color for black */
+	SDL_Surface *mask;
+#endif
+	SDL_Surface *face;
+	char path[1024];
+	Uint32 mw, mh;
+
+	info->w = info->h = 0;
+
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
+#if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+	if ((face = IMG_Load(path)) != NULL)
+#else
+	if ((face = SDL_LoadBMP(path)) != NULL)
+#endif
+	{
+		/* Attempt to get dimensions from filename */
+		if (!strtoii(filename, &mw, &mh))
+		{
+			info->w = mw;
+			info->h = mh;
+		}
+
+		/* Convert mask to color-key */
+#ifdef USE_BITMASK
+		if (!maskname) return face; /* No mask, we're done */
+
+		path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, maskname);
+
+#if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+		if ((mask = IMG_Load(path)) != NULL)
+#else
+		if ((mask = SDL_LoadBMP(path)) != NULL)
+#endif
+		{
+			sub_black = SDL_MapRGB(face->format, 1, 1, 1);
+
+			mask_pixels = (Uint8 *)mask->pixels;
+			tile_pixels = (Uint8 *)face->pixels;
+
+			for (y = 0; y < mask->h; y++) {
+			for (x = 0; x < mask->w; x++) {
+
+				mask_offset = (mask->pitch/2 * y + x);
+				tile_offset = (face->pitch/2 * y + x);
+
+				if (!tile_pixels[tile_offset])
+					tile_pixels[tile_offset] = ( mask_pixels[mask_offset] ? 0 : sub_black );
+
+			}
+			}
+
+			SDL_FreeSurface(mask);
+			mask = NULL;
+		}
+#endif
+	}
+	else
+	{
+#if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+		plog_fmt("%s %s: %s", ANGBAND_SYS, filename, IMG_GetError());
+#else
+		plog_fmt("%s %s: %s", ANGBAND_SYS, filename, SDL_GetError());
+#endif
+		return NULL;
+	}
+
+	return face;
 }

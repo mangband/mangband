@@ -379,61 +379,19 @@ int pick_term(int x, int y)
 /*
  * Load a BMP tileset.
  *
- * If USE_BITMASK is defined, a second file with mask will be loaded,
+ * If maskname != NULL, a second file with mask will be loaded,
  * and the tileset will be recolored to use it as the colorkey.
  *
  */
-errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
+errr load_ANY_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 {
-#ifdef USE_BITMASK
-	int x, y, mask_offset, tile_offset;
-	Uint8 *mask_pixels, *tile_pixels;
-	Uint8 sub_black;	/* substitution color for black */
-	SDL_Surface *mask;
-#endif
-	char path[1024];
-	Uint32 mw, mh;
+	SDL_Rect glyph_info;
 
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
-
-	if ((fd->face = SDL_LoadBMP(path)) != NULL)
+	if ((fd->face = sdl_graf_load(filename, maskname, &glyph_info)) != NULL)
 	{
 		/* Attempt to get dimensions from filename */
-		if(!strtoii(filename, &mw, &mh))
-		{
-			fd->w = mw;
-			fd->h = mh;
-		}
-
-		/* Convert mask to color-key */
-#ifdef USE_BITMASK
-		if (!maskname) return 0; /* No mask, we're done */
-			
-		path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, maskname);
-			
-		if ((mask = SDL_LoadBMP(path)) != NULL)
-		{
-			sub_black = SDL_MapRGB(fd->face->format, 1, 1, 1);
-
-			mask_pixels = (Uint8 *)mask->pixels;
-			tile_pixels = (Uint8 *)fd->face->pixels;
-
-			for (y = 0; y < mask->h; y++) {
-			for (x = 0; x < mask->w; x++) {
-		
-				mask_offset = (mask->pitch/2 * y + x);
-				tile_offset = (fd->face->pitch/2 * y + x);
-						
-				if (!tile_pixels[tile_offset])
-					tile_pixels[tile_offset] = ( mask_pixels[mask_offset] ? 0 : sub_black ); 
-
-			}
-			}
-
-			SDL_FreeSurface(mask);
-			mask = NULL;
-		}
-#endif
+		fd->w = glyph_info.w;
+		fd->h = glyph_info.h;
 	}
 	else
 	{
@@ -2075,7 +2033,7 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 		memset(load_tiles, 0, sizeof(graf_tiles));
 		load_tiles->face = NULL;
 
-		if (!load_BMP_graf_sdl(load_tiles, filename, maskname))
+		if (!load_ANY_graf_sdl(load_tiles, filename, maskname))
 		{
 			load_tiles->name = string_make(filename);
 			td->gt = load_tiles;

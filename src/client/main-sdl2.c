@@ -1065,32 +1065,24 @@ errr cleanPictData(PictData *pd) {
   return 0;
 }
 errr imgToPict(PictData *pd, cptr filename) {
+  SDL_Rect glyph_info;
   Uint32 width, height;
   char buf[1036];
   char *image_error;
   if (pd->w || pd->h || pd->surface) return 1; // return if PictData is unclean
+
   // Get and open our image from the xtra dir
-  path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
+  //path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
+
   // Load 'er up
-#ifndef USE_SDL2_IMAGE
-  pd->surface = SDL_LoadBMP(buf);
-  if (pd->surface == NULL) image_error = SDL_GetError();
-#else
-  pd->surface = IMG_Load(buf);
-  if (pd->surface == NULL) image_error = IMG_GetError();
-#endif
+  pd->surface = sdl_graf_load(filename, NULL, &glyph_info);
   if (pd->surface == NULL) {
-    plog_fmt("imgToPict: %s", image_error);
+    //plog_fmt("imgToPict: %s", "can't load font");
     return 1;
   }
   // Cool, get our dimensions
-  width = 0, height = 0;
-  if (strtoii(filename, &width, &height) != 0) {
-    plog_fmt("imgToPict: %s", "some strtoii error");
-    SDL_FreeSurface(pd->surface);
-    pd->surface = NULL;
-    return 2;
-  }
+  width = glyph_info.w;
+  height = glyph_info.h;
   if (width == 0 || height == 0) {
     plog_fmt("imgToPict: %s", "width or height of 0 is not allowed!");
     SDL_FreeSurface(pd->surface);
@@ -1101,51 +1093,5 @@ errr imgToPict(PictData *pd, cptr filename) {
   pd->w = width; pd->h = height;
   return 0;
 }
-/* ==== Other people's code ==== */
-/* strtoii
-Function that extracts the numerics from a string such as "sprites8x16.bmp"
 
-Taken from "maim_sdl.c" and presumably: Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
-*/
-errr strtoii(const char *str, Uint32 *w, Uint32 *h) {
-  char buf[1024];
-  char *s = buf;
-  char *tok;
-  char *numeric = "0123456789";
-
-  size_t l; /* length of numeric string */
-
-  if (!str || !w || !h) return -1;
-
-  if (strlen(str) < 3) return -1; /* must have room for at least "1x1" */
-
-  strncpy(buf, str, 1023);
-  buf[1023] = '\0';
-
-  tok = strpbrk(buf, numeric);
-  if (!tok) return -1;
-
-  l = strspn(tok, numeric);
-  if (!l) return -1;
-
-  tok[l] = '\0';
-
-  s = tok + l + 1;
-
-  if(!sscanf(tok, "%d", w)) return -1;
-
-  /* next token */
-  tok = strpbrk(s, numeric);
-  if (!tok) return -1;
-
-  l = strspn(tok, numeric);
-  if (!l) return -1;
-
-  tok[l] = '\0';
-  /* no need to set s since this is the last token */
-
-  if(!sscanf(tok, "%d", h)) return -1;
-
-  return 0;
-}
 #endif
