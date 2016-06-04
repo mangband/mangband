@@ -2120,6 +2120,10 @@ void set_server_option(char * option, char * value)
 	{
 		ANGBAND_DIR_BONE = string_make(value);
 	}
+	else if (!strcmp(option,"PREF_DIR"))
+	{
+		ANGBAND_DIR_PREF = string_make(value);
+	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
 		cfg_load_pref_file = string_make(value);

@@ -5,10 +5,10 @@ echo "MAngband Autogen/Helper"
 
 # Use getopt(s) to fetch flags.
 usage=0; norma=0; devel=0; distr=0; clean=0;
-force=0; verbo=0; autoc=0; gitdl=0;
+force=0; verbo=0; autoc=0; gitdl=0; dodoc=0;
 # you can use either line depending of getopt(s) availiablity
 #flags=`getopt hndrcfva $*`; set -- $flags; for flag; do
-while getopts  "hndrcfva" flag; do flag="-$flag"
+while getopts  "hndrucfva" flag; do flag="-$flag"
     case "$flag" in
 	-\? ) usage=1 ;;
 	-h ) usage=1 ;;
@@ -19,6 +19,7 @@ while getopts  "hndrcfva" flag; do flag="-$flag"
 	-f ) force=1 ;;
 	-v ) verbo=1 ;;
 	-a ) autoc=1 ;;
+	-u ) dodoc=1 ;;
 	-- ) break ;;
     esac
 done
@@ -29,7 +30,7 @@ echo " * Seeing .git, course-correcting."
 gitdl=1;
 fi
 # Test flags for errors
-TMODE=$((${norma} + ${devel} + ${distr} + ${clean} + ${usage}));
+TMODE=$((${norma} + ${devel} + ${distr} + ${clean} + ${dodoc} + ${usage}));
 #echo "NDR: $TMODE N: $norma D: $devel R: $distr C: $clean V: $verbo F: $force A: $autoc V: $verbo ?: $usage"
 
 
@@ -141,6 +142,20 @@ download_file() {
     download_file "config.guess" "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" ||
     echo " -- FAILED"; }
 
+# Update AUTHORS and ChangeLog files
+if [ "$dodoc" = "1" ]; then
+    echo " * Downloading 'AUTHORS' from mangband.org";
+    download_file "AUTHORS.src" "http://www.mangband.org/Main/People?action=source" ||
+    echo " -- FAILED";
+
+    sed -e"s/\[\[h[^']*//g" -e"s/\]\]//g" -e"s/'''//g" AUTHORS.src > AUTHORS && rm AUTHORS.src
+
+    echo " * Downloading 'ChangeLog' from github";
+    download_file "ChangeLog" "https://raw.githubusercontent.com/wiki/mangband/mangband/ReleaseChangeLog.md" ||
+    echo " -- FAILED";
+fi
+
+
 # The real purpose of autogen:
 echo " * Running 'autoreconf -i'"
 autoreconf -i >${VLOG} 2>${VLOG} || { echo " -- FAILED"; exit 1; }
@@ -150,12 +165,13 @@ if [ "$devel" = "1" ]; then
 echo " * Preparing debug environment"
 CFG="./mangband.cfg"
 TMP="./$(basename $0).$$.tmp"
-sed "/*\{0,3\}\(BONE\|EDIT\|DATA\|SAVE\|USER\|HELP\)_DIR = /d" ${CFG} > ${TMP}
+sed "/*\{0,3\}\(BONE\|EDIT\|DATA\|SAVE\|USER\|HELP\|PREF\)_DIR = /d" ${CFG} > ${TMP}
 echo "EDIT_DIR = \"./lib/edit\"" >> ${TMP}
+echo "HELP_DIR = \"./lib/help\"" >> ${TMP}
+echo "PREF_DIR = \"./lib/pref\"" >> ${TMP}
 echo "DATA_DIR = \"./lib/data\"" >> ${TMP}
 echo "SAVE_DIR = \"./lib/save\"" >> ${TMP}
 echo "BONE_DIR = \"./lib/user\"" >> ${TMP}
-echo "HELP_DIR = \"./lib/help\"" >> ${TMP}
 mv ${TMP} ${CFG}
 CFG="${HOME}/.mangrc"
 TMP="./$(basename $0).$$.tmp"
