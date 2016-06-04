@@ -368,8 +368,16 @@ void setup_network_server()
 	/** Add listeners **/
 	/* Game */
 	first_listener = add_listener(NULL, cfg_tcp_port, (callback)accept_client);
+	if (!first_listener)
+	{
+		quit("Unable to create server interface");
+	}
 	/* Console */
 	add_listener(first_listener, cfg_tcp_port + 1, accept_console);
+	if (!first_listener)
+	{
+		quit("Unable to create console interface");
+	}
 
 	/** Allocate some memory */
 	alloc_server_memory();	
