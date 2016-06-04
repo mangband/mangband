@@ -1256,7 +1256,7 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 
 	char		tmp_val[160];
 
-    u32b		f1, f2, f3;
+	u32b		f1, f2, f3;
 
 	object_kind		*k_ptr = &k_info[o_ptr->k_idx];
 
@@ -1341,13 +1341,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 		case TV_AMULET:
 		{
 			/* Known artifacts */
-	    /* if (artifact_p(o_ptr) && known) break;*/
+			/* if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Amulet~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Amulet~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
 			break;
 		}
 
@@ -1356,13 +1356,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 		case TV_RING:
 		{
 			/* Known artifacts */
-	    /*if (artifact_p(o_ptr) && known) break;*/
+			/*if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Ring~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Ring~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
 
 			/* Hack -- The One Ring */
 			if (!aware && (o_ptr->sval == SV_RING_POWER)) modstr = "Plain Gold";
@@ -1612,13 +1612,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	{
 		/* Create the name */
 		randart_name(o_ptr, tmp_val);
-			
+
 		t = object_desc_chr(t, ' ');
 		t = object_desc_str(t, tmp_val);
 	}
-			
+
 		/* Grab any artifact name */
-	else 
+	else
 #endif
 	if (artifact_p(o_ptr))
 		{
