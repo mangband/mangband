@@ -189,21 +189,36 @@ int main(int argc, char *argv[])
 		/* Analyze option */
 		switch (argv[0][1])
 		{
-			case 'c':
-			case 'C':
-			ANGBAND_DIR_BONE = &argv[0][2];
+			case 'e':
+			case 'E':
+			ANGBAND_DIR_EDIT = string_make(&argv[0][2]);
+			break;
+
+			case 'p':
+			case 'P':
+			ANGBAND_DIR_PREF = string_make(&argv[0][2]);
+			break;
+
+			case 't':
+			case 'T':
+			ANGBAND_DIR_HELP = string_make(&argv[0][2]);
+			break;
+
+			case 'd':
+			case 'D':
+			ANGBAND_DIR_DATA = string_make(&argv[0][2]);
 			break;
 
 #ifndef VERIFY_SAVEFILE
-			case 'd':
-			case 'D':
-			ANGBAND_DIR_SAVE = &argv[0][2];
+			case 's':
+			case 'S':
+			ANGBAND_DIR_SAVE = string_make(&argv[0][2]);
 			break;
 #endif
 
-			case 'i':
-			case 'I':
-			ANGBAND_DIR_HELP = &argv[0][2];
+			case 'b':
+			case 'B':
+			ANGBAND_DIR_BONE = string_make(&argv[0][2]);
 			break;
 
 			case 'r':
@@ -231,14 +246,14 @@ int main(int argc, char *argv[])
 
 			/* Note -- the Term is NOT initialized */
 			puts("Usage: mangband [options]");
-			puts("  -r	 Reset the server");
-			puts("  -f       Activate 'fiddle' mode");
-			puts("  -w       Activate 'wizard' mode");
+			puts("  -r       Reset the server");
 			puts("  -z       Don't catch signals");
-			puts("  -p<uid>  Play with the <uid> userid");
-			puts("  -c<path> Look for pref files in the directory <path>");
-			puts("  -d<path> Look for save files in the directory <path>");
-			puts("  -i<path> Look for info files in the directory <path>");
+			puts("  -e<path> Look for edit files in the directory <path>");
+			puts("  -t<path> Look for help files in the directory <path>");
+			puts("  -p<path> Look for pref files in the directory <path>");
+			puts("  -d<path> Look for data files in the directory <path>");
+			puts("  -s<path> Look for save files in the directory <path>");
+			puts("  -b<path> Look for bone files in the directory <path>");
 
 			/* Actually abort the process */
 			quit(NULL);
