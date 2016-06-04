@@ -36,7 +36,7 @@ bool item_tester_okay(object_type *o_ptr)
 	if (!o_ptr->tval) return (FALSE);
 
 	/* Hack -- ignore "gold" */
-	if (o_ptr->tval == TV_GOLD) return (FALSE);
+	if (o_ptr->tval == TV_MAX) return (FALSE);
 
 	/* Check the tval */
 	if (item_tester_tval)

@@ -51,7 +51,6 @@
 /* Sometimes, we just copy defines from server.
  * Why not have them in common/ ? Because they ultimately are different values
  */ //TODO: remove those!!!
-#define TV_GOLD         100	/* Gold can only be picked up by players */
 #define TV_MAX		100
 
 /*
