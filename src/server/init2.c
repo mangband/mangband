@@ -2388,6 +2388,18 @@ void load_server_cfg(void)
 	FILE * cfg = 0;
 	int i = 0;
 
+	/* If user requested specific config file, try it... */
+	if (arg_config_file)
+	{
+		/* ...and DO NOT try anything else on failure */
+		if (!cfg)
+		{
+			plog_fmt("Error : cannot open file %s", arg_config_file);
+			quit(NULL);
+			return;
+		}
+	}
+
 	/* Attempt to open the file */
 	while (!cfg && possible_cfg_dir[i++])
 	{

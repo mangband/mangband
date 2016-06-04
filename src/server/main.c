@@ -189,6 +189,11 @@ int main(int argc, char *argv[])
 		/* Analyze option */
 		switch (argv[0][1])
 		{
+			case 'c':
+			case 'C':
+			arg_config_file = string_make(&argv[0][2]);
+			break;
+
 			case 'e':
 			case 'E':
 			ANGBAND_DIR_EDIT = string_make(&argv[0][2]);
@@ -248,6 +253,7 @@ int main(int argc, char *argv[])
 			puts("Usage: mangband [options]");
 			puts("  -r       Reset the server");
 			puts("  -z       Don't catch signals");
+			puts("  -C<file> Use config file <file>");
 			puts("  -e<path> Look for edit files in the directory <path>");
 			puts("  -t<path> Look for help files in the directory <path>");
 			puts("  -p<path> Look for pref files in the directory <path>");

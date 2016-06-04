@@ -77,6 +77,7 @@ extern u32b sf_xtra;
 extern u32b sf_when;
 extern u16b sf_lives;
 extern u16b sf_saves;
+extern cptr arg_config_file;
 extern bool arg_wizard;
 extern bool arg_fiddle;
 extern bool arg_force_original;

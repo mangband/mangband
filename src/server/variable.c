@@ -50,6 +50,7 @@ u16b sf_saves;			/* Number of "saves" during this life */
 /*
  * Hack -- Run-time arguments
  */
+cptr arg_config_file = NULL;	/* Command arg -- Desired config file */
 bool arg_wizard;		/* Command arg -- Enter wizard mode */
 bool arg_fiddle;		/* Command arg -- Enter fiddle mode */
 bool arg_force_original;	/* Command arg -- Force original keyset */
