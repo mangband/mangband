@@ -24,7 +24,8 @@
 
 /* Options */
 #undef SINGLE_SURFACE /* Eat more CPU, but less RAM (only signifcant when drawing GUI) */
-#define USE_BITMASK	/* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
+#define SHADE_FONTS /* Allow fonts with multiple colors */
+
 
 #include "c-angband.h"
 
@@ -78,6 +79,11 @@ struct font_data
 	 */
 	Uint8 w;
 	Uint8 h;
+
+#ifdef SHADE_FONTS
+	/* Our color ramp */
+	SDL_Color ramp[255];
+#endif
 
 	/* TODO: actual precolorization?! */
 	Uint8 precolorized;
@@ -407,6 +413,9 @@ errr load_ANY_graf_sdl(font_data *fd, cptr filename, cptr maskname)
  */
 errr load_ANY_font_sdl(font_data *fd, cptr filename)
 {
+#ifdef SHADE_FONTS
+	int i;
+#endif
 	SDL_Rect info;
 	SDL_Surface *face;
 
@@ -419,6 +428,13 @@ errr load_ANY_font_sdl(font_data *fd, cptr filename)
 	{
 		return -1;
 	}
+
+#ifdef SHADE_FONTS
+	for (i = 0; i < face->format->palette->ncolors; i++)
+	{
+		fd->ramp[i] = face->format->palette->colors[i];
+	}
+#endif
 
 	fd->face = face;
 	fd->w = info.w;
@@ -966,7 +982,21 @@ void SDL_BlitChar_AUX(term_data* td, font_data *fd, int x, int y, byte a, unsign
 	if (td->fd->precolorized)
 		sr.x = a * fd->w;
 	else
+	{
+#ifdef SHADE_FONTS
+		int i;
+		for (i = 1; i < fd->face->format->palette->ncolors; i++)
+		{
+			SDL_Color dc;
+			dc.r = color_data_sdl[a&0xf].r * fd->ramp[i].r / 255;
+			dc.g = color_data_sdl[a&0xf].g * fd->ramp[i].g / 255;
+			dc.b = color_data_sdl[a&0xf].b * fd->ramp[i].b / 255;
+			SDL_SetColors(fd->face, &dc, i, 1);
+		}
+#else
 		SDL_SetColors(fd->face, &(color_data_sdl[a&0xf]), 0x01, 1);
+#endif
+	}
 
 #ifdef SINGLE_SURFACE
 	dr.x += td->xoff;
