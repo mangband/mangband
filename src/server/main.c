@@ -131,10 +131,19 @@ static void server_log(cptr str)
 
 void show_version()
 {
-	puts("MAngband Server " PACKAGE_VERSION);
+	cptr version_modifiers[] = {
+		"", "alpha", "beta", "devel"
+	};
+	printf("MAngband Server %d.%d.%d %s\n",
+		SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR,
+		SERVER_VERSION_PATCH,
+		version_modifiers[SERVER_VERSION_EXTRA]);
 	puts("Copyright (c) 2007-2016 MAngband Project Team");
 	puts("Compiled with:");
+#ifdef CONFIG_PATH
 	printf("    Config path: %s\n", CONFIG_PATH);
+#endif
 	printf("     PKGDATADIR: %s\n", PKGDATADIR);
 	printf("  LOCALSTATEDIR: %s\n", LOCALSTATEDIR);
 	/* Actually abort the process */
