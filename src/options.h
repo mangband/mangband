@@ -472,6 +472,9 @@
 #ifndef PKGDATADIR
 # define PKGDATADIR DEFAULT_PATH
 #endif
+#ifndef LOCALSTATEDIR
+# define LOCALSTATEDIR DEFAULT_PATH
+#endif
 
 
 /*

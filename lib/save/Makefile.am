@@ -1,5 +1,5 @@
 
-savedir = $(pkgdatadir)/save
+savedir = $(localstatedir)/mangband/save
 
 save_DATA = \
 		lib/save/server.level.0.0.20 \

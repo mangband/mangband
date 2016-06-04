@@ -79,6 +79,7 @@ extern unsigned _ovrbuffer = 0x1500;
 static void init_stuff(void)
 {
 	char path[1024];
+	char path_wr[1024];
 
 #if defined(AMIGA) || defined(VM)
 
@@ -98,10 +99,15 @@ static void init_stuff(void)
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
+	/* Repeat for writable paths */
+	strcpy(path_wr, tail ? tail : LOCALSTATEDIR);
+	if (!suffix(path_wr, PATH_SEP)) strcat(path_wr, PATH_SEP);
+
+
 #endif /* AMIGA / VM */
 
 	/* Initialize */
-	init_file_paths(path);
+	init_file_paths(path, path_wr);
 }
 
 /*

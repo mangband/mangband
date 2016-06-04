@@ -618,7 +618,7 @@ extern errr init_e_info_txt(FILE *fp, char *buf);
 extern errr init_r_info_txt(FILE *fp, char *buf);
 
 /* init.c */
-extern void init_file_paths(char *path);
+extern void init_file_paths(char *path, char *path_wr);
 extern void free_file_paths(void);
 extern void init_some_arrays(void);
 extern void apply_visuals(void);

@@ -75,9 +75,10 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_BONE);
 	string_ifree(ANGBAND_DIR_HELP);
 }
-void init_file_paths(char *path)
+void init_file_paths(char *path, char *path_wr)
 {
 	char *tail;
+	char *tail_wr;
 
 
 	/*** Free everything ***/
@@ -95,6 +96,8 @@ void init_file_paths(char *path)
 	/* Prepare to append to the Base Path */
 	tail = path + strlen(path);
 
+	/* And again */
+	tail_wr = path_wr + strlen(path_wr);
 
 #ifdef VM
 
@@ -115,16 +118,16 @@ void init_file_paths(char *path)
 	/*** Build the sub-directory names ***/
 
 	/* Build a path name */
-	strcpy(tail, "data");
-	ANGBAND_DIR_DATA = string_make(path);
+	strcpy(tail_wr, "data");
+	ANGBAND_DIR_DATA = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "edit");
 	ANGBAND_DIR_EDIT = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "save");
-	ANGBAND_DIR_SAVE = string_make(path);
+	strcpy(tail_wr, "save");
+	ANGBAND_DIR_SAVE = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "help");
@@ -135,8 +138,8 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_PREF = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "bone");
-	ANGBAND_DIR_BONE = string_make(path);
+	strcpy(tail_wr, "bone");
+	ANGBAND_DIR_BONE = string_make(path_wr);
 #if 0
 	/* Build a path name */
 	strcpy(tail, "text");
@@ -196,7 +199,7 @@ void init_file_paths(char *path)
 
 			/* Build a new path name */
 			sprintf(tail, "data-%s", next);
-			ANGBAND_DIR_DATA = string_make(path);
+			ANGBAND_DIR_DATA = string_make(path_wr);
 		}
 	}
 
