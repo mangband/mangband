@@ -129,6 +129,18 @@ static void server_log(cptr str)
 	fprintf(stderr,"%s %s\n", buf, str);
 }
 
+void show_version()
+{
+	puts("MAngband Server " PACKAGE_VERSION);
+	puts("Copyright (c) 2007-2016 MAngband Project Team");
+	puts("Compiled with:");
+	printf("    Config path: %s\n", CONFIG_PATH);
+	printf("     PKGDATADIR: %s\n", PKGDATADIR);
+	printf("  LOCALSTATEDIR: %s\n", LOCALSTATEDIR);
+	/* Actually abort the process */
+	quit(NULL);
+}
+
 /*
  * Some machines can actually parse command line args
  *
@@ -145,9 +157,6 @@ int main(int argc, char *argv[])
 
 	/* Setup our logging hook */
 	plog_aux = server_log;	
-
-	/* Note we are starting up */
-	plog("Game Restarted");
 
 	/* Save the "program name" */
 	argv0 = argv[0];
@@ -212,6 +221,11 @@ int main(int argc, char *argv[])
 			catch_signals = FALSE;
 			break;
 
+			case 'v':
+				show_version();
+			break;
+
+			case 'h':
 			default:
 			usage:
 
@@ -230,6 +244,9 @@ int main(int argc, char *argv[])
 			quit(NULL);
 		}
 	}
+
+	/* Note we are starting up */
+	plog("Game Restarted");
 
 	/* Tell "quit()" to call "Term_nuke()" */
 	quit_aux = quit_hook;
