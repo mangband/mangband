@@ -2509,11 +2509,11 @@ void msg_print(int Ind, cptr msg)
 		/* Maintain a circular buffer */
 		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST) 
 			p_ptr->msg_hist_ptr = 0;
-		plog(format("%s: %s",Players[Ind]->name,msg)); 
+		plog_fmt("%s: %s",Players[Ind]->name,msg); 
 	}
 	else if(msg && log)
 	{
-		plog(format("%d: %s",Ind,msg)); 
+		plog_fmt("%d: %s",Ind,msg); 
 	}; 	
 
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
@@ -2538,7 +2538,6 @@ void msg_broadcast(int Ind, cptr msg)
 	 
 	/* Send to console */
 	console_print(msg);
-	 
 }
 
 
@@ -2871,7 +2870,9 @@ void player_talk_aux(int Ind, cptr message)
 	/* Send to the console too if it's a public message */
 	if(!strcmp(dest_chan,"#public"))
 	{
-		console_print(format("[%s] %s", sender, message));
+		char buffer[MSG_LEN + MAX_NAME_LEN + 4];
+		strnfmt(buffer, sizeof buffer, "[%s] %s", sender, message);
+		console_print(buffer);
 	}
 }
 

@@ -433,7 +433,7 @@ int Setup_net_server(void)
 	/* Tell the metaserver that we're starting up */
 	Report_to_meta(META_START);
 
-	plog(format("Server is running version %04x\n", MY_VERSION));
+	plog_fmt("Server is running version %04x\n", MY_VERSION);
 
 	return 0;
 }
@@ -674,7 +674,7 @@ static void Contact(int fd, int arg)
 			/* We couldn't accept the socket connection. This is bad because we can't
 			 * handle this situation correctly yet.  For the moment, we just log the
 			 * error and quit */
-			plog(format("Could not accept TCP Connection, socket error = %d",errno));
+			plog_fmt("Could not accept TCP Connection, socket error = %d",errno);
 			quit("Couldn't accept TCP connection.");
 		}
 		install_input(Contact, newsock, 2);
@@ -717,13 +717,13 @@ static void Contact(int fd, int arg)
 
 	if (Packet_scanf(&ibuf, "%u", &magic) <= 0)
 	{
-		plog(format("Incompatible packet from %s", host_addr));
+		plog_fmt("Incompatible packet from %s", host_addr);
 		return;
 	}
 
 	if (Packet_scanf(&ibuf, "%s%hu%c", real_name, &port, &ch) <= 0)
 	{
-		plog(format("Incomplete packet from %s", host_addr));
+		plog_fmt("Incomplete packet from %s", host_addr);
 		return;
 	}
 	reply_to = (ch & 0xFF);
@@ -732,7 +732,7 @@ static void Contact(int fd, int arg)
 
 	if (Packet_scanf(&ibuf, "%s%s%hu", nick_name, host_name, &version) <= 0)
 	{
-		plog(format("Incomplete login from %s", host_addr));
+		plog_fmt("Incomplete login from %s", host_addr);
 		return;
 	}
 	nick_name[sizeof(nick_name) - 1] = '\0';
@@ -923,7 +923,7 @@ bool Destroy_connection(int ind, char *reason)
 	if (connp->state == CONN_FREE)
 	{
 		errno = 0;
-		plog(format("Cannot destroy empty connection (\"%s\")", reason));
+		plog_fmt("Cannot destroy empty connection (\"%s\")", reason);
 		return TRUE;
 	}
 
@@ -948,11 +948,11 @@ bool Destroy_connection(int ind, char *reason)
 			DgramWrite(sock, pkt, len);
 		}
 	}
-	plog(format("Goodbye %s=%s@%s (\"%s\")",
+	plog_fmt("Goodbye %s=%s@%s (\"%s\")",
 		connp->nick ? connp->nick : "",
 		connp->real ? connp->real : "",
 		connp->host ? connp->host : "",
-		reason));
+		reason);
 
 	Conn_set_state(connp, CONN_FREE, CONN_FREE);
 
@@ -1042,7 +1042,7 @@ int Setup_connection(char *real, char *nick, char *addr, char *host,
 
 	if (free_conn_index >= max_connections)
 	{
-		plog(format("Full house for %s(%s)@%s", real, nick, host));
+		plog_fmt("Full house for %s(%s)@%s", real, nick, host);
 		return -1;
 	}
 	connp = &Conn[free_conn_index];
@@ -1069,9 +1069,9 @@ int Setup_connection(char *real, char *nick, char *addr, char *host,
 		plog("Couldn't set SO_LINGER on the socket");
 	}
 	if (SetSocketReceiveBufferSize(sock, SERVER_RECV_SIZE + 256) == -1)
-		plog(format("Cannot set receive buffer size to %d", SERVER_RECV_SIZE + 256));
+		plog_fmt("Cannot set receive buffer size to %d", SERVER_RECV_SIZE + 256);
 	if (SetSocketSendBufferSize(sock, SERVER_SEND_SIZE + 256) == -1)
-		plog(format("Cannot set send buffer size to %d", SERVER_SEND_SIZE + 256));
+		plog_fmt("Cannot set send buffer size to %d", SERVER_SEND_SIZE + 256);
 
 	Sockbuf_init(&connp->w, sock, SERVER_SEND_SIZE, SOCKBUF_WRITE);
 	Sockbuf_init(&connp->r, sock, SERVER_RECV_SIZE, SOCKBUF_WRITE | SOCKBUF_READ);
@@ -1414,13 +1414,13 @@ static int Handle_listening(int ind)
 	}
 	
 	/* Log the players connection */
-	plog(format("Welcome %s=%s@%s (%s/%d) (version %04x)", connp->nick,
-		connp->real, connp->host, connp->addr, connp->his_port,connp->version));
+	plog_fmt("Welcome %s=%s@%s (%s/%d) (version %04x)", connp->nick,
+		connp->real, connp->host, connp->addr, connp->his_port,connp->version);
 
 	if (strcmp(real, connp->real))
 	{
-		plog(format("Client verified incorrectly (%s, %s)(%s, %s)",
-			real, nick, connp->real, connp->nick));
+		plog_fmt("Client verified incorrectly (%s, %s)(%s, %s)",
+			real, nick, connp->real, connp->nick);
 		Send_reply(ind, PKT_VERIFY, PKT_FAILURE);
 		Send_reliable(ind);
 		Destroy_connection(ind, "verify incorrect");
@@ -1511,7 +1511,7 @@ static int Handle_login(int ind)
 	if (Id >= MAX_ID)
 	{
 		errno = 0;
-		plog(format("Id too big (%d)", Id));
+		plog_fmt("Id too big (%d)", Id);
 		return -2;
 	}
 
@@ -1520,7 +1520,7 @@ static int Handle_login(int ind)
 		if (strcasecmp(Players[i]->name, connp->nick) == 0)
 		{
 			errno = 0;
-			plog(format("Name already in use %s", connp->nick));
+			plog_fmt("Name already in use %s", connp->nick);
 			Destroy_connection(ind, "not login"); 
 			return -1;
 		}
@@ -2089,8 +2089,8 @@ int Send_leave(int ind, int id)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for leave info (%d,%d)",
-			connp->state, connp->id));
+		plog_fmt("Connection not ready for leave info (%d,%d)",
+			connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd", PKT_LEAVE, id);
@@ -2185,8 +2185,10 @@ static int Receive_play(int ind)
 	if (ch != PKT_PLAY)
 	{
 		errno = 0;
-		plog(format("Packet is not of play type - (%02x)", ch));
-		Destroy_connection(ind, format("not play - (%02x)", ch));
+		plog_fmt("Packet is not of play type - (%02x)", ch);
+		char buffer[40];
+		strnfmt(buffer, sizeof buffer, "not play - (%02x)", ch);
+		Destroy_connection(ind, buffer);
 		return -1;
 	}
 	if (connp->state != CONN_LOGIN)
@@ -2199,7 +2201,7 @@ static int Receive_play(int ind)
 				return 0;
 			}
 			errno = 0;
-			plog(format("Connection not in login state (%02x)", connp->state));
+			plog_fmt("Connection not in login state (%02x)", connp->state);
 			Destroy_connection(ind, "not login");
 			return -1;
 		}
@@ -2213,7 +2215,7 @@ static int Receive_play(int ind)
 	if ((n = Handle_login(ind)) == -2)
 	{
 		errno = 0;
-		plog(format("Could not login player (%02x)", connp->state));
+		plog_fmt("Could not login player (%02x)", connp->state);
 		Destroy_connection(ind, "cant handle");
 	}
 	if (n < 0)
@@ -2243,7 +2245,7 @@ int Send_reliable(int ind)
 	}
 	if ((num_written = Sockbuf_flush(&connp->w)) < 0)
 	{
-		plog(format("Cannot flush reliable data (%d)", num_written));
+		plog_fmt("Cannot flush reliable data (%d)", num_written);
 		Destroy_connection(ind, "flush error");
 		return -1;
 	}
@@ -2263,14 +2265,14 @@ static int Receive_ack(int ind)
 		<= 0)
 	{
 		errno = 0;
-		plog(format("Cannot read ack packet (%d)", n));
+		plog_fmt("Cannot read ack packet (%d)", n);
 		Destroy_connection(ind, "read error");
 		return -1;
 	}
 	if (ch != PKT_ACK)
 	{
 		errno = 0;
-		plog(format("Not an ack packet (%d)", ch));
+		plog_fmt("Not an ack packet (%d)", ch);
 		Destroy_connection(ind, "not ack");
 		return -1;
 	}
@@ -2293,8 +2295,7 @@ static int Receive_ack(int ind)
 	if (diff > connp->c.len)
 	{
 		errno = 0;
-		plog(format("Bad ack (ind=%d,diff=%ld,cru=%ld)",
-			ind,diff, rel ));
+		plog_fmt("Bad ack (ind=%d,diff=%ld,cru=%ld)", ind, diff, rel);
 		Destroy_connection(ind, "bad ack");
 		return -1;
 	}
@@ -2332,8 +2333,8 @@ static int Receive_discard(int ind)
 	connection_t *connp = &Conn[ind];
 
 	errno = 0;
-	plog(format("Discarding packet %d while in state %02x",
-		connp->r.ptr[0], connp->state));
+	plog_fmt("Discarding packet %d while in state %02x",
+		connp->r.ptr[0], connp->state);
 	connp->r.ptr = connp->r.buf + connp->r.len;
 
 	return 0;
@@ -2344,7 +2345,7 @@ static int Receive_undefined(int ind)
 	connection_t *connp = &Conn[ind];
 
 	errno = 0;
-	plog(format("Unknown packet type %s (%d,%02x)",connp->nick, connp->r.ptr[0], connp->state));
+	plog_fmt("Unknown packet type %s (%d,%02x)",connp->nick, connp->r.ptr[0], connp->state);
 	Destroy_connection(ind, "undefined packet"); 
 	return -1;
 }
@@ -2356,8 +2357,8 @@ int Send_plusses(int ind, int tohit, int todam)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for plusses (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for plusses (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd", PKT_PLUSSES, tohit, todam);
@@ -2371,8 +2372,8 @@ int Send_ac(int ind, int base, int plus)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for ac (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for ac (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd", PKT_AC, base, plus);
@@ -2385,8 +2386,8 @@ int Send_experience(int ind, int lev, int max, int cur, s32b adv)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for experience (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for experience (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu%d%d%d", PKT_EXPERIENCE, lev, 
@@ -2400,8 +2401,8 @@ int Send_gold(int ind, s32b au)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for gold (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for gold (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%d", PKT_GOLD, au);
@@ -2414,8 +2415,8 @@ int Send_hp(int ind, int mhp, int chp)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for hp (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for hp (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -2429,8 +2430,8 @@ int Send_sp(int ind, int msp, int csp)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for sp (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for sp (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd", PKT_SP, msp, csp);
@@ -2443,8 +2444,8 @@ int Send_char_info(int ind, int race, int class, int sex)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for char info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for char info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd%hd%hd", PKT_CHAR_INFO, race, class, sex);
@@ -2457,8 +2458,8 @@ int Send_various(int ind, int hgt, int wgt, int age, int sc)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for various (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for various (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu%hu%hu%hu", PKT_VARIOUS, hgt, wgt, age, sc);
@@ -2471,8 +2472,8 @@ int Send_stat(int ind, int stat, int max, int cur)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for stat (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for stat (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -2486,8 +2487,8 @@ int Send_maxstat(int ind, int stat, int max)
     if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
     {
         errno = 0;
-        plog(format("Connection not ready for maxstat (%d.%d.%d)",
-            ind, connp->state, connp->id));
+        plog_fmt("Connection not ready for maxstat (%d.%d.%d)",
+            ind, connp->state, connp->id);
         return 0;
     }
 
@@ -2505,8 +2506,8 @@ int Send_objflags(int Ind, int line)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for objflags (%d.%d.%d)",
-			Ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for objflags (%d.%d.%d)",
+			Ind, connp->state, connp->id);
 		return 0;
 	}
 	
@@ -2570,8 +2571,8 @@ int Send_history(int ind, int line, cptr hist)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for history (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for history (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu%s", PKT_HISTORY, line, hist);
@@ -2584,8 +2585,8 @@ int Send_inven(int ind, char pos, byte attr, int wgt, int amt, byte tval, cptr n
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for inven (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for inven (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c%c%hu%hd%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, name);
@@ -2598,8 +2599,8 @@ int Send_equip(int ind, char pos, byte attr, int wgt, byte tval, cptr name)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for equip (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for equip (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c%c%hu%c%s", PKT_EQUIP, pos, attr, wgt, tval, name);
@@ -2612,8 +2613,8 @@ int Send_title(int ind, cptr title)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for title (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for title (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%s", PKT_TITLE, title);
@@ -2626,8 +2627,8 @@ int Send_depth(int ind, int depth)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for depth (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for depth (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu", PKT_DEPTH, depth);
@@ -2640,8 +2641,8 @@ int Send_food(int ind, int food)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for food (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for food (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu", PKT_FOOD, food);
@@ -2654,8 +2655,8 @@ int Send_blind(int ind, bool blind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for blind (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for blind (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c", PKT_BLIND, blind);
@@ -2668,8 +2669,8 @@ int Send_confused(int ind, bool confused)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for confusion (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for confusion (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c", PKT_CONFUSED, confused);
@@ -2682,8 +2683,8 @@ int Send_fear(int ind, bool fear)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for fear (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for fear (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c", PKT_FEAR, fear);
@@ -2696,8 +2697,8 @@ int Send_poison(int ind, bool poisoned)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for poison (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for poison (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c", PKT_POISON, poisoned);
@@ -2710,8 +2711,8 @@ int Send_state(int ind, bool paralyzed, bool searching, bool resting)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for state (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for state (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu%hu%hu", PKT_STATE, paralyzed, searching, resting);
@@ -2724,8 +2725,8 @@ int Send_speed(int ind, int speed)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for speed (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for speed (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hd", PKT_SPEED, speed);
@@ -2738,8 +2739,8 @@ int Send_study(int ind, bool study)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for study (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for study (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%c", PKT_STUDY, study);
@@ -2752,8 +2753,8 @@ int Send_cut(int ind, int cut)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for cut (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for cut (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu", PKT_CUT, cut);
@@ -2766,8 +2767,8 @@ int Send_stun(int ind, int stun)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for stun (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for stun (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu", PKT_STUN, stun);
@@ -2780,8 +2781,8 @@ int Send_direction(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for direction (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for direction (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c", PKT_DIRECTION);
@@ -2798,8 +2799,8 @@ int Send_message(int ind, cptr msg)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for message (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for message (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -2825,8 +2826,8 @@ int Send_spell_info(int ind, int book, int i, cptr out_val)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for spell info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for spell info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c%hu%hu%s", PKT_SPELL_INFO, book, i, out_val);
@@ -2840,8 +2841,8 @@ int Send_item_request(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for item request (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for item request (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c", PKT_ITEM);
@@ -2854,8 +2855,8 @@ int Send_flush(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for flush (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for flush (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	return Packet_printf(&connp->c, "%c", PKT_FLUSH);
@@ -2878,8 +2879,8 @@ int Send_line_info(int ind, int y)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for line info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for line info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	
@@ -2944,8 +2945,8 @@ int Send_mini_map(int ind, int y)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for minimap (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for minimap (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 	    
@@ -3006,8 +3007,8 @@ int Send_store(int ind, char pos, byte attr, int wgt, int number, int price, cpt
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for store item (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for store item (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3023,8 +3024,8 @@ int Send_store_info(int ind, int num, int owner, int items)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for store info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for store info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3040,8 +3041,8 @@ int Send_player_store_info(int ind, int num, char *owner, int items)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for store info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for store info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3055,8 +3056,8 @@ int Send_store_sell(int ind, int price)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for sell price (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for sell price (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3071,8 +3072,8 @@ int Send_target_info(int ind, int x, int y, cptr str)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for target info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for target info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3092,8 +3093,8 @@ int Send_sound(int ind, int sound)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for sound (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for sound (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3108,8 +3109,8 @@ int Send_special_line(int ind, int max, int line, byte attr, cptr buf)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for special line (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for special line (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3125,8 +3126,8 @@ int Send_floor(int ind, char tval)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for floor item (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for floor item (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3140,8 +3141,8 @@ int Send_pickup_check(int ind, cptr buf)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for pickup check (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for pickup check (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3162,8 +3163,8 @@ int Send_party(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection nor ready for party info (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection nor ready for party info (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3189,8 +3190,8 @@ int Send_special_other(int ind, char *header)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for special other (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for special other (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3233,8 +3234,8 @@ int Send_skills(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for skills (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for skills (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3256,8 +3257,8 @@ int Send_pause(int ind)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for skills (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for skills (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3272,8 +3273,8 @@ int Send_cursor(int ind, char vis, char x, char y)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for cursor position (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for cursor position (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 
@@ -3288,8 +3289,8 @@ int Send_monster_health(int ind, int num, byte attr)
 	if (!BIT(connp->state, CONN_PLAYING | CONN_READY))
 	{
 		errno = 0;
-		plog(format("Connection not ready for monster health bar (%d.%d.%d)",
-			ind, connp->state, connp->id));
+		plog_fmt("Connection not ready for monster health bar (%d.%d.%d)",
+			ind, connp->state, connp->id);
 		return 0;
 	}
 

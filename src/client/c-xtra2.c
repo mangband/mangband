@@ -69,8 +69,8 @@ void do_cmd_messages(void)
                 }
 
                 /* Display header XXX XXX XXX */
-                prt(format("Message Recall (%d-%d of %d), Offset %d",
-                           i, i+j-1, n, q), 0, 0);
+                prt_format(0, 0, "Message Recall (%d-%d of %d), Offset %d",
+                           i, i+j-1, n, q);
 
                 /* Display prompt (not very informative) */
                 prt("[Press 'p' for older, 'n' for newer, ..., or ESCAPE]", 23, 0);

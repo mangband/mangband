@@ -530,9 +530,9 @@ static void display_parse_error(cptr filename, errr err, cptr buf)
 	oops = (((err > 0) && (err < PARSE_ERROR_MAX)) ? err_str[err] : "unknown");
 
 	/* Oops */
-	plog(format("Error at line %d of '%s.txt'.", error_line, filename));
-	plog(format("Record %d contains a '%s' error.", error_idx, oops));
-	plog(format("Parsing '%s'.", buf));
+	plog_fmt("Error at line %d of '%s.txt'.", error_line, filename);
+	plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+	plog_fmt("Parsing '%s'.", buf);
 /*	message_flush();*/
 
 	/* Quit */
@@ -556,6 +556,9 @@ static errr init_info(cptr filename, header *head)
 
 	FILE *fp;
 
+	/* Path buffer */
+	char path_tmp[32];
+
 	/* General buffer */
 	char buf[1024];
 
@@ -565,7 +568,8 @@ static errr init_info(cptr filename, header *head)
 	/*** Load the binary image file ***/
 
 	/* Build the filename */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+	strnfmt(path_tmp, sizeof path_tmp, "%s.raw", filename);
+	path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, path_tmp);
 
 	/* Attempt to open the "raw" file */
 	fd = fd_open(buf, O_RDONLY);
@@ -575,7 +579,8 @@ static errr init_info(cptr filename, header *head)
 	{
 #ifdef CHECK_MODIFICATION_TIME
 
-		err = check_modification_date(fd, format("%s.txt", filename));
+		strnfmt(path_tmp, sizeof path_tmp, "%s.txt", filename);
+		err = check_modification_date(fd, path_tmp);
 
 #endif /* CHECK_MODIFICATION_TIME */
 
@@ -606,13 +611,14 @@ static errr init_info(cptr filename, header *head)
 		/*** Load the ascii template file ***/
 
 		/* Build the filename */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_EDIT, format("%s.txt", filename));
+		strnfmt(path_tmp, sizeof path_tmp, "%s.txt", filename);
+		path_build(buf, sizeof(buf), ANGBAND_DIR_EDIT, path_tmp);
 
 		/* Open the file */
 		fp = my_fopen(buf, "r");
 
 		/* Parse it */
-		if (!fp) quit(format("Cannot open '%s' file.", buf));
+		if (!fp) quit_fmt("Cannot open '%s' file.", buf);
 
 		/* Parse the file */
 		err = init_info_txt(fp, buf, head, head->parse_info_txt);
@@ -630,7 +636,8 @@ static errr init_info(cptr filename, header *head)
 		FILE_TYPE(FILE_TYPE_DATA);
 
 		/* Build the filename */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+		strnfmt(path_tmp, sizeof path_tmp, "%s.raw", filename);
+		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, path_tmp);
 
 
 		/* Attempt to open the file */
@@ -724,13 +731,14 @@ static errr init_info(cptr filename, header *head)
 		/*** Load the binary image file ***/
 
 		/* Build the filename */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
+		strnfmt(path_tmp, sizeof path_tmp, "%s.raw", filename);
+		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, path_tmp);
 
 		/* Attempt to open the "raw" file */
 		fd = fd_open(buf, O_RDONLY);
 
 		/* Process existing "raw" file */
-		if (fd < 0) quit(format("Cannot load '%s.raw' file.", filename));
+		if (fd < 0) quit_fmt("Cannot load '%s.raw' file.", filename);
 
 		/* Attempt to parse the "raw" file */
 		err = init_info_raw(fd, head);
@@ -739,7 +747,7 @@ static errr init_info(cptr filename, header *head)
 		fd_close(fd);
 
 		/* Error */
-		if (err) quit(format("Cannot parse '%s.raw' file.", filename));
+		if (err) quit_fmt("Cannot parse '%s.raw' file.", filename);
 
 #ifdef ALLOW_TEMPLATES
 	}
@@ -872,9 +880,9 @@ static errr init_f_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'terrain.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'terrain.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -970,9 +978,9 @@ static errr init_k_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'object.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'object.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1061,9 +1069,9 @@ static errr init_a_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'artifact.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'artifact.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1209,9 +1217,9 @@ static errr init_e_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'ego_item.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'ego_item.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1298,9 +1306,9 @@ static errr init_r_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'monster.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'monster.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1397,9 +1405,9 @@ static errr init_v_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'vault.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'vault.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -2394,7 +2402,7 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
-	plog(format("Dugeon Master Set as [%s]",cfg_dungeon_master));
+		plog_fmt("Dugeon Master Set as [%s]",cfg_dungeon_master);
     }
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
@@ -2481,7 +2489,7 @@ void set_server_option(char * option, char * value)
     }
 
 
-	else plog(format("Error : unrecognized mangband.cfg option %s", option));
+	else plog_fmt("Error : unrecognized mangband.cfg option %s", option);
 }
 
 
@@ -2568,7 +2576,7 @@ void load_server_cfg(void)
 		return;
 	}
 
-	plog(format("Loading %s", possible_cfg_dir[i-1]));
+	plog_fmt("Loading %s", possible_cfg_dir[i-1]);
 
 	/* Actually parse the file */
 	load_server_cfg_aux(cfg);

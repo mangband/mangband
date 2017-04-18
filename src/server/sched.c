@@ -89,8 +89,8 @@ static void sig_ok(int signum, int flag)
     sigemptyset(&sigset);
     sigaddset(&sigset, signum);
     if (sigprocmask((flag) ? SIG_UNBLOCK : SIG_BLOCK, &sigset, NULL) == -1) {
-	plog(format("sigprocmask(%d,%d)", signum, flag));
-	exit(1);
+			plog_fmt("sigprocmask(%d,%d)", signum, flag);
+			exit(1);
     }
 }
 
@@ -157,8 +157,8 @@ static void setup_timer(void)
      * Install a real-time timer.
      */
     if (timer_freq <= 0) {
-	plog(format("illegal timer frequency: %ld", timer_freq));
-	exit(1);
+			plog_fmt("illegal timer frequency: %ld", timer_freq);
+			exit(1);
     }
     itv.it_interval.tv_sec = 0;
     itv.it_interval.tv_usec = 1000000 / timer_freq;
@@ -336,12 +336,12 @@ void install_input(void (*func)(int, int), int fd, int arg)
        input_mask_cleared = TRUE;
     }
     if (fd < 0 ) {
-	plog(format("install illegal input handler fd %d", fd));
-	exit(1);
+			plog_fmt("install illegal input handler fd %d", fd);
+			exit(1);
     }
     if (FD_ISSET(fd,&input_mask)) {
-	plog(format("input handler %d busy", fd));
-	exit(1);
+			plog_fmt("input handler %d busy", fd);
+			exit(1);
     }
     if(input_handlers == NULL || fd > biggest_fd)
     {
@@ -353,8 +353,8 @@ void install_input(void (*func)(int, int), int fd, int arg)
         }
         if( input_handlers == NULL )
         {
-           plog(format("input handler %d realloc failed", fd));
-           exit(1);
+					plog_fmt("input handler %d realloc failed", fd);
+					exit(1);
         }
     }
     input_handlers[fd].func = func;
@@ -368,8 +368,8 @@ void install_input(void (*func)(int, int), int fd, int arg)
 void remove_input(int fd)
 {
     if ( fd < 0 ) {
-	plog(format("remove illegal input handler fd %d", fd));
-	exit(1);
+			plog_fmt("remove illegal input handler fd %d", fd);
+			exit(1);
     }
     if (FD_ISSET( fd, &input_mask )) {
 	input_handlers[fd].func = 0;
@@ -468,9 +468,9 @@ void sched(void)
 	    n = select(max_fd, &readmask, 0, 0, tvp);
 	    if (n < 0) {
 		if (errno != EINTR) {
-                    plog(format("Errno: %d\n",errno));
-		    core("sched select error");
-		    exit(1);
+			plog_fmt("Errno: %d\n",errno);
+			core("sched select error");
+			exit(1);
 		}
 		io_todo = 0;
 	    }

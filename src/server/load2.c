@@ -94,7 +94,7 @@ void start_section_read(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
+		plog_fmt("Missing section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter);
 		exit(1);
 	}
 }
@@ -115,7 +115,7 @@ void end_section_read(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing end section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
+		plog_fmt("Missing end section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter);
 		exit(1);
 	}
 }
@@ -135,7 +135,7 @@ int read_int(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		plog_fmt("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter);
 		exit(1);
 	}
 	return value;
@@ -156,7 +156,7 @@ uint read_uint(char* name)
 	}
 	if(!matched)
 	{		
-		plog(format("Missing unsigned integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		plog_fmt("Missing unsigned integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter);
 		exit(1);
 	}
 	return value;
@@ -177,7 +177,7 @@ huge read_huge(char* name)
 	}
 	if(!matched)
 	{		
-		plog(format("Missing signed long.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		plog_fmt("Missing signed long.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter);
 		exit(1);
 	}
 	return value;
@@ -197,7 +197,7 @@ void read_str(char* name, char* value)
 	sscanf(file_buf,"%s = ",seek_name);
 	if(strcmp(seek_name,name))
 	{
-		plog(format("Missing string data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
+		plog_fmt("Missing string data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter);
 		exit(1);
 	}
 
@@ -228,7 +228,7 @@ float read_float(char* name)
 	}
 	if(!matched)
 	{
-		plog(format("Missing float.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		plog_fmt("Missing float.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter);
 		exit(1);
 	}
 	return value;
@@ -250,7 +250,7 @@ void read_binary(char* name, char* value, int max_len)
 	sscanf(file_buf,"%s = ",seek_name);
 	if(strcmp(seek_name,name))
 	{
-		plog(format("Missing binary data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
+		plog_fmt("Missing binary data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter);
 		exit(1);
 	}
 
@@ -335,27 +335,6 @@ bool section_exists(char* name)
 	fseek(file_handle,fpos,SEEK_SET);
 	return(matched);
 }
-
-/*
- * Show information on the screen, one line at a time.
- * Start at line 2, and wrap, if needed, back to line 2.
- */
-static void note(cptr msg)
-{
-#if 0
-	static int y = 2;
-
-	/* Draw the message */
-	prt(msg, y, 0);
-
-	/* Advance one line (wrap if needed) */
-	if (++y >= 24) y = 2;
-
-	/* Flush it */
-	Term_fresh();
-#endif
-}
-
 
 /*
  * Hack -- determine if an item is "wearable" (or a missile)
@@ -1146,7 +1125,7 @@ static errr rd_inventory(int Ind)
 		else if (p_ptr->inven_cnt == INVEN_PACK)
 		{
 			/* Oops */
-			/*note("Too many items in the inventory!");*/
+			plog("Too many items in the inventory!");
 
 			/* Fail */
 			return (54);
@@ -1364,7 +1343,7 @@ static errr rd_dungeon_special()
 			/* we have an arbitrary max number of levels */
 			if(num_levels > MAX_SPECIAL_LEVELS)
 			{
-				note("Too many special pre-designed level files!");
+				plog("Too many special pre-designed level files!");
 				break;
 			}
 		}
@@ -1460,7 +1439,7 @@ static errr rd_savefile_new_aux(int Ind)
 	/* Incompatible save files */
 	if (tmp16u > MAX_K_IDX)
 	{
-		note(format("Too many (%u) object kinds!", tmp16u));
+		plog_fmt("Too many (%u) object kinds!", tmp16u);
 		return (22);
 	}
 
@@ -1523,7 +1502,7 @@ static errr rd_savefile_new_aux(int Ind)
 	/* Read the inventory */
 	if (rd_inventory(Ind))
 	{
-		/*note("Unable to read inventory");*/
+		plog("Unable to read inventory");
 		return (21);
 	}
 
@@ -1661,7 +1640,7 @@ errr rd_server_savefile()
         /* Incompatible save files */
         if (tmp16u > MAX_R_IDX)
         {
-                note(format("Too many (%u) monster races!", tmp16u));
+                plog_fmt("Too many (%u) monster races!", tmp16u);
                 return (21);
         }
 
@@ -1687,7 +1666,7 @@ errr rd_server_savefile()
         /* Incompatible save files */
         if (tmp16u > MAX_A_IDX)
         {
-                note(format("Too many (%u) artifacts!", tmp16u));
+                plog_fmt("Too many (%u) artifacts!", tmp16u);
                 return (24);
         }
 
@@ -1715,7 +1694,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_PARTIES)
 		{
-			note(format("Too many (%u) parties!", tmp16u));
+			plog_fmt("Too many (%u) parties!", tmp16u);
 			return (25);
 		}
 
@@ -1742,7 +1721,7 @@ errr rd_server_savefile()
 		tmp32u = read_int("max_monsters");
 		if (tmp32u > MAX_M_IDX)
 		{
-			note(format("Too many (%u) monsters!", tmp16u));
+			plog_fmt("Too many (%u) monsters!", tmp16u);
 			return (29);
 		}
 		/* load the monsters */
@@ -1759,7 +1738,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_O_IDX)
 		{
-			note(format("Too many (%u) objects!", tmp16u));
+			plog_fmt("Too many (%u) objects!", tmp16u);
 			return (26);
 		}
 
@@ -1789,7 +1768,7 @@ errr rd_server_savefile()
 			/* Verify monster index */
 			if (o_ptr->held_m_idx > z_info->m_max)
 			{
-				note("Invalid monster index");
+				plog("Invalid monster index");
 				return (-1);
 			}
 	
@@ -1810,7 +1789,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_HOUSES)
 		{
-			note(format("Too many (%u) houses!", tmp16u));
+			plog_fmt("Too many (%u) houses!", tmp16u);
 			return (27);
 		}
 
@@ -1829,7 +1808,7 @@ errr rd_server_savefile()
 				
 		if (tmp32u > MAX_WILD)
 		{
-			note("Too many wilderness levels");
+			plog("Too many wilderness levels");
 			return 28;
 		}
 	

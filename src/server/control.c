@@ -31,7 +31,7 @@ static void console_who()
 	char brave[15];
 
 	/* Packet header */
-	Packet_printf(&console_buf, "%s",format("%d players online\n", NumPlayers));
+	Packet_printf(&console_buf, "%d players online\n", NumPlayers);
 	
 	/* Scan the player list */
 	for (k = 1; k <= NumPlayers; k++)
@@ -40,9 +40,9 @@ static void console_who()
 
 		/* Add an entry */
 		(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-		Packet_printf(&console_buf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+		Packet_printf(&console_buf, "%s is a %slevel %d %s %s at %d ft\n", 
 			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
-			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
+			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50);
 			
 	}
 	Sockbuf_flush(&console_buf);
@@ -80,8 +80,7 @@ static void console_whois(char *name)
 	}
 	if (!p_ptr)
 	{
-		Packet_printf(&console_buf, "%s%c","No such player",'\n');
-		Sockbuf_flush(&console_buf);
+		console_print("No such player");
 		return;
 	}
 	
@@ -89,9 +88,9 @@ static void console_whois(char *name)
 
 	/* General character description */
 	(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-	Packet_printf(&console_buf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+	Packet_printf(&console_buf, "%s is a %slevel %d %s %s at %d ft\n", 
 		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
-		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
+		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50);
 	
 	/* Breakup the client version identifier */
 	major = (p_ptr->version & 0xF000) >> 12;
@@ -100,28 +99,27 @@ static void console_whois(char *name)
 	extra = (p_ptr->version & 0xF);
 
 	/* Player connection info */
-	Packet_printf(&console_buf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
-		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
+	Packet_printf(&console_buf, "(%s@%s [%s] v%d.%d.%d.%d)\n", 
+		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra);
 				
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
-		Packet_printf(&console_buf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
+		Packet_printf(&console_buf, "Has resurected %d times.\n", p_ptr->lives);
 	if ( p_ptr->max_dlv == 0 )
-		Packet_printf(&console_buf, "%s",format("Has never left the town!\n"));
+		Packet_printf(&console_buf, "Has never left the town!\n");
 	else
-		Packet_printf(&console_buf, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
+		Packet_printf(&console_buf, "Has ventured down to %d ft\n", p_ptr->max_dlv*50);
 	i = p_ptr->msg_hist_ptr-1;
 	if( i >= 0 )
 	{
 		if (p_ptr->msg_log[i])
 		{
-			Packet_printf(&console_buf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
+			Packet_printf(&console_buf, "Last message: %s\n", p_ptr->msg_log[i]);
 		}
 	}
 		
 
 	Sockbuf_flush(&console_buf);
-	
 }
 
 static void console_message(char *buf)
@@ -155,17 +153,14 @@ static void console_kick_player(char *name)
 		/* Kick him */
 		Destroy_connection(p_ptr->conn, "kicked out");
 		/* Success */
-		Packet_printf(&console_buf, "%s", "Kicked player\n");
-		Sockbuf_flush(&console_buf);
+		console_print("Kicked player");
 		return;
 	}
 	else
 	{
 		/* Failure */
-		Packet_printf(&console_buf, "%s", "No such player\n");
-		Sockbuf_flush(&console_buf);
+		console_print("No such player");
 	}
-
 }
 
 /*
@@ -186,8 +181,7 @@ static void console_rng_test()
 	/* Don't run this if any players are connected */
 	if(NumPlayers > 0)
 	{
-		Packet_printf(&console_buf, "%s", "Can't run the RNG test with players connected!\n");
-		Sockbuf_flush(&console_buf);
+		console_print("Can't run the RNG test with players connected!");
 		return;
 	}
 	
@@ -202,8 +196,7 @@ static void console_rng_test()
 	outcome = 0;
 
 	/* Let the operator know we are busy */
-	Packet_printf(&console_buf, "%s", "Torturing the RNG for 100 million iterations...\n");
-	Sockbuf_flush(&console_buf);
+	console_print("Torturing the RNG for 100 million iterations...");
 
 	/* Torture the RNG for a hundred million iterations */
 	for(i=0;i<100000000;i++)
@@ -220,8 +213,7 @@ static void console_rng_test()
 		Packet_printf(&console_buf, "%s","RNG is working perfectly\n");
 	} else {
 		Packet_printf(&console_buf, "%s","RNG integrity check FAILED\n");
-		Packet_printf(&console_buf, "%s",
-			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
+		Packet_printf(&console_buf, "Outcome was 0x%08X, expected 0x%08X\n",outcome, reference);
 	}
 	Sockbuf_flush(&console_buf);
 	
@@ -239,7 +231,7 @@ static void console_reload_server_preferences(void)
 
 	/* Let mangconsole know that the command was a success */
 	/* Packet header */
-	Packet_printf(&console_buf, "%s", "Reloaded\n");
+	console_print("Reloaded");
 
 	/* Write the output */
 	DgramReply(console_buf.sock, console_buf.ptr, console_buf.len);
@@ -248,10 +240,7 @@ static void console_reload_server_preferences(void)
 static void console_shutdown(void)
 {
 	/* Packet header */
-	Packet_printf(&console_buf, "%s", "Server shutdown\n");
-
-	/* Write the output */
-	Sockbuf_flush(&console_buf);
+	console_print("Server shutdown");
 
 	/* Shutdown */
 	shutdown_server();
@@ -294,8 +283,7 @@ void NewConsole(int read_fd, int arg)
 		install_input(NewConsole, newsock, 5);
 		console_authenticated = FALSE;
 		console_listen = FALSE;
-		Packet_printf(&console_buf, "%s","Connected\n");
-		Sockbuf_flush(&console_buf);
+		console_print("Connected");
 
 		return;
 	}
@@ -347,13 +335,13 @@ void NewConsole(int read_fd, int arg)
 			Sockbuf_clear(&console_buf);
 	
 			/* Put an "illegal access" reply in the buffer */
-			Packet_printf(&console_buf, "%s", "Invalid password\n");
+			console_print("Invalid password");
 			
 			/* Send it */
 			DgramWrite(read_fd, console_buf.buf, console_buf.len);
 
 			/* Log this to the local console */
-			plog(format("Illegal console command from %s.", DgramLastname()));
+			plog_fmt("Illegal console command from %s.", DgramLastname());
 
 			return;
 		}
@@ -362,8 +350,7 @@ void NewConsole(int read_fd, int arg)
 			/* Clear buffer */
 			Sockbuf_clear(&console_buf);
 			console_authenticated = TRUE;
-			Packet_printf(&console_buf, "%s","Authenticated\n");
-			Sockbuf_flush(&console_buf);
+			console_print("Authenticated");
 			return;
 		}
 	}

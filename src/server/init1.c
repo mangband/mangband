@@ -2049,7 +2049,7 @@ static errr grab_one_kind_flag(object_kind *k_ptr, cptr what)
     */
 
 	/* Oops */
-	plog(format("Unknown object flag '%s'.", what));
+	plog_fmt("Unknown object flag '%s'.", what);
 
 	/* Error */
 	return (1);
@@ -2414,7 +2414,7 @@ static errr grab_one_artifact_flag(artifact_type *a_ptr, cptr what)
     */
 
 	/* Oops */
-	plog(format("Unknown artifact flag '%s'.", what));
+	plog_fmt("Unknown artifact flag '%s'.", what);
 
 	/* Error */
 	return (1);
@@ -2438,7 +2438,7 @@ static errr grab_one_activation(artifact_type *a_ptr, cptr what)
 	}
 
 	/* Oops */
-	plog(format("Unknown artifact activation '%s'.", what));
+	plog_fmt("Unknown artifact activation '%s'.", what);
 
 	/* Error */
 	return (1);
@@ -2776,7 +2776,7 @@ static bool grab_one_ego_item_flag(ego_item_type *e_ptr, cptr what)
     */
 
 	/* Oops */
-	plog(format("Unknown ego-item flag '%s'.", what));
+	plog_fmt("Unknown ego-item flag '%s'.", what);
 
 	/* Error */
 	return (1);
@@ -3084,7 +3084,7 @@ static errr grab_one_basic_flag(monster_race *r_ptr, cptr what)
 	}
 
 	/* Oops */
-	plog(format("Unknown monster flag '%s'.", what));
+	plog_fmt("Unknown monster flag '%s'.", what);
 
 	/* Failure */
 	return (1);
@@ -3129,7 +3129,7 @@ static errr grab_one_spell_flag(monster_race *r_ptr, cptr what)
 	}
 
 	/* Oops */
-	plog(format("Unknown monster flag '%s'.", what));
+	plog_fmt("Unknown monster flag '%s'.", what);
 
 	/* Failure */
 	return (1);

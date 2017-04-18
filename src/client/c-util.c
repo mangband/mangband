@@ -957,6 +957,20 @@ void prt(cptr str, int row, int col)
 	c_prt(TERM_WHITE, str, row, col);
 }
 
+void prt_format(int row, int col, cptr format, ...)
+{
+	char buffer[160];
+	va_list ap;
+
+	va_start(ap, format);
+
+	vstrnfmt(buffer, sizeof buffer, format, ap);
+
+	va_end(ap);
+
+	prt(buffer, row, col);
+}
+
 
 /*
  * Get some input at the cursor location.
@@ -1297,7 +1311,6 @@ void c_put_str(byte attr, cptr str, int row, int col)
 	Term_putstr(col, row, -1, attr, str);
 }
 
-
 /*
  * As above, but in "white"
  */
@@ -1305,6 +1318,20 @@ void put_str(cptr str, int row, int col)
 {
 	/* Spawn */
 	Term_putstr(col, row, -1, TERM_WHITE, str);
+}
+
+void c_put_fmt(byte attr, int row, int col, cptr fmt, ...)
+{
+	char buffer[160];
+	va_list ap;
+
+	va_start(ap, fmt);
+
+	vstrnfmt(buffer, sizeof buffer, fmt, ap);
+
+	va_end(ap);
+
+	c_put_str(attr, buffer, row, col);
 }
 
 /*

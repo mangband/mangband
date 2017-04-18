@@ -213,7 +213,7 @@ void delete_object(int Depth, int y, int x)
     /* Paranoia -- make sure the level has been allocated */ 
     if (!cave[Depth]) 
     { 
-        plog(format("Error : tried to delete object on unallocated level %d",Depth));
+        plog_fmt("Error : tried to delete object on unallocated level %d",Depth);
         return; 
     } 
 
@@ -1583,7 +1583,7 @@ s16b lookup_kind(int tval, int sval)
 	}
 
 	/* Oops */
-	plog(format("No object (%d,%d)", tval, sval));
+	plog_fmt("No object (%d,%d)", tval, sval);
 
 	/* Oops */
 	return (0);
@@ -1841,7 +1841,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 		/* Mega-Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
 		object_desc(0, o_name, o_ptr, TRUE, 3);
-        plog(format("Special artifact %s created", o_name));
+        plog_fmt("Special artifact %s created", o_name);
 
 
 		/* Success */
@@ -1902,7 +1902,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 		/* Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
         object_desc(0, o_name, o_ptr, TRUE, 3);
-        plog(format("Artifact %s created", o_name));
+        plog_fmt("Artifact %s created", o_name);
 
 		/* Success */
 		return (TRUE);
