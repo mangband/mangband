@@ -472,7 +472,7 @@ bool make_attack_spell(int Ind, int m_idx)
 	if (m_ptr->confused) return (FALSE);
 
 	/* Only do spells occasionally */
-	if (rand_int(100) >= chance) return (FALSE);
+	if (rand_int(100) >= chance) return (TRUE);
 
 
 	/* XXX XXX XXX Handle "track_target" option (?) */
