@@ -25,8 +25,8 @@ cp -f ../../control .
 cp -f ../../rules .
 chmod +x rules
 echo "#!/bin/sh" >./postinst
-echo chmod og+w -R /var/games/mangband >>./postinst
-echo "var/games/" >>./dirs
+echo chmod og+w -R /usr/share/games/mangband >>./postinst
+echo "/usr/share/games/" >>./dirs
 echo "etc/" >>./dirs
 echo Version: ${VER} >>./control
 echo "/etc/mangband.cfg" >./conffiles
