@@ -454,14 +454,6 @@ bool make_attack_spell(int Ind, int m_idx)
 	/* Extract the "see-able-ness" */
 	bool seen = (!blind && p_ptr->mon_vis[m_idx]);
 
-
-	/* Assume "normal" target */
-	bool normal = TRUE;
-
-	/* Assume "projectable" */
-	bool direct = TRUE;
-
-
 	/* Hack -- Extract the spell probability */
 	chance = (r_ptr->freq_inate + r_ptr->freq_spell) / 2;
 
@@ -479,15 +471,12 @@ bool make_attack_spell(int Ind, int m_idx)
 
 
 	/* Hack -- require projectable player */
-	if (normal)
-	{
-		/* Check range */
-		if (m_ptr->cdis > MAX_RANGE) return (FALSE);
+	/* Check range */
+	if (m_ptr->cdis > MAX_RANGE) return (FALSE);
 
-		/* Check path (destination could be standing on a wall) */
-		if (!projectable_wall(p_ptr->dun_depth, m_ptr->fy, m_ptr->fx, p_ptr->py, p_ptr->px))
-		    return (FALSE);
-	}
+	/* Check path (destination could be standing on a wall) */
+	if (!projectable_wall(p_ptr->dun_depth, m_ptr->fy, m_ptr->fx, p_ptr->py, p_ptr->px))
+		return (FALSE);
 
 
 	/* Extract the monster level */
@@ -572,7 +561,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF4_SHRIEK */
 		case 96+0:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			msg_format(Ind, "%^s makes a high pitched shriek.", m_name);
 			aggravate_monsters(Ind, m_idx);
@@ -1007,7 +995,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_DRAIN_MANA */
 		case 128+9:
 		{
-			if (!direct) break;
 			if (p_ptr->csp)
 			{
 				int r1;
@@ -1065,7 +1052,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_MIND_BLAST */
 		case 128+10:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (!seen)
 			{
@@ -1095,7 +1081,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_BRAIN_SMASH */
 		case 128+11:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (!seen)
 			{
@@ -1133,7 +1118,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_CAUSE_1 */
 		case 128+12:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
 			else msg_format(Ind, "%^s points at you and curses.", m_name);
@@ -1151,7 +1135,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_CAUSE_2 */
 		case 128+13:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
 			else msg_format(Ind, "%^s points at you and curses horribly.", m_name);
@@ -1169,7 +1152,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_CAUSE_3 */
 		case 128+14:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles loudly.", m_name);
 			else msg_format(Ind, "%^s points at you, incanting terribly!", m_name);
@@ -1187,7 +1169,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_CAUSE_4 */
 		case 128+15:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s screams the word 'DIE!'", m_name);
 			else msg_format(Ind, "%^s points at you, screaming the word DIE!", m_name);
@@ -1329,7 +1310,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_SCARE */
 		case 128+27:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles, and you hear scary noises.", m_name);
 			else msg_format(Ind, "%^s casts a fearful illusion.", m_name);
@@ -1352,7 +1332,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_BLIND */
 		case 128+28:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
 			else msg_format(Ind, "%^s casts a spell, burning your eyes!", m_name);
@@ -1375,7 +1354,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_CONF */
 		case 128+29:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles, and you hear puzzling noises.", m_name);
 			else msg_format(Ind, "%^s creates a mesmerising illusion.", m_name);
@@ -1398,7 +1376,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_SLOW */
 		case 128+30:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			msg_format(Ind, "%^s drains power from your muscles!", m_name);
 			if (p_ptr->free_act)
@@ -1420,7 +1397,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF5_HOLD */
 		case 128+31:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
 			else msg_format(Ind, "%^s stares deep into your eyes!", m_name);
@@ -1582,7 +1558,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_TELE_TO */
 		case 160+8:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			msg_format(Ind, "%^s commands you to return.", m_name);
 			teleport_player_to(Ind, m_ptr->fy, m_ptr->fx);
@@ -1592,7 +1567,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_TELE_AWAY */
 		case 160+9:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			msg_format(Ind, "%^s teleports you away.", m_name);
 			teleport_player(Ind, 100);
@@ -1602,7 +1576,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_TELE_LEVEL */
 		case 160+10:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles strangely.", m_name);
 			else msg_format(Ind, "%^s gestures at your feet.", m_name);
@@ -1631,7 +1604,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_DARKNESS */
 		case 160+12:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
 			else msg_format(Ind, "%^s gestures in shadow.", m_name);
@@ -1642,7 +1614,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_TRAPS */
 		case 160+13:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			if (blind) msg_format(Ind, "%^s mumbles, and then cackles evilly.", m_name);
 			else msg_format(Ind, "%^s casts a spell and cackles evilly.", m_name);
@@ -1653,7 +1624,6 @@ bool make_attack_spell(int Ind, int m_idx)
 		/* RF6_FORGET */
 		case 160+14:
 		{
-			if (!direct) break;
 			disturb(Ind, 1, 0);
 			msg_format(Ind, "%^s tries to blank your mind.", m_name);
 
@@ -3257,26 +3227,32 @@ static void process_monster(int Ind, int m_idx)
 		if (did_kill_wall) r_ptr->r_flags2 |= RF2_KILL_WALL;
 	}
 
-
-	/* Hack -- get "bold" if out of options */
-	if (!do_turn && !do_move && m_ptr->monfear)
+	if(!do_turn)
 	{
-		/* No longer afraid */
-		m_ptr->monfear = 0;
-
-		/* Message if seen */
-		if (p_ptr->mon_vis[m_idx])
+		/* Hack -- get "bold" if out of options */
+		if (!do_move && m_ptr->monfear)
 		{
-			char m_name[80];
+			/* No longer afraid */
+			m_ptr->monfear = 0;
 
-			/* Acquire the monster name */
-			monster_desc(Ind, m_name, m_idx, 0);
+			/* Message if seen */
+			if (p_ptr->mon_vis[m_idx])
+			{
+				char m_name[80];
 
-			/* Dump a message */
-			msg_format(Ind, "%^s turns to fight!", m_name);
+				/* Acquire the monster name */
+				monster_desc(Ind, m_name, m_idx, 0);
+
+				/* Dump a message */
+				msg_format(Ind, "%^s turns to fight!", m_name);
+			}
+
+			/* XXX XXX XXX Actually do something now (?) */
 		}
-
-		/* XXX XXX XXX Actually do something now (?) */
+		else
+		{
+			m_ptr->energy -= level_speed(m_ptr->dun_depth);
+		}
 	}
 }
 
