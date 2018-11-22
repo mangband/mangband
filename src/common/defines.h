@@ -387,7 +387,7 @@
 /*
  * Misc constants
  */
-#define SERVER_SAVE	1		/* Minutes between server saves */
+#define SERVER_SAVE	10		/* Minutes between server saves */
 #define TOWN_DAWN		50000	/* Number of turns from dawn to dawn XXX */
 #define GROW_TREE	5000		/* How often to grow a new tree in town */
 #define BREAK_GLYPH		550		/* Rune of protection resistance */
