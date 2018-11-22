@@ -34,10 +34,10 @@
 /*
  * Current version number of MAngband.
  */
- 
+
 #define VERSION_MAJOR	1
 #define VERSION_MINOR	1
-#define VERSION_PATCH	3
+#define VERSION_PATCH	4
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
@@ -219,7 +219,7 @@
 /*
  * Maximum array bounds for template based arrays
  */
- 
+
 #define MAX_F_IDX	128	/* Max size for "f_info[]" */
 #define MAX_K_IDX	544	/* Max size for "k_info[]" */
 #define MAX_A_IDX	138	/* Max size for "a_info[]" */
@@ -335,7 +335,7 @@
 #define PARTY_HOSTILE	5
 #define PARTY_PEACE	6
 
-/* 
+/*
  * Dungeon master commands
  */
 #define	MASTER_NULL	0
@@ -344,7 +344,7 @@
 #define	MASTER_SUMMON	3
 #define MASTER_GENERATE	4
 
-#define	MASTER_SUMMON_SPEFIC	0	
+#define	MASTER_SUMMON_SPEFIC	0
 #define	MASTER_SUMMON_
 
 
@@ -455,7 +455,7 @@
 /* Macros for determing if it is night or day */
 
 #define		IS_DAY	 ((turn % (10L * TOWN_DAWN)) <= (10L * TOWN_DAWN / 2))
-#define		IS_NIGHT ((turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))	
+#define		IS_NIGHT ((turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))
 
 
 /*
@@ -743,7 +743,7 @@ that keeps many algorithms happy.
 -APD- */
 #define FEAT_DRAWBRIDGE	0x50
 #define FEAT_LOGS			0x60
-#define FEAT_PERM_CLEAR	0x70	
+#define FEAT_PERM_CLEAR	0x70
 
 /* Trees */
 #define FEAT_TREE			0x61
@@ -1111,7 +1111,7 @@ that keeps many algorithms happy.
 #define EGO_MIRKWOOD		133
 
 /* Missile launchers */
-#define EGO_LOTHLORIEN		106 /* note: this is angband, 
+#define EGO_LOTHLORIEN		106 /* note: this is angband,
 				     *	for mangband set to 134 */
 #define EGO_NUMENOR		135
 
@@ -2507,10 +2507,10 @@ that keeps many algorithms happy.
 #define OPT_MAX						256
 
 
-/* 
+/*
 	Different types of terrain, used for the wilderness.
 	-APD-
-	
+
 	HACK -- I am temporarily using these numbers to determine
 	how many monsters to generate.
 */
@@ -2528,7 +2528,7 @@ that keeps many algorithms happy.
 /* different buildings */
 #define		WILD_LOG_CABIN		0
 #define		WILD_ROCK_HOME		1
-#define		WILD_PERM_HOME		2	
+#define		WILD_PERM_HOME		2
 #define		WILD_SHACK		3
 #define		WILD_TOWN_HOME		4
 
@@ -2607,7 +2607,7 @@ that keeps many algorithms happy.
 	(((T)->ident & (ID_KNOWN)) || \
 	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
 	  Players[IND]->obj_aware[(T)->k_idx]))
-    
+
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \
@@ -2798,7 +2798,7 @@ that keeps many algorithms happy.
      ((cave[DEPTH][Y][X].feat >= FEAT_SHOP_HEAD) && \
       (cave[DEPTH][Y][X].feat <= FEAT_SHOP_TAIL)) || \
      ((cave[DEPTH][Y][X].feat >= FEAT_HOME_HEAD) && \
-      (cave[DEPTH][Y][X].feat <= FEAT_HOME_TAIL))) 
+      (cave[DEPTH][Y][X].feat <= FEAT_HOME_TAIL)))
 
 /*
  * Is a given location "valid" for placing things?
