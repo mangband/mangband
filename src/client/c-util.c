@@ -1004,11 +1004,7 @@ bool askfor_aux(char *buf, int len, char private)
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-
-	if(!private)
-		Term_putstr(x, y, -1, TERM_YELLOW, buf);
-	else
-		Term_putstr(x, y, -1, TERM_YELLOW, "xxxxxx");
+	Term_putstr(x, y, -1, TERM_YELLOW, private ? "xxxxxx" : buf);
 
 
 	/* Process input */
