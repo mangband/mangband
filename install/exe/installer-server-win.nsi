@@ -7,8 +7,8 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "MAngband Server"
-!define PRODUCT_VERSION "1.1.2"
-!define VER "112"
+!define PRODUCT_VERSION "1.1.3"
+!define VER "113"
 !define PRODUCT_PUBLISHER ""
 !define PRODUCT_WEB_SITE "http://mangband.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\MAngband.exe"
@@ -46,7 +46,7 @@ CRCCheck Off
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "mangband-setup-${VER}.exe"
+OutFile "mangband-server-setup-${VER}.exe"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
