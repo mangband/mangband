@@ -97,7 +97,7 @@
 /*
  * Menu constants -- see "ANGBAND.RC"
  */
- 
+
 #define IDM_FILE_NEW			101
 #define IDM_FILE_OPEN			102
 #define IDM_FILE_SAVE			103
@@ -353,7 +353,7 @@ static term_data *td_ptr;
  */
 static HWND editmsg;
 static HWND old_focus = NULL;
-LONG FAR PASCAL SubClassFunc(HWND hWnd,WORD Message,WORD wParam, LONG lParam);
+LRESULT APIENTRY SubClassFunc(HWND hWnd,UINT Message,WPARAM wParam, LPARAM lParam);
 WNDPROC lpfnOldWndProc;
 
 /*
@@ -1273,12 +1273,12 @@ static errr term_force_graf(term_data *td, cptr name)
 
 	char buf[1024];
 
-	HBITMAP scaled_gfx; 
+	HBITMAP scaled_gfx;
 	HDC  hdc;
 	HDC hdcSrc;
 	HDC hdcDest;
 	HBITMAP hbmSrcOld;
-	
+
 	/* Forget old stuff */
 	if (td->graf_file)
 	{
@@ -1352,8 +1352,8 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Save the new sizes */
 	td->infGraph.CellWidth = wid;
 	td->infGraph.CellHeight = hgt;
-                 
-                 
+
+
 	/* More info */
 ////	hdcSrc = CreateCompatibleDC(hdc);
 ////	hbmSrcOld = SelectObject(hdcSrc, td->infGraph.hBitmap);
@@ -1375,8 +1375,8 @@ static errr term_force_graf(term_data *td, cptr name)
 	SetStretchBltMode(hdcSrc, COLORONCOLOR);
 	StretchBlt(hdcSrc, 0, 0, 8*32, 13*60, hdcDest, 0, 0, 16*32, 16*60, SRCCOPY);
 	td->infGraph.hBitmap = scaled_gfx;
-*/	
-	
+*/
+
 	/* Release */
 /*	SelectObject(hdcSrc, scaled_gfx);
 	DeleteDC(hdcSrc);
@@ -1850,11 +1850,11 @@ static errr Term_wipe_win(int x, int y, int n)
 	RECT rc;
 
 #ifdef USE_GRAPHICS
-	/* [grk] Client-side scrolling support 
+	/* [grk] Client-side scrolling support
 	 * This is a kludge see declaration of x_offset */
 //	if(td == &data[0]){
 //		x = x - x_offset;
-//		if(x+n<13) return 0; 
+//		if(x+n<13) return 0;
 //		if(x<13){
 //			n = n + (x-13);
 //			x = 13;
@@ -1948,11 +1948,11 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 #endif
 
 #ifdef USE_GRAPHICS
-	/* [grk] Client-side scrolling support 
+	/* [grk] Client-side scrolling support
 	 * This is a kludge see declaration of x_offset */
 //	if(td == &data[0]){
 //		x = x - x_offset;
-//		if(x<13) return 0; 
+//		if(x<13) return 0;
 //	}
 #endif
 
@@ -1980,7 +1980,7 @@ static errr Term_pict_win(int x, int y, byte a, char c)
 	hdc = GetDC(td->w);
 
 /* [grk] We don't use this, we scale the bitmap */
-#ifdef USEBUGGYCODE 
+#ifdef USEBUGGYCODE
 	/* Handle small bitmaps */
 	if ((w1 < w2) || (h1 < h2))
 	{
@@ -2055,10 +2055,10 @@ static errr Term_text_win(int x, int y, int n, byte a, const char *s)
 	HDC  hdc;
 
 #ifdef USE_GRAPHICS
-	/* [grk] Client-side scrolling support 
+	/* [grk] Client-side scrolling support
 	 * This is a kludge see declaration of x_offset */
 //	if(td == &data[0] && (y!=0) ){
-//		if(x>13){ 
+//		if(x>13){
 //			x = x - x_offset;
 //			if(x<13) return 0;
 //		}
@@ -2068,7 +2068,7 @@ static errr Term_text_win(int x, int y, int n, byte a, const char *s)
 //		 Term_pict_win(x,y,0x82,0x82);
 //		 return 0;
 //	}
-		
+
 #endif
 
 	/* Location */
@@ -2166,7 +2166,7 @@ static void init_windows(void)
 	td = &data[0];
 	WIPE(td, term_data);
 
-    sprintf(version, "Mangband %d.%d.%d", 
+    sprintf(version, "Mangband %d.%d.%d",
 			VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 	td->s = version;
 	td->keys = 1024;
@@ -2266,12 +2266,12 @@ static void init_windows(void)
 	/* hack [grk] */
 	editmsg = CreateWindowEx(WS_EX_STATICEDGE,"EDIT",NULL,WS_CHILD|ES_AUTOHSCROLL|ES_OEMCONVERT|WS_VISIBLE,
 						 2,data[4].client_hgt-24,data[4].client_wid-8,20,data[4].w,NULL,hInstance,NULL);
-	editfont=CreateFont(16,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,PROOF_QUALITY,DEFAULT_PITCH,"Arial");  
+	editfont=CreateFont(16,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,PROOF_QUALITY,DEFAULT_PITCH,"Arial");
 	SendMessage(editmsg, WM_SETFONT, (int)editfont, (int)NULL );
 	stretch_chat_ctrl();
 
 	SendMessage(editmsg, EM_LIMITTEXT, 590, 0L);
-	lpfnOldWndProc = (WNDPROC)SetWindowLong(editmsg, GWL_WNDPROC, (DWORD) SubClassFunc);
+	lpfnOldWndProc = (WNDPROC)SetWindowLongPtr(editmsg, GWL_WNDPROC, (DWORD) SubClassFunc);
 
 	/* Activate the screen window */
 	SetActiveWindow(data[0].w);
@@ -2333,11 +2333,12 @@ static void init_windows(void)
 }
 
 /* hack - edit control subclass [grk] */
-LONG FAR PASCAL SubClassFunc(   HWND hWnd,
-               WORD Message,
-               WORD wParam,
-               LONG lParam)
+LRESULT APIENTRY SubClassFunc(   HWND hWnd,
+               UINT Message,
+               WPARAM wParam,
+               LPARAM lParam)
 {
+
 	char pmsgbuf[1000]; /* overkill */
 	char pmsg[60];
 	char nickbuf[30];
@@ -2348,7 +2349,7 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 		unset_chat_focus();
 		return 0;
 	}
-       
+
 	if ( Message == WM_CHAR ) {
 		/* Is this RETURN ? */
 		if( wParam == 13 || wParam == 10000) {
@@ -2356,9 +2357,9 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 			memset(nickbuf,0,22);
 
 			/* Get the controls text and send it */
-			msglen = GetWindowText(editmsg, pmsgbuf, 999); 
+			msglen = GetWindowText(editmsg, pmsgbuf, 999);
 
-			/* Send the text in chunks of 58 characters, 
+			/* Send the text in chunks of 58 characters,
 			   or nearest break before 58 chars */
 
 			if( msglen == 0 ){
@@ -2367,8 +2368,8 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 			}
 /*RLS*/
 			if( msglen < 58 ){
-				Send_msg(pmsgbuf); 
-			} else{ 
+				Send_msg(pmsgbuf);
+			} else{
 				int offset,breakpoint,nicklen;
 				char * startmsg;
 				offset = 0;
@@ -2424,8 +2425,9 @@ LONG FAR PASCAL SubClassFunc(   HWND hWnd,
 			return 0;
 		}
 	}
+
 	return CallWindowProc(lpfnOldWndProc, hWnd, Message, wParam, lParam);
-	
+
 }
 
 
@@ -2458,12 +2460,12 @@ static void setup_menus(void)
 	/* Save player */
 	EnableMenuItem(hm, IDM_FILE_SAVE,
  	               MF_BYCOMMAND | MF_ENABLED | MF_GRAYED);
- 
+
 
 	/* Exit with save */
 	EnableMenuItem(hm, IDM_FILE_EXIT,
  	               MF_BYCOMMAND | MF_ENABLED | MF_GRAYED);
- 
+
 
 	/* Window font options */
 	for (i = 1; i < MAX_TERM_DATA; i++)
@@ -2492,7 +2494,7 @@ static void setup_menus(void)
 	              MF_BYCOMMAND | (use_sound ? MF_CHECKED : MF_UNCHECKED));
 #endif
 
-#ifdef BEN_HACK 
+#ifdef BEN_HACK
 	/* Item "Colors 16" */
 	EnableMenuItem(hm, IDM_OPTIONS_UNUSED,
 	               MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
@@ -2777,7 +2779,7 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
 	/* Handle message */
 	switch (uMsg)
@@ -2785,7 +2787,7 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		/* XXX XXX XXX */
 		case WM_NCCREATE:
 		{
-			SetWindowLong(hWnd, 0, (LONG)(td_ptr));
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)(td_ptr));
 			break;
 		}
 
@@ -3027,7 +3029,7 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
 	/* Process message */
 	switch (uMsg)
@@ -3035,7 +3037,7 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 		/* XXX XXX XXX */
 		case WM_NCCREATE:
 		{
-			SetWindowLong(hWnd, 0, (LONG)(td_ptr));
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)(td_ptr));
 			break;
 		}
 
@@ -3062,8 +3064,8 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
                           if(&data[i] == td) j = i;
                         /* Click its menu entry */
                         if(j != -1) process_menus(211+j);
-                        return 0; 
-                        
+                        return 0;
+
 		case WM_GETMINMAXINFO:
 		{
 			if (!td) return 1;  /* this message was sent before WM_NCCREATE */
@@ -3160,7 +3162,7 @@ LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg,
 				/* If not return, ignore key */
 				return 0;
 			}
-			
+
 			/* Extract the modifiers */
 			if (GetKeyState(VK_CONTROL) & 0x8000) mc = TRUE;
 			if (GetKeyState(VK_SHIFT)   & 0x8000) ms = TRUE;
@@ -3267,7 +3269,7 @@ LRESULT FAR PASCAL _export AngbandSaverProc(HWND hWnd, UINT uMsg,
 
 
 	/* Acquire proper "term_data" info */
-	td = (term_data *)GetWindowLong(hWnd, 0);
+	td = (term_data *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
 	/* Process */
 	switch (uMsg)
@@ -3275,7 +3277,7 @@ LRESULT FAR PASCAL _export AngbandSaverProc(HWND hWnd, UINT uMsg,
 		/* XXX XXX XXX */
 		case WM_NCCREATE:
 		{
-			SetWindowLong(hWnd, 0, (LONG)(td_ptr));
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)(td_ptr));
 			break;
 		}
 
@@ -3361,10 +3363,10 @@ static void hack_plog(cptr str)
 static void hack_quit(cptr str)
 {
     int i;
-    
+
 	/* Force saving of preferences on any quit [grk] */
 	save_prefs();
-	
+
 	/* Give a warning */
 	if (str) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
 
@@ -3488,7 +3490,7 @@ static void hook_quit(cptr str)
 /*
  * Init some stuff
  */
-static void init_stuff(void)
+void static init_stuff_win(void)
 {
 	int   i;
 
@@ -3530,7 +3532,7 @@ static void init_stuff(void)
 	/* Init the file paths */
 
 	init_file_paths(path);
- 
+
 	/* Hack -- Validate the paths */
 
 /*	validate_dir(ANGBAND_DIR_APEX); *//*on server */
@@ -3550,7 +3552,7 @@ static void init_stuff(void)
 	// Validate the "font" directory
 	validate_dir(ANGBAND_DIR_XTRA_FONT);
 
-	// Build the filename 
+	// Build the filename
 	path_build(path, 1024, ANGBAND_DIR_XTRA_FONT, "8X13.FON");
 
 	// Hack -- Validate the basic font
@@ -3649,7 +3651,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 	plog_aux = hack_plog;
 
 	/* Prepare the filepaths */
-	init_stuff();
+	init_stuff_win();
 
 	/* Initialize WinSock */
 	WSAStartup(MAKEWORD(1, 1), &wsadata);
