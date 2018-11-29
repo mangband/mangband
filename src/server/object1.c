@@ -1217,6 +1217,7 @@ static char *object_desc_int(char *t, sint v)
  *   1 -- The Cloak of Death [1,+3]
  *   2 -- The Cloak of Death [1,+3] (+2 to Stealth)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
+ *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
 void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 {
@@ -1834,7 +1835,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 
 
 	/* Hack -- Wands and Staffs have charges */
-	if (known &&
+	if (known && mode < 4 &&
 	    ((o_ptr->tval == TV_STAFF) ||
 	     (o_ptr->tval == TV_WAND)))
 	{
@@ -1846,6 +1847,22 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		if (o_ptr->pval != 1) t = object_desc_chr(t, 's');
 		t = object_desc_chr(t, p2);
 	}
+
+	/* Display average number of charges in a store stack */
+	else if (known && mode == 4 && 
+		((o_ptr->tval == TV_STAFF) || (o_ptr->tval == TV_WAND)))
+	{
+		/* Dump " (N charges avg)" */
+		t = object_desc_chr(t, ' ');
+		t = object_desc_chr(t, p1);
+		t = object_desc_num(t, o_ptr->pval / o_ptr->number);
+		t = object_desc_str(t, " charge");
+		if (o_ptr->pval != 1) t = object_desc_chr(t, 's');
+		if (o_ptr->number > 1) t = object_desc_str(t, " avg");
+		t = object_desc_chr(t, p2);
+	}
+
+		
 
 	/* Hack -- Rods have a "charging" indicator */
 	else if (known && (o_ptr->tval == TV_ROD))
