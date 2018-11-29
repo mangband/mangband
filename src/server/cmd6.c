@@ -2477,7 +2477,7 @@ void do_cmd_zap_rod(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int                 ident, chance, lev;
+	int                 ident, chance, lev, power;
 
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
@@ -2568,7 +2568,12 @@ void do_cmd_zap_rod(int Ind, int item)
 	}
 
 	/* Still charging? */
-	if (o_ptr->timeout > (o_ptr->pval - k_ptr->pval))
+	/* Find out how many rods are charging, by dividing
+	 * current timeout by each rod's maximum timeout.
+	 * Ensure that any remainder is rounded up.
+	 */
+	power = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+	if (power >= o_ptr->number)
 	{
 		if (flush_failure) flush();
 
@@ -2747,7 +2752,7 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int                 item, ident, chance, lev;
+	int                 item, ident, chance, lev, power;
 
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
@@ -2835,7 +2840,12 @@ void do_cmd_zap_rod_dir(int Ind, int dir)
 	}
 
 	/* Still charging? */
-	if (o_ptr->timeout > (o_ptr->pval - k_ptr->pval))
+	/* Find out how many rods are charging, by dividing
+	 * current timeout by each rod's maximum timeout.
+	 * Ensure that any remainder is rounded up.
+	 */
+	power = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+	if (power >= o_ptr->number)
 	{
 		if (flush_failure) flush();
 
