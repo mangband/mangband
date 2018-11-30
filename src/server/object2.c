@@ -1042,7 +1042,7 @@ static s32b object_value_real(object_type *o_ptr)
 		case TV_STAFF:
 		{
 			/* Pay extra for charges */
-			value += ((value / 20) * o_ptr->pval);
+			value += ((value / 20) * (o_ptr->pval / o_ptr->number));
 
 			/* Done */
 			break;
@@ -1393,10 +1393,17 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		case TV_STAFF:
 		case TV_WAND:
 		{
-			/* Require knowledge */
-			if (!object_known_p(Ind, o_ptr) || !object_known_p(Ind, j_ptr)) return (0);
+			/* Require permission */
+			if (!p_ptr->stack_allow_wands) return (0);
 
-			/* Fall through */
+			/* Require either knowledge or known empty for both wands/staves */
+			if ((!(o_ptr->ident & (ID_EMPTY)) &&
+				!object_known_p(Ind, o_ptr)) ||
+				(!(j_ptr->ident & (ID_EMPTY)) &&
+				!object_known_p(Ind, j_ptr))) return(0);
+
+			/* Assume okay */
+			break;
 		}
 
 		/* Staffs and Wands and Rods */
@@ -1404,7 +1411,7 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 		{
 			/* Require permission */
 			if (!p_ptr->stack_allow_wands) return (0);
-
+#if 0
 			/* Require identical charges */
 			if (o_ptr->pval != j_ptr->pval)
 			{
@@ -1413,7 +1420,8 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
 				p_ptr->notice |= (PN_REORDER);
 				return (0);
 			}
-
+			/* Fall throu */
+#endif
 			/* Probably okay */
 			break;
 		}
@@ -1542,6 +1550,8 @@ bool object_similar(int Ind, object_type *o_ptr, object_type *j_ptr)
  */
 void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr)
 {
+	object_kind *k_ptr = &k_info[o_ptr->k_idx];
+
 	int total = o_ptr->number + j_ptr->number;
 
 	/* Add together the item counts */
@@ -1562,6 +1572,22 @@ void object_absorb(int Ind, object_type *o_ptr, object_type *j_ptr)
 	/* Hack -- could average discounts XXX XXX XXX */
 	/* Hack -- save largest discount XXX XXX XXX */
 	if (o_ptr->discount < j_ptr->discount) o_ptr->discount = j_ptr->discount;
+	
+	/*
+	 * Hack -- if rods are stacking, re-calculate the
+	 * pvals (maximum timeouts) and current timeouts together
+	 */
+	if (o_ptr->tval == TV_ROD)
+	{
+		o_ptr->pval = total * k_ptr->pval;
+		o_ptr->timeout += j_ptr->timeout;
+	}
+
+	/* Hack -- if wands or staves are stacking, combine the charges */
+	if ((o_ptr->tval == TV_WAND) || (o_ptr->tval == TV_STAFF))
+	{
+		o_ptr->pval += j_ptr->pval;
+	}
 }
 
 
@@ -2774,8 +2800,8 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		
 		case TV_ROD:
 
-		/* Init as charged */
-		o_ptr->pval = 0; /* k_info[o_ptr->k_idx].pval; */;
+		/* Transfer the pval. */
+		o_ptr->pval = k_info[o_ptr->k_idx].pval;
 		break;
 
 		case TV_CHEST:
@@ -4443,7 +4469,22 @@ void process_objects(void)
 		}
 
 		/* Recharge rods on the ground */
-		if ((o_ptr->tval == TV_ROD) && (o_ptr->pval)) o_ptr->pval--;
+		if ((o_ptr->tval == TV_ROD) && (o_ptr->timeout))
+		{
+			/* Charge it (charge ALL rods) */
+			/* Note: this is the behavior in vanilla Angband 3.0.9 */
+			o_ptr->timeout -= o_ptr->number;
+
+			/* Alternate code */
+			/* Only charging rods should recharge (same as charging from the inventory) */
+			/*object_kind* k_ptr = &k_info[o_ptr->k_idx];
+			int temp = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+			if (temp > o_ptr->number) temp = o_ptr->number;
+			o_ptr->timeout -= temp;*/
+
+			/* Boundary control */
+			if (o_ptr->timeout < 0) o_ptr->timeout = 0;
+		}
 	}
 
 
@@ -4559,3 +4600,64 @@ int ego_kind_index_fuzzy(char * name)
 	}
 	return 0;
 }
+
+/*
+ * Distribute charges of rods, staves, or wands.
+ *
+ * o_ptr = source item
+ * q_ptr = target item, must be of the same type as o_ptr
+ * amt   = number of items that are transfered
+ */
+void distribute_charges(object_type *o_ptr, object_type *q_ptr, int amt)
+{
+	/*
+	 * Hack -- If rods, staves, or wands are dropped, the total maximum
+	 * timeout or charges need to be allocated between the two stacks.
+	 * If all the items are being dropped, it makes for a neater message
+	 * to leave the original stack's pval alone. -LM-
+	 */
+	if ((o_ptr->tval == TV_WAND) ||
+	    (o_ptr->tval == TV_STAFF) ||
+	    (o_ptr->tval == TV_ROD))
+	{
+		q_ptr->pval = o_ptr->pval * amt / o_ptr->number;
+
+		if (amt < o_ptr->number) o_ptr->pval -= q_ptr->pval;
+
+		/*
+		 * Hack -- Rods also need to have their timeouts distributed.
+		 *
+		 * The dropped stack will accept all time remaining to charge up to
+		 * its maximum.
+		 */
+		if ((o_ptr->tval == TV_ROD) && (o_ptr->timeout))
+		{
+			if (q_ptr->pval > o_ptr->timeout)
+				q_ptr->timeout = o_ptr->timeout;
+			else
+				q_ptr->timeout = q_ptr->pval;
+
+			if (amt < o_ptr->number)
+				o_ptr->timeout -= q_ptr->timeout;
+		}
+	}
+}
+
+
+void reduce_charges(object_type *o_ptr, int amt)
+{
+	/*
+	 * Hack -- If rods or wand are destroyed, the total maximum timeout or
+	 * charges of the stack needs to be reduced, unless all the items are
+	 * being destroyed. -LM-
+	 */
+	if (((o_ptr->tval == TV_WAND) ||
+	     (o_ptr->tval == TV_STAFF) ||
+	     (o_ptr->tval == TV_ROD)) &&
+	    (amt < o_ptr->number))
+	{
+		o_ptr->pval -= o_ptr->pval * amt / o_ptr->number;
+	}
+}
+
+

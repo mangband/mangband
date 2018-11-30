@@ -1217,6 +1217,7 @@ static char *object_desc_int(char *t, sint v)
  *   1 -- The Cloak of Death [1,+3]
  *   2 -- The Cloak of Death [1,+3] (+2 to Stealth)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
+ *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
 void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 {
@@ -1834,7 +1835,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 
 
 	/* Hack -- Wands and Staffs have charges */
-	if (known &&
+	if (known && mode < 4 &&
 	    ((o_ptr->tval == TV_STAFF) ||
 	     (o_ptr->tval == TV_WAND)))
 	{
@@ -1847,15 +1848,65 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		t = object_desc_chr(t, p2);
 	}
 
+	/* Display average number of charges in a store stack */
+	else if (known && mode == 4 && 
+		((o_ptr->tval == TV_STAFF) || (o_ptr->tval == TV_WAND)))
+	{
+		/* Dump " (N charges avg)" */
+		t = object_desc_chr(t, ' ');
+		t = object_desc_chr(t, p1);
+		t = object_desc_num(t, o_ptr->pval / o_ptr->number);
+		t = object_desc_str(t, " charge");
+		if (o_ptr->pval != 1) t = object_desc_chr(t, 's');
+		if (o_ptr->number > 1) t = object_desc_str(t, " avg");
+		t = object_desc_chr(t, p2);
+	}
+
+		
+
 	/* Hack -- Rods have a "charging" indicator */
 	else if (known && (o_ptr->tval == TV_ROD))
 	{
-		/* Hack -- Dump " (charging)" if relevant */
-		if (o_ptr->pval) t = object_desc_str(t, " (charging)");
+		/* Hack -- Dump " (# charging)" if relevant */
+		if (o_ptr->timeout > 0)
+		{
+			/* Stacks of rods display an exact count of charging rods. */
+			if (o_ptr->number > 1)
+			{
+				/* Paranoia */
+				if (k_ptr->pval == 0) k_ptr->pval = 1;
+
+				/* Find out how many rods are charging, by dividing
+				 * current timeout by each rod's maximum timeout.
+				 * Ensure that any remainder is rounded up.  Display
+				 * very discharged stacks as merely fully discharged.
+				 */
+				power = (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval;
+
+				if (power > o_ptr->number) power = o_ptr->number;
+
+				/* Display prettily */
+				t = object_desc_str(t, " (");
+				t = object_desc_num(t, power);
+				t = object_desc_str(t, " charging)");
+			}
+			else
+			{
+				/* Single rod */
+				t = object_desc_str(t, " (charging)");
+			}
+		}
 	}
 
+	/* Indicate "charging" artifacts XXX XXX XXX */
+	else if (known && o_ptr->timeout)
+	{
+		/* Hack -- Dump " (charging)" if relevant */
+		t = object_desc_str(t, " (charging)");
+	}
+	
 	/* Hack -- Process Lanterns/Torches */
-    else if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN) && (!o_ptr->name3))
+   if ((o_ptr->tval == TV_LITE) && (o_ptr->sval < SV_LITE_DWARVEN) && (!o_ptr->name3))
 	{
 		/* Hack -- Turns of light for normal lites */
 		t = object_desc_str(t, " (with ");
@@ -1939,14 +1990,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 			/* Finish the display */
 			t = object_desc_chr(t, p2);
 		}
-	}
-
-
-	/* Indicate "charging" artifacts XXX XXX XXX */
-	if (known && o_ptr->timeout)
-	{
-		/* Hack -- Dump " (charging)" if relevant */
-		t = object_desc_str(t, " (charging)");
 	}
 
 

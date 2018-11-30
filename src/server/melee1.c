@@ -501,6 +501,9 @@ bool make_attack_normal(int Ind, int m_idx)
 						/* Obtain the item */
 						o_ptr = &p_ptr->inventory[i];
 
+						/* Skip non-objects */
+						if (!o_ptr->k_idx) continue;
+
 						/* Drain charged wands/staffs */
 						if (((o_ptr->tval == TV_STAFF) ||
 						     (o_ptr->tval == TV_WAND)) &&
@@ -514,7 +517,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 							/* Heal */
 							j = rlev;
-							m_ptr->hp += j * o_ptr->pval * o_ptr->number;
+							m_ptr->hp += j * o_ptr->pval;
 							if (m_ptr->hp > m_ptr->maxhp) m_ptr->hp = m_ptr->maxhp;
 
 							/* Redraw (later) if needed */
@@ -527,7 +530,7 @@ bool make_attack_normal(int Ind, int m_idx)
 							p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 							/* Window stuff */
-							p_ptr->window |= (PW_INVEN | PW_EQUIP);
+							p_ptr->window |= (PW_INVEN);
 
 							/* Done */
 							break;
@@ -635,8 +638,23 @@ bool make_attack_normal(int Ind, int m_idx)
 						/* Don't steal artifacts  -CFT */
 						if (artifact_p(o_ptr)) continue;
 
+						/* Get local object */ 
+						i_ptr = &object_type_body; 
+	
+						/* Obtain local object */ 
+						COPY(i_ptr, o_ptr, object_type); 
+	
+						/* Modify number */ 
+						i_ptr->number = 1; 
+
+						/* Hack -- If a rod, staff, or wand, allocate total
+						 * maximum timeouts or charges between those
+					 	* stolen and those missed. -LM-
+					 	*/
+						distribute_charges(o_ptr, i_ptr, 1);
+
 						/* Get a description */
-						object_desc(Ind, o_name, o_ptr, FALSE, 3);
+						object_desc(Ind, o_name, i_ptr, FALSE, 3);
 
 						/* Message */
 						msg_format(Ind, "%sour %s (%c) was stolen!",
@@ -645,15 +663,6 @@ bool make_attack_normal(int Ind, int m_idx)
 	
 						if	(monster_can_carry(m_idx))
 						{
-							/* Get local object */ 
-							i_ptr = &object_type_body; 
-	
-							/* Obtain local object */ 
-							COPY(i_ptr, o_ptr, object_type); 
-	
-							/* Modify number */ 
-							i_ptr->number = 1; 
-	
 							/* Carry the object */ 
 							monster_carry(Ind, m_idx, i_ptr); 
 						}
