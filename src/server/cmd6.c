@@ -134,7 +134,7 @@ void do_cmd_eat_food(int Ind, int item)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				if (set_blind(Ind, p_ptr->blind + rand_int(200) + 200))
+				if (set_blind(Ind, p_ptr->blind + rand_int(25) + 25))
 				{
 					ident = TRUE;
 				}
@@ -170,7 +170,7 @@ void do_cmd_eat_food(int Ind, int item)
 		{
 			if (!p_ptr->resist_chaos)
 			{
-				if (set_image(Ind, p_ptr->image + rand_int(250) + 250))
+				if (set_image(Ind, p_ptr->image + rand_int(25) + 25))
 				{
 					ident = TRUE;
 				}
@@ -462,7 +462,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				if (set_blind(Ind, p_ptr->blind + rand_int(100) + 100))
+				if (set_blind(Ind, p_ptr->blind + rand_int(25) + 25))
 				{
 					ident = TRUE;
 				}
