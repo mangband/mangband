@@ -1531,7 +1531,6 @@ void store_purchase(int Ind, int item, int amt)
 
 	/* Hack -- get a "sample" object */
 	sell_obj = *o_ptr;
-	sell_obj.number = amt;
 
 	/* Hack -- require room in pack */
 	if (!inven_carry_okay(Ind, &sell_obj))
@@ -1543,6 +1542,7 @@ void store_purchase(int Ind, int item, int amt)
 	/* Determine the "best" price (per item) */
 	object_known(&sell_obj);
 	best = price_item(Ind, &sell_obj, ot_ptr->min_inflate, FALSE);
+	sell_obj.number = amt;
 
 	/* Create the object to be sold (structure copy) */
 	sell_obj = *o_ptr;
