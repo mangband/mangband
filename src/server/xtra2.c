@@ -2462,8 +2462,14 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		if (pkill && !artifact_p(&p_ptr->inventory[i])) continue;
 #endif
 
-		/* If we committed suicide, only drop artifacts */
-		if (!p_ptr->alive && !artifact_p(&p_ptr->inventory[i])) continue;
+		/* If we committed suicide, drop nothing, free artifacts */
+		if (!p_ptr->alive) {
+			if (artifact_p(&p_ptr->inventory[i])) {
+				/* set the artifact as unfound */
+				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+			}
+			continue;
+		}
 
 		/* hack -- total winners do not drop artifacts when they suicide */
 		/* If we committed suicide, and we're on the town level, don't even drop artifacts */
