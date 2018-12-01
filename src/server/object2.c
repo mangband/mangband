@@ -1934,7 +1934,7 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 			 * -- this causes ALL other players on level to suffer */
 			if (cfg_preserve_artifacts)
 			{
-				if (p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] >= cfg_preserve_artifacts)
+				if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] >= cfg_preserve_artifacts))
 				{
 					/* Artifact WON'T be generated! */
 					okay = FALSE;
