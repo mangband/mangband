@@ -491,21 +491,6 @@ void wipe_o_list(int Depth)
 
 			/* Mega-Hack -- Preserve the artifact */
 			a_info[o_ptr->name1].cur_num = 0;
-
-			/* Ultra-Hack -- If this artifact belongs to player, set abandoned */
-			if (o_ptr->owner_id)
-			{
-				int j;
-				for (j = 1; j < NumPlayers+1; j++)
-				{
-					/* Only works when player is ingame */
-					if ((Players[j]->id == o_ptr->owner_id) && object_known_p(j, o_ptr))
-					{
-						set_artifact_p(Players[j], o_ptr->name1, ARTS_ABANDONED);
-						break;
-					}
-				}
-			}
 		}
 
 		/* Monster */
