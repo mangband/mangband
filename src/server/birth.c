@@ -587,7 +587,7 @@ static byte player_init[MAX_CLASS][3][2] =
 		/* Mage */
 		{ TV_MAGIC_BOOK, 0 },
 		{ TV_SWORD, SV_DAGGER },
-		{ TV_SCROLL, SV_SCROLL_WORD_OF_RECALL }
+		{ TV_POTION, SV_POTION_CURE_CRITICAL }
 	},
 
 	{
@@ -731,6 +731,13 @@ static void player_outfit(int Ind)
 	invcopy(o_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION));
 	o_ptr->number = rand_range(3, 7);
     if (cfg_ironman) o_ptr->number *= 2;
+	object_aware(Ind, o_ptr);
+	object_known(o_ptr);
+	(void)inven_carry(Ind, o_ptr);
+
+	/* Give the player a WoR */
+	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL));
+	o_ptr->number = 1;
 	object_aware(Ind, o_ptr);
 	object_known(o_ptr);
 	(void)inven_carry(Ind, o_ptr);
