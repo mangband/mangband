@@ -2462,8 +2462,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 		if (pkill && !artifact_p(&p_ptr->inventory[i])) continue;
 #endif
 
-		/* If we committed suicide, drop nothing, free artifacts */
-		if (!p_ptr->alive) {
+		/* If we committed suicide, or are brave, drop nothing, free artifacts */
+		if (!p_ptr->alive || p_ptr->no_ghost) {
 			if (artifact_p(&p_ptr->inventory[i])) {
 				/* set the artifact as unfound */
 				a_info[p_ptr->inventory[i].name1].cur_num = 0;
