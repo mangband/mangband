@@ -703,32 +703,6 @@ uint strnfmt(char *buf, uint max, cptr fmt, ...)
 
 
 /*
- * Do a vstrnfmt (see above) into a buffer of unknown size.
- * Since the buffer size is unknown, the user better verify the args.
- */
-uint strfmt(char *buf, cptr fmt, ...)
-{
-	uint len;
-
-	va_list vp;
-
-	/* Begin the Varargs Stuff */
-	va_start(vp, fmt);
-
-	/* Build the string, assume 32K buffer */
-	len = vstrnfmt(buf, 32767, fmt, vp);
-
-	/* End the Varargs Stuff */
-	va_end(vp);
-
-	/* Return the number of bytes written */
-	return (len);
-}
-
-
-
-
-/*
  * Do a vstrnfmt() into (see above) into a (growable) static buffer.
  * This buffer is usable for very short term formatting of results.
  * Note that the buffer is (technically) writable, but only up to
@@ -753,27 +727,26 @@ char *format(cptr fmt, ...)
 }
 
 
-
-
 /*
  * Vararg interface to plog()
  */
 void plog_fmt(cptr fmt, ...)
 {
-	char *res;
+	const size_t format_len = 512;
+	char format_buf[format_len];
 	va_list vp;
 
 	/* Begin the Varargs Stuff */
 	va_start(vp, fmt);
 
 	/* Format the args */
-	res = vformat(fmt, vp);
+	uint len = vstrnfmt(format_buf, format_len, fmt, vp);
 
 	/* End the Varargs Stuff */
 	va_end(vp);
 
 	/* Call plog */
-	plog(res);
+	plog(format_buf);
 }
 
 
@@ -783,41 +756,21 @@ void plog_fmt(cptr fmt, ...)
  */
 void quit_fmt(cptr fmt, ...)
 {
-	char *res;
+	const size_t format_len = 512;
+	char format_buf[format_len];
+
 	va_list vp;
 
 	/* Begin the Varargs Stuff */
 	va_start(vp, fmt);
 
 	/* Format */
-	res = vformat(fmt, vp);
+	uint len = vstrnfmt(format_buf, format_len, fmt, vp);
 
 	/* End the Varargs Stuff */
 	va_end(vp);
 
 	/* Call quit() */
-	quit(res);
+	quit(format_buf);
 }
 
-
-
-/*
- * Vararg interface to core()
- */
-void core_fmt(cptr fmt, ...)
-{
-	char *res;
-	va_list vp;
-
-	/* Begin the Varargs Stuff */
-	va_start(vp, fmt);
-
-	/* If requested, Do a virtual fprintf to stderr */
-	res = vformat(fmt, vp);
-
-	/* End the Varargs Stuff */
-	va_end(vp);
-
-	/* Call core() */
-	core(res);
-}
