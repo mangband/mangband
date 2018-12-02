@@ -364,22 +364,6 @@ void show_news(void)
 }
 
 
-
-/*
- * Hack -- take notes on line 23
- */
-#if 0
-static void note(cptr str)
-{
-	Term_erase(0, 23, 255);
-	Term_putstr(20, 23, -1, TERM_WHITE, str);
-	Term_fresh();
-}
-#endif
-
-
-
-
 #ifdef ALLOW_TEMPLATES
 
 

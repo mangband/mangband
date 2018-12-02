@@ -337,27 +337,6 @@ bool section_exists(char* name)
 }
 
 /*
- * Show information on the screen, one line at a time.
- * Start at line 2, and wrap, if needed, back to line 2.
- */
-static void note(cptr msg)
-{
-#if 0
-	static int y = 2;
-
-	/* Draw the message */
-	prt(msg, y, 0);
-
-	/* Advance one line (wrap if needed) */
-	if (++y >= 24) y = 2;
-
-	/* Flush it */
-	Term_fresh();
-#endif
-}
-
-
-/*
  * Hack -- determine if an item is "wearable" (or a missile)
  */
 static bool wearable_p(object_type *o_ptr)
@@ -1146,7 +1125,7 @@ static errr rd_inventory(int Ind)
 		else if (p_ptr->inven_cnt == INVEN_PACK)
 		{
 			/* Oops */
-			/*note("Too many items in the inventory!");*/
+			plog("Too many items in the inventory!");
 
 			/* Fail */
 			return (54);
@@ -1364,7 +1343,7 @@ static errr rd_dungeon_special()
 			/* we have an arbitrary max number of levels */
 			if(num_levels > MAX_SPECIAL_LEVELS)
 			{
-				note("Too many special pre-designed level files!");
+				plog("Too many special pre-designed level files!");
 				break;
 			}
 		}
@@ -1461,7 +1440,7 @@ static errr rd_savefile_new_aux(int Ind)
 	/* Incompatible save files */
 	if (tmp16u > MAX_K_IDX)
 	{
-		note(format("Too many (%u) object kinds!", tmp16u));
+		plog_fmt("Too many (%u) object kinds!", tmp16u);
 		return (22);
 	}
 
@@ -1477,13 +1456,9 @@ static errr rd_savefile_new_aux(int Ind)
 	}
 	end_section_read("object_memory");
 
-	/*if (arg_fiddle) note("Loaded Object Memory");*/
-
 	/* Read the extra stuff */
 	if (rd_extra(Ind))
 		return BAD_PASSWORD;
-	/*if (arg_fiddle) note("Loaded extra information");*/
-
 
 	/* Read the player_hp array */
 	start_section_read("hp");
@@ -1524,7 +1499,7 @@ static errr rd_savefile_new_aux(int Ind)
 	/* Read the inventory */
 	if (rd_inventory(Ind))
 	{
-		/*note("Unable to read inventory");*/
+		plog("Unable to read inventory");
 		return (21);
 	}
 
@@ -1687,7 +1662,7 @@ errr rd_server_savefile()
         /* Incompatible save files */
         if (tmp16u > MAX_R_IDX)
         {
-                note(format("Too many (%u) monster races!", tmp16u));
+                plog_fmt("Too many (%u) monster races!", tmp16u);
                 return (21);
         }
 
@@ -1713,7 +1688,7 @@ errr rd_server_savefile()
         /* Incompatible save files */
         if (tmp16u > MAX_A_IDX)
         {
-                note(format("Too many (%u) artifacts!", tmp16u));
+                plog_fmt("Too many (%u) artifacts!", tmp16u);
                 return (24);
         }
 
@@ -1741,7 +1716,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_PARTIES)
 		{
-			note(format("Too many (%u) parties!", tmp16u));
+			plog_fmt("Too many (%u) parties!", tmp16u);
 			return (25);
 		}
 
@@ -1768,7 +1743,7 @@ errr rd_server_savefile()
 		tmp32u = read_int("max_monsters");
 		if (tmp32u > MAX_M_IDX)
 		{
-			note(format("Too many (%u) monsters!", tmp16u));
+			plog_fmt("Too many (%u) monsters!", tmp16u);
 			return (29);
 		}
 		/* load the monsters */
@@ -1785,7 +1760,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_O_IDX)
 		{
-			note(format("Too many (%u) objects!", tmp16u));
+			plog_fmt("Too many (%u) objects!", tmp16u);
 			return (26);
 		}
 
@@ -1815,7 +1790,7 @@ errr rd_server_savefile()
 			/* Verify monster index */
 			if (o_ptr->held_m_idx > z_info->m_max)
 			{
-				note("Invalid monster index");
+				plog("Invalid monster index");
 				return (-1);
 			}
 	
@@ -1836,7 +1811,7 @@ errr rd_server_savefile()
 		/* Incompatible save files */
 		if (tmp16u > MAX_HOUSES)
 		{
-			note(format("Too many (%u) houses!", tmp16u));
+			plog_fmt("Too many (%u) houses!", tmp16u);
 			return (27);
 		}
 
@@ -1855,7 +1830,7 @@ errr rd_server_savefile()
 				
 		if (tmp32u > MAX_WILD)
 		{
-			note("Too many wilderness levels");
+			plog("Too many wilderness levels");
 			return 28;
 		}
 	
