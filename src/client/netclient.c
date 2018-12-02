@@ -338,13 +338,13 @@ int Net_verify(char *real, char *nick, char *pass, int sex, int race, int class)
 	if (type != PKT_VERIFY)
 	{
 		errno = 0;
-		plog(format("Verify wrong reply type (%d)", type));
+		plog_fmt("Verify wrong reply type (%d)", type);
 		return -1;
 	}
 	if (result != PKT_SUCCESS)
 	{
 		errno = 0;
-		plog(format("Verification failed (%d)", result));
+		plog_fmt("Verification failed (%d)", result);
 		return -1;
 	}
 	if (Receive_magic() <= 0)
@@ -390,16 +390,16 @@ int Net_init(char *server, int fd)
 	}
 
 	if (SetSocketSendBufferSize(sock, CLIENT_SEND_SIZE + 256) == -1)
-		plog(format("Can't set send buffer size to %d: error %d", CLIENT_SEND_SIZE + 256, errno));
+		plog_fmt("Can't set send buffer size to %d: error %d", CLIENT_SEND_SIZE + 256, errno);
 	if (SetSocketReceiveBufferSize(sock, CLIENT_RECV_SIZE + 256) == -1)
-		plog(format("Can't set receive buffer size to %d", CLIENT_RECV_SIZE + 256));
+		plog_fmt("Can't set receive buffer size to %d", CLIENT_RECV_SIZE + 256);
 
 
 	/* reliable data buffer, not a valid socket filedescriptor needed */
 	if (Sockbuf_init(&cbuf, -1, CLIENT_RECV_SIZE,
 		SOCKBUF_WRITE | SOCKBUF_READ | SOCKBUF_LOCK) == -1)
 	{
-		plog(format("No memory for control buffer (%u)", CLIENT_RECV_SIZE));
+		plog_fmt("No memory for control buffer (%u)", CLIENT_RECV_SIZE);
 		return -1;
 	}
 
@@ -407,7 +407,7 @@ int Net_init(char *server, int fd)
 	if (Sockbuf_init(&qbuf, -1, CLIENT_RECV_SIZE,
 		SOCKBUF_WRITE | SOCKBUF_READ | SOCKBUF_LOCK) == -1)
 	{
-		plog(format("No memory for queue buffer (%u)", CLIENT_RECV_SIZE));
+		plog_fmt("No memory for queue buffer (%u)", CLIENT_RECV_SIZE);
 		return -1;
 	}
 
@@ -416,7 +416,7 @@ int Net_init(char *server, int fd)
 	if (Sockbuf_init(&rbuf, sock, CLIENT_RECV_SIZE,
 		SOCKBUF_READ | SOCKBUF_DGRAM) == -1)
 	{
-		plog(format("No memory for read buffer (%u)", CLIENT_RECV_SIZE));
+		plog_fmt("No memory for read buffer (%u)", CLIENT_RECV_SIZE);
 		return -1;
 	}
 
@@ -424,7 +424,7 @@ int Net_init(char *server, int fd)
 	if (Sockbuf_init(&wbuf, sock, CLIENT_SEND_SIZE,
 		SOCKBUF_WRITE | SOCKBUF_DGRAM) == -1)
 	{
-		plog(format("No memory for write buffer (%u)", CLIENT_SEND_SIZE));
+		plog_fmt("No memory for write buffer (%u)", CLIENT_SEND_SIZE);
 		return -1;
 	}
 #endif
@@ -432,7 +432,7 @@ int Net_init(char *server, int fd)
 	if (Sockbuf_init(&rbuf, sock, CLIENT_RECV_SIZE,
 		SOCKBUF_READ | SOCKBUF_WRITE) == -1)
 	{
-		plog(format("No memory for read buffer (%u)", CLIENT_RECV_SIZE));
+		plog_fmt("No memory for read buffer (%u)", CLIENT_RECV_SIZE);
 		return -1;
 	}
 
@@ -440,7 +440,7 @@ int Net_init(char *server, int fd)
 	if (Sockbuf_init(&wbuf, sock, CLIENT_SEND_SIZE,
 		SOCKBUF_WRITE) == -1)
 	{
-		plog(format("No memory for write buffer (%u)", CLIENT_SEND_SIZE));
+		plog_fmt("No memory for write buffer (%u)", CLIENT_SEND_SIZE);
 		return -1;
 	}
 
@@ -645,7 +645,7 @@ int Net_packet(void)
 			errno = 0;
 			/* The player really doesn't need to know about this */
 #ifdef DEBUG			
-			plog(format("Received unknown packet type (%d, %d), dropping", type, prev_type));
+			plog_fmt("Received unknown packet type (%d, %d), dropping", type, prev_type);
 #endif
 			Sockbuf_clear(&rbuf);
 			break;
@@ -657,7 +657,7 @@ int Net_packet(void)
 				if (type != PKT_QUIT)
 				{
 					errno = 0;
-					plog(format("Processing packet type (%d, %d) failed", type, prev_type));
+					plog_fmt("Processing packet type (%d, %d) failed", type, prev_type);
 				}
 				return -1;
 			}
@@ -683,13 +683,13 @@ int Net_packet(void)
 				return -1;
 			}
 			errno = 0;
-			plog(format("Got reply packet (%d, %d)", replyto, status));
+			plog_fmt("Got reply packet (%d, %d)", replyto, status);
 		}
 		else if (receive_tbl[type] == NULL)
 		{
 			errno = 0;
-			 //plog(format("Receive unknown reliable data packet type (%d, %d, %d)",
-			//	type, cbuf.ptr - cbuf.buf, cbuf.len)); 
+			 //plog_fmt("Receive unknown reliable data packet type (%d, %d, %d)",
+			//	type, cbuf.ptr - cbuf.buf, cbuf.len);
 
 			 /* we have received bad data, ignore this packet */
 			Sockbuf_clear(&cbuf);
@@ -926,14 +926,14 @@ int old_Receive_reliable(void)
 	if (len <= 0)
 	{
 		errno = 0;
-		plog(format("Bad reliable data length (%d)", len));
+		plog_fmt("Bad reliable data length (%d)", len);
 		return -1;
 	}
 
 	if (full_len <= 0)
 	{
 		errno = 0;
-		plog(format("Bad reliable data full length (%d)", reliable_full_len));
+		plog_fmt("Bad reliable data full length (%d)", reliable_full_len);
 		return -1;
 	}
 
@@ -948,8 +948,8 @@ int old_Receive_reliable(void)
 	if (rbuf.ptr + len > rbuf.buf + rbuf.len)
 	{
 		errno = 0;
-		plog(format("Not all reliable data in packet (%d, %d, %d)",
-			rbuf.ptr - rbuf.buf, len, rbuf.len));
+		plog_fmt("Not all reliable data in packet (%d, %d, %d)",
+			rbuf.ptr - rbuf.buf, len, rbuf.len);
 		rbuf.ptr += len;
 		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
 		return -1;

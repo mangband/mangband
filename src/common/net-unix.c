@@ -1454,7 +1454,7 @@ int	port;
     if (retval < 0)
     {
 	sl_errno = SL_EBIND;
-	plog(format("Dgram Socket Bind Error: %d,%d",retval,errno));
+	plog_fmt("Dgram Socket Bind Error: %d,%d",retval,errno);
 	retval = errno;
 	(void) close(fd);
 	errno = retval;

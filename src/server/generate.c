@@ -4487,7 +4487,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 
 
 		/* Message */
-		if (why) plog(format("Generation restarted (%s)", why));
+		if (why) plog_fmt("Generation restarted (%s)", why);
 
 		/* Wipe the objects */
 		wipe_o_list(Depth);

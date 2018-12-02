@@ -496,7 +496,7 @@ errr process_pref_file(cptr name)
 		if (process_pref_file_aux(buf))
 		{
 			/* Useful error message */
-			plog(format("Error in '%s' parsing '%s'.", buf, name));
+			plog_fmt("Error in '%s' parsing '%s'.", buf, name);
 		}
 	}
 
@@ -2547,7 +2547,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	/* Paranoia */
 	if (!fff) 
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
+		plog_fmt("ERROR! %s (writing %s)", strerror(errno), file_name);
 		return;
 	}
 

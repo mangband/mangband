@@ -1038,7 +1038,7 @@ bool load_player(int Ind)
 	if (access(p_ptr->savefile, 0) < 0)
 	{
 		/* Give a message */
-		plog(format("Savefile does not exist for player %s", p_ptr->name));
+		plog_fmt("Savefile does not exist for player %s", p_ptr->name);
 
 		/* Allow this */
 		return (TRUE);
@@ -1510,7 +1510,7 @@ bool load_server_info(void)
         }
 
 	/* Message */
-	plog(format("Error (%s,%d) reading server savefile.", what, err));
+	plog_fmt("Error (%s,%d) reading server savefile.", what, err);
 
 	return (FALSE);
 }

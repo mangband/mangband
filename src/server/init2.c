@@ -530,9 +530,9 @@ static void display_parse_error(cptr filename, errr err, cptr buf)
 	oops = (((err > 0) && (err < PARSE_ERROR_MAX)) ? err_str[err] : "unknown");
 
 	/* Oops */
-	plog(format("Error at line %d of '%s.txt'.", error_line, filename));
-	plog(format("Record %d contains a '%s' error.", error_idx, oops));
-	plog(format("Parsing '%s'.", buf));
+	plog_fmt("Error at line %d of '%s.txt'.", error_line, filename);
+	plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+	plog_fmt("Parsing '%s'.", buf);
 /*	message_flush();*/
 
 	/* Quit */
@@ -872,9 +872,9 @@ static errr init_f_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'terrain.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'terrain.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -970,9 +970,9 @@ static errr init_k_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'object.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'object.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1061,9 +1061,9 @@ static errr init_a_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'artifact.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'artifact.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1209,9 +1209,9 @@ static errr init_e_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'ego_item.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'ego_item.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1298,9 +1298,9 @@ static errr init_r_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'monster.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'monster.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -1397,9 +1397,9 @@ static errr init_v_info(void)
 		oops = (((err > 0) && (err < 8)) ? err_str[err] : "unknown");
 
 		/* Oops */
-		plog(format("Error %d at line %d of 'vault.txt'.", err, error_line));
-		plog(format("Record %d contains a '%s' error.", error_idx, oops));
-		plog(format("Parsing '%s'.", buf));
+		plog_fmt("Error %d at line %d of 'vault.txt'.", err, error_line);
+		plog_fmt("Record %d contains a '%s' error.", error_idx, oops);
+		plog_fmt("Parsing '%s'.", buf);
 		/*msg_print(NULL);*/
 
 		/* Quit */
@@ -2394,7 +2394,7 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
 		cfg_dungeon_master = strdup(value);
-	plog(format("Dugeon Master Set as [%s]",cfg_dungeon_master));
+	plog_fmt("Dungeon Master Set as [%s]",cfg_dungeon_master);
     }
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
@@ -2485,7 +2485,7 @@ void set_server_option(char * option, char * value)
     }
 
 
-	else plog(format("Error : unrecognized mangband.cfg option %s", option));
+	else plog_fmt("Error : unrecognized mangband.cfg option %s", option);
 }
 
 
@@ -2572,7 +2572,7 @@ void load_server_cfg(void)
 		return;
 	}
 
-	plog(format("Loading %s", possible_cfg_dir[i-1]));
+	plog_fmt("Loading %s", possible_cfg_dir[i-1]);
 
 	/* Actually parse the file */
 	load_server_cfg_aux(cfg);

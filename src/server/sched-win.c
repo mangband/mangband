@@ -31,7 +31,7 @@
 #include <winsock2.h>
 #include "angband.h"   
 #include <mmsystem.h>
-#include <winbase.h> 
+#include <winbase.h> 
 
 static volatile long timer_ticks;  
 static long frame_count;  
@@ -80,7 +80,7 @@ static void setup_timer(void)
    */
   delay = 1000/timer_freq;
   delay = delay/resolution;
-  plog(format("Timer delay %i ms timer resolution is %i ms\n",delay,resolution));
+  plog_fmt("Timer delay %i ms timer resolution is %i ms\n",delay,resolution);
   if(!timeBeginPeriod(resolution) == TIMERR_NOERROR)
   {
 	plog("Could not set the timer to the required resolution");
@@ -256,11 +256,11 @@ void install_input(void (*func)(int, int), int fd, int arg)
     input_mask_cleared = TRUE;
   }
   if (fd < 0 ) {
-    plog(format("install illegal input handler fd %d", fd));
+    plog_fmt("install illegal input handler fd %d", fd);
     exit(1);
   }
   if (FD_ISSET(fd,&input_mask)) {
-    plog(format("input handler %d busy", fd));
+    plog_fmt("input handler %d busy", fd);
     exit(1);
   }
   if(input_handlers == NULL || fd > biggest_fd)
@@ -273,7 +273,7 @@ void install_input(void (*func)(int, int), int fd, int arg)
     }
     if( input_handlers == NULL )
     {
-      plog(format("input handler %d realloc failed", fd));
+      plog_fmt("input handler %d realloc failed", fd);
       exit(1);
     }
   }
@@ -288,7 +288,7 @@ void install_input(void (*func)(int, int), int fd, int arg)
 void remove_input(int fd)
 {
   if ( fd < 0 ) {
-    plog(format("remove illegal input handler fd %d", fd));
+    plog_fmt("remove illegal input handler fd %d", fd);
     exit(1);
   }
   if (FD_ISSET( fd, &input_mask )) {
@@ -367,7 +367,7 @@ void sched(void)
       n = select(max_fd, &readmask, NULL, NULL, &tv);
       if (n < 0) {
         if (errno != EINTR) {
-          plog(format("Errno: %d\n",errno));
+          plog_fmt("Errno: %d\n",errno);
           core("sched select error");
           exit(1);
         }

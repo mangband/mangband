@@ -353,7 +353,7 @@ void NewConsole(int read_fd, int arg)
 			DgramWrite(read_fd, console_buf.buf, console_buf.len);
 
 			/* Log this to the local console */
-			plog(format("Illegal console command from %s.", DgramLastname()));
+			plog_fmt("Illegal console command from %s.", DgramLastname());
 
 			return;
 		}

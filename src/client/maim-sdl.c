@@ -205,7 +205,7 @@ errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *d
 			if (rs >= 256 || gs >= 256 || bs >= 256)
 			{
 				plog("fixed point weighted average overflow!");
-				plog(format("Values: %d, %d, %d\n", rs, gs, bs));
+				plog_fmt("Values: %d, %d, %d\n", rs, gs, bs);
 			}
 
 			r = (Uint8) rs;
@@ -345,7 +345,7 @@ errr SDL_StretchBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect 
 			if (r >= 256.0 || g >= 256.0 || b > 256.0) 
 			{
 				plog("mixing error!");
-				plog(format("Values: %f, %f, %f\n", (double)r, (double)g, (double)b));
+				plog_fmt("Values: %f, %f, %f\n", (double)r, (double)g, (double)b);
 				/**((char *)0) = 0;*/
 			}
 			if (r > 255.0) r = 255.0;

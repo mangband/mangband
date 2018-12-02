@@ -261,8 +261,6 @@ void SDL_FillRectX(SDL_Surface *f, SDL_Rect *r, Uint32 color, int xoff, int yoff
 }
 
 void SDL_UpdateRectX(int x, int y, int w, int h, int xoff, int yoff) {
-//	plog(format("[???] updateRectXX: %d,%d -- %d,%d", x+xoff,y+yoff,w+xoff,h+yoff));
-//	SDL_UpdateRect(f, x, y, w, h);
 	if (x+xoff+w > width) w = width-xoff-x;
 	if (y+yoff+h > height) h = height-yoff-y;
 	SDL_UpdateRect(bigface, x+xoff, y+yoff, w, h);
@@ -393,7 +391,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 	if (!f) 
 	{
-		plog(format("Couldn't open: %s", buf));
+		plog_fmt("Couldn't open: %s", buf);
 		return -1;
 	}
 
@@ -1000,7 +998,7 @@ void RedrawChar(int x, int y)
 {
 	Uint8 a, c;
 
-	a = Term->scr->a[y][x];	c = Term->scr->c[y][x];
+	a = Term->scr->a[y][x];	c = Term->scr->c[y][x];
 	
 	//Term_wipe_sdl(x, y, 1);
 	Term_char_sdl(x, y, a, c);
@@ -1207,20 +1205,6 @@ inline static errr Term_tile_sdl (int x, int y, Uint8 a, Uint8 c){
 	dr.x = x * td->w;
 	dr.y = y * td->h;
 
-	if (sr.x > td->gt->face->w)
-	{
-/*
-		SDL_FillRectX(td->face, &dr, SDL_MapRGB(td->face->format, 255, 64, 64), td->xoff, td->yoff);
-		plog(format("OOBound (%d, %d) (%d, %d bitmap)", c&0x7f, a&0x7f, sr.x, sr.y)); 
-?????
-*/
-	} else
-	{
-/*
-		SDL_BlitSurface(td->gt->face, &sr, td->face, &dr);
-?????
-*/
-	}
 	if (td->cx == x && td->cy == y)
 	{
 		SDL_UpdateRectX( dr.x, dr.y, dr.w, dr.h, td->xoff, td->yoff);
@@ -1369,10 +1353,6 @@ static void term_data_link(int i)
 
 	term_data *td = &(data[i]);
 	term *t = &(td->t);
-
-
-
-/*	plog(format("setting up data link for term %d (%s) add %d",i,td->name,t)); */
 
 	int j = 0;
 	if (i == 0) j = 256;
@@ -1794,7 +1774,7 @@ errr init_sdl(int oargc, char **oargv)
 				asked[199] = 0;
 				strncpy(got, formatsdlflags(bigface->flags), 199);
 				got[199] = 0;
-				plog(format("Vid. init.: We asked for %s and got %s", asked, got));
+				plog_fmt("Vid. init.: We asked for %s and got %s", asked, got);
 			}
 
 
@@ -1823,10 +1803,9 @@ errr init_sdl(int oargc, char **oargv)
 	if (strtoii(tilebmpname, &gw, &gh))
 	{
 		// strtoii() has failed. keep the (likely wrong) default */
-		plog(format("strtoii() failed for %s", tilebmpname));
+		plog_fmt("strtoii() failed for %s", tilebmpname);
 	} else
 	{
-		/*plog(format("%s yielded %d, %d by strtoii()", tilebmpname, gw, gh));*/
 		screen_tiles.w = screen_tiles.dw = gw;
 		screen_tiles.h = screen_tiles.dh = gh;
 		/* This will enlarge the window tile size to fit all elements.
@@ -1905,7 +1884,7 @@ errr init_sdl(int oargc, char **oargv)
 
 	if((screen_tiles.face = SDL_LoadBMP(path)) == NULL)
 	{
-		plog(format("Sorry, could not load %s", path));
+		plog_fmt("Sorry, could not load %s", path);
 	} else
 	{
 		td->t.higher_pict = use_graphics;
