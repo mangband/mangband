@@ -477,7 +477,7 @@ void client_init(char *argv1)
 			case E_TWO_PLAYERS:
 				quit("There is already another character from this user/machine on the server.");
 			default:
-				quit(format("Connection failed with status %d.", status));
+				quit_fmt("Connection failed with status %d.", status);
 		}
 	}
 

@@ -571,8 +571,8 @@ int Net_start(void)
 	if (cbuf.ptr[0] != PKT_REPLY)
 	{
 		errno = 0;
-		quit(format("Not a reply packet after play (%d,%d,%d)",
-			cbuf.ptr[0], cbuf.ptr - cbuf.buf, cbuf.len));
+		quit_fmt("Not a reply packet after play (%d,%d,%d)",
+			cbuf.ptr[0], cbuf.ptr - cbuf.buf, cbuf.len);
 		return -1;
 	}
 	if (Receive_reply(&type, &result) <= 0)
@@ -590,7 +590,7 @@ int Net_start(void)
 	if (result != PKT_SUCCESS)
 	{
 		errno = 0;
-		quit(format("Start play not allowed (%d)", result));
+		quit_fmt("Start play not allowed (%d)", result);
 		return -1;
 	}
 	// Finish processing any commands that were sent to us along with
@@ -1044,7 +1044,7 @@ int Receive_quit(void)
 		if (Packet_scanf(sbuf, "%s", reason) <= 0)
 			strcpy(reason, "unknown reason");
 		errno = 0;
-		quit(format("Quitting: %s", reason));
+		quit_fmt("Quitting: %s", reason);
 	}
 	return -1;
 }
