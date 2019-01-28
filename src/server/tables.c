@@ -737,7 +737,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	{
 		INDICATOR_PKT(DEPTH, TINY, 1),   	IPW_2,	ROW_DEPTH, COL_DEPTH,
 		(0),
-		"Town   \vLev  \b%d",
+		"Lev \aw%3d",
 		(PR_DEPTH),  "depth"
 	},
 	{
