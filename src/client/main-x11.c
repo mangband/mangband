@@ -2105,7 +2105,7 @@ static errr CheckEvent(bool wait)
 			y1 = (xev->xexpose.y - Infowin->oy) / td->tile_hgt;
 			y2 = (xev->xexpose.y + xev->xexpose.height - Infowin->oy) / td->tile_hgt;
 
-			//Term_redraw_section(x1, y1, x2, y2);
+			Term_redraw_section(x1, y1, x2, y2);
 
 			break;
 		}
