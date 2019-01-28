@@ -377,7 +377,7 @@ static void prt_oppose_elements(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	send_indication(Ind, IN_OPPOSE, p_ptr->oppose_acid+1, p_ptr->oppose_elec, p_ptr->oppose_fire, p_ptr->oppose_cold+1, p_ptr->oppose_pois+1 );
+	send_indication(Ind, IN_OPPOSE, p_ptr->oppose_acid, p_ptr->oppose_elec, p_ptr->oppose_fire, p_ptr->oppose_cold, p_ptr->oppose_pois);
 }
 
 /*
