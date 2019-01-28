@@ -730,19 +730,15 @@ bool gui_term_drag(int nmx, int nmy) {
 		sel_term->cols += mx;
 		sel_term->rows += my;
 
-		if (sel_term->cols < 3) { sel_term->cols = 3; mx = 0; }
-		if (sel_term->rows < 1) { sel_term->rows = 1; my = 0; }
-		/* Dungeon display hack */
-		if (!m_term) {
-			if (!conn_state) { mx = 0; my = 0; }
-			byte rows = sel_term->rows;
-			byte cols = sel_term->rows;
+		if (sel_term->cols < 3) { sel_term->cols = 3; }
+		if (sel_term->rows < 1) { sel_term->rows = 1; }
 
-			if (net_term_clamp(m_term, &rows, &cols))
-			{
-				mx = 1;
-				my = 1;
-			}
+		{
+			byte rows = sel_term->rows;
+			byte cols = sel_term->cols;
+			net_term_clamp(m_term, &rows, &cols);
+			sel_term->rows = rows;
+			sel_term->cols = cols;
 		}
 
 		/* Nothing happend! */
