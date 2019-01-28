@@ -1675,7 +1675,6 @@ static int recv_custom_command(player_type *p_ptr)
 		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
 		{
 			/* Report lack of energy */
-			printf("Lack energy\n");
 			return 0;
 		}
 	}
