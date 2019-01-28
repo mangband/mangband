@@ -1936,6 +1936,13 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 
 	st_ptr = &streams[window_to_stream[win]];
 
+	/* Hack -- if stream 0 is not initialized, assume we're not ready */
+	/* TODO: make this less hacky*/
+	if (streams[0].max_col == 0)
+	{
+		return FALSE;
+	}
+
 	/* Shift expectations */
 	if (st_ptr->addr == NTERM_WIN_OVERHEAD) 
 	{
