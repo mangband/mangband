@@ -644,7 +644,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(0), "Cur AC \aG%5d",
 		(PR_ARMOR), "armor"
 	},
-#if 0
+#if 1
 	/* Classic HP/SP indicators */
 	{
 		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
