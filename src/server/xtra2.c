@@ -2826,7 +2826,8 @@ void player_death(int Ind)
 	/** Survived death **/
 
 	/* Give him his hit points back */
-	p_ptr->mhp = p_ptr->lev + 2;
+	//see #1190
+	//p_ptr->mhp = p_ptr->lev + 2;
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
 
