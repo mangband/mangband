@@ -1322,11 +1322,10 @@ static void prt_frame_compact(void)
 
 	/* Equippy or empty row */
 	if (use_lagmeter)
-		/* Equippy chars */
-		prt_equippy(row++, col);
-	else
-		/* Empty row */
 		row++;
+	else
+		prt_equippy(row++, col);
+
 
 	/* Armor */
 	prt_ac(row++, col);
@@ -1355,6 +1354,7 @@ static void prt_frame_compact(void)
  */
 static void fix_player_compact(void)
 {
+	bool use_lagmeter = TRUE; /* TODO: make it a real option. */
 	int j;
 
 	/* Scan windows */
@@ -1375,8 +1375,16 @@ static void fix_player_compact(void)
 		Term_activate(ang_term[j]);
 
 		/* Display player */
-		prt_frame_compact();
-
+		/* prt_frame_compact(); */
+		/* Equippy or empty row */
+		if (use_lagmeter)
+		{
+			prt_lag(ROW_LAG, COL_LAG);
+			prt_equippy(ROW_AC-1, COL_AC);
+		}
+		else
+			prt_equippy(ROW_LAG, COL_LAG);
+		
 		/* Display relevant indicators */
 		redraw_indicators(PW_PLAYER_2);
 
@@ -1453,7 +1461,9 @@ static void fix_status(void)
 		Term_activate(ang_term[j]);
 
 		/* Display status line */
+		/*
 		prt_status_line();
+		*/
 
 		/* Display relevant indicators */
 		redraw_indicators(PW_STATUS);
