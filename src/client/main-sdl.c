@@ -1571,23 +1571,23 @@ static errr  Term_wipe_sdl(int x, int y, int n)
 
 	if (!td->face || !td->fd) { return 0; }
 
-	/* Do not use this */
-	return 0;
-
 	dr.x = x * td->w;
 	dr.y = y * td->h;
 	dr.w = n * td->w;
 	dr.h = td->h;
 #ifdef SINGLE_SURFACE
-	SDL_FillRect(bigface, &dr, 0);
-#else
 	dr.x += td->xoff;
-	dr.y += td->xoff;
+	dr.y += td->yoff;
+	SDL_FillRect(bigface, &dr, 0);
+	dr.x -= td->xoff;
+	dr.y -= td->yoff;
+#else
 	SDL_FillRect(td->face, &dr, 0);
 #endif
 	SDL_FrontRect(td, dr.x, dr.y, dr.w, dr.h, FALSE, TRUE);
 	
-	if (td->cx == x && td->cy == y)
+	/* Erase cursor */
+	if (td->cx >= x && td->cx <= x + n && td->cy == y)
 	{
 		td->cx = td->cy = -1;
 	}
