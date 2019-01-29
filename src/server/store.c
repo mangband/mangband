@@ -1021,7 +1021,7 @@ static void display_entry(int Ind, int pos)
 	maxwid = 65;
 
 	/* Describe the object (fully) */
-	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc_store(Ind, o_name, o_ptr, TRUE, 4);
 	o_name[maxwid] = '\0';
 
 	attr = p_ptr->tval_attr[o_ptr->tval];
@@ -1054,7 +1054,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	maxwid = 65;
 
 	/* Describe the object (fully) */
-	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc_store(Ind, o_name, o_ptr, TRUE, 4);
 	o_name[maxwid] = '\0';
 
 	attr = p_ptr->tval_attr[o_ptr->tval];
