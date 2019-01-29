@@ -1617,12 +1617,16 @@ static errr Term_curs_sdl(int x, int y)
 	term_data *td = (term_data*)(Term->data);
 	SDL_Rect dr;
 
-	if (!td->cursor_on) return (0);
-
 	/* Erase old */
-	//if (td->cx != -1 && td->cy != -1) {
-	//		SDL_FrontChar(td, td->cx, td->cy);
-	//}
+	if (td->cx != x || td->cy != y)
+	{
+		if (td->cx != -1 && td->cy != -1)
+		{
+			SDL_FrontChar(td, td->cx, td->cy);
+		}
+	}
+
+	if (!td->cursor_on) return (0);
 
 	/* No change */
 	if (td->cx == x && td->cy == y) return (0);
@@ -1703,12 +1707,13 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 		SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 
 	/* Erase cursor */
+/*
 	if (td->cursor_on && td->cx == x && td->cy == y)
 	{
 		SDL_FrontChar(td, x, y);
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
@@ -1728,12 +1733,13 @@ inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
 	SDL_BlitChar(td, x, y, a, c);
 
 	/* Erase cursor */
+/*
 	if (td->cursor_on && td->cx == x && td->cy == y)
 	{
 		SDL_FrontChar(td, x, y);
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
