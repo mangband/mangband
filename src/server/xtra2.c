@@ -2596,7 +2596,7 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 		p_ptr->inventory[INVEN_PACK].pval = p_ptr->au;
 	}
 
-	/* No more gold */	
+	/* No more gold */
 	p_ptr->au = 0;
 
 
@@ -2611,10 +2611,10 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 	for (i = 0; i < INVEN_TOTAL; i++)
 	{
 		/* Make sure we have an object */
-		if (p_ptr->inventory[i].k_idx == 0)	continue;
+		if (p_ptr->inventory[i].k_idx == 0) continue;
 
 		/* Handle artifacts */
-		if (artifact_p(&p_ptr->inventory[i])) 
+		if (artifact_p(&p_ptr->inventory[i]))
 		{
 			/* Can't drop em */
 			if (!artifacts)
@@ -2711,8 +2711,9 @@ void player_funeral(int Ind, char *reason)
 void player_death(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	bool drop_items;
 	char buf[1024];
-	bool hide = dm_flag_p(p_ptr, SECRET_PRESENCE);	
+	bool hide = dm_flag_p(p_ptr, SECRET_PRESENCE);
 	buf[0] = '\0';
 
 	/* HACK -- Do not proccess while changing levels */
@@ -2743,7 +2744,7 @@ void player_death(int Ind)
 	/** DIE **/
 
 	/* Note death */
-	if (!p_ptr->ghost) 
+	if (!p_ptr->ghost)
 	{
 		log_history_event(p_ptr, format("Was killed by %s", p_ptr->died_from), FALSE);
 		msg_print(Ind, "You die.");
@@ -2818,8 +2819,16 @@ void player_death(int Ind)
 	/* Character dump here, before we start dropping items */
 	player_dump(Ind);
 
+	/* Drop (or destroy?) items */
+	drop_items = TRUE;
+	/* Ironmen/Brave players destroy their items on death: */
+	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
+	{
+		drop_items = FALSE;
+	}
+
 	/* Drop all items on floor */
-	player_strip(Ind, TRUE, TRUE, TRUE, TRUE);
+	player_strip(Ind, drop_items, drop_items, drop_items, drop_items);
 
 	/* Last chance to survive death: */
 	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
@@ -2840,7 +2849,7 @@ void player_death(int Ind)
 	p_ptr->chp_frac = 0;
 
 	/* Ghost! */
-	if (p_ptr->fruit_bat != -1) 
+	if (p_ptr->fruit_bat != -1)
 	{
 		/* Tell him */
 		msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
