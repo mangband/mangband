@@ -354,7 +354,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/* End-of-array */
 	{ 0 }
 };
-study_cmd_id = -1; /* Set during init, to replace with: */
+int study_cmd_id = -1; /* Set during init, to replace with: */
 /* A special version for priests: */
 custom_command_type priest_study_cmd =
 	{ /* Study spell */
