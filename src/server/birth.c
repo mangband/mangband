@@ -883,6 +883,9 @@ static void player_outfit(player_type *p_ptr)
 		player_outfit_i(p_ptr, lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
 	}
 
+	/* Give a free WoR */
+	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+
 	/*
      * Give the DM some interesting stuff or all players if this is dev mode
 	 */
