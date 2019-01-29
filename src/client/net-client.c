@@ -408,6 +408,11 @@ int send_suicide(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
 }
 
+int send_store_leave(void)
+{
+	return send_walk(0); /* Idle/Hold Ground */
+}
+
 int send_target_interactive(int mode, char dir)
 {
 	char c_mode;
@@ -539,6 +544,11 @@ int recv_store_info(connection_type *ct)
 		display_inventory();
 
 	return 1;
+}
+
+int recv_store_leave(connection_type *ct)
+{
+	leave_store = TRUE;
 }
 
 int send_confirm(byte type, byte id)

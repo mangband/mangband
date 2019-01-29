@@ -1833,6 +1833,17 @@ int send_store_sell(int Ind, u32b price)
 	return send_confirm_request(Ind, 0x01, buf);
 }
 
+int send_store_leave(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c", PKT_STORE_LEAVE))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 int send_party_info(int Ind)
 {
 	connection_type *ct = PConn[Ind];

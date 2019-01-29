@@ -1686,9 +1686,9 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			if(house_inside(i, p_ptr->player_store_num))
 			{
 				p_ptr->store_num = -1;
-				Send_store_leave(Ind);
+				send_store_leave(Ind);
 				msg_print(Ind, "The shopkeeper is currently restocking.");
-				return;		
+				return;
 			}
 		}
 	}

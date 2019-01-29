@@ -556,7 +556,6 @@ extern int send_term_key(char key);
 #define Send_ghost(ability) plog("Send_ghost unimplemented!")
 #define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
-#define Send_store_leave() plog("Send_store_leave unimplemented!")
 #define Send_store_confirm() plog("Send_store_confirm unimplemented!")
 #define Send_special_line(type, line) plog("Send_special_line unimplemented!")
 #define Send_interactive(type) plog("Send_interactive unimplemented!")

@@ -1255,7 +1255,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
 					{
 						q_ptr->store_num = -1;
-						Send_store_leave(k);
+						send_store_leave(k);
 						msg_print(k, "The shopkeeper locks the doors.");
 					}
 				}
