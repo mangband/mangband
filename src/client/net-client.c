@@ -814,9 +814,8 @@ int recv_struct_info(connection_type *ct)
 
 				if (last_off != off)
 				{
-					printf("Saving %s at pos %d\n", name, off);
 					my_strcpy(eq_name + off, name, fake_name_size - off);
-				} else printf("Not Saving %s at pos %d\n", name, off);
+				}
 
 				eq_names[i] = last_off = (s16b)off;
 			}
