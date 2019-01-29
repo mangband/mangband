@@ -549,7 +549,8 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(LEVEL, TINY, 2),  	IPW_1,	ROW_LEVEL,	COL_LEVEL,
-		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"LEVEL \aG%6d\f\r\vLevel \ay%6d",
 		(PR_LEV), "level"
 	},
 	{
@@ -559,7 +560,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(GOLD, LARGE, 1),    	IPW_1,	ROW_GOLD,	COL_GOLD,
-		(0), "AU \v%9ld",
+		(0), "AU \aG%9ld",
 		(PR_GOLD), "gold"
 	},
 #if 1
@@ -725,7 +726,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	{
 		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
 		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
-		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
+		"\v             \v\aUSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
