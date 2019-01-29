@@ -2774,8 +2774,8 @@ void player_death(int Ind)
 		/* Tell players */
 		if (!hide) msg_broadcast(Ind, buf);
 
-		/* HACK - Drop artifacts */
-		player_strip(Ind, FALSE, FALSE, TRUE, FALSE);
+		/* Release artifacts */
+		player_strip(Ind, FALSE, FALSE, FALSE, FALSE);
 
 		/* Get rid of him */
 		player_funeral(Ind, "Commited suicide");
