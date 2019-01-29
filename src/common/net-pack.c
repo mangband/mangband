@@ -372,7 +372,9 @@ int cq_scanf(cq *charq, char *str, ...) {
 
 	if (error) {
 		found = 0;
+		if (!(error >= 2 && error <= 3)) {/* Hack - do not report "not enough buffer" errors. */
 		plog(format("Error in cq_scanf('...%s'): %s [%d]", str, pf_errors[error], str_size));
+		}
 	} else {
 		UNPACK_FIN(charq);
 	}
