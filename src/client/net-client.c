@@ -2004,7 +2004,7 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 
 	/* Hack -- if stream 0 is not initialized, assume we're not ready */
 	/* TODO: make this less hacky*/
-	if (streams[0].max_col == 0)
+	if (st_ptr->max_col == 0)
 	{
 		return FALSE;
 	}
