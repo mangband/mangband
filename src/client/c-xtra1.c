@@ -2755,7 +2755,7 @@ void prt_indicator(int first_row, int first_col, int id)
 	s16b row = first_row;
 	u16b col = first_col;
 
-	byte color = TERM_BLUE;
+	byte color = TERM_WHITE;
 
 	s32b val = coffers[coff];
 
@@ -2810,7 +2810,7 @@ void prt_indicator(int first_row, int first_col, int id)
 			{
 				if (flag & IN_VT_CR) col = first_col;
 				if (flag & IN_VT_LF) row++;
-				if (flag & IN_VT_COLOR_RESET) color = TERM_BLUE;
+				if (flag & IN_VT_COLOR_RESET) color = TERM_WHITE;
 				if (flag & IN_VT_COFFER_RESET) val = coffers[(coff = coffer_refs[id])], amnt = i_ptr->amnt;
 				if (flag & IN_VT_DEC_VALUE) val--;
 				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
