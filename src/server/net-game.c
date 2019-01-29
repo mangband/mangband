@@ -1833,6 +1833,25 @@ int send_store_sell(int Ind, u32b price)
 	return send_confirm_request(Ind, 0x01, buf);
 }
 
+int send_party_info(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	player_type *p_ptr = Players[Ind];
+	char *name = "";
+	char *owner = "";
+	if (!ct) return -1;
+	if (p_ptr->party > 0)
+	{
+		name = parties[p_ptr->party].name;
+		owner = parties[p_ptr->party].owner;
+	}
+	if (!cq_printf(&ct->wbuf, "%c" "%s%s", PKT_PARTY, name, owner))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */

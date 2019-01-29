@@ -153,6 +153,9 @@ int player_enter(int ind)
 	prt_history(PInd);
 	show_socials(PInd);
 
+	/* Current party */
+	send_party_info(PInd);
+
 	/* Inform everyone */
 	if (p_ptr->new_game)
 	{

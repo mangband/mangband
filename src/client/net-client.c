@@ -1838,6 +1838,44 @@ int recv_objflags(connection_type *ct)
 	return 1;
 }
 
+int recv_party_info(connection_type *ct)
+{
+	int n;
+	char name[80];
+	char owner[80];
+	char buf[160];
+
+	name[0] = owner[0] = '\0';
+
+	if (cq_scanf(&ct->rbuf, "%s%s", name, owner) < 2)
+	{
+		return 0;
+	}
+	/* Prepare */
+	if (!STRZERO(owner))
+	{
+		sprintf(buf, "Party: %s Owner: %s", name, owner);
+	}
+	else
+	{
+		sprintf(buf, "Party: %s", name);
+	}
+
+	/* Copy info */
+	strcpy(party_info, buf);
+
+	/* Re-show party info */
+	if (party_mode)
+	{
+		Term_erase(0, 13, 255);
+		Term_putstr(0, 13, -1, TERM_WHITE, party_info);
+		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+	}
+
+	return 1;
+}
+
+
 /* HACK -- We have connected to server < 1.2.0 -- Remove this */
 int recv_oldserver_handshake()
 {

@@ -698,7 +698,6 @@ extern void display_monlist(int Ind);
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
-#define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
 #define Send_store_sell(IND, price) send_store_sell(Ind, price)
 #define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
@@ -731,6 +730,7 @@ extern int send_inventory_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_objflags(int Ind, int line);
+extern int send_party(int Ind);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_message_repeat(int Ind, u16b typ);
 extern int send_sound(int Ind, int sound);
