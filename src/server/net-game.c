@@ -523,6 +523,23 @@ int send_custom_command_info(connection_type *ct, int id)
 
 	if (!cc_ptr->m_catch) return 1; /* Last one */
 
+	/* HACK -- On first pass, just take note of the id and do nothing,
+	 * on second pass, replace 'G'ain for priests/palladins. */
+	if (cc_ptr->m_catch == 'G')
+	{
+		study_cmd_id = id; /* Remember for later */
+		/* He has a player attached (LOGGED IN) */
+		if ((int)ct->user != -1)
+		{
+			player_type *p_ptr = players->list[(int)ct->user]->data2;
+			if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
+			{
+				priest_study_cmd.pkt = cc_ptr->pkt;
+				cc_ptr = &priest_study_cmd;
+			}
+		}
+	}
+
 	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_COMMAND,
 		command_pkt[id], cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt) <= 0)
 	{

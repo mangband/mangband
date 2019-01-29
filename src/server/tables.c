@@ -230,6 +230,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
 		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? "
 	},
+	/* NOTE: see, overload for priests, below */
 	{ /* Cast spell */
 		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
@@ -261,12 +262,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
-#endif
+#else
 	{ /* Scores */
 		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_SCORES, "Highscores"
 	},
+#endif
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -352,6 +354,16 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/* End-of-array */
 	{ 0 }
 };
+study_cmd_id = -1; /* Set during init, to replace with: */
+/* A special version for priests: */
+custom_command_type priest_study_cmd =
+	{ /* Study spell */
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+	};
+
+
 
 /* Item testers */
 item_tester_type item_tester[MAX_ITEM_TESTERS] =

@@ -1569,13 +1569,32 @@ int recv_custom_command_info(connection_type *ct) {
 	s16b m_catch = 0;
 	u32b flag = 0;
 	int n, len;
+	int id = -1, i;
 
 	custom_command_type *cc_ptr;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
 
+	/* Match existing command */
+	for (i = 0; i < custom_commands; i++)
+	{
+		if ((custom_command[i].m_catch == m_catch)
+		&& (custom_command[i].pkt == pkt))
+		{
+			id = i;
+			break;
+		}
+	}
+	/* No matches */
+	if (id == -1)
+	{
+		/* Adding new command */
+		id = custom_commands;
+		custom_commands++;
+	}
+
 	/* Check for errors */
-	if (custom_commands >= MAX_CUSTOM_COMMANDS)
+	if (id >= MAX_CUSTOM_COMMANDS)
 	{
 		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
 		return -1;
@@ -1587,7 +1606,7 @@ int recv_custom_command_info(connection_type *ct) {
 	}
 
 	/* Get it */
-	cc_ptr = &custom_command[custom_commands];
+	cc_ptr = &custom_command[id];
 	WIPE(cc_ptr, custom_command_type);
 
 	cc_ptr->m_catch = m_catch;
@@ -1605,7 +1624,7 @@ int recv_custom_command_info(connection_type *ct) {
 	buf[n] = '\0';
 	memcpy(cc_ptr->prompt, buf, MSG_LEN);
 
-	custom_commands++;
+	/*custom_commands++;//done above*/
 
 	return 1;
 }
