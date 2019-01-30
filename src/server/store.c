@@ -1021,7 +1021,7 @@ static void display_entry(int Ind, int pos)
 	maxwid = 65;
 
 	/* Describe the object (fully) */
-	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc_store(Ind, o_name, o_ptr, TRUE, 4);
 	o_name[maxwid] = '\0';
 
 	attr = p_ptr->tval_attr[o_ptr->tval];
@@ -1054,7 +1054,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	maxwid = 65;
 
 	/* Describe the object (fully) */
-	object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc_store(Ind, o_name, o_ptr, TRUE, 4);
 	o_name[maxwid] = '\0';
 
 	attr = p_ptr->tval_attr[o_ptr->tval];
@@ -1686,9 +1686,9 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			if(house_inside(i, p_ptr->player_store_num))
 			{
 				p_ptr->store_num = -1;
-				Send_store_leave(Ind);
+				send_store_leave(Ind);
 				msg_print(Ind, "The shopkeeper is currently restocking.");
-				return;		
+				return;
 			}
 		}
 	}

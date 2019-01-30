@@ -38,6 +38,7 @@ static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
+bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 #include <SDL/SDL.h>
 #include <string.h>
@@ -482,19 +483,15 @@ bool gui_term_drag(int nmx, int nmy) {
 		sel_term->cols += mx;
 		sel_term->rows += my;
 
-		if (sel_term->cols < 3) { sel_term->cols = 3; mx = 0; }
-		if (sel_term->rows < 1) { sel_term->rows = 1; my = 0; }
-		/* Dungeon display hack */
-		if (!m_term) {
-			if (!conn_state) { mx = 0; my = 0; }
-			byte rows = sel_term->rows;
-			byte cols = sel_term->rows;
+		if (sel_term->cols < 3) { sel_term->cols = 3; }
+		if (sel_term->rows < 1) { sel_term->rows = 1; }
 
-			if (net_term_clamp(m_term, &rows, &cols))
-			{
-				mx = 1;
-				my = 1;
-			}
+		{
+			byte rows = sel_term->rows;
+			byte cols = sel_term->cols;
+			net_term_clamp(m_term, &rows, &cols);
+			sel_term->rows = rows;
+			sel_term->cols = cols;
 		}
 
 		/* Nothing happend! */
@@ -677,7 +674,7 @@ void gui_take_snapshot() {
 	}
 	for (i = 0; i < 999; ++i) 
 	{
-		snprintf(buf, 1024, "%03d.bmp", i);
+		sprintf(buf, "%03d.bmp", i);
 		if ((tmp = fopen(buf, "rb")) != NULL)
 		{
 			fclose(tmp);
@@ -828,6 +825,10 @@ void SDL_FrontRect(term_data *td, int x, int y, int w, int h, bool render, bool 
 	if (!render) return;
 	if (td) SDL_BlitSurface(td->face, &sr, bigface, &dr);
 #endif
+	if (quartz_hack)
+	{
+		return;
+	}
 	if (update)
 	{
 		dr.w = w; dr.h = h;
@@ -1244,6 +1245,10 @@ static errr Term_xtra_sdl(int n, int v)
 			term_display_all();
 			SDL_Flip(bigface);
 		}
+		else if (quartz_hack)
+		{
+			SDL_Flip(bigface);
+		}
 		return (0);
 
 		case TERM_XTRA_NOISE:
@@ -1342,23 +1347,23 @@ static errr  Term_wipe_sdl(int x, int y, int n)
 
 	if (!td->face || !td->fd) { return 0; }
 
-	/* Do not use this */
-	return 0;
-
 	dr.x = x * td->w;
 	dr.y = y * td->h;
 	dr.w = n * td->w;
 	dr.h = td->h;
 #ifdef SINGLE_SURFACE
-	SDL_FillRect(bigface, &dr, 0);
-#else
 	dr.x += td->xoff;
-	dr.y += td->xoff;
+	dr.y += td->yoff;
+	SDL_FillRect(bigface, &dr, 0);
+	dr.x -= td->xoff;
+	dr.y -= td->yoff;
+#else
 	SDL_FillRect(td->face, &dr, 0);
 #endif
 	SDL_FrontRect(td, dr.x, dr.y, dr.w, dr.h, FALSE, TRUE);
 	
-	if (td->cx == x && td->cy == y)
+	/* Erase cursor */
+	if (td->cx >= x && td->cx <= x + n && td->cy == y)
 	{
 		td->cx = td->cy = -1;
 	}
@@ -1388,12 +1393,16 @@ static errr Term_curs_sdl(int x, int y)
 	term_data *td = (term_data*)(Term->data);
 	SDL_Rect dr;
 
-	if (!td->cursor_on) return (0);
-
 	/* Erase old */
-	//if (td->cx != -1 && td->cy != -1) {
-	//		SDL_FrontChar(td, td->cx, td->cy);
-	//}
+	if (td->cx != x || td->cy != y)
+	{
+		if (td->cx != -1 && td->cy != -1)
+		{
+			SDL_FrontChar(td, td->cx, td->cy);
+		}
+	}
+
+	if (!td->cursor_on) return (0);
 
 	/* No change */
 	if (td->cx == x && td->cy == y) return (0);
@@ -1474,12 +1483,13 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 		SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 
 	/* Erase cursor */
+/*
 	if (td->cursor_on && td->cx == x && td->cy == y)
 	{
 		SDL_FrontChar(td, x, y);
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
@@ -1490,7 +1500,7 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
  * XXX XXX XXX Display a character text on the screen
  *
  */
-inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
+static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
 	term_data *td = (term_data*)(Term->data);
 
 	if (!td->online) return -1;
@@ -1499,12 +1509,13 @@ inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
 	SDL_BlitChar(td, x, y, a, c);
 
 	/* Erase cursor */
+/*
 	if (td->cursor_on && td->cx == x && td->cy == y)
 	{
 		SDL_FrontChar(td, x, y);
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
@@ -1933,7 +1944,7 @@ void term_redraw(int i) {
 	/* Use customized redrawing function to avoid flickering caused by Term_clear() */ 
 	term_data *td = &(tdata[i]);
 	int y, x, ty, tx;
-	Uint8 a, c;
+	Uint8 a, c, ta, tc;
 
 	if (!td->t.scr) return;
 
@@ -1948,16 +1959,20 @@ void term_redraw(int i) {
 			{
 				a = td->t.attr_blank;
 				c = td->t.char_blank;
+				ta = a;
+				tc = c;
 			}
 			else
 			{
 				a = td->t.scr->a[y][x];
 				c = td->t.scr->c[y][x];
+				ta = td->t.scr->ta[y][x];
+				tc = td->t.scr->tc[y][x];
 			}
 			/* Use "Term_pict" for "special" data */
 			if ((a & 0x80) && (c & 0x80))
 			{
-				Term_tile_sdl(x, y, a, c);
+				Term_tile_sdl(x, y, a, c, ta, tc);
 			} else
 			SDL_BlitChar(td, x, y, a, c);
 		}
@@ -2485,6 +2500,9 @@ static void play_sound(int v, int s)
  */
 errr init_sdl(void)
 {
+	
+	char buf[1024];
+	char *name;
 	term_data *td;
 	Uint32 initflags = SDL_INIT_VIDEO; /* What's the point, if not video? */
 
@@ -2535,6 +2553,12 @@ errr init_sdl(void)
 			plog(format("Vid. init.: We  %s and got %s", asked, got));
 		}
 #endif
+
+	name = SDL_VideoDriverName(buf, 1024);
+	if (name && !strcmp(name, "Quartz"))
+	{
+		quartz_hack = TRUE;
+	}
 
 	/* No screen? No game */
 	if (bigface == NULL) {

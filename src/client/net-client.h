@@ -33,8 +33,10 @@
 	PACKET(PKT_EQUIP,	"%c%c%ud%c%c%s",	recv_equip)
 	PACKET(PKT_SPELL_INFO,	"%c%ud%ud%s",   	recv_spell_info)
 	PACKET(PKT_OBJFLAGS,	NULL,   	recv_objflags)
+	PACKET(PKT_PARTY,	"%s%s",   	recv_party_info)
 	PACKET(PKT_AIR,     	"%c%c%c%c%ud%ud",   	recv_air)
 	PACKET(PKT_STORE,	"%c%c%d%d%ul%s",	recv_store)
 	PACKET(PKT_STORE_INFO,	"%c%s%s%d%l",   	recv_store_info)
+	PACKET(PKT_STORE_LEAVE,	"",     	recv_store_leave)
 	PACKET(PKT_CONFIRM,	"%c%c%s",	recv_confirm_request)
 #endif

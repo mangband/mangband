@@ -17,6 +17,8 @@ extern const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS];
 extern const stream_type streams[MAX_STREAMS];
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern const indicator_type indicators[MAX_INDICATORS];
+extern custom_command_type priest_study_cmd;
+extern int study_cmd_id;
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -77,6 +79,7 @@ extern u32b sf_xtra;
 extern u32b sf_when;
 extern u16b sf_lives;
 extern u16b sf_saves;
+extern cptr arg_config_file;
 extern bool arg_wizard;
 extern bool arg_fiddle;
 extern bool arg_force_original;
@@ -618,7 +621,7 @@ extern errr init_e_info_txt(FILE *fp, char *buf);
 extern errr init_r_info_txt(FILE *fp, char *buf);
 
 /* init.c */
-extern void init_file_paths(char *path);
+extern void init_file_paths(char *path, char *path_wr);
 extern void free_file_paths(void);
 extern void init_some_arrays(void);
 extern void apply_visuals(void);
@@ -695,7 +698,6 @@ extern void display_monlist(int Ind);
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
-#define Send_party(IND) plog("Send_party unimplemented\n")
 #define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
 #define Send_store_sell(IND, price) send_store_sell(Ind, price)
 #define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
@@ -728,6 +730,7 @@ extern int send_inventory_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_objflags(int Ind, int line);
+extern int send_party_info(int Ind);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_message_repeat(int Ind, u16b typ);
 extern int send_sound(int Ind, int sound);
@@ -735,6 +738,7 @@ extern int send_channel(int Ind, char mode, u16b id, cptr name);
 extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
 extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
 extern int send_store_sell(int Ind, u32b price);
+extern int send_store_leave(int Ind);
 extern int send_confirm_request(int Ind, byte type, cptr buf);
 
 

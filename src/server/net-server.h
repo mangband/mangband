@@ -27,7 +27,7 @@ extern connection_type **PConn; /* Pass "Ind", get "connection_type" */
 #define client_abort(CT, REASON) send_quit(CT, REASON); return -1
 extern int client_kill(connection_type *ct, cptr reason);
 #ifdef DEBUG
-#define client_withdraw(CT) plog_fmt("Withdrawing client %s! Error '%s' on %s : %d\n", (CT)->host_addr, cq_error(&((CT)->wbuf)), __FILE__, __LINE__); client_kill(CT, "write error"); return -1
+#define client_withdraw(CT) plog_fmt("Withdrawing client %s! Error '%s' on %s : %d", (CT)->host_addr, cq_error(&((CT)->wbuf)), __FILE__, __LINE__); client_kill(CT, "write error"); return -1
 #else
 #define client_withdraw(CT) client_kill(CT, "write error"); return -1
 #endif
@@ -53,6 +53,7 @@ extern int send_class_info(connection_type *ct);
 extern int send_optgroups_info(connection_type *ct);
 extern int send_options_info(connection_type *ct, int id);
 extern int send_indicator_info(connection_type *ct, int id);
+extern int send_custom_command_info(connection_type *ct, int id);
 /* Receive */
 //Not really needed .. //
 //extern int recv_undef(connection_type *ct, player_type *p_ptr);

@@ -288,7 +288,6 @@ static char inkey_aux(void)
 		/* Return as soon as possible */
 		if (inkey_nonblock)
 		{
-			printf("Returning because nonblock...\n");
 			return (0);
 		}
 	} while (!ch);
@@ -1412,7 +1411,7 @@ bool askfor_aux(char *buf, int len, char m_private)
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-	Term_putstr(x, y, -1, TERM_YELLOW, buf);
+	Term_putstr(x, y, -1, TERM_YELLOW, m_private ? "xxxxxx" : buf);
 
 
 	/* Process input */

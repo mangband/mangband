@@ -1451,6 +1451,7 @@ errr Term_consolidate_cursor(bool on, int x, int y)
     Term->scr->bcx = x;
     Term->scr->bcy = y;
     Term->scr->bcv = on;
+    Term_xtra(TERM_XTRA_SHAPE, (int)on);
     return (0);
 }
 

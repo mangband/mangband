@@ -408,6 +408,11 @@ int send_suicide(void)
 	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
 }
 
+int send_store_leave(void)
+{
+	return send_walk(0); /* Idle/Hold Ground */
+}
+
 int send_target_interactive(int mode, char dir)
 {
 	char c_mode;
@@ -538,6 +543,12 @@ int recv_store_info(connection_type *ct)
 	else
 		display_inventory();
 
+	return 1;
+}
+
+int recv_store_leave(connection_type *ct)
+{
+	leave_store = TRUE;
 	return 1;
 }
 
@@ -814,9 +825,8 @@ int recv_struct_info(connection_type *ct)
 
 				if (last_off != off)
 				{
-					printf("Saving %s at pos %d\n", name, off);
 					my_strcpy(eq_name + off, name, fake_name_size - off);
-				} else printf("Not Saving %s at pos %d\n", name, off);
+				}
 
 				eq_names[i] = last_off = (s16b)off;
 			}
@@ -1569,13 +1579,32 @@ int recv_custom_command_info(connection_type *ct) {
 	s16b m_catch = 0;
 	u32b flag = 0;
 	int n, len;
+	int id = -1, i;
 
 	custom_command_type *cc_ptr;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
 
+	/* Match existing command */
+	for (i = 0; i < custom_commands; i++)
+	{
+		if ((custom_command[i].m_catch == m_catch)
+		&& (custom_command[i].pkt == pkt))
+		{
+			id = i;
+			break;
+		}
+	}
+	/* No matches */
+	if (id == -1)
+	{
+		/* Adding new command */
+		id = custom_commands;
+		custom_commands++;
+	}
+
 	/* Check for errors */
-	if (custom_commands >= MAX_CUSTOM_COMMANDS)
+	if (id >= MAX_CUSTOM_COMMANDS)
 	{
 		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
 		return -1;
@@ -1587,7 +1616,7 @@ int recv_custom_command_info(connection_type *ct) {
 	}
 
 	/* Get it */
-	cc_ptr = &custom_command[custom_commands];
+	cc_ptr = &custom_command[id];
 	WIPE(cc_ptr, custom_command_type);
 
 	cc_ptr->m_catch = m_catch;
@@ -1605,7 +1634,7 @@ int recv_custom_command_info(connection_type *ct) {
 	buf[n] = '\0';
 	memcpy(cc_ptr->prompt, buf, MSG_LEN);
 
-	custom_commands++;
+	/*custom_commands++;//done above*/
 
 	return 1;
 }
@@ -1820,6 +1849,44 @@ int recv_objflags(connection_type *ct)
 	return 1;
 }
 
+int recv_party_info(connection_type *ct)
+{
+	int n;
+	char name[80];
+	char owner[80];
+	char buf[160];
+
+	name[0] = owner[0] = '\0';
+
+	if (cq_scanf(&ct->rbuf, "%s%s", name, owner) < 2)
+	{
+		return 0;
+	}
+	/* Prepare */
+	if (!STRZERO(owner))
+	{
+		sprintf(buf, "Party: %s Owner: %s", name, owner);
+	}
+	else
+	{
+		sprintf(buf, "Party: %s", name);
+	}
+
+	/* Copy info */
+	strcpy(party_info, buf);
+
+	/* Re-show party info */
+	if (party_mode)
+	{
+		Term_erase(0, 13, 255);
+		Term_putstr(0, 13, -1, TERM_WHITE, party_info);
+		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+	}
+
+	return 1;
+}
+
+
 /* HACK -- We have connected to server < 1.2.0 -- Remove this */
 int recv_oldserver_handshake()
 {
@@ -1905,6 +1972,8 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 	{
 		network_loop();
 		network_pause(100000); /* 0.1 ms "sleep" */
+		/* Let windows process UI events: */
+		Term_xtra(TERM_XTRA_FLUSH, 0);
 	}
 	/* Will be either 1 either -1 */
 
@@ -1933,6 +2002,13 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 	s16b yoff = 0;
 
 	st_ptr = &streams[window_to_stream[win]];
+
+	/* Hack -- if stream 0 is not initialized, assume we're not ready */
+	/* TODO: make this less hacky*/
+	if (st_ptr->max_col == 0)
+	{
+		return FALSE;
+	}
 
 	/* Shift expectations */
 	if (st_ptr->addr == NTERM_WIN_OVERHEAD) 

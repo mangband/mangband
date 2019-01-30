@@ -75,9 +75,10 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_BONE);
 	string_ifree(ANGBAND_DIR_HELP);
 }
-void init_file_paths(char *path)
+void init_file_paths(char *path, char *path_wr)
 {
 	char *tail;
+	char *tail_wr;
 
 
 	/*** Free everything ***/
@@ -95,6 +96,8 @@ void init_file_paths(char *path)
 	/* Prepare to append to the Base Path */
 	tail = path + strlen(path);
 
+	/* And again */
+	tail_wr = path_wr + strlen(path_wr);
 
 #ifdef VM
 
@@ -115,16 +118,16 @@ void init_file_paths(char *path)
 	/*** Build the sub-directory names ***/
 
 	/* Build a path name */
-	strcpy(tail, "data");
-	ANGBAND_DIR_DATA = string_make(path);
+	strcpy(tail_wr, "data");
+	ANGBAND_DIR_DATA = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "edit");
 	ANGBAND_DIR_EDIT = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "save");
-	ANGBAND_DIR_SAVE = string_make(path);
+	strcpy(tail_wr, "save");
+	ANGBAND_DIR_SAVE = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "help");
@@ -135,8 +138,8 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_PREF = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "bone");
-	ANGBAND_DIR_BONE = string_make(path);
+	strcpy(tail_wr, "bone");
+	ANGBAND_DIR_BONE = string_make(path_wr);
 #if 0
 	/* Build a path name */
 	strcpy(tail, "text");
@@ -196,7 +199,7 @@ void init_file_paths(char *path)
 
 			/* Build a new path name */
 			sprintf(tail, "data-%s", next);
-			ANGBAND_DIR_DATA = string_make(path);
+			ANGBAND_DIR_DATA = string_make(path_wr);
 		}
 	}
 
@@ -1250,9 +1253,9 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_POTION, SV_POTION_HEROISM },
 
 		{ TV_SCROLL, SV_SCROLL_LIFE	},
-		{ TV_POTION, SV_POTION_CURE_LIGHT },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
+		{ TV_POTION, SV_POTION_HEALING },
+		{ TV_POTION, SV_POTION_HEALING },
+		{ TV_POTION, SV_POTION_HEALING },
 		{ TV_POTION, SV_POTION_CURE_CRITICAL },
 		{ TV_POTION, SV_POTION_CURE_CRITICAL },
 		{ TV_POTION, SV_POTION_RESTORE_EXP },
@@ -2090,7 +2093,7 @@ static void enforce_option(char * name, bool set_what)
  * the handeling of this will be unified in the future with some sort of 
  * options structure.
  */
-void set_server_option(char * option, char * value)
+void set_server_option(const char * option, char * value)
 {
 	/* Due to the lame way that C handles strings, we can't use a switch statement */
 	if (!strcmp(option,"REPORT_TO_METASERVER"))
@@ -2116,6 +2119,10 @@ void set_server_option(char * option, char * value)
 	else if (!strcmp(option,"BONE_DIR"))
 	{
 		ANGBAND_DIR_BONE = string_make(value);
+	}
+	else if (!strcmp(option,"PREF_DIR"))
+	{
+		ANGBAND_DIR_PREF = string_make(value);
 	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
@@ -2384,6 +2391,18 @@ void load_server_cfg(void)
 {
 	FILE * cfg = 0;
 	int i = 0;
+
+	/* If user requested specific config file, try it... */
+	if (arg_config_file)
+	{
+		/* ...and DO NOT try anything else on failure */
+		if (!cfg)
+		{
+			plog_fmt("Error : cannot open file %s", arg_config_file);
+			quit(NULL);
+			return;
+		}
+	}
 
 	/* Attempt to open the file */
 	while (!cfg && possible_cfg_dir[i++])

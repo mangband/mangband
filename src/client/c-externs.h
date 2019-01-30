@@ -402,7 +402,6 @@ extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
-extern bool c_get_spike(void);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP
@@ -529,6 +528,7 @@ extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_custom_command(byte i, char item, char dir, s32b value, char *entry);
 extern int send_party(s16b command, cptr buf);
+extern int send_store_leave(void);
 extern int send_target_interactive(int mode, char dir);
 extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
@@ -540,9 +540,6 @@ extern int send_term_key(char key);
 #define update_ticks() plog("update_ticks unimplemented!")
 #define do_keepalive() plog("do_keepalive unimplemented!")
 #define Flush_queue() flush_updates()
-#define SocketCloseAll() plog("SocketCloseAll unimplemented!")
-#define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
-#define Send_walk(dir) plog("Send_walk unimplemented!")
 #define Send_run(dir) plog("Send_run unimplemented!")
 #define Send_drop_gold(amt) plog("Send_drop_gold unimplemented!")
 #define Send_stay() plog("Send_stay unimplemented!")
@@ -557,7 +554,6 @@ extern int send_term_key(char key);
 #define Send_ghost(ability) plog("Send_ghost unimplemented!")
 #define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
-#define Send_store_leave() plog("Send_store_leave unimplemented!")
 #define Send_store_confirm() plog("Send_store_confirm unimplemented!")
 #define Send_special_line(type, line) plog("Send_special_line unimplemented!")
 #define Send_interactive(type) plog("Send_interactive unimplemented!")

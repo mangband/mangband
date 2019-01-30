@@ -96,7 +96,7 @@ int party_create(int Ind, cptr name)
 	parties[index].created = turn;
 
 	/* Resend party info */
-	Send_party(Ind);
+	send_party_info(Ind);
 
 	/* Success */
 	return TRUE;
@@ -181,7 +181,7 @@ int party_add(int adder, cptr name)
 	p_ptr->party = party_id;
 
 	/* Resend info */
-	Send_party(Ind);
+	send_party_info(Ind);
 
 	/* Success */
 	return TRUE;
@@ -256,7 +256,7 @@ int party_remove(int remover, cptr name)
 			{
 				Players[i]->party = 0;
 				msg_print(i, "Your party has been disbanded.");
-				Send_party(i);
+				send_party_info(i);
 			}
 		}
 
@@ -281,7 +281,7 @@ int party_remove(int remover, cptr name)
 		party_msg_format(party_id, "%s has been removed from the party.", p_ptr->name);
 
 		/* Resend info */
-		Send_party(Ind);
+		send_party_info(Ind);
 	}
 
 	return TRUE;
@@ -322,7 +322,7 @@ void party_leave(int Ind)
 	party_msg_format(party_id, "%s has left the party.", p_ptr->name);
 
 	/* Resend info */
-	Send_party(Ind);
+	send_party_info(Ind);
 }
 
 

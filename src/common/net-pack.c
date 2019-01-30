@@ -239,7 +239,7 @@ int cq_printf(cq *charq, char *str, ...) {
 	charq->err = error;
 
 	if (error) {
-		plog_fmt("Error in cq_printf('...%s'): %s [%d.%d]\n", str, pf_errors[error], str_size, charq->len);
+		plog_fmt("Error in cq_printf('...%s'): %s [%d.%d]", str, pf_errors[error], str_size, charq->len);
 		bytes = 0;
 	} else {
 		PACK_FIN_R(charq, bytes);
@@ -372,7 +372,9 @@ int cq_scanf(cq *charq, char *str, ...) {
 
 	if (error) {
 		found = 0;
-		plog(format("Error in cq_scanf('...%s'): %s [%d]\n", str, pf_errors[error], str_size));
+		if (!(error >= 2 && error <= 3)) {/* Hack - do not report "not enough buffer" errors. */
+		plog(format("Error in cq_scanf('...%s'): %s [%d]", str, pf_errors[error], str_size));
+		}
 	} else {
 		UNPACK_FIN(charq);
 	}
@@ -464,7 +466,7 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 
 	if (error) {
 		found = -1;
-		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]\n", str, pf_errors[error], str_size, src->len, dst->max));
+		plog(format("Error in cq_copyf('...%s'): %s [%d.%d.%d]", str, pf_errors[error], str_size, src->len, dst->max));
 	} else {
 		REPACK_FIN(src, dst);
 	}

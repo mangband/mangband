@@ -135,6 +135,12 @@ int player_enter(int ind)
 	/* Hack -- join '#public' channel */
 	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
+	/* Hack -- send different 'G'ain command */
+	if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
+	{
+		send_custom_command_info(ct, study_cmd_id);
+	}
+
 	/* Mark him as playing */
 	p_ptr->state = PLAYER_PLAYING;
 
@@ -146,6 +152,9 @@ int player_enter(int ind)
 	/* Hack, must find better place */
 	prt_history(PInd);
 	show_socials(PInd);
+
+	/* Current party */
+	send_party_info(PInd);
 
 	/* Inform everyone */
 	if (p_ptr->new_game)
@@ -368,8 +377,16 @@ void setup_network_server()
 	/** Add listeners **/
 	/* Game */
 	first_listener = add_listener(NULL, cfg_tcp_port, (callback)accept_client);
+	if (!first_listener)
+	{
+		quit("Unable to create server interface");
+	}
 	/* Console */
 	add_listener(first_listener, cfg_tcp_port + 1, accept_console);
+	if (!first_listener)
+	{
+		quit("Unable to create console interface");
+	}
 
 	/** Allocate some memory */
 	alloc_server_memory();	
