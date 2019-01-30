@@ -730,7 +730,7 @@ extern int send_inventory_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, byte id, ...);
 extern int send_objflags(int Ind, int line);
-extern int send_party(int Ind);
+extern int send_party_info(int Ind);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_message_repeat(int Ind, u16b typ);
 extern int send_sound(int Ind, int sound);
@@ -738,6 +738,7 @@ extern int send_channel(int Ind, char mode, u16b id, cptr name);
 extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
 extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
 extern int send_store_sell(int Ind, u32b price);
+extern int send_store_leave(int Ind);
 extern int send_confirm_request(int Ind, byte type, cptr buf);
 
 

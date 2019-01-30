@@ -549,6 +549,7 @@ int recv_store_info(connection_type *ct)
 int recv_store_leave(connection_type *ct)
 {
 	leave_store = TRUE;
+	return 1;
 }
 
 int send_confirm(byte type, byte id)

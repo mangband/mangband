@@ -528,6 +528,7 @@ extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_custom_command(byte i, char item, char dir, s32b value, char *entry);
 extern int send_party(s16b command, cptr buf);
+extern int send_store_leave(void);
 extern int send_target_interactive(int mode, char dir);
 extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
