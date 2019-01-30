@@ -236,8 +236,8 @@ void teleport_player(int Ind, int dis)
 	ox = p_ptr->px;
 
 	/* Hack -- fix store */
-	if (p_ptr->store_num != -1) 
-		Send_store_leave(Ind);
+	if (p_ptr->store_num != -1)
+		send_store_leave(Ind);
 
 	/* Move the player */
 	p_ptr->py = y;

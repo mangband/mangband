@@ -1061,6 +1061,7 @@ errr process_pref_file_command(char *buf)
 			{
 				/* Turn flag on */
 				window_flag[win] |= (1L << flag);
+				window_flag_o[win] |= (1L << flag);
 			} // No need to be so strict in MAngband, might be server-defined window */
 
 			/* Success */

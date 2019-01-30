@@ -1016,7 +1016,7 @@ static void process_player_end(int Ind)
 	if (fatal_err == -1) return;
 
 	/* Check for auto-retaliate */
-	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused && !p_ptr->afraid)
 	{
 		/* Check for nearby monsters and try to kill them */
 		/* If auto_retaliate returns nonzero than we attacked
@@ -2497,6 +2497,9 @@ void play_game(bool new_game)
 	/* Load the "pref" files */
 	load_all_pref_files();
 #endif
+
+	/* Store final visual mappings */
+	apply_visuals();
 
 	/* Make a town if necessary */
 	if (!server_dungeon)

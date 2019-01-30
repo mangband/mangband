@@ -569,7 +569,7 @@ int find_house(int Ind, int x, int y, int offset)
  * Determine if the given location is ok to use as part of the foundation
  * of a house.
  */
-bool is_valid_foundation(Ind, x, y)
+bool is_valid_foundation(int Ind, int x, int y)
 {
 	int house;
 	player_type *p_ptr = Players[Ind];
@@ -1255,7 +1255,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
 					{
 						q_ptr->store_num = -1;
-						Send_store_leave(k);
+						send_store_leave(k);
 						msg_print(k, "The shopkeeper locks the doors.");
 					}
 				}

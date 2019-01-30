@@ -146,7 +146,7 @@ int read_int(char* name)
 }
 
 /* Read an unsigned integer */
-uint read_uint(char* name)
+uint read_uint(const char* name)
 {
 	char seek_name[80];
 	bool matched = FALSE;
@@ -341,7 +341,7 @@ void skip_value(char* name)
 }
 
 /* Check if the given named value is next */
-bool value_exists(char* name)
+bool value_exists(const char* name)
 {
 	char seek_name[80];
 	bool matched = FALSE;

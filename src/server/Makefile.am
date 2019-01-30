@@ -1,6 +1,6 @@
 
 mangband_LDADD = src/libcommon.a $(SERVER_LDFLAGS)
-mangband_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
+mangband_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DLOCALSTATEDIR=\"$(localstatedir)/mangband\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
 
 mangband_SOURCES = \
 		src/server/birth.c src/server/cave.c \

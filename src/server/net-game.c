@@ -523,6 +523,23 @@ int send_custom_command_info(connection_type *ct, int id)
 
 	if (!cc_ptr->m_catch) return 1; /* Last one */
 
+	/* HACK -- On first pass, just take note of the id and do nothing,
+	 * on second pass, replace 'G'ain for priests/palladins. */
+	if (cc_ptr->m_catch == 'G')
+	{
+		study_cmd_id = id; /* Remember for later */
+		/* He has a player attached (LOGGED IN) */
+		if ((int)ct->user != -1)
+		{
+			player_type *p_ptr = players->list[(int)ct->user]->data2;
+			if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
+			{
+				priest_study_cmd.pkt = cc_ptr->pkt;
+				cc_ptr = &priest_study_cmd;
+			}
+		}
+	}
+
 	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_COMMAND,
 		command_pkt[id], cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt) <= 0)
 	{
@@ -1675,7 +1692,6 @@ static int recv_custom_command(player_type *p_ptr)
 		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
 		{
 			/* Report lack of energy */
-			printf("Lack energy\n");
 			return 0;
 		}
 	}
@@ -1815,6 +1831,36 @@ int send_store_sell(int Ind, u32b price)
 	char buf[80];
 	sprintf(buf, "Accept %" PRId32 " gold?", price);
 	return send_confirm_request(Ind, 0x01, buf);
+}
+
+int send_store_leave(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c", PKT_STORE_LEAVE))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_party_info(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	player_type *p_ptr = Players[Ind];
+	char *name = "";
+	char *owner = "";
+	if (!ct) return -1;
+	if (p_ptr->party > 0)
+	{
+		name = parties[p_ptr->party].name;
+		owner = parties[p_ptr->party].owner;
+	}
+	if (!cq_printf(&ct->wbuf, "%c" "%s%s", PKT_PARTY, name, owner))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
 }
 
 /* New version of "process_pending_commands"

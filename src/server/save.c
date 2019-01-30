@@ -46,7 +46,7 @@ static void write_int(char* name, int value)
 }
 
 /* Write an unsigned integer value */
-static void write_uint(char* name, unsigned int value)
+static void write_uint(const char* name, unsigned int value)
 {
 	file_putf(file_handle, "%s%s = %u\n", xml_prefix, name, value);
 }
@@ -774,7 +774,7 @@ bool wr_dungeon_special_ext(int Depth, cptr levelname)
 }
 
 /* Write a players memory of a cave, simmilar to the above function. */
-void wr_cave_memory(Ind)
+void wr_cave_memory(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	int y,x;

@@ -230,6 +230,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
 		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? "
 	},
+	/* NOTE: see, overload for priests, below */
 	{ /* Cast spell */
 		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
@@ -261,12 +262,13 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
 	},
-#endif
+#else
 	{ /* Scores */
 		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
 		SPECIAL_FILE_SCORES, "Highscores"
 	},
+#endif
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -352,6 +354,16 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	/* End-of-array */
 	{ 0 }
 };
+int study_cmd_id = -1; /* Set during init, to replace with: */
+/* A special version for priests: */
+custom_command_type priest_study_cmd =
+	{ /* Study spell */
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+	};
+
+
 
 /* Item testers */
 item_tester_type item_tester[MAX_ITEM_TESTERS] =
@@ -549,7 +561,8 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(LEVEL, TINY, 2),  	IPW_1,	ROW_LEVEL,	COL_LEVEL,
-		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"LEVEL \aG%6d\f\r\vLevel \ay%6d",
 		(PR_LEV), "level"
 	},
 	{
@@ -559,7 +572,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(GOLD, LARGE, 1),    	IPW_1,	ROW_GOLD,	COL_GOLD,
-		(0), "AU \v%9ld",
+		(0), "AU \aG%9ld",
 		(PR_GOLD), "gold"
 	},
 #if 1
@@ -644,7 +657,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(0), "Cur AC \aG%5d",
 		(PR_ARMOR), "armor"
 	},
-#if 0
+#if 1
 	/* Classic HP/SP indicators */
 	{
 		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
@@ -725,7 +738,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	{
 		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
 		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
-		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
+		"\v             \v\aUSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
@@ -737,7 +750,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	{
 		INDICATOR_PKT(DEPTH, TINY, 1),   	IPW_2,	ROW_DEPTH, COL_DEPTH,
 		(0),
-		"Town   \vLev  \b%d",
+		"Lev \aw%3d",
 		(PR_DEPTH),  "depth"
 	},
 	{

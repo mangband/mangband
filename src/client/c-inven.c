@@ -36,7 +36,7 @@ bool item_tester_okay(object_type *o_ptr)
 	if (!o_ptr->tval) return (FALSE);
 
 	/* Hack -- ignore "gold" */
-	if (o_ptr->tval == TV_GOLD) return (FALSE);
+	if (o_ptr->tval == TV_MAX) return (FALSE);
 
 	/* Check the tval */
 	if (item_tester_tval)
@@ -207,28 +207,6 @@ bool c_check_item(int *item, byte tval)
 		}
 	}	
 
-	/* Oops */
-	return FALSE;
-}
-
-bool c_get_spike()
-{
-	int i;
-	for (i = 0; i < INVEN_PACK; i++)
-	{
-		object_type *o_ptr = &inventory[i];
-
-		/* Skip non-objects */
-		if (!o_ptr->number) continue;
-		
-		/* Check the "tval" code */
-		if (o_ptr->tval == TV_SPIKE)
-		{
-			/* (*item) = i; */
-			return TRUE;
-		}
-	}	
-	
 	/* Oops */
 	return FALSE;
 }

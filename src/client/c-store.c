@@ -584,7 +584,7 @@ void display_store(void)
 	}
 
 	/* Tell the server that we're outta here */
-	Send_store_leave();
+	send_store_leave();
 
 	/* Clear the screen */
 	Term_clear();

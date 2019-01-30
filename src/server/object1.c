@@ -1231,6 +1231,7 @@ static char *object_desc_int(char *t, sint v)
  *   1 -- The Cloak of Death [1,+3]
  *   2 -- The Cloak of Death [1,+3] (+2 to Stealth)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
+ *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
 void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode)
 {
@@ -1256,7 +1257,7 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 
 	char		tmp_val[160];
 
-    u32b		f1, f2, f3;
+	u32b		f1, f2, f3;
 
 	object_kind		*k_ptr = &k_info[o_ptr->k_idx];
 
@@ -1341,13 +1342,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 		case TV_AMULET:
 		{
 			/* Known artifacts */
-	    /* if (artifact_p(o_ptr) && known) break;*/
+			/* if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Amulet~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Amulet~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
 			break;
 		}
 
@@ -1356,13 +1357,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 		case TV_RING:
 		{
 			/* Known artifacts */
-	    /*if (artifact_p(o_ptr) && known) break;*/
+			/*if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Ring~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Ring~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
 
 			/* Hack -- The One Ring */
 			if (!aware && (o_ptr->sval == SV_RING_POWER)) modstr = "Plain Gold";
@@ -1612,13 +1613,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	{
 		/* Create the name */
 		randart_name(o_ptr, tmp_val);
-			
+
 		t = object_desc_chr(t, ' ');
 		t = object_desc_str(t, tmp_val);
 	}
-			
+
 		/* Grab any artifact name */
-	else 
+	else
 #endif
 	if (artifact_p(o_ptr))
 		{
@@ -1850,7 +1851,7 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 
 
 	/* Hack -- Wands and Staffs have charges */
-	if (known &&
+	if (known && mode < 4 &&
 	    ((o_ptr->tval == TV_STAFF) ||
 	     (o_ptr->tval == TV_WAND)))
 	{
@@ -1860,6 +1861,20 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 		t = object_desc_num(t, o_ptr->pval);
 		t = object_desc_str(t, " charge");
 		if (o_ptr->pval != 1) t = object_desc_chr(t, 's');
+		t = object_desc_chr(t, p2);
+	}
+
+	/* Display average number of charges in a store stack */
+	else if (known && mode == 4 &&
+	((o_ptr->tval == TV_STAFF) || (o_ptr->tval == TV_WAND)))
+	{
+		/* Dump " (N charges avg)" */
+		t = object_desc_chr(t, ' ');
+		t = object_desc_chr(t, p1);
+		t = object_desc_num(t, o_ptr->pval / o_ptr->number);
+		t = object_desc_str(t, " charge");
+		if (o_ptr->pval != 1) t = object_desc_chr(t, 's');
+		if (o_ptr->number > 1) t = object_desc_str(t, " avg");
 		t = object_desc_chr(t, p2);
 	}
 

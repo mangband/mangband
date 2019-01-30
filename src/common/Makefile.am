@@ -1,7 +1,7 @@
 
 noinst_LIBRARIES = src/libcommon.a
 
-src_libcommon_a_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\"
+#src_libcommon_a_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\"
 
 src_libcommon_a_SOURCES = \
 		src/common/z-form.c src/common/z-rand.c src/common/z-util.c \

@@ -6,7 +6,7 @@
 /*
  * Current version number of MAngband.
  */
- 
+
 #define SERVER_VERSION_MAJOR	1
 #define SERVER_VERSION_MINOR	2
 #define SERVER_VERSION_PATCH	0
@@ -154,7 +154,7 @@
 /*
  * Misc constants
  */
-#define SERVER_SAVE	1		/* Minutes between server saves */
+#define SERVER_SAVE	10		/* Minutes between server saves */
 #define TOWN_DAWN		50000	/* Number of turns from dawn to dawn XXX */
 #define GROW_TREE	5000		/* How often to grow a new tree in town */
 #define BREAK_GLYPH		550		/* Rune of protection resistance */
@@ -222,7 +222,7 @@
 /* Macros for determing if it is night or day */
 
 #define		IS_DAY	 ((turn.turn % (10L * TOWN_DAWN)) <= (10L * TOWN_DAWN / 2))
-#define		IS_NIGHT ((turn.turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))	
+#define		IS_NIGHT ((turn.turn % (10L * TOWN_DAWN)) > (10L * TOWN_DAWN / 2))
 
 
 /*
@@ -265,7 +265,7 @@
 #define NORMAL_TIME		100		/* 100% */
 
 
-/* 
+/*
  * Maximum number of options and option groups
  */
 #define	OPT_MAX 			40
@@ -308,8 +308,8 @@
 #define OPT_DISTURB_STATE   	22
 #define OPT_DISTURB_MINOR   	23
 #define OPT_DISTURB_OTHER   	24
-#define OPT_VIEW_PERMA_GRIDS	25 
-#define OPT_VIEW_TORCH_GRIDS	26 
+#define OPT_VIEW_PERMA_GRIDS	25
+#define OPT_VIEW_TORCH_GRIDS	26
 #define OPT_VIEW_REDUCE_LITE	27
 #define OPT_VIEW_REDUCE_VIEW	28
 #define OPT_VIEW_YELLOW_LITE	29
@@ -470,7 +470,7 @@
 
 
 /*
- * item_tester_hook defines 
+ * item_tester_hook defines
  */
 #define ITH_WEAR        	1
 #define ITH_WEAPON      	2
@@ -483,20 +483,20 @@
 #define ITEM_ANY        	0
 
 /*
- * item_tester_flag defines 
+ * item_tester_flag defines
  */
 #define ITF_WEAR	0x01 /* Can wear/wield item */
 #define ITF_ACT 	0x02 /* Can activate item */
 #define ITF_FUEL 	0x04 /* Can be used as fuel */
-#define ITF_FLAG_0 	0x08 
+#define ITF_FLAG_0 	0x08
 
-#define ITF_FLAG_1 	ITEM_ASK_AIM  /* Reserved */ 
+#define ITF_FLAG_1 	ITEM_ASK_AIM  /* Reserved */
 #define ITF_FLAG_2 	ITEM_ASK_ITEM /* Reserved */
 #define ITF_FLAG_3 	0x40 /* Variant-specific */
 #define ITF_FLAG_4 	0x80 /* Variant-specific */
 
 /*
- * Chat Channels defines 
+ * Chat Channels defines
  */
 /* channel modes */
 #define	CM_KEYLOCK	0x01 /* +k More similar to IRC's +A */
@@ -537,8 +537,8 @@
 #define NumPlayers p_max
 #define Players p_list
 
-/* 
- * Stream-related 
+/*
+ * Stream-related
  */
 #define STREAM_DUNGEON_ASCII	0
 #define STREAM_DUNGEON_GRAF1	1
@@ -585,10 +585,10 @@
 #define SPECIAL_FILE_INPUT	14
 
 
-/* 
+/*
  * Miscelanious hacks
  */
-/* Hack -- see if player is playing the game already */ 
+/* Hack -- see if player is playing the game already */
 #define IS_PLAYING(P) ((P)->state == PLAYER_PLAYING ? TRUE : FALSE)
 /* Hack -- check if object is owned by player */
 #define obj_own_p(P,O) ((!(O)->owner_id || (P)->id == (O)->owner_id))
@@ -598,7 +598,7 @@
 #define CGI(O,M) check_guard_inscription( (O)->note, (M) )
 /* Hack -- overloaded guard-inscriptions */
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
-/* Hack -- check guard inscription and abort (chunk of code) */ 
+/* Hack -- check guard inscription and abort (chunk of code) */
 #define __trap(I,X) if ((X)) { msg_print((I), "The item's inscription prevents it."); return; }
 /* Hack -- ensure a variable fits into ddx/ddy array bounds */
 #define VALID_DIR(D) ((D) > 0 && (D) < 10)
@@ -627,7 +627,7 @@
 #define SORT_QUEST	0x0080
 
 
-/* 
+/*
  * MAngband-specific miscellaneous hacks
  */
 #define PURSE_MULTIPLIER 5 /* For store owners */
@@ -643,12 +643,12 @@
 #define DM_CAN_ASSIGN   	0x00000008
 #define DM___MENU       	0x000000F0	/* Dungeon Master Menu: (shortcut to set all) */
 #define DM_CAN_BUILD    	0x00000010  /*  building menu */
-#define DM_LEVEL_CONTROL	0x00000020	/*  static/unstatic level */ 
+#define DM_LEVEL_CONTROL	0x00000020	/*  static/unstatic level */
 #define DM_CAN_SUMMON   	0x00000040	/*  summon monsters */
 #define DM_CAN_GENERATE 	0x00000080	/*  generate vaults / items */
 #define DM_MONSTER_FRIEND	0x00000100
 #define DM_INVULNERABLE 	0x00000200
-#define DM_GHOST_HANDS  	0x00000400	/* Can interact with world (like open/close doors) even as a ghost */ 
+#define DM_GHOST_HANDS  	0x00000400	/* Can interact with world (like open/close doors) even as a ghost */
 #define DM_GHOST_BODY   	0x00000800	/* Can carry/wield items even as a ghost */
 #define DM_NEVER_DISTURB	0x00001000
 #define DM_SEE_LEVEL    	0x00002000	/* See all level */
@@ -668,7 +668,7 @@
 
 #define is_dm_p(P) \
 	(((P)->dm_flags & DM_IS_MASTER) ? TRUE : FALSE)
-	
+
 #define dm_flag(IND,F) \
 	((Players[(IND)]->dm_flags & & DM_ ## F) ? TRUE : FALSE)
 
@@ -792,8 +792,8 @@ that keeps many algorithms happy.
 -APD- */
 #define FEAT_DRAWBRIDGE	0x50
 #define FEAT_LOGS			0x60
-#define FEAT_PERM_CLEAR	0x70	
-#define FEAT_PVP_ARENA 	0x5F	
+#define FEAT_PERM_CLEAR	0x70
+#define FEAT_PVP_ARENA 	0x5F
 
 /* Trees */
 #define FEAT_TREE			0x61
@@ -1162,7 +1162,7 @@ that keeps many algorithms happy.
 #define EGO_MIRKWOOD		133
 
 /* Missile launchers */
-#define EGO_LOTHLORIEN		106 /* note: this is angband, 
+#define EGO_LOTHLORIEN		106 /* note: this is angband,
 				     *	for mangband set to 134 */
 #define EGO_NUMENOR		135
 
@@ -2446,10 +2446,10 @@ that keeps many algorithms happy.
 
 
 
-/* 
+/*
 	Different types of terrain, used for the wilderness.
 	-APD-
-	
+
 	HACK -- I am temporarily using these numbers to determine
 	how many monsters to generate.
 */
@@ -2467,7 +2467,7 @@ that keeps many algorithms happy.
 /* different buildings */
 #define		WILD_LOG_CABIN		0
 #define		WILD_ROCK_HOME		1
-#define		WILD_PERM_HOME		2	
+#define		WILD_PERM_HOME		2
 #define		WILD_SHACK		3
 #define		WILD_TOWN_HOME		4
 #define		WILD_ARENA		8
@@ -2596,7 +2596,7 @@ that keeps many algorithms happy.
 	(((T)->ident & (ID_KNOWN)) || \
 	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
 	  (PTR)->obj_aware[(T)->k_idx]))
-    
+
 
 #define object_felt_or_known_p(IND, T) \
     (((T)->ident & ID_SENSE) || \
@@ -2788,7 +2788,7 @@ that keeps many algorithms happy.
      ((cave[DEPTH][Y][X].feat >= FEAT_SHOP_HEAD) && \
       (cave[DEPTH][Y][X].feat <= FEAT_SHOP_TAIL)) || \
      ((cave[DEPTH][Y][X].feat >= FEAT_HOME_HEAD) && \
-      (cave[DEPTH][Y][X].feat <= FEAT_HOME_TAIL))) 
+      (cave[DEPTH][Y][X].feat <= FEAT_HOME_TAIL)))
 
 /*
  * Is a given location "valid" for placing things?

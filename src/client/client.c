@@ -66,7 +66,7 @@ static void read_credentials(void)
 
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	bool done = FALSE;
 
