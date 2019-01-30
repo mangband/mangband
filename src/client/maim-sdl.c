@@ -560,7 +560,7 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 		{
 			if (IsMovement(ks->sym))
 			{
-				snprintf(buf, bufsize-bufused, "%c%s%s%s%s_%lX%c", 31,
+				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
 						ks->mod & KMOD_SHIFT ? "S" : "",
 						"", /* for future expansion. */

@@ -921,7 +921,7 @@ void gui_take_snapshot() {
 	}
 	for (i = 0; i < 999; ++i) 
 	{
-		snprintf(buf, 1024, "%03d.bmp", i);
+		sprintf(buf, "%03d.bmp", i);
 		if ((tmp = fopen(buf, "rb")) != NULL)
 		{
 			fclose(tmp);
