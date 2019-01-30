@@ -288,7 +288,6 @@ static char inkey_aux(void)
 		/* Return as soon as possible */
 		if (inkey_nonblock)
 		{
-			printf("Returning because nonblock...\n");
 			return (0);
 		}
 	} while (!ch);
