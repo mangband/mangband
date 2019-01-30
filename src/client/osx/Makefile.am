@@ -24,6 +24,7 @@ mangclient.app: mangclient
 	@mkdir mangclient.app/Contents/Resources/lib/save
 	@mkdir mangclient.app/Contents/Resources/lib/text
 	@mkdir mangclient.app/Contents/Resources/lib/user
+	@mkdir mangclient.app/Contents/Resources/lib/pref
 	@mkdir mangclient.app/Contents/Resources/lib/xtra
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/font
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/graf
@@ -38,6 +39,7 @@ mangclient.app: mangclient
 	@cp lib/help/*txt mangclient.app/Contents/Resources/lib/help
 	@cp lib/help/*hlp mangclient.app/Contents/Resources/lib/help
 	@cp lib/save/server* mangclient.app/Contents/Resources/lib/save
+	@cp lib/pref/*prf mangclient.app/Contents/Resources/lib/pref
 	@cp lib/user/*prf mangclient.app/Contents/Resources/lib/user
 	@cp lib/xtra/font/*FON mangclient.app/Contents/Resources/lib/xtra/font
 	@cp lib/xtra/font/*hex mangclient.app/Contents/Resources/lib/xtra/font
