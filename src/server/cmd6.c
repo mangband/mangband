@@ -807,10 +807,10 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
  */
 void do_cmd_zap_rod_pre(int Ind, int item, int dir)
 {
-	if (dir > 0) 
-		Players[Ind]->command_dir = dir; 
+	if (dir > 0)
+		Players[Ind]->command_dir = dir;
 
-	do_cmd_zap_rod(Ind, item); 
+	do_cmd_zap_rod(Ind, item);
 }
 void do_cmd_zap_rod(int Ind, int item)
 {
@@ -919,8 +919,10 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 
 
 	/* Drain the charge */
+	/* happens in use-obj.c
 	o_ptr->timeout += k_ptr->pval;
-
+	*/
+	
 	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) {
 		/* XXX Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
