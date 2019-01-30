@@ -2093,7 +2093,7 @@ static void enforce_option(char * name, bool set_what)
  * the handeling of this will be unified in the future with some sort of 
  * options structure.
  */
-void set_server_option(char * option, char * value)
+void set_server_option(const char * option, char * value)
 {
 	/* Due to the lame way that C handles strings, we can't use a switch statement */
 	if (!strcmp(option,"REPORT_TO_METASERVER"))

@@ -569,7 +569,7 @@ int find_house(int Ind, int x, int y, int offset)
  * Determine if the given location is ok to use as part of the foundation
  * of a house.
  */
-bool is_valid_foundation(Ind, x, y)
+bool is_valid_foundation(int Ind, int x, int y)
 {
 	int house;
 	player_type *p_ptr = Players[Ind];
