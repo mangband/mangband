@@ -37,6 +37,7 @@ static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
+bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 #include <SDL/SDL.h>
 #include <string.h>
@@ -1072,6 +1073,10 @@ void SDL_FrontRect(term_data *td, int x, int y, int w, int h, bool render, bool 
 	if (!render) return;
 	if (td) SDL_BlitSurface(td->face, &sr, bigface, &dr);
 #endif
+	if (quartz_hack)
+	{
+		return;
+	}
 	if (update)
 	{
 		dr.w = w; dr.h = h;
@@ -1473,6 +1478,10 @@ static errr Term_xtra_sdl(int n, int v)
 			term_display_all();
 			SDL_Flip(bigface);
 		}
+		else if (quartz_hack)
+		{
+			SDL_Flip(bigface);
+		}
 		return (0);
 
 		case TERM_XTRA_NOISE:
@@ -1724,7 +1733,7 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
  * XXX XXX XXX Display a character text on the screen
  *
  */
-inline static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
+static errr Term_char_sdl (int x, int y, byte a, unsigned char c) {
 	term_data *td = (term_data*)(Term->data);
 
 	if (!td->online) return -1;
@@ -2168,7 +2177,7 @@ void term_redraw(int i) {
 	/* Use customized redrawing function to avoid flickering caused by Term_clear() */ 
 	term_data *td = &(tdata[i]);
 	int y, x, ty, tx;
-	Uint8 a, c;
+	Uint8 a, c, ta, tc;
 
 	if (!td->t.scr) return;
 
@@ -2183,16 +2192,20 @@ void term_redraw(int i) {
 			{
 				a = td->t.attr_blank;
 				c = td->t.char_blank;
+				ta = a;
+				tc = c;
 			}
 			else
 			{
 				a = td->t.scr->a[y][x];
 				c = td->t.scr->c[y][x];
+				ta = td->t.scr->ta[y][x];
+				tc = td->t.scr->tc[y][x];
 			}
 			/* Use "Term_pict" for "special" data */
 			if ((a & 0x80) && (c & 0x80))
 			{
-				Term_tile_sdl(x, y, a, c);
+				Term_tile_sdl(x, y, a, c, ta, tc);
 			} else
 			SDL_BlitChar(td, x, y, a, c);
 		}
@@ -2719,6 +2732,9 @@ static void play_sound(int v, int s)
  */
 errr init_sdl(void)
 {
+	
+	char buf[1024];
+	char *name;
 	term_data *td;
 	Uint32 initflags = SDL_INIT_VIDEO; /* What's the point, if not video? */
 
@@ -2769,6 +2785,12 @@ errr init_sdl(void)
 			plog(format("Vid. init.: We  %s and got %s", asked, got));
 		}
 #endif
+
+	name = SDL_VideoDriverName(buf, 1024);
+	if (name && !strcmp(name, "Quartz"))
+	{
+		quartz_hack = TRUE;
+	}
 
 	/* No screen? No game */
 	if (bigface == NULL) {
