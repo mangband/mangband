@@ -4030,7 +4030,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->resting)
 	{
 		/* Cancel */
-		p_ptr->resting = 0;
+		p_ptr->resting = FALSE;
 
 		/* Redraw the state (later) */
 		p_ptr->redraw |= (PR_STATE);
@@ -4040,7 +4040,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->running)
 	{
 		/* Cancel */
-		p_ptr->running = 0;
+		p_ptr->running = FALSE;
 
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);

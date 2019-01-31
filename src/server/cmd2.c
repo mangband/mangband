@@ -2704,8 +2704,12 @@ void do_cmd_bash(int Ind, int dir)
  *
  * Attack monsters, tunnel through walls, disarm traps, open doors.
  *
- * This command must always take energy, to prevent free detection
- * of invisible monsters.
+ * <s>This command must always take energy, to prevent free detection
+ * of invisible monsters.</s>
+ * REVISED FOR MAngband-specific reasons: we don't care if someone
+ * detects a monster by tunneling into it, and treat "tunnel air" as an
+ * error, which DOES NOT spend player's energy. This is a classic MAnghack,
+ * updated to newer V306 realities.
  *
  * The "semantics" of this command must be chosen before the player
  * is confused, and it must be verified against the new grid.
@@ -2719,6 +2723,7 @@ void do_cmd_alter(int Ind, int dir)
 	int feat;
 
 	bool more = FALSE;
+	bool spend = TRUE;
 
 	cave_type		*c_ptr;
 
@@ -2727,9 +2732,6 @@ void do_cmd_alter(int Ind, int dir)
 
 	/* Get a direction */
 	if (!VALID_DIR(dir)) return;
-
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
 	confuse_dir(p_ptr->confused, &dir);
@@ -2826,6 +2828,14 @@ void do_cmd_alter(int Ind, int dir)
 	{
 		/* Oops */
 		msg_print(Ind, "You spin around.");
+		/* Do not spend energy. */
+		spend = FALSE;
+	}
+
+	if (spend)
+	{
+		/* Take a turn */
+		p_ptr->energy -= level_speed(p_ptr->dun_depth);
 	}
 
 	/* Cancel repetition unless we can continue */
@@ -3007,7 +3017,7 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 				(((c_ptr->feat >= FEAT_TRAP_HEAD) && 
 			      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
 			    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
-			      (c_ptr->feat <= FEAT_HOME_TAIL)))) 
+			      (c_ptr->feat <= FEAT_HOME_TAIL))))
 			{
 				do_cmd_alter(Ind, dir);
 				return;
