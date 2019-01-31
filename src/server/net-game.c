@@ -840,7 +840,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	/* Hack -- it's a "custom command" */
 	if (next_pkt == PKT_COMMAND)
 	{
-		/* custtom command 'id' is used in those, so we copy it first */
+		/* custom command 'id' is used in those, so we copy it first */
 		if (cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
 		{
 			/* Unable to... */
@@ -1528,7 +1528,7 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 }
 
 /** Gameplay commands **/
-/* Those return 
+/* Those return
 	* -1 on critical error
 	*  0 when lack energy
 	*  1 or 2 on success
@@ -1555,7 +1555,14 @@ static int recv_walk(player_type *p_ptr) {
 	/* Note: there's another arguably more elegant way to do this:
 	 * replace last walk request in "recv_command" or similar,
 	 * the way older code did it */
-	if (cq_len(&p_ptr->cbuf) && (CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK)
+	/* Here we test to see if there are *TWO* more walk requests queued up
+	 * after the current one, and if so, we skip the current one. The reason
+	 * we test for 2 commands (and not just 1), is classic MAngband sometimes
+	 * allowed up to 2 walk requests to be executed consequently, so we emulate
+	 * that behavior. */
+	if ((cq_len(&p_ptr->cbuf) > 2)
+	&& ((CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK) /* next command */
+	&& ((CQ_PEEK(&p_ptr->cbuf))[2] == PKT_WALK)) /* and the one after it */
 	{
 		return 1;
 	}
@@ -1638,7 +1645,6 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 	else
 	{
-		printf("Not playing\n");
 		return -1;
 	}
 
