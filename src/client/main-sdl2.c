@@ -57,7 +57,8 @@ char *term_title[8] = {             // Our terminal titles
   "Inventory",
   "Chat",
   "Term-5",
-  "Term-6"
+  "Term-6",
+  "Term-7",
 };
 static struct TermData terms[8];    // Our terminals
 static struct FontData fonts[8];    // Our fonts, tied to the term limit of 7
