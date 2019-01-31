@@ -1694,6 +1694,12 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Does it cost energy? */
 	if (custom_commands[i].energy_cost)
 	{
+		/* MAngband-specific: if we've JUST started running, pretend we don't have enough energy */
+		if ((custom_commands[i].pkt == PKT_RUN) && p_ptr->running && p_ptr->ran_tiles == 0)
+		{
+			/* Report as lack of energy */
+			return 0;
+		}
 		/* Not enough! ABORT! */
 		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
 		{

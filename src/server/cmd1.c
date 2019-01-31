@@ -2301,6 +2301,9 @@ static void run_init(int Ind, int dir)
 	/* Ensure "dir" is in ddx/ddy array bounds */
 	if (!VALID_DIR(dir)) return;
 
+	/* Reset counter */
+	p_ptr->ran_tiles = 0;
+
 	/* Save the direction */
 	p_ptr->find_current = dir;
 
@@ -2788,7 +2791,6 @@ void run_step(int Ind, int dir)
 		/* We are running */
 		p_ptr->run_request = 0;
 		p_ptr->running = TRUE;
-
 	}
 
 	/* Keep running */
@@ -2804,6 +2806,9 @@ void run_step(int Ind, int dir)
 			return;
 		}
 	}
+
+	/* Increase counter */
+	p_ptr->ran_tiles += 1;
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);

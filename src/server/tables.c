@@ -47,7 +47,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 #endif	
 	{ /* Start running */
-		'.', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_run,
+		'.', PKT_RUN, SCHEME_DIR, 1, (cccb)do_cmd_run,
 		(COMMAND_TARGET_DIR),		0, ""
 	},
 	{ /* Stand still */

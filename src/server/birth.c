@@ -632,7 +632,11 @@ void player_wipe(player_type *p_ptr)
 
 	/* Assume no cheating */
 	p_ptr->noscore = 0;
-	
+
+	/* Not running */
+	p_ptr->running = FALSE;
+	p_ptr->run_request = 0;
+	p_ptr->ran_tiles = 0;
 
 	/* Feelings don't carry-on between saves (sorry) */
 	p_ptr->feeling = 0;

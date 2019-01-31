@@ -1433,6 +1433,7 @@ struct player_type
 	byte find_current;	/* These are used for the running code */
 	byte find_prevdir;
 	byte run_request;
+	byte ran_tiles;
 	bool find_openarea;
 	bool find_breakright;
 	bool find_breakleft;
