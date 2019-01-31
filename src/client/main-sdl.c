@@ -394,7 +394,7 @@ errr load_ANY_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 {
 	SDL_Rect glyph_info;
 
-	if ((fd->face = sdl_graf_load(filename, maskname, &glyph_info)) != NULL)
+	if ((fd->face = sdl_graf_load(filename, &glyph_info, maskname)) != NULL)
 	{
 		/* Attempt to get dimensions from filename */
 		fd->w = glyph_info.w;
@@ -740,7 +740,7 @@ bool gui_term_event(SDL_Event* event) {
 		/* Various frivolous hacks. */
 		if (event->key.keysym.sym == SDLK_TAB)
 		{
-			taken = gui_term_next(); 
+			taken = gui_term_next();
 			break;
 		}
 		if (event->key.keysym.sym == SDLK_F12 && (event->key.keysym.mod & KMOD_ALT))

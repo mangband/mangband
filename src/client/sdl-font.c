@@ -641,7 +641,7 @@ This function was known as "load_BMP_graf_sdl"
 Taken from "main-sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
 Updated to support SDL_Image
 */
-SDL_Surface* sdl_graf_load(cptr filename, cptr maskname, SDL_Rect *info)
+SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect *info, cptr maskname)
 {
 #ifdef USE_BITMASK
 	int x, y, mask_offset, tile_offset;

@@ -1082,7 +1082,7 @@ errr imgToPict(PictData *pd, cptr filename) {
   //path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
 
   // Load 'er up
-  pd->surface = sdl_graf_load(filename, NULL, &glyph_info);
+  pd->surface = sdl_graf_load(filename, &glyph_info, NULL);
   if (pd->surface == NULL) {
     //plog_fmt("imgToPict: %s", "can't load font");
     return 1;
