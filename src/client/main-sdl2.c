@@ -113,7 +113,7 @@ errr init_sdl2(int argc, char **argv) {
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
-  strcpy(default_font, conf_get_string("SDL2", "font_file", "qbfat8x8.bmp")); // eww
+  strcpy(default_font, conf_get_string("SDL2", "font_file", "silm8x16.bmp")); // eww
   loadConfig();
   // **** Merge command-line ****
   // **** Load Fonts and Picts ****
