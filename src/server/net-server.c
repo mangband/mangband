@@ -395,6 +395,28 @@ void setup_network_server()
 	setup_tables(handlers, schemes);
 }
 
+/* Player commands */
+/* Usually, "process_player_commands" is triggered from within
+   the "dungeon()" tick. However, classic MAngband would not wait
+   for the next turn and execute the command immediately as it
+   arrived. So this little function flushes them all right after
+   we handled network.
+*/
+void post_process_players(void)
+{
+	int Ind;
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* HACK -- Do not proccess while changing levels */
+		if (p_ptr->new_level_flag == TRUE) continue;
+		
+		/* Try to execute any commands on the command queue. */
+		(void) process_player_commands(Ind);
+	}
+}
+
 /* Infinite Loop */
 void network_loop()
 {
@@ -406,6 +428,8 @@ void network_loop()
 		first_connection = handle_connections(first_connection);
 		first_sender = handle_senders(first_sender, static_timer(1));
 		first_timer = handle_timers(first_timer, static_timer(0));
+
+		post_process_players(); /* Execute all commands */
 
 		network_pause(2000); /* 0.002 ms "sleep" */
 	}
