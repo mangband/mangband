@@ -140,6 +140,7 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   term *t = &td->t;
 
   td->id = id;
+  if (name) strcpy(td->title, &name[0]);
 
   if (td->cell_w < 1) td->cell_w = 8;
   if (td->cell_h < 1) td->cell_h = 16;
@@ -152,11 +153,11 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   if (td->config & TERM_IS_VIRTUAL && td->id != 0) {
     td->window = terms[TERM_MAIN].window;
     td->renderer = terms[TERM_MAIN].renderer;
-    td->ren_rect.x = 32*id; td->ren_rect.y = 32*id; // TODO: read position from input file
+    td->ren_rect.x = td->x; td->ren_rect.y = td->y;
     td->ren_rect.w = width; td->ren_rect.h = height;
   } else {
     /* Initialize SDL2 window */
-    if ((td->window = SDL_CreateWindow(td->title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    if ((td->window = SDL_CreateWindow(td->title, td->x, td->y,
       width, height, SDL_WINDOW_RESIZABLE)) == NULL) {
         plog_fmt("Could not create Window: %s", SDL_GetError());
         return 1;
@@ -454,6 +455,9 @@ static void nukeTermHook(term *t) {
     SDL_DestroyRenderer(td->renderer);
     SDL_DestroyWindow(td->window);
   }
+  // save all values
+  saveConfig();
+
   td->config &= ~TERM_IS_ONLINE;
   // assume mangclient shutdown if the main terminal is getting nuked
   // TODO: just move this to a quit_sdl2 or similar func
@@ -544,15 +548,30 @@ static errr xtraTermHook(int n, int v) {
               int cw = w/terms[i].cell_w;
               int ch = h/terms[i].cell_h;
 
+	byte cw_ = cw, ch_ = ch;
+	net_term_clamp((byte)i, &ch_, &cw_);
+	cw = cw_; ch = ch_;
+
               resizeTerm(&terms[i], cw, ch);
               refreshTerm(&terms[i]);
-
+/*
               // store current term, activate this, refresh, and restore previous
               old_td = Term;
               Term_activate(&(terms[i].t));
               Term_redraw();
               Term_activate(old_td);
+*/
               break;
+            }
+          }
+        } else if (event.window.event == SDL_WINDOWEVENT_MOVED) {
+          int i;
+          for (i = 0; i < 8; i++) {
+            if (terms[i].window_id == event.window.windowID) {
+              int x = event.window.data1;
+              int y = event.window.data2;
+              terms[i].x = x;
+              terms[i].y = y;
             }
           }
         } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
