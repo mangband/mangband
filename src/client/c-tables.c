@@ -581,7 +581,7 @@ cptr window_flag_desc[32] =
  *
  *	Set 1: User Interface
  */
-cptr local_option_group[] = 
+cptr local_option_group[] =
 {
 	"User-interace options",
 	NULL /* End */
@@ -590,7 +590,7 @@ option_type local_option_info[] =
 {
 	/*** User-Interface ***/
 	{ &rogue_like_commands,	0,FALSE,	1,	0, 0,
-	"rogue_like_commands",	"Rogue-like commands" },
+	"rogue_like_commands",  	"Rogue-like commands" },
 
 	{ &ring_bell,			0,TRUE,	1,	0, 0,
 	"ring_bell",			"Audible bell (on errors, etc)" },
@@ -609,6 +609,9 @@ option_type local_option_info[] =
 
 	{ &auto_accept, 		0,FALSE,	1,	0, 0,
 	"auto_accept",			"Always say Yes to Yes/No prompts" },
+
+	{ &auto_itemlist,   		0,FALSE,	1,	0, 0,
+	"auto_itemlist",		"Show listings when prompting for an item" },
 
 	/*** End of Table ***/
 

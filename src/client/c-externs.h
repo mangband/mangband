@@ -258,6 +258,7 @@ extern int known_options;
 
 extern bool rogue_like_commands;
 extern bool auto_accept;
+extern bool auto_itemlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
