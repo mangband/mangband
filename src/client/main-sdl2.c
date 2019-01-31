@@ -323,6 +323,13 @@ errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
       }
 
       attachFont(&fonts[i], td);
+
+      if (i == 0) {
+          char *ext = strrchr(filename, '.');
+          ANGBAND_FON = ext ? string_make(ext+1) : ANGBAND_FON;
+          ANGBAND_FONTNAME = string_make(filename);
+      }
+
       return 0;
     }
   }

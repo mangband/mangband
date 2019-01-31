@@ -28,6 +28,18 @@
 ?:[IOR [EQU $SYS sdl] [EQU $SYS xaw] [EQU $SYS x11] [EQU $SYS xpj] [EQU $SYS gtk]]
 %:font-x11.prf
 
+?:[EQU $SYS sdl]
+%:font-sdl.prf
+
+?:[EQU $SYS sdl2]
+%:font-sdl2.prf
+
+?:[EQU $FON hex]
+%:font-hex.prf
+
+?:[EQU $FONTNAME silm8x16.bmp]
+%:font-silm.prf
+
 ?:[EQU $SYS lfb]
 %:font-lfb.prf
 

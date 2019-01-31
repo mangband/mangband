@@ -1550,6 +1550,24 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 				v = ANGBAND_GRAF;
 			}
 
+			/* Specific tileset */
+			if (streq(b+1, "GRAFNAME"))
+			{
+				v = ANGBAND_GRAFNAME;
+			}
+
+			/* Font-system */
+			if (streq(b+1, "FON"))
+			{
+				v = ANGBAND_FON;
+			}
+
+			/* Specific font */
+			if (streq(b+1, "FONTNAME"))
+			{
+				v = ANGBAND_FONTNAME;
+			}
+
 			/* Race */
 			else if (streq(b+1, "RACE"))
 			{

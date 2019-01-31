@@ -2128,6 +2128,12 @@ bool term_set_font(int i, cptr fontname)
 		{
 			load_font->name = string_make(fontname);
 			td->fd = load_font;
+			if (i == 0)
+			{
+				char *ext = strrchr(filename, '.');
+				ANGBAND_FON = ext ? string_make(ext+1) : ANGBAND_FON;
+				ANGBAND_FONTNAME = string_make(filename);
+			}
 		}
 	}
 	if (!td->fd)

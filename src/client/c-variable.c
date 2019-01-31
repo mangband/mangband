@@ -145,6 +145,10 @@ byte color_table[256][4];
 
 cptr ANGBAND_SYS;
 
+cptr ANGBAND_FON = "";
+cptr ANGBAND_FONTNAME = "";
+cptr ANGBAND_GRAFNAME = "";
+
 cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
 
 s16b command_cmd;
