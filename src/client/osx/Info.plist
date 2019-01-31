@@ -5,9 +5,9 @@
 	<key>CFBundleName</key>
 	<string>MAngband Client</string>
 	<key>CFBundleGetInfoString</key>
-	<string>MAngband 1.2.0</string>
+	<string>MAngband 1.5.0</string>
 	<key>CFBundleShortVersion</key>
-	<string>1.2.0</string>
+	<string>1.5.0</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>

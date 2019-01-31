@@ -1887,7 +1887,7 @@ int recv_party_info(connection_type *ct)
 }
 
 
-/* HACK -- We have connected to server < 1.2.0 -- Remove this */
+/* HACK -- We have connected to server < 1.5.0 -- Remove this */
 int recv_oldserver_handshake()
 {
 	quit("Server version is too old.");
