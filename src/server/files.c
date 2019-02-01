@@ -1510,6 +1510,9 @@ void common_file_peruse(player_type *p_ptr, char query)
 	/* Use default file */
 	if (!p_ptr->interactive_file)
 	{
+		/* Paranoia -- free string */
+		string_free(p_ptr->interactive_file);
+		/* Select default file */
 		p_ptr->interactive_file = string_make("mangband.hlp");
 		/* Hack: enforce update */
 		p_ptr->interactive_next = -1;

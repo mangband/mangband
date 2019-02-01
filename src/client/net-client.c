@@ -2072,18 +2072,6 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		st_x[j] = -1;
 	}
 
-	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
-	for (k = 0; k < stream_groups; k++)
-	{
-		byte st = stream_group[k];
-		stream_type* st_ptr = &streams[st];
-
-		if (st_ptr->flag & SF_HIDE)
-		{
-			st_x[st] = st_ptr->min_col;
-			st_y[st] = st_ptr->min_row;
-		}
-	}
 
 	/* Now, find actual changes by comparing old and new */ 
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
@@ -2112,7 +2100,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if ((new_flag[j] & st_ptr->window_flag))
 				{
 					/* It wasn't active or it's size changed. Subscribe! */
-					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_wid[st] || Term->hgt != p_ptr->stream_hgt[st]) 
+					if (!(old_flag[j] & st_ptr->window_flag)
+					|| Term->wid != p_ptr->stream_wid[st]
+					|| Term->hgt != p_ptr->stream_hgt[st])
 					{
 						st_y[st] = Term->hgt;
 						st_x[st] = Term->wid;
@@ -2139,6 +2129,19 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 
 		/* Restore */
 		Term_activate(old);
+	}
+
+	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
+	for (k = 0; k < stream_groups; k++)
+	{
+		byte st = stream_group[k];
+		stream_type* st_ptr = &streams[st];
+
+		if ((st_y[st] == -1) && (st_ptr->flag & SF_HIDE))
+		{
+			st_x[st] = st_ptr->min_col;
+			st_y[st] = st_ptr->min_row;
+		}
 	}
 
 	/* Send subscriptions */
