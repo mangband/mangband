@@ -5314,7 +5314,7 @@ static void print_tomb(player_type *p_ptr)
 	}
 
 	/* Save last dumped line */
-	p_ptr->last_info_line = i;
+	p_ptr->last_info_line = i - 1;
 
 	/* King or Queen */
 	if (p_ptr->total_winner || (p_ptr->lev > PY_MAX_LEVEL))
@@ -5395,7 +5395,7 @@ void show_tombstone(player_type *p_ptr)
 
 	/* Clear, Send, Refresh */
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
-	for (i = 0; i < p_ptr->last_info_line; i++)
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 	send_term_info(p_ptr, NTERM_FLUSH, 0);
 
@@ -5870,18 +5870,26 @@ void preview_vault(int Ind, int v_idx)
 	char	c;
 	int 	dy, dx;
 
+	int 	w, h;
+
+	/* Make sure we don't write out of bounds */
+	w = p_ptr->stream_wid[STREAM_BGMAP_ASCII];
+	h = MIN(v_ptr->hgt, p_ptr->stream_hgt[STREAM_BGMAP_ASCII]);
 
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	Send_term_info(Ind, NTERM_CLEAR, 1);	
+	Send_term_info(Ind, NTERM_CLEAR, 1);
 
-	for (t = v_text + v_ptr->text, dy = 0; dy < v_ptr->hgt; dy++)
+	for (t = v_text + v_ptr->text, dy = 0; dy < h; dy++)
 	{
-		for (dx = 0; dx < 80; dx++)
+		for (dx = 0; dx < w; dx++)
 		{
-			c = *t; a = TERM_WHITE; feat = 0;
+			if (dx >= w) continue;
+
+			a = TERM_WHITE; feat = 0;
 
 			if (dx < v_ptr->wid)
-			{ 
+			{
+				c = *t;
 				switch (c)
 				{
 					case '.': feat = FEAT_FLOOR; break;
@@ -5908,6 +5916,11 @@ void preview_vault(int Ind, int v_idx)
 			}
 
 			stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), dy, dx, a, c, 0, 0);//a, c);
+		}
+		while (dx < v_ptr->wid)
+		{
+			dx++;
+			t++;
 		}
 	}
 

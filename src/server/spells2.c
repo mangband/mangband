@@ -1045,12 +1045,12 @@ void self_knowledge(int Ind, bool spoil)
 		for (j = 0; j < e; j++)
 		{
 			p_ptr->info[k][j].c = info[k][j];
-			p_ptr->info[k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].a = TERM_WHITE;
 		}
 		for (j = e; j < 80; j++)
 		{
 			p_ptr->info[k][j].c = ' ';
-			p_ptr->info[k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].a = TERM_WHITE;
 		}
 	}
 	/* Last line */
