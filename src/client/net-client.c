@@ -1994,6 +1994,18 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 }
 /* END OF META-SERVER STUFF */
 
+stream_type* _window_to_stream(byte win)
+{
+	int i;
+	for (i = 0; i < known_streams; i++)
+	{
+		if (streams[i].window_flag & window_flag[win])
+		{
+			return &streams[i];
+		}
+	}
+	return NULL;
+}
 
 bool net_term_clamp(byte win, byte *y, byte *x)
 {
@@ -2003,7 +2015,10 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 	s16b xoff = 0;
 	s16b yoff = 0;
 
-	st_ptr = &streams[window_to_stream[win]];
+	if (!(st_ptr = _window_to_stream(win)))
+	{
+		return FALSE;
+	}
 
 	/* Hack -- if stream 0 is not initialized, assume we're not ready */
 	/* TODO: make this less hacky*/
