@@ -415,6 +415,15 @@ void post_process_players(void)
 		/* Try to execute any commands on the command queue. */
 		(void) process_player_commands(Ind);
 	}
+	/* Next loop flushes all potential update flags Players have set
+	 * for each other. */
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* Recalculate and schedule updates */
+		handle_stuff(Ind);
+	}
 }
 
 /* Infinite Loop */
