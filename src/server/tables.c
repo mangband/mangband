@@ -482,14 +482,14 @@ const stream_type streams[MAX_STREAMS] =
 	},
 	{	/* 7 */
 		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,
-		(0),
-		20, 80, 20, 80,	
+		(SF_HIDE | SF_MAXBUFFER),
+		20, 80, 255, 80,
 		0, "SPECIAL_MIXED"
 	},
 	{	/* 8 */
 		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
-		(0),
-		20, 80, 20, 80,
+		(SF_HIDE | SF_MAXBUFFER),
+		20, 80, 255, 80,
 		0, "SPECIAL_TEXT"
 	},
 	{	/* 9 */
@@ -504,6 +504,7 @@ const stream_type streams[MAX_STREAMS] =
 		20, 80, 22, 80,
 		0, "MONLIST_TEXT"
 	},
+#if 0
 	{	/* 11 */
 		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
 		 * "stream" concept. Here, it will only work because
@@ -518,7 +519,7 @@ const stream_type streams[MAX_STREAMS] =
 		255, 80, 255, 80,
 		0, "FILE_TEXT"
 	},
-
+#endif
 	/* Tail */
 	{	0	}
 };

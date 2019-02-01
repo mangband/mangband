@@ -1175,7 +1175,7 @@ int recv_stream(connection_type *ct) {
 	if (y & 0xFF00)	return 
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
 
-	if (y >= p_ptr->stream_hgt[id])
+	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
 	{
 		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
@@ -1212,8 +1212,8 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0,
-		y = 0;
+		x = 0, max_x = 0,
+		y = 0, max_y = 0;
 	byte	st, addr;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
@@ -1221,15 +1221,17 @@ int recv_stream_size(connection_type *ct) {
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
 
-	/* Fetch target "window" */	
+	/* Fetch target "window" */
 	addr = streams[stg].addr;
 
 	/* (Re)Allocate memory */
+	max_x = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_col : x;
+	max_y = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_row : y;
 	if (remote_info[addr])
 	{
 		KILL(remote_info[addr]);
 	}
-	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
+	C_MAKE(remote_info[addr], (max_y+1) * max_x, cave_view_type);
 	last_remote_line[addr] = -1;
 
 	/* Affect the whole group

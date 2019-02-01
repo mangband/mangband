@@ -436,6 +436,7 @@
 #define SF_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
 #define SF_KEEP_X	0x10	/* Stream respects window's X offset */
 #define SF_KEEP_Y	0x20	/* Stream respects window's Y offset */
+#define SF_MAXBUFFER	0x40	/* Be prepared to receive max_rows */
 #define SF_HIDE 	0x80	/* Hide stream subscription from UI */
 
 /*** Indicators ***/

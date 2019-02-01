@@ -420,6 +420,9 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
 
+	/* Paranoia -- respect row bounds */
+	if (as_y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER)) return -1;
+
 	/* Begin cq "transaction" */
 	start_pos = ct->wbuf.len;
 
