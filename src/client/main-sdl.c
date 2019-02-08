@@ -2615,7 +2615,7 @@ static void init_sound()
 
 	/* Desired audio parameters */
 	wav_desired.freq = 44100;
-	wav_desired.format = AUDIO_U16SYS;
+	wav_desired.format = 0; /* let OS pick //AUDIO_U16SYS;*/
 	wav_desired.channels = 2;
 	wav_desired.samples = 512;
 	wav_desired.callback = &wav_play;
@@ -2624,7 +2624,8 @@ static void init_sound()
 	/* Open the audio device */
 	if (SDL_OpenAudio(&wav_desired, &wav_obtained) != 0)
 	{
-		plog_fmt("Could not open audio: %s", SDL_GetError());
+		plog_fmt("Could no`t open audio: %s", SDL_GetError());
+		use_sound = FALSE;
 		return;
 	}
 
@@ -2837,6 +2838,7 @@ errr init_sdl(void)
 	/* Sound */
 #ifdef USE_SOUND
 	load_sound_prefs();
+	init_sound(); /* FIXME: cleanup_sound is not called from anywhere! */
 #endif
 
 	/* Init all 'Terminals' */
