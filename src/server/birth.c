@@ -891,12 +891,15 @@ static void player_outfit(player_type *p_ptr)
 	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
 
 	/*
-     * Give the DM some interesting stuff or all players if this is dev mode
+	 * Give the DM (or all players, if this is dev. mode) some interesting stuff
 	 */
 #ifndef DEBUG
 	if (!is_dm_p(p_ptr)) return;
 #endif
-	p_ptr->au = 10000000; 
+	/* Max recall depth */
+	p_ptr->max_dlv = (MAX_DEPTH - 1);
+	/* Lots of gold */
+	p_ptr->au = 10000000;
 	/* High Spell books */
 	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
 	{
