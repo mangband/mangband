@@ -300,5 +300,7 @@ void do_handle_message(cptr mesg, u16b type)
 		c_message_add(mesg, type);
 	}
 
+	if (use_sound) Term_xtra(TERM_XTRA_SOUND, type);
+
 }
 
