@@ -728,7 +728,7 @@ extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, cptr desc);
 extern int send_ghost(player_type *p_ptr);
 extern int send_inventory_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
-extern int send_indication(int Ind, byte id, ...);
+extern int send_indication(int Ind, int id, ...);
 extern int send_objflags(int Ind, int line);
 extern int send_party_info(int Ind);
 extern int send_message(int Ind, cptr msg, u16b typ);

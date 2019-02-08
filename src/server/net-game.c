@@ -252,10 +252,10 @@ int send_indicator_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_indication(int Ind, byte id, ...)
+int send_indication(int Ind, int id, ...)
 {
 	connection_type *ct = PConn[Ind];
-	const indicator_type *i_ptr = &indicators[id];
+	const indicator_type *i_ptr = &indicators[(byte)id];
 	int i = 0, n = 0;
 	int start_pos;
 
