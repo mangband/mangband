@@ -724,11 +724,11 @@ int send_message_repeat(int Ind, u16b typ)
 	return 1;
 }
 
-int send_sound(int Ind, int sound)
+int send_sound(int Ind, u16b sound)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound))
+	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_SOUND, sound))
 	{
 		client_withdraw(ct);
 	}

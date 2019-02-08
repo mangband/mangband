@@ -26,7 +26,7 @@
 	PACKET(PKT_CHANNEL,	"%ud%c%s",	recv_channel)
 	PACKET(PKT_MESSAGE,	"%s%d", 	recv_message)
 	PACKET(PKT_MESSAGE_REPEAT,"%d", 	recv_message_repeat)
-	PACKET(PKT_SOUND,	"%c",   	recv_sound)
+	PACKET(PKT_SOUND,	"%ud",   	recv_sound)
 	PACKET(PKT_GHOST,	"%d",   	recv_ghost)
 	PACKET(PKT_FLOOR,	"%c%c%d%c%c%s",   	recv_floor)
 	PACKET(PKT_INVEN,	"%c%c%ud%d%c%c%s",	recv_inven)

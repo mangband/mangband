@@ -1561,10 +1561,10 @@ int recv_message_repeat(connection_type *ct) {
 
 int recv_sound(connection_type *ct)
 {
-	char
-		sound;
+	u16b
+		sound = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c", &sound) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &sound) < 1) return 0;
 
 	/* Make a sound (if allowed) */
 	if (use_sound) Term_xtra(TERM_XTRA_SOUND, sound);
