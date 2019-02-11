@@ -686,8 +686,10 @@ void carry(int Ind, int pickup, int confirm)
 		sound(Ind, sound_msg);
 
 		/* Message */
-		msg_format(Ind, "You have found %ld gold pieces worth of %s.",
-		           (long)o_ptr->pval, o_name);
+		msg_format(Ind, "You have found %ld gold piece%s worth of %s.",
+		           (long)o_ptr->pval,
+		           (o_ptr->pval == 1 ? "" : "s"),
+		           o_name);
 
 		/* Collect the gold */
 		p_ptr->au += o_ptr->pval;
