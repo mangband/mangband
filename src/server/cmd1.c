@@ -1963,7 +1963,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		p_ptr->window |= (PW_OVERHEAD);
 
 		/* Hack -- quickly update the view, to reduce perceived lag */
-		update_stuff(Ind);
+
 		redraw_stuff(Ind);
 		window_stuff(Ind);
 
