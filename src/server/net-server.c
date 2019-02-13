@@ -363,7 +363,7 @@ void setup_network_server()
 {
 	/** Add timers **/
 	/* Dungeon Turn */
-	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps + 250), (callback)dungeon_tick);
+	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps), (callback)dungeon_tick);
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
