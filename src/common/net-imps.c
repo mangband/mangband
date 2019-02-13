@@ -576,8 +576,19 @@ void unblockfd(int fd) {
 
 /* Disable Nagle's algorithm (required for MAngband) */
 void denaglefd(int fd) {
-	char on = 1;
-	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );
+#ifdef WINDOWS
+       DWORD
+#else
+       int
+#endif
+       on = 1;
+       setsockopt( fd, IPPROTO_TCP, TCP_NODELAY,
+#ifdef WINDOWS
+       (const char*)
+#else
+       (const void*)
+#endif
+       &on, sizeof(on) );
 }
 
 /* Get local machine hostname */
