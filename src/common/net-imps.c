@@ -278,18 +278,19 @@ eptr handle_connections(eptr root) {
 			if (n > 0)
 			{
 				/* Got 'n' bytes */
-				if (cq_nwrite(&ct->rbuf, mesg, n))
-				{
-					n = ct->receive_cb(0, ct);
-
-					/* Error while handling input */
-					if (n < 0) ct->close = 1;
-				}
+				n = cq_nwrite(&ct->rbuf, mesg, n);
 				/* Error while filling buffer */
-				else ct->close = 1;
+				if (n <= 0) ct->close = 1;
 			}
 			/* Error while receiving */
 			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;
+		}
+		/* Handle input */
+		if (!ct->close && cq_len(&ct->rbuf))
+		{
+			n = ct->receive_cb(0, ct);
+			/* Error while handling input */
+			if (n < 0) ct->close = 1;
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))

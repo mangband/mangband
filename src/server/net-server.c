@@ -647,9 +647,9 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		conntype = connection_type_ok(conntype);
 	}
 
-	switch (conntype) 
+	switch (conntype)
 	{
-		case CONNTYPE_PLAYER: 
+		case CONNTYPE_PLAYER:
 
 			ct->receive_cb = client_login;
 			ct->close_cb = client_close;
@@ -675,7 +675,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 	}
 
-	cq_clear(&ct->rbuf);
+	/* cq_clear(&ct->rbuf); */
 	return okay;
 }
 int hub_close(int data1, data data2) {
