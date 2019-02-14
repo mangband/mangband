@@ -799,6 +799,9 @@ static int auto_retaliate(int Ind)
 	/* Check preventive inscription '^O' */ 
 	if (CPI(p_ptr, 'O')) return FALSE;
 
+	/* Check melee weapon inscription '!O' */
+	if (CGI(&(p_ptr->inventory[INVEN_WIELD]), 'O')) return FALSE;
+
 	/* How many possible targets around us? */
 	targets = 0;
 	for(i = 0; i < 8; i++)
