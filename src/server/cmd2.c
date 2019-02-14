@@ -3186,12 +3186,12 @@ void do_cmd_hold_or_stay(int Ind, int pickup)
 }
 
 /*
- * Hold still (usually pickup)
+ * Hold still (always pickup)
  */
 void do_cmd_hold(int Ind)
 {
-	/* Hold still (usually pickup) */
-	do_cmd_hold_or_stay(Ind, option_p(Players[Ind],ALWAYS_PICKUP));
+	/* Hold still (always pickup) */
+	do_cmd_hold_or_stay(Ind, TRUE);
 }
 
 /*
