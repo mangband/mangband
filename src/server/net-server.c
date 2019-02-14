@@ -661,6 +661,10 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 		case CONNTYPE_CONSOLE:
 		
+			/* evil hack -- chop trailing \n before reading password */
+			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
+				ct->rbuf.pos++;
+		
 			accept_console(-1, (data)ct);
 
 		break;
