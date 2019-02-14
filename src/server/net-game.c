@@ -833,7 +833,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 {
 	/* Hack -- remember position, and rewind to it upon failure */
 	int fail = 0;
-	int start_pos = p_ptr->cbuf.pos;
+	int start_len = p_ptr->cbuf.len;
 
 	/* Write header */
 	if (cq_printf(&p_ptr->cbuf, "%c", next_pkt) <= 0)
@@ -869,7 +869,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	if (fail)
 	{
 		/* Rewind, report lack of energy */
-		p_ptr->cbuf.pos = start_pos;
+		p_ptr->cbuf.len = start_len;
 		return 0;
 	}
 
