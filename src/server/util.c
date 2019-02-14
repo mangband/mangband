@@ -2102,14 +2102,21 @@ bool check_guard_inscription( s16b quark, char what ) {
 		switch( what ) { /* check for paraniod tags */
 		    case '{': /* no inscribe */
 		    case '}': /* no unscribe */
-		    case 'g': /* no pickup! */
+		    case 'g': case ',': /* no pickup! */
 			/* ^ Owner must override those */
+			/* Protect against loss: */
 		    case 'd': /* no drop */
 		    case 'k': /* no destroy */
 #if 0
 		    case 's': /* no sell */
 #endif
 		    case 'v': /* no thowing */
+		    case 'f': /* no firing */
+			/* Protect against consumption: */
+		    case 'q': /* no quaff */
+		    case 'E': /* no eat */
+		    case 'r': /* no read */
+		    case 'a': case 'z': case 'u': /* no magic devices */
 		      return TRUE;
 		};
             };  
