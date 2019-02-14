@@ -2828,7 +2828,7 @@ void player_death(int Ind)
 	}
 
 	/* Drop all items on floor */
-	player_strip(Ind, drop_items, drop_items, drop_items, drop_items);
+	player_strip(Ind, drop_items, drop_items, drop_items, FALSE);
 
 	/* Last chance to survive death: */
 	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
