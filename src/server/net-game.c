@@ -16,6 +16,7 @@
 
 static int		(*pcommands[256])(player_type *p_ptr);
 static byte		command_pkt[256];
+static byte		pkt_command[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
@@ -1663,16 +1664,7 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Find */
 	else
 	{
-		/* TODO: replace this with lookup table */
-		i = MAX_CUSTOM_COMMANDS + 1;
-		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
-		{
-			if (command_pkt[j] == (char)next_pkt)
-			{
-				i = j;
-				break;
-			}
-		}
+		i = pkt_command[(char)next_pkt];
 	}
 
 	/* Undefined */
@@ -1921,6 +1913,8 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;
 		pcommands[i] = NULL;
+		
+		pkt_command[i] = MAX_CUSTOM_COMMANDS + 1; /* invalid value */
 	}
 
 	/* Set default handlers */
@@ -1948,6 +1942,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		}
 		pcommands[pkt] = recv_custom_command;
 		command_pkt[i] = pkt;
+		pkt_command[pkt] = i;
 
 		receiv[pkt] = recv_command;
 		scheme[pkt] = custom_command_schemes[custom_commands[i].scheme];
