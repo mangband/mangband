@@ -1016,7 +1016,9 @@ static void process_player_end(int Ind)
 	if (fatal_err == -1) return;
 
 	/* Check for auto-retaliate */
-	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused && !p_ptr->afraid)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))/* - have spare energy */
+	   && !p_ptr->confused && !p_ptr->afraid            /* - not confused or afraid */
+	   && !p_ptr->run_request && !cq_len(&p_ptr->cbuf)) /* - no commands queued */
 	{
 		/* Check for nearby monsters and try to kill them */
 		/* If auto_retaliate returns nonzero than we attacked
