@@ -1022,6 +1022,7 @@ extern void msg_print_near(int Ind, cptr msg);
 extern void msg_format_near(int Ind, cptr fmt, ...);
 extern void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg);
 extern void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...);
+extern void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...);
 extern void player_talk(int Ind, char *msg);
 extern void channel_join(int Ind, cptr channel, bool quiet);
 extern void channel_leave(int Ind, cptr channel);

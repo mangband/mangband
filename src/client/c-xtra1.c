@@ -1904,14 +1904,20 @@ void fix_special_message(void)
 			if ( tab && tab != view_channel ) continue;
 			if ( tab ) msg = text;
 		}
-		else if (message_type(c-1) >= MSG_CHAT) 
+		else if (message_type(c-1) >= MSG_CHAT)
 		{
 			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
 		}
 		else if (message_type(c-1) == MSG_TALK)
 		{
-		 	/* hack -- "&say" */
+			/* hack -- "&say" */
 			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else if (message_type(c-1) == MSG_YELL)
+		{
+			/* hack -- "&yell" */
+			tab = find_whisper_tab("&yell", text);
 			if ( !tab || tab != view_channel ) continue;
 		}
 		else continue;
