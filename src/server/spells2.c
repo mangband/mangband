@@ -1483,19 +1483,30 @@ bool detect_objects_magic(int Ind)
 void give_detect(int Ind, int m_idx)
 {
 	player_type *p_ptr = Players[Ind];
+	int power, i;
+
+	/* The detection counter is expressed in "effect turns"
+	 * (each tick gives 1 poision damage) */
+	/* Note, that we should probably use caster level and not
+	 * victim level, but, oh well. */
+	power = 2 + ((p_ptr->lev + 2) / 5);
+
+	/* Also, let's scale down when spamming */
+	i = (m_idx < 0 ? p_ptr->play_det[0 - m_idx] : p_ptr->mon_det[m_idx]);
+	power = i ? 1 : power;
 
 	/* Players */
 	if (m_idx < 0)
 	{
 		m_idx = 0 - m_idx;
-		if (p_ptr->play_det[m_idx] < 255)
-			p_ptr->play_det[m_idx]++;
+		p_ptr->play_det[m_idx] = MIN(
+		    (int)p_ptr->play_det[m_idx] + power, 255);
 	}
 	/* Monsters */
 	else
 	{
-		if (p_ptr->mon_det[m_idx] < 255)
-			p_ptr->mon_det[m_idx]++;
+		p_ptr->mon_det[m_idx] = MIN(
+		    (int)p_ptr->mon_det[m_idx] + power, 255);
 	}
 }
 
@@ -1519,7 +1530,7 @@ bool detect_invisible(int Ind, bool pause)
 	if (y1 < 0) y1 = 0;
 	if (x1 < 0) x1 = 0;
 	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
-	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;
 	
 	
 	/* Detect all invisible monsters */
@@ -1535,9 +1546,6 @@ bool detect_invisible(int Ind, bool pause)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
@@ -1547,6 +1555,12 @@ bool detect_invisible(int Ind, bool pause)
 		/* Detect all invisible monsters */
 		if (r_ptr->flags2 & (RF2_INVISIBLE))
 		{
+			/* Increment detection counter */
+			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
 			/* Take note that they are invisible */
 			l_ptr->flags2 |= RF2_INVISIBLE;
 			
@@ -1554,34 +1568,40 @@ bool detect_invisible(int Ind, bool pause)
 			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
 				p_ptr->window |= PW_MONSTER;
 
-			/* Increment detection counter */
-			give_detect(Ind, i);
 			flag = TRUE;
 		}
 	}
 
 	/* Detect all invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
-		
+
+		/* Skip ourself */
+		if (i == Ind) continue;
+
+		/* Skip players not on this depth */
+		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
+
 		/* Only detect nearby players */
 		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
-
-		/* Skip visible players */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
 		/* Skip the dungeon master */
 		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
-		/* Detect all invisible players but not the dungeon master */
-		if (q_ptr->ghost) 
+		/* Detect all invisible players (except dungeon master) */
+		if (q_ptr->ghost)
 		{
 			/* Increment detection counter */
-			give_detect(Ind, 0 - i); 
+			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[0 - i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1665,6 +1685,8 @@ bool detect_evil(int Ind)
 
 			/* Increment detection counter */
 			give_detect(Ind, i);
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1728,9 +1750,6 @@ bool detect_creatures(int Ind, bool pause)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
@@ -1742,27 +1761,28 @@ bool detect_creatures(int Ind, bool pause)
 		{
 			/* Increment detection counter */
 			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
 			flag = TRUE;
 		}
 	}
 
 	/* Detect non-invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
 
-		/* Skip visible players */
-		if (p_ptr->play_vis[i]) continue;
+		/* Skip ourself */
+		if (i == Ind) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
-		/* Skip ourself */
-		if (i == Ind) continue;
-		
 		/* Only detect nearby players */
 		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
 		
@@ -1771,6 +1791,11 @@ bool detect_creatures(int Ind, bool pause)
 		{
 			/* Increment detection counter */
 			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1781,7 +1806,7 @@ bool detect_creatures(int Ind, bool pause)
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
-		/* Handle Window stuff */		
+		/* Handle Window stuff */
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */

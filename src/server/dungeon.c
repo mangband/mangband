@@ -1150,7 +1150,7 @@ static void process_player_end(int Ind)
 		/* Hack -- Fade monster Detect over time */
 		for (i = 0; i < m_max; i++)
 		{
-			if (p_ptr->mon_det[i]) 
+			if (p_ptr->mon_det[i])
 			{
 				if (--p_ptr->mon_det[i] == 0) 
 				{
