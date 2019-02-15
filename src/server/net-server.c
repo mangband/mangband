@@ -213,7 +213,7 @@ void player_abandon(player_type *p_ptr)
 	p_ptr->monster_race_idx = 0;
 
 	/* Disable message repeat */
-	p_ptr->msg_last_type = MSG_MAX;
+	p_ptr->msg_last_type = MSG_MAX_ANGBAND;
 
 	/* Forget about setup data */
 	for (i = 0; i < 6; i++)

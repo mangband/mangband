@@ -487,6 +487,13 @@ cptr angband_sound_name[MSG_MAX] =
 	"kill_king",
 	"drain_stat",
 	"multiply"
+	,"",
+	"player_talk",
+	"player_yell",
+	"player_social",
+	"player_spell",
+	"player_prayer",
+	"player_action",
 };
 
 
