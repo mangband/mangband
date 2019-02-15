@@ -1604,7 +1604,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	{
 		disturb(Ind, 0, 0);
 		return 1;
-	}	
+	}
 
 	/* Don't rest if we are poisoned or at max hit points and max spell points */ 
 	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) &&
@@ -1882,12 +1882,22 @@ int process_player_commands(int p_idx)
 	int start_pos = 0;
 
 	/* parse */
-	while (	cq_len(&p_ptr->cbuf) )
+	while ( cq_len(&p_ptr->cbuf) )
 	{
 		/* remember position */
 		start_pos = p_ptr->cbuf.pos;
-		/* read out and execute command */
+		/* read out command */
 		next_pkt = pkt = CQ_GET(&p_ptr->cbuf);
+		/* pre-execute hacks */
+		if (pkt_command[pkt] < MAX_CUSTOM_COMMANDS)
+		{
+			/* Disturb if resting */
+			if (custom_commands[pkt_command[pkt]].energy_cost && p_ptr->resting)
+			{
+				disturb(Get_Ind[p_ptr->conn], 0, 0);
+			}
+		}
+		/* execute command */
 		result = (*pcommands[pkt])(p_ptr);
 		/* not a "continuing success" */
 		if (result != 1) break;
