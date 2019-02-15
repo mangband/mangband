@@ -263,6 +263,12 @@
 #define MIN_TIME_SCALE	10
 #define RUNNING_FACTOR	500		/* Increase time by this percentage when running */
 #define NORMAL_TIME		100		/* 100% */
+/*
+ * When player is low on HP, divide time factor by CONSTANT_TIME_FACTOR.
+ * To enable varying health-based factor (e.g. 50% health = 50% time slowdown)
+ * undefine CONSTANT_TIME_FACTOR.
+ */
+#define CONSTANT_TIME_FACTOR	5	/* N times slower */
 
 
 /*

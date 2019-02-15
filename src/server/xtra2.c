@@ -5152,7 +5152,11 @@ int base_time_factor(int Ind, int slowest)
 
 	/* Scale depending on health if HP are low enough */
 	if(health <= p_ptr->hitpoint_warn * 10)
+#ifdef CONSTANT_TIME_FACTOR
+		timefactor = timefactor / CONSTANT_TIME_FACTOR;
+#else
 		timefactor = timefactor * ((float)health / 100);
+#endif
 
 	/* Resting speeds up time disregarding health time scaling */
 	if(p_ptr->resting) timefactor = MAX_TIME_SCALE;
