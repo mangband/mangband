@@ -17,6 +17,7 @@
 static int		(*pcommands[256])(player_type *p_ptr);
 static byte		command_pkt[256];
 static byte		pkt_command[256];
+static u16b		pcommand_energy_cost[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
@@ -1535,8 +1536,9 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 /* Those return
 	* -1 on critical error
 	*  0 when lack energy
-	*  1 or 2 on success
-	*  2 when all energy was drained (break loop)
+	*  1 on generic success
+	*  2 success + we're certain player has spent energy
+	*  3 success + all energy was drained (break loop)
 */
 static int recv_walk(player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
@@ -1586,7 +1588,7 @@ static int recv_walk(player_type *p_ptr) {
 		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
 		/* End turn */
-		return 2;
+		return 3;
 	}
 
 	/* Not enough energy */
@@ -1620,7 +1622,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 		do_cmd_toggle_rest(Ind);
 
 		/* End turn */
-		return 2;
+		return 3;
 	}
 	/* If we don't have enough energy to rest, disturb us (to stop
 	 * us from running) and queue the command.
@@ -1642,6 +1644,7 @@ static int recv_custom_command(player_type *p_ptr)
 		item;
 	byte i, j, tmp;
 	char entry[60];
+	u32b old_energy;
 
 	if (IS_PLAYING(p_ptr))
 	{
@@ -1756,6 +1759,8 @@ static int recv_custom_command(player_type *p_ptr)
 #undef S_SET
 #undef S_DONE
 
+	/* Remember how much energy player had */
+	old_energy = p_ptr->energy;
 
 	/* Call the callback ("execute command") */
 #define S_ARG (custom_commands[i].do_cmd_callback)
@@ -1795,6 +1800,13 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 #undef S_ARG
 #undef S_EXEC
+
+	/* Player has definitely spent energy */
+	if (p_ptr->energy < old_energy)
+	{
+		/* Report it */
+		return 2;
+	}
 
 	/* Done */
 	return 1;
@@ -1870,6 +1882,38 @@ int send_party_info(int Ind)
 	return 1;
 }
 
+
+/* This gets called before EVERY gameplay command. */
+void do_cmd__before(player_type *p_ptr, byte pkt)
+{
+	/* Assume non-custom commands have their own hacks */
+	if (pkt_command[pkt] >= MAX_CUSTOM_COMMANDS)
+	{
+		/* Do nothing */
+		return;
+	}
+	/* Command is going to cost energy -- disturb if resting */
+	if (pcommand_energy_cost[pkt] && p_ptr->resting)
+	{
+		disturb(Get_Ind[p_ptr->conn], 0, 0);
+	}
+}
+
+/* This gets called after every *EXECUTED* gameplay command.
+ * See "Gameplay commands" above for definition of "result".
+ */
+void do_cmd__after(player_type *p_ptr, byte pkt, int result)
+{
+	/* Some fatal error occured, we don't care */
+	if (result <= -1) return;
+
+	/* Paranoia -- player did not have enough energy to execute the command */
+	if (result == 0) return;
+
+	/* Add your hacks here... */
+}
+
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */
@@ -1889,23 +1933,18 @@ int process_player_commands(int p_idx)
 		/* read out command */
 		next_pkt = pkt = CQ_GET(&p_ptr->cbuf);
 		/* pre-execute hacks */
-		if (pkt_command[pkt] < MAX_CUSTOM_COMMANDS)
-		{
-			/* Disturb if resting */
-			if (custom_commands[pkt_command[pkt]].energy_cost && p_ptr->resting)
-			{
-				disturb(Get_Ind[p_ptr->conn], 0, 0);
-			}
-		}
+		do_cmd__before(p_ptr, pkt);
 		/* execute command */
 		result = (*pcommands[pkt])(p_ptr);
+		/* post-execute hacks */
+		if (result) do_cmd__after(p_ptr, pkt, result);
 		/* not a "continuing success" */
-		if (result != 1) break;
+		if (!(result >= 1 && result <= 2)) break;
 	}
 	/* not enough energy, step back */
 	if (result == 0) p_ptr->cbuf.pos = start_pos;
 	/* slide buffer to the left */
-	else if (result == 1) cq_slide(&p_ptr->cbuf);
+	else if (result >= 1) cq_slide(&p_ptr->cbuf);
 
 	/* ... */
 	return result;
@@ -1925,6 +1964,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		pcommands[i] = NULL;
 		
 		pkt_command[i] = MAX_CUSTOM_COMMANDS + 1; /* invalid value */
+		pcommand_energy_cost[i] = 1; /* an OK default */
 	}
 
 	/* Set default handlers */
@@ -1956,6 +1996,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 
 		receiv[pkt] = recv_command;
 		scheme[pkt] = custom_command_schemes[custom_commands[i].scheme];
+		pcommand_energy_cost[pkt] = custom_commands[i].energy_cost;
 	}
 	/* 'Count' commands */
 	serv_info.val3 = i;
