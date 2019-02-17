@@ -1090,6 +1090,7 @@ extern bool set_stun(int Ind, int v);
 extern bool set_cut(int Ind, int v);
 extern bool set_food(int Ind, int v);
 extern void set_recall(int Ind, object_type * o_ptr);
+extern bool set_noise(int Ind, int v);
 extern void check_experience(int Ind);
 extern void gain_exp(int Ind, s32b amount);
 extern void lose_exp(int Ind, s32b amount);

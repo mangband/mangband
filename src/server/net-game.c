@@ -1587,6 +1587,9 @@ static int recv_walk(player_type *p_ptr) {
 		/* Actually walk */
 		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+
 		/* End turn */
 		return 3;
 	}
@@ -1620,6 +1623,9 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	{
 		/* Start resting */
 		do_cmd_toggle_rest(Ind);
+
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 		/* End turn */
 		return 3;
@@ -1910,7 +1916,20 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 	/* Paranoia -- player did not have enough energy to execute the command */
 	if (result == 0) return;
 
-	/* Add your hacks here... */
+	/* Hack -- Add noise for commands that cost energy */
+	if (pcommand_energy_cost[pkt])
+	{
+		int halve = 1;
+		int v;
+		
+		/* If he did not spend any energy, only add half the noise */
+		if (result == 1)
+		{
+			halve = 2;
+		}
+		v = (30 - p_ptr->skill_stl) / pcommand_energy_cost[pkt] / halve;
+		set_noise(Get_Ind[p_ptr->conn], p_ptr->noise + v);
+	}
 }
 
 

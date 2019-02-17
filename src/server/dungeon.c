@@ -1333,6 +1333,12 @@ static void process_player_end(int Ind)
 		/* Finally, at the end of our turn, update certain counters. */
 		/*** Timeout Various Things ***/
 
+		/* Reduce noise levels */
+		if (p_ptr->noise)
+		{
+			(void)set_noise(Ind, p_ptr->noise - (p_ptr->skill_stl + 1));
+		}
+
 		/* Hack -- Hallucinating */
 		if (p_ptr->image)
 		{

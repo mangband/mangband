@@ -66,6 +66,22 @@ void player_dump(int Ind)
 }
 
 /*
+ * Set "p_ptr->noise", cap it.
+ */
+bool set_noise(int Ind, int v)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Hack -- Force good values */
+	v = (v > 60) ? 60 : (v < 0) ? 0 : v;
+
+	/* Use the value */
+	p_ptr->noise = v;
+
+	return TRUE;
+}
+
+/*
  * Set "p_ptr->blind", notice observable changes
  *
  * Note the use of "PU_UN_LITE" and "PU_UN_VIEW", which is needed to
