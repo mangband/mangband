@@ -1515,7 +1515,7 @@ struct player_type
 	bool icky_wield;	/* Icky weapon */
 
 	s16b cur_lite;		/* Radius of lite (if any) */
-
+	s16b noise;		/* Timed -- Noise level (for stealth checks) */
 
 	u32b notice;		/* Special Updates (bit flags) */
 	u32b update;		/* Pending Updates (bit flags) */
