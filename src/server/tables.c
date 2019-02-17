@@ -226,29 +226,29 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 
 	/*** Spell-casting ***/
 	{ /* Study spell */
-		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
 		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? "
 	},
 	/* NOTE: see, overload for priests, below */
 	{ /* Cast spell */
-		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
+		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_cast_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		TV_MAGIC_BOOK, "You cannot cast spells!\nCast from what book? \nSpells\nCast which spell? "
 	},
 	{ /* Use ghost power */
-		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_ghost_power_pre,
+		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 1, (cccb)do_cmd_ghost_power_pre,
 		(COMMAND_TEST_DEAD | COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_TARGET_ALLOW | 
 		 COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		(10), "You are not undead.\nPowers\nUse which power? "
 	},
 	{ /* Cast cleric spell */
-		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_pray_pre,
+		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_pray_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_TARGET_FRIEND | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
 		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? "
-	},	
+	},
 
 	/*** Knowledge query ***/
 	{ /* Help */
@@ -358,7 +358,7 @@ int study_cmd_id = -1; /* Set during init, to replace with: */
 /* A special version for priests: */
 custom_command_type priest_study_cmd =
 	{ /* Study spell */
-		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
 		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
 	};
