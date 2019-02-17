@@ -2927,8 +2927,8 @@ void prt_indicator(int first_row, int first_col, int id)
 					else if (!(flag & IN_TEXT_LABEL))
 					{
 						strnfmt(tmp2, sizeof(tmp2), tmp, val);
-						my_strcpy(tmp, tmp2, sizeof(tmp2));
-						//n = strlen(tmp);
+						my_strcpy(tmp, tmp2, sizeof(tmp));
+						n = strlen(tmp);
 					}
 					value = TRUE;
 				}
@@ -2941,6 +2941,9 @@ void prt_indicator(int first_row, int first_col, int id)
 
 				/* Send to terminal */
 				c_put_str(color, out, row, col);
+				/* Memorize if on main screen */
+				if (i_ptr->win & (IPW_1 | IPW_2)) mem_line(row, col, n);
+				/* Move "cursor" */
 				col = col + n;
 
 				/* Hack -- quit prematurely */

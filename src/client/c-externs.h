@@ -446,6 +446,7 @@ extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveclr(cave_view_type* dest, int len);
 extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern int cavestr(cave_view_type* dest, cptr src, byte attr, int max_col);
+extern void mem_line(int y, int x, int cols);
 extern void show_line(int y, s16b cols, bool mem);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
 extern void update_air(void);

@@ -1852,6 +1852,31 @@ void put_str(cptr str, int row, int col)
 }
 
 /*
+ * Memorize an already drawn line.
+ */
+void mem_line(int row, int col, int n)
+{
+	int i;
+	/* No ickyness */
+	if (!Term->mem) return;
+
+	/* Check row bounds */
+	if (row < 0) return;
+	if (row >= Term->hgt) return;
+
+	for (i = 0; i < n; i++)
+	{
+		if (col + i < 0) continue;
+		if (col + i >= Term->wid) break;
+		Term_mem_ch(col + i, row,
+			Term->scr->a[row][col+i],
+			Term->scr->c[row][col+i],
+			Term->scr->ta[row][col+i],
+			Term->scr->tc[row][col+i]);
+	}
+}
+
+/*
  * Verify something with the user
  *
  * The "prompt" should take the form "Query? "
