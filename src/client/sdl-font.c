@@ -64,6 +64,27 @@ static errr strtoii(const char *str, Uint32 *w, Uint32 *h) {
 	return 0;
 }
 
+/* Create a software, 8-bpp SDL Surface */
+SDL_Surface* SDL_Create8BITSurface(int w, int h)
+{
+	SDL_Color pal[2];
+	SDL_Surface *face;
+	face = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 8, 0, 0, 0, 0);
+	if (!face) return NULL;
+
+	/* Set monochrome palette */
+	pal[0].r = pal[0].g = pal[0].b = 0;
+	pal[1].r = pal[1].g = pal[1].b = 255;
+#if SDL_MAJOR_VERSION < 2
+	SDL_SetColors(face, pal, 0, 2);
+#else
+	pal[0].a = 0;
+	pal[1].a = 255;
+	SDL_SetPaletteColors(face->format->palette, pal, 0, 2);
+#endif
+	return face;
+}
+
 /*
  * bmpToFont
  * This assumes the file is already in the correct
@@ -509,6 +530,165 @@ SDL_Surface* load_HEX_font_sdl_(SDL_Rect *fd, cptr filename) {
 	return surface;
 }
 
+/*
+ * BDF font loader.
+ *
+ * NOTE: This function will crash hard on any kind of error.
+ * The air around it is charged with crash-inducing electricity.
+ */
+SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
+{
+	FILE *f;
+	SDL_Surface *face;
+	char buf[1024];
+	char line[1024];
+
+	int n, bitmap_mode = 0, bitmap_line = 0;
+	bool fony_error = FALSE;
+
+	int iw = 16;
+	int ih = 24;
+
+	int glyph_w, glyph_h;
+	int glyph_x, glyph_y;
+	int font_ox, font_oy;
+	int num_chars = 256;
+	int cols = 16;
+	int rows = 16;
+	int cx, cy;
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+
+	f = fopen(buf, "r");
+
+	if (!f)
+	{
+		plog(format("Couldn't open: %s", buf));
+		return NULL;
+	}
+
+	while (fgets(line, 1024, f) != NULL)
+	{
+		/* Chomp */
+		n = strlen(line);
+		if (n && line[n-1] == '\n') n--;
+		if (n && line[n-1] == '\r') n--;
+		line[n] = '\0';
+
+		/* "Parse" */
+		if (!strncasecmp(line, "ENDCHAR", 7)) {
+			bitmap_mode = 0;
+			continue;
+		}
+		else if (bitmap_mode) {
+			/* We get a string with hex, e.g. FF0C */
+			u32b b;
+			char hbuf[3] = { 0, 0, 0 };
+			int i, j, l = strlen(line) / 2; /* num bytes */
+			if (!face) {
+				fclose(f);
+				return NULL;
+			}
+			for (j = 0; j < l; j++) { /* for each byte */
+				/* Read hex string, 2 chars at a time */
+				hbuf[0] = line[(j*2) + 0];
+				hbuf[1] = line[(j*2) + 1];
+				b = (u32b)strtol(hbuf, NULL, 16);
+				for (i = 0; i < 8; i++) { /* for each bit */
+					int mask =  (1 << i);
+					int test = (b & mask);
+
+					int x = cx * iw + j*8 + (8-i) + (iw-glyph_w) - glyph_x + font_ox;
+					int y = cy * ih + bitmap_line + (ih-glyph_h) - glyph_y + font_oy;
+
+					((Uint8 *)face->pixels)[
+					  x + y * face->pitch] = test ? 1 : 0;
+
+					//printf("%c", mask ? 'X' : '.');
+				}
+			}
+			bitmap_line++;
+			//printf("\n");
+		}
+		else if (!strncasecmp(line, "STARTCHAR", 9)) {
+			int i = atoi(&line[10]);
+			cx = i % cols;
+			cy = i / cols;
+			glyph_w = 0;
+			glyph_h = 0;
+			glyph_x = 0;
+			glyph_y = 0;
+		}
+		else if (!strncasecmp(line, "BBX", 3)) {
+			char *sp;
+			char *t = strtok_r(line, " ", &sp);
+			char *_w = strtok_r(NULL, " ", &sp);
+			char *_h = strtok_r(NULL, " ", &sp);
+			char *_x = strtok_r(NULL, " ", &sp);
+			char *_y = strtok_r(NULL, " ", &sp);
+			glyph_w = atoi(_w);
+			glyph_h = atoi(_h);
+			glyph_x = atoi(_x);
+			glyph_y = atoi(_y);
+		}
+		else if (!strncasecmp(line, "BITMAP", 6)) {
+			bitmap_mode = 1;
+			bitmap_line = 0;
+		}
+		else if (!strncasecmp(line, "SIZE", 4)) {
+			ih = atoi(&line[5]);
+		}
+		else if (!strncasecmp(line, "FONTBOUNDINGBOX", 15)) {
+			char *sp;
+			char *t = strtok_r(line, " ", &sp);
+			char *_w = strtok_r(NULL, " ", &sp);
+			char *_h = strtok_r(NULL, " ", &sp);
+			char *_x = strtok_r(NULL, " ", &sp);
+			char *_y = strtok_r(NULL, " ", &sp);
+			int font_w = atoi(_w);
+			int font_h = atoi(_h);
+			font_ox = atoi(_x);
+			font_oy = atoi(_y);
+			iw = font_w;
+			font_oy = ih - font_h + font_oy;
+			font_ox = iw - font_w + font_ox;
+			if (fony_error) {
+				font_ox -= 1;
+				font_oy -= 1;
+			}
+		}
+		else if (!strncasecmp(line, "COMMENT Exported by Fony v1.4.7", 29)) {
+			fony_error = TRUE;
+		}
+		else if (!strncasecmp(line, "CHARS", 5)) {
+			num_chars = atoi(&line[6]);
+			rows = num_chars / cols;
+		}
+		else if (!strncasecmp(line, "ENDPROPERTIES", 13)) {
+			/* By this time, we should know our bounding box */
+			if (iw <= 0 || ih <= 0)
+			{
+				fclose(f);
+				return NULL;
+			}
+			face = SDL_Create8BITSurface(cols * iw, rows * ih);
+			if (!face)
+			{
+				fclose(f);
+				return NULL;
+			}
+		}
+	}
+
+	fclose(f);
+
+	fd->w = iw;
+	fd->h = ih;
+
+	return face;
+}
+
 
 errr sdl_font_init() 
 {
@@ -550,6 +730,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	enum {
 		FONT_BMP,
 		FONT_HEX,
+		FONT_BDF,
 		FONT_TTF,
 		FONT_FON,
 		FONT_FNT,
@@ -558,6 +739,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	char* typenames[] = {
 		".bmp",
 		".hex",
+		".bdf",
 		".ttf",
 		".fon",
 		".fnt",
@@ -581,6 +763,10 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	{
 		fonttype = FONT_HEX;
 	}
+	else if (!strcasecmp(ext, typenames[FONT_BDF]))
+	{
+		fonttype = FONT_BDF;
+	}
 	else if (!strcasecmp(ext, typenames[FONT_TTF]))
 	{
 		fonttype = FONT_TTF;
@@ -600,11 +786,16 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	SDL_Rect glyph_info;
 	SDL_Surface *surface;
 
-	switch (fonttype) 
+	switch (fonttype)
 	{
 		case FONT_HEX:
 			surface = load_HEX_font_sdl_(info, filename);
 		break;
+		case FONT_BDF:
+		#if !(defined(USE_SDL2_TTF) || defined(USE_SDL_TTF))
+			surface = load_BDF_font(info, filename);
+		break;
+		#endif
 		case FONT_FON:
 		case FONT_FNT:
 		/*
