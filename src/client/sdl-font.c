@@ -98,7 +98,8 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	int i;
 	char buf[1036];
 
-	// Get and open our BMP font from the xtra dir	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+	// Get and open our BMP font from the xtra dir
+	//path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 	font = SDL_LoadBMP(buf);
 	if (!font) {
 		plog_fmt("bmpToFont: %s", SDL_GetError());
@@ -164,7 +165,7 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
   int i;
   char buf[1036];
   //if (fd->w || fd->h) return 1; // Return if FontData is not clean
-  
+
   fd->w = fd->h = 0;
   // Get and open our TTF font from the xtra dir
   path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
@@ -449,7 +450,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 			} else if (i == 2*ih)
 			{
 				/* XXX do nothing? */
-			} else 
+			} else
 			{
 				/* XXX XXX XXX softer errors since HEX seems to actually permit
 				 * this situation
@@ -481,7 +482,7 @@ SDL_Surface* load_HEX_font_sdl_(SDL_Rect *fd, cptr filename) {
 	// which returns a 1x256 glyph table. Ideally, it should return
 	// 16x16 table by itself, but it doesn't, and I don't want to mess
 	// with it. So we re-arrange into proper table on a new surface
-	// after loading.  
+	// after loading.
 	font = load_HEX_font_sdl(fd, filename, 0);
 	
 	if (font == NULL)
@@ -718,7 +719,7 @@ errr sdl_font_quit()
 	free(ANGBAND_DIR_XTRA_GRAF);
 
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
-    TTF_Quit();
+	TTF_Quit();
 #endif
 
 	return 0;
