@@ -732,8 +732,10 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		FONT_HEX,
 		FONT_BDF,
 		FONT_TTF,
+		FONT_OTF,
 		FONT_FON,
 		FONT_FNT,
+		FONT_PCF,
 	} fonttype;
 	int fontdefault;
 	char* typenames[] = {
@@ -741,8 +743,10 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		".hex",
 		".bdf",
 		".ttf",
+		".otf",
 		".fon",
 		".fnt",
+		".pcf",
 	};
 
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
@@ -771,9 +775,21 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	{
 		fonttype = FONT_TTF;
 	}
+	else if (!strcasecmp(ext, typenames[FONT_OTF]))
+	{
+		fonttype = FONT_OTF;
+	}
 	else if (!strcasecmp(ext, typenames[FONT_FON]))
 	{
 		fonttype = FONT_FON;
+	}
+	else if (!strcasecmp(ext, typenames[FONT_FNT]))
+	{
+		fonttype = FONT_FNT;
+	}
+	else if (!strcasecmp(ext, typenames[FONT_PCF]))
+	{
+		fonttype = FONT_PCF;
 	}
 	else if (!strcasecmp(ext, typenames[FONT_BMP]))
 	{
@@ -796,6 +812,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 			surface = load_BDF_font(info, filename);
 		break;
 		#endif
+		case FONT_PCF:
 		case FONT_FON:
 		case FONT_FNT:
 		/*
@@ -806,6 +823,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		* //break;
 		*/
 		case FONT_TTF:
+		case FONT_OTF:
 		#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 			surface = ttfToFont(info, filename, fontsize, smoothing);
 		#else
