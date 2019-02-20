@@ -94,7 +94,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\..\..\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"

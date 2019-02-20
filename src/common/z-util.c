@@ -127,7 +127,7 @@ int ht_passed(hturn *new_ht, hturn *old_ht, huge passed)
 	temp.turn = new_ht->turn;
 	ht_subst_ht(&temp, old_ht);
 	ht_subst(&temp, passed);
-	return !((signed)temp.era >= 0);
+	return ((signed)temp.era >= 0);
 }
 
 /*

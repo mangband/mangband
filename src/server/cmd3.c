@@ -726,7 +726,7 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	p_ptr->au -= amt;
 
 	/* Message */
-	msg_format(Ind, "You drop %ld pieces of gold.", amt);
+	msg_format(Ind, "You drop %ld piece%s of gold.", amt, (amt==1?"":"s"));
 
 	/* Redraw gold */
 	p_ptr->redraw |= (PR_GOLD);

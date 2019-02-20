@@ -307,6 +307,12 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		}
 	}
 
+	/* Start with the listing ON */
+	if ((inven || equip) && auto_itemlist)
+	{
+		command_see = TRUE;
+	}
+
 	/* Hack -- start out in "display" mode */
 	if (command_see)
 	{

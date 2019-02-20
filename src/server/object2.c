@@ -4880,22 +4880,43 @@ void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 	}
 }
 
-void object_own(player_type *p_ptr, object_type *o_ptr)
+void object_audit(player_type *p_ptr, object_type *o_ptr, int number)
 {
 	if (o_ptr->owner_id && o_ptr->owner_id != p_ptr->id)
 	{
 		char o_name[80];
 		char buf[512];
+		/* Create the object copy (structure copy)
+		object_type temp_obj;
+		if (o_ptr->number != number)
+		{
+			object_copy(&temp_obj, o_ptr);
+			o_ptr = &temp_obj;
+			o_ptr->number = number;
+		}
+		*/ /* ^ - no need (yet), we cam just temp-adjust number */
+		int actual_number = o_ptr->number;
+		o_ptr->number = number;
+		
 		/* Log transaction */
-		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld", 
+		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld",
 			quark_str(o_ptr->owner_name), (long)o_ptr->owner_id,
-			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr));
+			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr) * number);
 		audit(buf);
 		/* Object name */
 		object_desc(0, o_name, o_ptr, TRUE, 3);
 		sprintf(buf,"TR+%s", o_name);
-		audit(buf); 
+		audit(buf);
+		
+		/* Restore real number */
+		o_ptr->number = actual_number;
 	}
+}
+
+void object_own(player_type *p_ptr, object_type *o_ptr)
+{
+	/* Log ownership change */
+	object_audit(p_ptr, o_ptr, o_ptr->number);
 
 	/* Handle artifacts */
 	if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
@@ -4903,9 +4924,9 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 		artifact_notify(p_ptr, o_ptr);
 	}
 
+	/* Set new owner */
 	o_ptr->owner_id = p_ptr->id;
 	o_ptr->owner_name = quark_add(p_ptr->name);
-		
 }
 
 /*

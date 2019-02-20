@@ -16,6 +16,8 @@
 
 static int		(*pcommands[256])(player_type *p_ptr);
 static byte		command_pkt[256];
+static byte		pkt_command[256];
+static u16b		pcommand_energy_cost[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
@@ -252,10 +254,10 @@ int send_indicator_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_indication(int Ind, byte id, ...)
+int send_indication(int Ind, int id, ...)
 {
 	connection_type *ct = PConn[Ind];
-	const indicator_type *i_ptr = &indicators[id];
+	const indicator_type *i_ptr = &indicators[(byte)id];
 	int i = 0, n = 0;
 	int start_pos;
 
@@ -419,6 +421,9 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
+
+	/* Paranoia -- respect row bounds */
+	if (as_y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER)) return -1;
 
 	/* Begin cq "transaction" */
 	start_pos = ct->wbuf.len;
@@ -721,11 +726,11 @@ int send_message_repeat(int Ind, u16b typ)
 	return 1;
 }
 
-int send_sound(int Ind, int sound)
+int send_sound(int Ind, u16b sound)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound))
+	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_SOUND, sound))
 	{
 		client_withdraw(ct);
 	}
@@ -829,7 +834,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 {
 	/* Hack -- remember position, and rewind to it upon failure */
 	int fail = 0;
-	int start_pos = p_ptr->cbuf.pos;
+	int start_len = p_ptr->cbuf.len;
 
 	/* Write header */
 	if (cq_printf(&p_ptr->cbuf, "%c", next_pkt) <= 0)
@@ -840,7 +845,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	/* Hack -- it's a "custom command" */
 	if (next_pkt == PKT_COMMAND)
 	{
-		/* custtom command 'id' is used in those, so we copy it first */
+		/* custom command 'id' is used in those, so we copy it first */
 		if (cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
 		{
 			/* Unable to... */
@@ -865,7 +870,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	if (fail)
 	{
 		/* Rewind, report lack of energy */
-		p_ptr->cbuf.pos = start_pos;
+		p_ptr->cbuf.len = start_len;
 		return 0;
 	}
 
@@ -1528,11 +1533,12 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 }
 
 /** Gameplay commands **/
-/* Those return 
+/* Those return
 	* -1 on critical error
 	*  0 when lack energy
-	*  1 or 2 on success
-	*  2 when all energy was drained (break loop)
+	*  1 on generic success
+	*  2 success + we're certain player has spent energy
+	*  3 success + all energy was drained (break loop)
 */
 static int recv_walk(player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
@@ -1555,7 +1561,14 @@ static int recv_walk(player_type *p_ptr) {
 	/* Note: there's another arguably more elegant way to do this:
 	 * replace last walk request in "recv_command" or similar,
 	 * the way older code did it */
-	if (cq_len(&p_ptr->cbuf) && (CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK)
+	/* Here we test to see if there are *TWO* more walk requests queued up
+	 * after the current one, and if so, we skip the current one. The reason
+	 * we test for 2 commands (and not just 1), is classic MAngband sometimes
+	 * allowed up to 2 walk requests to be executed consequently, so we emulate
+	 * that behavior. */
+	if ((cq_len(&p_ptr->cbuf) > 2)
+	&& ((CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK) /* next command */
+	&& ((CQ_PEEK(&p_ptr->cbuf))[2] == PKT_WALK)) /* and the one after it */
 	{
 		return 1;
 	}
@@ -1574,8 +1587,11 @@ static int recv_walk(player_type *p_ptr) {
 		/* Actually walk */
 		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+
 		/* End turn */
-		return 2;
+		return 3;
 	}
 
 	/* Not enough energy */
@@ -1593,7 +1609,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	{
 		disturb(Ind, 0, 0);
 		return 1;
-	}	
+	}
 
 	/* Don't rest if we are poisoned or at max hit points and max spell points */ 
 	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) &&
@@ -1608,8 +1624,11 @@ static int recv_toggle_rest(player_type *p_ptr) {
 		/* Start resting */
 		do_cmd_toggle_rest(Ind);
 
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+
 		/* End turn */
-		return 2;
+		return 3;
 	}
 	/* If we don't have enough energy to rest, disturb us (to stop
 	 * us from running) and queue the command.
@@ -1631,6 +1650,7 @@ static int recv_custom_command(player_type *p_ptr)
 		item;
 	byte i, j, tmp;
 	char entry[60];
+	u32b old_energy;
 
 	if (IS_PLAYING(p_ptr))
 	{
@@ -1638,7 +1658,6 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 	else
 	{
-		printf("Not playing\n");
 		return -1;
 	}
 
@@ -1654,16 +1673,7 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Find */
 	else
 	{
-		/* TODO: replace this with lookup table */
-		i = MAX_CUSTOM_COMMANDS + 1;
-		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
-		{
-			if (command_pkt[j] == (char)next_pkt)
-			{
-				i = j;
-				break;
-			}
-		}
+		i = pkt_command[(char)next_pkt];
 	}
 
 	/* Undefined */
@@ -1688,6 +1698,12 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Does it cost energy? */
 	if (custom_commands[i].energy_cost)
 	{
+		/* MAngband-specific: if we've JUST started running, pretend we don't have enough energy */
+		if ((custom_commands[i].pkt == PKT_RUN) && p_ptr->running && p_ptr->ran_tiles == 0)
+		{
+			/* Report as lack of energy */
+			return 0;
+		}
 		/* Not enough! ABORT! */
 		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
 		{
@@ -1749,6 +1765,8 @@ static int recv_custom_command(player_type *p_ptr)
 #undef S_SET
 #undef S_DONE
 
+	/* Remember how much energy player had */
+	old_energy = p_ptr->energy;
 
 	/* Call the callback ("execute command") */
 #define S_ARG (custom_commands[i].do_cmd_callback)
@@ -1788,6 +1806,13 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 #undef S_ARG
 #undef S_EXEC
+
+	/* Player has definitely spent energy */
+	if (p_ptr->energy < old_energy)
+	{
+		/* Report it */
+		return 2;
+	}
 
 	/* Done */
 	return 1;
@@ -1863,6 +1888,51 @@ int send_party_info(int Ind)
 	return 1;
 }
 
+
+/* This gets called before EVERY gameplay command. */
+void do_cmd__before(player_type *p_ptr, byte pkt)
+{
+	/* Assume non-custom commands have their own hacks */
+	if (pkt_command[pkt] >= MAX_CUSTOM_COMMANDS)
+	{
+		/* Do nothing */
+		return;
+	}
+	/* Command is going to cost energy -- disturb if resting */
+	if (pcommand_energy_cost[pkt] && p_ptr->resting)
+	{
+		disturb(Get_Ind[p_ptr->conn], 0, 0);
+	}
+}
+
+/* This gets called after every *EXECUTED* gameplay command.
+ * See "Gameplay commands" above for definition of "result".
+ */
+void do_cmd__after(player_type *p_ptr, byte pkt, int result)
+{
+	/* Some fatal error occured, we don't care */
+	if (result <= -1) return;
+
+	/* Paranoia -- player did not have enough energy to execute the command */
+	if (result == 0) return;
+
+	/* Hack -- Add noise for commands that cost energy */
+	if (pcommand_energy_cost[pkt])
+	{
+		int halve = 1;
+		int v;
+		
+		/* If he did not spend any energy, only add half the noise */
+		if (result == 1)
+		{
+			halve = 2;
+		}
+		v = (30 - p_ptr->skill_stl) / pcommand_energy_cost[pkt] / halve;
+		set_noise(Get_Ind[p_ptr->conn], p_ptr->noise + v);
+	}
+}
+
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */
@@ -1875,20 +1945,25 @@ int process_player_commands(int p_idx)
 	int start_pos = 0;
 
 	/* parse */
-	while (	cq_len(&p_ptr->cbuf) )
+	while ( cq_len(&p_ptr->cbuf) )
 	{
 		/* remember position */
 		start_pos = p_ptr->cbuf.pos;
-		/* read out and execute command */
+		/* read out command */
 		next_pkt = pkt = CQ_GET(&p_ptr->cbuf);
+		/* pre-execute hacks */
+		do_cmd__before(p_ptr, pkt);
+		/* execute command */
 		result = (*pcommands[pkt])(p_ptr);
+		/* post-execute hacks */
+		if (result) do_cmd__after(p_ptr, pkt, result);
 		/* not a "continuing success" */
-		if (result != 1) break;
+		if (!(result >= 1 && result <= 2)) break;
 	}
 	/* not enough energy, step back */
 	if (result == 0) p_ptr->cbuf.pos = start_pos;
 	/* slide buffer to the left */
-	else if (result == 1) cq_slide(&p_ptr->cbuf);
+	else if (result >= 1) cq_slide(&p_ptr->cbuf);
 
 	/* ... */
 	return result;
@@ -1906,6 +1981,9 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;
 		pcommands[i] = NULL;
+		
+		pkt_command[i] = MAX_CUSTOM_COMMANDS + 1; /* invalid value */
+		pcommand_energy_cost[i] = 1; /* an OK default */
 	}
 
 	/* Set default handlers */
@@ -1933,9 +2011,11 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		}
 		pcommands[pkt] = recv_custom_command;
 		command_pkt[i] = pkt;
+		pkt_command[pkt] = i;
 
 		receiv[pkt] = recv_command;
 		scheme[pkt] = custom_command_schemes[custom_commands[i].scheme];
+		pcommand_energy_cost[pkt] = custom_commands[i].energy_cost;
 	}
 	/* 'Count' commands */
 	serv_info.val3 = i;

@@ -2102,14 +2102,21 @@ bool check_guard_inscription( s16b quark, char what ) {
 		switch( what ) { /* check for paraniod tags */
 		    case '{': /* no inscribe */
 		    case '}': /* no unscribe */
-		    case 'g': /* no pickup! */
+		    case 'g': case ',': /* no pickup! */
 			/* ^ Owner must override those */
+			/* Protect against loss: */
 		    case 'd': /* no drop */
 		    case 'k': /* no destroy */
 #if 0
 		    case 's': /* no sell */
 #endif
 		    case 'v': /* no thowing */
+		    case 'f': /* no firing */
+			/* Protect against consumption: */
+		    case 'q': /* no quaff */
+		    case 'E': /* no eat */
+		    case 'r': /* no read */
+		    case 'a': case 'z': case 'u': /* no magic devices */
 		      return TRUE;
 		};
             };  
@@ -2577,8 +2584,74 @@ void msg_format_type(int Ind, u16b type, cptr fmt, ...)
 }
 
 
+
 /*
- * Display a message to everyone who is in sight on another player.
+ * Display a message to everyone who is on the same dungeon level.
+ *
+ * This serves two functions: a dungeon level-wide chat, and a way
+ * to attract attention of other nearby players.
+ */
+void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...)
+{
+	va_list vp;
+
+	player_type *p_ptr = Players[Ind];
+	int Depth, y, x, i;
+
+	char buf[1024];
+	char buf_vis[1024];
+	char buf_invis[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, sender);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+	(void)strnfmt(buf_vis, 1024, "%s %s", sender, buf);
+	(void)strnfmt(buf_invis, 1024, "%s %s", "Someone", buf);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Extract player's location */
+	Depth = p_ptr->dun_depth;
+	y = p_ptr->py;
+	x = p_ptr->px;
+
+	/* Check each player */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		/* Check this player */
+		p_ptr = Players[i];
+
+		/* Don't send the message to the player who caused it */
+		if (Ind == i) continue;
+
+		/* Don't send the message to the second ignoree */
+		if (Ind2 == i) continue;
+
+		/* Make sure this player is at this depth */
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Can he see this player? */
+		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		{
+			/* Send the message */
+			msg_print_aux(i, buf_vis, type);
+			/* Disturb player */
+			disturb(i, 0, 0);
+		}
+		else
+		{
+			/* Send "invisible" message (e.g. "Someone yells") */
+			msg_print_aux(i, buf_invis, type);
+		}
+	}
+}
+
+
+/*
+ * Display a message to everyone who is in sight of another player.
  *
  * This is mainly used to keep other players advised of actions done
  * by a player.  The message is not sent to the player who performed
@@ -2671,7 +2744,7 @@ void msg_format_near(int Ind, cptr fmt, ...)
  */
 
 #define VIRTUAL_CHANNELS 8
-cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", NULL };
+cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", "&yell", NULL };
 int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
@@ -3129,7 +3202,7 @@ void player_talk_aux(int Ind, cptr message)
 								/* fallthrough */
 							case '!':
 							case '.':
-								punct = msg[i]; 
+								punct = msg[i];
 								msg[i] = '\0';
 							default:
 								break;
@@ -3139,6 +3212,28 @@ void player_talk_aux(int Ind, cptr message)
 					/* Send somewhere */
 					msg_format_type(Ind, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
 					msg_format_complex_near(Ind, Ind, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
+				break;
+				case 2: /* "&yell" */
+					verb = "yell";
+					punct = '!';
+					for (i = strlen(msg) - 1; i > 0; i--)
+					{
+						switch (msg[i])
+						{
+							case ' ':
+								continue;
+							case '?':
+							case '!':
+							case '.':
+								msg[i] = '\0';
+							default:
+								break;
+						}
+						break;
+					}
+					/* Send somewhere */
+					msg_format_type(Ind, MSG_YELL, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_far(Ind, Ind, MSG_YELL, "%ss, \"%s\"%c", sender, verb, msg, punct);
 				break;
 			}
 			return;

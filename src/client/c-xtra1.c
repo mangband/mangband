@@ -1904,14 +1904,20 @@ void fix_special_message(void)
 			if ( tab && tab != view_channel ) continue;
 			if ( tab ) msg = text;
 		}
-		else if (message_type(c-1) >= MSG_CHAT) 
+		else if (message_type(c-1) >= MSG_CHAT)
 		{
 			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
 		}
 		else if (message_type(c-1) == MSG_TALK)
 		{
-		 	/* hack -- "&say" */
+			/* hack -- "&say" */
 			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else if (message_type(c-1) == MSG_YELL)
+		{
+			/* hack -- "&yell" */
+			tab = find_whisper_tab("&yell", text);
 			if ( !tab || tab != view_channel ) continue;
 		}
 		else continue;
@@ -2921,8 +2927,8 @@ void prt_indicator(int first_row, int first_col, int id)
 					else if (!(flag & IN_TEXT_LABEL))
 					{
 						strnfmt(tmp2, sizeof(tmp2), tmp, val);
-						my_strcpy(tmp, tmp2, sizeof(tmp2));
-						//n = strlen(tmp);
+						my_strcpy(tmp, tmp2, sizeof(tmp));
+						n = strlen(tmp);
 					}
 					value = TRUE;
 				}
@@ -2935,6 +2941,9 @@ void prt_indicator(int first_row, int first_col, int id)
 
 				/* Send to terminal */
 				c_put_str(color, out, row, col);
+				/* Memorize if on main screen */
+				if (i_ptr->win & (IPW_1 | IPW_2)) mem_line(row, col, n);
+				/* Move "cursor" */
 				col = col + n;
 
 				/* Hack -- quit prematurely */

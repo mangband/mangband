@@ -1398,8 +1398,8 @@ struct player_type
 	cave_view_type trn_info[MAX_HGT][MAX_WID];
 	cave_view_type info[MAX_TXT_INFO][MAX_WID];
 	cave_view_type file[MAX_TXT_INFO][MAX_WID];
-	s16b last_info_line;
-	s16b last_file_line;
+	s16b last_info_line; /* (number of lines - 1) */
+	s16b last_file_line; /* (number of lines - 1) */
 	byte remote_term;
 	u32b window_flag; /* What updates is he subscribed to? */
 
@@ -1433,6 +1433,7 @@ struct player_type
 	byte find_current;	/* These are used for the running code */
 	byte find_prevdir;
 	byte run_request;
+	byte ran_tiles;
 	bool find_openarea;
 	bool find_breakright;
 	bool find_breakleft;
@@ -1514,7 +1515,7 @@ struct player_type
 	bool icky_wield;	/* Icky weapon */
 
 	s16b cur_lite;		/* Radius of lite (if any) */
-
+	s16b noise;		/* Timed -- Noise level (for stealth checks) */
 
 	u32b notice;		/* Special Updates (bit flags) */
 	u32b update;		/* Pending Updates (bit flags) */
