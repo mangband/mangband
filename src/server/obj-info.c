@@ -72,18 +72,7 @@ static cptr act_description[ACT_MAX] =
  * a wand, staff, rod, or item. - Avenger */
 void describe_activation_chance(const object_type *o_ptr)
 {
-	int	chance, lev, maskIndex;
-	char *mask[10] = {
-		"almost no",
-		"a negligible",
-		"a very low",
-		"a low",
-		"a moderate",
-		"a good",
-		"a very good",
-		"an excellent",
-		"an almost certain",
-	};
+	int	chance, lev;
 	player_type *p_ptr = Players[player_textout];
 	u32b f1, f2, f3;
 
@@ -105,28 +94,33 @@ void describe_activation_chance(const object_type *o_ptr)
 		/* High level objects are harder */
 		chance = chance - ((lev > 50) ? 50 : lev);
 
-		/* Give everyone a (slight) chance */
-		if (chance < USE_DEVICE)
-		{
-			chance = USE_DEVICE;
-		}
-
 		/* Set the descriptive mask.
 		 *
 		 * Because activation failure has a constant minimum threshhold regardless of the value
 		 * of chance, this is not a strict percentage. Instead, I use a Fibonacci sequence to 
 		 * sort the masks into approximate tiers. */
-		if (chance <= USE_DEVICE) maskIndex = 0;
-		else if (chance < 5) maskIndex = 1;
-		else if (chance < 8) maskIndex = 2;
-		else if (chance < 13) maskIndex = 3;
-		else if (chance < 21) maskIndex = 4;
-		else if (chance < 34) maskIndex = 5;
-		else if (chance < 55) maskIndex = 6;
-		else if (chance < 89) maskIndex = 7;
-		else maskIndex = 8;
-
-		text_out(format("\n\n   You have %s chance to successfully use this item.", mask[maskIndex]));
+		if (chance < 1) /* Caps at 5% when chance is 0, approaches zero very quickly as chance drops below 0 */
+			text_out("\n\n   You have almost no chance to successfully use this item.");
+		else if (chance < USE_DEVICE) /* ~6 to 8% */
+			text_out("\n\n   You have a negligible chance to successfully use this item.");
+		else if (chance == USE_DEVICE) /* 25% */
+			text_out("\n\n   You have a very low chance to successfully use this item.");
+		else if (chance < 5) /* 40% */
+			text_out("\n\n   You have a low chance to successfully use this item.");
+		else if (chance < 8) /* 50 - 62.5% */
+			text_out("\n\n   You have a moderate chance to successfully use this item.");
+		else if (chance < 13) /* ~67 - 70% */
+			text_out("\n\n   You have a fair chance to successfully use this item.");
+		else if (chance < 21) /* ~78 - 85% */
+			text_out("\n\n   You have a good chance to successfully use this item.");
+		else if (chance < 34) /* ~86 - 91% */
+			text_out("\n\n   You have an very good chance to successfully use this item.");
+		else if (chance < 55) /* ~91 - 94% */
+			text_out("\n\n   You have a excellent chance to successfully use this item.");
+		else if (chance < 89) /* ~95 - 96% */
+			text_out("\n\n   You have a superb chance to successfully use this item.");
+		else /* > 96.667% */
+			text_out("\n\n   You have an almost certain chance to successfully use this item.");
 	}
 	return;
 }
@@ -977,7 +971,6 @@ static bool screen_out_head(const object_type *o_ptr)
 			has_description = TRUE;
 		}
 	}
-	/* We are done. */
 	return has_description;
 }
 
@@ -1009,7 +1002,7 @@ void object_info_screen(const object_type *o_ptr)
 	else if (!has_description && !has_info)
 		p_text_out("\n\n   This item does not seem to possess any special abilities.");
 	else
-		describe_activation_chance(o_ptr); //attempt to do this only if both identified and some description or info already exists - Avenger
+		describe_activation_chance(o_ptr);
 		
 	//text_out_c(TERM_L_BLUE, "\n\n[Press any key to continue]\n");
 
