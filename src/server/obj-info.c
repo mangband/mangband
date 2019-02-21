@@ -116,7 +116,7 @@ void describe_activation_chance(const object_type *o_ptr)
 		else if (chance < 34) /* ~86 - 91% */
 			text_out("\n\n   You have an very good chance to successfully use this item.");
 		else if (chance < 55) /* ~91 - 94% */
-			text_out("\n\n   You have a excellent chance to successfully use this item.");
+			text_out("\n\n   You have an excellent chance to successfully use this item.");
 		else if (chance < 89) /* ~95 - 96% */
 			text_out("\n\n   You have a superb chance to successfully use this item.");
 		else /* > 96.667% */
