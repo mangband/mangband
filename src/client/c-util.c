@@ -2608,12 +2608,15 @@ int cavedraw(cave_view_type* src, int len, s16b x, s16b y)
 	s16b dy = y + DUNGEON_OFFSET_Y;
 
 	/* Paranoia - bounds */
-	if (dx < 0 || dx >= Term->wid) return -1;
+	if (dx < 0) return -1;
 	if (dy < 0 || dy >= Term->hgt) return -1;
 
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
+		/* Paranoia - bounds */
+		if (dx + i >= Term->wid) return -1;
+
 		/* Don't draw on screen if character is 0 */
 		if (src[i].c)
 		{
