@@ -1942,7 +1942,8 @@ void show_peruse(s16b line)
 	}
 
 	/* Erase the rest */
-	for (n = n; n < Term->hgt; n++)
+	n--;
+	for (; n < Term->hgt; n++)
 	{
 		Term_erase(0, n, p_ptr->stream_wid[k]);
 	}
