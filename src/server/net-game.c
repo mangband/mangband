@@ -321,9 +321,10 @@ int send_stream_info(connection_type *ct, int id)
 	const stream_type *s_ptr = &streams[id];
 	if (!s_ptr->pkt) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%s%c%c%c%c", PKT_STREAM,
- 		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag, s_ptr->mark, 
- 		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%c%c" "%s%s" "%c%c%c%c", PKT_STREAM,
+		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag,
+		s_ptr->mark, s_ptr->window_desc,
+		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
 	{
 		/* Hack -- instead of "client_withdraw(ct);", we simply */
 		return 0;
@@ -1254,6 +1255,9 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 	{
 		/* Stop when we move to the next group */
 		if (streams[st].addr != addr) break;
+
+		/* SF_NEXT_GROUP also marks next group */
+		if (st > stg && (streams[st].flag & SF_NEXT_GROUP)) break;
 
 		/* Test bounds (if we're subscribing) */
 		if (y)

@@ -3245,6 +3245,11 @@ void verify_panel(int Ind)
 	if ((y < p_ptr->panel_row_min + 2) || (y > p_ptr->panel_row_max - 2))
 	{
 		prow = ((y - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
+		if (prow == p_ptr->panel_row) /* no change, let's try again */
+		{
+			if ((y < p_ptr->panel_row_min + 2)) prow--;
+			else prow++;
+		}
 		if (prow > p_ptr->max_panel_rows) prow = p_ptr->max_panel_rows;
 		else if (prow < 0) prow = 0;
 	}
@@ -3253,6 +3258,11 @@ void verify_panel(int Ind)
 	if ((x < p_ptr->panel_col_min + 4) || (x > p_ptr->panel_col_max - 4))
 	{
 		pcol = ((x - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
+		if (pcol == p_ptr->panel_col) /* no change, let's try again */
+		{
+			if ((x < p_ptr->panel_col_min + 4)) pcol--;
+			else pcol++;
+		}
 		if (pcol > p_ptr->max_panel_cols) pcol = p_ptr->max_panel_cols;
 		else if (pcol < 0) pcol = 0;
 	}

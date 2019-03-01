@@ -434,6 +434,8 @@
 #define SF_NONE 	0x00	/* No special flags */
 #define SF_TRANSPARENT	0x01	/* Stream has secondary layer */
 #define SF_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
+#define SF_NEXT_GROUP	0x04	/* Stream does not belong to previous group */
+#define SF_AUTO 	0x08	/* Stream is auto-subscribed to */
 #define SF_KEEP_X	0x10	/* Stream respects window's X offset */
 #define SF_KEEP_Y	0x20	/* Stream respects window's Y offset */
 #define SF_MAXBUFFER	0x40	/* Be prepared to receive max_rows */

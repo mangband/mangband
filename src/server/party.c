@@ -66,7 +66,7 @@ int party_create(int Ind, cptr name)
 	for (i = 1; i < MAX_PARTIES; i++)
 	{
 		/* Check deletion time of disbanded parties */
-		if (parties[i].num == 0 && ht_passed(&parties[i].created, &oldest, 0))
+		if (parties[i].num == 0 && ht_passed(&oldest, &parties[i].created, 0))
 		{
 			/* Track oldest */
 			oldest = parties[i].created;

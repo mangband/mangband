@@ -2608,12 +2608,15 @@ int cavedraw(cave_view_type* src, int len, s16b x, s16b y)
 	s16b dy = y + DUNGEON_OFFSET_Y;
 
 	/* Paranoia - bounds */
-	if (dx < 0 || dx >= Term->wid) return -1;
+	if (dx < 0) return -1;
 	if (dy < 0 || dy >= Term->hgt) return -1;
 
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
+		/* Paranoia - bounds */
+		if (dx + i >= Term->wid) return -1;
+
 		/* Don't draw on screen if character is 0 */
 		if (src[i].c)
 		{
@@ -2701,10 +2704,11 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 
 		Term_queue_char(Term, x, y, a, c, ta, tc);
 	}
+
 }
 
 /* Show (or don't) a line depending on screen ickyness */
-void show_line(int sy, s16b cols, bool mem)
+void show_line(int sy, s16b cols, bool mem, int st)
 {
 	s16b xoff, coff;
 	bool draw;
@@ -2735,11 +2739,11 @@ void show_line(int sy, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(stream_cave(0, sy), cols, 0, sy);
+		cavemem(stream_cave(st, sy), cols, 0, sy);
 
 	/* Put data to screen */
 	if (draw)
-		cavedraw(stream_cave(0, sy)+xoff, cols+coff, xoff, sy);
+		cavedraw(stream_cave(st, sy)+xoff, cols+coff, xoff, sy);
 }
 
 /*
@@ -3890,6 +3894,10 @@ static void do_cmd_options_win(void)
 			case 'T':
 			case 't':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Clear windows */
 				for (j = 0; j < 8; j++)
 				{
@@ -3914,6 +3922,10 @@ static void do_cmd_options_win(void)
 			case 'y':
 			case 'Y':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
@@ -3925,6 +3937,10 @@ static void do_cmd_options_win(void)
 			case 'n':
 			case 'N':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 

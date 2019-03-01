@@ -1681,7 +1681,8 @@ struct stream_type
 	byte max_col;
 
 	u32b window_flag;	/* "Window" flag */
-	cptr mark;      	/* Hack -- name */
+	cptr mark;      	/* Hack -- debug/internal name */
+	cptr window_desc;	/* Display name */
 };
 
 struct indicator_type

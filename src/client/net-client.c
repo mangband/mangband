@@ -1172,8 +1172,9 @@ int recv_stream(connection_type *ct) {
 	}
 
 	/* Hack -- single char */
-	if (y & 0xFF00)	return 
-		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+	if (y & 0xFF00) return
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
+		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
 
 	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
 	{
@@ -1202,9 +1203,9 @@ int recv_stream(connection_type *ct) {
 		(*line) = y;
 	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
 
-	/* Put data to screen ? */		
+	/* Put data to screen ? */
 	if (addr == NTERM_WIN_OVERHEAD)
-		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED), id);
 
 	return 1;
 }
@@ -1227,27 +1228,27 @@ int recv_stream_size(connection_type *ct) {
 	/* (Re)Allocate memory */
 	max_x = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_col : x;
 	max_y = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_row : y;
-	if (remote_info[addr])
+	if (remote_info[stg])
 	{
-		KILL(remote_info[addr]);
+		KILL(remote_info[stg]);
 	}
-	C_MAKE(remote_info[addr], (max_y+1) * max_x, cave_view_type);
-	last_remote_line[addr] = -1;
+	C_MAKE(remote_info[stg], (max_y+1) * max_x, cave_view_type);
+	last_remote_line[stg] = -1;
 
 	/* Affect the whole group
 	for (st = stg; st < known_streams; st++) */
 	/* HACK -- Affect all streams we can ! */
-	for (st = 0; st < known_streams; st++)
+	for (st = stg; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) /*break;*/ continue;
+		if (stream_group[st] != stg) continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
 		p_ptr->stream_hgt[st] = y;
 
 		/* Save pointer */
-		p_ptr->stream_cave[st] = remote_info[addr];
+		p_ptr->stream_cave[st] = remote_info[stg];
 	}
 
 	/* HACK - Dungeon display resize */
@@ -1278,13 +1279,16 @@ int recv_stream_info(connection_type *ct) {
 		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
+	char mark[MSG_LEN];
 
 	stream_type *s_ptr;
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c%s%c%c%c%c", &pkt, &addr, &rle, &flag, buf, 
-			&min_row, &min_col, &max_row, &max_col) < 9) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+			&pkt, &addr, &rle, &flag,
+			mark, buf,
+			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
 
 	/* Check for errors */
 	if (known_streams >= MAX_STREAMS)
@@ -1311,9 +1315,12 @@ int recv_stream_info(connection_type *ct) {
 	s_ptr->max_row = max_row;
 	s_ptr->max_col = max_col;
 
+	s_ptr->mark = string_make(mark);
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = string_make(buf);
+		s_ptr->window_desc = string_make(buf);
+	} else {
+		s_ptr->window_desc = s_ptr->mark;
 	}
 
 
@@ -2100,13 +2107,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(ang_term[j]);
 
 		/* Determine stream groups affected by this window */
-		for (k = 0; k < stream_groups; k++) 
+		for (k = 0; k < known_streams; k++)
 		{
-			byte st = stream_group[k];
+			byte st = k;
 			stream_type* st_ptr = &streams[st];
 
-			/* Hack -- if stream is hidden from UI, don't touch it */
-			if (st_ptr->flag & SF_HIDE) continue;
+			/* Hack -- if stream is auto-managed, don't touch it */
+			if (st_ptr->flag & SF_AUTO) continue;
 
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)
@@ -2146,13 +2153,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(old);
 	}
 
-	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
-	for (k = 0; k < stream_groups; k++)
+	/* Hack -- if stream is auto-managed, auto-subscribe. */
+	for (k = 0; k < known_streams; k++)
 	{
-		byte st = stream_group[k];
+		byte st = k;
 		stream_type* st_ptr = &streams[st];
 
-		if ((st_y[st] == -1) && (st_ptr->flag & SF_HIDE))
+		if ((st_y[st] == -1) && (st_ptr->flag & SF_AUTO))
 		{
 			st_x[st] = st_ptr->min_col;
 			st_y[st] = st_ptr->min_row;

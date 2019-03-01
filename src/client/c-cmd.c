@@ -1104,13 +1104,17 @@ void cmd_message(void)
 	//[flm] powerhack to prevent next hack:
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
-	refocus_chat = TRUE;
+#ifdef PMSG_TERM
+	refocus_chat = ang_term[PMSG_TERM] ? TRUE : FALSE;
 #endif
-# define PMSG_TERM 4
+#endif
 	// [hack] hack to just change the window focus in WIN32 client
-	if (refocus_chat && ang_term[PMSG_TERM]) {
+	if (refocus_chat)
+	{
 		set_chat_focus();
-	} else {
+	}
+	else
+	{
 		char buf[60];
 
 		buf[0] = '\0';
