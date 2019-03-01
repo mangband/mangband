@@ -22,6 +22,9 @@ CLIENT_LDFLAGS=""
 SERVER_CFLAGS=""
 SERVER_LDFLAGS=""
 
+# Evil Hack -- Extra framework param for OSX/SDL2
+CLIENT_LDFLAG_SDL2=""
+
 # Evil Hack -- Check for presence of Windres
 AM_CONDITIONAL(HAVE_WINDRES, which windres > /dev/null)
 
@@ -33,6 +36,7 @@ case "${host_os}" in
 	darwin*)
 	ON_OSX="yes"
 	LIBS="$LIBS -L/usr/X11R6/lib"
+	CLIENT_LDFLAG_SDL2="-framework Cocoa"
 	;;
 	freebsd*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
@@ -196,7 +200,7 @@ fi
 if test "x$enabled_sdl2" = xyes
 then
     CLIENT_CFLAGS="$CLIENT_CFLAGS -DUSE_SDL2 `sdl2-config --cflags`"
-    CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl2-config --libs` -lm"
+    CLIENT_LDFLAGS="$CLIENT_LDFLAGS `sdl2-config --libs` -lm $CLIENT_LDFLAG_SDL2"
     DISPMOD="$DISPMOD SDL2"
 fi
 #SDL_image
