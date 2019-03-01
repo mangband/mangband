@@ -2704,10 +2704,11 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 
 		Term_queue_char(Term, x, y, a, c, ta, tc);
 	}
+
 }
 
 /* Show (or don't) a line depending on screen ickyness */
-void show_line(int sy, s16b cols, bool mem)
+void show_line(int sy, s16b cols, bool mem, int st)
 {
 	s16b xoff, coff;
 	bool draw;
@@ -2738,11 +2739,11 @@ void show_line(int sy, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(stream_cave(0, sy), cols, 0, sy);
+		cavemem(stream_cave(st, sy), cols, 0, sy);
 
 	/* Put data to screen */
 	if (draw)
-		cavedraw(stream_cave(0, sy)+xoff, cols+coff, xoff, sy);
+		cavedraw(stream_cave(st, sy)+xoff, cols+coff, xoff, sy);
 }
 
 /*

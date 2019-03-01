@@ -1202,9 +1202,9 @@ int recv_stream(connection_type *ct) {
 		(*line) = y;
 	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
 
-	/* Put data to screen ? */		
+	/* Put data to screen ? */
 	if (addr == NTERM_WIN_OVERHEAD)
-		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED), id);
 
 	return 1;
 }
