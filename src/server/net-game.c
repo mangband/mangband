@@ -1255,6 +1255,9 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		/* Stop when we move to the next group */
 		if (streams[st].addr != addr) break;
 
+		/* SF_NEXT_GROUP also marks next group */
+		if (st > stg && (streams[st].flag & SF_NEXT_GROUP)) break;
+
 		/* Test bounds (if we're subscribing) */
 		if (y)
 		{

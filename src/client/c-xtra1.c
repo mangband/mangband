@@ -3118,7 +3118,7 @@ void window_stuff(void)
 	}
 #endif
 	/* Display server-defined stream */
-	for (i = 0; i < stream_groups; i++) 
+	for (i = 0; i < known_streams; i++)
 	{
 		/* Use classic code: */
 		if (p_ptr->window & (streams[stream_group[i]].window_flag))

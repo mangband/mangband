@@ -1227,27 +1227,27 @@ int recv_stream_size(connection_type *ct) {
 	/* (Re)Allocate memory */
 	max_x = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_col : x;
 	max_y = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_row : y;
-	if (remote_info[addr])
+	if (remote_info[stg])
 	{
-		KILL(remote_info[addr]);
+		KILL(remote_info[stg]);
 	}
-	C_MAKE(remote_info[addr], (max_y+1) * max_x, cave_view_type);
-	last_remote_line[addr] = -1;
+	C_MAKE(remote_info[stg], (max_y+1) * max_x, cave_view_type);
+	last_remote_line[stg] = -1;
 
 	/* Affect the whole group
 	for (st = stg; st < known_streams; st++) */
 	/* HACK -- Affect all streams we can ! */
-	for (st = 0; st < known_streams; st++)
+	for (st = stg; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) /*break;*/ continue;
+		if (stream_group[st] != stg) continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
 		p_ptr->stream_hgt[st] = y;
 
 		/* Save pointer */
-		p_ptr->stream_cave[st] = remote_info[addr];
+		p_ptr->stream_cave[st] = remote_info[stg];
 	}
 
 	/* HACK - Dungeon display resize */
@@ -2100,13 +2100,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(ang_term[j]);
 
 		/* Determine stream groups affected by this window */
-		for (k = 0; k < stream_groups; k++) 
+		for (k = 0; k < known_streams; k++)
 		{
-			byte st = stream_group[k];
+			byte st = k;
 			stream_type* st_ptr = &streams[st];
 
-			/* Hack -- if stream is hidden from UI, don't touch it */
-			if (st_ptr->flag & SF_HIDE) continue;
+			/* Hack -- if stream is auto-managed, don't touch it */
+			if (st_ptr->flag & SF_AUTO) continue;
 
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)
@@ -2146,13 +2146,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(old);
 	}
 
-	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
-	for (k = 0; k < stream_groups; k++)
+	/* Hack -- if stream is auto-managed, auto-subscribe. */
+	for (k = 0; k < known_streams; k++)
 	{
-		byte st = stream_group[k];
+		byte st = k;
 		stream_type* st_ptr = &streams[st];
 
-		if ((st_y[st] == -1) && (st_ptr->flag & SF_HIDE))
+		if ((st_y[st] == -1) && (st_ptr->flag & SF_AUTO))
 		{
 			st_x[st] = st_ptr->min_col;
 			st_y[st] = st_ptr->min_row;
