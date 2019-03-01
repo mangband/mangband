@@ -1688,16 +1688,8 @@ void display_map(int Ind, bool quiet)
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map size */
-	map_hgt = p_ptr->screen_hgt - 2;
-	map_wid = p_ptr->screen_wid - 2;
-	
-	/* Hack -- classic mini-map */
-	//TODO: handle client term size !
-	if (quiet)
-	{ 
-		map_hgt = 24 - 2;
-		map_wid = 80 - 2;
-	}
+	map_wid = p_ptr->stream_wid[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
 
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
@@ -1854,9 +1846,9 @@ void wild_display_map(int Ind)
 	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = p_ptr->screen_hgt - 2;
-	map_wid = p_ptr->screen_wid - 2;
-	
+	map_wid = p_ptr->stream_wid[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
