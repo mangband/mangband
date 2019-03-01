@@ -2,7 +2,7 @@
 #define __NET_BASICS_H_
 
 #define PD_SMALL_BUFFER 	1024 * 4
-#define PD_LARGE_BUFFER 	1024 * 16
+#define PD_LARGE_BUFFER 	1024 * 32
 #define MATH_MAX(A,B) (A > B ? A : B)
 
 /** Defenitions **/
