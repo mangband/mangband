@@ -99,7 +99,7 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	char buf[1036];
 
 	// Get and open our BMP font from the xtra dir
-	//path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 	font = SDL_LoadBMP(buf);
 	if (!font) {
 		plog_fmt("bmpToFont: %s", SDL_GetError());
