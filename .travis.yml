@@ -1,6 +1,7 @@
 language: c
 
 os:
+  - linux
   - osx
 
 compiler:
@@ -47,9 +48,9 @@ addons:
   homebrew:
     packages:
     - sdl
-    - sdl-ttf
+    - sdl_ttf
     - sdl2
-    - sdl2-ttf
+    - sdl2_ttf
     update: false
   coverity_scan:
     project:
