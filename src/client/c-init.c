@@ -483,6 +483,11 @@ void init_subscriptions()
 	stream_type* st_ptr;
 	int group_top = 0;
 
+#ifdef PMSG_TERM
+	/* Force PW_MESSAGE_CHAT on Term-4 */
+	window_flag[PMSG_TERM] = PW_MESSAGE_CHAT;
+#endif
+
 	/* Fill stream_groups, window_to_stream, stream_to, stream_desc, etc */
 #if 1
 	for (i = 0; i < known_streams; i++)

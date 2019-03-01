@@ -28,6 +28,15 @@
 #define CLIENT_VERSION ( CLIENT_VERSION_MAJOR << 12 | CLIENT_VERSION_MINOR << 8 \
   | CLIENT_VERSION_PATCH << 4 | CLIENT_VERSION_EXTRA)
 
+
+/*
+ * PMSG_TERM hack. This is used on Windows client to force Term-4
+ * into chat mode (and forbid any other terms from using it).
+ */
+#ifdef USE_WIN
+#define PMSG_TERM 4
+#endif
+
 /*
  * Maximum number of macro trigger names
  */

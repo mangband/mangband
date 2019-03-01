@@ -2047,7 +2047,7 @@ void term_close(int i)
 	/* Unlink */
 	ang_term[i] = NULL;
 }
-#define PMSG_TERM 4
+
 void term_open(int j)
 {
 	if (j == -1) return;
@@ -2071,7 +2071,7 @@ void term_open(int j)
 
 	term_redraw(j);
 	p_ptr->window |= window_flag[j];
-	if (j == PMSG_TERM) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
+	if (window_flag[j] & PW_MESSAGE_CHAT) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
 	window_stuff();
 }
 bool term_spawn()

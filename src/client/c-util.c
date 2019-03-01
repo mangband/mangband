@@ -3894,6 +3894,10 @@ static void do_cmd_options_win(void)
 			case 'T':
 			case 't':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Clear windows */
 				for (j = 0; j < 8; j++)
 				{
@@ -3918,6 +3922,10 @@ static void do_cmd_options_win(void)
 			case 'y':
 			case 'Y':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
@@ -3929,6 +3937,10 @@ static void do_cmd_options_win(void)
 			case 'n':
 			case 'N':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 

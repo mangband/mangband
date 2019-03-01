@@ -1239,6 +1239,11 @@ errr process_pref_file_command(char *buf)
 			if ((win >= ANGBAND_TERM_MAX)) return (0);
 			/* Hack -- Ignore the main window (but let STATUS and COMPACT be) */
 			if ((win <= 0) && ((1L << flag) != PW_STATUS) && ((1L << flag) != PW_PLAYER_2)) return (0);
+#ifdef PMSG_TERM
+			/* Hack -- Ignore Term-4/PW_MESSGAE_CHAT settings */
+			if (flag == PW_MESSAGE_CHAT && win != PMSG_TERM) flag = 0;
+			if (win == PMSG_TERM) flag = PW_MESSAGE_CHAT;
+#endif
 
 			/* Ignore illegal flags */
 			if ((flag < 0) || (flag >= 32)) return (0);

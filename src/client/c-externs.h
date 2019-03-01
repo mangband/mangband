@@ -477,6 +477,7 @@ extern int get_store_stock(int *citem, cptr prompt);
 extern int register_indicator(int id);
 extern void show_inven(void);
 extern void show_equip(void);
+extern byte find_chat_window(void);
 extern void fix_message(void);
 extern void display_player(int screen_mode);
 extern void redraw_stuff(void);
