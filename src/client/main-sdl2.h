@@ -32,13 +32,8 @@ typedef struct TermData TermData;
 #define TERM_MAX 8
 extern char *term_title[TERM_MAX];
 
-#define FONT_SMALL 0
-#define FONT_NORMAL 1
-
-#define PICT_SMALL 0
-#define PICT_NORMAL 1
 // MMM BEGIN: our "special" SDL2 menu system, take note it can be removed fairly easily!
-extern int menu_mode;
+extern int menu_mode, menu_term;
 extern int menu_x, menu_y;
 #define MENU_HIDE 0
 #define MENU_MAIN 1
@@ -47,7 +42,7 @@ extern int menu_x, menu_y;
 #define MENU_BINDS 4
 extern char *menu_strings[12];
 errr renderMenu(TermData *td);
-errr handleMenu(int x, int y);
+errr handleMenu(int i, int x, int y);
 // MMM END
 /* */
 extern errr init_sdl2(int argc, char **argv);
@@ -57,7 +52,7 @@ static errr xtraTermHook(int n, int v);
 static errr cursTermHook(int x, int y);
 static errr wipeTermHook(int x, int y, int n);
 static errr textTermHook(int x, int y, int n, byte attr, cptr s);
-static errr pictTermHook(int x, int y, byte attr, char ch);
+static errr pictTermHook(int x, int y, int n, const byte *ap, const char *ch, const byte *tap, const char *tcp);
 static void initTermHook(term *t);
 static void nukeTermHook(term *t);
 /* declarations */
@@ -65,21 +60,20 @@ struct FontData {
   char *filename;       // The filename of this font
   SDL_Surface *surface; // surface of all glyphs
   Uint8 w, h;           // dimensions of character
-  Uint8 dw, dh;         // ???
 };
 struct PictData {
   char *filename;       // The filename of this pict
   SDL_Surface *surface; // surface of sprites
   Uint8 w, h;           // dimensions of each sprite
 };
-#define TERM_LOCK_CELLS (1 << 0)   // Do not allow the terminal's rows/cols to be resized
-#define TERM_LOCK_RATIO (1 << 1)   // Force resizes to maintain original ratio of width/height
-#define TERM_LOCK_SIZE (1 << 2)	   // Do not allow the window to be resized
-#define TERM_DO_SCALE (1 << 3)     // Scale the renderer
-#define TERM_DO_STRETCH (1 << 4)   //
-#define TERM_IS_ONLINE (1 << 5)    // Term is online
-#define TERM_IS_VIRTUAL (1 << 6)   // Term is virtual and uses term[TERM_MAIN]'s window/renderer
-#define TERM_IS_HIDDEN (1 << 7)    // Whether or not the term should be shown or not
+#define TERM_LOCK_CELLS  (1 << 0)  // Do not allow the terminal's rows/cols to be resized
+#define TERM_LOCK_RATIO  (1 << 1)  // Force resizes to maintain original ratio of width/height
+#define TERM_LOCK_SIZE   (1 << 2)  // Do not allow the window to be resized
+#define TERM_DO_SCALE    (1 << 3)  // Scale the renderer
+#define TERM_DO_STRETCH  (1 << 4)  //
+#define TERM_IS_ONLINE   (1 << 5)  // Term is online
+#define TERM_IS_VIRTUAL  (1 << 6)  // Term is virtual and uses term[TERM_MAIN]'s window/renderer
+#define TERM_IS_HIDDEN   (1 << 7)  // Whether or not the term should be shown or not
 #define TERM_FONT_SMOOTH (1 << 8)  // whether to use font smoothing
 // font/pict display modes
 #define TERM_CELL_FONT 0      // Cell sizings are based on font sizes
@@ -103,8 +97,23 @@ struct TermData {
   Uint8 char_mode;            // See TERM_CHAR_*
 
   SDL_Rect ren_rect;          // The term's x/y positions and w/h dimensions for rendering
+  SDL_Rect win_rect;          // Store window size (UNUSED!!!)
   int x, y;                   // The term's x/y position
   int width, height;          // The term's width and height
+  int fb_w, fb_h;             // Framebuffer w/h
+  SDL_Rect dng_rect;          // Dungeon rect (ALT MODE)
+  int alt_fb_w, alt_fb_h;     // Alt.Framebuffer w/h (ALT MODE)
+  u16b dng_cols, dng_rows;    // Dungeon size (ALT MODE)
+
+  int zoom;                   // Amount of zooming / 100
+
+  SDL_Rect menu_rect;
+  SDL_Rect grip_rect;
+  SDL_Rect resize_rect;       // Resize rect
+  int need_render;            // If this term needs re-render (GUI)
+  int win_need_render;        // If this window needs re-render (and all VIRTUAL terms)
+  int need_redraw;            // Framebuffer was lost, need to ask Term_draw() to do it all over
+  int need_cutout;            // Need to perform special dungeon cutout (ALT MODE)
 
   Uint32 window_id;           // SDL window id acquired from SDL_GetWindowID(window)
 
@@ -122,6 +131,7 @@ struct TermData {
   char font_file[128];        // Filename of the font
   int font_size;              // Size of the font
   char pict_file[128];        // Filename of the pict
+  char mask_file[128];        // Filename of the pict
 
   FontData *font_data;        // The term's font data
   PictData *pict_data;        // The term's pict data
@@ -134,6 +144,7 @@ static errr applyTermConf(TermData *td);
 static errr setTermCells(TermData *td, int w, int h);
 static errr setTermTitle(TermData *td);
 static errr refreshTerm(TermData *td);
+static void refreshTermAlt(TermData *td);
 static errr resizeTerm(TermData *td, int rows, int cols);
 errr loadConfig();
 errr parseConfig(cptr section, cptr key, cptr value);
@@ -146,12 +157,21 @@ errr loadPict(TermData *td, cptr filename);
 errr unloadPict(TermData *td);
 errr attachPict(PictData *pd, TermData *td);
 errr detachPict(TermData *td);
-#ifdef USE_SDL2_TTF
-errr ttfToFont(FontData *fd, cptr filename, int fontsize, int smoothing);
-#endif
+errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing);
 errr cleanFontData(FontData *fd);
 
-errr imgToPict(PictData *pd, cptr filename);
+errr imgToPict(PictData *pd, cptr filename, cptr maskname);
 errr cleanPictData(PictData *pd);
 //
 errr strtoii(const char *str, Uint32 *w, Uint32 *h);
+
+/* GUI */
+static void renderTerm(TermData *td);
+static errr renderGui(TermData *td);
+static errr sysText(TermData *td, int x, int y, int n, byte attr, cptr s);
+static int termShuffle(int i);
+
+/* ALT.DUNGEON */
+static void wipeTermCell_UI(int x, int y, int cutout);
+static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s, int test);
+static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp, int test);

@@ -396,6 +396,8 @@ void flush_updates()
 		update_air();
 	}
 
+	Term_xtra(TERM_XTRA_BORED, 0);
+
 	/* Hack -- don't redraw the screen until we have all of it */
 	//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
 	/* Update the screen */
