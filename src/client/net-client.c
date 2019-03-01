@@ -1172,8 +1172,9 @@ int recv_stream(connection_type *ct) {
 	}
 
 	/* Hack -- single char */
-	if (y & 0xFF00)	return 
-		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+	if (y & 0xFF00) return
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
+		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
 
 	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
 	{
