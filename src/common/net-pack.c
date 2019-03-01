@@ -719,7 +719,7 @@ int cv_decode_rle2(cave_view_type* dst, cq* src, int len) {
 		if (a == 0xFF)
 		{
 			/* Get the number of repetitions */
-			n = c;
+			n = (byte)c;
 
 			/* Is it even legal? */
 			if (x + n > len)
