@@ -578,7 +578,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 		line[n] = '\0';
 
 		/* "Parse" */
-		if (!strncasecmp(line, "ENDCHAR", 7)) {
+		if (!my_strnicmp(line, "ENDCHAR", 7)) {
 			bitmap_mode = 0;
 			continue;
 		}
@@ -612,7 +612,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 			bitmap_line++;
 			//printf("\n");
 		}
-		else if (!strncasecmp(line, "STARTCHAR", 9)) {
+		else if (!my_strnicmp(line, "STARTCHAR", 9)) {
 			int i = atoi(&line[10]);
 			cx = i % cols;
 			cy = i / cols;
@@ -621,32 +621,32 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 			glyph_x = 0;
 			glyph_y = 0;
 		}
-		else if (!strncasecmp(line, "BBX", 3)) {
+		else if (!my_strnicmp(line, "BBX", 3)) {
 			char *sp;
-			char *t = strtok_r(line, " ", &sp);
-			char *_w = strtok_r(NULL, " ", &sp);
-			char *_h = strtok_r(NULL, " ", &sp);
-			char *_x = strtok_r(NULL, " ", &sp);
-			char *_y = strtok_r(NULL, " ", &sp);
+			char *t = strtok(line, " ");
+			char *_w = strtok(NULL, " ");
+			char *_h = strtok(NULL, " ");
+			char *_x = strtok(NULL, " ");
+			char *_y = strtok(NULL, " ");
 			glyph_w = atoi(_w);
 			glyph_h = atoi(_h);
 			glyph_x = atoi(_x);
 			glyph_y = atoi(_y);
 		}
-		else if (!strncasecmp(line, "BITMAP", 6)) {
+		else if (!my_strnicmp(line, "BITMAP", 6)) {
 			bitmap_mode = 1;
 			bitmap_line = 0;
 		}
-		else if (!strncasecmp(line, "SIZE", 4)) {
+		else if (!my_strnicmp(line, "SIZE", 4)) {
 			ih = atoi(&line[5]);
 		}
-		else if (!strncasecmp(line, "FONTBOUNDINGBOX", 15)) {
+		else if (!my_strnicmp(line, "FONTBOUNDINGBOX", 15)) {
 			char *sp;
-			char *t = strtok_r(line, " ", &sp);
-			char *_w = strtok_r(NULL, " ", &sp);
-			char *_h = strtok_r(NULL, " ", &sp);
-			char *_x = strtok_r(NULL, " ", &sp);
-			char *_y = strtok_r(NULL, " ", &sp);
+			char *t = strtok(line, " ");
+			char *_w = strtok(NULL, " ");
+			char *_h = strtok(NULL, " ");
+			char *_x = strtok(NULL, " ");
+			char *_y = strtok(NULL, " ");
 			int font_w = atoi(_w);
 			int font_h = atoi(_h);
 			font_ox = atoi(_x);
@@ -659,14 +659,14 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 				font_oy -= 1;
 			}
 		}
-		else if (!strncasecmp(line, "COMMENT Exported by Fony v1.4.7", 29)) {
+		else if (!my_strnicmp(line, "COMMENT Exported by Fony v1.4.7", 29)) {
 			fony_error = TRUE;
 		}
-		else if (!strncasecmp(line, "CHARS", 5)) {
+		else if (!my_strnicmp(line, "CHARS", 5)) {
 			num_chars = atoi(&line[6]);
 			rows = num_chars / cols;
 		}
-		else if (!strncasecmp(line, "ENDPROPERTIES", 13)) {
+		else if (!my_strnicmp(line, "ENDPROPERTIES", 13)) {
 			/* By this time, we should know our bounding box */
 			if (iw <= 0 || ih <= 0)
 			{
@@ -727,6 +727,9 @@ errr sdl_font_quit()
 
 SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoothing) 
 {
+	SDL_Rect glyph_info;
+	SDL_Surface *surface;
+
 	char *ext;
 	enum {
 		FONT_BMP,
@@ -764,44 +767,41 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	{
 		fonttype = fontdefault;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_HEX]))
+	else if (!my_stricmp(ext, typenames[FONT_HEX]))
 	{
 		fonttype = FONT_HEX;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_BDF]))
+	else if (!my_stricmp(ext, typenames[FONT_BDF]))
 	{
 		fonttype = FONT_BDF;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_TTF]))
+	else if (!my_stricmp(ext, typenames[FONT_TTF]))
 	{
 		fonttype = FONT_TTF;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_OTF]))
+	else if (!my_stricmp(ext, typenames[FONT_OTF]))
 	{
 		fonttype = FONT_OTF;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_FON]))
+	else if (!my_stricmp(ext, typenames[FONT_FON]))
 	{
 		fonttype = FONT_FON;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_FNT]))
+	else if (!my_stricmp(ext, typenames[FONT_FNT]))
 	{
 		fonttype = FONT_FNT;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_PCF]))
+	else if (!my_stricmp(ext, typenames[FONT_PCF]))
 	{
 		fonttype = FONT_PCF;
 	}
-	else if (!strcasecmp(ext, typenames[FONT_BMP]))
+	else if (!my_stricmp(ext, typenames[FONT_BMP]))
 	{
 		fonttype = FONT_BMP;
 	}
 	else {
 		fonttype = fontdefault;
 	}
-
-	SDL_Rect glyph_info;
-	SDL_Surface *surface;
 
 	switch (fonttype)
 	{

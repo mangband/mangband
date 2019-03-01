@@ -2665,6 +2665,7 @@ int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 	return 1;
 }
 
+#ifdef USE_SDL2
 /* A version of "cavedraw()" for Term2 hack */
 void Term2_cave_line(int st, int sy, int y, int cols)
 {
@@ -2688,8 +2689,8 @@ void Term2_cave_line(int st, int sy, int y, int cols)
 			Term2_cave_char(i + dx, dy, a, c, ta, tc);
 		}
 	}
-
 }
+#endif
 
 
 /* Draw (or don't) a char depending on screen ickyness */

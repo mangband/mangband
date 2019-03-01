@@ -44,6 +44,34 @@ double fmin(double x, double y) {
   return (x < y ? x : y);
 }
 #endif
+
+/* plog() hook to display a message box. similar to WIN32 client */
+static void hack_plog(cptr str)
+{
+    const SDL_MessageBoxButtonData buttons[] = { { 0, 0, "OK" } };
+    const SDL_MessageBoxColorScheme colorScheme = { {
+        { 255,   0,   0 }, /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+        {   0, 255,   0 }, /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+        { 255, 255,   0 }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+        {   0,   0, 255 }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+        { 255,   0, 255 }  /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+    } };
+    const SDL_MessageBoxData messageboxdata = {
+        SDL_MESSAGEBOX_INFORMATION, /* .flags */
+        NULL, /* .window */
+        "MAngband", /* .title */
+        str, /* .message */
+        SDL_arraysize(buttons), /* .numbuttons */
+        buttons, /* .buttons */
+        &colorScheme /* .colorScheme */
+    };
+    int buttonid;
+    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+        SDL_Log("error displaying message box");
+    }
+    return;
+}
+
 /* ==== Global data ==== */
 char *term_title[8] = {             // Our terminal titles
   "MAngband",
@@ -115,6 +143,9 @@ errr init_sdl2(int argc, char **argv) {
     plog_fmt("SDL_Init(): %s", SDL_GetError());
     return 1;
   }
+
+    plog_aux = hack_plog;
+
 #ifdef USE_SDL2_IMAGE
   if (IMG_Init(IMG_INIT_PNG) == -1) {
     plog_fmt("IMG_Init(): %s", IMG_GetError());
@@ -348,6 +379,7 @@ void net_stream_clamp(int addr, int *x, int *y) {
 }
 void refreshTermAlt(TermData *td) {
 	int dw, dh;
+	int dng_cols, dng_rows;
 
 	int fw = td->cols - 13;
 	int fh = td->rows - 2;
@@ -358,8 +390,8 @@ void refreshTermAlt(TermData *td) {
 	pix_w = pix_w * 100 / td->zoom;
 	pix_h = pix_h * 100 / td->zoom;
 
-	int dng_cols = pix_w / td->pict_data->w;
-	int dng_rows = pix_h / td->pict_data->h;
+	dng_cols = pix_w / td->pict_data->w;
+	dng_rows = pix_h / td->pict_data->h;
 
 	if (!(td->config & TERM_DO_SCALE)) {
 		if (td->alt_framebuffer) SDL_DestroyTexture(td->alt_framebuffer);
@@ -708,9 +740,8 @@ void renderWindow(TermData *mtd) {
     }
 
     /* Render all terms */
-    for (j = 0; j < TERM_MAX; j++) {
-        i = j; //7 - j;
-        TermData *td = &terms[i];
+    for (i = 0; i < TERM_MAX; i++) {
+        TermData *td = &terms[i]; /* or TERM_MAX - 1 - i to invert */
         if (!(td->config & TERM_IS_ONLINE)) continue;
         if (td->window_id != mtd->window_id) continue;
 
@@ -721,12 +752,14 @@ void renderWindow(TermData *mtd) {
 }
 
 static void renderTerm(TermData *td) {
+	SDL_Rect srect = { 0, 0, td->ren_rect.w, td->ren_rect.h };
+
 	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetTextureBlendMode(td->framebuffer, SDL_BLENDMODE_BLEND);
 
 	SDL_SetRenderTarget(td->renderer, NULL);
 	SDL_SetRenderDrawColor(td->renderer, 32, 32, 32, 255);
-	SDL_Rect srect = { 0, 0, td->ren_rect.w, td->ren_rect.h };
+
 	SDL_RenderCopy(td->renderer, td->framebuffer, &srect, &td->ren_rect);
 
 	renderGui(td);
@@ -1228,11 +1261,15 @@ int guiDragStart(int i, int x, int y) {
 }
 
 int guiDragMotion(int mx, int my) {
+	TermData *td;
+
 	if (dragging < 0) return 0;
-	TermData *td = &terms[dragging];
+
+	td = &terms[dragging];
 
 	if (gripping) {
-
+		int w, h, cw, ch;
+		byte cw_, ch_;
 		int i = dragging;
 
 		td->resize_rect.w = td->ren_rect.w + (accum_x - drag_x);
@@ -1241,12 +1278,12 @@ int guiDragMotion(int mx, int my) {
 		td->resize_rect.h += (td->cell_h-(td->menu_rect.y+td->ren_rect.h-td->grip_rect.y));
 
 		// resize to nearest whole cell
-		int w = td->resize_rect.w;
-		int h = td->resize_rect.h;
-		int cw = w/terms[i].cell_w;
-		int ch = h/terms[i].cell_h;
+		w = td->resize_rect.w;
+		h = td->resize_rect.h;
+		cw = w/terms[i].cell_w;
+		ch = h/terms[i].cell_h;
 
-		byte cw_ = cw, ch_ = ch;
+		cw_ = cw; ch_ = ch;
 		net_term_clamp((byte)i, &ch_, &cw_);
 		cw = cw_; ch = ch_;
 
@@ -1256,11 +1293,8 @@ int guiDragMotion(int mx, int my) {
 		return 0;
 	}
 
-	int x = td->ren_rect.x + mx;
-	int y = td->ren_rect.y + my;
-
-	td->ren_rect.x = x;
-	td->ren_rect.y = y;
+	td->ren_rect.x = td->ren_rect.x + mx;
+	td->ren_rect.y = td->ren_rect.y + my;
 
 	termShuffle(td->id);
 }
@@ -1440,6 +1474,7 @@ static errr xtraTermHook(int n, int v) {
             }
           }
         } else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+          byte cw_, ch_;
           int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
@@ -1454,7 +1489,7 @@ static errr xtraTermHook(int n, int v) {
                   break;
               }
 
-	byte cw_ = cw, ch_ = ch;
+	cw_ = cw; ch_ = ch;
 	net_term_clamp((byte)i, &ch_, &cw_);
 	cw = cw_; ch = ch_;
 
