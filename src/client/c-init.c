@@ -547,7 +547,7 @@ void init_subscriptions()
 			/* HACK! Enforce Special View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_SPECIAL) window_flag[0] |= (1L << n);
 			/* Save "string" */
-			window_flag_desc[n] = st_ptr->mark;
+			window_flag_desc[n] = st_ptr->window_desc;
 		}
 	}
 #endif

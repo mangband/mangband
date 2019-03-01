@@ -1278,13 +1278,16 @@ int recv_stream_info(connection_type *ct) {
 		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
+	char mark[MSG_LEN];
 
 	stream_type *s_ptr;
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c%s%c%c%c%c", &pkt, &addr, &rle, &flag, buf, 
-			&min_row, &min_col, &max_row, &max_col) < 9) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+			&pkt, &addr, &rle, &flag,
+			mark, buf,
+			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
 
 	/* Check for errors */
 	if (known_streams >= MAX_STREAMS)
@@ -1311,9 +1314,12 @@ int recv_stream_info(connection_type *ct) {
 	s_ptr->max_row = max_row;
 	s_ptr->max_col = max_col;
 
+	s_ptr->mark = string_make(mark);
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = string_make(buf);
+		s_ptr->window_desc = string_make(buf);
+	} else {
+		s_ptr->window_desc = s_ptr->mark;
 	}
 
 
