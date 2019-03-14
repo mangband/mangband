@@ -6,7 +6,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{22222C83-6BF9-4372-9226-73768939CB3D}}
 AppName=MAngband
-#define VERSION "1.5.0a"
+#define VERSION "1.5.0b"
 AppVersion={#VERSION}
 AppPublisher=MAngband Project Team
 AppPublisherURL=https://mangband.org

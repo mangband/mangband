@@ -135,8 +135,9 @@ BEGIN
     LTEXT           "Curses/X11 Module: Ben Harrison, Torbj|rn Lindgren",IDC_STATIC,37,93,221,10
     LTEXT           "MAngband 0.1 - 0.5: Keldon Jones (keldon@umr.edu)",IDC_STATIC,37,106,221,10
     LTEXT           "MAngband 0.6 - 0.7: Alex Dingle (adingle@crud.net)",IDC_STATIC,37,119,221,10
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,37,136,217,1
-    LTEXT           "Visit the MAngband homepage at: www.mangband.org",IDC_STATIC,37,140,173,8
+    LTEXT           "MAngband 0.8 - 1.0: Robert L. Seifer (Crimson)",IDC_STATIC,37,132,221,10
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,37,149,217,1
+    LTEXT           "Visit the MAngband homepage at: www.mangband.org",IDC_STATIC,37,153,173,8
 END
 
 

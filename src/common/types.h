@@ -1661,6 +1661,7 @@ struct custom_command_type
 	u32b flag;
 	byte tval;
 	char prompt[MSG_LEN];
+	char display[MAX_CHARS];
 };
 
 /*
