@@ -1596,6 +1596,7 @@ int recv_custom_command_info(connection_type *ct) {
 		tval = 0,
 		scheme = 0;
 	char buf[MSG_LEN];
+	char disp[MAX_CHARS];
 	s16b m_catch = 0;
 	u32b flag = 0;
 	int n, len;
@@ -1603,7 +1604,7 @@ int recv_custom_command_info(connection_type *ct) {
 
 	custom_command_type *cc_ptr;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S%s", &pkt, &scheme, &m_catch, &flag, &tval, buf, disp) < 7) return 0;
 
 	/* Match existing command */
 	for (i = 0; i < custom_commands; i++)
@@ -1653,6 +1654,8 @@ int recv_custom_command_info(connection_type *ct) {
 	}
 	buf[n] = '\0';
 	memcpy(cc_ptr->prompt, buf, MSG_LEN);
+
+	my_strcpy(cc_ptr->display, disp, MAX_CHARS);
 
 	/*custom_commands++;//done above*/
 
