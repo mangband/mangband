@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>Mangband Server - Windows Build</title>
+</head>
+<body>
+<h1>Windows Mangband Server</h1>
+<p>This is a Microsoft Windows version of the Mangband Server. You don't need this to play Mangband, you only need this to run your own server.</p>
+
+<h2>Starting a Server</h2>
+
+<h3>Q. How do I start a server?</h3>
+<p>On the Start Menu, click on <i>Start->Programs->MAngband Server->Start Server</i>.
+
+<h3>Q. How do I stop the server?</h3>
+<p>When the server is running it opens a black DOS type window.  Close this window to stop the server running.  The current server state will be saved as the server shuts down.</p>
+
+<h3>Q. How do I start a public server, one that appears on the server list at mangband.org?</h3>
+<p>A. You need to edit the file <code>c:\Program Files\Mangband Server\mangband.cfg</code> to enable the REPORT_TO_METASERVER option.  Open the file in Notepad or a similar editor and change the relevant line to:</p>
+ 
+<p><code>REPORT_TO_METASERVER = true</code></p>
+  
+<p>Be sure to save your changes to the file before starting the server</p>
+
+<h2>Connecting to a Server</h2>
+
+<h3>Q. How do I start a server and play on it, all on a single computer?</h3>
+<p>A. After starting the server, run the Mangband Client (mangclient.exe) as you normally would.  At the server list type "Q" (for manual entry) and enter "127.0.0.1" (with no quotes).  Hit return and you should be connected to your own local server.</p>
+
+<h3>Q. I have a home network.  How do I run a server and connect to it from the other machines?</h3>
+<p>A. Start the server on one of your computers.</p>
+ 
+<p>On the other computers open the Mangband client (mangclient.exe).  At the server list type "Q" (for manual entry) and enter either the name of the server machine *or* the IP address of the server machine and then press return.</p>
+ 
+<p>To find the name of the server machine, you could right-click on "My Computer" (on the server) select "Properties", then select the "Computer Name" tab.  The computer name is displayed as "Full computer name:".  (This works on WinXP).</p>
+ 
+<p>To find the IP address of the server machine.  On the server machine click on the Start button, then click on "Run".  Into the prompt that opens enter "cmd" and click on the OK button.  This opens a Command Prompt window.  Into this window type "ipconfig" and press return.  A load of stuff will be displayed on the screen, find the line which says "IP Address . . . . " (This works on WinXP - if using an earlier version of Windows enter "command" rather than "cmd" into the Start->Run Prompt).</p>
+
+</body>
+</html>

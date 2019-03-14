@@ -8,7 +8,7 @@
  * are included in all such copies.  Other copyrights may also apply.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 /*
  * Maximum number of spells per realm
@@ -157,10 +157,92 @@
 #define PRAYER_WORD_OF_RECALL          56
 #define PRAYER_ALTER_REALITY           57
 
+/* Undead powers (Ghost Spells) */
+#define GHOSTLY_BLINK                   0
+#define GHOSTLY_SCARE_MONSTER           1
+#define GHOSTLY_CONFUSE_MONSTER         2
+#define GHOSTLY_TELEPORT_SELF           3
+#define GHOSTLY_NETHER_BOLT             4
+#define GHOSTLY_NETHER_BALL             5
+#define GHOSTLY_DARKNESS_STORM          6
+
+#define SPELL_CASE_AIM \
+	case SPELL_MAGIC_MISSILE: \
+	case SPELL_STINKING_CLOUD: \
+	case SPELL_CONFUSE_MONSTER: \
+	case SPELL_LIGHTNING_BOLT: \
+	case SPELL_SLEEP_MONSTER: \
+	case SPELL_SPEAR_OF_LIGHT: \
+	case SPELL_FROST_BOLT: \
+	case SPELL_TURN_STONE_TO_MUD: \
+	case SPELL_WONDER: \
+	case SPELL_POLYMORPH_OTHER: \
+	case SPELL_FIRE_BOLT: \
+	case SPELL_SLOW_MONSTER: \
+	case SPELL_FROST_BALL: \
+	case SPELL_TELEPORT_OTHER: \
+	case SPELL_BEDLAM: \
+	case SPELL_FIRE_BALL: \
+	case SPELL_ACID_BOLT: \
+	case SPELL_CLOUD_KILL: \
+	case SPELL_ACID_BALL: \
+	case SPELL_ICE_STORM: \
+	case SPELL_METEOR_SWARM: \
+	case SPELL_MANA_STORM: \
+	case SPELL_SHOCK_WAVE: \
+	case SPELL_EXPLOSION: \
+	case SPELL_RIFT: \
+	case SPELL_REND_SOUL: \
+	case SPELL_CHAOS_STRIKE:
+
+#define PRAYER_CASE_AIM \
+	case PRAYER_TELEPORT_OTHER: \
+	case PRAYER_SCARE_MONSTER: \
+	case PRAYER_ORB_OF_DRAINING: \
+	case PRAYER_ANNIHILATION:
+
+#define SPELL_CASE_ITEM \
+	case SPELL_ENCHANT_ARMOR: \
+	case SPELL_ENCHANT_WEAPON: \
+	case SPELL_ELEMENTAL_BRAND: \
+	case SPELL_IDENTIFY: \
+	case SPELL_RECHARGE_ITEM_I: \
+	case SPELL_RECHARGE_ITEM_II:
+
+#define SPELL_CASE_PROJ \
+	case SPELL_DETECT_MONSTERS: \
+	case SPELL_ELEMENTAL_BRAND: \
+	case SPELL_SATISFY_HUNGER:
+
+#define PRAYER_CASE_PROJ \
+	case PRAYER_CURE_LIGHT_WOUNDS: \
+	case PRAYER_CURE_SERIOUS_WOUNDS: \
+	case PRAYER_CURE_CRITICAL_WOUNDS: \
+	case PRAYER_CURE_MORTAL_WOUNDS: \
+	case PRAYER_HEAL: \
+	case PRAYER_CURE_SERIOUS_WOUNDS2: \
+	case PRAYER_CURE_MORTAL_WOUNDS2: \
+	case PRAYER_HEALING:
+
+#define PRAYER_CASE_ITEM \
+	case PRAYER_PERCEPTION: \
+	case PRAYER_RECHARGING: \
+	case PRAYER_ENCHANT_WEAPON: \
+	case PRAYER_ENCHANT_ARMOUR: \
+	case PRAYER_ELEMENTAL_BRAND:
+
+#define GHOSTLY_CASE_AIM \
+	case GHOSTLY_SCARE_MONSTER: \
+	case GHOSTLY_CONFUSE_MONSTER: \
+	case GHOSTLY_NETHER_BOLT: \
+	case GHOSTLY_NETHER_BALL: \
+	case GHOSTLY_DARKNESS_STORM:
+
+
 /*
  * Spells in each book (mage spells then priest spells)
  */
-static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
+static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK+1] =
 {
 	/* Mage spells */
 	{
@@ -175,6 +257,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_OBJECT_DETECTION,
 			SPELL_FIND_TRAPS_DOORS,
 			SPELL_STINKING_CLOUD,
+			-1,
 		},
 
 		/* Conjurings and Tricks */
@@ -188,6 +271,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_SPEAR_OF_LIGHT,
 			SPELL_FROST_BOLT,
 			SPELL_WONDER,
+			-1,
 		},
 
 		/* Incantations and Illusions */
@@ -201,6 +285,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			SPELL_DETECT_INVISIBLE,
 			SPELL_ACID_BOLT,
 			SPELL_SLOW_MONSTER,
+			-1,
 		},
 
 		/* Sorcery and Evocations */
@@ -321,6 +406,7 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 			PRAYER_SENSE_SURROUNDINGS,
 			PRAYER_CURE_MORTAL_WOUNDS,
 			PRAYER_TURN_UNDEAD,
+			-1,
 		},
 
 		/* Exorcism and Dispelling */
@@ -403,15 +489,28 @@ static const s16b spell_list[2][BOOKS_PER_REALM][SPELLS_PER_BOOK] =
 	}
 };
 
-#ifdef CLIENT
-	C_MAKE(Players, 1, player_type *);
-#endif
+/*
+ * Note that this is the same for all classes (for now).
+ *
+ * Such a hack....
+ */
+magic_type ghost_spells[8] =
+{
+	{  1,   1, 0, 0},
+	{ 10,   2, 0, 0},
+	{ 15,   3, 0, 0},
+	{ 20,   5, 0, 0},
+	{ 25,  10, 0, 0},
+	{ 35,  60, 0, 0},
+	{ 45, 100, 0, 0},
 
-#if 0
+	{ 99,   0, 0, 0},
+};
+
 /*
  * Names of the spells (mage spells then priest spells)
  */
-static cptr spell_names[3][PY_MAX_SPELLS] =
+cptr spell_names[MAX_SPELL_REALMS][PY_MAX_SPELLS] =
 {
 	/*** Mage Spells ***/
 
@@ -536,7 +635,7 @@ static cptr spell_names[3][PY_MAX_SPELLS] =
 		"Cure Serious Wounds",
 		"Cure Mortal Wounds",
 		"Healing",
-		"Restoration",
+		"Life Restoration",
 		"Remembrance",
 
 		/* Wrath of God (sval 8) */
@@ -568,16 +667,152 @@ static cptr spell_names[3][PY_MAX_SPELLS] =
 		"(blank)",
 		"(blank)",
 		"(blank)"
+	},
+	
+	/*** Ghost abilities ***/
+	{
+		/* Standard set */
+		"Blink",
+		"Terrify",
+		"Confuse",
+		"Teleport",
+		"Nether bolt",
+		"Nether ball",
+		"Darkness storm",
+
+		/* XXX Unimplemented */
+		
+		/* Lich spell set (dead mage?) */
+		"Teleport",
+		"Paralyze",
+		"Steal mana",
+		"Cause wounds",
+		"Steal experience",
+		"Mind smash",
+		"Mana storm",
+
+		/* Death knight set (dead paladin?) */
+		"Blind",
+		"Terrify",
+		"Summon zombie", /* XXX XXX */
+		"Nether bolt",
+
+		/* These may be used at some later date */
+		/* Perhaps for different classes of ghosts */
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)",
+		"(blank)"
 	}
 };
-#endif
+
+void spells_init()
+{
+	int i, j;
+	for (j = 0; j < MAX_SPELL_REALMS; j++)
+	{
+		for (i = 0; i < PY_MAX_SPELLS; i++)
+		{
+			byte flag = 0;
+			switch (j)
+			{
+				case 0:
+				{
+					switch(i) { SPELL_CASE_AIM flag |= PY_SPELL_AIM; 	break; default:	break; }
+					switch(i) { SPELL_CASE_ITEM flag |= PY_SPELL_ITEM; 	break; default:	break; }
+					switch(i) { SPELL_CASE_PROJ flag |= PY_SPELL_PROJECT; 	break; default:	break; }
+					break;
+				}
+				case 1:
+				{
+					switch(i) { PRAYER_CASE_AIM flag |= PY_SPELL_AIM;	break; default:	break; }
+					switch(i) { PRAYER_CASE_ITEM flag |= PY_SPELL_ITEM; 	break; default:	break; }
+					switch(i) { PRAYER_CASE_PROJ flag |= PY_SPELL_PROJECT; 	break; default:	break; }
+					break;
+				}
+				case 2:
+				{
+					switch(i) { GHOSTLY_CASE_AIM flag |= PY_SPELL_AIM;	break; default:	break; }
+					break;
+				}
+			}
+			spell_flags[j][i] = flag;
+		}
+	}
+}
+int get_spell_book(int Ind, int spell)
+{
+	player_type *p_ptr = Players[Ind];
+	int i, j, index;
+
+	/* Forget info about objects */
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		object_type *o_ptr = &p_ptr->inventory[i];
+		
+		/* Skip non-objects */
+		if (!o_ptr->k_idx) continue;
+
+		/* Skip non-books */
+		if (o_ptr->tval != p_ptr->cp_ptr->spell_book) continue;
+
+		/* Test each spell */
+		for (j = 0; j < SPELLS_PER_BOOK; j++)
+		{
+			index = get_spell_index(Ind, o_ptr, j);
+
+			/* Found nice spell */
+			if (index == spell) return i;
+		}
+	}
+	return -1;
+}
 
 int get_spell_index(int Ind, const object_type *o_ptr, int index)
 {
 	player_type *p_ptr = Players[Ind];
-
-	int spell;
-	int num = 0;
 
 	/* Get the item's sval */
 	int sval = o_ptr->sval;
@@ -597,6 +832,19 @@ int get_spell_index(int Ind, const object_type *o_ptr, int index)
 	return spell_list[spell_type][sval][index];
 }
 
+byte get_spell_flag(int tval, int spell, byte player_flag)
+{
+	if (!(player_flag & PY_SPELL_LEARNED))
+		return player_flag;
+
+	if (tval == TV_MAGIC_BOOK)
+		return (spell_flags[0][spell] | player_flag);
+	else if (tval == TV_PRAYER_BOOK)
+		return (spell_flags[1][spell] | player_flag);
+	else
+		return (spell_flags[GHOST_REALM][spell] | player_flag);
+}
+
 cptr get_spell_name(int tval, int spell)
 {
 	if (tval == TV_MAGIC_BOOK)
@@ -605,10 +853,13 @@ cptr get_spell_name(int tval, int spell)
 		return spell_names[1][spell];
 }
 
-#if 0
-cptr get_spell_info(int tval, int spell)
+cptr get_spell_info(int Ind, int spell)
 {
+	player_type *p_ptr = Players[Ind];
 	static char p[80];
+	int tval;
+	
+	tval = p_ptr->cp_ptr->spell_book;
 
 	/* Default */
 	strcpy(p, "");
@@ -742,7 +993,7 @@ cptr get_spell_info(int tval, int spell)
 				break;
 			case PRAYER_ORB_OF_DRAINING:
 				sprintf(p, " %d+3d6", plev +
-				        (plev / ((cp_ptr->flags & CF_BLESS_WEAPON) ? 2 : 4)));
+				        (plev / ((p_ptr->cp_ptr->flags & CF_BLESS_WEAPON) ? 2 : 4)));
 				break;
 			case PRAYER_CURE_CRITICAL_WOUNDS:
 				strcpy(p, " heal 6d10");
@@ -802,14 +1053,15 @@ cptr get_spell_info(int tval, int spell)
 }
 
 
-static int beam_chance(void)
+static int beam_chance(int Ind)
 {
+	player_type *p_ptr = Players[Ind];
 	int plev = p_ptr->lev;
-	return ((cp_ptr->flags & CF_BEAM) ? plev : (plev / 2));
+	return ((p_ptr->cp_ptr->flags & CF_BEAM) ? plev : (plev / 2));
 }
 
 
-static void spell_wonder(int dir)
+static void spell_wonder(int Ind, int dir)
 {
 /* This spell should become more useful (more
    controlled) as the player gains experience levels.
@@ -818,900 +1070,1038 @@ static void spell_wonder(int dir)
    keeping the results quite random.  It also allows
    some potent effects only at high level. */
 
+	player_type *p_ptr = Players[Ind];
+	
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 	int plev = p_ptr->lev;
 	int die = randint(100) + plev / 5;
-	int beam = beam_chance();
+	int beam = beam_chance(Ind);
 
 	if (die > 100)
-		msg_print("You feel a surge of power!");
-	if (die < 8) clone_monster(dir);
-	else if (die < 14) speed_monster(dir);
-	else if (die < 26) heal_monster(dir);
-	else if (die < 31) poly_monster(dir);
+		msg_print(Ind, "You feel a surge of power!");
+	if (die < 8) clone_monster(Ind, dir);
+	else if (die < 14) speed_monster(Ind, dir);
+	else if (die < 26) heal_monster(Ind, dir);
+	else if (die < 31) poly_monster(Ind, dir);
 	else if (die < 36)
-		fire_bolt_or_beam(beam - 10, GF_MISSILE, dir,
+		fire_bolt_or_beam(Ind, beam - 10, GF_MISSILE, dir,
 		                  damroll(3 + ((plev - 1) / 5), 4));
-	else if (die < 41) confuse_monster(dir, plev);
-	else if (die < 46) fire_ball(GF_POIS, dir, 20 + (plev / 2), 3);
-	else if (die < 51) lite_line(dir);
+	else if (die < 41) confuse_monster(Ind, dir, plev);
+	else if (die < 46) fire_ball(Ind, GF_POIS, dir, 20 + (plev / 2), 3);
+	else if (die < 51) lite_line(Ind, dir);
 	else if (die < 56)
-		fire_beam(GF_ELEC, dir, damroll(3+((plev-5)/6), 6));
+		fire_beam(Ind, GF_ELEC, dir, damroll(3+((plev-5)/6), 6));
 	else if (die < 61)
-		fire_bolt_or_beam(beam-10, GF_COLD, dir,
+		fire_bolt_or_beam(Ind, beam-10, GF_COLD, dir,
 		                  damroll(5+((plev-5)/4), 8));
 	else if (die < 66)
-		fire_bolt_or_beam(beam, GF_ACID, dir,
+		fire_bolt_or_beam(Ind, beam, GF_ACID, dir,
 		                  damroll(6+((plev-5)/4), 8));
 	else if (die < 71)
-		fire_bolt_or_beam(beam, GF_FIRE, dir,
+		fire_bolt_or_beam(Ind, beam, GF_FIRE, dir,
 		                  damroll(8+((plev-5)/4), 8));
-	else if (die < 76) drain_life(dir, 75);
-	else if (die < 81) fire_ball(GF_ELEC, dir, 30 + plev / 2, 2);
-	else if (die < 86) fire_ball(GF_ACID, dir, 40 + plev, 2);
-	else if (die < 91) fire_ball(GF_ICE, dir, 70 + plev, 3);
-	else if (die < 96) fire_ball(GF_FIRE, dir, 80 + plev, 3);
-	else if (die < 101) drain_life(dir, 100 + plev);
-	else if (die < 104) earthquake(py, px, 12);
-	else if (die < 106) destroy_area(py, px, 15, TRUE);
-	else if (die < 108) banishment();
-	else if (die < 110) dispel_monsters(120);
+	else if (die < 76) drain_life(Ind, dir, 75);
+	else if (die < 81) fire_ball(Ind, GF_ELEC, dir, 30 + plev / 2, 2);
+	else if (die < 86) fire_ball(Ind, GF_ACID, dir, 40 + plev, 2);
+	else if (die < 91) fire_ball(Ind, GF_ICE, dir, 70 + plev, 3);
+	else if (die < 96) fire_ball(Ind, GF_FIRE, dir, 80 + plev, 3);
+	else if (die < 101) drain_life(Ind, dir, 100 + plev);
+	else if (die < 104) earthquake(Depth, py, px, 12);
+	else if (die < 106) destroy_area(Depth, py, px, 15, TRUE);
+	else if (die < 108) banishment(Ind);
+	else if (die < 110) dispel_monsters(Ind, 120);
 	else /* RARE */
 	{
-		dispel_monsters(150);
-		slow_monsters();
-		sleep_monsters();
-		hp_player(300);
+		dispel_monsters(Ind, 150);
+		slow_monsters(Ind);
+		sleep_monsters(Ind);
+		hp_player(Ind, 300);
 	}
 }
 
 
-
-static bool cast_mage_spell(int spell)
+#define msg_spell(A) msg_format_complex_near(Ind, Ind, MSG_PY_SPELL, (A), p_ptr->name)
+static bool cast_mage_spell(int Ind, int spell)
 {
+	player_type 	*p_ptr = Players[Ind];
+	object_type		*o_ptr;
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 
 	int dir;
 
 	int plev = p_ptr->lev;
 
 	/* Hack -- chance of "beam" instead of "bolt" */
-	int beam = beam_chance();
+	int beam = beam_chance(Ind);
+
+	/* MAngband-specific: Projected */
+	if (spell >= SPELL_PROJECTED)
+	{
+		if (!get_aim_dir(Ind, &dir)) return (FALSE);
+		(void)project_spell_ball(Ind, dir, spell - SPELL_PROJECTED);
+		return (TRUE);
+	}
 
 	/* Spells. */
 	switch (spell)
 	{
 		case SPELL_MAGIC_MISSILE:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam-10, GF_MISSILE, dir,
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s fires a magic missile.");
+			fire_bolt_or_beam(Ind, beam-10, GF_MISSILE, dir,
 			                  damroll(3 + ((plev - 1) / 5), 4));
 			break;
 		}
 
 		case SPELL_DETECT_MONSTERS:
 		{
-			(void)detect_monsters_normal();
+			(void)detect_creatures(Ind, TRUE);
 			break;
 		}
 
 		case SPELL_PHASE_DOOR:
 		{
-			teleport_player(10);
+			msg_spell("%s blinks away!");
+			teleport_player(Ind, 10);
 			break;
 		}
 
 		case SPELL_LIGHT_AREA:
 		{
-			(void)lite_area(damroll(2, (plev / 2)), (plev / 10) + 1);
+			(void)lite_area(Ind, damroll(2, (plev / 2)), (plev / 10) + 1);
 			break;
 		}
 
 		case SPELL_TREASURE_DETECTION:
 		{
-			(void)detect_treasure();
-			(void)detect_objects_gold();
+			(void)detect_treasure(Ind);
+			//(void)detect_objects_gold(Ind);
 			break;
 		}
 
 		case SPELL_CURE_LIGHT_WOUNDS:
 		{
 
-			(void)hp_player(damroll(2, 8));
-			(void)set_cut(p_ptr->cut - 15);
+			(void)hp_player(Ind, damroll(2, 8));
+			(void)set_cut(Ind, p_ptr->cut - 15);
 			break;
 		}
 
 		case SPELL_OBJECT_DETECTION:
 		{
-			(void)detect_objects_normal();
+			(void)detect_objects_normal(Ind);
 			break;
 		}
 
 		case SPELL_FIND_TRAPS_DOORS:
 		{
-			(void)detect_traps();
-			(void)detect_doors();
-			(void)detect_stairs();
+			(void)detect_trap(Ind);//detect_traps(Ind);
+			(void)detect_sdoor(Ind);//detect_doors(Ind);
+			//(void)detect_stairs(Ind);
 			break;
 		}
 
 		case SPELL_STINKING_CLOUD:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_POIS, dir, 10 + (plev / 2), 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a stinking cloud.");
+			fire_ball(Ind, GF_POIS, dir, 10 + (plev / 2), 2);
 			break;
 		}
 
 		case SPELL_CONFUSE_MONSTER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)confuse_monster(dir, plev);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a complicated gesture.");
+			(void)confuse_monster(Ind, dir, plev);
 			break;
 		}
 
 		case SPELL_LIGHTNING_BOLT:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_beam(GF_ELEC, dir,
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a lightning bolt.");
+			fire_beam(Ind, GF_ELEC, dir,
 			          damroll(3+((plev-5)/6), 6));
 			break;
 		}
 
 		case SPELL_TRAP_DOOR_DESTRUCTION:
 		{
-			(void)destroy_doors_touch();
+			(void)destroy_doors_touch(Ind);
 			break;
 		}
 
 		case SPELL_SLEEP_MONSTER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)sleep_monster(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s gestures and mumbles calmly.");
+			(void)sleep_monster(Ind, dir);
 			break;
 		}
 
 		case SPELL_CURE_POISON:
 		{
-			(void)set_poisoned(0);
+			(void)set_poisoned(Ind, 0);
 			break;
 		}
 
 		case SPELL_TELEPORT_SELF:
 		{
-			teleport_player(plev * 5);
+			msg_spell("%s teleports away!");
+			teleport_player(Ind, plev * 5);
 			break;
 		}
 
 		case SPELL_SPEAR_OF_LIGHT: /* spear of light */
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			msg_print("A line of blue shimmering light appears.");
-			lite_line(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_print(Ind, "A line of blue shimmering light appears.");
+			msg_spell("A line of blue shimmering light appears out of %s's hands.");
+			lite_line(Ind, dir);
 			break;
 		}
 
 		case SPELL_FROST_BOLT:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam-10, GF_COLD, dir,
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a frost bolt.");
+			fire_bolt_or_beam(Ind, beam-10, GF_COLD, dir,
 			                  damroll(5+((plev-5)/4), 8));
 			break;
 		}
 
 		case SPELL_TURN_STONE_TO_MUD:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)wall_to_mud(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a moving gesture.");
+			(void)wall_to_mud(Ind, dir);
 			break;
 		}
 
 		case SPELL_SATISFY_HUNGER:
 		{
-			(void)set_food(PY_FOOD_MAX - 1);
+			(void)set_food(Ind, PY_FOOD_MAX - 1);
 			break;
 		}
 
 		case SPELL_RECHARGE_ITEM_I:
 		{
-			return recharge(2 + plev / 5);
+			return recharge(Ind, 2 + plev / 5);
 		}
 
 		case SPELL_WONDER: /* wonder */
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)spell_wonder(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			(void)spell_wonder(Ind, dir);
 			break;
 		}
 
 		case SPELL_POLYMORPH_OTHER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)poly_monster(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s discharges an everchanging blast of energy.");
+			(void)poly_monster(Ind, dir);
 			break;
 		}
 
 		case SPELL_IDENTIFY:
 		{
-			return ident_spell();
+			return ident_spell(Ind);
 		}
 
 		case SPELL_MASS_SLEEP:
 		{
-			(void)sleep_monsters();
+			(void)sleep_monsters(Ind);
 			break;
 		}
 
 		case SPELL_FIRE_BOLT:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam, GF_FIRE, dir,
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a fire bolt.");
+			fire_bolt_or_beam(Ind, beam, GF_FIRE, dir,
 			                  damroll(6+((plev-5)/4), 8));
 			break;
 		}
 
 		case SPELL_SLOW_MONSTER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)slow_monster(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a lengthy gesture.");
+			(void)slow_monster(Ind, dir);
 			break;
 		}
 
 		case SPELL_FROST_BALL:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_COLD, dir, 30 + (plev), 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a frost ball.");
+			fire_ball(Ind, GF_COLD, dir, 30 + (plev), 2);
 			break;
 		}
 
 		case SPELL_RECHARGE_ITEM_II: /* greater recharging */
 		{
-			return recharge(50 + plev);
+			return recharge(Ind, 50 + plev);
 		}
 
 		case SPELL_TELEPORT_OTHER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)teleport_monster(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s makes a rush gesture.");
+			(void)teleport_monster(Ind, dir);
 			break;
 		}
 
 		case SPELL_BEDLAM:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_OLD_CONF, dir, plev, 4);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s creates confusion.");
+			fire_ball(Ind, GF_OLD_CONF, dir, plev, 4);
 			break;
 		}
 
 		case SPELL_FIRE_BALL:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_FIRE, dir, 55 + (plev), 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a fire ball.");
+			fire_ball(Ind, GF_FIRE, dir, 55 + (plev), 2);
 			break;
 		}
 
 		case SPELL_WORD_OF_DESTRUCTION:
 		{
-			destroy_area(py, px, 15, TRUE);
+			msg_spell("%s unleashes great power!"); 
+			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
 
 		case SPELL_BANISHMENT:
 		{
-			return banishment();
+			return banishment(Ind);
 			break;
 		}
 
 		case SPELL_DOOR_CREATION:
 		{
-			(void)door_creation();
+			(void)door_creation(Ind);
 			break;
 		}
 
 		case SPELL_STAIR_CREATION:
 		{
-			(void)stair_creation();
+			(void)stair_creation(Ind);
 			break;
 		}
 
 		case SPELL_TELEPORT_LEVEL:
 		{
-			(void)teleport_player_level();
+			(void)teleport_player_level(Ind);
 			break;
 		}
 
 		case SPELL_EARTHQUAKE:
 		{
-			earthquake(py, px, 10);
+		  	msg_spell("%s casts a spell, and the ground shakes!"); 
+			earthquake(Depth, py, px, 10);
 			break;
 		}
 
 		case SPELL_WORD_OF_RECALL:
 		{
-			set_recall();
+			o_ptr = &p_ptr->inventory[get_spell_book(Ind, spell)];
+			set_recall(Ind, o_ptr);
 			break;
 		}
 
 		case SPELL_ACID_BOLT:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam, GF_ACID, dir, damroll(8+((plev-5)/4), 8));
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an acid bolt.");
+			fire_bolt_or_beam(Ind, beam, GF_ACID, dir, damroll(8+((plev-5)/4), 8));
 			break;
 		}
 
 		case SPELL_CLOUD_KILL:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_POIS, dir, 40 + (plev / 2), 3);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a cloud of death.");
+			fire_ball(Ind, GF_POIS, dir, 40 + (plev / 2), 3);
 			break;
 		}
 
 		case SPELL_ACID_BALL:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_ACID, dir, 40 + (plev), 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an acid ball.");
+			fire_ball(Ind, GF_ACID, dir, 40 + (plev), 2);
 			break;
 		}
 
 		case SPELL_ICE_STORM:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_ICE, dir, 50 + (plev * 2), 3);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s invokes an ice storm.");
+			fire_ball(Ind, GF_ICE, dir, 50 + (plev * 2), 3);
 			break;
 		}
 
 		case SPELL_METEOR_SWARM:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_swarm(2 + plev / 20, GF_METEOR, dir, 30 + plev / 2, 1);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a meteor shower.");
+			fire_swarm(Ind, 2 + plev / 20, GF_METEOR, dir, 30 + plev / 2, 1);
 			break;
 		}
 
 		case SPELL_MANA_STORM:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_MANA, dir, 300 + (plev * 2), 3);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a mana ball.");
+			fire_ball(Ind, GF_MANA, dir, 300 + (plev * 2), 3);
 			break;
 		}
 		case SPELL_DETECT_INVISIBLE:
 		{
-			(void)detect_monsters_invis();
+			(void)detect_invisible(Ind, TRUE);
 			break;
 		}
 
 		case SPELL_DETECT_ENCHANTMENT:
 		{
-			(void)detect_objects_magic();
+			(void)detect_objects_magic(Ind);
 			break;
 		}
 
 		case SPELL_SHOCK_WAVE:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_SOUND, dir, 10 + plev, 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a shock wave.");
+			fire_ball(Ind, GF_SOUND, dir, 10 + plev, 2);
 			break;
 		}
 
 		case SPELL_EXPLOSION:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_SHARD, dir, 20 + (plev * 2), 2);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts an explosion.");
+			fire_ball(Ind, GF_SHARDS, dir, 20 + (plev * 2), 2);
 			break;
 		}
 
 		case SPELL_MASS_BANISHMENT:
 		{
-			(void)mass_banishment();
+			(void)mass_banishment(Ind);
 			break;
 		}
 
 		case SPELL_RESIST_FIRE:
 		{
-			(void)set_oppose_fire(p_ptr->oppose_fire + randint(20) + 20);
+			(void)set_oppose_fire(Ind, p_ptr->oppose_fire + randint(20) + 20);
 			break;
 		}
 
 		case SPELL_RESIST_COLD:
 		{
-			(void)set_oppose_cold(p_ptr->oppose_cold + randint(20) + 20);
+			(void)set_oppose_cold(Ind, p_ptr->oppose_cold + randint(20) + 20);
 			break;
 		}
 
 		case SPELL_ELEMENTAL_BRAND: /* elemental brand */
 		{
-			return brand_ammo();
+			if (!get_item(Ind, &dir, item_test(AMMO))) return (FALSE);
+			(void)brand_ammo(Ind, dir);
+			break;
 		}
 
 		case SPELL_RESIST_POISON:
 		{
-			(void)set_oppose_pois(p_ptr->oppose_pois + randint(20) + 20);
+			(void)set_oppose_pois(Ind, p_ptr->oppose_pois + randint(20) + 20);
 			break;
 		}
 
 		case SPELL_RESISTANCE:
 		{
 			int time = randint(20) + 20;
-			(void)set_oppose_acid(p_ptr->oppose_acid + time);
-			(void)set_oppose_elec(p_ptr->oppose_elec + time);
-			(void)set_oppose_fire(p_ptr->oppose_fire + time);
-			(void)set_oppose_cold(p_ptr->oppose_cold + time);
-			(void)set_oppose_pois(p_ptr->oppose_pois + time);
+			(void)set_oppose_acid(Ind, p_ptr->oppose_acid + time);
+			(void)set_oppose_elec(Ind, p_ptr->oppose_elec + time);
+			(void)set_oppose_fire(Ind, p_ptr->oppose_fire + time);
+			(void)set_oppose_cold(Ind, p_ptr->oppose_cold + time);
+			(void)set_oppose_pois(Ind, p_ptr->oppose_pois + time);
 			break;
 		}
 
 		case SPELL_HEROISM:
 		{
-			(void)hp_player(10);
-			(void)set_hero(p_ptr->hero + randint(25) + 25);
-			(void)set_afraid(0);
+			(void)hp_player(Ind, 10);
+			(void)set_hero(Ind, p_ptr->hero + randint(25) + 25);
+			(void)set_afraid(Ind, 0);
 			break;
 		}
 
 		case SPELL_SHIELD:
 		{
-			(void)set_shield(p_ptr->shield + randint(20) + 30);
+			msg_spell("%s forms a mystic shield."); 
+			(void)set_shield(Ind, p_ptr->shield + randint(20) + 30);
 			break;
 		}
 
 		case SPELL_BERSERKER:
 		{
-			(void)hp_player(30);
-			(void)set_shero(p_ptr->shero + randint(25) + 25);
-			(void)set_afraid(0);
+			msg_spell("%s enters a battle rage!");
+			(void)hp_player(Ind, 30);
+			(void)set_shero(Ind, p_ptr->shero + randint(25) + 25);
+			(void)set_afraid(Ind, 0);
 			break;
 		}
 
 		case SPELL_HASTE_SELF:
 		{
+			msg_spell("%s starts moving faster."); 
 			if (!p_ptr->fast)
 			{
-				(void)set_fast(randint(20) + plev);
+				(void)set_fast(Ind, randint(20) + plev);
 			}
 			else
 			{
-				(void)set_fast(p_ptr->fast + randint(5));
+				(void)set_fast(Ind, p_ptr->fast + randint(5));
 			}
 			break;
 		}
 
 		case SPELL_RIFT:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_beam(GF_GRAVITY, dir,	40 + damroll(plev, 7));
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("Space warps in a beam from %s.");
+			fire_beam(Ind, GF_GRAVITY, dir,	40 + damroll(plev, 7));
 			break;
 		}
 
 		case SPELL_REND_SOUL: /* rend soul */
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam / 4, GF_NETHER, dir, damroll(11, plev));
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a nether ball.");
+			fire_bolt_or_beam(Ind, beam / 4, GF_NETHER, dir, damroll(11, plev));
 			break;
 		}
 
 		case SPELL_CHAOS_STRIKE: /* chaos strike */
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_bolt_or_beam(beam, GF_CHAOS, dir, damroll(13, plev));
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_spell("%s casts a ball of chaos.");
+			fire_bolt_or_beam(Ind, beam, GF_CHAOS, dir, damroll(13, plev));
 			break;
 		}
 
 		case SPELL_RUNE_OF_PROTECTION: /* rune of protection */
 		{
-			(void)warding_glyph();
+			if (warding_glyph(Ind))
+			{
+				msg_spell("%s lays down a rune of protection."); 
+			}
 			break;
 		}
 
 		case SPELL_ENCHANT_ARMOR: /* enchant armor */
 		{
-			return enchant_spell(0, 0, rand_int(3) + plev / 20);
+			return enchant_spell(Ind, 0, 0, rand_int(3) + plev / 20);
 		}
 
 		case SPELL_ENCHANT_WEAPON: /* enchant weapon */
 		{
-			return enchant_spell(rand_int(4) + plev / 20,
-			                     rand_int(4) + plev / 20, 0);
+			return enchant_spell(Ind, rand_int(4) + plev / 20,
+			                          rand_int(4) + plev / 20, 0);
 		}
 	}
-
+	
 	/* Success */
 	return (TRUE);
 }
 
-
-static bool cast_priest_spell(int spell)
+#define msg_prayer(A) msg_format_complex_near(Ind, Ind, MSG_PY_PRAYER, (A), p_ptr->name)
+static bool cast_priest_spell(int Ind, int spell)
 {
+	player_type 	*p_ptr = Players[Ind];
+	object_type		*o_ptr;
 	int py = p_ptr->py;
 	int px = p_ptr->px;
+	int Depth = p_ptr->dun_depth;
 
 	int dir;
 
 	int plev = p_ptr->lev;
-
+	
 	switch (spell)
 	{
 		case PRAYER_DETECT_EVIL:
 		{
-			(void)detect_monsters_evil();
+			(void)detect_evil(Ind);
 			break;
 		}
 
 		case PRAYER_CURE_LIGHT_WOUNDS:
 		{
-			(void)hp_player(damroll(2, 10));
-			(void)set_cut(p_ptr->cut - 10);
+			(void)hp_player(Ind, damroll(2, 10));
+			(void)set_cut(Ind, p_ptr->cut - 10);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_LIGHT_WOUNDS + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(2, 8));
 			break;
 		}
 
 		case PRAYER_BLESS:
 		{
-			(void)set_blessed(p_ptr->blessed + randint(12) + 12);
+			(void)set_blessed(Ind, p_ptr->blessed + randint(12) + 12);
 			break;
 		}
 
 		case PRAYER_REMOVE_FEAR:
 		{
-			(void)set_afraid(0);
+			(void)set_afraid(Ind, 0);
 			break;
 		}
 
 		case PRAYER_CALL_LIGHT:
 		{
-			(void)lite_area(damroll(2, (plev / 2)), (plev / 10) + 1);
+			msg_prayer("%s calls light.");
+			(void)lite_area(Ind, damroll(2, (plev / 2)), (plev / 10) + 1);
 			break;
 		}
 
 		case PRAYER_FIND_TRAPS:
 		{
-			(void)detect_traps();
+			(void)detect_trap(Ind);//detect_traps(Ind)
 			break;
 		}
 
 		case PRAYER_DETECT_DOORS_STAIRS:
 		{
-			(void)detect_doors();
-			(void)detect_stairs();
+			(void)detect_sdoor(Ind);//detect_doors(Ind);
+			//(void)detect_stairs();
 			break;
 		}
 
 		case PRAYER_SLOW_POISON:
 		{
-			(void)set_poisoned(p_ptr->poisoned / 2);
+			(void)set_poisoned(Ind, p_ptr->poisoned / 2);
 			break;
 		}
 
 		case PRAYER_SCARE_MONSTER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)fear_monster(dir, plev);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			(void)fear_monster(Ind, dir, plev);
 			break;
 		}
 
 		case PRAYER_PORTAL:
 		{
-			teleport_player(plev * 3);
+			msg_prayer("%s blinks away!");
+			teleport_player(Ind, plev * 3);
 			break;
 		}
 
 		case PRAYER_CURE_SERIOUS_WOUNDS:
 		{
-			(void)hp_player(damroll(4, 10));
-			(void)set_cut((p_ptr->cut / 2) - 20);
+			(void)hp_player(Ind, damroll(4, 10));
+			(void)set_cut(Ind, (p_ptr->cut / 2) - 20);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_SERIOUS_WOUNDS + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(4, 10));
 			break;
 		}
 
 		case PRAYER_CHANT:
 		{
-			(void)set_blessed(p_ptr->blessed + randint(24) + 24);
+			(void)set_blessed(Ind, p_ptr->blessed + randint(24) + 24);
 			break;
 		}
 
 		case PRAYER_SANCTUARY:
 		{
-			(void)sleep_monsters_touch();
+			msg_prayer("For a brief moment, %s is enclosed by a deep blue aura.");
+			(void)sleep_monsters_touch(Ind);
 			break;
 		}
 
 		case PRAYER_SATISFY_HUNGER:
 		{
-			(void)set_food(PY_FOOD_MAX - 1);
+			(void)set_food(Ind, PY_FOOD_MAX - 1);
 			break;
 		}
 
 		case PRAYER_REMOVE_CURSE:
 		{
-			remove_curse();
+			remove_curse(Ind);
 			break;
 		}
 
 		case PRAYER_RESIST_HEAT_COLD:
 		{
-			(void)set_oppose_fire(p_ptr->oppose_fire + randint(10) + 10);
-			(void)set_oppose_cold(p_ptr->oppose_cold + randint(10) + 10);
+			(void)set_oppose_fire(Ind, p_ptr->oppose_fire + randint(10) + 10);
+			(void)set_oppose_cold(Ind, p_ptr->oppose_cold + randint(10) + 10);
 			break;
 		}
 
 		case PRAYER_NEUTRALIZE_POISON:
 		{
-			(void)set_poisoned(0);
+			(void)set_poisoned(Ind, 0);
 			break;
 		}
 
 		case PRAYER_ORB_OF_DRAINING:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			fire_ball(GF_HOLY_ORB, dir,
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s fires a holy orb!"); 
+			fire_ball(Ind, GF_HOLY_ORB, dir,
 			          (damroll(3, 6) + plev +
-			           (plev / ((cp_ptr->flags & CF_BLESS_WEAPON) ? 2 : 4))),
+			           (plev / ((p_ptr->cp_ptr->flags & CF_BLESS_WEAPON) ? 2 : 4))),
 			          ((plev < 30) ? 2 : 3));
 			break;
 		}
 
 		case PRAYER_CURE_CRITICAL_WOUNDS:
 		{
-			(void)hp_player(damroll(6, 10));
-			(void)set_cut(0);
+			(void)hp_player(Ind, damroll(6, 10));
+			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_CRITICAL_WOUNDS + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(6, 10));
 			break;
 		}
 
 		case PRAYER_SENSE_INVISIBLE:
 		{
-			(void)set_tim_invis(p_ptr->tim_invis + randint(24) + 24);
+			(void)set_tim_invis(Ind, p_ptr->tim_invis + randint(24) + 24);
 			break;
 		}
 
 		case PRAYER_PROTECTION_FROM_EVIL:
 		{
-			(void)set_protevil(p_ptr->protevil + randint(25) + 3 * p_ptr->lev);
+			(void)set_protevil(Ind, p_ptr->protevil + randint(25) + 3 * p_ptr->lev);
 			break;
 		}
 
 		case PRAYER_EARTHQUAKE:
 		{
-			earthquake(py, px, 10);
+			msg_prayer("%s murmurs, and the ground shakes!");
+			earthquake(Depth, py, px, 10);
 			break;
 		}
 
 		case PRAYER_SENSE_SURROUNDINGS:
 		{
-			map_area();
+			map_area(Ind);
 			break;
 		}
 
 		case PRAYER_CURE_MORTAL_WOUNDS:
 		{
-			(void)hp_player(damroll(8, 10));
-			(void)set_stun(0);
-			(void)set_cut(0);
+			(void)hp_player(Ind, damroll(8, 10));
+			(void)set_stun(Ind, 0);
+			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_MORTAL_WOUNDS + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(8, 10));
 			break;
 		}
 
 		case PRAYER_TURN_UNDEAD:
 		{
-			(void)turn_undead();
+			msg_prayer("%s tries to turn undead.");
+			(void)turn_undead(Ind);
 			break;
 		}
 
 		case PRAYER_PRAYER:
 		{
-			(void)set_blessed(p_ptr->blessed + randint(48) + 48);
+			(void)set_blessed(Ind, p_ptr->blessed + randint(48) + 48);
 			break;
 		}
 
 		case PRAYER_DISPEL_UNDEAD:
 		{
-			(void)dispel_undead(randint(plev * 3));
+			msg_prayer("%s dispells undead.");
+			(void)dispel_undead(Ind, randint(plev * 3));
 			break;
 		}
 
 		case PRAYER_HEAL:
 		{
-			(void)hp_player(300);
-			(void)set_stun(0);
-			(void)set_cut(0);
+			(void)hp_player(Ind, 300);
+			(void)set_stun(Ind, 0);
+			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_HEAL + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, 300);
 			break;
 		}
 
 		case PRAYER_DISPEL_EVIL:
 		{
-			(void)dispel_evil(randint(plev * 3));
+			msg_prayer("%s dispells evil.");
+			(void)dispel_evil(Ind, randint(plev * 3));
 			break;
 		}
 
 		case PRAYER_GLYPH_OF_WARDING:
 		{
-			warding_glyph();
+			if (warding_glyph(Ind))
+			{
+				msg_prayer("%s lays down a glyph of warding.");
+			}
 			break;
 		}
 
 		case PRAYER_HOLY_WORD:
 		{
-			(void)dispel_evil(randint(plev * 4));
-			(void)hp_player(1000);
-			(void)set_afraid(0);
-			(void)set_poisoned(0);
-			(void)set_stun(0);
-			(void)set_cut(0);
+			msg_prayer("%s shouts the holy word.");
+			(void)dispel_evil(Ind, randint(plev * 4));
+			(void)hp_player(Ind, 1000);
+			(void)set_afraid(Ind, 0);
+			(void)set_poisoned(Ind, 0);
+			(void)set_stun(Ind, 0);
+			(void)set_cut(Ind, 0);
 			break;
 		}
 
 		case PRAYER_DETECT_MONSTERS:
 		{
-			(void)detect_monsters_normal();
+			(void)detect_creatures(Ind, TRUE);
 			break;
 		}
 
 		case PRAYER_DETECTION:
 		{
-			(void)detect_all();
+			(void)detection(Ind);//detect_all(Ind)
 			break;
 		}
 
 		case PRAYER_PERCEPTION:
 		{
-			return ident_spell();
+			return ident_spell(Ind);
 		}
 
 		case PRAYER_PROBING:
 		{
-			(void)probing();
+			(void)probing(Ind);
 			break;
 		}
 
 		case PRAYER_CLAIRVOYANCE:
 		{
-			wiz_lite();
+			msg_prayer("An image of your surroundings forms in your mind...");
+			wiz_lite(Ind);
 			break;
 		}
 
 		case PRAYER_CURE_SERIOUS_WOUNDS2:
 		{
-			(void)hp_player(damroll(4, 10));
-			(void)set_cut(0);
+			(void)hp_player(Ind, damroll(4, 10));
+			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_SERIOUS_WOUNDS2 + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(4, 10));
 			break;
 		}
 
 		case PRAYER_CURE_MORTAL_WOUNDS2:
 		{
-			(void)hp_player(damroll(8, 10));
-			(void)set_stun(0);
-			(void)set_cut(0);
+			(void)hp_player(Ind, damroll(8, 10));
+			(void)set_stun(Ind, 0);
+			(void)set_cut(Ind, 0);
+			break;
+		}
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_CURE_MORTAL_WOUNDS2 + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, damroll(8, 10));
 			break;
 		}
 
 		case PRAYER_HEALING:
 		{
-			(void)hp_player(2000);
-			(void)set_stun(0);
-			(void)set_cut(0);
+			(void)hp_player(Ind, 2000);
+			(void)set_stun(Ind, 0);
+			(void)set_cut(Ind, 0);
 			break;
 		}
-
+		/* MAngband-specific: Heal Projectile */
+		case PRAYER_HEALING + SPELL_PROJECTED:
+		{
+			if (!get_aim_dir(Ind, &dir)) return FALSE;
+			(void)heal_player_ball(Ind, dir, 2000);
+			break;
+		}
+		/* With MAngband-specific addon: ressurect ghosts */
 		case PRAYER_RESTORATION:
 		{
-			(void)do_res_stat(A_STR);
-			(void)do_res_stat(A_INT);
-			(void)do_res_stat(A_WIS);
-			(void)do_res_stat(A_DEX);
-			(void)do_res_stat(A_CON);
-			(void)do_res_stat(A_CHR);
+			if (!do_scroll_life(Ind))
+			{
+				(void)do_res_stat(Ind, A_STR);
+				(void)do_res_stat(Ind, A_INT);
+				(void)do_res_stat(Ind, A_WIS);
+				(void)do_res_stat(Ind, A_DEX);
+				(void)do_res_stat(Ind, A_CON);
+				(void)do_res_stat(Ind, A_CHR);
+			}
 			break;
 		}
-
+		/* With Mangband-sepcific addon: restore others */
 		case PRAYER_REMEMBRANCE:
 		{
-			(void)restore_level();
+			if (!do_restoreXP_other(Ind))
+			{
+				(void)restore_level(Ind);
+			}
 			break;
 		}
 
 		case PRAYER_DISPEL_UNDEAD2:
 		{
-			(void)dispel_undead(randint(plev * 4));
+			msg_prayer("%s dispells undead.");
+			(void)dispel_undead(Ind, randint(plev * 4));
 			break;
 		}
 
 		case PRAYER_DISPEL_EVIL2:
 		{
-			(void)dispel_evil(randint(plev * 4));
+			msg_prayer("%s dispells evil.");
+			(void)dispel_evil(Ind, randint(plev * 4));
 			break;
 		}
 
 		case PRAYER_BANISH_EVIL:
 		{
-			if (banish_evil(100))
+			msg_prayer("%s speaks a holy curse on nearby evil!");
+			if (banish_evil(Ind, 100))
 			{
-				msg_print("The power of your god banishes evil!");
+				msg_print(Ind, "The power of your god banishes evil!");
 			}
 			break;
 		}
 
 		case PRAYER_WORD_OF_DESTRUCTION:
 		{
-			destroy_area(py, px, 15, TRUE);
+			msg_prayer("%s unleashes a spell of great power!");
+			destroy_area(Depth, py, px, 15, TRUE);
 			break;
 		}
 
 		case PRAYER_ANNIHILATION:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			drain_life(dir, 200);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s fires a massive bolt filled with pure energy!");
+			drain_life(Ind, dir, 200);
 			break;
 		}
 
 		case PRAYER_UNBARRING_WAYS:
 		{
-			(void)destroy_doors_touch();
+			msg_prayer("%s sways his hands.");
+			(void)destroy_doors_touch(Ind);
 			break;
 		}
 
 		case PRAYER_RECHARGING:
 		{
-			return recharge(15);
+			return recharge(Ind, 15);
 		}
 
 		case PRAYER_DISPEL_CURSE:
 		{
-			(void)remove_all_curse();
+			(void)remove_all_curse(Ind);
 			break;
 		}
 
 		case PRAYER_ENCHANT_WEAPON:
 		{
-			return enchant_spell(rand_int(4) + 1, rand_int(4) + 1, 0);
+			return enchant_spell(Ind, rand_int(4) + 1, rand_int(4) + 1, 0);
 		}
 
 		case PRAYER_ENCHANT_ARMOUR:
 		{
-			return enchant_spell(0, 0, rand_int(3) + 2);
+			return enchant_spell(Ind, 0, 0, rand_int(3) + 2);
 		}
 
 		case PRAYER_ELEMENTAL_BRAND:
 		{
-			brand_weapon();
+			brand_weapon(Ind);
 			break;
 		}
 
 		case PRAYER_BLINK:
 		{
-			teleport_player(10);
+			msg_prayer("%s blinks away!");
+			teleport_player(Ind, 10);
 			break;
 		}
 
 		case PRAYER_TELEPORT_SELF:
 		{
-			teleport_player(plev * 8);
+			msg_prayer("%s teleports away!");
+			teleport_player(Ind, plev * 8);
 			break;
 		}
 
 		case PRAYER_TELEPORT_OTHER:
 		{
-			if (!get_aim_dir(&dir)) return (FALSE);
-			(void)teleport_monster(dir);
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			msg_prayer("%s prays for divine intervention.");
+			(void)teleport_monster(Ind, dir);
 			break;
 		}
 
 		case PRAYER_TELEPORT_LEVEL:
 		{
-			(void)teleport_player_level();
+			(void)teleport_player_level(Ind);
 			break;
 		}
 
 		case PRAYER_WORD_OF_RECALL:
 		{
-			set_recall();
+			o_ptr = &p_ptr->inventory[get_spell_book(Ind, spell)];
+			set_recall(Ind, o_ptr);
 			break;
 		}
 
 		case PRAYER_ALTER_REALITY:
 		{
-			msg_print("The world changes!");
-
-			/* Leaving */
-			p_ptr->leaving = TRUE;
-
+			(void)alter_reality(Ind, FALSE);
 			break;
 		}
+
 		/* Paranoia: shouldn't happen with safe clients */
 		default:
 		{
@@ -1725,15 +2115,117 @@ static bool cast_priest_spell(int spell)
 }
 
 
-bool cast_spell(int tval, int index)
+static bool cast_undead_spell(int Ind, int spell)
 {
+	player_type 	*p_ptr = Players[Ind];
+	
+	int dir;
+	
+	int plev = p_ptr->lev;
+
+	switch (spell)
+	{
+		case GHOSTLY_BLINK:
+		{
+			teleport_player(Ind, 10);
+			break;
+		}
+		case GHOSTLY_TELEPORT_SELF:
+		{
+			teleport_player(Ind, plev * 8);
+			break;
+		}
+		case GHOSTLY_SCARE_MONSTER:
+		{
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			(void)fear_monster(Ind, dir, plev);
+			break;
+		}
+		case GHOSTLY_CONFUSE_MONSTER:
+		{
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			confuse_monster(Ind, dir, plev);
+			break;
+		}
+		case GHOSTLY_NETHER_BOLT:
+		{
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			fire_bolt_or_beam(Ind, plev * 2, GF_NETHER, dir, 50 + damroll(5, 5) + plev);
+			break;
+		}
+		case GHOSTLY_NETHER_BALL:
+		{
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			fire_ball(Ind, GF_NETHER, dir, 100 + 2 * plev, 2);
+			break;
+		}
+		case GHOSTLY_DARKNESS_STORM:
+		{
+			if (!get_aim_dir(Ind, &dir)) return (FALSE);
+			fire_ball(Ind, GF_DARK, dir, plev * 5 + damroll(10, 10), 3);
+			break;
+		}
+	}
+
+	/* Success */
+	return (TRUE);
+}
+
+
+bool cast_spell(int Ind, int tval, int index)
+{
+	player_type *p_ptr = Players[Ind];
+	bool done;
+	
+	/* START */
+	p_ptr->current_spell = index;
+
 	if (tval == TV_MAGIC_BOOK)
 	{
-		return cast_mage_spell(index);
+		done = cast_mage_spell(Ind, index);
+		if (done) do_cmd_cast_fin(Ind, TRUE);
+	}
+	else if (tval == TV_PRAYER_BOOK)
+	{
+		done = cast_priest_spell(Ind, index);
+		if (done) do_cmd_cast_fin(Ind, TRUE);
 	}
 	else
 	{
-		return cast_priest_spell(index);
+		done = cast_undead_spell(Ind, index);
+		if (done) do_cmd_ghost_power_fin(Ind);
 	}
+	
+	/* DONE */
+	if (done) p_ptr->current_spell = -1;
+
+	return done;
 }
-#endif
+
+/* Copy of "cast_spell", but with no "finalization" */
+bool cast_spell_hack(int Ind, int tval, int index)
+{
+	player_type *p_ptr = Players[Ind];
+	bool done;
+
+	/* START */
+	p_ptr->current_spell = index;
+
+	if (tval == TV_MAGIC_BOOK)
+	{
+		done = cast_mage_spell(Ind, index);
+	}
+	else if (tval == TV_PRAYER_BOOK)
+	{
+		done = cast_priest_spell(Ind, index);
+	}
+	else
+	{
+		done = cast_undead_spell(Ind, index);
+	}
+
+	/* DONE */
+	if (done) p_ptr->current_spell = -1;
+
+	return done;
+}

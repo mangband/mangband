@@ -18,6 +18,9 @@
  *   Sample Application Files which are modified.
  */
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 #include "readdib.h"
@@ -45,6 +48,9 @@
  * Number of bytes to be read during each read operation
  */
 #define MAXREAD  32768
+
+#define _LREAD(field) \
+	if (sizeof(field) != _lread(fh, &field, sizeof(field))) goto ErrExit
 
 /*
  * Private routine to read more than 64K at a time
@@ -175,112 +181,156 @@ static BOOL NEAR PASCAL MakeBitmapAndPalette(HDC hDC, HANDLE hDIB,
 
 
 /*
- * Reads a DIB from a file, obtains a handle to its BITMAPINFO struct, and
- * loads the DIB.  Once the DIB is loaded, the function also creates a bitmap
- * and palette out of the DIB for a device-dependent form.
- *
- * Returns TRUE if the DIB is loaded and the bitmap/palette created, in which
- * case, the DIBINIT structure pointed to by pInfo is filled with the appropriate
- * handles, and FALSE if something went wrong.
- */
+* Reads a DIB from a file, obtains a handle to its BITMAPINFO struct, and
+* loads the DIB.  Once the DIB is loaded, the function also creates a bitmap
+* and palette out of the DIB for a device-dependent form.
+*
+* Returns TRUE if the DIB is loaded and the bitmap/palette created, in which
+* case, the DIBINIT structure pointed to by pInfo is filled with the appropriate
+* handles, and FALSE if something went wrong.
+*/
 BOOL ReadDIB(HWND hWnd, LPSTR lpFileName, DIBINIT *pInfo)
 {
-	unsigned fh;
+	HFILE fh;
 	LPBITMAPINFOHEADER lpbi;
 	OFSTRUCT of;
 	BITMAPFILEHEADER bf;
 	WORD nNumColors;
 	BOOL result = FALSE;
-	char str[128];
-	WORD offBits;
+	DWORD offBits, bSize;
 	HDC hDC;
 	BOOL bCoreHead = FALSE;
+	BITMAPCOREHEADER bc;
 
-	/* Open the file and get a handle to it's BITMAPINFO */
+	/* Open the file and get a handle to its BITMAPINFO */
 	fh = OpenFile(lpFileName, &of, OF_READ);
-	if (fh == -1)
-	{
-		wsprintf(str, "Can't open file '%ls'", (LPSTR)lpFileName);
-		MessageBox(NULL, str, "Error", MB_ICONSTOP | MB_OK);
-		return (FALSE);
-	}
+	if (fh == -1) return (FALSE);
 
-	pInfo->hDIB = GlobalAlloc(GHND, (DWORD)(sizeof(BITMAPINFOHEADER) + 
-	                          256 * sizeof(RGBQUAD)));
+	pInfo->hDIB = GlobalAlloc(GHND, (DWORD)(sizeof(BITMAPINFOHEADER) +
+		256 * sizeof(RGBQUAD)));
 
-	if (!pInfo->hDIB)
-		return (FALSE);
+	if (!pInfo->hDIB) return (FALSE);
 
 	lpbi = (LPBITMAPINFOHEADER)GlobalLock(pInfo->hDIB);
 
-	/* read the BITMAPFILEHEADER */
-	if (sizeof (bf) != _lread(fh, (LPSTR)&bf, sizeof(bf)))
-		goto ErrExit;
+	/*
+	 * Read the BITMAPFILEHEADER (field by field to avoid structure alignment problems)
+	 *
+	 * typedef struct tagBITMAPFILEHEADER {
+	 *	WORD  bfType;
+	 *	DWORD bfSize;
+	 *	WORD  bfReserved1;
+	 *	WORD  bfReserved2;
+	 *	DWORD bfOffBits;
+	 * } BITMAPFILEHEADER;
+	 */
+	_LREAD(bf.bfType);
+	_LREAD(bf.bfSize);
+	_LREAD(bf.bfReserved1);
+	_LREAD(bf.bfReserved2);
+	_LREAD(bf.bfOffBits);
 
 	/* 'BM' */
-	if (bf.bfType != 0x4d42)
-		goto ErrExit;
+	if (bf.bfType != 0x4d42) goto ErrExit;
 
-	if (sizeof(BITMAPCOREHEADER) != _lread(fh, (LPSTR)lpbi, sizeof(BITMAPCOREHEADER)))
-		goto ErrExit;
+	/* Read the size of the bitmap */
+	_LREAD(bSize);
 
-	if (lpbi->biSize == sizeof(BITMAPCOREHEADER))
+	/* Set BITMAPINFOHEADER size */
+	lpbi->biSize = sizeof(BITMAPINFOHEADER);
+
+	/*
+	 * Read the BITMAPCOREHEADER (field by field to avoid structure alignment problems)
+	 *
+	 * typedef struct tagBITMAPCOREHEADER {
+	 *	DWORD bcSize;
+	 *	WORD  bcWidth;
+	 *	WORD  bcHeight;
+	 *	WORD  bcPlanes;
+	 *	WORD  bcBitCount;
+	 * } BITMAPCOREHEADER;
+	 */
+
+	if (bSize == sizeof(BITMAPCOREHEADER))
 	{
-		lpbi->biSize = sizeof(BITMAPINFOHEADER);
-		lpbi->biBitCount = ((LPBITMAPCOREHEADER)lpbi)->bcBitCount;
-		lpbi->biPlanes = ((LPBITMAPCOREHEADER)lpbi)->bcPlanes;
-		lpbi->biHeight = ((LPBITMAPCOREHEADER)lpbi)->bcHeight;
-		lpbi->biWidth = ((LPBITMAPCOREHEADER)lpbi)->bcWidth;
+		_LREAD(bc.bcWidth);
+		_LREAD(bc.bcHeight);
+		_LREAD(bc.bcPlanes);
+		_LREAD(bc.bcBitCount);
+
+		/* Set BITMAPINFOHEADER values */
+		lpbi->biWidth = bc.bcWidth;
+		lpbi->biHeight = bc.bcHeight;
+		lpbi->biPlanes = bc.bcPlanes;
+		lpbi->biBitCount = bc.bcBitCount;
 		bCoreHead = TRUE;
 	}
-	else
+
+	/*
+	 * Read the BITMAPINFOHEADER (field by field to avoid structure alignment problems)
+	 *
+	 * typedef struct tagBITMAPINFOHEADER {
+	 *	DWORD biSize;
+	 *	LONG  biWidth;
+	 *	LONG  biHeight;
+	 *	WORD  biPlanes;
+	 *	WORD  biBitCount;
+	 *	DWORD biCompression;
+	 *	DWORD biSizeImage;
+	 *	LONG  biXPelsPerMeter;
+	 *	LONG  biYPelsPerMeter;
+	 *	DWORD biClrUsed;
+	 *	DWORD biClrImportant;
+	 * } BITMAPINFOHEADER;
+	 */
+
+	else if (bSize == sizeof(BITMAPINFOHEADER))
 	{
-		/* get to the start of the header and read INFOHEADER */
-		_llseek(fh, sizeof(BITMAPFILEHEADER), SEEK_SET);
-		if (sizeof(BITMAPINFOHEADER) != _lread(fh, (LPSTR)lpbi, sizeof(BITMAPINFOHEADER)))
-			goto ErrExit;
+		_LREAD(lpbi->biWidth);
+		_LREAD(lpbi->biHeight);
+		_LREAD(lpbi->biPlanes);
+		_LREAD(lpbi->biBitCount);
+		_LREAD(lpbi->biCompression);
+		_LREAD(lpbi->biSizeImage);
+		_LREAD(lpbi->biXPelsPerMeter);
+		_LREAD(lpbi->biYPelsPerMeter);
+		_LREAD(lpbi->biClrUsed);
+		_LREAD(lpbi->biClrImportant);
 	}
+
+	/* Error */
+	else goto ErrExit;
 
 	if (!(nNumColors = (WORD)lpbi->biClrUsed))
 	{
-		/* no color table for 24-bit, default size otherwise */
-		if (lpbi->biBitCount != 24)
-			nNumColors = 1 << lpbi->biBitCount;
+		/* No color table for 24-bit, default size otherwise */
+		if (lpbi->biBitCount != 24) nNumColors = 1 << lpbi->biBitCount;
 	}
 
-	/* fill in some default values if they are zero */
-	if (lpbi->biClrUsed == 0)
-		lpbi->biClrUsed = nNumColors;
+	/* Fill in some default values if they are zero */
+	if (lpbi->biClrUsed == 0) lpbi->biClrUsed = nNumColors;
 
 	if (lpbi->biSizeImage == 0)
-	{
-		lpbi->biSizeImage = (((((lpbi->biWidth * (DWORD)lpbi->biBitCount) + 31) & ~31) >> 3)
-		                     * lpbi->biHeight);
-	}
+		lpbi->biSizeImage = (((((lpbi->biWidth * (DWORD)lpbi->biBitCount) + 31)
+			& ~31) >> 3) * lpbi->biHeight);
 
-	/* otherwise wouldn't work with 16 color bitmaps -- S.K. */
+	/* Otherwise wouldn't work with 16 color bitmaps */
 	else if ((nNumColors == 16) && (lpbi->biSizeImage > bf.bfSize))
-	{
 		lpbi->biSizeImage /= 2;
-	}
 
-	/* get a proper-sized buffer for header, color table and bits */
+	/* Get a proper-sized buffer for header, color table and bits */
 	GlobalUnlock(pInfo->hDIB);
 	pInfo->hDIB = GlobalReAlloc(pInfo->hDIB, lpbi->biSize +
-										nNumColors * sizeof(RGBQUAD) +
-										lpbi->biSizeImage, 0);
+		nNumColors * sizeof(RGBQUAD) + lpbi->biSizeImage, 0);
 
-	/* can't resize buffer for loading */
-	if (!pInfo->hDIB)
-		goto ErrExit2;
+	/* Can't resize buffer for loading */
+	if (!pInfo->hDIB) goto ErrExit2;
 
 	lpbi = (LPBITMAPINFOHEADER)GlobalLock(pInfo->hDIB);
 
-	/* read the color table */
+	/* Read the color table */
 	if (!bCoreHead)
-	{
 		_lread(fh, (LPSTR)(lpbi) + lpbi->biSize, nNumColors * sizeof(RGBQUAD));
-	}
 	else
 	{
 		signed int i;
@@ -300,13 +350,10 @@ BOOL ReadDIB(HWND hWnd, LPSTR lpFileName, DIBINIT *pInfo)
 		}
 	}
 
-	/* offset to the bits from start of DIB header */
-	offBits = (WORD)lpbi->biSize + nNumColors * sizeof(RGBQUAD);
+	/* Offset to the bits from start of DIB header */
+	offBits = lpbi->biSize + nNumColors * sizeof(RGBQUAD);
 
-	if (bf.bfOffBits != 0L)
-	{
-		_llseek(fh,bf.bfOffBits,SEEK_SET);
-	}
+	if (bf.bfOffBits != 0L) _llseek(fh,bf.bfOffBits, SEEK_SET);
 
 	/* Use local version of '_lread()' above */
 	if (lpbi->biSizeImage == lread(fh, (LPSTR)lpbi + offBits, lpbi->biSizeImage))
@@ -314,15 +361,14 @@ BOOL ReadDIB(HWND hWnd, LPSTR lpFileName, DIBINIT *pInfo)
 		GlobalUnlock(pInfo->hDIB);
 
 		hDC = GetDC(hWnd);
-		if (!MakeBitmapAndPalette(hDC, pInfo->hDIB, (HPALETTE*)&(pInfo->hPalette),
-		                          (HBITMAP*)&(pInfo->hBitmap)))
+		if (!MakeBitmapAndPalette(hDC, pInfo->hDIB, &pInfo->hPalette, &pInfo->hBitmap))
 		{
-			ReleaseDC(hWnd,hDC);
+			ReleaseDC(hWnd, hDC);
 			goto ErrExit2;
 		}
 		else
 		{
-			ReleaseDC(hWnd,hDC);
+			ReleaseDC(hWnd, hDC);
 			result = TRUE;
 		}
 	}
@@ -335,7 +381,20 @@ ErrExit2:
 	}
 
 	_lclose(fh);
-	return(result);
+	return (result);
+}
+	
+/* Free a DIB */
+void FreeDIB(DIBINIT *dib)
+{
+	/* Free the bitmap stuff */
+	if (dib->hPalette) DeleteObject(dib->hPalette);
+	if (dib->hBitmap) DeleteObject(dib->hBitmap);
+	if (dib->hDIB) GlobalFree(dib->hDIB);
+
+	dib->hPalette = NULL;
+	dib->hBitmap = NULL;
+	dib->hDIB = NULL;
 }
 
 #endif

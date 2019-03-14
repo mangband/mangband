@@ -2,9 +2,7 @@
 
 /* Purpose: Initialization (part 1) -BEN- */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 /*
  * This file is used to initialize various variables and arrays for the
@@ -560,11 +558,11 @@ static cptr c_info_flags[] =
 	"XXX14",
 	"XXX15",
 	"XXX16",
-	"XXX17",
-	"XXX18",
-	"XXX19",
-	"XXX20",
-	"XXX21",
+	"BACK_STAB",
+	"STEALTH_MODE",
+	"STEALING_IMPROV",
+	"SPEED_BONUS",
+	"HP_BONUS",
 	"XXX22",
 	"XXX23",
 	"XXX24",
@@ -927,178 +925,105 @@ errr parse_z_info(char *buf, header *head)
 /*
  * Initialize the "v_info" array, by parsing an ascii "template" file
  */
-errr init_v_info_txt(FILE *fp, char *buf)
+errr parse_v_info(char *buf, header *head)
 {
 	int i;
 
 	char *s;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	vault_type *v_ptr = NULL;
+	static vault_type *v_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Prepare the "fake" stuff */
-	v_head->name_size = 0;
-	v_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf, "V:%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != v_head->v_major) ||
-			    (v2 != v_head->v_minor) ||
-			    (v3 != v_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		v_ptr = (vault_type*)head->info_ptr + i;
 
-
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i <= error_idx) return (4);
-
-			/* Verify information */
-			if (i >= v_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			v_ptr = &v_info[i];
-
-			/* Hack -- Verify space */
-			if (v_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!v_ptr->name) v_ptr->name = ++v_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(v_name + v_head->name_size, s);
-
-			/* Advance the index */
-			v_head->name_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current v_ptr */
-		if (!v_ptr) return (3);
-
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (v_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!v_ptr->text) v_ptr->text = ++v_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(v_text + v_head->text_size, s);
-
-			/* Advance the index */
-			v_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Process 'X' for "Extra info" (one line only) */
-		if (buf[0] == 'X')
-		{
-			int typ, rat, hgt, wid;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%d",
-			                &typ, &rat, &hgt, &wid)) return (1);
-
-			/* Save the values */
-			v_ptr->typ = typ;
-			v_ptr->rat = rat;
-			v_ptr->hgt = hgt;
-			v_ptr->wid = wid;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Store the name */
+		if (!(v_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 	}
 
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current v_ptr */
+		if (!v_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
-	/* Complete the "name" and "text" sizes */
-	++v_head->name_size;
-	++v_head->text_size;
+		/* Get the text */
+		s = buf+2;
 
+		/* Store the text */
+		if (!add_text(&v_ptr->text, head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
 
-	/* No version yet */
-	if (!okay) return (2);
+	/* Process 'X' for "Extra info" (one line only) */
+	else if (buf[0] == 'X')
+	{
+		int typ, rat, hgt, wid;
 
+		/* There better be a current v_ptr */
+		if (!v_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &typ, &rat, &hgt, &wid)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		v_ptr->typ = typ;
+		v_ptr->rat = rat;
+		v_ptr->hgt = hgt;
+		v_ptr->wid = wid;
+
+		/* Check for maximum vault sizes */
+		if ((v_ptr->typ == 7) && ((v_ptr->wid > 33) || (v_ptr->hgt > 22)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+
+		if ((v_ptr->typ == 8) && ((v_ptr->wid > 66) || (v_ptr->hgt > 44)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+
+		/* HACK -- Allow Gigantic vaults */
+		if ((v_ptr->typ == 9) && ((v_ptr->wid > 99) || (v_ptr->hgt > 66)))
+			return (PARSE_ERROR_VAULT_TOO_BIG);
+		if (v_ptr->typ == 9) v_ptr->typ = 8;
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
 }
+
 
 /*
  * Grab one flag from a textual string
@@ -1120,8 +1045,6 @@ static errr grab_one_flag(u32b *flags, cptr names[], cptr what)
 	return (-1);
 }
 
-
-
 /*
  * Grab one flag in a player class from a textual string
  */
@@ -1131,12 +1054,11 @@ static errr grab_one_class_flag(player_class *pc_ptr, cptr what)
 		return (0);
 
 	/* Oops */
-	msg_format("Unknown player class flag '%s'.", what);
+	//msg_format("Unknown player class flag '%s'.", what);
 
 	/* Error */
 	return (PARSE_ERROR_GENERIC);
 }
-
 
 /*
  * Initialize the "c_info" array, by parsing an ascii "template" file
@@ -1152,7 +1074,6 @@ errr parse_c_info(char *buf, header *head)
 
 	static int cur_title = 0;
 	static int cur_equip = 0;
-
 
 	/* Process 'N' for "New/Number/Name" */
 	if (buf[0] == 'N')
@@ -1191,6 +1112,9 @@ errr parse_c_info(char *buf, header *head)
 		/* No titles and equipment yet */
 		cur_title = 0;
 		cur_equip = 0;
+
+		/* MAngband-specific hack: default color! */
+		pc_ptr->attr = TERM_WHITE;
 	}
 
 	/* Process 'S' for "Stats" (one line only) */
@@ -1387,11 +1311,14 @@ errr parse_c_info(char *buf, header *head)
 	}
 
 	/* Process 'E' for "Starting Equipment" */
-	else if (buf[0] == 'E')
+	else if (buf[0] == 'E' || buf[0] == 'Y')
 	{
 		int tval, sval, min, max;
 
 		start_item *e_ptr;
+
+		/* Skip (non)Ironman items */
+		if ((buf[0] == 'E' && cfg_ironman) || (buf[0] == 'Y' && !cfg_ironman)) return (0);
 
 		/* There better be a current pc_ptr */
 		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
@@ -1446,6 +1373,28 @@ errr parse_c_info(char *buf, header *head)
 			/* Start the next entry */
 			s = t;
 		}
+	}
+
+	/* MAngband-specific HACK -- Process 'G' for class color */
+	else if (buf[0] == 'G')
+	{
+		/* There better be a current pr_ptr */
+		if (!pc_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Find the colon before the color */
+		s = strchr(buf+1, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the color */
+		*s++ = '\0';
+
+		/* Paranoia -- require a color */
+		if (!*s) return (PARSE_ERROR_GENERIC);
+
+		/* Get the color */
+		pc_ptr->attr = color_char_to_attr(s[0]);
 	}
 	else
 	{
@@ -1529,209 +1478,292 @@ errr parse_h_info(char *buf, header *head)
 
 
 /*
- * Initialize the "f_info" array, by parsing an ascii "template" file
+ * Initialize the "b_info" array, by parsing an ascii "template" file
  */
-errr init_f_info_txt(FILE *fp, char *buf)
+errr parse_b_info(char *buf, header *head)
 {
-	int i;
+	int i, j;
 
-	char *s;
-
-	/* Not ready yet */
-	bool okay = FALSE;
+	char *s, *t;
 
 	/* Current entry */
-	feature_type *f_ptr = NULL;
+	static owner_type *ot_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Prepare the "fake" stuff */
-	f_head->name_size = 0;
-	f_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the subindex */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the subindex */
+		*s++ = '\0';
 
+		/* Get the index */
+		i = atoi(buf+2);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Find the colon before the name */
+		t = strchr(s, ':');
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != f_head->v_major) ||
-			    (v2 != f_head->v_minor) ||
-			    (v3 != f_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify that colon */
+		if (!t) return (PARSE_ERROR_GENERIC);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Nuke the colon, advance to the name */
+		*t++ = '\0';
 
-			/* Continue */
-			continue;
-		}
+		/* Paranoia -- require a name */
+		if (!*t) return (PARSE_ERROR_GENERIC);
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Get the subindex */
+		j = atoi(s);
 
+		/* Verify information */
+		if (j >= z_info->b_max) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
+		/* Get the *real* index */
+		i = (i * z_info->b_max) + j;
 
-			/* Verify that colon */
-			if (!s) return (1);
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
+		/* Save the index */
+		error_idx = i;
 
-			/* Get the index */
-			i = atoi(buf+2);
+		/* Point at the "info" */
+		ot_ptr = (owner_type*)head->info_ptr + i;
 
-			/* Verify information */
-			if (i <= error_idx) return (4);
-
-			/* Verify information */
-			if (i >= f_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			f_ptr = &f_info[i];
-
-			/* Hack -- Verify space */
-			if (f_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!f_ptr->name) f_ptr->name = ++f_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(f_name + f_head->name_size, s);
-
-			/* Advance the index */
-			f_head->name_size += strlen(s);
-
-			/* Default "mimic" */
-			f_ptr->mimic = i;
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current f_ptr */
-		if (!f_ptr) return (3);
-
-
-#if 0
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (f_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!f_ptr->text) f_ptr->text = ++f_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(f_text + f_head->text_size, s);
-
-			/* Advance the index */
-			f_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-#endif
-
-
-		/* Process 'M' for "Mimic" (one line only) */
-		if (buf[0] == 'M')
-		{
-			int mimic;
-
-			/* Scan for the values */
-			if (1 != sscanf(buf+2, "%d",
-			                &mimic)) return (1);
-
-			/* Save the values */
-			f_ptr->mimic = mimic;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Process 'G' for "Graphics" (one line only) */
-		if (buf[0] == 'G')
-		{
-			int tmp;
-
-			/* Paranoia */
-			if (!buf[2]) return (1);
-			if (!buf[3]) return (1);
-			if (!buf[4]) return (1);
-
-			/* Extract the color */
-			tmp = color_char_to_attr(buf[4]);
-			if (tmp < 0) return (1);
-
-			/* Save the values */
-			f_ptr->f_char = buf[2];
-			f_ptr->f_attr = tmp;
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Store the name */
+		if (!(ot_ptr->owner_name = add_name(head, t)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 	}
 
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int idx, gld, inflate, max_inflate  = 0;
 
-	/* Complete the "name" and "text" sizes */
-	++f_head->name_size;
-	++f_head->text_size;
+		/* There better be a current ot_ptr */
+		if (!ot_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &idx, &gld, &inflate, &max_inflate))
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &idx, &gld, &inflate)) return (PARSE_ERROR_GENERIC);
 
-	/* No version yet */
-	if (!okay) return (2);
+		/* Hack */
+		if (!max_inflate) max_inflate = inflate;
 
+		/* Save the values */
+		ot_ptr->owner_race = idx;
+		ot_ptr->max_cost = gld * PURSE_MULTIPLIER;
+		/*ot_ptr->inflate = inflate;*/
+		ot_ptr->max_inflate = max_inflate;
+		ot_ptr->min_inflate = inflate;
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
 }
 
 
+
+/*
+ * Initialize the "g_info" array, by parsing an ascii "template" file
+ */
+errr parse_g_info(char *buf, header *head)
+{
+	int i, j;
+
+	char *s;
+
+	/* Current entry */
+	static byte *g_ptr;
+
+
+	/* Process 'A' for "Adjustments" */
+	if (buf[0] == 'A')
+	{
+		int adj;
+
+		/* Start the string */
+		s = buf+1;
+
+		/* Initialize the counter to max races */
+		j = z_info->p_max;
+
+		/* Repeat */
+		while (j-- > 0)
+		{
+			/* Hack - get the index */
+			i = error_idx + 1;
+
+			/* Verify information */
+			if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
+
+			/* Verify information */
+			if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
+
+			/* Save the index */
+			error_idx = i;
+
+			/* Point at the "info" */
+			g_ptr = (byte*)head->info_ptr + i;
+
+			/* Find the colon before the subindex */
+			s = strchr(s, ':');
+
+			/* Verify that colon */
+			if (!s) return (PARSE_ERROR_GENERIC);
+
+			/* Nuke the colon, advance to the subindex */
+			*s++ = '\0';
+
+			/* Get the value */
+			adj = atoi(s);
+
+			/* Save the value */
+			*g_ptr = adj;
+		}
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
+
+	/* Success */
+	return (0);
+}
+
+
+
+/*
+ * Initialize the "f_info" array, by parsing an ascii "template" file
+ */
+errr parse_f_info(char *buf, header *head)
+{
+	int i;
+
+	char *s;
+
+	/* Current entry */
+	static feature_type *f_ptr = NULL;
+
+
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
+	{
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
+
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
+
+		/* Get the index */
+		i = atoi(buf+2);
+
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
+
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
+
+		/* Save the index */
+		error_idx = i;
+
+		/* Point at the "info" */
+		f_ptr = (feature_type*)head->info_ptr + i;
+
+		/* Store the name */
+		if (!(f_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+
+		/* Default "mimic" */
+		f_ptr->mimic = i;
+	}
+
+	/* Process 'M' for "Mimic" (one line only) */
+	else if (buf[0] == 'M')
+	{
+		int mimic;
+
+		/* There better be a current f_ptr */
+		if (!f_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (1 != sscanf(buf+2, "%d",
+			            &mimic)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		f_ptr->mimic = mimic;
+	}
+
+	/* Process 'G' for "Graphics" (one line only) */
+	else if (buf[0] == 'G')
+	{
+		char d_char;
+		int d_attr;
+
+		/* There better be a current f_ptr */
+		if (!f_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Paranoia */
+		if (!buf[2]) return (PARSE_ERROR_GENERIC);
+		if (!buf[3]) return (PARSE_ERROR_GENERIC);
+		if (!buf[4]) return (PARSE_ERROR_GENERIC);
+
+		/* Extract d_char */
+		d_char = buf[2];
+
+		/* If we have a longer string than expected ... */
+		if (buf[5])
+		{
+			/* Advance "buf" on by 4 */
+			buf += 4;
+
+			/* Extract the colour */
+			d_attr = color_text_to_attr(buf);
+		}
+		else
+		{
+			/* Extract the attr */
+			d_attr = color_char_to_attr(buf[4]);
+		}
+
+		/* Paranoia */
+		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		f_ptr->d_attr = d_attr;
+		f_ptr->d_char = d_char;
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
+
+	/* Success */
+	return (0);
+}
 
 
 
@@ -1750,13 +1782,11 @@ static errr grab_one_racial_flag(player_race *pr_ptr, cptr what)
 		return (0);
 
 	/* Oops */
-	msg_format("Unknown player flag '%s'.", what);
+	//msg_format("Unknown player flag '%s'.", what);
 
 	/* Error */
 	return (PARSE_ERROR_GENERIC);
 }
-
-
 
 /*
  * Initialize the "p_info" array, by parsing an ascii "template" file
@@ -1999,6 +2029,7 @@ errr parse_p_info(char *buf, header *head)
 }
 
 
+
 /*
  * Grab one flag in an object_kind from a textual string
  */
@@ -2055,313 +2086,238 @@ static errr grab_one_kind_flag(object_kind *k_ptr, cptr what)
 	return (1);
 }
 
-
-
 /*
  * Initialize the "k_info" array, by parsing an ascii "template" file
  */
-errr init_k_info_txt(FILE *fp, char *buf)
+errr parse_k_info(char *buf, header *head)
 {
 	int i;
 
 	char *s, *t;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	object_kind *k_ptr = NULL;
+	static object_kind *k_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Prepare the "fake" stuff */
-	k_head->name_size = 0;
-	k_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != k_head->v_major) ||
-			    (v2 != k_head->v_minor) ||
-			    (v3 != k_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		k_ptr = (object_kind*)head->info_ptr + i;
 
-
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i <= error_idx) return (4);
-
-			/* Verify information */
-			if (i >= k_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			k_ptr = &k_info[i];
-
-			/* Hack -- Verify space */
-			if (k_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!k_ptr->name) k_ptr->name = ++k_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(k_name + k_head->name_size, s);
-
-			/* Advance the index */
-			k_head->name_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current k_ptr */
-		if (!k_ptr) return (3);
-
-
-#if 1
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (k_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!k_ptr->text) k_ptr->text = ++k_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(k_text + k_head->text_size, s);
-
-			/* Advance the index */
-			k_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-#endif
-
-
-		/* Process 'G' for "Graphics" (one line only) */
-		if (buf[0] == 'G')
-		{
-			char sym;
-			int tmp;
-
-			/* Paranoia */
-			if (!buf[2]) return (1);
-			if (!buf[3]) return (1);
-			if (!buf[4]) return (1);
-
-			/* Extract the char */
-			sym = buf[2];
-
-			/* Extract the attr */
-			tmp = color_char_to_attr(buf[4]);
-
-			/* Paranoia */
-			if (tmp < 0) return (1);
-
-			/* Save the values */
-			k_ptr->d_char = sym;
-			k_ptr->d_attr = tmp;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'I' for "Info" (one line only) */
-		if (buf[0] == 'I')
-		{
-			int tval, sval, pval;
-
-			/* Scan for the values */
-			if (3 != sscanf(buf+2, "%d:%d:%d",
-			                &tval, &sval, &pval)) return (1);
-
-			/* Save the values */
-			k_ptr->tval = tval;
-			k_ptr->sval = sval;
-			k_ptr->pval = pval;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'W' for "More Info" (one line only) */
-		if (buf[0] == 'W')
-		{
-			int level, extra, wgt;
-			long cost;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
-			                &level, &extra, &wgt, &cost)) return (1);
-
-			/* Save the values */
-			k_ptr->level = level;
-			k_ptr->extra = extra;
-			k_ptr->weight = wgt;
-			k_ptr->cost = cost;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'A' for "Allocation" (one line only) */
-		if (buf[0] == 'A')
-		{
-			int i;
-
-			/* XXX XXX XXX Simply read each number following a colon */
-			for (i = 0, s = buf+1; s && (s[0] == ':') && s[1]; ++i)
-			{
-				/* Default chance */
-				k_ptr->chance[i] = 1;
-
-				/* Store the attack damage index */
-				k_ptr->locale[i] = atoi(s+1);
-
-				/* Find the slash */
-				t = strchr(s+1, '/');
-
-				/* Find the next colon */
-				s = strchr(s+1, ':');
-
-				/* If the slash is "nearby", use it */
-				if (t && (!s || t < s))
-				{
-					int chance = atoi(t+1);
-					if (chance > 0) k_ptr->chance[i] = chance;
-				}
-			}
-
-			/* Next... */
-			continue;
-		}
-
-		/* Hack -- Process 'P' for "power" and such */
-		if (buf[0] == 'P')
-		{
-			int ac, hd1, hd2, th, td, ta;
-
-			/* Scan for the values */
-			if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
-			                &ac, &hd1, &hd2, &th, &td, &ta)) return (1);
-
-			k_ptr->ac = ac;
-			k_ptr->dd = hd1;
-			k_ptr->ds = hd2;
-			k_ptr->to_h = th;
-			k_ptr->to_d = td;
-			k_ptr->to_a =  ta;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Hack -- Process 'F' for flags */
-		if (buf[0] == 'F')
-		{
-			/* Parse every entry textually */
-			for (s = buf + 2; *s; )
-			{
-				/* Find the end of this entry */
-				for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
-
-				/* Nuke and skip any dividers */
-				if (*t)
-				{
-					*t++ = '\0';
-					while (*t == ' ' || *t == '|') t++;
-				}
-
-				/* Parse this entry */
-				if (0 != grab_one_kind_flag(k_ptr, s)) return (5);
-
-				/* Start the next entry */
-				s = t;
-			}
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Store the name */
+		if (!(k_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 	}
 
+	/* Process 'G' for "Graphics" (one line only) */
+	else if (buf[0] == 'G')
+	{
+		char d_char;
+		int d_attr;
 
-	/* Complete the "name" and "text" sizes */
-	++k_head->name_size;
-	++k_head->text_size;
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
+		/* Paranoia */
+		if (!buf[2]) return (PARSE_ERROR_GENERIC);
+		if (!buf[3]) return (PARSE_ERROR_GENERIC);
+		if (!buf[4]) return (PARSE_ERROR_GENERIC);
 
-	/* No version yet */
-	if (!okay) return (2);
+		/* Extract d_char */
+		d_char = buf[2];
 
+		/* If we have a longer string than expected ... */
+		if (buf[5])
+		{
+			/* Advance "buf" on by 4 */
+			buf += 4;
+
+			/* Extract the colour */
+			d_attr = color_text_to_attr(buf);
+		}
+		else
+		{
+			/* Extract the attr */
+			d_attr = color_char_to_attr(buf[4]);
+		}
+
+		/* Paranoia */
+		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		k_ptr->d_attr = d_attr;
+		k_ptr->d_char = d_char;
+	}
+
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int tval, sval, pval;
+
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &tval, &sval, &pval)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		k_ptr->tval = tval;
+		k_ptr->sval = sval;
+		k_ptr->pval = pval;
+	}
+
+	/* Process 'W' for "More Info" (one line only) */
+	else if (buf[0] == 'W')
+	{
+		int level, extra, wgt;
+		long cost;
+
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
+			            &level, &extra, &wgt, &cost)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		k_ptr->level = level;
+		k_ptr->extra = extra;
+		k_ptr->weight = wgt;
+		k_ptr->cost = cost;
+	}
+
+	/* Process 'A' for "Allocation" (one line only) */
+	else if (buf[0] == 'A')
+	{
+		int i;
+
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* XXX Simply read each number following a colon */
+		for (i = 0, s = buf+1; s && (s[0] == ':') && s[1]; ++i)
+		{
+			/* Sanity check */
+			if (i > 3) return (PARSE_ERROR_TOO_MANY_ALLOCATIONS);
+
+			/* Default chance */
+			k_ptr->chance[i] = 1;
+
+			/* Store the attack damage index */
+			k_ptr->locale[i] = atoi(s+1);
+
+			/* Find the slash */
+			t = strchr(s+1, '/');
+
+			/* Find the next colon */
+			s = strchr(s+1, ':');
+
+			/* If the slash is "nearby", use it */
+			if (t && (!s || t < s))
+			{
+				int chance = atoi(t+1);
+				if (chance > 0) k_ptr->chance[i] = chance;
+			}
+		}
+	}
+
+	/* Hack -- Process 'P' for "power" and such */
+	else if (buf[0] == 'P')
+	{
+		int ac, hd1, hd2, th, td, ta;
+
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
+			            &ac, &hd1, &hd2, &th, &td, &ta)) return (PARSE_ERROR_GENERIC);
+
+		k_ptr->ac = ac;
+		k_ptr->dd = hd1;
+		k_ptr->ds = hd2;
+		k_ptr->to_h = th;
+		k_ptr->to_d = td;
+		k_ptr->to_a =  ta;
+	}
+
+	/* Hack -- Process 'F' for flags */
+	else if (buf[0] == 'F')
+	{
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry textually */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while (*t == ' ' || *t == '|') t++;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_kind_flag(k_ptr, s)) return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current k_ptr */
+		if (!k_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Get the text */
+		s = buf+2;
+
+		/* Store the text */
+		if (!add_text(&(k_ptr->text), head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
+
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
 }
+
 
 
 /*
@@ -2444,286 +2400,198 @@ static errr grab_one_activation(artifact_type *a_ptr, cptr what)
 	return (1);
 }
 
-
-
 /*
  * Initialize the "a_info" array, by parsing an ascii "template" file
  */
-errr init_a_info_txt(FILE *fp, char *buf)
+errr parse_a_info(char *buf, header *head)
 {
 	int i;
 
 	char *s, *t;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	artifact_type *a_ptr = NULL;
+	static artifact_type *a_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != a_head->v_major) ||
-			    (v2 != a_head->v_minor) ||
-			    (v3 != a_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		a_ptr = (artifact_type*)head->info_ptr + i;
 
+		/* Store the name */
+		if (!(a_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i < error_idx) return (4);
-
-			/* Verify information */
-			if (i >= a_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			a_ptr = &a_info[i];
-
-			/* Hack -- Verify space */
-			if (a_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!a_ptr->name) a_ptr->name = ++a_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(a_name + a_head->name_size, s);
-
-			/* Advance the index */
-			a_head->name_size += strlen(s);
-
-			/* Ignore everything */
-			a_ptr->flags3 |= (TR3_IGNORE_ACID);
-			a_ptr->flags3 |= (TR3_IGNORE_ELEC);
-			a_ptr->flags3 |= (TR3_IGNORE_FIRE);
-			a_ptr->flags3 |= (TR3_IGNORE_COLD);
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current a_ptr */
-		if (!a_ptr) return (3);
-
-
-#if 1
-
-		/* Process 'A' for "Activation & time" */
-		if (buf[0] == 'A')
-		{
-			int time, rand;
-	
-			/* Find the colon before the name */
-			s = strchr(buf + 2, ':');
-	
-			/* Verify that colon */
-			if (!s) return (1);
-	
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-	
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-	
-			/* Get the activation */
-			if (grab_one_activation(a_ptr, buf + 2)) return (1);
-	
-			/* Scan for the values */
-			if (2 != sscanf(s, "%d:%d",
-				            &time, &rand)) return (1);
-	
-			/* Save the values */
-			a_ptr->time = time;
-			a_ptr->randtime = rand;
-			
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (a_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!a_ptr->text) a_ptr->text = ++a_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(a_text + a_head->text_size, s);
-
-			/* Advance the index */
-			a_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-#endif
-
-		/* Process 'I' for "Info" (one line only) */
-		if (buf[0] == 'I')
-		{
-			int tval, sval, pval;
-
-			/* Scan for the values */
-			if (3 != sscanf(buf+2, "%d:%d:%d",
-			                &tval, &sval, &pval)) return (1);
-
-			/* Save the values */
-			a_ptr->tval = tval;
-			a_ptr->sval = sval;
-			a_ptr->pval = pval;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'W' for "More Info" (one line only) */
-		if (buf[0] == 'W')
-		{
-			int level, rarity, wgt;
-			long cost;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
-			                &level, &rarity, &wgt, &cost)) return (1);
-
-			/* Save the values */
-			a_ptr->level = level;
-			a_ptr->rarity = rarity;
-			a_ptr->weight = wgt;
-			a_ptr->cost = cost;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Hack -- Process 'P' for "power" and such */
-		if (buf[0] == 'P')
-		{
-			int ac, hd1, hd2, th, td, ta;
-
-			/* Scan for the values */
-			if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
-			                &ac, &hd1, &hd2, &th, &td, &ta)) return (1);
-
-			a_ptr->ac = ac;
-			a_ptr->dd = hd1;
-			a_ptr->ds = hd2;
-			a_ptr->to_h = th;
-			a_ptr->to_d = td;
-			a_ptr->to_a =  ta;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Hack -- Process 'F' for flags */
-		if (buf[0] == 'F')
-		{
-			/* Parse every entry textually */
-			for (s = buf + 2; *s; )
-			{
-				/* Find the end of this entry */
-				for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
-
-				/* Nuke and skip any dividers */
-				if (*t)
-				{
-					*t++ = '\0';
-					while ((*t == ' ') || (*t == '|')) t++;
-				}
-
-				/* Parse this entry */
-				if (0 != grab_one_artifact_flag(a_ptr, s)) return (5);
-
-				/* Start the next entry */
-				s = t;
-			}
-
-			/* Next... */
-			continue;
-		}
-
-
-		/* Oops */
-		return (6);
+		/* Ignore everything */
+		a_ptr->flags3 |= (TR3_IGNORE_MASK);
 	}
 
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int tval, sval, pval;
 
-	/* Complete the "name" and "text" sizes */
-	++a_head->name_size;
-	++a_head->text_size;
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
+		/* Scan for the values */
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &tval, &sval, &pval)) return (PARSE_ERROR_GENERIC);
 
-	/* No version yet */
-	if (!okay) return (2);
+		/* Save the values */
+		a_ptr->tval = tval;
+		a_ptr->sval = sval;
+		a_ptr->pval = pval;
+	}
 
+	/* Process 'W' for "More Info" (one line only) */
+	else if (buf[0] == 'W')
+	{
+		int level, rarity, wgt;
+		long cost;
+
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
+			            &level, &rarity, &wgt, &cost)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		a_ptr->level = level;
+		a_ptr->rarity = rarity;
+		a_ptr->weight = wgt;
+		a_ptr->cost = cost;
+	}
+
+	/* Process 'P' for "power" and such */
+	else if (buf[0] == 'P')
+	{
+		int ac, hd1, hd2, th, td, ta;
+
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
+			            &ac, &hd1, &hd2, &th, &td, &ta)) return (PARSE_ERROR_GENERIC);
+
+		a_ptr->ac = ac;
+		a_ptr->dd = hd1;
+		a_ptr->ds = hd2;
+		a_ptr->to_h = th;
+		a_ptr->to_d = td;
+		a_ptr->to_a = ta;
+	}
+
+	/* Process 'F' for flags */
+	else if (buf[0] == 'F')
+	{
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry textually */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while ((*t == ' ') || (*t == '|')) t++;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_artifact_flag(a_ptr, s)) return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+
+	/* Process 'A' for "Activation & time" */
+	else if (buf[0] == 'A')
+	{
+		int time, rand;
+
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Find the colon before the name */
+		s = strchr(buf + 2, ':');
+
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
+
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
+
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
+
+		/* Get the activation */
+		if (grab_one_activation(a_ptr, buf + 2)) return (PARSE_ERROR_GENERIC);
+
+		/* Scan for the values */
+		if (2 != sscanf(s, "%d:%d",
+			            &time, &rand)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		a_ptr->time = time;
+		a_ptr->randtime = rand;
+	}
+
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current a_ptr */
+		if (!a_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Get the text */
+		s = buf+2;
+
+		/* Store the text */
+		if (!add_text(&a_ptr->text, head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
+
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
 }
+
 
 
 /*
@@ -2782,268 +2650,189 @@ static bool grab_one_ego_item_flag(ego_item_type *e_ptr, cptr what)
 	return (1);
 }
 
-
-
-
 /*
  * Initialize the "e_info" array, by parsing an ascii "template" file
  */
-errr init_e_info_txt(FILE *fp, char *buf)
+errr parse_e_info(char *buf, header *head)
 {
 	int i;
-    int idxtval = 0;
 
 	char *s, *t;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	ego_item_type *e_ptr = NULL;
+	static ego_item_type *e_ptr = NULL;
+
+	static int cur_t = 0;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != e_head->v_major) ||
-			    (v2 != e_head->v_minor) ||
-			    (v3 != e_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		e_ptr = (ego_item_type*)head->info_ptr + i;
 
+		/* Store the name */
+		if (!(e_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i < error_idx) return (4);
-
-			/* Verify information */
-			if (i >= e_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			e_ptr = &e_info[i];
-
-			/* Hack -- Verify space */
-			if (e_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!e_ptr->name) e_ptr->name = ++e_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(e_name + e_head->name_size, s);
-
-			/* Advance the index */
-			e_head->name_size += strlen(s);
-
-			/* Next... */
-	    idxtval = 0;
-			continue;
-		}
-
-		/* There better be a current e_ptr */
-		if (!e_ptr) return (3);
-
-
-#if 1
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (e_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!e_ptr->text) e_ptr->text = ++e_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(e_text + e_head->text_size, s);
-
-			/* Advance the index */
-			e_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-#endif
-
-		/* Process 'X' for "Xtra" (one line only) */
-		if (buf[0] == 'X')
-		{
-            int rating, xtra;
-
-			/* Scan for the values */
-			if (2 != sscanf(buf+2, "%d:%d",
-                            &rating, &xtra)) return (1);
-
-			/* Save the values */
-			e_ptr->rating = rating;
-            e_ptr->xtra = xtra;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'W' for "More Info" (one line only) */
-		if (buf[0] == 'W')
-		{
-			int level, rarity, pad2;
-			long cost;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
-			                &level, &rarity, &pad2, &cost)) return (1);
-
-			/* Save the values */
-			e_ptr->level = level;
-			e_ptr->rarity = rarity;
-			/* e_ptr->weight = wgt; */
-			e_ptr->cost = cost;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Hack -- Process 'C' for "creation" */
-		if (buf[0] == 'C')
-		{
-			int th, td, ta, pv;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%d",
-			                &th, &td, &ta, &pv)) return (1);
-
-			e_ptr->max_to_h = th;
-			e_ptr->max_to_d = td;
-			e_ptr->max_to_a = ta;
-			e_ptr->max_pval = pv;
-
-			/* Next... */
-			continue;
-		}
-
-        /* Hack -- Process 'T' for allowed tval/sval (3 lines max) */
-        if (buf[0] == 'T')
-        {
-            int tval, minsval, maxsval;
-            
-            /* oops */
-            if (idxtval == 3) return (1);
-
-            /* Scan for the values */
-            if (3 != sscanf(buf+2, "%d:%d:%d",
-                            &tval, &minsval, &maxsval)) return (1);
-
-            e_ptr->tval[idxtval] = tval;
-            e_ptr->min_sval[idxtval] = minsval;
-            e_ptr->max_sval[idxtval] = maxsval;
-
-            /* Next... */
-            idxtval++;
-            continue;
-        }
-
-		/* Hack -- Process 'F' for flags */
-		if (buf[0] == 'F')
-		{
-			/* Parse every entry textually */
-			for (s = buf + 2; *s; )
-			{
-				/* Find the end of this entry */
-				for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
-
-				/* Nuke and skip any dividers */
-				if (*t)
-				{
-					*t++ = '\0';
-					while ((*t == ' ') || (*t == '|')) t++;
-				}
-
-				/* Parse this entry */
-				if (0 != grab_one_ego_item_flag(e_ptr, s)) return (5);
-
-				/* Start the next entry */
-				s = t;
-			}
-
-			/* Next... */
-			continue;
-		}
-
-		/* Oops */
-		return (6);
+		/* Start with the first of the tval indices */
+		cur_t = 0;
 	}
 
+	/* Process 'W' for "More Info" (one line only) */
+	else if (buf[0] == 'W')
+	{
+		int level, rarity, pad2;
+		long cost;
 
-	/* Complete the "name" and "text" sizes */
-	++e_head->name_size;
-	++e_head->text_size;
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
+			            &level, &rarity, &pad2, &cost)) return (PARSE_ERROR_GENERIC);
 
-	/* No version yet */
-	if (!okay) return (2);
+		/* Save the values */
+		e_ptr->level = level;
+		e_ptr->rarity = rarity;
+		/* e_ptr->weight = wgt; */
+		e_ptr->cost = cost;
+	}
 
+	/* Process 'X' for "Xtra" (one line only) */
+	else if (buf[0] == 'X')
+	{
+		int rating, xtra;
+
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (2 != sscanf(buf+2, "%d:%d", &rating, &xtra))
+			return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		e_ptr->rating = rating;
+		e_ptr->xtra = xtra;
+	}
+
+	/* Process 'T' for "Types allowed" (up to three lines) */
+	else if (buf[0] == 'T')
+	{
+		int tval, sval1, sval2;
+
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (3 != sscanf(buf+2, "%d:%d:%d",
+			            &tval, &sval1, &sval2)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		e_ptr->tval[cur_t] = (byte)tval;
+		e_ptr->min_sval[cur_t] = (byte)sval1;
+		e_ptr->max_sval[cur_t] = (byte)sval2;
+
+		/* Increase counter for 'possible tval' index */
+		cur_t++;
+
+		/* Allow only a limited number of T: lines */
+		if (cur_t > EGO_TVALS_MAX) return (PARSE_ERROR_GENERIC);
+	}
+
+	/* Hack -- Process 'C' for "creation" */
+	else if (buf[0] == 'C')
+	{
+		int th, td, ta, pv;
+
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%d",
+			            &th, &td, &ta, &pv)) return (PARSE_ERROR_GENERIC);
+
+		e_ptr->max_to_h = th;
+		e_ptr->max_to_d = td;
+		e_ptr->max_to_a = ta;
+		e_ptr->max_pval = pv;
+	}
+
+	/* Hack -- Process 'F' for flags */
+	else if (buf[0] == 'F')
+	{
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry textually */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while ((*t == ' ') || (*t == '|')) t++;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_ego_item_flag(e_ptr, s)) return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current e_ptr */
+		if (!e_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Get the text */
+		s = buf+2;
+
+		/* Store the text */
+		if (!add_text(&e_ptr->text, head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
+
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
 
 	/* Success */
 	return (0);
 }
+
 
 
 /*
@@ -3090,7 +2879,6 @@ static errr grab_one_basic_flag(monster_race *r_ptr, cptr what)
 	return (1);
 }
 
-
 /*
  * Grab one (spell) flag in a monster_race from a textual string
  */
@@ -3135,371 +2923,306 @@ static errr grab_one_spell_flag(monster_race *r_ptr, cptr what)
 	return (1);
 }
 
-
-
-
 /*
  * Initialize the "r_info" array, by parsing an ascii "template" file
  */
-errr init_r_info_txt(FILE *fp, char *buf)
+errr parse_r_info(char *buf, header *head)
 {
 	int i;
 
 	char *s, *t;
 
-	/* Not ready yet */
-	bool okay = FALSE;
-
 	/* Current entry */
-	monster_race *r_ptr = NULL;
+	static monster_race *r_ptr = NULL;
 
 
-	/* Just before the first record */
-	error_idx = -1;
-
-	/* Just before the first line */
-	error_line = -1;
-
-
-	/* Start the "fake" stuff */
-	r_head->name_size = 0;
-	r_head->text_size = 0;
-
-	/* Parse */
-	while (0 == my_fgets(fp, buf, 1024))
+	/* Process 'N' for "New/Number/Name" */
+	if (buf[0] == 'N')
 	{
-		/* Advance the line number */
-		error_line++;
+		/* Find the colon before the name */
+		s = strchr(buf+2, ':');
 
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
+		/* Verify that colon */
+		if (!s) return (PARSE_ERROR_GENERIC);
 
-		/* Verify correct "colon" format */
-		if (buf[1] != ':') return (1);
+		/* Nuke the colon, advance to the name */
+		*s++ = '\0';
 
+		/* Paranoia -- require a name */
+		if (!*s) return (PARSE_ERROR_GENERIC);
 
-		/* Hack -- Process 'V' for "Version" */
-		if (buf[0] == 'V')
-		{
-			int v1, v2, v3;
+		/* Get the index */
+		i = atoi(buf+2);
 
-			/* Scan for the values */
-			if ((3 != sscanf(buf+2, "%d.%d.%d", &v1, &v2, &v3)) ||
-			    (v1 != r_head->v_major) ||
-			    (v2 != r_head->v_minor) ||
-			    (v3 != r_head->v_patch))
-			{
-				return (2);
-			}
+		/* Verify information */
+		if (i <= error_idx) return (PARSE_ERROR_NON_SEQUENTIAL_RECORDS);
 
-			/* Okay to proceed */
-			okay = TRUE;
+		/* Verify information */
+		if (i >= head->info_num) return (PARSE_ERROR_TOO_MANY_ENTRIES);
 
-			/* Continue */
-			continue;
-		}
+		/* Save the index */
+		error_idx = i;
 
-		/* No version yet */
-		if (!okay) return (2);
+		/* Point at the "info" */
+		r_ptr = (monster_race*)head->info_ptr + i;
 
-
-		/* Process 'N' for "New/Number/Name" */
-		if (buf[0] == 'N')
-		{
-			/* Find the colon before the name */
-			s = strchr(buf+2, ':');
-
-			/* Verify that colon */
-			if (!s) return (1);
-
-			/* Nuke the colon, advance to the name */
-			*s++ = '\0';
-
-			/* Paranoia -- require a name */
-			if (!*s) return (1);
-
-			/* Get the index */
-			i = atoi(buf+2);
-
-			/* Verify information */
-			if (i < error_idx) return (4);
-
-			/* Verify information */
-			if (i >= r_head->info_num) return (2);
-
-			/* Save the index */
-			error_idx = i;
-
-			/* Point at the "info" */
-			r_ptr = &r_info[i];
-
-			/* Hack -- Verify space */
-			if (r_head->name_size + strlen(s) + 8 > fake_name_size) return (7);
-
-			/* Advance and Save the name index */
-			if (!r_ptr->name) r_ptr->name = ++r_head->name_size;
-
-			/* Append chars to the name */
-			strcpy(r_name + r_head->name_size, s);
-
-			/* Advance the index */
-			r_head->name_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-		/* There better be a current r_ptr */
-		if (!r_ptr) return (3);
-
-
-		/* Process 'D' for "Description" */
-		if (buf[0] == 'D')
-		{
-			/* Acquire the text */
-			s = buf+2;
-
-			/* Hack -- Verify space */
-			if (r_head->text_size + strlen(s) + 8 > fake_text_size) return (7);
-
-			/* Advance and Save the text index */
-			if (!r_ptr->text) r_ptr->text = ++r_head->text_size;
-
-			/* Append chars to the name */
-			strcpy(r_text + r_head->text_size, s);
-
-			/* Advance the index */
-			r_head->text_size += strlen(s);
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'G' for "Graphics" (one line only) */
-		if (buf[0] == 'G')
-		{
-			char sym;
-			int tmp;
-
-			/* Paranoia */
-			if (!buf[2]) return (1);
-			if (!buf[3]) return (1);
-			if (!buf[4]) return (1);
-
-			/* Extract the char */
-			sym = buf[2];
-
-			/* Extract the attr */
-			tmp = color_char_to_attr(buf[4]);
-
-			/* Paranoia */
-			if (tmp < 0) return (1);
-
-			/* Save the values */
-			r_ptr->d_char = sym;
-			r_ptr->d_attr = tmp;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'I' for "Info" (one line only) */
-		if (buf[0] == 'I')
-		{
-			int spd, hp1, hp2, aaf, ac, slp;
-
-			/* Scan for the other values */
-			if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
-			                &spd, &hp1, &hp2, &aaf, &ac, &slp)) return (1);
-
-			/* Save the values */
-			r_ptr->speed = spd;
-			r_ptr->hdice = hp1;
-			r_ptr->hside = hp2;
-			r_ptr->aaf = aaf;
-			r_ptr->ac = ac;
-			r_ptr->sleep = slp;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'W' for "More Info" (one line only) */
-		if (buf[0] == 'W')
-		{
-			int lev, rar, pad;
-			long exp;
-
-			/* Scan for the values */
-			if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
-			                &lev, &rar, &pad, &exp)) return (1);
-
-			/* Save the values */
-			r_ptr->level = lev;
-			r_ptr->rarity = rar;
-			r_ptr->extra = pad;
-			r_ptr->mexp = exp;
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'B' for "Blows" (up to four lines) */
-		if (buf[0] == 'B')
-		{
-			int n1, n2;
-
-			/* Find the next empty blow slot (if any) */
-			for (i = 0; i < 4; i++) if (!r_ptr->blow[i].method) break;
-
-			/* Oops, no more slots */
-			if (i == 4) return (1);
-
-			/* Analyze the first field */
-			for (s = t = buf+2; *t && (*t != ':'); t++) /* loop */;
-
-			/* Terminate the field (if necessary) */
-			if (*t == ':') *t++ = '\0';
-
-			/* Analyze the method */
-			for (n1 = 0; r_info_blow_method[n1]; n1++)
-			{
-				if (streq(s, r_info_blow_method[n1])) break;
-			}
-
-			/* Invalid method */
-			if (!r_info_blow_method[n1]) return (1);
-
-			/* Analyze the second field */
-			for (s = t; *t && (*t != ':'); t++) /* loop */;
-
-			/* Terminate the field (if necessary) */
-			if (*t == ':') *t++ = '\0';
-
-			/* Analyze effect */
-			for (n2 = 0; r_info_blow_effect[n2]; n2++)
-			{
-				if (streq(s, r_info_blow_effect[n2])) break;
-			}
-
-			/* Invalid effect */
-			if (!r_info_blow_effect[n2]) return (1);
-
-			/* Analyze the third field */
-			for (s = t; *t && (*t != 'd'); t++) /* loop */;
-
-			/* Terminate the field (if necessary) */
-			if (*t == 'd') *t++ = '\0';
-
-			/* Save the method */
-			r_ptr->blow[i].method = n1;
-
-			/* Save the effect */
-			r_ptr->blow[i].effect = n2;
-
-			/* Extract the damage dice and sides */
-			r_ptr->blow[i].d_dice = atoi(s);
-			r_ptr->blow[i].d_side = atoi(t);
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'F' for "Basic Flags" (multiple lines) */
-		if (buf[0] == 'F')
-		{
-			/* Parse every entry */
-			for (s = buf + 2; *s; )
-			{
-				/* Find the end of this entry */
-				for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
-
-				/* Nuke and skip any dividers */
-				if (*t)
-				{
-					*t++ = '\0';
-					while (*t == ' ' || *t == '|') t++;
-				}
-
-				/* Parse this entry */
-				if (0 != grab_one_basic_flag(r_ptr, s)) return (5);
-
-				/* Start the next entry */
-				s = t;
-			}
-
-			/* Next... */
-			continue;
-		}
-
-		/* Process 'S' for "Spell Flags" (multiple lines) */
-		if (buf[0] == 'S')
-		{
-			/* Parse every entry */
-			for (s = buf + 2; *s; )
-			{
-				/* Find the end of this entry */
-				for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
-
-				/* Nuke and skip any dividers */
-				if (*t)
-				{
-					*t++ = '\0';
-					while ((*t == ' ') || (*t == '|')) t++;
-				}
-
-				/* XXX XXX XXX Hack -- Read spell frequency */
-				if (1 == sscanf(s, "1_IN_%d", &i))
-				{
-					/* Extract a "frequency" */
-					r_ptr->freq_spell = r_ptr->freq_inate = 100 / i;
-
-					/* Start at next entry */
-					s = t;
-
-					/* Continue */
-					continue;
-				}
-
-				/* Parse this entry */
-				if (0 != grab_one_spell_flag(r_ptr, s)) return (5);
-
-				/* Start the next entry */
-				s = t;
-			}
-
-			/* Next... */
-			continue;
-		}
-
-		/* Oops */
-		return (6);
+		/* Store the name */
+		if (!(r_ptr->name = add_name(head, s)))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
 	}
 
+	/* Process 'D' for "Description" */
+	else if (buf[0] == 'D')
+	{
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
 
-	/* Complete the "name" and "text" sizes */
-	++r_head->name_size;
-	++r_head->text_size;
+		/* Get the text */
+		s = buf+2;
 
+		/* Store the text */
+		if (!add_text(&(r_ptr->text), head, s))
+			return (PARSE_ERROR_OUT_OF_MEMORY);
+	}
 
-	/* XXX XXX XXX XXX The ghost is unused */
+	/* Process 'G' for "Graphics" (one line only) */
+	else if (buf[0] == 'G')
+	{
+		char d_char;
+		int d_attr;
+
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Paranoia */
+		if (!buf[2]) return (PARSE_ERROR_GENERIC);
+		if (!buf[3]) return (PARSE_ERROR_GENERIC);
+		if (!buf[4]) return (PARSE_ERROR_GENERIC);
+
+		/* Extract d_char */
+		d_char = buf[2];
+
+		/* If we have a longer string than expected ... */
+		if (buf[5])
+		{
+			/* Advance "buf" on by 4 */
+			buf += 4;
+
+			/* Extract the colour */
+			d_attr = color_text_to_attr(buf);
+		}
+		else
+		{
+			/* Extract the attr */
+			d_attr = color_char_to_attr(buf[4]);
+		}
+
+		/* Paranoia */
+		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		r_ptr->d_attr = d_attr;
+		r_ptr->d_char = d_char;
+	}
+
+	/* Process 'I' for "Info" (one line only) */
+	else if (buf[0] == 'I')
+	{
+		int spd, hp1, hp2, aaf, ac, slp;
+
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the other values */
+		if (6 != sscanf(buf+2, "%d:%dd%d:%d:%d:%d",
+			            &spd, &hp1, &hp2, &aaf, &ac, &slp)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		r_ptr->speed = spd;
+		r_ptr->hdice = hp1;
+		r_ptr->hside = hp2;
+		r_ptr->aaf = aaf;
+		r_ptr->ac = ac;
+		r_ptr->sleep = slp;
+	}
+
+	/* Process 'W' for "More Info" (one line only) */
+	else if (buf[0] == 'W')
+	{
+		int lev, rar, pad;
+		long exp;
+
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Scan for the values */
+		if (4 != sscanf(buf+2, "%d:%d:%d:%ld",
+			            &lev, &rar, &pad, &exp)) return (PARSE_ERROR_GENERIC);
+
+		/* Save the values */
+		r_ptr->level = lev;
+		r_ptr->rarity = rar;
+		r_ptr->extra = pad;
+		r_ptr->mexp = exp;
+	}
+
+	/* Process 'B' for "Blows" */
+	else if (buf[0] == 'B')
+	{
+		int n1, n2;
+
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Find the next empty blow slot (if any) */
+		for (i = 0; i < MONSTER_BLOW_MAX; i++) if (!r_ptr->blow[i].method) break;
+
+		/* Oops, no more slots */
+		if (i == MONSTER_BLOW_MAX) return (PARSE_ERROR_GENERIC);
+
+		/* Analyze the first field */
+		for (s = t = buf+2; *t && (*t != ':'); t++) /* loop */;
+
+		/* Terminate the field (if necessary) */
+		if (*t == ':') *t++ = '\0';
+
+		/* Analyze the method */
+		for (n1 = 0; r_info_blow_method[n1]; n1++)
+		{
+			if (streq(s, r_info_blow_method[n1])) break;
+		}
+
+		/* Invalid method */
+		if (!r_info_blow_method[n1]) return (PARSE_ERROR_GENERIC);
+
+		/* Analyze the second field */
+		for (s = t; *t && (*t != ':'); t++) /* loop */;
+
+		/* Terminate the field (if necessary) */
+		if (*t == ':') *t++ = '\0';
+
+		/* Analyze effect */
+		for (n2 = 0; r_info_blow_effect[n2]; n2++)
+		{
+			if (streq(s, r_info_blow_effect[n2])) break;
+		}
+
+		/* Invalid effect */
+		if (!r_info_blow_effect[n2]) return (PARSE_ERROR_GENERIC);
+
+		/* Analyze the third field */
+		for (s = t; *t && (*t != 'd'); t++) /* loop */;
+
+		/* Terminate the field (if necessary) */
+		if (*t == 'd') *t++ = '\0';
+
+		/* Save the method */
+		r_ptr->blow[i].method = n1;
+
+		/* Save the effect */
+		r_ptr->blow[i].effect = n2;
+
+		/* Extract the damage dice and sides */
+		r_ptr->blow[i].d_dice = atoi(s);
+		r_ptr->blow[i].d_side = atoi(t);
+	}
+
+	/* Process 'F' for "Basic Flags" (multiple lines) */
+	else if (buf[0] == 'F')
+	{
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while (*t == ' ' || *t == '|') t++;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_basic_flag(r_ptr, s)) return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+
+	/* Process 'S' for "Spell Flags" (multiple lines) */
+	else if (buf[0] == 'S')
+	{
+		/* There better be a current r_ptr */
+		if (!r_ptr) return (PARSE_ERROR_MISSING_RECORD_HEADER);
+
+		/* Parse every entry */
+		for (s = buf + 2; *s; )
+		{
+			/* Find the end of this entry */
+			for (t = s; *t && (*t != ' ') && (*t != '|'); ++t) /* loop */;
+
+			/* Nuke and skip any dividers */
+			if (*t)
+			{
+				*t++ = '\0';
+				while ((*t == ' ') || (*t == '|')) t++;
+			}
+
+			/* XXX Hack -- Read spell frequency */
+			if (1 == sscanf(s, "1_IN_%d", &i))
+			{
+				/* Sanity check */
+				if ((i < 1) || (i > 100))
+					return (PARSE_ERROR_INVALID_SPELL_FREQ);
+
+				/* Extract a "frequency" */
+				r_ptr->freq_spell = r_ptr->freq_innate = 100 / i;
+
+				/* Start at next entry */
+				s = t;
+
+				/* Continue */
+				continue;
+			}
+
+			/* Parse this entry */
+			if (0 != grab_one_spell_flag(r_ptr, s))
+				return (PARSE_ERROR_INVALID_FLAG);
+
+			/* Start the next entry */
+			s = t;
+		}
+	}
+	else
+	{
+		/* Oops */
+		return (PARSE_ERROR_UNDEFINED_DIRECTIVE);
+	}
+
+#if 0
+	/* XXX XXX XXX The ghost is unused */
 
 	/* Mega-Hack -- acquire "ghost" */
-	r_ptr = &r_info[MAX_R_IDX-1];
+	r_ptr = &r_info[z_info->r_max-1];
 
-	/* Acquire the next index */
-	r_ptr->name = r_head->name_size;
-	r_ptr->text = r_head->text_size;
+	/* Get the next index */
+	r_ptr->name = head->name_size;
+	r_ptr->text = head->text_size;
 
 	/* Save some space for the ghost info */
-	r_head->name_size += 64;
-	r_head->text_size += 64;
+	head->name_size += 64;
+	head->text_size += 64;
 
 	/* Hack -- Default name/text for the ghost */
 	strcpy(r_name + r_ptr->name, "Nobody, the Undefined Ghost");
 	strcpy(r_text + r_ptr->text, "It seems strangely familiar...");
 
-	/* Hack -- set the char/attr info */
+	/* Hack -- set the attr/char info */
 	r_ptr->d_attr = r_ptr->x_attr = TERM_WHITE;
 	r_ptr->d_char = r_ptr->x_char = 'G';
 
@@ -3514,15 +3237,12 @@ errr init_r_info_txt(FILE *fp, char *buf)
 
 	/* Hack -- Try to prevent a few "potential" bugs */
 	r_ptr->mexp = 1L;
-
-
-	/* No version yet */
-	if (!okay) return (2);
-
+#endif
 
 	/* Success */
 	return (0);
 }
+
 
 
 /*

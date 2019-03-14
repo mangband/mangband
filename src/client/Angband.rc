@@ -7,7 +7,10 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "windows.h"
+#ifndef IDC_STATIC
+#define IDC_STATIC				-1
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -27,18 +30,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -61,7 +64,7 @@ ANGBAND                 ICON                    "Angband.ico"
 // Menu
 //
 
-ANGBAND MENU
+ANGBAND MENU 
 BEGIN
     POPUP "&File"
     BEGIN
@@ -91,8 +94,16 @@ BEGIN
             MENUITEM "Term-&7 Window",              208
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Graphics",                   221
-        MENUITEM "&Sound",                      222
+		POPUP "&Graphics"
+		BEGIN
+			MENUITEM "&Off",						221
+			MENUITEM "&Standart (8x8)",             222
+			MENUITEM "&Adam Bolt's (16x16)",        223
+			MENUITEM "&David Gervais' (32x32)",     224
+//			MENUITEM SEPARATOR
+//			MENUITEM "&Respect Tile Size",			225
+		END
+        MENUITEM "&Sound",                      226
     END
     POPUP "&Help"
     BEGIN
@@ -112,7 +123,7 @@ CAPTION "About..."
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,226,152,50,14
-    LTEXT           "MAngband 1.4.0",IDC_STATIC,38,15,76,8
+    LTEXT           "MAngband 1.5.0",IDC_STATIC,38,15,76,8
     LTEXT           "Based on Moria - Copyright (c) 1985 Robert Alan Koeneke",IDC_STATIC,38,28,184,8
     LTEXT           "and Umoria - Copyright (c) 1989 James E. Wilson",IDC_STATIC,52,36,154,8
     LTEXT           "Angband 2.0 - 2.4: Alex Cutler, Andy Astrand, Sean Marsh, Geoff Hill, Charles Teague, and others",IDC_STATIC,38,51,221,16
@@ -122,8 +133,9 @@ BEGIN
     LTEXT           "Curses/X11 Module: Ben Harrison, Torbj|rn Lindgren",IDC_STATIC,37,93,221,10
     LTEXT           "MAngband 0.1 - 0.5: Keldon Jones (keldon@umr.edu)",IDC_STATIC,37,106,221,10
     LTEXT           "MAngband 0.6 - 0.7: Alex Dingle (adingle@crud.net)",IDC_STATIC,37,119,221,10
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,37,136,217,1
-    LTEXT           "Visit the MAngband homepage at: www.mangband.org",IDC_STATIC,37,140,173,8
+    LTEXT           "MAngband 0.8 - 1.0: Robert L. Seifer (Crimson)",IDC_STATIC,37,132,221,10
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,37,149,217,1
+    LTEXT           "Visit the MAngband homepage at: www.mangband.org",IDC_STATIC,37,153,173,8
 END
 
 
@@ -133,7 +145,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     "ABOUT", DIALOG
     BEGIN

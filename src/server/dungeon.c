@@ -1,4 +1,5 @@
 /* Purpose: Angband game engine */
+/* Purpose: Angband game engine */
 
 /*
  * Copyright (c) 1989 James E. Wilson, Robert A. Koeneke
@@ -8,10 +9,8 @@
  * included in all such copies.
  */
 
-#define SERVER
+#include "mangband.h"
 
-#include "angband.h"
-#include "externs.h"
 
 bool is_boring(byte feat)
 {
@@ -29,10 +28,10 @@ int find_player(s32b id)
 		
 		if (p_ptr->id == id) return i;
 	}
-	
+
 	/* assume none */
 	return 0;
-}	
+}
 
 
 int find_player_name(char *name)
@@ -45,11 +44,24 @@ int find_player_name(char *name)
 		
 		if (!strcmp(p_ptr->name, name)) return i;
 	}
-	
+
 	/* assume none */
 	return 0;
 }
 
+int count_players(int Depth)
+{
+	int i, count = 0;
+
+	/* Count players on this depth */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		/* Count */
+		if (Players[i]->dun_depth == Depth) count++;
+	}
+
+	return count;
+}
 
 /*
  * Return a "feeling" (or NULL) about an item.  Method 1 (Heavy).
@@ -141,7 +153,7 @@ static void sense_inventory(int Ind)
 
 	int		plev = p_ptr->lev;
 
-	bool	heavy = FALSE;
+	bool	heavy = ((p_ptr->cp_ptr->flags & CF_PSEUDO_ID_HEAVY) ? TRUE : FALSE);
 
 	cptr	feel;
 
@@ -156,73 +168,15 @@ static void sense_inventory(int Ind)
 	/* No sensing when confused */
 	if (p_ptr->confused) return;
 
-	/* Analyze the class */
-	switch (p_ptr->pclass)
+	if (p_ptr->cp_ptr->flags & CF_PSEUDO_ID_IMPROV)
 	{
-		case CLASS_WARRIOR:
-		{
-			/* Good sensing */
-			if (0 != rand_int(9000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_MAGE:
-		{
-			/* Very bad (light) sensing */
-			if (0 != rand_int(240000L / (plev + 5))) return;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_PRIEST:
-		{
-			/* Good (light) sensing */
-			if (0 != rand_int(10000L / (plev * plev + 40))) return;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_ROGUE:
-		{
-			/* Okay sensing */
-			if (0 != rand_int(20000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_RANGER:
-		{
-			if (0 != rand_int(20000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
-
-		case CLASS_PALADIN:
-		{
-			/* Bad sensing */
-			if (0 != rand_int(80000L / (plev * plev + 40))) return;
-
-			/* Heavy sensing */
-			heavy = TRUE;
-
-			/* Done */
-			break;
-		}
+		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev * plev + p_ptr->cp_ptr->sense_div)))
+			return;
+	}
+	else
+	{
+		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev + p_ptr->cp_ptr->sense_div)))
+			return;
 	}
 
 
@@ -264,14 +218,14 @@ static void sense_inventory(int Ind)
 			}
 		}
 
-		/* Skip non-sense machines */
+		/* Hack non-sense machines */
 		if (!okay) continue;
 
 		/* We know about it already, do not tell us again */
 		if (o_ptr->ident & ID_SENSE) continue;
 
 		/* It is fully known, no information needed */
-		if (object_known_p(Ind, o_ptr)) continue;
+		if (object_known_p(p_ptr, o_ptr)) continue;
 
 		/* Occasional failure on inventory items */
 		if ((i < INVEN_WIELD) && (0 != rand_int(5))) continue;
@@ -283,10 +237,12 @@ static void sense_inventory(int Ind)
 		if (!feel) continue;
 
 		/* Stop everything */
-		if (p_ptr->disturb_minor) disturb(Ind, 0, 0);
+		if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 
 		/* Get an object description */
 		object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+		sound(Ind, MSG_PSEUDOID);
 
 		/* Message (equipment) */
 		if (i >= INVEN_WIELD)
@@ -432,6 +388,7 @@ static void regenmana(int Ind, int percent)
 static void regen_monsters(void)
 {
 	int i, frac;
+	int time, timefactor;
 
 	/* Regenerate everyone */
 	for (i = 1; i < m_max; i++)
@@ -442,6 +399,21 @@ static void regen_monsters(void)
 
 		/* Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
+
+		/* Check if it's time to regenerate */
+
+		/* Determine basic frequency of regen in game turns */
+		time = 100; /* Default is every 100 turns (level_speed(m_ptr->dun_depth)/1000) */;
+		
+		/* Scale frequency by players local time bubble */
+		if (m_ptr->closest_player > 0 && m_ptr->closest_player <= NumPlayers)
+		{
+			timefactor = base_time_factor(m_ptr->closest_player,0);
+			time = time / ((float)timefactor / 100);
+		}
+
+		/* Not yet */
+		if ((turn.turn % time)) continue;
 
 		/* Allow regeneration (if needed) */
 		if (m_ptr->hp < m_ptr->maxhp)
@@ -464,9 +436,59 @@ static void regen_monsters(void)
 			/* Update health bars */
 			update_health(i);
 		}
+		/* HACK !!! Act like nobody ever hurt this monster */
+		else
+		{
+			for (frac = 1; frac < NumPlayers + 1; frac++)
+				Players[frac]->mon_hrt[i] = FALSE;
+		}
 	}
 }
 
+
+static void play_ambient_sound(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+
+	if (Depth < 0) return;
+
+	/* Town sound */
+	if (Depth == 0)
+	{
+		/* Hack - is it daytime or nighttime? */
+		if (IS_DAY)
+		{
+			/* It's day. */
+			sound(Ind, MSG_AMBIENT_DAY);
+		}
+		else
+		{
+			/* It's night. */
+			sound(Ind, MSG_AMBIENT_NITE);
+		}
+	}
+
+	/* Dungeon level 1-20 */
+	else if (Depth <= 20)
+		sound(Ind, MSG_AMBIENT_DNG1);
+
+	/* Dungeon level 21-40 */
+	else if (Depth <= 40)
+		sound(Ind, MSG_AMBIENT_DNG2);
+
+	/* Dungeon level 41-60 */
+	else if (Depth <= 60)
+		sound(Ind, MSG_AMBIENT_DNG3);
+
+	/* Dungeon level 61-80 */
+	else if (Depth <= 80)
+		sound(Ind, MSG_AMBIENT_DNG4);
+
+	/* Dungeon level 80- */
+	else
+		sound(Ind, MSG_AMBIENT_DNG5);
+}
 
 
 /*
@@ -482,13 +504,18 @@ static void process_world(int Ind)
 	cave_type		*c_ptr;
 	byte			*w_ptr;
 
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Every 50 game turns */
-	if (turn % 50) return;
+	if (turn.turn % 50) return;
 
 
 	/*** Check the Time and Load ***/
 	/* The server will never quit --KLJ-- */
+
+	/* Play an ambient sound at regular intervals. */
+	if (!(turn.turn % ((10L * TOWN_DAWN) / 4))) play_ambient_sound(Ind);
 
 	/*** Handle the "town" (stores and sunshine) ***/
 
@@ -496,13 +523,13 @@ static void process_world(int Ind)
 	if (p_ptr->dun_depth <= 0)
 	{
 		/* Hack -- Daybreak/Nighfall in town */
-		if (!(turn % ((10L * TOWN_DAWN) / 2)))
+		if (!(turn.turn % ((10L * TOWN_DAWN) / 2)))
 		{
 			int Depth = p_ptr->dun_depth;
 			bool dawn;
 
 			/* Check for dawn */
-			dawn = (!(turn % (10L * TOWN_DAWN)));
+			dawn = (!(turn.turn % (10L * TOWN_DAWN)));
 
 			/* Day breaks */
 			if (dawn)
@@ -510,24 +537,28 @@ static void process_world(int Ind)
 				/* Message */
 				msg_print(Ind, "The sun has risen.");
 	
-				/* Hack -- Scan the level */
-				for (y = 0; y < MAX_HGT; y++)
+				/* Make sure we're not in a store */
+				if ((Depth == 0) && (p_ptr->store_num == -1))
 				{
-					for (x = 0; x < MAX_WID; x++)
+					/* Hack -- Scan the level */
+					for (y = 0; y < MAX_HGT; y++)
 					{
-						/* Get the cave grid */
-						c_ptr = &cave[Depth][y][x];
-						w_ptr = &p_ptr->cave_flag[y][x];
+						for (x = 0; x < MAX_WID; x++)
+						{
+							/* Get the cave grid */
+							c_ptr = &cave[Depth][y][x];
+							w_ptr = &p_ptr->cave_flag[y][x];
 
-						/* Assume lit */
-						c_ptr->info |= CAVE_GLOW;
+							/* Assume lit */
+							c_ptr->info |= CAVE_GLOW;
 
-						/* Hack -- Memorize lit grids if allowed */
-						if ((!Depth) && (p_ptr->view_perma_grids)) *w_ptr |= CAVE_MARK;
+							/* Hack -- Memorize lit grids if allowed */
+							if ((!Depth) && option_p(p_ptr,VIEW_PERMA_GRIDS)) *w_ptr |= CAVE_MARK;
 
-						/* Hack -- Notice spot */
-						note_spot(Ind, y, x);						
-					}			
+							/* Hack -- Notice spot */
+							note_spot(Ind, y, x);
+						}
+					}
 				}
 			}
 
@@ -537,28 +568,31 @@ static void process_world(int Ind)
 				/* Message  */
 				msg_print(Ind, "The sun has fallen.");
 
-				 /* Hack -- Scan the level */
-				for (y = 0; y < MAX_HGT; y++)
-				{					
-					for (x = 0; x < MAX_WID; x++)
+				/* Make sure we're not in a store */
+				if ((Depth == 0) && (p_ptr->store_num == -1))
+				{
+					/* Hack -- Scan the level */
+					for (y = 0; y < MAX_HGT; y++)
 					{
-						/*  Get the cave grid */
-						c_ptr = &cave[Depth][y][x];
-						w_ptr = &p_ptr->cave_flag[y][x];
-
-						/*  Darken "boring" features */
-						if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
+						for (x = 0; x < MAX_WID; x++)
 						{
-							  /* Forget the grid */ 
-							c_ptr->info &= ~CAVE_GLOW;
-							*w_ptr &= ~CAVE_MARK;
+							/*  Get the cave grid */
+							c_ptr = &cave[Depth][y][x];
+							w_ptr = &p_ptr->cave_flag[y][x];
 
-							  /* Hack -- Notice spot */
-							note_spot(Ind, y, x);
-						}						
+							/*  Darken "boring" features */
+							if (is_boring(c_ptr->feat) && !(c_ptr->info & CAVE_ROOM))
+							{
+								/* Forget the grid */
+								c_ptr->info &= ~CAVE_GLOW;
+								*w_ptr &= ~CAVE_MARK;
+
+								/* Hack -- Notice spot */
+								note_spot(Ind, y, x);
+							}
+						}
 					}
-					
-				}  				
+				}
 			}
 
 			/* Update the monsters */
@@ -591,9 +625,9 @@ static void process_world(int Ind)
 	if (rand_int(MAX_M_ALLOC_CHANCE) == 0)
 	{
 		/* Set the monster generation depth */
-		if (p_ptr->dun_depth >= 0)		
+		if (p_ptr->dun_depth >= 0)
 			monster_level = p_ptr->dun_depth;
-		
+
 		else monster_level = 2 + (wild_info[p_ptr->dun_depth].radius / 2);
 
 		/* Make a new monster */
@@ -739,216 +773,169 @@ static void process_command(void)
 #endif
 
 /*
- * Check for nearby players or monsters and attempt to do something useful.
+ * Check for nearby players or monsters and attack.
  *
- * This function should only be called if the player is "lagging" and helpless
- * to do anything about the situation.  This is not intended to be incredibly
- * useful, merely to prevent deaths due to extreme lag.
+ * This function helps out the player by continuing to melee any monster
+ * he attacks. If there are nearby monsters and the player has chosen no
+ * action, a target will be selected at random and attacked until the 
+ * player chooses some other action or the target dies.
+ *
+ * This function returns FALSE if no attack has been performed, TRUE if an attack
+ * has been performed.
  */
- /* This function returns a 0 if no attack has been performed, a 1 if an attack
-  * has been performed and there are still monsters around, and a 2 if an attack
-  * has been performed and all of the surrounding monsters are dead.
-  */
-  /* We now intelligently try to decide which monster to autoattack.  Our current
-   * algorithm is to fight first Q's, then any monster that is 20 levels higher
-   * than its peers, then the most proportionatly wounded monster, then the highest
-   * level monster, then the monster with the least hit points.
-   */ 
 static int auto_retaliate(int Ind)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr, *p_target_ptr = NULL, *prev_p_target_ptr = NULL;
-	int i;
-	monster_type *m_ptr, *m_target_ptr = NULL, *prev_m_target_ptr = NULL;
-
-	/* Check each player */
-	for (i = 1; i <= NumPlayers; i++)
-	{
-		q_ptr = Players[i];
-
-		/* Skip players not at this depth */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
-
-		/* Skip ourselves */
-		if (Ind == i) continue;
-
-		/* Skip players we aren't hostile to */
-		if (!check_hostile(Ind, i)) continue;
-
-		/* Skip players we cannot see */
-		if (!p_ptr->play_vis[i]) continue;
-
-		/* A hostile player is next to us */
-		if (distance(p_ptr->py, p_ptr->px, q_ptr->py, q_ptr->px) == 1)
-		{
-			/* Figure out if this is the best target so far */
-			if (p_target_ptr)
-			{
-				/* If we are 15 levels over the old target, make this
-				 * player our new target.
-				 */
-				if ((q_ptr->lev - 15) >= p_target_ptr->lev)
-				{
-					prev_p_target_ptr = p_target_ptr;
-					p_target_ptr = q_ptr;
-				}
-				/* Otherwise attack this player if he is more proportionatly
-				 * wounded than our old target.
-				 */
-				else if (q_ptr->chp * p_target_ptr->mhp < p_target_ptr->chp * q_ptr->mhp)
-				{
-					prev_p_target_ptr = p_target_ptr;
-					p_target_ptr = q_ptr;
-				}
-				/* If it is a tie attack the higher level player */
-				else if (q_ptr->chp * p_target_ptr->mhp == p_target_ptr->chp * q_ptr->mhp)
-				{
-					if (q_ptr->lev > p_target_ptr->lev)
-					{
-						prev_p_target_ptr = p_target_ptr;
-						p_target_ptr = q_ptr;
-					}
-					/* If it is a tie attack the player with less hit points */
-					else if (q_ptr->lev == p_target_ptr->lev)
-					{
-						if (q_ptr->chp < p_target_ptr->chp)
-						{
-							prev_p_target_ptr = p_target_ptr;
-							p_target_ptr = q_ptr;
-						}
-					}
-				}
-			}
-			else
-			{
-				prev_p_target_ptr = p_target_ptr;
-				p_target_ptr = q_ptr;
-			}
-		}
-	}
-
-
-	/* Check each monster */
-	for (i = 1; i < m_max; i++)
-	{
-		m_ptr = &m_list[i];
-
-		/* Paranoia -- Skip dead monsters */
-		if (!m_ptr->r_idx) continue;
-
-		/* Skip monsters that aren't at this depth */
-		if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
-
-		/* Make sure that the player can see this monster */
-		if (!p_ptr->mon_vis[i]) continue;
-
-		/* A monster is next to us */
-		if (distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx) == 1)
-		{
-			/* Figure out if this is the best target so far */
-			if (m_target_ptr)
-			{
-				/* If it is a Q, then make it our new target. */
-				/* We don't handle the case of choosing between two
-				 * Q's because if the player is standing next to two Q's
-				 * he deserves whatever punishment he gets.
-				 */
-				if (r_info[m_ptr->r_idx].d_char == 'Q')
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* Otherwise if it is 20 levels higher than everything
-				 * else attack it.
-				 */
-				else if ((r_info[m_ptr->r_idx].level - 20) >=
-						r_info[m_target_ptr->r_idx].level)
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* Otherwise if it is the most proportionatly wounded monster
-				 * attack it.
-				 */
-				else if (m_ptr->hp * m_target_ptr->maxhp < m_target_ptr->hp * m_ptr->maxhp)
-				{
-					prev_m_target_ptr = m_target_ptr;
-					m_target_ptr = m_ptr;
-				}
-				/* If it is a tie attack the higher level monster */
-				else if (m_ptr->hp * m_target_ptr->maxhp == m_target_ptr->hp * m_ptr->maxhp)
-				{
-					if (r_info[m_ptr->r_idx].level > r_info[m_target_ptr->r_idx].level)
-					{
-						prev_m_target_ptr = m_target_ptr;
-						m_target_ptr = m_ptr;
-					}
-					/* If it is a tie attack the monster with less hit points */
-					else if (r_info[m_ptr->r_idx].level == r_info[m_target_ptr->r_idx].level)
-					{
-						if (m_ptr->hp < m_target_ptr->hp)
-						{
-							prev_m_target_ptr = m_target_ptr;
-							m_target_ptr = m_ptr;
-						}
-					}
-				}
-			}
-			else
-			{
-				prev_m_target_ptr = m_target_ptr;
-				m_target_ptr = m_ptr;
-			}
-		}
-	}
-
-	/* If we have a player target, attack him. */
-	if (p_target_ptr)
-	{
-		/* Attack him */
-		py_attack(Ind, p_target_ptr->py, p_target_ptr->px);
-
-		/* Check if he is still alive or another targets exists */
-		if ((!p_target_ptr->death) || (prev_p_target_ptr) || (m_target_ptr))
-		{
-			/* We attacked something */
-			return 1;
-		}
-		else
-		{
-			/* Otherwise return 2 to indicate we are no longer
-			 * autoattacking anything.
-			 */
-			return 2;
-		}
-	}
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr;
+	int i, targets, ax, ay, tx, ty, target;
+	cave_type	*c_ptr;
+	int targetlist[8];
+	bool istarget = FALSE;
+	monster_type *m_ptr;
 
 	/* The dungeon master does not fight his or her offspring */
-	if (!strcmp(p_ptr->name, cfg_dungeon_master)) return FALSE;
+	if (p_ptr->dm_flags & DM_MONSTER_FRIEND) return FALSE;
 
-	/* If we have a target to attack, attack it! */
-	if (m_target_ptr)
+	/* Check preventive inscription '^O' */ 
+	if (CPI(p_ptr, 'O')) return FALSE;
+
+	/* Check melee weapon inscription '!O' */
+	if (CGI(&(p_ptr->inventory[INVEN_WIELD]), 'O')) return FALSE;
+
+	/* How many possible targets around us? */
+	targets = 0;
+	for(i = 0; i < 8; i++)
 	{
-		/* Attack it */
-		py_attack(Ind, m_target_ptr->fy, m_target_ptr->fx);
+		ax = p_ptr->px + ddx_ddd[i];
+		ay = p_ptr->py + ddy_ddd[i];
+		if(in_bounds(p_ptr->dun_depth,ay,ax))
+		{
+			/* Anything here? */
+			c_ptr = &cave[p_ptr->dun_depth][ay][ax];
+			/* Another player perhaps? */
+			if (c_ptr->m_idx < 0)
+			{
+				/* Skip players we cannot see */
+				if (!p_ptr->play_vis[0 - c_ptr->m_idx]) continue;
 
-		/* Check if it is still alive or another targets exists */
-		if ((m_target_ptr->r_idx) || (prev_m_target_ptr) || (p_target_ptr))
-		{
-			/* We attacked something */
-			return 1;
-		}
-		else
-		{
-			/* Otherwise return 2 to indicate we are no longer
-			 * autoattacking anything.
-			 */
-			return 2;
+				/* If they are hostile, they are a fair target */
+				if(pvp_okay(Ind, 0 - c_ptr->m_idx, 1))
+				{
+					targetlist[targets++] = i;
+					if(p_ptr->health_who == c_ptr->m_idx)
+					{
+						q_ptr = Players[0-c_ptr->m_idx];
+						istarget = TRUE;
+						tx = q_ptr->px;
+						ty = q_ptr->py;
+					}
+				}
+			}
+			/* Or perhaps a monster */
+			else if(c_ptr->m_idx)
+			{
+				/* Make sure that the player can see this monster */
+				if (!p_ptr->mon_vis[c_ptr->m_idx]) continue;
+				
+				targetlist[targets++] = i;
+				if(p_ptr->health_who == c_ptr->m_idx)
+				{
+					m_ptr = &m_list[c_ptr->m_idx];
+					istarget = TRUE;
+					tx = m_ptr->fx;
+					ty = m_ptr->fy;
+				}
+			}
 		}
 	}
 
-	/* Nothing was attacked. */
-	return 0;
+	/* If no available targets bail out */
+	if(!targets) return FALSE;
+
+	/* If our current target is available, use that */
+	if(istarget)
+	{
+		ax = tx;
+		ay = ty;
+	}
+	else
+	{
+		/* Pick one of the available targets */
+		target = rand_int(targets);
+		ax = p_ptr->px + ddx_ddd[targetlist[target]];
+		ay = p_ptr->py + ddy_ddd[targetlist[target]];
+	}
+	
+	/* Attack it! */
+	py_attack(Ind, ay, ax);
+
+	return TRUE;
 }
+
+/*
+ * Hack -- helper function for "process_player()"
+ *
+ * Check for changes in the "monster memory"
+ */
+static void player_track_monster(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	bool changed = FALSE;
+
+	/* Tracking a monster */
+	if (p_ptr->monster_race_idx)
+	{
+		/* Get the monster lore pointers */
+		monster_lore *l_ptr = p_ptr->l_list + p_ptr->monster_race_idx;
+		monster_lore *old_l = &p_ptr->old_l;
+
+		for (i = 0; i < MONSTER_BLOW_MAX; i++)
+		{
+			if (old_l->blows[i] != l_ptr->blows[i])
+			{
+				changed = TRUE;
+				break;
+			}
+		}
+
+		/* Check for change of any kind */
+		if (changed ||
+		    (p_ptr->old_monster_race_idx != p_ptr->monster_race_idx) ||
+		    (old_l->flags1 != l_ptr->flags1) ||
+		    (old_l->flags2 != l_ptr->flags2) ||
+		    (old_l->flags3 != l_ptr->flags3) ||
+		    (old_l->flags4 != l_ptr->flags4) ||
+		    (old_l->flags5 != l_ptr->flags5) ||
+		    (old_l->flags6 != l_ptr->flags6) ||
+		    (old_l->cast_innate != l_ptr->cast_innate) ||
+		    (old_l->cast_spell != l_ptr->cast_spell))
+		{
+			/* Memorize old race */
+			p_ptr->old_monster_race_idx = p_ptr->monster_race_idx;
+
+			/* Memorize flags */
+			old_l->flags1 = l_ptr->flags1;
+			old_l->flags2 = l_ptr->flags2;
+			old_l->flags3 = l_ptr->flags3;
+			old_l->flags4 = l_ptr->flags4;
+			old_l->flags5 = l_ptr->flags5;
+			old_l->flags6 = l_ptr->flags6;
+
+			/* Memorize blows */
+			for (i = 0; i < MONSTER_BLOW_MAX; i++)
+				old_l->blows[i] = l_ptr->blows[i];
+
+			/* Memorize castings */
+			old_l->cast_innate = l_ptr->cast_innate;
+			old_l->cast_spell = l_ptr->cast_spell;
+
+			/* Window stuff */
+			p_ptr->window |= (PW_MONSTER);
+		}
+	}
+}
+
 
 /*
  * Player processing that occurs at the beginning of a new turn
@@ -956,20 +943,33 @@ static int auto_retaliate(int Ind)
 static void process_player_begin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int energy;
+
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Increment turn count */
-	p_ptr->turn++;
+	ht_add(&p_ptr->turn,1);
+
+	/* How much energy should we get? */
+	energy = extract_energy[p_ptr->pspeed];
+
+	/* Scale depending upon our time bubble */
+	p_ptr->bubble_speed = time_factor(Ind);
+	energy = energy * ((float)p_ptr->bubble_speed / 100);
+
+	/* In town, give everyone a RoS when they are running */
+	if ((!p_ptr->dun_depth) && (p_ptr->running))
+	{
+		energy = energy * ((float)RUNNING_FACTOR / 100);
+	}
 
 	/* Give the player some energy */
-	p_ptr->energy += extract_energy[p_ptr->pspeed];
+	p_ptr->energy += energy;
 
 	/* Make sure they don't have too much */
-	/* But let them store up some extra */
-	/* Storing up extra energy lets us perform actions while we are running */
-	//if (p_ptr->energy > (level_speed(p_ptr->dun_depth)*6)/5)
-	//	p_ptr->energy = (level_speed(p_ptr->dun_depth)*6)/5;
-	if (p_ptr->energy > (level_speed(p_ptr->dun_depth)*2) - 1)
-		p_ptr->energy = (level_speed(p_ptr->dun_depth)*2) - 1;
+	if (p_ptr->energy > (level_speed(p_ptr->dun_depth)))
+		p_ptr->energy = (level_speed(p_ptr->dun_depth));
 
 	/* Check "resting" status */
 	if (p_ptr->resting)
@@ -982,9 +982,6 @@ static void process_player_begin(int Ind)
 	/* Handle paralysis here */
 	if (p_ptr->paralyzed || p_ptr->stun >= 100)
 		p_ptr->energy = 0;
-
-	/* Hack -- semi-constant hallucination (but not in stores) */
-	if (p_ptr->image && p_ptr->store_num == -1 && (randint(10) == 1)) p_ptr->redraw |= (PR_MAP);
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
 	if ((p_ptr->teleport) && (rand_int(100) < 1))
@@ -1003,20 +1000,28 @@ static void process_player_end(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int	i, j, new_depth, new_world_x, new_world_y;
+	int	i, j, new_depth, new_world_x, new_world_y, time, timefactor;
 	int	regen_amount, NumPlayers_old=NumPlayers;
 	char	attackstatus;
-    int minus;
+	int minus;
+	int fatal_err;
 
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
 
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
+
 	/* Try to execute any commands on the command queue. */
-	/* NB: process_pending may have deleted the connection! */
-	if(process_pending_commands(p_ptr->conn)) return;
+	fatal_err = process_player_commands(Ind);
+
+	/* Paranoia -- buffered commands shouldn't even cause fatal errors */
+	if (fatal_err == -1) return;
 
 	/* Check for auto-retaliate */
-	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused && !p_ptr->afraid)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))/* - have spare energy */
+	   && !p_ptr->confused && !p_ptr->afraid            /* - not confused or afraid */
+	   && !p_ptr->run_request && !cq_len(&p_ptr->cbuf)) /* - no commands queued */
 	{
 		/* Check for nearby monsters and try to kill them */
 		/* If auto_retaliate returns nonzero than we attacked
@@ -1029,13 +1034,20 @@ static void process_player_end(int Ind)
 		}
 	}
 
-	/* Handle running -- 5 times the speed of walking */
-	while (p_ptr->running && p_ptr->energy >= (level_speed(p_ptr->dun_depth)*6)/5)
+	/* If we are are in a slow time condition, give visual warning */
+	timefactor = base_time_factor(Ind,0);
+	if(timefactor < NORMAL_TIME)
 	{
-		run_step(Ind, 0);
-		p_ptr->energy -= level_speed(p_ptr->dun_depth) / 5;
+		/* Paranoia: cave pointer not set */
+		if (p_ptr->new_level_flag == FALSE)
+		lite_spot(Ind, p_ptr->py, p_ptr->px);
 	}
 
+	/* Handle running */
+	if((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && p_ptr->running)
+	{
+		run_step(Ind, 0);
+	}
 
 	/* Notice stuff */
 	if (p_ptr->notice) notice_stuff(Ind);
@@ -1078,14 +1090,89 @@ static void process_player_end(int Ind)
 	}
 
 
-	/* Process things such as regeneration. */
-	/* This used to be processed every 10 turns, but I am changing it to be
-	 * processed once every 5/6 of a "dungeon turn". This will make healing
-	 * and poison faster with respect to real time < 1750 feet and slower >
-	 * 1750 feet.
-	 */
-	if (!(turn%(level_speed(p_ptr->dun_depth)/12)))
+	/* Process things such as regeneration, poison, cuts, etc. */
+	
+	/* Determine basic frequency of regen in game turns */
+	time = level_speed(p_ptr->dun_depth)/1000;
+	
+	/* Scale frequency by players local time bubble */
+	time = time / ((float)timefactor / 100);
+
+	/* Use food, 10 times slower than other regen effects */
+	if ( !(turn.turn % (time*10)) )
 	{
+		/* Ghosts don't need food and noone uses food in town */
+		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
+		{
+			/* Digest normally */
+			if (p_ptr->food < PY_FOOD_MAX)
+			{
+				/* Basic digestion rate based on speed */
+				i = (extract_energy[p_ptr->pspeed]/100) * 2;
+
+				/* Regeneration takes more food */
+				if (p_ptr->regenerate) i += 30;
+
+				/* Slow digestion takes less food */
+				if (p_ptr->slow_digest) i -= 10;
+
+				/* Digest some food */
+				(void)set_food(Ind, p_ptr->food - i);
+
+				/* Hack -- check to see if we have been kicked off
+				 * due to starvation
+				 */
+
+				if (NumPlayers != NumPlayers_old) return;
+			}
+
+			/* Digest quickly when gorged */
+			else
+			{
+				/* Digest a lot of food */
+				(void)set_food(Ind, p_ptr->food - 100);
+			}
+
+			/* Starve to death (slowly) */
+			if (p_ptr->food < PY_FOOD_STARVE)
+			{
+				/* Calculate damage */
+				i = (PY_FOOD_STARVE - p_ptr->food) / 10;
+
+				/* Take damage */
+				take_hit(Ind, i, "starvation");
+			}
+		}
+	}
+
+	if ( !(turn.turn % time) )
+	{
+		/* Hack -- Fade monster Detect over time */
+		for (i = 0; i < m_max; i++)
+		{
+			if (p_ptr->mon_det[i])
+			{
+				if (--p_ptr->mon_det[i] == 0) 
+				{
+					update_mon(i, FALSE);
+				}
+			}
+		}
+		/* Hack -- Fade player Detect over time */
+		for (i = 1; i <= NumPlayers; i++)
+		{
+			if (p_ptr->play_det[i])
+			{
+				if (--p_ptr->play_det[i] == 0)
+				{
+					update_player(i);
+				}
+			}
+		}
+
+		/* Semi-constant hallucination (but not in stores) */
+		if (p_ptr->image && p_ptr->store_num == -1) p_ptr->redraw |= (PR_MAP);
+
 		/*** Damage over Time ***/
 
 		/* Take damage from poison */
@@ -1131,7 +1218,7 @@ static void process_player_end(int Ind)
 			if (p_ptr->food < PY_FOOD_MAX)
 			{
 				/* Every 50/6 level turns */
-			        if (!(turn%((level_speed(p_ptr->dun_depth)/12)*10)))
+			        if (!(turn.turn%((level_speed(p_ptr->dun_depth)/12)*10)))
 				{
 					/* Basic digestion rate based on speed */
 					i = extract_energy[p_ptr->pspeed] * 2;
@@ -1214,16 +1301,15 @@ static void process_player_end(int Ind)
 		}
 
 		/* Resting */
-		if (p_ptr->resting && !p_ptr->searching)
+		if (p_ptr->resting || p_ptr->searching)
 		{
-			regen_amount = regen_amount * 3;
+			regen_amount = regen_amount * 2;
 		}
 
 		/* Regenerate the mana */
-		/* Hack -- regenerate mana 5/3 times faster */
 		if (p_ptr->csp < p_ptr->msp)
 		{
-			regenmana(Ind, (regen_amount * 5) / 3 );
+			regenmana(Ind, regen_amount);
 		}
 
 		/* Poisoned or cut yields no healing */
@@ -1242,10 +1328,16 @@ static void process_player_end(int Ind)
 			disturb(Ind, 0, 0);
 		}
 
-	minus = 1;
+		minus = 1;
 
 		/* Finally, at the end of our turn, update certain counters. */
 		/*** Timeout Various Things ***/
+
+		/* Reduce noise levels */
+		if (p_ptr->noise)
+		{
+			(void)set_noise(Ind, p_ptr->noise - (p_ptr->skill_stl + 1));
+		}
 
 		/* Hack -- Hallucinating */
 		if (p_ptr->image)
@@ -1440,7 +1532,7 @@ static void process_player_end(int Ind)
 				/* The light is getting dim */
 				else if ((o_ptr->pval < 100) && (!(o_ptr->pval % 10)))
 				{
-					if (p_ptr->disturb_minor) disturb(Ind, 0, 0);
+					if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 					msg_print(Ind, "Your light is growing faint.");
 				}
 			}
@@ -1548,20 +1640,22 @@ static void process_player_end(int Ind)
 			/* Count down towards recall */
 			p_ptr->word_recall--;
 
-		       /* MEGA HACK: no recall if icky, or in a shop */
-			if( ! p_ptr->word_recall ) 
+
+			/* MEGA HACK: no recall if in shop */
+			if(!p_ptr->word_recall && p_ptr->store_num != -1)
 			{
-				if( character_icky || (p_ptr->store_num > 0)) {
-				    p_ptr->word_recall++;
-				}
+				/* Delay for 1 turn */
+			    p_ptr->word_recall++;
 			}
 
 			/* Activate the recall */
-			
 			if (!p_ptr->word_recall)
 			{
 				/* Disturbing! */
 				disturb(Ind, 0, 0);
+
+				/* Sound */
+				sound(Ind, MSG_TPLEVEL);
 
 				/* Determine the level */
 				if (p_ptr->dun_depth > 0)
@@ -1608,16 +1702,16 @@ static void process_player_end(int Ind)
 					new_world_y = p_ptr->world_y;
 					p_ptr->new_level_method = LEVEL_RAND;
 				}
-				
+
 				/* One less person here */
 				players_on_depth[p_ptr->dun_depth]--;
-				
+
 				/* paranoia, required for adding old wilderness saves to new servers */
 				if (players_on_depth[p_ptr->dun_depth] < 0) players_on_depth[p_ptr->dun_depth] = 0;
 
 				/* Remove the player */
 				cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].m_idx = 0;
-					
+
 				/* Show everyone that he's left */
 				everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 
@@ -1628,6 +1722,8 @@ static void process_player_end(int Ind)
 				p_ptr->dun_depth = new_depth;
 				p_ptr->world_x = new_world_x;
 				p_ptr->world_y = new_world_y;
+				/* XXX Hack -- arena paranoia */
+				p_ptr->arena_num = -1;
 
 				/* One more person here */
 				players_on_depth[p_ptr->dun_depth]++;
@@ -1637,20 +1733,22 @@ static void process_player_end(int Ind)
 		}
 	}
 
+	/* Track monster */
+	player_track_monster(Ind);
 
 	/* HACK -- redraw stuff a lot, this should reduce perceived latency. */
 	/* This might not do anything, I may have been silly when I added this. -APD */
 	/* Notice stuff (if needed) */
-	if (p_ptr->notice) notice_stuff(Ind);
+	//if (p_ptr->notice) notice_stuff(Ind);
 
 	/* Update stuff (if needed) */
-	if (p_ptr->update) update_stuff(Ind);
+	//if (p_ptr->update) update_stuff(Ind);
 	
 	/* Redraw stuff (if needed) */
-	if (p_ptr->redraw) redraw_stuff(Ind);
+	//if (p_ptr->redraw) redraw_stuff(Ind);
 
 	/* Redraw stuff (if needed) */
-	if (p_ptr->window) window_stuff(Ind);
+	//if (p_ptr->window) window_stuff(Ind);
 }
 
 
@@ -1670,10 +1768,10 @@ static void process_various(void)
 	cave_type *c_ptr;
 	player_type *p_ptr;
 
-	char buf[1024];
+	//char buf[1024];
 
 	/* Save the server state occasionally */
-	if (!(turn % (cfg_fps * 60 * SERVER_SAVE)))
+	if (!(turn.turn % (cfg_fps * 60 * SERVER_SAVE)))
 	{
 		save_server_info();
 
@@ -1686,7 +1784,7 @@ static void process_various(void)
 	}
 
 	/* Handle certain things once a minute */
-	if (!(turn % (cfg_fps * 60)))
+	if (!(turn.turn % (cfg_fps * 60)))
 	{
 		/* Update the player retirement timers */
 		for (i = 1; i <= NumPlayers; i++)
@@ -1710,10 +1808,10 @@ static void process_various(void)
 		}
 
 		/* Update the unique respawn timers */
-		for (i = 1; i < MAX_R_IDX-1; i++)
+		for (i = 1; i < z_info->r_max; i++)
 		{
 			monster_race *r_ptr = &r_info[i];
-	                                                
+
 			/* Make sure we are looking at a dead unique */
 			if (!(r_ptr->flags1 & RF1_UNIQUE)) continue;
 			if (r_ptr->max_num > 0) continue;
@@ -1729,25 +1827,25 @@ static void process_various(void)
 				if (r_ptr->respawn_timer > cfg_unique_max_respawn_time)
   					r_ptr->respawn_timer = cfg_unique_max_respawn_time;
   			}
-			// Decrament the counter 
-			else r_ptr->respawn_timer--; 
+			// Decrament the counter
+			else r_ptr->respawn_timer--;
 			// Once the timer hits 0, ressurect the unique.
-#if 0 
+#if 0
 			if (!r_ptr->respawn_timer)
-    			{
+			{
 				/* "Ressurect" the unique */
-    				r_ptr->max_num = 1;
+				r_ptr->max_num = 1;
 				r_ptr->respawn_timer = -1;
 
-		/* don't announce */
-		/*
-    				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));
-    				msg_broadcast(0,buf); 
-		*/
-	    
-    			}	    			
+				/* don't announce */
+				/*
+				sprintf(buf,"%s rises from the dead!",(r_name + r_ptr->name));
+				msg_broadcast(0,buf);
+				*/
+
+			}
 #endif
- 		}
+		}
 
 		// If the level unstaticer is not disabled
 		if (cfg_level_unstatic_chance > 0)
@@ -1783,7 +1881,7 @@ static void process_various(void)
 
 
 	/* Grow trees very occasionally */
-	if (!(turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
+	if (!(turn.turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))
 	{
 		/* Find a suitable location */
 		for (i = 1; i < 1000; i++)
@@ -1817,7 +1915,7 @@ static void process_various(void)
 	}
 
 	/* Update the stores */
-	if (!(turn % (10L * STORE_TURNS)))
+	if (!(turn.turn % (10L * STORE_TURNS)))
 	{
 		int n;
 
@@ -1837,12 +1935,12 @@ static void process_various(void)
 	}
 
 	/* Hack -- Daybreak/Nightfall outside the dungeon */
-	if (!(turn % ((10L * TOWN_DAWN) / 2)))
+	if (!(turn.turn % ((10L * TOWN_DAWN) / 2)))
 	{
 		bool dawn;
 
 		/* Check for dawn */
-		dawn = (!(turn % (10L * TOWN_DAWN)));
+		dawn = (!(turn.turn % (10L * TOWN_DAWN)));
 		/* Day breaks */
 		if (dawn)
 		{
@@ -1856,19 +1954,19 @@ static void process_various(void)
 				if (!players_on_depth[-i]) wipe_m_list(-i);
 			/* another day, more stuff to kill... */
 			for (i = 1; i < MAX_WILD; i++) wild_info[-i].flags &= ~(WILD_F_INHABITED);
-		
+
 			/* Hack -- Scan the town */
 			for (y = 0; y < MAX_HGT; y++)
 			{
 				for (x = 0; x < MAX_WID; x++)
 				{
-					 /* Get the cave grid */
+					/* Get the cave grid */
 					c_ptr = &cave[0][y][x];
 
-					 /* Assume lit */
+					/* Assume lit */
 					c_ptr->info |= CAVE_GLOW;
 
-					 /* Hack -- Notice spot */
+					/* Hack -- Notice spot */
 					note_spot_depth(0, y, x);
 				}
 			} 
@@ -1904,8 +2002,8 @@ static void process_various(void)
 		}
 	}
 }
-			
-		
+
+
 
 /*
  * Main loop --KLJ--
@@ -1922,7 +2020,7 @@ void dungeon(void)
 	int i, d, j;
 	byte *w_ptr;
 	cave_type *c_ptr;
-    int dy, dx;       
+	int dy, dx;
 
 	/* Return if no one is playing */
 	/* if (!NumPlayers) return; */
@@ -1933,8 +2031,6 @@ void dungeon(void)
 		/* Check for death */
 		if (Players[i]->death)
 		{
-			/* Paranoia -- postpone death if no level -- THIS HACK IS DANGEROUS */
-			if (players_on_depth[Players[i]->dun_depth])
 			/* Kill him */
 			player_death(i);
 		}
@@ -1946,7 +2042,7 @@ void dungeon(void)
 	{
 		/* Everybody has left a level that is still generated */
 		if (players_on_depth[j] == 0 && cave[j])
-		{						
+		{
 			/* Destroy the level */
 			/* Hack -- don't dealloc the town */
 			/* Hack -- don't dealloc special levels */
@@ -1981,12 +2077,12 @@ void dungeon(void)
 			alloc_dungeon_level(Depth);
 
 			/* Generate a dungeon level there */
-			/* option 29 is auto_scum */
-			generate_cave(i, Depth, p_ptr->options[29]);
+			generate_cave(i, Depth, option_p(p_ptr,AUTO_SCUM));
 			
 			/* Give a level feeling to this player */
-	    /* No feeling outside the dungeon */
-            if (Depth > 0) do_cmd_feeling(i);
+			p_ptr->feeling = feeling;
+			/* No feeling outside the dungeon */
+			if (Depth > 0) do_cmd_feeling(i);
 		}
 
 		/* Clear the "marked" and "lit" flags for each cave grid */
@@ -2007,13 +2103,9 @@ void dungeon(void)
 		/* Memorize the town and all wilderness levels close to town */
 		if (Depth <= 0 ? (wild_info[Depth].radius <= 2) : 0)
 		{
-			bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
+			bool dawn = ((turn.turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
 
-			p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-			p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-			p_ptr->cur_hgt = MAX_HGT;
-			p_ptr->cur_wid = MAX_WID;
+			setup_panel(i, FALSE);
 
 			/* Memorize the town for this player (if daytime) */
 			for (y = 0; y < MAX_HGT; y++)
@@ -2031,11 +2123,7 @@ void dungeon(void)
 		}
 		else
 		{
-			p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-			p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-			p_ptr->cur_hgt = MAX_HGT;
-			p_ptr->cur_wid = MAX_WID;
+			setup_panel(i, FALSE);
 		}
 
 		/* Determine starting location */
@@ -2061,7 +2149,7 @@ void dungeon(void)
 					  startx = p_ptr->px;
 					  break;
 					  
-			/* Over the river and through the woods */			  
+			/* Over the river and through the woods */
 			case LEVEL_OUTSIDE: starty = p_ptr->py;
 				            startx = p_ptr->px;
 				            break;
@@ -2106,8 +2194,8 @@ void dungeon(void)
 #if 0
 		while (TRUE)
 		{
-			y = rand_range(1, ((Depth) ? (MAX_HGT - 2) : (SCREEN_HGT - 2)));
-			x = rand_range(1, ((Depth) ? (MAX_WID - 2) : (SCREEN_WID - 2)));
+			y = rand_range(1, ((Depth) ? (MAX_HGT - 2) : (p_ptr->screen_hgt - 2)));
+			x = rand_range(1, ((Depth) ? (MAX_WID - 2) : (p_ptr->screen_wid - 2)));
 
 			/* Must be a "naked" floor grid */
 			if (!cave_naked_bold(Depth, y, x)) continue;
@@ -2160,22 +2248,23 @@ void dungeon(void)
 					if (d > MAX_SIGHT) continue;
 
 					/* Delete the monster */
-					delete_monster_idx(j);					
+					delete_monster_idx(j);
 				}
 			break;
 		}
-    
+
 		/* Recalculate panel */
-		p_ptr->panel_row = ((p_ptr->py - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
+		p_ptr->panel_row = ((p_ptr->py - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
 		if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
 		else if (p_ptr->panel_row < 0) p_ptr->panel_row = 0;
 
-		p_ptr->panel_col = ((p_ptr->px - SCREEN_WID / 4) / (SCREEN_WID / 2));
+		p_ptr->panel_col = ((p_ptr->px - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
 		if (p_ptr->panel_col > p_ptr->max_panel_cols) p_ptr->panel_col = p_ptr->max_panel_cols;
 		else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
-	
+
 		p_ptr->redraw |= (PR_MAP);
 		p_ptr->redraw |= (PR_DEPTH);
+		p_ptr->redraw |= (PR_FLOOR);
 
 		panel_bounds(i);
 		forget_view(i);
@@ -2187,9 +2276,6 @@ void dungeon(void)
 		/* Clear the flag */
 		p_ptr->new_level_flag = FALSE;
 	}
-
-	/* Handle any network stuff */
-	Net_input();
 
 	/* Hack -- Compact the object list occasionally */
 	if (o_top + 16 > MAX_O_IDX) compact_objects(32);
@@ -2221,7 +2307,7 @@ void dungeon(void)
 
 
 	///*** BEGIN NEW TURN ***///
-	turn++;
+	ht_add(&turn,1);
 
 	/* Do some beginning of turn processing for each player */
 	for (i = 1; i < NumPlayers + 1; i++)
@@ -2247,7 +2333,7 @@ void dungeon(void)
 	process_various();
 
 	/* Hack -- Regenerate the monsters every hundred game turns */
-	if (!(turn % 100)) regen_monsters();
+	regen_monsters();
 
 	/* Refresh everybody's displays */
 	for (i = 1; i < NumPlayers + 1; i++)
@@ -2266,9 +2352,6 @@ void dungeon(void)
 		/* Window stuff */
 		if (p_ptr->window) window_stuff(i);
 	}
-
-	/* Send any information over the network */
-	Net_output();
 }
 
 		
@@ -2292,6 +2375,11 @@ static void load_all_pref_files(void)
 	/* Process that file */
 	process_pref_file(buf);
 
+	/* Access the "user" pref file */
+	sprintf(buf, "font.prf");
+
+	/* Process that file */
+	process_pref_file(buf);
 
 
 }
@@ -2307,14 +2395,8 @@ void play_game(bool new_game)
 {
 	int i, n;
 
-
-	/* Hack -- Character is "icky" */
-	/*character_icky = TRUE;*/
-
-
-	/* Hack -- turn off the cursor */
-	/*(void)Term_set_cursor(0);*/
-
+	/* Flash a message */
+	plog("Please wait...");
 
 	/* Attempt to load the server state information */
 	if (!load_server_info())
@@ -2371,31 +2453,6 @@ void play_game(bool new_game)
 		Rand_state_init(seed);
 	}
 
-	/* Extract the options */
-	for (i = 0; option_info[i].o_desc; i++)
-	{
-		int os = option_info[i].o_set;
-		int ob = option_info[i].o_bit;
-
-		/* Set the "default" options */
-		if (option_info[i].o_var)
-		{
-			/* Set */
-			if (option_flag[os] & (1L << ob))
-			{
-				/* Set */
-				(*option_info[i].o_var) = TRUE;
-			}
-			
-			/* Clear */
-			else
-			{
-				/* Clear */
-				(*option_info[i].o_var) = FALSE;
-			}
-		}
-	}
-
 	/* Roll new town */
 	if (new_game)
 	{
@@ -2416,7 +2473,8 @@ void play_game(bool new_game)
 		server_birth();
 
 		/* Hack -- enter the world */
-		turn = 1;
+		ht_clr(&turn);
+		ht_add(&turn,1);
 
 		/* Initialize the stores */
 		for (n = 0; n < MAX_STORES; n++)
@@ -2430,55 +2488,33 @@ void play_game(bool new_game)
 	}
 
 
-	/* Flash a message */
-	plog("Please wait...");
-
-	/* Flush the message */
-	/*Term_fresh();*/
-
-
-	/* Hack -- Enter wizard mode */
-	/*if (arg_wizard && enter_wizard_mode()) wizard = TRUE;*/
+	/* Prepare the spells */
+	spells_init();
 
 
 	/* Flavor the objects */
 	flavor_init();
 
-	plog("Object flavors initialized...");
-
 	/* Reset the visual mappings */
 	reset_visuals();
 
-	/* Window stuff */
-	/*p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);*/
-
-	/* Window stuff */
-	/*p_ptr->window |= (PW_MONSTER);*/
-
-	/* Window stuff */
-	/*window_stuff();*/
-
-
+	/* Load requested "pref" file */
+	if (cfg_load_pref_file)
+	{
+		plog(format("Loading pref file: %s", cfg_load_pref_file));
+		process_pref_file(cfg_load_pref_file);
+	}
+#if 0
 	/* Load the "pref" files */
 	load_all_pref_files();
+#endif
 
-	/* Set or clear "rogue_like_commands" if requested */
-	/*if (arg_force_original) rogue_like_commands = FALSE;
-	if (arg_force_roguelike) rogue_like_commands = TRUE;*/
-
-	/* Verify the keymap */
-	/*keymap_init();*/
-
-	/* React to changes */
-	/*Term_xtra(TERM_XTRA_REACT, 0);*/
-
+	/* Store final visual mappings */
+	apply_visuals();
 
 	/* Make a town if necessary */
 	if (!server_dungeon)
 	{
-		/* Allocate space for it */
-		alloc_dungeon_level(0);
-
 		/* Actually generate the town */
 		generate_cave(0, 0, 0);
 	}
@@ -2491,39 +2527,6 @@ void play_game(bool new_game)
 
 	/* Server initialization is now "complete" */
 	server_generated = TRUE;
-
-
-	/* Hack -- Character is no longer "icky" */
-	/*character_icky = FALSE;*/
-
-
-	/* Start game */
-	/*alive = TRUE;*/
-
-	/* Hack -- Enforce "delayed death" */
-	/*if (p_ptr->chp < 0) death = TRUE;*/
-
-	/* Set up the contact socket, so we can allow players to connect */
-	setup_contact_socket();
-
-	/* Set up the network server */
-	if (Setup_net_server() == -1)
-		quit("Couldn't set up net server");
-
-	/* Set up the main loop */
-	install_timer_tick(dungeon, cfg_fps);
-
-	/* Loop forever */
-	sched();
-
-	/* This should never, ever happen */
-	plog("FATAL ERROR sched() returned!");
-
-	/* Close stuff */
-	close_game();
-
-	/* Quit */
-	quit(NULL);
 }
 
 
@@ -2543,10 +2546,10 @@ void shutdown_server(void)
 		strcpy(p_ptr->died_from, "server shutdown");
 
 		/* Try to save */
-		if (!save_player(1)) Destroy_connection(p_ptr->conn, "Server shutdown (save failed)");
+		if (!player_leave(1)) player_kill(1, "Server shutdown (save failed)");
 
 		/* Successful save */
-		Destroy_connection(p_ptr->conn, "Server shutdown (save succeeded)");
+		player_kill(1, "Server shutdown (save succeeded)");
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */
@@ -2560,12 +2563,12 @@ void shutdown_server(void)
 	if (!save_server_info()) quit("Server state save failed!");
 
 	/* Tell the metaserver that we're gone */
-	Report_to_meta(META_DIE);
+	//Report_to_meta(META_DIE);
 
 	quit("Server state saved");
 }
 
-/* 
+/*
  * Check if the given depth is special static level, i.e. a hand designed level.
  */
 bool check_special_level(s16b special_depth)

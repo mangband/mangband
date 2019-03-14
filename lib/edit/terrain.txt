@@ -40,7 +40,7 @@
 
 # Version stamp (required)
 
-V:1.4.0
+V:1.5.0
 
 
 # 0x00 --> <darkness>
@@ -122,7 +122,7 @@ G:7:D
 
 # 0x0F --> shop -- home (perm)
 
-N:15:Home
+N:15:Tavern
 G:8:y
 
 # 0x10 --> visible trap -- trap door
@@ -445,6 +445,13 @@ G:=:u
 N:81:opened door
 G:':U
 M:4
+
+# 0x5F --> arena door
+
+N:95:arena entrance
+G:#:b
+M:60
+
 
 # 0x60 --> logs, used for log cabin
 

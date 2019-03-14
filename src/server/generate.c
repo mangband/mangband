@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /*
@@ -383,7 +381,6 @@ static void place_rubble_aux(int Depth, int y, int x)
 static void place_rubble(int Depth, int y, int x)
 {
 	int i,j;
-	cave_type *c_ptr = &cave[Depth][y][x];
 
 	place_rubble_aux(Depth, y, x);
 
@@ -2099,7 +2096,7 @@ static void build_type5(int Depth, int yval, int xval)
 
 
 	/* Describe */
-	if (cheat_room)
+	/*if (cheat_room)*/
 	{
 		/* Room type */
 		/*msg_format("Monster nest (%s)", name);*/
@@ -2537,6 +2534,12 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 
 	cave_type *c_ptr;
 
+	/* The edge is defined by 0 0 MAX_WID-1 MAX_HGT-1 */
+	if ((xval == 0) || /* At the left edge */
+		(yval == 0) || /* At the top edge */
+		(xmax == MAX_WID-1) || /* At the right edge */
+		(ymax == MAX_HGT-1)) /* At the bottom edge */
+		return; /* Abort if any side of the vault is at the edge of the dungeon */
 
 	/* Place dungeon features and objects */
 	for (t = data, dy = 0; dy < ymax; dy++)
@@ -2693,7 +2696,7 @@ static void build_type7(int Depth, int yval, int xval)
 	while (TRUE)
 	{
 		/* Access a random vault record */
-		v_ptr = &v_info[rand_int(MAX_V_IDX)];
+		v_ptr = &v_info[rand_int(z_info->v_max)];
 
 		/* Accept the first lesser vault */
 		if (v_ptr->typ == 7) break;
@@ -2729,7 +2732,7 @@ static void build_type8(int Depth, int yval, int xval)
 	while (TRUE)
 	{
 		/* Access a random vault record */
-		v_ptr = &v_info[rand_int(MAX_V_IDX)];
+		v_ptr = &v_info[rand_int(z_info->v_max)];
 
 		/* Accept the first greater vault */
 		if (v_ptr->typ == 8) break;
@@ -4194,7 +4197,7 @@ static void town_gen(void)
 
 
 	/* Day Light */
-	if ((turn % (10L * TOWN_DAWN)) < ((10L * TOWN_DAWN) / 2))
+	if ((turn.turn % (10L * TOWN_DAWN)) < ((10L * TOWN_DAWN) / 2))
 	{	
 		/* Lite up the town */ 
 		for (y = 0; y < MAX_HGT; y++)
@@ -4280,11 +4283,11 @@ void dealloc_dungeon_level(int Depth)
 	for (i = 0; i < MAX_HGT; i++)
 	{
 		/* Dealloc that row */
-		C_FREE(cave[Depth][i], MAX_WID, cave_type);
+		FREE(cave[Depth][i]);
 	}
 
 	/* Deallocate the array of rows */
-	C_FREE(cave[Depth], MAX_HGT, cave_type *);
+	FREE(cave[Depth]);
 
 	/* Set that level to "ungenerated" */
 	cave[Depth] = NULL; 
@@ -4310,11 +4313,15 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
+	
+	/* Default room align */
+	dungeon_align = TRUE;
 
 	/* get the player context, if any */
 	if(Ind)
 	{
 		p_ptr = Players[Ind];
+		dungeon_align = option_p(p_ptr,DUNGEON_ALIGN);
 	}
 
 	/* Generate */
@@ -4425,7 +4432,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 		if (!cfg_ironman && p_ptr)
 		{
 			/* It takes 1000 game turns for "feelings" to recharge */
-			if ((turn - p_ptr->old_turn) < 1000)
+			if (ht_passed(&turn, &p_ptr->old_turn, 1000))
 			{
 				feeling = 0;
 				scum = FALSE;
@@ -4469,6 +4476,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 				/* Try again */
 			    ((Depth >= 40) && (feeling > 5)))
 			{
+#if 0			
 				/* Give message to cheaters */
 				if (cheat_room || cheat_hear ||
 				    cheat_peek || cheat_xtra)
@@ -4476,7 +4484,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 					/* Message */
 					why = "boring level";
 				}
-
+#endif
 				/* Try again */
 				okay = FALSE;
 			}

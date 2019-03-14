@@ -62,9 +62,14 @@ extern errr func_failure(void);
 extern bool func_true(void);
 extern bool func_false(void);
 
+/* Function that work with hturn */
+extern int ht_passed(hturn *new_ht, hturn *old_ht, huge passed);
+extern char* ht_show(hturn *ht_ptr, int mode);
+
 /* Case insensitive comparison between two strings */
 extern int my_stricmp(const char *s1, const char *s2);
 extern int my_strnicmp(cptr a, cptr b, int n);
+extern const char *my_stristr(const char *haystack, const char *needle);
 
 /* Copy a string */
 extern size_t my_strcpy(char *buf, const char *src, size_t bufsize);
@@ -72,15 +77,28 @@ extern size_t my_strcpy(char *buf, const char *src, size_t bufsize);
 /* Concatenate two strings */
 extern size_t my_strcat(char *buf, const char *src, size_t bufsize);
 
-/* Test equality, prefix, suffix, and do "strdup" */
+/* Test equality, prefix, suffix */
 extern bool streq(cptr s, cptr t);
 extern bool prefix(cptr s, cptr t);
 extern bool suffix(cptr s, cptr t);
 
-#ifdef ultrix
+/* Hack -- conditional (or "bizarre") externs */
+
+#ifndef HAVE_MEMSET
+extern void *memset(void*, int, size_t);
+#endif
+
+#ifndef HAVE_STRICMP
+extern int stricmp(cptr a, cptr b);
+#endif
+
+#ifndef HAVE_STRDUP
 extern char *strdup(cptr s);
 #endif
 
+#ifndef HAVE_STRNLEN
+extern size_t strnlen(char *s, size_t maxlen);
+#endif
 
 
 /* Print an error message */

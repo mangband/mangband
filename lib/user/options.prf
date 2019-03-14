@@ -13,7 +13,7 @@ X:always_pickup
 Y:always_repeat
 Y:depth_in_feet
 Y:stack_force_notes
-Y:stack_force_costs
+X:stack_force_costs
 Y:show_labels
 Y:show_weights
 Y:show_choices

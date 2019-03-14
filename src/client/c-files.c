@@ -3,8 +3,69 @@
  * file, and some various "pref files".
  */
 
-#include "angband.h"
+#include "c-angband.h"
 
+
+/*
+ * MAngband-specific R:0 loader hack.
+ * An image for a Race/Class combo is stored in client pref files. Traditionally (as in V),
+ * [ EQU $RACE ] [ EQU $CLASS ] are used to load those into the r_info[0] slot accordingly
+ * to character's race and class. In MAngband, however, players can encounter other
+ * characters and thus need the infromation for ALL the Race/Class combos there are.
+ * To load this information, a 'virtual mode' hack is used, which resolves *ALL* [ EQU $RACE ]
+ * [ EQU $CLASS ] as true, storing the 'fake' races in the global variables.
+ * 'Virtual mode' only works with 'R:0:...' lines, doesn't allow includes and cancels itself
+ * after each pref command executed or not. 
+ *
+ * Note: player's own race and class image will be loaded into r_info[0] slot as usual.
+ *
+ * Note: we support a fake class called 'Special' (hopefully no variants ever need this 
+ * as valid class name), to load several MAngband-specific images. Index 0 is 'Ghost'
+ * and Index 1 is 'Fruitbat'.
+ *
+ * Note: for this hack to work, we also support digits as race 'names', i.e.
+ * [ EQU $RACE 0 ] *will* work with our parser. 
+ *
+ */
+int fake_race = -1;
+int fake_class = -1;
+static int find_race(cptr name)
+{
+	int i;
+
+	/* Hack: allow digit as race name, directly converting it */
+	if (isdigit(name[0]))
+	{
+		i = D2I(name[0]);
+		if (i < 0 || i >= z_info.p_max) return -1;
+		return i;
+	}
+
+	/* Find race by name */
+	for (i = 0; i < z_info.p_max; i++)
+	{
+		const char* v = p_name + race_info[i].name;
+		if (!my_strnicmp(v, name, strlen(v)))
+			return i;
+	}
+	return -1;
+}
+static int find_class(cptr name)
+{
+	int i;
+
+	/* Hack: allow "Special" as class name, return last entry */
+	if (!my_strnicmp("Special", name, 7)) return z_info.c_max;
+
+	/* Find class by name */
+	for (i = 0; i < z_info.c_max; i++)
+	{
+		const char* v = c_name + c_info[i].name;
+		if (!my_strnicmp(v, name, strlen(v)))
+			return i;
+	}
+	return -1;
+}
 
 /*
  * Extract the first few "tokens" from a buffer
@@ -24,63 +85,63 @@
  */
 s16b tokenize(char *buf, s16b num, char **tokens)
 {
-        int i = 0;
+	int i = 0;
 
-        char *s = buf;
+	char *s = buf;
 
 
-        /* Process */
-        while (i < num - 1)
-        {
-                char *t;
+	/* Process */
+	while (i < num - 1)
+	{
+		char *t;
 
-                /* Scan the string */
-                for (t = s; *t; t++)
-                {
-                        /* Found a delimiter */
-                        if ((*t == ':') || (*t == '/')) break;
+		/* Scan the string */
+		for (t = s; *t; t++)
+		{
+			/* Found a delimiter */
+			if ((*t == ':') || (*t == '/')) break;
 
-                        /* Handle single quotes */
-                        if (*t == '\'') //'
-                        {
-                                /* Advance */
-                                t++;
+			/* Handle single quotes */
+			if (*t == '\'') //'
+			{
+				/* Advance */
+				t++;
 
-                                /* Handle backslash */
-                                if (*t == '\\') t++;
+				/* Handle backslash */
+				if (*t == '\\') t++;
 
-                                /* Require a character */
-                                if (!*t) break;
+				/* Require a character */
+				if (!*t) break;
 
-                                /* Advance */
-                                t++;
+				/* Advance */
+				t++;
 
-                                /* Hack -- Require a close quote */
-                                if (*t != '\'') *t = '\''; //'
-                        }
+				/* Hack -- Require a close quote */
+				if (*t != '\'') *t = '\''; //'
+			}
 
-                        /* Handle back-slash */
-                        if (*t == '\\') t++; 
-                }
+			/* Handle back-slash */
+			if (*t == '\\') t++;
+		}
 
-                /* Nothing left */
-                if (!*t) break;
+		/* Nothing left */
+		if (!*t) break;
 
-                /* Nuke and advance */
-                *t++ = '\0';
+		/* Nuke and advance */
+		*t++ = '\0';
 
-                /* Save the token */
-                tokens[i++] = s;
+		/* Save the token */
+		tokens[i++] = s;
 
-                /* Advance */
-                s = t;
-        }
+		/* Advance */
+		s = t;
+	}
 
-        /* Save the token */
-        tokens[i++] = s;
+	/* Save the token */
+	tokens[i++] = s;
 
-        /* Number found */
-        return (i);
+	/* Number found */
+	return (i);
 }
 
 
@@ -90,8 +151,8 @@ s16b tokenize(char *buf, s16b num, char **tokens)
  */
 static int deoct(char c)
 {
-        if (isdigit(c)) return (D2I(c));
-        return (0);
+	if (isdigit(c)) return (D2I(c));
+	return (0);
 }
 
 /*
@@ -99,11 +160,136 @@ static int deoct(char c)
  */
 static int dehex(char c)
 {
-        if (isdigit(c)) return (D2I(c));
-        if (islower(c)) return (A2I(c) + 10);
-        if (isupper(c)) return (A2I(tolower(c)) + 10);
-        return (0);
+	if (isdigit(c)) return (D2I(c));
+	if (islower(c)) return (A2I(c) + 10);
+	if (isupper(c)) return (A2I(tolower(c)) + 10);
+	return (0);
 }
+
+/*
+ * Transform macro trigger name ('\[alt-D]' etc..)
+ * into macro trigger key code ('^_O_64\r' or etc..)
+ */
+static size_t trigger_text_to_ascii(char *buf, size_t max, cptr *strptr)
+{
+	cptr str = *strptr;
+	bool mod_status[MAX_MACRO_MOD];
+
+	int i, len = 0;
+	int shiftstatus = 0;
+	cptr key_code;
+	
+	size_t current_len = strlen(buf);
+
+	/* No definition of trigger names */
+	if (macro_template == NULL) return 0;
+
+	/* Initialize modifier key status */	
+	for (i = 0; macro_modifier_chr[i]; i++)
+		mod_status[i] = FALSE;
+
+	str++;
+
+	/* Examine modifier keys */
+	while (1)
+	{
+		/* Look for modifier key name */
+		for (i = 0; macro_modifier_chr[i]; i++)
+		{
+			len = strlen(macro_modifier_name[i]);
+
+			if (!my_strnicmp(str, macro_modifier_name[i], len))
+				break;
+		}
+
+		/* None found? */
+		if (!macro_modifier_chr[i]) break;
+
+		/* Proceed */
+		str += len;
+
+		/* This modifier key is pressed */
+		mod_status[i] = TRUE;
+
+		/* Shift key might be going to change keycode */
+		if ('S' == macro_modifier_chr[i])
+			shiftstatus = 1;
+	}
+
+	/* Look for trigger name */
+	for (i = 0; i < max_macrotrigger; i++)
+	{
+		len = strlen(macro_trigger_name[i]);
+
+		/* Found it and it is ending with ']' */
+		if (!my_strnicmp(str, macro_trigger_name[i], len) && (']' == str[len]))
+			break;
+	}
+
+	/* Invalid trigger name? */
+	if (i == max_macrotrigger)
+	{
+		/*
+		 * If this invalid trigger name is ending with ']',
+		 * skip whole of it to avoid defining strange macro trigger
+		 */
+		str = strchr(str, ']');
+
+		if (str)
+		{
+			strnfcat(buf, max, &current_len, "\x1F\r");
+
+			*strptr = str; /* where **strptr == ']' */
+		}
+
+		return current_len;
+	}
+
+	/* Get keycode for this trigger name */
+	key_code = macro_trigger_keycode[shiftstatus][i];
+
+	/* Proceed */
+	str += len;
+
+	/* Begin with '^_' */
+	strnfcat(buf, max, &current_len, "\x1F");
+
+	/* Write key code style trigger using template */
+	for (i = 0; macro_template[i]; i++)
+	{
+		char ch = macro_template[i];
+		int j;
+
+		switch(ch)
+		{
+		case '&':
+			/* Modifier key character */
+			for (j = 0; macro_modifier_chr[j]; j++)
+			{
+				if (mod_status[j])
+					strnfcat(buf, max, &current_len, "%c", macro_modifier_chr[j]);
+			}
+			break;
+		case '#':
+			/* Key code */
+			strnfcat(buf, max, &current_len, "%s", key_code);
+			break;
+		default:
+			/* Fixed string */
+			strnfcat(buf, max, &current_len, "%c", ch);
+			break;
+		}
+	}
+
+	/* End with '\r' */
+	strnfcat(buf, max, &current_len, "\r");
+
+	/* Succeed */
+	*strptr = str; /* where **strptr == ']' */
+
+	return current_len;
+}
+
 
 
 /*
@@ -115,120 +301,129 @@ static int dehex(char c)
  */
 void text_to_ascii(char *buf, cptr str)
 {
-        char *s = buf;
+	char *s = buf;
 
-        /* Analyze the "ascii" string */
-        while (*str)
-        {
-                /* Backslash codes */
-                if (*str == '\\')
-                {
-                        /* Skip the backslash */
-                        str++;
+	/* Analyze the "ascii" string */
+	while (*str)
+	{
+		/* Backslash codes */
+		if (*str == '\\')
+		{
+			/* Skip the backslash */
+			str++;
 
-                        /* Hex-mode XXX */
-                        if (*str == 'x')
-                        {
-                                *s = 16 * dehex(*++str);
-                                *s++ += dehex(*++str);
-                        }
+			/* Macro Trigger */
+			if (*str == '[')
+			{
+				/* Terminate before appending the trigger */
+				*s = '\0';
 
-                        /* Hack -- simple way to specify "backslash" */
-                        else if (*str == '\\')
-                        {
-                                *s++ = '\\';
-                        }
+				s += trigger_text_to_ascii(buf, sizeof(buf), &str);
+			}
 
-                        /* Hack -- simple way to specify "caret" */
-                        else if (*str == '^')
-                        {
-                                *s++ = '^';
-                        }
+			/* Hex-mode XXX */
+			else if (*str == 'x')
+			{
+				*s = 16 * dehex(*++str);
+				*s++ += dehex(*++str);
+			}
 
-                        /* Hack -- simple way to specify "space" */
-                        else if (*str == 's')
-                        {
-                                *s++ = ' ';
-                        }
+			/* Hack -- simple way to specify "backslash" */
+			else if (*str == '\\')
+			{
+				*s++ = '\\';
+			}
 
-                        /* Hack -- simple way to specify Escape */
-                        else if (*str == 'e')
-                        {
-                                *s++ = ESCAPE;
-                        }
+			/* Hack -- simple way to specify "caret" */
+			else if (*str == '^')
+			{
+				*s++ = '^';
+			}
 
-                        /* Backspace */
-                        else if (*str == 'b')
-                        {
-                                *s++ = '\b';
-                        }
+			/* Hack -- simple way to specify "space" */
+			else if (*str == 's')
+			{
+				*s++ = ' ';
+			}
 
-                        /* Newline */
-                        else if (*str == 'n')
-                        {
-                                *s++ = '\n';
-                        }
+			/* Hack -- simple way to specify Escape */
+			else if (*str == 'e')
+			{
+				*s++ = ESCAPE;
+			}
 
-                        /* Return */
-                        else if (*str == 'r')
-                        {
-                                *s++ = '\r';
-                        }
+			/* Backspace */
+			else if (*str == 'b')
+			{
+				*s++ = '\b';
+			}
 
-                        /* Tab */
-                        else if (*str == 't')
-                        {
-                                *s++ = '\t';
-                        }
+			/* Newline */
+			else if (*str == 'n')
+			{
+				*s++ = '\n';
+			}
 
-                        /* Octal-mode */
-                        else if (*str == '0')
-                        {
-                                *s = 8 * deoct(*++str);
-                                *s++ += deoct(*++str);
-                        }
+			/* Return */
+			else if (*str == 'r')
+			{
+				*s++ = '\r';
+			}
 
-                        /* Octal-mode */
-                        else if (*str == '1')
-                        {
-                                *s = 64 + 8 * deoct(*++str);
-                                *s++ += deoct(*++str);
-                        }
+			/* Tab */
+			else if (*str == 't')
+			{
+				*s++ = '\t';
+			}
 
-                        /* Octal-mode */
-                        else if (*str == '2')
-                        {
-                                *s = 64 * 2 + 8 * deoct(*++str);
-                                *s++ += deoct(*++str);
-                        }
+			/* Octal-mode */
+			else if (*str == '0')
+			{
+				*s = 8 * deoct(*++str);
+				*s++ += deoct(*++str);
+			}
 
-                        /* Octal-mode */
-                        else if (*str == '3')
-                        {
-                                *s = 64 * 3 + 8 * deoct(*++str);
-                                *s++ += deoct(*++str);
-                        }
+			/* Octal-mode */
+			else if (*str == '1')
+			{
+				*s = 64 + 8 * deoct(*++str);
+				*s++ += deoct(*++str);
+			}
 
-                        /* Skip the final char */
-                        str++;
-                }
+			/* Octal-mode */
+			else if (*str == '2')
+			{
+				*s = 64 * 2 + 8 * deoct(*++str);
+				*s++ += deoct(*++str);
+			}
 
-                /* Normal Control codes */
-                else if (*str == '^')
-                {
-                        str++;
-                        *s++ = (*str++ & 037);
-                }
+			/* Octal-mode */
+			else if (*str == '3')
+			{
+				*s = 64 * 3 + 8 * deoct(*++str);
+				*s++ += deoct(*++str);
+			}
 
-                /* Normal chars */
-                else
-                {
-                        *s++ = *str++;
-                }
-        }
+			/* Skip the final char */
+			str++;
+		}
 
-        /* Terminate */
-        *s = '\0';
+		/* Normal Control codes */
+		else if (*str == '^')
+		{
+			str++;
+			*s++ = (*str++ & 037);
+		}
+
+		/* Normal chars */
+		else
+		{
+			*s++ = *str++;
+		}
+	}
+
+	/* Terminate */
+	*s = '\0';
 }
 
 /*
@@ -241,65 +436,65 @@ void text_to_ascii(char *buf, cptr str)
 errr path_parse(char *buf, int max, cptr file)
 {
 #ifndef WIN32
-        cptr            u, s;
-        struct passwd   *pw;
-        char            user[128];
+	cptr            u, s;
+	struct passwd   *pw;
+	char            user[128];
 #endif /* WIN32 */
 
 
-        /* Assume no result */
-        buf[0] = '\0';
+	/* Assume no result */
+	buf[0] = '\0';
 
-        /* No file? */
-        if (!file) return (-1);
+	/* No file? */
+	if (!file) return (-1);
 
-        /* File needs no parsing */
-        if (file[0] != '~')
-        {
-                strcpy(buf, file);
-                return (0);
-        }
+	/* File needs no parsing */
+	if (file[0] != '~')
+	{
+		strcpy(buf, file);
+		return (0);
+	}
 
 	/* Windows should never have ~ in filename */
 #ifndef WIN32
 
-        /* Point at the user */
-        u = file+1;
+	/* Point at the user */
+	u = file+1;
 
-        /* Look for non-user portion of the file */
-        s = strstr(u, PATH_SEP);
+	/* Look for non-user portion of the file */
+	s = strstr(u, PATH_SEP);
 
-        /* Hack -- no long user names */
-        if (s && (s >= u + sizeof(user))) return (1);
+	/* Hack -- no long user names */
+	if (s && (s >= u + sizeof(user))) return (1);
 
-        /* Extract a user name */
-        if (s)
-        {
-                int i;
-                for (i = 0; u < s; ++i) user[i] = *u++;
-                user[i] = '\0';
-                u = user;
-        }
+	/* Extract a user name */
+	if (s)
+	{
+		int i;
+		for (i = 0; u < s; ++i) user[i] = *u++;
+		user[i] = '\0';
+		u = user;
+	}
 
-        /* Look up the "current" user */
-        if (u[0] == '\0') u = getlogin();
+	/* Look up the "current" user */
+	if (u[0] == '\0') u = getlogin();
 
-        /* Look up a user (or "current" user) */
-        if (u) pw = getpwnam(u);
-        else pw = getpwuid(getuid());
+	/* Look up a user (or "current" user) */
+	if (u) pw = getpwnam(u);
+	else pw = getpwuid(getuid());
 
-        /* Nothing found? */
-        if (!pw) return (1);
+	/* Nothing found? */
+	if (!pw) return (1);
 
-        /* Make use of the info */
-        (void)strcpy(buf, pw->pw_dir);
+	/* Make use of the info */
+	(void)strcpy(buf, pw->pw_dir);
 
-        /* Append the rest of the filename, if any */
-        if (s) (void)strcat(buf, s);
+	/* Append the rest of the filename, if any */
+	if (s) (void)strcat(buf, s);
 
-        /* Success */
+	/* Success */
 #endif /* WIN32 */
-        return (0);
+	return (0);
 }
 
 
@@ -309,13 +504,13 @@ errr path_parse(char *buf, int max, cptr file)
  */
 FILE *my_fopen(cptr file, cptr mode)
 {
-        char                buf[1024];
+	char                buf[1024];
 
-        /* Hack -- Try to parse the path */
-        if (path_parse(buf, 1024, file)) return (NULL);
+	/* Hack -- Try to parse the path */
+	if (path_parse(buf, 1024, file)) return (NULL);
 
-        /* Attempt to fopen the file anyway */
-        return (fopen(buf, mode));
+	/* Attempt to fopen the file anyway */
+	return (fopen(buf, mode));
 }
 
 
@@ -324,14 +519,14 @@ FILE *my_fopen(cptr file, cptr mode)
  */
 errr my_fclose(FILE *fff)
 {
-        /* Require a file */
-        if (!fff) return (-1);
+	/* Require a file */
+	if (!fff) return (-1);
 
-        /* Close, check for error */
-        if (fclose(fff) == EOF) return (1);
+	/* Close, check for error */
+	if (fclose(fff) == EOF) return (1);
 
-        /* Success */
-        return (0);
+	/* Success */
+	return (0);
 }
 
 /*
@@ -343,58 +538,80 @@ errr my_fclose(FILE *fff)
  */
 errr my_fgets(FILE *fff, char *buf, huge n)
 {
-        huge i = 0;
+	huge i = 0;
 
-        char *s;
+	char *s;
 
-        char tmp[1024];
+	char tmp[1024];
 
-        /* Read a line */
-        if (fgets(tmp, 1024, fff))
-        {
-                /* Convert weirdness */
-                for (s = tmp; *s; s++)
-                {
-                        /* Handle newline */
-                        if (*s == '\n')
+	/* Read a line */
+	if (fgets(tmp, 1024, fff))
+	{
+		/* Convert weirdness */
+		for (s = tmp; *s; s++)
+		{
+			/* Handle newline */
+			if (*s == '\n')
                         {
-                                /* Terminate */
-                                buf[i] = '\0';
+				/* Terminate */
+				buf[i] = '\0';
 
-                                /* Success */
-                                return (0);
-                        }
+				/* Success */
+				return (0);
+			}
 
-                        /* Handle tabs */
-                        else if (*s == '\t')
-                        {
-                                /* Hack -- require room */
-                                if (i + 8 >= n) break;
+			/* Handle tabs */
+			else if (*s == '\t')
+			{
+				/* Hack -- require room */
+				if (i + 8 >= n) break;
 
-                                /* Append a space */
-                                buf[i++] = ' ';
+				/* Append a space */
+				buf[i++] = ' ';
 
-                                /* Append some more spaces */
-                                while (!(i % 8)) buf[i++] = ' ';
-                        }
+				/* Append some more spaces */
+				while (!(i % 8)) buf[i++] = ' ';
+			}
 
-                        /* Handle printables */
-                        else if (isprint(*s))
-                        {
-                                /* Copy */
-                                buf[i++] = *s;
+			/* Handle printables */
+			else if (isprint(*s))
+			{
+				/* Copy */
+				buf[i++] = *s;
 
-                                /* Check length */
-                                if (i >= n) break;
-                        }
-                }
-        }
+				/* Check length */
+				if (i >= n) break;
+			}
+		}
+	}
 
-        /* Nothing */
-        buf[0] = '\0';
+	/* Nothing */
+	buf[0] = '\0';
 
-        /* Failure */
-        return (1);
+	/* Failure */
+	return (1);
+}
+
+/*
+ * Check to see if a file exists, by opening it read-only.
+ *
+ * Return TRUE if it does, FALSE if it does not.
+ */
+bool my_fexists(const char *fname)
+{
+	FILE* fd;
+
+	/* Try to open it */
+	fd = my_fopen(fname, "r");
+
+	/* It worked */
+	if (fd)
+	{
+		my_fclose(fd);
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 
@@ -448,6 +665,7 @@ void init_file_paths(char *path)
         string_free(ANGBAND_DIR_HELP);
         string_free(ANGBAND_DIR_INFO);
         string_free(ANGBAND_DIR_SAVE);
+        string_free(ANGBAND_DIR_PREF);
         string_free(ANGBAND_DIR_USER);
         string_free(ANGBAND_DIR_XTRA);
 
@@ -475,6 +693,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_HELP = string_make("");
         ANGBAND_DIR_INFO = string_make("");
         ANGBAND_DIR_SAVE = string_make("");
+        ANGBAND_DIR_PREF = string_make("");
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
 
@@ -515,6 +734,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "save");
         ANGBAND_DIR_SAVE = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "pref");
+        ANGBAND_DIR_PREF = string_make(path);
 
         /* Build a path name */
         strcpy(tail, "user");
@@ -616,7 +839,7 @@ void init_file_paths(char *path)
  *   P:<str>
  *
  * Create a command macro, given an encoded macro trigger
- *   C:<str>
+ *   C:<str>:<str>
  *
  * Create a keyset mapping
  *   S:<key>:<key>:<dir>
@@ -633,244 +856,488 @@ void init_file_paths(char *path)
  * Specify a use for a subwindow
  *   W:<num>:<use>
  */
-errr process_pref_file_aux(char *buf)
+
+errr process_pref_file_command(char *buf)
 {
-        int i, j, k;
+	int i, j;
 	int n1, n2;
 
-        char *zz[16];
+	char *zz[16];
+	bool virt = ((fake_class == -1 || fake_race == -1) ? FALSE : TRUE);
+
+	/* Skip "empty" lines */
+	if (!buf[0]) return (0);
+
+	/* Skip "blank" lines */
+	if (isspace(buf[0])) return (0);
+
+	/* Skip comments */
+	if (buf[0] == '#') return (0);
 
 
-        /* Skip "empty" lines */
-        if (!buf[0]) return (0);
-
-        /* Skip "blank" lines */
-        if (isspace(buf[0])) return (0);
-
-        /* Skip comments */
-        if (buf[0] == '#') return (0);
+	/* Require "?:*" format */
+	if (buf[1] != ':') return (1);
 
 
-        /* Require "?:*" format */
-        if (buf[1] != ':') return (1);
-
-
-        /* Process "%:<fname>" */
-        if (buf[0] == '%')
-        {
-                /* Attempt to Process the given file */
-                return (process_pref_file(buf + 2));
-        }
-
-
-        /* Process "R:<num>:<a>/<c>" -- attr/char for monster races */
-        if (buf[0] == 'R')
-        {
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        i = (huge)strtol(zz[0], NULL, 0);
-                        n1 = strtol(zz[1], NULL, 0);
-                        n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_R_IDX) return (1);
-                        if (n1) Client_setup.r_attr[i] = n1;
-                        if (n2) Client_setup.r_char[i] = n2;
-                        return (0);
-                }
-        }
-
-
-        /* Process "K:<num>:<a>/<c>"  -- attr/char for object kinds */
-        else if (buf[0] == 'K')
-        {
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        i = (huge)strtol(zz[0], NULL, 0);
-                        n1 = strtol(zz[1], NULL, 0);
-                        n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_K_IDX) return (1);
-                        if (n1) Client_setup.k_attr[i] = n1;
-                        if (n2) Client_setup.k_char[i] = n2;
-                        return (0);
-                }
-        }
-
-
-        /* Process "F:<num>:<a>/<c>" -- attr/char for terrain features */
-        else if (buf[0] == 'F')
-        {
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        i = (huge)strtol(zz[0], NULL, 0);
-                        n1 = strtol(zz[1], NULL, 0);
-                        n2 = strtol(zz[2], NULL, 0);
-                        if (i >= MAX_F_IDX) return (1);
-                        if (n1) Client_setup.f_attr[i] = n1;
-                        if (n2) Client_setup.f_char[i] = n2;
-                        return (0);
-                }
-        }
-
-
-        /* Process "U:<tv>:<a>/<c>" -- attr/char for unaware items */
-        else if (buf[0] == 'U')
-        {
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        j = (huge)strtol(zz[0], NULL, 0);
-                        n1 = strtol(zz[1], NULL, 0);
-                        n2 = strtol(zz[2], NULL, 0);
-			if (j > 100) return 0;
-			if (n1) Client_setup.u_attr[j] = n1;
-			if (n2) Client_setup.u_char[j] = n2;
-                        return (0);
-                }
-        }
-
-
-        /* Process "E:<tv>:<a>/<c>" -- attr/char for equippy chars */
-        else if (buf[0] == 'E')
-        {
-		/* Do nothing */
-		return (0);
-
-#if 0
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        j = (byte)strtol(zz[0], NULL, 0) % 128;
-                        n1 = strtol(zz[1], NULL, 0);
-                        n2 = strtol(zz[2], NULL, 0);
-                        if (n1) tval_to_attr[j] = n1;
-                        if (n2) tval_to_char[j] = n2;
-                        return (0);
-                }
-#endif
-        }
-
-        /* Process "A:<str>" -- save an "action" for later */
-        else if (buf[0] == 'A')
-        {
-                text_to_ascii(macro__buf, buf+2);
-                return (0);
-        }
-
-        /* Process "P:<str>" -- create normal macro */
-        else if (buf[0] == 'P')
-        {
-                char tmp[1024];
-                text_to_ascii(tmp, buf+2);
-                macro_add(tmp, macro__buf, FALSE);
-                return (0);
-        }
-
-        /* Process "C:<str>" -- create command macro */
-        else if (buf[0] == 'C')
-        {
-                char tmp[1024];
-                text_to_ascii(tmp, buf+2);
-                macro_add(tmp, macro__buf, TRUE);
-                return (0);
-        }
-
-
-        /* Process "S:<key>:<key>:<dir>" -- keymap */
-        else if (buf[0] == 'S')
-        {
-                if (tokenize(buf+2, 3, zz) == 3)
-                {
-                        i = strtol(zz[0], NULL, 0) & 0x7F;
-                        j = strtol(zz[0], NULL, 0) & 0x7F;
-                        k = strtol(zz[0], NULL, 0) & 0x7F;
-                        if ((k > 9) || (k == 5)) k = 0;
-                        keymap_cmds[i] = j;
-                        keymap_dirs[i] = k;
-                        return (0);
-                }
-        }
-
-
-        /* Process "V:<num>:<kv>:<rv>:<gv>:<bv>" -- visual info */
-        else if (buf[0] == 'V')
-        {
-		/* Do nothing */
-		return (0);
-
-                if (tokenize(buf+2, 5, zz) == 5)
-                {
-                        i = (byte)strtol(zz[0], NULL, 0);
-                        color_table[i][0] = (byte)strtol(zz[1], NULL, 0);
-                        color_table[i][1] = (byte)strtol(zz[2], NULL, 0);
-                        color_table[i][2] = (byte)strtol(zz[3], NULL, 0);
-                        color_table[i][3] = (byte)strtol(zz[4], NULL, 0);
-                        return (0);
-                }
-        }
-
-
-        /* Process "X:<str>" -- turn option off */
-        else if (buf[0] == 'X')
-        {
-                for (i = 0; option_info[i].o_desc; i++)
-                {
-                        if (option_info[i].o_var &&
-                            option_info[i].o_text &&
-                            streq(option_info[i].o_text, buf + 2))
-                        {
-                                (*option_info[i].o_var) = FALSE;
-				Client_setup.options[i] = FALSE;
-                                return (0);
-                        }
-                }
-        }
-
-        /* Process "Y:<str>" -- turn option on */
-        else if (buf[0] == 'Y')
-        {
-                for (i = 0; option_info[i].o_desc; i++)
-                {
-                        if (option_info[i].o_var &&
-                            option_info[i].o_text &&
-                            streq(option_info[i].o_text, buf + 2))
-                        {
-                                (*option_info[i].o_var) = TRUE;
-				Client_setup.options[i] = TRUE;
-                                return (0);
-                        }
-                }
-        }
-
-	/* Process "W:<num>:<use>" -- specify window action */
-	else if (buf[0] == 'W')
+	/* MAngband-specific hack: ignore non-R in fake mode */
+	if (virt == TRUE && buf[0] != 'R')
 	{
-		if (tokenize(buf+2, 2, zz) == 2)
+		return (0);
+	}
+
+	/* Process "%:<fname>" */
+	if (buf[0] == '%')
+	{
+		/* Attempt to Process the given file */
+		return (process_pref_file(buf + 2));
+	}
+
+
+	/* Process "R:<num>:<a>/<c>" -- attr/char for monster races */
+	if (buf[0] == 'R')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
 		{
-			i = (byte)strtol(zz[0], NULL, 0);
-			window_flag[i] = 1L << ((byte)strtol(zz[1], NULL, 0));
+			i = (huge)strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+
+			if (i >= z_info.r_max) return (1);
+			/* MAngband-specific hack: fill the 'pr' array */
+			if (virt == TRUE)
+			{
+				/* Ignore non-zero index */
+				if (i != 0) return (0);
+				if (n1) p_ptr->pr_attr[fake_class * z_info.p_max + fake_race] = n1;
+				if (n2) p_ptr->pr_char[fake_class * z_info.p_max + fake_race] = n2;
+				return (0);
+			}
+			if (n1) Client_setup.r_attr[i] = n1;
+			if (n2) Client_setup.r_char[i] = n2;
+			return (0);
+                }
+	}
+
+
+	/* Process "K:<num>:<a>/<c>"  -- attr/char for object kinds */
+	else if (buf[0] == 'K')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			i = (huge)strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if (i >= z_info.k_max) return (1);
+			if (n1) Client_setup.k_attr[i] = n1;
+			if (n2) Client_setup.k_char[i] = n2;
 			return (0);
 		}
 	}
 
 
-        /* Failure */
-        return (1);
+	/* Process "F:<num>:<a>/<c>" -- attr/char for terrain features */
+	else if (buf[0] == 'F')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			i = (huge)strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if (i >= z_info.f_max) return (1);
+			if (n1) Client_setup.f_attr[i] = n1;
+			if (n2) Client_setup.f_char[i] = n2;
+			return (0);
+		}
+	}
+
+	/* Process "L:<num>:<a>/<c>" -- attr/char for flavors */
+	else if (buf[0] == 'L')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			i = strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if ((i < 0) || (i >= (long)N_ELEMENTS(Client_setup.flvr_x_attr))) return (1);
+			if (n1) Client_setup.flvr_x_attr[i] = (byte)n1;
+			if (n2) Client_setup.flvr_x_char[i] = (char)n2;
+			return (0);
+		}
+	}
+#if 0
+	/* Process "U:<tv>:<a>/<c>" -- attr/char for unaware items */
+	else if (buf[0] == 'U')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			j = (huge)strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if (j > 100) return 0;
+			if (n1) Client_setup.u_attr[j] = n1;
+			if (n2) Client_setup.u_char[j] = n2;
+			return (0);
+		}
+	}
+#endif
+	/* Process "S:<num>:<a>/<c>" -- attr/char for special things */
+	else if (buf[0] == 'S')
+	{
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			i = strtol(zz[0], NULL, 0);
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if ((i < 0) || (i >= (long)N_ELEMENTS(Client_setup.misc_attr))) return (1);
+			Client_setup.misc_attr[i] = (byte)n1;
+			Client_setup.misc_char[i] = (char)n2;
+			return (0);
+		}
+	}
+
+	/* Process "E:<tv>:<a>" -- attribute for inventory objects  */
+	else if (buf[0] == 'E')
+	{
+		/*  "E:<tv>:<a>" -- attribute for inventory objects  */
+		if (tokenize(buf+2, 2, zz) == 2)
+		{
+			i = strtol(zz[0], NULL, 0) % 128;
+			n1 = strtol(zz[1], NULL, 0);
+			if ((i < 0) || (i >= (long)N_ELEMENTS(Client_setup.tval_attr))) return (1);
+			if (n1) Client_setup.tval_attr[i] = (byte)n1;
+			return (0);
+		}
+		/*  "E:<tv>:<a>/<c>" -- attr/char for equippy chars */
+		if (tokenize(buf+2, 3, zz) == 3)
+		{
+			j = (byte)strtol(zz[0], NULL, 0) % 128;
+			n1 = strtol(zz[1], NULL, 0);
+			n2 = strtol(zz[2], NULL, 0);
+			if (n1) Client_setup.tval_attr[j] = n1;
+			if (n2) Client_setup.tval_char[j] = n2;
+			return (0);
+		}
+	}
+
+	/* Process "A:<str>" -- save an "action" for later */
+	else if (buf[0] == 'A')
+	{
+		text_to_ascii(macro__buf, buf+2);
+		return (0);
+	}
+
+	/* Process "P:<str>" -- create normal macro */
+	else if (buf[0] == 'P')
+	{
+		char tmp[1024];
+		text_to_ascii(tmp, buf+2);
+		macro_add(tmp, macro__buf, FALSE);
+		return (0);
+	}
+	/* Process "C:<num>:<str>" -- create keymap */
+	else if (buf[0] == 'C')
+	{
+		long mode;
+
+		char tmp[1024];
+
+		if (tokenize(buf+2, 2, zz) != 2) return (1);
+
+		mode = strtol(zz[0], NULL, 0);
+		if ((mode < 0) || (mode >= KEYMAP_MODES)) return (1);
+
+		text_to_ascii(tmp, zz[1]);
+		if (!tmp[0] || tmp[1]) return (1);
+		i = (long)tmp[0];
+
+		string_free(keymap_act[mode][i]);
+		keymap_act[mode][i] = string_make(macro__buf);
+
+		return (0);
+	}
+
+	/* set macro trigger names and a template */
+	/* Process "T:<trigger>:<keycode>:<shift-keycode>" */
+	/* Process "T:<template>:<modifier chr>:<modifier name>:..." */
+	else if (buf[0] == 'T')
+	{
+		int tok;
+
+		tok = tokenize(buf + 2, MAX_MACRO_MOD + 2, zz);
+
+		/* Trigger template */
+		if (tok >= 4)
+		{
+			int i;
+			int num;
+
+			/* Free existing macro triggers and trigger template */
+			macro_trigger_free();
+
+			/* Clear template done */
+			if (*zz[0] == '\0') return 0;
+
+			/* Count modifier-characters */
+			num = strlen(zz[1]);
+
+			/* One modifier-character per modifier */
+			if (num + 2 != tok) return 1;
+
+			/* Macro template */
+			macro_template = string_make(zz[0]);
+
+			/* Modifier chars */
+			macro_modifier_chr = string_make(zz[1]);
+
+			/* Modifier names */
+			for (i = 0; i < num; i++)
+			{
+				macro_modifier_name[i] = string_make(zz[2+i]);
+			}
+		}
+		/* Macro trigger */
+		else if (tok >= 2)
+		{
+			char *buf;
+			cptr s;
+			char *t;
+
+			if (max_macrotrigger >= MAX_MACRO_TRIGGER)
+			{
+				c_msg_print("Too many macro triggers!");
+				return 1;
+			}
+
+			/* Buffer for the trigger name */
+			C_MAKE(buf, strlen(zz[0]) + 1, char);
+
+			/* Simulate strcpy() and skip the '\' escape character */
+			s = zz[0];
+			t = buf;
+
+			while (*s)
+			{
+				if ('\\' == *s) s++;
+				*t++ = *s++;
+			}
+
+			/* Terminate the trigger name */
+			*t = '\0';
+
+			/* Store the trigger name */
+			macro_trigger_name[max_macrotrigger] = string_make(buf);
+
+			/* Free the buffer */
+			FREE(buf);
+
+			/* Normal keycode */
+			macro_trigger_keycode[0][max_macrotrigger] = string_make(zz[1]);
+
+			/* Special shifted keycode */
+			if (tok == 3)
+			{
+				macro_trigger_keycode[1][max_macrotrigger] = string_make(zz[2]);
+			}
+			/* Shifted keycode is the same as the normal keycode */
+			else
+			{
+				macro_trigger_keycode[1][max_macrotrigger] = string_make(zz[1]);
+			}
+
+			/* Count triggers */
+			max_macrotrigger++;
+		}
+
+		return 0;
+	}
+
+	/* Process "V:<num>:<kv>:<rv>:<gv>:<bv>" -- visual info */
+	else if (buf[0] == 'V')
+	{
+		/* Do nothing */
+		return (0);
+
+		if (tokenize(buf+2, 5, zz) == 5)
+		{
+			i = (byte)strtol(zz[0], NULL, 0);
+			color_table[i][0] = (byte)strtol(zz[1], NULL, 0);
+			color_table[i][1] = (byte)strtol(zz[2], NULL, 0);
+			color_table[i][2] = (byte)strtol(zz[3], NULL, 0);
+			color_table[i][3] = (byte)strtol(zz[4], NULL, 0);
+			return (0);
+		}
+	}
+
+
+	/* Process "X:<str>" -- turn option off */
+	/* Process "Y:<str>" -- turn option on */
+	else if (buf[0] == 'X' || buf[0] == 'Y')
+	{
+		bool opt_value = TRUE;
+		if (buf[0] == 'X') opt_value = FALSE;
+			for (i = 0; local_option_info[i].o_desc; i++)
+			{
+				if (local_option_info[i].o_var &&
+					local_option_info[i].o_text &&
+					streq(local_option_info[i].o_text, buf + 2))
+				{
+					if (local_option_info[i].o_set)
+					{
+						p_ptr->options[ local_option_info[i].o_set ] = opt_value;
+					}
+					(*local_option_info[i].o_var) = opt_value;
+				}
+			}
+			for (i = 0; i < options_max; i++)
+			{
+				if (option_info[i].o_page == 1 && ignore_birth_options == TRUE) continue;
+				if (option_info[i].o_page &&
+					option_info[i].o_text &&
+					streq(option_info[i].o_text, buf + 2))
+				{
+					//printf("[%02d] %s = %s\n", option_info[i].o_page, option_info[i].o_text, opt_value ? "TRUE" : "FALSE");
+					if (option_info[i].o_set)
+					{
+						(*local_option_info[ option_info[i].o_set ].o_var) = opt_value;
+					}
+					p_ptr->options[i] = opt_value;
+				}
+		}
+
+		/* Success, even if option name was unrecognized */
+		return (0);
+	}
+
+	/* MAngband-specific hack: read hitpoint warning */
+	else if (buf[0] == 'H')
+	{
+		if (tokenize(buf + 2, 1, zz) == 1)
+		{
+			i = strtol(zz[0], NULL, 0);
+
+			/* Bounds */
+			if (i < 0) i = 0;
+			if (i > 9) i = 9;
+
+			p_ptr->hitpoint_warn = i;
+		}
+		/* Whatever the value is, we accept it */
+		return (0);
+	}
+
+	/* Process "W:<num>:<use>" -- specify window action */
+	else if (buf[0] == 'W')
+	{
+		long win, flag;
+
+		if (tokenize(buf + 2, 2, zz) == 2)
+		{
+			win = strtol(zz[0], NULL, 0);
+			flag = strtol(zz[1], NULL, 0);
+
+			/* Ignore illegal windows */
+			if ((win >= ANGBAND_TERM_MAX)) return (0);
+			/* Hack -- Ignore the main window (but let STATUS and COMPACT be) */
+			if ((win <= 0) && ((1L << flag) != PW_STATUS) && ((1L << flag) != PW_PLAYER_2)) return (0);
+#ifdef PMSG_TERM
+			/* Hack -- Ignore Term-4/PW_MESSGAE_CHAT settings */
+			if (flag == PW_MESSAGE_CHAT && win != PMSG_TERM) flag = 0;
+			if (win == PMSG_TERM) flag = PW_MESSAGE_CHAT;
+#endif
+
+			/* Ignore illegal flags */
+			if ((flag < 0) || (flag >= 32)) return (0);
+
+			/* Require a real flag */
+			/* No need to be so strict in MAngband, might be server-defined window
+			//if (window_flag_desc[flag]) */
+			{
+				/* Turn flag on */
+				window_flag[win] |= (1L << flag);
+				window_flag_o[win] |= (1L << flag);
+			}
+
+			/* Success */
+			return (0);
+		}
+	}
+
+	/* Failure */
+	return (1);
 }
 
+/* Uber hack + Code duplication */
+errr Save_windows(void)
+{
+	int i;
+	byte j;
+
+	FILE *fp;
+
+	char buf[1024];
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_USER, "window.prf");
+
+	/* Open the file */
+	fp = my_fopen(buf, "w");
+
+	/* Catch errors */
+	if (!fp) return (-1);
+
+	/* Skip space */
+	fprintf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
+	fprintf(fp, "\n\n");
+	fprintf(fp, "# Usage: W:<window number>:<usage number>\n");
+	fprintf(fp, "# \n");
+	fprintf(fp, "# Valid usage numbers:\n");
+	/* Describe */
+	for (j = 0; j < 32; j++)
+	{
+		if (window_flag_desc[j])
+		fprintf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
+	}
+	fprintf(fp, "\n\n");
+
+	/* Dump */
+	for (i = 0; i < ANGBAND_TERM_MAX; i++)
+	{
+		if (window_flag[i])
+		{
+			for (j = 0; j < 32; j++)
+			{
+				if (window_flag[i] & (1L << j))
+					fprintf(fp, "W:%d:%d\n", i, j);
+			}
+		}
+	}
+
+	/* Close the file */
+	my_fclose(fp);
+
+	return 0;
+}
 
 errr Save_options(void)
 {
 	int i;
+	errr windows;
+	FILE *fp;
 
-    FILE *fp;
+	char buf[1024];
+	byte last_page;
 
-    char buf[1024];
+	windows = Save_windows();
 
-    /* Build the filename */
-    path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");
 
-    /* Open the file */
-    fp = my_fopen(buf, "w");
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");
 
-    /* Catch errors */
-    if (!fp) return (-1);
+	/* Open the file */
+	fp = my_fopen(buf, "w");
+
+	/* Catch errors */
+	if (!fp) return (-1);
 
 	/* Skip space */
 	fprintf(fp, "# This file can be used to set or clear all of the options.\n");
@@ -878,24 +1345,37 @@ errr Save_options(void)
 	fprintf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
 	fprintf(fp, "# Also remember that not all options are used.\n\n");
 
-	/* Process "X:<str>" and "Y:<str>" */
-    for (i = 0; option_info[i].o_desc; i++)
-    {
-		if ((*option_info[i].o_var) == FALSE)
+	/* Dump local options with "X:<str>" and "Y:<str>" */
+	last_page = 0;
+	for (i = 0; local_option_info[i].o_desc; i++)
+	{
+		if (local_option_info[i].o_text)
 		{
-            if (option_info[i].o_text)
-				fprintf(fp, "X:%s\n", option_info[i].o_text);
+			fprintf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
 		}
-		else if ((*option_info[i].o_var) == TRUE)
+		if (last_page != local_option_info[i].o_page)
 		{
-            if (option_info[i].o_text)
-				fprintf(fp, "Y:%s\n", option_info[i].o_text);
+			fprintf(fp, "\n");
 		}
-		else
+		last_page = local_option_info[i].o_page;
+	}
+	/* Dump remote options, skipping linked ones */
+	last_page = 0;
+	for (i = 0; i < options_max; i++)
+	{
+		if (!option_info[i].o_set && option_info[i].o_text)
+		{
+			fprintf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
+		}
+		if (last_page != option_info[i].o_page)
+		{
 			fprintf(fp, "\n");
-		if ((i == 15) || (i == 27) || (i == 43) || (i == 59))
-			fprintf(fp, "\n");
-    }
+		}
+		last_page = option_info[i].o_page;
+	}
+
+	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
+	fprintf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
 
 	/* Close the file */
 	my_fclose(fp);
@@ -904,42 +1384,375 @@ errr Save_options(void)
 }
 
 /*
+ * Helper function for "process_pref_file()"
+ *
+ * Input:
+ *   v: output buffer array
+ *   f: final character
+ *
+ * Output:
+ *   result
+ */
+static cptr process_pref_file_expr(char **sp, char *fp)
+{
+	cptr v;
+
+	char *b;
+	char *s;
+
+	char b1 = '[';
+	char b2 = ']';
+
+	char f = ' ';
+
+	/* Initial */
+	s = (*sp);
+
+	/* Skip spaces */
+	while (isspace((unsigned char)*s)) s++;
+
+	/* Save start */
+	b = s;
+
+	/* Default */
+	v = "?o?o?";
+
+	/* Analyze */
+	if (*s == b1)
+	{
+		const char *p;
+		const char *t;
+
+		/* Skip b1 */
+		s++;
+
+		/* First */
+		t = process_pref_file_expr(&s, &f);
+
+		/* Oops */
+		if (!*t)
+		{
+			/* Nothing */
+		}
+
+		/* Function: IOR */
+		else if (streq(t, "IOR"))
+		{
+			v = "0";
+			while (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+				if (*t && !streq(t, "0")) v = "1";
+			}
+		}
+
+		/* Function: AND */
+		else if (streq(t, "AND"))
+		{
+			v = "1";
+			while (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+				if (*t && streq(t, "0")) v = "0";
+			}
+		}
+
+		/* Function: NOT */
+		else if (streq(t, "NOT"))
+		{
+			v = "1";
+			while (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+				if (*t && !streq(t, "0")) v = "0";
+			}
+		}
+
+		/* Function: EQU */
+		else if (streq(t, "EQU"))
+		{
+			v = "1";
+			if (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+			}
+			while (*s && (f != b2))
+			{
+				p = t;
+				t = process_pref_file_expr(&s, &f);
+				if (*t && !streq(p, t)) v = "0";
+			}
+		}
+
+		/* Function: LEQ */
+		else if (streq(t, "LEQ"))
+		{
+			v = "1";
+			if (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+			}
+			while (*s && (f != b2))
+			{
+				p = t;
+				t = process_pref_file_expr(&s, &f);
+				if (*t && (strcmp(p, t) >= 0)) v = "0";
+			}
+		}
+
+		/* Function: GEQ */
+		else if (streq(t, "GEQ"))
+		{
+			v = "1";
+			if (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+			}
+			while (*s && (f != b2))
+			{
+				p = t;
+				t = process_pref_file_expr(&s, &f);
+				if (*t && (strcmp(p, t) <= 0)) v = "0";
+			}
+		}
+
+		/* Oops */
+		else
+		{
+			while (*s && (f != b2))
+			{
+				t = process_pref_file_expr(&s, &f);
+			}
+		}
+
+		/* Verify ending */
+		if (f != b2) v = "?x?x?";
+
+		/* Extract final and Terminate */
+		if ((f = *s) != '\0') *s++ = '\0';
+	}
+
+	/* Other */
+	else
+	{
+		/* Accept all printables except spaces and brackets */
+		while (isprint((unsigned char)*s) && !strchr(" []", *s)) ++s;
+
+		/* Extract final and Terminate */
+		if ((f = *s) != '\0') *s++ = '\0';
+
+		/* Variable */
+		if (*b == '$')
+		{
+			/* System */
+			if (streq(b+1, "SYS"))
+			{
+				v = ANGBAND_SYS;
+			}
+
+			/* Graphics */
+			else if (streq(b+1, "GRAF"))
+			{
+				v = ANGBAND_GRAF;
+			}
+
+			/* Race */
+			else if (streq(b+1, "RACE"))
+			{
+				v = p_name + race_info[p_ptr->prace].name;
+				/* MAngband-specific hack: enter virtual mode */	
+				if (s && !streq(s, v))
+				{
+					v = s;
+					fake_race = find_race(s);
+				}
+			}
+
+			/* Class */
+			else if (streq(b+1, "CLASS"))
+			{
+				v = c_name + c_info[p_ptr->pclass].name;
+				/* MAngband-specific hack: enter virtual mode */
+				if (s && !streq(s, v))
+				{
+					v = s;
+					fake_class = find_class(s);
+				}
+			}
+
+			/* Player */
+			else if (streq(b+1, "PLAYER"))
+			{
+				v = nick;//op_ptr->base_name;
+			}
+
+			/* Game version */
+			else if (streq(b+1, "VERSION"))
+			{
+				v = format("%d.%d.%d",CLIENT_VERSION_MAJOR,CLIENT_VERSION_MINOR,CLIENT_VERSION_PATCH);
+			}
+		}
+
+		/* Constant */
+		else
+		{
+			v = b;
+		}
+	}
+
+	/* Save */
+	(*fp) = f;
+
+	/* Save */
+	(*sp) = s;
+
+	/* Result */
+	return (v);
+}
+
+/*
+ * Open the "user pref file" and parse it.
+ */
+static errr process_pref_file_aux(cptr name)
+{
+	FILE *fp;
+
+	char buf[1024];
+
+	char old[1024];
+
+	int line = -1;
+
+	errr err = 0;
+
+	bool bypass = FALSE;
+
+
+	/* Open the file */
+	fp = my_fopen(name, "r");
+
+	/* No such file */
+	if (!fp) return (-1);
+
+
+	/* Process the file */
+	while (0 == my_fgets(fp, buf, sizeof(buf)))
+	{
+		/* Count lines */
+		line++;
+
+
+		/* Skip "empty" lines */
+		if (!buf[0]) continue;
+
+		/* Skip "blank" lines */
+		if (isspace((unsigned char)buf[0])) continue;
+
+		/* Skip comments */
+		if (buf[0] == '#') continue;
+
+
+		/* Save a copy */
+		my_strcpy(old, buf, sizeof(old));
+
+
+		/* Process "?:<expr>" */
+		if ((buf[0] == '?') && (buf[1] == ':'))
+		{
+			char f;
+			cptr v;
+			char *s;
+
+			/* Start */
+			s = buf + 2;
+
+			/* Parse the expr */
+			v = process_pref_file_expr(&s, &f);
+
+			/* Set flag */
+			bypass = (streq(v, "0") ? TRUE : FALSE);
+
+			/* Continue */
+			continue;
+		}
+
+		/* Apply conditionals */
+		if (bypass) continue;
+
+
+		/* Process "%:<file>" */
+		if (buf[0] == '%')
+		{
+			/* Process that file if allowed */
+			(void)process_pref_file(buf + 2);
+
+			/* Continue */
+			continue;
+		}
+
+
+		/* Process the line */
+		err = process_pref_file_command(buf);
+
+		/* Hack - cancel 'virtual' mode */
+		fake_class = fake_race = -1;
+
+		/* Oops */
+		if (err) break;
+	}
+
+
+	/* Error */
+	if (err)
+	{
+		/* Print error message */
+		/* ToDo: Add better error messages */
+		printf("Error %d in line %d of file '%s'.", err, line, name);
+		printf("Parsing '%s'", old);
+	}
+
+	/* Close the file */
+	my_fclose(fp);
+
+	/* Result */
+	return (err);
+}
+
+
+
+/*
  * Process the "user pref file" with the given name
  *
- * See the function above for a list of legal "commands".
+ * See the functions above for a list of legal "commands".
+ *
+ * We also accept the special "?" and "%" directives, which
+ * allow conditional evaluation and filename inclusion.
  */
 errr process_pref_file(cptr name)
 {
-        FILE *fp;
+	char buf[1024];
 
-        char buf[1024];
+	errr err = 0;
 
 
-        /* Build the filename */
-        path_build(buf, 1024, ANGBAND_DIR_USER, name);
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_PREF, name);
 
-        /* Open the file */
-        fp = my_fopen(buf, "r");
+	/* Process the pref file */
+	err = process_pref_file_aux(buf);
 
-        /* Catch errors */
-        if (!fp) return (-1);
+	/* Stop at parser errors, but not at non-existing file */
+	if (err == -1)
+	{
+		/* Build the filename */
+		path_build(buf, sizeof(buf), ANGBAND_DIR_USER, name);
 
-        /* Process the file */
-        while (0 == my_fgets(fp, buf, 1024))
-        {
-                /* Process the line */
-                if (process_pref_file_aux(buf))
-                {
-                        /* Useful error message */
-                        printf("Error in '%s' parsing '%s'.", buf, name);
-                }
-        }
+		/* Process the pref file */
+		err = process_pref_file_aux(buf);
+	}
 
-        /* Close the file */
-        my_fclose(fp);
-
-        /* Success */
-        return (0);
+	/* Result */
+	return (err);
 }
 
 
@@ -952,6 +1765,7 @@ void show_motd(void)
 {
 	int i;
 	char ch;
+	event_type chkey;
 
 	/* Clear the screen */
 	Term_clear();
@@ -959,17 +1773,201 @@ void show_motd(void)
 	for (i = 0; i < 23; i++)
 	{
 		/* Show each line */
-		Term_putstr(0, i, -1, TERM_WHITE, &Setup.motd[i * 80]);
+		//Term_putstr(0, i, -1, TERM_WHITE, &Setup.motd[i * 80]);
 	}
 
 	/* Show it */
 	Term_fresh();
 
 	/* Wait for a keypress */
-	Term_inkey(&ch, TRUE, TRUE);
+	Term_inkey(&chkey, TRUE, TRUE);
+	ch = chkey.key;
 
 	/* Clear the screen again */
 	Term_clear();
+}
+
+void show_recall(byte win, cptr prompt)
+{
+	int n;
+
+	byte st = window_to_stream[win];
+	stream_type *stream = &streams[st];
+	cave_view_type *source;
+
+	byte cols = p_ptr->stream_wid[st];
+	byte rows = p_ptr->stream_hgt[st];
+
+	if (looking == FALSE)
+	{
+		return;
+	}
+
+	/* Already in icky mode */
+	if (section_icky_row)
+	{
+		/* Reflush */
+		Term_load();
+		Term_save();
+	}
+
+	/* HACK -- Actually hide recall popup */
+	if (win == NTERM_WIN_NONE)
+	{
+		target_recall = FALSE;
+		section_icky_row = 0;
+		section_icky_col = 0;
+		return;
+	}
+
+	for (n = 0; n < last_remote_line[win]+2; n++)
+	{
+		Term_erase(0, n, 80);
+	}
+
+	for (n = 0; n < last_remote_line[win]+1; n++)
+	{
+		source = stream_cave(st, n);
+		caveprt(source, 80, 0, n);
+	}
+
+	/* Hack -- append target prompt after ':' */
+	source = stream_cave(st, 0);
+	for (n = 0; n < 80-2; n++)
+	{
+		if (source[n].c == ':')
+		{
+			prt(prompt, 0, n + 2);
+			break;
+		}
+	}
+
+	target_recall = TRUE;
+	section_icky_row = last_remote_line[win] + 2;
+	section_icky_col = 80;
+}
+
+/* Despite it's name, this function is a sister to "cmd_interactive".
+ * Here, we *agree* to server's interactive request, so we don't
+ * INITIALLY send anything. "cmd_interactive", on the other hand,
+ * enters interactive mode by itself AND informs server that it did. */
+void prepare_popup(void)
+{
+	bool use_anykey = interactive_anykey_flag;
+	char ch;
+
+	/* Hack -- if the screen is already icky, ignore this command */
+	if (screen_icky && !shopping) return;
+
+	/* Agree to SPECIAL stream */
+	special_line_onscreen = TRUE;
+
+	/* Save the screen */
+	Term_save();
+
+	/* Wait until we get the whole thing */
+	while (TRUE)
+	{
+		ch = inkey();
+
+		if (!ch) continue;
+
+		if (use_anykey) break;
+
+		send_term_key(ch);
+
+		if (ch == ESCAPE) break;
+	}
+
+	/* Undo interactive_anykey_flag */
+	interactive_anykey_flag = FALSE;
+
+	/* Remove partial ickyness */
+	section_icky_col = section_icky_row = 0;
+
+	/* Stop it with SPECIAL stream */
+	special_line_onscreen = FALSE;
+
+	/* Reload the screen */
+	Term_load();
+
+	/* Flush any queued events */
+	Flush_queue();
+}
+
+void show_popup(void)
+{
+	byte n;
+
+	/* Hack -- if the screen is already icky, ignore this command */
+	if (screen_icky && !shopping) return;
+
+	/* Not waiting for popup, ignore this command */
+	if (special_line_onscreen == FALSE) return;
+
+
+	/* Draw "shadow" */
+	for (n = 0; n < last_remote_line[p_ptr->remote_term]+6; n++)
+	{
+		Term_erase(0, n, 80);
+	}
+
+
+	/* Draw text */
+	for (n = 0; n < last_remote_line[p_ptr->remote_term] + 1; n++)
+	{
+		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n + 2 );
+	}
+
+	/* Show a specific "title" -- header */
+	c_put_str(TERM_YELLOW, special_line_header, 0, 0);
+
+	/* Prompt */
+	c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+3, 0);
+
+	/* Ickify section of screen */
+	section_icky_col = 80;
+	section_icky_row = last_remote_line[p_ptr->remote_term]+6;
+}
+
+void show_peruse(s16b line)
+{
+	byte n;
+	s16b last = last_remote_line[p_ptr->remote_term];
+	int k = window_to_stream[p_ptr->remote_term];
+
+	/* This was giving me endless trouble, so I'm just
+	 * putting it here --flm */
+	Term_clear();
+
+	/* Draw text */
+	for (n = 2; n < Term->hgt-2; n++)
+	{
+		if (n + line > last + 2 || !last) break;
+		caveprt(stream_cave(k, (n + line - 2)), p_ptr->stream_wid[k], 0, n);
+	}
+
+	/* Erase the rest */
+	n--;
+	for (; n < Term->hgt; n++)
+	{
+		Term_erase(0, n, p_ptr->stream_wid[k]);
+	}
+
+	/* Show a general "title" + header */
+	special_line_header[60] = '\0';
+	prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR, 
+	CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, special_line_header), 0, 0);
+
+	/* Prompt (check if we have extra pages) */
+	if (last > Term->hgt - 6) 
+		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
+	else
+		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
+
+	/* Enforce interactivity if not on */
+	special_line_type = 1;
+	if (!special_line_onscreen) special_line_requested = TRUE;
 }
 
 /*
@@ -982,11 +1980,20 @@ void show_motd(void)
  */
 void peruse_file(void)
 {
-	char k; 
+	char k;
 
 	/* Initialize */
 	cur_line = 0;
 	max_line = 0;
+
+	/* HACK - Stealh Mode? */
+	if (!special_line_onscreen)
+	{
+			Send_special_line(special_line_type, cur_line);
+			Send_special_line(0, 0);/*(SPECIAL_FILE_NONE, 0);*/
+			special_line_type = 0;
+			return;
+	}
 
 	/* The screen is icky */
 	screen_icky = TRUE;
@@ -1004,8 +2011,8 @@ void peruse_file(void)
 		Send_special_line(special_line_type, cur_line);
 
 		/* Show a general "title" */
-      //          prt(format("[Mangband %d.%d.%d] <%d>",
-		//	VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, max_line), 0, 0);
+		//prt(format("[Mangband %d.%d.%d] <%d>",
+		//   CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, max_line), 0, 0);
 
 		/* Prompt */
 		//prt("[Press Return, Space, -, or ESC to exit.]", 23, 0);
@@ -1014,15 +2021,15 @@ void peruse_file(void)
 		k = inkey();
 
 		/* Hack -- make any key escape if we're in popup mode */
-		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == SPECIAL_FILE_OTHER) k = ESCAPE;
-		
+		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == 1) k = ESCAPE;/*SPECIAL_FILE_OTHER*/
+
 		/* Hack -- go to a specific line */
 		if (k == '#')
 		{
-			char tmp[80];
+			char tmp[MAX_CHARS];
 			prt("Goto Line: ", 23, 0);
 			strcpy(tmp, "0");
-			if (askfor_aux(tmp, 80, 0))
+			if (askfor_aux(tmp, MAX_COLS, 0))
 			{
 				cur_line = atoi(tmp);
 			}
@@ -1061,7 +2068,7 @@ void peruse_file(void)
 		{
 			cur_line++;
 		}
-		
+
 		/* Back up one line */
 		if ((k == '=') || (k == '8'))
 		{
@@ -1081,11 +2088,11 @@ void peruse_file(void)
 		/* Check maximum line */
 		if (cur_line > max_line || cur_line < 0)
 			cur_line = 0;
-			
+
 	}
 
 	/* Tell the server we're done looking */
-	Send_special_line(SPECIAL_FILE_NONE, 0);
+	Send_special_line(0,0);/*(SPECIAL_FILE_NONE, 0);*/
 
 	/* No longer using file perusal */
 	special_line_type = 0;
@@ -1098,4 +2105,666 @@ void peruse_file(void)
 
 	/* Flush any events that came in */
 	Flush_queue();
+}
+
+
+/*
+ * Client config file handler
+ */
+#ifdef WINDOWS
+static char config_name[1024];	/* Config filename */
+void conf_init(void* param)
+{
+	char path[1024];
+	HINSTANCE hInstance = param;
+
+	/* Search for file in user directory */
+	if (GetEnvironmentVariable("USERPROFILE", path, 512))
+	{
+		strcat(path, "\\mangclient.ini");
+
+		/* Ok */
+		if (my_fexists(path))
+		{
+			my_strcpy(config_name, path, 1024);
+			return;
+		}
+	}
+
+	/* Get full path to executable */
+	GetModuleFileName(hInstance, path, 512);
+	strcpy(path + strlen(path) - 4, ".ini");
+	my_strcpy(config_name, path, 1024);
+}
+void conf_save()
+{ }
+void conf_timer(int ticks)
+{ }
+bool conf_section_exists(cptr section)
+{
+	char sections[1024];
+	int n;
+	size_t i;
+	
+	n = GetPrivateProfileSectionNames(sections, 1024, config_name);
+	if (n != 1024 - 2)
+	{
+		for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
+			if (!my_stricmp(&sections[i], section))
+				return TRUE;
+	}
+
+	return FALSE;
+}
+cptr conf_get_string(cptr section, cptr name, cptr default_value)
+{
+	static char value[100];
+	GetPrivateProfileString(section, name, default_value,
+	                        value, 100, config_name);
+	return &value[0];
+}
+s32b conf_get_int(cptr section, cptr name, s32b default_value)
+{
+	return GetPrivateProfileInt(section, name, default_value, config_name);
+}
+void conf_set_string(cptr section, cptr name, cptr value)
+{
+	WritePrivateProfileString(section, name, value, config_name);
+}
+void conf_set_int(cptr section, cptr name, s32b value)
+{
+	char s_value[100];
+	sprintf(s_value, "%" PRId32, value);
+	WritePrivateProfileString(section, name, s_value, config_name);
+}
+/* HACK: Append section from other file */
+void conf_append_section(cptr section, cptr filename)
+{
+	char keys[2024];
+	char value[1024];
+	int n;
+	size_t i;
+
+	/* Get all keys */
+	n = GetPrivateProfileString(section, NULL, NULL, keys, 2024, filename);
+	if (n != 2024 - 2)
+	{
+		for (i = 0; keys[i]; i += (strlen(&keys[i]) + 1))
+		{
+			/* Extract key */
+			GetPrivateProfileString("Sound", &keys[i], "", value, sizeof(value), filename);
+			/* MEGA-HACK: Append key to original config */
+			value[100] = '\0'; /* FIXME: change "strings" len */
+			conf_set_string(section, &keys[i], value);
+		}
+	}
+}
+#else
+typedef struct value_conf_type value_conf_type;
+typedef struct section_conf_type section_conf_type;
+struct value_conf_type
+{
+	char name[100];
+	char value[100];
+	value_conf_type *next;	/* Next value in list */
+};
+struct section_conf_type
+{
+	char name[100];
+	value_conf_type *first;	/* First value in list */
+	section_conf_type *next;	/* Next section in list */
+};
+static section_conf_type *root_node = NULL;
+static bool conf_need_save = FALSE;	/* Scheduled save */
+static char config_name[1024];	/* Config filename */
+
+/* Find a section by name */
+section_conf_type* conf_get_section(cptr section)
+{
+	section_conf_type *s_ptr;
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		if ( !my_stricmp(section, s_ptr->name) )
+		{
+			return s_ptr;
+		}
+	}
+	return NULL;
+}
+bool conf_section_exists(cptr section)
+{
+	if (conf_get_section(section) == NULL)
+		return FALSE;
+
+	return TRUE;
+}
+/* Add new section if it doesn't exist allready */
+section_conf_type* conf_add_section_aux(cptr section)
+{
+	section_conf_type	*s_ptr;
+	section_conf_type	*s_forge = NULL;
+
+	/* Find section */
+	s_ptr = conf_get_section(section);
+
+	/* Not found */
+	if (!s_ptr)
+	{
+		/* Forge new section */
+		s_forge = 0;
+		MAKE(s_forge, section_conf_type);
+
+		/* Fill */
+		strcpy(s_forge->name, section);
+		s_forge->next = NULL;
+		s_forge->first = NULL;
+
+		/* Attach */
+		for (s_ptr = root_node; s_ptr->next; s_ptr = s_ptr->next) { }
+		if (!s_ptr)
+			root_node->next = s_forge;
+		else
+			s_ptr->next = s_forge;
+		s_ptr = s_forge;
+
+		conf_need_save = TRUE;
+	}
+
+	return s_ptr;
+}
+void conf_add_section(cptr section)
+{
+	conf_add_section_aux(section);
+}
+/* Change a "string" prefrence and schedule save */
+void conf_set_string(cptr section, cptr name, cptr value)
+{
+	section_conf_type	*s_ptr = NULL;
+	value_conf_type 	*v_ptr;
+	value_conf_type 	*v_forge = NULL;
+	bool done = FALSE;
+
+	/* If section doesn't exist, create it */
+	s_ptr = conf_get_section(section);
+	if (!s_ptr)
+		s_ptr = conf_add_section_aux(section);
+
+	/* Find node to change */
+	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+	{
+		if ( !my_stricmp(name, v_ptr->name) )
+		{
+			strcpy(v_ptr->value, value);
+			done = TRUE;
+			break;
+		}
+	}
+
+	/* Or create new node */
+	if (!done)
+	{
+		/* Forge */
+		v_forge = 0;
+		MAKE(v_forge, value_conf_type);
+
+		/* Fill */
+		strcpy(v_forge->name, name);
+		strcpy(v_forge->value, value);
+		v_forge->next = NULL;
+		
+		/* Attach */
+		if (s_ptr->first)
+			for (v_ptr = s_ptr->first; v_ptr->next; v_ptr = v_ptr->next) { }
+		if (!v_ptr)
+			s_ptr->first = v_forge;
+		else
+			v_ptr->next = v_forge;
+
+		done = TRUE;
+	}
+
+	if (done) conf_need_save = TRUE;
+}
+/* Change an "integer" value. All values are stored as strings. */
+void conf_set_int(cptr section, cptr name, s32b value)
+{
+	char s_value[100];
+	sprintf(s_value, "%" PRId32, value);
+	conf_set_string(section, name, s_value);
+}
+/*
+ * Return value from section "section" , with name "name"
+ * For string values, a "cptr" is returned, for integers "int".
+ *
+ * Not recommended for external usage, use "conf_get_int" and
+ * "conf_get_string" instead.
+ */
+long conf_get_value(cptr section, cptr name, cptr default_value, bool is_int)
+{
+	section_conf_type	*s_ptr;
+	value_conf_type 	*v_ptr;
+
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		if ( !my_stricmp(section, s_ptr->name) )
+		{
+			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+			{
+				if ( !my_stricmp(name, v_ptr->name) )
+				{
+					if (is_int)
+						return atoi(v_ptr->value);
+					return (long)v_ptr->value;
+				}
+			}
+		}
+	}
+	if (is_int)
+		return atoi(default_value);
+	return (long)default_value;
+}
+s32b conf_get_int(cptr section, cptr name, s32b default_value)
+{
+	static char v_value[100];
+	sprintf(v_value, "%" PRId32, default_value);
+	return (u32b)conf_get_value(section, name, v_value, TRUE);
+}
+cptr conf_get_string(cptr section, cptr name, cptr default_value)
+{
+	return (cptr)conf_get_value(section, name, default_value, FALSE);
+}
+void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_ptr)
+{
+	section_conf_type	*s_forge = NULL;
+	value_conf_type 	*v_forge = NULL;
+
+	char buf[1024];
+	char s_name[100], *name, *value;
+	int n;
+
+	/* File is opened (paranoia) */
+	if (config)
+	{
+		/* Read line (till end of file) */
+		while (fgets(buf, 1024, config))
+		{
+			/* Skip comments, empty lines */
+			if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ';')
+				continue;
+
+			/* Probably a section */
+			if (buf[0] == '[')
+			{
+				/* Trim */
+				for(n = strlen(buf);
+			 	((buf[n] == '\n' || buf[n] == '\r' || buf[n] == ' ' || !buf[n]) && n > 1);
+			 	n--)	{ 	}
+
+				/* Syntax is correct */
+				if (buf[n] == ']' && n > 1)
+				{
+					/* Get name */
+					buf[n] = '\0';
+					strcpy(s_name, buf + 1);
+					
+					/* New section */
+					if (!conf_section_exists(s_name)) 
+					{
+						/* Forge new section */
+						s_forge = 0;
+						MAKE(s_forge, section_conf_type);
+
+						/* Fill */
+						strcpy(s_forge->name, s_name);
+						s_forge->next = NULL;
+						s_forge->first = NULL;
+						s_ptr->next = s_forge;
+						s_ptr = s_forge;
+
+						/* Attach */
+						v_ptr = s_ptr->first;
+
+						/* Done */
+						continue;
+					}
+				}
+				/* Malformed entry, skip */
+				continue;
+			}
+
+			/* Attempt to read a value */
+			name	= strtok(buf, " =\t\n");
+			value	= strtok(NULL, " =\t\n");
+
+			/* Read something */
+			if (name && value)
+			{
+				/* Forge new node */
+				v_forge = 0;
+				MAKE(v_forge, value_conf_type);
+
+				/* Fill */
+				strcpy(v_forge->name, name);
+				strcpy(v_forge->value, value);
+				v_forge->next = NULL;
+
+				/* Attach */
+				if (!v_ptr)
+					s_ptr->first = v_forge;
+				else
+					v_ptr->next = v_forge;
+
+				/* Advance */
+				v_ptr = v_forge;
+			}
+		}
+	}
+} 
+/* Initialize global config tree */
+void conf_init(void* param)
+{
+	section_conf_type	*s_ptr = NULL;
+	value_conf_type 	*v_ptr = NULL;
+
+	FILE *config;
+	char buf[1024];
+
+	/*
+	 * Prepare root node
+	 */
+
+	/* Forge root */
+	if (!root_node)
+		MAKE(root_node, section_conf_type);
+
+	/* Prepare */
+	strcpy(root_node->name, "MAngband");
+	root_node->next = NULL;
+	root_node->first = NULL;
+
+	/* Attach */
+	s_ptr = root_node;
+	v_ptr = root_node->first;
+
+	/* We start with closed file */
+	config = NULL;
+
+	/* Try to get path to config file from command-line "--config" option */
+	if (clia_read_string(buf, 1024, "config"))
+	{
+		/* Attempt to open file */
+		config = my_fopen(buf, "r");
+	}
+
+	/*
+	 * Get File name 
+	 */
+
+	/* EMX Hack */
+#ifdef USE_EMX
+	strcpy(buf, "\\mang.rc");
+#else
+	strcpy(buf, "/.mangrc");
+#endif
+
+	/* Try to find home directory */
+	if (!config && getenv("HOME"))
+	{
+		/* Use home directory as base */
+		my_strcpy(config_name, getenv("HOME"), 1024);
+
+		/* Append filename */
+		my_strcat(config_name, buf, 1024);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r");
+	}
+
+	/* Otherwise use current directory */
+	if (!config)
+	{
+		/* Current directory */
+		my_strcpy(config_name, ".", 1024);
+
+		/* Append filename */
+		my_strcat(config_name, buf, 1024);
+
+		/* Attempt to open file */
+		config = my_fopen(config_name, "r");
+	}
+
+	/*
+	 * Read data
+	 */
+
+	/* File is opened */
+	if (config)
+	{
+		/* Use auxilary function */
+		conf_read_file(config, s_ptr, v_ptr);
+
+		/* Done reading */
+		my_fclose(config);
+	}
+#if 0
+	//list all sections
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+	{
+		printf("[%s]\n", s_ptr->name);
+		//list all values
+		for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+		{
+			printf("  %s = %s\n", v_ptr->name, v_ptr->value);
+		}
+	}
+#endif
+}
+/* Save config file if it is scheduled */
+void conf_save()
+{
+	section_conf_type *s_ptr;
+	value_conf_type 	*v_ptr;
+	FILE *config;
+
+	/* No changes */
+	if (!conf_need_save) return;
+
+	/* Write */
+	if ((config = my_fopen(config_name, "w")))
+	{
+		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
+		{
+			fprintf(config, "[%s]\n", s_ptr->name);
+			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
+			{
+				fprintf(config, "%s %s\n", v_ptr->name, v_ptr->value);
+			}
+			if (s_ptr->next)
+				fprintf(config, "\n");
+		}
+		/* Done writing */
+		my_fclose(config);
+		conf_need_save = FALSE;
+	}
+}
+/* Scheduler */
+void conf_timer(int ticks)
+{
+	static int last_update = 0;
+	if ((ticks - last_update) > 600) /* 60 seconds? */
+	{
+		conf_save();
+		last_update = ticks;
+	}
+}
+/* HACK: Append section from other file */
+void conf_append_section(cptr section, cptr filename)
+{
+	FILE *config;
+
+	section_conf_type *s_ptr;
+	value_conf_type 	*v_ptr;
+
+	/* Find pointers */
+	s_ptr = conf_add_section_aux(section);
+	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next) { }
+
+	/* Try opening this 'other file' */
+	config = my_fopen(filename, "r");
+
+ 	/* File is opened */
+	if (config)
+	{
+		/* Use auxilary function */
+		conf_read_file(config, s_ptr, v_ptr);
+
+		/* Done reading */
+		my_fclose(config);
+	}
+}
+#endif
+
+int p_argc = 0;
+const char **p_argv = NULL;
+void clia_init(int argc, const char **argv)
+{
+	/* If it's unsafe, we'll just copy */
+	p_argc = argc;
+	p_argv = argv;
+}
+int clia_find(const char *key)
+{
+	int i;
+	bool awaiting_argument = FALSE;
+	bool key_matched = FALSE;
+	bool got_hostname = FALSE;
+	for (i = 1; i < p_argc; i++)
+	{
+		if (prefix(p_argv[i], "--"))
+		{
+			const char *c = &p_argv[i][2];
+			if (awaiting_argument && key_matched)
+			{
+				/* Hack -- if this is second --longopt in a row, and the
+				 * last one was matching our key, assume we're done! */
+				return i - 1;
+			}
+			awaiting_argument = TRUE;
+			key_matched = FALSE;
+			if (!STRZERO(c) && streq(key, c))
+			{
+				key_matched = TRUE;
+			}
+		}
+		else
+		{
+			if (awaiting_argument)
+			{
+				awaiting_argument = FALSE;
+				if (key_matched)
+				{
+					/* Found */
+					return i;
+				}
+			}
+			else
+			{
+				/* Hack -- Ignore MacOSX `-psn_APPID` handle (see #989) */
+				if (prefix(p_argv[i], "-psn_")) continue;
+
+				/* Could be hostname */
+				if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
+				{
+					if (!got_hostname)
+					{
+						got_hostname = TRUE;
+						/* Host name */
+						if (streq(key, "host"))
+						{
+							/* Found */
+							return i;
+						}
+					}
+					else
+					{
+						/* Port! */
+						/* ... */
+						if (streq(key, "port"))
+						{
+							/* Found */
+							return i;
+						}
+					}
+				}
+				else
+				{
+					/* Error */
+				}
+			}
+		}
+	}
+	/* Hack -- if we're left with a dangling --longopt, and it matched our key,
+	 * assume it's a toggle option, and mark it as found */
+	if (awaiting_argument && key_matched)
+	{
+		return i - 1;
+	}
+	return -1;
+}
+bool clia_cpy_string(char *dst, int len, int i)
+{
+	if (i > 0 && i < p_argc)
+	{
+		my_strcpy(dst, p_argv[i], len);
+		return TRUE;
+	}
+	return FALSE;
+}
+bool clia_cpy_int(s32b *dst, int i)
+{
+	if (i > 0 && i < p_argc)
+	{
+		*dst = atoi(p_argv[i]);
+		return TRUE;
+	}
+	return FALSE;
+}
+bool clia_read_bool(s32b *dst, const char *key)
+{
+	int i = clia_find(key);
+	if (i > 0 && i < p_argc)
+	{
+		const char *ckey;
+		if (strlen(p_argv[i]) > 2)
+		{
+			/* It was a toggle option */
+			ckey = p_argv[i] + 2;
+			if (streq(key, ckey))
+			{
+				*dst = 1;
+				return TRUE;
+			}
+		}
+		if (streq(p_argv[i], "true") || streq(p_argv[i], "on"))
+		{
+			*dst = 1;
+			return TRUE;
+		}
+		if (streq(p_argv[i], "false") || streq(p_argv[i], "off"))
+		{
+			*dst = 0;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+bool clia_read_string(char *dst, int len, const char *key)
+{
+	int i = clia_find(key);
+	return clia_cpy_string(dst, len, i);
+}
+bool clia_read_int(s32b *dst, const char *key)
+{
+	int i = clia_find(key);
+	return clia_cpy_int(dst, i);
 }

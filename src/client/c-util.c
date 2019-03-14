@@ -1,4 +1,5 @@
-#include "angband.h"
+#include "c-angband.h"
+#include "z-term.h"
 
 #define MACRO_USE_CMD	0x01
 #define MACRO_USE_STD	0x02
@@ -51,6 +52,51 @@ void flush_now(void)
 	/* Forgot old keypresses */
 	Term_flush();
 }
+
+/*
+ * Free the macro trigger package
+ */
+errr macro_trigger_free(void)
+{
+	int i;
+	int num;
+
+	if (macro_template != NULL)
+	{
+		/* Free the template */
+		string_free(macro_template);
+		macro_template = NULL;
+
+		/* Free the trigger names and keycodes */
+		for (i = 0; i < max_macrotrigger; i++)
+		{
+			string_free(macro_trigger_name[i]);
+
+			string_free(macro_trigger_keycode[0][i]);
+			string_free(macro_trigger_keycode[1][i]);
+		}
+
+		/* No more macro triggers */
+		max_macrotrigger = 0;
+
+		/* Count modifier-characters */
+		num = strlen(macro_modifier_chr);
+
+		/* Free modifier names */
+		for (i = 0; i < num; i++)
+		{
+			string_free(macro_modifier_name[i]);
+		}
+
+		/* Free modifier chars */
+		string_free(macro_modifier_chr);
+		macro_modifier_chr = NULL;
+	}
+
+	/* Success */
+	return (0);
+}
+
 
 /*
  * Check for possibly pending macros
@@ -109,6 +155,16 @@ static int macro_ready(cptr buf)
 	return (n);
 }
 
+/*
+ * Hack -- set graphics mode 
+ */
+void set_graphics(int mode) {
+	use_graphics = mode;
+	if (mode == 0) ANGBAND_GRAF = "none";
+	if (mode == 1) ANGBAND_GRAF = "old";
+	if (mode == 2) ANGBAND_GRAF = "new";
+	if (mode == 3) ANGBAND_GRAF = "david";
+}
 
 /*
  * Hack -- add a macro definition (or redefinition).
@@ -195,11 +251,49 @@ static char inkey_aux(void)
 	int	k = 0, n, p = 0, w = 0;
 
 	char	ch = 0;
+	event_type chkey;
 
 	cptr	pat, act;
 
 	char	buf[1024];
+	
 
+	/* Fetch keypress */
+	/* Unset hack before we start */
+	inkey_exit = FALSE;
+
+	/* Wait for keypress, while also checking for net input */
+	do
+	{
+		/* Look for a keypress */
+		(void)(Term_inkey(&chkey, FALSE, TRUE));
+		ch = chkey.key;
+
+		/* If we got a key, break */
+		if (ch) break;
+
+		/* Do networking */
+		network_loop();
+
+		/* Update screen */
+		flush_updates();
+
+		/* Hack: perform emergency network-ordered escape */
+		if (inkey_exit)
+		{
+			inkey_exit = FALSE;
+			return (ESCAPE);
+		}
+
+		/* Return as soon as possible */
+		if (inkey_nonblock)
+		{
+			return (0);
+		}
+	} while (!ch);
+
+	
+#if 0
 	int net_fd;
 
 	/* Acquire and save maximum file descriptor */
@@ -209,7 +303,8 @@ static char inkey_aux(void)
 	if (net_fd == -1)
 	{
 		/* Look for a keypress */
-		(void)(Term_inkey(&ch, TRUE, TRUE));
+		Term_inkey(&chkey, TRUE, TRUE);
+		ch = chkey.key;
 	}
 	else
 	{
@@ -225,6 +320,11 @@ static char inkey_aux(void)
 			return -1;
 		}
 		Net_packet();
+		/* Redraw stuff if necessary */
+		if (p_ptr->redraw)
+		{
+			redraw_stuff();
+		}
 		/* Update the screen */
 		Term_fresh();
 		/* Redraw windows if necessary */
@@ -234,13 +334,17 @@ static char inkey_aux(void)
 		}
 
 
+		/* Unset hack before we start */
+		inkey_exit = FALSE;
+
 		/* Wait for keypress, while also checking for net input */
 		do
 		{
 			int result;
 
 			/* Look for a keypress */
-			(void)(Term_inkey(&ch, FALSE, TRUE));
+			Term_inkey(&chkey, FALSE, TRUE);
+			ch = chkey.key;
 
 			/* If we got a key, break */
 			if (ch) break;
@@ -264,6 +368,12 @@ static char inkey_aux(void)
 					quit(NULL);
 				}
 
+				/* Redraw stuff if necessary */
+				if (p_ptr->redraw)
+				{
+					redraw_stuff();
+				}
+
 				/* Update the screen */
 				Term_fresh();
 
@@ -273,8 +383,17 @@ static char inkey_aux(void)
 					window_stuff();
 				}
 			}
+
+			/* Hack: perform emergency network-ordered escape */
+			if (inkey_exit)
+			{
+				inkey_exit = FALSE;
+				return (ESCAPE);
+			}
 		} while (!ch);
 	}
+#endif
+	/* ARCANE MAGIC STARTS BELOW: */
 
 
 	/* End of internal macro */
@@ -305,6 +424,8 @@ static char inkey_aux(void)
 	/* Efficiency -- Ignore inactive macros */
 	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
 
+	/* Efficiency/Hack -- Ignore escape key for macros */
+	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
 
 	/* Save the first key, advance */
 	buf[p++] = ch;
@@ -321,8 +442,10 @@ static char inkey_aux(void)
 		if (k < 0) break;
 
 		/* Check for (and remove) a pending key */
-		if (0 == Term_inkey(&ch, FALSE, TRUE))
+		if (0 == Term_inkey(&chkey, FALSE, TRUE))
 		{
+			ch = chkey.key;
+
 			/* Append the key */
 			buf[p++] = ch;
 			buf[p] = '\0';
@@ -360,7 +483,8 @@ static char inkey_aux(void)
 		}
 
 		/* Wait for (and remove) a pending key */
-		(void)Term_inkey(&ch, TRUE, TRUE);
+		(void)Term_inkey(&chkey, TRUE, TRUE);
+		ch = chkey.key;
 
 		/* Return the key */
 		return (ch);
@@ -405,6 +529,311 @@ static char inkey_aux(void)
 	return (0);
 }
 
+/*
+ * Mega-Hack -- special "inkey_next" pointer.  XXX XXX XXX
+ *
+ * This special pointer allows a sequence of keys to be "inserted" into
+ * the stream of keys returned by "inkey()".  This key sequence will not
+ * trigger any macros, and cannot be bypassed by the Borg.  It is used
+ * in Angband to handle "keymaps".
+ */
+static cptr inkey_next = NULL;
+
+/*
+ * Get a keypress from the user.
+ *
+ * This function recognizes a few "global parameters".  These are variables
+ * which, if set to TRUE before calling this function, will have an effect
+ * on this function, and which are always reset to FALSE by this function
+ * before this function returns.  Thus they function just like normal
+ * parameters, except that most calls to this function can ignore them.
+ *
+ * If "inkey_xtra" is TRUE, then all pending keypresses will be flushed,
+ * and any macro processing in progress will be aborted.  This flag is
+ * set by the "flush()" function, which does not actually flush anything
+ * itself, but rather, triggers delayed input flushing via "inkey_xtra".
+ *
+ * If "inkey_scan" is TRUE, then we will immediately return "zero" if no
+ * keypress is available, instead of waiting for a keypress.
+ *
+ * If "inkey_base" is TRUE, then all macro processing will be bypassed.
+ * If "inkey_base" and "inkey_scan" are both TRUE, then this function will
+ * not return immediately, but will wait for a keypress for as long as the
+ * normal macro matching code would, allowing the direct entry of macro
+ * triggers.  The "inkey_base" flag is extremely dangerous!
+ *
+ * If "inkey_flag" is TRUE, then we will assume that we are waiting for a
+ * normal command, and we will only show the cursor if "hilite_player" is
+ * TRUE (or if the player is in a store), instead of always showing the
+ * cursor.  The various "main-xxx.c" files should avoid saving the game
+ * in response to a "menu item" request unless "inkey_flag" is TRUE, to
+ * prevent savefile corruption.
+ *
+ * If we are waiting for a keypress, and no keypress is ready, then we will
+ * refresh (once) the window which was active when this function was called.
+ *
+ * Note that "back-quote" is automatically converted into "escape" for
+ * convenience on machines with no "escape" key.  This is done after the
+ * macro matching, so the user can still make a macro for "backquote".
+ *
+ * Note the special handling of "ascii 30" (ctrl-caret, aka ctrl-shift-six)
+ * and "ascii 31" (ctrl-underscore, aka ctrl-shift-minus), which are used to
+ * provide support for simple keyboard "macros".  These keys are so strange
+ * that their loss as normal keys will probably be noticed by nobody.  The
+ * "ascii 30" key is used to indicate the "end" of a macro action, which
+ * allows recursive macros to be avoided.  The "ascii 31" key is used by
+ * some of the "main-xxx.c" files to introduce macro trigger sequences.
+ *
+ * Hack -- we use "ascii 29" (ctrl-right-bracket) as a special "magic" key,
+ * which can be used to give a variety of "sub-commands" which can be used
+ * any time.  These sub-commands could include commands to take a picture of
+ * the current screen, to start/stop recording a macro action, etc.
+ *
+ * If "angband_term[0]" is not active, we will make it active during this
+ * function, so that the various "main-xxx.c" files can assume that input
+ * is only requested (via "Term_inkey()") when "angband_term[0]" is active.
+ *
+ * Mega-Hack -- This function is used as the entry point for clearing the
+ * "signal_count" variable, and of the "character_saved" variable.
+ *
+ * Hack -- Note the use of "inkey_next" to allow "keymaps" to be processed.
+ *
+ * Mega-Hack -- Note the use of "inkey_hack" to allow the "Borg" to steal
+ * control of the keyboard from the user.
+ */
+event_type inkey_ex(void)
+{
+	bool cursor_state;
+	event_type kk;
+	event_type ke;
+	
+	bool done = FALSE;
+	
+	term *old = Term;
+	
+	
+	/* Initialise keypress */
+	ke.key = 0;
+	ke.type = EVT_KBRD;
+	
+	/* Hack -- Use the "inkey_next" pointer */
+	if (inkey_next && *inkey_next && !inkey_xtra)
+	{
+		/* Get next character, and advance */
+		ke.key = *inkey_next++;
+		
+		/* Cancel the various "global parameters" */
+		inkey_base = inkey_xtra = inkey_flag = inkey_scan = FALSE;
+		
+		/* Accept result */
+		return (ke);
+	}
+	
+	/* Forget pointer */
+	inkey_next = NULL;
+	
+	
+#ifdef ALLOW_BORG
+	
+	/* Mega-Hack -- Use the special hook */
+	if (inkey_hack && ((ch = (*inkey_hack)(inkey_xtra)) != 0))
+	{
+		/* Cancel the various "global parameters" */
+		inkey_base = inkey_xtra = inkey_flag = inkey_scan = FALSE;
+		ke.type = EVT_KBRD;
+		
+		/* Accept result */
+		return (ke);
+	}
+	
+#endif /* ALLOW_BORG */
+	
+	
+	/* Hack -- handle delayed "flush()" */
+	if (inkey_xtra)
+	{
+		/* End "macro action" */
+		parse_macro = FALSE;
+		ke.type = EVT_KBRD;
+		
+		/* End "macro trigger" */
+		parse_under = FALSE;
+		
+		/* Forget old keypresses */
+		Term_flush();
+	}
+	
+	
+	/* Get the cursor state */
+	(void)Term_get_cursor(&cursor_state);
+	
+	/* Show the cursor if waiting, except sometimes in "command" mode */
+	if (!inkey_scan && (!inkey_flag /*|| hilite_player || character_icky*/))
+	{
+		/* Show the cursor */
+		(void)Term_set_cursor(TRUE);
+	}
+	
+	
+	/* Hack -- Activate main screen */
+	Term_activate(term_screen);
+	
+	
+	/* Get a key */
+	while (!ke.key)
+	{
+		/* Hack -- Handle "inkey_scan" */
+		if (!inkey_base && inkey_scan &&
+		   (0 != Term_inkey(&kk, FALSE, FALSE)))
+		{
+			break;
+		}
+		
+
+		/* Hack -- Flush output once when no key ready */
+		if (!done && (0 != Term_inkey(&kk, FALSE, FALSE)))
+		{
+
+			/* Hack -- activate proper term */
+			Term_activate(old);
+
+			/* Flush output */
+			Term_fresh();
+
+			/* Hack -- activate main screen */
+			Term_activate(term_screen);
+
+			/* Mega-Hack -- reset saved flag */
+			/*character_saved = FALSE;*/
+		
+			/* Mega-Hack -- reset signal counter */
+			/*signal_count = 0;*/
+		
+			/* Only once */
+			done = TRUE;
+		}
+		
+		
+		/* Hack -- Handle "inkey_base" */
+		if (inkey_base)
+		{
+			int w = 0;
+
+			/* Wait forever */
+			if (!inkey_scan)
+			{
+				/* Wait for (and remove) a pending key */
+				if (0 == Term_inkey(&ke, TRUE, TRUE))
+				{
+					/* Done */
+					break;
+				}
+
+				/* Oops */
+				break;
+			}
+
+			/* Wait only as long as macro activation would wait*/
+			while (TRUE)
+			{
+				/* Check for (and remove) a pending key */
+				if (0 == Term_inkey(&ke, FALSE, TRUE))
+				{
+					/* Done */
+					break;
+				}
+
+				/* No key ready */
+				else
+				{
+					/* Increase "wait" */
+					w += 10;
+
+					/* Excessive delay */
+					if (w >= 100) break;
+
+					/* Delay */
+					Term_xtra(TERM_XTRA_DELAY, w);
+
+				}
+			}
+
+			/* Done */
+			ke.type = EVT_KBRD;
+			break;
+		}
+		
+		
+			/* Get a key (see above) */
+			ke.key = inkey_aux();
+		
+		
+		/* Handle "control-right-bracket" */
+		if (ke.key == 29)
+		{
+			/* Strip this key */
+			ke.key = 0;
+		
+			/* Continue */
+			continue;
+		}
+		
+		
+		/* Treat back-quote as escape */
+		if (ke.key == '`') ke.key = ESCAPE;
+		
+		
+		/* End "macro trigger" */
+		if (parse_under && (ke.key <= 32))
+		{
+			/* Strip this key */
+			ke.key = 0;
+		
+			/* End "macro trigger" */
+			parse_under = FALSE;
+		}
+
+		/* Handle "control-caret" */
+		if (ke.key == 30)
+		{
+			/* Strip this key */
+			ke.key = 0;
+		}
+
+		/* Handle "control-underscore" */
+		else if (ke.key == 31)
+		{
+			/* Strip this key */
+			ke.key = 0;
+
+			/* Begin "macro trigger" */
+			parse_under = TRUE;
+		}
+
+		/* Inside "macro trigger" */
+    	else if (parse_under)
+		{
+			/* Strip this key */
+			ke.key = 0;
+		}
+	}
+	
+	
+	/* Hack -- restore the term */
+	Term_activate(old);
+	
+	
+	/* Restore the cursor */
+	Term_set_cursor(cursor_state);
+	
+	
+	/* Cancel the various "global parameters" */
+	inkey_base = inkey_xtra = inkey_flag = inkey_scan = FALSE;
+	
+	
+	/* Return the keypress */
+	return (ke);
+}
 
 
 /*
@@ -432,6 +861,8 @@ static char inkey_aux(void)
  *
  * Note that the "flush()" function does not actually flush the input queue,
  * but waits until "inkey()" is called to perform the "flush".
+ *
+ * Hack -- Note the use of "inkey_next" to allow "keymaps" to be processed.
  *
  * Refresh the screen if waiting for a keypress and no key is ready.
  *
@@ -471,9 +902,8 @@ static char inkey_aux(void)
  */
 char inkey(void)
 {
-	int v;
-
 	char kk, ch;
+	event_type chkey;
 
 	bool done = FALSE;
 
@@ -483,7 +913,26 @@ char inkey(void)
 
 	int skipping = FALSE;
 
+	/* Hack -- Use the "inkey_next" pointer */
+	if (inkey_next && *inkey_next && !flush_later)
+	{
+	
+		/* Get next character, and advance */
+		ch = *inkey_next++;
 
+		/* Cancel the various "global parameters" */
+		inkey_base = flush_later = inkey_flag = inkey_scan = FALSE;
+
+		command_cmd = ch;
+		command_dir = 0;
+
+		/* Accept result */
+		return (ch);
+	}
+
+	/* Forget pointer */
+	inkey_next = NULL;
+	
         /* Hack -- handle delayed "flush()" */
         if (flush_later)
         {
@@ -505,7 +954,7 @@ char inkey(void)
 
 
 	/* Access cursor state */
-	(void)Term_get_cursor(&v);
+	/*(void)Term_get_cursor(&v);*/
 
 	/* Show the cursor if waiting, except sometimes in "command" mode */
 	if (!inkey_scan && (!inkey_flag))
@@ -523,12 +972,14 @@ char inkey(void)
 	for (ch = 0; !ch; )
 	{
 		/* Nothing ready, not waiting, and not doing "inkey_base" */
-		if (!inkey_base && inkey_scan && (0 != Term_inkey(&ch, FALSE, FALSE))) break;
+		if (!inkey_base && inkey_scan && (0 != Term_inkey(&chkey, FALSE, FALSE))) break;
 
 
 		/* Hack -- flush the output once no key is ready */
-		if (!done && (0 != Term_inkey(&ch, FALSE, FALSE)))
+		if (!done && (0 != Term_inkey(&chkey, FALSE, FALSE)))
 		{
+			ch = chkey.key;
+
 			/* Hack -- activate proper term */
 			Term_activate(old);
 
@@ -545,19 +996,19 @@ char inkey(void)
 		/* Hack */
 		if (inkey_base)
 		{
-			char xh;
+			event_type xh;
 
 			/* Check for keypress, optional wait */
 			(void)Term_inkey(&xh, !inkey_scan, TRUE);
 
 			/* Key ready */
-			if (xh)
+			if (xh.key)
 			{
 				/* Reset delay */
 				w = 0;
 
 				/* Mega-Hack */
-				if (xh == 28)
+				if (xh.key == 28)
 				{
 					/* Toggle "skipping" */
 					skipping = !skipping;
@@ -567,7 +1018,7 @@ char inkey(void)
 				else if (!skipping)
 				{
 					/* Use it */
-					ch = xh;
+					ch = xh.key;
 				}
 			}
 
@@ -592,6 +1043,8 @@ char inkey(void)
 		/* Get a key (see above) */
 		kk = ch = inkey_aux();
 
+		/* Hack -- special nonblock mode */
+		if (!ch && inkey_nonblock) return (0);
 
 		/* Finished a "control-underscore" sequence */
 		if (parse_under && (ch <= 32))
@@ -697,7 +1150,7 @@ char inkey(void)
 
 
 	/* Restore the cursor */
-	Term_set_cursor(v);
+	/*Term_set_cursor(v);*/
 
 
 	/* Cancel the various "global parameters" */
@@ -708,8 +1161,8 @@ char inkey(void)
 	return (ch);
 }
 
+#if 0
 static int hack_dir = 0;
-
 /*
  * Convert a "Rogue" keypress into an "Angband" keypress
  * Pass extra information as needed via "hack_dir"
@@ -867,54 +1320,7 @@ static char original_commands(char command)
 	/* Default */
 	return (command);
 }
-
-
-
-/*
- * React to new value of "rogue_like_commands".
- *
- * Initialize the "keymap" arrays based on the current value of
- * "rogue_like_commands".  Note that all "undefined" keypresses
- * by default map to themselves with no direction.  This allows
- * "standard" commands to use the same keys in both keysets.
- *
- * To reset the keymap, simply set "rogue_like_commands" to -1,
- * call this function, restore its value, call this function.
- *
- * The keymap arrays map keys to "command_cmd" and "command_dir".
- *
- * It is illegal for keymap_cmds[N] to be zero, except for
- * keymaps_cmds[0], which is unused.
- *
- * You can map a key to "tab" to make it "non-functional".
- */
-void keymap_init(void)
-{
-	int i, k;
-
-	/* Initialize every entry */
-	for (i = 0; i < 128; i++)
-	{
-		/* Default to "no direction" */
-		hack_dir = 0;
-
-		/* Attempt to translate */
-		if (rogue_like_commands)
-		{
-			k = roguelike_commands(i);
-		}
-		else
-		{
-			k = original_commands(i);
-		}
-
-		/* Save the keypress */
-		keymap_cmds[i] = k;
-
-		/* Save the direction */
-		keymap_dirs[i] = hack_dir;
-	}
-}
+#endif
 
 
 /*
@@ -961,6 +1367,7 @@ void prt(cptr str, int row, int col)
 /*
  * Get some input at the cursor location.
  * Assume the buffer is initialized to a default string.
+ * Note: "len" MUST BE LESS than total "buf" size.
  * Note that this string is often "empty" (see below).
  * The default buffer is displayed in yellow until cleared.
  * Pressing RETURN right away accepts the default entry.
@@ -971,7 +1378,7 @@ void prt(cptr str, int row, int col)
  */
 
 /* APD -- added private so passwords will not be displayed. */
-bool askfor_aux(char *buf, int len, char private)
+bool askfor_aux(char *buf, int len, char m_private)
 {
 	int y, x;
 
@@ -1004,7 +1411,7 @@ bool askfor_aux(char *buf, int len, char private)
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-	Term_putstr(x, y, -1, TERM_YELLOW, private ? "xxxxxx" : buf);
+	Term_putstr(x, y, -1, TERM_YELLOW, m_private ? "xxxxxx" : buf);
 
 
 	/* Process input */
@@ -1041,7 +1448,7 @@ bool askfor_aux(char *buf, int len, char private)
 				buf[k++] = i;
 
 				/* Update the entry */
-				Term_putch(x+k-1, y, TERM_WHITE, private ? 'x' : buf[k-1]);
+				Term_putch(x+k-1, y, TERM_WHITE, m_private ? 'x' : buf[k-1]);
 			}
 			else
 			{
@@ -1074,6 +1481,8 @@ bool askfor_aux(char *buf, int len, char private)
  *
  * The "prompt" should take the form "Prompt: "
  *
+ * Note: "len" MUST BE LESS than total "buf" size.
+ *
  * Note that the initial contents of the string is used as
  * the default response, so be sure to "clear" it if needed.
  *
@@ -1101,7 +1510,7 @@ bool get_string_masked(cptr prompt, char *buf, int len)
 {
 	bool res;
 
-    /* Display prompt */
+	/* Display prompt */
 	prt(prompt, 0, 0);
 
 	/* Ask the user for a string */
@@ -1147,6 +1556,10 @@ bool get_com(cptr prompt, char *command)
 	return (TRUE);
 }
 
+/*
+ * Hack -- special buffer to hold the action of the current keymap
+ */
+static char request_command_buffer[256];
 
 /*
  * Request a command from the user.
@@ -1164,7 +1577,22 @@ bool get_com(cptr prompt, char *command)
 void request_command(bool shopping)
 {
 	char cmd;
+	
+	int mode;
+	
+	cptr act;
+	
+	/* Roguelike */
+	if (rogue_like_commands)
+	{
+		mode = KEYMAP_MODE_ROGUE;
+	}
 
+	/* Original */
+	else
+	{
+		mode = KEYMAP_MODE_ORIG;
+	}
 
 	/* Flush the input */
 	/* flush(); */
@@ -1195,6 +1623,9 @@ void request_command(bool shopping)
 		/* Get a char to use without casting */
 		(void)(get_com("Command: ", &cmd));
 
+		/* Hack -- bypass keymaps */
+		if (!inkey_next) inkey_next = "";
+		
 		/* Hack -- allow "control chars" to be entered */
 		if (cmd == '^')
 		{
@@ -1220,10 +1651,26 @@ void request_command(bool shopping)
 			/* Convert */
 			cmd = KTRL(cmd);
 		}
+		
+		/* Look up applicable keymap */
+		act = keymap_act[mode][(byte)(cmd)];
 
-		/* Access the array info */
-		command_cmd = keymap_cmds[cmd & 0x7F];
-		command_dir = keymap_dirs[cmd & 0x7F];
+		/* Apply keymap if not inside a keymap already */
+		if (act && !inkey_next)
+		{
+			/* Install the keymap */
+			my_strcpy(request_command_buffer, act,
+			          sizeof(request_command_buffer));
+
+			/* Start using the buffer */
+			inkey_next = request_command_buffer;
+
+			/* Continue */
+			return;
+		}
+		
+		/* Accept command */
+		command_cmd = cmd;
 	}
 
 	/* Paranoia */
@@ -1256,6 +1703,103 @@ void request_command(bool shopping)
 	prt("", 0, 0);
 }
 
+bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend)
+{
+	int	dir = 0;
+
+	char	command;
+
+	cptr	p;
+
+	char buf[80];
+	buf[0] = '\0';
+	strcpy(buf, prompt);
+	
+	if (allow_target)
+		p = "Direction ('*' to choose target, non-direction cancels) ?";
+	else
+		p = "Direction (non-direction cancels)?";
+	strcat(buf, p);
+
+	get_com(buf, &command);
+
+	/* Handle target request */
+	if (command == '*' && allow_target)
+	{
+		if (cmd_target())
+			dir = 5;
+	}
+
+	else if (command == '(' && allow_friend)
+	{
+		if (cmd_target_friendly())
+			dir = 5;
+	}
+
+	else dir = target_dir(command);
+
+	*dp = (byte)dir;
+
+	if (!dir) return (FALSE);
+
+	return (TRUE);
+}
+
+/*
+ * Extract a direction (or zero) from a character
+ */
+int target_dir(char ch)
+{
+	int d = 0;
+
+	int mode;
+
+	cptr act;
+
+	cptr s;
+
+
+	/* Already a direction? */
+	if (isdigit((unsigned char)ch))
+	{
+		d = D2I(ch);
+	}
+	else
+	{
+		/* Roguelike */
+		if (rogue_like_commands)
+		{
+			mode = KEYMAP_MODE_ROGUE;
+		}
+
+		/* Original */
+		else
+		{
+			mode = KEYMAP_MODE_ORIG;
+		}
+
+		/* Extract the action (if any) */
+		act = keymap_act[mode][(byte)(ch)];
+
+		/* Analyze */
+		if (act)
+		{
+			/* Convert to a direction */
+			for (s = act; *s; ++s)
+			{
+				/* Use any digits in keymap */
+				if (isdigit((unsigned char)*s)) d = D2I(*s);
+			}
+		}
+	}
+
+	/* Paranoia */
+	if (d == 5) d = 0;
+
+	/* Return direction */
+	return (d);
+}
+
 bool get_dir(int *dp)
 {
 	int	dir = 0;
@@ -1275,7 +1819,7 @@ bool get_dir(int *dp)
 			dir = 5;
 	}
 
-	else dir = keymap_dirs[command & 0x7F];
+	else dir = target_dir(command);
 
 	*dp = dir;
 
@@ -1308,6 +1852,31 @@ void put_str(cptr str, int row, int col)
 }
 
 /*
+ * Memorize an already drawn line.
+ */
+void mem_line(int row, int col, int n)
+{
+	int i;
+	/* No ickyness */
+	if (!Term->mem) return;
+
+	/* Check row bounds */
+	if (row < 0) return;
+	if (row >= Term->hgt) return;
+
+	for (i = 0; i < n; i++)
+	{
+		if (col + i < 0) continue;
+		if (col + i >= Term->wid) break;
+		Term_mem_ch(col + i, row,
+			Term->scr->a[row][col+i],
+			Term->scr->c[row][col+i],
+			Term->scr->ta[row][col+i],
+			Term->scr->tc[row][col+i]);
+	}
+}
+
+/*
  * Verify something with the user
  *
  * The "prompt" should take the form "Query? "
@@ -1319,6 +1888,9 @@ bool get_check(cptr prompt)
 	int i;
 
 	char buf[80];
+	
+	/* Option -- "auto_accept" */
+	if (auto_accept) return (TRUE);
 
 	/* Hack -- Build a "useful" prompt */
 	strnfmt(buf, 78, "%.70s[y/n] ", prompt);
@@ -1333,7 +1905,6 @@ bool get_check(cptr prompt)
 	while (TRUE)
 	{
 		i = inkey();
-		if (quick_messages) break;
 		if (i == ESCAPE) break;
 		if (strchr("YyNn", i)) break;
 		bell();
@@ -1357,30 +1928,78 @@ bool get_check(cptr prompt)
 
 
 /*
+ * Calculate the index of a message
+ */
+static s16b message_age2idx(int age)
+{
+	return ((message__next + MESSAGE_MAX - (age + 1)) % MESSAGE_MAX);
+}
+
+/*
  * Recall the "text" of a saved message
  */
 cptr message_str(s16b age)
 {
-        s16b x;
-        s16b o;
-        cptr s;
+	static char buf[1024];
+	s16b x;
+	u16b o;
+	cptr s;
 
-        /* Forgotten messages have no text */
-        if ((age < 0) || (age >= message_num())) return ("");
+	/* Forgotten messages have no text */
+	if ((age < 0) || (age >= message_num())) return ("");
 
-        /* Acquire the "logical" index */
-        x = (message__next + MESSAGE_MAX - (age + 1)) % MESSAGE_MAX;
+	/* Get the "logical" index */
+	x = message_age2idx(age);
 
+	/* Get the "offset" for the message */
+	o = message__ptr[x];
+
+	/* Get the message text */
+	s = &message__buf[o];
+
+	/* HACK - Handle repeated messages */
+	if (message__count[x] > 1)
+	{
+		strnfmt(buf, sizeof(buf), "%s <%dx>", s, message__count[x]);
+		s = buf;
+	}
+
+	/* Return the message text */
+	return (s);
+}
+
+/*
+ * Recall the "text" of a last saved message, which is NON-LOCAL
+ */
+cptr message_last()
+{
+    s16b x;
+    u16b o;
+    cptr s = "";
+
+    /* Get the "logical" last index */
+    x = message_age2idx(0);
+
+    /* Loop */
+    while (x != message__last)
+    {
         /* Get the "offset" for the message */
         o = message__ptr[x];
 
-        /* Access the message text */
+        /* Get the message text */
         s = &message__buf[o];
 
-        /* Return the message text */
-        return (s);
-}
+        /* Make sure it's not "local" */
+        if (message__type[x] != MSG_LOCAL) break;
 
+        /* Advance x, wrap if needed */
+        if (x == 0) x = MESSAGE_MAX - 1;
+        else x--;
+    }
+
+    /* Return the message text */
+    return (s);
+}
 
 /*
  * How many messages are "available"?
@@ -1403,182 +2022,269 @@ s16b message_num(void)
         return (n);
 }
 
+/*
+ * Recall the "type" of a saved message
+ */
+u16b message_type(s16b age)
+{
+	s16b x;
+
+	/* Paranoia */
+	if (!message__type) return (MSG_GENERIC);
+
+	/* Forgotten messages are generic */
+	if ((age < 0) || (age >= message_num())) return (MSG_GENERIC);
+
+	/* Get the "logical" index */
+	x = message_age2idx(age);
+
+	/* Return the message type */
+	return (message__type[x]);
+}
 
 /*
  * Add a new message, with great efficiency
  */
-void c_message_add(cptr str)
+void c_message_add(cptr str, u16b type)
 {
-        int i, k, x, n;
+	int k, i, x, o;
+	size_t n;
+
+	cptr s;
+
+	cptr u;
+	char *v;
+
+	/*** Step 1 -- Analyze the message ***/
+
+	/* Hack -- Ignore "non-messages" */
+	if (!str) return;
+
+	/* Message length */
+	n = strlen(str);
+
+	/* Hack -- Ignore "long" messages */
+	if (n >= MESSAGE_BUF / 4) return;
 
 
-        /*** Step 1 -- Analyze the message ***/
+	/*** Step 2 -- Attempt to optimize ***/
 
-        /* Hack -- Ignore "non-messages" */
-        if (!str) return;
+	/* Get the "logical" last index */
+	x = message_age2idx(0);
 
-        /* Message length */
-        n = strlen(str);
+	/* Get the "offset" for the last message */
+	o = message__ptr[x];
 
-        /* Important Hack -- Ignore "long" messages */
-        if (n >= MESSAGE_BUF / 4) return;
+	/* Get the message text */
+	s = &message__buf[o];
 
-
-        /*** Step 2 -- Attempt to optimize ***/
-
-        /* Limit number of messages to check */
-        k = message_num() / 4;
-
-        /* Limit number of messages to check */
-        if (k > MESSAGE_MAX / 32) k = MESSAGE_MAX / 32;
-
-        /* Check the last few messages (if any to count) */
-        for (i = message__next; k; k--)
-        {
-                u16b q;
-
-                cptr old;
-
-                /* Back up and wrap if needed */
-                if (i-- == 0) i = MESSAGE_MAX - 1;
-
-                /* Stop before oldest message */
-                if (i == message__last) break;
-
-                /* Extract "distance" from "head" */
-                q = (message__head + MESSAGE_BUF - message__ptr[i]) % MESSAGE_BUF;
-
-                /* Do not optimize over large distance */
-                if (q > MESSAGE_BUF / 2) continue;
-
-                /* Access the old string */
-                old = &message__buf[message__ptr[i]];
-
-                /* Compare */
-                if (!streq(old, str)) continue;
-
-                /* Get the next message index, advance */
-                x = message__next++;
-
-                /* Handle wrap */
-                if (message__next == MESSAGE_MAX) message__next = 0;
-
-                /* Kill last message if needed */
-                if (message__next == message__last) message__last++;
-
-                /* Handle wrap */
-                if (message__last == MESSAGE_MAX) message__last = 0;
-
-                /* Assign the starting address */
-                message__ptr[x] = message__ptr[i];
+	/* Last message repeated? */
+	if (streq(str, s))
+	{
+		/* Increase the message count */
+		message__count[x]++;
 
 		/* Redraw */
-		p_ptr->window |= (PW_MESSAGE);
+		p_ptr->window |= (PW_MESSAGE | PW_MESSAGE_CHAT);
 
-                /* Success */
-                return;
-        }
+		/* Success */
+		return;
+	}
+
+	/*** Step 3 -- Attempt to optimize ***/
+
+	/* Limit number of messages to check */
+	k = message_num() / 4;
+
+	/* Limit number of messages to check */
+	if (k > 32) k = 32;
+
+	/* Start just after the most recent message */
+	i = message__next;
+
+	/* Check the last few messages for duplication */
+	for ( ; k; k--)
+	{
+		u16b q;
+
+		cptr old;
+
+		/* Back up, wrap if needed */
+		if (i-- == 0) i = MESSAGE_MAX - 1;
+
+		/* Stop before oldest message */
+		if (i == message__last) break;
+
+		/* Index */
+		o = message__ptr[i];
+
+		/* Extract "distance" from "head" */
+		q = (message__head + MESSAGE_BUF - o) % MESSAGE_BUF;
+
+		/* Do not optimize over large distances */
+		if (q >= MESSAGE_BUF / 4) continue;
+
+		/* Get the old string */
+		old = &message__buf[o];
+
+		/* Continue if not equal */
+		if (!streq(str, old)) continue;
+
+		/* Get the next available message index */
+		x = message__next;
+
+		/* Advance 'message__next', wrap if needed */
+		if (++message__next == MESSAGE_MAX) message__next = 0;
+
+		/* Kill last message if needed */
+		if (message__next == message__last)
+		{
+			/* Advance 'message__last', wrap if needed */
+			if (++message__last == MESSAGE_MAX) message__last = 0;
+		}
+
+		/* Assign the starting address */
+		message__ptr[x] = message__ptr[i];
+
+		/* Store the message type */
+		message__type[x] = type;
+
+		/* Store the message count */
+		message__count[x] = 1;
+
+		/* Redraw */
+		p_ptr->window |= (PW_MESSAGE | PW_MESSAGE_CHAT);
+
+		/* Success */
+		return;
+	}
+
+	/*** Step 4 -- Ensure space before end of buffer ***/
+
+	/* Kill messages, and wrap, if needed */
+	if (message__head + (n + 1) >= MESSAGE_BUF)
+	{
+		/* Kill all "dead" messages */
+		for (i = message__last; TRUE; i++)
+		{
+			/* Wrap if needed */
+			if (i == MESSAGE_MAX) i = 0;
+
+			/* Stop before the new message */
+			if (i == message__next) break;
+
+			/* Get offset */
+			o = message__ptr[i];
+
+			/* Kill "dead" messages */
+			if (o >= message__head)
+			{
+				/* Track oldest message */
+				message__last = i + 1;
+			}
+		}
+
+		/* Wrap "tail" if needed */
+		if (message__tail >= message__head) message__tail = 0;
+
+		/* Start over */
+		message__head = 0;
+	}
 
 
-        /*** Step 3 -- Ensure space before end of buffer ***/
+	/*** Step 5 -- Ensure space for actual characters ***/
 
-        /* Kill messages and Wrap if needed */
-        if (message__head + n + 1 >= MESSAGE_BUF)
-        {
-                /* Kill all "dead" messages */
-                for (i = message__last; TRUE; i++)
-                {
-                        /* Wrap if needed */
-                        if (i == MESSAGE_MAX) i = 0;
+	/* Kill messages, if needed */
+	if (message__head + (n + 1) > message__tail)
+	{
+		/* Advance to new "tail" location */
+		message__tail += (MESSAGE_BUF / 4);
 
-                        /* Stop before the new message */
-                        if (i == message__next) break;
+		/* Kill all "dead" messages */
+		for (i = message__last; TRUE; i++)
+		{
+			/* Wrap if needed */
+			if (i == MESSAGE_MAX) i = 0;
 
-                        /* Kill "dead" messages */
-                        if (message__ptr[i] >= message__head)
-                        {
-                                /* Track oldest message */
-                                message__last = i + 1;
-                        }
-                }
+			/* Stop before the new message */
+			if (i == message__next) break;
 
-                /* Wrap "tail" if needed */
-                if (message__tail >= message__head) message__tail = 0;
+			/* Get offset */
+			o = message__ptr[i];
 
-                /* Start over */
-                message__head = 0;
-        }
-
-
-        /*** Step 4 -- Ensure space before next message ***/
-
-        /* Kill messages if needed */
-        if (message__head + n + 1 > message__tail)
-        {
-                /* Grab new "tail" */
-                message__tail = message__head + n + 1;
-
-                /* Advance tail while possible past first "nul" */
-                while (message__buf[message__tail-1]) message__tail++;
-
-                /* Kill all "dead" messages */
-                for (i = message__last; TRUE; i++)
-                {
-                        /* Wrap if needed */
-                        if (i == MESSAGE_MAX) i = 0;
-
-                        /* Stop before the new message */
-                        if (i == message__next) break;
-
-                        /* Kill "dead" messages */
-                        if ((message__ptr[i] >= message__head) &&
-                            (message__ptr[i] < message__tail))
-                        {
-                                /* Track oldest message */
-                                message__last = i + 1;
-                        }
-                }
-        }
+			/* Kill "dead" messages */
+			if ((o >= message__head) && (o < message__tail))
+			{
+				/* Track oldest message */
+				message__last = i + 1;
+			}
+		}
+	}
 
 
-        /*** Step 5 -- Grab a new message index ***/
+	/*** Step 6 -- Grab a new message index ***/
 
-        /* Get the next message index, advance */
-        x = message__next++;
+	/* Get the next available message index */
+	x = message__next;
 
-        /* Handle wrap */
-        if (message__next == MESSAGE_MAX) message__next = 0;
+	/* Advance 'message__next', wrap if needed */
+	if (++message__next == MESSAGE_MAX) message__next = 0;
 
-        /* Kill last message if needed */
-        if (message__next == message__last) message__last++;
+	/* Kill last message if needed */
+	if (message__next == message__last)
+	{
+		/* Advance 'message__last', wrap if needed */
+		if (++message__last == MESSAGE_MAX) message__last = 0;
+	}
 
-        /* Handle wrap */
-        if (message__last == MESSAGE_MAX) message__last = 0;
 
+	/*** Step 7 -- Insert the message text ***/
 
+	/* Assign the starting address */
+	message__ptr[x] = message__head;
 
-        /*** Step 6 -- Insert the message text ***/
+	/* Inline 'strcpy(message__buf + message__head, str)' */
+	v = message__buf + message__head;
+	for (u = str; *u; ) *v++ = *u++;
+	*v = '\0';
 
-        /* Assign the starting address */
-        message__ptr[x] = message__head;
+	/* Advance the "head" pointer */
+	message__head += ((u16b)n + 1); /* should work, n (strlen) is unlikely to be larger than u16b */
 
-        /* Append the new part of the message */
-        for (i = 0; i < n; i++)
-        {
-                /* Copy the message */
-                message__buf[message__head + i] = str[i];
-        }
+	/* Store the message type */
+	message__type[x] = type;
 
-        /* Terminate */
-        message__buf[message__head + i] = '\0';
-
-        /* Advance the "head" pointer */
-        message__head += n + 1;
+	/* Store the message count */
+	message__count[x] = 1;
+	
 
 	/* Window stuff */
-	p_ptr->window |= PW_MESSAGE;
+	p_ptr->window |= PW_MESSAGE | PW_MESSAGE_CHAT;
 }
 
+/* Hack: Instead of deleting the message, it's being converted to GENERIC
+ * TODO: Remove it completly */
+void c_message_del(s16b age)
+{
+	/* static char buf[1024]; */
+	s16b x;
+	u16b o;
+
+	/* Forgotten messages have no text */
+	if ((age < 0) || (age >= message_num())) return;
+
+	/* Get the "logical" index */
+	x = message_age2idx(age);
+
+	/* Get the "offset" for the message */
+	o = message__ptr[x];
+
+	/* Hide */
+	message__type[x] = MSG_GENERIC;
+
+	/* Return */
+	return;
+}
 
 
 /*
@@ -1645,12 +2351,16 @@ static void msg_flush(int x)
  */
 void c_msg_print(cptr msg)
 {
+	c_msg_print_aux(msg, MSG_LOCAL);
+}
+void c_msg_print_aux(cptr msg, u16b type)
+{
 	static int p = 0;
 
 	int n;
-
+#if 0
 	char *t;
-
+#endif
 	char buf[1024];
 
 
@@ -1686,12 +2396,18 @@ void c_msg_print(cptr msg)
 
 
 	/* Memorize the message */
-	c_message_add(msg);
+	c_message_add(msg, type);
 
 
 	/* Copy it */
 	strcpy(buf, msg);
-
+	
+	/* Strip it */
+	buf[80] = '\0';
+	
+	/* Display it */
+	Term_putstr(0, 0, 80, TERM_WHITE, buf);
+#if 0
 	/* Analyze the buffer */
 	t = buf;
 
@@ -1737,7 +2453,7 @@ void c_msg_print(cptr msg)
 
 	/* Display the tail of the message */
 	Term_putstr(p, 0, n, TERM_WHITE, t);
-
+#endif
 	/* Remember the message */
 	msg_flag = TRUE;
 
@@ -1764,7 +2480,7 @@ s32b c_get_quantity(cptr prompt, s32b max)
 	if (!prompt)
 	{
 		/* Build a prompt */
-		sprintf(tmp, "Quantity (1-%d): ", max);
+		sprintf(tmp, "Quantity (1-%" PRId32 "): ", max);
 
 		/* Use that prompt */
 		prompt = tmp;
@@ -1856,6 +2572,262 @@ void clear_from(int row)
 	}
 }
 
+int caveclr(cave_view_type* dest, int len)
+{
+	int i;
+	/* Erase a character n times */
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = 0;
+		dest[i].c = 0;
+	}
+	return 1;
+}
+
+
+int cavemem(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+	
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		byte ta = p_ptr->trn_info[y][x].a;
+		char tc = p_ptr->trn_info[y][x].c;
+		Term_mem_ch(i + dx, dy, src[i].a, src[i].c, ta, tc);
+	}
+	return 1;
+}
+
+int cavedraw(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+
+	/* Paranoia - bounds */
+	if (dx < 0) return -1;
+	if (dy < 0 || dy >= Term->hgt) return -1;
+
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		/* Paranoia - bounds */
+		if (dx + i >= Term->wid) return -1;
+
+		/* Don't draw on screen if character is 0 */
+		if (src[i].c)
+		{
+			byte ta = p_ptr->trn_info[y][x + i].a;
+			char tc = p_ptr->trn_info[y][x + i].c;
+			Term_queue_char(Term, i + dx, dy, src[i].a, src[i].c, ta, tc);
+		}
+	}
+	return 1;
+}
+
+int caveprt(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+
+	/* Paranoia - bounds */
+	if (x < 0 || x >= Term->wid) return -1;
+	if (y < 0 || y >= Term->hgt) return -1;
+
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		/* Don't draw on screen if character is 0 */
+		if (src[i].c)
+		{
+			Term_draw(i + x, y, src[i].a, src[i].c);
+		}
+	}
+	return 1;
+}
+
+int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
+{
+	int i, e;
+	e = strlen(str);
+	for (i = 0; i < e; i++)
+	{
+		dest[i].a = attr;
+		dest[i].c = str[i];
+	}
+	for (i = e; i < max_col; i++)
+	{
+		dest[i].a = TERM_WHITE;
+		dest[i].c = ' ';
+	}
+	return 1;
+}
+
+/* Draw (or don't) a char depending on screen ickyness */
+void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
+{
+	bool draw = TRUE;
+
+	/* Manipulate offset: */
+	x += DUNGEON_OFFSET_X;	
+	y += DUNGEON_OFFSET_Y;
+
+	/* Test ickyness */
+	if (screen_icky || section_icky_row || shopping) draw = FALSE;
+	if (section_icky_row)
+	{
+		if (y >= section_icky_row) draw = TRUE;
+		else if (section_icky_col > 0 && x >= section_icky_col) draw = TRUE;
+		else if (section_icky_col < 0 && x < Term->wid + section_icky_col) draw = TRUE;
+	}
+
+	/* Test terminal size */
+	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
+
+	/* TODO: also test for ->mem stack */
+	if (mem && Term->mem)
+		Term_mem_ch(x, y, a, c, ta, tc);
+
+	if (draw)
+	{
+		/* Update secondary layer */
+		if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
+		{
+			/* Hack -- force refresh of that grid no matter what */
+			Term->scr->a[y][x] = 0;
+			Term->scr->c[y][x] = 0;
+			Term->old->a[y][x] = 0;
+			Term->old->c[y][x] = 0;
+		}
+
+		Term_queue_char(Term, x, y, a, c, ta, tc);
+	}
+
+}
+
+/* Show (or don't) a line depending on screen ickyness */
+void show_line(int sy, s16b cols, bool mem, int st)
+{
+	s16b xoff, coff;
+	bool draw;
+	int y;
+
+	draw = mem ? !screen_icky : interactive_mode;
+	xoff = coff = 0;
+	y = sy;
+
+	/* Ugly Hack - Shopping */
+	if (shopping) draw = FALSE;
+
+	/* Hang on! Icky section! */
+	if (section_icky_row && y < section_icky_row)
+	{
+		if (section_icky_col > 0) xoff = section_icky_col - DUNGEON_OFFSET_X;
+		if (section_icky_col < 0) coff = section_icky_col;
+		if (xoff >= cols || cols-coff <= 0) draw = FALSE;
+	}
+
+	/* Another possible issue - terminal is too small */
+	if (cols+coff >= Term->wid) coff -= (Term->wid - (cols+coff));
+	if (y >= Term->hgt || cols+coff <= 0) mem = draw = FALSE;
+
+	/* Check the max line count */
+	if (last_line_info < y)
+		last_line_info = y;
+
+	/* Remember screen */
+	if (mem && Term->mem)
+		cavemem(stream_cave(st, sy), cols, 0, sy);
+
+	/* Put data to screen */
+	if (draw)
+		cavedraw(stream_cave(st, sy)+xoff, cols+coff, xoff, sy);
+}
+
+/*
+ * Handle the air layer
+ */
+/*
+ * Each "air tile" has a delay and a fadeout value, stored in 
+ *  air_delay[][] and air_fade[][] arrays. The unit is milliseconds.
+ *
+ * Both "fade" and "delay" values constantly go down. As soon as "delay"
+ * reaches zero, the tile appears on-screen, and should stay there,
+ * until the "fade" value also reaches zero.  
+ *
+ * It's up for the client to select the fadeout threshold. 
+ *  A large value (i.e. 100) would draw air tiles with large tracers,
+ *  as tiles will "hang" in the air for quite some time. A small
+ *  value (i.e. 1 or 2) will make them much more flickerish.
+ *
+ * Feel free to play around with this (AIR_FADE_THRESHOLD define, see also
+ * "recv_air()" in net-client.c)
+ *
+ * Note: when "air tiles" are used to display projectiles which actually land
+ * and then appear on the ground (i.e. arrows, thrown items), the final
+ * tile is drawn BEFORE any of the air tiles have a chance to appear/fade.
+ *
+ * Note: *In theory* main-xxx ports might feel that they can handle the air
+ * layer by themselves and more gracefully (e.g. with alpha blendend fades).
+ * If you're working on this, and the direct Term_draw writes are too
+ * intrusive for you, set global variable "air_refresh" to FALSE.
+ * To disable this code completely, set "air_updates" to FALSE.
+ *
+ * Note: this function uses up the static_timer(2). This means you can't use
+ * static_timer(2) anywhere else from now on.
+ *
+ * Note: this function probably breaks graphics mode in some way. Untested.
+ */
+void update_air()
+{
+	micro passed = static_timer(2);
+	u16b milli = (u16b)(passed / 1000);
+	int j, i;
+	for (j = 0; j < MAX_HGT; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			if (air_delay[j][i] > 0)
+			{
+				air_delay[j][i] -= milli;
+				/* Delay timeout */
+				if (air_delay[j][i] <= 0)
+				{
+					air_delay[j][i] = 0;
+					if (air_refresh)
+					{
+						/* Draw air tile */
+						show_char(j, i,
+							air_info[j][i].a, air_info[j][i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
+				}
+			}
+			if (air_fade[j][i] > 0)
+			{
+				air_fade[j][i] -= milli;
+				/* Fade timeout */
+				if (air_fade[j][i] <= 0)
+				{
+					air_fade[j][i] = 0;
+					if (air_refresh)
+					{
+						/* Erase air tile */
+						cave_view_type *scr_info = stream_cave(0, j);
+						show_char(j, i,
+							scr_info[i].a, scr_info[i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
+				}
+			}
+		}
+	}
+}
+
 void prt_num(cptr header, int num, int row, int col, byte color)
 {
 	int len = strlen(header);
@@ -1875,8 +2847,79 @@ void prt_lnum(cptr header, s32b num, int row, int col, byte color)
 	c_put_str(color, out_val, row, col + len);
 }
 
+/*
+ * Transform macro trigger key code ('^_O_64\r' or etc..) 
+ * into macro trigger name ('\[alt-D]' etc..)
+ */
+static size_t trigger_ascii_to_text(char *buf, size_t max, cptr *strptr)
+{
+	cptr str = *strptr;
+	char key_code[100];
+	int i;
+	cptr tmp;
+	size_t current_len = strlen(buf);
+	
 
-void ascii_to_text(char *buf, cptr str)
+	/* No definition of trigger names */
+	if (macro_template == NULL) return 0;
+
+	/* Trigger name will be written as '\[name]' */
+	strnfcat(buf, max, &current_len, "\\[");
+
+	/* Use template to read key-code style trigger */
+	for (i = 0; macro_template[i]; i++)
+	{
+		int j;
+		char ch = macro_template[i];
+
+		switch(ch)
+		{
+		case '&':
+			/* Read modifier */
+			while ((tmp = strchr(macro_modifier_chr, *str)))
+			{
+				j = (int)(tmp - macro_modifier_chr);
+				strnfcat(buf, max, &current_len, "%s", macro_modifier_name[j]);
+				str++;
+			}
+			break;
+		case '#':
+			/* Read key code */
+			for (j = 0; *str && (*str != '\r') && (j < sizeof(key_code) - 1); j++)
+				key_code[j] = *str++;
+			key_code[j] = '\0';
+			break;
+		default:
+			/* Skip fixed strings */
+			if (ch != *str) return 0;
+			str++;
+		}
+	}
+
+	/* Key code style triggers always end with '\r' */
+	if (*str++ != '\r') return 0;
+
+	/* Look for trigger name with given keycode (normal or shifted keycode) */
+	for (i = 0; i < max_macrotrigger; i++)
+	{
+		if (!my_stricmp(key_code, macro_trigger_keycode[0][i]) ||
+		    !my_stricmp(key_code, macro_trigger_keycode[1][i]))
+			break;
+	}
+
+	/* Not found? */
+	if (i == max_macrotrigger) return 0;
+
+	/* Write trigger name + "]" */
+	strnfcat(buf, max, &current_len, "%s]", macro_trigger_name[i]);
+
+	/* Succeed */
+	*strptr = str;
+	return current_len;
+}
+
+
+void ascii_to_text(char *buf, size_t len, cptr str)
 {
 	char *s = buf;
 
@@ -1924,6 +2967,25 @@ void ascii_to_text(char *buf, cptr str)
 		{
 			*s++ = '\\';
 			*s++ = '\\';
+		}
+		/* Macro Trigger */
+		else if (i == 31)
+		{
+			size_t offset;
+
+			/* Terminate before appending the trigger */
+			*s = '\0';
+
+			offset = trigger_ascii_to_text(buf, len, &str);
+			
+			if (offset == 0)
+			{
+				/* No trigger found */
+				*s++ = '^';
+				*s++ = '_';
+			}
+			else
+				s += offset;
 		}
 		else if (i < 32)
 		{
@@ -1986,13 +3048,13 @@ static errr macro_dump(cptr fname)
 		fprintf(fff, "# Macro '%d'\n\n", i);
 
 		/* Extract the action */
-		ascii_to_text(buf, macro__act[i]);
+		ascii_to_text(buf, sizeof(buf), macro__act[i]);
 
 		/* Dump the macro */
 		fprintf(fff, "A:%s\n", buf);
 
 		/* Extract the action */
-		ascii_to_text(buf, macro__pat[i]);
+		ascii_to_text(buf, sizeof(buf), macro__pat[i]);
 
 		/* Dump command macro */
 		if (macro__cmd[i]) fprintf(fff, "C:%s\n", buf);
@@ -2014,7 +3076,7 @@ static errr macro_dump(cptr fname)
 	return (0);
 }
 
-static void get_macro_trigger(char *buf)
+static bool get_macro_trigger(char *buf)
 {
 	int i, n = 0;
 
@@ -2028,6 +3090,9 @@ static void get_macro_trigger(char *buf)
 
 	/* First key */
 	i = inkey();
+	
+	/* Escape on Escape */
+	if (i == ESCAPE) return FALSE;
 
 	/* Read the pattern */
 	while (i)
@@ -2053,18 +3118,212 @@ static void get_macro_trigger(char *buf)
 
 
 	/* Convert the trigger */
-	ascii_to_text(tmp, buf);
+	ascii_to_text(tmp, sizeof(tmp), buf);
 
 	/* Hack -- display the trigger */
-	Term_addstr(-1, TERM_WHITE, tmp);
+	Term_addstr(-1, TERM_WHITE, tmp);	
+	
+	return TRUE;
 }
 
+/*
+ * Find the macro (if any) which exactly matches the given pattern
+ */
+int macro_find_exact(cptr pat)
+{
+	int i;
+
+	/* Scan the macros */
+	for (i = 0; i < macro__num; ++i)
+	{
+		/* Skip macros which do not match the pattern */
+		if (!streq(macro__pat[i], pat)) continue;
+
+		/* Found one */
+		return (i);
+	}
+
+	/* No matches */
+	return (-1);
+}
+
+/* Display macros as a list and allow user to navigate through it 
+ * Logic in this function is somewhat broken.
+ */
+void browse_macros(void)
+{
+	int i;
+	int total;
+	int hgt = Term->hgt - 4;
+	int j = 0;	
+	int o = 0;
+	int sel = -1;
+	char tmp_buf[120];
+	char buf[120];
+	char act[120];
+	char a = TERM_WHITE;
+
+	/* Process requests until done */
+	while (1)
+	{
+		/* Clear screen */
+		Term_clear();
+
+		/* Describe */
+		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (D delete, A/T to set, ESC to accept)");
+
+		/* Dump them */
+		for (i = 0, total = 0; i < macro__num; i++)
+		{
+			int k = total; 
+
+			/* Skip command macro */
+			if (macro__cmd[i]) continue;
+		
+			/* Extract the action */
+			ascii_to_text(act, sizeof(act), macro__act[i]);
+
+			/* Most likely a system action */			
+			if (strlen(act) == 1) continue;
+
+			/* Extract the trigger */
+			ascii_to_text(buf, sizeof(buf), macro__pat[i]);
+
+			/* Deleted macro */
+			if (!strcmp(buf, act)) continue;
+
+			/* It's ok */
+			total++;
+
+			/* Too early */
+			if (k < o) continue;
+
+			/* Too late */			
+			if (k - o >= hgt-2) continue;
+
+			/* Selected */
+			a = TERM_WHITE;
+			if (j == k) 
+			{
+				a = TERM_L_BLUE;
+				sel = i;
+			}
+
+			/* Dump the trigger */
+			Term_putstr(00, 2+k-o, -1, a, buf);
+
+			/* Dump the action */
+			Term_putstr(20, 2+k-o, -1, a, act);
+		}
+
+		/* Get a key */
+		i = inkey();
+
+		/* Leave */
+		if (i == ESCAPE) break;
+
+		else if (i == 'D') /* Delete */
+		{
+			/* Keep atleast 1 */
+			if (total == 1) continue;		
+
+			/* Get a macro trigger */
+			strcpy(buf, macro__pat[sel]);
+
+			/* (un)Link the macro */
+			macro_add(buf, buf, FALSE);
+
+			/* Change offsets */
+			if (j >= total-1) j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+
+		else if (i == 'T') /* Change trigger */
+		{
+			/* Get current action */
+			strcpy(act, macro__act[sel]);
+
+			/* Prompt */	
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Trigger: ");
+
+			/* Get a macro trigger */
+			get_macro_trigger(buf);
+			text_to_ascii(tmp_buf, buf);
+
+			/* Same */
+			if (!strcmp(macro__pat[sel], tmp_buf)) continue;
+
+			/* (re)Link the macro */
+			macro_add(tmp_buf, act, FALSE);
+		}
+
+		else if (i == 'A') /* Change action */
+		{
+			/* Prompt */	
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Action: ");
+
+			/* Copy 'current action' */
+			ascii_to_text(act, sizeof(act), macro__act[sel]);			
+
+			/* Get an encoded action */
+			if (!askfor_aux(act, 80, 0)) continue;
+
+			/* Convert to ascii */
+			text_to_ascii(tmp_buf, act);
+			tmp_buf[strlen(act)] = '\0';
+
+			/* Do not allow empty OR short */
+			if (strlen(tmp_buf) <= 1) continue;
+
+			/* (re)Link the macro */
+			macro_add(macro__pat[sel], tmp_buf, FALSE);
+		}
+
+		else if (i == '2') /* Down */
+		{
+			j++;
+			if (j > total-1) j = total-1;
+			else if (j - o > hgt/2 && j < total) o++;
+		}
+		else if (i == '7') /* Home */
+		{
+			o = j = 0;
+		}
+		else if (i == '9') /* Page up */
+		{
+			j -= hgt;
+			if (j < 0) j = 0;
+			o = j;
+		}
+		else if (i == '3') /* Page down */
+		{
+			j += Term->hgt;
+			if (j > total-1) j = total-1;
+			o = j - hgt/2;
+		}
+		else if (i == '1') /* End */ 
+		{
+			j = total - 1;
+			o = j - hgt/2;
+		}
+		else if (i == '8') /* Up */
+		{
+			j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+	}
+}
 void interact_macros(void)
 {
 	int i;
 
-	char tmp[160], buf[1024];
+	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
+	tmp_buf[0] = '\0';
 
 	/* Screen is icky */
 	screen_icky = TRUE;
@@ -2082,11 +3341,18 @@ void interact_macros(void)
 		Term_putstr(0, 2, -1, TERM_WHITE, "Interact with Macros");
 
 
+		/* Describe the trigger */
+		if (!STRZERO(tmp_buf))
+		{
+			Term_putstr(0, 17, -1, TERM_WHITE, "Current trigger: ");
+			Term_addstr(-1, TERM_WHITE, tmp_buf);
+		}
+
 		/* Describe that action */
 		Term_putstr(0, 19, -1, TERM_WHITE, "Current action (if any) shown below:");
 
 		/* Analyze the current action */
-		ascii_to_text(buf, macro__buf);
+		ascii_to_text(buf, sizeof(buf), macro__buf);
 
 		/* Display the current action */
 		Term_putstr(0, 21, -1, TERM_WHITE, buf);
@@ -2096,11 +3362,13 @@ void interact_macros(void)
 		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load macros");
 		Term_putstr(5,  5, -1, TERM_WHITE, "(2) Save macros");
 		Term_putstr(5,  6, -1, TERM_WHITE, "(3) Enter a new action");
-		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Create a command macro");
+		Term_putstr(5,  7, -1, TERM_WHITE, "(4) Query key for macro");
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
-		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Create an identity macro");
-		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
+		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
+		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
 #if 0
+		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
+		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
 		Term_putstr(5, 12, -1, TERM_WHITE, "(X) Turn off an option (by name)");
 		Term_putstr(5, 13, -1, TERM_WHITE, "(Y) Turn on an option (by name)");
 #endif
@@ -2113,6 +3381,9 @@ void interact_macros(void)
 
 		/* Leave */
 		if (i == ESCAPE) break;
+
+		/* Browse */
+		else if (i == '7') browse_macros();
 
 		/* Load a pref file */
 		else if (i == '1')
@@ -2165,45 +3436,106 @@ void interact_macros(void)
 			Term_gotoxy(0, 21);
 
 			/* Hack -- limit the value */
-			tmp[80] = '\0';
+			tmp[MAX_COLS] = '\0';
 
 			/* Get an encoded action */
-			if (!askfor_aux(buf, 80, 0)) continue;
+			if (!askfor_aux(buf, MAX_COLS, 0)) continue;
 
 			/* Extract an action */
 			text_to_ascii(macro__buf, buf);
 		}
 
-		/* Create a command macro */
+		/* Query key */
 		else if (i == '4')
 		{
+			int k;
+			
 			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Query key for macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);			
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+			
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
 
-			/* Link the macro */
-			macro_add(buf, macro__buf, TRUE);
+			/* Get the action */
+			k = macro_find_exact(buf);
+			
+			
+			/* Nothing found */
+			if (k < 0)
+			{
+				/* Prompt */
+				c_msg_print("Found no macro.");
+			}
 
-			/* Message */
-			c_msg_print("Created a new command macro.");
+			/* It's an identity macro (empty) */
+			else if (streq(buf, macro__act[k]))
+			{
+				/* Prompt */
+				c_msg_print("Found no macro.");
+			}
+			
+			/* Found one */
+			else 
+			{
+				/* Obtain the action */
+				my_strcpy(macro__buf, macro__act[k], strlen(macro__buf)+1);
+
+				/* Analyze the current action */
+				ascii_to_text(tmp, sizeof(tmp), macro__buf);
+
+				/* Display the current action */
+				prt(tmp, 21, 0);
+
+				/* Prompt */
+				c_msg_print("Found a macro.");
+				
+				/* Save key for delayed prompt */
+				ascii_to_text(tmp_buf, sizeof(tmp), buf);
+			}
 		}
 
 		/* Create a normal macro */
-		else if (i == '5')
+		else if (i == '5' || i == '%')
 		{
 			/* Prompt */
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a normal macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
-			get_macro_trigger(buf);
+			if (!get_macro_trigger(buf)) continue;
+
+			/* Interactive mode */
+			if (i == '%')
+			{
+				/* Clear */
+				clear_from(20);
+	
+				/* Prompt */
+				Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action   ");
+	
+				/* Go to the correct location */
+				Term_gotoxy(0, 21);
+	
+				/* Copy 'current action' */
+				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
+	
+				/* Get an encoded action */
+				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
+	
+				/* Convert to ascii */
+				text_to_ascii(macro__buf, tmp);
+			}
+
+			/* Save key for later */
+			ascii_to_text(tmp_buf, sizeof(tmp), buf);
 
 			/* Link the macro */
 			macro_add(buf, macro__buf, FALSE);
@@ -2212,13 +3544,14 @@ void interact_macros(void)
 			c_msg_print("Created a new normal macro.");
 		}
 
-		/* Create an identity macro */
+		/* Remove a macro */
 		else if (i == '6')
 		{
 			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create an identity macro");
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Remove a macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
@@ -2228,9 +3561,9 @@ void interact_macros(void)
 			macro_add(buf, buf, FALSE);
 
 			/* Message */
-			c_msg_print("Created a new identity macro.");
+			c_msg_print("Removed a macro.");
 		}
-
+#if 0
 		/* Create an empty macro */
 		else if (i == '7')
 		{
@@ -2238,6 +3571,7 @@ void interact_macros(void)
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create an empty macro");
 
 			/* Prompt */
+			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 
 			/* Get a macro trigger */
@@ -2249,6 +3583,27 @@ void interact_macros(void)
 			/* Message */
 			c_msg_print("Created a new empty macro.");
 		}
+
+		/* Create a command macro */
+		else if (i == '8')
+		{
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
+
+			/* Prompt */
+			Term_erase(0, 17, 255);
+			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+
+			/* Get a macro trigger */
+			get_macro_trigger(buf);
+
+			/* Link the macro */
+			macro_add(buf, macro__buf, TRUE);
+
+			/* Message */
+			c_msg_print("Created a new command macro.");
+		}
+#endif
 
 		/* Oops */
 		else
@@ -2272,7 +3627,7 @@ void interact_macros(void)
 /*
  * Interact with some options
  */
-static void do_cmd_options_aux(int page, cptr info)
+static void do_cmd_options_aux(int page, bool local, cptr info)
 {
 	char	ch;
 
@@ -2287,12 +3642,27 @@ static void do_cmd_options_aux(int page, cptr info)
 	for (i = 0; i < 24; i++) opt[i] = 0;
 
 	/* Scan the options */
-	for (i = 0; option_info[i].o_desc; i++)
+	if (local)
 	{
-		/* Notice options on this "page" */
-		if (option_info[i].o_page == page) opt[n++] = i;
+		/* Local */
+		for (i = 0; local_option_info[i].o_desc; i++)
+		{
+			/* Notice options on this "page" */
+			if (local_option_info[i].o_page == page) opt[n++] = i;
+		}
+	} 
+	else 
+	{
+		/* Server */
+		for (i = 0; i < options_max; i++)
+		{
+			/* Notice options on this "page" */
+			if (option_info[i].o_page == page) opt[n++] = i;
+		}
 	}
 
+	/* Paranoia - zero options */
+	if (!n) return;
 
 	/* Clear screen */
 	Term_clear();
@@ -2300,8 +3670,12 @@ static void do_cmd_options_aux(int page, cptr info)
 	/* Interact with the player */
 	while (TRUE)
 	{
+		bool set_must = FALSE;
+		bool set_what;
+		int  set_id;
+
 		/* Prompt XXX XXX XXX */
-		sprintf(buf, "%s (RET to advance, y/n to set, ESC to accept) ", info);
+		sprintf(buf, "%-30s (RET to advance, y/n to set, ESC to accept) ", info);
 		prt(buf, 0, 0);
 	
 		/* Display the options */
@@ -2313,10 +3687,20 @@ static void do_cmd_options_aux(int page, cptr info)
 			if (i == k) a = TERM_L_BLUE;
 
 			/* Display the option text */
-			sprintf(buf, "%-48s: %s  (%s)",
-			        option_info[opt[i]].o_desc,
-			        (*option_info[opt[i]].o_var ? "yes" : "no "),
-			        option_info[opt[i]].o_text);
+			if (local)
+			{
+				sprintf(buf, "%-48s: %s  (%s)",
+				        local_option_info[opt[i]].o_desc,
+				        (*local_option_info[opt[i]].o_var ? "yes" : "no "),
+				        local_option_info[opt[i]].o_text);
+			}
+			else
+			{
+				sprintf(buf, "%-48s: %s  (%s)",
+				        option_info[opt[i]].o_desc,
+				        (p_ptr->options[opt[i]] ? "yes" : "no "),
+				        option_info[opt[i]].o_text);
+			}
 			c_prt(a, buf, i + 2, 0);
 		}
 
@@ -2354,8 +3738,9 @@ static void do_cmd_options_aux(int page, cptr info)
 			case 'Y':
 			case '6':
 			{
-				(*option_info[opt[k]].o_var) = TRUE;
-				Client_setup.options[opt[k]] = TRUE;
+				set_must = TRUE;
+				set_what = TRUE;
+				set_id = k;
 				k = (k + 1) % n;
 				break;
 			}
@@ -2364,8 +3749,9 @@ static void do_cmd_options_aux(int page, cptr info)
 			case 'N':
 			case '4':
 			{
-				(*option_info[opt[k]].o_var) = FALSE;
-				Client_setup.options[opt[k]] = FALSE;
+				set_must = TRUE;
+				set_what = FALSE;
+				set_id = k;
 				k = (k + 1) % n;
 				break;
 			}
@@ -2375,6 +3761,32 @@ static void do_cmd_options_aux(int page, cptr info)
 				bell();
 				break;
 			}
+		}
+		/* Set option */
+		if (set_must)
+		{
+			int on_opt = -1;
+			int on_var = -1;
+			if (local)
+			{
+				if (local_option_info[opt[set_id]].o_set)
+				{
+					on_opt = local_option_info[opt[set_id]].o_set;
+				}
+				on_var = opt[set_id];					
+			}
+			else
+			{
+				if (option_info[opt[set_id]].o_set)
+				{
+					on_var = option_info[opt[set_id]].o_set;
+				}
+				on_opt = opt[set_id]; 
+			}
+			if (on_opt != -1)
+				p_ptr->options[on_opt] = set_what;
+			if (on_var != -1)
+				(*local_option_info[on_var].o_var) = set_what;
 		}
 	}
 }
@@ -2411,6 +3823,8 @@ static void do_cmd_options_win(void)
 	/* Interact */
 	while (go)
 	{
+		byte st = 0;
+
 		/* Prompt XXX XXX XXX */
 		prt("Window flags (<dir>, t, y, n, ESC) ", 0, 0);
 
@@ -2480,15 +3894,25 @@ static void do_cmd_options_win(void)
 			case 'T':
 			case 't':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Clear windows */
 				for (j = 0; j < 8; j++)
 				{
+					/* Ignore screen (but not for Status AND Compact)*/
+					if ((j == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
+
 					window_flag[j] &= ~(1L << y);
 				}
 
 				/* Clear flags */
 				for (i = 0; i < 16; i++)
 				{
+					/* Ignore screen (but not for Status AND Compact)*/
+					if ((x == 0) && ((1L << i) != PW_STATUS) && ((1L << i) != PW_PLAYER_2)) break;
+
 					window_flag[x] &= ~(1L << i);
 				}
 
@@ -2498,8 +3922,12 @@ static void do_cmd_options_win(void)
 			case 'y':
 			case 'Y':
 			{
-				/* Ignore screen */
-				if (x == 0) break;
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
+				/* Ignore screen (but not for Status AND Compact)*/
+				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
 				/* Set flag */
 				window_flag[x] |= (1L << y);
@@ -2509,6 +3937,13 @@ static void do_cmd_options_win(void)
 			case 'n':
 			case 'N':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
+				/* Ignore screen (but not for Status AND Compact)*/
+				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
+
 				/* Clear flag */
 				window_flag[x] &= ~(1L << y);
 				break;
@@ -2516,7 +3951,7 @@ static void do_cmd_options_win(void)
 
 			default:
 			{
-				d = keymap_dirs[ch & 0x7F];
+				d = target_dir(ch);
 
 				x = (x + ddx[d] + 8) % 8;
 				y = (y + ddy[d] + 16) % 16;
@@ -2526,32 +3961,17 @@ static void do_cmd_options_win(void)
 		}
 	}
 
-	/* Notice changes */
+	/* Hack -- Store user choice */
 	for (j = 0; j < 8; j++)
 	{
-		term *old = Term;
-
-		/* Dead window */
-		if (!ang_term[j]) continue;
-
-		/* Ignore non-changes */
-		if (window_flag[j] == old_flag[j]) continue;
-
-		/* Activate */
-		Term_activate(ang_term[j]);
-
-		/* Erase */
-		Term_clear();
-
-		/* Refresh */
-		Term_fresh();
-
-		/* Restore */
-		Term_activate(old);
+		window_flag_o[j] = window_flag[j];
 	}
 
+	/* Notice changes */
+	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
+
 	/* Update windows */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_PLAYER);
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
 	/* Update windows */
 	window_stuff();
@@ -2569,7 +3989,10 @@ static void do_cmd_options_win(void)
 void do_cmd_options(void)
 {
 	int k;
+	int col, i, label;
 
+	int old_hitpoint_warn = Client_setup.settings[3];
+	int old_window_flags = Client_setup.settings[4];
 
 	/* Enter "icky" mode */
 	screen_icky = TRUE;
@@ -2587,17 +4010,40 @@ void do_cmd_options(void)
 		/* Why are we here */
 		prt("MAngband options", 2, 0);
 
+		/* Prepare */
+		i = label = 0;
+		col = 4;
+		
 		/* Give some choices */
-		prt("(1) User Interface Options", 4, 5);
-		prt("(2) Disturbance Options", 5, 5);
-		prt("(3) Game-Play Options", 6, 5);
-		prt("(4) Efficiency Options", 7, 5);
+		for (k = 0; local_option_group[k]; k++)
+		{
+			prt(format("(%d) %s", ++i, local_option_group[k]), col++, 5);
+		}
+		label = k+1;
+		for (k = 0; k < options_groups_max; k++)
+		{
+			prt(format("(%d) %s", ++i, option_group[k]), col++, 5);
+		}
 
 		/* Window flags */
-		prt("(W) Window flags", 9, 5);
+		col += 1;
+		prt("(W) Window flags", col++, 5);
+
+		/* Load and Append
+		col += 1;
+		prt("(L) Load a user pref file", col++, 5);
+		prt("(A) Append options to a file", col++, 5); */
+
+		/* Special choices */
+		col += 1;
+		/* prt("(D) Base Delay Factor", col++, 5); */
+		prt("(H) Hitpoint Warning", col++, 5);
+
+
 
 		/* Prompt */
-		prt("Command: ", 11, 0);
+		col += 2;
+		prt("Command: ", col, 0);
 
 		/* Get command */
 		k = inkey();
@@ -2605,32 +4051,27 @@ void do_cmd_options(void)
 		/* Exit */
 		if (k == ESCAPE) break;
 
-		/* General Options */
-		if (k == '1')
+		/* Entered some group */
+		if (isdigit(k))
 		{
-			/* Process the general options */
-			do_cmd_options_aux(1, "User Interface Options");
-		}
-
-		/* Disturbance Options */
-		else if (k == '2')
-		{
-			/* Process the running options */
-			do_cmd_options_aux(2, "Disturbance Options");
-		}
-
-		/* Inventory Options */
-		else if (k == '3')
-		{
-			/* Process the running options */
-			do_cmd_options_aux(3, "Game-Play Options");
-		}
-
-		/* Efficiency Options */
-		else if (k == '4')
-		{
-			/* Process the efficiency options */
-			do_cmd_options_aux(4, "Efficiency Options");
+			i = D2I(k);
+			/* Unknown digit ? */
+			if (i >= options_groups_max + label) 
+			{
+				/* Oops */
+				bell();
+				continue;
+			}
+			/* Local */
+			if (i < label)
+			{
+				do_cmd_options_aux(i, TRUE, local_option_group[i - 1]);
+			}
+			/* Server */
+			else
+			{
+				do_cmd_options_aux(i - label + 1, FALSE, option_group[i - label]);
+			}
 		}
 
 		/* Window flags */
@@ -2638,6 +4079,27 @@ void do_cmd_options(void)
 		{
 			/* Spawn */
 			do_cmd_options_win();
+		}
+
+		/* Hack -- hitpoint warning factor */
+		else if ((k == 'H') || (k == 'h'))
+		{
+			/* Prompt */
+			prt("Command: Hitpoint Warning", col, 0);
+
+			/* Get a new value */
+			while (1)
+			{
+				char cx;
+				prt(format("Current hitpoint warning: %2d%%",
+				           p_ptr->hitpoint_warn * 10), col+2, 0);
+				prt("New hitpoint warning (0-9 or ESC to accept): ", col+1, 0);
+
+				cx = inkey();
+				if (cx == ESCAPE) break;
+				if (isdigit((unsigned char)cx)) p_ptr->hitpoint_warn = D2I(cx);
+				else bell();/*"Illegal hitpoint warning!");*/
+			}
 		}
 
 		/* Unknown option */
@@ -2656,26 +4118,41 @@ void do_cmd_options(void)
 	screen_icky = FALSE;
 	Flush_queue();
 
-
-	/* Verify the keymap */
-	keymap_init();
-
+	/* HACK -- hitpoint warning changed */
+	gather_settings();
+	if (old_hitpoint_warn != Client_setup.settings[3] ||
+		old_window_flags != Client_setup.settings[4]) 
+	send_settings();
+	
 	/* Resend options to server */
-	Send_options();
+	send_options();
 
-	/* Resend options to server */
+	/* Save options to file */
 	Save_options();
 
 	/* Send a redraw request */
-	Send_redraw();
+	send_redraw();
 }
+void do_cmd_options_birth()
+{
+	/* Save the screen */
+	Term_save();
 
+	/* Hack -- asume Group 1 (index0) as "Birth Options" */
+	do_cmd_options_aux(1, FALSE, option_group[0]);
+
+	/* Hack -- make those ones a priority above ones read from pref file */
+	ignore_birth_options = TRUE;
+	
+	/* Restore the screen */
+	Term_load();
+}
 
 
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
+# ifndef HAVE_USLEEP
 
 /*
  * For those systems that don't have "usleep()" but need it.
@@ -2717,14 +4194,128 @@ int usleep(huge microSeconds)
 	return 0;
 }
 
-# endif /* HAS_USLEEP */
+# endif /* HAVE_USLEEP */
 
 #endif /* SET_UID */
 
 #ifdef WIN32
-int usleep(long microSeconds)
-{
-	Sleep(microSeconds/10); /* meassured in milliseconds not microseconds*/
+int usleep(huge microSeconds)
+{ /* meassured in milliseconds not microseconds*/
+	DWORD milliseconds = (DWORD)(microSeconds / 1000);
+	Sleep(milliseconds);
 	return 0;
 }
 #endif /* WIN32 */
+
+
+/* HACK -- Count samples in "val" sound */
+int sound_count(int val)
+{
+	int i;
+
+	/* No sound */
+	if (!use_sound) return (0);
+
+	/* Illegal sound */
+	if ((val < 0) || (val >= MSG_MAX)) return (0);
+
+
+	/* Count the samples */
+	for (i = 0; i < SAMPLE_MAX; i++)
+	{
+		if (!sound_file[val][i])
+			break;
+	}
+
+	/* Return number of samples (might be 0) */
+	return (i);
+}
+
+#ifdef USE_SOUND
+
+/*
+ * XXX XXX XXX - Taken from files.c.
+ *
+ * Extract "tokens" from a buffer
+ *
+ * This function uses "whitespace" as delimiters, and treats any amount of
+ * whitespace as a single delimiter.  We will never return any empty tokens.
+ * When given an empty buffer, or a buffer containing only "whitespace", we
+ * will return no tokens.  We will never extract more than "num" tokens.
+ *
+ * By running a token through the "text_to_ascii()" function, you can allow
+ * that token to include (encoded) whitespace, using "\s" to encode spaces.
+ *
+ * We save pointers to the tokens in "tokens", and return the number found.
+ */
+static s16b tokenize_whitespace(char *buf, s16b num, char **tokens)
+{
+	int k = 0;
+	char *s = buf;
+
+	/* Process */
+	while (k < num)
+	{
+		char *t;
+
+		/* Skip leading whitespace */
+		for ( ; *s && isspace((unsigned char)*s); ++s) /* loop */;
+
+		/* All done */
+		if (!*s) break;
+
+		/* Find next whitespace, if any */
+		for (t = s; *t && !isspace((unsigned char)*t); ++t) /* loop */;
+
+		/* Nuke and advance (if necessary) */
+		if (*t) *t++ = '\0';
+
+		/* Save the token */
+		tokens[k++] = s;
+
+		/* Advance */
+		s = t;
+	}
+
+	/* Count */
+	return (k);
+}
+
+
+
+void load_sound_prefs(void)
+{
+	int i, j, num;
+	char tmp[MSG_LEN];
+	char ini_path[MSG_LEN];
+	char wav_path[MSG_LEN];
+	char *zz[SAMPLE_MAX];
+
+	/* Access the sound.cfg */
+	path_build(ini_path, sizeof(ini_path), ANGBAND_DIR_XTRA_SOUND, "sound.cfg");
+
+	/* Add it to 'global config' */
+	conf_append_section("Sound", ini_path);
+
+	for (i = 0; i < MSG_MAX; i++)
+	{
+		/* Ignore empty sound strings */
+		if (!angband_sound_name[i][0]) continue;
+
+		strncpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
+
+		num = tokenize_whitespace(tmp, SAMPLE_MAX, zz);
+
+		for (j = 0; j < num; j++)
+		{
+			/* Access the sound */
+			path_build(wav_path, sizeof(wav_path), ANGBAND_DIR_XTRA_SOUND, zz[j]);
+
+			/* Save the sound filename, if it exists */
+			if (my_fexists(wav_path))
+				sound_file[i][j] = string_make(zz[j]);
+		}
+	}
+}
+
+#endif /* USE_SOUND */

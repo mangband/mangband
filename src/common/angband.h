@@ -30,26 +30,17 @@
 #include "../common/z-form.h"
 #include "../common/z-rand.h"
 
-#ifdef CLIENT
-#include "z-term.h"
-#endif
-
-
-/*
- * Include the "Angband" configuration header
- */
-#include "../config.h"
-
 
 /*
  * Now, include the define's, the type's, and the extern's
- *
- * Note that the externs are NOT common.
  */
 #include "../common/defines.h"
 #include "../common/types.h"
-#include "externs.h"
 
+/*
+ * Include net-work packagers late in the game (to be aware of types).
+ */
+#include "../common/net-pack.h"
 
 
 /***** Some copyright messages follow below *****/

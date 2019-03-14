@@ -43,7 +43,7 @@
  * XXX XXX XXX Consider the use of "savetty()" and "resetty()".
  */
 
-#include "angband.h"
+#include "c-angband.h"
 
 
 #ifdef USE_GCU
@@ -57,7 +57,7 @@
 /*
  * Include the proper "header" file
  */
-#ifdef USE_NCURSES
+#ifdef HAVE_LIBNCURSES
 # include <ncurses.h>
 #else
 # include <curses.h>
@@ -77,7 +77,7 @@ struct term_data
 
 #define MAX_TERM_DATA 4
 
-static term_data data[MAX_TERM_DATA];
+static term_data tdata[MAX_TERM_DATA];
 
 
 /*
@@ -275,21 +275,6 @@ static void keymap_norm(void)
 }
 
 
-/* [grk]
- * A gross hack to allow the client to scroll the dungeon display.
- * This is required for large graphical tiles where we cant have an
- * 66x22 tile display except in very high screen resolutions.
- * When the server supports player recentering this can go.
- *
- * When we receive a request to plot a tile at a location, we
- * shift the x-coordinate by this value. If the resultant
- * x-coordinate is negative we just ignore it and plot nothing.
- *
- * We only need scrolling along the x axis.
- */
-
-static x_offset = 0;
-
 
 /*
  * Place the "keymap" into the "game" state
@@ -469,6 +454,9 @@ static void keymap_game_prepare(void)
  */
 static errr Term_xtra_gcu_alive(int v)
 {
+	int x, y;
+
+
 	/* Suspend */
 	if (!v)
 	{
@@ -486,13 +474,11 @@ static errr Term_xtra_gcu_alive(int v)
 		/* Flush the curses buffer */
 		(void)refresh();
 
-#ifdef SPECIAL_BSD
-		/* this moves curses to bottom right corner */
-		mvcur(curscr->cury, curscr->curx, LINES - 1, 0);
-#else
-		/* this moves curses to bottom right corner */
-		mvcur(curscr->_cury, curscr->_curx, LINES - 1, 0);
-#endif
+		/* Get current cursor position */
+		getyx(curscr, y, x);
+
+		/* Move the cursor to the bottom right corner */
+		mvcur(y, x, LINES - 1, 0);
 
 		/* Exit curses */
 		endwin();
@@ -553,6 +539,7 @@ static void Term_init_gcu(term *t)
  */
 static void Term_nuke_gcu(term *t)
 {
+	int x, y;
 	term_data *td = (term_data *)(t->data);
 
 	/* Delete this window */
@@ -564,13 +551,11 @@ static void Term_nuke_gcu(term *t)
 	/* Hack -- make sure the cursor is visible */
 	Term_xtra(TERM_XTRA_SHAPE, 1);
 
-#ifdef SPECIAL_BSD
-	/* This moves curses to bottom right corner */
-	mvcur(curscr->cury, curscr->curx, LINES - 1, 0);
-#else
-	/* This moves curses to bottom right corner */
-	mvcur(curscr->_cury, curscr->_curx, LINES - 1, 0);
-#endif
+	/* Get current cursor position */
+	getyx(curscr, y, x);
+	
+	/* Move the cursor to bottom right corner */
+	mvcur(y, x, LINES - 1, 0);
 
 	/* Flush the curses buffer */
 	(void)refresh();
@@ -1053,7 +1038,7 @@ errr init_gcu(void)
 
 		if (rows <= 0 || cols <= 0) continue;
 
-		term_data_init(&data[next_win], rows, cols, y, x);
+		term_data_init(&tdata[next_win], rows, cols, y, x);
 
 		ang_term[next_win] = Term;
 
@@ -1061,9 +1046,9 @@ errr init_gcu(void)
 	}
 
 	/* Activate the "Angband" window screen */
-	Term_activate(&data[0].t);
+	Term_activate(&tdata[0].t);
 
-	term_screen = &data[0].t;
+	term_screen = &tdata[0].t;
 
 	/* Success */
 	return (0);

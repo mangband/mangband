@@ -6,6 +6,8 @@
  * Copyright 1991 Microsoft Corporation. All rights reserved.
  */
 
+#include "../common/angband.h"
+
 /*
  * Information about a bitmap
  */
@@ -19,3 +21,6 @@ typedef struct {
 
 /* Read a DIB from a file */
 BOOL ReadDIB(HWND, LPSTR, DIBINIT *);
+
+/* Free a DIB */
+extern void FreeDIB(DIBINIT *dib);

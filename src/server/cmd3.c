@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 
@@ -43,11 +41,8 @@ static void inven_takeoff(int Ind, int item, int amt)
 	/* Paranoia */
 	if (amt <= 0) return;
 
-        if( check_guard_inscription( o_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-                return;
-        };
-
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(o_ptr, 't'));
 
 	/* Verify */
 	if (amt > o_ptr->number) amt = o_ptr->number;
@@ -79,13 +74,14 @@ static void inven_takeoff(int Ind, int item, int amt)
 	}
 
 	/* Carry the object, saving the slot it went in */
-	posn = inven_carry(Ind, &tmp_obj);
+	posn = inven_carry(p_ptr, &tmp_obj);
 
 	/* Describe the result */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(posn));
+	sound(Ind, MSG_WIELD);
 
 	/* Delete (part of) it */
 	inven_item_increase(Ind, item, -amt);
@@ -130,14 +126,10 @@ static void inven_drop(int Ind, int item, int amt)
 	if (amt <= 0) return;
 
 	/* check for !d  or !* in inscriptions */
-
-	if( check_guard_inscription( o_ptr->note, 'd' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
-	if (!cfg_ironman && artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
+	if (!inven_drop_okay(p_ptr, o_ptr))
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
@@ -345,7 +337,12 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Restrict the choices */
 	/*item_tester_hook = item_tester_hook_wear;*/
-
+	
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot equip yourself!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -362,13 +359,12 @@ void do_cmd_wield(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		/* Hack -- wearing from floor is similar to pickup */
+		__trap(Ind, CGI(o_ptr, 'g'));
 	}
 
-	if( check_guard_inscription( o_ptr->note, 'w' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!w' */
+	__trap(Ind, CGI(o_ptr, 'w'));
 
 	if (!item_tester_hook_wear(Ind, o_ptr))
 	{
@@ -378,6 +374,9 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Check the slot */
 	slot = wield_slot(Ind, o_ptr);
+
+	/* Paranoia - can't really happen thanks to "item_tester_hook_wear" */
+	if (slot == -1) return;
 
 	/* Prevent wielding into a cursed slot */
 	if (cursed_p(&(p_ptr->inventory[slot])))
@@ -395,13 +394,11 @@ void do_cmd_wield(int Ind, int item)
 
 	x_ptr = &(p_ptr->inventory[slot]);
 
-	if( check_guard_inscription( x_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(x_ptr,'t'));
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
-	if (!cfg_ironman && item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
+	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
 	{
 		object_desc(Ind, o_name, x_ptr, FALSE, 0);
 		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);
@@ -461,6 +458,7 @@ void do_cmd_wield(int Ind, int item)
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Access the wield slot */
@@ -473,6 +471,9 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Wear the new stuff */
 	*o_ptr = tmp_obj;
+
+	/* MEGA-HACK -- Wearing from floor changes ownership */
+	object_own(p_ptr, o_ptr);
 
 	/* Increase the weight */
 	p_ptr->total_weight += o_ptr->weight;
@@ -503,12 +504,14 @@ void do_cmd_wield(int Ind, int item)
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(slot));
+	sound(Ind, MSG_WIELD);
 
 	/* Cursed! */
 	if (cursed_p(o_ptr))
 	{
 		/* Warn the player */
 		msg_print(Ind, "Oops! It feels deathly cold!");
+		sound(Ind, MSG_CURSED);
 
 		/* Note the curse */
 		o_ptr->ident |= ID_SENSE;
@@ -541,6 +544,13 @@ void do_cmd_takeoff(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot do that!");
+		return;
+	}
+
 	/* Verify potential overflow */
 	if (p_ptr->inven_cnt >= INVEN_PACK)
 	{
@@ -561,11 +571,8 @@ void do_cmd_takeoff(int Ind, int item)
 		return;
 	}
 
-	if( check_guard_inscription( o_ptr->note, 't' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!t' */
+	__trap(Ind, CGI(o_ptr, 't'));
 
 	/* Item is cursed */
 	if (cursed_p(o_ptr))
@@ -595,6 +602,16 @@ void do_cmd_drop(int Ind, int item, int quantity)
 
 	object_type *o_ptr;
 
+	/* Check preventive inscription '^d' */
+	__trap(Ind, CPI(p_ptr, 'd'));
+
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot drop items!");
+		return;
+	}
+
 	/* Handle the newbies_cannot_drop option */	
 	if ((p_ptr->lev == 1) && (cfg_newbies_cannot_drop))
 	{
@@ -622,11 +639,8 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	}
 	*/
 
-	if( check_guard_inscription( o_ptr->note, 'd' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
-
+	/* Check guard inscription '!d' */
+	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Cannot remove cursed items */
 	if ((item >= INVEN_WIELD) && cursed_p(o_ptr))
@@ -668,6 +682,13 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 
 	object_type tmp_obj;
 
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot drop items!");
+		return;
+	}
+
 	/* Handle the newbies_cannot_drop option */
 	if ((p_ptr->lev == 1) && (cfg_newbies_cannot_drop))
 	{
@@ -680,8 +701,13 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	if (amt <= 0) return;
 	if (amt > p_ptr->au)
 	{
+	    /* Hack - entering 999kk means MAX */
+	    if (amt != 999000000)
+	    {
 		msg_print(Ind, "You do not have that much gold.");
 		return;
+	    } else 
+		amt = p_ptr->au;
 	}
 
 	/* Use "gold" object kind */
@@ -690,6 +716,9 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	/* Setup the "worth" */
 	tmp_obj.pval = amt;
 
+	/* MEGA-HACK -- Set "owner" of this pile */
+	object_own(p_ptr, &tmp_obj);
+
 	/* Drop it */
 	drop_near(&tmp_obj, 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 
@@ -697,7 +726,7 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	p_ptr->au -= amt;
 
 	/* Message */
-	msg_format(Ind, "You drop %ld pieces of gold.", amt);
+	msg_format(Ind, "You drop %ld piece%s of gold.", amt, (amt==1?"":"s"));
 
 	/* Redraw gold */
 	p_ptr->redraw |= (PR_GOLD);
@@ -717,7 +746,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int			old_number;
+//	int			old_number;
 
 	bool		force = FALSE;
 
@@ -727,6 +756,16 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_type object_type_body;
 	
 	char		o_name[80];
+
+	/* Check preventive inscription '^k' */
+	__trap(Ind, CPI(p_ptr, 'k'));
+	
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
+		msg_print(Ind, "You cannot destroy items!");
+		return;
+	}
 
 	/* Hack -- force destruction */
 	if (command_arg > 0) force = TRUE;
@@ -774,10 +813,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	o_ptr->number = old_number;
 	*/
-	if( check_guard_inscription( o_ptr->note, 'k' )) {
-		msg_print(Ind, "The item's inscription prevents it.");
-		return;
-	};
+
+	/* Check guard inscription '!k' */
+	__trap(Ind, CGI(o_ptr, 'k'));
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -825,7 +863,8 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
-	
+	sound(Ind, MSG_DESTROY);
+
 	/* Reduce the charges of rods/wands/staves */
 	reduce_charges(o_ptr, quantity);
 
@@ -843,6 +882,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		floor_item_increase(0 - item, -quantity);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 }
 
@@ -854,14 +894,17 @@ void do_cmd_observe(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 
+	object_type		tmp_obj;
 	object_type		*o_ptr;
 
 	char		o_name[80];
 
 	/* Get the item (in the store) */
-	if (p_ptr->store_num != -1) {
-		object_type		tmp_obj;
+	if (p_ptr->store_num != -1)
+	{
+		/* We have to use temp. object because we're going to identify it */
 		o_ptr = &tmp_obj;
+
 		/* Fill o_ptr with correct item */
 		if (!get_store_item(Ind, item, o_ptr)) 
 		{
@@ -869,18 +912,20 @@ void do_cmd_observe(int Ind, int item)
 			msg_print(Ind,"Sorry, this item is exclusive.");
 			return;
 		}
-		
-			/* Get name */
-			object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
-			/* Identify this store item */
-			object_known(o_ptr);
-	} else {
+
+		/* Get name */
+		object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+		/* Identify this store item */
+		object_known(o_ptr);
+	}
+	else
+	{
 		/* Get the item (in the pack) */
 		if (item >= 0)
 		{
 			o_ptr = &(p_ptr->inventory[item]);
 		}
-	
+
 		/* Get the item (on the floor) */
 		else
 		{
@@ -891,7 +936,7 @@ void do_cmd_observe(int Ind, int item)
 			}
 			o_ptr = &o_list[0 - item];
 		}
-		
+
 		/* Get name */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
 	}
@@ -901,12 +946,12 @@ void do_cmd_observe(int Ind, int item)
 
 	/* Capitalize object name for header */
 	o_name[0] = toupper(o_name[0]);
-	
+
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	
+
 	/* Notify player */
-	Send_special_other(Ind, o_name);
+	send_prepared_popup(Ind, o_name);
 }
 
 
@@ -921,6 +966,12 @@ void do_cmd_uninscribe(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -937,7 +988,11 @@ void do_cmd_uninscribe(int Ind, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
+
+	/* Check guard inscription '!}' */
+	__trap(Ind, protected_p(p_ptr, o_ptr, '}'));
 
 	/* Nothing to remove */
 	if (!o_ptr->note)
@@ -951,6 +1006,9 @@ void do_cmd_uninscribe(int Ind, int item)
 
 	/* Remove the incription */
 	o_ptr->note = 0;
+
+	/* Update global "preventive inscriptions" */
+	update_prevent_inscriptions(Ind);
 
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
@@ -969,7 +1027,14 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	object_type		*o_ptr;
 	char		o_name[80];
 	s32b		price;
-	char		*c;
+	const char	*c;
+
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
@@ -986,13 +1051,29 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
+	}
+
+	/* Check guard inscription '!{' */
+	__trap(Ind, protected_p(p_ptr, o_ptr, '{'));
+
+	/* Handle empty inscription as removal */
+	if (STRZERO(inscription))
+	{
+		if (!o_ptr->note) 
+		{
+			msg_print(Ind, "You've entered no inscription.");
+			return;
+		}
+		do_cmd_uninscribe(Ind, item);
+		return;
 	}
 
 	/* Don't allow certain inscriptions when selling */
-	if (c = strstr(inscription,"for sale")) 
+	if ((c = my_stristr(inscription,"for sale"))) 
 	{	
 		/* Can't sell unindentified items */
-		if (!object_known_p(Ind, o_ptr))
+		if (!object_known_p(p_ptr, o_ptr))
 		{
 			msg_print(Ind,"You must identify this item first");
 			return;
@@ -1020,6 +1101,9 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	/* Save the inscription */
 	o_ptr->note = quark_add(inscription);
 
+	/* Update global "preventive inscriptions" */
+	update_prevent_inscriptions(Ind);
+
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
 
@@ -1039,12 +1123,18 @@ void do_cmd_steal(int Ind, int dir)
 	int success, notice;
 	bool fail = TRUE;
 
+	/* Check preventive inscription '^J' */
+	__trap(Ind, CPI(p_ptr, 'J'));
+
 	/* Ghosts cannot steal */
-	if ((p_ptr->ghost) || (p_ptr->fruit_bat))
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
 	        msg_print(Ind, "You cannot steal things!");
 	        return;
-	}	                                                        
+	}
+
+	/* Ensure "dir" is in ddx/ddy array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Examine target grid */
 	c_ptr = &cave[p_ptr->dun_depth][p_ptr->py + ddy[dir]][p_ptr->px + ddx[dir]];
@@ -1089,7 +1179,7 @@ void do_cmd_steal(int Ind, int dir)
 	notice = 5 * (adj_mag_stat[q_ptr->stat_ind[A_INT]] - p_ptr->skill_stl);
 
 	/* Hack -- Rogues get bonuses to chances */
-	if (p_ptr->pclass == CLASS_ROGUE)
+	if (p_ptr->cp_ptr->flags & CF_STEALING_IMPROV)
 	{
 		/* Increase chance by level */
 		success += 3 * p_ptr->lev;
@@ -1159,7 +1249,7 @@ void do_cmd_steal(int Ind, int dir)
 				 */
 				distribute_charges(o_ptr, &forge, 1);				
 				
-				inven_carry(Ind, &forge);
+				inven_carry(p_ptr, &forge);
 	
 				/* Take one from target */
 				inven_item_increase(0 - c_ptr->m_idx, item, -1);
@@ -1219,8 +1309,8 @@ void do_cmd_steal(int Ind, int dir)
  */
 static bool item_tester_refill_lantern(object_type *o_ptr)
 {
-    /* Randarts are not refillable */
-    if (o_ptr->name3) return (FALSE);
+	/* Randarts are not refillable */
+	if (o_ptr->name3) return (FALSE);
 
 	/* Flasks of oil are okay */
 	if (o_ptr->tval == TV_FLASK) return (TRUE);
@@ -1305,6 +1395,7 @@ static void do_cmd_refill_lamp(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */
@@ -1407,11 +1498,12 @@ static void do_cmd_refill_torch(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
-	
+
 	/* Hack - Force Equipment Update */
 	p_ptr->window |= (PW_EQUIP);
 }
@@ -1428,13 +1520,18 @@ void do_cmd_refill(int Ind, int item)
 
 	object_type *o_ptr;
 
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(Ind, "You cannot touch items!");
+		return;
+	}
+
 	/* Get the light */
 	o_ptr = &(p_ptr->inventory[INVEN_LITE]);
 
-	if( check_guard_inscription( o_ptr->note, 'F' )) {
-		msg_print(Ind, "The item's incription prevents it.");
-		return;
-	};
+	/* Check guard inscription '!F' */
+	__trap(Ind, CGI(o_ptr, 'F'));
 
 	/* It is nothing */
 	if (o_ptr->tval != TV_LITE)
@@ -1469,10 +1566,10 @@ void do_cmd_refill(int Ind, int item)
 /*
  * Target command
  */
-void do_cmd_target(int Ind, int dir)
+void do_cmd_target(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set(Ind, dir))
+	if (target_set_interactive(Ind, TARGET_KILL, dir))
 	{
 		/*msg_print(Ind, "Target Selected.");*/
 	}
@@ -1482,10 +1579,10 @@ void do_cmd_target(int Ind, int dir)
 	}
 }
 
-void do_cmd_target_friendly(int Ind, int dir)
+void do_cmd_target_friendly(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set_friendly(Ind, dir))
+	if (target_set_interactive(Ind, TARGET_FRND, dir))
 	{
 		/*msg_print(Ind, "Target Selected.");*/
 	}
@@ -1495,354 +1592,93 @@ void do_cmd_target_friendly(int Ind, int dir)
 	}
 }
 
-
-/*
- * Hack -- determine if a given location is "interesting" to a player
- */
-static bool do_cmd_look_accept(int Ind, int y, int x)
+void do_cmd_look(int Ind, char dir)
 {
-	player_type *p_ptr = Players[Ind];
-	int Depth = p_ptr->dun_depth;
-
-	cave_type *c_ptr;
-	byte *w_ptr;
-
-
-	/* Examine the grid */
-	c_ptr = &cave[Depth][y][x];
-	w_ptr = &p_ptr->cave_flag[y][x];
-
-	/* Player grids */
-	if (c_ptr->m_idx < 0)
+	/* Look around */
+	if (target_set_interactive(Ind, TARGET_LOOK, dir))
 	{
-        if (player_has_los_bold(Ind, y, x) || (p_ptr->telepathy == TR3_TELEPATHY))
-			return (TRUE);
+		/*msg_print(Ind, "Target Selected.");*/
 	}
-
-	/* Visible monsters */
-	if (c_ptr->m_idx > 0)
-	{
-		/* Visible monsters */
-		if (p_ptr->mon_vis[c_ptr->m_idx]) return (TRUE);
-	}
-
-	/* Objects */
-	if (c_ptr->o_idx)
-	{
-		/* Memorized object */
-		if (p_ptr->obj_vis[c_ptr->o_idx]) return (TRUE);
-	}
-
-	/* Interesting memorized features */
-	if (*w_ptr & CAVE_MARK)
-	{
-		/* Notice glyphs */
-		if (c_ptr->feat == FEAT_GLYPH) return (TRUE);
-
-		/* Notice doors */
-		if (c_ptr->feat == FEAT_OPEN) return (TRUE);
-		if (c_ptr->feat == FEAT_BROKEN) return (TRUE);
-
-		/* Notice stairs */
-		if (c_ptr->feat == FEAT_LESS) return (TRUE);
-		if (c_ptr->feat == FEAT_MORE) return (TRUE);
-
-		/* Notice shops */
-		if ((c_ptr->feat >= FEAT_SHOP_HEAD) &&
-		    (c_ptr->feat <= FEAT_SHOP_TAIL)) return (TRUE);
-
-		/* Notice traps */
-		if ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
-		    (c_ptr->feat <= FEAT_TRAP_TAIL)) return (TRUE);
-
-		/* Notice doors */
-		if ((c_ptr->feat >= FEAT_DOOR_HEAD) &&
-		    (c_ptr->feat <= FEAT_DOOR_TAIL)) return (TRUE);
-
-		/* Notice rubble */
-		if (c_ptr->feat == FEAT_RUBBLE) return (TRUE);
-
-		/* Notice veins with treasure */
-		if (c_ptr->feat == FEAT_MAGMA_K) return (TRUE);
-		if (c_ptr->feat == FEAT_QUARTZ_K) return (TRUE);
-	}
-
-	/* Nope */
-	return (FALSE);
 }
 
-
-/*
- * Describe a floor tile (for looking and targeting routines)
- *	
- * if !active, activities such as tracking are disabled
+/* Give player detailed information about a range of monsters,
+ * specified by char
  */
-void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag)
-{
+void do_cmd_monster_desc_all(int Ind, char c) {
 	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr;
-	monster_type *m_ptr;
-	object_type *o_ptr;
-	char o_name[80];
+	int i;
 	bool found = FALSE;
-	bool self = FALSE;
-	if (c_ptr->m_idx < 0)
-	{
-		q_ptr = Players[0 - c_ptr->m_idx];
-
-		self = (0 - c_ptr->m_idx == Ind ? TRUE : FALSE); 
-
-		if (p_ptr->play_vis[0 - c_ptr->m_idx] || self)
-		{
-			if (active && !self)
-			{
-				/* Track health */
-				if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-		
-				/* Track with cursor */
-				if (p_ptr->play_vis[0 - c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
-			}
-
-		/* Format string */
-		sprintf(out_val, "%s the %s %s", q_ptr->name, p_name + p_info[q_ptr->prace].name, c_name + c_info[q_ptr->pclass].name);
-		
-		found = TRUE;
-		}
-		
-	}
-	else if (c_ptr->m_idx > 0)
-	{
-		monster_race *r_ptr = &r_info[m_list[c_ptr->m_idx].r_idx];
-
-		if (p_ptr->mon_vis[c_ptr->m_idx]) 
-		{
-			if (active)
-			{
-				/* Track health */
-				if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
-		
-				/* Track with cursor */
-				if (p_ptr->mon_vis[c_ptr->m_idx]) cursor_track(Ind, c_ptr->m_idx);
-			}
-					
-		/* Format string */
-		sprintf(out_val, "%s (%s)", r_name + r_ptr->name, look_mon_desc(c_ptr->m_idx));
-		
-		found = TRUE;
-		}
-	}
-	if (!found && c_ptr->o_idx)
-	{
-		if (p_ptr->obj_vis[c_ptr->o_idx])
-		{
-			o_ptr = &o_list[c_ptr->o_idx];
 	
-			/* Release Tracking */
-			if (active) p_ptr->cursor_who = 0;
-	
-			/* Obtain an object description */
-			object_desc(Ind, o_name, o_ptr, TRUE, 3);
-	
-			sprintf(out_val, "You see %s", o_name);
+	/* Let the player scroll through this info */
+	p_ptr->special_file_type = TRUE;
+
+	/* Prepare player structure for text */
+	text_out_init(Ind);
+
+	for (i = 1; i < z_info->r_max; i++)
+	{
+		/* Require at least 1 encounter */
+		if (p_ptr->l_list[i].sights && r_info[i].d_char == c)
+		{
+			/* Monster name */
+			text_out("\n  ");
+		
+			/* Dump info into player */
+			describe_monster(Ind, i, FALSE);
+
+			/* Track first race */
+			if (!found)
+				monster_race_track(Ind, i);
 			
 			found = TRUE;
 		}
 	}
+	
 	if (!found)
-	{
-		int feat = f_info[c_ptr->feat].mimic;
-		cptr name = f_name + f_info[feat].name;
+		text_out("You fail to remember any monsters of this kind");
 		
-		cptr p1 = "A ";
+	/* Restore height and width of current dungeon level */
+	text_out_done();
 
-		/* Hack -- handle unknown grids */
-		if (!(cave_flag & CAVE_MARK) ) name = "unknown grid";
-		
-		if (is_a_vowel(name[0])) p1 = "An ";
-
-		/* Hack -- special description for store doors */
-		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
-		{
-			p1 = "The entrance to the ";
-		}
-
-		/* Release Tracking */
-		if (active) p_ptr->cursor_who = 0;
-		
-		/* Message */
-		sprintf(out_val, "%s%s", p1, name);
-	}
-
+	/* Notify player */
+	Send_special_other(Ind, format("Monster Recall ('%c')", c));
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	return;
 }
 
-
-/*
- * A new "look" command, similar to the "target" command.
- *
- * The "player grid" is always included in the "look" array, so
- * that this command will normally never "fail".
- *
- * XXX XXX XXX Allow "target" inside the "look" command (?)
- */
-void do_cmd_look(int Ind, int dir)
+/* Give player detailed information about a specified monster */
+void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr;
-	int Depth = p_ptr->dun_depth;
+	int i;
 
-	int		y, x, i;
+	/* Prepare player structure for text */
+	text_out_init(Ind);
 
-	cave_type *c_ptr;
-	monster_type *m_ptr;
-	object_type *o_ptr;
+	/* Dump info into player */
+	if (r_idx < 0)
+		describe_player(Ind, 0 - r_idx);
+	else
+		describe_monster(Ind, r_idx, FALSE);
 
-	char o_name[80];
-	char out_val[160];
+	/* Restore height and width of current dungeon level */
+	text_out_done();
 
-	/* Cancel */
-	if (dir == 5 || dir == 64 + 5)
+	/* Send this text */
+	if (p_ptr->stream_hgt[STREAM_MONSTER_TEXT])
 	{
-		p_ptr->cursor_who = 0;
-		return;
+		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT);
+	}
+	else
+	{
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
 	}
 
-	/* Blind */
-	if (p_ptr->blind)
-	{
-		msg_print(Ind, "You can't see a damn thing!");
-		return;
-	}
-
-	/* Hallucinating */
-	if (p_ptr->image)
-	{
-		msg_print(Ind, "You can't believe what you are seeing!");
-		return;
-	}
-
-	/* Manual mode */
-	if (dir >= 64)
-	{
-		target_free_aux(Ind, dir, FALSE);
-		return;
-	}
-
-	/* Reset "temp" array */
-	/* Do it Every time (unless canceled before) */
-	/* if (!dir) */
-	{
-		p_ptr->target_n = 0;
-
-		/* Scan the current panel */
-		for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)
-		{
-			for (x = p_ptr->panel_col_min; x <= p_ptr->panel_col_max; x++)
-			{
-				/* Require line of sight, unless "look" is "expanded" */
-				if (!expand_look && !player_has_los_bold(Ind, y, x)) continue;
-	
-				/* Require interesting contents */
-				if (!do_cmd_look_accept(Ind, y, x)) continue;
-	
-				/* Save the location */
-				p_ptr->target_x[p_ptr->target_n] = x;
-				p_ptr->target_y[p_ptr->target_n] = y;
-				p_ptr->target_n++;
-			}
-		}
-
-		/* Only if this is the first time, or if we've been asked to reset */
-		if (!dir) {
-			/* Start near the player */
-			p_ptr->look_index = 0;
-		}
-		
-		/* Paranoia */
-		if (!p_ptr->target_n)
-		{
-			msg_print(Ind, "You see nothing special.");
-			return;
-		}
-	
-	
-		/* Set the sort hooks */
-		ang_sort_comp = ang_sort_comp_distance;
-		ang_sort_swap = ang_sort_swap_distance;
-	
-		/* Sort the positions */
-		ang_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
-
-		/* Collect monster and player indices */
-		for (i = 0; i < p_ptr->target_n; i++)
-		{
-			c_ptr = &cave[Depth][p_ptr->target_y[i]][p_ptr->target_x[i]];
-
-			if (c_ptr->m_idx != 0)
-				p_ptr->target_idx[i] = c_ptr->m_idx;
-			else p_ptr->target_idx[i] = 0;
-		}
-	}
-	
-	/* Just be cautius */
-	if (p_ptr->look_index > p_ptr->target_n) p_ptr->look_index = p_ptr->target_n;
-	
-	/* Motion */
-	if (dir)
-	{
-		/* Reset the locations */
-		for (i = 0; i < p_ptr->target_n; i++)
-		{
-			if (p_ptr->target_idx[i] > 0)
-			{
-				m_ptr = &m_list[p_ptr->target_idx[i]];
-
-				p_ptr->target_y[i] = m_ptr->fy;
-				p_ptr->target_x[i] = m_ptr->fx;
-			}
-			else if (p_ptr->target_idx[i] < 0)
-			{
-				q_ptr = Players[0 - p_ptr->target_idx[i]];
-
-				/* Check for player leaving */
-				if (((0 - p_ptr->target_idx[i]) > NumPlayers) ||
-				     (q_ptr->dun_depth != p_ptr->dun_depth))
-				{
-					p_ptr->target_y[i] = 0;
-					p_ptr->target_x[i] = 0;
-				}
-				else
-				{
-					p_ptr->target_y[i] = q_ptr->py;
-					p_ptr->target_x[i] = q_ptr->px;
-				}
-			}
-		}
-
-		/* Find a new grid if possible */
-		i = target_pick(Ind, p_ptr->target_y[p_ptr->look_index], p_ptr->target_x[p_ptr->look_index], ddy[dir], ddx[dir]);
-
-		/* Use that grid */
-		if (i >= 0) p_ptr->look_index = i;
-	}
-
-	/* Describe */
-	y = p_ptr->target_y[p_ptr->look_index];
-	x = p_ptr->target_x[p_ptr->look_index];
-
-	/* Paranoia */
-	if (!cave[Depth]) return;
-
-	c_ptr = &cave[Depth][y][x];
-	
-	describe_floor_tile(c_ptr, out_val, Ind, TRUE, p_ptr->cave_flag[y][x]);
-	
-	/* Append a little info */
-	strcat(out_val, " [<dir>, q, p]");
-
-	/* Tell the client */
-	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_val);
+	return;
 }
-
+void do_cmd_monster_desc(int Ind, int m_idx) {
+	do_cmd_monster_desc_aux(Ind, m_list[m_idx].r_idx, FALSE);
+}
 
 
 
@@ -1859,13 +1695,15 @@ void do_cmd_locate(int Ind, int dir)
 
 	char	out_val[160];
 
-  if (dir < 0 || dir > 10) return;
 
 	/* No direction, recenter */
 	if (!dir)
 	{
 		/* Recenter map around the player */
 		verify_panel(Ind);
+
+		/* Reset "old" */
+		p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 		/* Update stuff */
 		p_ptr->update |= (PU_MONSTERS);
@@ -1897,6 +1735,9 @@ void do_cmd_locate(int Ind, int dir)
 	/* Initial panel */
 	y1 = p_ptr->panel_row_old;
 	x1 = p_ptr->panel_col_old;
+
+	/* Ensure "dir" is in ddy/ddx array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Apply the motion */
 	y2 += ddy[dir];
@@ -2061,13 +1902,12 @@ static cptr ident_info[] =
 
 
 /*
- * Sorting hook -- Comp function -- see below
+ * Sorting hook -- Comp function -- "by monster something"
  *
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform on "u".
  */
-#if 0
-static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
+bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 {
 	u16b *who = (u16b*)(u);
 
@@ -2081,11 +1921,15 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 	Ind = Ind;
 
 	/* Sort by player kills */
-	if (*why >= 4)
+	if (*why & SORT_PKILL)
 	{
 		/* Extract player kills */
-		z1 = r_info[w1].r_pkills;
-		z2 = r_info[w2].r_pkills;
+		player_type  *p_ptr = Players[Ind];
+		monster_lore *l1_ptr = p_ptr->l_list + w1;
+		monster_lore *l2_ptr = p_ptr->l_list + w2;
+
+		z1 = l1_ptr->pkills;
+		z2 = l2_ptr->pkills;
 
 		/* Compare player kills */
 		if (z1 < z2) return (TRUE);
@@ -2094,7 +1938,7 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 
 
 	/* Sort by total kills */
-	if (*why >= 3)
+	if (*why & SORT_TKILL)
 	{
 		/* Extract total kills */
 		z1 = r_info[w1].r_tkills;
@@ -2106,8 +1950,47 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 	}
 
 
+	/* Sort by monster unique-ness */
+	if (*why & SORT_UNIQUE)
+	{
+		/* Extract unique-ness */
+		z1 = (r_info[w1].flags1 & RF1_UNIQUE);
+		z2 = (r_info[w2].flags1 & RF1_UNIQUE);
+
+		/* Compare unique-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
+	/* Sort by monster quest-ness */
+	if (*why & SORT_QUEST)
+	{
+		/* Extract unique-ness */
+		z1 = (r_info[w1].flags1 & RF1_QUESTOR);
+		z2 = (r_info[w2].flags1 & RF1_QUESTOR);
+
+		/* Compare unique-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
+	/* Sort by monster rich-ness */
+	if (*why & SORT_RICH)
+	{
+		/* Extract rich-ness (HACKY) */
+		z1 = monster_richness(w1);
+		z2 = monster_richness(w2);
+
+		/* Compare rich-ness */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
+
+
 	/* Sort by monster level */
-	if (*why >= 2)
+	if (*why & SORT_LEVEL)
 	{
 		/* Extract levels */
 		z1 = r_info[w1].level;
@@ -2118,9 +2001,8 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 		if (z1 > z2) return (FALSE);
 	}
 
-
 	/* Sort by monster experience */
-	if (*why >= 1)
+	if (*why & SORT_EXP)
 	{
 		/* Extract experience */
 		z1 = r_info[w1].mexp;
@@ -2131,37 +2013,42 @@ static bool ang_sort_comp_hook(int Ind, vptr u, vptr v, int a, int b)
 		if (z1 > z2) return (FALSE);
 	}
 
+	/* Sort by monster rarity */
+	if (*why & SORT_RARITY)
+	{
+		/* Extract rarity */
+		z1 = r_info[w1].rarity;
+		z2 = r_info[w2].rarity;
+
+		/* Compare rarity */
+		if (z1 < z2) return (TRUE);
+		if (z1 > z2) return (FALSE);
+	}
 
 	/* Compare indexes */
 	return (w1 <= w2);
 }
-#endif
 
 
 /*
- * Sorting hook -- Swap function -- see below
+ * Sorting hook -- Swap function -- "for u16b"
  *
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform.
  */
-#if 0
-static void ang_sort_swap_hook(int Ind, vptr u, vptr v, int a, int b)
+void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b)
 {
 	u16b *who = (u16b*)(u);
-
 	u16b holder;
 
 	/* XXX XXX */
 	v = v ? v : 0;
-
-	Ind = Ind;
 
 	/* Swap */
 	holder = who[a];
 	who[a] = who[b];
 	who[b] = holder;
 }
-#endif
 
 
 /*
@@ -2197,4 +2084,8 @@ void do_cmd_query_symbol(int Ind, char sym)
 
 	/* Display the result */
 	msg_print(Ind, buf);
+	
+	/* MEGA-HACK!! Add monster recall info BASED on letter! This ommits creeping coins and mimics :( */
+	if ( (sym >= 'a' && sym <= 'z') || (sym >= 'A' && sym <= 'Z')	)
+		do_cmd_monster_desc_all(Ind, sym);
 }

@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /* Wipe everything */
@@ -199,11 +197,12 @@ bool warding_glyph(int Ind)
 	cave_type *c_ptr;
 
 	/* Can't create in town */
-	if (p_ptr->dun_depth == 0)
+	if (level_is_town(p_ptr->dun_depth))
 	{
 		msg_print(Ind, "The very soil of the Town prevents you.");
 		return FALSE;
 	}
+
 
 	/* Require clean space */
 	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
@@ -225,7 +224,7 @@ bool warding_glyph(int Ind)
 	/* Create a glyph of warding */
 	c_ptr->feat = FEAT_GLYPH;
 
-  return TRUE;
+	return TRUE;
 }
 
 
@@ -295,6 +294,7 @@ bool do_dec_stat(int Ind, int stat)
 	{
 		/* Message */
 		msg_format(Ind, "You feel very %s.", desc_stat_neg[stat]);
+		sound(Ind, MSG_DRAIN_STAT);
 
 		/* Notice effect */
 		return (TRUE);
@@ -378,7 +378,7 @@ void identify_pack(int Ind)
 		o_ptr = &p_ptr->inventory[i];
 		if (o_ptr->k_idx)
 		{
-			object_aware(Ind, o_ptr);
+			object_aware(p_ptr, o_ptr);
 			object_known(o_ptr);
 		}
 	}
@@ -505,7 +505,66 @@ bool restore_level(int Ind)
 	return (FALSE);
 }
 
+/*
+ * Obtain the "flags" for the player as if he was an item.
+ *
+ * Include all spoilery bits.
+ *
+ * This function works alot like "calc_bonuses()", but in reverse.
+ */
+void player_flags_spoil(int Ind, u32b *f1, u32b * f2, u32b *f3)
+{
+	player_type *p_ptr = Players[Ind];
 
+	/* Non-spoiler flags */
+	player_flags(Ind, f1, f2, f3);
+
+	/* Spoilers: */
+	if (p_ptr->aggravate)	 *f3 |= TR3_AGGRAVATE; 
+	if (p_ptr->see_infra)	 *f1 |= TR1_INFRA;
+	if (p_ptr->see_inv)	     *f3 |= TR3_SEE_INVIS;
+	if (p_ptr->feather_fall) *f3 |= TR3_FEATHER;
+	if (p_ptr->free_act)	 *f3 |= TR3_FREE_ACT;
+	if (p_ptr->regenerate)	 *f3 |= TR3_REGEN;
+	if (p_ptr->slow_digest)	 *f3 |= TR3_SLOW_DIGEST;
+	if (p_ptr->telepathy == TR3_TELEPATHY)	 *f3 |= TR3_TELEPATHY;
+	if (p_ptr->hold_life)	 *f3 |= TR3_HOLD_LIFE;
+	if (p_ptr->lite)	     *f3 |= TR3_LITE;
+
+	if (p_ptr->immune_acid) *f2 |= TR2_IM_ACID;
+	if (p_ptr->resist_acid) *f2 |= TR2_RES_ACID;
+
+	if (p_ptr->immune_elec) *f2 |= TR2_IM_ELEC;
+	if (p_ptr->resist_elec) *f2 |= TR2_RES_ELEC;
+
+	if (p_ptr->immune_fire) *f2 |= TR2_IM_FIRE;
+	if (p_ptr->resist_fire) *f2 |= TR2_RES_FIRE;
+
+	if (p_ptr->immune_cold) *f2 |= TR2_IM_COLD;
+	if (p_ptr->resist_cold) *f2 |= TR2_RES_COLD;
+
+	if (p_ptr->resist_pois) *f2 |= TR2_RES_POIS;
+
+	if (p_ptr->resist_lite)	 *f2 |= TR2_RES_LITE;
+	if (p_ptr->resist_dark)	 *f2 |= TR2_RES_DARK;
+	if (p_ptr->resist_conf)	 *f2 |= TR2_RES_CONFU;
+	if (p_ptr->resist_sound) *f2 |= TR2_RES_SOUND;
+	if (p_ptr->resist_disen) *f2 |= TR2_RES_DISEN;
+	if (p_ptr->resist_chaos) *f2 |= TR2_RES_CHAOS;
+	if (p_ptr->resist_shard) *f2 |= TR2_RES_SHARD;
+	if (p_ptr->resist_nexus) *f2 |= TR2_RES_NEXUS;
+	if (p_ptr->resist_neth)	 *f2 |= TR2_RES_NETHR;
+	if (p_ptr->resist_fear)	 *f2 |= TR2_RES_FEAR;
+	if (p_ptr->resist_blind) *f2 |= TR2_RES_BLIND;
+
+	if (p_ptr->sustain_str) *f2 |= TR2_SUST_STR;
+	if (p_ptr->sustain_int) *f2 |= TR2_SUST_INT;
+	if (p_ptr->sustain_wis) *f2 |= TR2_SUST_WIS;
+	if (p_ptr->sustain_dex) *f2 |= TR2_SUST_DEX;
+	if (p_ptr->sustain_con) *f2 |= TR2_SUST_CON;
+	if (p_ptr->sustain_chr) *f2 |= TR2_SUST_CHR;
+}
+ 
 /*
  * self-knowledge... idea from nethack.  Useful for determining powers and
  * resistences of items.  It saves the screen, clears it, then starts listing
@@ -519,20 +578,26 @@ bool restore_level(int Ind)
  *
  * XXX XXX XXX Use the "show_file()" method, perhaps.
  */
-void self_knowledge(int Ind)
+void self_knowledge(int Ind, bool spoil)
 {
 	player_type *p_ptr = Players[Ind];
 
 	int		i = 0, k;
 
 	u32b	f1 = 0L, f2 = 0L, f3 = 0L;
-
+	u32b	o1 = 0L, o2 = 0L, o3 = 0L;
+	u32b t1, t2, t3;
+ 
 	object_type	*o_ptr;
 
-	cptr	*info = p_ptr->info;
+	int j,e; /* copy hack */
+	static cptr s_info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
+	cptr	*info = s_info;
+	
+
 
 	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
+	memset(s_info,0,sizeof(s_info));
 
 	/* Let the player scroll through the info */
 	p_ptr->special_file_type = TRUE;
@@ -540,15 +605,17 @@ void self_knowledge(int Ind)
 	/* Acquire item flags from equipment */
 	for (k = INVEN_WIELD; k < INVEN_TOTAL; k++)
 	{
-	        u32b t1, t2, t3;
-
+		t1 = t2 = t3 = 0L;
 		o_ptr = &p_ptr->inventory[k];
 
 		/* Skip empty items */
 		if (!o_ptr->k_idx) continue;
 
 		/* Extract the flags */
-	        object_flags(o_ptr, &t1, &t2, &t3);
+		if (spoil)
+			object_flags(o_ptr, &t1, &t2, &t3);
+		else
+			object_flags_known(Ind, o_ptr, &t1, &t2, &t3);
 
 		/* Extract flags */
 		f1 |= t1;
@@ -556,7 +623,28 @@ void self_knowledge(int Ind)
 		f3 |= t3;
 	}
 
+	/* Save object-only flags */
+	o1 = f1; o2 = f2; o3 = f3;
 
+	/* Acquire player flags */
+	t1 = t2 = t3 = 0L;	
+	if (!spoil)
+		player_flags(Ind, &t1, &t2, &t3);
+	else
+		player_flags_spoil(Ind, &t1, &t2, &t3);
+	/* Combine flags */
+	f1 |= t1;
+	f2 |= t2;
+	f3 |= t3;
+
+
+	/* Birth options */
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
+	{
+		info[i++] = "You never compromise.";
+	}
+
+	/* Status */
 	if (p_ptr->blind)
 	{
 		info[i++] = "You cannot see.";
@@ -585,16 +673,12 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You are hallucinating.";
 	}
-
-	if (p_ptr->aggravate)
-	{
-		info[i++] = "You aggravate monsters.";
-	}
 	if (p_ptr->teleport)
 	{
         info[i++] = "You are teleporting.";
 	}
 
+	/* Spell effects */
 	if (p_ptr->blessed)
 	{
         info[i++] = "You feel righteous.";
@@ -635,173 +719,185 @@ void self_knowledge(int Ind)
 	{
 		info[i++] = "You will soon be recalled.";
 	}
-	if (p_ptr->see_infra)
+
+	/* Equipment-related */
+	if (f3 & TR3_AGGRAVATE)
+	{
+		info[i++] = "You aggravate monsters.";
+	}
+	if (f1 & TR1_INFRA)
 	{
 		info[i++] = "Your eyes are sensitive to infrared light.";
 	}
-	if (p_ptr->see_inv)
+	if (f3 & TR3_SEE_INVIS)
 	{
 		info[i++] = "You can see invisible creatures.";
 	}
-	if (p_ptr->feather_fall)
+	if (f3 & TR3_FEATHER)
 	{
 		info[i++] = "You land gently.";
 	}
-	if (p_ptr->free_act)
+	if (f3 & TR3_FREE_ACT)
 	{
 		info[i++] = "You have free action.";
 	}
-	if (p_ptr->regenerate)
+	if (f3 & TR3_REGEN)
 	{
 		info[i++] = "You regenerate quickly.";
 	}
-	if (p_ptr->slow_digest)
+	if (f3 & TR3_SLOW_DIGEST)
 	{
 		info[i++] = "Your appetite is small.";
 	}
-    if (p_ptr->telepathy == TR3_TELEPATHY)
+    if (f3 & TR3_TELEPATHY)
 	{
 		info[i++] = "You have ESP.";
 	}
-	if (p_ptr->hold_life)
+	if (f3 & TR3_HOLD_LIFE)
 	{
 		info[i++] = "You have a firm hold on your life force.";
 	}
-	if (p_ptr->lite)
+	if (f3 & TR3_LITE)
 	{
 		info[i++] = "You are carrying a permanent light.";
 	}
-	if (p_ptr->immune_acid)
+	if (f2 & TR2_IM_ACID)
 	{
 		info[i++] = "You are completely immune to acid.";
 	}
-	else if ((p_ptr->resist_acid) && (p_ptr->oppose_acid))
+	else if ((f2 & TR2_RES_ACID) && (p_ptr->oppose_acid))
 	{
 		info[i++] = "You resist acid exceptionally well.";
 	}
-	else if ((p_ptr->resist_acid) || (p_ptr->oppose_acid))
+	else if ((f2 & TR2_RES_ACID) || (p_ptr->oppose_acid))
 	{
 		info[i++] = "You are resistant to acid.";
 	}
 
-	if (p_ptr->immune_elec)
+	if (f2 & TR2_IM_ELEC)
 	{
 		info[i++] = "You are completely immune to lightning.";
 	}
-	else if ((p_ptr->resist_elec) && (p_ptr->oppose_elec))
+	else if ((f2 & TR2_RES_ELEC) && (p_ptr->oppose_elec))
 	{
 		info[i++] = "You resist lightning exceptionally well.";
 	}
-	else if ((p_ptr->resist_elec) || (p_ptr->oppose_elec))
+	else if ((f2 & TR2_RES_ELEC) || (p_ptr->oppose_elec))
 	{
 		info[i++] = "You are resistant to lightning.";
 	}
 
-	if (p_ptr->immune_fire)
+	if (f2 & TR2_IM_FIRE)
 	{
 		info[i++] = "You are completely immune to fire.";
 	}
-	else if ((p_ptr->resist_fire) && (p_ptr->oppose_fire))
+	else if ((f2 & TR2_RES_FIRE) && (p_ptr->oppose_fire))
 	{
 		info[i++] = "You resist fire exceptionally well.";
 	}
-	else if ((p_ptr->resist_fire) || (p_ptr->oppose_fire))
+	else if ((f2 & TR2_RES_FIRE) || (p_ptr->oppose_fire))
 	{
 		info[i++] = "You are resistant to fire.";
 	}
 
-	if (p_ptr->immune_cold)
+	if (f2 & TR2_IM_COLD)
 	{
 		info[i++] = "You are completely immune to cold.";
 	}
-	else if ((p_ptr->resist_cold) && (p_ptr->oppose_cold))
+	else if ((f2 & TR2_RES_COLD) && (p_ptr->oppose_cold))
 	{
 		info[i++] = "You resist cold exceptionally well.";
 	}
-	else if ((p_ptr->resist_cold) || (p_ptr->oppose_cold))
+	else if ((f2 & TR2_RES_COLD) || (p_ptr->oppose_cold))
 	{
 		info[i++] = "You are resistant to cold.";
 	}
 
-	if ((p_ptr->resist_pois) && (p_ptr->oppose_pois))
+	if ((f2 & TR2_RES_POIS) && (p_ptr->oppose_pois))
 	{
 		info[i++] = "You resist poison exceptionally well.";
 	}
-	else if ((p_ptr->resist_pois) || (p_ptr->oppose_pois))
+	else if ((f2 & TR2_RES_POIS) || (p_ptr->oppose_pois))
 	{
 		info[i++] = "You are resistant to poison.";
 	}
 
-	if (p_ptr->resist_lite)
+	if (f2 & TR2_RES_LITE)
 	{
 		info[i++] = "You are resistant to bright light.";
 	}
-	if (p_ptr->resist_dark)
+	if (f2 & TR2_RES_DARK)
 	{
 		info[i++] = "You are resistant to darkness.";
 	}
-	if (p_ptr->resist_conf)
+	if (f2 & TR2_RES_CONFU)
 	{
 		info[i++] = "You are resistant to confusion.";
 	}
-	if (p_ptr->resist_sound)
+	if (f2 & TR2_RES_SOUND)
 	{
 		info[i++] = "You are resistant to sonic attacks.";
 	}
-	if (p_ptr->resist_disen)
+	if (f2 & TR2_RES_DISEN)
 	{
 		info[i++] = "You are resistant to disenchantment.";
 	}
-	if (p_ptr->resist_chaos)
+	if (f2 & TR2_RES_CHAOS)
 	{
 		info[i++] = "You are resistant to chaos.";
 	}
-	if (p_ptr->resist_shard)
+	if (f2 & TR2_RES_SHARD)
 	{
 		info[i++] = "You are resistant to blasts of shards.";
 	}
-	if (p_ptr->resist_nexus)
+	if (f2 & TR2_RES_NEXUS)
 	{
 		info[i++] = "You are resistant to nexus attacks.";
 	}
-	if (p_ptr->resist_neth)
+	if (f2 & TR2_RES_NETHR)
 	{
 		info[i++] = "You are resistant to nether forces.";
 	}
-	if (p_ptr->resist_fear)
+	if (f2 & TR2_RES_FEAR)
 	{
 		info[i++] = "You are completely fearless.";
 	}
-	if (p_ptr->resist_blind)
+	if (f2 & TR2_RES_BLIND)
 	{
 		info[i++] = "Your eyes are resistant to blindness.";
 	}
 
-	if (p_ptr->sustain_str)
+	if (f2 & TR2_SUST_STR)
 	{
 		info[i++] = "Your strength is sustained.";
 	}
-	if (p_ptr->sustain_int)
+	if (f2 & TR2_SUST_INT)
 	{
 		info[i++] = "Your intelligence is sustained.";
 	}
-	if (p_ptr->sustain_wis)
+	if (f2 & TR2_SUST_WIS)
 	{
 		info[i++] = "Your wisdom is sustained.";
 	}
-	if (p_ptr->sustain_con)
+	if (f2 & TR2_SUST_CON)
 	{
 		info[i++] = "Your constitution is sustained.";
 	}
-	if (p_ptr->sustain_dex)
+	if (f2 & TR2_SUST_DEX)
 	{
 		info[i++] = "Your dexterity is sustained.";
 	}
-	if (p_ptr->sustain_chr)
+	if (f2 & TR2_SUST_CHR)
 	{
 		info[i++] = "Your charisma is sustained.";
 	}
 
+	/* Remove player flags */
+	f1 = o1;
+	f2 = o2;
+	f3 = o3;
+	
+	/* Equipment itself */
 	if (f1 & TR1_STR)
 	{
 		info[i++] = "Your strength is affected by your equipment.";
@@ -942,9 +1038,26 @@ void self_knowledge(int Ind)
         }
 	}
 
+	/* HACK !!! --- Copy to rem_info */
+	for (k = 0; k < i; k++)
+	{
+		e = strlen(info[k]);
+		for (j = 0; j < e; j++)
+		{
+			p_ptr->info[k][j].c = info[k][j];
+			p_ptr->info[k][j].a = TERM_WHITE;
+		}
+		for (j = e; j < 80; j++)
+		{
+			p_ptr->info[k][j].c = ' ';
+			p_ptr->info[k][j].a = TERM_WHITE;
+		}
+	}
+	/* Last line */
+	p_ptr->last_info_line = i - 1;
 
-	/* Let the client know to expect some info */
-	Send_special_other(Ind, "Self-Knowledge");
+	/* Let the client see it */
+	send_prepared_popup(Ind, "Self-Knowledge");
 }
 
 
@@ -1026,7 +1139,7 @@ void set_recall(int Ind, object_type * o_ptr)
 {
 	int recall_depth = 0;
 	player_type * p_ptr = Players[Ind];
-	unsigned char * inscription = (unsigned char *) quark_str(o_ptr->note);
+	char * inscription = (char *) quark_str(o_ptr->note);
 
 	/* Ironmen don't recall unless they've won */
 	if (cfg_ironman && !p_ptr->total_winner)
@@ -1072,7 +1185,7 @@ void set_recall(int Ind, object_type * o_ptr)
 		if (recall_depth < 0)
 		{
 			/* if the player has not visited here, set the recall depth to the town */
-			if ((strcmp(p_ptr->name,cfg_dungeon_master)))
+			if (!is_dm_p(p_ptr))
 				if (!(p_ptr->wild_map[-recall_depth/8] & (1 << -recall_depth%8)))
 					recall_depth = 1;
 
@@ -1081,13 +1194,100 @@ void set_recall(int Ind, object_type * o_ptr)
 		p_ptr->recall_depth = recall_depth;
 		p_ptr->word_recall = (s16b)rand_int(20) + 15;
 		msg_print(Ind, "The air about you becomes charged...");
+		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "The air about %s becomes charged...", p_ptr->name); 
 	}
 	else
 	{
 		p_ptr->word_recall = 0;
 		msg_print(Ind, "A tension leaves the air around you...");
+		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "A tension leaves the air around %s...", p_ptr->name);
 	}	
 
+}
+
+
+
+/*** Detection spells ***/
+
+/*
+ * Useful constants for the area around the player to detect.
+ * This is instead of using circular detection spells.
+ */
+#define DETECT_DIST_X	52	/* Detect 52 grids to the left & right */
+#define DETECT_DIST_Y	23	/* Detect 23 grids to the top & bottom */
+
+
+
+/*
+ * Map an area around the player.
+ *
+ * We must never attempt to map the outer dungeon walls, or we
+ * might induce illegal cave grid references.
+ */
+void map_area(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+	int		i, x, y, y1, y2, x1, x2;
+
+	cave_type	*c_ptr;
+	byte		*w_ptr;
+
+
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
+
+	/* Speed -- shrink to fit legal bounds */
+	if (y1 < 1) y1 = 1;
+	if (y2 > p_ptr->cur_hgt-2) y2 = p_ptr->cur_hgt-2;
+	if (x1 < 1) x1 = 1;
+	if (x2 > p_ptr->cur_wid-2) x2 = p_ptr->cur_wid-2;
+
+	/* Scan that area */
+	for (y = y1; y <= y2; y++)
+	{
+		for (x = x1; x <= x2; x++)
+		{
+			c_ptr = &cave[Depth][y][x];
+			w_ptr = &p_ptr->cave_flag[y][x];
+
+			/* All non-walls are "checked", including MAngband specifics */
+			if ((c_ptr->feat < FEAT_SECRET) || 
+				((c_ptr->feat >= FEAT_DIRT) && (c_ptr->feat < FEAT_DRAWBRIDGE)))
+			{
+				/* Memorize normal features */
+				if (!is_boring(c_ptr->feat))
+				{
+					/* Memorize the object */
+					*w_ptr |= CAVE_MARK;
+				}
+
+				/* Memorize known walls */
+				for (i = 0; i < 8; i++)
+				{
+					c_ptr = &cave[Depth][y+ddy_ddd[i]][x+ddx_ddd[i]];
+					w_ptr = &p_ptr->cave_flag[y+ddy_ddd[i]][x+ddx_ddd[i]];
+
+					/* Memorize walls (etc) */
+					if ((c_ptr->feat >= FEAT_SECRET) && 
+						((c_ptr->feat < FEAT_DIRT) || (c_ptr->feat >= FEAT_DRAWBRIDGE)))
+					{
+						/* Memorize the walls */
+						*w_ptr |= CAVE_MARK;
+					}
+				}
+			}
+		}
+	}
+
+	/* Redraw map */
+	p_ptr->redraw |= (PR_MAP);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_OVERHEAD);
 }
 
 
@@ -1099,9 +1299,10 @@ void set_recall(int Ind, object_type * o_ptr)
 bool detect_treasure(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-
+	
 	int Depth = p_ptr->dun_depth;
-
+	int x1, x2, y1, y2;
+	
 	int		y, x;
 	bool	detect = FALSE;
 
@@ -1110,11 +1311,22 @@ bool detect_treasure(int Ind)
 
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+
+	
 	/* Scan the current panel */
-	for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)
+	for (y = y1; y <= y2; y++)
 	{
-		for (x = p_ptr->panel_col_min; x <= p_ptr->panel_col_max; x++)
+		for (x = x1; x <= x2; x++)
 		{
 			c_ptr = &cave[Depth][y][x];
 			w_ptr = &p_ptr->cave_flag[y][x];
@@ -1179,6 +1391,7 @@ bool detect_treasure(int Ind)
 	/* Describe */
 	if (detect)
 	{
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of buried treasure!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of buried treasure!");
 	}
 
@@ -1199,6 +1412,7 @@ bool detect_objects_magic(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
+	int x1, x2, y1, y2;
 
 	int		i, j, tv;
 	bool	detect = FALSE;
@@ -1206,11 +1420,22 @@ bool detect_objects_magic(int Ind)
 	cave_type	*c_ptr;
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid and object */
 			c_ptr = &cave[Depth][i][j];
@@ -1252,7 +1477,38 @@ bool detect_objects_magic(int Ind)
 
 
 
+/*
+ * Increment magical detection counter for a monster/player
+ */
+void give_detect(int Ind, int m_idx)
+{
+	player_type *p_ptr = Players[Ind];
+	int power, i;
 
+	/* The detection counter is expressed in "effect turns"
+	 * (each tick gives 1 poision damage) */
+	/* Note, that we should probably use caster level and not
+	 * victim level, but, oh well. */
+	power = 2 + ((p_ptr->lev + 2) / 5);
+
+	/* Also, let's scale down when spamming */
+	i = (m_idx < 0 ? p_ptr->play_det[0 - m_idx] : p_ptr->mon_det[m_idx]);
+	power = i ? 1 : power;
+
+	/* Players */
+	if (m_idx < 0)
+	{
+		m_idx = 0 - m_idx;
+		p_ptr->play_det[m_idx] = MIN(
+		    (int)p_ptr->play_det[m_idx] + power, 255);
+	}
+	/* Monsters */
+	else
+	{
+		p_ptr->mon_det[m_idx] = MIN(
+		    (int)p_ptr->mon_det[m_idx] + power, 255);
+	}
+}
 
 /*
  * Locates and displays all invisible creatures on current panel -RAK-
@@ -1260,62 +1516,92 @@ bool detect_objects_magic(int Ind)
 bool detect_invisible(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
+	int x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;
+	
+	
 	/* Detect all invisible monsters */
 	for (i = 1; i < m_max; i++)
 	{
 		monster_type *m_ptr = &m_list[i];
 		monster_race *r_ptr = &r_info[m_ptr->r_idx];
+		monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
-
+		
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
-
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
 
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
-		/* Detect all invisible monsters */
-		if (panel_contains(fy, fx) && (r_ptr->flags2 & RF2_INVISIBLE))
-		{
-			/* Take note that they are invisible */
-			r_ptr->r_flags2 |= RF2_INVISIBLE;
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
 
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+		/* Detect all invisible monsters */
+		if (r_ptr->flags2 & (RF2_INVISIBLE))
+		{
+			/* Increment detection counter */
+			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
+			/* Take note that they are invisible */
+			l_ptr->flags2 |= RF2_INVISIBLE;
+			
+			/* Track this fact */
+			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
+				p_ptr->window |= PW_MONSTER;
+
 			flag = TRUE;
 		}
 	}
 
 	/* Detect all invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
 
-		/* Skip visible players */
+		/* Skip ourself */
+		if (i == Ind) continue;
+
+		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
-		/* Skip the dungeon master */
-		if (!strcmp(q_ptr->name, cfg_dungeon_master)) continue;
+		/* Only detect nearby players */
+		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
 
-		/* Detect all invisible players but not the dungeon master */
-		if (panel_contains(py, px) && q_ptr->ghost) 
+		/* Skip the dungeon master */
+		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
+
+		/* Detect all invisible players (except dungeon master) */
+		if (q_ptr->ghost)
 		{
-			/* Mega-Hack -- Show the player */
-			p_ptr->play_vis[i] = TRUE;
-			lite_spot(Ind, py, px);
+			/* Increment detection counter */
+			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[0 - i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1323,16 +1609,20 @@ bool detect_invisible(int Ind, bool pause)
 	/* Describe result, and clean up */
 	if (flag && pause)
 	{
-		/* Describe, and wait for acknowledgement */
-		msg_print(Ind, "You sense the presence of invisible creatures!");
-		msg_print(Ind, NULL);
-
-		/* Wait */
-		Send_pause(Ind);
-
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		/* Handle Window stuff */
+		handle_stuff(Ind);
+	
+		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
+		msg_print(Ind, "You sense the presence of invisible creatures!");
+		msg_print(Ind, NULL);
+
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1347,17 +1637,30 @@ bool detect_invisible(int Ind, bool pause)
 bool detect_evil(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int	x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Display all the evil monsters */
 	for (i = 1; i < m_max; i++)
 	{
 		monster_type *m_ptr = &m_list[i];
 		monster_race *r_ptr = &r_info[m_ptr->r_idx];
-
+		monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
+		
 		int fy = m_ptr->fy;
 		int fx = m_ptr->fx;
 
@@ -1367,12 +1670,23 @@ bool detect_evil(int Ind)
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
+		
 		/* Detect evil monsters */
-		if (panel_contains(fy, fx) && (r_ptr->flags3 & RF3_EVIL))
+		if (r_ptr->flags3 & (RF3_EVIL))
 		{
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+			/* Take note that they are evil */
+			l_ptr->flags3 |= RF3_EVIL;
+
+			/* Track this fact */
+			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
+				p_ptr->window |= PW_MONSTER;
+
+			/* Increment detection counter */
+			give_detect(Ind, i);
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1380,15 +1694,19 @@ bool detect_evil(int Ind)
 	/* Note effects and clean up */
 	if (flag)
 	{
+		/* Mega-Hack -- Fix the monsters */
+		update_monsters(FALSE);
+		/* Handle Window stuff */
+		handle_stuff(Ind);
+
 		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
 		msg_print(Ind, "You sense the presence of evil creatures!");
 		msg_print(Ind, NULL);
 
-		/* Wait */
-		Send_pause(Ind);
-
-		/* Mega-Hack -- Fix the monsters */
-		update_monsters(FALSE);
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1403,11 +1721,23 @@ bool detect_evil(int Ind)
 bool detect_creatures(int Ind, bool pause)
 {
 	player_type *p_ptr = Players[Ind];
+	int	x1, x2, y1, y2;
 
 	int		i;
 	bool	flag = FALSE;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Detect non-invisible monsters */
 	for (i = 1; i < m_max; i++)
 	{
@@ -1420,45 +1750,52 @@ bool detect_creatures(int Ind, bool pause)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
+		/* Only detect nearby monsters */
+		if (fx < x1 || fy < y1 || fx > x2 || fy > y2) continue;
+		
 		/* Detect all non-invisible monsters */
-		if (panel_contains(fy, fx) && (!(r_ptr->flags2 & RF2_INVISIBLE)))
+		if (!(r_ptr->flags2 & (RF2_INVISIBLE)))
 		{
-			/* Mega-Hack -- Show the monster */
-			p_ptr->mon_vis[i] = TRUE;
-			lite_spot(Ind, fy, fx);
+			/* Increment detection counter */
+			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
 			flag = TRUE;
 		}
 	}
 
 	/* Detect non-invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
 
-		/* Skip visible players */
-		if (p_ptr->play_vis[i]) continue;
+		/* Skip ourself */
+		if (i == Ind) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
-		/* Skip ourself */
-		if (i == Ind) continue;
-
+		/* Only detect nearby players */
+		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
+		
 		/* Detect all non-invisible players */
-		if (panel_contains(py, px) && !q_ptr->ghost)
+		if (!q_ptr->ghost)
 		{
-			/* Mega-Hack -- Show the player */
-			p_ptr->play_vis[i] = TRUE;
-			lite_spot(Ind, py, px);
+			/* Increment detection counter */
+			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1466,16 +1803,20 @@ bool detect_creatures(int Ind, bool pause)
 	/* Describe and clean up */
 	if (flag && pause)
 	{
-		/* Describe, and wait for acknowledgement */
-		msg_print(Ind, "You sense the presence of creatures!");
-		msg_print(Ind, NULL);
-
-		/* Wait */
-		Send_pause(Ind);
-
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		/* Handle Window stuff */
+		handle_stuff(Ind);
+
+		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
+		msg_print(Ind, "You sense the presence of creatures!");
+		msg_print(Ind, NULL);
+
+		/* Hack -- Pause */
+		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
+			Send_pause(p_ptr);
 	}
 
 	/* Result */
@@ -1502,17 +1843,21 @@ bool detection(int Ind)
 	/* Describe result, and clean up */
 	if (detected_creatures || detected_invis)
 	{
-		detect = TRUE;
-		/* Describe, and wait for acknowledgement */
-		msg_print(Ind, "You sense the presence of creatures!");
-		msg_print(Ind, NULL);
-
-		/* Wait */
-		Send_pause(Ind);
-
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
+		/* Handle Window stuff */
+		handle_stuff(Ind);
+
+		detect = TRUE;
+		/* Describe, and wait for acknowledgement */
+		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
+		msg_print(Ind, "You sense the presence of creatures!");
+		msg_print(Ind, NULL);
+
+		/* Hack -- Pause */
+		if (option_p(Players[Ind], PAUSE_AFTER_DETECT))
+			Send_pause(Players[Ind]);
 	}
 
 	/* Result */
@@ -1528,7 +1873,8 @@ bool detect_objects_normal(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
-
+	int	x1, x2, y1, y2;
+	
 	int		i, j;
 	bool	detect = FALSE;
 
@@ -1536,11 +1882,22 @@ bool detect_objects_normal(int Ind)
 
 	object_type	*o_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			c_ptr = &cave[Depth][i][j];
 
@@ -1579,19 +1936,29 @@ bool detect_trap(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
-
+	int x1, x2, y1, y2;
+	
 	int		i, j;
-
 	bool	detect = FALSE;
 
 	cave_type  *c_ptr;
 	byte *w_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
 	/* Scan the current panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid */
 			c_ptr = &cave[Depth][i][j];
@@ -1641,6 +2008,7 @@ bool detect_sdoor(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int Depth = p_ptr->dun_depth;
+	int x1, x2, y1, y2;
 
 	int		i, j;
 	bool	detect = FALSE;
@@ -1648,11 +2016,22 @@ bool detect_sdoor(int Ind)
 	cave_type *c_ptr;
 	byte *w_ptr;
 
+	/* Pick an area to map */
+	y1 = p_ptr->py - DETECT_DIST_Y;
+	y2 = p_ptr->py + DETECT_DIST_Y;
+	x1 = p_ptr->px - DETECT_DIST_X;
+	x2 = p_ptr->px + DETECT_DIST_X;
 
+	if (y1 < 0) y1 = 0;
+	if (x1 < 0) x1 = 0;
+	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	
+	
 	/* Scan the panel */
-	for (i = p_ptr->panel_row_min; i <= p_ptr->panel_row_max; i++)
+	for (i = y1; i <= y2; i++)
 	{
-		for (j = p_ptr->panel_col_min; j <= p_ptr->panel_col_max; j++)
+		for (j = x1; j <= x2; j++)
 		{
 			/* Access the grid and object */
 			c_ptr = &cave[Depth][i][j];
@@ -1818,6 +2197,301 @@ static bool item_tester_hook_armour(object_type *o_ptr)
 }
 
 
+/*
+ * Curse the players armor
+ */
+bool curse_armor(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	object_type *o_ptr;
+
+	char o_name[80];
+
+
+	/* Curse the body armor */
+	o_ptr = &p_ptr->inventory[INVEN_BODY];
+
+	/* Nothing to curse */
+	if (!o_ptr->k_idx) return (FALSE);
+
+
+	/* Describe */
+	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+
+	/* Attempt a saving throw for artifacts */
+	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	{
+		/* Cool */
+		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		           "terrible black aura", "surround your armor", o_name);
+	}
+
+	/* not artifact or failed save... */
+	else
+	{
+		/* Oops */
+		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+
+		/* Blast the armor */
+		o_ptr->name1 = 0;
+		o_ptr->name2 = EGO_BLASTED;
+	o_ptr->name3 = 0;
+		o_ptr->to_a = 0 - randint(5) - randint(5);
+		o_ptr->to_h = 0;
+		o_ptr->to_d = 0;
+		o_ptr->ac = 0;
+		o_ptr->dd = 0;
+		o_ptr->ds = 0;
+
+		/* Curse it */
+		o_ptr->ident |= ID_CURSED;
+
+		/* Break it */
+		o_ptr->ident |= ID_BROKEN;
+
+		/* Recalculate bonuses */
+		p_ptr->update |= (PU_BONUS);
+
+		/* Recalculate mana */
+		p_ptr->update |= (PU_MANA);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	}
+
+	return (TRUE);
+}
+
+
+/*
+ * Curse the players weapon
+ */
+bool curse_weapon(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	object_type *o_ptr;
+
+	char o_name[80];
+
+
+	/* Curse the weapon */
+	o_ptr = &p_ptr->inventory[INVEN_WIELD];
+
+	/* Nothing to curse */
+	if (!o_ptr->k_idx) return (FALSE);
+
+
+	/* Describe */
+	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+
+	/* Attempt a saving throw */
+	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	{
+		/* Cool */
+		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		           "terrible black aura", "surround your weapon", o_name);
+	}
+
+	/* not artifact or failed save... */
+	else
+	{
+		/* Oops */
+		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+
+		/* Hack -- preserve artifact */
+		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+
+		/* Shatter the weapon */
+		o_ptr->name1 = 0;
+		o_ptr->name2 = EGO_SHATTERED;
+	o_ptr->name3 = 0;
+		o_ptr->to_h = 0 - randint(5) - randint(5);
+		o_ptr->to_d = 0 - randint(5) - randint(5);
+		o_ptr->to_a = 0;
+		o_ptr->ac = 0;
+		o_ptr->dd = 0;
+		o_ptr->ds = 0;
+
+		/* Curse it */
+		o_ptr->ident |= ID_CURSED;
+
+		/* Break it */
+		o_ptr->ident |= ID_BROKEN;
+
+		/* Recalculate bonuses */
+		p_ptr->update |= (PU_BONUS);
+
+		/* Recalculate mana */
+		p_ptr->update |= (PU_MANA);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	}
+
+	/* Notice */
+	return (TRUE);
+}
+
+
+/*
+ * Brand weapons (or ammo)
+ *
+ * Turns the (non-magical) object into an ego-item of 'brand_type'.
+ */
+void brand_object(int Ind, object_type *o_ptr, byte brand_type)
+{
+	player_type *p_ptr = Players[Ind];
+	/* you can never modify artifacts / ego-items */
+	/* you can never modify broken / cursed items */
+	if ((o_ptr->k_idx) &&
+	    (!artifact_p(o_ptr)) && (!ego_item_p(o_ptr)) &&
+	    (!broken_p(o_ptr)) && (!cursed_p(o_ptr)))
+	{
+		cptr act = "magical";
+		char o_name[80];
+
+		switch (brand_type)
+		{
+			case EGO_BRAND_FIRE:
+			case EGO_FLAME:
+				act = "fiery";
+				break;
+			case EGO_BRAND_COLD:
+			case EGO_FROST:
+				act = "frosty";
+				break;
+			case EGO_BRAND_POIS:
+			case EGO_AMMO_VENOM:
+				act = "sickly";
+				break;
+		}
+
+      object_desc(Ind, o_name, o_ptr, FALSE, 0);
+
+		/* Describe */
+		msg_format(Ind, "A %s aura surrounds the %s.", act, o_name);
+
+		/* Brand the object */
+		o_ptr->name2 = brand_type;
+
+		/* Combine / Reorder the pack (later) */
+		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+
+		/* Enchant */
+		enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+	}
+	else
+	{
+		/*if (flush_failure) flush();*/
+		msg_print(Ind, "The Branding failed.");
+	}
+}
+
+/*
+ * Hook to specify "ammo"
+ */
+static bool item_tester_hook_ammo(int Ind, object_type *o_ptr)
+{
+	switch (o_ptr->tval)
+	{
+		case TV_BOLT:
+		case TV_ARROW:
+		case TV_SHOT:
+		{
+			return (TRUE);
+		}
+	}
+
+	return (FALSE);
+}
+
+/*
+ * Brand chosen ammo
+ */
+void brand_ammo(int Ind, int item)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	int r;
+	byte brand_type;
+
+	/* Only accept ammo */
+	/* item_tester_hook = item_tester_hook_ammo; */
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (item == 0) {
+			msg_print(Ind, "There's nothing on the floor.");
+			return;
+		}
+		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
+	}
+
+	if (!item_tester_hook_ammo(Ind, o_ptr)) {
+			msg_print(Ind, "You cannot brand that!");
+			return;
+	}
+
+	r = rand_int(100);
+
+	/* Select the brand */
+	if (r < 33)
+		brand_type = EGO_FLAME;
+	else if (r < 67)
+		brand_type = EGO_FROST;
+	else
+		brand_type = EGO_AMMO_VENOM;
+
+	/* Brand the ammo */
+	brand_object(Ind, o_ptr, brand_type);
+
+	/* Done */
+	return;
+}
+
+/*
+ * Brand the current weapon
+ */
+void brand_weapon(int Ind)
+{
+    player_type *p_ptr = Players[Ind];
+
+    object_type *o_ptr;
+
+    byte brand_type;
+    
+    o_ptr = &p_ptr->inventory[INVEN_WIELD];
+    
+    /* Select a brand */
+	 if (rand_int(100) < 25)
+		brand_type = EGO_BRAND_FIRE;
+	 else
+		brand_type = EGO_BRAND_COLD;
+
+	 brand_object(Ind, o_ptr, brand_type);
+}
+
+
+
+
 
 /*
  * Enchants a plus onto an item.                        -RAK-
@@ -1975,27 +2649,19 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 void spell_clear(int Ind)
 {
   player_type *p_ptr = Players[Ind];
-  p_ptr->current_enchant_h = 0;
-  p_ptr->current_enchant_d = 0;
-  p_ptr->current_enchant_a = 0;
-  p_ptr->current_identify = 0;
-  p_ptr->current_star_identify = 0;
-  p_ptr->current_recharge = 0;
-  p_ptr->current_artifact = 0;
-  
-  /* Hack: this should be somewhere else: */
-  p_ptr->current_staff = -1;
-  p_ptr->current_scroll = -1;
+
+  /* Hack */  
+  p_ptr->current_spell = -1;
+  p_ptr->current_object = -1;
 }
 
 bool create_artifact(int Ind)
 {
-  player_type *p_ptr = Players[Ind];
+  int item;
 
-  spell_clear(Ind);
-  p_ptr->current_artifact = TRUE;
-
-  get_item(Ind);
+  if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
+  
+  create_artifact_aux(Ind, item);  
   
   return TRUE;
 }
@@ -2006,8 +2672,9 @@ bool create_artifact_aux(int Ind, int item)
 	player_type *p_ptr = Players[Ind];
 
 	object_type *o_ptr;
+#if defined(RANDART)
 	char o_name[80]; /* Only used by randart() */
-
+#endif
 	/* Get the item (in the pack) */
 	if (item >= 0)
 	{
@@ -2023,12 +2690,11 @@ bool create_artifact_aux(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 #if !defined(RANDART)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
-
-	return TRUE;
 #else
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
@@ -2064,7 +2730,7 @@ bool create_artifact_aux(int Ind, int item)
 		/* Forget the inscription */
                 o_ptr->note = 0;
         }
-
+#endif
 	/* Clear flags */
 	o_ptr->ident &= ~ID_KNOWN;
 	o_ptr->ident &= ~ID_SENSE;
@@ -2078,24 +2744,21 @@ bool create_artifact_aux(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
+/*
 	p_ptr->current_artifact = FALSE;
-#endif
+*/
 	return TRUE;
 }
 
 
 bool enchant_spell(int Ind, int num_hit, int num_dam, int num_ac)
 {
-	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
-	p_ptr->current_enchant_h = num_hit;
-	p_ptr->current_enchant_d = num_dam;
-	p_ptr->current_enchant_a = num_ac;
+	if (!get_item(Ind, &item, (num_ac ? item_test(ARMOR) : item_test(WEAPON)))) return (FALSE);
 
-	get_item(Ind);
-	
+	enchant_spell_aux(Ind, item, num_hit, num_dam, num_ac);
+
 	return (TRUE);
 }
 	
@@ -2136,13 +2799,13 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "Sorry, you cannot enchant that item.");
-		get_item(Ind);
 		return (FALSE);
 	}
 
@@ -2169,10 +2832,6 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 		msg_print(Ind, "The enchantment failed.");
 	}
 
-	p_ptr->current_enchant_h = -1;
-	p_ptr->current_enchant_d = -1;
-	p_ptr->current_enchant_a = -1;
-
 	/* Something happened */
 	return (TRUE);
 }
@@ -2181,13 +2840,12 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 
 bool ident_spell(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
-	p_ptr->current_identify = 1;
+	if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
+	
+	ident_spell_aux(Ind, item);
 
-	get_item(Ind);
-   
 	return TRUE;
 }
 
@@ -2220,11 +2878,12 @@ bool ident_spell_aux(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
 	/* Identify it fully */
-	object_aware(Ind, o_ptr);
+	object_aware(p_ptr, o_ptr);
 	object_known(o_ptr);
 
 	/* Recalculate bonuses */
@@ -2238,6 +2897,29 @@ bool ident_spell_aux(int Ind, int item)
 
 	/* Description */
 	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+
+	/* Possibly play a sound depending on object quality. */
+	if (cursed_p(o_ptr) || broken_p(o_ptr))
+	{
+		/* This is a bad item. */
+		sound(Ind, MSG_IDENT_BAD);
+	}
+	else if (artifact_p(o_ptr))
+	{
+		/* We have a good artifact. */
+		sound(Ind, MSG_IDENT_ART);
+	}
+	else if (ego_item_p(o_ptr))
+	{
+		/* We have a good ego item. */
+		sound(Ind, MSG_IDENT_EGO);
+	}
+
+	/* Notice artifacts */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
 
 	/* Describe */
 	if (item >= INVEN_WIELD)
@@ -2256,8 +2938,6 @@ bool ident_spell_aux(int Ind, int item)
 		           o_name);
 	}
 
-	p_ptr->current_identify = 0;
-
 	/* Something happened */
 	return (TRUE);
 }
@@ -2265,12 +2945,11 @@ bool ident_spell_aux(int Ind, int item)
 
 bool identify_fully(int Ind)
 {
-	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
-	p_ptr->current_star_identify = 1;
+	if (!get_item(Ind, &item, ITEM_ANY)) return FALSE;
 
-	get_item(Ind);
+	identify_fully_item(Ind, item);	
 
 	return TRUE;
 }
@@ -2304,11 +2983,12 @@ bool identify_fully_item(int Ind, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
 	/* Identify it fully */
-	object_aware(Ind, o_ptr);
+	object_aware(p_ptr, o_ptr);
 	object_known(o_ptr);
 
 	/* Mark the item as fully known */
@@ -2322,6 +3002,12 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+
+	/* Handle artifact knowledge */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
 
 	/* Handle stuff */
 	handle_stuff(Ind);
@@ -2348,10 +3034,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	Send_special_other(Ind, o_name);
-
-	/* We no longer have a *identify* in progress */
-	p_ptr->current_star_identify = 0;
+	send_prepared_popup(Ind, o_name);
 
 	/* Success */
 	return (TRUE);
@@ -2378,13 +3061,12 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 
 bool recharge(int Ind, int num)
 {
-	player_type *p_ptr = Players[Ind];
+	int item;
 
-	spell_clear(Ind);
-	p_ptr->current_recharge = num;
-
-	get_item(Ind);
-
+	if (!get_item(Ind, &item, item_test(RECHARGE))) return FALSE;
+	
+	recharge_aux(Ind, item, num);	
+	
 	return TRUE;
 }
 
@@ -2443,12 +3125,12 @@ bool recharge_aux(int Ind, int item, int num)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "You cannot recharge that item.");
-		get_item(Ind);
 		return (FALSE);
 	}
 
@@ -2466,8 +3148,29 @@ bool recharge_aux(int Ind, int item, int num)
 	{
 		msg_print(Ind, "There is a bright flash of light.");
 
-		/* Drain the power */
-		o_ptr->pval = 0;
+		/* Dangerous Hack -- Destroy the item */ 
+		if (!cfg_safe_recharge)
+		{
+			/* Reduce and describe inventory */ 
+			if (item >= 0) 
+			{ 
+				inven_item_increase(Ind, item, -1); 
+				inven_item_describe(Ind, item); 
+				inven_item_optimize(Ind, item); 
+			} 
+			/* Reduce and describe floor item */ 
+			else 
+			{ 
+				floor_item_increase(0 - item, -1); 
+				floor_item_describe(0 - item); 
+				floor_item_optimize(0 - item); 
+			}
+		}
+		else
+		{ 
+			/* Drain the power */
+			o_ptr->pval = 0;
+		}
 
 		/* *Identified* items keep the knowledge about the charges */
 		if (!(o_ptr->ident & ID_MENTAL))
@@ -2501,9 +3204,6 @@ bool recharge_aux(int Ind, int item, int num)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
-	/* We no longer have a recharge in progress */
-	p_ptr->current_recharge = 0;
 
 	/* Something was done */
 	return (TRUE);
@@ -2845,7 +3545,7 @@ bool mass_banishment(int Ind)
 		/* Hack -- visual feedback */
 		/* does not effect the dungeon master, because it disturbs his movement
 		 */
-		if (strcmp(p_ptr->name,cfg_dungeon_master))
+		if (!(p_ptr->dm_flags & DM_INVULNERABLE))
 			take_hit(Ind, randint(3), "the strain of casting Mass Banishment");
 
 		/* Redraw */
@@ -2920,7 +3620,7 @@ bool probing(int Ind)
 		msg_format(Ind, "%^s has %d hit points.", m_name, m_ptr->hp);
 
 		/* Learn all of the non-spell, non-treasure flags */
-		lore_do_probe(i);
+		lore_do_probe(Ind, i);
 
 		/* Probe worked */
 		probe = TRUE;
@@ -3078,6 +3778,110 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
 
 
 /*
+ * Swap the players/monsters (if any) at two locations
+ */
+static void monster_swap(int Depth, int y1, int x1, int y2, int x2)
+{
+	int m1, m2;
+	monster_type *m_ptr;
+	cave_type *c_ptr1, *c_ptr2;
+	player_type *p_ptr;
+
+	/* Access the grids */
+	c_ptr1 = &cave[Depth][y1][x1];
+	c_ptr2 = &cave[Depth][y2][x2];
+
+	/* Monsters */
+	m1 = c_ptr1->m_idx;
+	m2 = c_ptr2->m_idx;
+
+	/* Update grids */
+	c_ptr1->m_idx = m2;
+	c_ptr2->m_idx = m1;
+
+	/* Monster 1 */
+	if (m1 > 0)
+	{
+		m_ptr = &m_list[m1];
+
+		/* Move monster */
+		m_ptr->fy = y2;
+		m_ptr->fx = x2;
+
+		/* Update monster */
+		update_mon(m1, TRUE);
+	}
+
+	/* Player 1 */
+	else if (m1 < 0)
+	{
+		p_ptr = Players[0 - m1];
+
+		/* Move player */
+		p_ptr->py = y2;
+		p_ptr->px = x2;
+
+		/* Update the panel */
+		verify_panel(0 - m1);
+
+		/* Update the visuals (and monster distances) */
+		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);
+
+		/* Update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD);
+	}
+
+	/* Monster 2 */
+	if (m2 > 0)
+	{
+		m_ptr = &m_list[m2];
+
+		/* Move monster */
+		m_ptr->fy = y1;
+		m_ptr->fx = x1;
+
+		/* Update monster */
+		update_mon(m2, TRUE);
+	}
+
+	/* Player 2 */
+	else if (m2 < 0)
+	{
+		p_ptr = Players[0 - m2];
+
+		/* Move player */
+		p_ptr->py = y1;
+		p_ptr->px = x1;
+
+		/* Update the panel */
+		verify_panel(0 - m2);
+
+		/* Update the visuals (and monster distances) */
+		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);
+
+		/* Update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD);
+	}
+
+	/* Redraw */
+	everyone_lite_spot(Depth, y1, x1);
+	everyone_lite_spot(Depth, y2, x2);
+}
+
+
+/*
  * Induce an "earthquake" of the given radius at the given location.
  *
  * This will turn some walls into floors and some floors into walls.
@@ -3089,36 +3893,26 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
  * otherwise they will be "buried" in the rubble, disappearing from
  * the level in the same way that they do when genocided.
  *
- * Note that thus the player and monsters (except eaters of walls and
- * passers through walls) will never occupy the same grid as a wall.
- * Note that as of now (2.7.8) no monster may occupy a "wall" grid, even
- * for a single turn, unless that monster can pass_walls or kill_walls.
- * This has allowed massive simplification of the "monster" code.
+ * Note that players and monsters (except eaters of walls and passers
+ * through walls) will never occupy the same grid as a wall (or door).
  */
 void earthquake(int Depth, int cy, int cx, int r)
 {
-	int		i, t, y, x, yy, xx, dy, dx, oy, ox;
-
-	int		damage = 0;
-
-	int		sn = 0, sy = 0, sx = 0;
-
+	int y, x, yy, xx, dy, dx, i, t, j;
+	bool map[32][32];
+	cave_type *c_ptr;
+	int hurt[MAX_PLAYERS];
+	int count = 0;
 	int Ind;
-
 	player_type *p_ptr;
-
-	/*bool	hurt = FALSE;*/
-
-	cave_type	*c_ptr;
-
-	bool	map[32][32];
-
+	int sn, sy, sx;
+	int damage;
 
 	/* Don't hurt town or surrounding areas */
 	if (Depth <= 0 ? wild_info[Depth].radius <= 2 : 0)
 		return;
 
-	/* Paranoia -- Dnforce maximum range */
+	/* Paranoia -- Enforce maximum range */
 	if (r > 12) r = 12;
 
 	/* Clear the "maximal blast" area */
@@ -3148,6 +3942,13 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Access the grid */
 			c_ptr = &cave[Depth][yy][xx];
 
+			/* Take note of any player */
+			if (c_ptr->m_idx < 0)
+			{
+				hurt[count] = c_ptr->m_idx;
+				count++;
+			}
+
 			/* Hack -- ICKY spaces are protected outside of the dungeon */
 			if ((Depth < 0) && (c_ptr->info & CAVE_ICKY)) continue;
 
@@ -3168,139 +3969,109 @@ void earthquake(int Depth, int cy, int cx, int r)
 			map[16+yy-cy][16+xx-cx] = TRUE;
 
 			/* Hack -- Take note of player damage */
-			if (c_ptr->m_idx < 0)
-			{
-				Ind = 0 - c_ptr->m_idx;
-				p_ptr = Players[Ind];
-
-				/* Check around the player */
-				for (i = 0; i < 8; i++)
-				{
-					/* Access the location */
-					y = p_ptr->py + ddy[i];
-					x = p_ptr->px + ddx[i];
-
-					/* Skip non-empty grids */
-					if (!cave_empty_bold(Depth, y, x)) continue;
-
-					/* Important -- Skip "quake" grids */
-					if (map[16+y-cy][16+x-cx]) continue;
-
-					/* Count "safe" grids */
-					sn++;
-
-					/* Randomize choice */
-					if (rand_int(sn) > 0) continue;
-
-					/* Save the safe location */
-					sy = y; sx = x;
-				}
-
-				/* Random message */
-				switch (randint(3))
-				{
-					case 1:
-					{
-						msg_print(Ind, "The cave ceiling collapses!");
-						break;
-					}
-					case 2:
-					{
-						msg_print(Ind, "The cave floor twists in an unnatural way!");
-						break;
-					}
-					default:
-					{
-						msg_print(Ind, "The cave quakes!  You are pummeled with debris!");
-						break;
-					}
-				}
-
-				/* Hurt the player a lot */
-				if (!sn)
-				{
-					/* Message and damage */
-					msg_print(Ind, "You are severely crushed!");
-					damage = 300;
-				}
-
-				/* Destroy the grid, and push the player to safety */
-				else
-				{
-					/* Calculate results */
-					switch (randint(3))
-					{
-						case 1:
-						{
-							msg_print(Ind, "You nimbly dodge the blast!");
-							damage = 0;
-							break;
-						}
-						case 2:
-						{
-							msg_print(Ind, "You are bashed by rubble!");
-							damage = damroll(10, 4);
-							(void)set_stun(Ind, p_ptr->stun + randint(50));
-							break;
-						}
-						case 3:
-						{
-							msg_print(Ind, "You are crushed between the floor and ceiling!");
-							damage = damroll(10, 4);
-							(void)set_stun(Ind, p_ptr->stun + randint(50));
-							break;
-						}
-					}
-		
-					/* Save the old location */
-					oy = p_ptr->py;
-					ox = p_ptr->px;
-
-					/* Move the player to the safe location */
-					p_ptr->py = sy;
-					p_ptr->px = sx;
-
-					/* Update the cave player indices */
-					cave[Depth][oy][ox].m_idx = 0;
-					cave[Depth][sy][sx].m_idx = 0 - Ind;
-
-					/* Redraw the old spot */
-					everyone_lite_spot(Depth, oy, ox);
-
-					/* Redraw the new spot */
-					everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
-
-					/* Check for new panel */
-					verify_panel(Ind);
-				}
-
-				/* Important -- no wall on player */
-				map[16+p_ptr->py-cy][16+p_ptr->px-cx] = FALSE;
-
-				/* Take some damage */
-				if (damage) take_hit(Ind, damage, "an earthquake");
-
-				/* Mega-Hack -- Forget the view and lite */
-				p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE);
-
-				/* Update stuff */
-				p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
-
-				/* Update the monsters */
-				p_ptr->update |= (PU_DISTANCE);
-
-				/* Update the health bar */
-				p_ptr->redraw |= (PR_HEALTH);
-
-				/* Redraw map */
-				p_ptr->redraw |= (PR_MAP);
-
-				/* Window stuff */
-				p_ptr->window |= (PW_OVERHEAD);
-			}
+			if (c_ptr->m_idx < 0) hurt[count-1] = - hurt[count-1];
 		}
 	}
 
+	/* First, affect the players (if necessary) */
+	for (j = 0; j < count; j++)
+	{
+		Ind = hurt[j];
+
+		/* Skip undamaged players */
+		if (Ind < 0) continue;
+
+		p_ptr = Players[Ind];
+
+		sn = 0; sy = 0; sx = 0; damage = 0;
+
+		/* Check around the player */
+		for (i = 0; i < 8; i++)
+		{
+			/* Get the location */
+			y = p_ptr->py + ddy_ddd[i];
+			x = p_ptr->px + ddx_ddd[i];
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, y, x)) continue;
+
+			/* Skip non-empty grids */
+			if (!cave_empty_bold(Depth, y, x)) continue;
+
+			/* Important -- Skip "quake" grids */
+			if (map[16+y-cy][16+x-cx]) continue;
+
+			/* Count "safe" grids, apply the randomizer */
+			if ((++sn > 1) && (rand_int(sn) != 0)) continue;
+
+			/* Save the safe location */
+			sy = y; sx = x;
+		}
+
+		/* Random message */
+		switch (randint(3))
+		{
+			case 1:
+			{
+				msg_print(Ind, "The cave ceiling collapses!");
+				break;
+			}
+			case 2:
+			{
+				msg_print(Ind, "The cave floor twists in an unnatural way!");
+				break;
+			}
+			default:
+			{
+				msg_print(Ind, "The cave quakes!");
+				msg_print(Ind, "You are pummeled with debris!");
+				break;
+			}
+		}
+
+		/* Hurt the player a lot */
+		if (!sn)
+		{
+			/* Message and damage */
+			msg_print(Ind, "You are severely crushed!");
+			damage = 300;
+		}
+
+		/* Destroy the grid, and push the player to safety */
+		else
+		{
+			/* Calculate results */
+			switch (randint(3))
+			{
+				case 1:
+				{
+					msg_print(Ind, "You nimbly dodge the blast!");
+					damage = 0;
+					break;
+				}
+				case 2:
+				{
+					msg_print(Ind, "You are bashed by rubble!");
+					damage = damroll(10, 4);
+					(void)set_stun(Ind, p_ptr->stun + randint(50));
+					break;
+				}
+				case 3:
+				{
+					msg_print(Ind, "You are crushed between the floor and ceiling!");
+					damage = damroll(10, 4);
+					(void)set_stun(Ind, p_ptr->stun + randint(50));
+					break;
+				}
+			}
+
+			/* Move player */
+			monster_swap(Depth, p_ptr->py, p_ptr->px, sy, sx);
+		}
+
+		/* Take some damage */
+		if (damage) take_hit(Ind, damage, "an earthquake");
+	}
 
 	/* Examine the quaked region */
 	for (dy = -r; dy <= r; dy++)
@@ -3310,6 +4081,9 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Extract the location */
 			yy = cy + dy;
 			xx = cx + dx;
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, yy, xx)) continue;
 
 			/* Skip unaffected grids */
 			if (!map[16+yy-cy][16+xx-cx]) continue;
@@ -3325,8 +4099,10 @@ void earthquake(int Depth, int cy, int cx, int r)
 
 				/* Most monsters cannot co-exist with rock */
 				if (!(r_ptr->flags2 & RF2_KILL_WALL) &&
-				    !(r_ptr->flags2 & RF2_PASS_WALL))
+					!(r_ptr->flags2 & RF2_PASS_WALL))
 				{
+					char m_name[MAX_CHARS];
+
 					/* Assume not safe */
 					sn = 0;
 
@@ -3336,9 +4112,12 @@ void earthquake(int Depth, int cy, int cx, int r)
 						/* Look for safety */
 						for (i = 0; i < 8; i++)
 						{
-							/* Access the grid */
-							y = yy + ddy[i];
-							x = xx + ddx[i];
+							/* Get the grid */
+							y = yy + ddy_ddd[i];
+							x = xx + ddx_ddd[i];
+
+							/* Skip illegal grids */
+							if (!in_bounds(Depth, y, x)) continue;
 
 							/* Skip non-empty grids */
 							if (!cave_empty_bold(Depth, y, x)) continue;
@@ -3349,22 +4128,28 @@ void earthquake(int Depth, int cy, int cx, int r)
 							/* Important -- Skip "quake" grids */
 							if (map[16+y-cy][16+x-cx]) continue;
 
-							/* Count "safe" grids */
-							sn++;
-
-							/* Randomize choice */
-							if (rand_int(sn) > 0) continue;
+							/* Count "safe" grids, apply the randomizer */
+							if ((++sn > 1) && (rand_int(sn) != 0)) continue;
 
 							/* Save the safe grid */
 							sy = y; sx = x;
 						}
 					}
 
-					/* Describe the monster */
-					/*monster_desc(Ind, m_name, c_ptr->m_idx, 0);*/
+					/* Give players a message */
+					for (j = 0; j < count; j++)
+					{
+						/* Get player */
+						Ind = hurt[j];
+						if (Ind < 0) Ind = -Ind;
+						p_ptr = Players[Ind];
 
-					/* Scream in pain */
-					/*msg_format("%^s wails out in pain!", m_name);*/
+						/* Describe the monster */
+						monster_desc(Ind, m_name, c_ptr->m_idx, 0);
+
+						/* Scream in pain */
+						msg_format(Ind, "%^s wails out in pain!", m_name);
+					}
 
 					/* Take damage from the quake */
 					damage = (sn ? damroll(4, 8) : (m_ptr->hp + 1));
@@ -3378,8 +4163,20 @@ void earthquake(int Depth, int cy, int cx, int r)
 					/* Delete (not kill) "dead" monsters */
 					if (m_ptr->hp < 0)
 					{
-						/* Message */
-						/*msg_format("%^s is embedded in the rock!", m_name);*/
+						/* Give players a message */
+						for (j = 0; j < count; j++)
+						{
+							/* Get player */
+							Ind = hurt[j];
+							if (Ind < 0) Ind = -Ind;
+							p_ptr = Players[Ind];
+
+							/* Describe the monster */
+							monster_desc(Ind, m_name, c_ptr->m_idx, 0);
+
+							/* Message */
+							msg_format(Ind, "%^s is embedded in the rock!", m_name);
+						}
 
 						/* Delete the monster */
 						delete_monster(Depth, yy, xx);
@@ -3391,33 +4188,25 @@ void earthquake(int Depth, int cy, int cx, int r)
 					/* Hack -- Escape from the rock */
 					if (sn)
 					{
-						int m_idx = cave[Depth][yy][xx].m_idx;
-
-						/* Update the new location */
-						cave[Depth][sy][sx].m_idx = m_idx;
-
-						/* Update the old location */
-						cave[Depth][yy][xx].m_idx = 0;
-
 						/* Move the monster */
-						m_ptr->fy = sy;
-						m_ptr->fx = sx;
-
-						/* Update the monster (new location) */
-						update_mon(m_idx, TRUE);
-
-						/* Redraw the old grid */
-						everyone_lite_spot(Depth, yy, xx);
-
-						/* Redraw the new grid */
-						everyone_lite_spot(Depth, sy, sx);
+						monster_swap(Depth, yy, xx, sy, sx);
 					}
 				}
 			}
 		}
 	}
 
+	/* Important -- no wall on players */
+	for (j = 0; j < count; j++)
+	{
+		/* Get player */
+		Ind = hurt[j];
+		if (Ind < 0) Ind = -Ind;
+		p_ptr = Players[Ind];
 
+		map[16+p_ptr->py-cy][16+p_ptr->px-cx] = FALSE;
+	}
+	
 	/* Examine the quaked region */
 	for (dy = -r; dy <= r; dy++)
 	{
@@ -3426,6 +4215,9 @@ void earthquake(int Depth, int cy, int cx, int r)
 			/* Extract the location */
 			yy = cy + dy;
 			xx = cx + dx;
+
+			/* Skip illegal grids */
+			if (!in_bounds(Depth, yy, xx)) continue;
 
 			/* Skip unaffected grids */
 			if (!map[16+yy-cy][16+xx-cx]) continue;
@@ -3475,6 +4267,46 @@ void earthquake(int Depth, int cy, int cx, int r)
 					c_ptr->feat = FEAT_FLOOR;
 				}
 			}
+		}
+	}
+
+	for (j = 0; j < count; j++)
+	{
+		/* Get player */
+		Ind = hurt[j];
+		if (Ind < 0) Ind = -Ind;
+		p_ptr = Players[Ind];
+
+		/* Fully update the visuals */
+		p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE | PU_VIEW | PU_LITE | PU_MONSTERS);
+
+		/* Fully update the flow */
+		p_ptr->update |= (PU_FLOW);
+
+		/* Redraw map */
+		p_ptr->redraw |= (PR_MAP);
+
+		/* Update the health bar */
+		p_ptr->redraw |= (PR_HEALTH);
+
+		/* Window stuff */
+		p_ptr->window |= (PW_OVERHEAD | PW_MONSTER);
+	}
+
+	/* Examine the quaked region */
+	for (dy = -r; dy <= r; dy++)
+	{
+		for (dx = -r; dx <= r; dx++)
+		{
+			/* Extract the location */
+			yy = cy + dy;
+			xx = cx + dx;
+
+			/* Skip unaffected grids */
+			if (!map[16+yy-cy][16+xx-cx]) continue;
+
+			/* Redraw any effected grids */
+			everyone_lite_spot(Depth,yy,xx);
 		}
 	}
 }
@@ -3809,7 +4641,8 @@ bool fire_ball(int Ind, int typ, int dir, int dam, int rad)
 
 	int flg = PROJECT_STOP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
 
-  if (dir < 0 || dir > 10) return FALSE;
+	/* Ensure "dir" is in ddx/ddy array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Use the given direction */
 	tx = p_ptr->px + 99 * ddx[dir];
@@ -3845,7 +4678,8 @@ bool fire_swarm(int Ind, int num, int typ, int dir, int dam, int rad)
 
 	int flg = PROJECT_STOP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
 
-  if (dir < 0 || dir > 10) return FALSE;
+	/* Hack -- ensure "dir" is in ddy/ddx array bounds */
+	if (!VALID_DIR(dir)) dir = 5;
 
 	/* Use the given direction */
 	ty = py + 99 * ddy[dir];
@@ -3880,8 +4714,6 @@ bool project_hook(int Ind, int typ, int dir, int dam, int flg)
 
 	/* Pass through the target if needed */
 	flg |= (PROJECT_THRU);
-
-  if (dir < 0 || dir > 10) return FALSE;
 
 	/* Use the given direction */
 	tx = p_ptr->px + ddx[dir];
@@ -4027,19 +4859,17 @@ bool poly_monster(int Ind, int dir)
 
 bool clone_monster(int Ind, int dir)
 {
-	int num, i;
 	player_type *p_ptr = Players[Ind];
 
-	/* Never in the town */
-	if(!p_ptr->dun_depth) return(FALSE);
-	
 	/* Restricted in MAngband. This behaviour is not in vanilla Angband, in vanilla however,
 	 * cloning 100 Great Hell Wyrms effects only the cloner. In MAngband this effects all 
 	 * players and the whole game economy as the game is flooded with great items */
 	if(p_ptr->lev >= 10)
 	{
-		msg_print(Ind, "The wand crackles loudly. Nothing else happens.");
-		return(TRUE);
+		/* Standard clone effect, less the actual cloning */
+		int flg = PROJECT_STOP | PROJECT_KILL;
+		msg_print(Ind, "You hear a loud crackling sound.");
+		return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
 	}
 	else
 	{
@@ -4058,52 +4888,86 @@ bool fear_monster(int Ind, int dir, int plev)
 bool teleport_monster(int Ind, int dir)
 {
 	int flg = PROJECT_BEAM | PROJECT_KILL;
+
+	/* Sound */
+	sound(Ind, MSG_TPOTHER);
+
 	return (project_hook(Ind, GF_AWAY_ALL, dir, MAX_SIGHT * 5, flg));
 }
 
-bool cure_light_wounds_proj(int Ind, int dir)
+bool alter_reality(int Ind, bool power)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Which dungeon level are we changing? */
+	int Depth = p_ptr->dun_depth, i;
+
+	/* Don't allow this in towns or the wilderness */
+	if( (Depth <= 0) || (check_special_level(Depth) && !power) )
+		return (FALSE);
+
+	/* Test players on this depth */
+	if (!power)
+	{
+		for (i = 1; i < NumPlayers + 1; i++)
+		{
+			player_type *q_ptr = Players[i];
+
+			if ((q_ptr->dun_depth == Depth) && (i != Ind))
+			{
+				if (p_ptr->party && p_ptr->party == q_ptr->party) continue;
+
+				/* Saving throw: perception (harder if hostile) */
+				if (rand_int(127) < q_ptr->skill_fos * (pvp_okay(Ind, i, 0) ? 6 : 4))
+				{
+					msg_format(Ind, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
+					msg_format(i, "You resist %s's attempt to alter reality.", (q_ptr->play_los[Ind] ? p_ptr->name : "someone") );
+					return (FALSE);
+				}
+			}
+		}
+	}
+
+	/* Search for players on this depth */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		player_type *q_ptr = Players[i];
+
+		/* Only players on this depth */ 
+		if(q_ptr->dun_depth == Depth)
+		{
+			/* Tell the player about it */
+			msg_print(i, "The world changes!");
+			q_ptr->new_level_flag = TRUE;
+			q_ptr->new_level_method = LEVEL_RAND;
+		}
+	}
+
+	/* Deallocate the level */
+	dealloc_dungeon_level(Depth);
+	cave[Depth] = 0;
+
+	/* Reality altered */	
+	return (TRUE);
+}
+
+bool heal_player_ball(int Ind, int dir, int dam)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(2, 10), flg));
+	return (project_hook(Ind, GF_HEAL_PLAYER, dir, dam, flg));
 }
 
-bool cure_serious_wounds_proj(int Ind, int dir)
+bool project_prayer_ball(int Ind, int dir, int spell)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(4, 10), flg));
+	return (project_hook(Ind, GF_PROJECT_PRAYER, dir, spell, flg));
 }
 
-bool cure_critical_wounds_proj(int Ind, int dir)
+bool project_spell_ball(int Ind, int dir, int spell)
 {
 	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(6, 10), flg));
+	return (project_hook(Ind, GF_PROJECT_SPELL, dir, spell, flg));
 }
-
-bool cure_mortal_wounds_proj(int Ind, int dir)
-{
-    int flg = PROJECT_STOP | PROJECT_KILL;
-    return (project_hook(Ind, GF_HEAL_PLAYER, dir, damroll(8, 10), flg));
-}
-
-bool heal_other_lite_proj(int Ind, int dir)
-{
-    int flg = PROJECT_STOP | PROJECT_KILL;
-    return (project_hook(Ind, GF_HEAL_PLAYER, dir, 100, flg));
-}
-
-bool heal_other_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, 300, flg));
-}
-
-bool heal_other_heavy_proj(int Ind, int dir)
-{
-	int flg = PROJECT_STOP | PROJECT_KILL;
-	return (project_hook(Ind, GF_HEAL_PLAYER, dir, 2000, flg));
-}
-
-
 
 /*
  * Hooks -- affect adjacent grids (radius 1 ball attack)
@@ -4114,7 +4978,7 @@ bool door_creation(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
-	if(p_ptr->dun_depth == 0 ) { return 0;};
+	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_DOOR, flg));
 }
 
@@ -4123,7 +4987,7 @@ bool trap_creation(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
-	if(p_ptr->dun_depth == 0 ) { return 0;};
+	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_TRAP, flg));
 }
 
@@ -4141,4 +5005,119 @@ bool sleep_monsters_touch(int Ind)
 
 	int flg = PROJECT_KILL | PROJECT_HIDE;
 	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->lev, GF_OLD_SLEEP, flg));
+}
+
+/*
+ * Enchant some bolts
+ */
+bool brand_bolts(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+
+	/* Use the first (XXX) acceptable bolts */
+	for (i = 0; i < INVEN_PACK; i++)
+	{
+		object_type *o_ptr = &p_ptr->inventory[i];
+
+		/* Skip non-bolts */
+		if (o_ptr->tval != TV_BOLT) continue;
+
+		/* Skip artifacts and ego-items */
+		if (artifact_p(o_ptr) || ego_item_p(o_ptr)) continue;
+
+		/* Skip cursed/broken items */
+		if (cursed_p(o_ptr) || broken_p(o_ptr)) continue;
+
+		/* Randomize */
+		if (rand_int(100) < 75) continue;
+
+		/* Message */
+		msg_print(Ind, "Your bolts are covered in a fiery aura!");
+
+		/* Ego-item */
+		o_ptr->name2 = EGO_FLAME;
+
+		/* Enchant */
+		enchant(Ind, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+		/* Notice */
+		return (TRUE);
+	}
+
+	/* Flush */
+	/*if (flush_failure) flush();*/
+
+	/* Fail */
+	msg_print(Ind, "The fiery enchantment failed.");
+
+	/* Notice */
+	return (TRUE);
+}
+
+
+/*
+ * Hack -- activate the ring of power
+ */
+void ring_of_power(int Ind, int dir)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Pick a random effect */
+	switch (randint(10))
+	{
+		case 1:
+		case 2:
+		{
+			/* Message */
+			msg_print(Ind, "You are surrounded by a malignant aura.");
+
+			/* Decrease all stats (permanently) */
+			(void)dec_stat(Ind, A_STR, 50, TRUE);
+			(void)dec_stat(Ind, A_INT, 50, TRUE);
+			(void)dec_stat(Ind, A_WIS, 50, TRUE);
+			(void)dec_stat(Ind, A_DEX, 50, TRUE);
+			(void)dec_stat(Ind, A_CON, 50, TRUE);
+			(void)dec_stat(Ind, A_CHR, 50, TRUE);
+
+			/* Lose some experience (permanently) */
+			p_ptr->exp -= (p_ptr->exp / 4);
+			p_ptr->max_exp -= (p_ptr->exp / 4);
+			check_experience(Ind);
+
+			break;
+		}
+
+		case 3:
+		{
+			/* Message */
+			msg_print(Ind, "You are surrounded by a powerful aura.");
+
+			/* Dispel monsters */
+			dispel_monsters(Ind, 1000);
+
+			break;
+		}
+
+		case 4:
+		case 5:
+		case 6:
+		{
+			/* Mana Ball */
+			fire_ball(Ind, GF_MANA, dir, 300, 3);
+
+			break;
+		}
+
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		{
+			/* Mana Bolt */
+			fire_bolt(Ind, GF_MANA, dir, 250);
+
+			break;
+		}
+	}
 }

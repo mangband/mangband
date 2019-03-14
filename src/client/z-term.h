@@ -1,5 +1,13 @@
 /* File: z-term.h */
 
+/*
+ * Copyright (c) 1997 Ben Harrison
+ *
+ * This software may be copied and distributed for educational, research,
+ * and not for profit purposes provided that this copyright and statement
+ * are included in all such copies.
+ */
+
 #ifndef INCLUDED_Z_TERM_H
 #define INCLUDED_Z_TERM_H
 
@@ -19,6 +27,9 @@
  *	- Array[h*w] -- Attribute array
  *	- Array[h*w] -- Character array
  *
+ *	- next screen saved
+ *	- hook to be called on screen size change
+ *
  * Note that the attr/char pair at (x,y) is a[y][x]/c[y][x]
  * and that the row of attr/chars at (0,y) is a[y]/c[y]
  */
@@ -29,7 +40,7 @@ struct term_win
 {
 	bool cu, cv;
 	byte cx, cy;
-	
+
 	bool bcv;
 	byte bcx, bcy;
 
@@ -38,16 +49,74 @@ struct term_win
 
 	byte *va;
 	char *vc;
+
+	byte **ta;
+	char **tc;
+
+	byte *vta;
+	char *vtc;
+
+	term_win *next;
 };
 
+
+/*
+ * Event record for general input
+ * Note that there are currently no event subtypes.
+ */
+
+typedef enum 
+{
+	EVT_NONE		= 0x0,
+	EVT_ESCAPE		= 0x0001,		/* Synonym for KBRD + key = ESCAPE */
+	EVT_KBRD		= 0x0002,		/* keypress */
+	EVT_MOUSE		= 0x0004,		/* mousepress */
+	EVT_BACK		= 0x0008,		/* Up one level in heirarchical menus. */
+	EVT_MOVE		= 0x0010,		/* menu movement */
+	EVT_SELECT		= 0x0020,		/* Menu selection */
+	EVT_BUTTON		= 0x0040,		/* button press */
+	EVT_CMD			= 0x0080,		/* Command key execute */
+	EVT_OK			= 0x0100,		/* Callback successful */
+									/* For example, a command key action. */
+	EVT_REFRESH		= 0x0200,		/* Display refresh */
+	EVT_RESIZE		= 0x0400,		/* Display resize */
+
+	EVT_AGAIN		= 0x4000000,	/* Retry notification */
+	EVT_STOP		= 0x8000000		/* Loop stopped (never handled) */
+
+} event_class;
+
+#ifdef RISCOS
+#define event_type ang_event_type
+#endif
+
+typedef struct event_type event_type;
+
+struct event_type
+{
+	event_class type;
+	byte mousex, mousey;
+	char key; 
+	short index;
+};
+
+#define EVENT_EMPTY		{ EVT_NONE, 0, 0, 0, 0 }
 
 
 /*
  * An actual "term" structure
  *
- *	- Extra info (used by application)
+ *	- Extra "user" info (used by application)
  *
- *	- Extra data (used by implementation)
+ *	- Extra "data" info (used by implementation)
+ *
+ *
+ *	- Flag "user_flag"
+ *	  An extra "user" flag (used by application)
+ *
+ *
+ *	- Flag "data_flag"
+ *	  An extra "data" flag (used by implementation)
  *
  *
  *	- Flag "active_flag"
@@ -58,6 +127,9 @@ struct term_win
  *
  *	- Flag "total_erase"
  *	  This "term" should be fully erased
+ *
+ *	- Flag "fixed_shape"
+ *	  This "term" is not allowed to resize
  *
  *	- Flag "icky_corner"
  *	  This "term" has an "icky" corner grid
@@ -73,6 +145,9 @@ struct term_win
  *
  *	- Flag "always_text"
  *	  Use the "Term_text()" routine for invisible text
+ *
+ *	- Flag "unused_flag"
+ *	  Reserved for future use
  *
  *	- Flag "never_bored"
  *	  Never call the "TERM_XTRA_BORED" action
@@ -123,34 +198,40 @@ struct term_win
  *
  *	- Hook for drawing some blank spaces
  *
- *	- Hook for drawing a special character
+ *	- Hook for drawing a string of chars using an attr
  *
- *	- Hook for drawing a string of characters
+ *	- Hook for drawing a sequence of special attr/char pairs
  */
 
 typedef struct term term;
 
 struct term
 {
-	vptr user;
+	void *user;
 
-	vptr data;
+	void *data;
+
+	bool user_flag;
+
+	bool data_flag;
 
 	bool active_flag;
 	bool mapped_flag;
 	bool total_erase;
+	bool fixed_shape;
 	bool icky_corner;
 	bool soft_cursor;
 	bool always_pict;
 	bool higher_pict;
 	bool always_text;
+	bool unused_flag;
 	bool never_bored;
 	bool never_frosh;
 
 	byte attr_blank;
 	char char_blank;
 
-	char *key_queue;
+	event_type *key_queue;
 
 	u16b key_head;
 	u16b key_tail;
@@ -165,6 +246,10 @@ struct term
 
 	byte *x1;
 	byte *x2;
+
+	/* Offsets used by the map subwindows */
+	byte offset_x;
+	byte offset_y;
 
 	term_win *old;
 	term_win *scr;
@@ -181,11 +266,13 @@ struct term
 
 	errr (*curs_hook)(int x, int y);
 
+	errr (*bigcurs_hook)(int x, int y);
+
 	errr (*wipe_hook)(int x, int y, int n);
 
-	errr (*pict_hook)(int x, int y, byte a, char c);
-
 	errr (*text_hook)(int x, int y, int n, byte a, cptr s);
+
+	errr (*pict_hook)(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp);
 };
 
 
@@ -229,6 +316,37 @@ struct term
 #define TERM_XTRA_DELAY 13	/* Delay some milliseconds (optional) */
 
 
+/*
+ * Angband "attributes" (with symbols, and base (R,G,B) codes)
+ *
+ * The "(R,G,B)" codes are given in "fourths" of the "maximal" value,
+ * and should "gamma corrected" on most (non-Macintosh) machines.
+ */
+#define TERM_DARK       0   /* 'd' */   /* 0,0,0 */
+#define TERM_WHITE      1   /* 'w' */   /* 4,4,4 */
+#define TERM_SLATE      2   /* 's' */   /* 2,2,2 */
+#define TERM_ORANGE     3   /* 'o' */   /* 4,2,0 */
+#define TERM_RED        4   /* 'r' */   /* 3,0,0 */
+#define TERM_GREEN      5   /* 'g' */   /* 0,2,1 */
+#define TERM_BLUE       6   /* 'b' */   /* 0,0,4 */
+#define TERM_UMBER      7   /* 'u' */   /* 2,1,0 */
+#define TERM_L_DARK     8   /* 'D' */   /* 1,1,1 */
+#define TERM_L_WHITE    9   /* 'W' */   /* 3,3,3 */
+#define TERM_VIOLET     10  /* 'v' */   /* 4,0,4 */
+#define TERM_YELLOW     11  /* 'y' */   /* 4,4,0 */
+#define TERM_L_RED      12  /* 'R' */   /* 4,0,0 */
+#define TERM_L_GREEN    13  /* 'G' */   /* 0,4,0 */
+#define TERM_L_BLUE     14  /* 'B' */   /* 0,4,4 */
+#define TERM_L_UMBER    15  /* 'U' */   /* 3,2,1 */
+
+/*
+ * Maximum number of colours, and number of "basic" Angband colours
+ */ 
+#define MAX_COLORS		256
+#define BASIC_COLORS	16
+
+
+
 /**** Available Variables ****/
 
 extern term *Term;
@@ -239,11 +357,15 @@ extern term *Term;
 extern errr Term_user(int n);
 extern errr Term_xtra(int n, int v);
 
+extern void Term_queue_char(term *t, int x, int y, byte a, char c, byte ta, char tc);
+extern void Term_queue_chars(int x, int y, int n, byte a, cptr s);
+
 extern errr Term_fresh(void);
-extern errr Term_set_cursor(int v);
+extern errr Term_set_cursor(bool v);
 extern errr Term_gotoxy(int x, int y);
 extern errr Term_consolidate_cursor(bool on, int x, int y);
 extern errr Term_draw(int x, int y, byte a, char c);
+extern errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc);
 extern errr Term_addch(byte a, char c);
 extern errr Term_addstr(int n, byte a, cptr s);
 extern errr Term_putch(int x, int y, byte a, char c);
@@ -251,16 +373,19 @@ extern errr Term_putstr(int x, int y, int n, byte a, cptr s);
 extern errr Term_erase(int x, int y, int n);
 extern errr Term_clear(void);
 extern errr Term_redraw(void);
+extern errr Term_redraw_section(int x1, int y1, int x2, int y2);
 
-extern errr Term_get_cursor(int *v);
+extern errr Term_get_cursor(bool *v);
 extern errr Term_get_size(int *w, int *h);
 extern errr Term_locate(int *x, int *y);
 extern errr Term_what(int x, int y, byte *a, char *c);
 
 extern errr Term_flush(void);
+extern errr Term_mousepress(int x, int y, char button);
 extern errr Term_keypress(int k);
 extern errr Term_key_push(int k);
-extern errr Term_inkey(char *ch, bool wait, bool take);
+extern errr Term_event_push(const event_type *ke);
+extern errr Term_inkey(event_type *ch, bool wait, bool take);
 
 extern errr Term_save(void);
 extern errr Term_load(void);

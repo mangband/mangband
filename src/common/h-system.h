@@ -27,6 +27,12 @@
 # include <stdlib.h>
 #endif
 
+#ifdef WINDOWS
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include "windows.h"
+#endif
 
 #ifdef SET_UID
 
@@ -44,6 +50,9 @@
 
 #include <time.h>
 
+#ifdef HAVE_DIRENT_H
+# include <dirent.h>
+#endif
 
 
 #ifdef MACINTOSH
@@ -52,7 +61,6 @@
 
 #if defined(WINDOWS) || defined(MSDOS) || defined(USE_EMX)
 # include <io.h>
-#define strncasecmp strnicmp
 # ifndef WIN32
 #  include <pwd.h>
 #  include <unistd.h>
@@ -104,9 +112,11 @@
 #  include <string.h>
 # else
 #  include <strings.h>
+/*
 extern char *strstr();
 extern char *strchr();
 extern char *strrchr();
+*/
 # endif
 
 #else

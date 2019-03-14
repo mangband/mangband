@@ -13,7 +13,7 @@
  * included in all such copies.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 /* How much power is assigned to randarts */
 #define RANDART_QUALITY	40

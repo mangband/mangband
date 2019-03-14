@@ -8,7 +8,7 @@
  * are included in all such copies.  Other copyrights may also apply.
  */
 
-#include "angband.h"
+#include "mangband.h"
 
 /* 
  * This part came from angband's use-obj.c
@@ -67,8 +67,63 @@ static cptr act_description[ACT_MAX] =
 	"berserk rage (50+d50 turns)"
 };
 
+/* MAngband specific. Math sourced from cmd6.c. 
+ * Give the player an idea of their odds of successfully activating 
+ * a wand, staff, rod, or item. - Avenger */
+void describe_activation_chance(const object_type *o_ptr)
+{
+	int	chance, lev;
+	player_type *p_ptr = Players[player_textout];
+	u32b f1, f2, f3;
 
+	/* Extract the flags */
+	object_flags(o_ptr, &f1, &f2, &f3);
 
+	/* Verify that this is a magic device or other item than can be activated */
+	if (o_ptr->tval == TV_STAFF || o_ptr->tval == TV_WAND || o_ptr->tval == TV_ROD || (f3 & TR3_ACTIVATE))
+	{
+		/* Base chance of success */
+		chance = p_ptr->skill_dev;
+
+		/* Extract the item level */
+		lev = k_info[o_ptr->k_idx].level;
+
+		/* Confusion hurts skill */
+		if (p_ptr->confused) chance = chance / 2;
+
+		/* High level objects are harder */
+		chance = chance - ((lev > 50) ? 50 : lev);
+
+		/* Set the descriptive mask.
+		 *
+		 * Because activation failure has a constant minimum threshhold regardless of the value
+		 * of chance, this is not a strict percentage. Instead, I use a Fibonacci sequence to 
+		 * sort the masks into approximate tiers. */
+		if (chance < 1) /* Caps at 5% when chance is 0, approaches zero very quickly as chance drops below 0 */
+			text_out("\n\n   You have almost no chance to successfully use this item.");
+		else if (chance < USE_DEVICE) /* ~6 to 8% */
+			text_out("\n\n   You have a negligible chance to successfully use this item.");
+		else if (chance == USE_DEVICE) /* 25% */
+			text_out("\n\n   You have a very low chance to successfully use this item.");
+		else if (chance < 5) /* 40% */
+			text_out("\n\n   You have a low chance to successfully use this item.");
+		else if (chance < 8) /* 50 - 62.5% */
+			text_out("\n\n   You have a moderate chance to successfully use this item.");
+		else if (chance < 13) /* ~67 - 70% */
+			text_out("\n\n   You have a fair chance to successfully use this item.");
+		else if (chance < 21) /* ~78 - 85% */
+			text_out("\n\n   You have a good chance to successfully use this item.");
+		else if (chance < 34) /* ~86 - 91% */
+			text_out("\n\n   You have an very good chance to successfully use this item.");
+		else if (chance < 55) /* ~91 - 94% */
+			text_out("\n\n   You have an excellent chance to successfully use this item.");
+		else if (chance < 89) /* ~95 - 96% */
+			text_out("\n\n   You have a superb chance to successfully use this item.");
+		else /* > 96.667% */
+			text_out("\n\n   You have an almost certain chance to successfully use this item.");
+	}
+	return;
+}
 /*
  * Determine the "Activation" (if any) for an artifact
  */
@@ -753,7 +808,7 @@ static bool describe_misc_magic(const object_type *o_ptr, u32b f3)
 	{
 		if (f3 & (TR3_PERMA_CURSE)) bad[bc++] = "is permanently cursed";
 		else if (f3 & (TR3_HEAVY_CURSE)) bad[bc++] = "is heavily cursed";
-		else if (object_known_p(player_textout, o_ptr)) bad[bc++] = "is cursed";
+		else if (object_known_p(Players[player_textout], o_ptr)) bad[bc++] = "is cursed";
 	}
 
 	/* Describe */
@@ -827,7 +882,7 @@ bool object_info_out(const object_type *o_ptr)
 	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3);
 	
 	/* Hack -- set bonus flags */
-	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(player_textout, o_ptr) )
+	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(Players[player_textout], o_ptr) )
 		fH = k_ptr->flags1;
 	/* Hack -- clear out any pval bonuses that are in the base item */
 	if (o_ptr->name2)
@@ -846,7 +901,7 @@ bool object_info_out(const object_type *o_ptr)
 	if (describe_ignores(o_ptr, f3)) something = TRUE;
 
 	/* Unknown extra powers (ego-item with random extras or artifact) */
-	if (object_known_p(player_textout, o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
+	if (object_known_p(Players[player_textout], o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
 	    ((o_ptr->xtra1) || artifact_p(o_ptr)))
 	{
 		/* Hack -- Put this in a separate paragraph if screen dump */
@@ -869,8 +924,9 @@ bool object_info_out(const object_type *o_ptr)
  */
 static bool screen_out_head(const object_type *o_ptr)
 {
+	player_type *p_ptr = Players[player_textout];
 	//char *o_name;
-	int name_size = 80;//Term->wid;
+	//int name_size = 80;//Term->wid;
 	bool has_description = FALSE;
 
 	/* Allocate memory to the size of the screen */
@@ -890,7 +946,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	/* Display the known artifact description */
 	//!adult_rand_artifacts
 	if (o_ptr->name1 &&
-	    object_known_p(player_textout, o_ptr) && a_info[o_ptr->name1].text)
+	    object_known_p(Players[player_textout], o_ptr) && a_info[o_ptr->name1].text)
 	{
 		p_text_out("\n\n   ");
 		p_text_out(a_text + a_info[o_ptr->name1].text);
@@ -898,7 +954,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	}
 
 	/* Display the known object description */
-	else if (object_aware_p(player_textout, o_ptr) || object_known_p(player_textout, o_ptr))
+	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(Players[player_textout], o_ptr))
 	{
 		if (k_info[o_ptr->k_idx].text)
 		{
@@ -908,15 +964,14 @@ static bool screen_out_head(const object_type *o_ptr)
 		}
 
 		/* Display an additional ego-item description */
-		if (o_ptr->name2 && object_known_p(player_textout, o_ptr) && e_info[o_ptr->name2].text)
+		if (o_ptr->name2 && object_known_p(Players[player_textout], o_ptr) && e_info[o_ptr->name2].text)
 		{
 			p_text_out("\n\n   ");
 			p_text_out(e_text + e_info[o_ptr->name2].text);
 			has_description = TRUE;
 		}
 	}
-
-	return (has_description);
+	return has_description;
 }
 
 
@@ -942,10 +997,12 @@ void object_info_screen(const object_type *o_ptr)
 	has_info = object_info_out(o_ptr);
 	new_paragraph = FALSE;
 
-	if (!object_known_p(player_textout, o_ptr))
+	if (!object_known_p(Players[player_textout], o_ptr))
 		p_text_out("\n\n   This item has not been identified.");
 	else if (!has_description && !has_info)
 		p_text_out("\n\n   This item does not seem to possess any special abilities.");
+	else
+		describe_activation_chance(o_ptr);
 		
 	//text_out_c(TERM_L_BLUE, "\n\n[Press any key to continue]\n");
 

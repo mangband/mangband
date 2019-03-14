@@ -9,6 +9,16 @@
  * This file simply includes other low level header files.
  */
 
+/* System Configuration (autocollected) */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#else
+#if !defined(_MSC_VER)
+//#pragma message( "warning: Your build lacks 'src/config.h', reverting to crazy defaults" ) /* portable but stupid */
+#warning "Your build lacks 'src/config.h', reverting to crazy defaults" /* good but not portable */
+#endif
+#endif
+
 /* System Configuration */
 #include "../h-config.h"
 

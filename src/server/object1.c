@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /*
@@ -42,7 +40,7 @@
 /*
  * Rings (adjectives and colors)
  */
-
+#if 0
 static cptr ring_adj[MAX_ROCKS] =
 {
 	"Alexandrite", "Amethyst", "Aquamarine", "Azurite", "Beryl",
@@ -55,7 +53,7 @@ static cptr ring_adj[MAX_ROCKS] =
 	"Obsidian", "Silver", "Tortoise Shell", "Mithril", "Jet",
 	"Engagement", "Adamantite"
 };
-
+#endif
 static byte ring_col[MAX_ROCKS] =
 {
 	TERM_GREEN, TERM_VIOLET, TERM_L_BLUE, TERM_L_BLUE, TERM_L_GREEN,
@@ -73,7 +71,7 @@ static byte ring_col[MAX_ROCKS] =
 /*
  * Amulets (adjectives and colors)
  */
-
+#if 0
 static cptr amulet_adj[MAX_AMULETS] =
 {
 	"Amber", "Driftwood", "Coral", "Agate", "Ivory",
@@ -83,7 +81,7 @@ static cptr amulet_adj[MAX_AMULETS] =
     "Sapphire", "Dragon Tooth", "Sea Shell", "Flint Stone",
     "Platinum", "Glass"
 };
-
+#endif
 static byte amulet_col[MAX_AMULETS] =
 {
 	TERM_YELLOW, TERM_L_UMBER, TERM_WHITE, TERM_L_WHITE, TERM_WHITE,
@@ -98,7 +96,7 @@ static byte amulet_col[MAX_AMULETS] =
 /*
  * Staffs (adjectives and colors)
  */
-
+#if 0
 static cptr staff_adj[MAX_WOODS] =
 {
 	"Aspen", "Balsa", "Banyan", "Birch", "Cedar",
@@ -109,7 +107,7 @@ static cptr staff_adj[MAX_WOODS] =
 	"Mistletoe", "Hawthorn", "Bamboo", "Silver", "Runed",
 	"Golden", "Ashen"/*,"Gnarled","Ivory","Willow"*/
 };
-
+#endif
 static byte staff_col[MAX_WOODS] =
 {
 	TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER, TERM_L_UMBER,
@@ -125,7 +123,7 @@ static byte staff_col[MAX_WOODS] =
 /*
  * Wands (adjectives and colors)
  */
-
+#if 0
 static cptr wand_adj[MAX_METALS] =
 {
     "Aluminium", "Cast Iron", "Chromium", "Copper", "Gold",
@@ -136,7 +134,7 @@ static cptr wand_adj[MAX_METALS] =
 	"Mithril-Plated", "Mithril", "Runed", "Bronze", "Brass",
 	"Platinum", "Lead"/*,"Lead-Plated","Ivory","Pewter"*/
 };
-
+#endif
 static byte wand_col[MAX_METALS] =
 {
 	TERM_L_BLUE, TERM_L_DARK, TERM_WHITE, TERM_L_UMBER, TERM_YELLOW,
@@ -153,16 +151,16 @@ static byte wand_col[MAX_METALS] =
  * Rods (adjectives and colors).
  * Efficiency -- copied from wand arrays
  */
-
+#if 0
 static cptr rod_adj[MAX_METALS];
-
+#endif
 static byte rod_col[MAX_METALS];
 
 
 /*
  * Mushrooms (adjectives and colors)
  */
-
+#if 0
 static cptr food_adj[MAX_SHROOM] =
 {
 	"Blue", "Black", "Black Spotted", "Brown", "Dark Blue",
@@ -170,7 +168,7 @@ static cptr food_adj[MAX_SHROOM] =
 	"Grey", "Light Blue", "Light Green", "Violet", "Red",
 	"Slimy", "Tan", "White", "White Spotted", "Wrinkled",
 };
-
+#endif
 static byte food_col[MAX_SHROOM] =
 {
 	TERM_BLUE, TERM_L_DARK, TERM_L_DARK, TERM_UMBER, TERM_BLUE,
@@ -185,7 +183,7 @@ static byte food_col[MAX_SHROOM] =
  * Hack -- The first four entries are hard-coded.
  * (water, apple juice, slime mold juice, something)
  */
-
+#if 0
 static cptr potion_adj[MAX_COLORS] =
 {
 	"Clear", "Light Brown", "Icky Green", "xxx",
@@ -201,7 +199,7 @@ static cptr potion_adj[MAX_COLORS] =
 	"Pungent", "Clotted Red", "Viscous Pink", "Oily Yellow", "Gloopy Green",
 	"Shimmering", "Coagulated Crimson", "Yellow Speckled", "Gold"
 };
-
+#endif
 static byte potion_col[MAX_COLORS] =
 {
 	TERM_WHITE, TERM_L_UMBER, TERM_GREEN, 0,
@@ -261,7 +259,7 @@ static byte scroll_col[MAX_TITLES];
 
 
 
-
+#if 0
 /*
  * Certain items have a flavor
  * This function is used only by "flavor_init()"
@@ -296,7 +294,7 @@ static bool object_has_flavor(int i)
 	/* Assume no flavor */
 	return (FALSE);
 }
-
+#endif
 
 /* HACK! 
  * Hard-code items for EASY_KNOW flag emulation
@@ -326,7 +324,7 @@ bool easy_know_p(object_type *o_ptr)
 	/* Nope */ 
 	return (FALSE);
 }
-
+#if 0
 /*
  * Certain items, if aware, are known instantly
  * This function is used only by "flavor_init()"
@@ -379,7 +377,7 @@ static bool object_easy_know(int i)
 	/* Nope */
 	return (FALSE);
 }
-
+#endif
 
 /*
  * Hack -- prepare the default object attr codes by tval
@@ -523,7 +521,7 @@ static byte default_tval_to_char(int tval)
 	int i;
 
 	/* Hack -- Guess at "correct" values for tval_to_char[] */
-	for (i = 1; i < MAX_K_IDX; i++)
+	for (i = 1; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
 
@@ -623,6 +621,21 @@ static void flavor_assign_random(byte tval)
 	}
 }
 
+/* Copy object flavor into string */
+void flavor_copy(char *buf, u16b flavor, object_type *o_ptr)
+{
+	buf[0] = '\0';
+	if (o_ptr->tval == TV_SCROLL)
+	{
+		strcat(buf, "\"");
+		strcat(buf, scroll_adj[o_ptr->sval]);
+		strcat(buf, "\"");
+	}
+	else
+	{
+		strcpy(buf, flavor_text + flavor_info[flavor].text);
+	}
+}
 
 /*
  * Prepare the "variable" part of the "k_info" array.
@@ -826,17 +839,17 @@ void reset_visuals(void)
 	int i;
 
 	/* Extract some info about terrain features */
-	for (i = 0; i < MAX_F_IDX; i++)
+	for (i = 0; i < z_info->f_max; i++)
 	{
 		feature_type *f_ptr = &f_info[i];
 
 		/* Assume we will use the underlying values */
-		f_ptr->z_attr = f_ptr->f_attr;
-		f_ptr->z_char = f_ptr->f_char;
+		f_ptr->x_attr = f_ptr->d_attr;
+		f_ptr->x_char = f_ptr->d_char;
 	}
 
 	/* Extract some info about objects */
-	for (i = 0; i < MAX_K_IDX; i++)
+	for (i = 0; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
 
@@ -852,7 +865,7 @@ void reset_visuals(void)
 	}
 
 	/* Extract some info about monsters */
-	for (i = 0; i < MAX_R_IDX; i++)
+	for (i = 0; i < z_info->r_max; i++)
 	{
 		/* Extract the "underlying" attr */
 		r_info[i].x_attr = r_info[i].d_attr;
@@ -894,7 +907,7 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 		(*f1) = (*f2) = (*f3) = 0L;
 
 		/* Must be identified */
-		if (!object_known_p(Ind, o_ptr)) return;
+		if (!object_known_p(Players[Ind], o_ptr)) return;
 	}
 
 	if (mode != OBJECT_FLAGS_RANDOM)
@@ -1025,16 +1038,17 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 /*
  * Obtain "flags" known to player
  */
-void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
+	player_type *p_ptr = Players[Ind];
 	bool aware, known;
 	
 	aware = known = FALSE;	
 	/* See if the object is "aware" */
-	if (object_aware_p(Ind, o_ptr)) aware = TRUE;
+	if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
 
 	/* See if the object is "known" */
-	if (object_known_p(Ind, o_ptr)) known = TRUE;
+	if (object_known_p(Players[Ind], o_ptr)) known = TRUE;
 	
 	/* See if 'un'aware OR 'un'known */
 	if (!known || (!aware && !known)) return;
@@ -1045,7 +1059,7 @@ void object_flags_known(int Ind, object_type *o_ptr, u32b *f1, u32b *f2, u32b *f
 /*
  * Obtain the "flags" for an item
  */
-void object_flags(object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
 	object_flags_aux(OBJECT_FLAGS_FULL, o_ptr, f1, f2, f3);
 }
@@ -1219,8 +1233,10 @@ static char *object_desc_int(char *t, sint v)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
  *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
-void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
+void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode)
 {
+	player_type *p_ptr = Players[Ind];
+
 	cptr		basenm, modstr;
 	int		power, indexx;
 
@@ -1241,7 +1257,7 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 
 	char		tmp_val[160];
 
-    u32b		f1, f2, f3;
+	u32b		f1, f2, f3;
 
 	object_kind		*k_ptr = &k_info[o_ptr->k_idx];
 
@@ -1253,10 +1269,10 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	if (Ind)
 	{
 		/* See if the object is "aware" */
-		if (object_aware_p(Ind, o_ptr)) aware = TRUE;
+		if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
 
 		/* See if the object is "known" */
-		if (object_known_p(Ind, o_ptr)) known = TRUE;
+		if (object_known_p(p_ptr, o_ptr)) known = TRUE;
 	}
 	else
 	{
@@ -1326,13 +1342,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_AMULET:
 		{
 			/* Known artifacts */
-	    /* if (artifact_p(o_ptr) && known) break;*/
+			/* if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Amulet~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Amulet~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Amulet~";
 			break;
 		}
 
@@ -1341,13 +1357,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		case TV_RING:
 		{
 			/* Known artifacts */
-	    /*if (artifact_p(o_ptr) && known) break;*/
+			/*if (artifact_p(o_ptr) && known) break;*/
 
 			/* Color the object */
 			modstr = flavor_text + flavor_info[k_ptr->flavor].text;
-            if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
-            if (!aware) basenm = "& # Ring~";
-            else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
+			if (aware && !true_artifact_p(o_ptr)) append_name = TRUE;
+			if (!aware) basenm = "& # Ring~";
+			else if (!true_artifact_p(o_ptr)) basenm = "& Ring~";
 
 			/* Hack -- The One Ring */
 			if (!aware && (o_ptr->sval == SV_RING_POWER)) modstr = "Plain Gold";
@@ -1597,13 +1613,13 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	{
 		/* Create the name */
 		randart_name(o_ptr, tmp_val);
-			
+
 		t = object_desc_chr(t, ' ');
 		t = object_desc_str(t, tmp_val);
 	}
-			
+
 		/* Grab any artifact name */
-	else 
+	else
 #endif
 	if (artifact_p(o_ptr))
 		{
@@ -1849,8 +1865,8 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 	}
 
 	/* Display average number of charges in a store stack */
-	else if (known && mode == 4 && 
-		((o_ptr->tval == TV_STAFF) || (o_ptr->tval == TV_WAND)))
+	else if (known && mode == 4 &&
+	((o_ptr->tval == TV_STAFF) || (o_ptr->tval == TV_WAND)))
 	{
 		/* Dump " (N charges avg)" */
 		t = object_desc_chr(t, ' ');
@@ -1861,8 +1877,6 @@ void object_desc(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
 		if (o_ptr->number > 1) t = object_desc_str(t, " avg");
 		t = object_desc_chr(t, p2);
 	}
-
-		
 
 	/* Hack -- Rods have a "charging" indicator */
 	else if (known && (o_ptr->tval == TV_ROD))
@@ -2493,9 +2507,6 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 
 	/* Describe it fully */
 	
-	/* Clear the info area first. */
-	memset(p_ptr->info,0,sizeof(p_ptr->info));
-
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -2506,8 +2517,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	object_info_screen(o_ptr);
 
 	/* Restore height and width of current dungeon level */
-	p_ptr->cur_hgt = MAX_HGT; 
-	p_ptr->cur_wid = MAX_WID;
+	text_out_done();
 	
 	/* Gave knowledge */
 	return TRUE; 
@@ -2666,9 +2676,11 @@ s16b wield_slot(int Ind, object_type *o_ptr)
  */
 cptr mention_use(int Ind, int i)
 {
-	player_type *p_ptr = Players[Ind];
+	player_type *p_ptr;
 
 	cptr p;
+
+	if (Ind) p_ptr = Players[Ind];
 
 	/* Examine the location */
 	switch (i)
@@ -2687,6 +2699,9 @@ cptr mention_use(int Ind, int i)
 		case INVEN_FEET:  p = "On feet"; break;
 		default:          p = "In pack"; break;
 	}
+
+	/* Hack -- quit quietly */
+	if (!Ind) return (p);
 
 	/* Hack -- Heavy weapon */
 	if (i == INVEN_WIELD)
@@ -2724,6 +2739,27 @@ cptr describe_use(int Ind, int i)
 	player_type *p_ptr = Players[Ind];
 
 	cptr p;
+
+	/* HACK: return a template */
+	if (!Ind)
+	switch (i)
+	{
+		case INVEN_WIELD: p = "attacking monsters with %s"; break;
+		case INVEN_BOW:   p = "shooting missiles with %s"; break;
+		case INVEN_LEFT:  p = "wearing %s on %s left hand"; break;
+		case INVEN_RIGHT: p = "wearing %s on %s right hand"; break;
+		case INVEN_NECK:  p = "wearing %s around %s neck"; break;
+		case INVEN_LITE:  p = "using %s to light the way"; break;
+		case INVEN_BODY:  p = "wearing %s on %s body"; break;
+		case INVEN_OUTER: p = "wearing %s on %s back"; break;
+		case INVEN_ARM:   p = "wearing %s on %s arm"; break;
+		case INVEN_HEAD:  p = "wearing %s on %s head"; break;
+		case INVEN_HANDS: p = "wearing %s on %s hands"; break;
+		case INVEN_FEET:  p = "wearing %s on %s feet"; break;
+		default:          p = "carrying %s in %s pack"; break;
+	}
+	if (!Ind) return p;
+	/* ENDHACK */
 
 	switch (i)
 	{
@@ -2851,16 +2887,16 @@ void display_inven(int Ind)
 		n = strlen(o_name);
 
 		/* Get a color */
-		attr = tval_to_attr[o_ptr->tval % 128];
+		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
-		if (!use_color) attr = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) attr = TERM_WHITE;
 
 		/* Display the weight if needed */
 		wgt = o_ptr->weight * o_ptr->number;
-
+		
 		/* Send the info to the client */
-		Send_inven(Ind, tmp_val[0], attr, wgt, o_ptr->number, o_ptr->tval, o_name);
+		send_inven(Ind, tmp_val[0], attr, wgt, o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
 	}
 }
 
@@ -2902,15 +2938,15 @@ void display_equip(int Ind)
 		n = strlen(o_name);
 
 		/* Get the color */
-		attr = tval_to_attr[o_ptr->tval % 128];
+		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 
 		/* Hack -- fake monochrome */
-		if (!use_color) attr = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) attr = TERM_WHITE;
 
 		/* Display the weight (if needed) */
 		wgt = o_ptr->weight * o_ptr->number;
 
 		/* Send the info off */
-		Send_equip(Ind, tmp_val[0], attr, wgt, o_ptr->tval, o_name);
+		send_equip(Ind, tmp_val[0], attr, wgt, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
 	}
 }

@@ -10,68 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
-
-
-/*
- * Some machines have a "main()" function in their "main-xxx.c" file,
- * all the others use this file for their "main()" function.
- */
-
-
-#if !defined(MACINTOSH) && !defined(ACORN)
-
-#ifdef SET_UID
-
-/*
- * Check "wizard permissions"
- */
-static bool is_wizard(int uid)
-{
-	FILE	*fp;
-
-	bool	allow = FALSE;
-
-	char	buf[1024];
-
-
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_TEXT, "wizards.txt");
-
-	/* Open the wizard file */
-	fp = my_fopen(buf, "r");
-
-	/* No file, allow everyone */
-	if (!fp) return (TRUE);
-
-	/* Scan the wizard file */
-	while (0 == my_fgets(fp, buf, 1024))
-	{
-		int test;
-
-		/* Skip comments and blank lines */
-		if (!buf[0] || (buf[0] == '#')) continue;
-
-		/* Look for valid entries */
-		if (sscanf(buf, "%d", &test) != 1) continue;
-
-		/* Look for matching entries */
-		if (test == uid) allow = TRUE;
-
-		/* Done */
-		if (allow) break;
-	}
-
-	/* Close the file */
-	my_fclose(fp);
-
-	/* Result */
-	return (allow);
-}
-
-#endif
+#include "mangband.h"
 
 
 /*
@@ -83,9 +22,7 @@ static bool is_wizard(int uid)
  */
 static void quit_hook(cptr s)
 {
-#ifdef UNIX_SOCKETS
-	SocketCloseAll();
-#endif
+	cleanup_angband();
 #if 0
 	int j;
 
@@ -125,11 +62,11 @@ extern unsigned _ovrbuffer = 0x1500;
  * Initialize and verify the file paths, and the score file.
  *
  * Use the ANGBAND_PATH environment var if possible, else use
- * DEFAULT_PATH, and in either case, branch off appropriately.
+ * PKGDATADIR, and in either case, branch off appropriately.
  *
  * First, we'll look for the ANGBAND_PATH environment variable,
  * and then look for the files in there.  If that doesn't work,
- * we'll try the DEFAULT_PATH constant.  So be sure that one of
+ * we'll try the PKGDATADIR constant.  So be sure that one of
  * these two things works...
  *
  * We must ensure that the path ends with "PATH_SEP" if needed,
@@ -142,6 +79,7 @@ extern unsigned _ovrbuffer = 0x1500;
 static void init_stuff(void)
 {
 	char path[1024];
+	char path_wr[1024];
 
 #if defined(AMIGA) || defined(VM)
 
@@ -156,15 +94,20 @@ static void init_stuff(void)
 	tail = getenv("ANGBAND_PATH");
 
 	/* Use the angband_path, or a default */
-	strcpy(path, tail ? tail : DEFAULT_PATH);
+	strcpy(path, tail ? tail : PKGDATADIR);
 
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
+	/* Repeat for writable paths */
+	strcpy(path_wr, tail ? tail : LOCALSTATEDIR);
+	if (!suffix(path_wr, PATH_SEP)) strcat(path_wr, PATH_SEP);
+
+
 #endif /* AMIGA / VM */
 
 	/* Initialize */
-	init_file_paths(path);
+	init_file_paths(path, path_wr);
 }
 
 /*
@@ -186,6 +129,27 @@ static void server_log(cptr str)
 	fprintf(stderr,"%s %s\n", buf, str);
 }
 
+void show_version()
+{
+	cptr version_modifiers[] = {
+		"", "alpha", "beta", "devel"
+	};
+	printf("MAngband Server %d.%d.%d %s\n",
+		SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR,
+		SERVER_VERSION_PATCH,
+		version_modifiers[SERVER_VERSION_EXTRA]);
+	puts("Copyright (c) 2007-2016 MAngband Project Team");
+	puts("Compiled with:");
+#ifdef CONFIG_PATH
+	printf("    Config path: %s\n", CONFIG_PATH);
+#endif
+	printf("     PKGDATADIR: %s\n", PKGDATADIR);
+	printf("  LOCALSTATEDIR: %s\n", LOCALSTATEDIR);
+	/* Actually abort the process */
+	quit(NULL);
+}
+
 /*
  * Some machines can actually parse command line args
  *
@@ -198,17 +162,10 @@ static void server_log(cptr str)
 int main(int argc, char *argv[])
 {
 	bool new_game = FALSE;
-	char buf[1024];
 	int catch_signals = TRUE;
-#ifdef WINDOWS
-  WSADATA wsadata;
-#endif
 
 	/* Setup our logging hook */
 	plog_aux = server_log;	
-
-	/* Note we are starting up */
-	plog("Game Restarted");
 
 	/* Save the "program name" */
 	argv0 = argv[0];
@@ -219,8 +176,6 @@ int main(int argc, char *argv[])
 	LoadLibrary("exchndl.dll");
 	
 	/* Initialise WinSock */
-	/* Initialize WinSock */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);	
 #endif
 
 #ifdef USE_286
@@ -231,92 +186,8 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-
-#ifdef SET_UID
-
-	/* Default permissions on files */
-	(void)umask(022);
-
-# ifdef SECURE
-	/* Authenticate */
-	Authenticate();
-# endif
-
-#endif
-
-
 	/* Get the file paths */
 	init_stuff();
-
-#ifdef SET_UID
-
-	/* Get the user id (?) */
-	player_uid = getuid();
-
-#ifdef VMS
-	/* Mega-Hack -- Factor group id */
-	player_uid += (getgid() * 1000);
-#endif
-
-# ifdef SAFE_SETUID
-
-#  ifdef _POSIX_SAVED_IDS
-
-	/* Save some info for later */
-	player_euid = geteuid();
-	player_egid = getegid();
-
-#  endif
-
-#  if 0	/* XXX XXX XXX */
-
-	/* Redundant setting necessary in case root is running the game */
-	/* If not root or game not setuid the following two calls do nothing */
-
-	if (setgid(getegid()) != 0)
-	{
-		quit("setgid(): cannot set permissions correctly!");
-	}
-
-	if (setuid(geteuid()) != 0)
-	{
-		quit("setuid(): cannot set permissions correctly!");
-	}
-
-#  endif
-
-# endif
-
-#endif
-
-
-	/* Assume "Wizard" permission */
-	can_be_wizard = TRUE;
-
-#ifdef SET_UID
-
-	/* Check for "Wizard" permission */
-	can_be_wizard = is_wizard(player_uid);
-
-	/* Initialize the "time" checker */
-	if (check_time_init() || check_time())
-	{
-		quit("The gates to Angband are closed (bad time).");
-	}
-
-	/* Initialize the "load" checker */
-	if (check_load_init() || check_load())
-	{
-		quit("The gates to Angband are closed (bad load).");
-	}
-
-#if 0
-	/* Acquire the "user name" as a default player name */
-	user_name(player_name, player_uid);
-#endif
-
-#endif
-
 
 	/* Process the command line arguments */
 	for (--argc, ++argv; argc > 0; --argc, ++argv)
@@ -329,19 +200,39 @@ int main(int argc, char *argv[])
 		{
 			case 'c':
 			case 'C':
-			ANGBAND_DIR_USER = &argv[0][2];
+			arg_config_file = string_make(&argv[0][2]);
+			break;
+
+			case 'e':
+			case 'E':
+			ANGBAND_DIR_EDIT = string_make(&argv[0][2]);
+			break;
+
+			case 'p':
+			case 'P':
+			ANGBAND_DIR_PREF = string_make(&argv[0][2]);
+			break;
+
+			case 't':
+			case 'T':
+			ANGBAND_DIR_HELP = string_make(&argv[0][2]);
+			break;
+
+			case 'd':
+			case 'D':
+			ANGBAND_DIR_DATA = string_make(&argv[0][2]);
 			break;
 
 #ifndef VERIFY_SAVEFILE
-			case 'd':
-			case 'D':
-			ANGBAND_DIR_SAVE = &argv[0][2];
+			case 's':
+			case 'S':
+			ANGBAND_DIR_SAVE = string_make(&argv[0][2]);
 			break;
 #endif
 
-			case 'i':
-			case 'I':
-			ANGBAND_DIR_TEXT = &argv[0][2];
+			case 'b':
+			case 'B':
+			ANGBAND_DIR_BONE = string_make(&argv[0][2]);
 			break;
 
 			case 'r':
@@ -354,190 +245,41 @@ int main(int argc, char *argv[])
 			arg_fiddle = TRUE;
 			break;
 
-#ifdef SET_UID
-#if 0
-			case 'P':
-			case 'p':
-			if (can_be_wizard)
-			{
-				player_uid = atoi(&argv[0][2]);
-				user_name(player_name, player_uid);
-			}
-			break;
-#endif
-#endif
-
-			case 'W':
-			case 'w':
-			if (can_be_wizard) arg_wizard = TRUE;
-			break;
-
 			case 'Z':
 			case 'z':
 			catch_signals = FALSE;
 			break;
 
-#if 0
-			case 'u':
-			case 'U':
-			if (!argv[0][2]) goto usage;
-			strcpy(player_name, &argv[0][2]);
+			case 'v':
+				show_version();
 			break;
-#endif
 
+			case 'h':
 			default:
 			usage:
 
 			/* Note -- the Term is NOT initialized */
 			puts("Usage: mangband [options]");
-			puts("  -r	 Reset the server");
-			puts("  -f       Activate 'fiddle' mode");
-			puts("  -w       Activate 'wizard' mode");
+			puts("  -r       Reset the server");
 			puts("  -z       Don't catch signals");
-			puts("  -p<uid>  Play with the <uid> userid");
-			puts("  -c<path> Look for pref files in the directory <path>");
-			puts("  -d<path> Look for save files in the directory <path>");
-			puts("  -i<path> Look for info files in the directory <path>");
+			puts("  -C<file> Use config file <file>");
+			puts("  -e<path> Look for edit files in the directory <path>");
+			puts("  -t<path> Look for help files in the directory <path>");
+			puts("  -p<path> Look for pref files in the directory <path>");
+			puts("  -d<path> Look for data files in the directory <path>");
+			puts("  -s<path> Look for save files in the directory <path>");
+			puts("  -b<path> Look for bone files in the directory <path>");
 
 			/* Actually abort the process */
 			quit(NULL);
 		}
 	}
 
-#if 0
-
-	/* Process the player name */
-	process_player_name(TRUE);
-#endif
-
-/* This is all removed, as there is no need for the server to open a term */
-#if 0
-
-	/* Drop privs (so X11 will work correctly) */
-	safe_setuid_drop();
-
-
-#ifdef USE_XAW
-	/* Attempt to use the "main-xaw.c" support */
-	if (!done)
-	{
-		extern errr init_xaw(void);
-		if (0 == init_xaw()) done = TRUE;
-		if (done) ANGBAND_SYS = "xaw";
-	}
-#endif
-
-#ifdef USE_X11
-	/* Attempt to use the "main-x11.c" support */
-	if (!done)
-	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
-		if (done) ANGBAND_SYS = "x11";
-	}
-#endif
-
-
-#ifdef USE_GCU
-	/* Attempt to use the "main-gcu.c" support */
-	if (!done)
-	{
-		extern errr init_gcu(void);
-		if (0 == init_gcu()) done = TRUE;
-		if (done) ANGBAND_SYS = "gcu";
-	}
-#endif
-
-#ifdef USE_CAP
-	/* Attempt to use the "main-cap.c" support */
-	if (!done)
-	{
-		extern errr init_cap(void);
-		if (0 == init_cap()) done = TRUE;
-		if (done) ANGBAND_SYS = "cap";
-	}
-#endif
-
-
-#ifdef USE_IBM
-	/* Attempt to use the "main-ibm.c" support */
-	if (!done)
-	{
-		extern errr init_ibm(void);
-		if (0 == init_ibm()) done = TRUE;
-		if (done) ANGBAND_SYS = "ibm";
-	}
-#endif
-
-#ifdef USE_EMX
-	/* Attempt to use the "main-emx.c" support */
-	if (!done)
-	{
-		extern errr init_emx(void);
-		if (0 == init_emx()) done = TRUE;
-		if (done) ANGBAND_SYS = "emx";
-	}
-#endif
-
-
-#ifdef USE_SLA
-	/* Attempt to use the "main-sla.c" support */
-	if (!done)
-	{
-		extern errr init_sla(void);
-		if (0 == init_sla()) done = TRUE;
-		if (done) ANGBAND_SYS = "sla";
-	}
-#endif
-
-
-#ifdef USE_LSL
-	/* Attempt to use the "main-lsl.c" support */
-	if (!done)
-	{
-		extern errr init_lsl(void);
-		if (0 == init_lsl()) done = TRUE;
-		if (done) ANGBAND_SYS = "lsl";
-	}
-#endif
-
-
-#ifdef USE_AMI
-	/* Attempt to use the "main-ami.c" support */
-	if (!done)
-	{
-		extern errr init_ami(void);
-		if (0 == init_ami()) done = TRUE;
-		if (done) ANGBAND_SYS = "ami";
-	}
-#endif
-
-
-#ifdef USE_VME
-	/* Attempt to use the "main-vme.c" support */
-	if (!done)
-	{
-		extern errr init_vme(void);
-		if (0 == init_vme()) done = TRUE;
-		if (done) ANGBAND_SYS = "vme";
-	}
-#endif
-
-
-	/* Grab privs (dropped above for X11) */
-	safe_setuid_grab();
-
-
-#endif
-
-#if 0
-	/* Make sure we have a display! */
-	if (!done) quit("Unable to prepare any 'display module'!");
-#endif
+	/* Note we are starting up */
+	plog("Game Restarted");
 
 	/* Tell "quit()" to call "Term_nuke()" */
 	quit_aux = quit_hook;
-
 
 	/* Catch nasty signals */
 	if (catch_signals == TRUE)
@@ -553,14 +295,27 @@ int main(int argc, char *argv[])
 	/* Load the mangband.cfg options */
 	load_server_cfg();
 
+	/* Test existance of 'news.txt' and 'scores.raw' */
+	show_news();
+
 	/* Initialize the arrays */
 	init_some_arrays();
 
-	/* Wait for response */
-	/*pause_line(23);*/
 
-	/* Play the game */
+	/* Prepare the game */
 	play_game(new_game);
+
+	/* Set up the network server */
+	setup_network_server();
+
+	/* Loop forever */
+	network_loop();
+
+	/* This should never, ever happen */
+	plog("FATAL ERROR network_loop() returned!");
+
+	/* Close stuff */
+	close_game();
 
 	/* Quit */
 	quit(NULL);
@@ -568,5 +323,3 @@ int main(int argc, char *argv[])
 	/* Exit */
 	return (0);
 }
-
-#endif

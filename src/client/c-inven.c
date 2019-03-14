@@ -1,6 +1,6 @@
-#include "angband.h"
+#include "c-angband.h"
 
-s16b index_to_label(int i)
+char index_to_label(int i)
 {
 	/* Indices for "inven" are easy */
 	if (i < INVEN_WIELD) return (I2A(i));
@@ -9,6 +9,23 @@ s16b index_to_label(int i)
 	return (I2A(i - INVEN_WIELD));
 }
 
+
+bool item_tester_hack(object_type *o_ptr, int i)
+{
+	int j;
+
+	/* STOP on flag mismatch */
+	if (item_tester[i].flag && !(o_ptr->ident & item_tester[i].flag)) return (FALSE);
+	
+	/* OK on tval match */
+	for (j = 0; j < MAX_ITH_TVAL; j++)
+	{
+		if (item_tester[i].tval[j] == 0) break;
+		if (item_tester[i].tval[j] == o_ptr->tval) return (TRUE);
+	}
+
+	return ( (!j) ? (TRUE) : (FALSE) );
+}
 
 bool item_tester_okay(object_type *o_ptr)
 {
@@ -19,12 +36,18 @@ bool item_tester_okay(object_type *o_ptr)
 	if (!o_ptr->tval) return (FALSE);
 
 	/* Hack -- ignore "gold" */
-	if (o_ptr->tval == TV_GOLD) return (FALSE);
+	if (o_ptr->tval == TV_MAX) return (FALSE);
 
 	/* Check the tval */
 	if (item_tester_tval)
 	{
-		if (!(item_tester_tval == o_ptr->tval)) return (FALSE);
+		/* Check the fake hook */
+		if (item_tester_tval > TV_MAX)
+		{
+			return (item_tester_hack(o_ptr, item_tester_tval - TV_MAX - 1)); 
+		}
+		/* Or direct (mis)match */
+		else if (!(item_tester_tval == o_ptr->tval)) return (FALSE);
 	}
 
 	/* Check the hook */
@@ -115,58 +138,58 @@ s16b c_label_to_equip(int c)
  */
 static int get_tag(int *cp, char tag)
 {
-        int i;
-        cptr s;
+	int i;
+	cptr s;
 
 
-        /* Check every object */
-        for (i = 0; i < INVEN_TOTAL; ++i)
-        {
-                char *buf = inventory_name[i];
+	/* Check every object */
+	for (i = 0; i < INVEN_TOTAL; ++i)
+	{
+		char *buf = inventory_name[i];
 		char *buf2;
 
-                /* Skip empty objects */
-                if (!buf[0]) continue;
+		/* Skip empty objects */
+		if (!buf[0]) continue;
 
-                /* Skip empty inscriptions */
-                if (!(buf2 = strchr(buf, '{'))) continue;
+		/* Skip empty inscriptions */
+		if (!(buf2 = strchr(buf, '{'))) continue;
 
-                /* Find a '@' */
-                s = strchr(buf2, '@');
+		/* Find a '@' */
+		s = strchr(buf2, '@');
 
-                /* Process all tags */
-                while (s)
-                {
-                        /* Check the normal tags */
-                        if (s[1] == tag)
-                        {
-                                /* Save the actual inventory ID */
-                                *cp = i;
+		/* Process all tags */
+		while (s)
+		{
+			/* Check the normal tags */
+			if (s[1] == tag)
+			{
+				/* Save the actual inventory ID */
+				*cp = i;
 
-                                /* Success */
-                                return (TRUE);
-                        }
+				/* Success */
+				return (TRUE);
+			}
 
-                        /* Check the special tags */
-                        if ((s[1] == command_cmd) && (s[2] == tag))
-                        {
-                                /* Save the actual inventory ID */
-                                *cp = i;
+			/* Check the special tags */
+			if ((s[1] == command_cmd) && (s[2] == tag))
+			{
+				/* Save the actual inventory ID */
+				*cp = i;
 
-                                /* Success */
-                                return (TRUE);
-                        }
+				/* Success */
+				return (TRUE);
+			}
 
-                        /* Find another '@' */
-                        s = strchr(s + 1, '@');
-                }
-        }
+			/* Find another '@' */
+			s = strchr(s + 1, '@');
+		}
+	}
 
-        /* No such tag */
-        return (FALSE);
+	/* No such tag */
+	return (FALSE);
 }
 
-bool c_get_spike()
+bool c_check_item(int *item, byte tval)
 {
 	int i;
 	for (i = 0; i < INVEN_PACK; i++)
@@ -177,27 +200,24 @@ bool c_get_spike()
 		if (!o_ptr->number) continue;
 		
 		/* Check the "tval" code */
-		if (o_ptr->tval == TV_SPIKE)
+		if (o_ptr->tval == tval)
 		{
-			/* (*item) = i; */
+			(*item) = i;
 			return TRUE;
 		}
 	}	
-	
+
 	/* Oops */
 	return FALSE;
 }
-/* 
-	Every instance of c_get_item in the code specifies 'floor' as FALSE,
-	so inside this function, we're always treating it as NOT(floor), since
-	we DO need floor checks.
-*/
+
 bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';
 
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
+	bool	equip_up, inven_up, window_up;
 	
 	bool allow_floor = FALSE;
 
@@ -207,11 +227,14 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* The top line is icky */
 	topline_icky = TRUE;
 
-	/* Not done */	
+	/* Not done */
 	done = FALSE;
 
 	/* No item selected */
 	item = FALSE;
+
+	/* No window updates needed */
+	window_up = equip_up = inven_up = FALSE;
 
 	/* Default to "no item" */
 	*cp = -1;
@@ -230,6 +253,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((i1 <= i2) && (!get_item_okay(i1))) i1++;
 	while ((i1 <= i2) && (!get_item_okay(i2))) i2--;
 
+	/* Update window (later, twice) */
+	if ((i1 != 0) || (i2 != INVEN_PACK - 1)) inven_up = TRUE;
 
 	/* Full equipment */
 	e1 = INVEN_WIELD;
@@ -239,18 +264,18 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	while ((e1 <= e2) && (!get_item_okay(e1))) e1++;
 	while ((e1 <= e2) && (!get_item_okay(e2))) e2--;
 
+	/* Update window (later, twice) */
+	if ((e1 != INVEN_WIELD) || (e2 != INVEN_TOTAL - 1)) equip_up = TRUE;
 
-	/* Check floor thing */
-	if (floor_tval && !floor) {
-		if( (!item_tester_tval) || (item_tester_tval && floor_tval == item_tester_tval)) allow_floor = TRUE;
-	}
+	/* Hack -- restrict floor choice */
+	if (floor_item.tval && floor) allow_floor = item_tester_okay(&floor_item);
 	
 	if ((i1 > i2) && (e1 > e2) && !allow_floor)
 	{
 		/* Cancel command_see */
 		command_see = FALSE;
 
-		/* Hack -- Nothing to choose */	
+		/* Hack -- Nothing to choose */
 		*cp = -2;
 
 		/* Done */
@@ -282,13 +307,26 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		}
 	}
 
-	/* Hack -- start out in "display" mode */
-	if (command_see) 
+	/* Start with the listing ON */
+	if ((inven || equip) && auto_itemlist)
 	{
-		screen_icky = TRUE;
+		command_see = TRUE;
+	}
+
+	/* Hack -- start out in "display" mode */
+	if (command_see)
+	{
 		Term_save();
 	}
 
+	/* Update windows with possible choices */
+	if (!done)
+	{
+		if (inven_up) p_ptr->window |= PW_INVEN;
+		if (equip_up) p_ptr->window |= PW_EQUIP;
+		window_stuff();
+		window_up = TRUE;
+	}
 	
 	/* Repeat while done */
 	while (!done)
@@ -299,7 +337,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			n1 = I2A(i1);
 			n2 = I2A(i2);
 
-			/* Redraw if needed */
+			/* Redraw if needed, make screen icky */
 			if (command_see) show_inven();
 		}
 
@@ -310,14 +348,14 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			n1 = I2A(e1 - INVEN_WIELD);
 			n2 = I2A(e2 - INVEN_WIELD);
 
-			/* Redraw if needed */
+			/* Redraw if needed, make screen icky */
 			if (command_see) show_equip();
 		}
 
 		/* Viewing inventory */
 		if (!command_wrk)
 		{
-			/* Begin the prompt */	
+			/* Begin the prompt */
 			sprintf(out_val, "Inven:");
 
 			/* Some legal items */
@@ -395,8 +433,6 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* Show/hide the list */
 				if (!command_see)
 				{
-					screen_icky = TRUE;
-
 					Term_save();
 					command_see = TRUE;
 				}
@@ -405,21 +441,30 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 					Term_load();
 					command_see = FALSE;
 
-					screen_icky = FALSE;
+					section_icky_row = 0;
+					section_icky_col = 0;
 
 					/* Flush any events */
-					Flush_queue();
+					if (!shopping)
+						Flush_queue();
 				}
 				break;
 			}
 			case '-':
+			{
+				/* Hack -- we only have 1 floor item */
+				s16b floor_item_pos = 0;
+
 				/* Floor */
-				
-				(*cp) = -1;
-				item = TRUE;
-				done = TRUE;
-				
+				if (allow_floor)
+				{
+					(*cp) = FLOOR_INDEX + (FLOOR_NEGATIVE ? 0 - floor_item_pos : floor_item_pos);
+					item = TRUE;
+					done = TRUE;
+				}
+
 				break;
+			}
 			case '/':
 			{
 				/* Verify legality */
@@ -433,7 +478,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				if (command_see)
 				{
 					Term_load();
-					Flush_queue();
+					if (!shopping)
+						Flush_queue();
 					Term_save();
 				}
 
@@ -526,7 +572,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			default:
 			{
 				/* Extract "query" setting */
-				ver = isupper(which);
+				ver = ( isupper(which) ? TRUE : FALSE );
 				if (ver) which = tolower(which);
 
 				/* Convert letter to inventory index */
@@ -578,14 +624,16 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	if (command_see) 
 	{
 		Term_load();
-		screen_icky = FALSE;
+		section_icky_row = 0;
+		section_icky_col = 0;
 	}
 
 	/* Fix the top line */
 	topline_icky = FALSE;
 
 	/* Flush any events */
-	Flush_queue();
+	if (!shopping)
+		Flush_queue();
 
 	/* Hack -- Cancel "display" */
 	command_see = FALSE;
@@ -597,6 +645,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Forget the item_tester_hook restriction */
 	item_tester_hook = 0;
 
+	/* Fix windows */
+	if (window_up)
+	{
+		if (inven_up) p_ptr->window |= PW_INVEN;
+		if (equip_up) p_ptr->window |= PW_EQUIP;
+		window_stuff();
+	}
 
 	/* Clear the prompt line */
 	prt("", 0, 0);

@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 
@@ -125,6 +123,8 @@ bool make_attack_normal(int Ind, int m_idx)
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
+	
+	monster_lore	*l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	int			ap_cnt;
 
@@ -141,7 +141,8 @@ bool make_attack_normal(int Ind, int m_idx)
 
 	char		ddesc[80];
 
-	bool		blinked;
+	int		blinked;
+	int		sound_msg;
 
 
 	/* Not allowed to attack */
@@ -162,7 +163,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Assume no blink */
-	blinked = FALSE;
+	blinked = 0;
 
 	/* Scan through all four blows */
 	for (ap_cnt = 0; ap_cnt < 4; ap_cnt++)
@@ -243,7 +244,7 @@ bool make_attack_normal(int Ind, int m_idx)
 			    ((rand_int(100) + p_ptr->lev) > 50))
 			{
 				/* Remember the Evil-ness */
-				if (p_ptr->mon_vis[m_idx]) r_ptr->r_flags3 |= RF3_EVIL;
+				if (p_ptr->mon_vis[m_idx]) l_ptr->flags3 |= RF3_EVIL;
 
 				/* Message */
 				msg_format(Ind, "%^s is repelled.", m_name);
@@ -256,6 +257,9 @@ bool make_attack_normal(int Ind, int m_idx)
 			/* Assume no cut or stun */
 			do_cut = do_stun = 0;
 
+			/* Assume no sound */
+			sound_msg = MSG_GENERIC;
+
 			/* Describe the attack method */
 			switch (method)
 			{
@@ -263,12 +267,14 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "hits you.";
 					do_cut = do_stun = 1;
+					sound_msg = MSG_MON_HIT;
 					break;
 				}
 
 				case RBM_TOUCH:
 				{
 					act = "touches you.";
+					sound_msg = MSG_MON_TOUCH;
 					break;
 				}
 
@@ -276,6 +282,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "punches you.";
 					do_stun = 1;
+					sound_msg = MSG_MON_PUNCH;
 					break;
 				}
 
@@ -283,6 +290,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "kicks you.";
 					do_stun = 1;
+					sound_msg = MSG_MON_KICK;
 					break;
 				}
 
@@ -290,6 +298,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "claws you.";
 					do_cut = 1;
+					sound_msg = MSG_MON_CLAW;
 					break;
 				}
 
@@ -297,12 +306,14 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "bites you.";
 					do_cut = 1;
+					sound_msg = MSG_MON_BITE;
 					break;
 				}
 
 				case RBM_STING:
 				{
 					act = "stings you.";
+					sound_msg = MSG_MON_STING;
 					break;
 				}
 
@@ -316,6 +327,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "butts you.";
 					do_stun = 1;
+					sound_msg = MSG_MON_BUTT;
 					break;
 				}
 
@@ -323,12 +335,14 @@ bool make_attack_normal(int Ind, int m_idx)
 				{
 					act = "crushes you.";
 					do_stun = 1;
+					sound_msg = MSG_MON_CRUSH;
 					break;
 				}
 
 				case RBM_ENGULF:
 				{
 					act = "engulfs you.";
+					sound_msg = MSG_MON_ENGULF;
 					break;
 				}
 
@@ -341,18 +355,21 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBM_CRAWL:
 				{
 					act = "crawls on you.";
+					sound_msg = MSG_MON_CRAWL;
 					break;
 				}
 
 				case RBM_DROOL:
 				{
 					act = "drools on you.";
+					sound_msg = MSG_MON_DROOL;
 					break;
 				}
 
 				case RBM_SPIT:
 				{
 					act = "spits on you.";
+					sound_msg = MSG_MON_SPIT;
 					break;
 				}
 
@@ -365,18 +382,21 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBM_GAZE:
 				{
 					act = "gazes at you.";
+					sound_msg = MSG_MON_GAZE;
 					break;
 				}
 
 				case RBM_WAIL:
 				{
 					act = "wails at you.";
+					sound_msg = MSG_MON_WAIL;
 					break;
 				}
 
 				case RBM_SPORE:
 				{
 					act = "releases spores at you.";
+					sound_msg = MSG_MON_SPORE;
 					break;
 				}
 
@@ -389,18 +409,21 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBM_BEG:
 				{
 					act = "begs you for money.";
+					sound_msg = MSG_MON_BEG;
 					break;
 				}
 
 				case RBM_INSULT:
 				{
 					act = desc_insult[rand_int(8)];
+					sound_msg = MSG_MON_INSULT;
 					break;
 				}
 
 				case RBM_MOAN:
 				{
 					act = desc_moan[rand_int(4)];
+					sound_msg = MSG_MON_MOAN;
 					break;
 				}
 
@@ -413,7 +436,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 			/* Message */
 			if (act) msg_format(Ind, "%^s %s", m_name, act);
-
+			if (act) sound(Ind, sound_msg);
 
 			/* Hack -- assume all attacks are obvious */
 			obvious = TRUE;
@@ -557,7 +580,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						msg_print(Ind, "You quickly protect your money pouch!");
 
 						/* Occasional blink anyway */
-						if (rand_int(3)) blinked = TRUE;
+						if (rand_int(3)) blinked = 2;
 					}
 
 					/* Eat gold */
@@ -590,7 +613,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						p_ptr->window |= (PW_PLAYER);
 
 						/* Blink away */
-						blinked = TRUE;
+						blinked = 2;
 					}
 
 					break;
@@ -610,7 +633,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						msg_print(Ind, "You grab hold of your backpack!");
 
 						/* Occasional "blink" anyway */
-						blinked = TRUE;
+						blinked = 2;
 
 						/* Obvious */
 						obvious = TRUE;
@@ -675,7 +698,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						obvious = TRUE;
 
 						/* Blink away */
-						blinked = TRUE;
+						blinked = 2;
 
 						/* Done */
 						break;
@@ -916,7 +939,7 @@ bool make_attack_normal(int Ind, int m_idx)
 							obvious = TRUE;
 							
 							/* Hack - Make level 1 monsters who paralyze also blink */
-							if (r_ptr->level == 1) blinked = TRUE;
+							if (r_ptr->level == 1) blinked = 1;
 						}
 					}
 
@@ -1252,6 +1275,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 					/* Message */
 					msg_format(Ind, "%^s misses you.", m_name);
+					sound(Ind, MSG_MISS);
 				}
 
 				break;
@@ -1263,12 +1287,12 @@ bool make_attack_normal(int Ind, int m_idx)
 		if (visible)
 		{
 			/* Count "obvious" attacks (and ones that cause damage) */
-			if (obvious || damage || (r_ptr->r_blows[ap_cnt] > 10))
+			if (obvious || damage || (l_ptr->blows[ap_cnt] > 10))
 			{
 				/* Count attacks of this type */
-				if (r_ptr->r_blows[ap_cnt] < MAX_UCHAR)
+				if (l_ptr->blows[ap_cnt] < MAX_UCHAR)
 				{
-					r_ptr->r_blows[ap_cnt]++;
+					l_ptr->blows[ap_cnt]++;
 				}
 			}
 		}
@@ -1276,15 +1300,20 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Blink away */
-	if (blinked)
+	if (blinked == 2)
 	{
 		msg_print(Ind, "There is a puff of smoke!");
 		teleport_away(m_idx, MAX_SIGHT * 2 + 5);
 	}
+    else if (blinked == 1)
+	{
+		msg_format(Ind, "%^s blinks away.", m_name);
+		teleport_away(m_idx, 10);
+	}
 
 
 	/* Always notice cause of death */
-	if (p_ptr->death && (r_ptr->r_deaths < MAX_SHORT)) r_ptr->r_deaths++;
+	if (p_ptr->death && (l_ptr->deaths < MAX_SHORT)) l_ptr->deaths++;
 
 
 	/* Assume we attacked */

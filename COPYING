@@ -1,0 +1,126 @@
+/*
+ * The MAngband License starts here.
+ *
+ * Literally hundreds of people have contributed to the code that 
+ * comprises MAngband.  Below are listed those who elected to place
+ * copyrights on their contributions.  Inclusion of a copyright covers
+ * the entire works.  New authors are encouraged to add them as needed
+ * and you may, if desired, further restrict this license with your 
+ * seperately distributed works (This entire license must be included
+ * with yours, of course), but you may not violate the existing licenses 
+ * in the process.  Sorry, they got here first.  If that doesn't suit 
+ * your needs, then this is not the code you seek. [ waves hand ]
+ *
+ * Mangband source code may be sought at http://www.mangband.org
+ * 
+ * Mangband is:
+ *
+ * Copyright (c) 1989 James E. Wilson 
+ *
+ * Copyright (c) 1989 Robert A. Koeneke
+ *
+ * Copyright (c) 1989 Christopher J. Stuart
+ *
+ * Copyright (c) 1989 - 1997 Ben Harrison
+ *
+ * Copyright (c) 1997 Keldon L. Jones
+ *
+ * Copyright (c) 1999 Alex P. Dingle
+ *
+ * Copyright (c) 2002 Robert L. Seifer
+ *
+ * Copyright (c) 2008 The MAngband Project Team
+ *
+ * ----------------------------------------------------------------------------
+ *
+ * Mangband is a Multi-Player Angband varient based on Angband 2.7.2
+ * "Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
+ *
+ * This software may be copied and distributed for educational, research,
+ * and not for profit purposes provided that this copyright and statement
+ * are included in all such copies.  Other copyrights may also apply.
+ *
+ * All changes made by Ben Harrison, Robert Ruehlmann, and many other Angband
+ * developers are also available under the GNU GENERAL PUBLIC LICENSE.
+ * Note that this doesn't influence the current distribution, since parts of
+ * the source are still only available under the old Moria/Angband license.
+ * Until all parts of Angband are distributed under the GPL the only valid
+ * license remains the original Moria/Angband license.
+ * 
+ * More informations about Angband and the GPL can be found at:
+ * http://thangorodrim.angband.org/development/opensource.html"
+ *
+ * ----------------------------------------------------------------------------
+ *
+ * MAngband uses "RSA Data Security, Inc. MD5 Message-Digest Algorithm"
+ * to compute it's MD5 hashes, avaliable under following license:
+ * Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All
+ * rights reserved.
+ * 
+ * License to copy and use this software is granted provided that it
+ * is identified as the "RSA Data Security, Inc. MD5 Message-Digest
+ * Algorithm" in all material mentioning or referencing this software
+ * or this function.
+ *
+ * License is also granted to make and use derivative works provided
+ * that such works are identified as "derived from the RSA Data
+ * Security, Inc. MD5 Message-Digest Algorithm" in all material
+ * mentioning or referencing the derived work.
+ *
+ * RSA Data Security, Inc. makes no representations concerning either
+ * the merchantability of this software or the suitability of this
+ * software for any particular purpose. It is provided "as is"
+ * without express or implied warranty of any kind.
+ *
+ * These notices must be retained in any copies of any part of this
+ * documentation and/or software.
+ * 
+ * ----------------------------------------------------------------------------
+ *
+ * MAngband uses portions of networking code covered by this license:
+ * Copyright (c) 2010 Vitaly Driedfruit. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright 
+ *    notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright 
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Vitaly Driedfruit ``AS IS'' AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL Vitaly Driedfruit OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+ * SUCH DAMAGE.
+ *
+ * ----------------------------------------------------------------------------
+ *
+ * This software may be copied and distributed for educational, research, and not for 
+ * profit purposes provided that this copyright and statement are included in their 
+ * entirety with all such copies or executables produced from this source or source 
+ * derrived from it.  The original Source code used in derrived works must be made 
+ * available upon request, and accurate instructions for doing so must be provided 
+ * with those works.
+ *
+ * Mangband is distributed for entertainment, educational, and not for profit 
+ * purposes only, in the hope that it will be useful.  No warentee is provided
+ * whatsoever, express, or implied.
+ *
+ * The MAngband license ends here.
+ *
+ * May the Great RNG favor you.
+ *
+ */
+
+

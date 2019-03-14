@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define CLIENT
-
-#include "angband.h"
+#include "c-angband.h"
 #include "../common/md5.h"
 
 
@@ -21,7 +19,7 @@
  */
 void choose_name(void)
 {
-	char tmp[23];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your player's name above (or hit ESCAPE).", 21, 2);
@@ -33,10 +31,10 @@ void choose_name(void)
 		move_cursor(2, 15);
 
 		/* Save the player name */
-		strcpy(tmp, nick);
+		my_strcpy(tmp, nick, MAX_CHARS);
 
 		/* Get an input, ignore "Escape" */
-		if (askfor_aux(tmp, 15, 0)) strcpy(nick, tmp);
+		if (askfor_aux(tmp, MAX_NAME_LEN, 0)) my_strcpy(nick, tmp, MAX_CHARS);
 
 		/* All done */
 		break;
@@ -58,14 +56,14 @@ void choose_name(void)
  */
 void enter_password(void)
 {
-	int c;
-	char tmp[MAX_PASS_LEN];
+	unsigned int c;
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);
 
 	/* Default */
-	strcpy(tmp, pass);
+	my_strcpy(tmp, pass, MAX_CHARS);
 
 	/* Ask until happy */
 	while (1)
@@ -82,7 +80,7 @@ void enter_password(void)
 			    continue;
 			}
 			else
-				strcpy(pass, tmp);
+				my_strcpy(pass, tmp, MAX_CHARS);
 		}
 
 		/* All done */
@@ -103,6 +101,36 @@ void enter_password(void)
 	clear_from(20);
 }
 
+/*
+ * Hack -- show birth options during birth
+ */
+void do_cmd_options_birth_call()
+{
+	/* Sync data */
+	while (sync_data() == FALSE)	network_loop();
+
+	/* Hack -- preload "options.prf" */
+	process_pref_file("options.prf");
+
+	/* Show */
+	do_cmd_options_birth();
+}
+
+
+/*
+ * Hack -- show help screen during birth
+ */
+void do_cmd_help_birth(void)
+{
+	/* Sync data */
+	while (sync_data() == FALSE)	network_loop();
+
+	/* Subscribe */
+	init_subscriptions();
+
+	/* Ask it */
+	cmd_interactive();
+}
 
 /*
  * Choose the character's sex				-JWT-
@@ -116,7 +144,7 @@ static void choose_sex(void)
 
 	while (1)
 	{
-		put_str("Choose a sex (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a sex (= for Options, ? for Help, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		if ((c == 'm') || (c == 'M'))
@@ -131,9 +159,13 @@ static void choose_sex(void)
 			c_put_str(TERM_L_BLUE, "Female", 4, 15);
 			break;
 		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth_call();
+		}
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -162,10 +194,10 @@ static void choose_race(void)
 	m = 21;
 
 
-	for (j = 0; j < MAX_RACES; j++)
+	for (j = 0; j < z_info.p_max; j++)
 	{
 		rp_ptr = &race_info[j];
-    		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
+		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -177,20 +209,24 @@ static void choose_race(void)
 
 	while (1)
 	{
-		put_str("Choose a race (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a race (= for Options, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
-		if ((j < MAX_RACES) && (j >= 0))
+		if ((j < z_info.p_max) && (j >= 0))
 		{
 			race = j;
 			rp_ptr = &race_info[j];
 			c_put_str(TERM_L_BLUE, p_name + rp_ptr->name, 5, 15);
 			break;
 		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth_call();
+		}
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -221,7 +257,7 @@ static void choose_class(void)
 	m = 21;
 
 	/* Display the legal choices */
-	for (j = 0; j < MAX_CLASS; j++)
+	for (j = 0; j < z_info.c_max; j++)
 	{
 		cp_ptr = &c_info[j];
 		sprintf(out_val, "%c) %s", I2A(j), c_name + cp_ptr->name);
@@ -237,20 +273,24 @@ static void choose_class(void)
 	/* Get a class */
 	while (1)
 	{
-		put_str("Choose a class (? for Help, Q to Quit): ", 20, 2);
+		put_str("Choose a class (= for Options, Q to Quit): ", 20, 2);
 		c = inkey();
 		if (c == 'Q') quit(NULL);
 		j = (islower(c) ? A2I(c) : -1);
-		if ((j < MAX_CLASS) && (j >= 0))
+		if ((j < z_info.c_max) && (j >= 0))
 		{
-			class = j;
+			pclass = j;
 			cp_ptr = &c_info[j];
 			c_put_str(TERM_L_BLUE, c_name + cp_ptr->name, 6, 15);
 			break;
 		}
+		else if (c == '=')
+		{
+			do_cmd_options_birth_call();
+		}
 		else if (c == '?')
 		{
-			/*do_cmd_help("help.hlp");*/
+			do_cmd_help_birth();
 		}
 		else
 		{
@@ -299,7 +339,7 @@ void choose_stat_order(void)
 		/* Get a stat */
 		while (1)
 		{
-			put_str("Choose your stat order (? for Help, Q to Quit): ", 20, 2);
+			put_str("Choose your stat order (= for Options, ? for Help, Q to Quit): ", 20, 2);
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
@@ -310,9 +350,13 @@ void choose_stat_order(void)
 				avail[j] = 0;
 				break;
 			}
+			else if (c == '=')
+			{
+				do_cmd_options_birth_call();
+			}
 			else if (c == '?')
 			{
-				/*do_cmd_help("help.hlp");*/
+				do_cmd_help_birth();
 			}
 			else
 			{
@@ -348,6 +392,9 @@ void get_char_name(void)
 
 	/* Enter password */
 	enter_password();
+	
+	/* Capitalize the name */
+	nick[0] = toupper(nick[0]);
 
 	/* Message */
 	put_str("Connecting to server....", 21, 1);
@@ -356,11 +403,11 @@ void get_char_name(void)
 	Term_fresh();
 
 	/* Note player birth in the message recall */
-	c_message_add(" ");
-	c_message_add("  ");
-	c_message_add("====================");
-	c_message_add("  ");
-	c_message_add(" ");
+	c_message_add(" ", MSG_LOCAL);
+	c_message_add("  ", MSG_LOCAL);
+	c_message_add("====================", MSG_LOCAL);
+	c_message_add("  ", MSG_LOCAL);
+	c_message_add(" ", MSG_LOCAL);
 }
 
 /*
@@ -420,11 +467,10 @@ static bool enter_server_name(void)
 	move_cursor(5, 1);
 
 	/* Default */
-    strcpy(server_name, "localhost");
-    server_port = 18346;
+	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
-	result = askfor_aux(server_name, 80, 0);
+	result = askfor_aux(server_name, MAX_COLS, 0);
 
 	s = strchr(server_name, ':');
 	if (!s) return result;
@@ -441,11 +487,11 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, socket, offsets[20];
+	int i, j, y, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
-	server_port = 18346;
+
 	/* Perhaps we already have a server name from config file ? */
 	if(strlen(server_name) > 0) return TRUE;
 
@@ -456,21 +502,10 @@ bool get_server_name(void)
 	Term_fresh();
 
 	/* Connect to metaserver */
-	socket = CreateClientSocket(META_ADDRESS, 8802);
+	buf[0] = '\0';
+	bytes = call_metaserver(META_ADDRESS, 8802, buf, 8192);
 
-	/* Check for failure */
-	if (socket == -1)
-	{
-		return enter_server_name();
-	}
-
-	/* Read */
-	bytes = SocketRead(socket, buf, 8192);
-
-	/* Close the socket */
-	SocketClose(socket);
-
-	/* Check for error while reading */
+	/* Some kind of failure */
 	if (bytes <= 0)
 	{
 		return enter_server_name();
@@ -498,13 +533,13 @@ bool get_server_name(void)
 		{
 			server = info = FALSE;
 
-			/* Save port */			
+			/* Save port */
 			ports[i] = atoi(ptr+1);
 		}
-		else if (*ptr != ' ') 		 
+		else if (*ptr != ' ')
 		{
 			server = TRUE;
-			
+
 			/* Save offset */
 			offsets[i] = ptr - buf;
 
@@ -514,26 +549,26 @@ bool get_server_name(void)
 		else
 		{
 			server = FALSE;
-			
+
 			/* Display notices */
-			sprintf(out_val, "%s", ptr);			
+			sprintf(out_val, "%s", ptr);
 		}
 
 		if (info) {
 			/* Strip off offending characters */
 			out_val[strlen(out_val) - 1] = '\0';
-	
+
 			/* Print this entry */
 			prt(out_val, y + 1, 1);
-			
+
 			/* One more entry */
 			if (server) i++;
 			y++;
 		}
-		
+
 		/* Go to next metaserver entry */
 		ptr += strlen(ptr) + 1;
-	
+
 		/* We can't handle more than 20 entries -- BAD */
 		if (i > 20) break;
 	}
@@ -563,7 +598,7 @@ bool get_server_name(void)
 
 	/* Extract server name */
 	sscanf(buf + offsets[j], "%s", server_name);
-	
+
 	/* Set port */
 	server_port = ports[j+1];
 

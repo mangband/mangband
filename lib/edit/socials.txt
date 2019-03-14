@@ -1,0 +1,384 @@
+# File: socials.txt
+
+
+# This file is used to initialize "socials" - simple role-playing
+# messages. 
+# A large portion of those messages was ported from CircleMUD 3.1:
+# http://www.circlemud.org/pub/CircleMUD/3.x/uncompressed/circle-3.1/lib/misc/socials
+
+#
+# This file fails silently on any parsing errors, so be careful.
+#
+
+# Z:<total number of socials in this file>
+# N:<distance>:<name>
+# L:<line>
+# F:<double-line>
+# E:<triple-line>
+
+# <distance> -- minimal distance to target
+#		0 to disable targeted, -1 is a "dir hack"
+# <line> -- an appropriate text message. Use "%s" for names
+# <double-line> -- transforms into 2 lines of text
+#	"$ yawn~." becomes "You yawn." and "%s yawns."
+# <triple-line> -- transforms into 3 lines of text
+#	"$ look~ at $." becomes "You look at %s.",
+#							"%s looks at %s.", and
+#							"%s looks at you."
+
+# Each social can contain up to 5 lines of text, defined by either
+# a chain of "L"s, or by "F" and/or "E", used in any combination.
+# First 2 lines (LL/F) are for argument-less actions,
+#   Line 1 specifies what player sees.
+#   Line 2 specifies what others around him see.
+# Next 3 lines (LLL/E) are for targeted actions. 
+#   Line 3 specifies what player sees.
+#   Line 2 specifies what others around him see.
+#   Line 3 specifies what his victim sees.
+
+# V -- version stamp (currently unused)
+
+# V:1.5.0
+
+Z:66
+
+N:5:accuse
+E:$ look~ accusingly at $.
+
+N:0:applaud
+F:$ give~ a round of applause.
+
+N:2:beg
+L:You beg the gods for mercy.
+L:The gods fall down laughing at %s's request for mercy.
+L:You desperately try to squeeze a few coins from %s.
+L:%s begs %s for a dime or two -- or twenty!
+L:%s begs you for money.
+
+N:0:blush
+L:Your cheeks are burning.
+L:%s blushes.
+
+N:5:bow
+F:$ bow~ deeply.
+E:$ bow~ before $.
+
+N:0:chuckle
+F:$ chuckle~ politely.
+
+#comb
+
+N:5:comfort
+L:Do you feel uncomfortable?
+E:$ comfort~ $.
+
+N:0:cough
+L:Yuck, try to cover your moth next time!
+L:%s coughs loudly.
+
+N:20:cringe
+L:You cringe in terror.
+L:%s cringes in terror!
+L:You cringe away from %s.
+L:%s cringes away from %s in mortal terror.
+L:%s cringes away from you.
+
+N:1:cry
+F:$ burst~ into tears.
+L:You cry on %s's shoulder.
+L:%s cries on %s's shoulder.
+L:%s cries on your shoulder.
+
+N:0:curtsey
+L:You curtsey to your audience.
+L:%s curtseys gracefully.
+
+#dance
+
+N:0:daydream
+L:You dream of better times.
+L:%s looks absent-minded, eyes staring into space.
+
+#drool
+
+N:1:embrace
+L:You reach, but come away empty.
+L:%s reaches out for an embrace, but no one is there.
+E:$ embrace~ $ warmly.
+
+N:0:frown
+L:Something is bothering you.
+L:%s frowns.
+
+N:5:fume
+L:You are outraged!
+L:%s grits teeth and fumes with rage.
+L:You stare at %s, fuming.
+L:%s stares at %s, fuming with rage.
+L:%s stares at you, fuming with rage!
+
+N:0:gasp
+F:$ gasp~ in astonishment.
+
+N:0:giggle
+F:$ giggle~.
+
+N:5:glare
+L:You glare at nothing in particular.
+L:%s glares around.
+L:You glare icily at %s.
+L:%s glares at %s.
+L:%s glares icily at you, you feel cold to your bones.
+
+N:5:greet
+L:
+L:
+E:$ respectfully greet~ $. 
+
+N:0:grin
+F:$ grin~ evilly.
+
+N:0:groan
+F:$ groan~ loudly.
+
+N:5:grovel
+F:$ grovel~ in the dirt.
+L:You grovel before %s.
+L:%s grovels in dirt before %s.
+L:%s grovels in dirt before you.
+
+N:0:growl
+L:Grrrrrrrrr...
+L:%s growls.
+
+N:0:hiccup
+L:*HIC*
+L:%s hiccups.
+
+N:1:hug
+E:$ hug~ $.
+
+N:1:kiss
+L:Isn't there someone you want to kiss?
+L:
+L:You give %s a long and passionate kiss, it seems to take forever...
+L:%s kisses %s passionately.
+L:%s gives you a long and passionate kiss, it seems to take forever...
+
+N:0:laugh
+F:$ fall~ down laughing.
+
+#lick
+#love
+
+N:0:moan
+L:You start to moan.
+L:%s starts moaning.
+
+N:0:nod
+F:$ nod~ solemnly.
+
+N:1:nudge
+L:
+L:
+L:You nudge %s with your elbow.
+L:%s nudges %s suggestively.
+L:%s nudges you suggestively. You two have an understanding.
+
+N:1:pat
+L:You pat yourself on your head, very reassuring.
+L:
+L:You %s's head.
+L:%s pats %s's head.
+L:%s pats you on your head.
+
+N:0:peer
+L:You peer around you, uncertain that what you see is actually true.
+L:%s peers around, having trouble seeing everything clearly.
+
+N:-1:point
+F:$ point~ %s.
+E:$ point~ at $.
+
+N:1:poke
+L:You poke yourself in the ribs, feeling very silly.
+L:
+E:$ poke~ $ in the ribs.
+
+N:1:ponder
+L:You ponder over matters as they appear to you at this moment.
+L:%s sinks deeply into own thoughts.
+
+N:0:pout
+L:Ah, don't take it so hard.
+L:%s pouts.
+
+N:5:pray
+L:You pray hard, feel righteous, and maybe a little foolish.
+L:%s begs and grovels to the powers that be.
+L:You crawl in the dust before %s.
+L:%s falls down and grovels in the dirt before %s.
+L:%s kisses the dirt at your feet.
+
+N:5:roll
+L:You roll your eyes in disgust.
+L:%s rolls eyes in disgust.
+L:You look at %s and roll your eyes in disgust.
+L:%s looks at %s in contempt and with disgust.
+L:%s stares at you, rolling eyes in disgust.
+
+N:0:scream
+L:ARRRRRRRRRGH!!!
+L:%s screams loudly!
+
+N:1:shake
+L:You shake your head.
+L:%s shakes head.
+L:You shake %s's hand.
+L:%s shakes %s's hand.
+L:%s shakes your hand.
+
+N:0:shiver
+L:Brrrrrrrr.
+L:%s shivers uncomfortably.
+
+N:0:shrug
+L:You shrug.
+L:%s shrugs helplessly.
+
+N:0:sigh
+L:You sigh.
+L:%s sighs loudly.
+
+N:2:slap
+L:
+L:
+L:You slap %s.
+L:%s slaps %s.
+L:You are slapped by %s.
+
+N:5:smile
+L:You smile happily.
+L:%s smiles happily.
+L:You smile at %s.
+L:%s beams a smile at %s.
+L:%s smiles at you.
+
+N:0:smirk
+F:$ smirk~.
+
+#snarl
+
+N:0:snicker
+F:$ snicker~ softly.
+
+N:0:sniff
+F:$ sniff~ sadly.
+
+N:1:snuggle
+L:
+L:
+L:You snuggle %s.
+L:%s snuggles up to %s.
+L:%s snuggles up to you.
+
+#spank
+
+N:5:spit
+L:You spit over your left shoulder.
+L:%s spits over own left shoulder.
+L:You spit on %s.
+L:%s spits in %s's face.
+L:%s spits in your face.
+
+N:2:squeeze
+E:$ squeeze~ $ fondly.
+
+N:5:stare
+F:$ stare~ at the sky.
+L:You stare dreamily at %s's eyes, completely losing oneself there.
+L:%s stares dreamily at %s.
+L:%s stares dreamily at you, completely lost in your eyes.
+
+N:0:steam
+L:You let out some steam.
+L:%s lets out a lot of steam, much to your relief.
+
+N:0:strut
+L:Strut your stuff.
+L:%s struts proudly.
+
+N:0:sulk
+L:You sulk.
+L:%s sulks in the corner.
+
+#tackle
+#tango
+
+N:20:taunt
+L:
+L:
+L:You taunt %s, to your own delight.
+L:%s taunts %s rather insultingly.
+L:%s taunts you. It really hurts your feelings.
+
+N:5:thank
+E:$ thank~ $ heartily.
+
+N:20:think
+L:You think about life, the universe and everything.
+L:%s sinks deeply into thought about the meaning of life.
+L:You think about what purpose %s has in relation to your part of life.
+L:%s stops and thinks about %s, completely lost in thought.
+L:You ears burn as %s thinks about you.. you wonder what about.
+
+N:2:tickle
+L:You tickle yourself, how funny!
+L:
+L:You tickle %s.
+L:%s tickles %s.
+L:%s tickles you - hee hee hee.
+
+N:5:toke
+F:$ take~ a hit from the pipe.
+L:You blow the smoke in %s's face.
+L:%s takes a hit and blows the smoke out in %s's face.
+L:%s takes a hit and blows the smoke out in your face.
+
+#twiddle
+
+N:20:wave
+L:You wave.
+L:%s waves happily.
+L:You wave goodbye to %s.
+L:%s waves goodbye to %s.
+L:%s waves goodbye to you.  Have a good journey.
+
+N:0:whine
+L:You whine pitifully.
+L:%s whines pitifully about the whole situation.
+
+N:0:whistle
+L:You whistle appreciatively.
+L:%s whistles appreciatively.
+
+#wiggle
+
+N:5:wink
+L:Have you got something in your eye?
+L:%s winks suggestively.
+L:You wink suggestively at %s.
+L:%s winks at %s.
+L:%s winks suggestively at you.
+
+N:5:worship
+L:You find yourself head-down in the dirt, worshiping.
+L:%s starts worshiping nothing at all.
+L:You fall to your knees and worship %s deeply.
+L:%s falls down, worshiping %s with uncanny dedication.
+L:%s kneels before you in solemn worship.
+
+N:0:yawn
+F:$ yawn~.
+
+#yodel

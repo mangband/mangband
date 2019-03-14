@@ -140,11 +140,31 @@
 # endif
 #endif
 
-
+/*
+ * HACK: Extract some configure-like defines from the compiler
+ */
+#ifdef WINDOWS
+#ifndef _WIN32_WINNT_VISTA
+#define _WIN32_WINNT_VISTA 0x0600 /* _WIN32_WINNT_LONGHORN */
+#endif
+#if _WIN32_WINNT >= _WIN32_WINNT_VISTA
+#define HAVE_INET_NTOP
+#endif
+#if defined (_MSC_VER) /* Any VS */
+#define HAVE_MEMSET
+#define HAVE_STRICMP
+#define HAVE_STRDUP
+#define HAVE_STRNLEN
+#endif
+#if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
+#define HAVE_INTTYPES_H
+#define HAVE_INET_NTOP
+#endif
+#endif
 
 /*
  * OPTION: Define "L64" if a "long" is 64-bits.  See "h-types.h".
- * (automatic for amd64 with gcc) 
+ * (automatic for amd64 with gcc)
  */
 #if defined(__alpha) || defined(__amd64__)
 # define L64
@@ -202,7 +222,8 @@
 # undef PATH_SEP
 # define PATH_SEP ":"
 #endif
-#if defined(WINDOWS) || defined(WINNT)
+#if defined(WINDOWS)
+# undef DEFAULT_PATH
 # define DEFAULT_PATH ".\\lib\\"
 # undef PATH_SEP
 # define PATH_SEP "\\"
@@ -249,48 +270,20 @@
 #endif
 
 
-/*
- * OPTION: Define "HAS_STRICMP" only if "stricmp()" exists.
- * Note that "stricmp()" is not actually used by Angband.
- */
-/* #define HAS_STRICMP */
-
-/*
- * Linux has "stricmp()" with a different name
- */
-#if defined(linux)
-# define HAS_STRICMP
-# define stricmp strcasecmp
-#endif
-
-#ifdef WIN32
-#define strcasecmp stricmp
-#endif
 
 
 /*
- * OPTION: Define "HAS_MEMSET" only if "memset()" exists.
- * Note that the "memset()" routines are used in "z-virt.h"
- */
-#define HAS_MEMSET
-
-
-/*
- * OPTION: Define "HAS_USLEEP" only if "usleep()" exists.
+ * OPTION: Define "HAVE_USLEEP" only if "usleep()" exists.
  * Note that this is only relevant for "SET_UID" machines
  */
+#ifndef HAVE_CONFIG_H
 #ifdef SET_UID
 # if !defined(ultrix) && !defined(SOLARIS) && \
      !defined(SGI) && !defined(ISC) && !defined(USE_EMX)
-#  define HAS_USLEEP
+#  define HAVE_USLEEP
 # endif
 #endif
-
-/*
- * Several Windows compilers don't include EWOULDBLOCK
- */
-#ifdef WINDOWS
-#define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
+
 
 #endif

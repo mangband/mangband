@@ -1,12 +1,25 @@
-# Window.prf:  Set the "usage" on the various windows
+# Window.prf:  Set the 'usage' on the various windows
 
 
 # Usage: W:<window number>:<usage number>
-#
+# 
 # Valid usage numbers:
-#   0 - Inventory    1 - Equipment   3 - Character sheet
-#   6 - Messages
+# 	0 - Display inven/equip
+# 	1 - Display equip/inven
+# 	2 - Display player (basic)
+# 	3 - Display player (extra)
+# 	4 - Display player (compact)
+# 	6 - Display messages
+# 	11 - Display status
+# 	12 - Display chat messages
 
+
+W:0:4
+W:0:11
 W:1:6
 W:2:1
 W:3:0
+W:4:12
+W:5:4
+W:6:11
+W:7:3

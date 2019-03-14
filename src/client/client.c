@@ -7,15 +7,17 @@
  * "c-init.c".
  */
 
-#include "angband.h"
+#if !defined(USE_WIN) && !defined(USE_CRB)
+#include "c-angband.h"
 
+#ifdef USE_SDL
+/* This is needed on some platforms to replace main via dark magic */
+/* TODO: See if it breaks anything. Also, where is our ON_OSX define? */
+#include <SDL.h>
+#endif
 
-static void read_mangrc(void)
+static void read_credentials(void)
 {
-	char config_name[100];
-	FILE *config;
-	char buf[1024];
-
 #ifdef SET_UID
 	int player_uid;
 	struct passwd *pw;
@@ -24,27 +26,6 @@ static void read_mangrc(void)
 #ifdef WINDOWS
 	char buffer[20] = {'\0'};
 	DWORD bufferLen = sizeof(buffer);
-#endif
-
-	/* Try to find home directory */
-	if (getenv("HOME"))
-	{
-		/* Use home directory as base */
-		strcpy(config_name, getenv("HOME"));
-	}
-
-	/* Otherwise use current directory */
-	else
-	{
-		/* Current directory */
-		strcpy(config_name, ".");
-	}
-
-	/* Append filename */
-#ifdef USE_EMX
-	strcat(config_name, "\\mang.rc");
-#else
-	strcat(config_name, "/.mangrc");
 #endif
 
 	/* Initial defaults */
@@ -61,103 +42,53 @@ static void read_mangrc(void)
 	if ((pw = getpwuid(player_uid)))
 	{
 		/* Pull login id */
-		strcpy(nick, pw->pw_name);
+		my_strcpy(nick, pw->pw_name, MAX_CHARS);
 
 		/* Cut */
-		nick[16] = '\0';
+		nick[MAX_NAME_LEN] = '\0';
 
 		/* Copy to real name */
-		strcpy(real_name, nick);
+		my_strcpy(real_name, nick, MAX_CHARS);
 	}
 #endif
 
-      /* Get user name from WINDOWS machine! */
+	/* Get user name from WINDOWS machine! */
 #ifdef WINDOWS
-	 if ( GetUserName(buffer, &bufferLen) ) {
-
-		 /* Cut */
-		buffer[16] = '\0';
+	if ( GetUserName(buffer, &bufferLen) ) 
+	{
+		/* Cut */
+		buffer[MAX_NAME_LEN] = '\0';
 		
 		/* Copy to real name */
-  		strcpy(real_name, buffer);
-	 }
+		my_strcpy(real_name, buffer, MAX_CHARS);
+	}
 #endif
 
-
-	/* Attempt to open file */
-	if ((config = fopen(config_name, "r")))
-	{
-		/* Read until end */
-		while (!feof(config))
-		{
-			/* Get a line */
-			fgets(buf, 1024, config);
-
-			/* Skip comments, empty lines */
-			if (buf[0] == '\n' || buf[0] == '#')
-				continue;
-
-			/* Name line */
-			if (!strncmp(buf, "nick", 4))
-			{
-				char *name;
-
-				/* Extract name */
-				name = strtok(buf, " =\t\n");
-				name = strtok(NULL, " =\t\n");
-
-				/* Default nickname */
-				if ( name ) strcpy(nick, name);
-			}
-
-			/* Password line */
-			if (!strncmp(buf, "pass", 4))
-			{
-				char *p;
-
-				/* Extract password */
-				p = strtok(buf, " =\t\n");
-				p = strtok(NULL, " =\t\n");
-
-				/* Default password */
-				if ( p ) strcpy(pass, p);
-			}
-
-			/* Library Path line */
-			if (!strncasecmp(buf, "libdir", 6))
-			{
-				char *l;
-
-				/* Extract dir */
-				l = strtok(buf, " =\t\n");
-				l = strtok(NULL, " =\t\n");
-
-				/* Default dir */
-				ANGBAND_DIR = string_make(l);
-			}
-
-			/*** Everything else is ignored ***/
-		}
-	}
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	bool done = FALSE;
 
 	/* Save the program name */
 	argv0 = argv[0];
 
-	/* Attempt to read default name/password from mangrc file */
-	read_mangrc();
+	/* Save command-line arguments */
+	clia_init(argc, (const char**)argv);
+
+	/* Client Config-file */
+	conf_init(NULL);
+
+	/* Setup the file paths */
+	init_stuff();
 
 	/* Attempt to initialize a visual module */
 #ifdef USE_SDL
 	/* Attempt to use the "main-sdl.c" support */
 	if (!done)
 	{
-		extern errr init_sdl(int argc, char **argv);
-		if (0 == init_sdl(argc,argv)) done = TRUE;
+		extern errr init_sdl(void);
+		if (0 == init_sdl()) done = TRUE;
 		if (done) ANGBAND_SYS = "sdl";
 	}
 #endif
@@ -176,8 +107,8 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-x11.c" support */
 	if (!done)
 	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
+		extern errr init_x11(int argc, char **argv);
+		if (0 == init_x11(argc,argv)) done = TRUE;
 		if (done) ANGBAND_SYS = "x11";
 	}
 #endif
@@ -215,37 +146,17 @@ int main(int argc, char **argv)
 	/* No visual module worked */
 	if (!done)
 	{
-		Net_cleanup(FALSE);
 		printf("Unable to initialize a display module!\n");
 		exit(1);
 	}
 
-#ifdef UNIX_SOCKETS
-	/* Always call with NULL argument */
-	client_init(NULL);
-#else
+	/* Attempt to read default name/real name from OS */
+	read_credentials();
 
-	/* using SDL, pass command keys on (ugly hack)
-		after we work out some config mechanisms,
-		it'll be possible to clear this all up	 */
-
-	#ifdef USE_SDL
-		client_init(NULL);
-	#else
-		if (argc == 2)
-		{
-			/* Initialize with given server name */
-			client_init(argv[1]);
-		}
-		else
-		{
-			/* Initialize and query metaserver */
-			client_init(NULL);
-		}
-	#endif
-
-#endif
-
+	/** Initialize client and run main loop **/
+	client_init();
 
 	return 0;
 }
+
+#endif

@@ -12,9 +12,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /* This function takes the players x,y level world coordinate and uses it to

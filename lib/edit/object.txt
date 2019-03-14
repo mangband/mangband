@@ -69,7 +69,7 @@
 
 # Version stamp (required)
 
-V:1.4.0
+V:1.5.0
 
 
 ##### Non-kind (contains the "pile" picture) #####
@@ -1558,7 +1558,11 @@ D: if you are currently in one.
 D:  This inflicts 2d8 points of damage on any light-sensitive creatures
 D: within the radius of the spell.
 
-## XXX 182 XXX ##
+N:182:House Creation
+G:?:d
+I:70:49:0
+W:99:0:5:1000000
+A:99/40
 
 ## XXX 183 XXX ##
 
@@ -3563,8 +3567,13 @@ P:0:1d2:0:0:0
 A:5/4
 F:EASY_KNOW
 
-## XXX 399 XXX ##
-
+N:399:& House Foundation Stone~
+G:~:v
+I:3:9:0
+W:99:0:200:0
+P:0:1d2:0:0:0
+A:99/40
+F:EASY_KNOW
 
 ##### Dragon Scale Mail #####
 
@@ -3703,7 +3712,7 @@ P:0:1d1:0:0:0
 F:EASY_KNOW
 D:It inflicts 5000 points of damage.
 D:  Death can only be avoided if you have magical invulnerability, which
-D: just happens to be unavailable in the current version of Angband.
+D: just happens to be unavailable in the current version of MAngband.
 
 N:416:Ruination
 G:!:d
@@ -4224,31 +4233,37 @@ N:522:& Potato~
 G:,:u
 I:80:20:1500
 W:0:0:2:1
+D:It provides nourishment for about 750 turns under normal conditions.
 
 N:523:& Head~ of Cabbage
 G:,:G
 I:80:21:1500
 W:0:0:3:1
+D:It provides nourishment for about 750 turns under normal conditions.
 
 N:524:& Carrot~
 G:,:o
 I:80:22:500
 W:0:0:1:2
+D:It provides nourishment for about 250 turns under normal conditions.
 
 N:525:& Beet~
 G:,:r
 I:80:23:750
 W:0:0:1:2
+D:It provides nourishment for about 375 turns under normal conditions.
 
 N:526:& Squash
 G:,:y
 I:80:24:2000
 W:0:0:3:1
+D:It provides nourishment for about 1000 turns under normal conditions.
 
 N:527:& Ear~ of Corn
 G:`:y
 I:80:25:1500
 W:0:0:2:2
+D:It provides nourishment for about 750 turns under normal conditions.
 
 ##### XXX 528 XXX
 
@@ -4259,6 +4274,7 @@ G:~:b
 I:39:2:10000
 W:20:0:10:2000
 A:20/20
+F:EASY_KNOW | IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 D:It is equippable as a light source and grants you permanent light
 D: with a radius of 2 squares.
 
@@ -4267,6 +4283,7 @@ G:~:B
 I:39:3:10000
 W:40:0:10:6000
 A:40/10
+F:EASY_KNOW | IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 D:It is equippable as a light source and grants you permanent light
 D: with a radius of 3 squares.
 

@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 
@@ -197,12 +195,21 @@ static cptr do_cmd_feeling_text[11] =
  */
 void do_cmd_feeling(int Ind)
 {
+	player_type *p_ptr = Players[Ind];
+	
 	/* Verify the feeling */
-	if (feeling < 0) feeling = 0;
-	if (feeling > 10) feeling = 10;
+	if (p_ptr->feeling < 0) p_ptr->feeling = 0;
+	if (p_ptr->feeling > 10) p_ptr->feeling = 10;
+
+	/* No useful feeling in town */
+	if (!p_ptr->dun_depth)
+	{
+		msg_print(Ind, "Looks like a typical town.");
+		return;
+	}
 
 	/* Display the feeling */
-	msg_print(Ind, do_cmd_feeling_text[feeling]);
+	msg_print(Ind, do_cmd_feeling_text[p_ptr->feeling]);
 }
 
 
@@ -236,6 +243,58 @@ void do_cmd_save_screen(void)
 
 
 
+/* MAngband-specific: show list of owned houses */
+void display_houses(int Ind, char query)
+{
+	player_type *p_ptr = Players[Ind];
+	int i, j = 0;
+	char buf[160];
+	
+	int sy, sx;
+	char dpt[8];
+
+	if (query == ESCAPE) return;
+
+	/* Prepare */
+	text_out_init(Ind);
+	text_out("Owned Houses");
+	text_out("\n");
+	text_out("\n");
+
+	for (i = 0; i < num_houses; i++) 
+	{
+		if (house_owned_by(Ind, i)) 
+		{
+			if (j++ < p_ptr->interactive_line) continue;
+			
+			dpt[0] = '\0';
+			wild_cat_depth(houses[i].depth, &dpt[0]);
+			
+			sx = (houses[i].x_1 / SCREEN_WID) * 2;
+			sy = (houses[i].y_1 / SCREEN_HGT) * 2;
+			
+			sprintf(buf, "  %c) House %d %s %s, sector [%d,%d]", index_to_label(j-1), j, 
+					(!houses[i].depth ? "in" : "at"), dpt, sy, sx);
+			text_out(buf);
+			text_out("\n");
+		}
+	}
+	if (!j)
+		text_out("You do not own any.\n");
+
+	/* Done */
+	text_out_done();
+	
+	/* Send */
+	Send_term_info(Ind, NTERM_CLEAR, 0);
+	for (i = 0; i < MAX_TXT_INFO; i++)
+	{
+		if (i >= p_ptr->last_info_line) break;
+		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+	}
+	Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0);
+	
+}
 
 /*
  * Check the status of "artifacts"
@@ -253,6 +312,7 @@ void do_cmd_save_screen(void)
  */
 void do_cmd_check_artifacts(int Ind, int line)
 {
+	player_type *p_ptr = Players[Ind];
 	int i, j, k, z, Depth, y, x;
 
 	FILE *fff;
@@ -261,8 +321,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 	char base_name[80];
 
-	bool okay[MAX_A_IDX];
-
+	bool *okay;
+	bool *highlights;
+	char *owners;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -276,18 +337,27 @@ void do_cmd_check_artifacts(int Ind, int line)
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
 	}
+	
+	/* Init Array */
+	C_MAKE(okay, z_info->a_max, bool);
+	C_MAKE(highlights, z_info->a_max, bool);
+	C_MAKE(owners, z_info->a_max * 80, bool);
 
 	/* Scan the artifacts */
-	for (k = 0; k < MAX_A_IDX; k++)
+	for (k = 0; k < z_info->a_max; k++)
 	{
 		artifact_type *a_ptr = &a_info[k];
 
 		/* Default */
 		okay[k] = FALSE;
+		highlights[k] = FALSE;
+		owners[k * 80] = '\0';
 
 		/* Skip "empty" artifacts */
 		if (!a_ptr->name) continue;
 
+		/* Hack -- allow found artifacts */
+		if (!p_ptr->a_info[k])
 		/* Skip "uncreated" artifacts */
 		if (!a_ptr->cur_num) continue;
 
@@ -316,8 +386,11 @@ void do_cmd_check_artifacts(int Ind, int line)
 					/* Ignore non-artifacts */
 					if (!artifact_p(o_ptr)) continue;
 
+					/* Note location */
+					my_strcpy(&owners[o_ptr->name1 * 80], format(" (%d ft)", Depth * 50), 80);
+
 					/* Ignore known items */
-					if (object_known_p(Ind, o_ptr)) continue;
+					if (object_known_p(p_ptr, o_ptr)) continue;
 
 					/* Note the artifact */
 					okay[o_ptr->name1] = FALSE;
@@ -329,12 +402,12 @@ void do_cmd_check_artifacts(int Ind, int line)
 	/* Check the inventories */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		player_type *p_ptr = Players[i];
-		
+		player_type *q_ptr = Players[i];
+
 		/* Check this guy's */
-		for (j = 0; j < INVEN_PACK; j++)
+		for (j = 0; j < INVEN_TOTAL; j++)
 		{
-			object_type *o_ptr = &p_ptr->inventory[j];
+			object_type *o_ptr = &q_ptr->inventory[j];
 
 			/* Ignore non-objects */
 			if (!o_ptr->k_idx) continue;
@@ -342,18 +415,26 @@ void do_cmd_check_artifacts(int Ind, int line)
 			/* Ignore non-artifacts */
 			if (!artifact_p(o_ptr)) continue;
 
+			/* Note owner */
+			my_strcpy(&owners[o_ptr->name1 * 80], format(" (%s)", q_ptr->name), 80);
+
+			/* Belongs to the target player and is known */
+			if (q_ptr->id == p_ptr->id) highlights[o_ptr->name1] = TRUE;
+
 			/* Ignore known items */
-			if (object_known_p(Ind, o_ptr)) continue;
+			if (object_known_p(q_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;
+			highlights[o_ptr->name1] = FALSE;
 		}
 	}
 
 	/* Scan the artifacts */
-	for (k = 0; k < MAX_A_IDX; k++)
+	for (k = 0; k < z_info->a_max; k++)
 	{
 		artifact_type *a_ptr = &a_info[k];
+		char highlite = 'D';
 
 		/* List "dead" ones */
 		if (!okay[k]) continue;
@@ -379,15 +460,31 @@ void do_cmd_check_artifacts(int Ind, int line)
 			object_desc_store(Ind, base_name, &forge, FALSE, 0);
 		}
 
+		/* Dungeon Masters see extra info */
+		if (!dm_flag_p(p_ptr, ARTIFACT_CONTROL))
+		{
+			owners[k * 80] = '\0';
+		}
+
+		/* Determine if it's relevant to the player asking */
+		if (p_ptr->a_info[k]) highlite = 's';
+		if (p_ptr->a_info[k] > cfg_preserve_artifacts) highlite = 'W';
+		if (highlights[k]) highlite = 'w';
+
 		/* Hack -- Build the artifact name */
-		fprintf(fff, "     The %s\n", base_name);
+		fprintf(fff, "%c     The %s%s\n", highlite, base_name, &owners[k * 80]);
 	}
+
+	/* Free array */
+	FREE(okay);
+	FREE(highlights);
+	FREE(owners);
 
 	/* Close the file */
 	my_fclose(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Artifacts Seen", line, 0);
+	show_file(Ind, file_name, "Artifacts Seen", line, 1);
 
 	/* Remove the file */
 	fd_kill(file_name);
@@ -408,7 +505,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	int k, l, i, space, namelen, total = 0, width = 78;
 	FILE *fff;
 	char file_name[1024], buf[1024];
-	int idx[MAX_R_IDX];
+	u16b *idx;
 	monster_race *r_ptr, *curr_ptr;
 
 	/* Temporary file */
@@ -416,7 +513,7 @@ void do_cmd_check_uniques(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
-	
+
 	/* Paranoia */
 	if (!fff) 
 	{
@@ -424,8 +521,11 @@ void do_cmd_check_uniques(int Ind, int line)
 		return;
 	}
 
+	/* Allocate the "idx" array */
+	C_MAKE(idx, z_info->r_max, u16b);
+
 	/* Scan the monster races */
-	for (k = 1; k < MAX_R_IDX-1; k++)
+	for (k = 1; k < z_info->r_max; k++)
 	{
 		r_ptr = &r_info[k];
 
@@ -433,7 +533,7 @@ void do_cmd_check_uniques(int Ind, int line)
 		if (r_ptr->flags1 & RF1_UNIQUE)
 		{
 			/* Only display "known" uniques */
-			if (cheat_know || r_ptr->r_sights)
+			if ((Players[Ind]->dm_flags & DM_SEE_MONSTERS) || r_ptr->r_sights)
 			{
 				l = 0;
 				while (l < total)
@@ -512,7 +612,10 @@ void do_cmd_check_uniques(int Ind, int line)
 
 		}
 	}
-	else fprintf(fff, "wNo uniques are witnessed so far.\n");
+	else fprintf(fff, "%s", "wNo uniques are witnessed so far.\n");
+
+	/* Free the "ind" array */
+	FREE(idx);
 
 	/* Close the file */
 	my_fclose(fff);
@@ -544,9 +647,9 @@ void do_cmd_check_players(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
-	
+
 	/* Paranoia */
-	if (!fff) 
+	if (!fff)
 	{
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
@@ -563,9 +666,9 @@ void do_cmd_check_players(int Ind, int line)
 			continue;
 
 		/* don't display the dungeon master if the secret_dungeon_master
-		 * option is set 
+		 * option is set (unless you're a DM yourself)
 		 */
-        if (!strcmp(q_ptr->name,cfg_dungeon_master) && (cfg_secret_dungeon_master)) continue;
+        if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
 
 		/*** Determine color ***/
 
@@ -576,13 +679,13 @@ void do_cmd_check_players(int Ind, int line)
 		else if (p_ptr->party && p_ptr->party == q_ptr->party) attr = 'B';
 
 		/* Print hostile players in red */
-		else if (check_hostile(Ind, k)) attr = 'r';
+		else if (cfg_pvp_notify == -1 || check_hostile(Ind, k) || (cfg_pvp_notify && check_hostile(k, Ind))) attr = 'r';
 
 		/* Output color byte */
 		fprintf(fff, "%c", attr);
 
 		/* Print a message */
-		if(q_ptr->no_ghost)
+		if(option_p(q_ptr, NO_GHOST))
 		{
 			fprintf(fff, "     %s the Brave %s %s (Level %d, %s)",
 			q_ptr->name, p_name + p_info[q_ptr->prace].name,
@@ -598,17 +701,17 @@ void do_cmd_check_players(int Ind, int line)
 		}
 
 
-		/* Print extra info if these people are in the same party */
+		/* Print extra info if these people are not 'red' aka hostile */
 		/* Hack -- always show extra info to dungeon master */
-		if ((p_ptr->party == q_ptr->party && p_ptr->party) || (!strcmp(p_ptr->name,cfg_dungeon_master)))
+		if ((attr != 'r' && cfg_pvp_hostility > 0) || (p_ptr->dm_flags & DM_SEE_PLAYERS))
 		{
 			fprintf(fff, " at %d ft", q_ptr->dun_depth * 50);
 		}
 
 		/* Newline */
 		// -AD- will this work?
-		fprintf(fff, "\n");
-		fprintf(fff, "         %s@%s\n", q_ptr->realname, q_ptr->hostname);
+		fprintf(fff, "%s", "\n");
+		fprintf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
 
@@ -624,21 +727,20 @@ void do_cmd_check_players(int Ind, int line)
 
 
 /*
- * Scroll through *ID* or Self Knowledge information.
+ * Display known objects
  */
-void do_cmd_check_other(int Ind, int line)
+static void do_cmd_knowledge_object(int Ind, int line)
 {
-	player_type *p_ptr = Players[Ind];
-
-	int n = 0;
+	int k;
 
 	FILE *fff;
 
+	char o_name[80];
+
 	char file_name[1024];
 
+	player_type *p_ptr = Players[Ind];
 
-	/* Make sure the player is allowed to */
-	if (!p_ptr->special_file_type) return;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -646,32 +748,501 @@ void do_cmd_check_other(int Ind, int line)
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
 
-	/* Paranoia */
-	if (!fff) 
+	/* Failure */
+	if (!fff) return;
+
+	/* Scan the object kinds */
+	for (k = 1; k < z_info->k_max; k++)
 	{
-		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
-		return;
-	}
+		object_kind *k_ptr = &k_info[k];
 
-	/* Scan "info" */
-	while (n < 128 && p_ptr->info[n] && strlen(p_ptr->info[n]))
-	{
-		/* Dump a line of info */
-		fprintf(fff, "%s" ,p_ptr->info[n]);
+		/* Hack -- skip artifacts */
+		if (k_ptr->flags3 & (TR3_INSTA_ART)) continue;
 
-		/* Newline */
-		fprintf(fff, "\n");
+		/* List known flavored objects */
+		if (k_ptr->flavor && p_ptr->obj_aware[k])
+		{
+			object_type *i_ptr;
+			object_type object_type_body;
+			char flav[80];
 
-		/* Next line */
-		n++;
+			/* Get local object */
+			i_ptr = &object_type_body;
+
+			/* Create fake object */
+			object_prep(i_ptr, k);
+
+			/* Describe the object */
+			object_desc(Ind, o_name, i_ptr, FALSE, 0);
+			/*object_desc_spoil(o_name, sizeof(o_name), i_ptr, FALSE, 0);*/
+
+			/* HACK -- Append flavour */
+			strcat(o_name, " (");
+			flavor_copy(flav, k_ptr->flavor, i_ptr); 
+			strcat(o_name, flav);
+			strcat(o_name, ")");
+
+			/* Print a message */
+			fprintf(fff, "     %s\n", o_name);
+		}
 	}
 
 	/* Close the file */
 	my_fclose(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Extra Info", line, 0);
+	show_file(Ind, file_name, "Known Objects", line, 0);
 
 	/* Remove the file */
 	fd_kill(file_name);
+}
+
+
+
+/*
+ * Display kill counts
+ */
+static void do_cmd_knowledge_kills(int Ind, int line)
+{
+	int n, i;
+
+	FILE *fff;
+
+	char file_name[1024];
+
+	u16b *who;
+	u16b why = (SORT_EASY);
+
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Temporary file */
+	if (path_temp(file_name, 1024)) return;
+
+	/* Open a new file */
+	fff = my_fopen(file_name, "w");
+
+	/* Failure */
+	if (!fff) return;
+
+
+	/* Allocate the "who" array */
+	C_MAKE(who, z_info->r_max, u16b);
+
+	/* Collect matching monsters */
+	for (n = 0, i = 1; i < z_info->r_max - 1; i++)
+	{
+		monster_race *r_ptr = &r_info[i];
+		monster_lore *l_ptr = p_ptr->l_list + i;
+
+		/* Require non-unique monsters */
+		if (r_ptr->flags1 & RF1_UNIQUE) continue;
+
+		/* Collect "appropriate" monsters */
+		if (l_ptr->pkills > 0) who[n++] = i;
+	}
+
+	/* Select the sort method */
+	ang_sort_comp = ang_sort_comp_monsters;
+	ang_sort_swap = ang_sort_swap_u16b;
+
+	/* Sort by kills (and level) */
+	ang_sort(Ind, who, &why, n);
+
+	/* Print the monsters (highest kill counts first) */
+	for (i = n - 1; i >= 0; i--)
+	{
+		monster_race *r_ptr = &r_info[who[i]];
+		monster_lore *l_ptr = p_ptr->l_list + who[i];
+
+		/* Print a message */
+		fprintf(fff, "     %-40s  %5d\n",
+		        (r_name + r_ptr->name), l_ptr->pkills);
+	}
+
+	/* Free the "who" array */
+	FREE(who);
+
+	/* Close the file */
+	my_fclose(fff);
+
+	/* Display the file contents */
+	show_file(Ind, file_name, "Kill counts", line, 0);
+
+	/* Remove the file */
+	fd_kill(file_name);
+}
+
+void do_cmd_knowledge_history(int Ind, int line)
+{
+	FILE *fff;
+
+	char file_name[1024];
+
+	player_type *p_ptr = Players[Ind];
+
+
+	/* Temporary file */
+	if (path_temp(file_name, 1024)) return;
+
+	/* Open a new file */
+	fff = my_fopen(file_name, "w");
+
+	/* Failure */
+	if (!fff) return;
+
+
+	/* Dump character history */
+	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
+	{
+		history_event *evt;
+		fprintf(fff, "%s", "Time       Depth   CLev  Event\n");
+		//fprintf(fff, "           Level   Level\n\n");
+		for(evt = p_ptr->charhist; evt; evt = evt->next)
+		{
+			fprintf(fff, "%s\n", format_history_event(evt));
+		}
+		fprintf(fff, "%s", "\n\n");
+	}
+
+	/* Close the file */
+	my_fclose(fff);
+
+	/* Display the file contents */
+	show_file(Ind, file_name, "Character History", line, 0);
+
+	/* Remove the file */
+	fd_kill(file_name);
+}
+
+
+
+/*
+ * Scroll through *ID* or Self Knowledge information.
+ */
+void do_cmd_check_other(player_type *p_ptr, int line)
+{
+	int i, hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT];
+
+	/* Make sure the player is allowed to */
+	if (!p_ptr->special_file_type) return;
+
+	/* Dump the next N lines */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = line; i < line + hgt; i++)
+	{
+		/* (Unless we're done) */
+		if (i > p_ptr->last_info_line) break;
+
+		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
+	}
+	/* Browse or popup that data remotely */
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_ICKY, 0);//line);
+
+}
+
+void common_peruse(player_type *p_ptr, char query)
+{
+	switch (query) {
+		case 0:case '7': 
+			p_ptr->interactive_line = 0;
+			break;
+		case '2':case '\n':case '\r':
+			p_ptr->interactive_line++;
+			break;
+		case ' ':case '3':
+			p_ptr->interactive_line += 20;
+			break;
+		case '9':
+			p_ptr->interactive_line -= 20;
+			break;
+		case '8':case '=':
+			p_ptr->interactive_line--;
+			break;
+		case '-':
+			p_ptr->interactive_line -= 10;
+			break;
+		case ESCAPE:
+			p_ptr->special_file_type = SPECIAL_FILE_NONE;
+			break;
+	}
+	if (p_ptr->interactive_line < 0) 
+		p_ptr->interactive_line = 0;
+}
+
+void special_file_peruse(player_type *p_ptr, int type, char query)
+{
+	int Ind;
+	int next = p_ptr->interactive_next;
+	int i;
+
+	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
+	{
+#ifdef DEBUG	
+		plog(format("Player %s attempted to do special_file_peruse too early"));
+#endif
+		return;
+	}
+	Ind = Get_Ind[p_ptr->conn];
+
+	/* We're just starting. Reset counter */
+	if (!query)
+	{
+		p_ptr->interactive_line = 0;
+		p_ptr->interactive_next = -1;
+		next = 0;
+	}
+	/* We're done. */
+	else if (query == ESCAPE) return;
+	/* Process query */
+	else next = file_peruse_next(p_ptr, query, next);
+
+	/* Update file */
+	if (next != p_ptr->interactive_next)
+	{
+		p_ptr->interactive_next = next;
+		switch (type)
+		{
+			case SPECIAL_FILE_UNIQUE:	do_cmd_check_uniques(Ind, next); 	break;
+			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(Ind, next);	break;
+			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(Ind, next);	break;
+			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(Ind, next);	break;
+			case SPECIAL_FILE_KILL:		do_cmd_knowledge_kills(Ind, next);	break;
+			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);break;
+			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
+		}
+		/* Send *everything* to client */
+		send_term_info(p_ptr, NTERM_CLEAR, 0);
+		for (i = 0; i < p_ptr->last_info_line + 1; i++)
+		{
+			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
+		}
+		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
+	}
+	/* Instruct client to browse locally */
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
+}
+
+void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
+{
+	switch (type)
+	{
+		case SPECIAL_FILE_NONE:
+			p_ptr->special_file_type = FALSE;
+			break;
+		case SPECIAL_FILE_UNIQUE:
+		case SPECIAL_FILE_ARTIFACT:
+		case SPECIAL_FILE_PLAYER:
+		case SPECIAL_FILE_OBJECT:
+		case SPECIAL_FILE_KILL:
+		case SPECIAL_FILE_HISTORY:
+		case SPECIAL_FILE_SCORES:
+			special_file_peruse(p_ptr, type, query);
+			break;
+		case SPECIAL_FILE_OTHER:
+			common_peruse(p_ptr, query);
+			if (p_ptr->interactive_line > p_ptr->last_info_line)
+				p_ptr->interactive_line = p_ptr->last_info_line;
+			do_cmd_check_other(p_ptr, p_ptr->interactive_line);
+			break;
+		case SPECIAL_FILE_HELP:
+			common_file_peruse(p_ptr, query);
+			do_cmd_check_other(p_ptr, p_ptr->interactive_line - p_ptr->interactive_next);
+			break;
+		case SPECIAL_FILE_HOUSES:
+			display_houses(Get_Ind[p_ptr->conn], query);
+			break;
+		case SPECIAL_FILE_KNOWLEDGE:
+			do_cmd_knowledge(p_ptr, query);
+			break;
+		case SPECIAL_FILE_MASTER:
+			do_cmd_dungeon_master(Get_Ind[p_ptr->conn], query);
+			break;
+		case SPECIAL_FILE_INPUT:
+			do_cmd_interactive_input(p_ptr, query);
+			break;
+	}
+}
+
+void do_cmd_knowledge(player_type *p_ptr, char query)
+{
+	int Ind;
+	bool changed = FALSE;
+	int i;
+	
+	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
+	{
+#ifdef DEBUG	
+		debug(format("Player %s attempted to get knowledge too early", p_ptr->name));
+#endif
+		return;
+	}
+	Ind = Get_Ind[p_ptr->conn];
+
+
+	/* Display */
+	if (query == 0)
+	{
+		/* Prepare */
+		text_out_init(Ind);
+		
+		/* Ask for a choice */
+		text_out(" \n");
+		text_out(" \n");
+		text_out(" \n");
+		text_out("Display current knowledge\n");
+		text_out(" \n");
+
+		/* Give some choices */
+		text_out("    (1) Display known artifacts\n");
+		text_out("    (2) Display known uniques\n");
+		text_out("    (3) Display known objects\n");
+		text_out("    (4) Display hall of fame\n");
+		text_out("    (5) Display kill counts\n");
+		text_out("    (6) Display owned houses\n");
+		text_out("    (7) Display character history\n");
+		text_out("    (8) Display self-knowledge\n");
+
+		/* Prompt */
+		text_out(" \n");
+		text_out("Command: \n");
+
+		text_out_done();
+
+		/* Send */
+		Send_term_info(Ind, NTERM_CLEAR, 0);
+		for (i = 0; i < MAX_TXT_INFO; i++)
+		{
+			if (i >= p_ptr->last_info_line) break;
+			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+		}
+		Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
+	}
+
+	/* Proccess command - Switch mode */	
+	switch (query)
+	{
+		case '1':
+			p_ptr->special_file_type = SPECIAL_FILE_ARTIFACT;
+			changed = TRUE;
+			break;
+		case '2':
+			p_ptr->special_file_type = SPECIAL_FILE_UNIQUE;
+			changed = TRUE;
+			break;
+		case '3':
+			p_ptr->special_file_type = SPECIAL_FILE_OBJECT;
+			changed = TRUE;
+			break;
+		case '4':
+			p_ptr->special_file_type = SPECIAL_FILE_SCORES;
+			changed = TRUE;
+			break;
+		case '5':
+			p_ptr->special_file_type = SPECIAL_FILE_KILL;
+			changed = TRUE;
+			break;
+		case '6':
+			p_ptr->special_file_type = SPECIAL_FILE_HOUSES;
+			changed = TRUE;
+			break;
+		case '7':
+			p_ptr->special_file_type = SPECIAL_FILE_HISTORY;
+			changed = TRUE;
+			break;
+		case '8':
+			self_knowledge(Ind, FALSE);
+			p_ptr->special_file_type = SPECIAL_FILE_OTHER;
+			changed = TRUE;
+			break;
+	}
+
+	/* HACK! - Move to another menu */
+	if (changed)
+	{	
+		do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, 0);
+	}
+}
+
+void do_cmd_interactive_input(player_type *p_ptr, char query)
+{
+	int i;
+	bool done = FALSE;
+
+	/* XXX HACK XXX Will be using "hook" to store info */
+	char * old_file_type = &(p_ptr->interactive_hook[0][0]);
+	char * mark = &(p_ptr->interactive_hook[0][1]);
+	char * len = &(p_ptr->interactive_hook[0][2]);
+	char * y = &(p_ptr->interactive_hook[0][3]);
+	char * x = &(p_ptr->interactive_hook[0][4]);
+	char * attr = &(p_ptr->interactive_hook[0][5]);
+	char * mlen = &(p_ptr->interactive_hook[0][6]);	
+	char * str = p_ptr->interactive_hook[1];
+
+	switch(query)
+	{
+		case 0:
+
+		*old_file_type = p_ptr->special_file_type;
+		p_ptr->special_file_type = SPECIAL_FILE_INPUT;
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_PUSH);
+
+		break;
+
+		case ESCAPE:
+
+		*len = 0;
+
+		/* fallthrough */
+
+		case '\n':
+		case '\r':
+
+		done = TRUE;
+		
+		break;
+
+		case 0x7F:
+		case '\010':
+
+		if (*len) (*len)--;
+
+		break;
+
+		default:
+
+		if (*len < 80 && isprint(query))
+		{
+			str[(byte)(*len)++] = query;
+		}
+	}
+
+	if (done || (*mlen && (*len >= *mlen)))
+	{
+		p_ptr->special_file_type = *old_file_type;
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_PULL);
+		do_cmd_interactive_aux(p_ptr, *old_file_type, *mark);
+		return;
+	}
+
+	/* Refresh client screen */
+	for (i = 0; i < *len; i++)
+	{
+		Send_char_p(p_ptr, *x + i, *y, *attr, str[i]);
+	}
+	Send_char_p(p_ptr, *x + i, *y, TERM_WHITE, ' ');
+
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
+}
+
+void do_cmd_interactive(player_type *p_ptr, char query)
+{
+	/* Hack -- use special term */
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+
+	/* Perform action */
+	do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, query);
+
+	/* Hack -- return to main term */
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }

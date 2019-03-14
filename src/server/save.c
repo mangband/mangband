@@ -2,9 +2,7 @@
 
 /* Purpose: interact with savefiles */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 #include "../common/md5.h"
 
 /*
@@ -48,7 +46,7 @@ static void write_int(char* name, int value)
 }
 
 /* Write an unsigned integer value */
-static void write_uint(char* name, unsigned int value)
+static void write_uint(const char* name, unsigned int value)
 {
 	fprintf(file_handle,"%s%s = %u\n",xml_prefix,name,value);
 }
@@ -56,7 +54,13 @@ static void write_uint(char* name, unsigned int value)
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %llu\n",xml_prefix,name,value);
+	fprintf(file_handle,"%s%s = %" PRIu64 "\n",xml_prefix,name,value);
+}
+
+/* Write an hturn */
+static void write_hturn(char* name, hturn *value)
+{
+	fprintf(file_handle,"%s%s = %" PRIu64 " %" PRIu64 "\n",xml_prefix,name,value->era,value->turn);
 }
 
 /* Write a string */
@@ -64,25 +68,25 @@ static void write_str(char* name, char* value)
 {
 	fprintf(file_handle,"%s%s = %s\n",xml_prefix,name,value);
 }
-
+#if 0
 static void write_float(char* name, float value)
 {
 	fprintf(file_handle,"%s%s = %f\n",xml_prefix,name,value);
 }
-
+#endif
 /* Write binary data */
-static void write_binary(char* name, char* data)
+static void write_binary(char* name, char* data, int len)
 {
-	int i,len;
+	int i;
 	byte b;
 	fprintf(file_handle,"%s%s = ",xml_prefix,name);
-	len = MAX_WID;
 	for(i=0;i<len;i++)
 	{
 		b = data[i];
 		fprintf(file_handle,"%2x",b);
 	}
-	fprintf(file_handle,"\n",name);
+	//fprintf(file_handle,"\n",name);
+	fprintf(file_handle,"\n");
 }
 
 
@@ -98,7 +102,6 @@ static void write_binary(char* name, char* data)
 static void wr_item(object_type *o_ptr)
 {
 	char obj_name[80];
-	int tmp = 0;
 	
 	start_section("item");
 
@@ -140,18 +143,26 @@ static void wr_item(object_type *o_ptr)
 	/* Save the inscription (if any) */
 	if (o_ptr->note)
 	{
-		write_str("inscription",quark_str(o_ptr->note));
+		write_str("inscription",(char*)quark_str(o_ptr->note));
 	}
 	else
 	{
 		write_str("inscription","");
 	}
-	
+
+	/* Save owner information (if any) - name, */
+	if (o_ptr->owner_name)
+	{
+		write_str("owner_name",(char*)quark_str(o_ptr->owner_name));
+	}
+	else
+	{
+		write_str("owner_name","");
+	} /* and his id: */
+	write_int("owner_id", o_ptr->owner_id);
+
 	/* Held by monster index */ 
-	/* FIXME: we disable this here because it's broken and can cause the server save
-	 * file to fail to load due to invalid monster indexes */
-	/* write_int("held_m_idx", o_ptr->held_m_idx); */
-	write_int("held_m_idx", tmp);
+   write_int("held_m_idx", o_ptr->held_m_idx);
 	
 	end_section("item");
 }
@@ -175,7 +186,7 @@ static void wr_monster(monster_type *m_ptr)
 	write_int("maxhp",m_ptr->maxhp);
 	write_int("csleep",m_ptr->csleep);
 	write_int("mspeed",m_ptr->mspeed);
-	write_int("energy",m_ptr->energy);
+	write_uint("energy",m_ptr->energy);
 	write_int("stunned",m_ptr->stunned);
 	write_int("confused",m_ptr->confused);
 	write_int("afraid",m_ptr->monfear);
@@ -186,7 +197,69 @@ static void wr_monster(monster_type *m_ptr)
 /*
  * Write a "lore" record
  */
-static void wr_lore(int r_idx)
+static void wr_lore(int Ind, int r_idx)
+{
+	int i;
+
+	player_type *p_ptr = Players[Ind];
+//	monster_race *r_ptr = &r_info[r_idx];
+	monster_lore *l_ptr = p_ptr->l_list + r_idx;
+
+	start_section("lore");
+	
+	/* Count sights/deaths/kills */
+	write_int("sights",l_ptr->sights);
+	write_int("deaths",l_ptr->deaths);
+	write_int("pkills",l_ptr->pkills);
+	write_int("tkills",l_ptr->tkills);
+
+	/* Count wakes and ignores */
+	write_int("wake",l_ptr->wake);
+	write_int("ignore",l_ptr->ignore);
+
+	/* Extra stuff */
+//	wr_byte(l_ptr->xtra1);
+//	wr_byte(l_ptr->xtra2);
+
+	/* Count drops */
+	write_int("drop_gold",l_ptr->drop_gold);
+	write_int("drop_item",l_ptr->drop_item);
+
+	/* Count spells */
+	write_int("cast_innate",l_ptr->cast_innate);
+	write_int("cast_spell",l_ptr->cast_spell);
+
+	/* Count blows of each type */
+	start_section("blows");
+	for (i = 0; i < MONSTER_BLOW_MAX; i++)
+		write_int("blow",l_ptr->blows[i]);
+	end_section("blows");
+
+	/* Memorize flags */
+	start_section("flags");
+	write_uint("flag",l_ptr->flags1);
+	write_uint("flag",l_ptr->flags2);
+	write_uint("flag",l_ptr->flags3);
+	write_uint("flag",l_ptr->flags4);
+	write_uint("flag",l_ptr->flags5);
+	write_uint("flag",l_ptr->flags6);
+	end_section("flags");
+
+	/* Monster limit per level */
+	//wr_byte(r_ptr->max_num);
+
+	/* Later (?) */
+	//wr_byte(0);
+	//wr_byte(0);
+	//wr_byte(0);
+	
+	end_section("lore");
+}
+
+/*
+ * Write a unique "lore" record
+ */
+static void wr_u_lore(int r_idx)
 {
 	monster_race *r_ptr = &r_info[r_idx];
 
@@ -197,52 +270,13 @@ static void wr_lore(int r_idx)
 
 	/* Count sights/deaths/kills */
 	write_int("sights",r_ptr->r_sights);
-	write_int("deaths",r_ptr->r_deaths);
-	write_int("pkills",r_ptr->r_pkills);
 	write_int("tkills",r_ptr->r_tkills);
 
-	/* Count wakes and ignores */
-	write_int("wake",r_ptr->r_wake);
-	write_int("ignore",r_ptr->r_ignore);
-
-	/* Save the amount of time until the unique respawns */
-	write_uint("respawn_timer",r_ptr->respawn_timer);
-
-	/* Count drops */
-	write_int("drop_gold",r_ptr->r_drop_gold);
-	write_int("drop_item",r_ptr->r_drop_item);
-
-	/* Count spells */
-	write_int("cast_innate",r_ptr->r_cast_inate);
-	write_int("cast_spell",r_ptr->r_cast_spell);
-
-	/* Count blows of each type */
-	start_section("blows");
-	write_int("blow",r_ptr->r_blows[0]);
-	write_int("blow",r_ptr->r_blows[1]);
-	write_int("blow",r_ptr->r_blows[2]);
-	write_int("blow",r_ptr->r_blows[3]);
-	end_section("blows");
-
-	/* Memorize flags */
-	start_section("flags");
-	write_uint("flag",r_ptr->r_flags1);
-	write_uint("flag",r_ptr->r_flags2);
-	write_uint("flag",r_ptr->r_flags3);
-	write_uint("flag",r_ptr->r_flags4);
-	write_uint("flag",r_ptr->r_flags5);
-	write_uint("flag",r_ptr->r_flags6);
-	end_section("flags");
-
-	/* Monster limit per level */
+ 	/* Monster limit per level */
 	write_int("max_num",r_ptr->max_num);
-	
-	/* Killer */
-	write_uint("killer",r_ptr->killer);
-	
+
 	end_section("lore");
 }
-
 
 /*
  * Write an "xtra" record
@@ -269,7 +303,7 @@ static void wr_store(store_type *st_ptr)
 	start_section("store");
 
 	/* Save the "open" counter */
-	write_huge("store_open",st_ptr->store_open);
+	write_hturn("store_open",&st_ptr->store_open);
 
 	/* Save the "insults" */
 	write_uint("insult_cur",st_ptr->insult_cur);
@@ -307,7 +341,7 @@ static void wr_party(party_type *party_ptr)
 
 	/* Save the number of people and creation time */
 	write_int("num",party_ptr->num);
-	write_huge("created",party_ptr->created);
+	write_hturn("created",&party_ptr->created);
 	
 	end_section("party");
 }
@@ -340,7 +374,41 @@ static void wr_house(house_type *house)
 	end_section("house");
 }
 
+/*
+ * Write the information about an arena
+ */
+static void wr_arena(arena_type *arena)
+{
+	start_section("arena");
+	write_int("x1",arena->x_1);
+	write_int("y1",arena->y_1);
+	write_int("x2",arena->x_2);
+	write_int("y2",arena->y_2);
+	
+	write_int("depth",arena->depth);
+	end_section("arena");
+}
 
+static void wr_header(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Hack -- use array of chars */
+	char stat_order[6]; int i;
+	for (i = 0; i < 6; i++) stat_order[i] =
+		(char)p_ptr->stat_order[i];
+
+	start_section("header");
+
+	write_str("playername",p_ptr->name);
+	write_str("pass",p_ptr->pass);
+	write_int("prace",p_ptr->prace);
+	write_int("pclass",p_ptr->pclass);
+	write_int("male",p_ptr->male);
+	write_binary("stat_order",stat_order,6);
+	
+	end_section("header");
+}
 /*
  * Write some "extra" info
  */
@@ -352,9 +420,10 @@ static void wr_extra(int Ind)
 
 	start_section("player");
 
+	/*	
 	write_str("playername",p_ptr->name);
-
 	write_str("pass",p_ptr->pass);
+	*/
 
 	write_str("died_from",p_ptr->died_from);
 	write_str("died_from_list",p_ptr->died_from_list);
@@ -365,12 +434,15 @@ static void wr_extra(int Ind)
 	{
 		write_str("history",p_ptr->history[i]);
 	}
+	write_str("descrip",p_ptr->descrip);
 	end_section("history");
 
 	/* Race/Class/Gender/Party */
+	/*
 	write_int("prace",p_ptr->prace);
 	write_int("pclass",p_ptr->pclass);
 	write_int("male",p_ptr->male);
+	*/
 	write_int("party",p_ptr->party);
 
 	write_int("hitdie",p_ptr->hitdie);
@@ -402,8 +474,7 @@ static void wr_extra(int Ind)
 	write_int("msp",p_ptr->msp);
 	write_int("csp",p_ptr->csp);
 	write_int("csp_frac",p_ptr->csp_frac);
-	
-	write_int("no_ghost",p_ptr->no_ghost);
+
 
 	/* Max Player and Dungeon Levels */
 	write_int("max_plv",p_ptr->max_plv);
@@ -427,7 +498,7 @@ static void wr_extra(int Ind)
 	write_int("paralyzed",p_ptr->paralyzed);
 	write_int("confused",p_ptr->confused);
 	write_int("food",p_ptr->food);
-	write_int("energy",p_ptr->energy);
+	write_uint("energy",p_ptr->energy);
 	write_int("fast",p_ptr->fast);
 	write_int("slow",p_ptr->slow);
 	write_int("afraid",p_ptr->afraid);
@@ -459,7 +530,7 @@ static void wr_extra(int Ind)
 
 	/* Dump the monster lore */
 	start_section("uniques");
-	for (i = 0; i < MAX_R_IDX; i++) write_int("unique",p_ptr->r_killed[i]);
+	for (i = 0; i < z_info->r_max; i++) write_int("unique",p_ptr->r_killed[i]);
 	end_section("uniques");
 
 	/* Special stuff */
@@ -472,6 +543,48 @@ static void wr_extra(int Ind)
 	write_int("death",p_ptr->death);
 
 	end_section("player");
+}
+
+/*
+ * Write player's birth options
+ */
+static void wr_birthoptions(player_type *p_ptr)
+{
+	u16b tmp16u;
+	s32b i;
+	s16b ind;
+	
+	tmp16u = 0;
+
+	/* Count number of records */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page == 1) tmp16u++;
+	}
+
+	/* No records for some reason */
+	if (!tmp16u) return;
+
+	start_section("options");
+
+	/* Save number */
+	write_int("num",tmp16u);
+
+	/* Save each record */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page != 1) continue;
+
+		/* Real index is in the o_uid! */
+		ind = option_info[i].o_uid;
+
+		/* Write it */
+		write_uint(opt_ptr->o_text, p_ptr->options[ind] ? 1 : 0);
+	}
+
+	end_section("options");
 }
 
 /*
@@ -533,13 +646,13 @@ static void wr_player_names(void)
 		write_uint("id",id_list[i]);
 
 		/* Store the player name */
-		write_str("name",lookup_player_name(id_list[i]));
+		write_str("name",(char*)lookup_player_name(id_list[i]));
 		
 		end_section("player");
 	}
 
 	/* Free the memory in the list */
-	C_KILL(id_list, num, int);
+	KILL(id_list);
 }
 
 
@@ -565,8 +678,8 @@ static void wr_player_names(void)
 static void wr_dungeon(int Depth)
 {
 	int y, x;
-	byte prev_feature, prev_info;
-	unsigned char runlength;
+	//byte prev_feature, prev_info;
+	//unsigned char runlength;
 	char cave_row[MAX_WID+1];
 
 	cave_type *c_ptr;
@@ -608,7 +721,7 @@ static void wr_dungeon(int Depth)
 			cave_row[x] = c_ptr->feat;
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 	end_section("features");
 
@@ -622,20 +735,51 @@ static void wr_dungeon(int Depth)
 			cave_row[x] = c_ptr->info;
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 	end_section("info");
 
 	end_section("dungeon_level");
 }
 
+/* HACK -- Write to file */
+bool wr_dungeon_special_ext(int Depth, cptr levelname)
+{
+	char filename[1024];
+	FILE *fhandle;
+	FILE *server_handle;
+	
+	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
+
+	fhandle = my_fopen(filename, "w");
+
+	if (fhandle)
+	{
+			/* swap out the main file pointer for our level file */
+			server_handle = file_handle;
+			file_handle = fhandle;
+
+			/* save the level */
+			wr_dungeon(Depth);
+
+			/* swap the file pointers back */
+			file_handle = server_handle;
+
+			/* close the level file */
+			my_fclose(fhandle);
+
+			return TRUE;
+	}
+	return FALSE;
+}
+
 /* Write a players memory of a cave, simmilar to the above function. */
-void wr_cave_memory(Ind)
+void wr_cave_memory(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	int y,x;
-	char prev_flag;
-	unsigned char runlength = 0;
+	//char prev_flag;
+	//unsigned char runlength = 0;
 	char cave_row[MAX_WID+1];
 
 	start_section("cave_memory");
@@ -652,7 +796,7 @@ void wr_cave_memory(Ind)
 			cave_row[x] = p_ptr->cave_flag[y][x];
 		}
 		cave_row[MAX_WID] = '\0';
-		write_binary("row",cave_row); 
+		write_binary("row",cave_row,MAX_WID);
 	}	
 
 	end_section("cave_memory");
@@ -666,12 +810,13 @@ void wr_cave_memory(Ind)
 static bool wr_savefile_new(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	history_event *evt;
 
 	int        i;
 
 	u32b              now, tmp32u;
 
-	byte		tmp8u;
+	//byte		tmp8u;
 	u16b		tmp16u;
 
 
@@ -695,11 +840,12 @@ static bool wr_savefile_new(int Ind)
 
 	/* Dump the file header */
 	start_section("version");
-	write_int("major",VERSION_MAJOR);
-	write_int("minor",VERSION_MINOR);
-	write_int("patch",VERSION_PATCH);
+	write_int("major",SERVER_VERSION_MAJOR);
+	write_int("minor",SERVER_VERSION_MINOR);
+	write_int("patch",SERVER_VERSION_PATCH);
 	end_section("version");
 
+	wr_header(Ind);
 
 	/* Reset the checksum */
 	v_stamp = 0L;
@@ -719,17 +865,27 @@ static bool wr_savefile_new(int Ind)
 	write_int("sf_saves",sf_saves);
 	
 	/* Write the server turn */
-	write_huge("turn",turn);
+	write_hturn("turn",&turn);
 
 	/* Write the players birth turn */
-	write_huge("birth_turn",p_ptr->birth_turn);
+	write_hturn("birth_turn",&p_ptr->birth_turn);
 
 	/* Write the players turn */
-	write_huge("player_turn",p_ptr->turn);
+	write_hturn("player_turn",&p_ptr->turn);
 
+	/* Dump birth options */
+	wr_birthoptions(p_ptr);
+
+	/* Dump the monster lore */
+	start_section("monster_lore");
+	tmp16u = z_info->r_max;
+	write_int("max_r_idx",tmp16u);
+	for (i = 0; i < tmp16u; i++) wr_lore(Ind, i);
+	end_section("monster_lore");
+	
 	/* Dump the object memory */
 	start_section("object_memory");
-	tmp16u = MAX_K_IDX;
+	tmp16u = z_info->k_max;
 	write_int("max_k_idx",tmp16u);
 	for (i = 0; i < tmp16u; i++) wr_xtra(Ind, i);
 	end_section("object_memory");
@@ -748,16 +904,16 @@ static bool wr_savefile_new(int Ind)
 	end_section("hp");
 
 	/* Write spell data */
-	write_uint("spell_learned1",p_ptr->spell_learned1);
-	write_uint("spell_learned2",p_ptr->spell_learned2);
-	write_uint("spell_worked1",p_ptr->spell_worked1);
-	write_uint("spell_worked2",p_ptr->spell_worked2);
-	write_uint("spell_forgotten1",p_ptr->spell_forgotten1);
-	write_uint("spell_forgotten2",p_ptr->spell_forgotten2);
+	start_section("spell_flags");
+	for (i = 0; i < PY_MAX_SPELLS; i++)
+	{
+		write_int("flag",p_ptr->spell_flags[i]);
+	}
+	end_section("spell_flags");
 
 	/* Dump the ordered spells */
 	start_section("spell_order");
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
 		write_int("order",p_ptr->spell_order[i]);
 	}
@@ -796,17 +952,31 @@ static bool wr_savefile_new(int Ind)
 	
 	/* write character event history */
 	start_section("event_history");
-	for(i=0;i<p_ptr->char_hist_ptr;i++)
+	for (evt = p_ptr->charhist; evt; evt = evt->next)
 	{
-		write_str("hist",p_ptr->char_hist[i]);
+		char buf[160];
+		sprintf(buf, "%02i:%02i:%02i   %4ift   %2i   %s",evt->days, evt->hours, evt->mins,
+				evt->depth*50, evt->level, quark_str(evt->message));		
+		write_str("hist", (char*)format_history_event(evt));
 	}
 	end_section("event_history");
 
+	/* write (un)completed quests */
+	start_section("quests");
+	tmp16u = MAX_Q_IDX;
+	write_int("max_q_idx",tmp16u);	
+	for (i = 0; i < MAX_Q_IDX; i++)
+	{
+		tmp16u = p_ptr->q_list[i].level;
+		write_int("level", tmp16u);
+	}
+	end_section("quests");
+
 	/* write the artifacts sold list */
 	start_section("found_artifacts");
-	tmp16u = MAX_A_IDX;
+	tmp16u = z_info->a_max;
 	write_int("max_a_idx",tmp16u);
-	for (i = 0; i < MAX_A_IDX; i++)
+	for (i = 0; i < z_info->a_max; i++)
 	{
 		tmp16u = p_ptr->a_info[i];
 		write_int("a_info",tmp16u);
@@ -981,7 +1151,144 @@ bool save_player(int Ind)
 	return (result);
 }
 
+/* XXX XXX XXX
+ * Similarly to "load_player", reads a part of player savefile and report the results.
+ * 
+ * This is used because we need the password information early on in the connection stage
+ * (before the player structure is allocated) and the only way 
+ * to get it is to read the save file. The file will be read again when it is time
+ * to allocate player information and start game play.
+ *
+ * The actual read is performed by "rd_savefile_new_scoop_aux" from "load2.c", which
+ * is a simplified code duplcation from player loading routines.
+ */
+int scoop_player(char *nick, char *pass)
+{
+	int		fd = -1;
+	errr	err = 0;
+	byte	vvv[4];
+	cptr	what = "generic";
 
+	char tmp[MAX_CHARS];
+
+	my_strcpy(tmp, nick, MAX_CHARS);
+	if (process_player_name_aux( &tmp[0] , NULL, TRUE ) < 0)
+	{
+		/* Error allready! */
+		err = -1;
+	}
+	
+#if !defined(MACINTOSH) && !defined(VM)
+	/* Verify the existance of the savefile */
+	if (access(tmp, 0) < 0)
+	{
+		/* Give a message */
+		plog(format("Savefile does not exist for player %s", nick));
+
+		/* Inform caller */
+		err = 1;			
+	}
+#endif	
+
+#ifdef VERIFY_SAVEFILE
+
+	/* Verify savefile usage */
+	if (!err)
+	{
+		FILE *fkk;
+
+		char temp[1024];
+
+		/* Extract name of lock file */
+		strcpy(temp, tmp);
+		strcat(temp, ".lok");
+
+		/* Check for lock */
+		fkk = my_fopen(temp, "r");
+
+		/* Oops, lock exists */
+		if (fkk)
+		{
+			/* Close the file */
+			my_fclose(fkk);
+
+			/* Message */
+			//msg_print(Ind, "Savefile is currently in use.");
+			//msg_print(Ind, NULL);
+
+			/* Oops */
+			return (FALSE);
+		}
+
+		/* Create a lock file */
+		fkk = my_fopen(temp, "w");
+
+		/* Dump a line of info */
+		fprintf(fkk, "Lock file for savefile '%s'\n", tmp);
+
+		/* Close the lock file */
+		my_fclose(fkk);
+	}
+
+#endif
+
+
+	/* Okay */
+	if (!err)
+	{
+		/* Open the savefile */
+		fd = fd_open(tmp, O_RDONLY);
+
+		/* No file */
+		if (fd < 0) err = -1;
+
+		/* Message (below) */
+		if (err) what = "Cannot open savefile";
+	}
+
+	/* Process file */
+	if (!err)
+	{
+
+		/* Read the first four bytes */
+		if (fd_read(fd, (char*)(vvv), 4)) err = -1;
+
+		/* What */
+		if (err) what = "Cannot read savefile";
+
+		/* Close the file */
+		(void)fd_close(fd);
+	}
+
+	/* Process file */
+	if (!err)
+	{
+		/* Attempt to load */
+		err = rd_savefile_new_scoop_aux(tmp, pass);
+		
+		/* Message (below) */
+		if (err == -1) what = "Cannot parse savefile";
+		if (err == -2) what = "Incorrect password";
+	}
+
+#ifdef VERIFY_SAVEFILE
+	/* Verify savefile usage */
+	if (TRUE)
+	{
+		char temp[1024];
+
+		/* Extract name of lock file */
+		strcpy(temp, tmp);
+		strcat(temp, ".lok");
+
+		/* Remove lock */
+		fd_kill(temp);
+	}
+#endif
+
+	/* Oops */
+	return (err);
+}
 
 /*
  * Attempt to Load a "savefile"
@@ -1006,10 +1313,8 @@ bool save_player(int Ind)
  * Note that we always try to load the "current" savefile, even if
  * there is no such file, so we must check for "empty" savefile names.
  */
-bool load_player(int Ind)
+bool load_player(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		fd = -1;
 
 	errr	err = 0;
@@ -1020,6 +1325,8 @@ bool load_player(int Ind)
 
 
 	/* Paranoia */
+	character_loaded = FALSE;
+	character_died = FALSE;
 	/*turn = 0;*/
 
 	/* Paranoia */
@@ -1121,7 +1428,7 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Attempt to load */
-		err = rd_savefile_new(Ind);
+		err = rd_savefile_new(p_ptr);
 
 		/* Message (below) */
 		if (err) what = "Cannot parse savefile";
@@ -1132,7 +1439,7 @@ bool load_player(int Ind)
 	if (!err)
 	{
 		/* Invalid turn */
-		if (!turn) err = -1;
+		if (turn.era < 0 || turn.turn < 0) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";
@@ -1146,6 +1453,9 @@ bool load_player(int Ind)
 		{
 			/* Player is no longer "dead" */
 			p_ptr->death = FALSE;
+
+			/* Set global flag, for whoemever is interested */
+			character_died = TRUE;
 
 #if 0
 			/* Cheat death */
@@ -1215,7 +1525,7 @@ static bool wr_server_savefile(void)
 
         u32b              now;
 
-        byte            tmp8u;
+        //byte            tmp8u;
         u16b            tmp16u;
 		u32b		tmp32u;
 
@@ -1239,9 +1549,9 @@ static bool wr_server_savefile(void)
 
 		/* Dump the file header */
 		start_section("version");
-		write_int("major",VERSION_MAJOR);
-		write_int("minor",VERSION_MINOR);
-		write_int("patch",VERSION_PATCH);
+		write_int("major",SERVER_VERSION_MAJOR);
+		write_int("minor",SERVER_VERSION_MINOR);
+		write_int("patch",SERVER_VERSION_PATCH);
 		end_section("version");
 
         /* Operating system */
@@ -1259,14 +1569,14 @@ static bool wr_server_savefile(void)
 
         /* Dump the monster (unique) lore */
 		start_section("monster_lore");
-        tmp16u = MAX_R_IDX;
+        tmp16u = z_info->r_max;
 		write_uint("max_r_idx",tmp16u);
-        for (i = 0; i < tmp16u; i++) wr_lore(i);
+        for (i = 0; i < tmp16u; i++) wr_u_lore(i);
 		end_section("monster_lore");
 
         /* Hack -- Dump the artifacts */
 		start_section("artifacts");
-        tmp16u = MAX_A_IDX;
+        tmp16u = z_info->a_max;
 		write_uint("max_a_idx",tmp16u);
         for (i = 0; i < tmp16u; i++)
         {
@@ -1324,7 +1634,7 @@ static bool wr_server_savefile(void)
 	tmp32u = m_max;
 	write_int("max_monsters",tmp32u);
 	/* Dump the monsters */
-	for (i = 0; i < tmp32u; i++) wr_monster(&m_list[i]);
+	for (i = 1; i < tmp32u; i++) wr_monster(&m_list[i]);
 	end_section("monsters");
 
 	start_section("objects");
@@ -1334,7 +1644,7 @@ static bool wr_server_savefile(void)
 	tmp16u = o_max;
 	write_int("max_objects",tmp16u);
 	/* Dump the objects */
-	for (i = 0; i < tmp16u; i++) wr_item(&o_list[i]);
+	for (i = 1; i < tmp16u; i++) wr_item(&o_list[i]);
 	end_section("objects");
 
 	start_section("houses");
@@ -1346,6 +1656,14 @@ static bool wr_server_savefile(void)
 	for (i = 0; i < tmp16u; i++) wr_house(&houses[i]); 
 	end_section("houses");
 
+	start_section("arenas");
+	/* Note the number of arenas */
+	tmp16u = num_arenas;
+	write_int("num_arenas",tmp16u);
+	/* Dump the areans */
+	for (i = 0; i < tmp16u; i++) wr_arena(&arenas[i]); 
+	end_section("arenas");
+		
 	start_section("wilderness");
 	/* Note the size of the wilderness 
 	 change this to num_wild ? */
@@ -1364,7 +1682,7 @@ static bool wr_server_savefile(void)
 	write_uint("seed_town",seed_town);
 
 	write_uint("player_id",player_id);
-	write_huge("turn",turn);
+	write_hturn("turn",&turn);
 
 	end_section("mangband_server_save");
 

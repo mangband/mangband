@@ -10,10 +10,953 @@
  * included in all such copies.
  */
 
-#include "angband.h"
+#include "mangband.h"
+
+/*
+ *  Global array of "custom commands".
+ *
+ *	Ends with an empty entry (used while iterating, do not dismiss).
+ *
+ * FORMAT:
+ *  	key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
+ *  	(flags | flags | flags), 
+ *  	tval, prompt
+ * LEGEND:
+ *  key - char, single keypress	:	'j'
+ *  PKT - packet type to use	: To use default command set PKT_COMMAND
+ * 								: To declare new command use PKT_UNDEFINED
+ *								: To overload existing command use it's PKT_ (i.e. PKT_EAT)
+ *  SCHEME - see pack.h			:	 SCHEME CONTROLS BOTH PACKET PARSING
+ *								: 		AND DO_CMD_CALLBACK ARGUMENTS
+ *								:			IT *IS* IMPORTANT
+ *  energy_cost - 0 or n		: If the command is free use 0
+ *								: Use n to set 1/Nth of level_speed
+ *								: i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
+ *  (*do_cmd_callback) - a callback to one of the do_cmd functions, arguments depend on SCHEME
+ *  (flags) - see defines.h
+ *  tval - TVAL for item tester (probably would be used as some hack for other modes too)
+ *  prompt - new-line separated string of prompts for each (flags) group.
+ */
+const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
+{	
+	/*** Moving around ***/
+#if 0	
+	{ /* Walk 1 grid */
+		';', PKT_WALK, SCHEME_DIR, 1, (cccb)do_cmd_walk,
+		(COMMAND_TARGET_DIR),		0, "", "Walk"
+	},
+#endif	
+	{ /* Start running */
+		'.', PKT_RUN, SCHEME_DIR, 1, (cccb)do_cmd_run,
+		(COMMAND_TARGET_DIR),		0, "", "Run"
+	},
+	{ /* Stand still */
+		',', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_stay,
+		(0),		0, "", "Stay"
+	},
+	{ /* Hold still */
+		'g', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_hold,
+		(0),		0, "", "Get item"
+	},
+
+	/*** Simpliest, one-off commands ***/
+	{ /* Go Up by stairs */
+		'<', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,
+		(0),		0, "", "Go upstairs"
+	},
+	{ /* Go Down by stairs */
+		'>', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
+		(0),		0, "", "Go downstairs"
+	},
+#if 0	
+	{ /* Toggle Rest */
+		'R', PKT_REST, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_rest,
+		(0),		0, "", "Rest"
+	},
+#endif	
+	{ /* Search */
+		's', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
+		(0),		0, "", "Search"
+	},
+	{ /* Toggle Search */
+		'S', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
+		(0),		0, "", "Searching mode"
+	},
+	{ /* Repeat Feeling */
+		KTRL('F'), PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_feeling,
+		(0),		0, "", "Repeat level feeling"
+	},
+
+	/*** Simple grid altering commands ***/
+	{ /* Alter */
+		'+', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_alter,
+		(COMMAND_TARGET_DIR),		0, "", "Alter"
+	},
+	{ /* Tunnel */
+		'T', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
+		(COMMAND_TARGET_DIR),		0, "", "Tunnel"
+	},
+	{ /* Bash a door */
+		'B', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_bash,
+		(COMMAND_TARGET_DIR),		0, "", "Bash"
+	},
+	{ /* Disarm a trap or chest */
+		'D', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_disarm,
+		(COMMAND_TARGET_DIR),		0, "", "Disarm"
+	},
+	{ /* Open door or chest */
+		'o', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_open,
+		(COMMAND_TARGET_DIR),		0, "", "Open"
+	},
+	{ /* Close door */
+		'c', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_close,
+		(COMMAND_TARGET_DIR),		0, "", "Close"
+	},
+
+	/*** Complex grid altering ***/
+	{ /* Spike door */
+		'j', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_spike,
+		(COMMAND_ITEM_QUICK | COMMAND_ITEM_INVEN | COMMAND_TARGET_DIR),
+		TV_SPIKE, "You have no spikes!", "Spike door"
+	},
+	{ /* Steal (MAngband-specific) */
+		'J', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_steal,
+		(COMMAND_TARGET_DIR),
+		0, "Touch in what ", "Steal"
+	},
+	{ /* Purchase/Sell/Examine House (MAngband-specific) */
+		'h', PKT_COMMAND, SCHEME_DIR, 1, (cccb)do_cmd_purchase_house,
+		(COMMAND_TARGET_DIR),
+		0, "Knock in what ", "Buy/sell house"
+	},
+
+	/*** Inventory commands ***/
+	{ /* Wear/Wield Item */
+		'w', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		item_test(WEAR), "Wear/Wield which item? ", "Wear/Wield"
+	},
+	{ /* Takeoff */
+		't', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
+		(COMMAND_ITEM_EQUIP),
+		0, "Takeoff which item? ", "Takeoff item"
+	},
+	{ /* Drop Item */
+		'd', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Drop what? \nHow much? ", "Drop item"
+	},
+    { /* Destroy Item */
+        'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
+        (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
+         COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
+        0, "Destroy what? \nHow many? \nReally destroy ", "Destroy item"
+    },
+	{ /* Inscribe Item */
+		'{', PKT_UNDEFINED, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
+		0, "Inscribe what? \nInscription: ", "Inscribe item"
+	},
+	{ /* Uninscribe what?  */
+		'}', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_uninscribe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
+		0, "Uninscribe what? ", "Uninscribe item"
+	},
+	{ /* Observe/Examine item  */
+		'I', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_observe,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
+		0, "Examine what? ", "Inspect item"
+	},
+
+	/*** Inventory "usage" commands ***/
+	/* Magic devices */
+	{ /* Read scroll */
+		'r', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_read_scroll_on,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
+		TV_SCROLL, "Read which scroll? ", "Read scroll"
+	},
+	{ /* Aim wand */
+		'a', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
+		TV_WAND, "Aim which wand? ", "Aim wand"
+	},
+	{ /* Use staff */
+		'u', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_use_staff_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
+		TV_STAFF, "Use which staff? ", "Use staff"
+	},
+	{ /* Zap rod */
+		'z', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
+		TV_ROD, "Use which rod? ", "Zap rod"
+	},
+	{ /* Activate */
+		'A', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_activate_dir,
+		(COMMAND_ITEM_EQUIP | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
+		item_test(ACTIVATE), "Activate what? ", "Activate item"
+	},
+	/* Common items */
+	{ /* Refill */
+		'F', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		item_test(REFILL), "Refill with which light? ", "Refill light"
+	},
+	{ /* Drink */
+		'q', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_POTION, "Quaff which potion? ", "Quaff potion"
+	},
+	{ /* Eat */
+		'E', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_eat_food,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_FOOD, "Eat what? ", "Eat food"
+	},
+
+	/*** Firing and throwing ***/
+	{ /* Fire an object */
+		'f', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
+		item_test(AMMO), "Fire which ammo? ", "Fire missile"
+	},
+	{ /* Throw an object */
+		'v', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
+		0, "Throw what? ", "Throw item"
+	},
+
+	/*** Spell-casting ***/
+	{ /* Study spell */
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
+		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? ", "Study spell"
+	},
+	/* NOTE: see, overload for priests, below */
+	{ /* Cast spell */
+		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_cast_pre,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
+		 COMMAND_TARGET_ALLOW | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
+		TV_MAGIC_BOOK, "You cannot cast spells!\nCast from what book? \nSpells\nCast which spell? ", "Cast spell"
+	},
+	{ /* Use ghost power */
+		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 1, (cccb)do_cmd_ghost_power_pre,
+		(COMMAND_TEST_DEAD | COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_TARGET_ALLOW | 
+		 COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
+		(10), "You are not undead.\nPowers\nUse which power? ", "Ghost power"
+	},
+	{ /* Cast cleric spell */
+		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_pray_pre,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
+		 COMMAND_TARGET_ALLOW | COMMAND_TARGET_FRIEND | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
+		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? ", "Cast prayer"
+	},
+
+	/*** Knowledge query ***/
+	{ /* Help */
+		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_HELP, "Help", "See Help"
+	},
+#if 1
+	{ /* Knowledge */
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_KNOWLEDGE, "Knowledge", "See Knowledge"
+	},
+#else
+	{ /* Scores */
+		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_SCORES, "Highscores", "See Highscores"
+	},
+#endif
+	{ /* Artifacts */
+		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_ARTIFACT, "Artifacts", "List artifacts"
+	},
+	{ /* Uniques */
+		'|', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_UNIQUE, "Uniques", "List uniques"
+	},
+	{ /* Players */
+		'@', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_PLAYER, "Players", "Show online players"
+	},
+
+	/*** Miscellaneous; MAngband-specific ***/
+	{ /* 'Social' */
+		KTRL('S'), PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_social,
+		(COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_SPELL_INDEX | COMMAND_TARGET_ALLOW),
+		(12), "Socials\nDo what? ", "Socialize"
+	},
+	{ /* 'DM Menu' */
+		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_interactive,
+		(COMMAND_INTERACTIVE),
+		SPECIAL_FILE_MASTER, "Dungeon Master", ""
+	},
+	{ /* Mini-Map' */
+		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
+		(COMMAND_INTERACTIVE | COMMAND_INTERACTIVE_ANYKEY),
+		99, "Mini-Map", "Display mini-map"
+	},	
+#if 0
+	{ /* Suicide */
+		'Q', PKT_UNDEFINED, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,
+		(COMMAND_NEED_CONFIRM | COMMAND_NEED_CHAR),
+		0, "Please verify SUICIDE by typing the '@' sign: \nDo you really want to commit suicide? ", "Commit suicide"
+	},
+#endif
+	{ /* Drop Gold */
+		'$', PKT_UNDEFINED, SCHEME_VALUE, 1, (cccb)do_cmd_drop_gold,
+		(COMMAND_NEED_VALUE),
+		0, "How much gold? ", "Drop gold"
+	},
+	{ /* Symbol Query */
+		'/', PKT_UNDEFINED, SCHEME_CHAR, 0, (cccb)do_cmd_query_symbol,
+		(COMMAND_NEED_CHAR),
+		0, "Symbol: ", "Symbol query"
+	},
+#if 0
+	{ /* Refill bottle */
+		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_BOTTLE, "Refill which bottle? ", "Refill bottle"
+	},
+#endif
+
+	/*** Store/shopping commands ***/
+	{ /* [Get]/Purchase item */
+		'p', PKT_UNDEFINED, SCHEME_ITEM_VALUE_STRING, 1, (cccb)store_purchase,
+		(COMMAND_STORE | COMMAND_ITEM_STORE | COMMAND_ITEM_AMMOUNT),
+		0, "Which item are you interested in? \nHow many? ", "Purchase"
+	},
+	{ /* [Drop]/Sell item */
+		's', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)store_sell,
+		(COMMAND_STORE | COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
+		0, "Sell what? \nHow many? ", "Sell"
+	},
+	{ /* [Examine]/Look at item */
+		'l', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_observe,
+		(COMMAND_STORE | COMMAND_ITEM_STORE),
+		0, "Which item do you want to examine? ", "Examine store item"
+	},
+
+#ifdef DEBUG
+	{ /* Temporary debug command */
+		'Z', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
+		(COMMAND_NEED_STRING),
+		0, "Dump name: ", "Debug command"
+	},
+#endif
+
+	/* End-of-array */
+	{ 0 }
+};
+int study_cmd_id = -1; /* Set during init, to replace with: */
+/* A special version for priests: */
+custom_command_type priest_study_cmd =
+	{ /* Study spell */
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+	};
 
 
 
+/* Item testers */
+item_tester_type item_tester[MAX_ITEM_TESTERS] =
+{
+	/* item_tester_hook_wear (ITH_WEAR) */
+	{
+		{ 0 },	
+		(ITF_WEAR),
+	},
+	/* item_tester_hook_weapon (ITH_WEAPON) */
+	{
+		{ TV_SWORD, TV_HAFTED, TV_POLEARM, TV_DIGGING, TV_BOW, TV_BOLT, TV_ARROW, TV_SHOT, 0 }, 
+		(0),
+	},
+	/* item_tester_hook_armour (ITH_ARMOR) */
+	{
+		{ TV_DRAG_ARMOR, TV_HARD_ARMOR, TV_SOFT_ARMOR, TV_SHIELD, TV_CLOAK, TV_CROWN, TV_HELM, TV_BOOTS, TV_GLOVES, 0 }, 
+		(0),
+	},
+	/* item_tester_hook_ammo (ITH_AMMO) */
+	{
+		{ TV_BOLT, TV_ARROW, TV_SHOT, 0 },
+		(0),
+	},
+	/* item_tester_hook_recharge (ITH_RECHARGE) */
+	{
+		{ TV_STAFF, TV_WAND, 0 },
+		(0),
+	},
+	/* item_tester_hook_activate (ITH_ACTIVATE) */
+	{
+		{ 0 },
+		(ITF_ACT),
+	},
+	/* item_tester_refill_lantern (ITH_REFILL) */
+	{
+		{ 0 },/*{ TV_FLASK, TV_LITE, 0 },*/
+		(ITF_FUEL),
+	},
+	/* item_tester_refill_torch (ITH_REFILL) */
+	{
+		{ 0 },/*{ TV_LITE, 0 } */
+		(ITF_FUEL),
+	},
+
+	/* End of array */
+	{
+		{ 0 }, 0
+	}
+};
+
+/*
+ * Global array for "data streams"
+ *
+*	byte pkt;
+*
+*	byte addr;
+*
+*	byte rle;
+*	byte flag;
+*
+*	byte min_row;
+*	byte min_col;
+*	byte max_row;
+*	byte max_col;	
+*
+*	u32b window_flag;
+*	cptr mark;
+*	cptr display_name;
+ */
+#define STREAM_PKT(A) PKT_STREAM + 1 + STREAM_ ## A
+#define MIN_WID SCREEN_WID / 3 + 1
+#define MIN_HGT SCREEN_HGT / 2 + 1
+const stream_type streams[MAX_STREAMS] = 
+{
+	{	/* 0 */
+		STREAM_PKT(DUNGEON_ASCII),	NTERM_WIN_OVERHEAD,	RLE_CLASSIC,
+		(0),
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "DUNGEON_ASCII", "Display the dungeon"
+	},
+	{	/* 1 */
+		STREAM_PKT(DUNGEON_GRAF1),	NTERM_WIN_OVERHEAD,	RLE_LARGE,
+		(0),
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "DUNGEON_GRAF1", ""
+	},
+	{	/* 2 */
+		STREAM_PKT(DUNGEON_GRAF2),	NTERM_WIN_OVERHEAD,	RLE_LARGE,
+		(SF_TRANSPARENT),
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "DUNGEON_GRAF2", ""
+	},
+	{	/* 3 */
+		STREAM_PKT(MINIMAP_ASCII),	NTERM_WIN_OVERHEAD,	RLE_CLASSIC,
+		(SF_OVERLAYED | SF_NEXT_GROUP | SF_HIDE),
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID, 
+		0, "MINIMAP_ASCII", ""
+	},
+	{	/* 4 */
+		STREAM_PKT(MINIMAP_GRAF),	NTERM_WIN_OVERHEAD,	RLE_LARGE,	
+		(SF_OVERLAYED),
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "MINIMAP_GRAF", ""
+	},
+	{	/* 5 */
+		STREAM_PKT(BGMAP_ASCII),	NTERM_WIN_MAP,  	RLE_CLASSIC,
+		(0),
+		20, 80, 24, 80,
+		PW_MAP, "BGMAP_ASCII", "Display mini-map"
+	},
+	{	/* 6 */
+		STREAM_PKT(BGMAP_GRAF), 	NTERM_WIN_MAP,  	RLE_LARGE,
+		(0),
+		20, 80, 24, 80,
+		PW_MAP, "BGMAP_GRAF", ""
+	},
+	{	/* 7 */
+		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,
+		(SF_MAXBUFFER),
+		20, 80, 255, 80,
+		0, "SPECIAL_MIXED", "Display special info"
+	},
+	{	/* 8 */
+		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL,	RLE_COLOR,
+		(SF_MAXBUFFER),
+		20, 80, 255, 80,
+		0, "SPECIAL_TEXT", ""
+	},
+	{	/* 9 */
+		STREAM_PKT(MONSTER_TEXT),	NTERM_WIN_MONSTER,	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONSTER_TEXT", "Display monster recall"
+	},
+	{	/* 10 */
+		STREAM_PKT(MONLIST_TEXT),	NTERM_WIN_MONLIST,	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "MONLIST_TEXT", "Display monster list"
+	},
+#if 0
+	{	/* 11 */
+		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
+		 * "stream" concept. Here, it will only work because
+		 * width 80 == stream7 width 80. Same width.
+		 * height 255 > stream7 height 20. Larger height.
+		 * So we effectively redefine the buffer to be similar, but larger, so
+		 * streams 7 and 8 do not feel any ill-effects.
+		 * NOTE: This will ONLY WORK if the client has a special hack
+		 * for this situation! */
+		STREAM_PKT(FILE_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,
+		(0),
+		255, 80, 255, 80,
+		0, "FILE_TEXT"
+	},
+#endif
+	/* Tail */
+	{	0	}
+};
+
+/*
+ * Global array of "indicators"
+ */
+/*
+	byte pkt;
+	bool tiny;
+	byte coffer;
+
+	byte win;
+	u16b row;
+	u16b col;
+
+	u32b flag;
+	cptr prompt;
+	u32b redraw;
+	cptr mark;
+*/
+#define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N
+#define INDICATOR_CLONE(T, N) 0, IN_ ## T, N
+const indicator_type indicators[MAX_INDICATORS] = 
+{
+	{
+		INDICATOR_PKT(RACE, STRING, 0), 	IPW_1,	ROW_RACE,	COL_RACE,
+		(0), "\aB%s",
+		(PR_MISC), "race_"
+	},
+	{
+		INDICATOR_PKT(CLASS, STRING, 0),	IPW_1,	ROW_CLASS,	COL_CLASS,
+		(0), "\aB%s",
+		(PR_MISC), "class_"
+	},
+	{
+		INDICATOR_PKT(TITLE, STRING, 0),	IPW_1,	ROW_TITLE,	COL_TITLE,
+		(0), "             \r\aB%s",
+		(PR_TITLE), "title_"
+	},
+	{
+		INDICATOR_PKT(LEVEL, TINY, 2),  	IPW_1,	ROW_LEVEL,	COL_LEVEL,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(PR_LEV), "level"
+	},
+	{
+		INDICATOR_PKT(EXP, LARGE, 3),   	IPW_1,	ROW_EXP,	COL_EXP,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "EXP \aG%8ld\f\r\vExp \ay%8ld",
+		(PR_EXP), "exp"
+	},
+	{
+		INDICATOR_PKT(GOLD, LARGE, 1),    	IPW_1,	ROW_GOLD,	COL_GOLD,
+		(0), "AU \aG%9ld",
+		(PR_GOLD), "gold"
+	},
+#if 1
+	/* Stats, classic way */
+	{
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	IPW_1,	ROW_STAT+0,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Str:  \ay%\vSTR:  \aG%\vSTR:  \aU%",
+		(PR_STATS), "stat0"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+1,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Int:  \ay%\vINT:  \aG%\vINT:  \aU%",
+		(PR_STATS), "stat1"
+	},
+	{
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	IPW_1,	ROW_STAT+2,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Wis:  \ay%\vWIS:  \aG%\vWIS:  \aU%",
+		(PR_STATS), "stat2"
+	},
+	{
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	IPW_1,	ROW_STAT+3,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Dex:  \ay%\vDEX:  \aG%\vDEX:  \aU%",
+		(PR_STATS), "stat3"
+	},
+	{
+		INDICATOR_PKT(STAT4, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Con:  \ay%\vCON:  \aG%\vCON:  \aU%",
+		(PR_STATS), "stat4"
+	},
+	{
+		INDICATOR_PKT(STAT5, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Chr:  \ay%\vCHR:  \aG%\vCHR:  \aU%",
+		(PR_STATS), "stat5"
+	},
+#else
+	/* Stats, modern way */
+	{
+		INDICATOR_PKT(STAT0, NORMAL, 3), 	IPW_1,	ROW_STAT+0,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"STR!  \aG%\vSTR:  \aG%\vStr:  \ay%",
+		(PR_STATS), "stat0"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+1,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"INT!  \aG%\vINT:  \aG%\vInt:  \ay%",
+		(PR_STATS), "stat1"
+	},
+	{
+		INDICATOR_PKT(STAT2, NORMAL, 3), 	IPW_1,	ROW_STAT+2,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"WIS!  \aG%\vWIS:  \aG%\vWis:  \ay%",
+		(PR_STATS), "stat2"
+	},
+	{
+		INDICATOR_PKT(STAT3, NORMAL, 3), 	IPW_1,	ROW_STAT+3,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"DEX!  \aG%\vDEX:  \aG%\vDex:  \ay%",
+		(PR_STATS), "stat3"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CON!  \aG%\vCON:  \aG%\vCon:  \ay%",
+		(PR_STATS), "stat4"
+	},
+	{
+		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
+		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
+		"CHR!  \aG%\vCHR:  \aG%\vChr:  \ay%",
+		(PR_STATS), "stat5"
+	},
+#endif
+	{
+		INDICATOR_PKT(ARMOR, NORMAL, 3),   	IPW_1,	ROW_AC,	COL_AC,
+		(0), "Cur AC \aG%5d",
+		(PR_ARMOR), "armor"
+	},
+#if 1
+	/* Classic HP/SP indicators */
+	{
+		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
+		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
+		(PR_HP), "hp"
+	},
+	{
+		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_MAXSP,	COL_MAXSP,
+		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
+		(PR_MANA), "sp"
+	},
+#else
+	/* Modern (1-line) HP/SP indicators */
+	{
+		INDICATOR_PKT(HP, NORMAL, 2),     	IPW_1,	ROW_CURHP,	COL_CURHP,
+		(0), "HP \a@% 4d\f\aw/\aG% 4d",
+		(PR_HP), "hp"
+	},
+	{
+		INDICATOR_PKT(SP, NORMAL, 2),     	IPW_1,	ROW_CURSP,	COL_CURSP,
+		(0), "SP \a#% 4d\f\aw/\aG% 4d",
+		(PR_MANA), "sp"
+	},
+#endif
+	{
+		INDICATOR_PKT(MON_HEALTH, TINY, 2),	IPW_1,	ROW_INFO,	COL_INFO,
+		(IN_TEXT_CUT), "\a![----------]\a \r\f\t%**********", 
+		(PR_HEALTH), "track"	
+	},
+	{
+		INDICATOR_PKT(CUT, TINY, 1),    	IPW_2,	ROW_CUT, COL_CUT,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"            \v\ayGraze       \v\ayLight cut   \v\aoBad cut     \v\aoNasty cut   \v\arSevere cut  \v\arDeep gash   \v\aRMortal wound",
+		(PR_CUT),  "cut"
+	},
+	{
+		INDICATOR_PKT(FOOD, TINY, 1),   	IPW_2,	ROW_HUNGRY, COL_HUNGRY,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"\arWeak  \v\aoWeak  \v\ayHungry\v\aG      \v\aGFull  \v\agGorged",
+		 (PR_HUNGER),  "hunger"	
+	},
+	{
+		INDICATOR_PKT(BLIND, TINY, 1),   	IPW_2,	ROW_BLIND, COL_BLIND,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"     \v\aoBlind",
+		(PR_BLIND),  "blind"
+	},
+	{
+		INDICATOR_PKT(STUN, TINY, 1),   	IPW_2,	ROW_STUN, COL_STUN,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"            \v\aoStun        \v\aoHeavy stun  \v\arKnocked out ",
+		(PR_STUN),  "stun"
+	},
+	{
+		INDICATOR_PKT(CONFUSED, TINY, 1),   	IPW_2,	ROW_CONFUSED, COL_CONFUSED,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"        \v\aoConfused",
+		(PR_CONFUSED),  "confused"
+	},
+	{
+		INDICATOR_PKT(AFRAID, TINY, 1),     	IPW_2,	ROW_AFRAID, COL_AFRAID,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"      \v\aoAfraid",
+		(PR_AFRAID),  "afraid"
+	},
+	{
+		INDICATOR_PKT(POISONED, TINY, 1),   	IPW_2,	ROW_POISONED, COL_POISONED,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"        \v\aoPoisoned",
+		(PR_POISONED),  "poisoned"
+	},
+	{
+		INDICATOR_PKT(STATE, TINY, 3),      	IPW_2,	ROW_STATE,	COL_STATE,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_EMPTY | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"%\v\arParalyzed!\f%\v\awSearching  \v\aDStlth Mode\f\aw          \v\awResting   ",
+		(PR_STATE),  "state"
+	},
+	{
+		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
+		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		"\v             \v\aUSlow ( \b%d)\v\aGFast (+ \b%d)",
+		(PR_SPEED), "speed"	
+	},
+	{
+		INDICATOR_PKT(STUDY, TINY, 1),   	IPW_2,	ROW_STUDY, COL_STUDY,
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
+		"     \vStudy",
+		(PR_STUDY),  "study"
+	},
+	{
+		INDICATOR_PKT(DEPTH, TINY, 1),   	IPW_2,	ROW_DEPTH, COL_DEPTH,
+		(0),
+		"Lev \aw%3d",
+		(PR_DEPTH),  "depth"
+	},
+	{
+		INDICATOR_PKT(OPPOSE, TINY, 5), 	IPW_2,	ROW_OPPOSE_ELEMENTS,	COL_OPPOSE_ELEMENTS,
+		(IN_AUTO_CUT | IN_TEXT_LABEL | IN_STRIDE_NONZERO | IN_VT_DEC_VALUE),
+		"     \v\asAcid \f     \v\abElec \f     \v\arFire \f     \v\awCold \f     \v\agPois ",
+		(PR_OPPOSE_ELEMENTS), "oppose"
+	},
+	/** Character sheet **/
+	{
+		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3 | IPW_4,  	2,	32,
+		(IN_VT_CR | IN_VT_LF | IN_VT_FF | IN_VT_COLOR_RESET),
+		"Age             \aB%6ld\vHeight          \aB%6ld\vWeight          \aB%6ld\vSocial Class    \aB%6ld",
+		(PR_VARIOUS), "various"
+	},
+	{
+		INDICATOR_PKT(SKILLS, NORMAL, 16),   	IPW_3,  	16,	1,
+		(IN_TEXT_LIKERT | IN_VT_COLOR_RESET | IN_VT_FF),
+		"Fighting    :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fPerception  :\t%\r\n\v\fBows/Throw  :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fSearching   :\t%\r\n\v\fSaving Throw:\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fDisarming   :\t%\r\n\v\fStealth     :\t%\t\t\t\t\t\t\t\t\t\t\t\t\v\fMagic Device:\t%",
+		(PR_SKILLS), "skills"
+	},
+	{
+		INDICATOR_PKT(SKILLS2, NORMAL, 3),   	IPW_3,  	16,	55,
+		(IN_VT_COLOR_RESET | IN_VT_FF | IN_VT_CR | IN_VT_LF),
+		"Blows/Round:\t\t%d\vShots/Round:\t\t%d\v\nInfra-Vision:\t%d feet",
+		(PR_SKILLS), "skills2"
+	},
+	{
+		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3 | IPW_4,  	9,	1,
+		(IN_VT_COLOR_RESET | IN_VT_CR | IN_VT_LF | IN_VT_FF),
+		"+ To Hit    \t\t\t\aB%6ld\v+ To Damage \t\t\t\aB%6ld", 
+		(PR_PLUSSES), "plusses"
+	},
+	/* Those 4 indicators should be merged into one (once code allows it) */
+	{
+		INDICATOR_PKT(HISTORY0, STRING, 0), 	IPW_4,	16+0,	10,
+		(0), "%s",
+		(0), "history0_"
+	},
+	{
+		INDICATOR_PKT(HISTORY1, STRING, 0), 	IPW_4,	16+1,	10,
+		(0), "%s",
+		(0), "history1_"
+	},
+	{
+		INDICATOR_PKT(HISTORY2, STRING, 0), 	IPW_4,	16+2,	10,
+		(0), "%s",
+		(0), "history2_"
+	},
+	{
+		INDICATOR_PKT(HISTORY3, STRING, 0), 	IPW_4,	16+3,	10,
+		(0), "%s",
+		(0), "history3_"
+	},
+	/* Name and gender indicators */
+	{
+		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	2,	1,
+		(0), "Name        : \aB%s",
+		(0), "hist_name_"
+	},
+	{
+		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	3,	1,
+		(0), "Sex         : \aB%s",
+		(0), "hist_gender_"
+	},
+
+	/** Clones **/
+	{
+		INDICATOR_CLONE(RACE, 0), 	IPW_3 | IPW_4 | IPW_5,	4,	1,
+		(0), "Race        : \aB%s",
+		(PR_MISC), "hist_race_"
+	},
+	{
+		INDICATOR_CLONE(CLASS, 0), 	IPW_3 | IPW_4 | IPW_5,	5,	1,
+		(0), "Class       : \aB%s",
+		(PR_MISC), "hist_class_"
+	},
+	{
+		INDICATOR_CLONE(HP, 2),   	IPW_3 | IPW_4,  	9,	52,
+		(0),
+		"\vMax Hit Points  	 \aG%6ld", 
+		(PR_HP), "hist_mhp"
+	},
+ 	{
+		INDICATOR_CLONE(HP, 1),   	IPW_3 | IPW_4,     10,	52,
+		(IN_VT_FF),
+		"Cur Hit Points    \a@%6ld",
+		(PR_HP), "hist_chp"
+	},
+	{
+		INDICATOR_CLONE(SP, 2),   	IPW_3 | IPW_4,     11,	52,
+		(0),
+		"\vMax SP (Mana)     \aG%6ld",
+		(PR_HP), "hist_msp"
+	},
+	{
+		INDICATOR_CLONE(SP, 1),   	IPW_3 | IPW_4,     12,	52,
+		(IN_VT_FF),
+		"Cur SP (Mana)     \a#%6ld",
+		(PR_HP), "hist_csp"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 3),   IPW_3 | IPW_4, 	11,	1,
+		(0),
+		"+ To AC        \aB%6ld",
+		(PR_ARMOR), "hist_toac"
+	},
+	{
+		INDICATOR_CLONE(ARMOR, 2),   IPW_3 | IPW_4, 	12,	1,
+		(0),
+		"  Base AC      \aB%6ld",
+		(PR_ARMOR), "hist_baseac"
+	},
+	{
+		INDICATOR_CLONE(LEVEL, 1), IPW_3 | IPW_4,	9,	28,
+		(0),
+		"Level      \aG%9ld",
+		(PR_LEV), "hist_level"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	10,	28,
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"Experience    \aG%6ld\f\r\vExperience    \ay%6ld",
+		(PR_EXP), "hist_cexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	11,	28,
+		(0),
+		"Max Exp       \aG%6ld",
+		(PR_EXP), "hist_mexp"
+	},
+	{
+		INDICATOR_CLONE(EXP, 3),   IPW_3 | IPW_4, 	12,	28,
+		(0),
+		"Exp to Adv.  \aG%7ld",
+		(PR_EXP), "hist_aexp"
+	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   IPW_3 | IPW_4, 	13,	28,
+		(0),
+		"Gold       \aG%9ld",
+		(PR_GOLD), "hist_gold"
+	},
+	{
+		INDICATOR_CLONE(GOLD, 1),   IPW_6, 	19,	53,
+		(0),
+		"Gold Remaining:\aG%9ld",
+		(PR_GOLD), "store_gold"
+	},
+	/* alternative way to create verbose stat indicators
+ 	{
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,
+		(IN_STOP_STRIDE | IN_TEXT_PRINTF | (IN_STRIDE_LESSER) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\vStr: \ay%d\f or \a;%d\v \v\f"
+		"\rSTR: \a;%d\v\f (of \b%d)",
+		(PR_STATS), "hist_stat0"
+	}, */
+	/* Stats, Verbose. Displays both injured and uninjured values. */
+	{
+		/* STR, Verbose */
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3 | IPW_4 | IPW_5,     2+0,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fSTR: \a;%\v \v\rStr: \ay%\f \a;%",
+		(PR_STATS), "hist_stat0"
+	},
+	{
+		/* INT, Verbose */
+		INDICATOR_CLONE(STAT1, 1),   	IPW_3 | IPW_4 | IPW_5,     2+1,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fINT: \a;%\v \v\rInt: \ay%\f \a;%",
+		(PR_STATS), "hist_stat1"
+	},
+	{
+		/* WIS, Verbose */
+		INDICATOR_CLONE(STAT2, 1),   	IPW_3 | IPW_4 | IPW_5,     2+2,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fWIS: \a;%\v \v\rWis: \ay%\f \a;%",
+		(PR_STATS), "hist_stat2"
+	},
+	{
+		/* DEX, Verbose */
+		INDICATOR_CLONE(STAT3, 1),   	IPW_3 | IPW_4 | IPW_5,     2+3,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fDEX: \a;%\v \v\rDex: \ay%\f \a;%",
+		(PR_STATS), "hist_stat3"
+	},
+	{
+		/* CON, Verbose */
+		INDICATOR_CLONE(STAT4, 1),   	IPW_3 | IPW_4 | IPW_5,     2+4,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fCON: \a;%\v \v\rCon: \ay%\f \a;%",
+		(PR_STATS), "hist_stat4"
+	},
+	{
+		/* CHR, Verbose */
+		INDICATOR_CLONE(STAT5, 1),   	IPW_3 | IPW_4 | IPW_5,     2+5,	61,
+		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
+		"\v\fCHR: \a;%\v \v\rChr: \ay%\f \a;%",
+		(PR_STATS), "hist_stat5"
+	},
+
+	/* Tail */
+	{	0	}
+};
 
 /*
  * Global array for looping through the "keypad directions"
@@ -1143,73 +2086,17 @@ byte old_blows_table[11][12] =
  * Store owners (exactly four "possible" owners per store, chosen randomly)
  * { name, purse, max greed, min greed, haggle_per, tolerance, race, unused }
  */
-
-/* Store price maxes (purse) have now been increased by 5x from Angband 3.0.6 */
-owner_type owners[MAX_STORES][MAX_OWNERS] =
+cptr store_names[MAX_STORES] = 
 {
-	{
-		/* General store */
-		{ "Bilbo the Friendly",		5000*5,		170, 108,  5, 15, RACE_HOBBIT},
-		{ "Rincewind the Chicken",	10000*5,	175, 108,  4, 12, RACE_HUMAN},
-		{ "Snafu the Midget",		20000*5,	170, 107,  5, 15, RACE_GNOME},
-		{ "Lyar-el the Comely",		30000*5,	165, 107,  6, 18, RACE_ELF},
-	},
-	{
-		/* Armoury */
-		{ "Kon-Dar the Ugly",		5000*5,		210, 115,  5,  7, RACE_HALF_ORC},
-		{ "Darg-Low the Grim",		10000*5,	190, 111,  4,  9, RACE_HUMAN},
-		{ "Decado the Handsome",	25000*5,  	200, 112,  4, 10, RACE_DUNADAN},
-		{ "Mauglin the Grumpy",		30000*5,	200, 112,  4,  5, RACE_DWARF},
-	},
-	{
-		/* Weapon Smith */
-		{ "Ithyl-Mak the Beastly",	5000*5,		210, 115,  6,  6, RACE_HALF_TROLL},
-		{ "Arndal Beast-Slayer",	10000*5,	185, 110,  5,  9, RACE_HALF_ELF},
-		{ "Tarl Beast-Master",		25000*5,	190, 115,  5,  7, RACE_HOBBIT},
-		{ "Oglign Dragon-Slayer",	30000*5,	195, 112,  4,  8, RACE_DWARF},
-	},
-	{
-		/* Temple */
-		{ "Ludwig the Humble",		15000*5,	175, 109,  6, 15, RACE_HUMAN},
-		{ "Gunnar the Paladin",		20000*5,	185, 110,  5, 23, RACE_HUMAN},
-		{ "Delilah the Pure",		25000*5,	180, 107,  6, 20, RACE_ELF},
-		{ "Keldon the Wise",		30000*5,	185, 109,  5, 15, RACE_DWARF},
-	},
-	{
-		/* Alchemist */
-		{ "Mauser the Chemist",		10000*5,	190, 111,  5,  8, RACE_HALF_ELF},
-		{ "Wizzle the Chaotic",		10000*5,	190, 110,  6,  8, RACE_HOBBIT},
-		{ "Ga-nat the Greedy",		15000*5,	200, 116,  6,  9, RACE_GNOME},
-		{ "Vella the Slender",		15000*5,	220, 111,  4,  9, RACE_HUMAN},
-	},
-	{
-		/* Magic Shop */
-		{ "Ariel the Sorceress",	15000*5,	200, 110,  7,  8, RACE_HALF_ELF},
-		{ "Buggerby the Great",		20000*5,	215, 113,  6, 10, RACE_GNOME},
-		{ "Inglorian the Mage",		25000*5,	200, 110,  7, 10, RACE_HUMAN},
-		{ "Luthien Starshine",		30000*5,	175, 110,  5, 11, RACE_HIGH_ELF},
-	},
-	{
-		/* Black Market */
-		{ "Lo-Hak the Awful",		15000*5,	250, 150, 10,  5, RACE_HALF_TROLL},
-		{ "Histor the Goblin",		20000*5,	250, 150, 10,  5, RACE_HALF_ORC},
-		{ "Durwin the Shifty",		25000*5,	250, 150, 10,  5, RACE_HALF_ORC},
-		{ "Drago the Fair",			30000*5,	250, 150, 10,  5, RACE_ELF},
-	},
-	{
-		/* Home */
-		{ "Your home",				0,      100, 100,  0, 99, 99},
-		{ "Your home",				0,      100, 100,  0, 99, 99},
-		{ "Your home",				0,      100, 100,  0, 99, 99},
-		{ "Your home",				0,      100, 100,  0, 99, 99}
-	},
-	{
-		/* Player shop */
-		{ "Player shop",			0,      100, 100,  0, 99, 99},
-		{ "Player shop",			0,      100, 100,  0, 99, 99},
-		{ "Player shop",			0,      100, 100,  0, 99, 99},
-		{ "Player shop",			0,      100, 100,  0, 99, 99}
-	}
+	"General store",
+	"Armoury",
+	"Weapon Smith",
+	"Temple",
+	"Alchemist",
+	"Magic Shop",
+	"Black Market",
+	"Your home",
+	"The Back Room"
 };
 
 
@@ -1238,28 +2125,28 @@ owner_type owners[MAX_STORES][MAX_OWNERS] =
  * the (compiled out) small random energy boost code.  It may
  * also tend to cause more "clumping" at high speeds.
  */
-byte extract_energy[200] =
+u16b extract_energy[200] =
 {
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* Slow */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* S-50 */     1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-	/* S-40 */     2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-	/* S-30 */     2,  2,  2,  2,  2,  2,  2,  3,  3,  3,
-	/* S-20 */     3,  3,  3,  3,  3,  4,  4,  4,  4,  4,
-	/* S-10 */     5,  5,  5,  5,  6,  6,  7,  7,  8,  9,
-	/* Norm */    10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-	/* F+10 */    20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	/* F+20 */    30, 31, 32, 33, 34, 35, 36, 36, 37, 37,
-	/* F+30 */    38, 38, 39, 39, 40, 40, 40, 41, 41, 41,
-	/* F+40 */    42, 42, 42, 43, 43, 43, 44, 44, 44, 44,
-	/* F+50 */    45, 45, 45, 45, 45, 46, 46, 46, 46, 46,
-	/* F+60 */    47, 47, 47, 47, 47, 48, 48, 48, 48, 48,
-	/* F+70 */    49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-	/* Fast */    49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* Slow */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* S-50 */     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+	/* S-40 */     200,  200,  200,  200,  200,  200,  200,  200,  200,  200,
+	/* S-30 */     200,  200,  200,  200,  200,  200,  200,  300,  300,  300,
+	/* S-20 */     300,  300,  300,  300,  300,  400,  400,  400,  400,  400,
+	/* S-10 */     500,  500,  500,  500,  600,  600,  700,  700,  800,  900,
+	/* Norm */    1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900,
+	/* F+10 */    2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800, 2900,
+	/* F+20 */    3000, 3100, 3200, 3300, 3400, 3500, 3600, 3600, 3700, 3700,
+	/* F+30 */    3800, 3800, 3900, 3900, 4000, 4000, 4000, 4100, 4100, 4100,
+	/* F+40 */    4200, 4200, 4200, 4300, 4300, 4300, 4400, 4400, 4400, 4400,
+	/* F+50 */    4500, 4500, 4500, 4500, 4500, 4600, 4600, 4600, 4600, 4600,
+	/* F+60 */    4700, 4700, 4700, 4700, 4700, 4800, 4800, 4800, 4800, 4800,
+	/* F+70 */    4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900,
+	/* Fast */    4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900, 4900,
 };
 
 
@@ -1269,21 +2156,21 @@ byte extract_energy[200] =
  * easier town navigation.  Deeper depths are slow, hopefully
  * make deep combat less of a test of reflexs.
  */
-byte level_speeds[128] =
+u16b level_speeds[128] =
 {
-	 75,  90,  91,  92,  93,  94,  95,  96,  97,  98, /* Town - 450' */
-	 99, 100, 100, 100, 100, 100, 101, 102, 103, 104, /* 500' - 950' */
-	105, 106, 107, 108, 109, 110, 111, 112, 113, 114, /* 1000' - 1450' */
-	115, 116, 117, 118, 119, 120, 121, 122, 123, 124, /* 1500' - 1950' */
-	125, 126, 127, 128, 129, 130, 131, 132, 133, 134, /* 2000' - 2450' */
-	135, 137, 138, 139, 140, 142, 143, 144, 146, 148, /* 2500' - 2950' */
-	150, 152, 154, 156, 158, 160, 162, 164, 166, 168, /* 3000' - 3450' */
-	170, 172, 174, 176, 178, 180, 182, 184, 186, 188, /* 3500' - 3950' */
-	190, 192, 194, 196, 198, 200, 200, 200, 200, 200, /* 4000' - 4450' */
-	200, 200, 200, 200, 200, 200, 200, 200, 200, 200, /* 4500' - 4950' */
-	200, 200, 200, 200, 200, 200, 200, 200, 200, 200, /* 5000' - 5450' */
-	200, 200, 200, 200, 200, 200, 200, 200, 200, 200, /* 5500' - 5950' */
-	200, 200, 200, 200, 200, 200, 200, 200            /* 6000' - 6350' */
+	 7500,  9000,  9100,  9200,  9300,  9400,  9500,  9600,  9700,  9800, /* Town - 450' */
+	 9900, 10000, 10000, 10000, 10000, 10000, 10100, 10200, 10300, 10400, /* 500' - 950' */
+	10500, 10600, 10700, 10800, 10900, 11000, 11100, 11200, 11300, 11400, /* 1000' - 1450' */
+	11500, 11600, 11700, 11800, 11900, 12000, 12100, 12200, 12300, 12400, /* 1500' - 1950' */
+	12500, 12600, 12700, 12800, 12900, 13000, 13100, 13200, 13300, 13400, /* 2000' - 2450' */
+	13500, 13700, 13800, 13900, 14000, 14200, 14300, 14400, 14600, 14800, /* 2500' - 2950' */
+	15000, 15200, 15400, 15600, 15800, 16000, 16200, 16400, 16600, 16800, /* 3000' - 3450' */
+	17000, 17200, 17400, 17600, 17800, 18000, 18200, 18400, 18600, 18800, /* 3500' - 3950' */
+	19000, 19200, 19400, 19600, 19800, 20000, 20000, 20000, 20000, 20000, /* 4000' - 4450' */
+	20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, /* 4500' - 4950' */
+	20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, /* 5000' - 5450' */
+	20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000, /* 5500' - 5950' */
+	20000, 20000, 20000, 20000, 20000, 20000, 20000, 20000                /* 6000' - 6350' */
 };
 
 
@@ -1368,362 +2255,8 @@ const player_sex sex_info[MAX_SEXES] =
 };
 
 
-/*
- * Note that this is the same for all classes (for now).
- *
- * Such a hack....
- */
-magic_type ghost_spells[PY_MAX_SPELLS] =
-{
-	{  1,   1, 0, 0},
-	{ 10,   2, 0, 0},
-	{ 15,   3, 0, 0},
-	{ 20,   5, 0, 0},
-	{ 25,  10, 0, 0},
-	{ 35,  60, 0, 0},
-	{ 45, 100, 0, 0},
-
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0},
-	{ 99,   0, 0, 0}
-};
-
-/*
- * Spells in each book (mage spells then priest spells)
- */
-u32b spell_flags[2][9][2] =
-{
-	{
-		/*** Mage spell books ***/
-		{ 0x000001ff, 0x00000000 },
-		{ 0x0003fe00, 0x00000000 },
-		{ 0x07fc0000, 0x00000000 },
-		{ 0xf8000000, 0x00000001 },
-		{ 0x00000000, 0x0000003e },
-		{ 0x00000000, 0x00001fc0 },
-		{ 0x00000000, 0x0003e000 },
-		{ 0x00000000, 0x00fc0000 },
-		{ 0x00000000, 0xff000000 }
-	},
-
-	{
-		/*** Priest spell books ***/
-		{ 0x000000ff, 0x00000000 },
-		{ 0x0000ff00, 0x00000000 },
-		{ 0x01ff0000, 0x00000000 },
-		{ 0x7e000000, 0x00000000 },
-		{ 0x00000000, 0x03f00000 },
-		{ 0x80000000, 0x0000000f },
-		{ 0x00000000, 0x000001f0 },
-		{ 0x00000000, 0x000fc000 },
-		{ 0x00000000, 0x00003e00 }
-    }
-
-};
 
 
-/*
- * Names of the spells (mage spells then priest spells)
- */
-cptr spell_names[3][PY_MAX_SPELLS] =
-{
-	/*** Mage Spells ***/
-
-	{
-	  "Magic Missile",
-	  "Detect Monsters",
-	  "Phase Door",
-	  "Light Area",
-	  "Detect Treasure",
-	  "Cure Light Wounds",
-	  "Detect Objects",
-	  "Find Hidden Traps/Doors",
-	  "Stinking Cloud",
-
-	  "Confuse Monster",
-	  "Lightning Bolt",
-	  "Trap/Door Destruction",
-	  "Cure Poison",
-	  "Sleep Monster",
-	  "Teleport Self",
-	  "Spear of Light",
-	  "Frost Bolt",
-	  "Wonder",
-
-	  "Satisfy Hunger",
-	  "Lesser Recharging",
-	  "Turn Stone to Mud",
-	  "Fire Bolt",
-	  "Polymorph Other",
-	  "Identify",
-	  "Detect Invisible",
-	  "Acid Bolt",
-	  "Slow Monster",
-
-	  "Frost Ball",
-	  "Teleport Other",
-	  "Haste Self",
-	  "Mass Sleep",
-	  "Fire Ball",
-	  "Detect Enchantment",
-
-	  "Resist Cold",
-	  "Resist Fire",
-	  "Resist Poison",
-	  "Resistance",
-	  "Shield",
-
-	  "Shock Wave",
-	  "Explosion",
-	  "Cloudkill",
-	  "Acid Ball",
-	  "Ice Storm",
-	  "Meteor Swarm",
-	  "Rift",
-
-	  "Door Creation",
-	  "Stair Creation",
-	  "Teleport Level",
-	  "Word of Recall",
-	  "Rune of Protection",
-
-	  "Heroism",
-	  "Berserker",
-	  "Enchant Armor",
-	  "Enchant Weapon",
-	  "Greater Recharging",
-	  "Elemental Brand",
-
-	  "Earthquake",
-	  "Bedlam",
-	  "Rend Soul",
-	  "Banishment",
-	  "Word of Destruction",
-	  "Mass Banishment",
-	  "Chaos Strike",
-	  "Mana Storm"
-	},
-
-
-	/*** Priest Spells ***/
-
-	{
-		/* Beginners Handbook (sval 0) */
-		"Detect Evil",
-		"Cure Light Wounds",
-		"Bless",
-		"Remove Fear",
-		"Call Light",
-		"Find Traps",
-		"Detect Doors/Stairs",
-		"Slow Poison",
-
-		/* Words of Wisdom (sval 1) */
-		"Scare Monster",
-		"Portal",
-		"Cure Serious Wounds",
-		"Chant",
-		"Sanctuary",
-		"Satisfy Hunger",
-		"Remove Curse",
-		"Resist Heat and Cold",
-
-		/* Chants and Blessings (sval 2) */
-		"Neutralize Poison",
-		"Orb of Draining",
-		"Cure Critical Wounds",
-		"Sense Invisible",
-		"Protection from Evil",
-		"Earthquake",
-		"Sense Surroundings",
-		"Cure Mortal Wounds",
-		"Turn Undead",
-
-		/* Exorcism and Dispelling (sval 3) */
-		"Prayer",
-		"Dispel Undead",
-		"Heal",
-		"Dispel Evil",
-		"Glyph of Warding",
-		"Holy Word",
-
-		/* Godly Insights... (sval 5) */
-		"Detect Monsters",
-		"Detection",
-		"Perception",
-		"Probing",
-		"Clairvoyance",
-
-		/* Purifications and Healing (sval 6) */
-		"Cure Serious Wounds",
-		"Cure Mortal Wounds",
-		"Healing",
-		"Restoration",
-		"Remembrance",
-
-		/* Wrath of God (sval 8) */
-		"Dispel Undead",
-		"Dispel Evil",
-		"Banish Evil",
-		"Word of Destruction",
-		"Annihilation",
-
-		/* Holy Infusions (sval 7) */
-		"Unbarring Ways",
-		"Recharging",
-		"Dispel Curse",
-		"Enchant Weapon",
-		"Enchant Armour",
-		"Elemental Brand",
-
-		/* Ethereal openings (sval 4) */
-		"Blink",
-		"Teleport Self",
-		"Teleport Other",
-		"Teleport Level",
-		"Word of Recall",
-		"Alter Reality",
-
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)"
-    },
-
-	/*** Ghost abilities ***/
-	{
-		/* Standard set */
-		"Blink",
-		"Terrify",
-		"Confuse",
-		"Teleport",
-		"Nether bolt",
-		"Nether ball",
-		"Darkness storm",
-
-		/* XXX Unimplemented */
-		
-		/* Lich spell set (dead mage?) */
-		"Teleport",
-		"Paralyze",
-		"Steal mana",
-		"Cause wounds",
-		"Steal experience",
-		"Mind smash",
-		"Mana storm",
-
-		/* Death knight set (dead paladin?) */
-		"Blind",
-		"Terrify",
-		"Summon zombie", /* XXX XXX */
-		"Nether bolt",
-
-		/* These may be used at some later date */
-		/* Perhaps for different classes of ghosts */
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)",
-		"(blank)"
-	}
-};
 
 
 
@@ -1810,102 +2343,6 @@ byte chest_traps[64] =
 
 
 /*
- * Class titles for the player.
- *
- * The player gets a new title every five levels, so each class
- * needs only ten titles total.
- */
-cptr player_title[MAX_CLASS][PY_MAX_LEVEL/5] =
-{
-	/* Warrior */
-	{
-		"Rookie",
-		"Soldier",
-		"Mercenary",
-		"Veteran",
-		"Swordsman",
-		"Champion",
-		"Hero",
-		"Baron",
-		"Duke",
-		"Lord",
-	},
-
-	/* Mage */
-	{
-		"Novice",
-		"Apprentice",
-		"Trickster",
-		"Illusionist",
-		"Spellbinder",
-		"Evoker",
-		"Conjurer",
-		"Warlock",
-		"Sorcerer",
-		"Mage Lord",
-	},
-
-	/* Priest */
-	{
-		"Believer",
-		"Acolyte",
-		"Adept",
-		"Curate",
-		"Canon",
-		"Lama",
-		"Patriarch",
-		"Priest",
-		"High Priest",
-		"Priest Lord",
-	},
-
-	/* Rogues */
-	{
-		"Vagabond",
-		"Cutpurse",
-		"Robber",
-		"Burglar",
-		"Filcher",
-		"Sharper",
-		"Low Thief",
-		"High Thief",
-		"Master Thief",
-		"Assassin",
-	},
-
-	/* Rangers */
-	{
-		"Runner",
-		"Strider",
-		"Scout",
-		"Courser",
-		"Tracker",
-		"Guide",
-		"Pathfinder",
-		"Low Ranger",
-		"High Ranger",
-		"Ranger Lord",
-	},
-
-	/* Paladins */
-	{
-		"Gallant",
-		"Keeper",
-		"Protector",
-		"Defender",
-		"Warder",
-		"Knight",
-		"Guardian",
-		"Low Paladin",
-		"High Paladin",
-		"Paladin Lord",
-    }
-
-};
-
-
-
-/*
  * Hack -- the "basic" color names (see "TERM_xxx")
  */
 cptr color_names[16] =
@@ -1926,22 +2363,6 @@ cptr color_names[16] =
 	"Light Green",
 	"Light Blue",
 	"Light Umber",
-};
-
-
-/*
- * Hack -- the "basic" sound names (see "SOUND_xxx")
- */
-cptr sound_names[SOUND_MAX] =
-{
-	"",
-	"hit",
-	"miss",
-	"flee",
-	"drop",
-	"kill",
-	"level",
-	"death",
 };
 
 
@@ -2043,18 +2464,157 @@ cptr window_flag_desc[32] =
 };
 
 
+
 /*
- * Available Options
- *
  * Option Screen Sets:
  *
- *	Set 1: User Interface
- *	Set 2: Disturbance
- *	Set 3: Inventory
- *	Set 4: Game Play
- *
- * Note that bits 28-31 of set 0 are currently unused.
+ *	(define MAX_OPTION_GROUPS to match)
  */
+cptr option_group[] = 
+{
+	"Birth Options",
+	"Dungeon / Inventory Options",
+	"Running / Disturbance Options",
+	"Lighting Options",
+	NULL
+};
+/* 
+ * *** Options ***
+ */
+#define OPT_INFO(A) NULL, ((byte)OPT_ ## A)
+option_type option_info[] =
+{
+	/*** Birth Options ***/
+	{ OPT_INFO(NO_GHOST),     		FALSE,	1,	0, 0,
+	"no_ghost",	    			"Death is permanent" },
+
+	{ OPT_INFO(UNSETH_BONUS),  		FALSE,	1,	0, 0,
+	"unset_class_bonus",		"Discard extra speed and hit points" },
+
+	/*** Game-play ***/
+	/* Dungeon */
+	{ OPT_INFO(AUTO_SCUM),				FALSE,	2,	0, 0,
+	"auto_scum",    			"Auto-scum for good levels" },	
+
+	{ OPT_INFO(DUNGEON_ALIGN),		TRUE,	2,	0, 0,
+	"dungeon_align",    		"Generate dungeons with aligned rooms" },
+
+	{ OPT_INFO(CARRY_QUERY_FLAG), 	FALSE,	2,	0, 0,
+	"carry_query_flag",	    	"Prompt before picking things up" },
+
+	{ OPT_INFO(ALWAYS_PICKUP),		FALSE,	2,	0, 0,
+	"always_pickup",    		"Pick things up by default" },
+
+	{ OPT_INFO(EASY_ALTER),			TRUE,	2,	0, 0,
+	"easy_alter",    			"Open/Disarm doors/traps on movement" },
+	/* Targeting */
+	{ OPT_INFO(EXPAND_LOOK),			FALSE,	2,	0, 0,
+	"expand_look",  			"Expand the power of the look command" },
+
+	{ OPT_INFO(USE_OLD_TARGET),		FALSE,	2,	0, 0,
+	"use_old_target",   		"Use old target by default" },
+
+	{ OPT_INFO(SHOW_DETAILS), 		TRUE,	2,	0, 0,
+	"show_details",	    		"Show details on monster recall" },
+
+	{ OPT_INFO(PAUSE_AFTER_DETECT),	TRUE,	2,	0, 0,
+	"pause_after_detect",  		"Freeze screen after detecting monsters" },
+	/* Stacking */
+	{ OPT_INFO(STACK_ALLOW_ITEMS),	TRUE,	2,	0, 0,
+	"stack_allow_items",    	"Allow weapons and armor to stack" },
+
+	{ OPT_INFO(STACK_ALLOW_WANDS),	TRUE,	2,	0, 0,
+	"stack_allow_wands",    	"Allow wands/staffs/rods to stack" },
+
+	{ OPT_INFO(STACK_FORCE_NOTES),	FALSE,	2,	0, 0,
+	"stack_force_notes",    	"Merge inscriptions when stacking" },
+
+	{ OPT_INFO(STACK_FORCE_COSTS),	FALSE,	2,	0, 0,
+	"stack_force_costs",    	"Merge discounts when stacking" },
+
+	/*** Running Options ***/
+	{ OPT_INFO(FIND_IGNORE_STAIRS),	TRUE,	3,	0, 0,
+	"find_ignore_stairs",   	"Run past stairs" },
+
+	{ OPT_INFO(FIND_IGNORE_DOORS),	TRUE,	3,	0, 0,
+	"find_ignore_doors",    	"Run through open doors" },
+
+	{ OPT_INFO(FIND_CUT), 			TRUE,	3,	0, 0,
+	"find_cut",	    			"Run past known corners" },
+
+	{ OPT_INFO(FIND_EXAMINE), 		TRUE,	3,	0, 0,
+	"find_examine", 			"Run into potential corners" },
+
+	{ OPT_INFO(DISTURB_MOVE), 		TRUE,	3,	0, 0,
+	"disturb_move", 			"Disturb whenever any monster moves" },
+
+	{ OPT_INFO(DISTURB_NEAR), 		TRUE,	3,	0, 0,
+	"disturb_near", 			"Disturb whenever viewable monster moves" },
+
+	{ OPT_INFO(DISTURB_PANEL),		TRUE,	3,	0, 0,
+	"disturb_panel",    		"Disturb whenever map panel changes" },
+
+	{ OPT_INFO(DISTURB_STATE),		TRUE,	3,	0, 0,
+	"disturb_state",    		"Disturb whenever player state changes" },
+
+	{ OPT_INFO(DISTURB_MINOR),		TRUE,	3,	0, 0,
+	"disturb_minor",    		"Disturb whenever boring things happen" },
+
+	{ OPT_INFO(DISTURB_OTHER),		TRUE,	3,	0, 0,
+	"disturb_other",    		"Disturb whenever various things happen" },
+
+	{ OPT_INFO(DISTURB_LOOK),		TRUE,	3,	0, 0,
+	"disturb_look",     		"Stop looking around when disturbed" },
+
+	{ OPT_INFO(ALERT_HITPOINT),		FALSE,	3,	0, 0,
+	"alert_hitpoint",    		"Display a message whenever hit points are low" },
+
+	/*** Lighting Options ***/
+	{ OPT_INFO(VIEW_PERMA_GRIDS),    	TRUE,	4,	0, 0,
+	"view_perma_grids", 		"Map remembers all perma-lit grids" },
+
+	{ OPT_INFO(VIEW_TORCH_GRIDS),    	FALSE,	4,	0, 0,
+	"view_torch_grids", 		"Map remembers all torch-lit grids" },
+
+	{ OPT_INFO(VIEW_REDUCE_LITE), 	FALSE,	4,	0, 0,
+	"view_reduce_lite", 		"Reduce lite-radius when running" },
+
+	{ OPT_INFO(VIEW_REDUCE_VIEW), 	FALSE,	4,	0, 0,
+	"view_reduce_view", 		"Reduce view-radius in town" },
+		
+	{ OPT_INFO(VIEW_YELLOW_LITE), 	FALSE,	4,	0, 0,
+	"view_yellow_lite", 		"Use special colors for torch-lit grids" },
+
+	{ OPT_INFO(VIEW_ORANGE_LITE), 	TRUE,	4,	0, 0,
+	"view_orange_lite",     	"Use orange color for torch-lit grids (Haloween)" },
+
+	{ OPT_INFO(VIEW_BRIGHT_LITE), 	FALSE,	4,	0, 0,
+	"view_bright_lite", 		"Use special colors for 'viewable' grids" },
+
+	{ OPT_INFO(VIEW_GRANITE_LITE),	FALSE,	4,	0, 0,
+	"view_granite_lite",    	"Use special colors for wall grids" },
+
+	{ OPT_INFO(VIEW_SPECIAL_LITE),	FALSE,	4,	0, 0,
+	"view_special_lite",    	"Use special colors for floor grids" },
+
+	{ OPT_INFO(AVOID_OTHER),      	FALSE,	4,	0, 0,
+	"avoid_other",      		"Avoid processing weird colors" },
+
+	{ OPT_INFO(HILITE_LEADER),     	FALSE,	4,	0, 0,
+	"hilite_leader",      		"Use special color for party leader" },
+
+	/*** Hidden Options ***/
+	{ OPT_INFO(USE_COLOR),    		TRUE,	0,	0, 0,
+	"use_color",    			"Use color if possible" },
+
+	{ OPT_INFO(DEPTH_IN_FEET),    	TRUE,	0,	0, 0,
+	"depth_in_feet",    		"Show dungeon level in feet" },	
+
+	/*** End of Table ***/
+
+	{ 0 }
+};
+#if 0
 option_type option_info[] =
 {
 	/*** User-Interface ***/
@@ -2251,6 +2811,46 @@ option_type option_info[] =
 
 	/*** End of Table ***/
 
-	{ NULL,			0, 0, 0, 0,
-	NULL,			NULL }
+	{ 0 }
 };
+#endif
+
+const cptr custom_command_schemes[SCHEME_LAST+1] = 
+{
+	CCS_EMPTY,
+	CCS_FULL,
+
+	CCS_ITEM,
+	CCS_DIR,
+	CCS_VALUE,
+	CCS_SMALL,
+	CCS_STRING,
+	CCS_CHAR,
+
+	CCS_ITEM_DIR,
+	CCS_ITEM_VALUE,
+	CCS_ITEM_SMALL,
+	CCS_ITEM_STRING,
+	CCS_ITEM_CHAR,
+
+	CCS_DIR_VALUE,
+	CCS_DIR_SMALL,
+	CCS_DIR_STRING,
+	CCS_DIR_CHAR,
+
+	CCS_VALUE_STRING,
+	CCS_VALUE_CHAR,
+	CCS_SMALL_STRING,
+	CCS_SMALL_CHAR,
+
+	CCS_ITEM_DIR_VALUE,
+	CCS_ITEM_DIR_SMALL,
+	CCS_ITEM_DIR_STRING,
+	CCS_ITEM_DIR_CHAR,
+
+	CCS_ITEM_VALUE_STRING,
+	CCS_ITEM_VALUE_CHAR,
+	CCS_ITEM_SMALL_STRING,
+	CCS_ITEM_SMALL_CHAR,
+};
+

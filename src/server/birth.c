@@ -10,9 +10,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /*
@@ -54,9 +52,8 @@ static s16b		stat_use[6];
  *
  * The "p_ptr->maximize" code is important	-BEN-
  */
-static int adjust_stat(int Ind, int value, s16b amount, int auto_roll)
+static int adjust_stat(player_type *p_ptr, int value, s16b amount, int auto_roll)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 
 	/* Negative amounts */
@@ -121,14 +118,13 @@ static int adjust_stat(int Ind, int value, s16b amount, int auto_roll)
  *
  * For efficiency, we include a chunk of "calc_bonuses()".
  */
-static void get_stats(int Ind, int stat_order[6])
+static void get_stats(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, j;
 	int		bonus;
 	int		dice[18];
 	int		stats[6];
-    int         n17, n16, n15;
+	int         n17, n16, n15;
 
 	/* Clear "stats" array */
 	for (i = 0; i < 6; i++)
@@ -138,13 +134,13 @@ static void get_stats(int Ind, int stat_order[6])
 	for (i = 0; i < 6; i++)
 	{
 		/* Check range */
-		if (stat_order[i] < 0 || stat_order[i] > 5)
+		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > 5)
 		{
-			stat_order[i] = 1;
+			p_ptr->stat_order[i] = 1;
 		}
 
 		/* Check for duplicated entries */
-		if (stats[stat_order[i]] == 1)
+		if (stats[p_ptr->stat_order[i]] == 1)
 		{
 			/* Find a stat that hasn't been specified yet */
 			for (j = 0; j < 6; j++)
@@ -152,12 +148,12 @@ static void get_stats(int Ind, int stat_order[6])
 				if (stats[j])
 					continue;
 
-				stat_order[i] = j;
+				p_ptr->stat_order[i] = j;
 			}
 		}
 
 		/* Set flag */
-		stats[stat_order[i]] = 1;
+		stats[p_ptr->stat_order[i]] = 1;
 	}
 
     /* Ensure that the primary stat is 17, secondary stat >= 16 and
@@ -189,9 +185,9 @@ static void get_stats(int Ind, int stat_order[6])
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
-          if (j == 17) n17++;
-	  if (j >= 16) n16++;
-	  if (j >= 15) n15++;
+		if (j == 17) n17++;
+		if (j >= 16) n16++;
+		if (j >= 15) n15++;
 
 		/* Save that value */
 		stats[i] = j;
@@ -219,7 +215,7 @@ static void get_stats(int Ind, int stat_order[6])
 	/* Now, put them in the correct order */
 	for (i = 0; i < 6; i++)
 	{
-		p_ptr->stat_max[stat_order[i]] = stats[i];
+		p_ptr->stat_max[p_ptr->stat_order[i]] = stats[i];
 	}
 
 	/* Adjust the stats */
@@ -242,7 +238,7 @@ static void get_stats(int Ind, int stat_order[6])
 		else
 		{
 			/* Apply the bonus to the stat (somewhat randomly) */
-			stat_use[i] = adjust_stat(Ind, p_ptr->stat_max[i], bonus, FALSE);
+			stat_use[i] = adjust_stat(p_ptr, p_ptr->stat_max[i], bonus, FALSE);
 
 			/* Save the resulting stat maximum */
 			p_ptr->stat_cur[i] = p_ptr->stat_max[i] = stat_use[i];
@@ -254,14 +250,13 @@ static void get_stats(int Ind, int stat_order[6])
 /*
  * Roll for some info that the auto-roller ignores
  */
-static void get_extra(int Ind)
+static void get_extra(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, j, min_value, max_value;
 
 
 	/* Level one (never zero!) */
-	p_ptr->max_plv = p_ptr->lev = 1;
+	p_ptr->lev = 1;
 
 	/* Experience factor */
 	p_ptr->expfact = p_ptr->rp_ptr->r_exp + p_ptr->cp_ptr->c_exp;
@@ -309,12 +304,11 @@ static void get_extra(int Ind)
 /*
  * Get the racial history, and social class, using the "history charts".
  */
-static void get_history(int Ind)
+static void get_history(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int		i, n, chart, roll, social_class;
 
-	char	*s, *t;
+	char	*s, *t, *p;
 
 	char	buf[240];
 
@@ -326,6 +320,10 @@ static void get_history(int Ind)
 
 	/* Clear the history text */
 	buf[0] = '\0';
+
+	/* Set pointers */
+	t = &buf[0];
+	p = &p_ptr->descrip[0];
 
 	/* Initial social class */
 	social_class = randint(4);
@@ -346,7 +344,30 @@ static void get_history(int Ind)
 		while ((chart != h_info[i].chart) || (roll > h_info[i].roll)) i++;
 
 		/* Acquire the textual history */
-		(void)strcat(buf, h_text + h_info[i].text);
+		for (s = h_text + h_info[i].text; *s; s++)
+		{
+#define g_strcat(P, T) n = strlen((T)); strncpy((P), (T), n); (P) += n 
+#define P_CASE(C, F, T) case (C): g_strcat(t, (F)); g_strcat(p, (T)); break
+#define G_CASE(C, F, TM, TF) case (C): g_strcat(t, (F)); g_strcat(p, (p_ptr->male ? (TM) : (TF)) ); break
+			switch (*s)
+			{
+			case '$':
+			case '~':
+				s++;
+				switch (*s)
+				{
+					G_CASE('u', "You", "He", "She");
+					G_CASE('r', "Your", "His", "Her");
+					P_CASE('a', "are", "is");
+					P_CASE('h', "have", "has");
+					default: continue;
+				}
+			break;
+			default:
+				*t++ = *p++ = *s;
+			}
+		}
+		*t = *p = '\0';
 
 		/* Add in the social class */
 		social_class += (int)(h_info[i].bonus) - 50;
@@ -415,10 +436,8 @@ static void get_history(int Ind)
 /*
  * Computes character's age, height, and weight
  */
-static void get_ahw(int Ind)
+static void get_ahw(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Calculate the age */
 	p_ptr->age = p_ptr->rp_ptr->b_age + randint(p_ptr->rp_ptr->m_age);
 
@@ -443,9 +462,8 @@ static void get_ahw(int Ind)
 /*
  * Get the player's starting money
  */
-static void get_money(int Ind)
+static void get_money(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int        i, gold;
 
 	/* Social Class determines starting gold */
@@ -470,17 +488,6 @@ static void get_money(int Ind)
 
 	/* Save the gold */
 	p_ptr->au = gold;
-	
-	if (!strcmp(p_ptr->name,cfg_dungeon_master))
-	{
-		p_ptr->au = 50000000;
-		p_ptr->lev = 50;
-		p_ptr->exp = 15000000;
-		p_ptr->invuln = -1;
-		p_ptr->ghost = 1;
-		p_ptr->noscore = 1;
-	}
-	
 }
 
 
@@ -488,23 +495,70 @@ static void get_money(int Ind)
 /*
  * Clear all the global "character" data
  */
-static void player_wipe(int Ind)
+void player_wipe(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type *old_inven;
+	monster_lore *old_lore;
+	monster_lore *l_ptr;
+	//byte *old_channels;
+	byte *old_arts;
+	bool *old_obj_aware;
+	bool *old_obj_tried;
+	s16b *old_r_killed;
+	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
+	char *f_char, *k_char, *d_char, *r_char, *pr_char;
+	char *c_buf;
 	int i;
 
 
-	/* Hack -- save the inventory pointer */
+	/* Hack -- save pointers */
 	old_inven = p_ptr->inventory;
+	old_lore = p_ptr->l_list;
+	//old_channels = p_ptr->on_channel;
+	old_arts = p_ptr->a_info;
+	old_obj_aware = p_ptr->obj_aware;
+	old_obj_tried = p_ptr->obj_tried;
+	old_r_killed = p_ptr->r_killed;
+	f_attr = p_ptr->f_attr; f_char = p_ptr->f_char;
+	r_attr = p_ptr->r_attr; r_char = p_ptr->r_char;
+	k_attr = p_ptr->k_attr; k_char = p_ptr->k_char;
+	d_attr = p_ptr->d_attr; d_char = p_ptr->d_char;
+	pr_attr = p_ptr->pr_attr; pr_char = p_ptr->pr_char;
+	c_buf = p_ptr->cbuf.buf;
+
+	/* Clear character history ! */
+	history_wipe(p_ptr->charhist);
 
 	/* Hack -- zero the struct */
 	WIPE(p_ptr, player_type);
 
-	/* Hack -- reset the inventory pointer */
+	/* Hack -- restore pointers */
 	p_ptr->inventory = old_inven;
+	p_ptr->l_list = old_lore;
+	//p_ptr->on_channel = old_channels;
+	p_ptr->a_info = old_arts;
+	p_ptr->obj_aware = old_obj_aware;
+	p_ptr->obj_tried = old_obj_tried;
+	p_ptr->r_killed = old_r_killed;
+	p_ptr->f_attr = f_attr; p_ptr->f_char = f_char;
+	p_ptr->r_attr = r_attr; p_ptr->r_char = r_char;
+	p_ptr->k_attr = k_attr; p_ptr->k_char = k_char;
+	p_ptr->d_attr = d_attr; p_ptr->d_char = d_char;
+	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
+	p_ptr->cbuf.buf = c_buf;
 
-	/* Wipe the history */
+	/* Set default options */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		/* Option is locked */
+		if (opt_ptr->o_bit)
+		{
+			p_ptr->options[opt_ptr->o_uid] = opt_ptr->o_norm;
+		}
+	}
+
+	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
 	{
 		strcpy(p_ptr->history[i], "");
@@ -523,35 +577,70 @@ static void player_wipe(int Ind)
 		invwipe(&p_ptr->inventory[i]);
 	}
 
+	/* Reset the "monsters" */
+	for (i = 1; i < z_info->r_max; i++)
+	{
+		l_ptr = p_ptr->l_list + i;
+
+		/* Clear player kills */
+		l_ptr->pkills = 0;
+		p_ptr->r_killed[i] = 0;
+	}
+	/* Clean "old_lore" */
+	l_ptr = &p_ptr->old_l;
+	for (i = 0; i < MONSTER_BLOW_MAX; i++) l_ptr->blows[i] = 0;	
+	l_ptr->flags1 = l_ptr->flags2 = l_ptr->flags3 = l_ptr->flags4 = l_ptr->flags5 = l_ptr->flags6 = 0L;   
+	l_ptr->cast_innate = l_ptr->cast_spell = 0; 
+	p_ptr->old_monster_race_idx = 0;
+
+	/* Wipe item knowledge */
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		p_ptr->obj_aware[i] = FALSE;
+		p_ptr->obj_tried[i] = FALSE;
+	}
+
+	/* Clear "artifacts found" list */
+	for (i = 0; i < z_info->a_max; i++)
+	{
+		p_ptr->a_info[i] = ARTS_NOT_FOUND;
+	}
+
+	/* Start with no quests */
+	for (i = 1; i < MAX_Q_IDX; i++)
+	{
+		p_ptr->q_list[i].level = 0;
+	}
+	
+	/* Hack -- Add Sauron & Morgoth quests */
+	p_ptr->q_list[0].level = 99;
+	p_ptr->q_list[1].level = 100;
 
 	/* Hack -- Well fed player */
 	p_ptr->food = PY_FOOD_FULL - 1;
 
 
 	/* Wipe the spells */
-	p_ptr->spell_learned1 = p_ptr->spell_learned2 = 0L;
-	p_ptr->spell_worked1 = p_ptr->spell_worked2 = 0L;
-	p_ptr->spell_forgotten1 = p_ptr->spell_forgotten2 = 0L;
-	for (i = 0; i < 64; i++) p_ptr->spell_order[i] = 99;
-
-
-	/* Clear "cheat" options */
-	cheat_peek = FALSE;
-	cheat_hear = FALSE;
-	cheat_room = FALSE;
-	cheat_xtra = FALSE;
-	cheat_know = FALSE;
-	cheat_live = FALSE;
+	for (i = 0; i < PY_MAX_SPELLS; i++)
+	{
+		p_ptr->spell_flags[i] = 00;
+		p_ptr->spell_order[i] = 99;
+	}
 
 	/* Assume no winning game */
 	p_ptr->total_winner = FALSE;
 
-	/* Assume no panic save */
-	panic_save = 0;
-
 	/* Assume no cheating */
 	p_ptr->noscore = 0;
-	
+
+	/* Not running */
+	p_ptr->running = FALSE;
+	p_ptr->run_request = 0;
+	p_ptr->ran_tiles = 0;
+
+	/* Feelings don't carry-on between saves (sorry) */
+	p_ptr->feeling = 0;
+
 	/* clear the wilderness map */
 	for (i = 0; i < MAX_WILD/8; i++) p_ptr->wild_map[i] = 0;
 
@@ -561,126 +650,203 @@ static void player_wipe(int Ind)
 	/* Hack -- assume the player has an initial knowledge of the area close to town */
 	for (i = 0; i < 13; i++)  p_ptr->wild_map[i/8] |= 1<<(i%8);
 	
-	/* Listen on the default chat channel */
-	strncpy(p_ptr->main_channel,DEFAULT_CHANNEL,MAX_CHAN_LEN);
+	/* Setup stream pointers */
+	for (i = 0; i < MAX_STREAMS; i++)
+	{
+		if (streams[i].addr == NTERM_WIN_OVERHEAD
+		 || streams[i].addr == NTERM_WIN_MAP)
+		{
+			p_ptr->stream_cave[i] = &p_ptr->scr_info[0][0];
+		}
+		/*else if (i == STREAM_FILE_TEXT)
+		{
+			p_ptr->stream_cave[i] = &p_ptr->file[0][0];
+		}*/
+		else
+		{
+			p_ptr->stream_cave[i] = &p_ptr->info[0][0];
+		}
+	}
 
+	/* Clear old channels */
+	for (i = 0; i < MAX_CHANNELS; i++) p_ptr->on_channel[i] = 0;
+
+	/* Listen on the default chat channel */
+	p_ptr->main_channel = 0;
+	strcpy(p_ptr->second_channel, "");
+	p_ptr->on_channel[0] |= UCM_EAR;
+	
+	/* Output to default terminal */
+	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 }
 
+/* XXX XXX XXX HACK -- Wipe player but keep some stuff... */
+void player_net_wipe(player_type *p_ptr, int reach)
+{
+	player_type p_tmp = { 0 };
+	int i;
 
+	p_tmp.conn = p_ptr->conn;
+	strcpy(p_tmp.name, p_ptr->name);
+	strcpy(p_tmp.pass, p_ptr->pass);
+	strcpy(p_tmp.basename, p_ptr->basename);
+	strcpy(p_tmp.realname, p_ptr->realname);
+	strcpy(p_tmp.hostname, p_ptr->hostname);
+	strcpy(p_tmp.addr, p_ptr->addr);
+	p_tmp.version = p_ptr->version;
+	p_tmp.state = p_ptr->state;
+	p_tmp.id = p_ptr->id;
+	strcpy(p_tmp.savefile, p_ptr->savefile);
 
+	p_tmp.cbuf.max = p_ptr->cbuf.max;
+
+	p_tmp.lives = p_ptr->lives;
+
+	for (i = 0; i < 6; i++)
+	{
+		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
+	}
+
+	for (i = 0; i < 6; i++)
+	{
+		p_tmp.stat_order[i] = p_ptr->stat_order[i];
+	}
+
+	p_tmp.prace = p_ptr->prace;
+	p_tmp.pclass = p_ptr->pclass;
+	p_tmp.male = p_ptr->male;
+
+	player_wipe(p_ptr);
+
+	p_ptr->conn = p_tmp.conn;
+	strcpy(p_ptr->name, p_tmp.name);
+	strcpy(p_ptr->pass, p_tmp.pass);
+	strcpy(p_ptr->basename, p_tmp.basename);
+	strcpy(p_ptr->realname, p_tmp.realname);
+	strcpy(p_ptr->hostname, p_tmp.hostname);
+	strcpy(p_ptr->addr, p_tmp.addr);
+	p_ptr->version = p_tmp.version;
+	p_ptr->state = p_tmp.state;
+	p_ptr->id = p_tmp.id;
+	strcpy(p_ptr->savefile, p_tmp.savefile);
+
+	p_ptr->cbuf.max = p_tmp.cbuf.max;
+
+	p_ptr->lives = p_tmp.lives;
+
+	/* TODO: also copy p_ptr->options? MAYBE */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = p_tmp.infodata_sent[i];
+	}
+
+	if (reach)
+	{
+		for (i = 0; i < 6; i++)
+		{
+			p_ptr->stat_order[i] = p_tmp.stat_order[i];
+		}
+
+		p_ptr->prace = p_tmp.prace;
+		p_ptr->pclass = p_tmp.pclass;
+		p_ptr->male = p_tmp.male;
+	}
+}
+
+/* 
+ * Verify / Overwrite visual data with server defaults
+ */
+void player_verify_visual(player_type *p_ptr)
+{
+	int i;
+
+	for (i = 0; i < MIN(MAX_FLVR_IDX, z_info->flavor_max); i++) 
+	{
+		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].x_attr;
+		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].x_char;
+	}
+
+	for (i = 0; i < z_info->f_max; i++)
+	{
+		/* Overwrite mimics */
+		if (f_info[i].mimic != i)
+		{ 
+			p_ptr->f_attr[i] = p_ptr->f_attr[f_info[i].mimic];
+			p_ptr->f_char[i] = p_ptr->f_char[f_info[i].mimic];
+		}
+		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].x_attr;
+		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
+	}
+
+	for (i = 0; i < z_info->k_max; i++)
+	{
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].x_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].x_char);
+
+		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
+		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
+	}
+
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].x_attr;
+		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].x_char;
+	}
+
+	for (i = 0; i < 128; i++) 
+	{
+		if (!p_ptr->tval_attr[i]) p_ptr->tval_attr[i] = tval_to_attr[i]; 
+		if (!p_ptr->tval_char[i]) p_ptr->tval_char[i] = tval_to_char[i];
+	}
+
+	for (i = 0; i < (z_info->c_max+1)*z_info->p_max; i++)
+	{
+		if (!p_ptr->pr_attr[i]) p_ptr->pr_attr[i] = p_ptr->r_attr[0];
+		if (!p_ptr->pr_char[i]) p_ptr->pr_char[i] = p_ptr->r_char[0];
+	}
+}
 
 /*
- * Each player starts out with a few items, given as tval/sval pairs.
- * In addition, he always has some food and a few torches.
+ * Hard-coded items to give DM at his birth.
  */
-
-static byte player_init[MAX_CLASS][3][2] =
+static byte dm_player_outfit[][4] =
 {
-	{
-		/* Warrior */
-		{ TV_POTION, SV_POTION_BESERK_STRENGTH },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_HARD_ARMOR, SV_CHAIN_MAIL }
-	},
+	{ TV_POTION, SV_POTION_AUGMENTATION,	20, 0 },	
+	{ TV_POTION, SV_POTION_EXPERIENCE,  	30, 0 },
+	{ TV_POTION, SV_POTION_HEALING,     	15, 0 },
 
-	{
-		/* Mage */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_DAGGER },
-		{ TV_POTION, SV_POTION_CURE_CRITICAL }
-	},
+	{ TV_SCROLL, SV_SCROLL_STAR_IDENTIFY,	25, 0 },
+	{ TV_SCROLL, SV_SCROLL_TELEPORT,    	30, 0 },
+	{ TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT,20, 0 },
 
-	{
-		/* Priest */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_HAFTED, SV_MACE },
-		{ TV_POTION, SV_POTION_CURE_CRITICAL }
-	},
+	{ TV_RING,   SV_RING_SPEED,	1, 30 },
+	{ TV_AMULET, SV_AMULET_ESP,	1, 10 },
 
-	{
-		/* Rogue */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_SMALL_SWORD },
-		{ TV_SOFT_ARMOR, SV_SOFT_LEATHER_ARMOR }
-	},
-
-	{
-		/* Ranger */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_BOW, SV_LONG_BOW }
-    }
-
-    ,{
-		/* Paladin */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_SWORD, SV_BROAD_SWORD },
-		{ TV_SCROLL, SV_SCROLL_PROTECTION_FROM_EVIL }
-	}
+	{ 0, 0, 0, 0 }
 };
 
-static byte ironman_player_init[MAX_CLASS][3][2] =
-{
-	{
-		/* Warrior */
-		{ TV_LITE, SV_LITE_LANTERN },
-		{ TV_FLASK, 0 },
-		{ TV_FLASK, 0 },
-	},
-
-	{
-		/* Mage */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Priest */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_PRAYER_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Rogue */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_MAGIC_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-	},
-
-	{
-		/* Ranger */
-		{ TV_MAGIC_BOOK, 0 },
-		{ TV_LITE, SV_LITE_LANTERN },
-		{ TV_BOW, SV_LONG_BOW }
-    }
-    ,{
-		/* Paladin */
-		{ TV_PRAYER_BOOK, 0 },
-		{ TV_PRAYER_BOOK, 1 },
-		{ TV_LITE, SV_LITE_LANTERN },
-    },
-
-};
-
-#if 0
-// This is a very good function to use. The shortcoming is that it is missing all the usefull
-// ironman and debug addons, and for some reason food + lite is not bundled with it.
 /*
  * Init players with some belongings
  *
  * Having an item identifies it and makes the player "aware" of its purpose.
  */
-static void player_outfit(int Ind)
+static void player_outfit(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	player_class *cp_ptr = &c_info[p_ptr->pclass];
 	int i;
 	const start_item *e_ptr;
 	object_type *i_ptr;
 	object_type object_type_body;
 
+#define player_outfit_i(P,K,N,PV) \
+	i_ptr = &object_type_body; \
+	object_prep(i_ptr, (K)); \
+	i_ptr->number = (N); \
+	if ( (PV) ) i_ptr->pval = (PV); \
+	object_aware((P), i_ptr); \
+	object_known(i_ptr); \
+	(void)inven_carry((P), i_ptr)
 
 	/* Hack -- Give the player his equipment */
 	for (i = 0; i < MAX_START_ITEMS; i++)
@@ -700,259 +866,55 @@ static void player_outfit(int Ind)
 			/* Valid item? */
 			if (!k_idx) continue;
 
-			/* Prepare the item */
-			object_prep(i_ptr, k_idx);
-			i_ptr->number = (byte)rand_range(e_ptr->min, e_ptr->max);
-
-			object_aware(Ind, i_ptr);
-			object_known(i_ptr);
-			(void)inven_carry(Ind, i_ptr);
+			/* Give item */
+			player_outfit_i(p_ptr, k_idx, (byte)rand_range(e_ptr->min, e_ptr->max), 0); 
 		}
 	}
-}
-#endif
 
-/*
- * Init players with some belongings
- *
- * Having an item makes the player "aware" of its purpose.
- */
-static void player_outfit(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-	int		i, tv, sv;
+	/* Give food */
+	player_outfit_i(p_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION), rand_range(3, 7) * (cfg_ironman+1), 0);
 
-	object_type	forge;
-	object_type	*o_ptr = &forge;
-
-
-
-	/* Hack -- Give the player some food */
-	invcopy(o_ptr, lookup_kind(TV_FOOD, SV_FOOD_RATION));
-	o_ptr->number = rand_range(3, 7);
-    if (cfg_ironman) o_ptr->number *= 2;
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-
-	/* Give the player a WoR */
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL));
-	o_ptr->number = 1;
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-
-    if (cfg_ironman)
-    {
-	/* Hack -- Give the player some oil */
-	invcopy(o_ptr, lookup_kind(TV_FLASK, 0));
-	o_ptr->number = rand_range(6, 14);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);	
-    }
-    else
-    {
-	/* Hack -- Give the player some torches */
-	invcopy(o_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH));
-	o_ptr->number = rand_range(3, 7);
-	o_ptr->pval = rand_range(3, 7) * 500;
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-    }
-
-    if (cfg_ironman)
-    {
-	/* More items for Ironmen */
-
-	/* Scrolls of teleportation */
-	invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-	o_ptr->number = 5;
-	/* Warrior and rogues get twice as many */
-	if( (p_ptr->pclass == CLASS_WARRIOR) || (p_ptr->pclass == CLASS_ROGUE) )
-		o_ptr->number *= 2;
-	o_ptr->discount = 0;
-	object_aware(Ind, o_ptr);
-	object_known(o_ptr);
-	(void)inven_carry(Ind, o_ptr);
-	
-	/* Warriors get cure serious wounds */
-	if( (p_ptr->pclass == CLASS_WARRIOR) )
+	/* Give lite */
+	if (!cfg_ironman)
 	{
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_CURE_SERIOUS));
-		o_ptr->number = 5;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-	
-	/* Mages get third book */
-	if( (p_ptr->pclass == CLASS_MAGE) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 2));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-
-	/* Priests get third book */
-	if( (p_ptr->pclass == CLASS_PRIEST) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 2));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-
-    	/* Rangers get second book */
-	if( (p_ptr->pclass == CLASS_RANGER) )
-	{
-		invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 1));
-		o_ptr->number = 1;
-		o_ptr->discount = 0;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-	}
-    }
-
-	/* 
-     * Give the DM some interesting stuff or all players if this is dev mode
-	 */
-
-#ifndef DEBUG
-	if (!strcmp(p_ptr->name,cfg_dungeon_master))
-	{
-#endif
-		p_ptr->au = 10000000;
-
-		/* All deep books */
-		if ((p_ptr->pclass == CLASS_MAGE) || (p_ptr->pclass == CLASS_RANGER) ||
-			(p_ptr->pclass == CLASS_ROGUE))
-		{
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 4));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 5));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 6));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 7));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_MAGIC_BOOK, 8));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-		} 
-		if ((p_ptr->pclass == CLASS_PRIEST) || (p_ptr->pclass == CLASS_PALADIN))
-		{
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 4));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 5));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 6));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 7));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-			invcopy(o_ptr, lookup_kind(TV_PRAYER_BOOK, 8));
-			o_ptr->number = 1;
-			object_known(o_ptr);
-			(void)inven_carry(Ind, o_ptr);
-		} 
-
-		/* Useful potions */
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_AUGMENTATION));
-		o_ptr->number = 20;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_EXPERIENCE));
-		o_ptr->number = 30;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_POTION, SV_POTION_HEALING));
-		o_ptr->number = 15;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-
-		/* Useful scrolls */
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_IDENTIFY));
-		o_ptr->number = 25;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_TELEPORT));
-		o_ptr->number = 30;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_STAR_ACQUIREMENT));
-		o_ptr->number = 20;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		
-		/* Useful equipment */
-		invcopy(o_ptr, lookup_kind(TV_RING, SV_RING_SPEED));
-		o_ptr->pval = 30;
-		o_ptr->number = 1;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		invcopy(o_ptr, lookup_kind(TV_AMULET, SV_AMULET_ESP));
-		o_ptr->pval = 10;
-		o_ptr->number = 1;
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
-		
-#ifndef DEBUG
-	}
-#endif
-	
-	/* Hack -- Give the player three useful objects */
-	for (i = 0; i < 3; i++)
-	{
-	if (cfg_ironman)
-	{
-		tv = ironman_player_init[p_ptr->pclass][i][0];
-        	sv = ironman_player_init[p_ptr->pclass][i][1];
+		/* Torches */
+		player_outfit_i(p_ptr, lookup_kind(TV_LITE, SV_LITE_TORCH), rand_range(3, 7), rand_range(3, 7) * 500);
 	}
 	else
 	{
-		tv = player_init[p_ptr->pclass][i][0];
-		sv = player_init[p_ptr->pclass][i][1];
+		/* Lantern + Oil */
+		player_outfit_i(p_ptr, lookup_kind(TV_LITE, SV_LITE_LANTERN), 1, 0);
+		player_outfit_i(p_ptr, lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
 	}
-		invcopy(o_ptr, lookup_kind(tv, sv));
-		object_aware(Ind, o_ptr);
-		object_known(o_ptr);
-		(void)inven_carry(Ind, o_ptr);
+
+	/* Give a free WoR */
+	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+
+	/*
+	 * Give the DM (or all players, if this is dev. mode) some interesting stuff
+	 */
+#ifndef DEBUG
+	if (!is_dm_p(p_ptr)) return;
+#endif
+	/* Max recall depth */
+	p_ptr->max_dlv = (MAX_DEPTH - 1);
+	/* Lots of gold */
+	p_ptr->au = 10000000;
+	/* High Spell books */
+	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
+	{
+		player_outfit_i(p_ptr, lookup_kind(cp_ptr->spell_book, i), 1, 0);
 	}
-	
+	/* Other items */
+	for (i = 0; dm_player_outfit[i][0]; i++)
+	{
+		player_outfit_i(p_ptr, lookup_kind(dm_player_outfit[i][0], dm_player_outfit[i][1]), 
+			dm_player_outfit[i][2], dm_player_outfit[i][3]);
+	}
 }
 
-static void player_setup(int Ind)
+static void player_admin(player_type *p_ptr);
+void player_setup(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
@@ -960,7 +922,10 @@ static void player_setup(int Ind)
 	cave_type *c_ptr;
 	bool reposition;
 
-	bool dawn = ((turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)), require_los = 1; 
+	bool dawn = ((turn.turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)), require_los = 1; 
+
+	/* DM powers? */
+	player_admin(p_ptr);
 
 	/* Count players on this depth */
 	for (i = 1; i <= NumPlayers; i++)
@@ -993,8 +958,8 @@ static void player_setup(int Ind)
 	}
 
 	/* Rebuild the level if neccecary */
-	if (!cave[Depth]) 
-	{		
+	if (!cave[Depth])
+	{
 		/* If a level is unstaticed and a player is on it, he will now
 		 * stay in the dungeon and appear on the new level somewhere.
 		 */
@@ -1002,8 +967,7 @@ static void player_setup(int Ind)
 		{
 			/* Build a new level and put him on it */
 			alloc_dungeon_level(Depth);
-			/* option 29 is auto_scum for the player */
-			generate_cave(Ind, Depth, p_ptr->options[29]);
+			generate_cave(Ind, Depth, option_p(p_ptr,AUTO_SCUM));
 		}
 		else
 		/* rebuild the wilderness level */
@@ -1018,6 +982,10 @@ static void player_setup(int Ind)
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
 		}
 	}
+
+	/* Hack -- grid might already be occupied by us, clear it */
+	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - Ind)
+		cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0;
 
 	/* Re-Place the player correctly */
 	reposition = FALSE;
@@ -1053,11 +1021,19 @@ static void player_setup(int Ind)
 						reposition = TRUE;
 						break;
 					}
-				}				
+				}
 			}
-			break;			
+			break;
 		}
 	}
+
+	/* Don't allow placement inside an arena */
+	if (pick_arena(Depth, p_ptr->py, p_ptr->px) != -1)
+	{
+		reposition = TRUE;
+	}
+	/* Reset */
+	p_ptr->arena_num = -1;
 
 	/* If we need to reposition the player, do it */
 	if(reposition)
@@ -1147,30 +1123,15 @@ static void player_setup(int Ind)
 	{
 		/* Add */
 		add_player_name(p_ptr->name, p_ptr->id);
-	printf("Player Name is [%s], id is %d\n",p_ptr->name, p_ptr->id);
+	printf("Player Name is [%s], id is %d\n", p_ptr->name, (int)p_ptr->id);
 	}
 
 	/* Set his "current activities" variables */
-	p_ptr->current_spell = p_ptr->current_rod = p_ptr->current_activation = -1;
+	p_ptr->command_arg = -2; 
+	p_ptr->command_dir = 0;
+	p_ptr->current_spell = p_ptr->current_object = -1;
 	p_ptr->current_house = p_ptr->current_selling = p_ptr->store_num = -1;
-
-	/* Set the player's "panel" information */
-	p_ptr->max_panel_rows = (MAX_HGT / SCREEN_HGT) * 2 - 2;
-	p_ptr->max_panel_cols = (MAX_WID / SCREEN_WID) * 2 - 2;
-
-	p_ptr->panel_row = ((p_ptr->py - SCREEN_HGT / 4) / (SCREEN_HGT / 2));
-	if (p_ptr->panel_row > p_ptr->max_panel_rows) p_ptr->panel_row = p_ptr->max_panel_rows;
-	else if (p_ptr->panel_row < 0) p_ptr->panel_row = 0;
-
-	p_ptr->panel_col = ((p_ptr->px - SCREEN_WID / 4) / (SCREEN_WID / 2));
-	if (p_ptr->panel_col > p_ptr->max_panel_cols) p_ptr->panel_col = p_ptr->max_panel_cols;
-	else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
-
-	p_ptr->cur_hgt = MAX_HGT;
-	p_ptr->cur_wid = MAX_WID;
-
-	/* Set the rest of the panel information */
-	panel_bounds(Ind);
+	p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 	/* Make sure his party still exists */
 	if (p_ptr->party && parties[p_ptr->party].num == 0)
@@ -1180,7 +1141,7 @@ static void player_setup(int Ind)
 	}
 
 	/* Tell the server to redraw the player's display */
-	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_HISTORY | PR_VARIOUS | PR_OFLAGS;
+	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_VARIOUS | PR_OFLAGS;
 	p_ptr->redraw |= PR_PLUSSES;
 
 	/* Update his view, light, bonuses, and torch radius */
@@ -1196,7 +1157,97 @@ static void player_setup(int Ind)
 	p_ptr->old_turn = turn;
 }
 
+static void player_admin(player_type *p_ptr)
+{
+	/* Hack -- set Dungeon Master flags */
+#ifdef DEBUG
+	p_ptr->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
+#endif
+	if (cfg_dungeon_master && !strcmp(p_ptr->name, cfg_dungeon_master))
+	{
+		/* All DM powers ! */
+		p_ptr->dm_flags = 0xFFFFFFFF;
+		if (!cfg_secret_dungeon_master)	p_ptr->dm_flags ^= DM_SECRET_PRESENCE;
+	}
+}
 
+/*
+ * Allocate player structure
+ */
+player_type* player_alloc()
+{
+	player_type *p_ptr;
+
+	/* Allocate memory for him */
+	MAKE(p_ptr, player_type);
+
+	/* Allocate memory for his inventory */
+	C_MAKE(p_ptr->inventory, INVEN_TOTAL, object_type);
+
+	/* Allocate memory for his lore array */
+	C_MAKE(p_ptr->l_list, z_info->r_max, monster_lore);
+
+	/* Allocate memory for his artifact array */
+	C_MAKE(p_ptr->a_info, z_info->a_max, byte);
+
+	/* Allocate memory for his dungeon flags array */
+	C_MAKE(p_ptr->obj_aware, z_info->k_max, bool);
+	C_MAKE(p_ptr->obj_tried, z_info->k_max, bool);
+	C_MAKE(p_ptr->r_killed,  z_info->r_max, s16b);
+
+	/* Allocate memory for his visuals */
+	C_MAKE(p_ptr->f_attr, z_info->f_max, byte);
+	C_MAKE(p_ptr->f_char, z_info->f_max, char);
+	C_MAKE(p_ptr->k_attr, z_info->k_max, byte);
+	C_MAKE(p_ptr->k_char, z_info->k_max, char);
+	C_MAKE(p_ptr->d_attr, z_info->k_max, byte);
+	C_MAKE(p_ptr->d_char, z_info->k_max, char);	
+	C_MAKE(p_ptr->r_attr, z_info->r_max, byte);
+	C_MAKE(p_ptr->r_char, z_info->r_max, char);
+	C_MAKE(p_ptr->pr_attr, (z_info->c_max+1)*z_info->p_max, byte);
+	C_MAKE(p_ptr->pr_char, (z_info->c_max+1)*z_info->p_max, char);
+
+	/* Hack -- initialize history */
+	p_ptr->charhist = NULL;
+
+	/* Set pointer */
+	return p_ptr;
+}
+/*
+ * Free player structure
+ */
+void player_free(player_type *p_ptr)
+{
+	if (!p_ptr) return;
+
+	if (p_ptr->inventory)
+		KILL(p_ptr->inventory);
+
+	if (p_ptr->l_list)
+		KILL(p_ptr->l_list);
+
+	if (p_ptr->a_info)
+		KILL(p_ptr->a_info);
+
+	if (p_ptr->obj_aware)	KILL(p_ptr->obj_aware);
+	if (p_ptr->obj_tried)	KILL(p_ptr->obj_tried);
+	if (p_ptr->r_killed)	KILL(p_ptr->r_killed);
+
+	if (p_ptr->f_attr)		KILL(p_ptr->f_attr);
+	if (p_ptr->f_char)		KILL(p_ptr->f_char);
+	if (p_ptr->k_attr)		KILL(p_ptr->k_attr);
+	if (p_ptr->k_char)		KILL(p_ptr->k_char);
+	if (p_ptr->d_attr)		KILL(p_ptr->d_attr);
+	if (p_ptr->d_char)		KILL(p_ptr->d_char);
+	if (p_ptr->r_attr)		KILL(p_ptr->r_attr);
+	if (p_ptr->r_char)		KILL(p_ptr->r_char);
+	if (p_ptr->pr_attr)		KILL(p_ptr->pr_attr);
+	if (p_ptr->pr_char)		KILL(p_ptr->pr_char);
+
+	history_wipe(p_ptr->charhist);
+
+	KILL(p_ptr);
+}
 
 /*
  * Create a character.  Then wait for a moment.
@@ -1208,83 +1259,41 @@ static void player_setup(int Ind)
  * Note that we may be called with "junk" leftover in the various
  * fields, so we must be sure to clear them first.
  */
-bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, int sex, int stat_order[6])
+bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 {
-	player_type *p_ptr;
+	player_type *p_ptr = ConnPlayers(ind);
 	int i;
 
 	/* Do some consistency checks */
-    if (race < 0 || race >= MAX_RACES) race = RACE_HUMAN;
-    if (class < 0 || class >= MAX_CLASS) class = CLASS_WARRIOR;
+	if (race < 0 || race >= z_info->p_max) race = 0;
+	if (pclass < 0 || pclass >= z_info->c_max) pclass = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
-	/* Allocate memory for him */
-	MAKE(Players[Ind], player_type);
-
-	/* Allocate memory for his inventory */
-	C_MAKE(Players[Ind]->inventory, INVEN_TOTAL, object_type);
-
-	/* Set pointer */
-	p_ptr = Players[Ind];
-
-	/* Clear old information */
-	player_wipe(Ind);
-
-	/* Copy his name and connection info */
-	strcpy(p_ptr->name, name);
-	strcpy(p_ptr->pass, pass);
-	p_ptr->conn = conn;
-
-	/* Verify his name and create a savefile name */
-	if (!process_player_name(Ind, TRUE)) return FALSE;
-
-	/* Attempt to load from a savefile */
-	character_loaded = FALSE;
-
-	/* Try to load */
-	if (!load_player(Ind))
-	{
-		/* Loading failed badly */
-		return FALSE;
-	}
-
-	/* Did loading succeed? */
-	if (character_loaded)
-	{
-		/* Loading succeeded */		
-		player_setup(Ind);
-		return TRUE;		
-	}
-
-	/* Else, loading failed, but we just create a new character */
-
-	/* Hack -- rewipe the player info if load failed */
-	player_wipe(Ind);
-
-	/* Copy his name and connection info */
-	strcpy(p_ptr->name, name);
-	strcpy(p_ptr->pass, pass);
-	p_ptr->conn = conn;
+	/* Mark new game */
+	p_ptr->new_game = TRUE;
 
 	/* Reprocess his name */
-	if (!process_player_name(Ind, TRUE)) return FALSE;
+	//if (!process_player_name(Ind, TRUE)) return FALSE;
+
+	/* DM powers? */
+	player_admin(p_ptr);
 
 	/* Set info */
 	p_ptr->prace = race;
-	p_ptr->pclass = class;
+	p_ptr->pclass = pclass;
 	p_ptr->male = sex;
 
 	/* Set pointers */
 	p_ptr->rp_ptr = &p_info[p_ptr->prace];
-	p_ptr->cp_ptr = &c_info[class];
-	p_ptr->mp_ptr = &c_info[class].spells;
+	p_ptr->cp_ptr = &c_info[pclass];
+	p_ptr->mp_ptr = &c_info[pclass].spells;
 
 	/* Set his ID */
 	p_ptr->id = player_id++;
 
 	/* Actually Generate */
 
- 	/* This enables maximize mode for new characters. --RLS */
+	/* This enables maximize mode for new characters. --RLS */
 
 	p_ptr->maximize=1;
 
@@ -1292,22 +1301,35 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	p_ptr->birth_turn = turn;
 
 	/* No autoroller */
-	get_stats(Ind, stat_order);
+	get_stats(p_ptr);
 
 	/* Roll for base hitpoints */
-	get_extra(Ind);
+	get_extra(p_ptr);
 
 	/* Roll for age/height/weight */
-	get_ahw(Ind);
+	get_ahw(p_ptr);
 
 	/* Roll for social class */
-	get_history(Ind);
+	get_history(p_ptr);
 
 	/* Roll for gold */
-	get_money(Ind);
+	get_money(p_ptr);
+
+	/* Hack -- grant some Dungeon Master powers */
+	if (is_dm_p(p_ptr))
+	{
+		p_ptr->au = 50000000;
+		p_ptr->lev = 50;
+		p_ptr->exp = 15000000;
+		p_ptr->ghost = 1;
+		p_ptr->noscore = 1;
+		
+		if (p_ptr->dm_flags & DM_INVULNERABLE)
+			p_ptr->invuln = -1;
+	}
 
 	/* Hack -- outfit the player */
-	player_outfit(Ind);
+	player_outfit(p_ptr);
 	
 	/* Hack -- Give him "awareness" of certain objects */
 	for (i = 0; i < z_info->k_max; i++) 
@@ -1322,7 +1344,7 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 	}
 
 	/* Set his location, panel, etc. */
-	player_setup(Ind);
+	//player_setup(Ind);
 
 	/* Success */
 	return TRUE;
@@ -1339,7 +1361,7 @@ void server_birth(void)
 	int i;
 
 	/* Initialize uniques */
-	for (i = 0; i < MAX_R_IDX; i++)
+	for (i = 0; i < z_info->r_max; i++)
 	{
 		/* Make sure we have a unique */
 		if (!(r_info[i].flags1 & RF1_UNIQUE))

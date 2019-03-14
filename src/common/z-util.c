@@ -117,7 +117,33 @@ bool func_false(void)
 }
 
 
+/*
+ * Determine if "passed" turns passed since "old_ht" in "new_ht"
+ */
+int ht_passed(hturn *new_ht, hturn *old_ht, huge passed)
+{
+	hturn temp;
+	temp.era = new_ht->era;
+	temp.turn = new_ht->turn;
+	ht_subst_ht(&temp, old_ht);
+	ht_subst(&temp, passed);
+	return ((signed)temp.era >= 0);
+}
 
+/*
+ * Format "hturn" into string (NOTE: static buffer!)
+ */
+char* ht_show(hturn *ht_ptr, int mode)
+{
+	static char ret[1024];
+	if (!mode) {
+		if (!ht_ptr->era) sprintf (ret, "%ld", (long)ht_ptr->turn);
+		else sprintf (ret, "%ld%ld", (long)ht_ptr->era, (long)ht_ptr->turn);
+	}
+	else if (mode == 1) sprintf (ret, "%ld %ld", (long)ht_ptr->era, (long)ht_ptr->turn);
+	else sprintf (ret, "%04x %ld", (int)ht_ptr->era, (long)ht_ptr->turn);
+	return &ret[0];
+}
 
 /*
  * Determine if string "t" is equal to string "t"
@@ -127,9 +153,63 @@ bool streq(cptr a, cptr b)
 	return (!strcmp(a, b));
 }
 
+#ifndef HAVE_MEMSET
+/*
+ * For those systems that don't have "memset()"
+ *
+ * Set the value of each of 'n' bytes starting at 's' to 'c', return 's'
+ * If 'n' is negative, you will erase a whole lot of memory.
+ */
+void *memset(void *s, int c, size_t n)
+{
+	char *t;
+	for (t = s; len--; ) *t++ = c;
+	return (s);
+}
+#endif
 
-#ifdef ultrix
+#ifndef HAVE_STRICMP
+/*
+ * For those systems that don't have "stricmp()"
+ *
+ * Compare the two strings "a" and "b" ala "strcmp()" ignoring case.
+ */
+int stricmp(cptr a, cptr b)
+{
+	cptr s1, s2;
+	char z1, z2;
 
+	/* Scan the strings */
+	for (s1 = a, s2 = b; TRUE; s1++, s2++)
+	{
+		z1 = FORCEUPPER(*s1);
+		z2 = FORCEUPPER(*s2);
+		if (z1 < z2) return (-1);
+		if (z1 > z2) return (1);
+		if (!z1) return (0);
+	}
+}
+#endif
+
+#ifndef HAVE_STRNLEN
+/*
+ * A copy of "strnlen".
+ */
+size_t strnlen(char *s, size_t n) {
+	size_t i = n, j = 0;
+	while (i--) 
+	{
+		if (*s++ == '\0') 
+		{
+			return j;
+		}
+		j++;
+	}
+	return n;
+}
+#endif
+
+#ifndef HAVE_STRDUP
 /*
  * A copy of "strdup"
  *
@@ -142,8 +222,7 @@ char *strdup(cptr s)
 	strcpy(dup, s);
 	return dup;
 }
-
-#endif /* ultrix */
+#endif
 
 
 /*
@@ -202,6 +281,38 @@ int my_strnicmp(cptr a, cptr b, int n)
 	return 0;
 }
 
+/*
+ * Case insensitive strstr by Dave Sinkula
+ */
+const char *my_stristr(const char *haystack, const char *needle)
+{
+   if ( !*needle )
+   {
+      return haystack;
+   }
+   for ( ; *haystack; ++haystack )
+   {
+      if ( toupper(*haystack) == toupper(*needle) )
+      {
+         /*
+          * Matched starting char -- loop through remaining chars.
+          */
+         const char *h, *n;
+         for ( h = haystack, n = needle; *h && *n; ++h, ++n )
+         {
+            if ( toupper(*h) != toupper(*n) )
+            {
+               break;
+            }
+         }
+         if ( !*n ) /* matched all of 'needle' to null termination */
+         {
+            return haystack; /* return the start of the match */
+         }
+      }
+   }
+   return NULL;
+}
 
 /*
  * The my_strcpy() function copies up to 'bufsize'-1 characters from 'src'

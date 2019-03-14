@@ -2,9 +2,7 @@
 
 /* Purpose: low level dungeon routines -BEN- */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 
@@ -465,28 +463,111 @@ static byte player_color(int Ind)
 	if (p_ptr->ghost) return TERM_L_DARK;
 
 	/* Bats are orange */
-	
 	if (p_ptr->fruit_bat) return TERM_ORANGE;
 
 	/* Color is based off of class */
-	switch (p_ptr->pclass)
-	{
-		case CLASS_WARRIOR:
-			return TERM_UMBER;
-		case CLASS_MAGE:
-			return TERM_RED;
-		case CLASS_PRIEST:
-			return TERM_GREEN;
-		case CLASS_ROGUE:
-			return TERM_BLUE;
-		case CLASS_RANGER:
-			return TERM_L_WHITE;
-		case CLASS_PALADIN:
-			return TERM_L_BLUE;
-	}
+	return p_ptr->cp_ptr->attr;
+}
+/*
+ * Return the correct attr/char pair for any player
+ */ 
+int player_pict(int Ind, int who)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr = Players[who];
+	byte a;
+	char c;
+	int health, timefactor;
 
-	/* Oops */
-	return TERM_WHITE;
+	/* Decide on player image */
+	if (p_ptr->use_graphics) 
+	{
+		a = p_ptr->pr_attr[q_ptr->pclass * z_info->p_max + q_ptr->prace];
+		c = p_ptr->pr_char[q_ptr->pclass * z_info->p_max + q_ptr->prace];
+
+		/* Handle himself */
+		if (who == Ind) 
+		{
+			/* Get the "player" attr */
+			a = p_ptr->r_attr[0];
+
+			/* Get the "player" char */
+			c = p_ptr->r_char[0];
+		}
+
+		/* Hack -- handle ghosts */
+		if (q_ptr->ghost)
+		{
+			a = p_ptr->pr_attr[z_info->c_max * z_info->p_max + 0];
+			c = p_ptr->pr_char[z_info->c_max * z_info->p_max + 0];
+		}
+		/* Hack -- handle fruitbats */
+		if (q_ptr->fruit_bat)
+		{
+			a = p_ptr->pr_attr[z_info->c_max * z_info->p_max + 1];
+			c = p_ptr->pr_char[z_info->c_max * z_info->p_max + 1];
+		}
+	}
+	/* Non-graphical opponent */
+	else
+	{
+		/* Get the "player" char */
+		c = p_ptr->r_char[0];/* r_info[0].d_char; */
+			
+		/* Fruit bat hack! */
+		if (q_ptr->fruit_bat) c = 'b';
+
+		/* Get the "player" attr */
+		a = player_color(who);
+
+		/* MEGAHACK -- Hilite party leader! */
+		if (p_ptr->party && option_p(p_ptr,HILITE_LEADER) &&
+			player_in_party(p_ptr->party, who) && 
+			streq(parties[p_ptr->party].owner, q_ptr->name))
+		a = TERM_YELLOW;
+
+		/* Handle himself -- can we say code duplication? Yes! */
+		if (who == Ind) 
+		{
+			/* Get the "player" attr */
+			a = p_ptr->r_attr[0];
+
+			/* Get the "player" char */
+			c = p_ptr->r_char[0];
+		}
+	}
+	
+	/* If we are in a slow time bubble, give a visual warning */
+	timefactor = base_time_factor(Ind,0);
+	if( (who == Ind) && (timefactor < NORMAL_TIME) )
+	{
+		if( ht_passed(&turn, &p_ptr->bubble_change, (10+((NORMAL_TIME-timefactor)))))
+		{
+			p_ptr->bubble_change = turn;
+			if(p_ptr->bubble_colour == TERM_VIOLET)
+			{
+				p_ptr->bubble_colour = p_ptr->r_attr[0];
+			}
+			else
+			{
+				p_ptr->bubble_colour = TERM_VIOLET;
+			}
+		}
+		a = p_ptr->bubble_colour;
+	}
+	else if( who == Ind )
+	{
+		a = p_ptr->r_attr[0];
+	}
+	
+	/* Reflect players current hitpoints in the player symbol */
+	health = ((q_ptr->chp>0 ? q_ptr->chp : 0) * 95) / (q_ptr->mhp*10);
+	if (health < 7) 
+	{
+		c = health + 48;
+	}
+	
+	return (PICT(a, c));
 }
 
 
@@ -616,11 +697,10 @@ static byte player_color(int Ind)
  * Without this ability server side renders would use client localised 
  * char/attr values which may not makes sense in the context of the server.
  */
-void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
+void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, bool server)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
-	int kludge; /* for displaying chars with lowered hp's */
 
 	char *f_char_ptr;
 	byte *f_attr_ptr;
@@ -629,13 +709,16 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 
 	cave_type *c_ptr;
 	byte *w_ptr;
-
+#if 0 /* for boring floors */
 	feature_type *f_ptr;
-
+#endif
 	int feat;
 
 	byte a;
 	char c;
+
+	bool visi = FALSE;
+	bool lite_glow = FALSE;
 
 	/* Get the cave */
 	c_ptr = &cave[Depth][y][x];
@@ -645,45 +728,70 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	if (server)
 	{
 		/* We have initialised a global array of server char/attr elsewhere for speed */
-		f_attr_ptr = &f_attr_s;
-		f_char_ptr = &f_char_s;
-		r_attr_ptr = &r_attr_s;
-		r_char_ptr = &r_char_s;
+		f_attr_ptr = f_attr_s;
+		f_char_ptr = f_char_s;
+		r_attr_ptr = r_attr_s;
+		r_char_ptr = r_char_s;
 	}
 	else
 	{
-		f_attr_ptr = &p_ptr->f_attr;
-		f_char_ptr = &p_ptr->f_char;
-		r_attr_ptr = &p_ptr->r_attr;
-		r_char_ptr = &p_ptr->r_char;
+		f_attr_ptr = p_ptr->f_attr;
+		f_char_ptr = p_ptr->f_char;
+		r_attr_ptr = p_ptr->r_attr;
+		r_char_ptr = p_ptr->r_char;
 	}
+
+	/* Grid is visible for DM anyways */
+	if ( p_ptr->dm_flags & DM_SEE_LEVEL ) visi = TRUE;
+	/* Pre-test for CAVE MARK */
+	if ( (*w_ptr & CAVE_MARK) ) visi = TRUE;
+	/* Pre-test for CAVE LITE / GLOW + VIEW / blindness */
+	if ( (*w_ptr & CAVE_VIEW) && ((c_ptr->info & CAVE_LITE) || (c_ptr->info & CAVE_GLOW)) && !p_ptr->blind) lite_glow = TRUE;
+
+
 
 	/* Feature code */
 	feat = c_ptr->feat;
 
-	/* Floors (etc) */
-	if (is_boring(feat))
-	{
-		/* Memorized (or visible) floor */
-		/* Hack -- space are visible to the dungeon master */
-		if (((*w_ptr & CAVE_MARK) ||
-		    ((((c_ptr->info & CAVE_LITE) &&
-		        (*w_ptr & CAVE_VIEW)) ||
-		      ((c_ptr->info & CAVE_GLOW) &&
-		       (*w_ptr & CAVE_VIEW))) &&
-		     !p_ptr->blind)) || (!strcmp(p_ptr->name,cfg_dungeon_master)))
+	a = f_attr_ptr[c_ptr->feat];
+	c = f_char_ptr[c_ptr->feat];
+	
+	if (is_boring(feat) && (visi || lite_glow)) {
+		visi = TRUE;
+		/* Floor with graphical aid */
+		if (p_ptr->use_graphics) 
 		{
-			/* Access floor */
-			f_ptr = &f_info[FEAT_FLOOR];
-
-			/* Normal char */
-			(*cp) = f_char_ptr[c_ptr->feat];
-
-			/* Normal attr */
-			a = f_attr_ptr[c_ptr->feat];
-
+				/* Handle "torch-lit" grids */
+				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW && feat == FEAT_FLOOR)
+				{
+					/* Torch lite */
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
+					{
+						if (p_ptr->use_graphics == 1) { a = 0xCF; c = (char)0x8F; }
+						if (p_ptr->use_graphics == 2) { c += 2; }
+						if (p_ptr->use_graphics == 3) { c -= 1; }
+					}
+				}
+		}
+		/* Regular floor grid */
+		else 
+		{
+			/* Hack -- MAngband-specific: Wilderness Special lighting effects */
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) &&
+				(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
+			{
+				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+				{
+					/* Use "yellow" */
+					if (option_p(p_ptr,VIEW_ORANGE_LITE))
+						a = TERM_ORANGE;
+					else
+						a = TERM_YELLOW;
+				}
+			}
+			
 			/* Special lighting effects */
-			if (p_ptr->view_special_lite && (a == TERM_WHITE))
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && (a == TERM_WHITE))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
@@ -696,11 +804,13 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				else if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						/* Use "yellow" */
-						/* a = TERM_YELLOW; */
-						a = TERM_ORANGE;
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
 					}
 				}
 
@@ -715,7 +825,173 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				else if (!(*w_ptr & CAVE_VIEW))
 				{
 					/* Special flag */
-					if (p_ptr->view_bright_lite)
+					if (option_p(p_ptr,VIEW_BRIGHT_LITE))
+					{
+						/* Use "gray" */
+						a = TERM_SLATE;
+					}
+				}
+			}
+		
+
+		}
+	}
+	/* Non-floor -- Perform regular colorizations */
+	else if (visi && !p_ptr->use_graphics)
+	{
+		/* Apply "mimic" field */
+		feat = f_info[feat].mimic;
+
+		a = f_attr_ptr[feat];
+		c = f_char_ptr[feat];
+		
+		/* Hack -- MAngband-specific: Wilderness Special lighting effects */
+		if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) && 
+			(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
+		{
+			if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+			{
+				/* Use "yellow" */
+				if (option_p(p_ptr,VIEW_ORANGE_LITE))
+					a = TERM_ORANGE;
+				else
+					a = TERM_YELLOW;
+			}
+		}
+	
+		/* Special lighting effects */
+		if (option_p(p_ptr,VIEW_GRANITE_LITE) && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
+		{
+			/* Handle "blind" */
+			if (p_ptr->blind)
+			{
+				/* Use "dark gray" */
+				a = TERM_L_DARK;
+			}
+
+			/* Handle "torch-lit" grids */
+			else if (*w_ptr & CAVE_LITE)
+			{
+				/* Torch lite */
+				if (option_p(p_ptr,VIEW_YELLOW_LITE))
+				{
+					/* Use "yellow" */
+					if (option_p(p_ptr,VIEW_ORANGE_LITE))
+						a = TERM_ORANGE;
+					else
+						a = TERM_YELLOW;
+				}
+			}
+
+			/* Handle "view_bright_lite" */
+			else if (option_p(p_ptr,VIEW_BRIGHT_LITE))
+			{
+				/* Not viewable */
+				if (!(*w_ptr & CAVE_VIEW))
+				{
+					/* Use "gray" */
+					a = TERM_SLATE;
+				}
+
+				/* Not glowing */
+				else if (!(c_ptr->info & CAVE_GLOW))
+				{
+					/* Use "gray" */
+					a = TERM_SLATE;
+				}
+
+				/* Not glowing correctly */
+				else
+				{
+					int xx, yy;
+
+					/* Hack -- move towards player */
+					yy = (y < p_ptr->py) ? (y + 1) : (y > p_ptr->py) ? (y - 1) : y;
+					xx = (x < p_ptr->px) ? (x + 1) : (x > p_ptr->px) ? (x - 1) : x;
+
+					/* Check for "local" illumination */
+					if (!(cave[Depth][yy][xx].info & CAVE_GLOW))
+					{
+						/* Use "gray" */
+						a = TERM_SLATE;
+					}
+				}
+			}
+		}
+	}
+	if (!visi) 
+	{
+		/* Unknown - Access Darkness */
+		a = f_attr_ptr[FEAT_NONE];
+		c = f_char_ptr[FEAT_NONE];
+	}
+
+	/* Save the terrain info for the transparency effects */
+	(*tap) = a;
+	(*tcp) = c;
+	
+	/* Hack - premoderate result */
+	(*ap) = a;
+	(*cp) = c;
+
+#if 0
+	/* Floors (etc) */
+	if (is_boring(feat))
+	{
+		/* Memorized (or visible) floor */
+		/* Hack -- space are visible to the dungeon master */
+		if (((*w_ptr & CAVE_MARK) ||
+		    ((((c_ptr->info & CAVE_LITE) &&
+		        (*w_ptr & CAVE_VIEW)) ||
+		      ((c_ptr->info & CAVE_GLOW) &&
+		       (*w_ptr & CAVE_VIEW))) &&
+		     !p_ptr->blind)) || (p_ptr->dm_flags & DM_SEE_LEVEL))
+		{
+			/* Access floor */
+			f_ptr = &f_info[FEAT_FLOOR];
+
+			/* Normal char */
+			(*cp) = f_char_ptr[c_ptr->feat];
+
+			/* Normal attr */
+			a = f_attr_ptr[c_ptr->feat];
+
+			/* Special lighting effects */
+			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && (a == TERM_WHITE))
+			{
+				/* Handle "blind" */
+				if (p_ptr->blind)
+				{
+					/* Use "dark gray" */
+					a = TERM_L_DARK;
+				}
+
+				/* Handle "torch-lit" grids */
+				else if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+				{
+					/* Torch lite */
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
+					{
+						/* Use "yellow" */
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
+					}
+				}
+
+				/* Handle "dark" grids */
+				else if (!(c_ptr->info & CAVE_GLOW))
+				{
+					/* Use "dark gray" */
+					a = TERM_L_DARK;
+				}
+
+				/* Handle "out-of-sight" grids */
+				else if (!(*w_ptr & CAVE_VIEW))
+				{
+					/* Special flag */
+					if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 					{
 						/* Use "gray" */
 						a = TERM_SLATE;
@@ -748,7 +1024,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 	{
 		/* Memorized grids */
 		/* Hack -- everything is visible to dungeon masters */
-		if ((*w_ptr & CAVE_MARK) || (!strcmp(p_ptr->name, cfg_dungeon_master)))
+		if ((*w_ptr & CAVE_MARK) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Apply "mimic" field */
 			feat = f_info[feat].mimic;
@@ -765,7 +1041,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 			a = f_attr_ptr[feat];
 
 			/* Special lighting effects */
-			if (p_ptr->view_granite_lite && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
+			if (option_p(p_ptr,VIEW_GRANITE_LITE) && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
 			{
 				/* Handle "blind" */
 				if (p_ptr->blind)
@@ -778,16 +1054,18 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				else if (*w_ptr & CAVE_LITE)
 				{
 					/* Torch lite */
-					if (p_ptr->view_yellow_lite)
+					if (option_p(p_ptr,VIEW_YELLOW_LITE))
 					{
 						/* Use "yellow" */
-						/* a = TERM_YELLOW; */
-						a = TERM_ORANGE;
+						if (option_p(p_ptr,VIEW_ORANGE_LITE))
+							a = TERM_ORANGE;
+						else
+							a = TERM_YELLOW;
 					}
 				}
 
 				/* Handle "view_bright_lite" */
-				else if (p_ptr->view_bright_lite)
+				else if (option_p(p_ptr,VIEW_BRIGHT_LITE))
 				{
 					/* Not viewable */
 					if (!(*w_ptr & CAVE_VIEW))
@@ -841,7 +1119,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 			(*cp) = f_char_ptr[FEAT_NONE];
 		}
 	}
-
+#endif
 	/* Hack -- rare random hallucination, except on outer dungeon walls */
 	if (p_ptr->image && (!rand_int(256)) && (c_ptr->feat < FEAT_PERM_SOLID))
 	{
@@ -858,7 +1136,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 
 		/* Memorized objects */
 		/* Hack -- the dungeon master knows where everything is */
-		if ((p_ptr->obj_vis[c_ptr->o_idx]) || (!strcmp(p_ptr->name,cfg_dungeon_master)))
+		if ((p_ptr->obj_vis[c_ptr->o_idx]) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Normal char */
 			(*cp) = object_char(o_ptr);
@@ -891,7 +1169,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 			c = r_char_ptr[m_ptr->r_idx];
 
 			/* Ignore weird codes */
-			if (avoid_other)
+			if (option_p(p_ptr,AVOID_OTHER))
 			{
 				/* Use char */
 				(*cp) = c;
@@ -980,22 +1258,11 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 		/* Is that player visible? */
 		if (p_ptr->play_vis[0 - c_ptr->m_idx])
 		{
-			if (Players[0 - c_ptr->m_idx]->fruit_bat) c = 'b';
-			else if((( Players[0 - c_ptr->m_idx]->chp * 95)/ (Players[0 - c_ptr->m_idx]->mhp*10)) >= 7) c = '@';
-			else 
-			{
-				sprintf((unsigned char *)&kludge,"%d", ((Players[0 - c_ptr->m_idx]->chp * 95) / (Players[0 - c_ptr->m_idx]->mhp*10)));
-				c = (char)kludge;
-			}			
-
-			a = player_color(0 - c_ptr->m_idx);
-
-			/* MEGAHACK from 1.2.0 -- Hilite party leader! */
-			if (p_ptr->party &&  player_in_party(p_ptr->party, 0 - c_ptr->m_idx) && streq(parties[p_ptr->party].owner, Players[0 - c_ptr->m_idx]->name)) 
-			    a = TERM_YELLOW; 
+			int p = player_pict(Ind, 0 - c_ptr->m_idx);
+			a = PICT_A(p);
+			c = PICT_C(p);
 
 			(*cp) = c;
-	
 			(*ap) = a;
 
 			if (p_ptr->image)
@@ -1003,6 +1270,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, bool server)
 				/* Change the other player into a hallucination */
 				image_monster(ap, cp);
 			}
+
 		}
 	}
 }
@@ -1072,14 +1340,14 @@ void note_spot(int Ind, int y, int x)
 			}
 
 			/* Option -- memorize all perma-lit floors */
-			else if (p_ptr->view_perma_grids && (c_ptr->info & CAVE_GLOW))
+			else if (option_p(p_ptr,VIEW_PERMA_GRIDS) && (c_ptr->info & CAVE_GLOW))
 			{
 				/* Memorize */
 				*w_ptr |= CAVE_MARK;
 			}
 
 			/* Option -- memorize all torch-lit floors */
-			else if (p_ptr->view_torch_grids && (c_ptr->info & CAVE_LITE))
+			else if (option_p(p_ptr,VIEW_TORCH_GRIDS) && (c_ptr->info & CAVE_LITE))
 			{
 				/* Memorize */
 				*w_ptr |= CAVE_MARK;
@@ -1145,48 +1413,28 @@ void lite_spot(int Ind, int y, int x)
 	player_type *p_ptr = Players[Ind];
 
 	int dispx, dispy;
-
-	int kludge, pre_kludge;
+	bool is_player = FALSE;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
 	{
-		byte a;
-		char c;
+		byte a, ta;
+		char c, tc;
+
+		/* Examine the grid */
+		map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 
 		/* Handle "player" */
 		if ((y == p_ptr->py) && (x == p_ptr->px))
 		{
-			monster_race *r_ptr = &r_info[0];
-
-			/* Get the "player" attr */
-			a = r_ptr->d_attr;
-
-			/* Get the "player" char */
-			c = r_ptr->d_char;
-			
-			pre_kludge = (p_ptr->chp * 95) / (p_ptr->mhp*10);
-			pre_kludge = pre_kludge > 0 ? pre_kludge : 0;
-			if (pre_kludge < 7) 
-			{
-				sprintf((unsigned char *)&kludge,"%d",pre_kludge); 
-				c = kludge;
-			}
-				
-			if (p_ptr->fruit_bat) c = 'b';
-			
-			
-		}
-
-		/* Normal */
-		else
-		{
-			/* Examine the grid */
-			map_info(Ind, y, x, &a, &c, FALSE);
+			int p = player_pict(Ind,Ind);
+			a = PICT_A(p);
+			c = PICT_C(p);
+			is_player = TRUE;
 		}
 
 		/* Hack -- fake monochrome */
-		if (!use_color) a = TERM_WHITE;
+		if (!option_p(p_ptr,USE_COLOR)) a = TERM_WHITE;
 
 		dispx = x - p_ptr->panel_col_prt;
 		dispy = y - p_ptr->panel_row_prt;
@@ -1194,15 +1442,34 @@ void lite_spot(int Ind, int y, int x)
 		/* Only draw if different than buffered */
 		if (p_ptr->scr_info[dispy][dispx].c != c ||
 		    p_ptr->scr_info[dispy][dispx].a != a ||
+			p_ptr->trn_info[dispy][dispx].a != ta ||
+			p_ptr->trn_info[dispy][dispx].c != tc ||
 		    (x == p_ptr->px && y==p_ptr->py))
 		{
 			/* Modify internal buffer */
 			p_ptr->scr_info[dispy][dispx].c = c;
 			p_ptr->scr_info[dispy][dispx].a = a;
+			p_ptr->trn_info[dispy][dispx].c = tc;
+			p_ptr->trn_info[dispy][dispx].a = ta;
 
 			/* Tell client to redraw this grid */
-			(void)Send_char(Ind, dispx, dispy, a, c);
-		} 
+			Stream_tile(Ind, p_ptr, dispy, dispx);
+
+			/* Mark player */
+			if (is_player)
+			{
+				send_cursor(p_ptr, MCURSOR_PLAYER, (byte)y, (byte)x);
+			}
+		}
+	}
+	/* Out of panel bounds */
+	else
+	{
+		/* Handle "player" */
+		if ((y == p_ptr->py) && (x == p_ptr->px))
+		{
+			send_cursor(p_ptr, MCURSOR_PLAYER | MCURSOR_OFFLINE, 0, 0);
+		}
 	}
 }
 
@@ -1233,10 +1500,12 @@ void prt_map(int Ind)
 		dispy = y - p_ptr->panel_row_prt;
 
 		/* First clear the old stuff */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < MAX_WID; x++)
 		{
 			p_ptr->scr_info[dispy][x].c = 0;
 			p_ptr->scr_info[dispy][x].a = 0;
+			p_ptr->trn_info[dispy][x].c = 0;
+			p_ptr->trn_info[dispy][x].a = 0;
 		}
 
 		/* Scan the columns of row "y" */
@@ -1244,25 +1513,26 @@ void prt_map(int Ind)
 		{
 			byte a;
 			char c;
+			byte ta;
+			char tc;
 
 			/* Determine what is there */
-			map_info(Ind, y, x, &a, &c, FALSE);
+			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
 
 			/* Hack -- fake monochrome */
-			if (!use_color) a = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) a = TERM_WHITE;
 
 			dispx = x - p_ptr->panel_col_prt;
 
-			/* Efficiency -- Redraw that grid of the map */
-			if (p_ptr->scr_info[dispy][dispx].c != c || p_ptr->scr_info[dispy][dispx].a != a)
-			{
-				p_ptr->scr_info[dispy][dispx].c = c;
-				p_ptr->scr_info[dispy][dispx].a = a;
-			}
+			p_ptr->scr_info[dispy][dispx].c = c;
+			p_ptr->scr_info[dispy][dispx].a = a;
+			p_ptr->trn_info[dispy][dispx].c = tc;
+			p_ptr->trn_info[dispy][dispx].a = ta;
+
 		}
 
 		/* Send that line of info */
-		Send_line_info(Ind, dispy);
+		Stream_line(Ind, DUNGEON_STREAM_p(p_ptr), dispy);
 	}
 
 	/* Display player */
@@ -1386,7 +1656,7 @@ static byte priority(byte a, char c)
 		f_ptr = &f_info[p0];
 
 		/* Check character and attribute, accept matches */
-		if ((f_ptr->z_char == c) && (f_ptr->z_attr == a)) return (p1);
+		if ((f_ptr->x_char == c) && (f_ptr->x_attr == a)) return (p1);
 	}
 
 	/* Default */
@@ -1409,12 +1679,12 @@ static byte priority(byte a, char c)
  */
  
  
-void display_map(int Ind)
+void display_map(int Ind, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
 	monster_race *r_ptr = &r_info[0];
 
-	int i, j, x, y;
+	int x, y;
 
 	int map_hgt, map_wid;
 	int dungeon_hgt, dungeon_wid;
@@ -1429,15 +1699,15 @@ void display_map(int Ind)
 	bool old_view_granite_lite;
 
 	/* Large array on the stack */
-	byte ma[SCREEN_HGT + 2][78 + 2];
-	char mc[SCREEN_HGT + 2][78 + 2];
+	byte ma[MAX_HGT + 2][MAX_WID + 2];
+	char mc[MAX_HGT + 2][MAX_WID + 2];
 
-	byte mp[SCREEN_HGT + 2][78 + 2];
+	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
-	/* Desired map height */
-	map_hgt = SCREEN_HGT;
-	map_wid = 78;
-	
+	/* Desired map size */
+	map_wid = p_ptr->stream_wid[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
@@ -1449,12 +1719,12 @@ void display_map(int Ind)
 	if ((map_wid < 1) || (map_hgt < 1)) return;
 
 	/* Save lighting effects */
-	old_view_special_lite = p_ptr->view_special_lite;
-	old_view_granite_lite = p_ptr->view_granite_lite;
+	old_view_special_lite = option_p(p_ptr,VIEW_SPECIAL_LITE);
+	old_view_granite_lite = option_p(p_ptr,VIEW_GRANITE_LITE);
 
 	/* Disable lighting effects */
-	p_ptr->view_special_lite = FALSE;
-	p_ptr->view_granite_lite = FALSE;
+	option_p(p_ptr,VIEW_SPECIAL_LITE) = FALSE;
+	option_p(p_ptr,VIEW_GRANITE_LITE) = FALSE;
 
 
 	/* Clear the chars and attributes */
@@ -1480,7 +1750,7 @@ void display_map(int Ind)
 			col = (x * map_wid / dungeon_wid);
 
 			/* Extract the current attr/char at that map location */
-			map_info(Ind, y, x, &ta, &tc, FALSE);
+			map_info(Ind, y, x, &ta, &tc, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
 			tp = priority(ta, tc);
@@ -1526,17 +1796,21 @@ void display_map(int Ind)
 	/* Set the "player" char */
 	mc[y][x] = r_ptr->x_char;
 
+	/* Activate mini-map window */
+	if (quiet)
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
+
 	/* Display each map line in order */
 	for (y = 0; y < map_hgt+2; ++y)
 	{
 		/* Display the line */
-		for (x = 0; x < 80; ++x)
+		for (x = 0; x < map_wid+2; ++x)
 		{
 			ta = ma[y][x];
 			tc = mc[y][x];
 
 			/* Hack -- fake monochrome */
-			if (!use_color) ta = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) ta = TERM_WHITE;
 
 			/* Add the character */
 			p_ptr->scr_info[y][x].c = tc;
@@ -1544,22 +1818,28 @@ void display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y);
+		Stream_line(Ind, (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < map_wid+2; x++)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 	}
 
+	/* Flush main window / Fresh extra window */
+	Send_term_info(Ind, (quiet ? NTERM_FRESH : (NTERM_FLUSH | NTERM_ICKY)), 0);
 
-
+	/* Restore main window */
+	if (quiet)
+		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 
 	/* Restore lighting effects */
-	p_ptr->view_special_lite = old_view_special_lite;
-	p_ptr->view_granite_lite = old_view_granite_lite;
+	option_p(p_ptr,VIEW_SPECIAL_LITE) = old_view_special_lite;
+	option_p(p_ptr,VIEW_GRANITE_LITE) = old_view_granite_lite;
 }
 
 
@@ -1567,12 +1847,11 @@ void wild_display_map(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int i, j;
 	int world_x,world_y, x,y, wild_idx, type;
 
 	int map_hgt, map_wid;
 	int dungeon_hgt, dungeon_wid;
-	int row, col;
+	int col;
 
 	byte ta;
 	char tc;
@@ -1580,13 +1859,13 @@ void wild_display_map(int Ind)
 	char buf[80];
 
 	/* Large array on the stack */
-	byte ma[SCREEN_HGT + 2][78 + 2];
-	char mc[SCREEN_HGT + 2][78 + 2];
+	byte ma[MAX_HGT + 2][MAX_WID + 2];
+	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = SCREEN_HGT;
-	map_wid = 78;
-	
+	map_wid = p_ptr->stream_wid[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
@@ -1627,7 +1906,7 @@ void wild_display_map(int Ind)
 			
 			/* if the player hasnt been here, dont show him the terrain */
 			/* Hack -- DM has knowledge of the full world */
-			if (strcmp(p_ptr->name,cfg_dungeon_master))
+			if (!(p_ptr->dm_flags & DM_SEE_LEVEL))
 			if (!(p_ptr->wild_map[-wild_idx / 8] & (1 << (-wild_idx % 8)))) type = -1;
 			/* hack --  the town is always known */
 			if (!wild_idx) type = WILD_TOWN;
@@ -1679,11 +1958,9 @@ void wild_display_map(int Ind)
 	//sprintf(buf, " [%d, %d] ", p_ptr->world_y * -1, p_ptr->world_x);
 	/* [12N, 10E] */
 	buf[0] = '\0';
-	strcat(buf, " [");
-	if (p_ptr->world_y) strcat(buf, format("%d%c", abs(p_ptr->world_y), (p_ptr->world_y > 0 ? 'N' : 'S')));
-	if (p_ptr->world_y && p_ptr->world_x) strcat(buf, ", ");
-	if (p_ptr->world_x) strcat(buf, format("%d%c", abs(p_ptr->world_x), (p_ptr->world_x > 0 ? 'E' : 'W')));
-	strcat(buf, "] ");
+	strcat(buf, " ");
+	wild_cat_depth(p_ptr->dun_depth, &buf[0]);
+	strcat(buf, " ");
 
 	/* Print string at the bottom */
 	col = map_wid - strlen(buf);
@@ -1696,13 +1973,13 @@ void wild_display_map(int Ind)
 	for (y = 0; y < map_hgt+2; ++y)
 	{
 		/* Display the line */
-		for (x = 0; x < 80; ++x)
+		for (x = 0; x < map_wid+2; ++x)
 		{
 			ta = ma[y][x];
 			tc = mc[y][x];
 
 			/* Hack -- fake monochrome */
-			if (!use_color) ta = TERM_WHITE;
+			if (!option_p(p_ptr,USE_COLOR)) ta = TERM_WHITE;
 
 			/* Add the character */
 			p_ptr->scr_info[y][x].c = tc;
@@ -1710,15 +1987,19 @@ void wild_display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Send_mini_map(Ind, y);
+		Stream_line(Ind, MINIMAP_STREAM_p(p_ptr), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
-		for (x = 0; x < 80; x++)
+		for (x = 0; x < map_wid+2; x++)
 		{
 			p_ptr->scr_info[y][x].c = 0;
 			p_ptr->scr_info[y][x].a = 255;
+			p_ptr->trn_info[y][x].c = 0;
+			p_ptr->trn_info[y][x].a = 0;
 		}
 	}
+
+	Send_term_info(Ind, NTERM_FLUSH, 0);
 
 }
 
@@ -1731,14 +2012,23 @@ void wild_display_map(int Ind)
     "wilderness map" mode now that will represent each level with one character.
  */
  
-void do_cmd_view_map(int Ind)
+void do_cmd_view_map(player_type *p_ptr, char query)
 {
-	int cy, cx;
+	int Ind = Get_Ind[p_ptr->conn];
+
+	/* Treat any interactive userkey as ESCAPE.
+	 * Note: this is bad, because requires a full round-trip to server
+	 * to simply disable the minimap.
+	 */
+	if (query)
+	{
+		return;
+	}
 
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
-	if (Players[Ind]->dun_depth >= 0) display_map(Ind);
+	if (p_ptr->dun_depth >= 0) display_map(Ind, FALSE);
 	/* do wilderness map */
 	else wild_display_map(Ind);
 }
@@ -2608,7 +2898,7 @@ void update_view(int Ind)
 	/*** Initialize ***/
 
 	/* Optimize */
-	if (p_ptr->view_reduce_view && !Depth)
+	if (option_p(p_ptr,VIEW_REDUCE_VIEW) && !Depth)
 	{
 		/* Full radius (10) */
 		full = MAX_SIGHT / 2;
@@ -3274,77 +3564,6 @@ void update_flow(void)
 
 
 /*
- * Hack -- map the current panel (plus some) ala "magic mapping"
- */
-void map_area(int Ind)
-{
-	player_type *p_ptr = Players[Ind];
-	int Depth = p_ptr->dun_depth;
-	int		i, x, y, y1, y2, x1, x2;
-
-	cave_type	*c_ptr;
-	byte		*w_ptr;
-
-
-	/* Pick an area to map */
-	y1 = p_ptr->panel_row_min - randint(10);
-	y2 = p_ptr->panel_row_max + randint(10);
-	x1 = p_ptr->panel_col_min - randint(20);
-	x2 = p_ptr->panel_col_max + randint(20);
-
-	/* Speed -- shrink to fit legal bounds */
-	if (y1 < 1) y1 = 1;
-	if (y2 > p_ptr->cur_hgt-2) y2 = p_ptr->cur_hgt-2;
-	if (x1 < 1) x1 = 1;
-	if (x2 > p_ptr->cur_wid-2) x2 = p_ptr->cur_wid-2;
-
-	/* Scan that area */
-	for (y = y1; y <= y2; y++)
-	{
-		for (x = x1; x <= x2; x++)
-		{
-			c_ptr = &cave[Depth][y][x];
-			w_ptr = &p_ptr->cave_flag[y][x];
-
-			/* All non-walls are "checked", including MAngband specifics */
-			if ((c_ptr->feat < FEAT_SECRET) || 
-				((c_ptr->feat >= FEAT_DIRT) && (c_ptr->feat < FEAT_DRAWBRIDGE)))
-			{
-				/* Memorize normal features */
-				if (!is_boring(c_ptr->feat))
-				{
-					/* Memorize the object */
-					*w_ptr |= CAVE_MARK;
-				}
-
-				/* Memorize known walls */
-				for (i = 0; i < 8; i++)
-				{
-					c_ptr = &cave[Depth][y+ddy_ddd[i]][x+ddx_ddd[i]];
-					w_ptr = &p_ptr->cave_flag[y+ddy_ddd[i]][x+ddx_ddd[i]];
-
-					/* Memorize walls (etc) */
-					if ((c_ptr->feat >= FEAT_SECRET) && 
-						((c_ptr->feat < FEAT_DIRT) || (c_ptr->feat >= FEAT_DRAWBRIDGE)))
-					{
-						/* Memorize the walls */
-						*w_ptr |= CAVE_MARK;
-					}
-				}
-			}
-		}
-	}
-
-	/* Redraw map */
-	p_ptr->redraw |= (PR_MAP);
-
-	/* Window stuff */
-	p_ptr->window |= (PW_OVERHEAD);
-}
-
-
-
-/*
  * Light up the dungeon using "claravoyance"
  *
  * This function "illuminates" every grid in the dungeon, memorizes all
@@ -3410,7 +3629,7 @@ void wiz_lite(int Ind)
 					}
 
 					/* Normally, memorize floors (see above) */
-					if (p_ptr->view_perma_grids && !p_ptr->view_torch_grids)
+					if (option_p(p_ptr,VIEW_PERMA_GRIDS) && !option_p(p_ptr,VIEW_TORCH_GRIDS))
 					{
 						/* Memorize the grid */
 						*w_ptr |= CAVE_MARK;
@@ -3427,7 +3646,7 @@ void wiz_lite(int Ind)
 	p_ptr->redraw |= (PR_MAP);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_OVERHEAD);
+	p_ptr->window |= (PW_OVERHEAD | PW_MONLIST | PW_MAP);
 
 }
 
@@ -3475,7 +3694,7 @@ void wiz_dark(int Ind)
 	p_ptr->redraw |= (PR_MAP);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_OVERHEAD);
+	p_ptr->window |= (PW_OVERHEAD | PW_MONLIST | PW_MAP);
 }
 
 
@@ -3616,7 +3835,7 @@ bool projectable(int Depth, int y1, int x1, int y2, int x2)
 
 
 /* The same function... but with target in a wall (for player ghosts)
-/* Used by monsters... otherwise player ghosts would be safe from monster spells! */
+ * Used by monsters... otherwise player ghosts would be safe from monster spells! */
 bool projectable_wall(int Depth, int y1, int x1, int y2, int x2)
 {
 	int dist, y, x;
@@ -3629,6 +3848,9 @@ bool projectable_wall(int Depth, int y1, int x1, int y2, int x2)
 	{
 		/* Check for arrival at "final target" */
 		if ((x == x2) && (y == y2)) return (TRUE);
+
+		/* HACK -- Never go through walls -- ARENA WALLS */
+		if (dist && cave[Depth][y][x].feat ==  FEAT_PVP_ARENA) break;
 
 		/* Never go through walls */
 		if (dist && !cave_floor_bold(Depth, y, x)) break;
@@ -3760,19 +3982,18 @@ void update_health(int m_idx)
 }
 
 
-
 /*
  * Hack -- track the given monster race
- *
- * Monster recall is disabled for now --KLJ--
  */
-void recent_track(int r_idx)
+void monster_race_track(int Ind, int r_idx)
 {
-	/* Save this monster ID */
-	/*recent_idx = r_idx;*/
+	player_type *p_ptr = Players[Ind];
 
 	/* Window stuff */
-	/*p_ptr->window |= (PW_MONSTER);*/
+	if (p_ptr->monster_race_idx != r_idx) p_ptr->window |= (PW_MONSTER);
+
+	/* Save this monster ID */
+	p_ptr->monster_race_idx = r_idx;
 }
 
 
@@ -3797,6 +4018,11 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	/* Cancel auto-commands */
 	/* command_new = 0; */
 
+	/* Dungeon Master is never disturbed */
+	if (p_ptr->dm_flags & DM_NEVER_DISTURB)
+	{
+		return;
+	}
 #if 0
 	/* Cancel repeated commands */
 	if (command_rep)
@@ -3813,7 +4039,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->resting)
 	{
 		/* Cancel */
-		p_ptr->resting = 0;
+		p_ptr->resting = FALSE;
 
 		/* Redraw the state (later) */
 		p_ptr->redraw |= (PR_STATE);
@@ -3823,7 +4049,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->running)
 	{
 		/* Cancel */
-		p_ptr->running = 0;
+		p_ptr->running = FALSE;
 
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);
@@ -3842,8 +4068,21 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		p_ptr->redraw |= (PR_STATE);
 	}
 
+	/* Cancel looking around if requested and allowed */
+	if (stop_search && option_p(p_ptr,DISTURB_LOOK) &&
+		(p_ptr->panel_row_old != -1) &&
+		(p_ptr->panel_row != p_ptr->panel_row_old || 
+		p_ptr->panel_col != p_ptr->panel_col_old))
+	{
+		/* Cancel input */
+		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
+
+		/* Stop locating */
+		do_cmd_locate(Ind, 0);
+	}
+
 	/* Flush the input if requested */
-	if (flush_disturb) flush();
+	/*if (flush_disturb) flush();*/
 }
 
 
@@ -3851,20 +4090,47 @@ void disturb(int Ind, int stop_search, int unused_flag)
 
 
 /*
- * Hack -- Check if a level is a "quest" level
+ * Hack -- Check if player is on a "quest" level
  */
-bool is_quest(int level)
+bool is_quest_level(int Ind, int level)
 {
 	int i;
-
-	/* Town is never a quest */
-	if (!level) return (FALSE);
+	
+	/* Town or Wilderness are never a quest */
+	if (level <= 0) return (FALSE);
 
 	/* Check quests */
 	for (i = 0; i < MAX_Q_IDX; i++)
 	{
 		/* Check for quest */
-		if (q_list[i].level == level) return (TRUE);
+		if (Players[Ind]->q_list[i].level == level) return (TRUE);
+	}
+	
+	/* Nope */
+	return (FALSE);
+}
+/*
+ * Hack -- Check if a level is a "quest" level
+ */
+bool is_quest(int level)
+{
+	int i, j;
+
+	/* Town or Wilderness are never a quest */
+	if (level <= 0) return (FALSE);
+
+	/* Check each player */
+	for (j = 1; j < NumPlayers + 1; j++)
+	{
+		if (Players[j]->dun_depth == level)
+		{
+			/* Check his quests */
+			for (i = 0; i < MAX_Q_IDX; i++)
+			{
+				/* Check for quest */
+				if (Players[j]->q_list[i].level == level) return (TRUE);
+			}
+		}
 	}
 
 	/* Nope */

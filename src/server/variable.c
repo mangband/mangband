@@ -11,9 +11,7 @@
  * included in all such copies.
  */
 
-#define SERVER
-
-#include "angband.h"
+#include "mangband.h"
 
 
 /*
@@ -33,11 +31,13 @@ cptr copyright[6] =
 /*
  * Hack -- Link the "version" into the executable
  */
-byte version_major = VERSION_MAJOR;
-byte version_minor = VERSION_MINOR;
-byte version_patch = VERSION_PATCH;
-byte version_extra = VERSION_EXTRA;
+byte version_major = SERVER_VERSION_MAJOR;
+byte version_minor = SERVER_VERSION_MINOR;
+byte version_patch = SERVER_VERSION_PATCH;
+byte version_extra = SERVER_VERSION_EXTRA;
 
+
+u16b shutdown_timer;	/* Shutdown server in (seconds) */
 
 /*
  * Hack -- Savefile information
@@ -50,6 +50,7 @@ u16b sf_saves;			/* Number of "saves" during this life */
 /*
  * Hack -- Run-time arguments
  */
+cptr arg_config_file = NULL;	/* Command arg -- Desired config file */
 bool arg_wizard;		/* Command arg -- Enter wizard mode */
 bool arg_fiddle;		/* Command arg -- Enter fiddle mode */
 bool arg_force_original;	/* Command arg -- Force original keyset */
@@ -61,7 +62,7 @@ bool server_state_loaded;	/* The server state was loaded from a savefile */
 bool server_saved;		/* The character was just saved to a savefile */
 
 bool character_loaded;		/* The character was loaded from a savefile */
-bool character_icky;		/* The game is in an icky full screen mode */
+bool character_died;		/* The character in the savefile was dead */
 bool character_xtra;		/* The game is in an icky startup mode */
 
 u32b seed_flavor;		/* Hack -- consistent object colors */
@@ -79,8 +80,6 @@ s16b command_wrk;		/* See "cmd1.c" */
 s16b command_gap = 50;		/* See "cmd1.c" */
 
 s16b command_new;		/* Command chaining from inven/equip view */
-
-s16b energy_use;		/* Energy use this turn */
 
 bool create_up_stair;		/* Auto-create "up stairs" */
 bool create_down_stair;		/* Auto-create "down stairs" */
@@ -117,8 +116,8 @@ s16b special_levels[MAX_SPECIAL_LEVELS]; /* List of depths which are special sta
 
 char summon_kin_type;		/* Hack -- See summon_specific() */
 
-huge turn;			/* Current game turn */
-huge old_turn;			/* Turn when level began (feelings) */
+hturn turn;			/* Current game turn */
+hturn old_turn;		/* Turn when level began (feelings) */
 
 s32b player_id;			/* Current player ID */
 
@@ -141,7 +140,7 @@ s16b coin_type;			/* Hack -- force coin type */
 
 bool opening_chest;		/* Hack -- prevent chest generation */
 
-bool use_graphics;		/* Hack -- Assume no graphics mapping */
+int use_graphics;		/* Hack -- Assume no graphics mapping */
 
 bool use_sound;			/* Hack -- Assume no special sounds */
 
@@ -164,30 +163,34 @@ s32b m_max = 1;			/* Monster heap size */
 s32b o_top = 0;			/* Object top size */
 s32b m_top = 0;			/* Monster top size */
 
+s32b p_max = 0;			/* Player heap size */ 
 
 /*
  * Server options, set in mangband.cfg
  */
 
 bool cfg_report_to_meta = 0;
-char * cfg_meta_address;
+char * cfg_meta_address = NULL;
 char * cfg_report_address = NULL;
 char * cfg_bind_name = NULL;
-char * cfg_console_password = "change_me";
-char * cfg_dungeon_master = "DungeonMaster";
+char * cfg_console_password = NULL;
+bool cfg_console_local_only = FALSE;
+char * cfg_dungeon_master = NULL;
+char * cfg_load_pref_file = NULL;
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
-s16b cfg_tcp_port = 18346;
+s32b cfg_tcp_port = 18346;
 bool cfg_mage_hp_bonus = 1;
+bool cfg_safe_recharge = FALSE;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;
 bool cfg_ghost_diving = 0;
-bool cfg_door_bump_open = 1;
 s32b cfg_level_unstatic_chance = 60;
 bool cfg_random_artifacts = 0; /* No randarts by default */
 s16b cfg_preserve_artifacts = 3;
 s32b cfg_retire_timer = -1;
 bool cfg_ironman = 0;
+bool cfg_more_towns = 0;
 bool cfg_town_wall = 0;
 s32b cfg_unique_respawn_time = 300;
 s32b cfg_unique_max_respawn_time = 50000;
@@ -195,139 +198,22 @@ s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
 s16b cfg_max_houses = 0;
 bool cfg_chardump_color = FALSE;
-
-/*
- * Software options (set via the '=' command).  See "tables.c"
- */
-
-
-/* Option Set 1 -- User Interface */
-
-bool rogue_like_commands;	/* Rogue-like commands */
-bool quick_messages;		/* Activate quick messages */
-bool other_query_flag;		/* Prompt for various information */
-bool carry_query_flag;		/* Prompt before picking things up */
-bool use_old_target;		/* Use old target by default */
-bool always_pickup;			/* Pick things up by default */
-bool always_repeat;			/* Repeat obvious commands */
-bool depth_in_feet;			/* Show dungeon level in feet */
-
-bool stack_force_notes;		/* Merge inscriptions when stacking */
-bool stack_force_costs;		/* Merge discounts when stacking */
-
-bool show_labels;			/* Show labels in object listings */
-bool show_weights;			/* Show weights in object listings */
-bool show_choices;			/* Show choices in certain sub-windows */
-bool show_details;			/* Show details in certain sub-windows */
-
-bool ring_bell;				/* Ring the bell (on errors, etc) */
-bool use_color;				/* Use color if possible (slow) */
-
-
-/* Option Set 2 -- Disturbance */
-
-bool find_ignore_stairs;	/* Run past stairs */
-bool find_ignore_doors;		/* Run through open doors */
-bool find_cut;				/* Run past known corners */
-bool find_examine;			/* Run into potential corners */
-
-bool disturb_move;			/* Disturb whenever any monster moves */
-bool disturb_near;			/* Disturb whenever viewable monster moves */
-bool disturb_panel;			/* Disturb whenever map panel changes */
-bool disturb_state;			/* Disturn whenever player state changes */
-bool disturb_minor;			/* Disturb whenever boring things happen */
-bool disturb_other;			/* Disturb whenever various things happen */
-
-bool alert_hitpoint;		/* Alert user to critical hitpoints */
-bool alert_failure;			/* Alert user to various failures */
-
-
-/* Option Set 3 -- Game-Play */
-
-bool no_ghost;				/* Death is permanent */
-
-bool auto_scum;				/* Auto-scum for good levels */
-
-bool stack_allow_items;		/* Allow weapons and armor to stack */
-bool stack_allow_wands;		/* Allow wands/staffs/rods to stack */
-
-bool expand_look;			/* Expand the power of the look command */
-bool expand_list;			/* Expand the power of the list commands */
-
-bool view_perma_grids;		/* Map remembers all perma-lit grids */
-bool view_torch_grids;		/* Map remembers all torch-lit grids */
-
-bool dungeon_align;			/* Generate dungeons with aligned rooms */
-bool dungeon_stair;			/* Generate dungeons with connected stairs */
-
-bool flow_by_sound;			/* Monsters track new player location */
-bool flow_by_smell;			/* Monsters track old player location */
-
-bool track_follow;			/* Monsters follow the player */
-bool track_target;			/* Monsters target the player */
-
-bool smart_learn;			/* Monsters learn from their mistakes */
-bool smart_cheat;			/* Monsters exploit player weaknesses */
-
-
-/* Option Set 4 -- Efficiency */
-
-bool view_reduce_lite;		/* Reduce lite-radius when running */
-bool view_reduce_view;		/* Reduce view-radius in town */
-
-bool avoid_abort;			/* Avoid checking for user abort */
-bool avoid_other;			/* Avoid processing special colors */
-
-bool flush_failure;			/* Flush input on any failure */
-bool flush_disturb;			/* Flush input on disturbance */
-bool flush_command;			/* Flush input before every command */
-
-bool fresh_before;			/* Flush output before normal commands */
-bool fresh_after;			/* Flush output after normal commands */
-bool fresh_message;			/* Flush output after all messages */
-
-bool compress_savefile;		/* Compress messages in savefiles */
-
-bool hilite_player;			/* Hilite the player with the cursor */
-
-bool view_yellow_lite;		/* Use special colors for torch-lit grids */
-bool view_bright_lite;		/* Use special colors for 'viewable' grids */
-
-bool view_granite_lite;		/* Use special colors for wall grids (slow) */
-bool view_special_lite;		/* Use special colors for floor grids (slow) */
-
-/* Option Set 99 -- Obsolete but needed for savefile parsing */
-
-bool old_mirror_debug;		/* Show debug messages in mirror window */
-bool old_mirror_around;		/* Show overhead map in mirror window */
-bool old_mirror_recent;		/* Show monster info in mirror window */
-bool old_mirror_normal;		/* Show inven/equip in mirror window */
-bool old_mirror_choose;		/* Show item choices in mirror window */
-bool old_mirror_spells;		/* Show spell choices in mirror window */
-bool old_recall_recent;		/* Show monster info in recall window */
-bool old_choice_normal;		/* Show inven/equip in choice window */
-bool old_choice_choose;		/* Show item choices in choice window */
-bool old_choice_spells;		/* Show spell choices in choice window */
-
-
-/* Cheating options */
-
-bool cheat_peek;		/* Peek into object creation */
-bool cheat_hear;		/* Peek into monster creation */
-bool cheat_room;		/* Peek into dungeon creation */
-bool cheat_xtra;		/* Peek into something else */
-bool cheat_know;		/* Know complete monster info */
-bool cheat_live;		/* Allow player to avoid death */
-
-
-/* Special options */
-
-s16b hitpoint_warn;		/* Hitpoint warning (0 to 9) */
-
-s16b delay_factor;		/* Delay factor (0 to 9) */
+s16b cfg_pvp_hostility = 2;
+bool cfg_pvp_notify = FALSE;
+s16b cfg_pvp_safehostility = 3;
+s16b cfg_pvp_safedepth = -1;
+s16b cfg_pvp_saferadius = -1;
+s16b cfg_pvp_safelevel = -1;
+bool cfg_party_share_exp = TRUE;
+bool cfg_party_share_quest = FALSE;
+bool cfg_party_share_kill = FALSE;
+bool cfg_party_share_win = TRUE;
+s16b cfg_party_sharelevel = -1;
 
 
 
+
+bool dungeon_align; 	/* Most recent align request */
 s16b feeling;			/* Most recent feeling */
 s16b rating;			/* Level's current rating */
 
@@ -363,6 +249,9 @@ s16b recent_idx;
 
 
 
+/* Collection of connections/players */
+element_group* players = NULL;
+
 /* User info */
 int player_uid = 0;
 int player_euid = 0;
@@ -374,9 +263,20 @@ player_type **Players;
 /* The party information */
 party_type parties[MAX_PARTIES];
 
+/* Chat channels */
+channel_type channels[MAX_CHANNELS];
+int chan_audit, chan_debug, chan_cheat;
+
+/* Arenas information */ 
+arena_type arenas[MAX_ARENAS];
+int num_arenas;
+
 /* The information about houses */
 house_type houses[MAX_HOUSES];
 int num_houses;
+
+/* This information will help client */
+byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 
 /* An array to access a Player's ID */
 long GetInd[MAX_ID];
@@ -554,9 +454,16 @@ object_type *o_list;
 monster_type *m_list;
 
 /*
- * Hack -- Quest array
+ * The array of dungeon players [MAX_PLAYERS]
  */
-quest q_list[MAX_Q_IDX];
+player_type **p_list;
+
+/*
+ * Hack -- Quest array
+ *
+ * Also moved to player info 
+ */
+/* quest q_list[MAX_Q_IDX]; */
 
 
 /*
@@ -594,6 +501,13 @@ s16b alloc_race_size;
 alloc_entry *alloc_race_table;
 
 
+
+/*
+ * Specify attr/char pairs for visual special effects
+ * Be sure to use "index & 0xFF" to avoid illegal access
+ */
+byte misc_to_attr[256];
+char misc_to_char[256];
 /*
  * Specify attr/char pairs for inventory items (by tval)
  * Be sure to use "index & 0x7F" to avoid illegal access
@@ -615,6 +529,10 @@ byte keymap_dirs[128];
  */
 byte color_table[256][4];
 
+/*
+ * Static arrays to hold text screen loaded from TEXTFILEs.
+ */
+char text_screen[MAX_TEXTFILES][TEXTFILE__WID * TEXTFILE__HGT];
 
 /*** Player information ***/
 
@@ -654,6 +572,9 @@ player_magic *mp_ptr;*/
 /*s16b player_hp[PY_MAX_LEVEL];*/
 
 
+/* Length of equipment slot names combined */
+u32b eq_name_size;
+
 /*
  * Structure (not array) of size limits
  */
@@ -662,7 +583,6 @@ maxima *z_info;
 /*
  * The vault generation arrays
  */
-header *v_head;
 vault_type *v_info;
 char *v_name;
 char *v_text;
@@ -670,17 +590,15 @@ char *v_text;
 /*
  * The terrain feature arrays
  */
-header *f_head;
 feature_type *f_info;
 char *f_name;
 char *f_text;
-char f_char_s[MAX_F_IDX];
-char f_attr_s[MAX_F_IDX];
+char *f_char_s; /* copy of f_info characters */
+byte *f_attr_s; /* copy of f_info attributes */
 
 /*
  * The object kind arrays
  */
-header *k_head;
 object_kind *k_info;
 char *k_name;
 char *k_text;
@@ -688,7 +606,6 @@ char *k_text;
 /*
  * The artifact arrays
  */
-header *a_head;
 artifact_type *a_info;
 char *a_name;
 char *a_text;
@@ -696,7 +613,6 @@ char *a_text;
 /*
  * The ego-item arrays
  */
-header *e_head;
 ego_item_type *e_info;
 char *e_name;
 char *e_text;
@@ -705,12 +621,11 @@ char *e_text;
 /*
  * The monster race arrays
  */
-header *r_head;
 monster_race *r_info;
 char *r_name;
 char *r_text;
-char r_char_s[MAX_R_IDX];
-char r_attr_s[MAX_R_IDX];
+char *r_char_s; /* copy of r_info charcartes */
+byte *r_attr_s; /* copy of r_info attributes */
 
 
 /*
@@ -777,14 +692,13 @@ cptr ANGBAND_DIR_DATA;
  * Textual template files for the "*_info" arrays (ascii)
  * These files are portable between platforms
  */
-cptr ANGBAND_DIR_GAME;
 cptr ANGBAND_DIR_EDIT;
 
 /*
  * Various user editable text files (ascii), such as the help and greeting
  * screen. These files may be portable between platforms
  */
-cptr ANGBAND_DIR_TEXT;
+cptr ANGBAND_DIR_HELP;
 
 /*
  * Savefiles for current characters (binary)
@@ -793,10 +707,17 @@ cptr ANGBAND_DIR_TEXT;
 cptr ANGBAND_DIR_SAVE;
 
 /*
+ * Bone files for player ghosts (ascii)
+ * These files are portable between platforms
+ * (Used for death dumps in MAngband)
+ */
+cptr ANGBAND_DIR_BONE;
+
+/*
  * User "preference" files (ascii)
  * These files are rarely portable between platforms
  */
-cptr ANGBAND_DIR_USER;
+cptr ANGBAND_DIR_PREF;
 
 
 /*
@@ -845,10 +766,3 @@ bool (*get_mon_num_hook)(int r_idx);
  * Hack -- function hook to restrict "get_obj_num_prep()" function
  */
 bool (*get_obj_num_hook)(int k_idx);
-
-/* the dungeon master movement hook, is called whenever he moves
- * (to make building large buildings / summoning hoards of mosnters 
- * easier)
- */
-//bool (*master_move_hook)(int Ind, char * args) = master_acquire;
-bool (*master_move_hook)(int Ind, char * args) = NULL;

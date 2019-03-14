@@ -3,102 +3,16 @@
 /* Purpose: Angband utilities -BEN- */
 
 
-#define SERVER
-
-#include "angband.h"
-#include "externs.h"
-
-#ifndef HAS_MEMSET
-
-/*
- * For those systems that don't have "memset()"
- *
- * Set the value of each of 'n' bytes starting at 's' to 'c', return 's'
- * If 'n' is negative, you will erase a whole lot of memory.
- */
-char *memset(char *s, int c, huge n)
-{
-	char *t;
-	for (t = s; len--; ) *t++ = c;
-	return (s);
-}
-
-#endif
+#include "mangband.h"
 
 
 
-#ifndef HAS_STRICMP
 
-/*
- * For those systems that don't have "stricmp()"
- *
- * Compare the two strings "a" and "b" ala "strcmp()" ignoring case.
- */
-int stricmp(cptr a, cptr b)
-{
-	cptr s1, s2;
-	char z1, z2;
 
-	/* Scan the strings */
-	for (s1 = a, s2 = b; TRUE; s1++, s2++)
-	{
-		z1 = FORCEUPPER(*s1);
-		z2 = FORCEUPPER(*s2);
-		if (z1 < z2) return (-1);
-		if (z1 > z2) return (1);
-		if (!z1) return (0);
-	}
-}
-
-#endif
 
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
-
-/*
- * For those systems that don't have "usleep()" but need it.
- *
- * Fake "usleep()" function grabbed from the inl netrek server -cba
- */
-static int usleep(huge microSeconds)
-{
-	struct timeval      Timer;
-
-	int                 nfds = 0;
-
-#ifdef FD_SET
-	fd_set		*no_fds = NULL;
-#else
-	int			*no_fds = NULL;
-#endif
-
-
-	/* Was: int readfds, writefds, exceptfds; */
-	/* Was: readfds = writefds = exceptfds = 0; */
-
-
-	/* Paranoia -- No excessive sleeping */
-	if (microSeconds > 4000000L) core("Illegal usleep() call");
-
-
-	/* Wait for it */
-	Timer.tv_sec = (microSeconds / 1000000L);
-	Timer.tv_usec = (microSeconds % 1000000L);
-
-	/* Wait for it */
-	if (select(nfds, no_fds, no_fds, no_fds, &Timer) < 0)
-	{
-		/* Hack -- ignore interrupts */
-		if (errno != EINTR) return -1;
-	}
-
-	/* Success */
-	return 0;
-}
-
-# endif
 
 
 /*
@@ -108,33 +22,7 @@ extern struct passwd *getpwuid();
 extern struct passwd *getpwnam();
 
 
-/*
- * Find a default user name from the system.
- */
-void user_name(char *buf, int id)
-{
-	struct passwd *pw;
-
-	/* Look up the user name */
-	if ((pw = getpwuid(id)))
-	{
-		(void)strcpy(buf, pw->pw_name);
-		buf[16] = '\0';
-
-#ifdef CAPITALIZE_USER_NAME
-		/* Hack -- capitalize the user name */
-		if (islower(buf[0])) buf[0] = toupper(buf[0]);
 #endif
-
-		return;
-	}
-
-	/* Oops.  Hack -- default to "PLAYER" */
-	strcpy(buf, "PLAYER");
-}
-
-#endif /* SET_UID */
-
 
 
 
@@ -323,7 +211,7 @@ errr path_build(char *buf, int max, cptr path, cptr file)
 		/* Use the file itself */
 		strnfmt(buf, max, "%s", file);
 	}
-	
+
 	/* No path given */
 	else if (!path[0])
 	{
@@ -698,27 +586,6 @@ errr fd_seek(int fd, huge n)
 
 	/* Failure */
 	if (p != n) return (1);
-
-	/* Success */
-	return (0);
-}
-
-
-/*
- * Hack -- attempt to truncate a file descriptor
- */
-errr fd_chop(int fd, huge n)
-{
-	/* XXX XXX */
-	n = n ? n : 0;
-
-	/* Verify the fd */
-	if (fd < 0) return (-1);
-
-#if defined(sun) || defined(ultrix) || defined(NeXT)
-	/* Truncate */
-	ftruncate(fd, n);
-#endif
 
 	/* Success */
 	return (0);
@@ -1171,7 +1038,7 @@ void ascii_to_text(char *buf, cptr str)
 }
 
 
-
+#if 0
 /*
  * Variable used by the functions below
  */
@@ -1351,6 +1218,7 @@ static char original_commands(char command)
  *
  * You can map a key to "tab" to make it "non-functional".
  */
+
 void keymap_init(void)
 {
 	int i, k;
@@ -1387,6 +1255,7 @@ void keymap_init(void)
 	/* Save the "rogue_like_commands" setting */
 	old_rogue_like = rogue_like_commands;
 }
+#endif
 
 
 
@@ -1600,7 +1469,7 @@ void bell(void)
 void sound(int Ind, int val)
 {
 	/* Make a sound */
-	Send_sound(Ind, val);
+	send_sound(Ind, val);
 }
 
 
@@ -1874,7 +1743,7 @@ char inkey(int Ind)
 	(void)Term_get_cursor(&v);
 
 	/* Show the cursor if waiting, except sometimes in "command" mode */
-	if (!inkey_scan && (!inkey_flag || hilite_player || character_icky))
+	if (!inkey_scan && (!inkey_flag || hilite_player))
 	{
 		/* Show the cursor */
 		(void)Term_set_cursor(1);
@@ -2147,6 +2016,67 @@ cptr quark_str(s16b i)
 	return (q);
 }
 
+
+#define end_of_segment(A) ((A) == ' ' || (A) == '!' || (A) == '@' || (A) == '^')
+/*
+ * Parse item's inscriptons, extract "^abc" and "^a ^b ^c"
+ * cases and cache them. (adapted from check_guard_inscription)
+ */
+void fill_prevent_inscription(bool *arr, s16b quark)
+{
+	const char *ax;
+
+	/* Init quark */
+	ax = quark_str(quark);
+	if (ax == NULL) return;
+
+	/* Find start of segment */
+	while((ax = strchr(ax, '^')) != NULL) 
+	{
+		/* Parse segment */
+		while(ax++ != NULL) 
+		{
+			/* Reached end of quark, stop */
+			if (*ax == 0) break;
+
+			/* Reached end of segment, stop */
+			if (end_of_segment(*ax)) break;
+
+			/* Found a "Preventing Inscription" */
+			arr[MIN(127,(byte)(*ax))] = TRUE;
+	    }
+	}
+}
+/*
+ * Refresh combined list of player's preventive inscriptons
+ * after an update to his equipment was made. 
+ */
+void update_prevent_inscriptions(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *o_ptr;
+	int i;
+
+	/* Clear flags */
+	for (i = 0; i < 128; i++)
+	{
+		p_ptr->prevents[i] = FALSE;
+	}
+
+	/* Scan equipment */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+	{
+		o_ptr = &p_ptr->inventory[i];
+
+		/* Item exists and has inscription */
+		if (o_ptr->tval && o_ptr->note)
+		{
+			/* Fill */
+			fill_prevent_inscription(p_ptr->prevents, o_ptr->note);
+		}
+	}
+}
+
 /*
  * Check to make sure they haven't inscribed an item against what
  * they are trying to do -Crimson
@@ -2170,13 +2100,23 @@ bool check_guard_inscription( s16b quark, char what ) {
 	    }
 	    if(*ax =='*') {
 		switch( what ) { /* check for paraniod tags */
+		    case '{': /* no inscribe */
+		    case '}': /* no unscribe */
+		    case 'g': case ',': /* no pickup! */
+			/* ^ Owner must override those */
+			/* Protect against loss: */
 		    case 'd': /* no drop */
-		    case 'h': /* no house ( sell a a key ) */
 		    case 'k': /* no destroy */
 #if 0
 		    case 's': /* no sell */
 #endif
 		    case 'v': /* no thowing */
+		    case 'f': /* no firing */
+			/* Protect against consumption: */
+		    case 'q': /* no quaff */
+		    case 'E': /* no eat */
+		    case 'r': /* no read */
+		    case 'a': case 'z': case 'u': /* no magic devices */
 		      return TRUE;
 		};
             };  
@@ -2491,33 +2431,75 @@ static void msg_flush(int x)
  */
 void msg_print(int Ind, cptr msg)
 {
+	msg_print_aux(Ind, msg, MSG_GENERIC);
+}
+void msg_print_aux(int Ind, cptr msg, u16b type)
+{
+	player_type *p_ptr = Players[Ind];
 	bool log = TRUE;
+	bool add = FALSE;
+	bool dup = FALSE;
+	char multiplier[12];
+	s16b ptr;
 	
 	/* We don't need to log *everything* */
-	if(msg && strchr("[",*msg))
+	if(type > MSG_CHAT || (msg && strchr("[",*msg)))
 	{
 		log = FALSE;
 	}
 
 	/* Log messages for each player, so we can dump last messages
-	 * in serer-side character dumps */
+	 * in server-side character dumps */
 	if(msg && Ind && log)
 	{
-		player_type *p_ptr = Players[Ind];
-		strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
-		p_ptr->msg_log[p_ptr->msg_hist_ptr++][78] = '\0';
+		add = TRUE;
+		/* Ensure we know where the last message is */
+		ptr = p_ptr->msg_hist_ptr - 1;
+		if(ptr < 0) ptr = MAX_MSG_HIST-1;
+		/* If this message is already in the buffer, count it as a dupe */
+		if(!strcmp(p_ptr->msg_log[ptr],msg))
+		{
+			p_ptr->msg_hist_dupe++;
+			/* And don't add another copy to the buffer */
+			add = FALSE;
+			dup = TRUE;
+		}
+		/* This message is the end of a series of dupes */
+		else if(p_ptr->msg_hist_dupe > 0)
+		{
+			/* Add the dupe counter to the end of the last message */
+			sprintf(multiplier," (x%d)",p_ptr->msg_hist_dupe+1);
+			strcat(p_ptr->msg_log[ptr],multiplier);
+			p_ptr->msg_hist_dupe = 0;
+		}
+		if(add)
+		{
+			/* Standard, unique (for the moment) message */
+			strncpy(p_ptr->msg_log[p_ptr->msg_hist_ptr], msg, 78);
+			p_ptr->msg_log[p_ptr->msg_hist_ptr++][78] = '\0';
+		}
 		/* Maintain a circular buffer */
-		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST) 
+		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST)
 			p_ptr->msg_hist_ptr = 0;
-		plog(format("%s: %s",Players[Ind]->name,msg)); 
+		plog_fmt("%s: %s",Players[Ind]->name,msg);
 	}
 	else if(msg && log)
 	{
-		plog(format("%d: %s",Ind,msg)); 
+		plog_fmt("%d: %s",Ind,msg);
 	}; 	
 
+	/* Hack -- repeated message of the same type */
+	if (dup && type == p_ptr->msg_last_type)
+	{
+		send_message_repeat(Ind, type);
+		return;
+	}
+	
+	/* Sent last type sent */
+	p_ptr->msg_last_type = type;	
+	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
-	Send_message(Ind, msg);
+	send_message(Ind, msg, type);
 }
 
 void msg_broadcast(int Ind, cptr msg)
@@ -2531,16 +2513,33 @@ void msg_broadcast(int Ind, cptr msg)
 		/* Skip the specified player */
 		if (i == Ind)
 			continue;	
-			
+			printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
-	 	msg_print(i, msg);
+	 	msg_print_aux(i, msg, MSG_CHAT);
 	 }
 	 
 	/* Send to console */
-	console_print(msg);
+	console_print((char*)msg, 0);
 	 
 }
 
+void msg_channel(int chan, cptr msg)
+{
+	int i;
+	/* Log to file */
+	if (channels[chan].mode & CM_PLOG)
+	{
+		plog(msg);	
+	}
+	/* Tell every player */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		if (Players[i]->on_channel[chan] & UCM_EAR)
+			msg_print_aux(i, msg, MSG_CHAT + chan);
+	}
+	/* And every console */
+	console_print((char*)msg, chan);
+}
 
 
 /*
@@ -2564,16 +2563,101 @@ void msg_format(int Ind, cptr fmt, ...)
 	/* Display */
 	msg_print(Ind, buf);
 }
+/* Dirty hack */
+void msg_format_type(int Ind, u16b type, cptr fmt, ...)
+{
+	va_list vp;
+
+	char buf[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Display */
+	msg_print_aux(Ind, buf, type);
+}
+
 
 
 /*
- * Display a message to everyone who is in sight on another player.
+ * Display a message to everyone who is on the same dungeon level.
+ *
+ * This serves two functions: a dungeon level-wide chat, and a way
+ * to attract attention of other nearby players.
+ */
+void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...)
+{
+	va_list vp;
+
+	player_type *p_ptr = Players[Ind];
+	int Depth, y, x, i;
+
+	char buf[1024];
+	char buf_vis[1024];
+	char buf_invis[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, sender);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+	(void)strnfmt(buf_vis, 1024, "%s %s", sender, buf);
+	(void)strnfmt(buf_invis, 1024, "%s %s", "Someone", buf);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Extract player's location */
+	Depth = p_ptr->dun_depth;
+	y = p_ptr->py;
+	x = p_ptr->px;
+
+	/* Check each player */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		/* Check this player */
+		p_ptr = Players[i];
+
+		/* Don't send the message to the player who caused it */
+		if (Ind == i) continue;
+
+		/* Don't send the message to the second ignoree */
+		if (Ind2 == i) continue;
+
+		/* Make sure this player is at this depth */
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Can he see this player? */
+		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		{
+			/* Send the message */
+			msg_print_aux(i, buf_vis, type);
+			/* Disturb player */
+			disturb(i, 0, 0);
+		}
+		else
+		{
+			/* Send "invisible" message (e.g. "Someone yells") */
+			msg_print_aux(i, buf_invis, type);
+		}
+	}
+}
+
+
+/*
+ * Display a message to everyone who is in sight of another player.
  *
  * This is mainly used to keep other players advised of actions done
  * by a player.  The message is not sent to the player who performed
  * the action.
  */
-void msg_print_near(int Ind, cptr msg)
+void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth, y, x, i;
@@ -2592,6 +2676,9 @@ void msg_print_near(int Ind, cptr msg)
 		/* Don't send the message to the player who caused it */
 		if (Ind == i) continue;
 
+		/* Don't send the message to the second ignoree */
+		if (Ind2 == i) continue;
+		
 		/* Make sure this player is at this depth */
 		if (p_ptr->dun_depth != Depth) continue;
 
@@ -2599,15 +2686,37 @@ void msg_print_near(int Ind, cptr msg)
 		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
 		{
 			/* Send the message */
-			msg_print(i, msg);
+			msg_print_aux(i, msg, type);
 		}
 	}
+}
+void msg_print_near(int Ind, cptr msg)
+{
+	msg_print_complex_near(Ind, Ind, MSG_GENERIC, msg);
 }
 
 
 /*
  * Same as above, except send a formatted message.
  */
+void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...)
+{
+	va_list vp;
+
+	char buf[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Display */
+	msg_print_complex_near(Ind, Ind2, type, buf);
+}
 void msg_format_near(int Ind, cptr fmt, ...)
 {
 	va_list vp;
@@ -2627,100 +2736,68 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
-
-
-/*
- * A message prefixed by a player name is sent only to that player.
- * Otherwise, it is sent to everyone.
+/* Analyze the 'search' string and determine if it has any special
+ *  target.
+ * Returns  0 - on error, and an error string is put into 'error' 
+ * > 0 - player index
+ * < 0 - party index
  */
-void player_talk_aux(int Ind, cptr message)
+
+#define VIRTUAL_CHANNELS 8
+cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", "&yell", NULL };
+int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
-	char search[80], sender[80], dest_chan[MAX_CHAN_LEN];
-	player_type *p_ptr = Players[Ind], *q_ptr;
-	cptr colon, problem = "", chan_prefix;
-
-	/* Get sender's name */
-	if (Ind)
-	{
-		/* Get player name */
-		strcpy(sender, p_ptr->name);
-	}
-	else
-	{
-		/* Default name */
-		strcpy(sender, "");
-	}
-
-	/* Default to no search string */
-	strcpy(search, "");
-
-	if(Ind)
-	{
-		/* Default to the senders main channel */
-		strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
-	}
-	else
-	{
-		/* Default to public channel if not originated by a player */
-		strcpy(dest_chan,DEFAULT_CHANNEL);
-	}
-	
-	/* Is the message destined for a particular channel? */
-	if(strchr("#",*message))
-	{
-		/* Yes, examine in more detail */
-		chan_prefix = strchr(message,' ');
-		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
-		{
-			/* Channel name only?  Change the players default channel */
-			if(Ind)
-			{
-				strcpy(p_ptr->main_channel,message);
-				strncpy(dest_chan,p_ptr->main_channel,MAX_CHAN_LEN);
-				msg_format(Ind,"Channel changed to %s",dest_chan);
-				return;
-			}
-		}
-		else if(!chan_prefix || chan_prefix-message >= MAX_CHAN_LEN)
-		{
-			/* Invalid channel prefix?  Forget about the channel. */
-		}
-		else
-		{
-			/* Channel name followed by text? Extract the channel name */
-			strncpy(dest_chan, message, chan_prefix - message);
-			dest_chan[chan_prefix - message] = '\0';
-			message += (chan_prefix - message)+1;
-		}
-	}
-
-	/* Look for a player's name followed by a colon */
-	colon = strchr(message, ':');
-
-	/* Ignore "smileys" */
-	if (colon && strchr(")(-", *(colon + 1)))
-	{
-		/* Pretend colon wasn't there */
-		colon = NULL;
-	}
-
-	/* Form a search string if we found a colon */
-	if (colon)
-	{
-		/* Copy everything up to the colon to the search string */
-		strncpy(search, message, colon - message);
-
-		/* Add a trailing NULL */
-		search[colon - message] = '\0';
-	}
+	cptr problem = "";
+	player_type *q_ptr;
+	bool party_trap = FALSE;
+	bool channel_trap = FALSE;
 
 	/* Acquire length of search string */
 	len = strlen(search);
+	
+	/* Virtual channels ? */
+	if (len && search[0] == '&')
+	{
+		channel_trap = TRUE;
+		
+		/* Find one */
+		for (i = 1; i < VIRTUAL_CHANNELS; i++)
+		{
+			/* Done */
+			if (!virt_channels[i]) break;
+		
+			/* Compare names */
+			if (!my_strnicmp(virt_channels[i], search, len))
+			{
+					/* Set target if not set already or an exact match */
+					if ((!target) || (len == strlen(virt_channels[i])))
+					{
+						target = i;
+						problem = "";
+					}
+					else
+					{
+						/* Matching too many */
+						/* Make sure we don't already have an exact match */
+						if (len != strlen(parties[0 - target].name))
+							problem = "channels";
+					}
+					break;
+			}
+		}
+	}
 
 	/* Look for a recipient who matches the search string */
-	if (len)
+	if (len && !channel_trap)
 	{
+		/* Check for party hinter */
+		if (search[0] == '^')
+		{
+			party_trap = TRUE;
+			search = search + 1;
+		}	
+	
 		/* First check parties */
 		for (i = 1; i < MAX_PARTIES; i++)
 		{
@@ -2728,7 +2805,7 @@ void player_talk_aux(int Ind, cptr message)
 			if (!parties[i].num) continue;
 
 			/* Check name */
-			if (!strncasecmp(parties[i].name, search, len))
+			if (!my_strnicmp(parties[i].name, search, len))
 			{
 				/* Make sure one of the party members is actually
 				 * logged on. */
@@ -2753,20 +2830,25 @@ void player_talk_aux(int Ind, cptr message)
 							if (len != strlen(parties[0 - target].name))
 								problem = "parties";
 						}
-					break;
+						break;
 					}
 				}
 			}
 		}
 
+		/* Was hinting at party, Ignore players */
+		if (!party_trap)		{
 		/* Then check players */
 		for (i = 1; i <= NumPlayers; i++)
 		{
 			/* Check this one */
 			q_ptr = Players[i];
+			
+			/* Skip DM */
+			if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 			/* Check name */
-			if (!strncasecmp(q_ptr->name, search, len))
+			if (!my_strnicmp(q_ptr->name, search, len))
 			{
 				/* Set target if not set already or an exact match */
 				if ((!target) || (len == strlen(q_ptr->name)))
@@ -2774,67 +2856,410 @@ void player_talk_aux(int Ind, cptr message)
 					target = i;
 					problem = "";
 				}
-				else
+				/* Matching too many people */
+				else if (target > 0)
 				{
-					/* Matching too many people */
 					/* Make sure we don't already have an exact match */
-/*
-					if(Players[target]->name) 
-						if (len != strlen(Players[target]->name))
-*/
-							problem = "players or parties";
+					if (len != strlen(Players[target]->name))
+						problem = "players";
 				}
+				else	problem = "players or parties";
 			}
 		}
-
-		/* Move colon pointer forward to next word */
-		while (*colon && (isspace(*colon) || *colon == ':')) colon++;
+		/* End party hinter */	}
 	}
 
 	/* Check for recipient set but no match found */
 	if (len && !target)
 	{
-		/* 
-		   DM messages fail silently.  This keeps folks from
-		   otherwise detecting if he's logged in.  --Crimson
-		 */
-		if(strcmp( search, cfg_dungeon_master)) {
-			/* Send an error message */
-			if ( Ind ) msg_format(Ind, "Could not match name '%s'.", search);
-		};
+		/* Prepare an error message */
+		sprintf(error, "Could not match name '%s'.", search); 
 
 		/* Give up */
-		return;
+		return 0;
 	}
 
 	/* Check for multiple recipients found */
-	if (strlen(problem))
+	if (!STRZERO(problem))
 	{
 		/* Send an error message */
-		msg_format(Ind, "'%s' matches too many %s.", search, problem);
+		sprintf(error, "'%s' matches too many %s.", search, problem);
+	
+		/* Give up */
+		return 0;
+	}
+
+	/* Hack -- pack player targets and virtual channels together */
+	if (target > 0 && !channel_trap) target += VIRTUAL_CHANNELS;
+
+	return target;
+}
+
+/* Instruct client to listen on a specific channel for an incoming message. */ 
+void assist_whisper(int Ind, cptr search)
+{
+	int target;
+	char error[80];
+
+	target = find_chat_target(search, error);
+
+	/* No match */
+	if (!target)
+	{
+		/* Relay error */
+		msg_print(Ind, error);
 
 		/* Give up */
 		return;
 	}
 
+	/* All 'virtual channels' occupy the MAX_CHANNELS slot,
+	 * while all real channels are < MAX_CHANNELS. */
+
+	/* Virtual channel -- what he sent */
+	else if (target > 0 && target < VIRTUAL_CHANNELS)
+	{
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, virt_channels[target]);
+	}
+	/* A Player */
+	else if (target > 0)
+	{
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, Players[target - VIRTUAL_CHANNELS]->name);
+	}
+	/* A Party */
+	else if (target < 0)
+	{
+		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, parties[0 - target].name);
+	}
+}
+
+void channel_join(int Ind, cptr channel, bool quiet)
+{
+	int i, last_free = 0;
+	player_type *p_ptr = Players[Ind];
+
+	/* Find channel */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (!last_free && STRZERO(channels[i].name)) last_free = i;
+
+		/* Name match */
+		if (!strcmp(channels[i].name, channel))
+		{
+			/* Not present on this channel */
+			if (!on_channel(p_ptr, i))
+			{
+				/* Hack -- can't join due to modes? */
+				if (((channels[i].mode & CM_KEYLOCK) && !is_dm_p(p_ptr)) ||
+					(p_ptr->on_channel[i] & UCM_BAN) ) 
+				{
+					/* Hack -- route to "unable to join" message */
+					last_free = 0;
+					break;
+				}
+				/* Enter channel */
+				channels[i].num++;
+				p_ptr->on_channel[i] |= UCM_EAR;
+				send_channel(Ind, CHAN_JOIN, i, channel);
+				if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+			}
+			/* Select channel */
+			else
+			{
+				p_ptr->main_channel = i;
+				send_channel(Ind, CHAN_SELECT, i, channel);
+				if (!quiet) msg_format(Ind,"Channel changed to %s",channel);
+			}
+			return;
+		}
+	}
+
+	/* No such channel */
+
+	/* We have free space */
+	if (last_free)
+	{
+		/* Create channel */
+		strcpy(channels[last_free].name, channel);
+		channels[last_free].num = 1;
+		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
+		send_channel(Ind, CHAN_JOIN, last_free, channel);
+		if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+	}
+	/* All channel slots are used up */
+	else
+	{
+		if (!quiet) msg_format(Ind,"Unable to join channel %s",channel);
+	}
+}
+/* Actual code for leaving channels */
+void channel_leave_id(int Ind, int i, bool quiet)
+{
+	player_type *p_ptr = Players[Ind];
+	if (!i || !(p_ptr->on_channel[i] & UCM_EAR)) return;
+	
+	channels[i].num--;
+	if (!quiet) msg_format(Ind,"Left channel %s",channels[i].name);
+	if (channels[i].num <= 0 && !(channels[i].mode & CM_SERVICE))
+	{
+		channels[i].name[0] = '\0';
+		channels[i].id = 0;
+	}
+	if (p_ptr->main_channel == i)
+	{
+		p_ptr->main_channel = 0;
+	}
+	p_ptr->on_channel[i] &= ~(UCM_LEAVE);
+	if (!quiet)
+		send_channel(Ind, CHAN_LEAVE, i, "");
+}
+/* Find channel by name and leave it */
+void channel_leave(int Ind, cptr channel)
+{
+	int i;
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (!strcmp(channels[i].name, channel))
+		{
+			channel_leave_id(Ind, i, FALSE);
+			break;
+		}
+	}	
+}
+/* Leave all channels */
+void channels_leave(int Ind)
+{
+	int i;
+	player_type *p_ptr = Players[Ind];
+
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (p_ptr->on_channel[i] & UCM_EAR)
+		{
+			channel_leave_id(Ind, i, TRUE);
+		}
+	}	
+}
+
+
+/*
+ * A message prefixed by a player name is sent only to that player.
+ * Otherwise, it is sent to everyone.
+ */
+void player_talk_aux(int Ind, cptr message)
+{
+	int i, target = 0;
+	char search[80], sender[80], error[80], tmp_chan[MAX_CHAN_LEN];
+	int dest_chan = 0; //#public
+	player_type *p_ptr = Players[Ind], *q_ptr;
+	cptr colon, chan_prefix;
+	bool msg_off = FALSE;
+
+	/* Get sender's name */
+	if (Ind)
+	{
+		/* Get player name */
+		my_strcpy(sender, p_ptr->name, 80);
+	}
+	else
+	{
+		/* Default name */
+		my_strcpy(sender, "", 80);
+	}
+
+	/* Default to no search string */
+	strcpy(search, "");
+
+	/* Default to #public channel if not originated by a player */
+	dest_chan = 0;
+
+	if(Ind)
+	{
+		/* Default to the senders main channel */
+		dest_chan = p_ptr->main_channel;
+		/* Set search string from senders secondary channel */
+		strcpy(search, p_ptr->second_channel);
+	}
+
+	/* Is the message destined for a particular channel? */
+	if(strchr("#", *message))
+	{
+		/* Yes, examine in more detail */
+		chan_prefix = strchr(message,' ');
+		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
+		{
+			/* Channel name only?  Change the players default channel */
+			if(Ind)
+			{
+				strncpy(tmp_chan,message,MAX_CHAN_LEN);
+				channel_join(Ind, tmp_chan, FALSE);
+				return;
+			}
+		}
+		else if(!chan_prefix || chan_prefix-message >= MAX_CHAN_LEN)
+		{
+			/* Invalid channel prefix?  Forget about the channel. */
+		}
+		else
+		{
+			/* Channel name followed by text? Extract the channel name */
+			strncpy(tmp_chan, message, chan_prefix - message);
+			tmp_chan[chan_prefix - message] = '\0';
+			dest_chan = -1;
+			for (i = 0; i < MAX_CHANNELS; i++)
+			{
+				if (!strcmp(channels[i].name, tmp_chan))
+				{
+					dest_chan = i;
+					break;
+				}
+			}
+			message += (chan_prefix - message)+1;
+			/* Forget about search string */
+			msg_off = FALSE;
+			strcpy(search, "");
+		}
+	}
+
+	/* Look for a player's name followed by a colon */
+	colon = strchr(message, ':');
+
+	/* Pretend colon wasn't there */
+	if (colon)
+	{
+		/* messanger is undefined OR colon is last symbol OR colon is part of "smiley" */
+		if (!Ind || !*(colon + 1) || strchr(")(-|\\/", *(colon + 1))) colon = NULL;
+	}
+
+	/* Form a search string if we found a colon */
+	if (colon)
+	{
+		/* Copy everything up to the colon to the search string */
+		strncpy(search, message, colon - message);
+
+		/* Add a trailing NULL */
+		search[colon - message] = '\0';
+		
+		/* Move colon pointer forward to next word */
+		while (*colon && (isspace(*colon) || *colon == ':')) colon++;
+		
+		/* Offset message */
+		msg_off = TRUE;
+	}
+
+	/* Find special target */
+	if (strlen(search))
+	{
+		/* There's nothing else , prepare for whisper */
+		if (colon - message == strlen(message))
+		{
+			assist_whisper(Ind, search);
+			return;
+		}
+		/* Hack -- empty 'party hinter' hints to own party */		
+		if (search[0] == '^' && p_ptr->party && search[1] == '\0')
+		{
+			strcpy(search, parties[p_ptr->party].name);
+		}
+		if (!(target = find_chat_target(search, error)))
+		{
+			/* Error */
+			msg_print(Ind, error);
+			
+			/* Done */
+			return;
+		}
+	}
+		
+	/* No need to offset message */
+	if (!msg_off)
+	{
+		colon = message;
+	}
+
+	
+	/* Send to a virtual channel */
+	if (target > 0)
+	{
+		/* Make sure it's a channel, not player */
+		if (target < VIRTUAL_CHANNELS)
+		{
+			cptr verb = "say";
+			char punct = '.';
+			char msg[60];
+			strncpy(msg, colon, 60);
+			switch (target)
+			{
+				case 1: /* "&say" */
+					for (i = strlen(msg) - 1; i > 0; i--)
+					{
+						switch (msg[i])
+						{
+							case ' ':
+								continue;
+							case '?':
+								verb = "ask";
+								/* fallthrough */
+							case '!':
+							case '.':
+								punct = msg[i];
+								msg[i] = '\0';
+							default:
+								break;
+						}
+						break;
+					}
+					/* Send somewhere */
+					msg_format_type(Ind, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_near(Ind, Ind, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
+				break;
+				case 2: /* "&yell" */
+					verb = "yell";
+					punct = '!';
+					for (i = strlen(msg) - 1; i > 0; i--)
+					{
+						switch (msg[i])
+						{
+							case ' ':
+								continue;
+							case '?':
+							case '!':
+							case '.':
+								msg[i] = '\0';
+							default:
+								break;
+						}
+						break;
+					}
+					/* Send somewhere */
+					msg_format_type(Ind, MSG_YELL, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_far(Ind, Ind, MSG_YELL, "%ss, \"%s\"%c", sender, verb, msg, punct);
+				break;
+			}
+			return;
+		}
+		/* It was a player */
+		else target -= VIRTUAL_CHANNELS;
+	}
+
 	/* Send to appropriate player */
-	if (len && target > 0)
+	if (target > 0)
 	{
 		/* Set target player */
 		q_ptr = Players[target];
 
 		/* Send message to target */
-		msg_format(target, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(target, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Also send back to sender */
-		msg_format(Ind, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(Ind, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Done */
 		return;
 	}
 
 	/* Send to appropriate party */
-	if (len && target < 0)
+	if (target < 0)
 	{
 		/* Send message to target party */
 		party_msg_format(0 - target, "[%s:%s] %s",
@@ -2850,29 +3275,30 @@ void player_talk_aux(int Ind, cptr message)
 		return;
 	}
 
+	/* Total failure... */
+	if (dest_chan == -1) return;
+	else if (Ind && !can_talk(p_ptr, dest_chan)) return; 
+
 	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		q_ptr = Players[i];
-		if(!strcmp(dest_chan,q_ptr->main_channel))
+		if(q_ptr->on_channel[dest_chan] & UCM_EAR)
 		{
 			/* Send message */
 			if(Ind)
 			{
-				msg_format(i, "[%s] %s", sender, message);
+				msg_format_type(i, MSG_CHAT + dest_chan, "[%s] %s", sender, message);
 			}
 			else
 			{
-				msg_format(i, "%s", message);
+				msg_format_type(i, MSG_CHAT + dest_chan, "%s", message);
 			}
 		}
 	}
 
-	/* Send to the console too if it's a public message */
-	if(!strcmp(dest_chan,"#public"))
-	{
-		console_print(format("[%s] %s", sender, message));
-	}
+	/* Send to the console too */
+	console_print(format("[%s] %s", sender, message), dest_chan);
 }
 
 
@@ -3006,75 +3432,205 @@ cptr attr_to_text(byte a)
 /* 
  * Record a message in the character history
  */
-extern void log_history_event(int Ind, char *msg)
+void log_history_event(player_type *p_ptr, char *msg, bool unique)
 {
-	char buf[100];
-	char eventtime[12];
-	int i, days, hours, mins;
-	huge seconds;
-	player_type *p_ptr = Players[Ind];
-	
-	/* Don't record if we have no space */
-	if (p_ptr->char_hist_ptr >= MAX_CHAR_HIST-1)
-		return;
-	
-	/* Never record duplicate entries */
-	for(i=0;i<p_ptr->char_hist_ptr;i++)
-	{
-		if(strstr(p_ptr->char_hist[i],msg) != NULL)
-			return;
-	}
-	
-	/* Convert turn real time */
-	seconds = p_ptr->turn / cfg_fps;
-	days = seconds / 86400;
-	hours = (seconds / 3600) - (24 * days);
-	mins = (seconds / 60) % 60;
-	sprintf(eventtime,"%02i:%02i:%02i",days,hours,mins);
+	int  days, hours, mins, i;
+	huge seconds, turn;
 
-	/* Format to time, depth, clevel, message */
-	sprintf(buf,"%s   %4ift   %2i   %s",eventtime,p_ptr->dun_depth*50,p_ptr->lev,msg);
-	
-	/* Add the message to the history */
-	strncpy(p_ptr->char_hist[p_ptr->char_hist_ptr], buf, 78);
-	p_ptr->char_hist[p_ptr->char_hist_ptr++][78] = '\0';
-	
+	history_event *evt;
+	history_event *last = NULL;
+	history_event *evt_forge = NULL;
+
+	u16b note = quark_add(msg);
+
+	/* Walk throu event list */
+	for (evt = p_ptr->charhist; evt; evt = evt->next) 
+	{
+		/* Duplicate entries not allowed */
+		if (evt->message == note && unique)
+			return;
+		/* Find last in chain */
+		last = evt;
+	}
+
+	/* Convert turn counter to real time */
+	seconds = days = hours = mins = turn = 0;
+	for (i = 0; i < p_ptr->turn.era+2; i++)
+	{
+		turn = HTURN_ERA_FLIP;
+		if (i == p_ptr->turn.era+1) turn = p_ptr->turn.turn; 
+		seconds = turn / cfg_fps;
+		days += seconds / 86400;
+		hours += (seconds / 3600) - (24 * days);
+		mins += (seconds / 60) % 60;
+	}
+
+	/* Create new entry */
+	MAKE(evt_forge, history_event);
+	evt_forge->days = days;
+	evt_forge->hours = hours;
+	evt_forge->mins = mins;
+	evt_forge->depth = p_ptr->dun_depth;
+	evt_forge->level = p_ptr->lev;
+	evt_forge->message = note;
+
+	/* Add to chain */
+	if (!p_ptr->charhist)
+		p_ptr->charhist = evt_forge;
+	else
+		last->next = evt_forge;
+}
+/*
+ * Destroy player's history
+ */
+void history_wipe(history_event *evt) {
+	history_event *next;
+	while (evt)
+	{
+		/* Remember */
+		next = NULL; if (evt->next)	next = evt->next;
+
+		/* KILL */
+		KILL(evt);
+
+		/* Recall */
+		evt = NULL;	if (next) evt = next;
+	}
+}
+/*
+ * Format 1 string of event history
+ */
+cptr format_history_event(history_event *evt)
+{
+	static char buf[160];
+	sprintf(buf, "%02i:%02i:%02i   %4ift   %2i   %s",
+			evt->days, evt->hours, evt->mins,
+			evt->depth*50, evt->level, quark_str(evt->message));
+	return &buf[0];
 }
 
+void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
+	byte old_term;
+	int i;
+
+	/* Save 'current' terminal */
+	old_term = p_ptr->remote_term;
+
+	/* Activte new terminal */
+	send_term_info(p_ptr, NTERM_ACTIVATE, win);
+
+	/* Clear, Send, Refresh */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
+		stream_line_as(p_ptr, stream, i, i);
+	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
+
+	/* Restore active term */
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+
+	/* Hack -- erase 'prepared info' */
+	p_ptr->last_info_line = -1;
+}
+
+void send_prepared_popup(int Ind, cptr header)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	byte old_term;
+
+	old_term = p_ptr->remote_term;
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	Send_special_other(Ind, header);
+
+	/* Clear, Send, Popup! */
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
+		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i);
+	send_term_info(p_ptr, NTERM_POP, 0);
+
+	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+}
 
 void text_out_init(int Ind) {
 	player_type	*p_ptr = Players[Ind];
-	
+
 	player_textout = Ind;
 	p_ptr->cur_wid = 0;
 	p_ptr->cur_hgt = 0;
+
+	p_ptr->last_info_line = -1;
 }
 
-/* 
- * A function to add info to p_ptr->info. 
- * You must call roff_init before issuing this.
- */
-#ifndef PRETTY_TEXT_OUT
-void text_out(cptr buf) {
-   player_type	*p_ptr = Players[player_textout];
-   
-   /* if (!buf || buf[0] == '\n') return; */
+void text_out_done()
+{
+	int i;
+	player_type	*p_ptr = Players[player_textout];
 
-	p_ptr->info[p_ptr->cur_hgt] = buf;
-	
-	p_ptr->cur_hgt++;
+	/* HACK!! Clear rest of the line */
+	for (i = p_ptr->cur_wid; i < 80; i++)
+	{
+		p_ptr->info[p_ptr->cur_hgt][i].c = ' ';
+		p_ptr->info[p_ptr->cur_hgt][i].a = TERM_WHITE;
+	}
+
+	p_ptr->last_info_line = p_ptr->cur_hgt;
+
+	/* Restore height and width of current dungeon level */
+	p_ptr->cur_hgt = MAX_HGT;
+	p_ptr->cur_wid = MAX_WID;
 }
-#else 
-void text_out(cptr buf) {
+
+/* Taking (bad) ques from client code, here we copy one
+ * buffer into another, instead of just storing pointer
+ * to the correct buffer somewhere... */
+/* The reason is all the current functions are hard-wired
+ * to use p_ptr->info, so instead of massive overhaul (like making
+ * *IT* a pointer), we add a literal workaround. */
+/* TODO: Kill this. */
+void text_out_save(player_type *p_ptr)
+{
+	int i, j;
+	/* memcpy is for cowards */
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->file[j][i].a = p_ptr->info[j][i].a;
+			p_ptr->file[j][i].c = p_ptr->info[j][i].c;
+		}
+	}
+	p_ptr->last_file_line = p_ptr->last_info_line;
+}
+void text_out_load(player_type *p_ptr)
+{
+	/* mindless code duplication. */
+	int i, j;
+
+	for (j = 0; j < MAX_TXT_INFO; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			p_ptr->info[j][i].a = p_ptr->file[j][i].a;
+			p_ptr->info[j][i].c = p_ptr->file[j][i].c;
+		}
+	}
+	p_ptr->last_info_line = p_ptr->last_file_line;
+	/* I hope you'll delete those functions ASAP */
+	/* WHATEVER HAPPENS, PLEASE DON'T UPGRADE THIS */
+	/* TO ALLOW STACKING... */
+}
+
+void text_out_c(byte a, cptr buf)
+{
 	int i, j, shorten, buflen;
-   player_type	*p_ptr = Players[player_textout];
-   static char line_buf[80] = {'\0'};
-   
-   bool simple = FALSE;
-   bool warped = FALSE;
+	player_type	*p_ptr = Players[player_textout];
+	static char line_buf[80] = {'\0'};
+
+	bool simple = FALSE;
+	bool warped = FALSE;
 	i = j = shorten = 0;
-   buflen = strlen(buf);
-  
+	buflen = strlen(buf);
 
 #if 0
 	/* Add "auto-paragraph" spaces */
@@ -3086,23 +3642,23 @@ void text_out(cptr buf) {
 	}
 #endif 
  
-   while (TRUE) {
-
-#if 0   	
-   	/* Add 1 space between stuff (auto-separate) */
-		if (buf[shorten] != ' ' && p_ptr->cur_wid) 
+	while (TRUE)
+	{
+#if 0
+		/* Add 1 space between stuff (auto-separate) */
+		if (buf[shorten] != ' ' && p_ptr->cur_wid)
 		{
-		    strcat(line_buf, " ");
-		    p_ptr->cur_wid += 1;
-		} 
-#endif  
-		
+			strcat(line_buf, " ");
+			p_ptr->cur_wid += 1;
+		}
+#endif
+
 		/* We can fit the info on the same line */
 		if (buflen - shorten < 80 - p_ptr->cur_wid) 
 		{
-				/* Set to copy whole buffer */
-				j = buflen - shorten;
-				simple = TRUE;
+			/* Set to copy whole buffer */
+			j = buflen - shorten;
+			simple = TRUE;
 		}
 		/* We can't, let's find a suitable wrap point */
 		else
@@ -3111,57 +3667,185 @@ void text_out(cptr buf) {
 			j = 0;
 			/* Find some nice space near the end */
 			for (i = shorten; i < buflen; i++)
-				if (buf[i] == ' ') 
-					if (i - shorten < 80 - p_ptr->cur_wid)
-						j = i - shorten;
-					else
-						break;
-			
-			simple = FALSE;
-			warped = TRUE;
-		}
-		
-		/* Copy first part */
-		for (i = 0; i < j; i++)
-				if (buf[i+shorten] != '\n')
-					line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
-				else
+			{
+				if (buf[i] == ' ' || buf[i] == '\n')
 				{
-					
-					if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0) 
-						p_ptr->cur_wid -= 1; //ignore, backup a bit
-					else {
-						j = i + 1;
-						simple = warped = FALSE;
+					if (i - shorten < 80 - p_ptr->cur_wid)
+					{
+						j = i - shorten;
+					}
+					else
+					{
 						break;
 					}
 				}
+			}
+			simple = FALSE;
+			warped = TRUE;
+		}
 
-		/* Advance forward */			
+		/* Copy first part */
+		for (i = 0; i < j; i++)
+		{
+			if (buf[i+shorten] != '\n')
+			{
+				line_buf[p_ptr->cur_wid + i] = buf[i + shorten];
+			}
+			else
+			{
+				/* If we encounter a '\n', and it's our first
+				 * line ever, we ignore it... */
+				if (p_ptr->cur_hgt == 0 && p_ptr->cur_wid <= 0)
+				{
+					p_ptr->cur_wid -= 1; //ignore, backup a bit
+				}
+				else
+				{
+					j = i + 1;
+					simple = warped = FALSE;
+					break;
+				}
+			}
+		}
+
+		/* Advance forward */
 		p_ptr->cur_wid += i;
 		
 		/* Fill the rest with spaces */
 		for (i = p_ptr->cur_wid; i < 80; i++)
+		{
 			line_buf[i] = ' ';
-		
-	   /* Dump it */
-	   p_ptr->info[p_ptr->cur_hgt] = string_make(line_buf);
-	   
+		}
+
+		/* Dump it */
+		for (i = p_ptr->cur_wid-j; i < 80; i++)
+		{
+			p_ptr->info[p_ptr->cur_hgt][i].c = line_buf[i];
+			p_ptr->info[p_ptr->cur_hgt][i].a = a;
+		}
+
 		/* End function for simple cases */
 		if (simple) break;
-		
+
 		/* Advance to next line */
 		p_ptr->cur_hgt += 1;
 		p_ptr->cur_wid = 0;
-		
-	   /* Shorten the text */
-	   shorten += j;
-			   
+
+		/* Shorten the text */
+		shorten += j;
+
 		/* Handle spaces */
 		if (warped && buf[shorten] == ' ') shorten++; 
-		
+
 		/* Finish when we're done */
 		if (shorten >= buflen) break; 
 	}
 }
-#endif
+
+void text_out(cptr str)
+{
+	text_out_c(TERM_WHITE, str);
+}
+
+void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col)
+{
+	/* Paranoia */
+	if (row > MAX_TXT_INFO) return;
+
+	while (*str)
+	{
+		/* Limit */
+		if (col > 80) break;
+
+		p_ptr->info[row][col].c = *str;
+		p_ptr->info[row][col].a = attr; 
+
+		col++;
+		str++;
+	}
+}
+void prt(player_type *p_ptr, cptr str, int row, int col)
+{
+	c_prt(p_ptr, TERM_WHITE, str, row, col);
+}
+
+void clear_line(int Ind, int row)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	for (i = 0; i < 80; i++)
+	{
+		p_ptr->info[row][i].c = ' ';
+		p_ptr->info[row][i].a = TERM_WHITE; 
+	}
+}
+void clear_from(int Ind, int row)
+{
+	player_type *p_ptr = Players[Ind];
+	int i;
+	while (row < MAX_TXT_INFO)
+	{
+		for (i = 0; i < 80; i++)
+		{
+			p_ptr->info[row][i].c = ' ';
+			p_ptr->info[row][i].a = TERM_DARK; 
+		}
+		row++;
+	}
+}
+
+bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr)
+{
+	player_type *p_ptr = Players[Ind];
+
+	char * mark = &(p_ptr->interactive_hook[0][1]);
+	char * len = &(p_ptr->interactive_hook[0][2]);
+	char * y = &(p_ptr->interactive_hook[0][3]);
+	char * x = &(p_ptr->interactive_hook[0][4]);
+	char * attr = &(p_ptr->interactive_hook[0][5]);
+	char * mlen = &(p_ptr->interactive_hook[0][6]);
+	char * str = p_ptr->interactive_hook[1];	
+
+	if (*mark)
+	{
+		*mark = 0;	
+		strncpy(buf, str, *len);
+		buf[(byte)*len] = '\0';
+		return TRUE;
+	}
+	else
+	{
+		*mark = query;
+		*attr = input_attr;
+		*y = row;
+		*x = col;
+		*len = 0;
+		*mlen =0;
+
+		if (!STRZERO(prompt))
+		{
+ 			(*x) += strlen(prompt);
+ 			clear_line(Ind, row);
+			c_prt(p_ptr, prompt_attr, prompt, row, col);
+			Stream_line(Ind, STREAM_SPECIAL_TEXT, row);
+ 		}
+ 		if (!STRZERO(default_value))
+ 		{
+ 			/* Hack: ask for 1 character */
+ 			if (default_value[0] == '*') *mlen =1;
+ 			else
+ 			{
+				*len = strlen(default_value);
+ 				strncpy(str, default_value, *len);
+ 			}
+ 		}
+
+		do_cmd_interactive_input(p_ptr, 0); /* ! */
+
+		return FALSE;
+	}
+}
+bool ask_for(int Ind, char query, char *buf) 
+{
+	return askfor_aux(Ind, query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
+}

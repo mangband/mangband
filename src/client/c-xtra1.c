@@ -2,7 +2,7 @@
 
 
 
-#include "angband.h"
+#include "c-angband.h"
 
 /*
  * Print character info at given row, column in a 13 char field
@@ -49,112 +49,160 @@ void cnv_stat(int val, char *out_val)
 /*
  * Print character stat in given row, column
  */
-void prt_stat(int stat, int max, int cur, bool maxed)
+static void prt_stat(int stat, int row, int col)
 {
 	char tmp[32];
 
-	if (cur < max)
+	/* Display "injured" stat */
+	if (p_ptr->stat_use[stat] < p_ptr->stat_top[stat])
 	{
-		Term_putstr(0, ROW_STAT + stat, -1, TERM_WHITE, stat_names_reduced[stat]);
-		cnv_stat(cur, tmp);
-		Term_putstr(COL_STAT + 6, ROW_STAT + stat, -1, TERM_YELLOW, tmp);
+		put_str(stat_names_reduced[stat], row, col);
+		cnv_stat(p_ptr->stat_use[stat], tmp);
+		c_put_str(TERM_YELLOW, tmp, row, col + 6);
 	}
 
+	/* Display "healthy" stat */
 	else
 	{
-		Term_putstr(0, ROW_STAT + stat, -1, TERM_WHITE, stat_names[stat]);
-		cnv_stat(cur, tmp);
-	if (maxed)
-		Term_putstr(COL_STAT + 6, ROW_STAT + stat, -1, TERM_L_UMBER, tmp);
-	else
-		Term_putstr(COL_STAT + 6, ROW_STAT + stat, -1, TERM_L_GREEN, tmp);
+		put_str(stat_names[stat], row, col);
+		cnv_stat(p_ptr->stat_use[stat], tmp);
+		c_put_str(TERM_L_GREEN, tmp, row, col + 6);
 	}
+
+	/* Indicate natural maximum */
+	if (p_ptr->stat_max[stat] == 18+100)
+	{
+		put_str("!", row, col + 3);
+	}
+}
+
+
+/*
+ * Prints "title", including "wizard" or "winner" as needed.
+ */
+static void prt_title(int row, int col)
+{
+	prt_field(ptitle, ROW_TITLE, COL_TITLE);
+}
+
+/*
+ * Prints "class"
+ */
+static void prt_pclass(int row, int col)
+{
+	prt_field(c_name + c_info[pclass].name, row, col);
 }
 
 /*
  * Prints "title", including "wizard" or "winner" as needed.
  */
-void prt_title(cptr title)
+static void prt_prace(int row, int col)
 {
-	prt_field(title, ROW_TITLE, COL_TITLE);
+	prt_field(p_name + race_info[race].name, row, col);
+}
+
+/*
+ * Prints level
+ */
+static void prt_level(int row, int col)
+{
+	char tmp[32];
+
+	sprintf(tmp, "%6d", p_ptr->lev);
+
+	if (p_ptr->lev >= p_ptr->max_plv)
+	{
+		put_str("LEVEL ", row, col);
+		c_put_str(TERM_L_GREEN, tmp, row, col + 6);
+	}
+	else
+	{
+		put_str("Level ", row, col);
+		c_put_str(TERM_YELLOW, tmp, row, col + 6);
+	}
 }
 
 
 /*
- * Prints level and experience
+ * Display the experience
  */
-void prt_level(int level, int max, int cur, int adv)
+static void prt_exp(int row, int col)
 {
-	char tmp[32];
+	char out_val[32];
 
-	sprintf(tmp, "%6d", level);
+	sprintf(out_val, "%8ld", (long)p_ptr->exp);
 
-	Term_putstr(0, ROW_LEVEL, -1, TERM_WHITE, "LEVEL ");
-	Term_putstr(COL_LEVEL + 6, ROW_LEVEL, -1, TERM_L_GREEN, tmp);
-
-	sprintf(tmp, "%8ld", (long)cur);
-
-	if (cur >= max)
+	if (p_ptr->exp >= p_ptr->max_exp)
 	{
-		Term_putstr(0, ROW_EXP, -1, TERM_WHITE, "EXP ");
-		Term_putstr(COL_EXP + 4, ROW_EXP, -1, TERM_L_GREEN, tmp);
+		put_str("EXP ", row, col);
+		c_put_str(TERM_L_GREEN, out_val, row, col + 4);
 	}
 	else
 	{
-		Term_putstr(0, ROW_EXP, -1, TERM_WHITE, "Exp ");
-		Term_putstr(COL_EXP + 4, ROW_EXP, -1, TERM_YELLOW, tmp);
+		put_str("Exp ", row, col);
+		c_put_str(TERM_YELLOW, out_val, row, col + 4);
 	}
 }
+
 
 /*
  * Prints current gold
  */
-void prt_gold(int gold)
+static void prt_gold(int row, int col)
 {
 	char tmp[32];
 
-	put_str("AU ", ROW_GOLD, COL_GOLD);
-	sprintf(tmp, "%9ld", (long)gold);
-	c_put_str(TERM_L_GREEN, tmp, ROW_GOLD, COL_GOLD + 3);
+	put_str("AU ", row, col);
+	sprintf(tmp, "%9ld", (long)p_ptr->au);
+	c_put_str(TERM_L_GREEN, tmp, row, col + 3);
 }
+
+/*
+ * Equippy chars
+ */
+static void display_player_equippy(int y, int x); // HACK -- prototype
+static void prt_equippy(int row, int col)
+{
+	int i;
+	/* Clear */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+		Term_putch(col + i - INVEN_WIELD, row, TERM_WHITE, ' ');
+	/* Dump */
+	display_player_equippy(row, col);
+}
+
 
 /*
  * Prints current AC
  */
-void prt_ac(int ac)
+static void prt_ac(int row, int col)
 {
 	char tmp[32];
 
-	put_str("Cur AC ", ROW_AC, COL_AC);
-	sprintf(tmp, "%5d", ac);
-	c_put_str(TERM_L_GREEN, tmp, ROW_AC, COL_AC + 7);
+	put_str("Cur AC ", row, col);
+	sprintf(tmp, "%5d", p_ptr->dis_ac + p_ptr->dis_to_a);
+	c_put_str(TERM_L_GREEN, tmp, row, col + 7);
 }
 
+
 /*
- * Prints Max/Cur hit points
+ * Prints Cur hit points
  */
-void prt_hp(int max, int cur)
+static void prt_cur_hp(int row, int col)
 {
 	char tmp[32];
+
 	byte color;
 
-	put_str("Max HP ", ROW_MAXHP, COL_MAXHP);
+	put_str("Cur HP ", row, col);
 
-	sprintf(tmp, "%5d", max);
-	color = TERM_L_GREEN;
+	sprintf(tmp, "%5d", p_ptr->chp);
 
-	c_put_str(color, tmp, ROW_MAXHP, COL_MAXHP + 7);
-
-
-	put_str("Cur HP ", ROW_CURHP, COL_CURHP);
-
-	sprintf(tmp, "%5d", cur);
-
-	if (cur >= max)
+	if (p_ptr->chp >= p_ptr->mhp)
 	{
 		color = TERM_L_GREEN;
 	}
-	else if (cur > max / 10)
+	else if (p_ptr->chp > (p_ptr->mhp * p_ptr->hitpoint_warn) / 10)
 	{
 		color = TERM_YELLOW;
 	}
@@ -163,34 +211,46 @@ void prt_hp(int max, int cur)
 		color = TERM_RED;
 	}
 
-	c_put_str(color, tmp, ROW_CURHP, COL_CURHP + 7);
+	c_put_str(color, tmp, row, col + 7);
 }
 
+
 /*
- * Prints Max/Cur spell points
+ * Prints Max hit points
  */
-void prt_sp(int max, int cur)
+static void prt_max_hp(int row, int col)
+{
+	char tmp[32];
+
+	put_str("Max HP ", row, col);
+
+	sprintf(tmp, "%5d", p_ptr->mhp);
+
+	c_put_str(TERM_L_GREEN, tmp, row, col + 7);
+}
+
+
+/*
+ * Prints players max/cur spell points
+ */
+static void prt_cur_sp(int row, int col)
 {
 	char tmp[32];
 	byte color;
 
-	put_str("Max SP ", ROW_MAXSP, COL_MAXSP);
 
-	sprintf(tmp, "%5d", max);
-	color = TERM_L_GREEN;
+	/* Do not show mana unless it matters */
+	if (!c_info[pclass].spell_book) return;
 
-	c_put_str(color, tmp, ROW_MAXSP, COL_MAXSP + 7);
+	put_str("Cur SP ", row, col);
 
+	sprintf(tmp, "%5d", p_ptr->csp);
 
-	put_str("Cur SP ", ROW_CURSP, COL_CURSP);
-
-	sprintf(tmp, "%5d", cur);
-
-	if (cur >= max)
+	if (p_ptr->csp >= p_ptr->msp)
 	{
 		color = TERM_L_GREEN;
 	}
-	else if (cur > max / 10)
+	else if (p_ptr->csp > p_ptr->msp / 10)
 	{
 		color = TERM_YELLOW;
 	}
@@ -199,161 +259,192 @@ void prt_sp(int max, int cur)
 		color = TERM_RED;
 	}
 
-	c_put_str(color, tmp, ROW_CURSP, COL_CURSP + 7);
+	/* Show mana */
+	c_put_str(color, tmp, row, col + 7);
 }
+
+
+/*
+ * Prints players max/cur spell points
+ */
+static void prt_max_sp(int row, int col)
+{
+	char tmp[32];
+
+	/* Do not show mana unless it matters */
+	if (!c_info[pclass].spell_book) return;
+
+	put_str("Max SP ", row, col);
+
+	sprintf(tmp, "%5d", p_ptr->msp);
+
+	c_put_str(TERM_L_GREEN, tmp, row, col + 7);
+}
+
 
 /*
  * Prints depth into the dungeon
  */
-void prt_depth(int depth)
+static void prt_depth(int row, int col, int id)
 {
 	char depths[32];
 
-	if (!depth)
+	/* Hack -- if indicator index is passed, use value from coffers */
+	if (id != -1)
+	{
+		p_ptr->dun_depth = coffers[coffer_refs[id]];
+	}
+
+	if (!p_ptr->dun_depth)
 	{
 		(void)strcpy(depths, "Town");
 	}
 	else if (depth_in_feet)
 	{
-		(void)sprintf(depths, "%d ft", depth * 50);
+		(void)sprintf(depths, "%d ft", p_ptr->dun_depth * 50);
 	}
 	else
 	{
-		(void)sprintf(depths, "Lev %d", depth);
+		(void)sprintf(depths, "Lev %d", p_ptr->dun_depth);
 	}
 
 	/* Right-Adjust the "depth" and clear old values */
-	prt(format("%7s", depths), 23, COL_DEPTH);
+	put_str(format("%7s", depths), row, col);
 }
 
+#if 0
 /*
- * Prints hunger information
+ * Prints status of hunger
  */
-void prt_hunger(int food)
+static void prt_hunger(int row, int col)
 {
-	if (food < PY_FOOD_FAINT)
+	/* Fainting / Starving */
+	if (p_ptr->food < PY_FOOD_FAINT)
 	{
-		c_put_str(TERM_RED, "Weak  ", ROW_HUNGRY, COL_HUNGRY);
+		c_put_str(TERM_RED, "Weak  ", row, col);
+	}
+ 
+	/* Weak */
+	else if (p_ptr->food < PY_FOOD_WEAK)
+	{
+		c_put_str(TERM_ORANGE, "Weak  ", row, col);
 	}
 
-	else if (food < PY_FOOD_WEAK)
+	/* Hungry */
+	else if (p_ptr->food < PY_FOOD_ALERT)
 	{
-		c_put_str(TERM_ORANGE, "Weak  ", ROW_HUNGRY, COL_HUNGRY);
+		c_put_str(TERM_YELLOW, "Hungry", row, col);
 	}
 
-	else if (food < PY_FOOD_ALERT)
+	/* Normal */
+	else if (p_ptr->food < PY_FOOD_FULL)
 	{
-		c_put_str(TERM_YELLOW, "Hungry", ROW_HUNGRY, COL_HUNGRY);
+		c_put_str(TERM_L_GREEN, "      ", row, col);
 	}
 
-	else if (food < PY_FOOD_FULL)
+	/* Full */
+	else if (p_ptr->food < PY_FOOD_MAX)
 	{
-		c_put_str(TERM_L_GREEN, "      ", ROW_HUNGRY, COL_HUNGRY);
+		c_put_str(TERM_L_GREEN, "Full  ", row, col);
 	}
 
-	else if (food < PY_FOOD_MAX)
-	{
-		c_put_str(TERM_L_GREEN, "Full  ", ROW_HUNGRY, COL_HUNGRY);
-	}
-
+	/* Gorged */
 	else
 	{
-		c_put_str(TERM_GREEN, "Gorged", ROW_HUNGRY, COL_HUNGRY);
+		c_put_str(TERM_GREEN, "Gorged", row, col);
 	}
 }
+#endif
 
 /*
- * Prints blindness status
+ * Prints Blind status
  */
-void prt_blind(bool blind)
+static void prt_blind(int row, int col)
 {
-	if (blind)
+	if (p_ptr->blind)
 	{
-		c_put_str(TERM_ORANGE, "Blind", ROW_BLIND, COL_BLIND);
-	}
-	else
-	{
-		put_str("     ", ROW_BLIND, COL_BLIND);
-	}
-}
-
-/*
- * Prints confused status
- */
-void prt_confused(bool confused)
-{
-	if (confused)
-	{
-		c_put_str(TERM_ORANGE, "Confused", ROW_CONFUSED, COL_CONFUSED);
+		c_put_str(TERM_ORANGE, "Blind", row, col);
 	}
 	else
 	{
-		put_str("        ", ROW_CONFUSED, COL_CONFUSED);
+		put_str("     ", row, col);
+	}
+}
+
+/*
+ * Prints Confusion status
+ */
+void prt_confused(int row, int col)
+{
+	if (p_ptr->confused)
+	{
+		c_put_str(TERM_ORANGE, "Confused", row, col);
+	}
+	else
+	{
+		put_str("        ", row, col);
 	}
 }
 
 /*
  * Prints fear status
  */
-void prt_afraid(bool fear)
+static void prt_afraid(int row, int col)
 {
-	if (fear)
+	if (p_ptr->afraid)
 	{
-		c_put_str(TERM_ORANGE, "Afraid", ROW_AFRAID, COL_AFRAID);
+		c_put_str(TERM_ORANGE, "Afraid", row, col);
 	}
 	else
 	{
-		put_str("      ", ROW_AFRAID, COL_AFRAID);
+		put_str("      ", row, col);
 	}
 }
 
 /*
  * Prints poisoned status
  */
-void prt_poisoned(bool poisoned)
+static void prt_poisoned(int row, int col)
 {
-	if (poisoned)
+	if (p_ptr->poisoned)
 	{
-		c_put_str(TERM_ORANGE, "Poisoned", ROW_POISONED, COL_POISONED);
+		c_put_str(TERM_ORANGE, "Poisoned", row, col);
 	}
 	else
 	{
-		put_str("        ", ROW_POISONED, COL_POISONED);
+		put_str("        ", row, col);
 	}
 }
 
 /*
  * Prints paralyzed/searching status
  */
-void prt_state(bool paralyzed, bool searching, bool resting)
+static void prt_state(int row, int col)
 {
 	byte attr = TERM_WHITE;
 
 	char text[16];
 
-	if (paralyzed)
+	if (p_ptr->paralyzed)
 	{
 		attr = TERM_RED;
 
 		strcpy(text, "Paralyzed!");
 	}
 
-	else if (searching)
-	{
-		if (player.pclass != CLASS_ROGUE)
-		{
-			strcpy(text, "Searching ");			
-		}
-		
-		else
-		{
-			attr = TERM_L_DARK;
-			strcpy(text,"Stlth Mode");
-		}
-		
+	else if (p_ptr->searching == 2)
+	{	
+		attr = TERM_L_DARK;
+
+		strcpy(text, "Stlth Mode");
 	}
 
-	else if (resting)
+	else if (p_ptr->searching)
+	{
+		strcpy(text, "Searching ");
+	}
+
+	else if (p_ptr->resting)
 	{
 		strcpy(text, "Resting   ");
 	}
@@ -362,166 +453,224 @@ void prt_state(bool paralyzed, bool searching, bool resting)
 		strcpy(text, "          ");
 	}
 
-	c_put_str(attr, text, ROW_STATE, COL_STATE);
+	c_put_str(attr, text, row, col);
 }
 
 /*
  * Prints speed
  */
-void prt_speed(int speed)
+static void prt_speed(int row, int col)
 {
 	int attr = TERM_WHITE;
 	char buf[32] = "";
 
-	if (speed > 0)
+	if (p_ptr->pspeed > 0)
 	{
 		attr = TERM_L_GREEN;
-		sprintf(buf, "Fast (+%d)", speed);
+		sprintf(buf, "Fast (+%d)", p_ptr->pspeed);
 	}
 
-	else if (speed < 0)
+	else if (p_ptr->pspeed < 0)
 	{
 		attr = TERM_L_UMBER;
-		sprintf(buf, "Slow (%d)", speed);
+		sprintf(buf, "Slow (%d)", p_ptr->pspeed);
 	}
 
 	/* Display the speed */
-	c_put_str(attr, format("%-14s", buf), ROW_SPEED, COL_SPEED);
+	c_put_str(attr, format("%-14s", buf), row, col);
 }
 
 /*
  * Prints ability to gain spells
  */
-void prt_study(bool study)
+static void prt_study(int row, int col)
 {
-	if (study)
+	if (p_ptr->new_spells)
 	{
-		put_str("Study", ROW_STUDY, 64);
+		put_str("Study", row, col);
 	}
 	else
 	{
-		put_str("     ", ROW_STUDY, COL_STUDY);
+		put_str("     ", row, col);
 	}
 }
 
 /*
  * Prints cut status
  */
-void prt_cut(int cut)
+static void prt_cut(int row, int col)
 {
-	if (cut > 1000)
+	int c = p_ptr->cut;
+
+	if (c > 1000)
 	{
-		c_put_str(TERM_L_RED,  "Mortal wound", ROW_CUT, COL_CUT);
+		c_put_str(TERM_L_RED, "Mortal wound", row, col);
 	}
-	else if (cut > 200)
+	else if (c > 200)
 	{
-		c_put_str(TERM_RED,    "Deep gash   ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_RED, "Deep gash   ", row, col);
 	}
-	else if (cut > 100)
+	else if (c > 100)
 	{
-		c_put_str(TERM_RED,    "Severe cut  ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_RED, "Severe cut  ", row, col);
 	}
-	else if (cut > 50)
+	else if (c > 50)
 	{
-		c_put_str(TERM_ORANGE, "Nasty cut   ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_ORANGE, "Nasty cut   ", row, col);
 	}
-	else if (cut > 25)
+	else if (c > 25)
 	{
-		c_put_str(TERM_ORANGE, "Bad cut     ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_ORANGE, "Bad cut     ", row, col);
 	}
-	else if (cut > 10)
+	else if (c > 10)
 	{
-		c_put_str(TERM_YELLOW, "Light cut   ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_YELLOW, "Light cut   ", row, col);
 	}
-	else if (cut)
+	else if (c)
 	{
-		c_put_str(TERM_YELLOW, "Graze       ", ROW_CUT, COL_CUT);
+		c_put_str(TERM_YELLOW, "Graze       ", row, col);
 	}
 	else
 	{
-			       put_str("            ", ROW_CUT, COL_CUT);
+		put_str("            ", row, col);
 	}
 }
 
 /*
  * Prints stun status
  */
-void prt_stun(int stun)
+static void prt_stun(int row, int col)
 {
-	if (stun > 100)
+	int s = p_ptr->stun;
+
+	if (s > 100)
 	{
-		c_put_str(TERM_RED, "Knocked out ", ROW_STUN, COL_STUN);
+		c_put_str(TERM_RED, "Knocked out ", row, col);
 	}
-	else if (stun > 50)
+	else if (s > 50)
 	{
-		c_put_str(TERM_ORANGE, "Heavy stun  ", ROW_STUN, COL_STUN);
+		c_put_str(TERM_ORANGE, "Heavy stun  ", row, col);
 	}
-	else if (stun)
+	else if (s)
 	{
-		c_put_str(TERM_ORANGE, "Stun        ", ROW_STUN, COL_STUN);
+		c_put_str(TERM_ORANGE, "Stun        ", row, col);
 	}
 	else
 	{
-		put_str("            ", ROW_STUN, COL_STUN);
+		put_str("            ", row, col);
 	}
 }
 
 /*
- * Prints race/class info
+ * Display temp. resists
  */
-void prt_basic(void)
+static void prt_oppose_elements(int row, int col)
 {
-	cptr r, c;
+	/* Number of resists to display */
+	int count = 5;
 
-	switch(race)
+	/* Print up to 5 letters of the resist */
+	int n = MIN((Term->wid - col) / count, 5);
+
+	/* Check space */
+	if (n <= 0) return;
+
+
+	if (p_ptr->oppose_acid)
+		Term_putstr(col, row, n, TERM_SLATE, "Acid ");
+	else
+		Term_putstr(col, row, n, TERM_SLATE, "     ");
+
+	col += n;
+
+	if (p_ptr->oppose_elec)
+		Term_putstr(col, row, n, TERM_BLUE, "Elec ");
+	else
+		Term_putstr(col, row, n, TERM_BLUE, "     ");
+
+	col += n;
+
+	if (p_ptr->oppose_fire)
+		Term_putstr(col, row, n, TERM_RED, "Fire ");
+	else
+		Term_putstr(col, row, n, TERM_RED, "     ");
+
+	col += n;
+
+	if (p_ptr->oppose_cold)
+		Term_putstr(col, row, n, TERM_WHITE, "Cold ");
+	else
+		Term_putstr(col, row, n, TERM_WHITE, "     ");
+
+	col += n;
+
+	if (p_ptr->oppose_pois)
+		Term_putstr(col, row, n, TERM_GREEN, "Pois ");
+	else
+		Term_putstr(col, row, n, TERM_GREEN, "     ");
+
+	col += n; /* Unused */
+}
+
+/*
+ * Print dungeon map. Called prt_map_easy so it wouldn't be
+ * called by (& PR_MAP) check accidently.
+ */
+void prt_map_easy()
+{
+	int y;
+	for (y = 0; y < Term->hgt; y++)
 	{
-        case RACE_HUMAN: r = "Human"; break;
-        case RACE_HALF_ELF: r = "Half-elf"; break;
-        case RACE_ELF: r = "Elf"; break;
-        case RACE_HOBBIT: r = "Hobbit"; break;
-        case RACE_GNOME: r = "Gnome"; break;
-        case RACE_DWARF: r = "Dwarf"; break;
-        case RACE_HALF_ORC: r = "Half-orc"; break;
-        case RACE_HALF_TROLL: r = "Half-troll"; break;
-        case RACE_DUNADAN: r = "Dunadan"; break;
-        case RACE_HIGH_ELF: r = "High-elf"; break;
-        case RACE_KOBOLD: r = "Kobold"; break;
-	}
-
-	switch(class)
+		Term_erase(y, 0, Term->wid);
+		caveprt(stream_cave(0, y), p_ptr->stream_wid[0], DUNGEON_OFFSET_X, y);
+	} 
+}
+/* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
+/* Note: this is currently not used by anything, but could prove useful */
+void prt_player_hack(void)
+{
+	int n;
+	if (window_flag[0] & PW_PLAYER_2)
 	{
-        case CLASS_WARRIOR: c = "Warrior"; break;
-        case CLASS_MAGE: c = "Mage"; break;
-        case CLASS_PRIEST: c = "Priest"; break;
-        case CLASS_ROGUE: c = "Rogue"; break;
-        case CLASS_RANGER: c = "Ranger"; break;
-        case CLASS_PALADIN: c = "Paladin"; break;
+		for (n = 1; n < 22; n++)
+			Term_erase(0, n, 13);
+		//p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		schedule_redraw(PW_PLAYER_2);
 	}
-
-	prt_field(r, ROW_RACE, COL_RACE);
-	prt_field(c, ROW_CLASS, COL_CLASS);
 }
 
 /*
  * Redraw the lag bar
  */
 
-void prt_lag(u32b mark, u32b num)
+static void prt_lag(int row, int col)
 {
 	int attr=0;
-	static int flipper =0;
+	//static int flipper =0;
 	static u32b last=0;
 
+	u32b num = lag_mark;
+#if 0
+	/* Output lag in miliseconds instead of stars */
+	char buf[10];
+	buf[0] = '\0';
+	float ping = num / 10;
+	sprintf(buf, "%6.1fms", ping);
+#endif
 	/* Default to "unknown" */
 
+	//num/=10;
+	//if(num>30000) return; // sometimes we catch a negative flip, just ignore it.
 
-	Term_erase(COL_LAG, ROW_LAG, 12);
+
+	Term_erase(col, row, 12);
 	/* Term_putstr(COL_LAG, ROW_LAG, 12, (flipper%2)?TERM_WHITE:TERM_L_DARK, "LAG: [-----]"); */
 
-	Term_putstr(COL_LAG, ROW_LAG, 12, TERM_L_DARK, "LAG:[------]"); 
+	Term_putstr(col, row, 12, TERM_L_DARK, "LAG:[------]"); 
 
-	if( num == 10000 ) {
-		c_msg_print(format("Time out Mark: %lu, Last: %lu", mark,last));	
+	if( lag_mark == 10000 ) {
+		/*c_msg_print_aux("Time Out", MSG_LOCAL);*/
+		do_handle_message("Time Out", MSG_LOCAL);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -540,30 +689,39 @@ void prt_lag(u32b mark, u32b num)
 		if(num > 3L) attr=TERM_YELLOW;
 		if(num > 5L) attr=TERM_RED;
 	};
-	Term_putstr(COL_LAG + 5, ROW_LAG, num, attr, "******");
+	Term_putstr(col + 5, row, num, attr, "******");
+#if 0
+	Term_putstr(col + 4, row, 8, TERM_L_DARK, buf);
+#endif
 }
 
 /*
  * Redraw the monster health bar
  */
 
-void health_redraw(int num, byte attr)
+void health_redraw(int row, int col)
 {
+	int num;
+	byte attr;
+	
+	num = (int)health_track_num;
+	attr = health_track_attr; 	
+	
 	/* Not tracking */
 	if (!attr)
 	{
 		/* Erase the health bar */
-		Term_erase(COL_INFO, ROW_INFO, 12);
+		Term_erase(col, row, 12);
 	}
 
 	/* Tracking a monster */
 	else
 	{
 		/* Default to "unknown" */
-		Term_putstr(COL_INFO, ROW_INFO, 12, TERM_WHITE, "[----------]");
+		Term_putstr(col, row, 12, TERM_WHITE, "[----------]");
 
 		/* Dump the current "health" (use '*' symbols) */
-		Term_putstr(COL_INFO + 1, ROW_INFO, num, attr, "**********");
+		Term_putstr(col + 1, row, num, attr, "**********");
 	}
 }
 
@@ -640,6 +798,19 @@ static void display_inven(void)
 	}
 }
 
+/* Uses Equip Window ! */
+void display_floor_item(void)
+{
+	byte i = INVEN_TOTAL - INVEN_WIELD;
+	/* Floor item! */
+	Term_erase(0, i, 255);
+	if (floor_item.tval) 
+	{
+		if (item_tester_okay(&floor_item))
+			Term_putstr(0, i, 4, TERM_WHITE, "-)");
+		Term_putstr(3, i, strlen(floor_name), floor_item.sval, floor_name);
+	}
+}
 
 /*
  * Choice window "shadow" of the "show_equip()" function. 
@@ -648,6 +819,7 @@ static void display_equip(void)
 {
 	int	i, n;
 	int	wgt;
+	int	col;
 
 	object_type *o_ptr;
 
@@ -688,17 +860,27 @@ static void display_equip(void)
 		/* Erase the rest of the line */
 		Term_erase(3+n, i - INVEN_WIELD, 255);
 
+		/* Display the slot description (if needed) */
+		if (show_labels)
+		{
+			Term_putstr(61, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
+			Term_putstr(65, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
+		}
+
 		/* Display the weight if needed */
 		if (show_weights && o_ptr->weight)
 		{
 			wgt = o_ptr->weight;
+			col = (show_labels ? 52 : 71);
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			Term_putstr(71, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
+			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
 		}
 	}
 
+	display_floor_item();	
+	
 	/* Erase the rest of the window */
-	for (i = INVEN_TOTAL - INVEN_WIELD; i < Term->hgt; i++)
+	for (i = INVEN_TOTAL - INVEN_WIELD + 1; i < Term->hgt; i++)
 	{
 		/* Erase the line */
 		Term_erase(0, i, 255);
@@ -731,10 +913,10 @@ void show_inven(void)
 	col = command_gap;
 
 	/* Default "max-length" */
-	len = 79 - col;
+	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = 79 - 3;
+	lim = Term->wid - 1 - 3;
 
 	/* Require space for weight (if needed) */
 	lim -= 9;
@@ -782,7 +964,7 @@ void show_inven(void)
 	}
 
 	/* Find the column to start in */
-	col = (len > 76) ? 0 : (79 - len);
+	col = (len > Term->wid - 4) ? 0 : (Term->wid - 1 - len);
 
 	/* Output each entry */
 	for (j = 0; j < k; j++)
@@ -810,7 +992,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, 71);
+			put_str(tmp_val, j + 1, lim);
 		}
 	}
 
@@ -819,6 +1001,10 @@ void show_inven(void)
 
 	/* Save the new column */
 	command_gap = col;
+
+	/* Make screen icky */
+	section_icky_row = j + 2;
+	section_icky_col = 0 - (Term->wid - col) - 2;
 }
 
 
@@ -924,6 +1110,10 @@ void show_equip(void)
 
 	/* Save the new column */
 	command_gap = col;
+
+	/* Make screen icky */
+	section_icky_row = j + 2;
+	section_icky_col = 0 - (Term->wid - col) - 2;
 }
 
 
@@ -959,6 +1149,37 @@ void fix_inven(void)
 	}
 }
 
+/*
+ * Display floor item in equipment sub-window
+ */
+void fix_floor(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < 8; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_EQUIP)) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display inventory */
+		display_floor_item();
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
 
 /*
  * Display equipment in sub-windows
@@ -994,14 +1215,14 @@ void fix_equip(void)
 
 
 /*
- * Display character sheet in sub-windows
+ * Hack -- display player in sub-windows (mode 0)
  */
-void fix_player(void)
+static void fix_player_0(void)
 {
 	int j;
 
 	/* Scan windows */
-	for (j = 0; j < 8; j++)
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
 		term *old = Term;
 
@@ -1009,13 +1230,13 @@ void fix_player(void)
 		if (!ang_term[j]) continue;
 
 		/* No relevant flags */
-		if (!(window_flag[j] & PW_PLAYER)) continue;
+		if (!(window_flag[j] & (PW_PLAYER_0))) continue;
 
 		/* Activate */
 		Term_activate(ang_term[j]);
 
-		/* Display inventory */
-		display_player();
+		/* Display player */
+		display_player(0);
 
 		/* Fresh */
 		Term_fresh();
@@ -1025,27 +1246,753 @@ void fix_player(void)
 	}
 }
 
+
+
+/*
+ * Hack -- display player in sub-windows (mode 1)
+ */
+static void fix_player_1(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_PLAYER_1))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display flags */
+		display_player(2);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack - Display the left-hand-side of the main term in a separate window
+ */
+static void prt_frame_compact(void)
+{
+	int row = 0;
+	int col = 0;
+	int i;
+	bool use_lagmeter = TRUE; /* TODO: make it a real option */
+	
+	/* Name */
+	prt_field(nick, row++, col);	
+	
+	/* Race and Class */
+	prt_field(p_name + race_info[race].name, row++, col);
+	prt_field(c_name +c_info[pclass].name, row++, col);
+
+	/* Title */
+	prt_field(ptitle, row++, col);
+
+	/* Level/Experience */
+	prt_level(row++, col);
+	prt_exp(row++, col);
+
+	/* Gold */
+	prt_gold(row++, col);
+
+	/* Lag Meter OR Equippy */
+	if (use_lagmeter)
+		/* Lag Meter (should I add MAngband-specific?) */
+		prt_lag(row++, col);
+	else
+		/* Equippy chars */
+		prt_equippy(row++, col);
+
+	/* All Stats */
+	for (i = 0; i < A_MAX; i++) prt_stat(i, row++, col);
+
+
+	/* Equippy or empty row */
+	if (use_lagmeter)
+		row++;
+	else
+		prt_equippy(row++, col);
+
+
+	/* Armor */
+	prt_ac(row++, col);
+
+	/* Hitpoints */
+	prt_max_hp(row++, col);
+	prt_cur_hp(row++, col);
+
+	/* Spellpoints */
+	prt_max_sp(row++, col);
+	prt_cur_sp(row++, col);
+
+	/* Special */
+	health_redraw(row++, col);
+
+	/* Cut */
+	prt_cut(row++, col);
+
+	/* Stun */
+	prt_stun(row++, col);
+}
+
+
+/*
+ * Hack -- display player in sub-windows (compact)
+ */
+static void fix_player_compact(void)
+{
+	bool use_lagmeter = TRUE; /* TODO: make it a real option. */
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_PLAYER_2))) continue;
+
+		/* Hack -- ignore main term */
+		if (j == 0) continue;		
+		
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display player */
+		/* prt_frame_compact(); */
+		/* Equippy or empty row */
+		if (use_lagmeter)
+		{
+			prt_lag(ROW_LAG, COL_LAG);
+			prt_equippy(ROW_AC-1, COL_AC);
+		}
+		else
+			prt_equippy(ROW_LAG, COL_LAG);
+		
+		/* Display relevant indicators */
+		redraw_indicators(PW_PLAYER_2);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack - Display the status line in a separate window
+ */
+static void prt_status_line(void)
+{
+	int row = 0;
+#if 0
+	/* Hungry */
+	prt_hunger(row, COL_HUNGRY);
+#endif
+	/* Blind */
+	prt_blind(row, COL_BLIND);
+
+	/* Confused */
+	prt_confused(row, COL_CONFUSED);
+
+	/* Afraid */
+	prt_afraid(row, COL_AFRAID);
+
+	/* Poisoned */
+	prt_poisoned(row, COL_POISONED);
+
+	/* State */
+	prt_state(row, COL_STATE);
+
+	/* Speed */
+	prt_speed(row, COL_SPEED);
+
+	/* Study */
+	prt_study(row, COL_STUDY);
+
+	/* Depth */
+	prt_depth(row, COL_DEPTH, -1);
+
+	/* Temp. resists */
+	prt_oppose_elements(row, COL_OPPOSE_ELEMENTS);
+}
+
+
+/*
+ * Hack -- display status in sub-windows
+ */
+static void fix_status(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_STATUS))) continue;
+
+		/* Hack -- ignore main term (it has it's own methods) */
+		if (j == 0) continue;		
+		
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display status line */
+		/*
+		prt_status_line();
+		*/
+
+		/* Display relevant indicators */
+		redraw_indicators(PW_STATUS);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack -- display some remote view in sub-windows.
+ */
+static void fix_stream(int k)
+{
+	int j, y;
+	int sw, sh;
+	int w, h;
+	byte win = streams[k].addr;
+
+	/* Get stream bounds */	
+	sw = p_ptr->stream_wid[k];
+	sh = MIN(p_ptr->stream_hgt[k], last_remote_line[win] + 1);
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* Hack -- there are many ways we can handle sub-window
+		 * streams on window 0, but instead of doing any of that,
+		 * we just bail out. Something else will take care of the
+		 * main window... */
+		if (j == 0) continue;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (streams[k].window_flag))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Get term bounds */
+		Term_get_size(&w, &h);
+
+		/* Adjust bounds (clamp stream size by window size) */
+		if (sw > w) sw = w;
+		if (sh > h) sh = h;
+
+		/* Print it */
+		for (y = 0; y < sh; y++)
+		{
+			Term_erase(0, y, sw);
+			caveprt(stream_cave(k,y), sw, 0, y);
+		}
+
+		/* Erase rest */
+		clear_from(y);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack -- display dungeon map view in sub-windows.
+ */
+static void fix_map(void)
+{
+	int j, y;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_MAP))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+		
+		/* Get size */
+		Term_get_size(&w, &h);
+
+		/* Print map */
+		for (y = 0; y < last_remote_line[NTERM_WIN_MAP]+1; y++)
+		{
+			caveprt(stream_cave(window_to_stream[NTERM_WIN_MAP], y), w, 0, y);
+		}
+
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, 255);
+		}
+			
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack -- display spell list in sub-windows.
+ */
+static void fix_spells(void)
+{
+	int b, i, j, y = 0;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+		byte old_tester;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_SPELL))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+		
+		/* Get size */
+		Term_get_size(&w, &h);
+
+		/* Header */
+		prt("", y, 1);
+		put_str("Name", y, 6);
+		put_str("Lv Mana Fail", y, 36);
+		y++;
+		
+		/* Hack: Hijack item tester */
+		old_tester = item_tester_tval;
+		item_tester_tval = c_info[pclass].spell_book;
+
+		/* For each book */
+		for (b = 0; b < INVEN_PACK - 1; b++)
+		{
+			if (item_tester_okay(&inventory[b]))
+			{
+				/* Dump the spells */
+				for (i = 0; i < SPELLS_PER_BOOK; i++)
+				{
+					/* End of terminal */
+					if (y >= h) break;
+
+					/* Check for end of the book */
+					if (spell_info[b][i][0] == '\0')
+					break;
+					
+					/* skip Illegible */
+					if (strstr(spell_info[b][i], "(illegible)"))
+					continue;
+					
+					/* skip uncastable */
+					if (!(spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_LEARNED))
+					continue;
+					
+					/* skip forgotten */
+					if (spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_FORGOTTEN)
+					continue;
+
+					/* Dump the info */
+					prt(format("%c", index_to_label(b)), y, 0);
+					prt(spell_info[b][i], y, 1);
+					
+					y++;
+					
+				}
+			}
+		}
+
+		/* Restore old tester */
+		item_tester_tval = old_tester;
+
+		/* Erase rest */
+		for (; y < h; y++)
+		{
+			Term_erase(0, y, 255);
+		}
+			
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+
+/*
+ * Hack -- display some recall in some sub-windows
+ */
+static void fix_remote_term(byte rterm, u32b windows)
+{
+	int y, j;
+	int w, h;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (windows))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Get size */
+		Term_get_size(&w, &h);		
+		
+		/* Print data */
+		for (y = 0; y < last_remote_line[rterm]+1; y++)
+		{
+			caveprt(stream_cave(window_to_stream[rterm], y), w, 0, y);
+		}
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, w);
+		}
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
  
+/* Determine message color based on string templates */ 
+bool message_color(cptr msg, byte *ap)
+{
+	char from_us[30];
+	byte a;
+	
+	/* Determine what messages from us are prefixed with */
+	sprintf(from_us,"[%s]",nick);
+
+	if(msg[0] == '[') {
+				a = TERM_L_BLUE;
+				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
+	} else {
+				a = TERM_WHITE;
+
+				if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
+				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
+				if( (strstr(msg, "was slain by")!=NULL))
+				{
+					if (strstr(msg, "Morgoth") != NULL)
+						a = TERM_VIOLET;
+					else
+						a = TERM_YELLOW;
+				}
+				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
+				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
+				if( strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
+				if( strstr(msg, "has dropped to level")!=NULL) a = TERM_L_GREEN;
+				if( strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
+	}
+	*ap = a;
+	return (a != TERM_WHITE); 
+}
+/*
+ * When we got a private message in format "[Recepient:Sender] Message"
+ * this function could be used to determine if it relates to any of the 
+ * chat tabs opened 
+ */
+int find_whisper_tab(cptr msg, char *text)
+{
+	char from_us[30], to_us[30], buf[80];
+	int i, tab = 0;
+	cptr offset, pmsg;
+	
+	buf[0] = '\0';
+	sprintf(from_us,":%s]",nick);
+	sprintf(to_us,"[%s:",nick);
+
+	/* Message From Us */
+	if ((offset = strstr(msg, from_us)) != NULL)
+	{
+		/* To who */
+		strcpy(buf, msg + 1);
+		buf[offset - msg - 1] = '\0';
+		/* Short text */
+		pmsg = msg + (offset - msg) + strlen(from_us) + 1;
+		sprintf(text, "[%s] %s", nick, pmsg);
+	}
+	/* Message To Us */
+	else if (strstr(msg, to_us) != NULL)
+	{
+		/* From who */
+		strcpy(buf, msg + strlen(to_us));
+		offset = strstr(msg, "]");
+		buf[offset - msg - strlen(to_us)] = '\0';
+		/* Short text */
+		sprintf(text, "[%s] %s", buf, offset + 2);
+	}
+	/* Some other kind of message (probably to Your Party) */
+	else if ((offset = strstr(msg, ":")))
+	{
+		/* Destination */
+		strcpy(buf, msg + 1);
+		buf[offset - msg - 1] = '\0';
+		/* Sender */
+		strcpy(from_us, offset + 1);
+		pmsg = strstr(offset, "]");
+		from_us[pmsg - offset - 1] = '\0';
+		/* Short text */
+		pmsg = msg + (pmsg - msg) + 2;
+		sprintf(text, "[%s] %s", from_us, pmsg);
+	}
+	/* HACK -- "&xxx" */
+	else if (msg[0] == '&')
+	{
+		/* Dest. */
+		strcpy(buf, msg);
+		buf[strlen(msg)] = '\0';
+	}
+	
+	if (STRZERO(buf)) return 0;
+	
+	/* Find related tab */
+	for (i = 0; i < MAX_CHANNELS; i++)
+	{
+		if (STRZERO(channels[i].name)) continue; //is empty
+		if (channels[i].id != MAX_CHANNELS) continue; //is channel
+		if (strcmp(channels[i].name, buf)) continue; //name mismatch
+		
+		tab = i;
+		break;
+	}
+
+	return tab;
+}
+
 /*
  * Hack -- display recent messages in sub-windows
  *
  * XXX XXX XXX Adjust for width and split messages
  */
 
-// [grk] Gross hack to display messages in seperate term
+void fix_special_message_aux(byte win)
+{
+	int j, c, i;
+	int w, h, t;
+	int x, y, tab;
+	cptr msg;
+	byte a;
+	char text[80];
+	
+	term *old = Term;
 
-#define PMSG_TERM 4
+	/* No window */
+	if (!win || !ang_term[win]) return;
+
+	/* Activate */
+	Term_activate(ang_term[win]);
+
+	/* Get size */
+	Term_get_size(&w, &h);
+
+	/* Dump header */
+	x = y = 0; /* Temp. values */
+	c = t = 0; /* Hor. & Vert. Offsets */
+	for (j = 0; j < MAX_CHANNELS; j++)
+	{
+		/* Skip empty */
+		if (STRZERO(channels[j].name)) continue;
+
+		/* Color */
+		a = TERM_L_DARK;
+		if (p_ptr->on_channel[j] == TRUE) a = TERM_WHITE;
+		if (view_channel == j) a = TERM_L_BLUE;
+
+		/* Carriage return */		
+		if ((int)strlen(channels[j].name) + c + 1 >= w)
+		{
+			/* Clear to end of line */
+			Term_erase(x, y, 255);
+			
+			c = 0;
+			t++;
+		}
+
+		/* Dump the message on the appropriate line */		
+		Term_putstr(0 + c, 0 + t, -1, a, channels[j].name);
+		
+		/* Whitespace */
+		Term_locate(&x, &y);
+		Term_putstr(x, y, -1, TERM_WHITE, " ");
+							
+		Term_locate(&x, &y);
+		c = x;
+	}
+	
+	/* Clear to end of line */
+	Term_erase(x, y, 255);
+
+	/* Dump messages */
+	i = j = c = 0; /* Counters */
+	while(i < h - (t + 1)) {
+		msg = message_str(c++);
+
+		/* Filters */
+		if(msg[0] == 0) {i++; continue;}
+		if (message_type(c-1) == MSG_WHISPER)
+		{
+			tab = find_whisper_tab(msg, text);
+			if ( tab && tab != view_channel ) continue;
+			if ( tab ) msg = text;
+		}
+		else if (message_type(c-1) >= MSG_CHAT)
+		{
+			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
+		}
+		else if (message_type(c-1) == MSG_TALK)
+		{
+			/* hack -- "&say" */
+			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else if (message_type(c-1) == MSG_YELL)
+		{
+			/* hack -- "&yell" */
+			tab = find_whisper_tab("&yell", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else continue;
+		
+		i++;
+		
+		message_color(msg, &a);
+
+		/* Dump the message on the appropriate line */
+		Term_putstr(0, (h - 1) - j, -1, a, msg);
+
+		/* Cursor */
+		Term_locate(&x, &y);
+
+		/* Clear to end of line */
+		Term_erase(x, y, 255);
+		
+		j++;
+	}
+
+	/* Erase rest */
+	while (j < h - (t + 1))
+	{
+		/* Clear line */
+		Term_erase(0, (h - 1) - j, 255);
+		j++;
+	}
+
+	/* Fresh */
+	Term_fresh();
+
+	/* Restore */
+	Term_activate(old);
+}
+
+/* New, proper "fix_special_message" to deal with all relevant terms */
+void fix_special_message(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* Call origin function */
+		fix_special_message_aux(j);
+	}
+}
+
+/* Find any opened chat window, or return 0 */
+byte find_chat_window(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		return j;
+	}
+	return 0;
+}
 
 void fix_message(void)
 {
-        int j, c, i,ii, pmdone, mdone;
-        int w, h, pmw, pmh;
+        int j, c, i;
+        int w, h;
         int x, y;
-        term *oldt;
-	char from_us[30];
 
-	/* Determine what messages from us are prefixed with */
-	sprintf(from_us,"[%s]",nick);
+        byte chat_window = find_chat_window();
 
         /* Scan windows */
         for (j = 0; j < 8; j++)
@@ -1067,143 +2014,103 @@ void fix_message(void)
                 /* Dump messages */
                 i=0; c=0;
                 while(i<h)
-                {
-			byte a;
-			cptr msg;
-
-			msg = message_str(c++);
-
-			if (ang_term[PMSG_TERM]) {
-
-				if (msg[0] == '[') continue;
-		else if(strstr(msg, "begins a new game")!=NULL) continue;
-				else if(strstr(msg, "has entered the game")!=NULL) continue;
-				else if(strstr(msg, "has left the game")!=NULL) continue;
-				else if(strstr(msg, "committed suicide.")!=NULL) continue;
-				else if(strstr(msg, "was killed by")!=NULL) continue;
-				else if(strstr(msg, "was slain by")!=NULL) continue;
-				else if(strstr(msg, "rises from the dead")!=NULL) continue;
-				else if(strstr(msg, "ghost was destroyed by")!=NULL) continue;
-		else if(strstr(msg, "has attained level")!=NULL) continue;
-		else if(strstr(msg, "Welcome to level")!=NULL) continue;
-
-			} 
-
-			a = TERM_WHITE;
-
-			if(msg[0] == '['){
-				a = TERM_L_BLUE;
-				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
-			} else {
-				a=TERM_WHITE;
-
-                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-                if( (strstr(msg, "was slain by")!=NULL))
-		{
-			if (strstr(msg, "Morgoth") != NULL)
-				a = TERM_VIOLET;
-			else
-				a = TERM_YELLOW;
-		}
-				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
-				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
-                if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
-		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
-			};
-
-			/* Dump the message on the appropriate line */
-			Term_putstr(0, (h - 1) - i, -1, a, msg);
-
-			/* Cursor */
-			Term_locate(&x, &y);
-
-			/* Clear to end of line */
-			Term_erase(x, y, 255);
-		
-			i++;
-                }
-
+					{
+						byte a;
+						cptr msg;
+			
+						msg = message_str(c++);
+			
+						if (chat_window) {
+							if (message_type(c-1) >= MSG_WHISPER) continue;
+						}
+			
+						a = TERM_WHITE;
+						message_color(msg, &a);
+			
+						/* Dump the message on the appropriate line */
+						Term_putstr(0, (h - 1) - i, -1, a, msg);
+			
+						/* Cursor */
+						Term_locate(&x, &y);
+			
+						/* Clear to end of line */
+						Term_erase(x, y, 255);
+					
+						i++;
+					}
+                
                 /* Fresh */
                 Term_fresh();
 
                 /* Restore */
                 Term_activate(old);
         }
+}
 
-        // Display player messages in term 4
-                
-	oldt = Term;
+/*
+ * Hack -- display special recall in sub-windows
+ */
+static void fix_special_info(void)
+{
+	int y, j;
+	int w, h;
 
-	/* No window */
-	if (ang_term[PMSG_TERM]) {
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_SPECIAL_INFO))) continue;
 
 		/* Activate */
-		Term_activate(ang_term[PMSG_TERM]);
+		Term_activate(ang_term[j]);
 
 		/* Get size */
-		Term_get_size(&w, &h);
-
-		/* Dump messages */
-		i=0; c=0;
-		while(i<h) {
-			byte a;
-			cptr msg;
-
-			msg = message_str(c++);
-
-			if(msg[0] == 0) { i++; continue; };
-
-			if(msg[0] == '['){
-				a = TERM_L_BLUE;
-				if( (strstr(msg, nick)!=NULL) && (strstr(msg, from_us)==NULL) ) a = TERM_L_GREEN;
-			} else {
-				a=TERM_WHITE;
-
-                if( (strstr(msg, "begins a new game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has entered the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "has left the game")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "committed suicide")!=NULL)) a=TERM_L_DARK;
-				if( (strstr(msg, "ghost was destroyed by")!=NULL)) a=TERM_RED; 
-                if( (strstr(msg, "was slain by")!=NULL))
+		Term_get_size(&w, &h);		
+		
+		/* Display special title */
+		Term_erase(0, 0, 255);
+		Term_putstr(0, 0, 80, TERM_YELLOW, special_line_header);
+		
+		/* Print map */
+		for (y = 0; y < last_remote_line[0]+1; y++)
 		{
-			if (strstr(msg, "Morgoth") != NULL)
-				a = TERM_VIOLET;
-			else
-				a = TERM_YELLOW;
-		}
-				if( (strstr(msg, "rises from the dead")!=NULL)) a=TERM_ORANGE;
-				if( (strstr(msg, "was killed by")!=NULL)) a=TERM_RED;
-		if(strstr(msg, "has attained level")!=NULL) a = TERM_L_GREEN;
-		if(strstr(msg, "Welcome to level")!=NULL) a = TERM_L_GREEN;
-			};
-
-			if(a != TERM_WHITE) {
-
-				/* Dump the message on the appropriate line */
-				Term_putstr(0, (h - 1) - i, -1, a, msg);
-
-				/* Cursor */
-				Term_locate(&x, &y);
-
-				/* Clear to end of line */
-				Term_erase(x, y, 255);
-			
-				i++;
-			};
+			caveprt(stream_cave(window_to_stream[j], y), w, 0, y);
 		}
 
-                /* Fresh */
-                Term_fresh();
+		/* Erase rest */
+		for (y = y-1; y < h; y++)
+		{
+			Term_erase(0, 1+y, 255);
+		}
+#if 0
+		/* Dump text */
+		for (i = 0; p_ptr->info[i]; i++)
+		{
+			if (!p_ptr->info[i]) break;
+			Term_erase(0, 1+i, 255);
+			Term_putstr(0, 1+i, 80, TERM_WHITE, p_ptr->info[i]);
+		}
+		
+		/* Erase rest */
+		for (; i < h; i++)
+		{
+			Term_erase(0, 1+i, 255);
+		}
+#endif
+		/* Fresh */
+		Term_fresh();
 
 		/* Restore */
-		Term_activate(oldt);
+		Term_activate(old);
 	}
-
 }
+
+
 
 /*
  * Hack -- pass color info around this file
@@ -1354,8 +2261,8 @@ static void display_player_equippy(int y, int x)
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
 	{
 		/* Get attr/char for display */
-		a = p_ptr->hist_flags[0][i-INVEN_WIELD].a;
-		c = p_ptr->hist_flags[0][i-INVEN_WIELD].c;
+		a = p_ptr->hist_flags[i-INVEN_WIELD][0].a;
+		c = p_ptr->hist_flags[i-INVEN_WIELD][0].c;
 
 		/* Dump */
 		Term_putch(x+i-INVEN_WIELD, y, a, c);
@@ -1380,8 +2287,8 @@ static void display_player_sust_info(void)
 	{
 		for (i = 0; i < 13; ++i)
 		{
-			a = p_ptr->hist_flags[stat+1][i].a;
-			c = p_ptr->hist_flags[stat+1][i].c;
+			a = p_ptr->hist_flags[i][1+stat].a;
+			c = p_ptr->hist_flags[i][1+stat].c;
 			/* Dump proper character */
 			Term_putch(col+i, row+stat, a, c);
 			//c_put_str(a, c, col+i, row+stat);
@@ -1431,8 +2338,8 @@ static void display_player_flag_info(void)
 			/* Draw dots */
 			for (i = 0; i < 13; i++) 
 			{
-				a = p_ptr->hist_flags[off][i].a;
-				c = p_ptr->hist_flags[off][i].c;
+				a = p_ptr->hist_flags[i][off].a;
+				c = p_ptr->hist_flags[i][off].c;
 				/* Dump proper character */
 				Term_putch(col+6+i, row+1, a, c);
 			}			
@@ -1572,6 +2479,69 @@ static void display_player_misc_info(void)
 	     }
 }
 
+typedef void (*pfcb) (int, int, int); /* "Print Field Call-Back" */
+pfcb prt_functions[MAX_INDICATORS];
+struct field
+{
+	cptr	mark;
+	s16b	row;
+	s16b	col;
+
+	pfcb	field_cb;
+	byte	win;
+};
+
+/*
+ * Schedule redrawing of some indicators based on their window flag.
+ *  This should be used instead of p_ptr->redraw |= PR_FOOBAR,
+ *  because from now on, PR_* flags are completely server-defined
+ *  and might mean something entirely different from what client thinks.
+ */
+void schedule_redraw(u32b filter)
+{
+	int i = 0;
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (indicator_window[i] & filter)
+		{
+			p_ptr->redraw |= i_ptr->redraw; 
+		}
+	}
+}
+
+/*
+ * Redraw large ammount of indicators, filtered by window.
+ */
+void redraw_indicators(u32b filter)
+{
+	s16b row;
+	int i = 0; 
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (indicator_window[i] & filter)
+		{
+			/* Hack: count rows from bottom? */
+			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+#if 0
+			if ((row < section_icky_row) && 
+				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+			if (screen_icky && !section_icky_row) continue;
+#endif
+			/* Display field */
+			(prt_functions[i])(row, i_ptr->col, i);
+		}
+	}
+}
+
 /*
  * Display the character on the screen (3 different modes)
  *
@@ -1582,11 +2552,11 @@ static void display_player_misc_info(void)
  * Mode 2 = special display with equipment flags
  */
 
-void display_player(void)
+void display_player(int screen_mode)
 {
 	int i;
-	char buf[80];
 	cptr desc;
+	u32b filter; /* Indicator filter */
 
      /* Clear screen */
      Term_clear();
@@ -1600,12 +2570,12 @@ void display_player(void)
      c_put_str(TERM_L_BLUE, nick, 2, 15);
      c_put_str(TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
      c_put_str(TERM_L_BLUE, p_name + race_info[race].name, 4, 15);
-     c_put_str(TERM_L_BLUE, c_name + c_info[class].name, 5, 15);
+     c_put_str(TERM_L_BLUE, c_name + c_info[pclass].name, 5, 15);
 
 	display_player_stats_info();
 
 	/* Check for history */
-	if (char_screen_mode == 2)
+	if (screen_mode == 2)
 	{
 		/* Stat/Sustain flags */
 		display_player_sust_info();
@@ -1623,7 +2593,7 @@ void display_player(void)
      prt_num("Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
      prt_num("Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
 	
-		if (char_screen_mode) {
+		if (screen_mode) {
 			put_str("(Character Background)", 15, 25);
 	
 			for (i = 0; i < 4; i++)
@@ -1682,13 +2652,454 @@ void display_player(void)
 		}
 	}
 
+	/* Hack? Display relevant indicators */
+	if (screen_mode == 0) filter = PW_PLAYER_0;
+	if (screen_mode == 1) filter = PW_PLAYER_3;
+	if (screen_mode == 2) filter = PW_PLAYER_1;
+
+	redraw_indicators(filter);
 }
+
+struct field fields[] = 
+{
+#if 0
+	/* Compact display (win = 0) */
+	{ "race_",	ROW_RACE,	COL_RACE,	(pfcb)prt_prace,	0},
+	{ "class_",	ROW_CLASS,	COL_CLASS,	(pfcb)prt_pclass,	0},
+	{ "title_",	ROW_TITLE,	COL_TITLE,	(pfcb)prt_title,	0},
+	{ "level",  ROW_LEVEL,	COL_LEVEL,	(pfcb)prt_level,	0},
+	{ "exp", 	ROW_EXP,	COL_EXP,	(pfcb)prt_exp,  	0},
+	{ "gold", 	ROW_GOLD,	COL_GOLD,	(pfcb)prt_gold, 	0},	
+
+	/* { (PR_EQUIPPY), ROW_EQUIPPY,COL_EQUIPPY, (pfcb)prt_equippy, }, */
+	{"",(PR_LAG_METER),ROW_LAG,	COL_LAG,	(pfcb)prt_lag,  	0},
+
+	{ "stat0",	ROW_STAT+0,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat1",	ROW_STAT+1,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat2",	ROW_STAT+2,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat3",	ROW_STAT+3,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat4",	ROW_STAT+4,	COL_STAT,	0,/*prt_stat*/ 0},
+	{ "stat5",	ROW_STAT+5,	COL_STAT,	0,/*prt_stat*/ 0},
+
+	{ "ac", 	ROW_AC, 	COL_AC, 	(pfcb)prt_ac, 0},
+	{ "hp",  	ROW_CURHP,	COL_CURHP,	(pfcb)prt_cur_hp, 0},
+	{ "hp",  	ROW_MAXHP,	COL_MAXHP,	(pfcb)prt_max_hp, 0},
+	{ "sp",  	ROW_CURSP,	COL_CURSP,	(pfcb)prt_cur_sp, 0},
+	{ "sp",  	ROW_MAXSP,	COL_MAXSP,	(pfcb)prt_max_sp, 0},
+
+	{ "track",	ROW_INFO,	COL_INFO,	(pfcb)health_redraw, 0},
+	{ "cut", 	ROW_CUT,	COL_CUT,	(pfcb)prt_cut, 0},
+
+	/* Status line (win = 1) */
+	{ "hunger", 	-1,	COL_HUNGRY,	(pfcb)prt_hunger,	1},
+	{ "blind",  	-1,	COL_BLIND,	(pfcb)prt_blind,	1},
+	{ "stund",  	-1,	COL_STUN,	(pfcb)prt_stun, 	1},
+	{ "confused",	-1, COL_CONFUSED,(pfcb)prt_confused,1},
+	{ "afraid", 	-1,	COL_AFRAID,	(pfcb)prt_afraid,	1},
+	{ "poisoned",	-1,	COL_POISONED,(pfcb)prt_poisoned,1},
+	{ "state",  	-1,	COL_STATE,	(pfcb)prt_state,	1},
+	{ "speed",  	-1,	COL_SPEED,	(pfcb)prt_speed,	1},
+	{ "study",  	-1,	COL_STUDY,	(pfcb)prt_study,	1},
+#endif
+	{ "depth",  	-1,	COL_DEPTH,	(pfcb)prt_depth,	1},
+#if 0	
+	{ "oppose", 	-1, COL_OPPOSE_ELEMENTS, (pfcb)prt_oppose_elements,	1},
+#endif
+	/* END */
+	{ NULL, 0, 0, 0, 0 }
+};
+/* Hack -- return a RED-YELLOW-GREEN color based on 2 values weight against each other */
+byte color_spotlight(s16b cur, s16b max, bool warn)
+{
+	s16b n = 1;
+	byte color;
+	if (warn)
+	{
+		n = p_ptr->hitpoint_warn;
+	}
+	if (cur >= max)
+	{
+		color = TERM_L_GREEN;
+	}
+	else if (cur > (max * n) / 10)
+	{
+		color = TERM_YELLOW;
+	}
+	else
+	{
+		color = TERM_RED;
+	}
+	return color;
+}
+/* Hack -- return YELLOW-GREEN or GREEN-UMBER color based on 2 values compared against each other */
+byte color_dualstat(s16b cur, s16b max, bool shift)
+{
+	byte colors[3] = { TERM_YELLOW, TERM_L_GREEN, TERM_L_UMBER };
+	byte color;
+	if (shift > 1)
+	{
+		shift = 1;
+	}
+	if (cur >= max)
+	{
+		color = colors[1 + shift];
+	}
+	else
+	{
+		color = colors[0 + shift];
+	}
+	return color;
+}
+/* Hack -- our own version of strlen() which treats any control character as lineend */
+static int strend(cptr str)
+{
+	cptr hold = str;
+	while(*str > 31) str++;
+	return (str - hold);
+}
+/*
+ * Indicator display code.
+ * Very heavy, should be optimized/rewritten.
+ *
+ * Travels along the indicator's "prompt" field, sending ascii characters to screen.
+ * Control characters move the carret and the bell (\a) code is overloaded to change
+ * colors. '%' symbol starts a printf-like segment, ending with any control character.
+ * For example, "Armor: \ar %d", would first display "Armor", then change color to 'r'ed,
+ * and then display indicator's value in '%d' format.
+ *
+ * Each time a piece of data is about to be sent to screen, a series of STRIDING TESTS
+ * might occur. Those are defined by populating indicator's "flags" field with 
+ * "IN_STRIDE_XXX" bits. If the test doesn't pass, the data is not displayed.
+ * Striding tests do not affect control characters, only the actual visual data.
+ *
+ * A "Vertical Tab" (\v) control character is wildcard modificator with no default 
+ * behavior. It is defined in the indicator's "flags" field via "IN_VT_XXX" bits.
+ * For example, by setting "IN_VT_CR" bit, each vertical tab whould be treated as
+ * a "Carriage Return" (\r) character. 
+ *
+ * Several other hacks are ofcourse in place. Most are related to the various
+ * "IN_" flags, described in "common/defines.h". See also "server/tables.c" for 
+ * the actual indicator declarations.
+ */
+#define advance_coffer() coff++; if (--amnt <= 0) return; val = coffers[coff] 
+void prt_indicator(int first_row, int first_col, int id)
+{
+	indicator_type *i_ptr = &indicators[id];
+	int coff = coffer_refs[id];
+	char tmp[32], tmp2[32];
+
+	cptr prompt = i_ptr->prompt;
+
+	u32b flag = i_ptr->flag;
+	byte amnt = i_ptr->amnt;
+
+	s16b row = first_row;
+	u16b col = first_col;
+
+	byte color = TERM_WHITE;
+
+	s32b val = coffers[coff];
+
+	bool value, warn = FALSE, stride = TRUE;
+	int n, cut = 0;
+
+	/* Hack -- count rows from bottom of term */
+	if (row < 0) row += Term->hgt;
+
+	/* Hack -- count auto-cut */
+	if (flag & IN_AUTO_CUT) cut = MIN((Term->wid - col) / amnt, strend(prompt));
+
+	/* Parse prompt */
+	for (; !STRZERO(prompt); prompt++)
+	{
+		value = FALSE;
+		switch(*prompt)
+		{
+ 			/* Horizontal tab (Move right) */
+			case '\t':
+			{
+				col++;
+				continue;
+			}
+			/* Backspace (Move left) */
+			case '\b':
+			{
+				col--;
+				continue;
+			}
+			/* Carriage return */
+			case '\r':
+			{
+				col = first_col;
+				continue;
+			}
+			/* Line feed */
+			case '\0':
+			case '\n':
+			{
+				row++;
+				continue;
+			}
+			/* Form feed (Next coffer) */
+			case '\f':
+			{
+				advance_coffer();
+				continue;
+			}
+			/* Vertical Tab (Do something flag told us) */
+			case '\v':
+			{
+				if (flag & IN_VT_CR) col = first_col;
+				if (flag & IN_VT_LF) row++;
+				if (flag & IN_VT_COLOR_RESET) color = TERM_WHITE;
+				if (flag & IN_VT_COFFER_RESET) val = coffers[(coff = coffer_refs[id])], amnt = i_ptr->amnt;
+				if (flag & IN_VT_DEC_VALUE) val--;
+				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
+				if (flag & IN_VT_FF) { advance_coffer(); }
+				if (!(flag & IN_VT_COLOR_SET)) continue;
+				/* if IN_VT_COLOR_SET is not set, fallthrough */
+			}			
+			/* Bell (Change color) */
+			case '\a':
+			{
+				/* Read out the color-code */
+				prompt++;
+				switch (*prompt) 
+				{
+					case '@': warn = TRUE; /* fallhrough */
+					case '#': color = color_spotlight(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
+					break;
+					case ';': warn = TRUE; /* fallhrough */
+					case ':': color = color_dualstat(val, (amnt > 1 ? coffers[coff + 1] : val), warn);
+					break;
+					case '!': color = (val ? 1 : 0);
+					break;
+					case ' ': color = (byte) val;
+					break;
+					default: color = ascii_to_color[*prompt];
+					break;
+				}
+				warn = FALSE;
+				continue;
+			}
+			/* String Format (enable VALUE mode and fall thru) */
+			case '%':
+			{
+				value = TRUE;
+			}
+			/* Not a control character! */
+			default: if ((n = strend(prompt)))
+			{
+				cptr out = tmp;
+
+				/* Skip this value */
+				if (stride)
+				{
+					bool test_for = TRUE;
+					bool passed = FALSE;
+
+					/* Hack -- quit prematurely */
+				   	if ((flag & IN_STOP_EMPTY) && (val == 0)) return;
+
+					/* Hack -- test is inverted */
+					if (flag & IN_STRIDE_NOT) test_for = FALSE;
+
+					/* Perfrom striding tests */
+				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) == test_for) ||
+						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) == test_for)) || 
+						    ((amnt > 1) && 
+						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) == test_for) ||
+							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) == test_for) ||
+							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) == test_for)
+						)))
+					{
+						/* For each test, we see if it is enabled (flag & IN_STRIDE_* check),
+						 * then perform the test. The _EMPTY, _LARGER and _LESSER tests require
+						 * at least one succeeding value step to perfrom. */
+						passed = TRUE;
+					}
+
+ 					/* If any of the tests succeeds, the value is being stepped over. */
+					if (passed)
+					{
+						/* Hack -- a stop is requested */ if (flag & IN_STOP_STRIDE) return;
+						continue;
+					}
+				}
+
+				/* Readout value */
+				n = MIN(n, sizeof(tmp) - 1);
+				strncpy(tmp, prompt, n);
+				tmp[n] = '\0';
+
+				/* Advance prompt */
+				prompt = prompt + n - 1; 
+
+				/* Format output */
+				if ((value) || (flag & IN_TEXT_LABEL))
+				{
+					if (i_ptr->type == INDITYPE_STRING)
+					{
+						out = str_coffers[id];
+					}
+					else if (flag & IN_TEXT_STAT)
+					{
+						cnv_stat(val, tmp);
+						n = 6;
+					}
+					else if (flag & IN_TEXT_LIKERT)
+					{
+						strcpy(tmp, likert(val, coffers[coff + 1]));
+						color = likert_color;
+						//n = 12;
+					}
+					else if (flag & IN_TEXT_CUT)
+					{
+						out++;
+						cut = val + 1;
+						//n--;
+					}
+					else if (!(flag & IN_TEXT_LABEL))
+					{
+						strnfmt(tmp2, sizeof(tmp2), tmp, val);
+						my_strcpy(tmp, tmp2, sizeof(tmp));
+						n = strlen(tmp);
+					}
+					value = TRUE;
+				}
+
+				/* Cut */
+				if (cut)
+				{
+					tmp[(n = cut)] = '\0';
+				}
+
+				/* Send to terminal */
+				c_put_str(color, out, row, col);
+				/* Memorize if on main screen */
+				if (i_ptr->win & (IPW_1 | IPW_2)) mem_line(row, col, n);
+				/* Move "cursor" */
+				col = col + n;
+
+				/* Hack -- quit prematurely */
+				if ((flag & IN_STOP_ONCE) && (value == TRUE)) return;
+			}
+			break;
+		}
+	}
+}
+/* See if a there's a client overload for a server-defined
+ * indicator, and if there is, use that instead */
+int register_indicator(int id)
+{
+	struct field *f;
+	indicator_type *i = &indicators[id];
+	bool found = FALSE;
+
+	/* For each field */
+	for (f = &fields[0]; f->field_cb; f++)
+	{
+			if (!my_stricmp(f->mark, i->mark))
+			{
+				prt_functions[id] = f->field_cb;
+				found = TRUE;
+			}
+	}
+
+	/* No overloads, use default */
+	if (found == FALSE)
+		prt_functions[id] = prt_indicator;
+
+	return 0;
+}
+
+/*
+ * Handle "p_ptr->redraw"
+ */
+void redraw_stuff(void)
+{
+	s16b row;
+	int test_ickyness;
+	int i = 0; 
+	u32b old_redraw = p_ptr->redraw;
+
+	/* Redraw stuff */
+	if (!p_ptr->redraw) return;
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (old_redraw & i_ptr->redraw)
+		{
+			/* Hack: count rows from bottom? */
+			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+
+			/* Hack: determine window */
+			switch (i_ptr->win)
+			{
+				case IPW_1:
+				case IPW_2:
+					test_ickyness = TRUE;
+				break;
+				case IPW_3:
+				case IPW_4:
+				case IPW_5:
+				case IPW_6:
+					test_ickyness = FALSE;
+				break;
+				default:
+					continue;
+				break;
+			}
+
+			/* HACK: For some indicators, perform ickyness test */
+			if (test_ickyness)
+			{
+				if ((row < section_icky_row) &&
+					((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
+					 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+				if (screen_icky && !section_icky_row) continue;
+			}
+
+			/* Player disabled display */
+			if (!(window_flag[0] & indicator_window[i])) continue;
+
+			/* Display field */
+			(prt_functions[i])(row, i_ptr->col, i);
+
+			/* Remove from next update */
+			if (i_ptr->redraw & p_ptr->redraw)
+			{
+				p_ptr->redraw &= ~(i_ptr->redraw);
+			}
+		}
+	}
+
+	/* MAangband-specific local indicator: Lag meter */
+	if ((ROW_LAG < section_icky_row) && 
+		((section_icky_col >= 0 && COL_LAG < section_icky_col) ||
+		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) redraw_lag_meter = FALSE;
+	if (screen_icky && !section_icky_row) redraw_lag_meter = FALSE;
+	if (!(window_flag[0] & PW_PLAYER_2)) redraw_lag_meter = FALSE;
+	if (redraw_lag_meter)
+	{
+		prt_lag(ROW_LAG, COL_LAG);
+		redraw_lag_meter = FALSE;
+	}
+	
+}
+
+
 
 /*
  * Redraw any necessary windows
  */
 void window_stuff(void)
 {
+	int i;
+
 	/* Window stuff */
 	if (!p_ptr->window) return;
 
@@ -1706,17 +3117,91 @@ void window_stuff(void)
 		fix_equip();
 	}
 
-	/* Display player */
-	if (p_ptr->window & PW_PLAYER)
+	/* Display status */
+	if (p_ptr->window & (PW_STATUS))
 	{
-		p_ptr->window &= (~PW_PLAYER);
-		fix_player();
+		p_ptr->window &= ~(PW_STATUS);
+		fix_status();
 	}
 
+	/* Display player (mode 0) */
+	if (p_ptr->window & (PW_PLAYER_0))
+	{
+		p_ptr->window &= ~(PW_PLAYER_0);
+		fix_player_0();
+	}
+
+	/* Display player (mode 1) */
+	if (p_ptr->window & (PW_PLAYER_1))
+	{
+		p_ptr->window &= ~(PW_PLAYER_1);
+		fix_player_1();
+	}
+
+	/* Display player (compact) */
+	if (p_ptr->window & (PW_PLAYER_2))
+	{
+		p_ptr->window &= ~(PW_PLAYER_2);
+		fix_player_compact();
+	}
+#if 0
+	/* Display map view */
+	if (p_ptr->window & (PW_MAP))
+	{
+		p_ptr->window &= ~(PW_MAP);
+		fix_map();
+	}
+#endif
+	/* Display server-defined stream */
+	for (i = 0; i < known_streams; i++)
+	{
+		/* Use classic code: */
+		if (p_ptr->window & (streams[stream_group[i]].window_flag))
+		{
+			p_ptr->window &= ~(streams[stream_group[i]].window_flag);
+			fix_stream(stream_group[i]);
+		}
+ 	} 
+
+	/* Display spell list */
+	if (p_ptr->window & (PW_SPELL))
+	{
+		p_ptr->window &= ~(PW_SPELL);
+		fix_spells();
+	}	
+	
 	/* Display messages */
 	if (p_ptr->window & PW_MESSAGE)
 	{
 		p_ptr->window &= (~PW_MESSAGE);
 		fix_message();
+	}
+
+	/* Display MAngband messages */
+	if (p_ptr->window & PW_MESSAGE_CHAT)
+	{
+		p_ptr->window &= (~PW_MESSAGE_CHAT);
+		fix_special_message();
+	}
+	
+	/* Display MAngband special recall */
+	if (p_ptr->window & (PW_SPECIAL_INFO))
+	{
+		p_ptr->window &= ~(PW_SPECIAL_INFO);
+		fix_special_info();
+	}
+	
+	/* Display Monster recall */
+	if (p_ptr->window & (PW_MONSTER))
+	{
+		p_ptr->window &= ~(PW_MONSTER);
+		fix_remote_term(NTERM_WIN_MONSTER, PW_MONSTER);
+	}
+
+	/* Display Monster list */
+	if (p_ptr->window & (PW_MONLIST))
+	{
+		p_ptr->window &= ~(PW_MONLIST);
+		fix_remote_term(NTERM_WIN_MONLIST, PW_MONLIST);
 	}
 }
