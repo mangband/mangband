@@ -278,18 +278,19 @@ eptr handle_connections(eptr root) {
 			if (n > 0)
 			{
 				/* Got 'n' bytes */
-				if (cq_nwrite(&ct->rbuf, mesg, n))
-				{
-					n = ct->receive_cb(0, ct);
-
-					/* Error while handling input */
-					if (n < 0) ct->close = 1;
-				}
+				n = cq_nwrite(&ct->rbuf, mesg, n);
 				/* Error while filling buffer */
-				else ct->close = 1;
+				if (n <= 0) ct->close = 1;
 			}
 			/* Error while receiving */
 			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;
+		}
+		/* Handle input */
+		if (!ct->close && cq_len(&ct->rbuf))
+		{
+			n = ct->receive_cb(0, ct);
+			/* Error while handling input */
+			if (n < 0) ct->close = 1;
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))
@@ -576,8 +577,19 @@ void unblockfd(int fd) {
 
 /* Disable Nagle's algorithm (required for MAngband) */
 void denaglefd(int fd) {
-	char on = 1;
-	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );
+#ifdef WINDOWS
+       DWORD
+#else
+       int
+#endif
+       on = 1;
+       setsockopt( fd, IPPROTO_TCP, TCP_NODELAY,
+#ifdef WINDOWS
+       (const char*)
+#else
+       (const void*)
+#endif
+       &on, sizeof(on) );
 }
 
 /* Get local machine hostname */

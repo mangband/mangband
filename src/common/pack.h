@@ -295,6 +295,26 @@
 #define CHAN_LEAVE  	2
 
 /*
+ * PKT_CURSOR helpers
+ */
+/* Server-to-client */
+#define MCURSOR_TARGET_OFF 0x00
+#define MCURSOR_TARGET_ON  0x01
+#define MCURSOR_PLAYER     0x02
+#define MCURSOR_OFFLINE    0x80
+/* Client-to-server */
+#define MCURSOR_LMB 0x01 /* Four "mouse" buttons */
+#define MCURSOR_RMB 0x02 /* Note: likely not mapped to actual mouse buttons */
+#define MCURSOR_MMB 0x04
+#define MCURSOR_EMB 0x08
+
+#define MCURSOR_KTRL 0x10 /* Four state modifiers */
+#define MCURSOR_ALTR 0x20 /* Note: likely not mapped to actual keyboard keys */
+#define MCURSOR_SHFT 0x40
+#define MCURSOR_META 0x80
+
+
+/*
  * Connection types
  */
 #define CONNTYPE_PLAYER 	0x01

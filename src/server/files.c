@@ -1416,7 +1416,10 @@ void common_file_peruse(player_type *p_ptr, char query)
 	/* Use default file */
 	if (!p_ptr->interactive_file)
 	{
-		p_ptr->interactive_file = string_make("mangband.hlp");
+		/* Paranoia -- free string */
+		string_free(p_ptr->interactive_file);
+		/* Select default file */
+		p_ptr->interactive_file = string_make("help.hlp");
 		/* Hack: enforce update */
 		p_ptr->interactive_next = -1;
 		next = 0;
@@ -1926,7 +1929,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
  */
 void do_cmd_help(int Ind, int line)
 {
-	cptr name = "mangband.hlp";
+	cptr name = "help.hlp";
 
 	/* Peruse the main help file */
 	(void)do_cmd_help_aux(Ind, name, NULL, line, FALSE);

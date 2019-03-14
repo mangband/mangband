@@ -1052,17 +1052,23 @@ errr process_pref_file_command(char *buf)
 			if ((win >= ANGBAND_TERM_MAX)) return (0);
 			/* Hack -- Ignore the main window (but let STATUS and COMPACT be) */
 			if ((win <= 0) && ((1L << flag) != PW_STATUS) && ((1L << flag) != PW_PLAYER_2)) return (0);
+#ifdef PMSG_TERM
+			/* Hack -- Ignore Term-4/PW_MESSGAE_CHAT settings */
+			if (flag == PW_MESSAGE_CHAT && win != PMSG_TERM) flag = 0;
+			if (win == PMSG_TERM) flag = PW_MESSAGE_CHAT;
+#endif
 
 			/* Ignore illegal flags */
 			if ((flag < 0) || (flag >= 32)) return (0);
 
-			/* Require a real flag */ 
-			if (window_flag_desc[flag])
+			/* Require a real flag */
+			/* No need to be so strict in MAngband, might be server-defined window
+			//if (window_flag_desc[flag]) */
 			{
 				/* Turn flag on */
 				window_flag[win] |= (1L << flag);
 				window_flag_o[win] |= (1L << flag);
-			} // No need to be so strict in MAngband, might be server-defined window */
+			}
 
 			/* Success */
 			return (0);
@@ -1755,7 +1761,8 @@ void show_peruse(s16b line)
 	}
 
 	/* Erase the rest */
-	for (n = n; n < Term->hgt; n++)
+	n--;
+	for (; n < Term->hgt; n++)
 	{
 		Term_erase(0, n, p_ptr->stream_wid[k]);
 	}
@@ -2509,6 +2516,12 @@ int clia_find(const char *key)
 			}
 		}
 	}
+	/* Hack -- if we're left with a dangling --longopt, and it matched our key,
+	 * assume it's a toggle option, and mark it as found */
+	if (awaiting_argument && key_matched)
+	{
+		return i - 1;
+	}
 	return -1;
 }
 bool clia_cpy_string(char *dst, int len, int i)
@@ -2537,7 +2550,6 @@ bool clia_read_bool(s32b *dst, const char *key)
 		const char *ckey;
 		if (strlen(p_argv[i]) > 2)
 		{
-			printf("STRLEN %s -- %d\n", p_argv[i], i);
 			/* It was a toggle option */
 			ckey = p_argv[i] + 2;
 			if (streq(key, ckey))

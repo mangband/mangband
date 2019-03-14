@@ -26,6 +26,7 @@
 
 	PACKET(PKT_TERM_INIT,	"%c",   	recv_term_init)
 	PACKET(PKT_KEY, 	"%c",   	recv_term_key)
+	PACKET(PKT_CURSOR,	"%c%c%c",	recv_mouse)
 	PACKET(PKT_LOOK,	"%c%c", 	recv_target)
 	PACKET(PKT_LOCATE,	"%c",   	recv_locate)
 

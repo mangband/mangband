@@ -6,13 +6,13 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{22222C83-6BF9-4372-9226-73768939CB3D}}
 AppName=MAngband
-#define VERSION "1.2.0"
+#define VERSION "1.5.0b"
 AppVersion={#VERSION}
 AppPublisher=MAngband Project Team
 AppPublisherURL=https://mangband.org
 AppSupportURL=
 AppUpdatesURL=
-DefaultDirName={localappdata}\MAngband1.2
+DefaultDirName={localappdata}\MAngband1.5
 DefaultGroupName=MAngband-Devel
 PrivilegesRequired=lowest
 OutputDir=.
@@ -43,6 +43,7 @@ Source: "..\..\lib\xtra\*"; DestDir: "{app}\lib\xtra"; Flags: ignoreversion recu
 Name: "{group}\MAngband"; Filename: "{app}\mangclient.exe"
 Name: "{group}\MAngband (One Window)"; Filename: "{app}\mangclient-sdl.exe"
 Name: "{group}\ReadMe"; Filename: "{app}\README-client.htm"
+Name: "{group}\Config Dir"; Filename: "{app}\lib\user\"
 Name: "{group}\{cm:UninstallProgram,MAngband}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\MAngband"; Filename: "{app}\mangclient.exe"; Tasks: desktopicon
 

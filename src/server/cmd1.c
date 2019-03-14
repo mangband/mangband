@@ -686,8 +686,10 @@ void carry(int Ind, int pickup, int confirm)
 		sound(Ind, sound_msg);
 
 		/* Message */
-		msg_format(Ind, "You have found %ld gold pieces worth of %s.",
-		           (long)o_ptr->pval, o_name);
+		msg_format(Ind, "You have found %ld gold piece%s worth of %s.",
+		           (long)o_ptr->pval,
+		           (o_ptr->pval == 1 ? "" : "s"),
+		           o_name);
 
 		/* Collect the gold */
 		p_ptr->au += o_ptr->pval;
@@ -1961,7 +1963,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		p_ptr->window |= (PW_OVERHEAD);
 
 		/* Hack -- quickly update the view, to reduce perceived lag */
-		
+
 		redraw_stuff(Ind);
 		window_stuff(Ind);
 
@@ -2300,6 +2302,9 @@ static void run_init(int Ind, int dir)
 
 	/* Ensure "dir" is in ddx/ddy array bounds */
 	if (!VALID_DIR(dir)) return;
+
+	/* Reset counter */
+	p_ptr->ran_tiles = 0;
 
 	/* Save the direction */
 	p_ptr->find_current = dir;
@@ -2788,7 +2793,6 @@ void run_step(int Ind, int dir)
 		/* We are running */
 		p_ptr->run_request = 0;
 		p_ptr->running = TRUE;
-
 	}
 
 	/* Keep running */
@@ -2805,8 +2809,14 @@ void run_step(int Ind, int dir)
 		}
 	}
 
+	/* Increase counter */
+	p_ptr->ran_tiles += 1;
+
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
+
+	/* Make noise */
+	set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 	/* Move the player, using the "pickup" flag */
 	move_player(Ind, p_ptr->find_current, option_p(p_ptr,ALWAYS_PICKUP));

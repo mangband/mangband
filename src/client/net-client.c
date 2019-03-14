@@ -372,6 +372,11 @@ int send_term_key(char key)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_KEY, key);
 }
 
+int send_mouse(byte mod, byte x, byte y)
+{
+	return cq_printf(&serv->wbuf, "%c" "%c%c%c", PKT_CURSOR, mod, x, y);
+}
+
 int send_redraw(void)
 {
 	return cq_printf(&serv->wbuf, "%c", PKT_REDRAW);
@@ -1172,10 +1177,11 @@ int recv_stream(connection_type *ct) {
 	}
 
 	/* Hack -- single char */
-	if (y & 0xFF00)	return 
-		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+	if (y & 0xFF00) return
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
+		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
 
-	if (y >= p_ptr->stream_hgt[id])
+	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
 	{
 		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
 		return -1;
@@ -1202,9 +1208,9 @@ int recv_stream(connection_type *ct) {
 		(*line) = y;
 	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
 
-	/* Put data to screen ? */		
+	/* Put data to screen ? */
 	if (addr == NTERM_WIN_OVERHEAD)
-		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED), id);
 
 	return 1;
 }
@@ -1212,8 +1218,8 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0,
-		y = 0;
+		x = 0, max_x = 0,
+		y = 0, max_y = 0;
 	byte	st, addr;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
@@ -1221,31 +1227,33 @@ int recv_stream_size(connection_type *ct) {
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
 
-	/* Fetch target "window" */	
+	/* Fetch target "window" */
 	addr = streams[stg].addr;
 
 	/* (Re)Allocate memory */
-	if (remote_info[addr])
+	max_x = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_col : x;
+	max_y = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_row : y;
+	if (remote_info[stg])
 	{
-		KILL(remote_info[addr]);
+		KILL(remote_info[stg]);
 	}
-	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
-	last_remote_line[addr] = -1;
+	C_MAKE(remote_info[stg], (max_y+1) * max_x, cave_view_type);
+	last_remote_line[stg] = -1;
 
 	/* Affect the whole group
 	for (st = stg; st < known_streams; st++) */
 	/* HACK -- Affect all streams we can ! */
-	for (st = 0; st < known_streams; st++)
+	for (st = stg; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) /*break;*/ continue;
+		if (stream_group[st] != stg) continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
 		p_ptr->stream_hgt[st] = y;
 
 		/* Save pointer */
-		p_ptr->stream_cave[st] = remote_info[addr];
+		p_ptr->stream_cave[st] = remote_info[stg];
 	}
 
 	/* HACK - Dungeon display resize */
@@ -1276,13 +1284,16 @@ int recv_stream_info(connection_type *ct) {
 		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
+	char mark[MSG_LEN];
 
 	stream_type *s_ptr;
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c%s%c%c%c%c", &pkt, &addr, &rle, &flag, buf, 
-			&min_row, &min_col, &max_row, &max_col) < 9) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+			&pkt, &addr, &rle, &flag,
+			mark, buf,
+			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
 
 	/* Check for errors */
 	if (known_streams >= MAX_STREAMS)
@@ -1309,9 +1320,12 @@ int recv_stream_info(connection_type *ct) {
 	s_ptr->max_row = max_row;
 	s_ptr->max_col = max_col;
 
+	s_ptr->mark = string_make(mark);
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = string_make(buf);
+		s_ptr->window_desc = string_make(buf);
+	} else {
+		s_ptr->window_desc = s_ptr->mark;
 	}
 
 
@@ -1456,9 +1470,15 @@ int recv_term_header(connection_type *ct) {
 }
 
 int recv_cursor(connection_type *ct) {
-	char vis, x, y;
+	byte vis, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &vis, &x, &y) < 3) return 0;
+
+	/* Hack -- ignore weird states */
+	if ((byte)vis > 1)
+	{
+		return 1;
+	}
 
 	if (cursor_icky)
 	{
@@ -1471,8 +1491,8 @@ int recv_cursor(connection_type *ct) {
 }
 
 int recv_target_info(connection_type *ct) {
-	char x, y, buf[MAX_CHARS], *s;
-	byte win;
+	char buf[MAX_CHARS], *s;
+	byte win, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
 
@@ -1559,10 +1579,10 @@ int recv_message_repeat(connection_type *ct) {
 
 int recv_sound(connection_type *ct)
 {
-	char
-		sound;
+	u16b
+		sound = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c", &sound) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &sound) < 1) return 0;
 
 	/* Make a sound (if allowed) */
 	if (use_sound) Term_xtra(TERM_XTRA_SOUND, sound);
@@ -1576,6 +1596,7 @@ int recv_custom_command_info(connection_type *ct) {
 		tval = 0,
 		scheme = 0;
 	char buf[MSG_LEN];
+	char disp[MAX_CHARS];
 	s16b m_catch = 0;
 	u32b flag = 0;
 	int n, len;
@@ -1583,7 +1604,7 @@ int recv_custom_command_info(connection_type *ct) {
 
 	custom_command_type *cc_ptr;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S%s", &pkt, &scheme, &m_catch, &flag, &tval, buf, disp) < 7) return 0;
 
 	/* Match existing command */
 	for (i = 0; i < custom_commands; i++)
@@ -1633,6 +1654,8 @@ int recv_custom_command_info(connection_type *ct) {
 	}
 	buf[n] = '\0';
 	memcpy(cc_ptr->prompt, buf, MSG_LEN);
+
+	my_strcpy(cc_ptr->display, disp, MAX_CHARS);
 
 	/*custom_commands++;//done above*/
 
@@ -1887,7 +1910,7 @@ int recv_party_info(connection_type *ct)
 }
 
 
-/* HACK -- We have connected to server < 1.2.0 -- Remove this */
+/* HACK -- We have connected to server < 1.5.0 -- Remove this */
 int recv_oldserver_handshake()
 {
 	quit("Server version is too old.");
@@ -1992,6 +2015,18 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 }
 /* END OF META-SERVER STUFF */
 
+stream_type* _window_to_stream(byte win)
+{
+	int i;
+	for (i = 0; i < known_streams; i++)
+	{
+		if (streams[i].window_flag & window_flag[win])
+		{
+			return &streams[i];
+		}
+	}
+	return NULL;
+}
 
 bool net_term_clamp(byte win, byte *y, byte *x)
 {
@@ -2001,7 +2036,10 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 	s16b xoff = 0;
 	s16b yoff = 0;
 
-	st_ptr = &streams[window_to_stream[win]];
+	if (!(st_ptr = _window_to_stream(win)))
+	{
+		return FALSE;
+	}
 
 	/* Hack -- if stream 0 is not initialized, assume we're not ready */
 	/* TODO: make this less hacky*/
@@ -2070,18 +2108,6 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		st_x[j] = -1;
 	}
 
-	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
-	for (k = 0; k < stream_groups; k++)
-	{
-		byte st = stream_group[k];
-		stream_type* st_ptr = &streams[st];
-
-		if (st_ptr->flag & SF_HIDE)
-		{
-			st_x[st] = st_ptr->min_col;
-			st_y[st] = st_ptr->min_row;
-		}
-	}
 
 	/* Now, find actual changes by comparing old and new */ 
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
@@ -2095,13 +2121,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(ang_term[j]);
 
 		/* Determine stream groups affected by this window */
-		for (k = 0; k < stream_groups; k++) 
+		for (k = 0; k < known_streams; k++)
 		{
-			byte st = stream_group[k];
+			byte st = k;
 			stream_type* st_ptr = &streams[st];
 
-			/* Hack -- if stream is hidden from UI, don't touch it */
-			if (st_ptr->flag & SF_HIDE) continue;
+			/* Hack -- if stream is auto-managed, don't touch it */
+			if (st_ptr->flag & SF_AUTO) continue;
 
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)
@@ -2110,7 +2136,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if ((new_flag[j] & st_ptr->window_flag))
 				{
 					/* It wasn't active or it's size changed. Subscribe! */
-					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_wid[st] || Term->hgt != p_ptr->stream_hgt[st]) 
+					if (!(old_flag[j] & st_ptr->window_flag)
+					|| Term->wid != p_ptr->stream_wid[st]
+					|| Term->hgt != p_ptr->stream_hgt[st])
 					{
 						st_y[st] = Term->hgt;
 						st_x[st] = Term->wid;
@@ -2137,6 +2165,19 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 
 		/* Restore */
 		Term_activate(old);
+	}
+
+	/* Hack -- if stream is auto-managed, auto-subscribe. */
+	for (k = 0; k < known_streams; k++)
+	{
+		byte st = k;
+		stream_type* st_ptr = &streams[st];
+
+		if ((st_y[st] == -1) && (st_ptr->flag & SF_AUTO))
+		{
+			st_x[st] = st_ptr->min_col;
+			st_y[st] = st_ptr->min_row;
+		}
 	}
 
 	/* Send subscriptions */

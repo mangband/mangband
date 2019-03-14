@@ -258,6 +258,7 @@ extern int known_options;
 
 extern bool rogue_like_commands;
 extern bool auto_accept;
+extern bool auto_itemlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
@@ -393,6 +394,7 @@ extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
 extern void init_subscriptions(void);
+extern void quit_hook(cptr str);
 
 /* c-inven.c */
 extern char index_to_label(int i);
@@ -441,7 +443,8 @@ extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveclr(cave_view_type* dest, int len);
 extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern int cavestr(cave_view_type* dest, cptr src, byte attr, int max_col);
-extern void show_line(int y, s16b cols, bool mem);
+extern void mem_line(int y, int x, int cols);
+extern void show_line(int y, s16b cols, bool mem, int st);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
 extern void update_air(void);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
@@ -471,6 +474,7 @@ extern int get_store_stock(int *citem, cptr prompt);
 extern int register_indicator(int id);
 extern void show_inven(void);
 extern void show_equip(void);
+extern byte find_chat_window(void);
 extern void fix_message(void);
 extern void display_player(int screen_mode);
 extern void redraw_stuff(void);
@@ -530,6 +534,7 @@ extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
 extern int send_interactive(byte type);
 extern int send_term_key(char key);
+extern int send_mouse(byte mod, byte x, byte y);
 
 //TRANSITIONAL HACKAGE:
 #define conn_state state

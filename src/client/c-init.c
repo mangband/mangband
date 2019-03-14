@@ -444,7 +444,7 @@ static void Game_loop(void)
  *
  * Close down, then fall back into "quit()".
  */
-static void quit_hook(cptr s)
+void quit_hook(cptr s)
 {
 	int j;
 
@@ -481,7 +481,12 @@ void init_subscriptions()
 	u32b empty_flag[ANGBAND_TERM_MAX];
 
 	stream_type* st_ptr;
-	s16b last_addr = -1; 
+	int group_top = 0;
+
+#ifdef PMSG_TERM
+	/* Force PW_MESSAGE_CHAT on Term-4 */
+	window_flag[PMSG_TERM] = PW_MESSAGE_CHAT;
+#endif
 
 	/* Fill stream_groups, window_to_stream, stream_to, stream_desc, etc */
 #if 1
@@ -489,38 +494,47 @@ void init_subscriptions()
 	{
 		/* Handle single streams */
 		st_ptr = &streams[i];
-		
-		/* Set stream_to refrence */
-		p_ptr->stream_cave[i] = remote_info[st_ptr->addr];
 
 		/* Special case: unresizable stream */
 		if ((st_ptr->min_col == st_ptr->max_col)
 		 && (st_ptr->min_row == st_ptr->max_row)
 		 && (st_ptr->max_row != 0))
 		{
-			/* Hide this stream from UI */
-			st_ptr->flag |= SF_HIDE;
+			/* Auto-subscribe */
+			st_ptr->flag |= SF_AUTO;
 		}
 
 		/* Handle stream groups */
-		if (last_addr != -1 && last_addr == st_ptr->addr) continue;
+		if (i && ((streams[i-1].addr != st_ptr->addr) ||
+		          (st_ptr->flag & SF_NEXT_GROUP)))
+		{
+			group_top = i;
+			stream_groups++;
+			window_to_stream[st_ptr->addr] = i;
+		} else if (!i) {
+			window_to_stream[st_ptr->addr] = i;
+		}
 
-		stream_group[stream_groups] = i;
-		window_to_stream[st_ptr->addr] = i;
+		/* Set stream_cave reference */
+		p_ptr->stream_cave[i] = remote_info[group_top];
 
-		stream_groups++;
-		last_addr = st_ptr->addr;
+		/* Set stream-to-streamgroup reference */
+		stream_group[i] = group_top;
 	}
 
 	/* Advance some streams to the UI */
 	n = 0;
-	for (i = 0; i < stream_groups; i++) 
+	st_ptr = NULL;
+	for (i = 0; i < known_streams; i++)
 	{
+		if (&streams[stream_group[i]] == st_ptr)
+			continue;
+
 		/* Get top member */
 		st_ptr = &streams[stream_group[i]];
 
 		/* Hidden stream */
-		if (st_ptr->flag & SF_HIDE) 
+		if (st_ptr->flag & SF_HIDE)
 		{
 			st_ptr->window_flag = (1L << n);
 			continue;
@@ -535,9 +549,10 @@ void init_subscriptions()
 			st_ptr->window_flag = (1L << n);
 			/* HACK! Enforce Dungeon View on window 0 */
 			if (st_ptr->addr == NTERM_WIN_OVERHEAD) window_flag[0] |= (1L << n);
-
+			/* HACK! Enforce Special View on window 0 */
+			if (st_ptr->addr == NTERM_WIN_SPECIAL) window_flag[0] |= (1L << n);
 			/* Save "string" */
-			window_flag_desc[n] = st_ptr->mark; 
+			window_flag_desc[n] = st_ptr->window_desc;
 		}
 	}
 #endif
@@ -677,13 +692,8 @@ void client_init(void)
 	/* Fetch machine name */
 	fillhostname(host_name, 80);
 
-	/* Set the "quit hook" */
-	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code
-	// may have. So for the windows client, we disable this. The main-win.c file
-	// does this stuff anyway [grk]
-#ifndef WINDOWS
-	quit_aux = quit_hook;
-#endif
+	/* Set the default "quit hook" */
+	if (quit_aux == NULL) quit_aux = quit_hook;
 
 	/* Default server host and port */
 	server_port = conf_get_int("MAngband", "port", 18346);

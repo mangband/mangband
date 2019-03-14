@@ -2,7 +2,7 @@
 
 DIR=$(cd "$(dirname "$0")"; pwd)
 LIBDIR="${DIR}/../Resources/lib/"
-USERDIR="${HOME}/Library/Application Support/MAngband1.2/"
+USERDIR="${HOME}/Library/Application Support/MAngband1.5/"
 mkdir -p "${USERDIR}/user"
 cp -n "${LIBDIR}/user/"* "${USERDIR}/user"
 ${DIR}/mangclient \

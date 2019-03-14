@@ -2081,23 +2081,28 @@ void set_server_option(const char * option, char * value)
 	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
-		cfg_load_pref_file = string_make(value);
+		if (cfg_load_pref_file) string_free(cfg_load_pref_file);
+		cfg_load_pref_file = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
-		cfg_meta_address = string_make(value);
+		if (cfg_meta_address) string_free(cfg_meta_address);
+		cfg_meta_address = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"BIND_NAME"))
 	{
-		cfg_bind_name = string_make(value);
+		if (cfg_bind_name) string_free(cfg_bind_name);
+		cfg_bind_name = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"REPORT_ADDRESS"))
 	{
-		cfg_report_address = string_make(value);
+		if (cfg_report_address) string_free(cfg_report_address);
+		cfg_report_address = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"CONSOLE_PASSWORD"))
 	{
-		cfg_console_password = string_make(value);
+		if (cfg_console_password) string_free(cfg_console_password);
+		cfg_console_password = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"CONSOLE_LOCAL_ONLY"))
 	{
@@ -2105,9 +2110,10 @@ void set_server_option(const char * option, char * value)
 	}
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
-		cfg_dungeon_master = string_make(value);
-		plog_fmt("Dungeon Master Set as [%s]",cfg_dungeon_master);
-    }
+		if (cfg_dungeon_master) string_free(cfg_dungeon_master);
+		cfg_dungeon_master = (char*)string_make(value);
+		plog_fmt("Dungeon Master Set as [%s]", cfg_dungeon_master);
+	}
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
 		cfg_secret_dungeon_master = str_to_boolean(value);

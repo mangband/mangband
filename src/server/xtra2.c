@@ -66,6 +66,22 @@ void player_dump(int Ind)
 }
 
 /*
+ * Set "p_ptr->noise", cap it.
+ */
+bool set_noise(int Ind, int v)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Hack -- Force good values */
+	v = (v > 60) ? 60 : (v < 0) ? 0 : v;
+
+	/* Use the value */
+	p_ptr->noise = v;
+
+	return TRUE;
+}
+
+/*
  * Set "p_ptr->blind", notice observable changes
  *
  * Note the use of "PU_UN_LITE" and "PU_UN_VIEW", which is needed to
@@ -2828,7 +2844,7 @@ void player_death(int Ind)
 	}
 
 	/* Drop all items on floor */
-	player_strip(Ind, drop_items, drop_items, drop_items, drop_items);
+	player_strip(Ind, drop_items, drop_items, drop_items, FALSE);
 
 	/* Last chance to survive death: */
 	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
@@ -3229,6 +3245,11 @@ void verify_panel(int Ind)
 	if ((y < p_ptr->panel_row_min + 2) || (y > p_ptr->panel_row_max - 2))
 	{
 		prow = ((y - p_ptr->screen_hgt / 4) / (p_ptr->screen_hgt / 2));
+		if (prow == p_ptr->panel_row) /* no change, let's try again */
+		{
+			if ((y < p_ptr->panel_row_min + 2)) prow--;
+			else prow++;
+		}
 		if (prow > p_ptr->max_panel_rows) prow = p_ptr->max_panel_rows;
 		else if (prow < 0) prow = 0;
 	}
@@ -3237,6 +3258,11 @@ void verify_panel(int Ind)
 	if ((x < p_ptr->panel_col_min + 4) || (x > p_ptr->panel_col_max - 4))
 	{
 		pcol = ((x - p_ptr->screen_wid / 4) / (p_ptr->screen_wid / 2));
+		if (pcol == p_ptr->panel_col) /* no change, let's try again */
+		{
+			if ((x < p_ptr->panel_col_min + 4)) pcol--;
+			else pcol++;
+		}
 		if (pcol > p_ptr->max_panel_cols) pcol = p_ptr->max_panel_cols;
 		else if (pcol < 0) pcol = 0;
 	}
@@ -4355,7 +4381,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
 	/* Tell the client */
-	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_win, out_val);
+	send_target_info(p_ptr, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_win, out_val);
 
 	/* Done */
 	return;
@@ -4511,7 +4537,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			x = p_ptr->target_x[i];
 			if ((cave[Depth][y][x].m_idx == old_target) && target_able(Ind, cave[Depth][y][x].m_idx))
 			{
-				p_ptr->look_index = i;			
+				p_ptr->look_index = i;
 				break;
 			}
 		}
@@ -4522,7 +4548,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	{
 #ifdef NOTARGET_PROMPT
 		if (!(query == ESCAPE || query == 'q'))
-			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, 
+			send_target_info(p_ptr, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt,
 			NTERM_WIN_NONE, "Nothing to target. [p, ESC]");
 		if (query != 'p')
 			return FALSE;
@@ -5112,6 +5138,25 @@ int level_speed(int Ind)
 	else return level_speeds[Ind]*5;
 }
 
+/* Hack -- return TRUE if there are monsters in LoS, FALSE otherwise. */
+bool monsters_in_los(player_type *p_ptr)
+{
+	int i;
+	bool los;
+	/* If nothing in LoS */
+	los = FALSE;
+	for (i = 1; i < m_max; i++)
+	{
+		/* Check this monster */
+		if ((p_ptr->mon_los[i] && !m_list[i].csleep))
+		{
+			los = TRUE;
+			break;
+		}
+	}
+	return los;
+}
+
 /* Determine the speed of a given players "time bubble" and return a percentage 
  * scaling factor which should be applied to any amount of energy granted to 
  * players/monsters within the bubble.
@@ -5152,26 +5197,26 @@ int base_time_factor(int Ind, int slowest)
 
 	/* Scale depending on health if HP are low enough */
 	if(health <= p_ptr->hitpoint_warn * 10)
+#ifdef CONSTANT_TIME_FACTOR
+		timefactor = timefactor / CONSTANT_TIME_FACTOR;
+#else
 		timefactor = timefactor * ((float)health / 100);
+#endif
+
+	/* If nothing in LoS */
+	los = monsters_in_los(p_ptr);
 
 	/* Resting speeds up time disregarding health time scaling */
-	if(p_ptr->resting) timefactor = MAX_TIME_SCALE;
+	if (p_ptr->resting && !los) timefactor = MAX_TIME_SCALE;
+
+	/* Running speeds up time */
+	if (p_ptr->running && !los) scale = RUNNING_FACTOR;
+
 	
 	/* If this is a check for another player give way to their time
 	 * bubble if we aren't doing anything important */
 	if(slowest && (timefactor == NORMAL_TIME))
 	{
-		/* If nothing in LoS */
-		los = FALSE;
-		for (i = 1; i < m_max; i++)
-		{
-			/* Check this monster */
-			if ((p_ptr->mon_los[i] && !m_list[i].csleep))
-			{
-				los = TRUE;
-				break;
-			}
-		}
 		if(!los)
 		{
 			/* We don't really care about our time */
@@ -5222,9 +5267,7 @@ int time_factor(int Ind)
 
 	/* Forget all about time scaling in town */
 	if(!p_ptr->dun_depth) return scale;
-		
-	/* Running speeds up time */
-	if(p_ptr->running) scale = RUNNING_FACTOR;
+
 
 	/* Determine our time scaling factor */
 	timefactor = base_time_factor(Ind, 0);
@@ -5314,7 +5357,7 @@ static void print_tomb(player_type *p_ptr)
 	}
 
 	/* Save last dumped line */
-	p_ptr->last_info_line = i;
+	p_ptr->last_info_line = i - 1;
 
 	/* King or Queen */
 	if (p_ptr->total_winner || (p_ptr->lev > PY_MAX_LEVEL))
@@ -5395,7 +5438,7 @@ void show_tombstone(player_type *p_ptr)
 
 	/* Clear, Send, Refresh */
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
-	for (i = 0; i < p_ptr->last_info_line; i++)
+	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 	send_term_info(p_ptr, NTERM_FLUSH, 0);
 
@@ -5870,18 +5913,26 @@ void preview_vault(int Ind, int v_idx)
 	char	c;
 	int 	dy, dx;
 
+	int 	w, h;
+
+	/* Make sure we don't write out of bounds */
+	w = p_ptr->stream_wid[STREAM_BGMAP_ASCII];
+	h = MIN(v_ptr->hgt, p_ptr->stream_hgt[STREAM_BGMAP_ASCII]);
 
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	Send_term_info(Ind, NTERM_CLEAR, 1);	
+	Send_term_info(Ind, NTERM_CLEAR, 1);
 
-	for (t = v_text + v_ptr->text, dy = 0; dy < v_ptr->hgt; dy++)
+	for (t = v_text + v_ptr->text, dy = 0; dy < h; dy++)
 	{
-		for (dx = 0; dx < 80; dx++)
+		for (dx = 0; dx < w; dx++)
 		{
-			c = *t; a = TERM_WHITE; feat = 0;
+			if (dx >= w) continue;
+
+			a = TERM_WHITE; feat = 0;
 
 			if (dx < v_ptr->wid)
-			{ 
+			{
+				c = *t;
 				switch (c)
 				{
 					case '.': feat = FEAT_FLOOR; break;
@@ -5908,6 +5959,11 @@ void preview_vault(int Ind, int v_idx)
 			}
 
 			stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), dy, dx, a, c, 0, 0);//a, c);
+		}
+		while (dx < v_ptr->wid)
+		{
+			dx++;
+			t++;
 		}
 	}
 

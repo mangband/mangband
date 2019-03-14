@@ -1833,8 +1833,7 @@ int find_whisper_tab(cptr msg, char *text)
  * XXX XXX XXX Adjust for width and split messages
  */
 
-#define PMSG_TERM 4
-void fix_special_message(void)
+void fix_special_message_aux(byte win)
 {
 	int j, c, i;
 	int w, h, t;
@@ -1842,14 +1841,14 @@ void fix_special_message(void)
 	cptr msg;
 	byte a;
 	char text[80];
-		
+	
 	term *old = Term;
 
 	/* No window */
-	if (!ang_term[PMSG_TERM]) return;
+	if (!win || !ang_term[win]) return;
 
 	/* Activate */
-	Term_activate(ang_term[PMSG_TERM]);
+	Term_activate(ang_term[win]);
 
 	/* Get size */
 	Term_get_size(&w, &h);
@@ -1904,14 +1903,20 @@ void fix_special_message(void)
 			if ( tab && tab != view_channel ) continue;
 			if ( tab ) msg = text;
 		}
-		else if (message_type(c-1) >= MSG_CHAT) 
+		else if (message_type(c-1) >= MSG_CHAT)
 		{
 			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
 		}
 		else if (message_type(c-1) == MSG_TALK)
 		{
-		 	/* hack -- "&say" */
+			/* hack -- "&say" */
 			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else if (message_type(c-1) == MSG_YELL)
+		{
+			/* hack -- "&yell" */
+			tab = find_whisper_tab("&yell", text);
 			if ( !tab || tab != view_channel ) continue;
 		}
 		else continue;
@@ -1933,7 +1938,7 @@ void fix_special_message(void)
 	}
 
 	/* Erase rest */
-	while (j < h - (t + 1)) 
+	while (j < h - (t + 1))
 	{
 		/* Clear line */
 		Term_erase(0, (h - 1) - j, 255);
@@ -1947,11 +1952,47 @@ void fix_special_message(void)
 	Term_activate(old);
 }
 
+/* New, proper "fix_special_message" to deal with all relevant terms */
+void fix_special_message(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* Call origin function */
+		fix_special_message_aux(j);
+	}
+}
+
+/* Find any opened chat window, or return 0 */
+byte find_chat_window(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		return j;
+	}
+	return 0;
+}
+
 void fix_message(void)
 {
         int j, c, i;
         int w, h;
         int x, y;
+
+        byte chat_window = find_chat_window();
 
         /* Scan windows */
         for (j = 0; j < 8; j++)
@@ -1979,9 +2020,9 @@ void fix_message(void)
 			
 						msg = message_str(c++);
 			
-						if (ang_term[PMSG_TERM]) {
-							if(message_type(c-1) >= MSG_WHISPER) continue;
-						} 
+						if (chat_window) {
+							if (message_type(c-1) >= MSG_WHISPER) continue;
+						}
 			
 						a = TERM_WHITE;
 						message_color(msg, &a);
@@ -2921,8 +2962,8 @@ void prt_indicator(int first_row, int first_col, int id)
 					else if (!(flag & IN_TEXT_LABEL))
 					{
 						strnfmt(tmp2, sizeof(tmp2), tmp, val);
-						my_strcpy(tmp, tmp2, sizeof(tmp2));
-						//n = strlen(tmp);
+						my_strcpy(tmp, tmp2, sizeof(tmp));
+						n = strlen(tmp);
 					}
 					value = TRUE;
 				}
@@ -2935,6 +2976,9 @@ void prt_indicator(int first_row, int first_col, int id)
 
 				/* Send to terminal */
 				c_put_str(color, out, row, col);
+				/* Memorize if on main screen */
+				if (i_ptr->win & (IPW_1 | IPW_2)) mem_line(row, col, n);
+				/* Move "cursor" */
 				col = col + n;
 
 				/* Hack -- quit prematurely */
@@ -3109,7 +3153,7 @@ void window_stuff(void)
 	}
 #endif
 	/* Display server-defined stream */
-	for (i = 0; i < stream_groups; i++) 
+	for (i = 0; i < known_streams; i++)
 	{
 		/* Use classic code: */
 		if (p_ptr->window & (streams[stream_group[i]].window_flag))

@@ -213,7 +213,7 @@ void player_abandon(player_type *p_ptr)
 	p_ptr->monster_race_idx = 0;
 
 	/* Disable message repeat */
-	p_ptr->msg_last_type = MSG_MAX;
+	p_ptr->msg_last_type = MSG_MAX_ANGBAND;
 
 	/* Forget about setup data */
 	for (i = 0; i < 6; i++)
@@ -363,7 +363,7 @@ void setup_network_server()
 {
 	/** Add timers **/
 	/* Dungeon Turn */
-	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps + 250), (callback)dungeon_tick);
+	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps), (callback)dungeon_tick);
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
@@ -395,6 +395,37 @@ void setup_network_server()
 	setup_tables(handlers, schemes);
 }
 
+/* Player commands */
+/* Usually, "process_player_commands" is triggered from within
+   the "dungeon()" tick. However, classic MAngband would not wait
+   for the next turn and execute the command immediately as it
+   arrived. So this little function flushes them all right after
+   we handled network.
+*/
+void post_process_players(void)
+{
+	int Ind;
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* HACK -- Do not proccess while changing levels */
+		if (p_ptr->new_level_flag == TRUE) continue;
+		
+		/* Try to execute any commands on the command queue. */
+		(void) process_player_commands(Ind);
+	}
+	/* Next loop flushes all potential update flags Players have set
+	 * for each other. */
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* Recalculate and schedule updates */
+		handle_stuff(Ind);
+	}
+}
+
 /* Infinite Loop */
 void network_loop()
 {
@@ -406,6 +437,8 @@ void network_loop()
 		first_connection = handle_connections(first_connection);
 		first_sender = handle_senders(first_sender, static_timer(1));
 		first_timer = handle_timers(first_timer, static_timer(0));
+
+		post_process_players(); /* Execute all commands */
 
 		network_pause(2000); /* 0.002 ms "sleep" */
 	}
@@ -614,9 +647,9 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		conntype = connection_type_ok(conntype);
 	}
 
-	switch (conntype) 
+	switch (conntype)
 	{
-		case CONNTYPE_PLAYER: 
+		case CONNTYPE_PLAYER:
 
 			ct->receive_cb = client_login;
 			ct->close_cb = client_close;
@@ -627,6 +660,10 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 
 		break;
 		case CONNTYPE_CONSOLE:
+		
+			/* evil hack -- chop trailing \n before reading password */
+			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
+				ct->rbuf.pos++;
 		
 			accept_console(-1, (data)ct);
 
@@ -642,7 +679,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 	}
 
-	cq_clear(&ct->rbuf);
+	/* cq_clear(&ct->rbuf); */
 	return okay;
 }
 int hub_close(int data1, data data2) {

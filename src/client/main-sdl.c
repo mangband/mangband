@@ -2045,7 +2045,7 @@ void term_close(int i)
 	/* Unlink */
 	ang_term[i] = NULL;
 }
-#define PMSG_TERM 4
+
 void term_open(int j)
 {
 	if (j == -1) return;
@@ -2069,7 +2069,7 @@ void term_open(int j)
 
 	term_redraw(j);
 	p_ptr->window |= window_flag[j];
-	if (j == PMSG_TERM) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
+	if (window_flag[j] & PW_MESSAGE_CHAT) p_ptr->window |= PW_MESSAGE; 	/* XXX Evil Chat hack */
 	window_stuff();
 }
 bool term_spawn()
@@ -2613,7 +2613,7 @@ static void init_sound()
 
 	/* Desired audio parameters */
 	wav_desired.freq = 44100;
-	wav_desired.format = AUDIO_U16SYS;
+	wav_desired.format = 0; /* let OS pick //AUDIO_U16SYS;*/
 	wav_desired.channels = 2;
 	wav_desired.samples = 512;
 	wav_desired.callback = &wav_play;
@@ -2622,7 +2622,8 @@ static void init_sound()
 	/* Open the audio device */
 	if (SDL_OpenAudio(&wav_desired, &wav_obtained) != 0)
 	{
-		plog_fmt("Could not open audio: %s", SDL_GetError());
+		plog_fmt("Could no`t open audio: %s", SDL_GetError());
+		use_sound = FALSE;
 		return;
 	}
 
@@ -2723,6 +2724,18 @@ static void play_sound(int v, int s)
 }
 #endif
 
+static void quit_sdl(cptr str)
+{
+	/* Call regular quit hook */
+	quit_hook(str);
+
+	/* Do SDL-specific stuff */
+#ifdef USE_SOUND
+	cleanup_sound();
+#endif
+	SDL_Quit();
+}
+
 /*
  * A "normal" system uses "main.c" for the "main()" function, and
  * simply adds a call to "init_xxx()" to that function, conditional
@@ -2745,6 +2758,14 @@ errr init_sdl(void)
 	width =  conf_get_int("SDL", "Width", 0);
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
+
+	/* Read command-line arguments */
+	clia_read_int(&width, "width");
+	clia_read_int(&height, "height");
+	clia_read_bool(&fullscreen, "fullscreen");
+	clia_read_int(&bpp, "bpp");
+	clia_read_int(&use_graphics, "graphics");
+	clia_read_bool(&use_sound, "sound");
 
 #ifdef USE_SOUND
 	initflags |= SDL_INIT_AUDIO;
@@ -2835,6 +2856,7 @@ errr init_sdl(void)
 	/* Sound */
 #ifdef USE_SOUND
 	load_sound_prefs();
+	init_sound();
 #endif
 
 	/* Init all 'Terminals' */
@@ -2847,6 +2869,9 @@ errr init_sdl(void)
 	/* Create cursor surface */
 	if (td->cursor_on)
 		SDL_PrepareCursor(td->w, td->h);
+
+	/* Activate quit hook */
+	quit_aux = quit_sdl;
 
 	/*
 	 *

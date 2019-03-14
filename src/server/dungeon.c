@@ -799,6 +799,9 @@ static int auto_retaliate(int Ind)
 	/* Check preventive inscription '^O' */ 
 	if (CPI(p_ptr, 'O')) return FALSE;
 
+	/* Check melee weapon inscription '!O' */
+	if (CGI(&(p_ptr->inventory[INVEN_WIELD]), 'O')) return FALSE;
+
 	/* How many possible targets around us? */
 	targets = 0;
 	for(i = 0; i < 8; i++)
@@ -1016,7 +1019,9 @@ static void process_player_end(int Ind)
 	if (fatal_err == -1) return;
 
 	/* Check for auto-retaliate */
-	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && !p_ptr->confused && !p_ptr->afraid)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))/* - have spare energy */
+	   && !p_ptr->confused && !p_ptr->afraid            /* - not confused or afraid */
+	   && !p_ptr->run_request && !cq_len(&p_ptr->cbuf)) /* - no commands queued */
 	{
 		/* Check for nearby monsters and try to kill them */
 		/* If auto_retaliate returns nonzero than we attacked
@@ -1145,7 +1150,7 @@ static void process_player_end(int Ind)
 		/* Hack -- Fade monster Detect over time */
 		for (i = 0; i < m_max; i++)
 		{
-			if (p_ptr->mon_det[i]) 
+			if (p_ptr->mon_det[i])
 			{
 				if (--p_ptr->mon_det[i] == 0) 
 				{
@@ -1327,6 +1332,12 @@ static void process_player_end(int Ind)
 
 		/* Finally, at the end of our turn, update certain counters. */
 		/*** Timeout Various Things ***/
+
+		/* Reduce noise levels */
+		if (p_ptr->noise)
+		{
+			(void)set_noise(Ind, p_ptr->noise - (p_ptr->skill_stl + 1));
+		}
 
 		/* Hack -- Hallucinating */
 		if (p_ptr->image)

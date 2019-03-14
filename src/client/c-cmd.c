@@ -1104,13 +1104,17 @@ void cmd_message(void)
 	//[flm] powerhack to prevent next hack:
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
-	refocus_chat = TRUE;
+#ifdef PMSG_TERM
+	refocus_chat = ang_term[PMSG_TERM] ? TRUE : FALSE;
 #endif
-# define PMSG_TERM 4
+#endif
 	// [hack] hack to just change the window focus in WIN32 client
-	if (refocus_chat && ang_term[PMSG_TERM]) {
+	if (refocus_chat)
+	{
 		set_chat_focus();
-	} else {
+	}
+	else
+	{
 		char buf[60];
 
 		buf[0] = '\0';
@@ -1369,9 +1373,11 @@ void cmd_suicide(void)
 	if (!get_check("Do you really want to commit suicide? ")) return;
 
 	/* Check again */
+	topline_icky = TRUE;
 	prt("Please verify SUICIDE by typing the '@' sign: ", 0, 0);
 	flush();
 	i = inkey();
+	topline_icky = FALSE;
 	prt("", 0, 0);
 	if (i != '@') return;
 

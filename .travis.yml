@@ -2,44 +2,42 @@ language: c
 
 os:
   - linux
-#  - osx
+  - osx
 
 compiler:
   - gcc
   - clang
 
-#matrix:
-# include:
-#      # linux, ncurses
-#      - os: linux
-#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --disable-sdl" SDL=0
-#      # linux, ncurses + x11
-#      - os: linux
-#        env: CONFIGURE_FLAGS="--enable-gcu --enable-x11 --disable-sdl" SDL=0
-#      # linux, ncurses + sdl
-#      - os: linux
-#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
-#      # osx, carbon
-#      - os: osx
-#        env: CONFIGURE_FLAGS="--disable-gcu --disable-x11 --disable-sdl" SDL=0
-#        # osx, sdl
-#      - os: osx
-#        env: CONFIGURE_FLAGS="--enable-gcu --disable-x11 --enable-sdl" SDL=1
-
 env:
   matrix:
-    - CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl"
-    - CONFIGURE_FLAGS="--with-gcu --with-x11    --without-sdl"
-    - CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl"
+    - CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl" SDL="0"
+    - CONFIGURE_FLAGS="--with-gcu --with-x11    --without-sdl" SDL="0"
+    - CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl" SDL="1"
+    - CONFIGURE_FLAGS="--without-gcu --without-x11 --without-crb --with-sdl" SDL="1"
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "CKGAr6u7bUGQXloM0aLzlQZ8ONc2rPDpy/fsH1qIHfG6YcT4vxcBgMPUuY7MxJBwYj8koni36n7kAbq5DLKJRydKm3D4VIUjN2A9PFYCPWmL7a0eLqg4CfaLQNEgJlTotiEse/ytHCZr5zrCVA6LaCzHKMS2aHF+MYwuAYJYFXxU4MIGv0kAKle2CTC+SfrV8VnaCEI1tMiEMy6zZvxInruEQMrsY88iiHPX3Lryfs/gpHSuDDM0F3RKKZ1gKIsE+MAxf45xi7J7IPqPr+vlfIogUFpG+Em9OwXO4oy2phjtf9KwOYEdgyjEGULFh4jEy6w7i12A1pvcFwQR+zRc2782iY44JhaGmBjUtwYCG1J/n65FgujjbYDtBlaUlEhx2xDwjQ/ANOXjWEox/BWqEtmA3yXhCS2gEIQKlHfwcJpBUNvLNf25dSjvVI8se/lLv/U4Io4xLSljwIB/PWvTRH9VvB0QHd9SrFFunpUcdA9hTSYrqI5QodGc2UtR1/UJjCfZWGwCYc+zQZ9BBsXxhDfQHg7D0Q50IpItT31movzF6LlVRUWc2IDaLKUlK+YdtsSc4ovfFKE1DuJ3JKosTz0a6OrDOx3iL7Y72brQrWejhnnNtN1Xu82IsvTXAoQBJQKUphsX0YFT3TkaDgMKKPAcvgHbY/HzEHMpoXlbgAo="
 
+matrix:
+  exclude:
+    - os: linux
+      env: CONFIGURE_FLAGS="--without-gcu --without-x11 --without-crb --with-sdl" SDL="1"
+    - os: osx
+      env: CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl" SDL="0"
+    - os: osx
+      env: CONFIGURE_FLAGS="--with-gcu --with-x11    --without-sdl" SDL="0"
+    - os: osx
+      env: CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl" SDL="1"
+
 addons:
   apt:
     packages:
     - libsdl1.2-dev
+  homebrew:
+    packages:
+    - sdl
+    update: false
   coverity_scan:
     project:
       name: "mangband/mangband"
@@ -49,9 +47,24 @@ addons:
     build_command: "make"
     branch_pattern: coverity_scan
 
-#travis-ci currently doesnt support osx
 #before_install:
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew update     ; fi
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew install sdl; fi
 
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure ${CONFIGURE_FLAGS} && make ; fi
+script:
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure ${CONFIGURE_FLAGS} && make ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/dmgit.sh ; fi
+
+before_deploy:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/.travis-gh.sh > index.html ; fi
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  keep-history: false
+  repo: mangband/mangband-builds-osx
+  branch: gh-pages
+  github-token: $GITHUB_TOKEN
+  on:
+    branch: master
+    condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"

@@ -434,8 +434,11 @@
 #define SF_NONE 	0x00	/* No special flags */
 #define SF_TRANSPARENT	0x01	/* Stream has secondary layer */
 #define SF_OVERLAYED	0x02	/* Stream shouldn't be 'memorized' */
+#define SF_NEXT_GROUP	0x04	/* Stream does not belong to previous group */
+#define SF_AUTO 	0x08	/* Stream is auto-subscribed to */
 #define SF_KEEP_X	0x10	/* Stream respects window's X offset */
 #define SF_KEEP_Y	0x20	/* Stream respects window's Y offset */
+#define SF_MAXBUFFER	0x40	/* Be prepared to receive max_rows */
 #define SF_HIDE 	0x80	/* Hide stream subscription from UI */
 
 /*** Indicators ***/
@@ -832,14 +835,19 @@
 #define MSG_DRAIN_STAT      148
 #define MSG_MULTIPLY        149
 
-#define MSG_MAX             150
+#define MSG_MAX_ANGBAND     150
 
-/* MAngband-specific */
-#define MSG_TALK            250
-#define MSG_SOCIAL          251
-#define MSG_PY_SPELL        252
-#define MSG_PY_PRAYER       253
-#define MSG_PY_MISC         254
+/* MAngband-specific: */
+#define MSG_TALK            151
+#define MSG_YELL            152
+#define MSG_SOCIAL          153
+#define MSG_PY_SPELL        154
+#define MSG_PY_PRAYER       155
+#define MSG_PY_MISC         156
+
+#define MSG_MAX             157
+
+/* Client-side and system messages: */
 #define MSG_LOCAL		255
 #define MSG_WHISPER		256
 #define MSG_CHAT		257

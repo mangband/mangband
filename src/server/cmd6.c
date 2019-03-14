@@ -124,6 +124,9 @@ void do_cmd_eat_food(int Ind, int item)
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
+
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
@@ -226,6 +229,9 @@ void do_cmd_quaff_potion(int Ind, int item)
 		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
+
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
@@ -358,6 +364,9 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 		object_aware(p_ptr, o_ptr);
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
+
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);

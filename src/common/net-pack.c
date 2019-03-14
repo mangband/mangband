@@ -231,7 +231,7 @@ int cq_printf(cq *charq, char *str, ...) {
 				str_size--;
 				PF_ERROR_SIZE(str_size);
 				PACK_NSTR(text, str_size);
-				break;}				
+				break;}
 			PF_ERROR_FRMT
 		}
 	}
@@ -354,15 +354,22 @@ int cq_scanf(cq *charq, char *str, ...) {
 				UNPACK_NSTR(_text, str_size);
 				break;}
 			case 'T': {/* HACK! \n-terminated string (\r==\n here)*/
+				int seen_char = 0, seen_r = 0;
 				_text = (char*) va_arg (marker, char*);
 				str_size = 0;
 				while(str_size++ < MSG_LEN) {
+				 SF_ERROR_SIZE(1);
+				 if (*rptr == '\r') { seen_r = 1; rptr++; continue; }
+				 if (*rptr == '\n') { seen_r = 1; rptr++;
+				  if (seen_char) break; else continue; }
+				 else { seen_char = 1; }
 				 *_text++ = *rptr++;
-				 if (*rptr == '\n') { rptr++; break; }
 				}
+				if (error == 2) error = 0;
+				if (seen_r && !seen_char) *_text++ = '\n';
 				 *_text = '\0';
-				if (str_size > 1 && *(_text-1) == '\r') /* Chomp */
-				 *(_text-1) = '\0';
+//				if (str_size > 1 && *(_text-1) == '\r') /* Chomp */
+//				 *(_text-1) = '\0';
 				break;}
 			SF_ERROR_FRMT
 		}
@@ -712,7 +719,7 @@ int cv_decode_rle2(cave_view_type* dst, cq* src, int len) {
 		if (a == 0xFF)
 		{
 			/* Get the number of repetitions */
-			n = c;
+			n = (byte)c;
 
 			/* Is it even legal? */
 			if (x + n > len)

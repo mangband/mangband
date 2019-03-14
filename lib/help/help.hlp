@@ -1,7 +1,7 @@
 Welcome to the Angband Online Help System.
 
 Please choose one of the following online help files:
-    (a) General Information        (general.txt)
+    (a) General Information        (mangband.hlp)
     (b) Creating a Character       (birth.txt)
     (c) Exploring the Dungeon      (dungeon.txt)
     (d) Attacking Monsters         (attack.txt)
@@ -17,7 +17,7 @@ Browser/help commands:
   SPACE advance 1 page     -  back up 1 page     /  search for text
   RET   advance 1 line     =  back up 1 line     &  show (highlight) some text
   +     advance 1/2 page   _  back up 1/2 page   !  toggle case sentitivity
-***** [a] general.txt
+***** [a] mangband.hlp
 ***** [b] birth.txt
 ***** [c] dungeon.txt
 ***** [d] attack.txt

@@ -1413,6 +1413,7 @@ void lite_spot(int Ind, int y, int x)
 	player_type *p_ptr = Players[Ind];
 
 	int dispx, dispy;
+	bool is_player = FALSE;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
@@ -1429,6 +1430,7 @@ void lite_spot(int Ind, int y, int x)
 			int p = player_pict(Ind,Ind);
 			a = PICT_A(p);
 			c = PICT_C(p);
+			is_player = TRUE;
 		}
 
 		/* Hack -- fake monochrome */
@@ -1452,7 +1454,22 @@ void lite_spot(int Ind, int y, int x)
 
 			/* Tell client to redraw this grid */
 			Stream_tile(Ind, p_ptr, dispy, dispx);
-		} 
+
+			/* Mark player */
+			if (is_player)
+			{
+				send_cursor(p_ptr, MCURSOR_PLAYER, (byte)y, (byte)x);
+			}
+		}
+	}
+	/* Out of panel bounds */
+	else
+	{
+		/* Handle "player" */
+		if ((y == p_ptr->py) && (x == p_ptr->px))
+		{
+			send_cursor(p_ptr, MCURSOR_PLAYER | MCURSOR_OFFLINE, 0, 0);
+		}
 	}
 }
 
@@ -1688,16 +1705,8 @@ void display_map(int Ind, bool quiet)
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map size */
-	map_hgt = p_ptr->screen_hgt - 2;
-	map_wid = p_ptr->screen_wid - 2;
-	
-	/* Hack -- classic mini-map */
-	//TODO: handle client term size !
-	if (quiet)
-	{ 
-		map_hgt = 24 - 2;
-		map_wid = 80 - 2;
-	}
+	map_wid = p_ptr->stream_wid[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
 
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
@@ -1854,9 +1863,9 @@ void wild_display_map(int Ind)
 	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = p_ptr->screen_hgt - 2;
-	map_wid = p_ptr->screen_wid - 2;
-	
+	map_wid = p_ptr->stream_wid[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
@@ -4030,7 +4039,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->resting)
 	{
 		/* Cancel */
-		p_ptr->resting = 0;
+		p_ptr->resting = FALSE;
 
 		/* Redraw the state (later) */
 		p_ptr->redraw |= (PR_STATE);
@@ -4040,7 +4049,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->running)
 	{
 		/* Cancel */
-		p_ptr->running = 0;
+		p_ptr->running = FALSE;
 
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);

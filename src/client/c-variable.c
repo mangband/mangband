@@ -241,6 +241,7 @@ int known_options;
 bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
+bool auto_itemlist;
 bool show_labels;
 bool show_weights;
 bool ring_bell;

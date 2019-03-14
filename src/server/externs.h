@@ -690,10 +690,8 @@ extern void display_monlist(int Ind);
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
-#define Send_target_info(IND, X, Y, W, STR) send_target_info(Players[Ind], X, Y, W, STR)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_cursor(IND, vis, x, y) send_cursor(Players[Ind], vis, x, y)
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -717,8 +715,8 @@ extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_term_info(player_type *p_ptr, byte flag, u16b line);
 extern int send_term_header(player_type *p_ptr, cptr header);
-extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
-extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
+extern int send_cursor(player_type *p_ptr, byte vis, byte x, byte y);
+extern int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
 extern int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade);
 extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name);
@@ -728,12 +726,12 @@ extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, cptr desc);
 extern int send_ghost(player_type *p_ptr);
 extern int send_inventory_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
-extern int send_indication(int Ind, byte id, ...);
+extern int send_indication(int Ind, int id, ...);
 extern int send_objflags(int Ind, int line);
 extern int send_party_info(int Ind);
 extern int send_message(int Ind, cptr msg, u16b typ);
 extern int send_message_repeat(int Ind, u16b typ);
-extern int send_sound(int Ind, int sound);
+extern int send_sound(int Ind, u16b sound);
 extern int send_channel(int Ind, char mode, u16b id, cptr name);
 extern int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name);
 extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse);
@@ -815,6 +813,7 @@ extern void reorder_pack(int Ind);
 extern void setup_objects(void);
 extern void distribute_charges(object_type *o_ptr, object_type *q_ptr, int amt);
 extern void reduce_charges(object_type *o_ptr, int amt);
+extern void object_audit(player_type *p_ptr, object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
 extern void artifact_notify(player_type *p_ptr, object_type *o_ptr);
 extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
@@ -1004,6 +1003,7 @@ extern void msg_print_near(int Ind, cptr msg);
 extern void msg_format_near(int Ind, cptr fmt, ...);
 extern void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg);
 extern void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...);
+extern void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...);
 extern void player_talk(int Ind, char *msg);
 extern void channel_join(int Ind, cptr channel, bool quiet);
 extern void channel_leave(int Ind, cptr channel);
@@ -1071,6 +1071,7 @@ extern bool set_stun(int Ind, int v);
 extern bool set_cut(int Ind, int v);
 extern bool set_food(int Ind, int v);
 extern void set_recall(int Ind, object_type * o_ptr);
+extern bool set_noise(int Ind, int v);
 extern void check_experience(int Ind);
 extern void gain_exp(int Ind, s32b amount);
 extern void lose_exp(int Ind, s32b amount);
