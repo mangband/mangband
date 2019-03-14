@@ -5138,6 +5138,25 @@ int level_speed(int Ind)
 	else return level_speeds[Ind]*5;
 }
 
+/* Hack -- return TRUE if there are monsters in LoS, FALSE otherwise. */
+bool monsters_in_los(player_type *p_ptr)
+{
+	int i;
+	bool los;
+	/* If nothing in LoS */
+	los = FALSE;
+	for (i = 1; i < m_max; i++)
+	{
+		/* Check this monster */
+		if ((p_ptr->mon_los[i] && !m_list[i].csleep))
+		{
+			los = TRUE;
+			break;
+		}
+	}
+	return los;
+}
+
 /* Determine the speed of a given players "time bubble" and return a percentage 
  * scaling factor which should be applied to any amount of energy granted to 
  * players/monsters within the bubble.
@@ -5184,24 +5203,20 @@ int base_time_factor(int Ind, int slowest)
 		timefactor = timefactor * ((float)health / 100);
 #endif
 
+	/* If nothing in LoS */
+	los = monsters_in_los(p_ptr);
+
 	/* Resting speeds up time disregarding health time scaling */
-	if(p_ptr->resting) timefactor = MAX_TIME_SCALE;
+	if (p_ptr->resting && !los) timefactor = MAX_TIME_SCALE;
+
+	/* Running speeds up time */
+	if (p_ptr->running && !los) scale = RUNNING_FACTOR;
+
 	
 	/* If this is a check for another player give way to their time
 	 * bubble if we aren't doing anything important */
 	if(slowest && (timefactor == NORMAL_TIME))
 	{
-		/* If nothing in LoS */
-		los = FALSE;
-		for (i = 1; i < m_max; i++)
-		{
-			/* Check this monster */
-			if ((p_ptr->mon_los[i] && !m_list[i].csleep))
-			{
-				los = TRUE;
-				break;
-			}
-		}
 		if(!los)
 		{
 			/* We don't really care about our time */
@@ -5252,9 +5267,7 @@ int time_factor(int Ind)
 
 	/* Forget all about time scaling in town */
 	if(!p_ptr->dun_depth) return scale;
-		
-	/* Running speeds up time */
-	if(p_ptr->running) scale = RUNNING_FACTOR;
+
 
 	/* Determine our time scaling factor */
 	timefactor = base_time_factor(Ind, 0);
