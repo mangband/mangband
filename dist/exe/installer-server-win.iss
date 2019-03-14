@@ -28,6 +28,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "..\..\mangband.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\mangband.cfg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "run-server.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\lib\bone\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\data\*"; DestDir: "{app}\lib\data"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -36,13 +37,13 @@ Source: "..\..\lib\file\*"; DestDir: "{app}\lib\file"; Flags: ignoreversion recu
 Source: "..\..\lib\help\*"; DestDir: "{app}\lib\help"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\pref"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\user\*"; DestDir: "{app}\lib\user"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\lib\xtra\*"; DestDir: "{app}\lib\xtra"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 
 [Icons]
-Name: "{group}\MAngbandServer"; Filename: "{app}\mangband.exe"
+Name: "{group}\MAngbandServer"; Filename: "{app}\run-server.bat"
 Name: "{group}\ReadMe"; Filename: "{app}\README.htm"
-Name: "{group}\{cm:UninstallProgram,MAngband}"; Filename: "{uninstallexe}"
+Name: "{group}\Config Dir"; Filename: "{app}\"
+Name: "{group}\{cm:UninstallProgram,MAngband Server}"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\mangband.exe"; Description: "{cm:LaunchProgram,MAngband}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\run-server.bat"; Description: "{cm:LaunchProgram,MAngband Server}"; Flags: nowait postinstall skipifsilent
