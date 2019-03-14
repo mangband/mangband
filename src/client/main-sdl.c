@@ -2749,6 +2749,14 @@ errr init_sdl(void)
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
 
+	/* Read command-line arguments */
+	clia_read_int(&width, "width");
+	clia_read_int(&height, "height");
+	clia_read_bool(&fullscreen, "fullscreen");
+	clia_read_int(&bpp, "bpp");
+	clia_read_int(&use_graphics, "graphics");
+	clia_read_bool(&use_sound, "sound");
+
 #ifdef USE_SOUND
 	initflags |= SDL_INIT_AUDIO;
 #endif
