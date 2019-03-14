@@ -3119,7 +3119,9 @@ errr init_x11(int argc, char **argv)
 #endif /* USE_GRAPHICS */
 
 	/* Activate hook */
-	quit_aux = hook_quit;
+	// We aren't doing anything special in the quit hook, so let's just use
+	// the default one.
+	//quit_aux = hook_quit;
 
 	/* Success */
 	return (0);

@@ -2726,6 +2726,18 @@ static void play_sound(int v, int s)
 }
 #endif
 
+static void quit_sdl(cptr str)
+{
+	/* Call regular quit hook */
+	quit_hook(str);
+
+	/* Do SDL-specific stuff */
+#ifdef USE_SOUND
+	cleanup_sound();
+#endif
+	SDL_Quit();
+}
+
 /*
  * A "normal" system uses "main.c" for the "main()" function, and
  * simply adds a call to "init_xxx()" to that function, conditional
@@ -2846,7 +2858,7 @@ errr init_sdl(void)
 	/* Sound */
 #ifdef USE_SOUND
 	load_sound_prefs();
-	init_sound(); /* FIXME: cleanup_sound is not called from anywhere! */
+	init_sound();
 #endif
 
 	/* Init all 'Terminals' */
@@ -2859,6 +2871,9 @@ errr init_sdl(void)
 	/* Create cursor surface */
 	if (td->cursor_on)
 		SDL_PrepareCursor(td->w, td->h);
+
+	/* Activate quit hook */
+	quit_aux = quit_sdl;
 
 	/*
 	 *

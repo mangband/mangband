@@ -397,6 +397,7 @@ extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
 extern void init_subscriptions(void);
+extern void quit_hook(cptr str);
 
 /* c-inven.c */
 extern char index_to_label(int i);

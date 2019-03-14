@@ -444,7 +444,7 @@ static void Game_loop(void)
  *
  * Close down, then fall back into "quit()".
  */
-static void quit_hook(cptr s)
+void quit_hook(cptr s)
 {
 	int j;
 
@@ -692,13 +692,8 @@ void client_init(void)
 	/* Fetch machine name */
 	fillhostname(host_name, 80);
 
-	/* Set the "quit hook" */
-	// Hmm trapping this here, overwrites any quit_hook that the main-xxx.c code
-	// may have. So for the windows client, we disable this. The main-win.c file
-	// does this stuff anyway [grk]
-#ifndef WINDOWS
-	quit_aux = quit_hook;
-#endif
+	/* Set the default "quit hook" */
+	if (quit_aux == NULL) quit_aux = quit_hook;
 
 	/* Default server host and port */
 	server_port = conf_get_int("MAngband", "port", 18346);
