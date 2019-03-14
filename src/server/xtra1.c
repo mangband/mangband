@@ -1218,7 +1218,7 @@ static void cursor_redraw(int Ind)
 		if (0 - p_ptr->cursor_who > NumPlayers)
 		{
 			/* Invalid index -- reset the cursor */
-			Send_cursor(Ind, 0,0,0);
+			send_cursor(p_ptr, 0,0,0);
 			/* Reset the index */
 			p_ptr->cursor_who = 0;
 			return;
@@ -1282,11 +1282,11 @@ static void cursor_redraw(int Ind)
 	
 	if (vis == 1)
 	{
-		Send_cursor(Ind, vis, x, y);
+		send_cursor(p_ptr, vis, x, y);
 	}
 	else
 	{
-		Send_cursor(Ind, 0, 0, 0);
+		send_cursor(p_ptr, 0, 0, 0);
 
 		/* Cancel tracking */
 		p_ptr->cursor_who = 0;

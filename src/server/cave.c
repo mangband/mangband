@@ -1413,6 +1413,7 @@ void lite_spot(int Ind, int y, int x)
 	player_type *p_ptr = Players[Ind];
 
 	int dispx, dispy;
+	bool is_player = FALSE;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
@@ -1429,6 +1430,7 @@ void lite_spot(int Ind, int y, int x)
 			int p = player_pict(Ind,Ind);
 			a = PICT_A(p);
 			c = PICT_C(p);
+			is_player = TRUE;
 		}
 
 		/* Hack -- fake monochrome */
@@ -1452,7 +1454,22 @@ void lite_spot(int Ind, int y, int x)
 
 			/* Tell client to redraw this grid */
 			Stream_tile(Ind, p_ptr, dispy, dispx);
-		} 
+
+			/* Mark player */
+			if (is_player)
+			{
+				send_cursor(p_ptr, MCURSOR_PLAYER, (byte)y, (byte)x);
+			}
+		}
+	}
+	/* Out of panel bounds */
+	else
+	{
+		/* Handle "player" */
+		if ((y == p_ptr->py) && (x == p_ptr->px))
+		{
+			send_cursor(p_ptr, MCURSOR_PLAYER | MCURSOR_OFFLINE, 0, 0);
+		}
 	}
 }
 

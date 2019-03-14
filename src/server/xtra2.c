@@ -4381,7 +4381,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
 	/* Tell the client */
-	Send_target_info(Ind, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_win, out_val);
+	send_target_info(p_ptr, x - p_ptr->panel_col_prt, y - p_ptr->panel_row_prt, out_win, out_val);
 
 	/* Done */
 	return;
@@ -4537,7 +4537,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			x = p_ptr->target_x[i];
 			if ((cave[Depth][y][x].m_idx == old_target) && target_able(Ind, cave[Depth][y][x].m_idx))
 			{
-				p_ptr->look_index = i;			
+				p_ptr->look_index = i;
 				break;
 			}
 		}
@@ -4548,7 +4548,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	{
 #ifdef NOTARGET_PROMPT
 		if (!(query == ESCAPE || query == 'q'))
-			Send_target_info(Ind, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt, 
+			send_target_info(p_ptr, p_ptr->px - p_ptr->panel_col_prt, p_ptr->py - p_ptr->panel_row_prt,
 			NTERM_WIN_NONE, "Nothing to target. [p, ESC]");
 		if (query != 'p')
 			return FALSE;

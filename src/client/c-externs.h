@@ -538,6 +538,7 @@ extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
 extern int send_interactive(byte type);
 extern int send_term_key(char key);
+extern int send_mouse(byte mod, byte x, byte y);
 
 //TRANSITIONAL HACKAGE:
 #define conn_state state

@@ -372,6 +372,11 @@ int send_term_key(char key)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_KEY, key);
 }
 
+int send_mouse(byte mod, byte x, byte y)
+{
+	return cq_printf(&serv->wbuf, "%c" "%c%c%c", PKT_CURSOR, mod, x, y);
+}
+
 int send_redraw(void)
 {
 	return cq_printf(&serv->wbuf, "%c", PKT_REDRAW);
@@ -1465,9 +1470,15 @@ int recv_term_header(connection_type *ct) {
 }
 
 int recv_cursor(connection_type *ct) {
-	char vis, x, y;
+	byte vis, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &vis, &x, &y) < 3) return 0;
+
+	/* Hack -- ignore weird states */
+	if ((byte)vis > 1)
+	{
+		return 1;
+	}
 
 	if (cursor_icky)
 	{
@@ -1480,8 +1491,8 @@ int recv_cursor(connection_type *ct) {
 }
 
 int recv_target_info(connection_type *ct) {
-	char x, y, buf[MAX_CHARS], *s;
-	byte win;
+	char buf[MAX_CHARS], *s;
+	byte win, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
 

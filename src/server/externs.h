@@ -690,10 +690,8 @@ extern void display_monlist(int Ind);
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
-#define Send_target_info(IND, X, Y, W, STR) send_target_info(Players[Ind], X, Y, W, STR)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_cursor(IND, vis, x, y) send_cursor(Players[Ind], vis, x, y)
 #define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -717,8 +715,8 @@ extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_term_info(player_type *p_ptr, byte flag, u16b line);
 extern int send_term_header(player_type *p_ptr, cptr header);
-extern int send_cursor(player_type *p_ptr, char vis, char x, char y);
-extern int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str);
+extern int send_cursor(player_type *p_ptr, byte vis, byte x, byte y);
+extern int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
 extern int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade);
 extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name);
