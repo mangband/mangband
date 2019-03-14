@@ -11,7 +11,7 @@
 
 /* System Configuration (autocollected) */
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+#include <config.h>
 #else
 #if !defined(_MSC_VER)
 //#pragma message( "warning: Your build lacks 'src/config.h', reverting to crazy defaults" ) /* portable but stupid */

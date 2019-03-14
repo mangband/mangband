@@ -1373,9 +1373,11 @@ void cmd_suicide(void)
 	if (!get_check("Do you really want to commit suicide? ")) return;
 
 	/* Check again */
+	topline_icky = TRUE;
 	prt("Please verify SUICIDE by typing the '@' sign: ", 0, 0);
 	flush();
 	i = inkey();
+	topline_icky = FALSE;
 	prt("", 0, 0);
 	if (i != '@') return;
 

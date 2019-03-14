@@ -498,7 +498,7 @@ int send_term_header(player_type *p_ptr, cptr header)
 	return 1;
 }
 
-int send_cursor(player_type *p_ptr, char vis, char x, char y)
+int send_cursor(player_type *p_ptr, byte vis, byte x, byte y)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -511,7 +511,7 @@ int send_cursor(player_type *p_ptr, char vis, char x, char y)
 	return 1;
 }
 
-int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str)
+int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -1355,6 +1355,18 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(p_ptr, key);
 	else if (p_ptr->special_file_type)
 		do_cmd_interactive(p_ptr, key);
+
+	return 1;
+}
+
+/* Client sent us some "mouse" action */
+int recv_mouse(connection_type *ct, player_type *p_ptr) {
+	byte mod, x, y;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &mod, &x, &y) < 3) return 0;
+
+	/* We don't do anything with this data, currently */
+	(void)p_ptr;
 
 	return 1;
 }

@@ -3465,7 +3465,7 @@ static void hack_plog(cptr str)
  */
 static void hack_quit(cptr str)
 {
-    int i;
+	int i;
 
 	/* Force saving of preferences on any quit [grk] */
 	save_prefs();
@@ -3502,7 +3502,7 @@ static void hack_quit(cptr str)
 	if (hIcon) DestroyIcon(hIcon);
 
 	/* Cleanup WinSock */
-	//network_done();
+	cleanup_network_client();
 
 	/* Exit */
 	exit (0);

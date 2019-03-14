@@ -1,7 +1,7 @@
 
-textdir = $(pkgdatadir)/text
+helpdir = $(pkgdatadir)/help
 
-text_DATA = \
+help_DATA = \
 		lib/help/attack.txt \
 		lib/help/birth.txt \
 		lib/help/command.txt \
@@ -14,4 +14,4 @@ text_DATA = \
 		lib/help/option.txt \
 		lib/help/version.txt
 
-EXTRA_DIST += $(text_DATA)
+EXTRA_DIST += $(help_DATA)

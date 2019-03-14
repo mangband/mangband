@@ -2721,6 +2721,12 @@ int clia_find(const char *key)
 			}
 		}
 	}
+	/* Hack -- if we're left with a dangling --longopt, and it matched our key,
+	 * assume it's a toggle option, and mark it as found */
+	if (awaiting_argument && key_matched)
+	{
+		return i - 1;
+	}
 	return -1;
 }
 bool clia_cpy_string(char *dst, int len, int i)
@@ -2749,7 +2755,6 @@ bool clia_read_bool(s32b *dst, const char *key)
 		const char *ckey;
 		if (strlen(p_argv[i]) > 2)
 		{
-			printf("STRLEN %s -- %d\n", p_argv[i], i);
 			/* It was a toggle option */
 			ckey = p_argv[i] + 2;
 			if (streq(key, ckey))

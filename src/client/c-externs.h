@@ -401,6 +401,7 @@ extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
 extern void init_subscriptions(void);
+extern void quit_hook(cptr str);
 
 /* c-inven.c */
 extern char index_to_label(int i);
@@ -546,6 +547,7 @@ extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
 extern int send_interactive(byte type);
 extern int send_term_key(char key);
+extern int send_mouse(byte mod, byte x, byte y);
 
 //TRANSITIONAL HACKAGE:
 #define conn_state state

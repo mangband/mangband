@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-sysconf_DIST = mangband.cfg
+dist_sysconf_DATA = mangband.cfg
 
 EXTRA_DIST = src/makefile.bcc src/h-config.h
 

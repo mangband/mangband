@@ -43,6 +43,7 @@ Source: "..\..\lib\xtra\*"; DestDir: "{app}\lib\xtra"; Flags: ignoreversion recu
 Name: "{group}\MAngband"; Filename: "{app}\mangclient.exe"
 Name: "{group}\MAngband (One Window)"; Filename: "{app}\mangclient-sdl.exe"
 Name: "{group}\ReadMe"; Filename: "{app}\README-client.htm"
+Name: "{group}\Config Dir"; Filename: "{app}\lib\user\"
 Name: "{group}\{cm:UninstallProgram,MAngband}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\MAngband"; Filename: "{app}\mangclient.exe"; Tasks: desktopicon
 
