@@ -2198,7 +2198,7 @@ void do_cmd_store(int Ind, int pstore)
 		which = (c_ptr->feat - FEAT_SHOP_HEAD);
 	}
 		/* Hack -- Check the "locked doors" */
-		if (ht_passed(&turn, &store[which].store_open, 0))
+		if (ht_passed(&store[which].store_open, &turn, 0))
 		{
 			msg_print(Ind, "The doors are locked.");
 			return;
