@@ -82,7 +82,7 @@ int send_race_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 
-	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
+	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
@@ -113,7 +113,7 @@ int send_class_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 	
-	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
+	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
