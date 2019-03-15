@@ -2169,7 +2169,10 @@ static bool leave_store = FALSE;
  * into other commands, normally, we convert "p" (pray) and "m"
  * (cast magic) into "g" (get), and "s" (search) into "d" (drop).
  *
- * pstore is -1 for normal stores or house index for player owned store.
+ * "pstore" can have the following values:
+ * [ 0 -> (MAX_HOUSES-1) ] player owned shop, "pstore" is house index.
+ * [ -1 ] normal shop, index should be deducted from the cave grid.
+ * [ -2 -> -9 ] normal shop, index is already known, flip sign and add +2 to get store index.
  */
 void do_cmd_store(int Ind, int pstore)
 {
