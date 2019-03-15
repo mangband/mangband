@@ -2121,7 +2121,7 @@ void conf_init(void* param)
 	/* Search for file in user directory */
 	if (GetEnvironmentVariable("USERPROFILE", path, 512))
 	{
-		strcat(path, "\\mangclient.ini");
+		my_strcat(path, "\\mangclient.ini", 1024);
 
 		/* Ok */
 		if (my_fexists(path))
@@ -2133,8 +2133,14 @@ void conf_init(void* param)
 
 	/* Get full path to executable */
 	GetModuleFileName(hInstance, path, 512);
-	strcpy(path + strlen(path) - 4, ".ini");
+	/* Remove ".exe" */
+	path[strlen(path) - 4] = '\0';
+	/* Remove ANGBAND_SYS suffix */
+	/* TODO: sdl2, etc, or just lowercase ANGBAND_SYS */
+	if (suffix(path, "-sdl")) path[strlen(path) - 4] = '\0';
+	/* Append ".ini" */
 	my_strcpy(config_name, path, 1024);
+	my_strcat(config_name, ".ini", 1024);
 }
 void conf_save()
 { }
