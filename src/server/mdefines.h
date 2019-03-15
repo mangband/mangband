@@ -482,9 +482,9 @@
 #define ITH_WEAPON      	2
 #define ITH_ARMOR       	3
 #define ITH_AMMO        	4
-#define ITH_RECHARGE       	5
+#define ITH_RECHARGE    	5
 #define ITH_ACTIVATE    	6
-#define ITH_REFILL			7
+#define ITH_REFILL      	7
 #define item_test(A) (TV_MAX + (ITH_ ## A))
 #define ITEM_ANY        	0
 
