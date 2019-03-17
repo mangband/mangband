@@ -5173,7 +5173,7 @@ int base_time_factor(int Ind, int slowest)
 {
 	player_type * p_ptr = Players[Ind];
 	player_type * q_ptr;
-	int scale, i, dist, health, timefactor;
+	int i, dist, health, timefactor;
 	bool los;
 	
 	/* If this is the initial call, reset all players time bubble check */
@@ -5210,7 +5210,7 @@ int base_time_factor(int Ind, int slowest)
 	if (p_ptr->resting && !los) timefactor = MAX_TIME_SCALE;
 
 	/* Running speeds up time */
-	if (p_ptr->running && !los) scale = RUNNING_FACTOR;
+	if (p_ptr->running && !los) timefactor = RUNNING_FACTOR;
 
 	
 	/* If this is a check for another player give way to their time
