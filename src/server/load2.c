@@ -1685,7 +1685,16 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	bool had_header = FALSE;
 	char stat_order_hack[6];
 
+	if (!section_exists("mangband_player_save"))
+	{
+		return (-1); /* Horrible corruption */
+	}
+
 	start_section_read("mangband_player_save");
+	if (!section_exists("version"))
+	{
+		return (-1); /* Horrible corruption */
+	}
 	start_section_read("version");
 	read_int("major"); 
 	read_int("minor");
