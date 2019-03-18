@@ -744,7 +744,7 @@ void carry(int Ind, int pickup, int confirm)
 						char out_val[160];
 						object_desc(Ind, o_name, o_ptr, TRUE, 2); /* shorten name */
 						sprintf(out_val, "Purchase %s for %ld gold? ", o_name, (long)price);
-						Send_pickup_check(Ind, out_val);
+						send_pickup_check(Ind, out_val);
 						return;
 					} 
 					else 
@@ -809,7 +809,7 @@ void carry(int Ind, int pickup, int confirm)
 			{
 				char out_val[160];
 				sprintf(out_val, "Pick up %s? ", o_name);
-				Send_pickup_check(Ind, out_val);
+				send_pickup_check(Ind, out_val);
 				return;
 			}
 

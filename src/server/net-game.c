@@ -1867,6 +1867,11 @@ int send_confirm_request(int Ind, byte type, cptr buf)
 	return 1;
 }
 
+int send_pickup_check(int Ind, cptr buf)
+{
+	return send_confirm_request(Ind, 0x03, buf);
+}
+
 int send_store_sell(int Ind, u32b price)
 {
 	char buf[80];

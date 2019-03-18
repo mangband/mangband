@@ -2014,7 +2014,7 @@ void store_sell(int Ind, int item, int amt)
 		choice = sell_haggle(Ind, &sold_obj, &price);
 
 		/* Tell the client about the price */
-		Send_store_sell(Ind, price);
+		send_store_sell(Ind, price);
 
 		/* Save the info for the confirmation */
 		p_ptr->current_selling = item;

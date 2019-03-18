@@ -694,9 +694,6 @@ extern void display_monlist(int Ind);
 #define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
-#define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
-#define Send_store_sell(IND, price) send_store_sell(Ind, price)
-#define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
 
 /* net-server.c */
 extern int *Get_Ind;
@@ -737,6 +734,7 @@ extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items
 extern int send_store_sell(int Ind, u32b price);
 extern int send_store_leave(int Ind);
 extern int send_confirm_request(int Ind, byte type, cptr buf);
+extern int send_pickup_check(int Ind, cptr buf);
 
 
 
