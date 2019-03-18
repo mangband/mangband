@@ -157,13 +157,16 @@ int player_enter(int ind)
 	send_party_info(PInd);
 
 	/* Inform everyone */
-	if (p_ptr->new_game)
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
 	{
-		msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
-	}
-	else
-	{
-		msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		if (p_ptr->new_game)
+		{
+			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+		}
+		else
+		{
+			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		}
 	}
 
 	/* Discard "New game" marker */
@@ -251,6 +254,7 @@ int player_leave(int p_idx)
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
