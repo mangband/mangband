@@ -1778,7 +1778,7 @@ bool set_food(int Ind, int v)
 			{
 				/* Use the value */
 				p_ptr->food = v;
-				Destroy_connection(p_ptr->conn, "Starving to death!");
+				player_disconnect(p_ptr, "Starving to death!");
 				return TRUE;
 			}
 			break;
@@ -2714,7 +2714,7 @@ void player_funeral(int Ind, char *reason)
 	add_high_score(Ind);
 
 	/* Get rid of him */
-	player_kill(Ind, reason); 	/* Disconnect client */
+	player_disconnect(p_ptr, reason); /* Disconnect client */
 	player_leave(Ind);	/* Remove from playerlist */
 
 	/* Done */
@@ -6493,7 +6493,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 						if (!askfor_aux(Ind, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
 						if (STRZERO(buf)) break;
 						debug(format("%s kicks %s (reason:%s)", p_ptr->name, q_ptr->name, buf));
-						Destroy_connection(q_ptr->conn, "kicked out");
+						player_disconnect(q_ptr, "kicked out");
 					break;
 					case 'I':
 						if (y == Ind) { error = "Can't invoke self"; break; }

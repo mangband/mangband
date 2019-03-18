@@ -2168,26 +2168,12 @@ bool process_player_name(player_type *p_ptr, bool sf)
 	
 	ret = process_player_name_aux(p_ptr->name, p_ptr->basename, FALSE);
 
-	/* Cannot be too long */
-	if (ret == -1)
+	/* Name is too long or contained illegal characters */
+	if (ret < 0)
 	{
-		/* Name too long */
-		Destroy_connection(p_ptr->conn, "Your name is too long!");
-
 		/* Abort */
 		return FALSE;
 	}
-
-	/* Cannot contain "icky" characters */
-	if (ret == -2)
-	{
-		/* Illegal characters */
-		Destroy_connection(p_ptr->conn, "Your name contains control chars!");
-
-		/* Abort */
-		return FALSE;
-	}
-	
 
 	/* Change the savefile name */
 	if (sf)

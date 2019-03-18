@@ -2546,10 +2546,10 @@ void shutdown_server(void)
 		strcpy(p_ptr->died_from, "server shutdown");
 
 		/* Try to save */
-		if (!player_leave(1)) player_kill(1, "Server shutdown (save failed)");
+		if (!player_leave(1)) player_disconnect(p_ptr, "Server shutdown (save failed)");
 
 		/* Successful save */
-		player_kill(1, "Server shutdown (save succeeded)");
+		player_disconnect(p_ptr, "Server shutdown (save succeeded)");
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */

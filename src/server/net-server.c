@@ -308,6 +308,14 @@ void player_drop(int ind)
 	/* Leave everything (before we destroyed all pointers) */
 	player_abandon(p_ptr);
 
+	/* If player was in town, hurry his disconnection up */
+	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
+	{
+		/* LARGE value to trigger timeout ASAP */
+		p_ptr->idle = 60;
+		/* Alternatively, call player_leave(Ind)... */
+	}
+
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
 	{
@@ -345,14 +353,6 @@ void player_drop(int ind)
 		/* Set "ind" index to both of them */
 		p_ptr->conn = ind;
 		c_ptr->user = ind;
-	}
-
-	/* If player was in town, hurry his disconnection up */
-	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
-	{
-		/* LARGE value to trigger timeout ASAP */
-		p_ptr->idle = 60;
-		/* Alternatively, call player_leave(Ind)... */
 	}
 }
 /* Fast termination of connection (used by shutdown routine) */
@@ -984,11 +984,16 @@ int client_kill(connection_type *ct, cptr reason)
 
 	return 0;
 }
-/* client_kill a connection refrenced by p_idx */
-int player_kill(int p_idx, cptr reason)
+/* client_kill a connection that belongs to player p_ptr */
+int player_disconnect(player_type *p_ptr, cptr reason)
 {
-	connection_type *ct = PConn[p_idx];
-	if (ct != NULL)	return client_kill(ct, reason);
+	/* Ensure player has a connection */
+	if (p_ptr->conn > -1)
+	{
+		connection_type *ct = Conn[p_ptr->conn];
+		/* Be very paranoid */
+		if (ct != NULL) return client_kill(ct, reason);
+	}
 	return 0;
 }
 

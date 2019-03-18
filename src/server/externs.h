@@ -687,7 +687,6 @@ extern void display_monlist(int Ind);
 // Transitional network hacks
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
-#define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -700,7 +699,7 @@ extern void network_loop();
 extern void close_network_server();
 extern void report_to_meta_die(void);
 extern int player_leave(int p_idx);
-extern int player_kill(int p_idx, cptr reason);
+extern int player_disconnect(player_type *p_ptr, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);

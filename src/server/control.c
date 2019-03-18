@@ -350,7 +350,7 @@ static void console_kick_player(connection_type* ct, char *name)
 	if (p_ptr)
 	{
 		/* Kick him */
-		Destroy_connection(p_ptr->conn, "kicked out");
+		player_disconnect(p_ptr, "kicked out");
 		/* Success */
 		cq_printf(&ct->wbuf, "%T", "Kicked player\n");
 		return;
