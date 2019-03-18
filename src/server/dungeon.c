@@ -2563,7 +2563,7 @@ void shutdown_server(void)
 	if (!save_server_info()) quit("Server state save failed!");
 
 	/* Tell the metaserver that we're gone */
-	//Report_to_meta(META_DIE);
+	report_to_meta_die();
 
 	quit("Server state saved");
 }

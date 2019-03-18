@@ -49,13 +49,6 @@
 #define COME_BACK_TIME_MAX 600
 
 /*
- * The types of communication that we send to the metaserver
- */
-#define META_START	0x01
-#define META_DIE	0x02
-#define META_UPDATE	0x04
-
-/*
  * A "stack" of items is limited to less than 100 items (hard-coded).
  */
 #define MAX_STACK_SIZE			100

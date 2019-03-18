@@ -461,6 +461,22 @@ void close_network_server()
 	free_server_memory();
 }
 
+/* Send one last packet to meta.
+ * The round-about way of doing this has to do with the way "UDP Senders" are
+ * handled. We can't call any netcode DIRECTLY, but we can trick it to flush. */
+void report_to_meta_die(void)
+{
+	u16b old_shutdown_timer;
+	/* "report_to_meta" checks for "shutdown_timer", so let's force it */
+	old_shutdown_timer = shutdown_timer;
+	shutdown_timer = 1; /* YES, we *are* shutting down! */
+	/* Flush -- send actual UDP packet */
+	/* ONE_SECOND * 60 must be >= sender's delay interval */
+	first_sender = handle_senders(first_sender, ONE_SECOND * 60);
+	/* Paranoia -- restore shutdown_timer */
+	shutdown_timer = old_shutdown_timer;
+}
+
 int report_to_meta(int data1, data data2) {
 	static char local_name[1024];
 	static int init = 0;

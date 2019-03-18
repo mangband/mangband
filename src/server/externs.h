@@ -705,6 +705,7 @@ extern int *Get_Ind;
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();
+extern void report_to_meta_die(void);
 extern int player_leave(int p_idx);
 extern int player_kill(int p_idx, cptr reason);
 
