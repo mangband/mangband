@@ -685,8 +685,6 @@ extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
-#define msg_format_p(P, M, ...) plog("msg_format_p unimplemented\n")
-#define msg_print_p(P, M) plog("msg_print_p unimplemented\n")
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
 #define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
@@ -1011,10 +1009,12 @@ extern bool check_guard_inscription( s16b quark, char what);
 extern s16b message_num(void);
 extern cptr message_str(s16b age);
 extern void message_add(cptr msg);
+extern void msg_print_p(player_type *p_ptr, cptr msg);
 extern void msg_print(int Ind, cptr msg);
 extern void msg_print_aux(int Ind, cptr msg, u16b type);
 extern void msg_broadcast(int Ind, cptr msg);
 extern void msg_channel(int chan, cptr msg);
+extern void msg_format_p(player_type *p_ptr, cptr fmt, ...);
 extern void msg_format(int Ind, cptr fmt, ...);
 extern void msg_format_type(int Ind, u16b type, cptr fmt, ...);
 extern void msg_print_near(int Ind, cptr msg);

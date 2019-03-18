@@ -2736,6 +2736,27 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
+/* Player-pointer versions of msg_format and msg_print.
+ * TODO: this has to be implemented the other way around, msg_print(Ind, ) and friends
+ * should be wrappers around msg_print_p(p_ptr, ), but I'm too scared to do this
+ * right now, so... [flm] */
+void msg_print_p(player_type *p_ptr, cptr msg)
+{
+	msg_print(Get_Ind[p_ptr->conn], msg);
+}
+void msg_format_p(player_type *p_ptr, cptr fmt, ...)
+{
+	va_list vp;
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	msg_format(Get_Ind[p_ptr->conn], fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+}
+
 /* Analyze the 'search' string and determine if it has any special
  *  target.
  * Returns  0 - on error, and an error string is put into 'error' 
