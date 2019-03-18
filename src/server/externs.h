@@ -690,8 +690,6 @@ extern void display_monlist(int Ind);
 #define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
-#define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
 
