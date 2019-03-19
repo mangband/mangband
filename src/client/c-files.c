@@ -2145,9 +2145,8 @@ bool filename_is_safe(cptr filename)
 {
 	int i, n;
 	n = strlen(filename);
-	if (n == 0 || n >= 24)
+	if (n == 0 || n > 64)
 	{
-		printf("Filename too large %s (%d)\n", filename, n);
 		return FALSE;
 	}
 	for (i = 0; i < n; i++)
@@ -2162,7 +2161,6 @@ bool filename_is_safe(cptr filename)
 			(c == '_')         /* Allow underscore */
 		))
 		{
-			printf("Bad char %c in %s at %d\n", c, filename, i);
 			return FALSE;
 		}
 	}
