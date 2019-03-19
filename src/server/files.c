@@ -1553,7 +1553,7 @@ void common_file_peruse(player_type *p_ptr, char query)
 	if (next != p_ptr->interactive_next)
 	{
 		p_ptr->interactive_next = next;
-		copy_file_info(p_ptr, p_ptr->interactive_file, next, 0);
+		copy_file_info(p_ptr, p_ptr->interactive_file, next, 0, TRUE);
 	}
 }
 
@@ -1563,7 +1563,7 @@ void common_file_peruse(player_type *p_ptr, char query)
  * TODO: Add 'search' from do_cmd_help_aux()
  *
  */
-void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
+void copy_file_info(player_type *p_ptr, cptr name, int line, int color, int helpdir)
 {
 	int i = 0, k;
 
@@ -1583,7 +1583,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	int 	len;
 
 	/* Build the filename */
-	path_build(path, 1024, ANGBAND_DIR_HELP, name);
+	path_build(path, 1024, helpdir ? ANGBAND_DIR_HELP : ANGBAND_DIR_BONE, name);
 
 	/* Open the file */
 	fff = my_fopen(path, "r");
@@ -2043,7 +2043,7 @@ errr show_file(int Ind, cptr name, cptr what, int line, int color)
 	clear_from(Ind, 0);
 
 	/* Peruse the requested file */
-	copy_file_info(Players[Ind], name, line, color);
+	copy_file_info(Players[Ind], name, line, color, TRUE);
 
 	/* Send header */
 	Send_special_other(Ind, (char*)what);

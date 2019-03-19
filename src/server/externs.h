@@ -576,7 +576,7 @@ extern void show_news(void);
 extern errr show_file(int Ind, cptr name, cptr what, int line, int color);
 extern int file_peruse_next(player_type *p_ptr, char query, int next);
 extern void common_file_peruse(player_type *p_ptr, char query);
-extern void copy_file_info(player_type *p_ptr, cptr name, int line, int color);
+extern void copy_file_info(player_type *p_ptr, cptr name, int line, int color, int helpdir);
 extern void do_cmd_help(int Ind, int line);
 extern bool process_player_name(player_type *p_ptr, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);
