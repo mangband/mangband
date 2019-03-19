@@ -1898,6 +1898,7 @@ void prepare_popup(void)
 void show_popup(void)
 {
 	byte n;
+	int cols = 80; //TODO: fixme
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky && !shopping) return;
@@ -1905,36 +1906,35 @@ void show_popup(void)
 	/* Not waiting for popup, ignore this command */
 	if (special_line_onscreen == FALSE) return;
 
-
 	/* Draw "shadow" */
-	for (n = 0; n < last_remote_line[p_ptr->remote_term]+6; n++)
+	for (n = 0; n < last_remote_line[p_ptr->remote_term] + 6; n++)
 	{
-		Term_erase(0, n, 80);
+		Term_erase(0, n, cols);
 	}
-
 
 	/* Draw text */
 	for (n = 0; n < last_remote_line[p_ptr->remote_term] + 1; n++)
 	{
-		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), 80, 0, n + 2 );
+		caveprt(stream_cave(window_to_stream[p_ptr->remote_term], n), cols, 0, n + 2);
 	}
 
 	/* Show a specific "title" -- header */
 	c_put_str(TERM_YELLOW, special_line_header, 0, 0);
 
 	/* Prompt */
-	c_put_str(TERM_L_BLUE, "[Press any key to continue]", n+3, 0);
+	c_put_str(TERM_L_BLUE, "[Press any key to continue]", n + 3, 0);
 
 	/* Ickify section of screen */
-	section_icky_col = 80;
-	section_icky_row = last_remote_line[p_ptr->remote_term]+6;
+	section_icky_col = cols;
+	section_icky_row = last_remote_line[p_ptr->remote_term] + 6;
 }
 
-void show_peruse(s16b line)
+void show_remote_peruse(s16b line)
 {
 	byte n;
 	s16b last = last_remote_line[p_ptr->remote_term];
-	int k = window_to_stream[p_ptr->remote_term];
+	byte st = window_to_stream[p_ptr->remote_term];
+	int cols = p_ptr->stream_wid[st];
 
 	/* This was giving me endless trouble, so I'm just
 	 * putting it here --flm */
@@ -1943,24 +1943,23 @@ void show_peruse(s16b line)
 	/* Draw text */
 	for (n = 2; n < Term->hgt-2; n++)
 	{
-		if (n + line > last + 2 || !last) break;
-		caveprt(stream_cave(k, (n + line - 2)), p_ptr->stream_wid[k], 0, n);
+		if (n + line - 2 > last || last < 0) break;
+		caveprt(stream_cave(st, (n + line - 2)), cols, 0, n);
 	}
 
 	/* Erase the rest */
-	n--;
 	for (; n < Term->hgt; n++)
 	{
-		Term_erase(0, n, p_ptr->stream_wid[k]);
+		Term_erase(0, n, cols);
 	}
 
 	/* Show a general "title" + header */
 	special_line_header[60] = '\0';
-	prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR, 
+	prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR,
 	CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, special_line_header), 0, 0);
 
 	/* Prompt (check if we have extra pages) */
-	if (last > Term->hgt - 6) 
+	if (last > Term->hgt - 6)
 		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
 	else
 		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
@@ -1968,6 +1967,56 @@ void show_peruse(s16b line)
 	/* Enforce interactivity if not on */
 	special_line_type = 1;
 	if (!special_line_onscreen) special_line_requested = TRUE;
+}
+
+/* Save remote info into local ->file[][] array, to peruse
+ * at own leisure */
+void stash_remote_info(void)
+{
+	int j;
+	u32b last_line = last_remote_line[p_ptr->remote_term];
+	byte st = window_to_stream[p_ptr->remote_term];
+	for (j = 0; j < last_line + 1; j++)
+	{
+		cavecpy(p_ptr->file[j], stream_cave(st, j), p_ptr->stream_wid[st]);
+	}
+	p_ptr->last_file_line = last_line;
+}
+
+/* Show portion of local ->file data */
+void show_file_peruse(s16b line)
+{
+	byte n;
+	s16b last = p_ptr->last_file_line;
+	byte st = window_to_stream[NTERM_WIN_SPECIAL]; /* Ugh, what about others? */
+	int cols = p_ptr->stream_wid[st]; /* TODO: Untangle from streams? */
+
+	/* Clear screen */
+	Term_clear();
+
+	/* Draw text */
+	for (n = 2; n < Term->hgt-2; n++)
+	{
+		if (n + line - 2 > last || last < 0) break;
+		caveprt(p_ptr->file[n + line - 2], cols, 0, n);
+	}
+
+	/* Erase the rest */
+	for (; n < Term->hgt; n++)
+	{
+		Term_erase(0, n, cols);
+	}
+
+	/* Show a general "title" + header */
+	special_line_header[60] = '\0';
+	prt(format("[Mangband %d.%d.%d] %60s",CLIENT_VERSION_MAJOR,
+	CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, special_line_header), 0, 0);
+
+	/* Prompt (check if we have extra pages) */
+	if (last > Term->hgt - 6)
+		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
+	else
+		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
 }
 
 /*
@@ -1986,42 +2035,25 @@ void peruse_file(void)
 	cur_line = 0;
 	max_line = 0;
 
-	/* HACK - Stealh Mode? */
-	if (!special_line_onscreen)
-	{
-			Send_special_line(special_line_type, cur_line);
-			Send_special_line(0, 0);/*(SPECIAL_FILE_NONE, 0);*/
-			special_line_type = 0;
-			return;
-	}
-
 	/* The screen is icky */
 	screen_icky = TRUE;
 
 	/* Save the old screen */
 	Term_save();
 
+	/* Browser is on screen */
+	special_line_onscreen = TRUE;
+
 	/* Show the stuff */
 	while (TRUE)
 	{
-		/* Clear the screen */
-		//Term_clear();
-
-		/* Send the command */
-		Send_special_line(special_line_type, cur_line);
-
-		/* Show a general "title" */
-		//prt(format("[Mangband %d.%d.%d] <%d>",
-		//   CLIENT_VERSION_MAJOR, CLIENT_VERSION_MINOR, CLIENT_VERSION_PATCH, max_line), 0, 0);
-
-		/* Prompt */
-		//prt("[Press Return, Space, -, or ESC to exit.]", 23, 0);
+		show_file_peruse(cur_line);
 
 		/* Get a keypress */
 		k = inkey();
 
-		/* Hack -- make any key escape if we're in popup mode */
-		if (max_line <= (SCREEN_HGT - 2)/2 && special_line_type == 1) k = ESCAPE;/*SPECIAL_FILE_OTHER*/
+		/* Hack -- update max line */
+		max_line = p_ptr->last_file_line;
 
 		/* Hack -- go to a specific line */
 		if (k == '#')
@@ -2048,7 +2080,6 @@ void peruse_file(void)
 			cur_line -= 20;
 			if (cur_line < 0) cur_line = 0;
 		}
-
 
 		/* Advance to the bottom */
 		if (k == '1' && max_line)
@@ -2086,16 +2117,16 @@ void peruse_file(void)
 		if (k == ESCAPE) break;
 
 		/* Check maximum line */
-		if (cur_line > max_line || cur_line < 0)
-			cur_line = 0;
+		if (cur_line > max_line - (Term->hgt - 6))
+			cur_line = max_line - (Term->hgt - 6);
 
+		/* Check minimum line */
+		if (cur_line < 0)
+			cur_line = 0;
 	}
 
-	/* Tell the server we're done looking */
-	Send_special_line(0,0);/*(SPECIAL_FILE_NONE, 0);*/
-
 	/* No longer using file perusal */
-	special_line_type = 0;
+	special_line_onscreen = FALSE;
 
 	/* Reload the old screen */
 	Term_load();

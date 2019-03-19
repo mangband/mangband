@@ -1432,12 +1432,18 @@ int recv_term_info(connection_type *ct) {
 	}
 
 	/* Browse NTerm contents locally */
-	if (flag & NTERM_BROWSE)
+	if ((flag & NTERM_BROWSE) && !(flag & NTERM_POP))
 	{
-		show_peruse(line);
+		stash_remote_info();
+		show_file_peruse(line);
+	}
+	/* Browse NTerm contents remotely */
+	else if (flag & NTERM_BROWSE)
+	{
+		show_remote_peruse(line);
 	}
 	/* Pop-up NTerm contents */
-	if (flag & NTERM_POP)
+	else if (flag & NTERM_POP)
 	{
 		show_popup();
 	}
@@ -1449,9 +1455,10 @@ int recv_term_info(connection_type *ct) {
 	return 1;
 }
 int recv_term_header(connection_type *ct) {
+	byte hint;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%b%s", &hint, buf) < 2) return 0;
 
 	/* Save header */
 	my_strcpy(special_line_header, buf, MAX_CHARS);
@@ -1462,9 +1469,17 @@ int recv_term_header(connection_type *ct) {
 	/* Ignore it if we're busy */
 	if ((screen_icky && !shopping) || looking) return 1;
 
+	/* Prepare local browser route */
+	if (hint & NTERM_BROWSE)
+	{
+		local_browser_requested = TRUE;
+		p_ptr->last_file_line = -1;
+	}
 	/* Prepare popup route */
-	special_line_requested = TRUE;
-
+	else
+	{
+		special_line_requested = TRUE;
+	}
 	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
 	return 2;
 }

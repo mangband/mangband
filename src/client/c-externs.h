@@ -129,6 +129,8 @@ extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;
 
+extern bool local_browser_requested;
+
 extern bool confirm_requested;
 extern byte confirm_type;
 extern byte confirm_id;
@@ -365,7 +367,8 @@ extern void show_motd(void);
 extern void show_recall(byte win, cptr prompt);
 extern void prepare_popup(void);
 extern void show_popup(void);
-extern void show_peruse(s16b line);
+extern void show_remote_peruse(s16b line);
+extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init(void* param);	/* Client config section */

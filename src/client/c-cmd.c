@@ -509,6 +509,11 @@ void process_requests()
 		//cmd_interactive();
 		prepare_popup();
 	}
+	if (local_browser_requested)
+	{
+		local_browser_requested = FALSE;
+		peruse_file();
+	}
 	if (special_line_requested)
 	{
 		special_line_requested = FALSE;

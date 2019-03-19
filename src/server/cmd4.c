@@ -936,7 +936,7 @@ void do_cmd_check_other(player_type *p_ptr, int line)
 		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_ICKY, 0);//line);
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_ICKY, 0);//line);
 
 }
 
@@ -1018,8 +1018,8 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 		}
 		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
 	}
-	/* Instruct client to browse locally */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
+	/* Instruct client to browse remotely :( */
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_FRESH, p_ptr->interactive_line);
 }
 
 void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)

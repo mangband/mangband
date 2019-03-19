@@ -483,7 +483,7 @@ int send_term_info(player_type *p_ptr, byte flag, u16b line)
 
 	return n;
 }
-int send_term_header(player_type *p_ptr, cptr header)
+int send_term_header(player_type *p_ptr, byte hint, cptr header)
 {
 	connection_type *ct;
 
@@ -491,7 +491,7 @@ int send_term_header(player_type *p_ptr, cptr header)
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
 
-	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
+	if (!cq_printf(&ct->wbuf, "%c%b%s", PKT_TERM_INIT, hint, header))
 	{
 		client_withdraw(ct);
 	}

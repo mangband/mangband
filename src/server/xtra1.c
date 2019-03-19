@@ -1468,7 +1468,7 @@ static void fix_monlist(int Ind)
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT, 0);
 
 	/* HACK -- Load other player info */
 	text_out_load(p_ptr);

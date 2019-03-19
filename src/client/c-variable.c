@@ -94,6 +94,8 @@ bool interactive_anykey_flag = FALSE;
 
 bool special_line_requested = FALSE;
 
+bool local_browser_requested = FALSE;
+
 bool confirm_requested = FALSE;
 char confirm_prompt[MAX_CHARS];
 byte confirm_id;
