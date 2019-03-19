@@ -7024,6 +7024,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			if (1) /* ? Display Object even if it's buggy ? */
 			{
 				j++;
+				prompt_hooks = FALSE;
 				/* Extract Name */
 				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
 
@@ -7081,7 +7082,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	/* Footer */
 	if (prompt_hooks)
 	{
-		j = hgt + 7;
+		j = hgt + 5;
 		c_prt(p_ptr, TERM_L_DARK, "RET) Select    |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "SPC) Next      |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "DEL) Clear     |", j++, 1);
