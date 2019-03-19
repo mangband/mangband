@@ -297,7 +297,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	{ /* 'DM Menu' */
 		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_MASTER, "Dungeon Master", ""
+		SPECIAL_FILE_MASTER, "Dungeon Master", "DM Menu"
 	},
 	{ /* Mini-Map' */
 		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,

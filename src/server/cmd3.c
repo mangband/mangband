@@ -1608,7 +1608,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	player_type *p_ptr = Players[Ind];
 	int i;
 	bool found = FALSE;
-	
+
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -1622,8 +1622,8 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 		{
 			/* Monster name */
 			text_out("\n  ");
-		
-			/* Dump info into player */
+
+			/* Dump info onto player */
 			describe_monster(Ind, i, FALSE);
 
 			/* Track first race */
@@ -1633,7 +1633,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 			found = TRUE;
 		}
 	}
-	
+
 	if (!found)
 		text_out("You fail to remember any monsters of this kind");
 		
