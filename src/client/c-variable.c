@@ -87,13 +87,12 @@ bool (*item_tester_hook)(object_type *o_ptr);
 item_tester_type item_tester[MAX_ITEM_TESTERS];
 int known_item_testers;
 
-int special_line_type;
+//int special_line_type; /* Which interactive terminal we're interacting with */
 char special_line_header[MAX_CHARS];
-bool special_line_onscreen = TRUE;
-bool interactive_anykey_flag = FALSE;
+bool special_line_onscreen = FALSE;
 
 bool special_line_requested = FALSE;
-
+bool simple_popup_requested = FALSE;
 bool local_browser_requested = FALSE;
 
 bool confirm_requested = FALSE;

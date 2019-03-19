@@ -125,10 +125,9 @@ extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
 #define interactive_mode special_line_onscreen
-extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;
-
+extern bool simple_popup_requested;
 extern bool local_browser_requested;
 
 extern bool confirm_requested;
@@ -285,7 +284,7 @@ extern bool get_server_name(void);
 extern void process_command(void);
 extern void process_requests(void);
 extern void cmd_custom(byte i);
-extern void cmd_interactive(void);
+extern void cmd_interactive(byte line_type, bool use_anykey);
 extern void cmd_tunnel(void);
 extern void cmd_walk(void);
 extern void cmd_run(void);
@@ -365,7 +364,7 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
 extern void show_recall(byte win, cptr prompt);
-extern void prepare_popup(void);
+extern void prepare_popup(int line_type, bool use_anykey);
 extern void show_popup(void);
 extern void show_remote_peruse(s16b line);
 extern void show_file_peruse(s16b line);

@@ -686,7 +686,7 @@ extern void display_monlist(int Ind);
 
 // Transitional network hacks
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
-#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], 0, HEADER)
+#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], NTERM_POP, HEADER)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
