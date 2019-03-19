@@ -1642,7 +1642,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 	/* Notify player */
 	send_term_header(p_ptr, NTERM_BROWSE, format("Monster Recall ('%c')", c));
-	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE);
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE | NTERM_ICKY);
 	return;
 }
 
@@ -1671,7 +1671,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	}
 	else /* HACK -- do not send this while in DM menu! */ if (p_ptr->special_file_type != SPECIAL_FILE_MASTER)
 	{
-		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, 0);
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_ICKY);
 	}
 
 	return;

@@ -3544,8 +3544,7 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_pa
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		stream_line_as(p_ptr, stream, i, i);
-	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY | extra_params, 0);
-
+	send_term_info(p_ptr, NTERM_FRESH | extra_params, 0);
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
 

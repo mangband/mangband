@@ -1476,9 +1476,14 @@ int recv_term_header(connection_type *ct) {
 		p_ptr->last_file_line = -1;
 	}
 	/* Prepare popup route */
-	else
+	else if (hint & NTERM_POP)
 	{
 		special_line_requested = TRUE;
+	}
+	/* Do not display anything */
+	else
+	{
+		return 1;
 	}
 	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
 	return 2;

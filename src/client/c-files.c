@@ -1991,6 +1991,9 @@ void show_file_peruse(s16b line)
 	byte st = window_to_stream[NTERM_WIN_SPECIAL]; /* Ugh, what about others? */
 	int cols = p_ptr->stream_wid[st]; /* TODO: Untangle from streams? */
 
+	/* If we're not in perusal mode, ignore this */
+	if (!special_line_onscreen) return;
+
 	/* Clear screen */
 	Term_clear();
 
