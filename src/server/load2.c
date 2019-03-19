@@ -942,7 +942,7 @@ static void rd_house(int n)
 	read_str("owned",house_ptr->owned); 
 
 	house_ptr->depth = read_int("depth");
-	house_ptr->price = read_int("price");
+	house_ptr->price = read_uint("price");
 
 	end_section_read("house");
 

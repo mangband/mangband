@@ -839,7 +839,6 @@ bool create_house(int Ind)
 	/* XXX We should check if too near other houses, roads, level edges, etc */
 
 	/* Add a house to our houses list */
-	houses[num_houses].price = 0;	/* XXX */
 	houses[num_houses].x_1 = x1+1;
 	houses[num_houses].y_1 = y1+1;
 	houses[num_houses].x_2 = x2-1;
@@ -847,6 +846,7 @@ bool create_house(int Ind)
 	houses[num_houses].depth = p_ptr->dun_depth;
 	houses[num_houses].door_y = 0;
 	houses[num_houses].door_x = 0;
+	houses[num_houses].price = base_house_price(num_houses); /* Set new price */
 	set_house_owner(Ind, num_houses);
 	num_houses++;
 
@@ -1286,16 +1286,10 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 			command_new = '_';
 			do_cmd_store(Ind,i);
 		}
+		/* Player might be interested in buying this house. */
 		else
 		{
-			int price, factor;
-
-			/* Take CHR into account */
-			factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-            price = (unsigned long) houses[i].price * factor / 100;
-			if(Depth==0) {
-				price = (unsigned long)price *5L;
-			};
+			unsigned long price = house_price(Ind, i, TRUE);
 
 			/* Tell him the price */
 			msg_format(Ind, "This house costs %ld gold.", price);
@@ -4287,7 +4281,8 @@ void do_cmd_purchase_house(int Ind, int dir)
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
-	int y, x, i, factor, price;
+	int y, x, i;
+	unsigned long price;
 	cave_type *c_ptr;
 
 	/* Check preventive inscription '^h' */
@@ -4320,9 +4315,8 @@ void do_cmd_purchase_house(int Ind, int dir)
 			/* Get requested grid */
 			c_ptr = &cave[Depth][houses[i].door_y][houses[i].door_x];
 
-			/* Take player's CHR into account */
-			factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-			price = (unsigned long) houses[i].price * factor / 100;
+			/* Calculate selling price (take player's CHR into account) */
+			price = house_price(Ind, i, FALSE);
 
 			if (house_owned(i))
 			{
@@ -4332,10 +4326,10 @@ void do_cmd_purchase_house(int Ind, int dir)
 					/* house is no longer owned */
 					disown_house(i);
 
-					msg_format(Ind, "You sell your house for %ld gold.", price/2);
+					msg_format(Ind, "You sell your house for %ld gold.", price);
 
 					 /* Get the money */
-					p_ptr->au += price / 2;
+					p_ptr->au += price;
 
 					/* Window */
 					p_ptr->window |= (PW_INVEN);
@@ -4371,10 +4365,8 @@ void do_cmd_purchase_house(int Ind, int dir)
 			return;
 		}
 
-		/* Take player's CHR into account */
-		factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
-		price = (unsigned long) houses[i].price * factor / 100;
-
+		/* Calculate selling price (take player's CHR into account) */
+		price = house_price(Ind, i, FALSE);
 
 		/* Check for already-owned house */
 		if (house_owned(i))
@@ -4394,7 +4386,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 					/* Delay house transaction */
 					p_ptr->current_house = i;
 					/* Tell the client about the price */
-					send_store_sell(Ind, price/2);
+					send_store_sell(Ind, price);
 				}
 				return;
 			}
@@ -4413,12 +4405,6 @@ void do_cmd_purchase_house(int Ind, int dir)
 			
 			/* No sale */
 			return;
-		}
-
-		if (Depth == 0)
-		{
-			/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
-			price =(unsigned long)price *5L; 
 		}
 
 		/* Check for enough funds */

@@ -14,6 +14,88 @@
 
 #include "mangband.h"
 
+/* This function should be used to set base house price, after it was created
+ * or expanded */
+u32b base_house_price(int h_idx)
+{
+	int h_x1, h_y1, h_x2, h_y2, area;
+	unsigned long price = 0;
+	house_type *house = &houses[h_idx];
+	/* Get floor area */
+	//TODO: iterate and count floor grids instead!
+	h_x1 = house->x_1 - 1;
+	h_y1 = house->y_1 - 1;
+	h_x2 = house->x_2 + 1;
+	h_y2 = house->y_2 + 1;
+	area = (h_x2 - h_x1 - 1) * (h_y2 - h_y1 - 1);
+
+#ifdef DEVEL_TOWN_COMPATIBILITY
+	price = area;
+	price *= 15;
+	price *= 80 + randint(40);
+#else
+	// This is the dominant term for large houses
+	if (area > 40) price = (area-40)*(area-40)*(area-40)*3;
+	else price = 0;
+	// This is the dominant term for medium houses
+	price += area*area*33;
+	// This is the dominant term for small houses
+	price += area * (900 + rand_int(200));
+#endif
+
+	return (u32b)price; /* Possible loss of data */
+}
+
+/* This function calculates adjusted price taking player's CHR into account.
+ * Base price must already be set.
+ * Note: see store.c for similar CHR-adjustment code.
+ * Charisma factor runs from 80 to 130 */
+u32b house_price(int Ind, int h_idx, bool buying)
+{
+	house_type *house = &houses[h_idx];
+	player_type *p_ptr = Players[Ind];
+	unsigned long price;
+	int factor, adjust;
+
+	/* Start with base price */
+	price = (unsigned long) house->price;
+
+
+	/* Take CHR into account */
+	factor = adj_chr_gold[p_ptr->stat_ind[A_CHR]];
+
+	/* Player is buying the house */
+	if (buying)
+	{
+		/* More CHR -> higher factor -> less gold! */
+		adjust = factor;
+	}
+	/* Player is selling the house */
+	else
+	{
+		/* More CHR -> lower factor -> more gold! */
+		adjust = 200 - factor;
+	}
+
+	price = price * adjust / 100;
+
+	if (buying)
+	{
+		/* NOTE: this is unfair (because you don't get same x5 bonus when selling),
+		 * but matches 1.4.0 algorithm */
+		/* houses in town are *ASTRONOMICAL* in price due to location, location, location. */
+		if (house->depth == 0)
+		{
+			price = price * 5L;
+		}
+	}
+	else
+	{
+		price = price / 2;
+	}
+
+	return (u32b)price; /* Possible loss of data */
+}
 
 /* This function takes the players x,y level world coordinate and uses it to
  calculate p_ptr->dun_depth.  The levels are stored in a series of "rings"
@@ -1020,31 +1102,14 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			wall_feature = FEAT_PERM_EXTRA;
 			door_feature = FEAT_HOME_HEAD;
 
-#ifdef DEVEL_TOWN_COMPATIBILITY
-			/* Setup some "house info" */
-			price = (h_x2 - h_x1 - 1) * (h_y2 - h_y1 - 1);
-			price *= 15;
-			price *= 80 + randint(40);
-#else
-			// This is the dominant term for large houses
-			if (area > 40) price = (area-40)*(area-40)*(area-40)*3;
-			else price = 0;
-			//price = area*area*area*area/190;
-			// This is the dominant term for medium houses
-			price += area*area*33;
-			// This is the dominant term for small houses
-			price += area * (900 + rand_int(200)); 
-#endif
-
-			/* Remember price */
-			
-			/* hack -- setup next possibile house addition */
-			houses[num_houses].price = price;
+			/* Save this house */
 			houses[num_houses].x_1 = h_x1+1;
 			houses[num_houses].y_1 = h_y1+1;
 			houses[num_houses].x_2 = h_x2-1;
 			houses[num_houses].y_2 = h_y2-1;
 			houses[num_houses].depth = Depth;
+			/* Remember price */
+			houses[num_houses].price = base_house_price(num_houses);
 			break;
 	}
 
