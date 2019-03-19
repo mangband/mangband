@@ -1484,6 +1484,21 @@ int recv_term_header(connection_type *ct) {
 	return 2;
 }
 
+/* Dangerous! "Save file" packet. */
+int recv_term_writefile(connection_type *ct)
+{
+	byte fmode;
+	char filename[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%b%s", &fmode, filename) < 2) return 0;
+
+	/* Attempt to write a file */
+	write_file_info(fmode, filename);
+
+	/* OK */
+	return 1;
+}
+
 int recv_cursor(connection_type *ct) {
 	byte vis, x, y;
 

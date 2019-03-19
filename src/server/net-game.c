@@ -498,6 +498,25 @@ int send_term_header(player_type *p_ptr, byte hint, cptr header)
 	return 1;
 }
 
+int send_term_writefile(connection_type *ct, byte fmode, cptr filename)
+{
+	if (ct == NULL) return -1;
+	if (!cq_printf(&ct->wbuf, "%c" "%b%s", PKT_TERM_WRITE, fmode, filename))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_term_write(player_type *p_ptr, byte fmode, cptr filename)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	
+	return send_term_writefile(ct, fmode, filename);
+}
+
 int send_cursor(player_type *p_ptr, byte vis, byte x, byte y)
 {
 	connection_type *ct;

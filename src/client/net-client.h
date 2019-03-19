@@ -20,6 +20,7 @@
 
 	PACKET(PKT_TERM,	"%b%ud",	recv_term_info)
 	PACKET(PKT_TERM_INIT,	"%c%s", 	recv_term_header)
+	PACKET(PKT_TERM_WRITE,	"%b%s", 	recv_term_writefile)
 	PACKET(PKT_CURSOR,	"%c%c%c",	recv_cursor)
 	PACKET(PKT_TARGET_INFO,	"%c%c%c%s",	recv_target_info)
 
