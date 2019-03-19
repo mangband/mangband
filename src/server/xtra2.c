@@ -70,9 +70,6 @@ void player_dump(int Ind)
 	send_term_header(Players[Ind], 0, "Character dump");
 	send_prepared_info(Players[Ind], NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE);
 	send_term_write(Players[Ind], NFILE_BONE, dumpname);
-
-	/* Success */
-	return (0);
 }
 
 /*
