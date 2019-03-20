@@ -1460,25 +1460,28 @@ int recv_term_header(connection_type *ct) {
 
 	if (cq_scanf(&ct->rbuf, "%b%s", &hint, buf) < 2) return 0;
 
-	/* Save header */
-	my_strcpy(special_line_header, buf, MAX_CHARS);
-
-	/* Enable perusal mode */
-	special_line_type = TRUE;
-
 	/* Ignore it if we're busy */
 	if ((screen_icky && !shopping) || looking) return 1;
 
+	/* Save header */
+	my_strcpy(special_line_header, buf, MAX_CHARS);
+
 	/* Prepare local browser route */
-	if (hint & NTERM_BROWSE)
+	if ((hint & NTERM_BROWSE) && !(hint & NTERM_POP))
 	{
 		local_browser_requested = TRUE;
-		p_ptr->last_file_line = -1;
+		/* Also "clear" the "file" buffer */
+		if (hint & NTERM_CLEAR) p_ptr->last_file_line = -1;
+	}
+	/* Prepare remote browser / interactive mode route */
+	else if (hint & NTERM_BROWSE)
+	{
+		special_line_requested = TRUE;
 	}
 	/* Prepare popup route */
 	else if (hint & NTERM_POP)
 	{
-		special_line_requested = TRUE;
+		simple_popup_requested = TRUE;
 	}
 	/* Do not display anything */
 	else

@@ -129,7 +129,7 @@ void do_cmd_help_birth(void)
 	init_subscriptions();
 
 	/* Ask it */
-	cmd_interactive();
+	cmd_interactive(0, FALSE);
 }
 
 /*

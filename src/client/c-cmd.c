@@ -63,10 +63,10 @@ void cmd_custom(byte i)
 	}
 	else */ if (cc_ptr->flag & COMMAND_INTERACTIVE)
 	{
-		special_line_type = cc_ptr->tval;
+		int line_type = cc_ptr->tval;
+		bool use_anykey = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
 		strcpy(special_line_header, prompt);
-		interactive_anykey_flag = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
-		cmd_interactive();
+		cmd_interactive(line_type, use_anykey);
 		return;
 	}
 	/* Search for an item (automatic) */
@@ -503,23 +503,27 @@ void process_requests()
 	if (pause_requested)
 	{
 		pause_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		section_icky_row = Term->hgt;
 		section_icky_col = Term->wid;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, TRUE);
 	}
 	if (local_browser_requested)
 	{
 		local_browser_requested = FALSE;
 		peruse_file();
 	}
+	if (simple_popup_requested)
+	{
+		simple_popup_requested = FALSE;
+		prepare_popup(0, TRUE);
+	}
 	if (special_line_requested)
 	{
+		//int type = special_line_requested;
 		special_line_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, FALSE);
 	}
 	if (confirm_requested)
 	{
@@ -951,25 +955,24 @@ void cmd_character(void)
 }
 
 
-void cmd_interactive()
+void cmd_interactive(byte line_type, bool use_anykey)
 {
 	char ch;
 	bool done = FALSE;
-	bool use_anykey = interactive_anykey_flag; /* Copy it to local var, it might change */
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky) return;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
-
 	special_line_onscreen = TRUE;
+	//special_line_type = line_type;
 
 	/* Save the screen */
 	Term_save();
 
 	/* Send the request */
-	send_interactive(special_line_type);
+	send_interactive(line_type);
 
 	/* Wait until we get the whole thing */
 	while (!done)
@@ -989,17 +992,13 @@ void cmd_interactive()
 			break;
 	}
 
-	interactive_anykey_flag = FALSE;
-
 	/* Reload the screen */
 	Term_load();
 
 	/* The screen is OK now */
 	screen_icky = FALSE;
-
 	special_line_onscreen = FALSE;
-
-	special_line_type = 0;//SPECIAL_FILE_NONE;
+	//special_line_type = 0;
 
 	/* Flush any queued events */
 	Flush_queue();

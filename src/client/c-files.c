@@ -1851,15 +1851,15 @@ void show_recall(byte win, cptr prompt)
  * Here, we *agree* to server's interactive request, so we don't
  * INITIALLY send anything. "cmd_interactive", on the other hand,
  * enters interactive mode by itself AND informs server that it did. */
-void prepare_popup(void)
+void prepare_popup(int line_type, bool use_anykey)
 {
-	bool use_anykey = interactive_anykey_flag;
 	char ch;
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky && !shopping) return;
 
 	/* Agree to SPECIAL stream */
+	//special_line_type = line_type;
 	special_line_onscreen = TRUE;
 
 	/* Save the screen */
@@ -1879,13 +1879,11 @@ void prepare_popup(void)
 		if (ch == ESCAPE) break;
 	}
 
-	/* Undo interactive_anykey_flag */
-	interactive_anykey_flag = FALSE;
-
 	/* Remove partial ickyness */
 	section_icky_col = section_icky_row = 0;
 
 	/* Stop it with SPECIAL stream */
+	//special_line_type = 0;
 	special_line_onscreen = FALSE;
 
 	/* Reload the screen */
@@ -1963,10 +1961,6 @@ void show_remote_peruse(s16b line)
 		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
 	else
 		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
-
-	/* Enforce interactivity if not on */
-	special_line_type = 1;
-	if (!special_line_onscreen) special_line_requested = TRUE;
 }
 
 /* Save remote info into local ->file[][] array, to peruse
