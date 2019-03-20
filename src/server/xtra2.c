@@ -6381,6 +6381,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		case 'z': p_ptr->master_flag = 2; break; /* Jump to hook */
 		case 'v': p_ptr->master_flag = 3; break; /* Jump to hook */
 		/* ACTION! Delete Hooks: */
+		case '\b': /* Backspace -- same as Del */
 		case 127: p_ptr->master_hook[p_ptr->master_flag] = 0; break; /* Del */
 
 		/* Navigate PAGES */
@@ -7117,7 +7118,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	{
 		Stream_line(Ind, STREAM_SPECIAL_MIXED, i);
 	}
-	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR, 0);
+	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 
 }
 
