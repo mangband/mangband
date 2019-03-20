@@ -3520,11 +3520,13 @@ static void handle_signal_simple(int sig)
 	/* Nothing to save, just quit */
 	if (!server_generated || server_saved) quit(NULL);
 
+#ifndef WINDOWS
 	/* Hack -- on SIGTERM, quit right away */
 	if (sig == SIGTERM)
 	{
 		signal_count = 5;
 	}
+#endif
 
 	/* Count the signals */
 	signal_count++;
