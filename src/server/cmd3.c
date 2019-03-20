@@ -1669,7 +1669,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	{
 		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT, 0);
 	}
-	else /* HACK -- do not send this while user is busy! */ if (p_ptr->special_file_type == SPECIAL_FILE_NONE)
+	else /* HACK -- do not send this while user is busy! */ if (p_ptr->special_file_type < SPECIAL_FILE_OTHER+1)
 	{
 		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_ICKY);
 	}
