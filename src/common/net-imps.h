@@ -48,6 +48,7 @@ extern micro static_timer(int id);
 extern void network_reset();
 extern void network_pause(long timeout);
 extern void denaglefd(int fd);
+extern  int islocalfd(int fd);
 extern  int fillhostname(char *str, int len);
 extern void unblockfd(int fd);
 

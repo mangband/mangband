@@ -146,6 +146,7 @@ then
     AC_MSG_NOTICE([Forcing Windows32 mode. Use --disable-win to change this.])
 	AC_CHECK_LIB([ws2_32], [main],[LIBS="$LIBS -lws2_32"], AC_ERROR([lib ws2_32 not found]))
 	AC_CHECK_LIB([winmm], [main], [LIBS="$LIBS -lwinmm"], AC_ERROR([lib winmm not found]))
+	AC_CHECK_LIB([iphlpapi], [main], [LIBS="$LIBS -liphlpapi"], AC_ERROR([lib iphlpapi not found]))
 	if test "x$enabled_sdl" != xyes
 	then
 	    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -mwindows"
@@ -193,7 +194,7 @@ AC_SUBST(SERVER_LDFLAGS)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termio.h termios.h unistd.h values.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h ifaddrs.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termio.h termios.h unistd.h values.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
