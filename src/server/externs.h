@@ -1031,6 +1031,7 @@ extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 extern void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params);
 extern void send_prepared_popup(int Ind, cptr header);
+extern void monster_race_track_hack(int Ind);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);

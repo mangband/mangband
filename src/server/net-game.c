@@ -1293,6 +1293,8 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		else
 		{
 			p_ptr->window_flag &= ~streams[st].window_flag;
+			/* HACK -- check if player has disabled monster text window */
+			monster_race_track_hack(Ind);
 		}
 	}
 
