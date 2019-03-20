@@ -3570,6 +3570,24 @@ void send_prepared_popup(int Ind, cptr header)
 	send_term_info(p_ptr, NTERM_POP, 0);
 
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+
+	/* HACK -- Assume this was NOT monster recall */
+	/* This is implied, because monster recall doesn't use send_prepared_popup() */
+	monster_race_track_hack(Ind);
+}
+
+/* This hacky function resets monster tracking after STREAM_SPECIAL_TEXT
+ * was used for anything other than actual monster recall. This way,
+ * server will definitely send new monster info, once it's required again. */
+void monster_race_track_hack(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	/* Only relevant if Player has no dedicated window for monster text */
+	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
+	{
+		/* Hack -- cancel monster tracking */
+		monster_race_track(Ind, -1);
+	}
 }
 
 void text_out_init(int Ind) {

@@ -367,6 +367,7 @@ extern void show_recall(byte win, cptr prompt);
 extern void prepare_popup(int line_type, bool use_anykey);
 extern void show_popup(void);
 extern void show_remote_peruse(s16b line);
+extern void show_file_peruse(s16b line);
 extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern void write_file_info(byte ftype, cptr filename);

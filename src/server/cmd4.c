@@ -1244,4 +1244,7 @@ void do_cmd_interactive(player_type *p_ptr, char query)
 
 	/* Hack -- return to main term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+
+	/* Hack -- cancel monster tracking (maybe) */
+	monster_race_track_hack(Get_Ind[p_ptr->conn]);
 }
