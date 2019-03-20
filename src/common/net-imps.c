@@ -404,7 +404,7 @@ eptr handle_listeners(eptr root) {
 	static socklen_t clilen = sizeof(cliaddr);
 
 	eptr iter;
-	int connfd;
+	int connfd, err;
 
 	for (iter=root; iter; iter=iter->next) {
 		struct listener_type *lt = (struct listener_type *)iter->data2;
@@ -420,7 +420,12 @@ eptr handle_listeners(eptr root) {
 
 		/* cnfds = MATH_MAX(connfd, cnfds); */
 
-		lt->accept_cb(connfd, lt);
+		err = lt->accept_cb(connfd, lt);
+		if (err) {
+			closesocket(connfd);
+			/* FD_CLR(connfd, &rd); */
+		}
+
 	}
 	return root;
 }

@@ -39,6 +39,7 @@ int accept_console(int data1, data data2) {
 	/* Add connection */
 	if (!old)
 	{
+		if (cfg_console_local_only && !islocalfd(data1)) return -1;
 		new_connection = add_connection(first_connection, data1, console_read, console_close);
 		if (!first_connection) first_connection = new_connection;
 		ct = new_connection->data2;
@@ -47,6 +48,7 @@ int accept_console(int data1, data data2) {
 	else
 	{
 		ct = (connection_type *)data2;
+		if (cfg_console_local_only && !islocalfd(ct->conn_fd)) return -1;
 		ct->receive_cb = console_read;
 		ct->close_cb = console_close;
 	}

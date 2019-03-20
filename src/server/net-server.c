@@ -685,7 +685,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
 				ct->rbuf.pos++;
 		
-			accept_console(-1, (data)ct);
+			okay = accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
