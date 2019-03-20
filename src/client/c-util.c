@@ -2593,6 +2593,7 @@ int cavecpy(cave_view_type* dest, cave_view_type *src, int len)
 		dest[i].a = src[i].a;
 		dest[i].c = src[i].c;
 	}
+	return 1;
 }
 
 int cavemem(cave_view_type* src, int len, s16b x, s16b y)
