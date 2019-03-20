@@ -2076,7 +2076,7 @@ static errr init_p_info(void)
 }
 
 /* Attempt to bind cfg_ server option to .prf Y: X: option */
-static void enforce_option(char * name, bool set_what)
+static void enforce_option(char * name, bool set_what, bool forbid_changes)
 {
 	int i;
 	for (i = 0; option_info[i].o_desc; i++)
@@ -2084,7 +2084,7 @@ static void enforce_option(char * name, bool set_what)
 		if (!my_stricmp(option_info[i].o_text, name))
 		{
 			option_info[i].o_norm = set_what; /* Change default */
-			option_info[i].o_bit = 1; /* Forbid changes */ 
+			if (forbid_changes) option_info[i].o_bit = 1; /* Forbid changes */
 		}
 	}
 }
@@ -2178,17 +2178,21 @@ void set_server_option(const char * option, char * value)
 		if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
 			cfg_tcp_port = 18346;
 	}
-	else if (!strcmp(option,"ENFORCE_OPTION_1"))
+	else if (!strcmp(option,"DEFAULT_OPTION_yes"))
 	{
-		enforce_option(value, TRUE);
+		enforce_option(value, TRUE, FALSE);
 	}
-	else if (!strcmp(option,"ENFORCE_OPTION_0"))
+	else if (!strcmp(option,"DEFAULT_OPTION_no"))
 	{
-		enforce_option(value, FALSE);
-	}	
-	else if (!strcmp(option,"MAGE_HITPOINT_BONUS"))
+		enforce_option(value, FALSE, FALSE);
+	}
+	else if (!strcmp(option,"ENFORCE_OPTION_yes"))
 	{
-		cfg_mage_hp_bonus = str_to_boolean(value);
+		enforce_option(value, TRUE, TRUE);
+	}
+	else if (!strcmp(option,"ENFORCE_OPTION_no"))
+	{
+		enforce_option(value, FALSE, TRUE);
 	}
 	else if (!strcmp(option,"SAFE_RECHARGE"))
 	{
