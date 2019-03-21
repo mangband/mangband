@@ -3631,8 +3631,13 @@ void signals_init(void)
 
 #ifdef SIGHUP
 	(void)signal(SIGHUP, SIG_IGN);
+
+#ifdef TARGET_OS_OSX
+	/* Closing Terminal.app on OSX sends SIGHUP, let's not ignore it! */
+	(void)signal(SIGHUP, handle_signal_abort);
 #endif
 
+#endif
 
 #ifdef SIGTSTP
 	(void)signal(SIGTSTP, handle_signal_suspend);
