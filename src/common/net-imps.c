@@ -626,7 +626,7 @@ int islocalfd(int fd)
 	int ok = 0;
 	struct sockaddr_in remote_addr;
 	struct sockaddr_in *check_addr;
-	int len = sizeof(remote_addr);
+	socklen_t len = sizeof(remote_addr);
 	getpeername(fd, (struct sockaddr *)&remote_addr, &len);
 	
 	/* Any address starting with 127. is a local address */
