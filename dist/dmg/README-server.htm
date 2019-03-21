@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>MAngband Server - macOS Build</title>
+</head>
+<body>
+<h1>OSX Mangband Server</h1>
+<p>This is an OSX version of the MAngband Server. You don't need this to play MAngband, you only need this to run your own server.</p>
+
+<h2>Starting a Server</h2>
+
+<h3>Q. How do I install a server?</h3>
+<p>Copy the directory MAngbandServer15 from this Volume to any location.</p>
+
+<h3>Q. How do I start a server?</h3>
+<p>Double-click run-server.command</p>
+
+<h3>Q. How do I stop the server?</h3>
+<p>When the server is running it opens Terminal.app. Close this window to stop the server running. The current server state will be saved as the server shuts down.</p>
+
+<h3>Q. How do I start a public server, one that appears on the server list at mangband.org?</h3>
+<p>A. You need to edit the file <code>mangband.cfg</code> to enable the REPORT_TO_METASERVER option.  Open the file in TextEdit or a similar app and change the relevant line to:</p>
+ 
+<p><code>REPORT_TO_METASERVER = true</code></p>
+  
+<p>Be sure to save your changes to the file before starting the server</p>
+
+<h2>Connecting to a Server</h2>
+
+<h3>Q. How do I start a server and play on it, all on a single computer?</h3>
+<p>A. After starting the server, run the MAngband Client as you normally would.  At the server list type "Q" (for manual entry) and enter "127.0.0.1" (with no quotes).  Hit return and you should be connected to your own local server.</p>
+
+<h3>Q. I have a home network.  How do I run a server and connect to it from the other machines?</h3>
+<p>A. Start the server on one of your computers.</p>
+ 
+<p>On the other computers open the MAngband Client.  At the server list type "Q" (for manual entry) and enter either the name of the server machine *or* the IP address of the server machine and then press return.</p>
+ 
+<p>To find the name of the server machine, go to Application - Utils and open Terminal.app. You will see a prompt similar to <code>johns-MacBook-Air:~ john</code> the first part (before the <code>:~</code>) is your machine name.</p>
+
+<p>To find the IP address of the server machine. Open Terminal.app as above, type "ifconfig" and press return.
+A load of stuff will be displayed on the screen, find the line which says "IP Address . . . . "</p>
+
+<p>Alternatively, open "System Preferences" and go to "Network". You shall see a list of active networks on the left (Wi-Fi, Ethernet). Select appropriate network, and it will display the IP address on the right side of the window.</p>
+
+</body>
+</html>
