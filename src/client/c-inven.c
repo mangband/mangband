@@ -224,6 +224,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	char	tmp_val[160];
 	char	out_val[160];
 
+	/* To protect "refilter" hack from mangling final command_cmd */
+	s16b real_command_cmd = command_cmd;
+
 	/* The top line is icky */
 	topline_icky = TRUE;
 
@@ -573,7 +576,22 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 			{
 				/* Extract "query" setting */
 				ver = ( isupper(which) ? TRUE : FALSE );
-				if (ver) which = tolower(which);
+
+				/* MAngband-specific / Non-Vanilla mod -- set new tag filter ("refilter") */
+				/* Sometimes, a command requires a secondary item to be selected (e.g. when
+				 * casting a recharge spell). To allow easier macro'ing we introduce this hack: */
+				/* If an uppercase letter was entered (say 'A'), we pretend the 'a' command is being
+				 * used, so next iteration of this loop will be able to select an item inscribed '@a1'.
+				 * This is sub-optimal, as this doesn't provide a way to "refilter"
+				 * using an uppercase command. Still, 'a'im, 'u'se', 'z'ap should work.
+				 * XXX XXX XXX: This DOES NOT redraw the screen :( */
+				if (ver)
+				{
+					which = tolower(which);
+					command_cmd = which; /* Pretend we're using that command */
+					break;
+				}
+				/* if (ver) which = tolower(which); // classic V code */
 
 				/* Convert letter to inventory index */
 				if (!command_wrk)
@@ -619,6 +637,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		}
 	}
 
+	/* I don't beleive this is necessary, but just to be safe, let's restore command_cmd */
+	command_cmd = real_command_cmd;
 
 	/* Fix the screen if necessary */
 	if (command_see) 
