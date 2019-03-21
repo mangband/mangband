@@ -67,6 +67,13 @@ AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=ye
 AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=yes]]), with_gcu=$withval, with_gcu="yes")
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
 
+# We need to know if we're building for OSX, badly.
+if test "x$ON_OSX" = xyes
+then
+	CLIENT_CFLAGS="$CLIENT_CFLAGS -DTARGET_OS_OSX=1"
+	SERVER_CFLAGS="$SERVER_CFLAGS -DTARGET_OS_OSX=1"
+fi
+
 # HAVE + WITH = ENABLED [
 if test "x$have_x11" = xyes && test "x$with_x11" = xyes 
 then
