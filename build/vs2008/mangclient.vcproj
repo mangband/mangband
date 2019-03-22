@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="ws2_32.lib Winmm.lib iphlpapi.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				AdditionalLibraryDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -135,7 +135,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="ws2_32.lib Winmm.lib iphlpapi.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				AdditionalLibraryDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -214,7 +214,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib iphlpapi.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				OutputFile="$(OutDir)\$(ProjectName)-sdl.exe"
 				AdditionalLibraryDirectories="&quot;C:\SDL-1.2.15\lib\x86&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
@@ -292,7 +292,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib iphlpapi.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				OutputFile="$(OutDir)\$(ProjectName)-sdl.exe"
 				AdditionalLibraryDirectories="&quot;C:\SDL-1.2.15\lib\x86&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
@@ -602,10 +602,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\sdl-font.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\client\sdl-xxx.c"
 				>
 			</File>
 			<File

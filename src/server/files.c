@@ -2168,26 +2168,12 @@ bool process_player_name(player_type *p_ptr, bool sf)
 	
 	ret = process_player_name_aux(p_ptr->name, p_ptr->basename, FALSE);
 
-	/* Cannot be too long */
-	if (ret == -1)
+	/* Name is too long or contained illegal characters */
+	if (ret < 0)
 	{
-		/* Name too long */
-		Destroy_connection(p_ptr->conn, "Your name is too long!");
-
 		/* Abort */
 		return FALSE;
 	}
-
-	/* Cannot contain "icky" characters */
-	if (ret == -2)
-	{
-		/* Illegal characters */
-		Destroy_connection(p_ptr->conn, "Your name contains control chars!");
-
-		/* Abort */
-		return FALSE;
-	}
-	
 
 	/* Change the savefile name */
 	if (sf)
@@ -3534,11 +3520,13 @@ static void handle_signal_simple(int sig)
 	/* Nothing to save, just quit */
 	if (!server_generated || server_saved) quit(NULL);
 
+#ifndef WINDOWS
 	/* Hack -- on SIGTERM, quit right away */
 	if (sig == SIGTERM)
 	{
 		signal_count = 5;
 	}
+#endif
 
 	/* Count the signals */
 	signal_count++;
@@ -3643,8 +3631,13 @@ void signals_init(void)
 
 #ifdef SIGHUP
 	(void)signal(SIGHUP, SIG_IGN);
+
+#ifdef TARGET_OS_OSX
+	/* Closing Terminal.app on OSX sends SIGHUP, let's not ignore it! */
+	(void)signal(SIGHUP, handle_signal_abort);
 #endif
 
+#endif
 
 #ifdef SIGTSTP
 	(void)signal(SIGTSTP, handle_signal_suspend);

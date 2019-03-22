@@ -1413,11 +1413,24 @@ static errr term_force_graf(term_data *td, cptr name)
 static void term_change_font(term_data *td)
 {
 	OPENFILENAME ofn;
-
-	char tmp[128] = "";
+	TCHAR fullFileName[2048];
+	char tmp[1024] = "";
 
 	/* Extract a default if possible */
 	if (td->font_file) strcpy(tmp, td->font_file);
+
+	/* No default? Let's build it */
+	if (STRZERO(tmp))
+	{
+		strnfmt(tmp, 1024, "%s%s", ANGBAND_DIR_XTRA_FONT, "\\*.fon");
+	}
+
+	/* Resolve absolute path */
+	if (_fullpath(fullFileName, tmp, 2048) == NULL)
+	{
+		/* Complete and utter despair... */
+		strcpy(fullFileName, "\\*.fon");
+	}
 
 	/* Ask for a choice */
 	memset(&ofn, 0, sizeof(ofn));
@@ -1425,9 +1438,10 @@ static void term_change_font(term_data *td)
 	ofn.hwndOwner = win_data[0].w;
 	ofn.lpstrFilter = "Font Files (*.fon)\0*.fon\0";
 	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = tmp;
+	ofn.lpstrFile = fullFileName;
 	ofn.nMaxFile = 128;
-	ofn.lpstrInitialDir = ANGBAND_DIR_XTRA_FONT;
+	ofn.lpstrInitialDir = NULL;
+
 	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 	ofn.lpstrDefExt = "fon";
 

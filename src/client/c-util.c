@@ -2584,6 +2584,17 @@ int caveclr(cave_view_type* dest, int len)
 	return 1;
 }
 
+int cavecpy(cave_view_type* dest, cave_view_type *src, int len)
+{
+	int i;
+	/* Copy a line with length "len" */
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = src[i].a;
+		dest[i].c = src[i].c;
+	}
+	return 1;
+}
 
 int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 {

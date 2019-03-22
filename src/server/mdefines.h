@@ -49,13 +49,6 @@
 #define COME_BACK_TIME_MAX 600
 
 /*
- * The types of communication that we send to the metaserver
- */
-#define META_START	0x01
-#define META_DIE	0x02
-#define META_UPDATE	0x04
-
-/*
  * A "stack" of items is limited to less than 100 items (hard-coded).
  */
 #define MAX_STACK_SIZE			100
@@ -482,9 +475,9 @@
 #define ITH_WEAPON      	2
 #define ITH_ARMOR       	3
 #define ITH_AMMO        	4
-#define ITH_RECHARGE       	5
+#define ITH_RECHARGE    	5
 #define ITH_ACTIVATE    	6
-#define ITH_REFILL			7
+#define ITH_REFILL      	7
 #define item_test(A) (TV_MAX + (ITH_ ## A))
 #define ITEM_ANY        	0
 

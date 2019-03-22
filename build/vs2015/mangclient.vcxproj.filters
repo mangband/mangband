@@ -93,9 +93,6 @@
     <ClCompile Include="..\..\src\client\readdib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\sdl-xxx.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\set_focus.c">
       <Filter>Source Files</Filter>
     </ClCompile>

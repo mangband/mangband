@@ -1511,9 +1511,8 @@ bool load_player(player_type *p_ptr)
 
 #endif
 
-
 	/* Message */
-	Destroy_connection(p_ptr->conn, format("Error (%s) reading savefile.",what));
+	debug(format("Error reading savefile '%s': %d, %s", p_ptr->savefile, err, what));
 
 	/* Oops */
 	return (FALSE);

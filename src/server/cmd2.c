@@ -4394,7 +4394,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 					/* Delay house transaction */
 					p_ptr->current_house = i;
 					/* Tell the client about the price */
-					Send_store_sell(Ind, price/2);
+					send_store_sell(Ind, price/2);
 				}
 				return;
 			}

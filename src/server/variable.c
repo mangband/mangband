@@ -180,7 +180,6 @@ char * cfg_load_pref_file = NULL;
 bool cfg_secret_dungeon_master = 0;
 s16b cfg_fps = 12;
 s32b cfg_tcp_port = 18346;
-bool cfg_mage_hp_bonus = 1;
 bool cfg_safe_recharge = FALSE;
 bool cfg_no_steal = 0;
 bool cfg_newbies_cannot_drop = 0;

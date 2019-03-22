@@ -82,7 +82,7 @@ int send_race_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 
-	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
+	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
@@ -113,7 +113,7 @@ int send_class_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 	
-	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
+	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
@@ -483,7 +483,7 @@ int send_term_info(player_type *p_ptr, byte flag, u16b line)
 
 	return n;
 }
-int send_term_header(player_type *p_ptr, cptr header)
+int send_term_header(player_type *p_ptr, byte hint, cptr header)
 {
 	connection_type *ct;
 
@@ -491,7 +491,7 @@ int send_term_header(player_type *p_ptr, cptr header)
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
 
-	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
+	if (!cq_printf(&ct->wbuf, "%c%b%s", PKT_TERM_INIT, hint, header))
 	{
 		client_withdraw(ct);
 	}
@@ -1293,6 +1293,8 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		else
 		{
 			p_ptr->window_flag &= ~streams[st].window_flag;
+			/* HACK -- check if player has disabled monster text window */
+			monster_race_track_hack(Ind);
 		}
 	}
 
@@ -1865,6 +1867,11 @@ int send_confirm_request(int Ind, byte type, cptr buf)
 		client_withdraw(ct);
 	}
 	return 1;
+}
+
+int send_pickup_check(int Ind, cptr buf)
+{
+	return send_confirm_request(Ind, 0x03, buf);
 }
 
 int send_store_sell(int Ind, u32b price)

@@ -404,7 +404,7 @@ eptr handle_listeners(eptr root) {
 	static socklen_t clilen = sizeof(cliaddr);
 
 	eptr iter;
-	int connfd;
+	int connfd, err;
 
 	for (iter=root; iter; iter=iter->next) {
 		struct listener_type *lt = (struct listener_type *)iter->data2;
@@ -420,7 +420,12 @@ eptr handle_listeners(eptr root) {
 
 		/* cnfds = MATH_MAX(connfd, cnfds); */
 
-		lt->accept_cb(connfd, lt);
+		err = lt->accept_cb(connfd, lt);
+		if (err) {
+			closesocket(connfd);
+			/* FD_CLR(connfd, &rd); */
+		}
+
 	}
 	return root;
 }
@@ -595,6 +600,108 @@ void denaglefd(int fd) {
 /* Get local machine hostname */
 int fillhostname(char *str, int len) {
 	return gethostname(str, len);
+}
+
+/* islocalfd helper functions */
+static int cmp_sockaddr4(struct sockaddr_in *a, struct sockaddr_in *b)
+{
+	return (ntohl(a->sin_addr.s_addr) == ntohl(b->sin_addr.s_addr));
+}
+static int firstoctet_sockaddr4(struct sockaddr_in *addr)
+{
+	return ((ntohl(addr->sin_addr.s_addr) >> 24) & 0xFF);
+}
+
+/* Check if address belongs to a local network. */
+/* Only deals vs IP4 addresses for now... :( */
+#ifdef HAVE_IFADDRS_H
+#include <ifaddrs.h>  /* Linux/BSD getiffaddr */
+#else
+#ifdef WINDOWS
+#include <iphlpapi.h> /* Windows GetAdapterAddresses */
+#endif
+#endif
+int islocalfd(int fd)
+{
+	int ok = 0;
+	struct sockaddr_in remote_addr;
+	struct sockaddr_in *check_addr;
+	socklen_t len = sizeof(remote_addr);
+	getpeername(fd, (struct sockaddr *)&remote_addr, &len);
+	
+	/* Any address starting with 127. is a local address */
+	if (firstoctet_sockaddr4(&remote_addr) == 127)
+	{
+		return 1;
+	}
+#ifdef HAVE_GETIFADDRS
+  {
+	/* Simplest version, should work on UNIXes and MinGW */
+	struct ifaddrs *ifap, *if_ptr;
+
+	getifaddrs (&ifap);
+	for (if_ptr = ifap; if_ptr; if_ptr = if_ptr->ifa_next) {
+		if (if_ptr->ifa_addr->sa_family == AF_INET) {
+			check_addr = (struct sockaddr_in *) if_ptr->ifa_addr;
+			//printf("Interface: %s\tAddress: %s\n", if_ptr->ifa_name, inet_ntoa(check_addr->sin_addr));
+			if (cmp_sockaddr4(check_addr, &remote_addr))
+			{
+				ok = 1;
+				break;
+			}
+		}
+	}
+	freeifaddrs(ifap);
+  }
+#else
+#ifdef WINDOWS
+  {
+	/* Windows-only version */
+	DWORD rv, size;
+	PIP_ADAPTER_ADDRESSES ifap, if_ptr;
+	PIP_ADAPTER_UNICAST_ADDRESS ua;
+
+	/* First call to get required size */
+	rv = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &size);
+	if (rv != ERROR_BUFFER_OVERFLOW) {
+		/* Fatal error */
+		return 0;
+	}
+	/* Second call to populate the structs */
+	ifap = (PIP_ADAPTER_ADDRESSES)malloc(size);
+	rv = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, ifap, &size);
+	if (rv != ERROR_SUCCESS) {
+		/* Fatal error */
+		free(ifap);
+		return 0;
+	}
+	/* This is similar to getifaddr iteration from UNIX */
+	for (if_ptr = ifap; if_ptr != NULL; if_ptr = if_ptr->Next) {
+	for (ua = if_ptr->FirstUnicastAddress; ua != NULL; ua = ua->Next) {
+		if (ua->Address.lpSockaddr->sa_family == AF_INET) {
+			check_addr = (struct sockaddr_in*) ua->Address.lpSockaddr;
+			//printf("Interface: %wS\tAddress: %s\n", aa->FriendlyName, inet_ntoa(check_addr->sin_addr));
+			if (cmp_sockaddr4(check_addr, &remote_addr))
+			{
+				ok = 1;
+				break;
+			}
+		}
+	} if (ok) break; }
+	free(ifap);
+  }
+#else
+  {
+	/* Worst-case scenario, revert to getpeername/getsockname.
+	 * This will not handle multi-homed machines (>1 NIC) correctly. */
+	//TODO: replace with ioctl-based interface enumeration..?
+	struct sockaddr_in local_addr;
+	getsockname(fd, (struct sockaddr *)&local_addr, &len);
+	ok = cmp_sockaddr4(&remote_addr, &local_addr);
+  }
+#endif
+#endif
+	return ok;
 }
 
 /* Delete all nodes from "root" while deleting their "data" */

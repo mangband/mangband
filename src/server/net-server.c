@@ -157,13 +157,16 @@ int player_enter(int ind)
 	send_party_info(PInd);
 
 	/* Inform everyone */
-	if (p_ptr->new_game)
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
 	{
-		msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
-	}
-	else
-	{
-		msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		if (p_ptr->new_game)
+		{
+			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+		}
+		else
+		{
+			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		}
 	}
 
 	/* Discard "New game" marker */
@@ -251,6 +254,7 @@ int player_leave(int p_idx)
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
@@ -308,6 +312,14 @@ void player_drop(int ind)
 	/* Leave everything (before we destroyed all pointers) */
 	player_abandon(p_ptr);
 
+	/* If player was in town, hurry his disconnection up */
+	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
+	{
+		/* LARGE value to trigger timeout ASAP */
+		p_ptr->idle = 60;
+		/* Alternatively, call player_leave(Ind)... */
+	}
+
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
 	{
@@ -345,14 +357,6 @@ void player_drop(int ind)
 		/* Set "ind" index to both of them */
 		p_ptr->conn = ind;
 		c_ptr->user = ind;
-	}
-
-	/* If player was in town, hurry his disconnection up */
-	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
-	{
-		/* LARGE value to trigger timeout ASAP */
-		p_ptr->idle = 60;
-		/* Alternatively, call player_leave(Ind)... */
 	}
 }
 /* Fast termination of connection (used by shutdown routine) */
@@ -459,6 +463,22 @@ void close_network_server()
 
 	/* Release memory */
 	free_server_memory();
+}
+
+/* Send one last packet to meta.
+ * The round-about way of doing this has to do with the way "UDP Senders" are
+ * handled. We can't call any netcode DIRECTLY, but we can trick it to flush. */
+void report_to_meta_die(void)
+{
+	u16b old_shutdown_timer;
+	/* "report_to_meta" checks for "shutdown_timer", so let's force it */
+	old_shutdown_timer = shutdown_timer;
+	shutdown_timer = 1; /* YES, we *are* shutting down! */
+	/* Flush -- send actual UDP packet */
+	/* ONE_SECOND * 60 must be >= sender's delay interval */
+	first_sender = handle_senders(first_sender, ONE_SECOND * 60);
+	/* Paranoia -- restore shutdown_timer */
+	shutdown_timer = old_shutdown_timer;
 }
 
 int report_to_meta(int data1, data data2) {
@@ -665,7 +685,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
 				ct->rbuf.pos++;
 		
-			accept_console(-1, (data)ct);
+			okay = accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
@@ -968,11 +988,16 @@ int client_kill(connection_type *ct, cptr reason)
 
 	return 0;
 }
-/* client_kill a connection refrenced by p_idx */
-int player_kill(int p_idx, cptr reason)
+/* client_kill a connection that belongs to player p_ptr */
+int player_disconnect(player_type *p_ptr, cptr reason)
 {
-	connection_type *ct = PConn[p_idx];
-	if (ct != NULL)	return client_kill(ct, reason);
+	/* Ensure player has a connection */
+	if (p_ptr->conn > -1)
+	{
+		connection_type *ct = Conn[p_ptr->conn];
+		/* Be very paranoid */
+		if (ct != NULL) return client_kill(ct, reason);
+	}
 	return 0;
 }
 

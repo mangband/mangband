@@ -71,7 +71,7 @@ addons:
 
 script:
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure ${CONFIGURE_FLAGS} && make ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/dmgit.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/dmgit.sh && ./dist/dmg/dmgserv.sh ; fi
 
 before_deploy:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/.travis-gh.sh > index.html ; fi
@@ -84,5 +84,5 @@ deploy:
   branch: gh-pages
   github-token: $GITHUB_TOKEN
   on:
-    branch: master
+    branch: develop
     condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"

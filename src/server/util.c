@@ -2736,6 +2736,27 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
+/* Player-pointer versions of msg_format and msg_print.
+ * TODO: this has to be implemented the other way around, msg_print(Ind, ) and friends
+ * should be wrappers around msg_print_p(p_ptr, ), but I'm too scared to do this
+ * right now, so... [flm] */
+void msg_print_p(player_type *p_ptr, cptr msg)
+{
+	msg_print(Get_Ind[p_ptr->conn], msg);
+}
+void msg_format_p(player_type *p_ptr, cptr fmt, ...)
+{
+	va_list vp;
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	msg_format(Get_Ind[p_ptr->conn], fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+}
+
 /* Analyze the 'search' string and determine if it has any special
  *  target.
  * Returns  0 - on error, and an error string is put into 'error' 
@@ -3509,7 +3530,7 @@ cptr format_history_event(history_event *evt)
 	return &buf[0];
 }
 
-void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
+void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params) {
 	byte old_term;
 	int i;
 
@@ -3523,8 +3544,7 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		stream_line_as(p_ptr, stream, i, i);
-	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
-
+	send_term_info(p_ptr, NTERM_FRESH | extra_params, 0);
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
 
@@ -3550,6 +3570,24 @@ void send_prepared_popup(int Ind, cptr header)
 	send_term_info(p_ptr, NTERM_POP, 0);
 
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+
+	/* HACK -- Assume this was NOT monster recall */
+	/* This is implied, because monster recall doesn't use send_prepared_popup() */
+	monster_race_track_hack(Ind);
+}
+
+/* This hacky function resets monster tracking after STREAM_SPECIAL_TEXT
+ * was used for anything other than actual monster recall. This way,
+ * server will definitely send new monster info, once it's required again. */
+void monster_race_track_hack(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+	/* Only relevant if Player has no dedicated window for monster text */
+	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
+	{
+		/* Hack -- cancel monster tracking */
+		monster_race_track(Ind, -1);
+	}
 }
 
 void text_out_init(int Ind) {

@@ -85,6 +85,13 @@ AC_ARG_WITH(sdl-ttf, AC_HELP_STRING([--with-sdl-ttf],[Build with SDL_TTF support
 AC_ARG_WITH(sdl2-image, AC_HELP_STRING([--with-sdl2-image],[Build with SDL2_Image support [default=yes]]), with_sdl2_image=$withval, with_sdl2_image="yes")
 AC_ARG_WITH(sdl2-ttf, AC_HELP_STRING([--with-sdl2-ttf],[Build with SDL2_TTF support [default=yes]]), with_sdl2_ttf=$withval, with_sdl2_ttf="yes")
 
+# We need to know if we're building for OSX, badly.
+if test "x$ON_OSX" = xyes
+then
+	CLIENT_CFLAGS="$CLIENT_CFLAGS -DTARGET_OS_OSX=1"
+	SERVER_CFLAGS="$SERVER_CFLAGS -DTARGET_OS_OSX=1"
+fi
+
 # HAVE + WITH = ENABLED [
 if test "x$have_x11" = xyes && test "x$with_x11" = xyes 
 then
@@ -241,6 +248,7 @@ then
     AC_MSG_NOTICE([Forcing Windows32 mode. Use --disable-win to change this.])
 	AC_CHECK_LIB([ws2_32], [main],[LIBS="$LIBS -lws2_32"], AC_ERROR([lib ws2_32 not found]))
 	AC_CHECK_LIB([winmm], [main], [LIBS="$LIBS -lwinmm"], AC_ERROR([lib winmm not found]))
+	AC_CHECK_LIB([iphlpapi], [main], [LIBS="$LIBS -liphlpapi"], AC_ERROR([lib iphlpapi not found]))
 	if test "x$enabled_sdl" != xyes && test "x$enabled_sdl2" != xyes
 	then
 	    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -mwindows"
@@ -288,7 +296,7 @@ AC_SUBST(SERVER_LDFLAGS)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termio.h termios.h unistd.h values.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h ifaddrs.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termio.h termios.h unistd.h values.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL

@@ -168,7 +168,6 @@ extern char * cfg_load_pref_file;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern s32b cfg_tcp_port;
-extern bool cfg_mage_hp_bonus;
 extern bool cfg_safe_recharge;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;
@@ -685,28 +684,21 @@ extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
-#define msg_format_p(P, M, ...) plog("msg_format_p unimplemented\n")
-#define msg_print_p(P, M) plog("msg_print_p unimplemented\n")
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
-#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
-#define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
+#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], NTERM_POP, HEADER)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
-#define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
-#define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
-#define Send_store_sell(IND, price) send_store_sell(Ind, price)
-#define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
 
 /* net-server.c */
 extern int *Get_Ind;
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();
+extern void report_to_meta_die(void);
 extern int player_leave(int p_idx);
-extern int player_kill(int p_idx, cptr reason);
+extern int player_disconnect(player_type *p_ptr, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
@@ -714,7 +706,7 @@ extern int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, cha
 extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_term_info(player_type *p_ptr, byte flag, u16b line);
-extern int send_term_header(player_type *p_ptr, cptr header);
+extern int send_term_header(player_type *p_ptr, byte hint, cptr header);
 extern int send_cursor(player_type *p_ptr, byte vis, byte x, byte y);
 extern int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
@@ -738,6 +730,7 @@ extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items
 extern int send_store_sell(int Ind, u32b price);
 extern int send_store_leave(int Ind);
 extern int send_confirm_request(int Ind, byte type, cptr buf);
+extern int send_pickup_check(int Ind, cptr buf);
 
 
 
@@ -1010,10 +1003,12 @@ extern bool check_guard_inscription( s16b quark, char what);
 extern s16b message_num(void);
 extern cptr message_str(s16b age);
 extern void message_add(cptr msg);
+extern void msg_print_p(player_type *p_ptr, cptr msg);
 extern void msg_print(int Ind, cptr msg);
 extern void msg_print_aux(int Ind, cptr msg, u16b type);
 extern void msg_broadcast(int Ind, cptr msg);
 extern void msg_channel(int chan, cptr msg);
+extern void msg_format_p(player_type *p_ptr, cptr fmt, ...);
 extern void msg_format(int Ind, cptr fmt, ...);
 extern void msg_format_type(int Ind, u16b type, cptr fmt, ...);
 extern void msg_print_near(int Ind, cptr msg);
@@ -1033,8 +1028,9 @@ extern cptr format_history_event(history_event *evt);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
-extern void send_prepared_info(player_type *p_ptr, byte win, byte stream);
+extern void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params);
 extern void send_prepared_popup(int Ind, cptr header);
+extern void monster_race_track_hack(int Ind);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
