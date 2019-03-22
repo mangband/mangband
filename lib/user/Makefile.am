@@ -8,7 +8,6 @@ user_DATA = \
 		lib/user/window.prf \
 		lib/user/options.prf \
 		lib/user/keymap-sdl2.prf \
-		lib/user/pref-sdl2.prf \
-		lib/user/windows-sdl2.prf
+		lib/user/pref-sdl2.prf
 
 EXTRA_DIST += $(user_DATA)
