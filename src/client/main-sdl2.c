@@ -2,7 +2,6 @@
 /* Purpose: SDL2 frontend for mangband */
 /* Original SDL2 client written by "kts of kettek (kettek1@kettek.net)". */
 /* NOTES:
-  1. At the moment, we have a basic INI parser that reads "MAngband.ini" from the current working directory. This should be merged with the other MAngband frontends' methods for configuration loading/saving - all clients should, ideally, rely on the _same_ configuration file.
   2. Many files in 'lib/user' and 'lib/xtra' are essential. These files and their purpose(s) are:
     * 'lib/user/font-sdl2.prf'
       - used to create the initial color palette - if non-existent, all text will be black on black
@@ -14,8 +13,6 @@
       - keymap file for SDL2, required for arrow keys, also needs expansion
     * 'lib/user/pref-sdl2.prf'
       - loads 'graf-sdl2.prf', 'font-sdl2.prf', 'keymap-sdl2.prf', and 'windows-sdl2.prf'
-    * 'lib/user/windows-sdl2.prf'
-      - Specifies the use of each terminal via index (is this needed?)
     * 'lib/xtra/graf/16x16.png'
       - Modified version of Adam Bolt's 16x16 tiles - has a few added tiles
     * 'lib/xtra/font/AnonymousPro.ttf'
@@ -32,10 +29,10 @@ NOTES:
   * Is it possible to get the ch/attr pairs for a tile underneath another tile?
   * Are sounds actually a thing? If so, it would be cool to implement.
 */
+#ifdef USE_SDL2
 
 #include "c-angband.h"
 
-#ifdef USE_SDL2
 #include "main-sdl2.h"
 #include "sdl-font.h"
 #ifdef WINDOWS
@@ -45,16 +42,43 @@ double fmin(double x, double y) {
 }
 #endif
 
+/* Color definitions. Carefully copied from kettek's values. */
+enum {
+	GUI_COLOR_BACKGROUND,
+	GUI_COLOR_BACKGROUND_ACTIVE,
+	GUI_COLOR_MENU_BACKGROUND,
+	GUI_COLOR_MENU_BORDER,
+	GUI_COLOR_MENU_ITEM,
+	GUI_COLOR_MENU_ITEM_HOVER,
+	GUI_COLOR_MENU_ITEM_ACTIVE,
+	GUI_COLOR_MENU_ITEM_ALWAYS,
+	GUI_COLOR__MAX
+};
+static SDL_Color GUI_COLORS[GUI_COLOR__MAX] = {
+	/*R     G     B     A */
+	{ 0,    0,    0,    255 }, /* _BACKGROUND */
+	{ 8,    16,   32,   255 }, /* _BACKGROUND_ACTIVE */
+	{ 4,    16,   32,   255 }, /* _MENU_BACKGROUND */
+	{ 32,   64,   128,  255 }, /* _MENU_BORDER */
+	{ 0x8A, 0x8A, 0x8A, 255 }, /* _MENU_ITEM */
+	{ 0xE0, 0xE0, 0xE0, 255 }, /* _MENU_ITEM_HOVER */
+	{ 0x00, 0xC8, 0xFF, 255 }, /* _MENU_ITEM_ACTIVE */
+	{ 0xFF, 0xFF, 0xFF, 255 }, /* _MENU_ITEM_ALWAYS */
+};
+#define GUI_COLOR(GCI) GUI_COLORS[GUI_COLOR_ ## GCI]
+#define GUI_COLOR3(GCI) GUI_COLOR(GCI).r, GUI_COLOR(GCI).g, GUI_COLOR(GCI).b
+#define GUI_COLOR4(GCI) GUI_COLOR3(GCI), GUI_COLOR(GCI).a
+
 /* plog() hook to display a message box. similar to WIN32 client */
 static void hack_plog(cptr str)
 {
     const SDL_MessageBoxButtonData buttons[] = { { 0, 0, "OK" } };
     const SDL_MessageBoxColorScheme colorScheme = { {
-        { 255,   0,   0 }, /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
-        {   0, 255,   0 }, /* [SDL_MESSAGEBOX_COLOR_TEXT] */
-        { 255, 255,   0 }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
-        {   0,   0, 255 }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
-        { 255,   0, 255 }  /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+        { GUI_COLOR3(BACKGROUND_ACTIVE) }, /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+        { GUI_COLOR3(MENU_ITEM_ALWAYS)  }, /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+        { GUI_COLOR3(MENU_BORDER)       }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+        { GUI_COLOR3(MENU_BACKGROUND)   }, /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+        { GUI_COLOR3(MENU_ITEM_HOVER)   }  /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
     } };
     const SDL_MessageBoxData messageboxdata = {
         SDL_MESSAGEBOX_INFORMATION, /* .flags */
@@ -69,28 +93,26 @@ static void hack_plog(cptr str)
     if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
         SDL_Log("error displaying message box");
     }
+    printf("%s\n", str);
     return;
 }
 
 /* ==== Global data ==== */
-char *term_title[8] = {             // Our terminal titles
-  "MAngband",
-  "Mirror",
-  "Recall",
-  "Choice",
-  "Chat/Term-4",
-  "Term-5",
-  "Term-6",
-  "Term-7",
-};
 static struct TermData terms[8];    // Our terminals
 static struct FontData fonts[8];    // Our fonts, tied to the term limit of 7
 static struct PictData picts[8];    // Our picts, ^
 char default_font[128];
 int default_font_size = 12;
+char default_font_small[128];
+int default_font_small_size = 10;
+
 
 #define MAX_QUICK_FONTS 8
-char quick_font_names[MAX_QUICK_FONTS][32];
+static char quick_font_names[MAX_QUICK_FONTS][128] = {
+    "nethack10x19-10.hex",
+    "misc6x13.hex",
+    ""
+};
 
 static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp", 0 };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp", 0 };
@@ -127,7 +149,9 @@ errr init_sdl2(int argc, char **argv) {
   CFRelease(res);
   chdir(path);
 #endif
+
   init_stuff(); // load in paths
+
   // **** Load in Configuration ****
   // The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
   use_graphics = conf_get_int("SDL2", "graphics", 0);
@@ -135,8 +159,9 @@ errr init_sdl2(int argc, char **argv) {
     ANGBAND_GRAF = GFXNAME[use_graphics];
   }
   ANGBAND_SYS = "sdl2";
+
   // FIXME: this should be handled elsewhere, but we want colors now.
-  sprintf(buf, "font-%s.prf", ANGBAND_SYS);
+  strnfmt(buf, 1024, "font-%s.prf", ANGBAND_SYS);
   process_pref_file(buf);
   // **** Initialize SDL libraries ****
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -144,7 +169,8 @@ errr init_sdl2(int argc, char **argv) {
     return 1;
   }
 
-    plog_aux = hack_plog;
+	/* Activate msgbox hook */
+	plog_aux = hack_plog;
 
 #ifdef USE_SDL2_IMAGE
   if (IMG_Init(IMG_INIT_PNG) == -1) {
@@ -152,35 +178,68 @@ errr init_sdl2(int argc, char **argv) {
     return 2;
   }
 #endif
+
   if (sdl_font_init() == -1) {
     plog("sdl_font_init(): fatal error");
     return 3;
   }
+
+	/* Activate quit hook */
+	quit_aux = quit_sdl2;
+
+
   SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
   // **** Load Preferences ****
   memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
-  strcpy(default_font, conf_get_string("SDL2", "font_file", "silm8x16.bmp")); // eww
+
   loadConfig();
+
   // **** Merge command-line ****
+
   // **** Load Fonts and Picts ****
   memset(fonts, 0, TERM_MAX*sizeof(struct FontData));
   memset(picts, 0, TERM_MAX*sizeof(struct PictData));
+
   // **** Initialize z-terms ****
   for (i = 0; i < TERM_MAX; i++) {
     if (terms[i].config & TERM_IS_HIDDEN) continue;
-    initTermData(&terms[i], term_title[i], i, NULL);
+    initTermData(&terms[i], ang_term_name[i], i, NULL);
     applyTermConf(&terms[i]);
     setTermTitle(&terms[i]);
     refreshTerm(&terms[i]);
     ang_term[i] = &(terms[i].t);
-    termShuffle(i);
+    if (terms[i].x < 0 || terms[i].y < 0 || terms[i].ren_rect.x < 0 || terms[i].ren_rect.y < 0)
+        termStack(i);
+    termConstrain(i);
   }
+
   // **** Activate Main z-term and gooo ****
-  Term_activate(&(terms[TERM_MAIN].t));	// set active Term to terms[TERM_MAIN]
+  Term_activate(&(terms[TERM_MAIN].t)); // set active Term to terms[TERM_MAIN]
   term_screen = Term;                   // set term_screen to terms[TERM_MAIN]
 
   return 0;
 }
+
+/* Our de-initializer */
+void quit_sdl2(cptr s)
+{
+	/* save all values */
+	saveConfig();
+
+	/* Call regular quit hook */
+	quit_hook(s);
+
+	/* Do SDL-specific stuff */
+#ifdef USE_SOUND
+//	cleanup_sound();
+#endif
+#ifdef USE_SDL2_IMAGE
+	IMG_Quit();
+#endif
+	sdl_font_quit();
+	SDL_Quit();
+}
+
 /* ==== Term related functions ==== */
 static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   int width, height, key_queue;
@@ -192,14 +251,9 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   if (td->cell_w < 1) td->cell_w = 8;
   if (td->cell_h < 1) td->cell_h = 16;
   if (td->cols < 1) td->cols = 80;
-  if (td->rows < 1) td->rows = 24;
+  if (td->rows < 1) td->rows = (td->id == TERM_RECALL) ? 13 : 24;
 
   width = td->cell_w*td->cols, height = td->cell_h*td->rows, key_queue = 1024; // assume key queue of 1024 atm
-
-    if (td->id == 0) {
-	if (td->width > width) width = td->width;
-	if (td->height > height) height = td->height;
-    }
 
   td->fb_w = 0;
   td->fb_h = 0;
@@ -216,8 +270,25 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
     terms[TERM_MAIN].win_need_render = TRUE;
   } else {
     /* Initialize SDL2 window */
-    if ((td->window = SDL_CreateWindow(td->title, td->x, td->y,
-      width, height, SDL_WINDOW_RESIZABLE)) == NULL) {
+    int x = td->x;
+    int y = td->y;
+
+    if (td->id == TERM_MAIN)
+    {
+	if (x < 0) x = SDL_WINDOWPOS_CENTERED;
+	if (y < 0) y = SDL_WINDOWPOS_CENTERED;
+	if (td->width <= 0 || td->height <= 0) {
+		SDL_DisplayMode DM;
+		SDL_GetCurrentDisplayMode(0, &DM);
+		td->width = DM.w;
+		td->height = DM.h;
+	}
+	if (td->width < width) td->width = width;
+	if (td->height < height) td->height = height;
+    }
+
+    if ((td->window = SDL_CreateWindow(td->title, x, y,
+      td->width, td->height, SDL_WINDOW_RESIZABLE)) == NULL) {
         plog_fmt("Could not create Window: %s", SDL_GetError());
         return 1;
     }
@@ -227,8 +298,17 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
       return 1;
     }
     /* Hack - force position */
-    SDL_SetWindowPosition(td->window, td->x, td->y);
+    if (td->x >= 0 && td->y >= 0)
+    {
+        SDL_SetWindowPosition(td->window, td->x, td->y);
+    }
+    /* Or get position */
+    else
+    {
+        SDL_GetWindowPosition(td->window, &td->x, &td->y);
+    }
   }
+
   // Create our framebuffer via refreshing
   refreshTerm(td);
 
@@ -255,19 +335,43 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   td->config |= TERM_IS_ONLINE;
   return 0;
 }
+
 static errr applyTermConf(TermData *td) {
-  char *font_file = (td->font_file[0] != '\0' ? td->font_file : default_font);
-  int font_size = (td->font_size != 0 ? td->font_size : default_font_size);
+	char *font_file;
+	int font_size;
+
+	cptr fallback_font;
+	int fallback_size;
+
+	if (!STRZERO(td->font_file))
+	{
+		font_file = td->font_file;
+	}
+	else
+	{
+		font_file = (td->id == TERM_MAIN) ? default_font : default_font_small;
+	}
+	if (td->font_size != 0)
+	{
+		font_size = td->font_size;
+	}
+	else
+	{
+		font_size = (td->id == TERM_MAIN) ? default_font_size : default_font_small_size;
+	}
+
   // unload/load fonts as needed
   if (td->font_data != NULL && strcmp(font_file, td->font_data->filename) != 0) {
     unloadFont(td);
   }
+
   if (td->font_data == NULL) {
     if (loadFont(td, font_file, font_size, (td->config & TERM_FONT_SMOOTH ? 1 : 0)) != 0) {
       // uhoh, let's try to load default
       if (loadFont(td, default_font, default_font_size, (td->config & TERM_FONT_SMOOTH ? 1 : 0)) != 0) {
         // UHOH, we even the default font doesn't work
         plog("Could not load any usable fonts!");
+	quit(NULL);
       }
     }
   }
@@ -304,6 +408,7 @@ static errr applyTermConf(TermData *td) {
   }
   return 0;
 }
+
 static errr setTermCells(TermData *td, int w, int h) {
   if (w <= 0 || h <= 0) return 1;
   td->cell_w = w;
@@ -521,16 +626,26 @@ static errr resizeTerm(TermData *td, int cols, int rows) {
   return 0;
 }
 static errr setTermTitle(TermData *td) {
-  char buf[1024];
-  sprintf(buf, "%s (%dx%d)", td->title, td->cols, td->rows);
-  SDL_SetWindowTitle(td->window, buf);
-  return 0;
+	char buf[1024];
+	strnfmt(buf, 1024, "%s (%dx%d)", td->title, td->cols, td->rows);
+	/* If this is main window, do some extra hackage */
+	if (td->window == terms[TERM_MAIN].window)
+	{
+		my_strcpy(buf, "MAngband", 1024);
+		if (conn_state > 0)
+		{
+			strnfmt(buf, 1024, "MAngband - %s (%s)", nick, server_name);
+		}
+	}
+	SDL_SetWindowTitle(td->window, buf);
+	return 0;
 }
+
 /* loadFont
 This function attempts to load and attach the given font name and font size to the TermData.
 It first checks all existing FontData structures to see if a FontData with the same settings already exists, and if so, simply attaches that FontData. Otherwise, it will create the given FontData structure and attach it.
 */
-errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
+static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
   char *font_error = NULL;
   int i;
   for (i = 0; i < TERM_MAX; i++) {
@@ -568,10 +683,11 @@ errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
   plog_fmt("loadFont(): %s", font_error, NULL);
   return 1;
 }
+
 /* unloadFont
 This function unloads the FontData from the TermData and will attempt to destroy the given FontData if it does not referenced by any Term
 */
-errr unloadFont(TermData *td) {
+static errr unloadFont(TermData *td) {
   int i;
   FontData *fd = td->font_data;
   detachFont(td);
@@ -588,7 +704,7 @@ errr unloadFont(TermData *td) {
 This function creates an SDL_Texture from the given FontData's surface, then sets
 needed Term options.
 */
-errr attachFont(FontData *fd, TermData *td) {
+static errr attachFont(FontData *fd, TermData *td) {
   if ((td->font_texture = SDL_CreateTextureFromSurface(td->renderer, fd->surface)) == NULL) {
     plog_fmt("Error: attachFont(): %s\n", SDL_GetError());
     return 1;
@@ -597,6 +713,7 @@ errr attachFont(FontData *fd, TermData *td) {
   td->font_data = fd;
   return 0;
 }
+
 /* detachFont
 This function destroys the SDL_Texture created by attachFont
 */
@@ -606,6 +723,7 @@ errr detachFont(TermData *td) {
   td->font_data = NULL;
   return 0;
 }
+
 /* loadPict
 This function attempts to load and attach the given pict to the TermData.
 It first checks all existing PictData structures to see if a PictData with the same settings already exists, and if so, simply attaches that PictData. Otherwise, it will create the given PictData structure and attach it.
@@ -632,10 +750,11 @@ errr loadPict(TermData *td, cptr filename) {
   plog_fmt("loadPict(): %s", "Could not load pict data!");
   return 1;
 }
+
 /* unloadPict
 This function unloads the PictData from the TermData and will attempt to destroy the given PictData if it does not referenced by any Term
 */
-errr unloadPict(TermData *td) {
+static errr unloadPict(TermData *td) {
   int i;
   PictData *pd = td->pict_data;
   detachPict(td);
@@ -651,7 +770,7 @@ errr unloadPict(TermData *td) {
 /* attachPict
 This function creates an SDL_Texture from the given PictData's surface. It then sets required
 */
-errr attachPict(PictData *pd, TermData *td) {
+static errr attachPict(PictData *pd, TermData *td) {
   if ((td->pict_texture = SDL_CreateTextureFromSurface(td->renderer, pd->surface)) == NULL) {
     plog_fmt("attachPict Error: %s", SDL_GetError());
     return 1;
@@ -666,7 +785,7 @@ errr attachPict(PictData *pd, TermData *td) {
 This function "detaches' the given term's pict data - in effect, it destroys the SDL_Texture
 and deactivates pict-related settings
 */
-errr detachPict(TermData *td) {
+static errr detachPict(TermData *td) {
   if (td->pict_texture) SDL_DestroyTexture(td->pict_texture);
   td->pict_texture = NULL;
   td->pict_data = NULL;
@@ -678,9 +797,11 @@ errr detachPict(TermData *td) {
 static void initTermHook(term *t) {}
 static void nukeTermHook(term *t) {
   TermData *td = (TermData*)(t->data);
+
   // detach (free texture and NULL pointers) to font/pict if attached
   unloadFont(td);
   unloadPict(td);
+
   // destroy self
   if (td->config & TERM_IS_VIRTUAL) {
     SDL_DestroyTexture(td->framebuffer);
@@ -692,37 +813,25 @@ static void nukeTermHook(term *t) {
     SDL_DestroyRenderer(td->renderer);
     SDL_DestroyWindow(td->window);
   }
-  // save all values
-  saveConfig();
 
-  td->config &= ~TERM_IS_ONLINE;
-
-  // assume mangclient shutdown if the main terminal is getting nuked
-  // TODO: just move this to a quit_sdl2 or similar func
-  if (td->id == TERM_MAIN) {
-    // close our libraries
-#ifdef USE_SDL2_IMAGE
-    IMG_Quit();
-#endif
-    sdl_font_quit();
-    SDL_Quit();
-  }
+	/* Term is no longer visible */
+	td->config &= ~TERM_IS_ONLINE;
 }
 
 /* Rendering and GUI */
-int drag_x = 0;
-int drag_y = 0;
-int accum_x = 0;
-int accum_y = 0;
-int dragging = -1;
-int gripping = 0;
+static int drag_x = 0;
+static int drag_y = 0;
+static int accum_x = 0;
+static int accum_y = 0;
+static int dragging = -1;
+static int gripping = 0;
 
-int debug = 0;
-
-void renderWindow(TermData *mtd) {
+static void renderWindow(TermData *mtd) {
+    SDL_Color *bgcol;
     int i, j;
+    bgcol = &GUI_COLORS[menu_mode ? GUI_COLOR_BACKGROUND_ACTIVE : GUI_COLOR_BACKGROUND];
     SDL_SetRenderTarget(mtd->renderer, NULL);
-    SDL_SetRenderDrawColor(mtd->renderer, 8, 16, 32, 255);
+    SDL_SetRenderDrawColor(mtd->renderer, bgcol->r, bgcol->g, bgcol->b, bgcol->a);
     SDL_RenderClear(mtd->renderer);
 
     // Render ALT.DUNGEON
@@ -765,7 +874,7 @@ static void renderTerm(TermData *td) {
 	renderGui(td);
 }
 
-int looksLikeCave(int x, int y) {
+static int looksLikeCave(int x, int y) {
 	TermData *td = (TermData*)(Term->data);
 	/*printf("Print cave for row %d (term rows: %d, dungeon rows: %d)\n",
 	y, td->rows, td->dng_rows);*/
@@ -779,7 +888,7 @@ int looksLikeCave(int x, int y) {
 	return 0;
 }
 
-void altDungeonCutout(void) {
+static void altDungeonCutout(void) {
 	int y, x, sx, sy;
 	TermData *td = (TermData*)(Term->data);
 	if (!(td->config & TERM_DO_SCALE)) return;
@@ -816,7 +925,7 @@ void altDungeonCutout(void) {
 	}
 }
 
-void rerender() {
+static void rerender() {
 	int i;
 	for (i = 0; i < TERM_MAX; i++) {
 		if (!(terms[i].config & TERM_IS_ONLINE)) continue;
@@ -857,7 +966,7 @@ void rerender() {
 	}
 }
 
-void mustRerender(void) {
+static void mustRerender(void) {
 	int i;
 	for (i = 0; i < TERM_MAX; i++) {
 		terms[i].need_render = TRUE;
@@ -871,12 +980,12 @@ void mustRerender(void) {
 // of the regular system. I have kept all of the menu-related code separated down here so that
 // removal could be done with ease. To remove, search for "MMM" and remove the relevant code. :)
 // (I am thankful that of all the things in this file, I consider this the only "real" hack)
-int menu_mode = MENU_HIDE;	// Our extra "SDL2" menu mode
-int menu_x = -1, menu_y = -1;	// our menu x and y coordinates
-int menu_open = -1;
-int menu_open_term = -1;
-int menu_hover = -1;
-int menu_term = 0;
+static int menu_mode = MENU_HIDE;	// Our extra "SDL2" menu mode
+static int menu_x = -1, menu_y = -1;	// our menu x and y coordinates
+static int menu_open = -1;
+static int menu_open_term = -1;
+static int menu_hover = -1;
+static int menu_term = 0;
 
 enum {
 	MENU_NO_ACTION,
@@ -940,7 +1049,7 @@ enum {
 	MENU_ACT_MAX,
 };
 
-errr renderTButton(TermData *td, int cx, int cy, char *buf, int menuID) {
+static errr renderTButton(TermData *td, int cx, int cy, char *buf, int menuID) {
 	int i = 0;
 	int color = 8;
 	int n = strlen(buf);
@@ -975,6 +1084,7 @@ static errr renderGui(TermData *td) {
 	int width, height, i, y, growth;
 	int ox, oy;
 	int cx;
+	int sub_x = 0, sub_w = 0;
 
 	if (!menu_mode) return 0;
 
@@ -1000,14 +1110,14 @@ static errr renderGui(TermData *td) {
 		rect.h = td->resize_rect.h;
 	}
 
-	SDL_SetRenderDrawColor(td->renderer, 32, 64, 128, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
 	SDL_RenderDrawRect(td->renderer, &rect);
 
 	// draw menu bar
 	rect.h = grid_h * (1);
-	SDL_SetRenderDrawColor(td->renderer, 4, 16, 32, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BACKGROUND));
 	SDL_RenderFillRect(td->renderer, &rect);
-	SDL_SetRenderDrawColor(td->renderer, 32, 64, 128, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
 	SDL_RenderDrawRect(td->renderer, &rect);
 
 	/* Store menu_rect */
@@ -1043,7 +1153,7 @@ static errr renderGui(TermData *td) {
 			cols = td->resize_rect.w / td->cell_w;
 			rows = td->resize_rect.h / td->cell_h;
 		}
-		snprintf(buf, 128, "(%dx%d)", cols, rows);
+		strnfmt(buf, 128, "(%dx%d)", cols, rows);
 		renderTButton(td, cx, y, buf, MENU_NO_ACTION);//MENU_SUB_WINSIZE);
 		cx += strlen(buf) + 1;
 	}
@@ -1053,9 +1163,9 @@ static errr renderGui(TermData *td) {
 		char buf[128];
 		int fit = !(td->config & TERM_DO_SCALE);
 		if (fit) {
-			snprintf(buf, 128, "Zoom: FIT");
+			strnfmt(buf, 128, "Zoom: FIT");
 		} else {
-			snprintf(buf, 128, "Zoom: %3d\%", td->zoom);
+			strnfmt(buf, 128, "Zoom: %3d%%", td->zoom);
 		}
 		renderTButton(td, cx, y, buf, MENU_SUB_ZOOM);
 		if (menu_open == MENU_SUB_ZOOM && menu_open_term == td->id) {
@@ -1063,19 +1173,21 @@ static errr renderGui(TermData *td) {
 			int sx = cx - 1;
 			int sy = y + 1;
 			int on;
-			snprintf(buf, 32, " [%c] Fit the grid ", (fit ? 'X' : '.'));
+			strnfmt(buf, 32, " [%c] Fit the grid ", (fit ? 'X' : '.'));
 			renderTButton(td, sx, sy, buf, MENU_ZOOM_OFF);
 			for (j = 0; j < MAX_ZOOM_LEVELS; j++) {
 				on = 0;
 				if (td->zoom == zoom_levels[j]) on = 1;
 				if (fit) on = 0;
-				snprintf(buf, 32, " [%c] %3d %%        ", (on ? 'X' : '.'),
+				strnfmt(buf, 32, " [%c] %3d %%        ", (on ? 'X' : '.'),
 				zoom_levels[j]);
 				renderTButton(td, sx, sy + j + 1, buf, MENU_ZOOM_LEVEL0 + j);
 			}
 			td->menu_rect.h += (j+1) * grid_h;
+			sub_w = 18;
+			sub_x = sx;
 		}
-		cx += strlen("Zoom: 000") + 1;
+		cx += strlen("Zoom: 000X") + 1;
 	}
 
 	// Font
@@ -1090,11 +1202,13 @@ static errr renderGui(TermData *td) {
 				if (STRZERO(quick_font_names[j])) break;
 				on = 0;
 				if (!strcmp(quick_font_names[j], td->font_file)) on = 1;
-				snprintf(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
+				strnfmt(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
 				quick_font_names[j]);
 				renderTButton(td, sx, sy + j, buf, MENU_QUICK_FONT0 + j);
+				sub_w = MATH_MAX(sub_w, strlen(quick_font_names[j]) + 6);
 			}
 			td->menu_rect.h += j * grid_h;
+			sub_x = sx;
 		}
 		cx += strlen("Font") + 1;
 	}
@@ -1116,11 +1230,13 @@ static errr renderGui(TermData *td) {
 				if (j && !strcmp(GFXBMP[j], td->font_file)) on = 1;
 				if (!j && use_graphics == 0) on = 1;
 				if (j == use_graphics) on = 1;
-				snprintf(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
+				strnfmt(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
 				j ? GFXNAME[j] : "Off");
 				renderTButton(td, sx, sy + j, buf, MENU_QUICK_GRAF0 + j);
 			}
 			td->menu_rect.h += j * grid_h;
+			sub_w = 18;
+			sub_x = sx;
 		}
 		cx += strlen("Graphics") + 1;
 	}
@@ -1134,13 +1250,16 @@ static errr renderGui(TermData *td) {
 			int sy = y + 1;
 			int si = 0;
 			char buf[128];
-			snprintf(buf, 16, " [%c] %-12s ", use_sound ? 'X' : '.', "On");
+			strnfmt(buf, 16, " [%c] %-12s ", use_sound ? 'X' : '.', "On");
 			renderTButton(td, sx, sy + 0, buf, MENU_ACT_SOUND_ON);
-			snprintf(buf, 16, " [%c] %-12s ", !use_sound ? 'X' : '.', "Off");
+			strnfmt(buf, 16, " [%c] %-12s ", !use_sound ? 'X' : '.', "Off");
 			renderTButton(td, sx, sy + 1, buf, MENU_ACT_SOUND_OFF);
 			td->menu_rect.h += 2 * grid_h;
+			sub_w = 14;
+			sub_x = sx;
 		}
 		cx += strlen("Sound") + 1;
+
 	}
 
 	// Windows
@@ -1154,12 +1273,14 @@ static errr renderGui(TermData *td) {
 			int j;
 			for (j = 0; j < 8; j++) {
 				char buf[16];
-				snprintf(buf, 16, " [%c] %-12s ",
+				strnfmt(buf, 16, " [%c] %-12s ",
 				(terms[j].config & TERM_IS_ONLINE) ? 'X' : '.',
-				term_title[j]);
+				ang_term_name[j]);
 				renderTButton(td, sx, sy + j, buf, MENU_SHOW_WINDOW0 + j);
 			}
 			td->menu_rect.h += j * grid_h;
+			sub_w = 14;
+			sub_x = sx;
 		}
 		cx += strlen("Windows") + 1;
 	}
@@ -1185,7 +1306,15 @@ static errr renderGui(TermData *td) {
 	}
 
 	// draw menu bar border
-	SDL_SetRenderDrawColor(td->renderer, 32, 64, 128, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
+	SDL_RenderDrawRect(td->renderer, &rect);
+
+	// draw submenu border
+	rect.x = sub_x * grid_w + td->ren_rect.x;
+	rect.y = 1 * grid_h + td->ren_rect.y - 1 - growth;
+	rect.w = sub_w * grid_w;
+	rect.h = td->menu_rect.h - 1 * grid_h + 2;
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
 	SDL_RenderDrawRect(td->renderer, &rect);
 
 	// draw grip
@@ -1193,17 +1322,17 @@ static errr renderGui(TermData *td) {
 	rect.y = height - grid_h * 1 + oy + growth;
 	rect.w = grid_w * 1;
 	rect.h = grid_h * 1;
-	SDL_SetRenderDrawColor(td->renderer, 8, 16, 32, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BACKGROUND));
 	SDL_RenderFillRect(td->renderer, &rect);
 	td->menu_rect.y += growth;
 	renderTButton(td, td->cols-1, td->rows-1, "\\", MENU_NO_ACTION);
 	td->menu_rect.y -= growth;
-	SDL_SetRenderDrawColor(td->renderer, 32, 64, 128, 255);
+	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
 	SDL_RenderDrawRect(td->renderer, &rect);
 	td->grip_rect = rect;
 }
 
-int guiTermMatch(int window_id, int x, int y) {
+static int guiTermMatch(int window_id, int x, int y) {
 	int i, j;
 	TermData *td;
 	SDL_Rect *r;
@@ -1222,7 +1351,7 @@ int guiTermMatch(int window_id, int x, int y) {
 	return -1;
 }
 
-int guiGripMatch(int window_id, int x, int y) {
+static int guiGripMatch(int window_id, int x, int y) {
 	int i, j;
 	TermData *td;
 	SDL_Rect *r;
@@ -1241,7 +1370,7 @@ int guiGripMatch(int window_id, int x, int y) {
 	return -1;
 }
 
-int guiDragStart(int i, int x, int y) {
+static int guiDragStart(int i, int x, int y) {
 	TermData *td;
 	td = &terms[i];
 
@@ -1260,7 +1389,7 @@ int guiDragStart(int i, int x, int y) {
 	return 1;
 }
 
-int guiDragMotion(int mx, int my) {
+static int guiDragMotion(int mx, int my) {
 	TermData *td;
 
 	if (dragging < 0) return 0;
@@ -1296,10 +1425,10 @@ int guiDragMotion(int mx, int my) {
 	td->ren_rect.x = td->ren_rect.x + mx;
 	td->ren_rect.y = td->ren_rect.y + my;
 
-	termShuffle(td->id);
+	termConstrain(td->id);
 }
 
-int guiDragStop() {
+static int guiDragStop() {
 	if (dragging <= -1) {
 		return 0;
 	}
@@ -1325,7 +1454,7 @@ int guiDragStop() {
 	dragging = -1;
 }
 
-int guiMenuReact(int window_id, int x, int y) {
+static int guiMenuReact(int window_id, int x, int y) {
 	int i;
 	i = guiTermMatch(window_id, x, y);
 	if (i >= 0) {
@@ -1339,34 +1468,143 @@ int guiMenuReact(int window_id, int x, int y) {
 	}
 }
 
-void guiMenuOff(void) {
+static void guiMenuOff(void) {
 	menu_open = -1;
 	menu_open_term = -1;
 	menu_hover = -1;
 }
 
-static int termShuffle(int i) {
+
+/* Populate SDL_Rect "screen" with term<id> PARENT dimensions */
+static void termSizeScreen(SDL_Rect *screen, int term_id)
+{
+	TermData *td = &terms[term_id];
+
+	/* Main TERM and NON-Virtual terms live inside WM screen */
+	if (!(td->config & TERM_IS_VIRTUAL) || td->id == TERM_MAIN)
+	{
+		SDL_DisplayMode DM;
+		SDL_GetCurrentDisplayMode(0, &DM);
+		screen->x = 0;
+		screen->y = 0;
+		screen->w = DM.w;
+		screen->h = DM.h;
+	}
+	/* Virtual terms live inside parent non-virtual windows */
+	else
+	{
+		SDL_GetWindowPosition(td->window, &screen->x, &screen->y);
+		SDL_GetWindowSize(td->window, &screen->w, &screen->h);
+	}
+}
+
+/* Populate SDL_Rect "r" with term<id> dimenstions */
+static void termSizeRect(SDL_Rect *r, int term_id)
+{
+	TermData *td = &terms[term_id];
+	if (td->config & TERM_IS_VIRTUAL)
+	{
+		r->x = td->ren_rect.x;
+		r->y = td->ren_rect.y;
+		r->w = td->ren_rect.w;
+		r->h = td->ren_rect.h;
+	}
+	else
+	{
+		r->x = td->x;
+		r->y = td->y;
+		r->w = td->width;
+		r->h = td->height;
+	}
+}
+
+/*
+ * This function finds whether 2 SDL_Rects overlap.
+ */
+static bool rectsCollide(SDL_Rect *a, SDL_Rect *b) {
+    if (a->y + a->h <= b->y) return(FALSE);
+    if (b->y + b->h <= a->y) return(FALSE);
+    if (a->x + a->w <= b->x) return(FALSE);
+    if (b->x + b->w <= a->x) return(FALSE);
+    return(TRUE);
+}
+
+static void termStack(int i) {
+	TermData *td = &terms[i];
+	SDL_Rect pos;
+	SDL_Rect other;
+	SDL_Rect screen;
+	int j;
+	bool found = FALSE;
+
+	if (i == 0) found = TRUE;
+
+	termSizeRect(&pos, i);
+	termSizeScreen(&screen, i);
+
+	/* Start at top-left */
+	pos.x = 0;
+	pos.y = 0;
+
+	/* Hack - allow extra pixel for those 2 terms.
+	 * This way, default fonts + default terms will fit on 1280 screen */
+	if (td->id == TERM_CHOICE || td->id == TERM_RECALL)
+	{
+		pos.w -= 1;
+	}
+
+	while (!found) {
+		/* Iterate throu all previous terminals to find non-occupied space */
+		for (j = 0; j < 8; j++) {
+			found = TRUE;
+
+			if (i == j) continue; /* Skip self */
+
+			if (terms[j].config & TERM_IS_HIDDEN) continue; /* Skip offline terminals */
+
+			if ((terms[j].config & TERM_IS_VIRTUAL) != (td->config & TERM_IS_VIRTUAL))
+				continue; /* Do not collide virtual/non-virtual terms */
+
+			termSizeRect(&other, j);
+
+
+			/* Collision! */
+			if (rectsCollide(&pos, &other))
+			{
+				/* Move right if there is still space */
+				if (pos.x + pos.w + other.w < screen.w) {
+					pos.x = pos.x + other.w;
+					found = FALSE;
+					break;
+				}
+				/* Perform a carriage return */
+				if (pos.y + 1 + other.h < screen.h) {
+					pos.y = pos.y + 1;
+					pos.x = 0;
+					found = FALSE;
+					break;
+				}
+			}
+		}
+	}
+	if (td->config & TERM_IS_VIRTUAL) {
+		td->ren_rect.x = pos.x;
+		td->ren_rect.y = pos.y;
+	} else {
+		td->x = pos.x;
+		td->y = pos.y;
+		SDL_SetWindowPosition(td->window, pos.x, pos.y);
+	}
+}
+
+static void termConstrain(int i) {
 	SDL_Rect screen;
 	SDL_Rect t;
 	TermData *td = &terms[i];
-	if (!(td->config & TERM_IS_ONLINE)) return -1;
-	if (td->config & TERM_IS_VIRTUAL || td->id == TERM_MAIN) {
-		screen.x = 0;
-		screen.y = 0;
-		screen.w = td->width;
-		screen.h = td->height;
-		t = td->ren_rect;
-		SDL_GetWindowSize(td->window, &screen.w, &screen.h);
-	} else {
-		SDL_DisplayMode DM;
-		SDL_GetCurrentDisplayMode(0, &DM);
-		screen.w = DM.w;
-		screen.h = DM.h;
-		t.x = td->x;
-		t.y = td->y;
-		t.w = td->width;
-		t.h = td->height;
-	}
+	if (!(td->config & TERM_IS_ONLINE)) return;
+
+	termSizeScreen(&screen, i);
+	termSizeRect(&t, i);
 
 	if (t.x < 0) t.x = 0;
 	if (t.y < 0) t.y = 0; /* then right */
@@ -1395,8 +1633,9 @@ static void termClose(int i) {
 
 static void termSpawn(int i) {
 	terms[i].config &= ~TERM_IS_HIDDEN;
-	initTermData(&terms[i], term_title[i], i, NULL);
+	initTermData(&terms[i], ang_term_name[i], i, NULL);
 	applyTermConf(&terms[i]);
+	termStack(i);
 	setTermTitle(&terms[i]);
 	refreshTerm(&terms[i]);
 	ang_term[i] = &(terms[i].t);
@@ -1448,7 +1687,7 @@ static errr xtraTermHook(int n, int v) {
             if (event.key.keysym.sym >= 1073741881) {
               // send off odd keys (arrows, keypad, function keys, etc.) as macros
               char buf[32];
-              snprintf(buf, 32, "%c%s%s%s%s_%lX%c", 31,
+              strnfmt(buf, 32, "%c%s%s%s%s_%lX%c", 31,
                 event.key.keysym.mod & KMOD_CTRL  ? "N" : "",
                 event.key.keysym.mod & KMOD_SHIFT ? "S" : "",
                 "",
@@ -1541,7 +1780,6 @@ static errr xtraTermHook(int n, int v) {
       }
       // MMM BEGIN
       else if (event.type == SDL_MOUSEBUTTONDOWN) {
-if (event.button.button == 2) debug = 1 -debug;
 	if (menu_mode) {
 		int i;
 		i = guiTermMatch(event.window.windowID, event.button.x, event.button.y);
@@ -1622,6 +1860,7 @@ if (event.button.button == 2) debug = 1 -debug;
     SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
     return 0; // clear?
   case TERM_XTRA_REACT:
+    setTermTitle(&terms[TERM_MAIN]);
     rerender();
     return 0; // react?
   case TERM_XTRA_FROSH: // TODO: refresh row "v"
@@ -1703,7 +1942,7 @@ static errr wipeTermHook(int x, int y, int n) {
 
 }
 
-void textTermCell_Char(int x, int y, byte attr, char c) {
+static void textTermCell_Char(int x, int y, byte attr, char c) {
   int w, h, offsetx, offsety;
   float r;
 
@@ -1810,7 +2049,7 @@ static errr textTermHook(int x, int y, int n, byte attr, cptr s) {
 }
 
 
-void pictTermCell_Tile(int x, int y, byte a, byte c, byte ta, byte tc)
+static void pictTermCell_Tile(int x, int y, byte a, byte c, byte ta, byte tc)
 {
 	SDL_Rect cell_rect, terrain_rect, sprite_rect;
 	int offsetx, offsety, w, h;
@@ -1950,7 +2189,7 @@ static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, co
     "i" is term_id
     "x" and "y" are unused!
 */
-errr handleMenu(int i, int x, int y) {
+static errr handleMenu(int i, int x, int y) {
 	TermData *td;
 
 	if (i < 0) {
@@ -1985,7 +2224,7 @@ errr handleMenu(int i, int x, int y) {
 		td->need_redraw = TRUE;
 		
 		/* Move it around */
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover == MENU_ACT_CLOSE) {
@@ -1999,7 +2238,7 @@ errr handleMenu(int i, int x, int y) {
 		strcpy(td->font_file, quick_font_names[f]);
 		applyTermConf(&terms[i]);
 		refreshTerm(&terms[i]);
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover == MENU_QUICK_GRAF0) {
@@ -2011,7 +2250,7 @@ errr handleMenu(int i, int x, int y) {
 		ANGBAND_GRAF = "none";
 		process_pref_file("font.prf");
 		refreshTerm(&terms[i]);
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover >= MENU_QUICK_GRAF1 && menu_hover <= MENU_QUICK_GRAF8) {
@@ -2025,7 +2264,7 @@ errr handleMenu(int i, int x, int y) {
 		ANGBAND_GRAF = GFXNAME[f];
 		process_pref_file("graf.prf");
 		refreshTerm(&terms[i]);
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover == MENU_ZOOM_OFF) {
@@ -2040,7 +2279,7 @@ errr handleMenu(int i, int x, int y) {
 		}
 		applyTermConf(&terms[i]);
 		refreshTerm(&terms[i]);
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover >= MENU_ZOOM_LEVEL0 && menu_hover <= MENU_ZOOM_LEVEL8) {
@@ -2049,7 +2288,7 @@ errr handleMenu(int i, int x, int y) {
 		terms[i].zoom = zoom_levels[l];
 		applyTermConf(&terms[i]);
 		refreshTerm(&terms[i]);
-		termShuffle(i);
+		termConstrain(i);
 	}
 
 	if (menu_hover >= MENU_SHOW_WINDOW0 && menu_hover <= MENU_SHOW_WINDOW0+8) {
@@ -2059,7 +2298,7 @@ errr handleMenu(int i, int x, int y) {
 			termClose(j);
 		} else {
 			termSpawn(j);
-			termShuffle(j);
+			termConstrain(j);
 		}
 	}
 	
@@ -2105,7 +2344,7 @@ static errr sysText(TermData *td, int x, int y, int n, byte attr, cptr s) {
 
 
 /* ==== Configuration loading/saving functions ==== */
-errr loadConfig() {
+static errr loadConfig() {
 
   char section[128];
   cptr value;
@@ -2114,13 +2353,27 @@ errr loadConfig() {
     int f;
     for (f = 0; f < MAX_QUICK_FONTS; f++) {
         char fbuf[8];
-        snprintf(fbuf, 8, "%d", f);
+        strnfmt(fbuf, 8, "%d", f);
         value = conf_get_string("SDL-Fonts", fbuf, NULL);
         if (value) {
             strcpy(quick_font_names[f], value);
         } else {
             break;
         }
+    }
+
+    /* Assume quickfont-0 is our default font. (for now) */
+    if (f > 0) {
+	strcpy(default_font, quick_font_names[0]);
+	strcpy(default_font_small, quick_font_names[0]);
+    } else {
+	/* User has ZERO quick fonts, revert to hardcoded defaults */
+	strcpy(default_font, "nethack10x19-10.hex");
+	strcpy(default_font_small, "misc6x13.hex");
+    }
+    /* Assume quickfont-1 is our default small font. (for now) */
+    if (f > 1) {
+	strcpy(default_font_small, quick_font_names[1]);
     }
 
   value = conf_get_string("SDL2", "font_file", default_font);
@@ -2131,7 +2384,7 @@ errr loadConfig() {
   default_font_size = conf_get_int("SDL2", "font_size", default_font_size);
 
   for (window_id = 0; window_id < 8; window_id++) {
-    sprintf(section, "SDL2-window-%d", window_id);
+    strnfmt(section, 128, "SDL2-window-%d", window_id);
     strncpy(terms[window_id].title, conf_get_string(section, "title", ""), 128);
     strncpy(terms[window_id].pict_file, conf_get_string(section, "pict_file", ""), 128);
     strncpy(terms[window_id].mask_file, conf_get_string(section, "mask_file", ""), 128);
@@ -2174,12 +2427,8 @@ errr loadConfig() {
       terms[window_id].cell_mode = TERM_CELL_CUST;
     }
 
-    if (conf_get_int(section, "hidden", 0) && window_id) {
+    if (conf_get_int(section, "hidden", window_id < 5 ? 0 : 1) && window_id) {
       terms[window_id].config |= TERM_IS_HIDDEN;
-    }
-
-    if (conf_get_int(section, "virtual", 1)) {
-      terms[window_id].config |= TERM_IS_VIRTUAL;
     }
 
     terms[window_id].zoom = conf_get_int(section, "zoom", 100);
@@ -2194,16 +2443,16 @@ errr loadConfig() {
 
     if (conf_get_int(section, "virtual", 1)) {
 
-    terms[window_id].ren_rect.x = conf_get_int(section, "x", 0);
-    terms[window_id].ren_rect.y = conf_get_int(section, "y", 0);
+    terms[window_id].ren_rect.x = conf_get_int(section, "x", -1);
+    terms[window_id].ren_rect.y = conf_get_int(section, "y", -1);
     terms[window_id].ren_rect.w = conf_get_int(section, "width", 0);
     terms[window_id].ren_rect.h = conf_get_int(section, "height", 0);
 
       terms[window_id].config |= TERM_IS_VIRTUAL;
     } else {
 
-    terms[window_id].x = conf_get_int(section, "x", 0);
-    terms[window_id].y = conf_get_int(section, "y", 0);
+    terms[window_id].x = conf_get_int(section, "x", -1);
+    terms[window_id].y = conf_get_int(section, "y", -1);
     terms[window_id].width = conf_get_int(section, "width", 0);
     terms[window_id].height = conf_get_int(section, "height", 0);
     terms[window_id].ren_rect.x = 0;
@@ -2215,17 +2464,19 @@ errr loadConfig() {
 
     if (window_id == 0) {
 
-    terms[window_id].x = conf_get_int("SDL2", "x", 0);
-    terms[window_id].y = conf_get_int("SDL2", "y", 0);
-    terms[window_id].width = conf_get_int("SDL2", "width", 400);
-    terms[window_id].height = conf_get_int("SDL2", "height", 200);
+    terms[window_id].x = conf_get_int("SDL2", "x", -1);
+    terms[window_id].y = conf_get_int("SDL2", "y", -1);
+    terms[window_id].width = conf_get_int("SDL2", "width", 0);
+    terms[window_id].height = conf_get_int("SDL2", "height", 0);
+
+    terms[window_id].config |= TERM_IS_VIRTUAL;
 
     }
 
   }
   return 0;
 }
-errr saveConfig() {
+static errr saveConfig() {
 
   char section[128];
   int window_id;
@@ -2237,7 +2488,7 @@ errr saveConfig() {
 
 
   for (window_id = 0; window_id < 8; window_id++) {
-    sprintf(section, "SDL2-window-%d", window_id);
+    strnfmt(section, 128, "SDL2-window-%d", window_id);
     conf_set_string(section, "title", terms[window_id].title);
     conf_set_string(section, "pict_file", terms[window_id].pict_file);
     conf_set_string(section, "mask_file", terms[window_id].mask_file);
@@ -2246,8 +2497,8 @@ errr saveConfig() {
 	conf_set_int(section, "font_size", terms[window_id].font_size);
 
 	conf_set_int(section, "zoom", terms[window_id].zoom);
+	if (window_id)
 	conf_set_int(section, "alt_dungeon", (terms[window_id].config & TERM_DO_SCALE));
-
 
     if (terms[window_id].pict_mode == TERM_PICT_STATIC) {
       conf_set_string(section, "pict_mode", "static");
@@ -2307,11 +2558,12 @@ errr saveConfig() {
 
   return 0;
 }
+
 /* ==== Font-related functions ==== */
 /* cleanFontData
 This function takes the FontData, destroys its SDL_Texture (if it exists), nulls it, then sets its entire struct to 0.
 */
-errr cleanFontData(FontData *fd) {
+static errr cleanFontData(FontData *fd) {
   if (fd->surface) SDL_FreeSurface(fd->surface);
   fd->surface = NULL;
   if (fd->filename) string_free(fd->filename);
@@ -2320,7 +2572,7 @@ errr cleanFontData(FontData *fd) {
   memset(fd, 0, sizeof(FontData));
   return 0;
 }
-errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
+static errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
   SDL_Rect info, full;
   SDL_Surface *surface;
 
@@ -2346,8 +2598,9 @@ errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
 
   return 0;
 }
+
 /* ==== Pict-related functions ==== */
-errr cleanPictData(PictData *pd) {
+static errr cleanPictData(PictData *pd) {
   if (pd->surface) SDL_FreeSurface(pd->surface);
   pd->surface = NULL;
   if (pd->filename) string_free(pd->filename);
@@ -2355,7 +2608,8 @@ errr cleanPictData(PictData *pd) {
   memset(pd, 0, sizeof(PictData));
   return 0;
 }
-errr imgToPict(PictData *pd, cptr filename, cptr maskname) {
+
+static errr imgToPict(PictData *pd, cptr filename, cptr maskname) {
   SDL_Rect glyph_info;
   Uint32 width, height;
   char buf[1036];

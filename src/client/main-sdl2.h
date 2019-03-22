@@ -30,23 +30,20 @@ typedef struct TermData TermData;
 #define TERM_CHOICE 3
 #define TERM_CHAT 4
 #define TERM_MAX 8
-extern char *term_title[TERM_MAX];
 
 // MMM BEGIN: our "special" SDL2 menu system, take note it can be removed fairly easily!
-extern int menu_mode, menu_term;
-extern int menu_x, menu_y;
+static int menu_mode, menu_term;
+static int menu_x, menu_y;
 #define MENU_HIDE 0
-#define MENU_MAIN 1
-#define MENU_WINDOWS 2
-#define MENU_PROPERTIES 3
-#define MENU_BINDS 4
-extern char *menu_strings[12];
-errr renderMenu(TermData *td);
-errr handleMenu(int i, int x, int y);
+#define MENU_SHOW 1
+static errr renderMenu(TermData *td);
+static errr handleMenu(int i, int x, int y);
 // MMM END
-/* */
+
+/* main hooks */
 extern errr init_sdl2(int argc, char **argv);
 extern void quit_sdl2(cptr s);
+
 /* hook declarations */
 static errr xtraTermHook(int n, int v);
 static errr cursTermHook(int x, int y);
@@ -57,12 +54,12 @@ static void initTermHook(term *t);
 static void nukeTermHook(term *t);
 /* declarations */
 struct FontData {
-  char *filename;       // The filename of this font
+  cptr filename;       // The filename of this font
   SDL_Surface *surface; // surface of all glyphs
   Uint8 w, h;           // dimensions of character
 };
 struct PictData {
-  char *filename;       // The filename of this pict
+  cptr filename;       // The filename of this pict
   SDL_Surface *surface; // surface of sprites
   Uint8 w, h;           // dimensions of each sprite
 };
@@ -146,30 +143,28 @@ static errr setTermTitle(TermData *td);
 static errr refreshTerm(TermData *td);
 static void refreshTermAlt(TermData *td);
 static errr resizeTerm(TermData *td, int rows, int cols);
-errr loadConfig();
-errr parseConfig(cptr section, cptr key, cptr value);
-errr saveConfig();
-errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing);
-errr unloadFont(TermData *td);
-errr attachFont(FontData *fd, TermData *td);
-errr detachFont(TermData *td);
-errr loadPict(TermData *td, cptr filename);
-errr unloadPict(TermData *td);
-errr attachPict(PictData *pd, TermData *td);
-errr detachPict(TermData *td);
-errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing);
-errr cleanFontData(FontData *fd);
+static errr loadConfig();
+static errr saveConfig();
+static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing);
+static errr unloadFont(TermData *td);
+static errr attachFont(FontData *fd, TermData *td);
+static errr detachFont(TermData *td);
+static errr loadPict(TermData *td, cptr filename);
+static errr unloadPict(TermData *td);
+static errr attachPict(PictData *pd, TermData *td);
+static errr detachPict(TermData *td);
+static errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing);
+static errr cleanFontData(FontData *fd);
 
-errr imgToPict(PictData *pd, cptr filename, cptr maskname);
-errr cleanPictData(PictData *pd);
-//
-errr strtoii(const char *str, Uint32 *w, Uint32 *h);
+static errr imgToPict(PictData *pd, cptr filename, cptr maskname);
+static errr cleanPictData(PictData *pd);
 
 /* GUI */
 static void renderTerm(TermData *td);
 static errr renderGui(TermData *td);
 static errr sysText(TermData *td, int x, int y, int n, byte attr, cptr s);
-static int termShuffle(int i);
+static void termStack(int i);
+static void termConstrain(int i);
 
 /* ALT.DUNGEON */
 static void wipeTermCell_UI(int x, int y, int cutout);
