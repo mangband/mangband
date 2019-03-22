@@ -48,7 +48,7 @@ endif
 
 if USE_SDL
 
-mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/sdl-xxx.c src/client/main-sdl.h
+mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/main-sdl.h
 
 endif
 

@@ -178,7 +178,6 @@
     <ClCompile Include="..\..\src\common\net-imps.c" />
     <ClCompile Include="..\..\src\common\net-pack.c" />
     <ClCompile Include="..\..\src\client\readdib.c" />
-    <ClCompile Include="..\..\src\client\sdl-xxx.c" />
     <ClCompile Include="..\..\src\client\set_focus.c" />
     <ClCompile Include="..\..\src\client\c-variable.c" />
     <ClCompile Include="..\..\src\common\z-form.c" />

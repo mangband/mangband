@@ -441,10 +441,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\sdl-xxx.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\client\set_focus.c"
 				>
 			</File>
