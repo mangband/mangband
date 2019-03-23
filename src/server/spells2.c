@@ -3130,13 +3130,6 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 
 		reduce_charges(o_ptr, 1);
 
-		/* *Identified* items keep the knowledge about the charges */
-		if (!(o_ptr->ident & ID_MENTAL))
-		{
-			/* We no longer "know" the item */
-			o_ptr->ident &= ~(ID_KNOWN);
-		}
-
 		/* Destroy the item */
 		if (!cfg_safe_recharge)
 		{
@@ -3161,6 +3154,13 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 		else
 		{
 			reduce_charges(o_ptr, 1);
+
+			/* *Identified* items keep the knowledge about the charges */
+			if (!(o_ptr->ident & ID_MENTAL))
+			{
+				/* We no longer "know" the item */
+				o_ptr->ident &= ~(ID_KNOWN);
+			}
 		}
 	}
 
