@@ -619,6 +619,10 @@ void cmd_rest(void)
 
 void cmd_inven(void)
 {
+	/* show_inven() might not show anything, yet we still pause the screen,
+	 * using inkey() below. To avoid all that altogether, let's quit early */
+	if (inventory[0].number == 0) return;
+
 	/* Save the screen */
 	Term_save();
 
