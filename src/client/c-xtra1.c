@@ -992,7 +992,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, lim);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
 	}
 
