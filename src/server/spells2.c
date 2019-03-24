@@ -3148,6 +3148,7 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 				floor_item_increase(0 - item, -1);
 				floor_item_describe(0 - item);
 				floor_item_optimize(0 - item);
+				floor_item_notify(Ind, 0 - item, TRUE);
 			}
 		}
 		/* MAngband-specific: remove even MORE charges */
