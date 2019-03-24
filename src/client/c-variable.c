@@ -12,9 +12,11 @@ int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
+byte *inventory_secondary_tester;/* Secondary item tester (if known) */
 
 object_type floor_item;
 char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
+byte floor_secondary_tester;
 
 indicator_type indicators[MAX_INDICATORS];
 int known_indicators;
@@ -36,6 +38,7 @@ s16b store_num;				/* The current store number */
 
 char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
+byte spell_test[26 * (SPELLS_PER_BOOK+1)];	/* TV filter for item-related spells */
 
 char party_info[160];			/* Information about your party */
 channel_type channels[MAX_CHANNELS];

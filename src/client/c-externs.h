@@ -52,9 +52,11 @@ extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern byte floor_secondary_tester;
 
 
 extern indicator_type indicators[MAX_INDICATORS];
@@ -76,6 +78,7 @@ extern s16b store_num;
 
 extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
+extern byte spell_test[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
@@ -407,6 +410,7 @@ extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
+extern byte c_secondary_tester(int item);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP

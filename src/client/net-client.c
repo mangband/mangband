@@ -805,6 +805,7 @@ int recv_struct_info(connection_type *ct)
 			C_MAKE(eq_names, max, s16b);
 			C_MAKE(inventory_name, max, char*);
 			C_MAKE(inventory, max, object_type);
+			C_MAKE(inventory_secondary_tester, max, byte);
 			INVEN_TOTAL = max;
 			INVEN_WIELD = fake_text_size;
 			
@@ -1747,11 +1748,11 @@ int recv_ghost(connection_type *ct)
 int recv_floor(connection_type *ct)
 {
 	byte pos, tval, attr;
-	byte flag;
+	byte flag, tester;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%c%c%s", &pos, &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%b%b%s", &pos, &attr, &amt, &tval, &flag, &tester, name) < 7)
 	{
 		return 0;
 	}
@@ -1768,6 +1769,7 @@ int recv_floor(connection_type *ct)
 	floor_item.tval = tval;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
+	floor_secondary_tester = tester;
 
 	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
@@ -1776,12 +1778,12 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	char pos, attr, tval;
-	byte flag;
+	byte pos, attr, tval;
+	byte flag, tester;
 	s16b wgt, amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%b%b%s", &pos, &attr, &wgt, &amt, &tval, &flag, &tester, name) < 8)
 	{
 		return 0;
 	}
@@ -1789,36 +1791,40 @@ int recv_inven(connection_type *ct)
 	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
 	inventory[pos - 'a'].sval = attr;
 	inventory[pos - 'a'].tval = tval;
-	inventory[pos - 'a'].ident = flag;
+	inventory[pos - 'a'].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
+	inventory_secondary_tester[pos - 'a'] = tester;
 
 	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Hack -- if server used this packet to send equip */
+	if (pos >= INVEN_TOTAL) p_ptr->window |= (PW_EQUIP);
+
 	return 1;
 }
 
 int recv_equip(connection_type *ct)
 {
-	char pos, attr, tval;
+	byte pos, attr, tval;
 	byte flag;
 	s16b wgt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%b%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
 		return 0;
 	}
 
-	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
+	inventory[pos - 'a' + INVEN_WIELD].sval = attr; /* Hack -- Store "attr" in "sval" */
 	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
-	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
-
+	inventory_secondary_tester[pos - 'a' + INVEN_WIELD] = 0;
 
 	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
@@ -1830,14 +1836,15 @@ int recv_equip(connection_type *ct)
 
 int recv_spell_info(connection_type *ct)
 {
-	char
-		flag;
+	byte
+		flag,
+		tester;
 	u16b
 		book,
 		line;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
+	if (cq_scanf(&ct->rbuf, "%b%b%ud%ud%s", &flag, &tester, &book, &line, buf) < 5)
 	{
 		return 0;
 	}
@@ -1851,6 +1858,7 @@ int recv_spell_info(connection_type *ct)
 	/* Save the info */
 	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
+	spell_test[book * SPELLS_PER_BOOK + line] = tester;
 
 	/* and wipe the next line */
 	spell_info[book][line+1][0] = '\0';

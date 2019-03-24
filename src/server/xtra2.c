@@ -5674,7 +5674,7 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		send_spell_info(Ind, 12 + b, bi, flag, 0, out_val);
 		j++;
 		bi++;
 

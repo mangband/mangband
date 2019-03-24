@@ -211,6 +211,26 @@ bool c_check_item(int *item, byte tval)
 	return FALSE;
 }
 
+byte c_secondary_tester(int item)
+{
+	if ((item < 0 && FLOOR_NEGATIVE) || (item >= INVEN_TOTAL && !FLOOR_NEGATIVE))
+	{
+		byte floor_item_pos = (FLOOR_NEGATIVE ? 0 - item + FLOOR_INDEX : item - FLOOR_INDEX);
+		/* Hack -- discard floor_item_pos, we don't support piles */
+		return floor_secondary_tester;
+	}
+	else if (item < 0 || item >= INVEN_TOTAL)
+	{
+		/* Don't know what that item is */
+		return 0;
+	}
+	else
+	{
+		/* It's an inven/equip item */
+		return inventory_secondary_tester[item];
+	}
+}
+
 bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';

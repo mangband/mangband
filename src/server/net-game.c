@@ -597,22 +597,22 @@ int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade
 	return 1;
 }
 
-int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
+int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%c%c%s", PKT_FLOOR, 0, attr, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%d%c%b%b%s", PKT_FLOOR, 0, attr, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
+int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -623,18 +623,18 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%c%b%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
+int send_spell_info(int Ind, u16b book, u16b i, byte flag, byte item_tester, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	if (!cq_printf(&ct->wbuf, "%c" "%b%b%ud%ud%s", PKT_SPELL_INFO, flag, item_tester, book, i, out_val))
 	{
 		client_withdraw(ct);
 	}

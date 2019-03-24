@@ -15,6 +15,7 @@ void cmd_custom(byte i)
 	cptr prompt;
 	char entry[60];
 	bool need_second, need_target;
+	byte second_item_tester = 0;
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
@@ -117,6 +118,7 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
+		second_item_tester = c_secondary_tester(item);
 		advance_prompt();
 
 		/* Get an amount */
@@ -194,6 +196,7 @@ void cmd_custom(byte i)
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
 				need_second = (spell_flag[index] & PY_SPELL_ITEM ? TRUE : FALSE);
+				if (need_second) second_item_tester = spell_test[index];
 			}
 		}
 	} 
@@ -201,6 +204,7 @@ void cmd_custom(byte i)
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (STRZERO(prompt)) prompt = "Which item? ";
+		item_tester_tval = second_item_tester;
 		if (!c_get_item(&item2, prompt,
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
