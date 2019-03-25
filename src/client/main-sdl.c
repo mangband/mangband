@@ -144,7 +144,8 @@ static term_data tdata[ANGBAND_TERM_MAX];
 
 /* XXX XXX SDL surface + window size and params */
 SDL_Surface *bigface;
-Uint32 width, height, bpp, fullscreen, flags; 
+Uint32 width, height, bpp, flags;
+bool fullscreen;
 
 /* Cursor surface */
 SDL_Surface *sdl_screen_cursor = NULL;

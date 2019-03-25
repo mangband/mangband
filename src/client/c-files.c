@@ -2763,7 +2763,7 @@ bool clia_cpy_int(s32b *dst, int i)
 	}
 	return FALSE;
 }
-bool clia_read_bool(s32b *dst, const char *key)
+bool clia_read_bool(bool *dst, const char *key)
 {
 	int i = clia_find(key);
 	if (i > 0 && i < p_argc)

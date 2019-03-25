@@ -390,7 +390,7 @@ extern bool clia_cpy_string(char *dst, int len, int i);
 extern bool clia_cpy_int(s32b *dst, int i);
 extern bool clia_read_string(char *dst, int len, const char *key);
 extern bool clia_read_int(s32b *dst, const char *key);
-extern bool clia_read_bool(s32b *dst, const char *key);
+extern bool clia_read_bool(bool *dst, const char *key);
 
 /* c-init.c */
 extern bool sync_data(void);
