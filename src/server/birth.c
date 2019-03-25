@@ -1256,6 +1256,13 @@ bool player_birth(int Ind, cptr name, cptr pass, int conn, int race, int class, 
 		return TRUE;		
 	}
 
+	/* Hack -- do not allow new characters to be created */
+	if (cfg_instance_closed)
+	{
+		Destroy_connection(p_ptr->conn, "Instance is closed.");
+		return FALSE;
+	}
+
 	/* Else, loading failed, but we just create a new character */
 
 	/* Hack -- rewipe the player info if load failed */

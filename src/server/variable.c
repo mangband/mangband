@@ -195,6 +195,7 @@ s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
 s16b cfg_max_houses = 0;
 bool cfg_chardump_color = FALSE;
+bool cfg_instance_closed = FALSE;
 
 /*
  * Software options (set via the '=' command).  See "tables.c"

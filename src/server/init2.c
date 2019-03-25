@@ -2483,6 +2483,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_chardump_color = str_to_boolean(value);
     }
+    else if (!strcmp(option,"INSTANCE_CLOSED"))
+    {
+        cfg_instance_closed = str_to_boolean(value);
+    }
 
 
 	else plog(format("Error : unrecognized mangband.cfg option %s", option));

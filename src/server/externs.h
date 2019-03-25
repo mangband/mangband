@@ -183,6 +183,7 @@ extern s16b cfg_max_townies;
 extern s16b cfg_max_trees;
 extern s16b cfg_max_houses;
 extern bool cfg_chardump_color;
+extern bool cfg_instance_closed;
 
 extern bool rogue_like_commands;
 extern bool quick_messages;
