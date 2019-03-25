@@ -600,6 +600,11 @@ void stretch_chat_ctrl( void )
 	             SWP_NOZORDER);
 }
 
+int win32_window_visible(int i)
+{
+	return (bool)win_data[i].visible;
+}
+
 /*
  * Hack -- given a pathname, point at the filename
  */

@@ -1117,7 +1117,7 @@ void cmd_message(void)
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
 #ifdef PMSG_TERM
-	refocus_chat = ang_term[PMSG_TERM] ? TRUE : FALSE;
+	refocus_chat = win32_window_visible(PMSG_TERM) ? TRUE : FALSE;
 #endif
 #endif
 	// [hack] hack to just change the window focus in WIN32 client

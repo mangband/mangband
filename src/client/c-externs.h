@@ -36,6 +36,7 @@ extern cptr angband_sound_name[MSG_MAX];
 extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
+extern int win32_window_visible(int i);
 
 /* z-term.c */
 extern event_type inkey_ex(void);

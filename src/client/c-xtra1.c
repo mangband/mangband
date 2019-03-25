@@ -1981,6 +1981,9 @@ byte find_chat_window(void)
 		/* No relevant flags */
 		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
 
+		/* XXX XXX XXX special win32 handler :( */
+		if (!win32_window_visible(j)) continue;
+
 		return j;
 	}
 	return 0;
