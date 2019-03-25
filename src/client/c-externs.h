@@ -186,6 +186,9 @@ extern s16b FLOOR_INDEX;
 extern bool FLOOR_NEGATIVE;
 extern s16b FLOOR_TOTAL;
 
+extern u16b MAX_OBJFLAGS_ROWS;
+extern u16b MAX_OBJFLAGS_COLS;
+
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
 extern s16b view_channel;

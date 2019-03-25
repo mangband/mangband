@@ -157,6 +157,10 @@
 #define MON_DRAIN_LIFE	2		/* Percent of player exp drained per hit */
 #define USE_DEVICE      3		/* x> Harder devices x< Easier devices     */
 
+/* Resistance panel */
+#define MAX_OBJFLAGS_ROWS 13
+#define MAX_OBJFLAGS_COLS 39
+
 /*
  * There is a 1/20 (5%) chance of inflating the requested object_level
  * during the creation of an object (see "get_obj_num()" in "object.c").

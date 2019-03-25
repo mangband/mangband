@@ -1080,7 +1080,7 @@ static void prt_flags(int Ind)
 	prt_player_sust_info(Ind);
 	prt_player_flag_info(Ind);
 
-	for (i = 0; i < 13; i++)
+	for (i = 0; i < MAX_OBJFLAGS_ROWS; i++)
 	{
 		send_objflags(Ind, i);
 	}

@@ -846,6 +846,12 @@ int recv_struct_info(connection_type *ct)
 			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
 		}
 		break;
+		/* Objflag info (rows and cols of Charsheet plusses) */
+		case STRUCT_INFO_OBJFLAGS:
+		{
+			MAX_OBJFLAGS_ROWS = max;
+			MAX_OBJFLAGS_COLS = fake_name_size;
+		}
 	}
 
 	return 1;
@@ -1882,15 +1888,15 @@ int recv_objflags(connection_type *ct)
 	}
 
 	/* Verify */
-	if (y < 0 || y >= 14)
+	if (y < 0 || y >= MAX_OBJFLAGS_ROWS)
 	{
-		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, 14));
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, MAX_OBJFLAGS_ROWS));
 		return -1;
 	}
 
 	/* Body (39 grids of cave) */
-	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
-	{ 
+	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], MAX_OBJFLAGS_COLS) < MAX_OBJFLAGS_COLS)
+	{
 		return 0;
 	}
 

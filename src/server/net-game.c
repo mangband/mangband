@@ -215,6 +215,29 @@ int send_inventory_info(connection_type *ct)
 	return 1;
 }
 
+int send_objflags_info(connection_type *ct)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OBJFLAGS) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OBJFLAGS_ROWS, MAX_OBJFLAGS_COLS, 0) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
+
 int send_floor_info(connection_type *ct)
 {
 	u32b off = 0;
@@ -686,7 +709,7 @@ int send_objflags(int Ind, int line)
 		client_withdraw(ct);
 	}
 	/* Body (39 grids of "cave") */
-	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], 39) <= 0)
+	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], MAX_OBJFLAGS_COLS) <= 0)
 	{
 		client_withdraw(ct);
 	} 

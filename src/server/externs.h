@@ -719,6 +719,7 @@ extern int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte fla
 extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, byte item_tester, cptr desc);
 extern int send_ghost(player_type *p_ptr);
 extern int send_inventory_info(connection_type *ct);
+extern int send_objflags_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, int id, ...);
 extern int send_objflags(int Ind, int line);
