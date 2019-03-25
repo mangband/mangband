@@ -196,6 +196,7 @@ extern bool cfg_party_share_quest;
 extern bool cfg_party_share_kill;
 extern bool cfg_party_share_win;
 extern s16b cfg_party_sharelevel;
+extern bool cfg_instance_closed;
 
 extern s16b hitpoint_warn;
 extern s16b delay_factor;

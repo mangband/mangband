@@ -956,6 +956,12 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 			client_abort(ct, "Character not suitable for rolling!");
 		}
 
+		/* Hack -- do not allow new characters to be created? */
+		if (cfg_instance_closed)
+		{
+			client_abort(ct, "No new characters can be created on this server.");
+		}
+
 		/* Do it */
 		player_birth(ct->user, p_ptr->prace, p_ptr->pclass, p_ptr->male, p_ptr->stat_order);
 
