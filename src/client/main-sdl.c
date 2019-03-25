@@ -54,6 +54,13 @@ extern char *formatsdlflags(Uint32 flags);
 extern void Multikeypress(char *k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
 
+/* this is for arrow combiner: */
+extern int sdl_combine_arrowkeys;
+extern int sdl_combiner_delay;
+extern Uint32 event_timestamp;
+extern void Flushdelayedkey(bool execute, bool force_flush, SDLKey key, Uint32 new_timestamp);
+
+
 
 /*
  * Extra data to associate with each "window"
@@ -1384,6 +1391,9 @@ static errr Term_xtra_sdl(int n, int v)
 	switch (n)
 	{
 		case TERM_XTRA_EVENT:
+
+		Flushdelayedkey(TRUE, FALSE, 0, SDL_GetTicks());
+
 		while (1) {
 			if (v)
 			{
@@ -1394,10 +1404,19 @@ static errr Term_xtra_sdl(int n, int v)
 				if (!SDL_PollEvent(&event)) return(0);
 			}
 
+			event_timestamp = SDL_GetTicks();/*event.key.timestamp;*/
+
 			if (gui_term_event(&event)) continue;
+
+			if (event.type == SDL_KEYUP)
+			{
+				Flushdelayedkey(TRUE, FALSE, event.key.keysym.sym, 0);
+			}
 
 			if (event.type == SDL_KEYDOWN)
 			{
+				Flushdelayedkey(TRUE, FALSE, event.key.keysym.sym, event_timestamp);
+
 				/* PASS Keypress to Angband Terminals finally */
 				Multikeypress(SDL_keysymtostr(&event.key.keysym));
 			}
@@ -2761,6 +2780,9 @@ errr init_sdl(void)
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
 
+	sdl_combine_arrowkeys = conf_get_int("SDL", "CombineArrows", 1);
+	sdl_combiner_delay = conf_get_int("SDL", "CombineArrowsDelay", 20);
+
 	/* Read command-line arguments */
 	clia_read_int(&width, "width");
 	clia_read_int(&height, "height");
@@ -2932,6 +2954,9 @@ void save_sdl_prefs() {
 	conf_set_int("SDL", "Fullscreen", fullscreen);
 	conf_set_int("SDL", "Graphics", use_graphics);
 	conf_set_int("SDL", "Sound", use_sound);
+
+	conf_set_int("SDL", "CombineArrows", sdl_combine_arrowkeys ? 1 : 0);
+	conf_set_int("SDL", "CombineArrowsDelay", sdl_combiner_delay);
 
 	/* Terms */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
