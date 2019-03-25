@@ -852,6 +852,7 @@ int recv_struct_info(connection_type *ct)
 			MAX_OBJFLAGS_ROWS = max;
 			MAX_OBJFLAGS_COLS = fake_name_size;
 		}
+		break;
 	}
 
 	return 1;
