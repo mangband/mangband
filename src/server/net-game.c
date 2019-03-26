@@ -217,8 +217,7 @@ int send_inventory_info(connection_type *ct)
 
 int send_objflags_info(connection_type *ct)
 {
-	u32b i, off = 0;
-	char buf[80];
+	u32b off = 0;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -1706,7 +1705,7 @@ static int recv_custom_command(player_type *p_ptr)
 	char
 		dir,
 		item;
-	byte i, j, tmp;
+	byte i, tmp;
 	char entry[60];
 	u32b old_energy;
 

@@ -1594,7 +1594,6 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 	bool read_pass = FALSE;
 
 	char buf[1024];
-	int i;
 
 	/* The savefile is a text file */
 	file_handle = my_fopen(sfile, "r");

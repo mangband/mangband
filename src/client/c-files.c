@@ -1968,7 +1968,7 @@ void show_remote_peruse(s16b line)
 void stash_remote_info(void)
 {
 	int j;
-	u32b last_line = last_remote_line[p_ptr->remote_term];
+	s16b last_line = last_remote_line[p_ptr->remote_term];
 	byte st = window_to_stream[p_ptr->remote_term];
 	for (j = 0; j < last_line + 1; j++)
 	{

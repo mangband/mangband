@@ -5132,7 +5132,7 @@ bool do_restoreXP_other(int Ind)
  * times five to keep the same movement rate.
  */
 
-int level_speed(int Ind)
+u32b level_speed(int Ind)
 {
 	if ( Ind <= 0) return level_speeds[0]*5;
 	else return level_speeds[Ind]*5;

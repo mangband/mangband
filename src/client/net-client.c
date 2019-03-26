@@ -993,7 +993,6 @@ int recv_indicator_info(connection_type *ct) {
 	s16b row = 0,
 		col = 0;
 	u32b flag = 0;
-	int n;
 
 	indicator_type *i_ptr;
 
@@ -1967,7 +1966,7 @@ int recv_party_info(connection_type *ct)
 
 
 /* HACK -- We have connected to server < 1.5.0 -- Remove this */
-int recv_oldserver_handshake()
+int recv_oldserver_handshake(connection_type *ct)
 {
 	quit("Server version is too old.");
 	return -1;

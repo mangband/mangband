@@ -499,7 +499,7 @@ int IsMovement(SDLKey k)
 
 /* *** Arrow keys combiner *** */
 int sdl_combine_arrowkeys = 1; /* ON/OFF */
-int sdl_combiner_delay = 20;
+Uint16 sdl_combiner_delay = 20;
 /* Delayed key */
 SDL_keysym delayed_keysym; /* Actual key (with mods) */
 bool has_dlks = FALSE; /* We have one */
@@ -581,7 +581,7 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 	buf[0] = '\0';
 
 	if(ks->unicode && !(ks->unicode & 0xff80)) {
-		ch = ks->unicode;
+		ch = (Uint8)ks->unicode;
 		if (ch) sdlkapp(ch);
 		return buf;
 	}

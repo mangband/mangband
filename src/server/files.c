@@ -2216,7 +2216,6 @@ void get_name(int Ind)
  */
 void do_cmd_suicide(int Ind)
 {
-	int i;
 	player_type *p_ptr = Players[Ind];
 
 	/* Mark as suicide */

@@ -292,7 +292,7 @@ static void prt_depth(int row, int col, int id)
 	/* Hack -- if indicator index is passed, use value from coffers */
 	if (id != -1)
 	{
-		p_ptr->dun_depth = coffers[coffer_refs[id]];
+		p_ptr->dun_depth = (s16b)coffers[coffer_refs[id]];
 	}
 
 	if (!p_ptr->dun_depth)

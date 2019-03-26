@@ -2531,7 +2531,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
  * Convert an inventory index into a one character label
  * Note that the label does NOT distinguish inven/equip.
  */
-s16b index_to_label(int i)
+char index_to_label(int i)
 {
 	/* Indexes for "inven" are easy */
 	if (i < INVEN_WIELD) return (I2A(i));

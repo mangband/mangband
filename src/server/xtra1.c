@@ -1136,7 +1136,7 @@ static void prt_skills(int Ind)
 	player_type *p_ptr = Players[Ind];
 	s16b skills[11];
 	s16b factors[11];
-	int i, tmp;
+	int tmp;
 	object_type *o_ptr;
 
 	/* Fighting skill */
