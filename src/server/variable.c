@@ -198,6 +198,7 @@ s16b cfg_max_townies = 100;
 s16b cfg_max_trees = 100;
 s16b cfg_max_houses = 0;
 bool cfg_chardump_color = FALSE;
+s16b cfg_chardump_minlevel = 20;
 s16b cfg_pvp_hostility = 2;
 bool cfg_pvp_notify = FALSE;
 s16b cfg_pvp_safehostility = 3;

@@ -186,6 +186,7 @@ extern s16b cfg_max_townies;
 extern s16b cfg_max_trees;
 extern s16b cfg_max_houses;
 extern bool cfg_chardump_color;
+extern s16b cfg_chardump_minlevel;
 extern s16b cfg_pvp_hostility;
 extern bool cfg_pvp_notify;
 extern s16b cfg_pvp_safehostility;

@@ -60,16 +60,39 @@ int get_player(int Ind, object_type *o_ptr)
 
 void player_dump(int Ind)
 {
+	bool dump_twice = FALSE;
+	s16b old_minlevel;
 	char dumpname[42];
 	strnfmt(dumpname, 42, "%s-%s.txt", Players[Ind]->name, ht_show(&turn,0));
+	/* If the server is configured to generate full dumps at all times,
+	 * one pass is enough. If not, we do it in 2 passes, one full, to send it to the
+	 * client, then one short. */
+	if (Players[Ind]->lev < cfg_chardump_minlevel)
+	{
+		/* XXX XXX XXX First pass generates full dump */
+		dump_twice = TRUE;
+		old_minlevel = cfg_chardump_minlevel;
+		cfg_chardump_minlevel = 1;
+	}
 	file_character_server(Ind,dumpname);
 
 	/* Client-side save -- buffer, send, then save */
 	clear_from(Ind, 0);
 	copy_file_info(Players[Ind], dumpname, 1, 0, FALSE);
+	if (cfg_chardump_color) Players[Ind]->last_info_line -= 27; /* Remove "color codes" */
 //	send_term_header(Players[Ind], 0, "Character dump");
 	send_prepared_info(Players[Ind], NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE);
 	send_term_write(Players[Ind], NFILE_BONE, dumpname);
+
+	/* XXX XXX XXX Dump the file again! */
+	if (dump_twice)
+	{
+		char buf[1024];
+		path_build(buf, 1024, ANGBAND_DIR_BONE, dumpname);
+		fd_kill(buf); /* DELETE previous file! */
+		cfg_chardump_minlevel = old_minlevel;
+		file_character_server(Ind, dumpname);
+	}
 }
 
 /*

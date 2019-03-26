@@ -2258,6 +2258,10 @@ void set_server_option(const char * option, char * value)
     {
         cfg_chardump_color = str_to_boolean(value);
     }
+	else if (!strcmp(option,"CHARACTER_DUMP_MIN_LEVEL"))
+	{
+		cfg_chardump_minlevel = atoi(value);
+	}
     else if (!strcmp(option,"PVP_NOTIFY"))
     {
 			cfg_pvp_notify = str_to_boolean(value);

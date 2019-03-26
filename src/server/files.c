@@ -1175,6 +1175,7 @@ errr file_character_server(int Ind, cptr name)
 	cave_view_type status[80];
 	player_type *p_ptr = Players[Ind];
 	char		buffer[100][82];
+	char		sod_colors[26][82];
 	time_t ct = time((time_t*)0);
 
 	// Init buffer...
@@ -1239,23 +1240,20 @@ errr file_character_server(int Ind, cptr name)
 
 #ifndef DEBUG
 	/* Leave it at that for characters lower than level 20 */
-	if( p_ptr->lev < 20 )
+	if( p_ptr->lev < cfg_chardump_minlevel )
 	{
 		/* Close dump file */
 		my_fclose(fff);
 
 		/* Success */
-		return (0);	
+		return (0);
 	}
 #endif
 
 	/* Begin dump */
-	if (cfg_ironman)
-		fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
-		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
-	else
-		fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
-		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	fprintf(fff, "  [%sMAngband %d.%d.%d Character Dump]\n\n",
+		(cfg_ironman ? "Ironman " : ""),
+	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
 	display_player_server(Ind, buffer);
@@ -1415,23 +1413,31 @@ errr file_character_server(int Ind, cptr name)
 				case TERM_L_GREEN: attr = 'G'; break;
 				case TERM_L_BLUE: attr = 'B'; break;
 				case TERM_L_UMBER: attr = 'U'; break;
+				default: attr = 'w'; break;
 			}
-			/* Config file controls if we output with color codes */
-			if(cfg_chardump_color)
-			{
-				/* Output with attr colour code */
-				fprintf(fff,"%c%c",attr,c);
-			}
-			else
-			{
-				/* Output plain ASCII */
-				fprintf(fff,"%c",c);
-			}
+			/* Store color (for later) */
+			sod_colors[y - y1][x - x1] = attr;
+			/* Output plain ASCII */
+			fprintf(fff,"%c", c);
 		}
 		fprintf(fff, "%s", "\n");
 	}
 	fprintf(fff, "%s", "\n\n");
 
+	/* Output the colour codes */
+	if (cfg_chardump_color)
+	{
+		fprintf(fff, "%s", "  [Scene of Death Colors]\n\n");
+		for (j = 0; j < 22; j++)
+		{
+			for (i = 0; i < 79; i++)
+			{
+				fprintf(fff, "%c", sod_colors[j][i]);
+			}
+			fprintf(fff, "%s", "\n");
+		}
+		fprintf(fff, "%s", "\n\n");
+	}
 
 	/* Close it */
 	my_fclose(fff);
