@@ -487,13 +487,13 @@ const stream_type streams[MAX_STREAMS] =
 	{	/* 7 */
 		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,
 		(SF_MAXBUFFER),
-		20, 80, 255, 80,
+		20, 80, MAX_TXT_INFO, 80,
 		0, "SPECIAL_MIXED", "Display special info"
 	},
 	{	/* 8 */
 		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL,	RLE_COLOR,
 		(SF_MAXBUFFER),
-		20, 80, 255, 80,
+		20, 80, MAX_TXT_INFO, 80,
 		0, "SPECIAL_TEXT", ""
 	},
 	{	/* 9 */

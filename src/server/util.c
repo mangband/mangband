@@ -3582,6 +3582,7 @@ void send_prepared_popup(int Ind, cptr header)
 void monster_race_track_hack(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	if (!Ind) return;
 	/* Only relevant if Player has no dedicated window for monster text */
 	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
 	{

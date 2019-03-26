@@ -248,7 +248,7 @@ int send_request(byte mode, u16b id) {
 }
 
 int send_stream_size(byte id, int rows, int cols) {
-	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
+	return cq_printf(&serv->wbuf, "%c" "%c%ud%c", PKT_RESIZE, id, (u16b)rows, (byte)cols);
 }
 
 int send_visual_info(byte type) {
@@ -1126,6 +1126,37 @@ int recv_air(connection_type *ct)
 	return 1;
 }
 
+static errr verify_stream_y(byte st, s16b y)
+{
+	stream_type	*stream = &streams[st];
+	if (y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
+	else if (y > stream->max_row)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, max buffer is %d)!", st, stream->mark, y, stream->max_row + 1));
+		return -1;
+	}
+	return 0;
+}
+static errr verify_stream_x(byte st, s16b x)
+{
+	stream_type	*stream = &streams[st];
+	if (x >= p_ptr->stream_wid[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	else if (x > stream->max_col)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, max buffer is %d)!", st, stream->mark, x, stream->max_col + 1));
+		return -1;
+	}
+	return 0;
+}
+
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
@@ -1138,16 +1169,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 
 	cave_view_type *dest = stream_cave(st, y);
 
-	if (x >= p_ptr->stream_wid[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
-		return -1;
-	}
-	if (y >= p_ptr->stream_hgt[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
-		return -1;
-	}
+	if (verify_stream_y(st, y)) return -1;
+	if (verify_stream_x(st, x)) return -1;
 
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
@@ -1156,8 +1179,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	dest[x].a = a;
 	dest[x].c = c;
 
-	if (y > last_remote_line[addr]) 
-		last_remote_line[addr] = y; 
+	if (y > last_remote_line[addr])
+		last_remote_line[addr] = y;
 
 	if (addr == NTERM_WIN_OVERHEAD)
 		show_char(y, x, a, c, ta, tc, mem);
@@ -1165,14 +1188,14 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	return 1;
 }
 int recv_stream(connection_type *ct) {
-	s16b	cols, y = 0;
+	u16b	cols, y = 0;
 	s16b	*line;
 	byte	addr, id;
 	cave_view_type	*dest;
 
 	stream_type	*stream;
 
-	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &y) < 1) return 0;
 
 	id = stream_ref[next_pkt];
 	stream = &streams[id];
@@ -1180,20 +1203,15 @@ int recv_stream(connection_type *ct) {
 
 	if (!p_ptr->stream_hgt[id])
 	{
-		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		plog(format("Stream %d,'%s' is unexpected (subscribed to %d rows)", id, stream->mark, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
-	/* Hack -- single char */
-	if (y & 0xFF00) return
+	if (y & 0x8000) return
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
-		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
+		((y >> 8) & 0x007F), (y & 0xFF));
 
-	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
-		return -1;
-	}
+	if (verify_stream_y(id, y)) return -1;
 
 	cols = p_ptr->stream_wid[id];
 	dest = p_ptr->stream_cave[id] + y * cols;
@@ -1226,11 +1244,11 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0, max_x = 0,
-		y = 0, max_y = 0;
+		x = 0, max_x = 0;
 	byte	st, addr;
+	u16b	y = 0, max_y = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
+	if (cq_scanf(&ct->rbuf, "%b%ud%b", &stg, &y, &x) < 3) return 0;
 
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
@@ -1288,8 +1306,9 @@ int recv_stream_info(connection_type *ct) {
 		rle = 0;
 	byte
 		min_col = 0,
+		max_col = 0;
+	u16b
 		min_row = 0,
-		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
 	char mark[MSG_LEN];
@@ -1298,7 +1317,7 @@ int recv_stream_info(connection_type *ct) {
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%ud%c%ud%c",
 			&pkt, &addr, &rle, &flag,
 			mark, buf,
 			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
@@ -1342,8 +1361,7 @@ int recv_stream_info(connection_type *ct) {
 
 	stream_ref[pkt] = known_streams;
 
-	known_streams++;	
-
+	known_streams++;
 
 	return 1;
 }
