@@ -1617,7 +1617,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color, int help
 		if (my_fgets(fff, buf, 1024)) break;
 
 		/* XXX Parse "menu" items */
-		if (prefix(buf, "***** "))
+		if (helpdir && prefix(buf, "***** "))
 		{
 			char b1 = '[', b2 = ']';
 
