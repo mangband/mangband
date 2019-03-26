@@ -1600,7 +1600,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	}
 
 	/* Wipe the hooks */
-	for (k = 0; k < 10; k++) p_ptr->interactive_hook[k][0] = '\0';
+	for (k = 0; k < 26; k++) p_ptr->interactive_hook[k][0] = '\0';
 
 	/* Parse the file */
 	while (TRUE)
@@ -1641,7 +1641,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 		if (next <= line) continue;
 
 		/* Too much */
-		if (line + MAX_TXT_INFO < next) continue;
+		if (i >= MAX_TXT_INFO) continue;
 
 		/* Extract color */
 		if (color) attr = color_char_to_attr(buf[0]);
@@ -1667,7 +1667,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	p_ptr->interactive_size = next;
 
 	/* Save last dumped line */
-	p_ptr->last_info_line = i;
+	p_ptr->last_info_line = i - 1;
 
 	/* Close the file */
 	my_fclose(fff);
