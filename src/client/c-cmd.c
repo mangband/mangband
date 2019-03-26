@@ -15,6 +15,7 @@ void cmd_custom(byte i)
 	cptr prompt;
 	char entry[60];
 	bool need_second, need_target;
+	byte second_item_tester = 0;
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
@@ -117,6 +118,7 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
+		second_item_tester = c_secondary_tester(item);
 		advance_prompt();
 
 		/* Get an amount */
@@ -194,6 +196,7 @@ void cmd_custom(byte i)
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
 				need_second = (spell_flag[index] & PY_SPELL_ITEM ? TRUE : FALSE);
+				if (need_second) second_item_tester = spell_test[index];
 			}
 		}
 	} 
@@ -201,6 +204,7 @@ void cmd_custom(byte i)
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (STRZERO(prompt)) prompt = "Which item? ";
+		item_tester_tval = second_item_tester;
 		if (!c_get_item(&item2, prompt,
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
@@ -619,6 +623,10 @@ void cmd_rest(void)
 
 void cmd_inven(void)
 {
+	/* show_inven() might not show anything, yet we still pause the screen,
+	 * using inkey() below. To avoid all that altogether, let's quit early */
+	if (inventory[0].number == 0) return;
+
 	/* Save the screen */
 	Term_save();
 
@@ -1109,7 +1117,7 @@ void cmd_message(void)
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
 #ifdef PMSG_TERM
-	refocus_chat = ang_term[PMSG_TERM] ? TRUE : FALSE;
+	refocus_chat = win32_window_visible(PMSG_TERM) ? TRUE : FALSE;
 #endif
 #endif
 	// [hack] hack to just change the window focus in WIN32 client

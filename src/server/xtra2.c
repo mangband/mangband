@@ -5704,7 +5704,7 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		send_spell_info(Ind, 12 + b, bi, flag, 0, out_val);
 		j++;
 		bi++;
 
@@ -7247,7 +7247,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C))
+		Send_tile(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C), (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)

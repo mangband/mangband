@@ -992,7 +992,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, lim);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
 	}
 
@@ -1980,6 +1980,9 @@ byte find_chat_window(void)
 
 		/* No relevant flags */
 		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* XXX XXX XXX special win32 handler :( */
+		if (!win32_window_visible(j)) continue;
 
 		return j;
 	}

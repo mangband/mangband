@@ -24,12 +24,19 @@
 *.iobj
 *.ipdb
 *.pdb
-build/vs*/*Debug
-build/vs*/*Release
+*.ncb
+*.suo
+*.ilk
+build/vs*/UpgradeLog.XML
+build/vs*/_UpgradeReport_Files/
+build/vs2008/*.vcproj.*
+build/vs*/*Debug*
+build/vs*/*Release*
 
 
 Makefile
 Makefile.in
+autogen.sh.*
 aclocal.m4
 autom4te.cache/
 compile
@@ -60,4 +67,7 @@ lib/data/*.raw
 lib/save/*
 !lib/save/server.*
 
+*.patch
+*.orig
+*.rej
 *~ # backup files of my editor -flm

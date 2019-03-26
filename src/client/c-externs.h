@@ -36,6 +36,7 @@ extern cptr angband_sound_name[MSG_MAX];
 extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
+extern int win32_window_visible(int i);
 
 /* z-term.c */
 extern event_type inkey_ex(void);
@@ -52,9 +53,11 @@ extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern byte floor_secondary_tester;
 
 
 extern indicator_type indicators[MAX_INDICATORS];
@@ -76,6 +79,7 @@ extern s16b store_num;
 
 extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
+extern byte spell_test[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
@@ -182,6 +186,9 @@ extern s16b INVEN_PACK;
 extern s16b FLOOR_INDEX;
 extern bool FLOOR_NEGATIVE;
 extern s16b FLOOR_TOTAL;
+
+extern u16b MAX_OBJFLAGS_ROWS;
+extern u16b MAX_OBJFLAGS_COLS;
 
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
@@ -388,7 +395,7 @@ extern bool clia_cpy_string(char *dst, int len, int i);
 extern bool clia_cpy_int(s32b *dst, int i);
 extern bool clia_read_string(char *dst, int len, const char *key);
 extern bool clia_read_int(s32b *dst, const char *key);
-extern bool clia_read_bool(s32b *dst, const char *key);
+extern bool clia_read_bool(bool *dst, const char *key);
 
 /* c-init.c */
 extern bool sync_data(void);
@@ -408,6 +415,7 @@ extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
+extern byte c_secondary_tester(int item);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP

@@ -189,6 +189,43 @@ static int get_tag(int *cp, char tag)
 	return (FALSE);
 }
 
+/* Prompt player for a string, then try to find an item matching it */
+static bool get_item_by_name(int *k, bool inven, bool equip)
+{
+	char buf[256];
+	char *tok;
+	int i;
+
+	if (!get_string("Item name: ", buf, 80))
+	{
+		return FALSE;
+	}
+
+	/* Split entry */
+	tok = strtok(buf, "|");
+	while (tok)
+	{
+		if (STRZERO(tok)) continue;
+		/* Match against valid items */
+		for (i = 0; i < INVEN_TOTAL; i++)
+		{
+			if (!inven && i < INVEN_WIELD) continue;
+			if (!equip && i >= INVEN_WIELD) continue;
+			if (inventory[i].tval == 0) continue;
+			if (!get_item_okay(i)) continue;
+
+			if (my_stristr(inventory_name[i], tok))
+			{
+				(*k) = i;
+				return TRUE;
+			}
+		}
+		tok = strtok(NULL, "|");
+	}
+	return FALSE;
+
+}
+
 bool c_check_item(int *item, byte tval)
 {
 	int i;
@@ -209,6 +246,26 @@ bool c_check_item(int *item, byte tval)
 
 	/* Oops */
 	return FALSE;
+}
+
+byte c_secondary_tester(int item)
+{
+	if ((item < 0 && FLOOR_NEGATIVE) || (item >= INVEN_TOTAL && !FLOOR_NEGATIVE))
+	{
+		byte floor_item_pos = (FLOOR_NEGATIVE ? 0 - item + FLOOR_INDEX : item - FLOOR_INDEX);
+		/* Hack -- discard floor_item_pos, we don't support piles */
+		return floor_secondary_tester;
+	}
+	else if (item < 0 || item >= INVEN_TOTAL)
+	{
+		/* Don't know what that item is */
+		return 0;
+	}
+	else
+	{
+		/* It's an inven/equip item */
+		return inventory_secondary_tester[item];
+	}
 }
 
 bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
@@ -489,6 +546,20 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* Need to redraw */
 				break;
 			}
+
+			case '@':
+				/* XXX Lookup item by name */
+				if (get_item_by_name(&k, inven, equip))
+				{
+					(*cp) = k;
+					item = TRUE;
+					done = TRUE;
+				}
+				else
+				{
+					bell();
+				}
+				break;
 
 			case '0':
 			case '1': case '2': case '3':

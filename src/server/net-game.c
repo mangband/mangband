@@ -215,6 +215,29 @@ int send_inventory_info(connection_type *ct)
 	return 1;
 }
 
+int send_objflags_info(connection_type *ct)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OBJFLAGS) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OBJFLAGS_ROWS, MAX_OBJFLAGS_COLS, 0) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
+
 int send_floor_info(connection_type *ct)
 {
 	u32b off = 0;
@@ -321,7 +344,7 @@ int send_stream_info(connection_type *ct, int id)
 	const stream_type *s_ptr = &streams[id];
 	if (!s_ptr->pkt) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c" "%c%c%c%c" "%s%s" "%c%c%c%c", PKT_STREAM,
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%c%c" "%s%s" "%ud%c%ud%c", PKT_STREAM,
 		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag,
 		s_ptr->mark, s_ptr->window_desc,
 		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
@@ -339,7 +362,7 @@ int send_stream_size(connection_type *ct, int st, int y, int x)
 	if (!ct) return -1;
 
 	/* Acknowledge new size for stream */
-	if (cq_printf(&ct->wbuf, "%c%c%c%c", PKT_RESIZE, (byte)st, (byte)y, (byte)x) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%b%ud%b", PKT_RESIZE, (byte)st, (u16b)y, (byte)x) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -351,7 +374,11 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 {
 	connection_type *ct;
 	const stream_type *stream = &streams[st];
+	u16b l;
 	int n;
+
+	/* Programmer error */
+	if (y > 127 || x > 255) { printf("stream_char is limited to y <= 127, x <= 255, you are using y %d, x %d\n", y, x); return -1; }
 
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
@@ -361,10 +388,11 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 	if (!p_ptr->stream_hgt[st]) return 1;
 
 	/* Header + Body (with or without transperancy) */
+	l = ((y << 8) & 0x7F00) | (x & 0x00FF) | 0x8000;
 	if (stream->flag & SF_TRANSPARENT)
-		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, y | ((x+1) << 8), a, c, a, c);
+		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, l, a, c, a, c);
 	else
-		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, y | ((x+1) << 8), a, c);		
+		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, l, a, c);
 	if (n <= 0)
 	{
 		client_withdraw(ct);
@@ -378,9 +406,12 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 {
 	connection_type *ct;
 	const stream_type *stream = &streams[st];
-	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
-	s16b l;
+	cave_view_type *source = p_ptr->stream_cave[st] + y * MAX_WID;
+	u16b l;
 	int n;
+
+	/* Programmer error */
+	if (y > 127 || x > 255) { printf("stream_char is limited to y <= 127, x <= 255, you are using y %d, x %d\n", y, x); return -1; }
 
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
@@ -390,11 +421,11 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 	if (!p_ptr->stream_hgt[st]) return 1;
 
 	/* Header + Body (with or without transperancy) */
-	l = y | ((x+1) << 8);
+	l = ((y << 8) & 0x7F00) | (x & 0x00FF) | 0x8000;
 	if (stream->flag & SF_TRANSPARENT)
-		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, l, source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
+		n = cq_printf(&ct->wbuf, "%c%ud%c%c%c%c", stream->pkt, l, source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
 	else
-		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, l, source[x].a, source[x].c);
+		n = cq_printf(&ct->wbuf, "%c%ud%c%c", stream->pkt, l, source[x].a, source[x].c);
 	if (n <= 0)
 	{
 		client_withdraw(ct);
@@ -416,6 +447,9 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	byte	trn = (stream->flag & SF_TRANSPARENT);
 	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
+	/* Programmer error */
+	if (as_y & 0x8000) { printf("stream_line is limited to y <= 32767, you are using y %d\n", as_y); return -1; }
+
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
@@ -430,7 +464,7 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	start_pos = ct->wbuf.len;
 
 	/* Packet header */
-	if (cq_printf(&ct->wbuf, "%c%d", stream->pkt, as_y) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%ud", stream->pkt, as_y) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
@@ -616,22 +650,22 @@ int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade
 	return 1;
 }
 
-int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
+int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%c%c%s", PKT_FLOOR, 0, attr, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%d%c%b%b%s", PKT_FLOOR, 0, attr, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
+int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -642,18 +676,18 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%c%b%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
+int send_spell_info(int Ind, u16b book, u16b i, byte flag, byte item_tester, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	if (!cq_printf(&ct->wbuf, "%c" "%b%b%ud%ud%s", PKT_SPELL_INFO, flag, item_tester, book, i, out_val))
 	{
 		client_withdraw(ct);
 	}
@@ -705,7 +739,7 @@ int send_objflags(int Ind, int line)
 		client_withdraw(ct);
 	}
 	/* Body (39 grids of "cave") */
-	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], 39) <= 0)
+	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], MAX_OBJFLAGS_COLS) <= 0)
 	{
 		client_withdraw(ct);
 	} 
@@ -973,6 +1007,12 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		if (p_ptr->state != PLAYER_SHAPED)
 		{
 			client_abort(ct, "Character not suitable for rolling!");
+		}
+
+		/* Hack -- do not allow new characters to be created? */
+		if (cfg_instance_closed)
+		{
+			client_abort(ct, "No new characters can be created on this server.");
 		}
 
 		/* Do it */
@@ -1257,10 +1297,10 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
 	byte
 		stg = 0,
-		y = 0,
 		x = 0;
+	u16b y = 0;
 	byte st, addr;
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) 
+	if (cq_scanf(&ct->rbuf, "%c%ud%c", &stg, &y, &x) < 3)
 	{
 		/* Not enough bytes */
 		return 0;
