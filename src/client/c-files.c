@@ -451,7 +451,7 @@ errr path_parse(char *buf, int max, cptr file)
 	/* File needs no parsing */
 	if (file[0] != '~')
 	{
-		strcpy(buf, file);
+		my_strcpy(buf, file, max);
 		return (0);
 	}
 
@@ -487,10 +487,10 @@ errr path_parse(char *buf, int max, cptr file)
 	if (!pw) return (1);
 
 	/* Make use of the info */
-	(void)strcpy(buf, pw->pw_dir);
+	my_strcpy(buf, pw->pw_dir, max);
 
 	/* Append the rest of the filename, if any */
-	if (s) (void)strcat(buf, s);
+	if (s) my_strcat(buf, s, max);
 
 	/* Success */
 #endif /* WIN32 */
@@ -1831,6 +1831,9 @@ void show_recall(byte win, cptr prompt)
 		caveprt(source, 80, 0, n);
 	}
 
+	/* Hack -- prompt is NULL ? */
+	if (prompt == NULL) prompt = "";
+
 	/* Hack -- append target prompt after ':' */
 	source = stream_cave(st, 0);
 	for (n = 0; n < 80-2; n++)
@@ -2289,7 +2292,7 @@ section_conf_type* conf_add_section_aux(cptr section)
 		MAKE(s_forge, section_conf_type);
 
 		/* Fill */
-		strcpy(s_forge->name, section);
+		my_strcpy(s_forge->name, section, 100);
 		s_forge->next = NULL;
 		s_forge->first = NULL;
 
@@ -2328,7 +2331,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 	{
 		if ( !my_stricmp(name, v_ptr->name) )
 		{
-			strcpy(v_ptr->value, value);
+			my_strcpy(v_ptr->value, value, 100);
 			done = TRUE;
 			break;
 		}

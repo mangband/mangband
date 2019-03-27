@@ -268,9 +268,9 @@ static void sense_inventory(int Ind)
 		{
 			if (strstr((const char*)quark_str(o_ptr->note), (const char*)feel) == NULL)
 			{
-				strcpy(o_inscribe, (const char *)feel);
-				strcat(o_inscribe, " - ");
-				strcat(o_inscribe, quark_str(o_ptr->note));
+				my_strcpy(o_inscribe, (const char *)feel, sizeof(o_inscribe));
+				my_strcat(o_inscribe, " - ", sizeof(o_inscribe));
+				my_strcat(o_inscribe, quark_str(o_ptr->note), sizeof(o_inscribe));
 				o_ptr->note = quark_add(o_inscribe);
 			}
 		}

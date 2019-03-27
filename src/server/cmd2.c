@@ -1236,6 +1236,12 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 	{
 		i = pick_house(Depth, y, x);
 		
+		if (i == -1)
+		{
+			debug(format("No house found at Depth %d, X=%d, Y=%d !", Depth, y, x));
+			return (FALSE);
+		}
+
 		/* Do we own this house? */
 		if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 		{
@@ -3674,7 +3680,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				char pvp_name[80];
 
 				/* Get the name */
-				strcpy(pvp_name, q_ptr->name);
+				my_strcpy(pvp_name, q_ptr->name, 80);
 
 				/* Handle unseen player */
 				if (!visible)

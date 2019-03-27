@@ -1926,7 +1926,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
 
-	strcpy(buf, (r_name + r_ptr->name));
+	my_strcpy(buf, (r_name + r_ptr->name), sizeof(buf));
 
 	/* Update the monster */
 	update_mon(c_ptr->m_idx, TRUE);

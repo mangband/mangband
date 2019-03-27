@@ -2017,13 +2017,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	/* Use the standard inscription if available */
 	if (o_ptr->note)
 	{
-		strcpy(tmp_val, quark_str(o_ptr->note));
+		my_strcpy(tmp_val, quark_str(o_ptr->note), sizeof(tmp_val));
 	}
 
 	/* Note "cursed" if the item is known to be cursed */
 	else if (cursed_p(o_ptr) && (known || (o_ptr->ident & ID_SENSE)))
 	{
-		strcpy(tmp_val, "cursed");
+		my_strcpy(tmp_val, "cursed", sizeof(tmp_val));
 	}
 
 	/* Mega-Hack -- note empty wands/staffs */

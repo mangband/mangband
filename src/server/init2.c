@@ -248,7 +248,7 @@ static void show_news_aux(const char * filename, byte ind)
 	char	buf[1024];
 
 	/* Paranoia - ignore erroneous index */
-	if (ind > MAX_TEXTFILES) return;
+	if (ind >= MAX_TEXTFILES) return;
 
 	/* Build the filename */
 	/* MAngband-specific hack: using HELP and not FILE directory! */

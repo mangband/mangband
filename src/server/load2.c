@@ -1574,12 +1574,17 @@ static errr rd_cave_memory(player_type *p_ptr)
 
 /* XXX XXX XXX 
  * This function parses savefile as if it was a text file, searching for
- * pass = , prace = , etc strings. It ignores the 'xml' format for sake
+ * "pass =" string. It ignores the 'xml' format for sake
  * of maintance simplicity (i.e. it doesn't care about savefile format
- * changes). It attempts to read out the race/class/sex info and 
- * does a password check -> result of wich is the return value.
+ * changes). It attempts to read out the stored password, and compares it
+ * to the password provided in "pass_word". If it matches, the hashed
+ * password stored back onto the "pass_word" buff, which is assumed to be
+ * of MAX_CHARS length.
  *
- * See "scoop_player" in "save.c" for more info.  
+ * Returns 0 on match, -1 on parsing error and -2 if password do not
+ * match.
+ *
+ * See "scoop_player" in "save.c" for more info.
  */
 errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 {
@@ -1608,20 +1613,20 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 		if (!strcmp(read, "pass"))
 		{
 			read = strtok(NULL, " \t\n=");
-			strcpy(pass, read);
+			my_strcpy(pass, read, 80);
 			read_pass = TRUE;
 			continue;
 		}
 		if (read_pass) break;
 	}
 
-	/* Paranoia */	
+	/* Paranoia */
 	temp[0] = '\0';
 	
 	/* Here's where we do our password encryption handling */
-	strcpy(temp, (const char *)pass);
+	my_strcpy(temp, (const char *)pass, 80);
 	MD5Password(temp); /* The hashed version of our stored password */
-	strcpy(temp2, (const char *)pass_word);
+	my_strcpy(temp2, (const char *)pass_word, 80);
 	MD5Password(temp2); /* The hashed version of password from client */
 
 	err = 0;
@@ -1657,7 +1662,7 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 			}
 		}
 		/* Good match with clear text, save the hashed */
-		strcpy(pass_word, (const char *)temp);
+		my_strcpy(pass_word, (const char *)temp, MAX_CHARS);
 	}
 
 	/* Check for errors */

@@ -4376,7 +4376,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	strnfmt(out_val, sizeof(out_val),
 	        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
 	if (is_dm_p(p_ptr))
-		strcat(out_val, format(" (%d:%d)", y, x));
+		my_strcat(out_val, format(" (%d:%d)", y, x), sizeof(out_val));
 	/* Hack -- capitalize */
 	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
@@ -4638,7 +4638,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				y = py;
 				x = px;
 			}
-			
+				/* fallthrough */
 			case 'o':
 			{
 				p_ptr->look_y = y;
@@ -5847,8 +5847,8 @@ void describe_player(int Ind, int Ind2)
 	if (j) 	text_out(". ");
 
 
-	/* Describe History */	
-	strncpy(buf, p_ptr->descrip, 240);
+	/* Describe History */
+	my_strcpy(buf, p_ptr->descrip, sizeof(buf));
 	s = strtok(buf, " \n");
 	while (s)
 	{

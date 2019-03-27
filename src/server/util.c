@@ -3001,7 +3001,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 	if (last_free)
 	{
 		/* Create channel */
-		strcpy(channels[last_free].name, channel);
+		my_strcpy(channels[last_free].name, channel, MAX_CHARS);
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
 		send_channel(Ind, CHAN_JOIN, last_free, channel);
@@ -3208,7 +3208,7 @@ void player_talk_aux(int Ind, cptr message)
 			cptr verb = "say";
 			char punct = '.';
 			char msg[60];
-			strncpy(msg, colon, 60);
+			my_strcpy(msg, colon, 60);
 			switch (target)
 			{
 				case 1: /* "&say" */

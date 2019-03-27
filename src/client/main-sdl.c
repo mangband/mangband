@@ -2588,7 +2588,7 @@ sound_wave *now_playing = NULL;
 
 SDL_AudioSpec wav_obtained;
 
-static void wav_play(void *userdata, Uint8 *stream, unsigned int len)
+static void wav_play(void *userdata, Uint8 *stream, int len)
 {
 	/* Grab */
 	sound_wave * wav = now_playing;

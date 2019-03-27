@@ -173,6 +173,11 @@ eptr add_listener(eptr root, int port, callback cb) {
 
 	/* Init socket */
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenfd < 0)
+	{
+		plog_fmt("SOCKET CREATEION FAILED for port %d", port);
+		return (NULL);
+	}
 
 	/* Enable address reuse */
 	on = 1;

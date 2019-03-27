@@ -2726,7 +2726,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 			clev);
 
 		/* Append a "maximum level" */
-		if (mlev > clev) strcat(out_val, format(" (Max %d)", mlev));
+		if (mlev > clev) my_strcat(out_val, format(" (Max %d)", mlev), sizeof(out_val));
 
 		/* Dump the first line */
 		fprintf(fff, "%s\n", out_val);
@@ -2864,7 +2864,7 @@ static errr top_twenty(int Ind)
 	the_score.gold[9] = '\0';
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 #ifdef HIGHSCORE_DATE_HACK
 	/* Save the date in a hacked up form (9 chars) */
@@ -2955,7 +2955,7 @@ static errr predict_score(int Ind, int line)
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));	
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 	/* Hack -- no time needed */
 	strcpy(the_score.day, "TODAY");
