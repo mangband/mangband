@@ -11,6 +11,8 @@
 #define PKT_MOTD        	6
 #define PKT_BASIC_INFO  	7
 
+#define PKT_TERM_WRITE  	8
+
 #define PKT_TALK        	9
 
 #define PKT_OPTION      	10
@@ -314,6 +316,15 @@
 #define MCURSOR_SHFT 0x40
 #define MCURSOR_META 0x80
 
+
+/*
+ * File types
+ */
+#define NFILE__BINARY 0x80 /* MSB marks binary mode */
+#define NFILE_USER 0x01
+#define NFILE_BONE 0x02
+#define NFILE_PREF 0x03
+#define NFILE_GRAF 0x04
 
 /*
  * Connection types
