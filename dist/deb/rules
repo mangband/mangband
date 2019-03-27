@@ -15,6 +15,7 @@
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+ADDITIONAL_CONFIUGRE_FLAGS ?= $(shell echo ${ADDITIONAL_CONFIGURE_FLAGS})
 
 #CFLAGS = -Wall -g
 
@@ -27,7 +28,12 @@ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 config.status: configure
 	dh_testdir
 	# Add here commands to configure the package.
-	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) \
+		--prefix="" \
+		--bindir=\$${prefix}/usr/games \
+		--datarootdir=\$${prefix}/usr/share/games \
+		--localstatedir=\$${prefix}/var/local \
+		$(ADDITIONAL_CONFIUGRE_FLAGS)
 
 
 build: build-stamp
@@ -36,7 +42,7 @@ build-stamp:  config.status
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE) DATADIR=/var/games/mangband/
+	$(MAKE)
 	#docbook-to-man debian/mangband.sgml > mangband.1
 
 	touch build-stamp
@@ -55,19 +61,16 @@ ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess
 endif
 
-
-	dh_clean 
+	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/mangband.
-	$(MAKE) install PREFIX=$(CURDIR)/debian/mangband/usr/bin
-	mv $(CURDIR)/lib $(CURDIR)/debian/mangband/var/games/mangband
-	mv $(CURDIR)/mangband.cfg $(CURDIR)/debian/mangband/etc/mangband.cfg
+	$(MAKE) install prefix=$(CURDIR)/debian/mangband/
 
 
 # Build architecture-independent files here.
@@ -100,7 +103,7 @@ binary-arch: build install
 #	dh_python
 #	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps
+#	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
