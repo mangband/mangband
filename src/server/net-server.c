@@ -502,22 +502,21 @@ int report_to_meta(int data1, data data2) {
 		/* Get our hostname */
 		if (cfg_report_address)
 		{
-			strncpy(local_name, cfg_report_address, 1024);
+			my_strcpy(local_name, cfg_report_address, 1024);
 		}
 		else
 		{
 			if (cfg_bind_name)
 			{
-				strncpy(local_name, cfg_bind_name, 1024);
+				my_strcpy(local_name, cfg_bind_name, 1024);
 			}
 			else
 			{
 				fillhostname(local_name, 1024);
 			}
 		}
-		strcat(local_name, ":");
-		sprintf(temp, "%d", (int) cfg_tcp_port);
-		strcat(local_name, temp);
+		/* Add :port number */
+		my_strcat(local_name, format(":%d", (int)cfg_tcp_port), 1024);
 	}
 
 	/* Start with our address */

@@ -3352,7 +3352,7 @@ static void process_monster(int Ind, int m_idx)
  
 void process_monsters(void)
 {
-	int			k, i, e, pl, bubble;
+	int			k, i, e, pl;
 	int			fx, fy;
 
 	bool		test;

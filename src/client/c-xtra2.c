@@ -216,7 +216,7 @@ void do_chat_open(int id, cptr name)
 	if ((i = free) != -1)
 	{
 		/* Copy info */
-		strcpy(channels[i].name, name);
+		my_strcpy(channels[i].name, name, sizeof(channels[0].name));
 		channels[i].id = id;
 
 		/* Highlight 

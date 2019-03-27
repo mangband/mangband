@@ -40,10 +40,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/D &quot;USE_WIN&quot;"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
-				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -94,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)\..\..\"
+			OutputDirectory="..\..\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -117,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/U &quot;DEBUG&quot;"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
@@ -270,7 +270,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/U&quot;USE_WIN&quot; /D &quot;USE_SDL&quot;"
+				AdditionalOptions="/U&quot;USE_WIN&quot; /D &quot;USE_SDL&quot; /U &quot;DEBUG&quot;"
 				Optimization="2"
 				AdditionalIncludeDirectories="&quot;C:\SDL-1.2.15\include&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
@@ -483,14 +483,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\const.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\server\defines.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\defines.h"
 				>
 			</File>
@@ -560,10 +552,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\types.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\version.h"
 				>
 			</File>
 			<File

@@ -442,16 +442,14 @@ void quit(cptr str)
         char buf[1024];
 
         /* Save exit string */
-        if (str)
-                strncpy(buf, str, 1024);
+        if (str) my_strcpy(buf, str, 1024);
+        else buf[0] = '\0';
 
         /* Attempt to use the aux function */
-        /* This was passing buf, which is a bad idea if quit() is called with
-         * NULL [grk] */
-        if (quit_aux) (*quit_aux)(str);
+        if (quit_aux) (*quit_aux)(buf);
 
         /* Success */
-        if (!str) (void)(exit(0));
+        if (buf[0] == '\0') (void)(exit(0));
 
         /* Extract a "special error code" */
         if ((buf[0] == '-') || (buf[0] == '+')) (void)(exit(atoi(buf)));

@@ -22,6 +22,7 @@ fi
 LIBDIR="${DIR}/../Resources/lib/"
 USERDIR="${HOME}/Library/Application Support/MAngband${SHORTVERSION}/"
 mkdir -p "${USERDIR}/user"
+mkdir -p "${USERDIR}/bone"
 cp -n "${LIBDIR}/user/"* "${USERDIR}/user"
 "${DIR}/mangclient" \
  --libdir "${LIBDIR}" \

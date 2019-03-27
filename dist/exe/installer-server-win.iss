@@ -33,10 +33,9 @@ Source: "README.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\lib\bone\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\data\*"; DestDir: "{app}\lib\data"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\edit\*"; DestDir: "{app}\lib\edit"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\lib\file\*"; DestDir: "{app}\lib\file"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\help\*"; DestDir: "{app}\lib\help"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\pref"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\lib\user\*"; DestDir: "{app}\lib\user"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\save\*"; DestDir: "{app}\lib\save"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 
 [Icons]

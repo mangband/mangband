@@ -217,8 +217,7 @@ int send_inventory_info(connection_type *ct)
 
 int send_objflags_info(connection_type *ct)
 {
-	u32b i, off = 0;
-	char buf[80];
+	u32b off = 0;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -547,7 +546,7 @@ int send_term_write(player_type *p_ptr, byte fmode, cptr filename)
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	
+
 	return send_term_writefile(ct, fmode, filename);
 }
 
@@ -1353,7 +1352,7 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		{
 			p_ptr->window_flag &= ~streams[st].window_flag;
 			/* HACK -- check if player has disabled monster text window */
-			monster_race_track_hack(Ind);
+			monster_race_track_hack(p_ptr);
 		}
 	}
 
@@ -1725,7 +1724,7 @@ static int recv_custom_command(player_type *p_ptr)
 	char
 		dir,
 		item;
-	byte i, j, tmp;
+	byte i, tmp;
 	char entry[60];
 	u32b old_energy;
 

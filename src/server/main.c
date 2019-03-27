@@ -94,13 +94,13 @@ static void init_stuff(void)
 	tail = getenv("ANGBAND_PATH");
 
 	/* Use the angband_path, or a default */
-	strcpy(path, tail ? tail : PKGDATADIR);
+	my_strcpy(path, tail ? tail : PKGDATADIR, 1024);
 
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
 	/* Repeat for writable paths */
-	strcpy(path_wr, tail ? tail : LOCALSTATEDIR);
+	my_strcpy(path_wr, tail ? tail : LOCALSTATEDIR, 1024);
 	if (!suffix(path_wr, PATH_SEP)) strcat(path_wr, PATH_SEP);
 
 

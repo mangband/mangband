@@ -1713,7 +1713,7 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend)
 
 	char buf[80];
 	buf[0] = '\0';
-	strcpy(buf, prompt);
+	my_strcpy(buf, prompt, 80);
 	
 	if (allow_target)
 		p = "Direction ('*' to choose target, non-direction cancels) ?";
@@ -2400,7 +2400,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 
 
 	/* Copy it */
-	strcpy(buf, msg);
+	my_strcpy(buf, msg, sizeof(buf));
 	
 	/* Strip it */
 	buf[80] = '\0';
@@ -3239,7 +3239,7 @@ void browse_macros(void)
 			if (total == 1) continue;		
 
 			/* Get a macro trigger */
-			strcpy(buf, macro__pat[sel]);
+			my_strcpy(buf, macro__pat[sel], sizeof(buf));
 
 			/* (un)Link the macro */
 			macro_add(buf, buf, FALSE);
@@ -3253,7 +3253,7 @@ void browse_macros(void)
 		else if (i == 'T') /* Change trigger */
 		{
 			/* Get current action */
-			strcpy(act, macro__act[sel]);
+			my_strcpy(act, macro__act[sel], sizeof(act));
 
 			/* Prompt */	
 			clear_from(hgt);
@@ -4313,7 +4313,7 @@ void load_sound_prefs(void)
 		/* Ignore empty sound strings */
 		if (!angband_sound_name[i][0]) continue;
 
-		strncpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
+		my_strcpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
 
 		num = tokenize_whitespace(tmp, SAMPLE_MAX, zz);
 

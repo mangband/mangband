@@ -2017,13 +2017,13 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	/* Use the standard inscription if available */
 	if (o_ptr->note)
 	{
-		strcpy(tmp_val, quark_str(o_ptr->note));
+		my_strcpy(tmp_val, quark_str(o_ptr->note), sizeof(tmp_val));
 	}
 
 	/* Note "cursed" if the item is known to be cursed */
 	else if (cursed_p(o_ptr) && (known || (o_ptr->ident & ID_SENSE)))
 	{
-		strcpy(tmp_val, "cursed");
+		my_strcpy(tmp_val, "cursed", sizeof(tmp_val));
 	}
 
 	/* Mega-Hack -- note empty wands/staffs */
@@ -2531,7 +2531,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
  * Convert an inventory index into a one character label
  * Note that the label does NOT distinguish inven/equip.
  */
-s16b index_to_label(int i)
+char index_to_label(int i)
 {
 	/* Indexes for "inven" are easy */
 	if (i < INVEN_WIELD) return (I2A(i));

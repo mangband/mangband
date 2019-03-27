@@ -61,7 +61,7 @@
       <AdditionalOptions>/D "USE_WIN" %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -86,6 +86,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <UndefinePreprocessorDefinitions>DEBUG</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;Winmm.lib;iphlpapi.lib;User32.lib;Gdi32.lib;ComDlg32.Lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -135,8 +136,8 @@
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalOptions>/D"main=SDLmain" %(AdditionalOptions)</AdditionalOptions>
-      <UndefinePreprocessorDefinitions>USE_WIN</UndefinePreprocessorDefinitions>
+      <AdditionalOptions>/D"main=SDLmain" /UDEBUG %(AdditionalOptions)</AdditionalOptions>
+      <UndefinePreprocessorDefinitions>USE_WIN;DEBUG</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL.lib;SDLmain.lib;ws2_32.lib;Winmm.lib;iphlpapi.lib;User32.lib;Gdi32.lib;ComDlg32.Lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -190,8 +191,6 @@
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\client\c-angband.h" />
     <ClInclude Include="..\..\src\client\c-externs.h" />
-    <ClInclude Include="..\..\src\common\const.h" />
-    <ClInclude Include="..\..\src\server\defines.h" />
     <ClInclude Include="..\..\src\common\defines.h" />
     <ClInclude Include="..\..\src\common\h-basic.h" />
     <ClInclude Include="..\..\src\h-config.h" />
@@ -210,7 +209,6 @@
     <ClInclude Include="..\..\src\client\readdib.h" />
     <ClInclude Include="..\..\src\client\resource.h" />
     <ClInclude Include="..\..\src\common\types.h" />
-    <ClInclude Include="..\..\src\common\version.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\client\z-term.h" />

@@ -1650,7 +1650,6 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
-	int i;
 
 	/* Prepare player structure for text */
 	text_out_init(Ind);

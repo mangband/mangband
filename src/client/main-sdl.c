@@ -2533,8 +2533,8 @@ bool init_one_term(int i, bool force)
 	td->yoff = conf_get_int(sec_name, "PositionY", 0);
 
 	/* Scaling */
-	td->w = conf_get_int(sec_name, "ScaleX", 0);
-	td->h = conf_get_int(sec_name, "ScaleY", 0);
+	td->w = (byte)conf_get_int(sec_name, "ScaleX", 0);
+	td->h = (byte)conf_get_int(sec_name, "ScaleY", 0);
 
 	if(td->w < td->fd->w) td->w = td->fd->w; 
 	if(td->h < td->fd->h) td->h = td->fd->h; 
@@ -2775,8 +2775,8 @@ errr init_sdl(void)
 
 	/* Read config for main window */
 	use_graphics = conf_get_int("SDL", "Graphics", 0);
-	use_sound = conf_get_int("SDL", "Sound", 0);
-	fullscreen = conf_get_int("SDL", "Fullscreen", 0);
+	use_sound = (bool)conf_get_int("SDL", "Sound", 0);
+	fullscreen = (bool)conf_get_int("SDL", "Fullscreen", 0);
 	width =  conf_get_int("SDL", "Width", 0);
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);

@@ -1161,6 +1161,11 @@ bool save_player(int Ind)
  *
  * The actual read is performed by "rd_savefile_new_scoop_aux" from "load2.c", which
  * is a simplified code duplcation from player loading routines.
+ *
+ * XXX XXX XXX: the "pass" buffer might be overwriten with the hashed version of the
+ * password, and must be of MAX_CHARS length.
+ *
+ * TODO: why do we have so much code here anyway?
  */
 int scoop_player(char *nick, char *pass)
 {
@@ -1439,7 +1444,7 @@ bool load_player(player_type *p_ptr)
 	if (!err)
 	{
 		/* Invalid turn */
-		if (turn.era < 0 || turn.turn < 0) err = -1;
+		/* if (turn.era < 0 || turn.turn < 0) err = -1; -- unsigned */
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";

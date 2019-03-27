@@ -82,7 +82,7 @@ static bool verify(cptr prompt, int item)
 
 
 	/* Describe */
-	strcpy(o_name, inventory_name[item]);
+	my_strcpy(o_name, inventory_name[item], 80);
 
 	/* Prompt */
 	(void)sprintf(out_val, "%s %s? ", prompt, o_name);

@@ -80,6 +80,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <UndefinePreprocessorDefinitions>DEBUG</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;Winmm.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -103,8 +104,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-SDL|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\SDL-1.2.15\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>USE_SDL;WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <UndefinePreprocessorDefinitions>USE_WIN</UndefinePreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SDL;WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>USE_WIN;DEBUG</UndefinePreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -176,10 +177,7 @@
     <ClInclude Include="..\..\src\server\net-server.h" />
     <ClInclude Include="..\..\src\options.h" />
     <ClInclude Include="..\..\src\common\pack.h" />
-    <ClInclude Include="..\..\src\server\s-externs.h" />
-    <ClInclude Include="..\..\src\common\sockbuf.h" />
     <ClInclude Include="..\..\src\common\types.h" />
-    <ClInclude Include="..\..\src\common\version.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
