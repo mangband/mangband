@@ -6,5 +6,9 @@ EXTRA_DIST = src/makefile.bcc src/h-config.h
 
 EXTRA_PROGRAMS = 
 
-include src/Makefile.am
+bin_PROGRAMS = mangclient mangband
+
 include lib/Makefile.am
+include src/common/Makefile.am
+include src/client/Makefile.am
+include src/server/Makefile.am
