@@ -43,13 +43,13 @@ if ! running_in_docker ; then
     fi
 
     # make dist once
-#    echo "Running initial make dist"
-#    cd ../..
-#    ./autogen.sh -n
-#    ./configure
-#    cd dist/tgz
-#    ./package.sh
-#    cd ../../dist/docker
+    echo "Running initial make dist"
+    cd ../..
+    ./autogen.sh -n
+    ./configure
+    cd dist/tgz
+    ./package.sh
+    cd ../../dist/docker
 
     ################# ******************** #################
 
