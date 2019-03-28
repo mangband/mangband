@@ -35,7 +35,9 @@ Source: "README-client.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\pref"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\user\*"; DestDir: "{app}\lib\user"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\lib\xtra\*"; DestDir: "{app}\lib\xtra"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\xtra\font\*"; DestDir: "{app}\lib\xtra\font"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\xtra\graf\*"; DestDir: "{app}\lib\xtra\graf"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\xtra\sound\*"; DestDir: "{app}\lib\xtra\sound"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\MAngband"; Filename: "{app}\mangclient.exe"
