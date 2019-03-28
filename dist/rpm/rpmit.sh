@@ -13,7 +13,7 @@ if [ ! -f ~/.rpmmacros ]; then
 fi 
 
 if [ ! -f ../tgz/version ]; then
-    echo "You must first run install/tgz script";
+    echo "You must first run dist/tgz script";
     exit
 fi
 
