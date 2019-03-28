@@ -18,7 +18,7 @@ if [ ! -f ../tgz/mangband-${VER}.tar.gz ]; then
     exit
 fi
 
-ARCH=`dpkg-architecture -qDEB_TARGET_ARCH`
+ARCH=`dpkg-architecture -qDEB_TARGET_ARCH 2>/dev/null || dpkg-architecture -qDEB_BUILD_ARCH`
 PORT=""
 INTERNAME="mangband_${VER}_${ARCH}.deb"
 RECONFIG=""
@@ -41,12 +41,25 @@ else
 	echo "But it's a good starting point."
 	echo "After you get it, re-run this script with 'sdl','x11' or 'gcu' arg."
 	sleep 1
+	exit
 fi
 
 FINALNAME="mangband${PORT}-${VER}_${ARCH}.deb"
 export ADDITIONAL_CONFIGURE_FLAGS="${RECONFIG}"
 echo "$INTERNAME ( $RECONFIG ) ->\n $FINALNAME"
 
+MODERN_DH=`dh_make --help | grep -e "--copyrightfile"`
+MODERN_DPB=`dpkg-buildpackage --help | grep -e "--no-sign"`
+if [ "${MODERN_DH}" != "" ]; then
+	DH_ARGS="-Ci -c custom --copyrightfile ../COPYING"
+else
+	DH_ARGS="-M -c bsd"
+fi
+if [ "${MODERN_DPB}" != "" ]; then
+	DPB_ARGS="--no-sign"
+else
+	DPB_ARGS=""
+fi
 
 rm -rf mangband-${VER}
 cp ../tgz/mangband-${VER}.tar.gz ./mangband_${VER}.orig.tar.gz
@@ -54,7 +67,7 @@ tar -xzvf mangband_${VER}.orig.tar.gz
 cd mangband-${VER}
 cp -R src/* .
 export DEBFULLNAME="MAngband Project Team"
-dh_make -y -Ci -n --email team@mangband.org -c custom --copyrightfile ../COPYING
+dh_make -y -n --email team@mangband.org ${DH_ARGS}
 if [ $? != "0" ]; then
     exit
 fi
@@ -77,7 +90,7 @@ echo "etc/" >>./dirs
 #echo Version: ${VER} >>./control
 #echo "/etc/mangband.cfg" >./conffiles
 cd ..
-dpkg-buildpackage -rfakeroot --no-sign
+dpkg-buildpackage -rfakeroot ${DPB_ARGS}
 if [ $? != "0" ]; then
     exit
 fi
@@ -90,7 +103,7 @@ cd ..
 dpkg-source -x *.dsc
 cd mangband-${VER}
 chmod +x ./configure
-dpkg-buildpackage -rfakeroot -b --no-sign
+dpkg-buildpackage -rfakeroot -b ${DPB_ARGS}
 if [ $? != "0" ]; then
     exit
 fi

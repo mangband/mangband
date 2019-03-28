@@ -32,7 +32,7 @@ config.status: configure
 		--prefix="" \
 		--bindir=\$${prefix}/usr/games \
 		--datarootdir=\$${prefix}/usr/share/games \
-		--localstatedir=\$${prefix}/var/local \
+		--localstatedir=\$${prefix}/var/lib \
 		$(ADDITIONAL_CONFIUGRE_FLAGS)
 
 
@@ -81,9 +81,9 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+#	dh_installchangelogs 
 	dh_installdocs
-	dh_installexamples
+#	dh_installexamples
 #	dh_install
 #	dh_installmenu
 #	dh_installdebconf	
@@ -94,7 +94,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+#	dh_installman
 	dh_link
 	dh_strip
 	dh_compress
