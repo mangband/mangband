@@ -72,7 +72,14 @@ install: build
 	# Add here commands to install the package into debian/mangband.
 	$(MAKE) install prefix=$(CURDIR)/debian/mangband/ \
 		desktopdir=$(CURDIR)/debian/mangband/usr/share/applications
-
+	mkdir -p $(CURDIR)/debian/mangband/usr/share/icons/hicolor/16x16/apps
+	mkdir -p $(CURDIR)/debian/mangband/usr/share/icons/hicolor/32x32/apps
+	mkdir -p $(CURDIR)/debian/mangband/usr/share/icons/hicolor/64x64/apps
+	mkdir -p $(CURDIR)/debian/mangband/usr/share/icons/hicolor/128x128/apps
+	cp $(CURDIR)/lib/xtra/icon/map-16.png $(CURDIR)/debian/mangband/usr/share/icons/hicolor/16x16/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-32.png $(CURDIR)/debian/mangband/usr/share/icons/hicolor/32x32/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-64.png $(CURDIR)/debian/mangband/usr/share/icons/hicolor/64x64/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-128.png $(CURDIR)/debian/mangband/usr/share/icons/hicolor/128x128/apps/mangclient.png
 
 # Build architecture-independent files here.
 binary-indep: build install
