@@ -645,8 +645,8 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
 						ks->mod & KMOD_SHIFT ? "S" : "",
-						"", /* for future expansion. */
-						ks->mod & KMOD_ALT   ? "M" : "",
+						ks->mod & KMOD_ALT   ? "O" : "",
+						ks->mod & KMOD_META  ? "M" : "",
 						(unsigned long) ks->sym, 13);
 				ch = 0;
 			}
