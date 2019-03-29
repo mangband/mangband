@@ -98,11 +98,13 @@ if [ $1 = "DEB" ]; then
 	cd dist/deb
 	rm -f *.deb
 	export USER=mangband
+	./debit.sh # server
 	./debit.sh gcu
 	./debit.sh sdl
 	./debit.sh x11
 	cd -
 	cp dist/deb/*.deb dist/docker/builds/.
+	rm dist/docker/builds/*-dbgsym*.deb || : # throw away debug
 fi
 
 if [ $1 = "RPM" ]; then
