@@ -73,6 +73,11 @@ if ! running_in_docker ; then
 # broken, for some reason
 #    build_it "i386/centos:6" "RPM" "centos6-i386" "*.rpm" $1
 
+# no i386 versions for fedora? :(
+    build_it "fedora:26" "RPM" "fedora26-amd64" "*.rpm" $1
+    build_it "fedora:27" "RPM" "fedora27-amd64" "*.rpm" $1
+    build_it "fedora:28" "RPM" "fedora28-amd64" "*.rpm" $1
+    build_it "fedora:30" "RPM" "fedora30-amd64" "*.rpm" $1
 
     ################# ******************** #################
     exit
@@ -83,11 +88,12 @@ set -e -x
 
 if [ $1 = "DEB" ]; then
 	printf "\n *** Doing debian builds *** \n\n"
-	apt-get update
-	apt-get install -y make gcc autoconf automake dh-make
-	apt-get install -y dpkg-dev # needed on Ubuntu14
-	apt-get install -y libncurses5-dev libsdl1.2-dev
-	apt-get install -y libX11-dev || apt-get install -y libx11-dev
+	apt-get update -qq
+	apt-get install -yqq make gcc autoconf automake dh-make >/dev/null
+	apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
+	apt-get install -yqq libncurses5-dev libsdl1.2-dev >/dev/null
+	apt-get install -yqq libX11-dev >/dev/null || \
+		apt-get install -y libx11-dev >/dev/null
 # make dist
 #	ls
 #	./autogen.sh -n
@@ -109,8 +115,8 @@ fi
 
 if [ $1 = "RPM" ]; then
 	printf "\n *** Doing rpm builds *** \n\n"
-	yum install -y wget which make gcc automake autoconf rpmdevtools
-	yum install -y ncurses-devel libX11-devel SDL-devel
+	yum install -yq wget which make gcc automake autoconf rpmdevtools
+	yum install -yq ncurses-devel libX11-devel SDL-devel
 # make dist
 #	ls
 #	./autogen.sh -n
