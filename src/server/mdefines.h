@@ -19,7 +19,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define SERVER_VERSION_EXTRA	2
+#define SERVER_VERSION_EXTRA	0
 
 
 /*
