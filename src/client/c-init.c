@@ -291,7 +291,9 @@ static void Setup_loop()
 		/* Check and Prepare character */
 		if (old_state != state)
 		{
+#ifdef DEBUG
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+#endif
 			/* Handshake complete */
 			if (state == PLAYER_EMPTY)
 			{
