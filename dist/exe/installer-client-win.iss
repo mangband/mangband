@@ -32,7 +32,7 @@ Source: "..\..\mangclient-sdl.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\sdl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\mangclient.ini"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-client.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\bone\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\pref"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\user\*"; DestDir: "{app}\lib\user"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\xtra\font\*"; DestDir: "{app}\lib\xtra\font"; Flags: ignoreversion recursesubdirs createallsubdirs
