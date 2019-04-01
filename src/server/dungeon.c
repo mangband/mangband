@@ -2544,12 +2544,17 @@ void shutdown_server(void)
 
 		/* Indicate cause */
 		strcpy(p_ptr->died_from, "server shutdown");
-
+#if 1
+//TODO: re-enable nicer messaging
+		player_disconnect(p_ptr, "Server shutdown");
+		player_leave(1);
+#else
 		/* Try to save */
 		if (!player_leave(1)) player_disconnect(p_ptr, "Server shutdown (save failed)");
 
 		/* Successful save */
 		player_disconnect(p_ptr, "Server shutdown (save succeeded)");
+#endif
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */
