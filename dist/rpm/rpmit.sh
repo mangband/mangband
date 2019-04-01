@@ -24,6 +24,25 @@ if [ ! -f ../tgz/mangband-${VER}.tar.gz ]; then
     exit
 fi
 
+CONFIGURE_FLAGS=""
+SUBPACKAGE_NAME=""
+if [ "$1" = "sdl" ]; then
+    CONFIGURE_FLAGS="--with-sdl --without-gcu --without-x11 --without-sdl2"
+    SUBPACKAGE_NAME="mangclient-sdl"
+elif [ "$1" = "x11" ]; then
+    CONFIGURE_FLAGS="--with-x11 --without-gcu --without-sdl --without-sdl2"
+    SUBPACKAGE_NAME="mangclient-x11"
+elif [ "$1" = "gcu" ]; then
+    CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --without-sdl2"
+    SUBPACKAGE_NAME="mangclient-gcu"
+else
+    CONFIGURE_FLAGS=""
+    SUBPACKAGE_NAME="mangband"
+    echo "Building server package."
+    echo "Re-run this script with 'sdl','x11' or 'gcu' to build client."
+    sleep 1
+fi
+
 rm -rf ./BUILD
 rm -rf ./RPMS
 rm -rf ./SOURCES
@@ -43,6 +62,8 @@ cp ../tgz/mangband-${VER}.tar.gz ./SOURCES/mangband-${VER}.tar.gz
 echo "%define name    mangband" > ./SPECS/mangband.spec
 echo "%define version ${VER}" >>  ./SPECS/mangband.spec
 echo "%define release 1" >>  ./SPECS/mangband.spec
+echo "%define subpackage_name ${SUBPACKAGE_NAME}" >>  ./SPECS/mangband.spec
+echo "%define configure_flags ${CONFIGURE_FLAGS}" >> ./SPECS/mangband.spec
 echo "" >> ./SPECS/mangband.spec
 cat ./spec.rest >> ./SPECS/mangband.spec
 
@@ -53,5 +74,9 @@ rpmbuild -ba --clean ./SPECS/mangband.spec
 #rpmlint SPECS/mangband.spec
 #rpmlint RPMS/*
 
+# Copy single useful rpm
+cp RPMS/**/${SUBPACKAGE_NAME}*.rpm .
+ls -1 *.rpm
+
 # Display generated rpms
-ls -1 -R RPMS/
+#ls -1 -R RPMS/

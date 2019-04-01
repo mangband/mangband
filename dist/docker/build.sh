@@ -128,8 +128,11 @@ if [ $1 = "RPM" ]; then
 	echo "%packager MAngband Project Team <team@mangband.org>" >> /root/.rpmmacros
 	echo "%vendor   MAngabnd Project Team" >> /root/.rpmmacros
 	echo "%_topdir  /io/dist/rpm" >> /root/.rpmmacros
-	./rpmit.sh
+	./rpmit.sh # server
+	./rpmit.sh gcu
+	./rpmit.sh sdl
+	./rpmit.sh x11
 	cd -
-	cp dist/rpm/RPMS/**/*.rpm dist/docker/builds/.
+	cp dist/rpm/*.rpm dist/docker/builds/.
 	#cp dist/rpm/SRPMS/**/.rpm dist/docker/builds/.
 fi
