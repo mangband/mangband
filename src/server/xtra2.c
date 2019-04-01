@@ -5285,7 +5285,7 @@ void show_motd(player_type *p_ptr)
 	byte old_term;
 
 	/* Copy to info buffer */
-	for (i = 0; i < 20; i++)
+	for (i = 0; i < 24; i++)
 	{
 		for (k = 0; k < 80; k++)
 		{
