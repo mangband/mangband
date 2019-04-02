@@ -36,7 +36,7 @@ elif [ "$1" = "gcu" ]; then
     CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --without-sdl2"
     SUBPACKAGE_NAME="mangclient-gcu"
 else
-    CONFIGURE_FLAGS=""
+    CONFIGURE_FLAGS="--without-gcu" # placeholder, rpm macros can't be empty
     SUBPACKAGE_NAME="mangband"
     echo "Building server package."
     echo "Re-run this script with 'sdl','x11' or 'gcu' to build client."

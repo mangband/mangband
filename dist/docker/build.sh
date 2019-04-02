@@ -125,6 +125,7 @@ if [ $1 = "RPM" ]; then
 #	./package.sh
 #	cd -
 	cd dist/rpm
+	rm -f *.rpm
 	echo "%packager MAngband Project Team <team@mangband.org>" >> /root/.rpmmacros
 	echo "%vendor   MAngabnd Project Team" >> /root/.rpmmacros
 	echo "%_topdir  /io/dist/rpm" >> /root/.rpmmacros

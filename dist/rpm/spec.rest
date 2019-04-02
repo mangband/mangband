@@ -52,12 +52,12 @@ GCU version of client (ncurses).
 %build
 CFLAGS="$RPM_OPT_FLAGS"
 # not using %{_prefix}
-./configure --prefix="" %{configure_flags} \
+./configure --prefix="" %{configure_flags} --quiet \
  --bindir=\${prefix}/%{bin_path} \
  --datarootdir=\${prefix}/usr/share/games \
  --localstatedir=\${prefix}/var/games
 make clean
-make
+V=0 make
 
 %clean
 rm -rf $RPM_BUILD_ROOT
