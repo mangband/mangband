@@ -371,12 +371,12 @@ void setup_network_server()
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
+	/** Prepare FD_SETS **/
+	network_reset();
+
 	/** Add UDP */
 	/* Meta-server */
 	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
-
-	/** Prepare FD_SETS **/
-	network_reset();
 
 	/** Add listeners **/
 	/* Game */
