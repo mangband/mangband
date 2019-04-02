@@ -52,7 +52,7 @@ GCU version of client (ncurses).
 %build
 CFLAGS="$RPM_OPT_FLAGS"
 # not using %{_prefix}
-./configure --prefix="" \
+./configure --prefix="" %{configure_flags} \
  --bindir=\${prefix}/%{bin_path} \
  --datarootdir=\${prefix}/usr/share/games \
  --localstatedir=\${prefix}/var/games
@@ -70,6 +70,9 @@ rm -f ${RPM_BUILD_ROOT}/usr/share/games/mangband/**/delete.me
 rm -f ${RPM_BUILD_ROOT}/var/games/mangband/**/delete.me
 # Stop pretending mangband.cfg is a script, remove shebang
 sed -i '1d' ${RPM_BUILD_ROOT}/etc/mangband.cfg
+# XDG Launcher
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/applications
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/mangclient.desktop ${RPM_BUILD_ROOT}/usr/share/applications/.
 # Icons!
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/16x16/apps/
 mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/32x32/apps/

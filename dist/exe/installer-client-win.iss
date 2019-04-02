@@ -6,14 +6,14 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{22222C83-6BF9-4372-9226-73768939CB3D}}
 AppName=MAngband
-#define VERSION "1.5.0b"
+#define VERSION "1.5.0"
 AppVersion={#VERSION}
 AppPublisher=MAngband Project Team
 AppPublisherURL=https://mangband.org
 AppSupportURL=
 AppUpdatesURL=
 DefaultDirName={localappdata}\MAngband1.5
-DefaultGroupName=MAngband-Devel
+DefaultGroupName=MAngband
 PrivilegesRequired=lowest
 OutputDir=.
 OutputBaseFilename=mangband-client-setup-v{#VERSION}
@@ -32,7 +32,7 @@ Source: "..\..\mangclient-sdl.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\sdl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\mangclient.ini"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-client.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\lib\bone\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\pref\*"; DestDir: "{app}\lib\pref"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\user\*"; DestDir: "{app}\lib\user"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\lib\xtra\font\*"; DestDir: "{app}\lib\xtra\font"; Flags: ignoreversion recursesubdirs createallsubdirs

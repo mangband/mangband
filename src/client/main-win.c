@@ -3490,7 +3490,7 @@ static void hack_quit(cptr str)
 	save_prefs();
 	
 	/* Give a warning */
-	if (str) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
+	if (str && str[0]) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
 
 	/* Sub-Windows */
 	for (i = MAX_TERM_DATA - 1; i >= 1; i--)
@@ -3673,8 +3673,10 @@ void static init_stuff_win(void)
 
 /*	validate_dir(ANGBAND_DIR_APEX); *//*on server */
 /*	validate_dir(ANGBAND_DIR_EDIT); */
-	validate_dir(ANGBAND_DIR_FILE);
-	validate_dir(ANGBAND_DIR_HELP);
+/*	validate_dir(ANGBAND_DIR_FILE); */
+/*	validate_dir(ANGBAND_DIR_HELP); */
+	validate_dir(ANGBAND_DIR_BONE);
+	validate_dir(ANGBAND_DIR_PREF);
 	validate_dir(ANGBAND_DIR_USER);
 	validate_dir(ANGBAND_DIR_XTRA);	  /*sounds & graphics */
 
