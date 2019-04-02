@@ -1454,7 +1454,7 @@ static void term_change_font(term_data *td)
 	if (GetOpenFileName(&ofn))
 	{
 		/* Force the font */
-		if (term_force_font(td, tmp))
+		if (term_force_font(td, fullFileName))
 		{
 			/* Oops */
 			(void)term_force_font(td, "8X13.FON");
