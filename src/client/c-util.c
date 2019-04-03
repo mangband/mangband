@@ -3224,7 +3224,7 @@ void browse_macros(void)
 			Term_putstr(00, 2+k-o, -1, a, buf);
 
 			/* Dump the action */
-			Term_putstr(20, 2+k-o, -1, a, act);
+			Term_putstr(30, 2+k-o, -1, a, act);
 		}
 
 		/* Get a key */
