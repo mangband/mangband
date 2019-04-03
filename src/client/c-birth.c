@@ -487,7 +487,7 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, offsets[20];
+	int i, j, y, srvnum, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
@@ -513,7 +513,7 @@ bool get_server_name(void)
 
 	/* Start at the beginning */
 	ptr = buf;
-	i = y = 0;
+	i = y = srvnum  = 0;
 
 	/* Print each server */
 	while (ptr - buf < bytes)
@@ -562,7 +562,10 @@ bool get_server_name(void)
 			prt(out_val, y + 1, 1);
 
 			/* One more entry */
-			if (server) i++;
+			if (server) {
+				i++;
+				srvnum++;
+			}
 			y++;
 		}
 
@@ -583,7 +586,7 @@ bool get_server_name(void)
 		c = inkey();
 
 		/* Check for quit */
-		if (c == 'Q')
+		if ((c == 'Q') || (c == 'q' && srvnum < 17))
 		{
 			return enter_server_name();
 		}
