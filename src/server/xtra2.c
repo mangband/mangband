@@ -7234,8 +7234,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 
 	switch (hook_q)
 	{
-		case 'k': case 127: hook_type = 128; break; /* Del */
-		case 's': /* Select */	
+		case 'k': case 127: case '\b': hook_type = 128; break; /* Del */
+		case 's': /* Select */
 
 		p_ptr->master_parm = (MASTER_SELECT | (u32b)ox | ((u32b)oy << 8));
 
@@ -7281,7 +7281,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	/* Success */
 	if (hook_type--)
 	{
-		if (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT)
+		if ((hook_type <= MASTER_MAX_HOOKS)
+		&& (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT))
 		{
 			byte old_hook = p_ptr->master_hook[hook_type];
 			u32b old_args = p_ptr->master_args[hook_type];
