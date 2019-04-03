@@ -11,6 +11,55 @@
 # that the macros will work regardless of the "keymap" being used.
 #
 
+# Macro Trigger configuration
+#
+# T:<trigger template>:<modifiers>:<modifier name1>:<modifier name2>:....
+# '&' in <trigger template> specifies location of modifier character.
+# '#' in <trigger template> specifies location of key code.
+#
+# If <trigger template> is null string, all trigger difinition will be cleared.
+
+T:&_#:NSOM:control-:shift-:alt-:cmd-
+
+############
+
+# T:<trigger name>:<keycode>:<keycode with shiftkey>
+# '\' in <trigger name> is escape character.
+
+T:insert:115
+T:end:117
+T:page_down:119
+T:home:116
+T:page_up:118
+T:left:114
+T:right:113
+T:up:111
+T:down:112
+T:kp_insert:100
+T:kp_end:101
+T:kp_down:102
+T:kp_page_down:103
+T:kp_left:104
+T:[5]:105
+T:kp_right:106
+T:kp_home:107
+T:kp_up:108
+T:kp_page_up:109
+T:f1:11A
+T:f2:11B
+T:f3:11C
+T:f4:11D
+T:f5:11E
+T:f6:11F
+T:f7:120
+T:f8:121
+T:f9:122
+T:f10:123
+T:f11:124
+T:f12:125
+
+
+
 # End, Page_Down, Home, Page_Up
 
 A:1
