@@ -424,6 +424,13 @@ static char inkey_aux(void)
 	/* Efficiency -- Ignore inactive macros */
 	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
 
+#ifdef USE_GCU
+	/* NCurses client actually uses escape as "begin macro" sequence */
+	if (escape_in_macro_triggers)
+	{
+		/* So we allow it */
+	} else
+#endif
 	/* Efficiency/Hack -- Ignore escape key for macros */
 	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
 
@@ -3102,6 +3109,14 @@ static bool get_macro_trigger(char *buf)
 	/* First key */
 	i = inkey();
 	
+#ifdef USE_GCU
+	/* If we allow escape as macro trigger (ncurses) */
+	if (escape_in_macro_triggers)
+	{
+		/* Then, backtick acts as actual escape */
+		if (i == '`') return FALSE;
+	} else
+#endif
 	/* Escape on Escape */
 	if (i == ESCAPE) return FALSE;
 

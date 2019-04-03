@@ -143,6 +143,8 @@ extern bool pause_requested;
 
 #define enter_store_requested enter_store
 
+extern bool escape_in_macro_triggers;
+
 extern bool inkey_base;
 extern bool inkey_xtra;
 extern bool inkey_scan;
