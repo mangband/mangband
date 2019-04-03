@@ -2,7 +2,7 @@
 
 #
 # This file provides some macros for use with versions of Angband compiled
-# using the "main-x11.c" (or "main-xaw.c") file.
+# using the "main-sdl.c" file.
 #
 # Note the use of "\e\e\e\e" (four escapes) to allow the macros to work
 # even if the game is not yet ready for a command.
@@ -81,27 +81,6 @@ A:+2
 P:^_N_112\r
 
 
-# KP_Insert, KP_End, KP_Down, KP_PageDown, KP_Left, <None>, KP_Right,
-# KP_Home, KP_Up, KP_Page_Up
-
-A:0
-P:^__FF9E\r
-A:1
-P:^__FF9C\r
-A:2
-P:^__FF99\r
-A:3
-P:^__FF9B\r
-A:4
-P:^__FF96\r
-A:6
-P:^__FF98\r
-A:7
-P:^__FF95\r
-A:8
-P:^__FF97\r
-A:9
-P:^__FF9A\r
 
 # Keypad (0-9)
 

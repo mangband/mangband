@@ -401,6 +401,7 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_END, "[4~", "[4^", "Oq"},
 	{SDLK_PAGEUP, "[5~", "[5^", "Oy"},
 	{SDLK_PAGEDOWN, "[6~", "[6^", "Os"},*/
+/*
 	{SDLK_F1, "_FFBE", NULL, NULL},
 	{SDLK_F2, "_FFBF", NULL, NULL},
 	{SDLK_F3, "_FFC0", NULL, NULL},
@@ -413,10 +414,13 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_F10, "_FFC7", NULL, NULL},
 	{SDLK_F11, "_FFC8", NULL, NULL},
 	{SDLK_F12, "_FFC9", NULL, NULL},
+*/
 	/* I have no machines with F13, F14, F15. Is that a Sun thing? */
+/*
 	{SDLK_F13, "", NULL, NULL},
 	{SDLK_F14, "", NULL, NULL},
 	{SDLK_F15, "", NULL, NULL},
+*/
 	{SDLK_RSHIFT, "", NULL, NULL},
 	{SDLK_LSHIFT, "", NULL, NULL},
 	{SDLK_RALT, "", NULL, NULL},
@@ -463,6 +467,24 @@ sdl_keymapt sdl_keymap[] =
 void Multikeypress(char *k)
 {
 	while (*k) Term_keypress(*k++);
+}
+
+int IsSpecial(SDLKey k)
+{
+	switch (k)
+	{
+		case SDLK_F1: case SDLK_F2:
+		case SDLK_F3: case SDLK_F4:
+		case SDLK_F5: case SDLK_F6:
+		case SDLK_F7: case SDLK_F8:
+		case SDLK_F9: case SDLK_F10:
+		case SDLK_F11: case SDLK_F12:
+		case SDLK_TAB:
+			return TRUE;
+		default:
+			return FALSE;
+	}
+	return 1234567; /* all good children go to heaven */
 }
 
 int IsMovement(SDLKey k)
@@ -640,7 +662,7 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 		} else
 		if (sdl_keymap[i].k == SDLK_UNKNOWN)
 		{
-			if (IsMovement(ks->sym))
+			if (IsMovement(ks->sym) || IsSpecial(ks->sym))
 			{
 				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
