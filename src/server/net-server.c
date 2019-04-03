@@ -1057,10 +1057,28 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
  */
 bool client_version_ok(u16b version)
 {
-	if (version == SERVER_VERSION) 
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	/* make alpha/beta/devel/stable versions always incompatible
+	 * with each other */
+	if (extra != SERVER_VERSION_EXTRA) return FALSE;
+
+	/* require minimal version */
+	if (major < 1) return FALSE;
+	if (minor < 5) return FALSE;
+	if (patch < 0) return FALSE;
+
+	return TRUE;
+/*
+	if (version == SERVER_VERSION)
 		return TRUE;
 	else
 		return FALSE;
+*/
 }
 
 /*
