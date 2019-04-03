@@ -787,7 +787,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #ifdef DEBUG
 		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
 #endif
-		client_abort(ct, format("Incompatible client version. You need version %04x", version));
+		client_abort(ct, format("Incompatible client version. You need version %04x", SERVER_VERSION));
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
