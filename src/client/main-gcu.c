@@ -446,7 +446,15 @@ static void keymap_game_prepare(void)
 
 }
 
-
+/* If "best cursor" mode is on, use it */
+static void curs_reset(term_data *td)
+{
+	if (Term->scr->bcv)
+	{
+		wmove(td->win, Term->scr->bcy, Term->scr->bcx);
+		curs_set(1);
+	}
+}
 
 
 /*
@@ -751,6 +759,9 @@ static errr Term_curs_gcu(int x, int y)
 	/* Literally move the cursor */
 	wmove(td->win, y, x);
 
+	/* Hack -- reset cursor to "best" position */
+	curs_reset(td);
+
 	/* Success */
 	return (0);
 }
@@ -813,6 +824,9 @@ static errr Term_text_gcu(int x, int y, int n, byte a, cptr s)
 
 	/* Add the text */
 	waddstr(td->win, text);
+
+	/* Hack -- move cursor to best postion */
+	curs_reset(td);
 
 	/* Success */
 	return (0);
