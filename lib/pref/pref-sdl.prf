@@ -238,29 +238,27 @@ P:^_N_109\r
 # (end, pagedown, home, pageup)
 
 A:+1
-P:^_O_117\r
+P:^_M_117\r
 
 A:+3
-P:^_O_119\r
+P:^_M_119\r
 
 A:+7
-P:^_O_116\r
+P:^_M_116\r
 
 A:+9
-P:^_O_118\r
+P:^_M_118\r
 
 # (left, right, up, down)
 
-T:cmd-left
 A:+4
-P:^_O_114\r
+P:^_M_114\r
 
-T:cmd-left
 A:+6
-P:^_O_113\r
+P:^_M_113\r
 
 A:+8
-P:^_O_111\r
+P:^_M_111\r
 
 A:+2
-P:^_O_112\r
+P:^_M_112\r
