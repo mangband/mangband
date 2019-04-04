@@ -1152,7 +1152,28 @@ static void term_window_resize(term_data *td)
 	InvalidateRect(td->w, NULL, TRUE);
 }
 
+/*
+ * See if any other term is already using font_file
+ */
+static bool term_font_inuse(term_data* td)
+{
+	int i;
+	bool used = FALSE;
 
+	/* Scan windows */
+	for (i = 0; i < MAX_TERM_DATA; i++)
+	{
+		/* Check "screen" */
+		if ((td != &win_data[i]) &&
+		    (win_data[i].font_file) &&
+		    (streq(win_data[i].font_file, td->font_file)))
+		{
+			used = TRUE;
+			break;
+		}
+	}
+	return used;
+}
 
 /*
  * Force the use of a new "font file" for a term_data
@@ -1182,19 +1203,7 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Forget old font */
 	if (td->font_file)
 	{
-		bool used = FALSE;
-
-		/* Scan windows */
-		for (i = 0; i < MAX_TERM_DATA; i++)
-		{
-			/* Check "screen" */
-			if ((td != &win_data[i]) &&
-			    (win_data[i].font_file) &&
-			    (streq(win_data[i].font_file, td->font_file)))
-			{
-				used = TRUE;
-			}
-		}
+		bool used = term_font_inuse(td);
 
 		/* Remove unused font resources */
 		if (!used) RemoveFontResource(td->font_file);
@@ -1249,10 +1258,14 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Save new font name */
 	td->font_file = string_make(buf);
 
-	/* Load the new font or quit */
-	if (!AddFontResource(buf))
+	/* If this font is used for the first time */
+	if (!term_font_inuse(td))
 	{
-		quit_fmt("Font file corrupted:\n%s", buf);
+		/* Load the new font or quit */
+		if (!AddFontResource(buf))
+		{
+			quit_fmt("Font file corrupted:\n%s", buf);
+		}
 	}
 
 	/* Create the font XXX XXX XXX Note use of "base" */
