@@ -165,6 +165,8 @@
     <ClCompile Include="..\..\src\client\c-xtra1.c" />
     <ClCompile Include="..\..\src\client\c-xtra2.c" />
     <ClCompile Include="..\..\src\client\client.c" />
+    <ClCompile Include="..\..\src\client\lupng\lupng.c" />
+    <ClCompile Include="..\..\src\client\lupng\miniz.c" />
     <ClCompile Include="..\..\src\client\maim-sdl.c" />
     <ClCompile Include="..\..\src\client\main-cap.c" />
     <ClCompile Include="..\..\src\client\main-gcu.c" />
@@ -173,6 +175,7 @@
     <ClCompile Include="..\..\src\client\main-win.c" />
     <ClCompile Include="..\..\src\client\main-x11.c" />
     <ClCompile Include="..\..\src\client\main-xaw.c" />
+    <ClCompile Include="..\..\src\client\readpng.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
     <ClCompile Include="..\..\src\common\net-basics.c" />
     <ClCompile Include="..\..\src\client\net-client.c" />
@@ -188,6 +191,8 @@
     <ClCompile Include="..\..\src\common\z-virt.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\client\lupng\lupng.h" />
+    <ClInclude Include="..\..\src\client\lupng\miniz.h" />
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\client\c-angband.h" />
     <ClInclude Include="..\..\src\client\c-externs.h" />

@@ -33,7 +33,7 @@ bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
 
-static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
+static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
@@ -41,6 +41,10 @@ bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 #include <SDL/SDL.h>
 #include <string.h>
+
+#ifndef HAVE_SDL_IMAGE
+#include "lupng/lupng.h"
+#endif
 
 
 /* local functions */
@@ -383,6 +387,98 @@ int pick_term(int x, int y)
 	}
 	return r;
 }
+
+/*
+ * Load a PNG tileset.
+ *
+ * If zerokey is TRUE, the top-left pixel will be used to pick a color key.
+ *
+ */
+SDL_Surface* SDLU_LoadPNG(const char *path)
+{
+#ifdef HAVE_SDL_IMAGE
+#else
+	SDL_Surface *face;
+	int x, y, i;
+	int npal = 0;
+	SDL_Color pal[256];
+	LuImage *img = luPngReadFile(path);
+	
+	if (!img) return NULL;
+	
+	luImageDarkenAlpha(img);
+	
+	face = SDL_CreateRGBSurface(SDL_SWSURFACE, img->width, img->height, 8, 0,0,0,0);
+	if(!face)
+	{
+		luImageRelease(img, NULL);
+		return NULL;
+	}
+	SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
+	
+	pal[0].r = pal[0].g = pal[0].b = 0; /* chroma black */
+	pal[1].r = pal[1].g = pal[1].b = 1; /* subtitution black */
+	npal = 2;
+
+	for (y = 0; y < img->height; y++) {
+	for (x = 0; x < img->width ; x++) {
+		
+		Uint8 r = img->data[y * img->width * img->channels + x * img->channels + 0];
+		Uint8 g = img->data[y * img->width * img->channels + x * img->channels + 1];
+		Uint8 b = img->data[y * img->width * img->channels + x * img->channels + 2];
+		Uint8 col = 255;
+		for (i = 0; i < npal; i++) {
+			if (pal[i].r == r && pal[i].g == g && pal[i].b == b) {
+				col = i;
+				break;
+			}
+		}
+		if (col == 255 && npal < 255) {
+			i = npal;
+			npal++;
+			pal[i].r = r;
+			pal[i].g = g;
+			pal[i].b = b;
+			col = i;
+		}
+		if (col == 0 && img->channels == 4) {
+			Uint8 a = img->data[y * img->width * img->channels + x * img->channels + 3];
+			if (a <= 32) col = 0;
+			else col = 1;
+		}
+		((Uint8*)face->pixels)[y * face->pitch + x * face->format->BytesPerPixel] = col;
+	} }
+	SDL_SetColors(face, &pal[0], 0, npal);
+	
+	luImageRelease(img, NULL);
+	
+	return face;
+#endif
+}
+errr load_PNG_graf_sdl(font_data *fd, cptr filename)
+{
+	char path[1024];
+	Uint32 mw, mh;
+
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
+
+	if ((fd->face = SDLU_LoadPNG(path)) != NULL)
+	{
+		/* Attempt to get dimensions from filename */
+		if(!strtoii(filename, &mw, &mh))
+		{
+			fd->w = mw;
+			fd->h = mh;
+		}
+	}
+	else
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 
 /*
  * Load a BMP tileset.
@@ -2331,6 +2427,16 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 		MAKE(load_tiles, graf_tiles);
 		memset(load_tiles, 0, sizeof(graf_tiles));
 		load_tiles->face = NULL;
+
+		if (suffix(filename, ".png") || suffix(filename, ".PNG"))
+		{
+			if (!load_PNG_graf_sdl(load_tiles, filename))
+			{
+				load_tiles->name = string_make(filename);
+				td->gt = load_tiles;
+			}
+		}
+		else
 
 		if (!load_BMP_graf_sdl(load_tiles, filename, maskname))
 		{

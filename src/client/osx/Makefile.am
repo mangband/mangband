@@ -50,7 +50,7 @@ mangclient.app: mangclient
 	@cp lib/user/*prf mangclient.app/Contents/Resources/lib/user
 	@cp lib/xtra/font/*FON mangclient.app/Contents/Resources/lib/xtra/font
 	@cp lib/xtra/font/*hex mangclient.app/Contents/Resources/lib/xtra/font
-	@cp lib/xtra/graf/*bmp mangclient.app/Contents/Resources/lib/xtra/graf
+	@cp lib/xtra/graf/*png mangclient.app/Contents/Resources/lib/xtra/graf
 	@cp lib/xtra/sound/*wav mangclient.app/Contents/Resources/lib/xtra/sound
 	@cp lib/xtra/sound/sound.cfg mangclient.app/Contents/Resources/lib/xtra/sound
 

@@ -76,7 +76,7 @@
 #define MNU_SUPPORT
 #define GRAPHICS
 
-static cptr GFXBMP[] = { "8x8.BMP", "8x8.BMP", "16x16.BMP", "32x32.BMP" };
+static cptr GFXBMP[] = { "8x8.PNG", "8x8.PNG", "16x16.PNG", "32x32.PNG" };
 static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define GFXD "16x16.BMP"
 
@@ -1321,7 +1321,7 @@ static errr term_force_font(term_data *td, cptr name)
  */
 static errr term_force_graf(term_data *td, cptr name)
 {
-	int i;
+	int i, is_png = 0;
 
 	int wid, hgt;
 
@@ -1332,12 +1332,6 @@ static errr term_force_graf(term_data *td, cptr name)
 	char base_graf[16];
 
 	char buf[1024];
-
-	HBITMAP scaled_gfx;
-	HDC  hdc;
-	HDC hdcSrc;
-	HDC hdcDest;
-	HBITMAP hbmSrcOld;
 
 	/* No name */
 	if (!name) return (1);
@@ -1367,10 +1361,12 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Require actual sizes */
 	if (!wid || !hgt) return (1);
 
+	/* Check if we need PNG loader */
+	if (suffix(s, ".png") || suffix(s, ".PNG")) is_png = TRUE;
+
 	/* Build base_graf */
 	strcpy(base_graf, base);
-	strcat(base_graf, ".BMP");
-
+	strcat(base_graf, is_png ? ".PNG" : ".BMP");
 
 	/* Access the graf file */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_GRAF, base_graf);
@@ -1378,28 +1374,40 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Verify file */
 	if (!check_file(buf)) return (1);
 
-
-	/* Load the bitmap or quit */
-	if (!ReadDIB(td->w, buf, &infGraph))
+	/* Note: PNG loader will extract the mask from the alpha
+	 * channel, or assume colorkey is at pixel0,0 */
+	if (is_png)
 	{
-		quit_fmt("Bitmap corrupted:\n%s", buf);
+		/* Load the png or quit */
+ 		if (!ReadDIB2_PNG(td->w, buf, &infGraph, &infMask, FALSE)) 
+		{
+			quit_fmt("Cannot read file '%s'", buf);
+		}
 	}
+	else
+	{
+		/* Load the bitmap or quit */
+		if (!ReadDIB(td->w, buf, &infGraph))
+		{
+			quit_fmt("Bitmap corrupted:\n%s", buf);
+		}
 
+		/* Load mask, if appropriate */
+		if (GFXMASK[use_graphics])
+		{
+			/* Access the mask file */
+			path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
+
+			/* Load the bitmap or quit */
+			if (!ReadDIB(win_data[0].w, buf, &infMask))
+			{
+				quit_fmt("Cannot read bitmap mask file '%s'", buf);
+			}
+		}
+	}
 	/* Save the new sizes */
 	infGraph.CellWidth = wid;
 	infGraph.CellHeight = hgt;
-
-	if (GFXMASK[use_graphics])
-	{
-		/* Access the mask file */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
-
-		/* Load the bitmap or quit */
-		if (!ReadDIB(win_data[0].w, buf, &infMask))
-		{
-			quit_fmt("Cannot read bitmap mask file '%s'", buf);
-		}
-	}
 
 	/* Copy the picture from the bitmap to the window */
 //	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
