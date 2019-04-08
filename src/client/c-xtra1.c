@@ -2971,8 +2971,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Cut */
+				if (cut < 0) cut = 0;
 				if (cut)
 				{
+					if (cut >= sizeof(tmp)) cut = sizeof(tmp)-1;
 					tmp[(n = cut)] = '\0';
 				}
 
