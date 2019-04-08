@@ -2585,8 +2585,8 @@ int caveclr(cave_view_type* dest, int len)
 	/* Erase a character n times */
 	for (i = 0; i < len; i++)
 	{
-		dest[i].a = 0;
-		dest[i].c = 0;
+		dest[i].a = 0x80;
+		dest[i].c = 0x80;
 	}
 	return 1;
 }
