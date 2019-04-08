@@ -2612,8 +2612,8 @@ int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
-		byte ta = p_ptr->trn_info[y][x].a;
-		char tc = p_ptr->trn_info[y][x].c;
+		byte ta = p_ptr->trn_info[y][x + i].a;
+		char tc = p_ptr->trn_info[y][x + i].c;
 		Term_mem_ch(i + dx, dy, src[i].a, src[i].c, ta, tc);
 	}
 	return 1;
