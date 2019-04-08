@@ -1616,11 +1616,12 @@ static errr  Term_wipe_sdl(int x, int y, int n)
 	SDL_FrontRect(td, dr.x, dr.y, dr.w, dr.h, FALSE, TRUE);
 	
 	/* Erase cursor */
+/*
 	if (td->cx >= x && td->cx <= x + n && td->cy == y)
 	{
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
