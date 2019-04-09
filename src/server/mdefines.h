@@ -19,7 +19,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define SERVER_VERSION_EXTRA	2
+#define SERVER_VERSION_EXTRA	3
 
 
 /*
@@ -156,6 +156,10 @@
 #define MON_SUMMON_ADJ	2		/* Adjust level of summoned creatures */
 #define MON_DRAIN_LIFE	2		/* Percent of player exp drained per hit */
 #define USE_DEVICE      3		/* x> Harder devices x< Easier devices     */
+
+/* Resistance panel */
+#define MAX_OBJFLAGS_ROWS 13
+#define MAX_OBJFLAGS_COLS 39
 
 /*
  * There is a 1/20 (5%) chance of inflating the requested object_level
@@ -561,7 +565,7 @@
 
 #define Send_char(I,X,Y,A,C) stream_char_raw(Players[I],STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
 #define Send_char_p(P,X,Y,A,C) stream_char_raw(P,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
-#define Send_tile(I,P,Y,X,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(P),Y,X,A,C,TA,TC)
+#define Send_tile(I,X,Y,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(Players[I]),Y,X,A,C,TA,TC)
 #define Stream_tile(I,P,Y,X) stream_char(Players[I],DUNGEON_STREAM_p(P),Y,X);
 
 /*

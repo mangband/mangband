@@ -424,6 +424,13 @@ static char inkey_aux(void)
 	/* Efficiency -- Ignore inactive macros */
 	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
 
+#ifdef USE_GCU
+	/* NCurses client actually uses escape as "begin macro" sequence */
+	if (escape_in_macro_triggers)
+	{
+		/* So we allow it */
+	} else
+#endif
 	/* Efficiency/Hack -- Ignore escape key for macros */
 	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
 
@@ -1713,7 +1720,7 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend)
 
 	char buf[80];
 	buf[0] = '\0';
-	strcpy(buf, prompt);
+	my_strcpy(buf, prompt, 80);
 	
 	if (allow_target)
 		p = "Direction ('*' to choose target, non-direction cancels) ?";
@@ -2400,7 +2407,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 
 
 	/* Copy it */
-	strcpy(buf, msg);
+	my_strcpy(buf, msg, sizeof(buf));
 	
 	/* Strip it */
 	buf[80] = '\0';
@@ -2578,8 +2585,8 @@ int caveclr(cave_view_type* dest, int len)
 	/* Erase a character n times */
 	for (i = 0; i < len; i++)
 	{
-		dest[i].a = 0;
-		dest[i].c = 0;
+		dest[i].a = 0x80;
+		dest[i].c = 0x80;
 	}
 	return 1;
 }
@@ -2605,8 +2612,8 @@ int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
-		byte ta = p_ptr->trn_info[y][x].a;
-		char tc = p_ptr->trn_info[y][x].c;
+		byte ta = p_ptr->trn_info[y][x + i].a;
+		char tc = p_ptr->trn_info[y][x + i].c;
 		Term_mem_ch(i + dx, dy, src[i].a, src[i].c, ta, tc);
 	}
 	return 1;
@@ -3150,6 +3157,14 @@ static bool get_macro_trigger(char *buf)
 	/* First key */
 	i = inkey();
 	
+#ifdef USE_GCU
+	/* If we allow escape as macro trigger (ncurses) */
+	if (escape_in_macro_triggers)
+	{
+		/* Then, backtick acts as actual escape */
+		if (i == '`') return FALSE;
+	} else
+#endif
 	/* Escape on Escape */
 	if (i == ESCAPE) return FALSE;
 
@@ -3272,7 +3287,7 @@ void browse_macros(void)
 			Term_putstr(00, 2+k-o, -1, a, buf);
 
 			/* Dump the action */
-			Term_putstr(20, 2+k-o, -1, a, act);
+			Term_putstr(30, 2+k-o, -1, a, act);
 		}
 
 		/* Get a key */
@@ -3287,7 +3302,7 @@ void browse_macros(void)
 			if (total == 1) continue;		
 
 			/* Get a macro trigger */
-			strcpy(buf, macro__pat[sel]);
+			my_strcpy(buf, macro__pat[sel], sizeof(buf));
 
 			/* (un)Link the macro */
 			macro_add(buf, buf, FALSE);
@@ -3301,7 +3316,7 @@ void browse_macros(void)
 		else if (i == 'T') /* Change trigger */
 		{
 			/* Get current action */
-			strcpy(act, macro__act[sel]);
+			my_strcpy(act, macro__act[sel], sizeof(act));
 
 			/* Prompt */	
 			clear_from(hgt);
@@ -4361,7 +4376,7 @@ void load_sound_prefs(void)
 		/* Ignore empty sound strings */
 		if (!angband_sound_name[i][0]) continue;
 
-		strncpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
+		my_strcpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
 
 		num = tokenize_whitespace(tmp, SAMPLE_MAX, zz);
 

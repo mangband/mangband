@@ -4018,11 +4018,15 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	/* Cancel auto-commands */
 	/* command_new = 0; */
 
+#if 0
+//disabling per powerwyrm's comment, see #596
 	/* Dungeon Master is never disturbed */
 	if (p_ptr->dm_flags & DM_NEVER_DISTURB)
 	{
 		return;
 	}
+#endif
+
 #if 0
 	/* Cancel repeated commands */
 	if (command_rep)

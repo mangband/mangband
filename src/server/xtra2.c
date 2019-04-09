@@ -4376,7 +4376,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	strnfmt(out_val, sizeof(out_val),
 	        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
 	if (is_dm_p(p_ptr))
-		strcat(out_val, format(" (%d:%d)", y, x));
+		my_strcat(out_val, format(" (%d:%d)", y, x), sizeof(out_val));
 	/* Hack -- capitalize */
 	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
@@ -4638,7 +4638,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				y = py;
 				x = px;
 			}
-			
+				/* fallthrough */
 			case 'o':
 			{
 				p_ptr->look_y = y;
@@ -5132,7 +5132,7 @@ bool do_restoreXP_other(int Ind)
  * times five to keep the same movement rate.
  */
 
-int level_speed(int Ind)
+u32b level_speed(int Ind)
 {
 	if ( Ind <= 0) return level_speeds[0]*5;
 	else return level_speeds[Ind]*5;
@@ -5285,7 +5285,7 @@ void show_motd(player_type *p_ptr)
 	byte old_term;
 
 	/* Copy to info buffer */
-	for (i = 0; i < 20; i++)
+	for (i = 0; i < 24; i++)
 	{
 		for (k = 0; k < 80; k++)
 		{
@@ -5674,7 +5674,7 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		send_spell_info(Ind, 12 + b, bi, flag, 0, out_val);
 		j++;
 		bi++;
 
@@ -5847,8 +5847,8 @@ void describe_player(int Ind, int Ind2)
 	if (j) 	text_out(". ");
 
 
-	/* Describe History */	
-	strncpy(buf, p_ptr->descrip, 240);
+	/* Describe History */
+	my_strcpy(buf, p_ptr->descrip, sizeof(buf));
 	s = strtok(buf, " \n");
 	while (s)
 	{
@@ -7217,7 +7217,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C))
+		Send_tile(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C), (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)
@@ -7234,8 +7234,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 
 	switch (hook_q)
 	{
-		case 'k': case 127: hook_type = 128; break; /* Del */
-		case 's': /* Select */	
+		case 'k': case 127: case '\b': hook_type = 128; break; /* Del */
+		case 's': /* Select */
 
 		p_ptr->master_parm = (MASTER_SELECT | (u32b)ox | ((u32b)oy << 8));
 
@@ -7281,7 +7281,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	/* Success */
 	if (hook_type--)
 	{
-		if (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT)
+		if ((hook_type <= MASTER_MAX_HOOKS)
+		&& (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT))
 		{
 			byte old_hook = p_ptr->master_hook[hook_type];
 			u32b old_args = p_ptr->master_args[hook_type];

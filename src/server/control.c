@@ -220,7 +220,6 @@ static void console_who(connection_type* ct, char *useless)
  */
 static void console_conn(connection_type* ct, char *useless)
 {
-	char conn_type[MAX_PLAYERS];
 	eptr iter;
 	int j = 0;
 	cq_printf(&ct->wbuf, "%T", "Listing connections\n");

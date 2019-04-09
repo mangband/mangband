@@ -248,7 +248,7 @@ int send_request(byte mode, u16b id) {
 }
 
 int send_stream_size(byte id, int rows, int cols) {
-	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
+	return cq_printf(&serv->wbuf, "%c" "%c%ud%c", PKT_RESIZE, id, (u16b)rows, (byte)cols);
 }
 
 int send_visual_info(byte type) {
@@ -805,6 +805,7 @@ int recv_struct_info(connection_type *ct)
 			C_MAKE(eq_names, max, s16b);
 			C_MAKE(inventory_name, max, char*);
 			C_MAKE(inventory, max, object_type);
+			C_MAKE(inventory_secondary_tester, max, byte);
 			INVEN_TOTAL = max;
 			INVEN_WIELD = fake_text_size;
 			
@@ -843,6 +844,13 @@ int recv_struct_info(connection_type *ct)
 			FLOOR_TOTAL = max;
 			FLOOR_NEGATIVE = fake_name_size;
 			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
+		}
+		break;
+		/* Objflag info (rows and cols of Charsheet plusses) */
+		case STRUCT_INFO_OBJFLAGS:
+		{
+			MAX_OBJFLAGS_ROWS = max;
+			MAX_OBJFLAGS_COLS = fake_name_size;
 		}
 		break;
 	}
@@ -985,7 +993,6 @@ int recv_indicator_info(connection_type *ct) {
 	s16b row = 0,
 		col = 0;
 	u32b flag = 0;
-	int n;
 
 	indicator_type *i_ptr;
 
@@ -1118,6 +1125,37 @@ int recv_air(connection_type *ct)
 	return 1;
 }
 
+static errr verify_stream_y(byte st, s16b y)
+{
+	stream_type	*stream = &streams[st];
+	if (y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
+	else if (y > stream->max_row)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, max buffer is %d)!", st, stream->mark, y, stream->max_row + 1));
+		return -1;
+	}
+	return 0;
+}
+static errr verify_stream_x(byte st, s16b x)
+{
+	stream_type	*stream = &streams[st];
+	if (x >= p_ptr->stream_wid[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	else if (x > stream->max_col)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, max buffer is %d)!", st, stream->mark, x, stream->max_col + 1));
+		return -1;
+	}
+	return 0;
+}
+
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
@@ -1130,16 +1168,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 
 	cave_view_type *dest = stream_cave(st, y);
 
-	if (x >= p_ptr->stream_wid[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
-		return -1;
-	}
-	if (y >= p_ptr->stream_hgt[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
-		return -1;
-	}
+	if (verify_stream_y(st, y)) return -1;
+	if (verify_stream_x(st, x)) return -1;
 
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
@@ -1148,8 +1178,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	dest[x].a = a;
 	dest[x].c = c;
 
-	if (y > last_remote_line[addr]) 
-		last_remote_line[addr] = y; 
+	if (y > last_remote_line[addr])
+		last_remote_line[addr] = y;
 
 	if (addr == NTERM_WIN_OVERHEAD)
 		show_char(y, x, a, c, ta, tc, mem);
@@ -1157,14 +1187,14 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	return 1;
 }
 int recv_stream(connection_type *ct) {
-	s16b	cols, y = 0;
+	u16b	cols, y = 0;
 	s16b	*line;
 	byte	addr, id;
 	cave_view_type	*dest;
 
 	stream_type	*stream;
 
-	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &y) < 1) return 0;
 
 	id = stream_ref[next_pkt];
 	stream = &streams[id];
@@ -1172,20 +1202,15 @@ int recv_stream(connection_type *ct) {
 
 	if (!p_ptr->stream_hgt[id])
 	{
-		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		plog(format("Stream %d,'%s' is unexpected (subscribed to %d rows)", id, stream->mark, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
-	/* Hack -- single char */
-	if (y & 0xFF00) return
+	if (y & 0x8000) return
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
-		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
+		((y >> 8) & 0x007F), (y & 0xFF));
 
-	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
-		return -1;
-	}
+	if (verify_stream_y(id, y)) return -1;
 
 	cols = p_ptr->stream_wid[id];
 	dest = p_ptr->stream_cave[id] + y * cols;
@@ -1218,11 +1243,11 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0, max_x = 0,
-		y = 0, max_y = 0;
+		x = 0, max_x = 0;
 	byte	st, addr;
+	u16b	y = 0, max_y = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
+	if (cq_scanf(&ct->rbuf, "%b%ud%b", &stg, &y, &x) < 3) return 0;
 
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
@@ -1280,8 +1305,9 @@ int recv_stream_info(connection_type *ct) {
 		rle = 0;
 	byte
 		min_col = 0,
+		max_col = 0;
+	u16b
 		min_row = 0,
-		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
 	char mark[MSG_LEN];
@@ -1290,7 +1316,7 @@ int recv_stream_info(connection_type *ct) {
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%ud%c%ud%c",
 			&pkt, &addr, &rle, &flag,
 			mark, buf,
 			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
@@ -1334,8 +1360,7 @@ int recv_stream_info(connection_type *ct) {
 
 	stream_ref[pkt] = known_streams;
 
-	known_streams++;	
-
+	known_streams++;
 
 	return 1;
 }
@@ -1490,6 +1515,20 @@ int recv_term_header(connection_type *ct) {
 	}
 	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
 	return 2;
+}
+
+/* Dangerous! "Save file" packet. */
+int recv_term_writefile(connection_type *ct)
+{
+	byte fmode;
+	char filename[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%b%s", &fmode, filename) < 2) return 0;
+
+	/* XXX XXX XXX DO ABSOLUTELY NOTHING (for now) */
+
+	/* OK */
+	return 1;
 }
 
 int recv_cursor(connection_type *ct) {
@@ -1747,11 +1786,11 @@ int recv_ghost(connection_type *ct)
 int recv_floor(connection_type *ct)
 {
 	byte pos, tval, attr;
-	byte flag;
+	byte flag, tester;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%c%c%s", &pos, &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%b%b%s", &pos, &attr, &amt, &tval, &flag, &tester, name) < 7)
 	{
 		return 0;
 	}
@@ -1768,6 +1807,7 @@ int recv_floor(connection_type *ct)
 	floor_item.tval = tval;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
+	floor_secondary_tester = tester;
 
 	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
@@ -1776,12 +1816,12 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	char pos, attr, tval;
-	byte flag;
+	byte pos, attr, tval;
+	byte flag, tester;
 	s16b wgt, amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%b%b%s", &pos, &attr, &wgt, &amt, &tval, &flag, &tester, name) < 8)
 	{
 		return 0;
 	}
@@ -1789,36 +1829,40 @@ int recv_inven(connection_type *ct)
 	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
 	inventory[pos - 'a'].sval = attr;
 	inventory[pos - 'a'].tval = tval;
-	inventory[pos - 'a'].ident = flag;
+	inventory[pos - 'a'].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
+	inventory_secondary_tester[pos - 'a'] = tester;
 
 	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Hack -- if server used this packet to send equip */
+	if (pos >= INVEN_TOTAL) p_ptr->window |= (PW_EQUIP);
+
 	return 1;
 }
 
 int recv_equip(connection_type *ct)
 {
-	char pos, attr, tval;
+	byte pos, attr, tval;
 	byte flag;
 	s16b wgt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%b%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
 		return 0;
 	}
 
-	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
+	inventory[pos - 'a' + INVEN_WIELD].sval = attr; /* Hack -- Store "attr" in "sval" */
 	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
-	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
-
+	inventory_secondary_tester[pos - 'a' + INVEN_WIELD] = 0;
 
 	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
@@ -1830,14 +1874,15 @@ int recv_equip(connection_type *ct)
 
 int recv_spell_info(connection_type *ct)
 {
-	char
-		flag;
+	byte
+		flag,
+		tester;
 	u16b
 		book,
 		line;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
+	if (cq_scanf(&ct->rbuf, "%b%b%ud%ud%s", &flag, &tester, &book, &line, buf) < 5)
 	{
 		return 0;
 	}
@@ -1851,6 +1896,7 @@ int recv_spell_info(connection_type *ct)
 	/* Save the info */
 	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
+	spell_test[book * SPELLS_PER_BOOK + line] = tester;
 
 	/* and wipe the next line */
 	spell_info[book][line+1][0] = '\0';
@@ -1874,15 +1920,15 @@ int recv_objflags(connection_type *ct)
 	}
 
 	/* Verify */
-	if (y < 0 || y >= 14)
+	if (y < 0 || y >= MAX_OBJFLAGS_ROWS)
 	{
-		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, 14));
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, MAX_OBJFLAGS_ROWS));
 		return -1;
 	}
 
 	/* Body (39 grids of cave) */
-	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
-	{ 
+	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], MAX_OBJFLAGS_COLS) < MAX_OBJFLAGS_COLS)
+	{
 		return 0;
 	}
 
@@ -1934,7 +1980,7 @@ int recv_party_info(connection_type *ct)
 
 
 /* HACK -- We have connected to server < 1.5.0 -- Remove this */
-int recv_oldserver_handshake()
+int recv_oldserver_handshake(connection_type *ct)
 {
 	quit("Server version is too old.");
 	return -1;

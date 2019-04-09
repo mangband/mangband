@@ -153,6 +153,8 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 
 	char		out_val[160];
 
+	byte flag, item_tester;
+
 	/* Dump the spells */
 	for (i = 0; i < num; i++)
 	{
@@ -166,7 +168,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		if (s_ptr->slevel >= 99)
 		{
 			sprintf(out_val, "  %c) %-30s", I2A(i), "(illegible)");
-			send_spell_info(Ind, book, i, 0, out_val);
+			send_spell_info(Ind, book, i, 0, 0, out_val);
 			continue;
 		}
 
@@ -189,11 +191,14 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 			comment = " untried";
 		}
 
+		/* Get flag and item tester */
+		flag = get_spell_flag(p_ptr->cp_ptr->spell_book, j, p_ptr->spell_flags[j], &item_tester);
+
 		/* Dump the spell --(-- */
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		send_spell_info(Ind, book, i, get_spell_flag(p_ptr->cp_ptr->spell_book,j,p_ptr->spell_flags[j]), out_val);
+		send_spell_info(Ind, book, i, flag, item_tester, out_val);
 	}
 }
 
@@ -511,6 +516,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	magic_type		*s_ptr;
 
 	byte spells[PY_MAX_SPELLS], num = 0;
+	byte item_tester = 0;
 
 	/* Check preventive inscription '^m' */
 	__trap(Ind, CPI(p_ptr, 'm'));
@@ -591,10 +597,10 @@ void do_cmd_cast(int Ind, int book, int spell)
 	if (spell >= SPELL_PROJECTED)
 	{
 		j = spells[spell - SPELL_PROJECTED];
-		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
 			msg_print(Ind, "You cannot project that spell.");
-        	return;
+			return;
 		}
 	}
 
@@ -740,6 +746,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	magic_type  *s_ptr;
 
 	byte spells[PY_MAX_SPELLS], num = 0;
+	byte item_tester = 0;
 
 	/* Check preventive inscription '^p' */
 	__trap(Ind, CPI(p_ptr, 'p'));
@@ -823,10 +830,10 @@ void do_cmd_pray(int Ind, int book, int spell)
 	if (spell >= SPELL_PROJECTED)
 	{
 		j = spells[spell - SPELL_PROJECTED];
-		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
 			msg_print(Ind, "You cannot project that prayer.");
-        	return;
+			return;
 		}
 	}
 
@@ -882,6 +889,7 @@ void show_ghost_spells(int Ind)
 	magic_type *s_ptr;
 	int i;
 	char out_val[80];
+	byte flag, item_tester;
 
 	/* Check each spell */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
@@ -895,8 +903,11 @@ void show_ghost_spells(int Ind)
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d",
                 I2A(i), spell_names[GHOST_REALM][i], s_ptr->slevel, s_ptr->smana, 0);
 
+		/* Get extra info */
+		flag = get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED), &item_tester);
+
 		/* Send it */
-		send_spell_info(Ind, 10, i, get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED)), out_val);
+		send_spell_info(Ind, 10, i, flag, item_tester, out_val);
 	}
 }
 

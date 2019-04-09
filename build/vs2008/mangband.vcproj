@@ -115,8 +115,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/U &quot;DEBUG&quot;"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
-				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -264,6 +265,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/U &quot;DEBUG&quot;"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
@@ -743,19 +745,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\server\s-externs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\sockbuf.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\types.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\version.h"
 				>
 			</File>
 			<File

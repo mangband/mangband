@@ -4,9 +4,9 @@ Version:       %{version}
 Release:      %{release}
 Group:       Amusements/Games
 URL:       http://www.mangband.org
-Source:       %{name}-%{version}.tar.gz
+Source:       http://www.mangband.org/download/%{name}-%{version}.tar.gz
 License:        Public Use
-#Requires:       SDL, libX11, ncurses   
+#Requires:       SDL, libX11, ncurses
 #BuildRequires:  SDL-devel, libX11-devel, ncurses-devel
 Buildroot:      %{_tmppath}/%{name}-buildroot
 
@@ -18,13 +18,15 @@ Buildroot:      %{_tmppath}/%{name}-buildroot
 Summary:      SDL client
 Requires: SDL
 BuildRequires:  SDL-devel
+Conflicts: mangclient-x11, mangclient-gcu
 %description -n mangclient-sdl
 SDL version of client.
 
 %package -n mangclient-x11
 Summary:      X11 client
-Requires: libX11
+Requires: xorg-x11
 BuildRequires:  libX11-devel
+Conflicts: mangclient-sdl, mangclient-gcu
 %description -n mangclient-x11
 X11 version of client.
 
@@ -32,69 +34,120 @@ X11 version of client.
 Summary:      GCU client
 Requires: ncurses
 BuildRequires:  ncurses-devel
+Conflicts: mangclient-sdl, mangclient-x11
 %description -n mangclient-gcu
 GCU version of client (ncurses).
 
-%prep -q
+%prep
 %setup -q
 
+# I couldn't get debug_package to work, turning off
+%define debug_package %{nil}
+
+# NOTE:, it's better to use /usr/games for the binaries,
+# yet, I've found CentOS doesn't include it in $PATH, by default!
+# So we're sticking to more safe /usr/bin
+%define bin_path /usr/bin
+
 %build
-cd src
 CFLAGS="$RPM_OPT_FLAGS"
-./configure --prefix=%{_prefix} --libdir=%{_libdir}
-make
+# not using %{_prefix}
+./configure --prefix="" %{configure_flags} --quiet \
+ --bindir=\${prefix}/%{bin_path} \
+ --datarootdir=\${prefix}/usr/share/games \
+ --localstatedir=\${prefix}/var/games
+make clean
+V=0 make
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/{/etc,/usr/bin,/usr/games}
-install -m755 $RPM_BUILD_DIR/%{name}-%{version}/mangband $RPM_BUILD_ROOT/usr/bin
-install -m755 $RPM_BUILD_DIR/%{name}-%{version}/mangclient $RPM_BUILD_ROOT/usr/bin
-install -m644 $RPM_BUILD_DIR/%{name}-%{version}/mangband.cfg $RPM_BUILD_ROOT/etc/mangband.cfg
-cp -R $RPM_BUILD_DIR/%{name}-%{version}/lib $RPM_BUILD_ROOT/usr/games/mangband
-rm $RPM_BUILD_ROOT/usr/games/mangband/file/delete.me
-rm $RPM_BUILD_ROOT/usr/games/mangband/help/delete.me
-rm $RPM_BUILD_ROOT/usr/games/mangband/data/scores.raw
+make install prefix=$RPM_BUILD_ROOT desktopdir=$RPM_BUILD_ROOT/usr/share/applications
+# RPMs don't like zero-length files
+rm -f ${RPM_BUILD_ROOT}/usr/share/games/mangband/**/delete.me
+rm -f ${RPM_BUILD_ROOT}/var/games/mangband/**/delete.me
+# Stop pretending mangband.cfg is a script, remove shebang
+sed -i '1d' ${RPM_BUILD_ROOT}/etc/mangband.cfg
+# XDG Launcher
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/applications
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/mangclient.desktop ${RPM_BUILD_ROOT}/usr/share/applications/.
+# Icons!
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/16x16/apps/
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/32x32/apps/
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/64x64/apps/
+mkdir -p ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/128x128/apps/
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/map-16.png ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/16x16/apps/mangclient.png
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/map-32.png ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/32x32/apps/mangclient.png
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/map-64.png ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/64x64/apps/mangclient.png
+cp ${RPM_BUILD_DIR}/%{name}-%{version}/lib/xtra/icon/map-128.png ${RPM_BUILD_ROOT}/usr/share/icons/hicolor/128x128/apps/mangclient.png
 
-%post
-MALIB=/usr/games/mangband
-echo "[MAngband]" > /root/.mangrc
-echo "LibDir ${MALIB}/" >> /root/.mangrc
-echo "# RPM Hacks" >> /etc/mangband.cfg
-echo "EDIT_DIR = \"${MALIB}/edit\"" >> /etc/mangband.cfg
-echo "SAVE_DIR = \"${MALIB}/save\"" >> /etc/mangband.cfg
-echo "DATA_DIR = \"${MALIB}/data\"" >> /etc/mangband.cfg
+
+# Cruft for updating icon cache:
+%define refresh_mangclient_icons \
+touch --no-create %{_datadir}/icons/hicolor &>/dev/null || : \
+gtk-update-icon-cache -f %{_datadir}/icons/hicolor &>/dev/null || : \
+xdg-icon-resource forceupdate --theme hicolor 2> /dev/null || : \
+update-desktop-database &> /dev/null || :
+
+%post -n mangclient-sdl
+%refresh_mangclient_icons
+%postun -n mangclient-sdl
+if [ $1 -eq 0 ] ; then
+    %refresh_mangclient_icons
+fi
+%posttrans -n mangclient-sdl
+%refresh_mangclient_icons
+
+%post -n mangclient-x11
+%refresh_mangclient_icons
+%postun -n mangclient-x11
+if [ $1 -eq 0 ] ; then
+    %refresh_mangclient_icons
+fi
+%posttrans -n mangclient-x11
+%refresh_mangclient_icons
 
 %files
-%defattr(-,games,games)
-/usr/games/mangband
-%attr(-,root,root)
+%defattr(-,root,games)
+/usr/share/games/mangband/edit/*
+/usr/share/games/mangband/pref/*
+/usr/share/games/mangband/help/*
+/var/games/mangband/*
+%attr(755,root,games)
+%{bin_path}/mangband
 %config(noreplace) /etc/mangband.cfg
-%defattr(755,root,root)
-/usr/bin/mangband
 
 %files -n mangclient-sdl
-%defattr(-,games,games)
-/usr/games/mangband
-%attr(755,root,root)
-/usr/bin/mangclient
+%defattr(-,root,games)
+/usr/share/games/mangband/pref/*
+/usr/share/games/mangband/user/*
+/usr/share/games/mangband/xtra/*
+/usr/share/icons/hicolor/*/apps/mangclient.png
+%attr(755,root,games)
+%{bin_path}/mangclient
+/usr/share/applications/mangclient.desktop
 
 %files -n mangclient-x11
-%defattr(-,games,games)
-/usr/games/mangband
-%attr(755,root,root)
-/usr/bin/mangclient
+%defattr(-,root,games)
+/usr/share/games/mangband/pref/*
+/usr/share/games/mangband/user/*
+/usr/share/games/mangband/xtra/*
+/usr/share/icons/hicolor/*/apps/mangclient.png
+%attr(755,root,games)
+%{bin_path}/mangclient
+/usr/share/applications/mangclient.desktop
 
 %files -n mangclient-gcu
-%defattr(-,games,games)
-/usr/games/mangband
-%attr(755,root,root)
-/usr/bin/mangclient
-
+%defattr(-,root,games)
+/usr/share/games/mangband/pref/*
+/usr/share/games/mangband/user/*
+/usr/share/games/mangband/xtra/*
+%attr(755,root,games)
+%{bin_path}/mangclient
 
 %changelog
-* Sun Apr 27 2009 %{packager} %{version}-%{release}
+* Thu Mar 28 2019 %{packager} %{version}-%{release}
 - .spec-file assembled
 

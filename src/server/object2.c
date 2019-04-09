@@ -788,8 +788,13 @@ s16b get_obj_num(int level)
 	case ACT_DRAIN_LIFE1: \
 	case ACT_MANA_BOLT:
 
-
-byte object_tester_flag(int Ind, object_type *o_ptr)
+/*
+ * This function determines primary item tester and use flag for a given object.
+ * It uses hardcoded TVALs/SVALs, similarly to how all our code does.
+ * Note: some items have a *secondary* tester, which will also be determined
+ * and stored in the "secondary_tester" pointer.
+ */
+byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -797,9 +802,12 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	u32b f1, f2, f3;
 	object_type *lamp_o_ptr;
 	
+	bool aware = object_aware_p(p_ptr, o_ptr);
+	*secondary_tester = 0;
+	
 	/* item_tester_hook_wear: */
 	if (wield_slot(Ind, o_ptr) >= INVEN_WIELD)
-	{ 
+	{
 		flag |= ITF_WEAR;
 	}
 	
@@ -808,7 +816,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	{
 		object_flags(o_ptr, &f1, &f2, &f3);
 		if (f3 & TR3_ACTIVATE)
-		{ 
+		{
 			flag |= ITF_ACT;
 
 			/* Hack: ask for direction ? (FOR ACTIVATION) */
@@ -840,6 +848,17 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
+		/* Specify secondary tester (if player KNOWS what that spell is) */
+		if ((flag & ITEM_ASK_ITEM) && aware)
+		{
+			switch (o_ptr->sval)
+			{
+				case SV_STAFF_REMOVE_CURSE:
+					*secondary_tester = item_test(WEAR);
+				default: break;
+			}
+		}
+
 	}
 
 	/* ask for another item? (Id, Enchant, Curse, ...) */
@@ -851,6 +870,24 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 		|| !object_aware_p(p_ptr, o_ptr) )
 		{
 			flag |= ITEM_ASK_ITEM;
+		}
+		/* Specify secondary tester (if player KNOWS what that spell is) */
+		if ((flag & ITEM_ASK_ITEM) && aware)
+		{
+			switch (o_ptr->sval)
+			{
+				case SV_SCROLL_CURSE_WEAPON:
+				case SV_SCROLL_STAR_ENCHANT_WEAPON:
+				case SV_SCROLL_ENCHANT_WEAPON_TO_HIT:
+				case SV_SCROLL_ENCHANT_WEAPON_TO_DAM:
+					*secondary_tester = item_test(WEAPON);
+				break;
+				case SV_SCROLL_CURSE_ARMOR:
+				case SV_SCROLL_ENCHANT_ARMOR:
+				case SV_SCROLL_STAR_ENCHANT_ARMOR:
+					*secondary_tester = item_test(ARMOR);
+				default: break;
+			}
 		}
 	}
 	
@@ -877,7 +914,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 			{	
 				flag |= ITF_FUEL;
 			}
-		}		
+		}
 	}
 
 	
@@ -4184,7 +4221,8 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 	object_type *o_ptr;
 	char	o_name[80];
 	byte    attr;
- 
+	byte    flag, secondary_tester;
+
 	if (!force && p_ptr->delta_floor_item == o_idx) return;
 	p_ptr->delta_floor_item = o_idx;
 	
@@ -4198,11 +4236,12 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 
 		/* Describe the object */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
+		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
+		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
 	else
 	{
-		send_floor(Ind, 0, 0, 0, 0, "");
+		send_floor(Ind, 0, 0, 0, 0, 0, "");
 	}
 }
 

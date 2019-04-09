@@ -268,9 +268,9 @@ static void sense_inventory(int Ind)
 		{
 			if (strstr((const char*)quark_str(o_ptr->note), (const char*)feel) == NULL)
 			{
-				strcpy(o_inscribe, (const char *)feel);
-				strcat(o_inscribe, " - ");
-				strcat(o_inscribe, quark_str(o_ptr->note));
+				my_strcpy(o_inscribe, (const char *)feel, sizeof(o_inscribe));
+				my_strcat(o_inscribe, " - ", sizeof(o_inscribe));
+				my_strcat(o_inscribe, quark_str(o_ptr->note), sizeof(o_inscribe));
 				o_ptr->note = quark_add(o_inscribe);
 			}
 		}
@@ -2544,12 +2544,17 @@ void shutdown_server(void)
 
 		/* Indicate cause */
 		strcpy(p_ptr->died_from, "server shutdown");
-
+#if 1
+//TODO: re-enable nicer messaging
+		player_disconnect(p_ptr, "Server shutdown");
+		player_leave(1);
+#else
 		/* Try to save */
 		if (!player_leave(1)) player_disconnect(p_ptr, "Server shutdown (save failed)");
 
 		/* Successful save */
 		player_disconnect(p_ptr, "Server shutdown (save succeeded)");
+#endif
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */

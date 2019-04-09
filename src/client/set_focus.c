@@ -28,4 +28,9 @@ void stretch_chat_ctrl( void )
 #endif
 }
 
+int win32_window_visible(int i)
+{
+	return 1;
+}
+
 #endif

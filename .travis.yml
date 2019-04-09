@@ -77,12 +77,22 @@ before_deploy:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./dist/dmg/.travis-gh.sh > index.html ; fi
 
 deploy:
-  provider: pages
-  skip-cleanup: true
-  keep-history: false
-  repo: mangband/mangband-builds-osx
-  branch: gh-pages
-  github-token: $GITHUB_TOKEN
-  on:
-    branch: develop
-    condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"
+  - provider: pages
+    skip-cleanup: true
+    keep-history: false
+    repo: mangband/mangband-builds-osx
+    branch: gh-pages
+    github-token: $GITHUB_TOKEN
+    on:
+      branch: develop
+      condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"
+
+  - provider: releases
+    skip-cleanup: true
+    keep-history: false
+    api_key: $GITHUB_TOKEN
+    file_glob: true
+    file: ./*.dmg
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"

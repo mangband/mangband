@@ -107,7 +107,8 @@ void init_minor(void)
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		channels[i].name[0] = '\0';
-		channels[i].id = channels[i].num = 0;
+		channels[i].id = 0;
+		channels[i].num = 0;
 		p_ptr->on_channel[i] = FALSE;
 	}
 	p_ptr->main_channel = 0;
@@ -290,7 +291,9 @@ static void Setup_loop()
 		/* Check and Prepare character */
 		if (old_state != state)
 		{
+#ifdef DEBUG
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+#endif
 			/* Handshake complete */
 			if (state == PLAYER_EMPTY)
 			{

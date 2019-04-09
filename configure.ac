@@ -73,6 +73,7 @@ have_crb="$ON_OSX" # Note, that the "ON_OSX" itself is NOT reliable!!!
 
 AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$withval)
 AC_ARG_ENABLE(osx, AC_HELP_STRING([--disable-osx],[Disable Apple-OSX application bundling]), ON_OSX=$withval)
+AC_ARG_ENABLE(xdg, AC_HELP_STRING([--disable-xdg],[Disable Freedesktop icon bundling]), ON_XDG=$withval, ON_XDG="yes")
 
 AC_ARG_WITH(crb, AC_HELP_STRING([--with-crb],[Build with CRB support [default=yes]]), with_crb=$withval, with_crb="yes")
 AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=yes]]), with_x11=$withval, with_x11="yes")
@@ -176,6 +177,18 @@ then
     AC_ERROR([For GCU visual module, ncurses library is required. Try getting libncurses5-dev package.])
 fi
 
+# If we're building SDL or X11, add Freedesktop bundling
+bundle_xdg="no"
+if test "x$enabled_x11" = xyes || test "x$enabled_sdl" = xyes
+then
+    bundle_xdg="yes"
+fi
+# (But not on WINDOWS/OSX) or when explicitly off
+if test "x$ON_WINDOWS" = xyes || test "x$ON_OSX" = xyes || test "x$ON_XDG" != xyes
+then
+    bundle_xdg="no"
+fi
+
 # Prepare conditionals
 AM_CONDITIONAL(USE_CRB, test "x$enabled_crb" = xyes)
 AM_CONDITIONAL(USE_X11, test "x$enabled_x11" = xyes)
@@ -238,6 +251,14 @@ then
     CLIENT_LDFLAGS="$CLIENT_LDFLAGS -lSDL2_ttf"
     #DISPMOD="$DISPMOD SDL2_ttf"
 fi
+
+# Prepare XDG conditional
+if test "x$bundle_xdg" = xyes
+then
+    AC_MSG_NOTICE([Enabling Freedesktop bundling. Use --disable-xdg to change this.])
+    DISPMOD="$DISPMOD XDG-bundle"
+fi
+AM_CONDITIONAL(ON_XDG, test "x$bundle_xdg" = xyes)
 
 #added this conditional for WINDRES causing linux build to bail - is this even right? -kts
 AM_CONDITIONAL(ON_WINDOWS, test "x$ON_WINDOWS" = xyes)

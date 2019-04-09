@@ -158,9 +158,6 @@ struct client_setup_t
 		
 	byte tval_attr[128];
 	char tval_char[128];
-
-	byte stream_wid[MAX_STREAMS];
-	byte stream_hgt[MAX_STREAMS];
 };
 
 
@@ -1676,9 +1673,9 @@ struct stream_type
 	byte rle;       	/* RLE mode */
 	byte flag;      	/* Important flags (i.e. transperancy) */
 
-	byte min_row;   	/* Size */
+	u16b min_row;   	/* Size */
 	byte min_col;
-	byte max_row;
+	u16b max_row;
 	byte max_col;
 
 	u32b window_flag;	/* "Window" flag */

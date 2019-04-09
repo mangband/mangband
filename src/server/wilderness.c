@@ -1243,7 +1243,7 @@ int wild_clone_closed_loop_total(int cur_depth)
 		/* get a valid neighbor location */
 		do
 		{
-			neigh_idx = neighbor_index(cur_depth, rand_int(4));
+			neigh_idx = neighbor_index(cur_depth, (char)rand_int(4));
 		} while ((neigh_idx >= 0) || (neigh_idx <= -MAX_WILD));
 
 		/* move to this new location */
@@ -1335,7 +1335,7 @@ int determine_wilderness_type(int Depth)
 		while ((neighbor_idx >= 0) || (neighbor_idx <= -MAX_WILD))
 		{
 			/* pick a random direction */
-			neighbor_idx = neighbor_index(Depth, rand_int(4));
+			neighbor_idx = neighbor_index(Depth, (char)rand_int(4));
 		}
 		
 		/* recursively figure out our terrain type */

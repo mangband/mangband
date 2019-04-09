@@ -208,6 +208,7 @@ bool cfg_party_share_quest = FALSE;
 bool cfg_party_share_kill = FALSE;
 bool cfg_party_share_win = TRUE;
 s16b cfg_party_sharelevel = -1;
+bool cfg_instance_closed = FALSE;
 
 
 
@@ -276,6 +277,7 @@ int num_houses;
 
 /* This information will help client */
 byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
+byte spell_tests[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 
 /* An array to access a Player's ID */
 long GetInd[MAX_ID];

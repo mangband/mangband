@@ -3001,7 +3001,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 	if (last_free)
 	{
 		/* Create channel */
-		strcpy(channels[last_free].name, channel);
+		my_strcpy(channels[last_free].name, channel, MAX_CHARS);
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
 		send_channel(Ind, CHAN_JOIN, last_free, channel);
@@ -3208,7 +3208,7 @@ void player_talk_aux(int Ind, cptr message)
 			cptr verb = "say";
 			char punct = '.';
 			char msg[60];
-			strncpy(msg, colon, 60);
+			my_strcpy(msg, colon, 60);
 			switch (target)
 			{
 				case 1: /* "&say" */
@@ -3573,15 +3573,17 @@ void send_prepared_popup(int Ind, cptr header)
 
 	/* HACK -- Assume this was NOT monster recall */
 	/* This is implied, because monster recall doesn't use send_prepared_popup() */
-	monster_race_track_hack(Ind);
+	monster_race_track_hack(p_ptr);
 }
 
 /* This hacky function resets monster tracking after STREAM_SPECIAL_TEXT
  * was used for anything other than actual monster recall. This way,
  * server will definitely send new monster info, once it's required again. */
-void monster_race_track_hack(int Ind)
+void monster_race_track_hack(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind = Get_Ind[p_ptr->conn];
+	/* Paranoia -- Player is not yet in the game */
+	if (Ind < 1) return;
 	/* Only relevant if Player has no dedicated window for monster text */
 	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
 	{

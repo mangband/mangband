@@ -18,7 +18,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define CLIENT_VERSION_EXTRA	2
+#define CLIENT_VERSION_EXTRA	3
 
 
 /*
