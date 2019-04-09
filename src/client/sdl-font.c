@@ -3,6 +3,8 @@
 
 #if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
 #include <SDL_image.h>
+#else
+#include "lupng/lupng.h"
 #endif
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 #include <SDL_ttf.h>
@@ -690,8 +692,73 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 	return face;
 }
 
+/* Read a PNG file using LuPng, convert it to SDL_Surface. */
+#if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+#else
+SDL_Surface* SDLU_LoadPNG(const char *path)
+{
+	SDL_Surface *face;
+	int x, y, i;
+	int npal = 0;
+	SDL_Color pal[256];
+	LuImage *img = luPngReadFile(path);
+	
+	if (!img)
+	{
+		SDL_SetError("Can't read png file");
+		return NULL;
+	}
+	luImageDarkenAlpha(img);
+	
+	face = SDL_CreateRGBSurface(SDL_SWSURFACE, img->width, img->height, 8, 0,0,0,0);
+	if(!face)
+	{
+		luImageRelease(img, NULL);
+		return NULL;
+	}
+	SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
+	
+	pal[0].r = pal[0].g = pal[0].b = 0; /* chroma black */
+	pal[1].r = pal[1].g = pal[1].b = 1; /* subtitution black */
+	npal = 2;
 
-errr sdl_font_init() 
+	for (y = 0; y < img->height; y++) {
+	for (x = 0; x < img->width ; x++) {
+		
+		Uint8 r = img->data[y * img->width * img->channels + x * img->channels + 0];
+		Uint8 g = img->data[y * img->width * img->channels + x * img->channels + 1];
+		Uint8 b = img->data[y * img->width * img->channels + x * img->channels + 2];
+		Uint8 col = 255;
+		for (i = 0; i < npal; i++) {
+			if (pal[i].r == r && pal[i].g == g && pal[i].b == b) {
+				col = i;
+				break;
+			}
+		}
+		if (col == 255 && npal < 255) {
+			i = npal;
+			npal++;
+			pal[i].r = r;
+			pal[i].g = g;
+			pal[i].b = b;
+			col = i;
+		}
+		if (col == 0 && img->channels == 4) {
+			Uint8 a = img->data[y * img->width * img->channels + x * img->channels + 3];
+			if (a <= 32) col = 0;
+			else col = 1;
+		}
+		((Uint8*)face->pixels)[y * face->pitch + x * face->format->BytesPerPixel] = col;
+	} }
+	SDL_SetColors(face, &pal[0], 0, npal);
+	
+	luImageRelease(img, NULL);
+	
+	return face;
+}
+#endif
+
+errr sdl_font_init(void)
 {
 	char path[1024];
 	
@@ -711,9 +778,16 @@ errr sdl_font_init()
 	}
 #endif
 
+#if defined(USD_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+	if (IMG_Init(IMG_INIT_PNG) == -1) {
+		plog_fmt("IMG_Init(): %s", IMG_GetError());
+		return -2;
+	}
+#endif
+
 	return 0;
 }
-errr sdl_font_quit() 
+errr sdl_font_quit()
 {
 	free(ANGBAND_DIR_XTRA_FONT);
 	free(ANGBAND_DIR_XTRA_GRAF);
@@ -722,6 +796,9 @@ errr sdl_font_quit()
 	TTF_Quit();
 #endif
 
+#if defined(USD_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
+	IMG_Quit();
+#endif
 	return 0;
 }
 
@@ -846,10 +923,13 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 }
 
 /* Graphics loading API. */
+
+
 /*
 This function was known as "load_BMP_graf_sdl"
 Taken from "main-sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
-Updated to support SDL_Image
+Updated to support SDL_Image.
+Updated to support LuPNG.
 */
 SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect *info, cptr maskname)
 {
@@ -867,10 +947,19 @@ SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect *info, cptr maskname)
 
 	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
 #if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
-	if ((face = IMG_Load(path)) != NULL)
+	face = IMG_Load(path);
 #else
-	if ((face = SDL_LoadBMP(path)) != NULL)
+	if (suffix(filename, ".png") || suffix(filename, ".PNG"))
+	{
+		face = SDLU_LoadPNG(path);
+		maskname = NULL;
+	}
+	else
+	{
+		face = SDL_LoadBMP(path);
+	}
 #endif
+	if (face != NULL)
 	{
 		/* Attempt to get dimensions from filename */
 		if (!strtoii(filename, &mw, &mh))

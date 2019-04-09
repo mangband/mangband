@@ -17,6 +17,8 @@ typedef struct {
 	HPALETTE hPalette;
 	BYTE   CellWidth;
 	BYTE   CellHeight;
+	int ImageWidth;
+	int ImageHeight;
 } DIBINIT;
 
 /* Read a DIB from a file */
@@ -24,3 +26,7 @@ BOOL ReadDIB(HWND, LPSTR, DIBINIT *);
 
 /* Free a DIB */
 extern void FreeDIB(DIBINIT *dib);
+
+/* new png stuff */
+extern BOOL ReadDIB_PNG(HWND, LPSTR, DIBINIT *);
+extern BOOL ReadDIB2_PNG(HWND, LPSTR, DIBINIT *, DIBINIT *, BOOL);

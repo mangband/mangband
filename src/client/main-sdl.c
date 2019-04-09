@@ -34,7 +34,7 @@ bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
 
-static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
+static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
@@ -391,8 +391,10 @@ int pick_term(int x, int y)
 	return r;
 }
 
+
+
 /*
- * Load a BMP tileset.
+ * Load a tileset.
  *
  * If maskname != NULL, a second file with mask will be loaded,
  * and the tileset will be recolored to use it as the colorkey.
