@@ -605,6 +605,9 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 					int x = cx * iw + j*8 + (8-i) + (iw-glyph_w) - glyph_x + font_ox;
 					int y = cy * ih + bitmap_line + (ih-glyph_h) - glyph_y + font_oy;
 
+					/* ignore padding bits */
+					if ( j*8 + (8-i) > glyph_w ) continue;
+
 					((Uint8 *)face->pixels)[
 					  x + y * face->pitch] = test ? 1 : 0;
 
@@ -661,7 +664,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 				font_oy -= 1;
 			}
 		}
-		else if (!my_strnicmp(line, "COMMENT Exported by Fony v1.4.7", 29)) {
+		else if (!my_strnicmp(line, "COMMENT Exported by Fony v1.4.", 30)) {
 			fony_error = TRUE;
 		}
 		else if (!my_strnicmp(line, "CHARS", 5)) {
