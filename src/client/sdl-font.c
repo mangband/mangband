@@ -115,26 +115,17 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	width = 0;
 	height = 0;
 	if (strtoii(filename, &width, &height) != 0) {
-
+		width = font->w / 16;
+		height = font->h / 16;
 	}
 	fd->w = width;
 	fd->h = height;
 
-	pal[0].r = pal[0].g = pal[0].b = 0;
-	pal[1].r = pal[1].g = pal[1].b = 255;
-
-#if SDL_MAJOR_VERSION < 2
-	SDL_SetColors(font, pal, 0, 2);
-#else
-	pal[0].a = 0;
-	pal[1].a = 255;
-	SDL_SetPaletteColors(font->format->palette, pal, 0, 2);
-#endif
-
+	return font;
 	//SDL_SaveBMP(font, "original_font.bmp");//debug
 
 	// Create our glyph surface that will store 256 characters in a 16x16 matrix
-	surface = SDL_CreateRGBSurface(0, width*16, height*16, font->format->BitsPerPixel, 0, 0, 0, 0);
+	surface = SDL_Create8BITSurface(width*16, height*16);
 
 	full_rect.x = 0;
 	full_rect.y = 0;
@@ -146,6 +137,7 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 #else
 	SDL_SetPaletteColors(surface->format->palette, font->format->palette->colors, 0, font->format->palette->ncolors);
 #endif
+	surface->format->palette->ncolors = font->format->palette->ncolors;
 	SDL_BlitSurface(font, &full_rect, surface, &full_rect);
 
 	//plog_fmt("Loaded font: %s (%d x %d)", filename, width, height);
@@ -364,7 +356,8 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 	}
 
 	/* Allocate the bitmap here. */
-	face = SDL_CreateRGBSurface(SDL_SWSURFACE, iw, 256 * ih, 8,0,0,0,0); 
+	face = SDL_Create8BITSurface(iw, 256 * ih);
+
 	if (!face) 
 	{
 		fclose(f);
@@ -469,6 +462,9 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 		face = NULL;
 	}
 
+	/* Hack -- limit palette */
+	face->format->palette->ncolors = 2;
+
 	return face;
 }
 SDL_Surface* load_HEX_font_sdl_(SDL_Rect *fd, cptr filename) {
@@ -492,27 +488,18 @@ SDL_Surface* load_HEX_font_sdl_(SDL_Rect *fd, cptr filename) {
 		return NULL;
 	}
 
-	pal[0].r = pal[0].g = pal[0].b = 0;
-	pal[1].r = pal[1].g = pal[1].b = 255;
-
-#if SDL_MAJOR_VERSION < 2
-	SDL_SetColors(font, pal, 0, 2);
-#else
-	pal[0].a = 0;
-	pal[1].a = 255;
-	SDL_SetPaletteColors(font->format->palette, pal, 0, 2);
-#endif
-
 	// Create our glyph surface that will store 256 characters in a 16x16 matrix
-	surface = SDL_CreateRGBSurface(0, fd->w*16, fd->h*16, 8, 0, 0, 0, 0);
+	surface = SDL_Create8BITSurface(fd->w*16, fd->h*16);
 
 	sr.w = dr.w = fd->w;
 	sr.h = dr.h = fd->h;
 
 #if SDL_MAJOR_VERSION < 2
 	SDL_SetColors(surface, font->format->palette->colors, 0, 2);
+	surface->format->palette->ncolors = 2;
 #else
 	SDL_SetPaletteColors(surface->format->palette, font->format->palette->colors, 0, 2);
+	surface->format->palette->ncolors = 2;
 #endif
 
 	// Copy original 1x256 table into 16x16 table
@@ -688,6 +675,8 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 	}
 
 	fclose(f);
+
+	face->format->palette->ncolors = 2;
 
 	fd->w = iw;
 	fd->h = ih;

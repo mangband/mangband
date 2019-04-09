@@ -264,14 +264,13 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	dst = SDL_CreateRGBSurface(src->flags, nx * t_neww, ny * t_newh, src->format->BitsPerPixel,
 	                           src->format->Rmask, src->format->Gmask, src->format->Bmask, src->format->Amask);
 
-	/* Copy pallete */
-	if (src->format->BitsPerPixel == 8) {
-	for (i = 0; i < src->format->palette->ncolors; i++) {
-		dst->format->palette->colors[i] = src->format->palette->colors[i];
+	/* Copy palette */
+	if (src->format->BitsPerPixel == 8)
+	{
+		SDL_SetColors(dst, src->format->palette->colors, 0, src->format->palette->ncolors);
+		dst->format->palette->ncolors = src->format->palette->ncolors;
 	}
-	dst->format->palette->ncolors = src->format->palette->ncolors;
-	}
-	
+
 	/* Do per-tile scaling */
 	for (y = 0; y < ny; ++y)
 	{

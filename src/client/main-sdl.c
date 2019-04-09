@@ -989,9 +989,9 @@ void SDL_BlitChar_AUX(term_data* td, font_data *fd, int x, int y, byte a, unsign
 	sr.x = (c % 16) * fd->w;
 	sr.y = (c / 16) * fd->h;
 
-	/* Tweaking pallete with SDL_SetColors is not optimal AT ALL */
+	/* Tweaking palette with SDL_SetColors is not optimal AT ALL */
 	if (td->fd->precolorized)
-		sr.x = a * fd->w;
+		sr.x += a * fd->face->w;
 	else
 	{
 #ifdef SHADE_FONTS
@@ -1721,9 +1721,10 @@ void term_rescale(int i, bool create, bool redraw) {
 	/* Rescale font */
 	if (td->fd->face && (td->fd->w != td->w || td->fd->h != td->h)) {
 		SDL_SetColors(td->fd->face, &(color_data_sdl[TERM_WHITE&0xf]), 0xff, 1);
-
 		td->sfd.face = SDL_ScaleTiledBitmap(td->fd->face, td->fd->w, td->fd->h, td->w, td->h, 0);
-
+#ifdef SHADE_FONTS
+		memcpy(td->sfd.ramp, td->fd->ramp, sizeof(SDL_Color) * 255);
+#endif
 		td->sfd.w = td->w;
 		td->sfd.h = td->h;
 
@@ -2532,6 +2533,7 @@ static void quit_sdl(cptr str)
 #ifdef USE_SOUND
 	cleanup_sound();
 #endif
+	sdl_font_quit();
 	SDL_Quit();
 }
 
