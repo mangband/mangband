@@ -2421,9 +2421,8 @@ static errr loadConfig() {
   for (window_id = 0; window_id < 8; window_id++) {
     strnfmt(section, 128, "SDL2-window-%d", window_id);
     strncpy(terms[window_id].title, conf_get_string(section, "title", ""), 128);
-    strncpy(terms[window_id].pict_file, conf_get_string(section, "pict_file", ""), 128);
-    strncpy(terms[window_id].mask_file, conf_get_string(section, "mask_file", ""), 128);
-
+	my_strcpy(terms[window_id].pict_file, GFXBMP[use_graphics], 128);
+	my_strcpy(terms[window_id].mask_file, GFXMASK[use_graphics] ? GFXMASK[use_graphics] : "", 128);
 	strncpy(terms[window_id].font_file, conf_get_string(section, "font_file", ""), 128);
 	terms[window_id].font_size = conf_get_int(section, "font_size", 0);
 
@@ -2525,8 +2524,6 @@ static errr saveConfig() {
   for (window_id = 0; window_id < 8; window_id++) {
     strnfmt(section, 128, "SDL2-window-%d", window_id);
     conf_set_string(section, "title", terms[window_id].title);
-    conf_set_string(section, "pict_file", terms[window_id].pict_file);
-    conf_set_string(section, "mask_file", terms[window_id].mask_file);
 
 	conf_set_string(section, "font_file", terms[window_id].font_file);
 	conf_set_int(section, "font_size", terms[window_id].font_size);
