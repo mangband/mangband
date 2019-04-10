@@ -621,7 +621,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 					int mask =  (1 << i);
 					int test = (b & mask);
 
-					int x = cx * iw + j*8 + (8-i) + (iw-glyph_w) - glyph_x + font_ox;
+					int x = cx * iw + j*8 + (8-i) + glyph_x + font_ox;
 					int y = cy * ih + bitmap_line + (ih-glyph_h) - glyph_y + font_oy;
 
 					/* ignore padding bits */
@@ -677,7 +677,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 			font_oy = atoi(_y);
 			iw = font_w;
 			font_oy = ih - font_h + font_oy;
-			font_ox = iw - font_w + font_ox;
+			/*font_ox = iw - font_w + font_ox;*/
 			if (fony_error) {
 				font_ox -= 1;
 				font_oy -= 1;
@@ -952,10 +952,11 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 			surface = load_HEX_font_sdl_(info, filename);
 		break;
 		case FONT_BDF:
-		#if !(defined(USE_SDL2_TTF) || defined(USE_SDL_TTF))
+		/*#if !(defined(USE_SDL2_TTF) || defined(USE_SDL_TTF))*/
+		/* XXX Do not use SDL_ttf, opt for our loader. */
 			surface = load_BDF_font(info, filename);
 		break;
-		#endif
+		/*#endif*/
 		case FONT_PCF:
 		case FONT_FON:
 		case FONT_FNT:
