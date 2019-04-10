@@ -8,6 +8,8 @@
 extern errr sdl_font_init(); 
 extern errr sdl_font_quit(); 
 
+extern bool sdl_graf_prefer_rgba;
+
 extern SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoothing);
 extern SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect* info, cptr maskname);
 #endif

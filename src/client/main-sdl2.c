@@ -116,7 +116,7 @@ static char quick_font_names[MAX_QUICK_FONTS][128] = {
     ""
 };
 
-static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp", 0 };
+static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png", 0 };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp", 0 };
 static cptr GFXNAME[] = { 0, "old", "new", "david", 0 };
 #define MAX_QUICK_TILESETS 3
@@ -2618,6 +2618,7 @@ static errr imgToPict(PictData *pd, cptr filename, cptr maskname) {
   //path_build(buf, 1024, ANGBAND_DIR_XTRA, filename);
 
   // Load 'er up
+  sdl_graf_prefer_rgba = TRUE;
   pd->surface = sdl_graf_load(filename, &glyph_info, maskname);
   if (pd->surface == NULL) {
     //plog_fmt("imgToPict: %s", "can't load font");
@@ -2634,6 +2635,7 @@ static errr imgToPict(PictData *pd, cptr filename, cptr maskname) {
   }
 
     // don't forget our colorkey
+    //TODO: grafmode.transperancy is a better check
     if (maskname) {
 	SDL_SetColorKey(pd->surface, SDL_TRUE, 0);
     }

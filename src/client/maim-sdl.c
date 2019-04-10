@@ -302,60 +302,6 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 }
 
 
-/* The following function will extract height and width info from a filename
- * such as 16x16.xyz or 8X13.bar or even argle8ook16.foo
- *
- * I realize now that it's also useful for reading integers out of an argument
- * such as --fooscale1=2
- */
-
-errr strtoii(const char *str, Uint32 *w, Uint32 *h)
-{
-	char buf[1024];
-	char *s = buf;
-	char *tok;
-	char *numeric = "0123456789";
-
-	size_t l; /* length of numeric string */
-
-	if (!str || !w || !h) return -1;
-
-	if (strlen(str) < 3) return -1; /* must have room for at least "1x1" */
-
-	strncpy(buf, str, 1023);
-	buf[1023] = '\0';
-
-	tok = strpbrk(buf, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-
-	s = tok + l + 1;
-
-	if(!sscanf(tok, "%d", w)) return -1;
-
-	/* next token */
-	tok = strpbrk(s, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-	/* no need to set s since this is the last token */
-
-	if(!sscanf(tok, "%d", h)) return -1;
-
-	return 0;
-
-}
-
-
-
-
 char *formatsdlflags(Uint32 flags) {
 	return format ("%s%s%s%s%s%s%s%s%s%s (%x)",
 			(flags & SDL_HWSURFACE) ? "SDL_HWSURFACE "  : "",

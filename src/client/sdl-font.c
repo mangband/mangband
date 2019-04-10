@@ -21,10 +21,29 @@ static cptr ANGBAND_DIR_XTRA_GRAF;
 
 #define USE_BITMASK /* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
 
-/* strtoii
-Function that extracts the numerics from a string such as "sprites8x16.bmp"
-Taken from "maim_sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
-*/
+/* Global config option: */
+bool sdl_graf_prefer_rgba = FALSE;
+
+/* Useful constants */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#define RMASK 0xff000000
+#define GMASK 0x00ff0000
+#define BMASK 0x0000ff00
+#define AMASK 0x000000ff
+#else
+#define RMASK 0x000000ff
+#define GMASK 0x0000ff00
+#define BMASK 0x00ff0000
+#define AMASK 0xff000000
+#endif
+#define RGBAMASK RMASK, GMASK, BMASK, AMASK
+
+/* The following function will extract height and width info from a filename
+ * such as 16x16.xyz or 8X13.bar or even argle8ook16.foo
+ * I realize now that it's also useful for reading integers out of an argument
+ * such as --fooscale1=2
+ - Taken from "maim_sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
+ */
 static errr strtoii(const char *str, Uint32 *w, Uint32 *h) {
 	char buf[1024];
 	char *s = buf;
@@ -703,18 +722,52 @@ SDL_Surface* SDLU_LoadPNG(const char *path)
 		SDL_SetError("Can't read png file");
 		return NULL;
 	}
+
+	/* Make 32-bit image */
+	if (sdl_graf_prefer_rgba)
+	{
+		face = SDL_CreateRGBSurface(0, img->width, img->height, 32, RGBAMASK);
+		if (!face)
+		{
+			luImageRelease(img, NULL);
+			return NULL;
+		}
+		for (y = 0; y < img->height; y++) {
+		for (x = 0; x < img->width ; x++) {
+			Uint8 r = img->data[y * img->width * img->channels + x * img->channels + 0];
+			Uint8 g = img->data[y * img->width * img->channels + x * img->channels + 1];
+			Uint8 b = img->data[y * img->width * img->channels + x * img->channels + 2];
+			Uint8 a = 255;
+			Uint32 col; Uint32 *px;
+			if (img->channels == 4) {
+				a = img->data[y * img->width * img->channels + x * img->channels + 3];
+			}
+			col = SDL_MapRGBA(face->format, r, g, b, a);
+			px = (Uint32*)((Uint8*)face->pixels + (y * face->pitch + x * face->format->BytesPerPixel));
+			*px = col;
+		} }
+		luImageRelease(img, NULL);
+		return face;
+	}
+
 	luImageDarkenAlpha(img);
-	
+
+	/* Make 8-bit image */
 	face = SDL_CreateRGBSurface(SDL_SWSURFACE, img->width, img->height, 8, 0,0,0,0);
-	if(!face)
+	if (!face)
 	{
 		luImageRelease(img, NULL);
 		return NULL;
 	}
+#if SDL_MAJOR_VERSION < 2
 	SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
-	
+#endif
+
 	pal[0].r = pal[0].g = pal[0].b = 0; /* chroma black */
 	pal[1].r = pal[1].g = pal[1].b = 1; /* subtitution black */
+#if SDL_MAJOR_VERSION >= 2
+	pal[0].a = 0; pal[1].a = 255;
+#endif
 	npal = 2;
 
 	for (y = 0; y < img->height; y++) {
@@ -736,6 +789,9 @@ SDL_Surface* SDLU_LoadPNG(const char *path)
 			pal[i].r = r;
 			pal[i].g = g;
 			pal[i].b = b;
+#if SDL_MAJOR_VERSION >= 2
+			pal[i].a = 255;
+#endif
 			col = i;
 		}
 		if (col == 0 && img->channels == 4) {
@@ -745,7 +801,12 @@ SDL_Surface* SDLU_LoadPNG(const char *path)
 		}
 		((Uint8*)face->pixels)[y * face->pitch + x * face->format->BytesPerPixel] = col;
 	} }
+#if SDL_MAJOR_VERSION < 2
 	SDL_SetColors(face, &pal[0], 0, npal);
+#else
+	SDL_SetPaletteColors(face->format->palette, pal, 0, npal);
+#endif
+
 	
 	luImageRelease(img, NULL);
 	
