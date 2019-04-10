@@ -3645,9 +3645,6 @@ static void hook_quit(cptr str)
 	//network_done();
 
 	/* Free strings */
-#ifdef USE_SOUND	
-	string_free(ANGBAND_DIR_XTRA_SOUND);
-#endif
 
 	exit(0);
 }
@@ -3739,12 +3736,6 @@ void static init_stuff_win(void)
 
 
 #ifdef USE_SOUND
-
-	/* Build the "sound" path */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "sound");
-
-	/* Allocate the path */
-	ANGBAND_DIR_XTRA_SOUND = string_make(path);
 
 	/* Validate the "sound" directory */
 	validate_dir(ANGBAND_DIR_XTRA_SOUND);

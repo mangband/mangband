@@ -669,6 +669,8 @@ void init_file_paths(char *path)
         string_free(ANGBAND_DIR_USER);
         string_free(ANGBAND_DIR_XTRA);
 
+        /* Free extra paths */
+        string_free(ANGBAND_DIR_XTRA_SOUND);
 
         /*** Prepare the "path" ***/
 
@@ -696,6 +698,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_PREF = string_make("");
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
+        ANGBAND_DIR_XTRA_SOUND = string_make("");
 
 
 #else /* VM */
@@ -746,6 +749,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "xtra");
         ANGBAND_DIR_XTRA = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "xtra/sound");
+        ANGBAND_DIR_XTRA_SOUND = string_make(path);
 
 #endif /* VM */
 
