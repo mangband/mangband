@@ -2192,8 +2192,9 @@ void conf_init(void* param)
 	/* Remove ".exe" */
 	path[strlen(path) - 4] = '\0';
 	/* Remove ANGBAND_SYS suffix */
-	/* TODO: sdl2, etc, or just lowercase ANGBAND_SYS */
+	/* if (suffix(path, ANGBAND_SYS)) path[strlen(path) - strlen(ANGBAND_SYS)] = '\0'; */
 	if (suffix(path, "-sdl")) path[strlen(path) - 4] = '\0';
+	if (suffix(path, "-sdl2")) path[strlen(path) - 5] = '\0';
 	/* Append ".ini" */
 	my_strcpy(config_name, path, 1024);
 	my_strcat(config_name, ".ini", 1024);
