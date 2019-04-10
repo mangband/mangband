@@ -1166,7 +1166,8 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 
 	if (IS_PLAYING(p_ptr))
 	{
-		client_abort(ct, "Can't change visual info during gameplay");
+		/* client_abort(ct, "Can't change visual info during gameplay"); */
+		/* We can, see below! */
 	}
 
 	/* Gather type */
@@ -1220,6 +1221,16 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 	{
 		/* Not enough bytes */
 		return 0;
+	}
+
+	/* Verify data (if changing during gameplay) */
+	if (IS_PLAYING(p_ptr))
+	{
+		player_verify_visual(p_ptr);
+		/* Redraw lots of things */
+		p_ptr->redraw |= (PR_MAP | PR_FLOOR);
+		p_ptr->window |= (PW_OVERHEAD | PW_INVEN | PW_EQUIP | PW_MAP | PW_MONLIST);
+		p_ptr->update |= (PU_VIEW | PU_LITE);
 	}
 
 	/* Ok */

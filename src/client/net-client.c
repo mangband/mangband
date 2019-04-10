@@ -2293,3 +2293,30 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 }
 /* Helper caller for "net_term_manage" */
 u32b net_term_update(bool clear) { return net_term_manage(window_flag, window_flag, clear); }
+
+/* Re-send visual info */
+void net_visuals_update(void)
+{
+	int i;
+
+	if (state < PLAYER_PLAYING) return;
+
+	wipe_visual_prefs();
+	process_pref_file("font.prf");
+	process_pref_file("graf.prf");
+
+	gather_settings();
+
+	send_settings();
+
+	/* send_options(); */
+
+	/* Send visual preferences */
+	for (i = 0; i < VISUAL_INFO_PR + 1; i++)
+	{
+		send_visual_info(i);
+	}
+
+	/* Hack -- redraw unrelated things */
+	p_ptr->redraw = 0xFFFFFFFF;
+}

@@ -679,8 +679,7 @@ static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
           ANGBAND_FON = ext ? string_make(ext+1) : ANGBAND_FON;
           ANGBAND_FONTNAME = string_make(filename);
 
-          process_pref_file("font.prf");
-          process_pref_file("graf.prf");
+          net_visuals_update();
       }
 
       return 0;
@@ -2265,6 +2264,7 @@ static errr handleMenu(int i, int x, int y) {
 		applyTermConf(&terms[i]);
 		refreshTerm(&terms[i]);
 		termConstrain(i);
+		net_visuals_update();
 	}
 
 	if (menu_hover >= MENU_FONT_SIZE0 && menu_hover <= MENU_FONT_SIZE_LAST) {
@@ -2283,9 +2283,9 @@ static errr handleMenu(int i, int x, int y) {
 		strcpy(td->pict_file, "");
 		applyTermConf(&terms[i]);
 		ANGBAND_GRAF = "none";
-		process_pref_file("font.prf");
 		refreshTerm(&terms[i]);
 		termConstrain(i);
+		net_visuals_update();
 	}
 
 	if (menu_hover >= MENU_QUICK_GRAF1 && menu_hover <= MENU_QUICK_GRAF8) {
@@ -2297,9 +2297,9 @@ static errr handleMenu(int i, int x, int y) {
 		strcpy(td->mask_file, GFXMASK[f] ? GFXMASK[f] : "");
 		applyTermConf(&terms[i]);
 		ANGBAND_GRAF = GFXNAME[f];
-		process_pref_file("graf.prf");
 		refreshTerm(&terms[i]);
 		termConstrain(i);
+		net_visuals_update();
 	}
 
 	if (menu_hover == MENU_ZOOM_OFF) {

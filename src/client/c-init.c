@@ -169,6 +169,64 @@ void init_info(void)
 	C_MAKE(p_ptr->pr_char, (z_info.c_max+1)*z_info.p_max, char);
 }
 
+/* Reset all visual mappings */
+void wipe_visual_prefs(void)
+{
+	int i;
+
+	for (i = 0; i < MAX_FLVR_IDX; i++)
+	{
+		Client_setup.flvr_x_attr[i] = 0;
+		Client_setup.flvr_x_char[i] = 0;
+	}
+	for (i = 0; i < 128; i++)
+	{
+		Client_setup.tval_attr[i] = 0;
+		Client_setup.tval_char[i] = 0;
+	}
+	for (i = 0; i < 256; i++)
+	{
+		Client_setup.misc_attr[i] = 0;
+		Client_setup.misc_char[i] = 0;
+	}
+
+	/* k_info (Object Kinds) */
+	for (i = 0; i < z_info.k_max; i++)
+	{
+		Client_setup.k_attr[i] = 0;
+		Client_setup.k_char[i] = 0;
+		p_ptr->k_attr[i] = 0;
+		p_ptr->k_char[i] = 0;
+		/* d_info hack */
+		p_ptr->d_attr[i] = 0;
+		p_ptr->d_char[i] = 0;
+	}
+	/* r_info (Monsters) */
+	for (i = 0; i < z_info.r_max; i++)
+	{
+		Client_setup.r_attr[i] = 0;
+		Client_setup.r_char[i] = 0;
+		p_ptr->r_attr[i] = 0;
+		p_ptr->r_char[i] = 0;
+	}
+
+	/* f_info (Terrain) */
+	for (i = 0; i < z_info.f_max; i++)
+	{
+		Client_setup.f_attr[i] = 0;
+		Client_setup.f_char[i] = 0;
+		p_ptr->f_attr[i] = 0;
+		p_ptr->f_char[i] = 0;
+	}
+
+	/* pr_info (Player picts) */
+	for (i = 0; i < (z_info.c_max+1)*z_info.p_max; i++)
+	{
+		p_ptr->pr_attr[i] = 0;
+		p_ptr->pr_char[i] = 0;
+	}
+}
+
 /*
  * Open all relevant pref files.
  */
