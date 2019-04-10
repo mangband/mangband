@@ -448,7 +448,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL2.lib SDL2main.lib ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="SDL2.lib SDL2main.lib ws2_32.lib iphlpapi.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				OutputFile="$(OutDir)\$(ProjectName)-sdl2.exe"
 				AdditionalLibraryDirectories="&quot;C:\SDL2-2.0.9\lib\x86&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"

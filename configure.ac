@@ -81,9 +81,9 @@ AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=ye
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
 AC_ARG_WITH(sdl2, AC_HELP_STRING([--with-sdl2],[Build with SDL2 support [default=yes]]), with_sdl2=$withval, with_sdl2="yes")
 
-AC_ARG_WITH(sdl-image, AC_HELP_STRING([--with-sdl-image],[Build with SDL_Image support [default=yes]]), with_sdl_image=$withval, with_sdl_image="yes")
+AC_ARG_WITH(sdl-image, AC_HELP_STRING([--with-sdl-image],[Build with SDL_Image support [default=yes]]), with_sdl_image=$withval, with_sdl_image="no")
 AC_ARG_WITH(sdl-ttf, AC_HELP_STRING([--with-sdl-ttf],[Build with SDL_TTF support [default=yes]]), with_sdl_ttf=$withval, with_sdl_ttf="yes")
-AC_ARG_WITH(sdl2-image, AC_HELP_STRING([--with-sdl2-image],[Build with SDL2_Image support [default=yes]]), with_sdl2_image=$withval, with_sdl2_image="yes")
+AC_ARG_WITH(sdl2-image, AC_HELP_STRING([--with-sdl2-image],[Build with SDL2_Image support [default=yes]]), with_sdl2_image=$withval, with_sdl2_image="no")
 AC_ARG_WITH(sdl2-ttf, AC_HELP_STRING([--with-sdl2-ttf],[Build with SDL2_TTF support [default=yes]]), with_sdl2_ttf=$withval, with_sdl2_ttf="yes")
 
 # We need to know if we're building for OSX, badly.

@@ -1,3 +1,4 @@
+#if defined(USE_SDL) || defined(USE_SDL2)
 #include <SDL.h>
 #include "c-angband.h"
 
@@ -122,6 +123,7 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	fd->h = height;
 
 	return font;
+#if 0
 	//SDL_SaveBMP(font, "original_font.bmp");//debug
 
 	// Create our glyph surface that will store 256 characters in a 16x16 matrix
@@ -145,6 +147,7 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	SDL_FreeSurface(font);
 
 	return surface;
+#endif
 }
 
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
@@ -1006,3 +1009,4 @@ SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect *info, cptr maskname)
 
 	return face;
 }
+#endif
