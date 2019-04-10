@@ -109,12 +109,19 @@ char default_font_small[128];
 int default_font_small_size = 10;
 
 
-#define MAX_QUICK_FONTS 8
+#define MAX_QUICK_FONTS 16
 static char quick_font_names[MAX_QUICK_FONTS][128] = {
     "nethack10x19-10.hex",
     "misc6x13.hex",
     ""
 };
+
+#define MAX_FONT_SIZES 24
+const int ttf_font_sizes[MAX_FONT_SIZES] = {
+	8, 9, 10, 11, 12, 13, 14, 15,
+	16, 18, 20, 24, 30, 32, 36, 48, 0
+};
+
 
 static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png", 0 };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp", 0 };
@@ -997,18 +1004,12 @@ enum {
 	MENU_SUB_WINSIZE,
 	MENU_SUB_ZOOM,
 	MENU_SUB_FONTS,
+	MENU_SUB_FONTSIZE,
 
 	MENU_ACT_MIN,
 
 	MENU_QUICK_FONT0,
-	MENU_QUICK_FONT1,
-	MENU_QUICK_FONT2,
-	MENU_QUICK_FONT3,
-	MENU_QUICK_FONT4,
-	MENU_QUICK_FONT5,
-	MENU_QUICK_FONT6,
-	MENU_QUICK_FONT7,
-	MENU_QUICK_FONT8,
+	MENU_QUICK_FONT_LAST = MENU_QUICK_FONT0 + MAX_QUICK_FONTS,
 
 	MENU_QUICK_GRAF0,
 	MENU_QUICK_GRAF1,
@@ -1030,6 +1031,9 @@ enum {
 	MENU_ZOOM_LEVEL6,
 	MENU_ZOOM_LEVEL7,
 	MENU_ZOOM_LEVEL8,
+
+	MENU_FONT_SIZE0,
+	MENU_FONT_SIZE_LAST = MENU_FONT_SIZE0 + MAX_FONT_SIZES,
 
 	MENU_ACT_CLOSE,
 	MENU_ACT_TOGGLE_VIRTUAL,
@@ -1210,6 +1214,30 @@ static errr renderGui(TermData *td) {
 			sub_x = sx;
 		}
 		cx += strlen("Font") + 1;
+	}
+
+	// Fontsize
+	if (td->font_data->scalable)
+	{
+		renderTButton(td, cx, y, "Fontsize", MENU_SUB_FONTSIZE);
+		if (menu_open == MENU_SUB_FONTSIZE && menu_open_term == td->id) {
+			int sx = cx - 1;
+			int sy = y + 1;
+			int j;
+			for (j = 0; j < MAX_FONT_SIZES; j++) {
+				char buf[32], on;
+				if (ttf_font_sizes[j] == 0) break;
+				on = 0;
+				if (ttf_font_sizes[j] == td->font_size) on = 1;
+				strnfmt(buf, 32, " [%c] %2dpt ", (on ? 'X' : '.'),
+				ttf_font_sizes[j], j);
+				renderTButton(td, sx, sy + j, buf, MENU_FONT_SIZE0 + j);
+				sub_w = 10;
+			}
+			td->menu_rect.h += j * grid_h;
+			sub_x = sx;
+		}
+		cx += strlen("Fontsize") + 1;
 	}
 
 	// Graphics
@@ -2230,10 +2258,19 @@ static errr handleMenu(int i, int x, int y) {
 		termClose(i);
 	}
 
-	if (menu_hover >= MENU_QUICK_FONT0 && menu_hover <= MENU_QUICK_FONT8) {
+	if (menu_hover >= MENU_QUICK_FONT0 && menu_hover <= MENU_QUICK_FONT_LAST) {
 		int f = menu_hover - MENU_QUICK_FONT0;
 		unloadFont(&terms[i]);
 		strcpy(td->font_file, quick_font_names[f]);
+		applyTermConf(&terms[i]);
+		refreshTerm(&terms[i]);
+		termConstrain(i);
+	}
+
+	if (menu_hover >= MENU_FONT_SIZE0 && menu_hover <= MENU_FONT_SIZE_LAST) {
+		int f = menu_hover - MENU_FONT_SIZE0;
+		unloadFont(&terms[i]);
+		td->font_size = ttf_font_sizes[f];
 		applyTermConf(&terms[i]);
 		refreshTerm(&terms[i]);
 		termConstrain(i);
@@ -2586,6 +2623,12 @@ static errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing)
 
   fd->w = info.w;
   fd->h = info.h;
+
+  fd->scalable = 0;
+  if (suffix(filename, ".ttf") || suffix(filename, ".TTF")
+  || suffix(filename, ".ttf") || suffix(filename, ".ttf")) {
+    fd->scalable = 1;
+  }
 
   /* Convert to 32bpp surface */
   fd->surface = SDL_CreateRGBSurface(0, surface->w, surface->h, 32, 0, 0, 0, 0);

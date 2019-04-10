@@ -198,6 +198,16 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
     if (minx+maxx > width) width = minx+maxx;
     if (miny+maxy > height) height = miny+maxy;
   }
+  // For .fon files, try the NxN-in-filename approach
+  if (suffix(filename, ".FON") || suffix(filename, ".fon")) {
+    int _width = 0;
+    int _height = 0;
+    if (!strtoii(filename, &_width, &_height)) {
+      width = _width;
+      height = _height;
+    }
+  }
+
   fd->w = width;
   fd->h = height;
   // Create our glyph surface that will store 256 characters in a 16x16 matrix

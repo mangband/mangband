@@ -51,6 +51,7 @@ struct FontData {
   cptr filename;       // The filename of this font
   SDL_Surface *surface; // surface of all glyphs
   Uint8 w, h;           // dimensions of character
+  int scalable;         // if we can scale this font
 };
 struct PictData {
   cptr filename;       // The filename of this pict
