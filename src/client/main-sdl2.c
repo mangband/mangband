@@ -174,17 +174,11 @@ errr init_sdl2(int argc, char **argv) {
 	/* Activate msgbox hook */
 	plog_aux = hack_plog;
 
-#ifdef USE_SDL2_IMAGE
-  if (IMG_Init(IMG_INIT_PNG) == -1) {
-    plog_fmt("IMG_Init(): %s", IMG_GetError());
-    return 2;
-  }
-#endif
-
-  if (sdl_font_init() == -1) {
-    plog("sdl_font_init(): fatal error");
-    return 3;
-  }
+	/* sdl-font */
+	if (sdl_font_init() != 0) {
+		plog("sdl_font_init(): fatal error");
+		return 3;
+	}
 
 #ifdef USE_SOUND
 	/* Sound */
@@ -240,9 +234,6 @@ void quit_sdl2(cptr s)
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
 	sdl_cleanup_sound();
-#endif
-#ifdef USE_SDL2_IMAGE
-	IMG_Quit();
 #endif
 	sdl_font_quit();
 	SDL_Quit();

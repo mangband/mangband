@@ -31,9 +31,6 @@
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
-static cptr ANGBAND_DIR_XTRA_FONT;
-static cptr ANGBAND_DIR_XTRA_GRAF;
-
 static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
@@ -48,7 +45,6 @@ bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 /* this stuff was moved to sdl-maim.c */
 extern SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src, Uint32 t_oldw, Uint32 t_oldh, Uint32 t_neww, Uint32 t_newh, int dealloc_src);
-extern errr strtoii(const char *str, Uint32 *w, Uint32 *h);
 extern char *formatsdlflags(Uint32 flags);
 extern void Multikeypress(char *k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
@@ -2331,24 +2327,6 @@ bool init_one_term(int i, bool force)
 
 	return TRUE;
 }
-void init_extra_paths()
-{
-	char path[1024];
-
-	/* Font */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "font");
-	ANGBAND_DIR_XTRA_FONT = string_make(path);
-
-	/* Graf */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
-	ANGBAND_DIR_XTRA_GRAF = string_make(path);
-
-#ifdef USE_SOUND
-	/* Sound */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "sound");
-	ANGBAND_DIR_XTRA_SOUND = string_make(path);
-#endif
-}
 
 static void quit_sdl(cptr str)
 {
@@ -2480,8 +2458,6 @@ errr init_sdl(void)
 	 *
 	 */
 	init_color_data_sdl();
-
-	init_extra_paths();
 
 	/* Sound */
 #ifdef USE_SOUND

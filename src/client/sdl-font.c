@@ -784,8 +784,8 @@ errr sdl_font_init(void)
 }
 errr sdl_font_quit()
 {
-	free(ANGBAND_DIR_XTRA_FONT);
-	free(ANGBAND_DIR_XTRA_GRAF);
+	string_free(ANGBAND_DIR_XTRA_FONT);
+	string_free(ANGBAND_DIR_XTRA_GRAF);
 
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 	TTF_Quit();
