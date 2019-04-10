@@ -49,13 +49,13 @@ endif
 
 if USE_SDL
 
-mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/main-sdl.h src/client/sdl-font.c src/client/sdl-font.h
+mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/main-sdl.h src/client/sdl-font.c src/client/sdl-font.h src/client/sdl-sound.c src/client/sdl-sound.h
 
 endif
 
 if USE_SDL2
 
-mangclient_SOURCES += src/client/main-sdl2.c src/client/main-sdl2.h src/client/sdl-font.c src/client/sdl-font.h
+mangclient_SOURCES += src/client/main-sdl2.c src/client/main-sdl2.h src/client/sdl-font.c src/client/sdl-font.h src/client/sdl-sound.c src/client/sdl-sound.h
 
 endif
 

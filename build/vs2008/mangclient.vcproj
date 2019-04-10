@@ -617,6 +617,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\sdl-sound.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\set_focus.c"
 				>
 			</File>
@@ -744,6 +748,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\sdl-font.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\sdl-sound.h"
 				>
 			</File>
 			<File

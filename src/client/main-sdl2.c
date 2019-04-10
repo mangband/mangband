@@ -35,6 +35,8 @@ NOTES:
 
 #include "main-sdl2.h"
 #include "sdl-font.h"
+#include "sdl-sound.h"
+
 #ifdef WINDOWS
 #define snprintf _snprintf
 double fmin(double x, double y) {
@@ -184,6 +186,12 @@ errr init_sdl2(int argc, char **argv) {
     return 3;
   }
 
+#ifdef USE_SOUND
+	/* Sound */
+	load_sound_prefs();
+	sdl_init_sound();
+#endif
+
 	/* Activate quit hook */
 	quit_aux = quit_sdl2;
 
@@ -231,7 +239,7 @@ void quit_sdl2(cptr s)
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
-//	cleanup_sound();
+	sdl_cleanup_sound();
 #endif
 #ifdef USE_SDL2_IMAGE
 	IMG_Quit();
@@ -1645,12 +1653,16 @@ static errr xtraTermHook(int n, int v) {
 	term *old_td;
 	TermData *td = (TermData*)(Term->data);
 	SDL_Event event;
+	int i;
 	switch (n) {
-		case TERM_XTRA_NOISE: // generic noise
+	case TERM_XTRA_NOISE: // generic noise
 		//return (Term_xtra_win_noise());
 		return 0;
 	case TERM_XTRA_SOUND:
-		return 0; // send "v"
+		/* Make a sound */
+		i = sound_count(v);
+		if (i) sdl_play_sound(v, rand_int(i));
+		return 0;
 	case TERM_XTRA_BORED:
 		rerender();
 		return 0; // send "0" to Event processing
@@ -1705,7 +1717,6 @@ static errr xtraTermHook(int n, int v) {
         }
       } else if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-          int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
               Term_activate(&(terms[i].t));
@@ -1714,7 +1725,6 @@ static errr xtraTermHook(int n, int v) {
           }
         } else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
           byte cw_, ch_;
-          int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
               // resize to nearest whole cell
@@ -1746,7 +1756,6 @@ static errr xtraTermHook(int n, int v) {
             }
           }
         } else if (event.window.event == SDL_WINDOWEVENT_MOVED) {
-          int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
               int x = event.window.data1;
@@ -1758,7 +1767,6 @@ static errr xtraTermHook(int n, int v) {
             }
           }
         } else if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-          int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
               terms[i].need_redraw = TRUE;
@@ -1766,7 +1774,6 @@ static errr xtraTermHook(int n, int v) {
             }
           }
         } else if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
-          int i;
           for (i = 0; i < 8; i++) {
             if (terms[i].window_id == event.window.windowID) {
               if (i == TERM_MAIN) {
@@ -1781,7 +1788,6 @@ static errr xtraTermHook(int n, int v) {
       // MMM BEGIN
       else if (event.type == SDL_MOUSEBUTTONDOWN) {
 	if (menu_mode) {
-		int i;
 		i = guiTermMatch(event.window.windowID, event.button.x, event.button.y);
 		if (i >= 0 && terms[i].config & TERM_IS_VIRTUAL) {
 			/* Matched virtual title bar */
@@ -1816,7 +1822,6 @@ static errr xtraTermHook(int n, int v) {
                break;
             }
             if (menu_mode != 0) {//MENU_HIDE) {
-            int i;
             for (i = 0; i < 8; i++) {
               if (terms[i].window_id == event.window.windowID) {
                 int wx = event.button.x;
@@ -1850,6 +1855,8 @@ static errr xtraTermHook(int n, int v) {
     while (SDL_PollEvent(&event));
     return 0; // force a redraw?
   case TERM_XTRA_FRESH:
+		/* HACK !!! -- Terminate current sound if necessary */
+		if (use_sound) sdl_play_sound_end(TRUE);
     td->need_render = TRUE;
     return 0;
   case TERM_XTRA_CLEAR:

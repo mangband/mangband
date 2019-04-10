@@ -241,6 +241,7 @@
     <ClCompile Include="..\..\src\client\main-xaw.c" />
     <ClCompile Include="..\..\src\client\readpng.c" />
     <ClCompile Include="..\..\src\client\sdl-font.c" />
+    <ClCompile Include="..\..\src\client\sdl-sound.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
     <ClCompile Include="..\..\src\common\net-basics.c" />
     <ClCompile Include="..\..\src\client\net-client.c" />
@@ -256,13 +257,11 @@
     <ClCompile Include="..\..\src\common\z-virt.c" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <ClInclude Include="..\..\src\client\main-sdl2.h" />
     <ClInclude Include="..\..\src\client\sdl-font.h" />
-=======
     <ClInclude Include="..\..\src\client\lupng\lupng.h" />
     <ClInclude Include="..\..\src\client\lupng\miniz.h" />
->>>>>>> develop-lupng
+    <ClInclude Include="..\..\src\client\sdl-sound.h" />
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\client\c-angband.h" />
     <ClInclude Include="..\..\src\client\c-externs.h" />
