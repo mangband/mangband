@@ -1327,7 +1327,7 @@ static errr renderGui(TermData *td) {
 			strnfmt(buf, 16, " [%c] %-12s ", !use_sound ? 'X' : '.', "Off");
 			renderTButton(td, sx, sy + 1, buf, MENU_ACT_SOUND_OFF);
 			td->menu_rect.h += 2 * grid_h;
-			sub_w = 14;
+			sub_w = 15;
 			sub_x = sx;
 		}
 		cx += strlen("Sound") + 1;
@@ -1351,7 +1351,7 @@ static errr renderGui(TermData *td) {
 				renderTButton(td, sx, sy + j, buf, MENU_SHOW_WINDOW0 + j);
 			}
 			td->menu_rect.h += j * grid_h;
-			sub_w = 14;
+			sub_w = 15;
 			sub_x = sx;
 		}
 		cx += strlen("Windows") + 1;
