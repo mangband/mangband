@@ -1892,7 +1892,7 @@ static errr Term_xtra_win(int n, int v)
 
 		/* React to global changes */
 		case TERM_XTRA_REACT:
-		return (Term_xtra_win_react());
+		return (v == 0 ? Term_xtra_win_react() : 0);
 
 		/* Delay for some milliseconds */
 		case TERM_XTRA_DELAY:

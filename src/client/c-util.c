@@ -4091,6 +4091,9 @@ static void do_cmd_options_win(void)
 	/* Notice changes */
 	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
 
+	/* Notify terminal (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_WINDOWS));
+
 	/* Update windows */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
@@ -4253,6 +4256,9 @@ void do_cmd_options(void)
 
 	/* Send a redraw request */
 	send_redraw();
+
+	/* Notify terminal (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_OPTIONS | TERM_XTRA_REACT_SETTINGS));
 }
 void do_cmd_options_birth()
 {

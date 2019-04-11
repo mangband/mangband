@@ -427,6 +427,9 @@ static void Setup_loop()
 	client_ready();
 	send_play(PLAY_PLAY);
 
+	/* Notify term (optional) */
+//	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_NETWORK));
+
 	/* Advance to next loop */
 	Term_clear();
 	Term_fresh();
@@ -662,6 +665,9 @@ bool client_setup()
 
 	/* Initialize the pref files */
 	initialize_all_pref_files();
+
+	/* Notify term (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_COLORS | TERM_XTRA_REACT_VISUALS));
 
 	/* Send request for MOTD to read (optional) */
 	//Send_motd(0); // pass -1 to receive motd off-screen
