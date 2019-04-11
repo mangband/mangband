@@ -163,5 +163,5 @@ static void termConstrain(int i);
 
 /* ALT.DUNGEON */
 static void wipeTermCell_UI(int x, int y, int cutout);
-static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s, int test);
-static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp, int test);
+static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s);
+static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp);

@@ -2265,10 +2265,12 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 					st_x[j] = st_x[j] - DUNGEON_OFFSET_X;
 					/* Status and top line */
 					st_y[j] = st_y[j] - SCREEN_CLIP_L - DUNGEON_OFFSET_Y;
-#ifdef USE_SDL2
-					/* HACK -- cut in and replace the values !!! */
-					Term2_query_area_size(&st_x[j], &st_y[j], j);
-#endif
+
+					/* Hack -- We have a special hook */
+					if (query_size_aux)
+					{
+						query_size_aux(&st_x[j], &st_y[j], j);
+					}
 				}
 
 				/* Test bounds */

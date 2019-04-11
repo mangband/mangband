@@ -346,6 +346,10 @@ struct term
 #define BASIC_COLORS	16
 
 
+/**** Redefinable hooks / Term2 ****/
+extern bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc);
+extern void (*query_size_aux)(s16b *x, s16b *y, int st);
+extern void (*refresh_char_aux)(int x, int y);
 
 /**** Available Variables ****/
 

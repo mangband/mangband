@@ -2683,15 +2683,15 @@ int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 	return 1;
 }
 
-#ifdef USE_SDL2
 /* A version of "cavedraw()" for Term2 hack */
-void Term2_cave_line(int st, int sy, int y, int cols)
+bool Term2_cave_line(int st, int sy, int y, int cols)
 {
 	cave_view_type* src = stream_cave(st, sy);
 	int x = 0;
-	int dx = 13;
-	int dy = y + 1;
+	int dx = x;
+	int dy = y;
 	int i;
+	bool complete = FALSE;
 	/* Draw a character n times */
 	for (i = 0; i < cols; i++)
 	{
@@ -2702,19 +2702,29 @@ void Term2_cave_line(int st, int sy, int y, int cols)
 			char c = src[i].c;
 			byte ta = p_ptr->trn_info[y][x + i].a;
 			char tc = p_ptr->trn_info[y][x + i].c;
+			bool _ret;
 			//if (!ta) ta = a;
 			//if (!tc) tc = c;
-			Term2_cave_char(i + dx, dy, a, c, ta, tc);
+			_ret = cave_char_aux(dx + i, dy, a, c, ta, tc);
+			if (_ret) complete = TRUE;
 		}
 	}
+	return complete;
 }
-#endif
 
 
 /* Draw (or don't) a char depending on screen ickyness */
 void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 {
 	bool draw = TRUE;
+
+	/* If we have a hook, use it */
+	if (cave_char_aux && mem)
+	{
+		discard_slashfx(y, x);
+		/* Hook will return TRUE if no further processing is needed */
+		if (cave_char_aux(x, y, a, c, ta, tc)) return;
+	}
 
 	/* Manipulate offset: */
 	x += DUNGEON_OFFSET_X;	
@@ -2731,16 +2741,6 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 
 	/* Test terminal size */
 	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
-
-#ifdef USE_SDL2
-#if 1
-	if (!mem)
-	{
-		Term2_cave_char(x, y, a, c, ta, tc);
-	}
-	if (y >= Term->hgt - 1) mem = draw = FALSE;
-#endif
-#endif
 
 	/* TODO: also test for ->mem stack */
 	if (mem && Term->mem)
@@ -2774,6 +2774,15 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	xoff = coff = 0;
 	y = sy;
 
+	/* Dungeon, and we have a dungeon hook. */
+	if ((streams[st].addr == NTERM_WIN_OVERHEAD)
+	&& !(streams[st].flag & SF_OVERLAYED)
+	&& (cave_char_aux != NULL))
+	{
+		/* Hook will return TRUE if no further processing is needed */
+		if (Term2_cave_line(st, sy, y, cols)) return;
+	}
+
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
 
@@ -2792,16 +2801,6 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	/* Check the max line count */
 	if (last_line_info < y)
 		last_line_info = y;
-
-#ifdef USE_SDL2
-#if 1
-if (streams[st].addr == 0 && !(streams[st].flag & SF_OVERLAYED))
-{
-	Term2_cave_line(st, sy, y, cols);
-	if (y >= Term->hgt - 1 - SCREEN_CLIP_L) mem = draw = FALSE;
-}
-#endif
-#endif
 
 	/* Remember screen */
 	if (mem && Term->mem)

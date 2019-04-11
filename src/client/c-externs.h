@@ -517,10 +517,6 @@ extern void do_chat_select(int id);
 extern void do_chat_close(int id);
 extern void do_handle_message(cptr mesg, u16b type);
 
-#ifdef USE_SDL2
-void Term2_query_area_size(s16b *x, s16b *y, int j);
-void Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
-#endif
 
 /* client.c */
 

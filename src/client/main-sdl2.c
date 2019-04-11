@@ -138,6 +138,10 @@ static int zoom_levels[MAX_ZOOM_LEVELS] = {
 	800,
 };
 
+/* Forward-declare */
+bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
+void Term2_query_area_size(s16b *x, s16b *y, int st);
+
 /* ==== Initialize function ==== */
 /* init_sdl2
 Our initializer function. Sets up SDL2 and creates our z-terms (windows).
@@ -225,6 +229,10 @@ errr init_sdl2(int argc, char **argv) {
   // **** Activate Main z-term and gooo ****
   Term_activate(&(terms[TERM_MAIN].t)); // set active Term to terms[TERM_MAIN]
   term_screen = Term;                   // set term_screen to terms[TERM_MAIN]
+
+	/** Activate Term-2 hooks **/
+	cave_char_aux = Term2_cave_char;
+	query_size_aux = Term2_query_area_size;
 
   return 0;
 }
@@ -433,7 +441,7 @@ static errr setTermCells(TermData *td, int w, int h) {
  * the heart of regular (M)Angband code flow. */
 
 /* Our custom version of Term_queue_char() */
-void Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc)
+bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc)
 {
 	TermData *td = (TermData*)(Term->data);
 	byte *scr_aa, *scr_taa;
@@ -444,36 +452,42 @@ void Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc)
 	if (!(td->config & TERM_DO_SCALE))
 	{
 		/* Actually, do nothing */
-		return;
+		return FALSE;
 	}
 #if 0
 	/* Hack -- blank space */
 	if (!c || c == ' ') {
 		wipeTermCell_Cave(x, y);
-		return;
+		return TRUE;
 	}
 #endif
 	if ((byte)c < 127) {
 		char buf[2] = { c, 0 };
-		(void)textTermHook_ALT(x, y, 1, (byte)a, (cptr)&buf, 0);
+		(void)textTermHook_ALT(x, y, 1, (byte)a, (cptr)&buf);
+		return TRUE;
+	}
+
+	(void)pictTermHook_ALT(x, y, 1, &a, &c, &ta, &tc);
+	return TRUE;
+}
+void Term2_query_area_size(s16b *x, s16b *y, int st) {
+	TermData *td = (TermData*)ang_term[0]->data;
+	/* ALT.DUNGEON is OFF, do nothing */
+	if (!(td->config & TERM_DO_SCALE))
+	{
 		return;
 	}
 
-	(void)pictTermHook_ALT(x, y, 1, &a, &c, &ta, &tc, 0);
-}
-void Term2_query_area_size(s16b *x, s16b *y, int st) {
-	TermData *td = (TermData*)(Term->data);
-	if (!(td->config & TERM_DO_SCALE)) {
-		*x = td->cols - 13;
-		*y = td->rows - 2;
+	/* Non-main stream */
+	if (streams[st].flag & SF_OVERLAYED) {
+		return;
+		*x = td->cols - DUNGEON_OFFSET_X;
+		*y = td->rows - DUNGEON_OFFSET_Y - DUNGEON_CLIP_Y;
 	}
+	/* Dungeon stream */
 	else {
 		*x = td->dng_cols;
 		*y = td->dng_rows;
-		if (streams[st].flag & SF_OVERLAYED) {
-			*x = td->cols - 13;
-			*y = td->rows - 2;
-		}
 	}
 }
 void net_stream_clamp(int addr, int *x, int *y) {
@@ -492,8 +506,8 @@ void refreshTermAlt(TermData *td) {
 	int dw, dh;
 	int dng_cols, dng_rows;
 
-	int fw = td->cols - 13;
-	int fh = td->rows - 2;
+	int fw = td->cols - DUNGEON_OFFSET_X;
+	int fh = td->rows - DUNGEON_OFFSET_Y - DUNGEON_CLIP_Y;
 
 	int pix_w = fw * td->font_data->w + 1;
 	int pix_h = fh * td->font_data->h + 1;
@@ -525,14 +539,14 @@ void refreshTermAlt(TermData *td) {
 	dw = (dng_cols) * td->pict_data->w;
 	dh = (dng_rows) * td->pict_data->h;
 
+	td->dng_rect.x = DUNGEON_OFFSET_X * td->font_data->w;
+	td->dng_rect.y = DUNGEON_OFFSET_Y * td->font_data->h;
+
 	if ((td->dng_cols == dng_cols) && (td->dng_rows == dng_rows)
 	&& (td->alt_fb_w == dw) && (td->alt_fb_h == dh))
 		return;
 
 	if (td->alt_framebuffer) SDL_DestroyTexture(td->alt_framebuffer);
-
-	td->dng_rect.x = DUNGEON_OFFSET_X * td->cell_w;
-	td->dng_rect.y = DUNGEON_OFFSET_Y * td->cell_h;
 
 	td->dng_rect.w = dw;
 	td->dng_rect.h = dh;
@@ -883,7 +897,8 @@ static int looksLikeCave(int x, int y) {
 	TermData *td = (TermData*)(Term->data);
 	/*printf("Print cave for row %d (term rows: %d, dungeon rows: %d)\n",
 	y, td->rows, td->dng_rows);*/
-	if (x >= 13 && y >= 1 && y < td->rows - DUNGEON_OFFSET_Y) {
+	if (x >= DUNGEON_OFFSET_X && y >= DUNGEON_OFFSET_Y
+	 && y < td->rows - DUNGEON_OFFSET_X - DUNGEON_CLIP_Y) {
 		if (state < PLAYER_PLAYING) return 0;
 		if (screen_icky) return 0;
 		if (section_icky_row) return 0;
@@ -1107,9 +1122,9 @@ static errr renderGui(TermData *td) {
 	rect.w = width;
 	rect.h = height + growth;
 
-	if (gripping) {
+	if (dragging == td->id && gripping) {
 		rect.w = td->resize_rect.w;
-		rect.h = td->resize_rect.h;
+		rect.h = td->resize_rect.h + growth;
 	}
 
 	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
@@ -1409,7 +1424,7 @@ static int guiDragStart(int i, int x, int y) {
 		td->resize_rect.x = 0;
 		td->resize_rect.y = 0;
 		td->resize_rect.w = td->ren_rect.w;
-		td->resize_rect.h = td->ren_rect.h + (td->cell_h-(td->menu_rect.y+td->ren_rect.h-td->grip_rect.y));
+		td->resize_rect.h = td->ren_rect.h;
 	}
 
 	return 1;
@@ -1430,8 +1445,6 @@ static int guiDragMotion(int mx, int my) {
 		td->resize_rect.w = td->ren_rect.w + (accum_x - drag_x);
 		td->resize_rect.h = td->ren_rect.h + (accum_y - drag_y);
 
-		td->resize_rect.h += (td->cell_h-(td->menu_rect.y+td->ren_rect.h-td->grip_rect.y));
-
 		// resize to nearest whole cell
 		w = td->resize_rect.w;
 		h = td->resize_rect.h;
@@ -1445,11 +1458,15 @@ static int guiDragMotion(int mx, int my) {
 		td->resize_rect.w = cw_ * terms[i].cell_w;
 		td->resize_rect.h = ch_ * terms[i].cell_h;
 
+		td->need_render = TRUE;
+
 		return 0;
 	}
 
 	td->ren_rect.x = td->ren_rect.x + mx;
 	td->ren_rect.y = td->ren_rect.y + my;
+
+	if (mx || my) td->need_render = TRUE;
 
 	termConstrain(td->id);
 }
@@ -1464,7 +1481,7 @@ static int guiDragStop() {
 
 		// resize to nearest whole cell
 		int w = td->resize_rect.w;
-		int h = td->resize_rect.h - (td->cell_h-(td->menu_rect.y+td->ren_rect.h-td->grip_rect.y));
+		int h = td->resize_rect.h;
 		int cw = w/terms[i].cell_w;
 		int ch = h/terms[i].cell_h;
 
@@ -1886,7 +1903,7 @@ static errr xtraTermHook(int n, int v) {
     return 0; // clear?
   case TERM_XTRA_REACT:
     setTermTitle(&terms[TERM_MAIN]);
-    rerender();
+    refreshTerm(&terms[TERM_MAIN]);
     return 0; // react?
   case TERM_XTRA_FROSH: // TODO: refresh row "v"
     return 0;
@@ -1924,8 +1941,8 @@ static errr wipeTermCell_ALT(int x, int y) {
 	if (td->alt_framebuffer == NULL) return -1;
 	if (td->pict_data == NULL) return -1;
 
-	alt_rect.x = (x-13) * td->pict_data->w;
-	alt_rect.y = (y-1) * td->pict_data->h;
+	alt_rect.x = x * td->pict_data->w;
+	alt_rect.y = y * td->pict_data->h;
 	alt_rect.w = td->pict_data->w * n;
 	alt_rect.h = td->pict_data->h * 1;
 
@@ -1949,22 +1966,13 @@ static errr wipeTermHook(int x, int y, int n) {
   int i, alt_dungeon = 0;
   TermData *td = (TermData*)(Term->data);
 
-    if (td->config & TERM_DO_SCALE) {
-        alt_dungeon = 1;
-    }
-
-    for (i = 0; i < n; i++) {
-	if (alt_dungeon && looksLikeCave(x + i, y)) {
-
-		wipeTermCell_Cave(x + i, y);
-
-	} else {
-
+	for (i = 0; i < n; i++) {
 		wipeTermCell_UI(x + i, y, 0);
-
 	}
-    }
 
+	if (td->config & TERM_DO_SCALE) {
+		td->need_cutout = TRUE;
+	}
 }
 
 static void textTermCell_Char(int x, int y, byte attr, char c) {
@@ -2002,7 +2010,7 @@ static void textTermCell_Char(int x, int y, byte attr, char c) {
   }
 }
 
-static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s, int test) {
+static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s) {
 	int i;
 	int old_mode, old_cell_w, old_cell_h;
 	TermData *td = (TermData*)(Term->data);
@@ -2025,11 +2033,9 @@ static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s, int test) {
 	td->cell_h = td->pict_data->h;
 
 	for (i = 0; i < n; i++) {
-		if (test && !looksLikeCave(x + i, y)) continue;
-
 		wipeTermCell_ALT(x + i, y);
 //		SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
-		textTermCell_Char(x + i-13, y-1, attr, s[i]);
+		textTermCell_Char(x + i, y, attr, s[i]);
 	}
 
 	/* Restore old mode */
@@ -2039,7 +2045,7 @@ static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s, int test) {
 
 	/* We need re-renders and cutouts */
 	td->need_render = TRUE;
-	td->need_cutout = TRUE;
+	//td->need_cutout = TRUE;
 
 	return 0;
 }
@@ -2055,19 +2061,13 @@ static errr textTermHook(int x, int y, int n, byte attr, cptr s) {
 	SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 255);
 	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_NONE);
 
-	if (td->config & TERM_DO_SCALE) {
-		alt_dungeon = 1;
-	}
-
 	for (i = 0; i < n; i++) {
-		if (alt_dungeon && looksLikeCave(x + i, y)) continue;
-
 		wipeTermCell_UI(x + i, y, 0);
 		textTermCell_Char(x + i, y, attr, s[i]);
 	}
 
-	if (alt_dungeon) {
-		(void)textTermHook_ALT(x, y, n, attr, s, 1);
+	if (td->config & TERM_DO_SCALE) {
+		td->need_cutout = TRUE;
 	}
 
 	return 0;
@@ -2127,8 +2127,9 @@ static void pictTermCell_Tile(int x, int y, byte a, byte c, byte ta, byte tc)
 	}
 }
 
+
 /* Draw ALT.DUNGEON */
-static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp, int test) {
+static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp) {
 	int i;
 	int old_mode, old_cell_w, old_cell_h;
 	Uint8 a, c, ta, tc;
@@ -2148,15 +2149,13 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 	td->cell_h = td->pict_data->h;
 
 	for (i = 0; i < n; i++) {
-		if (test && !looksLikeCave(x + i, y)) continue;
-
 		a = (ap[i] & 0x7F);
 		c = (cp[i] & 0x7F);
 		ta = (tap[i] & 0x7F);
 		tc = (tcp[i] & 0x7F);
 
 		wipeTermCell_ALT(x + i, y);
-		pictTermCell_Tile(x + i-13, y-1, a, c, ta, tc);
+		pictTermCell_Tile(x + i, y, a, c, ta, tc);
 	}
 
 	/* Restore old mode */
@@ -2165,7 +2164,7 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 	td->cell_h = old_cell_h;
 
 	td->need_render = TRUE;
-	td->need_cutout = TRUE;
+	//td->need_cutout = TRUE;
 }
 
 static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp) {
@@ -2182,29 +2181,18 @@ static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, co
   SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
 //  SDL_SetTextureBlendMode(td->pict_texture, SDL_BLENDMODE_BLEND);
 
-	if (td->config & TERM_DO_SCALE) {
-		alt_dungeon = 1;
-	}
-
 	for (i = 0; i < n; i++) {
-		if (alt_dungeon && looksLikeCave(x + i, y)) continue;
-
 		a = (ap[i] & 0x7F);
 		c = (cp[i] & 0x7F);
 		ta = (tap[i] & 0x7F);
 		tc = (tcp[i] & 0x7F);
 
 		wipeTermCell_UI(x + i, y, 0);
-
-		/* HACK -- minimap uses mapping/0/darkness to wipe :( */
-		/* Hopefully, it's at 0, 0 tile position */
-		if (c == 0 && a == 0) continue;
-
 		pictTermCell_Tile(x + i, y, a, c, ta, tc);
 	}
 
-	if (alt_dungeon) {
-		(void)pictTermHook_ALT(x, y, n, ap, cp, tap, tcp, 1);
+	if (td->config & TERM_DO_SCALE) {
+		td->need_cutout = TRUE;
 	}
 
   return 0;
