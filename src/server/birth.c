@@ -558,6 +558,9 @@ void player_wipe(player_type *p_ptr)
 		}
 	}
 
+	/* Default support flags */
+	p_ptr->supports_slash_fx = FALSE;
+
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
 	{

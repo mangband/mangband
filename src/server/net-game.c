@@ -637,6 +637,19 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_slash_fx(int Ind, byte y, byte x, byte dir, byte fx)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!Players[Ind]->supports_slash_fx) return 1;
+	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%b", PKT_SLASH_FX, y, x, dir, fx) <= 0)
+	{
+		/* No space in buffer, but we don't really care for this packet */
+		return 0;
+	}
+	return 1;
+}
+
 int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade)
 {
 	connection_type *ct = PConn[Ind];
@@ -1294,7 +1307,8 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		switch (i)
 		{
 			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break; 
+			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break;
+			case 5:	p_ptr->supports_slash_fx = (bool)val; break;
 			default: break;
 		}
 	}

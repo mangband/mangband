@@ -139,6 +139,7 @@ static int zoom_levels[MAX_ZOOM_LEVELS] = {
 };
 
 /* Forward-declare */
+void Term2_refresh_char(int x, int y);
 bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
 
@@ -233,6 +234,7 @@ errr init_sdl2(int argc, char **argv) {
 	/** Activate Term-2 hooks **/
 	cave_char_aux = Term2_cave_char;
 	query_size_aux = Term2_query_area_size;
+	refresh_char_aux = Term2_refresh_char;
 
   return 0;
 }
@@ -490,6 +492,35 @@ void Term2_query_area_size(s16b *x, s16b *y, int st) {
 		*y = td->dng_rows;
 	}
 }
+/* Memorize cave to re-show it on Term2_refresh */
+cave_view_type mymem[2][MAX_HGT][MAX_WID] = { 0 };
+/* Restore cave from memory */
+static void Term2_refresh_char1(int x, int y)
+{
+	byte a, c, ta, tc;
+
+	if (y < 0 || y >= MAX_HGT) return;
+	if (x < 0 || x >= MAX_WID) return;
+
+	a = mymem[1][y][x].a;
+	c = mymem[1][y][x].c;
+	ta = mymem[0][y][x].a;
+	tc = mymem[0][y][x].c;
+
+	Term2_cave_char(x, y, a, c, ta, tc);
+}
+/* Hook for refreshing slash effects. We will draw 4 nearby tiles. */
+void Term2_refresh_char(int x, int y)
+{
+	int dir = sfx_info[y][x].a;
+	int ox, oy;
+	slashfx_dir_offset(&ox, &oy, dir, TRUE);
+	Term2_refresh_char1(x + ox, y + oy);
+	Term2_refresh_char1(x + ox * 0, y + oy);
+	Term2_refresh_char1(x + ox, y + oy * 0);
+	Term2_refresh_char1(x, y);
+}
+
 void net_stream_clamp(int addr, int *x, int *y) {
 	int i;
 	for (i = 0; i < known_streams; i++) {
@@ -2080,6 +2111,7 @@ static void pictTermCell_Tile(int x, int y, byte a, byte c, byte ta, byte tc)
 	int offsetx, offsety, w, h;
 	float r;
 	TermData *td = (TermData*)(Term->data);
+	int sf_x = 0, sf_y = 0;
 
 //  struct FontData *fd = td->font_data;
 	if (td->pict_mode == TERM_PICT_STRETCH) {
@@ -2117,9 +2149,25 @@ static void pictTermCell_Tile(int x, int y, byte a, byte c, byte ta, byte tc)
 	terrain_rect.w = td->pict_data->w;
 	terrain_rect.h = td->pict_data->h;
 
+	/* Slash effect is active on this tile */
+	if (sfx_delay[y][x] > 0)
+	{
+		int dir = sfx_info[y][x].a;
+		int ox, oy;
+		float halfW = (float)w / 4;
+		float halfH = (float)h / 4;
+		float prog = (float)( SLASH_FX_THRESHOLD - sfx_delay[y][x] ) / ( SLASH_FX_THRESHOLD);
+		slashfx_dir_offset(&ox, &oy, dir, TRUE);
+		sf_x = prog * halfW * ox;
+		sf_y = prog * halfH * oy;
+	}
+
 	if (use_graphics > 1) {
 		SDL_RenderCopy(td->renderer, td->pict_texture, &terrain_rect, &cell_rect);
 		if (ta != a || tc != c) {
+			cell_rect.x += sf_x;
+			cell_rect.y += sf_y;
+
 			SDL_RenderCopy(td->renderer, td->pict_texture, &sprite_rect, &cell_rect);
 		}
 	} else {
@@ -2153,6 +2201,11 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 		c = (cp[i] & 0x7F);
 		ta = (tap[i] & 0x7F);
 		tc = (tcp[i] & 0x7F);
+
+		mymem[1][y][x + i].a = ap[i];
+		mymem[1][y][x + i].c = cp[i];
+		mymem[0][y][x + i].a = tap[i];
+		mymem[0][y][x + i].c = tcp[i];
 
 		wipeTermCell_ALT(x + i, y);
 		pictTermCell_Tile(x + i, y, a, c, ta, tc);

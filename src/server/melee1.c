@@ -12,7 +12,54 @@
 
 #include "mangband.h"
 
-
+/* Send "slash effect" to the client */
+void slash_fx(int Ind, int agressor, int victim, u16b sound_msg)
+{
+	player_type *p_ptr = Players[Ind];
+	int x1, y1, x2, y2, dx, dy;
+	char dir;
+	const char dirrrs[3][3] = {
+		{ 7, 8, 9 },
+		{ 4, 5, 6 },
+		{ 1, 2, 3 },
+	};
+	player_type *q_ptr, *q2_ptr;
+	monster_type *m_ptr, *m2_ptr;
+	if (victim < 0)
+	{
+		m_ptr = &m_list[0 - victim];
+		x1 = m_ptr->fx;
+		y1 = m_ptr->fy;
+	}
+	else
+	{
+		q_ptr = Players[victim];
+		x1 = q_ptr->px;
+		y1 = q_ptr->py;
+	}
+	if (agressor < 0)
+	{
+		m2_ptr = &m_list[0 - agressor];
+		x2 = m2_ptr->fx;
+		y2 = m2_ptr->fy;
+	}
+	else
+	{
+		q2_ptr = Players[agressor];
+		x2 = q2_ptr->px;
+		y2 = q2_ptr->py;
+	}
+	/* Determine direction */
+	dx = x2 - x1;
+	dy = y2 - y1;
+	if (dx < -1) dx = -1;
+	if (dx > 1) dx = 1;
+	if (dy < -1) dy = -1;
+	if (dy > 1) dy = 1;
+	dir = dirrrs[dy + 1][dx + 1];
+	/* Send it ! */
+	send_slash_fx(Ind, y2 - p_ptr->panel_row_min, x2 - p_ptr->panel_col_min, dir, sound_msg);
+}
 
 /*
  * Critical blow.  All hits that do 95% of total possible damage,
@@ -437,6 +484,7 @@ bool make_attack_normal(int Ind, int m_idx)
 			/* Message */
 			if (act) msg_format(Ind, "%^s %s", m_name, act);
 			if (act) sound(Ind, sound_msg);
+			if (act) slash_fx(Ind, 0 - m_idx, Ind, sound_msg);
 
 			/* Hack -- assume all attacks are obvious */
 			obvious = TRUE;
@@ -1276,6 +1324,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					/* Message */
 					msg_format(Ind, "%^s misses you.", m_name);
 					sound(Ind, MSG_MISS);
+					slash_fx(Ind, 0 - m_idx, Ind, MSG_MISS);
 				}
 
 				break;

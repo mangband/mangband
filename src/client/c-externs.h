@@ -105,6 +105,10 @@ extern cave_view_type* remote_info[8];
 extern s16b last_remote_line[8];
 extern cptr stream_desc[32];
 
+cave_view_type sfx_info[MAX_HGT][MAX_WID];
+s32b sfx_delay[MAX_HGT][MAX_WID];
+extern void slashfx_dir_offset(int *x, int *y, int dir, bool invert);
+
 cave_view_type air_info[MAX_HGT][MAX_WID];
 s32b air_delay[MAX_HGT][MAX_WID];
 s32b air_fade[MAX_HGT][MAX_WID];
@@ -469,6 +473,7 @@ extern void mem_line(int y, int x, int cols);
 extern void show_line(int y, s16b cols, bool mem, int st);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
 extern void update_air(void);
+extern void update_slashfx(void);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);

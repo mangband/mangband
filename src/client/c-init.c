@@ -451,6 +451,12 @@ void flush_updates()
 		window_stuff();
 	}
 
+	/* Redraw slash effect? */
+	if (refresh_char_aux)
+	{
+		update_slashfx();
+	}
+
 	/* Redraw air? */
 	if (air_updates)
 	{
@@ -533,6 +539,9 @@ void gather_settings()
 
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;
+
+	/* Support slash fx */
+	Client_setup.settings[5] = (refresh_char_aux) ? TRUE : FALSE;
 }
 
 

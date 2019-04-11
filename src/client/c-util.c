@@ -2567,6 +2567,53 @@ errr path_build(char *buf, int max, cptr path, cptr file)
         return (0);
 }
 
+/*
+ * Handle the slash effects
+ */
+/*
+ * Note: this function uses up the static_timer(3). This means you can't use
+ * static_timer(3) anywhere else from now on.
+ */
+void slashfx_dir_offset(int *x, int *y, int dir, bool invert)
+{
+	const int dir_offset_y[9] = { 1, 1, 1,  0, 0, 0,  -1,-1,-1 };
+	const int dir_offset_x[9] = { -1, 0, 1,  -1, 0, 1,  -1, 0, 1 };
+	*x = dir_offset_x[dir - 1] * (invert ? 1 : 1);
+	*y = dir_offset_y[dir - 1] * (invert ? 1 : 1);
+}
+void update_slashfx()
+{
+	micro passed = static_timer(3);
+	u16b milli = (u16b)(passed / 1000);
+	int j, i;
+	for (j = 0; j < MAX_HGT; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			if (sfx_delay[j][i] > 0)
+			{
+				sfx_delay[j][i] -= milli;
+				/* Delay timeout */
+				if (sfx_delay[j][i] <= 0)
+				{
+					sfx_delay[j][i] = 0;
+				}
+				/* Draw same tile */
+				refresh_char_aux(i, j);
+			}
+		}
+	}
+}
+void discard_slashfx(int y, int x)
+{
+	if (sfx_delay[y][x] > 0 && (refresh_char_aux))
+	{
+		sfx_delay[y][x] = 0;
+		refresh_char_aux(x, y);
+	}
+}
+
+
 void clear_from(int row)
 {
 	int y;
@@ -2705,6 +2752,7 @@ bool Term2_cave_line(int st, int sy, int y, int cols)
 			bool _ret;
 			//if (!ta) ta = a;
 			//if (!tc) tc = c;
+			discard_slashfx(y, x + i);
 			_ret = cave_char_aux(dx + i, dy, a, c, ta, tc);
 			if (_ret) complete = TRUE;
 		}

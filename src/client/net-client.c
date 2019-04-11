@@ -1097,6 +1097,34 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_slash_fx(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0,
+		dir = 0,
+		fx = 0;
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c%c%b", &y, &x, &dir, &fx) < 4) return 0;
+
+	if (y >= p_ptr->stream_hgt[0]) return 1;
+	if (x >= p_ptr->stream_wid[0]) return 1;
+
+	/* Discard current effect */
+	sfx_delay[y][x] = 0;
+	refresh_char_aux(x, y);
+
+	/* Remember new information */
+	sfx_info[y][x].a = dir;
+	sfx_info[y][x].c = fx;
+	sfx_delay[y][x] = SLASH_FX_THRESHOLD;
+
+	return 1;
+}
+
+
 int recv_air(connection_type *ct)
 {
 	byte

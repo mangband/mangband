@@ -714,6 +714,7 @@ extern int send_term_write(player_type *p_ptr, byte fmode, cptr filename);
 extern int send_cursor(player_type *p_ptr, byte vis, byte x, byte y);
 extern int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
+extern int send_slash_fx(int Ind, byte y, byte x, byte dir, byte fx);
 extern int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade);
 extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name);
 extern int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name);
