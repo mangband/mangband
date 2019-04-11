@@ -2245,6 +2245,15 @@ static errr handleMenu(int i, int x, int y) {
 		termClose(i);
 	}
 
+	if (menu_hover == MENU_ACT_SOUND_ON) {
+		use_sound = TRUE;
+	}
+
+	else if (menu_hover == MENU_ACT_SOUND_OFF) {
+		if (use_sound) sdl_play_sound_end(TRUE);
+		use_sound = FALSE;
+	}
+
 	if (menu_hover >= MENU_QUICK_FONT0 && menu_hover <= MENU_QUICK_FONT_LAST) {
 		int f = menu_hover - MENU_QUICK_FONT0;
 		unloadFont(&terms[i]);
@@ -2406,6 +2415,8 @@ static errr loadConfig() {
 
   default_font_size = conf_get_int("SDL2", "font_size", default_font_size);
 
+  use_sound = (bool)conf_get_int("SDL2", "sound", 1);
+
   for (window_id = 0; window_id < 8; window_id++) {
     strnfmt(section, 128, "SDL2-window-%d", window_id);
     strncpy(terms[window_id].title, conf_get_string(section, "title", ""), 128);
@@ -2507,7 +2518,7 @@ static errr saveConfig() {
   conf_set_int("SDL2", "font_size", default_font_size);
 
   conf_set_int("SDL2", "graphics", use_graphics);
-
+  conf_set_int("SDL2", "sound", use_sound);
 
   for (window_id = 0; window_id < 8; window_id++) {
     strnfmt(section, 128, "SDL2-window-%d", window_id);
