@@ -4022,25 +4022,26 @@ void monster_race_track(int Ind, int r_idx)
  * The second arg is currently unused, but could induce output flush.
  *
  * All disturbance cancels repeated commands, resting, and running.
+ *
+ * MAngband-specific: the "unused_flag" is actually used, to tell apart
+ * disturb calls provoked by Player intent (1) and calls provoked by
+ * some external event (0).
  */
 void disturb(int Ind, int stop_search, int unused_flag)
 {
 	player_type *p_ptr = Players[Ind];
 
-	/* Unused */
-	unused_flag = unused_flag;
+	/* Used */
+	int player_intent = unused_flag;
 
 	/* Cancel auto-commands */
 	/* command_new = 0; */
 
-#if 0
-//disabling per powerwyrm's comment, see #596
 	/* Dungeon Master is never disturbed */
-	if (p_ptr->dm_flags & DM_NEVER_DISTURB)
+	if ((p_ptr->dm_flags & DM_NEVER_DISTURB) && !player_intent)
 	{
 		return;
 	}
-#endif
 
 #if 0
 	/* Cancel repeated commands */
