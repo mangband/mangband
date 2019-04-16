@@ -586,6 +586,24 @@ int player_pict(int Ind, int who)
 }
 
 
+void get_wilderness_light_colour(byte *a, int feat, player_type *p_ptr, cave_type *c_ptr, byte *w_ptr)
+{
+	/* Hack -- MAngband-specific: Wilderness Special lighting effects */
+	if (option_p(p_ptr, VIEW_SPECIAL_LITE) &&
+			option_p(p_ptr, VIEW_YELLOW_LITE) &&
+			(*a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
+	{
+		if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
+		{
+			/* Use "yellow" */
+			if (option_p(p_ptr,VIEW_ORANGE_LITE))
+				*a = TERM_ORANGE;
+			else
+				*a = TERM_YELLOW;
+		}
+	}
+}
+
 /*
  * Extract the attr/char to display at the given (legal) map location
  *
@@ -791,19 +809,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		/* Regular floor grid */
 		else 
 		{
-			/* Hack -- MAngband-specific: Wilderness Special lighting effects */
-			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) &&
-				(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
-			{
-				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
-				{
-					/* Use "yellow" */
-					if (option_p(p_ptr,VIEW_ORANGE_LITE))
-						a = TERM_ORANGE;
-					else
-						a = TERM_YELLOW;
-				}
-			}
+			get_wilderness_light_colour(&a, feat, p_ptr, c_ptr, w_ptr);
 			
 			/* Special lighting effects */
 			if (option_p(p_ptr,VIEW_SPECIAL_LITE) && (a == TERM_WHITE))
@@ -860,19 +866,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		a = f_attr_ptr[feat];
 		c = f_char_ptr[feat];
 		
-		/* Hack -- MAngband-specific: Wilderness Special lighting effects */
-		if (option_p(p_ptr,VIEW_SPECIAL_LITE) && option_p(p_ptr,VIEW_YELLOW_LITE) && 
-			(a == TERM_GREEN) && (feat >= FEAT_DIRT) && (feat <= FEAT_PERM_CLEAR))
-		{
-			if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW)
-			{
-				/* Use "yellow" */
-				if (option_p(p_ptr,VIEW_ORANGE_LITE))
-					a = TERM_ORANGE;
-				else
-					a = TERM_YELLOW;
-			}
-		}
+		get_wilderness_light_colour(&a, feat, p_ptr, c_ptr, w_ptr);
 	
 		/* Special lighting effects */
 		if (option_p(p_ptr,VIEW_GRANITE_LITE) && (a == TERM_WHITE) && (feat >= FEAT_SECRET))
@@ -2051,6 +2045,36 @@ void do_cmd_view_map(player_type *p_ptr, char query)
 
 
 
+void update_player_lite(int Ind, int i)
+{
+	int j;
+
+	player_type *p_ptr = Players[Ind];
+	int Depth = p_ptr->dun_depth;
+
+	int y = p_ptr->lite_y[i];
+	int x = p_ptr->lite_x[i];
+
+	/* Forget "LITE" flag */
+	p_ptr->cave_flag[y][x] &= ~CAVE_LITE;
+	cave[Depth][y][x].info &= ~CAVE_LITE;
+
+	for (j = 1; j <= NumPlayers; j++)
+	{
+
+		/* Make sure player is on the level */
+		if (Players[j]->dun_depth != Depth)
+			continue;
+
+		/* Ignore the player that we're updating */
+		if (j == Ind)
+			continue;
+
+		/* If someone else also lites this spot relite it */
+		if (Players[j]->cave_flag[y][x] & CAVE_LITE)
+			cave[Depth][y][x].info |= CAVE_LITE;
+	}
+}
 
 
 
@@ -2264,12 +2288,6 @@ void do_cmd_view_map(player_type *p_ptr, char query)
  */
 
 
-
-
-
-
-
-
 /*
  * Actually erase the entire "lite" array, redrawing every grid
  */
@@ -2286,30 +2304,7 @@ void forget_lite(int Ind)
 	/* Clear them all */
 	for (i = 0; i < p_ptr->lite_n; i++)
 	{
-		int j;
-
-		y = p_ptr->lite_y[i];
-		x = p_ptr->lite_x[i];
-
-		/* Forget "LITE" flag */
-		p_ptr->cave_flag[y][x] &= ~CAVE_LITE;
-		cave[Depth][y][x].info &= ~CAVE_LITE;
-
-		for (j = 1; j <= NumPlayers; j++)
-		{
-
-			/* Make sure player is on the level */
-			if (Players[j]->dun_depth != Depth)
-				continue;
-
-			/* Ignore the player that we're updating */
-			if (j == Ind)
-				continue;
-
-			/* If someone else also lites this spot relite it */
-			if (Players[j]->cave_flag[y][x] & CAVE_LITE)
-				cave[Depth][y][x].info |= CAVE_LITE;
-		}
+		update_player_lite(Ind, i);
 
 		/* Redraw */
 		everyone_lite_spot(Depth, y, x);
@@ -2396,30 +2391,7 @@ void update_lite(int Ind)
 	/* Clear them all */
 	for (i = 0; i < p_ptr->lite_n; i++)
 	{
-		int j;
-
-		y = p_ptr->lite_y[i];
-		x = p_ptr->lite_x[i];
-
-		/* Mark the grid as not "lite" */
-		p_ptr->cave_flag[y][x] &= ~CAVE_LITE;
-		cave[Depth][y][x].info &= ~CAVE_LITE;
-
-		for (j = 1; j <= NumPlayers; j++)
-		{
-
-			/* Make sure player is on the level */
-			if (Players[j]->dun_depth != Depth)
-				continue;
-
-			/* Ignore the player that we're updating */
-			if (j == Ind)
-				continue;
-
-			/* If someone else also lites this spot relite it */
-			if (Players[j]->cave_flag[y][x] & CAVE_LITE)
-				cave[Depth][y][x].info |= CAVE_LITE;
-		}
+		update_player_lite(Ind, i);
 
 		/* Mark the grid as "seen" */
 		cave[Depth][y][x].info |= CAVE_TEMP;
