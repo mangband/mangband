@@ -408,7 +408,7 @@ static void place_rubble(int Depth, int y, int x)
 			place_rubble_aux(Depth, y+j*-1, x+i*-1);
 			
 			/* Done */
-			return;		
+			return;
 		}
 	}
 	/* None */
@@ -691,7 +691,7 @@ static void alloc_object(int Depth, int set, int typ, int num)
 
 			case ALLOC_TYP_OBJECT:
 			{
-                place_object(Depth, y, x, FALSE, FALSE, 0);
+				place_object(Depth, y, x, FALSE, FALSE, 0);
 				break;
 			}
 		}
@@ -881,7 +881,7 @@ static void vault_objects(int Depth, int y, int x, int num)
 			/* Place an item */
 			if (rand_int(100) < 75)
 			{
-                place_object(Depth, j, k, FALSE, FALSE, 0);
+				place_object(Depth, j, k, FALSE, FALSE, 0);
 			}
 
 			/* Place gold */
@@ -948,7 +948,7 @@ void place_double_room(int Depth, bool light, int y1, int y2, int x1, int x2)
 {
 	place_floor(Depth, light, y1, y2, x1, x2);
 
-  place_double_wall(Depth, y1, y2, x1, x2);
+	place_double_wall(Depth, y1, y2, x1, x2);
 }
 
 void place_cross_room(int Depth, bool light, int y1a, int y2a, int x1a, int x2a, int y1b, int y2b, int x1b, int x2b)
@@ -1276,7 +1276,7 @@ static void build_type3(int Depth, int yval, int xval)
 		}
 
 		/* Place a treasure in the vault */
-        place_object(Depth, yval, xval, FALSE, FALSE, 0);
+		place_object(Depth, yval, xval, FALSE, FALSE, 0);
 
 		/* Let's guard the treasure well */
 		vault_monsters(Depth, yval, xval, rand_int(2) + 3);
@@ -1440,7 +1440,7 @@ static void build_type4(int Depth, int yval, int xval)
 		/* Object (80%) */
 		if (rand_int(100) < 80)
 		{
-            place_object(Depth, yval, xval, FALSE, FALSE, 0);
+			place_object(Depth, yval, xval, FALSE, FALSE, 0);
 		}
 
 		/* Stairs (20%) */
@@ -1523,8 +1523,8 @@ static void build_type4(int Depth, int yval, int xval)
 			vault_monsters(Depth, yval, xval + 2, randint(2));
 
 			/* Objects */
-            if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE, 0);
-            if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE, 0);
+			if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE, 0);
+			if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE, 0);
 		}
 
 		break;
@@ -2341,7 +2341,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				case '*':
 				if (rand_int(100) < 75)
 				{
-                    place_object(Depth, y, x, FALSE, FALSE, 0);
+					place_object(Depth, y, x, FALSE, FALSE, 0);
 				}
 				else
 				{
@@ -2402,7 +2402,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 7;
-                place_object(Depth, y, x, TRUE, FALSE, 0);
+				place_object(Depth, y, x, TRUE, FALSE, 0);
 				object_level = Depth;
 				break;
 
@@ -2412,7 +2412,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 20;
-                place_object(Depth, y, x, TRUE, TRUE, 0);
+				place_object(Depth, y, x, TRUE, TRUE, 0);
 				object_level = Depth;
 				break;
 
@@ -2427,7 +2427,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				if (rand_int(100) < 50)
 				{
 					object_level = Depth + 7;
-                    place_object(Depth, y, x, FALSE, FALSE, 0);
+					place_object(Depth, y, x, FALSE, FALSE, 0);
 					object_level = Depth;
 				}
 				break;
