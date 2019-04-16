@@ -1085,9 +1085,12 @@ void do_cmd_refill_potion(int Ind, int item)
 	bool ident, good = FALSE;
 
 	object_type	*o_ptr;
+	object_type	forge;
 
-	/* Check preventive inscription '^R' */
-	__trap(Ind, CPI(p_ptr, 'R'));
+	int new_tval, new_sval;
+
+	/* Check preventive inscription '^G' */
+	__trap(Ind, CPI(p_ptr, 'G'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -1116,8 +1119,8 @@ void do_cmd_refill_potion(int Ind, int item)
 		o_ptr = &o_list[0 - item];
 	}
 
-	/* Check guard inscription '!R' */
-	__trap(Ind, CGI(o_ptr, 'R'));
+	/* Check guard inscription '!G' */
+	__trap(Ind, CGI(o_ptr, 'G'));
 
 	if (o_ptr->tval != TV_BOTTLE)
 	{
@@ -1148,36 +1151,58 @@ void do_cmd_refill_potion(int Ind, int item)
 	ident = FALSE;
 
 	/* Object Changes from bottle to potion */
-	o_ptr->tval = TV_POTION;
+	new_tval = TV_POTION;
+	new_sval = SV_POTION_SLIME_MOLD; /* some default */
 	if (good)
 	{
 		if (rand_int(100) < 5)
-			o_ptr->sval = SV_POTION_CURE_CRITICAL;
+			new_sval = SV_POTION_CURE_CRITICAL;
 		else
-			o_ptr->sval = SV_POTION_WATER;
+			new_sval = SV_POTION_WATER;
 	}
 	else
 	{
 		if (rand_int(100) < 50)
-			o_ptr->sval = SV_POTION_SLIME_MOLD;
+			new_sval = SV_POTION_SLIME_MOLD;
 		else if (rand_int(100) < 50)
-			o_ptr->sval = SV_POTION_SALT_WATER;
+			new_sval = SV_POTION_SALT_WATER;
 		else if (rand_int(100) < 50)
-			o_ptr->sval = SV_POTION_SLEEP;
+			new_sval = SV_POTION_SLEEP;
 		else if (rand_int(100) < 50)
-			o_ptr->sval = SV_POTION_CONFUSION;
+			new_sval = SV_POTION_CONFUSION;
 		else if (rand_int(100) < 30)
-			o_ptr->sval = SV_POTION_BLINDNESS;
+			new_sval = SV_POTION_BLINDNESS;
 		else if (rand_int(100) < 50)
-			o_ptr->sval = SV_POTION_POISON;
+			new_sval = SV_POTION_POISON;
 		else if (rand_int(100) < 70)
-			o_ptr->sval = SV_POTION_LOSE_MEMORIES;
+			new_sval = SV_POTION_LOSE_MEMORIES;
 		else
-			o_ptr->sval = SV_POTION_DEATH;
+			new_sval = SV_POTION_DEATH;
 	}
-	o_ptr->weight = 4; /* HACK - We should get this from the new tval/sval combo */
 
 	msg_print(Ind, "The bottle shimmers and changes color.");
+
+	/* Destroy the bottle in the pack */
+	if (item >= 0)
+	{
+		inven_item_increase(Ind, item, -1);
+		inven_item_describe(Ind, item);
+		inven_item_optimize(Ind, item);
+	}
+	/* Destroy the bottle on the floor */
+	else
+	{
+		floor_item_increase(0 - item, -1);
+		floor_item_describe(0 - item);
+		floor_item_optimize(0 - item);
+		floor_item_notify(Ind, 0 - item, TRUE);
+	}
+
+	/* Create and add new item */
+	/* XXX is calling those enough, or should we also do
+	 * something else? */
+	invcopy(&forge, lookup_kind(new_tval, new_sval));
+	inven_carry(p_ptr, &forge);
 
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);

@@ -321,7 +321,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: ", "Symbol query"
 	},
-#if 0
+#if 1
 	{ /* Refill bottle */
 		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
