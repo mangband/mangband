@@ -96,14 +96,19 @@ BEGIN
         MENUITEM SEPARATOR
 		POPUP "&Graphics"
 		BEGIN
-			MENUITEM "&Off",						221
-			MENUITEM "&Standart (8x8)",             222
-			MENUITEM "&Adam Bolt's (16x16)",        223
-			MENUITEM "&David Gervais' (32x32)",     224
+			MENUITEM "&Off",			221
+			MENUITEM "Tileset 1",                   223
+			MENUITEM "Tileset 2",                   224
+			MENUITEM "Tileset 3",                   225
+			MENUITEM "Tileset 4",                   226
+			MENUITEM "Tileset 5",                   227
+			MENUITEM "Tileset 6",                   228
+			MENUITEM "Tileset 7",                   229
+			MENUITEM "Tileset 8",                   230
 //			MENUITEM SEPARATOR
-//			MENUITEM "&Respect Tile Size",			225
+//			MENUITEM "&Respect Tile Size",		222
 		END
-        MENUITEM "&Sound",                      226
+        MENUITEM "&Sound",                      301
     END
     POPUP "&Help"
     BEGIN

@@ -78,7 +78,10 @@
 
 static cptr GFXBMP[] = { "8x8.BMP", "8x8.BMP", "16x16.BMP", "32x32.BMP" };
 static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
+static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "David Gervais' (32x32)" };
 #define GFXD "16x16.BMP"
+
+#define WIN32_MAX_TILESETS 3
 
 /*
  * Extract the "WIN32" flag from the compiler
@@ -126,12 +129,17 @@ static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define IDM_WINDOWS_TERM_7		218
 
 #define IDM_GRAPHICS_OFF	221
-#define IDM_GRAPHICS_OLD	222
-#define	IDM_GRAPHICS_NEW	223
-#define IDM_GRAPHICS_DVG	224
-#define IDM_GRAPHICS_BIG_TILE	225
+#define IDM_GRAPHICS_BIG_TILE	222
+#define IDM_GRAPHICS_TILESET_1	223
+#define IDM_GRAPHICS_TILESET_2	224
+#define IDM_GRAPHICS_TILESET_3	225
+#define IDM_GRAPHICS_TILESET_4	226
+#define IDM_GRAPHICS_TILESET_5	227
+#define IDM_GRAPHICS_TILESET_6	228
+#define IDM_GRAPHICS_TILESET_7	229
+#define IDM_GRAPHICS_TILESET_8	230
 
-#define IDM_OPTIONS_SOUND		226
+#define IDM_OPTIONS_SOUND		301
 #define IDM_OPTIONS_UNUSED		231
 #define IDM_OPTIONS_SAVER		232
 
@@ -2585,15 +2593,28 @@ static void setup_menus(void)
 	/* Item "Graphics - Off" */
 	CheckMenuItem(hm, IDM_GRAPHICS_OFF,
 	              MF_BYCOMMAND | (!next_graphics ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - Old" */
-	CheckMenuItem(hm, IDM_GRAPHICS_OLD,
-	              MF_BYCOMMAND | (next_graphics == 1 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - New" */
-	CheckMenuItem(hm, IDM_GRAPHICS_NEW,
-	              MF_BYCOMMAND | (next_graphics == 2 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - DVG" */
-	CheckMenuItem(hm, IDM_GRAPHICS_DVG,
-	              MF_BYCOMMAND | (next_graphics == 3 ? MF_CHECKED : MF_UNCHECKED));
+
+	/* Item "Graphics - Tileset N" */
+	for (i = 0; i < 8; i++)
+	{
+		/* Replace "Tileset N" string with actual tileset name */
+		if (i < WIN32_MAX_TILESETS)
+		{
+			MENUITEMINFO menuitem = { sizeof(MENUITEMINFO) };
+			GetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+			menuitem.fMask = MIIM_TYPE | MIIM_DATA;
+			menuitem.dwTypeData = GFXTITLE[i + 1];
+			SetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+		}
+
+		/* Item "Graphics - Tileset N" */
+		CheckMenuItem(hm, IDM_GRAPHICS_TILESET_1 + i,
+		              MF_BYCOMMAND | (next_graphics == 1 + i ? MF_CHECKED : MF_UNCHECKED));
+
+		/* XXX Delete unused menu entries */
+		if (i >= WIN32_MAX_TILESETS && next_graphics < i + 1)
+		RemoveMenu(hm, IDM_GRAPHICS_TILESET_1 + i, MF_BYCOMMAND);
+	}
 
 	/* Item "Graphics - Respect Tile Size?" */
 	CheckMenuItem(hm, IDM_GRAPHICS_BIG_TILE,
@@ -2768,21 +2789,17 @@ static void process_menus(WORD wCmd)
 			set_graphics_next(0);
 			break;
 		}
-		case IDM_GRAPHICS_OLD:
+		case IDM_GRAPHICS_TILESET_1:
+		case IDM_GRAPHICS_TILESET_2:
+		case IDM_GRAPHICS_TILESET_3:
+		case IDM_GRAPHICS_TILESET_4:
+		case IDM_GRAPHICS_TILESET_5:
+		case IDM_GRAPHICS_TILESET_6:
+		case IDM_GRAPHICS_TILESET_7:
+		case IDM_GRAPHICS_TILESET_8:
 		{
-			set_graphics_next(1);
+			set_graphics_next(wCmd - IDM_GRAPHICS_TILESET_1 + 1);
 			break;
-		}
-		case IDM_GRAPHICS_NEW:
-		{
-			set_graphics_next(2);
-			break;
-		}
-		case IDM_GRAPHICS_DVG:
-		{
-			set_graphics_next(3);
-			break;
-		
 			/* no support -GP */
 			/* React to changes */
 			//Term_xtra_win_react();
