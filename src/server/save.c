@@ -46,7 +46,7 @@ static void write_int(char* name, int value)
 }
 
 /* Write an unsigned integer value */
-static void write_uint(char* name, unsigned int value)
+static void write_uint(const char* name, unsigned int value)
 {
 	fprintf(file_handle,"%s%s = %u\n",xml_prefix,name,value);
 }
@@ -474,8 +474,7 @@ static void wr_extra(int Ind)
 	write_int("msp",p_ptr->msp);
 	write_int("csp",p_ptr->csp);
 	write_int("csp_frac",p_ptr->csp_frac);
-	
-	write_int("no_ghost",p_ptr->no_ghost);
+
 
 	/* Max Player and Dungeon Levels */
 	write_int("max_plv",p_ptr->max_plv);
@@ -544,6 +543,48 @@ static void wr_extra(int Ind)
 	write_int("death",p_ptr->death);
 
 	end_section("player");
+}
+
+/*
+ * Write player's birth options
+ */
+static void wr_birthoptions(player_type *p_ptr)
+{
+	u16b tmp16u;
+	s32b i;
+	s16b ind;
+	
+	tmp16u = 0;
+
+	/* Count number of records */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page == 1) tmp16u++;
+	}
+
+	/* No records for some reason */
+	if (!tmp16u) return;
+
+	start_section("options");
+
+	/* Save number */
+	write_int("num",tmp16u);
+
+	/* Save each record */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		if (opt_ptr->o_page != 1) continue;
+
+		/* Real index is in the o_uid! */
+		ind = option_info[i].o_uid;
+
+		/* Write it */
+		write_uint(opt_ptr->o_text, p_ptr->options[ind] ? 1 : 0);
+	}
+
+	end_section("options");
 }
 
 /*
@@ -733,7 +774,7 @@ bool wr_dungeon_special_ext(int Depth, cptr levelname)
 }
 
 /* Write a players memory of a cave, simmilar to the above function. */
-void wr_cave_memory(Ind)
+void wr_cave_memory(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	int y,x;
@@ -831,6 +872,9 @@ static bool wr_savefile_new(int Ind)
 
 	/* Write the players turn */
 	write_hturn("player_turn",&p_ptr->turn);
+
+	/* Dump birth options */
+	wr_birthoptions(p_ptr);
 
 	/* Dump the monster lore */
 	start_section("monster_lore");
@@ -1117,6 +1161,11 @@ bool save_player(int Ind)
  *
  * The actual read is performed by "rd_savefile_new_scoop_aux" from "load2.c", which
  * is a simplified code duplcation from player loading routines.
+ *
+ * XXX XXX XXX: the "pass" buffer might be overwriten with the hashed version of the
+ * password, and must be of MAX_CHARS length.
+ *
+ * TODO: why do we have so much code here anyway?
  */
 int scoop_player(char *nick, char *pass)
 {
@@ -1127,7 +1176,7 @@ int scoop_player(char *nick, char *pass)
 
 	char tmp[MAX_CHARS];
 
-	strcpy(tmp, nick);
+	my_strcpy(tmp, nick, MAX_CHARS);
 	if (process_player_name_aux( &tmp[0] , NULL, TRUE ) < 0)
 	{
 		/* Error allready! */
@@ -1395,7 +1444,7 @@ bool load_player(player_type *p_ptr)
 	if (!err)
 	{
 		/* Invalid turn */
-		if (turn.era < 0 || turn.turn < 0) err = -1;
+		if (turn.turn > HTURN_ERA_FLIP) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";
@@ -1467,9 +1516,8 @@ bool load_player(player_type *p_ptr)
 
 #endif
 
-
 	/* Message */
-	Destroy_connection(p_ptr->conn, format("Error (%s) reading savefile.",what));
+	debug(format("Error reading savefile '%s': %d, %s", p_ptr->savefile, err, what));
 
 	/* Oops */
 	return (FALSE);

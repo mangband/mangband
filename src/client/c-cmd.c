@@ -15,6 +15,7 @@ void cmd_custom(byte i)
 	cptr prompt;
 	char entry[60];
 	bool need_second, need_target;
+	byte second_item_tester = 0;
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
@@ -24,7 +25,7 @@ void cmd_custom(byte i)
 	entry[0] = '\0';
 
 	need_second = (cc_ptr->flag & COMMAND_NEED_SECOND ? TRUE : FALSE);
-	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);	
+	need_target = (cc_ptr->flag & COMMAND_NEED_TARGET ? TRUE : FALSE);
 
 	/* Pre-tests */
 	if (cc_ptr->flag & COMMAND_TEST_ALIVE)
@@ -63,10 +64,10 @@ void cmd_custom(byte i)
 	}
 	else */ if (cc_ptr->flag & COMMAND_INTERACTIVE)
 	{
-		special_line_type = cc_ptr->tval;
+		int line_type = cc_ptr->tval;
+		bool use_anykey = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
 		strcpy(special_line_header, prompt);
-		interactive_anykey_flag = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
-		cmd_interactive();
+		cmd_interactive(line_type, use_anykey);
 		return;
 	}
 	/* Search for an item (automatic) */
@@ -112,11 +113,12 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
-		if (!c_get_item(&item, prompt, 
-				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE), 
-				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE), 
+		if (!c_get_item(&item, prompt,
+				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
+				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
+		second_item_tester = c_secondary_tester(item);
 		advance_prompt();
 
 		/* Get an amount */
@@ -126,13 +128,13 @@ void cmd_custom(byte i)
 			/* - from inventory */
 			if (item >= 0 && inventory[item].number > 1)
 			{
-				if (STRZERO(prompt)) prompt = "How many? ";			
+				if (STRZERO(prompt)) prompt = "How many? ";
 				value = c_get_quantity(prompt, inventory[item].number);
 			}
 			/* - from floor */
 			if (item < 0 && floor_item.number > 1)
 			{
-				if (STRZERO(prompt)) prompt = "How many? ";			
+				if (STRZERO(prompt)) prompt = "How many? ";
 				value = c_get_quantity(prompt, floor_item.number);
 			}
 			if (!value) return;
@@ -189,11 +191,12 @@ void cmd_custom(byte i)
 		{
 			need_second = need_target = FALSE;
 			dir = item2 = 0;
-			if (spell >= SPELL_PROJECTED)	need_target = TRUE;
+			if (spell >= SPELL_PROJECTED) need_target = TRUE;
 			else
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
 				need_second = (spell_flag[index] & PY_SPELL_ITEM ? TRUE : FALSE);
+				if (need_second) second_item_tester = spell_test[index];
 			}
 		}
 	} 
@@ -201,17 +204,18 @@ void cmd_custom(byte i)
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (STRZERO(prompt)) prompt = "Which item? ";
-		if (!c_get_item(&item2, prompt, 
-				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE), 
-				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE), 
+		item_tester_tval = second_item_tester;
+		if (!c_get_item(&item2, prompt,
+				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
+				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR ? TRUE : FALSE)))
 				return;
 		advance_prompt();
 	}
 	/* Target? */
-	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */ 
+	if (need_target) /* cc_ptr->flag & COMMAND_NEED_TARGET) */
 	{
-		if (!c_get_dir(&dir, prompt, 
+		if (!c_get_dir(&dir, prompt,
 				(cc_ptr->flag & COMMAND_TARGET_ALLOW ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
 				return;
@@ -227,8 +231,9 @@ void cmd_custom(byte i)
 	{
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
+		if (!value) return;
 		advance_prompt();
-	}		
+	}
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
 	{
 		if (STRZERO(prompt)) prompt = "Command: ";
@@ -236,11 +241,11 @@ void cmd_custom(byte i)
 			return;
 		entry[1] = '\0';
 		advance_prompt();
-	}	
+	}
 	else if (cc_ptr->flag & COMMAND_NEED_STRING)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
-		if (!get_string(prompt, entry, sizeof(entry)))
+		if (!get_string(prompt, entry, sizeof(entry) - 1))
 			return;
 		advance_prompt();
 	}
@@ -278,10 +283,10 @@ void process_command()
 	for (i = 0; i < custom_commands; i++) 
 	{
 		if (custom_command[i].flag & COMMAND_STORE) continue;
-		if (custom_command[i].m_catch == command_cmd) 
+		if (custom_command[i].m_catch == command_cmd)
 		{
 			cmd_custom(i);
-			return;	
+			return;
 		}
 	}
 
@@ -449,7 +454,7 @@ void process_command()
 
 		case KTRL('X'):
 		{
-	        Net_cleanup();
+	        cleanup_network_client();
 	        quit(NULL);
 		}
 
@@ -502,18 +507,27 @@ void process_requests()
 	if (pause_requested)
 	{
 		pause_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		section_icky_row = Term->hgt;
 		section_icky_col = Term->wid;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, TRUE);
+	}
+	if (local_browser_requested)
+	{
+		local_browser_requested = FALSE;
+		peruse_file();
+	}
+	if (simple_popup_requested)
+	{
+		simple_popup_requested = FALSE;
+		prepare_popup(0, TRUE);
 	}
 	if (special_line_requested)
 	{
+		//int type = special_line_requested;
 		special_line_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, FALSE);
 	}
 	if (confirm_requested)
 	{
@@ -609,6 +623,10 @@ void cmd_rest(void)
 
 void cmd_inven(void)
 {
+	/* show_inven() might not show anything, yet we still pause the screen,
+	 * using inkey() below. To avoid all that altogether, let's quit early */
+	if (inventory[0].number == 0) return;
+
 	/* Save the screen */
 	Term_save();
 
@@ -624,7 +642,8 @@ void cmd_inven(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -651,7 +670,8 @@ void cmd_equip(void)
 	Term_load();
 
 	/* The screen is OK now */
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
@@ -728,7 +748,7 @@ void cmd_destroy(void)
 		if (!get_check(out_val)) return;
 	
 	}
-	else 
+	else
 	{
 		/* Get an amount */
 		if (floor_item.number > 1)
@@ -740,11 +760,10 @@ void cmd_destroy(void)
 		/* Sanity check */
 		if (floor_item.number == amt)
 			sprintf(out_val, "Really destroy %s? ", floor_name);
-		else 
+		else
 			sprintf(out_val, "Really destroy %d of %s? ", amt, floor_name);
 		if (!get_check(out_val)) return;
-			
-	} 
+	}
 
 	/* Send it */
 	Send_destroy(item, amt);
@@ -766,10 +785,10 @@ void cmd_describe(void)
 	if (item < 0) 
 		strcpy(buf, floor_name);
 	else
-		strcpy(buf, inventory_name[item]);		
-	
+		strcpy(buf, inventory_name[item]);
+
 	if (buf[0] != '\0')
-				send_msg(buf);
+		send_msg(buf);
 }
 
 int cmd_target_interactive(int mode)
@@ -816,7 +835,8 @@ int cmd_target_interactive(int mode)
 	/* Unset modes */
 	looking = FALSE;
 	topline_icky = FALSE;
-	section_icky_row = section_icky_col = 0;
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Reset cursor stuff */
 	cursor_icky = FALSE;
@@ -850,9 +870,9 @@ void cmd_changepass(void)
 	pass2[0] = '\0';
 
 
-	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1)) 
+	if (get_string_masked("New Password: ", pass1, MAX_PASS_LEN-1))
 	{
-		if (get_string_masked("Confirm It: ", pass2, MAX_PASS_LEN-1)) 
+		if (get_string_masked("Confirm It: ", pass2, MAX_PASS_LEN-1))
 		{
 			if (!strcmp(pass1,pass2)) {
 				MD5Password(pass1);
@@ -943,25 +963,24 @@ void cmd_character(void)
 }
 
 
-void cmd_interactive()
+void cmd_interactive(byte line_type, bool use_anykey)
 {
 	char ch;
 	bool done = FALSE;
-	bool use_anykey = interactive_anykey_flag; /* Copy it to local var, it might change */
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky) return;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
-
 	special_line_onscreen = TRUE;
+	//special_line_type = line_type;
 
 	/* Save the screen */
 	Term_save();
 
 	/* Send the request */
-	send_interactive(special_line_type);
+	send_interactive(line_type);
 
 	/* Wait until we get the whole thing */
 	while (!done)
@@ -981,17 +1000,13 @@ void cmd_interactive()
 			break;
 	}
 
-	interactive_anykey_flag = FALSE;
-
 	/* Reload the screen */
 	Term_load();
 
 	/* The screen is OK now */
 	screen_icky = FALSE;
-
 	special_line_onscreen = FALSE;
-
-	special_line_type = 0;//SPECIAL_FILE_NONE;
+	//special_line_type = 0;
 
 	/* Flush any queued events */
 	Flush_queue();
@@ -1044,7 +1059,6 @@ void cmd_chat()
 }
 void cmd_chat_close(int n)
 {
-	char buf[80];
 	
 	if (n)
 	{
@@ -1058,15 +1072,15 @@ void cmd_chat_close(int n)
 		{
 			if (view_channel == n)
 				cmd_chat_cycle(-1);
-				
+
 			channels[n].name[0] = '\0';
 			channels[n].id = 0;
-			
+
 			if (p_ptr->main_channel == n)
-				p_ptr->main_channel = 0;				
+				p_ptr->main_channel = 0;
 			if (STRZERO(channels[view_channel].name))
 				cmd_chat_cycle(+1);
-									
+
 			/* Window update */
 			p_ptr->window |= PW_MESSAGE_CHAT;
 		}
@@ -1080,7 +1094,7 @@ void cmd_chat_cycle(int dir)
 	{
 		new_channel += dir;
 
-		if (new_channel > MAX_CHANNELS || new_channel < 0) return;
+		if (new_channel >= MAX_CHANNELS || new_channel < 0) return;
 		if (STRZERO(channels[new_channel].name)) continue; 
 
 		break;
@@ -1102,13 +1116,17 @@ void cmd_message(void)
 	//[flm] powerhack to prevent next hack:
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
-	refocus_chat = TRUE;
+#ifdef PMSG_TERM
+	refocus_chat = win32_window_visible(PMSG_TERM) ? TRUE : FALSE;
 #endif
-# define PMSG_TERM 4
+#endif
 	// [hack] hack to just change the window focus in WIN32 client
-	if (refocus_chat && ang_term[PMSG_TERM]) {
+	if (refocus_chat)
+	{
 		set_chat_focus();
-	} else {
+	}
+	else
+	{
 		char buf[60];
 
 		buf[0] = '\0';
@@ -1291,7 +1309,7 @@ void cmd_cast(void)
 {
 	int item;
 
-   if (c_info[pclass].spell_book != TV_MAGIC_BOOK)
+	if (c_info[pclass].spell_book != TV_MAGIC_BOOK)
 	{
 		c_msg_print("You cannot cast spells!");
 		return;
@@ -1367,9 +1385,11 @@ void cmd_suicide(void)
 	if (!get_check("Do you really want to commit suicide? ")) return;
 
 	/* Check again */
+	topline_icky = TRUE;
 	prt("Please verify SUICIDE by typing the '@' sign: ", 0, 0);
 	flush();
 	i = inkey();
+	topline_icky = FALSE;
 	prt("", 0, 0);
 	if (i != '@') return;
 

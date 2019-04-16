@@ -236,8 +236,8 @@ void teleport_player(int Ind, int dis)
 	ox = p_ptr->px;
 
 	/* Hack -- fix store */
-	if (p_ptr->store_num != -1) 
-		Send_store_leave(Ind);
+	if (p_ptr->store_num != -1)
+		send_store_leave(Ind);
 
 	/* Move the player */
 	p_ptr->py = y;
@@ -593,10 +593,10 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		   of death, use died_from_list.  To preserve the original
 		   depth, use died_from_depth. */
 		
-		(void)strcpy(p_ptr->died_from, hit_from);
+		my_strcpy(p_ptr->died_from, hit_from, sizeof(p_ptr->died_from));
 		if (!p_ptr->ghost) 
 		{
-			strcpy(p_ptr->died_from_list, hit_from);
+			my_strcpy(p_ptr->died_from_list, hit_from, sizeof(p_ptr->died_from_list));
 			p_ptr->died_from_depth = p_ptr->dun_depth;
 		}
 
@@ -1368,18 +1368,23 @@ bool apply_disenchant(int Ind, int mode)
 		return (TRUE);
 	}
 
+	/* Apply disenchantment, depending on which kind of equipment */
+	if (t == INVEN_WIELD || t == INVEN_BOW)
+	{
+		/* Disenchant to-hit */
+		if (o_ptr->to_h > 0) o_ptr->to_h--;
+		if ((o_ptr->to_h > 5) && (rand_int(100) < 20)) o_ptr->to_h--;
 
-	/* Disenchant tohit */
-	if (o_ptr->to_h > 0) o_ptr->to_h--;
-	if ((o_ptr->to_h > 5) && (rand_int(100) < 20)) o_ptr->to_h--;
-
-	/* Disenchant todam */
-	if (o_ptr->to_d > 0) o_ptr->to_d--;
-	if ((o_ptr->to_d > 5) && (rand_int(100) < 20)) o_ptr->to_d--;
-
-	/* Disenchant toac */
-	if (o_ptr->to_a > 0) o_ptr->to_a--;
-	if ((o_ptr->to_a > 5) && (rand_int(100) < 20)) o_ptr->to_a--;
+		/* Disenchant to-dam */
+		if (o_ptr->to_d > 0) o_ptr->to_d--;
+		if ((o_ptr->to_d > 5) && (rand_int(100) < 20)) o_ptr->to_d--;
+	}
+	else
+	{
+		/* Disenchant to-ac */
+		if (o_ptr->to_a > 0) o_ptr->to_a--;
+		if ((o_ptr->to_a > 5) && (rand_int(100) < 20)) o_ptr->to_a--;
+	}
 
 	/* Message */
 	msg_format(Ind, "Your %s (%c) %s disenchanted!",
@@ -1525,8 +1530,8 @@ static void apply_morph(int Ind, int power, char * killer)
 				{
 					/* FRUIT BAT!!!!!! */
 				
-					msg_print(Ind, "You have been turned into a fruit bat!");				
-					strcpy(p_ptr->died_from,killer);
+					msg_print(Ind, "You have been turned into a fruit bat!");
+					my_strcpy(p_ptr->died_from, killer, sizeof(p_ptr->died_from));
 					p_ptr->fruit_bat = -1;
 					player_death(Ind);
 				}	
@@ -2868,9 +2873,11 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (m_ptr->mspeed < 150) m_ptr->mspeed += 10;
 
 			/* Never in the town */
-			if(!p_ptr->dun_depth) break;
+			//TODO: extend to special levels and safezones!
+			if(!Depth) break;
 
-			if(p_ptr->lev < 10)
+			//TODO: tweak to use safezones!
+			if(!p_ptr || p_ptr->lev < 10)
 			{
 				/* Attempt to clone. */
 				if (multiply_monster(c_ptr->m_idx))
@@ -3656,7 +3663,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	}
 	else if (who < 0)
 	{
-		strcpy(killer, Players[0 - who]->name);
+		my_strcpy(killer, Players[0 - who]->name, 80);
 
 		/* Do not become hostile if it was a healing or teleport spell */
 		if ((typ < GF_HEAL_PLAYER) && (typ != GF_AWAY_ALL))
@@ -4055,7 +4062,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		else msg_format(Ind, "%^s heals you!", killer);
 		
 		hp_player(Ind, dam);
-		set_cut(Ind, Players[Ind]->cut - 10);
+		(void)set_cut(Ind, Players[Ind]->cut - 10);
 		
 		break;
 
@@ -4571,9 +4578,11 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				/* Beams can have a slightly higher density */
 				if (randint(density>>1) == 1)
 				{
-					p_ptr->scr_info[dispy][dispx].c = '*';
-					p_ptr->scr_info[dispy][dispx].a = attr;
-					Stream_tile(j, p_ptr, dispy, dispx);
+					//p_ptr->scr_info[dispy][dispx].c = '*';
+					//p_ptr->scr_info[dispy][dispx].a = attr;
+					//Stream_tile(j, p_ptr, dispy, dispx);
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, '*', 1, density);
 				}
 			}
 		}
@@ -4653,13 +4662,14 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				//ch = bolt_char(y, x, y9, x9);
 				//attr = spell_color(typ);
 
-				p_ptr->scr_info[dispy][dispx].c = ch;
-				p_ptr->scr_info[dispy][dispx].a = attr;
-
 				if (randint(density) == 1) 
 				{
-					Stream_tile(j, p_ptr, dispy, dispx);
-					Send_flush(j);
+					//p_ptr->scr_info[dispy][dispx].c = ch;
+					//p_ptr->scr_info[dispy][dispx].a = attr;
+					//Stream_tile(j, p_ptr, dispy, dispx);
+					//Send_flush(j);
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, ch, 1, density);
 				}
 			}
 		}
@@ -4772,10 +4782,13 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					dispx = x - p_ptr->panel_col_prt;
 					dispy = y - p_ptr->panel_row_prt;
 
-					p_ptr->scr_info[dispy][dispx].c = ch;
-					p_ptr->scr_info[dispy][dispx].a = attr;
+					//p_ptr->scr_info[dispy][dispx].c = ch;
+					//p_ptr->scr_info[dispy][dispx].a = attr;
 
-					Stream_tile(j, p_ptr, dispy, dispx);
+					//Stream_tile(j, p_ptr, dispy, dispx);
+
+					/* Tell the client */
+					(void)send_air_char(j, dispy, dispx, attr, ch, 1, density);
 
 					drawn = TRUE;
 
@@ -4791,15 +4804,15 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			}
 
 			/* Flush each "radius" seperately */
-			for (j = 0; j < num_can_see; j++)
-			{
+			//for (j = 0; j < num_can_see; j++)
+			//{
 				/* Show this radius and delay */
-				Send_flush(who_can_see[j]);
-			}
+				//Send_flush(who_can_see[j]);
+			//}
 		}
 
 		/* Flush the erasing */
-		if (TRUE)
+		if (FALSE)
 		{
 			/* Erase the explosion drawn above */
 			for (i = 0; i < grids; i++)

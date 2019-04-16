@@ -5,97 +5,14 @@
 
 #include "mangband.h"
 
-#ifndef HAS_MEMSET
-
-/*
- * For those systems that don't have "memset()"
- *
- * Set the value of each of 'n' bytes starting at 's' to 'c', return 's'
- * If 'n' is negative, you will erase a whole lot of memory.
- */
-char *memset(char *s, int c, huge n)
-{
-	char *t;
-	for (t = s; len--; ) *t++ = c;
-	return (s);
-}
-
-#endif
 
 
 
-#ifndef HAS_STRICMP
 
-/*
- * For those systems that don't have "stricmp()"
- *
- * Compare the two strings "a" and "b" ala "strcmp()" ignoring case.
- */
-int stricmp(cptr a, cptr b)
-{
-	cptr s1, s2;
-	char z1, z2;
-
-	/* Scan the strings */
-	for (s1 = a, s2 = b; TRUE; s1++, s2++)
-	{
-		z1 = FORCEUPPER(*s1);
-		z2 = FORCEUPPER(*s2);
-		if (z1 < z2) return (-1);
-		if (z1 > z2) return (1);
-		if (!z1) return (0);
-	}
-}
-
-#endif
 
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
-
-/*
- * For those systems that don't have "usleep()" but need it.
- *
- * Fake "usleep()" function grabbed from the inl netrek server -cba
- */
-static int usleep(huge microSeconds)
-{
-	struct timeval      Timer;
-
-	int                 nfds = 0;
-
-#ifdef FD_SET
-	fd_set		*no_fds = NULL;
-#else
-	int			*no_fds = NULL;
-#endif
-
-
-	/* Was: int readfds, writefds, exceptfds; */
-	/* Was: readfds = writefds = exceptfds = 0; */
-
-
-	/* Paranoia -- No excessive sleeping */
-	if (microSeconds > 4000000L) core("Illegal usleep() call");
-
-
-	/* Wait for it */
-	Timer.tv_sec = (microSeconds / 1000000L);
-	Timer.tv_usec = (microSeconds % 1000000L);
-
-	/* Wait for it */
-	if (select(nfds, no_fds, no_fds, no_fds, &Timer) < 0)
-	{
-		/* Hack -- ignore interrupts */
-		if (errno != EINTR) return -1;
-	}
-
-	/* Success */
-	return 0;
-}
-
-# endif
 
 
 /*
@@ -105,33 +22,7 @@ extern struct passwd *getpwuid();
 extern struct passwd *getpwnam();
 
 
-/*
- * Find a default user name from the system.
- */
-void user_name(char *buf, int id)
-{
-	struct passwd *pw;
-
-	/* Look up the user name */
-	if ((pw = getpwuid(id)))
-	{
-		(void)strcpy(buf, pw->pw_name);
-		buf[16] = '\0';
-
-#ifdef CAPITALIZE_USER_NAME
-		/* Hack -- capitalize the user name */
-		if (islower(buf[0])) buf[0] = toupper(buf[0]);
 #endif
-
-		return;
-	}
-
-	/* Oops.  Hack -- default to "PLAYER" */
-	strcpy(buf, "PLAYER");
-}
-
-#endif /* SET_UID */
-
 
 
 
@@ -320,7 +211,7 @@ errr path_build(char *buf, int max, cptr path, cptr file)
 		/* Use the file itself */
 		strnfmt(buf, max, "%s", file);
 	}
-	
+
 	/* No path given */
 	else if (!path[0])
 	{
@@ -2211,14 +2102,21 @@ bool check_guard_inscription( s16b quark, char what ) {
 		switch( what ) { /* check for paraniod tags */
 		    case '{': /* no inscribe */
 		    case '}': /* no unscribe */
-		    case 'g': /* no pickup! */
+		    case 'g': case ',': /* no pickup! */
 			/* ^ Owner must override those */
+			/* Protect against loss: */
 		    case 'd': /* no drop */
 		    case 'k': /* no destroy */
 #if 0
 		    case 's': /* no sell */
 #endif
 		    case 'v': /* no thowing */
+		    case 'f': /* no firing */
+			/* Protect against consumption: */
+		    case 'q': /* no quaff */
+		    case 'E': /* no eat */
+		    case 'r': /* no read */
+		    case 'a': case 'z': case 'u': /* no magic devices */
 		      return TRUE;
 		};
             };  
@@ -2686,8 +2584,74 @@ void msg_format_type(int Ind, u16b type, cptr fmt, ...)
 }
 
 
+
 /*
- * Display a message to everyone who is in sight on another player.
+ * Display a message to everyone who is on the same dungeon level.
+ *
+ * This serves two functions: a dungeon level-wide chat, and a way
+ * to attract attention of other nearby players.
+ */
+void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...)
+{
+	va_list vp;
+
+	player_type *p_ptr = Players[Ind];
+	int Depth, y, x, i;
+
+	char buf[1024];
+	char buf_vis[1024];
+	char buf_invis[1024];
+
+	/* Begin the Varargs Stuff */
+	va_start(vp, sender);
+
+	/* Format the args, save the length */
+	(void)vstrnfmt(buf, 1024, fmt, vp);
+	(void)strnfmt(buf_vis, 1024, "%s %s", sender, buf);
+	(void)strnfmt(buf_invis, 1024, "%s %s", "Someone", buf);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+	/* Extract player's location */
+	Depth = p_ptr->dun_depth;
+	y = p_ptr->py;
+	x = p_ptr->px;
+
+	/* Check each player */
+	for (i = 1; i < NumPlayers + 1; i++)
+	{
+		/* Check this player */
+		p_ptr = Players[i];
+
+		/* Don't send the message to the player who caused it */
+		if (Ind == i) continue;
+
+		/* Don't send the message to the second ignoree */
+		if (Ind2 == i) continue;
+
+		/* Make sure this player is at this depth */
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Can he see this player? */
+		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		{
+			/* Send the message */
+			msg_print_aux(i, buf_vis, type);
+			/* Disturb player */
+			disturb(i, 0, 0);
+		}
+		else
+		{
+			/* Send "invisible" message (e.g. "Someone yells") */
+			msg_print_aux(i, buf_invis, type);
+		}
+	}
+}
+
+
+/*
+ * Display a message to everyone who is in sight of another player.
  *
  * This is mainly used to keep other players advised of actions done
  * by a player.  The message is not sent to the player who performed
@@ -2772,6 +2736,27 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	msg_print_near(Ind, buf);
 }
 
+/* Player-pointer versions of msg_format and msg_print.
+ * TODO: this has to be implemented the other way around, msg_print(Ind, ) and friends
+ * should be wrappers around msg_print_p(p_ptr, ), but I'm too scared to do this
+ * right now, so... [flm] */
+void msg_print_p(player_type *p_ptr, cptr msg)
+{
+	msg_print(Get_Ind[p_ptr->conn], msg);
+}
+void msg_format_p(player_type *p_ptr, cptr fmt, ...)
+{
+	va_list vp;
+	/* Begin the Varargs Stuff */
+	va_start(vp, fmt);
+
+	msg_format(Get_Ind[p_ptr->conn], fmt, vp);
+
+	/* End the Varargs Stuff */
+	va_end(vp);
+
+}
+
 /* Analyze the 'search' string and determine if it has any special
  *  target.
  * Returns  0 - on error, and an error string is put into 'error' 
@@ -2780,7 +2765,7 @@ void msg_format_near(int Ind, cptr fmt, ...)
  */
 
 #define VIRTUAL_CHANNELS 8
-cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", NULL };
+cptr virt_channels[VIRTUAL_CHANNELS] = { NULL, "&say", "&yell", NULL };
 int find_chat_target(cptr search, char *error)
 {
 	int i, j, len, target = 0;
@@ -2804,7 +2789,7 @@ int find_chat_target(cptr search, char *error)
 			if (!virt_channels[i]) break;
 		
 			/* Compare names */
-			if (!strncasecmp(virt_channels[i], search, len))
+			if (!my_strnicmp(virt_channels[i], search, len))
 			{
 					/* Set target if not set already or an exact match */
 					if ((!target) || (len == strlen(virt_channels[i])))
@@ -2841,7 +2826,7 @@ int find_chat_target(cptr search, char *error)
 			if (!parties[i].num) continue;
 
 			/* Check name */
-			if (!strncasecmp(parties[i].name, search, len))
+			if (!my_strnicmp(parties[i].name, search, len))
 			{
 				/* Make sure one of the party members is actually
 				 * logged on. */
@@ -2884,7 +2869,7 @@ int find_chat_target(cptr search, char *error)
 			if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
 			/* Check name */
-			if (!strncasecmp(q_ptr->name, search, len))
+			if (!my_strnicmp(q_ptr->name, search, len))
 			{
 				/* Set target if not set already or an exact match */
 				if ((!target) || (len == strlen(q_ptr->name)))
@@ -3016,7 +3001,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 	if (last_free)
 	{
 		/* Create channel */
-		strcpy(channels[last_free].name, channel);
+		my_strcpy(channels[last_free].name, channel, MAX_CHARS);
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
 		send_channel(Ind, CHAN_JOIN, last_free, channel);
@@ -3095,12 +3080,12 @@ void player_talk_aux(int Ind, cptr message)
 	if (Ind)
 	{
 		/* Get player name */
-		strcpy(sender, p_ptr->name);
+		my_strcpy(sender, p_ptr->name, 80);
 	}
 	else
 	{
 		/* Default name */
-		strcpy(sender, "");
+		my_strcpy(sender, "", 80);
 	}
 
 	/* Default to no search string */
@@ -3223,7 +3208,7 @@ void player_talk_aux(int Ind, cptr message)
 			cptr verb = "say";
 			char punct = '.';
 			char msg[60];
-			strncpy(msg, colon, 60);
+			my_strcpy(msg, colon, 60);
 			switch (target)
 			{
 				case 1: /* "&say" */
@@ -3238,7 +3223,7 @@ void player_talk_aux(int Ind, cptr message)
 								/* fallthrough */
 							case '!':
 							case '.':
-								punct = msg[i]; 
+								punct = msg[i];
 								msg[i] = '\0';
 							default:
 								break;
@@ -3248,6 +3233,28 @@ void player_talk_aux(int Ind, cptr message)
 					/* Send somewhere */
 					msg_format_type(Ind, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
 					msg_format_complex_near(Ind, Ind, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
+				break;
+				case 2: /* "&yell" */
+					verb = "yell";
+					punct = '!';
+					for (i = strlen(msg) - 1; i > 0; i--)
+					{
+						switch (msg[i])
+						{
+							case ' ':
+								continue;
+							case '?':
+							case '!':
+							case '.':
+								msg[i] = '\0';
+							default:
+								break;
+						}
+						break;
+					}
+					/* Send somewhere */
+					msg_format_type(Ind, MSG_YELL, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_far(Ind, Ind, MSG_YELL, "%ss, \"%s\"%c", sender, verb, msg, punct);
 				break;
 			}
 			return;
@@ -3446,11 +3453,10 @@ cptr attr_to_text(byte a)
 /* 
  * Record a message in the character history
  */
-extern void log_history_event(int Ind, char *msg, bool unique)
+void log_history_event(player_type *p_ptr, char *msg, bool unique)
 {
 	int  days, hours, mins, i;
 	huge seconds, turn;
-	player_type *p_ptr = Players[Ind];
 
 	history_event *evt;
 	history_event *last = NULL;
@@ -3524,7 +3530,7 @@ cptr format_history_event(history_event *evt)
 	return &buf[0];
 }
 
-void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
+void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params) {
 	byte old_term;
 	int i;
 
@@ -3538,8 +3544,7 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream) {
 	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		stream_line_as(p_ptr, stream, i, i);
-	send_term_info(p_ptr, NTERM_FRESH | NTERM_ICKY, 0);
-
+	send_term_info(p_ptr, NTERM_FRESH | extra_params, 0);
 	/* Restore active term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
 
@@ -3565,6 +3570,26 @@ void send_prepared_popup(int Ind, cptr header)
 	send_term_info(p_ptr, NTERM_POP, 0);
 
 	send_term_info(p_ptr, NTERM_ACTIVATE, old_term);
+
+	/* HACK -- Assume this was NOT monster recall */
+	/* This is implied, because monster recall doesn't use send_prepared_popup() */
+	monster_race_track_hack(p_ptr);
+}
+
+/* This hacky function resets monster tracking after STREAM_SPECIAL_TEXT
+ * was used for anything other than actual monster recall. This way,
+ * server will definitely send new monster info, once it's required again. */
+void monster_race_track_hack(player_type *p_ptr)
+{
+	int Ind = Get_Ind[p_ptr->conn];
+	/* Paranoia -- Player is not yet in the game */
+	if (Ind < 1) return;
+	/* Only relevant if Player has no dedicated window for monster text */
+	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
+	{
+		/* Hack -- cancel monster tracking */
+		monster_race_track(Ind, -1);
+	}
 }
 
 void text_out_init(int Ind) {

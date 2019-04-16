@@ -12,15 +12,16 @@
 #define CONSOLE_READ 	FALSE
 
 typedef struct console_connection {
-	connection_type	conn;	/* id */
-	bool	auth;	/* logged in? */
-	bool	listen; /* legacy listener */
-	byte	on_channel[MAX_CHANNELS];
+	connection_type	conn;   /* id */
+	bool    	auth;   /* logged in? */
+	bool    	listen; /* legacy listener */
+	byte    	on_channel[MAX_CHANNELS];
 } console_connection;
 typedef void (*console_cb) (connection_type *ct, char *params);
 typedef struct console_command_ops {
 	char*   	name;
 	console_cb	call_back;
+	int     	min_arguments;
 	char*   	comment;
 } console_command_ops;
 console_command_ops console_commands[];
@@ -33,11 +34,13 @@ int accept_console(int data1, data data2) {
 	eptr new_console;
 	bool old = (data1 == -1 ? TRUE : FALSE);
 	connection_type *ct = NULL;
-	console_connection *cn = NULL;	
+	console_connection *cn = NULL;
+	int i;
 
 	/* Add connection */
 	if (!old)
 	{
+		if (cfg_console_local_only && !islocalfd(data1)) return -1;
 		new_connection = add_connection(first_connection, data1, console_read, console_close);
 		if (!first_connection) first_connection = new_connection;
 		ct = new_connection->data2;
@@ -46,6 +49,7 @@ int accept_console(int data1, data data2) {
 	else
 	{
 		ct = (connection_type *)data2;
+		if (cfg_console_local_only && !islocalfd(ct->conn_fd)) return -1;
 		ct->receive_cb = console_read;
 		ct->close_cb = console_close;
 	}
@@ -61,9 +65,10 @@ int accept_console(int data1, data data2) {
 
 	/* Initial states */
 	cn->auth = cn->listen = FALSE;
+	for (i = 0; i < MAX_CHANNELS; i++) cn->on_channel[i] = 0;
 
 	/* Inform */
-	cq_printf(&ct->wbuf, "%s", "Connected\n");
+	cq_printf(&ct->wbuf, "%T", "Connected\n");
 
 	return 0;
 }
@@ -82,12 +87,13 @@ int console_read(int data1, data data2) { /* return -1 on error */
 	int start_pos;
 	int buflen;
 	int i, j;
+	bool found;
 
 	char buf[1024];
-	char *params;	
+	char *params;
 
 	/* Parse "read buffer" */
-	while (	cq_len(&ct->rbuf) )
+	while ( cq_len(&ct->rbuf) )
 	{
 		/* Ensure string is ready */
 		start_pos = ct->rbuf.pos;
@@ -105,18 +111,20 @@ int console_read(int data1, data data2) { /* return -1 on error */
 			if (!cfg_console_password || strcmp(buf, cfg_console_password))
 			{
 				/* Bail out! */
-				plog(format("{CON} Authentication failure %s", ct->host_addr));				
-				cq_printf(&ct->wbuf, "%s", "Invalid password\n");
-				return -1;		
+				plog(format("{CON} Authentication failure %s", ct->host_addr));
+				cq_printf(&ct->wbuf, "%T", "Invalid password\n");
+				return -1;
 			}
 			/* Move on */
 			cn->auth = TRUE;
-			cq_printf(&ct->wbuf, "%s", "Authenticated\n");
+			cq_printf(&ct->wbuf, "%T", "Authenticated\n");
 			continue;
 		}
 
 		/* Paranoia to ease ops-coder's life later */
 		if (STRZERO(buf)) break;
+
+		found = FALSE;
 
 		/* Split up command and params */
 		if( (params = strstr(buf," ")) )
@@ -132,11 +140,22 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		buflen = strlen(buf);
 		for (i = 0; i < command_len; i++) 
 		{
-	 		if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
-	 		{
-				(console_commands[i].call_back)(ct, params);				
-	 			break;
-	 		}
+			if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' '))
+			{
+				found = TRUE;
+				if (params == NULL && console_commands[i].min_arguments > 0)
+				{
+					cq_printf(&ct->wbuf, "%T", "Missing argument\n");
+					break;
+				}
+				/* Do it! */
+				(console_commands[i].call_back)(ct, params);
+				break;
+			}
+		}
+		if (!found)
+		{
+			cq_printf(&ct->wbuf, "%T", "Unrecognized command\n");
 		}
 	}
 
@@ -157,8 +176,8 @@ void console_print(char *msg, int chan)
 		bool hint = FALSE;
 		if( cn->on_channel[chan] || (chan == 0 && (hint = cn->listen)) )
 		{
-			if (!hint) cq_printf(&ct->wbuf, "%s%c", channels[chan].name, ' ');
-			cq_printf(&ct->wbuf, "%s%c", msg, '\n');
+			if (!hint) cq_printf(&ct->wbuf, "%T%c", channels[chan].name, ' ');
+			cq_printf(&ct->wbuf, "%T%c", msg, '\n');
 		}
 	}
 }
@@ -180,7 +199,7 @@ static void console_who(connection_type* ct, char *useless)
 	}
 
 	/* Packet header */
-	cq_printf(&ct->wbuf, "%s",format("%d players online\n", num));
+	cq_printf(&ct->wbuf, "%T",format("%d players online\n", num));
 	
 	/* Scan the player list */
 	for (k = 1; k <= NumPlayers; k++)
@@ -188,11 +207,11 @@ static void console_who(connection_type* ct, char *useless)
 		player_type *p_ptr = Players[k];
 
 		/* Add an entry */
-		(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-		cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+		if (option_p(p_ptr, NO_GHOST)) strcpy(brave,"brave \0"); else strcpy(brave,"\0");
+		cq_printf(&ct->wbuf,"%T", format("%s is a %slevel %d %s %s at %d ft\n",
 			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
-			
+
 	}
 }
 
@@ -201,10 +220,9 @@ static void console_who(connection_type* ct, char *useless)
  */
 static void console_conn(connection_type* ct, char *useless)
 {
-	char conn_type[MAX_PLAYERS];
 	eptr iter;
 	int j = 0;
-	cq_printf(&ct->wbuf, "%s", "Listing connections\n");
+	cq_printf(&ct->wbuf, "%T", "Listing connections\n");
 
 	for (iter = first_connection; iter; iter = iter->next)
 	{
@@ -212,7 +230,7 @@ static void console_conn(connection_type* ct, char *useless)
 		connection_type* c_ptr = iter->data2; 
 		j++;
 		sprintf(buf, "Connection %d - %s\n", j, c_ptr->host_addr);
-		cq_printf(&ct->wbuf, "%s", buf);
+		cq_printf(&ct->wbuf, "%T", buf);
 	}
 }
 
@@ -236,7 +254,7 @@ static void console_listen(connection_type* ct, char *channel)
 		{
 			if (!strcmp(channels[i].name, channel))
 			{
-				cn->on_channel[i] = 1; 
+				cn->on_channel[i] = 1;
 				break;
 			}
 		}
@@ -251,7 +269,7 @@ static void console_whois(connection_type* ct, char *name)
 {
 	int i, len;
 	u16b major, minor, patch, extra;
-	char brave[15]; //output[1024]; 
+	char brave[15]; //output[1024];
 	player_type *p_ptr, *p_ptr_search;
 
 	p_ptr = 0;
@@ -261,22 +279,22 @@ static void console_whois(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 		}
 	}
 	if (!p_ptr)
 	{
-		cq_printf(&ct->wbuf, "%s","No such player\n");
+		cq_printf(&ct->wbuf, "%T", "No such player\n");
 		return;
 	}
 	
 	/* Output player information */
 
 	/* General character description */
-	(p_ptr->no_ghost) ? strcpy(brave,"brave \0") : strcpy(brave,"\0"); 
-	cq_printf(&ct->wbuf, "%s",format("%s is a %slevel %d %s %s at %d ft\n", 
+	if (option_p(p_ptr, NO_GHOST)) strcpy(brave,"brave \0"); else strcpy(brave,"\0");
+	cq_printf(&ct->wbuf, "%T", format("%s is a %slevel %d %s %s at %d ft\n",
 		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
@@ -287,22 +305,22 @@ static void console_whois(connection_type* ct, char *name)
 	extra = (p_ptr->version & 0xF);
 
 	/* Player connection info */
-	cq_printf(&ct->wbuf, "%s",format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
+	cq_printf(&ct->wbuf, "%T", format("(%s@%s [%s] v%d.%d.%d.%d)\n",
 		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
-				
+
 	/* Other interesting factoids */
 	if ( p_ptr->lives > 0 )
-		cq_printf(&ct->wbuf, "%s",format("Has resurected %d times.\n", p_ptr->lives));
+		cq_printf(&ct->wbuf, "%T", format("Has resurected %d times.\n", p_ptr->lives));
 	if ( p_ptr->max_dlv == 0 )
-		cq_printf(&ct->wbuf, "%s",format("Has never left the town!\n"));
+		cq_printf(&ct->wbuf, "%T", format("Has never left the town!\n"));
 	else
-		cq_printf(&ct->wbuf, "%s",format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
+		cq_printf(&ct->wbuf, "%T", format("Has ventured down to %d ft\n", p_ptr->max_dlv*50));
 	i = p_ptr->msg_hist_ptr-1;
 	if( i >= 0 )
 	{
 		if (!STRZERO(p_ptr->msg_log[i]))
 		{
-			cq_printf(&ct->wbuf, "%s",format("Last message: %s\n", p_ptr->msg_log[i]));
+			cq_printf(&ct->wbuf, "%T", format("Last message: %s\n", p_ptr->msg_log[i]));
 		}
 	}
 }
@@ -324,7 +342,7 @@ static void console_kick_player(connection_type* ct, char *name)
 	{
 		p_ptr_search = Players[i];
 		len = strlen(p_ptr_search->name);
-		if (!strncasecmp(p_ptr_search->name, name, len))
+		if (!my_strnicmp(p_ptr_search->name, name, len))
 		{
 			p_ptr = p_ptr_search;
 			break;
@@ -335,15 +353,15 @@ static void console_kick_player(connection_type* ct, char *name)
 	if (p_ptr)
 	{
 		/* Kick him */
-		Destroy_connection(p_ptr->conn, "kicked out");
+		player_disconnect(p_ptr, "kicked out");
 		/* Success */
-		cq_printf(&ct->wbuf, "%s", "Kicked player\n");
+		cq_printf(&ct->wbuf, "%T", "Kicked player\n");
 		return;
 	}
 	else
 	{
 		/* Failure */
-		cq_printf(&ct->wbuf, "%s", "No such player\n");
+		cq_printf(&ct->wbuf, "%T", "No such player\n");
 	}
 
 }
@@ -357,7 +375,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 	u32b outcome;
 	/* This is the expected outcome, generated on our reference platform */
 	u32b reference = 0x0D3E5371;
-	
+
 	bool randquick = Rand_quick;
 	u32b randvalue = Rand_value;
 	u16b randplace = Rand_place;
@@ -366,10 +384,10 @@ static void console_rng_test(connection_type* ct, char *useless)
 	/* Don't run this if any players are connected */
 	if(NumPlayers > 0)
 	{
-		cq_printf(&ct->wbuf, "%s", "Can't run the RNG test with players connected!\n");
+		cq_printf(&ct->wbuf, "%T", "Can't run the RNG test with players connected!\n");
 		return;
 	}
-	
+
 	/* Preserve current RNG state */
 	for( i=0; i<RAND_DEG; i++ ) randstate[i] = Rand_state[i];
 
@@ -381,7 +399,7 @@ static void console_rng_test(connection_type* ct, char *useless)
 	outcome = 0;
 
 	/* Let the operator know we are busy */
-	cq_printf(&ct->wbuf, "%s", "Torturing the RNG for 100 million iterations...\n");
+	cq_printf(&ct->wbuf, "%T", "Torturing the RNG for 100 million iterations...\n");
 	//DOESN'T WORK RIGHT WITHOUT IMMEDIATE FLUSH...
 
 	/* Torture the RNG for a hundred million iterations */
@@ -390,19 +408,19 @@ static void console_rng_test(connection_type* ct, char *useless)
 		/* Flip between the quick and the complex */
 		Rand_quick = (i % 2);
 		outcome ^= Rand_mod(0x0FFFFFFF);
-		outcome ^= Rand_div(0x0FFFFFFF);	
+		outcome ^= Rand_div(0x0FFFFFFF);
 	}
 
 	/* Display the results */
 	if(outcome == reference)
 	{
-		cq_printf(&ct->wbuf, "%s","RNG is working perfectly\n");
+		cq_printf(&ct->wbuf, "%T", "RNG is working perfectly\n");
 	} else {
-		cq_printf(&ct->wbuf, "%s","RNG integrity check FAILED\n");
-		cq_printf(&ct->wbuf, "%s",
+		cq_printf(&ct->wbuf, "%T", "RNG integrity check FAILED\n");
+		cq_printf(&ct->wbuf, "%T",
 			format("Outcome was 0x%08X, expected 0x%08X\n",outcome, reference));
 	}
-	
+
 	/* Restore the RNG state */
 	Rand_quick = randquick;
 	Rand_value= randvalue;
@@ -414,14 +432,14 @@ static void console_reload(connection_type* ct, char *mod)
 {
 	bool done = FALSE;
 
-	if (mod && !strcmp(mod, "config"))
+	if (streq(mod, "config"))
 	{
 		/* Reload the server preferences */
 		load_server_cfg();
 
 		done = TRUE;
 	}
-	else if (mod && !strcmp(mod, "news"))
+	else if (streq(mod, "news"))
 	{
 		/* Reload the news file */
 		//Init_setup();
@@ -434,35 +452,47 @@ static void console_reload(connection_type* ct, char *mod)
 	if (done)
 	{
 		/* Packet header */
-		cq_printf(&ct->wbuf, "%s", "Reloaded\n");
+		cq_printf(&ct->wbuf, "%T", "Reloaded\n");
 	}
 	else
 	{
 		/* Packet header */
-		cq_printf(&ct->wbuf, "%s", "Reload failed\n");
+		cq_printf(&ct->wbuf, "%T", "Reload failed\n");
 	}
 }
 
 static void console_shutdown(connection_type* ct, char *when)
 {
 	int min = 0;
-	//if (!strcasecmp(when, "NOW")) min = 0;
-	//else if (IS_VALID_NUMBER(when)) min = when
+	if (when)
+	{
+		if (!my_stricmp(when, "NOW")) min = 0;
+		else if (isdigit(when[0])) min = atoi(when);
+	}
 
 	/* Now */
-	if (min == 0) 
+	if (min == 0)
 	{
 		/* Tell */
-		cq_printf(&ct->wbuf, "%s", "Server shutdown\n");
+		cq_printf(&ct->wbuf, "%T", "Server shutdown\n");
 
 		/* Shutdown */
 		shutdown_server();
 	} 
-	else 
-	/* Delayed */	
+	else
+	/* Delayed */
 	{
 		/* Set timer (in seconds) */
 		shutdown_timer= min * 60;
+
+		/* Tell */
+		cq_printf(&ct->wbuf, "%T", format("Server shutdown in %d\n", min));
+
+		/* Log */
+		plog_fmt("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s");
+
+		/* Send the message -- TODO: is this the right function ?*/
+		player_talk(0, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
 	}
 }
 
@@ -471,16 +501,16 @@ static void console_help(connection_type* ct, char *name)
 {
 	int i;
 	bool done = FALSE;
-	
+
 	/* Root */
 	if (!name || name[0] == ' ' || name[0] == '\0')
 	{
-		for (i = 0; i < command_len; i++) 
+		for (i = 0; i < command_len; i++)
 		{
-			cq_printf(&ct->wbuf, "%s", console_commands[i].name);
-			cq_printf(&ct->wbuf, "%s", " ");
+			cq_printf(&ct->wbuf, "%T", console_commands[i].name);
+			cq_printf(&ct->wbuf, "%T", " ");
 		}
-		cq_printf(&ct->wbuf, "%s", "\n");
+		cq_printf(&ct->wbuf, "%T", "\n");
 		done = TRUE;
 	}
 	/* Specific command */
@@ -491,31 +521,31 @@ static void console_help(connection_type* ct, char *name)
 			/* Found it */
 			if (!strcmp(console_commands[i].name, name))
 			{
-				cq_printf(&ct->wbuf, "%s", console_commands[i].name);
-				cq_printf(&ct->wbuf, "%s", " ");
-				cq_printf(&ct->wbuf, "%s", console_commands[i].comment);
-				cq_printf(&ct->wbuf, "%s", "\n");
+				cq_printf(&ct->wbuf, "%T", console_commands[i].name);
+				cq_printf(&ct->wbuf, "%T", " ");
+				cq_printf(&ct->wbuf, "%T", console_commands[i].comment);
+				cq_printf(&ct->wbuf, "%T", "\n");
 				done = TRUE;
 			}
 		}
 	}
-	
-	if (!done)
-		cq_printf(&ct->wbuf, "%s", "Unrecognized command\n");	
 
-} 
+	if (!done)
+		cq_printf(&ct->wbuf, "%T", "Unrecognized command\n");
+
+}
 
 console_command_ops console_commands[] = {
-	{ "help",      console_help,        "[TOPIC]\nExplain a command or list all avaliable"	},
-  	{ "listen",    console_listen,      "[CHANNEL]\nAttach self to #public or specified"	},
-  	{ "who",       console_who,         "\nList players"                                	},
-  	{ "conn",      console_conn,         "\nList connections"                              	},
-  	{ "shutdown",  console_shutdown,    "[TIME|NOW]\nKill server in TIME minutes or 'NOW'" 	},
-  	{ "msg",       console_message,     "MESSAGE\nBroadcast a message"                  	},
-  	{ "kick",      console_kick_player, "PLAYERNAME\nKick player from the game"         	},
-  	{ "reload",    console_reload,      "config|news\nReload mangband.cfg or news.txt"  	},
-  	{ "whois",     console_whois,       "PLAYERNAME\nDetailed player information"       	},
-  	{ "rngtest",   console_rng_test,    "\nPerform RNG test"                            	},
-  	{ "debug",     console_debug,       "\nUnused"                                      	},
+	{ "help",      console_help,        0, "[TOPIC]\nExplain a command or list all avaliable" },
+	{ "listen",    console_listen,      0, "[CHANNEL]\nAttach self to #public or specified"   },
+	{ "who",       console_who,         0, "\nList players"                                   },
+	{ "conn",      console_conn,        0, "\nList connections"                               },
+	{ "shutdown",  console_shutdown,    0, "[TIME|NOW]\nKill server in TIME minutes or 'NOW'" },
+	{ "msg",       console_message,     1, "MESSAGE\nBroadcast a message"                     },
+	{ "kick",      console_kick_player, 1, "PLAYERNAME\nKick player from the game"            },
+	{ "reload",    console_reload,      1, "config|news\nReload mangband.cfg or news.txt"     },
+	{ "whois",     console_whois,       1, "PLAYERNAME\nDetailed player information"          },
+	{ "rngtest",   console_rng_test,    0, "\nPerform RNG test"                               },
+	{ "debug",     console_debug,       0, "\nUnused"                                         },
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);

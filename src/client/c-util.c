@@ -265,8 +265,6 @@ static char inkey_aux(void)
 	/* Wait for keypress, while also checking for net input */
 	do
 	{
-		int result;
-
 		/* Look for a keypress */
 		(void)(Term_inkey(&chkey, FALSE, TRUE));
 		ch = chkey.key;
@@ -290,7 +288,6 @@ static char inkey_aux(void)
 		/* Return as soon as possible */
 		if (inkey_nonblock)
 		{
-			printf("Returning because nonblock...\n");
 			return (0);
 		}
 	} while (!ch);
@@ -427,6 +424,13 @@ static char inkey_aux(void)
 	/* Efficiency -- Ignore inactive macros */
 	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
 
+#ifdef USE_GCU
+	/* NCurses client actually uses escape as "begin macro" sequence */
+	if (escape_in_macro_triggers)
+	{
+		/* So we allow it */
+	} else
+#endif
 	/* Efficiency/Hack -- Ignore escape key for macros */
 	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
 
@@ -905,8 +909,6 @@ event_type inkey_ex(void)
  */
 char inkey(void)
 {
-	int v;
-
 	char kk, ch;
 	event_type chkey;
 
@@ -1372,6 +1374,7 @@ void prt(cptr str, int row, int col)
 /*
  * Get some input at the cursor location.
  * Assume the buffer is initialized to a default string.
+ * Note: "len" MUST BE LESS than total "buf" size.
  * Note that this string is often "empty" (see below).
  * The default buffer is displayed in yellow until cleared.
  * Pressing RETURN right away accepts the default entry.
@@ -1415,7 +1418,7 @@ bool askfor_aux(char *buf, int len, char m_private)
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-	Term_putstr(x, y, -1, TERM_YELLOW, buf);
+	Term_putstr(x, y, -1, TERM_YELLOW, m_private ? "xxxxxx" : buf);
 
 
 	/* Process input */
@@ -1485,6 +1488,8 @@ bool askfor_aux(char *buf, int len, char m_private)
  *
  * The "prompt" should take the form "Prompt: "
  *
+ * Note: "len" MUST BE LESS than total "buf" size.
+ *
  * Note that the initial contents of the string is used as
  * the default response, so be sure to "clear" it if needed.
  *
@@ -1512,7 +1517,7 @@ bool get_string_masked(cptr prompt, char *buf, int len)
 {
 	bool res;
 
-    /* Display prompt */
+	/* Display prompt */
 	prt(prompt, 0, 0);
 
 	/* Ask the user for a string */
@@ -1715,7 +1720,7 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend)
 
 	char buf[80];
 	buf[0] = '\0';
-	strcpy(buf, prompt);
+	my_strcpy(buf, prompt, 80);
 	
 	if (allow_target)
 		p = "Direction ('*' to choose target, non-direction cancels) ?";
@@ -1851,6 +1856,31 @@ void put_str(cptr str, int row, int col)
 {
 	/* Spawn */
 	Term_putstr(col, row, -1, TERM_WHITE, str);
+}
+
+/*
+ * Memorize an already drawn line.
+ */
+void mem_line(int row, int col, int n)
+{
+	int i;
+	/* No ickyness */
+	if (!Term->mem) return;
+
+	/* Check row bounds */
+	if (row < 0) return;
+	if (row >= Term->hgt) return;
+
+	for (i = 0; i < n; i++)
+	{
+		if (col + i < 0) continue;
+		if (col + i >= Term->wid) break;
+		Term_mem_ch(col + i, row,
+			Term->scr->a[row][col+i],
+			Term->scr->c[row][col+i],
+			Term->scr->ta[row][col+i],
+			Term->scr->tc[row][col+i]);
+	}
 }
 
 /*
@@ -2226,7 +2256,7 @@ void c_message_add(cptr str, u16b type)
 	*v = '\0';
 
 	/* Advance the "head" pointer */
-	message__head += (n + 1);
+	message__head += ((u16b)n + 1); /* should work, n (strlen) is unlikely to be larger than u16b */
 
 	/* Store the message type */
 	message__type[x] = type;
@@ -2377,7 +2407,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 
 
 	/* Copy it */
-	strcpy(buf, msg);
+	my_strcpy(buf, msg, sizeof(buf));
 	
 	/* Strip it */
 	buf[80] = '\0';
@@ -2555,20 +2585,63 @@ int caveclr(cave_view_type* dest, int len)
 	/* Erase a character n times */
 	for (i = 0; i < len; i++)
 	{
-		dest[i].a = 0;
-		dest[i].c = 0;
+		dest[i].a = 0x80;
+		dest[i].c = 0x80;
 	}
 	return 1;
 }
 
+int cavecpy(cave_view_type* dest, cave_view_type *src, int len)
+{
+	int i;
+	/* Copy a line with length "len" */
+	for (i = 0; i < len; i++)
+	{
+		dest[i].a = src[i].a;
+		dest[i].c = src[i].c;
+	}
+	return 1;
+}
 
 int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 {
 	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+	
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
-		Term_mem_ch(i + x, y, src[i].a, src[i].c);
+		byte ta = p_ptr->trn_info[y][x + i].a;
+		char tc = p_ptr->trn_info[y][x + i].c;
+		Term_mem_ch(i + dx, dy, src[i].a, src[i].c, ta, tc);
+	}
+	return 1;
+}
+
+int cavedraw(cave_view_type* src, int len, s16b x, s16b y)
+{
+	int i;
+	s16b dx = x + DUNGEON_OFFSET_X;
+	s16b dy = y + DUNGEON_OFFSET_Y;
+
+	/* Paranoia - bounds */
+	if (dx < 0) return -1;
+	if (dy < 0 || dy >= Term->hgt) return -1;
+
+	/* Draw a character n times */
+	for (i = 0; i < len; i++)
+	{
+		/* Paranoia - bounds */
+		if (dx + i >= Term->wid) return -1;
+
+		/* Don't draw on screen if character is 0 */
+		if (src[i].c)
+		{
+			byte ta = p_ptr->trn_info[y][x + i].a;
+			char tc = p_ptr->trn_info[y][x + i].c;
+			Term_queue_char(Term, i + dx, dy, src[i].a, src[i].c, ta, tc);
+		}
 	}
 	return 1;
 }
@@ -2576,12 +2649,17 @@ int cavemem(cave_view_type* src, int len, s16b x, s16b y)
 int caveprt(cave_view_type* src, int len, s16b x, s16b y)
 {
 	int i;
+
+	/* Paranoia - bounds */
+	if (x < 0 || x >= Term->wid) return -1;
+	if (y < 0 || y >= Term->hgt) return -1;
+
 	/* Draw a character n times */
 	for (i = 0; i < len; i++)
 	{
 		/* Don't draw on screen if character is 0 */
 		if (src[i].c)
-		{				
+		{
 			Term_draw(i + x, y, src[i].a, src[i].c);
 		}
 	}
@@ -2624,19 +2702,17 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	}
 
 	/* Test terminal size */
-	if (x > Term->wid || y > Term->hgt) mem = draw = FALSE;
+	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
 
 	/* TODO: also test for ->mem stack */
 	if (mem && Term->mem)
-		Term_mem_ch(x, y, a, c);
+		Term_mem_ch(x, y, a, c, ta, tc);
 
 	if (draw)
 	{
 		/* Update secondary layer */
 		if (p_ptr->trn_info[y][x].a != ta || p_ptr->trn_info[y][x].c != tc) 
 		{
-			p_ptr->trn_info[y][x].a = ta;
-			p_ptr->trn_info[y][x].c = tc;
 			/* Hack -- force refresh of that grid no matter what */
 			Term->scr->a[y][x] = 0;
 			Term->scr->c[y][x] = 0;
@@ -2644,12 +2720,13 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 			Term->old->c[y][x] = 0;
 		}
 
-		Term_draw(x, y, a, c);
+		Term_queue_char(Term, x, y, a, c, ta, tc);
 	}
+
 }
 
 /* Show (or don't) a line depending on screen ickyness */
-void show_line(int sy, s16b cols, bool mem)
+void show_line(int sy, s16b cols, bool mem, int st)
 {
 	s16b xoff, coff;
 	bool draw;
@@ -2657,7 +2734,7 @@ void show_line(int sy, s16b cols, bool mem)
 
 	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
-	y = sy + DUNGEON_OFFSET_Y;
+	y = sy;
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -2671,8 +2748,8 @@ void show_line(int sy, s16b cols, bool mem)
 	}
 
 	/* Another possible issue - terminal is too small */
-	if (cols+coff > Term->wid) coff -= (Term->wid - (cols+coff));
-	if (y > Term->hgt || cols+coff <= 0) mem = draw = FALSE;
+	if (cols+coff >= Term->wid) coff -= (Term->wid - (cols+coff));
+	if (y >= Term->hgt || cols+coff <= 0) mem = draw = FALSE;
 
 	/* Check the max line count */
 	if (last_line_info < y)
@@ -2680,13 +2757,94 @@ void show_line(int sy, s16b cols, bool mem)
 
 	/* Remember screen */
 	if (mem && Term->mem)
-		cavemem(stream_cave(0, sy), cols, DUNGEON_OFFSET_X, y);
+		cavemem(stream_cave(st, sy), cols, 0, sy);
 
 	/* Put data to screen */
 	if (draw)
-		caveprt(stream_cave(0, sy)+xoff, cols+coff, DUNGEON_OFFSET_X+xoff, y);
+		cavedraw(stream_cave(st, sy)+xoff, cols+coff, xoff, sy);
 }
 
+/*
+ * Handle the air layer
+ */
+/*
+ * Each "air tile" has a delay and a fadeout value, stored in 
+ *  air_delay[][] and air_fade[][] arrays. The unit is milliseconds.
+ *
+ * Both "fade" and "delay" values constantly go down. As soon as "delay"
+ * reaches zero, the tile appears on-screen, and should stay there,
+ * until the "fade" value also reaches zero.  
+ *
+ * It's up for the client to select the fadeout threshold. 
+ *  A large value (i.e. 100) would draw air tiles with large tracers,
+ *  as tiles will "hang" in the air for quite some time. A small
+ *  value (i.e. 1 or 2) will make them much more flickerish.
+ *
+ * Feel free to play around with this (AIR_FADE_THRESHOLD define, see also
+ * "recv_air()" in net-client.c)
+ *
+ * Note: when "air tiles" are used to display projectiles which actually land
+ * and then appear on the ground (i.e. arrows, thrown items), the final
+ * tile is drawn BEFORE any of the air tiles have a chance to appear/fade.
+ *
+ * Note: *In theory* main-xxx ports might feel that they can handle the air
+ * layer by themselves and more gracefully (e.g. with alpha blendend fades).
+ * If you're working on this, and the direct Term_draw writes are too
+ * intrusive for you, set global variable "air_refresh" to FALSE.
+ * To disable this code completely, set "air_updates" to FALSE.
+ *
+ * Note: this function uses up the static_timer(2). This means you can't use
+ * static_timer(2) anywhere else from now on.
+ *
+ * Note: this function probably breaks graphics mode in some way. Untested.
+ */
+void update_air()
+{
+	micro passed = static_timer(2);
+	u16b milli = (u16b)(passed / 1000);
+	int j, i;
+	for (j = 0; j < MAX_HGT; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			if (air_delay[j][i] > 0)
+			{
+				air_delay[j][i] -= milli;
+				/* Delay timeout */
+				if (air_delay[j][i] <= 0)
+				{
+					air_delay[j][i] = 0;
+					if (air_refresh)
+					{
+						/* Draw air tile */
+						show_char(j, i,
+							air_info[j][i].a, air_info[j][i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
+				}
+			}
+			if (air_fade[j][i] > 0)
+			{
+				air_fade[j][i] -= milli;
+				/* Fade timeout */
+				if (air_fade[j][i] <= 0)
+				{
+					air_fade[j][i] = 0;
+					if (air_refresh)
+					{
+						/* Erase air tile */
+						cave_view_type *scr_info = stream_cave(0, j);
+						show_char(j, i,
+							scr_info[i].a, scr_info[i].c,
+							p_ptr->trn_info[j][i].a,
+							p_ptr->trn_info[j][i].c, FALSE);
+					}
+				}
+			}
+		}
+	}
+}
 
 void prt_num(cptr header, int num, int row, int col, byte color)
 {
@@ -2951,6 +3109,14 @@ static bool get_macro_trigger(char *buf)
 	/* First key */
 	i = inkey();
 	
+#ifdef USE_GCU
+	/* If we allow escape as macro trigger (ncurses) */
+	if (escape_in_macro_triggers)
+	{
+		/* Then, backtick acts as actual escape */
+		if (i == '`') return FALSE;
+	} else
+#endif
 	/* Escape on Escape */
 	if (i == ESCAPE) return FALSE;
 
@@ -3073,7 +3239,7 @@ void browse_macros(void)
 			Term_putstr(00, 2+k-o, -1, a, buf);
 
 			/* Dump the action */
-			Term_putstr(20, 2+k-o, -1, a, act);
+			Term_putstr(30, 2+k-o, -1, a, act);
 		}
 
 		/* Get a key */
@@ -3088,7 +3254,7 @@ void browse_macros(void)
 			if (total == 1) continue;		
 
 			/* Get a macro trigger */
-			strcpy(buf, macro__pat[sel]);
+			my_strcpy(buf, macro__pat[sel], sizeof(buf));
 
 			/* (un)Link the macro */
 			macro_add(buf, buf, FALSE);
@@ -3102,7 +3268,7 @@ void browse_macros(void)
 		else if (i == 'T') /* Change trigger */
 		{
 			/* Get current action */
-			strcpy(act, macro__act[sel]);
+			my_strcpy(act, macro__act[sel], sizeof(act));
 
 			/* Prompt */	
 			clear_from(hgt);
@@ -3296,10 +3462,10 @@ void interact_macros(void)
 			Term_gotoxy(0, 21);
 
 			/* Hack -- limit the value */
-			tmp[80] = '\0';
+			tmp[MAX_COLS] = '\0';
 
 			/* Get an encoded action */
-			if (!askfor_aux(buf, 80, 0)) continue;
+			if (!askfor_aux(buf, MAX_COLS, 0)) continue;
 
 			/* Extract an action */
 			text_to_ascii(macro__buf, buf);
@@ -3388,7 +3554,7 @@ void interact_macros(void)
 				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
 	
 				/* Get an encoded action */
-				if (!askfor_aux(tmp, 80, 0)) continue;
+				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
 	
 				/* Convert to ascii */
 				text_to_ascii(macro__buf, tmp);
@@ -3521,6 +3687,8 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 		}
 	}
 
+	/* Paranoia - zero options */
+	if (!n) return;
 
 	/* Clear screen */
 	Term_clear();
@@ -3752,6 +3920,10 @@ static void do_cmd_options_win(void)
 			case 'T':
 			case 't':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Clear windows */
 				for (j = 0; j < 8; j++)
 				{
@@ -3776,6 +3948,10 @@ static void do_cmd_options_win(void)
 			case 'y':
 			case 'Y':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
@@ -3787,6 +3963,10 @@ static void do_cmd_options_win(void)
 			case 'n':
 			case 'N':
 			{
+#ifdef PMSG_TERM
+				/* Ignore any change on PMSG_TERM */
+				if (x == PMSG_TERM) break;
+#endif
 				/* Ignore screen (but not for Status AND Compact)*/
 				if ((x == 0) && ((1L << y) != PW_STATUS) && ((1L << y) != PW_PLAYER_2)) break;
 
@@ -3805,6 +3985,12 @@ static void do_cmd_options_win(void)
 				if (!d) bell();
 			}
 		}
+	}
+
+	/* Hack -- Store user choice */
+	for (j = 0; j < 8; j++)
+	{
+		window_flag_o[j] = window_flag[j];
 	}
 
 	/* Notice changes */
@@ -3992,7 +4178,7 @@ void do_cmd_options_birth()
 
 #ifdef SET_UID
 
-# ifndef HAS_USLEEP
+# ifndef HAVE_USLEEP
 
 /*
  * For those systems that don't have "usleep()" but need it.
@@ -4034,14 +4220,15 @@ int usleep(huge microSeconds)
 	return 0;
 }
 
-# endif /* HAS_USLEEP */
+# endif /* HAVE_USLEEP */
 
 #endif /* SET_UID */
 
 #ifdef WIN32
-int usleep(long microSeconds)
-{
-	Sleep(microSeconds/10); /* meassured in milliseconds not microseconds*/
+int usleep(huge microSeconds)
+{ /* meassured in milliseconds not microseconds*/
+	DWORD milliseconds = (DWORD)(microSeconds / 1000);
+	Sleep(milliseconds);
 	return 0;
 }
 #endif /* WIN32 */
@@ -4141,7 +4328,7 @@ void load_sound_prefs(void)
 		/* Ignore empty sound strings */
 		if (!angband_sound_name[i][0]) continue;
 
-		strncpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
+		my_strcpy(tmp, conf_get_string("Sound", angband_sound_name[i], ""), sizeof(tmp));
 
 		num = tokenize_whitespace(tmp, SAMPLE_MAX, zz);
 

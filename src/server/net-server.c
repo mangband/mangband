@@ -135,6 +135,12 @@ int player_enter(int ind)
 	/* Hack -- join '#public' channel */
 	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
+	/* Hack -- send different 'G'ain command */
+	if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
+	{
+		send_custom_command_info(ct, study_cmd_id);
+	}
+
 	/* Mark him as playing */
 	p_ptr->state = PLAYER_PLAYING;
 
@@ -146,6 +152,25 @@ int player_enter(int ind)
 	/* Hack, must find better place */
 	prt_history(PInd);
 	show_socials(PInd);
+
+	/* Current party */
+	send_party_info(PInd);
+
+	/* Inform everyone */
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
+	{
+		if (p_ptr->new_game)
+		{
+			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+		}
+		else
+		{
+			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		}
+	}
+
+	/* Discard "New game" marker */
+	p_ptr->new_game = FALSE;
 
 	return 0;
 }
@@ -191,7 +216,13 @@ void player_abandon(player_type *p_ptr)
 	p_ptr->monster_race_idx = 0;
 
 	/* Disable message repeat */
-	p_ptr->msg_last_type = MSG_MAX;
+	p_ptr->msg_last_type = MSG_MAX_ANGBAND;
+
+	/* Forget about setup data */
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = 0;
+	}
 }
 
 /* Player leaves active gameplay (Remove player from p_list) */
@@ -223,6 +254,7 @@ int player_leave(int p_idx)
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
@@ -280,6 +312,14 @@ void player_drop(int ind)
 	/* Leave everything (before we destroyed all pointers) */
 	player_abandon(p_ptr);
 
+	/* If player was in town, hurry his disconnection up */
+	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
+	{
+		/* LARGE value to trigger timeout ASAP */
+		p_ptr->idle = 60;
+		/* Alternatively, call player_leave(Ind)... */
+	}
+
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
 	{
@@ -327,28 +367,67 @@ void setup_network_server()
 {
 	/** Add timers **/
 	/* Dungeon Turn */
-	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps + 250), (callback)dungeon_tick);
+	first_timer = add_timer(NULL, (ONE_SECOND / cfg_fps), (callback)dungeon_tick);
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
+
+	/** Prepare FD_SETS **/
+	network_reset();
 
 	/** Add UDP */
 	/* Meta-server */
 	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
 
-	/** Prepare FD_SETS **/
-	network_reset();
-
 	/** Add listeners **/
 	/* Game */
 	first_listener = add_listener(NULL, cfg_tcp_port, (callback)accept_client);
+	if (!first_listener)
+	{
+		quit("Unable to create server interface");
+	}
 	/* Console */
 	add_listener(first_listener, cfg_tcp_port + 1, accept_console);
+	if (!first_listener)
+	{
+		quit("Unable to create console interface");
+	}
 
 	/** Allocate some memory */
 	alloc_server_memory();	
 
 	/** Setup packet handling functions **/
 	setup_tables(handlers, schemes);
+}
+
+/* Player commands */
+/* Usually, "process_player_commands" is triggered from within
+   the "dungeon()" tick. However, classic MAngband would not wait
+   for the next turn and execute the command immediately as it
+   arrived. So this little function flushes them all right after
+   we handled network.
+*/
+void post_process_players(void)
+{
+	int Ind;
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* HACK -- Do not proccess while changing levels */
+		if (p_ptr->new_level_flag == TRUE) continue;
+		
+		/* Try to execute any commands on the command queue. */
+		(void) process_player_commands(Ind);
+	}
+	/* Next loop flushes all potential update flags Players have set
+	 * for each other. */
+	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		
+		/* Recalculate and schedule updates */
+		handle_stuff(Ind);
+	}
 }
 
 /* Infinite Loop */
@@ -362,6 +441,8 @@ void network_loop()
 		first_connection = handle_connections(first_connection);
 		first_sender = handle_senders(first_sender, static_timer(1));
 		first_timer = handle_timers(first_timer, static_timer(0));
+
+		post_process_players(); /* Execute all commands */
 
 		network_pause(2000); /* 0.002 ms "sleep" */
 	}
@@ -382,6 +463,22 @@ void close_network_server()
 
 	/* Release memory */
 	free_server_memory();
+}
+
+/* Send one last packet to meta.
+ * The round-about way of doing this has to do with the way "UDP Senders" are
+ * handled. We can't call any netcode DIRECTLY, but we can trick it to flush. */
+void report_to_meta_die(void)
+{
+	u16b old_shutdown_timer;
+	/* "report_to_meta" checks for "shutdown_timer", so let's force it */
+	old_shutdown_timer = shutdown_timer;
+	shutdown_timer = 1; /* YES, we *are* shutting down! */
+	/* Flush -- send actual UDP packet */
+	/* ONE_SECOND * 60 must be >= sender's delay interval */
+	first_sender = handle_senders(first_sender, ONE_SECOND * 60);
+	/* Paranoia -- restore shutdown_timer */
+	shutdown_timer = old_shutdown_timer;
 }
 
 int report_to_meta(int data1, data data2) {
@@ -405,22 +502,21 @@ int report_to_meta(int data1, data data2) {
 		/* Get our hostname */
 		if (cfg_report_address)
 		{
-			strncpy(local_name, cfg_report_address, 1024);
+			my_strcpy(local_name, cfg_report_address, 1024);
 		}
 		else
 		{
 			if (cfg_bind_name)
 			{
-				strncpy(local_name, cfg_bind_name, 1024);
+				my_strcpy(local_name, cfg_bind_name, 1024);
 			}
 			else
 			{
 				fillhostname(local_name, 1024);
 			}
 		}
-		strcat(local_name, ":");
-		sprintf(temp, "%d", (int) cfg_tcp_port);
-		strcat(local_name, temp);
+		/* Add :port number */
+		my_strcat(local_name, format(":%d", (int)cfg_tcp_port), 1024);
 	}
 
 	/* Start with our address */
@@ -570,9 +666,9 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		conntype = connection_type_ok(conntype);
 	}
 
-	switch (conntype) 
+	switch (conntype)
 	{
-		case CONNTYPE_PLAYER: 
+		case CONNTYPE_PLAYER:
 
 			ct->receive_cb = client_login;
 			ct->close_cb = client_close;
@@ -584,7 +680,11 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 		case CONNTYPE_CONSOLE:
 		
-			accept_console(-1, (data)ct);
+			/* evil hack -- chop trailing \n before reading password */
+			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
+				ct->rbuf.pos++;
+		
+			okay = accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
@@ -598,7 +698,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 		break;
 	}
 
-	cq_clear(&ct->rbuf);
+	/* cq_clear(&ct->rbuf); */
 	return okay;
 }
 int hub_close(int data1, data data2) {
@@ -687,7 +787,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #ifdef DEBUG
 		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
 #endif
-		client_abort(ct, "Incompatible client version.");
+		client_abort(ct, format("Incompatible client version. You need version %04x", SERVER_VERSION));
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
@@ -819,6 +919,8 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	send_class_info(ct);
 	send_server_info(ct);
 	send_inventory_info(ct);
+	send_objflags_info(ct);
+	send_floor_info(ct);
 	send_optgroups_info(ct);
 
 	/* Finally send char info: */
@@ -886,11 +988,16 @@ int client_kill(connection_type *ct, cptr reason)
 
 	return 0;
 }
-/* client_kill a connection refrenced by p_idx */
-int player_kill(int p_idx, cptr reason)
+/* client_kill a connection that belongs to player p_ptr */
+int player_disconnect(player_type *p_ptr, cptr reason)
 {
-	connection_type *ct = PConn[p_idx];
-	if (ct != NULL)	return client_kill(ct, reason);
+	/* Ensure player has a connection */
+	if (p_ptr->conn > -1)
+	{
+		connection_type *ct = Conn[p_ptr->conn];
+		/* Be very paranoid */
+		if (ct != NULL) return client_kill(ct, reason);
+	}
 	return 0;
 }
 
@@ -900,21 +1007,36 @@ int player_kill(int p_idx, cptr reason)
 bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 {
 	char *ptr;
-printf("%s - nick, %s - real, %s - host\n", nick_name, real_name, host_name);
+
+	/** Realname / Hostname **/
 	if (real_name[0] == 0 || host_name[0] == 0) return FALSE;
+
+	/* Replace weird characters with '?' */
+	for (ptr = &real_name[strlen(real_name)]; ptr-- > real_name; )
+	{
+		if (!isascii(*ptr) || !isprint(*ptr)) *ptr = '?';
+	}
+	for (ptr = &host_name[strlen(host_name)]; ptr-- > host_name; )
+	{
+		if (!isascii(*ptr) || !isprint(*ptr)) *ptr = '?';
+	}
+
+	/** Playername **/
+	if (nick_name[0] == '\0') return FALSE;
 
 	/* Any wierd characters here, bail out.  We allow letters, numbers and space */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
-		if ( (*ptr == 32) || ((*ptr >= 97) && (*ptr <= 122)) || ((*ptr >= 65) && (*ptr <= 90))
-		|| ((*ptr >= 48) && (*ptr <= 57)) )
+		if (!isascii(*ptr)) return FALSE;
+		if (!(isalpha(*ptr) || isdigit(*ptr) || *ptr == ' '))
 		{
-			/* ok */
-		} else {
 			return FALSE;
 		}
 	}
-	
+
+	/* Can't start with space */
+	if (nick_name[0] == ' ') return FALSE;
+
 	/* Right-trim nick */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
@@ -922,6 +1044,9 @@ printf("%s - nick, %s - real, %s - host\n", nick_name, real_name, host_name);
 			*ptr = '\0';
 		else break;
 	}
+
+	/* Hack -- Reserved name */
+	if (!my_stricmp(nick_name, "server")) return FALSE;
 
 	return TRUE;
 }
@@ -932,10 +1057,28 @@ printf("%s - nick, %s - real, %s - host\n", nick_name, real_name, host_name);
  */
 bool client_version_ok(u16b version)
 {
-	if (version == SERVER_VERSION) 
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	/* make alpha/beta/devel/stable versions always incompatible
+	 * with each other */
+	if (extra != SERVER_VERSION_EXTRA) return FALSE;
+
+	/* require minimal version */
+	if (major < 1) return FALSE;
+	if (minor < 5) return FALSE;
+	if (patch < 0) return FALSE;
+
+	return TRUE;
+/*
+	if (version == SERVER_VERSION)
 		return TRUE;
 	else
 		return FALSE;
+*/
 }
 
 /*

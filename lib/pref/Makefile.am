@@ -15,6 +15,8 @@ pref_DATA = \
 		lib/pref/graf-dvg.prf \
 		lib/pref/graf-new.prf \
 		lib/pref/graf-win.prf \
+		lib/pref/graf-sdl.prf \
+		lib/pref/graf-x11.prf \
 		lib/pref/graf-xxx.prf \
 		lib/pref/flvr-dvg.prf \
 		lib/pref/flvr-new.prf \
@@ -29,6 +31,7 @@ pref_DATA = \
 		lib/pref/pref-ibm.prf \
 		lib/pref/pref-lsl.prf \
 		lib/pref/pref-mac.prf \
+		lib/pref/pref-gcu.prf \
 		lib/pref/pref-sdl.prf \
 		lib/pref/pref-win.prf \
 		lib/pref/pref-x11.prf \

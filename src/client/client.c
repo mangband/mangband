@@ -42,13 +42,13 @@ static void read_credentials(void)
 	if ((pw = getpwuid(player_uid)))
 	{
 		/* Pull login id */
-		strcpy(nick, pw->pw_name);
+		my_strcpy(nick, pw->pw_name, MAX_CHARS);
 
 		/* Cut */
-		nick[16] = '\0';
+		nick[MAX_NAME_LEN] = '\0';
 
 		/* Copy to real name */
-		strcpy(real_name, nick);
+		my_strcpy(real_name, nick, MAX_CHARS);
 	}
 #endif
 
@@ -57,16 +57,16 @@ static void read_credentials(void)
 	if ( GetUserName(buffer, &bufferLen) ) 
 	{
 		/* Cut */
-		buffer[16] = '\0';
+		buffer[MAX_NAME_LEN] = '\0';
 		
 		/* Copy to real name */
-  		strcpy(real_name, buffer);
+		my_strcpy(real_name, buffer, MAX_CHARS);
 	}
 #endif
 
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	bool done = FALSE;
 
@@ -107,8 +107,8 @@ int main(int argc, char **argv)
 	/* Attempt to use the "main-x11.c" support */
 	if (!done)
 	{
-		extern errr init_x11(void);
-		if (0 == init_x11()) done = TRUE;
+		extern errr init_x11(int argc, char **argv);
+		if (0 == init_x11(argc,argv)) done = TRUE;
 		if (done) ANGBAND_SYS = "x11";
 	}
 #endif
@@ -146,7 +146,6 @@ int main(int argc, char **argv)
 	/* No visual module worked */
 	if (!done)
 	{
-		Net_cleanup();
 		printf("Unable to initialize a display module!\n");
 		exit(1);
 	}

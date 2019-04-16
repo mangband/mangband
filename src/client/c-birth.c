@@ -19,7 +19,7 @@
  */
 void choose_name(void)
 {
-	char tmp[23];
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your player's name above (or hit ESCAPE).", 21, 2);
@@ -31,10 +31,10 @@ void choose_name(void)
 		move_cursor(2, 15);
 
 		/* Save the player name */
-		strcpy(tmp, nick);
+		my_strcpy(tmp, nick, MAX_CHARS);
 
 		/* Get an input, ignore "Escape" */
-		if (askfor_aux(tmp, 15, 0)) strcpy(nick, tmp);
+		if (askfor_aux(tmp, MAX_NAME_LEN, 0)) my_strcpy(nick, tmp, MAX_CHARS);
 
 		/* All done */
 		break;
@@ -56,14 +56,14 @@ void choose_name(void)
  */
 void enter_password(void)
 {
-	int c;
-	char tmp[MAX_PASS_LEN];
+	unsigned int c;
+	char tmp[MAX_CHARS];
 
 	/* Prompt and ask */
 	prt("Enter your password above (or hit ESCAPE).", 21, 2);
 
 	/* Default */
-	strcpy(tmp, pass);
+	my_strcpy(tmp, pass, MAX_CHARS);
 
 	/* Ask until happy */
 	while (1)
@@ -80,7 +80,7 @@ void enter_password(void)
 			    continue;
 			}
 			else
-				strcpy(pass, tmp);
+				my_strcpy(pass, tmp, MAX_CHARS);
 		}
 
 		/* All done */
@@ -109,6 +109,9 @@ void do_cmd_options_birth_call()
 	/* Sync data */
 	while (sync_data() == FALSE)	network_loop();
 
+	/* Hack -- preload "options.prf" */
+	process_pref_file("options.prf");
+
 	/* Show */
 	do_cmd_options_birth();
 }
@@ -126,7 +129,7 @@ void do_cmd_help_birth(void)
 	init_subscriptions();
 
 	/* Ask it */
-	cmd_interactive();
+	cmd_interactive(0, FALSE);
 }
 
 /*
@@ -158,7 +161,7 @@ static void choose_sex(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -194,7 +197,7 @@ static void choose_race(void)
 	for (j = 0; j < z_info.p_max; j++)
 	{
 		rp_ptr = &race_info[j];
-    		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
+		(void)sprintf(out_val, "%c) %s", I2A(j), p_name + rp_ptr->name);
 		put_str(out_val, m, l);
 		l += 15;
 		if (l > 70)
@@ -219,8 +222,8 @@ static void choose_race(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
-		}		
+			do_cmd_options_birth_call();
+		}
 		else if (c == '?')
 		{
 			do_cmd_help_birth();
@@ -283,7 +286,7 @@ static void choose_class(void)
 		}
 		else if (c == '=')
 		{
-			do_cmd_options_birth();
+			do_cmd_options_birth_call();
 		}
 		else if (c == '?')
 		{
@@ -336,7 +339,7 @@ void choose_stat_order(void)
 		/* Get a stat */
 		while (1)
 		{
-			put_str("Choose your stat order (= for Options, Q to Quit): ", 20, 2);
+			put_str("Choose your stat order (= for Options, ? for Help, Q to Quit): ", 20, 2);
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
@@ -349,8 +352,8 @@ void choose_stat_order(void)
 			}
 			else if (c == '=')
 			{
-				do_cmd_options_birth();
-			}			
+				do_cmd_options_birth_call();
+			}
 			else if (c == '?')
 			{
 				do_cmd_help_birth();
@@ -464,10 +467,10 @@ static bool enter_server_name(void)
 	move_cursor(5, 1);
 
 	/* Default */
-    strcpy(server_name, "localhost");
+	strcpy(server_name, "localhost");
 
 	/* Ask for server name */
-	result = askfor_aux(server_name, 80, 0);
+	result = askfor_aux(server_name, MAX_COLS, 0);
 
 	s = strchr(server_name, ':');
 	if (!s) return result;
@@ -484,7 +487,7 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, socket, offsets[20];
+	int i, j, y, srvnum, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
@@ -510,7 +513,7 @@ bool get_server_name(void)
 
 	/* Start at the beginning */
 	ptr = buf;
-	i = y = 0;
+	i = y = srvnum  = 0;
 
 	/* Print each server */
 	while (ptr - buf < bytes)
@@ -530,7 +533,7 @@ bool get_server_name(void)
 		{
 			server = info = FALSE;
 
-			/* Save port */			
+			/* Save port */
 			ports[i] = atoi(ptr+1);
 		}
 		else if (*ptr != ' ')
@@ -548,7 +551,7 @@ bool get_server_name(void)
 			server = FALSE;
 
 			/* Display notices */
-			sprintf(out_val, "%s", ptr);			
+			sprintf(out_val, "%s", ptr);
 		}
 
 		if (info) {
@@ -559,7 +562,10 @@ bool get_server_name(void)
 			prt(out_val, y + 1, 1);
 
 			/* One more entry */
-			if (server) i++;
+			if (server) {
+				i++;
+				srvnum++;
+			}
 			y++;
 		}
 
@@ -580,7 +586,7 @@ bool get_server_name(void)
 		c = inkey();
 
 		/* Check for quit */
-		if (c == 'Q')
+		if ((c == 'Q') || (c == 'q' && srvnum < 17))
 		{
 			return enter_server_name();
 		}

@@ -75,9 +75,10 @@ void free_file_paths()
 	string_ifree(ANGBAND_DIR_BONE);
 	string_ifree(ANGBAND_DIR_HELP);
 }
-void init_file_paths(char *path)
+void init_file_paths(char *path, char *path_wr)
 {
 	char *tail;
+	char *tail_wr;
 
 
 	/*** Free everything ***/
@@ -95,6 +96,8 @@ void init_file_paths(char *path)
 	/* Prepare to append to the Base Path */
 	tail = path + strlen(path);
 
+	/* And again */
+	tail_wr = path_wr + strlen(path_wr);
 
 #ifdef VM
 
@@ -115,16 +118,16 @@ void init_file_paths(char *path)
 	/*** Build the sub-directory names ***/
 
 	/* Build a path name */
-	strcpy(tail, "data");
-	ANGBAND_DIR_DATA = string_make(path);
+	strcpy(tail_wr, "data");
+	ANGBAND_DIR_DATA = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "edit");
 	ANGBAND_DIR_EDIT = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "save");
-	ANGBAND_DIR_SAVE = string_make(path);
+	strcpy(tail_wr, "save");
+	ANGBAND_DIR_SAVE = string_make(path_wr);
 
 	/* Build a path name */
 	strcpy(tail, "help");
@@ -135,8 +138,8 @@ void init_file_paths(char *path)
 	ANGBAND_DIR_PREF = string_make(path);
 
 	/* Build a path name */
-	strcpy(tail, "bone");
-	ANGBAND_DIR_BONE = string_make(path);
+	strcpy(tail_wr, "bone");
+	ANGBAND_DIR_BONE = string_make(path_wr);
 #if 0
 	/* Build a path name */
 	strcpy(tail, "text");
@@ -196,7 +199,7 @@ void init_file_paths(char *path)
 
 			/* Build a new path name */
 			sprintf(tail, "data-%s", next);
-			ANGBAND_DIR_DATA = string_make(path);
+			ANGBAND_DIR_DATA = string_make(path_wr);
 		}
 	}
 
@@ -245,7 +248,7 @@ static void show_news_aux(const char * filename, byte ind)
 	char	buf[1024];
 
 	/* Paranoia - ignore erroneous index */
-	if (ind > MAX_TEXTFILES) return;
+	if (ind >= MAX_TEXTFILES) return;
 
 	/* Build the filename */
 	/* MAngband-specific hack: using HELP and not FILE directory! */
@@ -1250,9 +1253,9 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_POTION, SV_POTION_HEROISM },
 
 		{ TV_SCROLL, SV_SCROLL_LIFE	},
-		{ TV_POTION, SV_POTION_CURE_LIGHT },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
-		{ TV_POTION, SV_POTION_CURE_SERIOUS },
+		{ TV_POTION, SV_POTION_HEALING },
+		{ TV_POTION, SV_POTION_HEALING },
+		{ TV_POTION, SV_POTION_HEALING },
 		{ TV_POTION, SV_POTION_CURE_CRITICAL },
 		{ TV_POTION, SV_POTION_CURE_CRITICAL },
 		{ TV_POTION, SV_POTION_RESTORE_EXP },
@@ -1589,6 +1592,29 @@ static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
 
 
 
+/*
+ * Initialize server-side terrain/monster visual arrays
+ *
+ * This should happen AFTER we have populated x_char/x_attr values
+ * of f_info and r_info by
+ *  a) calling reset_visuals()
+ *  b) loading the font.prf file
+ *  (both of those happen in "play_game()")
+ */
+void apply_visuals(void)
+{
+	int i;
+	for (i = 0; i < z_info->f_max; i++)
+	{
+		f_char_s[i] = f_info[i].x_char;
+		f_attr_s[i] = f_info[i].x_attr;
+	}
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		r_char_s[i] = r_info[i].x_char;
+		r_attr_s[i] = r_info[i].x_attr;
+	}
+}
 
 /*
  * Initialize some other arrays
@@ -1604,19 +1630,12 @@ static errr init_other(void)
 	/* Feature */
 	C_MAKE(f_char_s, z_info->f_max, char);
 	C_MAKE(f_attr_s, z_info->f_max, byte);
-	for (i = 0; i < z_info->f_max; i++)
-	{
-		f_char_s[i] = f_info[i].x_char;
-		f_attr_s[i] = f_info[i].x_attr;
-	}
+
 	/* Monster */
 	C_MAKE(r_char_s, z_info->r_max, char);
 	C_MAKE(r_attr_s, z_info->r_max, byte);
-	for (i = 0; i < z_info->r_max; i++)
-	{
-		r_char_s[i] = r_info[i].x_char;
-		r_attr_s[i] = r_info[i].x_attr;
-	}
+
+	/* Note: those arrays are filled in "apply_visuals()" */
 
 	/*** Prepare the "dungeon" information ***/
 
@@ -2026,7 +2045,7 @@ static errr init_alloc(void)
 bool str_to_boolean(char * str)
 {
 	/* false by default */
-	return !(strcasecmp(str, "true"));
+	return !(my_stricmp(str, "true"));
 }
 
 /*
@@ -2057,15 +2076,15 @@ static errr init_p_info(void)
 }
 
 /* Attempt to bind cfg_ server option to .prf Y: X: option */
-static void enforce_option(char * name, bool set_what)
+static void enforce_option(char * name, bool set_what, bool forbid_changes)
 {
 	int i;
 	for (i = 0; option_info[i].o_desc; i++)
 	{
-		if (!strcasecmp(option_info[i].o_text, name))
+		if (!my_stricmp(option_info[i].o_text, name))
 		{
 			option_info[i].o_norm = set_what; /* Change default */
-			option_info[i].o_bit = 1; /* Forbid changes */ 
+			if (forbid_changes) option_info[i].o_bit = 1; /* Forbid changes */
 		}
 	}
 }
@@ -2074,7 +2093,7 @@ static void enforce_option(char * name, bool set_what)
  * the handeling of this will be unified in the future with some sort of 
  * options structure.
  */
-void set_server_option(char * option, char * value)
+void set_server_option(const char * option, char * value)
 {
 	/* Due to the lame way that C handles strings, we can't use a switch statement */
 	if (!strcmp(option,"REPORT_TO_METASERVER"))
@@ -2101,25 +2120,34 @@ void set_server_option(char * option, char * value)
 	{
 		ANGBAND_DIR_BONE = string_make(value);
 	}
+	else if (!strcmp(option,"PREF_DIR"))
+	{
+		ANGBAND_DIR_PREF = string_make(value);
+	}
 	else if (!strcmp(option,"LOAD_PREF_FILE"))
 	{
-		cfg_load_pref_file = strdup(value);
+		if (cfg_load_pref_file) string_free(cfg_load_pref_file);
+		cfg_load_pref_file = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"META_ADDRESS"))
 	{
-		cfg_meta_address = strdup(value);
+		if (cfg_meta_address) string_free(cfg_meta_address);
+		cfg_meta_address = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"BIND_NAME"))
 	{
-		cfg_bind_name = strdup(value);
+		if (cfg_bind_name) string_free(cfg_bind_name);
+		cfg_bind_name = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"REPORT_ADDRESS"))
 	{
-		cfg_report_address = strdup(value);
+		if (cfg_report_address) string_free(cfg_report_address);
+		cfg_report_address = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"CONSOLE_PASSWORD"))
 	{
-		cfg_console_password = strdup(value);
+		if (cfg_console_password) string_free(cfg_console_password);
+		cfg_console_password = (char*)string_make(value);
 	}
 	else if (!strcmp(option,"CONSOLE_LOCAL_ONLY"))
 	{
@@ -2127,9 +2155,10 @@ void set_server_option(char * option, char * value)
 	}
 	else if (!strcmp(option,"DUNGEON_MASTER_NAME"))
 	{
-		cfg_dungeon_master = strdup(value);
-		plog_fmt("Dungeon Master Set as [%s]",cfg_dungeon_master);
-    }
+		if (cfg_dungeon_master) string_free(cfg_dungeon_master);
+		cfg_dungeon_master = (char*)string_make(value);
+		plog_fmt("Dungeon Master Set as [%s]", cfg_dungeon_master);
+	}
 	else if (!strcmp(option,"SECRET_DUNGEON_MASTER"))
 	{
 		cfg_secret_dungeon_master = str_to_boolean(value);
@@ -2149,17 +2178,21 @@ void set_server_option(char * option, char * value)
 		if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
 			cfg_tcp_port = 18346;
 	}
-	else if (!strcmp(option,"ENFORCE_OPTION_1"))
+	else if (!strcmp(option,"DEFAULT_OPTION_yes"))
 	{
-		enforce_option(value, TRUE);
+		enforce_option(value, TRUE, FALSE);
 	}
-	else if (!strcmp(option,"ENFORCE_OPTION_0"))
+	else if (!strcmp(option,"DEFAULT_OPTION_no"))
 	{
-		enforce_option(value, FALSE);
-	}	
-	else if (!strcmp(option,"MAGE_HITPOINT_BONUS"))
+		enforce_option(value, FALSE, FALSE);
+	}
+	else if (!strcmp(option,"ENFORCE_OPTION_yes"))
 	{
-		cfg_mage_hp_bonus = str_to_boolean(value);
+		enforce_option(value, TRUE, TRUE);
+	}
+	else if (!strcmp(option,"ENFORCE_OPTION_no"))
+	{
+		enforce_option(value, FALSE, TRUE);
 	}
 	else if (!strcmp(option,"SAFE_RECHARGE"))
 	{
@@ -2229,6 +2262,10 @@ void set_server_option(char * option, char * value)
     {
         cfg_chardump_color = str_to_boolean(value);
     }
+	else if (!strcmp(option,"INSTANCE_CLOSED"))
+	{
+		cfg_instance_closed = str_to_boolean(value);
+	}
     else if (!strcmp(option,"PVP_NOTIFY"))
     {
 			cfg_pvp_notify = str_to_boolean(value);
@@ -2368,6 +2405,18 @@ void load_server_cfg(void)
 {
 	FILE * cfg = 0;
 	int i = 0;
+
+	/* If user requested specific config file, try it... */
+	if (arg_config_file)
+	{
+		/* ...and DO NOT try anything else on failure */
+		if (!cfg)
+		{
+			plog_fmt("Error : cannot open file %s", arg_config_file);
+			quit(NULL);
+			return;
+		}
+	}
 
 	/* Attempt to open the file */
 	while (!cfg && possible_cfg_dir[i++])

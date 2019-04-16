@@ -638,6 +638,12 @@ void self_knowledge(int Ind, bool spoil)
 	f3 |= t3;
 
 
+	/* Birth options */
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
+	{
+		info[i++] = "You never compromise.";
+	}
+
 	/* Status */
 	if (p_ptr->blind)
 	{
@@ -1039,20 +1045,19 @@ void self_knowledge(int Ind, bool spoil)
 		for (j = 0; j < e; j++)
 		{
 			p_ptr->info[k][j].c = info[k][j];
-			p_ptr->info[k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].a = TERM_WHITE;
 		}
 		for (j = e; j < 80; j++)
 		{
 			p_ptr->info[k][j].c = ' ';
-			p_ptr->info[k][j].a = TERM_WHITE;	
+			p_ptr->info[k][j].a = TERM_WHITE;
 		}
 	}
 	/* Last line */
 	p_ptr->last_info_line = i - 1;
 
-
-	/* Let the client know to expect some info */
-	Send_special_other(Ind, "Self-Knowledge");
+	/* Let the client see it */
+	send_prepared_popup(Ind, "Self-Knowledge");
 }
 
 
@@ -1478,19 +1483,30 @@ bool detect_objects_magic(int Ind)
 void give_detect(int Ind, int m_idx)
 {
 	player_type *p_ptr = Players[Ind];
+	int power, i;
+
+	/* The detection counter is expressed in "effect turns"
+	 * (each tick gives 1 poision damage) */
+	/* Note, that we should probably use caster level and not
+	 * victim level, but, oh well. */
+	power = 2 + ((p_ptr->lev + 2) / 5);
+
+	/* Also, let's scale down when spamming */
+	i = (m_idx < 0 ? p_ptr->play_det[0 - m_idx] : p_ptr->mon_det[m_idx]);
+	power = i ? 1 : power;
 
 	/* Players */
 	if (m_idx < 0)
 	{
 		m_idx = 0 - m_idx;
-		if (p_ptr->play_det[m_idx] < 255)
-			p_ptr->play_det[m_idx]++;
+		p_ptr->play_det[m_idx] = MIN(
+		    (int)p_ptr->play_det[m_idx] + power, 255);
 	}
 	/* Monsters */
 	else
 	{
-		if (p_ptr->mon_det[m_idx] < 255)
-			p_ptr->mon_det[m_idx]++;
+		p_ptr->mon_det[m_idx] = MIN(
+		    (int)p_ptr->mon_det[m_idx] + power, 255);
 	}
 }
 
@@ -1514,7 +1530,7 @@ bool detect_invisible(int Ind, bool pause)
 	if (y1 < 0) y1 = 0;
 	if (x1 < 0) x1 = 0;
 	if (y2 > p_ptr->cur_hgt-1) y2 = p_ptr->cur_hgt-1;
-	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;	
+	if (x2 > p_ptr->cur_wid-1) x2 = p_ptr->cur_wid-1;
 	
 	
 	/* Detect all invisible monsters */
@@ -1530,9 +1546,6 @@ bool detect_invisible(int Ind, bool pause)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
@@ -1542,6 +1555,12 @@ bool detect_invisible(int Ind, bool pause)
 		/* Detect all invisible monsters */
 		if (r_ptr->flags2 & (RF2_INVISIBLE))
 		{
+			/* Increment detection counter */
+			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
 			/* Take note that they are invisible */
 			l_ptr->flags2 |= RF2_INVISIBLE;
 			
@@ -1549,34 +1568,40 @@ bool detect_invisible(int Ind, bool pause)
 			if (p_ptr->monster_race_idx == m_ptr->r_idx) 
 				p_ptr->window |= PW_MONSTER;
 
-			/* Increment detection counter */
-			give_detect(Ind, i);
 			flag = TRUE;
 		}
 	}
 
 	/* Detect all invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
-		
+
+		/* Skip ourself */
+		if (i == Ind) continue;
+
+		/* Skip players not on this depth */
+		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
+
 		/* Only detect nearby players */
 		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
-
-		/* Skip visible players */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
 		/* Skip the dungeon master */
 		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) continue;
 
-		/* Detect all invisible players but not the dungeon master */
-		if (q_ptr->ghost) 
+		/* Detect all invisible players (except dungeon master) */
+		if (q_ptr->ghost)
 		{
 			/* Increment detection counter */
-			give_detect(Ind, 0 - i); 
+			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[0 - i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1660,6 +1685,8 @@ bool detect_evil(int Ind)
 
 			/* Increment detection counter */
 			give_detect(Ind, i);
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1723,9 +1750,6 @@ bool detect_creatures(int Ind, bool pause)
 		/* Paranoia -- Skip dead monsters */
 		if (!m_ptr->r_idx) continue;
 
-		/* Skip visible monsters */
-		if (p_ptr->mon_vis[i]) continue;
-
 		/* Skip monsters not on this depth */
 		if (m_ptr->dun_depth != p_ptr->dun_depth) continue;
 
@@ -1737,27 +1761,28 @@ bool detect_creatures(int Ind, bool pause)
 		{
 			/* Increment detection counter */
 			give_detect(Ind, i);
+
+			/* Skip visible monsters */
+			if (p_ptr->mon_vis[i]) continue;
+
 			flag = TRUE;
 		}
 	}
 
 	/* Detect non-invisible players */
-	for (i = 1; i <= NumPlayers; i++)
+	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		player_type *q_ptr = Players[i];
 
 		int py = q_ptr->py;
 		int px = q_ptr->px;
 
-		/* Skip visible players */
-		if (p_ptr->play_vis[i]) continue;
+		/* Skip ourself */
+		if (i == Ind) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
 
-		/* Skip ourself */
-		if (i == Ind) continue;
-		
 		/* Only detect nearby players */
 		if (px < x1 || py < y1 || px > x2 || py > y2) continue;
 		
@@ -1766,6 +1791,11 @@ bool detect_creatures(int Ind, bool pause)
 		{
 			/* Increment detection counter */
 			give_detect(Ind, 0 - i);
+
+			/* Skip visible players */
+			if (p_ptr->play_vis[i]) continue;
+
+			/* Trigger detect effects */
 			flag = TRUE;
 		}
 	}
@@ -1776,7 +1806,7 @@ bool detect_creatures(int Ind, bool pause)
 		/* Mega-Hack -- Fix the monsters and players */
 		update_monsters(FALSE);
 		update_players();
-		/* Handle Window stuff */		
+		/* Handle Window stuff */
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */
@@ -2665,8 +2695,6 @@ bool create_artifact_aux(int Ind, int item)
 #if !defined(RANDART)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
-
-	return TRUE;
 #else
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
@@ -2702,7 +2730,7 @@ bool create_artifact_aux(int Ind, int item)
 		/* Forget the inscription */
                 o_ptr->note = 0;
         }
-
+#endif
 	/* Clear flags */
 	o_ptr->ident &= ~ID_KNOWN;
 	o_ptr->ident &= ~ID_SENSE;
@@ -2716,9 +2744,9 @@ bool create_artifact_aux(int Ind, int item)
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
+/*
 	p_ptr->current_artifact = FALSE;
-#endif
+*/
 	return TRUE;
 }
 
@@ -2887,6 +2915,12 @@ bool ident_spell_aux(int Ind, int item)
 		sound(Ind, MSG_IDENT_EGO);
 	}
 
+	/* Notice artifacts */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
+
 	/* Describe */
 	if (item >= INVEN_WIELD)
 	{
@@ -2969,6 +3003,12 @@ bool identify_fully_item(int Ind, int item)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
+	/* Handle artifact knowledge */
+	if (artifact_p(o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
+	}
+
 	/* Handle stuff */
 	handle_stuff(Ind);
 
@@ -2994,8 +3034,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	Send_special_other(Ind, o_name);
-
+	send_prepared_popup(Ind, o_name);
 
 	/* Success */
 	return (TRUE);
@@ -3020,13 +3059,13 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 }
 
 
-bool recharge(int Ind, int num)
+bool recharge(int Ind, int spell_strength)
 {
 	int item;
 
 	if (!get_item(Ind, &item, item_test(RECHARGE))) return FALSE;
 	
-	recharge_aux(Ind, item, num);	
+	recharge_aux(Ind, item, spell_strength);
 	
 	return TRUE;
 }
@@ -3034,17 +3073,6 @@ bool recharge(int Ind, int num)
 
 /*
  * Recharge a wand or staff from the pack or on the floor.
- *
- * Mage -- Recharge I --> recharge(5)
- * Mage -- Recharge II --> recharge(40)
- * Mage -- Recharge III --> recharge(100)
- *
- * Priest -- Recharge --> recharge(15)
- *
- * Scroll of recharging --> recharge(60)
- *
- * recharge(20) = 1/6 failure for empty 10th level wand
- * recharge(60) = 1/10 failure for empty 10th level wand
  *
  * It is harder to recharge high level, and highly charged wands.
  *
@@ -3059,36 +3087,27 @@ bool recharge(int Ind, int num)
  *
  * XXX XXX XXX Perhaps we should auto-unstack recharging stacks.
  */
-bool recharge_aux(int Ind, int item, int num)
+bool recharge_aux(int Ind, int item, int spell_strength)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int                 i, t, lev;
+	int i, t, lev, _idx;
 
-	object_type		*o_ptr;
+	object_type *o_ptr;
 
 
 	/* Only accept legal items */
+	item_tester_full = FALSE;
+	item_tester_tval = 0;
+	item_tester_hook = NULL; /*item_tester_hook_recharge;*/
+
+	/* Get the item */
+	if ( !(o_ptr = player_get_item(p_ptr, item, &_idx)) )
+	{
+		return FALSE;
+	}
+
 	item_tester_hook = item_tester_hook_recharge;
-
-	/* Get the item (in the pack) */
-	if (item >= 0)
-	{
-		o_ptr = &p_ptr->inventory[item];
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return FALSE;
-		}
-		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
-	}
-
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "You cannot recharge that item.");
@@ -3098,65 +3117,64 @@ bool recharge_aux(int Ind, int item, int num)
 	/* Extract the object "level" */
 	lev = k_info[o_ptr->k_idx].level;
 
-	/* Recharge power */
-	i = (num + 100 - lev - (10 * o_ptr->pval)) / 15;
+	/*
+	 * Chance of failure = 1 time in
+	 * [Spell_strength + 100 - item_level - 10 * charge_per_item]/15
+	 */
+	i = (spell_strength + 100 - lev - (10 * (o_ptr->pval / o_ptr->number))) / 15;
 
-	/* Paranoia -- prevent crashes */
-	if (i < 1) i = 1;
-
-	/* Back-fire XXX XXX XXX */
-	if (rand_int(i) == 0)
+	/* Back-fire */
+	if ((i <= 1) || one_in_(i))
 	{
-		msg_print(Ind, "There is a bright flash of light.");
+		msg_print(Ind, "The recharge backfires!");
 
-		/* Dangerous Hack -- Destroy the item */ 
+		reduce_charges(o_ptr, 1);
+
+		/* Destroy the item */
 		if (!cfg_safe_recharge)
 		{
-			/* Reduce and describe inventory */ 
-			if (item >= 0) 
-			{ 
-				inven_item_increase(Ind, item, -1); 
-				inven_item_describe(Ind, item); 
-				inven_item_optimize(Ind, item); 
-			} 
-			/* Reduce and describe floor item */ 
-			else 
-			{ 
-				floor_item_increase(0 - item, -1); 
-				floor_item_describe(0 - item); 
-				floor_item_optimize(0 - item); 
+			msg_print(Ind, "There is a bright flash of light.");
+
+			/* Reduce and describe inventory */
+			if (item >= 0)
+			{
+				inven_item_increase(Ind, item, -1);
+				inven_item_describe(Ind, item);
+				inven_item_optimize(Ind, item);
+			}
+			/* Reduce and describe floor item */
+			else
+			{
+				floor_item_increase(0 - item, -1);
+				floor_item_describe(0 - item);
+				floor_item_optimize(0 - item);
+				floor_item_notify(Ind, 0 - item, TRUE);
 			}
 		}
+		/* MAngband-specific: remove even MORE charges */
 		else
-		{ 
-			/* Drain the power */
-			o_ptr->pval = 0;
-		}
-
-		/* *Identified* items keep the knowledge about the charges */
-		if (!(o_ptr->ident & ID_MENTAL))
 		{
-			/* We no longer "know" the item */
-			o_ptr->ident &= ~(ID_KNOWN);
-		}
+			reduce_charges(o_ptr, 1);
 
-		/* We know that the item is empty */
-		o_ptr->ident |= ID_EMPTY;
+			/* *Identified* items keep the knowledge about the charges */
+			if (!(o_ptr->ident & ID_MENTAL))
+			{
+				/* We no longer "know" the item */
+				o_ptr->ident &= ~(ID_KNOWN);
+			}
+		}
 	}
 
 	/* Recharge */
 	else
 	{
 		/* Extract a "power" */
-		t = (num / (lev + 2)) + 1;
+		t = (spell_strength / (lev + 2)) + 1;
 
 		/* Recharge based on the power */
 		if (t > 0) o_ptr->pval += 2 + randint(t);
 
-		/* Hack -- we no longer "know" the item */
-		o_ptr->ident &= ~ID_KNOWN;
-
-		/* Hack -- we no longer think the item is empty */
+		/* We no longer think the item is empty */
 		o_ptr->ident &= ~ID_EMPTY;
 	}
 
@@ -3164,7 +3182,7 @@ bool recharge_aux(int Ind, int item, int num)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+	p_ptr->window |= (PW_INVEN);
 
 	/* Something was done */
 	return (TRUE);

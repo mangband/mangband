@@ -1451,6 +1451,7 @@ errr Term_consolidate_cursor(bool on, int x, int y)
     Term->scr->bcx = x;
     Term->scr->bcy = y;
     Term->scr->bcv = on;
+    Term_xtra(TERM_XTRA_SHAPE, (int)on);
     return (0);
 }
 
@@ -1480,7 +1481,7 @@ errr Term_gotoxy(int x, int y)
 	return (0);
 }
 
-errr Term_mem_ch(int x, int y, byte a, char c)
+errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 {
 	int w = Term->wid;
 	int h = Term->hgt;
@@ -1494,6 +1495,8 @@ errr Term_mem_ch(int x, int y, byte a, char c)
 	
 	Term->mem->a[y][x] = a;
 	Term->mem->c[y][x] = c; 
+	Term->mem->ta[y][x] = ta;
+	Term->mem->tc[y][x] = tc;
 	
 	/* Success */
 	return (0);
@@ -2172,6 +2175,27 @@ errr Term_load(void)
 
 		/* Kill it */
 		FREE(tmp);
+	}
+
+	/* Last one in the list? "POP" trn_info */
+	/* Because Terms are used both for UI and for dungeon view,
+	 * the "trn" array gets caught in this entanglement. :( One day,
+	 * Dungeon/UI will be completeley separate, but for now, throwing
+	 * this in: */
+	if (!Term->mem)
+	{
+		int x, dy, dx;
+		for (y = 0; y < Term->hgt; y++)
+		{
+			dy = y - DUNGEON_OFFSET_Y;
+			if (dy < 0 || dy >= MAX_HGT) continue;
+			for (x = 0; x < Term->wid; x++) {
+				dx = x - DUNGEON_OFFSET_X;
+				if (dx < 0 || dx >= MAX_WID) continue;
+				p_ptr->trn_info[dy][dx].c = Term->scr->tc[y][x];
+				p_ptr->trn_info[dy][dx].a = Term->scr->ta[y][x];
+			}
+		}
 	}
 
 	/* Assume change */

@@ -3352,7 +3352,7 @@ static void process_monster(int Ind, int m_idx)
  
 void process_monsters(void)
 {
-	int			k, i, e, pl, bubble;
+	int			k, i, e, pl;
 	int			fx, fy;
 
 	bool		test;
@@ -3464,7 +3464,20 @@ void process_monsters(void)
 		p_ptr = Players[closest];
 
 		/* Hack -- calculate the "player noise" */
-		noise = (1L << (30 - p_ptr->skill_stl));
+		/* noise = (1L << (30 - p_ptr->skill_stl)); // we can do better */
+
+		/* If player has acted this turn, use that noise value (cap to 30) */
+		if (p_ptr->noise)
+		{
+			noise = (1L << (MIN(30, p_ptr->noise)));
+		}
+		/* If player hasn't acted, 1/100 chance to make noise */
+		else if (randint(100) == 1)
+		{
+			noise = (1L << (30 - p_ptr->skill_stl));
+		}
+		/* Player is totally silent */
+		else noise = 0;
 
 		m_ptr->cdis = dis_to_closest;
 		m_ptr->closest_player = closest;

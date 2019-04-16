@@ -68,7 +68,7 @@ void do_cmd_eat_food(int Ind, int item)
 
 	int			lev;
 	bool ident;
-	
+
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^E' */
@@ -83,32 +83,18 @@ void do_cmd_eat_food(int Ind, int item)
 
 	/* Restrict choices to food */
 	item_tester_tval = TV_FOOD;
+	item_tester_full = FALSE;
+	item_tester_hook = NULL;
 
-	/* Get the item (in the pack) */
-	if (item >= 0)
+	/* Get the item */
+	if ( !(o_ptr = player_get_item(p_ptr, item, &item)) )
 	{
-		o_ptr = &p_ptr->inventory[item];
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return;
-		}
-		o_ptr = &o_list[0 - item];
+		/* Paranoia */
+		return;
 	}
 
 	/* Check guard inscription '!E' */
 	__trap(Ind, CGI(o_ptr, 'E'));
-
-	if (o_ptr->tval != TV_FOOD)
-	{
-		/* Tried to eat non-food */
-		return;
-	}
 
 	/* Sound */
 	sound(Ind, MSG_EAT);
@@ -138,13 +124,11 @@ void do_cmd_eat_food(int Ind, int item)
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
+
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Food can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
 
 	/* Destroy a food in the pack */
 	if (item >= 0)
@@ -246,13 +230,11 @@ void do_cmd_quaff_potion(int Ind, int item)
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
+
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-
-
-	/* Potions can feed the player */
-	(void)set_food(Ind, p_ptr->food + o_ptr->pval);
-
 
 	/* Destroy a potion in the pack */
 	if (item >= 0)
@@ -383,6 +365,9 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
+	/* Log ownership change (of any) */
+	object_audit(p_ptr, o_ptr, 1);
+
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
@@ -403,7 +388,12 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	} 
 
 }
+void do_cmd_read_scroll_on(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
 
+	do_cmd_read_scroll(Ind, item);
+}
 
 
 
@@ -416,6 +406,12 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
  *
  * Hack -- staffs of identify can be "cancelled".
  */
+void do_cmd_use_staff_pre(int Ind, int item, int item2)
+{
+	Players[Ind]->command_arg = item2;
+
+	do_cmd_use_staff(Ind, item);
+}
 void do_cmd_use_staff(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
@@ -673,6 +669,12 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Check guard inscription '!a' */
 	__trap(Ind, CGI(o_ptr, 'a'));
 
+	if (o_ptr->tval != TV_WAND)
+	{
+		/* Tried to aim non-wand */
+		return;
+	}
+
 	/* Mega-Hack -- refuse to aim a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
@@ -814,10 +816,10 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
  */
 void do_cmd_zap_rod_pre(int Ind, int item, int dir)
 {
-	if (dir > 0) 
-		Players[Ind]->command_dir = dir; 
+	if (dir > 0)
+		Players[Ind]->command_dir = dir;
 
-	do_cmd_zap_rod(Ind, item); 
+	do_cmd_zap_rod(Ind, item);
 }
 void do_cmd_zap_rod(int Ind, int item)
 {
@@ -925,9 +927,11 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 
-    /* Drain the charge */
-    o_ptr->timeout += k_ptr->pval;
-
+	/* Drain the charge */
+	/* happens in use-obj.c
+	o_ptr->timeout += k_ptr->pval;
+	*/
+	
 	if (!option_p(p_ptr,STACK_ALLOW_WANDS)) {
 		/* XXX Hack -- unstack if necessary */
 		if ((item >= 0) && (o_ptr->number > 1))
@@ -938,12 +942,12 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 			tmp_obj.number = 1;
 			
 			distribute_charges(o_ptr, &tmp_obj, 1);
-	
+
 			/* Unstack the used item */
 			o_ptr->number--;
 			p_ptr->total_weight -= tmp_obj.weight;
 			item = inven_carry(p_ptr, &tmp_obj);
-	
+
 			/* Message */
 			msg_print(Ind, "You unstack your rod.");
 		}
@@ -957,13 +961,13 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
  */
 static bool item_tester_hook_activate(int Ind, object_type *o_ptr)
 {
-    u32b f1, f2, f3;
+	u32b f1, f2, f3;
 
 	/* Not known */
 	if (!object_known_p(Players[Ind], o_ptr)) return (FALSE);
 
 	/* Extract the flags */
-    object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Check activation flag */
 	if (f3 & TR3_ACTIVATE) return (TRUE);

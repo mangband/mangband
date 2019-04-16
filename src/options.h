@@ -117,7 +117,7 @@
  * result in a server that crashes more frequently, as a core dump
  * will be done instead of killing the bad connection.
  */
-#define DEBUG
+/* #define DEBUG */
 
 
 /*
@@ -465,6 +465,9 @@
  */
 #ifndef PKGDATADIR
 # define PKGDATADIR DEFAULT_PATH
+#endif
+#ifndef LOCALSTATEDIR
+# define LOCALSTATEDIR DEFAULT_PATH
 #endif
 
 

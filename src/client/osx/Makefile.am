@@ -24,11 +24,19 @@ mangclient.app: mangclient
 	@mkdir mangclient.app/Contents/Resources/lib/save
 	@mkdir mangclient.app/Contents/Resources/lib/text
 	@mkdir mangclient.app/Contents/Resources/lib/user
+	@mkdir mangclient.app/Contents/Resources/lib/pref
 	@mkdir mangclient.app/Contents/Resources/lib/xtra
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/font
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/graf
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/Sound
 	@cp mangclient mangclient.app/Contents/MacOS
+	@$(eval DYLIBS=$(shell otool -L mangclient | grep SDL | awk -F' ' '{ print $$1 }'))
+	@for dylib in "${DYLIBS}" ; do \
+		NAME=`basename $$dylib` ; \
+		echo "dylib: $$dylib -> $$NAME" ; \
+		cp $$dylib mangclient.app/Contents/MacOS/ ; \
+		install_name_tool -change $$dylib @executable_path/$$NAME mangclient.app/Contents/MacOS/mangclient ; \
+	done
 	@cp src/client/osx/launch_mangclient.sh mangclient.app/Contents/MacOS
 	@cp src/client/osx/mangclient.icns mangclient.app/Contents/Resources
 	@cp src/client/osx/Info.plist mangclient.app/Contents
@@ -38,6 +46,7 @@ mangclient.app: mangclient
 	@cp lib/help/*txt mangclient.app/Contents/Resources/lib/help
 	@cp lib/help/*hlp mangclient.app/Contents/Resources/lib/help
 	@cp lib/save/server* mangclient.app/Contents/Resources/lib/save
+	@cp lib/pref/*prf mangclient.app/Contents/Resources/lib/pref
 	@cp lib/user/*prf mangclient.app/Contents/Resources/lib/user
 	@cp lib/xtra/font/*FON mangclient.app/Contents/Resources/lib/xtra/font
 	@cp lib/xtra/font/*hex mangclient.app/Contents/Resources/lib/xtra/font

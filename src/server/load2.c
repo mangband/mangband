@@ -146,7 +146,7 @@ int read_int(char* name)
 }
 
 /* Read an unsigned integer */
-uint read_uint(char* name)
+uint read_uint(const char* name)
 {
 	char seek_name[80];
 	bool matched = FALSE;
@@ -341,7 +341,7 @@ void skip_value(char* name)
 }
 
 /* Check if the given named value is next */
-bool value_exists(char* name)
+bool value_exists(const char* name)
 {
 	char seek_name[80];
 	bool matched = FALSE;
@@ -1056,7 +1056,7 @@ static bool rd_extra(player_type *p_ptr, bool had_header)
 
 	if(value_exists("no_ghost"))
 	{
-		p_ptr->no_ghost = read_int("no_ghost");
+		(void)read_int("no_ghost");
 	}
 	
 	p_ptr->max_plv = read_int("max_plv");
@@ -1235,6 +1235,67 @@ static errr rd_inventory(player_type *p_ptr)
 	/* Success */
 	return (0);
 }
+
+/*
+ * Read the birth options
+ */
+static errr rd_birthoptions(player_type *p_ptr)
+{
+	s32b i, id;
+	u16b tmp16u, ind;
+
+	if (!section_exists("options"))
+	{
+		/* Fine, no options */
+		return (0);
+	}
+
+	/* Begin */
+	start_section_read("options");
+
+	/* Read number */
+	tmp16u = read_int("num");
+
+	/* Read each record */
+	id = 0;
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+
+		/* Real index is in the o_uid! */
+		ind = option_info[i].o_uid;
+
+		if (opt_ptr->o_page != 1) continue;
+
+		/* Next entry is what we expect */
+		if (value_exists(opt_ptr->o_text))
+		{
+			/* Read it */
+			u32b val = read_uint(opt_ptr->o_text);
+
+			/* Set it */
+			p_ptr->options[ind] = val ? TRUE : FALSE;
+		}
+		else
+		{
+			end_section_read("options");
+
+			/* Unexpected option */
+			return (29);
+		}
+
+		id++;
+		/* Don't read anymore */
+		if (id >= tmp16u) break;
+	}
+
+	/* Done */
+	end_section_read("options");
+
+	/* Success */
+	return (0);
+}
+
 
 /*
  * Read hostility information
@@ -1513,12 +1574,17 @@ static errr rd_cave_memory(player_type *p_ptr)
 
 /* XXX XXX XXX 
  * This function parses savefile as if it was a text file, searching for
- * pass = , prace = , etc strings. It ignores the 'xml' format for sake
+ * "pass =" string. It ignores the 'xml' format for sake
  * of maintance simplicity (i.e. it doesn't care about savefile format
- * changes). It attempts to read out the race/class/sex info and 
- * does a password check -> result of wich is the return value.
+ * changes). It attempts to read out the stored password, and compares it
+ * to the password provided in "pass_word". If it matches, the hashed
+ * password stored back onto the "pass_word" buff, which is assumed to be
+ * of MAX_CHARS length.
  *
- * See "scoop_player" in "save.c" for more info.  
+ * Returns 0 on match, -1 on parsing error and -2 if password do not
+ * match.
+ *
+ * See "scoop_player" in "save.c" for more info.
  */
 errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 {
@@ -1533,7 +1599,6 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 	bool read_pass = FALSE;
 
 	char buf[1024];
-	int i;
 
 	/* The savefile is a text file */
 	file_handle = my_fopen(sfile, "r");
@@ -1548,20 +1613,20 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 		if (!strcmp(read, "pass"))
 		{
 			read = strtok(NULL, " \t\n=");
-			strcpy(pass, read);
+			my_strcpy(pass, read, 80);
 			read_pass = TRUE;
 			continue;
 		}
 		if (read_pass) break;
 	}
 
-	/* Paranoia */	
+	/* Paranoia */
 	temp[0] = '\0';
 	
 	/* Here's where we do our password encryption handling */
-	strcpy(temp, (const char *)pass);
+	my_strcpy(temp, (const char *)pass, 80);
 	MD5Password(temp); /* The hashed version of our stored password */
-	strcpy(temp2, (const char *)pass_word);
+	my_strcpy(temp2, (const char *)pass_word, 80);
 	MD5Password(temp2); /* The hashed version of password from client */
 
 	err = 0;
@@ -1597,7 +1662,7 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 			}
 		}
 		/* Good match with clear text, save the hashed */
-		strcpy(pass_word, (const char *)temp);
+		my_strcpy(pass_word, (const char *)temp, MAX_CHARS);
 	}
 
 	/* Check for errors */
@@ -1624,7 +1689,16 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	bool had_header = FALSE;
 	char stat_order_hack[6];
 
+	if (!section_exists("mangband_player_save"))
+	{
+		return (-1); /* Horrible corruption */
+	}
+
 	start_section_read("mangband_player_save");
+	if (!section_exists("version"))
+	{
+		return (-1); /* Horrible corruption */
+	}
 	start_section_read("version");
 	read_int("major"); 
 	read_int("minor");
@@ -1678,8 +1752,13 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		read_hturn("player_turn", &p_ptr->turn);
 	else
 		ht_clr(&p_ptr->turn);
-	
-	
+
+	/* Read birth options */
+	if (rd_birthoptions(p_ptr))
+	{
+		return (28);
+	}
+
 	/* Monster Memory */
 	if (section_exists("monster_lore")) {
 	start_section_read("monster_lore");

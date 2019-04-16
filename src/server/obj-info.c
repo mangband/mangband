@@ -67,8 +67,63 @@ static cptr act_description[ACT_MAX] =
 	"berserk rage (50+d50 turns)"
 };
 
+/* MAngband specific. Math sourced from cmd6.c. 
+ * Give the player an idea of their odds of successfully activating 
+ * a wand, staff, rod, or item. - Avenger */
+void describe_activation_chance(const object_type *o_ptr)
+{
+	int	chance, lev;
+	player_type *p_ptr = Players[player_textout];
+	u32b f1, f2, f3;
 
+	/* Extract the flags */
+	object_flags(o_ptr, &f1, &f2, &f3);
 
+	/* Verify that this is a magic device or other item than can be activated */
+	if (o_ptr->tval == TV_STAFF || o_ptr->tval == TV_WAND || o_ptr->tval == TV_ROD || (f3 & TR3_ACTIVATE))
+	{
+		/* Base chance of success */
+		chance = p_ptr->skill_dev;
+
+		/* Extract the item level */
+		lev = k_info[o_ptr->k_idx].level;
+
+		/* Confusion hurts skill */
+		if (p_ptr->confused) chance = chance / 2;
+
+		/* High level objects are harder */
+		chance = chance - ((lev > 50) ? 50 : lev);
+
+		/* Set the descriptive mask.
+		 *
+		 * Because activation failure has a constant minimum threshhold regardless of the value
+		 * of chance, this is not a strict percentage. Instead, I use a Fibonacci sequence to 
+		 * sort the masks into approximate tiers. */
+		if (chance < 1) /* Caps at 5% when chance is 0, approaches zero very quickly as chance drops below 0 */
+			text_out("\n\n   You have almost no chance to successfully use this item.");
+		else if (chance < USE_DEVICE) /* ~6 to 8% */
+			text_out("\n\n   You have a negligible chance to successfully use this item.");
+		else if (chance == USE_DEVICE) /* 25% */
+			text_out("\n\n   You have a very low chance to successfully use this item.");
+		else if (chance < 5) /* 40% */
+			text_out("\n\n   You have a low chance to successfully use this item.");
+		else if (chance < 8) /* 50 - 62.5% */
+			text_out("\n\n   You have a moderate chance to successfully use this item.");
+		else if (chance < 13) /* ~67 - 70% */
+			text_out("\n\n   You have a fair chance to successfully use this item.");
+		else if (chance < 21) /* ~78 - 85% */
+			text_out("\n\n   You have a good chance to successfully use this item.");
+		else if (chance < 34) /* ~86 - 91% */
+			text_out("\n\n   You have an very good chance to successfully use this item.");
+		else if (chance < 55) /* ~91 - 94% */
+			text_out("\n\n   You have an excellent chance to successfully use this item.");
+		else if (chance < 89) /* ~95 - 96% */
+			text_out("\n\n   You have a superb chance to successfully use this item.");
+		else /* > 96.667% */
+			text_out("\n\n   You have an almost certain chance to successfully use this item.");
+	}
+	return;
+}
 /*
  * Determine the "Activation" (if any) for an artifact
  */
@@ -916,8 +971,7 @@ static bool screen_out_head(const object_type *o_ptr)
 			has_description = TRUE;
 		}
 	}
-
-	return (has_description);
+	return has_description;
 }
 
 
@@ -947,6 +1001,8 @@ void object_info_screen(const object_type *o_ptr)
 		p_text_out("\n\n   This item has not been identified.");
 	else if (!has_description && !has_info)
 		p_text_out("\n\n   This item does not seem to possess any special abilities.");
+	else
+		describe_activation_chance(o_ptr);
 		
 	//text_out_c(TERM_L_BLUE, "\n\n[Press any key to continue]\n");
 

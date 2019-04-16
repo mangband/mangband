@@ -124,7 +124,7 @@ static void get_stats(player_type *p_ptr)
 	int		bonus;
 	int		dice[18];
 	int		stats[6];
-    int         n17, n16, n15;
+	int         n17, n16, n15;
 
 	/* Clear "stats" array */
 	for (i = 0; i < 6; i++)
@@ -185,9 +185,9 @@ static void get_stats(player_type *p_ptr)
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
-          if (j == 17) n17++;
-	  if (j >= 16) n16++;
-	  if (j >= 15) n15++;
+		if (j == 17) n17++;
+		if (j >= 16) n16++;
+		if (j >= 15) n15++;
 
 		/* Save that value */
 		stats[i] = j;
@@ -354,7 +354,7 @@ static void get_history(player_type *p_ptr)
 			case '$':
 			case '~':
 				s++;
-				switch (*s) 
+				switch (*s)
 				{
 					G_CASE('u', "You", "He", "She");
 					G_CASE('r', "Your", "His", "Her");
@@ -363,7 +363,7 @@ static void get_history(player_type *p_ptr)
 					default: continue;
 				}
 			break;
-			default:			
+			default:
 				*t++ = *p++ = *s;
 			}
 		}
@@ -504,7 +504,7 @@ void player_wipe(player_type *p_ptr)
 	byte *old_arts;
 	bool *old_obj_aware;
 	bool *old_obj_tried;
-	s16b *old_r_killed;	
+	s16b *old_r_killed;
 	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
 	char *f_char, *k_char, *d_char, *r_char, *pr_char;
 	char *c_buf;
@@ -546,6 +546,17 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->d_attr = d_attr; p_ptr->d_char = d_char;
 	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
 	p_ptr->cbuf.buf = c_buf;
+
+	/* Set default options */
+	for (i = 0; i < OPT_MAX; i++)
+	{
+		const option_type *opt_ptr = &option_info[i];
+		/* Option is locked */
+		if (opt_ptr->o_bit)
+		{
+			p_ptr->options[opt_ptr->o_uid] = opt_ptr->o_norm;
+		}
+	}
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -621,7 +632,11 @@ void player_wipe(player_type *p_ptr)
 
 	/* Assume no cheating */
 	p_ptr->noscore = 0;
-	
+
+	/* Not running */
+	p_ptr->running = FALSE;
+	p_ptr->run_request = 0;
+	p_ptr->ran_tiles = 0;
 
 	/* Feelings don't carry-on between saves (sorry) */
 	p_ptr->feeling = 0;
@@ -662,7 +677,7 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->on_channel[0] |= UCM_EAR;
 	
 	/* Output to default terminal */
-	p_ptr->remote_term = NTERM_WIN_OVERHEAD; 
+	p_ptr->remote_term = NTERM_WIN_OVERHEAD;
 }
 
 /* XXX XXX XXX HACK -- Wipe player but keep some stuff... */
@@ -686,7 +701,11 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_tmp.cbuf.max = p_ptr->cbuf.max;
 
 	p_tmp.lives = p_ptr->lives;
-	p_tmp.no_ghost = p_ptr->no_ghost; /* ? */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
+	}
 
 	for (i = 0; i < 6; i++)
 	{
@@ -714,7 +733,13 @@ void player_net_wipe(player_type *p_ptr, int reach)
 	p_ptr->cbuf.max = p_tmp.cbuf.max;
 
 	p_ptr->lives = p_tmp.lives;
-	p_ptr->no_ghost = p_tmp.no_ghost; /* ? */
+
+	/* TODO: also copy p_ptr->options? MAYBE */
+
+	for (i = 0; i < 6; i++)
+	{
+		p_ptr->infodata_sent[i] = p_tmp.infodata_sent[i];
+	}
 
 	if (reach)
 	{
@@ -730,7 +755,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 }
 
 /* 
- * Verify / Overwrite visual data with server defaults 
+ * Verify / Overwrite visual data with server defaults
  */
 void player_verify_visual(player_type *p_ptr)
 {
@@ -818,7 +843,7 @@ static void player_outfit(player_type *p_ptr)
 	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
-	i_ptr->pval = (PV); \
+	if ( (PV) ) i_ptr->pval = (PV); \
 	object_aware((P), i_ptr); \
 	object_known(i_ptr); \
 	(void)inven_carry((P), i_ptr)
@@ -862,13 +887,19 @@ static void player_outfit(player_type *p_ptr)
 		player_outfit_i(p_ptr, lookup_kind(TV_FLASK, 0), rand_range(6, 14), 0);
 	}
 
+	/* Give a free WoR */
+	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+
 	/*
-     * Give the DM some interesting stuff or all players if this is dev mode
+	 * Give the DM (or all players, if this is dev. mode) some interesting stuff
 	 */
 #ifndef DEBUG
 	if (!is_dm_p(p_ptr)) return;
 #endif
-	p_ptr->au = 10000000; 
+	/* Max recall depth */
+	p_ptr->max_dlv = (MAX_DEPTH - 1);
+	/* Lots of gold */
+	p_ptr->au = 10000000;
 	/* High Spell books */
 	for (i = 4; (cp_ptr->spell_book != 0 && i < 8); i++)
 	{
@@ -927,8 +958,8 @@ void player_setup(int Ind)
 	}
 
 	/* Rebuild the level if neccecary */
-	if (!cave[Depth]) 
-	{		
+	if (!cave[Depth])
+	{
 		/* If a level is unstaticed and a player is on it, he will now
 		 * stay in the dungeon and appear on the new level somewhere.
 		 */
@@ -990,12 +1021,12 @@ void player_setup(int Ind)
 						reposition = TRUE;
 						break;
 					}
-				}				
+				}
 			}
-			break;			
+			break;
 		}
 	}
-	
+
 	/* Don't allow placement inside an arena */
 	if (pick_arena(Depth, p_ptr->py, p_ptr->px) != -1)
 	{
@@ -1111,7 +1142,7 @@ void player_setup(int Ind)
 
 	/* Tell the server to redraw the player's display */
 	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_VARIOUS | PR_OFLAGS;
-	p_ptr->redraw |= PR_PLUSSES;
+	p_ptr->redraw |= PR_PLUSSES | PR_FLOOR;
 
 	/* Update his view, light, bonuses, and torch radius */
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_BONUS | PU_TORCH | PU_DISTANCE);
@@ -1182,7 +1213,7 @@ player_type* player_alloc()
 	/* Set pointer */
 	return p_ptr;
 }
-/* 
+/*
  * Free player structure
  */
 void player_free(player_type *p_ptr)
@@ -1238,6 +1269,9 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	if (pclass < 0 || pclass >= z_info->c_max) pclass = 0;
 	if (sex < 0 || sex > 1) sex = 0;
 
+	/* Mark new game */
+	p_ptr->new_game = TRUE;
+
 	/* Reprocess his name */
 	//if (!process_player_name(Ind, TRUE)) return FALSE;
 
@@ -1259,7 +1293,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 
 	/* Actually Generate */
 
- 	/* This enables maximize mode for new characters. --RLS */
+	/* This enables maximize mode for new characters. --RLS */
 
 	p_ptr->maximize=1;
 
@@ -1280,7 +1314,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 
 	/* Roll for gold */
 	get_money(p_ptr);
-	
+
 	/* Hack -- grant some Dungeon Master powers */
 	if (is_dm_p(p_ptr))
 	{

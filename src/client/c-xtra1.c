@@ -292,7 +292,7 @@ static void prt_depth(int row, int col, int id)
 	/* Hack -- if indicator index is passed, use value from coffers */
 	if (id != -1)
 	{
-		p_ptr->dun_depth = coffers[coffer_refs[id]];
+		p_ptr->dun_depth = (s16b)coffers[coffer_refs[id]];
 	}
 
 	if (!p_ptr->dun_depth)
@@ -626,6 +626,7 @@ void prt_map_easy()
 	} 
 }
 /* Very Dirty Hack -- Force Redraw of PRT_FRAME_COMPACT on main screen */
+/* Note: this is currently not used by anything, but could prove useful */
 void prt_player_hack(void)
 {
 	int n;
@@ -633,7 +634,8 @@ void prt_player_hack(void)
 	{
 		for (n = 1; n < 22; n++)
 			Term_erase(0, n, 13);
-		p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		//p_ptr->redraw |= (PR_COMPACT | PR_LAG_METER);
+		schedule_redraw(PW_PLAYER_2);
 	}
 }
 
@@ -667,7 +669,8 @@ static void prt_lag(int row, int col)
 	Term_putstr(col, row, 12, TERM_L_DARK, "LAG:[------]"); 
 
 	if( lag_mark == 10000 ) {
-		c_msg_print_aux("Time Out", MSG_LOCAL);
+		/*c_msg_print_aux("Time Out", MSG_LOCAL);*/
+		do_handle_message("Time Out", MSG_LOCAL);
 		if( num < last ) {
 			num=last;
 		} else {
@@ -767,7 +770,7 @@ static void display_inven(void)
 		Term_putstr(0, i, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of description */
 		n = strlen(o_name);
@@ -846,7 +849,7 @@ static void display_equip(void)
 		Term_putstr(0, i - INVEN_WIELD, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of the description */
 		n = strlen(o_name);
@@ -937,7 +940,7 @@ void show_inven(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
 		o_name[lim] = '\0';
@@ -945,7 +948,7 @@ void show_inven(void)
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
@@ -989,7 +992,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, lim);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
 	}
 
@@ -1046,7 +1049,7 @@ void show_equip(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
 		o_name[lim] = '\0';
@@ -1054,7 +1057,7 @@ void show_equip(void)
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
@@ -1319,11 +1322,10 @@ static void prt_frame_compact(void)
 
 	/* Equippy or empty row */
 	if (use_lagmeter)
-		/* Equippy chars */
-		prt_equippy(row++, col);
-	else
-		/* Empty row */
 		row++;
+	else
+		prt_equippy(row++, col);
+
 
 	/* Armor */
 	prt_ac(row++, col);
@@ -1352,6 +1354,7 @@ static void prt_frame_compact(void)
  */
 static void fix_player_compact(void)
 {
+	bool use_lagmeter = TRUE; /* TODO: make it a real option. */
 	int j;
 
 	/* Scan windows */
@@ -1372,8 +1375,16 @@ static void fix_player_compact(void)
 		Term_activate(ang_term[j]);
 
 		/* Display player */
-		prt_frame_compact();
-
+		/* prt_frame_compact(); */
+		/* Equippy or empty row */
+		if (use_lagmeter)
+		{
+			prt_lag(ROW_LAG, COL_LAG);
+			prt_equippy(ROW_AC-1, COL_AC);
+		}
+		else
+			prt_equippy(ROW_LAG, COL_LAG);
+		
 		/* Display relevant indicators */
 		redraw_indicators(PW_PLAYER_2);
 
@@ -1450,7 +1461,9 @@ static void fix_status(void)
 		Term_activate(ang_term[j]);
 
 		/* Display status line */
+		/*
 		prt_status_line();
+		*/
 
 		/* Display relevant indicators */
 		redraw_indicators(PW_STATUS);
@@ -1760,7 +1773,7 @@ int find_whisper_tab(cptr msg, char *text)
 	if ((offset = strstr(msg, from_us)) != NULL)
 	{
 		/* To who */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Short text */
 		pmsg = msg + (offset - msg) + strlen(from_us) + 1;
@@ -1770,7 +1783,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (strstr(msg, to_us) != NULL)
 	{
 		/* From who */
-		strcpy(buf, msg + strlen(to_us));
+		my_strcpy(buf, msg + strlen(to_us), sizeof(buf));
 		offset = strstr(msg, "]");
 		buf[offset - msg - strlen(to_us)] = '\0';
 		/* Short text */
@@ -1780,10 +1793,10 @@ int find_whisper_tab(cptr msg, char *text)
 	else if ((offset = strstr(msg, ":")))
 	{
 		/* Destination */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Sender */
-		strcpy(from_us, offset + 1);
+		my_strcpy(from_us, offset + 1, sizeof(from_us));
 		pmsg = strstr(offset, "]");
 		from_us[pmsg - offset - 1] = '\0';
 		/* Short text */
@@ -1794,8 +1807,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (msg[0] == '&')
 	{
 		/* Dest. */
-		strcpy(buf, msg);
-		buf[strlen(msg)] = '\0';
+		my_strcpy(buf, msg, sizeof(buf));
 	}
 	
 	if (STRZERO(buf)) return 0;
@@ -1820,8 +1832,7 @@ int find_whisper_tab(cptr msg, char *text)
  * XXX XXX XXX Adjust for width and split messages
  */
 
-#define PMSG_TERM 4
-void fix_special_message(void)
+void fix_special_message_aux(byte win)
 {
 	int j, c, i;
 	int w, h, t;
@@ -1829,14 +1840,14 @@ void fix_special_message(void)
 	cptr msg;
 	byte a;
 	char text[80];
-		
+	
 	term *old = Term;
 
 	/* No window */
-	if (!ang_term[PMSG_TERM]) return;
+	if (!win || !ang_term[win]) return;
 
 	/* Activate */
-	Term_activate(ang_term[PMSG_TERM]);
+	Term_activate(ang_term[win]);
 
 	/* Get size */
 	Term_get_size(&w, &h);
@@ -1855,7 +1866,7 @@ void fix_special_message(void)
 		if (view_channel == j) a = TERM_L_BLUE;
 
 		/* Carriage return */		
-		if (strlen(channels[j].name) + c + 1 >= w)
+		if ((int)strlen(channels[j].name) + c + 1 >= w)
 		{
 			/* Clear to end of line */
 			Term_erase(x, y, 255);
@@ -1891,14 +1902,20 @@ void fix_special_message(void)
 			if ( tab && tab != view_channel ) continue;
 			if ( tab ) msg = text;
 		}
-		else if (message_type(c-1) >= MSG_CHAT) 
+		else if (message_type(c-1) >= MSG_CHAT)
 		{
 			if ((message_type(c-1) - MSG_CHAT) != channels[view_channel].id) continue;
 		}
 		else if (message_type(c-1) == MSG_TALK)
 		{
-		 	/* hack -- "&say" */
+			/* hack -- "&say" */
 			tab = find_whisper_tab("&say", text);
+			if ( !tab || tab != view_channel ) continue;
+		}
+		else if (message_type(c-1) == MSG_YELL)
+		{
+			/* hack -- "&yell" */
+			tab = find_whisper_tab("&yell", text);
 			if ( !tab || tab != view_channel ) continue;
 		}
 		else continue;
@@ -1920,7 +1937,7 @@ void fix_special_message(void)
 	}
 
 	/* Erase rest */
-	while (j < h - (t + 1)) 
+	while (j < h - (t + 1))
 	{
 		/* Clear line */
 		Term_erase(0, (h - 1) - j, 255);
@@ -1934,11 +1951,50 @@ void fix_special_message(void)
 	Term_activate(old);
 }
 
+/* New, proper "fix_special_message" to deal with all relevant terms */
+void fix_special_message(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* Call origin function */
+		fix_special_message_aux(j);
+	}
+}
+
+/* Find any opened chat window, or return 0 */
+byte find_chat_window(void)
+{
+	int j;
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* XXX XXX XXX special win32 handler :( */
+		if (!win32_window_visible(j)) continue;
+
+		return j;
+	}
+	return 0;
+}
+
 void fix_message(void)
 {
         int j, c, i;
         int w, h;
         int x, y;
+
+        byte chat_window = find_chat_window();
 
         /* Scan windows */
         for (j = 0; j < 8; j++)
@@ -1966,9 +2022,9 @@ void fix_message(void)
 			
 						msg = message_str(c++);
 			
-						if (ang_term[PMSG_TERM]) {
-							if(message_type(c-1) >= MSG_WHISPER) continue;
-						} 
+						if (chat_window) {
+							if (message_type(c-1) >= MSG_WHISPER) continue;
+						}
 			
 						a = TERM_WHITE;
 						message_color(msg, &a);
@@ -2438,12 +2494,32 @@ struct field
 };
 
 /*
+ * Schedule redrawing of some indicators based on their window flag.
+ *  This should be used instead of p_ptr->redraw |= PR_FOOBAR,
+ *  because from now on, PR_* flags are completely server-defined
+ *  and might mean something entirely different from what client thinks.
+ */
+void schedule_redraw(u32b filter)
+{
+	int i = 0;
+
+	/* For each indicator */
+	for (i = 0; i < known_indicators; i++)
+	{
+		indicator_type *i_ptr = &indicators[i];
+
+		if (indicator_window[i] & filter)
+		{
+			p_ptr->redraw |= i_ptr->redraw; 
+		}
+	}
+}
+
+/*
  * Redraw large ammount of indicators, filtered by window.
  */
 void redraw_indicators(u32b filter)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int i = 0; 
 
@@ -2722,7 +2798,7 @@ void prt_indicator(int first_row, int first_col, int id)
 	s16b row = first_row;
 	u16b col = first_col;
 
-	byte color = TERM_BLUE;
+	byte color = TERM_WHITE;
 
 	s32b val = coffers[coff];
 
@@ -2777,12 +2853,13 @@ void prt_indicator(int first_row, int first_col, int id)
 			{
 				if (flag & IN_VT_CR) col = first_col;
 				if (flag & IN_VT_LF) row++;
-				if (flag & IN_VT_COLOR_RESET) color = TERM_BLUE;
+				if (flag & IN_VT_COLOR_RESET) color = TERM_WHITE;
 				if (flag & IN_VT_COFFER_RESET) val = coffers[(coff = coffer_refs[id])], amnt = i_ptr->amnt;
 				if (flag & IN_VT_DEC_VALUE) val--;
 				if (flag & IN_VT_STRIDE_FLIP) stride = !stride;
 				if (flag & IN_VT_FF) { advance_coffer(); }
 				if (!(flag & IN_VT_COLOR_SET)) continue;
+				/* if IN_VT_COLOR_SET is not set, fallthrough */
 			}			
 			/* Bell (Change color) */
 			case '\a':
@@ -2820,18 +2897,22 @@ void prt_indicator(int first_row, int first_col, int id)
 				/* Skip this value */
 				if (stride)
 				{
+					bool test_for = TRUE;
 					bool passed = FALSE;
 
 					/* Hack -- quit prematurely */
 				   	if ((flag & IN_STOP_EMPTY) && (val == 0)) return;
 
+					/* Hack -- test is inverted */
+					if (flag & IN_STRIDE_NOT) test_for = FALSE;
+
 					/* Perfrom striding tests */
-				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) ) ||
-						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) )) || 
+				    if ((( (flag & IN_STRIDE_POSITIVE) && (val > 0) == test_for) ||
+						 ( (flag & IN_STRIDE_NONZERO) && (val != 0) == test_for)) || 
 						    ((amnt > 1) && 
-						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) ) ||
-							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) ) ||
-							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) )
+						 	(( (flag & IN_STRIDE_EMPTY) && (coffers[coff] == 0) == test_for) ||
+							 ( (flag & IN_STRIDE_LARGER) && (val > coffers[coff + 1]) == test_for) ||
+							 ( (flag & IN_STRIDE_LESSER) && (val < coffers[coff + 1]) == test_for)
 						)))
 					{
 						/* For each test, we see if it is enabled (flag & IN_STRIDE_* check),
@@ -2839,9 +2920,6 @@ void prt_indicator(int first_row, int first_col, int id)
 						 * at least one succeeding value step to perfrom. */
 						passed = TRUE;
 					}
-
-					/* Hack -- test is inverted */
-					if (flag & IN_STRIDE_NOT) passed = 1 - passed;
 
  					/* If any of the tests succeeds, the value is being stepped over. */
 					if (passed)
@@ -2852,7 +2930,7 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Readout value */
-				n = MIN(n, sizeof(tmp));
+				n = MIN(n, sizeof(tmp) - 1);
 				strncpy(tmp, prompt, n);
 				tmp[n] = '\0';
 
@@ -2885,21 +2963,26 @@ void prt_indicator(int first_row, int first_col, int id)
 					}
 					else if (!(flag & IN_TEXT_LABEL))
 					{
-						sprintf(tmp2, tmp, val);
-						strcpy(tmp, tmp2);
-						//n = strlen(tmp);
+						strnfmt(tmp2, sizeof(tmp2), tmp, val);
+						my_strcpy(tmp, tmp2, sizeof(tmp));
+						n = strlen(tmp);
 					}
 					value = TRUE;
 				}
 
 				/* Cut */
+				if (cut < 0) cut = 0;
 				if (cut)
 				{
+					if (cut >= sizeof(tmp)) cut = sizeof(tmp)-1;
 					tmp[(n = cut)] = '\0';
 				}
 
 				/* Send to terminal */
 				c_put_str(color, out, row, col);
+				/* Memorize if on main screen */
+				if (i_ptr->win & (IPW_1 | IPW_2)) mem_line(row, col, n);
+				/* Move "cursor" */
 				col = col + n;
 
 				/* Hack -- quit prematurely */
@@ -2920,7 +3003,7 @@ int register_indicator(int id)
 	/* For each field */
 	for (f = &fields[0]; f->field_cb; f++)
 	{
-			if (!strcasecmp(f->mark, i->mark))
+			if (!my_stricmp(f->mark, i->mark))
 			{
 				prt_functions[id] = f->field_cb;
 				found = TRUE;
@@ -2939,8 +3022,6 @@ int register_indicator(int id)
  */
 void redraw_stuff(void)
 {
-	struct field *f;
-	u32b win;
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
@@ -3003,12 +3084,13 @@ void redraw_stuff(void)
 	/* MAangband-specific local indicator: Lag meter */
 	if ((ROW_LAG < section_icky_row) && 
 		((section_icky_col >= 0 && COL_LAG < section_icky_col) ||
-		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) lag_mark = 0;
-	if (screen_icky && !section_icky_row) lag_mark = 0;
-	if (lag_mark)
+		 (section_icky_col < 0 && COL_LAG < 0-section_icky_col))) redraw_lag_meter = FALSE;
+	if (screen_icky && !section_icky_row) redraw_lag_meter = FALSE;
+	if (!(window_flag[0] & PW_PLAYER_2)) redraw_lag_meter = FALSE;
+	if (redraw_lag_meter)
 	{
 		prt_lag(ROW_LAG, COL_LAG);
-		lag_mark = 0;
+		redraw_lag_meter = FALSE;
 	}
 	
 }
@@ -3075,7 +3157,7 @@ void window_stuff(void)
 	}
 #endif
 	/* Display server-defined stream */
-	for (i = 0; i < stream_groups; i++) 
+	for (i = 0; i < known_streams; i++)
 	{
 		/* Use classic code: */
 		if (p_ptr->window & (streams[stream_group[i]].window_flag))

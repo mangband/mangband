@@ -36,25 +36,28 @@ extern cptr angband_sound_name[MSG_MAX];
 extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
+extern int win32_window_visible(int i);
 
 /* z-term.c */
 extern event_type inkey_ex(void);
 
 
 /* variable.c */
-extern char nick[80];
-extern char pass[80];
+extern char nick[MAX_CHARS];
+extern char pass[MAX_CHARS];
 
-extern char real_name[80];
+extern char real_name[MAX_CHARS];
 
-extern char server_name[80];
+extern char server_name[MAX_CHARS];
 extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern byte floor_secondary_tester;
 
 
 extern indicator_type indicators[MAX_INDICATORS];
@@ -76,6 +79,7 @@ extern s16b store_num;
 
 extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
+extern byte spell_test[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
@@ -84,6 +88,7 @@ extern server_setup_t Setup;
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter;
 char health_track_num;
 byte health_track_attr;
 
@@ -99,6 +104,12 @@ extern s16b max_line;
 extern cave_view_type* remote_info[8];
 extern s16b last_remote_line[8];
 extern cptr stream_desc[32];
+
+cave_view_type air_info[MAX_HGT][MAX_WID];
+s32b air_delay[MAX_HGT][MAX_WID];
+s32b air_fade[MAX_HGT][MAX_WID];
+bool air_updates;
+bool air_refresh;
 
 extern player_type player;
 extern player_type *p_ptr;
@@ -118,9 +129,10 @@ extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
 #define interactive_mode special_line_onscreen
-extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;
+extern bool simple_popup_requested;
+extern bool local_browser_requested;
 
 extern bool confirm_requested;
 extern byte confirm_type;
@@ -130,6 +142,8 @@ extern char confirm_prompt[MAX_CHARS];
 extern bool pause_requested;
 
 #define enter_store_requested enter_store
+
+extern bool escape_in_macro_triggers;
 
 extern bool inkey_base;
 extern bool inkey_xtra;
@@ -171,12 +185,20 @@ extern s16b INVEN_TOTAL;
 extern s16b INVEN_WIELD;
 extern s16b INVEN_PACK;
 
+extern s16b FLOOR_INDEX;
+extern bool FLOOR_NEGATIVE;
+extern s16b FLOOR_TOTAL;
+
+extern u16b MAX_OBJFLAGS_ROWS;
+extern u16b MAX_OBJFLAGS_COLS;
+
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
 extern s16b view_channel;
 
 extern term *ang_term[8];
 extern u32b window_flag[8];
+extern u32b window_flag_o[8];
 
 extern byte color_table[256][4];
 
@@ -246,6 +268,7 @@ extern int known_options;
 
 extern bool rogue_like_commands;
 extern bool auto_accept;
+extern bool auto_itemlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
@@ -270,7 +293,7 @@ extern bool get_server_name(void);
 extern void process_command(void);
 extern void process_requests(void);
 extern void cmd_custom(byte i);
-extern void cmd_interactive(void);
+extern void cmd_interactive(byte line_type, bool use_anykey);
 extern void cmd_tunnel(void);
 extern void cmd_walk(void);
 extern void cmd_run(void);
@@ -350,12 +373,14 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
 extern void show_recall(byte win, cptr prompt);
-extern void prepare_popup(void);
+extern void prepare_popup(int line_type, bool use_anykey);
 extern void show_popup(void);
-extern void show_peruse(s16b line);
+extern void show_remote_peruse(s16b line);
+extern void show_file_peruse(s16b line);
+extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern errr Save_options(void);
-extern void conf_init(void* param);									/* Client config section */
+extern void conf_init(void* param);	/* Client config section */
 extern void conf_save();
 extern void conf_timer(int ticks);
 extern bool conf_section_exists(cptr section);
@@ -371,10 +396,9 @@ extern bool clia_cpy_string(char *dst, int len, int i);
 extern bool clia_cpy_int(s32b *dst, int i);
 extern bool clia_read_string(char *dst, int len, const char *key);
 extern bool clia_read_int(s32b *dst, const char *key);
-extern bool clia_read_bool(s32b *dst, const char *key);
+extern bool clia_read_bool(bool *dst, const char *key);
 
 /* c-init.c */
-extern void stream_subscribe_confirm(int st, int y, int x, bool renew);
 extern bool sync_data(void);
 extern bool client_login(void);
 extern bool client_ready(void);
@@ -385,15 +409,19 @@ extern  int client_failed(void);
 extern void gather_settings(void);
 extern void flush_updates(void);
 extern void init_subscriptions(void);
+extern void quit_hook(cptr str);
 
 /* c-inven.c */
-extern s16b index_to_label(int i);
+extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
-extern bool c_get_spike(void);
+extern byte c_secondary_tester(int item);
 
 /* c-util.c */
+#ifndef HAVE_USLEEP
+extern int usleep(huge microSeconds);
+#endif
 extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);
@@ -426,13 +454,16 @@ extern s32b c_get_quantity(cptr prompt, s32b max);
 extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char m_private);
 extern void clear_from(int row);
+extern int cavedraw(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveprt(cave_view_type* src, int len, s16b x, s16b y);
 extern int cavemem(cave_view_type* src, int len, s16b x, s16b y);
 extern int caveclr(cave_view_type* dest, int len);
 extern int cavecpy(cave_view_type* dest, cave_view_type* src, int len);
 extern int cavestr(cave_view_type* dest, cptr src, byte attr, int max_col);
-extern void show_line(int y, s16b cols, bool mem);
+extern void mem_line(int y, int x, int cols);
+extern void show_line(int y, s16b cols, bool mem, int st);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
+extern void update_air(void);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);
@@ -460,6 +491,7 @@ extern int get_store_stock(int *citem, cptr prompt);
 extern int register_indicator(int id);
 extern void show_inven(void);
 extern void show_equip(void);
+extern byte find_chat_window(void);
 extern void fix_message(void);
 extern void display_player(int screen_mode);
 extern void redraw_stuff(void);
@@ -469,6 +501,7 @@ extern bool message_color(cptr msg, byte *ap);
 extern int find_whisper_tab(cptr msg, char *text);
 extern void prt_map_easy(void);
 extern void prt_player_hack(void);
+extern void schedule_redraw(u32b filter);
 extern void redraw_indicators(u32b filter);
 
 
@@ -512,29 +545,19 @@ extern int send_walk(char dir);
 extern int send_rest(void);
 extern int send_custom_command(byte i, char item, char dir, s32b value, char *entry);
 extern int send_party(s16b command, cptr buf);
+extern int send_store_leave(void);
 extern int send_target_interactive(int mode, char dir);
 extern int send_locate(char dir);
 extern int send_confirm(byte type, byte id);
 extern int send_interactive(byte type);
 extern int send_term_key(char key);
+extern int send_mouse(byte mod, byte x, byte y);
 
 //TRANSITIONAL HACKAGE:
 #define conn_state state
 #define update_ticks() plog("update_ticks unimplemented!")
 #define do_keepalive() plog("do_keepalive unimplemented!")
-#define Net_Send(Socket, ibuf) plog("Net_Send unimplemented!")
-#define Net_WaitReply(Socket, ibuf, retries) plog("Net_WaitReply unimplemented!")
-#define Net_setup() plog("Net_setup unimplemented!")
-#define Net_init(port) plog("Net_init unimplemented!")
-#define Net_cleanup(void) plog("Net_cleanup unimplemented!")
-#define Net_flush(void) plog("Net_flush unimplemented!")
-#define Net_fd(void) plog("Net_fd unimplemented!")
-#define Net_input() plog("Net_input unimplemented!")
-#define Net_packet() plog("Net_packet unimplemented!")
 #define Flush_queue() flush_updates()
-#define SocketCloseAll() plog("SocketCloseAll unimplemented!")
-#define Send_custom_command(i, item, dir, value, entry) plog("Send_custom_command unimplemented!")
-#define Send_walk(dir) plog("Send_walk unimplemented!")
 #define Send_run(dir) plog("Send_run unimplemented!")
 #define Send_drop_gold(amt) plog("Send_drop_gold unimplemented!")
 #define Send_stay() plog("Send_stay unimplemented!")
@@ -549,7 +572,6 @@ extern int send_term_key(char key);
 #define Send_ghost(ability) plog("Send_ghost unimplemented!")
 #define Send_store_purchase(item, amt, price) plog("Send_store_purchase unimplemented!")
 #define Send_store_sell(item, amt) plog("Send_store_sell unimplemented!")
-#define Send_store_leave() plog("Send_store_leave unimplemented!")
 #define Send_store_confirm() plog("Send_store_confirm unimplemented!")
 #define Send_special_line(type, line) plog("Send_special_line unimplemented!")
 #define Send_interactive(type) plog("Send_interactive unimplemented!")

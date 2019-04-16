@@ -10,7 +10,7 @@
  * This software may be copied and distributed for educational, research,
  * and not for profit purposes provided that this copyright and statement
  * are included in all such copies.  Other copyrights may also apply.
- * 
+ *
 */
 
 
@@ -39,7 +39,7 @@
 
 /* The most pedantic-a%& getpixel and putpixel ever, hopefully. */
 /* There may still be endianness bugs! These will be fixed after adequte testing. XXX XXX XXX */
-inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
+static errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g, Uint8 *b)
 {
 	/*const Uint32 mask[] = {0x0, 0xff, 0xffff, 0xffffff, 0xffffffff};*/
 	Uint32 pixel;
@@ -79,13 +79,13 @@ inline errr SDL_GetPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 *r, Uint8 *g
 
 /* This function looks remarkably similar to the one above. Yes, it's cut
  * and paste. */
-inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
+static errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, Uint8 b)
 {
 	Uint32 pixel;
 
 	Uint8 *pp;
 
-	int n; 
+	int n;
 
 	if (f == NULL) return -1;
 
@@ -108,12 +108,12 @@ inline errr SDL_PutPixel (SDL_Surface *f, Uint32 x, Uint32 y, Uint8 r, Uint8 g, 
 	return 0;
 }
 
-inline Uint32 ifloor(Uint32 i)
+static Uint32 ifloor(Uint32 i)
 {
 	return i & 0xFFFF0000;
 }
 
-inline Uint32 iceil(Uint32 i)
+static Uint32 iceil(Uint32 i)
 {
 	return (i & 0xFFFF) ? i : ifloor(i) + (1<<16);
 }
@@ -132,7 +132,7 @@ errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *d
 	Uint32 rs, gs, bs; /* sums. */
 
 	/* temp storage for large int multiplies. Uint64 doen't exist anywhere */
-	double farea; 
+	double farea;
 	Uint32 area;
 
 	Uint32 sx, sy;
@@ -224,7 +224,7 @@ errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *d
 /* This function will take an SDL_Surface, allocate a new surface to hold
  * the resized surface, perform the scaling operation, free the old surface
  * and return the new one. This behaviour is vaguely modeled after C library
- * string functions. Returns NULL on grievous errors! 
+ * string functions. Returns NULL on grievous errors!
  *
  * The scaling operation is performed one or more times to accomodate
  * images comprised by a number of sub-images whose edges must not be blurred
@@ -234,13 +234,12 @@ errr SDL_ScaleBlit(SDL_Surface *src, SDL_Rect *sr, SDL_Surface *dst, SDL_Rect *d
  *
  * t_oldw, t_oldh are the size of the old tiles
  */
-SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src, 
-		                             Uint32 t_oldw, 
-											  Uint32 t_oldh, 
-											  Uint32 t_neww,
-											  Uint32 t_newh,
-											  int dealloc_src)
-
+SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
+                                   Uint32 t_oldw,
+                                   Uint32 t_oldh,
+                                   Uint32 t_neww,
+                                   Uint32 t_newh,
+                                   int dealloc_src)
 {
 	SDL_Surface *dst;
 	SDL_Rect sr, dr;
@@ -263,7 +262,7 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	 * identical to src.
 	 */
 	dst = SDL_CreateRGBSurface(src->flags, nx * t_neww, ny * t_newh, src->format->BitsPerPixel,
-										src->format->Rmask, src->format->Gmask, src->format->Bmask,	src->format->Amask);
+	                           src->format->Rmask, src->format->Gmask, src->format->Bmask, src->format->Amask);
 
 	/* Copy pallete */
 	if (src->format->BitsPerPixel == 8) {
@@ -290,10 +289,10 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 			if (SDL_ScaleBlit(src, &sr, dst, &dr)) return NULL;
 			/* XXX XXX XXX HACK -- stay online */
 			if (conn_state && rand_int(10) < 5) {
-				Net_packet();
+				//Net_packet();
 				update_ticks();
 				do_keepalive();
-				Net_flush();
+				//Net_flush();
 			}
 		}
 	}
@@ -359,7 +358,7 @@ errr strtoii(const char *str, Uint32 *w, Uint32 *h)
 
 
 char *formatsdlflags(Uint32 flags) {
-	return format ("%s%s%s%s%s%s%s%s%s%s (%x)", 
+	return format ("%s%s%s%s%s%s%s%s%s%s (%x)",
 			(flags & SDL_HWSURFACE) ? "SDL_HWSURFACE "  : "",
 			(flags & SDL_ANYFORMAT) ? "SDL_ANYFORMAT "  : "",
 			(flags & SDL_HWPALETTE) ? "SDL_HWPALETTE "  : "",
@@ -391,6 +390,8 @@ struct sdl_keymapt {
 /* XXX XXX XXX the following keymap sucks. More comments below. */
 sdl_keymapt sdl_keymap[] =
 {
+	/* Note: those are wrong, please see pref-x11.prf for
+	 * correct ones. Compare to SDLK_F1-F12 below. */
 	/*{SDLK_UP, "[A", "Oa", "Ox"}, 
 	{SDLK_DOWN, "[B", "Ob", "Or"},
 	{SDLK_RIGHT, "[C", "Oc", "Ot"},
@@ -400,23 +401,27 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_END, "[4~", "[4^", "Oq"},
 	{SDLK_PAGEUP, "[5~", "[5^", "Oy"},
 	{SDLK_PAGEDOWN, "[6~", "[6^", "Os"},*/
-	{SDLK_F1, "[[A", NULL, NULL},
-	{SDLK_F2, "[[B", NULL, NULL},
-	{SDLK_F3, "[[C", NULL, NULL},
-	{SDLK_F4, "[[D", NULL, NULL},
-	{SDLK_F5, "[[E", NULL, NULL},
-	{SDLK_F6, "[[17~", NULL, NULL},
-	{SDLK_F7, "[[18~", NULL, NULL},
-	{SDLK_F8, "[[19~", NULL, NULL},
-	{SDLK_F9, "[[20~", NULL, NULL},
-	{SDLK_F10, "[[21~", NULL, NULL},
-	{SDLK_F11, "[[23~", NULL, NULL},
-	{SDLK_F12, "[[24~", NULL, NULL},
+/*
+	{SDLK_F1, "_FFBE", NULL, NULL},
+	{SDLK_F2, "_FFBF", NULL, NULL},
+	{SDLK_F3, "_FFC0", NULL, NULL},
+	{SDLK_F4, "_FFC1", NULL, NULL},
+	{SDLK_F5, "_FFC2", NULL, NULL},
+	{SDLK_F6, "_FFC3", NULL, NULL},
+	{SDLK_F7, "_FFC4", NULL, NULL},
+	{SDLK_F8, "_FFC5", NULL, NULL},
+	{SDLK_F9, "_FFC6", NULL, NULL},
+	{SDLK_F10, "_FFC7", NULL, NULL},
+	{SDLK_F11, "_FFC8", NULL, NULL},
+	{SDLK_F12, "_FFC9", NULL, NULL},
+*/
 	/* I have no machines with F13, F14, F15. Is that a Sun thing? */
-	{SDLK_F13, "", NULL, NULL}, 
+/*
+	{SDLK_F13, "", NULL, NULL},
 	{SDLK_F14, "", NULL, NULL},
 	{SDLK_F15, "", NULL, NULL},
-	{SDLK_RSHIFT, "", NULL, NULL}, 
+*/
+	{SDLK_RSHIFT, "", NULL, NULL},
 	{SDLK_LSHIFT, "", NULL, NULL},
 	{SDLK_RALT, "", NULL, NULL},
 	{SDLK_LALT, "", NULL, NULL},
@@ -464,6 +469,24 @@ void Multikeypress(char *k)
 	while (*k) Term_keypress(*k++);
 }
 
+int IsSpecial(SDLKey k)
+{
+	switch (k)
+	{
+		case SDLK_F1: case SDLK_F2:
+		case SDLK_F3: case SDLK_F4:
+		case SDLK_F5: case SDLK_F6:
+		case SDLK_F7: case SDLK_F8:
+		case SDLK_F9: case SDLK_F10:
+		case SDLK_F11: case SDLK_F12:
+		case SDLK_TAB:
+			return TRUE;
+		default:
+			return FALSE;
+	}
+	return 1234567; /* all good children go to heaven */
+}
+
 int IsMovement(SDLKey k)
 {
 	switch (k)
@@ -496,6 +519,66 @@ int IsMovement(SDLKey k)
 }
 
 
+/* *** Arrow keys combiner *** */
+int sdl_combine_arrowkeys = 1; /* ON/OFF */
+Uint16 sdl_combiner_delay = 20;
+/* Delayed key */
+SDL_keysym delayed_keysym; /* Actual key (with mods) */
+bool has_dlks = FALSE; /* We have one */
+Uint32 event_timestamp = 0; /* Book-keeping */
+Uint32 timestamp_dlks = 0;
+
+static SDLKey CombinedMovement(SDLKey a, SDLKey b)
+{
+	const SDLKey keys9x9[4][4] = {
+		{ SDLK_HOME, SDLK_UP, SDLK_PAGEUP },
+		{ SDLK_LEFT, 0, SDLK_RIGHT },
+		{ SDLK_END, SDLK_DOWN, SDLK_PAGEDOWN },
+	};
+	int _dx = 0, _dy = 0;
+	if (a == SDLK_UP || b == SDLK_UP) _dy = -1;
+	else if (a == SDLK_DOWN || b == SDLK_DOWN) _dy = 1;
+	if (a == SDLK_LEFT || b == SDLK_LEFT) _dx = -1;
+	else if (a == SDLK_RIGHT || b == SDLK_RIGHT) _dx = 1;
+	if (_dx && _dy)
+	{
+		return keys9x9[_dy + 1][_dx + 1];
+	}
+	return 0;
+}
+void Storedelayedkey(SDL_keysym *ks)
+{
+	memcpy(&delayed_keysym, ks, sizeof(delayed_keysym));
+	has_dlks = 1;
+	timestamp_dlks = event_timestamp;
+}
+char *SDL_keysymtostr(SDL_keysym *ks); /* forward dec */
+void Flushdelayedkey(bool execute, bool force_flush, SDLKey ks, Uint32 timestamp)
+{
+	bool flush = FALSE;
+	if (force_flush == TRUE) {
+		flush = TRUE;
+	}
+	else if (ks && has_dlks && delayed_keysym.sym == ks)
+	{
+		flush = TRUE;
+	}
+	else if (timestamp && has_dlks) {
+		if (timestamp - timestamp_dlks > sdl_combiner_delay) flush = TRUE;
+	}
+	if (flush)
+	{
+		if (execute)
+		{
+			int old = sdl_combine_arrowkeys;
+			sdl_combine_arrowkeys = 0;
+			Multikeypress(SDL_keysymtostr(&delayed_keysym));
+			sdl_combine_arrowkeys = old;
+		}
+		has_dlks = 0;
+	}
+}
+
 char *SDL_keysymtostr(SDL_keysym *ks)
 {
 #ifdef bufsize
@@ -509,47 +592,69 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 	 * It certainly seems to work fine, at least under GCC.
 	 * It can easily be changed to a pointer passed as an argument.
 	 */
-	static char buf[bufsize]; 
+	static char buf[bufsize];
 	Uint8 ch;
 	Uint32 i;
 
 	/* cat for strings and app[end] for characters */
-#define sdlkcat(a) strncat(buf,(a),bufsize-bufused-1); bufused+=strlen((a)); 
+#define sdlkcat(a) strncat(buf,(a),bufsize-bufused-1); bufused+=strlen((a));
 #define sdlkapp(a) if(bufused<bufsize-1) { buf[bufused]=a; buf[bufused+1]='\0'; bufused++; }
 
 	buf[0] = '\0';
 
-	if(ks->unicode && !(ks->unicode & 0xff80))	{
-		ch = ks->unicode;
+	if(ks->unicode && !(ks->unicode & 0xff80)) {
+		ch = (Uint8)ks->unicode;
 		if (ch) sdlkapp(ch);
 		return buf;
 	}
 
+	/* HACK -- combine two arrow keys pressed at the same time. */
+	if (sdl_combine_arrowkeys)
+	{
+		if (ks->sym == SDLK_LEFT || ks->sym == SDLK_RIGHT ||
+			ks->sym == SDLK_UP || ks->sym == SDLK_DOWN)
+		{
+			if (has_dlks)
+			{
+				SDLKey rekey = CombinedMovement(ks->sym, delayed_keysym.sym);
+				Flushdelayedkey(FALSE, TRUE, 0, 0);
+				if (rekey) {
+					/* Is replacing keysym.sym evil? Should work fine */
+					ks->sym = rekey;
+					ks->mod = delayed_keysym.mod;
+				}
+			} else {
+				Storedelayedkey(ks);
+				return buf;
+			}
+		}
+	}
+
 	for (i = 0; ; ++i)
 	{
-		if (sdl_keymap[i].k == ks->sym) 
+		if (sdl_keymap[i].k == ks->sym)
 		{
-			if (sdl_keymap[i].s && strlen(sdl_keymap[i].s)) 
+			if (sdl_keymap[i].s && strlen(sdl_keymap[i].s))
 			{
-				if (ks->mod & KMOD_ALT) 
+				if (ks->mod & KMOD_ALT)
 				{
 					sdlkapp('');
 				}
 				if (ks->mod & KMOD_CTRL)
 				{
-					if(sdl_keymap[i].ctrl) 
+					if (sdl_keymap[i].ctrl)
 					{
 						sdlkcat(sdl_keymap[i].ctrl);
 						break;
-					} 
+					}
 				} else
 				if (ks->mod & KMOD_SHIFT)
 				{
 					if(sdl_keymap[i].shift)
 					{
 						sdlkcat(sdl_keymap[i].shift);
-						break; 
-					} 
+						break;
+					}
 				}
 				sdlkcat(sdl_keymap[i].s);
 			}
@@ -557,22 +662,23 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 		} else
 		if (sdl_keymap[i].k == SDLK_UNKNOWN)
 		{
-			if (IsMovement(ks->sym))
+			if (IsMovement(ks->sym) || IsSpecial(ks->sym))
 			{
-				snprintf(buf, bufsize-bufused, "%c%s%s%s%s_%lX%c", 31,
+				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
 						ks->mod & KMOD_SHIFT ? "S" : "",
-						"", /* for future expansion. */
-						ks->mod & KMOD_ALT   ? "M" : "",
+						ks->mod & KMOD_ALT   ? "O" : "",
+						ks->mod & KMOD_META  ? "M" : "",
 						(unsigned long) ks->sym, 13);
 				ch = 0;
-			}else
+			}
+			else
 			{
-				if (ks->mod & KMOD_ALT) 
+				if (ks->mod & KMOD_ALT)
 				{
 					sdlkapp('');
 				}
-				ch = ks->sym; 
+				ch = ks->sym;
 				/* alphanumeric keys aren't part of the keymap because
 				 * typing them in would be way too tedious */
 				if (ch <= 'z' && ch >= 'a') {

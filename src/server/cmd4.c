@@ -293,7 +293,6 @@ void display_houses(int Ind, char query)
 		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 	}
 	Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0);
-	
 }
 
 /*
@@ -322,7 +321,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	char base_name[80];
 
 	bool *okay;
-
+	bool *highlights;
+	char *owners;
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -339,6 +339,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 	
 	/* Init Array */
 	C_MAKE(okay, z_info->a_max, bool);
+	C_MAKE(highlights, z_info->a_max, bool);
+	C_MAKE(owners, z_info->a_max * 80, bool);
 
 	/* Scan the artifacts */
 	for (k = 0; k < z_info->a_max; k++)
@@ -347,6 +349,8 @@ void do_cmd_check_artifacts(int Ind, int line)
 
 		/* Default */
 		okay[k] = FALSE;
+		highlights[k] = FALSE;
+		owners[k * 80] = '\0';
 
 		/* Skip "empty" artifacts */
 		if (!a_ptr->name) continue;
@@ -381,6 +385,9 @@ void do_cmd_check_artifacts(int Ind, int line)
 					/* Ignore non-artifacts */
 					if (!artifact_p(o_ptr)) continue;
 
+					/* Note location */
+					my_strcpy(&owners[o_ptr->name1 * 80], format(" (%d ft)", Depth * 50), 80);
+
 					/* Ignore known items */
 					if (object_known_p(p_ptr, o_ptr)) continue;
 
@@ -394,12 +401,12 @@ void do_cmd_check_artifacts(int Ind, int line)
 	/* Check the inventories */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		player_type *p_ptr = Players[i];
-		
+		player_type *q_ptr = Players[i];
+
 		/* Check this guy's */
-		for (j = 0; j < INVEN_PACK; j++)
+		for (j = 0; j < INVEN_TOTAL; j++)
 		{
-			object_type *o_ptr = &p_ptr->inventory[j];
+			object_type *o_ptr = &q_ptr->inventory[j];
 
 			/* Ignore non-objects */
 			if (!o_ptr->k_idx) continue;
@@ -407,11 +414,18 @@ void do_cmd_check_artifacts(int Ind, int line)
 			/* Ignore non-artifacts */
 			if (!artifact_p(o_ptr)) continue;
 
+			/* Note owner */
+			my_strcpy(&owners[o_ptr->name1 * 80], format(" (%s)", q_ptr->name), 80);
+
+			/* Belongs to the target player and is known */
+			if (q_ptr->id == p_ptr->id) highlights[o_ptr->name1] = TRUE;
+
 			/* Ignore known items */
-			if (object_known_p(p_ptr, o_ptr)) continue;
+			if (object_known_p(q_ptr, o_ptr)) continue;
 
 			/* Note the artifact */
 			okay[o_ptr->name1] = FALSE;
+			highlights[o_ptr->name1] = FALSE;
 		}
 	}
 
@@ -445,16 +459,25 @@ void do_cmd_check_artifacts(int Ind, int line)
 			object_desc_store(Ind, base_name, &forge, FALSE, 0);
 		}
 
+		/* Dungeon Masters see extra info */
+		if (!dm_flag_p(p_ptr, ARTIFACT_CONTROL))
+		{
+			owners[k * 80] = '\0';
+		}
+
 		/* Determine if it's relevant to the player asking */
-		if (p_ptr->a_info[k]) highlite = 'w';
-		if (p_ptr->a_info[k] >= cfg_preserve_artifacts) highlite = 'W';
+		if (p_ptr->a_info[k]) highlite = 's';
+		if (p_ptr->a_info[k] > cfg_preserve_artifacts) highlite = 'W';
+		if (highlights[k]) highlite = 'w';
 
 		/* Hack -- Build the artifact name */
-		fprintf(fff, "%c     The %s\n", highlite, base_name);
+		fprintf(fff, "%c     The %s%s\n", highlite, base_name, &owners[k * 80]);
 	}
-	
+
 	/* Free array */
 	FREE(okay);
+	FREE(highlights);
+	FREE(owners);
 
 	/* Close the file */
 	my_fclose(fff);
@@ -491,7 +514,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	fff = my_fopen(file_name, "w");
 
 	/* Paranoia */
-	if (!fff) 
+	if (!fff)
 	{
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
@@ -518,15 +541,15 @@ void do_cmd_check_uniques(int Ind, int line)
 					if (r_ptr->level > curr_ptr->level)
 						break;
 					l++;
-				}				
-				for (i = total; i > l; i--)	
+				}
+				for (i = total; i > l; i--)
 					idx[i] = idx[i - 1];
 				idx[l] = k;
 				total++;
 			}
 		}
 	}
-								
+	
 	if (total)
 	{
 		/* for each unique */
@@ -588,7 +611,7 @@ void do_cmd_check_uniques(int Ind, int line)
 
 		}
 	}
-	else fprintf(fff, "wNo uniques are witnessed so far.\n");
+	else fprintf(fff, "%s", "wNo uniques are witnessed so far.\n");
 
 	/* Free the "ind" array */
 	FREE(idx);
@@ -623,9 +646,9 @@ void do_cmd_check_players(int Ind, int line)
 
 	/* Open a new file */
 	fff = my_fopen(file_name, "w");
-	
+
 	/* Paranoia */
-	if (!fff) 
+	if (!fff)
 	{
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
@@ -644,7 +667,7 @@ void do_cmd_check_players(int Ind, int line)
 		/* don't display the dungeon master if the secret_dungeon_master
 		 * option is set (unless you're a DM yourself)
 		 */
-        if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
+		if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
 
 		/*** Determine color ***/
 
@@ -686,7 +709,7 @@ void do_cmd_check_players(int Ind, int line)
 
 		/* Newline */
 		// -AD- will this work?
-		fprintf(fff, "\n");
+		fprintf(fff, "%s", "\n");
 		fprintf(fff, "U         %s@%s\n", q_ptr->realname, q_ptr->hostname);
 
 	}
@@ -872,14 +895,13 @@ void do_cmd_knowledge_history(int Ind, int line)
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "Time       Depth   CLev  Event\n");
+		fprintf(fff, "%s", "Time       Depth   CLev  Event\n");
 		//fprintf(fff, "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			fprintf(fff, "%s\n", format_history_event(evt));
 		}
-		fprintf(fff, "\n\n");
+		fprintf(fff, "%s", "\n\n");
 	}
 
 	/* Close the file */
@@ -914,7 +936,7 @@ void do_cmd_check_other(player_type *p_ptr, int line)
 		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_ICKY, 0);//line);
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_ICKY, 0);//line);
 
 }
 
@@ -943,7 +965,7 @@ void common_peruse(player_type *p_ptr, char query)
 			p_ptr->special_file_type = SPECIAL_FILE_NONE;
 			break;
 	}
-	if (p_ptr->interactive_line < 0) 
+	if (p_ptr->interactive_line < 0)
 		p_ptr->interactive_line = 0;
 }
 
@@ -955,8 +977,8 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 
 	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
 	{
-#ifdef DEBUG	
-		plog(format("Player %s attempted to do special_file_peruse too early"));
+#ifdef DEBUG
+		debug(format("Player %s attempted to do special_file_peruse too early.", p_ptr->name));
 #endif
 		return;
 	}
@@ -984,20 +1006,20 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(Ind, next);	break;
 			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(Ind, next);	break;
 			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(Ind, next);	break;
-			case SPECIAL_FILE_KILL:		do_cmd_knowledge_kills(Ind, next);	break;
-			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);break;
-			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
+			case SPECIAL_FILE_KILL: 	do_cmd_knowledge_kills(Ind, next);	break;
+			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);	break;
+			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);      	break;
 		}
 		/* Send *everything* to client */
 		send_term_info(p_ptr, NTERM_CLEAR, 0);
-		for (i = 0; i < p_ptr->last_info_line; i++)
+		for (i = 0; i < p_ptr->last_info_line + 1; i++)
 		{
-			Stream_line_p(p_ptr, STREAM_FILE_TEXT, i);
+			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 		}
 		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
 	}
-	/* Instruct client to browse locally */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
+	/* Instruct client to browse remotely :( */
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_FRESH, p_ptr->interactive_line);
 }
 
 void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
@@ -1049,7 +1071,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 	
 	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
 	{
-#ifdef DEBUG	
+#ifdef DEBUG
 		debug(format("Player %s attempted to get knowledge too early", p_ptr->name));
 #endif
 		return;
@@ -1083,9 +1105,9 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		/* Prompt */
 		text_out(" \n");
 		text_out("Command: \n");
-		
+
 		text_out_done();
-		
+
 		/* Send */
 		Send_term_info(Ind, NTERM_CLEAR, 0);
 		for (i = 0; i < MAX_TXT_INFO; i++)
@@ -1096,7 +1118,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 	}
 
-	/* Proccess command - Switch mode */	
+	/* Proccess command - Switch mode */
 	switch (query)
 	{
 		case '1':
@@ -1131,12 +1153,12 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 			self_knowledge(Ind, FALSE);
 			p_ptr->special_file_type = SPECIAL_FILE_OTHER;
 			changed = TRUE;
-			break;			
+			break;
 	}
-	
+
 	/* HACK! - Move to another menu */
 	if (changed)
-	{	
+	{
 		do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, 0);
 	}
 }
@@ -1153,7 +1175,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 	char * y = &(p_ptr->interactive_hook[0][3]);
 	char * x = &(p_ptr->interactive_hook[0][4]);
 	char * attr = &(p_ptr->interactive_hook[0][5]);
-	char * mlen = &(p_ptr->interactive_hook[0][6]);	
+	char * mlen = &(p_ptr->interactive_hook[0][6]);
 	char * str = p_ptr->interactive_hook[1];
 
 	switch(query)
@@ -1189,7 +1211,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 		default:
 
 		if (*len < 80 && isprint(query))
-		{	
+		{
 			str[(byte)(*len)++] = query;
 		}
 	}
@@ -1199,7 +1221,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 		p_ptr->special_file_type = *old_file_type;
 		send_term_info(p_ptr, NTERM_HOLD, NTERM_PULL);
 		do_cmd_interactive_aux(p_ptr, *old_file_type, *mark);
-		return; 
+		return;
 	}
 
 	/* Refresh client screen */
@@ -1209,7 +1231,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 	}
 	Send_char_p(p_ptr, *x + i, *y, TERM_WHITE, ' ');
 
-	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
 }
 
 void do_cmd_interactive(player_type *p_ptr, char query)
@@ -1217,9 +1239,12 @@ void do_cmd_interactive(player_type *p_ptr, char query)
 	/* Hack -- use special term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 
-	/* Perform action */	
+	/* Perform action */
 	do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, query);
 
 	/* Hack -- return to main term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+
+	/* Hack -- cancel monster tracking (maybe) */
+	monster_race_track_hack(p_ptr);
 }

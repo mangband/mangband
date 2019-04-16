@@ -69,7 +69,7 @@
 
 # Version stamp (required)
 
-V:1.2.0
+V:1.5.0
 
 
 ##### Non-kind (contains the "pile" picture) #####
@@ -4233,31 +4233,37 @@ N:522:& Potato~
 G:,:u
 I:80:20:1500
 W:0:0:2:1
+D:It provides nourishment for about 750 turns under normal conditions.
 
 N:523:& Head~ of Cabbage
 G:,:G
 I:80:21:1500
 W:0:0:3:1
+D:It provides nourishment for about 750 turns under normal conditions.
 
 N:524:& Carrot~
 G:,:o
 I:80:22:500
 W:0:0:1:2
+D:It provides nourishment for about 250 turns under normal conditions.
 
 N:525:& Beet~
 G:,:r
 I:80:23:750
 W:0:0:1:2
+D:It provides nourishment for about 375 turns under normal conditions.
 
 N:526:& Squash
 G:,:y
 I:80:24:2000
 W:0:0:3:1
+D:It provides nourishment for about 1000 turns under normal conditions.
 
 N:527:& Ear~ of Corn
 G:`:y
 I:80:25:1500
 W:0:0:2:2
+D:It provides nourishment for about 750 turns under normal conditions.
 
 ##### XXX 528 XXX
 

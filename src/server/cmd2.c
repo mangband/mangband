@@ -49,17 +49,17 @@ void do_cmd_go_up(int Ind)
 		}
 	}
 
-  if (cfg_ironman)
-  {
-	/* 
-	 * Ironmen don't go up
-	 */
-	if(!is_dm_p(p_ptr))
+	if (cfg_ironman)
 	{
-		msg_print(Ind, "Morgoth awaits you in the darkness below.");
-		return;	
+		/*
+		 * Ironmen don't go up
+		 */
+		if(!is_dm_p(p_ptr))
+		{
+			msg_print(Ind, "Morgoth awaits you in the darkness below.");
+			return;
+		}
 	}
-  }
 
 	/* Remove the player from the old location */
 	c_ptr->m_idx = 0;
@@ -329,7 +329,7 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 				/* Otherwise drop an item */
 				else
 				{
-                    place_object(Depth, ny, nx, FALSE, FALSE, 0);
+					place_object(Depth, ny, nx, FALSE, FALSE, 0);
 				}
 
 				/* Reset the object level */
@@ -555,7 +555,7 @@ int find_house(int Ind, int x, int y, int offset)
 	{
 		/* Check the house position *including* the walls */
 		if (houses[i].depth == p_ptr->dun_depth
-			&& x >= houses[i].x_1-1 && x <= houses[i].x_2+1 
+			&& x >= houses[i].x_1-1 && x <= houses[i].x_2+1
 			&& y >= houses[i].y_1-1 && y <= houses[i].y_2+1)
 		{
 			/* We found the house this section of wall belongs to */
@@ -569,7 +569,7 @@ int find_house(int Ind, int x, int y, int offset)
  * Determine if the given location is ok to use as part of the foundation
  * of a house.
  */
-bool is_valid_foundation(Ind, x, y)
+bool is_valid_foundation(int Ind, int x, int y)
 {
 	int house;
 	player_type *p_ptr = Players[Ind];
@@ -582,7 +582,7 @@ bool is_valid_foundation(Ind, x, y)
 	{
 		return TRUE;
 	}
-	
+
 	/* Perma walls and doors are valid if they are part of a house owned 
 	 * by this player */
 	c_ptr = &cave[p_ptr->dun_depth][y][x];
@@ -598,10 +598,10 @@ bool is_valid_foundation(Ind, x, y)
 			{
 				/* Valid, a wall or door in our own house. */
 				return TRUE;
-			}			
+			}
 		}
 	}
-	return FALSE;		
+	return FALSE;
 }
 
 /*
@@ -653,10 +653,10 @@ bool create_house_door(int Ind, int x, int y)
 		{
 			/* No door, so create one! */
 			houses[house].door_y = y;
-			houses[house].door_x = x;	
+			houses[house].door_x = x;
 			c_ptr = &cave[p_ptr->dun_depth][y][x];
 			c_ptr->feat = FEAT_HOME_HEAD;
-			everyone_lite_spot(p_ptr->dun_depth, y, x);	
+			everyone_lite_spot(p_ptr->dun_depth, y, x);
 			msg_print(Ind, "You create a door for your house!");
 			return TRUE;
 		}
@@ -696,9 +696,8 @@ bool create_house_door(int Ind, int x, int y)
 bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 {
 	player_type *p_ptr = Players[Ind];
-	cave_type *c_ptr;
 	int x, y, x1, y1, x2, y2;
-	bool done, valid;
+	bool done;
 	bool n,s,e,w,ne,nw,se,sw;
 	object_type	*o_ptr;
 
@@ -733,9 +732,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 				/* Not a valid perimeter */
 				n = FALSE; 
 				break;
-			}			
+			}
 		}
-		
+
 		/* Could we expand east? */
 		e = TRUE;
 		for(y = y1; y <= y2; y++)
@@ -746,9 +745,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 				/* Not a valid perimeter */
 				e = FALSE;
 				break;
-			}			
+			}
 		}
-		
+
 		/* Could we expend south? */
 		s = TRUE;
 		for(x = x1; x <= x2; x++)
@@ -759,9 +758,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 				/* Not a valid perimeter */
 				s = FALSE;
 				break;
-			}			
+			}
 		}
-		
+
 		/* Could we expand west? */
 		w = TRUE;
 		for(y = y1; y <= y2; y++)
@@ -772,9 +771,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 				/* Not a valid perimeter */
 				w = FALSE;
 				break;
-			}			
+			}
 		}
-		
+
 		/* Could we expand the corners? */
 		ne = is_valid_foundation(Ind, x2+1, y1-1);
 		nw = is_valid_foundation(Ind, x1-1, y1-1);
@@ -787,13 +786,13 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		if( e ) e = (!n && !s) || ( n && ne ) || ( s && se );
 		if( s ) s = (!e && !w) || ( e && se ) || ( w && sw );
 		if( w ) w = (!n && !s) || ( n && nw ) || ( s && sw );
-		
+
 		/* Actually expand the boundary */
 		if( n ) y1--;
 		if( s ) y2++;
 		if( w ) x1--;
 		if( e ) x2++;
-		
+
 		/* Stop if we couldn't expand */
 		done = !(n || s || w || e);
 
@@ -807,9 +806,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		msg_print(Ind, "The foundation is too small");
 		return FALSE;
 	}
-	
+
 	/* Return the area */
-	*px1 = x1;	
+	*px1 = x1;
 	*px2 = x2;
 	*py1 = y1;
 	*py2 = y2;
@@ -825,9 +824,6 @@ bool create_house(int Ind)
 	int x1, x2, y1, y2, x, y;
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
-	int item;
-	bool foundation;
-	object_type	*o_ptr;
 
 	/* Determine the area of the house foundation */
 	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
@@ -837,7 +833,7 @@ bool create_house(int Ind)
 
 	/* Is the location allowed? */
 	/* XXX We should check if too near other houses, roads, level edges, etc */
-	
+
 	/* Add a house to our houses list */
 	houses[num_houses].price = 0;	/* XXX */
 	houses[num_houses].x_1 = x1+1;
@@ -849,7 +845,7 @@ bool create_house(int Ind)
 	houses[num_houses].door_x = 0;
 	set_house_owner(Ind, num_houses);
 	num_houses++;
-	
+
 	/* Render into the terrain */
 	for (y = y1; y <= y2; y++)
 	{
@@ -885,10 +881,10 @@ bool create_house(int Ind)
 			c_ptr->feat = FEAT_FLOOR;
 
 			/* Make it "icky" */
-			c_ptr->info |= CAVE_ICKY;			
+			c_ptr->info |= CAVE_ICKY;
 
 			/* Update the spot */
-			everyone_lite_spot(p_ptr->dun_depth, y, x);	
+			everyone_lite_spot(p_ptr->dun_depth, y, x);
 		}
 	}
 	return TRUE;
@@ -903,10 +899,10 @@ bool set_house_owner(int Ind, int house)
 
 	/* Not if it's already owned */
 	if (house_owned(house)) return FALSE;
-	
+
 	/* Set the player as the owner */
-	strncpy(houses[house].owned,p_ptr->name,MAX_NAME_LEN);
-	
+	my_strcpy(houses[house].owned, p_ptr->name, MAX_NAME_LEN+1);
+
 	return TRUE;
 }
 
@@ -917,7 +913,7 @@ void disown_house(int house)
 {
 	cave_type *c_ptr;
 	int i,j, Depth;
-	
+
 	if (house >= 0 && house < num_houses)
 	{
 		Depth = houses[house].depth;
@@ -933,17 +929,17 @@ void disown_house(int house)
 			}
 		}
 		/* Clear any items from the house */
-		for (i = houses[house].y_1; i <= houses[house].y_2; i++) 
+		for (i = houses[house].y_1; i <= houses[house].y_2; i++)
 		{
-			for (j = houses[house].x_1; j <= houses[house].x_2; j++) 
-			{ 
-				delete_object(houses[house].depth,i,j); 
-			} 
-		} 		
-		
-		/* Paranoia! */		
+			for (j = houses[house].x_1; j <= houses[house].x_2; j++)
+			{
+				delete_object(houses[house].depth,i,j);
+			}
+		}
+
+		/* Paranoia! */
 		if (!cave[Depth]) return;
-		
+
 		/* Get requested grid */
 		c_ptr = &cave[Depth][houses[house].door_y][houses[house].door_x];
 
@@ -951,9 +947,9 @@ void disown_house(int house)
 		c_ptr->feat = FEAT_HOME_HEAD + houses[house].strength;
 
 		/* Reshow */
-		everyone_lite_spot(Depth, houses[house].door_y, houses[house].door_x);	
+		everyone_lite_spot(Depth, houses[house].door_y, houses[house].door_x);
 
-	}		
+	}
 }
 
 /*
@@ -1232,7 +1228,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 
 	/* Get grid and contents */
 	c_ptr = &cave[Depth][y][x];
-	
+
 
 	/* We put MAngband-specific tests on top, as new FEATs are larger */
 	/* Player Houses */
@@ -1240,6 +1236,12 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 	{
 		i = pick_house(Depth, y, x);
 		
+		if (i == -1)
+		{
+			debug(format("No house found at Depth %d, X=%d, Y=%d !", Depth, y, x));
+			return (FALSE);
+		}
+
 		/* Do we own this house? */
 		if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 		{
@@ -1255,10 +1257,10 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
 					{
 						q_ptr->store_num = -1;
-						Send_store_leave(k);
+						send_store_leave(k);
 						msg_print(k, "The shopkeeper locks the doors.");
 					}
-				}				
+				}
 			}
 
 			/* Open the door */
@@ -1464,7 +1466,7 @@ void do_cmd_open(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1605,10 +1607,10 @@ static bool do_cmd_close_aux(int Ind, int y, int x)
 	/* Verify legality */
 	if (!do_cmd_close_test(Ind, y, x)) return (FALSE);
 
-	
+
 	/* Get grid and contents */
 	c_ptr = &cave[Depth][y][x];
-	
+
 
 	/* Broken door */
 	if (c_ptr->feat == FEAT_BROKEN)
@@ -1703,7 +1705,7 @@ void do_cmd_close(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1774,7 +1776,7 @@ static bool do_cmd_tunnel_test(int Ind, int y, int x)
 
 		return (FALSE);
 	}
-	
+
 	/* Get grid and contents */
 	c_ptr = &cave[Depth][y][x];
 
@@ -1797,7 +1799,7 @@ static bool do_cmd_tunnel_test(int Ind, int y, int x)
 		/* Nope */
 		return (FALSE);
 	}
-	
+
 	/* No tunnelling through house doors */
 	if (c_ptr->feat == FEAT_HOME_OPEN || 
 		(c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL))
@@ -1815,7 +1817,7 @@ static bool do_cmd_tunnel_test(int Ind, int y, int x)
 		/* Message */
 		msg_print(Ind, "You see nothing there to tunnel through.");
 	}
-#endif 		
+#endif 
 	/* Okay */
 	return (TRUE);
 }
@@ -1828,7 +1830,7 @@ static bool do_cmd_tunnel_test(int Ind, int y, int x)
 		(((SV) >= SV_SMALL_SWORD) ? 1 : 0)) : \
 	(((TV) == TV_POLEARM) ? (((SV) == SV_SCYTHE_OF_SLICING) ? 4 : \
 		(((SV) >= SV_SCYTHE) ? 3 : (((SV) >= SV_BEAKED_AXE) ? 2 : 0))) : 0 )))
-					
+
 #define wielding_cut_o(O) \
 	(wielding_cut((O).tval,(O).sval))
 #define wielding_cut_p(P) \
@@ -1862,14 +1864,14 @@ static bool do_cmd_tunnel_aux(int Ind, int y, int x)
 	sound(Ind, MSG_DIG);
 
 	/* Hack -- We put MAngband-specific terrain features on top, as they are higher */
-	
+
 	/* Vegetation */
 	if (c_ptr->feat == FEAT_TREE)
 	{
 		/* Mow down the vegetation */
 		if ((p_ptr->skill_dig + wielding_cut_p(p_ptr) * 10 > rand_int(400)) && twall(Ind, y, x))
 		{
-			if (Depth == 0) trees_in_town--;				
+			if (Depth == 0) trees_in_town--;
 		
 			/* Message */
 			msg_print(Ind, "You hack your way through the vegetation.");
@@ -1881,7 +1883,7 @@ static bool do_cmd_tunnel_aux(int Ind, int y, int x)
 			more = TRUE;
 		}
 	}
-	
+
 	else if (c_ptr->feat == FEAT_EVIL_TREE)
 	{
 		/* Mow down the vegetation */
@@ -2107,7 +2109,7 @@ void do_cmd_tunnel(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2166,7 +2168,7 @@ static bool do_cmd_disarm_test(int Ind, int y, int x)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
-	
+
 	cave_type		*c_ptr;
 	object_type		*o_ptr;
 
@@ -2179,13 +2181,13 @@ static bool do_cmd_disarm_test(int Ind, int y, int x)
 
 		return (FALSE);
 	}
-	
+
 	/* Get grid and contents */
 	c_ptr = &cave[Depth][y][x];
 
 	/* Access the item */
 	o_ptr = &o_list[c_ptr->o_idx];
-	
+
 	/* Must have knowledge */
 	if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK)))
 	{
@@ -2225,14 +2227,14 @@ static bool do_cmd_disarm_aux(int Ind, int y, int x, int dir)
 	int Depth = p_ptr->dun_depth;
 
 	cave_type		*c_ptr;
-	
+
 	int i, j, power;
 
 	cptr name;
 
 	bool more = FALSE;
 
-	
+
 	/* Verify legality */
 	if (!do_cmd_disarm_test(Ind, y, x)) return (FALSE);
 
@@ -2285,7 +2287,7 @@ static bool do_cmd_disarm_aux(int Ind, int y, int x, int dir)
 #if 0
 		/* move the player onto the trap grid */
 		move_player(Ind, dir, FALSE);
-#endif		
+#endif
 	}
 
 	/* Failure -- Keep trying */
@@ -2338,7 +2340,7 @@ void do_cmd_disarm(int Ind, int dir)
 	/* Check preventive inscription '^D' */
 	__trap(Ind, CPI(p_ptr, 'D'));
 
-#if 0		
+#if 0
 	/* Easy Disarm */
 	if (p_ptr->easy_open)
 	{
@@ -2385,7 +2387,7 @@ void do_cmd_disarm(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2457,10 +2459,10 @@ static bool do_cmd_bash_test(int Ind, int y, int x)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
-	
+
 	cave_type		*c_ptr;
 
-	
+
 	/* Ghosts cannot bash */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
@@ -2642,7 +2644,7 @@ void do_cmd_bash(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2681,7 +2683,7 @@ void do_cmd_bash(int Ind, int dir)
 		/* Message */
 		msg_print(Ind, "There is a player in the way!");
 	}
-	
+
 	/* Door */
 	else
 	{
@@ -2704,8 +2706,12 @@ void do_cmd_bash(int Ind, int dir)
  *
  * Attack monsters, tunnel through walls, disarm traps, open doors.
  *
- * This command must always take energy, to prevent free detection
- * of invisible monsters.
+ * <s>This command must always take energy, to prevent free detection
+ * of invisible monsters.</s>
+ * REVISED FOR MAngband-specific reasons: we don't care if someone
+ * detects a monster by tunneling into it, and treat "tunnel air" as an
+ * error, which DOES NOT spend player's energy. This is a classic MAnghack,
+ * updated to newer V306 realities.
  *
  * The "semantics" of this command must be chosen before the player
  * is confused, and it must be verified against the new grid.
@@ -2719,7 +2725,8 @@ void do_cmd_alter(int Ind, int dir)
 	int feat;
 
 	bool more = FALSE;
-	
+	bool spend = TRUE;
+
 	cave_type		*c_ptr;
 
 	/* Check preventive inscription '^+' */
@@ -2728,11 +2735,8 @@ void do_cmd_alter(int Ind, int dir)
 	/* Get a direction */
 	if (!VALID_DIR(dir)) return;
 
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
 	/* Apply confusion */
-	confuse_dir(p_ptr->confused, &dir);
+	confuse_dir((bool)p_ptr->confused, &dir);
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -2744,7 +2748,7 @@ void do_cmd_alter(int Ind, int dir)
 
 	/* Get grid */
 	c_ptr = &cave[Depth][y][x];
-	
+
 	/* Original feature */
 	feat = c_ptr->feat;
 
@@ -2826,6 +2830,14 @@ void do_cmd_alter(int Ind, int dir)
 	{
 		/* Oops */
 		msg_print(Ind, "You spin around.");
+		/* Do not spend energy. */
+		spend = FALSE;
+	}
+
+	if (spend)
+	{
+		/* Take a turn */
+		p_ptr->energy -= level_speed(p_ptr->dun_depth);
 	}
 
 	/* Cancel repetition unless we can continue */
@@ -3007,7 +3019,7 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 				(((c_ptr->feat >= FEAT_TRAP_HEAD) && 
 			      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
 			    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
-			      (c_ptr->feat <= FEAT_HOME_TAIL)))) 
+			      (c_ptr->feat <= FEAT_HOME_TAIL))))
 			{
 				do_cmd_alter(Ind, dir);
 				return;
@@ -3052,12 +3064,12 @@ int do_cmd_run(int Ind, int dir)
 			do_cmd_walk(Ind, dir, option_p(p_ptr, ALWAYS_PICKUP));
 			return 1;
 		}
-	}	
+	}
 
 	if (p_ptr->confused)
 	{
-	    msg_print(Ind, "You are too confused!");
-	    return 0;
+		msg_print(Ind, "You are too confused!");
+		return 0;
 	}
 
 	/* Ignore if we are already running in this direction */
@@ -3102,8 +3114,8 @@ int do_cmd_run(int Ind, int dir)
 
 		/* Initialise running */
 		p_ptr->run_request = dir;
-		p_ptr->running = TRUE;
-
+		p_ptr->running = FALSE;
+		p_ptr->ran_tiles = 0;
 	}
 	return 1;
 }
@@ -3176,12 +3188,12 @@ void do_cmd_hold_or_stay(int Ind, int pickup)
 }
 
 /*
- * Hold still (usually pickup)
+ * Hold still (always pickup)
  */
 void do_cmd_hold(int Ind)
 {
-	/* Hold still (usually pickup) */
-	do_cmd_hold_or_stay(Ind, option_p(Players[Ind],ALWAYS_PICKUP));
+	/* Hold still (always pickup) */
+	do_cmd_hold_or_stay(Ind, TRUE);
 }
 
 /*
@@ -3380,7 +3392,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 	int			missile_char;
 
 	char		o_name[80];
-    bool                magic = FALSE;
+	bool		magic = FALSE;
 
 	/* Check preventive inscription '^f' */	
 	__trap(Ind, CPI(p_ptr, 'f'));
@@ -3438,9 +3450,9 @@ void do_cmd_fire(int Ind, int item, int dir)
 		return;
 	}
 
-    /* Magic ammo */
-    if ((o_ptr->sval == SV_AMMO_MAGIC) || artifact_p(o_ptr))
-	magic = TRUE;
+	/* Magic ammo */
+	if ((o_ptr->sval == SV_AMMO_MAGIC) || artifact_p(o_ptr))
+		magic = TRUE;
 
 	/* Get a direction (or cancel) */
 	p_ptr->command_dir = dir;
@@ -3450,24 +3462,24 @@ void do_cmd_fire(int Ind, int item, int dir)
 	throw_obj = *o_ptr;
 	throw_obj.number = 1;
 
-    if (!magic)
-    {
-	/* Reduce and describe inventory */
-	if (item >= 0)
+	if (!magic)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
-	}
+		/* Reduce and describe inventory */
+		if (item >= 0)
+		{
+			inven_item_increase(Ind, item, -1);
+			inven_item_describe(Ind, item);
+			inven_item_optimize(Ind, item);
+		}
 
-	/* Reduce and describe floor item */
-	else
-	{
-		floor_item_increase(0 - item, -1);
-		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		/* Reduce and describe floor item */
+		else
+		{
+			floor_item_increase(0 - item, -1);
+			floor_item_optimize(0 - item);
+			floor_item_notify(Ind, 0 - item, TRUE);
+		}
 	}
-    }
 
 	/* Use the missile object */
 	o_ptr = &throw_obj;
@@ -3616,17 +3628,20 @@ void do_cmd_fire(int Ind, int item, int dir)
 				dispx = x - p_ptr->panel_col_prt;
 
 				/* Remember the projectile */
-				p_ptr->scr_info[dispy][dispx].c = missile_char;
-				p_ptr->scr_info[dispy][dispx].a = missile_attr;
+				//p_ptr->scr_info[dispy][dispx].c = missile_char;
+				//p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Stream_tile(i, p_ptr, dispy, dispx);
+				//Stream_tile(i, p_ptr, dispy, dispx);
+
+				/* Tell the client */
+				(void)send_air_char(i, dispy, dispx, missile_attr, missile_char, cur_dis, 1);
 
 				/* Flush and wait */
-				if (cur_dis % tmul) Send_flush(i);
+				//if (cur_dis % tmul) Send_flush(i);
 
 				/* Restore */
-				lite_spot(i, y, x);
+				//lite_spot(i, y, x);
 			}
 
 			/* The player cannot see the missile */
@@ -3665,7 +3680,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				char pvp_name[80];
 
 				/* Get the name */
-				strcpy(pvp_name, q_ptr->name);
+				my_strcpy(pvp_name, q_ptr->name, 80);
 
 				/* Handle unseen player */
 				if (!visible)
@@ -3816,7 +3831,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 	j = (hit_body ? breakage_chance(o_ptr) : 0);
 
 	/* Drop (or break) near that location */
-    if (!magic) drop_near(o_ptr, j, Depth, y, x);
+	if (!magic) drop_near(o_ptr, j, Depth, y, x);
 }
 
 
@@ -4047,17 +4062,20 @@ void do_cmd_throw(int Ind, int item, int dir)
 				dispx = x - p_ptr->panel_col_prt;
 
 				/* Remember the projectile */
-				p_ptr->scr_info[dispy][dispx].c = missile_char;
-				p_ptr->scr_info[dispy][dispx].a = missile_attr;
+				//p_ptr->scr_info[dispy][dispx].c = missile_char;
+				//p_ptr->scr_info[dispy][dispx].a = missile_attr;
 
 				/* Tell the client */
-				Stream_tile(i, p_ptr, dispy, dispx);
+				//Stream_tile(i, p_ptr, dispy, dispx);
+
+				/* Tell the client */
+				(void)send_air_char(i, dispy, dispx, missile_attr, missile_char, cur_dis, 1);
 
 				/* Flush and wait */
-				if (cur_dis % 2) Send_flush(i);
+				//if (cur_dis % 2) Send_flush(i);
 
 				/* Restore */
-				lite_spot(i, y, x);
+				//lite_spot(i, y, x);
 			}
 
 			/* The player cannot see the missile */
@@ -4285,14 +4303,14 @@ void do_cmd_purchase_house(int Ind, int dir)
 			msg_print(Ind, "You cannot buy a house.");
 
 			return;
-		}	
+		}
 	}
 
 	/* Check for no-direction -- confirmation (when selling house) */
 	if (!VALID_DIR(dir))
 	{
 			i = p_ptr->current_house;
-			p_ptr->current_house = -1;	
+			p_ptr->current_house = -1;
 
 			if (i == -1)
 			{
@@ -4378,7 +4396,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 					/* Delay house transaction */
 					p_ptr->current_house = i;
 					/* Tell the client about the price */
-					Send_store_sell(Ind, price/2);
+					send_store_sell(Ind, price/2);
 				}
 				return;
 			}

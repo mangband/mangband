@@ -1364,7 +1364,7 @@ void update_mon(int m_idx, bool dist)
 				if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
 				{
 					/* Use "infravision" */
-					if (m_ptr->cdis <= (byte)(p_ptr->see_infra))
+					if (m_ptr->cdis <= p_ptr->see_infra)
 					{
 						/* Infravision only works on "warm" creatures */
 						/* Below, we will need to know that infravision failed */
@@ -1610,7 +1610,7 @@ void update_player(int Ind)
 			
 			if (*w_ptr & CAVE_VIEW) {
 				/* Check infravision */
-				if (dis <= (byte)(p_ptr->see_infra))
+				if (dis <= p_ptr->see_infra)
 				{
 					/* Visible */
 					easy = flag = TRUE;
@@ -1926,7 +1926,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
 
-	strcpy(buf, (r_name + r_ptr->name));
+	my_strcpy(buf, (r_name + r_ptr->name), sizeof(buf));
 
 	/* Update the monster */
 	update_mon(c_ptr->m_idx, TRUE);
@@ -2457,6 +2457,30 @@ bool summon_specific_okay_aux(int r_idx, int summon_type)
 	return (okay);
 }
 
+bool find_summon_location(int Depth, int *y, int *x, int y1, int x1, int count)
+{
+	int i;
+
+	/* Look for a location */
+	for (i = 0; i < count; ++i)
+	{
+		/* Pick a distance */
+		int d = (i / 15) + 1;
+
+		/* Pick a location */
+		scatter(Depth, y, x, y1, x1, d, 0);
+
+		/* Require "empty" floor grid */
+		if (!cave_empty_bold(Depth, *y, *x)) continue;
+
+		/* Hack -- no summon on glyph of warding */
+		if (cave[Depth][*y][*x].feat == FEAT_GLYPH) continue;
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 /*
  * Place a monster (of the specified "type") near the given
@@ -2484,33 +2508,13 @@ bool summon_specific_okay_aux(int r_idx, int summon_type)
  */
 bool summon_specific(int Depth, int y1, int x1, int lev, int type)
 {
-	int i, x, y, r_idx;
+	int x, y, r_idx;
 
 	/* Hack -- do not summon in towns */
 	if (level_is_town(Depth)) return (FALSE);
 
-	/* Look for a location */
-	for (i = 0; i < 20; ++i)
-	{
-		/* Pick a distance */
-		int d = (i / 15) + 1;
-
-		/* Pick a location */
-		scatter(Depth, &y, &x, y1, x1, d, 0);
-
-		/* Require "empty" floor grid */
-		if (!cave_empty_bold(Depth, y, x)) continue;
-
-		/* Hack -- no summon on glyph of warding */
-		if (cave[Depth][y][x].feat == FEAT_GLYPH) continue;
-
-		/* Okay */
-		break;
-	}
-
-	/* Failure */
-	if (i == 20) return (FALSE);
-
+	if(!find_summon_location(Depth, &y, &x, y1, x1, 20))
+		return FALSE;
 
 	/* Save the "summon" type */
 	summon_specific_type = type;
@@ -2548,40 +2552,19 @@ bool summon_specific(int Depth, int y1, int x1, int lev, int type)
 /* summon until we can't find a location or we have summoned size */
 bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned char size)
 {
-	int c, i, x, y;
+	int c, x, y;
 
 	/* Hack -- do not summon in towns */
 	if (level_is_town(Depth)) return (FALSE);
 
-	/* for each monster we are summoning */
+	/* Handle failure */
+	if (!r_idx) return (FALSE);
 
+	/* for each monster we are summoning */
 	for (c = 0; c < size; c++)
 	{	
-
-		/* Look for a location */
-		for (i = 0; i < 200; ++i)
-		{
-			/* Pick a distance */
-			int d = (i / 15) + 1;
-
-			/* Pick a location */
-			scatter(Depth, &y, &x, y1, x1, d, 0);
-
-			/* Require "empty" floor grid */
-			if (!cave_empty_bold(Depth, y, x)) continue;
-
-			/* Hack -- no summon on glyph of warding */
-			if (cave[Depth][y][x].feat == FEAT_GLYPH) continue;
-
-			/* Okay */
-			break;
-		}
-
-		/* Failure */
-		if (i == 20) return (FALSE);
-
-		/* Handle failure */
-		if (!r_idx) return (FALSE);
+		if(!find_summon_location(Depth, &y, &x, y1, x1, 200))
+			return FALSE;
 
 		/* Attempt to place the monster (awake, don't allow groups) */
 		if (!place_monster_aux(Depth, y, x, r_idx, FALSE, FALSE)) return (FALSE);

@@ -13,338 +13,360 @@
 #include "mangband.h"
 
 /*
- *  Global array of "custom commands".
+ * Global array of "custom commands".
  *
- *	Ends with an empty entry (used while iterating, do not dismiss).
+ *   Ends with an empty entry (used while iterating, do not dismiss).
  *
  * FORMAT:
- *  	key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
- *  	(flags | flags | flags), 
- *  	tval, prompt
+ *      key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
+ *      (flags | flags | flags),
+ *      tval, prompt, display
  * LEGEND:
- *  key - char, single keypress	:	'j'
- *  PKT - packet type to use	: To use default command set PKT_COMMAND
- * 								: To declare new command use PKT_UNDEFINED
- *								: To overload existing command use it's PKT_ (i.e. PKT_EAT)
- *  SCHEME - see pack.h			:	 SCHEME CONTROLS BOTH PACKET PARSING
- *								: 		AND DO_CMD_CALLBACK ARGUMENTS
- *								:			IT *IS* IMPORTANT
- *  energy_cost - 0 or n		: If the command is free use 0
- *								: Use n to set 1/Nth of level_speed
- *								: i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
- *  (*do_cmd_callback) - a callback to one of the do_cmd functions, arguments depend on SCHEME
- *  (flags) - see defines.h
- *  tval - TVAL for item tester (probably would be used as some hack for other modes too)
+ *  key - char, single keypress : 'j'
+ *  PKT - packet type to use    : To use default command set PKT_COMMAND
+ *                              : To declare new command use PKT_UNDEFINED
+ *                              : To overload existing command use it's PKT_ (i.e. PKT_EAT)
+ *  SCHEME - see pack.h         : SCHEME CONTROLS BOTH PACKET PARSING
+ *                              : AND do_cmd_callback ARGUMENTS
+ *                              : IT *IS* IMPORTANT
+ *  energy_cost - 0 or n        : If the command is free, use 0
+ *                              : Use n to set 1/Nth of level_speed
+ *                              : i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
+ *  (*do_cmd_callback) - a callback to one of the "do_cmd_???" functions, arguments depend on SCHEME
+ *  (flags) - see defines.h     : Each flag group requires a related prompt string
+ *  tval - TVAL for item tester : Normally, a single TVAL (i.e. TVAL_POTION)
+ *                              : For complex tests, use `item_test(???)` (see mdefines.h)
+ *                              : For interactive mode commands, specifies SPECIAL_FILE_??? define
  *  prompt - new-line separated string of prompts for each (flags) group.
+ *  display - human-friendly name of the command.
  */
-const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
-{	
+const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
+{
 	/*** Moving around ***/
-#if 0	
+#if 0
 	{ /* Walk 1 grid */
 		';', PKT_WALK, SCHEME_DIR, 1, (cccb)do_cmd_walk,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Walk"
 	},
-#endif	
+#endif
 	{ /* Start running */
-		'.', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_run,
-		(COMMAND_TARGET_DIR),		0, ""
+		'.', PKT_RUN, SCHEME_DIR, 1, (cccb)do_cmd_run,
+		(COMMAND_TARGET_DIR),		0, "", "Run"
 	},
 	{ /* Stand still */
 		',', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_stay,
-		(0),		0, ""
+		(0),		0, "", "Stay"
 	},
 	{ /* Hold still */
 		'g', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_hold,
-		(0),		0, ""
+		(0),		0, "", "Get item"
 	},
 
 	/*** Simpliest, one-off commands ***/
 	{ /* Go Up by stairs */
 		'<', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_up,
-		(0),		0, ""
+		(0),		0, "", "Go upstairs"
 	},
 	{ /* Go Down by stairs */
 		'>', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
-		(0),		0, ""
+		(0),		0, "", "Go downstairs"
 	},
-#if 0	
+#if 0
 	{ /* Toggle Rest */
 		'R', PKT_REST, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_rest,
-		(0),		0, ""
+		(0),		0, "", "Rest"
 	},
-#endif	
+#endif
 	{ /* Search */
 		's', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
-		(0),		0, ""
+		(0),		0, "", "Search"
 	},
 	{ /* Toggle Search */
 		'S', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_search,
-		(0),		0, ""
+		(0),		0, "", "Searching mode"
 	},
 	{ /* Repeat Feeling */
 		KTRL('F'), PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_feeling,
-		(0),		0, ""
+		(0),		0, "", "Repeat level feeling"
 	},
 
 	/*** Simple grid altering commands ***/
 	{ /* Alter */
 		'+', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_alter,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Alter"
 	},
 	{ /* Tunnel */
 		'T', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_tunnel,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Tunnel"
 	},
 	{ /* Bash a door */
 		'B', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_bash,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Bash"
 	},
 	{ /* Disarm a trap or chest */
 		'D', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_disarm,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Disarm"
 	},
 	{ /* Open door or chest */
 		'o', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_open,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Open"
 	},
 	{ /* Close door */
 		'c', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_close,
-		(COMMAND_TARGET_DIR),		0, ""
+		(COMMAND_TARGET_DIR),		0, "", "Close"
 	},
 
 	/*** Complex grid altering ***/
 	{ /* Spike door */
 		'j', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_spike,
 		(COMMAND_ITEM_QUICK | COMMAND_ITEM_INVEN | COMMAND_TARGET_DIR),
-		TV_SPIKE, "You have no spikes!"
+		TV_SPIKE, "You have no spikes!", "Spike door"
 	},
 	{ /* Steal (MAngband-specific) */
 		'J', PKT_UNDEFINED, SCHEME_DIR, 1, (cccb)do_cmd_steal,
 		(COMMAND_TARGET_DIR),
-		0, "Touch in what "
+		0, "Touch in what ", "Steal"
 	},
 	{ /* Purchase/Sell/Examine House (MAngband-specific) */
 		'h', PKT_COMMAND, SCHEME_DIR, 1, (cccb)do_cmd_purchase_house,
 		(COMMAND_TARGET_DIR),
-		0, "Knock in what "
+		0, "Knock in what ", "Buy/sell house"
 	},
 
 	/*** Inventory commands ***/
 	{ /* Wear/Wield Item */
 		'w', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_wield,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		item_test(WEAR), "Wear/Wield which item? "
+		item_test(WEAR), "Wear/Wield which item? ", "Wear/Wield"
 	},
 	{ /* Takeoff */
 		't', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_takeoff,
 		(COMMAND_ITEM_EQUIP),
-		0, "Takeoff which item? "
+		0, "Takeoff which item? ", "Takeoff item"
 	},
 	{ /* Drop Item */
 		'd', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_drop,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
-		0, "Drop what? \nHow much? "
+		0, "Drop what? \nHow much? ", "Drop item"
 	},
-    { /* Destroy Item */
-        'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
-        (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
-         COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
-        0, "Destroy what? \nHow many? \nReally destroy "
-    },
+	{ /* Destroy Item */
+		'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
+		 COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
+		0, "Destroy what? \nHow many? \nReally destroy ", "Destroy item"
+	},
 	{ /* Inscribe Item */
 		'{', PKT_UNDEFINED, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
-		0, "Inscribe what? \nInscription: "
+		0, "Inscribe what? \nInscription: ", "Inscribe item"
 	},
 	{ /* Uninscribe what?  */
 		'}', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_uninscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
-		0, "Uninscribe what? "
+		0, "Uninscribe what? ", "Uninscribe item"
 	},
 	{ /* Observe/Examine item  */
 		'I', PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_observe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR),
-		0, "Examine what? "
+		0, "Examine what? ", "Inspect item"
 	},
 
 	/*** Inventory "usage" commands ***/
 	/* Magic devices */
 	{ /* Read scroll */
-		'r', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_read_scroll,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		TV_SCROLL, "Read which scroll? "
+		'r', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_read_scroll_on,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
+		TV_SCROLL, "Read which scroll? ", "Read scroll"
 	},
 	{ /* Aim wand */
 		'a', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_aim_wand,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
-		TV_WAND, "Aim which wand? "
+		TV_WAND, "Aim which wand? ", "Aim wand"
 	},
 	{ /* Use staff */
-		'u', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_use_staff,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		TV_STAFF, "Use which staff? "
+		'u', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_use_staff_pre,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_NEED_SECOND | COMMAND_SECOND_DIR),
+		TV_STAFF, "Use which staff? ", "Use staff"
 	},
 	{ /* Zap rod */
 		'z', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
-		TV_ROD, "Use which rod? "
+		TV_ROD, "Use which rod? ", "Zap rod"
 	},
 	{ /* Activate */
 		'A', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_activate_dir,
 		(COMMAND_ITEM_EQUIP | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
-		item_test(ACTIVATE), "Activate what? "
+		item_test(ACTIVATE), "Activate what? ", "Activate item"
 	},
 	/* Common items */
 	{ /* Refill */
 		'F', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_refill,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		item_test(REFILL), "Refill with which light? "
+		item_test(REFILL), "Refill with which light? ", "Refill light"
 	},
 	{ /* Drink */
 		'q', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_quaff_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		TV_POTION, "Quaff which potion? "
+		TV_POTION, "Quaff which potion? ", "Quaff potion"
 	},
 	{ /* Eat */
 		'E', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_eat_food,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
-		TV_FOOD, "Eat what? "
+		TV_FOOD, "Eat what? ", "Eat food"
 	},
 
 	/*** Firing and throwing ***/
 	{ /* Fire an object */
 		'f', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_fire,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
-		item_test(AMMO), "Fire which ammo? "
+		item_test(AMMO), "Fire which ammo? ", "Fire missile"
 	},
 	{ /* Throw an object */
 		'v', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_throw,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_TARGET_ALLOW),
-		0, "Throw what? "
+		0, "Throw what? ", "Throw item"
 	},
 
 	/*** Spell-casting ***/
 	{ /* Study spell */
-		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 0, (cccb)do_cmd_study,
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET),
-		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? "
+		TV_MAGIC_BOOK, "You cannot gain spells!\nGain from which book? \nSpells\nStudy which spell? ", "Study spell"
 	},
+	/* NOTE: see, overload for priests, below */
 	{ /* Cast spell */
-		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_cast_pre,
+		'm', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_cast_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
-		TV_MAGIC_BOOK, "You cannot cast spells!\nCast from what book? \nSpells\nCast which spell? "
+		TV_MAGIC_BOOK, "You cannot cast spells!\nCast from what book? \nSpells\nCast which spell? ", "Cast spell"
 	},
 	{ /* Use ghost power */
-		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_ghost_power_pre,
+		'U', PKT_UNDEFINED, SCHEME_DIR_SMALL, 1, (cccb)do_cmd_ghost_power_pre,
 		(COMMAND_TEST_DEAD | COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_TARGET_ALLOW | 
 		 COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
-		(10), "You are not undead.\nPowers\nUse which power? "
+		(10), "You are not undead.\nPowers\nUse which power? ", "Ghost power"
 	},
 	{ /* Cast cleric spell */
-		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 0, (cccb)do_cmd_pray_pre,
+		'p', PKT_UNDEFINED, SCHEME_ITEM_DIR_SMALL, 1, (cccb)do_cmd_pray_pre,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK | COMMAND_SPELL_RESET | 
 		 COMMAND_TARGET_ALLOW | COMMAND_TARGET_FRIEND | COMMAND_SECOND_DIR | COMMAND_NEED_SECOND),
-		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? "
-	},	
+		TV_PRAYER_BOOK, "Pray hard enough and your prayers may be answered.\nPray from what book? \nPrayers\nPray which prayer? ", "Cast prayer"
+	},
 
 	/*** Knowledge query ***/
 	{ /* Help */
 		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_HELP, "Help"
+		SPECIAL_FILE_HELP, "Help", "See Help"
 	},
 #if 1
 	{ /* Knowledge */
 		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_KNOWLEDGE, "Knowledge"
+		SPECIAL_FILE_KNOWLEDGE, "Knowledge", "See Knowledge"
 	},
-#endif
+#else
 	{ /* Scores */
 		'#', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_SCORES, "Highscores"
+		SPECIAL_FILE_SCORES, "Highscores", "See Highscores"
 	},
+#endif
 	{ /* Artifacts */
 		'~', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_ARTIFACT, "Artifacts"
+		SPECIAL_FILE_ARTIFACT, "Artifacts", "List artifacts"
 	},
 	{ /* Uniques */
 		'|', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_UNIQUE, "Uniques"
+		SPECIAL_FILE_UNIQUE, "Uniques", "List uniques"
 	},
 	{ /* Players */
 		'@', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_PLAYER, "Players"
+		SPECIAL_FILE_PLAYER, "Players", "Show online players"
 	},
 
 	/*** Miscellaneous; MAngband-specific ***/
 	{ /* 'Social' */
 		KTRL('S'), PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_social,
 		(COMMAND_SPELL_CUSTOM | COMMAND_SPELL_RESET | COMMAND_SPELL_INDEX | COMMAND_TARGET_ALLOW),
-		(12), "Socials\nDo what? "
+		(12), "Socials\nDo what? ", "Socialize"
 	},
 	{ /* 'DM Menu' */
 		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_MASTER, "Dungeon Master"
+		SPECIAL_FILE_MASTER, "Dungeon Master", "DM Menu"
 	},
 	{ /* Mini-Map' */
 		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
 		(COMMAND_INTERACTIVE | COMMAND_INTERACTIVE_ANYKEY),
-		99, "Mini-Map"
+		99, "Mini-Map", "Display mini-map"
 	},	
 #if 0
 	{ /* Suicide */
 		'Q', PKT_UNDEFINED, SCHEME_CHAR, 1, (cccb)do_cmd_suicide,
 		(COMMAND_NEED_CONFIRM | COMMAND_NEED_CHAR),
-		0, "Please verify SUICIDE by typing the '@' sign: \nDo you really want to commit suicide? "
+		0, "Please verify SUICIDE by typing the '@' sign: \nDo you really want to commit suicide? ", "Commit suicide"
 	},
 #endif
 	{ /* Drop Gold */
 		'$', PKT_UNDEFINED, SCHEME_VALUE, 1, (cccb)do_cmd_drop_gold,
 		(COMMAND_NEED_VALUE),
-		0, "How much gold? "
+		0, "How much gold? ", "Drop gold"
 	},
 	{ /* Symbol Query */
 		'/', PKT_UNDEFINED, SCHEME_CHAR, 0, (cccb)do_cmd_query_symbol,
 		(COMMAND_NEED_CHAR),
-		0, "Symbol: "
+		0, "Symbol: ", "Symbol query"
 	},
+#if 0
+	{ /* Refill bottle */
+		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
+		TV_BOTTLE, "Refill which bottle? ", "Refill bottle"
+	},
+#endif
 
 	/*** Store/shopping commands ***/
 	{ /* [Get]/Purchase item */
 		'p', PKT_UNDEFINED, SCHEME_ITEM_VALUE_STRING, 1, (cccb)store_purchase,
 		(COMMAND_STORE | COMMAND_ITEM_STORE | COMMAND_ITEM_AMMOUNT),
-		0, "Which item are you interested in? \nHow many? "
+		0, "Which item are you interested in? \nHow many? ", "Purchase"
 	},
 	{ /* [Drop]/Sell item */
 		's', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)store_sell,
 		(COMMAND_STORE | COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
-		0, "Sell what? \nHow many? "
+		0, "Sell what? \nHow many? ", "Sell"
 	},
 	{ /* [Examine]/Look at item */
 		'l', PKT_UNDEFINED, SCHEME_ITEM, 1, (cccb)do_cmd_observe,
 		(COMMAND_STORE | COMMAND_ITEM_STORE),
-		0, "Which item do you want to examine? "
+		0, "Which item do you want to examine? ", "Examine store item"
 	},
 
 #ifdef DEBUG
 	{ /* Temporary debug command */
 		'Z', PKT_UNDEFINED, SCHEME_STRING, 0, (cccb)file_character_server,
 		(COMMAND_NEED_STRING),
-		0, "Dump name: "
+		0, "Dump name: ", "Debug command"
 	},
 #endif
 
 	/* End-of-array */
 	{ 0 }
 };
+int study_cmd_id = -1; /* Set during init, to replace with: */
+/* A special version for priests: */
+custom_command_type priest_study_cmd =
+	{ /* Study spell */
+		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+	};
+
+
 
 /* Item testers */
 item_tester_type item_tester[MAX_ITEM_TESTERS] =
@@ -411,8 +433,9 @@ item_tester_type item_tester[MAX_ITEM_TESTERS] =
 *	byte max_row;
 *	byte max_col;	
 *
-*	cptr mark;
 *	u32b window_flag;
+*	cptr mark;
+*	cptr display_name;
  */
 #define STREAM_PKT(A) PKT_STREAM + 1 + STREAM_ ## A
 #define MIN_WID SCREEN_WID / 3 + 1
@@ -420,71 +443,72 @@ item_tester_type item_tester[MAX_ITEM_TESTERS] =
 const stream_type streams[MAX_STREAMS] = 
 {
 	{	/* 0 */
-		STREAM_PKT(DUNGEON_ASCII), NTERM_WIN_OVERHEAD,	RLE_CLASSIC,
+		STREAM_PKT(DUNGEON_ASCII),	NTERM_WIN_OVERHEAD,	RLE_CLASSIC,
 		(0),
 		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
-		0, "DUNGEON_ASCII"
+		0, "DUNGEON_ASCII", "Display the dungeon"
 	},
 	{	/* 1 */
 		STREAM_PKT(DUNGEON_GRAF1),	NTERM_WIN_OVERHEAD,	RLE_LARGE,
 		(0),
-		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID, 
-		0, "DUNGEON_GRAF1"
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "DUNGEON_GRAF1", ""
 	},
 	{	/* 2 */
 		STREAM_PKT(DUNGEON_GRAF2),	NTERM_WIN_OVERHEAD,	RLE_LARGE,
 		(SF_TRANSPARENT),
-		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID, 
-		0, "DUNGEON_GRAF2"
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "DUNGEON_GRAF2", ""
 	},
 	{	/* 3 */
 		STREAM_PKT(MINIMAP_ASCII),	NTERM_WIN_OVERHEAD,	RLE_CLASSIC,
-		(SF_OVERLAYED),
+		(SF_OVERLAYED | SF_NEXT_GROUP | SF_HIDE),
 		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID, 
-		0, "MINIMAP_ASCII"
+		0, "MINIMAP_ASCII", ""
 	},
 	{	/* 4 */
 		STREAM_PKT(MINIMAP_GRAF),	NTERM_WIN_OVERHEAD,	RLE_LARGE,	
 		(SF_OVERLAYED),
-		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID, 
-		0, "MINIMAP_GRAF"
+		MIN_HGT, MIN_WID, MAX_HGT, MAX_WID,
+		0, "MINIMAP_GRAF", ""
 	},
 	{	/* 5 */
 		STREAM_PKT(BGMAP_ASCII),	NTERM_WIN_MAP,  	RLE_CLASSIC,
 		(0),
 		20, 80, 24, 80,
-		PW_MAP, "BGMAP_ASCII" 
+		PW_MAP, "BGMAP_ASCII", "Display mini-map"
 	},
 	{	/* 6 */
 		STREAM_PKT(BGMAP_GRAF), 	NTERM_WIN_MAP,  	RLE_LARGE,
 		(0),
 		20, 80, 24, 80,
-		PW_MAP, "BGMAP_GRAF" 
+		PW_MAP, "BGMAP_GRAF", ""
 	},
 	{	/* 7 */
-		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,	
-		(0),
-		20, 80, 20, 80,	
-		0, "SPECIAL_MIXED"
+		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,
+		(SF_MAXBUFFER),
+		20, 80, MAX_TXT_INFO, 80,
+		0, "SPECIAL_MIXED", "Display special info"
 	},
 	{	/* 8 */
-		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL, 	RLE_COLOR,	
-		(0),
-		20, 80, 20, 80,
-		0, "SPECIAL_TEXT"
+		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL,	RLE_COLOR,
+		(SF_MAXBUFFER),
+		20, 80, MAX_TXT_INFO, 80,
+		0, "SPECIAL_TEXT", ""
 	},
 	{	/* 9 */
-		STREAM_PKT(MONSTER_TEXT),	NTERM_WIN_MONSTER, 	RLE_COLOR,
+		STREAM_PKT(MONSTER_TEXT),	NTERM_WIN_MONSTER,	RLE_COLOR,
 		(0),
 		20, 80, 22, 80,
-		0, "MONSTER_TEXT"
+		0, "MONSTER_TEXT", "Display monster recall"
 	},
 	{	/* 10 */
-		STREAM_PKT(MONLIST_TEXT),	NTERM_WIN_MONLIST, 	RLE_COLOR,
+		STREAM_PKT(MONLIST_TEXT),	NTERM_WIN_MONLIST,	RLE_COLOR,
 		(0),
 		20, 80, 22, 80,
-		0, "MONLIST_TEXT"
+		0, "MONLIST_TEXT", "Display monster list"
 	},
+#if 0
 	{	/* 11 */
 		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
 		 * "stream" concept. Here, it will only work because
@@ -499,7 +523,7 @@ const stream_type streams[MAX_STREAMS] =
 		255, 80, 255, 80,
 		0, "FILE_TEXT"
 	},
-
+#endif
 	/* Tail */
 	{	0	}
 };
@@ -542,7 +566,8 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(LEVEL, TINY, 2),  	IPW_1,	ROW_LEVEL,	COL_LEVEL,
-		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET), "LEVEL \aG%6d\f\r\vLevel \ay%6d",
+		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
+		"LEVEL \aG%6d\f\r\vLevel \ay%6d",
 		(PR_LEV), "level"
 	},
 	{
@@ -552,7 +577,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(GOLD, LARGE, 1),    	IPW_1,	ROW_GOLD,	COL_GOLD,
-		(0), "AU \v%9ld",
+		(0), "AU \aG%9ld",
 		(PR_GOLD), "gold"
 	},
 #if 1
@@ -637,15 +662,15 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(0), "Cur AC \aG%5d",
 		(PR_ARMOR), "armor"
 	},
-#if 0
+#if 1
 	/* Classic HP/SP indicators */
 	{
-		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_CURHP,	COL_CURHP,
+		INDICATOR_PKT(HP, NORMAL,	2),     IPW_1,	ROW_MAXHP,	COL_MAXHP,
 		(0), "Cur HP \a@%5d\f\n\r\awMax HP \aG%5d", 
 		(PR_HP), "hp"
 	},
 	{
-		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_CURSP,	COL_CURSP,
+		INDICATOR_PKT(SP, NORMAL,	2),     IPW_1,	ROW_MAXSP,	COL_MAXSP,
 		(0), "Cur SP \a@%5d\f\n\r\awMax SP \aG%5d", 
 		(PR_MANA), "sp"
 	},
@@ -701,13 +726,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 		INDICATOR_PKT(AFRAID, TINY, 1),     	IPW_2,	ROW_AFRAID, COL_AFRAID,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"      \v\aoAfraid",
-		(PR_STUN),  "afraid"
+		(PR_AFRAID),  "afraid"
 	},
 	{
 		INDICATOR_PKT(POISONED, TINY, 1),   	IPW_2,	ROW_POISONED, COL_POISONED,
 		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"        \v\aoPoisoned",
-		(PR_STUN),  "poisoned"
+		(PR_POISONED),  "poisoned"
 	},
 	{
 		INDICATOR_PKT(STATE, TINY, 3),      	IPW_2,	ROW_STATE,	COL_STATE,
@@ -717,20 +742,20 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	{
 		INDICATOR_PKT(SPEED, NORMAL, 1),  	IPW_2,	ROW_SPEED,	COL_SPEED,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR), 
-		"\v             \vSlow ( \b%d)\v\aGFast (+ \b%d)",
+		(IN_STOP_ONCE | IN_STOP_EMPTY | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		"\v             \v\aUSlow ( \b%d)\v\aGFast (+ \b%d)",
 		(PR_SPEED), "speed"	
 	},
 	{
 		INDICATOR_PKT(STUDY, TINY, 1),   	IPW_2,	ROW_STUDY, COL_STUDY,
-		(IN_STOP_ONCE | IN_STRIDE_POSITIVE | IN_VT_STRIDE_FLIP | IN_VT_CR),
+		(IN_STOP_ONCE | IN_TEXT_LABEL | IN_STRIDE_POSITIVE | IN_VT_DEC_VALUE),
 		"     \vStudy",
 		(PR_STUDY),  "study"
 	},
 	{
 		INDICATOR_PKT(DEPTH, TINY, 1),   	IPW_2,	ROW_DEPTH, COL_DEPTH,
 		(0),
-		"Town   \vLev  \b%d",
+		"Lev \aw%3d",
 		(PR_DEPTH),  "depth"
 	},
 	{
@@ -741,7 +766,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	/** Character sheet **/
 	{
-		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3,  	2,	32,
+		INDICATOR_PKT(VARIOUS, NORMAL, 4),   	IPW_3 | IPW_4,  	2,	32,
 		(IN_VT_CR | IN_VT_LF | IN_VT_FF | IN_VT_COLOR_RESET),
 		"Age             \aB%6ld\vHeight          \aB%6ld\vWeight          \aB%6ld\vSocial Class    \aB%6ld",
 		(PR_VARIOUS), "various"
@@ -759,7 +784,7 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(PR_SKILLS), "skills2"
 	},
 	{
-		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3,  	9,	1,
+		INDICATOR_PKT(PLUSSES, NORMAL, 2),   	IPW_3 | IPW_4,  	9,	1,
 		(IN_VT_COLOR_RESET | IN_VT_CR | IN_VT_LF | IN_VT_FF),
 		"+ To Hit    \t\t\t\aB%6ld\v+ To Damage \t\t\t\aB%6ld", 
 		(PR_PLUSSES), "plusses"
@@ -787,89 +812,89 @@ const indicator_type indicators[MAX_INDICATORS] =
 	},
 	/* Name and gender indicators */
 	{
-		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3,	2,	1,
-		(0), "Name:       : \aB%s",
+		INDICATOR_PKT(NAME, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	2,	1,
+		(0), "Name        : \aB%s",
 		(0), "hist_name_"
 	},
 	{
-		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3,	3,	1,
+		INDICATOR_PKT(GENDER, STRING, 0), 	IPW_3 | IPW_4 | IPW_5,	3,	1,
 		(0), "Sex         : \aB%s",
 		(0), "hist_gender_"
 	},
 
 	/** Clones **/
 	{
-		INDICATOR_CLONE(RACE, 0), 	IPW_3,	4,	1,
+		INDICATOR_CLONE(RACE, 0), 	IPW_3 | IPW_4 | IPW_5,	4,	1,
 		(0), "Race        : \aB%s",
 		(PR_MISC), "hist_race_"
 	},
 	{
-		INDICATOR_CLONE(CLASS, 0), 	IPW_3,	5,	1,
+		INDICATOR_CLONE(CLASS, 0), 	IPW_3 | IPW_4 | IPW_5,	5,	1,
 		(0), "Class       : \aB%s",
 		(PR_MISC), "hist_class_"
 	},
 	{
-		INDICATOR_CLONE(HP, 2),   	IPW_3,  	9,	52,
+		INDICATOR_CLONE(HP, 2),   	IPW_3 | IPW_4,  	9,	52,
 		(0),
 		"\vMax Hit Points  	 \aG%6ld", 
 		(PR_HP), "hist_mhp"
 	},
  	{
-		INDICATOR_CLONE(HP, 1),   	IPW_3,     10,	52,
+		INDICATOR_CLONE(HP, 1),   	IPW_3 | IPW_4,     10,	52,
 		(IN_VT_FF),
 		"Cur Hit Points    \a@%6ld",
 		(PR_HP), "hist_chp"
 	},
 	{
-		INDICATOR_CLONE(SP, 2),   	IPW_3,     11,	52,
+		INDICATOR_CLONE(SP, 2),   	IPW_3 | IPW_4,     11,	52,
 		(0),
 		"\vMax SP (Mana)     \aG%6ld",
 		(PR_HP), "hist_msp"
 	},
 	{
-		INDICATOR_CLONE(SP, 1),   	IPW_3,     12,	52,
+		INDICATOR_CLONE(SP, 1),   	IPW_3 | IPW_4,     12,	52,
 		(IN_VT_FF),
 		"Cur SP (Mana)     \a#%6ld",
 		(PR_HP), "hist_csp"
 	},
 	{
-		INDICATOR_CLONE(ARMOR, 3),   IPW_3, 	11,	1,
+		INDICATOR_CLONE(ARMOR, 3),   IPW_3 | IPW_4, 	11,	1,
 		(0),
 		"+ To AC        \aB%6ld",
 		(PR_ARMOR), "hist_toac"
 	},
 	{
-		INDICATOR_CLONE(ARMOR, 2),   IPW_3, 	12,	1,
+		INDICATOR_CLONE(ARMOR, 2),   IPW_3 | IPW_4, 	12,	1,
 		(0),
 		"  Base AC      \aB%6ld",
 		(PR_ARMOR), "hist_baseac"
 	},
 	{
-		INDICATOR_CLONE(LEVEL, 1), IPW_3,	9,	28,
+		INDICATOR_CLONE(LEVEL, 1), IPW_3 | IPW_4,	9,	28,
 		(0),
 		"Level      \aG%9ld",
 		(PR_LEV), "hist_level"
 	},
 	{
-		INDICATOR_CLONE(EXP, 1),   IPW_3, 	10,	28,
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	10,	28,
 		(IN_STRIDE_LARGER | IN_STOP_ONCE | IN_VT_COLOR_RESET),
 		"Experience    \aG%6ld\f\r\vExperience    \ay%6ld",
 		(PR_EXP), "hist_cexp"
 	},
 	{
-		INDICATOR_CLONE(EXP, 1),   IPW_3, 	11,	28,
+		INDICATOR_CLONE(EXP, 1),   IPW_3 | IPW_4, 	11,	28,
 		(0),
 		"Max Exp       \aG%6ld",
 		(PR_EXP), "hist_mexp"
 	},
 	{
-		INDICATOR_CLONE(EXP, 3),   IPW_3, 	12,	28,
+		INDICATOR_CLONE(EXP, 3),   IPW_3 | IPW_4, 	12,	28,
 		(0),
 		"Exp to Adv.  \aG%7ld",
 		(PR_EXP), "hist_aexp"
 	},
 	{
-		INDICATOR_CLONE(GOLD, 1),   IPW_3, 	13,	28,
+		INDICATOR_CLONE(GOLD, 1),   IPW_3 | IPW_4, 	13,	28,
 		(0),
 		"Gold       \aG%9ld",
 		(PR_GOLD), "hist_gold"
@@ -891,42 +916,42 @@ const indicator_type indicators[MAX_INDICATORS] =
 	/* Stats, Verbose. Displays both injured and uninjured values. */
 	{
 		/* STR, Verbose */
-		INDICATOR_CLONE(STAT0, 1),   	IPW_3,     2+0,	61,
+		INDICATOR_CLONE(STAT0, 1),   	IPW_3 | IPW_4 | IPW_5,     2+0,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fSTR: \a;%\v \v\rStr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat0"
 	},
 	{
 		/* INT, Verbose */
-		INDICATOR_CLONE(STAT1, 1),   	IPW_3,     2+1,	61,
+		INDICATOR_CLONE(STAT1, 1),   	IPW_3 | IPW_4 | IPW_5,     2+1,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fINT: \a;%\v \v\rInt: \ay%\f \a;%",
 		(PR_STATS), "hist_stat1"
 	},
 	{
 		/* WIS, Verbose */
-		INDICATOR_CLONE(STAT2, 1),   	IPW_3,     2+2,	61,
+		INDICATOR_CLONE(STAT2, 1),   	IPW_3 | IPW_4 | IPW_5,     2+2,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fWIS: \a;%\v \v\rWis: \ay%\f \a;%",
 		(PR_STATS), "hist_stat2"
 	},
 	{
 		/* DEX, Verbose */
-		INDICATOR_CLONE(STAT3, 1),   	IPW_3,     2+3,	61,
+		INDICATOR_CLONE(STAT3, 1),   	IPW_3 | IPW_4 | IPW_5,     2+3,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fDEX: \a;%\v \v\rDex: \ay%\f \a;%",
 		(PR_STATS), "hist_stat3"
 	},
 	{
 		/* CON, Verbose */
-		INDICATOR_CLONE(STAT4, 1),   	IPW_3,     2+4,	61,
+		INDICATOR_CLONE(STAT4, 1),   	IPW_3 | IPW_4 | IPW_5,     2+4,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCON: \a;%\v \v\rCon: \ay%\f \a;%",
 		(PR_STATS), "hist_stat4"
 	},
 	{
 		/* CHR, Verbose */
-		INDICATOR_CLONE(STAT5, 1),   	IPW_3,     2+5,	61,
+		INDICATOR_CLONE(STAT5, 1),   	IPW_3 | IPW_4 | IPW_5,     2+5,	61,
 		(IN_STOP_STRIDE | IN_TEXT_STAT | (IN_STRIDE_LESSER | IN_STRIDE_NOT) | IN_VT_STRIDE_FLIP | IN_VT_COLOR_RESET | IN_VT_COFFER_RESET),
 		"\v\fCHR: \a;%\v \v\rChr: \ay%\f \a;%",
 		(PR_STATS), "hist_stat5"

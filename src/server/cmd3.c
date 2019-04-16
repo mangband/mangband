@@ -129,7 +129,7 @@ static void inven_drop(int Ind, int item, int amt)
 	__trap(Ind, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level) )
+	if (!inven_drop_okay(p_ptr, o_ptr))
 	{
 		msg_print(Ind, "You can not drop this here.");
 		return;	
@@ -375,6 +375,9 @@ void do_cmd_wield(int Ind, int item)
 	/* Check the slot */
 	slot = wield_slot(Ind, o_ptr);
 
+	/* Paranoia - can't really happen thanks to "item_tester_hook_wear" */
+	if (slot == -1) return;
+
 	/* Prevent wielding into a cursed slot */
 	if (cursed_p(&(p_ptr->inventory[slot])))
 	{
@@ -395,7 +398,7 @@ void do_cmd_wield(int Ind, int item)
 	__trap(Ind, CGI(x_ptr,'t'));
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
-	if (item < 0 && artifact_p(x_ptr) && !inven_carry_okay(Ind, x_ptr) && (p_ptr->dun_depth < a_info[x_ptr->name1].level))
+	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
 	{
 		object_desc(Ind, o_name, x_ptr, FALSE, 0);
 		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);
@@ -723,7 +726,7 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 	p_ptr->au -= amt;
 
 	/* Message */
-	msg_format(Ind, "You drop %ld pieces of gold.", amt);
+	msg_format(Ind, "You drop %ld piece%s of gold.", amt, (amt==1?"":"s"));
 
 	/* Redraw gold */
 	p_ptr->redraw |= (PR_GOLD);
@@ -861,7 +864,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Message */
 	msg_format(Ind, "You destroy %s.", o_name);
 	sound(Ind, MSG_DESTROY);
-	
+
 	/* Reduce the charges of rods/wands/staves */
 	reduce_charges(o_ptr, quantity);
 
@@ -891,6 +894,7 @@ void do_cmd_observe(int Ind, int item)
 {
 	player_type *p_ptr = Players[Ind];
 
+	object_type		tmp_obj;
 	object_type		*o_ptr;
 
 	char		o_name[80];
@@ -898,7 +902,7 @@ void do_cmd_observe(int Ind, int item)
 	/* Get the item (in the store) */
 	if (p_ptr->store_num != -1)
 	{
-		object_type		tmp_obj;
+		/* We have to use temp. object because we're going to identify it */
 		o_ptr = &tmp_obj;
 
 		/* Fill o_ptr with correct item */
@@ -1127,7 +1131,7 @@ void do_cmd_steal(int Ind, int dir)
 	{
 	        msg_print(Ind, "You cannot steal things!");
 	        return;
-	}	                                                        
+	}
 
 	/* Ensure "dir" is in ddx/ddy array bounds */
 	if (!VALID_DIR(dir)) dir = 5;
@@ -1305,8 +1309,8 @@ void do_cmd_steal(int Ind, int dir)
  */
 static bool item_tester_refill_lantern(object_type *o_ptr)
 {
-    /* Randarts are not refillable */
-    if (o_ptr->name3) return (FALSE);
+	/* Randarts are not refillable */
+	if (o_ptr->name3) return (FALSE);
 
 	/* Flasks of oil are okay */
 	if (o_ptr->tval == TV_FLASK) return (TRUE);
@@ -1499,7 +1503,7 @@ static void do_cmd_refill_torch(int Ind, int item)
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
-	
+
 	/* Hack - Force Equipment Update */
 	p_ptr->window |= (PW_EQUIP);
 }
@@ -1604,41 +1608,41 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	player_type *p_ptr = Players[Ind];
 	int i;
 	bool found = FALSE;
-	
+
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
-	/* Prepare player structure for text */	
+	/* Prepare player structure for text */
 	text_out_init(Ind);
 
-	for (i = 1; i < z_info->r_max; i++) 
+	for (i = 1; i < z_info->r_max; i++)
 	{
 		/* Require at least 1 encounter */
 		if (p_ptr->l_list[i].sights && r_info[i].d_char == c)
 		{
 			/* Monster name */
 			text_out("\n  ");
-		
-			/* Dump info into player */
+
+			/* Dump info onto player */
 			describe_monster(Ind, i, FALSE);
 
-			/* Track first race */			
+			/* Track first race */
 			if (!found)
-				monster_race_track(Ind, i); 
+				monster_race_track(Ind, i);
 			
 			found = TRUE;
 		}
 	}
-	
+
 	if (!found)
-		text_out("You fail to remember any monsters of this kind");
-		
+		text_out("You fail to remember any monsters of this kind.\n");
+
 	/* Restore height and width of current dungeon level */
 	text_out_done();
 
 	/* Notify player */
-	Send_special_other(Ind, format("Monster Recall ('%c')", c));
-	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	send_term_header(p_ptr, NTERM_BROWSE | NTERM_CLEAR, format("Monster Recall ('%c')", c));
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE | NTERM_ICKY);
 	return;
 }
 
@@ -1646,9 +1650,8 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
-	int i;
 
-	/* Prepare player structure for text */	
+	/* Prepare player structure for text */
 	text_out_init(Ind);
 
 	/* Dump info into player */
@@ -1663,11 +1666,11 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	/* Send this text */
 	if (p_ptr->stream_hgt[STREAM_MONSTER_TEXT])
 	{
-		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT);
+		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT, 0);
 	}
-	else
+	else /* HACK -- do not send this while user is busy! */ if (p_ptr->special_file_type < SPECIAL_FILE_OTHER+1)
 	{
-		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_ICKY);
 	}
 
 	return;

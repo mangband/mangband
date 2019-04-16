@@ -55,9 +55,11 @@ void setup_network_client()
 void cleanup_network_client()
 {
 	e_release_all(first_connection, 0, 1);
+	first_connection = NULL;
 	e_release_all(first_caller, 0, 1);
-
+	first_caller = NULL;
 	e_release_all(first_timer, 0, 1);
+	first_timer = NULL;
 }
 
 /* Iteration of the Loop */
@@ -131,16 +133,16 @@ int connected_to_server(int data1, data data2) {
 	/* Disable Nagle's algorithm */
 	denaglefd(fd);
 
-	/* Set usability pointer */	
+	/* Set usability pointer */
 	serv = (connection_type *)server_connection->data2;
-	
+
 	/* Prepare packet-handling tables */
 	setup_tables();
 
 	/* Is connected! */
 	connected = 1;
 
-	/* OK */	
+	/* OK */
 	return 1;
 }
 
@@ -149,7 +151,7 @@ int failed_connection_to_server(int data1, data data2) {
 	/* Ask user */ 
 	int r = client_failed();
 	if (r == 0) connected = -1;
-	return r;  
+	return r;
 }
 
 int call_server(char *server_name, int server_port)
@@ -160,11 +162,11 @@ int call_server(char *server_name, int server_port)
 	/* Early failure, probably DNS error */
 	if (server_caller == NULL) return -1;
 
-	/* Unset */	
+	/* Unset */
 	connected = 0;
 
-	/* Try */	
-	while (!connected) 
+	/* Try */
+	while (!connected)
 	{
 		network_loop();
 	}
@@ -181,12 +183,17 @@ int keepalive_timer(int data1, data data2) {
 		send_keepalive(sent_pings++);
 		static_timer(1); //reset timer
 	}
-	//TODO: test this!
-	else lag_mark = 10000;
+	else
+	{
+		/* Display "horrible" lag */
+		lag_mark = 10000;
+		redraw_lag_meter = TRUE;
+		p_ptr->window |= (PW_PLAYER_2);
+	}
 
 	return 1;
 }
-void setup_keepalive_timer() 
+void setup_keepalive_timer()
 {
 	/* Create timer */
 	eptr timer = add_timer(first_timer, ONE_SECOND, keepalive_timer);
@@ -225,7 +232,7 @@ int send_login(u16b version, char* real_name, char* host_name, char* user_name, 
 }
 
 int send_pass(char *new_password) {
-	return cq_printf(&serv->wbuf, "%c" "%S", PKT_CHANGEPASS, new_password);
+	return cq_printf(&serv->wbuf, "%c" "%s", PKT_CHANGEPASS, new_password);
 }
 
 int send_handshake(u16b conntype) {
@@ -241,14 +248,14 @@ int send_request(byte mode, u16b id) {
 }
 
 int send_stream_size(byte id, int rows, int cols) {
-	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
+	return cq_printf(&serv->wbuf, "%c" "%c%ud%c", PKT_RESIZE, id, (u16b)rows, (byte)cols);
 }
 
 int send_visual_info(byte type) {
 	int	size;
 	byte *attr_ref;
 	char *char_ref;
-	switch (type) 
+	switch (type)
 	{
 		case VISUAL_INFO_FLVR:
 			size = MAX_FLVR_IDX;
@@ -323,7 +330,7 @@ int send_options(void)
 	}
 
 	/* Leftovers */
-	if (bit != 0) 
+	if (bit != 0)
 	{
 		if ((n = cq_printf(&serv->wbuf, "%b", next)) < 0) return n;
 	}
@@ -365,6 +372,11 @@ int send_term_key(char key)
 	return cq_printf(&serv->wbuf, "%c%c", PKT_KEY, key);
 }
 
+int send_mouse(byte mod, byte x, byte y)
+{
+	return cq_printf(&serv->wbuf, "%c" "%c%c%c", PKT_CURSOR, mod, x, y);
+}
+
 int send_redraw(void)
 {
 	return cq_printf(&serv->wbuf, "%c", PKT_REDRAW);
@@ -399,6 +411,11 @@ int send_party(s16b command, cptr buf)
 int send_suicide(void)
 {
 	return cq_printf(&serv->wbuf, "%c", PKT_SUICIDE);
+}
+
+int send_store_leave(void)
+{
+	return send_walk(0); /* Idle/Hold Ground */
 }
 
 int send_target_interactive(int mode, char dir)
@@ -458,14 +475,14 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 		S_WRITE(ITEM_CHAR)      	item, entry[0]\
 		S_WRITE(ITEM_DIR_VALUE) 	item, dir, value\
 		S_WRITE(ITEM_DIR_SMALL) 	item, dir, (byte)value\
-		S_WRITE(ITEM_DIR_STRING) 	item, dir, entry\
+		S_WRITE(ITEM_DIR_STRING)	item, dir, entry\
 		S_WRITE(ITEM_DIR_CHAR)  	item, dir, entry[0]\
 		S_WRITE(ITEM_VALUE_STRING)	item, value, entry\
-		S_WRITE(ITEM_VALUE_CHAR) 	item, value, entry[0]\
+		S_WRITE(ITEM_VALUE_CHAR)	item, value, entry[0]\
 		S_WRITE(ITEM_SMALL_STRING)	item, (byte)value, entry\
 		S_WRITE(ITEM_SMALL_CHAR) 	item, (byte)value, entry[0]\
 		S_WRITE(FULL)           	item, dir, value, entry\
-		S_WRITE(PPTR_CHAR)         	entry[0]\
+		S_WRITE(PPTR_CHAR)      	entry[0]\
 		S_DONE
 
 	}
@@ -481,17 +498,17 @@ int send_custom_command(byte i, char item, char dir, s32b value, char *entry)
 
 int recv_store(connection_type *ct)
 {
-	int	
+	int
 		price;
-	char	
+	char
 		name[MAX_CHARS];
-	byte	
+	byte
 		pos,attr;
-	s16b	
+	s16b
 		wgt, num;
 
 	if (cq_scanf(&serv->rbuf, "%c%c%d%d%ul%s", &pos, &attr, &wgt, &num, &price, name) < 6) return 0;
-	
+
 
 	store.stock[pos].sval = attr;
 	store.stock[pos].weight = wgt;
@@ -511,15 +528,15 @@ int recv_store(connection_type *ct)
 
 int recv_store_info(connection_type *ct)
 {
-	s16b		
+	s16b
 		num_items;
-	s32b	
+	s32b
 		max_cost;
-	byte 	
+	byte
 		flag;
 
 	if (cq_scanf(&serv->rbuf, "%c%s%s%d%l", &flag, store_name, store_owner_name, &num_items, &max_cost) < 5) return 0;
-	
+
 
 	store_flag = flag;
 	store.stock_num = num_items;
@@ -531,6 +548,12 @@ int recv_store_info(connection_type *ct)
 	else
 		display_inventory();
 
+	return 1;
+}
+
+int recv_store_leave(connection_type *ct)
+{
+	leave_store = TRUE;
 	return 1;
 }
 
@@ -579,22 +602,24 @@ int recv_keepalive(connection_type *ct) {
 		if (conn_state == CONN_PLAYING) {
 			lag_mark = (mticks - last_sent);
 			p_ptr->redraw |= PR_LAG_METER;
-		} 
+		}
 		last_keepalive=0;
 	};
 #else
 	/* make sure it's the same one we sent... */
-	if (cticks == sent_pings - 1) 
+	if (cticks == sent_pings - 1)
 	{
-		if (state == PLAYER_PLAYING) 
+		if (state == PLAYER_PLAYING)
 		{
 			micro time_passed = static_timer(1);
 			time_passed /= 100;
 			lag_mark = (s16b)time_passed;
 			recd_pings++;
-		} 
+			redraw_lag_meter = TRUE;
+			p_ptr->window |= (PW_PLAYER_2);
+		}
 	}
-#endif 
+#endif
 	/* Ok */
 	return 1;
 }
@@ -604,7 +629,7 @@ int recv_quit(connection_type *ct) {
 	char
 		reason[MSG_LEN];
 
-	if (cq_scanf(&ct->rbuf, "%S", reason) < 1) 
+	if (cq_scanf(&ct->rbuf, "%S", reason) < 1)
 	{
 		strcpy(reason, "unknown reason");
 	}
@@ -615,12 +640,12 @@ int recv_quit(connection_type *ct) {
 
 int recv_basic_info(connection_type *ct) {
 
-	if (cq_scanf(&ct->rbuf, "%b%b%b%b", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4) 
+	if (cq_scanf(&ct->rbuf, "%b%b%b%b", &serv_info.val1, &serv_info.val2, &serv_info.val3, &serv_info.val4) < 4)
 	{
 		/* Not enough bytes */
 		return 0;
 	}
-	if (cq_scanf(&ct->rbuf, "%ul%ul%ul%ul", &serv_info.val9, &serv_info.val10, &serv_info.val11, &serv_info.val12) < 4) 
+	if (cq_scanf(&ct->rbuf, "%ul%ul%ul%ul", &serv_info.val9, &serv_info.val10, &serv_info.val11, &serv_info.val12) < 4)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -639,15 +664,14 @@ int recv_play(connection_type *ct) {
 	byte
 		mode = 0;
 
-	if (cq_scanf(&ct->rbuf, "%b", &mode) < 1) 
+	if (cq_scanf(&ct->rbuf, "%b", &mode) < 1)
 	{
 		/* Not enough bytes */
 		return 0;
 	}
 
-	/* React */
-	if (mode == PLAYER_EMPTY) client_login();
-	else state = mode;
+	/* Save new state. Reaction will happen in "Setup_loop" */
+	state = mode;
 
 	/* Ok */
 	return 1;
@@ -680,10 +704,10 @@ int recv_char_info(connection_type *ct) {
 int recv_struct_info(connection_type *ct)
 {
 	int 	i;
-	byte 	typ;
-	u16b 	max;
-	char 	name[MAX_CHARS];
-	u32b 	off, fake_name_size, fake_text_size;
+	byte	typ;
+	u16b	max;
+	char	name[MAX_CHARS];
+	u32b	off, fake_name_size, fake_text_size;
 	byte	spell_book;
 
 	off = fake_name_size = fake_text_size = max = typ = 0;
@@ -709,12 +733,12 @@ int recv_struct_info(connection_type *ct)
 			/* Fill */
 			for (i = 0; i < max; i++)
 			{
-								
+
 				if (cq_scanf(&ct->rbuf, "%s", &name) < 1)
 				{
 					return 0;
 				}
-				
+
 				/* Transfer */
 				option_group[i] = string_make(name);
 			}
@@ -731,9 +755,9 @@ int recv_struct_info(connection_type *ct)
 			{
 				player_race *pr_ptr = NULL;
 				pr_ptr = &race_info[i];
-	
+
 				off = 0;
-						
+
 				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
 				{
 					return 0;
@@ -759,14 +783,14 @@ int recv_struct_info(connection_type *ct)
 				pc_ptr = &c_info[i];
 	
 				off = spell_book = 0;
-						
+
 				if (cq_scanf(&ct->rbuf, "%s%ul%c", &name, &off, &spell_book) < 3)
 				{
 					return 0;
 				}
 
 				my_strcpy(c_name + off, name, fake_name_size - off);
-			
+
 				pc_ptr->name = off;
 				/* Transfer other fields here */
 				pc_ptr->spell_book = spell_book;
@@ -781,6 +805,7 @@ int recv_struct_info(connection_type *ct)
 			C_MAKE(eq_names, max, s16b);
 			C_MAKE(inventory_name, max, char*);
 			C_MAKE(inventory, max, object_type);
+			C_MAKE(inventory_secondary_tester, max, byte);
 			INVEN_TOTAL = max;
 			INVEN_WIELD = fake_text_size;
 			
@@ -806,15 +831,30 @@ int recv_struct_info(connection_type *ct)
 
 				if (last_off != off)
 				{
-					printf("Saving %s at pos %d\n", name, off);
 					my_strcpy(eq_name + off, name, fake_name_size - off);
-				} else printf("Not Saving %s at pos %d\n", name, off);
+				}
 
 				eq_names[i] = last_off = (s16b)off;
 			}
-		}		
-	}	
-	
+		}
+		break;
+		/* Floor slots */
+		case STRUCT_INFO_FLOOR:
+		{
+			FLOOR_TOTAL = max;
+			FLOOR_NEGATIVE = fake_name_size;
+			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
+		}
+		break;
+		/* Objflag info (rows and cols of Charsheet plusses) */
+		case STRUCT_INFO_OBJFLAGS:
+		{
+			MAX_OBJFLAGS_ROWS = max;
+			MAX_OBJFLAGS_COLS = fake_name_size;
+		}
+		break;
+	}
+
 	return 1;
 }
 
@@ -869,13 +909,13 @@ int recv_indicator(connection_type *ct) {
 	s32b large_c;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 	coff = coffer_refs[id];
 
 	/* Read (i_ptr->amnt) values of type (i_ptr->type) */
-	for (i = 0; i < i_ptr->amnt; i++) 
+	for (i = 0; i < i_ptr->amnt; i++)
 	{
 		/* Read */
 		s32b val = 0, n = 0;
@@ -920,7 +960,7 @@ int recv_indicator_str(connection_type *ct) {
 	int i;
 
 	/* Error -- unknown indicator */
-	if (id > known_indicators) return -1;
+	if (id >= known_indicators) return -1;
 
 	i_ptr = &indicators[id];
 
@@ -953,7 +993,6 @@ int recv_indicator_info(connection_type *ct) {
 	s16b row = 0,
 		col = 0;
 	u32b flag = 0;
-	int n;
 
 	indicator_type *i_ptr;
 
@@ -983,11 +1022,9 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->flag = flag;
 	i_ptr->win = win;
 
-	i_ptr->mark = strdup(mark);
+	i_ptr->mark = string_make(mark);
 
-	n = strlen(buf) + 1;
-	C_MAKE(i_ptr->prompt, n, char);
-	my_strcpy((char*)i_ptr->prompt, buf, n);
+	i_ptr->prompt = string_make(buf);
 
 	str_coffers[known_indicators] = NULL;
 
@@ -1060,6 +1097,65 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_air(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0;
+	char
+		a = 0,
+		c = 0;
+	u16b
+		delay = 0,
+		fade = 0;
+
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c", &y, &x) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",  &delay) < 1) return 0;
+	if (cq_scanf(&serv->rbuf, "%ud",   &fade) < 1) return 0;
+
+	air_info[y][x].a = a;
+	air_info[y][x].c = c;
+	air_delay[y][x] = delay * AIR_FADE_THRESHOLD;
+	air_fade[y][x]  = air_delay[y][x] + fade * AIR_FADE_THRESHOLD;
+
+	return 1;
+}
+
+static errr verify_stream_y(byte st, s16b y)
+{
+	stream_type	*stream = &streams[st];
+	if (y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
+	else if (y > stream->max_row)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, max buffer is %d)!", st, stream->mark, y, stream->max_row + 1));
+		return -1;
+	}
+	return 0;
+}
+static errr verify_stream_x(byte st, s16b x)
+{
+	stream_type	*stream = &streams[st];
+	if (x >= p_ptr->stream_wid[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	else if (x > stream->max_col)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, max buffer is %d)!", st, stream->mark, x, stream->max_col + 1));
+		return -1;
+	}
+	return 0;
+}
+
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
@@ -1072,16 +1168,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 
 	cave_view_type *dest = stream_cave(st, y);
 
-	if (x >= p_ptr->stream_wid[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
-		return -1;
-	}
-	if (y >= p_ptr->stream_hgt[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
-		return -1;
-	}
+	if (verify_stream_y(st, y)) return -1;
+	if (verify_stream_x(st, x)) return -1;
 
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
@@ -1090,8 +1178,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	dest[x].a = a;
 	dest[x].c = c;
 
-	if (y > last_remote_line[addr]) 
-		last_remote_line[addr] = y; 
+	if (y > last_remote_line[addr])
+		last_remote_line[addr] = y;
 
 	if (addr == NTERM_WIN_OVERHEAD)
 		show_char(y, x, a, c, ta, tc, mem);
@@ -1099,14 +1187,14 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	return 1;
 }
 int recv_stream(connection_type *ct) {
-	s16b	cols, y = 0;
+	u16b	cols, y = 0;
 	s16b	*line;
 	byte	addr, id;
 	cave_view_type	*dest;
 
-	stream_type 	*stream;
+	stream_type	*stream;
 
-	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &y) < 1) return 0;
 
 	id = stream_ref[next_pkt];
 	stream = &streams[id];
@@ -1114,19 +1202,15 @@ int recv_stream(connection_type *ct) {
 
 	if (!p_ptr->stream_hgt[id])
 	{
-		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		plog(format("Stream %d,'%s' is unexpected (subscribed to %d rows)", id, stream->mark, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
-	/* Hack -- single char */
-	if (y & 0xFF00)	return 
-		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED), (y & 0x00FF), (y >> 8)-1 );
+	if (y & 0x8000) return
+		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
+		((y >> 8) & 0x007F), (y & 0xFF));
 
-	if (y >= p_ptr->stream_hgt[id])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
-		return -1;
-	}
+	if (verify_stream_y(id, y)) return -1;
 
 	cols = p_ptr->stream_wid[id];
 	dest = p_ptr->stream_cave[id] + y * cols;
@@ -1149,9 +1233,9 @@ int recv_stream(connection_type *ct) {
 		(*line) = y;
 	/* TODO: test this approach -- else if (y == 0) (*line) = 0; */
 
-	/* Put data to screen ? */		
+	/* Put data to screen ? */
 	if (addr == NTERM_WIN_OVERHEAD)
-		show_line(y, cols, !(stream->flag & SF_OVERLAYED));
+		show_line(y, cols, !(stream->flag & SF_OVERLAYED), id);
 
 	return 1;
 }
@@ -1159,50 +1243,53 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0,
-		y = 0;
+		x = 0, max_x = 0;
 	byte	st, addr;
+	u16b	y = 0, max_y = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
+	if (cq_scanf(&ct->rbuf, "%b%ud%b", &stg, &y, &x) < 3) return 0;
 
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
 
-	/* Fetch target "window" */	
+	/* Fetch target "window" */
 	addr = streams[stg].addr;
 
 	/* (Re)Allocate memory */
-	if (remote_info[addr])
+	max_x = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_col : x;
+	max_y = (streams[stg].flag & SF_MAXBUFFER) ? streams[stg].max_row : y;
+	if (remote_info[stg])
 	{
-		KILL(remote_info[addr]);
+		KILL(remote_info[stg]);
 	}
-	C_MAKE(remote_info[addr], (y+1) * x, cave_view_type);
-	last_remote_line[addr] = -1;
+	C_MAKE(remote_info[stg], (max_y+1) * max_x, cave_view_type);
+	last_remote_line[stg] = -1;
 
 	/* Affect the whole group
 	for (st = stg; st < known_streams; st++) */
 	/* HACK -- Affect all streams we can ! */
-	for (st = 0; st < known_streams; st++)
+	for (st = stg; st < known_streams; st++)
 	{
 		/* Stop when we move on to the next group */
-		if (streams[st].addr != addr) /*break;*/ continue;
+		if (stream_group[st] != stg) continue;
 
 		/* Save new size */
 		p_ptr->stream_wid[st] = x;
 		p_ptr->stream_hgt[st] = y;
 
 		/* Save pointer */
-		p_ptr->stream_cave[st] = remote_info[addr];
+		p_ptr->stream_cave[st] = remote_info[stg];
 	}
 
 	/* HACK - Dungeon display resize */
-	if (addr == NTERM_WIN_OVERHEAD)
+	if (addr == NTERM_WIN_OVERHEAD && state == PLAYER_PLAYING)
 	{
 		/* Redraw status line */
-		Term_erase(0, y-1, x);
-		p_ptr->redraw |= PR_STATUS;
+		Term_erase(0, y + SCREEN_CLIP_L, x);
+		schedule_redraw(PW_STATUS);
+
 		/* Redraw compact */
-		p_ptr->redraw |= PR_COMPACT;
+		schedule_redraw(PW_PLAYER_2);
 	}
 
 
@@ -1218,17 +1305,21 @@ int recv_stream_info(connection_type *ct) {
 		rle = 0;
 	byte
 		min_col = 0,
+		max_col = 0;
+	u16b
 		min_row = 0,
-		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
+	char mark[MSG_LEN];
 
 	stream_type *s_ptr;
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c%s%c%c%c%c", &pkt, &addr, &rle, &flag, buf, 
-			&min_row, &min_col, &max_row, &max_col) < 9) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%ud%c%ud%c",
+			&pkt, &addr, &rle, &flag,
+			mark, buf,
+			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
 
 	/* Check for errors */
 	if (known_streams >= MAX_STREAMS)
@@ -1242,7 +1333,7 @@ int recv_stream_info(connection_type *ct) {
 	WIPE(s_ptr, stream_type);
 
 	s_ptr->pkt = pkt;
-	s_ptr->addr = addr;	
+	s_ptr->addr = addr;
 	s_ptr->rle = rle;
 
 	s_ptr->flag = flag;
@@ -1255,9 +1346,12 @@ int recv_stream_info(connection_type *ct) {
 	s_ptr->max_row = max_row;
 	s_ptr->max_col = max_col;
 
+	s_ptr->mark = string_make(mark);
 	if (!STRZERO(buf))
 	{
-		s_ptr->mark = strdup(buf);
+		s_ptr->window_desc = string_make(buf);
+	} else {
+		s_ptr->window_desc = s_ptr->mark;
 	}
 
 
@@ -1266,8 +1360,7 @@ int recv_stream_info(connection_type *ct) {
 
 	stream_ref[pkt] = known_streams;
 
-	known_streams++;	
-
+	known_streams++;
 
 	return 1;
 }
@@ -1314,7 +1407,7 @@ int recv_term_info(connection_type *ct) {
 	/* Icky test */
 	if ((flag & NTERM_ICKY) && !interactive_mode) return 1;
 
-	/* Change terminal state */	
+	/* Change terminal state */
 	if (flag & NTERM_HOLD)
 	{
 		if (line == NTERM_ESCAPE)
@@ -1364,12 +1457,18 @@ int recv_term_info(connection_type *ct) {
 	}
 
 	/* Browse NTerm contents locally */
-	if (flag & NTERM_BROWSE)
+	if ((flag & NTERM_BROWSE) && !(flag & NTERM_POP))
 	{
-		show_peruse(line);
+		stash_remote_info();
+		show_file_peruse(line);
+	}
+	/* Browse NTerm contents remotely */
+	else if (flag & NTERM_BROWSE)
+	{
+		show_remote_peruse(line);
 	}
 	/* Pop-up NTerm contents */
-	if (flag & NTERM_POP)
+	else if (flag & NTERM_POP)
 	{
 		show_popup();
 	}
@@ -1381,30 +1480,67 @@ int recv_term_info(connection_type *ct) {
 	return 1;
 }
 int recv_term_header(connection_type *ct) {
+	byte hint;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%s", buf) < 1) return 0;
-
-	/* Save header */
-	my_strcpy(special_line_header, buf, MAX_CHARS);
-
-	/* Enable perusal mode */
-	special_line_type = TRUE;
+	if (cq_scanf(&ct->rbuf, "%b%s", &hint, buf) < 2) return 0;
 
 	/* Ignore it if we're busy */
 	if ((screen_icky && !shopping) || looking) return 1;
 
-	/* Prepare popup route */
-	special_line_requested = TRUE;
+	/* Save header */
+	my_strcpy(special_line_header, buf, MAX_CHARS);
 
+	/* Prepare local browser route */
+	if ((hint & NTERM_BROWSE) && !(hint & NTERM_POP))
+	{
+		local_browser_requested = TRUE;
+		/* Also "clear" the "file" buffer */
+		if (hint & NTERM_CLEAR) p_ptr->last_file_line = -1;
+	}
+	/* Prepare remote browser / interactive mode route */
+	else if (hint & NTERM_BROWSE)
+	{
+		special_line_requested = TRUE;
+	}
+	/* Prepare popup route */
+	else if (hint & NTERM_POP)
+	{
+		simple_popup_requested = TRUE;
+	}
+	/* Do not display anything */
+	else
+	{
+		return 1;
+	}
 	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
 	return 2;
 }
 
+/* Dangerous! "Save file" packet. */
+int recv_term_writefile(connection_type *ct)
+{
+	byte fmode;
+	char filename[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%b%s", &fmode, filename) < 2) return 0;
+
+	/* XXX XXX XXX DO ABSOLUTELY NOTHING (for now) */
+
+	/* OK */
+	return 1;
+}
+
 int recv_cursor(connection_type *ct) {
-	char vis, x, y;
+	byte vis, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &vis, &x, &y) < 3) return 0;
+
+	/* Hack -- ignore weird states */
+	if ((byte)vis > 1)
+	{
+		return 1;
+	}
 
 	if (cursor_icky)
 	{
@@ -1417,8 +1553,8 @@ int recv_cursor(connection_type *ct) {
 }
 
 int recv_target_info(connection_type *ct) {
-	char x, y, buf[MAX_CHARS], *s;
-	byte win;
+	char buf[MAX_CHARS], *s;
+	byte win, x, y;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c%s", &x, &y, &win, buf) < 4) return 0;
 
@@ -1476,9 +1612,9 @@ int recv_channel(connection_type *ct) {
 }
 
 int recv_message(connection_type *ct) {
-	char 
+	char
 		mesg[MAX_CHARS];
-	u16b 
+	u16b
 		type = 0;
 	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
 
@@ -1489,9 +1625,9 @@ int recv_message(connection_type *ct) {
 
 int recv_message_repeat(connection_type *ct) {
 
-	char 
+	char
 		mesg[MAX_CHARS];
-	u16b 
+	u16b
 		type = 0;
 
 	if (cq_scanf(&ct->rbuf, "%ud", &type) < 1) return 0;
@@ -1505,10 +1641,10 @@ int recv_message_repeat(connection_type *ct) {
 
 int recv_sound(connection_type *ct)
 {
-	char 
-		sound;
+	u16b
+		sound = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c", &sound) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &sound) < 1) return 0;
 
 	/* Make a sound (if allowed) */
 	if (use_sound) Term_xtra(TERM_XTRA_SOUND, sound);
@@ -1522,16 +1658,36 @@ int recv_custom_command_info(connection_type *ct) {
 		tval = 0,
 		scheme = 0;
 	char buf[MSG_LEN];
+	char disp[MAX_CHARS];
 	s16b m_catch = 0;
 	u32b flag = 0;
 	int n, len;
+	int id = -1, i;
 
 	custom_command_type *cc_ptr;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S", &pkt, &scheme, &m_catch, &flag, &tval, buf) < 6) return 0;
+	if (cq_scanf(&ct->rbuf, "%c%c%d%ul%c%S%s", &pkt, &scheme, &m_catch, &flag, &tval, buf, disp) < 7) return 0;
+
+	/* Match existing command */
+	for (i = 0; i < custom_commands; i++)
+	{
+		if ((custom_command[i].m_catch == m_catch)
+		&& (custom_command[i].pkt == pkt))
+		{
+			id = i;
+			break;
+		}
+	}
+	/* No matches */
+	if (id == -1)
+	{
+		/* Adding new command */
+		id = custom_commands;
+		custom_commands++;
+	}
 
 	/* Check for errors */
-	if (custom_commands >= MAX_CUSTOM_COMMANDS)
+	if (id >= MAX_CUSTOM_COMMANDS)
 	{
 		plog("No more command slots! (MAX_CUSTOM_COMMANDS)");
 		return -1;
@@ -1543,7 +1699,7 @@ int recv_custom_command_info(connection_type *ct) {
 	}
 
 	/* Get it */
-	cc_ptr = &custom_command[custom_commands];
+	cc_ptr = &custom_command[id];
 	WIPE(cc_ptr, custom_command_type);
 
 	cc_ptr->m_catch = m_catch;
@@ -1561,7 +1717,9 @@ int recv_custom_command_info(connection_type *ct) {
 	buf[n] = '\0';
 	memcpy(cc_ptr->prompt, buf, MSG_LEN);
 
-	custom_commands++;
+	my_strcpy(cc_ptr->display, disp, MAX_CHARS);
+
+	/*custom_commands++;//done above*/
 
 	return 1;
 }
@@ -1627,14 +1785,21 @@ int recv_ghost(connection_type *ct)
 
 int recv_floor(connection_type *ct)
 {
-	byte tval, attr;
-	byte flag;
+	byte pos, tval, attr;
+	byte flag, tester;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%d%c%c%s", &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%b%b%s", &pos, &attr, &amt, &tval, &flag, &tester, name) < 7)
 	{
 		return 0;
+	}
+
+	/* Hack - we do not support piles  */
+	if (pos > 0)
+	{
+		/* Do nothing... */
+		return 1;
 	}
 
 	/* Remember for later */
@@ -1642,6 +1807,7 @@ int recv_floor(connection_type *ct)
 	floor_item.tval = tval;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
+	floor_secondary_tester = tester;
 
 	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
@@ -1650,12 +1816,12 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	char pos, attr, tval;
-	byte flag;
+	byte pos, attr, tval;
+	byte flag, tester;
 	s16b wgt, amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%b%b%s", &pos, &attr, &wgt, &amt, &tval, &flag, &tester, name) < 8)
 	{
 		return 0;
 	}
@@ -1663,36 +1829,40 @@ int recv_inven(connection_type *ct)
 	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
 	inventory[pos - 'a'].sval = attr;
 	inventory[pos - 'a'].tval = tval;
-	inventory[pos - 'a'].ident = flag;
+	inventory[pos - 'a'].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
+	inventory_secondary_tester[pos - 'a'] = tester;
 
 	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Hack -- if server used this packet to send equip */
+	if (pos >= INVEN_TOTAL) p_ptr->window |= (PW_EQUIP);
+
 	return 1;
 }
 
 int recv_equip(connection_type *ct)
 {
-	char pos, attr, tval;
+	byte pos, attr, tval;
 	byte flag;
 	s16b wgt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%b%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
 		return 0;
 	}
 
-	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
+	inventory[pos - 'a' + INVEN_WIELD].sval = attr; /* Hack -- Store "attr" in "sval" */
 	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
-	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
-
+	inventory_secondary_tester[pos - 'a' + INVEN_WIELD] = 0;
 
 	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
@@ -1704,14 +1874,15 @@ int recv_equip(connection_type *ct)
 
 int recv_spell_info(connection_type *ct)
 {
-	char
-		flag;
+	byte
+		flag,
+		tester;
 	u16b
 		book,
 		line;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
+	if (cq_scanf(&ct->rbuf, "%b%b%ud%ud%s", &flag, &tester, &book, &line, buf) < 5)
 	{
 		return 0;
 	}
@@ -1725,6 +1896,7 @@ int recv_spell_info(connection_type *ct)
 	/* Save the info */
 	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
+	spell_test[book * SPELLS_PER_BOOK + line] = tester;
 
 	/* and wipe the next line */
 	spell_info[book][line+1][0] = '\0';
@@ -1747,19 +1919,71 @@ int recv_objflags(connection_type *ct)
 		return 0;
 	}
 
+	/* Verify */
+	if (y < 0 || y >= MAX_OBJFLAGS_ROWS)
+	{
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, MAX_OBJFLAGS_ROWS));
+		return -1;
+	}
+
 	/* Body (39 grids of cave) */
-	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
-	{ 
+	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], MAX_OBJFLAGS_COLS) < MAX_OBJFLAGS_COLS)
+	{
 		return 0;
 	}
 
 	//TODO: re-evalute those
 	/* Update relevant displays */
-	p_ptr->redraw |= PR_EQUIPPY;
+	//p_ptr->redraw |= PR_EQUIPPY;
 	p_ptr->window |= (PW_PLAYER_1);
 
 	/* Ok */
 	return 1;
+}
+
+int recv_party_info(connection_type *ct)
+{
+	int n;
+	char name[80];
+	char owner[80];
+	char buf[160];
+
+	name[0] = owner[0] = '\0';
+
+	if (cq_scanf(&ct->rbuf, "%s%s", name, owner) < 2)
+	{
+		return 0;
+	}
+	/* Prepare */
+	if (!STRZERO(owner))
+	{
+		sprintf(buf, "Party: %s Owner: %s", name, owner);
+	}
+	else
+	{
+		sprintf(buf, "Party: %s", name);
+	}
+
+	/* Copy info */
+	strcpy(party_info, buf);
+
+	/* Re-show party info */
+	if (party_mode)
+	{
+		Term_erase(0, 13, 255);
+		Term_putstr(0, 13, -1, TERM_WHITE, party_info);
+		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+	}
+
+	return 1;
+}
+
+
+/* HACK -- We have connected to server < 1.5.0 -- Remove this */
+int recv_oldserver_handshake(connection_type *ct)
+{
+	quit("Server version is too old.");
+	return -1;
 }
 
 void setup_tables()
@@ -1770,6 +1994,9 @@ void setup_tables()
 		handlers[i] = recv_undef;
 		schemes[i] = NULL;	
 	}
+
+	/* HACK -- Remove this sometime in the future */
+	handlers[254] = recv_oldserver_handshake;
 
 #define PACKET(PKT, SCHEME, FUNC) \
 	handlers[PKT] = FUNC; \
@@ -1837,6 +2064,8 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 	{
 		network_loop();
 		network_pause(100000); /* 0.1 ms "sleep" */
+		/* Let windows process UI events: */
+		Term_xtra(TERM_XTRA_FLUSH, 0);
 	}
 	/* Will be either 1 either -1 */
 
@@ -1855,6 +2084,18 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 }
 /* END OF META-SERVER STUFF */
 
+stream_type* _window_to_stream(byte win)
+{
+	int i;
+	for (i = 0; i < known_streams; i++)
+	{
+		if (streams[i].window_flag & window_flag[win])
+		{
+			return &streams[i];
+		}
+	}
+	return NULL;
+}
 
 bool net_term_clamp(byte win, byte *y, byte *x)
 {
@@ -1864,7 +2105,17 @@ bool net_term_clamp(byte win, byte *y, byte *x)
 	s16b xoff = 0;
 	s16b yoff = 0;
 
-	st_ptr = &streams[window_to_stream[win]];
+	if (!(st_ptr = _window_to_stream(win)))
+	{
+		return FALSE;
+	}
+
+	/* Hack -- if stream 0 is not initialized, assume we're not ready */
+	/* TODO: make this less hacky*/
+	if (st_ptr->max_col == 0)
+	{
+		return FALSE;
+	}
 
 	/* Shift expectations */
 	if (st_ptr->addr == NTERM_WIN_OVERHEAD) 
@@ -1926,18 +2177,6 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		st_x[j] = -1;
 	}
 
-	/* Hack -- if stream is hidden from UI, auto-subscribe..? */
-	for (k = 0; k < stream_groups; k++)
-	{
-		byte st = stream_group[k];
-		stream_type* st_ptr = &streams[st];
-
-		if (st_ptr->flag & SF_HIDE)
-		{
-			st_x[st] = st_ptr->min_col;
-			st_y[st] = st_ptr->min_row;
-		}
-	}
 
 	/* Now, find actual changes by comparing old and new */ 
 	for (j = 0; j < ANGBAND_TERM_MAX; j++)
@@ -1951,13 +2190,13 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(ang_term[j]);
 
 		/* Determine stream groups affected by this window */
-		for (k = 0; k < stream_groups; k++) 
+		for (k = 0; k < known_streams; k++)
 		{
-			byte st = stream_group[k];
+			byte st = k;
 			stream_type* st_ptr = &streams[st];
 
-			/* Hack -- if stream is hidden from UI, don't touch it */
-			if (st_ptr->flag & SF_HIDE) continue;
+			/* Hack -- if stream is auto-managed, don't touch it */
+			if (st_ptr->flag & SF_AUTO) continue;
 
 			/* The stream is unchanged or turned off */
 			if (st_y[st] <= 0)
@@ -1966,7 +2205,9 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 				if ((new_flag[j] & st_ptr->window_flag))
 				{
 					/* It wasn't active or it's size changed. Subscribe! */
-					if (!(old_flag[j] & st_ptr->window_flag) || Term->wid != p_ptr->stream_wid[st] || Term->hgt != p_ptr->stream_hgt[st]) 
+					if (!(old_flag[j] & st_ptr->window_flag)
+					|| Term->wid != p_ptr->stream_wid[st]
+					|| Term->hgt != p_ptr->stream_hgt[st])
 					{
 						st_y[st] = Term->hgt;
 						st_x[st] = Term->wid;
@@ -1984,7 +2225,7 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		/* Ignore visible changes */
 		if (clear)
 		{
-			/* Erase */ 
+			/* Erase */
 			Term_clear();
 
 			/* Refresh */
@@ -1995,14 +2236,27 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 		Term_activate(old);
 	}
 
+	/* Hack -- if stream is auto-managed, auto-subscribe. */
+	for (k = 0; k < known_streams; k++)
+	{
+		byte st = k;
+		stream_type* st_ptr = &streams[st];
+
+		if ((st_y[st] == -1) && (st_ptr->flag & SF_AUTO))
+		{
+			st_x[st] = st_ptr->min_col;
+			st_y[st] = st_ptr->min_row;
+		}
+	}
+
 	/* Send subscriptions */
 	for (j = 0; j < known_streams; j++) 
 	{
 		/* A change is scheduled */
-		if (st_y[j] != -1) 
+		if (st_y[j] != -1)
 		{
 			/* We try to subscribe/resize */
-			if (st_y[j]) 
+			if (st_y[j])
 			{ 
 				/* HACK -- Dungeon Display Offsets */
 				if (streams[j].addr == NTERM_WIN_OVERHEAD)

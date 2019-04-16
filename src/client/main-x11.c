@@ -2105,7 +2105,7 @@ static errr CheckEvent(bool wait)
 			y1 = (xev->xexpose.y - Infowin->oy) / td->tile_hgt;
 			y2 = (xev->xexpose.y + xev->xexpose.height - Infowin->oy) / td->tile_hgt;
 
-			//Term_redraw_section(x1, y1, x2, y2);
+			Term_redraw_section(x1, y1, x2, y2);
 
 			break;
 		}
@@ -2147,6 +2147,9 @@ static errr CheckEvent(bool wait)
 			if (cols < 3) cols = 3;
 			if (rows < 1) rows = 1;
 
+			/* Adjust min/max sizes as told by server */
+			net_term_clamp(window, &rows, &cols);
+
 			/*if (window == 0)
 			{
 				// Hack the main window must be at least 80x24 
@@ -2154,34 +2157,8 @@ static errr CheckEvent(bool wait)
 				if (rows < 24) rows = 24;
 			}*/
 
-			/* Network resize (if needed) */
-			if (window == 0)
-			{
-				/* HACK -- Boundries */
-				//if (cols < Setup.min_col+SCREEN_CLIP_X) { cols = Setup.min_col+SCREEN_CLIP_X; }
-				//if (rows < Setup.min_row+SCREEN_CLIP_Y) { rows = Setup.min_row+SCREEN_CLIP_Y; }
-				//if (cols > Setup.max_col+SCREEN_CLIP_X) { cols = Setup.max_col+SCREEN_CLIP_X; }
-				//if (rows > Setup.max_row+SCREEN_CLIP_Y) { rows = Setup.max_row+SCREEN_CLIP_Y; }
-										
-				/* Notice Change */
-				if (cols == ccols && rows == crows)
-				{
-					if (cols != ocols || rows != orows)
-					{
-						/* Dungeon size hack! */
-//						if (conn_state)
-//							net_term_resize(cols, rows - SCREEN_CLIP_L);
-						
-						ocols = cols;
-						orows = rows;
-					}
-				}
-				ccols = cols;
-				crows = rows;
-			} else {
-				/* Resize the Term (if needed) */
-				(void)Term_resize(cols, rows);
-			}
+			/* Resize the Term (if needed) */
+			(void)Term_resize(cols, rows);
 
 			/* Desired size of window */
 			wid = cols * td->tile_wid + (ox + ox);
@@ -2397,7 +2374,7 @@ static errr Term_text_x11(int x, int y, int n, byte a, cptr s)
 /*
  * Draw some graphical characters.
  */
-static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp) /*, const byte *tap, const char *tcp)*/
+static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp)
 {
 	int i;
 	int x1 = 0, y1 = 0;
@@ -2413,8 +2390,6 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 	int k,l;
 
 	unsigned long pixel, blank;
-	//char *tcp = p_ptr->trn_info[y][x].c;
-	//char *tap = p_ptr->trn_info[y][x].a	;
 	term_data *td = (term_data*)(Term->data);
 	
 	x = ox;
@@ -2432,8 +2407,8 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 		a = *ap++;
 		c = *cp++;
 
-		ta = p_ptr->trn_info[oy][ox].a;//*tap++;
-		tc = p_ptr->trn_info[oy][ox].c;//*tcp++;
+		ta = *tap++;
+		tc = *tcp++;
 
 		/* For extra speed - cache these values */
 		x1 = (c & 0x7F) * td->tile_wid2;
@@ -2503,7 +2478,7 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp)
 }
 static errr Term_pict_x11_28x(int x, int y, byte a, char c)
 {
-	return Term_pict_x11(x, y, 1, &a, &c);
+	return Term_pict_x11(x, y, 1, &a, &c, &a, &c);
 }
 
 #endif /* USE_GRAPHICS */
@@ -2846,8 +2821,6 @@ errr init_x11(int argc, char **argv)
 
 	cptr dpy_name = "";
 
-	int num_term = 8;
-
 #ifdef USE_GRAPHICS
 
 	cptr bitmap_file = "";
@@ -2861,7 +2834,6 @@ errr init_x11(int argc, char **argv)
 #endif /* USE_GRAPHICS */
 
 	/* Global config */
-	num_term = conf_get_int("X11", "Terms", num_term);
 	use_graphics = conf_get_int("X11", "Graphics", use_graphics);
 
 	/* Parse args */
@@ -2906,14 +2878,6 @@ errr init_x11(int argc, char **argv)
 		}
 
 #endif /* USE_GRAPHICS */
-
-		if (prefix(argv[i], "-n"))
-		{
-			num_term = atoi(&argv[i][2]);
-			if (num_term > MAX_TERM_DATA) num_term = MAX_TERM_DATA;
-			else if (num_term < 1) num_term = 1;
-			continue;
-		}
 
 		plog_fmt("Ignoring option: %s", argv[i]);
 	}
@@ -2962,7 +2926,7 @@ errr init_x11(int argc, char **argv)
 
 
 	/* Initialize the windows */
-	for (i = 0; i < num_term; i++)
+	for (i = 0; i < MAX_TERM_DATA; i++)
 	{
 		term_data *td = &tdata[i];
 
@@ -3055,7 +3019,7 @@ errr init_x11(int argc, char **argv)
 		XImage *tiles_raw;
 
 		/* Initialize */
-		for (i = 0; i < num_term; i++)
+		for (i = 0; i < MAX_TERM_DATA; i++)
 		{
 			term_data *td = &tdata[i];
 			td->tiles = NULL;
@@ -3069,7 +3033,7 @@ errr init_x11(int argc, char **argv)
 		if (tiles_raw)
 		{
 			/* Initialize the windows */
-			for (i = 0; i < num_term; i++)
+			for (i = 0; i < MAX_TERM_DATA; i++)
 			{
 				int j;
 				bool same = FALSE;
@@ -3080,7 +3044,7 @@ errr init_x11(int argc, char **argv)
 				term *t = &td->t;
 
 				/* Graphics hook */
-				t->pict_hook = Term_pict_x11_28x;
+				t->pict_hook = Term_pict_x11;
 
 				/* Use graphics sometimes */
 				t->higher_pict = TRUE;
@@ -3115,9 +3079,9 @@ errr init_x11(int argc, char **argv)
 			/* Free tiles_raw */
 			FREE(tiles_raw);
 		}
-                        
+
 		/* Initialize the transparency masks */
-		for (i = 0; i < num_term; i++)
+		for (i = 0; i < MAX_TERM_DATA; i++)
 		{
 			term_data *td = &tdata[i];
 			int ii, jj;

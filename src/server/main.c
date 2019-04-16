@@ -79,6 +79,7 @@ extern unsigned _ovrbuffer = 0x1500;
 static void init_stuff(void)
 {
 	char path[1024];
+	char path_wr[1024];
 
 #if defined(AMIGA) || defined(VM)
 
@@ -93,15 +94,20 @@ static void init_stuff(void)
 	tail = getenv("ANGBAND_PATH");
 
 	/* Use the angband_path, or a default */
-	strcpy(path, tail ? tail : PKGDATADIR);
+	my_strcpy(path, tail ? tail : PKGDATADIR, 1024);
 
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) strcat(path, PATH_SEP);
 
+	/* Repeat for writable paths */
+	my_strcpy(path_wr, tail ? tail : LOCALSTATEDIR, 1024);
+	if (!suffix(path_wr, PATH_SEP)) strcat(path_wr, PATH_SEP);
+
+
 #endif /* AMIGA / VM */
 
 	/* Initialize */
-	init_file_paths(path);
+	init_file_paths(path, path_wr);
 }
 
 /*
@@ -123,6 +129,27 @@ static void server_log(cptr str)
 	fprintf(stderr,"%s %s\n", buf, str);
 }
 
+void show_version()
+{
+	cptr version_modifiers[] = {
+		"", "alpha", "beta", "devel"
+	};
+	printf("MAngband Server %d.%d.%d %s\n",
+		SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR,
+		SERVER_VERSION_PATCH,
+		version_modifiers[SERVER_VERSION_EXTRA]);
+	puts("Copyright (c) 2007-2016 MAngband Project Team");
+	puts("Compiled with:");
+#ifdef CONFIG_PATH
+	printf("    Config path: %s\n", CONFIG_PATH);
+#endif
+	printf("     PKGDATADIR: %s\n", PKGDATADIR);
+	printf("  LOCALSTATEDIR: %s\n", LOCALSTATEDIR);
+	/* Actually abort the process */
+	quit(NULL);
+}
+
 /*
  * Some machines can actually parse command line args
  *
@@ -139,9 +166,6 @@ int main(int argc, char *argv[])
 
 	/* Setup our logging hook */
 	plog_aux = server_log;	
-
-	/* Note we are starting up */
-	plog("Game Restarted");
 
 	/* Save the "program name" */
 	argv0 = argv[0];
@@ -176,19 +200,39 @@ int main(int argc, char *argv[])
 		{
 			case 'c':
 			case 'C':
-			ANGBAND_DIR_BONE = &argv[0][2];
+			arg_config_file = string_make(&argv[0][2]);
+			break;
+
+			case 'e':
+			case 'E':
+			ANGBAND_DIR_EDIT = string_make(&argv[0][2]);
+			break;
+
+			case 'p':
+			case 'P':
+			ANGBAND_DIR_PREF = string_make(&argv[0][2]);
+			break;
+
+			case 't':
+			case 'T':
+			ANGBAND_DIR_HELP = string_make(&argv[0][2]);
+			break;
+
+			case 'd':
+			case 'D':
+			ANGBAND_DIR_DATA = string_make(&argv[0][2]);
 			break;
 
 #ifndef VERIFY_SAVEFILE
-			case 'd':
-			case 'D':
-			ANGBAND_DIR_SAVE = &argv[0][2];
+			case 's':
+			case 'S':
+			ANGBAND_DIR_SAVE = string_make(&argv[0][2]);
 			break;
 #endif
 
-			case 'i':
-			case 'I':
-			ANGBAND_DIR_HELP = &argv[0][2];
+			case 'b':
+			case 'B':
+			ANGBAND_DIR_BONE = string_make(&argv[0][2]);
 			break;
 
 			case 'r':
@@ -206,24 +250,33 @@ int main(int argc, char *argv[])
 			catch_signals = FALSE;
 			break;
 
+			case 'v':
+				show_version();
+			break;
+
+			case 'h':
 			default:
 			usage:
 
 			/* Note -- the Term is NOT initialized */
 			puts("Usage: mangband [options]");
-			puts("  -r	 Reset the server");
-			puts("  -f       Activate 'fiddle' mode");
-			puts("  -w       Activate 'wizard' mode");
+			puts("  -r       Reset the server");
 			puts("  -z       Don't catch signals");
-			puts("  -p<uid>  Play with the <uid> userid");
-			puts("  -c<path> Look for pref files in the directory <path>");
-			puts("  -d<path> Look for save files in the directory <path>");
-			puts("  -i<path> Look for info files in the directory <path>");
+			puts("  -C<file> Use config file <file>");
+			puts("  -e<path> Look for edit files in the directory <path>");
+			puts("  -t<path> Look for help files in the directory <path>");
+			puts("  -p<path> Look for pref files in the directory <path>");
+			puts("  -d<path> Look for data files in the directory <path>");
+			puts("  -s<path> Look for save files in the directory <path>");
+			puts("  -b<path> Look for bone files in the directory <path>");
 
 			/* Actually abort the process */
 			quit(NULL);
 		}
 	}
+
+	/* Note we are starting up */
+	plog("Game Restarted");
 
 	/* Tell "quit()" to call "Term_nuke()" */
 	quit_aux = quit_hook;

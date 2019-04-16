@@ -153,6 +153,8 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 
 	char		out_val[160];
 
+	byte flag, item_tester;
+
 	/* Dump the spells */
 	for (i = 0; i < num; i++)
 	{
@@ -166,7 +168,7 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		if (s_ptr->slevel >= 99)
 		{
 			sprintf(out_val, "  %c) %-30s", I2A(i), "(illegible)");
-			send_spell_info(Ind, book, i, 0, out_val);
+			send_spell_info(Ind, book, i, 0, 0, out_val);
 			continue;
 		}
 
@@ -189,11 +191,14 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 			comment = " untried";
 		}
 
+		/* Get flag and item tester */
+		flag = get_spell_flag(p_ptr->cp_ptr->spell_book, j, p_ptr->spell_flags[j], &item_tester);
+
 		/* Dump the spell --(-- */
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
 		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		send_spell_info(Ind, book, i, get_spell_flag(p_ptr->cp_ptr->spell_book,j,p_ptr->spell_flags[j]), out_val);
+		send_spell_info(Ind, book, i, flag, item_tester, out_val);
 	}
 }
 
@@ -213,7 +218,7 @@ void do_cmd_browse(int Ind, int book)
 	int num = 0;
 
 	byte		spells[PY_MAX_SPELLS];
-	
+
 
 	object_type		*o_ptr;
 
@@ -308,7 +313,7 @@ void do_cmd_study(int Ind, int book, int spell)
 
 	int			j = -1;
 
-    cptr p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
+	cptr p = ((p_ptr->cp_ptr->spell_book == TV_PRAYER_BOOK) ? "prayer" : "spell");
 
 	object_type		*o_ptr;
 
@@ -379,13 +384,13 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
-    /* Spellcaster -- Learn a selected spell */
-    if (!strcmp(p, "spell"))
+	/* Spellcaster -- Learn a selected spell */
+	if (!strcmp(p, "spell"))
 	{
 		for (i = 0; i < SPELLS_PER_BOOK; i++)
 		{
-			index = get_spell_index(Ind, o_ptr, i);		
-			
+			index = get_spell_index(Ind, o_ptr, i);
+
 			/* Collect this spell */
 			if (index != -1) spells[num++] = index;
 		}
@@ -400,13 +405,13 @@ void do_cmd_study(int Ind, int book, int spell)
 		}
 	}
 
-    /* Cleric -- Learn a random prayer */
+	/* Cleric -- Learn a random prayer */
 	if (!strcmp(p,"prayer"))
 	{
 		int k = 0;
 
 		int gift = -1;
-		
+
 		/* Extract spells */
 		for (i = 0; i < SPELLS_PER_BOOK; i++)
 		{
@@ -414,13 +419,13 @@ void do_cmd_study(int Ind, int book, int spell)
 
 			/* Skip empty */
 			if (index == -1) continue;
-							
+
 			/* Skip non "okay" prayers */
 			if (!spell_okay(Ind, index, FALSE)) continue;
 
 			/* Hack -- Apply the randomizer */
 			if ((++k > 1) && (rand_int(k) != 0)) continue;
-				
+
 			/* Track it */
 			gift = index;
 		}
@@ -492,7 +497,7 @@ void do_cmd_study(int Ind, int book, int spell)
  */
 void do_cmd_cast_pre(int Ind, int book, int dir, int spell)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;
@@ -511,6 +516,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	magic_type		*s_ptr;
 
 	byte spells[PY_MAX_SPELLS], num = 0;
+	byte item_tester = 0;
 
 	/* Check preventive inscription '^m' */
 	__trap(Ind, CPI(p_ptr, 'm'));
@@ -591,10 +597,10 @@ void do_cmd_cast(int Ind, int book, int spell)
 	if (spell >= SPELL_PROJECTED)
 	{
 		j = spells[spell - SPELL_PROJECTED];
-		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
 			msg_print(Ind, "You cannot project that spell.");
-        	return;
+			return;
 		}
 	}
 
@@ -721,7 +727,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
  */
 void do_cmd_pray_pre(int Ind, int book, int dir, int spell)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;
@@ -730,90 +736,92 @@ void do_cmd_pray_pre(int Ind, int book, int dir, int spell)
 }
 void do_cmd_pray(int Ind, int book, int spell)
 {
-    player_type *p_ptr = Players[Ind];
+	player_type *p_ptr = Players[Ind];
 
-    int item, sval, j, chance, i;
-    int index;
+	int item, sval, j, chance, i;
+	int index;
 
-    object_type	*o_ptr;
+	object_type	*o_ptr;
 
-    magic_type  *s_ptr;
+	magic_type  *s_ptr;
 
-    byte spells[PY_MAX_SPELLS], num = 0;
+	byte spells[PY_MAX_SPELLS], num = 0;
+	byte item_tester = 0;
 
 	/* Check preventive inscription '^p' */
 	__trap(Ind, CPI(p_ptr, 'p'));
 
-    /* Restrict ghosts */
-    if (p_ptr->ghost || p_ptr->fruit_bat)
-    {
+	/* Restrict ghosts */
+	if (p_ptr->ghost || p_ptr->fruit_bat)
+	{
 		msg_print(Ind, "Pray hard enough and your prayers may be answered.");
 		return;
-    }
+	}
 
-    /* Must use prayer books */
-    if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
-    {
-        msg_print(Ind, "Pray hard enough and your prayers may be answered.");
-        return;
-    }
+	/* Must use prayer books */
+	if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
+	{
+		msg_print(Ind, "Pray hard enough and your prayers may be answered.");
+		return;
+	}
 
-    /* Must have lite */
-    if (p_ptr->blind || no_lite(Ind))
-    {
-        msg_print(Ind, "You cannot see!");
-        return;
-    }
+	/* Must have lite */
+	if (p_ptr->blind || no_lite(Ind))
+	{
+		msg_print(Ind, "You cannot see!");
+		return;
+	}
 
-    /* Must not be confused */
-    if (p_ptr->confused)
-    {
-        msg_print(Ind, "You are too confused!");
-        return;
-    }
+	/* Must not be confused */
+	if (p_ptr->confused)
+	{
+		msg_print(Ind, "You are too confused!");
+		return;
+	}
 
 
-    /* Restrict choices */
-    item_tester_tval = p_ptr->cp_ptr->spell_book;
+	/* Restrict choices */
+	item_tester_tval = p_ptr->cp_ptr->spell_book;
 
-    item = book;
+	item = book;
 
-    /* Get the item (in the pack) */
-    if (item >= 0)
-    {
-        o_ptr = &p_ptr->inventory[item];
-    }
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
 
-    /* Get the item (on the floor) */
-    else
-    {
+	/* Get the item (on the floor) */
+	else
+	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-    	if (item == 0) {
+		if (item == 0)
+		{
 			msg_print(Ind, "There's nothing on the floor.");
 			return;
 		}
-        o_ptr = &o_list[0 - item];
-    }
+		o_ptr = &o_list[0 - item];
+	}
 
-    if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
-    {
-        /* Tried to pray prayer from bad book */
-        return;
-    }
+	if (o_ptr->tval != p_ptr->cp_ptr->spell_book)
+	{
+		/* Tried to pray prayer from bad book */
+		return;
+	}
 
-    /* Check guard inscription '!p' */
+	/* Check guard inscription '!p' */
 	__trap(Ind, CGI(o_ptr, 'p'));
 
-    /* Access the item's sval */
-    sval = o_ptr->sval;
+	/* Access the item's sval */
+	sval = o_ptr->sval;
 
 	for (i = 0; i < SPELLS_PER_BOOK; i++)
-    {
-        index = get_spell_index(Ind, o_ptr, i);
-		
+	{
+		index = get_spell_index(Ind, o_ptr, i);
+
 		/* Collect this spell */
-    	if (index != -1) spells[num++] = index;
-    }
+		if (index != -1) spells[num++] = index;
+	}
 
 	/* Set the prayer number */
 	j = spells[spell];
@@ -822,32 +830,32 @@ void do_cmd_pray(int Ind, int book, int spell)
 	if (spell >= SPELL_PROJECTED)
 	{
 		j = spells[spell - SPELL_PROJECTED];
-		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED) & PY_SPELL_PROJECT))
+		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
 			msg_print(Ind, "You cannot project that prayer.");
-        	return;
+			return;
 		}
 	}
 
 	/* Regular test */
-    if (!spell_okay(Ind, j, 1))
-    {
-        msg_print(Ind, "You cannot pray that prayer.");
-        return;
-    }
-    
-    /* get the spell info */
-    s_ptr = &p_ptr->mp_ptr->info[j];
-    
-    /* Check mana */
-    if (s_ptr->smana > p_ptr->csp)
-    {
-        msg_print(Ind, "You do not have enough mana.");
-        return;
-    }
+	if (!spell_okay(Ind, j, 1))
+	{
+		msg_print(Ind, "You cannot pray that prayer.");
+		return;
+	}
 
-    /* Spell failure chance */
-    chance = spell_chance(Ind, j);
+	/* get the spell info */
+	s_ptr = &p_ptr->mp_ptr->info[j];
+
+	/* Check mana */
+	if (s_ptr->smana > p_ptr->csp)
+	{
+		msg_print(Ind, "You do not have enough mana.");
+		return;
+	}
+
+	/* Spell failure chance */
+	chance = spell_chance(Ind, j);
 
 	/* Add "projection" offset */
 	if (spell >= SPELL_PROJECTED) 
@@ -856,18 +864,18 @@ void do_cmd_pray(int Ind, int book, int spell)
 		chance -= chance * PROJECTED_CHANCE_RATIO / 100;
 	}
 
-    /* Check for failure */
-    if (rand_int(100) < chance)
-    {
-        /*if (flush_failure) flush();*/
-        msg_print(Ind, "You failed to concentrate hard enough!");
+	/* Check for failure */
+	if (rand_int(100) < chance)
+	{
+		/*if (flush_failure) flush();*/
+		msg_print(Ind, "You failed to concentrate hard enough!");
 		/* Hack: Spend Mana */
 		p_ptr->current_spell = j;
-        do_cmd_cast_fin(Ind, FALSE);
-        return;
-    }
+		do_cmd_cast_fin(Ind, FALSE);
+		return;
+	}
 
-    /* Success */
+	/* Success */
 	sound(Ind, MSG_PRAYER);
 	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
 }
@@ -881,6 +889,7 @@ void show_ghost_spells(int Ind)
 	magic_type *s_ptr;
 	int i;
 	char out_val[80];
+	byte flag, item_tester;
 
 	/* Check each spell */
 	for (i = 0; i < PY_MAX_SPELLS; i++)
@@ -894,8 +903,11 @@ void show_ghost_spells(int Ind)
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d",
                 I2A(i), spell_names[GHOST_REALM][i], s_ptr->slevel, s_ptr->smana, 0);
 
+		/* Get extra info */
+		flag = get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED), &item_tester);
+
 		/* Send it */
-		send_spell_info(Ind, 10, i, get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED)), out_val);
+		send_spell_info(Ind, 10, i, flag, item_tester, out_val);
 	}
 }
 
@@ -904,12 +916,12 @@ void show_ghost_spells(int Ind)
  */
 void do_cmd_ghost_power_pre(int Ind, int dir, int ability)
 {
-	if (dir < 0)
+	if (dir < 0 && dir > -11)
 		Players[Ind]->command_dir = -dir;
 	else
 		Players[Ind]->command_arg = dir;
 
-	do_cmd_ghost_power(Ind, ability);	
+	do_cmd_ghost_power(Ind, ability);
 }
 void do_cmd_ghost_power(int Ind, int ability)
 {
@@ -956,7 +968,7 @@ void do_cmd_ghost_power_fin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
-	
+
 	/* Verify spell number */
 	if (p_ptr->current_spell < 0)
 		return;

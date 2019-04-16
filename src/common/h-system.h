@@ -45,10 +45,6 @@
 #  include <sys/time.h>
 # endif
 
-# if !defined(sgi) && !defined(ultrix) && !defined(__FreeBSD__)
-#  include <sys/timeb.h>
-# endif
-
 #endif
 
 
@@ -65,7 +61,6 @@
 
 #if defined(WINDOWS) || defined(MSDOS) || defined(USE_EMX)
 # include <io.h>
-#define strncasecmp strnicmp
 # ifndef WIN32
 #  include <pwd.h>
 #  include <unistd.h>

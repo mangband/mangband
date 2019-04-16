@@ -16,6 +16,8 @@
 
 static int		(*pcommands[256])(player_type *p_ptr);
 static byte		command_pkt[256];
+static byte		pkt_command[256];
+static u16b		pcommand_energy_cost[256];
 
 int send_play(connection_type *ct, byte mode) 
 {
@@ -80,7 +82,7 @@ int send_race_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 
-	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name);
+	name_size = p_info[z_info->p_max-1].name + strlen(p_name + p_info[z_info->p_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->p_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
@@ -111,7 +113,7 @@ int send_class_info(connection_type *ct)
 		client_withdraw(ct);
 	}
 	
-	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name);
+	name_size = c_info[z_info->c_max-1].name + strlen(c_name + c_info[z_info->c_max-1].name) + 1;
 	if (cq_printf(&ct->wbuf, "%ud%ul%ul", z_info->c_max, name_size, z_info->fake_text_size) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rollback */
@@ -133,7 +135,7 @@ int send_class_info(connection_type *ct)
 
 int send_optgroups_info(connection_type *ct)
 {
-	u32b i, name_size;
+	u32b i;
 
 	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -213,6 +215,49 @@ int send_inventory_info(connection_type *ct)
 	return 1;
 }
 
+int send_objflags_info(connection_type *ct)
+{
+	u32b off = 0;
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_OBJFLAGS) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", MAX_OBJFLAGS_ROWS, MAX_OBJFLAGS_COLS, 0) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
+
+int send_floor_info(connection_type *ct)
+{
+	u32b off = 0;
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_FLOOR) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", FLOOR_TOTAL, FLOOR_NEGATIVE ? 1 : 0, FLOOR_NEGATIVE ? -FLOOR_INDEX : FLOOR_INDEX) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	return 1;
+}
+
 int send_indicator_info(connection_type *ct, int id)
 {
 	const indicator_type *i_ptr = &indicators[id];
@@ -231,11 +276,11 @@ int send_indicator_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_indication(int Ind, byte id, ...)
+int send_indication(int Ind, int id, ...)
 {
 	connection_type *ct = PConn[Ind];
-	const indicator_type *i_ptr = &indicators[id];
-	int i = 0, n;
+	const indicator_type *i_ptr = &indicators[(byte)id];
+	int i = 0, n = 0;
 	int start_pos;
 
 	signed char tiny_c;
@@ -298,9 +343,10 @@ int send_stream_info(connection_type *ct, int id)
 	const stream_type *s_ptr = &streams[id];
 	if (!s_ptr->pkt) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c%c%c%c%c%s%c%c%c%c", PKT_STREAM,
- 		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag, s_ptr->mark, 
- 		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%c%c" "%s%s" "%ud%c%ud%c", PKT_STREAM,
+		s_ptr->pkt, s_ptr->addr, s_ptr->rle, s_ptr->flag,
+		s_ptr->mark, s_ptr->window_desc,
+		s_ptr->min_row, s_ptr->min_col, s_ptr->max_row, s_ptr->max_col) <= 0)
 	{
 		/* Hack -- instead of "client_withdraw(ct);", we simply */
 		return 0;
@@ -315,7 +361,7 @@ int send_stream_size(connection_type *ct, int st, int y, int x)
 	if (!ct) return -1;
 
 	/* Acknowledge new size for stream */
-	if (cq_printf(&ct->wbuf, "%c%c%c%c", PKT_RESIZE, (byte)st, (byte)y, (byte)x) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%b%ud%b", PKT_RESIZE, (byte)st, (u16b)y, (byte)x) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -327,7 +373,11 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 {
 	connection_type *ct;
 	const stream_type *stream = &streams[st];
+	u16b l;
 	int n;
+
+	/* Programmer error */
+	if (y > 127 || x > 255) { printf("stream_char is limited to y <= 127, x <= 255, you are using y %d, x %d\n", y, x); return -1; }
 
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
@@ -337,10 +387,11 @@ int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, char c, by
 	if (!p_ptr->stream_hgt[st]) return 1;
 
 	/* Header + Body (with or without transperancy) */
+	l = ((y << 8) & 0x7F00) | (x & 0x00FF) | 0x8000;
 	if (stream->flag & SF_TRANSPARENT)
-		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, y | ((x+1) << 8), a, c, a, c);
+		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, l, a, c, a, c);
 	else
-		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, y | ((x+1) << 8), a, c);		
+		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, l, a, c);
 	if (n <= 0)
 	{
 		client_withdraw(ct);
@@ -354,9 +405,12 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 {
 	connection_type *ct;
 	const stream_type *stream = &streams[st];
-	cave_view_type *source 	= p_ptr->stream_cave[st] + y * MAX_WID;
-	s16b l;
+	cave_view_type *source = p_ptr->stream_cave[st] + y * MAX_WID;
+	u16b l;
 	int n;
+
+	/* Programmer error */
+	if (y > 127 || x > 255) { printf("stream_char is limited to y <= 127, x <= 255, you are using y %d, x %d\n", y, x); return -1; }
 
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
@@ -366,11 +420,11 @@ int stream_char(player_type *p_ptr, int st, int y, int x)
 	if (!p_ptr->stream_hgt[st]) return 1;
 
 	/* Header + Body (with or without transperancy) */
-	l = y | ((x+1) << 8);
+	l = ((y << 8) & 0x7F00) | (x & 0x00FF) | 0x8000;
 	if (stream->flag & SF_TRANSPARENT)
-		n = cq_printf(&ct->wbuf, "%c%d%c%c%c%c", stream->pkt, l, source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
+		n = cq_printf(&ct->wbuf, "%c%ud%c%c%c%c", stream->pkt, l, source[x].a, source[x].c, p_ptr->trn_info[y][x].a, p_ptr->trn_info[y][x].c);
 	else
-		n = cq_printf(&ct->wbuf, "%c%d%c%c", stream->pkt, l, source[x].a, source[x].c);
+		n = cq_printf(&ct->wbuf, "%c%ud%c%c", stream->pkt, l, source[x].a, source[x].c);
 	if (n <= 0)
 	{
 		client_withdraw(ct);
@@ -392,6 +446,9 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	byte	trn = (stream->flag & SF_TRANSPARENT);
 	source 	= p_ptr->stream_cave[st] + y * MAX_WID;
 
+	/* Programmer error */
+	if (as_y & 0x8000) { printf("stream_line is limited to y <= 32767, you are using y %d\n", as_y); return -1; }
+
 	/* Paranoia -- do not send to closed connection */
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
@@ -399,11 +456,14 @@ int stream_line_as(player_type *p_ptr, int st, int y, int as_y)
 	/* Do not send streams not subscribed to */
 	if (!cols) return 1;
 
+	/* Paranoia -- respect row bounds */
+	if (as_y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER)) return -1;
+
 	/* Begin cq "transaction" */
 	start_pos = ct->wbuf.len;
 
 	/* Packet header */
-	if (cq_printf(&ct->wbuf, "%c%d", stream->pkt, as_y) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%ud", stream->pkt, as_y) <= 0)
 	{
 		ct->wbuf.len = start_pos; /* rewind */
 		client_withdraw(ct);
@@ -456,7 +516,7 @@ int send_term_info(player_type *p_ptr, byte flag, u16b line)
 
 	return n;
 }
-int send_term_header(player_type *p_ptr, cptr header)
+int send_term_header(player_type *p_ptr, byte hint, cptr header)
 {
 	connection_type *ct;
 
@@ -464,14 +524,33 @@ int send_term_header(player_type *p_ptr, cptr header)
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
 
-	if (!cq_printf(&ct->wbuf, "%c%s", PKT_TERM_INIT, header))
+	if (!cq_printf(&ct->wbuf, "%c%b%s", PKT_TERM_INIT, hint, header))
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_cursor(player_type *p_ptr, char vis, char x, char y)
+int send_term_writefile(connection_type *ct, byte fmode, cptr filename)
+{
+	if (ct == NULL) return -1;
+	if (!cq_printf(&ct->wbuf, "%c" "%b%s", PKT_TERM_WRITE, fmode, filename))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_term_write(player_type *p_ptr, byte fmode, cptr filename)
+{
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
+	return send_term_writefile(ct, fmode, filename);
+}
+
+int send_cursor(player_type *p_ptr, byte vis, byte x, byte y)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -484,7 +563,7 @@ int send_cursor(player_type *p_ptr, char vis, char x, char y)
 	return 1;
 }
 
-int send_target_info(player_type *p_ptr, char x, char y, byte win, cptr str)
+int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -502,8 +581,25 @@ int send_custom_command_info(connection_type *ct, int id)
 
 	if (!cc_ptr->m_catch) return 1; /* Last one */
 
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S", PKT_COMMAND,
-		command_pkt[id], cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt) <= 0)
+	/* HACK -- On first pass, just take note of the id and do nothing,
+	 * on second pass, replace 'G'ain for priests/palladins. */
+	if (cc_ptr->m_catch == 'G')
+	{
+		study_cmd_id = id; /* Remember for later */
+		/* He has a player attached (LOGGED IN) */
+		if ((int)ct->user != -1)
+		{
+			player_type *p_ptr = players->list[(int)ct->user]->data2;
+			if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
+			{
+				priest_study_cmd.pkt = cc_ptr->pkt;
+				cc_ptr = &priest_study_cmd;
+			}
+		}
+	}
+
+	if (cq_printf(&ct->wbuf, "%c%c%c%d%ul%c%S%s", PKT_COMMAND,
+		command_pkt[id], cc_ptr->scheme, cc_ptr->m_catch, cc_ptr->flag, cc_ptr->tval, cc_ptr->prompt, cc_ptr->display) <= 0)
 	{
 		/* Hack -- instead of "client_withdraw(ct);", we simply */
 		return 0;
@@ -541,22 +637,34 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name)
+int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%d%c%c%s", PKT_FLOOR, attr, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%c" "%ud%ud", PKT_AIR, y, x, a, c, delay, fade) <= 0)
+	{
+		/* No space in buffer, but we don't really care for this packet */
+		return 0;
+	}
+	return 1;
+}
+
+int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%d%c%b%b%s", PKT_FLOOR, 0, attr, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name)
+int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%d%c%c%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -567,18 +675,18 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (cq_printf(&ct->wbuf, "%c%c%c%ud%c%c%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%c%b%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
 	return 1;
 }
 
-int send_spell_info(int Ind, u16b book, u16b i, byte flag, cptr out_val)
+int send_spell_info(int Ind, u16b book, u16b i, byte flag, byte item_tester, cptr out_val)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c%ud%ud%s", PKT_SPELL_INFO, flag, book, i, out_val))
+	if (!cq_printf(&ct->wbuf, "%c" "%b%b%ud%ud%s", PKT_SPELL_INFO, flag, item_tester, book, i, out_val))
 	{
 		client_withdraw(ct);
 	}
@@ -630,7 +738,7 @@ int send_objflags(int Ind, int line)
 		client_withdraw(ct);
 	}
 	/* Body (39 grids of "cave") */
-	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], 39) <= 0)
+	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], MAX_OBJFLAGS_COLS) <= 0)
 	{
 		client_withdraw(ct);
 	} 
@@ -671,11 +779,11 @@ int send_message_repeat(int Ind, u16b typ)
 	return 1;
 }
 
-int send_sound(int Ind, int sound)
+int send_sound(int Ind, u16b sound)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
-	if (!cq_printf(&ct->wbuf, "%c%c", PKT_SOUND, sound))
+	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_SOUND, sound))
 	{
 		client_withdraw(ct);
 	}
@@ -761,12 +869,12 @@ int recv_pass(connection_type *ct, player_type *p_ptr)
 {
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%S", buf) < 1)
+	if (cq_scanf(&ct->rbuf, "%s", buf) < 1)
 	{
 		return 0;
 	}
 
-	my_strcpy(p_ptr->pass, buf, MAX_PASS_LEN);
+	my_strcpy(p_ptr->pass, buf, MAX_CHARS);
 
 	/* BUG: the password is not actually saved until player_save,
 	 * which can make things very confusing during login :( */
@@ -775,11 +883,11 @@ int recv_pass(connection_type *ct, player_type *p_ptr)
 }
 
 /* Default handler for all the gameplay commands. */
-int recv_command(connection_type *ct, player_type *p_ptr) 
+int recv_command(connection_type *ct, player_type *p_ptr)
 {
 	/* Hack -- remember position, and rewind to it upon failure */
 	int fail = 0;
-	int start_pos = p_ptr->cbuf.pos;
+	int start_len = p_ptr->cbuf.len;
 
 	/* Write header */
 	if (cq_printf(&p_ptr->cbuf, "%c", next_pkt) <= 0)
@@ -790,7 +898,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	/* Hack -- it's a "custom command" */
 	if (next_pkt == PKT_COMMAND)
 	{
-		/* custtom command 'id' is used in those, so we copy it first */
+		/* custom command 'id' is used in those, so we copy it first */
 		if (cq_copyf(&ct->rbuf, "%c", &p_ptr->cbuf) < 1)
 		{
 			/* Unable to... */
@@ -815,7 +923,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	if (fail)
 	{
 		/* Rewind, report lack of energy */
-		p_ptr->cbuf.pos = start_pos;
+		p_ptr->cbuf.len = start_len;
 		return 0;
 	}
 
@@ -824,12 +932,12 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 }
 
 /* Undefined packet "handler" */
-static int recv_undef(connection_type *ct, player_type *p_ptr) 
-{ 
+static int recv_undef(connection_type *ct, player_type *p_ptr)
+{
 	client_abort(ct, format("Undefined packet '%d'!", next_pkt));
 }
 
-int recv_keepalive(connection_type *ct, player_type *p_ptr) 
+int recv_keepalive(connection_type *ct, player_type *p_ptr)
 {
 	s32b ctime;
 
@@ -845,19 +953,21 @@ int recv_keepalive(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
-int recv_play(connection_type *ct, player_type *p_ptr) 
+int recv_play(connection_type *ct, player_type *p_ptr)
 {
-	byte 
+	byte
 		mode = 0;
-	if (cq_scanf(&ct->rbuf, "%c", &mode) < 1) 
+	if (cq_scanf(&ct->rbuf, "%c", &mode) < 1)
 	{
 		/* Not enough bytes */
 		return 0;
 	}
 
-	if (p_ptr == NULL || p_ptr->state < PLAYER_BONE)
+	if (p_ptr == NULL)
 	{
-		/* ....? Some kind of error */
+		/* TODO: verify if this can or cannot happen (by contract) */
+		/* ... but better safe than sorry. */
+		return -1;
 	}
 	/* Client asks for a hard restart */
 	if (mode == PLAY_RESTART)
@@ -893,9 +1003,15 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_ROLL)
 	{
 		/* Prerequisites: */
-		if (p_ptr->state != PLAYER_SHAPED) 
+		if (p_ptr->state != PLAYER_SHAPED)
 		{
 			client_abort(ct, "Character not suitable for rolling!");
+		}
+
+		/* Hack -- do not allow new characters to be created? */
+		if (cfg_instance_closed)
+		{
+			client_abort(ct, "No new characters can be created on this server.");
 		}
 
 		/* Do it */
@@ -908,7 +1024,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_ENTER)
 	{
 		/* Prerequisites: */
-		if (p_ptr->state != PLAYER_FULL) 
+		if (p_ptr->state != PLAYER_FULL)
 		{
 			client_abort(ct, "Character not ready to enter a game!");
 		}
@@ -923,7 +1039,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 	else if (mode == PLAY_PLAY && p_ptr->state == PLAYER_LEAVING)
 	{
 		/* Prerequisites: */
-		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0)
 		{
 			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
 		}
@@ -940,7 +1056,7 @@ int recv_play(connection_type *ct, player_type *p_ptr)
 		{
 			client_abort(ct, "Character not ready to play a game!");
 		}
-		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0) 
+		if (p_ptr->screen_wid == 0 || p_ptr->screen_hgt == 0)
 		{
 			client_abort(ct, format("Viewscreen not ready to play a game! [%dx%d]",p_ptr->screen_wid,p_ptr->screen_hgt));
 		}
@@ -965,7 +1081,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 	char mode;
 	u16b id;
 
-	if (cq_scanf(&ct->rbuf, "%c%ud", &mode, &id) < 2) 
+	if (cq_scanf(&ct->rbuf, "%c%ud", &mode, &id) < 2)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -973,7 +1089,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 
 	id = p_ptr->infodata_sent[mode];
 
-	switch (mode) 
+	switch (mode)
 	{
 		case BASIC_INFO_INDICATORS:
 			while (id < MAX_INDICATORS) if (!send_indicator_info(ct, id++)) break;
@@ -1001,14 +1117,14 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 
 int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	int i;
-	
+
 	/* TODO: Ensure p_ptr->state is correct of char_info and bail if not */
 	if (p_ptr->state != PLAYER_NAMED)
-	{ 
+	{
 		client_abort(ct, "Character not ready to be modified!");
 	}
 
-	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->pclass, &p_ptr->male) < 3) 
+	if (cq_scanf(&ct->rbuf, "%d%d%d", &p_ptr->prace, &p_ptr->pclass, &p_ptr->male) < 3)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -1018,7 +1134,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	for (i = 0; i < 6; i++)
 	{
 		p_ptr->stat_order[i] = 0;
-		if (cq_scanf(&ct->rbuf, "%d", &p_ptr->stat_order[i]) < 1) 
+		if (cq_scanf(&ct->rbuf, "%d", &p_ptr->stat_order[i]) < 1)
 		{
 			/* Not enough bytes */
 			return 0;
@@ -1035,8 +1151,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_visual_info(connection_type *ct, player_type *p_ptr) {
-	int n, i, local_size;
-	byte at;
+	int n, local_size = 0;
 	char *char_ref;
 	byte *attr_ref = NULL;
 	byte
@@ -1055,7 +1170,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 	}
 
 	/* Gather type */
-	switch (type) 
+	switch (type)
 	{
 		case VISUAL_INFO_FLVR:
 			local_size = MAX_FLVR_IDX;//MIN(MAX_FLVR_IDX, z_info->flavor_max)
@@ -1112,7 +1227,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_options(connection_type *ct, player_type *p_ptr) {
-	int n, i, j;
+	int i;
 	byte next, bit;
 
 	for (i = 0; i < OPT_MAX; i += 8)
@@ -1129,14 +1244,15 @@ int recv_options(connection_type *ct, player_type *p_ptr) {
 			int n = i + bit;
 			if (n >= OPT_MAX) break;
 
-			/* Real index is in the o_uid! */
-			n = option_info[n].o_uid;
-
 			/* Skip locked options */
 			if (option_info[n].o_bit) continue;
 
-			/* Skip birth options */
-			if (option_info[n].o_page == 1 && IS_PLAYING(p_ptr)) continue;
+			/* Skip birth options (if character is solid) */
+			if (option_info[n].o_page == 1 && !p_ptr->new_game) continue;
+
+			/* Real index is in the o_uid! */
+			n = option_info[n].o_uid;
+
 			/* Set */
 			if (next & (1L << bit))
 			{
@@ -1167,7 +1283,7 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		switch (i)
 		{
 			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = val; break; 
+			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break; 
 			default: break;
 		}
 	}
@@ -1180,10 +1296,10 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
 	byte
 		stg = 0,
-		y = 0,
 		x = 0;
+	u16b y = 0;
 	byte st, addr;
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) 
+	if (cq_scanf(&ct->rbuf, "%c%ud%c", &stg, &y, &x) < 3)
 	{
 		/* Not enough bytes */
 		return 0;
@@ -1197,6 +1313,9 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 	{
 		/* Stop when we move to the next group */
 		if (streams[st].addr != addr) break;
+
+		/* SF_NEXT_GROUP also marks next group */
+		if (st > stg && (streams[st].flag & SF_NEXT_GROUP)) break;
 
 		/* Test bounds (if we're subscribing) */
 		if (y)
@@ -1212,7 +1331,7 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		p_ptr->stream_hgt[st] = y;
 
 		/* Subscribe / Unsubscribe */
-		if (y) 
+		if (y)
 		{
 			p_ptr->window_flag |= streams[st].window_flag;
 			p_ptr->window |= streams[st].window_flag; /* + Schedule actual update */
@@ -1232,6 +1351,8 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 		else
 		{
 			p_ptr->window_flag &= ~streams[st].window_flag;
+			/* HACK -- check if player has disabled monster text window */
+			monster_race_track_hack(p_ptr);
 		}
 	}
 
@@ -1245,7 +1366,7 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		type = 0;
-	int Ind = Get_Ind[p_ptr->conn];		
+	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &type) < 1)
 	{
@@ -1282,7 +1403,7 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		key = 0;
-	int Ind = Get_Ind[p_ptr->conn];		
+	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &key) < 1)
 	{
@@ -1294,6 +1415,18 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(p_ptr, key);
 	else if (p_ptr->special_file_type)
 		do_cmd_interactive(p_ptr, key);
+
+	return 1;
+}
+
+/* Client sent us some "mouse" action */
+int recv_mouse(connection_type *ct, player_type *p_ptr) {
+	byte mod, x, y;
+
+	if (cq_scanf(&ct->rbuf, "%c%c%c", &mod, &x, &y) < 3) return 0;
+
+	/* We don't do anything with this data, currently */
+	(void)p_ptr;
 
 	return 1;
 }
@@ -1330,7 +1463,7 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 
 	if (cq_scanf(&ct->rbuf, "%d%s", &command, buf) < 2)
 	{
-	    return 0;
+		return 0;
 	}
 	if (Ind)
 	{
@@ -1476,11 +1609,12 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 }
 
 /** Gameplay commands **/
-/* Those return 
+/* Those return
 	* -1 on critical error
 	*  0 when lack energy
-	*  1 or 2 on success
-	*  2 when all energy was drained (break loop)
+	*  1 on generic success
+	*  2 success + we're certain player has spent energy
+	*  3 success + all energy was drained (break loop)
 */
 static int recv_walk(player_type *p_ptr) {
 	int Ind = Get_Ind[p_ptr->conn];
@@ -1503,7 +1637,14 @@ static int recv_walk(player_type *p_ptr) {
 	/* Note: there's another arguably more elegant way to do this:
 	 * replace last walk request in "recv_command" or similar,
 	 * the way older code did it */
-	if (cq_len(&p_ptr->cbuf) && (CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK)
+	/* Here we test to see if there are *TWO* more walk requests queued up
+	 * after the current one, and if so, we skip the current one. The reason
+	 * we test for 2 commands (and not just 1), is classic MAngband sometimes
+	 * allowed up to 2 walk requests to be executed consequently, so we emulate
+	 * that behavior. */
+	if ((cq_len(&p_ptr->cbuf) > 2)
+	&& ((CQ_PEEK(&p_ptr->cbuf))[0] == PKT_WALK) /* next command */
+	&& ((CQ_PEEK(&p_ptr->cbuf))[2] == PKT_WALK)) /* and the one after it */
 	{
 		return 1;
 	}
@@ -1512,7 +1653,7 @@ static int recv_walk(player_type *p_ptr) {
 	/* Disturb if running or resting */
 	if (p_ptr->running || p_ptr->resting)
 	{
-		disturb(Ind, 0, 0);
+		disturb(Ind, 0, 1);
 		return 1;
 	}
 
@@ -1522,8 +1663,11 @@ static int recv_walk(player_type *p_ptr) {
 		/* Actually walk */
 		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+
 		/* End turn */
-		return 2;
+		return 3;
 	}
 
 	/* Not enough energy */
@@ -1539,32 +1683,35 @@ static int recv_toggle_rest(player_type *p_ptr) {
 
 	if (p_ptr->resting)
 	{
-		disturb(Ind, 0, 0);
+		disturb(Ind, 0, 1);
 		return 1;
-	}	
+	}
 
 	/* Don't rest if we are poisoned or at max hit points and max spell points */ 
-	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) && 
-	                       	(p_ptr->csp == p_ptr->msp)))
+	if ((p_ptr->poisoned) || ((p_ptr->chp == p_ptr->mhp) &&
+	                          (p_ptr->csp == p_ptr->msp)))
 	{
 		return 1;
 	}
 
 	/* Check energy */
-	if ((p_ptr->energy) >= (level_speed(p_ptr->dun_depth)))
+	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
 		/* Start resting */
 		do_cmd_toggle_rest(Ind);
 
+		/* Hack -- add aggravating noise */
+		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+
 		/* End turn */
-		return 2;
+		return 3;
 	}
 	/* If we don't have enough energy to rest, disturb us (to stop
 	 * us from running) and queue the command.
 	 */
-	disturb(Ind, 0, 0);
+	disturb(Ind, 0, 1);
 
-	/* Try again later */ 
+	/* Try again later */
 	return 0;
 }
 
@@ -1577,9 +1724,9 @@ static int recv_custom_command(player_type *p_ptr)
 	char
 		dir,
 		item;
-	byte id;
-	byte i, j, tmp;
+	byte i, tmp;
 	char entry[60];
+	u32b old_energy;
 
 	if (IS_PLAYING(p_ptr))
 	{
@@ -1587,7 +1734,6 @@ static int recv_custom_command(player_type *p_ptr)
 	}
 	else
 	{
-		printf("Not playing\n");
 		return -1;
 	}
 
@@ -1603,20 +1749,16 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Find */
 	else
 	{
-		/* TODO: replace this with lookup table */
-		i = MAX_CUSTOM_COMMANDS + 1;
-		for (j = 0; j < MAX_CUSTOM_COMMANDS; j++)
-		{
-			if (command_pkt[j] == (char)next_pkt)
-			{
-				i = j;
-				break;
-			}
-		}
+		i = pkt_command[(char)next_pkt];
 	}
 
 	/* Undefined */
-	if (i > MAX_CUSTOM_COMMANDS || !custom_commands[i].m_catch)
+	if (i >= MAX_CUSTOM_COMMANDS)
+	{
+		printf("****** No known command [%d] '%c' PKT %d\n", i, '0', next_pkt); /* No command matches */
+		return -1;
+	}
+	else if (!custom_commands[i].m_catch)
 	{
 		printf("****** Unknown command [%d] '%c' PKT %d\n", i, custom_commands[i].m_catch, next_pkt);
 		return -1;
@@ -1632,13 +1774,18 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Does it cost energy? */
 	if (custom_commands[i].energy_cost)
 	{
+		/* MAngband-specific: if we've JUST started running, pretend we don't have enough energy */
+		if ((custom_commands[i].pkt == PKT_RUN) && p_ptr->running && p_ptr->ran_tiles == 0)
+		{
+			/* Report as lack of energy */
+			return 0;
+		}
 		/* Not enough! ABORT! */
 		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
 		{
 			/* Report lack of energy */
-			printf("Lack energy\n");
 			return 0;
-		} 
+		}
 	}
 
 	/* Read the arguments from command buffer */
@@ -1694,51 +1841,60 @@ static int recv_custom_command(player_type *p_ptr)
 #undef S_SET
 #undef S_DONE
 
+	/* Remember how much energy player had */
+	old_energy = p_ptr->energy;
 
 	/* Call the callback ("execute command") */
-#define S_ARG (custom_commands[i].do_cmd_callback) 
+#define S_ARG (custom_commands[i].do_cmd_callback)
 #define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;
 	switch (custom_commands[i].scheme)
 	{
 		S_EXEC( EMPTY,          	(int),                  	(player))
-		S_EXEC( ITEM,           	(int, char),            	(player, item))
-		S_EXEC(	DIR,            	(int, char),            	(player, dir))
+		S_EXEC( ITEM,           	(int, int),            	(player, item))
+		S_EXEC(	DIR,            	(int, int),            	(player, dir))
 		S_EXEC(	VALUE,          	(int, int),             	(player, value))
 		S_EXEC(	SMALL,          	(int, int),             	(player, value))
 		S_EXEC(	STRING,         	(int, char*),           	(player, entry))
 		S_EXEC(	CHAR,           	(int, char),            	(player, entry[0]))
-		S_EXEC(	ITEM_DIR,       	(int, char, char),      	(player, item, dir))
-		S_EXEC(	ITEM_VALUE,     	(int, char, int),       	(player, item, value))
-		S_EXEC(	ITEM_SMALL,     	(int, char, int),       	(player, item, value))
-		S_EXEC(	ITEM_STRING,    	(int, char, char*),     	(player, item, entry))
-		S_EXEC(	ITEM_CHAR,      	(int, char, char),      	(player, item, entry[0]))
-		S_EXEC(	DIR_VALUE,      	(int, char, int),       	(player, dir, value))
-		S_EXEC(	DIR_SMALL,      	(int, char, int),       	(player, dir, value))
-		S_EXEC(	DIR_STRING,     	(int, char, char*),     	(player, dir, entry))
-		S_EXEC(	DIR_CHAR,       	(int, char, char),      	(player, dir, entry[0]))
+		S_EXEC(	ITEM_DIR,       	(int, int, int),      	(player, item, dir))
+		S_EXEC(	ITEM_VALUE,     	(int, int, int),       	(player, item, value))
+		S_EXEC(	ITEM_SMALL,     	(int, int, int),       	(player, item, value))
+		S_EXEC(	ITEM_STRING,    	(int, int, char*),     	(player, item, entry))
+		S_EXEC(	ITEM_CHAR,      	(int, int, char),      	(player, item, entry[0]))
+		S_EXEC(	DIR_VALUE,      	(int, int, int),       	(player, dir, value))
+		S_EXEC(	DIR_SMALL,      	(int, int, int),       	(player, dir, value))
+		S_EXEC(	DIR_STRING,     	(int, int, char*),     	(player, dir, entry))
+		S_EXEC(	DIR_CHAR,       	(int, int, char),      	(player, dir, entry[0]))
 		S_EXEC(	VALUE_STRING,   	(int, int, char*),      	(player, value, entry))
 		S_EXEC(	VALUE_CHAR,     	(int, int, char),       	(player, value, entry[0]))
 		S_EXEC(	SMALL_STRING,   	(int, int, char*),      	(player, value, entry))
 		S_EXEC(	SMALL_CHAR,     	(int, int, char),       	(player, value, entry[0]))
-		S_EXEC(	ITEM_DIR_VALUE, 	(int, char, char, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_SMALL, 	(int, char, char, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_STRING,	(int, char, char, char*),	(player, item, dir, entry))
-		S_EXEC(	ITEM_DIR_CHAR,  	(int, char, char, char),	(player, item, dir, entry[0]))
-		S_EXEC(	ITEM_VALUE_STRING,	(int, char, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_VALUE_CHAR,	(int, char, int, char), 	(player, item, value, entry[0]))
-		S_EXEC(	ITEM_SMALL_STRING,	(int, char, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_SMALL_CHAR, 	(int, char, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	ITEM_DIR_VALUE, 	(int, int, int, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_SMALL, 	(int, int, int, int), 	(player, item, dir, value))
+		S_EXEC(	ITEM_DIR_STRING,	(int, int, int, char*),	(player, item, dir, entry))
+		S_EXEC(	ITEM_DIR_CHAR,  	(int, int, int, char),	(player, item, dir, entry[0]))
+		S_EXEC(	ITEM_VALUE_STRING,	(int, int, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_VALUE_CHAR,	(int, int, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	ITEM_SMALL_STRING,	(int, int, int, char*),	(player, item, value, entry))
+		S_EXEC(	ITEM_SMALL_CHAR, 	(int, int, int, char), 	(player, item, value, entry[0]))
 
 		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0]))
 	}
-#undef S_ARG 
+#undef S_ARG
 #undef S_EXEC
+
+	/* Player has definitely spent energy */
+	if (p_ptr->energy < old_energy)
+	{
+		/* Report it */
+		return 2;
+	}
 
 	/* Done */
 	return 1;
 }
 
-int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name) 
+int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
 {
 	connection_type *ct = PConn[Ind];
 	if (!ct) return -1;
@@ -1771,6 +1927,11 @@ int send_confirm_request(int Ind, byte type, cptr buf)
 	return 1;
 }
 
+int send_pickup_check(int Ind, cptr buf)
+{
+	return send_confirm_request(Ind, 0x03, buf);
+}
+
 int send_store_sell(int Ind, u32b price)
 {
 	char buf[80];
@@ -1778,32 +1939,112 @@ int send_store_sell(int Ind, u32b price)
 	return send_confirm_request(Ind, 0x01, buf);
 }
 
+int send_store_leave(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	if (!ct) return -1;
+	if (!cq_printf(&ct->wbuf, "%c", PKT_STORE_LEAVE))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_party_info(int Ind)
+{
+	connection_type *ct = PConn[Ind];
+	player_type *p_ptr = Players[Ind];
+	char *name = "";
+	char *owner = "";
+	if (!ct) return -1;
+	if (p_ptr->party > 0)
+	{
+		name = parties[p_ptr->party].name;
+		owner = parties[p_ptr->party].owner;
+	}
+	if (!cq_printf(&ct->wbuf, "%c" "%s%s", PKT_PARTY, name, owner))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+
+/* This gets called before EVERY gameplay command. */
+void do_cmd__before(player_type *p_ptr, byte pkt)
+{
+	/* Assume non-custom commands have their own hacks */
+	if (pkt_command[pkt] >= MAX_CUSTOM_COMMANDS)
+	{
+		/* Do nothing */
+		return;
+	}
+	/* Command is going to cost energy -- disturb if resting */
+	if (pcommand_energy_cost[pkt] && p_ptr->resting)
+	{
+		disturb(Get_Ind[p_ptr->conn], 0, 1);
+	}
+}
+
+/* This gets called after every *EXECUTED* gameplay command.
+ * See "Gameplay commands" above for definition of "result".
+ */
+void do_cmd__after(player_type *p_ptr, byte pkt, int result)
+{
+	/* Some fatal error occured, we don't care */
+	if (result <= -1) return;
+
+	/* Paranoia -- player did not have enough energy to execute the command */
+	if (result == 0) return;
+
+	/* Hack -- Add noise for commands that cost energy */
+	if (pcommand_energy_cost[pkt])
+	{
+		int halve = 1;
+		int v;
+		
+		/* If he did not spend any energy, only add half the noise */
+		if (result == 1)
+		{
+			halve = 2;
+		}
+		v = (30 - p_ptr->skill_stl) / pcommand_energy_cost[pkt] / halve;
+		set_noise(Get_Ind[p_ptr->conn], p_ptr->noise + v);
+	}
+}
+
+
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */
 int process_player_commands(int p_idx)
 {
-	player_type *p_ptr = p_list[p_idx]; 
+	player_type *p_ptr = p_list[p_idx];
 
 	byte pkt;
 	int result = 1;
 	int start_pos = 0;
 
 	/* parse */
-	while (	cq_len(&p_ptr->cbuf) )
+	while ( cq_len(&p_ptr->cbuf) )
 	{
 		/* remember position */
 		start_pos = p_ptr->cbuf.pos;
-		/* read out and execute command */
+		/* read out command */
 		next_pkt = pkt = CQ_GET(&p_ptr->cbuf);
+		/* pre-execute hacks */
+		do_cmd__before(p_ptr, pkt);
+		/* execute command */
 		result = (*pcommands[pkt])(p_ptr);
+		/* post-execute hacks */
+		if (result) do_cmd__after(p_ptr, pkt, result);
 		/* not a "continuing success" */
-		if (result != 1) break;
+		if (!(result >= 1 && result <= 2)) break;
 	}
 	/* not enough energy, step back */
 	if (result == 0) p_ptr->cbuf.pos = start_pos;
 	/* slide buffer to the left */
-	else if (result == 1) cq_slide(&p_ptr->cbuf);
+	else if (result >= 1) cq_slide(&p_ptr->cbuf);
 
 	/* ... */
 	return result;
@@ -1816,11 +2057,14 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	int i;
 	byte next_free = 0;
 
-	/* Clear packet and command handlers */ 
+	/* Clear packet and command handlers */
 	for (i = 0; i < 256; i++) {
 		receiv[i] = recv_undef;
 		scheme[i] = NULL;
 		pcommands[i] = NULL;
+		
+		pkt_command[i] = MAX_CUSTOM_COMMANDS + 1; /* invalid value */
+		pcommand_energy_cost[i] = 1; /* an OK default */
 	}
 
 	/* Set default handlers */
@@ -1848,9 +2092,11 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 		}
 		pcommands[pkt] = recv_custom_command;
 		command_pkt[i] = pkt;
+		pkt_command[pkt] = i;
 
 		receiv[pkt] = recv_command;
 		scheme[pkt] = custom_command_schemes[custom_commands[i].scheme];
+		pcommand_energy_cost[pkt] = custom_commands[i].energy_cost;
 	}
 	/* 'Count' commands */
 	serv_info.val3 = i;
@@ -1859,8 +2105,8 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	i = 0;
 	while (i < MAX_INDICATORS && !(!indicators[i].pkt && !indicators[i].amnt)) i++;
 	if (i >= 254) plog("ERROR! Out of indicator PKTs!");
-	serv_info.val1 = i;	
-	
+	serv_info.val1 = i;
+
 	/* Count streams */
 	i = 0;
 	while (i < MAX_STREAMS && streams[i].pkt != 0) i++;
@@ -1877,7 +2123,7 @@ void setup_tables(sccb receiv[256], cptr *scheme)
 	serv_info.val11 = z_info->f_max;
 }
 
-void free_tables() 
+void free_tables()
 {
 	/* No tables... */
 }

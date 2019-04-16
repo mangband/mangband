@@ -2,19 +2,21 @@
 
 /* Client global variables */
 
-char nick[80];
-char pass[80];
+char nick[MAX_CHARS];
+char pass[MAX_CHARS];
 
-char real_name[80];
+char real_name[MAX_CHARS];
 
-char server_name[80];
+char server_name[MAX_CHARS];
 int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
+byte *inventory_secondary_tester;/* Secondary item tester (if known) */
 
 object_type floor_item;
 char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
+byte floor_secondary_tester;
 
 indicator_type indicators[MAX_INDICATORS];
 int known_indicators;
@@ -36,6 +38,7 @@ s16b store_num;				/* The current store number */
 
 char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
+byte spell_test[26 * (SPELLS_PER_BOOK+1)];	/* TV filter for item-related spells */
 
 char party_info[160];			/* Information about your party */
 channel_type channels[MAX_CHANNELS];
@@ -46,6 +49,7 @@ client_setup_t Client_setup;		/* The information we give to the server */
 
 s16b lag_mark;
 s16b lag_minus;
+bool redraw_lag_meter = FALSE;
 char health_track_num;
 byte health_track_attr;
 
@@ -61,6 +65,12 @@ s16b cur_line;				/* Current displayed line of "special" info */
 cave_view_type* remote_info[8]; /* Local copies for Special Info */
 s16b last_remote_line[8];
 cptr stream_desc[32];
+
+cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
+s32b air_delay[MAX_HGT][MAX_WID] = { 0 };
+s32b air_fade[MAX_HGT][MAX_WID] = { 0 };
+bool air_updates = TRUE;
+bool air_refresh = TRUE;
 
 int lag_ok;				/* server understands lag-check packets */
 
@@ -80,12 +90,13 @@ bool (*item_tester_hook)(object_type *o_ptr);
 item_tester_type item_tester[MAX_ITEM_TESTERS];
 int known_item_testers;
 
-int special_line_type;
+//int special_line_type; /* Which interactive terminal we're interacting with */
 char special_line_header[MAX_CHARS];
-bool special_line_onscreen = TRUE;
-bool interactive_anykey_flag = FALSE;
+bool special_line_onscreen = FALSE;
 
 bool special_line_requested = FALSE;
+bool simple_popup_requested = FALSE;
+bool local_browser_requested = FALSE;
 
 bool confirm_requested = FALSE;
 char confirm_prompt[MAX_CHARS];
@@ -132,6 +143,7 @@ cptr macro_trigger_keycode[2][MAX_MACRO_TRIGGER];
 
 term *ang_term[8];
 u32b window_flag[8];
+u32b window_flag_o[8]; /* Flags as user intended, no state modifications */
 
 byte color_table[256][4];
 
@@ -195,6 +207,14 @@ s16b INVEN_TOTAL = 36;
 s16b INVEN_WIELD = 24;
 s16b INVEN_PACK  = 23;
 
+s16b FLOOR_INDEX = -1;
+bool FLOOR_NEGATIVE = TRUE;
+s16b FLOOR_TOTAL = 1;
+
+u16b MAX_OBJFLAGS_ROWS = 13;
+u16b MAX_OBJFLAGS_COLS = 39;
+
+
 cptr ANGBAND_GRAF = "none";
 cptr ANGBAND_DIR;
 cptr ANGBAND_DIR_APEX;
@@ -228,6 +248,7 @@ int known_options;
 bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
+bool auto_itemlist;
 bool show_labels;
 bool show_weights;
 bool ring_bell;
@@ -236,6 +257,8 @@ bool use_color;
 bool use_old_target;
 
 bool ignore_birth_options;
+
+bool escape_in_macro_triggers = FALSE;
 
 int char_screen_mode;
 bool target_recall;

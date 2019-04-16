@@ -1,0 +1,28 @@
+[Unit]
+Description=MAngband Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=mangband
+Group=mangband
+WorkingDirectory=/home/mangband/game-server
+ExecStart=/home/mangband/game-server/mangband
+# Yes, 5 signals, that's what it takes.
+ExecStop=/bin/kill -2 $MAINPID
+ExecStop=/bin/sleep 1
+ExecStop=/bin/kill -2 $MAINPID
+ExecStop=/bin/sleep 1
+ExecStop=/bin/kill -2 $MAINPID
+ExecStop=/bin/sleep 1
+ExecStop=/bin/kill -2 $MAINPID
+ExecStop=/bin/sleep 1
+ExecStop=/bin/kill -2 $MAINPID
+ExecStop=/bin/sleep 1
+KillMode=process
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

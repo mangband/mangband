@@ -7,7 +7,7 @@
  */
  
 #define CLIENT_VERSION_MAJOR	1
-#define CLIENT_VERSION_MINOR	2
+#define CLIENT_VERSION_MINOR	5
 #define CLIENT_VERSION_PATCH	0
 
 /*
@@ -18,7 +18,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define CLIENT_VERSION_EXTRA	1
+#define CLIENT_VERSION_EXTRA	0
 
 
 /*
@@ -27,6 +27,15 @@
 
 #define CLIENT_VERSION ( CLIENT_VERSION_MAJOR << 12 | CLIENT_VERSION_MINOR << 8 \
   | CLIENT_VERSION_PATCH << 4 | CLIENT_VERSION_EXTRA)
+
+
+/*
+ * PMSG_TERM hack. This is used on Windows client to force Term-4
+ * into chat mode (and forbid any other terms from using it).
+ */
+#ifdef USE_WIN
+#define PMSG_TERM 4
+#endif
 
 /*
  * Maximum number of macro trigger names
@@ -44,12 +53,13 @@
 /* Get cave by stream */
 #define stream_cave(I, L) (p_ptr->stream_cave[(I)] + (L) * p_ptr->stream_wid[(I)])
 
+/* Speed of air layer fadeout effects */
+#define AIR_FADE_THRESHOLD 10
+
 /*** SERVER DEFINES ***/
 /* Sometimes, we just copy defines from server.
  * Why not have them in common/ ? Because they ultimately are different values
  */ //TODO: remove those!!!
-#define TV_SPIKE         5	/* Spikes ('~') */
-#define TV_GOLD         100	/* Gold can only be picked up by players */
 #define TV_MAX		100
 
 /*
@@ -66,13 +76,13 @@
 #define SCREEN_CLIP_Y	2
 #define SCREEN_CLIP_L	1
 #define DUNGEON_OFFSET_X \
-	((window_flag[0] & PW_PLAYER_2) ? SCREEN_CLIP_X : 0)
+	((window_flag_o[0] & PW_PLAYER_2) ? SCREEN_CLIP_X : 0)
 #define DUNGEON_OFFSET_Y \
 	(1)
 #define DUNGEON_CLIP_X \
 	(0)
 #define DUNGEON_CLIP_Y \
-	((window_flag[0] & PW_STATUS) ? SCREEN_CLIP_L : 0)
+	((window_flag_o[0] & PW_STATUS) ? SCREEN_CLIP_L : 0)
 
 /*** Screen Locations ***/
 

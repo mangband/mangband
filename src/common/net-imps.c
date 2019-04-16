@@ -22,7 +22,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "angband.h" 
+#include "angband.h"
 
 //TODO: Wrap those into configure.ac!!
 #ifdef WINDOWS
@@ -45,7 +45,7 @@
 #define EINVAL WSAEINVAL
 #define sockerr WSAGetLastError()
 #else
-#include <netdb.h> 
+#include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -123,7 +123,7 @@ eptr add_sender(eptr root, char *host, int port, micro interval, callback send_c
 	new_s->delay = interval;
 	cq_init(&new_s->wbuf, PD_SMALL_BUFFER);
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_s);
 }
 
@@ -161,8 +161,8 @@ eptr add_caller(eptr root, char *host, int port, callback conn_cb, callback fail
 
 	crfds = MATH_MAX(crfds, callerfd);
 
-	/* Add to list */	
-	return e_add(root, NULL, new_c); 	
+	/* Add to list */
+	return e_add(root, NULL, new_c);
 }
 
 eptr add_listener(eptr root, int port, callback cb) {
@@ -171,12 +171,17 @@ eptr add_listener(eptr root, int port, callback cb) {
 	int listenfd;
 	int on;
 
-	/* Init socket */	
+	/* Init socket */
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenfd < 0)
+	{
+		plog_fmt("SOCKET CREATEION FAILED for port %d", port);
+		return (NULL);
+	}
 
 	/* Enable address reuse */
 	on = 1;
-	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on) );   
+	setsockopt( listenfd, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on) );
 
 	/* Set to non-blocking. */
 	unblockfd(listenfd);
@@ -189,13 +194,13 @@ eptr add_listener(eptr root, int port, callback cb) {
 	servaddr.sin_port = htons(port);
 
 	if (bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr)) < 0) {
-		plog("BIND FAILED");
+		plog_fmt("BIND FAILED for port %d", port);
 		closesocket(listenfd);
-	   	return(NULL);
+		return(NULL);
 	}
 
 	if (listen(listenfd,1024) < 0) {
-		plog("LISTEN FAILED");
+		plog_fmt("LISTEN FAILED for port %d", port);
 		closesocket(listenfd);
 		return(NULL);
 	}
@@ -207,7 +212,7 @@ eptr add_listener(eptr root, int port, callback cb) {
 	new_l->accept_cb = cb;
 	new_l->listen_fd = listenfd;
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_l);
 }
 
@@ -252,7 +257,7 @@ eptr add_timer(eptr root, int interval, callback timeout) {
 	new_t->delay = interval;
 	new_t->timeout_cb = timeout;
 
-	/* Add to list */	
+	/* Add to list */
 	return e_add(root, NULL, new_t);
 }
 
@@ -264,7 +269,7 @@ eptr handle_connections(eptr root) {
 
 	for (iter=root; iter; iter=iter->next) {
 		ct = (connection_type*)iter->data2;
-		connfd = ct->conn_fd;	
+		connfd = ct->conn_fd;
 
 		FD_SET(connfd, &rd);
 
@@ -278,18 +283,19 @@ eptr handle_connections(eptr root) {
 			if (n > 0)
 			{
 				/* Got 'n' bytes */
-				if (cq_nwrite(&ct->rbuf, mesg, n))
-				{
-					n = ct->receive_cb(0, ct);
-
-					/* Error while handling input */
-					if (n < 0) ct->close = 1;
-				}
+				n = cq_nwrite(&ct->rbuf, mesg, n);
 				/* Error while filling buffer */
-				else ct->close = 1;
+				if (n <= 0) ct->close = 1;
 			}
 			/* Error while receiving */
-			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;	
+			else if (n == 0 || sockerr != EWOULDBLOCK) ct->close = 1;
+		}
+		/* Handle input */
+		if (!ct->close && cq_len(&ct->rbuf))
+		{
+			n = ct->receive_cb(0, ct);
+			/* Error while handling input */
+			if (n < 0) ct->close = 1;
 		}
 		/* Send */
 		if (cq_len(&ct->wbuf))
@@ -403,7 +409,7 @@ eptr handle_listeners(eptr root) {
 	static socklen_t clilen = sizeof(cliaddr);
 
 	eptr iter;
-	int connfd;
+	int connfd, err;
 
 	for (iter=root; iter; iter=iter->next) {
 		struct listener_type *lt = (struct listener_type *)iter->data2;
@@ -419,7 +425,12 @@ eptr handle_listeners(eptr root) {
 
 		/* cnfds = MATH_MAX(connfd, cnfds); */
 
-		lt->accept_cb(connfd, lt);
+		err = lt->accept_cb(connfd, lt);
+		if (err) {
+			closesocket(connfd);
+			/* FD_CLR(connfd, &rd); */
+		}
+
 	}
 	return root;
 }
@@ -443,15 +454,15 @@ micro static_timer(int id) {
 	tv = (PerformanceCount.QuadPart * 1000000) / Frequency.QuadPart;
 	microsec = tv;
 #endif
-/*	
+/*
 	printf("OLD: %ld\n", times[id]);
 	printf("NEW: %ld\n", microsec);
 	printf("DIF: %ld\n", microsec);
-*/	
+*/
 	passed = (!times[id] ? 0 : microsec - times[id]);
 	times[id] = microsec;
 
-	return passed;	
+	return passed;
 }
 
 eptr handle_senders(eptr root, micro microsec) {
@@ -576,13 +587,126 @@ void unblockfd(int fd) {
 
 /* Disable Nagle's algorithm (required for MAngband) */
 void denaglefd(int fd) {
-	char on = 1;
-	setsockopt( fd, SOL_SOCKET, TCP_NODELAY, &on, sizeof(on) );   
+#ifdef WINDOWS
+       DWORD
+#else
+       int
+#endif
+       on = 1;
+       setsockopt( fd, IPPROTO_TCP, TCP_NODELAY,
+#ifdef WINDOWS
+       (const char*)
+#else
+       (const void*)
+#endif
+       &on, sizeof(on) );
 }
 
 /* Get local machine hostname */
 int fillhostname(char *str, int len) {
 	return gethostname(str, len);
+}
+
+/* islocalfd helper functions */
+static int cmp_sockaddr4(struct sockaddr_in *a, struct sockaddr_in *b)
+{
+	return (ntohl(a->sin_addr.s_addr) == ntohl(b->sin_addr.s_addr));
+}
+static int firstoctet_sockaddr4(struct sockaddr_in *addr)
+{
+	return ((ntohl(addr->sin_addr.s_addr) >> 24) & 0xFF);
+}
+
+/* Check if address belongs to a local network. */
+/* Only deals vs IP4 addresses for now... :( */
+#ifdef HAVE_IFADDRS_H
+#include <ifaddrs.h>  /* Linux/BSD getiffaddr */
+#else
+#ifdef WINDOWS
+#include <iphlpapi.h> /* Windows GetAdapterAddresses */
+#endif
+#endif
+int islocalfd(int fd)
+{
+	int ok = 0;
+	struct sockaddr_in remote_addr;
+	struct sockaddr_in *check_addr;
+	socklen_t len = sizeof(remote_addr);
+	getpeername(fd, (struct sockaddr *)&remote_addr, &len);
+	
+	/* Any address starting with 127. is a local address */
+	if (firstoctet_sockaddr4(&remote_addr) == 127)
+	{
+		return 1;
+	}
+#ifdef HAVE_GETIFADDRS
+  {
+	/* Simplest version, should work on UNIXes and MinGW */
+	struct ifaddrs *ifap, *if_ptr;
+
+	getifaddrs (&ifap);
+	for (if_ptr = ifap; if_ptr; if_ptr = if_ptr->ifa_next) {
+		if (if_ptr->ifa_addr->sa_family == AF_INET) {
+			check_addr = (struct sockaddr_in *) if_ptr->ifa_addr;
+			//printf("Interface: %s\tAddress: %s\n", if_ptr->ifa_name, inet_ntoa(check_addr->sin_addr));
+			if (cmp_sockaddr4(check_addr, &remote_addr))
+			{
+				ok = 1;
+				break;
+			}
+		}
+	}
+	freeifaddrs(ifap);
+  }
+#else
+#ifdef WINDOWS
+  {
+	/* Windows-only version */
+	DWORD rv, size;
+	PIP_ADAPTER_ADDRESSES ifap, if_ptr;
+	PIP_ADAPTER_UNICAST_ADDRESS ua;
+
+	/* First call to get required size */
+	rv = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &size);
+	if (rv != ERROR_BUFFER_OVERFLOW) {
+		/* Fatal error */
+		return 0;
+	}
+	/* Second call to populate the structs */
+	ifap = (PIP_ADAPTER_ADDRESSES)malloc(size);
+	rv = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, NULL, ifap, &size);
+	if (rv != ERROR_SUCCESS) {
+		/* Fatal error */
+		free(ifap);
+		return 0;
+	}
+	/* This is similar to getifaddr iteration from UNIX */
+	for (if_ptr = ifap; if_ptr != NULL; if_ptr = if_ptr->Next) {
+	for (ua = if_ptr->FirstUnicastAddress; ua != NULL; ua = ua->Next) {
+		if (ua->Address.lpSockaddr->sa_family == AF_INET) {
+			check_addr = (struct sockaddr_in*) ua->Address.lpSockaddr;
+			//printf("Interface: %wS\tAddress: %s\n", aa->FriendlyName, inet_ntoa(check_addr->sin_addr));
+			if (cmp_sockaddr4(check_addr, &remote_addr))
+			{
+				ok = 1;
+				break;
+			}
+		}
+	} if (ok) break; }
+	free(ifap);
+  }
+#else
+  {
+	/* Worst-case scenario, revert to getpeername/getsockname.
+	 * This will not handle multi-homed machines (>1 NIC) correctly. */
+	//TODO: replace with ioctl-based interface enumeration..?
+	struct sockaddr_in local_addr;
+	getsockname(fd, (struct sockaddr *)&local_addr, &len);
+	ok = cmp_sockaddr4(&remote_addr, &local_addr);
+  }
+#endif
+#endif
+	return ok;
 }
 
 /* Delete all nodes from "root" while deleting their "data" */

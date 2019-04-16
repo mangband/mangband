@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.56)
-AC_INIT(mangband, 1.2.0, team@mangband.org)
-AM_INIT_AUTOMAKE(mangband, 1.2.0)
+AC_INIT(mangband, 1.5.0, team@mangband.org)
+AM_INIT_AUTOMAKE(mangband, 1.5.0)
 AM_CONFIG_HEADER(src/config.h)
 AC_CANONICAL_HOST
 
@@ -61,11 +61,19 @@ have_crb="$ON_OSX" # Note, that the "ON_OSX" itself is NOT reliable!!!
 
 AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$withval)
 AC_ARG_ENABLE(osx, AC_HELP_STRING([--disable-osx],[Disable Apple-OSX application bundling]), ON_OSX=$withval)
+AC_ARG_ENABLE(xdg, AC_HELP_STRING([--disable-xdg],[Disable Freedesktop icon bundling]), ON_XDG=$withval, ON_XDG="yes")
 
 AC_ARG_WITH(crb, AC_HELP_STRING([--with-crb],[Build with CRB support [default=yes]]), with_crb=$withval, with_crb="yes")
 AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=yes]]), with_x11=$withval, with_x11="yes")
 AC_ARG_WITH(gcu, AC_HELP_STRING([--with-gcu],[Build with GCU support [default=yes]]), with_gcu=$withval, with_gcu="yes")
 AC_ARG_WITH(sdl, AC_HELP_STRING([--with-sdl],[Build with SDL support [default=yes]]), with_sdl=$withval, with_sdl="yes")
+
+# We need to know if we're building for OSX, badly.
+if test "x$ON_OSX" = xyes
+then
+	CLIENT_CFLAGS="$CLIENT_CFLAGS -DTARGET_OS_OSX=1"
+	SERVER_CFLAGS="$SERVER_CFLAGS -DTARGET_OS_OSX=1"
+fi
 
 # HAVE + WITH = ENABLED [
 if test "x$have_x11" = xyes && test "x$with_x11" = xyes 
@@ -110,6 +118,18 @@ then
     AC_ERROR([For GCU visual module, ncurses library is required. Try getting libncurses5-dev package.])
 fi
 
+# If we're building SDL or X11, add Freedesktop bundling
+bundle_xdg="no"
+if test "x$enabled_x11" = xyes || test "x$enabled_sdl" = xyes
+then
+    bundle_xdg="yes"
+fi
+# (But not on WINDOWS/OSX) or when explicitly off
+if test "x$ON_WINDOWS" = xyes || test "x$ON_OSX" = xyes || test "x$ON_XDG" != xyes
+then
+    bundle_xdg="no"
+fi
+
 # Prepare conditionals
 AM_CONDITIONAL(USE_CRB, test "x$enabled_crb" = xyes)
 AM_CONDITIONAL(USE_X11, test "x$enabled_x11" = xyes)
@@ -137,6 +157,14 @@ then
     DISPMOD="$DISPMOD SDL"
 fi
 
+# Prepare XDG conditional
+if test "x$bundle_xdg" = xyes
+then
+    AC_MSG_NOTICE([Enabling Freedesktop bundling. Use --disable-xdg to change this.])
+    DISPMOD="$DISPMOD XDG-bundle"
+fi
+AM_CONDITIONAL(ON_XDG, test "x$bundle_xdg" = xyes)
+
 #added this conditional for WINDRES causing linux build to bail - is this even right? -kts
 AM_CONDITIONAL(ON_WINDOWS, test "x$ON_WINDOWS" = xyes)
 
@@ -146,6 +174,7 @@ then
     AC_MSG_NOTICE([Forcing Windows32 mode. Use --disable-win to change this.])
 	AC_CHECK_LIB([ws2_32], [main],[LIBS="$LIBS -lws2_32"], AC_ERROR([lib ws2_32 not found]))
 	AC_CHECK_LIB([winmm], [main], [LIBS="$LIBS -lwinmm"], AC_ERROR([lib winmm not found]))
+	AC_CHECK_LIB([iphlpapi], [main], [LIBS="$LIBS -liphlpapi"], AC_ERROR([lib iphlpapi not found]))
 	if test "x$enabled_sdl" != xyes
 	then
 	    CLIENT_LDFLAGS="$CLIENT_LDFLAGS -mwindows"
@@ -193,7 +222,7 @@ AC_SUBST(SERVER_LDFLAGS)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h sys/timeb.h termio.h termios.h unistd.h values.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h dirent.h memory.h netdb.h netinet/in.h ifaddrs.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h termio.h termios.h unistd.h values.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -213,7 +242,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([alarm atexit gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp stricmp strpbrk strrchr strspn strstr strtol])
+AC_CHECK_FUNCS([alarm atexit gethostbyaddr gethostbyname gethostname gettimeofday inet_ntop inet_ntoa isascii memmove memset select socket strcasecmp strchr strdup strnlen strncasecmp stricmp strpbrk strrchr strspn strstr strtol usleep])
 
 AC_MSG_NOTICE([enabled -$DISPMOD])
 AC_OUTPUT( Makefile )

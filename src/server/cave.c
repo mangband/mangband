@@ -546,18 +546,29 @@ int player_pict(int Ind, int who)
 			p_ptr->bubble_change = turn;
 			if(p_ptr->bubble_colour == TERM_VIOLET)
 			{
-				p_ptr->bubble_colour = p_ptr->r_attr[0];
+				p_ptr->bubble_colour = TERM_WHITE;
 			}
 			else
 			{
 				p_ptr->bubble_colour = TERM_VIOLET;
 			}
 		}
-		a = p_ptr->bubble_colour;
+		if (p_ptr->use_graphics)
+		{
+			/* In graphics mode, only reset on every other blink. */
+			if (p_ptr->bubble_colour == TERM_VIOLET)
+			{
+				/* Reset pict mode */
+				a = p_ptr->bubble_colour;
+				c = '@';
+			}
+		} else {
+			a = p_ptr->bubble_colour;
+		}
 	}
 	else if( who == Ind )
 	{
-		a = p_ptr->r_attr[0];
+		p_ptr->bubble_colour = TERM_WHITE;
 	}
 	
 	/* Reflect players current hitpoints in the player symbol */
@@ -565,6 +576,10 @@ int player_pict(int Ind, int who)
 	if (health < 7) 
 	{
 		c = health + 48;
+		if (p_ptr->use_graphics)
+		{
+			a = (Ind==who) ? p_ptr->bubble_colour : player_color(who);
+		}
 	}
 	
 	return (PICT(a, c));
@@ -1407,6 +1422,7 @@ void lite_spot(int Ind, int y, int x)
 	player_type *p_ptr = Players[Ind];
 
 	int dispx, dispy;
+	bool is_player = FALSE;
 
 	/* Redraw if on screen */
 	if (panel_contains(y, x))
@@ -1423,6 +1439,7 @@ void lite_spot(int Ind, int y, int x)
 			int p = player_pict(Ind,Ind);
 			a = PICT_A(p);
 			c = PICT_C(p);
+			is_player = TRUE;
 		}
 
 		/* Hack -- fake monochrome */
@@ -1446,7 +1463,22 @@ void lite_spot(int Ind, int y, int x)
 
 			/* Tell client to redraw this grid */
 			Stream_tile(Ind, p_ptr, dispy, dispx);
-		} 
+
+			/* Mark player */
+			if (is_player)
+			{
+				send_cursor(p_ptr, MCURSOR_PLAYER, (byte)y, (byte)x);
+			}
+		}
+	}
+	/* Out of panel bounds */
+	else
+	{
+		/* Handle "player" */
+		if ((y == p_ptr->py) && (x == p_ptr->px))
+		{
+			send_cursor(p_ptr, MCURSOR_PLAYER | MCURSOR_OFFLINE, 0, 0);
+		}
 	}
 }
 
@@ -1682,16 +1714,8 @@ void display_map(int Ind, bool quiet)
 	byte mp[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map size */
-	map_hgt = p_ptr->screen_hgt - 2;
-	map_wid = p_ptr->screen_wid - 2;
-	
-	/* Hack -- classic mini-map */
-	//TODO: handle client term size !
-	if (quiet)
-	{ 
-		map_hgt = 24 - 2;
-		map_wid = 80 - 2;
-	}
+	map_wid = p_ptr->stream_wid[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)) ] - 2;
 
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
@@ -1848,9 +1872,9 @@ void wild_display_map(int Ind)
 	char mc[MAX_HGT + 2][MAX_WID + 2];
 
 	/* Desired map height */
-	map_hgt = p_ptr->screen_hgt - 1;
-	map_wid = p_ptr->screen_wid - 2;
-	
+	map_wid = p_ptr->stream_wid[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+	map_hgt = p_ptr->stream_hgt[ MINIMAP_STREAM_p(p_ptr) ] - 2;
+
 	dungeon_hgt = MAX_HGT;//p_ptr->cur_hgt;
 	dungeon_wid = MAX_WID;//p_ptr->cur_wid;
 
@@ -3970,22 +3994,27 @@ void monster_race_track(int Ind, int r_idx)
  * The second arg is currently unused, but could induce output flush.
  *
  * All disturbance cancels repeated commands, resting, and running.
+ *
+ * MAngband-specific: the "unused_flag" is actually used, to tell apart
+ * disturb calls provoked by Player intent (1) and calls provoked by
+ * some external event (0).
  */
 void disturb(int Ind, int stop_search, int unused_flag)
 {
 	player_type *p_ptr = Players[Ind];
 
-	/* Unused */
-	unused_flag = unused_flag;
+	/* Used */
+	int player_intent = unused_flag;
 
 	/* Cancel auto-commands */
 	/* command_new = 0; */
 
 	/* Dungeon Master is never disturbed */
-	if (p_ptr->dm_flags & DM_NEVER_DISTURB)
+	if ((p_ptr->dm_flags & DM_NEVER_DISTURB) && !player_intent)
 	{
 		return;
 	}
+
 #if 0
 	/* Cancel repeated commands */
 	if (command_rep)
@@ -4002,7 +4031,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->resting)
 	{
 		/* Cancel */
-		p_ptr->resting = 0;
+		p_ptr->resting = FALSE;
 
 		/* Redraw the state (later) */
 		p_ptr->redraw |= (PR_STATE);
@@ -4012,7 +4041,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 	if (p_ptr->running)
 	{
 		/* Cancel */
-		p_ptr->running = 0;
+		p_ptr->running = FALSE;
 
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);

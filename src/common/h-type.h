@@ -123,7 +123,7 @@ typedef unsigned int uint;
  *  PRId64 SCNd64	s64b
  *  PRIu64 SCNu64	u64b, huge
  * With usage like:
- *  printf("%" PRIu16, (u16b)variable); 
+ *  printf("%" PRIu16, (u16b)variable);
  *
  * (The _rest_ of this file indeed is a hack!)
  */
@@ -171,7 +171,7 @@ typedef unsigned long u64b;
 typedef u64b huge;
 
 /* Turn counter type "huge turn" (largest number ever) */
-#define HTURN_ERA_FLIP 1000000 
+#define HTURN_ERA_FLIP 1000000
 typedef struct hturn {
 	huge era;
 	huge turn;
@@ -180,10 +180,10 @@ typedef struct hturn {
 #define ht_eq(A,B) (((A)->turn == (B)->turn) && ((A)->era == (B)->era))
 #define ht_fix_up(H) while((H)->turn >= HTURN_ERA_FLIP) { \
 	(H)->turn -= HTURN_ERA_FLIP; (H)->era++; }
-#define ht_fix_down(H) while((H)->turn < 0) { \
+#define ht_fix_down(H) while((signed)(H)->turn < 0) { \
 	(H)->turn += HTURN_ERA_FLIP; (H)->era--; }
-#define ht_add_ht(H,Q) (H)->era += (Q)->era;(H)->turn += (Q)->turn;ht_fix_up((Q))
-#define ht_subst_ht(H,Q) (H)->era -= (Q)->era;(H)->turn -= (Q)->turn;ht_fix_down((Q))
+#define ht_add_ht(H,Q) (H)->era += (Q)->era;(H)->turn += (Q)->turn;ht_fix_up((H))
+#define ht_subst_ht(H,Q) (H)->era -= (Q)->era;(H)->turn -= (Q)->turn;ht_fix_down((H))
 #define ht_subst(H,T) (H)->turn -= (T);ht_fix_down((H))
 #define ht_add(H,T) (H)->turn += (T);ht_fix_up((H))
 #define ht_clr(H) (H)->era = (H)->turn = 0;

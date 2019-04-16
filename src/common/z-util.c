@@ -127,7 +127,7 @@ int ht_passed(hturn *new_ht, hturn *old_ht, huge passed)
 	temp.turn = new_ht->turn;
 	ht_subst_ht(&temp, old_ht);
 	ht_subst(&temp, passed);
-	return !((signed)temp.era >= 0);
+	return ((signed)temp.era >= 0);
 }
 
 /*
@@ -153,6 +153,43 @@ bool streq(cptr a, cptr b)
 	return (!strcmp(a, b));
 }
 
+#ifndef HAVE_MEMSET
+/*
+ * For those systems that don't have "memset()"
+ *
+ * Set the value of each of 'n' bytes starting at 's' to 'c', return 's'
+ * If 'n' is negative, you will erase a whole lot of memory.
+ */
+void *memset(void *s, int c, size_t n)
+{
+	char *t;
+	for (t = s; len--; ) *t++ = c;
+	return (s);
+}
+#endif
+
+#ifndef HAVE_STRICMP
+/*
+ * For those systems that don't have "stricmp()"
+ *
+ * Compare the two strings "a" and "b" ala "strcmp()" ignoring case.
+ */
+int stricmp(cptr a, cptr b)
+{
+	cptr s1, s2;
+	char z1, z2;
+
+	/* Scan the strings */
+	for (s1 = a, s2 = b; TRUE; s1++, s2++)
+	{
+		z1 = FORCEUPPER(*s1);
+		z2 = FORCEUPPER(*s2);
+		if (z1 < z2) return (-1);
+		if (z1 > z2) return (1);
+		if (!z1) return (0);
+	}
+}
+#endif
 
 #ifndef HAVE_STRNLEN
 /*
@@ -405,16 +442,14 @@ void quit(cptr str)
         char buf[1024];
 
         /* Save exit string */
-        if (str)
-                strncpy(buf, str, 1024);
+        if (str) my_strcpy(buf, str, 1024);
+        else buf[0] = '\0';
 
         /* Attempt to use the aux function */
-        /* This was passing buf, which is a bad idea if quit() is called with
-         * NULL [grk] */
-        if (quit_aux) (*quit_aux)(str);
+        if (quit_aux) (*quit_aux)(buf);
 
         /* Success */
-        if (!str) (void)(exit(0));
+        if (buf[0] == '\0') (void)(exit(0));
 
         /* Extract a "special error code" */
         if ((buf[0] == '-') || (buf[0] == '+')) (void)(exit(atoi(buf)));

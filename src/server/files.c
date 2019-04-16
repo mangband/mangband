@@ -772,7 +772,7 @@ errr check_load_init(void)
  * same as in the prt_lnum code... -CFT
  *
  * This will send the info to the client now --KLJ--
- * 
+ *
  * Except that this (and display_player) are never called. --KLJ--
  */
 static void display_player_middle(int Ind)
@@ -960,201 +960,200 @@ void display_player_server(int Ind, char buffer[100][82])
 /*	bool hist = FALSE;*/
 	player_type *p_ptr = Players[Ind];
 
-    int show_tohit = p_ptr->dis_to_h;
-    int show_todam = p_ptr->dis_to_d;
-    object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
+	int show_tohit = p_ptr->dis_to_h;
+	int show_todam = p_ptr->dis_to_d;
+	object_type *o_ptr = &p_ptr->inventory[INVEN_WIELD];
 
-        /* Name, Sex, Race, Class */
-        put_str_b(buffer,"Name        :", 2, 1);
-        put_str_b(buffer,"Sex         :", 3, 1);
-        put_str_b(buffer,"Race        :", 4, 1);
-        put_str_b(buffer,"Class       :", 5, 1);
+	/* Name, Sex, Race, Class */
+	put_str_b(buffer,"Name        :", 2, 1);
+	put_str_b(buffer,"Sex         :", 3, 1);
+	put_str_b(buffer,"Race        :", 4, 1);
+	put_str_b(buffer,"Class       :", 5, 1);
 
-        c_put_str_b(buffer,TERM_L_BLUE, p_ptr->name, 2, 15);
-        c_put_str_b(buffer,TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
-        c_put_str_b(buffer,TERM_L_BLUE, p_name + p_info[p_ptr->prace].name, 4, 15);
-        c_put_str_b(buffer,TERM_L_BLUE, c_name + c_info[p_ptr->pclass].name, 5, 15);
+	c_put_str_b(buffer,TERM_L_BLUE, p_ptr->name, 2, 15);
+	c_put_str_b(buffer,TERM_L_BLUE, (p_ptr->male ? "Male" : "Female"), 3, 15);
+	c_put_str_b(buffer,TERM_L_BLUE, p_name + p_info[p_ptr->prace].name, 4, 15);
+	c_put_str_b(buffer,TERM_L_BLUE, c_name + c_info[p_ptr->pclass].name, 5, 15);
 
-        /* Age, Height, Weight, Social */
-        prt_num_b(buffer,"Age          ", (int)p_ptr->age, 2, 32, TERM_L_BLUE);
-        prt_num_b(buffer,"Height       ", (int)p_ptr->ht, 3, 32, TERM_L_BLUE);
-        prt_num_b(buffer,"Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
-        prt_num_b(buffer,"Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
+	/* Age, Height, Weight, Social */
+	prt_num_b(buffer,"Age          ", (int)p_ptr->age, 2, 32, TERM_L_BLUE);
+	prt_num_b(buffer,"Height       ", (int)p_ptr->ht, 3, 32, TERM_L_BLUE);
+	prt_num_b(buffer,"Weight       ", (int)p_ptr->wt, 4, 32, TERM_L_BLUE);
+	prt_num_b(buffer,"Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
 
-        /* Display the stats */
-        for (i = 0; i < 6; i++)
-        {
-                /* Special treatment of "injured" stats */
-                if (p_ptr->stat_use[i] < p_ptr->stat_top[i])
-                {
-                        int value;
+	/* Display the stats */
+	for (i = 0; i < 6; i++)
+	{
+		/* Special treatment of "injured" stats */
+		if (p_ptr->stat_use[i] < p_ptr->stat_top[i])
+		{
+			int value;
 
-                        /* Use lowercase stat name */
-                        put_str_b(buffer,stat_names_reduced[i], 2 + i, 61);
+			/* Use lowercase stat name */
+			put_str_b(buffer,stat_names_reduced[i], 2 + i, 61);
 
-                        /* Get the current stat */
-                        value = p_ptr->stat_use[i];
+			/* Get the current stat */
+			value = p_ptr->stat_use[i];
 
-                        /* Obtain the current stat (modified) */
-                        cnv_stat(value, buf);
+			/* Obtain the current stat (modified) */
+			cnv_stat(value, buf);
 
-                        /* Display the current stat (modified) */
-                        c_put_str_b(buffer,TERM_YELLOW, buf, 2 + i, 66);
+			/* Display the current stat (modified) */
+			c_put_str_b(buffer,TERM_YELLOW, buf, 2 + i, 66);
 
-                        /* Acquire the max stat */
-                        value = p_ptr->stat_top[i];
+			/* Acquire the max stat */
+			value = p_ptr->stat_top[i];
 
-                        /* Obtain the maximum stat (modified) */
-                        cnv_stat(value, buf);
+			/* Obtain the maximum stat (modified) */
+			cnv_stat(value, buf);
 
-                        /* Display the maximum stat (modified) */
-                        if (p_ptr->stat_max[i] == 18+100)
+			/* Display the maximum stat (modified) */
+			if (p_ptr->stat_max[i] == 18+100)
 				c_put_str_b(buffer,TERM_L_UMBER, buf, 2 + i, 73);
 			else
-                        c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 73);
-                }
+				c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 73);
+		}
 
-                /* Normal treatment of "normal" stats */
-                else
-                {
-                        /* Assume uppercase stat name */
-                        put_str_b(buffer,stat_names[i], 2 + i, 61);
+		/* Normal treatment of "normal" stats */
+		else
+		{
+			/* Assume uppercase stat name */
+			put_str_b(buffer,stat_names[i], 2 + i, 61);
 
-                        /* Obtain the current stat (modified) */
-                        cnv_stat(p_ptr->stat_use[i], buf);
+			/* Obtain the current stat (modified) */
+			cnv_stat(p_ptr->stat_use[i], buf);
 
-                        /* Display the current stat (modified) */
-                        if (p_ptr->stat_max[i] == 18+100)
+			/* Display the current stat (modified) */
+			if (p_ptr->stat_max[i] == 18+100)
 				c_put_str_b(buffer,TERM_L_UMBER, buf, 2 + i, 66);
 			else
-                        c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 66);
-                }
-        }
-
-		put_str_b(buffer,"(Miscellaneous Abilities)", 15, 25);
-		
-		/* Display "skills" */
-		put_str_b(buffer,"Fighting    :", 16, 1);
-		desc = likert(p_ptr->skill_thn, 12);
-		c_put_str_b(buffer,0, desc, 16, 15);
-
-		put_str_b(buffer,"Bows/Throw  :", 17, 1);
-		desc = likert(p_ptr->skill_thb, 12);
-		c_put_str_b(buffer,0, desc, 17, 15);
-
-		put_str_b(buffer,"Saving Throw:", 18, 1);
-		desc = likert(p_ptr->skill_sav, 6);
-		c_put_str_b(buffer,0, desc, 18, 15);
-
-		put_str_b(buffer,"Stealth     :", 19, 1);
-		desc = likert(p_ptr->skill_stl, 1);
-		c_put_str_b(buffer,0, desc, 19, 15);
-
-
-		put_str_b(buffer,"Perception  :", 16, 28);
-		desc = likert(p_ptr->skill_fos, 6);
-		c_put_str_b(buffer,0, desc, 16, 42);
-
-		put_str_b(buffer,"Searching   :", 17, 28);
-		desc = likert(p_ptr->skill_srh, 6);
-		c_put_str_b(buffer,0, desc, 17, 42);
-
-		put_str_b(buffer,"Disarming   :", 18, 28);
-		desc = likert(p_ptr->skill_dis, 8);
-		c_put_str_b(buffer,0, desc, 18, 42);
-
-		put_str_b(buffer,"Magic Device:", 19, 28);
-		desc = likert(p_ptr->skill_dev, 6);
-		c_put_str_b(buffer,0, desc, 19, 42);
-
-
-		put_str_b(buffer,"Blows/Round:", 16, 55);
-		put_str_b(buffer,format("%d", p_ptr->num_blow), 16, 69);
-
-		put_str_b(buffer,"Shots/Round:", 17, 55);
-		put_str_b(buffer,format("%d", p_ptr->num_fire), 17, 69);
-
-		put_str_b(buffer,"Infra-Vision:", 19, 55);
-		put_str_b(buffer,format("%d feet", p_ptr->see_infra * 10), 19, 69);
-
-        /* Dump the bonuses to hit/dam */
-        if (o_ptr->k_idx)
-        {
-        	show_tohit += o_ptr->to_h;
-        	show_todam += o_ptr->to_d;
-        }
-        prt_num_b(buffer,"+ To Hit    ", show_tohit, 9, 1, TERM_L_BLUE);
-        prt_num_b(buffer,"+ To Damage ", show_todam, 10, 1, TERM_L_BLUE);
-
-        /* Dump the armor class bonus */
-        prt_num_b(buffer,"+ To AC     ", p_ptr->dis_to_a, 11, 1, TERM_L_BLUE);
-
-        /* Dump the total armor class */
-        prt_num_b(buffer,"  Base AC   ", p_ptr->dis_ac, 12, 1, TERM_L_BLUE);
-
-        prt_num_b(buffer,"Level      ", (int)p_ptr->lev, 9, 28, TERM_L_GREEN);
-
-        if (p_ptr->exp >= p_ptr->max_exp)
-        {
-                prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_L_GREEN);
-        }
-        else
-        {
-                prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_YELLOW);
-        }
-
-        prt_lnum_b(buffer,"Max Exp    ", p_ptr->max_exp, 11, 28, TERM_L_GREEN);
-
-        if (p_ptr->lev >= PY_MAX_LEVEL)
-        {
-                put_str_b(buffer,"Exp to Adv.", 12, 28);
-                c_put_str_b(buffer,TERM_L_GREEN, "    *****", 12, 28+11);
-        }
-        else
-        {
-/*                prt_lnum_b(buffer,"Exp to Adv.", p_ptr->exp_adv, 12, 28, TERM_L_GREEN); */
-        }
-
-        prt_lnum_b(buffer,"Gold       ", p_ptr->au, 13, 28, TERM_L_GREEN);
-
-        prt_num_b(buffer,"Max Hit Points ", p_ptr->mhp, 9, 52, TERM_L_GREEN);
-
-        if (p_ptr->chp >= p_ptr->mhp)
-        {
-                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_L_GREEN);
-        }
-        else if (p_ptr->chp > (p_ptr->mhp) / 10)
-        {
-                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_YELLOW);
-        }
-        else
-        {
-                prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_RED);
-        }
-
-        prt_num_b(buffer,"Max SP (Mana)  ", p_ptr->msp, 11, 52, TERM_L_GREEN);
-
-        if (p_ptr->csp >= p_ptr->msp)
-        {
-                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_L_GREEN);
-        }
-        else if (p_ptr->csp > (p_ptr->msp) / 10)
-        {
-                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_YELLOW);
-        }
-        else
-        {
-                prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_RED);
-        }
-        
-		/* Check for history */
-		put_str_b(buffer, "(Character Background)", 21, 25);
-
-		for (i = 0; i < 4; i++)
-		{
-			put_str_b(buffer,p_ptr->history[i], i + 22, 10);
+				c_put_str_b(buffer,TERM_L_GREEN, buf, 2 + i, 66);
 		}
-        
+	}
+
+	put_str_b(buffer,"(Miscellaneous Abilities)", 15, 25);
+
+	/* Display "skills" */
+	put_str_b(buffer,"Fighting    :", 16, 1);
+	desc = likert(p_ptr->skill_thn, 12);
+	c_put_str_b(buffer,0, desc, 16, 15);
+
+	put_str_b(buffer,"Bows/Throw  :", 17, 1);
+	desc = likert(p_ptr->skill_thb, 12);
+	c_put_str_b(buffer,0, desc, 17, 15);
+
+	put_str_b(buffer,"Saving Throw:", 18, 1);
+	desc = likert(p_ptr->skill_sav, 6);
+	c_put_str_b(buffer,0, desc, 18, 15);
+
+	put_str_b(buffer,"Stealth     :", 19, 1);
+	desc = likert(p_ptr->skill_stl, 1);
+	c_put_str_b(buffer,0, desc, 19, 15);
+
+
+	put_str_b(buffer,"Perception  :", 16, 28);
+	desc = likert(p_ptr->skill_fos, 6);
+	c_put_str_b(buffer,0, desc, 16, 42);
+
+	put_str_b(buffer,"Searching   :", 17, 28);
+	desc = likert(p_ptr->skill_srh, 6);
+	c_put_str_b(buffer,0, desc, 17, 42);
+
+	put_str_b(buffer,"Disarming   :", 18, 28);
+	desc = likert(p_ptr->skill_dis, 8);
+	c_put_str_b(buffer,0, desc, 18, 42);
+
+	put_str_b(buffer,"Magic Device:", 19, 28);
+	desc = likert(p_ptr->skill_dev, 6);
+	c_put_str_b(buffer,0, desc, 19, 42);
+
+
+	put_str_b(buffer,"Blows/Round:", 16, 55);
+	put_str_b(buffer,format("%d", p_ptr->num_blow), 16, 69);
+
+	put_str_b(buffer,"Shots/Round:", 17, 55);
+	put_str_b(buffer,format("%d", p_ptr->num_fire), 17, 69);
+
+	put_str_b(buffer,"Infra-Vision:", 19, 55);
+	put_str_b(buffer,format("%d feet", p_ptr->see_infra * 10), 19, 69);
+
+	/* Dump the bonuses to hit/dam */
+	if (o_ptr->k_idx)
+	{
+		show_tohit += o_ptr->to_h;
+		show_todam += o_ptr->to_d;
+	}
+	prt_num_b(buffer,"+ To Hit    ", show_tohit, 9, 1, TERM_L_BLUE);
+	prt_num_b(buffer,"+ To Damage ", show_todam, 10, 1, TERM_L_BLUE);
+
+	/* Dump the armor class bonus */
+	prt_num_b(buffer,"+ To AC     ", p_ptr->dis_to_a, 11, 1, TERM_L_BLUE);
+
+	/* Dump the total armor class */
+	prt_num_b(buffer,"  Base AC   ", p_ptr->dis_ac, 12, 1, TERM_L_BLUE);
+
+	prt_num_b(buffer,"Level      ", (int)p_ptr->lev, 9, 28, TERM_L_GREEN);
+
+	if (p_ptr->exp >= p_ptr->max_exp)
+	{
+		prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_L_GREEN);
+	}
+	else
+	{
+		prt_lnum_b(buffer,"Experience ", p_ptr->exp, 10, 28, TERM_YELLOW);
+	}
+
+	prt_lnum_b(buffer,"Max Exp    ", p_ptr->max_exp, 11, 28, TERM_L_GREEN);
+
+	if (p_ptr->lev >= PY_MAX_LEVEL)
+	{
+		put_str_b(buffer,"Exp to Adv.", 12, 28);
+		c_put_str_b(buffer,TERM_L_GREEN, "    *****", 12, 28+11);
+	}
+	else
+	{
+		/* prt_lnum_b(buffer,"Exp to Adv.", p_ptr->exp_adv, 12, 28, TERM_L_GREEN); */
+	}
+
+	prt_lnum_b(buffer,"Gold       ", p_ptr->au, 13, 28, TERM_L_GREEN);
+
+	prt_num_b(buffer,"Max Hit Points ", p_ptr->mhp, 9, 52, TERM_L_GREEN);
+
+	if (p_ptr->chp >= p_ptr->mhp)
+	{
+		prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_L_GREEN);
+	}
+	else if (p_ptr->chp > (p_ptr->mhp) / 10)
+	{
+		prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_YELLOW);
+	}
+	else
+	{
+		prt_num_b(buffer,"Cur Hit Points ", p_ptr->chp, 10, 52, TERM_RED);
+	}
+
+	prt_num_b(buffer,"Max SP (Mana)  ", p_ptr->msp, 11, 52, TERM_L_GREEN);
+
+	if (p_ptr->csp >= p_ptr->msp)
+	{
+		prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_L_GREEN);
+	}
+	else if (p_ptr->csp > (p_ptr->msp) / 10)
+	{
+		prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_YELLOW);
+	}
+	else
+	{
+		prt_num_b(buffer,"Cur SP (Mana)  ", p_ptr->csp, 12, 52, TERM_RED);
+	}
+
+	/* Check for history */
+	put_str_b(buffer, "(Character Background)", 21, 25);
+
+	for (i = 0; i < 4; i++)
+	{
+		put_str_b(buffer,p_ptr->history[i], i + 22, 10);
+	}
 }
 
 
@@ -1164,11 +1163,11 @@ void display_player_server(int Ind, char buffer[100][82])
  */
 errr file_character_server(int Ind, cptr name)
 {
-	int			i, j, x, y, x1, x2, y1, y2;
+	int		i, j, x, y, x1, x2, y1, y2;
 	byte		a;
 	char		c, attr;
 	cptr		paren = ")";
-	int			fd = -1;
+	int		fd = -1;
 	FILE		*fff = NULL;
 	char		o_name[80];
 	char		today[10];
@@ -1251,12 +1250,12 @@ errr file_character_server(int Ind, cptr name)
 #endif
 
 	/* Begin dump */
-    if (cfg_ironman)
-    	fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
-	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
-    else
-    	fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
-	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	if (cfg_ironman)
+		fprintf(fff, "  [Ironman Mangband %d.%d.%d Character Dump]\n\n",
+		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	else
+		fprintf(fff, "  [Mangband %d.%d.%d Character Dump]\n\n",
+		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
 	display_player_server(Ind, buffer);
@@ -1268,27 +1267,27 @@ errr file_character_server(int Ind, cptr name)
 	}
 
 	/* Dump the equipment */
-	fprintf(fff, "  [Character Equipment]\n\n");
+	fprintf(fff, "%s", "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump the inventory */
-	fprintf(fff, "  [Character Inventory]\n\n");
+	fprintf(fff, "%s", "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
 		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump house inventory */
-	fprintf(fff, "  [Home Inventory]\n");
+	fprintf(fff, "%s", "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
 		if (house_owned_by(Ind, i)) 
@@ -1296,7 +1295,7 @@ errr file_character_server(int Ind, cptr name)
 			int Depth = houses[i].depth;
 			cave_type *c_ptr;
 
-			fprintf(fff, "\n"); j = 0;
+			fprintf(fff, "%s", "\n"); j = 0;
 			for(y=houses[i].y_1; y<=houses[i].y_2;y++)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
@@ -1304,7 +1303,7 @@ errr file_character_server(int Ind, cptr name)
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
-						if (j > 12) { fprintf(fff, "\n"); j = 0; }					
+						if (j > 12) { fprintf(fff, "%s", "\n"); j = 0; }
 						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
 						fprintf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
@@ -1314,25 +1313,24 @@ errr file_character_server(int Ind, cptr name)
 			}
 		}
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump character history */
 	if(p_ptr->birth_turn.turn || p_ptr->birth_turn.era)
 	{
 		history_event *evt;
-		fprintf(fff, "  [Character History]\n\n");
-		fprintf(fff, "Time       Dungeon Char  Event\n");
-		fprintf(fff, "           Level   Level\n\n");
+		fprintf(fff, "%s", "  [Character History]\n\n");
+		fprintf(fff, "%s", "Time       Dungeon Char  Event\n");
+		fprintf(fff, "%s", "           Level   Level\n\n");
 		for(evt = p_ptr->charhist; evt; evt = evt->next)
 		{
-			fprintf(fff, "%s", format_history_event(evt));
-			fprintf(fff, "\n");
+			fprintf(fff, "%s\n", format_history_event(evt));
 		}
-		fprintf(fff, "\n\n");
+		fprintf(fff, "%s", "\n\n");
 	}
 
 	/* Dump last messages */
-	fprintf(fff, "  [Last Messages]\n\n");
+	fprintf(fff, "%s", "  [Last Messages]\n\n");
 	i = p_ptr->msg_hist_ptr;
 	for(j=0;j<MAX_MSG_HIST;j++)
 	{
@@ -1341,10 +1339,10 @@ errr file_character_server(int Ind, cptr name)
 			fprintf(fff, "%s\n",p_ptr->msg_log[i]);
 		i++;
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
 	/* Dump the scene of death */
-	fprintf(fff, "  [Scene of Death]\n\n");
+	fprintf(fff, "%s", "  [Scene of Death]\n\n");
 	/* Get an in bounds area */
 	x1 = p_ptr->px - 39;
 	x2 = p_ptr->px + 39;
@@ -1385,8 +1383,8 @@ errr file_character_server(int Ind, cptr name)
 				if (x-x1 < 80) {
 					a = status[x-x1].a;
 					c = status[x-x1].c;
-				} else { 
-					a = TERM_WHITE; c = ' '; 
+				} else {
+					a = TERM_WHITE; c = ' ';
 				}
 			}
 			else
@@ -1430,11 +1428,11 @@ errr file_character_server(int Ind, cptr name)
 				fprintf(fff,"%c",c);
 			}
 		}
-		fprintf(fff,"\n");
+		fprintf(fff, "%s", "\n");
 	}
-	fprintf(fff, "\n\n");
+	fprintf(fff, "%s", "\n\n");
 
-	
+
 	/* Close it */
 	my_fclose(fff);
 
@@ -1450,16 +1448,16 @@ int file_peruse_next(player_type *p_ptr, char query, int next)
 	/* Process query */
 	if (query)
 	{
-		if (query == '1') /* 'End' */ 
-			p_ptr->interactive_line = p_ptr->interactive_size-20; 
-		else 	/* Other keys */
+		if (query == '1') /* 'End' */
+			p_ptr->interactive_line = p_ptr->interactive_size-20;
+		else /* Other keys */
 			common_peruse(p_ptr, query);
 
 		/* Adjust viewport boundaries */
 		if (p_ptr->interactive_line > p_ptr->interactive_size-20)
 			p_ptr->interactive_line = p_ptr->interactive_size-20;
 		if (p_ptr->interactive_line < 0)
-			p_ptr->interactive_line = 0;			
+			p_ptr->interactive_line = 0;
 
 		/* Shift window! */
 		if ((p_ptr->interactive_line+20 > p_ptr->interactive_next+MAX_TXT_INFO)
@@ -1512,7 +1510,10 @@ void common_file_peruse(player_type *p_ptr, char query)
 	/* Use default file */
 	if (!p_ptr->interactive_file)
 	{
-		p_ptr->interactive_file = string_make("mangband.hlp");
+		/* Paranoia -- free string */
+		string_free(p_ptr->interactive_file);
+		/* Select default file */
+		p_ptr->interactive_file = string_make("help.hlp");
 		/* Hack: enforce update */
 		p_ptr->interactive_next = -1;
 		next = 0;
@@ -1599,13 +1600,13 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	}
 
 	/* Wipe the hooks */
-	for (k = 0; k < 10; k++) p_ptr->interactive_hook[k][0] = '\0';
+	for (k = 0; k < 26; k++) p_ptr->interactive_hook[k][0] = '\0';
 
 	/* Parse the file */
 	while (TRUE)
 	{
 		byte attr = TERM_WHITE;
-				
+
 		/* Read a line or stop */
 		if (my_fgets(fff, buf, 1024)) break;
 
@@ -1640,7 +1641,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 		if (next <= line) continue;
 
 		/* Too much */
-		if (line + MAX_TXT_INFO < next) continue;
+		if (i >= MAX_TXT_INFO) continue;
 
 		/* Extract color */
 		if (color) attr = color_char_to_attr(buf[0]);
@@ -1666,7 +1667,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	p_ptr->interactive_size = next;
 
 	/* Save last dumped line */
-	p_ptr->last_info_line = i;
+	p_ptr->last_info_line = i - 1;
 
 	/* Close the file */
 	my_fclose(fff);
@@ -1897,7 +1898,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 
 #if 0
 		/* Show a general "title" */
-        prt(format("[MAngband %d.%d.%d, %s, Line %d/%d]",
+		prt(format("[MAngband %d.%d.%d, %s, Line %d/%d]",
 		           SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH,
 		           caption, line, size), 0, 0);
 
@@ -2022,7 +2023,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
  */
 void do_cmd_help(int Ind, int line)
 {
-	cptr name = "mangband.hlp";
+	cptr name = "help.hlp";
 
 	/* Peruse the main help file */
 	(void)do_cmd_help_aux(Ind, name, NULL, line, FALSE);
@@ -2063,7 +2064,7 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
 
 	
 	/* Cannot be too long */
-	if (strlen(name) > 15)
+	if (strlen(name) > MAX_NAME_LEN)
 	{
 		/* Abort */
 		return -1;
@@ -2167,26 +2168,12 @@ bool process_player_name(player_type *p_ptr, bool sf)
 	
 	ret = process_player_name_aux(p_ptr->name, p_ptr->basename, FALSE);
 
-	/* Cannot be too long */
-	if (ret == -1)
+	/* Name is too long or contained illegal characters */
+	if (ret < 0)
 	{
-		/* Name too long */
-		Destroy_connection(p_ptr->conn, "Your name is too long!");
-
 		/* Abort */
 		return FALSE;
 	}
-
-	/* Cannot contain "icky" characters */
-	if (ret == -2)
-	{
-		/* Illegal characters */
-		Destroy_connection(p_ptr->conn, "Your name contains control chars!");
-
-		/* Abort */
-		return FALSE;
-	}
-	
 
 	/* Change the savefile name */
 	if (sf)
@@ -2229,7 +2216,6 @@ void get_name(int Ind)
  */
 void do_cmd_suicide(int Ind)
 {
-	int i;
 	player_type *p_ptr = Players[Ind];
 
 	/* Mark as suicide */
@@ -2313,7 +2299,7 @@ long total_points(int Ind)
 	player_type *p_ptr = Players[Ind];
 	
 	/* We award a 50% score bonus for bravery with no_ghost characters */
-	if (p_ptr->no_ghost && !cfg_ironman)
+	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
 	{
 		return (long)((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
 	}
@@ -2740,7 +2726,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 			clev);
 
 		/* Append a "maximum level" */
-		if (mlev > clev) strcat(out_val, format(" (Max %d)", mlev));
+		if (mlev > clev) my_strcat(out_val, format(" (Max %d)", mlev), sizeof(out_val));
 
 		/* Dump the first line */
 		fprintf(fff, "%s\n", out_val);
@@ -2773,7 +2759,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 
 		/* Print newline if this isn't the last one */
 		if (j < i - 1)
-			fprintf(fff, "\n");
+			fprintf(fff, "%s", "\n");
 	}
 
 	/* Close the file */
@@ -2878,7 +2864,7 @@ static errr top_twenty(int Ind)
 	the_score.gold[9] = '\0';
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 #ifdef HIGHSCORE_DATE_HACK
 	/* Save the date in a hacked up form (9 chars) */
@@ -2969,7 +2955,7 @@ static errr predict_score(int Ind, int line)
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));	
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 	/* Hack -- no time needed */
 	strcpy(the_score.day, "TODAY");
@@ -3380,7 +3366,7 @@ void exit_game_panic()
 		/* Try to save the player, don't worry if this fails because there
 		 * is nothing we can do now anyway */
 		save_player(i++);
-		
+
 	}
 
 	/* Clear objects so that artifacts get saved.
@@ -3398,7 +3384,7 @@ void exit_game_panic()
 	if (!save_server_info()) plog("server panic info save failed!");
 
 	/* Successful panic save of server info */
-    plog("server panic info save succeeded!");
+	plog("server panic info save succeeded!");
 
 }
 
@@ -3642,8 +3628,13 @@ void signals_init(void)
 
 #ifdef SIGHUP
 	(void)signal(SIGHUP, SIG_IGN);
+
+#ifdef TARGET_OS_OSX
+	/* Closing Terminal.app on OSX sends SIGHUP, let's not ignore it! */
+	(void)signal(SIGHUP, handle_signal_abort);
 #endif
 
+#endif
 
 #ifdef SIGTSTP
 	(void)signal(SIGTSTP, handle_signal_suspend);

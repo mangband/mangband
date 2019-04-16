@@ -1,12 +1,12 @@
 BUILDING
 --------
 
- mangband and mangclient use generic autotools build proccess.
- See INSTALL file for more infomation.
+ mangband and mangclient use a generic autotools build process.
+ See the INSTALL file for more information.
 
- Bascially, just run `./configure; make; make install`.
+ Basically, just run `./configure; make; make install`.
 
- If you're building from git repository, you'll have to generate
+ If you're building from the git repository, you'll have to generate
  the `./configure` script first, by running `./autogen.sh`.
 
  Please note, that mangclient can be compiled with several
@@ -41,6 +41,6 @@ RUNNING
 
  PKGDATADIR is set during the `./configure` step, and defaults to
  something system-specific like "/usr/local/games/mangband". To
- adjust it, --datadir option could be used:
+ adjust it, the --datadir option can be used:
 
 	./configure --datadir=$PWD/lib

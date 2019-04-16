@@ -399,7 +399,7 @@ void compact_objects(int size)
 			if (k_ptr->level > cur_lev) continue; 
 
 			/* Valuable objects start out "immune" */ 
-			if (object_value(0, o_ptr) > cur_val) continue; 
+			if (object_value(NULL, o_ptr) > cur_val) continue; 
 
 			/* Saving throw */ 
 			chance = 90; 
@@ -788,8 +788,13 @@ s16b get_obj_num(int level)
 	case ACT_DRAIN_LIFE1: \
 	case ACT_MANA_BOLT:
 
-
-byte object_tester_flag(int Ind, object_type *o_ptr)
+/*
+ * This function determines primary item tester and use flag for a given object.
+ * It uses hardcoded TVALs/SVALs, similarly to how all our code does.
+ * Note: some items have a *secondary* tester, which will also be determined
+ * and stored in the "secondary_tester" pointer.
+ */
+byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -797,9 +802,12 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	u32b f1, f2, f3;
 	object_type *lamp_o_ptr;
 	
+	bool aware = object_aware_p(p_ptr, o_ptr);
+	*secondary_tester = 0;
+	
 	/* item_tester_hook_wear: */
 	if (wield_slot(Ind, o_ptr) >= INVEN_WIELD)
-	{ 
+	{
 		flag |= ITF_WEAR;
 	}
 	
@@ -808,7 +816,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 	{
 		object_flags(o_ptr, &f1, &f2, &f3);
 		if (f3 & TR3_ACTIVATE)
-		{ 
+		{
 			flag |= ITF_ACT;
 
 			/* Hack: ask for direction ? (FOR ACTIVATION) */
@@ -828,6 +836,58 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(p_ptr, o_ptr))
 		{
 			flag |= ITEM_ASK_AIM;
+		}
+	}
+
+	/* ask for another iem? (FOR STAFFS) */
+	if (o_ptr->tval == TV_STAFF)
+	{
+		/* Get a direction (unless KNOWN not to need it) */
+		if ((o_ptr->sval >= SV_STAFF_IDENTIFY && o_ptr->sval <= SV_STAFF_REMOVE_CURSE)
+		|| !object_aware_p(p_ptr, o_ptr))
+		{
+			flag |= ITEM_ASK_ITEM;
+		}
+		/* Specify secondary tester (if player KNOWS what that spell is) */
+		if ((flag & ITEM_ASK_ITEM) && aware)
+		{
+			switch (o_ptr->sval)
+			{
+				case SV_STAFF_REMOVE_CURSE:
+					*secondary_tester = item_test(WEAR);
+				default: break;
+			}
+		}
+
+	}
+
+	/* ask for another item? (Id, Enchant, Curse, ...) */
+	if (o_ptr->tval == TV_SCROLL)
+	{
+		/* Get a second item (unless KNOWN not to need it) */
+		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
+		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON)
+		|| !object_aware_p(p_ptr, o_ptr) )
+		{
+			flag |= ITEM_ASK_ITEM;
+		}
+		/* Specify secondary tester (if player KNOWS what that spell is) */
+		if ((flag & ITEM_ASK_ITEM) && aware)
+		{
+			switch (o_ptr->sval)
+			{
+				case SV_SCROLL_CURSE_WEAPON:
+				case SV_SCROLL_STAR_ENCHANT_WEAPON:
+				case SV_SCROLL_ENCHANT_WEAPON_TO_HIT:
+				case SV_SCROLL_ENCHANT_WEAPON_TO_DAM:
+					*secondary_tester = item_test(WEAPON);
+				break;
+				case SV_SCROLL_CURSE_ARMOR:
+				case SV_SCROLL_ENCHANT_ARMOR:
+				case SV_SCROLL_STAR_ENCHANT_ARMOR:
+					*secondary_tester = item_test(ARMOR);
+				default: break;
+			}
 		}
 	}
 	
@@ -854,7 +914,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr)
 			{	
 				flag |= ITF_FUEL;
 			}
-		}		
+		}
 	}
 
 	
@@ -946,13 +1006,12 @@ void object_tried(int Ind, object_type *o_ptr)
  * Return the "value" of an "unknown" item
  * Make a guess at the value of non-aware items
  */
-static s32b object_value_base(int Ind, object_type *o_ptr)
+static s32b object_value_base(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_kind *k_ptr = &k_info[o_ptr->k_idx];
 
 	/* Aware item -- use template cost */
-	if (Ind == 0 || object_aware_p(p_ptr, o_ptr)) return (k_ptr->cost);
+	if (p_ptr == NULL || object_aware_p(p_ptr, o_ptr)) return (k_ptr->cost);
 
 	/* Analyze the type */
 	switch (o_ptr->tval)
@@ -1249,13 +1308,13 @@ static s32b object_value_real(object_type *o_ptr)
  * Note that discounted items stay discounted forever, even if
  * the discount is "forgotten" by the player via memory loss.
  */
-s32b object_value(int Ind, object_type *o_ptr)
+s32b object_value(player_type *p_ptr, object_type *o_ptr)
 {
 	s32b value;
 
 
 	/* Unknown items -- acquire a base value */
-	if (Ind == 0 || object_known_p(Players[Ind], o_ptr))
+	if (p_ptr == NULL || object_known_p(p_ptr, o_ptr))
 	{
 		/* Broken items -- worthless */
 		if (broken_p(o_ptr)) return (0L);
@@ -1277,7 +1336,7 @@ s32b object_value(int Ind, object_type *o_ptr)
 		if ((o_ptr->ident & ID_SENSE) && cursed_p(o_ptr)) return (0L);
 
 		/* Base value (see above) */
-		value = object_value_base(Ind, o_ptr);
+		value = object_value_base(p_ptr, o_ptr);
 	}
 
 
@@ -2022,21 +2081,21 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 		{
 			/* Acquire the "out-of-depth factor" */
 			int d = (a_ptr->level - Depth) * 2;
-
+printf("Out of depth?\n");
 			/* Roll for out-of-depth creation */
 			if (rand_int(d) != 0) continue;
 		}
-
+printf("Art rarity roll...\n");
 		/* We must make the "rarity roll" */
 		if (rand_int(a_ptr->rarity) != 0) continue;
-
+printf("Passed!\n");
 		/* MEGA-HACK! GAMEPLAY BREAKER! */
 		for (j = 1; j < NumPlayers + 1; j++)
 		{
 			player_type *p_ptr = Players[j];
 			/* There's a player on a level who already found this artifact once
 			 * -- this causes ALL other players on level to suffer */
-			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] >= cfg_preserve_artifacts))
+			if ((p_ptr->dun_depth == Depth) && (p_ptr->a_info[i] > cfg_preserve_artifacts))
 			{
 				/* Artifact WON'T be generated! */
 				okay = FALSE;
@@ -3545,8 +3604,11 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 
 /*
  * Scatter some "great" objects near the player
+ *
+ * TODO: port version from 312 (!) (or later?)
+ * This version ignores the "great" bool
  */
-void acquirement(int Depth, int y1, int x1, int num)
+void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
 	int        y, x, i, d;
     bool ok = FALSE;
@@ -4158,19 +4220,28 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 	player_type *p_ptr = Players[Ind];
 	object_type *o_ptr;
 	char	o_name[80];
- 
+	byte    attr;
+	byte    flag, secondary_tester;
+
 	if (!force && p_ptr->delta_floor_item == o_idx) return;
 	p_ptr->delta_floor_item = o_idx;
 	
-	if (o_idx) {
+	if (o_idx)
+	{
 		o_ptr = &o_list[o_idx];
+
+		/* Pick color */
+		attr = p_ptr->tval_attr[o_ptr->tval % 128];
+		if (!option_p(p_ptr, USE_COLOR)) attr = TERM_WHITE;
+
 		/* Describe the object */
 		object_desc(Ind, o_name, o_ptr, TRUE, 3);
-		send_floor(Ind, p_ptr->tval_attr[o_ptr->tval % 128], o_ptr->number, o_ptr->tval, object_tester_flag(Ind, o_ptr), o_name);
+		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
+		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
 	else
 	{
-		send_floor(Ind, 0, 0, 0, 0, "");
+		send_floor(Ind, 0, 0, 0, 0, 0, "");
 	}
 }
 
@@ -4214,7 +4285,24 @@ void floor_item_optimize(int item)
 }
 
 
-
+/*
+ * Check if we're allowed to get rid of an item easily.
+ */
+bool inven_drop_okay(player_type *p_ptr, object_type *o_ptr)
+{
+	/* Never drop artifacts above their base depth */
+	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level))
+	{
+		/* Do not apply this rule to ironman and DMs */
+		if (!cfg_ironman && !dm_flag_p(p_ptr,ARTIFACT_CONTROL))
+		{
+			return (FALSE);
+		}
+	}
+	/* If you add more rules here, make sure dm_flag_p(p_ptr,OBJECT_CONTROL)
+	 * overrides them ... */
+	return (TRUE);
+}
 
 
 /*
@@ -4325,7 +4413,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 		s32b		o_value, j_value;
 
 		/* Get the "value" of the item */
-		o_value = object_value(Ind, o_ptr);
+		o_value = object_value(p_ptr, o_ptr);
 
 		/* Scan every occupied slot */
 		for (j = 0; j < INVEN_PACK; j++)
@@ -4358,7 +4446,7 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
-			j_value = object_value(Ind, j_ptr);
+			j_value = object_value(p_ptr, j_ptr);
 
 			/* Objects sort by decreasing value */
 			if (o_value > j_value) break;
@@ -4519,7 +4607,7 @@ void reorder_pack(int Ind)
 		if (!o_ptr->k_idx) continue;
 
 		/* Get the "value" of the item */
-		o_value = object_value(Ind, o_ptr);
+		o_value = object_value(p_ptr, o_ptr);
 
 		/* Scan every occupied slot */
 		for (j = 0; j < INVEN_PACK; j++)
@@ -4553,7 +4641,7 @@ void reorder_pack(int Ind)
 			if (!object_known_p(p_ptr, j_ptr)) break;
 
 			/* Determine the "value" of the pack item */
-			j_value = object_value(Ind, j_ptr);
+			j_value = object_value(p_ptr, j_ptr);
 
 			/* Objects sort by decreasing value */
 			if (o_value > j_value) break;
@@ -4815,26 +4903,113 @@ void reduce_charges(object_type *o_ptr, int amt)
 	}
 }
 
-void object_own(player_type *p_ptr, object_type *o_ptr)
+void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-	if (Ind)
+	/* If this is the first time, log it */
+	if (p_ptr->a_info[o_ptr->name1] == ARTS_NOT_FOUND)
+	{
+		char o_name[80];
+		char buf[80];
+		object_desc(0, o_name, o_ptr, FALSE, 0);
+		sprintf(buf, "Found The %s", o_name);
+		log_history_event(p_ptr, buf, TRUE);
+
+		/* Mark artifact as found */
+		set_artifact_p(p_ptr, o_ptr->name1, ARTS_FOUND);
+	}
+}
+
+void object_audit(player_type *p_ptr, object_type *o_ptr, int number)
+{
 	if (o_ptr->owner_id && o_ptr->owner_id != p_ptr->id)
 	{
 		char o_name[80];
 		char buf[512];
+		/* Create the object copy (structure copy)
+		object_type temp_obj;
+		if (o_ptr->number != number)
+		{
+			object_copy(&temp_obj, o_ptr);
+			o_ptr = &temp_obj;
+			o_ptr->number = number;
+		}
+		*/ /* ^ - no need (yet), we cam just temp-adjust number */
+		int actual_number = o_ptr->number;
+		o_ptr->number = number;
+		
 		/* Log transaction */
-		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld", 
+		sprintf(buf,"TR %s-%ld | %s-%ld $ %ld",
 			quark_str(o_ptr->owner_name), (long)o_ptr->owner_id,
-			p_ptr->name, (long)p_ptr->id, (long)object_value(Ind, o_ptr));
+			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr) * number);
 		audit(buf);
 		/* Object name */
 		object_desc(0, o_name, o_ptr, TRUE, 3);
 		sprintf(buf,"TR+%s", o_name);
-		audit(buf); 
+		audit(buf);
+		
+		/* Restore real number */
+		o_ptr->number = actual_number;
+	}
+}
+
+void object_own(player_type *p_ptr, object_type *o_ptr)
+{
+	/* Log ownership change */
+	object_audit(p_ptr, o_ptr, o_ptr->number);
+
+	/* Handle artifacts */
+	if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
+	{
+		artifact_notify(p_ptr, o_ptr);
 	}
 
+	/* Set new owner */
 	o_ptr->owner_id = p_ptr->id;
 	o_ptr->owner_name = quark_add(p_ptr->name);
-		
+}
+
+/*
+ * Select an item from an index provided by Player.
+ *
+ * Note: this function DOES test with item_tester_*
+ * framework.
+ *
+ * Note: if a floor item has been selected, "idx" is changed
+ * to reflect it's "o_list" index. For inven/equip items, "idx"
+ * is undefined.
+ *
+ */
+object_type* player_get_item(player_type *p_ptr, int item, int *idx)
+{
+	object_type *o_ptr;
+	int o_idx;
+
+	/* Get the item (in the pack) */
+	if (item >= 0 && item < INVEN_TOTAL)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Get the item (on the floor) */
+	else
+	{
+		o_idx = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+		if (o_idx == 0)
+		{
+			msg_print_p(p_ptr, "There is nothing on the floor.");
+			return NULL;
+		}
+		o_ptr = &o_list[o_idx];
+
+		/* HACK -- invert value */
+		*idx = 0 - o_idx;
+	}
+
+	/* Perform item test */
+	if (!item_tester_okay(o_ptr))
+	{
+		return NULL;
+	}
+
+	return o_ptr;
 }
