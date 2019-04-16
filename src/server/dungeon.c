@@ -1044,7 +1044,8 @@ static void process_player_end(int Ind)
 	}
 
 	/* Handle running */
-	if((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && p_ptr->running)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	&& (p_ptr->running || p_ptr->run_request))
 	{
 		run_step(Ind, 0);
 	}

@@ -3114,7 +3114,7 @@ int do_cmd_run(int Ind, int dir)
 
 		/* Initialise running */
 		p_ptr->run_request = dir;
-		p_ptr->running = TRUE;
+		p_ptr->running = FALSE;
 		p_ptr->ran_tiles = 0;
 	}
 	return 1;
