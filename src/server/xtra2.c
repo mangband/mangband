@@ -2816,7 +2816,7 @@ void player_death(int Ind)
 	/* Normal death */
 	if (p_ptr->fruit_bat == -1)
 		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-+	else if (!cfg_ironman && option_p(p_ptr, NO_GHOST)) /* Notice bravery */
+	else if (!cfg_ironman && option_p(p_ptr, NO_GHOST)) /* Notice bravery */
 		sprintf(buf, "The brave hero %s the level %i %s %s was killed by %s.",
 		    p_ptr->name, p_ptr->lev,
 		    p_name + p_info[p_ptr->prace].name,
