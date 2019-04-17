@@ -3184,6 +3184,9 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Redraw floor */
+	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
+
 	/* Something was done */
 	return (TRUE);
 }

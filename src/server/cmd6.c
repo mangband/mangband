@@ -603,6 +603,9 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	else
 	{
 		floor_item_charges(0 - item);
+
+		/* Redraw floor */
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 }
@@ -738,6 +741,9 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 		/* Redraw */
 		p_ptr->window |= (PW_INVEN);
 
+		/* Redraw floor */
+		if (item < 0) p_ptr->redraw |= (PR_FLOOR);
+
 		return;
 	}
 
@@ -799,6 +805,9 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	else
 	{
 		floor_item_charges(0 - item);
+
+		/* Redraw floor */
+		p_ptr->redraw |= (PR_FLOOR);
 	}
 }
 
@@ -926,6 +935,8 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
+	/* Redraw floor */
+	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
 
 	/* Drain the charge */
 	/* happens in use-obj.c
