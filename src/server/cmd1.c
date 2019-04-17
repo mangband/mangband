@@ -702,6 +702,9 @@ void carry(int Ind, int pickup, int confirm)
 
 		/* Delete gold */
 		delete_object(Depth, p_ptr->py, p_ptr->px);
+
+		/* Tell the client */
+		floor_item_notify(Ind, 0, FALSE);
 	}
 
 	/* Pick it up */
