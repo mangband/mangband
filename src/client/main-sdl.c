@@ -2428,7 +2428,7 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 		memset(load_tiles, 0, sizeof(graf_tiles));
 		load_tiles->face = NULL;
 
-		if (suffix(filename, ".png") || suffix(filename, ".PNG"))
+		if (isuffix(filename, ".png"))
 		{
 			if (!load_PNG_graf_sdl(load_tiles, filename))
 			{

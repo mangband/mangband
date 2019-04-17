@@ -407,6 +407,23 @@ bool prefix(cptr s, cptr t)
 
 
 /*
+ * Determine if string "t" is a suffix of string "s",
+ * case-insensitive.
+ */
+bool isuffix(cptr s, cptr t)
+{
+	size_t tlen = strlen(t);
+	size_t slen = strlen(s);
+
+	/* Check for incompatible lengths */
+	if (tlen > slen) return (FALSE);
+
+	/* Compare "t" to the end of "s" */
+	return (!my_stricmp(s + slen - tlen, t));
+}
+
+
+/*
  * Redefinable "plog" action
  */
 void (*plog_aux)(cptr) = NULL;

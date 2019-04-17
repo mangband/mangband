@@ -1362,7 +1362,7 @@ static errr term_force_graf(term_data *td, cptr name)
 	if (!wid || !hgt) return (1);
 
 	/* Check if we need PNG loader */
-	if (suffix(s, ".png") || suffix(s, ".PNG")) is_png = TRUE;
+	if (isuffix(s, ".png")) is_png = TRUE;
 
 	/* Build base_graf */
 	strcpy(base_graf, base);

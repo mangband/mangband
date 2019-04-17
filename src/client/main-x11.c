@@ -3028,7 +3028,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Load the graphical tiles */
-		if (suffix(bitmap_file, ".png") || suffix(bitmap_file, ".PNG"))
+		if (isuffix(bitmap_file, ".png"))
 		{
 			tiles_raw = ReadPNG(dpy, filename);
 		} else
