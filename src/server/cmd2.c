@@ -67,6 +67,9 @@ void do_cmd_go_up(int Ind)
 	/* Show everyone that's he left */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(Ind);
+
 	/* Forget his lite and viewing area */
 	forget_lite(Ind);
 	forget_view(Ind);
@@ -165,6 +168,9 @@ void do_cmd_go_down(int Ind)
 
 	/* Show everyone that's he left */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
+
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(Ind);
 
 	/* Forget his lite and viewing area */
 	forget_lite(Ind);

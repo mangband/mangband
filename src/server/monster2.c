@@ -1580,17 +1580,17 @@ void update_player(int Ind)
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
 
-		/* Skip players not on this depth */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
-
 		/* Player can always see himself */
 		if (Ind == i) continue;
 
-		/* Compute distance */
-		dis = distance(py, px, p_ptr->py, p_ptr->px);
+		/* Skip players not on this depth */
+		if (p_ptr->dun_depth != q_ptr->dun_depth) flag = FALSE;
+
+		/* Hack -- dungeon masters are invisible */
+		else if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 
 		/* HACK ! - Detected via magical means */
-		if (p_ptr->play_det[Ind]) flag = TRUE;
+		else if (p_ptr->play_det[Ind]) flag = TRUE;
 
 		/* Process players on current panel */
 		else if (panel_contains(py, px))
@@ -1609,6 +1609,9 @@ void update_player(int Ind)
 			if ((player_in_party(q_ptr->party, i)) && (q_ptr->party)) easy = flag = TRUE;
 			
 			if (*w_ptr & CAVE_VIEW) {
+				/* Compute distance */
+				dis = distance(py, px, p_ptr->py, p_ptr->px);
+
 				/* Check infravision */
 				if (dis <= p_ptr->see_infra)
 				{
@@ -1631,13 +1634,11 @@ void update_player(int Ind)
 			}
 
 			/* Telepathy can see all players */
-            if (p_ptr->telepathy == TR3_TELEPATHY)
+			if (p_ptr->telepathy == TR3_TELEPATHY)
 			{
 				/* Visible */
 				hard = flag = TRUE;
 			}
-		/* hack -- dungeon masters are invisible */
-		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 		}
 
 		/* Player is now visible */

@@ -242,6 +242,8 @@ int player_leave(int p_idx)
 		//forget_view(Ind);TODO--test if this is really needed?
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		/* Tell everyone to re-calculate visiblity for this player */
+		update_player(p_idx);
 	}
 
 	/* Try to save his character */
