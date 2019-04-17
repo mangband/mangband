@@ -4185,7 +4185,7 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 		if (!cfg_ironman && p_ptr)
 		{
 			/* It takes 1000 game turns for "feelings" to recharge */
-			if (ht_passed(&turn, &p_ptr->old_turn, 1000))
+			if (!ht_passed(&turn, &p_ptr->old_turn, 1000))
 			{
 				feeling = 0;
 				scum = FALSE;
