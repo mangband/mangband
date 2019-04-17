@@ -75,18 +75,7 @@ void delete_monster_idx(int i)
 	/* Remove him from everybody's view */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-		Players[Ind]->mon_vis[i] = FALSE;
-		Players[Ind]->mon_los[i] = FALSE;
-		Players[Ind]->mon_det[i] = 0;
-
-		/* Hack -- remove hurt flag */
-		Players[Ind]->mon_hrt[i] = FALSE;
-
-		/* Hack -- remove target monster */
-		if (i == Players[Ind]->target_who) Players[Ind]->target_who = 0;
-
-		/* Hack -- remove tracked monster */
-		if (i == Players[Ind]->health_who) health_track(Ind, 0);
+		forget_monster(Ind, i, TRUE);
 	}
 
 
@@ -1231,6 +1220,36 @@ bool is_detected(u32b flag, u32b esp)
 }
 
 
+/* Clear all visibility and tracking flags. */
+void forget_monster(int Ind, int m_idx, bool deleted)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Was visible? Update monster list then */
+	if (p_ptr->mon_vis[m_idx]) p_ptr->window |= (PW_MONLIST);
+
+	/* Remove cursor tracking */
+	if (p_ptr->cursor_who == m_idx)
+	{
+		cursor_track(Ind, 0);
+		p_ptr->redraw |= PR_CURSOR;
+	}
+
+	/* No longer a valid target */
+	if (p_ptr->target_who == m_idx) p_ptr->target_who = 0;
+
+	/* Remove health tracking */
+	if (p_ptr->health_who == m_idx) health_track(Ind, 0);
+
+	/* Clear all visibility flags */
+	p_ptr->mon_vis[m_idx] = FALSE;
+	p_ptr->mon_los[m_idx] = FALSE;
+	p_ptr->mon_det[m_idx] = 0;
+
+	/* Remove hurt flag (only if monster is completely dead) */
+	if (deleted) p_ptr->mon_hrt[m_idx] = FALSE;
+}
+
 /*
  * This function updates the monster record of the given monster
  *
@@ -1323,9 +1342,7 @@ void update_mon(int m_idx, bool dist)
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
 		{
-			p_ptr->mon_vis[m_idx] = FALSE;
-			p_ptr->mon_los[m_idx] = FALSE;
-			p_ptr->mon_det[m_idx] = 0;
+			forget_monster(Ind, m_idx, FALSE);
 			continue;
 		}
 
@@ -1386,7 +1403,7 @@ void update_mon(int m_idx, bool dist)
 				}
 	
 				/* Telepathy can see all "nearby" monsters with "minds" */
-	            if (is_detected(r_ptr->flags3, p_ptr->telepathy))
+				if (is_detected(r_ptr->flags3, p_ptr->telepathy))
 				{
 					/* Empty mind, no telepathy */
 					if (r_ptr->flags2 & RF2_EMPTY_MIND)
@@ -1482,7 +1499,7 @@ void update_mon(int m_idx, bool dist)
 				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
 
 				/* Window stuff */
-				p_ptr->window |= PW_MONLIST;				
+				p_ptr->window |= PW_MONLIST;
 			}
 		}
 
