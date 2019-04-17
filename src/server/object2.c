@@ -866,7 +866,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 	{
 		/* Get a second item (unless KNOWN not to need it) */
 		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
-		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON)
+		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_RECHARGING)
 		|| !object_aware_p(p_ptr, o_ptr) )
 		{
 			flag |= ITEM_ASK_ITEM;
@@ -886,6 +886,8 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 				case SV_SCROLL_ENCHANT_ARMOR:
 				case SV_SCROLL_STAR_ENCHANT_ARMOR:
 					*secondary_tester = item_test(ARMOR);
+				case SV_SCROLL_RECHARGING:
+					*secondary_tester = item_test(RECHARGE);
 				default: break;
 			}
 		}
