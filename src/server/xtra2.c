@@ -5154,6 +5154,22 @@ bool monsters_in_los(player_type *p_ptr)
 			break;
 		}
 	}
+	/* Hostile players count as monsters */
+	if (!los) for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *q_ptr = Players[i];
+		if (q_ptr == p_ptr) continue; /* Skip self */
+
+		/* Check this player */
+		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
+		{
+			if (check_hostile(Get_Ind[p_ptr->conn], i))
+			{
+				los = TRUE;
+				break;
+			}
+		}
+	}
 	return los;
 }
 

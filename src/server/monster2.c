@@ -1325,6 +1325,9 @@ void update_mon(int m_idx, bool dist)
 	/* Seen by telepathy */
 	bool hard = FALSE;
 
+	/* Is nearby */
+	bool nearby = FALSE;
+
 	/* Various extra flags */
 	bool do_empty_mind = FALSE;
 	bool do_weird_mind = FALSE;
@@ -1338,6 +1341,7 @@ void update_mon(int m_idx, bool dist)
 		l_ptr = p_ptr->l_list + m_ptr->r_idx;
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
+		nearby = FALSE;
 
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
@@ -1364,11 +1368,8 @@ void update_mon(int m_idx, bool dist)
 		/* Save the distance (in a byte) */
 		m_ptr->cdis = (d < 255) ? d : 255;
 
-		/* HACK ! - Detected via magical means */
-		if (p_ptr->mon_det[m_idx]) flag = TRUE;
-
 		/* Nearby */
-		else if (m_ptr->cdis <= MAX_SIGHT)
+		if (m_ptr->cdis <= MAX_SIGHT)
 		{
 
 			/* Process "nearby" monsters on the current "panel" */
@@ -1376,7 +1377,10 @@ void update_mon(int m_idx, bool dist)
 			{
 				cave_type *c_ptr = &cave[Depth][fy][fx];
 				byte *w_ptr = &p_ptr->cave_flag[fy][fx];
-	
+
+				/* Remember for later */
+				if ((*w_ptr & CAVE_VIEW)) nearby = TRUE;
+
 				/* Normal line of sight, and player is not blind */
 				if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
 				{
@@ -1440,7 +1444,8 @@ void update_mon(int m_idx, bool dist)
 			}
 		}
 
-
+		/* HACK ! - Detected via magical means, counts as "hard" */
+		if (p_ptr->mon_det[m_idx]) hard = flag = TRUE;
 
 		/* The monster is now visible */
 		if (flag)
@@ -1504,8 +1509,8 @@ void update_mon(int m_idx, bool dist)
 		}
 
 
-		/* The monster is now easily visible */
-		if (easy)
+		/* The monster is now easily visible (or detected and is close) */
+		if (easy || (hard && nearby))
 		{
 			/* Change */
 			if (!p_ptr->mon_los[m_idx])
@@ -1589,6 +1594,9 @@ void update_player(int Ind)
 	/* Seen by telepathy */
 	bool hard = FALSE;
 
+	/* Is nearby */
+	bool nearby = FALSE;
+
 	/* Check for every other player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
@@ -1596,6 +1604,7 @@ void update_player(int Ind)
 
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
+		nearby = FALSE;
 
 		/* Player can always see himself */
 		if (Ind == i) continue;
@@ -1606,14 +1615,17 @@ void update_player(int Ind)
 		/* Hack -- dungeon masters are invisible */
 		else if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 
-		/* HACK ! - Detected via magical means */
-		else if (p_ptr->play_det[Ind]) flag = TRUE;
-
 		/* Process players on current panel */
 		else if (panel_contains(py, px))
 		{
 			cave_type *c_ptr = &cave[p_ptr->dun_depth][py][px];
 			byte *w_ptr = &p_ptr->cave_flag[py][px];
+
+			/* Compute distance */
+			dis = distance(py, px, p_ptr->py, p_ptr->px);
+
+			/* Remember for later */
+			if ((*w_ptr & CAVE_VIEW) && (dis < MAX_SIGHT)) nearby = TRUE;
 
 			/* Normal line of sight, and player is not blind */
 			
@@ -1626,14 +1638,12 @@ void update_player(int Ind)
 			if ((player_in_party(q_ptr->party, i)) && (q_ptr->party)) easy = flag = TRUE;
 			
 			if (*w_ptr & CAVE_VIEW) {
-				/* Compute distance */
-				dis = distance(py, px, p_ptr->py, p_ptr->px);
 
 				/* Check infravision */
 				if (dis <= p_ptr->see_infra)
 				{
-					/* Visible */
-					easy = flag = TRUE;
+					/* Only alive players are seen by infravision */
+					if (!q_ptr->ghost) easy = flag = TRUE;
 				}
 
 				/* Check illumination */
@@ -1657,6 +1667,9 @@ void update_player(int Ind)
 				hard = flag = TRUE;
 			}
 		}
+
+		/* HACK ! - Detected via magical means */
+		if (p_ptr->play_det[Ind]) hard = flag = TRUE;
 
 		/* Player is now visible */
 		if (flag)
@@ -1706,8 +1719,8 @@ void update_player(int Ind)
 			}
 		}
 
-		/* The player is now easily visible */
-		if (easy)
+		/* The player is now easily visible (or is detected and is close) */
+		if (easy || (hard && nearby))
 		{
 			/* Change */
 			if (!p_ptr->play_los[Ind])
