@@ -81,6 +81,8 @@ extern size_t my_strcat(char *buf, const char *src, size_t bufsize);
 extern bool streq(cptr s, cptr t);
 extern bool prefix(cptr s, cptr t);
 extern bool suffix(cptr s, cptr t);
+/* Test for case-insensitive suffix */
+extern bool isuffix(cptr s, cptr t);
 
 /* Hack -- conditional (or "bizarre") externs */
 

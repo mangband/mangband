@@ -2957,7 +2957,7 @@ errr init_x11(int argc, char **argv)
 	{
 	case GRAPHICS_ADAM_BOLT:
 		/* Use tile graphics of Adam Bolt */
-		bitmap_file = "16x16.bmp";
+		bitmap_file = "16x16.png";
 
 		/* Try the "16x16.bmp" file */
 		path_build(filename, 1024, ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
@@ -2979,7 +2979,7 @@ errr init_x11(int argc, char **argv)
 
 	case GRAPHICS_ORIGINAL:
 		/* Use original tile graphics */
-		bitmap_file = "8x8.bmp";
+		bitmap_file = "8x8.png";
 
 		/* Try the "8x8.bmp" file */
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
@@ -2999,7 +2999,7 @@ errr init_x11(int argc, char **argv)
 
 	case GRAPHICS_DAVID_GERVAIS:
 		/* Use tile graphics of David Gervais */
-		bitmap_file = "32x32.bmp";
+		bitmap_file = "32x32.png";
 
 		/* Use graphics */
 		use_graphics = GRAPHICS_DAVID_GERVAIS;
@@ -3028,6 +3028,11 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Load the graphical tiles */
+		if (isuffix(bitmap_file, ".png"))
+		{
+			tiles_raw = ReadPNG(dpy, filename);
+		} else
+		
 		tiles_raw = ReadBMP(dpy, filename);
 
 		if (tiles_raw)

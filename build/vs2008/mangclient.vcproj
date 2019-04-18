@@ -385,6 +385,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\lupng.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\maim-sdl.c"
 				>
 			</File>
@@ -421,6 +425,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\miniz.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\net-basics.c"
 				>
 			</File>
@@ -438,6 +446,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\readdib.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\readpng.c"
 				>
 			</File>
 			<File
@@ -479,6 +491,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\c-defines.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\c-externs.h"
 				>
 			</File>
@@ -511,11 +527,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\lupng.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\main-sdl.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\common\md5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\lupng\miniz.h"
 				>
 			</File>
 			<File

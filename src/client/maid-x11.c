@@ -36,6 +36,8 @@
 /* Include our headers */
 #include "maid-x11.h"
 
+#include "lupng/lupng.h"
+
 
 #ifdef SUPPORT_GAMMA
 static bool gamma_table_ready = FALSE;
@@ -246,6 +248,106 @@ static void rd_u32b(FILE *fff, u32b *ip)
 	(*ip) |= ((u32b)(get_byte(fff)) << 24);
 }
 
+/*
+ * Read a PNG image.
+ *
+ * Uses "lupng" module to open/read the file, then transforms
+ * it into an XImage.
+ */
+XImage *ReadPNG(Display *dpy, char *Name)
+{
+	Visual *visual = DefaultVisual(dpy, DefaultScreen(dpy));
+
+	int depth = DefaultDepth(dpy, DefaultScreen(dpy));
+
+	XImage *Res = NULL;
+
+	char *Data;
+
+	LuImage *img;
+
+	int i, j, total;
+	int x, y;
+
+	img = luPngReadFile(Name);
+	if (!img)
+	{
+		quit_fmt("Could not read %s", Name);
+	}
+
+	/* Determine total bytes needed for image */
+	i = 1;
+	j = (depth - 1) >> 2;
+	while (j >>= 1) i <<= 1;
+	total = img->width * img->height * i;
+
+	/* Allocate image memory */
+	C_MAKE(Data, total, char);
+
+	Res = XCreateImage(dpy, visual, depth, ZPixmap, 0 /*offset*/,
+	                   Data, img->width, img->height,
+	                   32 /*bitmap_pad*/, 0 /*bytes_per_line*/);
+
+	/* Failure */
+	if (Res == NULL)
+	{
+		KILL(Data);
+		luImageRelease(img, NULL);
+		return (NULL);
+	}
+
+	/* printf("Depth: %d, Channels: %d, Data_Size: %d\n", img->depth,
+		img->channels, img->dataSize);
+	printf("Calculated total: %d\n", total); */
+
+	/* We can avoid extra BGR pass, because we do r/b switch inplace */
+	/* luImageBGR(img); */
+	/* But we better do a darken alpha pass (to avoid "white" emptyness) */
+	luImageDarkenAlpha(img);
+
+	//TODO: those bitshifts and masks are unsafe, we should use
+	// visual->red_mask
+	// visual->green_mask
+	// visual->blue_mask
+	//to perform those operations
+	for (y = 0; y < img->height; y++)
+	for (x = 0; x < img->width; x++)
+	{
+		if (img->channels == 3)
+		{
+			int cr = img->data[y * img->width * 3 + x * 3 + 0];
+			int cg = img->data[y * img->width * 3 + x * 3 + 1];
+			int cb = img->data[y * img->width * 3 + x * 3 + 2];
+			int ca = 0;
+			unsigned long col;
+			col =
+			 ( ((cb << 0)  & 0x000000FF)
+			 | ((cg << 8)  & 0x0000FF00)
+			 | ((cr << 16) & 0x00FF0000)
+			 | ((ca << 24) & 0xFF000000) );
+			XPutPixel(Res, x, y, col);
+		}
+
+		else if (img->channels = 4)
+		{
+			int cr = img->data[y * img->width * 4 + x * 4 + 0];
+			int cg = img->data[y * img->width * 4 + x * 4 + 1];
+			int cb = img->data[y * img->width * 4 + x * 4 + 2];
+			int ca = img->data[y * img->width * 4 + x * 4 + 3];
+			unsigned long col;
+			col =
+			 ( ((cb << 0)  & 0x000000FF)
+			 | ((cg << 8)  & 0x0000FF00)
+			 | ((cr << 16) & 0x00FF0000)
+			 | ((ca << 24) & 0xFF000000) );
+			XPutPixel(Res, x, y, col);
+		}
+	}
+
+	luImageRelease(img, NULL);
+
+	return Res;
+}
 
 /*
  * Read a Win32 BMP file.
