@@ -45,6 +45,7 @@ bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 /* this stuff was moved to sdl-maim.c */
 extern SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src, Uint32 t_oldw, Uint32 t_oldh, Uint32 t_neww, Uint32 t_newh, int dealloc_src);
+extern SDL_Surface* SurfaceTo8BIT(SDL_Surface *face, int free_src);
 extern char *formatsdlflags(Uint32 flags);
 extern void Multikeypress(char *k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
@@ -426,7 +427,7 @@ errr load_ANY_font_sdl(font_data *fd, cptr filename)
 	/* check font_data */
 	if (fd->w || fd->h || fd->face) return -1; /* dealloc it first, dummy. */
 
-	face = sdl_font_load(filename, &info, 0, 0);
+	face = sdl_font_load(filename, &info, 16, 0);
 
 	if (!face)
 	{
@@ -434,6 +435,10 @@ errr load_ANY_font_sdl(font_data *fd, cptr filename)
 	}
 
 #ifdef SHADE_FONTS
+	if (!face->format->palette)
+	{
+		face = SurfaceTo8BIT(face, 1);
+	}
 	for (i = 0; i < face->format->palette->ncolors; i++)
 	{
 		fd->ramp[i] = face->format->palette->colors[i];

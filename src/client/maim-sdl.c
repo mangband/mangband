@@ -301,6 +301,42 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	return dst;
 }
 
+SDL_Surface* SurfaceTo8BIT(SDL_Surface *face, int free_src)
+{
+	int y, x;
+	int npal = 0;
+	SDL_Color *pc;
+	SDL_Surface *reface = SDL_CreateRGBSurface(0, face->w, face->h, 8, 0, 0, 0, 0);
+	for (y = 0; y < face->h; y++)
+	{
+		for (x = 0; x < face->w; x++)
+		{
+			byte n;
+			int found = 0;
+			Uint8 r, g, b;
+			Uint8 *dst_px = (Uint8*)((Uint8*)reface->pixels + (y * reface->pitch + x * reface->format->BytesPerPixel));
+			Uint32 *src_px = (Uint32*)((Uint8*)face->pixels + (y * face->pitch + x * face->format->BytesPerPixel));
+			SDL_GetRGB(*src_px, face->format, &r, &g, &b);
+			for (n = 0; n < npal; n++) {
+				pc = &(reface->format->palette->colors[n]);
+				if (pc->r == r && pc->g == g && pc->b == b) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found && npal < 255) {
+				pc = &(reface->format->palette->colors[npal]);
+				pc->r = r; pc->g = g; pc->b = b;
+				n = npal;
+				npal++;
+			}
+			*dst_px = n;
+		}
+	}
+	reface->format->palette->ncolors = npal;
+	if (free_src) SDL_FreeSurface(face);
+	return reface;
+}
 
 char *formatsdlflags(Uint32 flags) {
 	return format ("%s%s%s%s%s%s%s%s%s%s (%x)",
