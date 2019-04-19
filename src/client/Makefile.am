@@ -27,6 +27,8 @@ mangclient_SOURCES = \
 		src/client/net-client.h src/client/readdib.h src/client/resource.h \
 		src/client/z-term.h
 
+mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c
+
 if USE_CRB
 
 mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h
@@ -48,7 +50,7 @@ endif
 
 if USE_SDL
 
-mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/sdl-xxx.c src/client/main-sdl.h
+mangclient_SOURCES += src/client/maim-sdl.c src/client/main-sdl.c src/client/main-sdl.h
 
 endif
 

@@ -293,7 +293,6 @@ void display_houses(int Ind, char query)
 		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
 	}
 	Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0);
-	
 }
 
 /*
@@ -515,7 +514,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	fff = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	/* Paranoia */
-	if (!fff) 
+	if (!fff)
 	{
 		plog(format("ERROR! %s (writing %s)", strerror(errno), file_name));
 		return;
@@ -542,15 +541,15 @@ void do_cmd_check_uniques(int Ind, int line)
 					if (r_ptr->level > curr_ptr->level)
 						break;
 					l++;
-				}				
-				for (i = total; i > l; i--)	
+				}
+				for (i = total; i > l; i--)
 					idx[i] = idx[i - 1];
 				idx[l] = k;
 				total++;
 			}
 		}
 	}
-								
+	
 	if (total)
 	{
 		/* for each unique */
@@ -668,7 +667,7 @@ void do_cmd_check_players(int Ind, int line)
 		/* don't display the dungeon master if the secret_dungeon_master
 		 * option is set (unless you're a DM yourself)
 		 */
-        if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
+		if ((q_ptr->dm_flags & DM_SECRET_PRESENCE) && !(p_ptr->dm_flags & DM_SEE_PLAYERS)) continue;
 
 		/*** Determine color ***/
 
@@ -937,7 +936,7 @@ void do_cmd_check_other(player_type *p_ptr, int line)
 		stream_line_as(p_ptr, STREAM_SPECIAL_TEXT, i, i - line);
 	}
 	/* Browse or popup that data remotely */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_ICKY, 0);//line);
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_ICKY, 0);//line);
 
 }
 
@@ -966,7 +965,7 @@ void common_peruse(player_type *p_ptr, char query)
 			p_ptr->special_file_type = SPECIAL_FILE_NONE;
 			break;
 	}
-	if (p_ptr->interactive_line < 0) 
+	if (p_ptr->interactive_line < 0)
 		p_ptr->interactive_line = 0;
 }
 
@@ -978,8 +977,8 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 
 	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
 	{
-#ifdef DEBUG	
-		plog(format("Player %s attempted to do special_file_peruse too early"));
+#ifdef DEBUG
+		debug(format("Player %s attempted to do special_file_peruse too early.", p_ptr->name));
 #endif
 		return;
 	}
@@ -1007,9 +1006,9 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(Ind, next);	break;
 			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(Ind, next);	break;
 			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(Ind, next);	break;
-			case SPECIAL_FILE_KILL:		do_cmd_knowledge_kills(Ind, next);	break;
-			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);break;
-			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);			break;
+			case SPECIAL_FILE_KILL: 	do_cmd_knowledge_kills(Ind, next);	break;
+			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);	break;
+			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);      	break;
 		}
 		/* Send *everything* to client */
 		send_term_info(p_ptr, NTERM_CLEAR, 0);
@@ -1019,8 +1018,8 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 		}
 		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
 	}
-	/* Instruct client to browse locally */
-	send_term_info(p_ptr, NTERM_BROWSE | NTERM_FRESH, p_ptr->interactive_line);
+	/* Instruct client to browse remotely :( */
+	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_FRESH, p_ptr->interactive_line);
 }
 
 void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
@@ -1072,7 +1071,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 	
 	if (p_ptr->state != PLAYER_PLAYING || p_ptr->conn == -1)
 	{
-#ifdef DEBUG	
+#ifdef DEBUG
 		debug(format("Player %s attempted to get knowledge too early", p_ptr->name));
 #endif
 		return;
@@ -1119,7 +1118,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 	}
 
-	/* Proccess command - Switch mode */	
+	/* Proccess command - Switch mode */
 	switch (query)
 	{
 		case '1':
@@ -1159,7 +1158,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 
 	/* HACK! - Move to another menu */
 	if (changed)
-	{	
+	{
 		do_cmd_interactive_aux(p_ptr, p_ptr->special_file_type, 0);
 	}
 }
@@ -1176,7 +1175,7 @@ void do_cmd_interactive_input(player_type *p_ptr, char query)
 	char * y = &(p_ptr->interactive_hook[0][3]);
 	char * x = &(p_ptr->interactive_hook[0][4]);
 	char * attr = &(p_ptr->interactive_hook[0][5]);
-	char * mlen = &(p_ptr->interactive_hook[0][6]);	
+	char * mlen = &(p_ptr->interactive_hook[0][6]);
 	char * str = p_ptr->interactive_hook[1];
 
 	switch(query)
@@ -1245,4 +1244,7 @@ void do_cmd_interactive(player_type *p_ptr, char query)
 
 	/* Hack -- return to main term */
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+
+	/* Hack -- cancel monster tracking (maybe) */
+	monster_race_track_hack(p_ptr);
 }

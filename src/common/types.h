@@ -158,9 +158,6 @@ struct client_setup_t
 		
 	byte tval_attr[128];
 	char tval_char[128];
-
-	byte stream_wid[MAX_STREAMS];
-	byte stream_hgt[MAX_STREAMS];
 };
 
 
@@ -1519,7 +1516,7 @@ struct player_type
 
 	u32b notice;		/* Special Updates (bit flags) */
 	u32b update;		/* Pending Updates (bit flags) */
-	u32b redraw;		/* Normal Redraws (bit flags) */
+	u64b redraw;		/* Normal Redraws (bit flags) */
 	u32b window;		/* Window Redraws (bit flags) */
 
 	s16b stat_use[6];	/* Current modified stats */
@@ -1676,9 +1673,9 @@ struct stream_type
 	byte rle;       	/* RLE mode */
 	byte flag;      	/* Important flags (i.e. transperancy) */
 
-	byte min_row;   	/* Size */
+	u16b min_row;   	/* Size */
 	byte min_col;
-	byte max_row;
+	u16b max_row;
 	byte max_col;
 
 	u32b window_flag;	/* "Window" flag */
@@ -1698,7 +1695,7 @@ struct indicator_type
 
 	u32b flag;  	/* Indicator flags */
 	cptr prompt;	/* Hack -- display what additional info..? */
-	u32b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
+	u64b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
 	cptr mark;  	/* Hack -- name */
 };
 

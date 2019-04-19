@@ -157,13 +157,16 @@ int player_enter(int ind)
 	send_party_info(PInd);
 
 	/* Inform everyone */
-	if (p_ptr->new_game)
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
 	{
-		msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
-	}
-	else
-	{
-		msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		if (p_ptr->new_game)
+		{
+			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+		}
+		else
+		{
+			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+		}
 	}
 
 	/* Discard "New game" marker */
@@ -239,6 +242,8 @@ int player_leave(int p_idx)
 		//forget_view(Ind);TODO--test if this is really needed?
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		/* Tell everyone to re-calculate visiblity for this player */
+		update_player(p_idx);
 	}
 
 	/* Try to save his character */
@@ -251,6 +256,7 @@ int player_leave(int p_idx)
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
+	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
 	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
@@ -308,6 +314,14 @@ void player_drop(int ind)
 	/* Leave everything (before we destroyed all pointers) */
 	player_abandon(p_ptr);
 
+	/* If player was in town, hurry his disconnection up */
+	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
+	{
+		/* LARGE value to trigger timeout ASAP */
+		p_ptr->idle = 60;
+		/* Alternatively, call player_leave(Ind)... */
+	}
+
 	/* Actively playing */
 	if (p_ptr->state == PLAYER_PLAYING)
 	{
@@ -346,14 +360,6 @@ void player_drop(int ind)
 		p_ptr->conn = ind;
 		c_ptr->user = ind;
 	}
-
-	/* If player was in town, hurry his disconnection up */
-	if (!p_ptr->dun_depth || check_special_level(p_ptr->dun_depth))
-	{
-		/* LARGE value to trigger timeout ASAP */
-		p_ptr->idle = 60;
-		/* Alternatively, call player_leave(Ind)... */
-	}
 }
 /* Fast termination of connection (used by shutdown routine) */
 
@@ -367,12 +373,12 @@ void setup_network_server()
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
+	/** Prepare FD_SETS **/
+	network_reset();
+
 	/** Add UDP */
 	/* Meta-server */
 	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
-
-	/** Prepare FD_SETS **/
-	network_reset();
 
 	/** Add listeners **/
 	/* Game */
@@ -461,6 +467,22 @@ void close_network_server()
 	free_server_memory();
 }
 
+/* Send one last packet to meta.
+ * The round-about way of doing this has to do with the way "UDP Senders" are
+ * handled. We can't call any netcode DIRECTLY, but we can trick it to flush. */
+void report_to_meta_die(void)
+{
+	u16b old_shutdown_timer;
+	/* "report_to_meta" checks for "shutdown_timer", so let's force it */
+	old_shutdown_timer = shutdown_timer;
+	shutdown_timer = 1; /* YES, we *are* shutting down! */
+	/* Flush -- send actual UDP packet */
+	/* ONE_SECOND * 60 must be >= sender's delay interval */
+	first_sender = handle_senders(first_sender, ONE_SECOND * 60);
+	/* Paranoia -- restore shutdown_timer */
+	shutdown_timer = old_shutdown_timer;
+}
+
 int report_to_meta(int data1, data data2) {
 	static char local_name[1024];
 	static int init = 0;
@@ -482,22 +504,21 @@ int report_to_meta(int data1, data data2) {
 		/* Get our hostname */
 		if (cfg_report_address)
 		{
-			strncpy(local_name, cfg_report_address, 1024);
+			my_strcpy(local_name, cfg_report_address, 1024);
 		}
 		else
 		{
 			if (cfg_bind_name)
 			{
-				strncpy(local_name, cfg_bind_name, 1024);
+				my_strcpy(local_name, cfg_bind_name, 1024);
 			}
 			else
 			{
 				fillhostname(local_name, 1024);
 			}
 		}
-		strcat(local_name, ":");
-		sprintf(temp, "%d", (int) cfg_tcp_port);
-		strcat(local_name, temp);
+		/* Add :port number */
+		my_strcat(local_name, format(":%d", (int)cfg_tcp_port), 1024);
 	}
 
 	/* Start with our address */
@@ -665,7 +686,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
 				ct->rbuf.pos++;
 		
-			accept_console(-1, (data)ct);
+			okay = accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
@@ -768,7 +789,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #ifdef DEBUG
 		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
 #endif
-		client_abort(ct, "Incompatible client version.");
+		client_abort(ct, format("Incompatible client version. You need version %04x", SERVER_VERSION));
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
@@ -900,6 +921,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	send_class_info(ct);
 	send_server_info(ct);
 	send_inventory_info(ct);
+	send_objflags_info(ct);
 	send_floor_info(ct);
 	send_optgroups_info(ct);
 
@@ -968,11 +990,16 @@ int client_kill(connection_type *ct, cptr reason)
 
 	return 0;
 }
-/* client_kill a connection refrenced by p_idx */
-int player_kill(int p_idx, cptr reason)
+/* client_kill a connection that belongs to player p_ptr */
+int player_disconnect(player_type *p_ptr, cptr reason)
 {
-	connection_type *ct = PConn[p_idx];
-	if (ct != NULL)	return client_kill(ct, reason);
+	/* Ensure player has a connection */
+	if (p_ptr->conn > -1)
+	{
+		connection_type *ct = Conn[p_ptr->conn];
+		/* Be very paranoid */
+		if (ct != NULL) return client_kill(ct, reason);
+	}
 	return 0;
 }
 
@@ -1032,10 +1059,28 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
  */
 bool client_version_ok(u16b version)
 {
-	if (version == SERVER_VERSION) 
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	/* make alpha/beta/devel/stable versions always incompatible
+	 * with each other */
+	if (extra != SERVER_VERSION_EXTRA) return FALSE;
+
+	/* require minimal version */
+	if (major < 1) return FALSE;
+	if (minor < 5) return FALSE;
+	if (patch < 0) return FALSE;
+
+	return TRUE;
+/*
+	if (version == SERVER_VERSION)
 		return TRUE;
 	else
 		return FALSE;
+*/
 }
 
 /*

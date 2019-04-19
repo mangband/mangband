@@ -19,7 +19,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define SERVER_VERSION_EXTRA	2
+#define SERVER_VERSION_EXTRA	0
 
 
 /*
@@ -47,13 +47,6 @@
 
 /* maximum respawn time for uniques.... from japanese patch */
 #define COME_BACK_TIME_MAX 600
-
-/*
- * The types of communication that we send to the metaserver
- */
-#define META_START	0x01
-#define META_DIE	0x02
-#define META_UPDATE	0x04
 
 /*
  * A "stack" of items is limited to less than 100 items (hard-coded).
@@ -163,6 +156,10 @@
 #define MON_SUMMON_ADJ	2		/* Adjust level of summoned creatures */
 #define MON_DRAIN_LIFE	2		/* Percent of player exp drained per hit */
 #define USE_DEVICE      3		/* x> Harder devices x< Easier devices     */
+
+/* Resistance panel */
+#define MAX_OBJFLAGS_ROWS 13
+#define MAX_OBJFLAGS_COLS 39
 
 /*
  * There is a 1/20 (5%) chance of inflating the requested object_level
@@ -482,9 +479,9 @@
 #define ITH_WEAPON      	2
 #define ITH_ARMOR       	3
 #define ITH_AMMO        	4
-#define ITH_RECHARGE       	5
+#define ITH_RECHARGE    	5
 #define ITH_ACTIVATE    	6
-#define ITH_REFILL			7
+#define ITH_REFILL      	7
 #define item_test(A) (TV_MAX + (ITH_ ## A))
 #define ITEM_ANY        	0
 
@@ -568,7 +565,7 @@
 
 #define Send_char(I,X,Y,A,C) stream_char_raw(Players[I],STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
 #define Send_char_p(P,X,Y,A,C) stream_char_raw(P,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
-#define Send_tile(I,P,Y,X,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(P),Y,X,A,C,TA,TC)
+#define Send_tile(I,X,Y,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(Players[I]),Y,X,A,C,TA,TC)
 #define Stream_tile(I,P,Y,X) stream_char(Players[I],DUNGEON_STREAM_p(P),Y,X);
 
 /*

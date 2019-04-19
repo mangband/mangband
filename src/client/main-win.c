@@ -76,9 +76,12 @@
 #define MNU_SUPPORT
 #define GRAPHICS
 
-static cptr GFXBMP[] = { "8x8.BMP", "8x8.BMP", "16x16.BMP", "32x32.BMP" };
+static cptr GFXBMP[] = { "8x8.PNG", "8x8.PNG", "16x16.PNG", "32x32.PNG" };
 static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
+static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "David Gervais' (32x32)" };
 #define GFXD "16x16.BMP"
+
+#define WIN32_MAX_TILESETS 3
 
 /*
  * Extract the "WIN32" flag from the compiler
@@ -126,12 +129,17 @@ static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define IDM_WINDOWS_TERM_7		218
 
 #define IDM_GRAPHICS_OFF	221
-#define IDM_GRAPHICS_OLD	222
-#define	IDM_GRAPHICS_NEW	223
-#define IDM_GRAPHICS_DVG	224
-#define IDM_GRAPHICS_BIG_TILE	225
+#define IDM_GRAPHICS_BIG_TILE	222
+#define IDM_GRAPHICS_TILESET_1	223
+#define IDM_GRAPHICS_TILESET_2	224
+#define IDM_GRAPHICS_TILESET_3	225
+#define IDM_GRAPHICS_TILESET_4	226
+#define IDM_GRAPHICS_TILESET_5	227
+#define IDM_GRAPHICS_TILESET_6	228
+#define IDM_GRAPHICS_TILESET_7	229
+#define IDM_GRAPHICS_TILESET_8	230
 
-#define IDM_OPTIONS_SOUND		226
+#define IDM_OPTIONS_SOUND		301
 #define IDM_OPTIONS_UNUSED		231
 #define IDM_OPTIONS_SAVER		232
 
@@ -598,6 +606,11 @@ void stretch_chat_ctrl( void )
 	SetWindowPos(editmsg, 0, 2, win_data[4].client_hgt-21,
 	             win_data[4].client_wid-6, 20,
 	             SWP_NOZORDER);
+}
+
+int win32_window_visible(int i)
+{
+	return (bool)win_data[i].visible;
 }
 
 /*
@@ -1147,7 +1160,28 @@ static void term_window_resize(term_data *td)
 	InvalidateRect(td->w, NULL, TRUE);
 }
 
+/*
+ * See if any other term is already using font_file
+ */
+static bool term_font_inuse(term_data* td)
+{
+	int i;
+	bool used = FALSE;
 
+	/* Scan windows */
+	for (i = 0; i < MAX_TERM_DATA; i++)
+	{
+		/* Check "screen" */
+		if ((td != &win_data[i]) &&
+		    (win_data[i].font_file) &&
+		    (streq(win_data[i].font_file, td->font_file)))
+		{
+			used = TRUE;
+			break;
+		}
+	}
+	return used;
+}
 
 /*
  * Force the use of a new "font file" for a term_data
@@ -1177,19 +1211,7 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Forget old font */
 	if (td->font_file)
 	{
-		bool used = FALSE;
-
-		/* Scan windows */
-		for (i = 0; i < MAX_TERM_DATA; i++)
-		{
-			/* Check "screen" */
-			if ((td != &win_data[i]) &&
-			    (win_data[i].font_file) &&
-			    (streq(win_data[i].font_file, td->font_file)))
-			{
-				used = TRUE;
-			}
-		}
+		bool used = term_font_inuse(td);
 
 		/* Remove unused font resources */
 		if (!used) RemoveFontResource(td->font_file);
@@ -1244,10 +1266,14 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Save new font name */
 	td->font_file = string_make(buf);
 
-	/* Load the new font or quit */
-	if (!AddFontResource(buf))
+	/* If this font is used for the first time */
+	if (!term_font_inuse(td))
 	{
-		quit_fmt("Font file corrupted:\n%s", buf);
+		/* Load the new font or quit */
+		if (!AddFontResource(buf))
+		{
+			quit_fmt("Font file corrupted:\n%s", buf);
+		}
 	}
 
 	/* Create the font XXX XXX XXX Note use of "base" */
@@ -1303,7 +1329,7 @@ static errr term_force_font(term_data *td, cptr name)
  */
 static errr term_force_graf(term_data *td, cptr name)
 {
-	int i;
+	int i, is_png = 0;
 
 	int wid, hgt;
 
@@ -1314,12 +1340,6 @@ static errr term_force_graf(term_data *td, cptr name)
 	char base_graf[16];
 
 	char buf[1024];
-
-	HBITMAP scaled_gfx;
-	HDC  hdc;
-	HDC hdcSrc;
-	HDC hdcDest;
-	HBITMAP hbmSrcOld;
 
 	/* No name */
 	if (!name) return (1);
@@ -1349,10 +1369,12 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Require actual sizes */
 	if (!wid || !hgt) return (1);
 
+	/* Check if we need PNG loader */
+	if (isuffix(s, ".png")) is_png = TRUE;
+
 	/* Build base_graf */
 	strcpy(base_graf, base);
-	strcat(base_graf, ".BMP");
-
+	strcat(base_graf, is_png ? ".PNG" : ".BMP");
 
 	/* Access the graf file */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_GRAF, base_graf);
@@ -1360,28 +1382,40 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Verify file */
 	if (!check_file(buf)) return (1);
 
-
-	/* Load the bitmap or quit */
-	if (!ReadDIB(td->w, buf, &infGraph))
+	/* Note: PNG loader will extract the mask from the alpha
+	 * channel, or assume colorkey is at pixel0,0 */
+	if (is_png)
 	{
-		quit_fmt("Bitmap corrupted:\n%s", buf);
+		/* Load the png or quit */
+ 		if (!ReadDIB2_PNG(td->w, buf, &infGraph, &infMask, FALSE)) 
+		{
+			quit_fmt("Cannot read file '%s'", buf);
+		}
 	}
+	else
+	{
+		/* Load the bitmap or quit */
+		if (!ReadDIB(td->w, buf, &infGraph))
+		{
+			quit_fmt("Bitmap corrupted:\n%s", buf);
+		}
 
+		/* Load mask, if appropriate */
+		if (GFXMASK[use_graphics])
+		{
+			/* Access the mask file */
+			path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
+
+			/* Load the bitmap or quit */
+			if (!ReadDIB(win_data[0].w, buf, &infMask))
+			{
+				quit_fmt("Cannot read bitmap mask file '%s'", buf);
+			}
+		}
+	}
 	/* Save the new sizes */
 	infGraph.CellWidth = wid;
 	infGraph.CellHeight = hgt;
-
-	if (GFXMASK[use_graphics])
-	{
-		/* Access the mask file */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
-
-		/* Load the bitmap or quit */
-		if (!ReadDIB(win_data[0].w, buf, &infMask))
-		{
-			quit_fmt("Cannot read bitmap mask file '%s'", buf);
-		}
-	}
 
 	/* Copy the picture from the bitmap to the window */
 //	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
@@ -1413,11 +1447,24 @@ static errr term_force_graf(term_data *td, cptr name)
 static void term_change_font(term_data *td)
 {
 	OPENFILENAME ofn;
-
-	char tmp[128] = "";
+	TCHAR fullFileName[2048];
+	char tmp[1024] = "";
 
 	/* Extract a default if possible */
 	if (td->font_file) strcpy(tmp, td->font_file);
+
+	/* No default? Let's build it */
+	if (STRZERO(tmp))
+	{
+		strnfmt(tmp, 1024, "%s%s", ANGBAND_DIR_XTRA_FONT, "\\*.fon");
+	}
+
+	/* Resolve absolute path */
+	if (_fullpath(fullFileName, tmp, 2048) == NULL)
+	{
+		/* Complete and utter despair... */
+		strcpy(fullFileName, "\\*.fon");
+	}
 
 	/* Ask for a choice */
 	memset(&ofn, 0, sizeof(ofn));
@@ -1425,9 +1472,10 @@ static void term_change_font(term_data *td)
 	ofn.hwndOwner = win_data[0].w;
 	ofn.lpstrFilter = "Font Files (*.fon)\0*.fon\0";
 	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = tmp;
+	ofn.lpstrFile = fullFileName;
 	ofn.nMaxFile = 128;
-	ofn.lpstrInitialDir = ANGBAND_DIR_XTRA_FONT;
+	ofn.lpstrInitialDir = NULL;
+
 	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 	ofn.lpstrDefExt = "fon";
 
@@ -1435,7 +1483,7 @@ static void term_change_font(term_data *td)
 	if (GetOpenFileName(&ofn))
 	{
 		/* Force the font */
-		if (term_force_font(td, tmp))
+		if (term_force_font(td, fullFileName))
 		{
 			/* Oops */
 			(void)term_force_font(td, "8X13.FON");
@@ -2553,15 +2601,28 @@ static void setup_menus(void)
 	/* Item "Graphics - Off" */
 	CheckMenuItem(hm, IDM_GRAPHICS_OFF,
 	              MF_BYCOMMAND | (!next_graphics ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - Old" */
-	CheckMenuItem(hm, IDM_GRAPHICS_OLD,
-	              MF_BYCOMMAND | (next_graphics == 1 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - New" */
-	CheckMenuItem(hm, IDM_GRAPHICS_NEW,
-	              MF_BYCOMMAND | (next_graphics == 2 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - DVG" */
-	CheckMenuItem(hm, IDM_GRAPHICS_DVG,
-	              MF_BYCOMMAND | (next_graphics == 3 ? MF_CHECKED : MF_UNCHECKED));
+
+	/* Item "Graphics - Tileset N" */
+	for (i = 0; i < 8; i++)
+	{
+		/* Replace "Tileset N" string with actual tileset name */
+		if (i < WIN32_MAX_TILESETS)
+		{
+			MENUITEMINFO menuitem = { sizeof(MENUITEMINFO) };
+			GetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+			menuitem.fMask = MIIM_TYPE | MIIM_DATA;
+			menuitem.dwTypeData = GFXTITLE[i + 1];
+			SetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+		}
+
+		/* Item "Graphics - Tileset N" */
+		CheckMenuItem(hm, IDM_GRAPHICS_TILESET_1 + i,
+		              MF_BYCOMMAND | (next_graphics == 1 + i ? MF_CHECKED : MF_UNCHECKED));
+
+		/* XXX Delete unused menu entries */
+		if (i >= WIN32_MAX_TILESETS && next_graphics < i + 1)
+		RemoveMenu(hm, IDM_GRAPHICS_TILESET_1 + i, MF_BYCOMMAND);
+	}
 
 	/* Item "Graphics - Respect Tile Size?" */
 	CheckMenuItem(hm, IDM_GRAPHICS_BIG_TILE,
@@ -2736,21 +2797,17 @@ static void process_menus(WORD wCmd)
 			set_graphics_next(0);
 			break;
 		}
-		case IDM_GRAPHICS_OLD:
+		case IDM_GRAPHICS_TILESET_1:
+		case IDM_GRAPHICS_TILESET_2:
+		case IDM_GRAPHICS_TILESET_3:
+		case IDM_GRAPHICS_TILESET_4:
+		case IDM_GRAPHICS_TILESET_5:
+		case IDM_GRAPHICS_TILESET_6:
+		case IDM_GRAPHICS_TILESET_7:
+		case IDM_GRAPHICS_TILESET_8:
 		{
-			set_graphics_next(1);
+			set_graphics_next(wCmd - IDM_GRAPHICS_TILESET_1 + 1);
 			break;
-		}
-		case IDM_GRAPHICS_NEW:
-		{
-			set_graphics_next(2);
-			break;
-		}
-		case IDM_GRAPHICS_DVG:
-		{
-			set_graphics_next(3);
-			break;
-		
 			/* no support -GP */
 			/* React to changes */
 			//Term_xtra_win_react();
@@ -3471,7 +3528,7 @@ static void hack_quit(cptr str)
 	save_prefs();
 	
 	/* Give a warning */
-	if (str) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
+	if (str && str[0]) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
 
 	/* Sub-Windows */
 	for (i = MAX_TERM_DATA - 1; i >= 1; i--)
@@ -3654,8 +3711,10 @@ void static init_stuff_win(void)
 
 /*	validate_dir(ANGBAND_DIR_APEX); *//*on server */
 /*	validate_dir(ANGBAND_DIR_EDIT); */
-	validate_dir(ANGBAND_DIR_FILE);
-	validate_dir(ANGBAND_DIR_HELP);
+/*	validate_dir(ANGBAND_DIR_FILE); */
+/*	validate_dir(ANGBAND_DIR_HELP); */
+	validate_dir(ANGBAND_DIR_BONE);
+	validate_dir(ANGBAND_DIR_PREF);
 	validate_dir(ANGBAND_DIR_USER);
 	validate_dir(ANGBAND_DIR_XTRA);	  /*sounds & graphics */
 

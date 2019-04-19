@@ -401,6 +401,7 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_END, "[4~", "[4^", "Oq"},
 	{SDLK_PAGEUP, "[5~", "[5^", "Oy"},
 	{SDLK_PAGEDOWN, "[6~", "[6^", "Os"},*/
+/*
 	{SDLK_F1, "_FFBE", NULL, NULL},
 	{SDLK_F2, "_FFBF", NULL, NULL},
 	{SDLK_F3, "_FFC0", NULL, NULL},
@@ -413,10 +414,13 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_F10, "_FFC7", NULL, NULL},
 	{SDLK_F11, "_FFC8", NULL, NULL},
 	{SDLK_F12, "_FFC9", NULL, NULL},
+*/
 	/* I have no machines with F13, F14, F15. Is that a Sun thing? */
+/*
 	{SDLK_F13, "", NULL, NULL},
 	{SDLK_F14, "", NULL, NULL},
 	{SDLK_F15, "", NULL, NULL},
+*/
 	{SDLK_RSHIFT, "", NULL, NULL},
 	{SDLK_LSHIFT, "", NULL, NULL},
 	{SDLK_RALT, "", NULL, NULL},
@@ -465,6 +469,24 @@ void Multikeypress(char *k)
 	while (*k) Term_keypress(*k++);
 }
 
+int IsSpecial(SDLKey k)
+{
+	switch (k)
+	{
+		case SDLK_F1: case SDLK_F2:
+		case SDLK_F3: case SDLK_F4:
+		case SDLK_F5: case SDLK_F6:
+		case SDLK_F7: case SDLK_F8:
+		case SDLK_F9: case SDLK_F10:
+		case SDLK_F11: case SDLK_F12:
+		case SDLK_TAB:
+			return TRUE;
+		default:
+			return FALSE;
+	}
+	return 1234567; /* all good children go to heaven */
+}
+
 int IsMovement(SDLKey k)
 {
 	switch (k)
@@ -497,6 +519,66 @@ int IsMovement(SDLKey k)
 }
 
 
+/* *** Arrow keys combiner *** */
+int sdl_combine_arrowkeys = 1; /* ON/OFF */
+Uint16 sdl_combiner_delay = 20;
+/* Delayed key */
+SDL_keysym delayed_keysym; /* Actual key (with mods) */
+bool has_dlks = FALSE; /* We have one */
+Uint32 event_timestamp = 0; /* Book-keeping */
+Uint32 timestamp_dlks = 0;
+
+static SDLKey CombinedMovement(SDLKey a, SDLKey b)
+{
+	const SDLKey keys9x9[4][4] = {
+		{ SDLK_HOME, SDLK_UP, SDLK_PAGEUP },
+		{ SDLK_LEFT, 0, SDLK_RIGHT },
+		{ SDLK_END, SDLK_DOWN, SDLK_PAGEDOWN },
+	};
+	int _dx = 0, _dy = 0;
+	if (a == SDLK_UP || b == SDLK_UP) _dy = -1;
+	else if (a == SDLK_DOWN || b == SDLK_DOWN) _dy = 1;
+	if (a == SDLK_LEFT || b == SDLK_LEFT) _dx = -1;
+	else if (a == SDLK_RIGHT || b == SDLK_RIGHT) _dx = 1;
+	if (_dx && _dy)
+	{
+		return keys9x9[_dy + 1][_dx + 1];
+	}
+	return 0;
+}
+void Storedelayedkey(SDL_keysym *ks)
+{
+	memcpy(&delayed_keysym, ks, sizeof(delayed_keysym));
+	has_dlks = 1;
+	timestamp_dlks = event_timestamp;
+}
+char *SDL_keysymtostr(SDL_keysym *ks); /* forward dec */
+void Flushdelayedkey(bool execute, bool force_flush, SDLKey ks, Uint32 timestamp)
+{
+	bool flush = FALSE;
+	if (force_flush == TRUE) {
+		flush = TRUE;
+	}
+	else if (ks && has_dlks && delayed_keysym.sym == ks)
+	{
+		flush = TRUE;
+	}
+	else if (timestamp && has_dlks) {
+		if (timestamp - timestamp_dlks > sdl_combiner_delay) flush = TRUE;
+	}
+	if (flush)
+	{
+		if (execute)
+		{
+			int old = sdl_combine_arrowkeys;
+			sdl_combine_arrowkeys = 0;
+			Multikeypress(SDL_keysymtostr(&delayed_keysym));
+			sdl_combine_arrowkeys = old;
+		}
+		has_dlks = 0;
+	}
+}
+
 char *SDL_keysymtostr(SDL_keysym *ks)
 {
 #ifdef bufsize
@@ -521,9 +603,31 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 	buf[0] = '\0';
 
 	if(ks->unicode && !(ks->unicode & 0xff80)) {
-		ch = ks->unicode;
+		ch = (Uint8)ks->unicode;
 		if (ch) sdlkapp(ch);
 		return buf;
+	}
+
+	/* HACK -- combine two arrow keys pressed at the same time. */
+	if (sdl_combine_arrowkeys)
+	{
+		if (ks->sym == SDLK_LEFT || ks->sym == SDLK_RIGHT ||
+			ks->sym == SDLK_UP || ks->sym == SDLK_DOWN)
+		{
+			if (has_dlks)
+			{
+				SDLKey rekey = CombinedMovement(ks->sym, delayed_keysym.sym);
+				Flushdelayedkey(FALSE, TRUE, 0, 0);
+				if (rekey) {
+					/* Is replacing keysym.sym evil? Should work fine */
+					ks->sym = rekey;
+					ks->mod = delayed_keysym.mod;
+				}
+			} else {
+				Storedelayedkey(ks);
+				return buf;
+			}
+		}
 	}
 
 	for (i = 0; ; ++i)
@@ -558,13 +662,13 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 		} else
 		if (sdl_keymap[i].k == SDLK_UNKNOWN)
 		{
-			if (IsMovement(ks->sym))
+			if (IsMovement(ks->sym) || IsSpecial(ks->sym))
 			{
 				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
 						ks->mod & KMOD_SHIFT ? "S" : "",
-						"", /* for future expansion. */
-						ks->mod & KMOD_ALT   ? "M" : "",
+						ks->mod & KMOD_ALT   ? "O" : "",
+						ks->mod & KMOD_META  ? "M" : "",
 						(unsigned long) ks->sym, 13);
 				ch = 0;
 			}

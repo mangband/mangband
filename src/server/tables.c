@@ -13,39 +13,42 @@
 #include "mangband.h"
 
 /*
- *  Global array of "custom commands".
+ * Global array of "custom commands".
  *
- *	Ends with an empty entry (used while iterating, do not dismiss).
+ *   Ends with an empty entry (used while iterating, do not dismiss).
  *
  * FORMAT:
- *  	key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
- *  	(flags | flags | flags), 
- *  	tval, prompt
+ *      key, PKT, SCHEME, energy_cost, (*do_cmd_callback)
+ *      (flags | flags | flags),
+ *      tval, prompt, display
  * LEGEND:
- *  key - char, single keypress	:	'j'
- *  PKT - packet type to use	: To use default command set PKT_COMMAND
- * 								: To declare new command use PKT_UNDEFINED
- *								: To overload existing command use it's PKT_ (i.e. PKT_EAT)
- *  SCHEME - see pack.h			:	 SCHEME CONTROLS BOTH PACKET PARSING
- *								: 		AND DO_CMD_CALLBACK ARGUMENTS
- *								:			IT *IS* IMPORTANT
- *  energy_cost - 0 or n		: If the command is free use 0
- *								: Use n to set 1/Nth of level_speed
- *								: i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
- *  (*do_cmd_callback) - a callback to one of the do_cmd functions, arguments depend on SCHEME
- *  (flags) - see defines.h
- *  tval - TVAL for item tester (probably would be used as some hack for other modes too)
+ *  key - char, single keypress : 'j'
+ *  PKT - packet type to use    : To use default command set PKT_COMMAND
+ *                              : To declare new command use PKT_UNDEFINED
+ *                              : To overload existing command use it's PKT_ (i.e. PKT_EAT)
+ *  SCHEME - see pack.h         : SCHEME CONTROLS BOTH PACKET PARSING
+ *                              : AND do_cmd_callback ARGUMENTS
+ *                              : IT *IS* IMPORTANT
+ *  energy_cost - 0 or n        : If the command is free, use 0
+ *                              : Use n to set 1/Nth of level_speed
+ *                              : i.e. 2 to take half a turn, 1 for full turn, 4 for 1/4
+ *  (*do_cmd_callback) - a callback to one of the "do_cmd_???" functions, arguments depend on SCHEME
+ *  (flags) - see defines.h     : Each flag group requires a related prompt string
+ *  tval - TVAL for item tester : Normally, a single TVAL (i.e. TVAL_POTION)
+ *                              : For complex tests, use `item_test(???)` (see mdefines.h)
+ *                              : For interactive mode commands, specifies SPECIAL_FILE_??? define
  *  prompt - new-line separated string of prompts for each (flags) group.
+ *  display - human-friendly name of the command.
  */
-const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] = 
-{	
+const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
+{
 	/*** Moving around ***/
-#if 0	
+#if 0
 	{ /* Walk 1 grid */
 		';', PKT_WALK, SCHEME_DIR, 1, (cccb)do_cmd_walk,
 		(COMMAND_TARGET_DIR),		0, "", "Walk"
 	},
-#endif	
+#endif
 	{ /* Start running */
 		'.', PKT_RUN, SCHEME_DIR, 1, (cccb)do_cmd_run,
 		(COMMAND_TARGET_DIR),		0, "", "Run"
@@ -68,12 +71,12 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		'>', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_go_down,
 		(0),		0, "", "Go downstairs"
 	},
-#if 0	
+#if 0
 	{ /* Toggle Rest */
 		'R', PKT_REST, SCHEME_EMPTY, 1, (cccb)do_cmd_toggle_rest,
 		(0),		0, "", "Rest"
 	},
-#endif	
+#endif
 	{ /* Search */
 		's', PKT_UNDEFINED, SCHEME_EMPTY, 1, (cccb)do_cmd_search,
 		(0),		0, "", "Search"
@@ -146,12 +149,12 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_AMMOUNT),
 		0, "Drop what? \nHow much? ", "Drop item"
 	},
-    { /* Destroy Item */
-        'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
-        (COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
-         COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
-        0, "Destroy what? \nHow many? \nReally destroy ", "Destroy item"
-    },
+	{ /* Destroy Item */
+		'k', PKT_UNDEFINED, SCHEME_ITEM_VALUE, 1, (cccb)do_cmd_destroy,
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_ITEM_AMMOUNT |
+		 COMMAND_NEED_CONFIRM | COMMAND_PROMPT_ITEM ),
+		0, "Destroy what? \nHow many? \nReally destroy ", "Destroy item"
+	},
 	{ /* Inscribe Item */
 		'{', PKT_UNDEFINED, SCHEME_ITEM_STRING , 0, (cccb)do_cmd_inscribe,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_EQUIP | COMMAND_ITEM_FLOOR | COMMAND_NEED_STRING),
@@ -294,7 +297,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	{ /* 'DM Menu' */
 		'&', PKT_COMMAND, SCHEME_DIR_SMALL, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
-		SPECIAL_FILE_MASTER, "Dungeon Master", ""
+		SPECIAL_FILE_MASTER, "Dungeon Master", "DM Menu"
 	},
 	{ /* Mini-Map' */
 		'M', PKT_UNDEFINED, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_view_map,
@@ -318,7 +321,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: ", "Symbol query"
 	},
-#if 0
+#if 1
 	{ /* Refill bottle */
 		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
@@ -484,13 +487,13 @@ const stream_type streams[MAX_STREAMS] =
 	{	/* 7 */
 		STREAM_PKT(SPECIAL_MIXED),	NTERM_WIN_SPECIAL,	RLE_CLASSIC,
 		(SF_MAXBUFFER),
-		20, 80, 255, 80,
+		20, 80, MAX_TXT_INFO, 80,
 		0, "SPECIAL_MIXED", "Display special info"
 	},
 	{	/* 8 */
 		STREAM_PKT(SPECIAL_TEXT),	NTERM_WIN_SPECIAL,	RLE_COLOR,
 		(SF_MAXBUFFER),
-		20, 80, 255, 80,
+		20, 80, MAX_TXT_INFO, 80,
 		0, "SPECIAL_TEXT", ""
 	},
 	{	/* 9 */
@@ -539,7 +542,7 @@ const stream_type streams[MAX_STREAMS] =
 
 	u32b flag;
 	cptr prompt;
-	u32b redraw;
+	u64b redraw;
 	cptr mark;
 */
 #define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N
@@ -642,13 +645,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(PR_STATS), "stat3"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
+		INDICATOR_PKT(STAT4, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CON!  \aG%\vCON:  \aG%\vCon:  \ay%",
 		(PR_STATS), "stat4"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
+		INDICATOR_PKT(STAT5, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CHR!  \aG%\vCHR:  \aG%\vChr:  \ay%",
 		(PR_STATS), "stat5"

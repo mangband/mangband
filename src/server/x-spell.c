@@ -779,9 +779,19 @@ void spells_init()
 				}
 			}
 			spell_flags[j][i] = flag;
+			spell_tests[j][i] = 0;
 		}
 	}
+	/* Manually assign TVAL hooks */
+	/* Spells: */
+	spell_tests[0][SPELL_RECHARGE_ITEM_I] = item_test(RECHARGE);
+	spell_tests[0][SPELL_RECHARGE_ITEM_II] = item_test(RECHARGE);
+	spell_tests[0][SPELL_ELEMENTAL_BRAND] = item_test(AMMO);
+	/* Prayers */
+	spell_tests[1][PRAYER_RECHARGING] = item_test(RECHARGE);
+	spell_tests[1][PRAYER_ELEMENTAL_BRAND] = item_test(WEAPON);
 }
+
 int get_spell_book(int Ind, int spell)
 {
 	player_type *p_ptr = Players[Ind];
@@ -832,17 +842,32 @@ int get_spell_index(int Ind, const object_type *o_ptr, int index)
 	return spell_list[spell_type][sval][index];
 }
 
-byte get_spell_flag(int tval, int spell, byte player_flag)
+/* Determine spell flag (does it require aim? an item?) for a given spell,
+ * that knowledge is masked by player_flag (is spell known? tried?).
+ * If spell acts on an object, and it's effects are known, also populate
+ * "item_tester". See "spells_init" for actual flag/tester definitions. */
+byte get_spell_flag(int tval, int spell, byte player_flag, byte *item_tester)
 {
+	*item_tester = 0;
+
 	if (!(player_flag & PY_SPELL_LEARNED))
 		return player_flag;
 
 	if (tval == TV_MAGIC_BOOK)
+	{
+		*item_tester = spell_tests[0][spell];
 		return (spell_flags[0][spell] | player_flag);
+	}
 	else if (tval == TV_PRAYER_BOOK)
+	{
+		*item_tester = spell_tests[1][spell];
 		return (spell_flags[1][spell] | player_flag);
+	}
 	else
+	{
+		*item_tester = spell_tests[GHOST_REALM][spell];
 		return (spell_flags[GHOST_REALM][spell] | player_flag);
+	}
 }
 
 cptr get_spell_name(int tval, int spell)

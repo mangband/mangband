@@ -168,7 +168,6 @@ extern char * cfg_load_pref_file;
 extern bool cfg_secret_dungeon_master;
 extern s16b cfg_fps;
 extern s32b cfg_tcp_port;
-extern bool cfg_mage_hp_bonus;
 extern bool cfg_safe_recharge;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;
@@ -197,6 +196,7 @@ extern bool cfg_party_share_quest;
 extern bool cfg_party_share_kill;
 extern bool cfg_party_share_win;
 extern s16b cfg_party_sharelevel;
+extern bool cfg_instance_closed;
 
 extern s16b hitpoint_warn;
 extern s16b delay_factor;
@@ -227,6 +227,7 @@ extern party_type parties[MAX_PARTIES];
 extern channel_type channels[MAX_CHANNELS];
 extern house_type houses[MAX_HOUSES];
 extern byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
+extern byte spell_tests[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 extern arena_type arenas[MAX_ARENAS];
 extern int num_houses;
 extern int num_arenas;
@@ -679,34 +680,28 @@ extern int monster_richness(int r_idx);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern void forget_monster(int Ind, int m_idx, bool deleted);
 extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
 extern bool summon_specific_okay_aux(int r_idx, int summon_type);
 extern void display_monlist(int Ind);
 
 // Transitional network hacks
-#define msg_format_p(P, M, ...) plog("msg_format_p unimplemented\n")
-#define msg_print_p(P, M) plog("msg_print_p unimplemented\n")
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
-#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], HEADER)
-#define Destroy_connection(IND, A) plog("Destroy_connection unimplemented\n")
+#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], NTERM_POP, HEADER)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
-#define Send_store(IND, pos, attr, wgt, number, price, name) plog("Send_store unimplemented\n")
-#define Send_store_info(IND, flag, name, owner, items, purse) plog("Send_store_info unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
-#define Send_store_leave(IND) plog("Send_store_leave unimplemented\n")
-#define Send_store_sell(IND, price) send_store_sell(Ind, price)
-#define Send_pickup_check(IND, buf) send_confirm_request(Ind, 0x03, buf)
 
 /* net-server.c */
 extern int *Get_Ind;
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();
+extern void report_to_meta_die(void);
 extern int player_leave(int p_idx);
-extern int player_kill(int p_idx, cptr reason);
+extern int player_disconnect(player_type *p_ptr, cptr reason);
 
 /* net-game.c */
 extern int process_player_commands(int ind);
@@ -714,17 +709,20 @@ extern int stream_char_raw(player_type *p_ptr, int st, int y, int x, byte a, cha
 extern int stream_char(player_type *p_ptr, int st, int y, int x);
 extern int stream_line_as(player_type *p_ptr, int st, int y, int x);
 extern int send_term_info(player_type *p_ptr, byte flag, u16b line);
-extern int send_term_header(player_type *p_ptr, cptr header);
+extern int send_term_header(player_type *p_ptr, byte hint, cptr header);
+extern int send_term_writefile(connection_type *ct, byte fmode, cptr filename);
+extern int send_term_write(player_type *p_ptr, byte fmode, cptr filename);
 extern int send_cursor(player_type *p_ptr, byte vis, byte x, byte y);
 extern int send_target_info(player_type *p_ptr, byte x, byte y, byte win, cptr str);
 extern int send_character_info(player_type *p_ptr);
 extern int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade);
-extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, cptr name);
-extern int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, cptr name);
+extern int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name);
+extern int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name);
 extern int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name);
-extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, cptr desc);
+extern int send_spell_info(int Ind, u16b book, u16b id, byte flag, byte item_tester, cptr desc);
 extern int send_ghost(player_type *p_ptr);
 extern int send_inventory_info(connection_type *ct);
+extern int send_objflags_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);
 extern int send_indication(int Ind, int id, ...);
 extern int send_objflags(int Ind, int line);
@@ -738,6 +736,7 @@ extern int send_store_info(int Ind, byte flag, cptr name, char *owner, int items
 extern int send_store_sell(int Ind, u32b price);
 extern int send_store_leave(int Ind);
 extern int send_confirm_request(int Ind, byte type, cptr buf);
+extern int send_pickup_check(int Ind, cptr buf);
 
 
 
@@ -754,7 +753,7 @@ extern void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b
 extern void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode);
 extern void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern bool identify_fully_aux(int Ind, object_type *o_ptr);
-extern s16b index_to_label(int i);
+extern char index_to_label(int i);
 extern s16b label_to_inven(int Ind, int c);
 extern s16b label_to_equip(int Ind, int c);
 extern s16b wield_slot(int Ind, object_type *o_ptr);
@@ -787,7 +786,7 @@ extern void wipe_o_list(int Depth);
 extern s16b o_pop(void);
 extern errr get_obj_num_prep(void);
 extern s16b get_obj_num(int level);
-extern byte object_tester_flag(int Ind, object_type *o_ptr);
+extern byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester);
 extern void object_known(object_type *o_ptr);
 extern void object_aware(player_type *p_ptr, object_type *o_ptr);
 extern void object_tried(int Ind, object_type *o_ptr);
@@ -993,10 +992,12 @@ extern bool check_guard_inscription( s16b quark, char what);
 extern s16b message_num(void);
 extern cptr message_str(s16b age);
 extern void message_add(cptr msg);
+extern void msg_print_p(player_type *p_ptr, cptr msg);
 extern void msg_print(int Ind, cptr msg);
 extern void msg_print_aux(int Ind, cptr msg, u16b type);
 extern void msg_broadcast(int Ind, cptr msg);
 extern void msg_channel(int chan, cptr msg);
+extern void msg_format_p(player_type *p_ptr, cptr fmt, ...);
 extern void msg_format(int Ind, cptr fmt, ...);
 extern void msg_format_type(int Ind, u16b type, cptr fmt, ...);
 extern void msg_print_near(int Ind, cptr msg);
@@ -1016,8 +1017,9 @@ extern cptr format_history_event(history_event *evt);
 extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
-extern void send_prepared_info(player_type *p_ptr, byte win, byte stream);
+extern void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params);
 extern void send_prepared_popup(int Ind, cptr header);
+extern void monster_race_track_hack(player_type *p_ptr);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
 extern void text_out_init(int Ind);
@@ -1103,7 +1105,7 @@ extern bool confuse_dir(bool confused, int *dp);
 extern int motion_dir(int y1, int x1, int y2, int x2);
 extern bool do_scroll_life(int Ind);
 extern bool do_restoreXP_other(int Ind);
-extern int level_speed(int Ind);
+extern u32b level_speed(int Ind);
 extern int time_factor(int Ind);
 extern int base_time_factor(int Ind, int slowest);
 extern void show_motd(player_type *p_ptr);
@@ -1134,7 +1136,7 @@ extern void spells_init();
 extern int get_spell_index(int Ind, const object_type *o_ptr, int index);
 extern cptr get_spell_name(int tval, int index);
 extern cptr get_spell_info(int Ind, int index);
-extern byte get_spell_flag(int tval, int spell, byte player_flag);
+extern byte get_spell_flag(int tval, int spell, byte player_flag, byte *item_tester);
 extern bool cast_spell(int Ind, int tval, int index);
 extern bool cast_spell_hack(int Ind, int tval, int index);
 

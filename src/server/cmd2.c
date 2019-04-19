@@ -67,6 +67,9 @@ void do_cmd_go_up(int Ind)
 	/* Show everyone that's he left */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(Ind);
+
 	/* Forget his lite and viewing area */
 	forget_lite(Ind);
 	forget_view(Ind);
@@ -165,6 +168,9 @@ void do_cmd_go_down(int Ind)
 
 	/* Show everyone that's he left */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
+
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(Ind);
 
 	/* Forget his lite and viewing area */
 	forget_lite(Ind);
@@ -696,9 +702,8 @@ bool create_house_door(int Ind, int x, int y)
 bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 {
 	player_type *p_ptr = Players[Ind];
-	cave_type *c_ptr;
 	int x, y, x1, y1, x2, y2;
-	bool done, valid;
+	bool done;
 	bool n,s,e,w,ne,nw,se,sw;
 	object_type	*o_ptr;
 
@@ -825,9 +830,6 @@ bool create_house(int Ind)
 	int x1, x2, y1, y2, x, y;
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
-	int item;
-	bool foundation;
-	object_type	*o_ptr;
 
 	/* Determine the area of the house foundation */
 	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
@@ -1240,6 +1242,12 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 	{
 		i = pick_house(Depth, y, x);
 		
+		if (i == -1)
+		{
+			debug(format("No house found at Depth %d, X=%d, Y=%d !", Depth, y, x));
+			return (FALSE);
+		}
+
 		/* Do we own this house? */
 		if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 		{
@@ -1464,7 +1472,7 @@ void do_cmd_open(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -1703,7 +1711,7 @@ void do_cmd_close(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2107,7 +2115,7 @@ void do_cmd_tunnel(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2385,7 +2393,7 @@ void do_cmd_disarm(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2642,7 +2650,7 @@ void do_cmd_bash(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Apply confusion */
-	if (confuse_dir(p_ptr->confused, &dir))
+	if (confuse_dir((bool)p_ptr->confused, &dir))
 	{
 		/* Get location */
 		y = p_ptr->py + ddy[dir];
@@ -2734,7 +2742,7 @@ void do_cmd_alter(int Ind, int dir)
 	if (!VALID_DIR(dir)) return;
 
 	/* Apply confusion */
-	confuse_dir(p_ptr->confused, &dir);
+	confuse_dir((bool)p_ptr->confused, &dir);
 
 	/* Get location */
 	y = p_ptr->py + ddy[dir];
@@ -3112,7 +3120,7 @@ int do_cmd_run(int Ind, int dir)
 
 		/* Initialise running */
 		p_ptr->run_request = dir;
-		p_ptr->running = TRUE;
+		p_ptr->running = FALSE;
 		p_ptr->ran_tiles = 0;
 	}
 	return 1;
@@ -3678,7 +3686,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				char pvp_name[80];
 
 				/* Get the name */
-				strcpy(pvp_name, q_ptr->name);
+				my_strcpy(pvp_name, q_ptr->name, 80);
 
 				/* Handle unseen player */
 				if (!visible)
@@ -4394,7 +4402,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 					/* Delay house transaction */
 					p_ptr->current_house = i;
 					/* Tell the client about the price */
-					Send_store_sell(Ind, price/2);
+					send_store_sell(Ind, price/2);
 				}
 				return;
 			}

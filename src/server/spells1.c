@@ -593,10 +593,10 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		   of death, use died_from_list.  To preserve the original
 		   depth, use died_from_depth. */
 		
-		(void)strcpy(p_ptr->died_from, hit_from);
+		my_strcpy(p_ptr->died_from, hit_from, sizeof(p_ptr->died_from));
 		if (!p_ptr->ghost) 
 		{
-			strcpy(p_ptr->died_from_list, hit_from);
+			my_strcpy(p_ptr->died_from_list, hit_from, sizeof(p_ptr->died_from_list));
 			p_ptr->died_from_depth = p_ptr->dun_depth;
 		}
 
@@ -1368,18 +1368,23 @@ bool apply_disenchant(int Ind, int mode)
 		return (TRUE);
 	}
 
+	/* Apply disenchantment, depending on which kind of equipment */
+	if (t == INVEN_WIELD || t == INVEN_BOW)
+	{
+		/* Disenchant to-hit */
+		if (o_ptr->to_h > 0) o_ptr->to_h--;
+		if ((o_ptr->to_h > 5) && (rand_int(100) < 20)) o_ptr->to_h--;
 
-	/* Disenchant tohit */
-	if (o_ptr->to_h > 0) o_ptr->to_h--;
-	if ((o_ptr->to_h > 5) && (rand_int(100) < 20)) o_ptr->to_h--;
-
-	/* Disenchant todam */
-	if (o_ptr->to_d > 0) o_ptr->to_d--;
-	if ((o_ptr->to_d > 5) && (rand_int(100) < 20)) o_ptr->to_d--;
-
-	/* Disenchant toac */
-	if (o_ptr->to_a > 0) o_ptr->to_a--;
-	if ((o_ptr->to_a > 5) && (rand_int(100) < 20)) o_ptr->to_a--;
+		/* Disenchant to-dam */
+		if (o_ptr->to_d > 0) o_ptr->to_d--;
+		if ((o_ptr->to_d > 5) && (rand_int(100) < 20)) o_ptr->to_d--;
+	}
+	else
+	{
+		/* Disenchant to-ac */
+		if (o_ptr->to_a > 0) o_ptr->to_a--;
+		if ((o_ptr->to_a > 5) && (rand_int(100) < 20)) o_ptr->to_a--;
+	}
 
 	/* Message */
 	msg_format(Ind, "Your %s (%c) %s disenchanted!",
@@ -1525,8 +1530,8 @@ static void apply_morph(int Ind, int power, char * killer)
 				{
 					/* FRUIT BAT!!!!!! */
 				
-					msg_print(Ind, "You have been turned into a fruit bat!");				
-					strcpy(p_ptr->died_from,killer);
+					msg_print(Ind, "You have been turned into a fruit bat!");
+					my_strcpy(p_ptr->died_from, killer, sizeof(p_ptr->died_from));
 					p_ptr->fruit_bat = -1;
 					player_death(Ind);
 				}	
@@ -2868,9 +2873,11 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (m_ptr->mspeed < 150) m_ptr->mspeed += 10;
 
 			/* Never in the town */
-			if(!p_ptr->dun_depth) break;
+			//TODO: extend to special levels and safezones!
+			if(!Depth) break;
 
-			if(p_ptr->lev < 10)
+			//TODO: tweak to use safezones!
+			if(!p_ptr || p_ptr->lev < 10)
 			{
 				/* Attempt to clone. */
 				if (multiply_monster(c_ptr->m_idx))

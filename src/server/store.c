@@ -2014,7 +2014,7 @@ void store_sell(int Ind, int item, int amt)
 		choice = sell_haggle(Ind, &sold_obj, &price);
 
 		/* Tell the client about the price */
-		Send_store_sell(Ind, price);
+		send_store_sell(Ind, price);
 
 		/* Save the info for the confirmation */
 		p_ptr->current_selling = item;
@@ -2169,7 +2169,10 @@ static bool leave_store = FALSE;
  * into other commands, normally, we convert "p" (pray) and "m"
  * (cast magic) into "g" (get), and "s" (search) into "d" (drop).
  *
- * pstore is -1 for normal stores or house index for player owned store.
+ * "pstore" can have the following values:
+ * [ 0 -> (MAX_HOUSES-1) ] player owned shop, "pstore" is house index.
+ * [ -1 ] normal shop, index should be deducted from the cave grid.
+ * [ -2 -> -9 ] normal shop, index is already known, flip sign and add +2 to get store index.
  */
 void do_cmd_store(int Ind, int pstore)
 {
@@ -2198,7 +2201,7 @@ void do_cmd_store(int Ind, int pstore)
 		which = (c_ptr->feat - FEAT_SHOP_HEAD);
 	}
 		/* Hack -- Check the "locked doors" */
-		if (ht_passed(&turn, &store[which].store_open, 0))
+		if (ht_passed(&store[which].store_open, &turn, 0))
 		{
 			msg_print(Ind, "The doors are locked.");
 			return;
@@ -2264,7 +2267,7 @@ void store_shuffle(int which)
 	/* Pick a new owner */
 	for (j = st_ptr->owner; j == st_ptr->owner; )
 	{
-		st_ptr->owner = rand_int(MAX_OWNERS);
+		st_ptr->owner = (byte)rand_int(MAX_OWNERS);
 	}
 
 	/* Activate the new owner */
@@ -2413,7 +2416,7 @@ void store_init(int which)
 
 
 	/* Pick an owner */
-	st_ptr->owner = rand_int(MAX_OWNERS);
+	st_ptr->owner = (byte)rand_int(MAX_OWNERS);
 
 	/* Activate the new owner */
 	ot_ptr = &b_info[(store_num * z_info->b_max) + st_ptr->owner];

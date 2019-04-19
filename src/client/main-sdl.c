@@ -33,7 +33,7 @@ bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
 
-static cptr GFXBMP[] = { "8x8.bmp", "8x8.bmp", "16x16.bmp", "32x32.bmp" };
+static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
 static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
@@ -41,6 +41,10 @@ bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
 #include <SDL/SDL.h>
 #include <string.h>
+
+#ifndef HAVE_SDL_IMAGE
+#include "lupng/lupng.h"
+#endif
 
 
 /* local functions */
@@ -53,6 +57,13 @@ extern errr strtoii(const char *str, Uint32 *w, Uint32 *h);
 extern char *formatsdlflags(Uint32 flags);
 extern void Multikeypress(char *k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
+
+/* this is for arrow combiner: */
+extern int sdl_combine_arrowkeys;
+extern int sdl_combiner_delay;
+extern Uint32 event_timestamp;
+extern void Flushdelayedkey(bool execute, bool force_flush, SDLKey key, Uint32 new_timestamp);
+
 
 
 /*
@@ -137,7 +148,8 @@ static term_data tdata[ANGBAND_TERM_MAX];
 
 /* XXX XXX SDL surface + window size and params */
 SDL_Surface *bigface;
-Uint32 width, height, bpp, fullscreen, flags; 
+Uint32 width, height, bpp, flags;
+bool fullscreen;
 
 /* Cursor surface */
 SDL_Surface *sdl_screen_cursor = NULL;
@@ -375,6 +387,98 @@ int pick_term(int x, int y)
 	}
 	return r;
 }
+
+/*
+ * Load a PNG tileset.
+ *
+ * If zerokey is TRUE, the top-left pixel will be used to pick a color key.
+ *
+ */
+SDL_Surface* SDLU_LoadPNG(const char *path)
+{
+#ifdef HAVE_SDL_IMAGE
+#else
+	SDL_Surface *face;
+	int x, y, i;
+	int npal = 0;
+	SDL_Color pal[256];
+	LuImage *img = luPngReadFile(path);
+	
+	if (!img) return NULL;
+	
+	luImageDarkenAlpha(img);
+	
+	face = SDL_CreateRGBSurface(SDL_SWSURFACE, img->width, img->height, 8, 0,0,0,0);
+	if(!face)
+	{
+		luImageRelease(img, NULL);
+		return NULL;
+	}
+	SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
+	
+	pal[0].r = pal[0].g = pal[0].b = 0; /* chroma black */
+	pal[1].r = pal[1].g = pal[1].b = 1; /* subtitution black */
+	npal = 2;
+
+	for (y = 0; y < img->height; y++) {
+	for (x = 0; x < img->width ; x++) {
+		
+		Uint8 r = img->data[y * img->width * img->channels + x * img->channels + 0];
+		Uint8 g = img->data[y * img->width * img->channels + x * img->channels + 1];
+		Uint8 b = img->data[y * img->width * img->channels + x * img->channels + 2];
+		Uint8 col = 255;
+		for (i = 0; i < npal; i++) {
+			if (pal[i].r == r && pal[i].g == g && pal[i].b == b) {
+				col = i;
+				break;
+			}
+		}
+		if (col == 255 && npal < 255) {
+			i = npal;
+			npal++;
+			pal[i].r = r;
+			pal[i].g = g;
+			pal[i].b = b;
+			col = i;
+		}
+		if (col == 0 && img->channels == 4) {
+			Uint8 a = img->data[y * img->width * img->channels + x * img->channels + 3];
+			if (a <= 32) col = 0;
+			else col = 1;
+		}
+		((Uint8*)face->pixels)[y * face->pitch + x * face->format->BytesPerPixel] = col;
+	} }
+	SDL_SetColors(face, &pal[0], 0, npal);
+	
+	luImageRelease(img, NULL);
+	
+	return face;
+#endif
+}
+errr load_PNG_graf_sdl(font_data *fd, cptr filename)
+{
+	char path[1024];
+	Uint32 mw, mh;
+
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
+
+	if ((fd->face = SDLU_LoadPNG(path)) != NULL)
+	{
+		/* Attempt to get dimensions from filename */
+		if(!strtoii(filename, &mw, &mh))
+		{
+			fd->w = mw;
+			fd->h = mh;
+		}
+	}
+	else
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 
 /*
  * Load a BMP tileset.
@@ -1382,6 +1486,9 @@ static errr Term_xtra_sdl(int n, int v)
 	switch (n)
 	{
 		case TERM_XTRA_EVENT:
+
+		Flushdelayedkey(TRUE, FALSE, 0, SDL_GetTicks());
+
 		while (1) {
 			if (v)
 			{
@@ -1392,10 +1499,19 @@ static errr Term_xtra_sdl(int n, int v)
 				if (!SDL_PollEvent(&event)) return(0);
 			}
 
+			event_timestamp = SDL_GetTicks();/*event.key.timestamp;*/
+
 			if (gui_term_event(&event)) continue;
+
+			if (event.type == SDL_KEYUP)
+			{
+				Flushdelayedkey(TRUE, FALSE, event.key.keysym.sym, 0);
+			}
 
 			if (event.type == SDL_KEYDOWN)
 			{
+				Flushdelayedkey(TRUE, FALSE, event.key.keysym.sym, event_timestamp);
+
 				/* PASS Keypress to Angband Terminals finally */
 				Multikeypress(SDL_keysymtostr(&event.key.keysym));
 			}
@@ -1594,11 +1710,12 @@ static errr  Term_wipe_sdl(int x, int y, int n)
 	SDL_FrontRect(td, dr.x, dr.y, dr.w, dr.h, FALSE, TRUE);
 	
 	/* Erase cursor */
+/*
 	if (td->cx >= x && td->cx <= x + n && td->cy == y)
 	{
 		td->cx = td->cy = -1;
 	}
-
+*/
 	/* Success */
 	return (0);
 }
@@ -2309,6 +2426,16 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 		memset(load_tiles, 0, sizeof(graf_tiles));
 		load_tiles->face = NULL;
 
+		if (isuffix(filename, ".png"))
+		{
+			if (!load_PNG_graf_sdl(load_tiles, filename))
+			{
+				load_tiles->name = string_make(filename);
+				td->gt = load_tiles;
+			}
+		}
+		else
+
 		if (!load_BMP_graf_sdl(load_tiles, filename, maskname))
 		{
 			load_tiles->name = string_make(filename);
@@ -2511,8 +2638,8 @@ bool init_one_term(int i, bool force)
 	td->yoff = conf_get_int(sec_name, "PositionY", 0);
 
 	/* Scaling */
-	td->w = conf_get_int(sec_name, "ScaleX", 0);
-	td->h = conf_get_int(sec_name, "ScaleY", 0);
+	td->w = (byte)conf_get_int(sec_name, "ScaleX", 0);
+	td->h = (byte)conf_get_int(sec_name, "ScaleY", 0);
 
 	if(td->w < td->fd->w) td->w = td->fd->w; 
 	if(td->h < td->fd->h) td->h = td->fd->h; 
@@ -2753,11 +2880,14 @@ errr init_sdl(void)
 
 	/* Read config for main window */
 	use_graphics = conf_get_int("SDL", "Graphics", 0);
-	use_sound = conf_get_int("SDL", "Sound", 0);
-	fullscreen = conf_get_int("SDL", "Fullscreen", 0);
+	use_sound = (bool)conf_get_int("SDL", "Sound", 0);
+	fullscreen = (bool)conf_get_int("SDL", "Fullscreen", 0);
 	width =  conf_get_int("SDL", "Width", 0);
 	height = conf_get_int("SDL", "Height", 0);
 	bpp = conf_get_int("SDL", "BPP", 32);
+
+	sdl_combine_arrowkeys = conf_get_int("SDL", "CombineArrows", 1);
+	sdl_combiner_delay = conf_get_int("SDL", "CombineArrowsDelay", 20);
 
 	/* Read command-line arguments */
 	clia_read_int(&width, "width");
@@ -2930,6 +3060,9 @@ void save_sdl_prefs() {
 	conf_set_int("SDL", "Fullscreen", fullscreen);
 	conf_set_int("SDL", "Graphics", use_graphics);
 	conf_set_int("SDL", "Sound", use_sound);
+
+	conf_set_int("SDL", "CombineArrows", sdl_combine_arrowkeys ? 1 : 0);
+	conf_set_int("SDL", "CombineArrowsDelay", sdl_combiner_delay);
 
 	/* Terms */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)

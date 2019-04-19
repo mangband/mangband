@@ -1080,7 +1080,7 @@ static void prt_flags(int Ind)
 	prt_player_sust_info(Ind);
 	prt_player_flag_info(Ind);
 
-	for (i = 0; i < 13; i++)
+	for (i = 0; i < MAX_OBJFLAGS_ROWS; i++)
 	{
 		send_objflags(Ind, i);
 	}
@@ -1136,7 +1136,7 @@ static void prt_skills(int Ind)
 	player_type *p_ptr = Players[Ind];
 	s16b skills[11];
 	s16b factors[11];
-	int i, tmp;
+	int tmp;
 	object_type *o_ptr;
 
 	/* Fighting skill */
@@ -1468,7 +1468,7 @@ static void fix_monlist(int Ind)
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT);
+	send_prepared_info(p_ptr, NTERM_WIN_MONLIST, STREAM_MONLIST_TEXT, 0);
 
 	/* HACK -- Load other player info */
 	text_out_load(p_ptr);

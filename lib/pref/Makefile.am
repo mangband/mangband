@@ -31,6 +31,7 @@ pref_DATA = \
 		lib/pref/pref-ibm.prf \
 		lib/pref/pref-lsl.prf \
 		lib/pref/pref-mac.prf \
+		lib/pref/pref-gcu.prf \
 		lib/pref/pref-sdl.prf \
 		lib/pref/pref-win.prf \
 		lib/pref/pref-x11.prf \

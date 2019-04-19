@@ -3059,13 +3059,13 @@ static bool item_tester_hook_recharge(object_type *o_ptr)
 }
 
 
-bool recharge(int Ind, int num)
+bool recharge(int Ind, int spell_strength)
 {
 	int item;
 
 	if (!get_item(Ind, &item, item_test(RECHARGE))) return FALSE;
 	
-	recharge_aux(Ind, item, num);	
+	recharge_aux(Ind, item, spell_strength);
 	
 	return TRUE;
 }
@@ -3073,17 +3073,6 @@ bool recharge(int Ind, int num)
 
 /*
  * Recharge a wand or staff from the pack or on the floor.
- *
- * Mage -- Recharge I --> recharge(5)
- * Mage -- Recharge II --> recharge(40)
- * Mage -- Recharge III --> recharge(100)
- *
- * Priest -- Recharge --> recharge(15)
- *
- * Scroll of recharging --> recharge(60)
- *
- * recharge(20) = 1/6 failure for empty 10th level wand
- * recharge(60) = 1/10 failure for empty 10th level wand
  *
  * It is harder to recharge high level, and highly charged wands.
  *
@@ -3098,36 +3087,27 @@ bool recharge(int Ind, int num)
  *
  * XXX XXX XXX Perhaps we should auto-unstack recharging stacks.
  */
-bool recharge_aux(int Ind, int item, int num)
+bool recharge_aux(int Ind, int item, int spell_strength)
 {
 	player_type *p_ptr = Players[Ind];
 
-	int                 i, t, lev;
+	int i, t, lev, _idx;
 
-	object_type		*o_ptr;
+	object_type *o_ptr;
 
 
 	/* Only accept legal items */
+	item_tester_full = FALSE;
+	item_tester_tval = 0;
+	item_tester_hook = NULL; /*item_tester_hook_recharge;*/
+
+	/* Get the item */
+	if ( !(o_ptr = player_get_item(p_ptr, item, &_idx)) )
+	{
+		return FALSE;
+	}
+
 	item_tester_hook = item_tester_hook_recharge;
-
-	/* Get the item (in the pack) */
-	if (item >= 0)
-	{
-		o_ptr = &p_ptr->inventory[item];
-	}
-
-	/* Get the item (on the floor) */
-	else
-	{
-		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
-		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
-			return FALSE;
-		}
-		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
-	}
-
 	if (!item_tester_hook(o_ptr))
 	{
 		msg_print(Ind, "You cannot recharge that item.");
@@ -3137,65 +3117,64 @@ bool recharge_aux(int Ind, int item, int num)
 	/* Extract the object "level" */
 	lev = k_info[o_ptr->k_idx].level;
 
-	/* Recharge power */
-	i = (num + 100 - lev - (10 * o_ptr->pval)) / 15;
+	/*
+	 * Chance of failure = 1 time in
+	 * [Spell_strength + 100 - item_level - 10 * charge_per_item]/15
+	 */
+	i = (spell_strength + 100 - lev - (10 * (o_ptr->pval / o_ptr->number))) / 15;
 
-	/* Paranoia -- prevent crashes */
-	if (i < 1) i = 1;
-
-	/* Back-fire XXX XXX XXX */
-	if (rand_int(i) == 0)
+	/* Back-fire */
+	if ((i <= 1) || one_in_(i))
 	{
-		msg_print(Ind, "There is a bright flash of light.");
+		msg_print(Ind, "The recharge backfires!");
 
-		/* Dangerous Hack -- Destroy the item */ 
+		reduce_charges(o_ptr, 1);
+
+		/* Destroy the item */
 		if (!cfg_safe_recharge)
 		{
-			/* Reduce and describe inventory */ 
-			if (item >= 0) 
-			{ 
-				inven_item_increase(Ind, item, -1); 
-				inven_item_describe(Ind, item); 
-				inven_item_optimize(Ind, item); 
-			} 
-			/* Reduce and describe floor item */ 
-			else 
-			{ 
-				floor_item_increase(0 - item, -1); 
-				floor_item_describe(0 - item); 
-				floor_item_optimize(0 - item); 
+			msg_print(Ind, "There is a bright flash of light.");
+
+			/* Reduce and describe inventory */
+			if (item >= 0)
+			{
+				inven_item_increase(Ind, item, -1);
+				inven_item_describe(Ind, item);
+				inven_item_optimize(Ind, item);
+			}
+			/* Reduce and describe floor item */
+			else
+			{
+				floor_item_increase(0 - item, -1);
+				floor_item_describe(0 - item);
+				floor_item_optimize(0 - item);
+				floor_item_notify(Ind, 0 - item, TRUE);
 			}
 		}
+		/* MAngband-specific: remove even MORE charges */
 		else
-		{ 
-			/* Drain the power */
-			o_ptr->pval = 0;
-		}
-
-		/* *Identified* items keep the knowledge about the charges */
-		if (!(o_ptr->ident & ID_MENTAL))
 		{
-			/* We no longer "know" the item */
-			o_ptr->ident &= ~(ID_KNOWN);
-		}
+			reduce_charges(o_ptr, 1);
 
-		/* We know that the item is empty */
-		o_ptr->ident |= ID_EMPTY;
+			/* *Identified* items keep the knowledge about the charges */
+			if (!(o_ptr->ident & ID_MENTAL))
+			{
+				/* We no longer "know" the item */
+				o_ptr->ident &= ~(ID_KNOWN);
+			}
+		}
 	}
 
 	/* Recharge */
 	else
 	{
 		/* Extract a "power" */
-		t = (num / (lev + 2)) + 1;
+		t = (spell_strength / (lev + 2)) + 1;
 
 		/* Recharge based on the power */
 		if (t > 0) o_ptr->pval += 2 + randint(t);
 
-		/* Hack -- we no longer "know" the item */
-		o_ptr->ident &= ~ID_KNOWN;
-
-		/* Hack -- we no longer think the item is empty */
+		/* We no longer think the item is empty */
 		o_ptr->ident &= ~ID_EMPTY;
 	}
 
@@ -3203,7 +3182,10 @@ bool recharge_aux(int Ind, int item, int num)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+	p_ptr->window |= (PW_INVEN);
+
+	/* Redraw floor */
+	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
 
 	/* Something was done */
 	return (TRUE);
@@ -3419,6 +3401,9 @@ bool banishment(int Ind)
 
 	int d = 999, tmp;
 
+	/* Hack -- disable in dwarven halls / custom towns */
+	if (check_special_level(p_ptr->dun_depth)) return TRUE;
+
 	/* Search all monsters and find the closest */
 	for (i = 1; i < m_max; i++)
 	{
@@ -3517,6 +3502,8 @@ bool mass_banishment(int Ind)
 
 	/*int		msec = delay_factor * delay_factor * delay_factor;*/
 
+	/* Hack -- disable in dwarven halls / custom towns */
+	if (check_special_level(p_ptr->dun_depth)) return TRUE;
 
 	/* Delete the (nearby) monsters */
 	for (i = 1; i < m_max; i++)

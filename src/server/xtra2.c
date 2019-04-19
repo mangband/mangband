@@ -1778,7 +1778,7 @@ bool set_food(int Ind, int v)
 			{
 				/* Use the value */
 				p_ptr->food = v;
-				Destroy_connection(p_ptr->conn, "Starving to death!");
+				player_disconnect(p_ptr, "Starving to death!");
 				return TRUE;
 			}
 			break;
@@ -2265,7 +2265,7 @@ void monster_death(int Ind, int m_idx)
 			}
 			/* Mega-Hack -- drop "winner" treasures AND set winners */
 			if (winner && (share || i == Ind))
-			{ 
+			{
 				/* Hack -- an "object holder" */
 				object_type prize;
 
@@ -2479,8 +2479,8 @@ void access_arena(int Ind, int py, int px) {
 			msg_print(Ind, "There is a wall blocking your way.");
 	}
 	/* Player tries to enter the arena */ 
-	else 
-	{   
+	else
+	{
 		/* If arena is not 'full' -- Enter it */
 		if (tmp_count < 2) 
 		{
@@ -2714,7 +2714,7 @@ void player_funeral(int Ind, char *reason)
 	add_high_score(Ind);
 
 	/* Get rid of him */
-	player_kill(Ind, reason); 	/* Disconnect client */
+	player_disconnect(p_ptr, reason); /* Disconnect client */
 	player_leave(Ind);	/* Remove from playerlist */
 
 	/* Done */
@@ -2816,7 +2816,7 @@ void player_death(int Ind)
 	/* Normal death */
 	if (p_ptr->fruit_bat == -1)
 		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-	else if (!cfg_ironman) /* Notice bravery */
+	else if (!cfg_ironman && option_p(p_ptr, NO_GHOST)) /* Notice bravery */
 		sprintf(buf, "The brave hero %s the level %i %s %s was killed by %s.",
 		    p_ptr->name, p_ptr->lev,
 		    p_name + p_info[p_ptr->prace].name,
@@ -4376,7 +4376,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	strnfmt(out_val, sizeof(out_val),
 	        "%s%s%s%s [%s%s]", s1, s2, s3, name, i1, info);
 	if (is_dm_p(p_ptr))
-		strcat(out_val, format(" (%d:%d)", y, x));
+		my_strcat(out_val, format(" (%d:%d)", y, x), sizeof(out_val));
 	/* Hack -- capitalize */
 	if (islower(out_val[0])) out_val[0] = toupper(out_val[0]);
 	
@@ -4638,7 +4638,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				y = py;
 				x = px;
 			}
-			
+				/* fallthrough */
 			case 'o':
 			{
 				p_ptr->look_y = y;
@@ -5132,7 +5132,7 @@ bool do_restoreXP_other(int Ind)
  * times five to keep the same movement rate.
  */
 
-int level_speed(int Ind)
+u32b level_speed(int Ind)
 {
 	if ( Ind <= 0) return level_speeds[0]*5;
 	else return level_speeds[Ind]*5;
@@ -5154,6 +5154,22 @@ bool monsters_in_los(player_type *p_ptr)
 			break;
 		}
 	}
+	/* Hostile players count as monsters */
+	if (!los) for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *q_ptr = Players[i];
+		if (q_ptr == p_ptr) continue; /* Skip self */
+
+		/* Check this player */
+		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
+		{
+			if (check_hostile(Get_Ind[p_ptr->conn], i))
+			{
+				los = TRUE;
+				break;
+			}
+		}
+	}
 	return los;
 }
 
@@ -5173,7 +5189,7 @@ int base_time_factor(int Ind, int slowest)
 {
 	player_type * p_ptr = Players[Ind];
 	player_type * q_ptr;
-	int scale, i, dist, health, timefactor;
+	int i, dist, health, timefactor;
 	bool los;
 	
 	/* If this is the initial call, reset all players time bubble check */
@@ -5210,7 +5226,7 @@ int base_time_factor(int Ind, int slowest)
 	if (p_ptr->resting && !los) timefactor = MAX_TIME_SCALE;
 
 	/* Running speeds up time */
-	if (p_ptr->running && !los) scale = RUNNING_FACTOR;
+	if (p_ptr->running && !los) timefactor = RUNNING_FACTOR;
 
 	
 	/* If this is a check for another player give way to their time
@@ -5285,7 +5301,7 @@ void show_motd(player_type *p_ptr)
 	byte old_term;
 
 	/* Copy to info buffer */
-	for (i = 0; i < 20; i++)
+	for (i = 0; i < 24; i++)
 	{
 		for (k = 0; k < 80; k++)
 		{
@@ -5674,7 +5690,7 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		send_spell_info(Ind, 12 + b, bi, flag, out_val);
+		send_spell_info(Ind, 12 + b, bi, flag, 0, out_val);
 		j++;
 		bi++;
 
@@ -5847,8 +5863,8 @@ void describe_player(int Ind, int Ind2)
 	if (j) 	text_out(". ");
 
 
-	/* Describe History */	
-	strncpy(buf, p_ptr->descrip, 240);
+	/* Describe History */
+	my_strcpy(buf, p_ptr->descrip, sizeof(buf));
 	s = strtok(buf, " \n");
 	while (s)
 	{
@@ -5877,7 +5893,7 @@ void snapshot_player(int Ind, int who)
 	/* Draw! */
 
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	Send_term_info(Ind, NTERM_CLEAR, 1);	
+	Send_term_info(Ind, NTERM_CLEAR, 1);
 
 	for (y = 0; y < 23; y++)
 	{
@@ -5900,7 +5916,7 @@ void snapshot_player(int Ind, int who)
 	stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
 
 	Send_term_info(Ind, NTERM_FRESH, 0);
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);	
+	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 }
 
 void preview_vault(int Ind, int v_idx)
@@ -5972,7 +5988,7 @@ void preview_vault(int Ind, int v_idx)
 }
 
 /**
- ** 
+ **
  ** DUNGEON MASTER MENU
  **
  **/
@@ -6035,7 +6051,7 @@ static cptr dm_flags_str[32] =
 	"*Invulnerable*",
 	"Ghostly Hands",
 	"Ghostly Body",
-	"Never Disturbed",	
+	"Never Disturbed",
 	"See Level",
 	"See Monsters",
 	"See Players",
@@ -6084,18 +6100,18 @@ void master_fill_objects(int Ind, u32b how)
 	for (i = 0; i < z_info->k_max; i++)
 	{
 		object_kind *k_ptr = &k_info[i];
-		bool okay = (how & FILT___ANY ? FALSE : TRUE);		
+		bool okay = (how & FILT___ANY ? FALSE : TRUE);
 		if ((how & FILT_EGO) && !(how & FILT_REVERS)) break;
-		if ((how & FILT_WEAPON) &&   
-			(k_ptr->tval == TV_SWORD || k_ptr->tval == TV_HAFTED || k_ptr->tval == TV_POLEARM  || 
+		if ((how & FILT_WEAPON) &&
+			(k_ptr->tval == TV_SWORD || k_ptr->tval == TV_HAFTED || k_ptr->tval == TV_POLEARM  ||
 			k_ptr->tval == TV_BOW || k_ptr->tval == TV_DIGGING))
 			okay = TRUE;
-		if ((how & FILT_GEAR) &&   
-			(k_ptr->tval == TV_SOFT_ARMOR || k_ptr->tval == TV_HARD_ARMOR || k_ptr->tval == TV_DRAG_ARMOR || 
-			k_ptr->tval == TV_SHIELD ||	k_ptr->tval == TV_HELM || k_ptr->tval == TV_CROWN || 
+		if ((how & FILT_GEAR) &&
+			(k_ptr->tval == TV_SOFT_ARMOR || k_ptr->tval == TV_HARD_ARMOR || k_ptr->tval == TV_DRAG_ARMOR ||
+			k_ptr->tval == TV_SHIELD || k_ptr->tval == TV_HELM || k_ptr->tval == TV_CROWN ||
 			k_ptr->tval == TV_CLOAK || k_ptr->tval == TV_GLOVES || k_ptr->tval == TV_BOOTS))
 			okay = TRUE;
-		if ((how & FILT_MAGIC) && 
+		if ((how & FILT_MAGIC) &&
 			(k_ptr->tval == TV_WAND || k_ptr->tval == TV_STAFF || k_ptr->tval == TV_ROD))
 			okay = TRUE;
 		if ((how & FILT_SCROLL) && (k_ptr->tval == TV_SCROLL)) okay = TRUE;
@@ -6143,18 +6159,17 @@ void master_fill_monsters(int Ind, u32b how)
 	{
 		for (i = 0, n = 0; i < z_info->r_max; i++)
 		{
-
 			MASTER_COMPARE_MONSTER(UNIQUE);
 			MASTER_COMPARE_MONSTER(UNDEAD);
 			MASTER_COMPARE_MONSTER(DEMON);
 			MASTER_COMPARE_MONSTER(DRAGON);
 			MASTER_COMPARE_MONSTER(ORC);
 			MASTER_COMPARE_MONSTER(ANIMAL);
-			 
+			
 			p_ptr->target_idx[n++] = i;
 		}
 	}
-	else for (i = 0, n = z_info->r_max; i < n; i++) 
+	else for (i = 0, n = z_info->r_max; i < n; i++)
 		p_ptr->target_idx[i] = i;
 
 	/* Save number ! */
@@ -6178,7 +6193,7 @@ void master_fill_monsters(int Ind, u32b how)
 	}
 }
 /*
- * Helper function for "do_cmd_dungeon_master". Utilizes same 
+ * Helper function for "do_cmd_dungeon_master". Utilizes same
  * "switch/DM_PAGE" (See below). Search the list by string,
  * supports offset.
  */
@@ -6219,7 +6234,7 @@ s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
 		{
 			player_type *q_ptr = Players[i+1];
 			MASTER_SEARCH_COMPARE(q_ptr->name);
-		} 
+		}
 	break;
 	case DM_PAGE_FEATURE:
 		for (i = 0; i < z_info->f_max; i++)
@@ -6241,19 +6256,19 @@ s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
 			vault_type *v_ptr = &v_info[i];
 			MASTER_SEARCH_COMPARE(v_name + v_ptr->name);
 		}
-	break;	
+	break;
 	case DM_PAGE_ITEM:
 		for (i = 0; i < p_ptr->target_n; i++)
 		{
 			if (p_ptr->target_idx[i] < 0)
 			{
 				ego_item_type *e_ptr = &e_info[0 - p_ptr->target_idx[i]];
-				MASTER_SEARCH_COMPARE(e_name + e_ptr->name); 
+				MASTER_SEARCH_COMPARE(e_name + e_ptr->name);
 			}
 			else
 			{
 				object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
-				MASTER_SEARCH_COMPARE(k_name + k_ptr->name); 
+				MASTER_SEARCH_COMPARE(k_name + k_ptr->name);
 			}
 		}
 	}
@@ -6265,7 +6280,7 @@ s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
 			return offset;
 		}
 		return before;
-	}	
+	}
 	return after;
 
 }
@@ -6303,7 +6318,7 @@ void master_hook_desc(char *buf, byte i, byte hook, u32b args)
 	}
 	else
 	{
-		strcpy(buf, "<none>");	
+		strcpy(buf, "<none>");
 	}
 }
 /*
@@ -6317,7 +6332,7 @@ void master_hook_desc(char *buf, byte i, byte hook, u32b args)
  *  (Common input) - navigate tabs
  *  (Page input) - each page has it's own set of keypresses
  * OUTPUT
- *  (Header) - displays page names 
+ *  (Header) - displays page names
  *  (Content) - page-specific contents, own for each page
  *   Commonly, content is as follows:
  *    (List) - a sortable/searchable list of elements
@@ -6326,9 +6341,9 @@ void master_hook_desc(char *buf, byte i, byte hook, u32b args)
  *  (Error) - if there was an error, shows it
  *  (Footer) - displays hooks
  *
- * Most interesting, for adding new features, are the "Page input" 
+ * Most interesting, for adding new features, are the "Page input"
  * and "Content" sections, the rest handle the menu itself.
- * 
+ *
  * Note that a "switch (current_page)" is employed several times during
  * the course of this routine, with DM_PAGE_XXX defines as arguments.
  * This should probably be separated into different functions.
@@ -6342,7 +6357,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	player_type	*p_ptr = Players[Ind];
 	static char	numero[5];
 	char buf[80], *s = NULL;
-	int old_tab, skip_line, old_line;	
+	int old_tab, skip_line, old_line;
 	int i, j, x, y;
 	int hgt = p_ptr->stream_hgt[STREAM_SPECIAL_TEXT];
 	bool access = FALSE;
@@ -6362,7 +6377,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		/* Go to first page */
 		p_ptr->interactive_next = 0;
 		/* Reset list */
-		p_ptr->interactive_line = 0;		
+		p_ptr->interactive_line = 0;
 		p_ptr->interactive_size = 0;
 		/* Reset argument */
 		p_ptr->master_parm = 0;
@@ -6381,7 +6396,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 		case 'a': p_ptr->master_flag = 1; break; /* Jump to hook */
 		case 'z': p_ptr->master_flag = 2; break; /* Jump to hook */
 		case 'v': p_ptr->master_flag = 3; break; /* Jump to hook */
-		/* ACTION! Delete Hooks: */		
+		/* ACTION! Delete Hooks: */
+		case '\b': /* Backspace -- same as Del */
 		case 127: p_ptr->master_hook[p_ptr->master_flag] = 0; break; /* Del */
 
 		/* Navigate PAGES */
@@ -6412,7 +6428,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	/* Additional Input: */
 	for (i = 0; i < DM_PAGES; i++)
 	{
-		/* Provide shortcuts for each "Page" as Ctrl+"p" */	
+		/* Provide shortcuts for each "Page" as Ctrl+"p" */
 		if (query == KTRL(tolower(dm_pages[i][0])))
 		{
 			p_ptr->interactive_next = i;
@@ -6425,8 +6441,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 		p_ptr->interactive_next = 0;
 	if (p_ptr->interactive_next > DM_PAGES - 1)
 		p_ptr->interactive_next = DM_PAGES - 1;
-	if (p_ptr->master_flag >= MASTER_MAX_HOOKS) 
-		p_ptr->master_flag = 0;		
+	if (p_ptr->master_flag >= MASTER_MAX_HOOKS)
+		p_ptr->master_flag = 0;
 
 	/* Changed page (Sub-Init!) */
 	if (old_tab != p_ptr->interactive_next)
@@ -6439,15 +6455,15 @@ void do_cmd_dungeon_master(int Ind, char query)
 	}
 
 	/* Hack -- deny keypress */
-	access = (dm_access[p_ptr->interactive_next * 2] & p_ptr->dm_flags) || 
-			(dm_access[p_ptr->interactive_next * 2 + 1] & p_ptr->dm_flags);
+	access = (dm_access[p_ptr->interactive_next * 2] & p_ptr->dm_flags) ||
+		(dm_access[p_ptr->interactive_next * 2 + 1] & p_ptr->dm_flags);
 	if (!access) query = 0;
 
 	/** Input **/
 	switch (p_ptr->interactive_next)
 	{
 		case DM_PAGE_PLAYER:
-			if (query == '\r') 
+			if (query == '\r')
 			{
 				if (p_ptr->interactive_line < NumPlayers)
 				{
@@ -6476,7 +6492,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				player_type *q_ptr;
 				y = find_player(p_ptr->master_parm);
 				if (!y) break;
-				q_ptr = Players[y];				
+				q_ptr = Players[y];
 				switch (query)
 				{
 					case 'W':
@@ -6493,7 +6509,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 						if (!askfor_aux(Ind, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
 						if (STRZERO(buf)) break;
 						debug(format("%s kicks %s (reason:%s)", p_ptr->name, q_ptr->name, buf));
-						Destroy_connection(q_ptr->conn, "kicked out");
+						player_disconnect(q_ptr, "kicked out");
 					break;
 					case 'I':
 						if (y == Ind) { error = "Can't invoke self"; break; }
@@ -6567,7 +6583,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth);
 					msg_format(Ind, "Loading file '%s'", &buf[0]);
 					debug(format("* %s imports lev %d from file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
-				} 
+				}
 
 				break;
 #endif
@@ -6581,8 +6597,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 				else if (!wr_dungeon_special_ext(p_ptr->dun_depth, &buf[0]))
 				{
 					error = "Failed to write a file";
-				} 
-				else 
+				}
+				else
 				{
 					msg_format(Ind, "Saved file '%s'", &buf[0]);
 					debug(format("* %s exports lev %d into file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
@@ -6628,25 +6644,25 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'f': TOGGLE_BIT(p_ptr->master_parm, SORT_REVERS); break;
 				case 'F': TOGGLE_BIT(p_ptr->master_parm, FILT_REVERS); break;
 				case 'Q': TOGGLE_BIT(p_ptr->master_parm, FILT_UNIQUE); break;
-				case 'G': TOGGLE_BIT(p_ptr->master_parm, FILT_UNDEAD); break;				
+				case 'G': TOGGLE_BIT(p_ptr->master_parm, FILT_UNDEAD); break;
 				case 'U': TOGGLE_BIT(p_ptr->master_parm, FILT_DEMON); break;
 				case 'D': TOGGLE_BIT(p_ptr->master_parm, FILT_DRAGON); break;
 				case 'O': TOGGLE_BIT(p_ptr->master_parm, FILT_ORC); break;
 				case 'A': TOGGLE_BIT(p_ptr->master_parm, FILT_ANIMAL); break;
-				case '\r': 
+				case '\r':
 				{
 					/* Start Summoning! */
 					p_ptr->master_hook[p_ptr->master_flag] = DM_PAGE_MONSTER;
 					p_ptr->master_args[p_ptr->master_flag] = p_ptr->target_idx[p_ptr->interactive_line];
 					break;
-				} 
+				}
 			}
 			/* PREPARE */
 			master_fill_monsters(Ind, p_ptr->master_parm);
 			p_ptr->interactive_size = p_ptr->target_n - 1;
 		break;
 		case DM_PAGE_VAULT:
-			if (query == '\r') 
+			if (query == '\r')
 			{
 				/* Start Building! */
 				p_ptr->master_hook[p_ptr->master_flag] = DM_PAGE_VAULT;
@@ -6658,7 +6674,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			{
 				/* SORT */
 				case '*': TOGGLE_BIT(p_ptr->master_parm, FILT_EGO); break;
-				case '\\': 
+				case '\\':
 				case '|': TOGGLE_BIT(p_ptr->master_parm, FILT_WEAPON); break;
 				case '(': case ')': case '[':
 				case ']': TOGGLE_BIT(p_ptr->master_parm, FILT_GEAR); break;
@@ -6687,7 +6703,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'd':
 				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic To-Dam Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].to_d = atoi(buf);
-				break;				
+				break;
 				case 'p':
 				if (!askfor_aux(Ind, query, buf, 1, 0, "<Pval>: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].pval = atoi(buf);
@@ -6719,9 +6735,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 					p_ptr->inventory[0].ds = k_ptr->ds;
 					p_ptr->inventory[0].dd = k_ptr->dd;
 					p_ptr->inventory[0].name2 = 0;
-					p_ptr->inventory[0].xtra2 = 0;					
-				} 
-				else 
+					p_ptr->inventory[0].xtra2 = 0;
+				}
+				else
 				{
 					/* Assign Ego Kind */
 					ego_item_type *e_ptr = &e_info[0 - i];
@@ -6773,7 +6789,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 #define MASTER_COMMON_LIMIT() \
 				byte attr = TERM_SLATE; \
 				if (i < skip_line) continue; \
-				if (j > hgt) break;	\
+				if (j > hgt) break; \
 				if (i == p_ptr->interactive_line) attr = TERM_L_BLUE
 
 #define MASTER_DUMP_I() \
@@ -6781,7 +6797,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				c_prt(p_ptr, attr, numero, 2 + j, 1);
 
 #define MASTER_DUMP_AC(A,C) \
-				numero[0] = (C);	numero[1] = '\0'; \
+				numero[0] = (C); numero[1] = '\0'; \
 				c_prt(p_ptr, (A), numero, 2 + j, 6);
 
 	/* Content */
@@ -6814,17 +6830,17 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 			for (i = 0, j = 0, y = 0; i < NumPlayers; i++)
 			{
-				player_type *q_ptr = Players[i+1]; 
+				player_type *q_ptr = Players[i+1];
 				MASTER_COMMON_LIMIT();
-				if (q_ptr->id == p_ptr->master_parm) 
-				{ 
+				if (q_ptr->id == p_ptr->master_parm)
+				{
 					/* Selected */
 					attr = TERM_WHITE;
 					y = i+1;
 				}
 				numero[0] = (dm_flag_p(q_ptr,CAN_MUTATE_SELF) ? '@' :
-							(dm_flag_p(q_ptr,CAN_ASSIGN) || is_dm_p(q_ptr) ? '%' :
-							(q_ptr->dm_flags ? '+' : ' ')));
+					(dm_flag_p(q_ptr,CAN_ASSIGN) || is_dm_p(q_ptr) ? '%' :
+					(q_ptr->dm_flags ? '+' : ' ')));
 				numero[1] = '\0';
 				c_prt(p_ptr, attr, numero, 2 + j, 1);
 				c_prt(p_ptr, attr, q_ptr->name, 2 + j++, 3);
@@ -6836,7 +6852,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			if (y)
 			{
 				player_type *q_ptr = Players[y];
-				if (2 + (j++) >= hgt) prompt_hooks = FALSE; 
+				if (2 + (j++) >= hgt) prompt_hooks = FALSE;
 
 				c_prt(p_ptr, (q_ptr->ghost ? TERM_WHITE : TERM_L_WHITE), "G) ghost", 2 + j, 0);
 				c_prt(p_ptr, (q_ptr->noscore ? TERM_WHITE : TERM_L_WHITE), "C) cheater", 2 + j, 19);
@@ -6854,8 +6870,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 						index_to_label(y+1), dm_flags_str[y]), 2 + j + x, i * 19);
 						
 						y++;
-					} 
-				} 
+					}
+				}
 			}
 
 			break;
@@ -6864,35 +6880,35 @@ void do_cmd_dungeon_master(int Ind, char query)
 			{
 #ifdef HAVE_DIRENT_H
 				DIR	*dip;
-        		struct dirent	*dit;
-#endif        	
-				int dun_players = players_on_depth[p_ptr->dun_depth];	
-        		int num_players = count_players(p_ptr->dun_depth);
+				struct dirent	*dit;
+#endif
+				int dun_players = players_on_depth[p_ptr->dun_depth];
+				int num_players = count_players(p_ptr->dun_depth);
 #ifdef HAVE_DIRENT_H
 				if ((dip = opendir(ANGBAND_DIR_SAVE)) != NULL)
-        		{
+				{
 					for (i = 0, j = 0; (dit = readdir(dip)) != NULL; i++)
 					{
 						MASTER_COMMON_LIMIT();
 
 						if (my_strnicmp(dit->d_name, "server-", 7)) { i--; continue; }
 
-                		MASTER_DUMP_I()
+						MASTER_DUMP_I()
 
 						c_prt(p_ptr, attr, dit->d_name, 2 + j, 5);
-                		j++;
+						j++;
 
-                		if (p_ptr->master_parm && p_ptr->master_parm - 1 == i)
-                		{
-                			msg_format(Ind, "Loading file '%s'", dit->d_name);
-                			rd_dungeon_special_ext(p_ptr->dun_depth, dit->d_name);
-                			players_on_depth[p_ptr->dun_depth] = num_players;
-                		}
-                	}
-	 	        	closedir(dip); /* Don't care about error */
-	 	        }
+						if (p_ptr->master_parm && p_ptr->master_parm - 1 == i)
+						{
+							msg_format(Ind, "Loading file '%s'", dit->d_name);
+							rd_dungeon_special_ext(p_ptr->dun_depth, dit->d_name);
+							players_on_depth[p_ptr->dun_depth] = num_players;
+						}
+					}
+					closedir(dip); /* Don't care about error */
+				}
 #else
-	i = 1;
+				i = 1;
 #endif
 				p_ptr->interactive_size = i - 1;
 
@@ -6915,7 +6931,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 				MASTER_COMMON_LIMIT();
 				MASTER_DUMP_I()
-				MASTER_DUMP_AC(f_ptr->x_attr, f_ptr->x_char); 
+				MASTER_DUMP_AC(f_ptr->x_attr, f_ptr->x_char);
 
 				c_prt(p_ptr, attr, f_name + f_ptr->name, 2 + j++, 8);
 			}
@@ -6943,7 +6959,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 				MASTER_COMMON_LIMIT();
 				MASTER_DUMP_I()
-				MASTER_DUMP_AC(r_ptr->x_attr, r_ptr->x_char); 
+				MASTER_DUMP_AC(r_ptr->x_attr, r_ptr->x_char);
 
 				c_prt(p_ptr, attr, r_name + r_ptr->name, 2 + j++, 8);
 			}
@@ -6996,17 +7012,17 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 			for (i = 0, j = 0; i < p_ptr->target_n; i++)
 			{
-				MASTER_COMMON_LIMIT();				
+				MASTER_COMMON_LIMIT();
 				MASTER_DUMP_I()
 
-				if (p_ptr->target_idx[i] >= 0) 
+				if (p_ptr->target_idx[i] >= 0)
 				{
 					/* Base Kind */
 					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
-					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char); 
+					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char);
 					c_prt(p_ptr, attr, k_name + k_ptr->name, 2 + j++, 8);
-				} 
-				else 
+				}
+				else
 				{
 					/* Ego Item */
 					ego_item_type *e_ptr = &e_info[0 - p_ptr->target_idx[i]];
@@ -7020,11 +7036,12 @@ void do_cmd_dungeon_master(int Ind, char query)
 				}
 			}
 
-			p_ptr->interactive_size = p_ptr->target_n - 1;			
+			p_ptr->interactive_size = p_ptr->target_n - 1;
 
 			if (1) /* ? Display Object even if it's buggy ? */
 			{
 				j++;
+				prompt_hooks = FALSE;
 				/* Extract Name */
 				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
 
@@ -7039,7 +7056,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					byte xtra_val = 0;
 
 					if (e_ptr->xtra == EGO_XTRA_SUSTAIN) { xtra_val = 1; xtra_mod = OBJECT_XTRA_SIZE_SUSTAIN; }
-					else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = OBJECT_XTRA_SIZE_RESIST; } 
+					else if (e_ptr->xtra == EGO_XTRA_POWER ) { xtra_val = 2; xtra_mod = OBJECT_XTRA_SIZE_RESIST; }
 					else if (e_ptr->xtra == EGO_XTRA_ABILITY) { xtra_val = 3; xtra_mod = OBJECT_XTRA_SIZE_POWER; }
 					else { xtra_val = 0; xtra_mod = 1; }
 					if (p_ptr->inventory[0].xtra2 >= xtra_mod) p_ptr->inventory[0].xtra2 %= xtra_mod;
@@ -7068,7 +7085,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			c_prt(p_ptr, (p_ptr->master_parm & FILT_FOOD   ? TERM_WHITE : TERM_L_WHITE ), ",)food ", j++, 60);
 			c_prt(p_ptr, (p_ptr->master_parm & FILT_REVERS ? TERM_WHITE : TERM_L_WHITE ), "F)flip ", j++, 60);
 
-			break;			
+			break;
 		}
 	}
 
@@ -7082,7 +7099,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 	/* Footer */
 	if (prompt_hooks)
 	{
-		j = hgt + 7;
+		j = hgt + 5;
 		c_prt(p_ptr, TERM_L_DARK, "RET) Select    |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "SPC) Next      |", j++, 1);
 		c_prt(p_ptr, TERM_L_DARK, "DEL) Clear     |", j++, 1);
@@ -7115,9 +7132,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 	Send_term_info(Ind, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] + WEIRD_EXTRA_HACK; i++)
 	{
-		Stream_line(Ind, STREAM_SPECIAL_MIXED, i); 
+		Stream_line(Ind, STREAM_SPECIAL_MIXED, i);
 	}
-	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR, 0);
+	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 
 }
 
@@ -7142,7 +7159,7 @@ void master_desc_all(int Ind)
 	for (i = 0; i < n; i++)
 	{
 		master_hook_desc(&buf[0], ok[i], p_ptr->master_hook[ok[i]], p_ptr->master_args[ok[i]]);
-		buf[l] = '\0';  
+		buf[l] = '\0';
 		c_prt(p_ptr, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
 	}
 	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
@@ -7161,7 +7178,7 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
 	if (hook_type == 127)
 	{
 		cave_type *c_ptr = &cave[Depth][oy][ox];
-		if (dm_flag_p(p_ptr, CAN_GENERATE) || 
+		if (dm_flag_p(p_ptr, CAN_GENERATE) ||
 			dm_flag_p(p_ptr, OBJECT_CONTROL))
 		{
 			delete_object(Depth, oy, ox);
@@ -7170,7 +7187,7 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
 		{
 			delete_monster_idx(c_ptr->m_idx);
 		}
-		everyone_lite_spot(Depth, oy, ox);		
+		everyone_lite_spot(Depth, oy, ox);
 		return;
 	}
 
@@ -7211,30 +7228,30 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
-	cave_type *c_ptr = &cave[Depth][oy][ox];	
+	cave_type *c_ptr = &cave[Depth][oy][ox];
 	byte hook_type = 0;
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_char(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C))
+		Send_tile(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C), (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)
 	{
 		xs = (p_ptr->master_parm >> 0) & 0xFF;
 		ys = (p_ptr->master_parm >> 8) & 0xFF;
-		if (ys <= oy) 
-			 { y1 = ys; y2 = oy; }
-		else { y1 = oy; y2 = ys; } 
-		if (xs <= ox) 
-			 { x1 = xs; x2 = ox; }
+		if (ys <= oy)
+			{ y1 = ys; y2 = oy; }
+		else { y1 = oy; y2 = ys; }
+		if (xs <= ox)
+			{ x1 = xs; x2 = ox; }
 		else { x1 = ox; x2 = xs; }
 	}
 
 	switch (hook_q)
 	{
-		case 'k': case 127: hook_type = 128; break; /* Del */
-		case 's': /* Select */	
+		case 'k': case 127: case '\b': hook_type = 128; break; /* Del */
+		case 's': /* Select */
 
 		p_ptr->master_parm = (MASTER_SELECT | (u32b)ox | ((u32b)oy << 8));
 
@@ -7273,14 +7290,15 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 		case 'x': hook_type = 1; break; 
 		case 'a': hook_type = 2; break;
 		case 'v': hook_type = 4; break;
-		case 'z': TOGGLE_BIT(p_ptr->master_parm, MASTER_BRUSH); break;		
+		case 'z': TOGGLE_BIT(p_ptr->master_parm, MASTER_BRUSH); break;
 		default:  if (p_ptr->master_parm & MASTER_BRUSH) hook_type = 3; break; /* z */
 	}
 
 	/* Success */
 	if (hook_type--)
 	{
-		if (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT)
+		if ((hook_type <= MASTER_MAX_HOOKS)
+		&& (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT))
 		{
 			byte old_hook = p_ptr->master_hook[hook_type];
 			u32b old_args = p_ptr->master_args[hook_type];
@@ -7289,7 +7307,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 			x1 = (old_args >>  0) & 0xFF;
 			y1 = (old_args >>  8) & 0xFF;
 			x2 = (old_args >> 16) & 0xFF;
-			y2 = (old_args >> 24); 
+			y2 = (old_args >> 24);
 
 			ox = ox - x1;
 			oy = oy - y1;
@@ -7300,7 +7318,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 			p_ptr->master_parm = 0;
 
 			for (ys = y1; ys <= y2; ys++)
-			{ 
+			{
 				for (xs = x1; xs <= x2; xs++)
 				{
 					master_new_hook(Ind, 'c', ys, xs);
@@ -7313,7 +7331,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 		else if (p_ptr->master_parm & MASTER_SELECT)
 		{
 			for (ys = y1; ys <= y2; ys++)
-			{ 
+			{
 				for (xs = x1; xs <= x2; xs++)
 				{
 					master_new_hook_aux(Ind, hook_type, ys, xs);
@@ -7327,7 +7345,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 		}
 		else
 		{
-			master_new_hook_aux(Ind, hook_type, oy, ox);		
+			master_new_hook_aux(Ind, hook_type, oy, ox);
 		}
 	}
 	master_desc_all(Ind);

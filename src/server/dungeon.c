@@ -268,9 +268,9 @@ static void sense_inventory(int Ind)
 		{
 			if (strstr((const char*)quark_str(o_ptr->note), (const char*)feel) == NULL)
 			{
-				strcpy(o_inscribe, (const char *)feel);
-				strcat(o_inscribe, " - ");
-				strcat(o_inscribe, quark_str(o_ptr->note));
+				my_strcpy(o_inscribe, (const char *)feel, sizeof(o_inscribe));
+				my_strcat(o_inscribe, " - ", sizeof(o_inscribe));
+				my_strcat(o_inscribe, quark_str(o_ptr->note), sizeof(o_inscribe));
 				o_ptr->note = quark_add(o_inscribe);
 			}
 		}
@@ -1044,7 +1044,8 @@ static void process_player_end(int Ind)
 	}
 
 	/* Handle running */
-	if((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && p_ptr->running)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	&& (p_ptr->running || p_ptr->run_request))
 	{
 		run_step(Ind, 0);
 	}
@@ -1715,6 +1716,9 @@ static void process_player_end(int Ind)
 				/* Show everyone that he's left */
 				everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 
+				/* Tell everyone to re-calculate visiblity for this player */
+				update_player(Ind);
+
 				/* Forget his lite and view */
 				forget_lite(Ind);
 				forget_view(Ind);
@@ -2272,6 +2276,7 @@ void dungeon(void)
 		update_view(i);
 		update_lite(i);
 		update_monsters(TRUE);
+		update_players();
 
 		/* Clear the flag */
 		p_ptr->new_level_flag = FALSE;
@@ -2544,12 +2549,17 @@ void shutdown_server(void)
 
 		/* Indicate cause */
 		strcpy(p_ptr->died_from, "server shutdown");
-
+#if 1
+//TODO: re-enable nicer messaging
+		player_disconnect(p_ptr, "Server shutdown");
+		player_leave(1);
+#else
 		/* Try to save */
-		if (!player_leave(1)) player_kill(1, "Server shutdown (save failed)");
+		if (!player_leave(1)) player_disconnect(p_ptr, "Server shutdown (save failed)");
 
 		/* Successful save */
-		player_kill(1, "Server shutdown (save succeeded)");
+		player_disconnect(p_ptr, "Server shutdown (save succeeded)");
+#endif
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */
@@ -2563,7 +2573,7 @@ void shutdown_server(void)
 	if (!save_server_info()) quit("Server state save failed!");
 
 	/* Tell the metaserver that we're gone */
-	//Report_to_meta(META_DIE);
+	report_to_meta_die();
 
 	quit("Server state saved");
 }

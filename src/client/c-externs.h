@@ -36,6 +36,7 @@ extern cptr angband_sound_name[MSG_MAX];
 extern void set_chat_focus( void );
 extern void unset_chat_focus( void );
 extern void stretch_chat_ctrl( void );
+extern int win32_window_visible(int i);
 
 /* z-term.c */
 extern event_type inkey_ex(void);
@@ -52,9 +53,11 @@ extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern byte floor_secondary_tester;
 
 
 extern indicator_type indicators[MAX_INDICATORS];
@@ -76,6 +79,7 @@ extern s16b store_num;
 
 extern char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];
 extern byte spell_flag[26 * (SPELLS_PER_BOOK+1)];
+extern byte spell_test[26 * (SPELLS_PER_BOOK+1)];
 
 extern char party_info[160];
 
@@ -125,9 +129,10 @@ extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
 #define interactive_mode special_line_onscreen
-extern bool interactive_anykey_flag;
 
 extern bool special_line_requested;
+extern bool simple_popup_requested;
+extern bool local_browser_requested;
 
 extern bool confirm_requested;
 extern byte confirm_type;
@@ -137,6 +142,8 @@ extern char confirm_prompt[MAX_CHARS];
 extern bool pause_requested;
 
 #define enter_store_requested enter_store
+
+extern bool escape_in_macro_triggers;
 
 extern bool inkey_base;
 extern bool inkey_xtra;
@@ -181,6 +188,9 @@ extern s16b INVEN_PACK;
 extern s16b FLOOR_INDEX;
 extern bool FLOOR_NEGATIVE;
 extern s16b FLOOR_TOTAL;
+
+extern u16b MAX_OBJFLAGS_ROWS;
+extern u16b MAX_OBJFLAGS_COLS;
 
 extern bool msg_flag;
 extern channel_type channels[MAX_CHANNELS];
@@ -283,7 +293,7 @@ extern bool get_server_name(void);
 extern void process_command(void);
 extern void process_requests(void);
 extern void cmd_custom(byte i);
-extern void cmd_interactive(void);
+extern void cmd_interactive(byte line_type, bool use_anykey);
 extern void cmd_tunnel(void);
 extern void cmd_walk(void);
 extern void cmd_run(void);
@@ -360,9 +370,11 @@ extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
 extern void show_recall(byte win, cptr prompt);
-extern void prepare_popup(void);
+extern void prepare_popup(int line_type, bool use_anykey);
 extern void show_popup(void);
-extern void show_peruse(s16b line);
+extern void show_remote_peruse(s16b line);
+extern void show_file_peruse(s16b line);
+extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init(void* param);	/* Client config section */
@@ -381,7 +393,7 @@ extern bool clia_cpy_string(char *dst, int len, int i);
 extern bool clia_cpy_int(s32b *dst, int i);
 extern bool clia_read_string(char *dst, int len, const char *key);
 extern bool clia_read_int(s32b *dst, const char *key);
-extern bool clia_read_bool(s32b *dst, const char *key);
+extern bool clia_read_bool(bool *dst, const char *key);
 
 /* c-init.c */
 extern bool sync_data(void);
@@ -401,6 +413,7 @@ extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
+extern byte c_secondary_tester(int item);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP

@@ -5,7 +5,7 @@ Maintainer: Mangband Project Team <team@mangband.org>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.2
 
-Package: mangband
+Package: mangclient
 Architecture: any
 Depends: libncurses | libX11 | libsdl1.2debian
 Suggests: libncurses , libX11 , libsdl1.2debian

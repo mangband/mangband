@@ -363,7 +363,7 @@ static void keymap_game_prepare(void)
 
 	/* Disable the standard control characters */
 	game_termios.c_cc[VQUIT] = (char)-1;
-	game_termios.c_cc[VERASE] = (char)-1;
+	/* game_termios.c_cc[VERASE] = (char)-1; // allowing BACKSPACE */
 	game_termios.c_cc[VKILL] = (char)-1;
 	game_termios.c_cc[VEOF] = (char)-1;
 	game_termios.c_cc[VEOL] = (char)-1;
@@ -389,7 +389,7 @@ static void keymap_game_prepare(void)
 
 	/* Disable the standard control characters */
 	game_termio.c_cc[VQUIT] = (char)-1;
-	game_termio.c_cc[VERASE] = (char)-1;
+	/* game_termio.c_cc[VERASE] = (char)-1; // allowing BACKSPACE */
 	game_termio.c_cc[VKILL] = (char)-1;
 	game_termio.c_cc[VEOF] = (char)-1;
 	game_termio.c_cc[VEOL] = (char)-1;
@@ -446,7 +446,15 @@ static void keymap_game_prepare(void)
 
 }
 
-
+/* If "best cursor" mode is on, use it */
+static void curs_reset(term_data *td)
+{
+	if (Term->scr->bcv)
+	{
+		wmove(td->win, Term->scr->bcy, Term->scr->bcx);
+		curs_set(1);
+	}
+}
 
 
 /*
@@ -529,6 +537,9 @@ static void Term_init_gcu(term *t)
 	/* Flush changes */
 	(void)wrefresh(td->win);
 
+	/* Enable \e in macro triggers */
+	escape_in_macro_triggers = TRUE;
+
 	/* Game keymap */
 	keymap_game();
 }
@@ -565,6 +576,9 @@ static void Term_nuke_gcu(term *t)
 
 	/* Flush the output */
 	(void)fflush(stdout);
+
+	/* Disable \e in macro triggers */
+	escape_in_macro_triggers = FALSE;
 
 	/* Normal keymap */
 	keymap_norm();
@@ -745,6 +759,9 @@ static errr Term_curs_gcu(int x, int y)
 	/* Literally move the cursor */
 	wmove(td->win, y, x);
 
+	/* Hack -- reset cursor to "best" position */
+	curs_reset(td);
+
 	/* Success */
 	return (0);
 }
@@ -807,6 +824,9 @@ static errr Term_text_gcu(int x, int y, int n, byte a, cptr s)
 
 	/* Add the text */
 	waddstr(td->win, text);
+
+	/* Hack -- move cursor to best postion */
+	curs_reset(td);
 
 	/* Success */
 	return (0);

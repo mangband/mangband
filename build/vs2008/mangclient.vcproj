@@ -40,10 +40,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/D &quot;USE_WIN&quot;"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
-				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -62,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="ws2_32.lib Winmm.lib iphlpapi.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				AdditionalLibraryDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -94,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)\..\..\"
+			OutputDirectory="..\..\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -117,6 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/U &quot;DEBUG&quot;"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;USE_WIN;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
@@ -135,7 +135,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="ws2_32.lib Winmm.lib iphlpapi.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				AdditionalLibraryDirectories="&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -214,7 +214,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib iphlpapi.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				OutputFile="$(OutDir)\$(ProjectName)-sdl.exe"
 				AdditionalLibraryDirectories="&quot;C:\SDL-1.2.15\lib\x86&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
@@ -270,7 +270,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/U&quot;USE_WIN&quot; /D &quot;USE_SDL&quot;"
+				AdditionalOptions="/U&quot;USE_WIN&quot; /D &quot;USE_SDL&quot; /U &quot;DEBUG&quot;"
 				Optimization="2"
 				AdditionalIncludeDirectories="&quot;C:\SDL-1.2.15\include&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;"
 				PreprocessorDefinitions="WINDOWS;WIN32;_MFC_VER;STDVA;_CRT_SECURE_NO_DEPRECATE"
@@ -292,7 +292,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
+				AdditionalDependencies="SDL.lib SDLmain.lib ws2_32.lib iphlpapi.lib Winmm.lib User32.lib Gdi32.lib ComDlg32.Lib"
 				OutputFile="$(OutDir)\$(ProjectName)-sdl.exe"
 				AdditionalLibraryDirectories="&quot;C:\SDL-1.2.15\lib\x86&quot;;&quot;C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib&quot;"
 				GenerateDebugInformation="true"
@@ -385,6 +385,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\lupng.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\maim-sdl.c"
 				>
 			</File>
@@ -421,6 +425,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\miniz.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\net-basics.c"
 				>
 			</File>
@@ -441,7 +449,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\sdl-xxx.c"
+				RelativePath="..\..\src\client\readpng.c"
 				>
 			</File>
 			<File
@@ -483,15 +491,11 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\c-defines.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\c-externs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\const.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\server\defines.h"
 				>
 			</File>
 			<File
@@ -523,11 +527,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\lupng\lupng.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\main-sdl.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\common\md5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\lupng\miniz.h"
 				>
 			</File>
 			<File
@@ -564,10 +576,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\types.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\common\version.h"
 				>
 			</File>
 			<File

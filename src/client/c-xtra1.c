@@ -292,7 +292,7 @@ static void prt_depth(int row, int col, int id)
 	/* Hack -- if indicator index is passed, use value from coffers */
 	if (id != -1)
 	{
-		p_ptr->dun_depth = coffers[coffer_refs[id]];
+		p_ptr->dun_depth = (s16b)coffers[coffer_refs[id]];
 	}
 
 	if (!p_ptr->dun_depth)
@@ -770,7 +770,7 @@ static void display_inven(void)
 		Term_putstr(0, i, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of description */
 		n = strlen(o_name);
@@ -849,7 +849,7 @@ static void display_equip(void)
 		Term_putstr(0, i - INVEN_WIELD, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of the description */
 		n = strlen(o_name);
@@ -940,7 +940,7 @@ void show_inven(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
 		o_name[lim] = '\0';
@@ -948,7 +948,7 @@ void show_inven(void)
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
@@ -992,7 +992,7 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, lim);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
 	}
 
@@ -1049,7 +1049,7 @@ void show_equip(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
 		o_name[lim] = '\0';
@@ -1057,7 +1057,7 @@ void show_equip(void)
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
@@ -1773,7 +1773,7 @@ int find_whisper_tab(cptr msg, char *text)
 	if ((offset = strstr(msg, from_us)) != NULL)
 	{
 		/* To who */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Short text */
 		pmsg = msg + (offset - msg) + strlen(from_us) + 1;
@@ -1783,7 +1783,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (strstr(msg, to_us) != NULL)
 	{
 		/* From who */
-		strcpy(buf, msg + strlen(to_us));
+		my_strcpy(buf, msg + strlen(to_us), sizeof(buf));
 		offset = strstr(msg, "]");
 		buf[offset - msg - strlen(to_us)] = '\0';
 		/* Short text */
@@ -1793,10 +1793,10 @@ int find_whisper_tab(cptr msg, char *text)
 	else if ((offset = strstr(msg, ":")))
 	{
 		/* Destination */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Sender */
-		strcpy(from_us, offset + 1);
+		my_strcpy(from_us, offset + 1, sizeof(from_us));
 		pmsg = strstr(offset, "]");
 		from_us[pmsg - offset - 1] = '\0';
 		/* Short text */
@@ -1807,8 +1807,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (msg[0] == '&')
 	{
 		/* Dest. */
-		strcpy(buf, msg);
-		buf[strlen(msg)] = '\0';
+		my_strcpy(buf, msg, sizeof(buf));
 	}
 	
 	if (STRZERO(buf)) return 0;
@@ -1980,6 +1979,9 @@ byte find_chat_window(void)
 
 		/* No relevant flags */
 		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
+
+		/* XXX XXX XXX special win32 handler :( */
+		if (!win32_window_visible(j)) continue;
 
 		return j;
 	}
@@ -2969,8 +2971,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Cut */
+				if (cut < 0) cut = 0;
 				if (cut)
 				{
+					if (cut >= sizeof(tmp)) cut = sizeof(tmp)-1;
 					tmp[(n = cut)] = '\0';
 				}
 
@@ -3021,7 +3025,7 @@ void redraw_stuff(void)
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
-	u32b old_redraw = p_ptr->redraw;
+	u64b old_redraw = p_ptr->redraw;
 
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;

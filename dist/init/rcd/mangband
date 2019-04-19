@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# PROVIDE: mangband
+# REQUIRE: DAEMON cleanvar networking
+# BEFORE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=mangband
+
+rcvar=${name}_enable
+binfile="/usr/local/bin/${name}"
+pidfile="/var/run/${name}.pid"
+logfile="/var/log/${name}.log"
+
+# MAngband can daemonize itself, so we use daemon(8)
+# XXX XXX XXX
+#     Never run mangband as root! Add -u mangband or similar to command_args!
+# XXX XXX XXX
+
+command="/usr/sbin/daemon"
+command_args="-c -o ${logfile} -R 5 -P ${pidfile} -t ${name} ${binfile}"
+# notes on daemon(8) args:
+# -c switch working directory to '/'
+# -o log to logfile (don't want to clutter syslog, but if you do, use -S instead)
+# -R 5 supervise child and restart after 5 seconds
+# -P write supervisor PID into pidfile (this is important, do not use -p)
+#    daemon(8) will correctly forward all signals to the child process
+# -t changes the process title (which is nicer than full invokation)
+
+load_rc_config $name
+run_rc_command "$1"

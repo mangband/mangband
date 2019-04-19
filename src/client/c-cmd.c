@@ -15,6 +15,7 @@ void cmd_custom(byte i)
 	cptr prompt;
 	char entry[60];
 	bool need_second, need_target;
+	byte second_item_tester = 0;
 
 	/* Byte is always 0, check if its > max */
 	if (i > custom_commands) return;
@@ -63,10 +64,10 @@ void cmd_custom(byte i)
 	}
 	else */ if (cc_ptr->flag & COMMAND_INTERACTIVE)
 	{
-		special_line_type = cc_ptr->tval;
+		int line_type = cc_ptr->tval;
+		bool use_anykey = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
 		strcpy(special_line_header, prompt);
-		interactive_anykey_flag = (cc_ptr->flag & COMMAND_INTERACTIVE_ANYKEY) ? TRUE : FALSE;
-		cmd_interactive();
+		cmd_interactive(line_type, use_anykey);
 		return;
 	}
 	/* Search for an item (automatic) */
@@ -117,6 +118,7 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
 				return;
+		second_item_tester = c_secondary_tester(item);
 		advance_prompt();
 
 		/* Get an amount */
@@ -194,6 +196,7 @@ void cmd_custom(byte i)
 			{
 				need_target = (spell_flag[index] & PY_SPELL_AIM  ? TRUE : FALSE);
 				need_second = (spell_flag[index] & PY_SPELL_ITEM ? TRUE : FALSE);
+				if (need_second) second_item_tester = spell_test[index];
 			}
 		}
 	} 
@@ -201,6 +204,7 @@ void cmd_custom(byte i)
 	if (need_second) /* cc_ptr->flag & COMMAND_NEED_SECOND) */
 	{
 		if (STRZERO(prompt)) prompt = "Which item? ";
+		item_tester_tval = second_item_tester;
 		if (!c_get_item(&item2, prompt,
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
@@ -503,18 +507,27 @@ void process_requests()
 	if (pause_requested)
 	{
 		pause_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		section_icky_row = Term->hgt;
 		section_icky_col = Term->wid;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, TRUE);
+	}
+	if (local_browser_requested)
+	{
+		local_browser_requested = FALSE;
+		peruse_file();
+	}
+	if (simple_popup_requested)
+	{
+		simple_popup_requested = FALSE;
+		prepare_popup(0, TRUE);
 	}
 	if (special_line_requested)
 	{
+		//int type = special_line_requested;
 		special_line_requested = FALSE;
-		interactive_anykey_flag = TRUE;
 		//cmd_interactive();
-		prepare_popup();
+		prepare_popup(0, FALSE);
 	}
 	if (confirm_requested)
 	{
@@ -610,6 +623,10 @@ void cmd_rest(void)
 
 void cmd_inven(void)
 {
+	/* show_inven() might not show anything, yet we still pause the screen,
+	 * using inkey() below. To avoid all that altogether, let's quit early */
+	if (inventory[0].number == 0) return;
+
 	/* Save the screen */
 	Term_save();
 
@@ -946,25 +963,24 @@ void cmd_character(void)
 }
 
 
-void cmd_interactive()
+void cmd_interactive(byte line_type, bool use_anykey)
 {
 	char ch;
 	bool done = FALSE;
-	bool use_anykey = interactive_anykey_flag; /* Copy it to local var, it might change */
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky) return;
 
 	/* The screen is icky */
 	screen_icky = TRUE;
-
 	special_line_onscreen = TRUE;
+	//special_line_type = line_type;
 
 	/* Save the screen */
 	Term_save();
 
 	/* Send the request */
-	send_interactive(special_line_type);
+	send_interactive(line_type);
 
 	/* Wait until we get the whole thing */
 	while (!done)
@@ -984,17 +1000,13 @@ void cmd_interactive()
 			break;
 	}
 
-	interactive_anykey_flag = FALSE;
-
 	/* Reload the screen */
 	Term_load();
 
 	/* The screen is OK now */
 	screen_icky = FALSE;
-
 	special_line_onscreen = FALSE;
-
-	special_line_type = 0;//SPECIAL_FILE_NONE;
+	//special_line_type = 0;
 
 	/* Flush any queued events */
 	Flush_queue();
@@ -1105,7 +1117,7 @@ void cmd_message(void)
 	bool refocus_chat = FALSE;
 #ifdef USE_WIN
 #ifdef PMSG_TERM
-	refocus_chat = ang_term[PMSG_TERM] ? TRUE : FALSE;
+	refocus_chat = win32_window_visible(PMSG_TERM) ? TRUE : FALSE;
 #endif
 #endif
 	// [hack] hack to just change the window focus in WIN32 client

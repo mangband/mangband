@@ -1608,7 +1608,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	player_type *p_ptr = Players[Ind];
 	int i;
 	bool found = FALSE;
-	
+
 	/* Let the player scroll through this info */
 	p_ptr->special_file_type = TRUE;
 
@@ -1622,8 +1622,8 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 		{
 			/* Monster name */
 			text_out("\n  ");
-		
-			/* Dump info into player */
+
+			/* Dump info onto player */
 			describe_monster(Ind, i, FALSE);
 
 			/* Track first race */
@@ -1633,16 +1633,16 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 			found = TRUE;
 		}
 	}
-	
+
 	if (!found)
-		text_out("You fail to remember any monsters of this kind");
-		
+		text_out("You fail to remember any monsters of this kind.\n");
+
 	/* Restore height and width of current dungeon level */
 	text_out_done();
 
 	/* Notify player */
-	Send_special_other(Ind, format("Monster Recall ('%c')", c));
-	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+	send_term_header(p_ptr, NTERM_BROWSE | NTERM_CLEAR, format("Monster Recall ('%c')", c));
+	send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE | NTERM_ICKY);
 	return;
 }
 
@@ -1650,7 +1650,6 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 {
 	player_type *p_ptr = Players[Ind];
-	int i;
 
 	/* Prepare player structure for text */
 	text_out_init(Ind);
@@ -1667,11 +1666,11 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	/* Send this text */
 	if (p_ptr->stream_hgt[STREAM_MONSTER_TEXT])
 	{
-		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT);
+		send_prepared_info(p_ptr, NTERM_WIN_MONSTER, STREAM_MONSTER_TEXT, 0);
 	}
-	else
+	else /* HACK -- do not send this while user is busy! */ if (p_ptr->special_file_type < SPECIAL_FILE_OTHER+1)
 	{
-		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT);
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_ICKY);
 	}
 
 	return;

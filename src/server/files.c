@@ -1506,7 +1506,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	}
 
 	/* Wipe the hooks */
-	for (k = 0; k < 10; k++) p_ptr->interactive_hook[k][0] = '\0';
+	for (k = 0; k < 26; k++) p_ptr->interactive_hook[k][0] = '\0';
 
 	/* Parse the file */
 	while (TRUE)
@@ -1547,7 +1547,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 		if (next <= line) continue;
 
 		/* Too much */
-		if (line + MAX_TXT_INFO < next) continue;
+		if (i >= MAX_TXT_INFO) continue;
 
 		/* Extract color */
 		if (color) attr = color_char_to_attr(buf[0]);
@@ -1573,7 +1573,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	p_ptr->interactive_size = next;
 
 	/* Save last dumped line */
-	p_ptr->last_info_line = i;
+	p_ptr->last_info_line = i - 1;
 
 	/* Close the file */
 	file_close(fff);
@@ -2074,26 +2074,12 @@ bool process_player_name(player_type *p_ptr, bool sf)
 	
 	ret = process_player_name_aux(p_ptr->name, p_ptr->basename, FALSE);
 
-	/* Cannot be too long */
-	if (ret == -1)
+	/* Name is too long or contained illegal characters */
+	if (ret < 0)
 	{
-		/* Name too long */
-		Destroy_connection(p_ptr->conn, "Your name is too long!");
-
 		/* Abort */
 		return FALSE;
 	}
-
-	/* Cannot contain "icky" characters */
-	if (ret == -2)
-	{
-		/* Illegal characters */
-		Destroy_connection(p_ptr->conn, "Your name contains control chars!");
-
-		/* Abort */
-		return FALSE;
-	}
-	
 
 	/* Change the savefile name */
 	if (sf)
@@ -2136,7 +2122,6 @@ void get_name(int Ind)
  */
 void do_cmd_suicide(int Ind)
 {
-	int i;
 	player_type *p_ptr = Players[Ind];
 
 	/* Mark as suicide */
@@ -2647,7 +2632,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 			clev);
 
 		/* Append a "maximum level" */
-		if (mlev > clev) strcat(out_val, format(" (Max %d)", mlev));
+		if (mlev > clev) my_strcat(out_val, format(" (Max %d)", mlev), sizeof(out_val));
 
 		/* Dump the first line */
 		file_putf(fff, "%s\n", out_val);
@@ -2785,7 +2770,7 @@ static errr top_twenty(int Ind)
 	the_score.gold[9] = '\0';
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 #ifdef HIGHSCORE_DATE_HACK
 	/* Save the date in a hacked up form (9 chars) */
@@ -2876,7 +2861,7 @@ static errr predict_score(int Ind, int line)
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
 
 	/* Save the current turn */
-	strcpy(the_score.turns, ht_show(&turn,0));	
+	my_strcpy(the_score.turns, ht_show(&turn,0), sizeof(the_score.turns));
 
 	/* Hack -- no time needed */
 	strcpy(the_score.day, "TODAY");
@@ -3549,8 +3534,13 @@ void signals_init(void)
 
 #ifdef SIGHUP
 	(void)signal(SIGHUP, SIG_IGN);
+
+#ifdef TARGET_OS_OSX
+	/* Closing Terminal.app on OSX sends SIGHUP, let's not ignore it! */
+	(void)signal(SIGHUP, handle_signal_abort);
 #endif
 
+#endif
 
 #ifdef SIGTSTP
 	(void)signal(SIGTSTP, handle_signal_suspend);
