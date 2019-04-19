@@ -2719,6 +2719,9 @@ bool banishment(int Ind)
 
 	int d = 999, tmp;
 
+	/* Hack -- Disable in dwarven halls */
+	if (cfg_ironman && (!p_ptr->dun_depth % 20)) return TRUE;
+
 	/* Search all monsters and find the closest */
 	for (i = 1; i < m_max; i++)
 	{
@@ -2817,6 +2820,8 @@ bool mass_banishment(int Ind)
 
 	/*int		msec = delay_factor * delay_factor * delay_factor;*/
 
+	/* Hack -- Disable in dwarven halls */
+	if (cfg_ironman && (!p_ptr->dun_depth % 20)) return TRUE;
 
 	/* Delete the (nearby) monsters */
 	for (i = 1; i < m_max; i++)

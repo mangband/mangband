@@ -103,6 +103,11 @@ static void excise_object_idx(int o_idx)
       int y = j_ptr->iy; 
       int x = j_ptr->ix; 
         int Depth = j_ptr->dun_depth; 
+        /* Paranoia -- this actually happened */
+        if (!cave[Depth]) {
+            plog_fmt("Error! Attempting to excide object %d on unallocated level %d", o_idx, Depth);
+            return;
+        }
         cave_type *c_ptr = &cave[Depth][y][x]; 
         int i; 
 

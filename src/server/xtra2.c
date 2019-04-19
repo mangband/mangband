@@ -2006,7 +2006,9 @@ void monster_death(int Ind, int m_idx)
 		i_ptr = &object_type_body;
 
 		/* Copy the object */
-		object_copy(i_ptr, o_ptr);
+		//Paranoia -- we don't trust object_copy for some reason..
+		//object_copy(i_ptr, o_ptr);
+		COPY(i_ptr, o_ptr, object_type);
 
 		/* Delete the object */
 		delete_object_idx(this_o_idx);
