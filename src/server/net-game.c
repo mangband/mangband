@@ -928,6 +928,7 @@ int recv_command(connection_type *ct, player_type *p_ptr)
 	}
 
 	/* OK */
+	p_ptr->commands_queued += 1;
 	return 1;
 }
 
@@ -1449,6 +1450,9 @@ int recv_clear(connection_type *ct, player_type *p_ptr)
 {
 	/* Clear player's "command buffer" */
 	cq_clear(&p_ptr->cbuf);
+	/* XXX Also reset counter XXX (For display purposes only) XXX */
+	if (p_ptr->commands_queued) p_ptr->redraw |= (PR_TIMING);
+	p_ptr->commands_queued = 0;
 	return 1;
 }
 
@@ -1996,6 +2000,10 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 
 	/* Paranoia -- player did not have enough energy to execute the command */
 	if (result == 0) return;
+
+	/* Decrease counter and send it to player (later) */
+	p_ptr->commands_queued -= 1;
+	p_ptr->redraw |= (PR_TIMING);
 
 	/* Hack -- Add noise for commands that cost energy */
 	if (pcommand_energy_cost[pkt])

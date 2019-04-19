@@ -1195,6 +1195,7 @@ struct player_type
 	int state;	/* Player state, see "pack.h" */
 	int idle;	/* Number of seconds this player is idle */
 	cq cbuf;	/* Command Queue */
+	int commands_queued;	/* Keep count for an indicator */
 
 	s32b id;		/* Unique ID to each player */
 

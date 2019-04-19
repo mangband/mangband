@@ -386,6 +386,9 @@
 #define IN_HISTORY3 	35
 #define IN_NAME     	36
 #define IN_GENDER   	37
+/* Extra indicators */
+#define IN_TIMING   	38
+#define IN_TIMING_CMD  	39
 
 /*** Screen Locations ***/
 

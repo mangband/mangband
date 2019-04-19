@@ -611,6 +611,10 @@ int second_tick(int data1, data data2) {
 	/* Add 1 second to everyone's idle timer */
 	for (i = 1; i < p_max + 1; i++) 
 	{
+		/* Hack -- send TIMING INFO every second */
+		/* XXX TODO: utilize delta checks, to send less often! */
+		p_list[i]->redraw |= (PR_TIMING);
+
 		/* Increase and test for timeout */
 		if (p_list[i]->idle++ > 15) 
 		{

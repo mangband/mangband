@@ -1452,6 +1452,44 @@ static void health_redraw(int Ind)
 #endif
 }
 
+/* Print "timing" info -- Time Bubble state, energy, turns queued */
+void prt_timing(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	byte color;
+	byte energy_percent;
+	byte commands_queued;
+	int energy, timefactor;
+
+	/* Start with default white */
+	color = TERM_WHITE;
+
+	/* See if we're in some interesting time bubble */
+	timefactor = base_time_factor(Ind, 0);
+	if (timefactor < NORMAL_TIME) color = TERM_VIOLET;
+	else if (timefactor > NORMAL_TIME) color = TERM_YELLOW;
+	/* War mode! */
+	if ((p_ptr->resting || p_ptr->running) /* Time should've been sped up */
+	&& (timefactor == NORMAL_TIME)) /* But it isn't */
+		color = TERM_RED;
+
+	/* Energy as percentage */
+	energy = 10L * p_ptr->energy / level_speed(p_ptr->dun_depth);
+	energy_percent = (byte)energy;
+	if (energy_percent == 0 && energy > 0) energy_percent = 1;
+
+	/* Cap commands queued at 99 */
+	commands_queued = p_ptr->commands_queued;
+	if (commands_queued > 99) commands_queued = 99;
+
+#ifndef DEBUG
+	if (color != TERM_VIOLET) color = 0;
+#endif
+
+	send_indication(Ind, IN_TIMING, (s16b)color, (s16b)energy_percent);
+	send_indication(Ind, IN_TIMING_CMD, commands_queued);
+}
 
 
 /*
@@ -3391,6 +3429,12 @@ void redraw_stuff(int Ind)
 		p_ptr->redraw &= ~(PR_HISTORY);
 		prt_history(Ind);
 	}*/
+	
+	if (p_ptr->redraw & PR_TIMING)
+	{
+		p_ptr->redraw &= ~(PR_TIMING);
+		prt_timing(Ind);
+	}
 	
 	if (p_ptr->redraw & PR_OFLAGS)
 	{

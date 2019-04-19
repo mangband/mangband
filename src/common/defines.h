@@ -584,6 +584,7 @@
 /* xxx */
 #define PR_OPPOSE_ELEMENTS	0x01000000L	/* Display temp. resists */
 #define PR_LAG_METER	0x02000000L	/* Display lag meter */
+#define PR_TIMING	0x00000400L	/* Display Turn Info */
 
 /* Display Basic Info */
 #define PR_BASIC \

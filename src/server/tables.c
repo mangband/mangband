@@ -822,6 +822,18 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(0), "hist_gender_"
 	},
 
+	/** Timing indicator **/
+	{
+		INDICATOR_PKT(TIMING, TINY, 2),	IPW_1, -2, -13,
+		(IN_TEXT_CUT), "\a ____________\a \r\f%----------",
+		(PR_TIMING), "timing0"
+	},
+	{
+		INDICATOR_PKT(TIMING_CMD, TINY, 1),	IPW_1, -2, -3,
+		(0), "\aW%2d",
+		(0), "timing1"
+	},
+
 	/** Clones **/
 	{
 		INDICATOR_CLONE(RACE, 0), 	IPW_3 | IPW_4 | IPW_5,	4,	1,

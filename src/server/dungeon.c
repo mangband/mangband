@@ -943,6 +943,7 @@ static void player_track_monster(int Ind)
 static void process_player_begin(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
+	int old_energy;
 	int energy;
 
 	/* HACK -- Do not proccess while changing levels */
@@ -964,6 +965,9 @@ static void process_player_begin(int Ind)
 		energy = energy * ((float)RUNNING_FACTOR / 100);
 	}
 
+	/* Remember how much he had */
+	old_energy = p_ptr->energy;
+
 	/* Give the player some energy */
 	p_ptr->energy += energy;
 
@@ -982,6 +986,10 @@ static void process_player_begin(int Ind)
 	/* Handle paralysis here */
 	if (p_ptr->paralyzed || p_ptr->stun >= 100)
 		p_ptr->energy = 0;
+
+	/* In the end, has his energy changed? */
+	if (p_ptr->energy != old_energy)
+		p_ptr->redraw |= (PR_TIMING);
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
 	if ((p_ptr->teleport) && (rand_int(100) < 1))
