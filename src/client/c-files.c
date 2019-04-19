@@ -2248,7 +2248,7 @@ void write_file_info(byte ftype, cptr filename)
 			if (binary) fprintf(fff, "%c", p_ptr->file[j][i].a);
 			fprintf(fff, "%c", p_ptr->file[j][i].c);
 		}
-		fprintf(fff, "%c", '\n');
+		if (!binary) fprintf(fff, "%c", '\n');
 	}
 
 	my_fclose(fff);
