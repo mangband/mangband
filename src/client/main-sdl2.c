@@ -42,6 +42,11 @@ NOTES:
 double fmin(double x, double y) {
   return (x < y ? x : y);
 }
+#define WM_DESKTOP_OFFSET 64
+#define WM_TITLEBAR_OFFSET 16
+#else
+#define WM_DESKTOP_OFFSET 0
+#define WM_TITLEBAR_OFFSET 16
 #endif
 
 /* Color definitions. Carefully copied from kettek's values. */
@@ -297,7 +302,7 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
 		SDL_DisplayMode DM;
 		SDL_GetCurrentDisplayMode(0, &DM);
 		td->width = DM.w;
-		td->height = DM.h;
+		td->height = DM.h - WM_DESKTOP_OFFSET;
 	}
 	if (td->width < width) td->width = width;
 	if (td->height < height) td->height = height;
@@ -1675,17 +1680,21 @@ static void termConstrain(int i) {
 	SDL_Rect screen;
 	SDL_Rect t;
 	TermData *td = &terms[i];
+	int y_offset = 0;
 	if (!(td->config & TERM_IS_ONLINE)) return;
 
 	termSizeScreen(&screen, i);
 	termSizeRect(&t, i);
 
+	/* XXX HACK XXX Adjust window size for external WM titlebar */
+	if (!(td->config & TERM_IS_VIRTUAL)) y_offset = WM_TITLEBAR_OFFSET;
+
 	if (t.x < 0) t.x = 0;
 	if (t.y < 0) t.y = 0; /* then right */
 	if (t.x + t.w > screen.w) t.x = screen.w - t.w;
-	if (t.y + t.h > screen.h) t.y = screen.h - t.h;
+	if (t.y + t.h > screen.h - y_offset) t.y = screen.h - y_offset - t.h;
 	if (t.x < 0) t.x = 0; /* left again */
-	if (t.y < 0) t.y = 0;
+	if (t.y < - y_offset) t.y = - y_offset;
 
 	if (td->config & TERM_IS_VIRTUAL) {
 		td->ren_rect.x = t.x;
@@ -1709,7 +1718,6 @@ static void termSpawn(int i) {
 	terms[i].config &= ~TERM_IS_HIDDEN;
 	initTermData(&terms[i], ang_term_name[i], i, NULL);
 	applyTermConf(&terms[i]);
-	termStack(i);
 	setTermTitle(&terms[i]);
 	refreshTerm(&terms[i]);
 	ang_term[i] = &(terms[i].t);
@@ -2274,13 +2282,13 @@ static errr handleMenu(int i, int x, int y) {
 			/* Become a real window */
 			td->config &= ~TERM_IS_VIRTUAL;
 			td->x = td->ren_rect.x + terms[TERM_MAIN].x;
-			td->y = td->ren_rect.y + terms[TERM_MAIN].y - 16;
+			td->y = td->ren_rect.y + terms[TERM_MAIN].y - WM_TITLEBAR_OFFSET;
 			td->ren_rect.x = 0;
 			td->ren_rect.y = 0;
 		} else {
 			td->config |= TERM_IS_VIRTUAL;
 			td->ren_rect.x = td->x - terms[TERM_MAIN].x;
-			td->ren_rect.y = td->y - terms[TERM_MAIN].y + 16;
+			td->ren_rect.y = td->y - terms[TERM_MAIN].y + WM_TITLEBAR_OFFSET;
 		}
 		/* Invalidate framebuffer */
 		td->fb_w = 0;
@@ -2383,6 +2391,8 @@ static errr handleMenu(int i, int x, int y) {
 			termClose(j);
 		} else {
 			termSpawn(j);
+			if (terms[j].x < 0 || terms[j].y < 0 || terms[j].ren_rect.x < 0 || terms[j].ren_rect.y < 0)
+				termStack(j);
 			termConstrain(j);
 		}
 	}
@@ -2456,9 +2466,9 @@ static errr loadConfig() {
 	strcpy(default_font, "nethack10x19-10.hex");
 	strcpy(default_font_small, "misc6x13.hex");
     }
-    /* Assume quickfont-1 is our default small font. (for now) */
+    /* Assume quickfont-1 is our default large font. (for now) */
     if (f > 1) {
-	strcpy(default_font_small, quick_font_names[1]);
+	strcpy(default_font, quick_font_names[1]);
     }
 
   value = conf_get_string("SDL2", "font_file", default_font);
