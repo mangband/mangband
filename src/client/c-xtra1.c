@@ -2971,8 +2971,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Cut */
+				if (cut < 0) cut = 0;
 				if (cut)
 				{
+					if (cut >= sizeof(tmp)) cut = sizeof(tmp)-1;
 					tmp[(n = cut)] = '\0';
 				}
 
@@ -3023,7 +3025,7 @@ void redraw_stuff(void)
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
-	u32b old_redraw = p_ptr->redraw;
+	u64b old_redraw = p_ptr->redraw;
 
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;

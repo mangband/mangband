@@ -866,7 +866,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 	{
 		/* Get a second item (unless KNOWN not to need it) */
 		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
-		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_STAR_ENCHANT_WEAPON)
+		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_RECHARGING)
 		|| !object_aware_p(p_ptr, o_ptr) )
 		{
 			flag |= ITEM_ASK_ITEM;
@@ -886,6 +886,8 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 				case SV_SCROLL_ENCHANT_ARMOR:
 				case SV_SCROLL_STAR_ENCHANT_ARMOR:
 					*secondary_tester = item_test(ARMOR);
+				case SV_SCROLL_RECHARGING:
+					*secondary_tester = item_test(RECHARGE);
 				default: break;
 			}
 		}
@@ -4676,7 +4678,38 @@ void reorder_pack(int Ind)
 }
 
 
+/*
+ * Hack -- find out if a player is standing on an object "o_idx", and redraw
+ * the floor info. Objects in "o_list" do not have a pointer back into cave
+ * grids, so we can't determine which grid is affected; thus we'll have
+ * to iterate over all the players (it's better than iterating over
+ * all grids of all dungeon levels, which would be another way of doing it).
+ */
+static void notify_player_standing_on(int o_idx)
+{
+	int Ind;
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
+	{
+		player_type *p_ptr = Players[Ind];
+		int Depth = p_ptr->dun_depth;
+		cave_type *c_ptr;
 
+		/* Skip players changing levels */
+		if (p_ptr->new_level_flag || !cave[Depth]) continue;
+
+		/* Get the grid */
+		c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
+
+		/* Is that the same grid? */
+		if (c_ptr->o_idx == o_idx)
+		{
+			/* Yes, let's schedule floor redraw */
+			p_ptr->redraw |= (PR_FLOOR);
+			/* Only one player can occupy a grid, so we're done */
+			break;
+		}
+	}
+}
 
 /*
  * Hack -- process the objects
@@ -4727,6 +4760,9 @@ void process_objects(void)
 
 			/* Boundary control */
 			if (o_ptr->timeout < 0) o_ptr->timeout = 0;
+
+			/* Notify player standing on top of that item */
+			notify_player_standing_on(i);
 		}
 	}
 

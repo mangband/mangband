@@ -1044,7 +1044,8 @@ static void process_player_end(int Ind)
 	}
 
 	/* Handle running */
-	if((p_ptr->energy >= level_speed(p_ptr->dun_depth)) && p_ptr->running)
+	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))
+	&& (p_ptr->running || p_ptr->run_request))
 	{
 		run_step(Ind, 0);
 	}
@@ -1715,6 +1716,9 @@ static void process_player_end(int Ind)
 				/* Show everyone that he's left */
 				everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 
+				/* Tell everyone to re-calculate visiblity for this player */
+				update_player(Ind);
+
 				/* Forget his lite and view */
 				forget_lite(Ind);
 				forget_view(Ind);
@@ -2272,6 +2276,7 @@ void dungeon(void)
 		update_view(i);
 		update_lite(i);
 		update_monsters(TRUE);
+		update_players();
 
 		/* Clear the flag */
 		p_ptr->new_level_flag = FALSE;
@@ -2544,12 +2549,17 @@ void shutdown_server(void)
 
 		/* Indicate cause */
 		strcpy(p_ptr->died_from, "server shutdown");
-
+#if 1
+//TODO: re-enable nicer messaging
+		player_disconnect(p_ptr, "Server shutdown");
+		player_leave(1);
+#else
 		/* Try to save */
 		if (!player_leave(1)) player_disconnect(p_ptr, "Server shutdown (save failed)");
 
 		/* Successful save */
 		player_disconnect(p_ptr, "Server shutdown (save succeeded)");
+#endif
 	}
 
 	/* Now wipe every object, to preserve artifacts on the ground */

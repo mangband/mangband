@@ -2846,7 +2846,7 @@ void player_death(int Ind)
 	/* Normal death */
 	if (p_ptr->fruit_bat == -1)
 		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-	else if (!cfg_ironman) /* Notice bravery */
+	else if (!cfg_ironman && option_p(p_ptr, NO_GHOST)) /* Notice bravery */
 		sprintf(buf, "The brave hero %s the level %i %s %s was killed by %s.",
 		    p_ptr->name, p_ptr->lev,
 		    p_name + p_info[p_ptr->prace].name,
@@ -5184,6 +5184,22 @@ bool monsters_in_los(player_type *p_ptr)
 			break;
 		}
 	}
+	/* Hostile players count as monsters */
+	if (!los) for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *q_ptr = Players[i];
+		if (q_ptr == p_ptr) continue; /* Skip self */
+
+		/* Check this player */
+		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
+		{
+			if (check_hostile(Get_Ind[p_ptr->conn], i))
+			{
+				los = TRUE;
+				break;
+			}
+		}
+	}
 	return los;
 }
 
@@ -5315,7 +5331,7 @@ void show_motd(player_type *p_ptr)
 	byte old_term;
 
 	/* Copy to info buffer */
-	for (i = 0; i < 20; i++)
+	for (i = 0; i < 24; i++)
 	{
 		for (k = 0; k < 80; k++)
 		{
@@ -7264,8 +7280,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 
 	switch (hook_q)
 	{
-		case 'k': case 127: hook_type = 128; break; /* Del */
-		case 's': /* Select */	
+		case 'k': case 127: case '\b': hook_type = 128; break; /* Del */
+		case 's': /* Select */
 
 		p_ptr->master_parm = (MASTER_SELECT | (u32b)ox | ((u32b)oy << 8));
 
@@ -7311,7 +7327,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	/* Success */
 	if (hook_type--)
 	{
-		if (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT)
+		if ((hook_type <= MASTER_MAX_HOOKS)
+		&& (p_ptr->master_hook[hook_type] == DM_PAGE_PLOT))
 		{
 			byte old_hook = p_ptr->master_hook[hook_type];
 			u32b old_args = p_ptr->master_args[hook_type];

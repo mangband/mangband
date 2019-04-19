@@ -2821,8 +2821,6 @@ errr init_x11(int argc, char **argv)
 
 	cptr dpy_name = "";
 
-	int num_term = 8;
-
 #ifdef USE_GRAPHICS
 
 	cptr bitmap_file = "";
@@ -2836,7 +2834,6 @@ errr init_x11(int argc, char **argv)
 #endif /* USE_GRAPHICS */
 
 	/* Global config */
-	num_term = conf_get_int("X11", "Terms", num_term);
 	use_graphics = conf_get_int("X11", "Graphics", use_graphics);
 
 	/* Parse args */
@@ -2881,14 +2878,6 @@ errr init_x11(int argc, char **argv)
 		}
 
 #endif /* USE_GRAPHICS */
-
-		if (prefix(argv[i], "-n"))
-		{
-			num_term = atoi(&argv[i][2]);
-			if (num_term > MAX_TERM_DATA) num_term = MAX_TERM_DATA;
-			else if (num_term < 1) num_term = 1;
-			continue;
-		}
 
 		plog_fmt("Ignoring option: %s", argv[i]);
 	}
@@ -2937,7 +2926,7 @@ errr init_x11(int argc, char **argv)
 
 
 	/* Initialize the windows */
-	for (i = 0; i < num_term; i++)
+	for (i = 0; i < MAX_TERM_DATA; i++)
 	{
 		term_data *td = &tdata[i];
 
@@ -2968,7 +2957,7 @@ errr init_x11(int argc, char **argv)
 	{
 	case GRAPHICS_ADAM_BOLT:
 		/* Use tile graphics of Adam Bolt */
-		bitmap_file = "16x16.bmp";
+		bitmap_file = "16x16.png";
 
 		/* Try the "16x16.bmp" file */
 		path_build(filename, 1024, ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
@@ -2990,7 +2979,7 @@ errr init_x11(int argc, char **argv)
 
 	case GRAPHICS_ORIGINAL:
 		/* Use original tile graphics */
-		bitmap_file = "8x8.bmp";
+		bitmap_file = "8x8.png";
 
 		/* Try the "8x8.bmp" file */
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
@@ -3010,7 +2999,7 @@ errr init_x11(int argc, char **argv)
 
 	case GRAPHICS_DAVID_GERVAIS:
 		/* Use tile graphics of David Gervais */
-		bitmap_file = "32x32.bmp";
+		bitmap_file = "32x32.png";
 
 		/* Use graphics */
 		use_graphics = GRAPHICS_DAVID_GERVAIS;
@@ -3030,7 +3019,7 @@ errr init_x11(int argc, char **argv)
 		XImage *tiles_raw;
 
 		/* Initialize */
-		for (i = 0; i < num_term; i++)
+		for (i = 0; i < MAX_TERM_DATA; i++)
 		{
 			term_data *td = &tdata[i];
 			td->tiles = NULL;
@@ -3039,12 +3028,17 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Load the graphical tiles */
+		if (isuffix(bitmap_file, ".png"))
+		{
+			tiles_raw = ReadPNG(dpy, filename);
+		} else
+		
 		tiles_raw = ReadBMP(dpy, filename);
 
 		if (tiles_raw)
 		{
 			/* Initialize the windows */
-			for (i = 0; i < num_term; i++)
+			for (i = 0; i < MAX_TERM_DATA; i++)
 			{
 				int j;
 				bool same = FALSE;
@@ -3090,9 +3084,9 @@ errr init_x11(int argc, char **argv)
 			/* Free tiles_raw */
 			FREE(tiles_raw);
 		}
-                        
+
 		/* Initialize the transparency masks */
-		for (i = 0; i < num_term; i++)
+		for (i = 0; i < MAX_TERM_DATA; i++)
 		{
 			term_data *td = &tdata[i];
 			int ii, jj;
@@ -3119,9 +3113,7 @@ errr init_x11(int argc, char **argv)
 #endif /* USE_GRAPHICS */
 
 	/* Activate hook */
-	// We aren't doing anything special in the quit hook, so let's just use
-	// the default one.
-	//quit_aux = hook_quit;
+	quit_aux = hook_quit;
 
 	/* Success */
 	return (0);

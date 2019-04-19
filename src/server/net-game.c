@@ -1653,7 +1653,7 @@ static int recv_walk(player_type *p_ptr) {
 	/* Disturb if running or resting */
 	if (p_ptr->running || p_ptr->resting)
 	{
-		disturb(Ind, 0, 0);
+		disturb(Ind, 0, 1);
 		return 1;
 	}
 
@@ -1683,7 +1683,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 
 	if (p_ptr->resting)
 	{
-		disturb(Ind, 0, 0);
+		disturb(Ind, 0, 1);
 		return 1;
 	}
 
@@ -1709,7 +1709,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	/* If we don't have enough energy to rest, disturb us (to stop
 	 * us from running) and queue the command.
 	 */
-	disturb(Ind, 0, 0);
+	disturb(Ind, 0, 1);
 
 	/* Try again later */
 	return 0;
@@ -1982,7 +1982,7 @@ void do_cmd__before(player_type *p_ptr, byte pkt)
 	/* Command is going to cost energy -- disturb if resting */
 	if (pcommand_energy_cost[pkt] && p_ptr->resting)
 	{
-		disturb(Get_Ind[p_ptr->conn], 0, 0);
+		disturb(Get_Ind[p_ptr->conn], 0, 1);
 	}
 }
 

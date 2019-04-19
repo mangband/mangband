@@ -258,6 +258,8 @@ bool use_old_target;
 
 bool ignore_birth_options;
 
+bool escape_in_macro_triggers = FALSE;
+
 int char_screen_mode;
 bool target_recall;
 char target_prompt[60];

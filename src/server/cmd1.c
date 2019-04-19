@@ -702,6 +702,9 @@ void carry(int Ind, int pickup, int confirm)
 
 		/* Delete gold */
 		delete_object(Depth, p_ptr->py, p_ptr->px);
+
+		/* Tell the client */
+		floor_item_notify(Ind, 0, FALSE);
 	}
 
 	/* Pick it up */
@@ -934,6 +937,9 @@ static void hit_trap(int Ind)
 
 			/* Show everyone that he's left */
 			everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+
+			/* Tell everyone to re-calculate visiblity for this player */
+			update_player(Ind);
 
 			/* Reduce the number of players on this depth */
 			players_on_depth[p_ptr->dun_depth]--;
@@ -1671,6 +1677,9 @@ void move_player(int Ind, int dir, int do_pickup)
 
 			/* Show everyone that's he left */
 			everyone_lite_spot(Depth, oldy, oldx);
+
+			/* Tell everyone to re-calculate visiblity for this player */
+			update_player(Ind);
 
 			/* forget his light and viewing area */
 			forget_lite(Ind);

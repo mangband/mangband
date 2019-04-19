@@ -62,6 +62,7 @@
 extern u32b create_pixel(Display *dpy, byte red, byte green, byte blue);
 extern cptr get_default_font(int term_num);
 extern XImage *ReadBMP(Display *dpy, char *Name);
+extern XImage *ReadPNG(Display *dpy, char *Name);
 extern bool smoothRescaling;
 extern XImage *ResizeImage(Display *dpy, XImage *Im,
 	int ix, int iy, int ox, int oy);

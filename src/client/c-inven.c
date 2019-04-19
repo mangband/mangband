@@ -196,6 +196,7 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 	char *tok;
 	int i;
 
+	buf[0] = '\0';
 	if (!get_string("Item name: ", buf, 80))
 	{
 		return FALSE;

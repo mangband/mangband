@@ -16,6 +16,7 @@ DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
 ADDITIONAL_CONFIUGRE_FLAGS ?= $(shell echo ${ADDITIONAL_CONFIGURE_FLAGS})
+ACTUAL_PACKAGE_NAME ?= $(shell echo ${ACTUAL_PACKAGE_NAME})
 
 #CFLAGS = -Wall -g
 
@@ -32,8 +33,8 @@ config.status: configure
 		--prefix="" \
 		--bindir=\$${prefix}/usr/games \
 		--datarootdir=\$${prefix}/usr/share/games \
-		--localstatedir=\$${prefix}/var/local \
-		$(ADDITIONAL_CONFIUGRE_FLAGS)
+		--localstatedir=\$${prefix}/var/lib \
+		$(ADDITIONAL_CONFIUGRE_FLAGS) --quiet
 
 
 build: build-stamp
@@ -42,7 +43,7 @@ build-stamp:  config.status
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE)
+	V=0 $(MAKE)
 	#docbook-to-man debian/mangband.sgml > mangband.1
 
 	touch build-stamp
@@ -70,8 +71,30 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/mangband.
-	$(MAKE) install prefix=$(CURDIR)/debian/mangband/
-
+	V=0 $(MAKE) install prefix=$(CURDIR)/debian/$(ACTUAL_PACKAGE_NAME)/ \
+		desktopdir=$(CURDIR)/debian/$(ACTUAL_PACKAGE_NAME)/usr/share/applications
+ifeq "$(ACTUAL_PACKAGE_NAME)" "mangclient"
+	# remove server files
+	rm $(CURDIR)/debian/mangclient/usr/games/mangband
+	rm -rf $(CURDIR)/debian/mangclient/usr/share/games/mangband/edit
+	rm -rf $(CURDIR)/debian/mangclient/usr/share/games/mangband/help
+	rm -rf $(CURDIR)/debian/mangclient/var/lib
+	rm -rf $(CURDIR)/debian/mangclient/etc
+	# add icons
+	mkdir -p $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/16x16/apps
+	mkdir -p $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/32x32/apps
+	mkdir -p $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/64x64/apps
+	mkdir -p $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/128x128/apps
+	cp $(CURDIR)/lib/xtra/icon/map-16.png $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/16x16/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-32.png $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/32x32/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-64.png $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/64x64/apps/mangclient.png
+	cp $(CURDIR)/lib/xtra/icon/map-128.png $(CURDIR)/debian/mangclient/usr/share/icons/hicolor/128x128/apps/mangclient.png
+else
+	# remove client files
+	rm $(CURDIR)/debian/mangband/usr/games/mangclient
+	rm -rf $(CURDIR)/debian/mangband/usr/share/games/mangband/user
+	rm -rf $(CURDIR)/debian/mangband/usr/share/games/mangband/xtra
+endif
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -81,12 +104,12 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+#	dh_installchangelogs 
 	dh_installdocs
-	dh_installexamples
+#	dh_installexamples
 #	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
+	dh_installmenu
+#	dh_installdebconf
 #	dh_installlogrotate
 #	dh_installemacsen
 #	dh_installpam
@@ -94,7 +117,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+#	dh_installman
 	dh_link
 	dh_strip
 	dh_compress

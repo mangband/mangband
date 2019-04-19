@@ -27,6 +27,8 @@ mangclient_SOURCES = \
 		src/client/net-client.h src/client/readdib.h src/client/resource.h \
 		src/client/z-term.h
 
+mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c
+
 if USE_CRB
 
 mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h

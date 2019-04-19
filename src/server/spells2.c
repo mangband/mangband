@@ -3184,6 +3184,9 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Redraw floor */
+	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
+
 	/* Something was done */
 	return (TRUE);
 }
@@ -3398,6 +3401,9 @@ bool banishment(int Ind)
 
 	int d = 999, tmp;
 
+	/* Hack -- disable in dwarven halls / custom towns */
+	if (check_special_level(p_ptr->dun_depth)) return TRUE;
+
 	/* Search all monsters and find the closest */
 	for (i = 1; i < m_max; i++)
 	{
@@ -3496,6 +3502,8 @@ bool mass_banishment(int Ind)
 
 	/*int		msec = delay_factor * delay_factor * delay_factor;*/
 
+	/* Hack -- disable in dwarven halls / custom towns */
+	if (check_special_level(p_ptr->dun_depth)) return TRUE;
 
 	/* Delete the (nearby) monsters */
 	for (i = 1; i < m_max; i++)

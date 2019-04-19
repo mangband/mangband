@@ -6,14 +6,14 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{C44CA705-B1D7-4A64-91A7-2AB339E10BBE}}
 AppName=MAngband Server
-#define VERSION "1.5.0b"
+#define VERSION "1.5.0"
 AppVersion={#VERSION}
 AppPublisher=MAngband Project Team
 AppPublisherURL=https://mangband.org
 AppSupportURL=
 AppUpdatesURL=
 DefaultDirName={localappdata}\MAngbandServer1.5
-DefaultGroupName=MAngbandServer-Devel
+DefaultGroupName=MAngbandServer
 PrivilegesRequired=lowest
 OutputDir=.
 OutputBaseFilename=mangband-server-setup-v{#VERSION}

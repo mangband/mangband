@@ -242,6 +242,8 @@ int player_leave(int p_idx)
 		//forget_view(Ind);TODO--test if this is really needed?
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		/* Tell everyone to re-calculate visiblity for this player */
+		update_player(p_idx);
 	}
 
 	/* Try to save his character */
@@ -371,12 +373,12 @@ void setup_network_server()
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
+	/** Prepare FD_SETS **/
+	network_reset();
+
 	/** Add UDP */
 	/* Meta-server */
 	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
-
-	/** Prepare FD_SETS **/
-	network_reset();
 
 	/** Add listeners **/
 	/* Game */
@@ -787,7 +789,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #ifdef DEBUG
 		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
 #endif
-		client_abort(ct, "Incompatible client version.");
+		client_abort(ct, format("Incompatible client version. You need version %04x", SERVER_VERSION));
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
@@ -1057,10 +1059,28 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
  */
 bool client_version_ok(u16b version)
 {
-	if (version == SERVER_VERSION) 
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	/* make alpha/beta/devel/stable versions always incompatible
+	 * with each other */
+	if (extra != SERVER_VERSION_EXTRA) return FALSE;
+
+	/* require minimal version */
+	if (major < 1) return FALSE;
+	if (minor < 5) return FALSE;
+	if (patch < 0) return FALSE;
+
+	return TRUE;
+/*
+	if (version == SERVER_VERSION)
 		return TRUE;
 	else
 		return FALSE;
+*/
 }
 
 /*

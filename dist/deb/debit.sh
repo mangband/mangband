@@ -7,23 +7,19 @@ if [ $? != 0 ]; then
 fi
 
 if [ ! -f ../tgz/version ]; then
-    echo "You must first run install/tgz script";
+    echo "You must first run dist/tgz script";
     exit
 fi
 
 VER=`cat ../tgz/version`
 
 if [ ! -f ../tgz/mangband-${VER}.tar.gz ]; then
-    echo "Unable to find install/tgz/mangband-${VER}.tar.gz"
+    echo "Unable to find dist/tgz/mangband-${VER}.tar.gz"
     exit
 fi
 
-ARCH=`dpkg-architecture -qDEB_TARGET_ARCH`
-PORT=""
-INTERNAME="mangband_${VER}_${ARCH}.deb"
-RECONFIG=""
-
 # Note: all ports include ncurses!
+PACKNAME="mangclient"
 if [ "$1" = "sdl2" ]; then
 	PORT="-sdl2"
 	RECONFIG="--without-x11 --without-sdl"
@@ -37,16 +33,35 @@ elif [ "$1" = "gcu" ]; then
 	PORT="-gcu"
 	RECONFIG="--without-x11 --without-sdl --without-sdl2"
 else
-	echo "Building multi-port binary. This is probably not what you want!"
-	echo "But it's a good starting point."
-	echo "After you get it, re-run this script with 'sdl','x11' or 'gcu' arg."
+	PORT=""
+	RECONFIG=""
+	PACKNAME="mangband"
+	echo "Building server package."
+	echo "Re-run this script with 'sdl','x11' or 'gcu' to build client."
 	sleep 1
 fi
 
-FINALNAME="mangband${PORT}-${VER}_${ARCH}.deb"
+
+ARCH=`dpkg-architecture -qDEB_TARGET_ARCH 2>/dev/null || dpkg-architecture -qDEB_BUILD_ARCH`
+INTERNAME="${PACKNAME}_${VER}_${ARCH}.deb"
+
+FINALNAME="${PACKNAME}${PORT}-${VER}_${ARCH}.deb"
 export ADDITIONAL_CONFIGURE_FLAGS="${RECONFIG}"
+export ACTUAL_PACKAGE_NAME="${PACKNAME}"
 echo "$INTERNAME ( $RECONFIG ) ->\n $FINALNAME"
 
+MODERN_DH=`dh_make --help | grep -e "--copyrightfile"`
+MODERN_DPB=`dpkg-buildpackage --help | grep -e "--no-sign"`
+if [ "${MODERN_DH}" != "" ]; then
+	DH_ARGS="-C i -c custom --copyrightfile ../COPYING"
+else
+	DH_ARGS="-C i -c bsd"
+fi
+if [ "${MODERN_DPB}" != "" ]; then
+	DPB_ARGS="--no-sign"
+else
+	DPB_ARGS=""
+fi
 
 rm -rf mangband-${VER}
 cp ../tgz/mangband-${VER}.tar.gz ./mangband_${VER}.orig.tar.gz
@@ -54,7 +69,7 @@ tar -xzvf mangband_${VER}.orig.tar.gz
 cd mangband-${VER}
 cp -R src/* .
 export DEBFULLNAME="MAngband Project Team"
-dh_make -y -Ci -n --email team@mangband.org -c custom --copyrightfile ../COPYING
+dh_make -y -n --email team@mangband.org ${DH_ARGS}
 if [ $? != "0" ]; then
     exit
 fi
@@ -65,19 +80,19 @@ rm README.Debian
 rm README.source
 
 cp -f ../../../../README .
-cp -f ../../control .
+cp -f ../../control.${PACKNAME} control
 cp -f ../../rules .
 chmod +x rules
-echo "README" > mangband-docs.docs
+echo "README" > ${PACKNAME}-docs.docs
 echo "#!/bin/sh" >./postinst
 echo chmod og+w -R /usr/share/games/mangband >>./postinst
 echo "/usr/share/games/" >>./dirs
+if [ "${PACKNAME}" = "mangband" ]; then
 echo "/var/local/" >> ./dirs
 echo "etc/" >>./dirs
-#echo Version: ${VER} >>./control
-#echo "/etc/mangband.cfg" >./conffiles
+fi
 cd ..
-dpkg-buildpackage -rfakeroot --no-sign
+dpkg-buildpackage -rfakeroot ${DPB_ARGS}
 if [ $? != "0" ]; then
     exit
 fi
@@ -87,16 +102,21 @@ fi
 
 #Build binary from src
 cd ..
+rm -rf mangband-${VER}
 dpkg-source -x *.dsc
 cd mangband-${VER}
 chmod +x ./configure
-dpkg-buildpackage -rfakeroot -b --no-sign
+dpkg-buildpackage -rfakeroot -b ${DPB_ARGS}
 if [ $? != "0" ]; then
     exit
 fi
 
 #Rename final deb into something more appropriate
-if [ "${ITERNAME}" != "${FINALNAME}" ]; then
+if [ "${INTERNAME}" != "${FINALNAME}" ]; then
 	cd ..
-	cp "${INTERNAME}" "${FINALNAME}"
+	mv "${INTERNAME}" "${FINALNAME}"
+	# also rename the debug package
+	DEBUG_INTERNAME="${PACKNAME}-dbgsym_${VER}_${ARCH}.deb"
+	DEBUG_FINALNAME="${PACKNAME}${PORT}-dbgsym-${VER}_${ARCH}.deb"
+	mv "${DEBUG_INTERNAME}" "${DEBUG_FINALNAME}" || :
 fi

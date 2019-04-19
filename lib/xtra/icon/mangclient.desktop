@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=MAngband Client
+GenericName=MAngband Client
+Type=Application
+Exec=mangclient
+Icon=mangclient
+Categories=Game;RolePlaying;

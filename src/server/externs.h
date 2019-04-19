@@ -681,6 +681,7 @@ extern int monster_richness(int r_idx);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern void forget_monster(int Ind, int m_idx, bool deleted);
 extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
 extern bool summon_specific_okay_aux(int r_idx, int summon_type);

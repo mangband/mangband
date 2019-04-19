@@ -1444,7 +1444,7 @@ bool load_player(player_type *p_ptr)
 	if (!err)
 	{
 		/* Invalid turn */
-		/* if (turn.era < 0 || turn.turn < 0) err = -1; -- unsigned */
+		if (turn.turn > HTURN_ERA_FLIP) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Broken savefile";
