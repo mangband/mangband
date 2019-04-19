@@ -1016,7 +1016,7 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->pkt = pkt;
 	i_ptr->type = type;
 	i_ptr->amnt = amnt;
-	i_ptr->redraw = (1L << (known_indicators));
+	i_ptr->redraw = (1LL << (known_indicators));
 	i_ptr->row = row;
 	i_ptr->col = col;
 	i_ptr->flag = flag;

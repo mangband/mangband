@@ -3025,7 +3025,7 @@ void redraw_stuff(void)
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
-	u32b old_redraw = p_ptr->redraw;
+	u64b old_redraw = p_ptr->redraw;
 
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;

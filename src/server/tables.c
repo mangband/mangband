@@ -542,7 +542,7 @@ const stream_type streams[MAX_STREAMS] =
 
 	u32b flag;
 	cptr prompt;
-	u32b redraw;
+	u64b redraw;
 	cptr mark;
 */
 #define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N

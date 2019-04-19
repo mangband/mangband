@@ -1516,7 +1516,7 @@ struct player_type
 
 	u32b notice;		/* Special Updates (bit flags) */
 	u32b update;		/* Pending Updates (bit flags) */
-	u32b redraw;		/* Normal Redraws (bit flags) */
+	u64b redraw;		/* Normal Redraws (bit flags) */
 	u32b window;		/* Window Redraws (bit flags) */
 
 	s16b stat_use[6];	/* Current modified stats */
@@ -1695,7 +1695,7 @@ struct indicator_type
 
 	u32b flag;  	/* Indicator flags */
 	cptr prompt;	/* Hack -- display what additional info..? */
-	u32b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
+	u64b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
 	cptr mark;  	/* Hack -- name */
 };
 
