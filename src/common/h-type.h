@@ -158,8 +158,13 @@ typedef unsigned long u32b;
 #endif
 
 /* Signed/Unsigned 64 bit value */
+#if defined(HAVE___INT64)
+typedef __int64 s64b;
+typedef unsigned __int64 u64b;
+#else
 typedef signed long s64b;
 typedef unsigned long u64b;
+#endif
 
 /* printf and scanf formats for 64-bit value */
 #define PRIu64 "ld"
