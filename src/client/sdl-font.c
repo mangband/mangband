@@ -969,11 +969,11 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 		*/
 		case FONT_TTF:
 		case FONT_OTF:
-		#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
+#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 			surface = ttfToFont(info, filename, fontsize, smoothing);
-		#else
+#else
 			plog_fmt("compiled without ttf support, can't load %s\n", filename);
-		#endif
+#endif
 		break;
 		default:
 		case FONT_BMP:
