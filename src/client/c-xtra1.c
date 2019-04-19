@@ -2520,7 +2520,7 @@ void schedule_redraw(u32b filter)
  */
 void redraw_indicators(u32b filter)
 {
-	s16b row;
+	s16b row, col;
 	int i = 0; 
 
 	/* For each indicator */
@@ -2530,16 +2530,17 @@ void redraw_indicators(u32b filter)
 
 		if (indicator_window[i] & filter)
 		{
-			/* Hack: count rows from bottom? */
+			/* Hack: count from top/left or bottom/right? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+			col = (i_ptr->col < 0 ? (Term->wid + i_ptr->col) : i_ptr->col);
 #if 0
 			if ((row < section_icky_row) && 
-				((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
-				 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+				((section_icky_col >= 0 && col < section_icky_col) ||
+				 (section_icky_col < 0 && col < 0-section_icky_col))) continue;
 			if (screen_icky && !section_icky_row) continue;
 #endif
 			/* Display field */
-			(prt_functions[i])(row, i_ptr->col, i);
+			(prt_functions[i])(row, col, i);
 		}
 	}
 }
@@ -3022,7 +3023,7 @@ int register_indicator(int id)
  */
 void redraw_stuff(void)
 {
-	s16b row;
+	s16b row, col;
 	int test_ickyness;
 	int i = 0; 
 	u64b old_redraw = p_ptr->redraw;
@@ -3037,8 +3038,9 @@ void redraw_stuff(void)
 
 		if (old_redraw & i_ptr->redraw)
 		{
-			/* Hack: count rows from bottom? */
+			/* Hack: count from top/left or bottom/right? */
 			row = (i_ptr->row < 0 ? (Term->hgt + i_ptr->row) : i_ptr->row);
+			col = (i_ptr->col < 0 ? (Term->wid + i_ptr->col) : i_ptr->col);
 
 			/* Hack: determine window */
 			switch (i_ptr->win)
@@ -3062,8 +3064,8 @@ void redraw_stuff(void)
 			if (test_ickyness)
 			{
 				if ((row < section_icky_row) &&
-					((section_icky_col >= 0 && i_ptr->col < section_icky_col) ||
-					 (section_icky_col < 0 && i_ptr->col < 0-section_icky_col))) continue;
+					((section_icky_col >= 0 && col < section_icky_col) ||
+					 (section_icky_col < 0 && col < 0-section_icky_col))) continue;
 				if (screen_icky && !section_icky_row) continue;
 			}
 
@@ -3071,7 +3073,7 @@ void redraw_stuff(void)
 			if (!(window_flag[0] & indicator_window[i])) continue;
 
 			/* Display field */
-			(prt_functions[i])(row, i_ptr->col, i);
+			(prt_functions[i])(row, col, i);
 
 			/* Remove from next update */
 			if (i_ptr->redraw & p_ptr->redraw)
