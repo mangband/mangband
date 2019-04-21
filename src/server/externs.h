@@ -976,6 +976,7 @@ extern void store_init(int which);
 extern s32b player_price_item(int Ind, object_type *o_ptr);
 
 /* util.c */
+extern errr path_temp(char *buf, int max);
 extern void flush(void);
 extern void bell(void);
 extern void sound(int Ind, int num);

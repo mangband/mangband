@@ -2424,7 +2424,7 @@ static ang_file* highscore_fd = NULL;
 static int highscore_seek(int i)
 {
 	/* Seek for the requested record */
-	return (file_seek(highscore_fd, (huge)(i) * sizeof(high_score)));
+	return (file_seek(highscore_fd, (huge)(i) * sizeof(high_score))) ? 0 : -1;
 }
 
 
@@ -2434,7 +2434,7 @@ static int highscore_seek(int i)
 static errr highscore_read(high_score *score)
 {
 	/* Read the record, note failure */
-	return (file_read(highscore_fd, (char*)(score), sizeof(high_score)));
+	return (file_read(highscore_fd, (char*)(score), sizeof(high_score))) > 0 ? 0 : -1;
 }
 
 
@@ -2444,7 +2444,7 @@ static errr highscore_read(high_score *score)
 static int highscore_write(high_score *score)
 {
 	/* Write the record, note failure */
-	return (file_write(highscore_fd, (char*)(score), sizeof(high_score)));
+	return (file_write(highscore_fd, (char*)(score), sizeof(high_score))) ? 0 : -1;
 }
 
 
@@ -2461,7 +2461,7 @@ static int highscore_where(high_score *score)
 	high_score		the_score;
 
 	/* Paranoia -- it may not have opened */
-	if (highscore_fd < 0) return (-1);
+	if (highscore_fd == NULL) return (-1);
 
 	/* Go to the start of the highscore file */
 	if (highscore_seek(0)) return (-1);
@@ -2491,7 +2491,7 @@ static int highscore_add(high_score *score)
 
 
 	/* Paranoia -- it may not have opened */
-	if (highscore_fd < 0) return (-1);
+	if (highscore_fd == NULL) return (-1);
 
 	/* Determine where the score should go */
 	slot = highscore_where(score);
@@ -2701,7 +2701,7 @@ static errr top_twenty(int Ind)
 	/*Term_clear();*/
 
 	/* No score file */
-	if (highscore_fd < 0)
+	if (highscore_fd == NULL)
 	{
 		plog("Score file unavailable.");
 		return (0);
@@ -2801,13 +2801,13 @@ static errr top_twenty(int Ind)
 
 
 	/* Lock (for writing) the highscore file, or fail */
-	if (file_lock(highscore_fd)) return (1);
+	if (!file_lock(highscore_fd)) return (1);
 
 	/* Add a new entry to the score list, see where it went */
 	j = highscore_add(&the_score);
 
 	/* Unlock the highscore file, or fail */
-	if (file_unlock(highscore_fd)) return (1);
+	if (!file_unlock(highscore_fd)) return (1);
 
 
 #if 0
@@ -2954,7 +2954,7 @@ void add_high_score(int Ind)
 	(void)file_close(highscore_fd);
 
 	/* Forget the high score fd */
-	highscore_fd = -1;
+	highscore_fd = NULL;
 }
 
 
@@ -3035,7 +3035,7 @@ void close_game(void)
 		/*(void)file_close(highscore_fd);*/
 
 		/* Forget the high score fd */
-		/*highscore_fd = -1;*/
+		/*highscore_fd = NULL;*/
 	}
 
 	/* Try to save the server information */

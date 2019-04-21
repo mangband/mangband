@@ -1014,7 +1014,7 @@ static bool save_player_aux(int Ind, char *name)
 		if (wr_savefile_new(Ind)) ok = TRUE;
 
 		/* Attempt to close it */
-		if (file_close(file_handle)) ok = FALSE;
+		if (!file_close(file_handle)) ok = FALSE;
 	}
 
 	/* Remove "broken" files */
@@ -1591,7 +1591,7 @@ static bool save_server_aux(char *name)
 
 
         /* No file yet */
-		file_handle = NULL;
+	file_handle = NULL;
 
         /* Open the savefile */
         file_handle = file_open(name, MODE_WRITE, FTYPE_SAVE);
@@ -1603,7 +1603,7 @@ static bool save_server_aux(char *name)
                 if (wr_server_savefile()) ok = TRUE;
 
                 /* Attempt to close it */
-                if (file_close(file_handle)) ok = FALSE;
+                if (!file_close(file_handle)) ok = FALSE;
         }
 
         /* Failure */
