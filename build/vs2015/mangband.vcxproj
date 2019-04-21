@@ -183,24 +183,13 @@
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
-<<<<<<< HEAD
     <ClInclude Include="..\..\src\common\z-file.h" />
-    <ClInclude Include="..\..\src\h-config.h" />
-    <ClInclude Include="..\..\src\options.h" />
-    <ClInclude Include="..\..\src\server\externs.h" />
-    <ClInclude Include="..\..\src\server\init.h" />
-    <ClInclude Include="..\..\src\server\mangband.h" />
-    <ClInclude Include="..\..\src\server\mdefines.h" />
-    <ClInclude Include="..\..\src\server\net-game.h" />
-    <ClInclude Include="..\..\src\server\net-server.h" />
-=======
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mangclient.vcxproj">
       <Project>{cd8d8f3c-ff08-4e71-9b37-38a973ad79ce}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
->>>>>>> master
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
