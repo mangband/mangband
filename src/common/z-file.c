@@ -399,7 +399,7 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 	path_parse(buf, sizeof(buf), fname);
 
 	switch (mode) {
-		case MODE_WRITE: { 
+		case MODE_WRITE: {
 			if (ftype == FTYPE_SAVE) {
 				/* open only if the file does not exist */
 				int fd;
@@ -423,7 +423,7 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 			break;
 		case MODE_READWRITE:
 			f->fh = fopen(buf, "r+b");
-			break;			
+			break;
 		default:
 			assert(0);
 	}

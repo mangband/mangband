@@ -221,8 +221,6 @@
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
     <ClInclude Include="..\..\src\common\z-file.h" />
-    <ClInclude Include="..\..\src\h-config.h" />
-    <ClInclude Include="..\..\src\options.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\src\client\Angband.ico" />

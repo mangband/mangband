@@ -156,11 +156,11 @@
 #define HAVE_STRDUP
 #define HAVE_STRNLEN
 #define HAVE___INT64
+#define HAVE_STAT
 #endif
 #if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
 #define HAVE_INTTYPES_H
 #define HAVE_INET_NTOP
-#define HAVE_STAT
 #endif
 #endif
 
