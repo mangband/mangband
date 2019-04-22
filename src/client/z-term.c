@@ -1455,6 +1455,19 @@ errr Term_consolidate_cursor(bool on, int x, int y)
     return (0);
 }
 
+/* Show user cursor, after placing it with _gotoxy() */
+errr Term_show_ui_cursor(void)
+{
+    Term_consolidate_cursor(TRUE, Term->scr->cx, Term->scr->cy);
+    return (0);
+}
+/* Hide user cursor, after we're done with UI */
+errr Term_hide_ui_cursor(void)
+{
+    Term->scr->bcv = FALSE;
+    Term_xtra(TERM_XTRA_SHAPE, FALSE);
+    return (0);
+}
 
 /*
  * Place the cursor at a given location

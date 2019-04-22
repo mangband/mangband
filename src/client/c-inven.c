@@ -491,6 +491,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		/* Show the prompt */
 		prt(tmp_val, 0, 0);
 
+		/* Show the cursor */
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		which = inkey();
@@ -735,6 +737,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Hack -- Cancel "display" */
 	command_see = FALSE;
 
+	/* Hide UI cursor */
+	Term_hide_ui_cursor();
 
 	/* Forget the item_tester_tval restriction */
 	item_tester_tval = 0;

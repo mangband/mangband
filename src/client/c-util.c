@@ -1426,6 +1426,7 @@ bool askfor_aux(char *buf, int len, char m_private)
 	{
 		/* Place cursor */
 		Term_gotoxy(x + k, y);
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -1473,6 +1474,9 @@ bool askfor_aux(char *buf, int len, char m_private)
 		buf[k] = '\0';
 
 	}
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* The top line is OK now */
 	topline_icky = FALSE;
@@ -1550,11 +1554,17 @@ bool get_com(cptr prompt, char *command)
 	/* Display a prompt */
 	prt(prompt, 0, 0);
 
+	/* Show cursor */
+	Term_show_ui_cursor();
+
 	/* Get a key */
 	*command = inkey();
 
 	/* Clear the prompt */
 	prt("", 0, 0);
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Fix the top line */
 	topline_icky = FALSE;
@@ -3239,6 +3249,9 @@ void browse_macros(void)
 			{
 				a = TERM_L_BLUE;
 				sel = i;
+				/* Move cursor there */
+				Term_gotoxy(0, 2+k-o);
+				Term_show_ui_cursor();
 			}
 
 			/* Dump the trigger */
@@ -3348,6 +3361,8 @@ void browse_macros(void)
 			else if (o && j - o < hgt/2) o--;
 		}
 	}
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 }
 void interact_macros(void)
 {
@@ -3368,6 +3383,9 @@ void interact_macros(void)
 	{
 		/* Clear screen */
 		Term_clear();
+
+		/* Hide cursor */
+		Term_hide_ui_cursor();
 
 		/* Describe */
 		Term_putstr(0, 2, -1, TERM_WHITE, "Interact with Macros");
@@ -3407,6 +3425,8 @@ void interact_macros(void)
 
 		/* Prompt */
 		Term_putstr(0, 15, -1, TERM_WHITE, "Command: ");
+		/* Show cursor */
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -3489,6 +3509,8 @@ void interact_macros(void)
 			Term_erase(0, 17, 255);			
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 			
+			/* Show cursor */
+			Term_show_ui_cursor();
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
@@ -3540,6 +3562,7 @@ void interact_macros(void)
 			/* Prompt */
 			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+			Term_show_ui_cursor();
 
 			/* Get a macro trigger */
 			if (!get_macro_trigger(buf)) continue;
@@ -3555,6 +3578,7 @@ void interact_macros(void)
 	
 				/* Go to the correct location */
 				Term_gotoxy(0, 21);
+				Term_show_ui_cursor();
 	
 				/* Copy 'current action' */
 				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
@@ -3647,6 +3671,9 @@ void interact_macros(void)
 
 	/* Reload screen */
 	Term_load();
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Screen is no longer icky */
 	screen_icky = FALSE;
