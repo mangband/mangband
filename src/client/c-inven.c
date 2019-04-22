@@ -198,6 +198,17 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 	size_t len;
 	char *prompt = "Item name: ";
 
+	/* HACK -- spellcasting mode (select book by spell) */
+	if (spellcasting)
+	{
+		int sn = -1;
+		bool ok = get_spell_by_name(k, &sn, inven, equip);
+		/* Remember spell index */
+		spellcasting_spell = sn;
+		/* Don't do any other tests */
+		return ok;
+	}
+
 	/* Hack -- show opening quote symbol */
 	if (prompt_quote_hack) prompt = "Item name: \"";
 
@@ -730,6 +741,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* Forget the item_tester_hook restriction */
 	item_tester_hook = 0;
+
+	/* Discard spellcasting mode */
+	spellcasting = FALSE;
 
 	/* Fix windows */
 	if (window_up)

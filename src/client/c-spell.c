@@ -70,6 +70,56 @@ int count_spells_in_book(int book, int *book_over)
 	return num;
 }
 
+/* Get spell by name */
+bool get_spell_by_name(int *k, int *s, bool inven, bool equip)
+{
+	char buf[256];
+	char *tok;
+	int i, sn;
+	size_t len;
+	char *prompt = "Spell name: ";
+
+	/* Hack -- show opening quote symbol */
+	if (prompt_quote_hack) prompt = "Spell name: \"";
+
+	buf[0] = '\0';
+	if (!get_string(prompt, buf, 80))
+	{
+		return FALSE;
+	}
+
+	/* Hack -- remove final quote */
+	len = strlen(buf);
+	if (len == 0) return FALSE;
+	if (buf[len-1] == '"') buf[len-1] = '\0';
+
+	/* Split entry */
+	tok = strtok(buf, "|");
+	while (tok)
+	{
+		if (STRZERO(tok)) continue;
+		/* Match against valid items */
+		for (i = 0; i < INVEN_TOTAL; i++)
+		for (sn = 0; sn < PY_MAX_SPELLS; sn++)
+		{
+			if (spell_info[i][sn][0] == '\0') break;
+			if (!inven && i < INVEN_WIELD) continue;
+			if (!equip && i >= INVEN_WIELD) continue;
+			if (inventory[i].tval == 0) continue;
+			//if (!get_item_okay(i)) continue;
+			if (my_stristr(spell_info[i][sn], tok))
+			{
+				(*k) = i;
+				(*s) = sn;
+				return TRUE;
+			}
+		}
+		tok = strtok(NULL, "|");
+	}
+	return FALSE;
+}
+
+
 /*
  * Allow user to choose a spell/prayer from the given book.
  */
@@ -85,6 +135,15 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	int			book = (*bn);
 	int			book_over = 0;
 	int			book_start = book;
+
+	/* HACK -- spellcasting mode -- spell already selected */
+	if (spellcasting_spell > -1)
+	{
+		(*sn) = spellcasting_spell;
+		spellcasting = FALSE;
+		spellcasting_spell = -1;
+		return (TRUE);
+	}
 
 	/* Assume no spells available */
 	(*sn) = -2;
@@ -111,6 +170,25 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	/* Get a spell from the user */
 	while (!flag && get_com(out_val, &choice))
 	{
+		/* Enter by name */
+		if (choice == '@' || choice == '"')
+		{
+			int _sn, _bn;
+			if (choice == '"') prompt_quote_hack = TRUE;
+			/* XXX Lookup item by name */
+			if (get_spell_by_name(&_sn, &_bn, TRUE, FALSE))
+			{
+				book = _bn;
+				i = _sn;
+				flag = TRUE;
+			}
+			else
+			{
+				bell();
+			}
+			continue;
+		}
+
 		/* Flip page */
 		if (choice == '/')
 		{

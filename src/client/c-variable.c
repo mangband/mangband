@@ -86,6 +86,9 @@ s16b command_see;
 s16b command_gap;
 s16b command_wrk;
 
+bool spellcasting = FALSE; /* Selecting a magic book */
+int spellcasting_spell = -1; /* Select-by-name spell */
+
 bool item_tester_full;
 byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);

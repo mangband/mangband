@@ -113,6 +113,7 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
+		spellcasting = (cc_ptr->flag & COMMAND_SPELL_BOOK) ? TRUE : FALSE;
 		if (!c_get_item(&item, prompt,
 				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
@@ -1272,7 +1273,7 @@ void cmd_browse(void)
 	}
 
 	item_tester_tval = c_info[pclass].spell_book;
-
+	spellcasting = TRUE;
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
 		if (item == -2) c_msg_print("You have no books that you can read.");

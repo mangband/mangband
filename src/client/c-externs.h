@@ -121,6 +121,9 @@ extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;
 
+extern bool spellcasting;
+extern int spellcasting_spell;
+
 extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
@@ -478,6 +481,7 @@ extern void load_sound_prefs();
 
 /* c-spell.c */
 extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);
+extern bool get_spell_by_name(int *bn, int *sn, bool inven, bool equip);
 extern void show_browse(int book);
 extern void do_study(int book);
 extern void do_cast(int book);
