@@ -341,6 +341,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\c-cmd0.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\c-files.c"
 				>
 			</File>
@@ -588,6 +600,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\z-term.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.h"
 				>
 			</File>
 			<File

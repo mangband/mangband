@@ -26,4 +26,9 @@
 #include "c-defines.h"
 #include "c-externs.h"
 
+/*
+ * Include new ui interface.
+ */
+#include "ui.h"
+
 #endif

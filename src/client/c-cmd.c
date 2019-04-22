@@ -291,6 +291,17 @@ void process_command()
 		}
 	}
 
+	/* Hack -- pick command from a menu */
+	if (command_cmd == '\r')
+	{
+		command_cmd = do_cmd_menu();
+		if (command_cmd != '\r')
+		{
+			process_command();
+			return;
+		}
+	}
+
 	/* Parse the command */
 	switch (command_cmd)
 	{
