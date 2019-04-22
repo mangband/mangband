@@ -1415,6 +1415,12 @@ bool askfor_aux(char *buf, int len, char m_private)
 	/* Paranoia -- Clip the default entry */
 	buf[len] = '\0';
 
+	/* HACK -- "append mode" */
+	if (m_private == -2)
+	{
+		m_private = FALSE;
+		k = strlen(buf);
+	}
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
@@ -3476,6 +3482,34 @@ void interact_macros(void)
 
 			/* Dump the macros */
 			(void)macro_dump(tmp);
+		}
+
+		/* Enter a new action (via menu) */
+		else if (i == '7' || i == '#')
+		{
+			char cmd = do_cmd_menu();
+			if (!cmd || cmd == '\r')
+			{
+				bell();
+				continue;
+			}
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Hack -- dump the value */
+			tmp[0] = '\\'; tmp[1] = 'e';
+			if (KTRL(cmd) == cmd)
+			{ tmp[2] = '^'; tmp[3] = UN_KTRL(cmd); tmp[4] = '\0'; }
+			else { tmp[2] = cmd; tmp[3] = '\0'; }
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
 		}
 
 		/* Enter a new action */
