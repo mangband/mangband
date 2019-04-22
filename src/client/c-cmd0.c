@@ -572,7 +572,6 @@ static bool cmd_menu(command_list *list, void *selection_p)
 	if (evt.type == EVT_SELECT)
 	{
 		*selection = list->list[evt.index];
-printf("COPIED SELECTION: %c\n",selection->key);
 	}
 
 	if (evt.type == EVT_ESCAPE)
