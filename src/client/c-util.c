@@ -1430,6 +1430,9 @@ bool askfor_aux(char *buf, int len, char m_private)
 		/* Get a key */
 		i = inkey();
 
+		/* Evil hack -- pretend quote is Return */
+		if (prompt_quote_hack && i == '"') i = '\r';
+
 		/* Analyze the key */
 		switch (i)
 		{
@@ -1474,6 +1477,9 @@ bool askfor_aux(char *buf, int len, char m_private)
 	/* The top line is OK now */
 	topline_icky = FALSE;
 	Flush_queue();
+
+	/* Reset global flags */
+	prompt_quote_hack = FALSE;
 
 	/* Aborted */
 	if (i == ESCAPE) return (FALSE);

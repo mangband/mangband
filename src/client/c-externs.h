@@ -115,6 +115,8 @@ extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;
 
+extern bool prompt_quote_hack;
+
 extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;

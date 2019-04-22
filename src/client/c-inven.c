@@ -195,12 +195,22 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 	char buf[256];
 	char *tok;
 	int i;
+	size_t len;
+	char *prompt = "Item name: ";
+
+	/* Hack -- show opening quote symbol */
+	if (prompt_quote_hack) prompt = "Item name: \"";
 
 	buf[0] = '\0';
-	if (!get_string("Item name: ", buf, 80))
+	if (!get_string(prompt, buf, 80))
 	{
 		return FALSE;
 	}
+
+	/* Hack -- remove final quote */
+	len = strlen(buf);
+	if (len == 0) return FALSE;
+	if (buf[len-1] == '"') buf[len-1] = '\0';
 
 	/* Split entry */
 	tok = strtok(buf, "|");
@@ -548,6 +558,10 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				break;
 			}
 
+			case '"':
+				/* Allow '"' to be used as terminator */
+				prompt_quote_hack = TRUE;
+				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
 				if (get_item_by_name(&k, inven, equip))
