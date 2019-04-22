@@ -769,6 +769,7 @@ void cmd_init(void)
 		{
 			list_id = CMD_LIST_INFO;
 		}
+		if (strchr("[", c_ptr->m_catch)) list_id = CMD_LIST_INFO;
 		if (c_ptr->m_catch == KTRL('F')) list_id = CMD_LIST_INFO;
 
 		cmd_init_one(list_id, c_ptr->display, c_ptr->m_catch);

@@ -2088,3 +2088,20 @@ void do_cmd_query_symbol(int Ind, char sym)
 	if ( (sym >= 'a' && sym <= 'z') || (sym >= 'A' && sym <= 'Z')	)
 		do_cmd_monster_desc_all(Ind, sym);
 }
+
+/*
+ * Display monster list as a pop-up on mainscreen.
+ * See also "fix_monlist()" for windowed version.
+ */
+void do_cmd_monlist(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Prepare 'visible monsters' list */
+	display_monlist(Ind);
+
+	/* Send it */
+	send_prepared_popup(Ind, "Visible Monsters (Snapshot)");
+
+	return;
+}
