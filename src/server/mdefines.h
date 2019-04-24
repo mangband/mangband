@@ -2693,6 +2693,15 @@ that keeps many algorithms happy.
    ((DEPTH ? (((Y) > 0) && ((X) > 0) && ((Y) < MAX_HGT-1) && ((X) < MAX_WID-1)) \
            : (((Y) > 0) && ((X) > 0) && ((Y) < MAX_HGT-1) && ((X) < MAX_WID-1))))
 
+/*
+ * Determines if a map location is fully inside the outer walls
+ * This is more than twice as expensive as "in_bounds()", but
+ * often we need to exclude the outer walls from calculations.
+ */
+#define in_bounds_fully(Y,X) \
+	(((Y) > 0) && ((Y) < MAX_HGT-1) && \
+	 ((X) > 0) && ((X) < MAX_WID-1))
+
 
 /*
  * Determines if a map location is on or inside the outer walls

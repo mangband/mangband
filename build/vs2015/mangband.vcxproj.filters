@@ -153,6 +153,9 @@
     <ClCompile Include="..\..\src\common\z-virt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\server\pathfind.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\angband.h">

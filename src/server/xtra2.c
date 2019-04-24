@@ -4676,6 +4676,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 				break;
 			}
 
+			case 'g':
+			{
+				do_cmd_pathfind(Ind, y, x);
+				done = TRUE;
+				break;
+			}
+
 			default:
 			{
 				/* Extract direction */
@@ -4775,6 +4782,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 			case '.':
 			{
 				target_set_location(Ind, p_ptr->look_y, p_ptr->look_x);
+				done = TRUE;
+				break;
+			}
+
+			case 'g':
+			{
+				do_cmd_pathfind(Ind, p_ptr->look_y, p_ptr->look_x);
 				done = TRUE;
 				break;
 			}

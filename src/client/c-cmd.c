@@ -835,6 +835,7 @@ int cmd_target_interactive(int mode)
 			case '5':
 			case '0':
 			case '.':
+			case 'g':
 			case ESCAPE:
 				done = TRUE;
 				break;

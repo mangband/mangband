@@ -1435,6 +1435,10 @@ struct player_type
 	bool find_breakright;
 	bool find_breakleft;
 
+	bool running_withpathfind;
+	char pf_result[MAX_PF_LENGTH];
+	int pf_result_index;
+
 	bool resting;		/* Are we resting? */
 
 	s16b command_dir;	/* Direction being used */

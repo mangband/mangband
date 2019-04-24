@@ -460,6 +460,7 @@ extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_hold(int Ind);
 extern void do_cmd_hold_or_stay(int Ind, int pickup);
 extern void do_cmd_toggle_rest(int Ind);
+extern void do_cmd_pathfind(int Ind, int y, int x);
 /*extern void do_cmd_rest(void);*/
 extern void do_cmd_fire(int Ind, int item, int dir);
 extern void do_cmd_throw(int Ind, int item, int dir);
@@ -545,6 +546,9 @@ extern void do_cmd_zap_rod_discharge(int Ind, int dir, bool ident);
 extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int item, int dir);
 extern void do_cmd_refill_potion(int Ind, int item);
+
+/* pathfind.c */
+bool findpath(player_type *p_ptr, int y, int x);
 
 /* control.c */
 extern void NewConsole(int fd, int arg);

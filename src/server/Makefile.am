@@ -3,7 +3,7 @@ mangband_LDADD = src/libcommon.a $(SERVER_LDFLAGS)
 mangband_CFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" -DLOCALSTATEDIR=\"$(localstatedir)/mangband\" -DCONFIG_PATH=\"$(sysconfdir)/mangband.cfg\" $(SERVER_CFLAGS)
 
 mangband_SOURCES = \
-		src/server/birth.c src/server/cave.c \
+		src/server/birth.c src/server/cave.c src/server/pathfind.c \
 		src/server/cmd1.c src/server/cmd2.c src/server/cmd3.c \
 		src/server/cmd4.c src/server/cmd5.c src/server/cmd6.c \
 		src/server/control.c src/server/dungeon.c src/server/files.c \
