@@ -4902,6 +4902,90 @@ bool target_set_interactive(int Ind, int mode, char query)
 }
 
 
+/*
+ * This function will try to guess an appropriate action for
+ * "target_set_interactive", pick a fake keypress and, call it.
+ *
+ * For example, if we need to set target, the 't' keypress will
+ * be fed into the targeting code, as if the user pressed 't'.
+ *
+ * For "hovering mouse" effect, we use keys 'm' and 'o', which
+ * do (mostly) nothing.
+
+ * "mod" should contain MCURSOR_XXX bitflags, with the following meanings:
+ * (MCURSOR_META) -- when set, it means the 0x0F bits of the "mod"
+ *                   specify "look_mode" (one of NTARGET_XXX defines)
+ * (MCURSOR_xMB)  -- unused, per above.
+ * (MCURSOR_KTRL) -- player want to accept the target.
+ */
+bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
+{
+	bool accept = (mod & MCURSOR_KTRL) ? TRUE : FALSE;
+	int look_mode = (mod & 0x0F);
+	char key = '\xff';
+
+	/* Adjust coordinates */
+	x = x + p_ptr->panel_col_min;
+	y = y + p_ptr->panel_row_min;
+
+	/* Clip to panel bounds */
+	if (x < p_ptr->panel_col_min) x = p_ptr->panel_col_min;
+	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
+	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
+	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	/* Player is in "arbitrary grids" mode */
+	if ((p_ptr->target_flag & TARGET_GRID))
+	{
+		/* Set new values */
+		p_ptr->look_x = x;
+		p_ptr->look_y = y;
+
+		key = 'o';
+
+		if (accept)
+		{
+			key = 't';
+		}
+	}
+	/* Player is in "interesting grids" mode */
+	else
+	{
+		int i;
+		int found_index = -1;
+		int last_dist = -1;
+		/* Hack -- populate target_*[] arrays so we can iterate */
+		target_set_interactive(Get_Ind[p_ptr->conn], look_mode, 'm');
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			int oy = p_ptr->target_y[i];
+			int ox = p_ptr->target_x[i];
+			int dist = distance(y, x, oy, ox);
+			if (dist < last_dist || last_dist == -1)
+			{
+				found_index = i;
+				last_dist = dist;
+			}
+		}
+		/* If nothing was found, do nothing */
+		if (found_index == -1) return FALSE;
+
+		/* Set new value */
+		p_ptr->look_index = found_index;
+
+		key = 'm';
+
+		if (accept)
+		{
+			key = 't';
+		}
+	}
+
+	/* We now have a proper look mode and a fake key */
+	/* Lets feed our interactive targeter */
+	return target_set_interactive(Get_Ind[p_ptr->conn], look_mode, key);
+}
+
 
 /*
  * Get an "aiming direction" from the user.

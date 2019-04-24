@@ -1121,6 +1121,7 @@ extern bool target_able(int Ind, int m_idx);
 extern bool target_okay(int Ind);
 extern s16b target_pick(int Ind, int y1, int x1, int dy, int dx);
 extern bool target_set_interactive(int Ind, int mode, char query);
+extern bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x);
 extern bool get_aim_dir(int Ind, int *dp);
 extern bool get_item(int Ind, int *cp, byte tval_hook);
 extern bool confuse_dir(bool confused, int *dp);

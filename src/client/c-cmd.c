@@ -818,6 +818,7 @@ void cmd_describe(void)
 int cmd_target_interactive(int mode)
 {
 	bool done = FALSE;
+	event_type ke;
 	char ch;
 
 	/* Save screen */
@@ -834,10 +835,21 @@ int cmd_target_interactive(int mode)
 
 	while (!done)
 	{
-		ch = inkey();
+		ke = inkey_ex();
+		ch = ke.key;
 
 		if (!ch)
 			continue;
+
+		if (ch == '\xff')
+		{
+			send_mouse(MCURSOR_META | mode
+			  | (ke.index ? MCURSOR_KTRL : 0),
+			  ke.mousex - DUNGEON_OFFSET_X,
+			  ke.mousey - DUNGEON_OFFSET_Y);
+			if (ke.index) done = TRUE;
+			continue;
+		}
 
 		Send_target_interactive(mode, ch);
 
