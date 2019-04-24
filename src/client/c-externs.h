@@ -368,6 +368,7 @@ extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
 /* c-cmd0.c */
 extern char do_cmd_menu(void);
+extern void cmd_init(void);
 
 
 /* c-files.c */
