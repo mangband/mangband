@@ -157,8 +157,8 @@ static command_type cmd_util[128] =
 	{ "Party menu",                   'P', NULL },
 	{ "Interact with options",        '=', NULL/*do_cmd_xxx_options*/ },
 	{ "Interact with macros",         '%', NULL },
+	{ "Port-specific preferences",    '!', NULL/*do_cmd_port*/ },
 #if 0
-	{ "Port-specific preferences",    '!', do_cmd_port },
 	{ "Save and don't quit",  KTRL('S'), do_cmd_save_game },
 #endif
 	{ "Save and quit",        KTRL('X'), NULL /*do_cmd_quit*/ },
@@ -425,12 +425,11 @@ static void do_cmd_mouseclick(void)
  *
  * Should be moved to the options screen. XXX
  */
-#if 0
-static void do_cmd_port(void)
+void do_cmd_port(void)
 {
 	(void)Term_user(0);
 }
-#endif
+
 
 
 /*

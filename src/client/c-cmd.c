@@ -500,6 +500,12 @@ void process_command()
 			break;
 		}
 
+		case '!':
+		{
+			do_cmd_port();
+			break;
+		}
+
 		default:
 		{
 			prt("Hit '?' for help.", 0, 0);
