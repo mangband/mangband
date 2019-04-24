@@ -30,6 +30,8 @@
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
+bool mouse_mode = FALSE;	/* pass mouse events to Angband !!! */
+
 static cptr ANGBAND_DIR_XTRA_FONT;
 static cptr ANGBAND_DIR_XTRA_GRAF;
 
@@ -216,6 +218,7 @@ static SDL_Color color_data_sdl[16] =
  * SDL_XXX			-- perform actual blitting, scaling, colorizing, etc (eg: SDL_BlitChar draws A/C)
  *	Term_sdl_XXX 	-- ZTerm wrappers for the above (eg: Term_char_sdl calls SDL_BlitChar)
  * term_XXX			-- perform interal operations on terms, such as showing, hiding, restacking, rescaling, (un)loading fonts
+ * ang_mouse_XXX		-- transform raw SDL events into Angband mouse events
  * gui_term_XXX	-- hooks for WYSIWYG term editor
  * init_XXX			-- standart init fare, similar to other "main-xxx" files
  */
@@ -1107,6 +1110,89 @@ bool gui_term_event(SDL_Event* event) {
 	return taken;
 }
 
+/* Handle SDL_event/angband */
+void ang_mouse_move(SDL_Event* event) {
+	static int last_mouse_x[ANGBAND_TERM_MAX] = { 0 };
+	static int last_mouse_y[ANGBAND_TERM_MAX] = { 0 };
+	term_data *td;// = (term_data*)(Term->data);
+
+	int x = event->motion.x;
+	int y = event->motion.y;
+	int i = pick_term(x, y);
+
+	if (i == -1) return;
+
+	/* Ignore non-main windows (for now) */
+	if (i != 0) return;
+
+	td = &tdata[i];
+
+	x = (x - td->xoff) / td->w;
+	y = (y - td->yoff) / td->h;
+
+	if (x == last_mouse_x[i] && y == last_mouse_y[i])
+	{
+		return;
+	}
+	last_mouse_x[i] = x;
+	last_mouse_y[i] = y;
+
+	printf("MOTION AT %d, %d\n", x, y);
+
+	Term_mousepress(x, y, 0);
+}
+void ang_mouse_press(SDL_Event* event) {
+	term_data *td;// = (term_data*)(Term->data);
+
+	int x = event->button.x;
+	int y = event->button.y;
+	int i = pick_term(x, y);
+
+	if (i == -1) return;
+
+	/* Ignore non-main windows (for now) */
+	if (i != 0) return;
+
+	td = &tdata[i];
+
+	x = (x - td->xoff) / td->w;
+	y = (y - td->yoff) / td->h;
+
+	Term_mousepress(x, y, event->button.button);
+}
+bool ang_mouse_event(SDL_Event* event) {
+	bool taken = FALSE;
+	switch (event->type)
+	{
+		case SDL_MOUSEMOTION:
+		{
+			ang_mouse_move(event);
+			taken = TRUE;
+		}
+		break;
+		case SDL_MOUSEBUTTONUP:
+		if ( (event->button.button == SDL_BUTTON_LEFT)
+		  || (event->button.button == SDL_BUTTON_RIGHT) )
+		{
+			ang_mouse_press(event);
+			taken = TRUE;
+		}
+		break;
+
+		case SDL_MOUSEBUTTONDOWN:
+		if ( (event->button.button == SDL_BUTTON_LEFT)
+		  || (event->button.button == SDL_BUTTON_RIGHT) )
+		{
+			taken = TRUE;
+		}
+		break;
+
+		default:	break;
+	}
+	return taken;
+}
+
+
 /*#define SCALETOCOLOR(x) (x=((x)*63+((x)-1)))*/
 #define ScaleToColor(x) ((x)=((x)*60)+15)
 /*#define ScaleToColor(x) ((x)=((x)*63))*/
@@ -1451,14 +1537,12 @@ static void Term_nuke_sdl(term *t)
  */
 static errr Term_user_sdl(int n)
 {
-	/*term_data *td = (term_data*)(Term->data);*/
+	term_data *td = (term_data*)(Term->data);
 
-	/* XXX XXX XXX Handle the request */
+	mouse_mode = !mouse_mode;
 
-	/* TODO What? Huh? */
-
-	/* Unknown */
-	return (1);
+	/* OK */
+	return (0);
 }
 
 /*
@@ -1502,6 +1586,8 @@ static errr Term_xtra_sdl(int n, int v)
 			}
 
 			event_timestamp = SDL_GetTicks();/*event.key.timestamp;*/
+
+			if (mouse_mode && ang_mouse_event(&event)) continue;
 
 			if (gui_term_event(&event)) continue;
 
