@@ -2971,6 +2971,28 @@ void do_cmd_spike(int Ind, int dir)
 	}
 }
 
+/*
+ * Clicked somewhere on the dungeon.
+ *
+ * "mod" can contain any MCURSOR_XXX flag, except for
+ *  MCURSOR_EMB and MCURSOR_META (so buttons 1, 2, 3 and
+ *  modifiers CTRL, ALT, SHIFT).
+ */
+void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x)
+{
+	/* Right now, we only support 1 mouse button */
+	if (mod != 1) return;
+
+	y = y + p_ptr->panel_row_min;
+	x = x + p_ptr->panel_col_min;
+
+	if (x < p_ptr->panel_col_min) x = p_ptr->panel_col_min;
+	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
+	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
+	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	do_cmd_pathfind(Get_Ind[p_ptr->conn], y, x);
+}
 
 
 /*

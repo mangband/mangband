@@ -367,6 +367,7 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
+extern void cmd_mouseclick(void);
 /* c-cmd0.c */
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);

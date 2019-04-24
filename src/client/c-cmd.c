@@ -482,6 +482,12 @@ void process_command()
 			break;
 		}
 
+		case '\xff':
+		{
+			cmd_mouseclick();
+			break;
+		}
+
 		case '=':
 		{
 			do_cmd_options();
@@ -1414,4 +1420,15 @@ void cmd_suicide(void)
 
 	/* Send it */
 	send_suicide();
+}
+
+void cmd_mouseclick()
+{
+	event_type ke = command_cmd_ex;
+	send_mouse(0
+	  | (ke.index == 1 ? MCURSOR_LMB : 0)
+	  | (ke.index == 2 ? MCURSOR_MMB : 0)
+	  | (ke.index == 3 ? MCURSOR_RMB : 0),
+	  ke.mousex - DUNGEON_OFFSET_X,
+	  ke.mousey - DUNGEON_OFFSET_Y);
 }
