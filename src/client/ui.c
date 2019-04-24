@@ -696,6 +696,17 @@ static bool menu_handle_event(menu_type *menu, const event_type *in)
 
 			out.index = m_curs;
 
+			/* MAngband flavor: button 0 is "hovering mouse" */
+			if (in->index == 0)
+			{
+				out.type = EVT_MOVE;
+			}
+			else if (in->index == 3) /* button 3 is "back" */
+			{
+				out.type = EVT_BACK;
+				break;
+			} else /* End yucky hack */
+
 			if (*cursor == m_curs || !(menu->flags & MN_DBL_TAP))
 			{
 				if (*cursor != m_curs)
