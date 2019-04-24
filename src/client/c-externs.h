@@ -213,6 +213,7 @@ extern cptr keymap_act[KEYMAP_MODES][256];
 
 extern s16b command_cmd;
 extern s16b command_dir;
+extern event_type command_cmd_ex;
 
 extern custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 extern int custom_commands;
