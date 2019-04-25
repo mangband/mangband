@@ -1525,7 +1525,8 @@ int recv_term_writefile(connection_type *ct)
 
 	if (cq_scanf(&ct->rbuf, "%b%s", &fmode, filename) < 2) return 0;
 
-	/* XXX XXX XXX DO ABSOLUTELY NOTHING (for now) */
+	/* Attempt to write a file */
+	write_file_info(fmode, filename);
 
 	/* OK */
 	return 1;

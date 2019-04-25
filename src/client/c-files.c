@@ -2138,6 +2138,121 @@ void peruse_file(void)
 	Flush_queue();
 }
 
+bool filename_is_safe(cptr filename)
+{
+	int i, n;
+	n = strlen(filename);
+	if (n == 0 || n > 64)
+	{
+		return FALSE;
+	}
+	for (i = 0; i < n; i++)
+	{
+		char c = filename[i];
+		/* Whitelist */
+		if (!(
+			(c >= 'a' && c <= 'z') || /* Allow a-z */
+			(c >= 'A' && c <= 'Z') || /* Allow A-Z */
+			(c >= '0' && c <= '9') || /* Allow 0-9 */
+			(c == '.' || c == '-') || /* Allow . - */
+			(c == '_')         /* Allow underscore */
+		))
+		{
+			return FALSE;
+		}
+	}
+	/* No "." or "-" at the beginning */
+	if (filename[0] == '.' || filename[0] == '-')
+	{
+		return FALSE;
+	}
+	/* Only allowed extensions are ".prf" and ".txt", lowercase */
+	if (!suffix(filename, ".prf") && !suffix(filename, ".txt"))
+	{
+		return FALSE;
+	}
+	/* OK, looks like we're good */
+	return TRUE;
+}
+
+/* Write file info into an actual file! */
+void write_file_info(byte ftype, cptr filename)
+{
+	FILE *fff;
+	char path[1024];
+	bool binary = FALSE;
+	bool should_be_binary = FALSE;
+	cptr base = NULL;
+	int i, j;
+	
+	byte st = window_to_stream[NTERM_WIN_SPECIAL]; /* Ugh, what about others? */
+	int cols = p_ptr->stream_wid[st]; /* TODO: Untangle from streams? */
+	
+	/* This is dangerous, we don't want malicious servers to
+	 * overwrite user-owned files, so let's do some error-checking. */
+	if (!filename_is_safe(filename))
+	{
+		plog("Server sent us an unsafe filename.");
+		return;
+	}
+
+	if (ftype & NFILE__BINARY)
+	{
+		ftype &= ~(NFILE__BINARY);
+		binary = TRUE;
+	}
+
+	if (ftype == NFILE_BONE)
+	{
+		path_build(path, 1024, ANGBAND_DIR_BONE, filename);
+	}
+	else if (ftype == NFILE_USER)
+	{
+		path_build(path, 1024, ANGBAND_DIR_USER, filename);
+	}
+	else if (ftype == NFILE_PREF)
+	{
+		path_build(path, 1024, ANGBAND_DIR_PREF, filename);
+	}
+/*
+	else if (ftype == NFILE_GRAF)
+	{
+		path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
+		should_be_binary = TRUE;
+	}
+	else if (ftype == NFILE_FONT)
+	{
+		path_build(path, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+		should_be_binary = TRUE;
+	}
+*/
+	else
+	{
+		plog("Server sent us an unrecognized filetype.");
+		return;
+	}
+
+	if (binary != should_be_binary)
+	{
+		plog("Server sent us mismatching filetype/mode.");
+		return;
+	}
+
+	fff = my_fopen(path, binary ? "wb" : "w");
+	if (!fff) return;
+
+	for (j = 0; j < p_ptr->last_file_line + 1; j++)
+	{
+		for (i = 0; i < cols; i++)
+		{
+			if (binary) fprintf(fff, "%c", p_ptr->file[j][i].a);
+			fprintf(fff, "%c", p_ptr->file[j][i].c);
+		}
+		if (!binary) fprintf(fff, "%c", '\n');
+	}
+
+	my_fclose(fff);
+}
 
 /*
  * Client config file handler
