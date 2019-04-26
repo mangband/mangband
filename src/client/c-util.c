@@ -2404,7 +2404,6 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	/* Test terminal size */
 	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
 
-	/* TODO: also test for ->mem stack */
 	if (mem && Term->mem)
 		Term_mem_ch(x, y, a, c, ta, tc);
 

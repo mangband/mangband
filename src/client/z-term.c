@@ -1496,6 +1496,8 @@ errr Term_gotoxy(int x, int y)
 
 errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 {
+	term_win *win;
+
 	int w = Term->wid;
 	int h = Term->hgt;
 
@@ -1505,11 +1507,19 @@ errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 
 	/* Paranoia -- illegal char */
 	if (!c) return (-2);
-	
-	Term->mem->a[y][x] = a;
-	Term->mem->c[y][x] = c; 
-	Term->mem->ta[y][x] = ta;
-	Term->mem->tc[y][x] = tc;
+
+	/* Paranoia -- no memorized terminal */
+	if (!Term->mem) return (-3);
+
+	/* Go to the end of the queue */
+	/* Last in queue = first that was memorized */
+	win = Term->mem;
+	while (win->next) win = win->next;
+
+	win->a[y][x] = a;
+	win->c[y][x] = c;
+	win->ta[y][x] = ta;
+	win->tc[y][x] = tc;
 	
 	/* Success */
 	return (0);
