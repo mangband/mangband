@@ -2433,7 +2433,7 @@ void show_line(int sy, s16b cols, bool mem, int st)
 
 	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
-	y = sy;
+	y = sy + (mem ? DUNGEON_OFFSET_Y : 0);
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -2451,8 +2451,8 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	if (y >= Term->hgt || cols+coff <= 0) mem = draw = FALSE;
 
 	/* Check the max line count */
-	if (last_line_info < y)
-		last_line_info = y;
+	if (last_line_info < sy)
+		last_line_info = sy;
 
 	/* Remember screen */
 	if (mem && Term->mem)
