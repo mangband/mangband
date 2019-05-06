@@ -368,7 +368,7 @@ custom_command_type priest_study_cmd =
 	{ /* Study spell */
 		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
-		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? ", "Study prayer"
 	};
 
 
