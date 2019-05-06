@@ -1071,6 +1071,7 @@ bool askfor_aux(char *buf, int len, char m_private)
 
 	bool done = FALSE;
 
+	byte default_color = TERM_YELLOW;
 
 	/* Locate the cursor */
 	Term_locate(&x, &y);
@@ -1096,11 +1097,12 @@ bool askfor_aux(char *buf, int len, char m_private)
 	{
 		m_private = FALSE;
 		k = strlen(buf);
+		default_color = TERM_WHITE;
 	}
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-	Term_putstr(x, y, -1, TERM_YELLOW, m_private ? "xxxxxx" : buf);
+	Term_putstr(x, y, -1, default_color, m_private ? "xxxxxx" : buf);
 
 
 	/* Process input */
@@ -3061,6 +3063,8 @@ void interact_macros(void)
 	char* str;
 	tmp_buf[0] = '\0';
 
+	static bool old_school_macros = FALSE;
+
 	/* Screen is icky */
 	screen_icky = TRUE;
 
@@ -3105,6 +3109,13 @@ void interact_macros(void)
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
+#if 1
+		Term_putstr(5+24,  6, -1, TERM_L_DARK, ".........");
+		Term_putstr(5+34,  6, -1, TERM_L_DARK, "(8) Macro by command");
+		Term_putstr(5+34,  7, -1, TERM_L_DARK, "(9) Macro by item");
+		Term_putstr(5+34,  8, -1, TERM_L_DARK, "(0) Macro by spell");
+#endif
+
 #if 0
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
@@ -3167,8 +3178,91 @@ void interact_macros(void)
 			(void)macro_dump(tmp);
 		}
 
+		/* Change wizard mode */
+		else if (i == KTRL('O'))
+		{
+			old_school_macros = !(old_school_macros);
+		}
+
+		/* Enter a new action (spell) */
+		else if (i == '0')
+		{
+			int spell, book = 0, n;
+			char cmd;
+			n = get_spell(&spell, "/=Next book,", "Macro which spell?", &book,FALSE);
+			screen_icky = TRUE;
+			/* No spell selected */
+			if (!n)
+			{
+				continue;
+			}
+
+			cmd = command_by_item(book, 1);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			spell_as_keystroke(spell, book, cmd, buf, MAX_COLS,
+				old_school_macros ?
+				(CTXT_FULL | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_NAME)
+);
+
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
+
+		}
+
+		/* Enter a new action (via items) */
+		else if (i == '9')
+		{
+			int item, n;
+			char cmd;
+			if (!c_get_item(&item, "Macro which item?", TRUE, TRUE, TRUE))
+			{
+				continue;
+			}
+			cmd = command_by_item(item, 0);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			item_as_keystroke(item, cmd, buf, MAX_COLS,
+				old_school_macros ?
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_PREFER_NAME)
+			);
+
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
+		}
+
 		/* Enter a new action (via menu) */
-		else if (i == '7' || i == '#')
+		else if (i == '8')
 		{
 			char cmd = do_cmd_menu();
 			if (!cmd || cmd == '\r')
@@ -3183,10 +3277,7 @@ void interact_macros(void)
 			Term_gotoxy(0, 21);
 
 			/* Hack -- dump the value */
-			tmp[0] = '\\'; tmp[1] = 'e';
-			if (KTRL(cmd) == cmd)
-			{ tmp[2] = '^'; tmp[3] = UN_KTRL(cmd); tmp[4] = '\0'; }
-			else { tmp[2] = cmd; tmp[3] = '\0'; }
+			command_as_keystroke(cmd, buf, MAX_COLS);
 
 			/* Get an encoded action */
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
