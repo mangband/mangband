@@ -37,6 +37,13 @@ static void print_spells(int book)
 
 	/* Clear the bottom line */
 	prt("", 2 + i, col);
+
+	/* Set section ickyness */
+	if (!screen_icky)
+	{
+		section_icky_row = 2 + i;
+		section_icky_col = -68;
+	}
 }
 
 int count_spells_in_book(int book, int *book_over)
@@ -244,9 +251,6 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				/* Show list */
 				redraw = TRUE;
 
-				/* The screen is icky */
-				screen_icky = TRUE;
-
 				/* Save the screen */
 				Term_save();
 
@@ -264,7 +268,8 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				Term_load();
 
 				/* The screen is OK now */
-				screen_icky = FALSE;
+				section_icky_row = 0;
+				section_icky_col = 0;
 
 				/* Flush any events */
 				Flush_queue();
@@ -307,7 +312,10 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	if (redraw)
 	{
 		Term_load();
-		screen_icky = FALSE;
+
+		/* The screen is OK now */
+		section_icky_row = 0;
+		section_icky_col = 0;
 
 		/* Flush any events */
 		Flush_queue();
@@ -333,9 +341,6 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
  */
 void show_browse(int book)
 {
-	/* The screen is icky */
-	screen_icky = TRUE;
-
 	/* Save the screen */
 	Term_save();
 
@@ -354,8 +359,9 @@ void show_browse(int book)
 	/* Restore the screen */
 	Term_load();
 
-	/* Screen is OK now */
-	screen_icky = FALSE;
+	/* The screen is OK now */
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();
