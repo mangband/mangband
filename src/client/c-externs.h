@@ -373,6 +373,14 @@ extern void cmd_mouseclick(void);
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);
 extern void cmd_init(void);
+extern char* macro_find_by_action(cptr buf);
+extern custom_command_type *match_custom_command(char cmd);
+extern int command_to_display_name(char cmd, char *dst, size_t len);
+extern char command_from_keystroke(char *buf);
+extern char command_by_item(int item, bool agressive);
+extern int command_as_keystroke(char cmd, char *dst, size_t len);
+extern int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag);
+extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t len, byte ctxt_flag);
 
 
 /* c-files.c */

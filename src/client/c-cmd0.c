@@ -849,4 +849,303 @@ void process_command(bool no_request)
 			converted_list[(unsigned char) command_cmd]();
 	}
 }
-#endif 
+#endif
+
+/** Macro helpers **/
+
+char* macro_find_by_action(cptr buf)
+{
+	int i, t, n = -1, s = -1;
+
+	/* Scan the macros */
+	for (i = 0; i < macro__num; i++)
+	{
+		/* Skip inactive macros */
+		if (macro__cmd[i]) continue;
+
+		/* Check for "prefix" */
+		if (!streq(buf, macro__act[i])) continue;
+
+		/* Return the trigger */
+		return macro__pat[i];
+	}
+
+	/* Return the result */
+	return NULL;
+}
+
+/*
+ * In theory, we should have some kind of a "command_struct",
+ * with all the possible data we might ever need.
+ * However, what we actually have is:
+ * - custom_command_type, with most of the data, which covers
+     90% of commands
+ * - command_type, with remaining 10% of commands and no usable
+     data at all.
+ */
+custom_command_type *match_custom_command(char cmd)
+{
+	byte i;
+	for (i = 0; i < custom_commands; i++)
+	{
+		if (custom_command[i].m_catch == cmd)
+		{
+			return &custom_command[i];
+		}
+	}
+	return NULL;
+}
+command_type *match_builtin_command(char cmd)
+{
+	int i, j;
+	for (j = 0; j < N_ELEMENTS(cmds_all); j++)
+	{
+		for (i = 0; i < cmds_all[j].len; i++)
+		{
+			if (cmds_all[j].list[i].key == cmd)
+			{
+				return &cmds_all[j].list[i];
+			}
+		}
+	}
+	return NULL;
+}
+int command_to_display_name(char cmd, char *dst, size_t len)
+{
+	custom_command_type *cc_ptr;
+	command_type *cmd_ptr;
+
+	if ((cc_ptr = match_custom_command(cmd)))
+	{
+		my_strcpy(dst, cc_ptr->display, len);
+		return strlen(dst);
+	}
+	else if ((cmd_ptr = match_builtin_command(cmd)))
+	{
+		my_strcpy(dst, cmd_ptr->desc, len);
+		return strlen(dst);
+	}
+	return 0;
+}
+char command_from_keystroke(char *buf)
+{
+	char *p;
+	for (p = buf; *p; p++)
+	{
+		if ((char)(*p) <= 32)
+		{
+			continue;
+		}
+		/* Return anything viable */
+		return (*p);
+	}
+	return (0);
+}
+
+char command_by_item(int item, bool agressive)
+{
+	byte i;
+	object_type *o_ptr;
+
+	o_ptr = &inventory[item];
+	for (i = 0; i < custom_commands; i++)
+	{
+		custom_command_type *cc_ptr = &custom_command[i];
+		if (!(cc_ptr->flag & COMMAND_NEED_ITEM)) continue;
+		if (!cc_ptr->tval) continue;
+
+		/* Check the fake hook */
+		if (cc_ptr->tval > TV_MAX)
+		{
+			if (!item_tester_hack(o_ptr, cc_ptr->tval - TV_MAX - 1))
+			{
+				continue;
+			}
+		}
+		/* Or direct (mis)match */
+		else if (!(cc_ptr->tval == o_ptr->tval))
+		{
+			continue;
+		}
+		/* Spell command hacks */
+		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
+		{
+			if (!agressive) return 'b';
+			if (agressive && !(cc_ptr->flag & COMMAND_TARGET_ALLOW)) continue;
+		}
+		return cc_ptr->m_catch;
+	}
+	return 0;
+}
+
+/* Populate buffer "dst" (of length "len") with keystrokes
+ * that could be used to invoke command "cmd".
+ */
+int command_as_keystroke(char cmd, char *dst, size_t len)
+{
+	char tmp[32];
+	/* Hack -- dump the value */
+	tmp[0] = '\\';
+	tmp[1] = 'e';
+	if (KTRL(cmd) == cmd)
+	{
+		tmp[2] = '^';
+		tmp[3] = UN_KTRL(cmd);
+		tmp[4] = '\0';
+	}
+	else {
+		tmp[2] = cmd;
+		tmp[3] = '\0';
+	}
+	my_strcpy(dst, tmp, len);
+	return strlen(dst);
+}
+
+/* Given an "item", populate buffer "dst" (of length "len") with
+ * keystrokes that could be used to select this item.
+ *
+ * For items tagged @x1, the tagged version will be returned.
+ * For non-tagged items, full item name in quotes will be returned.
+ */
+int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
+{
+	/* Step one, see if it's tagged */
+	char *s, *p;
+	char buf[32];
+	char buf2[1024];
+	int tag = -1;
+
+	my_strcpy(buf2, inventory_name[item], 1024);
+
+	if (ctxt_flag & CTXT_WITH_CMD)
+	{
+		command_as_keystroke(cmd, dst, len);
+	}
+
+	if (!(ctxt_flag & CTXT_PREFER_NAME))
+	{
+		/* Find a '@' */
+		s = strchr(buf2, '@');
+
+		/* Process all tags */
+		while (s)
+		{
+			/* Check the special tags */
+			if ((s[1] == cmd) && (isdigit(s[2])))
+			{
+				tag = s[2] - '0';
+				/* Success */
+				break;
+			}
+
+			/* Find another '@' */
+			s = strchr(s + 1, '@');
+		}
+	}
+	/* We have a nice tag */
+	if (tag > -1)
+	{
+		buf[0] = '0' + tag;
+		buf[1] = '\0';
+		my_strcat(dst, buf, len);
+		return strlen(dst);
+	}
+
+	/* To hell with it, let's use inventory index */
+	if (ctxt_flag & CTXT_PREFER_SHORT)
+	{
+		char key = 'a';
+		if (item < 0) key = '-';
+		if (item < INVEN_WIELD)
+		{
+			buf[0] = key + item;
+			buf[1] = '\0';
+			my_strcat(dst, buf, len);
+			return 1;
+		}
+	}
+
+	/* Trim full name */
+	p = buf2;
+	if ((s = strchr(p, '[')) && *(s+1) && !isdigit(*(s+1))) p = s;
+	else if ((s = strchr(p, '['))) *s = '\0';
+	else if (s = strstr(p, " of ")) p = s + 4;
+	if ((s = strchr(p, '('))) *s = '\0';
+	if ((s = strchr(p, '{'))) *s = '\0';
+	if (prefix(p, "a ")) p += 2;
+	while (*p && isdigit(*p)) p++;
+	if (*p == ' ') p++;
+
+	/* Use full name */
+	my_strcat(dst, "\"", len);
+	my_strcat(dst, p, len);
+	my_strcat(dst, "\"", len);
+
+	return strlen(dst);
+}
+
+/* Given a "spell" in item "book", populate buffer "dst"
+ * (of length "len") with keystrokes that could be used to
+ * select this spell.
+ *
+ * To expand the sequence with command, book selection and/or
+ * targeting keystrokes, set CTXT_WITH_CMD, CTXT_WITH_ITEM,
+ * CTXT_WITH_DIR bit flags in "ctxt_flag".
+ */
+int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t len, byte ctxt_flag)
+{
+	int index;
+	char base_key;
+	char buf[2] = { '"', '\0' };
+	char tmp[1024];
+	tmp[0] = '\0';
+
+	/* Projected spells use uppercase letter */
+	base_key = 'a';
+	if (spell >= SPELL_PROJECTED)
+	{
+		spell -= SPELL_PROJECTED;
+		base_key = 'A';
+		ctxt_flag |= CTXT_PREFER_SHORT;
+	}
+
+	/* Prefix */
+	if (ctxt_flag & CTXT_WITH_CMD)
+	{
+		command_as_keystroke(cmd, tmp, 1024);
+		ctxt_flag &= ~(CTXT_WITH_CMD);
+	}
+	if (ctxt_flag & CTXT_WITH_ITEM)
+	{
+		item_as_keystroke(book, cmd, tmp, 1024, ctxt_flag);
+	}
+
+	/* The spell itself */
+	if (ctxt_flag & CTXT_PREFER_SHORT)
+	{
+		/* A spell has a simple index */
+		buf[0] = spell + base_key;
+		my_strcat(tmp, buf, 1024);
+	}
+	else
+	{
+		char *s, *p;
+		char buf2[1024];
+		my_strcpy(buf2, spell_info[book][spell], 1024);
+		/* Trim full name */
+		p = buf2;
+		p += 4;
+		if ((s = strchr(p, '('))) p = s + 1;
+		if ((s = strstr(p, "  "))) s[0] = '\0';
+		if (*p == ' ') p++;
+
+		/* Use spell name */
+		my_strcat(tmp, "\"", 1024);
+		my_strcat(tmp, p, 1024);
+		my_strcat(tmp, "\"", 1024);
+	}
+
+	/* Finish it */
+	my_strcpy(dst, tmp, len);
+	return strlen(dst);
+}
