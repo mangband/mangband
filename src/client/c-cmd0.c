@@ -774,6 +774,7 @@ void cmd_init(void)
 		{
 			list_id = CMD_LIST_INFO;
 		}
+		if (c_ptr->m_catch == 'G') list_id = CMD_LIST_MAGIC;
 		if (strchr("[", c_ptr->m_catch)) list_id = CMD_LIST_INFO;
 		if (c_ptr->m_catch == KTRL('F')) list_id = CMD_LIST_INFO;
 
