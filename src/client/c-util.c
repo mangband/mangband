@@ -306,6 +306,9 @@ static event_type inkey_aux(void)
 	/* Do not check "ascii 28" */
 	if (ch == 28) return (ke);
 
+	/* Begin "synthetic macro" sequence on "ascii 29" */
+	if (ch == 29) parse_macro = TRUE;
+
 	/* End "macro action" */
 	if ((ch == 30) || (ch == '\xff'))
 	{
