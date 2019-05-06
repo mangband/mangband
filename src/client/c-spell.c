@@ -189,6 +189,19 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	/* No redraw yet */
 	redraw = FALSE;
 
+	/* Show the list */
+	if (auto_showlist)
+	{
+		/* Show list */
+		redraw = TRUE;
+
+		/* Save the screen */
+		Term_save();
+
+		/* Display a list of spells */
+		print_spells(book);
+	}
+
 	/* Build a prompt (accept all spells) */
 	strnfmt(out_val, 78, "(%s %c-%c, *=List, ESC=exit) %s",
 		p, I2A(0), I2A(num - 1), prompt);

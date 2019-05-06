@@ -255,6 +255,7 @@ bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
 bool auto_itemlist;
+bool auto_showlist;
 bool show_labels;
 bool show_weights;
 bool ring_bell;
