@@ -1137,8 +1137,6 @@ void ang_mouse_move(SDL_Event* event) {
 	last_mouse_x[i] = x;
 	last_mouse_y[i] = y;
 
-	printf("MOTION AT %d, %d\n", x, y);
-
 	Term_mousepress(x, y, 0);
 }
 void ang_mouse_press(SDL_Event* event) {
