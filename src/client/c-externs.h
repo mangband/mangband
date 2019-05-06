@@ -488,7 +488,7 @@ extern void load_sound_prefs();
 
 /* c-spell.c */
 extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);
-extern bool get_spell_by_name(int *bn, int *sn, bool inven, bool equip);
+extern bool get_spell_by_name(int *bn, int *sn, bool inven, bool equip, bool books);
 extern void show_browse(int book);
 extern void do_study(int book);
 extern void do_cast(int book);

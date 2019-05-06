@@ -78,12 +78,13 @@ int count_spells_in_book(int book, int *book_over)
 }
 
 /* Get spell by name */
-bool get_spell_by_name(int *k, int *s, bool inven, bool equip)
+bool get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
 {
 	char buf[256];
 	char *tok;
 	int i, sn;
 	size_t len;
+	bool book_matched = FALSE;
 	char *prompt = "Spell name: ";
 
 	/* Hack -- show opening quote symbol */
@@ -113,16 +114,34 @@ bool get_spell_by_name(int *k, int *s, bool inven, bool equip)
 			if (!inven && i < INVEN_WIELD) continue;
 			if (!equip && i >= INVEN_WIELD) continue;
 			if (inventory[i].tval == 0) continue;
-			//if (!get_item_okay(i)) continue;
+
+			/* Book-name match */
+			if (/*get_item_okay(i) &&*/
+			   books &&
+			   my_stristr(inventory_name[i], tok))
+			{
+				(*k) = i;
+				(*s) = -1;
+				book_matched = TRUE;
+			}
+
+			/* Spell-name match */
 			if (my_stristr(spell_info[i][sn], tok))
 			{
 				(*k) = i;
 				(*s) = sn;
+				/* Hack - also ask for projection */
+				if (spell_flag[(i * SPELLS_PER_BOOK + sn)] & PY_SPELL_PROJECT)
+				{
+					if (get_check("Project? "))
+						(*s) += SPELL_PROJECTED;
+				}
 				return TRUE;
 			}
 		}
 		tok = strtok(NULL, "|");
 	}
+	if (books && book_matched) return TRUE;
 	return FALSE;
 }
 
@@ -183,7 +202,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 			int _sn, _bn;
 			if (choice == '"') prompt_quote_hack = TRUE;
 			/* XXX Lookup item by name */
-			if (get_spell_by_name(&_sn, &_bn, TRUE, FALSE))
+			if (get_spell_by_name(&_bn, &_sn, TRUE, FALSE, FALSE))
 			{
 				book = _bn;
 				i = _sn;

@@ -202,7 +202,7 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 	if (spellcasting)
 	{
 		int sn = -1;
-		bool ok = get_spell_by_name(k, &sn, inven, equip);
+		bool ok = get_spell_by_name(k, &sn, inven, equip, TRUE);
 		/* Remember spell index */
 		spellcasting_spell = sn;
 		/* Don't do any other tests */
