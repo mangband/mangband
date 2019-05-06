@@ -1003,8 +1003,11 @@ void show_inven(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
 }
 
 
@@ -1112,8 +1115,11 @@ void show_equip(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
 }
 
 

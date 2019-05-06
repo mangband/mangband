@@ -558,8 +558,11 @@ static bool cmd_menu(command_list *list, void *selection_p)
 	window_make(x, y, x + w, y + h);
 
 	/* MAngband-specific: icky-fy section */
-	section_icky_row = h + 2;
-	section_icky_col = -w - 1;
+	if (!screen_icky)
+	{
+		section_icky_row = h + 2;
+		section_icky_col = -w - 1;
+	}
 
 	/* Select an entry */
 	evt = menu_select(&menu, &cursor, 0);
@@ -657,8 +660,11 @@ char do_cmd_menu(void)
 	window_make(x, y, x + w, y + h);
 
 	/* MAngband-specific: icky-fy section */
-	section_icky_row = h + 2;
-	section_icky_col = -w - 1;
+	if (!screen_icky)
+	{
+		section_icky_row = h + 2;
+		section_icky_col = -w - 1;
+	}
 
 	/* Select an entry */
 	evt = menu_select(&menu, &cursor, 0);
