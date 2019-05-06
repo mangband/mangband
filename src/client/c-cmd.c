@@ -33,6 +33,7 @@ void cmd_custom(byte i)
 		if (p_ptr->ghost)
 		{
 			if (!STRZERO(prompt)) c_msg_print(prompt);
+			command_aborted = TRUE;
 			return;
 		}
 		advance_prompt();
@@ -42,6 +43,7 @@ void cmd_custom(byte i)
 		if (!p_ptr->ghost)
 		{
 			if (!STRZERO(prompt)) c_msg_print(prompt);
+			command_aborted = TRUE;
 			return;
 		}
 		advance_prompt();
@@ -51,6 +53,7 @@ void cmd_custom(byte i)
 		if (c_info[pclass].spell_book != cc_ptr->tval)
 		{
 			if (!STRZERO(prompt)) c_msg_print(prompt);
+			command_aborted = TRUE;
 			return;
 		}
 		advance_prompt();
@@ -76,6 +79,7 @@ void cmd_custom(byte i)
 		if (!c_check_item(&item, cc_ptr->tval))
 		{
 			if (!STRZERO(prompt)) c_msg_print(prompt);
+			command_aborted = TRUE;
 			return;
 		}
 		advance_prompt();
@@ -83,7 +87,11 @@ void cmd_custom(byte i)
 	/* Ask for a store item (interactive) ? */
 	else if (cc_ptr->flag & COMMAND_ITEM_STORE)
 	{
-		if (!get_store_stock(&item, prompt)) return;
+		if (!get_store_stock(&item, prompt))
+		{
+			command_aborted = TRUE;
+			return;
+		}
 		advance_prompt();
 
 		/* Get an amount */
@@ -102,7 +110,11 @@ void cmd_custom(byte i)
 				value = c_get_quantity(prompt, store.stock[item].number);
 				shopping_buying = FALSE;
 			}
-			if (!value) return;
+			if (!value)
+			{
+				command_aborted = TRUE;
+				return;
+			}
 			advance_prompt();
         }
 
@@ -118,7 +130,10 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_FLOOR ? TRUE : FALSE)))
+		{
+				command_aborted = TRUE;
 				return;
+		}
 		second_item_tester = c_secondary_tester(item);
 		advance_prompt();
 
@@ -138,7 +153,11 @@ void cmd_custom(byte i)
 				if (STRZERO(prompt)) prompt = "How many? ";
 				value = c_get_quantity(prompt, floor_item.number);
 			}
-			if (!value) return;
+			if (!value)
+			{
+				command_aborted = TRUE;
+				return;
+			}
 			advance_prompt();
 		}
 
@@ -157,7 +176,7 @@ void cmd_custom(byte i)
 				need_target = (floor_item.ident & ITEM_ASK_AIM  ? TRUE : FALSE);
 				need_second = (floor_item.ident & ITEM_ASK_ITEM ? TRUE : FALSE);
 			}
-		}		
+		}
 	}
 	/* Spell? */
 	if (cc_ptr->flag & COMMAND_NEED_SPELL)
@@ -167,13 +186,21 @@ void cmd_custom(byte i)
 		advance_prompt();
 		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
 		{
-			if (!get_spell(&spell, p, prompt, &item, FALSE)) return;
+			if (!get_spell(&spell, p, prompt, &item, FALSE))
+			{
+				command_aborted = TRUE;
+				return;
+			}
 			index = item * SPELLS_PER_BOOK + spell;
 		}
 		else
 		{
 			int book = cc_ptr->tval;
-			if (!get_spell(&spell, p, prompt, &book, FALSE)) return;
+			if (!get_spell(&spell, p, prompt, &book, FALSE))
+			{
+				command_aborted = TRUE;
+				return;
+			}
 			index = book * SPELLS_PER_BOOK + spell;
 			indoff = cc_ptr->tval * SPELLS_PER_BOOK;
 		}
@@ -210,7 +237,10 @@ void cmd_custom(byte i)
 				(cc_ptr->flag & COMMAND_SECOND_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_INVEN ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_SECOND_FLOOR ? TRUE : FALSE)))
+		{
+				command_aborted = TRUE;
 				return;
+		}
 		advance_prompt();
 	}
 	/* Target? */
@@ -219,7 +249,10 @@ void cmd_custom(byte i)
 		if (!c_get_dir(&dir, prompt,
 				(cc_ptr->flag & COMMAND_TARGET_ALLOW ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_TARGET_FRIEND ? TRUE : FALSE)))
+		{
+				command_aborted = TRUE;
 				return;
+		}
 		advance_prompt();
 	}
 	/* Auto-modify prompt? */
@@ -232,14 +265,21 @@ void cmd_custom(byte i)
 	{
 		if (STRZERO(prompt)) prompt = "Quantity: ";
 		value = c_get_quantity(prompt, 999000000);
-		if (!value) return;
+		if (!value)
+		{
+			command_aborted = TRUE;
+			return;
+		}
 		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_NEED_CHAR)
 	{
 		if (STRZERO(prompt)) prompt = "Command: ";
-		if (!get_com(prompt, &entry[0])) 
+		if (!get_com(prompt, &entry[0]))
+		{
+			command_aborted = TRUE;
 			return;
+		}
 		entry[1] = '\0';
 		advance_prompt();
 	}
@@ -247,14 +287,20 @@ void cmd_custom(byte i)
 	{
 		if (STRZERO(prompt)) prompt = "Entry: ";
 		if (!get_string(prompt, entry, sizeof(entry) - 1))
+		{
+			command_aborted = TRUE;
 			return;
+		}
 		advance_prompt();
 	}
 	if (cc_ptr->flag & COMMAND_NEED_CONFIRM)
 	{
 		if (STRZERO(prompt)) prompt = "Really perform said action ? ";
 		if (!get_check(prompt))
+		{
+			command_aborted = TRUE;
 			return;
+		}
 		advance_prompt();
 	}
 	/* Post-effects */
@@ -281,6 +327,7 @@ void cmd_custom(byte i)
 void process_command()
 {
 	byte i;
+	command_aborted = FALSE;
 	for (i = 0; i < custom_commands; i++) 
 	{
 		if (custom_command[i].flag & COMMAND_STORE) continue;
@@ -800,6 +847,7 @@ void cmd_describe(void)
 
 	if (!c_get_item(&item, "Describe what? ", TRUE, TRUE, TRUE))
 	{
+		command_aborted = TRUE;
 		return;
 	}
 
@@ -1308,6 +1356,7 @@ void cmd_browse(void)
 	if (!c_info[pclass].spell_book)
 	{
 		c_msg_print("You cannot read books!");
+		command_aborted = TRUE;
 		return;
 	}
 
@@ -1316,6 +1365,7 @@ void cmd_browse(void)
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
 		if (item == -2) c_msg_print("You have no books that you can read.");
+		command_aborted = TRUE;
 		return;
 	}
 

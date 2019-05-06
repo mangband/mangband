@@ -159,6 +159,7 @@ cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with e
 s16b command_cmd;
 s16b command_dir;
 event_type command_cmd_ex; /* Gives additional information of current command */
+bool command_aborted = FALSE; /* Hack -- set to TRUE to ignore the "rest of macro" */
 
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 int custom_commands;

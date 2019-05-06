@@ -1974,6 +1974,9 @@ errr Term_flush(void)
 	/* Forget all keypresses */
 	Term->key_head = Term->key_tail = 0;
 
+	/* Hack -- we can no longer reliably tell */
+	command_aborted = FALSE;
+
 	/* Success */
 	return (0);
 }

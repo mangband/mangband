@@ -300,6 +300,11 @@ static event_type inkey_aux(void)
 		}
 	} while (!ch);
 
+	/* Hack -- if "command_aborted" is TRUE, ignore all keystrokes,
+	 * till we reach the "end of macro". "End of macro" is either
+	 * char 30, either a 0. */
+	if (command_aborted && parse_macro) return ke0;
+
 	
 	/* ARCANE MAGIC STARTS BELOW: */
 
@@ -312,6 +317,7 @@ static event_type inkey_aux(void)
 	/* End "macro action" */
 	if ((ch == 30) || (ch == '\xff'))
 	{
+		command_aborted = FALSE;
 		parse_macro = FALSE;
 		return (ke);
 	}
@@ -770,6 +776,9 @@ event_type inkey_ex(void)
 		
 			/* End "macro trigger" */
 			parse_under = FALSE;
+
+			/* Macro has ended, stop ignoring commands */
+			command_aborted = FALSE;
 
 			/* Stop stripping */
 			strip_chars = FALSE;
