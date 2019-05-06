@@ -1213,6 +1213,7 @@ void cmd_party(void)
 
 		/* Prompt */
 		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -1277,6 +1278,8 @@ void cmd_party(void)
 		/* Flush messages */
 		c_msg_print(NULL);
 	}
+
+	Term_hide_ui_cursor();
 
 	/* Reload screen */
 	Term_load();

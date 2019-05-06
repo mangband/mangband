@@ -1608,6 +1608,9 @@ bool get_check(cptr prompt)
 	/* Prompt for it */
 	prt(buf, 0, 0);
 
+	/* With cursor */
+	Term_show_ui_cursor();
+
 	/* Get an acceptable answer */
 	while (TRUE)
 	{
@@ -1616,6 +1619,9 @@ bool get_check(cptr prompt)
 		if (strchr("YyNn", i)) break;
 		bell();
 	}
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Erase the prompt */
 	prt("", 0, 0);
@@ -3477,6 +3483,9 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 		/* Hilite current option */
 		move_cursor(k + 2, 50);
 
+		/* Show cursor */
+		Term_show_ui_cursor();
+
 		/* Get a key */
 		ch = inkey();
 
@@ -3559,6 +3568,8 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 				(*local_option_info[on_var].o_var) = set_what;
 		}
 	}
+
+	Term_hide_ui_cursor();
 }
 
 
@@ -3648,6 +3659,9 @@ static void do_cmd_options_win(void)
 
 		/* Place Cursor */
 		Term_gotoxy(35 + x * 5, y + 5);
+		
+		/* And show it */
+		Term_show_ui_cursor();
 
 		/* Get key */
 		ch = inkey();
@@ -3743,6 +3757,9 @@ static void do_cmd_options_win(void)
 	/* Update windows */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
 	/* Update windows */
 	window_stuff();
 }
@@ -3814,6 +3831,7 @@ void do_cmd_options(void)
 		/* Prompt */
 		col += 2;
 		prt("Command: ", col, 0);
+		Term_show_ui_cursor();
 
 		/* Get command */
 		k = inkey();
@@ -3864,6 +3882,7 @@ void do_cmd_options(void)
 				prt(format("Current hitpoint warning: %2d%%",
 				           p_ptr->hitpoint_warn * 10), col+2, 0);
 				prt("New hitpoint warning (0-9 or ESC to accept): ", col+1, 0);
+				Term_show_ui_cursor();
 
 				cx = inkey();
 				if (cx == ESCAPE) break;
@@ -3880,6 +3899,8 @@ void do_cmd_options(void)
 		}
 	}
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Restore the screen */
 	Term_load();
