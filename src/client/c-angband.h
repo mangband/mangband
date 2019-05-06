@@ -31,4 +31,9 @@
  */
 #include "ui.h"
 
+/*
+ *
+ */
+#include "z-widget.h"
+
 #endif

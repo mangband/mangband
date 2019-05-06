@@ -3326,6 +3326,13 @@ void interact_macros(void)
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
 
+			/* Hack -- ignore mouse click */
+			if (buf[0] == '\xff')
+			{
+				Term_user(0xFA);
+				continue;
+			}
+
 			/* Get the action */
 			k = macro_find_exact(buf);
 			
@@ -3378,6 +3385,13 @@ void interact_macros(void)
 			/* Get a macro trigger */
 			if (!get_macro_trigger(buf)) continue;
 
+			/* Hack -- ignore mouse click */
+			if (buf[0] == '\xff')
+			{
+				Term_user(0xFA);
+				continue;
+			}
+
 			/* Interactive mode */
 			if (i == '%')
 			{
@@ -3429,6 +3443,12 @@ void interact_macros(void)
 
 			/* Message */
 			c_msg_print("Removed a macro.");
+		}
+		/* Spawn widget */
+		else if (i == '-')
+		{
+			Term_user(0xFA);
+			Term_fresh();
 		}
 #if 0
 		/* Create an empty macro */

@@ -372,6 +372,21 @@ cptr conf_find_font(term_data *td) {
 	}
 	return ret;
 }
+/* Find a widget at X Y mouse position */
+zwidget_type* pick_widget(int x, int y)
+{
+	zwidget_type *zw;
+	for (zw = first_widget; zw; zw = zw->next)
+	{
+		if (x >= zw->x && y >= zw->y &&
+		    x <= zw->x + zw->w &&
+		    y <= zw->y + zw->h)
+		{
+			return zw;
+		}
+	}
+	return NULL;
+}
 /* Find a terminal at X Y mouse position */
 int pick_term(int x, int y)
 {
@@ -1110,6 +1125,99 @@ bool gui_term_event(SDL_Event* event) {
 	return taken;
 }
 
+/* Handle SDL_event/widget */
+zwidget_type *m_widget = NULL;
+/* Grab widget (+LMB) */
+bool gui_widget_grab(zwidget_type *zw) {
+	if (zw == NULL) return FALSE;
+	m_widget = zw;
+	need_render = TRUE; /* highlight our selection */
+	return TRUE;
+}
+/* Drag widget (MM) */
+bool gui_widget_drag(int nmx, int nmy) {
+	zwidget_type *zw = m_widget;
+	int mx = 0, my = 0, hold_x = 0, hold_y = 0;
+
+	if (m_widget == NULL) return FALSE;
+
+
+	if (nmx || nmy) {
+		mx = zw->x;
+		my = zw->y;
+
+		zw->x += nmx;
+		zw->y += nmy;
+
+//		if (sel_term->xoff + sel_term->width  > width ) sel_term->xoff = width  - sel_term->width;
+//		if (sel_term->yoff + sel_term->height > height) sel_term->yoff = height - sel_term->height;
+//		if ((int)sel_term->xoff < 0) sel_term->xoff = 0;
+///		if ((int)sel_term->yoff < 0) sel_term->yoff = 0;
+
+		if (mx == zw->x && my == zw->y) return FALSE;
+
+		m_moved = TRUE;
+		need_render = TRUE;
+	}
+	return TRUE;
+}
+/* Drop widget (-LMB) */
+bool gui_widget_drop() {
+	if (m_widget == NULL) return FALSE;
+
+	m_widget = NULL;
+	m_moved = FALSE;
+	need_render = TRUE; /* highlight lack of selection */
+
+	return TRUE;
+}
+/* Slap widget (RMB) */
+bool gui_widget_slap(zwidget_type *zw) {
+	if (zw == NULL) return FALSE;
+	sdl_widget_destroy(zw);
+	return TRUE;
+}
+
+void gui_widget_click(zwidget_type *zw) {
+	if (zw == NULL) return;
+	zwidget_action(zw, 1);
+}
+bool gui_widget_event(SDL_Event* event, bool edit_mode) {
+	bool taken = FALSE;
+	switch (event->type)
+	{
+		case SDL_MOUSEMOTION:
+		if (edit_mode)
+		{
+			taken = gui_widget_drag(event->motion.xrel, event->motion.yrel);
+		}
+		break;
+		case SDL_MOUSEBUTTONUP:
+		if (event->button.button == SDL_BUTTON_LEFT)
+		{
+			if (edit_mode)
+				taken = gui_widget_drop();
+			else
+				gui_widget_click(pick_widget(event->button.x, event->button.y));
+		}
+		if (event->button.button == SDL_BUTTON_RIGHT)
+		{
+			taken = gui_widget_slap(pick_widget(event->button.x, event->button.y));
+		}
+		break;
+		case SDL_MOUSEBUTTONDOWN:
+		if (event->button.button == SDL_BUTTON_LEFT && edit_mode)
+		{
+			taken = gui_widget_grab(pick_widget(event->button.x, event->button.y));
+		}
+		break;
+
+		default:	break;
+	}
+	return taken;
+}
+
+
 /* Handle SDL_event/angband */
 void ang_mouse_move(SDL_Event* event) {
 	static int last_mouse_x[ANGBAND_TERM_MAX] = { 0 };
@@ -1533,9 +1641,17 @@ static void Term_nuke_sdl(term *t)
  * In general, this function should return zero if the action is successfully
  * handled, and non-zero if the action is unknown or incorrectly handled.
  */
+zwidget_type * init_sdl_widget();
 static errr Term_user_sdl(int n)
 {
 	term_data *td = (term_data*)(Term->data);
+
+	if (n == 0xFA)
+	{
+		zwidget_type *zw = init_sdl_widget();
+		zwidget_setup_macro_action(zw, macro__buf);
+		return 0;
+	}
 
 	mouse_mode = !mouse_mode;
 
@@ -1584,6 +1700,8 @@ static errr Term_xtra_sdl(int n, int v)
 			}
 
 			event_timestamp = SDL_GetTicks();/*event.key.timestamp;*/
+
+			if (gui_widget_event(&event, !mouse_mode)) continue;
 
 			if (mouse_mode && ang_mouse_event(&event)) continue;
 
@@ -2367,6 +2485,7 @@ void term_display_all() {
 			term_draw_border(&tdata[i]);
 		}
 	}
+	sdl_render_widgets();
 	/* SDL_Flip(bigface); */
 }
 
@@ -3096,6 +3215,8 @@ errr init_sdl(void)
 	 * I'll do that later.
 	 *
 	 */
+	init_sdl_widget();
+
 	return 0;
 }
 /* Save settings ! */
@@ -3159,6 +3280,113 @@ void save_sdl_prefs() {
 }
 
 
+void sdl_zw_xtra(int i, int w)
+{
+	zwidget_type *zw = front_widget;
+	if (!zw) return;
+	if (i == TERM_XTRA_CLEAR)
+	{
+		SDL_Rect r = { zw->x, zw->y, zw->w, zw->h };
+		SDL_FillRect(bigface, &r, 0xff00ffff);
+	}
+	if (i == TERM_XTRA_FRESH)
+	{
+		SDL_UpdateRect(bigface, zw->x, zw->y, zw->w, zw->h);
+		SDL_Flip(bigface);
+	}
+}
+/* Print char to screen (no buffering). This is NOT used by ZTerm, and is for interal GUI drawing ONLY !!
+ *	For regular ZTerm operations, see "SDL_BlitChar()" and the plethora of "Term_XXX_sdl()" functions.
+ */
+void SDL_PrintCharZW(zwidget_type* zw, int x, int y, Uint32 a, unsigned char c) {
+	font_data *fd;
+	graf_tiles *gt;
+	SDL_Rect sr, dr;
+	SDL_Color dc;
+
+	fd = (font_data*)(zw->font_data);
+	gt = (graf_tiles*)(zw->graf_data);
+
+	dr.w = sr.w = fd->w;
+	dr.h = sr.h = fd->h;
+
+	sr.x = 0;
+	sr.y = c * fd->h;
+
+	dr.x = x * fd->w + zw->x;
+	dr.y = y * fd->h + zw->y;
+//	if (y < 0) dr.y = td->height - (-y * td->fd->h) + td->yoff;
+
+	dc.r = a >> 16;
+	dc.g = a >> 8;
+	dc.b = a;
+
+	SDL_SetColors(fd->face, &dc, 0xff, 1);
+	SDL_SetColorKey(fd->face, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+	SDL_BlitSurface(fd->face, &sr, bigface, &dr);
+	SDL_SetColorKey(fd->face, SDL_RLEACCEL, 0);
+}
+void sdl_zw_text(int x, int y, int n, byte a, char *text) {
+	zwidget_type *zw = front_widget;
+	font_data *fd = (font_data*)(zw->font_data);
+	if (y < 0) y =  -y;
+	while(n > 0) {
+		SDL_PrintCharZW(zw, x, y, a, *text);
+		++x; --n; ++text;
+	}
+}
+void sdl_zw_pict() {}
+void sdl_zw_init() {
+	zwidget_type *zw = front_widget;
+	font_data *fd = (font_data*)(zw->font_data);
+	zw->is_outdated = TRUE;
+	if (!fd) return;
+	if (!zw->buffer[0]) return;
+
+	zw->w = fd->w * strlen(zw->buffer);
+	zw->is_dirty = TRUE;
+
+	zw->is_outdated = FALSE;
+}
+
+void sdl_widget_destroy(zwidget_type *zw)
+{
+	zwidgets_remove(zw);
+	zwidget_free(zw);
+	need_render = TRUE;
+}
+zwidget_type* init_sdl_widget()
+{
+	term_data *td = (term_data*)(Term->data);
+
+	zwidget_type *zw = zwidget_new();
+	term *renderer = malloc(sizeof(term));
+	memset(renderer, 0, sizeof(term));
+
+	renderer->init_hook = sdl_zw_init;
+	renderer->xtra_hook = sdl_zw_xtra;
+	renderer->text_hook = sdl_zw_text;
+	renderer->pict_hook = sdl_zw_pict;
+
+	zwidget_set_renderer(zw, renderer);
+
+	zw->graf_data = (void*)(td->gt);
+	zw->font_data = (void*)(td->fd);
+
+	zwidget_setup_command(zw, 'R');
+
+	zwidgets_add(zw);
+
+	return zw;
+}
+void sdl_render_widgets()
+{
+	zwidget_type *zw;
+	for (zw = first_widget; zw; zw = zw->next)
+	{
+		zwidget_render(zw);
+	}
+}
 
 #endif /* SDL_HEADER */
 #endif /* USE_SDL */

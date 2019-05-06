@@ -19,6 +19,7 @@ mangclient_SOURCES = \
 		src/client/c-store.c src/client/c-tables.c src/client/c-util.c \
 		src/client/c-xtra1.c src/client/c-xtra2.c src/client/client.c \
 		src/client/ui.c src/client/ui.h src/client/c-cmd0.c \
+		src/client/z-widget.c src/client/z-widget.h \
 		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
 		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
 		src/client/readdib.c src/client/set_focus.c src/client/c-variable.c \
