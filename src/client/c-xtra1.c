@@ -310,6 +310,9 @@ static void prt_depth(int row, int col, int id)
 
 	/* Right-Adjust the "depth" and clear old values */
 	put_str(format("%7s", depths), row, col);
+
+	/* Memorize if on main screen */
+	if (Term == term_screen) mem_line(row, col, 7);
 }
 
 #if 0
