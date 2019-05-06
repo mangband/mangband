@@ -867,7 +867,7 @@ char* macro_find_by_action(cptr buf)
 		if (!streq(buf, macro__act[i])) continue;
 
 		/* Return the trigger */
-		return macro__pat[i];
+		return (char*)macro__pat[i];
 	}
 
 	/* Return the result */
