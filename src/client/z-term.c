@@ -1252,6 +1252,26 @@ errr Term_fresh(void)
 			byte ota = old_taa[tx];
 			char otc = old_tcc[tx];
 
+/* Hack -- some terminals don't have double-buffering, so constantly
+ * erasing and drawing the cursor back will give an undesired,
+ * flickering effect.
+ * This test should be changed to become a Z-Term variable, similar
+ * to "soft_cursor" ("very_soft_cursor"?). For now, it's just a
+ * a crude ifdef, for WIN client only. */
+/* NOTE: Alternatively, this might be a good change for ALL
+ * the terminals, but it would require a considerable amount of testing. */
+#ifdef USE_WIN
+			if (oa == scr->a[ty][tx] /* The tile itself didn't change */
+			&&  oc == scr->c[ty][tx]
+			&&  ota == scr->ta[ty][tx]
+			&&  otc == scr->tc[ty][tx]
+			&&  tx == scr->bcx        /* The cursor position didn't change */
+			&&  ty == scr->bcy
+			&&  old->cv == scr->bcv)  /* The cursor visibility didn't change */
+			{
+				/* Do nothing */
+			} else
+#endif
 			/* Hack -- use "Term_pict()" always */
 			if (Term->always_pict)
 			{
