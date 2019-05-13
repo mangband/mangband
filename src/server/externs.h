@@ -466,6 +466,7 @@ extern void do_cmd_fire(int Ind, int item, int dir);
 extern void do_cmd_throw(int Ind, int item, int dir);
 extern void do_cmd_purchase_house(int Ind, int dir);
 extern int pick_house(int Depth, int y, int x);
+extern void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x);
 
 /* cmd3.c */
 extern void do_cmd_inven(void);
