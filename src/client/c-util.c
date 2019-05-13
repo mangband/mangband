@@ -3062,11 +3062,11 @@ void interact_macros(void)
 {
 	int i;
 
+	static bool old_school_macros = FALSE;
+
 	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
 	tmp_buf[0] = '\0';
-
-	static bool old_school_macros = FALSE;
 
 	/* Screen is icky */
 	screen_icky = TRUE;
