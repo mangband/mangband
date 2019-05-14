@@ -28,6 +28,7 @@ static int terrain[MAX_PF_RADIUS][MAX_PF_RADIUS];
 int pf_result_index;*/
 
 static int ox, oy, ex, ey;
+static int dir_search[8] = {2,4,6,8,1,3,7,9};
 
 
 /*** Pathfinding code ***/
@@ -69,7 +70,8 @@ static void fill_terrain_info(player_type *p_ptr)
 
 bool findpath(player_type *p_ptr, int y, int x)
 {
-	int i, j, dir;
+	int i, j, k;
+	int dir = 10;
 	bool try_again;
 	int cur_distance;
 
@@ -159,8 +161,9 @@ bool findpath(player_type *p_ptr, int y, int x)
 	while ((i != p_ptr->px) || (j != p_ptr->py))
 	{
 		cur_distance = terrain[j - oy][i - ox] - 1;
-		for (dir = 1; dir < 10; dir++)
+		for (k = 0; k < 8; k++)
 		{
+			dir = dir_search[k];
 			if (terrain[j - oy + ddy[dir]][i - ox + ddx[dir]] == cur_distance)
 				break;
 		}
