@@ -77,9 +77,6 @@ bool findpath(player_type *p_ptr, int y, int x)
 
 	fill_terrain_info(p_ptr);
 
-	printf("Player stands at %d, %d, wants to go to %d, %d",
-		p_ptr->px, p_ptr->py, x, y);
-
 	terrain[p_ptr->py - oy][p_ptr->px - ox] = 1;
 
 	if ((x >= ox) && (x < ex) && (y >= oy) && (y < ey))
