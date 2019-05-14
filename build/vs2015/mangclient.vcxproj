@@ -155,6 +155,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\client\c-birth.c" />
     <ClCompile Include="..\..\src\client\c-cmd.c" />
+    <ClCompile Include="..\..\src\client\c-cmd0.c" />
+    <ClCompile Include="..\..\src\client\ui.c" />
     <ClCompile Include="..\..\src\client\c-files.c" />
     <ClCompile Include="..\..\src\client\c-init.c" />
     <ClCompile Include="..\..\src\client\c-inven.c" />
@@ -218,6 +220,7 @@
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\client\z-term.h" />
+    <ClInclude Include="..\..\src\client\ui.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
     <ClInclude Include="..\..\src\common\z-file.h" />

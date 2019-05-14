@@ -460,11 +460,13 @@ extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_hold(int Ind);
 extern void do_cmd_hold_or_stay(int Ind, int pickup);
 extern void do_cmd_toggle_rest(int Ind);
+extern void do_cmd_pathfind(int Ind, int y, int x);
 /*extern void do_cmd_rest(void);*/
 extern void do_cmd_fire(int Ind, int item, int dir);
 extern void do_cmd_throw(int Ind, int item, int dir);
 extern void do_cmd_purchase_house(int Ind, int dir);
 extern int pick_house(int Depth, int y, int x);
+extern void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x);
 
 /* cmd3.c */
 extern void do_cmd_inven(void);
@@ -484,6 +486,7 @@ extern void do_cmd_target_friendly(int Ind, char dir);
 extern void do_cmd_look(int Ind, char dir);
 extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
+extern void do_cmd_monlist(int Ind);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
 extern void do_cmd_monster_desc_all(int Ind, char sym);
@@ -544,6 +547,9 @@ extern void do_cmd_zap_rod_discharge(int Ind, int dir, bool ident);
 extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int item, int dir);
 extern void do_cmd_refill_potion(int Ind, int item);
+
+/* pathfind.c */
+bool findpath(player_type *p_ptr, int y, int x);
 
 /* control.c */
 extern void NewConsole(int fd, int arg);
@@ -1100,6 +1106,7 @@ extern bool target_able(int Ind, int m_idx);
 extern bool target_okay(int Ind);
 extern s16b target_pick(int Ind, int y1, int x1, int dy, int dx);
 extern bool target_set_interactive(int Ind, int mode, char query);
+extern bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x);
 extern bool get_aim_dir(int Ind, int *dp);
 extern bool get_item(int Ind, int *cp, byte tval_hook);
 extern bool confuse_dir(bool confused, int *dp);

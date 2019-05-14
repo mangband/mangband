@@ -80,9 +80,14 @@ player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
 
+bool prompt_quote_hack = FALSE; /* Allow '"' to be used in place of '\r' */
+
 s16b command_see;
 s16b command_gap;
 s16b command_wrk;
+
+bool spellcasting = FALSE; /* Selecting a magic book */
+int spellcasting_spell = -1; /* Select-by-name spell */
 
 bool item_tester_full;
 byte item_tester_tval;
@@ -153,6 +158,7 @@ cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with e
 
 s16b command_cmd;
 s16b command_dir;
+event_type command_cmd_ex; /* Gives additional information of current command */
 
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 int custom_commands;
@@ -249,6 +255,7 @@ bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
 bool auto_itemlist;
+bool auto_showlist;
 bool show_labels;
 bool show_weights;
 bool ring_bell;

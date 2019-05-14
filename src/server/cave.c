@@ -2045,15 +2045,12 @@ void do_cmd_view_map(player_type *p_ptr, char query)
 
 
 
-void update_player_lite(int Ind, int i)
+void update_player_lite(int Ind, int y, int x)
 {
 	int j;
 
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
-
-	int y = p_ptr->lite_y[i];
-	int x = p_ptr->lite_x[i];
 
 	/* Forget "LITE" flag */
 	p_ptr->cave_flag[y][x] &= ~CAVE_LITE;
@@ -2304,7 +2301,10 @@ void forget_lite(int Ind)
 	/* Clear them all */
 	for (i = 0; i < p_ptr->lite_n; i++)
 	{
-		update_player_lite(Ind, i);
+		y = p_ptr->lite_y[i];
+		x = p_ptr->lite_x[i];
+
+		update_player_lite(Ind, y, x);
 
 		/* Redraw */
 		everyone_lite_spot(Depth, y, x);
@@ -2391,7 +2391,10 @@ void update_lite(int Ind)
 	/* Clear them all */
 	for (i = 0; i < p_ptr->lite_n; i++)
 	{
-		update_player_lite(Ind, i);
+		y = p_ptr->lite_y[i];
+		x = p_ptr->lite_x[i];
+
+		update_player_lite(Ind, y, x);
 
 		/* Mark the grid as "seen" */
 		cave[Depth][y][x].info |= CAVE_TEMP;

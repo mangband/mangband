@@ -436,7 +436,10 @@ void post_process_players(void)
 void network_loop()
 {
 	shutdown_timer = 0;
-	plog("Entering network loop...");
+	plog(format("Server is running version %04x", SERVER_VERSION));
+#ifdef DEBUG
+	plog("Serving with delicious DEBUG cheeze!");
+#endif
 	while (1)
 	{
 		first_listener = handle_listeners(first_listener);

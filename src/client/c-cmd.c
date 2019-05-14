@@ -113,6 +113,7 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
+		spellcasting = (cc_ptr->flag & COMMAND_SPELL_BOOK) ? TRUE : FALSE;
 		if (!c_get_item(&item, prompt,
 				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
@@ -286,6 +287,17 @@ void process_command()
 		if (custom_command[i].m_catch == command_cmd)
 		{
 			cmd_custom(i);
+			return;
+		}
+	}
+
+	/* Hack -- pick command from a menu */
+	if (command_cmd == '\r')
+	{
+		command_cmd = do_cmd_menu();
+		if (command_cmd != '\r')
+		{
+			process_command();
 			return;
 		}
 	}
@@ -470,6 +482,12 @@ void process_command()
 			break;
 		}
 
+		case '\xff':
+		{
+			cmd_mouseclick();
+			break;
+		}
+
 		case '=':
 		{
 			do_cmd_options();
@@ -485,6 +503,12 @@ void process_command()
 		case '%':
 		{
 			interact_macros();
+			break;
+		}
+
+		case '!':
+		{
+			do_cmd_port();
 			break;
 		}
 
@@ -794,6 +818,7 @@ void cmd_describe(void)
 int cmd_target_interactive(int mode)
 {
 	bool done = FALSE;
+	event_type ke;
 	char ch;
 
 	/* Save screen */
@@ -810,10 +835,21 @@ int cmd_target_interactive(int mode)
 
 	while (!done)
 	{
-		ch = inkey();
+		ke = inkey_ex();
+		ch = ke.key;
 
 		if (!ch)
 			continue;
+
+		if (ch == '\xff')
+		{
+			send_mouse(MCURSOR_META | mode
+			  | (ke.index ? MCURSOR_KTRL : 0),
+			  ke.mousex - DUNGEON_OFFSET_X,
+			  ke.mousey - DUNGEON_OFFSET_Y);
+			if (ke.index) done = TRUE;
+			continue;
+		}
 
 		Send_target_interactive(mode, ch);
 
@@ -823,6 +859,7 @@ int cmd_target_interactive(int mode)
 			case '5':
 			case '0':
 			case '.':
+			case 'g':
 			case ESCAPE:
 				done = TRUE;
 				break;
@@ -1176,6 +1213,7 @@ void cmd_party(void)
 
 		/* Prompt */
 		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -1241,6 +1279,8 @@ void cmd_party(void)
 		c_msg_print(NULL);
 	}
 
+	Term_hide_ui_cursor();
+
 	/* Reload screen */
 	Term_load();
 
@@ -1272,7 +1312,7 @@ void cmd_browse(void)
 	}
 
 	item_tester_tval = c_info[pclass].spell_book;
-
+	spellcasting = TRUE;
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
 		if (item == -2) c_msg_print("You have no books that you can read.");
@@ -1395,4 +1435,15 @@ void cmd_suicide(void)
 
 	/* Send it */
 	send_suicide();
+}
+
+void cmd_mouseclick()
+{
+	event_type ke = command_cmd_ex;
+	send_mouse(0
+	  | (ke.index == 1 ? MCURSOR_LMB : 0)
+	  | (ke.index == 2 ? MCURSOR_MMB : 0)
+	  | (ke.index == 3 ? MCURSOR_RMB : 0),
+	  ke.mousex - DUNGEON_OFFSET_X,
+	  ke.mousey - DUNGEON_OFFSET_Y);
 }

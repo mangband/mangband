@@ -11,7 +11,7 @@ static bool parse_under = FALSE;
 static bool parse_slash = FALSE;
 static bool strip_chars = FALSE;
 
-static bool flush_later = FALSE;
+#define flush_later inkey_xtra
 
 static byte macro__use[256];
 
@@ -49,7 +49,7 @@ void flush_now(void)
 	/* Cancel "strip" mode */
 	strip_chars = FALSE;
 
-	/* Forgot old keypresses */
+	/* Forget old keypresses */
 	Term_flush();
 }
 
@@ -246,17 +246,23 @@ void macro_add(cptr pat, cptr act, bool cmd_flag)
  * for incoming packets.  This stops annoying "timeouts" and also lets
  * the screen get redrawn if need be while we are waiting for a key. --KLJ--
  */
-static char inkey_aux(void)
+static event_type inkey_aux(void)
 {
 	int	k = 0, n, p = 0, w = 0;
 
 	char	ch = 0;
-	event_type chkey;
+	event_type ke, ke0;
 
 	cptr	pat, act;
 
 	char	buf[1024];
-	
+
+	/* Initialize the no return */
+	ke0.type = EVT_KBRD;
+	ke0.key = 0;
+	ke0.index = 0; /* To fix GCC warnings on X11 */
+	ke0.mousey = 0;
+	ke0.mousex = 0;
 
 	/* Fetch keypress */
 	/* Unset hack before we start */
@@ -266,8 +272,8 @@ static char inkey_aux(void)
 	do
 	{
 		/* Look for a keypress */
-		(void)(Term_inkey(&chkey, FALSE, TRUE));
-		ch = chkey.key;
+		(void)(Term_inkey(&ke, FALSE, TRUE));
+		ch = ke.key;
 
 		/* If we got a key, break */
 		if (ch) break;
@@ -282,147 +288,49 @@ static char inkey_aux(void)
 		if (inkey_exit)
 		{
 			inkey_exit = FALSE;
-			return (ESCAPE);
+			ke0.key = ESCAPE;
+			return ke0;
 		}
 
 		/* Return as soon as possible */
 		if (inkey_nonblock)
 		{
-			return (0);
+			ke0.key = 0;
+			return ke0;
 		}
 	} while (!ch);
 
 	
-#if 0
-	int net_fd;
-
-	/* Acquire and save maximum file descriptor */
-	net_fd = Net_fd();
-
-	/* If no network yet, just wait for a keypress */
-	if (net_fd == -1)
-	{
-		/* Look for a keypress */
-		Term_inkey(&chkey, TRUE, TRUE);
-		ch = chkey.key;
-	}
-	else
-	{
-		/* Hack -- initially process any data that is stil in rbuf, so it won't be
-		 * wiped in Net_read if more data arrives.  Data still might be in rbuf
-		 * since we may have been called from a Receive handler such as
-		 * Receive_pause.
-		 */
-		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
-		if (Sockbuf_write(&cbuf, rbuf.ptr, rbuf.len) != rbuf.len)
-		{
-			plog("Can't copy reliable data to buffer in Net_input");
-			return -1;
-		}
-		Net_packet();
-		/* Redraw stuff if necessary */
-		if (p_ptr->redraw)
-		{
-			redraw_stuff();
-		}
-		/* Update the screen */
-		Term_fresh();
-		/* Redraw windows if necessary */
-		if (p_ptr->window)
-		{
-			window_stuff();
-		}
-
-
-		/* Unset hack before we start */
-		inkey_exit = FALSE;
-
-		/* Wait for keypress, while also checking for net input */
-		do
-		{
-			int result;
-
-			/* Look for a keypress */
-			Term_inkey(&chkey, FALSE, TRUE);
-			ch = chkey.key;
-
-			/* If we got a key, break */
-			if (ch) break;
-
-			/* Update our timer and if neccecary send a keepalive packet
-			 */
-			update_ticks();
-			do_keepalive();
-
-			/* Flush the network output buffer */
-			Net_flush();
-
-			/* Wait for .001 sec, or until there is net input */
-			SetTimeout(0, 1000);
-
-			/* Parse net input if we got any */
-			if (SocketReadable(net_fd))
-			{
-				if ((result = Net_input()) == -1)
-				{
-					quit(NULL);
-				}
-
-				/* Redraw stuff if necessary */
-				if (p_ptr->redraw)
-				{
-					redraw_stuff();
-				}
-
-				/* Update the screen */
-				Term_fresh();
-
-				/* Redraw windows if necessary */
-				if (p_ptr->window)
-				{
-					window_stuff();
-				}
-			}
-
-			/* Hack: perform emergency network-ordered escape */
-			if (inkey_exit)
-			{
-				inkey_exit = FALSE;
-				return (ESCAPE);
-			}
-		} while (!ch);
-	}
-#endif
 	/* ARCANE MAGIC STARTS BELOW: */
 
-
-	/* End of internal macro */
-	if (ch == 29) parse_macro = FALSE;
-
-
 	/* Do not check "ascii 28" */
-	if (ch == 28) return (ch);
+	if (ch == 28) return (ke);
 
-	
-	/* Do not check "ascii 29" */
-	if (ch == 29) return (ch);
+	/* Begin "synthetic macro" sequence on "ascii 29" */
+	if (ch == 29) parse_macro = TRUE;
 
+	/* End "macro action" */
+	if ((ch == 30) || (ch == '\xff'))
+	{
+		parse_macro = FALSE;
+		return (ke);
+	}
 
 	/* Do not check macro actions */
-	if (parse_macro) return (ch);
+	if (parse_macro) return (ke);
 
 	/* Do not check "control-underscore" sequences */
-	if (parse_under) return (ch);
+	if (parse_under) return (ke);
 
 	/* Do not check "control-backslash" sequences */
-	if (parse_slash) return (ch);
+	if (parse_slash) return (ke);
 
 
 	/* Efficiency -- Ignore impossible macros */
-	if (!macro__use[(byte)(ch)]) return (ch);
+	if (!macro__use[(byte)(ch)]) return (ke);
 
 	/* Efficiency -- Ignore inactive macros */
-	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ch);
+	if (!inkey_flag && (macro__use[(byte)(ch)] == MACRO_USE_CMD)) return (ke);
 
 #ifdef USE_GCU
 	/* NCurses client actually uses escape as "begin macro" sequence */
@@ -432,7 +340,7 @@ static char inkey_aux(void)
 	} else
 #endif
 	/* Efficiency/Hack -- Ignore escape key for macros */
-	if (ch == ESCAPE) { first_escape = TRUE; return (ch); }
+	if (ch == ESCAPE) { first_escape = TRUE; return (ke); }
 
 	/* Save the first key, advance */
 	buf[p++] = ch;
@@ -449,9 +357,9 @@ static char inkey_aux(void)
 		if (k < 0) break;
 
 		/* Check for (and remove) a pending key */
-		if (0 == Term_inkey(&chkey, FALSE, TRUE))
+		if (0 == Term_inkey(&ke, FALSE, TRUE))
 		{
-			ch = chkey.key;
+			ch = ke.key;
 
 			/* Append the key */
 			buf[p++] = ch;
@@ -482,19 +390,25 @@ static char inkey_aux(void)
 	/* No macro available */
 	if (k < 0)
 	{
+		/* Push all the "keys" back on the queue */
+		/* The most recent event may not be a keypress. */
+		if(p)
+		{
+			if(Term_event_push(&ke)) return (ke0);
+			p--;
+		}
 		/* Push all the keys back on the queue */
 		while (p > 0)
 		{
 			/* Push the key, notice over-flow */
-			if (Term_key_push(buf[--p])) return (0);
+			if (Term_key_push(buf[--p])) return (ke0);
 		}
 
 		/* Wait for (and remove) a pending key */
-		(void)Term_inkey(&chkey, TRUE, TRUE);
-		ch = chkey.key;
+		(void)Term_inkey(&ke, TRUE, TRUE);
 
 		/* Return the key */
-		return (ch);
+		return (ke);
 	}
 
 
@@ -504,11 +418,10 @@ static char inkey_aux(void)
 	/* Get the length of the pattern */
 	n = strlen(pat);
 
-
 	/* Push the "extra" keys back on the queue */
 	while (p > n)
 	{
-		if (Term_key_push(buf[--p])) return (0);
+		if (Term_key_push(buf[--p])) return (ke0);
 	}
 
 	/* We are now inside a macro */
@@ -516,7 +429,7 @@ static char inkey_aux(void)
 	first_escape = TRUE;
 
 	/* Push the "macro complete" key */
-	if (Term_key_push(29)) return (0);
+	if (Term_key_push(30)) return (ke0);
 
 	
 	/* Access the macro action */
@@ -529,11 +442,11 @@ static char inkey_aux(void)
 	while (n > 0)
 	{
 		/* Push the key, notice over-flow */
-		if (Term_key_push(act[--n])) return (0);
+		if (Term_key_push(act[--n])) return (ke0);
 	}
 
 	/* Force "inkey()" to call us again */
-	return (0);
+	return (ke0);
 }
 
 /*
@@ -591,11 +504,6 @@ static cptr inkey_next = NULL;
  * allows recursive macros to be avoided.  The "ascii 31" key is used by
  * some of the "main-xxx.c" files to introduce macro trigger sequences.
  *
- * Hack -- we use "ascii 29" (ctrl-right-bracket) as a special "magic" key,
- * which can be used to give a variety of "sub-commands" which can be used
- * any time.  These sub-commands could include commands to take a picture of
- * the current screen, to start/stop recording a macro action, etc.
- *
  * If "angband_term[0]" is not active, we will make it active during this
  * function, so that the various "main-xxx.c" files can assume that input
  * is only requested (via "Term_inkey()") when "angband_term[0]" is active.
@@ -607,6 +515,22 @@ static cptr inkey_next = NULL;
  *
  * Mega-Hack -- Note the use of "inkey_hack" to allow the "Borg" to steal
  * control of the keyboard from the user.
+ *
+ * Note the nasty code used to process the "inkey_base" flag, which allows
+ * various "macro triggers" to be entered as normal key-sequences, with the
+ * appropriate timing constraints, but without actually matching against any
+ * macro sequences.  Most of the nastiness is to handle "ascii 28" (see below).
+ *
+ * The "ascii 28" code is a complete hack, used to allow "default actions"
+ * to be associated with a given keypress, and used only by the X11 module,
+ * it may or may not actually work.  The theory is that a keypress can send
+ * a special sequence, consisting of a "macro trigger" plus a "default action",
+ * with the "default action" surrounded by "ascii 28" symbols.  Then, when that
+ * key is pressed, if the trigger matches any macro, the correct action will be
+ * executed, and the "strip default action" code will remove the "default action"
+ * from the keypress queue, while if it does not match, the trigger itself will
+ * be stripped, and then the "ascii 28" symbols will be stripped as well, leaving
+ * the "default action" keys in the "key queue".  Again, this may not work.
  */
 event_type inkey_ex(void)
 {
@@ -618,6 +542,7 @@ event_type inkey_ex(void)
 	
 	term *old = Term;
 	
+	int skipping = FALSE; /* Evil handler for char 28 */
 	
 	/* Initialise keypress */
 	ke.key = 0;
@@ -666,11 +591,16 @@ event_type inkey_ex(void)
 		/* End "macro trigger" */
 		parse_under = FALSE;
 		
+		/* Cancel arcane flags */
+		parse_slash = after_macro = FALSE;
+		strip_chars = FALSE;
+
 		/* Forget old keypresses */
 		Term_flush();
 	}
 	
-	
+/* MAngband-specific: do nothing to the cursor */
+#if 0
 	/* Get the cursor state */
 	(void)Term_get_cursor(&cursor_state);
 	
@@ -680,7 +610,7 @@ event_type inkey_ex(void)
 		/* Show the cursor */
 		(void)Term_set_cursor(TRUE);
 	}
-	
+#endif
 	
 	/* Hack -- Activate main screen */
 	Term_activate(term_screen);
@@ -725,13 +655,26 @@ event_type inkey_ex(void)
 		if (inkey_base)
 		{
 			int w = 0;
+			event_type xh;
 
 			/* Wait forever */
 			if (!inkey_scan)
 			{
 				/* Wait for (and remove) a pending key */
-				if (0 == Term_inkey(&ke, TRUE, TRUE))
+				if (0 == Term_inkey(&xh, TRUE, TRUE))
 				{
+					/* Mega-Hack */
+					if (xh.key == 28)
+					{
+						/* Toggle "skipping" */
+						skipping = !skipping;
+					}
+					/* Use normal keys */
+					else if (!skipping)
+					{
+						/* Use it */
+						ke.key = xh.key;
+					}
 					/* Done */
 					break;
 				}
@@ -744,9 +687,20 @@ event_type inkey_ex(void)
 			while (TRUE)
 			{
 				/* Check for (and remove) a pending key */
-				if (0 == Term_inkey(&ke, FALSE, TRUE))
+				if (0 == Term_inkey(&xh, FALSE, TRUE))
 				{
-					/* Done */
+					/* Mega-Hack */
+					if (xh.key == 28)
+					{
+						/* Toggle "skipping" */
+						skipping = !skipping;
+					}
+					/* Use normal keys */
+					else if (!skipping)
+					{
+						/* Use it */
+						ke.key = xh.key;
+					}
 					break;
 				}
 
@@ -771,11 +725,14 @@ event_type inkey_ex(void)
 		}
 		
 		
-			/* Get a key (see above) */
-			ke.key = inkey_aux();
+		/* Get a key (see above) */
+		ke = inkey_aux();
 		
+		/* Hack -- special nonblock mode */
+		if (!ke.key && inkey_nonblock) return (ke);
 		
 		/* Handle "control-right-bracket" */
+		/* Note: as far as I can tell, this can be safely removed. -flm */
 		if (ke.key == 29)
 		{
 			/* Strip this key */
@@ -785,7 +742,22 @@ event_type inkey_ex(void)
 			continue;
 		}
 		
+		/* Hack -- Strip "control-backslash" special-fallback-strings  */
+		if (ke.key == 28)
+		{
+			/* Strip this key */
+			ke.key = 0;
 		
+			/* Inside a "control-backslash" sequence */
+			parse_slash = TRUE;
+
+			/* Strip chars (sometimes) */
+			strip_chars = after_macro;
+
+			/* Continue */
+			continue;
+		}
+
 		/* Treat back-quote as escape */
 		if (ke.key == '`') ke.key = ESCAPE;
 		
@@ -798,6 +770,9 @@ event_type inkey_ex(void)
 		
 			/* End "macro trigger" */
 			parse_under = FALSE;
+
+			/* Stop stripping */
+			strip_chars = FALSE;
 		}
 
 		/* Handle "control-caret" */
@@ -815,14 +790,23 @@ event_type inkey_ex(void)
 
 			/* Begin "macro trigger" */
 			parse_under = TRUE;
+
+			/* Hack -- Strip chars (always) */
+			strip_chars = TRUE;
 		}
 
 		/* Inside "macro trigger" */
-    	else if (parse_under)
+		else if (parse_under)
 		{
 			/* Strip this key */
 			ke.key = 0;
 		}
+
+		/* Hack -- Set "after_macro" code */
+		after_macro = ((kk.key == 30) ? TRUE : FALSE);
+
+		/* Hack -- strip chars */
+		if (strip_chars) ke.key = 0;
 	}
 	
 	
@@ -830,9 +814,11 @@ event_type inkey_ex(void)
 	Term_activate(old);
 	
 	
+/* MAngband-specific: do nothing to the cursor */
+#if 0
 	/* Restore the cursor */
 	Term_set_cursor(cursor_state);
-	
+#endif
 	
 	/* Cancel the various "global parameters" */
 	inkey_base = inkey_xtra = inkey_flag = inkey_scan = FALSE;
@@ -844,328 +830,21 @@ event_type inkey_ex(void)
 
 
 /*
- * Get a keypress from the user.
- *
- * This function recognizes a few "global parameters".  These are variables
- * which, if set to TRUE before calling this function, will have an effect
- * on this function, and which are always reset to FALSE by this function
- * before this function returns.  Thus they function just like normal
- * parameters, except that most calls to this function can ignore them.
- *
- * Normally, this function will process "macros", but if "inkey_base" is
- * TRUE, then we will bypass all "macro" processing.  This allows direct
- * usage of the "Term_inkey()" function.
- *
- * Normally, this function will do something, but if "inkey_xtra" is TRUE,
- * then something else will happen.
- *
- * Normally, this function will wait until a "real" key is ready, but if
- * "inkey_scan" is TRUE, then we will return zero if no keys are ready.
- *
- * Normally, this function will show the cursor, and will process all normal
- * macros, but if "inkey_flag" is TRUE, then we will only show the cursor if
- * "hilite_player" is TRUE, and also, we will only process "command" macros.
- *
- * Note that the "flush()" function does not actually flush the input queue,
- * but waits until "inkey()" is called to perform the "flush".
- *
- * Hack -- Note the use of "inkey_next" to allow "keymaps" to be processed.
- *
- * Refresh the screen if waiting for a keypress and no key is ready.
- *
- * Note that "back-quote" is automatically converted into "escape" for
- * convenience on machines with no "escape" key.  This is done after the
- * macro matching, so the user can still make a macro for "backquote".
- *
- * Note the special handling of a few "special" control-keys, which
- * are reserved to simplify the use of various "main-xxx.c" files,
- * or used by the "macro" code above.
- *
- * Ascii 27 is "control left bracket" -- normal "Escape" key
- * Ascii 28 is "control backslash" -- special macro delimiter
- * Ascii 29 is "control right bracket" -- end of macro action
- * Ascii 30 is "control caret" -- indicates "keypad" key
- * Ascii 31 is "control underscore" -- begin macro-trigger
- *
- * Hack -- Make sure to allow calls to "inkey()" even if "term_screen"
- * is not the active Term, this allows the various "main-xxx.c" files
- * to only handle input when "term_screen" is "active".
- *
- * Note the nasty code used to process the "inkey_base" flag, which allows
- * various "macro triggers" to be entered as normal key-sequences, with the
- * appropriate timing constraints, but without actually matching against any
- * macro sequences.  Most of the nastiness is to handle "ascii 28" (see below).
- *
- * The "ascii 28" code is a complete hack, used to allow "default actions"
- * to be associated with a given keypress, and used only by the X11 module,
- * it may or may not actually work.  The theory is that a keypress can send
- * a special sequence, consisting of a "macro trigger" plus a "default action",
- * with the "default action" surrounded by "ascii 28" symbols.  Then, when that
- * key is pressed, if the trigger matches any macro, the correct action will be
- * executed, and the "strip default action" code will remove the "default action"
- * from the keypress queue, while if it does not match, the trigger itself will
- * be stripped, and then the "ascii 28" symbols will be stripped as well, leaving
- * the "default action" keys in the "key queue".  Again, this may not work.
+ * Get a "keypress" from the user.
  */
 char inkey(void)
 {
-	char kk, ch;
-	event_type chkey;
+	event_type ke;
 
-	bool done = FALSE;
-
-	term *old = Term;
-
-	int w = 0;
-
-	int skipping = FALSE;
-
-	/* Hack -- Use the "inkey_next" pointer */
-	if (inkey_next && *inkey_next && !flush_later)
+	/* Only accept a keypress */
+	do
 	{
-	
-		/* Get next character, and advance */
-		ch = *inkey_next++;
-
-		/* Cancel the various "global parameters" */
-		inkey_base = flush_later = inkey_flag = inkey_scan = FALSE;
-
-		command_cmd = ch;
-		command_dir = 0;
-
-		/* Accept result */
-		return (ch);
-	}
-
-	/* Forget pointer */
-	inkey_next = NULL;
-	
-        /* Hack -- handle delayed "flush()" */
-        if (flush_later)
-        {
-                /* Done */
-                flush_later = FALSE;
-
-                /* Cancel "macro" info */
-                parse_macro = after_macro = FALSE;
-
-                /* Cancel "sequence" info */
-                parse_under = parse_slash = FALSE;
-
-                /* Cancel "strip" mode */
-                strip_chars = FALSE;
-
-                /* Forget old keypresses */
-                Term_flush();
-        }
-
-
-	/* Access cursor state */
-	/*(void)Term_get_cursor(&v);*/
-
-	/* Show the cursor if waiting, except sometimes in "command" mode */
-	if (!inkey_scan && (!inkey_flag))
-	{
-		/* Show the cursor */	
-		/*(void)Term_set_cursor(1);*/
-	}
-
-
-	/* Hack -- Activate the screen */
-	Term_activate(term_screen);
-
-
-	/* Get a (non-zero) keypress */
-	for (ch = 0; !ch; )
-	{
-		/* Nothing ready, not waiting, and not doing "inkey_base" */
-		if (!inkey_base && inkey_scan && (0 != Term_inkey(&chkey, FALSE, FALSE))) break;
-
-
-		/* Hack -- flush the output once no key is ready */
-		if (!done && (0 != Term_inkey(&chkey, FALSE, FALSE)))
-		{
-			ch = chkey.key;
-
-			/* Hack -- activate proper term */
-			Term_activate(old);
-
-			/* Flush output */
-			Term_fresh();
-
-			/* Hack -- activate the screen */
-			Term_activate(term_screen);
-
-			/* Only once */
-			done = TRUE;
-		}
-
-		/* Hack */
-		if (inkey_base)
-		{
-			event_type xh;
-
-			/* Check for keypress, optional wait */
-			(void)Term_inkey(&xh, !inkey_scan, TRUE);
-
-			/* Key ready */
-			if (xh.key)
-			{
-				/* Reset delay */
-				w = 0;
-
-				/* Mega-Hack */
-				if (xh.key == 28)
-				{
-					/* Toggle "skipping" */
-					skipping = !skipping;
-				}
-
-				/* Use normal keys */
-				else if (!skipping)
-				{
-					/* Use it */
-					ch = xh.key;
-				}
-			}
-
-			/* No key ready */
-			else
-			{
-				/* Increase "wait" */
-				w += 10;
-
-				/* Excessive delay */
-				if (w >= 100) break;
-
-				/* Delay */
-				Term_xtra(TERM_XTRA_DELAY, w);
-			}
-
-			/* Continue */
-			continue;
-		}
-
-
-		/* Get a key (see above) */
-		kk = ch = inkey_aux();
-
-		/* Hack -- special nonblock mode */
-		if (!ch && inkey_nonblock) return (0);
-
-		/* Finished a "control-underscore" sequence */
-		if (parse_under && (ch <= 32))
-		{
-			/* Found the edge */
-			parse_under = FALSE;
-
-			/* Stop stripping */
-			strip_chars = FALSE;
-
-			/* Strip this key */
-			ch = 0;
-		}
-
-
-		/* Finished a "control-backslash" sequence */
-		if (parse_slash && (ch == 28))
-		{
-			/* Found the edge */
-			parse_slash = FALSE;
-
-			/* Stop stripping */
-			strip_chars = FALSE;
-
-			/* Strip this key */
-			ch = 0;
-		}
-
-
-		/* Handle some special keys */
-		switch (ch)
-		{
-			/* Hack -- convert back-quote into escape */
-			case '`':
-
-			/* Convert to "Escape" */
-			ch = ESCAPE;
-
-			/* Done */
-			break;
-
-			/* Hack -- strip "control-right-bracket" end-of-macro-action */
-			case 29:
-
-			/* Strip this key */
-			ch = 0;
-
-			/* Done */
-			break;
-
-			/* Hack -- strip "control-caret" special-keypad-indicator */
-			case 30:
-
-			/* Strip this key */
-			ch = 0;
-
-			/* Done */
-			break;
-
-			/* Hack -- strip "control-underscore" special-macro-triggers */
-			case 31:
-
-			/* Strip this key */
-			ch = 0;
-
-			/* Inside a "underscore" sequence */
-			parse_under = TRUE;
-
-			/* Strip chars (always) */
-			strip_chars = TRUE;
-
-			/* Done */
-			break;
-
-			/* Hack -- strip "control-backslash" special-fallback-strings */
-			case 28:
-
-			/* Strip this key */
-			ch = 0;
-
-			/* Inside a "control-backslash" sequence */
-			parse_slash = TRUE;
-
-			/* Strip chars (sometimes) */
-			strip_chars = after_macro;
-
-			/* Done */
-			break;
-		}
-
-
-		/* Hack -- Set "after_macro" code */
-		after_macro = ((kk == 29) ? TRUE : FALSE);
-
-
-		/* Hack -- strip chars */
-		if (strip_chars) ch = 0;
-	}
-
-
-	/* Hack -- restore the term */
-	Term_activate(old);
-
-
-	/* Restore the cursor */
-	/*Term_set_cursor(v);*/
-
-
-	/* Cancel the various "global parameters" */
-	inkey_base = inkey_scan = inkey_flag = FALSE;
-
-
-	/* Return the keypress */
-	return (ch);
+		ke = inkey_ex();
+	} while (!(ke.type  & (EVT_KBRD|EVT_ESCAPE)));
+	/* Paranoia */
+	if(ke.type == EVT_ESCAPE) ke.key = ESCAPE;
+
+	return ke.key;
 }
 
 #if 0
@@ -1395,6 +1074,7 @@ bool askfor_aux(char *buf, int len, char m_private)
 
 	bool done = FALSE;
 
+	byte default_color = TERM_YELLOW;
 
 	/* Locate the cursor */
 	Term_locate(&x, &y);
@@ -1415,10 +1095,17 @@ bool askfor_aux(char *buf, int len, char m_private)
 	/* Paranoia -- Clip the default entry */
 	buf[len] = '\0';
 
+	/* HACK -- "append mode" */
+	if (m_private == -2)
+	{
+		m_private = FALSE;
+		k = strlen(buf);
+		default_color = TERM_WHITE;
+	}
 
 	/* Display the default answer */
 	Term_erase(x, y, len);
-	Term_putstr(x, y, -1, TERM_YELLOW, m_private ? "xxxxxx" : buf);
+	Term_putstr(x, y, -1, default_color, m_private ? "xxxxxx" : buf);
 
 
 	/* Process input */
@@ -1426,9 +1113,13 @@ bool askfor_aux(char *buf, int len, char m_private)
 	{
 		/* Place cursor */
 		Term_gotoxy(x + k, y);
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
+
+		/* Evil hack -- pretend quote is Return */
+		if (prompt_quote_hack && i == '"') i = '\r';
 
 		/* Analyze the key */
 		switch (i)
@@ -1471,9 +1162,15 @@ bool askfor_aux(char *buf, int len, char m_private)
 
 	}
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
 	/* The top line is OK now */
 	topline_icky = FALSE;
 	Flush_queue();
+
+	/* Reset global flags */
+	prompt_quote_hack = FALSE;
 
 	/* Aborted */
 	if (i == ESCAPE) return (FALSE);
@@ -1544,11 +1241,17 @@ bool get_com(cptr prompt, char *command)
 	/* Display a prompt */
 	prt(prompt, 0, 0);
 
+	/* Show cursor */
+	Term_show_ui_cursor();
+
 	/* Get a key */
 	*command = inkey();
 
 	/* Clear the prompt */
 	prt("", 0, 0);
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Fix the top line */
 	topline_icky = FALSE;
@@ -1583,7 +1286,7 @@ static char request_command_buffer[256];
  */
 void request_command(bool shopping)
 {
-	char cmd;
+	event_type ke = EVENT_EMPTY;
 	
 	int mode;
 	
@@ -1613,10 +1316,10 @@ void request_command(bool shopping)
 	inkey_scan = TRUE;
 
 	/* Get a command */
-	cmd = inkey();
+	ke = inkey_ex();
 
 	/* Return if no key was pressed */
-	if (!cmd) return;
+	if (!ke.key) return;
 
 	msg_flag = FALSE;
 	c_msg_print(NULL);
@@ -1625,42 +1328,43 @@ void request_command(bool shopping)
 	prt("", 0, 0);
 
 	/* Bypass "keymap" */
-	if (cmd == '\\')
+	if (ke.key == '\\')
 	{
 		/* Get a char to use without casting */
-		(void)(get_com("Command: ", &cmd));
+		(void)(get_com("Command: ", &ke.key));
 
 		/* Hack -- bypass keymaps */
 		if (!inkey_next) inkey_next = "";
 		
 		/* Hack -- allow "control chars" to be entered */
-		if (cmd == '^')
+		if (ke.key == '^')
 		{
 			/* Get a char to "cast" into a control char */
-			(void)(get_com("Command: Control: ", &cmd));
+			(void)(get_com("Command: Control: ", &ke.key));
 
 			/* Convert */
-			cmd = KTRL(cmd);
+			ke.key = KTRL(ke.key);
 		}
 
 		/* Use the key directly */
-		command_cmd = cmd;
+		command_cmd = ke.key;
+		command_cmd_ex = ke;
 	}
 
 	else
 	{
 		/* Hack -- allow "control chars" to be entered */
-		if (cmd == '^')
+		if (ke.key == '^')
 		{
 			/* Get a char to "cast" into a control char */
-			(void)(get_com("Control: ", &cmd));
+			(void)(get_com("Control: ", &ke.key));
 
 			/* Convert */
-			cmd = KTRL(cmd);
+			ke.key = KTRL(ke.key);
 		}
 		
 		/* Look up applicable keymap */
-		act = keymap_act[mode][(byte)(cmd)];
+		act = keymap_act[mode][(byte)(ke.key)];
 
 		/* Apply keymap if not inside a keymap already */
 		if (act && !inkey_next)
@@ -1677,7 +1381,8 @@ void request_command(bool shopping)
 		}
 		
 		/* Accept command */
-		command_cmd = cmd;
+		command_cmd = ke.key;
+		command_cmd_ex = ke;
 	}
 
 	/* Paranoia */
@@ -1908,6 +1613,9 @@ bool get_check(cptr prompt)
 	/* Prompt for it */
 	prt(buf, 0, 0);
 
+	/* With cursor */
+	Term_show_ui_cursor();
+
 	/* Get an acceptable answer */
 	while (TRUE)
 	{
@@ -1916,6 +1624,9 @@ bool get_check(cptr prompt)
 		if (strchr("YyNn", i)) break;
 		bell();
 	}
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Erase the prompt */
 	prt("", 0, 0);
@@ -2656,7 +2367,6 @@ void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 	/* Test terminal size */
 	if (x >= Term->wid || y >= Term->hgt) mem = draw = FALSE;
 
-	/* TODO: also test for ->mem stack */
 	if (mem && Term->mem)
 		Term_mem_ch(x, y, a, c, ta, tc);
 
@@ -2686,7 +2396,7 @@ void show_line(int sy, s16b cols, bool mem, int st)
 
 	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
-	y = sy;
+	y = sy + (mem ? DUNGEON_OFFSET_Y : 0);
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -2704,8 +2414,8 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	if (y >= Term->hgt || cols+coff <= 0) mem = draw = FALSE;
 
 	/* Check the max line count */
-	if (last_line_info < y)
-		last_line_info = y;
+	if (last_line_info < sy)
+		last_line_info = sy;
 
 	/* Remember screen */
 	if (mem && Term->mem)
@@ -3185,6 +2895,9 @@ void browse_macros(void)
 			{
 				a = TERM_L_BLUE;
 				sel = i;
+				/* Move cursor there */
+				Term_gotoxy(0, 2+k-o);
+				Term_show_ui_cursor();
 			}
 
 			/* Dump the trigger */
@@ -3294,10 +3007,14 @@ void browse_macros(void)
 			else if (o && j - o < hgt/2) o--;
 		}
 	}
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 }
 void interact_macros(void)
 {
 	int i;
+
+	static bool old_school_macros = FALSE;
 
 	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
@@ -3314,6 +3031,9 @@ void interact_macros(void)
 	{
 		/* Clear screen */
 		Term_clear();
+
+		/* Hide cursor */
+		Term_hide_ui_cursor();
 
 		/* Describe */
 		Term_putstr(0, 2, -1, TERM_WHITE, "Interact with Macros");
@@ -3344,6 +3064,13 @@ void interact_macros(void)
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
+#if 1
+		Term_putstr(5+24,  6, -1, TERM_L_DARK, ".........");
+		Term_putstr(5+34,  6, -1, TERM_L_DARK, "(8) Macro by command");
+		Term_putstr(5+34,  7, -1, TERM_L_DARK, "(9) Macro by item");
+		Term_putstr(5+34,  8, -1, TERM_L_DARK, "(0) Macro by spell");
+#endif
+
 #if 0
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
@@ -3353,6 +3080,8 @@ void interact_macros(void)
 
 		/* Prompt */
 		Term_putstr(0, 15, -1, TERM_WHITE, "Command: ");
+		/* Show cursor */
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -3404,6 +3133,114 @@ void interact_macros(void)
 			(void)macro_dump(tmp);
 		}
 
+		/* Change wizard mode */
+		else if (i == KTRL('O'))
+		{
+			old_school_macros = !(old_school_macros);
+		}
+
+		/* Enter a new action (spell) */
+		else if (i == '0')
+		{
+			int spell, book = 0, n;
+			char cmd;
+			n = get_spell(&spell, "/=Next book,", "Macro which spell?", &book,FALSE);
+			screen_icky = TRUE;
+			/* No spell selected */
+			if (!n)
+			{
+				continue;
+			}
+
+			cmd = command_by_item(book, 1);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			spell_as_keystroke(spell, book, cmd, buf, MAX_COLS,
+				old_school_macros ?
+				(CTXT_FULL | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_NAME)
+);
+
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
+
+		}
+
+		/* Enter a new action (via items) */
+		else if (i == '9')
+		{
+			int item, n;
+			char cmd;
+			if (!c_get_item(&item, "Macro which item?", TRUE, TRUE, TRUE))
+			{
+				continue;
+			}
+			cmd = command_by_item(item, 0);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			item_as_keystroke(item, cmd, buf, MAX_COLS,
+				old_school_macros ?
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_PREFER_NAME)
+			);
+
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
+		}
+
+		/* Enter a new action (via menu) */
+		else if (i == '8')
+		{
+			char cmd = do_cmd_menu();
+			if (!cmd || cmd == '\r')
+			{
+				bell();
+				continue;
+			}
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
+
+			/* Go to the correct location */
+			Term_gotoxy(0, 21);
+
+			/* Hack -- dump the value */
+			command_as_keystroke(cmd, buf, MAX_COLS);
+
+			/* Get an encoded action */
+			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
+
+			/* Extract an action */
+			text_to_ascii(macro__buf, buf);
+		}
+
 		/* Enter a new action */
 		else if (i == '3')
 		{
@@ -3435,6 +3272,8 @@ void interact_macros(void)
 			Term_erase(0, 17, 255);			
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
 			
+			/* Show cursor */
+			Term_show_ui_cursor();
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
@@ -3486,6 +3325,7 @@ void interact_macros(void)
 			/* Prompt */
 			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+			Term_show_ui_cursor();
 
 			/* Get a macro trigger */
 			if (!get_macro_trigger(buf)) continue;
@@ -3501,6 +3341,7 @@ void interact_macros(void)
 	
 				/* Go to the correct location */
 				Term_gotoxy(0, 21);
+				Term_show_ui_cursor();
 	
 				/* Copy 'current action' */
 				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
@@ -3594,6 +3435,9 @@ void interact_macros(void)
 	/* Reload screen */
 	Term_load();
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
 	/* Screen is no longer icky */
 	screen_icky = FALSE;
 
@@ -3685,6 +3529,9 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 		/* Hilite current option */
 		move_cursor(k + 2, 50);
 
+		/* Show cursor */
+		Term_show_ui_cursor();
+
 		/* Get a key */
 		ch = inkey();
 
@@ -3767,6 +3614,8 @@ static void do_cmd_options_aux(int page, bool local, cptr info)
 				(*local_option_info[on_var].o_var) = set_what;
 		}
 	}
+
+	Term_hide_ui_cursor();
 }
 
 
@@ -3856,6 +3705,9 @@ static void do_cmd_options_win(void)
 
 		/* Place Cursor */
 		Term_gotoxy(35 + x * 5, y + 5);
+		
+		/* And show it */
+		Term_show_ui_cursor();
 
 		/* Get key */
 		ch = inkey();
@@ -3951,6 +3803,9 @@ static void do_cmd_options_win(void)
 	/* Update windows */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
 	/* Update windows */
 	window_stuff();
 }
@@ -4022,6 +3877,7 @@ void do_cmd_options(void)
 		/* Prompt */
 		col += 2;
 		prt("Command: ", col, 0);
+		Term_show_ui_cursor();
 
 		/* Get command */
 		k = inkey();
@@ -4072,6 +3928,7 @@ void do_cmd_options(void)
 				prt(format("Current hitpoint warning: %2d%%",
 				           p_ptr->hitpoint_warn * 10), col+2, 0);
 				prt("New hitpoint warning (0-9 or ESC to accept): ", col+1, 0);
+				Term_show_ui_cursor();
 
 				cx = inkey();
 				if (cx == ESCAPE) break;
@@ -4088,6 +3945,8 @@ void do_cmd_options(void)
 		}
 	}
 
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 
 	/* Restore the screen */
 	Term_load();

@@ -254,6 +254,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 
 	/*** Knowledge query ***/
+	{ /* Display monster list */
+		'[', PKT_UNDEFINED, SCHEME_EMPTY, 0, (cccb)do_cmd_monlist,
+		(0),
+		0, "Symbol: ", "Display visible monster list"
+	},
 	{ /* Help */
 		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -363,7 +368,7 @@ custom_command_type priest_study_cmd =
 	{ /* Study spell */
 		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
-		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? ", "Study prayer"
 	};
 
 

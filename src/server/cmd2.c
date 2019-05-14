@@ -2971,6 +2971,28 @@ void do_cmd_spike(int Ind, int dir)
 	}
 }
 
+/*
+ * Clicked somewhere on the dungeon.
+ *
+ * "mod" can contain any MCURSOR_XXX flag, except for
+ *  MCURSOR_EMB and MCURSOR_META (so buttons 1, 2, 3 and
+ *  modifiers CTRL, ALT, SHIFT).
+ */
+void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x)
+{
+	/* Right now, we only support 1 mouse button */
+	if (mod != 1) return;
+
+	y = y + p_ptr->panel_row_min;
+	x = x + p_ptr->panel_col_min;
+
+	if (x < p_ptr->panel_col_min) x = p_ptr->panel_col_min;
+	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
+	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
+	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	do_cmd_pathfind(Get_Ind[p_ptr->conn], y, x);
+}
 
 
 /*
@@ -3301,6 +3323,34 @@ void do_cmd_rest(void)
 #endif
 
 
+/*
+ * Start running with pathfinder.
+ *
+ * Note that running while confused is not allowed.
+ */
+void do_cmd_pathfind(int Ind, int y, int x)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Hack XXX XXX XXX */
+	if (p_ptr->confused)
+	{
+		/* TODO: Maybe convert to walk request? */
+		msg_print(Ind, "You are too confused!");
+		return;
+	}
+
+	if (findpath(p_ptr, y, x))
+	{
+		p_ptr->running_withpathfind = TRUE;
+		p_ptr->run_request = -1;
+#if 0 /* In MAngband, we just schedule for later */
+//		/* Calculate torch radius */
+//		p_ptr->update |= (PU_TORCH);
+//		run_step(Ind, 0);
+#endif
+	}
+}
 
 
 

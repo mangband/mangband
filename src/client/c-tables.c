@@ -620,6 +620,10 @@ option_type local_option_info[] =
 	{ &auto_itemlist,   		0,FALSE,	1,	0, 0,
 	"auto_itemlist",		"Show listings when prompting for an item" },
 
+	{ &auto_showlist,   		0,FALSE,	1,	0, 0,
+	"auto_showlist",		"Show listings when prompting for a spell" },
+
+
 	/*** End of Table ***/
 
 	{ NULL,			0, 0, 0, 0, 0,

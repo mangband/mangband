@@ -1422,11 +1422,19 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 /* Client sent us some "mouse" action */
 int recv_mouse(connection_type *ct, player_type *p_ptr) {
 	byte mod, x, y;
+	int n;
+	char key;
 
 	if (cq_scanf(&ct->rbuf, "%c%c%c", &mod, &x, &y) < 3) return 0;
 
-	/* We don't do anything with this data, currently */
-	(void)p_ptr;
+	if ((mod & MCURSOR_META))
+		target_set_interactive_mouse(p_ptr, mod,  y, x);
+	else if (!(mod & MCURSOR_EMB))
+		do_cmd_mouseclick(p_ptr, mod, y, x);
+	else if ((n = p_ptr->special_handler))
+		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(p_ptr, key);
+	else if (p_ptr->special_file_type)
+		do_cmd_interactive(p_ptr, key);
 
 	return 1;
 }

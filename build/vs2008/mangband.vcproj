@@ -446,6 +446,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\server\pathfind.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\save.c"
 				>
 			</File>

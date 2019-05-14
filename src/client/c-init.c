@@ -635,6 +635,9 @@ bool client_ready()
 	/* Subscribe to data streams */
 	init_subscriptions();
 
+	/* Prepare command menu */
+	cmd_init();
+
 	return TRUE;
 }
 

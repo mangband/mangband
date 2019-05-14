@@ -364,6 +364,8 @@ extern errr Term_fresh(void);
 extern errr Term_set_cursor(bool v);
 extern errr Term_gotoxy(int x, int y);
 extern errr Term_consolidate_cursor(bool on, int x, int y);
+extern errr Term_show_ui_cursor(void);
+extern errr Term_hide_ui_cursor(void);
 extern errr Term_draw(int x, int y, byte a, char c);
 extern errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc);
 extern errr Term_addch(byte a, char c);

@@ -115,9 +115,14 @@ extern player_type player;
 extern player_type *p_ptr;
 extern s32b exp_adv;
 
+extern bool prompt_quote_hack;
+
 extern s16b command_see;
 extern s16b command_gap;
 extern s16b command_wrk;
+
+extern bool spellcasting;
+extern int spellcasting_spell;
 
 extern bool item_tester_full;
 extern byte item_tester_tval;
@@ -208,6 +213,7 @@ extern cptr keymap_act[KEYMAP_MODES][256];
 
 extern s16b command_cmd;
 extern s16b command_dir;
+extern event_type command_cmd_ex;
 
 extern custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 extern int custom_commands;
@@ -269,6 +275,7 @@ extern int known_options;
 extern bool rogue_like_commands;
 extern bool auto_accept;
 extern bool auto_itemlist;
+extern bool auto_showlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
@@ -361,6 +368,20 @@ extern void cmd_master_aux_level(void);
 extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
+extern void cmd_mouseclick(void);
+/* c-cmd0.c */
+extern void do_cmd_port(void);
+extern char do_cmd_menu(void);
+extern void cmd_init(void);
+extern char* macro_find_by_action(cptr buf);
+extern custom_command_type *match_custom_command(char cmd);
+extern int command_to_display_name(char cmd, char *dst, size_t len);
+extern char command_from_keystroke(char *buf);
+extern char command_by_item(int item, bool agressive);
+extern int command_as_keystroke(char cmd, char *dst, size_t len);
+extern int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag);
+extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t len, byte ctxt_flag);
+
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, cptr str);
@@ -411,6 +432,7 @@ extern void quit_hook(cptr str);
 /* c-inven.c */
 extern char index_to_label(int i);
 extern bool item_tester_okay(object_type *o_ptr);
+extern bool item_tester_hack(object_type *o_ptr, int i); /* Do not use this */
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
 extern byte c_secondary_tester(int item);
@@ -472,6 +494,7 @@ extern void load_sound_prefs();
 
 /* c-spell.c */
 extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);
+extern bool get_spell_by_name(int *bn, int *sn, bool inven, bool equip, bool books);
 extern void show_browse(int book);
 extern void do_study(int book);
 extern void do_cast(int book);

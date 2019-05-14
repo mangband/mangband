@@ -310,6 +310,9 @@ static void prt_depth(int row, int col, int id)
 
 	/* Right-Adjust the "depth" and clear old values */
 	put_str(format("%7s", depths), row, col);
+
+	/* Memorize if on main screen */
+	if (Term == term_screen) mem_line(row, col, 7);
 }
 
 #if 0
@@ -1003,8 +1006,11 @@ void show_inven(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
 }
 
 
@@ -1112,8 +1118,11 @@ void show_equip(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
 }
 
 
