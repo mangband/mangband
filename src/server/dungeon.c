@@ -2278,6 +2278,8 @@ void dungeon(void)
 		update_monsters(TRUE);
 		update_players();
 
+		p_ptr->window |= (PW_ITEMLIST);
+
 		/* Clear the flag */
 		p_ptr->new_level_flag = FALSE;
 	}

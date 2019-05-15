@@ -3222,4 +3222,11 @@ void window_stuff(void)
 		p_ptr->window &= ~(PW_MONLIST);
 		fix_remote_term(NTERM_WIN_MONLIST, PW_MONLIST);
 	}
+
+	/* Display Item list */
+	if (p_ptr->window & (PW_ITEMLIST))
+	{
+		p_ptr->window &= ~(PW_ITEMLIST);
+		fix_remote_term(NTERM_WIN_ITEMLIST, PW_ITEMLIST);
+	}
 }

@@ -1446,7 +1446,7 @@ int recv_redraw(connection_type *ct, player_type *p_ptr)
 	{
 		p_ptr->store_num = -1; //TODO: check if this is really necessary/okay?
 		p_ptr->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR);
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER | PW_MAP | PW_MONLIST);
+		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER | PW_MAP | PW_MONLIST | PW_ITEMLIST);
 		p_ptr->update |= (PU_BONUS | PU_VIEW | PU_MANA | PU_HP);
 		//TODO: check if there are more generic ways to apply those
 	}

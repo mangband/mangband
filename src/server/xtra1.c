@@ -1478,6 +1478,29 @@ static void fix_monlist(int Ind)
 
 
 /*
+ * Hack -- display dungeon items in sub-windows
+ */
+static void fix_itemlist(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* HACK -- Save other player info */
+	text_out_save(p_ptr);
+
+	/* Prepare 'visible monsters' list */
+	display_itemlist(p_ptr);
+
+	/* Send it */
+	send_prepared_info(p_ptr, NTERM_WIN_ITEMLIST, STREAM_ITEMLIST_TEXT, 0);
+
+	/* HACK -- Load other player info */
+	text_out_load(p_ptr);
+
+	return;
+}
+
+
+/*
  * Hack -- display inventory in sub-windows
  */
 static void fix_inven(int Ind)
@@ -3564,6 +3587,13 @@ void window_stuff(int Ind)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
 		fix_monlist(Ind);
+	}
+
+	/* Display item list */
+	if (p_ptr->window & PW_ITEMLIST)
+	{
+		p_ptr->window &= ~(PW_ITEMLIST);
+		fix_itemlist(Ind);
 	}
 }
 

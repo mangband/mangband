@@ -1924,6 +1924,8 @@ bool detect_objects_normal(int Ind)
 		}
 	}
 
+	if (detect) p_ptr->window |= (PW_ITEMLIST);
+
 	return (detect);
 }
 

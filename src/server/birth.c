@@ -1149,6 +1149,7 @@ void player_setup(int Ind)
 
 	/* Update his inventory, equipment, and spell info */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL);
+	p_ptr->window |= (PW_ITEMLIST);
 
 	/* This guy is alive now */
 	p_ptr->alive = TRUE;

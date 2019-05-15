@@ -1330,6 +1330,8 @@ void note_spot(int Ind, int y, int x)
 				/* Memorize */
 				p_ptr->obj_vis[c_ptr->o_idx] = TRUE;
 
+				/* Schedule list redraw */
+				p_ptr->window |= (PW_ITEMLIST);
 			}
 		}
 	}
@@ -3591,6 +3593,9 @@ void wiz_lite(int Ind)
 			/* Memorize all objects */
 			if (c_ptr->o_idx)
 			{
+				/* Wasn't seen, schedule list redraw */
+				if (!p_ptr->obj_vis[c_ptr->o_idx]) p_ptr->window |= (PW_ITEMLIST);
+
 				/* Memorize */
 				p_ptr->obj_vis[c_ptr->o_idx]= TRUE;
 			}
@@ -3665,6 +3670,9 @@ void wiz_dark(int Ind)
 			/* Forget every object */
 			if (c_ptr->o_idx)
 			{
+				/* Was known, schedule list redraw */
+				if (p_ptr->obj_vis[c_ptr->o_idx]) p_ptr->window |= (PW_ITEMLIST);
+
 				/* Forget the object */
 				p_ptr->obj_vis[c_ptr->o_idx] = FALSE;
 			}

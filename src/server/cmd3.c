@@ -2105,3 +2105,30 @@ void do_cmd_monlist(int Ind)
 
 	return;
 }
+
+/*
+ * Display item list as a pop-up on mainscreen.
+ * See also "fix_itemlist()" for windowed version.
+ */
+void do_cmd_itemlist(int Ind)//player_type *p_ptr)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Prepare 'visible items' list */
+	display_itemlist(p_ptr);
+
+	/* Send it */
+	/* (Fits player screen) */
+	if (p_ptr->last_info_line < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] - 2)
+	{
+		send_prepared_popup(Ind, "Visible Items (Snapshot)");
+	}
+	/* (Doesn't fit, requires browsing) */
+	else
+	{
+		send_term_header(p_ptr, NTERM_BROWSE | NTERM_CLEAR, "Visible Items (Snapshot)");
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE);
+	}
+
+	return;
+}
