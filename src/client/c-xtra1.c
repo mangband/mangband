@@ -900,6 +900,7 @@ void show_inven(void)
 {
 	int	i, j, k, l, z = 0;
 	int	col, len, lim, wgt;
+	size_t	truncate;
 
 	object_type *o_ptr;
 
@@ -924,6 +925,10 @@ void show_inven(void)
 	/* Require space for weight (if needed) */
 	lim -= 9;
 
+	/* Hack -- ensure we never try to truncate out of array bounds */
+	truncate = lim;
+	if (truncate < 0) truncate = 0;
+	if ((size_t)truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Find the "final" slot */
 	for (i = 0; i < INVEN_PACK; i++)
@@ -946,9 +951,9 @@ void show_inven(void)
 		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
-		o_name[lim] = '\0';
+		o_name[truncate] = '\0';
 
-		/* Save the object index, color, and descrtiption */
+		/* Save the object index, color, and description */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
 		my_strcpy(out_desc[k], o_name, 80);
