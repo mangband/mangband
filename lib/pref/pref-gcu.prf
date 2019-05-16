@@ -11,73 +11,127 @@
 
 ### VT100 Keypad ###
 
+# Numpad/Regular Delete
+
+A:.
+P:^__14a\r
+P:^__KEY_DC\r
+P:\e[3~
+
+# Numpad/Regular Insert
+
+A:0
+P:^__14b\r
+P:^__KEY_IC\r
+P:\e[2~
+
+# Stand still (numpad 5)
+
+A:5
+P:^__15e\r
+P:^__KEY_B2\r
+P:\e[E
+P:\eOE
+
 # Normal movement
 
 A:4
 P:^__104\r
 P:^__KEY_LEFT\r
+P:\e[D
+P:\eOt
 
 A:6
 P:^__105\r
 P:^__KEY_RIGHT\r
+P:\e[C
+P:\eOv
 
 A:8
-P:^__103
+P:^__103\r
 P:^__KEY_UP\r
+P:\e[A
+P:\eOx
 
 A:2
-P:^__102
+P:^__102\r
 P:^__KEY_DOWN\r
+P:\e[B
+P:\eOr
 
 A:7
 P:^__106\r
 P:^__KEY_HOME\r
+P:\e[H
+P:\eOw
 
 A:1
-P:^__168
+P:^__168\r
 P:^__KEY_END\r
+P:\e[F
+P:\eOq
 
 A:9
 P:^__153\r
 P:^__KEY_PPAGE\r
+P:\e[5~
+P:\eOy
 
 A:3
 P:^__152\r
 P:^__KEY_NPAGE\r
+P:\e[6~
+P:\eOs
 
 # Running (Shift+)
 
 A:.4
 P:^__189\r
 P:^__KEY_SLEFT\r
+P:\e[1;2D
+P:\eO2t
 
 A:.6
 P:^__192\r
 P:^__KEY_SRIGHT\r
+P:\e[1;2C
+P:\eO2v
 
 A:.8
 P:^__151\r
 P:^__KEY_SR\r
+P:\e[1;2A
+P:\eO2x
 
 A:.2
 P:^__151\r
 P:^__KEY_SF\r
+P:\e[1;2B
+P:\eO2r
 
 A:.7
 P:^__187\r
 P:^__KEY_SHOME\r
+P:\e[1;2H
+P:\eO2w
 
 A:.1
 P:^__182\r
 P:^__KEY_SEND\r
+P:\e[1;2F
+P:\eO2q
 
 A:.9
 P:^__18e\r
 P:^__KEY_SPREVIOUS\r
+P:\e[5;2~
+P:\eO2y
 
 A:.3
 P:^__18c\r
 P:^__KEY_SNEXT\r
+P:\e[6;2~
+P:\eO2s
 
 # Altering (Ctrl+)
 # (Note: on some terminal emulators, Ctrl+PgUp/Ctrl+PgDown
@@ -87,34 +141,42 @@ P:^__KEY_SNEXT\r
 A:+4
 P:^__224\r
 P:^__kLFT5\r
+P:\e[1;5D
 
 A:+6
 P:^__233\r
 P:^__kRIT5\r
+P:\e[1;5C
 
 A:+8
 P:^__239\r
 P:^__kUP5\r
+P:\e[1;5A
 
 A:+2
 P:^__210\r
 P:^__kDN5\r
+P:\e[1;5B
 
 A:+7
 P:^__21a\r
 P:^__kHOM5\r
+P:\e[1;5H
 
-A:.1
+A:+1
 P:^__215\r
 P:^__kEND5\r
+P:\e[1;5F
 
-A:9
+A:+9
 P:^__22e\r
 P:^__kPRV5\r
+P:\e[5;5~
 
-A:3
+A:+3
 P:^__229\r
 P:^__kNXT5\r
+P:\e[6;5~
 
 # Altering (ALT+)
 # (Same as CTRL+, for terminals that can't handle CTRL correctly)
@@ -122,31 +184,39 @@ P:^__kNXT5\r
 A:+4
 P:^__222\r
 P:^__kLFT3\r
+P:\e[1;3D
 
 A:+6
 P:^__231\r
 P:^__kRIT3\r
+P:\e[1;3C
 
 A:+8
 P:^__237\r
 P:^__kUP3\r
+P:\e[1;3A
 
 A:+2
 P:^__20e\r
 P:^__kDN3\r
+P:\e[1;3B
 
 A:+7
 P:^__218\r
 P:^__kHOM3\r
+P:\e[1;3H
 
 A:+1
 P:^__213\r
 P:^__kEND3\r
+P:\e[1;3F
 
 A:+9
 P:^__22c\r
 P:^__kPRV3\r
+P:\e[5;3~
 
 A:+3
 P:^__227\r
 P:^__kNXT3\r
+P:\e[6;3~
