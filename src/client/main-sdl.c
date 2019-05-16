@@ -1538,6 +1538,7 @@ static errr Term_user_sdl(int n)
 	term_data *td = (term_data*)(Term->data);
 
 	mouse_mode = !mouse_mode;
+	c_msg_print_aux(format("*** Mouse mode set: %s ***", mouse_mode ? "Game control" : "Term control"), MSG_LOCAL);
 
 	/* OK */
 	return (0);
@@ -3036,6 +3037,7 @@ errr init_sdl(void)
 
 	sdl_combine_arrowkeys = conf_get_int("SDL", "CombineArrows", 1);
 	sdl_combiner_delay = conf_get_int("SDL", "CombineArrowsDelay", 20);
+	mouse_mode = conf_get_int("SDL", "GameMouse", 0);
 
 	/* Read command-line arguments */
 	clia_read_int(&width, "width");
@@ -3211,6 +3213,7 @@ void save_sdl_prefs() {
 
 	conf_set_int("SDL", "CombineArrows", sdl_combine_arrowkeys ? 1 : 0);
 	conf_set_int("SDL", "CombineArrowsDelay", sdl_combiner_delay);
+	conf_set_int("SDL", "GameMouse", mouse_mode ? 1 : 0);
 
 	/* Terms */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
