@@ -33,42 +33,54 @@ P:^__KEY_B2\r
 P:\e[E
 P:\eOE
 
+# Backspace in keypad mode
+
+A:\b
+P:^__107\r
+P:^__KEY_BACKSPACE\r
+
 # Normal movement
 
 A:4
 P:^__104\r
 P:^__KEY_LEFT\r
 P:\e[D
+P:\eOD
 P:\eOt
 
 A:6
 P:^__105\r
 P:^__KEY_RIGHT\r
 P:\e[C
+P:\eOC
 P:\eOv
 
 A:8
 P:^__103\r
 P:^__KEY_UP\r
 P:\e[A
+P:\eOA
 P:\eOx
 
 A:2
 P:^__102\r
 P:^__KEY_DOWN\r
 P:\e[B
+P:\eOB
 P:\eOr
 
 A:7
 P:^__106\r
 P:^__KEY_HOME\r
 P:\e[H
+P:\eOH
 P:\eOw
 
 A:1
 P:^__168\r
 P:^__KEY_END\r
 P:\e[F
+P:\eOF
 P:\eOq
 
 A:9
