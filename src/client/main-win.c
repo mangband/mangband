@@ -3018,6 +3018,40 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 			return 0;
 		}
 
+		case WM_LBUTTONDOWN:
+		//case WM_MBUTTONDOWN:
+		//case WM_RBUTTONDOWN:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
+			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
+			if (!Term) return 1;  /* no active terminal yet */
+
+			x = x / td->font_wid;
+			y = y / td->font_hgt;
+
+			Term_mousepress(x, y, 1);
+			return 0;
+		}
+
+		case WM_MOUSEMOVE:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
+			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
+			if (!Term) return 1;  /* no active terminal yet */
+
+			x = x / td->font_wid;
+			y = y / td->font_hgt;
+
+			Term_mousepress(x, y, 0);
+			return 0;
+		}
+
 		case WM_INITMENU:
 		{
 			setup_menus();
