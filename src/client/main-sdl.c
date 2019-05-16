@@ -2071,9 +2071,8 @@ static void term_data_link(int i)
 	/* We'll handle our curosr */
 	t->soft_cursor = TRUE;
 
-	/* Hack -- Support graphics on "term0" ONLY */
-	if (!i && use_graphics)
-		t->higher_pict = TRUE;
+	/* Support graphics */
+	t->higher_pict = TRUE;
 
 	/* We do not handle bored yet */
 	t->never_bored = TRUE;
@@ -2144,6 +2143,24 @@ void term_rescale(int i, bool create, bool redraw) {
 
 	/* Rescale tileset */
 	if (td->gt && td->gt->face && (td->gt->w != td->w || td->gt->h != td->h)) {
+		bool reused = FALSE;
+		int j;
+
+		/* Can we steal rescaled bitmap from another term? */
+		for (j = 0; j < ANGBAND_TERM_MAX; j++) {
+			if (i == j || tdata[j].sgt.face == NULL) continue;
+			/* Size matches */
+			if (tdata[j].sgt.w == td->w && tdata[j].sgt.h == td->h) {
+				td->sgt.face = tdata[j].sgt.face;
+				tdata[j].sgt.face->refcount++;
+				reused = TRUE;
+				break;
+			}
+		}
+
+		if (!reused) {
+
+		/* Print message */
 		SDL_FillRect(bigface, sdl_quick_rect(td->xoff, td->yoff, td->fd->w * 35, td->fd->h-1), 0);
 		SDL_PrintText(td, 0, 0, gui_color_term_title, " Re-scaling tiles. Please wait... ");
 #ifdef SINGLE_SURFACE
@@ -2151,8 +2168,19 @@ void term_rescale(int i, bool create, bool redraw) {
 #else
 		SDL_Flip(bigface);
 #endif
+
+		/* Do the rescaling */
 		td->sgt.face = SDL_ScaleTiledBitmap(td->gt->face, td->gt->w, td->gt->h, td->w, td->h, 0);
 
+		/* Wipe message */
+		SDL_FillRect(bigface, sdl_quick_rect(td->xoff, td->yoff, td->fd->w * 35, td->fd->h), 0);
+#ifdef SINGLE_SURFACE
+		SDL_FrontRect(td, 0, 0, td->fd->w * 35, td->fd->h, FALSE, TRUE);
+#else
+		SDL_Flip(bigface);
+#endif
+		}
+		/* Keep new size */
 		td->sgt.w = td->w;
 		td->sgt.h = td->h;
 	}
@@ -2476,23 +2504,43 @@ void term_unload_font(int i)
 void term_unload_graf(int i)
 {
 	term_data *td = &(tdata[i]);
+	bool in_use = FALSE;
+	int j;
+
 	if (!td->gt) return;
-	if (td->gt->face)
+
+	/* See if it's in use */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
 	{
-		SDL_FreeSurface(td->gt->face);
-		td->gt->face = 0;
+		if (i == j || !tdata[j].gt) continue;
+		if (!strcmp(tdata[j].gt->name, tdata[i].gt->name))
+		{
+			in_use = TRUE;
+			break;
+		}
 	}
-	if (td->gt->name)
+
+	/* Free to unload */
+	if (!in_use)
 	{
-		string_free(td->gt->name);
-		td->gt->name = 0;
+		if (td->gt->face)
+		{
+			SDL_FreeSurface(td->gt->face);
+			td->gt->face = 0;
+		}
+		if (td->gt->name)
+		{
+			string_free(td->gt->name);
+			td->gt->name = 0;
+		}
+		FREE(td->gt);
 	}
-	FREE(td->gt);
 	td->gt = NULL;
 }
 /* Attempt to load a graphical tileset */
 bool term_load_graf(int i, cptr filename, cptr maskname)
 {
+	int j;
 	graf_tiles *load_tiles;
 	term_data *td = &(tdata[i]);
 
@@ -2503,6 +2551,20 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 			return TRUE;
 		else
 			return FALSE;
+	}
+
+	/* Can we steal the tileset from another term? */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		if (i == j || !tdata[j].gt) continue;
+		if (streq(tdata[j].gt->name, filename))
+		{
+			/* Just use whole graf_data */
+			td->gt = tdata[j].gt;
+
+			/* Yes! */
+			return TRUE;
+		}
 	}
 
 	/* Load graf */
@@ -2697,7 +2759,7 @@ bool init_one_term(int i, bool force)
 
 	/* Load graphics */
 	td->gt = NULL;
-	if (!i && use_graphics)
+	if (use_graphics)
 	{
 		if (term_load_graf(i, GFXBMP[use_graphics], GFXMASK[use_graphics]))
 		{
