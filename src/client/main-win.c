@@ -33,14 +33,6 @@
  * clear of the current window, and redraw the borders and other things.
  *
  * XXX XXX XXX
- * The "use_graphics" option should affect ALL of the windows, not just
- * the main "screen" window.  The "FULL_GRAPHICS" option is supposed to
- * enable this behavior, but it will load one bitmap file for each of
- * the windows, which may take a lot of memory, especially since with
- * a little clever code, we could load each bitmap only when needed,
- * and only free it once nobody is using it any more.
- *
- * XXX XXX XXX
  * The user should be able to select the "bitmap" for a window independant
  * from the "font", and should be allowed to select any bitmap file which
  * is strictly smaller than the font file.  Currently, bitmap selection
@@ -2017,15 +2009,6 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		/* First, erase the grid */
 		return (Term_wipe_win(x, y, 1));
 	}
-
-#ifndef FULL_GRAPHICS
-	/* Paranoia -- handle weird requests */
-	if (td != &win_data[0])
-	{
-		/* First, erase the grid */
-		return (Term_wipe_win(x, y, 1));
-	}
-#endif
 
 	Term_wipe_win(x, y, n);
 
