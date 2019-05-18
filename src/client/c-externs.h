@@ -101,8 +101,8 @@ extern s16b last_line_info;
 extern s16b cur_line;
 extern s16b max_line;
 
-extern cave_view_type* remote_info[8];
-extern s16b last_remote_line[8];
+extern cave_view_type* remote_info[16];
+extern s16b last_remote_line[16];
 extern cptr stream_desc[32];
 
 cave_view_type air_info[MAX_HGT][MAX_WID];

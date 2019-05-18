@@ -62,8 +62,8 @@ s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
 s16b cur_line;				/* Current displayed line of "special" info */
 
-cave_view_type* remote_info[8]; /* Local copies for Special Info */
-s16b last_remote_line[8];
+cave_view_type* remote_info[16]; /* Local copies for Special Info */
+s16b last_remote_line[16];
 cptr stream_desc[32];
 
 cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
