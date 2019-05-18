@@ -934,7 +934,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	char o_name[80];
 
 	/* Description */
-	object_desc(player_textout, o_name, o_ptr, TRUE, 3);
+	object_desc(player_textout, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 
 	/* Print, in colour */

@@ -3544,7 +3544,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 	sound(Ind, MSG_SHOOT);
 
 	/* Describe the object */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
 	missile_attr = object_attr(o_ptr);
@@ -3989,7 +3989,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 	o_ptr = &throw_obj;
 
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
 	missile_attr = object_attr(o_ptr);

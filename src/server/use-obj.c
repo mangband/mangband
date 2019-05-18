@@ -1969,7 +1969,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 		char o_name[80];
 
 		/* Get the basic name of the object */
-		object_desc(Ind, o_name, o_ptr, FALSE, 0);
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		switch (a_ptr->activation)
 		{

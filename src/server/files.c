@@ -1270,7 +1270,7 @@ errr file_character_server(int Ind, cptr name)
 	fprintf(fff, "%s", "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
-		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
@@ -1280,7 +1280,7 @@ errr file_character_server(int Ind, cptr name)
 	fprintf(fff, "%s", "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
-		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), &p_ptr->inventory[i], TRUE, 3);
 		fprintf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
@@ -1304,7 +1304,7 @@ errr file_character_server(int Ind, cptr name)
 					if (c_ptr->o_idx)
 					{
 						if (j > 12) { fprintf(fff, "%s", "\n"); j = 0; }
-						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
+						object_desc(0, o_name, sizeof(o_name), &o_list[c_ptr->o_idx], TRUE, 3);
 						fprintf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
 						j++;

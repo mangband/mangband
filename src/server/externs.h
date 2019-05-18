@@ -757,7 +757,7 @@ extern void flavor_copy(char *buf, u16b flavor, object_type *o_ptr);
 extern void object_prep(object_type *o_ptr, int k_idx);
 extern void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
 extern void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
-extern void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode);
+extern void object_desc(int Ind, char *buf, size_t buflen, const object_type *o_ptr, int pref, int mode);
 extern void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern bool identify_fully_aux(int Ind, object_type *o_ptr);
 extern char index_to_label(int i);

@@ -1233,7 +1233,7 @@ static char *object_desc_int(char *t, sint v)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
  *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
-void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode)
+void object_desc(int Ind, char *buf, size_t bufsize, const object_type *o_ptr, int pref, int mode)
 {
 	player_type *p_ptr = Players[Ind];
 
@@ -2049,15 +2049,19 @@ void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mod
 	if (tmp_val[0])
 	{
 		int n;
+		int m;
+
+		/* Hack -- max buffer size */
+		m = bufsize - 5; /* Was 75 */
 
 		/* Hack -- How much so far */
 		n = (t - buf);
 
 		/* Paranoia -- do not be stupid */
-		if (n > 75) n = 75;
+		if (n > m) n = m;
 
 		/* Hack -- shrink the inscription */
-		tmp_val[75 - n] = '\0';
+		tmp_val[m - n] = '\0';
 
 		/* Append the inscription */
 		t = object_desc_chr(t, ' ');
@@ -2101,7 +2105,7 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
 
 
 	/* Describe the object */
-	object_desc(Ind, buf, o_ptr, pref, mode);
+	object_desc(Ind, buf, 80, o_ptr, pref, mode);
 
 
 	/* Only restore flags if we have a valid player */
@@ -2882,7 +2886,7 @@ void display_inven(int Ind)
 		tmp_val[0] = index_to_label(i);
 
 		/* Obtain an item description */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 
 		/* Obtain the length of the description */
 		n = strlen(o_name);
@@ -2938,7 +2942,7 @@ void display_equip(int Ind)
 		tmp_val[0] = index_to_label(i);
 
 		/* Obtain an item description */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 
 		/* Obtain the length of the description */
 		n = strlen(o_name);

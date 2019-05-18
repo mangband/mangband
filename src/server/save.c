@@ -105,7 +105,7 @@ static void wr_item(object_type *o_ptr)
 	
 	start_section("item");
 
-	object_desc(0, obj_name, o_ptr, TRUE, 3);
+	object_desc(0, obj_name, sizeof(obj_name), o_ptr, TRUE, 3);
 	write_str("name",obj_name);
 
 	write_int("k_idx",o_ptr->k_idx);

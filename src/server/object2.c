@@ -2034,7 +2034,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 
 		/* Mega-Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
-		object_desc(0, o_name, o_ptr, TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
         plog(format("Special artifact %s created", o_name));
 
 
@@ -2111,7 +2111,7 @@ printf("Passed!\n");
 
 		/* Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
-        object_desc(0, o_name, o_ptr, TRUE, 3);
+        object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
         plog(format("Artifact %s created", o_name));
 
 		/* Success */
@@ -4067,7 +4067,7 @@ void inven_item_describe(int Ind, int item)
 	char	o_name[80];
 
 	/* Get a description */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Print a message */
 	msg_format(Ind, "You have %s.", o_name);
@@ -4248,7 +4248,7 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 		if (!option_p(p_ptr, USE_COLOR)) attr = TERM_WHITE;
 
 		/* Describe the object */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
 		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
@@ -4958,7 +4958,7 @@ void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 	{
 		char o_name[80];
 		char buf[80];
-		object_desc(0, o_name, o_ptr, FALSE, 0);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 		sprintf(buf, "Found The %s", o_name);
 		log_history_event(p_ptr, buf, TRUE);
 
@@ -4991,7 +4991,7 @@ void object_audit(player_type *p_ptr, object_type *o_ptr, int number)
 			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr) * number);
 		audit(buf);
 		/* Object name */
-		object_desc(0, o_name, o_ptr, TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 		sprintf(buf,"TR+%s", o_name);
 		audit(buf);
 		
@@ -5294,7 +5294,7 @@ void display_itemlist(player_type *p_ptr)
 		if (o_ptr->tval == TV_GOLD || squelch_item_ok(o_ptr))
 			continue;
 
-		object_desc(Ind, o_name, /*sizeof(o_name),*/ o_ptr, FALSE, ODESC_FULL);
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, ODESC_FULL);
 		if (counts[i] > 1)
 			sprintf(o_desc, "%s (x%d)", o_name, counts[i]);
 		else
