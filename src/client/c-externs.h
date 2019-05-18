@@ -279,6 +279,7 @@ extern bool auto_showlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
+extern bool wrap_messages;
 extern bool ring_bell;
 extern bool use_color;
 
@@ -455,6 +456,7 @@ extern char inkey(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);
 extern void prt(cptr str, int row, int col);
+extern int prt_multi(int sx, int sy, int n, int m, int attr, cptr msg);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
 extern void request_command(bool shopping);

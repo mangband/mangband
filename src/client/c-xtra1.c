@@ -1947,9 +1947,9 @@ void fix_special_message_aux(byte win)
 		
 		message_color(msg, &a);
 
-		/* Dump the message on the appropriate line */
-		Term_putstr(0, (h - 1) - j, -1, a, msg);
-
+		/* Dump the message on the appropriate line(s) */
+		j += prt_multi(0, (h - 1) - j, -1, -(h - 1 - (t + 1) - j), a, msg);
+#if 0
 		/* Cursor */
 		Term_locate(&x, &y);
 
@@ -1957,6 +1957,7 @@ void fix_special_message_aux(byte win)
 		Term_erase(x, y, 255);
 		
 		j++;
+#endif
 	}
 
 	/* Erase rest */
@@ -2037,39 +2038,48 @@ void fix_message(void)
                 Term_get_size(&w, &h);
 
                 /* Dump messages */
-                i=0; c=0;
-                while(i<h)
-					{
-						byte a;
-						cptr msg;
-			
-						msg = message_str(c++);
-			
-						if (chat_window) {
-							if (message_type(c-1) >= MSG_WHISPER) continue;
-						}
-			
-						a = TERM_WHITE;
-						message_color(msg, &a);
-			
-						/* Dump the message on the appropriate line */
-						Term_putstr(0, (h - 1) - i, -1, a, msg);
-			
-						/* Cursor */
-						Term_locate(&x, &y);
-			
-						/* Clear to end of line */
-						Term_erase(x, y, 255);
-					
-						i++;
-					}
-                
-                /* Fresh */
-                Term_fresh();
+                i = 0; c = 0;
+                while (i < h)
+		{
+			byte a;
+			cptr msg;
 
-                /* Restore */
-                Term_activate(old);
-        }
+			msg = message_str(c++);
+			
+			if (chat_window) {
+				if (message_type(c-1) >= MSG_WHISPER) continue;
+			}
+			
+			a = TERM_WHITE;
+			message_color(msg, &a);
+			
+			/* No wrapping, do it the old way */
+			if (!wrap_messages)
+			{
+				/* Dump the message on the appropriate line */
+				Term_putstr(0, (h - 1) - i, -1, a, msg);
+
+				/* Cursor */
+				Term_locate(&x, &y);
+			
+				/* Clear to end of line */
+				Term_erase(x, y, 255);
+
+				i++;
+			}
+			else
+			{
+				/* Dump the message on the appropriate line(s) */
+				i += prt_multi(0, (h - 1) - i, -1, -(h - i), a, msg);
+			}
+		}
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
 }
 
 /*

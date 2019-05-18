@@ -258,6 +258,7 @@ bool auto_itemlist;
 bool auto_showlist;
 bool show_labels;
 bool show_weights;
+bool wrap_messages;
 bool ring_bell;
 bool use_color;
 

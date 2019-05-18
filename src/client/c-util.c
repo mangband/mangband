@@ -2191,31 +2191,79 @@ void c_msg_print_aux(cptr msg, u16b type)
 }
 
 
-		/* Display part of the message */
-		Term_putstr(0, 0, split, TERM_WHITE, t);
+/* Call Term_putstr multiple times, word-wraping the "msg".
+ * "sx" and "sy" are the coordinates we start at.
+ * "n" is maximum "msg" len, if -1 is passed, strlen(msg) will be used.
+ * "m" is maximum lines we have left. If passed as a negative number,
+ * "prt_multi" will draw from bottom to top.
+ *
+ * Returns number of lines printed. No actual changes should be seen
+ * until Term_fresh().
+ */
+int prt_multi(int sx, int sy, int n, int m, int attr, cptr msg)
+{
+	char *t;
+	char buf[1024];
+	char *line_ptr[256];
+	size_t line_end[256];
+	int lines = 0, i;
+	bool reverse = FALSE;
+	int maxcol = Term->wid - sx;
 
-		/* Flush it */
-		/*msg_flush(split + 1);*/
+	/* If "m" is passed as negative, assume reverse mode */
+	if (m < 0)
+	{
+		m = 0 - m;
+		reverse = TRUE;
+	}
 
-		/* Restore the split character */
-		t[split] = oops;
+	/* Analyze the buffer */
+	my_strcpy(buf, msg, 1024);
+	t = buf;
+	n = n < 0 ? strlen(buf) : MIN(n, 1024);
 
-		/* Insert a space */
-		t[--split] = ' ';
+	/* Split message */
+	while (n > maxcol)
+	{
+		int check, split;
+
+		/* Default split */
+		split = maxcol;
+
+		/* Find the "best" split point */
+		for (check = 40; check < maxcol; check++)
+		{
+			/* Found a valid split point */
+			if (t[check] == ' ') split = check;
+		}
+
+		/* Save part of the message */
+		line_ptr[lines] = t;
+		line_end[lines] = split;
+		lines++;
 
 		/* Prepare to recurse on the rest of "buf" */
 		t += split; n -= split;
 	}
 
+	/* Save the tail of the message */
+	line_ptr[lines] = t;
+	line_end[lines] = n;
+	lines++;
 
-	/* Display the tail of the message */
-	Term_putstr(p, 0, n, TERM_WHITE, t);
-#endif
-	/* Remember the message */
-	msg_flag = TRUE;
+	/* Draw lines */
+	for (i = 0; i < lines; i++)
+	{
+		int x, y;
+		int l = reverse ? lines - 1 - i : i ;
+		int d = reverse ? -1 : 1 ;
+		Term_putstr(sx, sy + i * d, line_end[l], attr, line_ptr[l]);
+		Term_locate(&x, &y);
+		Term_erase(x, y, 255);
+		if (m - i <= 0) break;
+	}
 
-	/* Remember the position */
-	p += n + 1;
+	return i;
 }
 
 
