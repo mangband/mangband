@@ -2431,6 +2431,53 @@ static void init_windows(void)
 	(void)Term_xtra_win_flush();
 }
 
+
+static char* has_addr_aux(cptr pmsgbuf, int mode, char* addrbuf, size_t addrmax, size_t* addrlen)
+{
+	int offset,breakpoint,nicklen;
+	char * startmsg;
+	char search_for = ':';
+	offset = 0;
+	if (mode == 1)
+	{
+		search_for = ' ';
+		if (pmsgbuf[0] != '#')
+		{
+			*addrlen = 0;
+			return pmsgbuf;
+		}
+	}
+	for (startmsg = pmsgbuf; *startmsg ; startmsg++ ) {
+		if( *startmsg==search_for ) break;
+	};
+	if( *startmsg  && (startmsg-pmsgbuf<addrmax) ) {
+		strncpy(addrbuf,pmsgbuf,(startmsg-pmsgbuf)+1);
+		nicklen=strlen(addrbuf);
+		startmsg+=1;
+		while (*startmsg == ' ') startmsg+=1;
+	} else {
+		startmsg=pmsgbuf;
+		nicklen=0;
+	};
+	*addrlen = nicklen;
+	return startmsg;
+}
+static char* has_addr(cptr msg, char* addrbuf, size_t addrmax, size_t* addrlen)
+{
+	char *r;
+	/* Check channel */
+	r = has_addr_aux(msg, 1, addrbuf, addrmax, addrlen);
+	if (*addrlen > 0) return r;
+
+	/* Check privmsg */
+	r = has_addr_aux(msg, 0, addrbuf, addrmax, addrlen);
+	if (*addrlen > 0) return r;
+
+	/* OK, got nothing */
+	*addrlen = 0;
+	return msg;
+}
+
 /* hack - edit control subclass [grk] */
 LRESULT APIENTRY SubClassFunc(   HWND hWnd,
                UINT Message,
@@ -2438,34 +2485,48 @@ LRESULT APIENTRY SubClassFunc(   HWND hWnd,
                LPARAM lParam)
 {
 	char pmsgbuf[1000]; /* overkill */
-	char pmsg[60];
+	char pmsg[MSG_LEN + 2];
 	char nickbuf[30];
 
 	/* Allow ESCAPE to return focus to main window. */
-	if( Message == WM_KEYDOWN )
+	if( Message == WM_KEYDOWN ) {
 		if( wParam == VK_ESCAPE ){
 		unset_chat_focus();
 		return 0;
+		}
+		if (wParam == 33) { /* PGUP */
+			cmd_chat_cycle(-1);
+			return 0;
+		}
+		if (wParam == 34) { /* PGDN */
+			cmd_chat_cycle(+1);
+			return 0;
+		}
 	}
 
 	if ( Message == WM_CHAR ) {
 		/* Is this RETURN ? */
 		if( wParam == 13 || wParam == 10000) {
+			int CUTOFF=0;
 			int msglen=0;
 			memset(nickbuf,0,22);
 
 			/* Get the controls text and send it */
 			msglen = GetWindowText(editmsg, pmsgbuf, 999);
 
-			/* Send the text in chunks of 58 characters,
-			   or nearest break before 58 chars */
+			/* Send the text in chunks of CUTOFF characters,
+			   or nearest break before CUTOFF chars */
 
 			if( msglen == 0 ){
 			    unset_chat_focus();
 			    return 0;
 			}
+			/* Max message length depends on our nick (known)
+			 * and recepient nick (unknown, assume max length) */
+			CUTOFF = MSG_LEN - strlen(nick) - 3; /* 3 is for decorative symbols */
+			CUTOFF -= (MAX_NAME_LEN+1); /* +1 for ':' symbol in private messages */
 /*RLS*/
-			if( msglen < 58 ){
+			if( msglen < CUTOFF ){
 				send_msg(pmsgbuf);
 			} else{
 				int offset,breakpoint,nicklen;
@@ -2474,34 +2535,24 @@ LRESULT APIENTRY SubClassFunc(   HWND hWnd,
 
 				/* see if this was a privmsg, if so, pull off the nick */
 
-				for(startmsg=pmsgbuf; *startmsg ; startmsg++ ) {
-					if( *startmsg==':' ) break;
-				};
-				if( *startmsg  && (startmsg-pmsgbuf<29) ) {
-					strncpy(nickbuf,pmsgbuf,(startmsg-pmsgbuf)+1);
-					nicklen=strlen(nickbuf);
-					startmsg+=2;
-				} else {
-					startmsg=pmsgbuf;
-					nicklen=0;
-				};
+				startmsg = has_addr(pmsgbuf, nickbuf, 29, &nicklen);
 
 				/* now deal with what's left */
 
 				while(msglen>0){
-					memset(pmsg,0,60);
+					memset(pmsg,0,MSG_LEN);
 
-					if(msglen<(58-nicklen)){
+					if(msglen<CUTOFF){
 						breakpoint=msglen;
 					} else{
 						/* try to find a breaking char */
-						for(breakpoint=58-nicklen; breakpoint>0; breakpoint--) {
+						for(breakpoint=CUTOFF; breakpoint>0; breakpoint--) {
 							if( startmsg[offset+breakpoint] == ' ' ) break;
 							if( startmsg[offset+breakpoint] == ',' ) break;
 							if( startmsg[offset+breakpoint] == '.' ) break;
 							if( startmsg[offset+breakpoint] == ';' ) break;
 						};
-						if(!breakpoint) breakpoint=58-nicklen; 	/* nope */
+						if(!breakpoint) breakpoint=CUTOFF; /* nope */
 					}
 
 					/* if we pulled off a nick above, prepend it. */
