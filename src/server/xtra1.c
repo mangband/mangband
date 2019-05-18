@@ -3059,6 +3059,10 @@ static void calc_bonuses(int Ind)
 		p_ptr->icky_wield = TRUE;
 	}
 
+	/* Hack -- ensure speed is in bounds */
+	if (p_ptr->pspeed < 0) p_ptr->pspeed = 0;
+	if (p_ptr->pspeed > 199) p_ptr->pspeed = 199;
+
 
 	/*** Notice changes ***/
 
