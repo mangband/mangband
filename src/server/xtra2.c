@@ -6993,7 +6993,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					{
 						MASTER_COMMON_LIMIT();
 
-						if (my_strnicmp(dit->d_name, "server-", 7)) { i--; continue; }
+						if (my_strnicmp(dit->d_name, "server.", 7)) { i--; continue; }
 
 						MASTER_DUMP_I()
 
