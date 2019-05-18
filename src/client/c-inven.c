@@ -303,6 +303,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	char	tmp_val[160];
 	char	out_val[160];
 
+	/* Paranoia */
+	if (!inven && !equip) return (FALSE);
+
 	/* The top line is icky */
 	topline_icky = TRUE;
 
@@ -317,9 +320,6 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* Default to "no item" */
 	*cp = -1;
-
-	/* Paranoia */
-	if (!inven && !equip) return (FALSE);
 
 	/* Full inventory */
 	i1 = 0;

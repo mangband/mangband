@@ -785,11 +785,12 @@ static void display_inven(void)
 		Term_erase(3+n, i, 255);
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 18)
 		{
+			Term_erase(Term->wid - 9, i, 9);
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			Term_putstr(71, i, -1, TERM_WHITE, tmp_val);
+			Term_putstr(Term->wid - 9, i, -1, TERM_WHITE, tmp_val);
 		}
 	}
 
@@ -864,17 +865,20 @@ static void display_equip(void)
 		Term_erase(3+n, i - INVEN_WIELD, 255);
 
 		/* Display the slot description (if needed) */
-		if (show_labels)
+		if (show_labels && Term->wid >= 24)
 		{
-			Term_putstr(61, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
-			Term_putstr(65, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
+			col = Term->wid - 19;
+			Term_erase(col, i - INVEN_WIELD, 255);
+			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
+			Term_putstr(col+4, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
 		}
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 36)
 		{
 			wgt = o_ptr->weight;
-			col = (show_labels ? 52 : 71);
+			col = (show_labels ? Term->wid - 28 : Term->wid - 9);
+			Term_erase(col, i - INVEN_WIELD, 9);
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
 			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
 		}
@@ -920,15 +924,15 @@ void show_inven(void)
 	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = Term->wid - 1 - 3;
+	lim = Term->wid - 2;
 
 	/* Require space for weight (if needed) */
-	lim -= 9;
+	if (show_weights) lim -= 9;
 
 	/* Hack -- ensure we never try to truncate out of array bounds */
 	truncate = lim;
 	if (truncate < 0) truncate = 0;
-	if ((size_t)truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
+	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Find the "final" slot */
 	for (i = 0; i < INVEN_PACK; i++)
@@ -962,7 +966,7 @@ void show_inven(void)
 		l = strlen(out_desc[k]) + 5;
 
 		/* Be sure to account for the weight */
-		l += 9;
+		if (show_weights) l += 9;
 
 		/* Maintain the maximum length */
 		if (l > len) len = l;
@@ -1026,6 +1030,7 @@ void show_equip(void)
 {
 	int	i, j, k, l;
 	int	col, len, lim, wgt;
+	size_t	truncate;
 
 	object_type *o_ptr;
 
@@ -1042,14 +1047,18 @@ void show_equip(void)
 	col = command_gap;
 
 	/* Default "max-length" */
-	len = 79 - col;
+	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = 79 - 3;
+	lim = Term->wid - 2;
 
 	/* Require space for weight (if needed) */
-	lim -= 9;
+	if (show_weights) lim -= 9;
 
+	/* Hack -- ensure we never try to truncate out of array bounds */
+	truncate = lim;
+	if (truncate < 0) truncate = 0;
+	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Scan the equipment list */
 	for (k = 0, i = INVEN_WIELD; i < INVEN_TOTAL; i++)
@@ -1063,7 +1072,7 @@ void show_equip(void)
 		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
-		o_name[lim] = '\0';
+		o_name[truncate] = '\0';
 
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
@@ -1074,7 +1083,7 @@ void show_equip(void)
 		l = strlen(out_desc[k]) + 5;
 
 		/* Be sure to account for the weight */
-		l += 9;
+		if (show_weights) l += 9;
 
 		/* Maintain the maximum length */
 		if (l > len) len = l;
@@ -1084,7 +1093,7 @@ void show_equip(void)
 	}
 
 	/* Find the column to start in */
-	col = (len > 76) ? 0 : (79 - len);
+	col = (len > Term->wid - 4) ? 0 : (Term->wid - 1 - len);
 
 	/* Output each entry */
 	for (j = 0; j < k; j++)
@@ -1108,11 +1117,11 @@ void show_equip(void)
 		c_put_str(out_color[j], out_desc[j], j + 1, col + 3);
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 18)
 		{
 			wgt = o_ptr->weight * o_ptr->number;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, 71);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
 	}
 
