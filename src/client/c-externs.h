@@ -470,6 +470,7 @@ extern cptr message_str(s16b age);
 extern u16b message_type(s16b age);
 extern void c_message_add(cptr msg, u16b type);
 extern void c_message_del(s16b age);
+extern void msg_flush(void);
 extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);

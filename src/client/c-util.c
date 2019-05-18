@@ -2041,6 +2041,29 @@ static void msg_flush(int x)
 }
 #endif
 
+static char last_msg[1024];
+static int  last_msg_more = FALSE;
+static int  last_msg_type = MSG_LOCAL;
+
+void msg_flush(void)
+{
+	if (last_msg_more == FALSE) return;
+
+	msg_flag = TRUE;
+
+	c_msg_print_aux(last_msg, last_msg_type);
+
+	msg_flag = FALSE;
+}
+
+
+#if 0
+#define MORE_PROMPT "  -more-"
+#define MORE_PROMPT_LEN 8
+#else
+#define MORE_PROMPT "-"
+#define MORE_PROMPT_LEN 1
+#endif
 
 /*
  * Output a message to the top line of the screen.
@@ -2076,11 +2099,12 @@ void c_msg_print_aux(cptr msg, u16b type)
 	static int p = 0;
 
 	int n;
+	int maxcol;
+	size_t truncate;
 #if 0
 	char *t;
 #endif
 	char buf[1024];
-
 
 	/* Hack -- Reset */
 	if (!msg_flag) p = 0;
@@ -2092,6 +2116,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 	/* Message length */
 	n = (msg ? strlen(msg) : 0);
 
+#if 0
 	/* Hack -- flush when requested or needed */
 	if (p && (!msg || ((p + n) > 72)))
 	{
@@ -2104,7 +2129,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 		/* Reset */
 		p = 0;
 	}
-
+#endif
 
 	/* No message */
 	if (!msg) return;
@@ -2113,44 +2138,58 @@ void c_msg_print_aux(cptr msg, u16b type)
 	if (n > 1000) return;
 
 
+	if (!msg_flag) /* Hack -- unless something is preventing it */
 	/* Memorize the message */
 	c_message_add(msg, type);
 
 
-	/* Copy it */
-	my_strcpy(buf, msg, sizeof(buf));
-	
-	/* Strip it */
-	buf[80] = '\0';
-	
 	/* Display it */
-	Term_putstr(0, 0, 80, TERM_WHITE, buf);
-#if 0
+	Term_putstr(0, 0, Term->wid, TERM_WHITE, msg);
+
+	/* Display "-more-" prompt */
+	maxcol = (Term->wid - MORE_PROMPT_LEN);
+	if (n > maxcol)
+	{
+		Term_putstr(maxcol, 0, MORE_PROMPT_LEN, TERM_YELLOW, MORE_PROMPT);
+	}
+	last_msg_more = FALSE;
+
+#if 1
 	/* Analyze the buffer */
-	t = buf;
+	/* t = buf; */
 
 	/* Split message */
-	while (n > 72)
+	while (n > maxcol)
 	{
-		char oops;
-
 		int check, split;
 
 		/* Default split */
-		split = 72;
+		split = maxcol;
 
 		/* Find the "best" split point */
-		for (check = 40; check < 72; check++)
+		for (check = 40; check < maxcol; check++)
 		{
 			/* Found a valid split point */
-			if (t[check] == ' ') split = check;
+			if (msg[check] == ' ') split = check;
 		}
 
-		/* Save the split character */
-		oops = t[split];
+		/* Save part of the message */
+		my_strcpy(last_msg, &msg[split], sizeof(last_msg));
+		last_msg_type = type;
+		last_msg_more = TRUE;
 
-		/* Split the message */
-		t[split] = '\0';
+		break;
+	}
+#endif
+#if 0
+	/* Remember the message */
+	msg_flag = TRUE;
+
+	/* Remember the position */
+	p += n + 1;
+#endif
+}
+
 
 		/* Display part of the message */
 		Term_putstr(0, 0, split, TERM_WHITE, t);

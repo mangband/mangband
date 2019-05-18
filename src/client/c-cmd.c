@@ -306,8 +306,11 @@ void process_command()
 	switch (command_cmd)
 	{
 		/* Ignore */
-		case ESCAPE:
 		case ' ':
+		{
+			msg_flush();
+		}
+		case ESCAPE:
 		{
 			if (first_escape) 
 				send_clear();
