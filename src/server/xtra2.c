@@ -6897,6 +6897,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 				numero[0] = (C); numero[1] = '\0'; \
 				c_prt(p_ptr, (A), numero, 2 + j, 6);
 
+#define OBJECT_TVAL_ATTR(O_PTR) \
+				p_ptr->tval_attr[(O_PTR)->tval % 128]
+
 	/* Content */
 	if (!access)
 	{
@@ -7116,7 +7119,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 				{
 					/* Base Kind */
 					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
-					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char);
+					byte obj_attr = k_ptr->flavor ? flavor_info[k_ptr->flavor].d_attr : k_ptr->d_attr;
+					MASTER_DUMP_AC(obj_attr, k_ptr->d_char);
 					c_prt(p_ptr, attr, k_name + k_ptr->name, 2 + j++, 8);
 				}
 				else
@@ -7143,7 +7147,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				object_desc(Ind, buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
-				c_prt(p_ptr, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
+				c_prt(p_ptr, OBJECT_TVAL_ATTR(&p_ptr->inventory[0]), buf, 2 + j++, 1);
 
 				/* Obtain XTRA2 modifier */
 				if (p_ptr->inventory[0].name2)
