@@ -1378,7 +1378,7 @@ errr Term_fresh(void)
 	if (Term->soft_cursor)
 	{
 		/* Draw the cursor */
-		if (!scr->cu && scr->bcv)
+		if (scr->bcv)
 		{
 			if ((scr->bcx + 1 < w) && (old->a[scr->bcy][scr->bcx + 1] == 255))
 			{
@@ -1429,7 +1429,7 @@ errr Term_fresh(void)
 
 
 	/* Save the "cursor state" */
-	old->cu = scr->cu;
+	old->cu = scr->bcv ? 0 : scr->cu;
 	old->cv = scr->bcv;
 	old->cx = scr->bcx;
 	old->cy = scr->bcy;
