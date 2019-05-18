@@ -2859,8 +2859,7 @@ void player_death(int Ind)
 	/** Survived death **/
 
 	/* Give him his hit points back */
-	//see #1190
-	//p_ptr->mhp = p_ptr->lev + 2;
+	p_ptr->mhp = p_ptr->lev + 2;
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
 
@@ -2896,7 +2895,7 @@ void player_death(int Ind)
 	p_ptr->word_recall = 0;
 
 	/* Update bonus */
-	p_ptr->update |= (PU_BONUS);
+	p_ptr->update |= (PU_BONUS | PU_HP);
 
 	/* Redraw */
 	p_ptr->redraw |= (PR_HP | PR_GOLD | PR_BASIC | PR_OFLAGS );

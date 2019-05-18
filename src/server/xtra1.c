@@ -2048,6 +2048,8 @@ static void calc_hitpoints(int Ind)
 
 	/* Calculate hitpoints */
 	if (p_ptr->fruit_bat) mhp = p_ptr->lev + 2;
+
+	else if (p_ptr->ghost) mhp = p_ptr->lev + 2;
 	
 	else mhp = p_ptr->player_hp[p_ptr->lev-1] + (bonus * p_ptr->lev / 100);
 
