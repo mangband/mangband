@@ -5257,6 +5257,8 @@ bool monsters_in_los(player_type *p_ptr)
 		player_type *q_ptr = Players[i];
 		if (q_ptr == p_ptr) continue; /* Skip self */
 
+		if (p_ptr->conn <= -1) break; /* Can't check hostility */
+
 		/* Check this player */
 		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
 		{
