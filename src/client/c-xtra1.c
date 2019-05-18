@@ -1862,7 +1862,7 @@ void fix_special_message_aux(byte win)
 	int x, y, tab;
 	cptr msg;
 	byte a;
-	char text[80];
+	char text[MSG_LEN];
 	
 	term *old = Term;
 

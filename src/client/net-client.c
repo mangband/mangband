@@ -1613,10 +1613,10 @@ int recv_channel(connection_type *ct) {
 
 int recv_message(connection_type *ct) {
 	char
-		mesg[MAX_CHARS];
+		mesg[MSG_LEN];
 	u16b
 		type = 0;
-	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud%S", &type, mesg) < 2) return 0;
 
 	do_handle_message(mesg, type);
 

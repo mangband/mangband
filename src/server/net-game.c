@@ -745,10 +745,11 @@ int send_objflags(int Ind, int line)
 	return 1;
 }
 
-int send_message(int Ind, cptr msg, u16b typ)
+/* XXX REMOVE ME XXX Remove at next protocol upgrade. */
+int send_message_DEPRECATED(int Ind, cptr msg, u16b typ)
 {
 	connection_type *ct = PConn[Ind];
-	char buf[80];
+	char buf[MAX_CHARS];
 
 	if (!ct) return -1;
 
@@ -760,6 +761,33 @@ int send_message(int Ind, cptr msg, u16b typ)
 	buf[78] = '\0';
 
 	if (!cq_printf(&ct->wbuf, "%c%ud%s", PKT_MESSAGE, typ, buf))
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+
+}
+
+int send_message(int Ind, cptr msg, u16b typ)
+{
+	connection_type *ct = PConn[Ind];
+	char buf[MSG_LEN];
+
+	if (!ct) return -1;
+
+	if (msg == NULL)
+		return 1;
+
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(Players[Ind]->version, 1,5,2))
+	{
+		return send_message_DEPRECATED(Ind, msg, typ);
+	}
+
+	/* Clip end of msg if too long */
+	my_strcpy(buf, msg, MSG_LEN);
+
+	if (!cq_printf(&ct->wbuf, "%c%ud%S", PKT_MESSAGE, typ, buf))
 	{
 		client_withdraw(ct);
 	}

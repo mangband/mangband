@@ -1057,6 +1057,25 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 }
 
 /*
+ * Check if client is *at least* at version major.minor.patch.
+ * Do not check "extra". Pass -1 to "minor" or "patch"
+ * if you don't care about that particular value. */
+bool client_version_atleast(u16b version, int at_major, int at_minor, int at_patch)
+{
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	if (major < at_major) return FALSE;
+	if (minor < at_minor) return FALSE;
+	if (patch < at_patch) return FALSE;
+
+	return TRUE;
+}
+
+/*
  * Check if we can work with this version.
  * Add more interesting checks if needed
  */
@@ -1073,9 +1092,7 @@ bool client_version_ok(u16b version)
 	if (extra != SERVER_VERSION_EXTRA) return FALSE;
 
 	/* require minimal version */
-	if (major < 1) return FALSE;
-	if (minor < 5) return FALSE;
-	if (patch < 0) return FALSE;
+	if (!client_version_atleast(version, 1, 5, 0)) return FALSE;
 
 	return TRUE;
 /*
