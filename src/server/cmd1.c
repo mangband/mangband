@@ -644,7 +644,7 @@ void carry(int Ind, int pickup, int confirm)
 
 	object_type *o_ptr;
 
-	char	o_name[80];
+	char	o_name[120];
 	int 	sound_msg;
 
 	/* Hack -- nothing here to pick up */
