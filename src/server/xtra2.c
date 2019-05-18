@@ -7294,7 +7294,7 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
 		{
 			vault_type *v_ptr = &v_info[p_ptr->master_args[hook_type]];
 			if (dm_flag_p(p_ptr, CAN_GENERATE))
-			build_vault(Ind, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
+			build_vault(Depth, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
 			break;
 		}
 		case DM_PAGE_FEATURE:
