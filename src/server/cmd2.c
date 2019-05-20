@@ -809,7 +809,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 	/* Is the bounding rectangle we found big enough? */
 	if(x2-x1 < 2 || y2-y1 < 2)
 	{
-		msg_print(Ind, "The foundation is too small");
+		msg_print(Ind, "The foundation is too small.");
 		return FALSE;
 	}
 
@@ -830,6 +830,13 @@ bool create_house(int Ind)
 	int x1, x2, y1, y2, x, y;
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
+
+	/* Not in dungeon, not in town */
+	if (p_ptr->dun_depth >= 0 || check_special_level(p_ptr->dun_depth))
+	{
+		msg_print(Ind, "The surrounding magic is too strong for House Creation.");
+		return FALSE;
+	}
 
 	/* Determine the area of the house foundation */
 	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
