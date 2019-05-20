@@ -1026,6 +1026,17 @@ errr process_pref_file_command(char *buf)
 		return (0);
 	}
 
+	/* Process "\:" -- execute "action" right away */
+	else if (buf[0] == '\\')
+	{
+		int i, n;
+		char raw_cmd[1024];
+		text_to_ascii(raw_cmd, buf+2);
+		n = strlen(raw_cmd);
+		for (i = 0; i < n; i++) Term_keypress(raw_cmd[i]);
+		return (0);
+	}
+
 	/* Process "P:<str>" -- create normal macro */
 	else if (buf[0] == 'P')
 	{
