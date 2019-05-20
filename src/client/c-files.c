@@ -1697,6 +1697,9 @@ static errr process_pref_file_aux(cptr name)
 			/* Process that file if allowed */
 			(void)process_pref_file(buf + 2);
 
+			/* Hack - cancel 'virtual' mode */
+			fake_class = fake_race = -1;
+
 			/* Continue */
 			continue;
 		}
@@ -1718,8 +1721,8 @@ static errr process_pref_file_aux(cptr name)
 	{
 		/* Print error message */
 		/* ToDo: Add better error messages */
-		printf("Error %d in line %d of file '%s'.", err, line, name);
-		printf("Parsing '%s'", old);
+		printf("Error %d in line %d of file '%s'.\n", err, line, name);
+		printf("Parsing '%s'\n", old);
 	}
 
 	/* Close the file */
