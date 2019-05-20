@@ -3058,6 +3058,7 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		{
 			int x = LOWORD(lParam);
 			int y = HIWORD(lParam);
+			int button = 1;
 
 			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
 			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
@@ -3066,7 +3067,12 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 			x = x / td->font_wid;
 			y = y / td->font_hgt;
 
-			Term_mousepress(x, y, 1);
+			/* Extract the modifiers */
+			if (GetKeyState(VK_CONTROL) & 0x8000) button |= 16;
+			if (GetKeyState(VK_SHIFT)   & 0x8000) button |= 32;
+			if (GetKeyState(VK_MENU)    & 0x8000) button |= 64;
+
+			Term_mousepress(x, y, button);
 			return 0;
 		}
 

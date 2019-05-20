@@ -651,7 +651,13 @@ static errr Term_xtra_gcu_event(int v)
 		if (getmouse(&event) != OK) return (1);
 		if (event.bstate & BUTTON1_CLICKED)
 		{
-			Term_mousepress(event.x, event.y, 1);
+			int button = 1;
+			if (event.bstate & BUTTON_CTRL)  button |= 16;
+			/* XXX -- hack -- ALT should be 64 and SHIFT 32 !!! */
+			if (event.bstate & BUTTON_ALT)   button |= 32;
+			if (event.bstate & BUTTON_SHIFT) button |= 64;
+
+			Term_mousepress(event.x, event.y, button);
 		}
 		else if (event.bstate & REPORT_MOUSE_POSITION)
 		{

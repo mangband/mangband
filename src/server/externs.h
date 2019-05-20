@@ -458,7 +458,8 @@ extern void do_cmd_walk(int Ind, int dir, int pickup);
 extern void do_cmd_stay(int Ind);
 extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_hold(int Ind);
-extern void do_cmd_hold_or_stay(int Ind, int pickup);
+extern void do_cmd_hold_or_stay(int Ind, int pickup, int take_stairs);
+extern void do_cmd_enterfeat(int Ind);
 extern void do_cmd_toggle_rest(int Ind);
 extern void do_cmd_pathfind(int Ind, int y, int x);
 /*extern void do_cmd_rest(void);*/

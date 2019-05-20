@@ -1954,7 +1954,7 @@ static void paste_x11_send(XSelectionRequestEvent *rq)
 /*
  * Handle various events conditional on presses of a mouse button.
  */
-static void handle_button(Time time, int x, int y, int button, bool press)
+static void handle_button(Time time, int x, int y, int button, bool press, int mask)
 {
 	/* The co-ordinates are only used in Angband format. */
 	pixel_to_square(&x, &y, x, y);
@@ -1964,7 +1964,14 @@ static void handle_button(Time time, int x, int y, int button, bool press)
 	if (!press && button == 1) copy_x11_end(time);
 #else
 	/* The text selection feature is neat, but we need mouse for something else... -flm- */
-	if (press && button == 1) Term_mousepress(x, y, 1);
+	if (press && button == 1)
+	{
+		if (mask & ControlMask) button |= 16;
+		if (mask & ShiftMask) button |= 32;
+		if (mask & Mod1Mask) button |= 64;
+
+		Term_mousepress(x, y, button);
+	}
 #endif
 }
 
@@ -2056,6 +2063,7 @@ static errr CheckEvent(bool wait)
 		case ButtonRelease:
 		{
 			bool press = (xev->type == ButtonPress);
+			int mask = xev->xbutton.state;
 
 			/* Where is the mouse */
 			int x = xev->xbutton.x;
@@ -2072,7 +2080,7 @@ static errr CheckEvent(bool wait)
 			else z = 0;
 
 			/* XXX Handle */
-			handle_button(xev->xbutton.time, x, y, z, press);
+			handle_button(xev->xbutton.time, x, y, z, press, mask);
 
 			break;
 		}

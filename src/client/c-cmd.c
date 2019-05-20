@@ -1443,10 +1443,15 @@ void cmd_suicide(void)
 void cmd_mouseclick()
 {
 	event_type ke = command_cmd_ex;
+	int mod = 0;
+	if (ke.index & 16) { ke.index &= ~16; mod = MCURSOR_KTRL; }
+	if (ke.index & 32) { ke.index &= ~32; mod = MCURSOR_SHFT; }
+	if (ke.index & 64) { ke.index &= ~64; mod = MCURSOR_ALTR; }
 	send_mouse(0
 	  | (ke.index == 1 ? MCURSOR_LMB : 0)
 	  | (ke.index == 2 ? MCURSOR_MMB : 0)
-	  | (ke.index == 3 ? MCURSOR_RMB : 0),
+	  | (ke.index == 3 ? MCURSOR_RMB : 0)
+	  | mod,
 	  ke.mousex - DUNGEON_OFFSET_X,
 	  ke.mousey - DUNGEON_OFFSET_Y);
 }

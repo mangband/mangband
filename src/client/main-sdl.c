@@ -1110,6 +1110,21 @@ bool gui_term_event(SDL_Event* event) {
 	return taken;
 }
 
+static int Noticemodkeypress(int sym, int b_pressed)
+{
+	static int pressed[3] = { 0 };
+	int r = -1;
+	switch (sym)
+	{
+		case SDLK_RCTRL:  case SDLK_LCTRL:  r = 0; break;
+		case SDLK_RALT:   case SDLK_LALT:   r = 1; break;
+		case SDLK_RSHIFT: case SDLK_LSHIFT: r = 2; break;
+		default: return 0; break;
+	}
+	if (b_pressed == 0 || b_pressed == 1) pressed[r] = b_pressed;
+	return pressed[r];
+}
+
 /* Handle SDL_event/angband */
 void ang_mouse_move(SDL_Event* event) {
 	static int last_mouse_x[ANGBAND_TERM_MAX] = { 0 };
@@ -1144,6 +1159,7 @@ void ang_mouse_press(SDL_Event* event) {
 
 	int x = event->button.x;
 	int y = event->button.y;
+	int button = event->button.button;
 	int i = pick_term(x, y);
 
 	if (i == -1) return;
@@ -1156,12 +1172,29 @@ void ang_mouse_press(SDL_Event* event) {
 	x = (x - td->xoff) / td->w;
 	y = (y - td->yoff) / td->h;
 
-	Term_mousepress(x, y, event->button.button);
+	/* Convention picked from main-win.c of V341 */
+	if (Noticemodkeypress(SDLK_LCTRL, -1))  button |= 16;
+	if (Noticemodkeypress(SDLK_LSHIFT, -1)) button |= 32;
+	if (Noticemodkeypress(SDLK_LALT, -1))   button |= 64;
+
+	Term_mousepress(x, y, button);
 }
 bool ang_mouse_event(SDL_Event* event) {
 	bool taken = FALSE;
 	switch (event->type)
 	{
+		/* Assist mouse with modifier keys: */
+		case SDL_KEYUP:
+		{
+			Noticemodkeypress(event->key.keysym.sym, 0);
+		}
+		break;
+		case SDL_KEYDOWN:
+		{
+			Noticemodkeypress(event->key.keysym.sym, 1);
+		}
+		break;
+
 		case SDL_MOUSEMOTION:
 		{
 			ang_mouse_move(event);
