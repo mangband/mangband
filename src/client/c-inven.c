@@ -190,7 +190,7 @@ static int get_tag(int *cp, char tag)
 }
 
 /* Prompt player for a string, then try to find an item matching it */
-static bool get_item_by_name(int *k, bool inven, bool equip)
+static bool get_item_by_name(int *k, bool inven, bool equip, bool floor)
 {
 	char buf[256];
 	char *tok;
@@ -239,6 +239,17 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 			if (my_stristr(inventory_name[i], tok))
 			{
 				(*k) = i;
+				return TRUE;
+			}
+		}
+		/* Also try floor */
+		if (floor)
+		{
+			if (floor_item.tval
+			&& item_tester_okay(&floor_item)
+			&& my_stristr(floor_name, tok))
+			{
+				(*k) = FLOOR_INDEX;
 				return TRUE;
 			}
 		}
@@ -577,7 +588,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
-				if (get_item_by_name(&k, inven, equip))
+				if (get_item_by_name(&k, inven, equip, floor))
 				{
 					(*cp) = k;
 					item = TRUE;
