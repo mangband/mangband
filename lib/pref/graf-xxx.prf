@@ -41,6 +41,8 @@ F:117:0xD5/0x83 #closed door 5 blue
 #F:119:0x85/0xD5 #closed door
 F:120:0x81/0x98 #closed door
 
+K:399:0xCF/0x97 # house foundation stone
+
 ##### Special attr/char values #####
 
 
