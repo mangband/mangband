@@ -1300,6 +1300,8 @@ errr file_character_server(int Ind, cptr name)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
 				{
+					/* Paranoia -- unallocated Depth */
+					if (!cave[Depth]) continue;
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
