@@ -909,7 +909,7 @@ static void store_create(int st)
 	for (tries = 0; tries < 4; tries++)
 	{
 		/* Black Market */
-		if (store_num == 6)
+		if (store_num == 6 && randint0(25))
 		{
 			/* Pick a level for object/magic */
 			level = 30 + rand_int(25);

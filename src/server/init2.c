@@ -1109,7 +1109,7 @@ static errr init_flavor_info(void)
 /*
  * Hack -- Objects sold in the stores -- by tval/sval pair.
  */
-static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
+static byte store_table[MAX_STORES-2][STORE_CHOICES][2] =
 {
 	{
 		/* General Store */
@@ -1339,13 +1339,23 @@ static byte store_table[MAX_STORES-3][STORE_CHOICES][2] =
 		{ TV_STAFF, SV_STAFF_TELEPORTATION },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
 		{ TV_STAFF, SV_STAFF_IDENTIFY },
-        { TV_MAGIC_BOOK, 0 },
-        { TV_MAGIC_BOOK, 0 },
 
-        { TV_MAGIC_BOOK, 1 },
-        { TV_MAGIC_BOOK, 2 },
-        { TV_MAGIC_BOOK, 3 }
-	
+		{ TV_MAGIC_BOOK, 0 },
+		{ TV_MAGIC_BOOK, 0 },
+
+		{ TV_MAGIC_BOOK, 1 },
+		{ TV_MAGIC_BOOK, 2 },
+		{ TV_MAGIC_BOOK, 3 },
+    },
+
+    {
+		/* Black market (in addition to generated items) */
+		{ TV_JUNK, SV_HOUSE_FOUNDATION },
+		{ TV_JUNK, SV_HOUSE_FOUNDATION },
+		{ TV_JUNK, SV_HOUSE_FOUNDATION },
+
+		{ TV_SCROLL, SV_SCROLL_CREATE_HOUSE },
+		{ 0, 0 },
     }
 };
 
@@ -1725,7 +1735,7 @@ static errr init_other(void)
 		C_MAKE(st_ptr->stock, st_ptr->stock_size, object_type);
 
 		/* No table for the black market or home */
-		if ((i == 6) || (i == 7) || (i == 8) ) continue;
+		if (/*(i == 6) || */(i == 7) || (i == 8) ) continue;
 
 		/* Assume full table */
 		st_ptr->table_size = STORE_CHOICES;
