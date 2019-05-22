@@ -1303,6 +1303,38 @@ static void fix_player_1(void)
 	}
 }
 
+/*
+ * Hack -- display player in sub-windows (mode 2)
+ */
+static void fix_player_2(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_PLAYER_3))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display flags */
+		display_player(1);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
 
 /*
  * Hack - Display the left-hand-side of the main term in a separate window
@@ -3173,6 +3205,13 @@ void window_stuff(void)
 	{
 		p_ptr->window &= ~(PW_PLAYER_1);
 		fix_player_1();
+	}
+
+	/* Display player (mode 2) */
+	if (p_ptr->window & (PW_PLAYER_3))
+	{
+		p_ptr->window &= ~(PW_PLAYER_3);
+		fix_player_2();
 	}
 
 	/* Display player (compact) */
