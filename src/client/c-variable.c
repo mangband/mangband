@@ -89,6 +89,8 @@ s16b command_wrk;
 bool spellcasting = FALSE; /* Selecting a magic book */
 int spellcasting_spell = -1; /* Select-by-name spell */
 
+int inven_out_index[256] = { -2 }; /* Last line->a) index mappings from show_equip() */
+
 bool item_tester_full;
 byte item_tester_tval;
 bool (*item_tester_hook)(object_type *o_ptr);

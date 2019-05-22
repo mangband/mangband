@@ -157,6 +157,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	int		i, num = 0;
 	bool		flag, redraw;
 	char		choice;
+	event_type	ke;
 	char		out_val[160];
 	int			book = (*bn);
 	int			book_over = 0;
@@ -207,8 +208,14 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 		p, I2A(0), I2A(num - 1), prompt);
 
 	/* Get a spell from the user */
-	while (!flag && get_com(out_val, &choice))
+	while (!flag && get_com_ex(out_val, &choice, &ke))
 	{
+		/* Hack -- mouse */
+		if (choice == '\xff' && ke.index == 1)
+		{
+			choice = 'a' + ke.mousey - 2;
+		}
+
 		/* Enter by name */
 		if (choice == '@' || choice == '"')
 		{

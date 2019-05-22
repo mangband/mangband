@@ -122,6 +122,7 @@ void display_inventory(void)
  */
 static int get_stock(int *com_val, cptr pmt, int i, int j)
 {
+	event_type ke;
 	char    command;
 
 	char    out_val[160];
@@ -144,7 +145,13 @@ static int get_stock(int *com_val, cptr pmt, int i, int j)
 		int k;
 
 		/* Escape */
-		if (!get_com(out_val, &command)) break;
+		if (!get_com_ex(out_val, &command, &ke)) break;
+
+		/* Hack -- mouse click */
+		if (command == '\xff')
+		{
+			command = 'a' + ke.mousey - 6;
+		}
 
 		/* Convert */
 		k = (islower(command) ? A2I(command) : -1);
@@ -424,8 +431,12 @@ static void store_process_command(void)
 			cmd_inven();
 			break;
 		}
-
-
+			/* Mouse click */
+		case '\xff':
+		{
+			do_cmd_term_mousepress(PW_STORE, command_cmd_ex.mousex, command_cmd_ex.mousey, command_cmd_ex.index);
+			break;
+		}
 		default:
 		{
 			c_msg_print("That command does not work in stores.");
@@ -564,8 +575,12 @@ void display_store(void)
 		}
 
 		inkey_nonblock = TRUE;
-		command_cmd = inkey();
+		command_cmd_ex = inkey_ex();
+		command_cmd = command_cmd_ex.key;
 		inkey_nonblock = FALSE;
+
+		/* Hack -- ignore mouse motion */
+		if (command_cmd == '\xff' && command_cmd_ex.index == 0) command_cmd = 0;
 
 		if (command_cmd)
 		{

@@ -1226,6 +1226,55 @@ bool get_string_masked(cptr prompt, char *buf, int len)
 	/* Result */
 	return (res);
 }
+
+/*
+ * Prompts for a keypress OR a mouse press.
+ *
+ * The "prompt" should take the form "Command: "
+ *
+ * Returns TRUE unless the character is "Escape"
+ */
+bool get_com_ex(cptr prompt, char *command, event_type *xe)
+{
+	event_type ke;
+
+	/* The top line is "icky" */
+	topline_icky = TRUE;
+
+	/* Display a prompt */
+	prt(prompt, 0, 0);
+
+	/* Show cursor */
+	Term_show_ui_cursor();
+
+	/* Get a key */
+	while(1) {
+		ke = inkey_ex();
+		if (ke.type == EVT_ESCAPE) ke.key = ESCAPE;
+		if (ke.key == '\xff' && ke.index == 0) continue;
+		break;
+	}
+	*command = ke.key;
+	*xe = ke;
+
+	/* Clear the prompt */
+	prt("", 0, 0);
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
+	/* Fix the top line */
+	topline_icky = FALSE;
+
+	/* Flush any events */
+	Flush_queue();
+
+	/* Handle "cancel" */
+	if (*command == ESCAPE) return (FALSE);
+
+	/* Success */
+	return (TRUE);
+}
 /*
  * Prompts for a keypress
  *
@@ -1235,6 +1284,8 @@ bool get_string_masked(cptr prompt, char *buf, int len)
  */
 bool get_com(cptr prompt, char *command)
 {
+	event_type ke;
+
 	/* The top line is "icky" */
 	topline_icky = TRUE;
 

@@ -305,6 +305,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';
 
+	event_type ke;
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
 	bool	equip_up, inven_up, window_up;
@@ -509,7 +510,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		Term_show_ui_cursor();
 
 		/* Get a key */
-		which = inkey();
+		do {
+			ke = inkey_ex();
+			/* Hack -- ignore mouse motion */
+			if (ke.key == '\xff' && ke.index == 0) continue;
+			break;
+		} while(1);
+		which = ke.key;
 
 		/* Parse it */
 		switch (which)
@@ -680,6 +687,22 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				item = TRUE;
 				done = TRUE;
 				break;
+			}
+
+			case '\xff':
+			{
+				if (!command_see) continue;
+				if (ke.index == 0) continue;
+				else if (ke.index != 1)
+				{
+					bell();
+					break;
+				}
+				if (command_wrk)
+					which = 'a' + inven_out_index[ke.mousey - 1] - INVEN_WIELD;
+				else
+					which = 'a' + inven_out_index[ke.mousey - 1];
+				/* fallthrough */
 			}
 
 			default:

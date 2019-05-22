@@ -130,6 +130,8 @@ extern bool (*item_tester_hook)(object_type *o_ptr);
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern int known_item_testers;
 
+extern int inven_out_index[256];
+
 extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
 extern bool special_line_onscreen;
@@ -379,6 +381,7 @@ extern void toggle_inven_equip(void);
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);
 extern void cmd_init(void);
+extern void do_cmd_term_mousepress(u32b termflag, int x, int y, int button);
 extern void cmd_term_mousepress(int i, int x, int y, int button);
 extern void do_cmd_use_item(int item, bool agressive);
 extern void cmd_use_item();
@@ -468,6 +471,7 @@ extern void prt(cptr str, int row, int col);
 extern int prt_multi(int sx, int sy, int n, int m, int attr, cptr msg);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
+extern bool get_com_ex(cptr prompt, char *command, event_type *xe);
 extern void request_command(bool shopping);
 extern int target_dir(char ch);
 extern bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend);

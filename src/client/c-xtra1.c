@@ -1006,6 +1006,9 @@ void show_inven(void)
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
 			put_str(tmp_val, j + 1, lim + 1);
 		}
+
+		/* Save the index (for other functions to use!) */
+		inven_out_index[j] = out_index[j];
 	}
 
 	/* Make a "shadow" below the list (only if needed) */
@@ -1020,6 +1023,9 @@ void show_inven(void)
 		section_icky_row = j + 2;
 		section_icky_col = 0 - (Term->wid - col) - 2;
 	}
+
+	/* Hack -- cripple the rest of inven_out_index */
+	for ( ; j < 256; j++) inven_out_index[j] = -2;
 }
 
 
@@ -1123,6 +1129,9 @@ void show_equip(void)
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
 			put_str(tmp_val, j + 1, lim + 1);
 		}
+
+		/* Save the index (for other functions to use!) */
+		inven_out_index[j] = out_index[j];
 	}
 
 	/* Make a "shadow" below the list (only if needed) */
@@ -1137,6 +1146,9 @@ void show_equip(void)
 		section_icky_row = j + 2;
 		section_icky_col = 0 - (Term->wid - col) - 2;
 	}
+
+	/* Hack -- cripple the rest of inven_out_index */
+	for ( ; j < 256; j++) inven_out_index[j] = -2;
 }
 
 
