@@ -739,6 +739,7 @@ void cmd_init(void)
 	cmd_init_one(CMD_LIST_ACTION, "Walk", ';');
 	/* Hack -- add more local commands */
 	cmd_init_one(CMD_LIST_INFO, "Character description",'C');
+	cmd_init_one(CMD_LIST_INFO, "Show previous message",KTRL('O'));
 	cmd_init_one(CMD_LIST_INFO, "Show previous messages",KTRL('P'));
 	/* Go through every command */
 	for (i = 0; i < custom_commands; i++)

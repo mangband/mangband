@@ -532,6 +532,7 @@ extern void redraw_indicators(u32b filter);
 
 
 /* c-xtra2.c */
+extern void do_cmd_message_one(void);
 extern void do_cmd_messages(void);
 extern void do_chat_open(int id, cptr name);
 extern void do_chat_select(int id);

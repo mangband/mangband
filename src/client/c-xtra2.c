@@ -3,6 +3,19 @@
 #include "c-angband.h"
 
 /*
+ * Recall the most recent message
+ */
+void do_cmd_message_one(void)
+{
+	byte attr;
+	cptr s = message_str(0);
+	message_color(s, &attr);
+	/* Recall one message XXX XXX XXX */
+	c_prt(attr, format( "> %s", s), 0, 0);
+}
+
+
+/*
  * Show previous messages to the user   -BEN-
  *
  * The screen format uses line 0 and 23 for headers and prompts,

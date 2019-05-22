@@ -461,6 +461,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('O'): /* Repeat last message */
+		{
+			do_cmd_message_one();
+			break;
+		}
+
 		case KTRL('P'):
 		{
 	        do_cmd_messages();
