@@ -1467,14 +1467,26 @@ void cmd_suicide(void)
 void cmd_mouseclick()
 {
 	event_type ke = command_cmd_ex;
-	int mod = 0;
-	if (ke.index & 16) { ke.index &= ~16; mod = MCURSOR_KTRL; }
-	if (ke.index & 32) { ke.index &= ~32; mod = MCURSOR_SHFT; }
-	if (ke.index & 64) { ke.index &= ~64; mod = MCURSOR_ALTR; }
+	int btn, mod = 0;
+	btn = ke.index;
+	if (btn & 16) { btn &= ~16; mod = MCURSOR_KTRL; }
+	if (btn & 32) { btn &= ~32; mod = MCURSOR_SHFT; }
+	if (btn & 64) { btn &= ~64; mod = MCURSOR_ALTR; }
+
+	/* XXX HORRIBLE HACK XXX */
+	if (btn) { /* Allow remacro */
+		char ks[1024], *p;
+		snprintf(ks, 1024, "%c_TERMcave_MB%02x%c", 31, ke.index, 13);
+		if (macro_find_exact(ks) >= 0) {
+			for (p = ks; *p; p++) Term_keypress(*p);
+			return;
+		}
+	} /* XXX XXX XXX */
+
 	send_mouse(0
-	  | (ke.index == 1 ? MCURSOR_LMB : 0)
-	  | (ke.index == 2 ? MCURSOR_MMB : 0)
-	  | (ke.index == 3 ? MCURSOR_RMB : 0)
+	  | (btn == 1 ? MCURSOR_LMB : 0)
+	  | (btn == 2 ? MCURSOR_MMB : 0)
+	  | (btn == 3 ? MCURSOR_RMB : 0)
 	  | mod,
 	  ke.mousex - DUNGEON_OFFSET_X,
 	  ke.mousey - DUNGEON_OFFSET_Y);

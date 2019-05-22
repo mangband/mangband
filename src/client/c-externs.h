@@ -459,6 +459,7 @@ extern void flush_now(void);
 extern void set_graphics(int mode);
 extern int sound_count(int val);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
+extern int macro_find_exact(cptr pat);
 extern errr macro_trigger_free(void);
 extern char inkey(void);
 extern void bell(void);
