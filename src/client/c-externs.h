@@ -233,6 +233,9 @@ extern char ptitle[80];
 
 extern s16b stat_order[6];
 
+extern bool flip_inven;
+extern s16b flip_charsheet;
+
 extern bool topline_icky;
 extern bool screen_icky;
 extern s16b section_icky_col;
@@ -370,6 +373,7 @@ extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
 extern void cmd_mouseclick(void);
+extern void toggle_inven_equip(void);
 /* c-cmd0.c */
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);

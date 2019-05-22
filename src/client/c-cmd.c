@@ -497,6 +497,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('E'):
+		{
+			toggle_inven_equip();
+			break;
+		}
+
 		case '=':
 		{
 			do_cmd_options();
@@ -1406,6 +1412,12 @@ void cmd_ghost(void)
 	{
 		c_msg_print("You are not undead.");
 	}
+}
+
+void toggle_inven_equip(void)
+{
+	flip_inven = !flip_inven;
+	p_ptr->window |= (PW_INVEN | PW_EQUIP);
 }
 
 void cmd_load_pref(void)

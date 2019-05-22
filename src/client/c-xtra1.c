@@ -1162,7 +1162,8 @@ void fix_inven(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_inven();
+		if (!flip_inven) display_inven();
+		else display_equip();
 
 		/* Fresh */
 		Term_fresh();
@@ -1226,7 +1227,8 @@ void fix_equip(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_equip();
+		if (!flip_inven) display_equip();
+		else display_inven();
 
 		/* Fresh */
 		Term_fresh();
@@ -1259,7 +1261,7 @@ static void fix_player_0(void)
 		Term_activate(ang_term[j]);
 
 		/* Display player */
-		display_player(0);
+		display_player(flip_charsheet);
 
 		/* Fresh */
 		Term_fresh();

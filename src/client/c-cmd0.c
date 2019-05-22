@@ -163,6 +163,7 @@ static command_type cmd_util[128] =
 #endif
 	{ "Save and quit",        KTRL('X'), NULL /*do_cmd_quit*/ },
 	{ "Quit (commit suicide)",      'Q', NULL /*do_cmd_suicide*/ },
+	{ "Flip Inven/Equip windows", KTRL('E'), NULL /* toggle_inven_equip*/},
 	{ "Redraw the screen",    KTRL('R'), NULL /*do_cmd_redraw*/ },
 #if 0
 	{ "Load \"screen dump\"",       '(', do_cmd_load_screen },
@@ -174,13 +175,14 @@ static command_type cmd_util[128] =
 /* Commands that shouldn't be shown to the user */ 
 static command_type cmd_hidden[] =
 {
+	{ "Use item (primary action)", KTRL('U'), NULL /*cmd_use_item*/ },
 #if 0
 	{ "Take notes",               ':', do_cmd_note },
 	{ "Version info",             'V', do_cmd_version },
 	{ "Load a single pref line",  '"', do_cmd_pref },
 	{ "Mouse click",           '\xff', do_cmd_mouseclick },
 	{ "Enter a store",            '_', do_cmd_store },
-	{ "Toggle windows",     KTRL('E'), toggle_inven_equip }, /* XXX */
+
 	{ "Alter a grid",             '+', do_cmd_alter },
 	{ "Walk",                     ';', do_cmd_walk },
 	{ "Jump into a trap",         '-', do_cmd_jump },

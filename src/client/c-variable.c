@@ -177,6 +177,8 @@ char ptitle[80];
 
 s16b stat_order[6];			/* Desired order of stats */
 
+bool flip_inven = FALSE;
+s16b flip_charsheet = 0;
 
 bool topline_icky;
 bool screen_icky;
