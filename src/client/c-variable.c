@@ -187,6 +187,7 @@ byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 bool looking;
+bool in_item_prompt = FALSE;
 
 byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 

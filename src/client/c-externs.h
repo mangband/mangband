@@ -243,6 +243,7 @@ extern byte section_icky_row;
 extern bool party_mode;
 extern bool cursor_icky;
 extern bool looking;
+extern bool in_item_prompt;
 
 extern byte icky_levels;
 
@@ -378,8 +379,11 @@ extern void toggle_inven_equip(void);
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);
 extern void cmd_init(void);
+extern void cmd_term_mousepress(int i, int x, int y, int button);
+extern void do_cmd_use_item(int item, bool agressive);
+extern void cmd_use_item();
 extern char* macro_find_by_action(cptr buf);
-extern custom_command_type *match_custom_command(char cmd);
+extern custom_command_type *match_custom_command(char cmd, bool shop);
 extern int command_to_display_name(char cmd, char *dst, size_t len);
 extern char command_from_keystroke(char *buf);
 extern char command_by_item(int item, bool agressive);

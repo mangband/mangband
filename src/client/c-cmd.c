@@ -411,6 +411,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('U'):
+		{
+			cmd_use_item();
+			break;
+		}
+
 		/*** Looking/Targetting ***/
 		case '*':
 		{

@@ -1164,9 +1164,6 @@ void ang_mouse_press(SDL_Event* event) {
 
 	if (i == -1) return;
 
-	/* Ignore non-main windows (for now) */
-	if (i != 0) return;
-
 	td = &tdata[i];
 
 	x = (x - td->xoff) / td->w;
@@ -1176,6 +1173,13 @@ void ang_mouse_press(SDL_Event* event) {
 	if (Noticemodkeypress(SDLK_LCTRL, -1))  button |= 16;
 	if (Noticemodkeypress(SDLK_LSHIFT, -1)) button |= 32;
 	if (Noticemodkeypress(SDLK_LALT, -1))   button |= 64;
+
+	/* Hack -- sub-window click */
+	if (i != 0)
+	{
+		cmd_term_mousepress(i, x, y, button);
+		return;
+	}
 
 	Term_mousepress(x, y, button);
 }

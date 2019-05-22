@@ -317,6 +317,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Paranoia */
 	if (!inven && !equip) return (FALSE);
 
+	/* Selecting an item */
+	in_item_prompt = TRUE;
+
 	/* The top line is icky */
 	topline_icky = TRUE;
 
@@ -770,6 +773,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* Clear the prompt line */
 	prt("", 0, 0);
+
+	/* Not selecting item anymore */
+	in_item_prompt = FALSE;
 
 	/* Return TRUE if something was picked */
 	return (item);
