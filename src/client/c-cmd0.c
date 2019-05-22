@@ -1075,6 +1075,15 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 			my_strcat(dst, buf, len);
 			return 1;
 		}
+		else
+		{
+			custom_command_type *cc_ptr = match_custom_command(cmd, shopping);
+			if (cc_ptr && (cc_ptr->flag & COMMAND_ITEM_INVEN)) my_strcat(dst, "/", len);
+			buf[0] = key + item - INVEN_WIELD;
+			buf[1] = '\0';
+			my_strcat(dst, buf, len);
+			return 1;
+		}
 	}
 
 	/* Trim full name */
