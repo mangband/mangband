@@ -1476,7 +1476,8 @@ void cmd_mouseclick()
 	/* XXX HORRIBLE HACK XXX */
 	if (btn) { /* Allow remacro */
 		char ks[1024], *p;
-		snprintf(ks, 1024, "%c_TERMcave_MB%02x%c", 31, ke.index, 13);
+		strnfmt(ks, sizeof(ks), "%c_TERMcave_MB%02x%c",
+			 31, ke.index, 13);
 		if (macro_find_exact(ks) >= 0) {
 			for (p = ks; *p; p++) Term_keypress(*p);
 			return;

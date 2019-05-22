@@ -1184,7 +1184,7 @@ static void do_cmd_term_inject_header(cptr termdesc, int termuni, int button)
 {
 	char tmp[1024];
 	char *p;
-	snprintf(tmp, 1024,
+	strnfmt(tmp, sizeof(tmp),
 		"%c_TERM%s_%02x_MB%02x%c", 31,
 		 termdesc, termuni, button, 13);
 	for (p = tmp; *p; p++) Term_keypress(*p);
