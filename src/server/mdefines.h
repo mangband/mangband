@@ -273,7 +273,7 @@
 /*
  * Maximum number of options and option groups
  */
-#define	OPT_MAX 			40
+#define	OPT_MAX 			41
 #define	MAX_OPTION_GROUPS   4
 
 /*
@@ -328,6 +328,7 @@
 #define OPT_PAUSE_AFTER_DETECT 	37
 #define OPT_DISTURB_LOOK    	38
 #define OPT_UNSETH_BONUS    	39
+#define OPT_EXPAND_INSPECT	40
 #define option_p(A,B) (A->options[OPT_ ## B])
 
 

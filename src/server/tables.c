@@ -2551,6 +2551,9 @@ option_type option_info[] =
 	{ OPT_INFO(STACK_FORCE_COSTS),	FALSE,	2,	0, 0,
 	"stack_force_costs",    	"Merge discounts when stacking" },
 
+	{ OPT_INFO(EXPAND_INSPECT),	FALSE,	2,	0, 0,
+	"expand_inspect",    	"Compare equipment when examining items" },
+
 	/*** Running Options ***/
 	{ OPT_INFO(FIND_IGNORE_STAIRS),	TRUE,	3,	0, 0,
 	"find_ignore_stairs",   	"Run past stairs" },

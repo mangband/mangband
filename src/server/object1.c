@@ -2502,6 +2502,34 @@ cptr item_activation(object_type *o_ptr)
 }
 #endif 
 
+/* Dump yet another object, currently wielded and matching
+ * the wield_slot of reference object "o_ptr". */
+static void compare_object_info_screen(int Ind, object_type *o_ptr)
+{
+	player_type *p_ptr = Players[Ind];
+	object_type *j_ptr;
+	
+	/* Can't wield this object */
+	if (wield_slot(Ind, o_ptr) < INVEN_WIELD) return;
+
+	/* Find object currently equipped in that slot */
+	j_ptr = &p_ptr->inventory[wield_slot(Ind, o_ptr)];
+	if (j_ptr != o_ptr && (o_ptr->tval != TV_RING))
+	{
+		text_out("\n\n");
+		text_out("Currently equipped: ");
+		if (j_ptr->number)
+		{
+			/* Dump info into player */
+			char o_name[80];
+			object_desc(Ind, o_name, sizeof(o_name), j_ptr, FALSE, 1);
+			text_out(o_name);
+			object_info_screen(j_ptr);
+		}
+		else text_out_c(TERM_SLATE, "(nothing)");
+	}
+}
+
 /*
  * Describe a "fully identified" item
  */
@@ -2519,6 +2547,12 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	
 	/* Dump info into player */
 	object_info_screen(o_ptr);
+
+	/* XXX Hack dump similar wielded object XXX */
+	if (option_p(p_ptr,EXPAND_INSPECT))
+	{
+		compare_object_info_screen(Ind, o_ptr);
+	}
 
 	/* Restore height and width of current dungeon level */
 	text_out_done();
