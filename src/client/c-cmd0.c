@@ -1358,11 +1358,13 @@ static u32b do_cmd_term_equip(int x, int y, int button)
 static u32b do_cmd_term_spells(int x, int y, int button)
 {
 	byte old_tester;
-	old_tester = item_tester_tval;
-	item_tester_tval = c_info[pclass].spell_book;
 	int i, b, l = 0;
 	int found = -1, book = -1;
 	int h = Term->hgt;
+
+	/* Save/Switch tester */
+	old_tester = item_tester_tval;
+	item_tester_tval = c_info[pclass].spell_book;
 
 	/* For each book */
 	for (b = 0; b < INVEN_PACK - 1; b++)
