@@ -313,6 +313,7 @@ static event_type inkey_aux(void)
 	if ((ch == 30) || (ch == '\xff'))
 	{
 		parse_macro = FALSE;
+		strip_chars = FALSE;
 		return (ke);
 	}
 
