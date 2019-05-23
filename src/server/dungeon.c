@@ -1999,11 +1999,15 @@ static void process_various(void)
 			/* hack -- make fruit bat wear off */
 			for (x = 1; x < NumPlayers + 1; x++)
 			{
-				if (Players[x]->fruit_bat)
+				p_ptr = Players[x];
+				if (p_ptr->fruit_bat > 0)
 				{
-					Players[x]->fruit_bat--;
-					if (!Players[x]->fruit_bat)
-					msg_print(x, "Your form feels much more familliar.");
+					p_ptr->fruit_bat--;
+					if (!p_ptr->fruit_bat)
+					{
+						p_ptr->update |= (PU_BONUS | PU_HP);
+						msg_print(x, "Your form feels much more familliar.");
+					}
 				}
 			}
 		}
