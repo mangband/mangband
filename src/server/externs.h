@@ -550,7 +550,7 @@ extern void do_cmd_activate_dir(int Ind, int item, int dir);
 extern void do_cmd_refill_potion(int Ind, int item);
 
 /* pathfind.c */
-bool findpath(player_type *p_ptr, int y, int x);
+extern bool findpath(player_type *p_ptr, int y, int x);
 
 /* control.c */
 extern void NewConsole(int fd, int arg);
