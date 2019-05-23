@@ -1009,6 +1009,9 @@ static void process_player_end(int Ind)
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
 
+	/* Remember last server turn */
+	p_ptr->last_turn = turn;
+
 	/* HACK -- Do not proccess while changing levels */
 	if (p_ptr->new_level_flag == TRUE) return;
 

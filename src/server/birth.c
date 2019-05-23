@@ -941,7 +941,8 @@ void player_setup(int Ind)
 	/* Make sure he's supposed to be here -- if not, then the level has
 	 * been unstaticed and so he should forget his memory of the old level.
 	 */
-	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0)))
+	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0))
+	    || (ht_passed(&turn_cavegen[Depth], &p_ptr->last_turn, 0)) )
 	{
 		/* Clear the "marked" and "lit" flags for each cave grid */
 		for (y = 0; y < MAX_HGT; y++)

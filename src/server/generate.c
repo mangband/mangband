@@ -4271,6 +4271,9 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 		p_ptr->old_turn = turn;
 	}
 
+	/* Remember when we generated this level */
+	turn_cavegen[Depth] = turn;
+
 	/* Dungeon level ready */
 	server_dungeon = TRUE;
 }

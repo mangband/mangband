@@ -271,6 +271,7 @@ extern s16b o_fast[MAX_O_IDX];
 extern s16b m_fast[MAX_M_IDX];
 extern cave_type ***cave;
 extern wilderness_type *wild_info;
+extern hturn *turn_cavegen;
 extern object_type *o_list;
 extern monster_type *m_list;
 extern player_type **p_list;

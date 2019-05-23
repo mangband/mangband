@@ -686,6 +686,9 @@ static void wr_dungeon(int Depth)
 	write_int("max_height",MAX_HGT);
 	write_int("max_width",MAX_WID);
 
+	/* Time allocated */
+	write_hturn("gen_turn", &turn_cavegen[Depth]);
+
 	/* How many players are on this depth */
 	write_int("players_on_depth",players_on_depth[Depth]);
 

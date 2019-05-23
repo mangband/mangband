@@ -443,6 +443,11 @@ cave_type ***cave = &world[MAX_WILD];
 wilderness_type world_info[MAX_WILD+1];
 wilderness_type *wild_info=&(world_info[MAX_WILD]);
 
+/*
+ * Track turns which were used for dungeon generation
+ */
+hturn turn_worldgen[MAX_DEPTH+MAX_WILD];
+hturn *turn_cavegen = &turn_worldgen[MAX_WILD];
 
 /*
  * The array of dungeon items [MAX_O_IDX]
