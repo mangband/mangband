@@ -748,17 +748,6 @@ bool (*item_tester_hook)(object_type*);
 
 
 
-/*
- * Current "comp" function for ang_sort()
- */
-bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
-
-
-/*
- * Current "swap" function for ang_sort()
- */
-void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
-
 
 
 /*
