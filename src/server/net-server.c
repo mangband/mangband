@@ -247,7 +247,7 @@ int player_leave(int p_idx)
 	}
 
 	/* Try to save his character */
-	saved = save_player(p_idx);
+	saved = save_player(p_ptr);
 
 	/* Leave all chat channels */
 	channels_leave(p_idx);

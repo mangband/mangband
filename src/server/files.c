@@ -2270,7 +2270,7 @@ void do_cmd_save_game(int Ind)
 	signals_ignore_tstp();
 
 	/* Save the player */
-	if (save_player(Ind))
+	if (save_player(p_ptr))
 	{
 		msg_print(Ind, "Saving game... done.");
 	}
@@ -3100,7 +3100,7 @@ void close_game(void)
 			if (p_ptr->total_winner) kingly(i);
 
 			/* Save memories */
-			if (!save_player(i)) msg_print(i, "death save failed!");
+			if (!save_player(p_ptr)) msg_print(i, "death save failed!");
 
 			/* Dump bones file 
 			make_bones(i);
@@ -3367,7 +3367,8 @@ void exit_game_panic()
 
 		/* Try to save the player, don't worry if this fails because there
 		 * is nothing we can do now anyway */
-		save_player(i++);
+		save_player(p_ptr);
+		i++;
 
 	}
 

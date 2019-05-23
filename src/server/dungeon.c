@@ -1783,7 +1783,7 @@ static void process_various(void)
 		for (i = 1; i <= NumPlayers; i++)
 		{
 			/* Save this player */
-			save_player(i);
+			save_player(Players[i]);
 		}
 	}
 

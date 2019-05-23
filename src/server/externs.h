@@ -855,7 +855,7 @@ extern int item_kind_index_fuzzy(char * name);
 extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int lev, int num);
 
 /* save.c */
-extern bool save_player(int Ind);
+extern bool save_player(player_type *p_ptr);
 extern int scoop_player(char *nick, char *pass);
 extern bool load_player(player_type *p_ptr);
 extern bool load_server_info(void);
