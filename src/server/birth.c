@@ -1135,7 +1135,10 @@ void player_setup(int Ind)
 	p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 	/* Make sure his party still exists */
-	if (p_ptr->party && parties[p_ptr->party].num == 0)
+	if (p_ptr->party && (
+		parties[p_ptr->party].num == 0
+		|| ht_passed(&parties[p_ptr->party].created, &p_ptr->last_turn, 0)
+	))
 	{
 		/* Reset to neutral */
 		p_ptr->party = 0;
