@@ -12,10 +12,10 @@
  * [ EQU $RACE ] [ EQU $CLASS ] are used to load those into the r_info[0] slot accordingly
  * to character's race and class. In MAngband, however, players can encounter other
  * characters and thus need the infromation for ALL the Race/Class combos there are.
- * To load this information, a 'virtual mode' hack is used, which resolves *ALL* [ EQU $RACE ]
- * [ EQU $CLASS ] as true, storing the 'fake' races in the global variables.
+ * To load this information, a 'virtual mode' hack is used, which stores the last encountered
+ * [ EQU $RACE ] [ EQU $CLASS ] check as 'fake_race'/'fake_class' global variables.
  * 'Virtual mode' only works with 'R:0:...' lines, doesn't allow includes and cancels itself
- * after each pref command executed or not. 
+ * after each read 'R:0:...' line.
  *
  * Note: player's own race and class image will be loaded into r_info[0] slot as usual.
  *
@@ -879,12 +879,6 @@ errr process_pref_file_command(char *buf)
 	if (buf[1] != ':') return (1);
 
 
-	/* MAngband-specific hack: ignore non-R in fake mode */
-	if (virt == TRUE && buf[0] != 'R')
-	{
-		return (0);
-	}
-
 	/* Process "%:<fname>" */
 	if (buf[0] == '%')
 	{
@@ -904,12 +898,12 @@ errr process_pref_file_command(char *buf)
 
 			if (i >= z_info.r_max) return (1);
 			/* MAngband-specific hack: fill the 'pr' array */
-			if (virt == TRUE)
+			if ((virt == TRUE) && (i == 0))
 			{
-				/* Ignore non-zero index */
-				if (i != 0) return (0);
 				if (n1) p_ptr->pr_attr[fake_class * z_info.p_max + fake_race] = n1;
 				if (n2) p_ptr->pr_char[fake_class * z_info.p_max + fake_race] = n2;
+				/* And cancel virtual mode */
+				fake_race = fake_class = -1;
 				return (0);
 			}
 			if (n1) Client_setup.r_attr[i] = n1;
@@ -1571,12 +1565,8 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			else if (streq(b+1, "RACE"))
 			{
 				v = p_name + race_info[p_ptr->prace].name;
-				/* MAngband-specific hack: enter virtual mode */	
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_race = find_race(s);
-				}
+				/* MAngband-specific hack: enter virtual mode */
+				if (s) fake_race = find_race(s);
 			}
 
 			/* Class */
@@ -1584,11 +1574,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			{
 				v = c_name + c_info[p_ptr->pclass].name;
 				/* MAngband-specific hack: enter virtual mode */
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_class = find_class(s);
-				}
+				if (s) fake_class = find_class(s);
 			}
 
 			/* Player */
@@ -1687,18 +1673,14 @@ static errr process_pref_file_aux(cptr name)
 			continue;
 		}
 
-		/* Apply conditionals */
-		if (bypass) continue;
-
+		/* Apply conditionals (unless it's an 'R' entry) */
+		if (bypass && buf[0] != 'R') continue;
 
 		/* Process "%:<file>" */
 		if (buf[0] == '%')
 		{
 			/* Process that file if allowed */
 			(void)process_pref_file(buf + 2);
-
-			/* Hack - cancel 'virtual' mode */
-			fake_class = fake_race = -1;
 
 			/* Continue */
 			continue;
@@ -1707,9 +1689,6 @@ static errr process_pref_file_aux(cptr name)
 
 		/* Process the line */
 		err = process_pref_file_command(buf);
-
-		/* Hack - cancel 'virtual' mode */
-		fake_class = fake_race = -1;
 
 		/* Oops */
 		if (err) break;
