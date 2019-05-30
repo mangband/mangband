@@ -254,6 +254,16 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 
 	/*** Knowledge query ***/
+	{ /* Display monster list */
+		'[', PKT_UNDEFINED, SCHEME_EMPTY, 0, (cccb)do_cmd_monlist,
+		(0),
+		0, "Symbol: ", "Display visible monster list"
+	},
+	{ /* Display item list */
+		']', PKT_UNDEFINED, SCHEME_EMPTY, 0, (cccb)do_cmd_itemlist,
+		(0),
+		0, "", "Display visible item list"
+	},
 	{ /* Help */
 		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -321,7 +331,7 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(COMMAND_NEED_CHAR),
 		0, "Symbol: ", "Symbol query"
 	},
-#if 0
+#if 1
 	{ /* Refill bottle */
 		KTRL('G'), PKT_UNDEFINED, SCHEME_ITEM, 0, (cccb)do_cmd_refill_potion,
 		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR),
@@ -363,7 +373,7 @@ custom_command_type priest_study_cmd =
 	{ /* Study spell */
 		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
 		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
-		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? "
+		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? ", "Study prayer"
 	};
 
 
@@ -508,6 +518,12 @@ const stream_type streams[MAX_STREAMS] =
 		20, 80, 22, 80,
 		0, "MONLIST_TEXT", "Display monster list"
 	},
+	{	/* 11 */
+		STREAM_PKT(ITEMLIST_TEXT),	NTERM_WIN_ITEMLIST,	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "ITEMLIST_TEXT", "Display dungeon item list"
+	},
 #if 0
 	{	/* 11 */
 		/* Note: by re-using NTERM_WIN_SPECIAL, we seriously strain the
@@ -542,7 +558,7 @@ const stream_type streams[MAX_STREAMS] =
 
 	u32b flag;
 	cptr prompt;
-	u32b redraw;
+	u64b redraw;
 	cptr mark;
 */
 #define INDICATOR_PKT(A, T, N) PKT_INDICATOR + 1 + IN_ ## A, INDITYPE_ ## T, N
@@ -645,13 +661,13 @@ const indicator_type indicators[MAX_INDICATORS] =
 		(PR_STATS), "stat3"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
+		INDICATOR_PKT(STAT4, NORMAL, 3), 	IPW_1,	ROW_STAT+4,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CON!  \aG%\vCON:  \aG%\vCon:  \ay%",
 		(PR_STATS), "stat4"
 	},
 	{
-		INDICATOR_PKT(STAT1, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
+		INDICATOR_PKT(STAT5, NORMAL, 3), 	IPW_1,	ROW_STAT+5,	COL_STAT,
 		(IN_STOP_ONCE | IN_TEXT_STAT | IN_STRIDE_LARGER | IN_VT_COLOR_RESET | IN_VT_FF),
 		"CHR!  \aG%\vCHR:  \aG%\vChr:  \ay%",
 		(PR_STATS), "stat5"
@@ -2534,6 +2550,9 @@ option_type option_info[] =
 
 	{ OPT_INFO(STACK_FORCE_COSTS),	FALSE,	2,	0, 0,
 	"stack_force_costs",    	"Merge discounts when stacking" },
+
+	{ OPT_INFO(EXPAND_INSPECT),	FALSE,	2,	0, 0,
+	"expand_inspect",    	"Compare equipment when examining items" },
 
 	/*** Running Options ***/
 	{ OPT_INFO(FIND_IGNORE_STAIRS),	TRUE,	3,	0, 0,

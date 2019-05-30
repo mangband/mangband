@@ -29,6 +29,7 @@
 #include "../common/z-virt.h"
 #include "../common/z-form.h"
 #include "../common/z-rand.h"
+#include "../common/z-file.h"
 
 
 /*

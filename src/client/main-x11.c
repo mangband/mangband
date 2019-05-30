@@ -12,6 +12,9 @@
 int use_transparency;
 int use_bigtile;
 
+/* Compile-time options:
+/*#define X11_TEXT_SELECTION*/ /* Use mouse to select text for copy-pasting. */
+
 /*
  * Global table of color definitions (mostly zeros)
  */
@@ -1546,7 +1549,7 @@ struct co_ord
 	int y;
 };
 
-
+#ifdef X11_TEXT_SELECTION
 /*
  * A special structure to store information about the text currently
  * selected.
@@ -1564,7 +1567,7 @@ struct x11_selection_type
 };
 
 static x11_selection_type x11_selection[1];
-
+#endif
 
 
 /*
@@ -1714,7 +1717,7 @@ static void sort_co_ord(co_ord *min, co_ord *max,
 	max->y = MAX(a->y, b->y);
 }
 
-
+#ifdef X11_TEXT_SELECTION
 /*
  * Remove the selection by redrawing it.
  */
@@ -1946,18 +1949,48 @@ static void paste_x11_send(XSelectionRequestEvent *rq)
 	/* Send whatever event we're left with */
 	XSendEvent(DPY, rq->requestor, FALSE, NoEventMask, &event);
 }
-
+#endif
 
 /*
  * Handle various events conditional on presses of a mouse button.
  */
-static void handle_button(Time time, int x, int y, int button, bool press)
+static void handle_button(Time time, int x, int y, int button, bool press, int mask)
 {
 	/* The co-ordinates are only used in Angband format. */
 	pixel_to_square(&x, &y, x, y);
 
+#ifdef X11_TEXT_SELECTION
 	if (press && button == 1) copy_x11_start(x, y);
 	if (!press && button == 1) copy_x11_end(time);
+#else
+	/* The text selection feature is neat, but we need mouse for something else... -flm- */
+	if (press && button == 1)
+	{
+		if (mask & ControlMask) button |= 16;
+		if (mask & ShiftMask) button |= 32;
+		if (mask & Mod1Mask) button |= 64;
+
+		Term_mousepress(x, y, button);
+	}
+#endif
+}
+
+/* Handle mouse movement */
+static void handle_mouse_move(int i, int x, int y, int state) {
+	static int last_mouse_x[ANGBAND_TERM_MAX] = { 0 };
+	static int last_mouse_y[ANGBAND_TERM_MAX] = { 0 };
+
+	/* Ignore non-main windows (for now) */
+	if (i != 0) return;
+
+	if (x == last_mouse_x[i] && y == last_mouse_y[i])
+	{
+		return;
+	}
+	last_mouse_x[i] = x;
+	last_mouse_y[i] = y;
+
+	Term_mousepress(x, y, 0);
 }
 
 
@@ -1979,12 +2012,14 @@ static errr CheckEvent(bool wait)
 	/* Do not wait unless requested */
 	if (!wait && !XPending(Metadpy->dpy)) return (1);
 
+#ifdef X11_TEXT_SELECTION
 	/*
 	 * Hack - redraw the selection, if needed.
 	 * This doesn't actually check that one of its squares was drawn to,
 	 * only that this may have happened.
 	 */
 	if (x11_selection->select && !x11_selection->drawn) mark_selection();
+#endif
 
 	/* Load the Event */
 	XNextEvent(Metadpy->dpy, xev);
@@ -2028,6 +2063,7 @@ static errr CheckEvent(bool wait)
 		case ButtonRelease:
 		{
 			bool press = (xev->type == ButtonPress);
+			int mask = xev->xbutton.state;
 
 			/* Where is the mouse */
 			int x = xev->xbutton.x;
@@ -2044,7 +2080,7 @@ static errr CheckEvent(bool wait)
 			else z = 0;
 
 			/* XXX Handle */
-			handle_button(xev->xbutton.time, x, y, z, press);
+			handle_button(xev->xbutton.time, x, y, z, press, mask);
 
 			break;
 		}
@@ -2058,23 +2094,31 @@ static errr CheckEvent(bool wait)
 
 			/* Convert to co-ordinates Angband understands. */
 			pixel_to_square(&x, &y, x, y);
-
+#ifdef X11_TEXT_SELECTION
 			/* Alter the selection if appropriate. */
 			copy_x11_cont(x, y, z);
+#else
+			/* Convery mouse motion */
+			handle_mouse_move(window, x, y, z);
+#endif
 
 			break;
 		}
 
 		case SelectionRequest:
 		{
+#ifdef X11_TEXT_SELECTION
 			paste_x11_send(&(xev->xselectionrequest));
+#endif
 			break;
 		}
 
 		case SelectionClear:
 		{
+#ifdef X11_TEXT_SELECTION
 			x11_selection->select = FALSE;
 			mark_selection();
+#endif
 			break;
 		}
 
@@ -2281,7 +2325,11 @@ static errr Term_xtra_x11(int n, int v)
 		case TERM_XTRA_LEVEL: return (Term_xtra_x11_level(v));
 
 		/* Clear the screen and redraw any selection later */
-		case TERM_XTRA_CLEAR: Infowin_wipe(); x11_selection->drawn = FALSE; return (0);
+		case TERM_XTRA_CLEAR: Infowin_wipe();
+#ifdef X11_TEXT_SELECTION
+			x11_selection->drawn = FALSE;
+#endif
+			return (0);
 
 		/* Delay for some milliseconds */
 		case TERM_XTRA_DELAY:
@@ -2341,10 +2389,10 @@ static errr Term_wipe_x11(int x, int y, int n)
 
 	/* Mega-Hack -- Erase some space */
 	Infofnt_text_non(x, y, "", n);
-
+#if X11_TEXT_SELECTION
 	/* Redraw the selection if any, as it may have been obscured. (later) */
 	x11_selection->drawn = FALSE;
-
+#endif
 	/* Success */
 	return (0);
 }
@@ -2360,10 +2408,10 @@ static errr Term_text_x11(int x, int y, int n, byte a, cptr s)
 
 	/* Draw the text */
 	Infofnt_text_std(x, y, s, n);
-
+#ifdef X11_TEXT_SELECTION
 	/* Redraw the selection if any, as it may have been obscured. (later) */
 	x11_selection->drawn = FALSE;
-
+#endif
 	/* Success */
 	return (0);
 }
@@ -2469,10 +2517,10 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp,
 		x += td->tile_wid;
 		ox++;
 	}
-
+#ifdef X11_TEXT_SELECTION
 	/* Redraw the selection if any, as it may have been obscured. (later) */
 	x11_selection->drawn = FALSE;
-
+#endif
 	/* Success */
 	return (0);
 }
@@ -2963,7 +3011,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, 1024, ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Use the "16x16.bmp" file if it exists */
-		if (0 == my_fclose(my_fopen(filename, "r")))
+		if (file_exists(filename))
 		{
 			/* Use graphics */
 			use_graphics = GRAPHICS_ADAM_BOLT;
@@ -2985,7 +3033,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Use the "8x8.bmp" file if it exists */
-		if (0 == my_fclose(my_fopen(filename, "r")))
+		if (file_exists(filename))
 		{
 			/* Use graphics */
 			use_graphics = GRAPHICS_ORIGINAL;
@@ -3028,7 +3076,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Load the graphical tiles */
-		if (suffix(bitmap_file, ".png") || suffix(bitmap_file, ".PNG"))
+		if (isuffix(bitmap_file, ".png"))
 		{
 			tiles_raw = ReadPNG(dpy, filename);
 		} else

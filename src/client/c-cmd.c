@@ -113,6 +113,7 @@ void cmd_custom(byte i)
 	else if (cc_ptr->flag & COMMAND_NEED_ITEM)
 	{
 		item_tester_tval = cc_ptr->tval;
+		spellcasting = (cc_ptr->flag & COMMAND_SPELL_BOOK) ? TRUE : FALSE;
 		if (!c_get_item(&item, prompt,
 				(cc_ptr->flag & COMMAND_ITEM_EQUIP ? TRUE : FALSE),
 				(cc_ptr->flag & COMMAND_ITEM_INVEN ? TRUE : FALSE),
@@ -290,12 +291,26 @@ void process_command()
 		}
 	}
 
+	/* Hack -- pick command from a menu */
+	if (command_cmd == '\r')
+	{
+		command_cmd = do_cmd_menu();
+		if (command_cmd != '\r')
+		{
+			process_command();
+			return;
+		}
+	}
+
 	/* Parse the command */
 	switch (command_cmd)
 	{
 		/* Ignore */
-		case ESCAPE:
 		case ' ':
+		{
+			msg_flush();
+		}
+		case ESCAPE:
 		{
 			if (first_escape) 
 				send_clear();
@@ -396,6 +411,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('U'):
+		{
+			cmd_use_item();
+			break;
+		}
+
 		/*** Looking/Targetting ***/
 		case '*':
 		{
@@ -446,6 +467,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('O'): /* Repeat last message */
+		{
+			do_cmd_message_one();
+			break;
+		}
+
 		case KTRL('P'):
 		{
 	        do_cmd_messages();
@@ -470,6 +497,18 @@ void process_command()
 			break;
 		}
 
+		case '\xff':
+		{
+			cmd_mouseclick();
+			break;
+		}
+
+		case KTRL('E'):
+		{
+			toggle_inven_equip();
+			break;
+		}
+
 		case '=':
 		{
 			do_cmd_options();
@@ -485,6 +524,12 @@ void process_command()
 		case '%':
 		{
 			interact_macros();
+			break;
+		}
+
+		case '!':
+		{
+			do_cmd_port();
 			break;
 		}
 
@@ -794,6 +839,7 @@ void cmd_describe(void)
 int cmd_target_interactive(int mode)
 {
 	bool done = FALSE;
+	event_type ke;
 	char ch;
 
 	/* Save screen */
@@ -810,10 +856,21 @@ int cmd_target_interactive(int mode)
 
 	while (!done)
 	{
-		ch = inkey();
+		ke = inkey_ex();
+		ch = ke.key;
 
 		if (!ch)
 			continue;
+
+		if (ch == '\xff')
+		{
+			send_mouse(MCURSOR_META | mode
+			  | (ke.index ? MCURSOR_KTRL : 0),
+			  ke.mousex - DUNGEON_OFFSET_X,
+			  ke.mousey - DUNGEON_OFFSET_Y);
+			if (ke.index) done = TRUE;
+			continue;
+		}
 
 		Send_target_interactive(mode, ch);
 
@@ -823,6 +880,7 @@ int cmd_target_interactive(int mode)
 			case '5':
 			case '0':
 			case '.':
+			case 'g':
 			case ESCAPE:
 				done = TRUE;
 				break;
@@ -1176,6 +1234,7 @@ void cmd_party(void)
 
 		/* Prompt */
 		Term_putstr(0, 11, -1, TERM_WHITE, "Command: ");
+		Term_show_ui_cursor();
 
 		/* Get a key */
 		i = inkey();
@@ -1241,6 +1300,8 @@ void cmd_party(void)
 		c_msg_print(NULL);
 	}
 
+	Term_hide_ui_cursor();
+
 	/* Reload screen */
 	Term_load();
 
@@ -1272,7 +1333,7 @@ void cmd_browse(void)
 	}
 
 	item_tester_tval = c_info[pclass].spell_book;
-
+	spellcasting = TRUE;
 	if (!c_get_item(&item, "Browse which book? ", FALSE, TRUE, FALSE))
 	{
 		if (item == -2) c_msg_print("You have no books that you can read.");
@@ -1359,6 +1420,12 @@ void cmd_ghost(void)
 	}
 }
 
+void toggle_inven_equip(void)
+{
+	flip_inven = !flip_inven;
+	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+}
+
 void cmd_load_pref(void)
 {
 	char buf[80];
@@ -1395,4 +1462,33 @@ void cmd_suicide(void)
 
 	/* Send it */
 	send_suicide();
+}
+
+void cmd_mouseclick()
+{
+	event_type ke = command_cmd_ex;
+	int btn, mod = 0;
+	btn = ke.index;
+	if (btn & 16) { btn &= ~16; mod = MCURSOR_KTRL; }
+	if (btn & 32) { btn &= ~32; mod = MCURSOR_SHFT; }
+	if (btn & 64) { btn &= ~64; mod = MCURSOR_ALTR; }
+
+	/* XXX HORRIBLE HACK XXX */
+	if (btn) { /* Allow remacro */
+		char ks[1024], *p;
+		strnfmt(ks, sizeof(ks), "%c_TERMcave_MB%02x%c",
+			 31, ke.index, 13);
+		if (macro_find_exact(ks) >= 0) {
+			for (p = ks; *p; p++) Term_keypress(*p);
+			return;
+		}
+	} /* XXX XXX XXX */
+
+	send_mouse(0
+	  | (btn == 1 ? MCURSOR_LMB : 0)
+	  | (btn == 2 ? MCURSOR_MMB : 0)
+	  | (btn == 3 ? MCURSOR_RMB : 0)
+	  | mod,
+	  ke.mousex - DUNGEON_OFFSET_X,
+	  ke.mousey - DUNGEON_OFFSET_Y);
 }

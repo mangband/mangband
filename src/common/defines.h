@@ -631,6 +631,7 @@
 #define PW_SPECIAL_INFO     0x00008000L /* Display special info (instead of borg status) */
 #define PW_PLAYER_3         0x00004000L /* Display player (history) (instead of borg messages) */
 #define PW_STORE            0x00010000L /* Display shop */
+#define PW_ITEMLIST         0x00020000L /* Display item list */
 
 #define PW_PLAYER           (PW_PLAYER_0 | PW_PLAYER_2) /* Display player (basic + compact) */
 
@@ -872,6 +873,13 @@
 #endif
 
 
+/** Pathfinder constants **/
+
+/* Maximum size around the player to consider in the pathfinder */
+#define MAX_PF_RADIUS 50
+
+/* Maximum distance to consider in the pathfinder */
+#define MAX_PF_LENGTH 250
 
 
 /*** Monster blow constants ***/

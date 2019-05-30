@@ -190,17 +190,47 @@ static int get_tag(int *cp, char tag)
 }
 
 /* Prompt player for a string, then try to find an item matching it */
-static bool get_item_by_name(int *k, bool inven, bool equip)
+static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *force_str)
 {
 	char buf[256];
 	char *tok;
 	int i;
+	size_t len;
+	char *prompt = "Item name: ";
 
-	buf[0] = '\0';
-	if (!get_string("Item name: ", buf, 80))
+	/* HACK -- spellcasting mode (select book by spell) */
+	if (spellcasting)
 	{
-		return FALSE;
+		int sn = -1;
+		bool ok = get_spell_by_name(k, &sn, inven, equip, TRUE);
+		/* Remember spell index */
+		spellcasting_spell = sn;
+		/* Don't do any other tests */
+		return ok;
 	}
+
+	/* Hack -- show opening quote symbol */
+	if (prompt_quote_hack) prompt = "Item name: \"";
+
+	/* Already have a symbol */
+	if (force_str)
+	{
+		my_strcpy(buf, force_str, sizeof(buf));
+	}
+	/* Ask player */
+	else
+	{
+		buf[0] = '\0';
+		if (!get_string(prompt, buf, 80))
+		{
+			return FALSE;
+		}
+	}
+
+	/* Hack -- remove final quote */
+	len = strlen(buf);
+	if (len == 0) return FALSE;
+	if (buf[len-1] == '"') buf[len-1] = '\0';
 
 	/* Split entry */
 	tok = strtok(buf, "|");
@@ -218,6 +248,17 @@ static bool get_item_by_name(int *k, bool inven, bool equip)
 			if (my_stristr(inventory_name[i], tok))
 			{
 				(*k) = i;
+				return TRUE;
+			}
+		}
+		/* Also try floor */
+		if (floor)
+		{
+			if (floor_item.tval
+			&& item_tester_okay(&floor_item)
+			&& my_stristr(floor_name, tok))
+			{
+				(*k) = FLOOR_INDEX;
 				return TRUE;
 			}
 		}
@@ -273,6 +314,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 {
 	char	n1, n2, which = ' ';
 
+	event_type ke;
 	int	k, i1, i2, e1, e2;
 	bool	ver, done, item;
 	bool	equip_up, inven_up, window_up;
@@ -281,6 +323,12 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	char	tmp_val[160];
 	char	out_val[160];
+
+	/* Paranoia */
+	if (!inven && !equip) return (FALSE);
+
+	/* Selecting an item */
+	in_item_prompt = TRUE;
 
 	/* The top line is icky */
 	topline_icky = TRUE;
@@ -296,9 +344,6 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* Default to "no item" */
 	*cp = -1;
-
-	/* Paranoia */
-	if (!inven && !equip) return (FALSE);
 
 	/* Full inventory */
 	i1 = 0;
@@ -470,9 +515,17 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		/* Show the prompt */
 		prt(tmp_val, 0, 0);
 
+		/* Show the cursor */
+		Term_show_ui_cursor();
 
 		/* Get a key */
-		which = inkey();
+		do {
+			ke = inkey_ex();
+			/* Hack -- ignore mouse motion */
+			if (ke.key == '\xff' && ke.index == 0) continue;
+			break;
+		} while(1);
+		which = ke.key;
 
 		/* Parse it */
 		switch (which)
@@ -548,9 +601,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				break;
 			}
 
+			case '"':
+				/* Allow '"' to be used as terminator */
+				prompt_quote_hack = TRUE;
+				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
-				if (get_item_by_name(&k, inven, equip))
+				if (get_item_by_name(&k, inven, equip, floor, (NULL)))
 				{
 					(*cp) = k;
 					item = TRUE;
@@ -641,6 +698,22 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				break;
 			}
 
+			case '\xff':
+			{
+				if (!command_see) continue;
+				if (ke.index == 0) continue;
+				else if (ke.index != 1)
+				{
+					bell();
+					break;
+				}
+				if (command_wrk)
+					which = 'a' + inven_out_index[ke.mousey - 1] - INVEN_WIELD;
+				else
+					which = 'a' + inven_out_index[ke.mousey - 1];
+				/* fallthrough */
+			}
+
 			default:
 			{
 				/* Extract "query" setting */
@@ -700,6 +773,9 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 		section_icky_col = 0;
 	}
 
+	/* Hide UI cursor */
+	Term_hide_ui_cursor();
+
 	/* Fix the top line */
 	topline_icky = FALSE;
 
@@ -710,12 +786,14 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Hack -- Cancel "display" */
 	command_see = FALSE;
 
-
 	/* Forget the item_tester_tval restriction */
 	item_tester_tval = 0;
 
 	/* Forget the item_tester_hook restriction */
 	item_tester_hook = 0;
+
+	/* Discard spellcasting mode */
+	spellcasting = FALSE;
 
 	/* Fix windows */
 	if (window_up)
@@ -728,6 +806,28 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Clear the prompt line */
 	prt("", 0, 0);
 
+	/* Not selecting item anymore */
+	in_item_prompt = FALSE;
+
 	/* Return TRUE if something was picked */
 	return (item);
+}
+
+void do_cmd_inscribe_auto(char *name, char *inscription)
+{
+	int item;
+	int cc_ind = -1, i;
+	/* Hack find inscribe command (assume it's called 'k') */
+	for (i = 0; i < custom_commands; i++) {
+		custom_command_type *cc_ptr = &custom_command[i];
+		if ((cc_ptr->m_catch == '{')
+		&& (cc_ptr->scheme == SCHEME_ITEM_STRING))
+		{
+			cc_ind = i;
+			break;
+		}
+	}
+	if (cc_ind == -1) return;
+	if (!get_item_by_name(&item, TRUE, TRUE, TRUE, name)) return;
+	send_custom_command(cc_ind, item, 0, 0, inscription);
 }

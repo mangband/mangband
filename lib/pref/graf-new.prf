@@ -37,6 +37,7 @@ F:118:0x82/0x83 #closed door
 F:119:0x82/0x83 #closed door
 F:120:0x82/0x83 #closed door
 
+K:399:0xAE/0x98 # house foundation stone
 
 ##### Special attr/char values #####
 

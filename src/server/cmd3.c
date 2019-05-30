@@ -77,7 +77,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 	posn = inven_carry(p_ptr, &tmp_obj);
 
 	/* Describe the result */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(posn));
@@ -173,7 +173,7 @@ static void inven_drop(int Ind, int item, int amt)
 		p_ptr->redraw |= (PR_OFLAGS);
 
 	/* Message */
-	object_desc(Ind, o_name, &tmp_obj, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), &tmp_obj, TRUE, 3);
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(item));
@@ -382,7 +382,7 @@ void do_cmd_wield(int Ind, int item)
 	if (cursed_p(&(p_ptr->inventory[slot])))
 	{
 		/* Describe it */
-		object_desc(Ind, o_name, &(p_ptr->inventory[slot]), FALSE, 0);
+		object_desc(Ind, o_name, sizeof(o_name), &(p_ptr->inventory[slot]), FALSE, 0);
 
 		/* Message */
 		msg_format(Ind, "The %s you are %s appears to be cursed.",
@@ -400,7 +400,7 @@ void do_cmd_wield(int Ind, int item)
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
 	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
 	{
-		object_desc(Ind, o_name, x_ptr, FALSE, 0);
+		object_desc(Ind, o_name, sizeof(o_name), x_ptr, FALSE, 0);
 		msg_format(Ind, "Your pack is full and you can't drop %s here.", o_name);
 		return;
 	}
@@ -500,7 +500,7 @@ void do_cmd_wield(int Ind, int item)
 	}
 
 	/* Describe the result */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(Ind, "%^s %s (%c).", act, o_name, index_to_label(slot));
@@ -805,7 +805,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	i_ptr->number = quantity;
 
 	/* Describe the destroyed object */
-	object_desc(Ind, o_name, i_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), i_ptr, TRUE, 3);
 
 	/* Describe the object 
 	old_number = o_ptr->number;
@@ -938,7 +938,7 @@ void do_cmd_observe(int Ind, int item)
 		}
 
 		/* Get name */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 	}
 
 	/* Inform */
@@ -1092,7 +1092,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 	
 	/* Describe the activity */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(Ind, "Inscribing %s.", o_name);
@@ -1256,7 +1256,7 @@ void do_cmd_steal(int Ind, int dir)
 				inven_item_optimize(0 - c_ptr->m_idx, item);
 	
 				/* Tell thief what he got */
-				object_desc(Ind, o_name, &forge, TRUE, 3);
+				object_desc(Ind, o_name, sizeof(o_name), &forge, TRUE, 3);
 				msg_format(Ind, "You stole %s.", o_name);
 	
 				/* Easier to notice heavier objects */
@@ -2087,4 +2087,48 @@ void do_cmd_query_symbol(int Ind, char sym)
 	/* MEGA-HACK!! Add monster recall info BASED on letter! This ommits creeping coins and mimics :( */
 	if ( (sym >= 'a' && sym <= 'z') || (sym >= 'A' && sym <= 'Z')	)
 		do_cmd_monster_desc_all(Ind, sym);
+}
+
+/*
+ * Display monster list as a pop-up on mainscreen.
+ * See also "fix_monlist()" for windowed version.
+ */
+void do_cmd_monlist(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Prepare 'visible monsters' list */
+	display_monlist(Ind);
+
+	/* Send it */
+	send_prepared_popup(Ind, "Visible Monsters (Snapshot)");
+
+	return;
+}
+
+/*
+ * Display item list as a pop-up on mainscreen.
+ * See also "fix_itemlist()" for windowed version.
+ */
+void do_cmd_itemlist(int Ind)//player_type *p_ptr)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Prepare 'visible items' list */
+	display_itemlist(p_ptr);
+
+	/* Send it */
+	/* (Fits player screen) */
+	if (p_ptr->last_info_line < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] - 2)
+	{
+		send_prepared_popup(Ind, "Visible Items (Snapshot)");
+	}
+	/* (Doesn't fit, requires browsing) */
+	else
+	{
+		send_term_header(p_ptr, NTERM_BROWSE | NTERM_CLEAR, "Visible Items (Snapshot)");
+		send_prepared_info(p_ptr, NTERM_WIN_SPECIAL, STREAM_SPECIAL_TEXT, NTERM_BROWSE);
+	}
+
+	return;
 }

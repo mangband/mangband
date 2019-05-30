@@ -809,6 +809,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\client\c-cmd0.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\c-files.c"
 				>
 			</File>
@@ -934,6 +946,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\set_focus.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\z-file.c"
 				>
 			</File>
 			<File
@@ -1071,6 +1087,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\z-file.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\z-form.h"
 				>
 			</File>
@@ -1080,6 +1100,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\z-term.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.h"
 				>
 			</File>
 			<File

@@ -155,6 +155,8 @@
 #define HAVE_STRICMP
 #define HAVE_STRDUP
 #define HAVE_STRNLEN
+#define HAVE___INT64
+#define HAVE_STAT
 #endif
 #if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
 #define HAVE_INTTYPES_H
@@ -245,18 +247,22 @@
 # define PATH_SEP ""
 #endif
 
-
-/*
- * The Macintosh allows the use of a "file type" when creating a file
- */
-#if defined(MACINTOSH) && !defined(applec)
-# define FILE_TYPE_TEXT 'TEXT'
-# define FILE_TYPE_DATA 'DATA'
-# define FILE_TYPE_SAVE 'SAVE'
-# define FILE_TYPE(X) (_ftype = (X))
-#else
-# define FILE_TYPE(X) ((void)0)
+/* Hack -- DOS has 8.3 filesystem */
+#undef FS_MAX_BASE_LEN
+#if defined(MSDOS)
+# define FS_MAX_BASE_LEN 8
 #endif
+
+/* Hack -- DOS and Win3.11 can't handle filename cases */
+#undef FS_CASE_IGNORE
+#if defined(MSDOS)
+# define FS_CASE_IGNORE 2
+#else
+# if defined(WINDOWS) && !defined(WIN32)
+#  define FS_CASE_IGNORE 1
+# endif
+#endif
+
 
 
 /*

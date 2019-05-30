@@ -75,18 +75,7 @@ void delete_monster_idx(int i)
 	/* Remove him from everybody's view */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-		Players[Ind]->mon_vis[i] = FALSE;
-		Players[Ind]->mon_los[i] = FALSE;
-		Players[Ind]->mon_det[i] = 0;
-
-		/* Hack -- remove hurt flag */
-		Players[Ind]->mon_hrt[i] = FALSE;
-
-		/* Hack -- remove target monster */
-		if (i == Players[Ind]->target_who) Players[Ind]->target_who = 0;
-
-		/* Hack -- remove tracked monster */
-		if (i == Players[Ind]->health_who) health_track(Ind, 0);
+		forget_monster(Ind, i, TRUE);
 	}
 
 
@@ -796,19 +785,10 @@ void display_monlist(int Ind)
 
 		/* Append the "optional" attr/char info */
 		text_out_c(TERM_WHITE, "/('");
-
-		text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
-
-		if (p_ptr->use_graphics)
-		{
-			if (r_ptr->x_attr & 0x80)
-				text_out_c(255, " ");
-			else
-				text_out_c(0, " ");
-
-			n++;
-		}
-
+		/* I don't understand what an "optional" attr/char for a monster is...
+		 * so how about we just dump player's mapping here? -flm- */
+		//text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
+		text_out_c(p_ptr->r_attr[m_ptr->r_idx], format("%c",p_ptr->r_char[m_ptr->r_idx]));
 		text_out_c(TERM_WHITE, "'):");
 		n += 7;
 
@@ -1231,6 +1211,36 @@ bool is_detected(u32b flag, u32b esp)
 }
 
 
+/* Clear all visibility and tracking flags. */
+void forget_monster(int Ind, int m_idx, bool deleted)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* Was visible? Update monster list then */
+	if (p_ptr->mon_vis[m_idx]) p_ptr->window |= (PW_MONLIST);
+
+	/* Remove cursor tracking */
+	if (p_ptr->cursor_who == m_idx)
+	{
+		cursor_track(Ind, 0);
+		p_ptr->redraw |= PR_CURSOR;
+	}
+
+	/* No longer a valid target */
+	if (p_ptr->target_who == m_idx) p_ptr->target_who = 0;
+
+	/* Remove health tracking */
+	if (p_ptr->health_who == m_idx) health_track(Ind, 0);
+
+	/* Clear all visibility flags */
+	p_ptr->mon_vis[m_idx] = FALSE;
+	p_ptr->mon_los[m_idx] = FALSE;
+	p_ptr->mon_det[m_idx] = 0;
+
+	/* Remove hurt flag (only if monster is completely dead) */
+	if (deleted) p_ptr->mon_hrt[m_idx] = FALSE;
+}
+
 /*
  * This function updates the monster record of the given monster
  *
@@ -1306,6 +1316,9 @@ void update_mon(int m_idx, bool dist)
 	/* Seen by telepathy */
 	bool hard = FALSE;
 
+	/* Is nearby */
+	bool nearby = FALSE;
+
 	/* Various extra flags */
 	bool do_empty_mind = FALSE;
 	bool do_weird_mind = FALSE;
@@ -1319,13 +1332,12 @@ void update_mon(int m_idx, bool dist)
 		l_ptr = p_ptr->l_list + m_ptr->r_idx;
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
+		nearby = FALSE;
 
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
 		{
-			p_ptr->mon_vis[m_idx] = FALSE;
-			p_ptr->mon_los[m_idx] = FALSE;
-			p_ptr->mon_det[m_idx] = 0;
+			forget_monster(Ind, m_idx, FALSE);
 			continue;
 		}
 
@@ -1347,11 +1359,8 @@ void update_mon(int m_idx, bool dist)
 		/* Save the distance (in a byte) */
 		m_ptr->cdis = (d < 255) ? d : 255;
 
-		/* HACK ! - Detected via magical means */
-		if (p_ptr->mon_det[m_idx]) flag = TRUE;
-
 		/* Nearby */
-		else if (m_ptr->cdis <= MAX_SIGHT)
+		if (m_ptr->cdis <= MAX_SIGHT)
 		{
 
 			/* Process "nearby" monsters on the current "panel" */
@@ -1359,7 +1368,10 @@ void update_mon(int m_idx, bool dist)
 			{
 				cave_type *c_ptr = &cave[Depth][fy][fx];
 				byte *w_ptr = &p_ptr->cave_flag[fy][fx];
-	
+
+				/* Remember for later */
+				if ((*w_ptr & CAVE_VIEW)) nearby = TRUE;
+
 				/* Normal line of sight, and player is not blind */
 				if ((*w_ptr & CAVE_VIEW) && (!p_ptr->blind))
 				{
@@ -1386,7 +1398,7 @@ void update_mon(int m_idx, bool dist)
 				}
 	
 				/* Telepathy can see all "nearby" monsters with "minds" */
-	            if (is_detected(r_ptr->flags3, p_ptr->telepathy))
+				if (is_detected(r_ptr->flags3, p_ptr->telepathy))
 				{
 					/* Empty mind, no telepathy */
 					if (r_ptr->flags2 & RF2_EMPTY_MIND)
@@ -1423,7 +1435,8 @@ void update_mon(int m_idx, bool dist)
 			}
 		}
 
-
+		/* HACK ! - Detected via magical means, counts as "hard" */
+		if (p_ptr->mon_det[m_idx]) hard = flag = TRUE;
 
 		/* The monster is now visible */
 		if (flag)
@@ -1482,13 +1495,13 @@ void update_mon(int m_idx, bool dist)
 				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
 
 				/* Window stuff */
-				p_ptr->window |= PW_MONLIST;				
+				p_ptr->window |= PW_MONLIST;
 			}
 		}
 
 
-		/* The monster is now easily visible */
-		if (easy)
+		/* The monster is now easily visible (or detected and is close) */
+		if (easy || (hard && nearby))
 		{
 			/* Change */
 			if (!p_ptr->mon_los[m_idx])
@@ -1572,6 +1585,9 @@ void update_player(int Ind)
 	/* Seen by telepathy */
 	bool hard = FALSE;
 
+	/* Is nearby */
+	bool nearby = FALSE;
+
 	/* Check for every other player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
@@ -1579,24 +1595,28 @@ void update_player(int Ind)
 
 		/* Reset the flags */
 		flag = easy = hard = FALSE;
-
-		/* Skip players not on this depth */
-		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
+		nearby = FALSE;
 
 		/* Player can always see himself */
 		if (Ind == i) continue;
 
-		/* Compute distance */
-		dis = distance(py, px, p_ptr->py, p_ptr->px);
+		/* Skip players not on this depth */
+		if (p_ptr->dun_depth != q_ptr->dun_depth) flag = FALSE;
 
-		/* HACK ! - Detected via magical means */
-		if (p_ptr->play_det[Ind]) flag = TRUE;
+		/* Hack -- dungeon masters are invisible */
+		else if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 
 		/* Process players on current panel */
 		else if (panel_contains(py, px))
 		{
 			cave_type *c_ptr = &cave[p_ptr->dun_depth][py][px];
 			byte *w_ptr = &p_ptr->cave_flag[py][px];
+
+			/* Compute distance */
+			dis = distance(py, px, p_ptr->py, p_ptr->px);
+
+			/* Remember for later */
+			if ((*w_ptr & CAVE_VIEW) && (dis < MAX_SIGHT)) nearby = TRUE;
 
 			/* Normal line of sight, and player is not blind */
 			
@@ -1609,11 +1629,12 @@ void update_player(int Ind)
 			if ((player_in_party(q_ptr->party, i)) && (q_ptr->party)) easy = flag = TRUE;
 			
 			if (*w_ptr & CAVE_VIEW) {
+
 				/* Check infravision */
 				if (dis <= p_ptr->see_infra)
 				{
-					/* Visible */
-					easy = flag = TRUE;
+					/* Only alive players are seen by infravision */
+					if (!q_ptr->ghost) easy = flag = TRUE;
 				}
 
 				/* Check illumination */
@@ -1631,14 +1652,15 @@ void update_player(int Ind)
 			}
 
 			/* Telepathy can see all players */
-            if (p_ptr->telepathy == TR3_TELEPATHY)
+			if (p_ptr->telepathy == TR3_TELEPATHY)
 			{
 				/* Visible */
 				hard = flag = TRUE;
 			}
-		/* hack -- dungeon masters are invisible */
-		if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 		}
+
+		/* HACK ! - Detected via magical means */
+		if (p_ptr->play_det[Ind]) hard = flag = TRUE;
 
 		/* Player is now visible */
 		if (flag)
@@ -1688,8 +1710,8 @@ void update_player(int Ind)
 			}
 		}
 
-		/* The player is now easily visible */
-		if (easy)
+		/* The player is now easily visible (or is detected and is close) */
+		if (easy || (hard && nearby))
 		{
 			/* Change */
 			if (!p_ptr->play_los[Ind])
@@ -1942,6 +1964,10 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		m_ptr->csleep = ((val * 2) + randint(val * 10));
 	}
 
+#ifdef DEBUG
+	/* Audit monster allocation */
+	cheat(format("+m %s", r_name + r_ptr->name));
+#endif
 
 	/* Success */
 	return (TRUE);

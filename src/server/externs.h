@@ -234,7 +234,6 @@ extern int num_arenas;
 extern int chan_audit;
 extern int chan_debug;
 extern int chan_cheat;
-extern long GetInd[];
 /*extern char player_name[32];
 extern char player_base[32];
 extern char died_from[80];
@@ -262,15 +261,16 @@ extern u16b message__head;
 extern u16b message__tail;
 extern u16b *message__ptr;
 extern char *message__buf;
-extern u32b option_flag[8];
+/*extern u32b option_flag[8];
 extern u32b option_mask[8];
 extern u32b window_flag[8];
-extern u32b window_mask[8];
+extern u32b window_mask[8];*/
 /*extern term *ang_term[8];*/
 extern s16b o_fast[MAX_O_IDX];
 extern s16b m_fast[MAX_M_IDX];
 extern cave_type ***cave;
 extern wilderness_type *wild_info;
+extern hturn *turn_cavegen;
 extern object_type *o_list;
 extern monster_type *m_list;
 extern player_type **p_list;
@@ -359,8 +359,6 @@ extern cptr ANGBAND_DIR_TEXT;
 extern bool item_tester_full;
 extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
-extern bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
-extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 extern bool (*get_mon_num_hook)(int r_idx);
 extern bool (*get_obj_num_hook)(int k_idx);
 extern bool (*master_move_hook)(int Ind, char * parms);
@@ -458,13 +456,16 @@ extern void do_cmd_walk(int Ind, int dir, int pickup);
 extern void do_cmd_stay(int Ind);
 extern int do_cmd_run(int Ind, int dir);
 extern void do_cmd_hold(int Ind);
-extern void do_cmd_hold_or_stay(int Ind, int pickup);
+extern void do_cmd_hold_or_stay(int Ind, int pickup, int take_stairs);
+extern void do_cmd_enterfeat(int Ind);
 extern void do_cmd_toggle_rest(int Ind);
+extern void do_cmd_pathfind(int Ind, int y, int x);
 /*extern void do_cmd_rest(void);*/
 extern void do_cmd_fire(int Ind, int item, int dir);
 extern void do_cmd_throw(int Ind, int item, int dir);
 extern void do_cmd_purchase_house(int Ind, int dir);
 extern int pick_house(int Depth, int y, int x);
+extern void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x);
 
 /* cmd3.c */
 extern void do_cmd_inven(void);
@@ -484,6 +485,8 @@ extern void do_cmd_target_friendly(int Ind, char dir);
 extern void do_cmd_look(int Ind, char dir);
 extern void do_cmd_locate(int Ind, int dir);
 extern void do_cmd_query_symbol(int Ind, char sym);
+extern void do_cmd_monlist(int Ind);
+extern void do_cmd_itemlist(int Ind);
 extern void describe_floor_tile(cave_type *c_ptr, cptr out_val, int Ind, bool active, byte cave_flag);
 extern void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet);
 extern void do_cmd_monster_desc_all(int Ind, char sym);
@@ -545,9 +548,10 @@ extern void do_cmd_activate(int Ind, int item);
 extern void do_cmd_activate_dir(int Ind, int item, int dir);
 extern void do_cmd_refill_potion(int Ind, int item);
 
+/* pathfind.c */
+extern bool findpath(player_type *p_ptr, int y, int x);
+
 /* control.c */
-extern void NewConsole(int fd, int arg);
-extern bool InitNewConsole(int write_fd);
 extern void console_print(char *msg, int chan);
 
 /* dungeon.c */
@@ -579,6 +583,7 @@ extern int file_peruse_next(player_type *p_ptr, char query, int next);
 extern void common_file_peruse(player_type *p_ptr, char query);
 extern void copy_file_info(player_type *p_ptr, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
+extern int rewrite_player_name(char *wptr, char *bptr, const char *nick_name);
 extern bool process_player_name(player_type *p_ptr, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);
 extern void get_name(int Ind);
@@ -680,6 +685,7 @@ extern int monster_richness(int r_idx);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern void forget_monster(int Ind, int m_idx, bool deleted);
 extern s16b monster_carry(int Ind, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
 extern bool summon_specific_okay_aux(int r_idx, int summon_type);
@@ -750,7 +756,7 @@ extern void flavor_copy(char *buf, u16b flavor, object_type *o_ptr);
 extern void object_prep(object_type *o_ptr, int k_idx);
 extern void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
 extern void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3);
-extern void object_desc(int Ind, char *buf, const object_type *o_ptr, int pref, int mode);
+extern void object_desc(int Ind, char *buf, size_t buflen, const object_type *o_ptr, int pref, int mode);
 extern void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode);
 extern bool identify_fully_aux(int Ind, object_type *o_ptr);
 extern char index_to_label(int i);
@@ -816,6 +822,7 @@ extern void object_audit(player_type *p_ptr, object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
 extern void artifact_notify(player_type *p_ptr, object_type *o_ptr);
 extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
+extern void display_itemlist(player_type *p_ptr);
 
 /* party.c */
 extern int party_lookup(cptr name);
@@ -846,7 +853,7 @@ extern int item_kind_index_fuzzy(char * name);
 extern bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int lev, int num);
 
 /* save.c */
-extern bool save_player(int Ind);
+extern bool save_player(player_type *p_ptr);
 extern int scoop_player(char *nick, char *pass);
 extern bool load_player(player_type *p_ptr);
 extern bool load_server_info(void);
@@ -976,23 +983,7 @@ extern void store_init(int which);
 extern s32b player_price_item(int Ind, object_type *o_ptr);
 
 /* util.c */
-extern errr path_parse(char *buf, int max, cptr file);
 extern errr path_temp(char *buf, int max);
-extern errr path_build(char *buf, int max, cptr path, cptr file);
-extern FILE *my_fopen(cptr file, cptr mode);
-extern errr my_fgets(FILE *fff, char *buf, huge n);
-extern errr my_fputs(FILE *fff, cptr buf, huge n);
-extern errr my_fclose(FILE *fff);
-extern errr fd_kill(cptr file);
-extern errr fd_move(cptr file, cptr what);
-extern errr fd_copy(cptr file, cptr what);
-extern int fd_make(cptr file, int mode);
-extern int fd_open(cptr file, int flags);
-extern errr fd_lock(int fd, int what);
-extern errr fd_seek(int fd, huge n);
-extern errr fd_read(int fd, char *buf, huge n);
-extern errr fd_write(int fd, cptr buf, huge n);
-extern errr fd_close(int fd);
 extern void flush(void);
 extern void bell(void);
 extern void sound(int Ind, int num);
@@ -1106,8 +1097,6 @@ extern cptr look_mon_desc(int m_idx);
 extern int pick_arena(int Depth, int y, int x);
 extern int pick_arena_opponent(int Depth, int a);
 extern void access_arena(int Ind, int y, int x);
-extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
-extern void ang_sort(int Ind, vptr u, vptr v, int n);
 extern void ang_sort_swap_distance(int Ind, vptr u, vptr v, int a, int b);
 extern bool ang_sort_comp_distance(int Ind, vptr u, vptr v, int a, int b);
 extern bool ang_sort_comp_value(int Ind, vptr u, vptr v, int a, int b);
@@ -1116,6 +1105,7 @@ extern bool target_able(int Ind, int m_idx);
 extern bool target_okay(int Ind);
 extern s16b target_pick(int Ind, int y1, int x1, int dy, int dx);
 extern bool target_set_interactive(int Ind, int mode, char query);
+extern bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x);
 extern bool get_aim_dir(int Ind, int *dp);
 extern bool get_item(int Ind, int *cp, byte tval_hook);
 extern bool confuse_dir(bool confused, int *dp);

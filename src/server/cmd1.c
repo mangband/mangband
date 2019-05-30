@@ -644,7 +644,7 @@ void carry(int Ind, int pickup, int confirm)
 
 	object_type *o_ptr;
 
-	char	o_name[80];
+	char	o_name[120];
 	int 	sound_msg;
 
 	/* Hack -- nothing here to pick up */
@@ -662,7 +662,7 @@ void carry(int Ind, int pickup, int confirm)
 	o_ptr = &o_list[c_ptr->o_idx];
 
 	/* Describe the object */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 	
 	/* Check for auto-pickup */
 	if (auto_pickup_okay(o_ptr)) pickup = 1;
@@ -702,6 +702,9 @@ void carry(int Ind, int pickup, int confirm)
 
 		/* Delete gold */
 		delete_object(Depth, p_ptr->py, p_ptr->px);
+
+		/* Tell the client */
+		floor_item_notify(Ind, 0, FALSE);
 	}
 
 	/* Pick it up */
@@ -742,7 +745,7 @@ void carry(int Ind, int pickup, int confirm)
 					if (!confirm)
 					{
 						char out_val[160];
-						object_desc(Ind, o_name, o_ptr, TRUE, 2); /* shorten name */
+						object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 2); /* shorten name */
 						sprintf(out_val, "Purchase %s for %ld gold? ", o_name, (long)price);
 						send_pickup_check(Ind, out_val);
 						return;
@@ -784,7 +787,7 @@ void carry(int Ind, int pickup, int confirm)
 							/* ALLOW PICKUP! */
 							o_ptr->note = 0;
 							/* Message */
-							object_desc(Ind, o_name, o_ptr, TRUE, 2);/* short name */							
+							object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 2);/* short name */
 							msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
 							msg_format(i, "You sold %s for %ld gold.", o_name, (long)price);
 							/* Mark artifact as sold */
@@ -825,7 +828,7 @@ void carry(int Ind, int pickup, int confirm)
 				o_ptr = &(p_ptr->inventory[slot]);
 
 				/* Describe the object */
-				object_desc(Ind, o_name, o_ptr, TRUE, 3);
+				object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 				/* Message */
 				msg_format(Ind, "You have %s (%c).", o_name, index_to_label(slot));
@@ -934,6 +937,9 @@ static void hit_trap(int Ind)
 
 			/* Show everyone that he's left */
 			everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+
+			/* Tell everyone to re-calculate visiblity for this player */
+			update_player(Ind);
 
 			/* Reduce the number of players on this depth */
 			players_on_depth[p_ptr->dun_depth]--;
@@ -1671,6 +1677,9 @@ void move_player(int Ind, int dir, int do_pickup)
 
 			/* Show everyone that's he left */
 			everyone_lite_spot(Depth, oldy, oldx);
+
+			/* Tell everyone to re-calculate visiblity for this player */
+			update_player(Ind);
 
 			/* forget his light and viewing area */
 			forget_lite(Ind);
@@ -2769,7 +2778,73 @@ static bool run_test(int Ind)
 	return (FALSE);
 }
 
+/*
+ * Take one step along the pathfinder.
+ * Returns TRUE if a valid next step was picked.
+ * Returns FALSE if pathfinding was aborted.
+ */
+bool run_nextstep(player_type *p_ptr)
+{
+	int x, y;
+	int Ind = Get_Ind[p_ptr->conn];
+	int Depth = p_ptr->dun_depth;
 
+	/* Abort if we have finished */
+	if (p_ptr->pf_result_index < 0) return FALSE;
+
+	/* Abort if we would hit a wall */
+	else if (p_ptr->pf_result_index == 0)
+	{
+		/* Get next step */
+		y = p_ptr->py + ddy[p_ptr->pf_result[p_ptr->pf_result_index] - '0'];
+		x = p_ptr->px + ddx[p_ptr->pf_result[p_ptr->pf_result_index] - '0'];
+
+		/* Known wall */
+		if ((p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !cave_floor_bold(Depth, y, x))
+		{
+			return FALSE;
+		}
+	}
+	/* Hack -- walking stick lookahead.
+	 *
+	 * If the player has computed a path that is going to end up in a wall,
+	 * we notice this and convert to a normal run. This allows us to click
+	 * on unknown areas to explore the map.
+	 *
+	 * We have to look ahead two, otherwise we don't know which is the last
+	 * direction moved and don't initialise the run properly.
+	 */
+	else if (p_ptr->pf_result_index > 0)
+	{
+		/* Get next step */
+		y = p_ptr->py + ddy[p_ptr->pf_result[p_ptr->pf_result_index] - '0'];
+		x = p_ptr->px + ddx[p_ptr->pf_result[p_ptr->pf_result_index] - '0'];
+
+		/* Known wall */
+		if ((p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !cave_floor_bold(Depth, y, x))
+		{
+			return FALSE;
+		}
+
+		/* Get step after */
+		y = y + ddy[p_ptr->pf_result[p_ptr->pf_result_index-1] - '0'];
+		x = x + ddx[p_ptr->pf_result[p_ptr->pf_result_index-1] - '0'];
+
+		/* Known wall */
+		if ((p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !cave_floor_bold(Depth, y, x))
+		{
+			p_ptr->running_withpathfind = FALSE;
+			//run_init(Ind, p_ptr->pf_result[p_ptr->pf_result_index] - '0');
+			p_ptr->run_request = p_ptr->pf_result[p_ptr->pf_result_index] - '0';
+
+			return FALSE;
+		}
+	}
+
+	/* Use basic running code */
+	p_ptr->find_current = p_ptr->pf_result[p_ptr->pf_result_index--] - '0';
+	return TRUE;
+}
 
 /*
  * Take one step along the current "run" path
@@ -2780,6 +2855,24 @@ void run_step(int Ind, int dir)
 
 	/* Check for just changed level */
 	if (p_ptr->new_level_flag) return;
+#if 1
+	/* Run along pathfinder */
+	if (p_ptr->running_withpathfind)
+	{
+		/* Off */
+		p_ptr->run_request = 0;
+		/* Get next step (or abort) */
+		if (!run_nextstep(p_ptr))
+		{
+			/* Disturb */
+			disturb(Ind, 0, 0);
+			p_ptr->running_withpathfind = FALSE;
+			return;
+		}
+		/* On */
+		p_ptr->running = TRUE;
+	} else
+#endif
 
 	/* Start running */
 	if (p_ptr->run_request)

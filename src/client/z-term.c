@@ -1257,6 +1257,26 @@ errr Term_fresh(void)
 			byte ota = old_taa[tx];
 			char otc = old_tcc[tx];
 
+/* Hack -- some terminals don't have double-buffering, so constantly
+ * erasing and drawing the cursor back will give an undesired,
+ * flickering effect.
+ * This test should be changed to become a Z-Term variable, similar
+ * to "soft_cursor" ("very_soft_cursor"?). For now, it's just a
+ * a crude ifdef, for WIN client only. */
+/* NOTE: Alternatively, this might be a good change for ALL
+ * the terminals, but it would require a considerable amount of testing. */
+#ifdef USE_WIN
+			if (oa == scr->a[ty][tx] /* The tile itself didn't change */
+			&&  oc == scr->c[ty][tx]
+			&&  ota == scr->ta[ty][tx]
+			&&  otc == scr->tc[ty][tx]
+			&&  tx == scr->bcx        /* The cursor position didn't change */
+			&&  ty == scr->bcy
+			&&  old->cv == scr->bcv)  /* The cursor visibility didn't change */
+			{
+				/* Do nothing */
+			} else
+#endif
 			/* Hack -- use "Term_pict()" always */
 			if (Term->always_pict)
 			{
@@ -1363,7 +1383,7 @@ errr Term_fresh(void)
 	if (Term->soft_cursor)
 	{
 		/* Draw the cursor */
-		if (!scr->cu && scr->bcv)
+		if (scr->bcv)
 		{
 			if ((scr->bcx + 1 < w) && (old->a[scr->bcy][scr->bcx + 1] == 255))
 			{
@@ -1414,7 +1434,7 @@ errr Term_fresh(void)
 
 
 	/* Save the "cursor state" */
-	old->cu = scr->cu;
+	old->cu = scr->bcv ? 0 : scr->cu;
 	old->cv = scr->bcv;
 	old->cx = scr->bcx;
 	old->cy = scr->bcy;
@@ -1460,6 +1480,19 @@ errr Term_consolidate_cursor(bool on, int x, int y)
     return (0);
 }
 
+/* Show user cursor, after placing it with _gotoxy() */
+errr Term_show_ui_cursor(void)
+{
+    Term_consolidate_cursor(TRUE, Term->scr->cx, Term->scr->cy);
+    return (0);
+}
+/* Hide user cursor, after we're done with UI */
+errr Term_hide_ui_cursor(void)
+{
+    Term->scr->bcv = FALSE;
+    Term_xtra(TERM_XTRA_SHAPE, FALSE);
+    return (0);
+}
 
 /*
  * Place the cursor at a given location
@@ -1488,6 +1521,8 @@ errr Term_gotoxy(int x, int y)
 
 errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 {
+	term_win *win;
+
 	int w = Term->wid;
 	int h = Term->hgt;
 
@@ -1497,11 +1532,19 @@ errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc)
 
 	/* Paranoia -- illegal char */
 	if (!c) return (-2);
-	
-	Term->mem->a[y][x] = a;
-	Term->mem->c[y][x] = c; 
-	Term->mem->ta[y][x] = ta;
-	Term->mem->tc[y][x] = tc;
+
+	/* Paranoia -- no memorized terminal */
+	if (!Term->mem) return (-3);
+
+	/* Go to the end of the queue */
+	/* Last in queue = first that was memorized */
+	win = Term->mem;
+	while (win->next) win = win->next;
+
+	win->a[y][x] = a;
+	win->c[y][x] = c;
+	win->ta[y][x] = ta;
+	win->tc[y][x] = tc;
 	
 	/* Success */
 	return (0);

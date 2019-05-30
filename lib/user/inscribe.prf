@@ -1,0 +1,34 @@
+# Auto-inscription "script".
+#
+# {:Item name:inscription
+#
+# The '{' lines will execute inscription command, get-item-by-name, using
+# the 'Item name' pattern, and apply 'inscription'.
+
+# Note: you are expected to edit this file, the inscriptions
+# provided are mostly for example purposes.
+
+# Ensure we are not bypassing commands
+?:1
+
+# Inscribe
+
+{:Magic for Beginners:@m1
+{:Conjurings and Tricks:@m2
+{:Incantations and Illusions:@m3
+{:Beginners Handbook:@p1
+{:Words of Wisdom:@p2
+{:Chants and Blessings:@p3
+{:Arrow:@f1=g
+{:Phase Door:@r1
+{:Word of Recall:@r9
+{:of Healing:@q1
+{:Cure Critical Wounds:@q1
+{:Cure Serious Wounds:@q1
+{:Cure Light Wounds:@q1
+{:Berserk Strength:@q2
+
+# Squelch-like behaviors: inscribe "bad" items with =k
+# Execute a macro with "\ek{=k}Ay" to destroy such items.
+
+#{:Potion of Death:=k

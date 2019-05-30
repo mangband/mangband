@@ -1436,6 +1436,10 @@ struct player_type
 	bool find_breakright;
 	bool find_breakleft;
 
+	bool running_withpathfind;
+	char pf_result[MAX_PF_LENGTH];
+	int pf_result_index;
+
 	bool resting;		/* Are we resting? */
 
 	s16b command_dir;	/* Direction being used */
@@ -1517,7 +1521,7 @@ struct player_type
 
 	u32b notice;		/* Special Updates (bit flags) */
 	u32b update;		/* Pending Updates (bit flags) */
-	u32b redraw;		/* Normal Redraws (bit flags) */
+	u64b redraw;		/* Normal Redraws (bit flags) */
 	u32b window;		/* Window Redraws (bit flags) */
 
 	s16b stat_use[6];	/* Current modified stats */
@@ -1613,6 +1617,7 @@ struct player_type
 	hturn birth_turn;	/* Server turn on which player was born */
 	hturn turn;		/* Actual player turns */
 	hturn old_turn;		/* Turn when player entered current level */
+	hturn last_turn;	/* Last server turn this player has seen */
 
 	byte *a_info; /* Artifacts player has encountered */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
@@ -1696,7 +1701,7 @@ struct indicator_type
 
 	u32b flag;  	/* Indicator flags */
 	cptr prompt;	/* Hack -- display what additional info..? */
-	u32b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
+	u64b redraw;	/* "Redraw" flag (same as p_ptr->redraw, PR_ flags) */
 	cptr mark;  	/* Hack -- name */
 };
 

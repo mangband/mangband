@@ -1016,7 +1016,7 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->pkt = pkt;
 	i_ptr->type = type;
 	i_ptr->amnt = amnt;
-	i_ptr->redraw = (1L << (known_indicators));
+	i_ptr->redraw = (1LL << (known_indicators));
 	i_ptr->row = row;
 	i_ptr->col = col;
 	i_ptr->flag = flag;
@@ -1641,10 +1641,10 @@ int recv_channel(connection_type *ct) {
 
 int recv_message(connection_type *ct) {
 	char
-		mesg[MAX_CHARS];
+		mesg[MSG_LEN];
 	u16b
 		type = 0;
-	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud%S", &type, mesg) < 2) return 0;
 
 	do_handle_message(mesg, type);
 

@@ -242,10 +242,12 @@ int player_leave(int p_idx)
 		//forget_view(Ind);TODO--test if this is really needed?
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		/* Tell everyone to re-calculate visiblity for this player */
+		update_player(p_idx);
 	}
 
 	/* Try to save his character */
-	saved = save_player(p_idx);
+	saved = save_player(p_ptr);
 
 	/* Leave all chat channels */
 	channels_leave(p_idx);
@@ -434,7 +436,10 @@ void post_process_players(void)
 void network_loop()
 {
 	shutdown_timer = 0;
-	plog("Entering network loop...");
+	plog(format("Server is running version %04x", SERVER_VERSION));
+#ifdef DEBUG
+	plog("Serving with delicious DEBUG cheeze!");
+#endif
 	while (1)
 	{
 		first_listener = handle_listeners(first_listener);
@@ -562,12 +567,12 @@ int report_to_meta(int data1, data data2) {
 
 	/* Append the version number */
 #ifndef SVNREV
-    if (cfg_ironman)
-    	sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
-    else
-    	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	if (cfg_ironman)
+		sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	else
+		sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	/* Append the additional version info */
 	if (SERVER_VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
@@ -576,10 +581,10 @@ int report_to_meta(int data1, data data2) {
 	if (SERVER_VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
-    if (cfg_ironman)
-    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
-    else
-    	sprintf(temp, "Revision: %d ", atoi(SVNREV));
+	if (cfg_ironman)
+		sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
+	else
+		sprintf(temp, "Revision: %d ", atoi(SVNREV));
 #endif
 	strcat(buf, temp);
 
@@ -1037,6 +1042,9 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 	/* Can't start with space */
 	if (nick_name[0] == ' ') return FALSE;
 
+	/* Can't start with lowercase */
+	nick_name[0] = toupper(nick_name[0]);
+
 	/* Right-trim nick */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
@@ -1045,8 +1053,40 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 		else break;
 	}
 
+	/* On Win32, normalize case */
+#ifdef FS_CASE_IGNORE
+	{
+		char temp_name[MAX_CHARS];
+		rewrite_player_name(temp_name, NULL, nick_name);
+		my_strcpy(nick_name, temp_name, MAX_CHARS);
+	}
+#endif
+	/* On Win3.11/DOS, trim nick to 8 chars */
+#ifdef FS_MAX_BASE_LEN
+	nick_name[FS_MAX_BASE_LEN] = '\0';
+#endif
+
 	/* Hack -- Reserved name */
 	if (!my_stricmp(nick_name, "server")) return FALSE;
+
+	return TRUE;
+}
+
+/*
+ * Check if client is *at least* at version major.minor.patch.
+ * Do not check "extra". Pass -1 to "minor" or "patch"
+ * if you don't care about that particular value. */
+bool client_version_atleast(u16b version, int at_major, int at_minor, int at_patch)
+{
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	if (major < at_major) return FALSE;
+	if (minor < at_minor) return FALSE;
+	if (patch < at_patch) return FALSE;
 
 	return TRUE;
 }
@@ -1068,9 +1108,7 @@ bool client_version_ok(u16b version)
 	if (extra != SERVER_VERSION_EXTRA) return FALSE;
 
 	/* require minimal version */
-	if (major < 1) return FALSE;
-	if (minor < 5) return FALSE;
-	if (patch < 0) return FALSE;
+	if (!client_version_atleast(version, 1, 5, 0)) return FALSE;
 
 	return TRUE;
 /*

@@ -37,6 +37,13 @@ static void print_spells(int book)
 
 	/* Clear the bottom line */
 	prt("", 2 + i, col);
+
+	/* Set section ickyness */
+	if (!screen_icky)
+	{
+		section_icky_row = 2 + i;
+		section_icky_col = -68;
+	}
 }
 
 int count_spells_in_book(int book, int *book_over)
@@ -70,6 +77,75 @@ int count_spells_in_book(int book, int *book_over)
 	return num;
 }
 
+/* Get spell by name */
+bool get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
+{
+	char buf[256];
+	char *tok;
+	int i, sn;
+	size_t len;
+	bool book_matched = FALSE;
+	char *prompt = "Spell name: ";
+
+	/* Hack -- show opening quote symbol */
+	if (prompt_quote_hack) prompt = "Spell name: \"";
+
+	buf[0] = '\0';
+	if (!get_string(prompt, buf, 80))
+	{
+		return FALSE;
+	}
+
+	/* Hack -- remove final quote */
+	len = strlen(buf);
+	if (len == 0) return FALSE;
+	if (buf[len-1] == '"') buf[len-1] = '\0';
+
+	/* Split entry */
+	tok = strtok(buf, "|");
+	while (tok)
+	{
+		if (STRZERO(tok)) continue;
+		/* Match against valid items */
+		for (i = 0; i < INVEN_TOTAL; i++)
+		for (sn = 0; sn < PY_MAX_SPELLS; sn++)
+		{
+			if (spell_info[i][sn][0] == '\0') break;
+			if (!inven && i < INVEN_WIELD) continue;
+			if (!equip && i >= INVEN_WIELD) continue;
+			if (inventory[i].tval == 0) continue;
+
+			/* Book-name match */
+			if (/*get_item_okay(i) &&*/
+			   books &&
+			   my_stristr(inventory_name[i], tok))
+			{
+				(*k) = i;
+				(*s) = -1;
+				book_matched = TRUE;
+			}
+
+			/* Spell-name match */
+			if (my_stristr(spell_info[i][sn], tok))
+			{
+				(*k) = i;
+				(*s) = sn;
+				/* Hack - also ask for projection */
+				if (spell_flag[(i * SPELLS_PER_BOOK + sn)] & PY_SPELL_PROJECT)
+				{
+					if (get_check("Project? "))
+						(*s) += SPELL_PROJECTED;
+				}
+				return TRUE;
+			}
+		}
+		tok = strtok(NULL, "|");
+	}
+	if (books && book_matched) return TRUE;
+	return FALSE;
+}
+
+
 /*
  * Allow user to choose a spell/prayer from the given book.
  */
@@ -81,10 +157,20 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	int		i, num = 0;
 	bool		flag, redraw;
 	char		choice;
+	event_type	ke;
 	char		out_val[160];
 	int			book = (*bn);
 	int			book_over = 0;
 	int			book_start = book;
+
+	/* HACK -- spellcasting mode -- spell already selected */
+	if (spellcasting_spell > -1)
+	{
+		(*sn) = spellcasting_spell;
+		spellcasting = FALSE;
+		spellcasting_spell = -1;
+		return (TRUE);
+	}
 
 	/* Assume no spells available */
 	(*sn) = -2;
@@ -104,13 +190,51 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	/* No redraw yet */
 	redraw = FALSE;
 
+	/* Show the list */
+	if (auto_showlist)
+	{
+		/* Show list */
+		redraw = TRUE;
+
+		/* Save the screen */
+		Term_save();
+
+		/* Display a list of spells */
+		print_spells(book);
+	}
+
 	/* Build a prompt (accept all spells) */
 	strnfmt(out_val, 78, "(%s %c-%c, *=List, ESC=exit) %s",
 		p, I2A(0), I2A(num - 1), prompt);
 
 	/* Get a spell from the user */
-	while (!flag && get_com(out_val, &choice))
+	while (!flag && get_com_ex(out_val, &choice, &ke))
 	{
+		/* Hack -- mouse */
+		if (choice == '\xff' && ke.index == 1)
+		{
+			choice = 'a' + ke.mousey - 2;
+		}
+
+		/* Enter by name */
+		if (choice == '@' || choice == '"')
+		{
+			int _sn, _bn;
+			if (choice == '"') prompt_quote_hack = TRUE;
+			/* XXX Lookup item by name */
+			if (get_spell_by_name(&_bn, &_sn, TRUE, FALSE, FALSE))
+			{
+				book = _bn;
+				i = _sn;
+				flag = TRUE;
+			}
+			else
+			{
+				bell();
+			}
+			continue;
+		}
+
 		/* Flip page */
 		if (choice == '/')
 		{
@@ -166,9 +290,6 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				/* Show list */
 				redraw = TRUE;
 
-				/* The screen is icky */
-				screen_icky = TRUE;
-
 				/* Save the screen */
 				Term_save();
 
@@ -186,7 +307,8 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 				Term_load();
 
 				/* The screen is OK now */
-				screen_icky = FALSE;
+				section_icky_row = 0;
+				section_icky_col = 0;
 
 				/* Flush any events */
 				Flush_queue();
@@ -229,7 +351,10 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
 	if (redraw)
 	{
 		Term_load();
-		screen_icky = FALSE;
+
+		/* The screen is OK now */
+		section_icky_row = 0;
+		section_icky_col = 0;
 
 		/* Flush any events */
 		Flush_queue();
@@ -255,9 +380,6 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known)
  */
 void show_browse(int book)
 {
-	/* The screen is icky */
-	screen_icky = TRUE;
-
 	/* Save the screen */
 	Term_save();
 
@@ -276,8 +398,9 @@ void show_browse(int book)
 	/* Restore the screen */
 	Term_load();
 
-	/* Screen is OK now */
-	screen_icky = FALSE;
+	/* The screen is OK now */
+	section_icky_row = 0;
+	section_icky_col = 0;
 
 	/* Flush any events */
 	Flush_queue();

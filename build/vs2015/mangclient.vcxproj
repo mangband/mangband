@@ -344,6 +344,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\client\c-birth.c" />
     <ClCompile Include="..\..\src\client\c-cmd.c" />
+    <ClCompile Include="..\..\src\client\c-cmd0.c" />
+    <ClCompile Include="..\..\src\client\ui.c" />
     <ClCompile Include="..\..\src\client\c-files.c" />
     <ClCompile Include="..\..\src\client\c-init.c" />
     <ClCompile Include="..\..\src\client\c-inven.c" />
@@ -381,6 +383,7 @@
     <ClCompile Include="..\..\src\client\z-term.c" />
     <ClCompile Include="..\..\src\common\z-util.c" />
     <ClCompile Include="..\..\src\common\z-virt.c" />
+    <ClCompile Include="..\..\src\common\z-file.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\main-sdl2.h" />
@@ -412,8 +415,10 @@
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\client\z-term.h" />
+    <ClInclude Include="..\..\src\client\ui.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
+    <ClInclude Include="..\..\src\common\z-file.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\src\client\Angband.ico" />

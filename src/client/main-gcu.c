@@ -185,6 +185,9 @@ static struct termio  game_termio;
 
 #endif
 
+static mmask_t game_mmask;
+static mmask_t norm_mmask;
+
 #ifdef USE_TCHARS
 
 static struct ltchars norm_special_chars;
@@ -476,6 +479,10 @@ static errr Term_xtra_gcu_alive(int v)
 		echo();
 		nl();
 
+		/* Restore mouse */
+		keypad(stdscr, FALSE);
+		mousemask(norm_mmask, &game_mmask);
+
 		/* Hack -- make sure the cursor is visible */
 		Term_xtra(TERM_XTRA_SHAPE, 1);
 
@@ -506,6 +513,10 @@ static errr Term_xtra_gcu_alive(int v)
 		cbreak();
 		noecho();
 		nonl();
+
+		/* Restore mouse */
+		keypad(stdscr, TRUE);
+		mousemask(game_mmask, &norm_mmask);
 
 		/* Go to angband keymap mode */
 		keymap_game();
@@ -601,16 +612,19 @@ static errr Term_xtra_gcu_event(int v)
 	{
 		/* Paranoia -- Wait for it */
 		nodelay(stdscr, FALSE);
+		//halfdelay(2);
 
 		/* Get a keypress */
 		i = getch();
 
 		/* Mega-Hack -- allow graceful "suspend" */
-		for (k = 0; (k < 10) && (i == ERR); k++) i = getch();
+		while (i == ERR) i = getch();
 
 		/* Broken input is special */
 		if (i == ERR) exit(0);
 		if (i == EOF) exit(0);
+
+		cbreak();
 	}
 
 	/* Do not wait */
@@ -628,6 +642,62 @@ static errr Term_xtra_gcu_event(int v)
 		/* None ready */
 		if (i == ERR) return (1);
 		if (i == EOF) return (1);
+	}
+
+	/* Handle mouse */
+	if (i == KEY_MOUSE)
+	{
+		MEVENT event;
+		if (getmouse(&event) != OK) return (1);
+		if (event.bstate & BUTTON1_CLICKED)
+		{
+			int button = 1;
+			if (event.bstate & BUTTON_CTRL)  button |= 16;
+			/* XXX -- hack -- ALT should be 64 and SHIFT 32 !!! */
+			if (event.bstate & BUTTON_ALT)   button |= 32;
+			if (event.bstate & BUTTON_SHIFT) button |= 64;
+
+			Term_mousepress(event.x, event.y, button);
+		}
+		else if (event.bstate & REPORT_MOUSE_POSITION)
+		{
+			Term_mousepress(event.x, event.y, 0);
+		}
+		return (0);
+	}
+
+#if 0
+/* Debug keypresses */
+mvprintw(1, 0, "Key: %3x %s\n", i, keyname(i));
+#endif
+
+/* XXX XXX XXX */
+	/* Note: in Angband 3.5.1, there's a switch here, used to translate
+	 * putty-numpad-keys into actual direction keys.
+	 * For example, Putty will send \eOt for numpad '4'.
+	 * Similarly, I've seen xterm send \eOj for numpad '/'.
+	 * I don't think we should actually be doing anything here, though,
+	 * as those sequences could be macroed to something useful.
+	 */ /* However, if we DO include this, we might actually be able to
+	     * remove `escape_in_macros` hack, as those are the last few keys
+	     * that use escape sequences! */
+/* XXX XXX XXX */
+
+
+	/* Handle keypad mode / function keys (arrows, f1-f12, etc) */
+	if (i >= 127)
+	{
+		char buf[1024];
+		size_t len, j;
+		/*sprintf(buf, "%c_%3x%c", 31, i, 13);*/
+		/* Instead of using codes, let's abuse keyname */
+		sprintf(buf, "%c_%s%c", 31, keyname(i), 13);
+		len = strlen(buf);
+		for (j = 0; j < len; j++)
+		{
+			Term_keypress(buf[j]);
+		}
+		return (0);
 	}
 
 	/* Enqueue the keypress */
@@ -917,6 +987,9 @@ errr init_gcu(void)
 	i = ((LINES < 24) || (COLS < 80));
 	if (i) quit("Angband needs an 80x24 'curses' screen");
 
+	/* Enable mouse */
+	keypad(stdscr, TRUE);
+	mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, &norm_mmask);
 
 #ifdef A_COLOR
 

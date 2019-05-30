@@ -2816,7 +2816,7 @@ void player_death(int Ind)
 	/* Normal death */
 	if (p_ptr->fruit_bat == -1)
 		sprintf(buf, "%s was turned into a fruit bat by %s!", p_ptr->name, p_ptr->died_from);
-	else if (!cfg_ironman) /* Notice bravery */
+	else if (!cfg_ironman && option_p(p_ptr, NO_GHOST)) /* Notice bravery */
 		sprintf(buf, "The brave hero %s the level %i %s %s was killed by %s.",
 		    p_ptr->name, p_ptr->lev,
 		    p_name + p_info[p_ptr->prace].name,
@@ -2859,8 +2859,7 @@ void player_death(int Ind)
 	/** Survived death **/
 
 	/* Give him his hit points back */
-	//see #1190
-	//p_ptr->mhp = p_ptr->lev + 2;
+	p_ptr->mhp = p_ptr->lev + 2;
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
 
@@ -2896,7 +2895,7 @@ void player_death(int Ind)
 	p_ptr->word_recall = 0;
 
 	/* Update bonus */
-	p_ptr->update |= (PU_BONUS);
+	p_ptr->update |= (PU_BONUS | PU_HP);
 
 	/* Redraw */
 	p_ptr->redraw |= (PR_HP | PR_GOLD | PR_BASIC | PR_OFLAGS );
@@ -3452,69 +3451,6 @@ cptr look_mon_desc(int m_idx)
 }
 
 
-
-/*
- * Angband sorting algorithm -- quick sort in place
- *
- * Note that the details of the data we are sorting is hidden,
- * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
- * function hooks to interact with the data, which is given as
- * two pointers, and which may have any user-defined form.
- */
-void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q)
-{
-	int z, a, b;
-
-	/* Done sort */
-	if (p >= q) return;
-
-	/* Pivot */
-	z = p;
-
-	/* Begin */
-	a = p;
-	b = q;
-
-	/* Partition */
-	while (TRUE)
-	{
-		/* Slide i2 */
-		while (!(*ang_sort_comp)(Ind, u, v, b, z)) b--;
-
-		/* Slide i1 */
-		while (!(*ang_sort_comp)(Ind, u, v, z, a)) a++;
-
-		/* Done partition */
-		if (a >= b) break;
-
-		/* Swap */
-		(*ang_sort_swap)(Ind, u, v, a, b);
-
-		/* Advance */
-		a++, b--;
-	}
-
-	/* Recurse left side */
-	ang_sort_aux(Ind, u, v, p, b);
-
-	/* Recurse right side */
-	ang_sort_aux(Ind, u, v, b+1, q);
-}
-
-
-/*
- * Angband sorting algorithm -- quick sort in place
- *
- * Note that the details of the data we are sorting is hidden,
- * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
- * function hooks to interact with the data, which is given as
- * two pointers, and which may have any user-defined form.
- */
-void ang_sort(int Ind, vptr u, vptr v, int n)
-{
-	/* Sort the array */
-	ang_sort_aux(Ind, u, v, 0, n-1);
-}
 
 
 /* returns our max times 100 divided by our current...*/
@@ -4293,7 +4229,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		object_type *o_ptr = &o_list[o_idx];
 		
 		/* Obtain an object description */
-		object_desc(Ind, x_name, o_ptr, TRUE, 3);
+		object_desc(Ind, x_name, sizeof(x_name), o_ptr, TRUE, 3);
 
 		name = x_name;
 	}
@@ -4676,6 +4612,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 				break;
 			}
 
+			case 'g':
+			{
+				do_cmd_pathfind(Ind, y, x);
+				done = TRUE;
+				break;
+			}
+
 			default:
 			{
 				/* Extract direction */
@@ -4775,6 +4718,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 			case '.':
 			{
 				target_set_location(Ind, p_ptr->look_y, p_ptr->look_x);
+				done = TRUE;
+				break;
+			}
+
+			case 'g':
+			{
+				do_cmd_pathfind(Ind, p_ptr->look_y, p_ptr->look_x);
 				done = TRUE;
 				break;
 			}
@@ -4887,6 +4837,90 @@ bool target_set_interactive(int Ind, int mode, char query)
 	return (TRUE);
 }
 
+
+/*
+ * This function will try to guess an appropriate action for
+ * "target_set_interactive", pick a fake keypress and, call it.
+ *
+ * For example, if we need to set target, the 't' keypress will
+ * be fed into the targeting code, as if the user pressed 't'.
+ *
+ * For "hovering mouse" effect, we use keys 'm' and 'o', which
+ * do (mostly) nothing.
+
+ * "mod" should contain MCURSOR_XXX bitflags, with the following meanings:
+ * (MCURSOR_META) -- when set, it means the 0x0F bits of the "mod"
+ *                   specify "look_mode" (one of NTARGET_XXX defines)
+ * (MCURSOR_xMB)  -- unused, per above.
+ * (MCURSOR_KTRL) -- player want to accept the target.
+ */
+bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
+{
+	bool accept = (mod & MCURSOR_KTRL) ? TRUE : FALSE;
+	int look_mode = (mod & 0x0F);
+	char key = '\xff';
+
+	/* Adjust coordinates */
+	x = x + p_ptr->panel_col_min;
+	y = y + p_ptr->panel_row_min;
+
+	/* Clip to panel bounds */
+	if (x < p_ptr->panel_col_min) x = p_ptr->panel_col_min;
+	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
+	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
+	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	/* Player is in "arbitrary grids" mode */
+	if ((p_ptr->target_flag & TARGET_GRID))
+	{
+		/* Set new values */
+		p_ptr->look_x = x;
+		p_ptr->look_y = y;
+
+		key = 'o';
+
+		if (accept)
+		{
+			key = 't';
+		}
+	}
+	/* Player is in "interesting grids" mode */
+	else
+	{
+		int i;
+		int found_index = -1;
+		int last_dist = -1;
+		/* Hack -- populate target_*[] arrays so we can iterate */
+		target_set_interactive(Get_Ind[p_ptr->conn], look_mode, 'm');
+		for (i = 0; i < p_ptr->target_n; i++)
+		{
+			int oy = p_ptr->target_y[i];
+			int ox = p_ptr->target_x[i];
+			int dist = distance(y, x, oy, ox);
+			if (dist < last_dist || last_dist == -1)
+			{
+				found_index = i;
+				last_dist = dist;
+			}
+		}
+		/* If nothing was found, do nothing */
+		if (found_index == -1) return FALSE;
+
+		/* Set new value */
+		p_ptr->look_index = found_index;
+
+		key = 'm';
+
+		if (accept)
+		{
+			key = 't';
+		}
+	}
+
+	/* We now have a proper look mode and a fake key */
+	/* Lets feed our interactive targeter */
+	return target_set_interactive(Get_Ind[p_ptr->conn], look_mode, key);
+}
 
 
 /*
@@ -5152,6 +5186,24 @@ bool monsters_in_los(player_type *p_ptr)
 		{
 			los = TRUE;
 			break;
+		}
+	}
+	/* Hostile players count as monsters */
+	if (!los) for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *q_ptr = Players[i];
+		if (q_ptr == p_ptr) continue; /* Skip self */
+
+		if (p_ptr->conn <= -1) break; /* Can't check hostility */
+
+		/* Check this player */
+		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
+		{
+			if (check_hostile(Get_Ind[p_ptr->conn], i))
+			{
+				los = TRUE;
+				break;
+			}
 		}
 	}
 	return los;
@@ -5486,7 +5538,7 @@ void wipe_socials()
 }
 void boot_socials()
 {
-	FILE *fp;	
+	ang_file* fp;
 	char buf[1024];
 	static bool initialised = FALSE;
 	int curr = -1, barr = 0; /* current social, and current line ('barrel') */
@@ -5496,7 +5548,7 @@ void boot_socials()
 	path_build(buf, 1024, ANGBAND_DIR_EDIT, "socials.txt");
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Parse it */
 	if (!fp) 
@@ -5506,7 +5558,7 @@ void boot_socials()
 	}
 
 	/* Parse the file */
-	while (0 == my_fgets(fp, buf, 1024))
+	while (file_getl(fp, buf, 1024))
 	{
 		/* Skip comments and blank lines */
 		if (!buf[0] || (buf[0] == '#')) continue;
@@ -5643,7 +5695,7 @@ void boot_socials()
 	}
 
 	/* Close it */
-	my_fclose(fp);
+	file_close(fp);
 }
 void show_socials(int Ind)
 {
@@ -5814,7 +5866,7 @@ void describe_player(int Ind, int Ind2)
 			o_ptr->ident = 0;
 
 		/* Extract name */
-		object_desc(Ind, o_name, o_ptr, TRUE, (spoilers ? 4 : 0));
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, (spoilers ? 4 : 0));
 
 		/* Restore original ident */
 		o_ptr->ident = old_ident;
@@ -6784,6 +6836,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 				numero[0] = (C); numero[1] = '\0'; \
 				c_prt(p_ptr, (A), numero, 2 + j, 6);
 
+#define OBJECT_TVAL_ATTR(O_PTR) \
+				p_ptr->tval_attr[(O_PTR)->tval % 128]
+
 	/* Content */
 	if (!access)
 	{
@@ -6875,7 +6930,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					{
 						MASTER_COMMON_LIMIT();
 
-						if (my_strnicmp(dit->d_name, "server-", 7)) { i--; continue; }
+						if (my_strnicmp(dit->d_name, "server.", 7)) { i--; continue; }
 
 						MASTER_DUMP_I()
 
@@ -7003,7 +7058,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 				{
 					/* Base Kind */
 					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
-					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char);
+					byte obj_attr = k_ptr->flavor ? flavor_info[k_ptr->flavor].d_attr : k_ptr->d_attr;
+					MASTER_DUMP_AC(obj_attr, k_ptr->d_char);
 					c_prt(p_ptr, attr, k_name + k_ptr->name, 2 + j++, 8);
 				}
 				else
@@ -7027,10 +7083,10 @@ void do_cmd_dungeon_master(int Ind, char query)
 				j++;
 				prompt_hooks = FALSE;
 				/* Extract Name */
-				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
+				object_desc(Ind, buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
-				c_prt(p_ptr, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
+				c_prt(p_ptr, OBJECT_TVAL_ATTR(&p_ptr->inventory[0]), buf, 2 + j++, 1);
 
 				/* Obtain XTRA2 modifier */
 				if (p_ptr->inventory[0].name2)
@@ -7181,7 +7237,7 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
 		{
 			vault_type *v_ptr = &v_info[p_ptr->master_args[hook_type]];
 			if (dm_flag_p(p_ptr, CAN_GENERATE))
-			build_vault(Ind, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
+			build_vault(Depth, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
 			break;
 		}
 		case DM_PAGE_FEATURE:

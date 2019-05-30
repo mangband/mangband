@@ -81,6 +81,8 @@ extern size_t my_strcat(char *buf, const char *src, size_t bufsize);
 extern bool streq(cptr s, cptr t);
 extern bool prefix(cptr s, cptr t);
 extern bool suffix(cptr s, cptr t);
+/* Test for case-insensitive suffix */
+extern bool isuffix(cptr s, cptr t);
 
 /* Hack -- conditional (or "bizarre") externs */
 
@@ -111,5 +113,12 @@ extern void quit(cptr str);
 extern void core(cptr str);
 
 
+/* Sorting functions */
+/* TODO: make ang_sort() take comp and swap hooks rather than use globals */
+extern void ang_sort(int Ind, vptr u, vptr v, int n);
+extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
+
+extern bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
+extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 
 #endif

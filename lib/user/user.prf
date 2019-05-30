@@ -21,6 +21,9 @@
 # User Terminals Setup
 %:window.prf
 
+# Mouse Macros
+#%:mouse.prf
+
 ##### System Specific Subfiles #####
 
 ?:[IOR [EQU $SYS xaw] [EQU $SYS x11] [EQU $SYS xpj] [EQU $SYS gtk]]

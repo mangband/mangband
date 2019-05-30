@@ -1478,6 +1478,29 @@ static void fix_monlist(int Ind)
 
 
 /*
+ * Hack -- display dungeon items in sub-windows
+ */
+static void fix_itemlist(int Ind)
+{
+	player_type *p_ptr = Players[Ind];
+
+	/* HACK -- Save other player info */
+	text_out_save(p_ptr);
+
+	/* Prepare 'visible monsters' list */
+	display_itemlist(p_ptr);
+
+	/* Send it */
+	send_prepared_info(p_ptr, NTERM_WIN_ITEMLIST, STREAM_ITEMLIST_TEXT, 0);
+
+	/* HACK -- Load other player info */
+	text_out_load(p_ptr);
+
+	return;
+}
+
+
+/*
  * Hack -- display inventory in sub-windows
  */
 static void fix_inven(int Ind)
@@ -2025,6 +2048,8 @@ static void calc_hitpoints(int Ind)
 
 	/* Calculate hitpoints */
 	if (p_ptr->fruit_bat) mhp = p_ptr->lev + 2;
+
+	else if (p_ptr->ghost) mhp = p_ptr->lev + 2;
 	
 	else mhp = p_ptr->player_hp[p_ptr->lev-1] + (bonus * p_ptr->lev / 100);
 
@@ -3034,6 +3059,10 @@ static void calc_bonuses(int Ind)
 		p_ptr->icky_wield = TRUE;
 	}
 
+	/* Hack -- ensure speed is in bounds */
+	if (p_ptr->pspeed < 0) p_ptr->pspeed = 0;
+	if (p_ptr->pspeed > 199) p_ptr->pspeed = 199;
+
 
 	/*** Notice changes ***/
 
@@ -3564,6 +3593,13 @@ void window_stuff(int Ind)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
 		fix_monlist(Ind);
+	}
+
+	/* Display item list */
+	if (p_ptr->window & PW_ITEMLIST)
+	{
+		p_ptr->window &= ~(PW_ITEMLIST);
+		fix_itemlist(Ind);
 	}
 }
 

@@ -62,8 +62,8 @@ s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
 s16b cur_line;				/* Current displayed line of "special" info */
 
-cave_view_type* remote_info[8]; /* Local copies for Special Info */
-s16b last_remote_line[8];
+cave_view_type* remote_info[16]; /* Local copies for Special Info */
+s16b last_remote_line[16];
 cptr stream_desc[32];
 
 cave_view_type sfx_info[MAX_HGT][MAX_WID] = { 0 };
@@ -83,9 +83,16 @@ player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
 
+bool prompt_quote_hack = FALSE; /* Allow '"' to be used in place of '\r' */
+
 s16b command_see;
 s16b command_gap;
 s16b command_wrk;
+
+bool spellcasting = FALSE; /* Selecting a magic book */
+int spellcasting_spell = -1; /* Select-by-name spell */
+
+int inven_out_index[256] = { -2 }; /* Last line->a) index mappings from show_equip() */
 
 bool item_tester_full;
 byte item_tester_tval;
@@ -160,6 +167,7 @@ cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with e
 
 s16b command_cmd;
 s16b command_dir;
+event_type command_cmd_ex; /* Gives additional information of current command */
 
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 int custom_commands;
@@ -178,6 +186,8 @@ char ptitle[80];
 
 s16b stat_order[6];			/* Desired order of stats */
 
+bool flip_inven = FALSE;
+s16b flip_charsheet = 0;
 
 bool topline_icky;
 bool screen_icky;
@@ -186,6 +196,7 @@ byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 bool looking;
+bool in_item_prompt = FALSE;
 
 byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 
@@ -256,8 +267,10 @@ bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
 bool auto_itemlist;
+bool auto_showlist;
 bool show_labels;
 bool show_weights;
+bool wrap_messages;
 bool ring_bell;
 bool use_color;
 

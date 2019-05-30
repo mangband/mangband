@@ -17,6 +17,7 @@ mangclient_SOURCES = \
 		src/client/c-init.c src/client/c-inven.c src/client/c-spell.c \
 		src/client/c-store.c src/client/c-tables.c src/client/c-util.c \
 		src/client/c-xtra1.c src/client/c-xtra2.c src/client/client.c \
+		src/client/ui.c src/client/ui.h src/client/c-cmd0.c \
 		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
 		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
 		src/client/readdib.c src/client/set_focus.c src/client/c-variable.c \
@@ -26,7 +27,8 @@ mangclient_SOURCES = \
 		src/client/net-client.h src/client/readdib.h src/client/resource.h \
 		src/client/z-term.h
 
-mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c
+mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c \
+		src/client/lupng/lupng.h src/client/lupng/miniz.h
 
 if USE_CRB
 

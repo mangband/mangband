@@ -614,11 +614,18 @@ option_type local_option_info[] =
 	{ &show_weights,		0,TRUE,	1,	0, 0,
 	"show_weights",			"Show weights in object listings" },
 
+	{ &wrap_messages,		0,TRUE,	1,	0, 0,
+	"wrap_messages",		"Wrap long messages in sub-windows" },
+
 	{ &auto_accept, 		0,FALSE,	1,	0, 0,
 	"auto_accept",			"Always say Yes to Yes/No prompts" },
 
 	{ &auto_itemlist,   		0,FALSE,	1,	0, 0,
 	"auto_itemlist",		"Show listings when prompting for an item" },
+
+	{ &auto_showlist,   		0,FALSE,	1,	0, 0,
+	"auto_showlist",		"Show listings when prompting for a spell" },
+
 
 	/*** End of Table ***/
 

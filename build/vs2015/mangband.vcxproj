@@ -354,6 +354,7 @@
     <ClCompile Include="..\..\src\server\object1.c" />
     <ClCompile Include="..\..\src\server\object2.c" />
     <ClCompile Include="..\..\src\server\party.c" />
+    <ClCompile Include="..\..\src\server\pathfind.c" />
     <ClCompile Include="..\..\src\server\save.c" />
     <ClCompile Include="..\..\src\server\spells1.c" />
     <ClCompile Include="..\..\src\server\spells2.c" />
@@ -370,6 +371,7 @@
     <ClCompile Include="..\..\src\common\z-rand.c" />
     <ClCompile Include="..\..\src\common\z-util.c" />
     <ClCompile Include="..\..\src\common\z-virt.c" />
+    <ClCompile Include="..\..\src\common\z-file.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\angband.h" />
@@ -397,6 +399,7 @@
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
+    <ClInclude Include="..\..\src\common\z-file.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mangclient.vcxproj">
