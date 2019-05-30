@@ -1,41 +1,34 @@
 # Auto-inscription "script".
 #
-# The '\': lines will inject keystrokes directly into the game
-# and are akin to executing a macro ('P').
+# {:Item name:inscription
+#
+# The '{' lines will execute inscription command, get-item-by-name, using
+# the 'Item name' pattern, and apply 'inscription'.
 
 # Note: you are expected to edit this file, the inscriptions
 # provided are mostly for example purposes.
 
-# Exit all prompts
+# Ensure we are not bypassing commands
 ?:1
-\:\e\e\e\e
 
-# The following lines follow this pattern:
-#
-# \e     press ESC
-# {      Inscribe command
-# "      Start "item-by-name" query
-# Name   Enter item name
-# "      Confirm "item-by-name"
-# @m1    Enter desired inscription
-# \r     press Return (confirm inscription)
+# Inscribe
 
-\:\e{"Magic for Beginners"@m1\r
-\:\e{"Conjurings and Tricks"@m2\r
-\"\e{"Incantations and Illusions"@m3\r
-\:\e{"Beginners Handbook"@p1\r
-\:\e{"Words of Wisdom"@p2\r
-\:\e{"Chants and Blessings"@p3\r
-\:\e{"Arrow"@f1=g\r
-\:\e{"Phase Door"@r1\r
-\:\e{"Word of Recall"@r9\r
-\:\e{"of Healing"@q1\r
-\:\e{"Cure Critical Wounds"@q1\r
-\:\e{"Cure Serious Wounds"@q1\r
-\:\e{"Cure Light Wounds"@q1\r
-\:\e{"Berserk Strength"@q2\r
+{:Magic for Beginners:@m1
+{:Conjurings and Tricks:@m2
+{:Incantations and Illusions:@m3
+{:Beginners Handbook:@p1
+{:Words of Wisdom:@p2
+{:Chants and Blessings:@p3
+{:Arrow:@f1=g
+{:Phase Door:@r1
+{:Word of Recall:@r9
+{:of Healing:@q1
+{:Cure Critical Wounds:@q1
+{:Cure Serious Wounds:@q1
+{:Cure Light Wounds:@q1
+{:Berserk Strength:@q2
 
 # Squelch-like behaviors: inscribe "bad" items with =k
 # Execute a macro with "\ek{=k}Ay" to destroy such items.
 
-#\:\e{"Potion of Death"=k\r
+#{:Potion of Death:=k

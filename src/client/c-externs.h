@@ -451,6 +451,7 @@ extern bool item_tester_hack(object_type *o_ptr, int i); /* Do not use this */
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
 extern byte c_secondary_tester(int item);
+extern void do_cmd_inscribe_auto(char *item_name, char *inscription);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP

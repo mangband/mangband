@@ -190,7 +190,7 @@ static int get_tag(int *cp, char tag)
 }
 
 /* Prompt player for a string, then try to find an item matching it */
-static bool get_item_by_name(int *k, bool inven, bool equip, bool floor)
+static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *force_str)
 {
 	char buf[256];
 	char *tok;
@@ -212,10 +212,19 @@ static bool get_item_by_name(int *k, bool inven, bool equip, bool floor)
 	/* Hack -- show opening quote symbol */
 	if (prompt_quote_hack) prompt = "Item name: \"";
 
-	buf[0] = '\0';
-	if (!get_string(prompt, buf, 80))
+	/* Already have a symbol */
+	if (force_str)
 	{
-		return FALSE;
+		my_strcpy(buf, force_str, sizeof(buf));
+	}
+	/* Ask player */
+	else
+	{
+		buf[0] = '\0';
+		if (!get_string(prompt, buf, 80))
+		{
+			return FALSE;
+		}
 	}
 
 	/* Hack -- remove final quote */
@@ -598,7 +607,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
-				if (get_item_by_name(&k, inven, equip, floor))
+				if (get_item_by_name(&k, inven, equip, floor, (NULL)))
 				{
 					(*cp) = k;
 					item = TRUE;
@@ -802,4 +811,23 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	/* Return TRUE if something was picked */
 	return (item);
+}
+
+void do_cmd_inscribe_auto(char *name, char *inscription)
+{
+	int item;
+	int cc_ind = -1, i;
+	/* Hack find inscribe command (assume it's called 'k') */
+	for (i = 0; i < custom_commands; i++) {
+		custom_command_type *cc_ptr = &custom_command[i];
+		if ((cc_ptr->m_catch == '{')
+		&& (cc_ptr->scheme == SCHEME_ITEM_STRING))
+		{
+			cc_ind = i;
+			break;
+		}
+	}
+	if (cc_ind == -1) return;
+	if (!get_item_by_name(&item, TRUE, TRUE, TRUE, name)) return;
+	send_custom_command(cc_ind, item, 0, 0, inscription);
 }

@@ -1013,6 +1013,21 @@ errr process_pref_file_command(char *buf)
 		}
 	}
 
+	/* Process "{" -- single auto-inscribe instruction */
+	else if (buf[0] == '{')
+	{
+		char tmpbuf[1024];
+		char *item_query;
+		char *item_inscription;
+		my_strcpy(tmpbuf, buf + 2, sizeof(tmpbuf));
+		item_query = strtok(tmpbuf, ":");
+		item_inscription = strtok(NULL, ":");
+		if (!item_query || !item_inscription) return 1; /* Fail */
+		do_cmd_inscribe_auto(item_query, item_inscription);
+		/* Done */
+		return (0);
+	}
+
 	/* Process "A:<str>" -- save an "action" for later */
 	else if (buf[0] == 'A')
 	{
