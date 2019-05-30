@@ -1042,6 +1042,9 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 	/* Can't start with space */
 	if (nick_name[0] == ' ') return FALSE;
 
+	/* Can't start with lowercase */
+	nick_name[0] = toupper(nick_name[0]);
+
 	/* Right-trim nick */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
@@ -1049,6 +1052,19 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 			*ptr = '\0';
 		else break;
 	}
+
+	/* On Win32, normalize case */
+#ifdef FS_CASE_IGNORE
+	{
+		char temp_name[MAX_CHARS];
+		rewrite_player_name(temp_name, NULL, nick_name);
+		my_strcpy(nick_name, temp_name, MAX_CHARS);
+	}
+#endif
+	/* On Win3.11/DOS, trim nick to 8 chars */
+#ifdef FS_MAX_BASE_LEN
+	nick_name[FS_MAX_BASE_LEN] = '\0';
+#endif
 
 	/* Hack -- Reserved name */
 	if (!my_stricmp(nick_name, "server")) return FALSE;

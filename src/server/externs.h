@@ -586,6 +586,7 @@ extern int file_peruse_next(player_type *p_ptr, char query, int next);
 extern void common_file_peruse(player_type *p_ptr, char query);
 extern void copy_file_info(player_type *p_ptr, cptr name, int line, int color);
 extern void do_cmd_help(int Ind, int line);
+extern int rewrite_player_name(char *wptr, char *bptr, const char *nick_name);
 extern bool process_player_name(player_type *p_ptr, bool sf);
 extern int process_player_name_aux(cptr name, cptr basename, bool sf);
 extern void get_name(int Ind);
