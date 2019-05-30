@@ -234,7 +234,6 @@ extern int num_arenas;
 extern int chan_audit;
 extern int chan_debug;
 extern int chan_cheat;
-extern long GetInd[];
 /*extern char player_name[32];
 extern char player_base[32];
 extern char died_from[80];
@@ -262,10 +261,10 @@ extern u16b message__head;
 extern u16b message__tail;
 extern u16b *message__ptr;
 extern char *message__buf;
-extern u32b option_flag[8];
+/*extern u32b option_flag[8];
 extern u32b option_mask[8];
 extern u32b window_flag[8];
-extern u32b window_mask[8];
+extern u32b window_mask[8];*/
 /*extern term *ang_term[8];*/
 extern s16b o_fast[MAX_O_IDX];
 extern s16b m_fast[MAX_M_IDX];
@@ -553,8 +552,6 @@ extern void do_cmd_refill_potion(int Ind, int item);
 extern bool findpath(player_type *p_ptr, int y, int x);
 
 /* control.c */
-extern void NewConsole(int fd, int arg);
-extern bool InitNewConsole(int write_fd);
 extern void console_print(char *msg, int chan);
 
 /* dungeon.c */
