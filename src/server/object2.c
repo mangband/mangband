@@ -3599,6 +3599,15 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 	/* Add inscription (for unique drops) */
 	if (quark > 0) o_ptr->note = quark;
 
+#ifdef DEBUG
+	{
+		char tmp[120];
+		object_desc(0, tmp, sizeof(tmp), o_ptr, FALSE, 1);
+		/* Audit item allocation */
+		cheat(format("%s %s", artifact_p(o_ptr) ? "+a": "+o", tmp));
+	}
+#endif
+
 	return artifact_p(o_ptr);
 	}
 

@@ -1964,6 +1964,10 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		m_ptr->csleep = ((val * 2) + randint(val * 10));
 	}
 
+#ifdef DEBUG
+	/* Audit monster allocation */
+	cheat(format("+m %s", r_name + r_ptr->name));
+#endif
 
 	/* Success */
 	return (TRUE);

@@ -2457,6 +2457,10 @@ static void build_type7(int Depth, int yval, int xval)
 
 	/* Message */
 	/*if (cheat_room) msg_print("Lesser Vault");*/
+#ifdef DEBUG
+	/* Audit vault allocation */
+	cheat(format("+v %s", v_name + v_ptr->name));
+#endif
 
 	/* Boost the rating */
 	rating += v_ptr->rat;
@@ -2493,6 +2497,10 @@ static void build_type8(int Depth, int yval, int xval)
 
 	/* Message */
 	/*if (cheat_room) msg_print("Greater Vault");*/
+#ifdef DEBUG
+	/* Audit monster allocation */
+	cheat(format("+v %s", v_name + v_ptr->name));
+#endif
 
 	/* Boost the rating */
 	rating += v_ptr->rat;
