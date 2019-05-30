@@ -3011,7 +3011,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, 1024, ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Use the "16x16.bmp" file if it exists */
-		if (0 == my_fclose(my_fopen(filename, "r")))
+		if (file_exists(filename))
 		{
 			/* Use graphics */
 			use_graphics = GRAPHICS_ADAM_BOLT;
@@ -3033,7 +3033,7 @@ errr init_x11(int argc, char **argv)
 		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
 
 		/* Use the "8x8.bmp" file if it exists */
-		if (0 == my_fclose(my_fopen(filename, "r")))
+		if (file_exists(filename))
 		{
 			/* Use graphics */
 			use_graphics = GRAPHICS_ORIGINAL;

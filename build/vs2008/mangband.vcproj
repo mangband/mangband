@@ -498,6 +498,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\z-file.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\z-form.c"
 				>
 			</File>
@@ -601,6 +605,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\z-file.h"
 				>
 			</File>
 			<File

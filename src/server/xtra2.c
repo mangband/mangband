@@ -5538,7 +5538,7 @@ void wipe_socials()
 }
 void boot_socials()
 {
-	FILE *fp;	
+	ang_file* fp;
 	char buf[1024];
 	static bool initialised = FALSE;
 	int curr = -1, barr = 0; /* current social, and current line ('barrel') */
@@ -5548,7 +5548,7 @@ void boot_socials()
 	path_build(buf, 1024, ANGBAND_DIR_EDIT, "socials.txt");
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Parse it */
 	if (!fp) 
@@ -5558,7 +5558,7 @@ void boot_socials()
 	}
 
 	/* Parse the file */
-	while (0 == my_fgets(fp, buf, 1024))
+	while (file_getl(fp, buf, 1024))
 	{
 		/* Skip comments and blank lines */
 		if (!buf[0] || (buf[0] == '#')) continue;
@@ -5695,7 +5695,7 @@ void boot_socials()
 	}
 
 	/* Close it */
-	my_fclose(fp);
+	file_close(fp);
 }
 void show_socials(int Ind)
 {

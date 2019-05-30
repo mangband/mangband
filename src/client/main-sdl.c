@@ -579,7 +579,7 @@ errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 
 errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 {
-	FILE *f;
+	ang_file* f;
 
 	char buf[1036]; /* 12 (or 11? ;->)extra bytes for good luck. */
 
@@ -611,7 +611,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 
-	f = fopen(buf, "r");
+	f = file_open(buf, MODE_READ, -1);
 
 	if (!f)
 	{
@@ -623,7 +623,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 	/* try hard to figure out the font metrics */
 
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
 	{
 		i = strlen(gs);
 
@@ -637,7 +637,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 		if (i & 1)
 		{
 			plog("Error in HEX line measurment. Report to hmaon@bumba.net.");
-			fclose(f);
+			file_close(f);
 			fail = -1;
 			break;
 		}
@@ -695,7 +695,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 	if (justmetrics) 
 	{
-		fclose(f);
+		file_close(f);
 		return fail;
 	}
 
@@ -704,9 +704,9 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 	if(!(fd->face)) return -1;
 	SDL_SetAlpha(fd->face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
 
-	rewind(f);
+	file_seek(f, 0);
 
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
 	{
 #ifdef FONT_LOAD_DEBUGGING
 		puts("");
@@ -1017,7 +1017,6 @@ bool gui_term_unctrl() {
 /* Take a screenshot of the whole screen and dump it to a .bmp file */
 void gui_take_snapshot() {
 	char buf[1024];
-	FILE *tmp;
 	int i;
 
 	term_data *td = (term_data*)(Term->data);
@@ -1029,13 +1028,13 @@ void gui_take_snapshot() {
 	}
 	for (i = 0; i < 999; ++i) 
 	{
-		sprintf(buf, "%03d.bmp", i);
-		if ((tmp = fopen(buf, "rb")) != NULL)
+		strnfmt(buf, sizeof(buf), "%03d.bmp", i);
+		if (file_exists(buf))
 		{
-			fclose(tmp);
 			continue;
 		}
-		rename("newshot.bmp", buf);
+		file_move("newshot.bmp", buf);
+		break;
 	}
 	plog("*click*");
 }

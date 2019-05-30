@@ -52,7 +52,7 @@
 /*
  * Local "savefile" pointer
  */
-static FILE *file_handle; 
+static ang_file* file_handle; 
 /* Line counter */
 static int line_counter;
 
@@ -83,7 +83,7 @@ void start_section_read(char* name)
 	char got_section[80];
 	bool matched = FALSE;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sprintf(seek_section,"<%s>",name);
@@ -106,7 +106,7 @@ void end_section_read(char* name)
 	char got_section[80];
 	bool matched = FALSE;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sprintf(seek_section,"</%s>",name);
@@ -129,7 +129,7 @@ int read_int(char* name)
 	bool matched = FALSE;
 	int value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %i",seek_name,&value) == 2)
@@ -152,7 +152,7 @@ uint read_uint(const char* name)
 	bool matched = FALSE;
 	uint value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %u",seek_name,&value) == 2)
@@ -175,7 +175,7 @@ huge read_huge(char* name)
 	bool matched = FALSE;
 	huge value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %" SCNu64 ,seek_name,&value) == 2)
@@ -198,7 +198,7 @@ void read_hturn(char* name, hturn *value)
 	bool matched = FALSE;
 	s64b era, turn;
 
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if (sscanf(file_buf, "%s = %" SCNu64 " %" SCNu64, seek_name, &era, &turn) == 3)
@@ -226,7 +226,7 @@ void read_str(char* name, char* value)
 	bool matched = FALSE;
 	char *c;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sscanf(file_buf,"%s = ",seek_name);
@@ -260,7 +260,7 @@ float read_float(char* name)
 	bool matched = FALSE;
 	float value;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %f",seek_name,&value) == 2)
@@ -287,7 +287,7 @@ void read_binary(char* name, char* value, int max_len)
 	unsigned int abyte;
 	hex[2] = '\0';
 
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sscanf(file_buf,"%s = ",seek_name);
@@ -324,15 +324,15 @@ void skip_value(char* name)
 	long fpos;
 	
 	/* Remember where we are incase there is nothing to skip */
-	fpos = ftell(file_handle);
+	fpos = file_tell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(strstr(file_buf,seek_name) == NULL)
 		{
 			/* Move back on seek failures */
-			fseek(file_handle,fpos,SEEK_SET);
+			file_seek(file_handle, fpos);
 			line_counter--;
 			/* plog(format("Missing value.  Expected to skip '%s', found '%s' at line %i\n",name,seek_name,line_counter)); */
 			/* exit(1); */
@@ -348,9 +348,9 @@ bool value_exists(const char* name)
 	long fpos;
 	
 	/* Remember where we are */
-	fpos = ftell(file_handle);
+	fpos = file_tell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		matched = TRUE;
 		if(strstr(file_buf,seek_name) == NULL)
@@ -359,7 +359,7 @@ bool value_exists(const char* name)
 		}
 	}
 	/* Move back */
-	fseek(file_handle,fpos,SEEK_SET);
+	file_seek(file_handle, fpos);
 	return(matched);
 }
 
@@ -372,8 +372,8 @@ bool section_exists(char* name)
 	long fpos;
 	
 	/* Remember where we are */
-	fpos = ftell(file_handle);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	fpos = file_tell(file_handle);
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		sprintf(seek_section,"<%s>",name);
 		if(sscanf(file_buf,"%s",got_section) == 1)
@@ -382,7 +382,7 @@ bool section_exists(char* name)
 		}
 	}
 	/* Move back */
-	fseek(file_handle,fpos,SEEK_SET);
+	file_seek(file_handle, fpos);
 	return(matched);
 }
 
@@ -1461,8 +1461,8 @@ static errr rd_dungeon_special()
 {
 	char filename[1024];
 	char levelname[32];
-	FILE *fhandle;
-	FILE *server_handle;
+	ang_file* fhandle;
+	ang_file* server_handle;
 	int i,num_levels,j=0,k=0;
 	
 	/* Clear all the special levels */
@@ -1486,7 +1486,7 @@ static errr rd_dungeon_special()
 		sprintf(levelname,"server.level.%i.%i.%i",k,j,i);
 		path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 		/* open the file if it exists */
-		fhandle = my_fopen(filename, "r");
+		fhandle = file_open(filename, MODE_READ, -1);
 		if(fhandle)
 		{
 			/* swap out the main file pointer for our level file */
@@ -1497,7 +1497,7 @@ static errr rd_dungeon_special()
 			/* swap the file pointers back */
 			file_handle = server_handle;
 			/* close the level file */
-			my_fclose(fhandle);
+			file_close(fhandle);
 			/* we have an arbitrary max number of levels */
 			if(num_levels + 1 > MAX_SPECIAL_LEVELS)
 			{
@@ -1517,12 +1517,12 @@ static errr rd_dungeon_special()
 bool rd_dungeon_special_ext(int Depth, cptr levelname)
 {
 	char filename[1024];
-	FILE *fhandle;
-	FILE *server_handle;
+	ang_file* fhandle;
+	ang_file* server_handle;
 	
 	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 
-	fhandle = my_fopen(filename, "r");
+	fhandle = file_open(filename, MODE_READ, -1);
 
 	if (fhandle)
 	{
@@ -1537,7 +1537,7 @@ bool rd_dungeon_special_ext(int Depth, cptr levelname)
 			file_handle = server_handle;
 
 			/* close the level file */
-			my_fclose(fhandle);
+			file_close(fhandle);
 
 			return TRUE;
 	}
@@ -1605,13 +1605,13 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 	char buf[1024];
 
 	/* The savefile is a text file */
-	file_handle = my_fopen(sfile, "r");
+	file_handle = file_open(sfile, MODE_READ, -1);
 
 	/* Paranoia */
 	if (!file_handle) return (-1);
 
 	/* Try to fetch the data */
-	while (fgets(buf, 1024, file_handle))
+	while (file_getl(file_handle, buf, 1024))
 	{
 		read = strtok(buf, " \t=");
 		if (!strcmp(read, "pass"))
@@ -1670,10 +1670,10 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 	}
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);
@@ -2019,7 +2019,7 @@ errr rd_savefile_new(player_type *p_ptr)
 	errr err;
 
 	/* The savefile is a text file */
-	file_handle = my_fopen(p_ptr->savefile, "r");
+	file_handle = file_open(p_ptr->savefile, MODE_READ, -1);
 
 	/* Paranoia */
 	if (!file_handle) return (-1);
@@ -2028,10 +2028,10 @@ errr rd_savefile_new(player_type *p_ptr)
 	err = rd_savefile_new_aux(p_ptr);
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);
@@ -2056,7 +2056,7 @@ errr rd_server_savefile()
 	path_build(savefile, 1024, ANGBAND_DIR_SAVE, "server");
 
 	/* The server savefile is a binary file */
-	file_handle = my_fopen(savefile, "r");
+	file_handle = file_open(savefile, MODE_READ, -1);
 	line_counter = 0;
 
 	start_section_read("mangband_server_save");
@@ -2327,10 +2327,10 @@ errr rd_server_savefile()
 	end_section_read("mangband_server_save");
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);

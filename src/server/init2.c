@@ -243,7 +243,7 @@ static void show_news_aux(const char * filename, byte ind)
 {
 	int     	n = 0;
 
-	FILE        *fp;
+	ang_file*   fp;
 
 	char	buf[1024];
 
@@ -255,20 +255,20 @@ static void show_news_aux(const char * filename, byte ind)
 	path_build(buf, 1024, ANGBAND_DIR_HELP, filename);
 
 	/* Open the file */
-	fp = my_fopen(buf, "r");
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Dump */
 	if (fp)
 	{
 		/* Dump the file into the buffer */
-		while (0 == my_fgets(fp, buf, 1024) && n < TEXTFILE__HGT)
+		while (file_getl(fp, buf, 1024) && n < TEXTFILE__HGT)
 		{
 			strncpy(&text_screen[ind][n * TEXTFILE__WID], buf, TEXTFILE__WID);
 			n++;
 		}
 
 		/* Close */
-		my_fclose(fp);
+		file_close(fp);
 	}
 
 	/* Failure */
@@ -308,11 +308,7 @@ static void show_news_aux(const char * filename, byte ind)
  */
 void show_news(void)
 {
-	int		fd = -1;
-
-	int		mode = 0644;
-
-	FILE        *fp;
+	ang_file* fp;
 
 	char	buf[1024];
 
@@ -328,20 +324,14 @@ void show_news(void)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_DATA, "scores.raw");
 
-	/* Attempt to open the high score file */
-	fd = fd_open(buf, O_RDONLY);
-
-	/* Failure */
-	if (fd < 0)
+	if (!file_exists(buf))
 	{
-		/* File type is "DATA" */
-		FILE_TYPE(FILE_TYPE_DATA);
 
 		/* Create a new high score file */
-		fd = fd_make(buf, mode);
+		fp = file_open(buf, MODE_WRITE, FTYPE_RAW);
 
 		/* Failure */
-		if (fd < 0)
+		if (!fp)
 		{
 			char why[1024];
 
@@ -351,10 +341,12 @@ void show_news(void)
 			/* Crash and burn */
 			show_news_error(why);
 		}
+		else
+		{
+			/* Close it */
+			(void)file_close(fp);
+		}
 	}
-
-	/* Close it */
-	(void)fd_close(fd);
 }
 
 
@@ -444,13 +436,13 @@ header flavor_head;
 /*
  * Initialize a "*_info" array, by parsing a binary "image" file
  */
-static errr init_info_raw(int fd, header *head)
+static errr init_info_raw(ang_file* fd, header *head)
 {
 	header test;
 
 
 	/* Read and verify the header */
-	if (fd_read(fd, (char*)(&test), sizeof(header)) ||
+	if (file_read(fd, (char*)(&test), sizeof(header)) <= 0 ||
 	    (test.v_major != head->v_major) ||
 	    (test.v_minor != head->v_minor) ||
 	    (test.v_patch != head->v_patch) ||
@@ -473,7 +465,7 @@ static errr init_info_raw(int fd, header *head)
 	C_MAKE(head->info_ptr, head->info_size, char);
 
 	/* Read the "*_info" array */
-	fd_read(fd, head->info_ptr, head->info_size);
+	file_read(fd, head->info_ptr, head->info_size);
 
 	if (head->name_size)
 	{
@@ -481,7 +473,7 @@ static errr init_info_raw(int fd, header *head)
 		C_MAKE(head->name_ptr, head->name_size, char);
 
 		/* Read the "*_name" array */
-		fd_read(fd, head->name_ptr, head->name_size);
+		file_read(fd, head->name_ptr, head->name_size);
 	}
 
 	if (head->text_size)
@@ -490,7 +482,7 @@ static errr init_info_raw(int fd, header *head)
 		C_MAKE(head->text_ptr, head->text_size, char);
 
 		/* Read the "*_text" array */
-		fd_read(fd, head->text_ptr, head->text_size);
+		file_read(fd, head->text_ptr, head->text_size);
 	}
 
 	/* Success */
@@ -552,11 +544,9 @@ static void display_parse_error(cptr filename, errr err, cptr buf)
  */
 static errr init_info(cptr filename, header *head)
 {
-	int fd;
-
 	errr err = 1;
 
-	FILE *fp;
+	ang_file* fp;
 
 	/* General buffer */
 	char buf[1024];
@@ -570,10 +560,10 @@ static errr init_info(cptr filename, header *head)
 	path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
 
 	/* Attempt to open the "raw" file */
-	fd = fd_open(buf, O_RDONLY);
+	fp = file_open(buf, MODE_READ, -1);
 
 	/* Process existing "raw" file */
-	if (fd >= 0)
+	if (fp)
 	{
 #ifdef CHECK_MODIFICATION_TIME
 
@@ -583,10 +573,10 @@ static errr init_info(cptr filename, header *head)
 
 		/* Attempt to parse the "raw" file */
 		if (!err)
-			err = init_info_raw(fd, head);
+			err = init_info_raw(fp, head);
 
 		/* Close it */
-		fd_close(fd);
+		file_close(fp);
 	}
 
 	/* Do we have to parse the *.txt file? */
@@ -611,7 +601,7 @@ static errr init_info(cptr filename, header *head)
 		path_build(buf, sizeof(buf), ANGBAND_DIR_EDIT, format("%s.txt", filename));
 
 		/* Open the file */
-		fp = my_fopen(buf, "r");
+		fp = file_open(buf, MODE_READ, -1);
 
 		/* Parse it */
 		if (!fp) quit(format("Cannot open '%s' file.", buf));
@@ -620,7 +610,7 @@ static errr init_info(cptr filename, header *head)
 		err = init_info_txt(fp, buf, head, head->parse_info_txt);
 
 		/* Close it */
-		my_fclose(fp);
+		file_close(fp);
 
 		/* Errors */
 		if (err) display_parse_error(filename, err, buf);
@@ -628,55 +618,20 @@ static errr init_info(cptr filename, header *head)
 
 		/*** Dump the binary image file ***/
 
-		/* File type is "DATA" */
-		FILE_TYPE(FILE_TYPE_DATA);
-
 		/* Build the filename */
 		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
-
-
-		/* Attempt to open the file */
-		fd = fd_open(buf, O_RDONLY);
-
-		/* Failure */
-		if (fd < 0)
-		{
-			int mode = 0644;
-
-			/* Grab permissions */
-			/*safe_setuid_grab();*/
-
-			/* Create a new file */
-			fd = fd_make(buf, mode);
-
-			/* Drop permissions */
-			/*safe_setuid_drop();*/
-
-			/* Failure */
-			if (fd < 0)
-			{
-				/* Complain */
-				plog_fmt("Cannot create the '%s' file!", buf);
-
-				/* Continue */
-				return (0);
-			}
-		}
-
-		/* Close it */
-		fd_close(fd);
 
 		/* Grab permissions */
 		/*safe_setuid_grab();*/
 
 		/* Attempt to create the raw file */
-		fd = fd_open(buf, O_WRONLY);
+		fp = file_open(buf, MODE_WRITE, FTYPE_RAW);
 
 		/* Drop permissions */
 		/*safe_setuid_drop();*/
 
 		/* Failure */
-		if (fd < 0)
+		if (!fp)
 		{
 			/* Complain */
 			plog_fmt("Cannot write the '%s' file!", buf);
@@ -686,25 +641,25 @@ static errr init_info(cptr filename, header *head)
 		}
 
 		/* Dump to the file */
-		if (fd >= 0)
+		if (fp)
 		{
 			/* Dump it */
-			fd_write(fd, (cptr)head, head->head_size);
+			file_write(fp, (cptr)head, head->head_size);
 
 			/* Dump the "*_info" array */
 			if (head->info_size > 0)
-				fd_write(fd, head->info_ptr, head->info_size);
+				file_write(fp, head->info_ptr, head->info_size);
 
 			/* Dump the "*_name" array */
 			if (head->name_size > 0)
-				fd_write(fd, head->name_ptr, head->name_size);
+				file_write(fp, head->name_ptr, head->name_size);
 
 			/* Dump the "*_text" array */
 			if (head->text_size > 0)
-				fd_write(fd, head->text_ptr, head->text_size);
+				file_write(fp, head->text_ptr, head->text_size);
 
 			/* Close */
-			fd_close(fd);
+			file_close(fp);
 		}
 
 
@@ -729,16 +684,16 @@ static errr init_info(cptr filename, header *head)
 		path_build(buf, sizeof(buf), ANGBAND_DIR_DATA, format("%s.raw", filename));
 
 		/* Attempt to open the "raw" file */
-		fd = fd_open(buf, O_RDONLY);
+		fp = file_open(buf, MODE_READ, -1);
 
 		/* Process existing "raw" file */
-		if (fd < 0) quit(format("Cannot load '%s.raw' file.", filename));
+		if (!fp) quit(format("Cannot load '%s.raw' file.", filename));
 
 		/* Attempt to parse the "raw" file */
-		err = init_info_raw(fd, head);
+		err = init_info_raw(fp, head);
 
 		/* Close it */
-		fd_close(fd);
+		file_close(fp);
 
 		/* Error */
 		if (err) quit(format("Cannot parse '%s.raw' file.", filename));
@@ -2346,7 +2301,7 @@ void unload_server_cfg()
 /* Parse the loaded mangband.cfg file, and if a valid expression was found
  * try to set it using set_server_option.
  */
-void load_server_cfg_aux(FILE * cfg)
+void load_server_cfg_aux(ang_file* cfg)
 {
 	char line[256];
 
@@ -2356,10 +2311,10 @@ void load_server_cfg_aux(FILE * cfg)
 	bool first_token;
 
 	/* Read in lines until we hit EOF */
-	while (fgets(line, 256, cfg) != NULL)
+	while (file_getl(cfg, line, 256))
 	{
 		// Chomp off the end of line character
-		line[strlen(line)-1] = '\0';
+		//line[strlen(line)-1] = '\0';
 
 		/* Parse the line that has been read in */
 		// If the line begins with a # or is empty, ignore it
@@ -2413,7 +2368,7 @@ cptr possible_cfg_dir[] =
 };
 void load_server_cfg(void)
 {
-	FILE * cfg = 0;
+	ang_file* cfg = 0;
 	int i = 0;
 
 	/* If user requested specific config file, try it... */
@@ -2431,7 +2386,7 @@ void load_server_cfg(void)
 	/* Attempt to open the file */
 	while (!cfg && possible_cfg_dir[i++])
 	{
-		cfg = fopen(possible_cfg_dir[i-1], "r");
+		cfg = file_open(possible_cfg_dir[i-1], MODE_READ, -1);
 	}
 
 	/* Failure, try several dirs, then stop trying */
@@ -2447,7 +2402,7 @@ void load_server_cfg(void)
 	load_server_cfg_aux(cfg);
 
 	/* Close it */
-	fclose(cfg);
+	file_close(cfg);
 
 }
 

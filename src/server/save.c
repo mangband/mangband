@@ -9,7 +9,7 @@
  * Some "local" parameters, used to help write savefiles
  */
 
-static FILE	*file_handle;		/* Current save "file" */
+static ang_file* file_handle;		/* Current save "file" */
 
 static u32b	v_stamp = 0L;	/* A simple "checksum" on the actual values */
 static u32b	x_stamp = 0L;	/* A simple "checksum" on the encoded bytes */
@@ -23,7 +23,7 @@ static void start_section(char* name)
 {
 	int i;
 	if(xml_indent == 0) xml_prefix[0] = '\0';
-	fprintf(file_handle,"%s<%s>\n",xml_prefix,name);
+	file_putf(file_handle, "%s<%s>\n", xml_prefix,name);
 	xml_indent += 2;
 	for(i = 0;i<xml_indent;i++) xml_buf[i] = ' ';
 	xml_buf[xml_indent] = '\0';
@@ -36,42 +36,42 @@ static void end_section(char* name)
 	xml_indent -= 2;
 	for(i = 0;i<xml_indent;i++) xml_buf[i] = ' ';
 	xml_buf[xml_indent] = '\0';
-	fprintf(file_handle,"%s</%s>\n",xml_prefix,name);
+	file_putf(file_handle, "%s</%s>\n", xml_prefix, name);
 }
 
 /* Write an integer */
 static void write_int(char* name, int value)
 {
-	fprintf(file_handle,"%s%s = %i\n",xml_prefix,name,value);
+	file_putf(file_handle, "%s%s = %i\n", xml_prefix, name, value);
 }
 
 /* Write an unsigned integer value */
 static void write_uint(const char* name, unsigned int value)
 {
-	fprintf(file_handle,"%s%s = %u\n",xml_prefix,name,value);
+	file_putf(file_handle, "%s%s = %u\n", xml_prefix, name, value);
 }
 
 /* Write an signed long value */
 static void write_huge(char* name, huge value)
 {
-	fprintf(file_handle,"%s%s = %" PRIu64 "\n",xml_prefix,name,value);
+	file_putf(file_handle, "%s%s = %" PRIu64 "\n", xml_prefix,name, value);
 }
 
 /* Write an hturn */
 static void write_hturn(char* name, hturn *value)
 {
-	fprintf(file_handle,"%s%s = %" PRIu64 " %" PRIu64 "\n",xml_prefix,name,value->era,value->turn);
+	file_putf(file_handle, "%s%s = %" PRIu64 " %" PRIu64 "\n", xml_prefix, name, value->era, value->turn);
 }
 
 /* Write a string */
 static void write_str(char* name, char* value)
 {
-	fprintf(file_handle,"%s%s = %s\n",xml_prefix,name,value);
+	file_putf(file_handle, "%s%s = %s\n", xml_prefix, name, value);
 }
 #if 0
 static void write_float(char* name, float value)
 {
-	fprintf(file_handle,"%s%s = %f\n",xml_prefix,name,value);
+	file_putf(file_handle, "%s%s = %f\n", xml_prefix, name, value);
 }
 #endif
 /* Write binary data */
@@ -79,14 +79,14 @@ static void write_binary(char* name, char* data, int len)
 {
 	int i;
 	byte b;
-	fprintf(file_handle,"%s%s = ",xml_prefix,name);
+	file_putf(file_handle, "%s%s = ", xml_prefix, name);
 	for(i=0;i<len;i++)
 	{
 		b = data[i];
-		fprintf(file_handle,"%2x",b);
+		file_putf(file_handle, "%2x", b);
 	}
 	//fprintf(file_handle,"\n",name);
-	fprintf(file_handle,"\n");
+	file_putf(file_handle, "\n");
 }
 
 
@@ -743,12 +743,12 @@ static void wr_dungeon(int Depth)
 bool wr_dungeon_special_ext(int Depth, cptr levelname)
 {
 	char filename[1024];
-	FILE *fhandle;
-	FILE *server_handle;
+	ang_file* fhandle;
+	ang_file* server_handle;
 	
 	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 
-	fhandle = my_fopen(filename, "w");
+	fhandle = file_open(filename, MODE_WRITE, FTYPE_SAVE);
 
 	if (fhandle)
 	{
@@ -763,7 +763,7 @@ bool wr_dungeon_special_ext(int Depth, cptr levelname)
 			file_handle = server_handle;
 
 			/* close the level file */
-			my_fclose(fhandle);
+			file_close(fhandle);
 
 			return TRUE;
 	}
@@ -981,7 +981,7 @@ static bool wr_savefile_new(player_type *p_ptr)
 	end_section("mangband_player_save");
 
 	/* Error in save */
-	if (ferror(file_handle) || (fflush(file_handle) == EOF)) return FALSE;
+	if (file_error(file_handle)) return FALSE;
 
 	/* Successful save */
 	return TRUE;
@@ -996,44 +996,24 @@ static bool save_player_aux(player_type *p_ptr, char *name)
 {
 	bool	ok = FALSE;
 
-	int		fd = -1;
-
-	int		mode = 0644;
-
-
 	/* No file yet */
 	file_handle = NULL;
 
-	/* File type is "SAVE" */
-	FILE_TYPE(FILE_TYPE_SAVE);
+	/* Open the savefile */
+	file_handle = file_open(name, MODE_WRITE, FTYPE_SAVE);
 
-
-	/* Create the savefile */
-	fd = fd_make(name, mode);
-
-	/* File is okay */
-	if (fd >= 0)
+	/* Successful open */
+	if (file_handle)
 	{
-		/* Close the "fd" */
-		(void)fd_close(fd);
+		/* Write the savefile */
+		if (wr_savefile_new(p_ptr)) ok = TRUE;
 
-		/* Open the savefile */
-		file_handle = my_fopen(name, "w");
-
-		/* Successful open */
-		if (file_handle)
-		{
-			/* Write the savefile */
-			if (wr_savefile_new(p_ptr)) ok = TRUE;
-
-			/* Attempt to close it */
-			if (my_fclose(file_handle)) ok = FALSE;
-		}
-
-		/* Remove "broken" files */
-		if (!ok) (void)fd_kill(name);
+		/* Attempt to close it */
+		if (!file_close(file_handle)) ok = FALSE;
 	}
 
+	/* Remove "broken" files */
+	if (!ok) (void)file_delete(name);
 
 	/* Failure */
 	if (!ok) return (FALSE);
@@ -1080,7 +1060,7 @@ bool save_player(player_type *p_ptr)
 #endif /* VM */
 
 	/* Remove it */
-	fd_kill(safe);
+	file_delete(safe);
 
 	/* Attempt to save the player */
 	if (save_player_aux(p_ptr, safe))
@@ -1098,16 +1078,16 @@ bool save_player(player_type *p_ptr)
 #endif /* VM */
 
 		/* Remove it */
-		fd_kill(temp);
+		file_delete(temp);
 
 		/* Preserve old savefile */
-		fd_move(p_ptr->savefile, temp);
+		file_move(p_ptr->savefile, temp);
 
 		/* Activate new savefile */
-		fd_move(safe, p_ptr->savefile);
+		file_move(safe, p_ptr->savefile);
 
 		/* Remove preserved savefile */
-		fd_kill(temp);
+		file_delete(temp);
 
 		/* Hack -- Pretend the character was loaded */
 		/*character_loaded = TRUE;*/
@@ -1119,7 +1099,7 @@ bool save_player(player_type *p_ptr)
 		strcat(temp, ".lok");
 
 		/* Remove lock file */
-		fd_kill(temp);
+		file_delete(temp);
 
 #endif
 
@@ -1162,7 +1142,7 @@ bool save_player(player_type *p_ptr)
  */
 int scoop_player(char *nick, char *pass)
 {
-	int		fd = -1;
+	ang_file* fd = NULL;
 	errr	err = 0;
 	byte	vvv[4];
 	cptr	what = "generic";
@@ -1176,9 +1156,8 @@ int scoop_player(char *nick, char *pass)
 		err = -1;
 	}
 	
-#if !defined(MACINTOSH) && !defined(VM)
 	/* Verify the existance of the savefile */
-	if (access(tmp, 0) < 0)
+	if (!file_exists(tmp))
 	{
 		/* Give a message */
 		plog(format("Savefile does not exist for player %s", nick));
@@ -1186,76 +1165,42 @@ int scoop_player(char *nick, char *pass)
 		/* Inform caller */
 		err = 1;			
 	}
-#endif	
+
+	/* Okay */
+	if (!err)
+	{
+		/* Open the savefile */
+		fd = file_open(tmp, MODE_READ, -1);
+
+		/* No file */
+		if (!fd) err = -1;
+
+		/* Message (below) */
+		if (err) what = "Cannot open savefile";
+	}
 
 #ifdef VERIFY_SAVEFILE
 
 	/* Verify savefile usage */
 	if (!err)
 	{
-		FILE *fkk;
-
-		char temp[1024];
-
-		/* Extract name of lock file */
-		strcpy(temp, tmp);
-		strcat(temp, ".lok");
-
-		/* Check for lock */
-		fkk = my_fopen(temp, "r");
-
-		/* Oops, lock exists */
-		if (fkk)
-		{
-			/* Close the file */
-			my_fclose(fkk);
-
-			/* Message */
-			//msg_print(Ind, "Savefile is currently in use.");
-			//msg_print(Ind, NULL);
-
-			/* Oops */
-			return (FALSE);
-		}
-
-		/* Create a lock file */
-		fkk = my_fopen(temp, "w");
-
-		/* Dump a line of info */
-		fprintf(fkk, "Lock file for savefile '%s'\n", tmp);
-
-		/* Close the lock file */
-		my_fclose(fkk);
+		file_lock(fd);
 	}
 
 #endif
-
-
-	/* Okay */
-	if (!err)
-	{
-		/* Open the savefile */
-		fd = fd_open(tmp, O_RDONLY);
-
-		/* No file */
-		if (fd < 0) err = -1;
-
-		/* Message (below) */
-		if (err) what = "Cannot open savefile";
-	}
 
 	/* Process file */
 	if (!err)
 	{
 
 		/* Read the first four bytes */
-		if (fd_read(fd, (char*)(vvv), 4)) err = -1;
+		if (file_read(fd, (char*)(vvv), 4) < 4) err = -1;
 
 		/* What */
 		if (err) what = "Cannot read savefile";
 
 		/* Close the file */
-		(void)fd_close(fd);
+		(void)file_close(fd);
 	}
 
 	/* Process file */
@@ -1270,18 +1215,10 @@ int scoop_player(char *nick, char *pass)
 	}
 
 #ifdef VERIFY_SAVEFILE
-	/* Verify savefile usage */
-	if (TRUE)
-	{
-		char temp[1024];
+	
+	/* Release lock */
+	file_unlock(fd);
 
-		/* Extract name of lock file */
-		strcpy(temp, tmp);
-		strcat(temp, ".lok");
-
-		/* Remove lock */
-		fd_kill(temp);
-	}
 #endif
 
 	/* Oops */
@@ -1313,7 +1250,7 @@ int scoop_player(char *nick, char *pass)
  */
 bool load_player(player_type *p_ptr)
 {
-	int		fd = -1;
+	ang_file* fd = NULL;
 
 	errr	err = 0;
 
@@ -1334,13 +1271,8 @@ bool load_player(player_type *p_ptr)
 	/* Allow empty savefile name */
 	if (!p_ptr->savefile[0]) return (TRUE);
 
-
-#if !defined(MACINTOSH) && !defined(VM)
-
-	/* XXX XXX XXX Fix this */
-
 	/* Verify the existance of the savefile */
-	if (access(p_ptr->savefile, 0) < 0)
+	if (!file_exists(p_ptr->savefile))
 	{
 		/* Give a message */
 		plog(format("Savefile does not exist for player %s", p_ptr->name));
@@ -1349,60 +1281,14 @@ bool load_player(player_type *p_ptr)
 		return (TRUE);
 	}
 
-#endif
-
-
-#ifdef VERIFY_SAVEFILE
-
-	/* Verify savefile usage */
-	if (!err)
-	{
-		FILE *fkk;
-
-		char temp[1024];
-
-		/* Extract name of lock file */
-		strcpy(temp, p_ptr->savefile);
-		strcat(temp, ".lok");
-
-		/* Check for lock */
-		fkk = my_fopen(temp, "r");
-
-		/* Oops, lock exists */
-		if (fkk)
-		{
-			/* Close the file */
-			my_fclose(fkk);
-
-			/* Message */
-			msg_print(Ind, "Savefile is currently in use.");
-			msg_print(Ind, NULL);
-
-			/* Oops */
-			return (FALSE);
-		}
-
-		/* Create a lock file */
-		fkk = my_fopen(temp, "w");
-
-		/* Dump a line of info */
-		fprintf(fkk, "Lock file for savefile '%s'\n", p_ptr->savefile);
-
-		/* Close the lock file */
-		my_fclose(fkk);
-	}
-
-#endif
-
-
 	/* Okay */
 	if (!err)
 	{
 		/* Open the savefile */
-		fd = fd_open(p_ptr->savefile, O_RDONLY);
+		fd = file_open(p_ptr->savefile, MODE_READ, -1);
 
 		/* No file */
-		if (fd < 0) err = -1;
+		if (!fd) err = -1;
 
 		/* Message (below) */
 		if (err) what = "Cannot open savefile";
@@ -1413,13 +1299,13 @@ bool load_player(player_type *p_ptr)
 	{
 
 		/* Read the first four bytes */
-		if (fd_read(fd, (char*)(vvv), 4)) err = -1;
+		if (file_read(fd, (char*)(vvv), 4) < 4) err = -1;
 
 		/* What */
 		if (err) what = "Cannot read savefile";
 
 		/* Close the file */
-		(void)fd_close(fd);
+		(void)file_close(fd);
 	}
 
 	/* Process file */
@@ -1504,7 +1390,7 @@ bool load_player(player_type *p_ptr)
 		strcat(temp, ".lok");
 
 		/* Remove lock */
-		fd_kill(temp);
+		file_delete(temp);
 	}
 
 #endif
@@ -1685,7 +1571,7 @@ static bool wr_server_savefile(void)
 
 
         /* Error in save */
-        if (ferror(file_handle) || (fflush(file_handle) == EOF)) return FALSE;
+        if (file_error(file_handle)) return FALSE;
 
         /* Successful save */
         return TRUE;
@@ -1696,44 +1582,22 @@ static bool save_server_aux(char *name)
 {
         bool    ok = FALSE;
 
-        int             fd = -1;
-
-        int             mode = 0644;
-
 
         /* No file yet */
-		file_handle = NULL;
+	file_handle = NULL;
 
-        /* File type is "SAVE" */
-        FILE_TYPE(FILE_TYPE_SAVE);
+        /* Open the savefile */
+        file_handle = file_open(name, MODE_WRITE, FTYPE_SAVE);
 
-
-        /* Create the savefile */
-        fd = fd_make(name, mode);
-
-        /* File is okay */
-        if (fd >= 0)
+        /* Successful open */
+        if (file_handle)
         {
-                /* Close the "fd" */
-                (void)fd_close(fd);
+                /* Write the savefile */
+                if (wr_server_savefile()) ok = TRUE;
 
-                /* Open the savefile */
-                file_handle = my_fopen(name,"w");
-
-                /* Successful open */
-                if (file_handle)
-                {
-                        /* Write the savefile */
-                        if (wr_server_savefile()) ok = TRUE;
-
-                        /* Attempt to close it */
-                        if (my_fclose(file_handle)) ok = FALSE;
-                }
-
-                /* Remove "broken" files */
-                if (!ok) (void)fd_kill(name);
+                /* Attempt to close it */
+                if (!file_close(file_handle)) ok = FALSE;
         }
-
 
         /* Failure */
         if (!ok) return (FALSE);
@@ -1752,7 +1616,7 @@ static bool save_server_aux(char *name)
  */
 bool load_server_info(void)
 {
-	int fd = -1;
+	ang_file* fd;
 
 	byte vvv[4];
 
@@ -1782,10 +1646,10 @@ bool load_server_info(void)
         if (!err)
         {
                 /* Open the savefile */
-                fd = fd_open(buf, O_RDONLY);
+                fd = file_open(buf, MODE_READ, -1);
 
                 /* No file */
-                if (fd < 0) err = -1;
+                if (!fd) err = -1;
 
                 /* Message (below) */
                 if (err) what = "Cannot open savefile";
@@ -1795,13 +1659,13 @@ bool load_server_info(void)
         if (!err)
         {
                 /* Read the first four bytes */
-                if (fd_read(fd, (char*)(vvv), 4)) err = -1;
+                if (file_read(fd, (char*)(vvv), 4) < 4) err = -1;
 
                 /* What */
                 if (err) what = "Cannot read savefile";
 
                 /* Close the file */
-                (void)fd_close(fd);
+                (void)file_close(fd);
         }
 
         /* Process file */
@@ -1843,7 +1707,7 @@ bool save_server_info(void)
 	path_build(safe, 1024, ANGBAND_DIR_SAVE, "server.new");
 
 	/* Remove it */
-	fd_kill(safe);
+	file_delete(safe);
 
 	/* Attempt to save the server state */
 	if (save_server_aux(safe))
@@ -1855,19 +1719,19 @@ bool save_server_info(void)
 		path_build(temp, 1024, ANGBAND_DIR_SAVE, "server.old");
 
 		/* Remove it */
-		fd_kill(temp);
+		file_delete(temp);
 
 		/* Name of previous savefile */
 		path_build(prev, 1024, ANGBAND_DIR_SAVE, "server");
 
 		/* Preserve old savefile */
-		fd_move(prev, temp);
+		file_move(prev, temp);
 
 		/* Activate new savefile */
-		fd_move(safe, prev);
+		file_move(safe, prev);
 
 		/* Remove preserved savefile */
-		fd_kill(temp);
+		file_delete(temp);
 
 		/* Success */
 		result = TRUE;

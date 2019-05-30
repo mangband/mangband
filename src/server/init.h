@@ -35,7 +35,7 @@
 
 #define PARSE_ERROR_MAX                     16
 
-extern errr init_info_txt(FILE *fp, char *buf, header *head,
+extern errr init_info_txt(ang_file* fp, char *buf, header *head,
                           parse_info_txt_func parse_info_txt_line);
 
 #ifdef ALLOW_TEMPLATES

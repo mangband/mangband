@@ -397,9 +397,6 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, size_t max, cptr str);
-extern FILE *my_fopen(cptr file, cptr mode);
-extern errr my_fclose(FILE *fff);
-extern bool my_exists(char *path);
 extern void init_stuff();
 extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
@@ -490,7 +487,6 @@ extern void msg_flush(void);
 extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);
-extern errr path_build(char *buf, int max, cptr path, cptr file);
 extern bool askfor_aux(char *buf, int len, char m_private);
 extern void clear_from(int row);
 extern int cavedraw(cave_view_type* src, int len, s16b x, s16b y);

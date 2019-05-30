@@ -156,6 +156,7 @@
     <ClCompile Include="..\..\src\common\z-rand.c" />
     <ClCompile Include="..\..\src\common\z-util.c" />
     <ClCompile Include="..\..\src\common\z-virt.c" />
+    <ClCompile Include="..\..\src\common\z-file.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\angband.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />
     <ClInclude Include="..\..\src\common\z-virt.h" />
+    <ClInclude Include="..\..\src\common\z-file.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mangclient.vcxproj">

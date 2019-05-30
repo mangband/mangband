@@ -156,6 +156,7 @@
 #define HAVE_STRDUP
 #define HAVE_STRNLEN
 #define HAVE___INT64
+#define HAVE_STAT
 #endif
 #if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
 #define HAVE_INTTYPES_H
@@ -262,17 +263,6 @@
 # endif
 #endif
 
-/*
- * The Macintosh allows the use of a "file type" when creating a file
- */
-#if defined(MACINTOSH) && !defined(applec)
-# define FILE_TYPE_TEXT 'TEXT'
-# define FILE_TYPE_DATA 'DATA'
-# define FILE_TYPE_SAVE 'SAVE'
-# define FILE_TYPE(X) (_ftype = (X))
-#else
-# define FILE_TYPE(X) ((void)0)
-#endif
 
 
 /*

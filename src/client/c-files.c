@@ -426,193 +426,6 @@ void text_to_ascii(char *buf, size_t max, cptr str)
 	*s = '\0';
 }
 
-/*
- * Extract a "parsed" path from an initial filename
- * Normally, we simply copy the filename into the buffer
- * But leading tilde symbols must be handled in a special way
- * Replace "~user/" by the home directory of the user named "user"
- * Replace "~/" by the home directory of the current user
- */
-errr path_parse(char *buf, int max, cptr file)
-{
-#ifndef WIN32
-	cptr            u, s;
-	struct passwd   *pw;
-	char            user[128];
-#endif /* WIN32 */
-
-
-	/* Assume no result */
-	buf[0] = '\0';
-
-	/* No file? */
-	if (!file) return (-1);
-
-	/* File needs no parsing */
-	if (file[0] != '~')
-	{
-		my_strcpy(buf, file, max);
-		return (0);
-	}
-
-	/* Windows should never have ~ in filename */
-#ifndef WIN32
-
-	/* Point at the user */
-	u = file+1;
-
-	/* Look for non-user portion of the file */
-	s = strstr(u, PATH_SEP);
-
-	/* Hack -- no long user names */
-	if (s && (s >= u + sizeof(user))) return (1);
-
-	/* Extract a user name */
-	if (s)
-	{
-		int i;
-		for (i = 0; u < s; ++i) user[i] = *u++;
-		user[i] = '\0';
-		u = user;
-	}
-
-	/* Look up the "current" user */
-	if (u[0] == '\0') u = getlogin();
-
-	/* Look up a user (or "current" user) */
-	if (u) pw = getpwnam(u);
-	else pw = getpwuid(getuid());
-
-	/* Nothing found? */
-	if (!pw) return (1);
-
-	/* Make use of the info */
-	my_strcpy(buf, pw->pw_dir, max);
-
-	/* Append the rest of the filename, if any */
-	if (s) my_strcat(buf, s, max);
-
-	/* Success */
-#endif /* WIN32 */
-	return (0);
-}
-
-
-
-/*
- * Hack -- replacement for "fopen()"
- */
-FILE *my_fopen(cptr file, cptr mode)
-{
-	char                buf[1024];
-
-	/* Hack -- Try to parse the path */
-	if (path_parse(buf, 1024, file)) return (NULL);
-
-	/* Attempt to fopen the file anyway */
-	return (fopen(buf, mode));
-}
-
-
-/*
- * Hack -- replacement for "fclose()"
- */
-errr my_fclose(FILE *fff)
-{
-	/* Require a file */
-	if (!fff) return (-1);
-
-	/* Close, check for error */
-	if (fclose(fff) == EOF) return (1);
-
-	/* Success */
-	return (0);
-}
-
-/*
- * Hack -- replacement for "fgets()"
- *
- * Read a string, without a newline, to a file
- *
- * Process tabs, strip internal non-printables
- */
-errr my_fgets(FILE *fff, char *buf, huge n)
-{
-	huge i = 0;
-
-	char *s;
-
-	char tmp[1024];
-
-	/* Read a line */
-	if (fgets(tmp, 1024, fff))
-	{
-		/* Convert weirdness */
-		for (s = tmp; *s; s++)
-		{
-			/* Handle newline */
-			if (*s == '\n')
-                        {
-				/* Terminate */
-				buf[i] = '\0';
-
-				/* Success */
-				return (0);
-			}
-
-			/* Handle tabs */
-			else if (*s == '\t')
-			{
-				/* Hack -- require room */
-				if (i + 8 >= n) break;
-
-				/* Append a space */
-				buf[i++] = ' ';
-
-				/* Append some more spaces */
-				while (!(i % 8)) buf[i++] = ' ';
-			}
-
-			/* Handle printables */
-			else if (isprint(*s))
-			{
-				/* Copy */
-				buf[i++] = *s;
-
-				/* Check length */
-				if (i >= n) break;
-			}
-		}
-	}
-
-	/* Nothing */
-	buf[0] = '\0';
-
-	/* Failure */
-	return (1);
-}
-
-/*
- * Check to see if a file exists, by opening it read-only.
- *
- * Return TRUE if it does, FALSE if it does not.
- */
-bool my_fexists(const char *fname)
-{
-	FILE* fd;
-
-	/* Try to open it */
-	fd = my_fopen(fname, "r");
-
-	/* It worked */
-	if (fd)
-	{
-		my_fclose(fd);
-		return TRUE;
-	}
-
-	return FALSE;
-}
 
 
 /*
@@ -1292,7 +1105,7 @@ errr Save_windows(void)
 	int i;
 	byte j;
 
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 
@@ -1300,24 +1113,24 @@ errr Save_windows(void)
 	path_build(buf, 1024, ANGBAND_DIR_USER, "window.prf");
 
 	/* Open the file */
-	fp = my_fopen(buf, "w");
+	fp = file_open(buf, MODE_WRITE, FTYPE_TEXT);
 
 	/* Catch errors */
 	if (!fp) return (-1);
 
 	/* Skip space */
-	fprintf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
-	fprintf(fp, "\n\n");
-	fprintf(fp, "# Usage: W:<window number>:<usage number>\n");
-	fprintf(fp, "# \n");
-	fprintf(fp, "# Valid usage numbers:\n");
+	file_putf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
+	file_putf(fp, "\n\n");
+	file_putf(fp, "# Usage: W:<window number>:<usage number>\n");
+	file_putf(fp, "# \n");
+	file_putf(fp, "# Valid usage numbers:\n");
 	/* Describe */
 	for (j = 0; j < 32; j++)
 	{
 		if (window_flag_desc[j])
-		fprintf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
+		file_putf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
 	}
-	fprintf(fp, "\n\n");
+	file_putf(fp, "\n\n");
 
 	/* Dump */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
@@ -1327,13 +1140,13 @@ errr Save_windows(void)
 			for (j = 0; j < 32; j++)
 			{
 				if (window_flag[i] & (1L << j))
-					fprintf(fp, "W:%d:%d\n", i, j);
+					file_putf(fp, "W:%d:%d\n", i, j);
 			}
 		}
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	return 0;
 }
@@ -1342,7 +1155,7 @@ errr Save_options(void)
 {
 	int i;
 	errr windows;
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 	byte last_page;
@@ -1354,16 +1167,16 @@ errr Save_options(void)
 	path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");
 
 	/* Open the file */
-	fp = my_fopen(buf, "w");
+	fp = file_open(buf, MODE_WRITE, FTYPE_TEXT);
 
 	/* Catch errors */
 	if (!fp) return (-1);
 
 	/* Skip space */
-	fprintf(fp, "# This file can be used to set or clear all of the options.\n");
-	fprintf(fp, "# Note that all of the options are given.\n\n");
-	fprintf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
-	fprintf(fp, "# Also remember that not all options are used.\n\n");
+	file_putf(fp, "# This file can be used to set or clear all of the options.\n");
+	file_putf(fp, "# Note that all of the options are given.\n\n");
+	file_putf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
+	file_putf(fp, "# Also remember that not all options are used.\n\n");
 
 	/* Dump local options with "X:<str>" and "Y:<str>" */
 	last_page = 0;
@@ -1371,11 +1184,11 @@ errr Save_options(void)
 	{
 		if (local_option_info[i].o_text)
 		{
-			fprintf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
+			file_putf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
 		}
 		if (last_page != local_option_info[i].o_page)
 		{
-			fprintf(fp, "\n");
+			file_putf(fp, "\n");
 		}
 		last_page = local_option_info[i].o_page;
 	}
@@ -1385,20 +1198,20 @@ errr Save_options(void)
 	{
 		if (!option_info[i].o_set && option_info[i].o_text)
 		{
-			fprintf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
+			file_putf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
 		}
 		if (last_page != option_info[i].o_page)
 		{
-			fprintf(fp, "\n");
+			file_putf(fp, "\n");
 		}
 		last_page = option_info[i].o_page;
 	}
 
 	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
-	fprintf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
+	file_putf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	return 0;
 }
@@ -1627,7 +1440,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
  */
 static errr process_pref_file_aux(cptr name)
 {
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 
@@ -1641,14 +1454,14 @@ static errr process_pref_file_aux(cptr name)
 
 
 	/* Open the file */
-	fp = my_fopen(name, "r");
+	fp = file_open(name, MODE_READ, -1);
 
 	/* No such file */
 	if (!fp) return (-1);
 
 
 	/* Process the file */
-	while (0 == my_fgets(fp, buf, sizeof(buf)))
+	while (file_getl(fp, buf, sizeof(buf)))
 	{
 		/* Count lines */
 		line++;
@@ -1720,7 +1533,7 @@ static errr process_pref_file_aux(cptr name)
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	/* Result */
 	return (err);
@@ -2163,7 +1976,7 @@ void conf_init(void* param)
 		my_strcat(path, "\\mangclient.ini", 1024);
 
 		/* Ok */
-		if (my_fexists(path))
+		if (file_exists(path))
 		{
 			my_strcpy(config_name, path, 1024);
 			return;
@@ -2418,7 +2231,7 @@ cptr conf_get_string(cptr section, cptr name, cptr default_value)
 {
 	return (cptr)conf_get_value(section, name, default_value, FALSE);
 }
-void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_ptr)
+void conf_read_file(ang_file* config, section_conf_type *s_ptr, value_conf_type *v_ptr)
 {
 	section_conf_type	*s_forge = NULL;
 	value_conf_type 	*v_forge = NULL;
@@ -2431,7 +2244,7 @@ void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_p
 	if (config)
 	{
 		/* Read line (till end of file) */
-		while (fgets(buf, 1024, config))
+		while (file_getl(config, buf, 1024))
 		{
 			/* Skip comments, empty lines */
 			if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ';')
@@ -2511,7 +2324,7 @@ void conf_init(void* param)
 	section_conf_type	*s_ptr = NULL;
 	value_conf_type 	*v_ptr = NULL;
 
-	FILE *config;
+	ang_file* config;
 	char buf[1024];
 
 	/*
@@ -2538,7 +2351,7 @@ void conf_init(void* param)
 	if (clia_read_string(buf, 1024, "config"))
 	{
 		/* Attempt to open file */
-		config = my_fopen(buf, "r");
+		config = file_open(buf, MODE_READ, -1);
 	}
 
 	/*
@@ -2562,7 +2375,7 @@ void conf_init(void* param)
 		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
+		config = file_open(config_name, MODE_READ, -1);
 	}
 
 	/* Otherwise use current directory */
@@ -2575,7 +2388,7 @@ void conf_init(void* param)
 		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
+		config = file_open(config_name, MODE_READ, -1);
 	}
 
 	/*
@@ -2589,7 +2402,7 @@ void conf_init(void* param)
 		conf_read_file(config, s_ptr, v_ptr);
 
 		/* Done reading */
-		my_fclose(config);
+		file_close(config);
 	}
 #if 0
 	//list all sections
@@ -2609,26 +2422,26 @@ void conf_save()
 {
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;
-	FILE *config;
+	ang_file* config;
 
 	/* No changes */
 	if (!conf_need_save) return;
 
 	/* Write */
-	if ((config = my_fopen(config_name, "w")))
+	if ((config = file_open(config_name, MODE_WRITE, FTYPE_TEXT)))
 	{
 		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 		{
-			fprintf(config, "[%s]\n", s_ptr->name);
+			file_putf(config, "[%s]\n", s_ptr->name);
 			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
 			{
-				fprintf(config, "%s %s\n", v_ptr->name, v_ptr->value);
+				file_putf(config, "%s %s\n", v_ptr->name, v_ptr->value);
 			}
 			if (s_ptr->next)
-				fprintf(config, "\n");
+				file_putf(config, "\n");
 		}
 		/* Done writing */
-		my_fclose(config);
+		file_close(config);
 		conf_need_save = FALSE;
 	}
 }
@@ -2645,7 +2458,7 @@ void conf_timer(int ticks)
 /* HACK: Append section from other file */
 void conf_append_section(cptr section, cptr filename)
 {
-	FILE *config;
+	ang_file* config;
 
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;
@@ -2655,7 +2468,7 @@ void conf_append_section(cptr section, cptr filename)
 	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next) { }
 
 	/* Try opening this 'other file' */
-	config = my_fopen(filename, "r");
+	config = file_open(filename, MODE_READ, -1);
 
  	/* File is opened */
 	if (config)
@@ -2664,7 +2477,7 @@ void conf_append_section(cptr section, cptr filename)
 		conf_read_file(config, s_ptr, v_ptr);
 
 		/* Done reading */
-		my_fclose(config);
+		file_close(config);
 	}
 }
 #endif
