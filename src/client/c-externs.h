@@ -396,7 +396,7 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 
 
 /* c-files.c */
-extern void text_to_ascii(char *buf, cptr str);
+extern void text_to_ascii(char *buf, size_t max, cptr str);
 extern FILE *my_fopen(cptr file, cptr mode);
 extern errr my_fclose(FILE *fff);
 extern bool my_exists(char *path);

@@ -3128,7 +3128,7 @@ void browse_macros(void)
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
-			text_to_ascii(tmp_buf, buf);
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), buf);
 
 			/* Same */
 			if (!strcmp(macro__pat[sel], tmp_buf)) continue;
@@ -3150,7 +3150,7 @@ void browse_macros(void)
 			if (!askfor_aux(act, 80, 0)) continue;
 
 			/* Convert to ascii */
-			text_to_ascii(tmp_buf, act);
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), act);
 			tmp_buf[strlen(act)] = '\0';
 
 			/* Do not allow empty OR short */
@@ -3363,7 +3363,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 
 		}
 
@@ -3400,7 +3400,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Enter a new action (via menu) */
@@ -3425,7 +3425,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Enter a new action */
@@ -3444,7 +3444,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, 0)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Query key */
@@ -3537,7 +3537,7 @@ void interact_macros(void)
 				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
 	
 				/* Convert to ascii */
-				text_to_ascii(macro__buf, tmp);
+				text_to_ascii(macro__buf, 1024, tmp);
 			}
 
 			/* Save key for later */

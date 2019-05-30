@@ -299,7 +299,7 @@ static size_t trigger_text_to_ascii(char *buf, size_t max, cptr *strptr)
  * parsing "\xFF" into a (signed) char.  Whoever thought of making
  * the "sign" of a "char" undefined is a complete moron.  Oh well.
  */
-void text_to_ascii(char *buf, cptr str)
+void text_to_ascii(char *buf, size_t max, cptr str)
 {
 	char *s = buf;
 
@@ -318,7 +318,7 @@ void text_to_ascii(char *buf, cptr str)
 				/* Terminate before appending the trigger */
 				*s = '\0';
 
-				s += trigger_text_to_ascii(buf, sizeof(buf), &str);
+				s += trigger_text_to_ascii(buf, max, &str);
 			}
 
 			/* Hex-mode XXX */
@@ -1022,7 +1022,7 @@ errr process_pref_file_command(char *buf)
 	/* Process "A:<str>" -- save an "action" for later */
 	else if (buf[0] == 'A')
 	{
-		text_to_ascii(macro__buf, buf+2);
+		text_to_ascii(macro__buf, 1024, buf+2);
 		return (0);
 	}
 
@@ -1031,7 +1031,7 @@ errr process_pref_file_command(char *buf)
 	{
 		int i, n;
 		char raw_cmd[1024];
-		text_to_ascii(raw_cmd, buf+2);
+		text_to_ascii(raw_cmd, sizeof(raw_cmd), buf+2);
 		n = strlen(raw_cmd);
 		for (i = 0; i < n; i++) Term_keypress(raw_cmd[i]);
 		return (0);
@@ -1041,7 +1041,7 @@ errr process_pref_file_command(char *buf)
 	else if (buf[0] == 'P')
 	{
 		char tmp[1024];
-		text_to_ascii(tmp, buf+2);
+		text_to_ascii(tmp, sizeof(tmp), buf+2);
 		macro_add(tmp, macro__buf, FALSE);
 		return (0);
 	}
@@ -1057,7 +1057,7 @@ errr process_pref_file_command(char *buf)
 		mode = strtol(zz[0], NULL, 0);
 		if ((mode < 0) || (mode >= KEYMAP_MODES)) return (1);
 
-		text_to_ascii(tmp, zz[1]);
+		text_to_ascii(tmp, sizeof(tmp), zz[1]);
 		if (!tmp[0] || tmp[1]) return (1);
 		i = (long)tmp[0];
 

@@ -1194,7 +1194,7 @@ static void do_cmd_term_inject(char *buf)
 {
 	char tmp[1024];
 	int i, n;
-	text_to_ascii(tmp, buf);
+	text_to_ascii(tmp, sizeof(tmp), buf);
 	n = strlen(tmp);
 	Term_keypress(29);
 	for (i = 0; i < n; i++) Term_keypress(tmp[i]);
