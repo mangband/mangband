@@ -313,6 +313,7 @@ static event_type inkey_aux(void)
 	if ((ch == 30) || (ch == '\xff'))
 	{
 		parse_macro = FALSE;
+		strip_chars = FALSE;
 		return (ke);
 	}
 
@@ -1226,6 +1227,55 @@ bool get_string_masked(cptr prompt, char *buf, int len)
 	/* Result */
 	return (res);
 }
+
+/*
+ * Prompts for a keypress OR a mouse press.
+ *
+ * The "prompt" should take the form "Command: "
+ *
+ * Returns TRUE unless the character is "Escape"
+ */
+bool get_com_ex(cptr prompt, char *command, event_type *xe)
+{
+	event_type ke;
+
+	/* The top line is "icky" */
+	topline_icky = TRUE;
+
+	/* Display a prompt */
+	prt(prompt, 0, 0);
+
+	/* Show cursor */
+	Term_show_ui_cursor();
+
+	/* Get a key */
+	while(1) {
+		ke = inkey_ex();
+		if (ke.type == EVT_ESCAPE) ke.key = ESCAPE;
+		if (ke.key == '\xff' && ke.index == 0) continue;
+		break;
+	}
+	*command = ke.key;
+	*xe = ke;
+
+	/* Clear the prompt */
+	prt("", 0, 0);
+
+	/* Hide cursor */
+	Term_hide_ui_cursor();
+
+	/* Fix the top line */
+	topline_icky = FALSE;
+
+	/* Flush any events */
+	Flush_queue();
+
+	/* Handle "cancel" */
+	if (*command == ESCAPE) return (FALSE);
+
+	/* Success */
+	return (TRUE);
+}
 /*
  * Prompts for a keypress
  *
@@ -1235,6 +1285,8 @@ bool get_string_masked(cptr prompt, char *buf, int len)
  */
 bool get_com(cptr prompt, char *command)
 {
+	event_type ke;
+
 	/* The top line is "icky" */
 	topline_icky = TRUE;
 
@@ -2041,6 +2093,29 @@ static void msg_flush(int x)
 }
 #endif
 
+static char last_msg[1024];
+static int  last_msg_more = FALSE;
+static int  last_msg_type = MSG_LOCAL;
+
+void msg_flush(void)
+{
+	if (last_msg_more == FALSE) return;
+
+	msg_flag = TRUE;
+
+	c_msg_print_aux(last_msg, last_msg_type);
+
+	msg_flag = FALSE;
+}
+
+
+#if 0
+#define MORE_PROMPT "  -more-"
+#define MORE_PROMPT_LEN 8
+#else
+#define MORE_PROMPT "-"
+#define MORE_PROMPT_LEN 1
+#endif
 
 /*
  * Output a message to the top line of the screen.
@@ -2076,11 +2151,12 @@ void c_msg_print_aux(cptr msg, u16b type)
 	static int p = 0;
 
 	int n;
+	int maxcol;
+	size_t truncate;
 #if 0
 	char *t;
 #endif
 	char buf[1024];
-
 
 	/* Hack -- Reset */
 	if (!msg_flag) p = 0;
@@ -2092,6 +2168,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 	/* Message length */
 	n = (msg ? strlen(msg) : 0);
 
+#if 0
 	/* Hack -- flush when requested or needed */
 	if (p && (!msg || ((p + n) > 72)))
 	{
@@ -2104,7 +2181,7 @@ void c_msg_print_aux(cptr msg, u16b type)
 		/* Reset */
 		p = 0;
 	}
-
+#endif
 
 	/* No message */
 	if (!msg) return;
@@ -2113,70 +2190,132 @@ void c_msg_print_aux(cptr msg, u16b type)
 	if (n > 1000) return;
 
 
+	if (!msg_flag) /* Hack -- unless something is preventing it */
 	/* Memorize the message */
 	c_message_add(msg, type);
 
 
-	/* Copy it */
-	my_strcpy(buf, msg, sizeof(buf));
-	
-	/* Strip it */
-	buf[80] = '\0';
-	
 	/* Display it */
-	Term_putstr(0, 0, 80, TERM_WHITE, buf);
-#if 0
+	Term_putstr(0, 0, Term->wid, TERM_WHITE, msg);
+
+	/* Display "-more-" prompt */
+	maxcol = (Term->wid - MORE_PROMPT_LEN);
+	if (n > maxcol)
+	{
+		Term_putstr(maxcol, 0, MORE_PROMPT_LEN, TERM_YELLOW, MORE_PROMPT);
+	}
+	last_msg_more = FALSE;
+
+#if 1
 	/* Analyze the buffer */
-	t = buf;
+	/* t = buf; */
 
 	/* Split message */
-	while (n > 72)
+	while (n > maxcol)
 	{
-		char oops;
-
 		int check, split;
 
 		/* Default split */
-		split = 72;
+		split = maxcol;
 
 		/* Find the "best" split point */
-		for (check = 40; check < 72; check++)
+		for (check = 40; check < maxcol; check++)
 		{
 			/* Found a valid split point */
-			if (t[check] == ' ') split = check;
+			if (msg[check] == ' ') split = check;
 		}
 
-		/* Save the split character */
-		oops = t[split];
+		/* Save part of the message */
+		my_strcpy(last_msg, &msg[split], sizeof(last_msg));
+		last_msg_type = type;
+		last_msg_more = TRUE;
 
-		/* Split the message */
-		t[split] = '\0';
-
-		/* Display part of the message */
-		Term_putstr(0, 0, split, TERM_WHITE, t);
-
-		/* Flush it */
-		/*msg_flush(split + 1);*/
-
-		/* Restore the split character */
-		t[split] = oops;
-
-		/* Insert a space */
-		t[--split] = ' ';
-
-		/* Prepare to recurse on the rest of "buf" */
-		t += split; n -= split;
+		break;
 	}
-
-
-	/* Display the tail of the message */
-	Term_putstr(p, 0, n, TERM_WHITE, t);
 #endif
+#if 0
 	/* Remember the message */
 	msg_flag = TRUE;
 
 	/* Remember the position */
 	p += n + 1;
+#endif
+}
+
+
+/* Call Term_putstr multiple times, word-wraping the "msg".
+ * "sx" and "sy" are the coordinates we start at.
+ * "n" is maximum "msg" len, if -1 is passed, strlen(msg) will be used.
+ * "m" is maximum lines we have left. If passed as a negative number,
+ * "prt_multi" will draw from bottom to top.
+ *
+ * Returns number of lines printed. No actual changes should be seen
+ * until Term_fresh().
+ */
+int prt_multi(int sx, int sy, int n, int m, int attr, cptr msg)
+{
+	char *t;
+	char buf[1024];
+	char *line_ptr[256];
+	size_t line_end[256];
+	int lines = 0, i;
+	bool reverse = FALSE;
+	int maxcol = Term->wid - sx;
+
+	/* If "m" is passed as negative, assume reverse mode */
+	if (m < 0)
+	{
+		m = 0 - m;
+		reverse = TRUE;
+	}
+
+	/* Analyze the buffer */
+	my_strcpy(buf, msg, 1024);
+	t = buf;
+	n = n < 0 ? strlen(buf) : MIN(n, 1024);
+
+	/* Split message */
+	while (n > maxcol)
+	{
+		int check, split;
+
+		/* Default split */
+		split = maxcol;
+
+		/* Find the "best" split point */
+		for (check = 40; check < maxcol; check++)
+		{
+			/* Found a valid split point */
+			if (t[check] == ' ') split = check;
+		}
+
+		/* Save part of the message */
+		line_ptr[lines] = t;
+		line_end[lines] = split;
+		lines++;
+
+		/* Prepare to recurse on the rest of "buf" */
+		t += split; n -= split;
+	}
+
+	/* Save the tail of the message */
+	line_ptr[lines] = t;
+	line_end[lines] = n;
+	lines++;
+
+	/* Draw lines */
+	for (i = 0; i < lines; i++)
+	{
+		int x, y;
+		int l = reverse ? lines - 1 - i : i ;
+		int d = reverse ? -1 : 1 ;
+		Term_putstr(sx, sy + i * d, line_end[l], attr, line_ptr[l]);
+		Term_locate(&x, &y);
+		Term_erase(x, y, 255);
+		if (m - i <= 0) break;
+	}
+
+	return i;
 }
 
 
@@ -2941,7 +3080,7 @@ void browse_macros(void)
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
-			text_to_ascii(tmp_buf, buf);
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), buf);
 
 			/* Same */
 			if (!strcmp(macro__pat[sel], tmp_buf)) continue;
@@ -2963,7 +3102,7 @@ void browse_macros(void)
 			if (!askfor_aux(act, 80, 0)) continue;
 
 			/* Convert to ascii */
-			text_to_ascii(tmp_buf, act);
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), act);
 			tmp_buf[strlen(act)] = '\0';
 
 			/* Do not allow empty OR short */
@@ -3176,7 +3315,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 
 		}
 
@@ -3213,7 +3352,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Enter a new action (via menu) */
@@ -3238,7 +3377,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, -2)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Enter a new action */
@@ -3257,7 +3396,7 @@ void interact_macros(void)
 			if (!askfor_aux(buf, MAX_COLS, 0)) continue;
 
 			/* Extract an action */
-			text_to_ascii(macro__buf, buf);
+			text_to_ascii(macro__buf, 1024, buf);
 		}
 
 		/* Query key */
@@ -3350,7 +3489,7 @@ void interact_macros(void)
 				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
 	
 				/* Convert to ascii */
-				text_to_ascii(macro__buf, tmp);
+				text_to_ascii(macro__buf, 1024, tmp);
 			}
 
 			/* Save key for later */

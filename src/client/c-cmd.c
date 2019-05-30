@@ -306,8 +306,11 @@ void process_command()
 	switch (command_cmd)
 	{
 		/* Ignore */
-		case ESCAPE:
 		case ' ':
+		{
+			msg_flush();
+		}
+		case ESCAPE:
 		{
 			if (first_escape) 
 				send_clear();
@@ -408,6 +411,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('U'):
+		{
+			cmd_use_item();
+			break;
+		}
+
 		/*** Looking/Targetting ***/
 		case '*':
 		{
@@ -458,6 +467,12 @@ void process_command()
 			break;
 		}
 
+		case KTRL('O'): /* Repeat last message */
+		{
+			do_cmd_message_one();
+			break;
+		}
+
 		case KTRL('P'):
 		{
 	        do_cmd_messages();
@@ -485,6 +500,12 @@ void process_command()
 		case '\xff':
 		{
 			cmd_mouseclick();
+			break;
+		}
+
+		case KTRL('E'):
+		{
+			toggle_inven_equip();
 			break;
 		}
 
@@ -1399,6 +1420,12 @@ void cmd_ghost(void)
 	}
 }
 
+void toggle_inven_equip(void)
+{
+	flip_inven = !flip_inven;
+	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+}
+
 void cmd_load_pref(void)
 {
 	char buf[80];
@@ -1440,10 +1467,28 @@ void cmd_suicide(void)
 void cmd_mouseclick()
 {
 	event_type ke = command_cmd_ex;
+	int btn, mod = 0;
+	btn = ke.index;
+	if (btn & 16) { btn &= ~16; mod = MCURSOR_KTRL; }
+	if (btn & 32) { btn &= ~32; mod = MCURSOR_SHFT; }
+	if (btn & 64) { btn &= ~64; mod = MCURSOR_ALTR; }
+
+	/* XXX HORRIBLE HACK XXX */
+	if (btn) { /* Allow remacro */
+		char ks[1024], *p;
+		strnfmt(ks, sizeof(ks), "%c_TERMcave_MB%02x%c",
+			 31, ke.index, 13);
+		if (macro_find_exact(ks) >= 0) {
+			for (p = ks; *p; p++) Term_keypress(*p);
+			return;
+		}
+	} /* XXX XXX XXX */
+
 	send_mouse(0
-	  | (ke.index == 1 ? MCURSOR_LMB : 0)
-	  | (ke.index == 2 ? MCURSOR_MMB : 0)
-	  | (ke.index == 3 ? MCURSOR_RMB : 0),
+	  | (btn == 1 ? MCURSOR_LMB : 0)
+	  | (btn == 2 ? MCURSOR_MMB : 0)
+	  | (btn == 3 ? MCURSOR_RMB : 0)
+	  | mod,
 	  ke.mousex - DUNGEON_OFFSET_X,
 	  ke.mousey - DUNGEON_OFFSET_Y);
 }

@@ -11,125 +11,224 @@
 
 ### VT100 Keypad ###
 
+# Numpad/Regular Delete
 
-# Special keypad keys (delete, insert)
+A:.
+P:^__14a\r
+P:^__KEY_DC\r
+P:\e[3~
 
-#A:.
-#P:\e[3~
+# Numpad/Regular Insert
 
-#A:0
-#P:\e[2~
+A:0
+P:^__14b\r
+P:^__KEY_IC\r
+P:\e[2~
 
-# Numerical keypad keys (map to appropriate number)
+# Stand still (numpad 5)
 
+A:5
+P:^__15e\r
+P:^__KEY_B2\r
+P:\e[E
+P:\eOE
 
-#end
-A:1
-P:\e[4~
-P:\e[F
+# Backspace in keypad mode
 
-A:+1
-P:\e[1;5F
+A:\b
+P:^__107\r
+P:^__KEY_BACKSPACE\r
 
-# down
-A:2
-P:\e[B
+# Normal movement
 
-A:.2
-P:\e[1;2B
-
-A:+2
-P:\e[1;5B
-
-#pgdn
-A:3
-P:\e[6~
-
-
-## left
 A:4
+P:^__104\r
+P:^__KEY_LEFT\r
 P:\e[D
+P:\eOD
+P:\eOt
+
+A:6
+P:^__105\r
+P:^__KEY_RIGHT\r
+P:\e[C
+P:\eOC
+P:\eOv
+
+A:8
+P:^__103\r
+P:^__KEY_UP\r
+P:\e[A
+P:\eOA
+P:\eOx
+
+A:2
+P:^__102\r
+P:^__KEY_DOWN\r
+P:\e[B
+P:\eOB
+P:\eOr
+
+A:7
+P:^__106\r
+P:^__KEY_HOME\r
+P:\e[H
+P:\eOH
+P:\eOw
+
+A:1
+P:^__168\r
+P:^__KEY_END\r
+P:\e[F
+P:\eOF
+P:\eOq
+
+A:9
+P:^__153\r
+P:^__KEY_PPAGE\r
+P:\e[5~
+P:\eOy
+
+A:3
+P:^__152\r
+P:^__KEY_NPAGE\r
+P:\e[6~
+P:\eOs
+
+# Running (Shift+)
 
 A:.4
+P:^__189\r
+P:^__KEY_SLEFT\r
 P:\e[1;2D
-
-A:+4
-P:\e[1;5D
-
-# center
-A:5
-P:\e[E
-P:\e[G
-
-## right
-A:6
-P:\e[C
+P:\eO2t
 
 A:.6
+P:^__192\r
+P:^__KEY_SRIGHT\r
 P:\e[1;2C
-
-A:+6
-P:\e[1;3C
-
-# home
-A:7
-P:\e[1~
-P:\e[H
-
-A:+7
-P:\e[1;5H
-
-# up
-A:8
-P:\e[A
+P:\eO2v
 
 A:.8
+P:^__151\r
+P:^__KEY_SR\r
 P:\e[1;2A
+P:\eO2x
+
+A:.2
+P:^__151\r
+P:^__KEY_SF\r
+P:\e[1;2B
+P:\eO2r
+
+A:.7
+P:^__187\r
+P:^__KEY_SHOME\r
+P:\e[1;2H
+P:\eO2w
+
+A:.1
+P:^__182\r
+P:^__KEY_SEND\r
+P:\e[1;2F
+P:\eO2q
+
+A:.9
+P:^__18e\r
+P:^__KEY_SPREVIOUS\r
+P:\e[5;2~
+P:\eO2y
+
+A:.3
+P:^__18c\r
+P:^__KEY_SNEXT\r
+P:\e[6;2~
+P:\eO2s
+
+# Altering (Ctrl+)
+# (Note: on some terminal emulators, Ctrl+PgUp/Ctrl+PgDown
+#  are used to switch between tabs, so those keys will not reach the game.
+#  Numpad versions should work, though. )
+
+A:+4
+P:^__224\r
+P:^__kLFT5\r
+P:\e[1;5D
+
+A:+6
+P:^__233\r
+P:^__kRIT5\r
+P:\e[1;5C
 
 A:+8
+P:^__239\r
+P:^__kUP5\r
 P:\e[1;5A
 
-#pgup
-A:9
-P:\e[5~
+A:+2
+P:^__210\r
+P:^__kDN5\r
+P:\e[1;5B
 
+A:+7
+P:^__21a\r
+P:^__kHOM5\r
+P:\e[1;5H
 
-# Basic function keys (F1 - F4)
+A:+1
+P:^__215\r
+P:^__kEND5\r
+P:\e[1;5F
 
-A:\e
-P:\eOP
+A:+9
+P:^__22e\r
+P:^__kPRV5\r
+P:\e[5;5~
 
-A:\e
-P:\eOQ
+A:+3
+P:^__229\r
+P:^__kNXT5\r
+P:\e[6;5~
 
-A:\e
-P:\eOR
+# Altering (ALT+)
+# (Same as CTRL+, for terminals that can't handle CTRL correctly)
 
-A:\e
-P:\eOS
+A:+4
+P:^__222\r
+P:^__kLFT3\r
+P:\e[1;3D
 
-# Additional function keys (F5 - F12)
+A:+6
+P:^__231\r
+P:^__kRIT3\r
+P:\e[1;3C
 
-A:\e
-P:\e[15~
+A:+8
+P:^__237\r
+P:^__kUP3\r
+P:\e[1;3A
 
-A:\e
-P:\e[17~
+A:+2
+P:^__20e\r
+P:^__kDN3\r
+P:\e[1;3B
 
-A:\e
-P:\e[18~
+A:+7
+P:^__218\r
+P:^__kHOM3\r
+P:\e[1;3H
 
-A:\e
-P:\e[19~
+A:+1
+P:^__213\r
+P:^__kEND3\r
+P:\e[1;3F
 
-A:\e
-P:\e[20~
+A:+9
+P:^__22c\r
+P:^__kPRV3\r
+P:\e[5;3~
 
-A:\e
-P:\e[21~
-
-A:\e
-P:\e[23~
-
-A:\e
-P:\e[24~
+A:+3
+P:^__227\r
+P:^__kNXT3\r
+P:\e[6;3~

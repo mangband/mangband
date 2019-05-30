@@ -1924,6 +1924,8 @@ bool detect_objects_normal(int Ind)
 		}
 	}
 
+	if (detect) p_ptr->window |= (PW_ITEMLIST);
+
 	return (detect);
 }
 
@@ -2217,7 +2219,7 @@ bool curse_armor(int Ind)
 
 
 	/* Describe */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw for artifacts */
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
@@ -2287,7 +2289,7 @@ bool curse_weapon(int Ind)
 
 
 	/* Describe */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw */
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
@@ -2371,7 +2373,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 				break;
 		}
 
-      object_desc(Ind, o_name, o_ptr, FALSE, 0);
+		 object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		/* Describe */
 		msg_format(Ind, "A %s aura surrounds the %s.", act, o_name);
@@ -2518,20 +2520,20 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 
 	bool a = artifact_p(o_ptr);
 
-    u32b f1, f2, f3;
+	u32b f1, f2, f3;
 
-    /* Magic ammo are always +0 +0 */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
-	return FALSE;
+	/* Magic ammo are always +0 +0 */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	    (o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
+		return FALSE;
 
-    /* Artifact ammo cannot be enchanted */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && a)
-	return FALSE;
+	/* Artifact ammo cannot be enchanted */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	    (o_ptr->tval == TV_BOLT)) && a)
+		return FALSE;
 
 	/* Extract the flags */
-        object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 
 	/* Large piles resist enchantment */
@@ -2810,7 +2812,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	}
 
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, FALSE, 0);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 	/* Describe */
 	msg_format(Ind, "%s %s glow%s brightly!",
@@ -2896,7 +2898,7 @@ bool ident_spell_aux(int Ind, int item)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Possibly play a sound depending on object quality. */
 	if (cursed_p(o_ptr) || broken_p(o_ptr))
@@ -3013,7 +3015,7 @@ bool identify_fully_item(int Ind, int item)
 	handle_stuff(Ind);
 
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Describe */
 	if (item >= INVEN_WIELD)

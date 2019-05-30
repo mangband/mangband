@@ -428,6 +428,57 @@ static void console_rng_test(connection_type* ct, char *useless)
 	for( i=0; i<RAND_DEG; i++ ) Rand_state[i] = randstate[i];
 }
 
+/*
+ * Allocate each dungeon level N times.
+ */
+static void console_dng_test(connection_type* ct, char *params)
+{
+	int rep = 0;
+	int min_depth = 1;
+	int max_depth = 127;
+	int Depth, i;
+	u32b old_mode;
+
+	char *param1 = strtok(params, " ");
+	char *param2 = strtok(NULL, " ");
+	if (param2) min_depth = max_depth = atoi(param2);
+	if (param1) rep = atoi(param1);
+
+	/* Notify */
+	if (NumPlayers > 0)
+	{
+		cq_printf(&ct->wbuf, "%T", "Can't perform dngtest with players online!\n");
+		return;
+	}
+
+	plog("Performing DNG test, this may take a long time...");
+
+	/* Force "#cheat" output to plog */
+	old_mode = channels[chan_cheat].mode;
+	channels[chan_cheat].mode |= CM_PLOG;
+
+	/* Generate dungeons */
+	for (Depth = min_depth; Depth < max_depth+1; Depth++)
+	{
+		cheat(format("DLevel %d (%d feet), %d iterations:", Depth, Depth*50, rep));
+		for (i = 0; i < rep; i++)
+		{
+			/* Allocate space for it */
+			if (!cave[Depth]) alloc_dungeon_level(Depth);
+
+			/* Generate a dungeon level there */
+			generate_cave(0, Depth, TRUE);
+		}
+		/* XXX -- should we call compact from time to time? */
+	}
+
+	/* Restore channel mode */
+	channels[chan_cheat].mode = old_mode;
+
+	/* Notify */
+	cq_printf(&ct->wbuf, "%T", "Done\n");
+}
+
 static void console_reload(connection_type* ct, char *mod)
 {
 	bool done = FALSE;
@@ -546,6 +597,9 @@ console_command_ops console_commands[] = {
 	{ "reload",    console_reload,      1, "config|news\nReload mangband.cfg or news.txt"     },
 	{ "whois",     console_whois,       1, "PLAYERNAME\nDetailed player information"          },
 	{ "rngtest",   console_rng_test,    0, "\nPerform RNG test"                               },
+#ifdef DEBUG
+	{ "dngtest",   console_dng_test,    2, "[N] [DEPTH]\nGenerate dungeon N times"            },
+#endif
 	{ "debug",     console_debug,       0, "\nUnused"                                         },
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);

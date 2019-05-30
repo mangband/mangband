@@ -259,6 +259,11 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 		(0),
 		0, "Symbol: ", "Display visible monster list"
 	},
+	{ /* Display item list */
+		']', PKT_UNDEFINED, SCHEME_EMPTY, 0, (cccb)do_cmd_itemlist,
+		(0),
+		0, "", "Display visible item list"
+	},
 	{ /* Help */
 		'?', PKT_COMMAND, SCHEME_PPTR_CHAR, 0, (cccb)do_cmd_interactive,
 		(COMMAND_INTERACTIVE),
@@ -512,6 +517,12 @@ const stream_type streams[MAX_STREAMS] =
 		(0),
 		20, 80, 22, 80,
 		0, "MONLIST_TEXT", "Display monster list"
+	},
+	{	/* 11 */
+		STREAM_PKT(ITEMLIST_TEXT),	NTERM_WIN_ITEMLIST,	RLE_COLOR,
+		(0),
+		20, 80, 22, 80,
+		0, "ITEMLIST_TEXT", "Display dungeon item list"
 	},
 #if 0
 	{	/* 11 */
@@ -2539,6 +2550,9 @@ option_type option_info[] =
 
 	{ OPT_INFO(STACK_FORCE_COSTS),	FALSE,	2,	0, 0,
 	"stack_force_costs",    	"Merge discounts when stacking" },
+
+	{ OPT_INFO(EXPAND_INSPECT),	FALSE,	2,	0, 0,
+	"expand_inspect",    	"Compare equipment when examining items" },
 
 	/*** Running Options ***/
 	{ OPT_INFO(FIND_IGNORE_STAIRS),	TRUE,	3,	0, 0,

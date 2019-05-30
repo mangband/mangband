@@ -941,7 +941,8 @@ void player_setup(int Ind)
 	/* Make sure he's supposed to be here -- if not, then the level has
 	 * been unstaticed and so he should forget his memory of the old level.
 	 */
-	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0)))
+	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0))
+	    || (ht_passed(&turn_cavegen[Depth], &p_ptr->last_turn, 0)) )
 	{
 		/* Clear the "marked" and "lit" flags for each cave grid */
 		for (y = 0; y < MAX_HGT; y++)
@@ -1134,7 +1135,10 @@ void player_setup(int Ind)
 	p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 	/* Make sure his party still exists */
-	if (p_ptr->party && parties[p_ptr->party].num == 0)
+	if (p_ptr->party && (
+		parties[p_ptr->party].num == 0
+		|| ht_passed(&parties[p_ptr->party].created, &p_ptr->last_turn, 0)
+	))
 	{
 		/* Reset to neutral */
 		p_ptr->party = 0;
@@ -1149,6 +1153,7 @@ void player_setup(int Ind)
 
 	/* Update his inventory, equipment, and spell info */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL);
+	p_ptr->window |= (PW_ITEMLIST);
 
 	/* This guy is alive now */
 	p_ptr->alive = TRUE;

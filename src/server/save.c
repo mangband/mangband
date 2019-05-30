@@ -105,7 +105,7 @@ static void wr_item(object_type *o_ptr)
 	
 	start_section("item");
 
-	object_desc(0, obj_name, o_ptr, TRUE, 3);
+	object_desc(0, obj_name, sizeof(obj_name), o_ptr, TRUE, 3);
 	write_str("name",obj_name);
 
 	write_int("k_idx",o_ptr->k_idx);
@@ -197,11 +197,11 @@ static void wr_monster(monster_type *m_ptr)
 /*
  * Write a "lore" record
  */
-static void wr_lore(int Ind, int r_idx)
+static void wr_lore(player_type *p_ptr, int r_idx)
 {
 	int i;
 
-	player_type *p_ptr = Players[Ind];
+//	player_type *p_ptr = Players[Ind];
 //	monster_race *r_ptr = &r_info[r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
@@ -281,9 +281,8 @@ static void wr_u_lore(int r_idx)
 /*
  * Write an "xtra" record
  */
-static void wr_xtra(int Ind, int k_idx)
+static void wr_flvr(player_type *p_ptr, int k_idx)
 {
-	player_type *p_ptr = Players[Ind];
 	byte tmp8u = 0;
 
 	if (p_ptr->obj_aware[k_idx]) tmp8u |= 0x01;
@@ -389,10 +388,8 @@ static void wr_arena(arena_type *arena)
 	end_section("arena");
 }
 
-static void wr_header(int Ind)
+static void wr_player_header(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Hack -- use array of chars */
 	char stat_order[6]; int i;
 	for (i = 0; i < 6; i++) stat_order[i] =
@@ -412,10 +409,8 @@ static void wr_header(int Ind)
 /*
  * Write some "extra" info
  */
-static void wr_extra(int Ind)
+static void wr_player_main(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 	start_section("player");
@@ -590,9 +585,8 @@ static void wr_birthoptions(player_type *p_ptr)
 /*
  * Write the list of players a player is hostile toward
  */
-static void wr_hostilities(int Ind)
+static void wr_hostilities(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	hostile_type *h_ptr;
 	int i;
 	u16b tmp16u = 0;
@@ -692,6 +686,9 @@ static void wr_dungeon(int Depth)
 	write_int("max_height",MAX_HGT);
 	write_int("max_width",MAX_WID);
 
+	/* Time allocated */
+	write_hturn("gen_turn", &turn_cavegen[Depth]);
+
 	/* How many players are on this depth */
 	write_int("players_on_depth",players_on_depth[Depth]);
 
@@ -774,9 +771,8 @@ bool wr_dungeon_special_ext(int Depth, cptr levelname)
 }
 
 /* Write a players memory of a cave, simmilar to the above function. */
-void wr_cave_memory(int Ind)
+void wr_cave_memory(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int y,x;
 	//char prev_flag;
 	//unsigned char runlength = 0;
@@ -807,9 +803,8 @@ void wr_cave_memory(int Ind)
 /*
  * Actually write a save-file
  */
-static bool wr_savefile_new(int Ind)
+static bool wr_savefile_new(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	history_event *evt;
 
 	int        i;
@@ -845,7 +840,7 @@ static bool wr_savefile_new(int Ind)
 	write_int("patch",SERVER_VERSION_PATCH);
 	end_section("version");
 
-	wr_header(Ind);
+	wr_player_header(p_ptr);
 
 	/* Reset the checksum */
 	v_stamp = 0L;
@@ -880,18 +875,18 @@ static bool wr_savefile_new(int Ind)
 	start_section("monster_lore");
 	tmp16u = z_info->r_max;
 	write_int("max_r_idx",tmp16u);
-	for (i = 0; i < tmp16u; i++) wr_lore(Ind, i);
+	for (i = 0; i < tmp16u; i++) wr_lore(p_ptr, i);
 	end_section("monster_lore");
 	
 	/* Dump the object memory */
 	start_section("object_memory");
 	tmp16u = z_info->k_max;
 	write_int("max_k_idx",tmp16u);
-	for (i = 0; i < tmp16u; i++) wr_xtra(Ind, i);
+	for (i = 0; i < tmp16u; i++) wr_flvr(p_ptr, i);
 	end_section("object_memory");
 
 	/* Write the "extra" information */
-	wr_extra(Ind);
+	wr_player_main(p_ptr);
 
 	/* Dump the "player hp" entries */
 	start_section("hp");
@@ -935,10 +930,10 @@ static bool wr_savefile_new(int Ind)
 
 
 	/* Write the list of hostilities */
-	wr_hostilities(Ind);
+	wr_hostilities(p_ptr);
 	
 	/* write the cave flags (our memory of our current level) */
-	wr_cave_memory(Ind);
+	wr_cave_memory(p_ptr);
 
 	/* write the wilderness map */
 	start_section("wilderness");
@@ -997,7 +992,7 @@ static bool wr_savefile_new(int Ind)
  * Medium level player saver
  *
  */
-static bool save_player_aux(int Ind, char *name)
+static bool save_player_aux(player_type *p_ptr, char *name)
 {
 	bool	ok = FALSE;
 
@@ -1011,7 +1006,7 @@ static bool save_player_aux(int Ind, char *name)
 	if (file_handle)
 	{
 		/* Write the savefile */
-		if (wr_savefile_new(Ind)) ok = TRUE;
+		if (wr_savefile_new(p_ptr)) ok = TRUE;
 
 		/* Attempt to close it */
 		if (!file_close(file_handle)) ok = FALSE;
@@ -1035,10 +1030,8 @@ static bool save_player_aux(int Ind, char *name)
 /*
  * Attempt to save the player in a savefile
  */
-bool save_player(int Ind)
+bool save_player(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		result = FALSE;
 
 	char	safe[1024];
@@ -1070,7 +1063,7 @@ bool save_player(int Ind)
 	file_delete(safe);
 
 	/* Attempt to save the player */
-	if (save_player_aux(Ind, safe))
+	if (save_player_aux(p_ptr, safe))
 	{
 		char temp[1024];
 

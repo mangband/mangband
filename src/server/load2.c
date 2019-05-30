@@ -1369,6 +1369,10 @@ static errr rd_dungeon(bool ext, int Depth)
 	max_x = read_int("max_width");
 	if (ext) depth = Depth;
 
+	/* Turn this level was generated */
+	if (value_exists("gen_turn"))
+		read_hturn("gen_turn", &turn_cavegen[depth]);
+
 	/* players on this depth */
 	players_on_depth[depth] = read_int("players_on_depth");
 
@@ -1738,7 +1742,7 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	sf_saves = read_int("sf_saves");
 
 	/* Skip the turn info - if present */
-	skip_value("turn");
+	read_hturn("turn", &p_ptr->last_turn);
 	
 	/* Turn this character was born on */
 	if(value_exists("birth_turn"))

@@ -69,7 +69,7 @@
 
 # Version stamp (required)
 
-V:1.5.0
+V:1.5.2
 
 
 ##### Non-kind (contains the "pile" picture) #####
@@ -1563,6 +1563,10 @@ G:?:d
 I:70:49:0
 W:99:0:5:1000000
 A:99/40
+F:EASY_KNOW
+D:It creates a new house, starting at the House Foundation Stone
+D: you are standing at, and expanding in all directions, until
+D: no more House Foundation Stones are found.
 
 ## XXX 183 XXX ##
 
@@ -3570,10 +3574,11 @@ F:EASY_KNOW
 N:399:& House Foundation Stone~
 G:~:v
 I:3:9:0
-W:99:0:200:0
+W:70:0:200:10000
 P:0:1d2:0:0:0
-A:99/40
+A:70/20
 F:EASY_KNOW
+D:It can be used to build new houses in the wilderness.
 
 ##### Dragon Scale Mail #####
 

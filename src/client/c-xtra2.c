@@ -3,6 +3,19 @@
 #include "c-angband.h"
 
 /*
+ * Recall the most recent message
+ */
+void do_cmd_message_one(void)
+{
+	byte attr;
+	cptr s = message_str(0);
+	message_color(s, &attr);
+	/* Recall one message XXX XXX XXX */
+	c_prt(attr, format( "> %s", s), 0, 0);
+}
+
+
+/*
  * Show previous messages to the user   -BEN-
  *
  * The screen format uses line 0 and 23 for headers and prompts,
@@ -159,14 +172,14 @@ void do_cmd_messages(void)
                 }
 
                 /* Recall 20 older messages */
-                if ((k == 'p') || (k == KTRL('P')) || (k == ' '))
+                if ((k == 'p') || (k == KTRL('P')) || (k == ' ') || (k == '9'))
                 {
                         /* Go older if legal */
                         if (i + 20 < n) i += 20;
                 }
 
                 /* Recall 20 newer messages */
-                if ((k == 'n') || (k == KTRL('N')))
+                if ((k == 'n') || (k == KTRL('N')) || (k == '3'))
                 {
                         /* Go newer (if able) */
                         i = (i >= 20) ? (i - 20) : 0;

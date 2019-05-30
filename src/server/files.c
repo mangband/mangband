@@ -1176,7 +1176,7 @@ errr file_character_server(int Ind, cptr name)
 	file_putf(fff, "%s", "  [Character Equipment]\n\n");
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
-		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), &p_ptr->inventory[i], TRUE, 3);
 		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
@@ -1186,7 +1186,7 @@ errr file_character_server(int Ind, cptr name)
 	file_putf(fff, "%s", "  [Character Inventory]\n\n");
 	for (i = 0; i < INVEN_PACK; i++)
 	{
-		object_desc(0, o_name, &p_ptr->inventory[i], TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), &p_ptr->inventory[i], TRUE, 3);
 		file_putf(fff, "%c%s %s\n",
 		        index_to_label(i), paren, o_name);
 	}
@@ -1206,11 +1206,13 @@ errr file_character_server(int Ind, cptr name)
 			{
 				for(x=houses[i].x_1; x<=houses[i].x_2;x++)
 				{
+					/* Paranoia -- unallocated Depth */
+					if (!cave[Depth]) continue;
 					c_ptr = &cave[Depth][y][x];
 					if (c_ptr->o_idx)
 					{
 						if (j > 12) { file_putf(fff, "%s", "\n"); j = 0; }
-						object_desc(0, o_name, &o_list[c_ptr->o_idx], TRUE, 3);
+						object_desc(0, o_name, sizeof(o_name), &o_list[c_ptr->o_idx], TRUE, 3);
 						file_putf(fff, "%c%s %s\n",
 			        		index_to_label(j), paren, o_name);
 						j++;
@@ -1958,6 +1960,81 @@ errr show_file(int Ind, cptr name, cptr what, int line, int color)
 	return (0);
 }
 
+/* Given a player name in "nick_name", write out a new version to "wptr",
+ * where a) all words are capitalized b) double-spaces are removed.
+ * For example, "juG  tHe brAve" should become "Jug The Brave".
+ * If "bptr" is not NULL, the "base" version will be written to
+ * it, replacing all spaces with underscore (-> "Jug_The_Brave").
+ * It is assumed that the only characters that exist in "nick_name" are
+ *  letters (a-zA-Z), digits (0-9) and space ( ).
+ * Some other function should've taken care of that.
+ * It is assumed that "wptr" is at least of MAX_CHARS length.
+ * It is assumed that "bptr" is at least of MAX_CHARS length.
+ *
+ * Note: because we actually want to allow names that do not follow
+ * this format (i.e. "ZalPriest", "Master_of_Puppets"), this function
+ * SHOULD NOT be called! However, if you're on an machine with
+ * case-insensitive filesystem (looking at you, Win32), this function
+ * MUST be called, as early as possible, to prevent savefile name collision.
+ */
+int rewrite_player_name(char *wptr, char *bptr, const char *nick_name)
+{
+	/* Re-write nick, removing double spaces */
+	const char *p;
+	bool recap;
+	const char *wptr_start;
+	const char *bptr_start;
+
+	/* Nothing to do */
+	if (!wptr && !bptr) return 0;
+
+	wptr_start = wptr;
+	bptr_start = bptr;
+
+	if (wptr) *wptr = '\0';
+	if (bptr) *bptr = '\0';
+	recap = TRUE;
+	for (p = nick_name; *p; p++)
+	{
+		char c = *p;
+		if (c == ' ') /* A space */
+		{
+			if (recap) continue; /* Skip 2nd, 3rd, Nth space */
+			recap = TRUE;
+		}
+		else /* It's a symbol or digit */
+		{
+			if (isalpha(c))
+			{
+				c = recap ? toupper(c) : tolower(c);
+			}
+			recap = FALSE;
+		}
+		/* Save one char */
+		if (wptr) *wptr++ = c;
+
+		/* Save "base" version */
+		if (bptr) *bptr++ = (c == ' ' ? '_': c);
+	}
+	/* Terminate strings */
+	if (wptr) *wptr = '\0';
+	if (bptr) *bptr = '\0';
+
+	/* Right-trim spaces */
+	if (wptr) for ( ; wptr-- > wptr_start; )
+	{
+		if (*wptr == ' ') *wptr = '\0';
+		else break;
+	}
+	if (bptr) for ( ; bptr-- > bptr_start; )
+	{
+		if (*bptr == '_') *bptr = '\0';
+		else break;
+	}
+
+	if (!wptr) return bptr - bptr_start;
+	return wptr - wptr_start;
+}
 
 /*
  * XXXXXXXXX
@@ -2016,14 +2093,6 @@ int process_player_name_aux(cptr name, cptr base, bool sf)
 		/* Convert space, dot, and underscore to underscore */
 		else if (strchr(". _", c)) basename[k++] = '_';
 	}
-
-#endif
-
-
-#if defined(WINDOWS) || defined(MSDOS)
-
-	/* Hack -- max length */
-	if (k > 8) k = 8;
 
 #endif
 
@@ -2174,7 +2243,7 @@ void do_cmd_save_game(int Ind)
 	signals_ignore_tstp();
 
 	/* Save the player */
-	if (save_player(Ind))
+	if (save_player(p_ptr))
 	{
 		msg_print(Ind, "Saving game... done.");
 	}
@@ -3004,7 +3073,7 @@ void close_game(void)
 			if (p_ptr->total_winner) kingly(i);
 
 			/* Save memories */
-			if (!save_player(i)) msg_print(i, "death save failed!");
+			if (!save_player(p_ptr)) msg_print(i, "death save failed!");
 
 			/* Dump bones file 
 			make_bones(i);
@@ -3271,7 +3340,8 @@ void exit_game_panic()
 
 		/* Try to save the player, don't worry if this fails because there
 		 * is nothing we can do now anyway */
-		save_player(i++);
+		save_player(p_ptr);
+		i++;
 
 	}
 

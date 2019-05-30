@@ -909,7 +909,7 @@ static void store_create(int st)
 	for (tries = 0; tries < 4; tries++)
 	{
 		/* Black Market */
-		if (store_num == 6)
+		if (store_num == 6 && randint0(25))
 		{
 			/* Pick a level for object/magic */
 			level = 30 + rand_int(25);
@@ -1794,7 +1794,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			if (st == 8) sell_obj.note = 0;
 
 			/* Describe the transaction */
-			object_desc(Ind, o_name, &sell_obj, TRUE, 3);
+			object_desc(Ind, o_name, sizeof(o_name), &sell_obj, TRUE, 3);
 
 			/* Message */
 			msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
@@ -1818,7 +1818,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			item_new = inven_carry(p_ptr, &sell_obj);
 
 			/* Describe the final result */
-			object_desc(Ind, o_name, &p_ptr->inventory[item_new], TRUE, 3);
+			object_desc(Ind, o_name, sizeof(o_name), &p_ptr->inventory[item_new], TRUE, 3);
 
 			/* Message */
 			msg_format(Ind, "You have %s (%c).",
@@ -1989,7 +1989,7 @@ void store_sell(int Ind, int item, int amt)
 	}
 
 	/* Get a full description */
-	object_desc(Ind, o_name, &sold_obj, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), &sold_obj, TRUE, 3);
 
 	/* Remove any inscription for stores */
 	if (p_ptr->store_num != 7) sold_obj.note = 0;
@@ -2117,7 +2117,7 @@ void store_confirm(int Ind)
 	value = object_value(p_ptr, &sold_obj) * sold_obj.number;
 
 	/* Get the description all over again */
-	object_desc(Ind, o_name, &sold_obj, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), &sold_obj, TRUE, 3);
  
 	/* Describe the result (in message buffer) */
 	msg_format(Ind, "You sold %s for %ld gold.", o_name, (long)price);

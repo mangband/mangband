@@ -113,5 +113,12 @@ extern void quit(cptr str);
 extern void core(cptr str);
 
 
+/* Sorting functions */
+/* TODO: make ang_sort() take comp and swap hooks rather than use globals */
+extern void ang_sort(int Ind, vptr u, vptr v, int n);
+extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
+
+extern bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
+extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 
 #endif

@@ -240,7 +240,7 @@ static void sense_inventory(int Ind)
 		if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
 
 		/* Get an object description */
-		object_desc(Ind, o_name, o_ptr, FALSE, 0);
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		sound(Ind, MSG_PSEUDOID);
 
@@ -1009,6 +1009,9 @@ static void process_player_end(int Ind)
 	object_type		*o_ptr;
 	object_kind		*k_ptr;
 
+	/* Remember last server turn */
+	p_ptr->last_turn = turn;
+
 	/* HACK -- Do not proccess while changing levels */
 	if (p_ptr->new_level_flag == TRUE) return;
 
@@ -1077,7 +1080,7 @@ static void process_player_end(int Ind)
 		msg_print(Ind, "Your pack overflows!");
 
 		/* Describe */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 		/* Message */
 		msg_format(Ind, "You drop %s.", o_name);
@@ -1783,7 +1786,7 @@ static void process_various(void)
 		for (i = 1; i <= NumPlayers; i++)
 		{
 			/* Save this player */
-			save_player(i);
+			save_player(Players[i]);
 		}
 	}
 
@@ -1996,11 +1999,15 @@ static void process_various(void)
 			/* hack -- make fruit bat wear off */
 			for (x = 1; x < NumPlayers + 1; x++)
 			{
-				if (Players[x]->fruit_bat)
+				p_ptr = Players[x];
+				if (p_ptr->fruit_bat > 0)
 				{
-					Players[x]->fruit_bat--;
-					if (!Players[x]->fruit_bat)
-					msg_print(x, "Your form feels much more familliar.");
+					p_ptr->fruit_bat--;
+					if (!p_ptr->fruit_bat)
+					{
+						p_ptr->update |= (PU_BONUS | PU_HP);
+						msg_print(x, "Your form feels much more familliar.");
+					}
 				}
 			}
 		}
@@ -2277,6 +2284,8 @@ void dungeon(void)
 		update_lite(i);
 		update_monsters(TRUE);
 		update_players();
+
+		p_ptr->window |= (PW_ITEMLIST);
 
 		/* Clear the flag */
 		p_ptr->new_level_flag = FALSE;

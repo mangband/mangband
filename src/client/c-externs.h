@@ -101,8 +101,8 @@ extern s16b last_line_info;
 extern s16b cur_line;
 extern s16b max_line;
 
-extern cave_view_type* remote_info[8];
-extern s16b last_remote_line[8];
+extern cave_view_type* remote_info[16];
+extern s16b last_remote_line[16];
 extern cptr stream_desc[32];
 
 cave_view_type air_info[MAX_HGT][MAX_WID];
@@ -129,6 +129,8 @@ extern byte item_tester_tval;
 extern bool (*item_tester_hook)(object_type *o_ptr);
 extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern int known_item_testers;
+
+extern int inven_out_index[256];
 
 extern int special_line_type;
 extern char special_line_header[MAX_CHARS];
@@ -233,6 +235,9 @@ extern char ptitle[80];
 
 extern s16b stat_order[6];
 
+extern bool flip_inven;
+extern s16b flip_charsheet;
+
 extern bool topline_icky;
 extern bool screen_icky;
 extern s16b section_icky_col;
@@ -240,6 +245,7 @@ extern byte section_icky_row;
 extern bool party_mode;
 extern bool cursor_icky;
 extern bool looking;
+extern bool in_item_prompt;
 
 extern byte icky_levels;
 
@@ -279,6 +285,7 @@ extern bool auto_showlist;
 extern bool depth_in_feet;
 extern bool show_labels;
 extern bool show_weights;
+extern bool wrap_messages;
 extern bool ring_bell;
 extern bool use_color;
 
@@ -369,12 +376,17 @@ extern void cmd_master_aux_build(void);
 extern void cmd_master_aux_summon(void);
 extern void cmd_observe(void);
 extern void cmd_mouseclick(void);
+extern void toggle_inven_equip(void);
 /* c-cmd0.c */
 extern void do_cmd_port(void);
 extern char do_cmd_menu(void);
 extern void cmd_init(void);
+extern void do_cmd_term_mousepress(u32b termflag, int x, int y, int button);
+extern void cmd_term_mousepress(int i, int x, int y, int button);
+extern void do_cmd_use_item(int item, bool agressive);
+extern void cmd_use_item();
 extern char* macro_find_by_action(cptr buf);
-extern custom_command_type *match_custom_command(char cmd);
+extern custom_command_type *match_custom_command(char cmd, bool shop);
 extern int command_to_display_name(char cmd, char *dst, size_t len);
 extern char command_from_keystroke(char *buf);
 extern char command_by_item(int item, bool agressive);
@@ -384,7 +396,7 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 
 
 /* c-files.c */
-extern void text_to_ascii(char *buf, cptr str);
+extern void text_to_ascii(char *buf, size_t max, cptr str);
 extern void init_stuff();
 extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
@@ -436,6 +448,7 @@ extern bool item_tester_hack(object_type *o_ptr, int i); /* Do not use this */
 extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
 extern byte c_secondary_tester(int item);
+extern void do_cmd_inscribe_auto(char *item_name, char *inscription);
 
 /* c-util.c */
 #ifndef HAVE_USLEEP
@@ -447,13 +460,16 @@ extern void flush_now(void);
 extern void set_graphics(int mode);
 extern int sound_count(int val);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
+extern int macro_find_exact(cptr pat);
 extern errr macro_trigger_free(void);
 extern char inkey(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);
 extern void prt(cptr str, int row, int col);
+extern int prt_multi(int sx, int sy, int n, int m, int attr, cptr msg);
 extern bool get_string(cptr prompt, char *buf, int len);
 extern bool get_com(cptr prompt, char *command);
+extern bool get_com_ex(cptr prompt, char *command, event_type *xe);
 extern void request_command(bool shopping);
 extern int target_dir(char ch);
 extern bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend);
@@ -467,6 +483,7 @@ extern cptr message_str(s16b age);
 extern u16b message_type(s16b age);
 extern void c_message_add(cptr msg, u16b type);
 extern void c_message_del(s16b age);
+extern void msg_flush(void);
 extern void c_msg_print_aux(cptr msg, u16b type);
 extern void c_msg_print(cptr msg);
 extern s32b c_get_quantity(cptr prompt, s32b max);
@@ -525,6 +542,7 @@ extern void redraw_indicators(u32b filter);
 
 
 /* c-xtra2.c */
+extern void do_cmd_message_one(void);
 extern void do_cmd_messages(void);
 extern void do_chat_open(int id, cptr name);
 extern void do_chat_select(int id);

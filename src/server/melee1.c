@@ -677,7 +677,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						distribute_charges(o_ptr, i_ptr, 1);
 
 						/* Get a description */
-						object_desc(Ind, o_name, i_ptr, FALSE, 3);
+						object_desc(Ind, o_name, sizeof(o_name), i_ptr, FALSE, 3);
 
 						/* Message */
 						msg_format(Ind, "%sour %s (%c) was stolen!",
@@ -728,7 +728,7 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (o_ptr->tval != TV_FOOD) continue;
 
 						/* Get a description */
-						object_desc(Ind, o_name, o_ptr, FALSE, 0);
+						object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 						/* Message */
 						msg_format(Ind, "%sour %s (%c) was eaten!",

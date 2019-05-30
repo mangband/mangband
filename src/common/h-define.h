@@ -103,6 +103,9 @@
 #undef SGN
 #define SGN(a)		(((a) < 0)   ? (-1) : ((a) != 0))
 
+/* Compare two values */
+#undef CMP
+#define CMP(a,b) (a < b ? -1 : (b < a ? 1: 0))
 
 /*
  * Hack -- allow use of "ASCII" and "EBCDIC" for "indexes", "digits",

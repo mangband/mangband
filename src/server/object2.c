@@ -109,7 +109,10 @@ static void excise_object_idx(int o_idx)
 
 		/* No one can see it anymore */
 		for (i = 1; i < NumPlayers + 1; i++)
+		{
+			if (Players[i]->obj_vis[o_idx]) Players[i]->window |= (PW_ITEMLIST);
 			Players[i]->obj_vis[o_idx] = FALSE;
+		}
 	}
 }
 
@@ -2031,7 +2034,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 
 		/* Mega-Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
-		object_desc(0, o_name, o_ptr, TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
         plog(format("Special artifact %s created", o_name));
 
 
@@ -2108,7 +2111,7 @@ printf("Passed!\n");
 
 		/* Hack -- mark the item as an artifact */
 		o_ptr->name1 = i;
-        object_desc(0, o_name, o_ptr, TRUE, 3);
+        object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
         plog(format("Artifact %s created", o_name));
 
 		/* Success */
@@ -3038,10 +3041,10 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 	int i, rolls, f1, f2, power;
 
 
-    /* Magic ammo are always +0 +0 */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
-	return;
+	/* Magic ammo are always +0 +0 */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	     (o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
+		return;
 
 	/* Maximum "level" for various things */
 	if (lev > MAX_DEPTH - 1) lev = MAX_DEPTH - 1;
@@ -3596,6 +3599,15 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 	/* Add inscription (for unique drops) */
 	if (quark > 0) o_ptr->note = quark;
 
+#ifdef DEBUG
+	{
+		char tmp[120];
+		object_desc(0, tmp, sizeof(tmp), o_ptr, FALSE, 1);
+		/* Audit item allocation */
+		cheat(format("%s %s", artifact_p(o_ptr) ? "+a": "+o", tmp));
+	}
+#endif
+
 	return artifact_p(o_ptr);
 	}
 
@@ -4064,7 +4076,7 @@ void inven_item_describe(int Ind, int item)
 	char	o_name[80];
 
 	/* Get a description */
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Print a message */
 	msg_format(Ind, "You have %s.", o_name);
@@ -4224,6 +4236,14 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 	char	o_name[80];
 	byte    attr;
 	byte    flag, secondary_tester;
+	int i;
+
+	/* XXX HACK XXX -- find OTHER players who also see this item */
+	if (o_idx) for (i = 1; i < NumPlayers + 1; i++)
+	{
+		if (Players[i]->dun_depth != p_ptr->dun_depth) continue;
+		if (Players[i]->obj_vis[o_idx]) Players[i]->window |= (PW_ITEMLIST);
+	}
 
 	if (!force && p_ptr->delta_floor_item == o_idx) return;
 	p_ptr->delta_floor_item = o_idx;
@@ -4237,7 +4257,7 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 		if (!option_p(p_ptr, USE_COLOR)) attr = TERM_WHITE;
 
 		/* Describe the object */
-		object_desc(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
 		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
@@ -4705,9 +4725,10 @@ static void notify_player_standing_on(int o_idx)
 		{
 			/* Yes, let's schedule floor redraw */
 			p_ptr->redraw |= (PR_FLOOR);
-			/* Only one player can occupy a grid, so we're done */
-			break;
 		}
+
+		/* Hack -- also update itemlist window for this player */
+		if (p_ptr->obj_vis[o_idx]) p_ptr->window |= (PW_ITEMLIST);
 	}
 }
 
@@ -4946,7 +4967,7 @@ void artifact_notify(player_type *p_ptr, object_type *o_ptr)
 	{
 		char o_name[80];
 		char buf[80];
-		object_desc(0, o_name, o_ptr, FALSE, 0);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 		sprintf(buf, "Found The %s", o_name);
 		log_history_event(p_ptr, buf, TRUE);
 
@@ -4979,7 +5000,7 @@ void object_audit(player_type *p_ptr, object_type *o_ptr, int number)
 			p_ptr->name, (long)p_ptr->id, (long)object_value(p_ptr, o_ptr) * number);
 		audit(buf);
 		/* Object name */
-		object_desc(0, o_name, o_ptr, TRUE, 3);
+		object_desc(0, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 		sprintf(buf,"TR+%s", o_name);
 		audit(buf);
 		
@@ -5048,4 +5069,281 @@ object_type* player_get_item(player_type *p_ptr, int item, int *idx)
 	}
 
 	return o_ptr;
+}
+
+/*
+ * Get the indexes of objects at a given floor location. -TNB-
+ *
+ * Return the number of object indexes acquired.
+ *
+ * Valid flags are any combination of the bits:
+ *   0x01 -- Verify item tester
+ *   0x02 -- Marked/visible items only
+ *   0x04 -- Only the top item
+ */
+int scan_floor(player_type *p_ptr, int *items, int max_size, int y, int x, int mode)
+{
+	int this_o_idx, next_o_idx;
+
+	int num = 0;
+
+	int Depth = p_ptr->dun_depth;
+
+	/* Sanity */
+	if (!in_bounds(p_ptr->dun_depth, y, x)) return 0;
+
+
+	/* Scan all objects in the grid */
+	for (this_o_idx = cave[Depth][y][x].o_idx; this_o_idx; this_o_idx = next_o_idx)
+	{
+		object_type *o_ptr;
+
+		/* XXX Hack -- Enforce limit */
+		if (num >= max_size) break;
+
+
+		/* Get the object */
+		o_ptr = &o_list[this_o_idx];
+
+		/* Get the next object */
+		next_o_idx = o_ptr->next_o_idx;
+
+		/* Item tester */
+		if ((mode & 0x01) && !item_tester_okay(o_ptr)) continue;
+
+#if 0 /* We don't support squelch */
+		/* Marked */
+		if ((mode & 0x02) && (!o_ptr->marked || squelch_hide_item(o_ptr)))
+			continue;
+#else
+		/* MAngband-specific: squelch/mode 0x02 alternative */
+		if ((mode & 0x02) && !(p_ptr->obj_vis[this_o_idx])) continue;
+#endif
+
+		/* Accept this item */
+		items[num++] = this_o_idx;
+
+		/* Only one */
+		if (mode & 0x04) break;
+	}
+
+	return num;
+}
+
+
+
+/**
+ * Sort comparator for objects using only tval and sval.
+ * -1 if o1 should be first
+ *  1 if o2 should be first
+ *  0 if it doesn't matter
+ */
+static int compare_types(const object_type *o1, const object_type *o2)
+{
+	if (o1->tval == o2->tval)
+		return CMP(o1->sval, o2->sval);
+	else
+		return CMP(o1->tval, o2->tval);
+}
+
+/* some handy macros for sorting */
+#define object_is_known_artifact(p_ptr, o) (artifact_p(o) && object_known_p(p_ptr, o))
+#define object_is_worthless(p_ptr, o) (object_value(p_ptr, o/*, 1*/) == 0)
+
+/**
+ * Sort comparator for objects
+ * -1 if o1 should be first
+ *  1 if o2 should be first
+ *  0 if it doesn't matter
+ *
+ * The sort order is designed with the "list items" command in mind.
+ */
+static int compare_items(player_type *p_ptr, const object_type *o1, const object_type *o2)
+{
+	/* known artifacts will sort first */
+	if (object_is_known_artifact(p_ptr, o1) && object_is_known_artifact(p_ptr, o2))
+		return compare_types(o1, o2);
+	if (object_is_known_artifact(p_ptr, o1)) return -1;
+	if (object_is_known_artifact(p_ptr, o2)) return 1;
+
+	/* unknown objects will sort next */
+	if (!object_aware_p(p_ptr, o1) && !object_aware_p(p_ptr, o2))
+		return compare_types(o1, o2);
+	if (!object_aware_p(p_ptr, o1)) return -1;
+	if (!object_aware_p(p_ptr, o2)) return 1;
+
+	/* if only one of them is worthless, the other comes first */
+	if (object_is_worthless(p_ptr, (object_type*)o1) && !object_is_worthless(p_ptr, (object_type*)o2)) return 1;
+	if (!object_is_worthless(p_ptr, (object_type*)o1) && object_is_worthless(p_ptr, (object_type*)o2)) return -1;
+
+	/* otherwise, just compare tvals and svals */
+	/* NOTE: arguably there could be a better order than this */
+	return compare_types(o1, o2);
+}
+
+/* Forward-compatibility with V310b */
+#define ODESC_FULL 2
+#define squelch_item_ok(O_PTR) FALSE
+
+/*
+ * Display visible items, similar to display_monlist
+ */
+void display_itemlist(player_type *p_ptr)
+{
+	int max;
+	int mx, my;
+	unsigned num;
+	int line = 1, x = 0;
+	int cur_x;
+	unsigned i;
+	unsigned disp_count = 0;
+	byte a;
+	char c;
+
+	object_type *types[MAX_ITEMLIST];
+	int counts[MAX_ITEMLIST];
+	unsigned counter = 0;
+
+	int dungeon_hgt = MAX_HGT; /*p_ptr->depth == 0 ? TOWN_HGT : DUNGEON_HGT;*/
+	int dungeon_wid = MAX_WID; /*p_ptr->depth == 0 ? TOWN_WID : DUNGEON_WID;*/
+
+	byte attr;
+	char buf[80];
+
+	int floor_list[MAX_FLOOR_STACK];
+
+	int Ind = Get_Ind[p_ptr->conn];
+
+	/* Begin */
+	text_out_init(Ind);
+
+	/* Look at each square of the dungeon for items */
+	for (my = 0; my < dungeon_hgt; my++)
+	{
+		for (mx = 0; mx < dungeon_wid; mx++)
+		{
+			num = scan_floor(p_ptr, floor_list, MAX_FLOOR_STACK, my, mx, 0x02);
+
+			/* Iterate over all the items found on this square */
+			for (i = 0; i < num; i++)
+			{
+				object_type *o_ptr = &o_list[floor_list[i]];
+				unsigned j;
+
+				/* Skip gold/squelched */
+				if (o_ptr->tval == TV_GOLD || squelch_item_ok(o_ptr))
+					continue;
+
+				/* See if we've already seen a similar item; if so, just add */
+				/* to its count */
+				for (j = 0; j < counter; j++)
+				{
+					if (object_similar(p_ptr, o_ptr, types[j]))
+					{
+						counts[j] += o_ptr->number;
+						break;
+					}
+				}
+
+				/* We saw a new item. So insert it at the end of the list and */
+				/* then sort it forward using compare_items(). The types list */
+				/* is always kept sorted. */
+				if (j == counter)
+				{
+					types[counter] = o_ptr;
+					counts[counter] = o_ptr->number;
+
+					while (j > 0 && compare_items(p_ptr, types[j - 1], types[j]) > 0)
+					{
+						object_type *tmp_o = types[j - 1];
+						int tmpcount;
+
+						types[j - 1] = types[j];
+						types[j] = tmp_o;
+						tmpcount = counts[j - 1];
+						counts[j - 1] = counts[j];
+						counts[j] = tmpcount;
+						j--;
+					}
+					counter++;
+				}
+			}
+		}
+	}
+
+	/* Note no visible items */
+	if (!counter)
+	{
+		/* Clear display and print note */
+		text_out_c(TERM_SLATE, "You see no items.\n");
+
+		/* Done */
+		text_out_done();
+		return;
+	}
+	else
+	{
+		/* Reprint Message */
+		text_out(format("You can see %d item%s:",
+				   counter, (counter > 1 ? "s" : "")));
+		text_out("\n");
+	}
+
+	for (i = 0; i < counter; i++)
+	{
+		/* o_name will hold the object_desc() name for the object. */
+		/* o_desc will also need to put a (x4) behind it. */
+		/* can there be more than 999 stackable items on a level? */
+		char o_name[80];
+		char o_desc[86];
+
+		object_type *o_ptr = types[i];
+
+		/* We shouldn't list coins or squelched items */
+		if (o_ptr->tval == TV_GOLD || squelch_item_ok(o_ptr))
+			continue;
+
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, ODESC_FULL);
+		if (counts[i] > 1)
+			sprintf(o_desc, "%s (x%d)", o_name, counts[i]);
+		else
+			sprintf(o_desc, "%s", o_name);
+
+		/* Reset position */
+		cur_x = x;
+
+		/* Note that the number of items actually displayed */
+		disp_count++;
+
+		if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
+			/* known artifact */
+			attr = TERM_VIOLET;
+		else if (!object_aware_p(p_ptr, o_ptr))
+			/* unaware of kind */
+			attr = TERM_RED;
+		else if (object_value(p_ptr, o_ptr/*, 1*/) == 0)
+			/* worthless */
+			attr = TERM_SLATE;
+		else
+			/* default */
+			attr = TERM_WHITE;
+
+		a = object_kind_attr(o_ptr->k_idx);
+		c = object_kind_char(o_ptr->k_idx);
+
+		/* Display the pict */
+		text_out(" ");
+		text_out_c(a, format("%c", c));
+		text_out(" ");
+
+		/* Print and bump line counter */
+		text_out_c(attr, o_desc);
+		if (i == counter - 1) break;
+		text_out(" ");
+		text_out("\n");
+		line++;
+	}
+
+	/* Done */
+	text_out_done();
 }

@@ -163,6 +163,7 @@ static command_type cmd_util[128] =
 #endif
 	{ "Save and quit",        KTRL('X'), NULL /*do_cmd_quit*/ },
 	{ "Quit (commit suicide)",      'Q', NULL /*do_cmd_suicide*/ },
+	{ "Flip Inven/Equip windows", KTRL('E'), NULL /* toggle_inven_equip*/},
 	{ "Redraw the screen",    KTRL('R'), NULL /*do_cmd_redraw*/ },
 #if 0
 	{ "Load \"screen dump\"",       '(', do_cmd_load_screen },
@@ -174,13 +175,14 @@ static command_type cmd_util[128] =
 /* Commands that shouldn't be shown to the user */ 
 static command_type cmd_hidden[] =
 {
+	{ "Use item (primary action)", KTRL('U'), NULL /*cmd_use_item*/ },
 #if 0
 	{ "Take notes",               ':', do_cmd_note },
 	{ "Version info",             'V', do_cmd_version },
 	{ "Load a single pref line",  '"', do_cmd_pref },
 	{ "Mouse click",           '\xff', do_cmd_mouseclick },
 	{ "Enter a store",            '_', do_cmd_store },
-	{ "Toggle windows",     KTRL('E'), toggle_inven_equip }, /* XXX */
+
 	{ "Alter a grid",             '+', do_cmd_alter },
 	{ "Walk",                     ';', do_cmd_walk },
 	{ "Jump into a trap",         '-', do_cmd_jump },
@@ -739,6 +741,7 @@ void cmd_init(void)
 	cmd_init_one(CMD_LIST_ACTION, "Walk", ';');
 	/* Hack -- add more local commands */
 	cmd_init_one(CMD_LIST_INFO, "Character description",'C');
+	cmd_init_one(CMD_LIST_INFO, "Show previous message",KTRL('O'));
 	cmd_init_one(CMD_LIST_INFO, "Show previous messages",KTRL('P'));
 	/* Go through every command */
 	for (i = 0; i < custom_commands; i++)
@@ -775,7 +778,7 @@ void cmd_init(void)
 			list_id = CMD_LIST_INFO;
 		}
 		if (c_ptr->m_catch == 'G') list_id = CMD_LIST_MAGIC;
-		if (strchr("[", c_ptr->m_catch)) list_id = CMD_LIST_INFO;
+		if (strchr("[]", c_ptr->m_catch)) list_id = CMD_LIST_INFO;
 		if (c_ptr->m_catch == KTRL('F')) list_id = CMD_LIST_INFO;
 
 		cmd_init_one(list_id, c_ptr->display, c_ptr->m_catch);
@@ -883,11 +886,13 @@ char* macro_find_by_action(cptr buf)
  * - command_type, with remaining 10% of commands and no usable
      data at all.
  */
-custom_command_type *match_custom_command(char cmd)
+custom_command_type *match_custom_command(char cmd, bool shop)
 {
 	byte i;
 	for (i = 0; i < custom_commands; i++)
 	{
+		if (shop != ((custom_command[i].flag & COMMAND_STORE) ? TRUE : FALSE))
+			continue;
 		if (custom_command[i].m_catch == cmd)
 		{
 			return &custom_command[i];
@@ -915,7 +920,7 @@ int command_to_display_name(char cmd, char *dst, size_t len)
 	custom_command_type *cc_ptr;
 	command_type *cmd_ptr;
 
-	if ((cc_ptr = match_custom_command(cmd)))
+	if ((cc_ptr = match_custom_command(cmd, FALSE)))
 	{
 		my_strcpy(dst, cc_ptr->display, len);
 		return strlen(dst);
@@ -1015,7 +1020,14 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 	char buf2[1024];
 	int tag = -1;
 
-	my_strcpy(buf2, inventory_name[item], 1024);
+	if (item < 0 && item > -FLOOR_TOTAL-1)
+	{
+		my_strcpy(buf2, floor_name, 1024);
+	}
+	else
+	{
+		my_strcpy(buf2, inventory_name[item], 1024);
+	}
 
 	if (ctxt_flag & CTXT_WITH_CMD)
 	{
@@ -1055,10 +1067,19 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 	if (ctxt_flag & CTXT_PREFER_SHORT)
 	{
 		char key = 'a';
-		if (item < 0) key = '-';
+		if (item < 0) key = '-' + 1;
 		if (item < INVEN_WIELD)
 		{
 			buf[0] = key + item;
+			buf[1] = '\0';
+			my_strcat(dst, buf, len);
+			return 1;
+		}
+		else
+		{
+			custom_command_type *cc_ptr = match_custom_command(cmd, shopping);
+			if (cc_ptr && (cc_ptr->flag & COMMAND_ITEM_INVEN)) my_strcat(dst, "/", len);
+			buf[0] = key + item - INVEN_WIELD;
 			buf[1] = '\0';
 			my_strcat(dst, buf, len);
 			return 1;
@@ -1148,4 +1169,379 @@ int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t len, byt
 	/* Finish it */
 	my_strcpy(dst, tmp, len);
 	return strlen(dst);
+}
+
+/* The following functions handle clicks on sub-windows */
+static int mouse_button_mods(int button, int *mods)
+{
+	*mods = 0;
+	if ((button & 16)) { button &= ~(16); *mods |= MCURSOR_KTRL; }
+	if ((button & 32)) { button &= ~(32); *mods |= MCURSOR_SHFT; }
+	if ((button & 64)) { button &= ~(64); *mods |= MCURSOR_ALTR; }
+	return button;
+}
+static void do_cmd_term_inject_header(cptr termdesc, int termuni, int button)
+{
+	char tmp[1024];
+	char *p;
+	strnfmt(tmp, sizeof(tmp),
+		"%c_TERM%s_%02x_MB%02x%c", 31,
+		 termdesc, termuni, button, 13);
+	for (p = tmp; *p; p++) Term_keypress(*p);
+	Term_keypress(28);/* Enter arcane macro mode: default action */
+}
+static void do_cmd_term_inject(char *buf)
+{
+	char tmp[1024];
+	int i, n;
+	text_to_ascii(tmp, sizeof(tmp), buf);
+	n = strlen(tmp);
+	Term_keypress(29);
+	for (i = 0; i < n; i++) Term_keypress(tmp[i]);
+	Term_keypress(30);
+}
+static bool do_cmd_term_inject_item(int item, char cmd)
+{
+	char ks[1024];
+	if (item_as_keystroke(item, cmd, ks, sizeof(ks), CTXT_WITH_CMD | CTXT_PREFER_SHORT))
+	{
+		/* Hack -- when destroying, dropping or selling */
+		if (cmd == 'k' || cmd == 'd' || cmd == 's')
+		{
+			int num = item < 0 ? floor_item.number : inventory[item].number;
+			/* Will we enter item number prompt? */
+			if (num > 1)
+			{
+				if (cmd == 'd') my_strcat(ks, "1\\r", sizeof(ks)); /* 1 item */
+				else my_strcat(ks, "A\\r", sizeof(ks)); /* 'A'll items */
+			}
+			/* Will we enter confirmation mode? */
+			if (cmd == 'k' && !auto_accept)
+			{
+				my_strcat(ks, "y", sizeof(ks));
+			}
+		}
+		/* Hack -- do not \eSCAPE sell commands */
+		if (cmd == 's' || shopping) ks[1] = 'r';
+
+		do_cmd_term_inject(ks);
+		return TRUE;
+	}
+	return FALSE;
+}
+static u32b do_cmd_term_inven(int x, int y, int button)
+{
+	int item = y;
+	char cmd = 0;
+	int btn, mods = 0;
+
+	if (item >= INVEN_WIELD) return (0);
+
+	btn = mouse_button_mods(button, &mods);
+
+	/* HACK -- item prompt */
+	if (btn == 1 && in_item_prompt)
+	{
+		Term_keypress(item + 'a');
+		return (PW_INVEN);
+	}
+
+	/* Get rid of */
+	if ((btn == 1) && (mods & MCURSOR_KTRL))
+	{
+		cmd = 'd';
+		if (shopping) cmd = 's';
+	}
+	/* Apply item */
+	else if (((btn == 1) && (mods & MCURSOR_SHFT)))
+	{
+		cmd = command_by_item(item, FALSE);
+		if (shopping) cmd = 0;
+	}
+	/* Inspect item */
+	else if (btn == 1)
+	{
+		cmd = 'I';
+		if (shopping) cmd = 0;
+	}
+
+	do_cmd_term_inject_header(shopping ? "invenshop" : "inven", item, button);
+	if (cmd && do_cmd_term_inject_item(item, cmd)) return (PW_INVEN);
+	else Term_keypress(30); /* footer */
+
+	return (0);
+}
+static u32b do_cmd_term_floor(int x, int y, int button)
+{
+	int item = -1;
+	char cmd = 0;
+	int btn, mods = 0;
+
+	if (shopping) return 0;
+
+	btn = mouse_button_mods(button, &mods);
+
+	/* Hack -- item prompt */
+	if (btn == 1 && in_item_prompt)
+	{
+		Term_keypress('-');
+		return (PW_EQUIP);
+	}
+
+	/* Get rid of */
+	if ((btn == 1) && (mods & MCURSOR_KTRL))
+	{
+		cmd = 'k';
+	}
+	/* Pick it up */
+	else if (((btn == 1) && (mods & MCURSOR_SHFT)))
+	{
+		cmd = 'g';
+	}
+	/* Inspect item */
+	else if (btn == 1)
+	{
+		cmd = 'I';
+	}
+	do_cmd_term_inject_header("floor", 0 - item, button);
+	if (cmd && do_cmd_term_inject_item(item, cmd)) return (PW_EQUIP);
+	else Term_keypress(30); /* footer */
+	return (0);
+}
+static u32b do_cmd_term_equip(int x, int y, int button)
+{
+	int item = y + INVEN_WIELD;
+	char cmd = 0;
+	int btn, mods = 0;
+
+	if (y == INVEN_TOTAL - INVEN_WIELD)
+	{
+		return do_cmd_term_floor(x, y, button);
+	}
+	if (y > INVEN_TOTAL - INVEN_WIELD) return 0;
+
+	btn = mouse_button_mods(button, &mods);
+
+	/* Hack -- item prompt */
+	if (btn == 1 && in_item_prompt)
+	{
+		if (!command_wrk) Term_keypress('/');
+		Term_keypress(item - INVEN_WIELD + 'a');
+		return (PW_EQUIP);
+	}
+
+	/* Get rid of */
+	if ((btn == 1) && (mods & MCURSOR_KTRL))
+	{
+		cmd = 't';
+		if (shopping) cmd = 's';
+	}
+	/* Activate item */
+	else if (((btn == 1) && (mods & MCURSOR_SHFT)))
+	{
+		cmd = 'A';
+		if (shopping) cmd = 0;
+	}
+	/* Inspect item */
+	else if (btn == 1)
+	{
+		cmd = 'I';
+		if (shopping) cmd = 0;
+	}
+
+	do_cmd_term_inject_header(shopping ? "equipshop" : "equip", item - INVEN_WIELD, button);
+	if (cmd && do_cmd_term_inject_item(item, cmd)) return (PW_EQUIP);
+	else Term_keypress(30); /* footer */
+
+	return (0);
+}
+static u32b do_cmd_term_spells(int x, int y, int button)
+{
+	byte old_tester;
+	int i, b, l = 0;
+	int found = -1, book = -1;
+	int h = Term->hgt;
+
+	/* Save/Switch tester */
+	old_tester = item_tester_tval;
+	item_tester_tval = c_info[pclass].spell_book;
+
+	/* For each book */
+	for (b = 0; b < INVEN_PACK - 1; b++)
+	{
+		if (found != -1) break;
+		if (item_tester_okay(&inventory[b]))
+		{
+			/* Dump the spells */
+			for (i = 0; i < SPELLS_PER_BOOK; i++)
+			{
+				/* End of terminal */
+				if (y >= h) break;
+
+				/* Check for end of the book */
+				if (spell_info[b][i][0] == '\0')
+					break;
+				
+				/* skip Illegible */
+				if (strstr(spell_info[b][i], "(illegible)"))
+					continue;
+					
+				/* skip uncastable */
+				if (!(spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_LEARNED))
+					continue;
+				
+				/* skip forgotten */
+				if (spell_flag[b*SPELLS_PER_BOOK+i] & PY_SPELL_FORGOTTEN)
+					continue;
+
+				if (y - 1 == l)
+				{
+					book = b;
+					found = i;
+					break;
+				}
+				l++;
+			}
+		}
+	}
+
+	/* Restore old tester */
+	item_tester_tval = old_tester;
+
+	if (found != -1)
+	{
+		char ks[1024];
+		char cmd;
+		cmd = command_by_item(book, TRUE);
+		spell_as_keystroke(found, book, cmd, ks, 1024, CTXT_FULL | CTXT_PREFER_SHORT);
+
+		do_cmd_term_inject(ks);
+	}
+
+	return (0);
+}
+static u32b do_cmd_term_charsheet(int x, int y, int button)
+{
+	flip_charsheet++;
+	if (flip_charsheet >= 3) flip_charsheet = 0;
+	return PW_PLAYER_0;
+}
+static u32b do_cmd_term_chat(int x, int y, int button)
+{
+	int j, n;
+	int c, t;
+	int w = Term->wid;
+	int i = -1;
+
+	/* Chat header */
+	c = t = 0; /* Hor. & Vert. Offsets */
+	for (j = 0; j < MAX_CHANNELS; j++)
+	{
+		/* Skip empty */
+		if (STRZERO(channels[j].name)) continue;
+
+		/* Carriage return */
+		n = (int)strlen(channels[j].name);
+		if (n + c + 1 >= w)
+		{
+			c = 0;
+			t++;
+		}
+		if (x >= c && x <= c + n && y == t)
+		{
+			i = j;
+			break;
+		}
+		c += n + 1;
+	}
+	if (i != -1)
+	{
+		view_channel = i;
+		return (PW_MESSAGE_CHAT);
+	}
+	return (0);
+}
+static u32b do_cmd_term_store(int x, int y, int button)
+{
+	int item = y - 6;
+	char cmd;
+	int btn, mods = 0;
+
+	if (item < 0 || item >= store.stock_num) return 0;
+
+	btn = mouse_button_mods(button, &mods);
+
+	/* Purchase item */
+	if ((btn == 1) && (mods & MCURSOR_SHFT))
+	{
+		cmd = 'p';
+	}
+	/* Inspect item */
+	else if (btn == 1)
+	{
+		cmd = 'l';
+	}
+	if (cmd)
+	{
+		do_cmd_term_inject_header("store", item, button);
+		if (do_cmd_term_inject_item(item, cmd)) return PW_STORE;
+		else Term_keypress(30); /* footer */
+	}
+	return PW_STORE;
+}
+
+void do_cmd_term_mousepress(u32b termflag, int x, int y, int button)
+{
+	u32b update = 0;
+	if ((termflag & PW_INVEN))
+	{
+		if (!flip_inven) update |= do_cmd_term_inven(x, y, button);
+		else update |= do_cmd_term_equip(x, y, button);
+	}
+	else if ((termflag & PW_EQUIP))
+	{
+		if (!flip_inven) update |= do_cmd_term_equip(x, y, button);
+		else update |= do_cmd_term_inven(x, y, button);
+	}
+	else if ((termflag & PW_SPELL))
+	{
+		update |= do_cmd_term_spells(x, y, button);
+	}
+	else if ((termflag & PW_PLAYER_0))
+	{
+		update |= do_cmd_term_charsheet(x, y, button);
+	}
+	else if ((termflag & PW_MESSAGE_CHAT))
+	{
+		update |= do_cmd_term_chat(x, y, button);
+	}
+	else if ((termflag & PW_STORE))
+	{
+		update |= do_cmd_term_store(x, y, button);
+	}
+	p_ptr->window |= update;
+}
+void cmd_term_mousepress(int i, int x, int y, int button)
+{
+	u32b flag = window_flag[i];
+	if (state != PLAYER_PLAYING) return;
+	do_cmd_term_mousepress(flag, x, y, button);
+}
+
+void do_cmd_use_item(int item, bool agressive)
+{
+	char cmd;
+	cmd = command_by_item(item, agressive);
+	/* HACK -- should wire into process_command() instead */
+	do_cmd_term_inject_item(item, cmd);
+}
+
+void cmd_use_item(void)
+{
+	int item;
+	if (!c_get_item(&item, "Use which item? ", TRUE, TRUE, TRUE))
+	{
+		return;
+	}
+	do_cmd_use_item(item, TRUE);
 }

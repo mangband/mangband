@@ -39,6 +39,8 @@ extern void player_drop(int ind);
 extern bool client_names_ok(char *nick_name, char *real_name, char *host_name);
 extern bool client_version_ok(u16b version);
 extern u16b connection_type_ok(u16b version);
+extern bool client_version_atleast(u16b version, int at_major, int at_minor, int at_patch);
+
 
 /** net-game.c **/
 /* Setup */

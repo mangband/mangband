@@ -785,19 +785,10 @@ void display_monlist(int Ind)
 
 		/* Append the "optional" attr/char info */
 		text_out_c(TERM_WHITE, "/('");
-
-		text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
-
-		if (p_ptr->use_graphics)
-		{
-			if (r_ptr->x_attr & 0x80)
-				text_out_c(255, " ");
-			else
-				text_out_c(0, " ");
-
-			n++;
-		}
-
+		/* I don't understand what an "optional" attr/char for a monster is...
+		 * so how about we just dump player's mapping here? -flm- */
+		//text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
+		text_out_c(p_ptr->r_attr[m_ptr->r_idx], format("%c",p_ptr->r_char[m_ptr->r_idx]));
 		text_out_c(TERM_WHITE, "'):");
 		n += 7;
 
@@ -1973,6 +1964,10 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		m_ptr->csleep = ((val * 2) + randint(val * 10));
 	}
 
+#ifdef DEBUG
+	/* Audit monster allocation */
+	cheat(format("+m %s", r_name + r_ptr->name));
+#endif
 
 	/* Success */
 	return (TRUE);

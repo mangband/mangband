@@ -2859,8 +2859,7 @@ void player_death(int Ind)
 	/** Survived death **/
 
 	/* Give him his hit points back */
-	//see #1190
-	//p_ptr->mhp = p_ptr->lev + 2;
+	p_ptr->mhp = p_ptr->lev + 2;
 	p_ptr->chp = p_ptr->mhp;
 	p_ptr->chp_frac = 0;
 
@@ -2896,7 +2895,7 @@ void player_death(int Ind)
 	p_ptr->word_recall = 0;
 
 	/* Update bonus */
-	p_ptr->update |= (PU_BONUS);
+	p_ptr->update |= (PU_BONUS | PU_HP);
 
 	/* Redraw */
 	p_ptr->redraw |= (PR_HP | PR_GOLD | PR_BASIC | PR_OFLAGS );
@@ -3452,69 +3451,6 @@ cptr look_mon_desc(int m_idx)
 }
 
 
-
-/*
- * Angband sorting algorithm -- quick sort in place
- *
- * Note that the details of the data we are sorting is hidden,
- * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
- * function hooks to interact with the data, which is given as
- * two pointers, and which may have any user-defined form.
- */
-void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q)
-{
-	int z, a, b;
-
-	/* Done sort */
-	if (p >= q) return;
-
-	/* Pivot */
-	z = p;
-
-	/* Begin */
-	a = p;
-	b = q;
-
-	/* Partition */
-	while (TRUE)
-	{
-		/* Slide i2 */
-		while (!(*ang_sort_comp)(Ind, u, v, b, z)) b--;
-
-		/* Slide i1 */
-		while (!(*ang_sort_comp)(Ind, u, v, z, a)) a++;
-
-		/* Done partition */
-		if (a >= b) break;
-
-		/* Swap */
-		(*ang_sort_swap)(Ind, u, v, a, b);
-
-		/* Advance */
-		a++, b--;
-	}
-
-	/* Recurse left side */
-	ang_sort_aux(Ind, u, v, p, b);
-
-	/* Recurse right side */
-	ang_sort_aux(Ind, u, v, b+1, q);
-}
-
-
-/*
- * Angband sorting algorithm -- quick sort in place
- *
- * Note that the details of the data we are sorting is hidden,
- * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
- * function hooks to interact with the data, which is given as
- * two pointers, and which may have any user-defined form.
- */
-void ang_sort(int Ind, vptr u, vptr v, int n)
-{
-	/* Sort the array */
-	ang_sort_aux(Ind, u, v, 0, n-1);
-}
 
 
 /* returns our max times 100 divided by our current...*/
@@ -4293,7 +4229,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		object_type *o_ptr = &o_list[o_idx];
 		
 		/* Obtain an object description */
-		object_desc(Ind, x_name, o_ptr, TRUE, 3);
+		object_desc(Ind, x_name, sizeof(x_name), o_ptr, TRUE, 3);
 
 		name = x_name;
 	}
@@ -5258,6 +5194,8 @@ bool monsters_in_los(player_type *p_ptr)
 		player_type *q_ptr = Players[i];
 		if (q_ptr == p_ptr) continue; /* Skip self */
 
+		if (p_ptr->conn <= -1) break; /* Can't check hostility */
+
 		/* Check this player */
 		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
 		{
@@ -5928,7 +5866,7 @@ void describe_player(int Ind, int Ind2)
 			o_ptr->ident = 0;
 
 		/* Extract name */
-		object_desc(Ind, o_name, o_ptr, TRUE, (spoilers ? 4 : 0));
+		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, (spoilers ? 4 : 0));
 
 		/* Restore original ident */
 		o_ptr->ident = old_ident;
@@ -6898,6 +6836,9 @@ void do_cmd_dungeon_master(int Ind, char query)
 				numero[0] = (C); numero[1] = '\0'; \
 				c_prt(p_ptr, (A), numero, 2 + j, 6);
 
+#define OBJECT_TVAL_ATTR(O_PTR) \
+				p_ptr->tval_attr[(O_PTR)->tval % 128]
+
 	/* Content */
 	if (!access)
 	{
@@ -6989,7 +6930,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 					{
 						MASTER_COMMON_LIMIT();
 
-						if (my_strnicmp(dit->d_name, "server-", 7)) { i--; continue; }
+						if (my_strnicmp(dit->d_name, "server.", 7)) { i--; continue; }
 
 						MASTER_DUMP_I()
 
@@ -7117,7 +7058,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 				{
 					/* Base Kind */
 					object_kind *k_ptr = &k_info[p_ptr->target_idx[i]];
-					MASTER_DUMP_AC(k_ptr->d_attr, k_ptr->d_char);
+					byte obj_attr = k_ptr->flavor ? flavor_info[k_ptr->flavor].d_attr : k_ptr->d_attr;
+					MASTER_DUMP_AC(obj_attr, k_ptr->d_char);
 					c_prt(p_ptr, attr, k_name + k_ptr->name, 2 + j++, 8);
 				}
 				else
@@ -7141,10 +7083,10 @@ void do_cmd_dungeon_master(int Ind, char query)
 				j++;
 				prompt_hooks = FALSE;
 				/* Extract Name */
-				object_desc(Ind, buf, &p_ptr->inventory[0], TRUE, 3);
+				object_desc(Ind, buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
-				c_prt(p_ptr, object_attr(&p_ptr->inventory[0]), buf, 2 + j++, 1);
+				c_prt(p_ptr, OBJECT_TVAL_ATTR(&p_ptr->inventory[0]), buf, 2 + j++, 1);
 
 				/* Obtain XTRA2 modifier */
 				if (p_ptr->inventory[0].name2)
@@ -7295,7 +7237,7 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
 		{
 			vault_type *v_ptr = &v_info[p_ptr->master_args[hook_type]];
 			if (dm_flag_p(p_ptr, CAN_GENERATE))
-			build_vault(Ind, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
+			build_vault(Depth, oy, ox, v_ptr->hgt, v_ptr->wid, v_text + v_ptr->text);
 			break;
 		}
 		case DM_PAGE_FEATURE:

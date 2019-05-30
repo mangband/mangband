@@ -809,7 +809,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 	/* Is the bounding rectangle we found big enough? */
 	if(x2-x1 < 2 || y2-y1 < 2)
 	{
-		msg_print(Ind, "The foundation is too small");
+		msg_print(Ind, "The foundation is too small.");
 		return FALSE;
 	}
 
@@ -830,6 +830,13 @@ bool create_house(int Ind)
 	int x1, x2, y1, y2, x, y;
 	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
+
+	/* Not in dungeon, not in town */
+	if (p_ptr->dun_depth >= 0 || check_special_level(p_ptr->dun_depth))
+	{
+		msg_print(Ind, "The surrounding magic is too strong for House Creation.");
+		return FALSE;
+	}
 
 	/* Determine the area of the house foundation */
 	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
@@ -2981,7 +2988,7 @@ void do_cmd_spike(int Ind, int dir)
 void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x)
 {
 	/* Right now, we only support 1 mouse button */
-	if (mod != 1) return;
+	if (!(mod & MCURSOR_LMB)) return;
 
 	y = y + p_ptr->panel_row_min;
 	x = x + p_ptr->panel_col_min;
@@ -2990,6 +2997,29 @@ void do_cmd_mouseclick(player_type *p_ptr, int mod, int y, int x)
 	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
 	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
 	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	/* Hack -- execute '_' ? */
+	if ((mod & MCURSOR_LMB) && (mod & MCURSOR_SHFT))
+	{
+		/* Grid offset is 0 (standing on) */
+		if (p_ptr->px == x && p_ptr->py == y)
+		{
+			do_cmd_enterfeat(Get_Ind[p_ptr->conn]);
+		}
+		return;
+	}
+
+	/* Hack -- execute alter? */
+	if ((mod & MCURSOR_LMB) && (mod & MCURSOR_KTRL))
+	{
+		/* Grid is nearby */
+		if (ABS(p_ptr->px - x) <= 1 && ABS(p_ptr->py - y) <= 1)
+		{
+			int dir = motion_dir(p_ptr->py, p_ptr->px, y, x);
+			do_cmd_alter(Get_Ind[p_ptr->conn], dir);
+		}
+		return;
+	}
 
 	do_cmd_pathfind(Get_Ind[p_ptr->conn], y, x);
 }
@@ -3154,7 +3184,7 @@ int do_cmd_run(int Ind, int dir)
  * Stay still.  Search.  Enter stores.
  * Pick up treasure if "pickup" is true.
  */
-void do_cmd_hold_or_stay(int Ind, int pickup)
+void do_cmd_hold_or_stay(int Ind, int pickup, int take_stairs)
 {
 	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
@@ -3213,6 +3243,28 @@ void do_cmd_hold_or_stay(int Ind, int pickup)
 
 	/* Try to Pick up anything under us */
 	carry(Ind, pickup, 0);
+
+	/* Hack -- enter stairs if we are on one */
+	if (take_stairs)
+	{
+		if (c_ptr->feat == FEAT_MORE)
+		{
+			do_cmd_go_down(Ind);
+		}
+		if (c_ptr->feat == FEAT_LESS)
+		{
+			do_cmd_go_up(Ind);
+		}
+	}
+}
+
+/*
+ * Hold still (always pickup and enter stairs)
+ */
+void do_cmd_enterfeat(int Ind)
+{
+	/* Hold still (always pickup, enter stairs) */
+	do_cmd_hold_or_stay(Ind, TRUE, TRUE);
 }
 
 /*
@@ -3221,7 +3273,7 @@ void do_cmd_hold_or_stay(int Ind, int pickup)
 void do_cmd_hold(int Ind)
 {
 	/* Hold still (always pickup) */
-	do_cmd_hold_or_stay(Ind, TRUE);
+	do_cmd_hold_or_stay(Ind, TRUE, FALSE);
 }
 
 /*
@@ -3230,7 +3282,7 @@ void do_cmd_hold(int Ind)
 void do_cmd_stay(int Ind)
 {
 	/* Stay still (usually do not pickup) */
-	do_cmd_hold_or_stay(Ind, !option_p(Players[Ind],ALWAYS_PICKUP));
+	do_cmd_hold_or_stay(Ind, !option_p(Players[Ind],ALWAYS_PICKUP), FALSE);
 }
 
 
@@ -3331,6 +3383,14 @@ void do_cmd_rest(void)
 void do_cmd_pathfind(int Ind, int y, int x)
 {
 	player_type *p_ptr = Players[Ind];
+
+	/* Hack -- translate nearby grid into walk request */
+	if (ABS(p_ptr->px - x) <= 1 && ABS(p_ptr->py - y) <= 1)
+	{
+		int dir = motion_dir(p_ptr->py, p_ptr->px, y, x);
+		do_cmd_walk(Ind, dir, option_p(p_ptr, ALWAYS_PICKUP));
+		return;
+	}
 
 	/* Hack XXX XXX XXX */
 	if (p_ptr->confused)
@@ -3544,7 +3604,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 	sound(Ind, MSG_SHOOT);
 
 	/* Describe the object */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
 	missile_attr = object_attr(o_ptr);
@@ -3989,7 +4049,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 	o_ptr = &throw_obj;
 
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, FALSE, 3);
+	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
 	missile_attr = object_attr(o_ptr);

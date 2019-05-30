@@ -772,7 +772,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 			object_prep(i_ptr, k);
 
 			/* Describe the object */
-			object_desc(Ind, o_name, i_ptr, FALSE, 0);
+			object_desc(Ind, o_name, sizeof(o_name), i_ptr, FALSE, 0);
 			/*object_desc_spoil(o_name, sizeof(o_name), i_ptr, FALSE, 0);*/
 
 			/* HACK -- Append flavour */

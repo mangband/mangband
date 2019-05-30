@@ -12,10 +12,10 @@
  * [ EQU $RACE ] [ EQU $CLASS ] are used to load those into the r_info[0] slot accordingly
  * to character's race and class. In MAngband, however, players can encounter other
  * characters and thus need the infromation for ALL the Race/Class combos there are.
- * To load this information, a 'virtual mode' hack is used, which resolves *ALL* [ EQU $RACE ]
- * [ EQU $CLASS ] as true, storing the 'fake' races in the global variables.
+ * To load this information, a 'virtual mode' hack is used, which stores the last encountered
+ * [ EQU $RACE ] [ EQU $CLASS ] check as 'fake_race'/'fake_class' global variables.
  * 'Virtual mode' only works with 'R:0:...' lines, doesn't allow includes and cancels itself
- * after each pref command executed or not. 
+ * after each read 'R:0:...' line.
  *
  * Note: player's own race and class image will be loaded into r_info[0] slot as usual.
  *
@@ -299,7 +299,7 @@ static size_t trigger_text_to_ascii(char *buf, size_t max, cptr *strptr)
  * parsing "\xFF" into a (signed) char.  Whoever thought of making
  * the "sign" of a "char" undefined is a complete moron.  Oh well.
  */
-void text_to_ascii(char *buf, cptr str)
+void text_to_ascii(char *buf, size_t max, cptr str)
 {
 	char *s = buf;
 
@@ -318,7 +318,7 @@ void text_to_ascii(char *buf, cptr str)
 				/* Terminate before appending the trigger */
 				*s = '\0';
 
-				s += trigger_text_to_ascii(buf, sizeof(buf), &str);
+				s += trigger_text_to_ascii(buf, max, &str);
 			}
 
 			/* Hex-mode XXX */
@@ -692,12 +692,6 @@ errr process_pref_file_command(char *buf)
 	if (buf[1] != ':') return (1);
 
 
-	/* MAngband-specific hack: ignore non-R in fake mode */
-	if (virt == TRUE && buf[0] != 'R')
-	{
-		return (0);
-	}
-
 	/* Process "%:<fname>" */
 	if (buf[0] == '%')
 	{
@@ -717,12 +711,12 @@ errr process_pref_file_command(char *buf)
 
 			if (i >= z_info.r_max) return (1);
 			/* MAngband-specific hack: fill the 'pr' array */
-			if (virt == TRUE)
+			if ((virt == TRUE) && (i == 0))
 			{
-				/* Ignore non-zero index */
-				if (i != 0) return (0);
 				if (n1) p_ptr->pr_attr[fake_class * z_info.p_max + fake_race] = n1;
 				if (n2) p_ptr->pr_char[fake_class * z_info.p_max + fake_race] = n2;
+				/* And cancel virtual mode */
+				fake_race = fake_class = -1;
 				return (0);
 			}
 			if (n1) Client_setup.r_attr[i] = n1;
@@ -832,10 +826,36 @@ errr process_pref_file_command(char *buf)
 		}
 	}
 
+	/* Process "{" -- single auto-inscribe instruction */
+	else if (buf[0] == '{')
+	{
+		char tmpbuf[1024];
+		char *item_query;
+		char *item_inscription;
+		my_strcpy(tmpbuf, buf + 2, sizeof(tmpbuf));
+		item_query = strtok(tmpbuf, ":");
+		item_inscription = strtok(NULL, ":");
+		if (!item_query || !item_inscription) return 1; /* Fail */
+		do_cmd_inscribe_auto(item_query, item_inscription);
+		/* Done */
+		return (0);
+	}
+
 	/* Process "A:<str>" -- save an "action" for later */
 	else if (buf[0] == 'A')
 	{
-		text_to_ascii(macro__buf, buf+2);
+		text_to_ascii(macro__buf, 1024, buf+2);
+		return (0);
+	}
+
+	/* Process "\:" -- execute "action" right away */
+	else if (buf[0] == '\\')
+	{
+		int i, n;
+		char raw_cmd[1024];
+		text_to_ascii(raw_cmd, sizeof(raw_cmd), buf+2);
+		n = strlen(raw_cmd);
+		for (i = 0; i < n; i++) Term_keypress(raw_cmd[i]);
 		return (0);
 	}
 
@@ -843,7 +863,7 @@ errr process_pref_file_command(char *buf)
 	else if (buf[0] == 'P')
 	{
 		char tmp[1024];
-		text_to_ascii(tmp, buf+2);
+		text_to_ascii(tmp, sizeof(tmp), buf+2);
 		macro_add(tmp, macro__buf, FALSE);
 		return (0);
 	}
@@ -859,7 +879,7 @@ errr process_pref_file_command(char *buf)
 		mode = strtol(zz[0], NULL, 0);
 		if ((mode < 0) || (mode >= KEYMAP_MODES)) return (1);
 
-		text_to_ascii(tmp, zz[1]);
+		text_to_ascii(tmp, sizeof(tmp), zz[1]);
 		if (!tmp[0] || tmp[1]) return (1);
 		i = (long)tmp[0];
 
@@ -1373,12 +1393,8 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			else if (streq(b+1, "RACE"))
 			{
 				v = p_name + race_info[p_ptr->prace].name;
-				/* MAngband-specific hack: enter virtual mode */	
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_race = find_race(s);
-				}
+				/* MAngband-specific hack: enter virtual mode */
+				if (s) fake_race = find_race(s);
 			}
 
 			/* Class */
@@ -1386,11 +1402,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			{
 				v = c_name + c_info[p_ptr->pclass].name;
 				/* MAngband-specific hack: enter virtual mode */
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_class = find_class(s);
-				}
+				if (s) fake_class = find_class(s);
 			}
 
 			/* Player */
@@ -1489,9 +1501,8 @@ static errr process_pref_file_aux(cptr name)
 			continue;
 		}
 
-		/* Apply conditionals */
-		if (bypass) continue;
-
+		/* Apply conditionals (unless it's an 'R' entry) */
+		if (bypass && buf[0] != 'R') continue;
 
 		/* Process "%:<file>" */
 		if (buf[0] == '%')
@@ -1507,9 +1518,6 @@ static errr process_pref_file_aux(cptr name)
 		/* Process the line */
 		err = process_pref_file_command(buf);
 
-		/* Hack - cancel 'virtual' mode */
-		fake_class = fake_race = -1;
-
 		/* Oops */
 		if (err) break;
 	}
@@ -1520,8 +1528,8 @@ static errr process_pref_file_aux(cptr name)
 	{
 		/* Print error message */
 		/* ToDo: Add better error messages */
-		printf("Error %d in line %d of file '%s'.", err, line, name);
-		printf("Parsing '%s'", old);
+		printf("Error %d in line %d of file '%s'.\n", err, line, name);
+		printf("Parsing '%s'\n", old);
 	}
 
 	/* Close the file */

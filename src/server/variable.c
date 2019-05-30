@@ -74,10 +74,9 @@ s16b command_arg;		/* Gives argument of current command */
 s16b command_rep;		/* Gives repetition of current command */
 s16b command_dir;		/* Gives direction of current command */
 
-s16b command_see;		/* See "cmd1.c" */
-s16b command_wrk;		/* See "cmd1.c" */
-
-s16b command_gap = 50;		/* See "cmd1.c" */
+/*s16b command_see;*/		/* See "cmd1.c" */
+/*s16b command_wrk;*/		/* See "cmd1.c" */
+/*s16b command_gap = 50;*/	/* See "cmd1.c" */
 
 s16b command_new;		/* Command chaining from inven/equip view */
 
@@ -86,12 +85,11 @@ bool create_down_stair;		/* Auto-create "down stairs" */
 
 bool msg_flag;			/* Used in msg_print() for "buffering" */
 
-bool alive;			/* True if game is running */
+/*bool alive;*/			/* True if game is running */
+/*bool death;*/			/* True if player has died */
 
-bool death;			/* True if player has died */
-
-s16b running;			/* Current counter for running, if any */
-s16b resting;			/* Current counter for resting, if any */
+/*s16b running;*/			/* Current counter for running, if any */
+/*s16b resting;*/			/* Current counter for resting, if any */
 
 /*s16b cur_hgt;	*/		/* Current dungeon height */
 /*s16b cur_wid;	*/		/* Current dungeon width */
@@ -117,24 +115,27 @@ s16b special_levels[MAX_SPECIAL_LEVELS]; /* List of depths which are special sta
 char summon_kin_type;		/* Hack -- See summon_specific() */
 
 hturn turn;			/* Current game turn */
-hturn old_turn;		/* Turn when level began (feelings) */
+hturn turn_compact;		/* Last time m_list and o_list were compacted */
+/*hturn old_turn;*/		/* Turn when level began (feelings) */
 
 s32b player_id;			/* Current player ID */
 
 bool wizard;			/* Is the player currently in Wizard mode? */
 bool can_be_wizard;		/* Does the player have wizard permissions? */
 
-u16b total_winner;		/* Semi-Hack -- Game has been won */
+/*u16b total_winner;*/		/* Semi-Hack -- Game has been won */
 
 u16b panic_save;		/* Track some special "conditions" */
 u16b noscore;			/* Track various "cheating" conditions */
 
 s16b signal_count = 0;		/* Hack -- Count interupts */
 
+#if 0 /* moved to client */
 bool inkey_base;		/* See the "inkey()" function */
 bool inkey_xtra;		/* See the "inkey()" function */
 bool inkey_scan;		/* See the "inkey()" function */
 bool inkey_flag;		/* See the "inkey()" function */
+#endif
 
 s16b coin_type;			/* Hack -- force coin type */
 
@@ -149,7 +150,7 @@ bool scan_objects;		/* Hack -- optimize multi-hued code, etc */
 
 /*s16b total_weight;*/		/* Total weight being carried */
 
-s16b inven_nxt;			/* Hack -- unused */
+/*s16b inven_nxt;*/			/* Hack -- unused */
 
 /*s16b inven_cnt;*/			/* Number of items in inventory */
 /*s16b equip_cnt;*/			/* Number of items in equipment */
@@ -221,13 +222,13 @@ bool good_item_flag;		/* True if "Artifact" on this level */
 
 /*bool new_level_flag;*/		/* Start a new level */
 
-bool closing_flag;		/* Dungeon is closing */
+/*bool closing_flag;*/		/* Dungeon is closing */
 
 
 /* Dungeon size info */
-s16b max_panel_rows, max_panel_cols;
+/*s16b max_panel_rows, max_panel_cols;
 s16b panel_row, panel_col;
-/*s16b panel_row_min, panel_row_max;
+s16b panel_row_min, panel_row_max;
 s16b panel_col_min, panel_col_max;*/
 /*s16b panel_col_prt, panel_row_prt;*/
 
@@ -237,15 +238,16 @@ s16b panel_col_min, panel_col_max;*/
 s16b px;*/
 
 /* Targetting variables */
-s32b target_who;
+/* ... in player info */
+/*s32b target_who;
 s16b target_col;
-s16b target_row;
+s16b target_row;*/
 
 /* Health bar variable -DRS- */
-s16b health_who;
+/*s16b health_who;*/
 
 /* Monster recall race */
-s16b recent_idx;
+/*s16b recent_idx;*/
 
 
 
@@ -279,9 +281,6 @@ int num_houses;
 byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 byte spell_tests[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 
-/* An array to access a Player's ID */
-long GetInd[MAX_ID];
-
 /* Player for doing text_out */
 int player_textout = 0;
 
@@ -302,7 +301,7 @@ int player_textout = 0;
 /*char history[4][60];*/
 
 /* Buffer to hold the current savefile name */
-char savefile[1024];
+/*char savefile[1024];*/
 
 
 /*
@@ -324,10 +323,10 @@ byte view_x[VIEW_MAX];*/
 
 /*
  * Array of grids for use by various functions (see "cave.c")
- */
-s16b temp_n;
+ */ /* In player info */
+/*s16b temp_n;
 byte temp_y[TEMP_MAX];
-byte temp_x[TEMP_MAX];
+byte temp_x[TEMP_MAX];*/
 
 
 /*
@@ -400,16 +399,16 @@ char *message__buf;
 
 /*
  * The array of normal options
- */
-u32b option_flag[8];
-u32b option_mask[8];
+ */ /* on client / player info */
+/*u32b option_flag[8];
+u32b option_mask[8];*/
 
 
 /*
  * The array of window options
- */
-u32b window_flag[8];
-u32b window_mask[8];
+ */ /* on client */
+/*u32b window_flag[8];
+u32b window_mask[8];*/
 
 
 /*
@@ -443,6 +442,11 @@ cave_type ***cave = &world[MAX_WILD];
 wilderness_type world_info[MAX_WILD+1];
 wilderness_type *wild_info=&(world_info[MAX_WILD]);
 
+/*
+ * Track turns which were used for dungeon generation
+ */
+hturn turn_worldgen[MAX_DEPTH+MAX_WILD];
+hturn *turn_cavegen = &turn_worldgen[MAX_WILD];
 
 /*
  * The array of dungeon items [MAX_O_IDX]
@@ -742,17 +746,6 @@ byte item_tester_tval;
 bool (*item_tester_hook)(object_type*);
 
 
-
-/*
- * Current "comp" function for ang_sort()
- */
-bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
-
-
-/*
- * Current "swap" function for ang_sort()
- */
-void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
 
 
 

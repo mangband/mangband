@@ -9,7 +9,7 @@
 
 #define SERVER_VERSION_MAJOR	1
 #define SERVER_VERSION_MINOR	5
-#define SERVER_VERSION_PATCH	0
+#define SERVER_VERSION_PATCH	2
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
@@ -102,6 +102,8 @@
 #define NUM_HASH_ENTRIES	256
 
 
+/* Maximum number of items in ITEMLIST window/command */
+#define MAX_ITEMLIST 256
 
 /*
  * Indexes of the various "stats" (hard-coded by savefiles, etc).
@@ -271,7 +273,7 @@
 /*
  * Maximum number of options and option groups
  */
-#define	OPT_MAX 			40
+#define	OPT_MAX 			41
 #define	MAX_OPTION_GROUPS   4
 
 /*
@@ -326,6 +328,7 @@
 #define OPT_PAUSE_AFTER_DETECT 	37
 #define OPT_DISTURB_LOOK    	38
 #define OPT_UNSETH_BONUS    	39
+#define OPT_EXPAND_INSPECT	40
 #define option_p(A,B) (A->options[OPT_ ## B])
 
 
@@ -554,7 +557,8 @@
 #define STREAM_SPECIAL_TEXT  	8
 #define STREAM_MONSTER_TEXT  	9
 #define STREAM_MONLIST_TEXT  	10
-#define STREAM_FILE_TEXT    	11
+#define STREAM_ITEMLIST_TEXT	11
+#define STREAM_FILE_TEXT    	12
 
 #define Stream_line(I,S,L) stream_line_as(Players[I],S,L,L)
 #define Stream_line_p(P,S,L) stream_line_as(P,S,L,L)
@@ -719,6 +723,16 @@
 #define FLOOR_INDEX     (-11)
 #define FLOOR_NEGATIVE  TRUE
 #define FLOOR_TOTAL     1
+
+/*
+ * Maximum number of objects allowed in a single dungeon grid.
+ *
+ * The main-screen has a minimum size of 24 rows, so we can always
+ * display 23 objects + 1 header line.
+ * MAngband-specific: we do not support floor piles, so this is set to "1",
+ * same as FLOOR_TOTOAL.
+ */
+#define MAX_FLOOR_STACK			1/*23*/
 
 /*
  * Legal restrictions for "summon_specific()"
@@ -2652,6 +2666,18 @@ that keeps many algorithms happy.
     ((p_ptr->obj_aware[(T)->k_idx]) ? \
      (p_ptr->k_char[(T)->k_idx]) : \
      (p_ptr->d_char[(T)->k_idx]))
+
+/* MAngband-specific: olden ways to get attr/char from object kind */
+/* TODO: port more recent V definitions of those macros */
+#define object_kind_char(K_IDX) \
+    ((p_ptr->obj_aware[(K_IDX)]) ? \
+     (p_ptr->k_char[(K_IDX)]) : \
+     (p_ptr->d_char[(K_IDX)]))
+
+#define object_kind_attr(K_IDX) \
+    ((p_ptr->obj_aware[(K_IDX)]) ? \
+     (p_ptr->k_attr[(K_IDX)]) : \
+     (p_ptr->d_attr[(K_IDX)]))
 
 /* Copy object */
 #define object_copy(D,S) COPY((D), (S), object_type);

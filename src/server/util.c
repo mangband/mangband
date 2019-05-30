@@ -1923,22 +1923,19 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 void msg_broadcast(int Ind, cptr msg)
 {
 	int i;
-	
+
 	/* Tell every player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-			
 		/* Skip the specified player */
-		if (i == Ind)
-			continue;	
-			printf("Broadcasting: %s\n", msg);
+		if (i == Ind) continue;
+		printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
 	 	msg_print_aux(i, msg, MSG_CHAT);
 	 }
-	 
+
 	/* Send to console */
 	console_print((char*)msg, 0);
-	 
 }
 
 void msg_channel(int chan, cptr msg)

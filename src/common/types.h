@@ -1616,6 +1616,7 @@ struct player_type
 	hturn birth_turn;	/* Server turn on which player was born */
 	hturn turn;		/* Actual player turns */
 	hturn old_turn;		/* Turn when player entered current level */
+	hturn last_turn;	/* Last server turn this player has seen */
 
 	byte *a_info; /* Artifacts player has encountered */
 	quest q_list[MAX_Q_IDX]; /* Quests completed by player */
