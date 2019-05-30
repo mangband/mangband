@@ -1028,12 +1028,13 @@ void gui_take_snapshot() {
 	}
 	for (i = 0; i < 999; ++i) 
 	{
-		sprintf(1024, "%03d.bmp", i);
+		strnfmt(buf, sizeof(buf), "%03d.bmp", i);
 		if (file_exists(buf))
 		{
 			continue;
 		}
 		file_move("newshot.bmp", buf);
+		break;
 	}
 	plog("*click*");
 }
