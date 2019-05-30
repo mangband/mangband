@@ -3041,10 +3041,10 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 	int i, rolls, f1, f2, power;
 
 
-    /* Magic ammo are always +0 +0 */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
-	return;
+	/* Magic ammo are always +0 +0 */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	     (o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
+		return;
 
 	/* Maximum "level" for various things */
 	if (lev > MAX_DEPTH - 1) lev = MAX_DEPTH - 1;

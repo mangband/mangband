@@ -567,12 +567,12 @@ int report_to_meta(int data1, data data2) {
 
 	/* Append the version number */
 #ifndef SVNREV
-    if (cfg_ironman)
-    	sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
-    else
-    	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	if (cfg_ironman)
+		sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	else
+		sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	/* Append the additional version info */
 	if (SERVER_VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
@@ -581,10 +581,10 @@ int report_to_meta(int data1, data data2) {
 	if (SERVER_VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
-    if (cfg_ironman)
-    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
-    else
-    	sprintf(temp, "Revision: %d ", atoi(SVNREV));
+	if (cfg_ironman)
+		sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
+	else
+		sprintf(temp, "Revision: %d ", atoi(SVNREV));
 #endif
 	strcat(buf, temp);
 

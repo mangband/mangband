@@ -2520,20 +2520,20 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 
 	bool a = artifact_p(o_ptr);
 
-    u32b f1, f2, f3;
+	u32b f1, f2, f3;
 
-    /* Magic ammo are always +0 +0 */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
-	return FALSE;
+	/* Magic ammo are always +0 +0 */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	    (o_ptr->tval == TV_BOLT)) && (o_ptr->sval == SV_AMMO_MAGIC))
+		return FALSE;
 
-    /* Artifact ammo cannot be enchanted */
-    if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
-	(o_ptr->tval == TV_BOLT)) && a)
-	return FALSE;
+	/* Artifact ammo cannot be enchanted */
+	if (((o_ptr->tval == TV_SHOT) || (o_ptr->tval == TV_ARROW) ||
+	    (o_ptr->tval == TV_BOLT)) && a)
+		return FALSE;
 
 	/* Extract the flags */
-        object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 
 	/* Large piles resist enchantment */
