@@ -16,7 +16,7 @@
 
 # Version stamp (required)
 
-V:1.5.1
+V:1.5.2
 
 # General Store
 N:0:0:Bilbo the Friendly

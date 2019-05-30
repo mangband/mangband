@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.56)
-AC_INIT(mangband, 1.5.1, team@mangband.org)
-AM_INIT_AUTOMAKE(mangband, 1.5.1)
+AC_INIT(mangband, 1.5.2, team@mangband.org)
+AM_INIT_AUTOMAKE(mangband, 1.5.2)
 AM_CONFIG_HEADER(src/config.h)
 AC_CANONICAL_HOST
 

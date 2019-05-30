@@ -9,7 +9,7 @@
 
 #define SERVER_VERSION_MAJOR	1
 #define SERVER_VERSION_MINOR	5
-#define SERVER_VERSION_PATCH	1
+#define SERVER_VERSION_PATCH	2
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
