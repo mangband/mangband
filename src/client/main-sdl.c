@@ -706,7 +706,7 @@ errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
 
 	file_seek(f, 0);
 
-	while (file_getl(f, gs, MAX_HEX_FONT_LINE) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
 	{
 #ifdef FONT_LOAD_DEBUGGING
 		puts("");
