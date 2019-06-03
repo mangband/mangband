@@ -224,6 +224,12 @@
     <ClInclude Include="..\..\src\common\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\common\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\z-bitflag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\common\z-form.h">
       <Filter>Header Files</Filter>
     </ClInclude>

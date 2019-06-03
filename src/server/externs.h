@@ -625,6 +625,7 @@ extern errr init_k_info_txt(FILE *fp, char *buf);
 extern errr init_a_info_txt(FILE *fp, char *buf);
 extern errr init_e_info_txt(FILE *fp, char *buf);
 extern errr init_r_info_txt(FILE *fp, char *buf);
+extern errr parse_file(struct parser *p, const char *filename);
 
 /* init.c */
 extern void init_file_paths(char *path, char *path_wr);

@@ -139,6 +139,7 @@
     <ClCompile Include="..\..\src\server\object1.c" />
     <ClCompile Include="..\..\src\server\object2.c" />
     <ClCompile Include="..\..\src\server\party.c" />
+    <ClCompile Include="..\..\src\common\parser.c" />
     <ClCompile Include="..\..\src\server\pathfind.c" />
     <ClCompile Include="..\..\src\server\save.c" />
     <ClCompile Include="..\..\src\server\spells1.c" />
@@ -152,6 +153,7 @@
     <ClCompile Include="..\..\src\server\x-spell.c" />
     <ClCompile Include="..\..\src\server\xtra1.c" />
     <ClCompile Include="..\..\src\server\xtra2.c" />
+    <ClCompile Include="..\..\src\common\z-bitflag.c" />
     <ClCompile Include="..\..\src\common\z-form.c" />
     <ClCompile Include="..\..\src\common\z-rand.c" />
     <ClCompile Include="..\..\src\common\z-util.c" />
@@ -180,6 +182,8 @@
     <ClInclude Include="..\..\src\options.h" />
     <ClInclude Include="..\..\src\common\pack.h" />
     <ClInclude Include="..\..\src\common\types.h" />
+    <ClInclude Include="..\..\src\common\parser.h" />
+    <ClInclude Include="..\..\src\common\z-bitflag.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\common\z-util.h" />

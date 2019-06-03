@@ -506,6 +506,19 @@ void core(cptr str)
 }
 
 
+/* convert a multibyte string to a wide-character string */
+size_t (*mbcs_hook)(wchar_t *dest, const char *src, int n) = NULL;
+size_t z_mbstowcs(wchar_t *dest, const char *src, int n)
+{
+	if (mbcs_hook)
+		return (*mbcs_hook)(dest, src, n);
+	else
+		return mbstowcs(dest, src, n);
+}
+
+
+
+
 /* Compare and swap hooks */
 bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
 void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);

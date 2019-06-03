@@ -41,8 +41,12 @@ extern vptr vptr_self;
 /* A cptr to the name of the program */
 extern cptr argv0;
 
+/* mbcs hook and function */
+extern size_t (*mbcs_hook)(wchar_t *dest, const char *src, int n);
+extern size_t z_mbstowcs(wchar_t *dest, const char *src, int n);
 
 /* Aux functions */
+
 extern void (*plog_aux)(cptr);
 extern void (*quit_aux)(cptr);
 extern void (*core_aux)(cptr);

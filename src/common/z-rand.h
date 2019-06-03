@@ -5,6 +5,21 @@
 
 #include "h-basic.h"
 
+/**
+ * A struct representing a strategy for making a dice roll.
+ *
+ * The result will be base + XdY + BONUS, where m_bonus is used in a
+ * tricky way to determine BONUS.
+ */
+typedef struct random {
+	int base;
+	int dice;
+	int sides;
+	int m_bonus;
+} random_value;
+/* Currently only used by parser.c !!! */
+
+
 
 
 /**** Available constants ****/

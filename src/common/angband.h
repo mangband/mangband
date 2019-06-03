@@ -44,6 +44,9 @@
 #include "../common/net-pack.h"
 
 
+/* Generic parser */
+#include "../common/parser.h"
+
 /***** Some copyright messages follow below *****/
 
 /*

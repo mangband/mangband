@@ -2406,6 +2406,27 @@ void load_server_cfg(void)
 
 }
 
+/* The basic file parsing function */
+/* NOTE: Currently completeley unused!!! See init_x for actual parsers! */
+errr parse_file(struct parser *p, const char *filename) {
+	char path[1024];
+	char buf[1024];
+	ang_file *fh;
+	errr r = 0;
+
+	path_build(path, sizeof(path), ANGBAND_DIR_EDIT, format("%s.txt", filename));
+	fh = file_open(path, MODE_READ, FTYPE_TEXT);
+	if (!fh)
+		quit(format("Cannot open '%s.txt'", filename));
+	while (file_getl(fh, buf, sizeof(buf))) {
+		r = parser_parse(p, buf);
+		if (r)
+			break;
+	}
+	file_close(fh);
+	return r;
+}
+
 
 /*
  * Initialize various Angband variables and arrays.

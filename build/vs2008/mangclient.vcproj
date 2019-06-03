@@ -469,6 +469,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\parser.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\z-bitflag.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\z-file.c"
 				>
 			</File>
@@ -592,6 +600,14 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\parser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\z-bitflag.h"
 				>
 			</File>
 			<File
