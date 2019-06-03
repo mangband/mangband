@@ -462,6 +462,7 @@ extern int sound_count(int val);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern int macro_find_exact(cptr pat);
 extern errr macro_trigger_free(void);
+extern void ascii_to_text(char *buf, size_t len, cptr src);
 extern char inkey(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);

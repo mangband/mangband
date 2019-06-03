@@ -2835,6 +2835,81 @@ void ascii_to_text(char *buf, size_t len, cptr str)
 	*s = '\0';
 }
 
+/*
+ * Hack -- Append all keymaps to the given file.
+ *
+ * Hack -- We only append the keymaps for the "active" mode.
+ */
+static void keymap_dump(ang_file *fff)
+{
+	int i;
+	int mode;
+	char buf[1024];
+	cptr keymap_name;
+
+	/* Roguelike */
+	if (rogue_like_commands)
+	{
+		mode = KEYMAP_MODE_ROGUE;
+		keymap_name = "Roguelike Keyset";
+	}
+	/* Original */
+	else
+	{
+		mode = KEYMAP_MODE_ORIG;
+		keymap_name = "Original Keyset";
+	}
+
+	/* Dump the header */
+	file_putf(fff, "#\n", keymap_name);
+	file_putf(fff, "# ====== Keymaps (%s) ======\n", keymap_name);
+	file_putf(fff, "#\n\n", keymap_name);
+
+	for (i = 0; i < 256; i++)
+	{
+		int tmp_cmd;
+		char tmp_buf[256];
+		char key_buf[256];
+
+		char key[2] = "?";
+
+		cptr act;
+
+		/* Loop up the keymap */
+		act = keymap_act[mode][i];
+
+		/* Skip empty keymaps */
+		if (!act) continue;
+
+		/* Convert the key into a string */
+		key[0] = i;
+
+		/* Encode the key */
+		ascii_to_text(key_buf, sizeof(key_buf), key);
+
+		/* Try to extract the comment */
+		text_to_ascii(tmp_buf, sizeof(tmp_buf), act);
+		tmp_cmd = command_from_keystroke(tmp_buf);
+		tmp_buf[0] = '\0';
+		command_to_display_name(tmp_cmd, tmp_buf, sizeof(tmp_buf));
+		/* Dump the comment */
+		file_putf(fff, "# %s (%s)\n", tmp_buf, key_buf);
+
+		/* Encode the action */
+		ascii_to_text(buf, sizeof(buf), act);
+
+		/* Dump the keymap action */
+		file_putf(fff, "A:%s\n", buf);
+
+		/* Dump the keymap pattern */
+		file_putf(fff, "C:%d:%s\n", mode, key_buf);
+
+		/* Skip a line */
+		file_putf(fff, "\n");
+	}
+
+}
+
 static errr macro_dump(cptr fname)
 {
 	int i;
@@ -2890,8 +2965,45 @@ static errr macro_dump(cptr fname)
 		file_putf(fff, "\n\n");
 	}
 
+
+	/* Hack -- will be dumped into separate file in MAngband */
+#if 0
+	/* Skip space */
+	file_putf(fff, "\n\n");
+
+	/* Dump keymaps */
+	keymap_dump(fff);
+#endif
+
 	/* Finish dumping */
-	file_putf(fff, "\n\n\n\n");
+	file_putf(fff, "\n\n");
+
+	/* Close */
+	file_close(fff);
+
+	/* Success */
+	return (0);
+}
+
+static errr keymap_dump_file(cptr fname)
+{
+	int i;
+
+	ang_file* fff;
+
+	char buf[1024];
+
+	/* Build the filename */
+	path_build(buf, 1024, ANGBAND_DIR_USER, fname);
+
+	/* Write to the file */
+	fff = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+
+	/* Failure */
+	if (!fff) return (-1);
+
+	/* Dump */
+	keymap_dump(fff);
 
 	/* Close */
 	file_close(fff);
@@ -2977,6 +3089,227 @@ int macro_find_exact(cptr pat)
 
 	/* No matches */
 	return (-1);
+}
+
+/*
+ * Hack -- ask for a keymap "trigger" (see below)
+ *
+ * Note that both "flush()" calls are extremely important.  This may
+ * no longer be true, since "util.c" is much simpler now.  XXX XXX XXX
+ */
+static void do_cmd_macro_aux_keymap(char *buf)
+{
+	char tmp[1024];
+
+	/* Flush */
+	flush();
+
+	/* Get a key */
+	buf[0] = inkey();
+	buf[1] = '\0';
+
+	/* Convert to ascii */
+	ascii_to_text(tmp, sizeof(tmp), buf);
+
+	/* Hack -- display the trigger */
+	Term_addstr(-1, TERM_WHITE, tmp);
+
+	/* Flush */
+	flush();
+}
+
+/* Display keymaps as a list and allow user to navigate through it
+ * Logic in this function is somewhat broken.
+ */
+void browse_keymaps(void)
+{
+	int i;
+	int total;
+	int hgt = Term->hgt - 4;
+	int j = 0;
+	int o = 0;
+	int sel = -1;
+	char tmp_buf[120];
+	char buf[120];
+	char act[120];
+	char a = TERM_WHITE, a2 = TERM_WHITE;
+	byte mode = rogue_like_commands ? 1 : 0;
+
+	/* Process requests until done */
+	while (1)
+	{
+		/* Clear screen */
+		Term_clear();
+
+		/* Describe */
+		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Keymaps     (D delete, A/T to set, ESC to accept)");
+		if (mode) Term_addstr(-1, TERM_WHITE, "    [Roguelike keyset]");
+		Term_putstr(0, 1, -1, TERM_SLATE, "Keypress                      Action              Comment");
+
+		/* Dump them */
+		for (i = 0, total = 0; i < 256; i++)
+		{
+			int k = total;
+			char tmp_cmd;
+
+			/* Skip undefined keymaps */
+			if (keymap_act[mode][i] == NULL) continue;
+
+			/* Extract the action */
+			ascii_to_text(act, sizeof(act), keymap_act[mode][i]);
+
+			/* Extract the trigger */
+			tmp_buf[0] = (char)i;
+			tmp_buf[1] = '\0';
+			ascii_to_text(buf, sizeof(buf), tmp_buf);
+
+			/* Deleted keymap */
+			if (!strcmp(buf, act)) continue;
+
+			/* It's ok */
+			total++;
+
+			/* Too early */
+			if (k < o) continue;
+
+			/* Too late */
+			if (k - o >= hgt-2) continue;
+
+			/* Selected */
+			a = TERM_WHITE; a2 = TERM_L_WHITE;
+			if (j == k)
+			{
+				a = a2 = TERM_L_BLUE;
+				sel = i;
+				/* Move cursor there */
+				Term_gotoxy(0, 2+k-o);
+				Term_show_ui_cursor();
+			}
+
+			/* Dump the trigger */
+			Term_putstr(00, 2+k-o, -1, a, buf);
+
+			/* Dump the action */
+			Term_putstr(30, 2+k-o, -1, a, act);
+
+			/* Try to extract the comment */
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), act);
+			tmp_cmd = command_from_keystroke(tmp_buf);
+			tmp_buf[0] = '\0';
+			command_to_display_name(tmp_cmd, tmp_buf, 1024);
+
+			/* Dump the comment */
+			Term_putstr(50, 2+k-o, -1, TERM_L_WHITE, tmp_buf);
+		}
+
+		/* Get a key */
+		i = inkey();
+
+		/* Leave */
+		if (i == ESCAPE) break;
+
+		else if (i == 'D') /* Delete */
+		{
+			/* Keep atleast 1 */
+			if (total == 1) continue;
+
+			/* (un)Link the keymap */
+			string_free(keymap_act[mode][sel]);
+			keymap_act[mode][sel] = string_make(format("%c", sel));
+
+			/* Change offsets */
+			if (j >= total-1) j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+
+		else if (i == 'T') /* Change trigger */
+		{
+			cptr prev_action;
+			byte new_map;
+
+			/* Prompt */
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Keypress: ");
+			do_cmd_macro_aux_keymap(tmp_buf);
+			new_map = tmp_buf[0];
+
+			/* (un)Link old keymap */
+			prev_action = keymap_act[mode][sel];
+			keymap_act[mode][sel] = string_make(format("%c", sel));
+
+			/* (un)Create new keymap */
+			if (keymap_act[mode][new_map]) string_free(keymap_act[mode][new_map]);
+			keymap_act[mode][new_map] = prev_action;
+		}
+
+		else if (i == 'A') /* Change action */
+		{
+			/* Prompt */
+			clear_from(hgt);
+			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Action: ");
+
+			/* Copy 'current action' */
+			ascii_to_text(act, sizeof(act), keymap_act[mode][sel]);
+//			my_strcpy(act, keymap_act[mode][sel], sizeof(act));
+
+			/* Get an encoded action */
+			if (!askfor_aux(act, 80, 0)) continue;
+
+			/* Convert to ascii */
+			text_to_ascii(tmp_buf, sizeof(tmp_buf), act);
+			tmp_buf[strlen(act)] = '\0';
+
+			/* Do not allow empty */
+			if (strlen(tmp_buf) < 1) continue;
+
+			/* (re)Link the keymap */
+			string_free(keymap_act[mode][sel]);
+			keymap_act[mode][sel] = string_make(tmp_buf);
+		}
+
+		else if (i == ' ') /* Cycle Down */
+		{
+			j++;
+			if (j > total-1) { j = 0; o = 0; }
+			else if (j - o > hgt/2 && j < total) o++;
+		}
+		else if (i == '2') /* Down */
+		{
+			j++;
+			if (j > total-1) j = total-1;
+			else if (j - o > hgt/2 && j < total) o++;
+		}
+		else if (i == '7') /* Home */
+		{
+			o = j = 0;
+		}
+		else if (i == '9') /* Page up */
+		{
+			j -= hgt;
+			if (j < 0) j = 0;
+			o = j;
+		}
+		else if (i == '3') /* Page down */
+		{
+			j += Term->hgt;
+			if (j > total-1) j = total-1;
+			o = j - hgt/2;
+		}
+		else if (i == '1') /* End */
+		{
+			j = total - 1;
+			o = j - hgt/2;
+		}
+		else if (i == '8') /* Up */
+		{
+			j--;
+			if (j < 0) j = 0;
+			else if (o && j - o < hgt/2) o--;
+		}
+	}
+	/* Hide cursor */
+	Term_hide_ui_cursor();
 }
 
 /* Display macros as a list and allow user to navigate through it 
@@ -3177,6 +3510,7 @@ void interact_macros(void)
 	int i;
 
 	static bool old_school_macros = FALSE;
+	byte km_mode = 0;
 
 	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
@@ -3200,6 +3534,8 @@ void interact_macros(void)
 		/* Describe */
 		Term_putstr(0, 2, -1, TERM_WHITE, "Interact with Macros");
 
+		/* Notice keymap mode */
+		km_mode = rogue_like_commands ? 1 : 0;
 
 		/* Describe the trigger */
 		if (!STRZERO(tmp_buf))
@@ -3250,6 +3586,9 @@ void interact_macros(void)
 		/* Leave */
 		if (i == ESCAPE) break;
 
+		/* Browse keymaps */
+		else if (i == '=') browse_keymaps();
+
 		/* Browse */
 		else if (i == '7') browse_macros();
 
@@ -3292,6 +3631,28 @@ void interact_macros(void)
 
 			/* Dump the macros */
 			(void)macro_dump(tmp);
+		}
+
+		/* Save a 'keymap' file */
+		else if (i == '@')
+		{
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Save a keymap file");
+
+			/* Get a filename, handle ESCAPE */
+			Term_putstr(0, 17, -1, TERM_WHITE, "File: ");
+
+			/* Default filename */
+			sprintf(tmp, "keymap.prf", ANGBAND_SYS);
+
+			/* Ask for a file */
+			if (!askfor_aux(tmp, 70, 0)) continue;
+			
+			/* Lowercase the filename */
+			for(str=tmp;*str;str++) *str=tolower(*str);
+
+			/* Dump the keymaps */
+			(void)keymap_dump_file(tmp);
 		}
 
 		/* Change wizard mode */
@@ -3476,6 +3837,84 @@ void interact_macros(void)
 				ascii_to_text(tmp_buf, sizeof(tmp), buf);
 			}
 		}
+
+		/* Query key for keymap */
+		else if (i == '$')
+		{
+			int k;
+			
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Query key for keymap");
+
+			/* Prompt */
+			Term_erase(0, 17, 255);
+			Term_putstr(0, 17, -1, TERM_WHITE, "Keypress: ");
+			/* Show cursor */
+			Term_show_ui_cursor();
+
+			/* Get a keymap trigger */
+			do_cmd_macro_aux_keymap(buf);
+			k = buf[0];
+			if (!k) continue;
+
+			/* Save key for later */
+			ascii_to_text(tmp_buf, sizeof(tmp), buf);
+
+			/* Found noting */
+			if (!keymap_act[km_mode][k])
+			{
+				/* Prompt */
+				c_msg_print("Found no keymap.");
+			}
+			/* It's an identity macro (empty) */
+			else if (streq(buf, keymap_act[km_mode][k]))
+			{
+				/* Prompt */
+				c_msg_print("Found no keymap.");
+			}
+			/* Found one */
+			else
+			{
+				/* Analyze the current action */
+				ascii_to_text(tmp, sizeof(tmp), keymap_act[km_mode][k]);
+
+				/* Display the current action */
+				my_strcpy(macro__buf, tmp, 1024);
+
+				/* Prompt */
+				c_msg_print("Found a keymap.");
+			}
+		}
+
+		/* Create a keymap */
+		else if (i == '^')
+		{
+			byte new_map;
+
+			/* Prompt */
+			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a keymap");
+
+			/* Prompt */
+			Term_erase(0, 17, 255);
+			Term_putstr(0, 17, -1, TERM_WHITE, "Keypress: ");
+			Term_show_ui_cursor();
+
+			/* Get a keymap trigger */
+			do_cmd_macro_aux_keymap(buf);
+			new_map = buf[0];
+			if (!new_map) continue;
+
+			/* Save key for later */
+			ascii_to_text(tmp_buf, sizeof(tmp), buf);
+
+			/* (un)Create new keymap */
+			if (keymap_act[km_mode][new_map]) string_free(keymap_act[km_mode][new_map]);
+			keymap_act[km_mode][new_map] = string_make(macro__buf);
+
+			/* Message */
+			c_msg_print("Created a new keymap.");
+		}
+
 
 		/* Create a normal macro */
 		else if (i == '5' || i == '%')
