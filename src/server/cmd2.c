@@ -2032,6 +2032,19 @@ static bool do_cmd_tunnel_aux(int Ind, int y, int x)
 				{
 					msg_print(Ind, "You have found something!");
 				}
+
+				/* Notice it */
+				note_spot_depth(Depth, y, x);
+
+				/* Display it */
+				everyone_lite_spot(Depth, y, x);
+
+				/* Under some player */
+				if (cave[Depth][y][x].m_idx < 0)
+				{
+					msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
+					floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
+				}
 			}
 		}
 
