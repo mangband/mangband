@@ -74,6 +74,9 @@ void init_stuff(void)
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
+	/* Verify LIB DIR */
+	if (!dir_exists(path)) quit(format("Can't find LibDir at '%s' !", path));
+
 	/* Initialize */
 	init_file_paths(path);
 
