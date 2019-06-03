@@ -167,13 +167,13 @@ void cmd_custom(byte i)
 		advance_prompt();
 		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
 		{
-			if (!get_spell(&spell, p, prompt, &item, FALSE)) return;
+			if (!get_spell(&spell, p, prompt, &item, FALSE, FALSE)) return;
 			index = item * SPELLS_PER_BOOK + spell;
 		}
 		else
 		{
 			int book = cc_ptr->tval;
-			if (!get_spell(&spell, p, prompt, &book, FALSE)) return;
+			if (!get_spell(&spell, p, prompt, &book, FALSE, TRUE)) return;
 			index = book * SPELLS_PER_BOOK + spell;
 			indoff = cc_ptr->tval * SPELLS_PER_BOOK;
 		}

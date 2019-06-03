@@ -3666,7 +3666,7 @@ void interact_macros(void)
 		{
 			int spell, book = 0, n;
 			char cmd;
-			n = get_spell(&spell, "/=Next book,", "Macro which spell?", &book,FALSE);
+			n = get_spell(&spell, "/=Next book,", "Macro which spell?", &book, FALSE, FALSE);
 			screen_icky = TRUE;
 			/* No spell selected */
 			if (!n)
