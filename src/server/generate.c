@@ -1380,6 +1380,11 @@ static void build_type4(int Depth, int yval, int xval)
 
 	place_double_room(Depth, light, y1, y2, x1, x2);
 
+	/* The inner room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
 
 	/* Inner room variations */
 	switch (randint(5))
@@ -1832,6 +1837,12 @@ static void build_type5(int Depth, int yval, int xval)
 
 	place_double_room(Depth, FALSE, y1, y2, x1, x2);
 
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
+
 	/* Place a secret door */
 	switch (randint(4))
 	{
@@ -1994,6 +2005,12 @@ static void build_type6(int Depth, int yval, int xval)
 	x2 = xval + 11;
 
 	place_double_room(Depth, FALSE, y1, y2, x1, x2);
+
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
 
 	/* Place a secret door */
 	switch (randint(4))
