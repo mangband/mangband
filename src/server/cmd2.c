@@ -345,16 +345,16 @@ static void chest_death(int Ind, int y, int x, object_type *o_ptr)
 				opening_chest = FALSE;
 
 				/* Notice it */
-				note_spot(Ind, ny, nx);
+				note_spot_depth(Depth, ny, nx);
 
 				/* Display it */
 				everyone_lite_spot(Depth, ny, nx);
 
 				/* Under the player */
-				if (cave[Depth][y][x].m_idx < 0) 
+				if (cave[Depth][ny][nx].m_idx < 0)
 				{
-					msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
-					floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
+					msg_print(0 - cave[Depth][ny][nx].m_idx, "You feel something roll beneath your feet.");
+					floor_item_notify(0 - cave[Depth][ny][nx].m_idx, cave[Depth][ny][nx].o_idx, TRUE);
 				}
 
 				/* Successful placement */
