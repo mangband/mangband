@@ -2853,18 +2853,23 @@ static errr macro_dump(cptr fname)
 	/* Failure */
 	if (!fff) return (-1);
 
+	/* Start dumping */
+	file_putf(fff, "#\n");
+	file_putf(fff, "# ====== Automatic macro dump ======\n");
+	file_putf(fff, "#\n");
+	/* Explain a little */
+	file_putf(fff, "# Macros defined with 'G' are 'command macros' and are only executed when\n# the game is waiting for a command (command context).\n");
+	file_putf(fff, "# Macros defined with 'P' are 'normal macros' and are executed everywhere,\n# at any context.\n");
+	file_putf(fff, "#\n");
 
 	/* Skip space */
 	file_putf(fff, "\n\n");
-
-	/* Start dumping */
-	file_putf(fff, "# Automatic macro dump\n\n");
 
 	/* Dump them */
 	for (i = 0; i < macro__num; i++)
 	{
 		/* Start the macro */
-		file_putf(fff, "# Macro '%d'\n\n", i);
+		file_putf(fff, "# Macro '%d'%s\n\n", i, macro__cmd[i] ? " (command context)" : "");
 
 		/* Extract the action */
 		ascii_to_text(buf, sizeof(buf), macro__act[i]);
@@ -2876,7 +2881,7 @@ static errr macro_dump(cptr fname)
 		ascii_to_text(buf, sizeof(buf), macro__pat[i]);
 
 		/* Dump command macro */
-		if (macro__cmd[i]) file_putf(fff, "C:%s\n", buf);
+		if (macro__cmd[i]) file_putf(fff, "G:%s\n", buf);
 
 		/* Dump normal macros */
 		else file_putf(fff, "P:%s\n", buf);
@@ -2997,7 +3002,7 @@ void browse_macros(void)
 		Term_clear();
 
 		/* Describe */
-		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (D delete, A/T to set, ESC to accept)");
+		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (D delete, A/T to set, C switch context, ESC to accept)");
 
 		/* Dump them */
 		for (i = 0, total = 0; i < macro__num; i++)
@@ -3005,7 +3010,7 @@ void browse_macros(void)
 			int k = total; 
 
 			/* Skip command macro */
-			if (macro__cmd[i]) continue;
+			/* if (macro__cmd[i]) continue; */
 		
 			/* Extract the action */
 			ascii_to_text(act, sizeof(act), macro__act[i]);
@@ -3044,6 +3049,10 @@ void browse_macros(void)
 
 			/* Dump the action */
 			Term_putstr(30, 2+k-o, -1, a, act);
+
+			/* Dump the conext */
+			Term_putstr(78, 2+k-o, -1, (j==k)?TERM_L_BLUE:TERM_L_WHITE, macro__cmd[i] ? " c" : " *");
+
 		}
 
 		/* Get a key */
@@ -3112,6 +3121,20 @@ void browse_macros(void)
 			macro_add(macro__pat[sel], tmp_buf, FALSE);
 		}
 
+		else if (i == 'C') /* Change context */
+		{
+			macro__cmd[sel] = macro__cmd[sel] ? FALSE : TRUE;
+			if (!macro__cmd[sel]) macro__use[sel] &= ~(MACRO_USE_CMD);
+			else macro__use[sel] |= (MACRO_USE_CMD);
+			continue;
+		}
+
+		else if (i == ' ') /* Cycle Down */
+		{
+			j++;
+			if (j > total-1) { j = 0; o = 0; }
+			else if (j - o > hgt/2 && j < total) o++;
+		}
 		else if (i == '2') /* Down */
 		{
 			j++;
@@ -3211,7 +3234,6 @@ void interact_macros(void)
 #endif
 
 #if 0
-		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Create an empty macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(8) Create a command macro");
 		Term_putstr(5, 12, -1, TERM_WHITE, "(X) Turn off an option (by name)");
 		Term_putstr(5, 13, -1, TERM_WHITE, "(Y) Turn on an option (by name)");
@@ -3458,7 +3480,12 @@ void interact_macros(void)
 		/* Create a normal macro */
 		else if (i == '5' || i == '%')
 		{
+			/* If '%' was pressed, create a command macro */
+			bool cmd_flag = (i == '%') ? TRUE : FALSE;
+
 			/* Prompt */
+			if (cmd_flag) Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
+			else
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a normal macro");
 
 			/* Prompt */
@@ -3469,36 +3496,21 @@ void interact_macros(void)
 			/* Get a macro trigger */
 			if (!get_macro_trigger(buf)) continue;
 
-			/* Interactive mode */
-			if (i == '%')
-			{
-				/* Clear */
-				clear_from(20);
-	
-				/* Prompt */
-				Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action   ");
-	
-				/* Go to the correct location */
-				Term_gotoxy(0, 21);
-				Term_show_ui_cursor();
-	
-				/* Copy 'current action' */
-				ascii_to_text(tmp, sizeof(tmp), macro__buf);			
-	
-				/* Get an encoded action */
-				if (!askfor_aux(tmp, MAX_COLS, 0)) continue;
-	
-				/* Convert to ascii */
-				text_to_ascii(macro__buf, 1024, tmp);
-			}
-
 			/* Save key for later */
 			ascii_to_text(tmp_buf, sizeof(tmp), buf);
 
+			/* Hack -- if it's a one-key macro, make it a command macro */
+			if ((tmp_buf[1] == '\0') && (
+				isalpha(tmp_buf[0]) || ispunct(tmp_buf[0])
+				|| isdigit(tmp_buf[0])
+			)) cmd_flag = TRUE;
+
 			/* Link the macro */
-			macro_add(buf, macro__buf, FALSE);
+			macro_add(buf, macro__buf, cmd_flag);
 
 			/* Message */
+			if (cmd_flag) c_msg_print("Created a new command macro.");
+			else
 			c_msg_print("Created a new normal macro.");
 		}
 
@@ -3511,6 +3523,7 @@ void interact_macros(void)
 			/* Prompt */
 			Term_erase(0, 17, 255);
 			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
+			Term_show_ui_cursor();
 
 			/* Get a macro trigger */
 			get_macro_trigger(buf);
@@ -3521,47 +3534,6 @@ void interact_macros(void)
 			/* Message */
 			c_msg_print("Removed a macro.");
 		}
-#if 0
-		/* Create an empty macro */
-		else if (i == '7')
-		{
-			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create an empty macro");
-
-			/* Prompt */
-			Term_erase(0, 17, 255);
-			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
-
-			/* Get a macro trigger */
-			get_macro_trigger(buf);
-
-			/* Link the macro */
-			macro_add(buf, "", FALSE);
-
-			/* Message */
-			c_msg_print("Created a new empty macro.");
-		}
-
-		/* Create a command macro */
-		else if (i == '8')
-		{
-			/* Prompt */
-			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Create a command macro");
-
-			/* Prompt */
-			Term_erase(0, 17, 255);
-			Term_putstr(0, 17, -1, TERM_WHITE, "Trigger: ");
-
-			/* Get a macro trigger */
-			get_macro_trigger(buf);
-
-			/* Link the macro */
-			macro_add(buf, macro__buf, TRUE);
-
-			/* Message */
-			c_msg_print("Created a new command macro.");
-		}
-#endif
 
 		/* Oops */
 		else
