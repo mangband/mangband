@@ -1861,6 +1861,20 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 					
 				/* Place some gold */
 				place_gold(Depth, y, x);
+
+				/* Notice it */
+				note_spot_depth(Depth, y, x);
+
+				/* Display it */
+				everyone_lite_spot(Depth, y, x);
+
+				/* Under the player */
+				if (cave[Depth][y][x].m_idx < 0)
+				{
+					if (!quiet) msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
+					floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
+				}
+
 			}
 
 			/* Quartz / Magma */
