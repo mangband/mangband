@@ -13,7 +13,7 @@
 
 # Numpad/Regular Delete
 
-A:.
+A:\\.
 P:^__14a\r
 P:^__KEY_DC\r
 P:\e[3~
@@ -97,49 +97,49 @@ P:\eOs
 
 # Running (Shift+)
 
-A:.4
+A:\\.4
 P:^__189\r
 P:^__KEY_SLEFT\r
 P:\e[1;2D
 P:\eO2t
 
-A:.6
+A:\\.6
 P:^__192\r
 P:^__KEY_SRIGHT\r
 P:\e[1;2C
 P:\eO2v
 
-A:.8
+A:\\.8
 P:^__151\r
 P:^__KEY_SR\r
 P:\e[1;2A
 P:\eO2x
 
-A:.2
+A:\\.2
 P:^__151\r
 P:^__KEY_SF\r
 P:\e[1;2B
 P:\eO2r
 
-A:.7
+A:\\.7
 P:^__187\r
 P:^__KEY_SHOME\r
 P:\e[1;2H
 P:\eO2w
 
-A:.1
+A:\\.1
 P:^__182\r
 P:^__KEY_SEND\r
 P:\e[1;2F
 P:\eO2q
 
-A:.9
+A:\\.9
 P:^__18e\r
 P:^__KEY_SPREVIOUS\r
 P:\e[5;2~
 P:\eO2y
 
-A:.3
+A:\\.3
 P:^__18c\r
 P:^__KEY_SNEXT\r
 P:\e[6;2~
@@ -150,42 +150,42 @@ P:\eO2s
 #  are used to switch between tabs, so those keys will not reach the game.
 #  Numpad versions should work, though. )
 
-A:+4
+A:\\+4
 P:^__224\r
 P:^__kLFT5\r
 P:\e[1;5D
 
-A:+6
+A:\\+6
 P:^__233\r
 P:^__kRIT5\r
 P:\e[1;5C
 
-A:+8
+A:\\+8
 P:^__239\r
 P:^__kUP5\r
 P:\e[1;5A
 
-A:+2
+A:\\+2
 P:^__210\r
 P:^__kDN5\r
 P:\e[1;5B
 
-A:+7
+A:\\+7
 P:^__21a\r
 P:^__kHOM5\r
 P:\e[1;5H
 
-A:+1
+A:\\+1
 P:^__215\r
 P:^__kEND5\r
 P:\e[1;5F
 
-A:+9
+A:\\+9
 P:^__22e\r
 P:^__kPRV5\r
 P:\e[5;5~
 
-A:+3
+A:\\+3
 P:^__229\r
 P:^__kNXT5\r
 P:\e[6;5~
@@ -193,42 +193,42 @@ P:\e[6;5~
 # Altering (ALT+)
 # (Same as CTRL+, for terminals that can't handle CTRL correctly)
 
-A:+4
+A:\\+4
 P:^__222\r
 P:^__kLFT3\r
 P:\e[1;3D
 
-A:+6
+A:\\+6
 P:^__231\r
 P:^__kRIT3\r
 P:\e[1;3C
 
-A:+8
+A:\\+8
 P:^__237\r
 P:^__kUP3\r
 P:\e[1;3A
 
-A:+2
+A:\\+2
 P:^__20e\r
 P:^__kDN3\r
 P:\e[1;3B
 
-A:+7
+A:\\+7
 P:^__218\r
 P:^__kHOM3\r
 P:\e[1;3H
 
-A:+1
+A:\\+1
 P:^__213\r
 P:^__kEND3\r
 P:\e[1;3F
 
-A:+9
+A:\\+9
 P:^__22c\r
 P:^__kPRV3\r
 P:\e[5;3~
 
-A:+3
+A:\\+3
 P:^__227\r
 P:^__kNXT3\r
 P:\e[6;3~
