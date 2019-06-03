@@ -392,6 +392,30 @@ bool no_lite(int Ind)
 
 
 /*
+ * Hack -- Continous per-player hallucinaton RNG
+ */
+void image_rng_flush(player_type *p_ptr)
+{
+	p_ptr->hallu_offset = 0;
+}
+static void image_rng_push(player_type *p_ptr, u32b *oldstate)
+{
+	/* Store old state */
+	*oldstate = Rand_value;
+	/* Use simple RNG */
+	Rand_quick = TRUE;
+	/* Seed with player->image_seed */
+	Rand_value = (p_ptr->image_seed + (p_ptr->hallu_offset++));
+}
+static void image_rng_pop(u32b oldstate)
+{
+	/* Use complex RNG */
+	Rand_quick = FALSE;
+	/* Restore state */
+	Rand_value = oldstate;
+}
+
+/*
  * Hack -- Legal monster codes
  */
 static cptr image_monster_hack = \
@@ -400,15 +424,20 @@ static cptr image_monster_hack = \
 /*
  * Mega-Hack -- Hallucinatory monster
  */
-static void image_monster(byte *ap, char *cp)
+static void image_monster(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
 	int n = strlen(image_monster_hack);
+
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
 	(*cp) = (image_monster_hack[rand_int(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
+
+	if (p_ptr) image_rng_pop(oldrng);
 }
 
 
@@ -421,36 +450,60 @@ static cptr image_object_hack = \
 /*
  * Mega-Hack -- Hallucinatory object
  */
-static void image_object(byte *ap, char *cp)
+static void image_object(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
 	int n = strlen(image_object_hack);
+
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
 	(*cp) = (image_object_hack[rand_int(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
+
+	if (p_ptr) image_rng_pop(oldrng);
 }
 
 
 /*
  * Hack -- Random hallucination
  */
-static void image_random(byte *ap, char *cp)
+static void image_random(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
+
 	/* Normally, assume monsters */
 	if (rand_int(100) < 75)
 	{
-		image_monster(ap, cp);
+		image_monster(p_ptr, ap, cp);
 	}
 
 	/* Otherwise, assume objects */
 	else
 	{
-		image_object(ap, cp);
+		image_object(p_ptr, ap, cp);
 	}
-}
 
+	if (p_ptr) image_rng_pop(oldrng);
+}
+/* Hack -- do we want random hallucination? */
+static bool image_random_chance(player_type *p_ptr)
+{
+	u32b oldrng;
+	bool hallucinate = FALSE;
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
+
+	if (!rand_int(256)) hallucinate = TRUE;
+
+	if (p_ptr && hallucinate) p_ptr->hallu_offset += randint0(64);
+
+	if (p_ptr) image_rng_pop(oldrng);
+
+	return hallucinate;
+}
 
 /*
  * Return the correct "color" of another player
@@ -1130,10 +1183,10 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 	}
 #endif
 	/* Hack -- rare random hallucination, except on outer dungeon walls */
-	if (p_ptr->image && (!rand_int(256)) && (c_ptr->feat < FEAT_PERM_SOLID))
+	if (p_ptr->image && (image_random_chance(p_ptr)) && (c_ptr->feat < FEAT_PERM_SOLID))
 	{
 		/* Hallucinate */
-		image_random(ap, cp);
+		image_random(p_ptr, ap, cp);
 	}
 
 
@@ -1154,7 +1207,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			(*ap) = object_attr(o_ptr);
 
 			/* Hack -- hallucination */
-			if (p_ptr->image) image_object(ap, cp);
+			if (p_ptr->image) image_object(p_ptr, ap, cp);
 		}
 	}
 
@@ -1249,7 +1302,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			if (p_ptr->image)
 			{
 				/* Hallucinatory monster */
-				image_monster(ap, cp);
+				image_monster(p_ptr, ap, cp);
 			}
 		}
 	}
@@ -1277,7 +1330,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			if (p_ptr->image)
 			{
 				/* Change the other player into a hallucination */
-				image_monster(ap, cp);
+				image_monster(p_ptr, ap, cp);
 			}
 
 		}
@@ -1504,6 +1557,9 @@ void prt_map(int Ind)
 
 	/* Make sure he didn't just change depth */
 	if (p_ptr->new_level_flag) return;
+
+	/* Hack -- reseed hallucinaton */
+	image_rng_flush(p_ptr);
 
 	/* Dump the map */
 	for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)

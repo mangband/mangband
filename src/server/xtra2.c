@@ -423,6 +423,9 @@ bool set_image(int Ind, int v)
 	/* Nothing to notice */
 	if (!notice) return (FALSE);
 
+	/* Hack -- update hallucination seed */
+	p_ptr->image_seed++;
+
 	/* Disturb */
 	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 

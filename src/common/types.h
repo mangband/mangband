@@ -1455,6 +1455,9 @@ struct player_type
 	int player_store_num;		/* What player store this guy is in */
 	int arena_num;		/* What arena this guy is in */
 
+	u32b image_seed;		/* Hack -- hallucination seed */
+	u32b hallu_offset;		/* Hack -- hallucination RNG offset */
+
 	s16b fast;			/* Timed -- Fast */
 	s16b slow;			/* Timed -- Slow */
 	s16b blind;			/* Timed -- Blindness */

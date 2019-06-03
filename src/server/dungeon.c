@@ -1147,6 +1147,13 @@ static void process_player_end(int Ind)
 				take_hit(Ind, i, "starvation");
 			}
 		}
+
+		/* Semi-constant hallucination (but not in stores) */
+		if (p_ptr->image && p_ptr->store_num == -1)
+		{
+			p_ptr->image_seed++;
+			p_ptr->redraw |= (PR_MAP);
+		}
 	}
 
 	if ( !(turn.turn % time) )
@@ -1173,9 +1180,6 @@ static void process_player_end(int Ind)
 				}
 			}
 		}
-
-		/* Semi-constant hallucination (but not in stores) */
-		if (p_ptr->image && p_ptr->store_num == -1) p_ptr->redraw |= (PR_MAP);
 
 		/*** Damage over Time ***/
 
