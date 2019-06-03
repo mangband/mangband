@@ -956,6 +956,10 @@ void player_setup(int Ind)
 		 * if neccecary. */
 		if (count >= players_on_depth[Depth])
 			players_on_depth[Depth]++;
+
+		/* Hack -- ironmen get 2 extra turns of invulnerability, see #1014 */
+		if (p_ptr->dun_depth > 0 && cfg_ironman)
+			if (p_ptr->invuln == 0) set_invuln(Ind, p_ptr->invuln + 2);
 	}
 
 	/* Rebuild the level if neccecary */
