@@ -2984,10 +2984,9 @@ void monster_race_track_hack(player_type *p_ptr)
 	}
 }
 
-void text_out_init(int Ind) {
-	player_type	*p_ptr = Players[Ind];
-
-	player_textout = Ind;
+void text_out_init(player_type *p_ptr)
+{
+	player_textout = p_ptr;
 	p_ptr->cur_wid = 0;
 	p_ptr->cur_hgt = 0;
 
@@ -2997,7 +2996,8 @@ void text_out_init(int Ind) {
 void text_out_done()
 {
 	int i;
-	player_type	*p_ptr = Players[player_textout];
+	player_type	*p_ptr = player_textout;
+	player_textout = NULL;
 
 	/* HACK!! Clear rest of the line */
 	for (i = p_ptr->cur_wid; i < 80; i++)
@@ -3056,7 +3056,7 @@ void text_out_load(player_type *p_ptr)
 void text_out_c(byte a, cptr buf)
 {
 	int i, j, shorten, buflen;
-	player_type	*p_ptr = Players[player_textout];
+	player_type	*p_ptr = player_textout;
 	static char line_buf[80] = {'\0'};
 
 	bool simple = FALSE;

@@ -890,13 +890,13 @@ void reset_visuals(void)
  */
 #define OBJECT_FLAGS_RANDOM -2 /* Only known random flags -- XXX broken in mangband XXX unused in angband */
 #define OBJECT_FLAGS_FULL   -1 /* Full info */
-#define OBJECT_FLAGS_KNOWN  0 /* + Ind = Only flags known to the player */
+#define OBJECT_FLAGS_KNOWN  0 /* Only flags known to the player (p_ptr must be passed) */
 
 
 /*
  * Obtain the "flags" for an item
  */
-static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+static void object_flags_aux(int mode, const player_type *p_ptr, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
 	object_kind *k_ptr;
 	int Ind = mode;
@@ -907,7 +907,7 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 		(*f1) = (*f2) = (*f3) = 0L;
 
 		/* Must be identified */
-		if (!object_known_p(Players[Ind], o_ptr)) return;
+		if (!object_known_p(p_ptr, o_ptr)) return;
 	}
 
 	if (mode != OBJECT_FLAGS_RANDOM)
@@ -1038,9 +1038,8 @@ static void object_flags_aux(int mode, const object_type *o_ptr, u32b *f1, u32b 
 /*
  * Obtain "flags" known to player
  */
-void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
+void object_flags_known(const player_type *p_ptr, const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
-	player_type *p_ptr = Players[Ind];
 	bool aware, known;
 	
 	aware = known = FALSE;	
@@ -1048,12 +1047,12 @@ void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u
 	if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
 
 	/* See if the object is "known" */
-	if (object_known_p(Players[Ind], o_ptr)) known = TRUE;
+	if (object_known_p(p_ptr, o_ptr)) known = TRUE;
 	
 	/* See if 'un'aware OR 'un'known */
 	if (!known || (!aware && !known)) return;
 	
-	object_flags_aux(OBJECT_FLAGS_KNOWN + Ind, o_ptr, f1, f2, f3);	
+	object_flags_aux(OBJECT_FLAGS_KNOWN, p_ptr, o_ptr, f1, f2, f3);
 }
 
 /*
@@ -1061,7 +1060,7 @@ void object_flags_known(int Ind, const object_type *o_ptr, u32b *f1, u32b *f2, u
  */
 void object_flags(const object_type *o_ptr, u32b *f1, u32b *f2, u32b *f3)
 {
-	object_flags_aux(OBJECT_FLAGS_FULL, o_ptr, f1, f2, f3);
+	object_flags_aux(OBJECT_FLAGS_FULL, NULL, o_ptr, f1, f2, f3);
 }
 
 /*
@@ -2543,7 +2542,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	p_ptr->special_file_type = TRUE;
 
 	/* Prepare player structure for text */	
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 	
 	/* Dump info into player */
 	object_info_screen(o_ptr);

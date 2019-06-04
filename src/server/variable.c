@@ -282,7 +282,7 @@ byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 byte spell_tests[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 
 /* Player for doing text_out */
-int player_textout = 0;
+player_type* player_textout = NULL;
 
 /* Current player's character name */
 /* In the player info --KLJ-- */

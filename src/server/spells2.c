@@ -615,7 +615,7 @@ void self_knowledge(int Ind, bool spoil)
 		if (spoil)
 			object_flags(o_ptr, &t1, &t2, &t3);
 		else
-			object_flags_known(Ind, o_ptr, &t1, &t2, &t3);
+			object_flags_known(p_ptr, o_ptr, &t1, &t2, &t3);
 
 		/* Extract flags */
 		f1 |= t1;

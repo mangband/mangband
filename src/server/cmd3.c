@@ -1613,7 +1613,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 	p_ptr->special_file_type = TRUE;
 
 	/* Prepare player structure for text */
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 
 	for (i = 1; i < z_info->r_max; i++)
 	{
@@ -1652,7 +1652,7 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 	player_type *p_ptr = Players[Ind];
 
 	/* Prepare player structure for text */
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 
 	/* Dump info into player */
 	if (r_idx < 0)

@@ -5217,7 +5217,7 @@ void display_itemlist(player_type *p_ptr)
 	int Ind = Get_Ind[p_ptr->conn];
 
 	/* Begin */
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 
 	/* Look at each square of the dungeon for items */
 	for (my = 0; my < dungeon_hgt; my++)

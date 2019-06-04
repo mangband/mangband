@@ -752,7 +752,7 @@ void display_monlist(int Ind)
 		race_counts[m_ptr->r_idx]++;
 	}
 	
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 
 	/* Iterate over mon_list ( again :-/ ) */
 	for (idx = 1; idx < m_max; idx++)

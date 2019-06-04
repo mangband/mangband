@@ -256,7 +256,7 @@ void display_houses(int Ind, char query)
 	if (query == ESCAPE) return;
 
 	/* Prepare */
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 	text_out("Owned Houses");
 	text_out("\n");
 	text_out("\n");
@@ -1083,7 +1083,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 	if (query == 0)
 	{
 		/* Prepare */
-		text_out_init(Ind);
+		text_out_init(p_ptr);
 		
 		/* Ask for a choice */
 		text_out(" \n");

@@ -818,7 +818,7 @@ static void prt_player_sust_info(int Ind)
 		/* Clear flags */
 		f1 = f2 = f3 = 0L;
 		/* Get the "known" flags */
-		object_flags_known(Ind, o_ptr, &f1, &f2, &f3);
+		object_flags_known(p_ptr, o_ptr, &f1, &f2, &f3);
 		/* Hack -- assume stat modifiers are known .. because they can be calculated */
 		object_flags(o_ptr, &f1, &ignore_f2, &ignore_f3);
 
@@ -980,7 +980,7 @@ static void prt_player_flag_info(int Ind)
 				/* Fill in Known flags */
 				if (o_ptr->k_idx) /* don't waste time */
 				{
-					object_flags_known(Ind, o_ptr, &f[1], &f[2], &f[3]);
+					object_flags_known(p_ptr, o_ptr, &f[1], &f[2], &f[3]);
 
 					/* Hack -- additional lite flag */				
 					if (i == INVEN_LITE)
