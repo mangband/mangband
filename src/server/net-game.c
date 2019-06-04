@@ -843,8 +843,6 @@ int recv_channel(connection_type *ct, player_type *p_ptr)
 		mode,
 		name[MAX_CHARS];
 
-	int Ind = Get_Ind[p_ptr->conn];
-
 	if (cq_scanf(&ct->rbuf, "%ud%c%s", &id, &mode, name) < 3) return 0;
 
 	switch (mode)
@@ -1325,7 +1323,6 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 }
 
 int recv_stream_size(connection_type *ct, player_type *p_ptr) {
-	int Ind = Get_Ind[p_ptr->conn];
 	byte
 		stg = 0,
 		x = 0;
@@ -1398,7 +1395,6 @@ int recv_term_init(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		type = 0;
-	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &type) < 1)
 	{
@@ -1435,7 +1431,6 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 {
 	byte
 		key = 0;
-	int Ind = Get_Ind[p_ptr->conn];
 	int n;
 	if (cq_scanf(&ct->rbuf, "%c", &key) < 1)
 	{
@@ -1494,8 +1489,6 @@ int recv_clear(connection_type *ct, player_type *p_ptr)
 
 int recv_party(connection_type *ct, player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	char
 		buf[160];
 	s16b

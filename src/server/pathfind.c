@@ -35,7 +35,6 @@ static int dir_search[8] = {2,4,6,8,1,3,7,9};
 
 static bool is_valid_pf(player_type *p_ptr, int y, int x)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 	/* Unvisited means allowed */
 	if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK))) return (TRUE);

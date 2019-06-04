@@ -6164,7 +6164,6 @@ void master_fill_objects(player_type *p_ptr, u32b how)
 }
 void master_fill_monsters(player_type *p_ptr, u32b how)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int i, n;
 	u32b why = how;
 

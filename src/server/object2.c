@@ -4372,8 +4372,6 @@ bool inven_carry_okay(int Ind, object_type *o_ptr)
  */
 s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	int         i, j, k;
 	int		n = -1;
 
@@ -5213,8 +5211,6 @@ void display_itemlist(player_type *p_ptr)
 	char buf[80];
 
 	int floor_list[MAX_FLOOR_STACK];
-
-	int Ind = Get_Ind[p_ptr->conn];
 
 	/* Begin */
 	text_out_init(p_ptr);

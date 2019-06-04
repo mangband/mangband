@@ -2790,7 +2790,6 @@ static bool run_test(int Ind)
 bool run_nextstep(player_type *p_ptr)
 {
 	int x, y;
-	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 
 	/* Abort if we have finished */

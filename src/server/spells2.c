@@ -589,8 +589,6 @@ void self_knowledge(player_type *p_ptr, bool spoil)
 	int j,e; /* copy hack */
 	static cptr s_info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
 	cptr	*info = s_info;
-	
-	int Ind = Get_Ind[p_ptr->conn];
 
 	/* Clear the info area first. */
 	memset(s_info,0,sizeof(s_info));
