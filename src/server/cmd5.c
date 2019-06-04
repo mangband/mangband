@@ -225,14 +225,14 @@ void do_cmd_browse(int Ind, int book)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !is_dm_p(p_ptr) )
 	{
-		msg_print(Ind, "You cannot read books!");
+		msg_print(p_ptr, "You cannot read books!");
 		return;
 	}
 
 	/* Warriors are illiterate */
 	if (!p_ptr->cp_ptr->spell_book)
 	{
-		msg_print(Ind, "You cannot read books!");
+		msg_print(p_ptr, "You cannot read books!");
 		return;
 	}
 
@@ -240,14 +240,14 @@ void do_cmd_browse(int Ind, int book)
 	/* No lite */
 	if (p_ptr->blind || no_lite(Ind))
 	{
-		msg_print(Ind, "You cannot see!");
+		msg_print(p_ptr, "You cannot see!");
 		return;
 	}
 
 	/* Confused */
 	if (p_ptr->confused)
 	{
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 #endif
@@ -269,7 +269,7 @@ void do_cmd_browse(int Ind, int book)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -326,31 +326,31 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !is_dm_p(p_ptr) )
 	{
-		msg_print(Ind, "You cannot read books!");
+		msg_print(p_ptr, "You cannot read books!");
 		return;
 	}
 
 	if (!p_ptr->cp_ptr->spell_book)
 	{
-		msg_print(Ind, "You cannot read books!");
+		msg_print(p_ptr, "You cannot read books!");
 		return;
 	}
 
 	if (p_ptr->blind || no_lite(Ind))
 	{
-		msg_print(Ind, "You cannot see!");
+		msg_print(p_ptr, "You cannot see!");
 		return;
 	}
 
 	if (p_ptr->confused)
 	{
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 
 	if (!(p_ptr->new_spells))
 	{
-		msg_format(Ind, "You cannot learn any new %ss!", p);
+		msg_format(p_ptr, "You cannot learn any new %ss!", p);
 		return;
 	}
 
@@ -369,7 +369,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	{
 		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (book == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - book];
@@ -400,7 +400,7 @@ void do_cmd_study(int Ind, int book, int spell)
 
 		if (!spell_okay(Ind, j, FALSE))
 		{
-			msg_print(Ind, "You cannot gain that spell!");
+			msg_print(p_ptr, "You cannot gain that spell!");
 			return;
 		}
 	}
@@ -437,7 +437,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	if (j < 0)
 	{
 		/* Message */
-		msg_format(Ind, "You cannot learn any %ss in that book.", p);
+		msg_format(p_ptr, "You cannot learn any %ss in that book.", p);
 
 		/* Abort */
 		return;
@@ -461,7 +461,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	p_ptr->spell_order[i++] = j;
 
 	/* Mention the result */
-	msg_format(Ind, "You have learned the %s of %s.",
+	msg_format(p_ptr, "You have learned the %s of %s.",
 	           p, get_spell_name(p_ptr->cp_ptr->spell_book, j));
 	sound(Ind, MSG_STUDY);
 
@@ -471,7 +471,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	/* Report on remaining prayers */
 	if (p_ptr->new_spells)
 	{
-		msg_format(Ind, "You can learn %d more %ss.", p_ptr->new_spells, p);
+		msg_format(p_ptr, "You can learn %d more %ss.", p_ptr->new_spells, p);
 	}
 
 	/* Save the new_spells value */
@@ -524,28 +524,28 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Require spell ability */
 	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
 	{
-		msg_print(Ind, "You cannot cast spells!");
+		msg_print(p_ptr, "You cannot cast spells!");
 		return;
 	}
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !is_dm_p(p_ptr) )
 	{
-		msg_print(Ind, "You cannot cast spells!");
+		msg_print(p_ptr, "You cannot cast spells!");
 		return;
 	}
 
 	/* Require lite */
 	if (p_ptr->blind || no_lite(Ind))
 	{
-		msg_print(Ind, "You cannot see!");
+		msg_print(p_ptr, "You cannot see!");
 		return;
 	}
 
 	/* Not when confused */
 	if (p_ptr->confused)
 	{
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 
@@ -564,7 +564,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	{
 		book = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (book == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - book];
@@ -599,7 +599,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 		j = spells[spell - SPELL_PROJECTED];
 		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
-			msg_print(Ind, "You cannot project that spell.");
+			msg_print(p_ptr, "You cannot project that spell.");
 			return;
 		}
 	}
@@ -607,7 +607,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Regular test */
 	if (!spell_okay(Ind, j, 1))
 	{
-		msg_print(Ind, "You cannot cast that spell.");
+		msg_print(p_ptr, "You cannot cast that spell.");
 		return;
 	}
 
@@ -617,7 +617,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	/* Check mana */
 	if (s_ptr->smana > p_ptr->csp)
 	{
-		msg_print(Ind, "You do not have enough mana.");
+		msg_print(p_ptr, "You do not have enough mana.");
 		return;
 	}
 
@@ -635,7 +635,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	if (rand_int(100) < chance)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to get the spell off!");
+		msg_print(p_ptr, "You failed to get the spell off!");
 		/* Hack: Spend Mana */
 		p_ptr->current_spell = j;
 		do_cmd_cast_fin(Ind, FALSE);
@@ -692,7 +692,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
 		p_ptr->csp_frac = 0;
 
 		/* Message */
-		msg_print(Ind, "You faint from the effort!");
+		msg_print(p_ptr, "You faint from the effort!");
 
 		/* Hack -- bypass free action */
 		(void)set_paralyzed(Ind, p_ptr->paralyzed + randint(5 * oops + 1));
@@ -703,7 +703,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
 			bool perm = (rand_int(100) < 25);
 
 			/* Message */
-			msg_print(Ind, "You have damaged your health!");
+			msg_print(p_ptr, "You have damaged your health!");
 
 			/* Reduce constitution */
 			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
@@ -754,28 +754,28 @@ void do_cmd_pray(int Ind, int book, int spell)
 	/* Restrict ghosts */
 	if (p_ptr->ghost || p_ptr->fruit_bat)
 	{
-		msg_print(Ind, "Pray hard enough and your prayers may be answered.");
+		msg_print(p_ptr, "Pray hard enough and your prayers may be answered.");
 		return;
 	}
 
 	/* Must use prayer books */
 	if (p_ptr->cp_ptr->spell_book != TV_PRAYER_BOOK)
 	{
-		msg_print(Ind, "Pray hard enough and your prayers may be answered.");
+		msg_print(p_ptr, "Pray hard enough and your prayers may be answered.");
 		return;
 	}
 
 	/* Must have lite */
 	if (p_ptr->blind || no_lite(Ind))
 	{
-		msg_print(Ind, "You cannot see!");
+		msg_print(p_ptr, "You cannot see!");
 		return;
 	}
 
 	/* Must not be confused */
 	if (p_ptr->confused)
 	{
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 
@@ -797,7 +797,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0)
 		{
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -832,7 +832,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 		j = spells[spell - SPELL_PROJECTED];
 		if (!(get_spell_flag(o_ptr->tval, j, PY_SPELL_LEARNED, &item_tester) & PY_SPELL_PROJECT))
 		{
-			msg_print(Ind, "You cannot project that prayer.");
+			msg_print(p_ptr, "You cannot project that prayer.");
 			return;
 		}
 	}
@@ -840,7 +840,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	/* Regular test */
 	if (!spell_okay(Ind, j, 1))
 	{
-		msg_print(Ind, "You cannot pray that prayer.");
+		msg_print(p_ptr, "You cannot pray that prayer.");
 		return;
 	}
 
@@ -850,7 +850,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	/* Check mana */
 	if (s_ptr->smana > p_ptr->csp)
 	{
-		msg_print(Ind, "You do not have enough mana.");
+		msg_print(p_ptr, "You do not have enough mana.");
 		return;
 	}
 
@@ -868,7 +868,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	if (rand_int(100) < chance)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to concentrate hard enough!");
+		msg_print(p_ptr, "You failed to concentrate hard enough!");
 		/* Hack: Spend Mana */
 		p_ptr->current_spell = j;
 		do_cmd_cast_fin(Ind, FALSE);
@@ -937,7 +937,7 @@ void do_cmd_ghost_power(int Ind, int ability)
 	if (p_ptr->confused)
 	{
 		/* Message */
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 
@@ -957,7 +957,7 @@ void do_cmd_ghost_power(int Ind, int ability)
 	if (s_ptr->slevel > plev)
 	{
 		/* Message */
-		msg_print(Ind, "You aren't powerful enough to use that ability.");
+		msg_print(p_ptr, "You aren't powerful enough to use that ability.");
 		return;
 	}
 

@@ -10,7 +10,7 @@
 
 #include "mangband.h"
 
-#define msg_misc(A) msg_format_complex_near(Ind, Ind, MSG_PY_MISC, (A), p_ptr->name)
+#define msg_misc(A) msg_format_complex_near(p_ptr, p_ptr, MSG_PY_MISC, (A), p_ptr->name)
 static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 {
 	player_type *p_ptr = Players[Ind];
@@ -197,7 +197,7 @@ static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 		case SV_FOOD_JERKY:
 		case SV_FOOD_SLIME_MOLD:
 		{
-			msg_print(Ind, "That tastes good.");
+			msg_print(p_ptr, "That tastes good.");
 			*ident = TRUE;
 			break;
 		}
@@ -210,14 +210,14 @@ static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 		case SV_FOOD_EAR_OF_CORN:
 		{
 			hp_player(Ind, damroll(1, 4));
-			msg_print(Ind, "That tastes especially good.");
+			msg_print(p_ptr, "That tastes especially good.");
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_FOOD_WAYBREAD:
 		{
-			msg_print(Ind, "That tastes good.");
+			msg_print(p_ptr, "That tastes good.");
 			(void)set_poisoned(Ind, 0);
 			(void)hp_player(Ind, damroll(4, 8));
 			*ident = TRUE;
@@ -227,7 +227,7 @@ static bool eat_food(int Ind, object_type *o_ptr, bool *ident)
 		case SV_FOOD_PINT_OF_ALE:
 		case SV_FOOD_PINT_OF_WINE:
 		{
-			msg_print(Ind, "That tastes good.");
+			msg_print(p_ptr, "That tastes good.");
 			*ident = TRUE;
 			break;
 		}
@@ -251,7 +251,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		case SV_POTION_APPLE_JUICE:
 		case SV_POTION_SLIME_MOLD:
 		{
-			msg_print(Ind, "You feel less thirsty.");
+			msg_print(p_ptr, "You feel less thirsty.");
 			*ident = TRUE;
 			break;
 		}
@@ -264,7 +264,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_SALT_WATER:
 		{
-			msg_print(Ind, "The potion makes you vomit!");
+			msg_print(p_ptr, "The potion makes you vomit!");
 			msg_misc("%s vomits!"); 
 			(void)set_food(Ind, PY_FOOD_STARVE - 1);
 			(void)set_poisoned(Ind, 0);
@@ -325,7 +325,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->hold_life && (p_ptr->exp > 0))
 			{
-				msg_print(Ind, "You feel your memories fade.");
+				msg_print(p_ptr, "You feel your memories fade.");
 				lose_exp(Ind, p_ptr->exp / 4);
 				*ident = TRUE;
 			}
@@ -334,7 +334,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_RUINATION:
 		{
-			msg_print(Ind, "Your nerves and muscles feel weak and lifeless!");
+			msg_print(p_ptr, "Your nerves and muscles feel weak and lifeless!");
 			take_hit(Ind, damroll(10, 10), "a potion of Ruination");
 			(void)dec_stat(Ind, A_DEX, 25, TRUE);
 			(void)dec_stat(Ind, A_WIS, 25, TRUE);
@@ -384,7 +384,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_DETONATIONS:
 		{
-			msg_print(Ind, "Massive explosions rupture your body!");
+			msg_print(p_ptr, "Massive explosions rupture your body!");
 			msg_misc("%s blows up!");
 			take_hit(Ind, damroll(50, 20), "a potion of Detonation");
 			(void)set_stun(Ind, p_ptr->stun + 75);
@@ -395,7 +395,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_DEATH:
 		{
-			msg_print(Ind, "A feeling of Death flows through your body.");
+			msg_print(p_ptr, "A feeling of Death flows through your body.");
 			take_hit(Ind, 5000, "a potion of Death");
 			*ident = TRUE;
 			break;
@@ -536,7 +536,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_LIFE:
 		{
-			msg_print(Ind, "You feel life flow through your body!");
+			msg_print(p_ptr, "You feel life flow through your body!");
 			restore_level(Ind);
 			(void)set_poisoned(Ind, 0);
 			(void)set_blind(Ind, 0);
@@ -566,7 +566,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 			{
 				p_ptr->csp = p_ptr->msp;
 				p_ptr->csp_frac = 0;
-				msg_print(Ind, "Your feel your head clear.");
+				msg_print(p_ptr, "Your feel your head clear.");
 				p_ptr->redraw |= (PR_MANA);
 				p_ptr->window |= (PW_PLAYER_0 | PW_PLAYER_1);
 				*ident = TRUE;
@@ -665,7 +665,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_ENLIGHTENMENT:
 		{
-			msg_print(Ind, "An image of your surroundings forms in your mind...");
+			msg_print(p_ptr, "An image of your surroundings forms in your mind...");
 			wiz_lite(Ind);
 			*ident = TRUE;
 			break;
@@ -673,8 +673,8 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_STAR_ENLIGHTENMENT:
 		{
-			msg_print(Ind, "You begin to feel more enlightened...");
-			msg_print(Ind, NULL);
+			msg_print(p_ptr, "You begin to feel more enlightened...");
+			msg_print(p_ptr, NULL);
 			wiz_lite(Ind);
 			(void)do_inc_stat(Ind, A_INT);
 			(void)do_inc_stat(Ind, A_WIS);
@@ -691,8 +691,8 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_SELF_KNOWLEDGE:
 		{
-			msg_print(Ind, "You begin to know yourself a little better...");
-			msg_print(Ind, NULL);
+			msg_print(p_ptr, "You begin to know yourself a little better...");
+			msg_print(p_ptr, NULL);
 			self_knowledge(Ind, TRUE);
 			*ident = TRUE;
 			break;
@@ -704,7 +704,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 			{
 				s32b ee = (p_ptr->exp / 2) + 10;
 				if (ee > 100000L) ee = 100000L;
-				msg_print(Ind, "You feel more experienced.");
+				msg_print(p_ptr, "You feel more experienced.");
 				gain_exp(Ind, ee);
 				*ident = TRUE;
 			}
@@ -746,7 +746,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_AGGRAVATE_MONSTER:
 		{
-			msg_print(Ind, "There is a high pitched humming noise.");
+			msg_print(p_ptr, "There is a high pitched humming noise.");
 			aggravate_monsters(Ind, 0);
 			*ident = TRUE;
 			break;
@@ -842,7 +842,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 		{
 			if (remove_curse(Ind))
 			{
-				msg_print(Ind, "You feel as if someone is watching over you.");
+				msg_print(p_ptr, "You feel as if someone is watching over you.");
 				*ident = TRUE;
 			}
 			break;
@@ -970,7 +970,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 		{
 			if (p_ptr->confusing == 0)
 			{
-				msg_print(Ind, "Your hands begin to glow.");
+				msg_print(p_ptr, "Your hands begin to glow.");
 				p_ptr->confusing = TRUE;
 				*ident = TRUE;
 			}
@@ -1058,14 +1058,14 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 			else 
 			{
 				*ident = TRUE;
-				msg_print(Ind, "You failed to read the scroll properly.");
+				msg_print(p_ptr, "You failed to read the scroll properly.");
 			}
 			break;
 		}
 	
 		case SV_SCROLL_CREATE_HOUSE:
 		{
-			msg_print(Ind, "This is a scroll of house creation.");
+			msg_print(p_ptr, "This is a scroll of house creation.");
 			used_up = create_house(Ind);
 			*ident = TRUE;
 			break;
@@ -1148,7 +1148,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 			{
 				if (!p_ptr->blind)
 				{
-					msg_print(Ind, "The staff glows blue for a moment...");
+					msg_print(p_ptr, "The staff glows blue for a moment...");
 				}
 				*ident = TRUE;
 			}
@@ -1159,7 +1159,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->blind)
 			{
-				msg_print(Ind, "The end of the staff glows brightly...");
+				msg_print(p_ptr, "The end of the staff glows brightly...");
 			}
 			for (k = 0; k < 8; k++) lite_line(Ind, ddd[k]);
 			*ident = TRUE;
@@ -1249,7 +1249,7 @@ static bool use_staff(int Ind, object_type *o_ptr, bool *ident)
 				p_ptr->csp = p_ptr->msp;
 				p_ptr->csp_frac = 0;
 				*ident = TRUE;
-				msg_print(Ind, "Your feel your head clear.");
+				msg_print(p_ptr, "Your feel your head clear.");
 				p_ptr->redraw |= (PR_MANA);
 				p_ptr->window |= (PW_PLAYER_0 | PW_PLAYER_1);
 			}
@@ -1379,7 +1379,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to use the wand properly.");
+		msg_print(p_ptr, "You failed to use the wand properly.");
 		return (FALSE);
 	}
 
@@ -1387,7 +1387,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "The wand has no charges left.");
+		msg_print(p_ptr, "The wand has no charges left.");
 		o_ptr->ident |= (ID_EMPTY);
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 		p_ptr->window |= (PW_INVEN);
@@ -1451,7 +1451,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_LITE:
 		{
-			msg_print(Ind, "A line of blue shimmering light appears.");
+			msg_print(p_ptr, "A line of blue shimmering light appears.");
 			lite_line(Ind, dir);
 			*ident = TRUE;
 			break;
@@ -1575,7 +1575,7 @@ static bool aim_wand(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_WONDER:
 		{
-			msg_print(Ind, "Oops.  Wand of wonder activated.");
+			msg_print(p_ptr, "Oops.  Wand of wonder activated.");
 			break;
 		}
 
@@ -1695,7 +1695,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
 		/* if (flush_failure) flush(); */
-		msg_print(Ind, "You failed to use the rod properly.");
+		msg_print(p_ptr, "You failed to use the rod properly.");
 		return FALSE;
 	}
 
@@ -1709,9 +1709,9 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 		/*if (flush_failure) flush();*/
 
 		if (o_ptr->number == 1)
-			msg_print(Ind, "The rod is still charging.");
+			msg_print(p_ptr, "The rod is still charging.");
 		else
-			msg_print(Ind, "The rods are all still charging.");
+			msg_print(p_ptr, "The rods are all still charging.");
 
 		return FALSE;
 	}
@@ -1833,7 +1833,7 @@ static bool zap_rod(int Ind, object_type *o_ptr, bool *ident)
 
 		case SV_ROD_LITE:
 		{
-			msg_print(Ind, "A line of blue shimmering light appears.");
+			msg_print(p_ptr, "A line of blue shimmering light appears.");
 			lite_line(Ind, dir);
 			*ident = TRUE;
 			break;
@@ -1955,12 +1955,12 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 	/* Check the recharge */
 	if (o_ptr->timeout)
 	{
-		msg_print(Ind, "It whines, glows and fades...");
+		msg_print(p_ptr, "It whines, glows and fades...");
 		return FALSE;
 	}
 
 	/* Activate the artifact */
-	msg_print_aux(Ind, "You activate it...", MSG_ACT_ARTIFACT);
+	msg_print_aux(p_ptr, "You activate it...", MSG_ACT_ARTIFACT);
 
 	/* Artifacts */
 	if (o_ptr->name1)
@@ -1975,21 +1975,21 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 		{
 			case ACT_ILLUMINATION:
 			{
-				msg_format(Ind, "The %s wells with clear light...", o_name);
+				msg_format(p_ptr, "The %s wells with clear light...", o_name);
 				lite_area(Ind, damroll(2, 15), 3);
 				break;
 			}
 
 			case ACT_MAGIC_MAP:
 			{
-				msg_format(Ind, "The %s shines brightly...", o_name);
+				msg_format(p_ptr, "The %s shines brightly...", o_name);
 				map_area(Ind);
 				break;
 			}
 
 			case ACT_CLAIRVOYANCE:
 			{
-				msg_format(Ind, "The %s glows a deep green...", o_name);
+				msg_format(p_ptr, "The %s glows a deep green...", o_name);
 				wiz_lite(Ind);
 				(void)detect_trap(Ind);
 				(void)detect_sdoor(Ind);
@@ -1998,7 +1998,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_PROT_EVIL:
 			{
-				msg_format(Ind, "The %s lets out a shrill wail...", o_name);
+				msg_format(p_ptr, "The %s lets out a shrill wail...", o_name);
 				k = 3 * p_ptr->lev;
 				(void)set_protevil(Ind, p_ptr->protevil + randint(25) + k);
 				break;
@@ -2006,14 +2006,14 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_DISP_EVIL:
 			{
-				msg_format(Ind, "The %s floods the area with goodness...", o_name);
+				msg_format(p_ptr, "The %s floods the area with goodness...", o_name);
 				dispel_evil(Ind, p_ptr->lev * 5);
 				break;
 			}
 
 			case ACT_HASTE2:
 			{
-				msg_format(Ind, "The %s glows brightly...", o_name);
+				msg_format(p_ptr, "The %s glows brightly...", o_name);
 				if (!p_ptr->fast)
 				{
 					(void)set_fast(Ind, randint(75) + 75);
@@ -2027,7 +2027,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FIRE3:
 			{
-				msg_format(Ind, "The %s glows deep red...", o_name);
+				msg_format(p_ptr, "The %s glows deep red...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_FIRE, dir, 120, 3);
 				break;
@@ -2035,7 +2035,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FROST5:
 			{
-				msg_format(Ind, "The %s glows bright white...", o_name);
+				msg_format(p_ptr, "The %s glows bright white...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_COLD, dir, 200, 3);
 				break;
@@ -2043,7 +2043,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_ELEC2:
 			{
-				msg_format(Ind, "The %s glows deep blue...", o_name);
+				msg_format(p_ptr, "The %s glows deep blue...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_ELEC, dir, 250, 3);
 				break;
@@ -2051,7 +2051,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_BIZZARE:
 			{
-				msg_format(Ind, "The %s glows intensely black...", o_name);
+				msg_format(p_ptr, "The %s glows intensely black...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				ring_of_power(Ind, dir);
 				break;
@@ -2060,14 +2060,14 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_STAR_BALL:
 			{
-				msg_format(Ind, "Your %s is surrounded by lightning...", o_name);
+				msg_format(p_ptr, "Your %s is surrounded by lightning...", o_name);
 				for (i = 0; i < 8; i++) fire_ball(Ind, GF_ELEC, ddd[i], 150, 3);
 				break;
 			}
 
 			case ACT_RAGE_BLESS_RESIST:
 			{
-				msg_format(Ind, "Your %s glows many colours...", o_name);
+				msg_format(p_ptr, "Your %s glows many colours...", o_name);
 				(void)hp_player(Ind, 30);
 				(void)set_afraid(Ind, 0);
 				(void)set_shero(Ind, p_ptr->shero + randint(50) + 50);
@@ -2082,8 +2082,8 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_HEAL2:
 			{
-				msg_format(Ind, "Your %s glows a bright white...", o_name);
-				msg_print(Ind, "You feel much better...");
+				msg_format(p_ptr, "Your %s glows a bright white...", o_name);
+				msg_print(p_ptr, "You feel much better...");
 				(void)hp_player(Ind, 1000);
 				(void)set_cut(Ind, 0);
 				break;
@@ -2091,37 +2091,37 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_PHASE:
 			{
-				msg_format(Ind, "Your %s twists space around you...", o_name);
+				msg_format(p_ptr, "Your %s twists space around you...", o_name);
 				teleport_player(Ind, 10);
 				break;
 			}
 
 			case ACT_BANISHMENT:
 			{
-				msg_format(Ind, "Your %s glows deep blue...", o_name);
+				msg_format(p_ptr, "Your %s glows deep blue...", o_name);
 				if (!banishment(Ind)) return FALSE;
 				break;
 			}
 
 			case ACT_TRAP_DOOR_DEST:
 			{
-				msg_format(Ind, "Your %s glows bright red...", o_name);
+				msg_format(p_ptr, "Your %s glows bright red...", o_name);
 				destroy_doors_touch(Ind);
 				break;
 			}
 
 			case ACT_DETECT:
 			{
-				msg_format(Ind, "Your %s glows bright white...", o_name);
-				msg_print(Ind, "An image forms in your mind...");
+				msg_format(p_ptr, "Your %s glows bright white...", o_name);
+				msg_print(p_ptr, "An image forms in your mind...");
 				detection(Ind);
 				break;
 			}
 
 			case ACT_HEAL1:
 			{
-				msg_format(Ind, "Your %s glows deep blue...", o_name);
-				msg_print(Ind, "You feel a warm tingling inside...");
+				msg_format(p_ptr, "Your %s glows deep blue...", o_name);
+				msg_print(p_ptr, "You feel a warm tingling inside...");
 				(void)hp_player(Ind, 500);
 				(void)set_cut(Ind, 0);
 				break;
@@ -2129,7 +2129,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_RESIST:
 			{
-				msg_format(Ind, "Your %s glows many colours...", o_name);
+				msg_format(p_ptr, "Your %s glows many colours...", o_name);
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(20) + 20);
 				(void)set_oppose_elec(Ind, p_ptr->oppose_elec + randint(20) + 20);
 				(void)set_oppose_fire(Ind, p_ptr->oppose_fire + randint(20) + 20);
@@ -2140,35 +2140,35 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_SLEEP:
 			{
-				msg_format(Ind, "Your %s glows deep blue...", o_name);
+				msg_format(p_ptr, "Your %s glows deep blue...", o_name);
 				sleep_monsters_touch(Ind);
 				break;
 			}
 
 			case ACT_RECHARGE1:
 			{
-				msg_format(Ind, "Your %s glows bright yellow...", o_name);
+				msg_format(p_ptr, "Your %s glows bright yellow...", o_name);
 				if (!recharge(Ind, 60)) return FALSE;
 				break;
 			}
 
 			case ACT_TELEPORT:
 			{
-				msg_format(Ind, "Your %s twists space around you...", o_name);
+				msg_format(p_ptr, "Your %s twists space around you...", o_name);
 				teleport_player(Ind, 100);
 				break;
 			}
 
 			case ACT_RESTORE_LIFE:
 			{
-				msg_format(Ind, "Your %s glows a deep red...", o_name);
+				msg_format(p_ptr, "Your %s glows a deep red...", o_name);
 				restore_level(Ind);
 				break;
 			}
 
 			case ACT_MISSILE:
 			{
-				msg_format(Ind, "Your %s glows extremely brightly...", o_name);
+				msg_format(p_ptr, "Your %s glows extremely brightly...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_MISSILE, dir, damroll(2, 6));
 				break;
@@ -2176,7 +2176,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FIRE1:
 			{
-				msg_format(Ind, "Your %s is covered in fire...", o_name);
+				msg_format(p_ptr, "Your %s is covered in fire...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_FIRE, dir, damroll(9, 8));
 				break;
@@ -2184,7 +2184,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FROST1:
 			{
-				msg_format(Ind, "Your %s is covered in frost...", o_name);
+				msg_format(p_ptr, "Your %s is covered in frost...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_COLD, dir, damroll(6, 8));
 				break;
@@ -2192,7 +2192,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_LIGHTNING_BOLT:
 			{
-				msg_format(Ind, "Your %s is covered in sparks...", o_name);
+				msg_format(p_ptr, "Your %s is covered in sparks...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_ELEC, dir, damroll(4, 8));
 				break;
@@ -2200,7 +2200,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_ACID1:
 			{
-				msg_format(Ind, "Your %s is covered in acid...", o_name);
+				msg_format(p_ptr, "Your %s is covered in acid...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_ACID, dir, damroll(5, 8));
 				break;
@@ -2208,7 +2208,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_ARROW:
 			{
-				msg_format(Ind, "Your %s grows magical spikes...", o_name);
+				msg_format(p_ptr, "Your %s grows magical spikes...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_ARROW, dir, 150);
 				break;
@@ -2216,7 +2216,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_HASTE1:
 			{
-				msg_format(Ind, "Your %s glows bright green...", o_name);
+				msg_format(p_ptr, "Your %s glows bright green...", o_name);
 				if (!p_ptr->fast)
 				{
 					(void)set_fast(Ind, randint(20) + 20);
@@ -2230,7 +2230,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_REM_FEAR_POIS:
 			{
-				msg_format(Ind, "Your %s glows deep blue...", o_name);
+				msg_format(p_ptr, "Your %s glows deep blue...", o_name);
 				(void)set_afraid(Ind, 0);
 				(void)set_poisoned(Ind, 0);
 				break;
@@ -2238,7 +2238,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_STINKING_CLOUD:
 			{
-				msg_format(Ind, "Your %s throbs deep green...", o_name);
+				msg_format(p_ptr, "Your %s throbs deep green...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_POIS, dir, 12, 3);
 				break;
@@ -2246,7 +2246,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FROST2:
 			{
-				msg_format(Ind, "Your %s is covered in frost...", o_name);
+				msg_format(p_ptr, "Your %s is covered in frost...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_COLD, dir, 48, 2);
 				break;
@@ -2254,7 +2254,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FROST4:
 			{
-				msg_format(Ind, "Your %s glows a pale blue...", o_name);
+				msg_format(p_ptr, "Your %s glows a pale blue...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_COLD, dir, damroll(12, 8));
 				break;
@@ -2262,7 +2262,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FROST3:
 			{
-				msg_format(Ind, "Your %s glows a intense blue...", o_name);
+				msg_format(p_ptr, "Your %s glows a intense blue...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_COLD, dir, 100, 2);
 				break;
@@ -2270,7 +2270,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FIRE2:
 			{
-				msg_format(Ind, "Your %s rages in fire...", o_name);
+				msg_format(p_ptr, "Your %s rages in fire...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_ball(Ind, GF_FIRE, dir, 72, 2);
 				break;
@@ -2278,7 +2278,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_DRAIN_LIFE2:
 			{
-				msg_format(Ind, "Your %s glows black...", o_name);
+				msg_format(p_ptr, "Your %s glows black...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				drain_life(Ind, dir, 120);
 				break;
@@ -2286,7 +2286,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_STONE_TO_MUD:
 			{
-				msg_format(Ind, "Your %s pulsates...", o_name);
+				msg_format(p_ptr, "Your %s pulsates...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				wall_to_mud(Ind, dir);
 				break;
@@ -2294,14 +2294,14 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_MASS_BANISHMENT:
 			{
-				msg_format(Ind, "Your %s lets out a long, shrill note...", o_name);
+				msg_format(p_ptr, "Your %s lets out a long, shrill note...", o_name);
 				(void)mass_banishment(Ind);
 				break;
 			}
 
 			case ACT_CURE_WOUNDS:
 			{
-				msg_format(Ind, "Your %s radiates deep purple...", o_name);
+				msg_format(p_ptr, "Your %s radiates deep purple...", o_name);
 				hp_player(Ind, damroll(4, 8));
 				(void)set_cut(Ind, (p_ptr->cut / 2) - 50);
 				break;
@@ -2309,7 +2309,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_TELE_AWAY:
 			{
-				msg_format(Ind, "Your %s glows deep red...", o_name);
+				msg_format(p_ptr, "Your %s glows deep red...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				teleport_monster(Ind, dir);
 				break;
@@ -2317,14 +2317,14 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_WOR:
 			{
-				msg_format(Ind, "Your %s glows soft white...", o_name);
+				msg_format(p_ptr, "Your %s glows soft white...", o_name);
 				set_recall(Ind, o_ptr);
 				break;
 			}
 
 			case ACT_CONFUSE:
 			{
-				msg_format(Ind, "Your %s glows in scintillating colours...", o_name);
+				msg_format(p_ptr, "Your %s glows in scintillating colours...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				confuse_monster(Ind, dir, 20);
 				break;
@@ -2332,21 +2332,21 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_IDENTIFY:
 			{
-				msg_format(Ind, "Your %s glows yellow...", o_name);
+				msg_format(p_ptr, "Your %s glows yellow...", o_name);
 				if (!ident_spell(Ind)) return FALSE;
 				break;
 			}
 
 			case ACT_PROBE:
 			{
-				msg_format(Ind, "Your %s glows brightly...", o_name);
+				msg_format(p_ptr, "Your %s glows brightly...", o_name);
 				probing(Ind);
 				break;
 			}
 
 			case ACT_DRAIN_LIFE1:
 			{
-				msg_format(Ind, "Your %s glows white...", o_name);
+				msg_format(p_ptr, "Your %s glows white...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				drain_life(Ind, dir, 90);
 				break;
@@ -2354,21 +2354,21 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_FIREBRAND:
 			{
-				msg_format(Ind, "Your %s glows deep red...", o_name);
+				msg_format(p_ptr, "Your %s glows deep red...", o_name);
 				if (!brand_bolts(Ind)) return FALSE;
 				break;
 			}
 
 			case ACT_STARLIGHT:
 			{
-				msg_format(Ind, "Your %s glows with the light of a thousand stars...", o_name);
+				msg_format(p_ptr, "Your %s glows with the light of a thousand stars...", o_name);
 				for (k = 0; k < 8; k++) strong_lite_line(Ind, ddd[k]);
 				break;
 			}
 
 			case ACT_MANA_BOLT:
 			{
-				msg_format(Ind, "Your %s glows white...", o_name);
+				msg_format(p_ptr, "Your %s glows white...", o_name);
 				if (!get_aim_dir(Ind, &dir)) return FALSE;
 				fire_bolt(Ind, GF_MANA, dir, damroll(12, 8));
 				break;
@@ -2376,7 +2376,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 
 			case ACT_BERSERKER:
 			{
-				msg_format(Ind, "Your %s glows in anger...", o_name);
+				msg_format(p_ptr, "Your %s glows in anger...", o_name);
 				set_shero(Ind, p_ptr->shero + randint(50) + 50);
 				break;
 			}
@@ -2401,7 +2401,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 		{
 			case EGO_CLOAK_LORDLY_RES:
 			{
-				msg_print(Ind, "Your cloak flashes many colors...");
+				msg_print(p_ptr, "Your cloak flashes many colors...");
 
 				(void)set_oppose_acid(Ind, p_ptr->oppose_acid + randint(40) + 40);
 				(void)set_oppose_elec(Ind, p_ptr->oppose_elec + randint(40) + 40);
@@ -2433,7 +2433,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_BLUE:
 			{
 				sound(Ind, MSG_BR_ELEC);
-				msg_print(Ind, "You breathe lightning.");
+				msg_print(p_ptr, "You breathe lightning.");
 				fire_ball(Ind, GF_ELEC, dir, 100, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2442,7 +2442,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_WHITE:
 			{
 				sound(Ind, MSG_BR_FROST);
-				msg_print(Ind, "You breathe frost.");
+				msg_print(p_ptr, "You breathe frost.");
 				fire_ball(Ind, GF_COLD, dir, 110, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2451,7 +2451,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_BLACK:
 			{
 				sound(Ind, MSG_BR_ACID);
-				msg_print(Ind, "You breathe acid.");
+				msg_print(p_ptr, "You breathe acid.");
 				fire_ball(Ind, GF_ACID, dir, 130, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2460,7 +2460,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_GREEN:
 			{
 				sound(Ind, MSG_BR_GAS);
-				msg_print(Ind, "You breathe poison gas.");
+				msg_print(p_ptr, "You breathe poison gas.");
 				fire_ball(Ind, GF_POIS, dir, 150, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2469,7 +2469,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_RED:
 			{
 				sound(Ind, MSG_BR_FIRE);
-				msg_print(Ind, "You breathe fire.");
+				msg_print(p_ptr, "You breathe fire.");
 				fire_ball(Ind, GF_FIRE, dir, 200, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2482,7 +2482,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 				            ((chance == 2) ? MSG_BR_FROST :
 				             ((chance == 3) ? MSG_BR_ACID :
 				              ((chance == 4) ? MSG_BR_GAS : MSG_BR_FIRE)))));
-				msg_format(Ind, "You breathe %s.",
+				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1) ? "lightning" :
 				            ((chance == 2) ? "frost" :
 				             ((chance == 3) ? "acid" :
@@ -2499,7 +2499,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_BRONZE:
 			{
 				sound(Ind, MSG_BR_CONF);
-				msg_print(Ind, "You breathe confusion.");
+				msg_print(p_ptr, "You breathe confusion.");
 				fire_ball(Ind, GF_CONFUSION, dir, 120, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2508,7 +2508,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_GOLD:
 			{
 				sound(Ind, MSG_BR_SOUND);
-				msg_print(Ind, "You breathe sound.");
+				msg_print(p_ptr, "You breathe sound.");
 				fire_ball(Ind, GF_SOUND, dir, 130, 2);
 				o_ptr->timeout = rand_int(450) + 450;
 				break;
@@ -2518,7 +2518,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			{
 				chance = rand_int(2);
 				sound(Ind, ((chance == 1 ? MSG_BR_CHAOS : MSG_BR_DISENCHANT)));
-				msg_format(Ind, "You breathe %s.",
+				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1 ? "chaos" : "disenchantment")));
 				fire_ball(Ind, (chance == 1 ? GF_CHAOS : GF_DISENCHANT),
 				          dir, 220, 2);
@@ -2530,7 +2530,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			{
 				chance = rand_int(2);
 				sound(Ind, ((chance == 1 ? MSG_BR_SOUND : MSG_BR_SHARDS)));
-				msg_format(Ind, "You breathe %s.",
+				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1 ? "sound" : "shards")));
 				fire_ball(Ind, (chance == 1 ? GF_SOUND : GF_SHARDS),
 				          dir, 230, 2);
@@ -2541,7 +2541,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_BALANCE:
 			{
 				chance = rand_int(4);
-				msg_format(Ind, "You breathe %s.",
+				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1) ? "chaos" :
 				            ((chance == 2) ? "disenchantment" :
 				             ((chance == 3) ? "sound" : "shards"))));
@@ -2557,7 +2557,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			{
 				chance = rand_int(2);
 				sound(Ind, ((chance == 0 ? MSG_BR_LIGHT : MSG_BR_DARK)));
-				msg_format(Ind, "You breathe %s.",
+				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 0 ? "light" : "darkness")));
 				fire_ball(Ind, (chance == 0 ? GF_LITE : GF_DARK), dir, 200, 2);
 				o_ptr->timeout = rand_int(300) + 300;
@@ -2567,7 +2567,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 			case SV_DRAGON_POWER:
 			{
 				sound(Ind, MSG_BR_ELEMENTS);
-				msg_print(Ind, "You breathe the elements.");
+				msg_print(p_ptr, "You breathe the elements.");
 				fire_ball(Ind, GF_MISSILE, dir, 300, 2);
 				o_ptr->timeout = rand_int(300) + 300;
 				break;
@@ -2584,7 +2584,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 	/* MAngband-specific: Amulets of the moon can be activated for sleep monster */
 	if ((o_ptr->tval == TV_AMULET) && (o_ptr->sval == SV_AMULET_THE_MOON))
 	{
-		msg_print(Ind, "Your amulet glows a deep blue...");
+		msg_print(p_ptr, "Your amulet glows a deep blue...");
 		sleep_monsters(Ind);
 		o_ptr->timeout = rand_int(100) + 100;
 		
@@ -2645,7 +2645,7 @@ static bool activate_object(int Ind, object_type *o_ptr, bool *ident)
 	}
 
 	/* Mistake */
-	msg_print(Ind, "Oops.  That object cannot be activated.");
+	msg_print(p_ptr, "Oops.  That object cannot be activated.");
 
 	/* Not used up */
 	return (FALSE);

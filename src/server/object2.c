@@ -3657,7 +3657,7 @@ void acquirement(int Depth, int y1, int x1, int num, bool great)
 
 			/* Under the player */
 			if (cave[Depth][y][x].m_idx < 0) {
-				msg_print(0 - cave[Depth][y][x].m_idx, "You feel something roll beneath your feet.");
+				msg_print(Players[0 - cave[Depth][y][x].m_idx], "You feel something roll beneath your feet.");
 				floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
 			}
 
@@ -3943,6 +3943,8 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 		}
 	}
 	if (flag) {
+			player_type *q_ptr;
+
 			/* Clear visibility flags */
 			for (k = 1; k <= NumPlayers; k++)
 			{
@@ -3959,9 +3961,9 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 
 			/* Mega-Hack -- no message if "dropped" by player */
 			/* Message when an object falls under the player */
-			if (c_ptr->m_idx < 0)
+			if ((q_ptr = player_on_cave_p(c_ptr)))
 			{
-				if (chance) msg_print(0 - c_ptr->m_idx, "You feel something roll beneath your feet.");
+				if (chance) msg_print(q_ptr, "You feel something roll beneath your feet.");
 				floor_item_notify(0 - c_ptr->m_idx, o_idx, TRUE);
 				sound(0 - c_ptr->m_idx, MSG_DROP);
 			}
@@ -4052,14 +4054,14 @@ void inven_item_charges(int Ind, int item)
 	if (o_ptr->pval != 1)
 	{
 		/* Print a message */
-		msg_format(Ind, "You have %d charges remaining.", o_ptr->pval);
+		msg_format(p_ptr, "You have %d charges remaining.", o_ptr->pval);
 	}
 
 	/* Single charge */
 	else
 	{
 		/* Print a message */
-		msg_format(Ind, "You have %d charge remaining.", o_ptr->pval);
+		msg_format(p_ptr, "You have %d charge remaining.", o_ptr->pval);
 	}
 }
 
@@ -4079,7 +4081,7 @@ void inven_item_describe(int Ind, int item)
 	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Print a message */
-	msg_format(Ind, "You have %s.", o_name);
+	msg_format(p_ptr, "You have %s.", o_name);
 }
 
 
@@ -4588,7 +4590,7 @@ void combine_pack(int Ind)
 	}
 
 	/* Message */
-	if (flag) msg_print(Ind, "You combine some items in your pack.");
+	if (flag) msg_print(p_ptr, "You combine some items in your pack.");
 }
 
 
@@ -4694,7 +4696,7 @@ void reorder_pack(int Ind)
 	}
 
 	/* Message */
-	if (flag) msg_print(Ind, "You reorder some items in your pack.");
+	if (flag) msg_print(p_ptr, "You reorder some items in your pack.");
 }
 
 
@@ -5053,7 +5055,7 @@ object_type* player_get_item(player_type *p_ptr, int item, int *idx)
 		o_idx = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (o_idx == 0)
 		{
-			msg_print_p(p_ptr, "There is nothing on the floor.");
+			msg_print(p_ptr, "There is nothing on the floor.");
 			return NULL;
 		}
 		o_ptr = &o_list[o_idx];

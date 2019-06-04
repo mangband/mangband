@@ -25,7 +25,7 @@ int get_player(int Ind, object_type *o_ptr)
 	/* check for a valid inscription */
 	if (inscription == NULL)
 	{
-		msg_print(Ind, "Nobody to use the power with.");
+		msg_print(Players[Ind], "Nobody to use the power with.");
 		return 0;
 	}
 
@@ -51,7 +51,7 @@ int get_player(int Ind, object_type *o_ptr)
 
 	if (!ok)
 	{
-		msg_print(Ind, "Player is not on.");
+		msg_print(Players[Ind], "Player is not on.");
 		return 0;
 	}
 
@@ -106,8 +106,8 @@ bool set_blind(int Ind, int v)
 	{
 		if (!p_ptr->blind)
 		{
-			msg_format_near(Ind, "%s gropes around blindly!", p_ptr->name);
-			msg_print(Ind, "You are blind!");
+			msg_format_near(p_ptr, "%s gropes around blindly!", p_ptr->name);
+			msg_print(p_ptr, "You are blind!");
 			sound(Ind, MSG_BLIND);
 			notice = TRUE;
 		}
@@ -118,8 +118,8 @@ bool set_blind(int Ind, int v)
 	{
 		if (p_ptr->blind)
 		{
-			msg_format_near(Ind, "%s can see again.", p_ptr->name);
-			msg_print(Ind, "You can see again.");
+			msg_format_near(p_ptr, "%s can see again.", p_ptr->name);
+			msg_print(p_ptr, "You can see again.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -177,8 +177,8 @@ bool set_confused(int Ind, int v)
 	{
 		if (!p_ptr->confused)
 		{
-			msg_format_near(Ind, "%s appears confused!", p_ptr->name);
-			msg_print(Ind, "You are confused!");
+			msg_format_near(p_ptr, "%s appears confused!", p_ptr->name);
+			msg_print(p_ptr, "You are confused!");
 			sound(Ind, MSG_CONFUSED);
 			notice = TRUE;
 		}
@@ -189,7 +189,7 @@ bool set_confused(int Ind, int v)
 	{
 		if (p_ptr->confused)
 		{
-			msg_print(Ind, "You feel less confused now.");
+			msg_print(p_ptr, "You feel less confused now.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -232,7 +232,7 @@ bool set_poisoned(int Ind, int v)
 	{
 		if (!p_ptr->poisoned)
 		{
-			msg_print(Ind, "You are poisoned!");
+			msg_print(p_ptr, "You are poisoned!");
 			sound(Ind, MSG_POISONED);
 			notice = TRUE;
 		}
@@ -243,7 +243,7 @@ bool set_poisoned(int Ind, int v)
 	{
 		if (p_ptr->poisoned)
 		{
-			msg_print(Ind, "You are no longer poisoned.");
+			msg_print(p_ptr, "You are no longer poisoned.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -286,8 +286,8 @@ bool set_afraid(int Ind, int v)
 	{
 		if (!p_ptr->afraid)
 		{
-			msg_format_near(Ind, "%s cowers in fear!", p_ptr->name);
-			msg_print(Ind, "You are terrified!");
+			msg_format_near(p_ptr, "%s cowers in fear!", p_ptr->name);
+			msg_print(p_ptr, "You are terrified!");
 			sound(Ind, MSG_AFRAID);
 			notice = TRUE;
 		}
@@ -298,8 +298,8 @@ bool set_afraid(int Ind, int v)
 	{
 		if (p_ptr->afraid)
 		{
-			msg_format_near(Ind, "%s appears bolder now.", p_ptr->name);
-			msg_print(Ind, "You feel bolder now.");
+			msg_format_near(p_ptr, "%s appears bolder now.", p_ptr->name);
+			msg_print(p_ptr, "You feel bolder now.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -342,8 +342,8 @@ bool set_paralyzed(int Ind, int v)
 	{
 		if (!p_ptr->paralyzed)
 		{
-			msg_format_near(Ind, "%s becomes rigid!", p_ptr->name);
-			msg_print(Ind, "You are paralyzed!");
+			msg_format_near(p_ptr, "%s becomes rigid!", p_ptr->name);
+			msg_print(p_ptr, "You are paralyzed!");
 			sound(Ind, MSG_PARALYZED);
 			notice = TRUE;
 		}
@@ -354,8 +354,8 @@ bool set_paralyzed(int Ind, int v)
 	{
 		if (p_ptr->paralyzed)
 		{
-			msg_format_near(Ind, "%s can move again.", p_ptr->name);
-			msg_print(Ind, "You can move again.");
+			msg_format_near(p_ptr, "%s can move again.", p_ptr->name);
+			msg_print(p_ptr, "You can move again.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -400,7 +400,7 @@ bool set_image(int Ind, int v)
 	{
 		if (!p_ptr->image)
 		{
-			msg_print(Ind, "You feel drugged!");
+			msg_print(p_ptr, "You feel drugged!");
 			sound(Ind, MSG_DRUGGED);
 			notice = TRUE;
 		}
@@ -411,7 +411,7 @@ bool set_image(int Ind, int v)
 	{
 		if (p_ptr->image)
 		{
-			msg_print(Ind, "You can see clearly again.");
+			msg_print(p_ptr, "You can see clearly again.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -463,8 +463,8 @@ bool set_fast(int Ind, int v)
 	{
 		if (!p_ptr->fast)
 		{
-			msg_format_near(Ind, "%s begins moving faster!", p_ptr->name);
-			msg_print(Ind, "You feel yourself moving faster!");
+			msg_format_near(p_ptr, "%s begins moving faster!", p_ptr->name);
+			msg_print(p_ptr, "You feel yourself moving faster!");
 			sound(Ind, MSG_SPEED);
 			notice = TRUE;
 		}
@@ -475,8 +475,8 @@ bool set_fast(int Ind, int v)
 	{
 		if (p_ptr->fast)
 		{
-			msg_format_near(Ind, "%s slows down.", p_ptr->name);
-			msg_print(Ind, "You feel yourself slow down.");
+			msg_format_near(p_ptr, "%s slows down.", p_ptr->name);
+			msg_print(p_ptr, "You feel yourself slow down.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -519,8 +519,8 @@ bool set_slow(int Ind, int v)
 	{
 		if (!p_ptr->slow)
 		{
-			msg_format_near(Ind, "%s begins moving slower!", p_ptr->name);
-			msg_print(Ind, "You feel yourself moving slower!");
+			msg_format_near(p_ptr, "%s begins moving slower!", p_ptr->name);
+			msg_print(p_ptr, "You feel yourself moving slower!");
 			sound(Ind, MSG_SLOW);
 			notice = TRUE;
 		}
@@ -531,8 +531,8 @@ bool set_slow(int Ind, int v)
 	{
 		if (p_ptr->slow)
 		{
-			msg_format_near(Ind, "%s speeds up.", p_ptr->name);
-			msg_print(Ind, "You feel yourself speed up.");
+			msg_format_near(p_ptr, "%s speeds up.", p_ptr->name);
+			msg_print(p_ptr, "You feel yourself speed up.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -575,7 +575,7 @@ bool set_shield(int Ind, int v)
 	{
 		if (!p_ptr->shield)
 		{
-			msg_print(Ind, "A mystic shield forms around your body!");
+			msg_print(p_ptr, "A mystic shield forms around your body!");
 			sound(Ind, MSG_SHIELD);
 			notice = TRUE;
 		}
@@ -586,7 +586,7 @@ bool set_shield(int Ind, int v)
 	{
 		if (p_ptr->shield)
 		{
-			msg_print(Ind, "Your mystic shield crumbles away.");
+			msg_print(p_ptr, "Your mystic shield crumbles away.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -630,7 +630,7 @@ bool set_blessed(int Ind, int v)
 	{
 		if (!p_ptr->blessed)
 		{
-			msg_print(Ind, "You feel righteous!");
+			msg_print(p_ptr, "You feel righteous!");
 			sound(Ind, MSG_BLESSED);
 			notice = TRUE;
 		}
@@ -641,7 +641,7 @@ bool set_blessed(int Ind, int v)
 	{
 		if (p_ptr->blessed)
 		{
-			msg_print(Ind, "The prayer has expired.");
+			msg_print(p_ptr, "The prayer has expired.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -684,7 +684,7 @@ bool set_hero(int Ind, int v)
 	{
 		if (!p_ptr->hero)
 		{
-			msg_print(Ind, "You feel like a hero!");
+			msg_print(p_ptr, "You feel like a hero!");
 			sound(Ind, MSG_HERO);
 			notice = TRUE;
 		}
@@ -695,7 +695,7 @@ bool set_hero(int Ind, int v)
 	{
 		if (p_ptr->hero)
 		{
-			msg_print(Ind, "The heroism wears off.");
+			msg_print(p_ptr, "The heroism wears off.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -741,7 +741,7 @@ bool set_shero(int Ind, int v)
 	{
 		if (!p_ptr->shero)
 		{
-			msg_print(Ind, "You feel like a killing machine!");
+			msg_print(p_ptr, "You feel like a killing machine!");
 			sound(Ind, MSG_BERSERK);
 			notice = TRUE;
 		}
@@ -752,7 +752,7 @@ bool set_shero(int Ind, int v)
 	{
 		if (p_ptr->shero)
 		{
-			msg_print(Ind, "You feel less Berserk.");
+			msg_print(p_ptr, "You feel less Berserk.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -798,7 +798,7 @@ bool set_protevil(int Ind, int v)
 	{
 		if (!p_ptr->protevil)
 		{
-			msg_print(Ind, "You feel safe from evil!");
+			msg_print(p_ptr, "You feel safe from evil!");
 			sound(Ind, MSG_PROT_EVIL);
 			notice = TRUE;
 		}
@@ -809,7 +809,7 @@ bool set_protevil(int Ind, int v)
 	{
 		if (p_ptr->protevil)
 		{
-			msg_print(Ind, "You no longer feel safe from evil.");
+			msg_print(p_ptr, "You no longer feel safe from evil.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -849,7 +849,7 @@ bool set_invuln(int Ind, int v)
 	{
 		if (!p_ptr->invuln)
 		{
-			msg_print(Ind, "You feel invulnerable!");
+			msg_print(p_ptr, "You feel invulnerable!");
 			sound(Ind, MSG_INVULN);
 			notice = TRUE;
 		}
@@ -860,7 +860,7 @@ bool set_invuln(int Ind, int v)
 	{
 		if (p_ptr->invuln)
 		{
-			msg_print(Ind, "You feel vulnerable once more.");
+			msg_print(p_ptr, "You feel vulnerable once more.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -903,7 +903,7 @@ bool set_tim_invis(int Ind, int v)
 	{
 		if (!p_ptr->tim_invis)
 		{
-			msg_print(Ind, "Your eyes feel very sensitive!");
+			msg_print(p_ptr, "Your eyes feel very sensitive!");
 			sound(Ind, MSG_SEE_INVIS);
 			notice = TRUE;
 		}
@@ -914,7 +914,7 @@ bool set_tim_invis(int Ind, int v)
 	{
 		if (p_ptr->tim_invis)
 		{
-			msg_print(Ind, "Your eyes feel less sensitive.");
+			msg_print(p_ptr, "Your eyes feel less sensitive.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -960,7 +960,7 @@ bool set_tim_infra(int Ind, int v)
 	{
 		if (!p_ptr->tim_infra)
 		{
-			msg_print(Ind, "Your eyes begin to tingle!");
+			msg_print(p_ptr, "Your eyes begin to tingle!");
 			sound(Ind, MSG_INFRARED);
 			notice = TRUE;
 		}
@@ -971,7 +971,7 @@ bool set_tim_infra(int Ind, int v)
 	{
 		if (p_ptr->tim_infra)
 		{
-			msg_print(Ind, "Your eyes stop tingling.");
+			msg_print(p_ptr, "Your eyes stop tingling.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1017,7 +1017,7 @@ bool set_oppose_acid(int Ind, int v)
 	{
 		if (!p_ptr->oppose_acid)
 		{
-			msg_print(Ind, "You feel resistant to acid!");
+			msg_print(p_ptr, "You feel resistant to acid!");
 			sound(Ind, MSG_RES_ACID);
 			notice = TRUE;
 		}
@@ -1028,7 +1028,7 @@ bool set_oppose_acid(int Ind, int v)
 	{
 		if (p_ptr->oppose_acid)
 		{
-			msg_print(Ind, "You feel less resistant to acid.");
+			msg_print(p_ptr, "You feel less resistant to acid.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1070,7 +1070,7 @@ bool set_oppose_elec(int Ind, int v)
 	{
 		if (!p_ptr->oppose_elec)
 		{
-			msg_print(Ind, "You feel resistant to electricity!");
+			msg_print(p_ptr, "You feel resistant to electricity!");
 			sound(Ind, MSG_RES_ELEC);
 			notice = TRUE;
 		}
@@ -1081,7 +1081,7 @@ bool set_oppose_elec(int Ind, int v)
 	{
 		if (p_ptr->oppose_elec)
 		{
-			msg_print(Ind, "You feel less resistant to electricity.");
+			msg_print(p_ptr, "You feel less resistant to electricity.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1123,7 +1123,7 @@ bool set_oppose_fire(int Ind, int v)
 	{
 		if (!p_ptr->oppose_fire)
 		{
-			msg_print(Ind, "You feel resistant to fire!");
+			msg_print(p_ptr, "You feel resistant to fire!");
 			sound(Ind, MSG_RES_FIRE);
 			notice = TRUE;
 		}
@@ -1134,7 +1134,7 @@ bool set_oppose_fire(int Ind, int v)
 	{
 		if (p_ptr->oppose_fire)
 		{
-			msg_print(Ind, "You feel less resistant to fire.");
+			msg_print(p_ptr, "You feel less resistant to fire.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1176,7 +1176,7 @@ bool set_oppose_cold(int Ind, int v)
 	{
 		if (!p_ptr->oppose_cold)
 		{
-			msg_print(Ind, "You feel resistant to cold!");
+			msg_print(p_ptr, "You feel resistant to cold!");
 			sound(Ind, MSG_RES_COLD);
 			notice = TRUE;
 		}
@@ -1187,7 +1187,7 @@ bool set_oppose_cold(int Ind, int v)
 	{
 		if (p_ptr->oppose_cold)
 		{
-			msg_print(Ind, "You feel less resistant to cold.");
+			msg_print(p_ptr, "You feel less resistant to cold.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1229,7 +1229,7 @@ bool set_oppose_pois(int Ind, int v)
 	{
 		if (!p_ptr->oppose_pois)
 		{
-			msg_print(Ind, "You feel resistant to poison!");
+			msg_print(p_ptr, "You feel resistant to poison!");
 			sound(Ind, MSG_RES_POIS);
 			notice = TRUE;
 		}
@@ -1240,7 +1240,7 @@ bool set_oppose_pois(int Ind, int v)
 	{
 		if (p_ptr->oppose_pois)
 		{
-			msg_print(Ind, "You feel less resistant to poison.");
+			msg_print(p_ptr, "You feel less resistant to poison.");
 			sound(Ind, MSG_RECOVER);
 			notice = TRUE;
 		}
@@ -1341,22 +1341,22 @@ bool set_stun(int Ind, int v)
 		{
 			/* Stun */
 			case 1:
-			msg_format_near(Ind, "%s appears stunned.", p_ptr->name);
-			msg_print(Ind, "You have been stunned.");
+			msg_format_near(p_ptr, "%s appears stunned.", p_ptr->name);
+			msg_print(p_ptr, "You have been stunned.");
 			sound(Ind, MSG_STUN);
 			break;
 
 			/* Heavy stun */
 			case 2:
-			msg_format_near(Ind, "%s is very stunned.", p_ptr->name);
-			msg_print(Ind, "You have been heavily stunned.");
+			msg_format_near(p_ptr, "%s is very stunned.", p_ptr->name);
+			msg_print(p_ptr, "You have been heavily stunned.");
 			sound(Ind, MSG_STUN);
 			break;
 
 			/* Knocked out */
 			case 3:
-			msg_format_near(Ind, "%s has been knocked out.", p_ptr->name);
-			msg_print(Ind, "You have been knocked out.");
+			msg_format_near(p_ptr, "%s has been knocked out.", p_ptr->name);
+			msg_print(p_ptr, "You have been knocked out.");
 			sound(Ind, MSG_STUN);
 			break;
 		}
@@ -1373,8 +1373,8 @@ bool set_stun(int Ind, int v)
 		{
 			/* None */
 			case 0:
-			msg_format_near(Ind, "%s is no longer stunned.", p_ptr->name);
-			msg_print(Ind, "You are no longer stunned.");
+			msg_format_near(p_ptr, "%s is no longer stunned.", p_ptr->name);
+			msg_print(p_ptr, "You are no longer stunned.");
 			sound(Ind, MSG_RECOVER);
 			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 			break;
@@ -1527,43 +1527,43 @@ bool set_cut(int Ind, int v)
 		{
 			/* Graze */
 			case 1:
-			msg_print(Ind, "You have been given a graze.");
+			msg_print(p_ptr, "You have been given a graze.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Light cut */
 			case 2:
-			msg_print(Ind, "You have been given a light cut.");
+			msg_print(p_ptr, "You have been given a light cut.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Bad cut */
 			case 3:
-			msg_print(Ind, "You have been given a bad cut.");
+			msg_print(p_ptr, "You have been given a bad cut.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Nasty cut */
 			case 4:
-			msg_print(Ind, "You have been given a nasty cut.");
+			msg_print(p_ptr, "You have been given a nasty cut.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Severe cut */
 			case 5:
-			msg_print(Ind, "You have been given a severe cut.");
+			msg_print(p_ptr, "You have been given a severe cut.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Deep gash */
 			case 6:
-			msg_print(Ind, "You have been given a deep gash.");
+			msg_print(p_ptr, "You have been given a deep gash.");
 			sound(Ind, MSG_CUT);
 			break;
 
 			/* Mortal wound */
 			case 7:
-			msg_print(Ind, "You have been given a mortal wound.");
+			msg_print(p_ptr, "You have been given a mortal wound.");
 			sound(Ind, MSG_CUT);
 			break;
 		}
@@ -1580,7 +1580,7 @@ bool set_cut(int Ind, int v)
 		{
 			/* None */
 			case 0:
-			msg_print(Ind, "You are no longer bleeding.");
+			msg_print(p_ptr, "You are no longer bleeding.");
 			sound(Ind, MSG_RECOVER);
 			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
 			break;
@@ -1734,27 +1734,27 @@ bool set_food(int Ind, int v)
 		{
 			/* Weak */
 			case 1:
-			msg_print(Ind, "You are still weak.");
+			msg_print(p_ptr, "You are still weak.");
 			break;
 
 			/* Hungry */
 			case 2:
-			msg_print(Ind, "You are still hungry.");
+			msg_print(p_ptr, "You are still hungry.");
 			break;
 
 			/* Normal */
 			case 3:
-			msg_print(Ind, "You are no longer hungry.");
+			msg_print(p_ptr, "You are no longer hungry.");
 			break;
 
 			/* Full */
 			case 4:
-			msg_print(Ind, "You are full!");
+			msg_print(p_ptr, "You are full!");
 			break;
 
 			/* Bloated */
 			case 5:
-			msg_print(Ind, "You have gorged yourself!");
+			msg_print(p_ptr, "You have gorged yourself!");
 			break;
 		}
 
@@ -1770,7 +1770,7 @@ bool set_food(int Ind, int v)
 		{
 			/* Fainting / Starving */
 			case 0:
-			msg_print(Ind, "You are getting faint from hunger!");
+			msg_print(p_ptr, "You are getting faint from hunger!");
 			sound(Ind, MSG_NOTICE);
 			/* Hack -- if the player is at full hit points, 
 			 * destroy his conneciton (this will hopefully prevent
@@ -1788,25 +1788,25 @@ bool set_food(int Ind, int v)
 
 			/* Weak */
 			case 1:
-			msg_print(Ind, "You are getting weak from hunger!");
+			msg_print(p_ptr, "You are getting weak from hunger!");
 			sound(Ind, MSG_NOTICE);
 			break;
 
 			/* Hungry */
 			case 2:
-			msg_print(Ind, "You are getting hungry.");
+			msg_print(p_ptr, "You are getting hungry.");
 			sound(Ind, MSG_HUNGRY);
 			break;
 
 			/* Normal */
 			case 3:
-			msg_print(Ind, "You are no longer full.");
+			msg_print(p_ptr, "You are no longer full.");
 			sound(Ind, MSG_NOTICE);
 			break;
 
 			/* Full */
 			case 4:
-			msg_print(Ind, "You are no longer gorged.");
+			msg_print(p_ptr, "You are no longer gorged.");
 			sound(Ind, MSG_NOTICE);
 			break;
 		}
@@ -1887,9 +1887,9 @@ void check_experience(int Ind)
 		p_ptr->lev--;
 
 		/* Message */
-		msg_format(Ind, "Dropped back to level %d.", p_ptr->lev);
+		msg_format(p_ptr, "Dropped back to level %d.", p_ptr->lev);
 		sprintf(buf, "%s has dropped to level %d.", p_ptr->name, p_ptr->lev);
-		msg_broadcast(Ind, buf);
+		msg_broadcast(p_ptr, buf);
 
 		/* Update some stuff */
 		p_ptr->update |= (PU_BONUS | PU_HP | PU_MANA | PU_SPELLS);
@@ -1923,9 +1923,9 @@ void check_experience(int Ind)
 		sound(Ind, MSG_LEVEL);
 
 		/* Message */
-		msg_format(Ind, "Welcome to level %d.", p_ptr->lev);
+		msg_format(p_ptr, "Welcome to level %d.", p_ptr->lev);
 		sprintf(buf, "%s has attained level %d.", p_ptr->name, p_ptr->lev);
-		msg_broadcast(Ind, buf);
+		msg_broadcast(p_ptr, buf);
 
 		/* Record this event in the character history */
 		if(!(p_ptr->lev % 5))
@@ -2159,7 +2159,7 @@ void monster_death(int Ind, int m_idx)
 			/* Under a player */
 			if (c_ptr->m_idx < 0)
 			{
-				msg_print(0 - c_ptr->m_idx, "You feel something roll beneath your feet.");
+				msg_print(Players[0 - c_ptr->m_idx], "You feel something roll beneath your feet.");
 				floor_item_notify(0 - c_ptr->m_idx, c_ptr->o_idx, TRUE);
 			}
 
@@ -2210,7 +2210,7 @@ void monster_death(int Ind, int m_idx)
 	{
 		/* default message */
 		sprintf(buf,"%s was slain by %s.",(r_name + r_ptr->name), p_ptr->name);
-		msg_print(Ind, buf);
+		msg_print(p_ptr, buf);
 		sprintf(logbuf,"Killed %s",(r_name + r_ptr->name));
 
 		/* party version */		
@@ -2221,7 +2221,7 @@ void monster_death(int Ind, int m_idx)
 		}
 
 		/* Tell every player */
-		msg_broadcast(Ind, buf);
+		msg_broadcast(p_ptr, buf);
 
 		/* Record this kill in the event history */
 		log_history_event(p_ptr, logbuf, TRUE);
@@ -2306,9 +2306,9 @@ void monster_death(int Ind, int m_idx)
 				q_ptr->redraw |= (PR_TITLE);
 
 				/* Congratulations */
-				msg_print(i, "*** CONGRATULATIONS ***");
-				msg_print(i, "You have won the game!");
-				msg_print(i, "You may retire (commit suicide) when you are ready.");
+				msg_print(q_ptr, "*** CONGRATULATIONS ***");
+				msg_print(q_ptr, "You have won the game!");
+				msg_print(q_ptr, "You may retire (commit suicide) when you are ready.");
 
 				/* "Winner dump" */
 				(void)strcpy(q_ptr->died_from_list, "winner");
@@ -2362,7 +2362,7 @@ void monster_death(int Ind, int m_idx)
 		delete_object(Depth, y, x);
 
 		/* Explain the stairway */
-		msg_print(Ind, "A magical stairway appears...");
+		msg_print(p_ptr, "A magical stairway appears...");
 
 		/* Access the grid */
 		c_ptr = &cave[Depth][y][x];
@@ -2474,12 +2474,12 @@ void access_arena(int Ind, int py, int px) {
 		/* If he is alone, leave */
 		if (tmp_count < 2)
 		{
-			msg_print(Ind, "You leave the arena.");
+			msg_print(p_ptr, "You leave the arena.");
 			p_ptr->arena_num = -1;  
 			teleport_player(Ind, 1);
 		}
 		else
-			msg_print(Ind, "There is a wall blocking your way.");
+			msg_print(p_ptr, "There is a wall blocking your way.");
 	}
 	/* Player tries to enter the arena */ 
 	else
@@ -2487,12 +2487,12 @@ void access_arena(int Ind, int py, int px) {
 		/* If arena is not 'full' -- Enter it */
 		if (tmp_count < 2) 
 		{
-			msg_print(Ind, "You enter an ancient fighting pit.");
+			msg_print(p_ptr, "You enter an ancient fighting pit.");
 			teleport_player_to(Ind, arenas[a].y_1+1+randint(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint(arenas[a].x_2-arenas[a].x_1-2) );
 			p_ptr->arena_num = a;
 		}
 		else
-			msg_print(Ind, "Arena is currently occupied.");
+			msg_print(p_ptr, "Arena is currently occupied.");
 		
 		/* Both players are ready! */
 		if (tmp_count == 1) 
@@ -2523,13 +2523,13 @@ void evacuate_arena(int Ind) {
 
 		/* Messages */
 		sprintf(buf, "You knock %s out.", p_ptr->name);
-		msg_print(tmp_id, buf);
+		msg_print(Players[tmp_id], buf);
 		sprintf(buf, "%s was defeated by %s.", p_ptr->name, Players[tmp_id]->name);
-		msg_broadcast(0, buf); //Notice broadcast
-		msg_print(Ind, "You recover oneself outside the arena.");
-		msg_print(tmp_id, "You gloriously leave the arena.");
+		msg_broadcast(NULL, buf); //Notice broadcast
+		msg_print(p_ptr, "You recover oneself outside the arena.");
+		msg_print(Players[tmp_id], "You gloriously leave the arena.");
 		
-		/* Heal */		
+		/* Heal */
 		Players[tmp_id]->chp = Players[tmp_id]->mhp - 1;
 		Players[tmp_id]->chp_frac = 0;
 		Players[tmp_id]->redraw |= PR_HP;
@@ -2588,7 +2588,7 @@ void ressurect_uniques(int Ind)
 				p_ptr->r_killed[i] = 0;
 
 				/* Tell the player */ 
-				msg_format(Ind, "%s rises from the dead!",(r_name + r_ptr->name));
+				msg_format(p_ptr, "%s rises from the dead!",(r_name + r_ptr->name));
 			}
 		}
 	}
@@ -2747,7 +2747,7 @@ void player_death(int Ind)
 	if (p_ptr->arena_num != -1) 
 	{
 	    p_ptr->death = FALSE;
-	    msg_print(Ind, "You lose consciousness.");
+	    msg_print(p_ptr, "You lose consciousness.");
 	    evacuate_arena(Ind);
 	    return;
 	}
@@ -2766,14 +2766,14 @@ void player_death(int Ind)
 	if (!p_ptr->ghost)
 	{
 		log_history_event(p_ptr, format("Was killed by %s", p_ptr->died_from), FALSE);
-		msg_print(Ind, "You die.");
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, "You die.");
+		msg_print(p_ptr, NULL);
 	}
 	else
 	{
 		/* log_history_event(p_ptr, format("Destroyed by %s", p_ptr->died_from), TRUE); */
-		msg_print(Ind, "Your incorporeal body fades away - FOREVER.");
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, "Your incorporeal body fades away - FOREVER.");
+		msg_print(p_ptr, NULL);
 	}
 
 	/* Bring back all the uniques he slew */
@@ -2791,7 +2791,7 @@ void player_death(int Ind)
 		if (p_ptr->lev < 2) hide = TRUE;
 
 		/* Tell players */
-		if (!hide) msg_broadcast(Ind, buf);
+		if (!hide) msg_broadcast(p_ptr, buf);
 
 		/* Release artifacts */
 		player_strip(Ind, FALSE, FALSE, FALSE, FALSE);
@@ -2807,7 +2807,7 @@ void player_death(int Ind)
 	if (p_ptr->ghost)
 	{
 		/* Tell players */
-		if (!hide) msg_broadcast(Ind, format("%s's ghost was destroyed by %s.", p_ptr->name, p_ptr->died_from));
+		if (!hide) msg_broadcast(p_ptr, format("%s's ghost was destroyed by %s.", p_ptr->name, p_ptr->died_from));
 
 		/* Get rid of him */
 		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
@@ -2833,7 +2833,7 @@ void player_death(int Ind)
 		/* sprintf(buf, "%s was killed by %s.", p_ptr->name, p_ptr->died_from); */
 
 	/* Tell the players */
-	if (!hide) msg_broadcast(Ind, buf);
+	if (!hide) msg_broadcast(p_ptr, buf);
 
 	/* Character dump here, before we start dropping items */
 	player_dump(Ind);
@@ -2870,7 +2870,7 @@ void player_death(int Ind)
 	if (p_ptr->fruit_bat != -1)
 	{
 		/* Tell him */
-		msg_format(Ind, "You have been killed by %s.", p_ptr->died_from);
+		msg_format(p_ptr, "You have been killed by %s.", p_ptr->died_from);
 
 		/* Turn him into a ghost */
 		p_ptr->ghost = 1;
@@ -2951,7 +2951,7 @@ void resurrect_player(int Ind)
 	log_history_event(p_ptr, "Resurrected", FALSE);
 
 	/* Message */
-	msg_print(Ind, "You feel life return to your body.");
+	msg_print(p_ptr, "You feel life return to your body.");
 
 	/* Show the change to others as needed */
 	everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
@@ -3051,15 +3051,15 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 		/* Death by Missile/Spell attack */
 		if (note)
 		{
-			msg_format_near(Ind, "%^s%s", m_name, note);
-			msg_format(Ind, "%^s%s", m_name, note);
+			msg_format_near(p_ptr, "%^s%s", m_name, note);
+			msg_format(p_ptr, "%^s%s", m_name, note);
 		}
 
 		/* Death by physical attack -- invisible monster */
 		else if (!p_ptr->mon_vis[m_idx])
 		{
-			msg_format_near(Ind, "%s has killed %s.", p_ptr->name, m_name);
-			msg_format(Ind, "You have killed %s.", m_name);
+			msg_format_near(p_ptr, "%s has killed %s.", p_ptr->name, m_name);
+			msg_format(p_ptr, "You have killed %s.", m_name);
 		}
 
 		/* Death by Physical attack -- non-living monster */
@@ -3068,15 +3068,15 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 		         (r_ptr->flags2 & RF2_STUPID) ||
 		         (strchr("Evg", r_ptr->d_char)))
 		{
-			msg_format_near(Ind, "%s has destroyed %s.", p_ptr->name, m_name);
-			msg_format(Ind, "You have destroyed %s.", m_name);
+			msg_format_near(p_ptr, "%s has destroyed %s.", p_ptr->name, m_name);
+			msg_format(p_ptr, "You have destroyed %s.", m_name);
 		}
 
 		/* Death by Physical attack -- living monster */
 		else
 		{
-			msg_format_near(Ind, "%s has slain %s.", p_ptr->name, m_name);
-			msg_format(Ind, "You have slain %s.", m_name);
+			msg_format_near(p_ptr, "%s has slain %s.", p_ptr->name, m_name);
+			msg_format(p_ptr, "You have slain %s.", m_name);
 		}
 
 		/* Cheezy kills give neither xp nor loot! */
@@ -5798,29 +5798,29 @@ void do_cmd_social(int Ind, int dir, int i)
 			{
 				monster_desc(Ind, victim, target, 0);
 				if (s_ptr->others_found)
-					msg_format_complex_near(Ind, Ind, MSG_SOCIAL, 
-						s_ptr->others_found, p_ptr->name, victim); 
+					msg_format_complex_near(p_ptr, p_ptr, MSG_SOCIAL,
+						s_ptr->others_found, p_ptr->name, victim);
 			}
 			if (target < 0)
 			{
 				sprintf(victim, "%s", Players[0 - target]->name);
 				if (s_ptr->others_found)
-					msg_format_complex_near(Ind, 0-target, MSG_SOCIAL, 
+					msg_format_complex_near(p_ptr, Players[0-target], MSG_SOCIAL,
 						s_ptr->others_found, p_ptr->name, victim);
 				if (s_ptr->vict_found) 
-					msg_format_type(0 - target, MSG_SOCIAL, 
+					msg_format_type(Players[0 - target], MSG_SOCIAL,
 						s_ptr->vict_found, p_ptr->name);
 			}
 			if (s_ptr->char_found)
-				msg_format_type(Ind, MSG_SOCIAL, s_ptr->char_found, victim);
+				msg_format_type(p_ptr, MSG_SOCIAL, s_ptr->char_found, victim);
 		} 
 	}
 	else
 	{
 		if (s_ptr->char_no_arg)
-			msg_format_type(Ind, MSG_SOCIAL, s_ptr->char_no_arg, ddd_names[dir]);
+			msg_format_type(p_ptr, MSG_SOCIAL, s_ptr->char_no_arg, ddd_names[dir]);
 		if (s_ptr->others_no_arg)
-			msg_format_complex_near(Ind, Ind, MSG_SOCIAL, s_ptr->others_no_arg, p_ptr->name, ddd_names[dir]);
+			msg_format_complex_near(p_ptr, p_ptr, MSG_SOCIAL, s_ptr->others_no_arg, p_ptr->name, ddd_names[dir]);
 	}
 }
 
@@ -6558,8 +6558,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 						"*", TERM_WHITE, TERM_WHITE)) return;
 						if (buf[0] != 'y' && buf[0] != 'Y') break;
 						debug(format("%s invokes %s to lev %d", p_ptr->name, q_ptr->name, p_ptr->dun_depth));
-						msg_print(y, "The air about you becomes charged...");
-						msg_format_complex_near(y, y, MSG_PY_MISC, "The air about %s becomes charged...", q_ptr->name);
+						msg_print(q_ptr, "The air about you becomes charged...");
+						msg_format_complex_near(q_ptr, q_ptr, MSG_PY_MISC, "The air about %s becomes charged...", q_ptr->name);
 						q_ptr->word_recall = 1;
 						q_ptr->recall_depth = p_ptr->dun_depth;
 					break;
@@ -6620,7 +6620,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				else
 				{
 					players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth);
-					msg_format(Ind, "Loading file '%s'", &buf[0]);
+					msg_format(p_ptr, "Loading file '%s'", &buf[0]);
 					debug(format("* %s imports lev %d from file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
 				}
 
@@ -6639,7 +6639,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				}
 				else
 				{
-					msg_format(Ind, "Saved file '%s'", &buf[0]);
+					msg_format(p_ptr, "Saved file '%s'", &buf[0]);
 					debug(format("* %s exports lev %d into file '%s'", p_ptr->name, p_ptr->dun_depth, buf));
 				}
 
@@ -6942,7 +6942,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 						if (p_ptr->master_parm && p_ptr->master_parm - 1 == i)
 						{
-							msg_format(Ind, "Loading file '%s'", dit->d_name);
+							msg_format(p_ptr, "Loading file '%s'", dit->d_name);
 							rd_dungeon_special_ext(p_ptr->dun_depth, dit->d_name);
 							players_on_depth[p_ptr->dun_depth] = num_players;
 						}

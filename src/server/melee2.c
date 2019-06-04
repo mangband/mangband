@@ -573,7 +573,7 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s makes a high pitched shriek.", m_name);
+			msg_format(p_ptr, "%^s makes a high pitched shriek.", m_name);
 			sound(Ind, MSG_SHRIEK);
 			aggravate_monsters(Ind, m_idx);
 			break;
@@ -601,8 +601,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 96+4:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s makes a strange noise.", m_name);
-			else msg_format(Ind, "%^s fires an arrow.", m_name);
+			if (blind) msg_format(p_ptr, "%^s makes a strange noise.", m_name);
+			else msg_format(p_ptr, "%^s fires an arrow.", m_name);
 			bolt(Ind, m_idx, GF_ARROW, damroll(1, 6));
 			break;
 		}
@@ -611,8 +611,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 96+5:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s makes a strange noise.", m_name);
-			else msg_format(Ind, "%^s fires an arrow!", m_name);
+			if (blind) msg_format(p_ptr, "%^s makes a strange noise.", m_name);
+			else msg_format(p_ptr, "%^s fires an arrow!", m_name);
 			bolt(Ind, m_idx, GF_ARROW, damroll(3, 6));
 			break;
 		}
@@ -621,8 +621,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 96+6:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s makes a strange noise.", m_name);
-			else msg_format(Ind, "%^s fires a missile.", m_name);
+			if (blind) msg_format(p_ptr, "%^s makes a strange noise.", m_name);
+			else msg_format(p_ptr, "%^s fires a missile.", m_name);
 			bolt(Ind, m_idx, GF_ARROW, damroll(5, 6));
 			break;
 		}
@@ -631,8 +631,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 96+7:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s makes a strange noise.", m_name);
-			else msg_format(Ind, "%^s fires a missile!", m_name);
+			if (blind) msg_format(p_ptr, "%^s makes a strange noise.", m_name);
+			else msg_format(p_ptr, "%^s fires a missile!", m_name);
 			bolt(Ind, m_idx, GF_ARROW, damroll(7, 6));
 			break;
 		}
@@ -642,8 +642,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_ACID);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes acid.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes acid.", m_name);
 			breath(Ind, m_idx, GF_ACID,
 			       ((m_ptr->hp / 3) > 1600 ? 1600 : (m_ptr->hp / 3)));
 			update_smart_learn(m_idx, DRS_ACID);
@@ -655,8 +655,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_ELEC);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes lightning.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes lightning.", m_name);
 			breath(Ind, m_idx, GF_ELEC,
 			       ((m_ptr->hp / 3) > 1600 ? 1600 : (m_ptr->hp / 3)));
 			update_smart_learn(m_idx, DRS_ELEC);
@@ -668,8 +668,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_FIRE);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes fire.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes fire.", m_name);
 			breath(Ind, m_idx, GF_FIRE,
 			       ((m_ptr->hp / 3) > 1600 ? 1600 : (m_ptr->hp / 3)));
 			update_smart_learn(m_idx, DRS_FIRE);
@@ -681,8 +681,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_FROST);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes frost.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes frost.", m_name);
 			breath(Ind, m_idx, GF_COLD,
 			       ((m_ptr->hp / 3) > 1600 ? 1600 : (m_ptr->hp / 3)));
 			update_smart_learn(m_idx, DRS_COLD);
@@ -694,8 +694,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_GAS);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes gas.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes gas.", m_name);
 			breath(Ind, m_idx, GF_POIS,
 			       ((m_ptr->hp / 3) > 800 ? 800 : (m_ptr->hp / 3)));
 			update_smart_learn(m_idx, DRS_POIS);
@@ -707,8 +707,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_NETHER);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes nether.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes nether.", m_name);
 			breath(Ind, m_idx, GF_NETHER,
 			       ((m_ptr->hp / 6) > 550 ? 550 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_NETH);
@@ -720,8 +720,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_LIGHT);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes light.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes light.", m_name);
 			breath(Ind, m_idx, GF_LITE,
 			       ((m_ptr->hp / 6) > 400 ? 400 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_LITE);
@@ -733,8 +733,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_DARK);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes darkness.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes darkness.", m_name);
 			breath(Ind, m_idx, GF_DARK,
 			       ((m_ptr->hp / 6) > 400 ? 400 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_DARK);
@@ -746,8 +746,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_CONF);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes confusion.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes confusion.", m_name);
 			breath(Ind, m_idx, GF_CONFUSION,
 			       ((m_ptr->hp / 6) > 400 ? 400 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_CONF);
@@ -759,8 +759,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_SOUND);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes sound.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes sound.", m_name);
 			breath(Ind, m_idx, GF_SOUND,
 			       ((m_ptr->hp / 6) > 500 ? 500 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_SOUND);
@@ -772,8 +772,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_CHAOS);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes chaos.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes chaos.", m_name);
 			breath(Ind, m_idx, GF_CHAOS,
 			       ((m_ptr->hp / 6) > 500 ? 500 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_CHAOS);
@@ -785,8 +785,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_DISENCHANT);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes disenchantment.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes disenchantment.", m_name);
 			breath(Ind, m_idx, GF_DISENCHANT,
 			       ((m_ptr->hp / 6) > 500 ? 500 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_DISEN);
@@ -798,8 +798,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_NEXUS);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes nexus.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes nexus.", m_name);
 			breath(Ind, m_idx, GF_NEXUS,
 			       ((m_ptr->hp / 6) > 400 ? 400 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_NEXUS);
@@ -811,8 +811,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_TIME);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes time.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes time.", m_name);
 			breath(Ind, m_idx, GF_TIME,
 			       ((m_ptr->hp / 3) > 150 ? 150 : (m_ptr->hp / 3)));
 			break;
@@ -823,8 +823,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_INERTIA);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes inertia.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes inertia.", m_name);
 			breath(Ind, m_idx, GF_INERT,
 			       ((m_ptr->hp / 6) > 200 ? 200 : (m_ptr->hp / 6)));
 			break;
@@ -835,8 +835,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_GRAVITY);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes gravity.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes gravity.", m_name);
 			breath(Ind, m_idx, GF_GRAVITY,
 			       ((m_ptr->hp / 3) > 200 ? 200 : (m_ptr->hp / 3)));
 			break;
@@ -847,8 +847,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_SHARDS);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes shards.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes shards.", m_name);
 			breath(Ind, m_idx, GF_SHARDS,
 			       ((m_ptr->hp / 6) > 500 ? 500 : (m_ptr->hp / 6)));
 			update_smart_learn(m_idx, DRS_SHARD);
@@ -860,8 +860,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_PLASMA);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes plasma.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes plasma.", m_name);
 			breath(Ind, m_idx, GF_PLASMA,
 			       ((m_ptr->hp / 6) > 150 ? 150 : (m_ptr->hp / 6)));
 			break;
@@ -872,8 +872,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_BR_FORCE);
-			if (blind) msg_format(Ind, "%^s breathes.", m_name);
-			else msg_format(Ind, "%^s breathes force.", m_name);
+			if (blind) msg_format(p_ptr, "%^s breathes.", m_name);
+			else msg_format(p_ptr, "%^s breathes force.", m_name);
 			breath(Ind, m_idx, GF_FORCE,
 			       ((m_ptr->hp / 6) > 200 ? 200 : (m_ptr->hp / 6)));
 			break;
@@ -908,8 +908,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 96+31:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "You hear something grunt with exertion.", m_name);
-			else msg_format(Ind, "%^s hurls a boulder at you!", m_name);
+			if (blind) msg_format(p_ptr, "You hear something grunt with exertion.", m_name);
+			else msg_format(p_ptr, "%^s hurls a boulder at you!", m_name);
 			bolt(Ind, m_idx, GF_ARROW, damroll(1 + r_ptr->level / 7, 12));
 			break;
 		}
@@ -920,8 +920,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+0:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts an acid ball.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts an acid ball.", m_name);
 			breath(Ind, m_idx, GF_ACID,
 			       randint(rlev * 3) + 15);
 			update_smart_learn(m_idx, DRS_ACID);
@@ -932,8 +932,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+1:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a lightning ball.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a lightning ball.", m_name);
 			breath(Ind, m_idx, GF_ELEC,
 			       randint(rlev * 3 / 2) + 8);
 			update_smart_learn(m_idx, DRS_ELEC);
@@ -944,8 +944,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+2:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a fire ball.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a fire ball.", m_name);
 			breath(Ind, m_idx, GF_FIRE,
 			       randint(rlev * 7 / 2) + 10);
 			update_smart_learn(m_idx, DRS_FIRE);
@@ -956,8 +956,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+3:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a frost ball.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a frost ball.", m_name);
 			breath(Ind, m_idx, GF_COLD,
 			       randint(rlev * 3 / 2) + 10);
 			update_smart_learn(m_idx, DRS_COLD);
@@ -968,8 +968,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+4:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a stinking cloud.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a stinking cloud.", m_name);
 			breath(Ind, m_idx, GF_POIS,
 			       damroll(12, 2));
 			update_smart_learn(m_idx, DRS_POIS);
@@ -980,8 +980,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+5:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a nether ball.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a nether ball.", m_name);
 			breath(Ind, m_idx, GF_NETHER,
 			       (50 + damroll(10, 10) + rlev));
 			update_smart_learn(m_idx, DRS_NETH);
@@ -992,9 +992,9 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+6:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s gestures fluidly.", m_name);
-			msg_print(Ind, "You are engulfed in a whirlpool.");
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s gestures fluidly.", m_name);
+			msg_print(p_ptr, "You are engulfed in a whirlpool.");
 			breath(Ind, m_idx, GF_WATER,
 			       randint(rlev * 5 / 2) + 50);
 			break;
@@ -1004,8 +1004,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+7:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles powerfully.", m_name);
-			else msg_format(Ind, "%^s invokes a mana storm.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles powerfully.", m_name);
+			else msg_format(p_ptr, "%^s invokes a mana storm.", m_name);
 			breath(Ind, m_idx, GF_MANA,
 			       (rlev * 5) + damroll(10, 10));
 			break;
@@ -1015,8 +1015,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+8:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles powerfully.", m_name);
-			else msg_format(Ind, "%^s invokes a darkness storm.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles powerfully.", m_name);
+			else msg_format(p_ptr, "%^s invokes a darkness storm.", m_name);
 			breath(Ind, m_idx, GF_DARK,
 			       (rlev * 5) + damroll(10, 10));
 			update_smart_learn(m_idx, DRS_DARK);
@@ -1035,7 +1035,7 @@ bool make_attack_spell(int Ind, int m_idx)
 				disturb(Ind, 1, 0);
 
 				/* Basic message */
-				msg_format(Ind, "%^s draws psychic energy from you!", m_name);
+				msg_format(p_ptr, "%^s draws psychic energy from you!", m_name);
 
 				/* Attack power */
 				r1 = (randint(rlev) / 2) + 1;
@@ -1073,7 +1073,7 @@ bool make_attack_spell(int Ind, int m_idx)
 					/* Special message */
 					if (seen)
 					{
-						msg_format(Ind, "%^s appears healthier.", m_name);
+						msg_format(p_ptr, "%^s appears healthier.", m_name);
 					}
 				}
 			}
@@ -1088,20 +1088,20 @@ bool make_attack_spell(int Ind, int m_idx)
 			disturb(Ind, 1, 0);
 			if (!seen)
 			{
-				msg_print(Ind, "You feel something focusing on your mind.");
+				msg_print(p_ptr, "You feel something focusing on your mind.");
 			}
 			else
 			{
-				msg_format(Ind, "%^s gazes deep into your eyes.", m_name);
+				msg_format(p_ptr, "%^s gazes deep into your eyes.", m_name);
 			}
 
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
-				msg_print(Ind, "Your mind is blasted by psionic energy.");
+				msg_print(p_ptr, "Your mind is blasted by psionic energy.");
 				if (!p_ptr->resist_conf)
 				{
 					(void)set_confused(Ind, p_ptr->confused + rand_int(4) + 4);
@@ -1118,19 +1118,19 @@ bool make_attack_spell(int Ind, int m_idx)
 			disturb(Ind, 1, 0);
 			if (!seen)
 			{
-				msg_print(Ind, "You feel something focusing on your mind.");
+				msg_print(p_ptr, "You feel something focusing on your mind.");
 			}
 			else
 			{
-				msg_format(Ind, "%^s looks deep into your eyes.", m_name);
+				msg_format(p_ptr, "%^s looks deep into your eyes.", m_name);
 			}
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
-				msg_print(Ind, "Your mind is blasted by psionic energy.");
+				msg_print(p_ptr, "Your mind is blasted by psionic energy.");
 				take_hit(Ind, damroll(12, 15), ddesc);
 				if (!p_ptr->resist_blind)
 				{
@@ -1154,11 +1154,11 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s points at you and curses.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s points at you and curses.", m_name);
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1172,11 +1172,11 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s points at you and curses horribly.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s points at you and curses horribly.", m_name);
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1190,11 +1190,11 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles loudly.", m_name);
-			else msg_format(Ind, "%^s points at you, incanting terribly!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles loudly.", m_name);
+			else msg_format(p_ptr, "%^s points at you, incanting terribly!", m_name);
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1208,11 +1208,11 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s screams the word 'DIE!'", m_name);
-			else msg_format(Ind, "%^s points at you, screaming the word DIE!", m_name);
+			if (blind) msg_format(p_ptr, "%^s screams the word 'DIE!'", m_name);
+			else msg_format(p_ptr, "%^s points at you, screaming the word DIE!", m_name);
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1226,8 +1226,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+16:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a acid bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a acid bolt.", m_name);
 			bolt(Ind, m_idx, GF_ACID,
 			     damroll(7, 8) + (rlev / 3));
 			update_smart_learn(m_idx, DRS_ACID);
@@ -1238,8 +1238,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+17:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a lightning bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a lightning bolt.", m_name);
 			bolt(Ind, m_idx, GF_ELEC,
 			     damroll(4, 8) + (rlev / 3));
 			update_smart_learn(m_idx, DRS_ELEC);
@@ -1250,8 +1250,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+18:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a fire bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a fire bolt.", m_name);
 			bolt(Ind, m_idx, GF_FIRE,
 			     damroll(9, 8) + (rlev / 3));
 			update_smart_learn(m_idx, DRS_FIRE);
@@ -1262,8 +1262,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+19:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a frost bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a frost bolt.", m_name);
 			bolt(Ind, m_idx, GF_COLD,
 			     damroll(6, 8) + (rlev / 3));
 			update_smart_learn(m_idx, DRS_COLD);
@@ -1281,8 +1281,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+21:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a nether bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a nether bolt.", m_name);
 			bolt(Ind, m_idx, GF_NETHER,
 			     30 + damroll(5, 5) + (rlev * 3) / 2);
 			update_smart_learn(m_idx, DRS_NETH);
@@ -1293,8 +1293,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+22:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a water bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a water bolt.", m_name);
 			bolt(Ind, m_idx, GF_WATER,
 			     damroll(10, 10) + (rlev));
 			break;
@@ -1304,8 +1304,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+23:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a mana bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a mana bolt.", m_name);
 			bolt(Ind, m_idx, GF_MANA,
 			     randint(rlev * 7 / 2) + 50);
 			break;
@@ -1315,8 +1315,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+24:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a plasma bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a plasma bolt.", m_name);
 			bolt(Ind, m_idx, GF_PLASMA,
 			     10 + damroll(8, 7) + (rlev));
 			break;
@@ -1326,8 +1326,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+25:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts an ice bolt.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts an ice bolt.", m_name);
 			bolt(Ind, m_idx, GF_ICE,
 			     damroll(6, 6) + (rlev));
 			update_smart_learn(m_idx, DRS_COLD);
@@ -1338,8 +1338,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 128+26:
 		{
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a magic missile.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a magic missile.", m_name);
 			bolt(Ind, m_idx, GF_MISSILE,
 			     damroll(2, 6) + (rlev / 3));
 			break;
@@ -1351,15 +1351,15 @@ bool make_attack_spell(int Ind, int m_idx)
 			if (!direct) break;
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_CAST_FEAR);
-			if (blind) msg_format(Ind, "%^s mumbles, and you hear scary noises.", m_name);
-			else msg_format(Ind, "%^s casts a fearful illusion.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles, and you hear scary noises.", m_name);
+			else msg_format(p_ptr, "%^s casts a fearful illusion.", m_name);
 			if (p_ptr->resist_fear)
 			{
-				msg_print(Ind, "You refuse to be frightened.");
+				msg_print(p_ptr, "You refuse to be frightened.");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You refuse to be frightened.");
+				msg_print(p_ptr, "You refuse to be frightened.");
 			}
 			else
 			{
@@ -1374,15 +1374,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s casts a spell, burning your eyes!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s casts a spell, burning your eyes!", m_name);
 			if (p_ptr->resist_blind)
 			{
-				msg_print(Ind, "You are unaffected!");
+				msg_print(p_ptr, "You are unaffected!");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1397,15 +1397,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles, and you hear puzzling noises.", m_name);
-			else msg_format(Ind, "%^s creates a mesmerising illusion.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles, and you hear puzzling noises.", m_name);
+			else msg_format(p_ptr, "%^s creates a mesmerising illusion.", m_name);
 			if (p_ptr->resist_conf)
 			{
-				msg_print(Ind, "You disbelieve the feeble spell.");
+				msg_print(p_ptr, "You disbelieve the feeble spell.");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You disbelieve the feeble spell.");
+				msg_print(p_ptr, "You disbelieve the feeble spell.");
 			}
 			else
 			{
@@ -1420,14 +1420,14 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s drains power from your muscles!", m_name);
+			msg_format(p_ptr, "%^s drains power from your muscles!", m_name);
 			if (p_ptr->free_act)
 			{
-				msg_print(Ind, "You are unaffected!");
+				msg_print(p_ptr, "You are unaffected!");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1442,15 +1442,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s stares deep into your eyes!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s stares deep into your eyes!", m_name);
 			if (p_ptr->free_act)
 			{
-				msg_print(Ind, "You are unaffected!");
+				msg_print(p_ptr, "You are unaffected!");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_format(Ind, "You resist the effects!");
+				msg_format(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1468,24 +1468,24 @@ bool make_attack_spell(int Ind, int m_idx)
 			disturb(Ind, 1, 0);
 			if (blind)
 			{
-				msg_format(Ind, "%^s mumbles.", m_name);
+				msg_format(p_ptr, "%^s mumbles.", m_name);
 			}
 			else
 			{
-				msg_format(Ind, "%^s concentrates on %s body.", m_name, m_poss);
+				msg_format(p_ptr, "%^s concentrates on %s body.", m_name, m_poss);
 			}
 
 			/* Allow quick speed increases to base+10 */
 			if (m_ptr->mspeed < r_ptr->speed + 10)
 			{
-				msg_format(Ind, "%^s starts moving faster.", m_name);
+				msg_format(p_ptr, "%^s starts moving faster.", m_name);
 				m_ptr->mspeed += 10;
 			}
 
 			/* Allow small speed increases to base+20 */
 			else if (m_ptr->mspeed < r_ptr->speed + 20)
 			{
-				msg_format(Ind, "%^s starts moving faster.", m_name);
+				msg_format(p_ptr, "%^s starts moving faster.", m_name);
 				m_ptr->mspeed += 2;
 			}
 
@@ -1509,11 +1509,11 @@ bool make_attack_spell(int Ind, int m_idx)
 			/* Message */
 			if (blind)
 			{
-				msg_format(Ind, "%^s mumbles.", m_name);
+				msg_format(p_ptr, "%^s mumbles.", m_name);
 			}
 			else
 			{
-				msg_format(Ind, "%^s concentrates on %s wounds.", m_name, m_poss);
+				msg_format(p_ptr, "%^s concentrates on %s wounds.", m_name, m_poss);
 			}
 
 			/* Heal some */
@@ -1528,11 +1528,11 @@ bool make_attack_spell(int Ind, int m_idx)
 				/* Message */
 				if (seen)
 				{
-					msg_format(Ind, "%^s looks REALLY healthy!", m_name);
+					msg_format(p_ptr, "%^s looks REALLY healthy!", m_name);
 				}
 				else
 				{
-					msg_format(Ind, "%^s sounds REALLY healthy!", m_name);
+					msg_format(p_ptr, "%^s sounds REALLY healthy!", m_name);
 				}
 			}
 
@@ -1542,11 +1542,11 @@ bool make_attack_spell(int Ind, int m_idx)
 				/* Message */
 				if (seen)
 				{
-					msg_format(Ind, "%^s looks healthier.", m_name);
+					msg_format(p_ptr, "%^s looks healthier.", m_name);
 				}
 				else
 				{
-					msg_format(Ind, "%^s sounds healthier.", m_name);
+					msg_format(p_ptr, "%^s sounds healthier.", m_name);
 				}
 			}
 
@@ -1560,7 +1560,7 @@ bool make_attack_spell(int Ind, int m_idx)
 				m_ptr->monfear = 0;
 
 				/* Message */
-				msg_format(Ind, "%^s recovers %s courage.", m_name, m_poss);
+				msg_format(p_ptr, "%^s recovers %s courage.", m_name, m_poss);
 			}
 
 			break;
@@ -1576,7 +1576,7 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 160+4:
 		{
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s blinks away.", m_name);
+			msg_format(p_ptr, "%^s blinks away.", m_name);
 			teleport_away(m_idx, 10);
 			break;
 		}
@@ -1585,7 +1585,7 @@ bool make_attack_spell(int Ind, int m_idx)
 		case 160+5:
 		{
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s teleports away.", m_name);
+			msg_format(p_ptr, "%^s teleports away.", m_name);
 			teleport_away(m_idx, MAX_SIGHT * 2 + 5);
 			break;
 		}
@@ -1607,7 +1607,7 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s commands you to return.", m_name);
+			msg_format(p_ptr, "%^s commands you to return.", m_name);
 			teleport_player_to(Ind, m_ptr->fy, m_ptr->fx);
 			break;
 		}
@@ -1617,7 +1617,7 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s teleports you away.", m_name);
+			msg_format(p_ptr, "%^s teleports you away.", m_name);
 			teleport_player(Ind, 100);
 			break;
 		}
@@ -1627,15 +1627,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles strangely.", m_name);
-			else msg_format(Ind, "%^s gestures at your feet.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles strangely.", m_name);
+			else msg_format(p_ptr, "%^s gestures at your feet.", m_name);
 			if (p_ptr->resist_nexus)
 			{
-				msg_print(Ind, "You are unaffected!");
+				msg_print(p_ptr, "You are unaffected!");
 			}
 			else if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else
 			{
@@ -1656,8 +1656,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s gestures in shadow.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s gestures in shadow.", m_name);
 			(void)unlite_area(Ind, 0, 3);
 			break;
 		}
@@ -1668,8 +1668,8 @@ bool make_attack_spell(int Ind, int m_idx)
 			if (!direct) break;
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_CREATE_TRAP);
-			if (blind) msg_format(Ind, "%^s mumbles, and then cackles evilly.", m_name);
-			else msg_format(Ind, "%^s casts a spell and cackles evilly.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles, and then cackles evilly.", m_name);
+			else msg_format(p_ptr, "%^s casts a spell and cackles evilly.", m_name);
 			(void)trap_creation(Ind);
 			break;
 		}
@@ -1679,15 +1679,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			if (!direct) break;
 			disturb(Ind, 1, 0);
-			msg_format(Ind, "%^s tries to blank your mind.", m_name);
+			msg_format(p_ptr, "%^s tries to blank your mind.", m_name);
 
 			if (rand_int(100) < p_ptr->skill_sav)
 			{
-				msg_print(Ind, "You resist the effects!");
+				msg_print(p_ptr, "You resist the effects!");
 			}
 			else if (lose_all_info(Ind))
 			{
-				msg_print(Ind, "Your memories fade away.");
+				msg_print(p_ptr, "Your memories fade away.");
 			}
 			break;
 		}
@@ -1703,8 +1703,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_MONSTER);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons %s %s.", m_name, m_poss,
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons %s %s.", m_name, m_poss,
 			                ((r_ptr->flags1) & RF1_UNIQUE ?
 			                 "minions" : "kin"));
 
@@ -1716,7 +1716,7 @@ bool make_attack_spell(int Ind, int m_idx)
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many things appear nearby.");
+				msg_print(p_ptr, "You hear many things appear nearby.");
 			}
 			break;
 		}
@@ -1726,15 +1726,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_HI_DEMON);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons greater demons!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons greater demons!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_HI_DEMON);
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many evil things appear nearby.");
+				msg_print(p_ptr, "You hear many evil things appear nearby.");
 			}
 			break;
 		}
@@ -1744,13 +1744,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_MONSTER);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons help!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons help!", m_name);
 			for (k = 0; k < 1; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, 0);
 			}
-			if (blind && count) msg_print(Ind, "You hear something appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear something appear nearby.");
 			break;
 		}
 
@@ -1759,13 +1759,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_MONSTER);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons monsters!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons monsters!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, 0);
 			}
-			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear many things appear nearby.");
 			break;
 		}
 
@@ -1774,13 +1774,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_ANIMAL);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons animals.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons animals.", m_name);
 			for (k = 0; k < 6; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_ANIMAL);
 			}
-			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear many things appear nearby.");
 			break;
 		}
 
@@ -1789,13 +1789,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_SPIDER);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons spiders.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons spiders.", m_name);
 			for (k = 0; k < 6; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_SPIDER);
 			}
-			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear many things appear nearby.");
 			break;
 		}
 
@@ -1804,13 +1804,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_HOUND);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons hounds.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons hounds.", m_name);
 			for (k = 0; k < 6; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_HOUND);
 			}
-			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear many things appear nearby.");
 			break;
 		}
 
@@ -1819,13 +1819,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_HYDRA);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons hydras.", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons hydras.", m_name);
 			for (k = 0; k < 6; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_HYDRA);
 			}
-			if (blind && count) msg_print(Ind, "You hear many things appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear many things appear nearby.");
 			break;
 		}
 
@@ -1834,13 +1834,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_ANGEL);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons an angel!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons an angel!", m_name);
 			for (k = 0; k < 1; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_ANGEL);
 			}
-			if (blind && count) msg_print(Ind, "You hear something appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear something appear nearby.");
 			break;
 		}
 
@@ -1849,13 +1849,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_DEMON);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons a hellish adversary!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons a hellish adversary!", m_name);
 			for (k = 0; k < 1; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_DEMON);
 			}
-			if (blind && count) msg_print(Ind, "You hear something appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear something appear nearby.");
 			break;
 		}
 
@@ -1864,13 +1864,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_UNDEAD);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons an undead adversary!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons an undead adversary!", m_name);
 			for (k = 0; k < 1; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_UNDEAD);
 			}
-			if (blind && count) msg_print(Ind, "You hear something appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear something appear nearby.");
 			break;
 		}
 
@@ -1879,13 +1879,13 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_DRAGON);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons a dragon!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons a dragon!", m_name);
 			for (k = 0; k < 1; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_DRAGON);
 			}
-			if (blind && count) msg_print(Ind, "You hear something appear nearby.");
+			if (blind && count) msg_print(p_ptr, "You hear something appear nearby.");
 			break;
 		}
 
@@ -1894,15 +1894,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_HI_UNDEAD);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons greater undead!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons greater undead!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_HI_UNDEAD);
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many creepy things appear nearby.");
+				msg_print(p_ptr, "You hear many creepy things appear nearby.");
 			}
 			break;
 		}
@@ -1912,15 +1912,15 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_HI_DRAGON);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons ancient dragons!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons ancient dragons!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_HI_DRAGON);
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many powerful things appear nearby.");
+				msg_print(p_ptr, "You hear many powerful things appear nearby.");
 			}
 			break;
 		}
@@ -1930,8 +1930,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_WRAITH);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons mighty undead opponents!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons mighty undead opponents!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_WRAITH);
@@ -1942,7 +1942,7 @@ bool make_attack_spell(int Ind, int m_idx)
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many creepy things appear nearby.");
+				msg_print(p_ptr, "You hear many creepy things appear nearby.");
 			}
 			break;
 		}
@@ -1952,8 +1952,8 @@ bool make_attack_spell(int Ind, int m_idx)
 		{
 			disturb(Ind, 1, 0);
 			sound(Ind, MSG_SUM_UNIQUE);
-			if (blind) msg_format(Ind, "%^s mumbles.", m_name);
-			else msg_format(Ind, "%^s magically summons special opponents!", m_name);
+			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
+			else msg_format(p_ptr, "%^s magically summons special opponents!", m_name);
 			for (k = 0; k < 8; k++)
 			{
 				count += summon_specific(Depth, y, x, rlev, SUMMON_UNIQUE);
@@ -1964,7 +1964,7 @@ bool make_attack_spell(int Ind, int m_idx)
 			}
 			if (blind && count)
 			{
-				msg_print(Ind, "You hear many powerful things appear nearby.");
+				msg_print(p_ptr, "You hear many powerful things appear nearby.");
 			}
 			break;
 		}
@@ -2547,7 +2547,7 @@ static void process_monster(int Ind, int m_idx)
 					monster_desc(Ind, m_name, m_idx, 0);
 
 					/* Dump a message */
-					msg_format(Ind, "%^s wakes up.", m_name);
+					msg_format(p_ptr, "%^s wakes up.", m_name);
 
 					/* Hack -- Count the wakings */
 					if (l_ptr->wake < MAX_UCHAR) l_ptr->wake++;
@@ -2597,7 +2597,7 @@ static void process_monster(int Ind, int m_idx)
 				monster_desc(Ind, m_name, m_idx, 0);
 
 				/* Dump a message */
-				msg_format(Ind, "%^s is no longer stunned.", m_name);
+				msg_format(p_ptr, "%^s is no longer stunned.", m_name);
 			}
 		}
 
@@ -2637,7 +2637,7 @@ static void process_monster(int Ind, int m_idx)
 				monster_desc(Ind, m_name, m_idx, 0);
 
 				/* Dump a message */
-				msg_format(Ind, "%^s is no longer confused.", m_name);
+				msg_format(p_ptr, "%^s is no longer confused.", m_name);
 			}
 		}
 	}
@@ -2672,7 +2672,7 @@ static void process_monster(int Ind, int m_idx)
 				monster_desc(Ind, m_poss, m_idx, 0x22);
 
 				/* Dump a message */
-				msg_format(Ind, "%^s recovers %s courage.", m_name, m_poss);
+				msg_format(p_ptr, "%^s recovers %s courage.", m_name, m_poss);
 			}
 		}
 	}
@@ -2949,7 +2949,7 @@ static void process_monster(int Ind, int m_idx)
 				if (rand_int(m_ptr->hp / 10) > k)
 				{
 					/* Message */
-					msg_print(Ind, "You hear a door burst open!");
+					msg_print(p_ptr, "You hear a door burst open!");
 
 					/* Disturb (sometimes) */
 					if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
@@ -3002,7 +3002,7 @@ static void process_monster(int Ind, int m_idx)
 				/* Describe observable breakage */
 				if (Players[Ind]->cave_flag[ny][nx] & CAVE_MARK)
 				{
-					msg_print(Ind, "The rune of protection is broken!");
+					msg_print(Players[Ind], "The rune of protection is broken!");
 				}
 
 				/* Break the rune */
@@ -3192,7 +3192,7 @@ static void process_monster(int Ind, int m_idx)
 						if (p_ptr->mon_vis[m_idx] && player_has_los_bold(Ind, ny, nx))
 						{
 							/* Dump a message */
-							msg_format(Ind, "%^s tries to pick up %s, but fails.",
+							msg_format(p_ptr, "%^s tries to pick up %s, but fails.",
 							           m_name, o_name);
 						}
 					}
@@ -3211,7 +3211,7 @@ static void process_monster(int Ind, int m_idx)
 					if (player_has_los_bold(Ind, ny, nx))
 					{
 						/* Dump a message */
-						msg_format(Ind, "%^s picks up %s.", m_name, o_name);
+						msg_format(p_ptr, "%^s picks up %s.", m_name, o_name);
 					}
 
 					if	(monster_can_carry(m_idx))
@@ -3240,7 +3240,7 @@ static void process_monster(int Ind, int m_idx)
 					if (player_has_los_bold(Ind, ny, nx))
 					{
 						/* Dump a message */
-						msg_format(Ind, "%^s crushes %s.", m_name, o_name);
+						msg_format(p_ptr, "%^s crushes %s.", m_name, o_name);
 						sound(Ind, MSG_DESTROY);
 					}
 					
@@ -3309,7 +3309,7 @@ static void process_monster(int Ind, int m_idx)
 			monster_desc(Ind, m_name, m_idx, 0);
 
 			/* Dump a message */
-			msg_format(Ind, "%^s turns to fight!", m_name);
+			msg_format(p_ptr, "%^s turns to fight!", m_name);
 		}
 
 		/* XXX XXX XXX Actually do something now (?) */

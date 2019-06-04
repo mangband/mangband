@@ -1500,8 +1500,8 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
 	if (!fff)
 	{
 		/* Message */
-		msg_format_p(p_ptr, "Cannot open '%s'.", name);
-		msg_print_p(p_ptr, NULL);
+		msg_format(p_ptr, "Cannot open '%s'.", name);
+		msg_print(p_ptr, NULL);
 
 		/* Oops */
 		return;
@@ -1672,7 +1672,7 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
 	if (!fff)
 	{
 		/* Message */
-		msg_format(Ind, "Cannot open '%s'.", name);
+		msg_format(p_ptr, "Cannot open '%s'.", name);
 		msg_print(Ind, NULL);
 
 		/* Oops */
@@ -2225,13 +2225,13 @@ void do_cmd_save_game(int Ind)
 	disturb(Ind, 1, 0);
 
 	/* Clear messages */
-	msg_print(Ind, NULL);
+	msg_print(p_ptr, NULL);
 
 	/* Handle stuff */
 	handle_stuff(Ind);
 
 	/* Message */
-	msg_print(Ind, "Saving game...");
+	msg_print(p_ptr, "Saving game...");
 
 	/* Refresh */
 	/*Term_fresh();*/
@@ -2245,13 +2245,13 @@ void do_cmd_save_game(int Ind)
 	/* Save the player */
 	if (save_player(p_ptr))
 	{
-		msg_print(Ind, "Saving game... done.");
+		msg_print(p_ptr, "Saving game... done.");
 	}
 
 	/* Save failed (oops) */
 	else
 	{
-		msg_print(Ind, "Saving game... failed!");
+		msg_print(p_ptr, "Saving game... failed!");
 	}
 
 	/* Allow suspend again */
@@ -2780,7 +2780,7 @@ static errr top_twenty(int Ind)
 	/* Wizard-mode pre-empts scoring */
 	if (p_ptr->noscore & 0x000F)
 	{
-		msg_print(Ind, "Score not registered for wizards.");
+		msg_print(p_ptr, "Score not registered for wizards.");
 		/*display_scores_aux(0, 10, -1, NULL);*/
 		return (0);
 	}
@@ -2790,7 +2790,7 @@ static errr top_twenty(int Ind)
 	/* Borg-mode pre-empts scoring */
 	if (p_ptr->noscore & 0x00F0)
 	{
-		msg_print(Ind, "Score not registered for borgs.");
+		msg_print(p_ptr, "Score not registered for borgs.");
 		/*display_scores_aux(0, 10, -1, NULL);*/
 		return (0);
 	}
@@ -2800,7 +2800,7 @@ static errr top_twenty(int Ind)
 	/* Cheaters are not scored */
 	if (p_ptr->noscore & 0xFF00)
 	{
-		msg_print(Ind, "Score not registered for cheaters.");
+		msg_print(p_ptr, "Score not registered for cheaters.");
 		/*display_scores_aux(0, 10, -1, NULL);*/
 		return (0);
 	}
@@ -2809,7 +2809,7 @@ static errr top_twenty(int Ind)
 	/* Interupted */
 	if (!p_ptr->total_winner && streq(p_ptr->died_from, "Interrupting"))
 	{
-		msg_print(Ind, "Score not registered due to interruption.");
+		msg_print(p_ptr, "Score not registered due to interruption.");
 		/* display_scores_aux(0, 10, -1, NULL); */
 		return (0);
 	}
@@ -2817,7 +2817,7 @@ static errr top_twenty(int Ind)
 	/* Quitter */
 	if (!p_ptr->total_winner && streq(p_ptr->died_from, "Quitting"))
 	{
-		msg_print(Ind, "Score not registered due to quitting.");
+		msg_print(p_ptr, "Score not registered due to quitting.");
 		/* display_scores_aux(0, 10, -1, NULL); */
 		return (0);
 	}
@@ -3049,7 +3049,7 @@ void close_game(void)
 		handle_stuff(i);
 
 		/* Flush the messages */
-		msg_print(i, NULL);
+		msg_print(p_ptr, NULL);
 
 		/* Flush the input */
 		/*flush();*/
@@ -3073,7 +3073,7 @@ void close_game(void)
 			if (p_ptr->total_winner) kingly(i);
 
 			/* Save memories */
-			if (!save_player(p_ptr)) msg_print(i, "death save failed!");
+			if (!save_player(p_ptr)) msg_print(p_ptr, "death save failed!");
 
 			/* Dump bones file 
 			make_bones(i);

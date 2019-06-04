@@ -30,7 +30,7 @@ static cptr comment_1[MAX_COMMENT_1] =
  */
 static void say_comment_1(int Ind)
 {
-	msg_print(Ind, comment_1[rand_int(MAX_COMMENT_1)]);
+	msg_print(Players[Ind], comment_1[rand_int(MAX_COMMENT_1)]);
 }
 
 
@@ -86,7 +86,7 @@ static void message(int Ind, u16b message_type, cptr msg)
 {
 	sound(Ind, message_type);
 
-	msg_print_aux(Ind, msg, message_type);
+	msg_print_aux(Players[Ind], msg, message_type);
 }
 
 
@@ -1308,7 +1308,7 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 		if (final_ask >= purse)
 		{
 			/* Message */
-			msg_print(Ind, "You instantly agree upon the price.");
+			msg_print(p_ptr, "You instantly agree upon the price.");
 			/*msg_print(NULL);*/
 
 			/* Offer full purse */
@@ -1319,7 +1319,7 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 		else if (noneed)
 		{
 			/* Message */
-			msg_print(Ind, "You eventually agree upon the price.");
+			msg_print(p_ptr, "You eventually agree upon the price.");
 			/*msg_print(NULL);*/
 		}
 
@@ -1627,7 +1627,7 @@ void refresh_store(int st, int item, bool info, bool stock, bool single, cptr bu
 			if (!STRZERO(buf))
 			{
 				/* Message */
-				msg_print(i, buf);
+				msg_print(q_ptr, buf);
 			}
 		}
 	}
@@ -1659,14 +1659,14 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	/* Empty && Not player-owned? */
 	if (st != 8 && st_ptr->stock_num <= 0)
 	{
-		msg_print(Ind, "I am currently out of stock.");
+		msg_print(p_ptr, "I am currently out of stock.");
 		return;
 	}
 	
 	/* Player-owned && Is his? */
 	if (st == 8 && house_owned_by(Ind, p_ptr->player_store_num))
 	{
-		msg_print(Ind, "You cannot buy from yourself.");
+		msg_print(p_ptr, "You cannot buy from yourself.");
 		return;
 	} 
 
@@ -1674,7 +1674,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	if (!get_store_item(Ind, item, o_ptr) || CGI(o_ptr, 'p')) 
 	{
 			/* Disguise our bug as a feature */ 
-			msg_print(Ind, "Sorry, this item is reserved.");
+			msg_print(p_ptr, "Sorry, this item is reserved.");
 			return;
 	}
 	
@@ -1687,7 +1687,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			{
 				p_ptr->store_num = -1;
 				send_store_leave(Ind);
-				msg_print(Ind, "The shopkeeper is currently restocking.");
+				msg_print(p_ptr, "The shopkeeper is currently restocking.");
 				return;
 			}
 		}
@@ -1722,7 +1722,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	/* Hack -- require room in pack */
 	if (!inven_carry_okay(Ind, &sell_obj))
 	{
-		msg_print(Ind, "You cannot carry that many items.");
+		msg_print(p_ptr, "You cannot carry that many items.");
 		return;
 	}
 
@@ -1735,7 +1735,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	/* Protect deal - incoherent price */
 	if (price != offer) 
 	{
-		msg_print(Ind, "The shopkeeper rearranges his stock, preventing you from making a purchase.");
+		msg_print(p_ptr, "The shopkeeper rearranges his stock, preventing you from making a purchase.");
 		return;
 	}
 
@@ -1770,7 +1770,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 				{
 					/* Error - perhaps someone picked up the item in the house
 					 * just before we hit "buy"? */
-					msg_format(Ind, "Sorry, this item is reserved.");
+					msg_format(p_ptr, "Sorry, this item is reserved.");
 					return;
 				}
 			}
@@ -1797,7 +1797,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			object_desc(Ind, o_name, sizeof(o_name), &sell_obj, TRUE, 3);
 
 			/* Message */
-			msg_format(Ind, "You bought %s for %ld gold.", o_name, (long)price);
+			msg_format(p_ptr, "You bought %s for %ld gold.", o_name, (long)price);
 			sound(Ind, MSG_STORE5);
 
 			/* MEGA-HACK -- Ensure item owner=store owner */
@@ -1821,7 +1821,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			object_desc(Ind, o_name, sizeof(o_name), &p_ptr->inventory[item_new], TRUE, 3);
 
 			/* Message */
-			msg_format(Ind, "You have %s (%c).",
+			msg_format(p_ptr, "You have %s (%c).",
 			           o_name, index_to_label(item_new));
 
 			/* Handle stuff */
@@ -1901,7 +1901,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 		else
 		{
 			/* Simple message (no insult) */
-			msg_print(Ind, "You do not have enough gold.");
+			msg_print(p_ptr, "You do not have enough gold.");
 		}
 	}
 
@@ -1951,7 +1951,7 @@ void store_sell(int Ind, int item, int amt)
 	/* Check for validity of sale */
 	if (!store_will_buy(Ind, o_ptr))
 	{
-		msg_print(Ind, "I don't want that!");
+		msg_print(p_ptr, "I don't want that!");
 		return;
 	}
 
@@ -1997,8 +1997,8 @@ void store_sell(int Ind, int item, int amt)
 	/* Is there room in the store (or the home?) */
 	if (!store_check_num(p_ptr->store_num, &sold_obj))
 	{
-		if (p_ptr->store_num == 7) msg_print(Ind, "Your home is full.");
-		else msg_print(Ind, "I have not the room in my store to keep it.");
+		if (p_ptr->store_num == 7) msg_print(p_ptr, "Your home is full.");
+		else msg_print(p_ptr, "I have not the room in my store to keep it.");
 		return;
 	}
 
@@ -2007,7 +2007,7 @@ void store_sell(int Ind, int item, int amt)
 	{
 
 		/* Describe the transaction */
-		msg_format(Ind, "Selling %s (%c).", o_name, index_to_label(item));
+		msg_format(p_ptr, "Selling %s (%c).", o_name, index_to_label(item));
 		/*msg_print(NULL);*/
 
 		/* Haggle for it */
@@ -2120,7 +2120,7 @@ void store_confirm(int Ind)
 	object_desc(Ind, o_name, sizeof(o_name), &sold_obj, TRUE, 3);
  
 	/* Describe the result (in message buffer) */
-	msg_format(Ind, "You sold %s for %ld gold.", o_name, (long)price);
+	msg_format(p_ptr, "You sold %s for %ld gold.", o_name, (long)price);
 
 	/* Analyze the prices (and comment verbally) */
 	purchase_analyze(Ind, price, value, guess);
@@ -2193,7 +2193,7 @@ void do_cmd_store(int Ind, int pstore)
 		if (!((c_ptr->feat >= FEAT_SHOP_HEAD) &&
 		      (c_ptr->feat <= FEAT_SHOP_TAIL)))
 		{
-			msg_print(Ind, "You see no store here.");
+			msg_print(p_ptr, "You see no store here.");
 			return;
 		}
 	
@@ -2203,7 +2203,7 @@ void do_cmd_store(int Ind, int pstore)
 		/* Hack -- Check the "locked doors" */
 		if (ht_passed(&store[which].store_open, &turn, 0))
 		{
-			msg_print(Ind, "The doors are locked.");
+			msg_print(p_ptr, "The doors are locked.");
 			return;
 		}
 
@@ -2220,7 +2220,7 @@ void do_cmd_store(int Ind, int pstore)
 		{
 			if(Ind != i && house_inside(i, pstore))
 			{
-				msg_print(Ind, "The doors are locked.");
+				msg_print(p_ptr, "The doors are locked.");
 				return;		
 			}
 		}

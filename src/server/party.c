@@ -51,14 +51,14 @@ int party_create(int Ind, cptr name)
 	/* Check for already existing party by that name */
 	if (party_lookup(name) != -1)
 	{
-		msg_print(Ind, "A party by that name already exists.");
+		msg_print(p_ptr, "A party by that name already exists.");
 		return FALSE;
 	}
 
 	/* Make sure this guy isn't in some other party already */
 	if (p_ptr->party != 0)
 	{
-		msg_print(Ind, "You already belong to a party!");
+		msg_print(p_ptr, "You already belong to a party!");
 		return FALSE;
 	}
 
@@ -78,7 +78,7 @@ int party_create(int Ind, cptr name)
 	if (index == 0 || ht_eq(&oldest, &turn))
 	{
 		/* Error */
-		msg_print(Ind, "There aren't enough party slots!");
+		msg_print(p_ptr, "There aren't enough party slots!");
 		return FALSE;
 	}
 
@@ -127,7 +127,7 @@ int party_add(int adder, cptr name)
 	if (Ind == 0)
 	{
 		/* Oops */
-		msg_print(adder, "That player is not currently in the game.");
+		msg_print(q_ptr, "That player is not currently in the game.");
 
 		return FALSE;
 	}
@@ -135,13 +135,13 @@ int party_add(int adder, cptr name)
 	/* Check for hostility */
 	if (check_hostile(Ind, adder) ) 
 	{
-		msg_print(adder, "That player is hostile towards you.");
+		msg_print(q_ptr, "That player is hostile towards you.");
 		return FALSE;
 	}
 	
 	if (check_hostile(adder, Ind) ) 
 	{
-		msg_print(adder, "You are hostile to that player.");
+		msg_print(q_ptr, "You are hostile to that player.");
 		return FALSE;
 	}
 
@@ -152,7 +152,7 @@ int party_add(int adder, cptr name)
 	if (!streq(parties[party_id].owner, q_ptr->name))
 	{
 		/* Message */
-		msg_print(adder, "You must be the owner to add someone.");
+		msg_print(q_ptr, "You must be the owner to add someone.");
 
 		/* Abort */
 		return FALSE;
@@ -162,7 +162,7 @@ int party_add(int adder, cptr name)
 	if (p_ptr->party != 0)
 	{
 		/* Message */
-		msg_print(adder, "That player is already in a party.");
+		msg_print(q_ptr, "That player is already in a party.");
 
 		/* Abort */
 		return FALSE;
@@ -175,7 +175,7 @@ int party_add(int adder, cptr name)
 	parties[party_id].num++;
 
 	/* Tell him about it */
-	msg_format(Ind, "You've been added to party '%s'.", parties[party_id].name);
+	msg_format(p_ptr, "You've been added to party '%s'.", parties[party_id].name);
 
 	/* Set his party number */
 	p_ptr->party = party_id;
@@ -215,7 +215,7 @@ int party_remove(int remover, cptr name)
 	if (Ind == 0)
 	{
 		/* Oops */
-		msg_print(remover, "That player is not currently in the game.");
+		msg_print(q_ptr, "That player is not currently in the game.");
 
 		return FALSE;
 	}
@@ -224,7 +224,7 @@ int party_remove(int remover, cptr name)
 	if (!streq(parties[party_id].owner, q_ptr->name))
 	{
 		/* Message */
-		msg_print(remover, "You must be the owner to delete someone.");
+		msg_print(q_ptr, "You must be the owner to delete someone.");
 
 		/* Abort */
 		return FALSE;
@@ -234,7 +234,7 @@ int party_remove(int remover, cptr name)
 	if (!player_in_party(party_id, Ind))
 	{
 		/* Message */
-		msg_print(remover, "You can only delete party members.");
+		msg_print(q_ptr, "You can only delete party members.");
 
 		/* Abort */
 		return FALSE;
@@ -255,7 +255,7 @@ int party_remove(int remover, cptr name)
 			if (player_in_party(party_id, i))
 			{
 				Players[i]->party = 0;
-				msg_print(i, "Your party has been disbanded.");
+				msg_print(Players[i], "Your party has been disbanded.");
 				send_party_info(i);
 			}
 		}
@@ -277,7 +277,7 @@ int party_remove(int remover, cptr name)
 		p_ptr->party = 0;
 
 		/* Messages */
-		msg_print(Ind, "You have been removed from your party.");
+		msg_print(p_ptr, "You have been removed from your party.");
 		party_msg_format(party_id, "%s has been removed from the party.", p_ptr->name);
 
 		/* Resend info */
@@ -299,7 +299,7 @@ void party_leave(int Ind)
 	/* Make sure he belongs to a party */
 	if (!party_id)
 	{
-		msg_print(Ind, "You don't belong to a party.");
+		msg_print(p_ptr, "You don't belong to a party.");
 		return;
 	}
 
@@ -318,7 +318,7 @@ void party_leave(int Ind)
 	p_ptr->party = 0;
 
 	/* Inform people */
-	msg_print(Ind, "You have been removed from your party.");
+	msg_print(p_ptr, "You have been removed from your party.");
 	party_msg_format(party_id, "%s has left the party.", p_ptr->name);
 
 	/* Resend info */
@@ -338,7 +338,7 @@ void party_msg(int party_id, cptr msg)
 	{
 		/* Check this guy */
 		if (player_in_party(party_id, i))
-			msg_print_aux(i, msg, MSG_WHISPER);
+			msg_print_aux(Players[i], msg, MSG_WHISPER);
 	}
 }
 
@@ -406,7 +406,7 @@ void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
 		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
 		{
 			/* Send the message */
-			msg_print_aux(i, buf, type);
+			msg_print_aux(p_ptr, buf, type);
 		}
 	}
 }
@@ -573,7 +573,7 @@ bool add_hostility(int Ind, cptr name)
 	if (cfg_pvp_hostility > 2)
 	{
 		/* Message */
-		msg_print(Ind, "You cannot be hostile.");
+		msg_print(p_ptr, "You cannot be hostile.");
 
 		return FALSE;
 	}
@@ -582,7 +582,7 @@ bool add_hostility(int Ind, cptr name)
 	if (streq(name, p_ptr->name))
 	{
 		/* Message */
-		msg_print(Ind, "You cannot be hostile toward yourself.");
+		msg_print(p_ptr, "You cannot be hostile toward yourself.");
 
 		return FALSE;
 	}
@@ -599,7 +599,7 @@ bool add_hostility(int Ind, cptr name)
 		if (p_ptr->party && player_in_party(p_ptr->party, i))
 		{
 			/* Message */
-			msg_format(Ind, "%^s is in your party!", q_ptr->name);
+			msg_format(p_ptr, "%^s is in your party!", q_ptr->name);
 
 			return FALSE;
 		}
@@ -611,7 +611,7 @@ bool add_hostility(int Ind, cptr name)
 			if (h_ptr->id == q_ptr->id)
 			{
 				/* Message */
-				msg_format(Ind, "You are already hostile toward %s.", q_ptr->name);
+				msg_format(p_ptr, "You are already hostile toward %s.", q_ptr->name);
 
 				return FALSE;
 			}
@@ -628,10 +628,10 @@ bool add_hostility(int Ind, cptr name)
 		p_ptr->hostile = h_ptr;
 
 		/* Message */
-		msg_format(Ind, "You are now hostile toward %s.", q_ptr->name);
+		msg_format(p_ptr, "You are now hostile toward %s.", q_ptr->name);
 		
 		/* Notify the victim */
-		if (cfg_pvp_notify) msg_format(i, "%s is now hostile towards you.", p_ptr->name);
+		if (cfg_pvp_notify) msg_format(q_ptr, "%s is now hostile towards you.", p_ptr->name);
 
 		/* Success */
 		return TRUE;
@@ -647,7 +647,7 @@ bool add_hostility(int Ind, cptr name)
 			if (h_ptr->id == 0 - i)
 			{
 				/* Message */
-				msg_format(Ind, "You are already hostile toward party '%s'.", parties[i].name);
+				msg_format(p_ptr, "You are already hostile toward party '%s'.", parties[i].name);
 
 				return FALSE;
 			}
@@ -664,14 +664,14 @@ bool add_hostility(int Ind, cptr name)
 		p_ptr->hostile = h_ptr;
 
 		/* Message */
-		msg_format(Ind, "You are now hostile toward party '%s'.", parties[i].name);
+		msg_format(p_ptr, "You are now hostile toward party '%s'.", parties[i].name);
 
 		/* Success */
 		return TRUE;
 	}
 #endif
 	/* Couldn't find player */
-	msg_format(Ind, "%^s is not currently in the game.", name);
+	msg_format(p_ptr, "%^s is not currently in the game.", name);
 
 	return FALSE;
 }
@@ -713,7 +713,7 @@ bool remove_hostility(int Ind, cptr name)
 				}
 
 				/* Message */
-				msg_format(Ind, "No longer hostile toward %s.", name);
+				msg_format(p_ptr, "No longer hostile toward %s.", name);
 
 				/* Delete node */
 				KILL(h_ptr);
@@ -741,7 +741,7 @@ bool remove_hostility(int Ind, cptr name)
 				}
 
 				/* Message */
-				msg_format(Ind, "No longer hostile toward party '%s'.", name);
+				msg_format(p_ptr, "No longer hostile toward party '%s'.", name);
 
 				/* Delete node */
 				KILL(h_ptr, hostile_type);
@@ -754,7 +754,7 @@ bool remove_hostility(int Ind, cptr name)
 	}
 
 	/* Message */
-	msg_format(Ind, "You are not hostile toward %s.", name);
+	msg_format(p_ptr, "You are not hostile toward %s.", name);
 
 	/* Failure */
 	return FALSE;

@@ -1847,13 +1847,12 @@ static void msg_flush(int x)
  * XXX XXX XXX Note that "msg_print(NULL)" will clear the top line
  * even if no messages are pending.  This is probably a hack.
  */
-void msg_print(int Ind, cptr msg)
+void msg_print(player_type *p_ptr, cptr msg)
 {
-	msg_print_aux(Ind, msg, MSG_GENERIC);
+	msg_print_aux(p_ptr, msg, MSG_GENERIC);
 }
-void msg_print_aux(int Ind, cptr msg, u16b type)
+void msg_print_aux(player_type *p_ptr, cptr msg, u16b type)
 {
-	player_type *p_ptr = Players[Ind];
 	bool log = TRUE;
 	bool add = FALSE;
 	bool dup = FALSE;
@@ -1868,7 +1867,7 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 
 	/* Log messages for each player, so we can dump last messages
 	 * in server-side character dumps */
-	if(msg && Ind && log)
+	if(msg && p_ptr && log)
 	{
 		add = TRUE;
 		/* Ensure we know where the last message is */
@@ -1899,28 +1898,28 @@ void msg_print_aux(int Ind, cptr msg, u16b type)
 		/* Maintain a circular buffer */
 		if(p_ptr->msg_hist_ptr == MAX_MSG_HIST)
 			p_ptr->msg_hist_ptr = 0;
-		plog_fmt("%s: %s",Players[Ind]->name,msg);
+		plog_fmt("%s: %s", p_ptr->name, msg);
 	}
 	else if(msg && log)
 	{
-		plog_fmt("%d: %s",Ind,msg);
-	}; 	
+		plog_fmt("%d: %s", 0, msg);
+	}
 
 	/* Hack -- repeated message of the same type */
 	if (dup && type == p_ptr->msg_last_type)
 	{
-		send_message_repeat(Ind, type);
+		send_message_repeat(p_ptr, type);
 		return;
 	}
 	
-	/* Sent last type sent */
-	p_ptr->msg_last_type = type;	
+	/* Remember last type sent */
+	p_ptr->msg_last_type = type;
 	
 	/* Ahh, the beautiful simplicity of it.... --KLJ-- */
-	send_message(Ind, msg, type);
+	send_message(p_ptr, msg, type);
 }
 
-void msg_broadcast(int Ind, cptr msg)
+void msg_broadcast(player_type *p_ptr, cptr msg)
 {
 	int i;
 
@@ -1928,11 +1927,11 @@ void msg_broadcast(int Ind, cptr msg)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Skip the specified player */
-		if (i == Ind) continue;
+		if (Players[i] == p_ptr) continue;
 		printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
-	 	msg_print_aux(i, msg, MSG_CHAT);
-	 }
+		msg_print_aux(p_ptr, msg, MSG_CHAT);
+	}
 
 	/* Send to console */
 	console_print((char*)msg, 0);
@@ -1944,13 +1943,13 @@ void msg_channel(int chan, cptr msg)
 	/* Log to file */
 	if (channels[chan].mode & CM_PLOG)
 	{
-		plog(msg);	
+		plog(msg);
 	}
 	/* Tell every player */
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		if (Players[i]->on_channel[chan] & UCM_EAR)
-			msg_print_aux(i, msg, MSG_CHAT + chan);
+			msg_print_aux(Players[i], msg, MSG_CHAT + chan);
 	}
 	/* And every console */
 	console_print((char*)msg, chan);
@@ -1960,7 +1959,7 @@ void msg_channel(int chan, cptr msg)
 /*
  * Display a formatted message, using "vstrnfmt()" and "msg_print()".
  */
-void msg_format(int Ind, cptr fmt, ...)
+void msg_format(player_type *p_ptr, cptr fmt, ...)
 {
 	va_list vp;
 
@@ -1976,10 +1975,10 @@ void msg_format(int Ind, cptr fmt, ...)
 	va_end(vp);
 
 	/* Display */
-	msg_print(Ind, buf);
+	msg_print(p_ptr, buf);
 }
 /* Dirty hack */
-void msg_format_type(int Ind, u16b type, cptr fmt, ...)
+void msg_format_type(player_type *p_ptr, u16b type, cptr fmt, ...)
 {
 	va_list vp;
 
@@ -1995,7 +1994,7 @@ void msg_format_type(int Ind, u16b type, cptr fmt, ...)
 	va_end(vp);
 
 	/* Display */
-	msg_print_aux(Ind, buf, type);
+	msg_print_aux(p_ptr, buf, type);
 }
 
 
@@ -2006,11 +2005,10 @@ void msg_format_type(int Ind, u16b type, cptr fmt, ...)
  * This serves two functions: a dungeon level-wide chat, and a way
  * to attract attention of other nearby players.
  */
-void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender, ...)
+void msg_format_complex_far(player_type *p_ptr, player_type *q_ptr, u16b type, cptr fmt, cptr sender, ...)
 {
 	va_list vp;
 
-	player_type *p_ptr = Players[Ind];
 	int Depth, y, x, i;
 
 	char buf[1024];
@@ -2037,29 +2035,29 @@ void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender,
 	for (i = 1; i < NumPlayers + 1; i++)
 	{
 		/* Check this player */
-		p_ptr = Players[i];
+		player_type *qq_ptr = Players[i];
 
 		/* Don't send the message to the player who caused it */
-		if (Ind == i) continue;
+		if (p_ptr == qq_ptr) continue;
 
 		/* Don't send the message to the second ignoree */
-		if (Ind2 == i) continue;
+		if (q_ptr == qq_ptr) continue;
 
 		/* Make sure this player is at this depth */
-		if (p_ptr->dun_depth != Depth) continue;
+		if (qq_ptr->dun_depth != Depth) continue;
 
 		/* Can he see this player? */
-		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		if (qq_ptr->cave_flag[y][x] & CAVE_VIEW)
 		{
 			/* Send the message */
-			msg_print_aux(i, buf_vis, type);
+			msg_print_aux(qq_ptr, buf_vis, type);
 			/* Disturb player */
-			disturb(i, 0, 0);
+			disturb(Get_Ind[qq_ptr->conn], 0, 0);
 		}
 		else
 		{
 			/* Send "invisible" message (e.g. "Someone yells") */
-			msg_print_aux(i, buf_invis, type);
+			msg_print_aux(qq_ptr, buf_invis, type);
 		}
 	}
 }
@@ -2072,9 +2070,8 @@ void msg_format_complex_far(int Ind, int Ind2, u16b type, cptr fmt, cptr sender,
  * by a player.  The message is not sent to the player who performed
  * the action.
  */
-void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg)
+void msg_print_complex_near(player_type *p_ptr, player_type *q_ptr, u16b type, cptr msg)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth, y, x, i;
 
 	/* Extract player's location */
@@ -2086,35 +2083,35 @@ void msg_print_complex_near(int Ind, int Ind2, u16b type, cptr msg)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Check this player */
-		p_ptr = Players[i];
+		player_type *qq_ptr = Players[i];
 
 		/* Don't send the message to the player who caused it */
-		if (Ind == i) continue;
+		if (p_ptr == qq_ptr) continue;
 
 		/* Don't send the message to the second ignoree */
-		if (Ind2 == i) continue;
+		if (q_ptr == qq_ptr) continue;
 		
 		/* Make sure this player is at this depth */
-		if (p_ptr->dun_depth != Depth) continue;
+		if (qq_ptr->dun_depth != Depth) continue;
 
 		/* Can he see this player? */
-		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
+		if (qq_ptr->cave_flag[y][x] & CAVE_VIEW)
 		{
 			/* Send the message */
-			msg_print_aux(i, msg, type);
+			msg_print_aux(qq_ptr, msg, type);
 		}
 	}
 }
-void msg_print_near(int Ind, cptr msg)
+void msg_print_near(player_type *p_ptr, cptr msg)
 {
-	msg_print_complex_near(Ind, Ind, MSG_GENERIC, msg);
+	msg_print_complex_near(p_ptr, p_ptr, MSG_GENERIC, msg);
 }
 
 
 /*
  * Same as above, except send a formatted message.
  */
-void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...)
+void msg_format_complex_near(player_type *p_ptr, player_type *q_ptr, u16b type, cptr fmt, ...)
 {
 	va_list vp;
 
@@ -2130,9 +2127,9 @@ void msg_format_complex_near(int Ind, int Ind2, u16b type, cptr fmt, ...)
 	va_end(vp);
 
 	/* Display */
-	msg_print_complex_near(Ind, Ind2, type, buf);
+	msg_print_complex_near(p_ptr, q_ptr, type, buf);
 }
-void msg_format_near(int Ind, cptr fmt, ...)
+void msg_format_near(player_type *p_ptr, cptr fmt, ...)
 {
 	va_list vp;
 
@@ -2148,29 +2145,9 @@ void msg_format_near(int Ind, cptr fmt, ...)
 	va_end(vp);
 
 	/* Display */
-	msg_print_near(Ind, buf);
+	msg_print_near(p_ptr, buf);
 }
 
-/* Player-pointer versions of msg_format and msg_print.
- * TODO: this has to be implemented the other way around, msg_print(Ind, ) and friends
- * should be wrappers around msg_print_p(p_ptr, ), but I'm too scared to do this
- * right now, so... [flm] */
-void msg_print_p(player_type *p_ptr, cptr msg)
-{
-	msg_print(Get_Ind[p_ptr->conn], msg);
-}
-void msg_format_p(player_type *p_ptr, cptr fmt, ...)
-{
-	va_list vp;
-	/* Begin the Varargs Stuff */
-	va_start(vp, fmt);
-
-	msg_format(Get_Ind[p_ptr->conn], fmt, vp);
-
-	/* End the Varargs Stuff */
-	va_end(vp);
-
-}
 
 /* Analyze the 'search' string and determine if it has any special
  *  target.
@@ -2343,7 +2320,7 @@ void assist_whisper(int Ind, cptr search)
 	if (!target)
 	{
 		/* Relay error */
-		msg_print(Ind, error);
+		msg_print(Players[Ind], error);
 
 		/* Give up */
 		return;
@@ -2397,14 +2374,14 @@ void channel_join(int Ind, cptr channel, bool quiet)
 				channels[i].num++;
 				p_ptr->on_channel[i] |= UCM_EAR;
 				send_channel(Ind, CHAN_JOIN, i, channel);
-				if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+				if (!quiet) msg_format(p_ptr,"Listening to channel %s",channel);
 			}
 			/* Select channel */
 			else
 			{
 				p_ptr->main_channel = i;
 				send_channel(Ind, CHAN_SELECT, i, channel);
-				if (!quiet) msg_format(Ind,"Channel changed to %s",channel);
+				if (!quiet) msg_format(p_ptr,"Channel changed to %s",channel);
 			}
 			return;
 		}
@@ -2420,12 +2397,12 @@ void channel_join(int Ind, cptr channel, bool quiet)
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
 		send_channel(Ind, CHAN_JOIN, last_free, channel);
-		if (!quiet) msg_format(Ind,"Listening to channel %s",channel);
+		if (!quiet) msg_format(p_ptr, "Listening to channel %s", channel);
 	}
 	/* All channel slots are used up */
 	else
 	{
-		if (!quiet) msg_format(Ind,"Unable to join channel %s",channel);
+		if (!quiet) msg_format(p_ptr, "Unable to join channel %s", channel);
 	}
 }
 /* Actual code for leaving channels */
@@ -2435,7 +2412,7 @@ void channel_leave_id(int Ind, int i, bool quiet)
 	if (!i || !(p_ptr->on_channel[i] & UCM_EAR)) return;
 	
 	channels[i].num--;
-	if (!quiet) msg_format(Ind,"Left channel %s",channels[i].name);
+	if (!quiet) msg_format(p_ptr, "Left channel %s", channels[i].name);
 	if (channels[i].num <= 0 && !(channels[i].mode & CM_SERVICE))
 	{
 		channels[i].name[0] = '\0';
@@ -2600,7 +2577,7 @@ void player_talk_aux(int Ind, cptr message)
 		if (!(target = find_chat_target(search, error)))
 		{
 			/* Error */
-			msg_print(Ind, error);
+			msg_print(p_ptr, error);
 			
 			/* Done */
 			return;
@@ -2646,8 +2623,8 @@ void player_talk_aux(int Ind, cptr message)
 						break;
 					}
 					/* Send somewhere */
-					msg_format_type(Ind, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
-					msg_format_complex_near(Ind, Ind, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
+					msg_format_type(p_ptr, MSG_TALK, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_near(p_ptr, p_ptr, MSG_TALK, "%s %ss, \"%s\"%c", sender, verb, msg, punct);
 				break;
 				case 2: /* "&yell" */
 					verb = "yell";
@@ -2668,8 +2645,8 @@ void player_talk_aux(int Ind, cptr message)
 						break;
 					}
 					/* Send somewhere */
-					msg_format_type(Ind, MSG_YELL, "You %s, \"%s\"%c", verb, msg, punct);
-					msg_format_complex_far(Ind, Ind, MSG_YELL, "%ss, \"%s\"%c", sender, verb, msg, punct);
+					msg_format_type(p_ptr, MSG_YELL, "You %s, \"%s\"%c", verb, msg, punct);
+					msg_format_complex_far(p_ptr, p_ptr, MSG_YELL, "%ss, \"%s\"%c", sender, verb, msg, punct);
 				break;
 			}
 			return;
@@ -2685,10 +2662,10 @@ void player_talk_aux(int Ind, cptr message)
 		q_ptr = Players[target];
 
 		/* Send message to target */
-		msg_format_type(target, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(q_ptr, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Also send back to sender */
-		msg_format_type(Ind, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
+		msg_format_type(p_ptr, MSG_WHISPER, "[%s:%s] %s", q_ptr->name, sender, colon);
 
 		/* Done */
 		return;
@@ -2704,7 +2681,7 @@ void player_talk_aux(int Ind, cptr message)
 		/* Also send back to sender if the sender is not in
 		 * the party being messaged. */
 		if (p_ptr->party != 0 - target)
-			msg_format(Ind, "[%s:%s] %s",
+			msg_format(p_ptr, "[%s:%s] %s",
 				   parties[0 - target].name, sender, colon);
 
 		/* Done */
@@ -2724,11 +2701,11 @@ void player_talk_aux(int Ind, cptr message)
 			/* Send message */
 			if(Ind)
 			{
-				msg_format_type(i, MSG_CHAT + dest_chan, "[%s] %s", sender, message);
+				msg_format_type(q_ptr, MSG_CHAT + dest_chan, "[%s] %s", sender, message);
 			}
 			else
 			{
-				msg_format_type(i, MSG_CHAT + dest_chan, "%s", message);
+				msg_format_type(q_ptr, MSG_CHAT + dest_chan, "%s", message);
 			}
 		}
 	}

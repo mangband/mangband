@@ -77,7 +77,7 @@ void do_cmd_eat_food(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
-		msg_print(Ind, "You cannot eat food!");
+		msg_print(p_ptr, "You cannot eat food!");
 		return;
 	}
 
@@ -169,7 +169,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
-		msg_print(Ind, "You cannot quaff potions!");
+		msg_print(p_ptr, "You cannot quaff potions!");
 		return;
 	}
 
@@ -187,7 +187,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -274,22 +274,22 @@ void do_cmd_read_scroll(int Ind, int item)
 	/* Check some conditions */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
-		msg_print(Ind, "You cannot read scrolls!");
+		msg_print(p_ptr, "You cannot read scrolls!");
 		return;
 	}
 	if (p_ptr->blind)
 	{
-		msg_print(Ind, "You can't see anything.");
+		msg_print(p_ptr, "You can't see anything.");
 		return;
 	}
 	if (no_lite(Ind))
 	{
-		msg_print(Ind, "You have no light to read by.");
+		msg_print(p_ptr, "You have no light to read by.");
 		return;
 	}
 	if (p_ptr->confused)
 	{
-		msg_print(Ind, "You are too confused!");
+		msg_print(p_ptr, "You are too confused!");
 		return;
 	}
 
@@ -308,7 +308,7 @@ void do_cmd_read_scroll(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -427,7 +427,7 @@ void do_cmd_use_staff(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
-		msg_print(Ind, "You cannot use staves!");
+		msg_print(p_ptr, "You cannot use staves!");
 		return;
 	}
 
@@ -445,7 +445,7 @@ void do_cmd_use_staff(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -463,7 +463,7 @@ void do_cmd_use_staff(int Ind, int item)
 	/* Mega-Hack -- refuse to use a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
-		msg_print(Ind, "You must first pick up the staffs.");
+		msg_print(p_ptr, "You must first pick up the staffs.");
 		return;
 	}
 
@@ -507,7 +507,7 @@ void do_cmd_use_staff(int Ind, int item)
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to use the staff properly.");
+		msg_print(p_ptr, "You failed to use the staff properly.");
 		return;
 	}
 
@@ -515,7 +515,7 @@ void do_cmd_use_staff(int Ind, int item)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "The staff has no charges left.");
+		msg_print(p_ptr, "The staff has no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 		
 		/* Redraw */
@@ -589,7 +589,7 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 			item = inven_carry(p_ptr, &tmp_obj);
 	
 			/* Message */
-			msg_print(Ind, "You unstack your staff.");
+			msg_print(p_ptr, "You unstack your staff.");
 		}
 	}
 	
@@ -645,7 +645,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
-		msg_print(Ind, "You cannot aim wands!");
+		msg_print(p_ptr, "You cannot aim wands!");
 		return;
 	}
 
@@ -663,7 +663,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -681,7 +681,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Mega-Hack -- refuse to aim a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
-		msg_print(Ind, "You must first pick up the wands.");
+		msg_print(p_ptr, "You must first pick up the wands.");
 		return;
 	}
 
@@ -727,7 +727,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to use the wand properly.");
+		msg_print(p_ptr, "You failed to use the wand properly.");
 		return;
 	}
 
@@ -735,7 +735,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "The wand has no charges left.");
+		msg_print(p_ptr, "The wand has no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 
 		/* Redraw */
@@ -791,7 +791,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 			item = inven_carry(p_ptr, &tmp_obj);
 	
 			/* Message */
-			msg_print(Ind, "You unstack your wand.");
+			msg_print(p_ptr, "You unstack your wand.");
 		}
 	}
 	
@@ -843,7 +843,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
 	{
-		msg_print(Ind, "You cannot zap rods!");
+		msg_print(p_ptr, "You cannot zap rods!");
 		return;
 	}
 
@@ -861,7 +861,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -880,7 +880,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	/* Mega-Hack -- refuse to zap a pile from the ground */
 	if ((item < 0) && (o_ptr->number > 1))
 	{
-		msg_print(Ind, "You must first pick up the rods.");
+		msg_print(p_ptr, "You must first pick up the rods.");
 		return;
 	}
 
@@ -960,7 +960,7 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 			item = inven_carry(p_ptr, &tmp_obj);
 
 			/* Message */
-			msg_print(Ind, "You unstack your rod.");
+			msg_print(p_ptr, "You unstack your rod.");
 		}
 	}
 }
@@ -1010,7 +1010,7 @@ void do_cmd_activate(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
-		msg_print(Ind, "You cannot activate items!");
+		msg_print(p_ptr, "You cannot activate items!");
 		return;
 	}
 
@@ -1025,7 +1025,7 @@ void do_cmd_activate(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -1037,7 +1037,7 @@ void do_cmd_activate(int Ind, int item)
 	/* Test the item */
 	if (!item_tester_hook_activate(Ind, o_ptr))
 	{
-		msg_print(Ind, "You cannot activate that item.");
+		msg_print(p_ptr, "You cannot activate that item.");
 		return;
 	}
 
@@ -1069,7 +1069,7 @@ void do_cmd_activate(int Ind, int item)
 	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "You failed to activate it properly.");
+		msg_print(p_ptr, "You failed to activate it properly.");
 		return;
 	}
 
@@ -1106,7 +1106,7 @@ void do_cmd_refill_potion(int Ind, int item)
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
 	{
-		msg_print(Ind, "You cannot refill potions!");
+		msg_print(p_ptr, "You cannot refill potions!");
 		return;
 	}
 
@@ -1124,7 +1124,7 @@ void do_cmd_refill_potion(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -1191,7 +1191,7 @@ void do_cmd_refill_potion(int Ind, int item)
 			new_sval = SV_POTION_DEATH;
 	}
 
-	msg_print(Ind, "The bottle shimmers and changes color.");
+	msg_print(p_ptr, "The bottle shimmers and changes color.");
 
 	/* Destroy the bottle in the pack */
 	if (item >= 0)

@@ -204,12 +204,12 @@ void do_cmd_feeling(int Ind)
 	/* No useful feeling in town */
 	if (!p_ptr->dun_depth)
 	{
-		msg_print(Ind, "Looks like a typical town.");
+		msg_print(p_ptr, "Looks like a typical town.");
 		return;
 	}
 
 	/* Display the feeling */
-	msg_print(Ind, do_cmd_feeling_text[p_ptr->feeling]);
+	msg_print(p_ptr, do_cmd_feeling_text[p_ptr->feeling]);
 }
 
 

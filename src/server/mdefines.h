@@ -606,7 +606,7 @@
 /* Hack -- overloaded guard-inscriptions */
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
 /* Hack -- check guard inscription and abort (chunk of code) */
-#define __trap(I,X) if ((X)) { msg_print((I), "The item's inscription prevents it."); return; }
+#define __trap(I,X) if ((X)) { msg_print(Players[(I)], "The item's inscription prevents it."); return; }
 /* Hack -- ensure a variable fits into ddx/ddy array bounds */
 #define VALID_DIR(D) ((D) > 0 && (D) < 10)
 

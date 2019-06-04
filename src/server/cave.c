@@ -4195,3 +4195,25 @@ bool is_quest(int level)
 	/* Nope */
 	return (FALSE);
 }
+
+/* Player on cave */
+player_type* player_on_cave_p(cave_type *c_ptr)
+{
+	player_type *p_ptr;
+
+	/* Nobody, or a monster */
+	if (c_ptr->m_idx >= 0) return NULL;
+
+	/* A player! */
+	p_ptr = Players[0 - c_ptr->m_idx];
+
+	/* Changing levels -- not on a level */
+	if (p_ptr->new_level_flag == TRUE) return NULL;
+}
+player_type* player_on_cave(int Depth, int y, int x)
+{
+	/* Paranoia */
+	if (!cave[Depth]) return NULL;
+
+	return player_on_cave_p(&cave[Depth][y][x]);
+}

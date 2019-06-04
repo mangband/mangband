@@ -1105,7 +1105,7 @@ static void spell_wonder(int Ind, int dir)
 	int beam = beam_chance(Ind);
 
 	if (die > 100)
-		msg_print(Ind, "You feel a surge of power!");
+		msg_print(p_ptr, "You feel a surge of power!");
 	if (die < 8) clone_monster(Ind, dir);
 	else if (die < 14) speed_monster(Ind, dir);
 	else if (die < 26) heal_monster(Ind, dir);
@@ -1147,7 +1147,7 @@ static void spell_wonder(int Ind, int dir)
 }
 
 
-#define msg_spell(A) msg_format_complex_near(Ind, Ind, MSG_PY_SPELL, (A), p_ptr->name)
+#define msg_spell(A) msg_format_complex_near(p_ptr, p_ptr, MSG_PY_SPELL, (A), p_ptr->name)
 static bool cast_mage_spell(int Ind, int spell)
 {
 	player_type 	*p_ptr = Players[Ind];
@@ -1286,7 +1286,7 @@ static bool cast_mage_spell(int Ind, int spell)
 		case SPELL_SPEAR_OF_LIGHT: /* spear of light */
 		{
 			if (!get_aim_dir(Ind, &dir)) return (FALSE);
-			msg_print(Ind, "A line of blue shimmering light appears.");
+			msg_print(p_ptr, "A line of blue shimmering light appears.");
 			msg_spell("A line of blue shimmering light appears out of %s's hands.");
 			lite_line(Ind, dir);
 			break;
@@ -1649,7 +1649,7 @@ static bool cast_mage_spell(int Ind, int spell)
 	return (TRUE);
 }
 
-#define msg_prayer(A) msg_format_complex_near(Ind, Ind, MSG_PY_PRAYER, (A), p_ptr->name)
+#define msg_prayer(A) msg_format_complex_near(p_ptr, p_ptr, MSG_PY_PRAYER, (A), p_ptr->name)
 static bool cast_priest_spell(int Ind, int spell)
 {
 	player_type 	*p_ptr = Players[Ind];
@@ -2032,7 +2032,7 @@ static bool cast_priest_spell(int Ind, int spell)
 			msg_prayer("%s speaks a holy curse on nearby evil!");
 			if (banish_evil(Ind, 100))
 			{
-				msg_print(Ind, "The power of your god banishes evil!");
+				msg_print(p_ptr, "The power of your god banishes evil!");
 			}
 			break;
 		}
@@ -2130,7 +2130,7 @@ static bool cast_priest_spell(int Ind, int spell)
 		/* Paranoia: shouldn't happen with safe clients */
 		default:
 		{
-			msg_print(Ind, "You cannot project that spell on other players.");
+			msg_print(p_ptr, "You cannot project that spell on other players.");
 			return (FALSE);
 		}
 	}

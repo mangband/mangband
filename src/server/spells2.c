@@ -114,22 +114,22 @@ bool hp_player(int Ind, int num)
 		{
 			if (num == 0)
 			{
-				msg_print(Ind, "You feel a little better.");
+				msg_print(p_ptr, "You feel a little better.");
 			}
 			else
 			{
-				msg_print(Ind, "You feel better.");
+				msg_print(p_ptr, "You feel better.");
 			}
 		}
 		else
 		{
 			if (num < 7)
 			{
-				msg_print(Ind, "You feel much better.");
+				msg_print(p_ptr, "You feel much better.");
 			}
 			else
 			{
-				msg_print(Ind, "You feel very good.");
+				msg_print(p_ptr, "You feel very good.");
 			}
 		}
 
@@ -199,7 +199,7 @@ bool warding_glyph(int Ind)
 	/* Can't create in town */
 	if (level_is_town(p_ptr->dun_depth))
 	{
-		msg_print(Ind, "The very soil of the Town prevents you.");
+		msg_print(p_ptr, "The very soil of the Town prevents you.");
 		return FALSE;
 	}
 
@@ -207,7 +207,7 @@ bool warding_glyph(int Ind)
 	/* Require clean space */
 	if (!cave_clean_bold(p_ptr->dun_depth, p_ptr->py, p_ptr->px))
 	{
-		msg_print(Ind, "The object resists the spell.");
+		msg_print(p_ptr, "The object resists the spell.");
 		return FALSE;
 	}
 
@@ -217,7 +217,7 @@ bool warding_glyph(int Ind)
 	/* Don't allow glyphs inside houses */
 	if (p_ptr->dun_depth < 0 && c_ptr->info & CAVE_ICKY)
 	{
-		msg_print(Ind, "The floor of the house resists your spell.");
+		msg_print(p_ptr, "The floor of the house resists your spell.");
 		return FALSE;
 	}
 
@@ -282,7 +282,7 @@ bool do_dec_stat(int Ind, int stat)
 	if (sust)
 	{
 		/* Message */
-		msg_format(Ind, "You feel %s for a moment, but the feeling passes.",
+		msg_format(p_ptr, "You feel %s for a moment, but the feeling passes.",
 		           desc_stat_neg[stat]);
 
 		/* Notice effect */
@@ -293,7 +293,7 @@ bool do_dec_stat(int Ind, int stat)
 	if (dec_stat(Ind, stat, 10, FALSE))
 	{
 		/* Message */
-		msg_format(Ind, "You feel very %s.", desc_stat_neg[stat]);
+		msg_format(p_ptr, "You feel very %s.", desc_stat_neg[stat]);
 		sound(Ind, MSG_DRAIN_STAT);
 
 		/* Notice effect */
@@ -314,7 +314,7 @@ bool do_res_stat(int Ind, int stat)
 	if (res_stat(Ind, stat))
 	{
 		/* Message */
-		msg_format(Ind, "You feel less %s.", desc_stat_neg[stat]);
+		msg_format(Players[Ind], "You feel less %s.", desc_stat_neg[stat]);
 
 		/* Notice */
 		return (TRUE);
@@ -339,7 +339,7 @@ bool do_inc_stat(int Ind, int stat)
 	if (inc_stat(Ind, stat))
 	{
 		/* Message */
-		msg_format(Ind, "Wow!  You feel very %s!", desc_stat_pos[stat]);
+		msg_format(Players[Ind], "Wow!  You feel very %s!", desc_stat_pos[stat]);
 
 		/* Notice */
 		return (TRUE);
@@ -349,7 +349,7 @@ bool do_inc_stat(int Ind, int stat)
 	if (res)
 	{
 		/* Message */
-		msg_format(Ind, "You feel less %s.", desc_stat_neg[stat]);
+		msg_format(Players[Ind], "You feel less %s.", desc_stat_neg[stat]);
 
 		/* Notice */
 		return (TRUE);
@@ -489,7 +489,7 @@ bool restore_level(int Ind)
 	if (p_ptr->exp < p_ptr->max_exp)
 	{
 		/* Message */
-		msg_print(Ind, "You feel your life energies returning.");
+		msg_print(p_ptr, "You feel your life energies returning.");
 
 		/* Restore the experience */
 		p_ptr->exp = p_ptr->max_exp;
@@ -1144,7 +1144,7 @@ void set_recall(int Ind, object_type * o_ptr)
 	/* Ironmen don't recall unless they've won */
 	if (cfg_ironman && !p_ptr->total_winner)
 	{
-		msg_print(Ind,"Nothing happens.");
+		msg_print(p_ptr,"Nothing happens.");
 		return;
 	}
 	
@@ -1193,15 +1193,15 @@ void set_recall(int Ind, object_type * o_ptr)
 	
 		p_ptr->recall_depth = recall_depth;
 		p_ptr->word_recall = (s16b)rand_int(20) + 15;
-		msg_print(Ind, "The air about you becomes charged...");
-		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "The air about %s becomes charged...", p_ptr->name); 
+		msg_print(p_ptr, "The air about you becomes charged...");
+		msg_format_complex_near(p_ptr, p_ptr, MSG_PY_MISC, "The air about %s becomes charged...", p_ptr->name);
 	}
 	else
 	{
 		p_ptr->word_recall = 0;
-		msg_print(Ind, "A tension leaves the air around you...");
-		msg_format_complex_near(Ind, Ind, MSG_PY_MISC, "A tension leaves the air around %s...", p_ptr->name);
-	}	
+		msg_print(p_ptr, "A tension leaves the air around you...");
+		msg_format_complex_near(p_ptr, p_ptr, MSG_PY_MISC, "A tension leaves the air around %s...", p_ptr->name);
+	}
 
 }
 
@@ -1392,7 +1392,7 @@ bool detect_treasure(int Ind)
 	if (detect)
 	{
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of buried treasure!", p_ptr->name);
-		msg_print(Ind, "You sense the presence of buried treasure!");
+		msg_print(p_ptr, "You sense the presence of buried treasure!");
 	}
 
 	return (detect);
@@ -1617,8 +1617,8 @@ bool detect_invisible(int Ind, bool pause)
 	
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
-		msg_print(Ind, "You sense the presence of invisible creatures!");
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, "You sense the presence of invisible creatures!");
+		msg_print(p_ptr, NULL);
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
@@ -1701,8 +1701,8 @@ bool detect_evil(int Ind)
 
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
-		msg_print(Ind, "You sense the presence of evil creatures!");
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, "You sense the presence of evil creatures!");
+		msg_print(p_ptr, NULL);
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
@@ -1811,8 +1811,8 @@ bool detect_creatures(int Ind, bool pause)
 
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
-		msg_print(Ind, "You sense the presence of creatures!");
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, "You sense the presence of creatures!");
+		msg_print(p_ptr, NULL);
 
 		/* Hack -- Pause */
 		if (option_p(p_ptr, PAUSE_AFTER_DETECT))
@@ -1852,8 +1852,8 @@ bool detection(int Ind)
 		detect = TRUE;
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
-		msg_print(Ind, "You sense the presence of creatures!");
-		msg_print(Ind, NULL);
+		msg_print(Players[Ind], "You sense the presence of creatures!");
+		msg_print(Players[Ind], NULL);
 
 		/* Hack -- Pause */
 		if (option_p(Players[Ind], PAUSE_AFTER_DETECT))
@@ -2115,7 +2115,7 @@ void stair_creation(int Ind)
 	 */
 	if (!cave_valid_bold(Depth, p_ptr->py, p_ptr->px))
 	{
-		msg_print(Ind, "The object resists the spell.");
+		msg_print(p_ptr, "The object resists the spell.");
 		return;
 	}
 
@@ -2225,7 +2225,7 @@ bool curse_armor(int Ind)
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
 	{
 		/* Cool */
-		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		msg_format(p_ptr, "A %s tries to %s, but your %s resists the effects!",
 		           "terrible black aura", "surround your armor", o_name);
 	}
 
@@ -2233,7 +2233,7 @@ bool curse_armor(int Ind)
 	else
 	{
 		/* Oops */
-		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+		msg_format(p_ptr, "A terrible black aura blasts your %s!", o_name);
 
 		/* Hack -- preserve artifact */
 		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
@@ -2295,7 +2295,7 @@ bool curse_weapon(int Ind)
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
 	{
 		/* Cool */
-		msg_format(Ind, "A %s tries to %s, but your %s resists the effects!",
+		msg_format(p_ptr, "A %s tries to %s, but your %s resists the effects!",
 		           "terrible black aura", "surround your weapon", o_name);
 	}
 
@@ -2303,7 +2303,7 @@ bool curse_weapon(int Ind)
 	else
 	{
 		/* Oops */
-		msg_format(Ind, "A terrible black aura blasts your %s!", o_name);
+		msg_format(p_ptr, "A terrible black aura blasts your %s!", o_name);
 
 		/* Hack -- preserve artifact */
 		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
@@ -2376,7 +2376,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 		 object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		/* Describe */
-		msg_format(Ind, "A %s aura surrounds the %s.", act, o_name);
+		msg_format(p_ptr, "A %s aura surrounds the %s.", act, o_name);
 
 		/* Brand the object */
 		o_ptr->name2 = brand_type;
@@ -2394,7 +2394,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 	else
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(Ind, "The Branding failed.");
+		msg_print(p_ptr, "The Branding failed.");
 	}
 }
 
@@ -2440,7 +2440,7 @@ void brand_ammo(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return;
 		}
 		o_ptr = &o_list[0 - item];
@@ -2448,7 +2448,7 @@ void brand_ammo(int Ind, int item)
 	}
 
 	if (!item_tester_hook_ammo(Ind, o_ptr)) {
-			msg_print(Ind, "You cannot brand that!");
+			msg_print(p_ptr, "You cannot brand that!");
 			return;
 	}
 
@@ -2570,7 +2570,7 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 				    (!(f3 & TR3_PERMA_CURSE)) &&
 				    (o_ptr->to_h >= 0) && (rand_int(100) < 25))
 				{
-					msg_print(Ind, "The curse is broken!");
+					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
 					o_ptr->ident |= ID_SENSE;
 					o_ptr->note = quark_add("uncursed");
@@ -2595,7 +2595,7 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 				    (!(f3 & TR3_PERMA_CURSE)) &&
 				    (o_ptr->to_d >= 0) && (rand_int(100) < 25))
 				{
-					msg_print(Ind, "The curse is broken!");
+					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
 					o_ptr->ident |= ID_SENSE;
 					o_ptr->note = quark_add("uncursed");
@@ -2620,7 +2620,7 @@ bool enchant(int Ind, object_type *o_ptr, int n, int eflag)
 				    (!(f3 & TR3_PERMA_CURSE)) &&
 				    (o_ptr->to_a >= 0) && (rand_int(100) < 25))
 				{
-					msg_print(Ind, "The curse is broken!");
+					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
 					o_ptr->ident |= ID_SENSE;
 					o_ptr->note = quark_add("uncursed");
@@ -2688,7 +2688,7 @@ bool create_artifact_aux(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 			if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
@@ -2705,7 +2705,7 @@ bool create_artifact_aux(int Ind, int item)
 	object_desc(Ind, o_name, o_ptr, FALSE, 0);
 
 	/* Describe */
-	msg_format(Ind, "%s %s glow%s brightly!",
+	msg_format(p_ptr, "%s %s glow%s brightly!",
 		((item >= 0) ? "Your" : "The"), o_name,
 		((o_ptr->number > 1) ? "" : "s"));
 
@@ -2797,7 +2797,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
@@ -2807,7 +2807,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 
 	if (!item_tester_hook(o_ptr))
 	{
-		msg_print(Ind, "Sorry, you cannot enchant that item.");
+		msg_print(p_ptr, "Sorry, you cannot enchant that item.");
 		return (FALSE);
 	}
 
@@ -2815,7 +2815,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 	/* Describe */
-	msg_format(Ind, "%s %s glow%s brightly!",
+	msg_format(p_ptr, "%s %s glow%s brightly!",
 	           ((item >= 0) ? "Your" : "The"), o_name,
 	           ((o_ptr->number > 1) ? "" : "s"));
 
@@ -2831,7 +2831,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 		/*if (flush_failure) flush();*/
 
 		/* Message */
-		msg_print(Ind, "The enchantment failed.");
+		msg_print(p_ptr, "The enchantment failed.");
 	}
 
 	/* Something happened */
@@ -2876,7 +2876,7 @@ bool ident_spell_aux(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
@@ -2926,17 +2926,17 @@ bool ident_spell_aux(int Ind, int item)
 	/* Describe */
 	if (item >= INVEN_WIELD)
 	{
-		msg_format(Ind, "%^s: %s (%c).",
+		msg_format(p_ptr, "%^s: %s (%c).",
 		           describe_use(Ind, item), o_name, index_to_label(item));
 	}
 	else if (item >= 0)
 	{
-		msg_format(Ind, "In your pack: %s (%c).",
+		msg_format(p_ptr, "In your pack: %s (%c).",
 		           o_name, index_to_label(item));
 	}
 	else
 	{
-		msg_format(Ind, "On the ground: %s.",
+		msg_format(p_ptr, "On the ground: %s.",
 		           o_name);
 	}
 
@@ -2981,7 +2981,7 @@ bool identify_fully_item(int Ind, int item)
 	{
 		item = -cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
 		if (item == 0) {
-			msg_print(Ind, "There's nothing on the floor.");
+			msg_print(p_ptr, "There's nothing on the floor.");
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
@@ -3020,17 +3020,17 @@ bool identify_fully_item(int Ind, int item)
 	/* Describe */
 	if (item >= INVEN_WIELD)
 	{
-		msg_format(Ind, "%^s: %s (%c).",
+		msg_format(p_ptr, "%^s: %s (%c).",
 		           describe_use(Ind, item), o_name, index_to_label(item));
 	}
 	else if (item >= 0)
 	{
-		msg_format(Ind, "In your pack: %s (%c).",
+		msg_format(p_ptr, "In your pack: %s (%c).",
 		           o_name, index_to_label(item));
 	}
 	else
 	{
-		msg_format(Ind, "On the ground: %s.",
+		msg_format(p_ptr, "On the ground: %s.",
 		           o_name);
 	}
 
@@ -3112,7 +3112,7 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 	item_tester_hook = item_tester_hook_recharge;
 	if (!item_tester_hook(o_ptr))
 	{
-		msg_print(Ind, "You cannot recharge that item.");
+		msg_print(p_ptr, "You cannot recharge that item.");
 		return (FALSE);
 	}
 
@@ -3128,14 +3128,14 @@ bool recharge_aux(int Ind, int item, int spell_strength)
 	/* Back-fire */
 	if ((i <= 1) || one_in_(i))
 	{
-		msg_print(Ind, "The recharge backfires!");
+		msg_print(p_ptr, "The recharge backfires!");
 
 		reduce_charges(o_ptr, 1);
 
 		/* Destroy the item */
 		if (!cfg_safe_recharge)
 		{
-			msg_print(Ind, "There is a bright flash of light.");
+			msg_print(p_ptr, "There is a bright flash of light.");
 
 			/* Reduce and describe inventory */
 			if (item >= 0)
@@ -3377,8 +3377,8 @@ void aggravate_monsters(int Ind, int who)
 	}
 
 	/* Messages */
-	if (speed) msg_print(Ind, "You feel a sudden stirring nearby!");
-	else if (sleep) msg_print(Ind, "You hear a sudden stirring in the distance!");
+	if (speed) msg_print(p_ptr, "You feel a sudden stirring nearby!");
+	else if (sleep) msg_print(p_ptr, "You hear a sudden stirring in the distance!");
 }
 
 
@@ -3600,13 +3600,13 @@ bool probing(int Ind)
 		if (d > MAX_SIGHT) continue;
 
 		/* Start the message */
-		if (!probe) msg_print(Ind, "Probing...");
+		if (!probe) msg_print(p_ptr, "Probing...");
 
 		/* Get "the monster" or "something" */
 		monster_desc(Ind, m_name, i, 0x04);
 
 		/* Describe the monster */
-		msg_format(Ind, "%^s has %d hit points.", m_name, m_ptr->hp);
+		msg_format(p_ptr, "%^s has %d hit points.", m_name, m_ptr->hp);
 
 		/* Learn all of the non-spell, non-treasure flags */
 		lore_do_probe(Ind, i);
@@ -3618,7 +3618,7 @@ bool probing(int Ind)
 	/* Done */
 	if (probe)
 	{
-		msg_print(Ind, "That's all.");
+		msg_print(p_ptr, "That's all.");
 	}
 
 	/* Result */
@@ -3690,7 +3690,7 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
 				p_ptr = Players[Ind];
 
 				/* Message */
-				msg_print(Ind, "There is a searing blast of light!");
+				msg_print(p_ptr, "There is a searing blast of light!");
 	
 				/* Blind the player */
 				if (!p_ptr->resist_blind && !p_ptr->resist_lite)
@@ -4002,18 +4002,18 @@ void earthquake(int Depth, int cy, int cx, int r)
 		{
 			case 1:
 			{
-				msg_print(Ind, "The cave ceiling collapses!");
+				msg_print(p_ptr, "The cave ceiling collapses!");
 				break;
 			}
 			case 2:
 			{
-				msg_print(Ind, "The cave floor twists in an unnatural way!");
+				msg_print(p_ptr, "The cave floor twists in an unnatural way!");
 				break;
 			}
 			default:
 			{
-				msg_print(Ind, "The cave quakes!");
-				msg_print(Ind, "You are pummeled with debris!");
+				msg_print(p_ptr, "The cave quakes!");
+				msg_print(p_ptr, "You are pummeled with debris!");
 				break;
 			}
 		}
@@ -4022,7 +4022,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 		if (!sn)
 		{
 			/* Message and damage */
-			msg_print(Ind, "You are severely crushed!");
+			msg_print(p_ptr, "You are severely crushed!");
 			damage = 300;
 		}
 
@@ -4034,20 +4034,20 @@ void earthquake(int Depth, int cy, int cx, int r)
 			{
 				case 1:
 				{
-					msg_print(Ind, "You nimbly dodge the blast!");
+					msg_print(p_ptr, "You nimbly dodge the blast!");
 					damage = 0;
 					break;
 				}
 				case 2:
 				{
-					msg_print(Ind, "You are bashed by rubble!");
+					msg_print(p_ptr, "You are bashed by rubble!");
 					damage = damroll(10, 4);
 					(void)set_stun(Ind, p_ptr->stun + randint(50));
 					break;
 				}
 				case 3:
 				{
-					msg_print(Ind, "You are crushed between the floor and ceiling!");
+					msg_print(p_ptr, "You are crushed between the floor and ceiling!");
 					damage = damroll(10, 4);
 					(void)set_stun(Ind, p_ptr->stun + randint(50));
 					break;
@@ -4137,7 +4137,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 						monster_desc(Ind, m_name, c_ptr->m_idx, 0);
 
 						/* Scream in pain */
-						msg_format(Ind, "%^s wails out in pain!", m_name);
+						msg_format(p_ptr, "%^s wails out in pain!", m_name);
 					}
 
 					/* Take damage from the quake */
@@ -4164,7 +4164,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 							monster_desc(Ind, m_name, c_ptr->m_idx, 0);
 
 							/* Message */
-							msg_format(Ind, "%^s is embedded in the rock!", m_name);
+							msg_format(p_ptr, "%^s is embedded in the rock!", m_name);
 						}
 
 						/* Delete the monster */
@@ -4375,7 +4375,7 @@ static void cave_temp_room_lite(int Ind)
 					monster_desc(Ind, m_name, c_ptr->m_idx, 0);
 
 					/* Dump a message */
-					msg_format(Ind, "%^s wakes up.", m_name);
+					msg_format(p_ptr, "%^s wakes up.", m_name);
 				}
 			}
 		}
@@ -4574,7 +4574,7 @@ bool lite_area(int Ind, int dam, int rad)
 	/* Hack -- Message */
 	if (!p_ptr->blind)
 	{
-		msg_print(Ind, "You are surrounded by a white light.");
+		msg_print(p_ptr, "You are surrounded by a white light.");
 	}
 
 	/* Hook into the "project()" function */
@@ -4601,7 +4601,7 @@ bool unlite_area(int Ind, int dam, int rad)
 	/* Hack -- Message */
 	if (!p_ptr->blind)
 	{
-		msg_print(Ind, "Darkness surrounds you.");
+		msg_print(p_ptr, "Darkness surrounds you.");
 	}
 
 	/* Hook into the "project()" function */
@@ -4857,7 +4857,7 @@ bool clone_monster(int Ind, int dir)
 	{
 		/* Standard clone effect, less the actual cloning */
 		int flg = PROJECT_STOP | PROJECT_KILL;
-		msg_print(Ind, "You hear a loud crackling sound.");
+		msg_print(p_ptr, "You hear a loud crackling sound.");
 		return (project_hook(Ind, GF_OLD_CLONE, dir, 0, flg));
 	}
 	else
@@ -4909,8 +4909,8 @@ bool alter_reality(int Ind, bool power)
 				/* Saving throw: perception (harder if hostile) */
 				if (rand_int(127) < q_ptr->skill_fos * (pvp_okay(Ind, i, 0) ? 6 : 4))
 				{
-					msg_format(Ind, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
-					msg_format(i, "You resist %s's attempt to alter reality.", (q_ptr->play_los[Ind] ? p_ptr->name : "someone") );
+					msg_format(p_ptr, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
+					msg_format(q_ptr, "You resist %s's attempt to alter reality.", (q_ptr->play_los[Ind] ? p_ptr->name : "someone") );
 					return (FALSE);
 				}
 			}
@@ -4926,7 +4926,7 @@ bool alter_reality(int Ind, bool power)
 		if(q_ptr->dun_depth == Depth)
 		{
 			/* Tell the player about it */
-			msg_print(i, "The world changes!");
+			msg_print(q_ptr, "The world changes!");
 			q_ptr->new_level_flag = TRUE;
 			q_ptr->new_level_method = LEVEL_RAND;
 		}
@@ -5022,7 +5022,7 @@ bool brand_bolts(int Ind)
 		if (rand_int(100) < 75) continue;
 
 		/* Message */
-		msg_print(Ind, "Your bolts are covered in a fiery aura!");
+		msg_print(p_ptr, "Your bolts are covered in a fiery aura!");
 
 		/* Ego-item */
 		o_ptr->name2 = EGO_FLAME;
@@ -5038,7 +5038,7 @@ bool brand_bolts(int Ind)
 	/*if (flush_failure) flush();*/
 
 	/* Fail */
-	msg_print(Ind, "The fiery enchantment failed.");
+	msg_print(p_ptr, "The fiery enchantment failed.");
 
 	/* Notice */
 	return (TRUE);
@@ -5059,7 +5059,7 @@ void ring_of_power(int Ind, int dir)
 		case 2:
 		{
 			/* Message */
-			msg_print(Ind, "You are surrounded by a malignant aura.");
+			msg_print(p_ptr, "You are surrounded by a malignant aura.");
 
 			/* Decrease all stats (permanently) */
 			(void)dec_stat(Ind, A_STR, 50, TRUE);
@@ -5080,7 +5080,7 @@ void ring_of_power(int Ind, int dir)
 		case 3:
 		{
 			/* Message */
-			msg_print(Ind, "You are surrounded by a powerful aura.");
+			msg_print(p_ptr, "You are surrounded by a powerful aura.");
 
 			/* Dispel monsters */
 			dispel_monsters(Ind, 1000);

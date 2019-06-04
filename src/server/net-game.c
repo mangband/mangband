@@ -746,12 +746,14 @@ int send_objflags(int Ind, int line)
 }
 
 /* XXX REMOVE ME XXX Remove at next protocol upgrade. */
-int send_message_DEPRECATED(int Ind, cptr msg, u16b typ)
+int send_message_DEPRECATED(player_type *p_ptr, cptr msg, u16b typ)
 {
-	connection_type *ct = PConn[Ind];
+	connection_type *ct;
 	char buf[MAX_CHARS];
 
-	if (!ct) return -1;
+	/* Paranoia -- do not send to closed connection */
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	if (msg == NULL)
 		return 1;
@@ -768,20 +770,21 @@ int send_message_DEPRECATED(int Ind, cptr msg, u16b typ)
 
 }
 
-int send_message(int Ind, cptr msg, u16b typ)
+int send_message(player_type *p_ptr, cptr msg, u16b typ)
 {
-	connection_type *ct = PConn[Ind];
+	connection_type *ct;
 	char buf[MSG_LEN];
 
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	if (msg == NULL)
 		return 1;
 
 	/* Hack -- use old version of the function */
-	if (!client_version_atleast(Players[Ind]->version, 1,5,2))
+	if (!client_version_atleast(p_ptr->version, 1,5,2))
 	{
-		return send_message_DEPRECATED(Ind, msg, typ);
+		return send_message_DEPRECATED(p_ptr, msg, typ);
 	}
 
 	/* Clip end of msg if too long */
@@ -794,11 +797,12 @@ int send_message(int Ind, cptr msg, u16b typ)
 	return 1;
 }
 
-int send_message_repeat(int Ind, u16b typ)
+int send_message_repeat(player_type *p_ptr, u16b typ)
 {
-	connection_type *ct = PConn[Ind];
+	connection_type *ct;
 
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_MESSAGE_REPEAT, typ))
 	{

@@ -1728,7 +1728,7 @@ static void calc_spells(int Ind)
 			p_ptr->spell_flags[j] &= ~PY_SPELL_LEARNED;
 
 			/* Message */
-			msg_format(Ind, "You have forgotten the %s of %s.", p,
+			msg_format(p_ptr, "You have forgotten the %s of %s.", p,
 			           get_spell_name(p_ptr->cp_ptr->spell_book,j));
 
 
@@ -1760,7 +1760,7 @@ static void calc_spells(int Ind)
 			p_ptr->spell_flags[j] &= ~PY_SPELL_LEARNED;
 
 			/* Message */
-			msg_format(Ind, "You have forgotten the %s of %s.", p,
+			msg_format(p_ptr, "You have forgotten the %s of %s.", p,
 			           spell_names[mtype][j]);
 
 
@@ -1798,7 +1798,7 @@ static void calc_spells(int Ind)
 			p_ptr->spell_flags[j] |= PY_SPELL_LEARNED;
 
 			/* Message */
-			msg_format(Ind, "You have remembered the %s of %s.",
+			msg_format(p_ptr, "You have remembered the %s of %s.",
 			           p, spell_names[mtype][j]);
 
 
@@ -1837,7 +1837,7 @@ static void calc_spells(int Ind)
 	if (p_ptr->new_spells && !p_ptr->old_spells)
 	{
 		/* Message */
-		msg_format(Ind, "You can learn some new %ss now.", p);
+		msg_format(p_ptr, "You can learn some new %ss now.", p);
 
 		/* Display "study state" later */
 		p_ptr->redraw |= (PR_STUDY);
@@ -1994,11 +1994,11 @@ static void calc_mana(int Ind)
 		/* Message */
 		if (p_ptr->cumber_glove)
 		{
-			msg_print(Ind, "Your covered hands feel unsuitable for spellcasting.");
+			msg_print(p_ptr, "Your covered hands feel unsuitable for spellcasting.");
 		}
 		else
 		{
-			msg_print(Ind, "Your hands feel more suitable for spellcasting.");
+			msg_print(p_ptr, "Your hands feel more suitable for spellcasting.");
 		}
 
 		/* Save it */
@@ -2012,11 +2012,11 @@ static void calc_mana(int Ind)
 		/* Message */
 		if (p_ptr->cumber_armor)
 		{
-			msg_print(Ind, "The weight of your armor encumbers your movement.");
+			msg_print(p_ptr, "The weight of your armor encumbers your movement.");
 		}
 		else
 		{
-			msg_print(Ind, "You feel able to move more freely.");
+			msg_print(p_ptr, "You feel able to move more freely.");
 		}
 
 		/* Save it */
@@ -3109,15 +3109,15 @@ static void calc_bonuses(int Ind)
 		/* Message */
 		if (p_ptr->heavy_shoot)
 		{
-			msg_print(Ind, "You have trouble wielding such a heavy bow.");
+			msg_print(p_ptr, "You have trouble wielding such a heavy bow.");
 		}
 		else if (p_ptr->inventory[INVEN_BOW].k_idx)
 		{
-			msg_print(Ind, "You have no trouble wielding your bow.");
+			msg_print(p_ptr, "You have no trouble wielding your bow.");
 		}
 		else
 		{
-			msg_print(Ind, "You feel relieved to put down your heavy bow.");
+			msg_print(p_ptr, "You feel relieved to put down your heavy bow.");
 		}
 
 		/* Save it */
@@ -3130,15 +3130,15 @@ static void calc_bonuses(int Ind)
 		/* Message */
 		if (p_ptr->heavy_wield)
 		{
-			msg_print(Ind, "You have trouble wielding such a heavy weapon.");
+			msg_print(p_ptr, "You have trouble wielding such a heavy weapon.");
 		}
 		else if (p_ptr->inventory[INVEN_WIELD].k_idx)
 		{
-			msg_print(Ind, "You have no trouble wielding your weapon.");
+			msg_print(p_ptr, "You have no trouble wielding your weapon.");
 		}
 		else
 		{
-			msg_print(Ind, "You feel relieved to put down your heavy weapon.");
+			msg_print(p_ptr, "You feel relieved to put down your heavy weapon.");
 		}
 
 		/* Save it */
@@ -3151,15 +3151,15 @@ static void calc_bonuses(int Ind)
 		/* Message */
 		if (p_ptr->icky_wield)
 		{
-			msg_print(Ind, "You do not feel comfortable with your weapon.");
+			msg_print(p_ptr, "You do not feel comfortable with your weapon.");
 		}
 		else if (p_ptr->inventory[INVEN_WIELD].k_idx)
 		{
-			msg_print(Ind, "You feel comfortable with your weapon.");
+			msg_print(p_ptr, "You feel comfortable with your weapon.");
 		}
 		else
 		{
-			msg_print(Ind, "You feel more comfortable after removing your weapon.");
+			msg_print(p_ptr, "You feel more comfortable after removing your weapon.");
 		}
 
 		/* Save it */
@@ -3325,7 +3325,7 @@ void redraw_stuff(int Ind)
 	if (p_ptr->redraw & PR_WIPE)
 	{
 		p_ptr->redraw &= ~PR_WIPE;
-		msg_print(Ind, NULL);
+		msg_print(p_ptr, NULL);
 		/*Term_clear();*/
 	}
 

@@ -247,7 +247,7 @@ static void sense_inventory(int Ind)
 		/* Message (equipment) */
 		if (i >= INVEN_WIELD)
 		{
-			msg_format(Ind, "You feel the %s (%c) you are %s %s %s...",
+			msg_format(p_ptr, "You feel the %s (%c) you are %s %s %s...",
 			           o_name, index_to_label(i), describe_use(Ind, i),
 			           ((o_ptr->number == 1) ? "is" : "are"), feel);
 		}
@@ -255,7 +255,7 @@ static void sense_inventory(int Ind)
 		/* Message (inventory) */
 		else
 		{
-			msg_format(Ind, "You feel the %s (%c) in your pack %s %s...",
+			msg_format(p_ptr, "You feel the %s (%c) in your pack %s %s...",
 			           o_name, index_to_label(i),
 			           ((o_ptr->number == 1) ? "is" : "are"), feel);
 		}
@@ -535,7 +535,7 @@ static void process_world(int Ind)
 			if (dawn)
 			{
 				/* Message */
-				msg_print(Ind, "The sun has risen.");
+				msg_print(p_ptr, "The sun has risen.");
 	
 				/* Make sure we're not in a store */
 				if ((Depth == 0) && (p_ptr->store_num == -1))
@@ -566,7 +566,7 @@ static void process_world(int Ind)
 			else
 			{
 				/* Message  */
-				msg_print(Ind, "The sun has fallen.");
+				msg_print(p_ptr, "The sun has fallen.");
 
 				/* Make sure we're not in a store */
 				if ((Depth == 0) && (p_ptr->store_num == -1))
@@ -1077,13 +1077,13 @@ static void process_player_end(int Ind)
 		disturb(Ind, 0, 0);
 
 		/* Warning */
-		msg_print(Ind, "Your pack overflows!");
+		msg_print(p_ptr, "Your pack overflows!");
 
 		/* Describe */
 		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 		/* Message */
-		msg_format(Ind, "You drop %s.", o_name);
+		msg_format(p_ptr, "You drop %s.", o_name);
 
 		/* Drop it (carefully) near the player */
 		drop_near(o_ptr, 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
@@ -1293,7 +1293,7 @@ static void process_player_end(int Ind)
 				if (!p_ptr->paralyzed && (rand_int(100) < 10))
 				{
 					/* Message */
-					msg_print(Ind, "You faint from the lack of food.");
+					msg_print(p_ptr, "You faint from the lack of food.");
 					disturb(Ind, 1, 0);
 
 					/* Hack -- faint (bypass free action) */
@@ -1534,14 +1534,14 @@ static void process_player_end(int Ind)
 				else if (o_ptr->pval == 0)
 				{
 					disturb(Ind, 0, 0);
-					msg_print(Ind, "Your light has gone out!");
+					msg_print(p_ptr, "Your light has gone out!");
 				}
 
 				/* The light is getting dim */
 				else if ((o_ptr->pval < 100) && (!(o_ptr->pval % 10)))
 				{
 					if (option_p(p_ptr,DISTURB_MINOR)) disturb(Ind, 0, 0);
-					msg_print(Ind, "Your light is growing faint.");
+					msg_print(p_ptr, "Your light is growing faint.");
 				}
 			}
 		}
@@ -1669,8 +1669,8 @@ static void process_player_end(int Ind)
 				if (p_ptr->dun_depth > 0)
 				{
 					/* Messages */
-					msg_print(Ind, "You feel yourself yanked upwards!");
-					msg_format_near(Ind, "%s is yanked upwards!", p_ptr->name);
+					msg_print(p_ptr, "You feel yourself yanked upwards!");
+					msg_format_near(p_ptr, "%s is yanked upwards!", p_ptr->name);
 					
 					/* New location */
 					new_depth = 0;
@@ -1682,8 +1682,8 @@ static void process_player_end(int Ind)
 				else if ((p_ptr->dun_depth < 0) || (p_ptr->recall_depth < 0))
 				{
 					/* Messages */
-					msg_print(Ind, "You feel yourself yanked sideways!");
-					msg_format_near(Ind, "%s is yanked sideways!", p_ptr->name);
+					msg_print(p_ptr, "You feel yourself yanked sideways!");
+					msg_format_near(p_ptr, "%s is yanked sideways!", p_ptr->name);
 					
 					/* New location */
 					if (p_ptr->dun_depth < 0) 
@@ -1703,8 +1703,8 @@ static void process_player_end(int Ind)
 				else
 				{
 					/* Messages */
-					msg_print(Ind, "You feel yourself yanked downwards!");
-					msg_format_near(Ind, "%s is yanked downwards!", p_ptr->name);
+					msg_print(p_ptr, "You feel yourself yanked downwards!");
+					msg_format_near(p_ptr, "%s is yanked downwards!", p_ptr->name);
 					new_depth = p_ptr->recall_depth;
 					new_world_x = p_ptr->world_x;
 					new_world_y = p_ptr->world_y;
@@ -2010,7 +2010,7 @@ static void process_various(void)
 					if (!p_ptr->fruit_bat)
 					{
 						p_ptr->update |= (PU_BONUS | PU_HP);
-						msg_print(x, "Your form feels much more familliar.");
+						msg_print(p_ptr, "Your form feels much more familliar.");
 					}
 				}
 			}
