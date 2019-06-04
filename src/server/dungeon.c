@@ -2120,7 +2120,7 @@ void dungeon(void)
 		{
 			bool dawn = ((turn.turn % (10L * TOWN_DAWN)) < (10L * TOWN_DAWN / 2)); 
 
-			setup_panel(i, FALSE);
+			setup_panel(p_ptr, FALSE);
 
 			/* Memorize the town for this player (if daytime) */
 			for (y = 0; y < MAX_HGT; y++)
@@ -2138,7 +2138,7 @@ void dungeon(void)
 		}
 		else
 		{
-			setup_panel(i, FALSE);
+			setup_panel(p_ptr, FALSE);
 		}
 
 		/* Determine starting location */
@@ -2281,7 +2281,7 @@ void dungeon(void)
 		p_ptr->redraw |= (PR_DEPTH);
 		p_ptr->redraw |= (PR_FLOOR);
 
-		panel_bounds(i);
+		panel_bounds(p_ptr);
 		forget_view(i);
 		forget_lite(i);
 		update_view(i);

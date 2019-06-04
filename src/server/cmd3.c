@@ -1699,7 +1699,7 @@ void do_cmd_locate(int Ind, int dir)
 	if (!dir)
 	{
 		/* Recenter map around the player */
-		verify_panel(Ind);
+		verify_panel(p_ptr);
 
 		/* Reset "old" */
 		p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
@@ -1774,7 +1774,7 @@ void do_cmd_locate(int Ind, int dir)
 	p_ptr->panel_col = x2;
 
 	/* Recalculate the boundaries */
-	panel_bounds(Ind);
+	panel_bounds(p_ptr);
 
 	/* Update stuff */
 	p_ptr->update |= (PU_MONSTERS);

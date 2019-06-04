@@ -3809,7 +3809,7 @@ static void monster_swap(int Depth, int y1, int x1, int y2, int x2)
 		p_ptr->px = x2;
 
 		/* Update the panel */
-		verify_panel(0 - m1);
+		verify_panel(p_ptr);
 
 		/* Update the visuals (and monster distances) */
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);
@@ -3847,7 +3847,7 @@ static void monster_swap(int Depth, int y1, int x1, int y2, int x2)
 		p_ptr->px = x1;
 
 		/* Update the panel */
-		verify_panel(0 - m2);
+		verify_panel(p_ptr);
 
 		/* Update the visuals (and monster distances) */
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_DISTANCE);

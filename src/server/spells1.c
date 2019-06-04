@@ -256,7 +256,7 @@ void teleport_player(int Ind, int dis)
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 
 	/* Check for new panel (redraw map) */
-	verify_panel(Ind);
+	verify_panel(p_ptr);
 
 	/* Update stuff */
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
@@ -333,7 +333,7 @@ void teleport_player_to(int Ind, int ny, int nx)
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 
 	/* Check for new panel (redraw map) */
-	verify_panel(Ind);
+	verify_panel(p_ptr);
 
 	/* Update stuff */
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);

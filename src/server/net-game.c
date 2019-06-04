@@ -1374,8 +1374,8 @@ int recv_stream_size(connection_type *ct, player_type *p_ptr) {
 				p_ptr->screen_hgt = p_ptr->stream_hgt[0];
 				if (IS_PLAYING(p_ptr))
 				{
-					setup_panel(Ind, TRUE);
-					verify_panel(Ind);
+					setup_panel(p_ptr, TRUE);
+					verify_panel(p_ptr);
 					p_ptr->redraw |= (PR_MAP);
 				}
 			}

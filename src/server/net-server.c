@@ -146,8 +146,8 @@ int player_enter(int ind)
 
 	/* Setup his locaton */
 	player_setup(PInd);
-	setup_panel(PInd, TRUE);
-	verify_panel(PInd);
+	setup_panel(p_ptr, TRUE);
+	verify_panel(p_ptr);
 
 	/* Hack, must find better place */
 	prt_history(PInd);

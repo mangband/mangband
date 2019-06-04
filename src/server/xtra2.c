@@ -3209,10 +3209,8 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
  * Calculates current boundaries
  * Called below and from "do_cmd_locate()".
  */
-void panel_bounds(int Ind)
+void panel_bounds(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	p_ptr->panel_row_min = (p_ptr->panel_row * p_ptr->screen_hgt) / 2;
 	if (p_ptr->panel_row_min + p_ptr->screen_hgt > p_ptr->cur_hgt) p_ptr->panel_row_min = p_ptr->cur_hgt - p_ptr->screen_hgt;
 	p_ptr->panel_row_max = p_ptr->panel_row_min + p_ptr->screen_hgt - 1;
@@ -3233,10 +3231,8 @@ void panel_bounds(int Ind)
  *
  * The map is reprinted if necessary, and "TRUE" is returned.
  */
-void verify_panel(int Ind)
+void verify_panel(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int y = p_ptr->py;
 	int x = p_ptr->px;
 
@@ -3280,7 +3276,7 @@ void verify_panel(int Ind)
 	p_ptr->panel_col = pcol;
 
 	/* Recalculate the boundaries */
-	panel_bounds(Ind);
+	panel_bounds(p_ptr);
 
 	/* Update stuff */
 	p_ptr->update |= (PU_MONSTERS);
@@ -3291,10 +3287,8 @@ void verify_panel(int Ind)
 	/* Window stuff */
 	p_ptr->window |= (PW_OVERHEAD | PW_MAP);
 }
-void setup_panel(int Ind, bool adjust)
+void setup_panel(player_type *p_ptr, bool adjust)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Set the player's "panel" information */
 	p_ptr->max_panel_rows = (MAX_HGT / p_ptr->screen_hgt) * 2 - 2;
 	p_ptr->max_panel_cols = (MAX_WID / p_ptr->screen_wid) * 2 - 2;
@@ -3319,7 +3313,7 @@ void setup_panel(int Ind, bool adjust)
 	else if (p_ptr->panel_col < 0) p_ptr->panel_col = 0;
 
 	/* Set the rest of the panel information */
-	panel_bounds(Ind);
+	panel_bounds(p_ptr);
 }
 bool adjust_panel(int Ind, int y, int x)
 {
@@ -3349,7 +3343,7 @@ bool adjust_panel(int Ind, int y, int x)
 		p_ptr->panel_row = y2;
 		p_ptr->panel_col = x2;
 		
-		panel_bounds(Ind);		
+		panel_bounds(p_ptr);
 		
 		/* Redraw map */
 		p_ptr->redraw |= (PR_MAP);
@@ -4571,7 +4565,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			case 'p':
 			{
 				/* Recenter around player */
-				verify_panel(Ind);
+				verify_panel(p_ptr);
 
 				/* Handle stuff */
 				handle_stuff(Ind);
@@ -4686,7 +4680,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			case 'p':
 			{
 				/* Recenter around player */
-				verify_panel(Ind);
+				verify_panel(p_ptr);
 
 				/* Handle stuff */
 				handle_stuff(Ind);
@@ -4829,7 +4823,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		// prt("", 0, 0); 
 	
 		/* Recenter around player */
-		verify_panel(Ind);
+		verify_panel(p_ptr);
 	
 		/* Handle stuff */
 		handle_stuff(Ind);

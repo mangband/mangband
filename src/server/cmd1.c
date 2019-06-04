@@ -1964,7 +1964,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		everyone_lite_spot(Depth, oy, ox);
 
 		/* Check for new panel (redraw map) */
-		verify_panel(Ind);
+		verify_panel(p_ptr);
 
 		/* Update stuff */
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
