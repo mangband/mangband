@@ -1779,6 +1779,10 @@ void move_player(int Ind, int dir, int do_pickup)
 				/* Update the monsters */
 				p_ptr->update |= (PU_DISTANCE);
 				q_ptr->update |= (PU_DISTANCE);
+
+				/* Refresh floor item for both */
+				floor_item_notify(Ind, cave[Depth][p_ptr->py][p_ptr->px].o_idx, FALSE);
+				floor_item_notify(Ind2, cave[Depth][q_ptr->py][q_ptr->px].o_idx, FALSE);
 			}
 
 			/* Hack -- the Dungeon Master cannot bump people */
