@@ -3641,6 +3641,9 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	/* Player needs a "description" (he is blind) */
 	bool fuzzy = FALSE;
 
+	/* The effects were positive, do not disturb */
+	bool positive_effect = FALSE;
+
 	/* Source monster */
 	monster_type *m_ptr;
 
@@ -4087,6 +4090,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		teleport_player(Ind, 200);
 		break;
 
+		/* MAngband-specific: projected heal */
 		case GF_HEAL_PLAYER:
 		
 		if (fuzzy) msg_print(p_ptr, "You are hit by something good!");		
@@ -4095,6 +4099,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		hp_player(Ind, dam);
 		(void)set_cut(Ind, Players[Ind]->cut - 10);
 		
+		positive_effect = TRUE;
 		break;
 
 		/* MAngband-specific: projected spell */
@@ -4105,6 +4110,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 		cast_spell_hack(Ind, TV_MAGIC_BOOK, dam);
 
+		positive_effect = TRUE;
 		break;
 
 		/* MAngband-specific: projected prayer */
@@ -4115,6 +4121,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 
 		cast_spell_hack(Ind, TV_PRAYER_BOOK, dam);
 
+		positive_effect = TRUE;
 		break;
 
 		case GF_OLD_CONF:
@@ -4215,7 +4222,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	p_ptr->project_hurt = TRUE;
 
 	/* Disturb */
-	disturb(Ind, 1, 0);
+	if (!positive_effect) disturb(Ind, 1, 0);
 
 
 	/* Return "Anything seen?" */
