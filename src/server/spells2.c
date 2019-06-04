@@ -1389,7 +1389,7 @@ bool detect_treasure(int Ind)
 	/* Describe */
 	if (detect)
 	{
-		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of buried treasure!", p_ptr->name);
+		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of buried treasure!", p_ptr->name);
 		msg_print(p_ptr, "You sense the presence of buried treasure!");
 	}
 
@@ -1614,7 +1614,7 @@ bool detect_invisible(int Ind, bool pause)
 		handle_stuff(Ind);
 	
 		/* Describe, and wait for acknowledgement */
-		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
+		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
 		msg_print(p_ptr, "You sense the presence of invisible creatures!");
 		msg_print(p_ptr, NULL);
 
@@ -1698,7 +1698,7 @@ bool detect_evil(int Ind)
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */
-		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
+		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
 		msg_print(p_ptr, "You sense the presence of evil creatures!");
 		msg_print(p_ptr, NULL);
 
@@ -1808,7 +1808,7 @@ bool detect_creatures(int Ind, bool pause)
 		handle_stuff(Ind);
 
 		/* Describe, and wait for acknowledgement */
-		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
+		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
 		msg_print(p_ptr, "You sense the presence of creatures!");
 		msg_print(p_ptr, NULL);
 
@@ -1849,7 +1849,7 @@ bool detection(int Ind)
 
 		detect = TRUE;
 		/* Describe, and wait for acknowledgement */
-		party_msg_format_near(Ind, MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
+		party_msg_format_near(Players[Ind], MSG_PY_MISC, "%s senses the presence of creatures!", Players[Ind]->name);
 		msg_print(Players[Ind], "You sense the presence of creatures!");
 		msg_print(Players[Ind], NULL);
 

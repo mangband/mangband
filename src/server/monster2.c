@@ -1626,7 +1626,7 @@ void update_player(int Ind)
 			
 			if (!p_ptr->blind)			
 			{
-			if ((player_in_party(q_ptr->party, i)) && (q_ptr->party)) easy = flag = TRUE;
+			if ((player_in_party(q_ptr->party, p_ptr)) && (q_ptr->party)) easy = flag = TRUE;
 			
 			if (*w_ptr & CAVE_VIEW) {
 
@@ -1675,7 +1675,7 @@ void update_player(int Ind)
 				lite_spot(i, py, px);
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
 					disturb(p_ptr, 1, 0);
@@ -1699,7 +1699,7 @@ void update_player(int Ind)
 				lite_spot(i, py, px);
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
 					disturb(p_ptr, 1, 0);
@@ -1720,7 +1720,7 @@ void update_player(int Ind)
 				p_ptr->play_los[Ind] = TRUE;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
 					disturb(p_ptr, 1, 0);
@@ -1738,7 +1738,7 @@ void update_player(int Ind)
 				p_ptr->play_los[Ind] = FALSE;
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
 					disturb(p_ptr, 1, 0);

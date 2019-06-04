@@ -26,10 +26,8 @@ int party_lookup(cptr name)
 /*
  * Check for the existance of a player in a party.
  */
-bool player_in_party(int party_id, int Ind)
+bool player_in_party(int party_id, player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Check */
 	if (p_ptr->party == party_id)
 		return TRUE;
@@ -37,14 +35,13 @@ bool player_in_party(int party_id, int Ind)
 	/* Not in the party */
 	return FALSE;
 }
-	
+
 /*
- * Create a new party, owned by "Ind", and called
+ * Create a new party, owned by "p_ptr", and called
  * "name".
  */
-int party_create(int Ind, cptr name)
+int party_create(player_type *p_ptr, cptr name)
 {
-	player_type *p_ptr = Players[Ind];
 	int index = 0, i;
 	hturn oldest = turn;
 
@@ -96,7 +93,7 @@ int party_create(int Ind, cptr name)
 	parties[index].created = turn;
 
 	/* Resend party info */
-	send_party_info(Ind);
+	send_party_info(p_ptr);
 
 	/* Success */
 	return TRUE;
@@ -105,11 +102,10 @@ int party_create(int Ind, cptr name)
 /*
  * Add a player to a party.
  */
-int party_add(int adder, cptr name)
+int party_add(player_type *q_ptr, cptr name)
 {
-	player_type *p_ptr;
-	player_type *q_ptr = Players[adder];
-	int party_id = q_ptr->party, Ind = 0, i;
+	player_type *p_ptr = NULL;
+	int party_id = q_ptr->party, i;
 
 	/* Find name */
 	for (i = 1; i <= NumPlayers; i++)
@@ -118,13 +114,13 @@ int party_add(int adder, cptr name)
 		if (streq(name, Players[i]->name))
 		{
 			/* Found him */
-			Ind = i;
+			p_ptr = Players[i];
 			break;
 		}
 	}
 
 	/* Check for existance */
-	if (Ind == 0)
+	if (p_ptr == NULL)
 	{
 		/* Oops */
 		msg_print(q_ptr, "That player is not currently in the game.");
@@ -133,20 +129,17 @@ int party_add(int adder, cptr name)
 	}
 
 	/* Check for hostility */
-	if (check_hostile(Ind, adder) ) 
+	if (check_hostile(p_ptr, q_ptr))
 	{
 		msg_print(q_ptr, "That player is hostile towards you.");
 		return FALSE;
 	}
 	
-	if (check_hostile(adder, Ind) ) 
+	if (check_hostile(q_ptr, p_ptr))
 	{
 		msg_print(q_ptr, "You are hostile to that player.");
 		return FALSE;
 	}
-
-	/* Set pointer */
-	p_ptr = Players[Ind];
 
 	/* Make sure this isn't an imposter */
 	if (!streq(parties[party_id].owner, q_ptr->name))
@@ -181,7 +174,7 @@ int party_add(int adder, cptr name)
 	p_ptr->party = party_id;
 
 	/* Resend info */
-	send_party_info(Ind);
+	send_party_info(p_ptr);
 
 	/* Success */
 	return TRUE;
@@ -192,11 +185,10 @@ int party_add(int adder, cptr name)
  *
  * Removing the party owner destroys the party.
  */
-int party_remove(int remover, cptr name)
+int party_remove(player_type *q_ptr, cptr name)
 {
-	player_type *p_ptr;
-	player_type *q_ptr = Players[remover];
-	int party_id = q_ptr->party, Ind = 0, i;
+	player_type *p_ptr = NULL;
+	int party_id = q_ptr->party, i;
 
 	/* Find name */
 	for (i = 1; i <= NumPlayers; i++)
@@ -205,14 +197,13 @@ int party_remove(int remover, cptr name)
 		if (streq(name, Players[i]->name))
 		{
 			/* Found him */
-			Ind = i;
-			p_ptr = Players[Ind];
+			p_ptr = Players[i];
 			break;
 		}
 	}
 
 	/* Check for existance */
-	if (Ind == 0)
+	if (p_ptr == NULL)
 	{
 		/* Oops */
 		msg_print(q_ptr, "That player is not currently in the game.");
@@ -231,7 +222,7 @@ int party_remove(int remover, cptr name)
 	}
 
 	/* Make sure they were in the party to begin with */
-	if (!player_in_party(party_id, Ind))
+	if (!player_in_party(party_id, p_ptr))
 	{
 		/* Message */
 		msg_print(q_ptr, "You can only delete party members.");
@@ -241,7 +232,7 @@ int party_remove(int remover, cptr name)
 	}
 
 	/* See if this is the owner we're deleting */
-	if (remover == Ind)
+	if (q_ptr == p_ptr)
 	{
 		/* Remove the party altogether */
 
@@ -252,11 +243,11 @@ int party_remove(int remover, cptr name)
 		for (i = 1; i <= NumPlayers; i++)
 		{
 			/* Check if they are in here */
-			if (player_in_party(party_id, i))
+			if (player_in_party(party_id, Players[i]))
 			{
 				Players[i]->party = 0;
 				msg_print(Players[i], "Your party has been disbanded.");
-				send_party_info(i);
+				send_party_info(Players[i]);
 			}
 		}
 
@@ -281,7 +272,7 @@ int party_remove(int remover, cptr name)
 		party_msg_format(party_id, "%s has been removed from the party.", p_ptr->name);
 
 		/* Resend info */
-		send_party_info(Ind);
+		send_party_info(p_ptr);
 	}
 
 	return TRUE;
@@ -291,9 +282,8 @@ int party_remove(int remover, cptr name)
 /*
  * A player wants to leave a party.
  */
-void party_leave(int Ind)
+void party_leave(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int party_id = p_ptr->party;
 
 	/* Make sure he belongs to a party */
@@ -307,7 +297,7 @@ void party_leave(int Ind)
 	if (streq(p_ptr->name, parties[party_id].owner))
 	{
 		/* Call party_remove */
-		party_remove(Ind, p_ptr->name);
+		party_remove(p_ptr, p_ptr->name);
 		return;
 	}
 
@@ -322,7 +312,7 @@ void party_leave(int Ind)
 	party_msg_format(party_id, "%s has left the party.", p_ptr->name);
 
 	/* Resend info */
-	send_party_info(Ind);
+	send_party_info(p_ptr);
 }
 
 
@@ -337,7 +327,7 @@ void party_msg(int party_id, cptr msg)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Check this guy */
-		if (player_in_party(party_id, i))
+		if (player_in_party(party_id, Players[i]))
 			msg_print_aux(Players[i], msg, MSG_WHISPER);
 	}
 }
@@ -364,9 +354,9 @@ void party_msg_format(int party_id, cptr fmt, ...)
 }
 
 /* Message nearby party members */
-void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
+void party_msg_format_near(player_type *p_ptr, u16b type, cptr fmt, ...)
 {
-	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr; /* Player who does the messaging */
 	va_list vp;
 	char buf[1024];
 	int i;
@@ -374,6 +364,9 @@ void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
 	int 		y = p_ptr->py;
 	int 		x = p_ptr->px;
 	int 	party = p_ptr->party;
+
+	/* Remember who started this */
+	q_ptr = p_ptr;
 
 	/* Not a member of any party */
 	if (!party) return;
@@ -394,13 +387,13 @@ void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
 		p_ptr = Players[i];
 		
 		/* Don't send the message to the player who caused it */
-		if (Ind == i) continue;
+		if (q_ptr == p_ptr) continue;
 
 		/* Make sure this player is at this depth */
 		if (p_ptr->dun_depth != Depth) continue;
 
-		/* Meh, different party */		
-		if (!player_in_party(party, i)) continue;
+		/* Meh, different party */
+		if (!player_in_party(party, p_ptr)) continue;
 
 		/* Can he see this player? */
 		if (p_ptr->cave_flag[y][x] & CAVE_VIEW)
@@ -446,20 +439,19 @@ void party_msg_format_near(int Ind, u16b type, cptr fmt, ...)
     -APD-
     */
  
-void party_gain_exp(int Ind, int party_id, s32b amount, int m_idx)
+void party_gain_exp(player_type *q_ptr, int party_id, s32b amount, int m_idx)
 {
-	player_type *p_ptr;
-	int i, Depth = Players[Ind]->dun_depth;
+	int i, Depth = q_ptr->dun_depth;
 	s32b new_exp, new_exp_frac, average_lev = 0, num_members = 0;
 	s32b modified_level;
 
 	/* Mark needed people */
-	num_members = party_mark_members(Ind, m_idx);
+	num_members = party_mark_members(q_ptr, m_idx);
 	
 	/* Calculate the average level */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		p_ptr = Players[i];
+		player_type *p_ptr = Players[i];
 		if (p_ptr->in_hack)
 		{
 			/* Increase the "divisor" */
@@ -471,7 +463,7 @@ void party_gain_exp(int Ind, int party_id, s32b amount, int m_idx)
 	/* Now, distribute the experience */
 	for (i = 1; i <= NumPlayers; i++)
 	{
-		p_ptr = Players[i];
+		player_type *p_ptr = Players[i];
 
 		/* Check for his involvment */
 		if (p_ptr->in_hack)
@@ -517,9 +509,8 @@ void party_gain_exp(int Ind, int party_id, s32b amount, int m_idx)
 		}
 	}
 }
-int party_mark_members(int Ind, int m_idx)
+int party_mark_members(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
 	int i, total = 0;
 	
@@ -528,7 +519,7 @@ int party_mark_members(int Ind, int m_idx)
 	{
 		q_ptr = Players[i];
 		q_ptr->in_hack = FALSE;
-		if ((i == Ind) || ((p_ptr->party) &&
+		if ((q_ptr == p_ptr) || ((p_ptr->party) &&
 			(!m_idx || q_ptr->mon_hrt[m_idx]) &&
 			(q_ptr->dun_depth == p_ptr->dun_depth) &&
 			(q_ptr->party == p_ptr->party) &&
@@ -542,14 +533,12 @@ int party_mark_members(int Ind, int m_idx)
 	
 	return total;
 }
-void party_share_hurt(int Ind, int target) 
+void party_share_hurt(player_type *p_ptr, player_type  *q_ptr)
 {
 	int i;
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr = Players[target];
-	
+
 	/* Not in party, or not the same party */
-	if (!p_ptr->party || p_ptr->party != q_ptr->party) 
+	if (!p_ptr->party || p_ptr->party != q_ptr->party)
 		return;
 
 	/* Copy hurt */
@@ -563,9 +552,9 @@ void party_share_hurt(int Ind, int target)
 /*
  * Add a player to another player's list of hostilities.
  */
-bool add_hostility(int Ind, cptr name)
+bool add_hostility(player_type *p_ptr, cptr name)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr;
+	player_type *q_ptr;
 	hostile_type *h_ptr;
 	int i;
 
@@ -596,7 +585,7 @@ bool add_hostility(int Ind, cptr name)
 		if (!streq(q_ptr->name, name)) continue;
 
 		/* Make sure players aren't in the same party */
-		if (p_ptr->party && player_in_party(p_ptr->party, i))
+		if (p_ptr->party && player_in_party(p_ptr->party, q_ptr))
 		{
 			/* Message */
 			msg_format(p_ptr, "%^s is in your party!", q_ptr->name);
@@ -679,9 +668,8 @@ bool add_hostility(int Ind, cptr name)
 /*
  * Remove an entry from a player's list of hostilities
  */
-bool remove_hostility(int Ind, cptr name)
+bool remove_hostility(player_type *p_ptr, cptr name)
 {
-	player_type *p_ptr = Players[Ind];
 	hostile_type *h_ptr, *i_ptr;
 	cptr p;
 
@@ -761,11 +749,10 @@ bool remove_hostility(int Ind, cptr name)
 }
 
 /*
- * Check if one player is hostile toward the other
+ * Check if player "p_ptr" is hostile toward player "q_ptr"
  */
-bool check_hostile(int attacker, int target)
+bool check_hostile(player_type *p_ptr, player_type *q_ptr)
 {
-	player_type *p_ptr = Players[attacker];
 	hostile_type *h_ptr;
 
 	/* Scan list */
@@ -775,7 +762,7 @@ bool check_hostile(int attacker, int target)
 		if (h_ptr->id > 0)
 		{
 			/* Identical ID's yield hostility */
-			if (h_ptr->id == Players[target]->id)
+			if (h_ptr->id == q_ptr->id)
 				return TRUE;
 		}
 #if 0
@@ -1062,14 +1049,17 @@ int player_id_list(int **list)
 	return len;
 }
 
-/* Make target hostile if not already */
-void add_hostility_ind(int Ind, int target) {
-	player_type *p_ptr = Players[target];
-	if (!check_hostile(Ind, target)) 
-	{ 
-		add_hostility(Ind, p_ptr->name);
+/* Make player "Ind" hostile toward target, if not already */
+void add_hostility_ind(int Ind, int target)
+{
+	player_type *p_ptr = Players[Ind];
+	player_type *q_ptr = Players[target];
+	if (!check_hostile(p_ptr, q_ptr))
+	{
+		add_hostility(p_ptr, q_ptr->name);
 	}
 }
+
 /* 
  * Engage in PVP or Cancel it
  *
@@ -1087,7 +1077,7 @@ bool pvp_okay(int attacker, int target, int mode)
 	int Depth = Players[attacker]->dun_depth;
 	int party_id = Players[attacker]->party;
 	int hostility = cfg_pvp_hostility;
-	if (check_hostile(attacker, target)) intentional = TRUE;
+	if (check_hostile(Players[attacker], Players[target])) intentional = TRUE;
 
 	/* SAFE DEPTH */
 	if (cfg_pvp_safedepth > -1 && Depth > -1 && Depth <= cfg_pvp_safedepth) hostility = cfg_pvp_safehostility;
@@ -1098,7 +1088,7 @@ bool pvp_okay(int attacker, int target, int mode)
 
 	/* Safe Mode -- Both players must be hostile towards each other (1.1.0) */
 	if (hostility == 2) {
-		if (check_hostile(target, attacker) && intentional) return TRUE;
+		if (check_hostile(Players[target], Players[attacker]) && intentional) return TRUE;
 	}
 	
 	/* Normal Mode -- Attacker must be hostile towards his target */
@@ -1126,7 +1116,7 @@ bool pvp_okay(int attacker, int target, int mode)
 	/* Brutal mode -- all players always fight */	
 	if (hostility == -1) {
 		/* There's only one way not to fight: be in a party */
-		if (!(party_id && player_in_party(party_id, target)))
+		if (!(party_id && player_in_party(party_id, Players[target])))
 		return TRUE;
 	}
 

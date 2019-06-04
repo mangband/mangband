@@ -1155,7 +1155,7 @@ void do_cmd_steal(int Ind, int dir)
 	q_ptr = Players[0 - c_ptr->m_idx];
 
 	/* May not steal from hostile players */
-	if (check_hostile(0 - c_ptr->m_idx, Ind))
+	if (check_hostile(q_ptr, p_ptr))
 	{
 		/* Message */
 		msg_format(p_ptr, "%^s is on guard against you.", q_ptr->name);
@@ -1215,7 +1215,7 @@ void do_cmd_steal(int Ind, int dir)
 				if (rand_int(100) < notice)
 				{
 					/* Make target hostile */
-					add_hostility(0 - c_ptr->m_idx, p_ptr->name);
+					add_hostility(q_ptr, p_ptr->name);
 
 					/* Message */
 					msg_format(q_ptr, "You notice %s stealing %ld gold!",
@@ -1266,7 +1266,7 @@ void do_cmd_steal(int Ind, int dir)
 				if (rand_int(100) < notice)
 				{
 					/* Make target hostile */
-					add_hostility(0 - c_ptr->m_idx, p_ptr->name);
+					add_hostility(q_ptr, p_ptr->name);
 	
 					/* Message */
 					msg_format(q_ptr, "You notice %s stealing %s!",
@@ -1286,7 +1286,7 @@ void do_cmd_steal(int Ind, int dir)
 		if (rand_int(100) < notice + 50)
 		{
 			/* Make target hostile */
-			add_hostility(0 - c_ptr->m_idx, p_ptr->name);
+			add_hostility(q_ptr, p_ptr->name);
 
 			/* Message */
 			msg_format(q_ptr, "You notice %s try to steal from you!",

@@ -2228,7 +2228,7 @@ int find_chat_target(cptr search, char *error)
 						continue;
 
 					/* Check this guy */
-					if (player_in_party(i, j))
+					if (player_in_party(i, Players[j]))
 					{
 						/* Set target if not set already or an exact match */
 						if ((!target) || (len == strlen(parties[i].name)))

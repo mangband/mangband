@@ -1505,7 +1505,7 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 	{
 		return 0;
 	}
-	if (Ind)
+	if (p_ptr && IS_PLAYING(p_ptr))
 	{
 		/* Hack -- silently fail in arena */
 		if (p_ptr->arena_num != -1) return 1;
@@ -1514,37 +1514,37 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 		{
 			case PARTY_CREATE:
 			{
-				party_create(Ind, buf);
+				party_create(p_ptr, buf);
 				break;
 			}
 
 			case PARTY_ADD:
 			{
-				party_add(Ind, buf);
+				party_add(p_ptr, buf);
 				break;
 			}
 
 			case PARTY_DELETE:
 			{
-				party_remove(Ind, buf);
+				party_remove(p_ptr, buf);
 				break;
 			}
 
 			case PARTY_REMOVE_ME:
 			{
-				party_leave(Ind);
+				party_leave(p_ptr);
 				break;
 			}
 
 			case PARTY_HOSTILE:
 			{
-				add_hostility(Ind, buf);
+				add_hostility(p_ptr, buf);
 				break;
 			}
 
 			case PARTY_PEACE:
 			{
-				remove_hostility(Ind, buf);
+				remove_hostility(p_ptr, buf);
 				break;
 			}
 		}
@@ -1990,13 +1990,13 @@ int send_store_leave(int Ind)
 	return 1;
 }
 
-int send_party_info(int Ind)
+int send_party_info(player_type *p_ptr)
 {
-	connection_type *ct = PConn[Ind];
-	player_type *p_ptr = Players[Ind];
+	connection_type *ct;
 	char *name = "";
 	char *owner = "";
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (p_ptr->party > 0)
 	{
 		name = parties[p_ptr->party].name;

@@ -575,7 +575,7 @@ int player_pict(int Ind, int who)
 
 		/* MEGAHACK -- Hilite party leader! */
 		if (p_ptr->party && option_p(p_ptr,HILITE_LEADER) &&
-			player_in_party(p_ptr->party, who) && 
+			player_in_party(p_ptr->party, q_ptr) &&
 			streq(parties[p_ptr->party].owner, q_ptr->name))
 		a = TERM_YELLOW;
 

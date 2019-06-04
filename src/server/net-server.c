@@ -154,7 +154,7 @@ int player_enter(int ind)
 	show_socials(PInd);
 
 	/* Current party */
-	send_party_info(PInd);
+	send_party_info(p_ptr);
 
 	/* Inform everyone */
 	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */

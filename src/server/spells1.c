@@ -3713,7 +3713,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		/* Hack -- share monster hurt during healing */
 		else if (typ >= GF_HEAL_PLAYER)
 		{
-			party_share_hurt(0 - who, Ind);
+			party_share_hurt(Players[0 - who], Players[Ind]);
 		}
 		/* Hack -- do not modify "dam" variable if it contains spell index */
 		if (typ >= GF_PROJECT_SPELL)
@@ -4646,7 +4646,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			if (who < 0 && !Players[0 - who]->party) break;
 			
 			/* people not in the same party hit each other */			
-			if (who < 0 && !player_in_party(Players[0 - who]->party, 0 - c_ptr->m_idx)) break;	
+			if (who < 0 && !player_in_party(Players[0 - who]->party, Players[0 - c_ptr->m_idx])) break;
 		}
 
 

@@ -677,7 +677,7 @@ void do_cmd_check_players(int Ind, int line)
 		else if (p_ptr->party && p_ptr->party == q_ptr->party) attr = 'B';
 
 		/* Print hostile players in red */
-		else if (cfg_pvp_notify == -1 || check_hostile(Ind, k) || (cfg_pvp_notify && check_hostile(k, Ind))) attr = 'r';
+		else if (cfg_pvp_notify == -1 || check_hostile(p_ptr, q_ptr) || (cfg_pvp_notify && check_hostile(q_ptr, p_ptr))) attr = 'r';
 
 		/* Output color byte */
 		file_putf(fff, "%c", attr);

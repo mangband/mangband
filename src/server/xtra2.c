@@ -2199,7 +2199,7 @@ void monster_death(int Ind, int m_idx)
 	m_ptr->hold_o_idx = 0;
 
 	/* Determine players involved in killing */
-	total = party_mark_members(Ind, m_idx);
+	total = party_mark_members(p_ptr, m_idx);
 
 	/* Unshare winners and questors */
 	if (winner && !cfg_party_share_win)	share = FALSE;
@@ -2498,8 +2498,8 @@ void access_arena(int Ind, int py, int px) {
 		if (tmp_count == 1) 
 		{
 			/* Declare hostility */
-			add_hostility(Ind, Players[tmp_id]->name);	
-			add_hostility(tmp_id, Players[Ind]->name);	
+			add_hostility(Players[Ind], Players[tmp_id]->name);
+			add_hostility(Players[tmp_id], Players[Ind]->name);
 		}
 	}
     
@@ -2518,8 +2518,8 @@ void evacuate_arena(int Ind) {
 	if (tmp_id != -1 && tmp_id != Ind) 
 	{
 		/* Friendship */
-		remove_hostility(tmp_id, Players[Ind]->name);
-		remove_hostility(Ind, Players[tmp_id]->name);
+		remove_hostility(Players[tmp_id], Players[Ind]->name);
+		remove_hostility(p_ptr, Players[tmp_id]->name);
 
 		/* Messages */
 		sprintf(buf, "You knock %s out.", p_ptr->name);
@@ -2701,7 +2701,7 @@ void player_funeral(int Ind, char *reason)
 	if (p_ptr->party)
 	{
 		/* He leaves */
-		party_leave(Ind);
+		party_leave(p_ptr);
 	}
 
 	/* Kill him */
@@ -3094,7 +3094,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			/* Split experience if in a party */
 			if (p_ptr->party && cfg_party_share_exp)
 			{
-				party_gain_exp(Ind, p_ptr->party, (long)r_ptr->mexp * r_ptr->level, m_idx);
+				party_gain_exp(p_ptr, p_ptr->party, (long)r_ptr->mexp * r_ptr->level, m_idx);
 			}
 			/* Single-player */
 			else
@@ -4027,9 +4027,9 @@ static void target_set_interactive_prepare(int Ind, int mode)
 			 	
 				/* If it's a player, he must not target self */
 				if (m_idx < 0 && (0 - m_idx == Ind)) continue;			 	
-			 	
-			 	/* If it's a player, he must not be friendly */
-			 	if (m_idx < 0 && (!pvp_okay(Ind, 0 - m_idx, 0) && !check_hostile(Ind, 0 - m_idx))) continue;
+
+				/* If it's a player, he must not be friendly */
+				if (m_idx < 0 && (!pvp_okay(Ind, 0 - m_idx, 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
 			}
 			else if (mode & (TARGET_FRND))
 			{
@@ -4043,7 +4043,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 			 	if (!target_able(Ind, m_idx)) continue;
 
 			 	/* Must be friendly player */
-				if (pvp_okay(Ind, 0 - m_idx, 0) || check_hostile(0 - m_idx, Ind)) continue;
+				if (pvp_okay(Ind, 0 - m_idx, 0) || check_hostile(Players[0 - m_idx], p_ptr)) continue;
 			}
 			
 			/* Save the location */
@@ -5198,7 +5198,7 @@ bool monsters_in_los(player_type *p_ptr)
 		/* Check this player */
 		if ((p_ptr->play_los[i]) && !q_ptr->paralyzed)
 		{
-			if (check_hostile(Get_Ind[p_ptr->conn], i))
+			if (check_hostile(p_ptr, q_ptr))
 			{
 				los = TRUE;
 				break;
