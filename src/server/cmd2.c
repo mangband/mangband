@@ -3769,7 +3769,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				continue;
 
 			/* The player can see the (on screen) missile */
-			if (panel_contains(y, x) && player_can_see_bold(i, y, x))
+			if (panel_contains(p_ptr, y, x) && player_can_see_bold(i, y, x))
 			{
 				/* Draw, Hilite, Fresh, Pause, Erase */
 				dispy = y - p_ptr->panel_row_prt;
@@ -4204,7 +4204,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 				continue;
 
 			/* The player can see the (on screen) missile */
-			if (panel_contains(y, x) && player_can_see_bold(i, y, x))
+			if (panel_contains(p_ptr, y, x) && player_can_see_bold(i, y, x))
 			{
 				/* Draw, Hilite, Fresh, Pause, Erase */
 				dispy = y - p_ptr->panel_row_prt;

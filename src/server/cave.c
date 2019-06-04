@@ -1480,7 +1480,7 @@ void lite_spot(int Ind, int y, int x)
 	bool is_player = FALSE;
 
 	/* Redraw if on screen */
-	if (panel_contains(y, x))
+	if (panel_contains(p_ptr, y, x))
 	{
 		byte a, ta;
 		char c, tc;

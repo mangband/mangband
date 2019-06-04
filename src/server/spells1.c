@@ -4595,7 +4595,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (p_ptr->blind)
 					continue;
 
-				if (!panel_contains(y, x))
+				if (!panel_contains(p_ptr, y, x))
 					continue;
 
 				if (!player_has_los_bold(j, y, x))
@@ -4681,7 +4681,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (p_ptr->blind)
 					continue;
 
-				if (!panel_contains(y9, x9))
+				if (!panel_contains(p_ptr, y9, x9))
 					continue;
 
 				if (!player_has_los_bold(j, y9, x9))
@@ -4802,7 +4802,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					if (p_ptr->blind)
 						continue;
 
-					if (!panel_contains(y, x))
+					if (!panel_contains(p_ptr, y, x))
 						continue;
 
 					if (!player_has_los_bold(j, y, x))

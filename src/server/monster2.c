@@ -1364,7 +1364,7 @@ void update_mon(int m_idx, bool dist)
 		{
 
 			/* Process "nearby" monsters on the current "panel" */
-			if (panel_contains(fy, fx))
+			if (panel_contains(p_ptr, fy, fx))
 			{
 				cave_type *c_ptr = &cave[Depth][fy][fx];
 				byte *w_ptr = &p_ptr->cave_flag[fy][fx];
@@ -1607,7 +1607,7 @@ void update_player(int Ind)
 		else if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 
 		/* Process players on current panel */
-		else if (panel_contains(py, px))
+		else if (panel_contains(p_ptr, py, px))
 		{
 			cave_type *c_ptr = &cave[p_ptr->dun_depth][py][px];
 			byte *w_ptr = &p_ptr->cave_flag[py][px];

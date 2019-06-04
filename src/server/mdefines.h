@@ -2741,9 +2741,9 @@ that keeps many algorithms happy.
  * Determines if a map location is currently "on screen" -RAK-
  * Note that "panel_contains(Y,X)" always implies "in_bounds2(Y,X)".
  */
-#define panel_contains(Y,X) \
-  (((Y) >= p_ptr->panel_row_min) && ((Y) <= p_ptr->panel_row_max) && \
-   ((X) >= p_ptr->panel_col_min) && ((X) <= p_ptr->panel_col_max))
+#define panel_contains(P_PTR,Y,X) \
+  (((Y) >= (P_PTR)->panel_row_min) && ((Y) <= (P_PTR)->panel_row_max) && \
+   ((X) >= (P_PTR)->panel_col_min) && ((X) <= (P_PTR)->panel_col_max))
 
 
 /*
