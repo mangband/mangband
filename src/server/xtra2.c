@@ -132,7 +132,7 @@ bool set_blind(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Forget stuff */
 	p_ptr->update |= (PU_UN_VIEW | PU_UN_LITE);
@@ -202,7 +202,7 @@ bool set_confused(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Redraw the "confused" */
 	p_ptr->redraw |= (PR_CONFUSED);
@@ -256,7 +256,7 @@ bool set_poisoned(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Redraw the "poisoned" */
 	p_ptr->redraw |= (PR_POISONED);
@@ -312,7 +312,7 @@ bool set_afraid(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Redraw the "afraid" */
 	p_ptr->redraw |= (PR_AFRAID);
@@ -368,7 +368,7 @@ bool set_paralyzed(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Redraw the state */
 	p_ptr->redraw |= (PR_STATE);
@@ -427,7 +427,7 @@ bool set_image(int Ind, int v)
 	p_ptr->image_seed++;
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Redraw map */
 	p_ptr->redraw |= (PR_MAP);
@@ -489,7 +489,7 @@ bool set_fast(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -545,7 +545,7 @@ bool set_slow(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -599,7 +599,7 @@ bool set_shield(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -654,7 +654,7 @@ bool set_blessed(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -708,7 +708,7 @@ bool set_hero(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -765,7 +765,7 @@ bool set_shero(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -822,7 +822,7 @@ bool set_protevil(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Handle stuff */
 	handle_stuff(Ind);
@@ -873,7 +873,7 @@ bool set_invuln(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -927,7 +927,7 @@ bool set_tim_invis(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -984,7 +984,7 @@ bool set_tim_infra(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -1041,7 +1041,7 @@ bool set_oppose_acid(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1094,7 +1094,7 @@ bool set_oppose_elec(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1147,7 +1147,7 @@ bool set_oppose_fire(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1200,7 +1200,7 @@ bool set_oppose_cold(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1253,7 +1253,7 @@ bool set_oppose_pois(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
@@ -1376,7 +1376,7 @@ bool set_stun(int Ind, int v)
 			msg_format_near(p_ptr, "%s is no longer stunned.", p_ptr->name);
 			msg_print(p_ptr, "You are no longer stunned.");
 			sound(Ind, MSG_RECOVER);
-			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 			break;
 		}
 
@@ -1391,7 +1391,7 @@ bool set_stun(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -1582,7 +1582,7 @@ bool set_cut(int Ind, int v)
 			case 0:
 			msg_print(p_ptr, "You are no longer bleeding.");
 			sound(Ind, MSG_RECOVER);
-			if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 			break;
 		}
 
@@ -1597,7 +1597,7 @@ bool set_cut(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -1822,7 +1822,7 @@ bool set_food(int Ind, int v)
 	if (!notice) return (FALSE);
 
 	/* Disturb */
-	if (option_p(p_ptr,DISTURB_STATE)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
@@ -3273,7 +3273,7 @@ void verify_panel(int Ind)
 	if ((prow == p_ptr->panel_row) && (pcol == p_ptr->panel_col)) return;
 
 	/* Hack -- optional disturb on "panel change" */
-	if (option_p(p_ptr,DISTURB_PANEL)) disturb(Ind, 0, 0);
+	if (option_p(p_ptr,DISTURB_PANEL)) disturb(p_ptr, 0, 0);
 
 	/* Save the new panel info */
 	p_ptr->panel_row = prow;

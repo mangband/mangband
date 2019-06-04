@@ -234,7 +234,7 @@ bool make_attack_normal(int Ind, int m_idx)
 		if (!effect || check_hit(Ind, power, rlev))
 		{
 			/* Always disturbing */
-			disturb(Ind, 1, 0);
+			disturb(p_ptr, 1, 0);
 
 
 			/* Hack -- Apply "protection from evil" */
@@ -1271,7 +1271,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				if (p_ptr->mon_vis[m_idx])
 				{
 					/* Disturbing */
-					disturb(Ind, 1, 0);
+					disturb(p_ptr, 1, 0);
 
 					/* Message */
 					msg_format(p_ptr, "%^s misses you.", m_name);

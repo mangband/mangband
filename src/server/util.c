@@ -2052,7 +2052,7 @@ void msg_format_complex_far(player_type *p_ptr, player_type *q_ptr, u16b type, c
 			/* Send the message */
 			msg_print_aux(qq_ptr, buf_vis, type);
 			/* Disturb player */
-			disturb(Get_Ind[qq_ptr->conn], 0, 0);
+			disturb(qq_ptr, 0, 0);
 		}
 		else
 		{

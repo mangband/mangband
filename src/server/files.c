@@ -2222,7 +2222,7 @@ void do_cmd_save_game(int Ind)
 	player_type *p_ptr = Players[Ind];
 
 	/* Disturb the player */
-	disturb(Ind, 1, 0);
+	disturb(p_ptr, 1, 0);
 
 	/* Clear messages */
 	msg_print(p_ptr, NULL);
@@ -3324,7 +3324,7 @@ void exit_game_panic()
 		}
 
 		/* Hack -- turn off some things */
-		disturb(i, 1, 0);
+		disturb(p_ptr, 1, 0);
 
 		/* Mega-Hack -- Delay death */
 		if (p_ptr->chp < 0) p_ptr->death = FALSE;

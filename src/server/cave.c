@@ -4066,10 +4066,8 @@ void monster_race_track(int Ind, int r_idx)
  * disturb calls provoked by Player intent (1) and calls provoked by
  * some external event (0).
  */
-void disturb(int Ind, int stop_search, int unused_flag)
+void disturb(player_type *p_ptr, int stop_search, int unused_flag)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Used */
 	int player_intent = unused_flag;
 
@@ -4142,10 +4140,10 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		p_ptr->panel_col != p_ptr->panel_col_old))
 	{
 		/* Cancel input */
-		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_ESCAPE);
 
 		/* Stop locating */
-		do_cmd_locate(Ind, 0);
+		do_cmd_locate(Get_Ind[p_ptr->conn], 0);
 	}
 
 	/* Flush the input if requested */

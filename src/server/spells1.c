@@ -560,7 +560,7 @@ void take_hit(int Ind, int damage, cptr hit_from)
 
 
 	/* Disturb */
-	disturb(Ind, 1, 0);
+	disturb(p_ptr, 1, 0);
 
 	/* Mega-Hack -- Apply "invulnerability" */
 	if (p_ptr->invuln && (damage < 9000)) return;
@@ -4222,7 +4222,7 @@ static bool project_p(int Ind, int who, int r, int Depth, int y, int x, int dam,
 	p_ptr->project_hurt = TRUE;
 
 	/* Disturb */
-	if (!positive_effect) disturb(Ind, 1, 0);
+	if (!positive_effect) disturb(p_ptr, 1, 0);
 
 
 	/* Return "Anything seen?" */

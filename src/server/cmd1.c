@@ -551,7 +551,7 @@ void search(int Ind)
 					msg_print(p_ptr, "You have found a trap.");
 
 					/* Disturb */
-					disturb(Ind, 0, 0);
+					disturb(p_ptr, 0, 0);
 				}
 
 				/* Secret door */
@@ -570,7 +570,7 @@ void search(int Ind)
 					everyone_lite_spot(Depth, y, x);
 
 					/* Disturb */
-					disturb(Ind, 0, 0);
+					disturb(p_ptr, 0, 0);
 
 					/* Give the player an EXP bump */
 					p_ptr->exp += 1;
@@ -589,7 +589,7 @@ void search(int Ind)
 						object_known(o_ptr);
 
 						/* Notice it */
-						disturb(Ind, 0, 0);
+						disturb(p_ptr, 0, 0);
 					}
 				}
 			}
@@ -674,7 +674,7 @@ void carry(int Ind, int pickup, int confirm)
 		if (p_ptr->ghost && !pickup) return;
 	
 		/* Disturb */
-		disturb(Ind, 0, 0);
+		disturb(p_ptr, 0, 0);
 
 		/* MEGA HACK -- Change "owner" of this pile */
 		object_own(p_ptr, o_ptr);
@@ -712,7 +712,7 @@ void carry(int Ind, int pickup, int confirm)
 	{
 		/* Hack -- disturb */
 		if (!p_ptr->ghost)
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 		/* Refresh floor */
 		floor_item_notify(Ind, c_ptr->o_idx, FALSE);
@@ -899,7 +899,7 @@ static void hit_trap(int Ind)
 	if ((p_ptr->ghost) || (p_ptr->fruit_bat)) return;
 
 	/* Disturb the player */
-	disturb(Ind, 0, 0);
+	disturb(p_ptr, 0, 0);
 
 	/* Get the cave grid */
 	c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
@@ -1209,8 +1209,8 @@ void py_attack_player(int Ind, int y, int x)
 	bool do_quake = FALSE;
 
 	/* Disturb both players */
-	disturb(Ind, 0, 0);
-	disturb(0 - c_ptr->m_idx, 0, 0);
+	disturb(p_ptr, 0, 0);
+	disturb(q_ptr, 0, 0);
 
 	/* Extract name */
 	my_strcpy(pvp_name, q_ptr->name, 80);
@@ -1362,7 +1362,7 @@ void py_attack_mon(int Ind, int y, int x)
 	bool		backstab = FALSE, stab_fleeing = FALSE;
 
 	/* Disturb the player */
-	disturb(Ind, 0, 0);
+	disturb(p_ptr, 0, 0);
 
 
 	/* Extract monster name (or "it") */
@@ -1622,7 +1622,7 @@ void move_player(int Ind, int dir, int do_pickup)
 					}
 				else 
 					msg_print(p_ptr, "There is a wall blocking your way.");
-				disturb(Ind, 1, 0);
+				disturb(p_ptr, 1, 0);
 				return;
 			}
 			/* Leaving Town -- ALLOW, BUT WARN */
@@ -1668,7 +1668,7 @@ void move_player(int Ind, int dir, int do_pickup)
 				p_ptr->world_y = old_world_y;
 				p_ptr->px = oldx;
 				p_ptr->py = oldy;
-				disturb(Ind, 1, 0);
+				disturb(p_ptr, 1, 0);
 				return;
 			}
 			
@@ -1701,7 +1701,7 @@ void move_player(int Ind, int dir, int do_pickup)
 			p_ptr->wild_map[(-p_ptr->dun_depth)/8] |= (1<<((-p_ptr->dun_depth)%8));
 
 			/* disturb if necessary */
-			if (option_p(p_ptr,DISTURB_PANEL)) disturb(Ind, 0, 0);
+			if (option_p(p_ptr,DISTURB_PANEL)) disturb(p_ptr, 0, 0);
 
 			players_on_depth[p_ptr->dun_depth]++;
 			p_ptr->new_level_flag = TRUE;
@@ -1762,8 +1762,8 @@ void move_player(int Ind, int dir, int do_pickup)
 				}
 
 				/* Disturb both of them */
-				disturb(Ind, 1, 0);
-				disturb(Ind2, 1, 0);
+				disturb(p_ptr, 1, 0);
+				disturb(q_ptr, 1, 0);
 
 				/* Unhack both of them */
 				q_ptr->last_dir = p_ptr->last_dir = 5;
@@ -1793,8 +1793,8 @@ void move_player(int Ind, int dir, int do_pickup)
 				msg_format(q_ptr, "%s bumps into you.", p_ptr->name);
 
 				/* Disturb both parties */
-				disturb(Ind, 1, 0);
-				disturb(Ind2, 1, 0);
+				disturb(p_ptr, 1, 0);
+				disturb(q_ptr, 1, 0);
 			}
 		}
 	}
@@ -1832,7 +1832,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		if (p_ptr->ghost)
 		{
 			msg_print(p_ptr, "The wall blocks your movement.");
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 		} else
 		access_arena(Ind, y, x);
 	}
@@ -1841,7 +1841,7 @@ void move_player(int Ind, int dir, int do_pickup)
 	else if ((!p_ptr->ghost) && (!cave_floor_bold(Depth, y, x)))
 	{
 		/* Disturb the player */
-		disturb(Ind, 0, 0);
+		disturb(p_ptr, 0, 0);
 
 		/* Notice things in the dark */
 		if (!(*w_ptr & CAVE_MARK) &&
@@ -1925,14 +1925,14 @@ void move_player(int Ind, int dir, int do_pickup)
 		/* Message */
 		msg_print(p_ptr, "The wall blocks your movement.");
 
-		disturb(Ind, 0, 0);
+		disturb(p_ptr, 0, 0);
 	}
 
 	/* Player bumping shop door */
 	else if (!p_ptr->ghost && c_ptr->feat >= FEAT_SHOP_HEAD && c_ptr->feat <= FEAT_SHOP_TAIL - 1)
 	{
 		/* Disturb */
-		disturb(Ind, 0, 0);
+		disturb(p_ptr, 0, 0);
 	
 		/* Note "FEAT_SHOP_TAIL - 1" above, means we exclude tavern */
 		do_cmd_store(Ind, -2 -(c_ptr->feat - FEAT_SHOP_HEAD));
@@ -2003,7 +2003,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		    (c_ptr->feat <= FEAT_SHOP_TAIL))
 		{
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 #if 0
 			/* Hack -- Enter store */
@@ -2026,7 +2026,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		else if (c_ptr->feat == FEAT_INVIS)
 		{
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			/* Message */
 			msg_print(p_ptr, "You found a trap!");
@@ -2043,7 +2043,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		         (c_ptr->feat <= FEAT_TRAP_TAIL))
 		{
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			/* Hit the trap */
 			hit_trap(Ind);
@@ -2869,7 +2869,7 @@ void run_step(int Ind, int dir)
 		if (!run_nextstep(p_ptr))
 		{
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			/* Done */
 			return;
@@ -2900,7 +2900,7 @@ void run_step(int Ind, int dir)
 		if (run_test(Ind))
 		{
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			/* Done */
 			return;

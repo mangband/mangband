@@ -1460,7 +1460,7 @@ void update_mon(int m_idx, bool dist)
 				if (r_ptr->r_sights < MAX_SHORT) r_ptr->r_sights++;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_MOVE)) disturb(p_ptr, 1, 0);
 
 				/* Window stuff */
 				p_ptr->window |= PW_MONLIST;
@@ -1492,7 +1492,7 @@ void update_mon(int m_idx, bool dist)
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
 
 				/* Disturb on disappearance*/
-				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_MOVE)) disturb(p_ptr, 1, 0);
 
 				/* Window stuff */
 				p_ptr->window |= PW_MONLIST;
@@ -1510,7 +1510,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_los[m_idx] = TRUE;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_NEAR)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_NEAR)) disturb(p_ptr, 1, 0);
 			}
 		}
 
@@ -1524,7 +1524,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_los[m_idx] = FALSE;
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_NEAR)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_NEAR)) disturb(p_ptr, 1, 0);
 			}
 		}
 	}
@@ -1678,7 +1678,7 @@ void update_player(int Ind)
 				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 
 				/* Window stuff */
@@ -1702,7 +1702,7 @@ void update_player(int Ind)
 				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 
 				/* Window stuff */
@@ -1723,7 +1723,7 @@ void update_player(int Ind)
 				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 			}
 		}
@@ -1741,7 +1741,7 @@ void update_player(int Ind)
 				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 			}
 		}

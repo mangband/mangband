@@ -1297,7 +1297,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 			/* Player owned store! */
 
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			/* Hack -- Enter store */
 			command_new = '_';
@@ -1547,7 +1547,7 @@ void do_cmd_open(int Ind, int dir)
 	}
 
 	/* Cancel repeat unless we may continue */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 
@@ -1768,7 +1768,7 @@ void do_cmd_close(int Ind, int dir)
 	}
 
 	/* Cancel repeat unless told not to */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 
@@ -2202,7 +2202,7 @@ void do_cmd_tunnel(int Ind, int dir)
 	}
 
 	/* Cancel repetition unless we can continue */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 
@@ -2494,7 +2494,7 @@ void do_cmd_disarm(int Ind, int dir)
 	}
 
 	/* Cancel repeat unless told not to */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 /*
@@ -2736,7 +2736,7 @@ void do_cmd_bash(int Ind, int dir)
 		if (!do_cmd_bash_aux(Ind, y, x))
 		{
 			/* Cancel repeat */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 		}
 	}
 }
@@ -2886,7 +2886,7 @@ void do_cmd_alter(int Ind, int dir)
 	}
 
 	/* Cancel repetition unless we can continue */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 
@@ -3127,7 +3127,7 @@ void do_cmd_walk(int Ind, int dir, int pickup)
 	}
 
 	/* Cancel repeat unless we may continue */
-	if (!more) disturb(Ind, 0, 0);
+	if (!more) disturb(p_ptr, 0, 0);
 }
 
 
@@ -3197,7 +3197,7 @@ int do_cmd_run(int Ind, int dir)
 			msg_print(p_ptr, "You cannot run in that direction.");
 
 			/* Disturb */
-			disturb(Ind, 0, 0);
+			disturb(p_ptr, 0, 0);
 
 			return 1;
 		}
@@ -3266,7 +3266,7 @@ void do_cmd_hold_or_stay(int Ind, int pickup, int take_stairs)
 	    (c_ptr->feat <= FEAT_SHOP_TAIL))
 	{
 		/* Disturb */
-		disturb(Ind, 0, 0);
+		disturb(p_ptr, 0, 0);
 
 		/* Hack -- enter store */
 		command_new = '_';
