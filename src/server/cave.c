@@ -4113,6 +4113,14 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);
 	}
+	if (p_ptr->running_withpathfind)
+	{
+		/* Cancel */
+		p_ptr->running_withpathfind = FALSE;
+
+		/* Calculate torch radius */
+		p_ptr->update |= (PU_TORCH);
+	}
 
 	/* Cancel searching if requested */
 	if (stop_search && p_ptr->searching)

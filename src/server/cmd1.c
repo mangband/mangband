@@ -2870,7 +2870,8 @@ void run_step(int Ind, int dir)
 		{
 			/* Disturb */
 			disturb(Ind, 0, 0);
-			p_ptr->running_withpathfind = FALSE;
+
+			/* Done */
 			return;
 		}
 		/* On */
