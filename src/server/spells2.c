@@ -1053,7 +1053,7 @@ void self_knowledge(player_type *p_ptr, bool spoil)
 	p_ptr->last_info_line = i - 1;
 
 	/* Let the client see it */
-	send_prepared_popup(Ind, "Self-Knowledge");
+	send_prepared_popup(p_ptr, "Self-Knowledge");
 }
 
 
@@ -3032,7 +3032,7 @@ bool identify_fully_item(int Ind, int item)
 
 	/* Describe it fully */
 	identify_fully_aux(Ind, o_ptr);
-	send_prepared_popup(Ind, o_name);
+	send_prepared_popup(p_ptr, o_name);
 
 	/* Success */
 	return (TRUE);

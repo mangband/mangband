@@ -951,7 +951,7 @@ void do_cmd_observe(int Ind, int item)
 	identify_fully_aux(Ind, o_ptr);
 
 	/* Notify player */
-	send_prepared_popup(Ind, o_name);
+	send_prepared_popup(p_ptr, o_name);
 }
 
 
@@ -2100,7 +2100,7 @@ void do_cmd_monlist(int Ind)
 	display_monlist(Ind);
 
 	/* Send it */
-	send_prepared_popup(Ind, "Visible Monsters (Snapshot)");
+	send_prepared_popup(p_ptr, "Visible Monsters (Snapshot)");
 
 	return;
 }
@@ -2120,7 +2120,7 @@ void do_cmd_itemlist(int Ind)//player_type *p_ptr)
 	/* (Fits player screen) */
 	if (p_ptr->last_info_line < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] - 2)
 	{
-		send_prepared_popup(Ind, "Visible Items (Snapshot)");
+		send_prepared_popup(p_ptr, "Visible Items (Snapshot)");
 	}
 	/* (Doesn't fit, requires browsing) */
 	else

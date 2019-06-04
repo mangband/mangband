@@ -2555,7 +2555,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	/* Gave knowledge */
 	return TRUE; 
 	
-	//Send_special_other(Ind, o_name);
+	//Send_special_other(Players[Ind], o_name);
 }
 
 

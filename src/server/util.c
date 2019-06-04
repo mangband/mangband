@@ -2940,16 +2940,15 @@ void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_pa
 	p_ptr->last_info_line = -1;
 }
 
-void send_prepared_popup(int Ind, cptr header)
+void send_prepared_popup(player_type *p_ptr, cptr header)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 	byte old_term;
 
 	old_term = p_ptr->remote_term;
 
 	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
-	Send_special_other(Ind, header);
+	Send_special_other(p_ptr, header);
 
 	/* Clear, Send, Popup! */
 	send_term_info(p_ptr, NTERM_CLEAR, 0);

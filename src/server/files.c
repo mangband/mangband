@@ -1954,7 +1954,7 @@ errr show_file(int Ind, cptr name, cptr what, int line, int color)
 	copy_file_info(Players[Ind], name, line, color);
 
 	/* Send header */
-	Send_special_other(Ind, (char*)what);
+	Send_special_other(Players[Ind], (char*)what);
 
 	/* Success */
 	return (0);

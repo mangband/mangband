@@ -697,7 +697,7 @@ extern void display_monlist(int Ind);
 
 // Transitional network hacks
 #define Send_term_info(IND, FLAG, ARG) send_term_info(Players[Ind], FLAG, ARG)
-#define Send_special_other(IND, HEADER) send_term_header(Players[Ind], NTERM_POP, HEADER)
+#define Send_special_other(PLR, HEADER) send_term_header(PLR, NTERM_POP, HEADER)
 #define Send_direction(IND) plog("Send_direction unimplemented\n")
 #define Send_item_request(IND, tval_hook) plog("Send_item_request unimplemented\n")
 #define Send_flush(IND) plog("Send_flush unimplemented\n")
@@ -1028,7 +1028,7 @@ extern int color_text_to_attr(cptr name);
 extern int color_opposite(int color);
 extern cptr attr_to_text(byte a);
 extern void send_prepared_info(player_type *p_ptr, byte win, byte stream, byte extra_params);
-extern void send_prepared_popup(int Ind, cptr header);
+extern void send_prepared_popup(player_type *p_ptr, cptr header);
 extern void monster_race_track_hack(player_type *p_ptr);
 extern void text_out(cptr buf);
 extern void text_out_c(byte a, cptr buf);
