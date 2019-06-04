@@ -328,7 +328,7 @@ static void console_whois(connection_type* ct, char *name)
 static void console_message(connection_type* ct, char *buf)
 {
 	/* Send the message */
-	player_talk(0, buf);
+	player_talk(NULL, buf);
 }
 
 static void console_kick_player(connection_type* ct, char *name)
@@ -543,7 +543,7 @@ static void console_shutdown(connection_type* ct, char *when)
 		plog_fmt("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s");
 
 		/* Send the message -- TODO: is this the right function ?*/
-		player_talk(0, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
+		player_talk(NULL, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
 	}
 }
 

@@ -2455,17 +2455,17 @@ void channels_leave(player_type *p_ptr)
  * A message prefixed by a player name is sent only to that player.
  * Otherwise, it is sent to everyone.
  */
-void player_talk_aux(int Ind, cptr message)
+void player_talk_aux(player_type *p_ptr, cptr message)
 {
 	int i, target = 0;
 	char search[80], sender[80], error[80], tmp_chan[MAX_CHAN_LEN];
 	int dest_chan = 0; //#public
-	player_type *p_ptr = Players[Ind], *q_ptr;
+	player_type *q_ptr;
 	cptr colon, chan_prefix;
 	bool msg_off = FALSE;
 
 	/* Get sender's name */
-	if (Ind)
+	if (p_ptr)
 	{
 		/* Get player name */
 		my_strcpy(sender, p_ptr->name, 80);
@@ -2482,7 +2482,7 @@ void player_talk_aux(int Ind, cptr message)
 	/* Default to #public channel if not originated by a player */
 	dest_chan = 0;
 
-	if(Ind)
+	if (p_ptr)
 	{
 		/* Default to the senders main channel */
 		dest_chan = p_ptr->main_channel;
@@ -2498,7 +2498,7 @@ void player_talk_aux(int Ind, cptr message)
 		if(!chan_prefix && strlen(message) < MAX_CHAN_LEN)
 		{
 			/* Channel name only?  Change the players default channel */
-			if(Ind)
+			if (p_ptr)
 			{
 				strncpy(tmp_chan,message,MAX_CHAN_LEN);
 				channel_join(p_ptr, tmp_chan, FALSE);
@@ -2537,7 +2537,7 @@ void player_talk_aux(int Ind, cptr message)
 	if (colon)
 	{
 		/* messanger is undefined OR colon is last symbol OR colon is part of "smiley" */
-		if (!Ind || !*(colon + 1) || strchr(")(-|\\/", *(colon + 1))) colon = NULL;
+		if (!p_ptr || !*(colon + 1) || strchr(")(-|\\/", *(colon + 1))) colon = NULL;
 	}
 
 	/* Form a search string if we found a colon */
@@ -2686,7 +2686,7 @@ void player_talk_aux(int Ind, cptr message)
 
 	/* Total failure... */
 	if (dest_chan == -1) return;
-	else if (Ind && !can_talk(p_ptr, dest_chan)) return; 
+	else if (p_ptr && !can_talk(p_ptr, dest_chan)) return;
 
 	/* Send to everyone in this channel */
 	for (i = 1; i <= NumPlayers; i++)
@@ -2695,7 +2695,7 @@ void player_talk_aux(int Ind, cptr message)
 		if(q_ptr->on_channel[dest_chan] & UCM_EAR)
 		{
 			/* Send message */
-			if(Ind)
+			if (p_ptr)
 			{
 				msg_format_type(q_ptr, MSG_CHAT + dest_chan, "[%s] %s", sender, message);
 			}
@@ -2720,7 +2720,7 @@ void player_talk_aux(int Ind, cptr message)
  * tabs ('\t').  Thus, this function splits them and calls
  * "player_talk_aux" to do the dirty work.
  */
-void player_talk(int Ind, char *message)
+void player_talk(player_type *p_ptr, char *message)
 {
 	char *cur, *next;
 
@@ -2741,7 +2741,7 @@ void player_talk(int Ind, char *message)
 		}
 
 		/* Process this message */
-		player_talk_aux(Ind, cur);
+		player_talk_aux(p_ptr, cur);
 
 		/* Move to the next one */
 		if (next)

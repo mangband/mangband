@@ -885,8 +885,6 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 {
 	char buf[1024];
 
-	int Ind = Get_Ind[p_ptr->conn];
-
 	buf[0] = '\0';
 
 	if (cq_scanf(&ct->rbuf, "%S", buf) < 1)
@@ -894,7 +892,7 @@ int recv_message(connection_type *ct, player_type *p_ptr)
 		return 0;
 	}
 
-	player_talk(Ind, buf);
+	player_talk(p_ptr, buf);
 
 	return 1;
 }
