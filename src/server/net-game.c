@@ -823,10 +823,11 @@ int send_sound(player_type *p_ptr, u16b sound)
 	return 1;
 }
 
-int send_channel(int Ind, char mode, u16b id, cptr name)
+int send_channel(player_type *p_ptr, char mode, u16b id, cptr name)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (!cq_printf(&ct->wbuf, "%c%ud%c%s", PKT_CHANNEL, id, mode, name))
 	{
 		client_withdraw(ct);
@@ -856,7 +857,7 @@ int recv_channel(connection_type *ct, player_type *p_ptr)
 			{
 				name[MAX_CHAN_LEN] = '\0';
 
-				channel_join(Ind, name, TRUE);
+				channel_join(p_ptr, name, TRUE);
 
 				p_ptr->second_channel[0] = '\0';
 			}
@@ -869,7 +870,7 @@ int recv_channel(connection_type *ct, player_type *p_ptr)
 		break;
 		case CHAN_LEAVE:
 
-			channel_leave_id(Ind, id, FALSE);
+			channel_leave_id(p_ptr, id, FALSE);
 
 		break;
 		default:

@@ -133,7 +133,7 @@ int player_enter(int ind)
 	PConn[PInd] = ct; 
 
 	/* Hack -- join '#public' channel */
-	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
+	send_channel(p_ptr, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
 	/* Hack -- send different 'G'ain command */
 	if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
@@ -250,7 +250,7 @@ int player_leave(int p_idx)
 	saved = save_player(p_ptr);
 
 	/* Leave all chat channels */
-	channels_leave(p_idx);
+	channels_leave(p_ptr);
 
 	/* Leave everything else */
 	player_abandon(p_ptr);

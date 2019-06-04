@@ -2309,7 +2309,7 @@ int find_chat_target(cptr search, char *error)
 }
 
 /* Instruct client to listen on a specific channel for an incoming message. */ 
-void assist_whisper(int Ind, cptr search)
+void assist_whisper(player_type *p_ptr, cptr search)
 {
 	int target;
 	char error[80];
@@ -2320,7 +2320,7 @@ void assist_whisper(int Ind, cptr search)
 	if (!target)
 	{
 		/* Relay error */
-		msg_print(Players[Ind], error);
+		msg_print(p_ptr, error);
 
 		/* Give up */
 		return;
@@ -2332,24 +2332,23 @@ void assist_whisper(int Ind, cptr search)
 	/* Virtual channel -- what he sent */
 	else if (target > 0 && target < VIRTUAL_CHANNELS)
 	{
-		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, virt_channels[target]);
+		send_channel(p_ptr, CHAN_SELECT, MAX_CHANNELS, virt_channels[target]);
 	}
 	/* A Player */
 	else if (target > 0)
 	{
-		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, Players[target - VIRTUAL_CHANNELS]->name);
+		send_channel(p_ptr, CHAN_SELECT, MAX_CHANNELS, Players[target - VIRTUAL_CHANNELS]->name);
 	}
 	/* A Party */
 	else if (target < 0)
 	{
-		send_channel(Ind, CHAN_SELECT, MAX_CHANNELS, parties[0 - target].name);
+		send_channel(p_ptr, CHAN_SELECT, MAX_CHANNELS, parties[0 - target].name);
 	}
 }
 
-void channel_join(int Ind, cptr channel, bool quiet)
+void channel_join(player_type *p_ptr, cptr channel, bool quiet)
 {
 	int i, last_free = 0;
-	player_type *p_ptr = Players[Ind];
 
 	/* Find channel */
 	for (i = 0; i < MAX_CHANNELS; i++)
@@ -2373,14 +2372,14 @@ void channel_join(int Ind, cptr channel, bool quiet)
 				/* Enter channel */
 				channels[i].num++;
 				p_ptr->on_channel[i] |= UCM_EAR;
-				send_channel(Ind, CHAN_JOIN, i, channel);
+				send_channel(p_ptr, CHAN_JOIN, i, channel);
 				if (!quiet) msg_format(p_ptr,"Listening to channel %s",channel);
 			}
 			/* Select channel */
 			else
 			{
 				p_ptr->main_channel = i;
-				send_channel(Ind, CHAN_SELECT, i, channel);
+				send_channel(p_ptr, CHAN_SELECT, i, channel);
 				if (!quiet) msg_format(p_ptr,"Channel changed to %s",channel);
 			}
 			return;
@@ -2396,7 +2395,7 @@ void channel_join(int Ind, cptr channel, bool quiet)
 		my_strcpy(channels[last_free].name, channel, MAX_CHARS);
 		channels[last_free].num = 1;
 		p_ptr->on_channel[last_free] |= (UCM_EAR | UCM_OPER);
-		send_channel(Ind, CHAN_JOIN, last_free, channel);
+		send_channel(p_ptr, CHAN_JOIN, last_free, channel);
 		if (!quiet) msg_format(p_ptr, "Listening to channel %s", channel);
 	}
 	/* All channel slots are used up */
@@ -2406,9 +2405,8 @@ void channel_join(int Ind, cptr channel, bool quiet)
 	}
 }
 /* Actual code for leaving channels */
-void channel_leave_id(int Ind, int i, bool quiet)
+void channel_leave_id(player_type *p_ptr, int i, bool quiet)
 {
-	player_type *p_ptr = Players[Ind];
 	if (!i || !(p_ptr->on_channel[i] & UCM_EAR)) return;
 	
 	channels[i].num--;
@@ -2424,34 +2422,32 @@ void channel_leave_id(int Ind, int i, bool quiet)
 	}
 	p_ptr->on_channel[i] &= ~(UCM_LEAVE);
 	if (!quiet)
-		send_channel(Ind, CHAN_LEAVE, i, "");
+		send_channel(p_ptr, CHAN_LEAVE, i, "");
 }
 /* Find channel by name and leave it */
-void channel_leave(int Ind, cptr channel)
+void channel_leave(player_type *p_ptr, cptr channel)
 {
 	int i;
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		if (!strcmp(channels[i].name, channel))
 		{
-			channel_leave_id(Ind, i, FALSE);
+			channel_leave_id(p_ptr, i, FALSE);
 			break;
 		}
 	}	
 }
 /* Leave all channels */
-void channels_leave(int Ind)
+void channels_leave(player_type *p_ptr)
 {
 	int i;
-	player_type *p_ptr = Players[Ind];
-
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		if (p_ptr->on_channel[i] & UCM_EAR)
 		{
-			channel_leave_id(Ind, i, TRUE);
+			channel_leave_id(p_ptr, i, TRUE);
 		}
-	}	
+	}
 }
 
 
@@ -2505,7 +2501,7 @@ void player_talk_aux(int Ind, cptr message)
 			if(Ind)
 			{
 				strncpy(tmp_chan,message,MAX_CHAN_LEN);
-				channel_join(Ind, tmp_chan, FALSE);
+				channel_join(p_ptr, tmp_chan, FALSE);
 				return;
 			}
 		}
@@ -2566,7 +2562,7 @@ void player_talk_aux(int Ind, cptr message)
 		/* There's nothing else , prepare for whisper */
 		if (colon - message == strlen(message))
 		{
-			assist_whisper(Ind, search);
+			assist_whisper(p_ptr, search);
 			return;
 		}
 		/* Hack -- empty 'party hinter' hints to own party */		
