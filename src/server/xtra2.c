@@ -108,7 +108,7 @@ bool set_blind(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s gropes around blindly!", p_ptr->name);
 			msg_print(p_ptr, "You are blind!");
-			sound(Ind, MSG_BLIND);
+			sound(p_ptr, MSG_BLIND);
 			notice = TRUE;
 		}
 	}
@@ -120,7 +120,7 @@ bool set_blind(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s can see again.", p_ptr->name);
 			msg_print(p_ptr, "You can see again.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -179,7 +179,7 @@ bool set_confused(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s appears confused!", p_ptr->name);
 			msg_print(p_ptr, "You are confused!");
-			sound(Ind, MSG_CONFUSED);
+			sound(p_ptr, MSG_CONFUSED);
 			notice = TRUE;
 		}
 	}
@@ -190,7 +190,7 @@ bool set_confused(int Ind, int v)
 		if (p_ptr->confused)
 		{
 			msg_print(p_ptr, "You feel less confused now.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -233,7 +233,7 @@ bool set_poisoned(int Ind, int v)
 		if (!p_ptr->poisoned)
 		{
 			msg_print(p_ptr, "You are poisoned!");
-			sound(Ind, MSG_POISONED);
+			sound(p_ptr, MSG_POISONED);
 			notice = TRUE;
 		}
 	}
@@ -244,7 +244,7 @@ bool set_poisoned(int Ind, int v)
 		if (p_ptr->poisoned)
 		{
 			msg_print(p_ptr, "You are no longer poisoned.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -288,7 +288,7 @@ bool set_afraid(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s cowers in fear!", p_ptr->name);
 			msg_print(p_ptr, "You are terrified!");
-			sound(Ind, MSG_AFRAID);
+			sound(p_ptr, MSG_AFRAID);
 			notice = TRUE;
 		}
 	}
@@ -300,7 +300,7 @@ bool set_afraid(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s appears bolder now.", p_ptr->name);
 			msg_print(p_ptr, "You feel bolder now.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -344,7 +344,7 @@ bool set_paralyzed(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s becomes rigid!", p_ptr->name);
 			msg_print(p_ptr, "You are paralyzed!");
-			sound(Ind, MSG_PARALYZED);
+			sound(p_ptr, MSG_PARALYZED);
 			notice = TRUE;
 		}
 	}
@@ -356,7 +356,7 @@ bool set_paralyzed(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s can move again.", p_ptr->name);
 			msg_print(p_ptr, "You can move again.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -401,7 +401,7 @@ bool set_image(int Ind, int v)
 		if (!p_ptr->image)
 		{
 			msg_print(p_ptr, "You feel drugged!");
-			sound(Ind, MSG_DRUGGED);
+			sound(p_ptr, MSG_DRUGGED);
 			notice = TRUE;
 		}
 	}
@@ -412,7 +412,7 @@ bool set_image(int Ind, int v)
 		if (p_ptr->image)
 		{
 			msg_print(p_ptr, "You can see clearly again.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -465,7 +465,7 @@ bool set_fast(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s begins moving faster!", p_ptr->name);
 			msg_print(p_ptr, "You feel yourself moving faster!");
-			sound(Ind, MSG_SPEED);
+			sound(p_ptr, MSG_SPEED);
 			notice = TRUE;
 		}
 	}
@@ -477,7 +477,7 @@ bool set_fast(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s slows down.", p_ptr->name);
 			msg_print(p_ptr, "You feel yourself slow down.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -521,7 +521,7 @@ bool set_slow(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s begins moving slower!", p_ptr->name);
 			msg_print(p_ptr, "You feel yourself moving slower!");
-			sound(Ind, MSG_SLOW);
+			sound(p_ptr, MSG_SLOW);
 			notice = TRUE;
 		}
 	}
@@ -533,7 +533,7 @@ bool set_slow(int Ind, int v)
 		{
 			msg_format_near(p_ptr, "%s speeds up.", p_ptr->name);
 			msg_print(p_ptr, "You feel yourself speed up.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -576,7 +576,7 @@ bool set_shield(int Ind, int v)
 		if (!p_ptr->shield)
 		{
 			msg_print(p_ptr, "A mystic shield forms around your body!");
-			sound(Ind, MSG_SHIELD);
+			sound(p_ptr, MSG_SHIELD);
 			notice = TRUE;
 		}
 	}
@@ -587,7 +587,7 @@ bool set_shield(int Ind, int v)
 		if (p_ptr->shield)
 		{
 			msg_print(p_ptr, "Your mystic shield crumbles away.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -631,7 +631,7 @@ bool set_blessed(int Ind, int v)
 		if (!p_ptr->blessed)
 		{
 			msg_print(p_ptr, "You feel righteous!");
-			sound(Ind, MSG_BLESSED);
+			sound(p_ptr, MSG_BLESSED);
 			notice = TRUE;
 		}
 	}
@@ -642,7 +642,7 @@ bool set_blessed(int Ind, int v)
 		if (p_ptr->blessed)
 		{
 			msg_print(p_ptr, "The prayer has expired.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -685,7 +685,7 @@ bool set_hero(int Ind, int v)
 		if (!p_ptr->hero)
 		{
 			msg_print(p_ptr, "You feel like a hero!");
-			sound(Ind, MSG_HERO);
+			sound(p_ptr, MSG_HERO);
 			notice = TRUE;
 		}
 	}
@@ -696,7 +696,7 @@ bool set_hero(int Ind, int v)
 		if (p_ptr->hero)
 		{
 			msg_print(p_ptr, "The heroism wears off.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -742,7 +742,7 @@ bool set_shero(int Ind, int v)
 		if (!p_ptr->shero)
 		{
 			msg_print(p_ptr, "You feel like a killing machine!");
-			sound(Ind, MSG_BERSERK);
+			sound(p_ptr, MSG_BERSERK);
 			notice = TRUE;
 		}
 	}
@@ -753,7 +753,7 @@ bool set_shero(int Ind, int v)
 		if (p_ptr->shero)
 		{
 			msg_print(p_ptr, "You feel less Berserk.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -799,7 +799,7 @@ bool set_protevil(int Ind, int v)
 		if (!p_ptr->protevil)
 		{
 			msg_print(p_ptr, "You feel safe from evil!");
-			sound(Ind, MSG_PROT_EVIL);
+			sound(p_ptr, MSG_PROT_EVIL);
 			notice = TRUE;
 		}
 	}
@@ -810,7 +810,7 @@ bool set_protevil(int Ind, int v)
 		if (p_ptr->protevil)
 		{
 			msg_print(p_ptr, "You no longer feel safe from evil.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -850,7 +850,7 @@ bool set_invuln(int Ind, int v)
 		if (!p_ptr->invuln)
 		{
 			msg_print(p_ptr, "You feel invulnerable!");
-			sound(Ind, MSG_INVULN);
+			sound(p_ptr, MSG_INVULN);
 			notice = TRUE;
 		}
 	}
@@ -861,7 +861,7 @@ bool set_invuln(int Ind, int v)
 		if (p_ptr->invuln)
 		{
 			msg_print(p_ptr, "You feel vulnerable once more.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -904,7 +904,7 @@ bool set_tim_invis(int Ind, int v)
 		if (!p_ptr->tim_invis)
 		{
 			msg_print(p_ptr, "Your eyes feel very sensitive!");
-			sound(Ind, MSG_SEE_INVIS);
+			sound(p_ptr, MSG_SEE_INVIS);
 			notice = TRUE;
 		}
 	}
@@ -915,7 +915,7 @@ bool set_tim_invis(int Ind, int v)
 		if (p_ptr->tim_invis)
 		{
 			msg_print(p_ptr, "Your eyes feel less sensitive.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -961,7 +961,7 @@ bool set_tim_infra(int Ind, int v)
 		if (!p_ptr->tim_infra)
 		{
 			msg_print(p_ptr, "Your eyes begin to tingle!");
-			sound(Ind, MSG_INFRARED);
+			sound(p_ptr, MSG_INFRARED);
 			notice = TRUE;
 		}
 	}
@@ -972,7 +972,7 @@ bool set_tim_infra(int Ind, int v)
 		if (p_ptr->tim_infra)
 		{
 			msg_print(p_ptr, "Your eyes stop tingling.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1018,7 +1018,7 @@ bool set_oppose_acid(int Ind, int v)
 		if (!p_ptr->oppose_acid)
 		{
 			msg_print(p_ptr, "You feel resistant to acid!");
-			sound(Ind, MSG_RES_ACID);
+			sound(p_ptr, MSG_RES_ACID);
 			notice = TRUE;
 		}
 	}
@@ -1029,7 +1029,7 @@ bool set_oppose_acid(int Ind, int v)
 		if (p_ptr->oppose_acid)
 		{
 			msg_print(p_ptr, "You feel less resistant to acid.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1071,7 +1071,7 @@ bool set_oppose_elec(int Ind, int v)
 		if (!p_ptr->oppose_elec)
 		{
 			msg_print(p_ptr, "You feel resistant to electricity!");
-			sound(Ind, MSG_RES_ELEC);
+			sound(p_ptr, MSG_RES_ELEC);
 			notice = TRUE;
 		}
 	}
@@ -1082,7 +1082,7 @@ bool set_oppose_elec(int Ind, int v)
 		if (p_ptr->oppose_elec)
 		{
 			msg_print(p_ptr, "You feel less resistant to electricity.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1124,7 +1124,7 @@ bool set_oppose_fire(int Ind, int v)
 		if (!p_ptr->oppose_fire)
 		{
 			msg_print(p_ptr, "You feel resistant to fire!");
-			sound(Ind, MSG_RES_FIRE);
+			sound(p_ptr, MSG_RES_FIRE);
 			notice = TRUE;
 		}
 	}
@@ -1135,7 +1135,7 @@ bool set_oppose_fire(int Ind, int v)
 		if (p_ptr->oppose_fire)
 		{
 			msg_print(p_ptr, "You feel less resistant to fire.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1177,7 +1177,7 @@ bool set_oppose_cold(int Ind, int v)
 		if (!p_ptr->oppose_cold)
 		{
 			msg_print(p_ptr, "You feel resistant to cold!");
-			sound(Ind, MSG_RES_COLD);
+			sound(p_ptr, MSG_RES_COLD);
 			notice = TRUE;
 		}
 	}
@@ -1188,7 +1188,7 @@ bool set_oppose_cold(int Ind, int v)
 		if (p_ptr->oppose_cold)
 		{
 			msg_print(p_ptr, "You feel less resistant to cold.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1230,7 +1230,7 @@ bool set_oppose_pois(int Ind, int v)
 		if (!p_ptr->oppose_pois)
 		{
 			msg_print(p_ptr, "You feel resistant to poison!");
-			sound(Ind, MSG_RES_POIS);
+			sound(p_ptr, MSG_RES_POIS);
 			notice = TRUE;
 		}
 	}
@@ -1241,7 +1241,7 @@ bool set_oppose_pois(int Ind, int v)
 		if (p_ptr->oppose_pois)
 		{
 			msg_print(p_ptr, "You feel less resistant to poison.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			notice = TRUE;
 		}
 	}
@@ -1343,21 +1343,21 @@ bool set_stun(int Ind, int v)
 			case 1:
 			msg_format_near(p_ptr, "%s appears stunned.", p_ptr->name);
 			msg_print(p_ptr, "You have been stunned.");
-			sound(Ind, MSG_STUN);
+			sound(p_ptr, MSG_STUN);
 			break;
 
 			/* Heavy stun */
 			case 2:
 			msg_format_near(p_ptr, "%s is very stunned.", p_ptr->name);
 			msg_print(p_ptr, "You have been heavily stunned.");
-			sound(Ind, MSG_STUN);
+			sound(p_ptr, MSG_STUN);
 			break;
 
 			/* Knocked out */
 			case 3:
 			msg_format_near(p_ptr, "%s has been knocked out.", p_ptr->name);
 			msg_print(p_ptr, "You have been knocked out.");
-			sound(Ind, MSG_STUN);
+			sound(p_ptr, MSG_STUN);
 			break;
 		}
 
@@ -1375,7 +1375,7 @@ bool set_stun(int Ind, int v)
 			case 0:
 			msg_format_near(p_ptr, "%s is no longer stunned.", p_ptr->name);
 			msg_print(p_ptr, "You are no longer stunned.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 			break;
 		}
@@ -1528,43 +1528,43 @@ bool set_cut(int Ind, int v)
 			/* Graze */
 			case 1:
 			msg_print(p_ptr, "You have been given a graze.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Light cut */
 			case 2:
 			msg_print(p_ptr, "You have been given a light cut.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Bad cut */
 			case 3:
 			msg_print(p_ptr, "You have been given a bad cut.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Nasty cut */
 			case 4:
 			msg_print(p_ptr, "You have been given a nasty cut.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Severe cut */
 			case 5:
 			msg_print(p_ptr, "You have been given a severe cut.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Deep gash */
 			case 6:
 			msg_print(p_ptr, "You have been given a deep gash.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 
 			/* Mortal wound */
 			case 7:
 			msg_print(p_ptr, "You have been given a mortal wound.");
-			sound(Ind, MSG_CUT);
+			sound(p_ptr, MSG_CUT);
 			break;
 		}
 
@@ -1581,7 +1581,7 @@ bool set_cut(int Ind, int v)
 			/* None */
 			case 0:
 			msg_print(p_ptr, "You are no longer bleeding.");
-			sound(Ind, MSG_RECOVER);
+			sound(p_ptr, MSG_RECOVER);
 			if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 			break;
 		}
@@ -1771,7 +1771,7 @@ bool set_food(int Ind, int v)
 			/* Fainting / Starving */
 			case 0:
 			msg_print(p_ptr, "You are getting faint from hunger!");
-			sound(Ind, MSG_NOTICE);
+			sound(p_ptr, MSG_NOTICE);
 			/* Hack -- if the player is at full hit points, 
 			 * destroy his conneciton (this will hopefully prevent
 			 * people from starving while afk, and not in the dungeon.)
@@ -1789,25 +1789,25 @@ bool set_food(int Ind, int v)
 			/* Weak */
 			case 1:
 			msg_print(p_ptr, "You are getting weak from hunger!");
-			sound(Ind, MSG_NOTICE);
+			sound(p_ptr, MSG_NOTICE);
 			break;
 
 			/* Hungry */
 			case 2:
 			msg_print(p_ptr, "You are getting hungry.");
-			sound(Ind, MSG_HUNGRY);
+			sound(p_ptr, MSG_HUNGRY);
 			break;
 
 			/* Normal */
 			case 3:
 			msg_print(p_ptr, "You are no longer full.");
-			sound(Ind, MSG_NOTICE);
+			sound(p_ptr, MSG_NOTICE);
 			break;
 
 			/* Full */
 			case 4:
 			msg_print(p_ptr, "You are no longer gorged.");
-			sound(Ind, MSG_NOTICE);
+			sound(p_ptr, MSG_NOTICE);
 			break;
 		}
 
@@ -1920,7 +1920,7 @@ void check_experience(int Ind)
 		if (p_ptr->lev > p_ptr->max_plv) p_ptr->max_plv = p_ptr->lev;
 
 		/* Sound */
-		sound(Ind, MSG_LEVEL);
+		sound(p_ptr, MSG_LEVEL);
 
 		/* Message */
 		msg_format(p_ptr, "Welcome to level %d.", p_ptr->lev);
@@ -2739,7 +2739,7 @@ void player_death(int Ind)
 	if (p_ptr->new_level_flag == TRUE) return;
 
 	/* Sound */
-	sound(Ind, MSG_DEATH);
+	sound(p_ptr, MSG_DEATH);
 
 	/** Cheat death **/
 
@@ -3046,7 +3046,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 		monster_desc(Ind, m_name, m_idx, 0);
 
 		/* Make a sound */
-		sound(Ind, soundfx);
+		sound(p_ptr, soundfx);
 
 		/* Death by Missile/Spell attack */
 		if (note)

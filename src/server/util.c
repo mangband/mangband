@@ -884,10 +884,10 @@ void bell(void)
 /*
  * Mega-Hack -- Make a (relevant?) sound
  */
-void sound(int Ind, int val)
+void sound(player_type *p_ptr, int val)
 {
 	/* Make a sound */
-	send_sound(Ind, val);
+	send_sound(p_ptr, val);
 }
 
 

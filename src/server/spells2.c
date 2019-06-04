@@ -294,7 +294,7 @@ bool do_dec_stat(int Ind, int stat)
 	{
 		/* Message */
 		msg_format(p_ptr, "You feel very %s.", desc_stat_neg[stat]);
-		sound(Ind, MSG_DRAIN_STAT);
+		sound(p_ptr, MSG_DRAIN_STAT);
 
 		/* Notice effect */
 		return (TRUE);
@@ -2904,17 +2904,17 @@ bool ident_spell_aux(int Ind, int item)
 	if (cursed_p(o_ptr) || broken_p(o_ptr))
 	{
 		/* This is a bad item. */
-		sound(Ind, MSG_IDENT_BAD);
+		sound(p_ptr, MSG_IDENT_BAD);
 	}
 	else if (artifact_p(o_ptr))
 	{
 		/* We have a good artifact. */
-		sound(Ind, MSG_IDENT_ART);
+		sound(p_ptr, MSG_IDENT_ART);
 	}
 	else if (ego_item_p(o_ptr))
 	{
 		/* We have a good ego item. */
-		sound(Ind, MSG_IDENT_EGO);
+		sound(p_ptr, MSG_IDENT_EGO);
 	}
 
 	/* Notice artifacts */
@@ -4879,7 +4879,7 @@ bool teleport_monster(int Ind, int dir)
 	int flg = PROJECT_BEAM | PROJECT_KILL;
 
 	/* Sound */
-	sound(Ind, MSG_TPOTHER);
+	sound(Players[Ind], MSG_TPOTHER);
 
 	return (project_hook(Ind, GF_AWAY_ALL, dir, MAX_SIGHT * 5, flg));
 }

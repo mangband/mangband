@@ -436,7 +436,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 			/* Message */
 			if (act) msg_format(p_ptr, "%^s %s", m_name, act);
-			if (act) sound(Ind, sound_msg);
+			if (act) sound(p_ptr, sound_msg);
 
 			/* Hack -- assume all attacks are obvious */
 			obvious = TRUE;
@@ -1275,7 +1275,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 					/* Message */
 					msg_format(p_ptr, "%^s misses you.", m_name);
-					sound(Ind, MSG_MISS);
+					sound(p_ptr, MSG_MISS);
 				}
 
 				break;

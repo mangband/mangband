@@ -229,7 +229,7 @@ void teleport_player(int Ind, int dis)
 	}
 
 	/* Sound */
-	sound(Ind, MSG_TELEPORT);
+	sound(p_ptr, MSG_TELEPORT);
 
 	/* Save the old location */
 	oy = p_ptr->py;
@@ -436,7 +436,7 @@ void teleport_player_level(int Ind)
 	
 	/* Tell the player */
 	msg_print(p_ptr, msg);
-	sound(Ind, MSG_TPLEVEL);
+	sound(p_ptr, MSG_TPLEVEL);
 
 	/* One less player here */
 	players_on_depth[Depth]--;
@@ -619,7 +619,7 @@ void take_hit(int Ind, int damage, cptr hit_from)
 		/* HACK -- Message on first notice*/
 		if (option_p(p_ptr,ALERT_HITPOINT) && (old_chp > warning)) {
 			msg_print(p_ptr, "*** LOW HITPOINT WARNING! ***");
-			sound(Ind, MSG_HITPOINT_WARN);
+			sound(p_ptr, MSG_HITPOINT_WARN);
 			msg_print(p_ptr, NULL);
 		}
 	}
@@ -893,7 +893,7 @@ static int inven_damage(int Ind, inven_func typ, int perc)
 				             (amt > 1 ? "Some of y" : "One of y")) : "Y"),
 				           o_name, index_to_label(i),
 				           ((amt > 1) ? "were" : "was"));
-				sound(Ind, MSG_DESTROY);
+				sound(p_ptr, MSG_DESTROY);
 
 				/* Destroy "amt" items */
 				inven_item_increase(Ind, i, -amt);
@@ -2354,7 +2354,7 @@ static bool project_i(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (!quiet && p_ptr->obj_vis[c_ptr->o_idx] && note_kill)
 			{
 				msg_format(p_ptr, "The %s%s", o_name, note_kill);
-				sound(Ind, MSG_DESTROY);
+				sound(p_ptr, MSG_DESTROY);
 			}
 
 			/* Delete the object */
@@ -3569,7 +3569,7 @@ static bool project_m(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (!quiet && (fear || do_fear) && (p_ptr->mon_vis[c_ptr->m_idx]) && !(r_ptr->flags2 & RF2_WANDERER))
 			{
 				/* Sound */
-				sound(Ind, MSG_FLEE);
+				sound(p_ptr, MSG_FLEE);
 
 				/* Message */
 				msg_format(p_ptr, "%^s flees in terror!", m_name);

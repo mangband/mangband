@@ -3965,7 +3965,7 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			{
 				if (chance) msg_print(q_ptr, "You feel something roll beneath your feet.");
 				floor_item_notify(0 - c_ptr->m_idx, o_idx, TRUE);
-				sound(0 - c_ptr->m_idx, MSG_DROP);
+				sound(q_ptr, MSG_DROP);
 			}
 	}
 

@@ -242,7 +242,7 @@ static void sense_inventory(int Ind)
 		/* Get an object description */
 		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
-		sound(Ind, MSG_PSEUDOID);
+		sound(p_ptr, MSG_PSEUDOID);
 
 		/* Message (equipment) */
 		if (i >= INVEN_WIELD)
@@ -460,34 +460,34 @@ static void play_ambient_sound(int Ind)
 		if (IS_DAY)
 		{
 			/* It's day. */
-			sound(Ind, MSG_AMBIENT_DAY);
+			sound(p_ptr, MSG_AMBIENT_DAY);
 		}
 		else
 		{
 			/* It's night. */
-			sound(Ind, MSG_AMBIENT_NITE);
+			sound(p_ptr, MSG_AMBIENT_NITE);
 		}
 	}
 
 	/* Dungeon level 1-20 */
 	else if (Depth <= 20)
-		sound(Ind, MSG_AMBIENT_DNG1);
+		sound(p_ptr, MSG_AMBIENT_DNG1);
 
 	/* Dungeon level 21-40 */
 	else if (Depth <= 40)
-		sound(Ind, MSG_AMBIENT_DNG2);
+		sound(p_ptr, MSG_AMBIENT_DNG2);
 
 	/* Dungeon level 41-60 */
 	else if (Depth <= 60)
-		sound(Ind, MSG_AMBIENT_DNG3);
+		sound(p_ptr, MSG_AMBIENT_DNG3);
 
 	/* Dungeon level 61-80 */
 	else if (Depth <= 80)
-		sound(Ind, MSG_AMBIENT_DNG4);
+		sound(p_ptr, MSG_AMBIENT_DNG4);
 
 	/* Dungeon level 80- */
 	else
-		sound(Ind, MSG_AMBIENT_DNG5);
+		sound(p_ptr, MSG_AMBIENT_DNG5);
 }
 
 
@@ -1663,7 +1663,7 @@ static void process_player_end(int Ind)
 				disturb(p_ptr, 0, 0);
 
 				/* Sound */
-				sound(Ind, MSG_TPLEVEL);
+				sound(p_ptr, MSG_TPLEVEL);
 
 				/* Determine the level */
 				if (p_ptr->dun_depth > 0)

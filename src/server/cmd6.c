@@ -97,7 +97,7 @@ void do_cmd_eat_food(int Ind, int item)
 	__trap(Ind, CGI(o_ptr, 'E'));
 
 	/* Sound */
-	sound(Ind, MSG_EAT);
+	sound(p_ptr, MSG_EAT);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -203,7 +203,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	}
 
 	/* Sound */
-	sound(Ind, MSG_QUAFF);
+	sound(p_ptr, MSG_QUAFF);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -477,7 +477,7 @@ void do_cmd_use_staff(int Ind, int item)
 	}*/
 
 	/* Sound */
-	sound(Ind, MSG_USE_STAFF);
+	sound(p_ptr, MSG_USE_STAFF);
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -1074,7 +1074,7 @@ void do_cmd_activate(int Ind, int item)
 	}
 
 	/* Sound */	
-	sound(Ind, MSG_ACT_ARTIFACT);
+	sound(p_ptr, MSG_ACT_ARTIFACT);
 
 	/* Activate the object */
 	(void)use_object(Ind, o_ptr, item, &ident); 

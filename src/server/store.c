@@ -84,7 +84,7 @@ static const char *comment_great[] =
  */
 static void message(int Ind, u16b message_type, cptr msg)
 {
-	sound(Ind, message_type);
+	sound(Players[Ind], message_type);
 
 	msg_print_aux(Players[Ind], msg, message_type);
 }
@@ -1798,7 +1798,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 
 			/* Message */
 			msg_format(p_ptr, "You bought %s for %ld gold.", o_name, (long)price);
-			sound(Ind, MSG_STORE5);
+			sound(p_ptr, MSG_STORE5);
 
 			/* MEGA-HACK -- Ensure item owner=store owner */
 			if (st == 8)

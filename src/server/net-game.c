@@ -811,10 +811,11 @@ int send_message_repeat(player_type *p_ptr, u16b typ)
 	return 1;
 }
 
-int send_sound(int Ind, u16b sound)
+int send_sound(player_type *p_ptr, u16b sound)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (!cq_printf(&ct->wbuf, "%c%ud", PKT_SOUND, sound))
 	{
 		client_withdraw(ct);
