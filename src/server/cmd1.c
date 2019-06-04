@@ -2054,7 +2054,7 @@ void move_player(int Ind, int dir, int do_pickup)
 		 * and summoning monster armies easier.
 		 */
 		if (p_ptr->master_hook[0])
-			master_new_hook(Ind, 'x', oy, ox);
+			master_new_hook(p_ptr, 'x', oy, ox);
 	}
 }
 

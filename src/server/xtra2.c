@@ -4528,7 +4528,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		x = p_ptr->target_x[p_ptr->look_index];
 
 		/* DM Hook! */
-		master_new_hook(Ind, query, y, x);
+		master_new_hook(p_ptr, query, y, x);
 
 		/* Analyze */
 		switch (query)
@@ -4657,8 +4657,8 @@ bool target_set_interactive(int Ind, int mode, char query)
 		/* Assume no direction */
 		d = 0;
 
-		/* DM Hook! */		
-		master_new_hook(Ind, query, p_ptr->look_y, p_ptr->look_x);
+		/* DM Hook! */
+		master_new_hook(p_ptr, query, p_ptr->look_y, p_ptr->look_x);
 
 		/* Analyze the keypress */
 		switch (query)
@@ -5914,9 +5914,8 @@ void describe_player(int Ind, int Ind2)
 	text_out("\n");
 }
 
-void snapshot_player(int Ind, int who)
+void snapshot_player(player_type *p_ptr, int who)
 {
-	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr = Players[who];
 	cave_view_type status[80];
 	int x1,y1, y, x;
@@ -5931,8 +5930,8 @@ void snapshot_player(int Ind, int who)
 
 	/* Draw! */
 
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	Send_term_info(Ind, NTERM_CLEAR, 1);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_MAP);
+	send_term_info(p_ptr, NTERM_CLEAR, 1);
 
 	for (y = 0; y < 23; y++)
 	{
@@ -5946,21 +5945,20 @@ void snapshot_player(int Ind, int who)
 	c_prt_status_line(q_ptr, status, 80);
 	for (x = 0; x < 80; x++)
 	{
-		Send_char(Ind, x, y, status[x].a, status[x].c);
+		Send_char_p(p_ptr, x, y, status[x].a, status[x].c);
 	}
 
-	y = player_pict(Ind, who);
+	y = player_pict(Get_Ind[p_ptr->conn], who);
 	a = PICT_A(y);
 	c = PICT_C(y);
 	stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
 
-	Send_term_info(Ind, NTERM_FRESH, 0);
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 }
 
-void preview_vault(int Ind, int v_idx)
+void preview_vault(player_type *p_ptr, int v_idx)
 {
-	player_type	*p_ptr = Players[Ind];
 	vault_type 	*v_ptr = &v_info[v_idx];
 
 	cptr 	t;
@@ -5974,8 +5972,8 @@ void preview_vault(int Ind, int v_idx)
 	w = p_ptr->stream_wid[STREAM_BGMAP_ASCII];
 	h = MIN(v_ptr->hgt, p_ptr->stream_hgt[STREAM_BGMAP_ASCII]);
 
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
-	Send_term_info(Ind, NTERM_CLEAR, 1);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_MAP);
+	send_term_info(p_ptr, NTERM_CLEAR, 1);
 
 	for (t = v_text + v_ptr->text, dy = 0; dy < h; dy++)
 	{
@@ -6022,8 +6020,8 @@ void preview_vault(int Ind, int v_idx)
 		}
 	}
 
-	Send_term_info(Ind, NTERM_FRESH, 0);
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	send_term_info(p_ptr, NTERM_FRESH, 0);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 }
 
 /**
@@ -6132,9 +6130,8 @@ static cptr dm_flags_str[32] =
 #define FILT_MAGIC 	0x00800000
 /* Fill monsters and object using the constants above.
  * NOTE: Uses p_ptr->target_idx array to store the outcome - this is dangerous.*/
-void master_fill_objects(int Ind, u32b how)
+void master_fill_objects(player_type *p_ptr, u32b how)
 {
-	player_type *p_ptr = Players[Ind];
 	int i, n, j = 0;
 	for (i = 0; i < z_info->k_max; i++)
 	{
@@ -6184,9 +6181,9 @@ void master_fill_objects(int Ind, u32b how)
 	/* Save number ! */
 	p_ptr->target_n = j;
 }
-void master_fill_monsters(int Ind, u32b how)
+void master_fill_monsters(player_type *p_ptr, u32b how)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind = Get_Ind[p_ptr->conn];
 	int i, n;
 	u32b why = how;
 
@@ -6236,9 +6233,8 @@ void master_fill_monsters(int Ind, u32b how)
  * "switch/DM_PAGE" (See below). Search the list by string,
  * supports offset.
  */
-s16b master_search_for(int Ind, s16b what, cptr needle, s16b offset)
-{
-	player_type *p_ptr = Players[Ind];
+s16b master_search_for(player_type *p_ptr, s16b what, cptr needle, s16b offset)
+{;
 	int i;
 	s16b before = -1;
 	s16b after = -1;
@@ -6391,9 +6387,8 @@ void master_hook_desc(char *buf, byte i, byte hook, u32b args)
  * redraw itself and send a new copy over network.
  *
  */
-void do_cmd_dungeon_master(int Ind, char query)
+void do_cmd_dungeon_master(player_type *p_ptr, char query)
 {
-	player_type	*p_ptr = Players[Ind];
 	static char	numero[5];
 	char buf[80], *s = NULL;
 	int old_tab, skip_line, old_line;
@@ -6444,7 +6439,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		case '4': p_ptr->interactive_next--; break; /* Left */
 		case '@': /* Jump to + Select ('Edit Self')*/
 			old_tab = p_ptr->interactive_next = DM_PAGE_PLAYER;
-			p_ptr->interactive_line = Ind - 1;
+			p_ptr->interactive_line = Get_Ind[p_ptr->conn] - 1;
 			p_ptr->master_parm = p_ptr->id;
 		break;
 
@@ -6456,12 +6451,12 @@ void do_cmd_dungeon_master(int Ind, char query)
 		case '7': p_ptr->interactive_line = 0; break; /* Home */
 		case '1': p_ptr->interactive_line = p_ptr->interactive_size; break; /* End? */
 		case '#': /* Goto */
-			if (!askfor_aux(Ind, query, buf, 1, 0, "Goto line: ", "", TERM_WHITE, TERM_WHITE)) return;
+			if (!askfor_aux(p_ptr, query, buf, 1, 0, "Goto line: ", "", TERM_WHITE, TERM_WHITE)) return;
 			p_ptr->interactive_line = atoi(buf);
 		break;
 		case '/': /* Find */
-			if (!askfor_aux(Ind, query, buf, 1, 0, "Search: ", "", TERM_WHITE, TERM_WHITE)) return;
-			p_ptr->interactive_line = master_search_for(Ind, p_ptr->interactive_next, buf, p_ptr->interactive_line);
+			if (!askfor_aux(p_ptr, query, buf, 1, 0, "Search: ", "", TERM_WHITE, TERM_WHITE)) return;
+			p_ptr->interactive_line = master_search_for(p_ptr, p_ptr->interactive_next, buf, p_ptr->interactive_line);
 		break;
 	}
 	/* Additional Input: */
@@ -6507,22 +6502,22 @@ void do_cmd_dungeon_master(int Ind, char query)
 				if (p_ptr->interactive_line < NumPlayers)
 				{
 					y = p_ptr->interactive_line + 1; /* Note +1! */
-					if ((y != Ind) && !dm_flag_p(p_ptr,CAN_ASSIGN))
+					if ((Players[y] != p_ptr) && !dm_flag_p(p_ptr,CAN_ASSIGN))
 					{
 						error = "Can't change other players";
 						break;
 					}
-					if ((y == Ind) && !dm_flag_p(p_ptr,CAN_MUTATE_SELF))
+					if ((Players[y] == p_ptr) && !dm_flag_p(p_ptr,CAN_MUTATE_SELF))
 					{
 						error = "Can't change self";
 						break;
 					}
 					p_ptr->master_parm = Players[y]->id;
 					/*HACK:*/
-					do_cmd_monster_desc_aux(Ind, 0 - y, TRUE);
+					do_cmd_monster_desc_aux(Get_Ind[p_ptr->conn], 0 - y, TRUE);
 					if (dm_flag_p(p_ptr,SEE_PLAYERS))
-						snapshot_player(Ind, y);
-					Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+						snapshot_player(p_ptr, y);
+					send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 				}
 			}
 			/* For selected player: */
@@ -6535,8 +6530,8 @@ void do_cmd_dungeon_master(int Ind, char query)
 				switch (query)
 				{
 					case 'W':
-						if (y == Ind) { error = "Can't wrath self"; break; }
-						if (!askfor_aux(Ind, query, buf, 1, 0, 
+						if (q_ptr == p_ptr) { error = "Can't wrath self"; break; }
+						if (!askfor_aux(p_ptr, query, buf, 1, 0,
 						format("Are you sure you want to call wrath on %s ? [y/n]", q_ptr->name), 
 						"*", TERM_WHITE, TERM_WHITE)) return;
 						if (buf[0] != 'y' && buf[0] != 'Y') break;
@@ -6544,17 +6539,17 @@ void do_cmd_dungeon_master(int Ind, char query)
 						take_hit(y, 1000, "a small kobold"); 
 					break;
 					case 'K':
-						if (y == Ind) { error = "Can't kick self"; break; }
-						if (!askfor_aux(Ind, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
+						if (q_ptr == p_ptr) { error = "Can't kick self"; break; }
+						if (!askfor_aux(p_ptr, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
 						if (STRZERO(buf)) break;
 						debug(format("%s kicks %s (reason:%s)", p_ptr->name, q_ptr->name, buf));
 						player_disconnect(q_ptr, "kicked out");
 					break;
 					case 'I':
-						if (y == Ind) { error = "Can't invoke self"; break; }
+						if (q_ptr == p_ptr) { error = "Can't invoke self"; break; }
 						if (q_ptr->dun_depth == p_ptr->dun_depth ) { teleport_player_to(y, p_ptr->py, p_ptr->px); break; }
-						if (!askfor_aux(Ind, query, buf, 1, 0, 
-						format("Recall %s to your depth ? [y/n]", q_ptr->name), 
+						if (!askfor_aux(p_ptr, query, buf, 1, 0, 
+						format("Recall %s to your depth ? [y/n]", q_ptr->name),
 						"*", TERM_WHITE, TERM_WHITE)) return;
 						if (buf[0] != 'y' && buf[0] != 'Y') break;
 						debug(format("%s invokes %s to lev %d", p_ptr->name, q_ptr->name, p_ptr->dun_depth));
@@ -6584,7 +6579,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 							x = A2I(query) - 1;
 							if (x >= 0 && x <= 20)
 							{
-								if (y != Ind && !(p_ptr->dm_flags & (0x1L << x)))
+								if (q_ptr != p_ptr && !(p_ptr->dm_flags & (0x1L << x)))
 								{ error = "Can't assign unmastered power"; break; }
 								TOGGLE_BIT(q_ptr->dm_flags, (0x1L << x));
 							}
@@ -6601,13 +6596,13 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'U': players_on_depth[p_ptr->dun_depth] = count_players(p_ptr->dun_depth); break;
 #ifdef HAVE_DIRENT_H
 				case 'I':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Really import selected file ? [y/n]", "*", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Really import selected file ? [y/n]", "*", TERM_WHITE, TERM_WHITE)) return;
 				if (STRZERO(buf)) break;
 				p_ptr->master_parm = p_ptr->interactive_line + 1;
 				break;
 #else
 				case 'I':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
 				if (STRZERO(buf)) break;
 				if (my_strnicmp(&buf[0], "server-", 7))
 				{
@@ -6628,7 +6623,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 #endif
 				case 'E':
 
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Filename: ", "", TERM_WHITE, TERM_WHITE)) return;
 				if (my_strnicmp(&buf[0], "server-", 7))
 				{
 					error = "Incorrect filename. Must have 'server-something' format!";
@@ -6697,7 +6692,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				}
 			}
 			/* PREPARE */
-			master_fill_monsters(Ind, p_ptr->master_parm);
+			master_fill_monsters(p_ptr, p_ptr->master_parm);
 			p_ptr->interactive_size = p_ptr->target_n - 1;
 		break;
 		case DM_PAGE_VAULT:
@@ -6724,38 +6719,38 @@ void do_cmd_dungeon_master(int Ind, char query)
 				case 'F': TOGGLE_BIT(p_ptr->master_parm, FILT_REVERS); break;
 				/* FORGE */
 				case 'n':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Quantity: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Quantity: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].number = atoi(buf);
 				break;
 				case 'r':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Base Armor Class: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Base Armor Class: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].ac = atoi(buf);
 				break;
 				case 'R':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic Armor Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Magic Armor Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].to_a = atoi(buf);
 				break;
 				case 'h':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic To-Hit Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Magic To-Hit Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].to_h = atoi(buf);
 				break;
 				case 'd':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Magic To-Dam Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Magic To-Dam Bonus: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].to_d = atoi(buf);
 				break;
 				case 'p':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "<Pval>: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "<Pval>: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].pval = atoi(buf);
 				break;
 				case 'E':
 				p_ptr->inventory[0].xtra2++;
 				break;
 				case 'e':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Hidden Ability: ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Hidden Ability: ", "", TERM_WHITE, TERM_WHITE)) return;
 				p_ptr->inventory[0].xtra2 = atoi(buf);
 				break;
 				case 'D':
-				if (!askfor_aux(Ind, query, buf, 1, 0, "Damage Dice (2d6): ", "", TERM_WHITE, TERM_WHITE)) return;
+				if (!askfor_aux(p_ptr, query, buf, 1, 0, "Damage Dice (2d6): ", "", TERM_WHITE, TERM_WHITE)) return;
 				s = strtok(buf, "d");
 				p_ptr->inventory[0].dd = atoi(s);
 				s = strtok(NULL, "d");
@@ -6793,7 +6788,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				break;
 			}
 			/* PREPARE */
-			master_fill_objects(Ind, p_ptr->master_parm);
+			master_fill_objects(p_ptr, p_ptr->master_parm);
 			p_ptr->interactive_size = p_ptr->target_n - 1;
 		break;
 	}
@@ -6805,7 +6800,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 		p_ptr->interactive_line = p_ptr->interactive_size;
 
 	/** Output **/
-	clear_from(Ind, 0);
+	clear_from(p_ptr, 0);
 
 	/* Header */
 	for (i = 0, x = 3, y = 0; i < DM_PAGES; i++)
@@ -7008,7 +7003,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 
 			p_ptr->interactive_size = p_ptr->target_n - 1;
 
-			monster_race_track(Ind, p_ptr->target_idx[p_ptr->interactive_line]);
+			monster_race_track(Get_Ind[p_ptr->conn], p_ptr->target_idx[p_ptr->interactive_line]);
 
 			/* Sidebar */
 			c_prt(p_ptr, TERM_WHITE, "Sort by: ", 2, 60);
@@ -7046,7 +7041,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 			p_ptr->interactive_size = z_info->v_max - 1;
 
 			if (old_line != p_ptr->interactive_line)
-				preview_vault(Ind, p_ptr->interactive_line);
+				preview_vault(p_ptr, p_ptr->interactive_line);
 
 			break;
 
@@ -7086,7 +7081,7 @@ void do_cmd_dungeon_master(int Ind, char query)
 				j++;
 				prompt_hooks = FALSE;
 				/* Extract Name */
-				object_desc(Ind, buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
+				object_desc(Get_Ind[p_ptr->conn], buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
 				c_prt(p_ptr, OBJECT_TVAL_ATTR(&p_ptr->inventory[0]), buf, 2 + j++, 1);
@@ -7172,20 +7167,19 @@ void do_cmd_dungeon_master(int Ind, char query)
 #define WEIRD_EXTRA_HACK 2
 
 	/* Send */
-	Send_term_info(Ind, NTERM_CLEAR, 0);
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < p_ptr->stream_hgt[STREAM_SPECIAL_TEXT] + WEIRD_EXTRA_HACK; i++)
 	{
-		Stream_line(Ind, STREAM_SPECIAL_MIXED, i);
+		Stream_line_p(p_ptr, STREAM_SPECIAL_MIXED, i);
 	}
-	Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
+	send_term_info(p_ptr, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 
 }
 
 /* Hack -- describe currently used hooks as fake status line */
-void master_desc_all(int Ind)
+void master_desc_all(player_type *p_ptr)
 {
 	byte ok[MASTER_MAX_HOOKS];
-	player_type *p_ptr = Players[Ind];
 	int i, n = 0, l, j = p_ptr->screen_hgt+1;
 	char buf[80];
 
@@ -7198,23 +7192,22 @@ void master_desc_all(int Ind)
 	l = p_ptr->screen_wid / n;
 	if (l <= 0) return;
 
-	clear_line(Ind, j);
+	clear_line(p_ptr, j);
 	for (i = 0; i < n; i++)
 	{
 		master_hook_desc(&buf[0], ok[i], p_ptr->master_hook[ok[i]], p_ptr->master_args[ok[i]]);
 		buf[l] = '\0';
 		c_prt(p_ptr, (p_ptr->master_flag == ok[i] ? TERM_WHITE : (i % 2 ? TERM_SLATE : TERM_L_DARK)), buf, j, i * (l+1));
 	}
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
-	Stream_line(Ind, STREAM_SPECIAL_TEXT, j);
-	Send_term_info(Ind, NTERM_FLUSH,  j);
-	Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
+	Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, j);
+	send_term_info(p_ptr, NTERM_FLUSH,  j);
+	send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }
 
 /* Auxilary functon for "master_new_hook", performs actual action */
-void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
+void master_new_hook_aux(player_type *p_ptr, byte hook_type, s16b oy, s16b ox)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	/* Hack -- Delete Monster/Object */
@@ -7266,9 +7259,8 @@ void master_new_hook_aux(int Ind, byte hook_type, s16b oy, s16b ox)
  * does some hacky things such as selection and copy & paste and actually
  * calls "master_new_hook_aux". 
  */
-void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
+void master_new_hook(player_type *p_ptr, char hook_q, s16b oy, s16b ox)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	cave_type *c_ptr = &cave[Depth][oy][ox];
@@ -7276,7 +7268,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 	byte x1, x2, y1, y2, xs, ys;
 
 #define MASTER_CONFIRM_AC(A,C,Y,X) \
-		Send_tile(Ind, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C), (A), (C))
+		Send_tile(p_ptr, (X) - p_ptr->panel_col_min, (Y) - p_ptr->panel_row_min, (A), (C), (A), (C))
 
 	/* Find selection */
 	if (p_ptr->master_parm & MASTER_SELECT)
@@ -7364,8 +7356,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 			{
 				for (xs = x1; xs <= x2; xs++)
 				{
-					master_new_hook(Ind, 'c', ys, xs);
-					master_new_hook_aux(Ind, hook_type, ys+oy, xs+ox);
+					master_new_hook(p_ptr, 'c', ys, xs);
+					master_new_hook_aux(p_ptr, hook_type, ys+oy, xs+ox);
 				}
 			}
 			p_ptr->master_hook[hook_type] = old_hook;
@@ -7377,7 +7369,7 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 			{
 				for (xs = x1; xs <= x2; xs++)
 				{
-					master_new_hook_aux(Ind, hook_type, ys, xs);
+					master_new_hook_aux(p_ptr, hook_type, ys, xs);
 				}
 			}
 
@@ -7388,8 +7380,8 @@ void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox)
 		}
 		else
 		{
-			master_new_hook_aux(Ind, hook_type, oy, ox);
+			master_new_hook_aux(p_ptr, hook_type, oy, ox);
 		}
 	}
-	master_desc_all(Ind);
+	master_desc_all(p_ptr);
 }

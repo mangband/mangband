@@ -895,7 +895,7 @@ extern void message_pain(int Ind, int m_idx, int dam);
 extern bool remove_curse(int Ind);
 extern bool remove_all_curse(int Ind);
 extern bool restore_level(int Ind);
-extern void self_knowledge(int Ind, bool spoil);
+extern void self_knowledge(player_type *p_ptr, bool spoil);
 extern bool lose_all_info(int Ind);
 extern void map_area(int Ind);
 extern bool detect_treasure(int Ind);
@@ -1038,10 +1038,10 @@ extern void text_out_save();
 extern void text_out_load();
 extern void c_prt(player_type *p_ptr, byte attr, cptr str, int row, int col);
 extern void prt(player_type *p_ptr, cptr str, int row, int col);
-extern void clear_line(int Ind, int row);
-extern void clear_from(int Ind, int row);
+extern void clear_line(player_type *p_ptr, int row);
+extern void clear_from(player_type *p_ptr, int row);
 extern bool ask_for(int Ind, char query, char *buf); 
-extern bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr);
+extern bool askfor_aux(player_type *p_ptr, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr);
 
 /* xtra1.c */
 extern void cnv_stat(int val, char *out_val);
@@ -1123,16 +1123,16 @@ extern void wipe_socials();
 extern void boot_socials();
 extern void show_socials(int Ind);
 extern void do_cmd_social(int Ind, int dir, int i);
-extern void do_cmd_dungeon_master(int Ind, char query);
+extern void do_cmd_dungeon_master(player_type *p_ptr, char query);
 
-extern void master_new_hook(int Ind, char hook_q, s16b oy, s16b ox);
+extern void master_new_hook(player_type *p_ptr, char hook_q, s16b oy, s16b ox);
 
-extern bool master_level(int Ind, char * parms);
-extern bool master_build(int Ind, char * parms);
-extern bool master_summon(int Ind, char * parms);
-extern bool master_generate(int Ind, char * parms);
-extern bool master_acquire(int Ind, char * parms);
-extern bool master_player(int Ind, char * parms);
+extern bool master_level(player_type *p_ptr, char * parms);
+extern bool master_build(player_type *p_ptr, char * parms);
+extern bool master_summon(player_type *p_ptr, char * parms);
+extern bool master_generate(player_type *p_ptr, char * parms);
+extern bool master_acquire(player_type *p_ptr, char * parms);
+extern bool master_player(player_type *p_ptr, char * parms);
 
 /*extern bool get_rep_dir(int *dp);*/
 

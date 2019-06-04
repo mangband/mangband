@@ -1948,7 +1948,7 @@ void do_cmd_help(int Ind, int line)
 errr show_file(int Ind, cptr name, cptr what, int line, int color)
 {
 	/* Prepare */
-	clear_from(Ind, 0);
+	clear_from(Players[Ind], 0);
 
 	/* Peruse the requested file */
 	copy_file_info(Players[Ind], name, line, color);

@@ -684,7 +684,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 			//(void)detect_objects_gold(Ind);
 			(void)detect_objects_normal(Ind);
 			identify_pack(Ind);
-			self_knowledge(Ind, TRUE);
+			self_knowledge(p_ptr, TRUE);
 			*ident = TRUE;
 			break;
 		}
@@ -693,7 +693,7 @@ static bool quaff_potion(int Ind, object_type *o_ptr, bool *ident)
 		{
 			msg_print(p_ptr, "You begin to know yourself a little better...");
 			msg_print(p_ptr, NULL);
-			self_knowledge(Ind, TRUE);
+			self_knowledge(p_ptr, TRUE);
 			*ident = TRUE;
 			break;
 		}

@@ -1054,7 +1054,7 @@ void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
 			do_cmd_knowledge(p_ptr, query);
 			break;
 		case SPECIAL_FILE_MASTER:
-			do_cmd_dungeon_master(Get_Ind[p_ptr->conn], query);
+			do_cmd_dungeon_master(p_ptr, query);
 			break;
 		case SPECIAL_FILE_INPUT:
 			do_cmd_interactive_input(p_ptr, query);
@@ -1064,7 +1064,6 @@ void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
 
 void do_cmd_knowledge(player_type *p_ptr, char query)
 {
-	int Ind;
 	bool changed = FALSE;
 	int i;
 	
@@ -1075,8 +1074,6 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 #endif
 		return;
 	}
-	Ind = Get_Ind[p_ptr->conn];
-
 
 	/* Display */
 	if (query == 0)
@@ -1108,13 +1105,13 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 		text_out_done();
 
 		/* Send */
-		Send_term_info(Ind, NTERM_CLEAR, 0);
+		send_term_info(p_ptr, NTERM_CLEAR, 0);
 		for (i = 0; i < MAX_TXT_INFO; i++)
 		{
 			if (i >= p_ptr->last_info_line) break;
-			Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 		}
-		Send_term_info(Ind, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
+		send_term_info(p_ptr, NTERM_FLUSH | NTERM_CLEAR | NTERM_ICKY, 0);
 	}
 
 	/* Proccess command - Switch mode */
@@ -1149,7 +1146,7 @@ void do_cmd_knowledge(player_type *p_ptr, char query)
 			changed = TRUE;
 			break;
 		case '8':
-			self_knowledge(Ind, FALSE);
+			self_knowledge(p_ptr, FALSE);
 			p_ptr->special_file_type = SPECIAL_FILE_OTHER;
 			changed = TRUE;
 			break;

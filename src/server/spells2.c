@@ -578,10 +578,8 @@ void player_flags_spoil(int Ind, u32b *f1, u32b * f2, u32b *f3)
  *
  * XXX XXX XXX Use the "show_file()" method, perhaps.
  */
-void self_knowledge(int Ind, bool spoil)
+void self_knowledge(player_type *p_ptr, bool spoil)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		i = 0, k;
 
 	u32b	f1 = 0L, f2 = 0L, f3 = 0L;
@@ -594,7 +592,7 @@ void self_knowledge(int Ind, bool spoil)
 	static cptr s_info[MAX_TXT_INFO];		/* Temp storage of *ID* and Self Knowledge info */
 	cptr	*info = s_info;
 	
-
+	int Ind = Get_Ind[p_ptr->conn];
 
 	/* Clear the info area first. */
 	memset(s_info,0,sizeof(s_info));

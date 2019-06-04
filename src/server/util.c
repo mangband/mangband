@@ -3197,9 +3197,8 @@ void prt(player_type *p_ptr, cptr str, int row, int col)
 	c_prt(p_ptr, TERM_WHITE, str, row, col);
 }
 
-void clear_line(int Ind, int row)
+void clear_line(player_type *p_ptr, int row)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 	for (i = 0; i < 80; i++)
 	{
@@ -3207,9 +3206,8 @@ void clear_line(int Ind, int row)
 		p_ptr->info[row][i].a = TERM_WHITE; 
 	}
 }
-void clear_from(int Ind, int row)
+void clear_from(player_type *p_ptr, int row)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 	while (row < MAX_TXT_INFO)
 	{
@@ -3222,10 +3220,8 @@ void clear_from(int Ind, int row)
 	}
 }
 
-bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr)
+bool askfor_aux(player_type *p_ptr, char query, char *buf, int row, int col, cptr prompt, cptr default_value, byte prompt_attr, byte input_attr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	char * mark = &(p_ptr->interactive_hook[0][1]);
 	char * len = &(p_ptr->interactive_hook[0][2]);
 	char * y = &(p_ptr->interactive_hook[0][3]);
@@ -3253,9 +3249,9 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
 		if (!STRZERO(prompt))
 		{
  			(*x) += strlen(prompt);
- 			clear_line(Ind, row);
+			clear_line(p_ptr, row);
 			c_prt(p_ptr, prompt_attr, prompt, row, col);
-			Stream_line(Ind, STREAM_SPECIAL_TEXT, row);
+			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, row);
  		}
  		if (!STRZERO(default_value))
  		{
@@ -3275,5 +3271,5 @@ bool askfor_aux(int Ind, char query, char *buf, int row, int col, cptr prompt, c
 }
 bool ask_for(int Ind, char query, char *buf) 
 {
-	return askfor_aux(Ind, query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
+	return askfor_aux(Players[Ind], query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
 }

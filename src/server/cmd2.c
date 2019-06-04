@@ -2779,7 +2779,7 @@ void do_cmd_alter(int Ind, int dir)
 
 	/* MEGA-HACK! DM HOOK! */
 	if (p_ptr->master_hook[1])
-		master_new_hook(Ind, 'a', y, x);
+		master_new_hook(p_ptr, 'a', y, x);
 
 	/* Get grid */
 	c_ptr = &cave[Depth][y][x];
