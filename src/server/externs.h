@@ -1053,7 +1053,7 @@ extern void window_stuff(int Ind);
 extern void handle_stuff(int Ind);
 extern void prt_history(int Ind);
 extern void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len);
-extern void player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3);
+extern void player_flags(player_type *p_ptr, u32b *f1, u32b * f2, u32b *f3);
 
 /* xtra2.c */
 extern int get_player(int Ind, object_type *o_ptr);

@@ -683,9 +683,8 @@ void c_prt_status_line(player_type *p_ptr, cave_view_type *dest, int len)
 /*
  * XXX XXX Obtain the "flags" for the player as if he was an item
  */
-void    player_flags(int Ind, u32b *f1, u32b * f2, u32b *f3)
+void player_flags(player_type *p_ptr, u32b *f1, u32b * f2, u32b *f3)
 {
-	player_type *p_ptr = Players[Ind];
 	u32b cf = c_info[p_ptr->pclass].flags;
 	/* Clear */
 	(*f1) = (*f2) = (*f3) = 0L;
@@ -881,7 +880,7 @@ static void prt_player_sust_info(int Ind)
 		col++;
 	}
 	/* Player flags */
-	player_flags(Ind, &f1, &f2, &f3);
+	player_flags(p_ptr, &f1, &f2, &f3);
 	/* Check stats */
 	for (stat = 0; stat < 6; ++stat)
 	{
@@ -1033,7 +1032,7 @@ static void prt_player_flag_info(int Ind)
 			f[1] = f[2] = f[3] = 0L;
 
 			/* Player flags */
-			player_flags(Ind, &f[1], &f[2], &f[3]);
+			player_flags(p_ptr, &f[1], &f[2], &f[3]);
 
 			/* Default */
 			//c_put_str(TERM_SLATE, ".", row, col+n);
@@ -2362,7 +2361,7 @@ static void calc_bonuses(int Ind)
 	/*** Analyze player ***/
 
 	/* Extract the player flags */
-	player_flags(Ind, &f1, &f2, &f3);
+	player_flags(p_ptr, &f1, &f2, &f3);
 
 	/* Good flags */
 	if (f3 & (TR3_SLOW_DIGEST)) p_ptr->slow_digest = TRUE;

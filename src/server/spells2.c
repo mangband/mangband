@@ -512,12 +512,10 @@ bool restore_level(int Ind)
  *
  * This function works alot like "calc_bonuses()", but in reverse.
  */
-void player_flags_spoil(int Ind, u32b *f1, u32b * f2, u32b *f3)
+void player_flags_spoil(player_type *p_ptr, u32b *f1, u32b * f2, u32b *f3)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Non-spoiler flags */
-	player_flags(Ind, f1, f2, f3);
+	player_flags(p_ptr, f1, f2, f3);
 
 	/* Spoilers: */
 	if (p_ptr->aggravate)	 *f3 |= TR3_AGGRAVATE; 
@@ -627,9 +625,9 @@ void self_knowledge(player_type *p_ptr, bool spoil)
 	/* Acquire player flags */
 	t1 = t2 = t3 = 0L;	
 	if (!spoil)
-		player_flags(Ind, &t1, &t2, &t3);
+		player_flags(p_ptr, &t1, &t2, &t3);
 	else
-		player_flags_spoil(Ind, &t1, &t2, &t3);
+		player_flags_spoil(p_ptr, &t1, &t2, &t3);
 	/* Combine flags */
 	f1 |= t1;
 	f2 |= t2;
