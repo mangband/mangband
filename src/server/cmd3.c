@@ -77,7 +77,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 	posn = inven_carry(p_ptr, &tmp_obj);
 
 	/* Describe the result */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(p_ptr, "%^s %s (%c).", act, o_name, index_to_label(posn));
@@ -173,7 +173,7 @@ static void inven_drop(int Ind, int item, int amt)
 		p_ptr->redraw |= (PR_OFLAGS);
 
 	/* Message */
-	object_desc(Ind, o_name, sizeof(o_name), &tmp_obj, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), &tmp_obj, TRUE, 3);
 
 	/* Message */
 	msg_format(p_ptr, "%^s %s (%c).", act, o_name, index_to_label(item));
@@ -382,7 +382,7 @@ void do_cmd_wield(int Ind, int item)
 	if (cursed_p(&(p_ptr->inventory[slot])))
 	{
 		/* Describe it */
-		object_desc(Ind, o_name, sizeof(o_name), &(p_ptr->inventory[slot]), FALSE, 0);
+		object_desc(p_ptr, o_name, sizeof(o_name), &(p_ptr->inventory[slot]), FALSE, 0);
 
 		/* Message */
 		msg_format(p_ptr, "The %s you are %s appears to be cursed.",
@@ -400,7 +400,7 @@ void do_cmd_wield(int Ind, int item)
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
 	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
 	{
-		object_desc(Ind, o_name, sizeof(o_name), x_ptr, FALSE, 0);
+		object_desc(p_ptr, o_name, sizeof(o_name), x_ptr, FALSE, 0);
 		msg_format(p_ptr, "Your pack is full and you can't drop %s here.", o_name);
 		return;
 	}
@@ -500,7 +500,7 @@ void do_cmd_wield(int Ind, int item)
 	}
 
 	/* Describe the result */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(p_ptr, "%^s %s (%c).", act, o_name, index_to_label(slot));
@@ -805,12 +805,12 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	i_ptr->number = quantity;
 
 	/* Describe the destroyed object */
-	object_desc(Ind, o_name, sizeof(o_name), i_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), i_ptr, TRUE, 3);
 
 	/* Describe the object 
 	old_number = o_ptr->number;
 	o_ptr->number = quantity;
-	object_desc(Ind, o_name, o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, o_ptr, TRUE, 3);
 	o_ptr->number = old_number;
 	*/
 
@@ -914,7 +914,7 @@ void do_cmd_observe(int Ind, int item)
 		}
 
 		/* Get name */
-		object_desc_store(Ind, o_name, o_ptr, TRUE, 3);
+		object_desc_store(p_ptr, o_name, o_ptr, TRUE, 3);
 		/* Identify this store item */
 		object_known(o_ptr);
 	}
@@ -938,7 +938,7 @@ void do_cmd_observe(int Ind, int item)
 		}
 
 		/* Get name */
-		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+		object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 	}
 
 	/* Inform */
@@ -1092,7 +1092,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 	
 	/* Describe the activity */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Message */
 	msg_format(p_ptr, "Inscribing %s.", o_name);
@@ -1256,7 +1256,7 @@ void do_cmd_steal(int Ind, int dir)
 				inven_item_optimize(0 - c_ptr->m_idx, item);
 	
 				/* Tell thief what he got */
-				object_desc(Ind, o_name, sizeof(o_name), &forge, TRUE, 3);
+				object_desc(p_ptr, o_name, sizeof(o_name), &forge, TRUE, 3);
 				msg_format(p_ptr, "You stole %s.", o_name);
 	
 				/* Easier to notice heavier objects */

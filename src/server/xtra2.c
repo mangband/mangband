@@ -4228,7 +4228,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		object_type *o_ptr = &o_list[o_idx];
 		
 		/* Obtain an object description */
-		object_desc(Ind, x_name, sizeof(x_name), o_ptr, TRUE, 3);
+		object_desc(p_ptr, x_name, sizeof(x_name), o_ptr, TRUE, 3);
 
 		name = x_name;
 	}
@@ -5865,7 +5865,7 @@ void describe_player(int Ind, int Ind2)
 			o_ptr->ident = 0;
 
 		/* Extract name */
-		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, (spoilers ? 4 : 0));
+		object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, (spoilers ? 4 : 0));
 
 		/* Restore original ident */
 		o_ptr->ident = old_ident;
@@ -7077,7 +7077,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 				j++;
 				prompt_hooks = FALSE;
 				/* Extract Name */
-				object_desc(Get_Ind[p_ptr->conn], buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
+				object_desc(p_ptr, buf, sizeof(buf), &p_ptr->inventory[0], TRUE, 3);
 
 				/* Print it */
 				c_prt(p_ptr, OBJECT_TVAL_ATTR(&p_ptr->inventory[0]), buf, 2 + j++, 1);

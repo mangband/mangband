@@ -240,7 +240,7 @@ static void sense_inventory(int Ind)
 		if (option_p(p_ptr,DISTURB_MINOR)) disturb(p_ptr, 0, 0);
 
 		/* Get an object description */
-		object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
+		object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		sound(p_ptr, MSG_PSEUDOID);
 
@@ -1080,7 +1080,7 @@ static void process_player_end(int Ind)
 		msg_print(p_ptr, "Your pack overflows!");
 
 		/* Describe */
-		object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+		object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 		/* Message */
 		msg_format(p_ptr, "You drop %s.", o_name);

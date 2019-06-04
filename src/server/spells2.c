@@ -2217,7 +2217,7 @@ bool curse_armor(int Ind)
 
 
 	/* Describe */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw for artifacts */
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
@@ -2287,7 +2287,7 @@ bool curse_weapon(int Ind)
 
 
 	/* Describe */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw */
 	if (artifact_p(o_ptr) && (rand_int(100) < 50))
@@ -2371,7 +2371,7 @@ void brand_object(int Ind, object_type *o_ptr, byte brand_type)
 				break;
 		}
 
-		 object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
+		 object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 		/* Describe */
 		msg_format(p_ptr, "A %s aura surrounds the %s.", act, o_name);
@@ -2700,7 +2700,7 @@ bool create_artifact_aux(int Ind, int item)
 	if (artifact_p(o_ptr)) return FALSE;
 	
 	/* Description */
-	object_desc(Ind, o_name, o_ptr, FALSE, 0);
+	object_desc(p_ptr, o_name, o_ptr, FALSE, 0);
 
 	/* Describe */
 	msg_format(p_ptr, "%s %s glow%s brightly!",
@@ -2810,7 +2810,7 @@ bool enchant_spell_aux(int Ind, int item, int num_hit, int num_dam, int num_ac)
 	}
 
 	/* Description */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, FALSE, 0);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
 	/* Describe */
 	msg_format(p_ptr, "%s %s glow%s brightly!",
@@ -2896,7 +2896,7 @@ bool ident_spell_aux(int Ind, int item)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 	/* Description */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Possibly play a sound depending on object quality. */
 	if (cursed_p(o_ptr) || broken_p(o_ptr))
@@ -3013,7 +3013,7 @@ bool identify_fully_item(int Ind, int item)
 	handle_stuff(Ind);
 
 	/* Description */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 	/* Describe */
 	if (item >= INVEN_WIELD)

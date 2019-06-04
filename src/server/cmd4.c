@@ -455,7 +455,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 			forge.name1 = k;
 
 			/* Describe the artifact */
-			object_desc_store(Ind, base_name, &forge, FALSE, 0);
+			object_desc_store(p_ptr, base_name, &forge, FALSE, 0);
 		}
 
 		/* Dungeon Masters see extra info */
@@ -771,7 +771,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 			object_prep(i_ptr, k);
 
 			/* Describe the object */
-			object_desc(Ind, o_name, sizeof(o_name), i_ptr, FALSE, 0);
+			object_desc(p_ptr, o_name, sizeof(o_name), i_ptr, FALSE, 0);
 			/*object_desc_spoil(o_name, sizeof(o_name), i_ptr, FALSE, 0);*/
 
 			/* HACK -- Append flavour */

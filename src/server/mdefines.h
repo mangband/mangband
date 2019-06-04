@@ -2601,8 +2601,8 @@ that keeps many algorithms happy.
 /*
  * Determine if a given inventory item is "tried"
  */
-#define object_tried_p(IND, T) \
-    (Players[IND]->obj_tried[(T)->k_idx])
+#define object_tried_p(PLR, T) \
+    ((PLR)->obj_tried[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "known"

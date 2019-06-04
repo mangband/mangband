@@ -1232,10 +1232,8 @@ static char *object_desc_int(char *t, sint v)
  *   3 -- The Cloak of Death [1,+3] (+2 to Stealth) {nifty}
  *   4 -- 10 Staves of Teleportation (10 charges avg)
  */
-void object_desc(int Ind, char *buf, size_t bufsize, const object_type *o_ptr, int pref, int mode)
+void object_desc(const player_type *p_ptr, char *buf, size_t bufsize, const object_type *o_ptr, int pref, int mode)
 {
-	player_type *p_ptr = Players[Ind];
-
 	cptr		basenm, modstr;
 	int		power, indexx;
 
@@ -1262,10 +1260,10 @@ void object_desc(int Ind, char *buf, size_t bufsize, const object_type *o_ptr, i
 
 
 	/* Extract some flags */
-    object_flags(o_ptr, &f1, &f2, &f3);
+	object_flags(o_ptr, &f1, &f2, &f3);
 
 	/* Assume aware and known if not a valid player */
-	if (Ind)
+	if (p_ptr)
 	{
 		/* See if the object is "aware" */
 		if (object_aware_p(p_ptr, o_ptr)) aware = TRUE;
@@ -2032,7 +2030,7 @@ void object_desc(int Ind, char *buf, size_t bufsize, const object_type *o_ptr, i
 	}
 
 	/* Note "tried" if the object has been tested unsuccessfully */
-	else if (!aware && object_tried_p(Ind, o_ptr))
+	else if (!aware && object_tried_p(p_ptr, o_ptr))
 	{
 		strcpy(tmp_val, "tried");
 	}
@@ -2075,15 +2073,13 @@ void object_desc(int Ind, char *buf, size_t bufsize, const object_type *o_ptr, i
  * Hack -- describe an item currently in a store's inventory
  * This allows an item to *look* like the player is "aware" of it
  */
-void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mode)
+void object_desc_store(const player_type *p_ptr, char *buf, object_type *o_ptr, int pref, int mode)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool hack_aware = FALSE;
 	bool hack_known = FALSE;
 
 	/* Only save flags if we have a valid player */
-	if (Ind)
+	if (p_ptr)
 	{
 		/* Save the "aware" flag */
 		hack_aware = p_ptr->obj_aware[o_ptr->k_idx];
@@ -2096,7 +2092,7 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
 	o_ptr->ident |= ID_KNOWN;
 
 	/* Valid players only */
-	if (Ind)
+	if (p_ptr)
 	{
 		/* Force "aware" for description */
 		p_ptr->obj_aware[o_ptr->k_idx] = TRUE;
@@ -2104,11 +2100,11 @@ void object_desc_store(int Ind, char *buf, object_type *o_ptr, int pref, int mod
 
 
 	/* Describe the object */
-	object_desc(Ind, buf, 80, o_ptr, pref, mode);
+	object_desc(p_ptr, buf, 80, o_ptr, pref, mode);
 
 
 	/* Only restore flags if we have a valid player */
-	if (Ind)
+	if (p_ptr)
 	{
 		/* Restore "aware" flag */
 		p_ptr->obj_aware[o_ptr->k_idx] = hack_aware;
@@ -2521,7 +2517,7 @@ static void compare_object_info_screen(int Ind, object_type *o_ptr)
 		{
 			/* Dump info into player */
 			char o_name[80];
-			object_desc(Ind, o_name, sizeof(o_name), j_ptr, FALSE, 1);
+			object_desc(p_ptr, o_name, sizeof(o_name), j_ptr, FALSE, 1);
 			text_out(o_name);
 			object_info_screen(j_ptr);
 		}
@@ -2919,7 +2915,7 @@ void display_inven(int Ind)
 		tmp_val[0] = index_to_label(i);
 
 		/* Obtain an item description */
-		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
+		object_desc(p_ptr, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 
 		/* Obtain the length of the description */
 		n = strlen(o_name);
@@ -2975,7 +2971,7 @@ void display_equip(int Ind)
 		tmp_val[0] = index_to_label(i);
 
 		/* Obtain an item description */
-		object_desc(Ind, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
+		object_desc(p_ptr, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
 
 		/* Obtain the length of the description */
 		n = strlen(o_name);

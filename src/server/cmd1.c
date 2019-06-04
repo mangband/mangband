@@ -662,7 +662,7 @@ void carry(int Ind, int pickup, int confirm)
 	o_ptr = &o_list[c_ptr->o_idx];
 
 	/* Describe the object */
-	object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 	
 	/* Check for auto-pickup */
 	if (auto_pickup_okay(o_ptr)) pickup = 1;
@@ -745,7 +745,7 @@ void carry(int Ind, int pickup, int confirm)
 					if (!confirm)
 					{
 						char out_val[160];
-						object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 2); /* shorten name */
+						object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 2); /* shorten name */
 						sprintf(out_val, "Purchase %s for %ld gold? ", o_name, (long)price);
 						send_pickup_check(Ind, out_val);
 						return;
@@ -787,7 +787,7 @@ void carry(int Ind, int pickup, int confirm)
 							/* ALLOW PICKUP! */
 							o_ptr->note = 0;
 							/* Message */
-							object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 2);/* short name */
+							object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 2);/* short name */
 							msg_format(p_ptr, "You bought %s for %ld gold.", o_name, (long)price);
 							msg_format(q_ptr, "You sold %s for %ld gold.", o_name, (long)price);
 							/* Mark artifact as sold */
@@ -828,7 +828,7 @@ void carry(int Ind, int pickup, int confirm)
 				o_ptr = &(p_ptr->inventory[slot]);
 
 				/* Describe the object */
-				object_desc(Ind, o_name, sizeof(o_name), o_ptr, TRUE, 3);
+				object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 
 				/* Message */
 				msg_format(p_ptr, "You have %s (%c).", o_name, index_to_label(slot));
