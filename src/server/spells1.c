@@ -4961,7 +4961,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (m_idx > 0)
 				{
 					int r_idx = m_list[m_idx].r_idx;
-					if (p_ptr->mon_vis[m_idx]) monster_race_track(0 - who, r_idx); 
+					if (p_ptr->mon_vis[m_idx]) monster_race_track(p_ptr, r_idx);
 					if (p_ptr->mon_vis[m_idx]) health_track(0 - who, m_idx);
 				}
 			}

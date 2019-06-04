@@ -2969,14 +2969,13 @@ void send_prepared_popup(int Ind, cptr header)
  * server will definitely send new monster info, once it's required again. */
 void monster_race_track_hack(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	/* Paranoia -- Player is not yet in the game */
-	if (Ind < 1) return;
+	if (p_ptr->conn == -1 || !IS_PLAYING(p_ptr)) return;
 	/* Only relevant if Player has no dedicated window for monster text */
 	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
 	{
 		/* Hack -- cancel monster tracking */
-		monster_race_track(Ind, -1);
+		monster_race_track(p_ptr, -1);
 	}
 }
 

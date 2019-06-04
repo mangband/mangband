@@ -3131,7 +3131,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 			if (r_ptr->r_tkills < MAX_SHORT) r_ptr->r_tkills++;
 
 			/* Hack -- Auto-recall */
-			monster_race_track(Ind, m_ptr->r_idx);
+			monster_race_track(p_ptr, m_ptr->r_idx);
 		}
 
 		/* Delete the monster */
@@ -4176,7 +4176,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		if (p_ptr->target_flag & TARGET_READ)
 		{
 			/* Hack -- cancel monster tracking */
-			monster_race_track(Ind, -1);
+			monster_race_track(p_ptr, -1);
 			/* Hack -- call descriptive function */
 			do_cmd_monster_desc_aux(Ind, m_idx, TRUE);
 			/* Hack -- pop up immediatly */
@@ -4194,7 +4194,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		monster_desc(Ind, m_name, m_idx, 0);
 
 		/* Hack -- track this monster race */
-		monster_race_track(Ind, m_ptr->r_idx);
+		monster_race_track(p_ptr, m_ptr->r_idx);
 
 		/* Hack -- health bar for this monster */
 		health_track(Ind, m_idx);
@@ -6997,7 +6997,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 
 			p_ptr->interactive_size = p_ptr->target_n - 1;
 
-			monster_race_track(Get_Ind[p_ptr->conn], p_ptr->target_idx[p_ptr->interactive_line]);
+			monster_race_track(p_ptr, p_ptr->target_idx[p_ptr->interactive_line]);
 
 			/* Sidebar */
 			c_prt(p_ptr, TERM_WHITE, "Sort by: ", 2, 60);

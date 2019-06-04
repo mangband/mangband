@@ -410,7 +410,7 @@ extern bool projectable_wall(int Depth, int y1, int x1, int y2, int x2);
 extern void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m);
 extern void health_track(int Ind, int m_idx);
 extern void update_health(int m_idx);
-extern void monster_race_track(int Ind, int r_idx);
+extern void monster_race_track(player_type *p_ptr, int r_idx);
 extern void disturb(player_type *p_ptr, int stop_search, int flush_output);
 extern bool is_quest(int level);
 extern bool is_quest_level(int Ind, int level);

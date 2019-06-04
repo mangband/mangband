@@ -1628,7 +1628,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 
 			/* Track first race */
 			if (!found)
-				monster_race_track(Ind, i);
+				monster_race_track(p_ptr, i);
 			
 			found = TRUE;
 		}

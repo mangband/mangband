@@ -4039,10 +4039,8 @@ void update_health(int m_idx)
 /*
  * Hack -- track the given monster race
  */
-void monster_race_track(int Ind, int r_idx)
+void monster_race_track(player_type *p_ptr, int r_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Window stuff */
 	if (p_ptr->monster_race_idx != r_idx) p_ptr->window |= (PW_MONSTER);
 
