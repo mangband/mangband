@@ -2877,7 +2877,7 @@ static void process_monster(int Ind, int m_idx)
 			everyone_lite_spot(Depth, ny, nx);
 
 			/* Note changes to viewable region */
-			if (player_has_los_bold(Ind, ny, nx)) do_view = TRUE;
+			if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE;
 		}
 
 		/* Handle doors and secret doors */
@@ -2984,7 +2984,7 @@ static void process_monster(int Ind, int m_idx)
 				everyone_lite_spot(Depth, ny, nx);
 
 				/* Handle viewable doors */
-				if (player_has_los_bold(Ind, ny, nx)) do_view = TRUE;
+				if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE;
 			}
 		}
 
@@ -3188,7 +3188,7 @@ static void process_monster(int Ind, int m_idx)
 						did_take_item = TRUE;
 
 						/* Describe observable situations */
-						if (p_ptr->mon_vis[m_idx] && player_has_los_bold(Ind, ny, nx))
+						if (p_ptr->mon_vis[m_idx] && player_has_los_bold(p_ptr, ny, nx))
 						{
 							/* Dump a message */
 							msg_format(p_ptr, "%^s tries to pick up %s, but fails.",
@@ -3207,7 +3207,7 @@ static void process_monster(int Ind, int m_idx)
 					did_take_item = TRUE;
 
 					/* Describe observable situations */
-					if (player_has_los_bold(Ind, ny, nx))
+					if (player_has_los_bold(p_ptr, ny, nx))
 					{
 						/* Dump a message */
 						msg_format(p_ptr, "%^s picks up %s.", m_name, o_name);
@@ -3236,7 +3236,7 @@ static void process_monster(int Ind, int m_idx)
 					did_kill_item = TRUE;
 
 					/* Describe observable situations */
-					if (player_has_los_bold(Ind, ny, nx))
+					if (player_has_los_bold(p_ptr, ny, nx))
 					{
 						/* Dump a message */
 						msg_format(p_ptr, "%^s crushes %s.", m_name, o_name);
@@ -3413,7 +3413,7 @@ void process_monsters(void)
 			j = distance(p_ptr->py, p_ptr->px, m_ptr->fy, m_ptr->fx);
 
 			/* Compute los */
-			in_los = player_has_los_bold(pl, m_ptr->fy, m_ptr->fx);
+			in_los = player_has_los_bold(p_ptr, m_ptr->fy, m_ptr->fx);
 
 			/* Skip if _not_ in LoS while closest _is_ in */
 			if (!in_los && closest_in_los) continue;

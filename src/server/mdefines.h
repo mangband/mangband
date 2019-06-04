@@ -2914,8 +2914,8 @@ that keeps many algorithms happy.
  *
  * Note the use of comparison to zero to force a "boolean" result
  */
-#define player_has_los_bold(IND,Y,X) \
-    ((Players[IND]->cave_flag[Y][X] & CAVE_VIEW) != 0)
+#define player_has_los_bold(PLR,Y,X) \
+    ((PLR->cave_flag[Y][X] & CAVE_VIEW) != 0)
 
 /*
  * Convert an "attr"/"char" pair into a "pict" (P)

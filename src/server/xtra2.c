@@ -2132,14 +2132,14 @@ void monster_death(int Ind, int m_idx)
 			if (do_gold && (!do_item || (rand_int(100) < 50)))
 			{
 				place_gold(Depth, ny, nx);
-				if (player_can_see_bold(Ind, ny, nx)) dump_gold++;
+				if (player_can_see_bold(p_ptr, ny, nx)) dump_gold++;
 			}
 
 			/* Place Object */
 			else
 			{
                 place_object(Depth, ny, nx, good, great, quark);
-				if (player_can_see_bold(Ind, ny, nx)) dump_item++;
+				if (player_can_see_bold(p_ptr, ny, nx)) dump_item++;
 			}
 
 			/* Reset the object level */
@@ -3643,7 +3643,7 @@ bool target_able(int Ind, int m_idx)
 		if (p_ptr->dun_depth != q_ptr->dun_depth) return (FALSE);
 
 		/* Player must be visible */
-		if (!player_can_see_bold(Ind, q_ptr->py, q_ptr->px)) return (FALSE);
+		if (!player_can_see_bold(p_ptr, q_ptr->py, q_ptr->px)) return (FALSE);
 
 		/* Player must be projectable */
 		if (!projectable(p_ptr->dun_depth, p_ptr->py, p_ptr->px, q_ptr->py, q_ptr->px)) return (FALSE);
@@ -4009,7 +4009,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 			if (!in_bounds(Depth, y, x)) continue;//bounds_fully
 
 			/* Require line of sight, unless "look" is "expanded" */
-			if (!option_p(p_ptr,EXPAND_LOOK) && !player_has_los_bold(Ind, y, x)) continue;
+			if (!option_p(p_ptr,EXPAND_LOOK) && !player_has_los_bold(p_ptr, y, x)) continue;
 
 			/* Require "interesting" contents */
 			if (!target_set_interactive_accept(Ind, y, x)) continue;
@@ -4238,7 +4238,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		feat = f_info[cave[Depth][y][x].feat].mimic;
 	
 		/* Require knowledge about grid, or ability to see grid */
-		if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !player_can_see_bold(Ind, y,x))
+		if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK)) && !player_can_see_bold(p_ptr, y,x))
 		{
 			/* Forget feature */
 			feat = FEAT_NONE;

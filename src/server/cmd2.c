@@ -2037,7 +2037,7 @@ static bool do_cmd_tunnel_aux(int Ind, int y, int x)
 				place_object(Depth, y, x, FALSE, FALSE, 0);
 
 				/* Observe new object */
-				if (player_can_see_bold(Ind, y, x))
+				if (player_can_see_bold(p_ptr, y, x))
 				{
 					msg_print(p_ptr, "You have found something!");
 				}
@@ -3759,7 +3759,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 				continue;
 
 			/* The player can see the (on screen) missile */
-			if (panel_contains(p_ptr, y, x) && player_can_see_bold(i, y, x))
+			if (panel_contains(p_ptr, y, x) && player_can_see_bold(p_ptr, y, x))
 			{
 				/* Draw, Hilite, Fresh, Pause, Erase */
 				dispy = y - p_ptr->panel_row_prt;
@@ -4194,7 +4194,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 				continue;
 
 			/* The player can see the (on screen) missile */
-			if (panel_contains(p_ptr, y, x) && player_can_see_bold(i, y, x))
+			if (panel_contains(p_ptr, y, x) && player_can_see_bold(p_ptr, y, x))
 			{
 				/* Draw, Hilite, Fresh, Pause, Erase */
 				dispy = y - p_ptr->panel_row_prt;

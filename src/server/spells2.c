@@ -3228,7 +3228,7 @@ static bool project_hack(int Ind, int typ, int dam)
 		if (Depth != m_ptr->dun_depth) continue;
 
 		/* Require line of sight */
-		if (!player_has_los_bold(Ind, y, x)) continue;
+		if (!player_has_los_bold(p_ptr, y, x)) continue;
 
 		/* Jump directly to the target monster */
 		if (project(0 - Ind, 0, Depth, y, x, dam, typ, flg)) obvious = TRUE;
@@ -3360,7 +3360,7 @@ void aggravate_monsters(int Ind, int who)
 		}
 
 		/* Speed up monsters in line of sight */
-		if (player_has_los_bold(Ind, m_ptr->fy, m_ptr->fx))
+		if (player_has_los_bold(p_ptr, m_ptr->fy, m_ptr->fx))
 		{
 			/* Speed up (instantly) to racial base + 10 */
 			if (m_ptr->mspeed < r_ptr->speed + 10)

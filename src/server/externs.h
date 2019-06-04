@@ -382,7 +382,7 @@ extern void player_verify_visual(player_type *p_ptr);
 /* cave.c */
 extern int distance(int y1, int x1, int y2, int x2);
 extern bool los(int Depth, int y1, int x1, int y2, int x2);
-extern bool player_can_see_bold(int Ind, int y, int x);
+extern bool player_can_see_bold(player_type *p_ptr, int y, int x);
 extern bool no_lite(int Ind);
 extern void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, bool server);
 extern int color_char_to_attr(char c);

@@ -2116,7 +2116,7 @@ static int see_nothing(int dir, int Ind, int y, int x)
 	if (!cave_floor_bold(Depth, y, x)) return (TRUE);
 
 	/* Viewable grids are known */
-	if (player_can_see_bold(Ind, y, x)) return (FALSE);
+	if (player_can_see_bold(p_ptr, y, x)) return (FALSE);
 
 	/* Default */
 	return (TRUE);

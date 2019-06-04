@@ -325,9 +325,8 @@ bool los(int Depth, int y1, int x1, int y2, int x2)
  * "glowing" grid.  This prevents the player from being able to "see" the
  * walls of illuminated rooms from a corridor outside the room.
  */
-bool player_can_see_bold(int Ind, int y, int x)
+bool player_can_see_bold(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int xx, yy;
 
@@ -349,7 +348,7 @@ bool player_can_see_bold(int Ind, int y, int x)
 		return (TRUE);
 
 	/* Require line of sight to the grid */
-	if (!player_has_los_bold(Ind, y, x)) return (FALSE);
+	if (!player_has_los_bold(p_ptr, y, x)) return (FALSE);
 
 	/* Require "perma-lite" of the grid */
 	if (!(c_ptr->info & CAVE_GLOW)) return (FALSE);
@@ -380,7 +379,7 @@ bool player_can_see_bold(int Ind, int y, int x)
 bool no_lite(int Ind)
 {
 	player_type *p_ptr = Players[Ind];
-	return (!player_can_see_bold(Ind, p_ptr->py, p_ptr->px));
+	return (!player_can_see_bold(p_ptr, p_ptr->py, p_ptr->px));
 }
 
 
@@ -1378,7 +1377,7 @@ void note_spot(int Ind, int y, int x)
 		if (!(p_ptr->obj_vis[c_ptr->o_idx]))
 		{
 			/* Memorize visible objects */
-			if (player_can_see_bold(Ind, y, x))
+			if (player_can_see_bold(p_ptr, y, x))
 			{
 				/* Memorize */
 				p_ptr->obj_vis[c_ptr->o_idx] = TRUE;
@@ -1394,7 +1393,7 @@ void note_spot(int Ind, int y, int x)
 	if (!(*w_ptr & CAVE_MARK))
 	{
 		/* Memorize visible grids */
-		if (player_can_see_bold(Ind, y, x))
+		if (player_can_see_bold(p_ptr, y, x))
 		{
 			/* Memorize normal features */
 			if (!is_boring(c_ptr->feat)) 
@@ -2593,7 +2592,7 @@ void update_lite(int Ind)
 				if (d > p) continue;
 
 				/* Viewable, nearby, grids get "torch lit" */
-				if (player_has_los_bold(Ind, y, x))
+				if (player_has_los_bold(p_ptr, y, x))
 				{
 					/* This grid is "torch lit" */
 					cave_lite_hack(y, x);

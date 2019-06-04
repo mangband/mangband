@@ -1626,7 +1626,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (c_ptr->feat == FEAT_TREE)
 			{
 				/* Hack -- special message */
-				if (!quiet && player_can_see_bold(Ind, y, x))
+				if (!quiet && player_can_see_bold(p_ptr, y, x))
 				{
 					if (Depth == 0) trees_in_town--;
 					msg_print(p_ptr, "The tree burns to the ground!");
@@ -1654,7 +1654,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (c_ptr->feat == FEAT_INVIS)
 			{
 				/* Hack -- special message */
-				if (!quiet && player_can_see_bold(Ind, y, x))
+				if (!quiet && player_can_see_bold(p_ptr, y, x))
 				{
 					msg_print(p_ptr, "There is a bright flash of light!");
 					obvious = TRUE;
@@ -1732,7 +1732,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 			if (c_ptr->feat == FEAT_INVIS)
 			{
 				/* Hack -- special message */
-				if (!quiet && player_can_see_bold(Ind, y, x))
+				if (!quiet && player_can_see_bold(p_ptr, y, x))
 				{
 					msg_print(p_ptr, "There is a bright flash of light!");
 					obvious = TRUE;
@@ -1918,7 +1918,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 					player_type *q_ptr;
 
 					/* Found something */
-					if (!quiet && player_can_see_bold(Ind, y, x))
+					if (!quiet && player_can_see_bold(p_ptr, y, x))
 					{
 						msg_print(p_ptr, "There was something buried in the rubble!");
 						obvious = TRUE;
@@ -2052,7 +2052,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 				everyone_lite_spot(Depth, y, x);
 
 				/* Observe */
-				if (player_can_see_bold(Ind, y, x)) obvious = TRUE;
+				if (player_can_see_bold(p_ptr, y, x)) obvious = TRUE;
 			}
 
 			/* Mega-Hack -- Update the monster in the affected grid */
@@ -2067,7 +2067,7 @@ static bool project_f(int Ind, int who, int r, int Depth, int y, int x, int dam,
 		case GF_DARK:
 		{
 			/* Notice */
-			if (!quiet && player_can_see_bold(Ind, y, x)) obvious = TRUE;
+			if (!quiet && player_can_see_bold(p_ptr, y, x)) obvious = TRUE;
 
 			/* Turn off the light. */
 			c_ptr->info &= ~CAVE_GLOW;
@@ -4598,7 +4598,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (!panel_contains(p_ptr, y, x))
 					continue;
 
-				if (!player_has_los_bold(j, y, x))
+				if (!player_has_los_bold(p_ptr, y, x))
 					continue;
 
 				/* Obtain the bolt pict */
@@ -4684,7 +4684,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				if (!panel_contains(p_ptr, y9, x9))
 					continue;
 
-				if (!player_has_los_bold(j, y9, x9))
+				if (!player_has_los_bold(p_ptr, y9, x9))
 					continue;
 
 				dispx = x9 - p_ptr->panel_col_prt;
@@ -4805,7 +4805,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 					if (!panel_contains(p_ptr, y, x))
 						continue;
 
-					if (!player_has_los_bold(j, y, x))
+					if (!player_has_los_bold(p_ptr, y, x))
 						continue;
 
 					/* Obtain the bolt pict */
