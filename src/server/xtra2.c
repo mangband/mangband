@@ -6234,7 +6234,7 @@ void master_fill_monsters(player_type *p_ptr, u32b how)
  * supports offset.
  */
 s16b master_search_for(player_type *p_ptr, s16b what, cptr needle, s16b offset)
-{;
+{
 	int i;
 	s16b before = -1;
 	s16b after = -1;
