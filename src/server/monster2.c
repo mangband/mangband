@@ -191,7 +191,7 @@ static void compact_monsters_aux(int i1, int i2)
 		if (Players[Ind]->target_who == (int)(i1)) Players[Ind]->target_who = i2;
 
 		/* Hack -- Update the health bar */
-		if (Players[Ind]->health_who == (int)(i1)) health_track(Ind, i2);
+		if (Players[Ind]->health_who == (int)(i1)) health_track(Players[Ind], i2);
 	}
 
 	/* Hack -- move monster */
@@ -1222,7 +1222,7 @@ void forget_monster(int Ind, int m_idx, bool deleted)
 	/* Remove cursor tracking */
 	if (p_ptr->cursor_who == m_idx)
 	{
-		cursor_track(Ind, 0);
+		cursor_track(p_ptr, 0);
 		p_ptr->redraw |= PR_CURSOR;
 	}
 
@@ -1230,7 +1230,7 @@ void forget_monster(int Ind, int m_idx, bool deleted)
 	if (p_ptr->target_who == m_idx) p_ptr->target_who = 0;
 
 	/* Remove health tracking */
-	if (p_ptr->health_who == m_idx) health_track(Ind, 0);
+	if (p_ptr->health_who == m_idx) health_track(p_ptr, 0);
 
 	/* Clear all visibility flags */
 	p_ptr->mon_vis[m_idx] = FALSE;

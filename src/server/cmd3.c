@@ -1569,7 +1569,7 @@ void do_cmd_refill(int Ind, int item)
 void do_cmd_target(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set_interactive(Ind, TARGET_KILL, dir))
+	if (target_set_interactive(Players[Ind], TARGET_KILL, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1582,7 +1582,7 @@ void do_cmd_target(int Ind, char dir)
 void do_cmd_target_friendly(int Ind, char dir)
 {
 	/* Set the target */
-	if (target_set_interactive(Ind, TARGET_FRND, dir))
+	if (target_set_interactive(Players[Ind], TARGET_FRND, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1595,7 +1595,7 @@ void do_cmd_target_friendly(int Ind, char dir)
 void do_cmd_look(int Ind, char dir)
 {
 	/* Look around */
-	if (target_set_interactive(Ind, TARGET_LOOK, dir))
+	if (target_set_interactive(Players[Ind], TARGET_LOOK, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1714,7 +1714,7 @@ void do_cmd_locate(int Ind, int dir)
 		p_ptr->window |= (PW_OVERHEAD);
 
 		/* Handle stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		return;
 	}
@@ -1786,7 +1786,7 @@ void do_cmd_locate(int Ind, int dir)
 	p_ptr->window |= (PW_OVERHEAD);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 }
 
 

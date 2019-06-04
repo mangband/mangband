@@ -3606,9 +3606,9 @@ void window_stuff(int Ind)
 /*
  * Handle "p_ptr->update" and "p_ptr->redraw" and "p_ptr->window"
  */
-void handle_stuff(int Ind)
+void handle_stuff(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind = Get_Ind[p_ptr->conn];
 
 	/* Hack -- delay updating */
 	if (p_ptr->new_level_flag) return;

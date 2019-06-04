@@ -271,7 +271,7 @@ void teleport_player(int Ind, int dis)
 	p_ptr->window |= (PW_OVERHEAD);
 
 	/* Handle stuff XXX XXX XXX */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 }
 
 
@@ -345,7 +345,7 @@ void teleport_player_to(int Ind, int ny, int nx)
 	p_ptr->window |= (PW_OVERHEAD);
 
 	/* Handle stuff XXX XXX XXX */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 }
 
 
@@ -4962,7 +4962,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				{
 					int r_idx = m_list[m_idx].r_idx;
 					if (p_ptr->mon_vis[m_idx]) monster_race_track(p_ptr, r_idx);
-					if (p_ptr->mon_vis[m_idx]) health_track(0 - who, m_idx);
+					if (p_ptr->mon_vis[m_idx]) health_track(p_ptr, m_idx);
 				}
 			}
 		}
@@ -5024,7 +5024,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				/* Hack - auto-track player */
 				if (m_idx < 0)
 				{
-					if (p_ptr->play_vis[0 - m_idx]) health_track(0 - who, m_idx);
+					if (p_ptr->play_vis[0 - m_idx]) health_track(p_ptr, m_idx);
 				}
 			}
 		}		

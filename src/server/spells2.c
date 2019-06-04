@@ -1609,7 +1609,7 @@ bool detect_invisible(int Ind, bool pause)
 		update_monsters(FALSE);
 		update_players();
 		/* Handle Window stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 	
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of invisible creatures!", p_ptr->name);
@@ -1693,7 +1693,7 @@ bool detect_evil(int Ind)
 		/* Mega-Hack -- Fix the monsters */
 		update_monsters(FALSE);
 		/* Handle Window stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of evil creatures!", p_ptr->name);
@@ -1803,7 +1803,7 @@ bool detect_creatures(int Ind, bool pause)
 		update_monsters(FALSE);
 		update_players();
 		/* Handle Window stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		/* Describe, and wait for acknowledgement */
 		party_msg_format_near(p_ptr, MSG_PY_MISC, "%s senses the presence of creatures!", p_ptr->name);
@@ -1843,7 +1843,7 @@ bool detection(int Ind)
 		update_monsters(FALSE);
 		update_players();
 		/* Handle Window stuff */
-		handle_stuff(Ind);
+		handle_stuff(Players[Ind]);
 
 		detect = TRUE;
 		/* Describe, and wait for acknowledgement */
@@ -3008,7 +3008,7 @@ bool identify_fully_item(int Ind, int item)
 	}
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Description */
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
@@ -3465,7 +3465,7 @@ bool banishment(int Ind)
 		/* p_ptr->window |= (PW_PLAYER); */
 
 		/* Handle */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		/* Fresh */
 		/* Term_fresh(); */
@@ -3481,7 +3481,7 @@ bool banishment(int Ind)
 	p_ptr->window |= (PW_PLAYER);
 
 	/* Handle */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	return (result);
 }
@@ -3540,7 +3540,7 @@ bool mass_banishment(int Ind)
 		/* p_ptr->window |= (PW_PLAYER); */
 
 		/* Handle */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		/* Fresh */
 		/*Term_fresh();*/
@@ -3556,7 +3556,7 @@ bool mass_banishment(int Ind)
 	p_ptr->window |= (PW_PLAYER);
 
 	/* Handle */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	return (result);
 }
@@ -4634,7 +4634,7 @@ bool fire_ball(int Ind, int typ, int dir, int dam, int rad)
 	ty = p_ptr->py + 99 * ddy[dir];
 
 	/* Hack -- Use an actual "target" */
-	if ((dir == 5) && target_okay(Ind))
+	if ((dir == 5) && target_okay(p_ptr))
 	{
 		flg &= ~PROJECT_STOP;
 		tx = p_ptr->target_col;
@@ -4671,7 +4671,7 @@ bool fire_swarm(int Ind, int num, int typ, int dir, int dam, int rad)
 	tx = px + 99 * ddx[dir];
 
 	/* Hack -- Use an actual "target" (early detonation) */
-	if ((dir == 5) && target_okay(Ind))
+	if ((dir == 5) && target_okay(p_ptr))
 	{
 		ty = p_ptr->target_row;
 		tx = p_ptr->target_col;
@@ -4705,7 +4705,7 @@ bool project_hook(int Ind, int typ, int dir, int dam, int flg)
 	ty = p_ptr->py + ddy[dir];
 
 	/* Hack -- Use an actual "target" */
-	if ((dir == 5) && target_okay(Ind))
+	if ((dir == 5) && target_okay(p_ptr))
 	{
 		tx = p_ptr->target_col;
 		ty = p_ptr->target_row;

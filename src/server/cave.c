@@ -3961,10 +3961,8 @@ void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m)
 /*
  * Cursor-track a new monster
  */
-void cursor_track(int Ind, int m_idx)
+void cursor_track(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Track a new guy */
 	p_ptr->cursor_who = m_idx;
 
@@ -4001,10 +3999,8 @@ void update_cursor(int m_idx)
 /*
  * Track a new monster
  */
-void health_track(int Ind, int m_idx)
+void health_track(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Track a new guy */
 	p_ptr->health_who = m_idx;
 

@@ -1825,7 +1825,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			           o_name, index_to_label(item_new));
 
 			/* Handle stuff */
-			handle_stuff(Ind);
+			handle_stuff(p_ptr);
 
 			/* Note how many slots the store used to have */
 			i = st_ptr->stock_num;
@@ -2137,7 +2137,7 @@ void store_confirm(int Ind)
 	inven_item_optimize(Ind, item);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 /* Evil Hack -- Ironmen don't exploit shops by doing 2k->Town trades */
 if (!cfg_ironman)

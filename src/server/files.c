@@ -2228,7 +2228,7 @@ void do_cmd_save_game(int Ind)
 	msg_print(p_ptr, NULL);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Message */
 	msg_print(p_ptr, "Saving game...");
@@ -3046,7 +3046,7 @@ void close_game(void)
 		player_type *p_ptr = Players[i];
 
 		/* Handle stuff */
-		handle_stuff(i);
+		handle_stuff(p_ptr);
 
 		/* Flush the messages */
 		msg_print(p_ptr, NULL);

@@ -3711,7 +3711,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 	ty = p_ptr->py + 99 * ddy[dir];
 
 	/* Check for "target request" */
-	if ((dir == 5) && target_okay(Ind))
+	if ((dir == 5) && target_okay(p_ptr))
 	{
 		tx = p_ptr->target_col;
 		ty = p_ptr->target_row;
@@ -3719,7 +3719,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 
 
 	/* Hack -- Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 
 	/* Travel until stopped */
@@ -3838,7 +3838,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 					msg_format(q_ptr, "%^s hits you with a %s.", p_ptr->name, o_name);
 
 					/* Track this player's health */
-					health_track(Ind, c_ptr->m_idx);
+					health_track(p_ptr, c_ptr->m_idx);
 				}
 
 				/* Apply special damage XXX XXX XXX */
@@ -3914,7 +3914,7 @@ void do_cmd_fire(int Ind, int item, int dir)
 					if (visible) monster_race_track(p_ptr, m_ptr->r_idx);
 
 					/* Hack -- Track this monster */
-					if (visible) health_track(Ind, c_ptr->m_idx);
+					if (visible) health_track(p_ptr, c_ptr->m_idx);
 				}
 
 				/* Apply special damage XXX XXX XXX */
@@ -4111,7 +4111,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 	ty = p_ptr->py + 99 * ddy[dir];
 
 	/* Check for "target request" */
-	if ((dir == 5) && target_okay(Ind))
+	if ((dir == 5) && target_okay(p_ptr))
 	{
 		tx = p_ptr->target_col;
 		ty = p_ptr->target_row;
@@ -4119,7 +4119,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 
 
 	/* Hack -- Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 
 	/* Travel until stopped */
@@ -4278,7 +4278,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 							(is_a_vowel(o_name[0]) ? "an" : "a"), o_name);
 
 					/* Track player's health */
-					health_track(Ind, c_ptr->m_idx);
+					health_track(p_ptr, c_ptr->m_idx);
 				}
 
 				/* Apply special damage XXX XXX XXX */
@@ -4354,7 +4354,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 					if (visible) monster_race_track(p_ptr, m_ptr->r_idx);
 
 					/* Hack -- Track this monster */
-					if (visible) health_track(Ind, c_ptr->m_idx);
+					if (visible) health_track(p_ptr, c_ptr->m_idx);
 				}
 
 				/* Apply special damage XXX XXX XXX */

@@ -1216,7 +1216,7 @@ void py_attack_player(int Ind, int y, int x)
 	my_strcpy(pvp_name, q_ptr->name, 80);
 
 	/* Track player health */
-	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+	if (p_ptr->play_vis[0 - c_ptr->m_idx]) health_track(p_ptr, c_ptr->m_idx);
 
 	/* Handle attacker fear */
 	if (p_ptr->afraid)
@@ -1373,7 +1373,7 @@ void py_attack_mon(int Ind, int y, int x)
 	if (p_ptr->mon_vis[c_ptr->m_idx]) monster_race_track(p_ptr, m_ptr->r_idx);
 
 	/* Track a new monster */
-	if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(Ind, c_ptr->m_idx);
+	if (p_ptr->mon_vis[c_ptr->m_idx]) health_track(p_ptr, c_ptr->m_idx);
 
 
 	/* Handle player fear */

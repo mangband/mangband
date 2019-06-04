@@ -428,7 +428,7 @@ void post_process_players(void)
 		player_type *p_ptr = Players[Ind];
 		
 		/* Recalculate and schedule updates */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 	}
 }
 

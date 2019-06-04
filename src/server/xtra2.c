@@ -151,7 +151,7 @@ bool set_blind(int Ind, int v)
 	p_ptr->window |= (PW_OVERHEAD);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -206,7 +206,7 @@ bool set_confused(int Ind, int v)
 	p_ptr->redraw |= (PR_CONFUSED);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -260,7 +260,7 @@ bool set_poisoned(int Ind, int v)
 	p_ptr->redraw |= (PR_POISONED);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -316,7 +316,7 @@ bool set_afraid(int Ind, int v)
 	p_ptr->redraw |= (PR_AFRAID);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -372,7 +372,7 @@ bool set_paralyzed(int Ind, int v)
 	p_ptr->redraw |= (PR_STATE);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -437,7 +437,7 @@ bool set_image(int Ind, int v)
 	p_ptr->window |= (PW_OVERHEAD);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -493,7 +493,7 @@ bool set_fast(int Ind, int v)
 	p_ptr->update |= (PU_BONUS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -549,7 +549,7 @@ bool set_slow(int Ind, int v)
 	p_ptr->update |= (PU_BONUS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -603,7 +603,7 @@ bool set_shield(int Ind, int v)
 	p_ptr->update |= (PU_BONUS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -658,7 +658,7 @@ bool set_blessed(int Ind, int v)
 	p_ptr->update |= (PU_BONUS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -715,7 +715,7 @@ bool set_hero(int Ind, int v)
 	p_ptr->update |= (PU_HP);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -772,7 +772,7 @@ bool set_shero(int Ind, int v)
 	p_ptr->update |= (PU_HP);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -823,7 +823,7 @@ bool set_protevil(int Ind, int v)
 	if (option_p(p_ptr,DISTURB_STATE)) disturb(p_ptr, 0, 0);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -877,7 +877,7 @@ bool set_invuln(int Ind, int v)
 	p_ptr->update |= (PU_BONUS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -934,7 +934,7 @@ bool set_tim_invis(int Ind, int v)
 	p_ptr->update |= (PU_MONSTERS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -991,7 +991,7 @@ bool set_tim_infra(int Ind, int v)
 	p_ptr->update |= (PU_MONSTERS);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1044,7 +1044,7 @@ bool set_oppose_acid(int Ind, int v)
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1097,7 +1097,7 @@ bool set_oppose_elec(int Ind, int v)
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1150,7 +1150,7 @@ bool set_oppose_fire(int Ind, int v)
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1203,7 +1203,7 @@ bool set_oppose_cold(int Ind, int v)
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1256,7 +1256,7 @@ bool set_oppose_pois(int Ind, int v)
 	p_ptr->redraw |= PR_OPPOSE_ELEMENTS;
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1398,7 +1398,7 @@ bool set_stun(int Ind, int v)
 	p_ptr->redraw |= (PR_STUN);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1604,7 +1604,7 @@ bool set_cut(int Ind, int v)
 	p_ptr->redraw |= (PR_CUT);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1829,7 +1829,7 @@ bool set_food(int Ind, int v)
 	p_ptr->redraw |= (PR_HUNGER);
 
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 
 	/* Result */
 	return (TRUE);
@@ -1947,7 +1947,7 @@ void check_experience(int Ind)
 	}
 	
 	/* Handle stuff */
-	handle_stuff(Ind);
+	handle_stuff(p_ptr);
 }
 
 
@@ -3313,9 +3313,8 @@ void setup_panel(player_type *p_ptr, bool adjust)
 	/* Set the rest of the panel information */
 	panel_bounds(p_ptr);
 }
-bool adjust_panel(int Ind, int y, int x)
+bool adjust_panel(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int x2, y2;
 
 	/* Start at current panel */
@@ -3601,10 +3600,9 @@ void ang_sort_swap_value(void* player_context, vptr u, vptr v, int a, int b)
  * Future versions may restrict the ability to target "trappers"
  * and "mimics", but the semantics is a little bit weird.
  */
-bool target_able(int Ind, int m_idx)
+bool target_able(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr;
-
+	player_type *q_ptr;
 	monster_type *m_ptr;
 
 	/* Check for OK monster */
@@ -3667,10 +3665,8 @@ bool target_able(int Ind, int m_idx)
  *
  * We return TRUE if the target is "okay" and FALSE otherwise.
  */
-bool target_okay(int Ind)
+bool target_okay(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* No target */
 	if (!p_ptr->target_set) return (FALSE);	
 		
@@ -3681,7 +3677,7 @@ bool target_okay(int Ind)
 	if (p_ptr->target_who > 0)
 	{
 		/* Accept reasonable targets */
-		if (target_able(Ind, p_ptr->target_who))
+		if (target_able(p_ptr, p_ptr->target_who))
 		{
 			monster_type *m_ptr = &m_list[p_ptr->target_who];
 
@@ -3699,7 +3695,7 @@ bool target_okay(int Ind)
 	{
 
 		/* Accept reasonable targets */
-		if (target_able(Ind, p_ptr->target_who))
+		if (target_able(p_ptr, p_ptr->target_who))
 		{
 			player_type *q_ptr = Players[0 - p_ptr->target_who];
 
@@ -3733,9 +3729,8 @@ bool target_okay(int Ind)
  *
  * Returns 999 on failure.
  */
-int target_set_index(int Ind, int y, int x)
+int target_set_index(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int bd = 999;
 	int i, t;
 	
@@ -3762,11 +3757,10 @@ int target_set_index(int Ind, int y, int x)
 /*
  * Set the target to a monster (or nobody)
  */
-void target_set_monster(int Ind, int m_idx)
+void target_set_monster(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
 	/* Acceptable target */
-	if ((m_idx != 0) && target_able(Ind, m_idx))
+	if ((m_idx != 0) && target_able(p_ptr, m_idx))
 	{
 		/* Save target info */
 		p_ptr->target_set = TRUE;
@@ -3800,9 +3794,8 @@ void target_set_monster(int Ind, int m_idx)
 /*
  * Set the target to a location
  */
-void target_set_location(int Ind, int y, int x)
+void target_set_location(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	/* Legal target */
 	//if (in_bounds_fully(y, x))
@@ -3833,10 +3826,8 @@ void target_set_location(int Ind, int y, int x)
 /*
  * Hack -- help "select" a location (see below)
  */
-s16b target_pick(int Ind, int y1, int x1, int dy, int dx)
+s16b target_pick(player_type *p_ptr, int y1, int x1, int dy, int dx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i, v;
 
 	int x2, y2, x3, y3, x4, y4;
@@ -3886,9 +3877,8 @@ s16b target_pick(int Ind, int y1, int x1, int dy, int dx)
 /*
  * Hack -- determine if a given location is "interesting"
  */
-static bool target_set_interactive_accept(int Ind, int y, int x)
+static bool target_set_interactive_accept(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
 		
 	int Depth = p_ptr->dun_depth;
@@ -3897,7 +3887,7 @@ static bool target_set_interactive_accept(int Ind, int y, int x)
 	c_ptr = &cave[Depth][y][x];
 	
 	/* Player himself */
-	if (c_ptr->m_idx < 0 && 0 - c_ptr->m_idx == Ind) return (TRUE);
+	if (c_ptr->m_idx < 0 && Players[0 - c_ptr->m_idx] == p_ptr) return (TRUE);
 
 	/* Handle hallucination */
 	if (p_ptr->image) return (FALSE);
@@ -3978,13 +3968,13 @@ static bool target_set_interactive_accept(int Ind, int y, int x)
  *
  * Return the number of target_able monsters in the set.
  */
-static void target_set_interactive_prepare(int Ind, int mode)
+static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 {
-	player_type *p_ptr = Players[Ind];
 	int y, x;
 	int old_y, old_x;
 	bool smooth = FALSE;
 
+	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 	
 	/* HACK -- Smoothly adjust index */
@@ -4012,7 +4002,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 			if (!option_p(p_ptr,EXPAND_LOOK) && !player_has_los_bold(p_ptr, y, x)) continue;
 
 			/* Require "interesting" contents */
-			if (!target_set_interactive_accept(Ind, y, x)) continue;
+			if (!target_set_interactive_accept(p_ptr, y, x)) continue;
 
 			/* Special modes */
 			if (mode & (TARGET_KILL))
@@ -4021,13 +4011,13 @@ static void target_set_interactive_prepare(int Ind, int mode)
 				if (!((m_idx = cave[Depth][y][x].m_idx) != 0)) continue;
 
 				/* Must be a targettable someone */
-			 	if (!target_able(Ind, m_idx)) continue;
-			 	
+				if (!target_able(p_ptr, m_idx)) continue;
+
 				/* If it's a player, he must not target self */
-				if (m_idx < 0 && (0 - m_idx == Ind)) continue;			 	
+				if (m_idx < 0 && (Players[0 - m_idx] == p_ptr)) continue;
 
 				/* If it's a player, he must not be friendly */
-				if (m_idx < 0 && (!pvp_okay(Ind, 0 - m_idx, 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
+				if (m_idx < 0 && (!pvp_okay(Get_Ind[p_ptr->conn], 0 - m_idx, 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
 			}
 			else if (mode & (TARGET_FRND))
 			{
@@ -4035,12 +4025,12 @@ static void target_set_interactive_prepare(int Ind, int mode)
 				if (!((m_idx = cave[Depth][y][x].m_idx) < 0)) continue;
 				
 				/* Not self */
-				if (Ind == 0 - m_idx) continue;
+				if (p_ptr == Players[0 - m_idx]) continue;
 
 				/* Must be a targettable player */
-			 	if (!target_able(Ind, m_idx)) continue;
+				if (!target_able(p_ptr, m_idx)) continue;
 
-			 	/* Must be friendly player */
+				/* Must be friendly player */
 				if (pvp_okay(Ind, 0 - m_idx, 0) || check_hostile(Players[0 - m_idx], p_ptr)) continue;
 			}
 			
@@ -4063,7 +4053,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 	/* HACK -- Smoothly adjust index (continued) */
 	if (smooth)
 	{
-		target_set_index(Ind, old_y, old_x);
+		target_set_index(p_ptr, old_y, old_x);
 	}
 
 	/* Flip index if it's too large */
@@ -4093,10 +4083,8 @@ static void target_set_interactive_prepare(int Ind, int mode)
  *
  * This function must handle blindness/hallucination.
  */
-static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr info)
+static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mode, cptr info)
 {
-	player_type *p_ptr = Players[Ind];
-
 	cptr s1, s2, s3, i1;
 
 	bool force_recall;
@@ -4132,7 +4120,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 	o_idx = cave[Depth][y][x].o_idx;
 
 	/* The player */
-	if ((m_idx < 0) && (0 - m_idx == Ind))
+	if ((m_idx < 0) && (Players[0 - m_idx] == p_ptr))
 	{
 		/* Description */
 		s1 = "You are ";
@@ -4153,11 +4141,11 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		player_type *q_ptr = Players[0 - m_idx];
 	
 		/* Hack -- health bar for this player */
-		health_track(Ind, m_idx);
+		health_track(p_ptr, m_idx);
 		
 		/* Hack -- track cursor for this player */
 		if (!(p_ptr->target_flag & TARGET_GRID))
-			cursor_track(Ind, m_idx);
+			cursor_track(p_ptr, m_idx);
 
 		/* Describe player */
 		if (q_ptr->ghost)
@@ -4178,7 +4166,7 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 			/* Hack -- cancel monster tracking */
 			monster_race_track(p_ptr, -1);
 			/* Hack -- call descriptive function */
-			do_cmd_monster_desc_aux(Ind, m_idx, TRUE);
+			do_cmd_monster_desc_aux(Get_Ind[p_ptr->conn], m_idx, TRUE);
 			/* Hack -- pop up immediatly */
 			force_recall = TRUE;
 		}
@@ -4191,20 +4179,20 @@ static void target_set_interactive_aux(int Ind, int y, int x, int mode, cptr inf
 		char m_name[80];
 
 		/* Get the monster name ("a kobold") */
-		monster_desc(Ind, m_name, m_idx, 0);
+		monster_desc(Get_Ind[p_ptr->conn], m_name, m_idx, 0);
 
 		/* Hack -- track this monster race */
 		monster_race_track(p_ptr, m_ptr->r_idx);
 
 		/* Hack -- health bar for this monster */
-		health_track(Ind, m_idx);
+		health_track(p_ptr, m_idx);
 		
 		/* Hack -- track cursor fo this monster */
 		if (!(p_ptr->target_flag & TARGET_GRID))
-			cursor_track(Ind, m_idx);
+			cursor_track(p_ptr, m_idx);
 
 		/* Hack -- handle stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 
 		/* Describe the monster */
 		strnfmt(x_name, sizeof(x_name), "%s (%s)", 
@@ -4416,9 +4404,8 @@ int target_dir(char ch)
  * This command will cancel any old target, even if used from
  * inside the "look" command.
  */
-bool target_set_interactive(int Ind, int mode, char query)
+bool target_set_interactive(player_type *p_ptr, int mode, char query)
 {
-	player_type *p_ptr = Players[Ind];
 	int py = p_ptr->py;
 	int px = p_ptr->px;
 
@@ -4441,12 +4428,12 @@ bool target_set_interactive(int Ind, int mode, char query)
 	}
 
 	/* Cancel target */
-	target_set_monster(Ind, 0);
+	target_set_monster(p_ptr, 0);
 
 
 	/* Cancel tracking */
-	/* health_track(Ind, 0); */
-	cursor_track(Ind, 0);
+	/* health_track(p_ptr, 0); */
+	cursor_track(p_ptr, 0);
 
 	/* Start near the player */
 	if (query == '\0')
@@ -4458,7 +4445,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	}
 	
 	/* Prepare the "temp" array */
-	target_set_interactive_prepare(Ind, mode);
+	target_set_interactive_prepare(p_ptr, mode);
 	
 	/* Hack -- restore "Old Target" if it's still ok */
 	if (!(p_ptr->target_flag & TARGET_GRID) && old_target && p_ptr->target_n) 
@@ -4468,7 +4455,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		{
 			y = p_ptr->target_y[i];
 			x = p_ptr->target_x[i];
-			if ((cave[Depth][y][x].m_idx == old_target) && target_able(Ind, cave[Depth][y][x].m_idx))
+			if ((cave[Depth][y][x].m_idx == old_target) && target_able(p_ptr, cave[Depth][y][x].m_idx))
 			{
 				p_ptr->look_index = i;
 				break;
@@ -4566,7 +4553,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				verify_panel(p_ptr);
 
 				/* Handle stuff */
-				handle_stuff(Ind);
+				handle_stuff(p_ptr);
 				
 				y = py;
 				x = px;
@@ -4596,10 +4583,10 @@ bool target_set_interactive(int Ind, int mode, char query)
 				int Depth = p_ptr->dun_depth;
 				int m_idx = cave[Depth][y][x].m_idx;
 
-				if ((m_idx != 0) && target_able(Ind, m_idx))
+				if ((m_idx != 0) && target_able(p_ptr, m_idx))
 				{
-					health_track(Ind, m_idx);
-					target_set_monster(Ind, m_idx);
+					health_track(p_ptr, m_idx);
+					target_set_monster(p_ptr, m_idx);
 				}
 				else
 				{
@@ -4611,7 +4598,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 
 			case 'g':
 			{
-				do_cmd_pathfind(Ind, y, x);
+				do_cmd_pathfind(Get_Ind[p_ptr->conn], y, x);
 				done = TRUE;
 				break;
 			}
@@ -4635,7 +4622,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			x = p_ptr->target_x[p_ptr->look_index];
 
 			/* Find a new interesting grid" */
-			i = target_pick(Ind, y, x, ddy[d], ddx[d]);
+			i = target_pick(p_ptr, y, x, ddy[d], ddx[d]);
 
 			/* Use interesting grid if found */
 			if (i >= 0) p_ptr->look_index = i;
@@ -4681,7 +4668,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 				verify_panel(p_ptr);
 
 				/* Handle stuff */
-				handle_stuff(Ind);
+				handle_stuff(p_ptr);
 
 				p_ptr->look_y = py;
 				p_ptr->look_x = px;
@@ -4696,7 +4683,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 			{
 				p_ptr->target_flag &= ~TARGET_GRID;
 
-				bd = target_set_index(Ind, p_ptr->look_y, p_ptr->look_x);
+				bd = target_set_index(p_ptr, p_ptr->look_y, p_ptr->look_x);
 
 				/* Nothing interesting */
 				if (bd == 999) p_ptr->target_flag |= TARGET_GRID;
@@ -4714,14 +4701,14 @@ bool target_set_interactive(int Ind, int mode, char query)
 			case '0':
 			case '.':
 			{
-				target_set_location(Ind, p_ptr->look_y, p_ptr->look_x);
+				target_set_location(p_ptr, p_ptr->look_y, p_ptr->look_x);
 				done = TRUE;
 				break;
 			}
 
 			case 'g':
 			{
-				do_cmd_pathfind(Ind, p_ptr->look_y, p_ptr->look_x);
+				do_cmd_pathfind(Get_Ind[p_ptr->conn], p_ptr->look_y, p_ptr->look_x);
 				done = TRUE;
 				break;
 			}
@@ -4757,13 +4744,13 @@ bool target_set_interactive(int Ind, int mode, char query)
 			else if (p_ptr->look_y <= 0) p_ptr->look_y++;
 
 			/* Adjust panel if needed */
-			if (adjust_panel(Ind, p_ptr->look_y, p_ptr->look_x))
+			if (adjust_panel(p_ptr, p_ptr->look_y, p_ptr->look_x))
 			{
 				/* Handle stuff */
-				handle_stuff(Ind);
+				handle_stuff(p_ptr);
 
 				/* Recalculate interesting grids */
-				target_set_interactive_prepare(Ind, mode);
+				target_set_interactive_prepare(p_ptr, mode);
 			}
 		}
 	}
@@ -4775,7 +4762,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		Depth = p_ptr->dun_depth;
 
 		/* Allow target */
-		if ((cave[Depth][y][x].m_idx != 0) && target_able(Ind, cave[Depth][y][x].m_idx))
+		if ((cave[Depth][y][x].m_idx != 0) && target_able(p_ptr, cave[Depth][y][x].m_idx))
 		{
 			strcpy(info, "q,t,p,o,+,-,<dir>");
 		}
@@ -4787,10 +4774,10 @@ bool target_set_interactive(int Ind, int mode, char query)
 		}
 
 		/* Adjust panel if needed */
-		if (adjust_panel(Ind, y, x))
+		if (adjust_panel(p_ptr, y, x))
 		{
 			/* Handle stuff */
-			handle_stuff(Ind);
+			handle_stuff(p_ptr);
 		}
 	}
 	
@@ -4806,7 +4793,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 	if (prompt_arb || prompt_int)
 	{
 		/* Describe and Prompt */
-		target_set_interactive_aux(Ind, y, x, mode, info);
+		target_set_interactive_aux(p_ptr, y, x, mode, info);
 
 		/* Cancel tracking */
 		/* health_track(0); */
@@ -4824,7 +4811,7 @@ bool target_set_interactive(int Ind, int mode, char query)
 		verify_panel(p_ptr);
 	
 		/* Handle stuff */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 	}
 	
 	/* Failure to set target */
@@ -4888,7 +4875,7 @@ bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
 		int found_index = -1;
 		int last_dist = -1;
 		/* Hack -- populate target_*[] arrays so we can iterate */
-		target_set_interactive(Get_Ind[p_ptr->conn], look_mode, 'm');
+		target_set_interactive(p_ptr, look_mode, 'm');
 		for (i = 0; i < p_ptr->target_n; i++)
 		{
 			int oy = p_ptr->target_y[i];
@@ -4916,7 +4903,7 @@ bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
 
 	/* We now have a proper look mode and a fake key */
 	/* Lets feed our interactive targeter */
-	return target_set_interactive(Get_Ind[p_ptr->conn], look_mode, key);
+	return target_set_interactive(p_ptr, look_mode, key);
 }
 
 
@@ -4944,7 +4931,7 @@ bool get_aim_dir(int Ind, int *dp)
 	p_ptr->command_dir = 0;
 
 	/* Hack -- auto-target if requested */
-	if (option_p(p_ptr,USE_OLD_TARGET) && target_okay(Ind)) dir = 5;
+	if (option_p(p_ptr,USE_OLD_TARGET) && target_okay(p_ptr)) dir = 5;
 	
 	/* No direction -- Ask */
 	if (!dir)  
@@ -5777,7 +5764,7 @@ void do_cmd_social(int Ind, int dir, int i)
 				if ((target = cave[p_ptr->dun_depth][y][x].m_idx)) break;
 			}
 		}
-		else if (!target_okay(Ind)) {return;}
+		else if (!target_okay(p_ptr)) {return;}
 		else
 		{
 			target = p_ptr->target_who;
