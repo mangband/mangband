@@ -479,10 +479,8 @@ int pick_house(int Depth, int y, int x)
 /*
  * Determine if the player is inside the house
  */
-bool house_inside(int Ind, int house)
+bool house_inside(player_type *p_ptr, int house)
 {
-	player_type *p_ptr = Players[Ind];
-
 	if (house >= 0 && house < num_houses)
 	{
 		if (houses[house].depth == p_ptr->dun_depth
@@ -514,10 +512,8 @@ bool house_owned(int house)
 /*
  * Determine if the given player owns the given house
  */
-bool house_owned_by(int Ind, int house)
+bool house_owned_by(player_type *p_ptr, int house)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* If not owned at all, obviously not owned by this player */
 	if (!house_owned(house)) return FALSE;
 	
@@ -532,7 +528,7 @@ bool house_owned_by(int Ind, int house)
 /*
  * Return the number of houses owned by the player
  */
-int houses_owned(int Ind)
+int houses_owned(player_type *p_ptr)
 {
 	int i;
 	int owned = 0;
@@ -540,7 +536,7 @@ int houses_owned(int Ind)
 	/* Check each house */
 	for (i = 0; i < num_houses; i++)
 	{
-		if(house_owned_by(Ind,i))
+		if (house_owned_by(p_ptr, i))
 		{
 			owned++;
 		}
@@ -554,15 +550,14 @@ int houses_owned(int Ind)
  * Houses can be overlapping, so a single coordinate pair may match several
  * houses.  The offset parameter allows searching for the next match.
  */
-int find_house(int Ind, int x, int y, int offset)
+int find_house(int Depth, int x, int y, int offset)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 	
 	for (i = offset; i < num_houses; i++)
 	{
 		/* Check the house position *including* the walls */
-		if (houses[i].depth == p_ptr->dun_depth
+		if (houses[i].depth == Depth
 			&& x >= houses[i].x_1-1 && x <= houses[i].x_2+1
 			&& y >= houses[i].y_1-1 && y <= houses[i].y_2+1)
 		{
@@ -577,10 +572,9 @@ int find_house(int Ind, int x, int y, int offset)
  * Determine if the given location is ok to use as part of the foundation
  * of a house.
  */
-bool is_valid_foundation(int Ind, int x, int y)
+bool is_valid_foundation(player_type *p_ptr, int x, int y)
 {
 	int house;
-	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
 	object_type	*o_ptr;
 
@@ -598,11 +592,11 @@ bool is_valid_foundation(int Ind, int x, int y)
 		|| (c_ptr->feat >= FEAT_HOME_HEAD && c_ptr->feat <= FEAT_HOME_TAIL))
 	{
 		/* Looks like part of a house, which house? */
-		house = find_house(Ind, x, y, 0);
+		house = find_house(p_ptr->dun_depth, x, y, 0);
 		if(house >= 0)
 		{
 			/* Do we own this house? */
-			if(house_owned_by(Ind,house))
+			if (house_owned_by(p_ptr, house))
 			{
 				/* Valid, a wall or door in our own house. */
 				return TRUE;
@@ -644,12 +638,12 @@ bool create_house_door(int Ind, int x, int y)
 
 	/* Which house is the given location part of? */
 	lastmatch = 0;
-	while( (house = find_house(Ind,x,y,lastmatch)) > -1 )
+	while( (house = find_house(p_ptr->dun_depth,x,y,lastmatch)) > -1 )
 	{
 		lastmatch = house+1;
 
 		/* Do we own this house? */
-		if(!house_owned_by(Ind,house))
+		if (!house_owned_by(p_ptr, house))
 		{
 			/* If we don't own this one, we can't own any overlapping ones */
 			msg_print(p_ptr, "You do not own this house");
@@ -701,9 +695,8 @@ bool create_house_door(int Ind, int x, int y)
  * either foundation stones or walls of houses the player owns.
  * 
  */
-bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
+bool get_house_foundation(player_type *p_ptr, int *px1, int *py1, int *px2, int *py2)
 {
-	player_type *p_ptr = Players[Ind];
 	int x, y, x1, y1, x2, y2;
 	bool done;
 	bool n,s,e,w,ne,nw,se,sw;
@@ -735,7 +728,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		for(x = x1; x <= x2; x++)
 		{
 			/* Is this a valid location for part of our house? */
-			if(!is_valid_foundation(Ind, x, y1-1))
+			if(!is_valid_foundation(p_ptr, x, y1-1))
 			{
 				/* Not a valid perimeter */
 				n = FALSE; 
@@ -748,7 +741,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		for(y = y1; y <= y2; y++)
 		{
 			/* Is this a valid location for part of our house? */
-			if(!is_valid_foundation(Ind, x2+1, y))
+			if(!is_valid_foundation(p_ptr, x2+1, y))
 			{
 				/* Not a valid perimeter */
 				e = FALSE;
@@ -761,7 +754,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		for(x = x1; x <= x2; x++)
 		{
 			/* Is this a valid location for part of our house? */
-			if(!is_valid_foundation(Ind, x, y2+1))
+			if(!is_valid_foundation(p_ptr, x, y2+1))
 			{
 				/* Not a valid perimeter */
 				s = FALSE;
@@ -774,7 +767,7 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		for(y = y1; y <= y2; y++)
 		{
 			/* Is this a valid location for part of our house? */
-			if(!is_valid_foundation(Ind, x1-1, y))
+			if(!is_valid_foundation(p_ptr, x1-1, y))
 			{
 				/* Not a valid perimeter */
 				w = FALSE;
@@ -783,10 +776,10 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
 		}
 
 		/* Could we expand the corners? */
-		ne = is_valid_foundation(Ind, x2+1, y1-1);
-		nw = is_valid_foundation(Ind, x1-1, y1-1);
-		se = is_valid_foundation(Ind, x2+1, y2+1);
-		sw = is_valid_foundation(Ind, x1-1, y2+1);
+		ne = is_valid_foundation(p_ptr, x2+1, y1-1);
+		nw = is_valid_foundation(p_ptr, x1-1, y1-1);
+		se = is_valid_foundation(p_ptr, x2+1, y2+1);
+		sw = is_valid_foundation(p_ptr, x1-1, y2+1);
 
 		/* Only permit expansion in a way that maintains a rectangle, we don't
 		 * want to create fancy polygons. */
@@ -827,10 +820,9 @@ bool get_house_foundation(int Ind, int *px1, int *py1, int *px2, int *py2)
  * Create a new house.
  * The creating player owns the house.
  */
-bool create_house(int Ind)
+bool create_house(player_type *p_ptr)
 {
 	int x1, x2, y1, y2, x, y;
-	player_type *p_ptr = Players[Ind];
 	cave_type *c_ptr;
 
 	/* Not in dungeon, not in town */
@@ -841,7 +833,7 @@ bool create_house(int Ind)
 	}
 
 	/* Determine the area of the house foundation */
-	if(!get_house_foundation(Ind,&x1,&y1,&x2,&y2))
+	if (!get_house_foundation(p_ptr, &x1, &y1, &x2, &y2))
 	{
 		return FALSE;
 	}
@@ -858,7 +850,7 @@ bool create_house(int Ind)
 	houses[num_houses].depth = p_ptr->dun_depth;
 	houses[num_houses].door_y = 0;
 	houses[num_houses].door_x = 0;
-	set_house_owner(Ind, num_houses);
+	set_house_owner(p_ptr, num_houses);
 	num_houses++;
 
 	/* Render into the terrain */
@@ -908,10 +900,8 @@ bool create_house(int Ind)
 /*
  * Set the owner of the given house
  */
-bool set_house_owner(int Ind, int house)
+bool set_house_owner(player_type *p_ptr, int house)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Not if it's already owned */
 	if (house_owned(house)) return FALSE;
 
@@ -937,7 +927,7 @@ void disown_house(int house)
 		/* Remove all players from the house */
 		for (i = 1; i < NumPlayers + 1; i++)
 		{
-			if (house_inside(i, house))
+			if (house_inside(Players[i], house))
 			{
 				msg_print(Players[i], "You have been expelled from the house.");
 				teleport_player(i, 5);
@@ -1258,7 +1248,7 @@ static bool do_cmd_open_aux(int Ind, int y, int x)
 		}
 
 		/* Do we own this house? */
-		if (house_owned_by(Ind,i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
+		if (house_owned_by(p_ptr, i) || (p_ptr->dm_flags & DM_HOUSE_CONTROL) )
 		{
 
 			/* If someone is in our store, we eject them (anti-exploit) */
@@ -4163,7 +4153,7 @@ void do_cmd_throw(int Ind, int item, int dir)
 						if ((j = pick_house(Depth, ny, nx)) == -1) break;
 
 						/* Must own the house */
-						if (!house_owned_by(Ind,j)) break;
+						if (!house_owned_by(p_ptr, j)) break;
 						
 						/* Chance to fail */
 						if (randint(100) > p_ptr->sc) break;
@@ -4479,7 +4469,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 			if (house_owned(i))
 			{
 				/* Is it owned by this player? */
-				if (house_owned_by(Ind,i))
+				if (house_owned_by(p_ptr, i))
 				{
 					/* house is no longer owned */
 					disown_house(i);
@@ -4533,9 +4523,9 @@ void do_cmd_purchase_house(int Ind, int dir)
 		{
 			
 			/* Is it owned by this player? */
-			if (house_owned_by(Ind,i))
+			if (house_owned_by(p_ptr, i))
 			{
-				if (house_inside(Ind, i)) 
+				if (house_inside(p_ptr, i))
 				{
 					/* Hack -- Enter own store */
 					command_new = '_';
@@ -4582,7 +4572,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 		}
 
 		/* Check if we have too many houses already */
-		if( cfg_max_houses && houses_owned(Ind) >= cfg_max_houses )
+		if( cfg_max_houses && houses_owned(p_ptr) >= cfg_max_houses )
 		{
 			/* Too many houses owned already */
 			msg_print(p_ptr, "You own too many houses already.");
@@ -4599,7 +4589,7 @@ void do_cmd_purchase_house(int Ind, int dir)
 		p_ptr->au -= price;
 
 		/* The house is now owned */
-		set_house_owner(Ind,i);
+		set_house_owner(p_ptr, i);
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_GOLD);

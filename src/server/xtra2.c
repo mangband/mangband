@@ -2691,7 +2691,7 @@ void player_funeral(int Ind, char *reason)
 	/* Disown any houses he owns */
 	for(i=0; i< num_houses; i++)
 	{
-		if (house_owned_by(Ind,i))
+		if (house_owned_by(p_ptr, i))
 		{
 			disown_house(i);
 		}

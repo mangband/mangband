@@ -244,9 +244,8 @@ void do_cmd_save_screen(void)
 
 
 /* MAngband-specific: show list of owned houses */
-void display_houses(int Ind, char query)
+void display_houses(player_type *p_ptr, char query)
 {
-	player_type *p_ptr = Players[Ind];
 	int i, j = 0;
 	char buf[160];
 	
@@ -263,7 +262,7 @@ void display_houses(int Ind, char query)
 
 	for (i = 0; i < num_houses; i++) 
 	{
-		if (house_owned_by(Ind, i)) 
+		if (house_owned_by(p_ptr, i))
 		{
 			if (j++ < p_ptr->interactive_line) continue;
 			
@@ -286,13 +285,13 @@ void display_houses(int Ind, char query)
 	text_out_done();
 	
 	/* Send */
-	Send_term_info(Ind, NTERM_CLEAR, 0);
+	send_term_info(p_ptr, NTERM_CLEAR, 0);
 	for (i = 0; i < MAX_TXT_INFO; i++)
 	{
 		if (i >= p_ptr->last_info_line) break;
-		Stream_line(Ind, STREAM_SPECIAL_TEXT, i);
+		Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 	}
-	Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0);
+	send_term_info(p_ptr, NTERM_CLEAR | NTERM_FLUSH, 0);
 }
 
 /*
@@ -1049,7 +1048,7 @@ void do_cmd_interactive_aux(player_type *p_ptr, int type, char query)
 			do_cmd_check_other(p_ptr, p_ptr->interactive_line - p_ptr->interactive_next);
 			break;
 		case SPECIAL_FILE_HOUSES:
-			display_houses(Get_Ind[p_ptr->conn], query);
+			display_houses(p_ptr, query);
 			break;
 		case SPECIAL_FILE_KNOWLEDGE:
 			do_cmd_knowledge(p_ptr, query);

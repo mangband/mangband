@@ -1006,10 +1006,10 @@ void player_setup(int Ind)
 	for (i = 0; i < num_houses; i++)
 	{
 		/* Are we inside this house? */
-		if (house_inside(Ind, i))
+		if (house_inside(p_ptr, i))
 		{
 			/* If we don't own it, get out of it */
-			if( !house_owned_by(Ind, i) )
+			if( !house_owned_by(p_ptr, i) )
 			{
 				reposition = TRUE;
 				break;

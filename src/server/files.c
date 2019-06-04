@@ -1196,7 +1196,7 @@ errr file_character_server(int Ind, cptr name)
 	file_putf(fff, "%s", "  [Home Inventory]\n");
 	for (i = 0; i < num_houses; i++)
 	{
-		if (house_owned_by(Ind, i)) 
+		if (house_owned_by(p_ptr, i))
 		{
 			int Depth = houses[i].depth;
 			cave_type *c_ptr;

@@ -1066,7 +1066,7 @@ static bool read_scroll(int Ind, object_type *o_ptr, bool *ident)
 		case SV_SCROLL_CREATE_HOUSE:
 		{
 			msg_print(p_ptr, "This is a scroll of house creation.");
-			used_up = create_house(Ind);
+			used_up = create_house(p_ptr);
 			*ident = TRUE;
 			break;
 		}

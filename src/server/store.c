@@ -1063,7 +1063,7 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	wgt = o_ptr->weight;
 
 	/* Extract the item price */
-	if (house_owned_by(Ind, p_ptr->player_store_num))
+	if (house_owned_by(p_ptr, p_ptr->player_store_num))
 	{
 		/* Viewing our own shop - the price we will get */
 		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
@@ -1664,7 +1664,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	}
 	
 	/* Player-owned && Is his? */
-	if (st == 8 && house_owned_by(Ind, p_ptr->player_store_num))
+	if (st == 8 && house_owned_by(p_ptr, p_ptr->player_store_num))
 	{
 		msg_print(p_ptr, "You cannot buy from yourself.");
 		return;
@@ -1683,7 +1683,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	{
 		for (i = 1; i <= NumPlayers; i++)
 		{
-			if(house_inside(i, p_ptr->player_store_num))
+			if (house_inside(Players[i], p_ptr->player_store_num))
 			{
 				p_ptr->store_num = -1;
 				send_store_leave(Ind);
@@ -2218,10 +2218,10 @@ void do_cmd_store(int Ind, int pstore)
 		/* Store is closed if someone is restocking (anti-exploit) */
 		for (i = 1; i <= NumPlayers; i++)
 		{
-			if(Ind != i && house_inside(i, pstore))
+			if (Ind != i && house_inside(Players[i], pstore))
 			{
 				msg_print(p_ptr, "The doors are locked.");
-				return;		
+				return;
 			}
 		}
 		p_ptr->store_num = 8;
