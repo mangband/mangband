@@ -2624,7 +2624,7 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 	ang_sort_swap = ang_sort_swap_value;
 
 	/* Sort the player's inventory according to value */
-	ang_sort(Ind, p_ptr->inventory, NULL, INVEN_TOTAL);
+	ang_sort(p_ptr, p_ptr->inventory, NULL, INVEN_TOTAL);
 
 	/* Starting with the most valuable, drop things one by one */
 	for (i = 0; i < INVEN_TOTAL; i++)
@@ -3472,9 +3472,9 @@ int player_wounded(s16b ind)
  * This is a port of "wounded_player_target_sort()" by -ADA-
  * and uses it's "player_wounded()" helper function.
  */
-bool mang_sort_comp_wounded(int Ind, vptr u, vptr v, int a, int b)
+bool mang_sort_comp_wounded(void* player_context, vptr u, vptr v, int a, int b)
 {
-	player_type *p_ptr = Players[Ind];
+	player_type *p_ptr = (player_type*)player_context;
 	byte *x = (byte*)(u);
 	byte *y = (byte*)(v);
 	
@@ -3499,10 +3499,9 @@ bool mang_sort_comp_wounded(int Ind, vptr u, vptr v, int a, int b)
  * and sort the arrays by double-distance to the player.
  * We then compare by "player_wounded()" value.
  */
-bool ang_sort_comp_distance(int Ind, vptr u, vptr v, int a, int b)
+bool ang_sort_comp_distance(void *player_context, vptr u, vptr v, int a, int b)
 {
-	player_type *p_ptr = Players[Ind];
-
+	player_type *p_ptr = (player_type*)player_context;
 	byte *x = (byte*)(u);
 	byte *y = (byte*)(v);
 
@@ -3533,8 +3532,9 @@ bool ang_sort_comp_distance(int Ind, vptr u, vptr v, int a, int b)
  * We use "u" and "v" to point to arrays of "x" and "y" positions,
  * and sort the arrays by distance to the player.
  */
-void ang_sort_swap_distance(int Ind, vptr u, vptr v, int a, int b)
+void ang_sort_swap_distance(void* player_context, vptr u, vptr v, int a, int b)
 {
+	player_type *p_ptr = (player_type*)player_context;
 	byte *x = (byte*)(u);
 	byte *y = (byte*)(v);
 
@@ -3558,15 +3558,16 @@ void ang_sort_swap_distance(int Ind, vptr u, vptr v, int a, int b)
  *
  * Pointer "v" should not point to anything (it isn't used, anyway).
  */
-bool ang_sort_comp_value(int Ind, vptr u, vptr v, int a, int b)
+bool ang_sort_comp_value(void* player_context, vptr u, vptr v, int a, int b)
 {
+	player_type *p_ptr = (player_type*)player_context;
 	object_type *inven = (object_type *)u;
 	s32b va, vb;
 
 	if (inven[a].tval && inven[b].tval)
 	{
-		va = object_value(Players[Ind], &inven[a]);
-		vb = object_value(Players[Ind], &inven[b]);
+		va = object_value(p_ptr, &inven[a]);
+		vb = object_value(p_ptr, &inven[b]);
 
 		return (va >= vb);
 	}
@@ -3578,8 +3579,9 @@ bool ang_sort_comp_value(int Ind, vptr u, vptr v, int a, int b)
 }
 
 
-void ang_sort_swap_value(int Ind, vptr u, vptr v, int a, int b)
+void ang_sort_swap_value(void* player_context, vptr u, vptr v, int a, int b)
 {
+	player_type *p_ptr = (player_type*)player_context;
 	object_type *x = (object_type *)u;
 	object_type temp;
 
@@ -4064,7 +4066,7 @@ static void target_set_interactive_prepare(int Ind, int mode)
 	ang_sort_swap = ang_sort_swap_distance;
 
 	/* Sort the positions */
-	ang_sort(Ind, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
+	ang_sort(p_ptr, p_ptr->target_x, p_ptr->target_y, p_ptr->target_n);
 	
 	/* HACK -- Smoothly adjust index (continued) */
 	if (smooth)
@@ -6218,7 +6220,7 @@ void master_fill_monsters(player_type *p_ptr, u32b how)
 	ang_sort_swap = ang_sort_swap_u16b;
 
 	/* Sort! */
-	ang_sort(Ind, p_ptr->target_idx, &why, p_ptr->target_n);
+	ang_sort(p_ptr, p_ptr->target_idx, &why, p_ptr->target_n);
 
 	/* Switch ascending/descending */
 	if (why & SORT_REVERS)	for (i = 0; i < n / 2; i++)

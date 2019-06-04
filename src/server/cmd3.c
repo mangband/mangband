@@ -1906,7 +1906,7 @@ static cptr ident_info[] =
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform on "u".
  */
-bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
+bool ang_sort_comp_monsters(void *player_context, vptr u, vptr v, int a, int b)
 {
 	u16b *who = (u16b*)(u);
 
@@ -1917,13 +1917,11 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
 
 	int z1, z2;
 
-	Ind = Ind;
-
 	/* Sort by player kills */
 	if (*why & SORT_PKILL)
 	{
 		/* Extract player kills */
-		player_type  *p_ptr = Players[Ind];
+		player_type  *p_ptr = (player_type*)player_context;
 		monster_lore *l1_ptr = p_ptr->l_list + w1;
 		monster_lore *l2_ptr = p_ptr->l_list + w2;
 
@@ -2035,8 +2033,9 @@ bool ang_sort_comp_monsters(int Ind, vptr u, vptr v, int a, int b)
  * We use "u" to point to array of monster indexes,
  * and "v" to select the type of sorting to perform.
  */
-void ang_sort_swap_u16b(int Ind, vptr u, vptr v, int a, int b)
+void ang_sort_swap_u16b(void* player_context, vptr u, vptr v, int a, int b)
 {
+	player_type *p_ptr = (player_type*)player_context;
 	u16b *who = (u16b*)(u);
 	u16b holder;
 

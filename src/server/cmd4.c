@@ -845,7 +845,7 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	ang_sort_swap = ang_sort_swap_u16b;
 
 	/* Sort by kills (and level) */
-	ang_sort(Ind, who, &why, n);
+	ang_sort(p_ptr, who, &why, n);
 
 	/* Print the monsters (highest kill counts first) */
 	for (i = n - 1; i >= 0; i--)

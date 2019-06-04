@@ -520,8 +520,8 @@ size_t z_mbstowcs(wchar_t *dest, const char *src, int n)
 
 
 /* Compare and swap hooks */
-bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
-void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
+bool (*ang_sort_comp)(void* player_context, vptr u, vptr v, int a, int b);
+void (*ang_sort_swap)(void* player_context, vptr u, vptr v, int a, int b);
 
 /*
  * Angband sorting algorithm -- quick sort in place
@@ -531,7 +531,7 @@ void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
  * function hooks to interact with the data, which is given as
  * two pointers, and which may have any user-defined form.
  */
-void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q)
+void ang_sort_aux(void* player_context, vptr u, vptr v, int p, int q)
 {
 	int z, a, b;
 
@@ -549,26 +549,26 @@ void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q)
 	while (TRUE)
 	{
 		/* Slide i2 */
-		while (!(*ang_sort_comp)(Ind, u, v, b, z)) b--;
+		while (!(*ang_sort_comp)(player_context, u, v, b, z)) b--;
 
 		/* Slide i1 */
-		while (!(*ang_sort_comp)(Ind, u, v, z, a)) a++;
+		while (!(*ang_sort_comp)(player_context, u, v, z, a)) a++;
 
 		/* Done partition */
 		if (a >= b) break;
 
 		/* Swap */
-		(*ang_sort_swap)(Ind, u, v, a, b);
+		(*ang_sort_swap)(player_context, u, v, a, b);
 
 		/* Advance */
 		a++, b--;
 	}
 
 	/* Recurse left side */
-	ang_sort_aux(Ind, u, v, p, b);
+	ang_sort_aux(player_context, u, v, p, b);
 
 	/* Recurse right side */
-	ang_sort_aux(Ind, u, v, b+1, q);
+	ang_sort_aux(player_context, u, v, b+1, q);
 }
 
 
@@ -580,8 +580,8 @@ void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q)
  * function hooks to interact with the data, which is given as
  * two pointers, and which may have any user-defined form.
  */
-void ang_sort(int Ind, vptr u, vptr v, int n)
+void ang_sort(void* player_context, vptr u, vptr v, int n)
 {
 	/* Sort the array */
-	ang_sort_aux(Ind, u, v, 0, n-1);
+	ang_sort_aux(player_context, u, v, 0, n-1);
 }
