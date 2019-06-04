@@ -68,10 +68,8 @@ void player_dump(int Ind)
 /*
  * Set "p_ptr->noise", cap it.
  */
-bool set_noise(int Ind, int v)
+bool set_noise(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Hack -- Force good values */
 	v = (v > 60) ? 60 : (v < 0) ? 0 : v;
 

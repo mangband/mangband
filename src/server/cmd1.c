@@ -2914,7 +2914,7 @@ void run_step(int Ind, int dir)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Make noise */
-	set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+	set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 	/* Move the player, using the "pickup" flag */
 	move_player(Ind, p_ptr->find_current, option_p(p_ptr,ALWAYS_PICKUP));

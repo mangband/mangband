@@ -1704,7 +1704,7 @@ static int recv_walk(player_type *p_ptr) {
 		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
 		/* Hack -- add aggravating noise */
-		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 		/* End turn */
 		return 3;
@@ -1741,7 +1741,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 		do_cmd_toggle_rest(Ind);
 
 		/* Hack -- add aggravating noise */
-		set_noise(Ind, p_ptr->noise + (30 - p_ptr->skill_stl));
+		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 		/* End turn */
 		return 3;
@@ -2049,7 +2049,7 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 			halve = 2;
 		}
 		v = (30 - p_ptr->skill_stl) / pcommand_energy_cost[pkt] / halve;
-		set_noise(Get_Ind[p_ptr->conn], p_ptr->noise + v);
+		set_noise(p_ptr, p_ptr->noise + v);
 	}
 }
 

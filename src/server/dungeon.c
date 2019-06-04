@@ -1344,7 +1344,7 @@ static void process_player_end(int Ind)
 		/* Reduce noise levels */
 		if (p_ptr->noise)
 		{
-			(void)set_noise(Ind, p_ptr->noise - (p_ptr->skill_stl + 1));
+			(void)set_noise(p_ptr, p_ptr->noise - (p_ptr->skill_stl + 1));
 		}
 
 		/* Hack -- Hallucinating */
