@@ -1929,7 +1929,7 @@ void msg_broadcast(player_type *p_ptr, cptr msg)
 		if (same_player(Players[i], p_ptr)) continue;
 		printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
-		msg_print_aux(p_ptr, msg, MSG_CHAT);
+		msg_print_aux(Players[i], msg, MSG_CHAT);
 	}
 
 	/* Send to console */
