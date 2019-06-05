@@ -693,10 +693,8 @@ errr check_load_init(void)
  *
  * Except that this (and display_player) are never called. --KLJ--
  */
-static void display_player_middle(int Ind)
+static void display_player_middle(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int show_tohit = p_ptr->dis_to_h;
 	int show_todam = p_ptr->dis_to_d;
 
@@ -734,10 +732,8 @@ static void display_player_middle(int Ind)
  *
  * The top two and bottom two lines are left blank.
  */
-void display_player(int Ind)
+void display_player(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 
@@ -755,7 +751,7 @@ void display_player(int Ind)
 	}
 
 	/* Extra info */
-	display_player_middle(Ind);
+	display_player_middle(p_ptr);
 
 	/* Display "history" info */
 	//Send_history(Ind, i, p_ptr->history[i]);
@@ -870,13 +866,12 @@ static cptr likert(int x, int y)
  * We print text into a buffer rather than to a term.
  * This is used for serverside character dumps.
  */
-void display_player_server(int Ind, char buffer[100][82])
+void display_player_server(player_type *p_ptr, char buffer[100][82])
 {
 	int i;
 	char buf[80];
 	cptr desc;
 /*	bool hist = FALSE;*/
-	player_type *p_ptr = Players[Ind];
 
 	int show_tohit = p_ptr->dis_to_h;
 	int show_todam = p_ptr->dis_to_d;
@@ -1079,7 +1074,7 @@ void display_player_server(int Ind, char buffer[100][82])
  * Hack -- Dump a character description file
  * This is for server-side character dumps
  */
-errr file_character_server(int Ind, cptr name)
+errr file_character_server(player_type *p_ptr, cptr name)
 {
 	int		i, j, x, y, x1, x2, y1, y2;
 	byte		a;
@@ -1090,7 +1085,6 @@ errr file_character_server(int Ind, cptr name)
 	char		today[10];
 	char		buf[1024];
 	cave_view_type status[80];
-	player_type *p_ptr = Players[Ind];
 	char		buffer[100][82];
 	time_t ct = time((time_t*)0);
 
@@ -1129,7 +1123,7 @@ errr file_character_server(int Ind, cptr name)
 	 */
 	strftime(today, 9, "%m/%d/%y", localtime(&ct));
 	file_putf(fff, "# %lu|%lu|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%d.%d.%d\n",
-		(long)total_points(Ind),
+		(long)total_points(p_ptr),
 		(long)p_ptr->au,
 		today,
 		p_ptr->name,
@@ -1164,7 +1158,7 @@ errr file_character_server(int Ind, cptr name)
 		        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Display the player info */
-	display_player_server(Ind, buffer);
+	display_player_server(p_ptr, buffer);
 
 	/* Dump the buffer */
 	for(i=0;i<26;i++)
@@ -1296,7 +1290,7 @@ errr file_character_server(int Ind, cptr name)
 				}
 			}
 			else
-				map_info(Ind, y, x, &a, &c, &a, &c, TRUE);
+				map_info(p_ptr, y, x, &a, &c, &a, &c, TRUE);
 			/* Hack for the player who is already dead and gone */
 			if( (x == p_ptr->px) && (y == p_ptr->py))
 			{
@@ -1588,7 +1582,7 @@ void copy_file_info(player_type *p_ptr, cptr name, int line, int color)
  * XXX XXX XXX Consider using a temporary file.
  *
  */
-static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
+static bool do_cmd_help_aux(player_type *p_ptr, cptr name, cptr what, int line, int color)
 {
 	int		i, k;
 
@@ -1929,12 +1923,12 @@ static bool do_cmd_help_aux(int Ind, cptr name, cptr what, int line, int color)
  *
  * Disabled --KLJ--
  */
-void do_cmd_help(int Ind, int line)
+void do_cmd_help(player_type *p_ptr, int line)
 {
 	cptr name = "help.hlp";
 
 	/* Peruse the main help file */
-	(void)do_cmd_help_aux(Ind, name, NULL, line, FALSE);
+	(void)do_cmd_help_aux(p_ptr, name, NULL, line, FALSE);
 }
 #endif
 
@@ -1945,16 +1939,16 @@ void do_cmd_help(int Ind, int line)
  * XXX XXX XXX Use this function for commands such as the
  * "examine object" command.
  */
-errr show_file(int Ind, cptr name, cptr what, int line, int color)
+errr show_file(player_type *p_ptr, cptr name, cptr what, int line, int color)
 {
 	/* Prepare */
-	clear_from(Players[Ind], 0);
+	clear_from(p_ptr, 0);
 
 	/* Peruse the requested file */
-	copy_file_info(Players[Ind], name, line, color);
+	copy_file_info(p_ptr, name, line, color);
 
 	/* Send header */
-	Send_special_other(Players[Ind], (char*)what);
+	Send_special_other(p_ptr, (char*)what);
 
 	/* Success */
 	return (0);
@@ -2180,7 +2174,7 @@ bool process_player_name(player_type *p_ptr, bool sf)
  *
  * The name should be sent to us from the client, so this is unnecessary --KLJ--
  */
-void get_name(int Ind)
+void get_name(player_type *p_ptr)
 {
 }
 
@@ -2189,10 +2183,8 @@ void get_name(int Ind)
 /*
  * Hack -- commit suicide
  */
-void do_cmd_suicide(int Ind)
+void do_cmd_suicide(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Mark as suicide */
 	p_ptr->alive = FALSE;
 
@@ -2206,7 +2198,7 @@ void do_cmd_suicide(int Ind)
 	/* Hack -- clear ghost */
 	p_ptr->ghost = FALSE;
 
-	if (p_ptr->total_winner) kingly(Ind);
+	if (p_ptr->total_winner) kingly(p_ptr);
 
 	/* Queue "death", to be handled in dungeon() tick, so it happens inside game turns */
 	p_ptr->death = TRUE;
@@ -2217,10 +2209,8 @@ void do_cmd_suicide(int Ind)
 /*
  * Save a character
  */
-void do_cmd_save_game(int Ind)
+void do_cmd_save_game(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Disturb the player */
 	disturb(p_ptr, 1, 0);
 
@@ -2269,10 +2259,8 @@ void do_cmd_save_game(int Ind)
 /*
  * Hack -- Calculates the total number of points earned		-JWT-
  */
-long total_points(int Ind)
+long total_points(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	
 	/* We award a 50% score bonus for bravery with no_ghost characters */
 	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
 	{
@@ -2292,7 +2280,7 @@ long total_points(int Ind)
  *   most of this information transferred to the client.  This isn't used all
  *   that often.  I'll worry about it later.  --KLJ--
  */
-static void show_info(int Ind)
+static void show_info(player_type *p_ptr)
 {
 #if 0
 	int			i, j, k;
@@ -2599,7 +2587,7 @@ static int highscore_add(high_score *score)
  *
  * Mega-Hack -- allow "fake" entry at the given position.
  */
-static void display_scores_aux(int Ind, int line, int note, high_score *score)
+static void display_scores_aux(player_type *p_ptr, int line, int note, high_score *score)
 {
 	int		i, j, from, to, attr, place;
 
@@ -2741,7 +2729,7 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "High Scores", line, 0);
+	show_file(p_ptr, file_name, "High Scores", line, 0);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -2756,9 +2744,8 @@ static void display_scores_aux(int Ind, int line, int note, high_score *score)
  *
  * Assumes "signals_ignore_tstp()" has been called.
  */
-static errr top_twenty(int Ind)
+static errr top_twenty(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int          j;
 
 	high_score   the_score;
@@ -2831,7 +2818,7 @@ static errr top_twenty(int Ind)
 	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Calculate and save the points */
-	sprintf(the_score.pts, "%9lu", (long)total_points(Ind));
+	sprintf(the_score.pts, "%9lu", (long)total_points(p_ptr));
 	the_score.pts[9] = '\0';
 
 	/* Save the current gold */
@@ -2903,9 +2890,8 @@ static errr top_twenty(int Ind)
 /*
  * Predict the players location, and display it.
  */
-static errr predict_score(int Ind, int line)
+static errr predict_score(player_type *p_ptr, int line)
 {
-	player_type *p_ptr = Players[Ind];
 	int          j;
 
 	high_score   the_score;
@@ -2924,7 +2910,7 @@ static errr predict_score(int Ind, int line)
 	        SERVER_VERSION_MAJOR, SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 
 	/* Calculate and save the points */
-	sprintf(the_score.pts, "%9lu", (long)total_points(Ind));
+	sprintf(the_score.pts, "%9lu", (long)total_points(p_ptr));
 
 	/* Save the current gold */
 	sprintf(the_score.gold, "%9lu", (long)p_ptr->au);
@@ -2961,13 +2947,13 @@ static errr predict_score(int Ind, int line)
 	/* Hack -- Display the top fifteen scores */
 	if (j < 10)
 	{
-		display_scores_aux(Ind, line, j, &the_score);
+		display_scores_aux(p_ptr, line, j, &the_score);
 	}
 
 	/* Display some "useful" scores */
 	else
 	{
-		display_scores_aux(Ind, line, -1, NULL);
+		display_scores_aux(p_ptr, line, -1, NULL);
 	}
 
 
@@ -2981,10 +2967,8 @@ static errr predict_score(int Ind, int line)
 /*
  * Change a player into a King!			-RAK-
  */
-void kingly(int Ind)
+void kingly(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Fake death */
 	//(void)strcpy(p_ptr->died_from_list, "Ripe Old Age");
 	(void)strcpy(p_ptr->died_from_list, "winner");
@@ -3006,7 +2990,7 @@ void kingly(int Ind)
 /*
  * Add a player to the high score list.
  */
-void add_high_score(int Ind)
+void add_high_score(player_type *p_ptr)
 {
 	char buf[1024];
 
@@ -3017,7 +3001,7 @@ void add_high_score(int Ind)
 	highscore_fd = file_open(buf, MODE_READWRITE, FTYPE_RAW);
 
 	/* Add them */
-	top_twenty(Ind);
+	top_twenty(p_ptr);
 
 	/* Shut the high score file */
 	(void)file_close(highscore_fd);
@@ -3070,7 +3054,7 @@ void close_game(void)
 		if (p_ptr->death)
 		{
 			/* Handle retirement */
-			if (p_ptr->total_winner) kingly(i);
+			if (p_ptr->total_winner) kingly(p_ptr);
 
 			/* Save memories */
 			if (!save_player(p_ptr)) msg_print(p_ptr, "death save failed!");
@@ -3080,17 +3064,17 @@ void close_game(void)
 			*/
 
 			/* Show more info */
-			show_info(i);
+			show_info(p_ptr);
 	
 			/* Handle score, show Top scores */
-			top_twenty(i);
+			top_twenty(p_ptr);
 		}
 
 		/* Still alive */
 		else
 		{
 			/* Save the game */
-			do_cmd_save_game(i);
+			do_cmd_save_game(p_ptr);
 
 			/* Prompt for scores XXX XXX XXX */
 			/*prt("Press Return (or Escape).", 0, 40);*/
@@ -3121,7 +3105,7 @@ void close_game(void)
  * This function is only called from "main.c" when the user asks
  * to see the "high scores".
  */
-void display_scores(int Ind, int line)
+void display_scores(player_type *p_ptr, int line)
 {
 	char buf[1024];
 
@@ -3145,7 +3129,7 @@ void display_scores(int Ind, int line)
 	/* Term_clear(); */
 
 	/* Display the scores */
-	predict_score(Ind, line);
+	predict_score(p_ptr, line);
 
 	/* Shut the high score file */
 	(void)file_close(highscore_fd);

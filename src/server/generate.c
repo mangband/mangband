@@ -4083,11 +4083,10 @@ void dealloc_dungeon_level(int Depth)
  */
  
  
-void generate_cave(int Ind, int Depth, int auto_scum)
+void generate_cave(player_type *p_ptr, int Depth, int auto_scum)
 {
 	int i, num;
 	int scum = auto_scum;
-	player_type *p_ptr = 0;
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
@@ -4096,9 +4095,8 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 	dungeon_align = TRUE;
 
 	/* get the player context, if any */
-	if(Ind)
+	if (p_ptr)
 	{
-		p_ptr = Players[Ind];
 		dungeon_align = option_p(p_ptr,DUNGEON_ALIGN);
 	}
 

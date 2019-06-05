@@ -2499,16 +2499,15 @@ cptr item_activation(object_type *o_ptr)
 
 /* Dump yet another object, currently wielded and matching
  * the wield_slot of reference object "o_ptr". */
-static void compare_object_info_screen(int Ind, object_type *o_ptr)
+static void compare_object_info_screen(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type *j_ptr;
 	
 	/* Can't wield this object */
-	if (wield_slot(Ind, o_ptr) < INVEN_WIELD) return;
+	if (wield_slot(p_ptr, o_ptr) < INVEN_WIELD) return;
 
 	/* Find object currently equipped in that slot */
-	j_ptr = &p_ptr->inventory[wield_slot(Ind, o_ptr)];
+	j_ptr = &p_ptr->inventory[wield_slot(p_ptr, o_ptr)];
 	if (j_ptr != o_ptr && (o_ptr->tval != TV_RING))
 	{
 		text_out("\n\n");
@@ -2528,10 +2527,8 @@ static void compare_object_info_screen(int Ind, object_type *o_ptr)
 /*
  * Describe a "fully identified" item
  */
-bool identify_fully_aux(int Ind, object_type *o_ptr)
+bool identify_fully_aux(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Describe it fully */
 	
 	/* Let the player scroll through this info */
@@ -2546,7 +2543,7 @@ bool identify_fully_aux(int Ind, object_type *o_ptr)
 	/* XXX Hack dump similar wielded object XXX */
 	if (option_p(p_ptr,EXPAND_INSPECT))
 	{
-		compare_object_info_screen(Ind, o_ptr);
+		compare_object_info_screen(p_ptr, o_ptr);
 	}
 
 	/* Restore height and width of current dungeon level */
@@ -2578,10 +2575,8 @@ char index_to_label(int i)
  * Convert a label into the index of an item in the "inven"
  * Return "-1" if the label does not indicate a real item
  */
-s16b label_to_inven(int Ind, int c)
+s16b label_to_inven(player_type *p_ptr, int c)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 	/* Convert */
@@ -2602,10 +2597,8 @@ s16b label_to_inven(int Ind, int c)
  * Convert a label into the index of a item in the "equip"
  * Return "-1" if the label does not indicate a real item
  */
-s16b label_to_equip(int Ind, int c)
+s16b label_to_equip(player_type *p_ptr, int c)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 	/* Convert */
@@ -2626,10 +2619,8 @@ s16b label_to_equip(int Ind, int c)
 /*
  * Determine which equipment slot (if any) an item likes
  */
-s16b wield_slot(int Ind, object_type *o_ptr)
+s16b wield_slot(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Slot for equipment */
 	switch (o_ptr->tval)
 	{
@@ -2707,13 +2698,9 @@ s16b wield_slot(int Ind, object_type *o_ptr)
 /*
  * Return a string mentioning how a given item is carried
  */
-cptr mention_use(int Ind, int i)
+cptr mention_use(player_type *p_ptr, int i)
 {
-	player_type *p_ptr;
-
 	cptr p;
-
-	if (Ind) p_ptr = Players[Ind];
 
 	/* Examine the location */
 	switch (i)
@@ -2734,7 +2721,7 @@ cptr mention_use(int Ind, int i)
 	}
 
 	/* Hack -- quit quietly */
-	if (!Ind) return (p);
+	if (!p_ptr) return (p);
 
 	/* Hack -- Heavy weapon */
 	if (i == INVEN_WIELD)
@@ -2767,14 +2754,12 @@ cptr mention_use(int Ind, int i)
  * Return a string describing how a given item is being worn.
  * Currently, only used for items in the equipment, not inventory.
  */
-cptr describe_use(int Ind, int i)
+cptr describe_use(player_type *p_ptr, int i)
 {
-	player_type *p_ptr = Players[Ind];
-
 	cptr p;
 
 	/* HACK: return a template */
-	if (!Ind)
+	if (!p_ptr)
 	switch (i)
 	{
 		case INVEN_WIELD: p = "attacking monsters with %s"; break;
@@ -2791,7 +2776,7 @@ cptr describe_use(int Ind, int i)
 		case INVEN_FEET:  p = "wearing %s on %s feet"; break;
 		default:          p = "carrying %s in %s pack"; break;
 	}
-	if (!Ind) return p;
+	if (!p_ptr) return p;
 	/* ENDHACK */
 
 	switch (i)
@@ -2881,10 +2866,8 @@ bool item_tester_okay(object_type *o_ptr)
  * inventory slot, along with the tval, weight, and position in the inventory
  * to the client --KLJ--
  */
-void display_inven(int Ind)
+void display_inven(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	register	int i, n, z = 0;
 
 	object_type *o_ptr;
@@ -2930,10 +2913,10 @@ void display_inven(int Ind)
 		wgt = o_ptr->weight * o_ptr->number;
 		
 		/* Get item flag and secondary_tester */
-		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
+		flag = object_tester_flag(p_ptr, o_ptr, &secondary_tester);
 		
 		/* Send the info to the client */
-		send_inven(Ind, tmp_val[0], attr, wgt, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
+		send_inven(p_ptr, tmp_val[0], attr, wgt, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
 }
 
@@ -2942,10 +2925,8 @@ void display_inven(int Ind)
 /*
  * Choice window "shadow" of the "show_equip()" function
  */
-void display_equip(int Ind)
+void display_equip(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	register	int i, n;
 	object_type *o_ptr;
 	byte	attr = TERM_WHITE;
@@ -2986,10 +2967,10 @@ void display_equip(int Ind)
 		wgt = o_ptr->weight * o_ptr->number;
 
 		/* Get the item flag */
-		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
+		flag = object_tester_flag(p_ptr, o_ptr, &secondary_tester);
 
 		/* Send the info off */
-		send_equip(Ind, tmp_val[0], attr, wgt, o_ptr->tval, flag, o_name);
+		send_equip(p_ptr, tmp_val[0], attr, wgt, o_ptr->tval, flag, o_name);
 		/* Note: if you ever need to send inven-like data for equip, you can do this: */
 		/* send_inven(Ind, tmp_val[0] + INVEN_WIELD, attr, wgt, 1, o_ptr->tval, flag, secondary_tester, o_name); */
 	}

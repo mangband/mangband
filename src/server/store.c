@@ -28,9 +28,9 @@ static cptr comment_1[MAX_COMMENT_1] =
 /*
  * Successful haggle.
  */
-static void say_comment_1(int Ind)
+static void say_comment_1(player_type *p_ptr)
 {
-	msg_print(Players[Ind], comment_1[rand_int(MAX_COMMENT_1)]);
+	msg_print(p_ptr, comment_1[rand_int(MAX_COMMENT_1)]);
 }
 
 
@@ -82,11 +82,11 @@ static const char *comment_great[] =
 /*
  * Display a message and play the associated sound.
  */
-static void message(int Ind, u16b message_type, cptr msg)
+static void message(player_type *p_ptr, u16b message_type, cptr msg)
 {
-	sound(Players[Ind], message_type);
+	sound(p_ptr, message_type);
 
-	msg_print_aux(Players[Ind], msg, message_type);
+	msg_print_aux(p_ptr, msg, message_type);
 }
 
 
@@ -95,23 +95,23 @@ static void message(int Ind, u16b message_type, cptr msg)
  *
  * We paid "price", it was worth "value", and we thought it was worth "guess"
  */
-static void purchase_analyze(int Ind, s32b price, s32b value, s32b guess)
+static void purchase_analyze(player_type *p_ptr, s32b price, s32b value, s32b guess)
 {
 	/* Item was worthless, but we bought it */
 	if ((value <= 0) && (price > value))
-		message(Ind, MSG_STORE1, ONE_OF(comment_worthless));
+		message(p_ptr, MSG_STORE1, ONE_OF(comment_worthless));
 
 	/* Item was cheaper than we thought, and we paid more than necessary */
 	else if ((value < guess) && (price > value))
-		message(Ind, MSG_STORE2, ONE_OF(comment_bad));
+		message(p_ptr, MSG_STORE2, ONE_OF(comment_bad));
 
 	/* Item was a good bargain, and we got away with it */
 	else if ((value > guess) && (value < (4 * guess)) && (price < value))
-		message(Ind, MSG_STORE3, ONE_OF(comment_good));
+		message(p_ptr, MSG_STORE3, ONE_OF(comment_good));
 
 	/* Item was a great bargain, and we got away with it */
 	else if ((value > guess) && (price < value))
-		message(Ind, MSG_STORE4, ONE_OF(comment_great));
+		message(p_ptr, MSG_STORE4, ONE_OF(comment_great));
 }
 
 
@@ -124,7 +124,7 @@ static int store_num = 7;
 /*
  * Determine the price of an item for direct sale
  */
-s32b player_price_item(int Ind, object_type *o_ptr)
+s32b player_price_item(player_type *p_ptr, object_type *o_ptr)
 {
 	s32b price = -1;
 	s32b askprice = -1;
@@ -139,7 +139,7 @@ s32b player_price_item(int Ind, object_type *o_ptr)
 		c += 8; if(*c == ' ') askprice = atoi(c);
 
 		/* Get the real value  */
-		price = object_value(Players[Ind], o_ptr);
+		price = object_value(p_ptr, o_ptr);
 
 		/* BM Prices */
 		price = price * 3;
@@ -180,9 +180,8 @@ s32b player_price_item(int Ind, object_type *o_ptr)
  * to adjust (by 200) to extract a usable multiplier.  Note that the
  * "greed" value is always something (?).
  */
-static s32b price_item(int Ind, object_type *o_ptr, int greed, bool flip)
+static s32b price_item(player_type *p_ptr, object_type *o_ptr, int greed, bool flip)
 {
-	player_type *p_ptr = Players[Ind];
 	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + store[p_ptr->store_num].owner];
 	int     factor;
 	int     adjust;
@@ -491,9 +490,8 @@ static bool store_check_num(int st, object_type *o_ptr)
  *
  * Note that a shop-keeper must refuse to buy "worthless" items
  */
-static bool store_will_buy(int Ind, object_type *o_ptr)
+static bool store_will_buy(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
         u32b            f1,f2,f3;
 
 	/* Switch on the store */
@@ -999,9 +997,8 @@ static bool noneedtobargain(s32b minprice)
  *
  * Actually re-sends a single store entry --KLJ--
  */
-static void display_entry(int Ind, int pos)
+static void display_entry(player_type *p_ptr, int pos)
 {
-	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + store[p_ptr->store_num].owner];
 
@@ -1030,18 +1027,17 @@ static void display_entry(int Ind, int pos)
 	wgt = o_ptr->weight;
 
 	/* Extract the "minimum" price */
-	x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+	x = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, FALSE);
 
 	/* Send the info */
-	send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(p_ptr, pos, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /* 
  * Send a player owned store entry
  */
-static void display_entry_live(int Ind, int pos, object_type *o_ptr)
+static void display_entry_live(player_type *p_ptr, int pos, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];
 	u32b		x;
@@ -1066,18 +1062,18 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
 	if (house_owned_by(p_ptr, p_ptr->player_store_num))
 	{
 		/* Viewing our own shop - the price we will get */
-		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+		x = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, FALSE);
 		x = (x * 90) / 100;
 	}
 	else
 	{
 		/* Viewing someone else's shop - the price we will pay */
-		x = price_item(Ind, o_ptr, ot_ptr->min_inflate, FALSE);
+		x = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, FALSE);
 	}
 
 
 	/* Send the info */
-	send_store(Ind, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(p_ptr, pos, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /*
@@ -1087,9 +1083,8 @@ static void display_entry_live(int Ind, int pos, object_type *o_ptr)
  * The inventory is "sent" not "displayed". -KLJ-
  * Returns the number of items listed
  */
-static int display_inventory(int Ind)
+static int display_inventory(player_type *p_ptr)
 {
-	player_type 	*p_ptr = Players[Ind];
 	store_type 		*st_ptr = &store[p_ptr->store_num];
 	int 			k,x,y,stocked;
 	object_type		tmp_obj;
@@ -1108,7 +1103,7 @@ static int display_inventory(int Ind)
 			if (k >= st_ptr->stock_num) break;
 	
 			/* Display that line */
-			display_entry(Ind, k);
+			display_entry(p_ptr, k);
 		}
 		return (st_ptr->stock_num);
 	}
@@ -1156,7 +1151,7 @@ static int display_inventory(int Ind)
 						//o_ptr->number = 1;
 						/* Remove any inscription */
 						o_ptr->note = 0;
-						display_entry_live(Ind, stocked, o_ptr);
+						display_entry_live(p_ptr, stocked, o_ptr);
 						stocked++;
 						/* Limited space available */
 						if (stocked >= STORE_INVEN_MAX)
@@ -1226,26 +1221,23 @@ int get_player_store_name(int num, char *name)
 /*
  * Displays players gold					-RAK-
  */
-static void store_prt_gold(int Ind)
+static void store_prt_gold(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
-	send_indication(Ind, IN_GOLD, p_ptr->au);
+	send_indication(p_ptr, IN_GOLD, p_ptr->au);
 }
 
 
 /*
  * Displays store (after clearing screen)		-RAK-
  */
-static void display_store(int Ind)
+static void display_store(player_type *p_ptr)
 {
 	int stockcount;
 	char store_name[MAX_CHARS];
-	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 
 	/* Send the inventory */
-	stockcount = display_inventory(Ind);
+	stockcount = display_inventory(p_ptr);
 
 	/* Send the store info for normal stores */
 	if (p_ptr->store_num != 8)
@@ -1253,7 +1245,7 @@ static void display_store(int Ind)
 		owner_type *sto_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];
 		cptr owner_name = &(b_name[sto_ptr->owner_name]);
 		sprintf(store_name, "%s (%s)", owner_name, p_name + p_info[sto_ptr->owner_race].name); 
-		send_store_info(Ind, (STORE_NPC), &store_names[p_ptr->store_num][0], 
+		send_store_info(p_ptr, (STORE_NPC), &store_names[p_ptr->store_num][0],
 			store_name, stockcount, sto_ptr->max_cost);
 	}
 	/* Player owned stores */
@@ -1261,7 +1253,7 @@ static void display_store(int Ind)
 	{
 		/* Get the store name if any */
 		get_player_store_name(p_ptr->player_store_num, &store_name[0]);
-		send_store_info(Ind, (STORE_PC), store_name, 
+		send_store_info(p_ptr, (STORE_PC), store_name,
 			houses[p_ptr->player_store_num].owned, stockcount, 0);		
 	}
 
@@ -1274,9 +1266,8 @@ static void display_store(int Ind)
  *
  * Return TRUE if purchase is NOT successful
  */
-static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
+static bool sell_haggle(player_type *p_ptr, object_type *o_ptr, s32b *price)
 {
-	player_type *p_ptr = Players[Ind];
 	store_type *st_ptr = &store[p_ptr->store_num];
 	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];	
 
@@ -1292,8 +1283,8 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
 
 
 	/* Obtain the starting offer and the final offer */
-	cur_ask = price_item(Ind, o_ptr, ot_ptr->max_inflate, TRUE);
-	final_ask = price_item(Ind, o_ptr, ot_ptr->min_inflate, TRUE);
+	cur_ask = price_item(p_ptr, o_ptr, ot_ptr->max_inflate, TRUE);
+	final_ask = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, TRUE);
 
 	/* Determine if haggling is necessary */
 	noneed = noneedtobargain(final_ask);
@@ -1342,9 +1333,8 @@ static bool sell_haggle(int Ind, object_type *o_ptr, s32b *price)
  * matching items removed from houses.
  * Hack -- when buying wands/staffs pval is transmitted
  */
-int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, byte pval)
+int sell_player_item(player_type *p_ptr, object_type *o_ptr_shop, int number, s32b gold, byte pval)
 {
-	player_type *p_ptr = Players[Ind];
 	int			x,y,sold,spacex,spacey,spacedepth;
 	object_type		*o_ptr;
 	cave_type		*c_ptr;
@@ -1509,10 +1499,9 @@ int sell_player_item(int Ind, object_type *o_ptr_shop, int number, s32b gold, by
 /*
  * Find an item in store, set it to o_ptr, return true on success
  */
-bool get_store_item(int Ind, int item, object_type *i_ptr)
+bool get_store_item(player_type *p_ptr, int item, object_type *i_ptr)
 {
 	bool 		found;
-	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
 	store_type *st_ptr = &store[st];
 	//object_type		tmp_obj;
@@ -1612,17 +1601,17 @@ void refresh_store(int st, int item, bool info, bool stock, bool single, cptr bu
 			if (info == TRUE)
 			{
 				/* Resend the basic store info */
-				display_store(i);
+				display_store(q_ptr);
 			}
 			if (stock == TRUE)
 			{
 				/* Redraw everything */
-				display_inventory(i);				
+				display_inventory(q_ptr);
 			}
 			if (single == TRUE)
 			{
 				/* Redraw the item */
-				display_entry(i, item);		
+				display_entry(q_ptr, item);
 			}
 			if (!STRZERO(buf))
 			{
@@ -1636,9 +1625,8 @@ void refresh_store(int st, int item, bool info, bool stock, bool single, cptr bu
 /*
  * Buy an item from a store				-RAK-
  */
-void store_purchase(int Ind, int item, int amt, cptr checksum)
+void store_purchase(player_type *p_ptr, int item, int amt, cptr checksum)
 {
-	player_type *p_ptr = Players[Ind];
 	int st = p_ptr->store_num;
 	store_type *st_ptr = &store[st];
 	owner_type *ot_ptr = &b_info[(p_ptr->store_num * z_info->b_max) + st_ptr->owner];	
@@ -1671,7 +1659,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	} 
 
 	/* Fill o_ptr with correct item and check guard inscription */
-	if (!get_store_item(Ind, item, o_ptr) || CGI(o_ptr, 'p')) 
+	if (!get_store_item(p_ptr, item, o_ptr) || CGI(o_ptr, 'p'))
 	{
 			/* Disguise our bug as a feature */ 
 			msg_print(p_ptr, "Sorry, this item is reserved.");
@@ -1686,7 +1674,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			if (house_inside(Players[i], p_ptr->player_store_num))
 			{
 				p_ptr->store_num = -1;
-				send_store_leave(Ind);
+				send_store_leave(p_ptr);
 				msg_print(p_ptr, "The shopkeeper is currently restocking.");
 				return;
 			}
@@ -1708,7 +1696,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 
 	/* Determine the "best" price (per item) */
 	object_known(&sell_obj);
-	best = price_item(Ind, &sell_obj, ot_ptr->min_inflate, FALSE);
+	best = price_item(p_ptr, &sell_obj, ot_ptr->min_inflate, FALSE);
 
 	/*
 	 * Hack -- If a rod or wand, allocate total maximum timeouts or charges
@@ -1720,7 +1708,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 	sell_obj.number = amt;
 
 	/* Hack -- require room in pack */
-	if (!inven_carry_okay(Ind, &sell_obj))
+	if (!inven_carry_okay(p_ptr, &sell_obj))
 	{
 		msg_print(p_ptr, "You cannot carry that many items.");
 		return;
@@ -1752,7 +1740,7 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			if (p_ptr->store_num == 8)
 			{
 				/* Remove the item from the players house */
-				sold = sell_player_item(Ind, o_ptr, amt, price,  sell_obj.pval);
+				sold = sell_player_item(p_ptr, o_ptr, amt, price,  sell_obj.pval);
 					
 				/* Did we really manage to sell this? */
 				if (sold)
@@ -1776,13 +1764,13 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 			}
 
 			/* Say "okay" */
-			say_comment_1(Ind);
+			say_comment_1(p_ptr);
 
 			/* Spend the money */
 			p_ptr->au -= price;
 
 			/* Update the display */
-			store_prt_gold(Ind);
+			store_prt_gold(p_ptr);
 
 			/* Hack -- buying an item makes you aware of it */
 			object_aware(p_ptr, &sell_obj);
@@ -1913,10 +1901,8 @@ void store_purchase(int Ind, int item, int amt, cptr checksum)
 /*
  * Sell an item to the store (or home)
  */
-void store_sell(int Ind, int item, int amt)
+void store_sell(player_type *p_ptr, int item, int amt)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			choice;
 
 	s32b		price;
@@ -1949,7 +1935,7 @@ void store_sell(int Ind, int item, int amt)
 	}	
 	
 	/* Check for validity of sale */
-	if (!store_will_buy(Ind, o_ptr))
+	if (!store_will_buy(p_ptr, o_ptr))
 	{
 		msg_print(p_ptr, "I don't want that!");
 		return;
@@ -1970,7 +1956,7 @@ void store_sell(int Ind, int item, int amt)
 #endif
 
 	/* Make sure he hasn't protected it*/
-	__trap(Ind, CGI(o_ptr,'s'));
+	__trap(p_ptr, CGI(o_ptr,'s'));
 
 	/* Get a copy of the object */
 	object_copy(&sold_obj, o_ptr);
@@ -2011,10 +1997,10 @@ void store_sell(int Ind, int item, int amt)
 		/*msg_print(NULL);*/
 
 		/* Haggle for it */
-		choice = sell_haggle(Ind, &sold_obj, &price);
+		choice = sell_haggle(p_ptr, &sold_obj, &price);
 
 		/* Tell the client about the price */
-		send_store_sell(Ind, price);
+		send_store_sell(p_ptr, price);
 
 		/* Save the info for the confirmation */
 		p_ptr->current_selling = item;
@@ -2028,9 +2014,8 @@ void store_sell(int Ind, int item, int amt)
 }
 
 
-void store_confirm(int Ind)
+void store_confirm(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int item, amt, price, value, guess;
 
 	object_type *o_ptr, sold_obj;
@@ -2056,7 +2041,7 @@ void store_confirm(int Ind)
 	/* Sold... */
 
 	/* Say "okay" */
-	say_comment_1(Ind);
+	say_comment_1(p_ptr);
 
 	/* Be happy */
 	/*decrease_insults();*/
@@ -2065,7 +2050,7 @@ void store_confirm(int Ind)
 	p_ptr->au += price;
 
 	/* Update the display */
-	store_prt_gold(Ind);
+	store_prt_gold(p_ptr);
 
 	/* Get the inventory item */
 	o_ptr = &p_ptr->inventory[item];
@@ -2123,7 +2108,7 @@ void store_confirm(int Ind)
 	msg_format(p_ptr, "You sold %s for %ld gold.", o_name, (long)price);
 
 	/* Analyze the prices (and comment verbally) */
-	purchase_analyze(Ind, price, value, guess);
+	purchase_analyze(p_ptr, price, value, guess);
 
 	/* If this was an artifact, remember the player doesn't want it */
 	if (artifact_p(o_ptr))
@@ -2132,9 +2117,9 @@ void store_confirm(int Ind)
 	}
 
 	/* Take the item from the player, describe the result */
-	inven_item_increase(Ind, item, -amt);
-	inven_item_describe(Ind, item);
-	inven_item_optimize(Ind, item);
+	inven_item_increase(p_ptr, item, -amt);
+	inven_item_describe(p_ptr, item);
+	inven_item_optimize(p_ptr, item);
 
 	/* Handle stuff */
 	handle_stuff(p_ptr);
@@ -2174,9 +2159,8 @@ static bool leave_store = FALSE;
  * [ -1 ] normal shop, index should be deducted from the cave grid.
  * [ -2 -> -9 ] normal shop, index is already known, flip sign and add +2 to get store index.
  */
-void do_cmd_store(int Ind, int pstore)
+void do_cmd_store(player_type *p_ptr, int pstore)
 {
-	player_type *p_ptr = Players[Ind];
 	int			which, i;
 
 	cave_type		*c_ptr;
@@ -2218,7 +2202,7 @@ void do_cmd_store(int Ind, int pstore)
 		/* Store is closed if someone is restocking (anti-exploit) */
 		for (i = 1; i <= NumPlayers; i++)
 		{
-			if (Ind != i && house_inside(Players[i], pstore))
+			if (p_ptr != Players[i] && house_inside(Players[i], pstore))
 			{
 				msg_print(p_ptr, "The doors are locked.");
 				return;
@@ -2229,7 +2213,7 @@ void do_cmd_store(int Ind, int pstore)
 	}
 	
 	/* Display the store */
-	display_store(Ind);
+	display_store(p_ptr);
 
 	/* Do not leave */
 	leave_store = FALSE;

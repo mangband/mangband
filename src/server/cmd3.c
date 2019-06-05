@@ -21,10 +21,8 @@
  * Note that taking off an item when "full" will cause that item
  * to fall to the ground.
  */
-static void inven_takeoff(int Ind, int item, int amt)
+static void inven_takeoff(player_type *p_ptr, int item, int amt)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			posn;
 
 	object_type		*o_ptr;
@@ -42,7 +40,7 @@ static void inven_takeoff(int Ind, int item, int amt)
 	if (amt <= 0) return;
 
 	/* Check guard inscription '!t' */
-	__trap(Ind, CGI(o_ptr, 't'));
+	__trap(p_ptr, CGI(o_ptr, 't'));
 
 	/* Verify */
 	if (amt > o_ptr->number) amt = o_ptr->number;
@@ -84,8 +82,8 @@ static void inven_takeoff(int Ind, int item, int amt)
 	sound(p_ptr, MSG_WIELD);
 
 	/* Delete (part of) it */
-	inven_item_increase(Ind, item, -amt);
-	inven_item_optimize(Ind, item);
+	inven_item_increase(p_ptr, item, -amt);
+	inven_item_optimize(p_ptr, item);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_EQUIP);
@@ -100,10 +98,8 @@ static void inven_takeoff(int Ind, int item, int amt)
 /*
  * Drops (some of) an item from inventory to "near" the current location
  */
-static void inven_drop(int Ind, int item, int amt)
+static void inven_drop(player_type *p_ptr, int item, int amt)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type		*o_ptr;
 	object_type		 tmp_obj;
 
@@ -126,7 +122,7 @@ static void inven_drop(int Ind, int item, int amt)
 	if (amt <= 0) return;
 
 	/* check for !d  or !* in inscriptions */
-	__trap(Ind, CGI(o_ptr, 'd'));
+	__trap(p_ptr, CGI(o_ptr, 'd'));
 
 	/* Never drop artifacts above their base depth */
 	if (!inven_drop_okay(p_ptr, o_ptr))
@@ -182,9 +178,9 @@ static void inven_drop(int Ind, int item, int amt)
 	drop_near(&tmp_obj, 0, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 
 	/* Decrease the item, optimize. */
-	inven_item_increase(Ind, item, -amt);
-	inven_item_describe(Ind, item);
-	inven_item_optimize(Ind, item);
+	inven_item_increase(p_ptr, item, -amt);
+	inven_item_describe(p_ptr, item);
+	inven_item_optimize(p_ptr, item);
 }
 
 
@@ -308,10 +304,10 @@ void do_cmd_equip(void)
 /*
  * The "wearable" tester
  */
-static bool item_tester_hook_wear(int Ind, object_type *o_ptr)
+static bool item_tester_hook_wear(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Check for a usable slot */
-	if (wield_slot(Ind, o_ptr) >= INVEN_WIELD) return (TRUE);
+	if (wield_slot(p_ptr, o_ptr) >= INVEN_WIELD) return (TRUE);
 
 	/* Assume not wearable */
 	return (FALSE);
@@ -321,10 +317,8 @@ static bool item_tester_hook_wear(int Ind, object_type *o_ptr)
 /*
  * Wield or wear a single item from the pack or floor
  */
-void do_cmd_wield(int Ind, int item)
+void do_cmd_wield(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int slot;
 	object_type tmp_obj;
 	object_type *o_ptr;
@@ -360,20 +354,20 @@ void do_cmd_wield(int Ind, int item)
 		}
 		o_ptr = &o_list[0 - item];
 		/* Hack -- wearing from floor is similar to pickup */
-		__trap(Ind, CGI(o_ptr, 'g'));
+		__trap(p_ptr, CGI(o_ptr, 'g'));
 	}
 
 	/* Check guard inscription '!w' */
-	__trap(Ind, CGI(o_ptr, 'w'));
+	__trap(p_ptr, CGI(o_ptr, 'w'));
 
-	if (!item_tester_hook_wear(Ind, o_ptr))
+	if (!item_tester_hook_wear(p_ptr, o_ptr))
 	{
 		msg_print(p_ptr, "You may not wield that item.");
 		return;
 	}
 
 	/* Check the slot */
-	slot = wield_slot(Ind, o_ptr);
+	slot = wield_slot(p_ptr, o_ptr);
 
 	/* Paranoia - can't really happen thanks to "item_tester_hook_wear" */
 	if (slot == -1) return;
@@ -386,7 +380,7 @@ void do_cmd_wield(int Ind, int item)
 
 		/* Message */
 		msg_format(p_ptr, "The %s you are %s appears to be cursed.",
-		           o_name, describe_use(Ind, slot));
+		           o_name, describe_use(p_ptr, slot));
 
 		/* Cancel the command */
 		return;
@@ -395,10 +389,10 @@ void do_cmd_wield(int Ind, int item)
 	x_ptr = &(p_ptr->inventory[slot]);
 
 	/* Check guard inscription '!t' */
-	__trap(Ind, CGI(x_ptr,'t'));
+	__trap(p_ptr, CGI(x_ptr,'t'));
 
 	/* Hack -- MAngband-specific: if it is an artifact and pack is full, base depth must match */
-	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(Ind, x_ptr))
+	if (item < 0 && !inven_drop_okay(p_ptr, x_ptr) && !inven_carry_okay(p_ptr, x_ptr))
 	{
 		object_desc(p_ptr, o_name, sizeof(o_name), x_ptr, FALSE, 0);
 		msg_format(p_ptr, "Your pack is full and you can't drop %s here.", o_name);
@@ -412,7 +406,7 @@ void do_cmd_wield(int Ind, int item)
 	{
 		/* Verify with the player */
 		if (other_query_flag &&
-		    !get_check(Ind, "Your pack may overflow.  Continue? ")) return;
+		    !get_check(p_ptr, "Your pack may overflow.  Continue? ")) return;
 	}
 #endif
 
@@ -428,7 +422,7 @@ void do_cmd_wield(int Ind, int item)
 		{
 			msg_print(p_ptr, "You are blasted by the Crown's power!");
 			/* This should pierce invulnerability */
-			take_hit(Ind, 10000, "the Massive Iron Crown of Morgoth");
+			take_hit(p_ptr, 10000, "the Massive Iron Crown of Morgoth");
 			return;
 		}
 		/* Attempting to wield Grond isn't so bad. */
@@ -449,8 +443,8 @@ void do_cmd_wield(int Ind, int item)
 	/* Decrease the item (from the pack) */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Decrease the item (from the floor) */
@@ -458,14 +452,14 @@ void do_cmd_wield(int Ind, int item)
 	{
 		floor_item_increase(0 - item, -1);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 
 	/* Access the wield slot */
 	o_ptr = &(p_ptr->inventory[slot]);
 
 	/* Take off the "entire" item if one is there */
-	if (p_ptr->inventory[slot].k_idx) inven_takeoff(Ind, slot, 255);
+	if (p_ptr->inventory[slot].k_idx) inven_takeoff(p_ptr, slot, 255);
 
 	/*** Could make procedure "inven_wield()" ***/
 
@@ -538,10 +532,8 @@ void do_cmd_wield(int Ind, int item)
 /*
  * Take off an item
  */
-void do_cmd_takeoff(int Ind, int item)
+void do_cmd_takeoff(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
@@ -572,7 +564,7 @@ void do_cmd_takeoff(int Ind, int item)
 	}
 
 	/* Check guard inscription '!t' */
-	__trap(Ind, CGI(o_ptr, 't'));
+	__trap(p_ptr, CGI(o_ptr, 't'));
 
 	/* Item is cursed */
 	if (cursed_p(o_ptr))
@@ -589,21 +581,19 @@ void do_cmd_takeoff(int Ind, int item)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth) / 2;
 
 	/* Take off the item */
-	inven_takeoff(Ind, item, 255);
+	inven_takeoff(p_ptr, item, 255);
 }
 
 
 /*
  * Drop an item
  */
-void do_cmd_drop(int Ind, int item, int quantity)
+void do_cmd_drop(player_type *p_ptr, int item, int quantity)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 
 	/* Check preventive inscription '^d' */
-	__trap(Ind, CPI(p_ptr, 'd'));
+	__trap(p_ptr, CPI(p_ptr, 'd'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -640,7 +630,7 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	*/
 
 	/* Check guard inscription '!d' */
-	__trap(Ind, CGI(o_ptr, 'd'));
+	__trap(p_ptr, CGI(o_ptr, 'd'));
 
 	/* Cannot remove cursed items */
 	if ((item >= INVEN_WIELD) && cursed_p(o_ptr))
@@ -660,7 +650,7 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	{
 		/* XXX XXX Verify with the player */
 		if (other_query_flag &&
-		    !get_check(Ind, "The item may disappear.  Continue? ")) return;
+		    !get_check(p_ptr, "The item may disappear.  Continue? ")) return;
 	}
 #endif
 
@@ -669,17 +659,15 @@ void do_cmd_drop(int Ind, int item, int quantity)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth) / 2;
 
 	/* Drop (some of) the item */
-	inven_drop(Ind, item, quantity);
+	inven_drop(p_ptr, item, quantity);
 }
 
 
 /*
  * Drop some gold
  */
-void do_cmd_drop_gold(int Ind, s32b amt)
+void do_cmd_drop_gold(player_type *p_ptr, s32b amt)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type tmp_obj;
 
 	/* Restrict ghosts */
@@ -742,10 +730,8 @@ void do_cmd_drop_gold(int Ind, s32b amt)
 /*
  * Destroy an item
  */
-void do_cmd_destroy(int Ind, int item, int quantity)
+void do_cmd_destroy(player_type *p_ptr, int item, int quantity)
 {
-	player_type *p_ptr = Players[Ind];
-
 //	int			old_number;
 
 	bool		force = FALSE;
@@ -758,7 +744,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	char		o_name[80];
 
 	/* Check preventive inscription '^k' */
-	__trap(Ind, CPI(p_ptr, 'k'));
+	__trap(p_ptr, CPI(p_ptr, 'k'));
 	
 	/* Restrict ghosts */
 	if (p_ptr->ghost || p_ptr->fruit_bat)
@@ -815,7 +801,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	*/
 
 	/* Check guard inscription '!k' */
-	__trap(Ind, CGI(o_ptr, 'k'));
+	__trap(p_ptr, CGI(o_ptr, 'k'));
 
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
@@ -871,9 +857,9 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 	/* Eliminate the item (from the pack) */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -quantity);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -quantity);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Eliminate the item (from the floor) */
@@ -882,7 +868,7 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 		floor_item_increase(0 - item, -quantity);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 }
 
@@ -890,10 +876,8 @@ void do_cmd_destroy(int Ind, int item, int quantity)
 /*
  * Observe an item which has been *identify*-ed
  */
-void do_cmd_observe(int Ind, int item)
+void do_cmd_observe(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type		tmp_obj;
 	object_type		*o_ptr;
 
@@ -906,7 +890,7 @@ void do_cmd_observe(int Ind, int item)
 		o_ptr = &tmp_obj;
 
 		/* Fill o_ptr with correct item */
-		if (!get_store_item(Ind, item, o_ptr)) 
+		if (!get_store_item(p_ptr, item, o_ptr))
 		{
 			/* Disguise our bug as a feature */ 
 			msg_print(p_ptr, "Sorry, this item is exclusive.");
@@ -948,7 +932,7 @@ void do_cmd_observe(int Ind, int item)
 	o_name[0] = toupper(o_name[0]);
 
 	/* Describe it fully */
-	identify_fully_aux(Ind, o_ptr);
+	identify_fully_aux(p_ptr, o_ptr);
 
 	/* Notify player */
 	send_prepared_popup(p_ptr, o_name);
@@ -960,10 +944,8 @@ void do_cmd_observe(int Ind, int item)
  * Remove the inscription from an object
  * XXX Mention item (when done)?
  */
-void do_cmd_uninscribe(int Ind, int item)
+void do_cmd_uninscribe(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
@@ -992,7 +974,7 @@ void do_cmd_uninscribe(int Ind, int item)
 	}
 
 	/* Check guard inscription '!}' */
-	__trap(Ind, protected_p(p_ptr, o_ptr, '}'));
+	__trap(p_ptr, protected_p(p_ptr, o_ptr, '}'));
 
 	/* Nothing to remove */
 	if (!o_ptr->note)
@@ -1008,7 +990,7 @@ void do_cmd_uninscribe(int Ind, int item)
 	o_ptr->note = 0;
 
 	/* Update global "preventive inscriptions" */
-	update_prevent_inscriptions(Ind);
+	update_prevent_inscriptions(p_ptr);
 
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
@@ -1021,9 +1003,8 @@ void do_cmd_uninscribe(int Ind, int item)
 /*
  * Inscribe an object with a comment
  */
-void do_cmd_inscribe(int Ind, int item, cptr inscription)
+void do_cmd_inscribe(player_type *p_ptr, int item, cptr inscription)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type		*o_ptr;
 	char		o_name[80];
 	s32b		price;
@@ -1055,7 +1036,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	}
 
 	/* Check guard inscription '!{' */
-	__trap(Ind, protected_p(p_ptr, o_ptr, '{'));
+	__trap(p_ptr, protected_p(p_ptr, o_ptr, '{'));
 
 	/* Handle empty inscription as removal */
 	if (STRZERO(inscription))
@@ -1065,7 +1046,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 			msg_print(p_ptr, "You've entered no inscription.");
 			return;
 		}
-		do_cmd_uninscribe(Ind, item);
+		do_cmd_uninscribe(p_ptr, item);
 		return;
 	}
 
@@ -1102,7 +1083,7 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 	o_ptr->note = quark_add(inscription);
 
 	/* Update global "preventive inscriptions" */
-	update_prevent_inscriptions(Ind);
+	update_prevent_inscriptions(p_ptr);
 
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
@@ -1115,16 +1096,16 @@ void do_cmd_inscribe(int Ind, int item, cptr inscription)
 /*
  * Attempt to steal from another player
  */
-void do_cmd_steal(int Ind, int dir)
+void do_cmd_steal(player_type *p_ptr, int dir)
 {
-	player_type *p_ptr = Players[Ind], *q_ptr;
+	player_type *q_ptr;
 	cave_type *c_ptr;
 
 	int success, notice;
 	bool fail = TRUE;
 
 	/* Check preventive inscription '^J' */
-	__trap(Ind, CPI(p_ptr, 'J'));
+	__trap(p_ptr, CPI(p_ptr, 'J'));
 
 	/* Ghosts cannot steal */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -1252,8 +1233,8 @@ void do_cmd_steal(int Ind, int dir)
 				inven_carry(p_ptr, &forge);
 	
 				/* Take one from target */
-				inven_item_increase(0 - c_ptr->m_idx, item, -1);
-				inven_item_optimize(0 - c_ptr->m_idx, item);
+				inven_item_increase(q_ptr, item, -1);
+				inven_item_optimize(q_ptr, item);
 	
 				/* Tell thief what he got */
 				object_desc(p_ptr, o_name, sizeof(o_name), &forge, TRUE, 3);
@@ -1327,10 +1308,8 @@ static bool item_tester_refill_lantern(object_type *o_ptr)
 /*
  * Refill the players lamp (from the pack or floor)
  */
-static void do_cmd_refill_lamp(int Ind, int item)
+static void do_cmd_refill_lamp(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 	object_type *j_ptr;
 
@@ -1384,9 +1363,9 @@ static void do_cmd_refill_lamp(int Ind, int item)
 	/* Decrease the item (from the pack) */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Decrease the item (from the floor) */
@@ -1395,7 +1374,7 @@ static void do_cmd_refill_lamp(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */
@@ -1424,10 +1403,8 @@ static bool item_tester_refill_torch(object_type *o_ptr)
 /*
  * Refuel the players torch (from the pack or floor)
  */
-static void do_cmd_refill_torch(int Ind, int item)
+static void do_cmd_refill_torch(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 	object_type *j_ptr;
 
@@ -1487,9 +1464,9 @@ static void do_cmd_refill_torch(int Ind, int item)
 	/* Decrease the item (from the pack) */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Decrease the item (from the floor) */
@@ -1498,7 +1475,7 @@ static void do_cmd_refill_torch(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 
 	/* Recalculate torch */
@@ -1514,10 +1491,8 @@ static void do_cmd_refill_torch(int Ind, int item)
 /*
  * Refill the players lamp, or restock his torches
  */
-void do_cmd_refill(int Ind, int item)
+void do_cmd_refill(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr;
 
 	/* Restrict ghosts */
@@ -1531,7 +1506,7 @@ void do_cmd_refill(int Ind, int item)
 	o_ptr = &(p_ptr->inventory[INVEN_LITE]);
 
 	/* Check guard inscription '!F' */
-	__trap(Ind, CGI(o_ptr, 'F'));
+	__trap(p_ptr, CGI(o_ptr, 'F'));
 
 	/* It is nothing */
 	if (o_ptr->tval != TV_LITE)
@@ -1542,13 +1517,13 @@ void do_cmd_refill(int Ind, int item)
 	/* It's a lamp */
 	else if (o_ptr->sval == SV_LITE_LANTERN)
 	{
-		do_cmd_refill_lamp(Ind, item);
+		do_cmd_refill_lamp(p_ptr, item);
 	}
 
 	/* It's a torch */
 	else if (o_ptr->sval == SV_LITE_TORCH)
 	{
-		do_cmd_refill_torch(Ind, item);
+		do_cmd_refill_torch(p_ptr, item);
 	}
 
 	/* No torch to refill */
@@ -1566,10 +1541,10 @@ void do_cmd_refill(int Ind, int item)
 /*
  * Target command
  */
-void do_cmd_target(int Ind, char dir)
+void do_cmd_target(player_type *p_ptr, char dir)
 {
 	/* Set the target */
-	if (target_set_interactive(Players[Ind], TARGET_KILL, dir))
+	if (target_set_interactive(p_ptr, TARGET_KILL, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1579,10 +1554,10 @@ void do_cmd_target(int Ind, char dir)
 	}
 }
 
-void do_cmd_target_friendly(int Ind, char dir)
+void do_cmd_target_friendly(player_type *p_ptr, char dir)
 {
 	/* Set the target */
-	if (target_set_interactive(Players[Ind], TARGET_FRND, dir))
+	if (target_set_interactive(p_ptr, TARGET_FRND, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1592,10 +1567,10 @@ void do_cmd_target_friendly(int Ind, char dir)
 	}
 }
 
-void do_cmd_look(int Ind, char dir)
+void do_cmd_look(player_type *p_ptr, char dir)
 {
 	/* Look around */
-	if (target_set_interactive(Players[Ind], TARGET_LOOK, dir))
+	if (target_set_interactive(p_ptr, TARGET_LOOK, dir))
 	{
 		/*msg_print(p_ptr, "Target Selected.");*/
 	}
@@ -1604,8 +1579,7 @@ void do_cmd_look(int Ind, char dir)
 /* Give player detailed information about a range of monsters,
  * specified by char
  */
-void do_cmd_monster_desc_all(int Ind, char c) {
-	player_type *p_ptr = Players[Ind];
+void do_cmd_monster_desc_all(player_type *p_ptr, char c) {
 	int i;
 	bool found = FALSE;
 
@@ -1624,7 +1598,7 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 			text_out("\n  ");
 
 			/* Dump info onto player */
-			describe_monster(Ind, i, FALSE);
+			describe_monster(p_ptr, i, FALSE);
 
 			/* Track first race */
 			if (!found)
@@ -1647,18 +1621,16 @@ void do_cmd_monster_desc_all(int Ind, char c) {
 }
 
 /* Give player detailed information about a specified monster */
-void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
+void do_cmd_monster_desc_aux(player_type *p_ptr, int r_idx, bool quiet)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Prepare player structure for text */
 	text_out_init(p_ptr);
 
 	/* Dump info into player */
 	if (r_idx < 0)
-		describe_player(Ind, 0 - r_idx);
+		describe_player(p_ptr, Players[0 - r_idx]);
 	else
-		describe_monster(Ind, r_idx, FALSE);
+		describe_monster(p_ptr, r_idx, FALSE);
 
 	/* Restore height and width of current dungeon level */
 	text_out_done();
@@ -1675,8 +1647,8 @@ void do_cmd_monster_desc_aux(int Ind, int r_idx, bool quiet)
 
 	return;
 }
-void do_cmd_monster_desc(int Ind, int m_idx) {
-	do_cmd_monster_desc_aux(Ind, m_list[m_idx].r_idx, FALSE);
+void do_cmd_monster_desc(player_type *p_ptr, int m_idx) {
+	do_cmd_monster_desc_aux(p_ptr, m_list[m_idx].r_idx, FALSE);
 }
 
 
@@ -1684,10 +1656,8 @@ void do_cmd_monster_desc(int Ind, int m_idx) {
 /*
  * Allow the player to examine other sectors on the map
  */
-void do_cmd_locate(int Ind, int dir)
+void do_cmd_locate(player_type *p_ptr, int dir)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		y1, x1, y2, x2;
 
 	char	tmp_val[80];
@@ -2054,7 +2024,7 @@ void ang_sort_swap_u16b(void* player_context, vptr u, vptr v, int a, int b)
  *
  * Note that the player ghosts are ignored. XXX XXX XXX
  */
-void do_cmd_query_symbol(int Ind, char sym)
+void do_cmd_query_symbol(player_type *p_ptr, char sym)
 {
 	int		i;
 	char	buf[128];
@@ -2081,23 +2051,21 @@ void do_cmd_query_symbol(int Ind, char sym)
 	}
 
 	/* Display the result */
-	msg_print(Players[Ind], buf);
+	msg_print(p_ptr, buf);
 	
 	/* MEGA-HACK!! Add monster recall info BASED on letter! This ommits creeping coins and mimics :( */
 	if ( (sym >= 'a' && sym <= 'z') || (sym >= 'A' && sym <= 'Z')	)
-		do_cmd_monster_desc_all(Ind, sym);
+		do_cmd_monster_desc_all(p_ptr, sym);
 }
 
 /*
  * Display monster list as a pop-up on mainscreen.
  * See also "fix_monlist()" for windowed version.
  */
-void do_cmd_monlist(int Ind)
+void do_cmd_monlist(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Prepare 'visible monsters' list */
-	display_monlist(Ind);
+	display_monlist(p_ptr);
 
 	/* Send it */
 	send_prepared_popup(p_ptr, "Visible Monsters (Snapshot)");
@@ -2109,10 +2077,8 @@ void do_cmd_monlist(int Ind)
  * Display item list as a pop-up on mainscreen.
  * See also "fix_itemlist()" for windowed version.
  */
-void do_cmd_itemlist(int Ind)//player_type *p_ptr)
+void do_cmd_itemlist(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Prepare 'visible items' list */
 	display_itemlist(p_ptr);
 

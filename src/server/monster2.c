@@ -75,7 +75,7 @@ void delete_monster_idx(int i)
 	/* Remove him from everybody's view */
 	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
 	{
-		forget_monster(Ind, i, TRUE);
+		forget_monster(Players[Ind], i, TRUE);
 	}
 
 
@@ -721,9 +721,8 @@ s16b get_mon_num(int level)
 /*
  * Display visible monsters in a window
  */
-void display_monlist(int Ind)
+void display_monlist(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int idx, n;
 	int line = 0;
 
@@ -826,7 +825,7 @@ void display_monlist(int Ind)
 				c_text + q_ptr->cp_ptr->title[(q_ptr->lev-1)/5]);
 		text_out_c(TERM_WHITE, buf);
 
-		n = player_pict(Ind, idx);
+		n = player_pict(p_ptr, q_ptr);
 		text_out_c(TERM_WHITE, " ('");
 		text_out_c(PICT_A(n), format("%c", PICT_C(n)));
 		text_out_c(TERM_WHITE, "')");
@@ -894,10 +893,8 @@ void display_monlist(int Ind)
  *   0x22 --> Possessive, genderized if visable ("his") or "its"
  *   0x23 --> Reflexive, genderized if visable ("himself") or "itself"
  */
-void monster_desc(int Ind, char *desc, int m_idx, int mode)
+void monster_desc(player_type *p_ptr, char *desc, int m_idx, int mode)
 {
-	player_type *p_ptr;
-
 	cptr		res;
 
 	monster_type *m_ptr = &m_list[m_idx];
@@ -909,10 +906,8 @@ void monster_desc(int Ind, char *desc, int m_idx, int mode)
 
 
 	/* Check for bad player number */
-	if (Ind > 0)
+	if (p_ptr)
 	{
-		p_ptr = Players[Ind];
-	
 		/* Can we "see" it (exists + forced, or visible + not unforced) */
 		seen = (m_ptr && ((mode & 0x80) || (!(mode & 0x40) && p_ptr->mon_vis[m_idx])));
 	}
@@ -1036,9 +1031,8 @@ void monster_desc(int Ind, char *desc, int m_idx, int mode)
 /*
  * Learn about a monster (by "probing" it)
  */
-void lore_do_probe(int Ind, int m_idx)
+void lore_do_probe(player_type *p_ptr, int m_idx)
 {
-	player_type  *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1099,7 +1093,7 @@ bool monster_can_carry(int m_idx)
 /*
  * Make a monster carry an object
  */
-s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
+s16b monster_carry(player_type *p_ptr, int m_idx, object_type *j_ptr)
 {
 	s16b o_idx;
 
@@ -1179,9 +1173,8 @@ s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
  * gold and items are dropped, and remembers that information to be
  * described later by the monster recall code.
  */
-void lore_treasure(int Ind, int m_idx, int num_item, int num_gold)
+void lore_treasure(player_type *p_ptr, int m_idx, int num_item, int num_gold)
 {
-	player_type	 *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1212,10 +1205,8 @@ bool is_detected(u32b flag, u32b esp)
 
 
 /* Clear all visibility and tracking flags. */
-void forget_monster(int Ind, int m_idx, bool deleted)
+void forget_monster(player_type *p_ptr, int m_idx, bool deleted)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Was visible? Update monster list then */
 	if (p_ptr->mon_vis[m_idx]) p_ptr->window |= (PW_MONLIST);
 
@@ -1337,7 +1328,7 @@ void update_mon(int m_idx, bool dist)
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
 		{
-			forget_monster(Ind, m_idx, FALSE);
+			forget_monster(p_ptr, m_idx, FALSE);
 			continue;
 		}
 
@@ -1448,7 +1439,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_vis[m_idx] = TRUE;
 
 				/* Draw the monster */
-				lite_spot(Ind, fy, fx);
+				lite_spot(p_ptr, fy, fx);
 
 				/* Update health bar as needed */
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
@@ -1486,7 +1477,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_vis[m_idx] = FALSE;
 
 				/* Erase the monster */
-				lite_spot(Ind, fy, fx);
+				lite_spot(p_ptr, fy, fx);
 
 				/* Update health bar as needed */
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
@@ -1563,9 +1554,10 @@ void update_monsters(bool dist)
  * This function updates the visiblity flags for everyone who may see
  * this player.
  */
-void update_player(int Ind)
+void update_player(player_type *q_ptr)
 {
-	player_type *p_ptr, *q_ptr = Players[Ind];
+	int Ind = Get_Ind[q_ptr->conn];
+	player_type *p_ptr;
 	
 	int i;
 
@@ -1598,7 +1590,7 @@ void update_player(int Ind)
 		nearby = FALSE;
 
 		/* Player can always see himself */
-		if (Ind == i) continue;
+		if (q_ptr == p_ptr) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) flag = FALSE;
@@ -1672,7 +1664,7 @@ void update_player(int Ind)
 				p_ptr->play_vis[Ind] = TRUE;
 
 				/* Draw the player */
-				lite_spot(i, py, px);
+				lite_spot(p_ptr, py, px);
 
 				/* Disturb on appearance */
 				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
@@ -1696,7 +1688,7 @@ void update_player(int Ind)
 				p_ptr->play_vis[Ind] = FALSE;
 
 				/* Erase the player */
-				lite_spot(i, py, px);
+				lite_spot(p_ptr, py, px);
 
 				/* Disturb on disappearance */
 				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
@@ -1761,7 +1753,7 @@ void update_players(void)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Update the player */
-		update_player(i);
+		update_player(Players[i]);
 	}
 }
 
@@ -2694,9 +2686,8 @@ bool multiply_monster(int m_idx)
  *
  * Technically should attempt to treat "Beholder"'s as jelly's
  */
-void message_pain(int Ind, int m_idx, int dam)
+void message_pain(player_type *p_ptr, int m_idx, int dam)
 {
-	player_type *p_ptr = Players[Ind];
 	long			oldhp, newhp, tmp;
 	int				percentage;
 
@@ -2707,7 +2698,7 @@ void message_pain(int Ind, int m_idx, int dam)
 
 
 	/* Get the monster name */
-	monster_desc(Ind, m_name, m_idx, 0);
+	monster_desc(p_ptr, m_name, m_idx, 0);
 
 	/* Notice non-damage */
 	if (dam == 0)

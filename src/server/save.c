@@ -176,7 +176,7 @@ static void wr_monster(monster_type *m_ptr)
 	char mon_name[80];
 
 	start_section("monster");
-	monster_desc(0,mon_name,m_ptr->r_idx,0x88);
+	monster_desc(NULL,mon_name,m_ptr->r_idx,0x88);
 	write_str("name",mon_name);
 	write_int("r_idx",m_ptr->r_idx);
 	write_int("fy",m_ptr->fy);

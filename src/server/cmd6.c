@@ -62,17 +62,15 @@
 /*
  * Eat some food (from the pack or floor)
  */
-void do_cmd_eat_food(int Ind, int item)
+void do_cmd_eat_food(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			lev;
 	bool ident;
 
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^E' */
-	__trap(Ind, CPI(p_ptr, 'E'));
+	__trap(p_ptr, CPI(p_ptr, 'E'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -94,7 +92,7 @@ void do_cmd_eat_food(int Ind, int item)
 	}
 
 	/* Check guard inscription '!E' */
-	__trap(Ind, CGI(o_ptr, 'E'));
+	__trap(p_ptr, CGI(o_ptr, 'E'));
 
 	/* Sound */
 	sound(p_ptr, MSG_EAT);
@@ -109,19 +107,19 @@ void do_cmd_eat_food(int Ind, int item)
 	lev = k_info[o_ptr->k_idx].level;
 
 	/* Eat food */
-	use_object(Ind, o_ptr, item, &ident);
+	use_object(p_ptr, o_ptr, item, &ident);
 
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* We have tried it */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* The player is now aware of the object */
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Log ownership change (of any) */
@@ -133,9 +131,9 @@ void do_cmd_eat_food(int Ind, int item)
 	/* Destroy a food in the pack */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Destroy a food on the floor */
@@ -144,7 +142,7 @@ void do_cmd_eat_food(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 }
 
@@ -154,17 +152,15 @@ void do_cmd_eat_food(int Ind, int item)
 /*
  * Quaff a potion (from the pack or the floor)
  */
-void do_cmd_quaff_potion(int Ind, int item)
+void do_cmd_quaff_potion(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		lev;
 	bool ident;
 
 	object_type	*o_ptr;
 
 	/* Check preventive inscription '^q' */
-	__trap(Ind, CPI(p_ptr, 'q'));
+	__trap(p_ptr, CPI(p_ptr, 'q'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -194,7 +190,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 	}
 
 	/* Check guard inscription '!q' */
-	__trap(Ind, CGI(o_ptr, 'q'));
+	__trap(p_ptr, CGI(o_ptr, 'q'));
 
 	if (o_ptr->tval != TV_POTION)
 	{
@@ -215,19 +211,19 @@ void do_cmd_quaff_potion(int Ind, int item)
 	lev = k_info[o_ptr->k_idx].level;
 
 	/* Quaff potion */
-	use_object(Ind, o_ptr, item, &ident);
+	use_object(p_ptr, o_ptr, item, &ident);
 
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* The item has been tried */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* An identification was made */
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Log ownership change (of any) */
@@ -239,9 +235,9 @@ void do_cmd_quaff_potion(int Ind, int item)
 	/* Destroy a potion in the pack */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 
 	/* Destroy a potion on the floor */
@@ -250,7 +246,7 @@ void do_cmd_quaff_potion(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 }
 
@@ -262,14 +258,13 @@ void do_cmd_quaff_potion(int Ind, int item)
  * include scrolls with no effects but recharge or identify, which are
  * cancelled before use.  XXX Reading them still takes a turn, though.
  */
-void do_cmd_read_scroll(int Ind, int item)
+void do_cmd_read_scroll(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type	*o_ptr;
 	bool ident;
 
 	/* Check preventive inscription '^r' */
-	__trap(Ind, CPI(p_ptr, 'r'));
+	__trap(p_ptr, CPI(p_ptr, 'r'));
 
 	/* Check some conditions */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -282,7 +277,7 @@ void do_cmd_read_scroll(int Ind, int item)
 		msg_print(p_ptr, "You can't see anything.");
 		return;
 	}
-	if (no_lite(Ind))
+	if (no_lite(p_ptr))
 	{
 		msg_print(p_ptr, "You have no light to read by.");
 		return;
@@ -315,7 +310,7 @@ void do_cmd_read_scroll(int Ind, int item)
 	}
 
 	/* Check guard inscription '!r' */
-	__trap(Ind, CGI(o_ptr, 'r'));
+	__trap(p_ptr, CGI(o_ptr, 'r'));
 
 	if (o_ptr->tval != TV_SCROLL)
 	{
@@ -330,11 +325,10 @@ void do_cmd_read_scroll(int Ind, int item)
 	ident = FALSE;
 
 	/* Read the scroll */
-	use_object(Ind, o_ptr, item, &ident);
+	use_object(p_ptr, o_ptr, item, &ident);
 }
-void do_cmd_read_scroll_end(int Ind, int item, bool ident)
+void do_cmd_read_scroll_end(player_type *p_ptr, int item, bool ident)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type		*o_ptr;
 	int lev;
 	
@@ -353,7 +347,7 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* The item was tried */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* Object level */
 	lev = k_info[o_ptr->k_idx].level;
@@ -362,7 +356,7 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Log ownership change (of any) */
@@ -374,9 +368,9 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 	/* Destroy a scroll in the pack */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 	/* Destroy a scroll on the floor */
 	else
@@ -384,15 +378,15 @@ void do_cmd_read_scroll_end(int Ind, int item, bool ident)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	} 
 
 }
-void do_cmd_read_scroll_on(int Ind, int item, int item2)
+void do_cmd_read_scroll_on(player_type *p_ptr, int item, int item2)
 {
-	Players[Ind]->command_arg = item2;
+	p_ptr->command_arg = item2;
 
-	do_cmd_read_scroll(Ind, item);
+	do_cmd_read_scroll(p_ptr, item);
 }
 
 
@@ -406,23 +400,21 @@ void do_cmd_read_scroll_on(int Ind, int item, int item2)
  *
  * Hack -- staffs of identify can be "cancelled".
  */
-void do_cmd_use_staff_pre(int Ind, int item, int item2)
+void do_cmd_use_staff_pre(player_type *p_ptr, int item, int item2)
 {
-	Players[Ind]->command_arg = item2;
+	p_ptr->command_arg = item2;
 
-	do_cmd_use_staff(Ind, item);
+	do_cmd_use_staff(p_ptr, item);
 }
-void do_cmd_use_staff(int Ind, int item)
+void do_cmd_use_staff(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			chance, lev;
 	bool ident;
 
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^u' */
-	__trap(Ind, CPI(p_ptr, 'u'));
+	__trap(p_ptr, CPI(p_ptr, 'u'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -452,7 +444,7 @@ void do_cmd_use_staff(int Ind, int item)
 	}
 
 	/* Check guard inscription '!u' */
-	__trap(Ind, CGI(o_ptr, 'u')); 
+	__trap(p_ptr, CGI(o_ptr, 'u'));
 
 	if (o_ptr->tval != TV_STAFF)
 	{
@@ -528,12 +520,10 @@ void do_cmd_use_staff(int Ind, int item)
 	ident = FALSE;
 
 	/* Use the staff */
-	use_object(Ind, o_ptr, item, &ident);
+	use_object(p_ptr, o_ptr, item, &ident);
 }
-void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
+void do_cmd_use_staff_discharge(player_type *p_ptr, int item, bool ident)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int lev;
 
 	object_type		*o_ptr;
@@ -556,13 +546,13 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Tried the item */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* An identification was made */
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Window stuff */
@@ -596,7 +586,7 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
 	/* Describe charges in the pack */
 	if (item >= 0)
 	{
-		inven_item_charges(Ind, item);
+		inven_item_charges(p_ptr, item);
 	}
 
 	/* Describe charges on the floor */
@@ -630,17 +620,15 @@ void do_cmd_use_staff_discharge(int Ind, int item, bool ident)
  * basic "bolt" rods, but the basic "ball" wands do the same damage
  * as the basic "ball" rods.
  */
-void do_cmd_aim_wand(int Ind, int item, int dir)
+void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			lev, chance;
 	bool ident;
 
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^a' */
-	__trap(Ind, CPI(p_ptr, 'a'));
+	__trap(p_ptr, CPI(p_ptr, 'a'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -670,7 +658,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	}
 
 	/* Check guard inscription '!a' */
-	__trap(Ind, CGI(o_ptr, 'a'));
+	__trap(p_ptr, CGI(o_ptr, 'a'));
 
 	if (o_ptr->tval != TV_WAND)
 	{
@@ -751,20 +739,20 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 
 	/* Aim the wand */
 	p_ptr->command_dir = dir; 
-	if (!use_object(Ind, o_ptr, item, &ident)) return;	
+	if (!use_object(p_ptr, o_ptr, item, &ident)) return;	
 
 
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Mark it as tried */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* Apply identification */
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Window stuff */
@@ -798,7 +786,7 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
 	/* Describe the charges in the pack */
 	if (item >= 0)
 	{
-		inven_item_charges(Ind, item);
+		inven_item_charges(p_ptr, item);
 	}
 
 	/* Describe the charges on the floor */
@@ -823,22 +811,20 @@ void do_cmd_aim_wand(int Ind, int item, int dir)
  * Hack -- rods of perception/genocide can be "cancelled"
  * All rods can be cancelled at the "Direction?" prompt
  */
-void do_cmd_zap_rod_pre(int Ind, int item, int dir)
+void do_cmd_zap_rod_pre(player_type *p_ptr, int item, int dir)
 {
 	if (dir > 0)
-		Players[Ind]->command_dir = dir;
+		p_ptr->command_dir = dir;
 
-	do_cmd_zap_rod(Ind, item);
+	do_cmd_zap_rod(p_ptr, item);
 }
-void do_cmd_zap_rod(int Ind, int item)
+void do_cmd_zap_rod(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool ident;
 	object_type		*o_ptr;
 
 	/* Check preventive inscription '^z' */
-	__trap(Ind, CPI(p_ptr, 'z'));
+	__trap(p_ptr, CPI(p_ptr, 'z'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_HANDS) )
@@ -869,7 +855,7 @@ void do_cmd_zap_rod(int Ind, int item)
 	}
 
 	/* Check guard inscription '!z' */
-	__trap(Ind, CGI(o_ptr, 'z')); 
+	__trap(p_ptr, CGI(o_ptr, 'z'));
 
 	if (o_ptr->tval != TV_ROD)
 	{
@@ -891,12 +877,10 @@ void do_cmd_zap_rod(int Ind, int item)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Zap the rod */
-	use_object(Ind, o_ptr, item, &ident);
+	use_object(p_ptr, o_ptr, item, &ident);
 }
-void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
+void do_cmd_zap_rod_discharge(player_type *p_ptr, int item, bool ident)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int                 lev;
 
 	object_type		*o_ptr;
@@ -923,13 +907,13 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Tried the object */
-	object_tried(Ind, o_ptr);
+	object_tried(p_ptr, o_ptr);
 
 	/* Successfully determined the object function */
 	if (ident && !object_aware_p(p_ptr, o_ptr))
 	{
 		object_aware(p_ptr, o_ptr);
-		gain_exp(Ind, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
+		gain_exp(p_ptr, (lev + (p_ptr->lev >> 1)) / p_ptr->lev);
 	}
 
 	/* Window stuff */
@@ -970,12 +954,12 @@ void do_cmd_zap_rod_discharge(int Ind, int item, bool ident)
 /*
  * Hook to determine if an object is activatable
  */
-static bool item_tester_hook_activate(int Ind, object_type *o_ptr)
+static bool item_tester_hook_activate(player_type *p_ptr, object_type *o_ptr)
 {
 	u32b f1, f2, f3;
 
 	/* Not known */
-	if (!object_known_p(Players[Ind], o_ptr)) return (FALSE);
+	if (!object_known_p(p_ptr, o_ptr)) return (FALSE);
 
 	/* Extract the flags */
 	object_flags(o_ptr, &f1, &f2, &f3);
@@ -999,10 +983,8 @@ static bool item_tester_hook_activate(int Ind, object_type *o_ptr)
  * Note that it always takes a turn to activate an artifact, even if
  * the user hits "escape" at the "direction" prompt.
  */
-void do_cmd_activate(int Ind, int item)
+void do_cmd_activate(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int lev, chance;
 	bool ident;
 	object_type *o_ptr;
@@ -1032,10 +1014,10 @@ void do_cmd_activate(int Ind, int item)
 	}
 
 	/* Check guard inscription '!A' */
-	__trap(Ind, CGI(o_ptr, 'A')); 
+	__trap(p_ptr, CGI(o_ptr, 'A'));
 
 	/* Test the item */
-	if (!item_tester_hook_activate(Ind, o_ptr))
+	if (!item_tester_hook_activate(p_ptr, o_ptr))
 	{
 		msg_print(p_ptr, "You cannot activate that item.");
 		return;
@@ -1077,22 +1059,20 @@ void do_cmd_activate(int Ind, int item)
 	sound(p_ptr, MSG_ACT_ARTIFACT);
 
 	/* Activate the object */
-	(void)use_object(Ind, o_ptr, item, &ident); 
+	(void)use_object(p_ptr, o_ptr, item, &ident);
 }
-void do_cmd_activate_dir(int Ind, int item, int dir)
+void do_cmd_activate_dir(player_type *p_ptr, int item, int dir)
 {
 	if (dir > 0)
-		Players[Ind]->command_dir = dir; 
+		p_ptr->command_dir = dir;
 
-	do_cmd_activate(Ind, item); 
+	do_cmd_activate(p_ptr, item);
 }
 /*
  * Quaff a potion (from the pack or the floor)
  */
-void do_cmd_refill_potion(int Ind, int item)
+void do_cmd_refill_potion(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool ident, good = FALSE;
 
 	object_type	*o_ptr;
@@ -1101,7 +1081,7 @@ void do_cmd_refill_potion(int Ind, int item)
 	int new_tval, new_sval;
 
 	/* Check preventive inscription '^G' */
-	__trap(Ind, CPI(p_ptr, 'G'));
+	__trap(p_ptr, CPI(p_ptr, 'G'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
@@ -1131,7 +1111,7 @@ void do_cmd_refill_potion(int Ind, int item)
 	}
 
 	/* Check guard inscription '!G' */
-	__trap(Ind, CGI(o_ptr, 'G'));
+	__trap(p_ptr, CGI(o_ptr, 'G'));
 
 	if (o_ptr->tval != TV_BOTTLE)
 	{
@@ -1196,9 +1176,9 @@ void do_cmd_refill_potion(int Ind, int item)
 	/* Destroy the bottle in the pack */
 	if (item >= 0)
 	{
-		inven_item_increase(Ind, item, -1);
-		inven_item_describe(Ind, item);
-		inven_item_optimize(Ind, item);
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
 	}
 	/* Destroy the bottle on the floor */
 	else
@@ -1206,7 +1186,7 @@ void do_cmd_refill_potion(int Ind, int item)
 		floor_item_increase(0 - item, -1);
 		floor_item_describe(0 - item);
 		floor_item_optimize(0 - item);
-		floor_item_notify(Ind, 0 - item, TRUE);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
 	}
 
 	/* Create and add new item */

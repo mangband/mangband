@@ -914,9 +914,9 @@ static void player_outfit(player_type *p_ptr)
 }
 
 static void player_admin(player_type *p_ptr);
-void player_setup(int Ind)
+void player_setup(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
+	int Ind = Get_Ind[p_ptr->conn];
 	player_type *q_ptr;
 	int y, x, i, d, k, count = 0, Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
@@ -959,7 +959,7 @@ void player_setup(int Ind)
 
 		/* Hack -- ironmen get 2 extra turns of invulnerability, see #1014 */
 		if (p_ptr->dun_depth > 0 && cfg_ironman)
-			if (p_ptr->invuln == 0) set_invuln(Ind, p_ptr->invuln + 2);
+			if (p_ptr->invuln == 0) set_invuln(p_ptr, p_ptr->invuln + 2);
 	}
 
 	/* Rebuild the level if neccecary */
@@ -972,14 +972,14 @@ void player_setup(int Ind)
 		{
 			/* Build a new level and put him on it */
 			alloc_dungeon_level(Depth);
-			generate_cave(Ind, Depth, option_p(p_ptr,AUTO_SCUM));
+			generate_cave(p_ptr, Depth, option_p(p_ptr,AUTO_SCUM));
 		}
 		else
 		/* rebuild the wilderness level */
 		{
 			alloc_dungeon_level(Depth);
 			/* NB: Wilderness levels do not currently honor auto_scum */
-			generate_cave(Ind, Depth, 0);
+			generate_cave(p_ptr, Depth, 0);
 			/* hack -- this is important */
 			if (!players_on_depth[Depth]) players_on_depth[Depth] = 1;
 			
@@ -1353,7 +1353,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 	}
 
 	/* Set his location, panel, etc. */
-	//player_setup(Ind);
+	//player_setup(p_ptr);
 
 	/* Success */
 	return TRUE;

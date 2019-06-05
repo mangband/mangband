@@ -40,10 +40,8 @@ void display_spell_list(void)
 /*
  * Returns spell chance of failure for spell		-RAK-
  */
-static s16b spell_chance(int Ind, int spell)
+static s16b spell_chance(player_type *p_ptr, int spell)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		chance, minfail;
 
 	magic_type	*s_ptr;
@@ -105,10 +103,8 @@ static s16b spell_chance(int Ind, int spell)
  * The spell must be legible, not forgotten, and also, to cast,
  * it must be known, and to study, it must not be known.
  */
-static bool spell_okay(int Ind, int j, bool known)
+static bool spell_okay(player_type *p_ptr, int j, bool known)
 {
-	player_type *p_ptr = Players[Ind];
-
 	magic_type *s_ptr;
 
 	/* Access the spell */
@@ -141,10 +137,8 @@ static bool spell_okay(int Ind, int j, bool known)
 /*
  * Print a list of spells (for browsing or casting)
  */
-static void print_spells(int Ind, int book, byte *spell, int num)
+static void print_spells(player_type *p_ptr, int book, byte *spell, int num)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			i, j;
 
 	magic_type		*s_ptr;
@@ -168,14 +162,14 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		if (s_ptr->slevel >= 99)
 		{
 			sprintf(out_val, "  %c) %-30s", I2A(i), "(illegible)");
-			send_spell_info(Ind, book, i, 0, 0, out_val);
+			send_spell_info(p_ptr, book, i, 0, 0, out_val);
 			continue;
 		}
 
 		/* XXX XXX Could label spells above the players level */
 
 		/* Get extra info */
-		comment = get_spell_info(Ind, j);
+		comment = get_spell_info(p_ptr, j);
 
 		/* Analyze the spell */
 		if (p_ptr->spell_flags[j] & PY_SPELL_FORGOTTEN)
@@ -197,8 +191,8 @@ static void print_spells(int Ind, int book, byte *spell, int num)
 		/* Dump the spell --(-- */
 		sprintf(out_val, "  %c) %-30s%2d %4d %3d%%%s",
 		        I2A(i), get_spell_name(p_ptr->cp_ptr->spell_book, j),
-		        s_ptr->slevel, s_ptr->smana, spell_chance(Ind, j), comment);
-		send_spell_info(Ind, book, i, flag, item_tester, out_val);
+		        s_ptr->slevel, s_ptr->smana, spell_chance(p_ptr, j), comment);
+		send_spell_info(p_ptr, book, i, flag, item_tester, out_val);
 	}
 }
 
@@ -209,10 +203,8 @@ static void print_spells(int Ind, int book, byte *spell, int num)
  *
  * Note that *all* spells in the book are listed
  */
-void do_cmd_browse(int Ind, int book)
+void do_cmd_browse(player_type *p_ptr, int book)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			i, item;
 	int spell;
 	int num = 0;
@@ -238,7 +230,7 @@ void do_cmd_browse(int Ind, int book)
 
 #if 0
 	/* No lite */
-	if (p_ptr->blind || no_lite(Ind))
+	if (p_ptr->blind || no_lite(p_ptr))
 	{
 		msg_print(p_ptr, "You cannot see!");
 		return;
@@ -286,7 +278,7 @@ void do_cmd_browse(int Ind, int book)
 	/* Extract spells */
 	for (i = 0; i < SPELLS_PER_BOOK; i++)
 	{
-		spell = get_spell_index(Ind, o_ptr, i);
+		spell = get_spell_index(p_ptr, o_ptr, i);
 
 		/* Collect this spell */
 		if (spell != -1) spells[num++] = spell;
@@ -296,7 +288,7 @@ void do_cmd_browse(int Ind, int book)
 	}
 
 	/* Display the spells */
-	print_spells(Ind, book, spells, num);
+	print_spells(p_ptr, book, spells, num);
 }
 
 
@@ -305,10 +297,8 @@ void do_cmd_browse(int Ind, int book)
 /*
  * Study a book to gain a new spell/prayer
  */
-void do_cmd_study(int Ind, int book, int spell)
+void do_cmd_study(player_type *p_ptr, int book, int spell)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			i, sval;
 
 	int			j = -1;
@@ -321,7 +311,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	int index; /* spell index */
 
 	/* Check preventive inscription '^G' */
-	__trap(Ind, CPI(p_ptr, 'G'));
+	__trap(p_ptr, CPI(p_ptr, 'G'));
 
 	/* Restrict ghosts */
 	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !is_dm_p(p_ptr) )
@@ -336,7 +326,7 @@ void do_cmd_study(int Ind, int book, int spell)
 		return;
 	}
 
-	if (p_ptr->blind || no_lite(Ind))
+	if (p_ptr->blind || no_lite(p_ptr))
 	{
 		msg_print(p_ptr, "You cannot see!");
 		return;
@@ -389,7 +379,7 @@ void do_cmd_study(int Ind, int book, int spell)
 	{
 		for (i = 0; i < SPELLS_PER_BOOK; i++)
 		{
-			index = get_spell_index(Ind, o_ptr, i);
+			index = get_spell_index(p_ptr, o_ptr, i);
 
 			/* Collect this spell */
 			if (index != -1) spells[num++] = index;
@@ -398,7 +388,7 @@ void do_cmd_study(int Ind, int book, int spell)
 		/* Set the spell number */
 		j = spells[spell];
 
-		if (!spell_okay(Ind, j, FALSE))
+		if (!spell_okay(p_ptr, j, FALSE))
 		{
 			msg_print(p_ptr, "You cannot gain that spell!");
 			return;
@@ -415,13 +405,13 @@ void do_cmd_study(int Ind, int book, int spell)
 		/* Extract spells */
 		for (i = 0; i < SPELLS_PER_BOOK; i++)
 		{
-			index = get_spell_index(Ind, o_ptr, i);
+			index = get_spell_index(p_ptr, o_ptr, i);
 
 			/* Skip empty */
 			if (index == -1) continue;
 
 			/* Skip non "okay" prayers */
-			if (!spell_okay(Ind, index, FALSE)) continue;
+			if (!spell_okay(p_ptr, index, FALSE)) continue;
 
 			/* Hack -- Apply the randomizer */
 			if ((++k > 1) && (rand_int(k) != 0)) continue;
@@ -495,19 +485,17 @@ void do_cmd_study(int Ind, int book, int spell)
  * until the player hits a direction key, and we try very hard not to have
  * any undue slowness in the server. --KLJ--
  */
-void do_cmd_cast_pre(int Ind, int book, int dir, int spell)
+void do_cmd_cast_pre(player_type *p_ptr, int book, int dir, int spell)
 {
 	if (dir < 0 && dir > -11)
-		Players[Ind]->command_dir = -dir;
+		p_ptr->command_dir = -dir;
 	else
-		Players[Ind]->command_arg = dir;
+		p_ptr->command_arg = dir;
 
-	do_cmd_cast(Ind, book, spell);	
+	do_cmd_cast(p_ptr, book, spell);
 }
-void do_cmd_cast(int Ind, int book, int spell)
+void do_cmd_cast(player_type *p_ptr, int book, int spell)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int			i, j, sval;
 	int			chance, index;
 
@@ -519,7 +507,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	byte item_tester = 0;
 
 	/* Check preventive inscription '^m' */
-	__trap(Ind, CPI(p_ptr, 'm'));
+	__trap(p_ptr, CPI(p_ptr, 'm'));
 
 	/* Require spell ability */
 	if (p_ptr->cp_ptr->spell_book != TV_MAGIC_BOOK)
@@ -536,7 +524,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Require lite */
-	if (p_ptr->blind || no_lite(Ind))
+	if (p_ptr->blind || no_lite(p_ptr))
 	{
 		msg_print(p_ptr, "You cannot see!");
 		return;
@@ -577,14 +565,14 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Check guard inscription '!m' */
-	__trap(Ind, CGI(o_ptr, 'm'));
+	__trap(p_ptr, CGI(o_ptr, 'm'));
 
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
 	for (i = 0; i < SPELLS_PER_BOOK; i++)
 	{
-		index = get_spell_index(Ind, o_ptr, i);
+		index = get_spell_index(p_ptr, o_ptr, i);
 		
 		/* Collect this spell */
  		if (index != -1) spells[num++] = index;
@@ -605,7 +593,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Regular test */
-	if (!spell_okay(Ind, j, 1))
+	if (!spell_okay(p_ptr, j, 1))
 	{
 		msg_print(p_ptr, "You cannot cast that spell.");
 		return;
@@ -622,7 +610,7 @@ void do_cmd_cast(int Ind, int book, int spell)
 	}
 
 	/* Spell failure chance */
-	chance = spell_chance(Ind, j);
+	chance = spell_chance(p_ptr, j);
 
 	/* Add "projection" offset */
 	if (spell >= SPELL_PROJECTED)
@@ -638,17 +626,16 @@ void do_cmd_cast(int Ind, int book, int spell)
 		msg_print(p_ptr, "You failed to get the spell off!");
 		/* Hack: Spend Mana */
 		p_ptr->current_spell = j;
-		do_cmd_cast_fin(Ind, FALSE);
+		do_cmd_cast_fin(p_ptr, FALSE);
 		return;
 	}
 
 	/* Cast spell */
 	sound(p_ptr, MSG_SPELL);
-	cast_spell(Ind, p_ptr->cp_ptr->spell_book, j);
+	cast_spell(p_ptr, p_ptr->cp_ptr->spell_book, j);
 }
-void do_cmd_cast_fin(int Ind, bool tried)
+void do_cmd_cast_fin(player_type *p_ptr, bool tried)
 {
-	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
 	int j = p_ptr->current_spell;
 
@@ -667,7 +654,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
 		p_ptr->spell_flags[j] |= PY_SPELL_WORKED;
 
 		/* Gain experience */
-		gain_exp(Ind, e * s_ptr->slevel);
+		gain_exp(p_ptr, e * s_ptr->slevel);
 
 		/* Fix the spell info */
 		p_ptr->window |= PW_SPELL;
@@ -695,7 +682,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
 		msg_print(p_ptr, "You faint from the effort!");
 
 		/* Hack -- bypass free action */
-		(void)set_paralyzed(Ind, p_ptr->paralyzed + randint(5 * oops + 1));
+		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + randint(5 * oops + 1));
 
 		/* Damage CON (possibly permanently) */
 		if (rand_int(100) < 50)
@@ -706,7 +693,7 @@ void do_cmd_cast_fin(int Ind, bool tried)
 			msg_print(p_ptr, "You have damaged your health!");
 
 			/* Reduce constitution */
-			(void)dec_stat(Ind, A_CON, 15 + randint(10), perm);
+			(void)dec_stat(p_ptr, A_CON, 15 + randint(10), perm);
 		}
 	}
 
@@ -725,19 +712,17 @@ void do_cmd_cast_fin(int Ind, bool tried)
  * After prayer is cast, do_cmd_cast_fin() will be called !
  * If we need to separate them later, we could...
  */
-void do_cmd_pray_pre(int Ind, int book, int dir, int spell)
+void do_cmd_pray_pre(player_type *p_ptr, int book, int dir, int spell)
 {
 	if (dir < 0 && dir > -11)
-		Players[Ind]->command_dir = -dir;
+		p_ptr->command_dir = -dir;
 	else
-		Players[Ind]->command_arg = dir;
+		p_ptr->command_arg = dir;
 
-	do_cmd_pray(Ind, book, spell);	
+	do_cmd_pray(p_ptr, book, spell);
 }
-void do_cmd_pray(int Ind, int book, int spell)
+void do_cmd_pray(player_type *p_ptr, int book, int spell)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int item, sval, j, chance, i;
 	int index;
 
@@ -749,7 +734,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	byte item_tester = 0;
 
 	/* Check preventive inscription '^p' */
-	__trap(Ind, CPI(p_ptr, 'p'));
+	__trap(p_ptr, CPI(p_ptr, 'p'));
 
 	/* Restrict ghosts */
 	if (p_ptr->ghost || p_ptr->fruit_bat)
@@ -766,7 +751,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	}
 
 	/* Must have lite */
-	if (p_ptr->blind || no_lite(Ind))
+	if (p_ptr->blind || no_lite(p_ptr))
 	{
 		msg_print(p_ptr, "You cannot see!");
 		return;
@@ -810,14 +795,14 @@ void do_cmd_pray(int Ind, int book, int spell)
 	}
 
 	/* Check guard inscription '!p' */
-	__trap(Ind, CGI(o_ptr, 'p'));
+	__trap(p_ptr, CGI(o_ptr, 'p'));
 
 	/* Access the item's sval */
 	sval = o_ptr->sval;
 
 	for (i = 0; i < SPELLS_PER_BOOK; i++)
 	{
-		index = get_spell_index(Ind, o_ptr, i);
+		index = get_spell_index(p_ptr, o_ptr, i);
 
 		/* Collect this spell */
 		if (index != -1) spells[num++] = index;
@@ -838,7 +823,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	}
 
 	/* Regular test */
-	if (!spell_okay(Ind, j, 1))
+	if (!spell_okay(p_ptr, j, 1))
 	{
 		msg_print(p_ptr, "You cannot pray that prayer.");
 		return;
@@ -855,7 +840,7 @@ void do_cmd_pray(int Ind, int book, int spell)
 	}
 
 	/* Spell failure chance */
-	chance = spell_chance(Ind, j);
+	chance = spell_chance(p_ptr, j);
 
 	/* Add "projection" offset */
 	if (spell >= SPELL_PROJECTED) 
@@ -871,20 +856,20 @@ void do_cmd_pray(int Ind, int book, int spell)
 		msg_print(p_ptr, "You failed to concentrate hard enough!");
 		/* Hack: Spend Mana */
 		p_ptr->current_spell = j;
-		do_cmd_cast_fin(Ind, FALSE);
+		do_cmd_cast_fin(p_ptr, FALSE);
 		return;
 	}
 
 	/* Success */
 	sound(p_ptr, MSG_PRAYER);
-	if (!cast_spell(Ind, p_ptr->cp_ptr->spell_book, j)) return;
+	if (!cast_spell(p_ptr, p_ptr->cp_ptr->spell_book, j)) return;
 }
 
 
 /*
  * Send the ghost spell info to the client.
  */
-void show_ghost_spells(int Ind)
+void show_ghost_spells(player_type *p_ptr)
 {
 	magic_type *s_ptr;
 	int i;
@@ -907,25 +892,24 @@ void show_ghost_spells(int Ind)
 		flag = get_spell_flag(0, i, (PY_SPELL_LEARNED | PY_SPELL_WORKED), &item_tester);
 
 		/* Send it */
-		send_spell_info(Ind, 10, i, flag, item_tester, out_val);
+		send_spell_info(p_ptr, 10, i, flag, item_tester, out_val);
 	}
 }
 
 /*
  * Use a ghostly ability. --KLJ--
  */
-void do_cmd_ghost_power_pre(int Ind, int dir, int ability)
+void do_cmd_ghost_power_pre(player_type *p_ptr, int dir, int ability)
 {
 	if (dir < 0 && dir > -11)
-		Players[Ind]->command_dir = -dir;
+		p_ptr->command_dir = -dir;
 	else
-		Players[Ind]->command_arg = dir;
+		p_ptr->command_arg = dir;
 
-	do_cmd_ghost_power(Ind, ability);
+	do_cmd_ghost_power(p_ptr, ability);
 }
-void do_cmd_ghost_power(int Ind, int ability)
+void do_cmd_ghost_power(player_type *p_ptr, int ability)
 {
-	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr = &ghost_spells[ability];
 	int plev = p_ptr->lev;
 	int i, j = 0;
@@ -962,11 +946,10 @@ void do_cmd_ghost_power(int Ind, int ability)
 	}
 
 	/* Cast ghost spell */
-	cast_spell(Ind, -1, i);
+	cast_spell(p_ptr, -1, i);
 }
-void do_cmd_ghost_power_fin(int Ind)
+void do_cmd_ghost_power_fin(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	magic_type *s_ptr;
 
 	/* Verify spell number */
@@ -984,10 +967,10 @@ void do_cmd_ghost_power_fin(int Ind)
 	p_ptr->exp -= s_ptr->slevel * s_ptr->smana;
 
 	/* Too much can kill you */
-	if (p_ptr->exp < 0) take_hit(Ind, 5000, "the strain of ghostly powers");
+	if (p_ptr->exp < 0) take_hit(p_ptr, 5000, "the strain of ghostly powers");
 
 	/* Check experience levels */
-	check_experience(Ind);
+	check_experience(p_ptr);
 
 	/* Redraw experience */
 	p_ptr->redraw |= (PR_EXP);

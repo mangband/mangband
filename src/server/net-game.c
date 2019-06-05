@@ -276,9 +276,10 @@ int send_indicator_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_indication(int Ind, int id, ...)
+int send_indication(player_type *p_ptr, int id, ...)
 {
-	connection_type *ct = PConn[Ind];
+	connection_type *ct;
+
 	const indicator_type *i_ptr = &indicators[(byte)id];
 	int i = 0, n = 0;
 	int start_pos;
@@ -290,7 +291,8 @@ int send_indication(int Ind, int id, ...)
 
 	va_list marker;
 
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	start_pos = ct->wbuf.len; /* begin cq "transaction" */
 
@@ -637,10 +639,11 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
-int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade)
+int send_air_char(player_type *p_ptr, byte y, byte x, char a, char c, u16b delay, u16b fade)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%c" "%ud%ud", PKT_AIR, y, x, a, c, delay, fade) <= 0)
 	{
 		/* No space in buffer, but we don't really care for this packet */
@@ -649,10 +652,11 @@ int send_air_char(int Ind, byte y, byte x, char a, char c, u16b delay, u16b fade
 	return 1;
 }
 
-int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_floor(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c" "%c%c%d%c%b%b%s", PKT_FLOOR, 0, attr, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -660,10 +664,11 @@ int send_floor(int Ind, byte attr, int amt, byte tval, byte flag, byte s_tester,
 	return 1;
 }
 
-int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_inven(player_type *p_ptr, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -671,10 +676,11 @@ int send_inven(int Ind, char pos, byte attr, int wgt, int amt, byte tval, byte f
 	return 1;
 }
 
-int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
+int send_equip(player_type *p_ptr, char pos, byte attr, int wgt, byte tval, byte flag, cptr name)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%c%b%s", PKT_EQUIP, pos, attr, wgt, tval, flag, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -682,10 +688,11 @@ int send_equip(int Ind, char pos, byte attr, int wgt, byte tval, byte flag, cptr
 	return 1;
 }
 
-int send_spell_info(int Ind, u16b book, u16b i, byte flag, byte item_tester, cptr out_val)
+int send_spell_info(player_type *p_ptr, u16b book, u16b i, byte flag, byte item_tester, cptr out_val)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (!cq_printf(&ct->wbuf, "%c" "%b%b%ud%ud%s", PKT_SPELL_INFO, flag, item_tester, book, i, out_val))
 	{
 		client_withdraw(ct);
@@ -724,13 +731,14 @@ int send_character_info(player_type *p_ptr)
 	return send_char_info(ct, p_ptr);
 }
 
-int send_objflags(int Ind, int line)
+int send_objflags(player_type *p_ptr, int line)
 {
-	connection_type *ct = PConn[Ind];
+	connection_type *ct;
 	//TODO: generalize this (merge with streams?)
-	byte rle = ( Players[Ind]->use_graphics ? RLE_LARGE : RLE_CLASSIC );
+	byte rle = ( p_ptr->use_graphics ? RLE_LARGE : RLE_CLASSIC );
 
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 
 	/* Header */
 	if (cq_printf(&ct->wbuf, "%c%d", PKT_OBJFLAGS, line) <= 0)
@@ -738,7 +746,7 @@ int send_objflags(int Ind, int line)
 		client_withdraw(ct);
 	}
 	/* Body (39 grids of "cave") */
-	if (cq_printc(&ct->wbuf, rle, Players[Ind]->hist_flags[line], MAX_OBJFLAGS_COLS) <= 0)
+	if (cq_printc(&ct->wbuf, rle, p_ptr->hist_flags[line], MAX_OBJFLAGS_COLS) <= 0)
 	{
 		client_withdraw(ct);
 	} 
@@ -1548,19 +1556,14 @@ int recv_party(connection_type *ct, player_type *p_ptr)
 
 int recv_suicide(connection_type *ct, player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	/* Commit suicide */
-	do_cmd_suicide(Ind);
+	do_cmd_suicide(p_ptr);
 	return 1;
 }
 
 int recv_target(connection_type *ct, player_type *p_ptr)
 {
 	char mode, dir;
-	int Ind;
-
-	Ind = Get_Ind[p_ptr->conn];
 
 	if (cq_scanf(&ct->rbuf, "%c%c", &mode, &dir) < 2)
 	{
@@ -1571,44 +1574,40 @@ int recv_target(connection_type *ct, player_type *p_ptr)
 	{
 		case NTARGET_FRND:
 
-			do_cmd_target_friendly(Ind, dir);
+			do_cmd_target_friendly(p_ptr, dir);
 
 		break;
 		case TARGET_KILL:
 
-			do_cmd_target(Ind, dir);
+			do_cmd_target(p_ptr, dir);
 
 		break;
 		case NTARGET_LOOK:
 		default:
 
-			do_cmd_look(Ind, dir);
+			do_cmd_look(p_ptr, dir);
 
 		break;
 	}
 
-    return 1;
+	return 1;
 }
 
 int recv_locate(connection_type *ct, player_type *p_ptr)
 {
 	char dir;
-	int Ind;
-
-	Ind = Get_Ind[p_ptr->conn];
 
 	if (cq_scanf(&ct->rbuf, "%c", &dir) < 1)
 	{
 		return 0;
 	}
 
-	do_cmd_locate(Ind, dir);
+	do_cmd_locate(p_ptr, dir);
 
 	return 1;
 }
 
 int recv_confirm(connection_type *ct, player_type *p_ptr) {
-	int Ind;
 	byte type;
 	byte id;
 
@@ -1623,19 +1622,17 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 	/* Don't do any "offline" purchases */
 	if (p_ptr->state != PLAYER_PLAYING) return 1;
 
-	Ind = Get_Ind[p_ptr->conn];
-
 	if (p_ptr->store_num > -1)
 	{
-		store_confirm(Ind);
+		store_confirm(p_ptr);
 	}
 	else if (p_ptr->current_house > -1)
 	{
-		do_cmd_purchase_house(Ind, 0);
+		do_cmd_purchase_house(p_ptr, 0);
 	}
 	else
 	{
-		carry(Ind, 1, 1);
+		carry(p_ptr, 1, 1);
 	}
 
 	return 1;
@@ -1650,8 +1647,6 @@ int recv_confirm(connection_type *ct, player_type *p_ptr) {
 	*  3 success + all energy was drained (break loop)
 */
 static int recv_walk(player_type *p_ptr) {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	char
 		dir;
 	/* The only critical error I can think of is broken queue */
@@ -1694,7 +1689,7 @@ static int recv_walk(player_type *p_ptr) {
 	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
 		/* Actually walk */
-		do_cmd_walk(Ind, dir, option_p(p_ptr,ALWAYS_PICKUP));
+		do_cmd_walk(p_ptr, dir, option_p(p_ptr,ALWAYS_PICKUP));
 
 		/* Hack -- add aggravating noise */
 		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
@@ -1708,8 +1703,6 @@ static int recv_walk(player_type *p_ptr) {
 }
 
 static int recv_toggle_rest(player_type *p_ptr) {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	/* New MAnghack */
 	/* Exit store on every non-store command */
 	p_ptr->store_num = -1;
@@ -1731,7 +1724,7 @@ static int recv_toggle_rest(player_type *p_ptr) {
 	if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
 	{
 		/* Start resting */
-		do_cmd_toggle_rest(Ind);
+		do_cmd_toggle_rest(p_ptr);
 
 		/* Hack -- add aggravating noise */
 		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
@@ -1882,36 +1875,36 @@ static int recv_custom_command(player_type *p_ptr)
 #define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;
 	switch (custom_commands[i].scheme)
 	{
-		S_EXEC( EMPTY,          	(int),                  	(player))
-		S_EXEC( ITEM,           	(int, int),            	(player, item))
-		S_EXEC(	DIR,            	(int, int),            	(player, dir))
-		S_EXEC(	VALUE,          	(int, int),             	(player, value))
-		S_EXEC(	SMALL,          	(int, int),             	(player, value))
-		S_EXEC(	STRING,         	(int, char*),           	(player, entry))
-		S_EXEC(	CHAR,           	(int, char),            	(player, entry[0]))
-		S_EXEC(	ITEM_DIR,       	(int, int, int),      	(player, item, dir))
-		S_EXEC(	ITEM_VALUE,     	(int, int, int),       	(player, item, value))
-		S_EXEC(	ITEM_SMALL,     	(int, int, int),       	(player, item, value))
-		S_EXEC(	ITEM_STRING,    	(int, int, char*),     	(player, item, entry))
-		S_EXEC(	ITEM_CHAR,      	(int, int, char),      	(player, item, entry[0]))
-		S_EXEC(	DIR_VALUE,      	(int, int, int),       	(player, dir, value))
-		S_EXEC(	DIR_SMALL,      	(int, int, int),       	(player, dir, value))
-		S_EXEC(	DIR_STRING,     	(int, int, char*),     	(player, dir, entry))
-		S_EXEC(	DIR_CHAR,       	(int, int, char),      	(player, dir, entry[0]))
-		S_EXEC(	VALUE_STRING,   	(int, int, char*),      	(player, value, entry))
-		S_EXEC(	VALUE_CHAR,     	(int, int, char),       	(player, value, entry[0]))
-		S_EXEC(	SMALL_STRING,   	(int, int, char*),      	(player, value, entry))
-		S_EXEC(	SMALL_CHAR,     	(int, int, char),       	(player, value, entry[0]))
-		S_EXEC(	ITEM_DIR_VALUE, 	(int, int, int, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_SMALL, 	(int, int, int, int), 	(player, item, dir, value))
-		S_EXEC(	ITEM_DIR_STRING,	(int, int, int, char*),	(player, item, dir, entry))
-		S_EXEC(	ITEM_DIR_CHAR,  	(int, int, int, char),	(player, item, dir, entry[0]))
-		S_EXEC(	ITEM_VALUE_STRING,	(int, int, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_VALUE_CHAR,	(int, int, int, char), 	(player, item, value, entry[0]))
-		S_EXEC(	ITEM_SMALL_STRING,	(int, int, int, char*),	(player, item, value, entry))
-		S_EXEC(	ITEM_SMALL_CHAR, 	(int, int, int, char), 	(player, item, value, entry[0]))
+		S_EXEC(	EMPTY,          	(player_type*),          	(p_ptr))
+		S_EXEC(	ITEM,           	(player_type*, int),     	(p_ptr, item))
+		S_EXEC(	DIR,            	(player_type*, int),     	(p_ptr, dir))
+		S_EXEC(	VALUE,          	(player_type*, int),     	(p_ptr, value))
+		S_EXEC(	SMALL,          	(player_type*, int),     	(p_ptr, value))
+		S_EXEC(	STRING,         	(player_type*, char*),   	(p_ptr, entry))
+		S_EXEC(	CHAR,           	(player_type*, char),    	(p_ptr, entry[0]))
+		S_EXEC(	ITEM_DIR,       	(player_type*, int, int),	(p_ptr, item, dir))
+		S_EXEC(	ITEM_VALUE,     	(player_type*, int, int),	(p_ptr, item, value))
+		S_EXEC(	ITEM_SMALL,     	(player_type*, int, int),	(p_ptr, item, value))
+		S_EXEC(	ITEM_STRING,    	(player_type*, int, char*),	(p_ptr, item, entry))
+		S_EXEC(	ITEM_CHAR,      	(player_type*, int, char),	(p_ptr, item, entry[0]))
+		S_EXEC(	DIR_VALUE,      	(player_type*, int, int),	(p_ptr, dir, value))
+		S_EXEC(	DIR_SMALL,      	(player_type*, int, int),	(p_ptr, dir, value))
+		S_EXEC(	DIR_STRING,     	(player_type*, int, char*),	(p_ptr, dir, entry))
+		S_EXEC(	DIR_CHAR,       	(player_type*, int, char),	(p_ptr, dir, entry[0]))
+		S_EXEC(	VALUE_STRING,   	(player_type*, int, char*),	(p_ptr, value, entry))
+		S_EXEC(	VALUE_CHAR,     	(player_type*, int, char),	(p_ptr, value, entry[0]))
+		S_EXEC(	SMALL_STRING,   	(player_type*, int, char*),	(p_ptr, value, entry))
+		S_EXEC(	SMALL_CHAR,     	(player_type*, int, char),	(p_ptr, value, entry[0]))
+		S_EXEC(	ITEM_DIR_VALUE, 	(player_type*, int, int, int),	(p_ptr, item, dir, value))
+		S_EXEC(	ITEM_DIR_SMALL, 	(player_type*, int, int, int),	(p_ptr, item, dir, value))
+		S_EXEC(	ITEM_DIR_STRING,	(player_type*, int, int, char*),(p_ptr, item, dir, entry))
+		S_EXEC(	ITEM_DIR_CHAR,  	(player_type*, int, int, char),	(p_ptr, item, dir, entry[0]))
+		S_EXEC(	ITEM_VALUE_STRING,	(player_type*, int, int, char*),(p_ptr, item, value, entry))
+		S_EXEC(	ITEM_VALUE_CHAR,	(player_type*, int, int, char),	(p_ptr, item, value, entry[0]))
+		S_EXEC(	ITEM_SMALL_STRING,	(player_type*, int, int, char*),(p_ptr, item, value, entry))
+		S_EXEC(	ITEM_SMALL_CHAR,	(player_type*, int, int, char),	(p_ptr, item, value, entry[0]))
 
-		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0]))
+		S_EXEC(	PPTR_CHAR,         	(player_type*, char),      	(p_ptr, entry[0])) /* TODO: deprecate this */
 	}
 #undef S_ARG
 #undef S_EXEC
@@ -1927,10 +1920,11 @@ static int recv_custom_command(player_type *p_ptr)
 	return 1;
 }
 
-int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
+int send_store(player_type *p_ptr, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
@@ -1938,10 +1932,11 @@ int send_store(int Ind, char pos, byte attr, s16b wgt, s16b number, long price, 
 	return 1;
 }
 
-int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long purse)
+int send_store_info(player_type *p_ptr, byte flag, cptr name, char *owner, int items, long purse)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c%c%s%s%d%l", PKT_STORE_INFO, flag, name, owner, items, purse) <= 0)
 	{
 		client_withdraw(ct);
@@ -1949,10 +1944,11 @@ int send_store_info(int Ind, byte flag, cptr name, char *owner, int items, long 
 	return 1;
 }
 
-int send_confirm_request(int Ind, byte type, cptr buf)
+int send_confirm_request(player_type *p_ptr, byte type, cptr buf)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
 	if (!cq_printf(&ct->wbuf, "%c" "%c%c%s", PKT_CONFIRM, type, 0x00, buf))
 	{
 		client_withdraw(ct);
@@ -1960,22 +1956,24 @@ int send_confirm_request(int Ind, byte type, cptr buf)
 	return 1;
 }
 
-int send_pickup_check(int Ind, cptr buf)
+int send_pickup_check(player_type *p_ptr, cptr buf)
 {
-	return send_confirm_request(Ind, 0x03, buf);
+	return send_confirm_request(p_ptr, 0x03, buf);
 }
 
-int send_store_sell(int Ind, u32b price)
+int send_store_sell(player_type *p_ptr, u32b price)
 {
 	char buf[80];
 	sprintf(buf, "Accept %" PRId32 " gold?", price);
-	return send_confirm_request(Ind, 0x01, buf);
+	return send_confirm_request(p_ptr, 0x01, buf);
 }
 
-int send_store_leave(int Ind)
+int send_store_leave(player_type *p_ptr)
 {
-	connection_type *ct = PConn[Ind];
-	if (!ct) return -1;
+	connection_type *ct;
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+
 	if (!cq_printf(&ct->wbuf, "%c", PKT_STORE_LEAVE))
 	{
 		client_withdraw(ct);
@@ -2050,10 +2048,8 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 /* New version of "process_pending_commands"
  *  for now, returns "-1" incase of an error..
  */
-int process_player_commands(int p_idx)
+int process_player_commands(player_type *p_ptr)
 {
-	player_type *p_ptr = p_list[p_idx];
-
 	byte pkt;
 	int result = 1;
 	int start_pos = 0;

@@ -57,10 +57,8 @@ static int monster_critical(int dice, int sides, int dam)
  * Always miss 5% of the time, Always hit 5% of the time.
  * Otherwise, match monster power against player armor.
  */
-static int check_hit(int Ind, int power, int level)
+static int check_hit(player_type *p_ptr, int power, int level)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i, k, ac;
 
 	/* Percentile dice */
@@ -116,10 +114,8 @@ static cptr desc_moan[] =
 /*
  * Attack a player via physical attacks.
  */
-bool make_attack_normal(int Ind, int m_idx)
+bool make_attack_normal(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
@@ -156,10 +152,10 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 	/* Get the monster name (or "it") */
-	monster_desc(Ind, m_name, m_idx, 0);
+	monster_desc(p_ptr, m_name, m_idx, 0);
 
 	/* Get the "died from" information (i.e. "a kobold") */
-	monster_desc(Ind, ddesc, m_idx, 0x88);
+	monster_desc(p_ptr, ddesc, m_idx, 0x88);
 
 
 	/* Assume no blink */
@@ -231,7 +227,7 @@ bool make_attack_normal(int Ind, int m_idx)
 
 
 		/* Monster hits player */
-		if (!effect || check_hit(Ind, power, rlev))
+		if (!effect || check_hit(p_ptr, power, rlev))
 		{
 			/* Always disturbing */
 			disturb(p_ptr, 1, 0);
@@ -467,7 +463,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					damage -= (damage * ((ac < 150) ? ac : 150) / 250);
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					break;
 				}
@@ -475,12 +471,12 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_POISON:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Take "poison" effect */
 					if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 					{
-						if (set_poisoned(Ind, p_ptr->poisoned + randint(rlev) + 5))
+						if (set_poisoned(p_ptr, p_ptr->poisoned + randint(rlev) + 5))
 						{
 							obvious = TRUE;
 						}
@@ -495,13 +491,13 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_UN_BONUS:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Allow complete resist */
 					if (!p_ptr->resist_disen)
 					{
 						/* Apply disenchantment */
-						if (apply_disenchant(Ind, 0)) obvious = TRUE;
+						if (apply_disenchant(p_ptr, 0)) obvious = TRUE;
 					}
 
 					/* Learn about the player */
@@ -513,7 +509,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_UN_POWER:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Find an item */
 					for (k = 0; k < 10; k++)
@@ -566,7 +562,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_EAT_GOLD:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Obvious */
 					obvious = TRUE;
@@ -622,7 +618,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_EAT_ITEM:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Saving throw (unless paralyzed) based on dex and level */
 					if (!p_ptr->paralyzed &&
@@ -687,12 +683,12 @@ bool make_attack_normal(int Ind, int m_idx)
 						if	(monster_can_carry(m_idx))
 						{
 							/* Carry the object */ 
-							monster_carry(Ind, m_idx, i_ptr); 
+							monster_carry(p_ptr, m_idx, i_ptr);
 						}
 						
 						/* Steal the items */
-						inven_item_increase(Ind, i, -1);
-						inven_item_optimize(Ind, i);
+						inven_item_increase(p_ptr, i, -1);
+						inven_item_optimize(p_ptr, i);
 
 						/* Obvious */
 						obvious = TRUE;
@@ -710,7 +706,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_EAT_FOOD:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Steal some food */
 					for (k = 0; k < 10; k++)
@@ -736,8 +732,8 @@ bool make_attack_normal(int Ind, int m_idx)
 						           o_name, index_to_label(i));
 
 						/* Steal the items */
-						inven_item_increase(Ind, i, -1);
-						inven_item_optimize(Ind, i);
+						inven_item_increase(p_ptr, i, -1);
+						inven_item_optimize(p_ptr, i);
 
 						/* Obvious */
 						obvious = TRUE;
@@ -752,7 +748,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_EAT_LITE:
 				{
 					/* Take some damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Access the lite */
 					o_ptr = &p_ptr->inventory[INVEN_LITE];
@@ -787,7 +783,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					msg_print(p_ptr, "You are covered in acid!");
 
 					/* Special damage */
-					acid_dam(Ind, damage, ddesc);
+					acid_dam(p_ptr, damage, ddesc);
 
 					/* Learn about the player */
 					update_smart_learn(m_idx, DRS_ACID);
@@ -804,7 +800,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					msg_print(p_ptr, "You are struck by electricity!");
 
 					/* Special damage */
-					elec_dam(Ind, damage, ddesc);
+					elec_dam(p_ptr, damage, ddesc);
 
 					/* Learn about the player */
 					update_smart_learn(m_idx, DRS_ELEC);
@@ -821,7 +817,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					msg_print(p_ptr, "You are enveloped in flames!");
 
 					/* Special damage */
-					fire_dam(Ind, damage, ddesc);
+					fire_dam(p_ptr, damage, ddesc);
 
 					/* Learn about the player */
 					update_smart_learn(m_idx, DRS_FIRE);
@@ -838,7 +834,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					msg_print(p_ptr, "You are covered with frost!");
 
 					/* Special damage */
-					cold_dam(Ind, damage, ddesc);
+					cold_dam(p_ptr, damage, ddesc);
 
 					/* Learn about the player */
 					update_smart_learn(m_idx, DRS_COLD);
@@ -849,12 +845,12 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_BLIND:
 				{
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Increase "blind" */
 					if (!p_ptr->resist_blind)
 					{
-						if (set_blind(Ind, p_ptr->blind + 10 + randint(rlev)))
+						if (set_blind(p_ptr, p_ptr->blind + 10 + randint(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -869,12 +865,12 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_CONFUSE:
 				{
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Increase "confused" */
 					if (!p_ptr->resist_conf)
 					{
-						if (set_confused(Ind, p_ptr->confused + 3 + randint(rlev)))
+						if (set_confused(p_ptr, p_ptr->confused + 3 + randint(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -889,7 +885,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_TERRIFY:
 				{
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Increase "afraid" */
 					if (p_ptr->resist_fear)
@@ -904,7 +900,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					}
 					else
 					{
-						if (set_afraid(Ind, p_ptr->afraid + 3 + randint(rlev)))
+						if (set_afraid(p_ptr, p_ptr->afraid + 3 + randint(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -919,7 +915,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_PARALYZE:
 				{
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Increase "paralyzed" */
 					if (p_ptr->free_act)
@@ -934,7 +930,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					}
 					else
 					{
-						if (set_paralyzed(Ind, p_ptr->paralyzed + 3 + randint(rlev)))
+						if (set_paralyzed(p_ptr, p_ptr->paralyzed + 3 + randint(rlev)))
 						{
 							obvious = TRUE;
 							
@@ -952,10 +948,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_STR:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_STR)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_STR)) obvious = TRUE;
 
 					break;
 				}
@@ -963,10 +959,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_INT:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_INT)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_INT)) obvious = TRUE;
 
 					break;
 				}
@@ -974,10 +970,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_WIS:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_WIS)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_WIS)) obvious = TRUE;
 
 					break;
 				}
@@ -985,10 +981,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_DEX:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_DEX)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_DEX)) obvious = TRUE;
 
 					break;
 				}
@@ -996,10 +992,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_CON:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_CON)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_CON)) obvious = TRUE;
 
 					break;
 				}
@@ -1007,10 +1003,10 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_CHR:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stat) */
-					if (do_dec_stat(Ind, A_CHR)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_CHR)) obvious = TRUE;
 
 					break;
 				}
@@ -1018,15 +1014,15 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_LOSE_ALL:
 				{
 					/* Damage (physical) */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Damage (stats) */
-					if (do_dec_stat(Ind, A_STR)) obvious = TRUE;
-					if (do_dec_stat(Ind, A_DEX)) obvious = TRUE;
-					if (do_dec_stat(Ind, A_CON)) obvious = TRUE;
-					if (do_dec_stat(Ind, A_INT)) obvious = TRUE;
-					if (do_dec_stat(Ind, A_WIS)) obvious = TRUE;
-					if (do_dec_stat(Ind, A_CHR)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_STR)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_DEX)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_CON)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_INT)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_WIS)) obvious = TRUE;
+					if (do_dec_stat(p_ptr, A_CHR)) obvious = TRUE;
 
 					break;
 				}
@@ -1040,7 +1036,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					damage -= (damage * ((ac < 150) ? ac : 150) / 250);
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Radius 8 earthquake centered at the monster */
 					if (damage > 23) earthquake(p_ptr->dun_depth, m_ptr->fy, m_ptr->fx, 8);
@@ -1054,7 +1050,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					obvious = TRUE;
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					if (p_ptr->hold_life && (rand_int(100) < 95))
 					{
@@ -1066,12 +1062,12 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (p_ptr->hold_life)
 						{
 							msg_print(p_ptr, "You feel your life slipping away!");
-							lose_exp(Ind, d/10);
+							lose_exp(p_ptr, d/10);
 						}
 						else
 						{
 							msg_print(p_ptr, "You feel your life draining away!");
-							lose_exp(Ind, d);
+							lose_exp(p_ptr, d);
 						}
 					}
 					break;
@@ -1083,7 +1079,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					obvious = TRUE;
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					if (p_ptr->hold_life && (rand_int(100) < 90))
 					{
@@ -1095,12 +1091,12 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (p_ptr->hold_life)
 						{
 							msg_print(p_ptr, "You feel your life slipping away!");
-							lose_exp(Ind, d/10);
+							lose_exp(p_ptr, d/10);
 						}
 						else
 						{
 							msg_print(p_ptr, "You feel your life draining away!");
-							lose_exp(Ind, d);
+							lose_exp(p_ptr, d);
 						}
 					}
 					break;
@@ -1112,7 +1108,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					obvious = TRUE;
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					if (p_ptr->hold_life && (rand_int(100) < 75))
 					{
@@ -1124,12 +1120,12 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (p_ptr->hold_life)
 						{
 							msg_print(p_ptr, "You feel your life slipping away!");
-							lose_exp(Ind, d/10);
+							lose_exp(p_ptr, d/10);
 						}
 						else
 						{
 							msg_print(p_ptr, "You feel your life draining away!");
-							lose_exp(Ind, d);
+							lose_exp(p_ptr, d);
 						}
 					}
 					break;
@@ -1141,7 +1137,7 @@ bool make_attack_normal(int Ind, int m_idx)
 					obvious = TRUE;
 
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					if (p_ptr->hold_life && (rand_int(100) < 50))
 					{
@@ -1153,12 +1149,12 @@ bool make_attack_normal(int Ind, int m_idx)
 						if (p_ptr->hold_life)
 						{
 							msg_print(p_ptr, "You feel your life slipping away!");
-							lose_exp(Ind, d/10);
+							lose_exp(p_ptr, d/10);
 						}
 						else
 						{
 							msg_print(p_ptr, "You feel your life draining away!");
-							lose_exp(Ind, d);
+							lose_exp(p_ptr, d);
 						}
 					}
 					break;
@@ -1167,12 +1163,12 @@ bool make_attack_normal(int Ind, int m_idx)
 				case RBE_HALLU:
 				{
 					/* Take damage */
-					take_hit(Ind, damage, ddesc);
+					take_hit(p_ptr, damage, ddesc);
 
 					/* Increase "image" */
 					if (!p_ptr->resist_chaos)
 					{
-						if (set_image(Ind, p_ptr->image + 3 + randint(rlev / 2)))
+						if (set_image(p_ptr, p_ptr->image + 3 + randint(rlev / 2)))
 						{
 							obvious = TRUE;
 						}
@@ -1219,7 +1215,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				}
 
 				/* Apply the cut */
-				if (k) (void)set_cut(Ind, p_ptr->cut + k);
+				if (k) (void)set_cut(p_ptr, p_ptr->cut + k);
 			}
 
 			/* Handle stun */
@@ -1244,7 +1240,7 @@ bool make_attack_normal(int Ind, int m_idx)
 				}
 
 				/* Apply the stun */
-				if (k) (void)set_stun(Ind, p_ptr->stun + k);
+				if (k) (void)set_stun(p_ptr, p_ptr->stun + k);
 			}
 		}
 

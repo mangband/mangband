@@ -571,6 +571,7 @@
 #define Send_char_p(P,X,Y,A,C) stream_char_raw(P,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
 #define Send_tile(P,X,Y,A,C,TA,TC) stream_char_raw((P),DUNGEON_STREAM_p((P)),Y,X,A,C,TA,TC)
 #define Stream_tile(I,P,Y,X) stream_char(Players[I],DUNGEON_STREAM_p(P),Y,X);
+#define Stream_tile_p(P,Y,X) stream_char(P,DUNGEON_STREAM_p(P),Y,X);
 
 /*
  * The types of special file perusal.
@@ -606,7 +607,7 @@
 /* Hack -- overloaded guard-inscriptions */
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
 /* Hack -- check guard inscription and abort (chunk of code) */
-#define __trap(I,X) if ((X)) { msg_print(Players[(I)], "The item's inscription prevents it."); return; }
+#define __trap(P,X) if ((X)) { msg_print((P), "The item's inscription prevents it."); return; }
 /* Hack -- ensure a variable fits into ddx/ddy array bounds */
 #define VALID_DIR(D) ((D) > 0 && (D) < 10)
 

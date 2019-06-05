@@ -1031,9 +1031,8 @@ static void describe_monster_toughness(int r_idx, const monster_lore *l_ptr)
 }
 
 
-static void describe_monster_exp(int Ind, int r_idx, const monster_lore *l_ptr)
+static void describe_monster_exp(player_type *p_ptr, int r_idx, const monster_lore *l_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	const monster_race *r_ptr = &r_info[r_idx];
 
 	cptr p, q;
@@ -1291,15 +1290,13 @@ void describe_monster_name(int r_idx)
  * left edge of the screen, on a cleared line, in which the recall is
  * to take place.  One extra blank line is left after the recall.
  */
-void describe_monster(int Ind, int r_idx, bool spoilers)
+void describe_monster(player_type *p_ptr, int r_idx, bool spoilers)
 {
 	const monster_race *r_ptr = &r_info[r_idx];
 	monster_lore lore;
 	monster_lore *l_ptr;
-	player_type	*p_ptr;
 	
 	/* Get the race and lore */
-	p_ptr = Players[Ind];
 	l_ptr = p_ptr->l_list + r_idx;
 
 	/* Hack -- create a copy of the monster-memory */
@@ -1337,7 +1334,7 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 	describe_monster_movement(r_idx, &lore, option_p(p_ptr, DEPTH_IN_FEET));
 
 	/* Describe experience */
-	if (!spoilers) describe_monster_exp(Ind, r_idx, &lore);
+	if (!spoilers) describe_monster_exp(p_ptr, r_idx, &lore);
 
 	/* Describe spells and innate attacks */
 	describe_monster_spells(r_idx, &lore);

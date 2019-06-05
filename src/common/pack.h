@@ -189,7 +189,7 @@
 #define SCHEME_ITEM_SMALL_STRING 27
 #define SCHEME_ITEM_SMALL_CHAR   28
 
-#define SCHEME_PPTR_CHAR         29
+#define SCHEME_PPTR_CHAR         29 /* TODO: deprecate this scheme! */
 
 #define SCHEME_LAST 	SCHEME_ITEM_SMALL_CHAR
 

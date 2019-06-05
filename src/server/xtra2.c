@@ -14,7 +14,7 @@
 
 #define TOGGLE_BIT(WHAT, BIT) (WHAT) ^= (BIT)
 
-int get_player(int Ind, object_type *o_ptr)
+int get_player(player_type *p_ptr, object_type *o_ptr)
 {
 	/* player_type *p_ptr = Players[Ind]; */
 	bool ok = FALSE;
@@ -25,7 +25,7 @@ int get_player(int Ind, object_type *o_ptr)
 	/* check for a valid inscription */
 	if (inscription == NULL)
 	{
-		msg_print(Players[Ind], "Nobody to use the power with.");
+		msg_print(p_ptr, "Nobody to use the power with.");
 		return 0;
 	}
 
@@ -51,18 +51,18 @@ int get_player(int Ind, object_type *o_ptr)
 
 	if (!ok)
 	{
-		msg_print(Players[Ind], "Player is not on.");
+		msg_print(p_ptr, "Player is not on.");
 		return 0;
 	}
 
 	return Ind2;
 }
 
-void player_dump(int Ind)
+void player_dump(player_type *p_ptr)
 {
 	char dumpname[42];
-	strnfmt(dumpname, 42, "%s-%s.txt", Players[Ind]->name, ht_show(&turn,0));
-	file_character_server(Ind,dumpname);
+	strnfmt(dumpname, 42, "%s-%s.txt", p_ptr->name, ht_show(&turn,0));
+	file_character_server(p_ptr,dumpname);
 }
 
 /*
@@ -87,10 +87,8 @@ bool set_noise(player_type *p_ptr, int v)
  * Note that blindness is currently the only thing which can affect
  * "player_can_see_bold()".
  */
-bool set_blind(int Ind, int v)
+bool set_blind(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* the admin wizard can not be blinded */
@@ -161,10 +159,8 @@ bool set_blind(int Ind, int v)
 /*
  * Set "p_ptr->confused", notice observable changes
  */
-bool set_confused(int Ind, int v)
+bool set_confused(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -216,10 +212,8 @@ bool set_confused(int Ind, int v)
 /*
  * Set "p_ptr->poisoned", notice observable changes
  */
-bool set_poisoned(int Ind, int v)
+bool set_poisoned(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -270,10 +264,8 @@ bool set_poisoned(int Ind, int v)
 /*
  * Set "p_ptr->afraid", notice observable changes
  */
-bool set_afraid(int Ind, int v)
+bool set_afraid(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -326,10 +318,8 @@ bool set_afraid(int Ind, int v)
 /*
  * Set "p_ptr->paralyzed", notice observable changes
  */
-bool set_paralyzed(int Ind, int v)
+bool set_paralyzed(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -384,10 +374,8 @@ bool set_paralyzed(int Ind, int v)
  *
  * Note that we must redraw the map when hallucination changes.
  */
-bool set_image(int Ind, int v)
+bool set_image(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -447,10 +435,8 @@ bool set_image(int Ind, int v)
 /*
  * Set "p_ptr->fast", notice observable changes
  */
-bool set_fast(int Ind, int v)
+bool set_fast(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -503,10 +489,8 @@ bool set_fast(int Ind, int v)
 /*
  * Set "p_ptr->slow", notice observable changes
  */
-bool set_slow(int Ind, int v)
+bool set_slow(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -559,10 +543,8 @@ bool set_slow(int Ind, int v)
 /*
  * Set "p_ptr->shield", notice observable changes
  */
-bool set_shield(int Ind, int v)
+bool set_shield(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -614,10 +596,8 @@ bool set_shield(int Ind, int v)
 /*
  * Set "p_ptr->blessed", notice observable changes
  */
-bool set_blessed(int Ind, int v)
+bool set_blessed(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -668,10 +648,8 @@ bool set_blessed(int Ind, int v)
 /*
  * Set "p_ptr->hero", notice observable changes
  */
-bool set_hero(int Ind, int v)
+bool set_hero(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -725,10 +703,8 @@ bool set_hero(int Ind, int v)
 /*
  * Set "p_ptr->shero", notice observable changes
  */
-bool set_shero(int Ind, int v)
+bool set_shero(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -782,10 +758,8 @@ bool set_shero(int Ind, int v)
 /*
  * Set "p_ptr->protevil", notice observable changes
  */
-bool set_protevil(int Ind, int v)
+bool set_protevil(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -833,10 +807,8 @@ bool set_protevil(int Ind, int v)
 /*
  * Set "p_ptr->invuln", notice observable changes
  */
-bool set_invuln(int Ind, int v)
+bool set_invuln(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -887,10 +859,8 @@ bool set_invuln(int Ind, int v)
 /*
  * Set "p_ptr->tim_invis", notice observable changes
  */
-bool set_tim_invis(int Ind, int v)
+bool set_tim_invis(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -944,10 +914,8 @@ bool set_tim_invis(int Ind, int v)
 /*
  * Set "p_ptr->tim_infra", notice observable changes
  */
-bool set_tim_infra(int Ind, int v)
+bool set_tim_infra(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1001,10 +969,8 @@ bool set_tim_infra(int Ind, int v)
 /*
  * Set "p_ptr->oppose_acid", notice observable changes
  */
-bool set_oppose_acid(int Ind, int v)
+bool set_oppose_acid(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1054,10 +1020,8 @@ bool set_oppose_acid(int Ind, int v)
 /*
  * Set "p_ptr->oppose_elec", notice observable changes
  */
-bool set_oppose_elec(int Ind, int v)
+bool set_oppose_elec(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1107,10 +1071,8 @@ bool set_oppose_elec(int Ind, int v)
 /*
  * Set "p_ptr->oppose_fire", notice observable changes
  */
-bool set_oppose_fire(int Ind, int v)
+bool set_oppose_fire(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1160,10 +1122,8 @@ bool set_oppose_fire(int Ind, int v)
 /*
  * Set "p_ptr->oppose_cold", notice observable changes
  */
-bool set_oppose_cold(int Ind, int v)
+bool set_oppose_cold(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1213,10 +1173,8 @@ bool set_oppose_cold(int Ind, int v)
 /*
  * Set "p_ptr->oppose_pois", notice observable changes
  */
-bool set_oppose_pois(int Ind, int v)
+bool set_oppose_pois(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	bool notice = FALSE;
 
 	/* Hack -- Force good values */
@@ -1268,10 +1226,8 @@ bool set_oppose_pois(int Ind, int v)
  *
  * Note the special code to only notice "range" changes.
  */
-bool set_stun(int Ind, int v)
+bool set_stun(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int old_aux, new_aux;
 
 	bool notice = FALSE;
@@ -1410,10 +1366,8 @@ bool set_stun(int Ind, int v)
  *
  * Note the special code to only notice "range" changes.
  */
-bool set_cut(int Ind, int v)
+bool set_cut(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int old_aux, new_aux;
 
 	bool notice = FALSE;
@@ -1633,10 +1587,8 @@ bool set_cut(int Ind, int v)
  * game turns, or 500/(100/5) = 25 player turns (if nothing else is
  * affecting the player speed).
  */
-bool set_food(int Ind, int v)
+bool set_food(player_type *p_ptr, int v)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int old_aux, new_aux;
 
 	bool notice = FALSE;
@@ -1842,10 +1794,8 @@ bool set_food(int Ind, int v)
 /*
  * Advance experience levels and print experience
  */
-void check_experience(int Ind)
+void check_experience(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		i;
 	int 		old_level;
 	char buf[80];
@@ -1954,10 +1904,8 @@ void check_experience(int Ind)
 /*
  * Gain experience
  */
-void gain_exp(int Ind, s32b amount)
+void gain_exp(player_type *p_ptr, s32b amount)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Gain some experience */
 	p_ptr->exp += amount;
 
@@ -1969,17 +1917,15 @@ void gain_exp(int Ind, s32b amount)
 	}
 
 	/* Check Experience */
-	check_experience(Ind);
+	check_experience(p_ptr);
 }
 
 
 /*
  * Lose experience
  */
-void lose_exp(int Ind, s32b amount)
+void lose_exp(player_type *p_ptr, s32b amount)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Never drop below zero experience */
 	if (amount > p_ptr->exp) amount = p_ptr->exp;
 
@@ -1987,7 +1933,7 @@ void lose_exp(int Ind, s32b amount)
 	p_ptr->exp -= amount;
 
 	/* Check Experience */
-	check_experience(Ind);
+	check_experience(p_ptr);
 }
 
 
@@ -2043,10 +1989,9 @@ static int get_coin_type(monster_race *r_ptr)
  */
  
  
-void monster_death(int Ind, int m_idx)
+void monster_death(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr = Players[Ind];
+	player_type *q_ptr = p_ptr;
 
 	int			i, j, y, x, ny, nx, Depth;
 
@@ -2158,7 +2103,7 @@ void monster_death(int Ind, int m_idx)
 			if (c_ptr->m_idx < 0)
 			{
 				msg_print(Players[0 - c_ptr->m_idx], "You feel something roll beneath your feet.");
-				floor_item_notify(0 - c_ptr->m_idx, c_ptr->o_idx, TRUE);
+				floor_item_notify(Players[0 - c_ptr->m_idx], c_ptr->o_idx, TRUE);
 			}
 
 			break;
@@ -2235,7 +2180,7 @@ void monster_death(int Ind, int m_idx)
 			bool visible = (q_ptr->mon_vis[m_idx] || unique);
 
 			/* Take note of the killer (message) */
-			if (unique && (i != Ind))
+			if (unique && (q_ptr != p_ptr))
 			{
 				/*log_history_event(q_ptr, logbuf);*/
 			}
@@ -2243,10 +2188,10 @@ void monster_death(int Ind, int m_idx)
 			if (visible && (dump_item || dump_gold))
 			{
 				/* Take notes on treasure */
-				lore_treasure(i, m_idx, dump_item, dump_gold);
+				lore_treasure(q_ptr, m_idx, dump_item, dump_gold);
 			}
 			/* Death count */
-			if ((share || i == Ind))
+			if ((share || q_ptr == p_ptr))
 			{
 				/* In lore array */
 				if (visible)
@@ -2265,7 +2210,7 @@ void monster_death(int Ind, int m_idx)
 					q_ptr->r_killed[m_ptr->r_idx]++;
 			}
 			/* Mega-Hack -- drop "winner" treasures AND set winners */
-			if (winner && (share || i == Ind))
+			if (winner && (share || q_ptr == p_ptr))
 			{
 				/* Hack -- an "object holder" */
 				object_type prize;
@@ -2310,7 +2255,7 @@ void monster_death(int Ind, int m_idx)
 
 				/* "Winner dump" */
 				(void)strcpy(q_ptr->died_from_list, "winner");
-				player_dump(i);
+				player_dump(q_ptr);
 
 				/* Set his retire_timer if neccecary */
 				if (cfg_retire_timer >= 0)
@@ -2320,11 +2265,11 @@ void monster_death(int Ind, int m_idx)
 				/* Hack -- instantly retire any new winners if neccecary */
 				if (cfg_retire_timer == 0)
 				{
-					do_cmd_suicide(i);
+					do_cmd_suicide(q_ptr);
 				}
 			}
 			/* Process "Quest Monsters" */
-			if (questor && (share || i == Ind)) 
+			if (questor && (share || q_ptr == p_ptr))
 			{
 				/* Hack -- Mark quests as complete */
 				for (j = 0; j < MAX_Q_IDX; j++)
@@ -2384,8 +2329,8 @@ void monster_death(int Ind, int m_idx)
 }
 
 
-/* Find player on arena "a", who is not player "Ind" */
-int pick_arena_opponent(int Ind, int a)
+/* Find player on arena "a", who is not player "p_ptr" */
+int pick_arena_opponent(player_type *p_ptr, int a)
 {
 #if 1
 	int i, found = -1, count = 0;	
@@ -2395,7 +2340,7 @@ int pick_arena_opponent(int Ind, int a)
 	 	if (Players[i]->arena_num == a)
 	 	{
 			/* Found some one */
-	 		if (Ind != i)
+			if (p_ptr != Players[i])
 	 		{
 	 			count++;
 	 			found = i; 
@@ -2444,8 +2389,7 @@ int pick_arena(int Depth, int y, int x)
 /*
  * Access Arena (Player touches it's wall in "py","px")
  */
-void access_arena(int Ind, int py, int px) {
-	player_type *p_ptr = Players[Ind];
+void access_arena(player_type *p_ptr, int py, int px) {
 	int a, tmp_id = -1, tmp_count = 0;
 	
 	/* Allready inside one */
@@ -2460,7 +2404,7 @@ void access_arena(int Ind, int py, int px) {
 	}
 
 	/* Count other players in this arena */
-	if ((tmp_id = pick_arena_opponent(Ind, a)) != -1)
+	if ((tmp_id = pick_arena_opponent(p_ptr, a)) != -1)
 	{
 		tmp_count++;
 	}
@@ -2474,7 +2418,7 @@ void access_arena(int Ind, int py, int px) {
 		{
 			msg_print(p_ptr, "You leave the arena.");
 			p_ptr->arena_num = -1;  
-			teleport_player(Ind, 1);
+			teleport_player(p_ptr, 1);
 		}
 		else
 			msg_print(p_ptr, "There is a wall blocking your way.");
@@ -2486,7 +2430,7 @@ void access_arena(int Ind, int py, int px) {
 		if (tmp_count < 2) 
 		{
 			msg_print(p_ptr, "You enter an ancient fighting pit.");
-			teleport_player_to(Ind, arenas[a].y_1+1+randint(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint(arenas[a].x_2-arenas[a].x_1-2) );
+			teleport_player_to(p_ptr, arenas[a].y_1+1+randint(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint(arenas[a].x_2-arenas[a].x_1-2) );
 			p_ptr->arena_num = a;
 		}
 		else
@@ -2496,45 +2440,47 @@ void access_arena(int Ind, int py, int px) {
 		if (tmp_count == 1) 
 		{
 			/* Declare hostility */
-			add_hostility(Players[Ind], Players[tmp_id]->name);
-			add_hostility(Players[tmp_id], Players[Ind]->name);
+			add_hostility(p_ptr, Players[tmp_id]->name);
+			add_hostility(Players[tmp_id], p_ptr->name);
 		}
 	}
     
 
 }
 /* Cleanup after PvP Fight in the arena */
-void evacuate_arena(int Ind) {
+void evacuate_arena(player_type *p_ptr) {
 	char buf[100];
 	int a, tmp_id = 0;
-	player_type *p_ptr = Players[Ind];
 	buf[0] = '\0';
 	a = p_ptr->arena_num;
-	tmp_id = pick_arena_opponent(Ind, a);
+	tmp_id = pick_arena_opponent(p_ptr, a);
 	
 	/* Loser */
-	if (tmp_id != -1 && tmp_id != Ind) 
+	if (tmp_id != -1 && Players[tmp_id] != p_ptr)
 	{
+		/* Get winner */
+		player_type *q_ptr = Players[tmp_id];
+
 		/* Friendship */
-		remove_hostility(Players[tmp_id], Players[Ind]->name);
-		remove_hostility(p_ptr, Players[tmp_id]->name);
+		remove_hostility(q_ptr, p_ptr->name);
+		remove_hostility(p_ptr, q_ptr->name);
 
 		/* Messages */
 		sprintf(buf, "You knock %s out.", p_ptr->name);
-		msg_print(Players[tmp_id], buf);
-		sprintf(buf, "%s was defeated by %s.", p_ptr->name, Players[tmp_id]->name);
+		msg_print(q_ptr, buf);
+		sprintf(buf, "%s was defeated by %s.", p_ptr->name, q_ptr->name);
 		msg_broadcast(NULL, buf); //Notice broadcast
 		msg_print(p_ptr, "You recover oneself outside the arena.");
-		msg_print(Players[tmp_id], "You gloriously leave the arena.");
+		msg_print(q_ptr, "You gloriously leave the arena.");
 		
 		/* Heal */
-		Players[tmp_id]->chp = Players[tmp_id]->mhp - 1;
-		Players[tmp_id]->chp_frac = 0;
-		Players[tmp_id]->redraw |= PR_HP;
+		q_ptr->chp = Players[tmp_id]->mhp - 1;
+		q_ptr->chp_frac = 0;
+		q_ptr->redraw |= PR_HP;
 		
 		/* Teleport */
-		Players[tmp_id]->arena_num = -1;
-		teleport_player(tmp_id, 20);
+		q_ptr->arena_num = -1;
+		teleport_player(q_ptr, 20);
 	}
 	
 	/* Winner */
@@ -2546,7 +2492,7 @@ void evacuate_arena(int Ind) {
 		
 		/* Teleport */
 		p_ptr->arena_num = -1;
-		teleport_player(Ind, 20);
+		teleport_player(p_ptr, 20);
 	}
 }
 
@@ -2556,9 +2502,8 @@ void evacuate_arena(int Ind) {
  */
 
 /* Bring back to life the uniques player slew */
-void ressurect_uniques(int Ind)
+void ressurect_uniques(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	u32b uniques;
 	int i;
 
@@ -2593,9 +2538,8 @@ void ressurect_uniques(int Ind)
 }
 
 /* Drop all inventory */
-void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect)
+void player_strip(player_type *p_ptr, bool gold, bool objects, bool artifacts, bool protect)
 {
-	player_type *p_ptr = Players[Ind];
 	char o_inscribe[80];
 	s16b item_weight = 0;
 	int i;
@@ -2669,7 +2613,7 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 		else
 		{
 			/* We dropped the item on the floor */
-			inven_item_increase(Ind, i, -p_ptr->inventory[i].number);
+			inven_item_increase(p_ptr, i, -p_ptr->inventory[i].number);
 		}
 		/* forget about it */
 		WIPE(&p_ptr->inventory[i], object_type);
@@ -2681,9 +2625,8 @@ void player_strip(int Ind, bool gold, bool objects, bool artifacts, bool protect
 }
 
 /* Destroy the character completely */
-void player_funeral(int Ind, char *reason)
+void player_funeral(player_type *p_ptr, char *reason)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 
 	/* Disown any houses he owns */
@@ -2712,11 +2655,11 @@ void player_funeral(int Ind, char *reason)
 	delete_player_name(p_ptr->name);
 
 	/* Put him on the high score list */
-	add_high_score(Ind);
+	add_high_score(p_ptr);
 
 	/* Get rid of him */
 	player_disconnect(p_ptr, reason); /* Disconnect client */
-	player_leave(Ind);	/* Remove from playerlist */
+	player_leave(Get_Ind[p_ptr->conn]); /* Remove from playerlist */
 
 	/* Done */
 	return;
@@ -2725,9 +2668,8 @@ void player_funeral(int Ind, char *reason)
 
 /* Handle player death, cheating it when nessecary */
 /* HACKED to handle fruit bat -APD- */ 
-void player_death(int Ind)
+void player_death(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	bool drop_items;
 	char buf[1024];
 	bool hide = dm_flag_p(p_ptr, SECRET_PRESENCE);
@@ -2746,7 +2688,7 @@ void player_death(int Ind)
 	{
 	    p_ptr->death = FALSE;
 	    msg_print(p_ptr, "You lose consciousness.");
-	    evacuate_arena(Ind);
+	    evacuate_arena(p_ptr);
 	    return;
 	}
 
@@ -2775,7 +2717,7 @@ void player_death(int Ind)
 	}
 
 	/* Bring back all the uniques he slew */
-	ressurect_uniques(Ind);
+	ressurect_uniques(p_ptr);
 
 	/* Handle suicide */
 	if (!p_ptr->alive)
@@ -2792,10 +2734,10 @@ void player_death(int Ind)
 		if (!hide) msg_broadcast(p_ptr, buf);
 
 		/* Release artifacts */
-		player_strip(Ind, FALSE, FALSE, FALSE, FALSE);
+		player_strip(p_ptr, FALSE, FALSE, FALSE, FALSE);
 
 		/* Get rid of him */
-		player_funeral(Ind, "Commited suicide");
+		player_funeral(p_ptr, "Commited suicide");
 
 		/* Done */
 		return;
@@ -2808,7 +2750,7 @@ void player_death(int Ind)
 		if (!hide) msg_broadcast(p_ptr, format("%s's ghost was destroyed by %s.", p_ptr->name, p_ptr->died_from));
 
 		/* Get rid of him */
-		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
+		player_funeral(p_ptr, format("Killed by %s", p_ptr->died_from));
 
 		/* Done */
 		return;
@@ -2834,7 +2776,7 @@ void player_death(int Ind)
 	if (!hide) msg_broadcast(p_ptr, buf);
 
 	/* Character dump here, before we start dropping items */
-	player_dump(Ind);
+	player_dump(p_ptr);
 
 	/* Drop (or destroy?) items */
 	drop_items = TRUE;
@@ -2845,13 +2787,13 @@ void player_death(int Ind)
 	}
 
 	/* Drop all items on floor */
-	player_strip(Ind, drop_items, drop_items, drop_items, FALSE);
+	player_strip(p_ptr, drop_items, drop_items, drop_items, FALSE);
 
 	/* Last chance to survive death: */
 	if (cfg_ironman || option_p(p_ptr, NO_GHOST))
 	{
 		/* Get rid of him */
-		player_funeral(Ind, format("Killed by %s", p_ptr->died_from));
+		player_funeral(p_ptr, format("Killed by %s", p_ptr->died_from));
 
 		/* Done */
 		return;
@@ -2874,19 +2816,19 @@ void player_death(int Ind)
 		p_ptr->ghost = 1;
 
 		/* Teleport him */
-		teleport_player(Ind, 200);
+		teleport_player(p_ptr, 200);
 	}
 
 	/* Cure him from various maladies */
-	if (p_ptr->image) (void)set_image(Ind, 0);
-	if (p_ptr->blind) (void)set_blind(Ind, 0);
-	if (p_ptr->paralyzed) (void)set_paralyzed(Ind, 0);
-	if (p_ptr->confused) (void)set_confused(Ind, 0);
-	if (p_ptr->poisoned) (void)set_poisoned(Ind, 0);
-	if (p_ptr->stun) (void)set_stun(Ind, 0);
-	if (p_ptr->cut) (void)set_cut(Ind, 0);
-	if (p_ptr->shero) (void)set_shero(Ind, 0);
-	if (p_ptr->fruit_bat != -1) (void)set_food(Ind, PY_FOOD_MAX - 1);
+	if (p_ptr->image) (void)set_image(p_ptr, 0);
+	if (p_ptr->blind) (void)set_blind(p_ptr, 0);
+	if (p_ptr->paralyzed) (void)set_paralyzed(p_ptr, 0);
+	if (p_ptr->confused) (void)set_confused(p_ptr, 0);
+	if (p_ptr->poisoned) (void)set_poisoned(p_ptr, 0);
+	if (p_ptr->stun) (void)set_stun(p_ptr, 0);
+	if (p_ptr->cut) (void)set_cut(p_ptr, 0);
+	if (p_ptr->shero) (void)set_shero(p_ptr, 0);
+	if (p_ptr->fruit_bat != -1) (void)set_food(p_ptr, PY_FOOD_MAX - 1);
 	else p_ptr->fruit_bat = 2;
 
 	/* Remove the death flag */
@@ -2921,10 +2863,8 @@ void player_death(int Ind)
     Hmm, haven't gotten around to doing this yet...
  */
  
-void resurrect_player(int Ind)
+void resurrect_player(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Hack -- the dungeon master can not ressurect */
 	if (is_dm_p(p_ptr)) return;
 
@@ -2937,7 +2877,7 @@ void resurrect_player(int Ind)
 	/* Lose some experience */
 	p_ptr->max_exp -= p_ptr->max_exp / 2;
 	p_ptr->exp -= p_ptr->exp / 2; 	
-	check_experience(Ind);
+	check_experience(p_ptr);
 
 	/* If we resurrect in town, we get a little cash */
 	if (!p_ptr->dun_depth && p_ptr->lev >= 5)
@@ -2994,10 +2934,8 @@ void resurrect_player(int Ind)
  * monster worth more than subsequent monsters.  This would also need
  * to induce changes in the monster recall code.
  */
-bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
+bool mon_take_hit(player_type *p_ptr, int m_idx, int dam, bool *fear, cptr note)
 {
-	player_type *p_ptr = Players[Ind];
-
 	monster_type	*m_ptr = &m_list[m_idx];
 
 	monster_race	*r_ptr = &r_info[m_ptr->r_idx];
@@ -3041,7 +2979,7 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 		}
 
 		/* Extract monster name */
-		monster_desc(Ind, m_name, m_idx, 0);
+		monster_desc(p_ptr, m_name, m_idx, 0);
 
 		/* Make a sound */
 		sound(p_ptr, soundfx);
@@ -3114,12 +3052,12 @@ bool mon_take_hit(int Ind, int m_idx, int dam, bool *fear, cptr note)
 				}
 	
 				/* Gain experience */
-				gain_exp(Ind, new_exp);
+				gain_exp(p_ptr, new_exp);
 			}
 		}
 
 		/* Generate treasure */
-		monster_death(Ind, m_idx);
+		monster_death(p_ptr, m_idx);
 
 		/* When the player kills a Unique, it stays dead */
 		//if (r_ptr->flags1 & RF1_UNIQUE) r_ptr->max_num = 0;
@@ -4017,7 +3955,7 @@ static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 				if (m_idx < 0 && (Players[0 - m_idx] == p_ptr)) continue;
 
 				/* If it's a player, he must not be friendly */
-				if (m_idx < 0 && (!pvp_okay(Get_Ind[p_ptr->conn], 0 - m_idx, 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
+				if (m_idx < 0 && (!pvp_okay(p_ptr, Players[0 - m_idx], 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
 			}
 			else if (mode & (TARGET_FRND))
 			{
@@ -4031,7 +3969,7 @@ static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 				if (!target_able(p_ptr, m_idx)) continue;
 
 				/* Must be friendly player */
-				if (pvp_okay(Ind, 0 - m_idx, 0) || check_hostile(Players[0 - m_idx], p_ptr)) continue;
+				if (pvp_okay(p_ptr, Players[0 - m_idx], 0) || check_hostile(Players[0 - m_idx], p_ptr)) continue;
 			}
 			
 			/* Save the location */
@@ -4166,7 +4104,7 @@ static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mod
 			/* Hack -- cancel monster tracking */
 			monster_race_track(p_ptr, -1);
 			/* Hack -- call descriptive function */
-			do_cmd_monster_desc_aux(Get_Ind[p_ptr->conn], m_idx, TRUE);
+			do_cmd_monster_desc_aux(p_ptr, m_idx, TRUE);
 			/* Hack -- pop up immediatly */
 			force_recall = TRUE;
 		}
@@ -4179,7 +4117,7 @@ static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mod
 		char m_name[80];
 
 		/* Get the monster name ("a kobold") */
-		monster_desc(Get_Ind[p_ptr->conn], m_name, m_idx, 0);
+		monster_desc(p_ptr, m_name, m_idx, 0);
 
 		/* Hack -- track this monster race */
 		monster_race_track(p_ptr, m_ptr->r_idx);
@@ -4598,7 +4536,7 @@ bool target_set_interactive(player_type *p_ptr, int mode, char query)
 
 			case 'g':
 			{
-				do_cmd_pathfind(Get_Ind[p_ptr->conn], y, x);
+				do_cmd_pathfind(p_ptr, y, x);
 				done = TRUE;
 				break;
 			}
@@ -4708,7 +4646,7 @@ bool target_set_interactive(player_type *p_ptr, int mode, char query)
 
 			case 'g':
 			{
-				do_cmd_pathfind(Get_Ind[p_ptr->conn], p_ptr->look_y, p_ptr->look_x);
+				do_cmd_pathfind(p_ptr, p_ptr->look_y, p_ptr->look_x);
 				done = TRUE;
 				break;
 			}
@@ -4920,11 +4858,9 @@ bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
  *
  * We just ask the client to send us a direction, unless we are confused --KLJ--
  */
-bool get_aim_dir(int Ind, int *dp)
+bool get_aim_dir(player_type *p_ptr, int *dp)
 {
 	int		dir = 0;
-	player_type *p_ptr = Players[Ind];
-
 
 	/* Global direction */
 	dir = p_ptr->command_dir;
@@ -4957,11 +4893,9 @@ bool get_aim_dir(int Ind, int *dp)
 }
 
 
-bool get_item(int Ind, int *cp, byte tval_hook)
+bool get_item(player_type *p_ptr, int *cp, byte tval_hook)
 {
 	int		item = 0;
-	player_type *p_ptr = Players[Ind];
-
 
 	/* Ready */
 	item = p_ptr->command_arg;
@@ -4971,7 +4905,7 @@ bool get_item(int Ind, int *cp, byte tval_hook)
 	if (item == -2)  
 	{
 		/* Ask player */
-		Send_item_request(Ind, tval_hook);
+		Send_item_request(p_ptr, tval_hook);
 		
 		/* Cancel selection (for now) */
 		return (FALSE);
@@ -5088,72 +5022,63 @@ bool confuse_dir(bool confused, int *dp)
 
 /* this has finally earned its own function, to make it easy for restoration to do this also */
 
-bool do_scroll_life(int Ind)
+bool do_scroll_life(player_type *p_ptr)
 {
-	int x,y;
-	
-	player_type * p_ptr = Players[Ind];
-	cave_type * c_ptr;
-	
+	int x, y;
 	for (y = -1; y <= 1; y++)
 	{
 		for (x = -1; x <= 1; x++)
-	 	{
-	   		c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+y][p_ptr->px+x];
-	
-	  		if ((c_ptr->m_idx < 0) && (cave_floor_bold(p_ptr->dun_depth, p_ptr->py+y, p_ptr->px+x)))
-	   		{
-   				if (Players[0 - c_ptr->m_idx]->ghost)
-   				{
-    					resurrect_player(0 - c_ptr->m_idx);
-   			        	return TRUE;
-      				}
-  			} 
-  		}
-  	}  	
-  	/* we did nore ressurect anyone */
-  	return FALSE; 
-  }
+		{
+			player_type *q_ptr = player_on_cave(p_ptr->dun_depth, p_ptr->py + y, p_ptr->px + x);
+
+			if (q_ptr && (cave_floor_bold(p_ptr->dun_depth, p_ptr->py + y, p_ptr->px + x)))
+			{
+				if (q_ptr->ghost)
+				{
+					resurrect_player(q_ptr);
+					return TRUE;
+				}
+			}
+		}
+	}
+	/* we did nore ressurect anyone */
+	return FALSE;
+}
 
 
 /* modified above function to instead restore XP... used in priest spell rememberence */
-bool do_restoreXP_other(int Ind)
+bool do_restoreXP_other(player_type *p_ptr)
 {
-	int x,y;
-	
-	player_type * p_ptr = Players[Ind];
-	cave_type * c_ptr;
-	
+	int x, y;
 	for (y = -1; y <= 1; y++)
 	{
 		for (x = -1; x <= 1; x++)
-	 	{
-	   		c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+y][p_ptr->px+x];
-	
-	  		if (c_ptr->m_idx < 0)
-	   		{
-   				if (Players[0 - c_ptr->m_idx]->exp < Players[0 - c_ptr->m_idx]->max_exp)
-   				{
-    					restore_level(0 - c_ptr->m_idx);
-   			        	return TRUE;
-      				}
-  			} 
-  		}
-  	}  	
-  	/* we did nore ressurect anyone */
-  	return FALSE; 
-  }
-  
+		{
+			player_type *q_ptr = player_on_cave(p_ptr->dun_depth, p_ptr->py + y, p_ptr->px + x);
+			if (q_ptr)
+			{
+				if (q_ptr->exp < q_ptr->max_exp)
+				{
+					restore_level(q_ptr);
+					return TRUE;
+				}
+			}
+		}
+	}
+	/* we did nore ressurect anyone */
+	return FALSE;
+}
+
 
 /* Hack -- since the framerate has been boosted by five times since version
  * 0.6.0 to make game movement more smooth, we return the old level speed
  * times five to keep the same movement rate.
  */
 
-u32b level_speed(int Ind)
+u32b level_speed(int Depth)
 {
-	if ( Ind <= 0) return level_speeds[0]*5;
-	else return level_speeds[Ind]*5;
+	if (Depth <= 0) return level_speeds[0]*5;
+	else return level_speeds[Depth]*5;
 }
 
 /* Hack -- return TRUE if there are monsters in LoS, FALSE otherwise. */
@@ -5205,9 +5130,8 @@ bool monsters_in_los(player_type *p_ptr)
  * When calling this function pass slowest as zero, which acts as a flag
  * that this is the main call, not a recursive call.
  */
-int base_time_factor(int Ind, int slowest)
+int base_time_factor(player_type *p_ptr, int slowest)
 {
-	player_type * p_ptr = Players[Ind];
 	player_type * q_ptr;
 	int i, dist, health, timefactor;
 	bool los;
@@ -5280,7 +5204,7 @@ int base_time_factor(int Ind, int slowest)
 			if(dist > MAX_SIGHT) continue;
 			
 			/* Find the slowest time bubble chain we are part of */
-			slowest = base_time_factor(i, timefactor);
+			slowest = base_time_factor(q_ptr, timefactor);
 			
 			/* Use the slowest time bubble */
 			if(slowest < timefactor) timefactor = slowest;
@@ -5293,9 +5217,8 @@ int base_time_factor(int Ind, int slowest)
 /*
  * Determine the given players current time factor.
  */
-int time_factor(int Ind)
+int time_factor(player_type *p_ptr)
 {
-	player_type * p_ptr = Players[Ind];
 	int timefactor, scale;
 
 	/* Normal time scale, 100% */
@@ -5306,7 +5229,7 @@ int time_factor(int Ind)
 
 
 	/* Determine our time scaling factor */
-	timefactor = base_time_factor(Ind, 0);
+	timefactor = base_time_factor(p_ptr, 0);
 	
 	/* Scale our time by our bubbles time factor */
 	scale = scale * ((float)timefactor / 100);
@@ -5681,9 +5604,8 @@ void boot_socials()
 	/* Close it */
 	file_close(fp);
 }
-void show_socials(int Ind)
+void show_socials(player_type *p_ptr)
 {
-	/*player_type *p_ptr = Players[Ind];*/
 	struct social_type *s_ptr;
 	int i, j, b, bi;
 	char out_val[80];
@@ -5710,7 +5632,7 @@ void show_socials(int Ind)
 			flag |= PY_SPELL_AIM;
 
 		/* Send it */
-		send_spell_info(Ind, 12 + b, bi, flag, 0, out_val);
+		send_spell_info(p_ptr, 12 + b, bi, flag, 0, out_val);
 		j++;
 		bi++;
 
@@ -5727,9 +5649,8 @@ static cptr ddd_names[10] =
 {"", "south-east", "south", "south-west", "east", 
  "", "west", "north-east", "north", "north-west" };
 /* Perform a 'social' action */
-void do_cmd_social(int Ind, int dir, int i)
+void do_cmd_social(player_type *p_ptr, int dir, int i)
 {
-	player_type *p_ptr = Players[Ind];
 	struct social_type *s_ptr;
 	bool m_catch = FALSE;
 
@@ -5777,7 +5698,7 @@ void do_cmd_social(int Ind, int dir, int i)
 			char victim[80];
 			if (target > 0)
 			{
-				monster_desc(Ind, victim, target, 0);
+				monster_desc(p_ptr, victim, target, 0);
 				if (s_ptr->others_found)
 					msg_format_complex_near(p_ptr, p_ptr, MSG_SOCIAL,
 						s_ptr->others_found, p_ptr->name, victim);
@@ -5805,17 +5726,16 @@ void do_cmd_social(int Ind, int dir, int i)
 	}
 }
 
-void describe_player(int Ind, int Ind2)
+void describe_player(player_type *q_ptr, player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind2];
 	object_type *o_ptr;
 	char buf[240];
 	char *s;
 
 	int i, j = 0;
 
-	bool spoilers = (Players[Ind]->dm_flags & DM_SEE_PLAYERS ? TRUE : FALSE);
-	bool is_rogue = (c_info[Players[Ind]->pclass].flags & CF_STEALING_IMPROV ? TRUE : FALSE);	
+	bool spoilers = (q_ptr->dm_flags & DM_SEE_PLAYERS ? TRUE : FALSE);
+	bool is_rogue = (c_info[q_ptr->pclass].flags & CF_STEALING_IMPROV ? TRUE : FALSE);
 
 	/* Describe name */
 	text_out(p_ptr->name);
@@ -5918,7 +5838,7 @@ void snapshot_player(player_type *p_ptr, int who)
 	{
 		for (x = 0; x < 80; x++)
 		{
-			map_info(who, y1+y, x1+x, &a, &c, &ta, &tc, FALSE);
+			map_info(q_ptr, y1+y, x1+x, &a, &c, &ta, &tc, FALSE);
 			stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), y, x, a, c, ta, tc);
 		}
 	}
@@ -5929,7 +5849,7 @@ void snapshot_player(player_type *p_ptr, int who)
 		Send_char_p(p_ptr, x, y, status[x].a, status[x].c);
 	}
 
-	y = player_pict(Get_Ind[p_ptr->conn], who);
+	y = player_pict(p_ptr, q_ptr);
 	a = PICT_A(y);
 	c = PICT_C(y);
 	stream_char_raw(p_ptr, BGMAP_STREAM_p(p_ptr), p_ptr->py-y1, p_ptr->px-x1, a, c, a, c);
@@ -6494,7 +6414,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 					}
 					p_ptr->master_parm = Players[y]->id;
 					/*HACK:*/
-					do_cmd_monster_desc_aux(Get_Ind[p_ptr->conn], 0 - y, TRUE);
+					do_cmd_monster_desc_aux(p_ptr, 0 - y, TRUE);
 					if (dm_flag_p(p_ptr,SEE_PLAYERS))
 						snapshot_player(p_ptr, y);
 					send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
@@ -6516,7 +6436,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 						"*", TERM_WHITE, TERM_WHITE)) return;
 						if (buf[0] != 'y' && buf[0] != 'Y') break;
 						debug(format("%s invokes wrath on %s", p_ptr->name, q_ptr->name));
-						take_hit(y, 1000, "a small kobold"); 
+						take_hit(q_ptr, 1000, "a small kobold");
 					break;
 					case 'K':
 						if (q_ptr == p_ptr) { error = "Can't kick self"; break; }
@@ -6527,7 +6447,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 					break;
 					case 'I':
 						if (q_ptr == p_ptr) { error = "Can't invoke self"; break; }
-						if (q_ptr->dun_depth == p_ptr->dun_depth ) { teleport_player_to(y, p_ptr->py, p_ptr->px); break; }
+						if (q_ptr->dun_depth == p_ptr->dun_depth ) { teleport_player_to(q_ptr, p_ptr->py, p_ptr->px); break; }
 						if (!askfor_aux(p_ptr, query, buf, 1, 0, 
 						format("Recall %s to your depth ? [y/n]", q_ptr->name),
 						"*", TERM_WHITE, TERM_WHITE)) return;

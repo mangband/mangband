@@ -1469,9 +1469,8 @@ void fill_prevent_inscription(bool *arr, s16b quark)
  * Refresh combined list of player's preventive inscriptons
  * after an update to his equipment was made. 
  */
-void update_prevent_inscriptions(int Ind)
+void update_prevent_inscriptions(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type *o_ptr;
 	int i;
 
@@ -3267,7 +3266,7 @@ bool askfor_aux(player_type *p_ptr, char query, char *buf, int row, int col, cpt
 		return FALSE;
 	}
 }
-bool ask_for(int Ind, char query, char *buf) 
+bool ask_for(player_type *p_ptr, char query, char *buf)
 {
-	return askfor_aux(Players[Ind], query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
+	return askfor_aux(p_ptr, query, buf, 0, 0, "", "", TERM_DARK, TERM_WHITE);
 }

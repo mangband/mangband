@@ -193,10 +193,8 @@ static cptr do_cmd_feeling_text[11] =
  * generated. See dungeon.c [grk]
  *
  */
-void do_cmd_feeling(int Ind)
+void do_cmd_feeling(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	
 	/* Verify the feeling */
 	if (p_ptr->feeling < 0) p_ptr->feeling = 0;
 	if (p_ptr->feeling > 10) p_ptr->feeling = 10;
@@ -308,9 +306,8 @@ void display_houses(player_type *p_ptr, char query)
  * Why does Ben save the list to a file and then display it?  Seems like a
  * strange way of doing things to me.  --KLJ--
  */
-void do_cmd_check_artifacts(int Ind, int line)
+void do_cmd_check_artifacts(player_type *p_ptr, int line)
 {
-	player_type *p_ptr = Players[Ind];
 	int i, j, k, z, Depth, y, x;
 
 	ang_file* fff;
@@ -482,7 +479,7 @@ void do_cmd_check_artifacts(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Artifacts Seen", line, 1);
+	show_file(p_ptr, file_name, "Artifacts Seen", line, 1);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -498,7 +495,7 @@ void do_cmd_check_artifacts(int Ind, int line)
  * of the slayer (if any) to the list, so the others will know just how
  * powerful any certain player is.  --KLJ--
  */
-void do_cmd_check_uniques(int Ind, int line)
+void do_cmd_check_uniques(player_type *p_ptr, int line)
 {
 	int k, l, i, space, namelen, total = 0, width = 78;
 	ang_file* fff;
@@ -531,7 +528,7 @@ void do_cmd_check_uniques(int Ind, int line)
 		if (r_ptr->flags1 & RF1_UNIQUE)
 		{
 			/* Only display "known" uniques */
-			if ((Players[Ind]->dm_flags & DM_SEE_MONSTERS) || r_ptr->r_sights)
+			if ((p_ptr->dm_flags & DM_SEE_MONSTERS) || r_ptr->r_sights)
 			{
 				l = 0;
 				while (l < total)
@@ -566,7 +563,7 @@ void do_cmd_check_uniques(int Ind, int line)
 				player_type *q_ptr = Players[i];
 				if (q_ptr->r_killed[idx[l]])
 				{
-					if (i == Ind) highlight = 'w';
+					if (q_ptr == p_ptr) highlight = 'w';
 				}
 			}
 			
@@ -619,7 +616,7 @@ void do_cmd_check_uniques(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Known Uniques", line, 1);
+	show_file(p_ptr, file_name, "Known Uniques", line, 1);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -630,15 +627,13 @@ void do_cmd_check_uniques(int Ind, int line)
  *
  * The player's name, race, class, and experience level are shown.
  */
-void do_cmd_check_players(int Ind, int line)
+void do_cmd_check_players(player_type *p_ptr, int line)
 {
 	int k;
 
 	ang_file* fff;
 
 	char file_name[1024];
-
-	player_type *p_ptr = Players[Ind];
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -671,7 +666,7 @@ void do_cmd_check_players(int Ind, int line)
 		/*** Determine color ***/
 
 		/* Print self in green */
-		if (Ind == k) attr = 'G';
+		if (p_ptr == q_ptr) attr = 'G';
 
 		/* Print party members in blue */
 		else if (p_ptr->party && p_ptr->party == q_ptr->party) attr = 'B';
@@ -717,7 +712,7 @@ void do_cmd_check_players(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Player list", line, 1);
+	show_file(p_ptr, file_name, "Player list", line, 1);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -727,7 +722,7 @@ void do_cmd_check_players(int Ind, int line)
 /*
  * Display known objects
  */
-static void do_cmd_knowledge_object(int Ind, int line)
+static void do_cmd_knowledge_object(player_type *p_ptr, int line)
 {
 	int k;
 
@@ -736,9 +731,6 @@ static void do_cmd_knowledge_object(int Ind, int line)
 	char o_name[80];
 
 	char file_name[1024];
-
-	player_type *p_ptr = Players[Ind];
-
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -789,7 +781,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Known Objects", line, 0);
+	show_file(p_ptr, file_name, "Known Objects", line, 0);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -800,7 +792,7 @@ static void do_cmd_knowledge_object(int Ind, int line)
 /*
  * Display kill counts
  */
-static void do_cmd_knowledge_kills(int Ind, int line)
+static void do_cmd_knowledge_kills(player_type *p_ptr, int line)
 {
 	int n, i;
 
@@ -810,8 +802,6 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 
 	u16b *who;
 	u16b why = (SORT_EASY);
-
-	player_type *p_ptr = Players[Ind];
 
 
 	/* Temporary file */
@@ -865,20 +855,17 @@ static void do_cmd_knowledge_kills(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Kill counts", line, 0);
+	show_file(p_ptr, file_name, "Kill counts", line, 0);
 
 	/* Remove the file */
 	file_delete(file_name);
 }
 
-void do_cmd_knowledge_history(int Ind, int line)
+void do_cmd_knowledge_history(player_type *p_ptr, int line)
 {
 	ang_file* fff;
 
 	char file_name[1024];
-
-	player_type *p_ptr = Players[Ind];
-
 
 	/* Temporary file */
 	if (path_temp(file_name, 1024)) return;
@@ -907,7 +894,7 @@ void do_cmd_knowledge_history(int Ind, int line)
 	file_close(fff);
 
 	/* Display the file contents */
-	show_file(Ind, file_name, "Character History", line, 0);
+	show_file(p_ptr, file_name, "Character History", line, 0);
 
 	/* Remove the file */
 	file_delete(file_name);
@@ -970,7 +957,6 @@ void common_peruse(player_type *p_ptr, char query)
 
 void special_file_peruse(player_type *p_ptr, int type, char query)
 {
-	int Ind;
 	int next = p_ptr->interactive_next;
 	int i;
 
@@ -981,7 +967,6 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 #endif
 		return;
 	}
-	Ind = Get_Ind[p_ptr->conn];
 
 	/* We're just starting. Reset counter */
 	if (!query)
@@ -1001,13 +986,13 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 		p_ptr->interactive_next = next;
 		switch (type)
 		{
-			case SPECIAL_FILE_UNIQUE:	do_cmd_check_uniques(Ind, next); 	break;
-			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(Ind, next);	break;
-			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(Ind, next);	break;
-			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(Ind, next);	break;
-			case SPECIAL_FILE_KILL: 	do_cmd_knowledge_kills(Ind, next);	break;
-			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(Ind, next);	break;
-			case SPECIAL_FILE_SCORES:	display_scores(Ind, next);      	break;
+			case SPECIAL_FILE_UNIQUE:	do_cmd_check_uniques(p_ptr, next); 	break;
+			case SPECIAL_FILE_ARTIFACT:	do_cmd_check_artifacts(p_ptr, next);	break;
+			case SPECIAL_FILE_PLAYER:	do_cmd_check_players(p_ptr, next);	break;
+			case SPECIAL_FILE_OBJECT:	do_cmd_knowledge_object(p_ptr, next);	break;
+			case SPECIAL_FILE_KILL: 	do_cmd_knowledge_kills(p_ptr, next);	break;
+			case SPECIAL_FILE_HISTORY:	do_cmd_knowledge_history(p_ptr, next);	break;
+			case SPECIAL_FILE_SCORES:	display_scores(p_ptr, next);      	break;
 		}
 		/* Send *everything* to client */
 		send_term_info(p_ptr, NTERM_CLEAR, 0);
@@ -1015,7 +1000,7 @@ void special_file_peruse(player_type *p_ptr, int type, char query)
 		{
 			Stream_line_p(p_ptr, STREAM_SPECIAL_TEXT, i);
 		}
-		/* Send_term_info(Ind, NTERM_CLEAR | NTERM_FLUSH, 0); */
+		/* send_term_info(p_ptr, NTERM_CLEAR | NTERM_FLUSH, 0); */
 	}
 	/* Instruct client to browse remotely :( */
 	send_term_info(p_ptr, NTERM_BROWSE | NTERM_POP | NTERM_FRESH, p_ptr->interactive_line);

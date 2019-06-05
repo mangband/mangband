@@ -145,13 +145,13 @@ int player_enter(int ind)
 	p_ptr->state = PLAYER_PLAYING;
 
 	/* Setup his locaton */
-	player_setup(PInd);
+	player_setup(p_ptr);
 	setup_panel(p_ptr, TRUE);
 	verify_panel(p_ptr);
 
 	/* Hack, must find better place */
-	prt_history(PInd);
-	show_socials(PInd);
+	prt_history(p_ptr);
+	show_socials(p_ptr);
 
 	/* Current party */
 	send_party_info(p_ptr);
@@ -243,7 +243,7 @@ int player_leave(int p_idx)
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 		/* Tell everyone to re-calculate visiblity for this player */
-		update_player(p_idx);
+		update_player(p_ptr);
 	}
 
 	/* Try to save his character */
@@ -419,7 +419,7 @@ void post_process_players(void)
 		if (p_ptr->new_level_flag == TRUE) continue;
 		
 		/* Try to execute any commands on the command queue. */
-		(void) process_player_commands(Ind);
+		(void) process_player_commands(p_ptr);
 	}
 	/* Next loop flushes all potential update flags Players have set
 	 * for each other. */

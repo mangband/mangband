@@ -797,10 +797,8 @@ s16b get_obj_num(int level)
  * Note: some items have a *secondary* tester, which will also be determined
  * and stored in the "secondary_tester" pointer.
  */
-byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
+byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_tester)
 {
-	player_type *p_ptr = Players[Ind];
-
 	byte flag = 0;
 	u32b f1, f2, f3;
 	object_type *lamp_o_ptr;
@@ -809,7 +807,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 	*secondary_tester = 0;
 	
 	/* item_tester_hook_wear: */
-	if (wield_slot(Ind, o_ptr) >= INVEN_WIELD)
+	if (wield_slot(p_ptr, o_ptr) >= INVEN_WIELD)
 	{
 		flag |= ITF_WEAR;
 	}
@@ -897,7 +895,7 @@ byte object_tester_flag(int Ind, object_type *o_ptr, byte *secondary_tester)
 	}
 	
 	/* refill light ? */
-	lamp_o_ptr = &(Players[Ind]->inventory[INVEN_LITE]);
+	lamp_o_ptr = &(p_ptr->inventory[INVEN_LITE]);
 	if (lamp_o_ptr->tval == TV_LITE)
 	{
 		/* It's a lamp */
@@ -999,10 +997,10 @@ void object_aware(player_type *p_ptr, object_type *o_ptr)
 /*
  * Something has been "sampled"
  */
-void object_tried(int Ind, object_type *o_ptr)
+void object_tried(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Mark it as tried (even if "aware") */
-	Players[Ind]->obj_tried[o_ptr->k_idx] = TRUE;
+	p_ptr->obj_tried[o_ptr->k_idx] = TRUE;
 }
 
 
@@ -3624,6 +3622,7 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
  */
 void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
+	player_type *q_ptr;
 	int        y, x, i, d;
     bool ok = FALSE;
     int oblev;
@@ -3656,9 +3655,10 @@ void acquirement(int Depth, int y1, int x1, int num, bool great)
 			everyone_lite_spot(Depth, y, x);
 
 			/* Under the player */
-			if (cave[Depth][y][x].m_idx < 0) {
-				msg_print(Players[0 - cave[Depth][y][x].m_idx], "You feel something roll beneath your feet.");
-				floor_item_notify(0 - cave[Depth][y][x].m_idx, cave[Depth][y][x].o_idx, TRUE);
+			if ((q_ptr = player_on_cave(Depth, y, x)))
+			{
+				msg_print(q_ptr, "You feel something roll beneath your feet.");
+				floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
 			}
 
 			/* Placement accomplished */
@@ -3964,7 +3964,7 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			if ((q_ptr = player_on_cave_p(c_ptr)))
 			{
 				if (chance) msg_print(q_ptr, "You feel something roll beneath your feet.");
-				floor_item_notify(0 - c_ptr->m_idx, o_idx, TRUE);
+				floor_item_notify(q_ptr, o_idx, TRUE);
 				sound(q_ptr, MSG_DROP);
 			}
 	}
@@ -4038,10 +4038,8 @@ void pick_trap(int Depth, int y, int x)
 /*
  * Describe the charges on an item in the inventory.
  */
-void inven_item_charges(int Ind, int item)
+void inven_item_charges(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr = &p_ptr->inventory[item];
 
 	/* Require staff/wand */
@@ -4069,10 +4067,8 @@ void inven_item_charges(int Ind, int item)
 /*
  * Describe an item in the inventory.
  */
-void inven_item_describe(int Ind, int item)
+void inven_item_describe(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type	*o_ptr = &p_ptr->inventory[item];
 
 	char	o_name[80];
@@ -4088,10 +4084,8 @@ void inven_item_describe(int Ind, int item)
 /*
  * Increase the "number" of an item in the inventory
  */
-void inven_item_increase(int Ind, int item, int num)
+void inven_item_increase(player_type *p_ptr, int item, int num)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr = &p_ptr->inventory[item];
 
 	/* Apply */
@@ -4131,10 +4125,8 @@ void inven_item_increase(int Ind, int item, int num)
 /*
  * Erase an inventory slot if it has no more items
  */
-void inven_item_optimize(int Ind, int item)
+void inven_item_optimize(player_type *p_ptr, int item)
 {
-	player_type *p_ptr = Players[Ind];
-
 	object_type *o_ptr = &p_ptr->inventory[item];
 
 	/* Only optimize real items */
@@ -4231,9 +4223,8 @@ void floor_item_describe(int item)
 /*
  * Inform player about item he is standing on
  */
-void floor_item_notify(int Ind, s16b o_idx, bool force)
+void floor_item_notify(player_type *p_ptr, s16b o_idx, bool force)
 {
-	player_type *p_ptr = Players[Ind];
 	object_type *o_ptr;
 	char	o_name[80];
 	byte    attr;
@@ -4260,12 +4251,12 @@ void floor_item_notify(int Ind, s16b o_idx, bool force)
 
 		/* Describe the object */
 		object_desc(p_ptr, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
-		flag = object_tester_flag(Ind, o_ptr, &secondary_tester);
-		send_floor(Ind, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
+		flag = object_tester_flag(p_ptr, o_ptr, &secondary_tester);
+		send_floor(p_ptr, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
 	}
 	else
 	{
-		send_floor(Ind, 0, 0, 0, 0, 0, "");
+		send_floor(p_ptr, 0, 0, 0, 0, 0, "");
 	}
 }
 
@@ -4332,10 +4323,8 @@ bool inven_drop_okay(player_type *p_ptr, object_type *o_ptr)
 /*
  * Check if we have space for an item in the pack without overflow
  */
-bool inven_carry_okay(int Ind, object_type *o_ptr)
+bool inven_carry_okay(player_type *p_ptr, object_type *o_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int i;
 
 	/* Empty slot? */
@@ -4526,10 +4515,8 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
  *
  * Note special handling of the "overflow" slot
  */
-void combine_pack(int Ind)
+void combine_pack(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		i, j, k;
 
 	object_type	*o_ptr;
@@ -4599,10 +4586,8 @@ void combine_pack(int Ind)
  *
  * Note special handling of empty slots  XXX XXX XXX XXX
  */
-void reorder_pack(int Ind)
+void reorder_pack(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int		i, j, k;
 
 	s32b	o_value;

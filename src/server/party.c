@@ -505,7 +505,7 @@ void party_gain_exp(player_type *q_ptr, int party_id, s32b amount, int m_idx)
 			}
 
 			/* Gain experience */
-			gain_exp(i, new_exp);
+			gain_exp(p_ptr, new_exp);
 		}
 	}
 }
@@ -1049,11 +1049,9 @@ int player_id_list(int **list)
 	return len;
 }
 
-/* Make player "Ind" hostile toward target, if not already */
-void add_hostility_ind(int Ind, int target)
+/* Make player "p_ptr" hostile toward player "q_ptr", if not already */
+void add_hostility_p(player_type *p_ptr, player_type *q_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr = Players[target];
 	if (!check_hostile(p_ptr, q_ptr))
 	{
 		add_hostility(p_ptr, q_ptr->name);
@@ -1071,24 +1069,24 @@ void add_hostility_ind(int Ind, int target)
  *
  *	Returns FALSE if no damage should be dealt 
  */ 
-bool pvp_okay(int attacker, int target, int mode) 
+bool pvp_okay(player_type *attacker, player_type *target, int mode)
 {
 	bool intentional = FALSE;
-	int Depth = Players[attacker]->dun_depth;
-	int party_id = Players[attacker]->party;
+	int Depth = attacker->dun_depth;
+	int party_id = attacker->party;
 	int hostility = cfg_pvp_hostility;
-	if (check_hostile(Players[attacker], Players[target])) intentional = TRUE;
+	if (check_hostile(attacker, target)) intentional = TRUE;
 
 	/* SAFE DEPTH */
 	if (cfg_pvp_safedepth > -1 && Depth > -1 && Depth <= cfg_pvp_safedepth) hostility = cfg_pvp_safehostility;
 	/* SAFE WILDERNESS RADIUS */
 	if (cfg_pvp_saferadius > -1 && Depth < 0 && wild_info[Depth].radius <= cfg_pvp_saferadius) hostility = cfg_pvp_safehostility;
 	/* SAFE LEVEL DIFFERENCE */
-	if (cfg_pvp_safelevel > -1 && abs(Players[attacker]->lev - Players[target]->lev) > cfg_pvp_safelevel) hostility = cfg_pvp_safehostility;
+	if (cfg_pvp_safelevel > -1 && abs(attacker->lev - target->lev) > cfg_pvp_safelevel) hostility = cfg_pvp_safehostility;
 
 	/* Safe Mode -- Both players must be hostile towards each other (1.1.0) */
 	if (hostility == 2) {
-		if (check_hostile(Players[target], Players[attacker]) && intentional) return TRUE;
+		if (check_hostile(target, attacker) && intentional) return TRUE;
 	}
 	
 	/* Normal Mode -- Attacker must be hostile towards his target */
@@ -1096,7 +1094,7 @@ bool pvp_okay(int attacker, int target, int mode)
 		/* If this was intentional, make target hostile */ 
 		if (intentional) 
 		{ 
-			if (mode) add_hostility_ind(target, attacker); 
+			if (mode) add_hostility_p(target, attacker);
 			return TRUE; 
 		}
 	}
@@ -1104,11 +1102,11 @@ bool pvp_okay(int attacker, int target, int mode)
 	/* Dangerous Mode -- No hostility needed at all (only for inderect damage) (0.7.2) */
 	if (hostility == 0) {
 		if (mode > 1) {
-			if (!intentional) add_hostility_ind(attacker, target);
-			add_hostility_ind(target, attacker);
+			if (!intentional) add_hostility_p(attacker, target);
+			add_hostility_p(target, attacker);
 			return TRUE;
 		} else {
-			if (mode && intentional) add_hostility_ind(target, attacker);
+			if (mode && intentional) add_hostility_p(target, attacker);
 			return intentional;
 		}
 	}
@@ -1116,7 +1114,7 @@ bool pvp_okay(int attacker, int target, int mode)
 	/* Brutal mode -- all players always fight */	
 	if (hostility == -1) {
 		/* There's only one way not to fight: be in a party */
-		if (!(party_id && player_in_party(party_id, Players[target])))
+		if (!(party_id && player_in_party(party_id, target)))
 		return TRUE;
 	}
 
