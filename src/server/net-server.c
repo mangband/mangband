@@ -105,7 +105,42 @@ void free_server_memory() {
 	KILL(Get_Ind);
 }
 
-/* Player enters active gameplay */
+/* When player's p_list index changes, other players should be made aware! */
+/* Hack -- it is allowed to pass "0" for "newPInd", to make player forgotten. */
+void reindex_player(int oldPInd, int newPInd)
+{
+	int i;
+	/* For each player (EXPECT THE LAST ONE!) */
+	for (i = 1; i <= NumPlayers - 1; i++)
+	{
+		player_type *p_ptr = Players[i];
+
+		/* Cursor/health/target tracking */
+		if (p_ptr->cursor_who == 0 - oldPInd) p_ptr->cursor_who = 0 - newPInd;
+		if (p_ptr->target_who == 0 - oldPInd) p_ptr->target_who = 0 - newPInd;
+		if (p_ptr->health_who == 0 - oldPInd)
+		{
+			p_ptr->health_who = 0 - newPInd;
+			/* If there's no new target, refresh healthbar to wipe it */
+			if (newPInd == 0) p_ptr->redraw |= PR_HEALTH;
+		}
+
+		/* Visibility flags */
+		p_ptr->play_vis[newPInd] = p_ptr->play_vis[oldPInd];
+		p_ptr->play_los[newPInd] = p_ptr->play_los[oldPInd];
+		p_ptr->play_det[newPInd] = p_ptr->play_det[oldPInd];
+
+		/* Vanishing player was visible, update list */
+		if (newPInd == 0 && p_ptr->play_vis[oldPInd]) p_ptr->window |= (PW_MONLIST);
+
+		/* And forget about old index */
+		p_ptr->play_vis[oldPInd] = FALSE;
+		p_ptr->play_los[oldPInd] = FALSE;
+		p_ptr->play_det[oldPInd] = 0;
+	}
+}
+
+/* Player enters active gameplay (Add player to p_list) */
 int player_enter(int ind) 
 {
 	int PInd;
@@ -297,7 +332,13 @@ int player_leave(int p_idx)
 
 		/* Update "ind-by-Ind" */
 		Get_Conn[p_idx] = ind;
+
+		/* Make other players aware of the new index */
+		reindex_player(p_max, p_idx);
 	}
+
+	/* Make other players forget last player on the list */
+	reindex_player(p_max, 0);
 
 	/* Reduce list */
 	p_list[p_max] = NULL;
