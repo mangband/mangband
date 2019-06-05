@@ -1590,7 +1590,7 @@ void update_player(player_type *q_ptr)
 		nearby = FALSE;
 
 		/* Player can always see himself */
-		if (q_ptr == p_ptr) continue;
+		if (same_player(q_ptr, p_ptr)) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) flag = FALSE;

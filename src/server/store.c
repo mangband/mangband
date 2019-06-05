@@ -2202,7 +2202,7 @@ void do_cmd_store(player_type *p_ptr, int pstore)
 		/* Store is closed if someone is restocking (anti-exploit) */
 		for (i = 1; i <= NumPlayers; i++)
 		{
-			if (p_ptr != Players[i] && house_inside(Players[i], pstore))
+			if (!same_player(p_ptr, Players[i]) && house_inside(Players[i], pstore))
 			{
 				msg_print(p_ptr, "The doors are locked.");
 				return;

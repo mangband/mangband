@@ -1553,7 +1553,7 @@ bool detect_invisible(player_type *p_ptr, bool pause)
 		int px = q_ptr->px;
 
 		/* Skip ourself */
-		if (q_ptr == p_ptr) continue;
+		if (same_player(q_ptr, p_ptr)) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
@@ -1748,7 +1748,7 @@ bool detect_creatures(player_type *p_ptr, bool pause)
 		int px = q_ptr->px;
 
 		/* Skip ourself */
-		if (q_ptr == p_ptr) continue;
+		if (same_player(q_ptr, p_ptr)) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) continue;
@@ -4801,7 +4801,7 @@ bool alter_reality(player_type *p_ptr, bool power)
 		{
 			player_type *q_ptr = Players[i];
 
-			if ((q_ptr->dun_depth == Depth) && (q_ptr != p_ptr))
+			if ((q_ptr->dun_depth == Depth) && !same_player(q_ptr, p_ptr))
 			{
 				if (p_ptr->party && p_ptr->party == q_ptr->party) continue;
 

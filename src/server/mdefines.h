@@ -2944,6 +2944,11 @@ that keeps many algorithms happy.
 
 
 /*
+ * Compare two players
+ */
+#define same_player(PLR1, PLR2) ( (PLR1) == (PLR2) )
+
+/*
  * Hack -- Prepare to use the "Secure" routines
  */
 #if defined(SET_UID) && defined(SECURE)

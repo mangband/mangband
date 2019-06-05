@@ -1926,7 +1926,7 @@ void msg_broadcast(player_type *p_ptr, cptr msg)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Skip the specified player */
-		if (Players[i] == p_ptr) continue;
+		if (same_player(Players[i], p_ptr)) continue;
 		printf("Broadcasting: %s\n", msg);
 		/* Tell this one */
 		msg_print_aux(p_ptr, msg, MSG_CHAT);
@@ -2037,10 +2037,10 @@ void msg_format_complex_far(player_type *p_ptr, player_type *q_ptr, u16b type, c
 		player_type *qq_ptr = Players[i];
 
 		/* Don't send the message to the player who caused it */
-		if (p_ptr == qq_ptr) continue;
+		if (same_player(qq_ptr, p_ptr)) continue;
 
 		/* Don't send the message to the second ignoree */
-		if (q_ptr == qq_ptr) continue;
+		if (same_player(qq_ptr, q_ptr)) continue;
 
 		/* Make sure this player is at this depth */
 		if (qq_ptr->dun_depth != Depth) continue;
@@ -2085,10 +2085,10 @@ void msg_print_complex_near(player_type *p_ptr, player_type *q_ptr, u16b type, c
 		player_type *qq_ptr = Players[i];
 
 		/* Don't send the message to the player who caused it */
-		if (p_ptr == qq_ptr) continue;
+		if (same_player(qq_ptr, p_ptr)) continue;
 
 		/* Don't send the message to the second ignoree */
-		if (q_ptr == qq_ptr) continue;
+		if (same_player(qq_ptr, q_ptr)) continue;
 		
 		/* Make sure this player is at this depth */
 		if (qq_ptr->dun_depth != Depth) continue;

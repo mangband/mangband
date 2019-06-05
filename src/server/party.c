@@ -232,7 +232,7 @@ int party_remove(player_type *q_ptr, cptr name)
 	}
 
 	/* See if this is the owner we're deleting */
-	if (q_ptr == p_ptr)
+	if (same_player(q_ptr, p_ptr))
 	{
 		/* Remove the party altogether */
 
@@ -387,7 +387,7 @@ void party_msg_format_near(player_type *p_ptr, u16b type, cptr fmt, ...)
 		p_ptr = Players[i];
 		
 		/* Don't send the message to the player who caused it */
-		if (q_ptr == p_ptr) continue;
+		if (same_player(q_ptr, p_ptr)) continue;
 
 		/* Make sure this player is at this depth */
 		if (p_ptr->dun_depth != Depth) continue;
@@ -519,7 +519,7 @@ int party_mark_members(player_type *p_ptr, int m_idx)
 	{
 		q_ptr = Players[i];
 		q_ptr->in_hack = FALSE;
-		if ((q_ptr == p_ptr) || ((p_ptr->party) &&
+		if (same_player(q_ptr, p_ptr) || ((p_ptr->party) &&
 			(!m_idx || q_ptr->mon_hrt[m_idx]) &&
 			(q_ptr->dun_depth == p_ptr->dun_depth) &&
 			(q_ptr->party == p_ptr->party) &&

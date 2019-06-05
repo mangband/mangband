@@ -563,7 +563,7 @@ void do_cmd_check_uniques(player_type *p_ptr, int line)
 				player_type *q_ptr = Players[i];
 				if (q_ptr->r_killed[idx[l]])
 				{
-					if (q_ptr == p_ptr) highlight = 'w';
+					if (same_player(q_ptr, p_ptr)) highlight = 'w';
 				}
 			}
 			
@@ -666,7 +666,7 @@ void do_cmd_check_players(player_type *p_ptr, int line)
 		/*** Determine color ***/
 
 		/* Print self in green */
-		if (p_ptr == q_ptr) attr = 'G';
+		if (same_player(p_ptr, q_ptr)) attr = 'G';
 
 		/* Print party members in blue */
 		else if (p_ptr->party && p_ptr->party == q_ptr->party) attr = 'B';

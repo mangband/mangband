@@ -533,7 +533,7 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 		c = p_ptr->pr_char[q_ptr->pclass * z_info->p_max + q_ptr->prace];
 
 		/* Handle himself */
-		if (q_ptr == p_ptr)
+		if (same_player(q_ptr, p_ptr))
 		{
 			/* Get the "player" attr */
 			a = p_ptr->r_attr[0];
@@ -574,7 +574,7 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 		a = TERM_YELLOW;
 
 		/* Handle himself -- can we say code duplication? Yes! */
-		if (q_ptr == p_ptr)
+		if (same_player(q_ptr, p_ptr))
 		{
 			/* Get the "player" attr */
 			a = p_ptr->r_attr[0];
@@ -586,7 +586,7 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 	
 	/* If we are in a slow time bubble, give a visual warning */
 	timefactor = base_time_factor(p_ptr, 0);
-	if( (q_ptr == p_ptr) && (timefactor < NORMAL_TIME) )
+	if( same_player(q_ptr, p_ptr) && (timefactor < NORMAL_TIME) )
 	{
 		if( ht_passed(&turn, &p_ptr->bubble_change, (10+((NORMAL_TIME-timefactor)))))
 		{
@@ -613,7 +613,7 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 			a = p_ptr->bubble_colour;
 		}
 	}
-	else if (q_ptr == p_ptr) /* Self */
+	else if (same_player(q_ptr, p_ptr)) /* Self */
 	{
 		p_ptr->bubble_colour = TERM_WHITE;
 	}
@@ -625,7 +625,7 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 		c = health + 48;
 		if (p_ptr->use_graphics)
 		{
-			a = (q_ptr == p_ptr) ? p_ptr->bubble_colour : player_color(q_ptr);
+			a = same_player(q_ptr, p_ptr) ? p_ptr->bubble_colour : player_color(q_ptr);
 		}
 	}
 	
@@ -2103,7 +2103,7 @@ void update_player_lite(player_type *p_ptr, int y, int x)
 			continue;
 
 		/* Ignore the player that we're updating */
-		if (Players[j] == p_ptr)
+		if (same_player(Players[j], p_ptr))
 			continue;
 
 		/* If someone else also lites this spot relite it */

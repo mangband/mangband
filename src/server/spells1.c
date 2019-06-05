@@ -3626,7 +3626,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 	if ((x != p_ptr->px) || (y != p_ptr->py) || (Depth != p_ptr->dun_depth)) return (FALSE);
 
 	/* Player cannot hurt himself */
-	if (who < 0 && Players[0 - who] == p_ptr) return (FALSE);
+	if (who < 0 && same_player(Players[0 - who], p_ptr)) return (FALSE);
 
 	/* The damage has already been applied! */
 	if (p_ptr->project_hurt) return FALSE;

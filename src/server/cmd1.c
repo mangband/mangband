@@ -1720,7 +1720,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 		int Ind = Get_Ind[p_ptr->conn];
 
 		/* Don't bump into self! */
-		if (q_ptr != p_ptr)
+		if (!same_player(q_ptr, p_ptr))
 		{
 			/* Check for an attack */
 			if (pvp_okay(p_ptr, q_ptr, 1))

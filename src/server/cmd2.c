@@ -1240,7 +1240,7 @@ static bool do_cmd_open_aux(player_type *p_ptr, int y, int x)
 			{
 				/* We don't block if the owner is getting out! */
 				player_type *q_ptr = Players[k];
-				if (q_ptr && (p_ptr != q_ptr))
+				if (q_ptr && !same_player(p_ptr, q_ptr))
 				{
 					/* We do block if the owner is getting in */
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)

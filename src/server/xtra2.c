@@ -2180,7 +2180,7 @@ void monster_death(player_type *p_ptr, int m_idx)
 			bool visible = (q_ptr->mon_vis[m_idx] || unique);
 
 			/* Take note of the killer (message) */
-			if (unique && (q_ptr != p_ptr))
+			if (unique && !same_player(q_ptr, p_ptr))
 			{
 				/*log_history_event(q_ptr, logbuf);*/
 			}
@@ -2191,7 +2191,7 @@ void monster_death(player_type *p_ptr, int m_idx)
 				lore_treasure(q_ptr, m_idx, dump_item, dump_gold);
 			}
 			/* Death count */
-			if ((share || q_ptr == p_ptr))
+			if ((share || same_player(q_ptr, p_ptr)))
 			{
 				/* In lore array */
 				if (visible)
@@ -2210,7 +2210,7 @@ void monster_death(player_type *p_ptr, int m_idx)
 					q_ptr->r_killed[m_ptr->r_idx]++;
 			}
 			/* Mega-Hack -- drop "winner" treasures AND set winners */
-			if (winner && (share || q_ptr == p_ptr))
+			if (winner && (share || same_player(q_ptr, p_ptr)))
 			{
 				/* Hack -- an "object holder" */
 				object_type prize;
@@ -2269,7 +2269,7 @@ void monster_death(player_type *p_ptr, int m_idx)
 				}
 			}
 			/* Process "Quest Monsters" */
-			if (questor && (share || q_ptr == p_ptr))
+			if (questor && (share || same_player(q_ptr, p_ptr)))
 			{
 				/* Hack -- Mark quests as complete */
 				for (j = 0; j < MAX_Q_IDX; j++)
@@ -2340,7 +2340,7 @@ int pick_arena_opponent(player_type *p_ptr, int a)
 	 	if (Players[i]->arena_num == a)
 	 	{
 			/* Found some one */
-			if (p_ptr != Players[i])
+			if (!same_player(p_ptr, Players[i]))
 	 		{
 	 			count++;
 	 			found = i; 
@@ -2456,7 +2456,7 @@ void evacuate_arena(player_type *p_ptr) {
 	tmp_id = pick_arena_opponent(p_ptr, a);
 	
 	/* Loser */
-	if (tmp_id != -1 && Players[tmp_id] != p_ptr)
+	if (tmp_id != -1 && !same_player(Players[tmp_id], p_ptr))
 	{
 		/* Get winner */
 		player_type *q_ptr = Players[tmp_id];
@@ -3825,7 +3825,7 @@ static bool target_set_interactive_accept(player_type *p_ptr, int y, int x)
 	c_ptr = &cave[Depth][y][x];
 	
 	/* Player himself */
-	if (c_ptr->m_idx < 0 && Players[0 - c_ptr->m_idx] == p_ptr) return (TRUE);
+	if (c_ptr->m_idx < 0 && same_player(Players[0 - c_ptr->m_idx], p_ptr)) return (TRUE);
 
 	/* Handle hallucination */
 	if (p_ptr->image) return (FALSE);
@@ -3952,7 +3952,7 @@ static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 				if (!target_able(p_ptr, m_idx)) continue;
 
 				/* If it's a player, he must not target self */
-				if (m_idx < 0 && (Players[0 - m_idx] == p_ptr)) continue;
+				if (m_idx < 0 && (same_player(Players[0 - m_idx], p_ptr))) continue;
 
 				/* If it's a player, he must not be friendly */
 				if (m_idx < 0 && (!pvp_okay(p_ptr, Players[0 - m_idx], 0) && !check_hostile(p_ptr, Players[0 - m_idx]))) continue;
@@ -3963,7 +3963,7 @@ static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 				if (!((m_idx = cave[Depth][y][x].m_idx) < 0)) continue;
 				
 				/* Not self */
-				if (p_ptr == Players[0 - m_idx]) continue;
+				if (same_player(p_ptr, Players[0 - m_idx])) continue;
 
 				/* Must be a targettable player */
 				if (!target_able(p_ptr, m_idx)) continue;
@@ -4058,7 +4058,7 @@ static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mod
 	o_idx = cave[Depth][y][x].o_idx;
 
 	/* The player */
-	if ((m_idx < 0) && (Players[0 - m_idx] == p_ptr))
+	if ((m_idx < 0) && (same_player(Players[0 - m_idx], p_ptr)))
 	{
 		/* Description */
 		s1 = "You are ";
@@ -5101,7 +5101,7 @@ bool monsters_in_los(player_type *p_ptr)
 	if (!los) for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *q_ptr = Players[i];
-		if (q_ptr == p_ptr) continue; /* Skip self */
+		if (same_player(q_ptr, p_ptr)) continue; /* Skip self */
 
 		if (p_ptr->conn <= -1) break; /* Can't check hostility */
 
@@ -6402,12 +6402,12 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 				if (p_ptr->interactive_line < NumPlayers)
 				{
 					y = p_ptr->interactive_line + 1; /* Note +1! */
-					if ((Players[y] != p_ptr) && !dm_flag_p(p_ptr,CAN_ASSIGN))
+					if (!same_player(Players[y], p_ptr) && !dm_flag_p(p_ptr,CAN_ASSIGN))
 					{
 						error = "Can't change other players";
 						break;
 					}
-					if ((Players[y] == p_ptr) && !dm_flag_p(p_ptr,CAN_MUTATE_SELF))
+					if (same_player(Players[y], p_ptr) && !dm_flag_p(p_ptr,CAN_MUTATE_SELF))
 					{
 						error = "Can't change self";
 						break;
@@ -6430,7 +6430,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 				switch (query)
 				{
 					case 'W':
-						if (q_ptr == p_ptr) { error = "Can't wrath self"; break; }
+						if (same_player(q_ptr, p_ptr)) { error = "Can't wrath self"; break; }
 						if (!askfor_aux(p_ptr, query, buf, 1, 0,
 						format("Are you sure you want to call wrath on %s ? [y/n]", q_ptr->name), 
 						"*", TERM_WHITE, TERM_WHITE)) return;
@@ -6439,14 +6439,14 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 						take_hit(q_ptr, 1000, "a small kobold");
 					break;
 					case 'K':
-						if (q_ptr == p_ptr) { error = "Can't kick self"; break; }
+						if (same_player(q_ptr, p_ptr)) { error = "Can't kick self"; break; }
 						if (!askfor_aux(p_ptr, query, buf, 1, 0, "Enter reason for Kick or ESC: ", "", TERM_WHITE, TERM_WHITE)) return;
 						if (STRZERO(buf)) break;
 						debug(format("%s kicks %s (reason:%s)", p_ptr->name, q_ptr->name, buf));
 						player_disconnect(q_ptr, "kicked out");
 					break;
 					case 'I':
-						if (q_ptr == p_ptr) { error = "Can't invoke self"; break; }
+						if (same_player(q_ptr, p_ptr)) { error = "Can't invoke self"; break; }
 						if (q_ptr->dun_depth == p_ptr->dun_depth ) { teleport_player_to(q_ptr, p_ptr->py, p_ptr->px); break; }
 						if (!askfor_aux(p_ptr, query, buf, 1, 0, 
 						format("Recall %s to your depth ? [y/n]", q_ptr->name),
@@ -6479,7 +6479,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 							x = A2I(query) - 1;
 							if (x >= 0 && x <= 20)
 							{
-								if (q_ptr != p_ptr && !(p_ptr->dm_flags & (0x1L << x)))
+								if (!same_player(q_ptr, p_ptr) && !(p_ptr->dm_flags & (0x1L << x)))
 								{ error = "Can't assign unmastered power"; break; }
 								TOGGLE_BIT(q_ptr->dm_flags, (0x1L << x));
 							}
