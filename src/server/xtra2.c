@@ -2659,7 +2659,7 @@ void player_funeral(player_type *p_ptr, char *reason)
 
 	/* Get rid of him */
 	player_disconnect(p_ptr, reason); /* Disconnect client */
-	player_leave(Get_Ind[p_ptr->conn]); /* Remove from playerlist */
+	player_leave(p_ptr->Ind); /* Remove from playerlist */
 
 	/* Done */
 	return;
@@ -3912,7 +3912,6 @@ static void target_set_interactive_prepare(player_type *p_ptr, int mode)
 	int old_y, old_x;
 	bool smooth = FALSE;
 
-	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 	
 	/* HACK -- Smoothly adjust index */
@@ -6339,7 +6338,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 		case '4': p_ptr->interactive_next--; break; /* Left */
 		case '@': /* Jump to + Select ('Edit Self')*/
 			old_tab = p_ptr->interactive_next = DM_PAGE_PLAYER;
-			p_ptr->interactive_line = Get_Ind[p_ptr->conn] - 1;
+			p_ptr->interactive_line = p_ptr->Ind - 1;
 			p_ptr->master_parm = p_ptr->id;
 		break;
 

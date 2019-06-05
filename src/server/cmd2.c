@@ -3945,7 +3945,6 @@ void do_cmd_fire(player_type *p_ptr, int item, int dir)
 void do_cmd_throw(player_type *p_ptr, int item, int dir)
 {
 	player_type *q_ptr;
-	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 
 	int			i, j, y, x, ny, nx, ty, tx;

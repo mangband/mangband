@@ -1716,9 +1716,6 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 	/* Bump into other players */
 	if ((q_ptr = player_on_cave(Depth, y, x)))
 	{
-		int Ind2 = 0 - c_ptr->m_idx;
-		int Ind = Get_Ind[p_ptr->conn];
-
 		/* Don't bump into self! */
 		if (!same_player(q_ptr, p_ptr))
 		{
@@ -1732,8 +1729,9 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 					 (ddx[q_ptr->last_dir] == (-ddx[dir]))) ||
 				(is_dm_p(q_ptr)))
 			{
-				c_ptr->m_idx = 0 - Ind;
-				cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - Ind2;
+				/* Swap m_idx */
+				cave[Depth][q_ptr->py][q_ptr->px].m_idx = 0 - p_ptr->Ind;
+				cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0 - q_ptr->Ind;
 
 				q_ptr->py = p_ptr->py;
 				q_ptr->px = p_ptr->px;
@@ -1793,7 +1791,6 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 		/* Hack -- the dungeon master switches places with his monsters */
 		if (p_ptr->dm_flags & DM_MONSTER_FRIEND)
 		{
-			int Ind = Get_Ind[p_ptr->conn];
 			/* save old player location */
 			oldx = p_ptr->px;
 			oldy = p_ptr->py;
@@ -1805,7 +1802,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 			m_list[c_ptr->m_idx].fy = oldy;
 			/* update cave monster indexes */
 			cave[Depth][oldy][oldx].m_idx = c_ptr->m_idx;
-			c_ptr->m_idx = (0 - Ind);
+			c_ptr->m_idx = (0 - p_ptr->Ind);
 
 			/* Re-show both grids */
 			everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
@@ -1930,7 +1927,6 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 	/* Normal movement */
 	else
 	{
-		int Ind = Get_Ind[p_ptr->conn];
 		int oy, ox;
 
 		/* Save old location */
@@ -1943,7 +1939,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 
 		/* Update the player indices */
 		cave[Depth][oy][ox].m_idx = 0;
-		cave[Depth][y][x].m_idx = 0 - Ind;
+		cave[Depth][y][x].m_idx = 0 - p_ptr->Ind;
 
 
 

@@ -1184,6 +1184,7 @@ struct player_other
 struct player_type
 {
 	int conn;			/* Connection number */
+	int Ind;			/* Players[] array index, or 0 */
 	char name[MAX_CHARS];		/* Nickname */
 	char pass[MAX_CHARS];		/* Password */
 	char basename[MAX_CHARS];

@@ -75,7 +75,6 @@ void wipe_spell(int Depth, int cy, int cx, int r)
  */
 bool hp_player(player_type *p_ptr, int num)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	// The "number" that the character is displayed as before healing
 	int old_num = (p_ptr->chp * 95) / (p_ptr->mhp*10); 
 	int new_num; 
@@ -92,7 +91,7 @@ bool hp_player(player_type *p_ptr, int num)
 		}
 
 		/* Update health bars */
-		update_health(0 - Ind);
+		update_health(0 - p_ptr->Ind);
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
@@ -143,7 +142,6 @@ bool hp_player(player_type *p_ptr, int num)
  */
 bool hp_player_quiet(player_type *p_ptr, int num)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	// The "number" that the character is displayed as before healing
 	int old_num = (p_ptr->chp * 95) / (p_ptr->mhp*10); 
 	int new_num; 
@@ -160,7 +158,7 @@ bool hp_player_quiet(player_type *p_ptr, int num)
 		}
 
 		/* Update health bars */
-		update_health(0 - Ind);
+		update_health(0 - p_ptr->Ind);
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
@@ -3145,7 +3143,6 @@ bool recharge_aux(player_type *p_ptr, int item, int spell_strength)
  */
 static bool project_hack(player_type *p_ptr, int typ, int dam)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int Depth = p_ptr->dun_depth;
 
 	int		i, x, y;
@@ -3174,7 +3171,7 @@ static bool project_hack(player_type *p_ptr, int typ, int dam)
 		if (!player_has_los_bold(p_ptr, y, x)) continue;
 
 		/* Jump directly to the target monster */
-		if (project(0 - Ind, 0, Depth, y, x, dam, typ, flg)) obvious = TRUE;
+		if (project(0 - p_ptr->Ind, 0, Depth, y, x, dam, typ, flg)) obvious = TRUE;
 	}
 
 	/* Result */
@@ -4481,7 +4478,6 @@ void unlite_room(player_type *p_ptr, int Depth, int y1, int x1)
  */
 bool lite_area(player_type *p_ptr, int dam, int rad)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_GRID | PROJECT_KILL;
 
 	/* Hack -- Message */
@@ -4491,7 +4487,7 @@ bool lite_area(player_type *p_ptr, int dam, int rad)
 	}
 
 	/* Hook into the "project()" function */
-	(void)project(0 - Ind, rad, p_ptr->dun_depth, p_ptr->py, p_ptr->px, dam, GF_LITE_WEAK, flg);
+	(void)project(0 - p_ptr->Ind, rad, p_ptr->dun_depth, p_ptr->py, p_ptr->px, dam, GF_LITE_WEAK, flg);
 
 	/* Lite up the room */
 	lite_room(p_ptr, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
@@ -4507,7 +4503,6 @@ bool lite_area(player_type *p_ptr, int dam, int rad)
  */
 bool unlite_area(player_type *p_ptr, int dam, int rad)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_GRID | PROJECT_KILL;
 
 	/* Hack -- Message */
@@ -4517,7 +4512,7 @@ bool unlite_area(player_type *p_ptr, int dam, int rad)
 	}
 
 	/* Hook into the "project()" function */
-	(void)project(0 - Ind, rad, p_ptr->dun_depth, p_ptr->py, p_ptr->px, dam, GF_DARK_WEAK, flg);
+	(void)project(0 - p_ptr->Ind, rad, p_ptr->dun_depth, p_ptr->py, p_ptr->px, dam, GF_DARK_WEAK, flg);
 
 	/* Lite up the room */
 	unlite_room(p_ptr, p_ptr->dun_depth, p_ptr->py, p_ptr->px);
@@ -4536,7 +4531,6 @@ bool unlite_area(player_type *p_ptr, int dam, int rad)
  */
 bool fire_ball(player_type *p_ptr, int typ, int dir, int dam, int rad)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int tx, ty;
 
 	int flg = PROJECT_STOP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
@@ -4557,7 +4551,7 @@ bool fire_ball(player_type *p_ptr, int typ, int dir, int dam, int rad)
 	}
 
 	/* Analyze the "dir" and the "target".  Hurt items on floor. */
-	return (project(0 - Ind, rad, p_ptr->dun_depth, ty, tx, dam, typ, flg));
+	return (project(0 - p_ptr->Ind, rad, p_ptr->dun_depth, ty, tx, dam, typ, flg));
 }
 
 /*
@@ -4568,7 +4562,6 @@ bool fire_ball(player_type *p_ptr, int typ, int dir, int dam, int rad)
  */
 bool fire_swarm(player_type *p_ptr, int num, int typ, int dir, int dam, int rad)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	bool noticed = FALSE;
 
 	int py = p_ptr->py;
@@ -4595,7 +4588,7 @@ bool fire_swarm(player_type *p_ptr, int num, int typ, int dir, int dam, int rad)
 	while (num--)
 	{
 		/* Analyze the "dir" and the "target".  Hurt items on floor. */
-		if (project(0 - Ind, rad, p_ptr->dun_depth, ty, tx, dam, typ, flg)) noticed = TRUE;
+		if (project(0 - p_ptr->Ind, rad, p_ptr->dun_depth, ty, tx, dam, typ, flg)) noticed = TRUE;
 	}
 
 	return noticed;
@@ -4608,7 +4601,6 @@ bool fire_swarm(player_type *p_ptr, int num, int typ, int dir, int dam, int rad)
  */
 bool project_hook(player_type *p_ptr, int typ, int dir, int dam, int flg)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int tx, ty;
 
 	/* Pass through the target if needed */
@@ -4626,7 +4618,7 @@ bool project_hook(player_type *p_ptr, int typ, int dir, int dam, int flg)
 	}
 
 	/* Analyze the "dir" and the "target", do NOT explode */
-	return (project(0 - Ind, 0, p_ptr->dun_depth, ty, tx, dam, typ, flg));
+	return (project(0 - p_ptr->Ind, 0, p_ptr->dun_depth, ty, tx, dam, typ, flg));
 }
 
 
@@ -4786,7 +4778,6 @@ bool teleport_monster(player_type *p_ptr, int dir)
 
 bool alter_reality(player_type *p_ptr, bool power)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	/* Which dungeon level are we changing? */
 	int Depth = p_ptr->dun_depth, i;
 
@@ -4809,7 +4800,7 @@ bool alter_reality(player_type *p_ptr, bool power)
 				if (rand_int(127) < q_ptr->skill_fos * (pvp_okay(p_ptr, q_ptr, 0) ? 6 : 4))
 				{
 					msg_format(p_ptr, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
-					msg_format(q_ptr, "You resist %s's attempt to alter reality.", (q_ptr->play_los[Ind] ? p_ptr->name : "someone") );
+					msg_format(q_ptr, "You resist %s's attempt to alter reality.", (q_ptr->play_los[p_ptr->Ind] ? p_ptr->name : "someone") );
 					return (FALSE);
 				}
 			}
@@ -4863,32 +4854,28 @@ bool project_spell_ball(player_type *p_ptr, int dir, int spell)
 
 bool door_creation(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
 	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
-	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_DOOR, flg));
+	return (project(0 - p_ptr->Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_DOOR, flg));
 }
 
 bool trap_creation(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
 	if (level_is_town(p_ptr->dun_depth)) { return FALSE; }
-	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_TRAP, flg));
+	return (project(0 - p_ptr->Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_MAKE_TRAP, flg));
 }
 
 bool destroy_doors_touch(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_GRID | PROJECT_ITEM | PROJECT_HIDE;
-	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_KILL_DOOR, flg));
+	return (project(0 - p_ptr->Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, 0, GF_KILL_DOOR, flg));
 }
 
 bool sleep_monsters_touch(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int flg = PROJECT_KILL | PROJECT_HIDE;
-	return (project(0 - Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->lev, GF_OLD_SLEEP, flg));
+	return (project(0 - p_ptr->Ind, 1, p_ptr->dun_depth, p_ptr->py, p_ptr->px, p_ptr->lev, GF_OLD_SLEEP, flg));
 }
 
 /*

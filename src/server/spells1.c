@@ -166,7 +166,6 @@ void teleport_away(int m_idx, int dis)
  */
 void teleport_player(player_type *p_ptr, int dis)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int d, i, min, ox, oy, x = p_ptr->py, y = p_ptr->px;
 	int Depth = p_ptr->dun_depth;
 
@@ -246,7 +245,7 @@ void teleport_player(player_type *p_ptr, int dis)
 	cave[Depth][oy][ox].m_idx = 0;
 
 	/* The player is on his new spot */
-	cave[Depth][y][x].m_idx = 0 - Ind;
+	cave[Depth][y][x].m_idx = 0 - p_ptr->Ind;
 
 	/* Redraw the old spot */
 	everyone_lite_spot(Depth, oy, ox);
@@ -283,7 +282,6 @@ void teleport_player(player_type *p_ptr, int dis)
  */
 void teleport_player_to(player_type *p_ptr, int ny, int nx)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int y, x, oy, ox, dis = 0, ctr = 0;
 	int Depth = p_ptr->dun_depth;
 
@@ -322,7 +320,7 @@ void teleport_player_to(player_type *p_ptr, int ny, int nx)
 	cave[Depth][oy][ox].m_idx = 0;
 
 	/* The player is now here */
-	cave[Depth][y][x].m_idx = 0 - Ind;
+	cave[Depth][y][x].m_idx = 0 - p_ptr->Ind;
 
 	/* Redraw the old spot */
 	everyone_lite_spot(Depth, oy, ox);
@@ -541,7 +539,6 @@ static byte spell_color(int type)
  */
 void take_hit(player_type *p_ptr, int damage, cptr hit_from)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	int old_chp = p_ptr->chp;
 	int warning = (p_ptr->mhp * p_ptr->hitpoint_warn / 10);
 
@@ -565,7 +562,7 @@ void take_hit(player_type *p_ptr, int damage, cptr hit_from)
 	p_ptr->chp -= damage;
 
 	/* Update health bars */
-	update_health(0 - Ind);
+	update_health(0 - p_ptr->Ind);
 
 	/* Display the hitpoints */
 	p_ptr->redraw |= (PR_HP);

@@ -704,7 +704,6 @@ extern void display_monlist(player_type *p_ptr);
 #define Send_pause(PLR) send_term_info(PLR, NTERM_HOLD, NTERM_PAUSE)
 
 /* net-server.c */
-extern int *Get_Ind;
 extern void setup_network_server();
 extern void network_loop();
 extern void close_network_server();

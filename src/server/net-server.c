@@ -132,6 +132,9 @@ int player_enter(int ind)
 	Get_Conn[PInd] = ind;
 	PConn[PInd] = ct; 
 
+	/* Hack -- store own index! */
+	p_ptr->Ind = PInd;
+
 	/* Hack -- join '#public' channel */
 	send_channel(p_ptr, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
@@ -284,6 +287,9 @@ int player_leave(int p_idx)
 
 		/* Put him in current player's place */
 		p_list[p_idx] = p_ptr;
+
+		/* Hack -- remember own index! */
+		p_ptr->Ind = p_idx;
 
 		/* Switch index on grid */
 		if (cave[p_ptr->dun_depth]) /* Cave is allocated */

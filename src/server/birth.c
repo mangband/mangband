@@ -916,7 +916,6 @@ static void player_outfit(player_type *p_ptr)
 static void player_admin(player_type *p_ptr);
 void player_setup(player_type *p_ptr)
 {
-	int Ind = Get_Ind[p_ptr->conn];
 	player_type *q_ptr;
 	int y, x, i, d, k, count = 0, Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
@@ -931,7 +930,7 @@ void player_setup(player_type *p_ptr)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Skip this player */
-		if (i == Ind) continue;
+		if (same_player(p_ptr, Players[i])) continue;
 
 		/* Count */
 		if (Players[i]->dun_depth == Depth)
@@ -989,7 +988,7 @@ void player_setup(player_type *p_ptr)
 	}
 
 	/* Hack -- grid might already be occupied by us, clear it */
-	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - Ind)
+	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - p_ptr->Ind)
 		cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0;
 
 	/* Re-Place the player correctly */
@@ -1018,7 +1017,7 @@ void player_setup(player_type *p_ptr)
 			for (k = 1; k <= NumPlayers; k++ )
 			{
 				q_ptr = Players[k];
-				if(q_ptr && Ind != k)
+				if (!same_player(q_ptr, p_ptr))
 				{
 					/* Someone in here? */
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
@@ -1118,7 +1117,7 @@ void player_setup(player_type *p_ptr)
 	p_ptr->px = x;
 
 	/* Update the location's player index */
-	cave[Depth][y][x].m_idx = 0 - Ind;
+	cave[Depth][y][x].m_idx = 0 - p_ptr->Ind;
 
 	/* Show him to everybody */
 	everyone_lite_spot(Depth, y, x);

@@ -1556,7 +1556,6 @@ void update_monsters(bool dist)
  */
 void update_player(player_type *q_ptr)
 {
-	int Ind = Get_Ind[q_ptr->conn];
 	player_type *p_ptr;
 	
 	int i;
@@ -1652,16 +1651,16 @@ void update_player(player_type *q_ptr)
 		}
 
 		/* HACK ! - Detected via magical means */
-		if (p_ptr->play_det[Ind]) hard = flag = TRUE;
+		if (p_ptr->play_det[q_ptr->Ind]) hard = flag = TRUE;
 
 		/* Player is now visible */
 		if (flag)
 		{
 			/* It was previously unseen */
-			if (!p_ptr->play_vis[Ind])
+			if (!p_ptr->play_vis[q_ptr->Ind])
 			{
 				/* Mark as visible */
-				p_ptr->play_vis[Ind] = TRUE;
+				p_ptr->play_vis[q_ptr->Ind] = TRUE;
 
 				/* Draw the player */
 				lite_spot(p_ptr, py, px);
@@ -1682,10 +1681,10 @@ void update_player(player_type *q_ptr)
 		else
 		{
 			/* It was previously seen */
-			if (p_ptr->play_vis[Ind])
+			if (p_ptr->play_vis[q_ptr->Ind])
 			{
 				/* Mark as not visible */
-				p_ptr->play_vis[Ind] = FALSE;
+				p_ptr->play_vis[q_ptr->Ind] = FALSE;
 
 				/* Erase the player */
 				lite_spot(p_ptr, py, px);
@@ -1706,10 +1705,10 @@ void update_player(player_type *q_ptr)
 		if (easy || (hard && nearby))
 		{
 			/* Change */
-			if (!p_ptr->play_los[Ind])
+			if (!p_ptr->play_los[q_ptr->Ind])
 			{
 				/* Mark as easily visible */
-				p_ptr->play_los[Ind] = TRUE;
+				p_ptr->play_los[q_ptr->Ind] = TRUE;
 
 				/* Disturb on appearance */
 				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
@@ -1724,10 +1723,10 @@ void update_player(player_type *q_ptr)
 		else
 		{
 			/* Change */
-			if (p_ptr->play_los[Ind])
+			if (p_ptr->play_los[q_ptr->Ind])
 			{
 				/* Mark as not easily visible */
-				p_ptr->play_los[Ind] = FALSE;
+				p_ptr->play_los[q_ptr->Ind] = FALSE;
 
 				/* Disturb on disappearance */
 				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
@@ -1739,7 +1738,7 @@ void update_player(player_type *q_ptr)
 		}
 	}
 
-	update_cursor(-Ind);	
+	update_cursor(0 - q_ptr->Ind);
 }
 
 /*

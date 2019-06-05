@@ -2944,6 +2944,11 @@ that keeps many algorithms happy.
 
 
 /*
+ * Get index for a player
+ */
+#define player_index(PLR) ( (PLR)->Ind )
+
+/*
  * Compare two players
  */
 #define same_player(PLR1, PLR2) ( (PLR1) == (PLR2) )
