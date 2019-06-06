@@ -845,8 +845,9 @@
 #define MSG_PY_SPELL        154
 #define MSG_PY_PRAYER       155
 #define MSG_PY_MISC         156
+#define MSG_MON_OTHER       157
 
-#define MSG_MAX             157
+#define MSG_MAX             158
 
 /* Client-side and system messages: */
 #define MSG_LOCAL		255

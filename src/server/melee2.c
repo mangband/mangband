@@ -989,6 +989,11 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s gestures fluidly.", m_name);
 			msg_print(p_ptr, "You are engulfed in a whirlpool.");
+			msg_format_monster(m_idx, p_ptr, MSG_MON_OTHER,
+				"%s is engulfed in a whirlpool.",
+				"%s is engulfed in a whirlpool.",
+				p_ptr->name
+			);
 			breath(p_ptr, m_idx, GF_WATER,
 			       randint(rlev * 5 / 2) + 50);
 			break;
@@ -1612,6 +1617,10 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (!direct) break;
 			disturb(p_ptr, 1, 0);
 			msg_format(p_ptr, "%^s teleports you away.", m_name);
+			msg_format_monster(m_idx, p_ptr, MSG_MON_OTHER,
+				"%^s teleports %s away.",
+				"%^s teleports %s away.",
+				p_ptr->name);
 			teleport_player(p_ptr, 100);
 			break;
 		}
@@ -2934,6 +2943,9 @@ static void process_monster(int Ind, int m_idx)
 				{
 					/* Message */
 					msg_print(p_ptr, "You hear a door burst open!");
+					msg_format_monster(m_idx, p_ptr, MSG_GENERIC,
+						"You hear door burst open!",
+						"You hear door burst open!");
 
 					/* Disturb (sometimes) */
 					if (option_p(p_ptr,DISTURB_MINOR)) disturb(p_ptr, 0, 0);
@@ -3171,12 +3183,10 @@ static void process_monster(int Ind, int m_idx)
 						did_take_item = TRUE;
 
 						/* Describe observable situations */
-						if (p_ptr->mon_vis[m_idx] && player_has_los_bold(p_ptr, ny, nx))
-						{
-							/* Dump a message */
-							msg_format(p_ptr, "%^s tries to pick up %s, but fails.",
-							           m_name, o_name);
-						}
+						msg_format_monster(m_idx, NULL, MSG_GENERIC,
+							"%%^s tries to pick up %s, but fails.",
+							NULL,
+							o_name);
 					}
 				}
 
@@ -3190,11 +3200,10 @@ static void process_monster(int Ind, int m_idx)
 					did_take_item = TRUE;
 
 					/* Describe observable situations */
-					if (player_has_los_bold(p_ptr, ny, nx))
-					{
-						/* Dump a message */
-						msg_format(p_ptr, "%^s picks up %s.", m_name, o_name);
-					}
+					msg_format_monster(m_idx, NULL, MSG_GENERIC,
+						"%%^s picks up %s.",
+						"%%^s picks up %s.",
+						o_name);
 
 					if	(monster_can_carry(m_idx))
 					{
@@ -3219,10 +3228,12 @@ static void process_monster(int Ind, int m_idx)
 					did_kill_item = TRUE;
 
 					/* Describe observable situations */
+					msg_format_monster(m_idx, NULL, MSG_DESTROY,
+						"%%^s crushes %s.",
+						"%%^s crushes %s.", o_name);
 					if (player_has_los_bold(p_ptr, ny, nx))
 					{
 						/* Dump a message */
-						msg_format(p_ptr, "%^s crushes %s.", m_name, o_name);
 						sound(p_ptr, MSG_DESTROY);
 					}
 					

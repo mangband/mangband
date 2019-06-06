@@ -1017,6 +1017,7 @@ extern void msg_format_near(player_type *p_ptr, cptr fmt, ...);
 extern void msg_print_complex_near(player_type *p_ptr, player_type *q_ptr, u16b type, cptr msg);
 extern void msg_format_complex_near(player_type *p_ptr, player_type *q_ptr, u16b type, cptr fmt, ...);
 extern void msg_format_complex_far(player_type *p_ptr, player_type *q_ptr, u16b type, cptr fmt, cptr sender, ...);
+extern void msg_format_monster(int m_idx, player_type *q_ptr, u16b type, cptr fmt_vis, cptr fmt_inv, ...);
 extern void player_talk(player_type *p_ptr, char *msg);
 extern void channel_join(player_type *p_ptr, cptr channel, bool quiet);
 extern void channel_leave(player_type *p_ptr, cptr channel);

@@ -1997,6 +1997,92 @@ void msg_format_type(player_type *p_ptr, u16b type, cptr fmt, ...)
 }
 
 
+/*
+ * Display a message originated by a monster "m_idx".
+ * Everyone nearby should see it.
+ * If "q_ptr" is not NULL, this player will be skipped.
+ *
+ * Provide 2 messages, "fmt_vis" and "fmt_inv", one for players who can
+ * see this monster, and one for players who can't (but are still nearby).
+ * For example, "%%s picks %s's pocket!" and "%%s makes some grunting noises."
+ * -> "a kobold picks Player's pocket", "something makes some grunting noises."
+ *
+ * "fmt_inv" can be NULL, in which case no message will be displayed for
+ * players who don't see this monster (even though they are very close).
+ *
+ * Note, that the fomrat strings are expected to have "%%s" in them, which
+ * will be substitued with monster's name (or "it" or "something").
+ */
+void msg_format_monster(int m_idx, player_type *q_ptr, u16b type, cptr fmt_vis, cptr fmt_inv, ...)
+{
+	va_list vp;
+
+	int Depth, y, x, i;
+
+	char m_name_vis[80];
+	char m_name_invis[80];
+
+	char buf[1024];
+	char buf_vis[1024];
+	char buf_invis[1024];
+
+	monster_type *m_ptr = &m_list[m_idx];
+
+	/* Obtain monster name(s) */
+	monster_desc(NULL, m_name_vis,  m_idx, 0x80);  /* mode 0x80 - Forced visible */
+	monster_desc(NULL, m_name_invis, m_idx, 0x40); /* mode 0x40 - Forced hidden */
+
+	/* Prepare the "normal" message" (Varargs Stuff) */
+	va_start(vp, fmt_inv);
+	(void)vstrnfmt(buf, 1024, fmt_vis, vp);
+	(void)strnfmt(buf_vis, 1024, buf, m_name_vis);
+	va_end(vp);
+
+	/* Is there a secondary message? */
+	if (fmt_inv)
+	{
+		/* Prepare the "invisible" message" (Varargs Stuff) */
+		va_start(vp, fmt_inv);
+		(void)vstrnfmt(buf, 1024, fmt_inv, vp);
+		(void)strnfmt(buf_invis, 1024, buf, m_name_invis, buf);
+		va_end(vp);
+	}
+
+	/* Extract monster's location */
+	Depth = m_ptr->dun_depth;
+	y = m_ptr->fy;
+	x = m_ptr->fx;
+
+	/* Check each player */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		/* Check this player */
+		player_type *qq_ptr = Players[i];
+
+		/* Don't send the message to the ignoree */
+		if (same_player(qq_ptr, q_ptr)) continue;
+
+		/* Make sure this player is at this depth */
+		if (qq_ptr->dun_depth != Depth) continue;
+
+		/* Is the player near? (we also check if monster considers him near)*/
+		if (!player_has_los_bold(qq_ptr, y, x) &&
+		    !(m_ptr->closest_player == qq_ptr->Ind)) continue;
+
+		/* Can he see this monster? */
+		if (qq_ptr->mon_vis[m_idx])
+		{
+			/* Send "normal" message */
+			msg_print_aux(qq_ptr, buf_vis, type);
+		}
+		else if (fmt_inv)
+		{
+			/* Send "invisible" message */
+			msg_print_aux(qq_ptr, buf_invis, type);
+		}
+	}
+}
+
 
 /*
  * Display a message to everyone who is on the same dungeon level.
