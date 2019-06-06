@@ -1378,6 +1378,13 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 			return (0);
 		}
 
+		/* Junk */
+		case TV_JUNK:
+		{
+			/* Assume okay */
+			break;
+		}
+
 		/* Food and Potions and Scrolls */
 		case TV_FOOD:
 		case TV_POTION:
@@ -1391,15 +1398,21 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 		case TV_STAFF:
 		case TV_WAND:
 		{
-			/* Never okay -- why?*/
-			return(0);
+			/* Require both to be empty or identified */
+			if (!(o_ptr->ident & (ID_EMPTY)) &&
+			     !(o_ptr->ident & (ID_KNOWN)) ||
+			   (!(j_ptr->ident & (ID_EMPTY)) &&
+			    !(o_ptr->ident & (ID_KNOWN)))) return(0);
+
+			/* Assume ok */
+			break;
 		}
 
-		/* Staffs and Wands and Rods */
+		/* Rods */
 		case TV_ROD:
 		{
-			/* Never okay -- why?*/
-			return(0);
+			/* Assume ok */
+			break;
 		}
 
 		/* Weapons and Armor */
@@ -1418,8 +1431,10 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 		case TV_HARD_ARMOR:
 		case TV_DRAG_ARMOR:
 		{
- 			/* Never okay -- why?*/
-			return (0);
+			/* hack -- MAngband-specific bonus */
+			if (o_ptr->bpval != j_ptr->bpval) return (0);
+
+			/* Fallthrough */
 		}
 
 		/* Rings, Amulets, Lites */
@@ -1427,8 +1442,7 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 		case TV_AMULET:
 		case TV_LITE:
 		{
-			/* Never okay -- why?*/
-         return (0);
+			/* Fallthrough */
 		}
 
 		/* Missiles */
@@ -1436,6 +1450,9 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 		case TV_ARROW:
 		case TV_SHOT:
 		{
+			/* Require identical knowledge of both items */
+			if ((o_ptr->ident & ID_KNOWN) != (j_ptr->ident & ID_KNOWN)) return (0);
+
 			/* Require identical "bonuses" */
 			if (o_ptr->to_h != j_ptr->to_h) return (FALSE);
 			if (o_ptr->to_d != j_ptr->to_d) return (FALSE);
@@ -1457,7 +1474,12 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 			if (o_ptr->xtra1 || j_ptr->xtra1) return (FALSE);
 
 			/* Hack -- Never stack recharging items */
-			if (o_ptr->timeout || j_ptr->timeout) return (FALSE);
+			if ((o_ptr->timeout || j_ptr->timeout) && o_ptr->tval != TV_LITE)
+			    return (FALSE);
+
+			/* Lites must have same amount of fuel */
+			else if(o_ptr->timeout != j_ptr->timeout && o_ptr->tval == TV_LITE)
+				return FALSE;
 
 			/* Require identical "values" */
 			if (o_ptr->ac != j_ptr->ac) return (FALSE);
@@ -1465,6 +1487,14 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
 			if (o_ptr->ds != j_ptr->ds) return (FALSE);
 
 			/* Probably okay */
+			break;
+		}
+
+		/* Magic books */
+		case TV_MAGIC_BOOK:
+		case TV_PRAYER_BOOK:
+		{
+			/* Assume okay */
 			break;
 		}
 
