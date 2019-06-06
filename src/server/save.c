@@ -1465,6 +1465,19 @@ static bool wr_server_savefile(void)
         {
                 artifact_type *a_ptr = &a_info[i];
                 write_uint("artifact",a_ptr->cur_num);
+		if (a_ptr->cur_num)
+		{
+			/* Save owner information (if any) - name, */
+			if (a_ptr->owner_name)
+			{
+				write_str("owner_name",(char*)quark_str(a_ptr->owner_name));
+			}
+			else
+			{
+				write_str("owner_name","");
+			} /* and his id: */
+			write_int("owner_id", a_ptr->owner_id);
+		}
         }
 		end_section("artifacts");
 

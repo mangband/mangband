@@ -425,6 +425,22 @@ void do_cmd_check_artifacts(player_type *p_ptr, int line)
 		}
 	}
 
+	/* Uber-hack -- Dungeon Masters know EVERYTHING */
+	if (dm_flag_p(p_ptr, ARTIFACT_CONTROL))
+	for (k = 0; k < z_info->a_max; k++)
+	{
+		artifact_type *a_ptr = &a_info[k];
+		if (a_ptr->cur_num == 0) continue;
+		/* Show it */
+		okay[k] = TRUE;
+		/* Get owner name even if he is not logged in! */
+		if (a_ptr->owner_id)
+		{
+			/* Note owner */
+			my_strcpy(&owners[k * 80], format(" (%s)", quark_str(a_ptr->owner_name)), 80);
+		}
+	}
+
 	/* Scan the artifacts */
 	for (k = 0; k < z_info->a_max; k++)
 	{

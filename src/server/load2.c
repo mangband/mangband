@@ -2128,6 +2128,17 @@ errr rd_server_savefile()
         {
 				tmp8u = read_int("artifact");
                 a_info[i].cur_num = tmp8u;
+		/* Owner information */
+		if (value_exists("owner_name"))
+		{
+			char note[128];
+			/* Name */
+			read_str("owner_name",note);
+			/* Save */
+			if (!STRZERO(note)) a_info[i].owner_name = quark_add(note);
+			/* Id */
+			a_info[i].owner_id = read_int("owner_id");
+		}
         }
 		end_section_read("artifacts");
 

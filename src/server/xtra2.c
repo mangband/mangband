@@ -2569,6 +2569,8 @@ void player_strip(player_type *p_ptr, bool gold, bool objects, bool artifacts, b
 			{
 				/* Mark as unfound */
 				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+				a_info[p_ptr->inventory[i].name1].owner_name = 0;
+				a_info[p_ptr->inventory[i].name1].owner_id = 0;
 				continue;
 			}
 		}
@@ -2595,6 +2597,8 @@ void player_strip(player_type *p_ptr, bool gold, bool objects, bool artifacts, b
 			if (artifact_p(&p_ptr->inventory[i]))
 			{
 				a_info[p_ptr->inventory[i].name1].cur_num = 0;
+				a_info[p_ptr->inventory[i].name1].owner_name = 0;
+				a_info[p_ptr->inventory[i].name1].owner_id = 0;
 			}
 		}
 		else

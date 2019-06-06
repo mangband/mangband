@@ -559,6 +559,9 @@ struct artifact_type
 	byte cur_num;			/* Number created (0 or 1) */
 	byte max_num;			/* Unused (should be "1") */
 
+	u16b owner_name;		/* Owner name (index) */
+	s32b owner_id;			/* His unique id */
+
 	byte activation;		/* Activation to use */
 	u16b time;			/* Activation time */
 	u16b randtime;			/* Activation time dice */

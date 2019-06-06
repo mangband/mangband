@@ -3129,6 +3129,10 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		/* Hack -- Mark the artifact as "created" */
 		a_ptr->cur_num = 1;
 
+		/* Hack -- reset ownership (just in case) */
+		a_ptr->owner_id = 0;
+		a_ptr->owner_name = 0;
+
 		/* Info */
 		/* s_printf("Created artifact %d.\n", o_ptr->name1); */
 
@@ -4147,7 +4151,14 @@ void inven_item_increase(player_type *p_ptr, int item, int num)
 
 		/* Window stuff */
 		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
-	} 
+	}
+
+	/* Mega-hack! If an artifact was "decreased", forget ownership */
+	if (artifact_p(o_ptr) && (num < 0))
+	{
+		a_info[o_ptr->name1].owner_name = 0;
+		a_info[o_ptr->name1].owner_id = 0;
+	}
 }
 
 
@@ -5032,6 +5043,14 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 	if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
 	{
 		artifact_notify(p_ptr, o_ptr);
+	}
+
+	/* Store artifact owner */
+	if (artifact_p(o_ptr))
+	{
+		artifact_type *a_ptr = &a_info[o_ptr->name1];
+		a_ptr->owner_id = p_ptr->id;
+		a_ptr->owner_name = quark_add(p_ptr->name);
 	}
 
 	/* Set new owner */
