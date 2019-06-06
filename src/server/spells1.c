@@ -1617,6 +1617,14 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 				cave_set_feat(Depth, y, x, FEAT_DIRT);
 			}
 
+			/* "Reset" fields */
+			if ((c_ptr->feat >= FEAT_CROP_HEAD) &&
+			    (c_ptr->feat <= FEAT_CROP_TAIL))
+			{
+				/* Reset to generic field */
+				cave_set_feat(Depth, y, x, FEAT_CROP);
+			}
+
 			break;
 		}
 

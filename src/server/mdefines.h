@@ -152,6 +152,7 @@
 #define SERVER_SAVE	10		/* Minutes between server saves */
 #define TOWN_DAWN		50000	/* Number of turns from dawn to dawn XXX */
 #define GROW_TREE	5000		/* How often to grow a new tree in town */
+#define GROW_CROPS	5000		/* How often to grow a bunch of new vegetables in wilderness */
 #define BREAK_GLYPH		550		/* Rune of protection resistance */
 #define BTH_PLUS_ADJ    3       /* Adjust BTH per plus-to-hit */
 #define MON_MULT_ADJ	8		/* High value slows multiplication */
@@ -824,6 +825,17 @@ that keeps many algorithms happy.
 #define FEAT_LOOSE_DIRT		0x44
 #define FEAT_WATER			0x4C
 #define FEAT_MUD				0x48
+
+/* Crops */
+#define FEAT_CROP_HEAD			0x81
+#define FEAT_CROP_POTATO		0x81
+#define FEAT_CROP_CABBAGE		0x82
+#define FEAT_CROP_CARROT		0x83
+#define FEAT_CROP_BEET			0x84
+#define FEAT_CROP_SQUASH		0x85
+#define FEAT_CROP_CORN			0x86
+#define FEAT_CROP_MUSHROOM		0x87
+#define FEAT_CROP_TAIL			0x88
 
 /* Special "home doors" */
 #define FEAT_HOME_OPEN	0x51
@@ -2766,8 +2778,10 @@ that keeps many algorithms happy.
  */
 #define cave_wild_bold(DEPTH,Y,X) \
 	(!(DEPTH > 0) && \
-	((cave[DEPTH][Y][X].feat >= FEAT_DIRT) && \
-	 (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT)))
+	(((cave[DEPTH][Y][X].feat >= FEAT_DIRT) && \
+	  (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT)) || \
+	(((cave[DEPTH][Y][X].feat >= FEAT_CROP_HEAD) && \
+	  (cave[DEPTH][Y][X].feat <= FEAT_CROP_TAIL)))))
 
 
 /*

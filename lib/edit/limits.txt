@@ -15,7 +15,7 @@ V:1.5.2
 
 
 # Maximum number of feature types
-M:F:121
+M:F:136
 
 # Maximum number of object kinds
 M:K:531

@@ -1876,6 +1876,15 @@ static void process_various(void)
 		}
 	}
 
+	/* Grow crops very occasionally */
+	if (!(turn.turn % (10L * GROW_CROPS)))
+	{
+		/* For each wilderness level */
+		for (i = 1; i < MAX_DEPTH; i++)
+		{
+			wild_grow_crops(-i);
+		}
+	}
 
 	/* Grow trees very occasionally */
 	if (!(turn.turn % (10L * GROW_TREE)) && (trees_in_town < cfg_max_trees || cfg_max_trees == -1))

@@ -623,6 +623,8 @@ extern void wild_apply_night(int Depth);
 extern int determine_wilderness_type(int Depth);
 extern void wilderness_gen(int Depth);
 extern void wild_add_monster(int Depth);
+extern void wild_grow_crops(int Depth);
+extern void do_cmd_plant_seed(player_type *p_ptr, int item);
 
 /* init-txt.c */
 extern errr init_v_info_txt(FILE *fp, char *buf);

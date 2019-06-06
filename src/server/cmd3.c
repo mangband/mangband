@@ -642,7 +642,18 @@ void do_cmd_drop(player_type *p_ptr, int item, int quantity)
 		return;
 	}
 
-
+	/* Ultimate-Hack -- farmers plant seeds */
+	if ((o_ptr->tval == TV_FOOD) &&
+	    ((o_ptr->sval >= SV_FOOD_POTATO) &&
+	     (o_ptr->sval <= SV_FOOD_EAR_OF_CORN)))
+	{
+		if (cave[p_ptr->dun_depth] &&
+		    cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].feat == FEAT_CROP)
+		{
+			do_cmd_plant_seed(p_ptr, item);
+			return;
+		}
+	}
 
 #if 0
 	/* Mega-Hack -- verify "dangerous" drops */
