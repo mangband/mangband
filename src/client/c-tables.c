@@ -494,6 +494,7 @@ cptr angband_sound_name[MSG_MAX] =
 	"player_spell",
 	"player_prayer",
 	"player_action",
+	"monster_action",
 };
 
 
