@@ -3594,8 +3594,8 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 			Players[i]->obj_vis[o_idx] = FALSE;
 		}
 
-	/* Add inscription (for unique drops) */
-	if (quark > 0) o_ptr->note = quark;
+		/* Add inscription (for unique drops) */
+		if (quark > 0) o_ptr->note = quark;
 
 #ifdef DEBUG
 	{

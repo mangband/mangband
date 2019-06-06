@@ -1094,9 +1094,9 @@ void player_setup(player_type *p_ptr)
 		/* Pick a location */
 		/* Hack -- ghosts do not scatter, as they may not be in a line of sight
 		   with a valid region */
-        if (!p_ptr->ghost)
+		if (!p_ptr->ghost)
 		{
-			// Hack -- invery require_los since scatter actually takes
+			// Hack -- invert require_los since scatter actually takes
 			// a "don't require line of sight" boolean parameter.
 			scatter(Depth, &y, &x, p_ptr->py, p_ptr->px, d, !require_los);
 
