@@ -3250,6 +3250,12 @@ static void process_monster(int Ind, int m_idx)
 	}
 #endif
 
+	/* Hack -- iterate over all the players */
+	/* BEGIN HACK */ { player_type* q_ptr = p_ptr; /* Remember pointer */
+	for (i = 1; i <= NumPlayers; i++) {
+	  if (Players[i]->dun_depth != Depth) continue;
+	  p_ptr = Players[i]; /* Point to some player */
+	  l_ptr = p_ptr->l_list + m_ptr->r_idx;
 
 	/* Learn things from observable monster */
 	if (p_ptr->mon_vis[m_idx])
@@ -3278,7 +3284,7 @@ static void process_monster(int Ind, int m_idx)
 		/* Monster destroyed a wall */
 		if (did_kill_wall) l_ptr->flags2 |= RF2_KILL_WALL;
 	}
-
+	/* END HACK */ } p_ptr = q_ptr; /* Restore pointer */ }
 
 	/* Hack -- get "bold" if out of options */
 	if (!do_turn && !do_move && m_ptr->monfear)

@@ -2077,14 +2077,14 @@ void monster_death(player_type *p_ptr, int m_idx)
 			if (do_gold && (!do_item || (rand_int(100) < 50)))
 			{
 				place_gold(Depth, ny, nx);
-				if (player_can_see_bold(p_ptr, ny, nx)) dump_gold++;
+				/*if (player_can_see_bold(p_ptr, ny, nx))*/ dump_gold++;
 			}
 
 			/* Place Object */
 			else
 			{
-                place_object(Depth, ny, nx, good, great, quark);
-				if (player_can_see_bold(p_ptr, ny, nx)) dump_item++;
+				place_object(Depth, ny, nx, good, great, quark);
+				/*if (player_can_see_bold(p_ptr, ny, nx))*/ dump_item++;
 			}
 
 			/* Reset the object level */
