@@ -3969,7 +3969,8 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 			/* Use old object */
 			o_idx = c_ptr->o_idx;			
 			
-			j_ptr->number += o_ptr->number;
+			/* Absorb */
+			object_absorb(NULL, j_ptr, o_ptr);
 			
 			/* Notify ! */
 			flag = TRUE;
