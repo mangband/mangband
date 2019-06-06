@@ -1592,13 +1592,13 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 				/* Hack -- special message */
 				if (!quiet && player_can_see_bold(p_ptr, y, x))
 				{
-					if (Depth == 0) trees_in_town--;
 					msg_print(p_ptr, "The tree burns to the ground!");
 					obvious = TRUE;
 				}
 
 				/* Destroy the tree */
 				c_ptr->feat = FEAT_DIRT;
+				if (Depth == 0) trees_in_town--;
 			}
 
 			/* Burn grass */
