@@ -4164,8 +4164,27 @@ static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mod
 		/* Pick a prefix */
 		if (*s2 && (feat >= FEAT_DOOR_HEAD)) s2 = "in ";
 
+		/* Hack -- handle wilderness features */
+		if (*s2 && (
+		     (feat == FEAT_DRAWBRIDGE) ||
+		     (feat == FEAT_LOGS) ||
+		     (feat == FEAT_MUD)  ||
+		     (feat == FEAT_CROP) ||
+		     (feat >= FEAT_CROP_HEAD && feat <= FEAT_CROP_TAIL)
+		)) s2 = "on ";
+
 		/* Pick proper indefinite article */
 		s3 = (is_a_vowel(name[0])) ? "an " : "a ";
+
+		/* Hack -- some features need no article */
+		if ((
+		     (feat == FEAT_GRASS) ||
+		     (feat == FEAT_WATER) ||
+		     (feat == FEAT_DIRT) ||
+		     (feat == FEAT_LOOSE_DIRT) ||
+		     (feat == FEAT_CROP) ||
+		     (feat >= FEAT_CROP_HEAD && feat <= FEAT_CROP_TAIL)
+		)) s3 = "";
 
 		/* Hack -- special introduction for store doors */
 		if ((feat >= FEAT_SHOP_HEAD) && (feat <= FEAT_SHOP_TAIL))
