@@ -304,8 +304,6 @@ static void chest_death(player_type *p_ptr, int y, int x, object_type *o_ptr)
 			/* Try 20 times per item */
 			for (i = 0; i < 20; ++i)
 			{
-				player_type *q_ptr;
-
 				/* Pick a distance */
 				d = ((i + 15) / 15);
 
@@ -338,19 +336,6 @@ static void chest_death(player_type *p_ptr, int y, int x, object_type *o_ptr)
 
 				/* No longer opening a chest */
 				opening_chest = FALSE;
-
-				/* Notice it */
-				note_spot_depth(Depth, ny, nx);
-
-				/* Display it */
-				everyone_lite_spot(Depth, ny, nx);
-
-				/* Under the player */
-				if ((q_ptr = player_on_cave(Depth, ny, nx)))
-				{
-					msg_print(q_ptr, "You feel something roll beneath your feet.");
-					floor_item_notify(q_ptr, cave[Depth][ny][nx].o_idx, TRUE);
-				}
 
 				/* Successful placement */
 				break;
@@ -1335,16 +1320,7 @@ static bool do_cmd_open_aux(player_type *p_ptr, int y, int x)
 			sound(p_ptr, MSG_LOCKPICK);
 
 			/* Open the door */
-			c_ptr->feat = FEAT_OPEN;
-
-			/* Notice */
-			note_spot_depth(Depth, y, x);
-
-			/* Redraw */
-			everyone_lite_spot(Depth, y, x);
-
-			/* Update some things */
-			p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
+			cave_set_feat(Depth, y, x, FEAT_OPEN);
 
 			/* Experience */
 			gain_exp(p_ptr, 1);
@@ -1950,26 +1926,11 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 			/* Found treasure */
 			if (gold)
 			{
-				player_type *q_ptr;
-
 				/* Place some gold */
 				place_gold(Depth, y, x);
 
 				/* Message */
 				msg_print(p_ptr, "You have found something!");
-
-				/* Notice it */
-				note_spot_depth(Depth, y, x);
-
-				/* Display it */
-				everyone_lite_spot(Depth, y, x);
-
-				/* Under some player */
-				if ((q_ptr = player_on_cave(Depth,y,x)))
-				{
-					msg_print(q_ptr, "You feel something roll beneath your feet.");
-					floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
-				}
 			}
 
 			/* Found nothing */
@@ -2018,19 +1979,6 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 				if (player_can_see_bold(p_ptr, y, x))
 				{
 					msg_print(p_ptr, "You have found something!");
-				}
-
-				/* Notice it */
-				note_spot_depth(Depth, y, x);
-
-				/* Display it */
-				everyone_lite_spot(Depth, y, x);
-
-				/* Under some player */
-				if ((q_ptr = player_on_cave(Depth,y,x)))
-				{
-					msg_print(q_ptr, "You feel something roll beneath your feet.");
-					floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
 				}
 			}
 		}

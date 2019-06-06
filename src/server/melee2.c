@@ -2854,20 +2854,15 @@ static void process_monster(int Ind, int m_idx)
 			/* Monster destroyed a wall */
 			did_kill_wall = TRUE;
 
-			/* Create floor */
-			c_ptr->feat = FEAT_FLOOR;
-
-			/* Forget the "field mark", if any */
+			/* Forget the wall */
 			everyone_forget_spot(Depth, ny, nx);
 
-			/* Notice */
-			note_spot_depth(Depth, ny, nx);
-
-			/* Redraw */
-			everyone_lite_spot(Depth, ny, nx);
+			/* Create floor */
+			cave_set_feat(Depth, ny, nx, FEAT_FLOOR);
 
 			/* Note changes to viewable region */
-			if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE;
+			/* MAngband-specific: cave_set_feat handles it */
+			/* if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE; */
 		}
 
 		/* Handle doors and secret doors */
@@ -2912,7 +2907,7 @@ static void process_monster(int Ind, int m_idx)
 					if (rand_int(m_ptr->hp / 10) > k)
 					{
 						/* Unlock the door */
-						c_ptr->feat = FEAT_DOOR_HEAD + 0x00;
+						cave_set_feat(Depth, ny, nx, FEAT_DOOR_HEAD + 0x00);
 
 						/* Do not bash the door */
 						may_bash = FALSE;
@@ -2958,23 +2953,17 @@ static void process_monster(int Ind, int m_idx)
 				/* Break down the door */
 				if (did_bash_door && (rand_int(100) < 50))
 				{
-					c_ptr->feat = FEAT_BROKEN;
+					cave_set_feat(Depth, ny, nx, FEAT_BROKEN);
 				}
 
 				/* Open the door */
 				else
 				{
-					c_ptr->feat = FEAT_OPEN;
+					cave_set_feat(Depth, ny, nx, FEAT_OPEN);
 				}
 
-				/* Notice */
-				note_spot_depth(Depth, ny, nx);
-
-				/* Redraw */
-				everyone_lite_spot(Depth, ny, nx);
-
-				/* Handle viewable doors */
-				if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE;
+				/* Handle viewable doors */ /* MAngband-specific: cave_set_feat handles it */
+				/* if (player_has_los_bold(p_ptr, ny, nx)) do_view = TRUE; */
 			}
 		}
 
@@ -2989,13 +2978,17 @@ static void process_monster(int Ind, int m_idx)
 			if (randint(BREAK_GLYPH) < r_ptr->level)
 			{
 				/* Describe observable breakage */
-				if (Players[Ind]->cave_flag[ny][nx] & CAVE_MARK)
+				for (i = 1; i <= NumPlayers; i++)
 				{
-					msg_print(Players[Ind], "The rune of protection is broken!");
+					if (Players[i]->dun_depth != Depth) continue;
+					if (Players[i]->cave_flag[ny][nx] & CAVE_MARK)
+					{
+						msg_print(Players[i], "The rune of protection is broken!");
+					}
 				}
 
 				/* Break the rune */
-				c_ptr->feat = FEAT_FLOOR;
+				cave_set_feat(Depth, ny, nx, FEAT_FLOOR);
 
 				/* Allow movement */
 				do_move = TRUE;
@@ -3246,12 +3239,16 @@ static void process_monster(int Ind, int m_idx)
 		}
 	}
 
+#if 0
+/* Hack -- disabled in MAngband. Instead of handling single player,
+ * call update_spot(Depth,y,x, (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS)) */
 	/* Notice changes in view */
 	if (do_view)
 	{
 		/* Update some things */
 		p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS);
 	}
+#endif
 
 
 	/* Learn things from observable monster */

@@ -388,6 +388,8 @@ extern void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte 
 extern int color_char_to_attr(char c);
 extern void move_cursor_relative(int row, int col);
 extern void print_rel(char c, byte a, int y, int x);
+extern void cave_set_feat(int Depth, int y, int x, int feat);
+extern void spot_updates(int Depth, int y, int x, u32b updates);
 extern void note_spot(player_type *p_ptr, int y, int x);
 extern void note_spot_depth(int Depth, int y, int x);
 extern void everyone_lite_spot(int Depth, int y, int x);
@@ -610,6 +612,7 @@ extern void alloc_dungeon_level(int Depth);
 extern void dealloc_dungeon_level(int Depth);
 extern void generate_cave(player_type *p_ptr, int Depth, int auto_scum);
 extern void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data);
+extern void place_closed_door(int Depth, int y, int x);
 
 /* wilderness.c */
 extern int world_index(int world_x, int world_y);

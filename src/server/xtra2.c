@@ -2093,19 +2093,6 @@ void monster_death(player_type *p_ptr, int m_idx)
 			/* Reset "coin" type */
 			coin_type = 0;
 
-			/* Notice */
-			note_spot_depth(Depth, ny, nx);
-
-			/* Display */
-			everyone_lite_spot(Depth, ny, nx);
-
-			/* Under a player */
-			if (c_ptr->m_idx < 0)
-			{
-				msg_print(Players[0 - c_ptr->m_idx], "You feel something roll beneath your feet.");
-				floor_item_notify(Players[0 - c_ptr->m_idx], c_ptr->o_idx, TRUE);
-			}
-
 			break;
 		}
 	}

@@ -1605,7 +1605,7 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (c_ptr->feat == FEAT_GRASS)
 			{
 				/* Destroy the grass */
-				c_ptr->feat = FEAT_DIRT;
+				cave_set_feat(Depth, y, x, FEAT_DIRT);
 			}
 
 			break;
@@ -1614,8 +1614,22 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 		/* Destroy Traps (and Locks) */
 		case GF_KILL_TRAP:
 		{
-			/* Destroy invisible traps */
-			if (c_ptr->feat == FEAT_INVIS)
+			/* Reveal secret doors */
+			if (c_ptr->feat == FEAT_SECRET)
+			{
+				place_closed_door(Depth, y, x);
+
+				/* Check line of sight */
+				if (player_has_los_bold(p_ptr, y, x))
+				{
+					obvious = TRUE;
+				}
+			}
+
+			/* Destroy traps */
+			if ((c_ptr->feat == FEAT_INVIS) ||
+			    ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
+			     (c_ptr->feat <= FEAT_TRAP_TAIL)))
 			{
 				/* Hack -- special message */
 				if (!quiet && player_can_see_bold(p_ptr, y, x))
@@ -1623,66 +1637,28 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					msg_print(p_ptr, "There is a bright flash of light!");
 					obvious = TRUE;
 				}
+				/* Inform other nearby players */
+				msg_print_near(p_ptr, "There is a bright flash of light!");
+
+				/* Forget the trap */
+				everyone_forget_spot(Depth, y, x);
 
 				/* Destroy the trap */
-				c_ptr->feat = FEAT_FLOOR;
-
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
-				}
+				cave_set_feat(Depth, y, x, FEAT_FLOOR);
 			}
 
-			/* Destroy visible traps */
-			if ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
-			    (c_ptr->feat <= FEAT_TRAP_TAIL))
+			/* Locked doors are unlocked */
+			else if ((c_ptr->feat >= FEAT_DOOR_HEAD + 0x01) &&
+			         (c_ptr->feat <= FEAT_DOOR_HEAD + 0x07))
 			{
-				/* Hack -- special message */
-				if (!quiet && (*w_ptr & CAVE_MARK))
-				{
-					msg_print(p_ptr, "There is a bright flash of light!");
-					obvious = TRUE;
-				}
+				/* Unlock the door */
+				cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x00);
 
-				/* Destroy the trap */
-				c_ptr->feat = FEAT_FLOOR;
-
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
-				}
-			}
-
-			/* Secret / Locked doors are found and unlocked */
-			else if ((c_ptr->feat == FEAT_SECRET) ||
-			         ((c_ptr->feat >= FEAT_DOOR_HEAD + 0x01) &&
-			          (c_ptr->feat <= FEAT_DOOR_HEAD + 0x07)))
-			{
 				/* Notice */
-				if (!quiet && (*w_ptr & CAVE_MARK))
+				if (!quiet && player_has_los_bold(p_ptr, y, x))
 				{
 					msg_print(p_ptr, "Click!");
 					obvious = TRUE;
-				}
-
-				/* Unlock the door */
-				c_ptr->feat = FEAT_DOOR_HEAD + 0x00;
-
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
 				}
 			}
 
@@ -1692,8 +1668,14 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 		/* Destroy Doors (and traps) */
 		case GF_KILL_DOOR:
 		{
-			/* Destroy invisible traps */
-			if (c_ptr->feat == FEAT_INVIS)
+			/* Destroy all doors and traps */
+			if ((c_ptr->feat == FEAT_INVIS) ||
+			    (c_ptr->feat == FEAT_OPEN) ||
+			    (c_ptr->feat == FEAT_BROKEN) ||
+			    ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
+			     (c_ptr->feat <= FEAT_TRAP_TAIL)) ||
+			    ((c_ptr->feat >= FEAT_DOOR_HEAD) &&
+			     (c_ptr->feat <= FEAT_DOOR_TAIL)))
 			{
 				/* Hack -- special message */
 				if (!quiet && player_can_see_bold(p_ptr, y, x))
@@ -1702,79 +1684,11 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					obvious = TRUE;
 				}
 
-				/* Destroy the feature */
-				c_ptr->feat = FEAT_FLOOR;
-
 				/* Forget the wall */
 				everyone_forget_spot(Depth, y, x);
 
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
-				}
-			}
-
-			/* Destroy all visible traps and open doors */
-			if ((c_ptr->feat == FEAT_OPEN) ||
-			    (c_ptr->feat == FEAT_BROKEN) ||
-			    ((c_ptr->feat >= FEAT_TRAP_HEAD) &&
-			     (c_ptr->feat <= FEAT_TRAP_TAIL)))
-			{
-				/* Hack -- special message */
-				if (!quiet && (*w_ptr & CAVE_MARK))
-				{
-					msg_print(p_ptr, "There is a bright flash of light!");
-					obvious = TRUE;
-				}
-
 				/* Destroy the feature */
-				c_ptr->feat = FEAT_FLOOR;
-
-				/* Forget the wall */
-				everyone_forget_spot(Depth, y, x);
-
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
-				}
-			}
-
-			/* Destroy all closed doors */
-			if ((c_ptr->feat >= FEAT_DOOR_HEAD) &&
-			    (c_ptr->feat <= FEAT_DOOR_TAIL))
-			{
-				/* Hack -- special message */
-				if (!quiet && (*w_ptr & CAVE_MARK))
-				{
-					msg_print(p_ptr, "There is a bright flash of light!");
-					obvious = TRUE;
-				}
-
-				/* Destroy the feature */
-				c_ptr->feat = FEAT_FLOOR;
-
-				/* Forget the wall */
-				everyone_forget_spot(Depth, y, x);
-
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
-
-					/* Update some things */
-					p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
-				}
+				cave_set_feat(Depth, y, x, FEAT_FLOOR);
 			}
 
 			break;
@@ -1799,18 +1713,19 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					obvious = TRUE;
 				}
 
+				/* Forget the wall */
+				everyone_forget_spot(Depth, y, x);
+
 				/* Destroy the wall */
 				if (Depth > 0)
-					c_ptr->feat = FEAT_FLOOR;
+					cave_set_feat(Depth, y, x, FEAT_FLOOR);
 				else
-					c_ptr->feat = FEAT_MUD;
+					cave_set_feat(Depth, y, x, FEAT_MUD);
 			}
 
 			/* Quartz / Magma with treasure */
 			else if (c_ptr->feat >= FEAT_MAGMA_H)
 			{
-				player_type *q_ptr;
-
 				/* Message */
 				if (!quiet && (*w_ptr & CAVE_MARK))
 				{
@@ -1819,28 +1734,17 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					obvious = TRUE;
 				}
 
+				/* Forget the wall */
+				everyone_forget_spot(Depth, y, x);
+
 				/* Destroy the wall */
 				if (Depth > 0)
-					c_ptr->feat = FEAT_FLOOR;
+					cave_set_feat(Depth, y, x, FEAT_FLOOR);
 				else
-					c_ptr->feat = FEAT_MUD;
-					
+					cave_set_feat(Depth, y, x, FEAT_MUD);
+
 				/* Place some gold */
 				place_gold(Depth, y, x);
-
-				/* Notice it */
-				note_spot_depth(Depth, y, x);
-
-				/* Display it */
-				everyone_lite_spot(Depth, y, x);
-
-				/* Under the player */
-				if ((q_ptr = player_on_cave(Depth, y, x)))
-				{
-					if (!quiet) msg_print(q_ptr, "You feel something roll beneath your feet.");
-					floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
-				}
-
 			}
 
 			/* Quartz / Magma */
@@ -1853,11 +1757,14 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					obvious = TRUE;
 				}
 
+				/* Forget the wall */
+				everyone_forget_spot(Depth, y, x);
+
 				/* Destroy the wall */
 				if (Depth > 0)
-					c_ptr->feat = FEAT_FLOOR;
+					cave_set_feat(Depth, y, x, FEAT_FLOOR);
 				else
-					c_ptr->feat = FEAT_MUD;
+					cave_set_feat(Depth, y, x, FEAT_MUD);
 			}
 
 			/* Rubble */
@@ -1870,17 +1777,18 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					obvious = TRUE;
 				}
 
+				/* Forget the wall */
+				everyone_forget_spot(Depth, y, x);
+
 				/* Destroy the rubble */
 				if (Depth > 0)
-					c_ptr->feat = FEAT_FLOOR;
+					cave_set_feat(Depth, y, x, FEAT_FLOOR);
 				else
-					c_ptr->feat = FEAT_MUD;
+					cave_set_feat(Depth, y, x, FEAT_MUD);
 
 				/* Hack -- place an object */
 				if (rand_int(100) < 10)
 				{
-					player_type *q_ptr;
-
 					/* Found something */
 					if (!quiet && player_can_see_bold(p_ptr, y, x))
 					{
@@ -1890,19 +1798,6 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 
 					/* Place gold */
 					place_object(Depth, y, x, FALSE, FALSE, 0);
-
-					/* Notice it */
-					note_spot_depth(Depth, y, x);
-
-					/* Display it */
-					everyone_lite_spot(Depth, y, x);
-
-					/* Under the player */
-					if ((q_ptr = player_on_cave(Depth, y, x)))
-					{
-						msg_print(q_ptr, "You feel something roll beneath your feet.");
-						floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
-					}
 				}
 			}
 
@@ -1929,26 +1824,24 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 
 				/* Destroy the feature */
 				if (Depth > 0)
-					c_ptr->feat = FEAT_FLOOR;
+					cave_set_feat(Depth, y, x, FEAT_FLOOR);
 				else
-					c_ptr->feat = FEAT_DIRT;
+					cave_set_feat(Depth, y, x, FEAT_DIRT);
 			}
 
+#if 0 /* Moved elsewhere, see above */
 			/* Forget the wall */
 			everyone_forget_spot(Depth, y, x);
 	
-			if (!quiet)
-			{
-				/* Notice */
-				note_spot(p_ptr, y, x);
+			/* Notice */
+			note_spot_depth(Depth, y, x);
 
-				/* Redraw */
-				everyone_lite_spot(Depth, y, x);
+			/* Redraw */
+			everyone_lite_spot(Depth, y, x);
 
-				/* Update some things */
-				p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS);
-			}
-
+			/* Update some things */
+			spot_updates(Depth, y, x, (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS));
+#endif
 			break;
 		}
 
@@ -1959,21 +1852,12 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (!cave_naked_bold(Depth, y, x)) break;
 
 			/* Create a closed door */
-			c_ptr->feat = FEAT_DOOR_HEAD + 0x00;
+			cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x00);
 
 			if (!quiet)
 			{
-				/* Notice */
-				note_spot(p_ptr, y, x);
-
-				/* Redraw */
-				everyone_lite_spot(Depth, y, x);
-
 				/* Observe */
 				if (*w_ptr & CAVE_MARK) obvious = TRUE;
-
-				/* Update some things */
-				p_ptr->update |= (PU_VIEW | PU_LITE | PU_MONSTERS);
 			}
 
 			break;
@@ -1988,13 +1872,14 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 			/* Place a trap */
 			place_trap(Depth, y, x);
 
+			/* Hack -- only the current player gets to know */
 			if (!quiet)
 			{
 				/* Notice */
 				note_spot(p_ptr, y, x);
 
 				/* Redraw */
-				everyone_lite_spot(Depth, y, x);
+				lite_spot(p_ptr, y, x);
 			}
 
 			break;
@@ -2007,16 +1892,19 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 			/* Turn on the light */
 			c_ptr->info |= CAVE_GLOW;
 
-			if (!quiet)
+			/* Notice */
+			note_spot_depth(Depth, y, x);
+
+			/* Redraw */
+			everyone_lite_spot(Depth, y, x);
+
+			/* Trigger updates */
+			spot_updates(Depth, y, x, (PU_VIEW | PU_LITE | PU_UN_VIEW | PU_UN_LITE | PU_MONSTERS));
+
+			if (!quiet && player_can_see_bold(p_ptr, y, x))
 			{
-				/* Notice */
-				note_spot_depth(Depth, y, x);
-
-				/* Redraw */
-				everyone_lite_spot(Depth, y, x);
-
 				/* Observe */
-				if (player_can_see_bold(p_ptr, y, x)) obvious = TRUE;
+				if (!p_ptr->blind) obvious = TRUE;
 			}
 
 			/* Mega-Hack -- Update the monster in the affected grid */
@@ -2042,18 +1930,15 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 				/* Forget */
 				everyone_forget_spot(Depth, y, x);
 
-				if (!quiet)
-				{
-					/* Notice */
-					note_spot(p_ptr, y, x);
-				}
+				/* Notice */
+				note_spot_depth(Depth, y, x);
 			}
 
-			if (!quiet)
-			{
-				/* Redraw */
-				everyone_lite_spot(Depth, y, x);
-			}
+			/* Redraw */
+			everyone_lite_spot(Depth, y, x);
+
+			/* Trigger updates */
+			spot_updates(Depth, y, x, (PU_VIEW | PU_LITE | PU_UN_VIEW | PU_UN_LITE | PU_MONSTERS));
 
 			/* Mega-Hack -- Update the monster in the affected grid */
 			/* This allows "spear of light" (etc) to work "correctly" */

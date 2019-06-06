@@ -3606,10 +3606,29 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 	}
 #endif
 
-	return artifact_p(o_ptr);
+		return artifact_p(o_ptr);
 	}
 
-    return FALSE;
+	/* Observe placement. (dungeon level has already been generated) */
+	if (server_dungeon && o_idx)
+	{
+		player_type *q_ptr;
+
+		/* Notice it */
+		note_spot_depth(Depth, y, x);
+
+		/* Display it */
+		everyone_lite_spot(Depth, y, x);
+
+		/* Under some player */
+		if ((q_ptr = player_on_cave(Depth,y,x)))
+		{
+			msg_print(q_ptr, "You feel something roll beneath your feet.");
+			floor_item_notify(q_ptr, o_idx, TRUE);
+		}
+	}
+
+	return FALSE;
 }
 
 
@@ -3648,19 +3667,6 @@ void acquirement(int Depth, int y1, int x1, int num, bool great)
 			ok = place_object(Depth, y, x, TRUE, TRUE, 0);
 			object_level = oblev;
 
-			/* Notice */
-			note_spot_depth(Depth, y, x);
-
-			/* Redraw */
-			everyone_lite_spot(Depth, y, x);
-
-			/* Under the player */
-			if ((q_ptr = player_on_cave(Depth, y, x)))
-			{
-				msg_print(q_ptr, "You feel something roll beneath your feet.");
-				floor_item_notify(q_ptr, cave[Depth][y][x].o_idx, TRUE);
-			}
-
 			/* Placement accomplished */
 			break;
 		}
@@ -3695,6 +3701,9 @@ void place_trap(int Depth, int y, int x)
 
 	/* Place an invisible trap */
 	c_ptr->feat = FEAT_INVIS;
+
+	/* Note: we don't use cave_set_feat here, so that
+	 * the clients DON'T get any floor updates... */
 }
 
 
@@ -3771,6 +3780,26 @@ void place_gold(int Depth, int y, int x)
 			Players[j]->obj_vis[o_idx] = FALSE;
 		}
 	}
+
+	/* Observe placement. (dungeon level has already been generated) */
+	if (server_dungeon && o_idx)
+	{
+		player_type *q_ptr;
+
+		/* Notice it */
+		note_spot_depth(Depth, y, x);
+
+		/* Display it */
+		everyone_lite_spot(Depth, y, x);
+
+		/* Under some player */
+		if ((q_ptr = player_on_cave(Depth,y,x)))
+		{
+			msg_print(q_ptr, "You feel something roll beneath your feet.");
+			floor_item_notify(q_ptr, o_idx, TRUE);
+		}
+	}
+
 }
 
 

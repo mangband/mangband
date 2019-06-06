@@ -494,6 +494,39 @@ static void place_secret_door(int Depth, int y, int x)
 
 
 /*
+ * Place a random type of closed door at the given location.
+ */
+void place_closed_door(int Depth, int y, int x)
+{
+	int tmp;
+
+	/* Choose an object */
+	tmp = rand_int(400);
+
+	/* Closed doors (300/400) */
+	if (tmp < 300)
+	{
+		/* Create closed door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x00);
+	}
+
+	/* Locked doors (99/400) */
+	else if (tmp < 399)
+	{
+		/* Create locked door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + randint(7));
+	}
+
+	/* Stuck doors (1/400) */
+	else
+	{
+		/* Create jammed door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x08 + rand_int(8));
+	}
+}
+
+
+/*
  * Place a random type of door at the given location
  */
 static void place_random_door(int Depth, int y, int x)

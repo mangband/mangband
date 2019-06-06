@@ -556,19 +556,13 @@ void search(player_type *p_ptr)
 					msg_print(p_ptr, "You have found a secret door.");
 
 					/* Pick a door XXX XXX XXX */
-					c_ptr->feat = FEAT_DOOR_HEAD + 0x00;
-
-					/* Notice */
-					note_spot_depth(Depth, y, x);
-
-					/* Redraw */
-					everyone_lite_spot(Depth, y, x);
+					place_closed_door(Depth, y, x);
 
 					/* Disturb */
 					disturb(p_ptr, 0, 0);
 
 					/* Give the player an EXP bump */
-					p_ptr->exp += 1;
+					gain_exp(p_ptr, 1);
 				}
 
 				/* Search chests */

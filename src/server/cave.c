@@ -1527,6 +1527,68 @@ void lite_spot(player_type *p_ptr, int y, int x)
 	}
 }
 
+void spot_updates(int Depth, int y, int x, u32b updates)
+{
+	int i;
+
+	/* Check every player on this depth */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *p_ptr = Players[i];
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Feature is in direct view */
+		if (player_has_los_bold(p_ptr, y, x))
+		{
+			p_ptr->update |= updates;
+		}
+	}
+}
+
+
+/*
+ * Change the "feat" flag for a grid, and notice/redraw the grid
+ */
+void cave_set_feat(int Depth, int y, int x, int feat)
+{
+	cave_type *c_ptr;
+
+	/* Access that cave grid */
+	c_ptr = &cave[Depth][y][x];
+
+	/* Change the feature */
+	c_ptr->feat = feat;
+
+#if 0
+	/* Handle "wall/door" grids */
+	if (feat >= FEAT_DOOR_HEAD)
+	{
+		cave_info[y][x] |= (CAVE_WALL);
+	}
+
+	/* Handle "floor"/etc grids */
+	else
+	{
+		cave_info[y][x] &= ~(CAVE_WALL);
+	}
+#endif
+
+	/* Notice/Redraw */
+	if (server_dungeon)
+	{
+		/* All players forget old feature */
+		/* everyone_forget_spot(Depth, ny, nx); */
+
+		/* Nearby players memorize the new feature */
+		note_spot_depth(Depth, y, x);
+
+		/* And see the change */
+		everyone_lite_spot(Depth, y, x);
+
+		/* Finally, update view region for affected players */
+		spot_updates(Depth, y, x, (PU_VIEW | PU_LITE | PU_MONSTERS | PU_DISTANCE));
+	}
+}
 
 
 
