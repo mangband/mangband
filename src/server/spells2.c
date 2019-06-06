@@ -4824,9 +4824,8 @@ bool alter_reality(player_type *p_ptr, bool power)
 
 	/* Deallocate the level */
 	dealloc_dungeon_level(Depth);
-	cave[Depth] = 0;
 
-	/* Reality altered */	
+	/* Reality altered */
 	return (TRUE);
 }
 
