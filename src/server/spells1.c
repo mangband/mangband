@@ -253,6 +253,9 @@ void teleport_player(player_type *p_ptr, int dis)
 	/* Redraw the new spot */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(p_ptr);
+
 	/* Check for new panel (redraw map) */
 	verify_panel(p_ptr);
 
@@ -327,6 +330,9 @@ void teleport_player_to(player_type *p_ptr, int ny, int nx)
 
 	/* Redraw the new spot */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
+
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(p_ptr);
 
 	/* Check for new panel (redraw map) */
 	verify_panel(p_ptr);
@@ -444,6 +450,9 @@ void teleport_player_level(player_type *p_ptr)
 
 	/* Show that he's left */
 	everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
+
+	/* Tell everyone to re-calculate visiblity for this player */
+	update_player(p_ptr);
 
 	/* Forget his lite and viewing area */
 	forget_lite(p_ptr);

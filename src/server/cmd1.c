@@ -1752,6 +1752,10 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 				everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
 				everyone_lite_spot(Depth, q_ptr->py, q_ptr->px);
 
+				/* Tell everyone to re-calculate visiblity for those players */
+				update_player(p_ptr);
+				update_player(q_ptr);
+
 				/* Update stuff for both */
 				p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
 				q_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW);
