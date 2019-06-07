@@ -887,8 +887,10 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 				case SV_SCROLL_ENCHANT_ARMOR:
 				case SV_SCROLL_STAR_ENCHANT_ARMOR:
 					*secondary_tester = item_test(ARMOR);
+				break;
 				case SV_SCROLL_RECHARGING:
 					*secondary_tester = item_test(RECHARGE);
+				break;
 				default: break;
 			}
 		}
