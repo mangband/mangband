@@ -3639,8 +3639,6 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 		cheat(format("%s %s", artifact_p(o_ptr) ? "+a": "+o", tmp));
 	}
 #endif
-
-		return artifact_p(o_ptr);
 	}
 
 	/* Observe placement. (dungeon level has already been generated) */
@@ -3662,6 +3660,9 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 		}
 	}
 
+	/* Success */
+	if (o_idx) return artifact_p(&o_list[o_idx]);
+
 	return FALSE;
 }
 
@@ -3675,7 +3676,6 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
  */
 void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
-	player_type *q_ptr;
 	int        y, x, i, d;
     bool ok = FALSE;
     int oblev;

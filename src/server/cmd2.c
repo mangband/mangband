@@ -1970,8 +1970,6 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 			/* Hack -- place an object */
 			if (rand_int(100) < 10)
 			{
-				player_type *q_ptr;
-
 				/* Create a simple object */
 				place_object(Depth, y, x, FALSE, FALSE, 0);
 
