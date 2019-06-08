@@ -4801,34 +4801,39 @@ void reorder_pack(player_type *p_ptr)
 
 /*
  * Hack -- find out if a player is standing on an object "o_idx", and redraw
- * the floor info. Objects in "o_list" do not have a pointer back into cave
- * grids, so we can't determine which grid is affected; thus we'll have
- * to iterate over all the players (it's better than iterating over
- * all grids of all dungeon levels, which would be another way of doing it).
+ * the floor info. We also update PW_ITEMLIST for each player who is tracking
+ * this object.
  */
 static void notify_player_standing_on(int o_idx)
 {
+	player_type *p_ptr;
+	object_type *o_ptr;
+	int Depth, y, x;
 	int Ind;
+
+	/* Get the object */
+	o_ptr = &o_list[o_idx];
+
+	/* Get location */
+	Depth = o_ptr->dun_depth;
+	y = o_ptr->iy;
+	x = o_ptr->ix;
+
+	/* Unallocated cave? */
+	if (!cave[Depth]) return;
+
+	/* Get the player standing here */
+	p_ptr = player_on_cave(Depth, y, x);
+	if (p_ptr)
+	{
+		/* Let's schedule floor redraw */
+		p_ptr->redraw |= (PR_FLOOR);
+	}
+
+	/* Hack -- also update itemlist for ALL players */
 	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
-		player_type *p_ptr = Players[Ind];
-		int Depth = p_ptr->dun_depth;
-		cave_type *c_ptr;
-
-		/* Skip players changing levels */
-		if (p_ptr->new_level_flag || !cave[Depth]) continue;
-
-		/* Get the grid */
-		c_ptr = &cave[Depth][p_ptr->py][p_ptr->px];
-
-		/* Is that the same grid? */
-		if (c_ptr->o_idx == o_idx)
-		{
-			/* Yes, let's schedule floor redraw */
-			p_ptr->redraw |= (PR_FLOOR);
-		}
-
-		/* Hack -- also update itemlist window for this player */
+		p_ptr = Players[Ind];
 		if (p_ptr->obj_vis[o_idx]) p_ptr->window |= (PW_ITEMLIST);
 	}
 }
