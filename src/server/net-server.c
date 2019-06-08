@@ -923,6 +923,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		/* Attempt to load from a savefile */
 		if (!load_player(p_ptr))
 		{
+			plog(format("Corrupt savefile for player %s", p_ptr->name));
 			player_free(p_ptr); /* Unalloc back */
 			client_abort(ct, "Error loading savefile");
 		}
