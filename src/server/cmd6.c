@@ -507,11 +507,16 @@ void do_cmd_use_staff(player_type *p_ptr, int item)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(p_ptr, "The staff has no charges left.");
+		if (o_ptr->number == 1)
+			msg_print(p_ptr, "The staff has no charges left.");
+		else
+			msg_print(p_ptr, "The staffs have no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 		
 		/* Redraw */
-		p_ptr->window |= (PW_INVEN);
+		if (item >= 0) p_ptr->window |= (PW_INVEN);
+		/* Redraw floor */
+		else p_ptr->redraw |= (PR_FLOOR);
 
 		return;
 	}
@@ -723,7 +728,10 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(p_ptr, "The wand has no charges left.");
+		if (o_ptr->number == 1)
+			msg_print(p_ptr, "The wand has no charges left.");
+		else
+			msg_print(p_ptr, "The wands have no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 
 		/* Redraw */

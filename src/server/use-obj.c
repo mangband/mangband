@@ -1378,10 +1378,22 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	if (o_ptr->pval <= 0)
 	{
 		/*if (flush_failure) flush();*/
-		msg_print(p_ptr, "The wand has no charges left.");
+		if (o_ptr->number == 1)
+			msg_print(p_ptr, "The wand has no charges left.");
+		else
+			msg_print(p_ptr, "The wands have no charges left.");
 		o_ptr->ident |= (ID_EMPTY);
-		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
-		p_ptr->window |= (PW_INVEN);
+		/* Refresh inventory */
+		if (o_ptr->ix == 0 && o_ptr->iy == 0)
+		{
+			p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+			p_ptr->window |= (PW_INVEN);
+		}
+		/* Refresh floor */
+		else
+		{
+			p_ptr->redraw |= (PR_FLOOR);
+		}
 		return (FALSE);
 	}
 
