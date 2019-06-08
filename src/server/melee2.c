@@ -3030,6 +3030,18 @@ static void process_monster(int Ind, int m_idx)
 
 			/* Took a turn */
 			do_turn = TRUE;
+
+			/* Classic MAnghack #4 */
+			if (do_turn && p_ptr && option_p(p_ptr,MONSTER_RECOIL))
+			/* XXX Make it a server-wide, not per-player option */
+			{
+				/* Although the monster has ALREADY spent some energy,
+				 * we spend it AGAIN. This leads to things like monsters
+				 * having -450 / 450 energy, taking twice as long to recover
+				 * after attacking a player. This is not TRUE to V, but this is how
+				 * MAngband operated. */
+				m_ptr->energy -= level_speed(m_ptr->dun_depth);
+			}
 		}
 
 

@@ -186,7 +186,7 @@ static void wr_monster(monster_type *m_ptr)
 	write_int("maxhp",m_ptr->maxhp);
 	write_int("csleep",m_ptr->csleep);
 	write_int("mspeed",m_ptr->mspeed);
-	write_uint("energy",m_ptr->energy);
+	write_huge("energy",m_ptr->energy);
 	write_int("stunned",m_ptr->stunned);
 	write_int("confused",m_ptr->confused);
 	write_int("afraid",m_ptr->monfear);

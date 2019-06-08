@@ -955,6 +955,22 @@ static void process_player_begin(player_type *p_ptr)
 	/* Give the player some energy */
 	p_ptr->energy += energy;
 
+	/* Classic MAnghack #5.
+	 * Allow players to "buildup" twice as much energy. */
+	if (option_p(p_ptr,ENERGY_BUILDUP))
+	{
+		/* Fill accumulated buildup into energy (from before) */
+		p_ptr->energy += p_ptr->energy_buildup;
+		p_ptr->energy_buildup = 0;
+		/* Store new buildup (for later) */
+		if (p_ptr->energy > (level_speed(p_ptr->dun_depth)))
+			p_ptr->energy_buildup = p_ptr->energy - (level_speed(p_ptr->dun_depth));
+		/* Don't allow to buildup too much, either */
+		if (p_ptr->energy_buildup > (level_speed(p_ptr->dun_depth)))
+			p_ptr->energy_buildup = (level_speed(p_ptr->dun_depth));
+		/* The rest will be capped off below, as usual */
+	}
+
 	/* Make sure they don't have too much */
 	if (p_ptr->energy > (level_speed(p_ptr->dun_depth)))
 		p_ptr->energy = (level_speed(p_ptr->dun_depth));

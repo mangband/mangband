@@ -722,7 +722,7 @@ static void rd_monster(monster_type *m_ptr)
 	m_ptr->maxhp = read_int("maxhp");
 	m_ptr->csleep = read_int("csleep");
 	m_ptr->mspeed = read_int("mspeed");
-	m_ptr->energy = read_uint("energy");
+	m_ptr->energy = read_huge("energy");
 	m_ptr->stunned = read_int("stunned");
 	m_ptr->confused = read_int("confused");
 	m_ptr->monfear = read_int("afraid");
@@ -1256,6 +1256,9 @@ static errr rd_birthoptions(player_type *p_ptr)
 	/* Read number */
 	tmp16u = read_int("num");
 
+	/* HACK -- compat for new birth options */
+	if (tmp16u == 2) tmp16u = 4;
+
 	/* Read each record */
 	id = 0;
 	for (i = 0; i < OPT_MAX; i++)
@@ -1276,10 +1279,14 @@ static errr rd_birthoptions(player_type *p_ptr)
 			/* Set it */
 			p_ptr->options[ind] = val ? TRUE : FALSE;
 		}
+		/* Hack -- compat for new birth options *//* REMOVE ME */
+		else if (ind == OPT_ENERGY_BUILDUP || ind == OPT_MONSTER_RECOIL)
+		{
+			p_ptr->options[ind] = FALSE;
+		}
 		else
 		{
 			end_section_read("options");
-
 			/* Unexpected option */
 			return (29);
 		}

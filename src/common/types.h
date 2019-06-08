@@ -843,7 +843,7 @@ struct monster_type
 	s16b csleep;			/* Inactive counter */
 
 	byte mspeed;			/* Monster "speed" */
-	u32b energy;			/* Monster "energy" */
+	s64b energy;			/* Monster "energy" */
 
 	byte stunned;			/* Monster is stunned */
 	byte confused;			/* Monster is confused */
@@ -1491,6 +1491,7 @@ struct player_type
 	s16b word_recall;	/* Word of recall counter */
 
 	u32b energy;		/* Current energy */
+	u32b energy_buildup;	/* MAngband-specific: bonus energy (!) */
 
 	s16b food;		/* Current nutrition */
 

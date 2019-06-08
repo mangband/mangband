@@ -15,6 +15,29 @@ Various concepts are mentioned in the descriptions below, including "disturb",
 "flush" (forget any keypresses waiting in the keypress queue, including any
 macros in progress), "fresh" (dump any pending output to the screen).
 
+=== Option Set 0 -- Birth options ===
+
+Those options could only be changed during Character birth (press '=',
+on Race/Class/Stat selection screen to access them).
+
+Death is permanent    [no_ghost]
+    True perma-death. When you die, you die. 50% bonus to final score.
+If this option is off, you become a ghost when you die.
+
+Discard extra speed and hit points    [unset_class_bonus]
+    Traditionally, MAngband provides additional bonuses to the various
+classes present in the game. In particular, stealth mode and backstab
+for Rogues, speed bonuses every N levels for Warriors, and 1 extra hit
+point for Mages on every level up. To discard all those bonuses, and
+get true Vanilla classes, turn this option on.
+
+Get additional attack after being idle    [energy_buildup]
+    Stand still, and you can accumulate multiple attacks for dealing a good
+opening blow. 10% penalty to final score.
+
+Monsters recover for a turn after attacking you    [monster_recoil]
+    Each time a monster makes a meelee attack against you, it becomes stunned
+for one turn, giving you some time to react. 50% penalty to final score.
 
 === Option Set 1 -- User Interface ===
 

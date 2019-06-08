@@ -2261,13 +2261,29 @@ void do_cmd_save_game(player_type *p_ptr)
  */
 long total_points(player_type *p_ptr)
 {
+	/* Standard scoring */
+	long score = (p_ptr->max_exp + (100 * p_ptr->max_dlv));
+
+	/* Remove 10% for energy_buildup */
+	if (option_p(p_ptr,ENERGY_BUILDUP))
+	{
+		score = (long)(score * 0.9);
+	}
+
+	/* Add 50% for unburdened monsters */
+	if (!option_p(p_ptr,MONSTER_RECOIL))
+	{
+		score = (long)(score * 1.5);
+	}
+
 	/* We award a 50% score bonus for bravery with no_ghost characters */
 	if (option_p(p_ptr, NO_GHOST) && !cfg_ironman)
 	{
-		return (long)((p_ptr->max_exp + (100 * p_ptr->max_dlv))*1.5);
+		score = (long)(score * 1.5);
 	}
+
 	/* Standard scoring */
-	return (p_ptr->max_exp + (100 * p_ptr->max_dlv));
+	return score;
 }
 
 

@@ -2510,6 +2510,12 @@ option_type option_info[] =
 	{ OPT_INFO(UNSETH_BONUS),  		FALSE,	1,	0, 0,
 	"unset_class_bonus",		"Discard extra speed and hit points" },
 
+	{ OPT_INFO(ENERGY_BUILDUP),		TRUE,	1,	0, 0,
+	"energy_buildup",		"Get additional attack after being idle" },
+
+	{ OPT_INFO(MONSTER_RECOIL),		TRUE,	1,	0, 0,
+	"monster_recoil",		"Monsters recover for a turn after attacking you" },
+
 	/*** Game-play ***/
 	/* Dungeon */
 	{ OPT_INFO(AUTO_SCUM),				FALSE,	2,	0, 0,

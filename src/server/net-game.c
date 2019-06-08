@@ -1708,6 +1708,9 @@ static int recv_walk(player_type *p_ptr) {
 		/* Hack -- add aggravating noise */
 		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
 
+		/* Classic MAnghack #5. Reset built-up energy. */
+		p_ptr->energy_buildup = 0;
+
 		/* End turn */
 		return 3;
 	}
@@ -1742,6 +1745,9 @@ static int recv_toggle_rest(player_type *p_ptr) {
 
 		/* Hack -- add aggravating noise */
 		set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
+
+		/* Classic MAnghack #5. Reset built-up energy. */
+		p_ptr->energy_buildup = 0;
 
 		/* End turn */
 		return 3;
@@ -2055,6 +2061,12 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 		}
 		v = (30 - p_ptr->skill_stl) / pcommand_energy_cost[pkt] / halve;
 		set_noise(p_ptr, p_ptr->noise + v);
+	}
+
+	/* Classic MAnghack #5. Reset built-up energy. */
+	if (pcommand_energy_cost[pkt]) /* For commands that cost energy */
+	{
+		p_ptr->energy_buildup = 0;
 	}
 }
 
