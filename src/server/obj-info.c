@@ -190,7 +190,7 @@ bool describe_origin(const player_type *p_ptr, const object_type *o_ptr)
 }
 
 
-/* MAngband specific. Math sourced from cmd6.c. 
+/* MAngband-specific. Math sourced from cmd6.c and use-obj.c
  * Give the player an idea of their odds of successfully activating 
  * a wand, staff, rod, or item. - Avenger */
 void describe_activation_chance(const object_type *o_ptr)

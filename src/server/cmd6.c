@@ -620,7 +620,7 @@ void do_cmd_use_staff_discharge(player_type *p_ptr, int item, bool ident)
  */
 void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 {
-	int			lev, chance;
+	int			lev;
 	bool ident;
 
 	object_type		*o_ptr;
@@ -686,50 +686,6 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 
 	/* Get the level */
 	lev = k_info[o_ptr->k_idx].level;
-
-	/* Base chance of success */
-	chance = p_ptr->skill_dev;
-
-	/* Confusion hurts skill */
-	if (p_ptr->confused) chance = chance / 2;
-
-	/* Hight level objects are harder */
-	chance = chance - ((lev > 50) ? 50 : lev);
-
-	/* Give everyone a (slight) chance */
-	if ((chance < USE_DEVICE) && (rand_int(USE_DEVICE - chance + 1) == 0))
-	{
-		chance = USE_DEVICE;
-	}
-
-	/* Roll for usage */
-	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
-	{
-		/*if (flush_failure) flush();*/
-		msg_print(p_ptr, "You failed to use the wand properly.");
-		return;
-	}
-
-	/* The wand is already empty! */
-	if (o_ptr->pval <= 0)
-	{
-		/*if (flush_failure) flush();*/
-		if (o_ptr->number == 1)
-			msg_print(p_ptr, "The wand has no charges left.");
-		else
-			msg_print(p_ptr, "The wands have no charges left.");
-		o_ptr->ident |= ID_EMPTY;
-
-		/* Redraw */
-		p_ptr->window |= (PW_INVEN);
-
-		/* Redraw floor */
-		if (item < 0) p_ptr->redraw |= (PR_FLOOR);
-
-		return;
-	}
-
-
 
 	/* Aim the wand */
 	p_ptr->command_dir = dir; 
