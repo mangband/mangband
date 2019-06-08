@@ -452,13 +452,6 @@ void do_cmd_use_staff(player_type *p_ptr, int item)
 		return;
 	}
 
-	/* Mega-Hack -- refuse to use a pile from the ground */
-	if ((item < 0) && (o_ptr->number > 1))
-	{
-		msg_print(p_ptr, "You must first pick up the staffs.");
-		return;
-	}
-
 	/* Verify potential overflow */
 	/*if ((inven_cnt >= INVEN_PACK) &&
 	    (o_ptr->number > 1))
@@ -671,13 +664,6 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 		return;
 	}
 
-	/* Mega-Hack -- refuse to aim a pile from the ground */
-	if ((item < 0) && (o_ptr->number > 1))
-	{
-		msg_print(p_ptr, "You must first pick up the wands.");
-		return;
-	}
-
 	/* Hack -- verify potential overflow */
 	/*if ((inven_cnt >= INVEN_PACK) &&
 	    (o_ptr->number > 1))
@@ -868,13 +854,6 @@ void do_cmd_zap_rod(player_type *p_ptr, int item)
 	if (o_ptr->tval != TV_ROD)
 	{
 		/* Tried to zap non-rod */
-		return;
-	}
-
-	/* Mega-Hack -- refuse to zap a pile from the ground */
-	if ((item < 0) && (o_ptr->number > 1))
-	{
-		msg_print(p_ptr, "You must first pick up the rods.");
 		return;
 	}
 
