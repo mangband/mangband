@@ -120,8 +120,8 @@ hturn turn_compact;		/* Last time m_list and o_list were compacted */
 
 s32b player_id;			/* Current player ID */
 
-bool wizard;			/* Is the player currently in Wizard mode? */
-bool can_be_wizard;		/* Does the player have wizard permissions? */
+/*bool wizard;*/			/* Is the player currently in Wizard mode? */
+/*bool can_be_wizard;*/		/* Does the player have wizard permissions? */
 
 /*u16b total_winner;*/		/* Semi-Hack -- Game has been won */
 

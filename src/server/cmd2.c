@@ -3836,7 +3836,7 @@ void do_cmd_fire(player_type *p_ptr, int item, int dir)
 				if (tdam < 0) tdam = 0;
 
 				/* Complex message */
-				if (wizard)
+				if (is_dm_p(p_ptr))
 				{
 					msg_format(p_ptr, "You do %d (out of %d) damage.",
 					           tdam, m_ptr->hp);
@@ -4276,7 +4276,7 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 				if (tdam < 0) tdam = 0;
 
 				/* Complex message */
-				if (wizard)
+				if (is_dm_p(p_ptr))
 				{
 					msg_format(p_ptr, "You do %d (out of %d) damage.",
 					           tdam, m_ptr->hp);

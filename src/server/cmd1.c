@@ -1441,7 +1441,7 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 			if (k < 0) k = 0;
 
 			/* Complex message */
-			if (wizard)
+			if (is_dm_p(p_ptr))
 			{
 				msg_format(p_ptr, "You do %d (out of %d) damage.", k, m_ptr->hp);
 			}
