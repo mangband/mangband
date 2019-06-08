@@ -164,12 +164,26 @@ int send_optgroups_info(connection_type *ct)
 	return 1;
 }
 
-int send_option_info(connection_type *ct, int id)
+int send_option_info_DEPRECATED(connection_type *ct, int id)
 {
 	const option_type *opt_ptr = &option_info[id];
 
 	if (cq_printf(&ct->wbuf, "%c%c%s%s", PKT_OPTION, 
 		opt_ptr->o_page, opt_ptr->o_text, opt_ptr->o_desc) <= 0)
+	{
+		return 0;
+	}
+	return 1;
+}
+int send_option_info(connection_type *ct, player_type *p_ptr, int id)
+{
+	const option_type *opt_ptr = &option_info[id];
+
+	if (!client_version_atleast(p_ptr->version,1,5,3)) return send_option_info_DEPRECATED(ct, id);
+
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%s%s", PKT_OPTION,
+		opt_ptr->o_page, opt_ptr->o_norm,
+		opt_ptr->o_text, opt_ptr->o_desc) <= 0)
 	{
 		return 0;
 	}
@@ -1142,7 +1156,7 @@ int recv_basic_request(connection_type *ct, player_type *p_ptr) {
 			while (id < MAX_ITEM_TESTERS) if (!send_item_tester_info(ct, id++)) break;
 		break;
 		case BASIC_INFO_OPTIONS:
-			while (id < OPT_MAX) if (!send_option_info(ct, id++)) break;
+			while (id < OPT_MAX) if (!send_option_info(ct, p_ptr, id++)) break;
 		break;
 		default: break;
 	}

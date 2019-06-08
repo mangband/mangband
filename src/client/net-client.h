@@ -16,7 +16,7 @@
 	PACKET(PKT_RESIZE,	NULL,   	recv_stream_size)
 	PACKET(PKT_COMMAND,	NULL,   	recv_custom_command_info)
 	PACKET(PKT_ITEM_TESTER,	NULL,   	recv_item_tester_info)
-	PACKET(PKT_OPTION,	NULL,   	recv_option_info)
+	PACKET(PKT_OPTION,	"%c%c%s%s",	recv_option_info)
 
 	PACKET(PKT_TERM,	"%b%ud",	recv_term_info)
 	PACKET(PKT_TERM_INIT,	"%c%s", 	recv_term_header)

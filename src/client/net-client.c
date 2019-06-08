@@ -866,21 +866,29 @@ int recv_option_info(connection_type *ct)
 	char desc[MAX_CHARS];
 	char name[MAX_CHARS];
 	byte
+		opt_default = FALSE,
 		opt_page = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%s%s", &opt_page, name, desc) < 3)
+	if (cq_scanf(&ct->rbuf, "%c%c%s%s", &opt_page, &opt_default, name, desc) < 4)
 	{
 		return 0;
 	}
+
+	/* Hack -- ignore most bits on opt_default (for now) */
+	opt_default = (opt_default & 0x01);
 
 	/* Grab */
 	opt_ptr = &option_info[known_options];
 
 	/* Fill */
 	opt_ptr->o_page = opt_page;
+	opt_ptr->o_norm = opt_default;
 	opt_ptr->o_text = string_make(name);
 	opt_ptr->o_desc = string_make(desc);
 	opt_ptr->o_set = 0;
+
+	/* Set default */
+	p_ptr->options[known_options] = opt_default;
 
 	/* Link to local */
 	for (n = 0; local_option_info[n].o_desc; n++)
@@ -889,6 +897,8 @@ int recv_option_info(connection_type *ct)
 		{
 			local_option_info[n].o_set = known_options;
 			opt_ptr->o_set = n;
+			/* Copy default */
+			(*local_option_info[n].o_var) = opt_default;
 		}
 	}
 
