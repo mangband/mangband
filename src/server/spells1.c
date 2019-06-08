@@ -1814,7 +1814,7 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					}
 
 					/* Place gold */
-					place_object(Depth, y, x, FALSE, FALSE, 0);
+					place_object(Depth, y, x, FALSE, FALSE, ORIGIN_RUBBLE);
 				}
 			}
 

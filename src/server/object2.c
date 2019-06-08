@@ -1786,6 +1786,50 @@ void object_absorb(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
 	{
 		o_ptr->pval += j_ptr->pval;
 	}
+
+	/* Forget original owner */
+	if (o_ptr->origin_player != j_ptr->origin_player)
+	{
+		o_ptr->origin_player = 0;
+	}
+
+	/* Merge origins */
+	if ((o_ptr->origin != j_ptr->origin) ||
+	    (o_ptr->origin_depth != j_ptr->origin_depth) ||
+	    (o_ptr->origin_xtra != j_ptr->origin_xtra))
+	{
+		int act = 2;
+
+		if ((o_ptr->origin == ORIGIN_DROP) && (o_ptr->origin == j_ptr->origin))
+		{
+			monster_race *r_ptr = &r_info[o_ptr->origin_xtra];
+			monster_race *s_ptr = &r_info[j_ptr->origin_xtra];
+
+			bool r_uniq = r_ptr->flags1 & RF1_UNIQUE ? TRUE : FALSE;
+			bool s_uniq = s_ptr->flags1 & RF1_UNIQUE ? TRUE : FALSE;
+
+			if (r_uniq && !s_uniq) act = 0;
+			else if (s_uniq && !r_uniq) act = 1;
+			else act = 2;
+		}
+
+		switch (act)
+		{
+			/* Overwrite with j_ptr */
+			case 1:
+			{
+				o_ptr->origin = j_ptr->origin;
+				o_ptr->origin_depth = j_ptr->origin_depth;
+				o_ptr->origin_xtra = j_ptr->origin_xtra;
+			}
+
+			/* Set as "mixed" */
+			case 2:
+			{
+				o_ptr->origin = ORIGIN_MIXED;
+			}
+		}
+	}
 }
 
 
@@ -3517,7 +3561,7 @@ bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int le
  *
  * This routine requires a clean floor grid destination.
  */
-bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
+object_type* place_object(int Depth, int y, int x, bool good, bool great, byte origin)
 {
 	int			o_idx, prob, base;
 
@@ -3527,11 +3571,10 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 
 
 	/* Paranoia -- check bounds */
-    if (!in_bounds(Depth, y, x)) return FALSE;
+	if (!in_bounds(Depth, y, x)) return (NULL);
 
 	/* Require clean floor space */
-    if (!cave_clean_bold(Depth, y, x)) return FALSE;
-
+	if (!cave_clean_bold(Depth, y, x)) return (NULL);
 
 	/* Chance of "special object" */
 	prob = (good ? 10 : 1000);
@@ -3572,7 +3615,7 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 		}
 
 		/* Handle failure */
-        if (!k_idx) return FALSE;
+		if (!k_idx) return (NULL);
 
 		/* Prepare the object */
 		invcopy(&forge, k_idx);
@@ -3630,16 +3673,17 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 			Players[i]->obj_vis[o_idx] = FALSE;
 		}
 
-		/* Add inscription (for unique drops) */
-		if (quark > 0) o_ptr->note = quark;
+		/* Add origin */
+		o_ptr->origin = origin;
+		o_ptr->origin_depth = Depth;
 
 #ifdef DEBUG
-	{
+	  {
 		char tmp[120];
 		object_desc(NULL, tmp, sizeof(tmp), o_ptr, FALSE, 1);
 		/* Audit item allocation */
 		cheat(format("%s %s", artifact_p(o_ptr) ? "+a": "+o", tmp));
-	}
+	  }
 #endif
 	}
 
@@ -3663,7 +3707,7 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 	}
 
 	/* Success */
-	if (o_idx) return artifact_p(&o_list[o_idx]);
+	if (o_idx) return &o_list[o_idx];
 
 	return FALSE;
 }
@@ -3679,7 +3723,6 @@ bool place_object(int Depth, int y, int x, bool good, bool great, u16b quark)
 void acquirement(int Depth, int y1, int x1, int num, bool great)
 {
 	int        y, x, i, d;
-    bool ok = FALSE;
     int oblev;
 
 	/* Scatter some objects */
@@ -3700,7 +3743,7 @@ void acquirement(int Depth, int y1, int x1, int num, bool great)
 			/* Place a great object */
 			oblev = object_level;
 			object_level = Depth;
-			ok = place_object(Depth, y, x, TRUE, TRUE, 0);
+			place_object(Depth, y, x, TRUE, TRUE, ORIGIN_ACQUIRE);
 			object_level = oblev;
 
 			/* Placement accomplished */
@@ -5084,6 +5127,12 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 		artifact_type *a_ptr = &a_info[o_ptr->name1];
 		a_ptr->owner_id = p_ptr->id;
 		a_ptr->owner_name = quark_add(p_ptr->name);
+	}
+
+	/* Set original owner ONCE */
+	if (o_ptr->origin_player == 0)
+	{
+		o_ptr->origin_player = quark_add(p_ptr->name);
 	}
 
 	/* Set new owner */

@@ -2083,7 +2083,14 @@ void monster_death(player_type *p_ptr, int m_idx)
 			/* Place Object */
 			else
 			{
-				place_object(Depth, ny, nx, good, great, quark);
+				object_type *j_ptr = place_object(Depth, ny, nx, good, great, 0);
+				/* Set special origin */
+				if (j_ptr)
+				{
+					j_ptr->origin = ORIGIN_DROP;
+					j_ptr->origin_xtra = m_ptr->r_idx;
+					j_ptr->note = quark;
+				}
 				/*if (player_can_see_bold(p_ptr, ny, nx))*/ dump_item++;
 			}
 
@@ -6679,6 +6686,10 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 					p_ptr->inventory[0].dd = k_ptr->dd;
 					p_ptr->inventory[0].name2 = 0;
 					p_ptr->inventory[0].xtra2 = 0;
+					p_ptr->inventory[0].origin = ORIGIN_CHEAT;
+					p_ptr->inventory[0].origin_depth = p_ptr->dun_depth;
+					p_ptr->inventory[0].origin_player = 0;
+					if (is_dm_p(p_ptr)) p_ptr->inventory[0].origin = ORIGIN_FLOOR;
 				}
 				else
 				{

@@ -902,7 +902,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 		if (cave_clean_bold(Depth,y,x))
 		{
 			object_level = w_ptr->radius/2 +1;
-			place_object(Depth,y,x,FALSE,FALSE,0);
+			place_object(Depth,y,x,FALSE,FALSE, ORIGIN_WILD_DWELLING);
 			num_objects--;
 		}
 		trys++;

@@ -843,6 +843,7 @@ static void player_outfit(player_type *p_ptr)
 	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
+	i_ptr->origin = ORIGIN_BIRTH; \
 	if ( (PV) ) i_ptr->pval = (PV); \
 	object_aware((P), i_ptr); \
 	object_known(i_ptr); \

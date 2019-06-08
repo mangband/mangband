@@ -907,6 +907,8 @@ void do_cmd_observe(player_type *p_ptr, int item)
 			msg_print(p_ptr, "Sorry, this item is exclusive.");
 			return;
 		}
+		/* HACK -- hide origin */
+		tmp_obj.origin = ORIGIN_NONE;
 
 		/* Get name */
 		object_desc_store(p_ptr, o_name, o_ptr, TRUE, 3);

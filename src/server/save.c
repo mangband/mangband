@@ -68,6 +68,14 @@ static void write_str(char* name, char* value)
 {
 	file_putf(file_handle, "%s%s = %s\n", xml_prefix, name, value);
 }
+
+/* Write a quark (as string) */
+static void write_quark(char* name, u16b quark)
+{
+	char *value = quark ? (char*)quark_str(quark) : "";
+	file_putf(file_handle, "%s%s = %s\n", xml_prefix, name, value);
+}
+
 #if 0
 static void write_float(char* name, float value)
 {
@@ -163,6 +171,12 @@ static void wr_item(object_type *o_ptr)
 
 	/* Held by monster index */ 
    write_int("held_m_idx", o_ptr->held_m_idx);
+
+	/* Origin */
+	write_int("origin", o_ptr->origin);
+	write_int("origin_depth", o_ptr->origin_depth);
+	write_int("origin_xtra", o_ptr->origin_xtra);
+	write_quark("origin_player", o_ptr->origin_player);
 	
 	end_section("item");
 }

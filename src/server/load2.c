@@ -252,6 +252,18 @@ void read_str(char* name, char* value)
 	*value = '\0';
 }
 
+/* Read a quark */
+/* Tiny wrapper around read_str */
+u16b read_quark(char* name)
+{
+	char note[80];
+	/* Read string into temp buffer. */
+	read_str(name, note);
+	if (STRZERO(note)) return 0;
+	/* And create a quark from it */
+	return quark_add(note);
+}
+
 /* Read a float */
 /* Returns TRUE if the float could be read */
 float read_float(char* name)
@@ -550,6 +562,17 @@ static void rd_item(object_type *o_ptr)
 
 	/* Monster holding object */ 
    o_ptr->held_m_idx = read_int("held_m_idx");
+
+	/* Origin */
+	if (value_exists("origin"))
+	{
+		o_ptr->origin = read_int("origin");
+		o_ptr->origin_depth = read_int("origin_depth");
+		o_ptr->origin_xtra = read_int("origin_xtra");
+		o_ptr->origin_player = read_quark("origin_player");
+		if (o_ptr->origin_xtra >= z_info->r_max) { o_ptr->origin_xtra = 0; o_ptr->origin = ORIGIN_NONE; }
+		if (o_ptr->origin >= ORIGIN_MAX) o_ptr->origin = ORIGIN_NONE;
+	}
 
 	end_section_read("item");
 

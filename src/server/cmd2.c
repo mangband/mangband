@@ -328,7 +328,13 @@ static void chest_death(player_type *p_ptr, int y, int x, object_type *o_ptr)
 				/* Otherwise drop an item */
 				else
 				{
-					place_object(Depth, ny, nx, FALSE, FALSE, 0);
+					object_type *j_ptr;
+					j_ptr = place_object(Depth, ny, nx, FALSE, FALSE, 0);
+					if (j_ptr)
+					{
+						j_ptr->origin = ORIGIN_CHEST;
+						j_ptr->origin_depth = o_ptr->origin_depth;
+					}
 				}
 
 				/* Reset the object level */
@@ -1971,7 +1977,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 			if (rand_int(100) < 10)
 			{
 				/* Create a simple object */
-				place_object(Depth, y, x, FALSE, FALSE, 0);
+				place_object(Depth, y, x, FALSE, FALSE, ORIGIN_RUBBLE);
 
 				/* Observe new object */
 				if (player_can_see_bold(p_ptr, y, x))

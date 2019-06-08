@@ -357,6 +357,10 @@ static void mass_produce(object_type *o_ptr)
 		discount = 90;
 	}
 
+	/* Note origin */
+	o_ptr->origin = ORIGIN_STORE;
+	o_ptr->origin_depth = 0;
+	o_ptr->origin_xtra = 0;
 
 	/* Save the discount */
 	o_ptr->discount = discount;
@@ -446,6 +450,50 @@ static void store_object_absorb(object_type *o_ptr, object_type *j_ptr)
 	if ((o_ptr->tval == TV_WAND) || (o_ptr->tval == TV_STAFF))
 	{
 		o_ptr->pval += j_ptr->pval;
+	}
+
+	/* Forget original owner */
+	if (o_ptr->origin_player != j_ptr->origin_player)
+	{
+		o_ptr->origin_player = 0;
+	}
+
+	/* Merge origins */
+	if ((o_ptr->origin != j_ptr->origin) ||
+	    (o_ptr->origin_depth != j_ptr->origin_depth) ||
+	    (o_ptr->origin_xtra != j_ptr->origin_xtra))
+	{
+		int act = 2;
+
+		if ((o_ptr->origin == ORIGIN_DROP) && (o_ptr->origin == j_ptr->origin))
+		{
+			monster_race *r_ptr = &r_info[o_ptr->origin_xtra];
+			monster_race *s_ptr = &r_info[j_ptr->origin_xtra];
+
+			bool r_uniq = (r_ptr->flags1 & RF1_UNIQUE) ? TRUE : FALSE;
+			bool s_uniq = (s_ptr->flags1 & RF1_UNIQUE) ? TRUE : FALSE;
+
+			if (r_uniq && !s_uniq) act = 0;
+			else if (s_uniq && !r_uniq) act = 1;
+			else act = 2;
+		}
+
+		switch (act)
+		{
+			/* Overwrite with j_ptr */
+			case 1:
+			{
+				o_ptr->origin = j_ptr->origin;
+				o_ptr->origin_depth = j_ptr->origin_depth;
+				o_ptr->origin_xtra = j_ptr->origin_xtra;
+			}
+
+			/* Set as "mixed" */
+			case 2:
+			{
+				o_ptr->origin = ORIGIN_MIXED;
+			}
+		}
 	}
 }
 
