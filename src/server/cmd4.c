@@ -665,7 +665,7 @@ void do_cmd_check_players(player_type *p_ptr, int line)
 	}
 
 	/* Scan the player races */
-	for (k = 1; k < NumPlayers + 1; k++)
+	for (k = 1; k <= NumPlayers; k++)
 	{
 		player_type *q_ptr = Players[k];
 		byte attr = 'w';

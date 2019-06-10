@@ -2329,7 +2329,7 @@ int pick_arena_opponent(player_type *p_ptr, int a)
 #if 1
 	int i, found = -1, count = 0;	
 	/* Count other players in this arena */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 	 	if (Players[i]->arena_num == a)
 	 	{
@@ -5155,7 +5155,7 @@ int base_time_factor(player_type *p_ptr, int slowest)
 	/* If this is the initial call, reset all players time bubble check */
 	if(!slowest)
 	{
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			q_ptr = Players[i];
 			if(q_ptr) q_ptr->bubble_checked = FALSE;
@@ -5204,7 +5204,7 @@ int base_time_factor(player_type *p_ptr, int slowest)
 	p_ptr->bubble_checked = TRUE;
 
 	/* Check all other players within our range */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		q_ptr = Players[i];
 		/* Only check them if they haven't already been checked */

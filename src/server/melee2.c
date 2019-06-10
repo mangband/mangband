@@ -3403,7 +3403,7 @@ void process_monsters(void)
 
 
 		/* Find the closest player */
-		for (pl = 1; pl < NumPlayers + 1; pl++)
+		for (pl = 1; pl <= NumPlayers; pl++)
 		{
 			int j;
 			bool in_los;

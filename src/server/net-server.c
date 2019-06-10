@@ -458,7 +458,7 @@ void setup_network_server()
 void post_process_players(void)
 {
 	int Ind;
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		
@@ -470,7 +470,7 @@ void post_process_players(void)
 	}
 	/* Next loop flushes all potential update flags Players have set
 	 * for each other. */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		

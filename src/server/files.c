@@ -3041,7 +3041,7 @@ void close_game(void)
 	/* No suspending now */
 	signals_ignore_tstp();
 
-	for (i = 0; i < NumPlayers; i++)
+	for (i = 0; i <= NumPlayers; i++)
 	{
 		player_type *p_ptr = Players[i];
 

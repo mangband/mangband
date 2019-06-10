@@ -4444,7 +4444,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		    dist && (flg & PROJECT_BEAM))
 		{
 			/* Hack -- Visual effect -- "explode" the grids */
-			for (j = 1; j < NumPlayers + 1; j++)
+			for (j = 1; j <= NumPlayers; j++)
 			{
 				player_type *p_ptr = Players[j];
 				int dispx, dispy, p;
@@ -4529,7 +4529,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		/* Only do visual effects (and delay) if requested */
 		if (!(flg & PROJECT_HIDE))
 		{
-			for (j = 1; j < NumPlayers + 1; j++)
+			for (j = 1; j <= NumPlayers; j++)
 			{
 				player_type *p_ptr = Players[j];
 				u16b p;
@@ -4648,7 +4648,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				y = gy[i];
 				x = gx[i];
 
-				for (j = 1; j < NumPlayers + 1; j++)
+				for (j = 1; j <= NumPlayers; j++)
 				{
 					player_type *p_ptr = Players[j];
 					int dispy, dispx;
@@ -4838,7 +4838,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 		dist = 0;
 
 		/* Players didn't get hurt yet */
-		for (j = 1; j < NumPlayers + 1; j++)
+		for (j = 1; j <= NumPlayers; j++)
 		{
 			player_type *p_ptr = Players[j];
 			if (p_ptr->dun_depth != Depth) continue;

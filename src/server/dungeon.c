@@ -22,7 +22,7 @@ int find_player(s32b id)
 {
 	int i;
 
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *p_ptr = Players[i];
 		
@@ -38,7 +38,7 @@ int find_player_name(char *name)
 {
 	int i;
 
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *p_ptr = Players[i];
 		
@@ -433,7 +433,7 @@ static void regen_monsters(void)
 		/* HACK !!! Act like nobody ever hurt this monster */
 		else
 		{
-			for (frac = 1; frac < NumPlayers + 1; frac++)
+			for (frac = 1; frac <= NumPlayers; frac++)
 				Players[frac]->mon_hrt[i] = FALSE;
 		}
 	}
@@ -1871,7 +1871,7 @@ static void process_various(void)
 				{
 					num_on_depth = 0;
 					// Count the number of players actually in game on this depth
-					for (j = 1; j < NumPlayers + 1; j++)
+					for (j = 1; j <= NumPlayers; j++)
 					{
 						p_ptr = Players[j];
 						if (p_ptr->dun_depth == i) num_on_depth++;
@@ -2012,7 +2012,7 @@ static void process_various(void)
 				}
 			}
 			/* hack -- make fruit bat wear off */
-			for (x = 1; x < NumPlayers + 1; x++)
+			for (x = 1; x <= NumPlayers; x++)
 			{
 				p_ptr = Players[x];
 				if (p_ptr->fruit_bat > 0)
@@ -2078,7 +2078,7 @@ void dungeon(void)
 	}
 
 	/* Check player's depth info */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *p_ptr = Players[i];
 		int Depth = p_ptr->dun_depth;
@@ -2316,7 +2316,7 @@ void dungeon(void)
 	// Note -- this is the END of the last turn
 
 	/* Do final end of turn processing for each player */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Actually process that player */
 		process_player_end(Players[i]);
@@ -2339,7 +2339,7 @@ void dungeon(void)
 	ht_add(&turn,1);
 
 	/* Do some beginning of turn processing for each player */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Actually process that player */
 		process_player_begin(Players[i]);
@@ -2352,7 +2352,7 @@ void dungeon(void)
 	process_objects();
 
 	/* Probess the world */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Process the world of that player */
 		process_world(Players[i]);
@@ -2365,7 +2365,7 @@ void dungeon(void)
 	regen_monsters();
 
 	/* Refresh everybody's displays */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *p_ptr = Players[i];
 

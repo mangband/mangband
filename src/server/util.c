@@ -2117,7 +2117,7 @@ void msg_format_complex_far(player_type *p_ptr, player_type *q_ptr, u16b type, c
 	x = p_ptr->px;
 
 	/* Check each player */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Check this player */
 		player_type *qq_ptr = Players[i];

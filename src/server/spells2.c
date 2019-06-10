@@ -1543,7 +1543,7 @@ bool detect_invisible(player_type *p_ptr, bool pause)
 	}
 
 	/* Detect all invisible players */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *q_ptr = Players[i];
 
@@ -1738,7 +1738,7 @@ bool detect_creatures(player_type *p_ptr, bool pause)
 	}
 
 	/* Detect non-invisible players */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *q_ptr = Players[i];
 
@@ -4788,7 +4788,7 @@ bool alter_reality(player_type *p_ptr, bool power)
 	/* Test players on this depth */
 	if (!power)
 	{
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			player_type *q_ptr = Players[i];
 
@@ -4808,7 +4808,7 @@ bool alter_reality(player_type *p_ptr, bool power)
 	}
 
 	/* Search for players on this depth */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		player_type *q_ptr = Players[i];
 

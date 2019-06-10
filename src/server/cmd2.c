@@ -906,7 +906,7 @@ void disown_house(int house)
 		houses[house].owned[0] = '\0';
 		houses[house].strength = 0;
 		/* Remove all players from the house */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			if (house_inside(Players[i], house))
 			{
@@ -3658,7 +3658,7 @@ void do_cmd_fire(player_type *p_ptr, int item, int dir)
 		q_ptr = p_ptr;
 
 		/* Display it for each player */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			int dispx, dispy;
 
@@ -4093,7 +4093,7 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 		q_ptr = p_ptr;
 
 		/* Display it for each player */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			int dispx, dispy;
 

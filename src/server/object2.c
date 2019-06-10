@@ -108,7 +108,7 @@ static void excise_object_idx(int o_idx)
 		c_ptr->o_idx = 0;
 
 		/* No one can see it anymore */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			if (Players[i]->obj_vis[o_idx]) Players[i]->window |= (PW_ITEMLIST);
 			Players[i]->obj_vis[o_idx] = FALSE;
@@ -296,7 +296,7 @@ static void compact_objects_aux(int i1, int i2)
 	}
 
 	/* Copy the visibility flags for each player */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 		Players[Ind]->obj_vis[i2] = Players[Ind]->obj_vis[i1];
 
 	/* Hack -- move object */
@@ -492,7 +492,7 @@ void wipe_o_list(int Depth)
 			if (o_ptr->owner_id)
 			{
 				int j;
-				for (j = 1; j < NumPlayers+1; j++)
+				for (j = 1; j <= NumPlayers; j++)
 				{
 					/* Only works when player is ingame */
 					if ((Players[j]->id == o_ptr->owner_id) && object_known_p(Players[j], o_ptr))
@@ -2169,7 +2169,7 @@ printf("Art rarity roll...\n");
 		if (rand_int(a_ptr->rarity) != 0) continue;
 printf("Passed!\n");
 		/* MEGA-HACK! GAMEPLAY BREAKER! */
-		for (j = 1; j < NumPlayers + 1; j++)
+		for (j = 1; j <= NumPlayers; j++)
 		{
 			player_type *p_ptr = Players[j];
 			/* There's a player on a level who already found this artifact once
@@ -3513,7 +3513,7 @@ bool place_specific_object(int Depth, int y1, int x1, object_type *forge, int le
 				c_ptr->o_idx = o_idx;
 				
 				/* Make sure no one sees it at first */
-				for (i = 1; i < NumPlayers + 1; i++)
+				for (i = 1; i <= NumPlayers; i++)
 				{
 					/* He can't see it */
 					Players[i]->obj_vis[o_idx] = FALSE;
@@ -3667,7 +3667,7 @@ object_type* place_object(int Depth, int y, int x, bool good, bool great, byte o
 		}
 
 		/* Make sure no one sees it at first */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			/* He can't see it */
 			Players[i]->obj_vis[o_idx] = FALSE;
@@ -4348,7 +4348,7 @@ void floor_item_notify(player_type *p_ptr, s16b o_idx, bool force)
 	int i;
 
 	/* XXX HACK XXX -- find OTHER players who also see this item */
-	if (o_idx) for (i = 1; i < NumPlayers + 1; i++)
+	if (o_idx) for (i = 1; i <= NumPlayers; i++)
 	{
 		if (Players[i]->dun_depth != p_ptr->dun_depth) continue;
 		if (Players[i]->obj_vis[o_idx]) Players[i]->window |= (PW_ITEMLIST);

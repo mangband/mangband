@@ -1417,7 +1417,7 @@ void note_spot_depth(int Depth, int y, int x)
 {
 	int i;
 
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		if (Players[i]->dun_depth == Depth)
 		{
@@ -1431,7 +1431,7 @@ void everyone_lite_spot(int Depth, int y, int x)
 	int i;
 
 	/* Check everyone */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
@@ -1450,7 +1450,7 @@ void everyone_forget_spot(int Depth, int y, int x)
 	int i;
 
 	/* Check everyone */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
@@ -4215,7 +4215,7 @@ bool is_quest(int level)
 	if (level <= 0) return (FALSE);
 
 	/* Check each player */
-	for (j = 1; j < NumPlayers + 1; j++)
+	for (j = 1; j <= NumPlayers; j++)
 	{
 		if (Players[j]->dun_depth == level)
 		{

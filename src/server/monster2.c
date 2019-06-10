@@ -73,7 +73,7 @@ void delete_monster_idx(int i)
 
 
 	/* Remove him from everybody's view */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		forget_monster(Players[Ind], i, TRUE);
 	}
@@ -177,7 +177,7 @@ static void compact_monsters_aux(int i1, int i2)
 	}
 	
 	/* Copy the visibility and los flags for the players */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 
 		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
@@ -809,7 +809,7 @@ void display_monlist(player_type *p_ptr)
 	}
 	
 	/* Iterate over player list  */
-	for (idx = 1; idx < NumPlayers+1; idx++)
+	for (idx = 1; idx <= NumPlayers; idx++)
 	{
 		/* Only visible players */
 		if (!p_ptr->play_vis[idx]) continue;
@@ -1317,7 +1317,7 @@ void update_mon(int m_idx, bool dist)
 	bool do_cold_blood = FALSE;
 
 	/* Check for each player */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		p_ptr = Players[Ind];
 		l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1931,7 +1931,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	/* No knowledge */
 	m_ptr->cdis = 0;
 
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		Players[Ind]->mon_los[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_vis[c_ptr->m_idx] = FALSE;
@@ -2305,7 +2305,7 @@ bool alloc_monster(int Depth, int dis, int slp)
 		if (!cave_naked_bold(Depth, y, x)) continue;
 
 		/* Accept far away grids */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			p_ptr = Players[i];
 

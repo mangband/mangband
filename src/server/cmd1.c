@@ -744,7 +744,7 @@ void carry(player_type *p_ptr, int pickup, int confirm)
 						player_type *q_ptr;
 						int i;
 						/* Seller must be online */
-						for (i = 1; i < NumPlayers+1; i++)
+						for (i = 1; i <= NumPlayers; i++)
 						{
 							q_ptr = Players[i];
 							if (obj_own_p(q_ptr,o_ptr))
