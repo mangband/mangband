@@ -1,6 +1,0 @@
-# File: pref-sdl2.prf
-
-# Window settings
-#%:windows-sdl2.prf
-# keymap
-%:keymap-sdl2.prf
