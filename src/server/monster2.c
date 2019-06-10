@@ -747,6 +747,9 @@ void display_monlist(player_type *p_ptr)
 		/* Only visible monsters */
 		if (!p_ptr->mon_vis[idx]) continue;
 
+		/* Hack -- ignore mimics, unless DM */
+		if (m_ptr->mimic_k_idx && !(p_ptr->dm_flags & DM_SEE_MONSTERS)) continue;
+
 		/* Bump the count for this race */
 		race_counts[m_ptr->r_idx]++;
 	}
@@ -1200,6 +1203,27 @@ bool is_detected(u32b flag, u32b esp)
 	return FALSE;
 }
 
+
+/* Display a newly revealed mimic to all players */
+void reveal_mimic(int m_idx)
+{
+	monster_type *m_ptr = &m_list[m_idx];
+	player_iterator (i, p_ptr);
+
+	/* Not mimicking anymore */
+	m_ptr->mimic_k_idx = 0;
+
+	foreach_player(i, p_ptr)
+	{
+		/* Skip players on different depth */
+		if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
+		/* Skip players who don't see this monster */
+		if (!p_ptr->mon_vis[m_idx]) continue;
+
+		lite_spot(p_ptr, m_ptr->fy, m_ptr->fx);
+		p_ptr->window |= PW_ITEMLIST | PW_MONLIST;
+	}
+}
 
 /* Clear all visibility and tracking flags. */
 void forget_monster(player_type *p_ptr, int m_idx, bool deleted)
@@ -1919,6 +1943,11 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		m_ptr->energy = rand_int(level_speed(0) >> 4);
 	}
 
+	/* Hack -- Mimics pretend to be objects */
+	if (r_ptr->flags1 & RF1_CHAR_MULTI)
+	{
+		m_ptr->mimic_k_idx = rand_mimic_kind(m_ptr->r_idx);
+	}
 
 	/* No "damage" yet */
 	m_ptr->stunned = 0;

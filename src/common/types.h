@@ -882,7 +882,7 @@ struct monster_type
 	u32b smart;			/* Field for "smart_learn" */
 
 #endif
-
+	u16b mimic_k_idx;		/* Which object kind it pretends to be. 0 if none. */
 };
 
 

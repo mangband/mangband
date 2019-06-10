@@ -694,9 +694,11 @@ extern bool summon_specific_race(int Depth, int y1, int x1, int r_idx, unsigned 
 extern bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char num);
 extern int race_index_fuzzy(char * name);
 extern int monster_richness(int r_idx);
+extern u16b rand_mimic_kind(int r_idx);
 
 /* monster2.c */
 extern bool is_detected(u32b flag, u32b esp);
+extern void reveal_mimic(int m_idx);
 extern void forget_monster(player_type *p_ptr, int m_idx, bool deleted);
 extern s16b monster_carry(player_type *p_ptr, int m_idx, object_type *j_ptr);
 extern bool monster_can_carry(int m_idx);
@@ -832,6 +834,7 @@ extern void object_audit(player_type *p_ptr, object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
 extern void artifact_notify(player_type *p_ptr, object_type *o_ptr);
 extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
+extern u16b rand_tval_kind(int tval);
 extern void display_itemlist(player_type *p_ptr);
 
 /* party.c */

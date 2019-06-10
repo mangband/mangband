@@ -3080,6 +3080,11 @@ bool mon_take_hit(player_type *p_ptr, int m_idx, int dam, bool *fear, cptr note)
 		return (TRUE);
 	}
 
+	/* New MAnghack: reveal mimics */
+	if (m_ptr->mimic_k_idx)
+	{
+		reveal_mimic(m_idx);
+	}
 
 #ifdef ALLOW_FEAR
 

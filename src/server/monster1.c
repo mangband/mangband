@@ -1375,6 +1375,33 @@ int monster_richness(int r_idx)
 }
 
 
+/* Hack -- fetch random suitable object_kind for a mimic monster */
+u16b rand_mimic_kind(int r_idx)
+{
+	int k_idx;
+	monster_race *r_ptr = &r_info[r_idx];
+	switch (r_ptr->d_char)
+	{
+		case '?': /* Scroll */
+			k_idx = rand_tval_kind(TV_SCROLL);
+		break;
+		case '!': /* Potion */
+			k_idx = rand_tval_kind(TV_POTION);
+		break;
+		case '=': /* Ring */
+			k_idx = rand_tval_kind(TV_RING);
+		break;
+		case '~': /* Chest */
+			k_idx = rand_tval_kind(TV_CHEST);
+		break;
+		default:
+			/* Give up */
+			return 0;
+		break;
+	}
+	return k_idx;
+}
+
 /*
  * Hack -- Display the "name" and "attr/chars" of a monster race
  */

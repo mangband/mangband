@@ -1832,7 +1832,32 @@ void object_absorb(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
 	}
 }
 
+/*
+ * Get a random object kind, by tval.
+ * Returns 0 if nothing was found.
+ */
+u16b rand_tval_kind(int tval)
+{
+	int k_idx, kinds = 0;
+	int tbl[MAX_FLVR_IDX];
 
+	for (k_idx = 0; k_idx < z_info->k_max; k_idx++)
+	{
+		object_kind *k_ptr = &k_info[k_idx];
+		if (k_ptr->tval != tval) continue;
+		tbl[kinds++] = k_idx;
+		if (kinds >= MAX_FLVR_IDX) break;
+	}
+	/* Nothing found, give up */
+	if (!kinds) return 0;
+
+	int r = randint0(kinds);
+	printf(":out of %d kinds, generated %d, %s\n",
+		kinds, r, k_name + k_info[tbl[r]].name);
+
+	/* Randomly */
+	return tbl[randint0(kinds)];
+}
 
 /*
  * Find the index of the object_kind with the given tval and sval
@@ -5301,6 +5326,27 @@ static int compare_items(player_type *p_ptr, const object_type *o1, const object
 	return compare_types(o1, o2);
 }
 
+/* Prepare some fake objects */
+#define MAX_FAKE_OBJECTS 8
+int scan_floor_mimics(player_type *p_ptr, int y, int x, int *dst, object_type *o_ptr, int *cnt)
+{
+	int Depth = p_ptr->dun_depth;
+	if (!cave[Depth]) return 0;
+	if (cave[Depth][y][x].m_idx > 0)
+	{
+		monster_type *m_ptr = &m_list[cave[Depth][y][x].m_idx];
+		if (m_ptr->mimic_k_idx)
+		{
+			invwipe(&o_ptr[*cnt]);
+			invcopy(&o_ptr[*cnt], m_ptr->mimic_k_idx);
+			(*cnt)+=1;
+			*dst = -(*cnt);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /* Forward-compatibility with V310b */
 #define ODESC_FULL 2
 #define squelch_item_ok(O_PTR) FALSE
@@ -5330,7 +5376,9 @@ void display_itemlist(player_type *p_ptr)
 	byte attr;
 	char buf[80];
 
-	int floor_list[MAX_FLOOR_STACK];
+	int floor_list[MAX_FLOOR_STACK + 1]; /* +1 for mimics */
+	object_type fake_objects[8]; /* Allow up to 8 mimics */
+	int mimic_hack = 0;
 
 	/* Begin */
 	text_out_init(p_ptr);
@@ -5342,11 +5390,22 @@ void display_itemlist(player_type *p_ptr)
 		{
 			num = scan_floor(p_ptr, floor_list, MAX_FLOOR_STACK, my, mx, 0x02);
 
+			/* Hack -- also add mimics (can't trick the DM, though)*/
+			if (mimic_hack < 8 && !(p_ptr->dm_flags & DM_SEE_MONSTERS))
+			num += scan_floor_mimics(p_ptr, my, mx, &floor_list[num], fake_objects, &mimic_hack);
+
 			/* Iterate over all the items found on this square */
 			for (i = 0; i < num; i++)
 			{
-				object_type *o_ptr = &o_list[floor_list[i]];
+				object_type *o_ptr;
 				unsigned j;
+
+				if (floor_list[i] < 0)
+				{ printf("Use fake object: [%d]-> %d\n",floor_list[i], 0 - floor_list[i] - 1);
+					o_ptr = &fake_objects[0 - floor_list[i] - 1];
+				}
+				else
+					o_ptr = &o_list[floor_list[i]];
 
 				/* Skip gold/squelched */
 				if (o_ptr->tval == TV_GOLD || squelch_item_ok(o_ptr))

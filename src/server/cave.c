@@ -1230,6 +1230,14 @@ void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte *tap, c
 			/* c = r_ptr->x_char; */
 			c = r_char_ptr[m_ptr->r_idx];
 
+			/* Is monster a mimic? */
+			if ((r_ptr->flags1 & (RF1_CHAR_MULTI))
+			&& (m_ptr->mimic_k_idx)) /* And does it pretend? */
+			{
+				a = object_kind_attr_p(p_ptr, m_ptr->mimic_k_idx);
+				c = object_kind_char_p(p_ptr, m_ptr->mimic_k_idx);
+			}
+
 			/* Ignore weird codes */
 			if (option_p(p_ptr,AVOID_OTHER))
 			{

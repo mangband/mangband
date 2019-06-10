@@ -3262,6 +3262,12 @@ static void process_monster(int Ind, int m_idx)
 		}
 	}
 
+	/* New MAnghack: reveal mimics */
+	if (do_turn && m_ptr->mimic_k_idx)
+	{
+		reveal_mimic(m_idx);
+	}
+
 #if 0
 /* Hack -- disabled in MAngband. Instead of handling single player,
  * call update_spot(Depth,y,x, (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS)) */
