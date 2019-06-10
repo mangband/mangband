@@ -889,7 +889,10 @@ static void player_outfit(player_type *p_ptr)
 	}
 
 	/* Give a free WoR */
-	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+	if (!cfg_ironman)
+	{
+		player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+	}
 
 	/*
 	 * Give the DM (or all players, if this is dev. mode) some interesting stuff
