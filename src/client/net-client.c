@@ -2104,6 +2104,8 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 		network_pause(100000); /* 0.1 ms "sleep" */
 		/* Let windows process UI events: */
 		Term_xtra(TERM_XTRA_FLUSH, 0);
+		/* Let SDL2 client re-render: */
+		Term_xtra(TERM_XTRA_BORED, 0);
 	}
 	/* Will be either 1 either -1 */
 
