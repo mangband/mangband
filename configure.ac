@@ -137,10 +137,11 @@ if test "x$enabled_x11" = xyes && test "x$enabled_sdl" = xyes
 then
     enabled_x11="no"
 fi
+# NOTE: reverting this for now! switch back when ready -flm-
 # If we have SDL2, disable SDL
 if test "x$enabled_sdl" = xyes && test "x$enabled_sdl2" = xyes
 then
-    enabled_sdl="no"
+    enabled_sdl2="no"
 fi
 
 # If we don't have SDL, disable SDL_image and SDL_ttf
