@@ -2629,7 +2629,7 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	&& (cave_char_aux != NULL))
 	{
 		/* Hook will return TRUE if no further processing is needed */
-		if (Term2_cave_line(st, sy, y, cols)) return;
+		if (Term2_cave_line(st, sy, sy, cols)) return;
 	}
 
 	/* Ugly Hack - Shopping */

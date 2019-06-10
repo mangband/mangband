@@ -555,7 +555,10 @@ void refreshTermAlt(TermData *td) {
 	dng_rows = pix_h / td->pict_data->h;
 
 	if (!(td->config & TERM_DO_SCALE)) {
-		if (td->alt_framebuffer) SDL_DestroyTexture(td->alt_framebuffer);
+		if (td->alt_framebuffer) {
+			SDL_DestroyTexture(td->alt_framebuffer);
+			td->alt_framebuffer = NULL;
+		}
 		if (td->dng_cols || td->dng_rows) {
 			td->need_redraw = TRUE;
 		}
