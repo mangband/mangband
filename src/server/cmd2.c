@@ -1101,32 +1101,22 @@ static bool twall(player_type *p_ptr, int y, int x)
 {
 	int Depth = p_ptr->dun_depth;
 
-	cave_type	*c_ptr = &cave[Depth][y][x];
-	byte		*w_ptr = &p_ptr->cave_flag[y][x];
-
 	/* Paranoia -- Require a wall or door or some such */
 	if (cave_floor_bold(Depth, y, x)) return (FALSE);
 
 	/* Sound */
 	sound(p_ptr, MSG_DIG);
 
+	/* Forget the wall */
+	everyone_forget_spot(Depth, y, x);
+
 	/* Remove the feature */
 	if (Depth > 0)
-		c_ptr->feat = FEAT_FLOOR;
+		cave_set_feat(Depth, y, x, FEAT_FLOOR);
 	else
-		c_ptr->feat = FEAT_DIRT;
+		cave_set_feat(Depth, y, x, FEAT_DIRT);
 
-	/* Forget the "field mark" */
-	*w_ptr &= ~CAVE_MARK;
-
-	/* Notice */
-	note_spot_depth(Depth, y, x);
-
-	/* Redisplay the grid */
-	everyone_lite_spot(Depth, y, x);
-
-	/* Update some things */
-	p_ptr->update |= (PU_VIEW | PU_LITE | PU_FLOW | PU_MONSTERS);
+	/* Note: cave_set_feat has handled updates for all players! */
 
 	/* Result */
 	return (TRUE);
@@ -1856,12 +1846,6 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 		{
 			/* Message */
 			msg_print(p_ptr, "You hack your way through the vegetation.");
-			
-			/* Notice */
-			note_spot_depth(Depth, y, x);
-
-			/* Display */
-			everyone_lite_spot(Depth, y, x);
 		}
 		else
 		{
