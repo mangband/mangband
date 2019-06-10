@@ -3005,6 +3005,23 @@ that keeps many algorithms happy.
 #define same_player(PLR1, PLR2) ( (PLR1) == (PLR2) )
 
 /*
+ * Iterate over all players
+ * ITER must be a defined "int".
+ * PLR must be a defined "player_type*".
+ */
+#define foreach_player(ITER, PLR) \
+	for (\
+		(ITER) = 1;\
+		((ITER) <= NumPlayers) && ((PLR) = Players[(ITER)]); \
+		(ITER)++ \
+	    )
+
+/* Define iterator to use with "foreach_player" */
+#define player_iterator(ITER, PLR) \
+	int (ITER); \
+	player_type* (PLR);
+
+/*
  * Hack -- Prepare to use the "Secure" routines
  */
 #if defined(SET_UID) && defined(SECURE)
