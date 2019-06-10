@@ -1804,8 +1804,6 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 
 	monster_race	*r_ptr = &r_info[r_idx];
 
-	char buf[80];
-
 	/* Verify location */
 	if (!in_bounds(Depth, y, x)) return (FALSE);
 
@@ -1964,8 +1962,6 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		Players[Ind]->mon_det[c_ptr->m_idx] = 0;
 		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
-
-	my_strcpy(buf, (r_name + r_ptr->name), sizeof(buf));
 
 	/* Update the monster */
 	update_mon(c_ptr->m_idx, TRUE);
