@@ -1992,7 +1992,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 			/* Hack -- Enter store */
 			if (c_ptr->feat != FEAT_SHOP_HEAD+7)
 			{
-				command_new = '_';
+				/*command_new = '_';*/
 				do_cmd_store(p_ptr, -1);
 			}
 #endif

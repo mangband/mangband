@@ -1890,6 +1890,9 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Remember how much energy player had */
 	old_energy = p_ptr->energy;
 
+	/* Reset "command_arg" (whatever that is) */
+	p_ptr->command_arg = 0;
+
 	/* Call the callback ("execute command") */
 #define S_ARG (custom_commands[i].do_cmd_callback)
 #define S_EXEC(A, B, C) case SCHEME_ ## A: (*(void (*)B)S_ARG)C ; break;

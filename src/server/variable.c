@@ -68,17 +68,17 @@ bool character_xtra;		/* The game is in an icky startup mode */
 u32b seed_flavor;		/* Hack -- consistent object colors */
 u32b seed_town;			/* Hack -- consistent town layout */
 
-s16b command_cmd;		/* Current "Angband Command" */
+/*s16b command_cmd;*/		/* Current "Angband Command" */
 
-s16b command_arg;		/* Gives argument of current command */
-s16b command_rep;		/* Gives repetition of current command */
-s16b command_dir;		/* Gives direction of current command */
+/*s16b command_arg;*/		/* Gives argument of current command */
+/*s16b command_rep;*/		/* Gives repetition of current command */
+/*s16b command_dir;*/		/* Gives direction of current command */
 
 /*s16b command_see;*/		/* See "cmd1.c" */
 /*s16b command_wrk;*/		/* See "cmd1.c" */
 /*s16b command_gap = 50;*/	/* See "cmd1.c" */
 
-s16b command_new;		/* Command chaining from inven/equip view */
+/*s16b command_new;*/		/* Command chaining from inven/equip view */
 
 bool create_up_stair;		/* Auto-create "up stairs" */
 bool create_down_stair;		/* Auto-create "down stairs" */

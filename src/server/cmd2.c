@@ -213,7 +213,7 @@ void do_cmd_go_down(player_type *p_ptr)
 void do_cmd_search(player_type *p_ptr)
 {
 	/* Allow repeated command */
-	if (command_arg)
+	if (p_ptr->command_arg)
 	{
 		/* Set repeat count */
 		/*command_rep = command_arg - 1;*/
@@ -222,7 +222,7 @@ void do_cmd_search(player_type *p_ptr)
 		p_ptr->redraw |= (PR_STATE);
 
 		/* Cancel the arg */
-		command_arg = 0;
+		p_ptr->command_arg = 0;
 	}
 
 	/* Take a turn */
@@ -1255,7 +1255,7 @@ static bool do_cmd_open_aux(player_type *p_ptr, int y, int x)
 			disturb(p_ptr, 0, 0);
 
 			/* Hack -- Enter store */
-			command_new = '_';
+			/*command_new = '_';*/
 			do_cmd_store(p_ptr, i);
 		}
 		else
@@ -2965,7 +2965,7 @@ void do_cmd_walk(player_type *p_ptr, int dir, int pickup)
 	if (p_ptr->new_level_flag) return;
 
 	/* Allow repeated command */
-	if (command_arg)
+	if (p_ptr->command_arg)
 	{
 		/* Set repeat count */
 		/*command_rep = command_arg - 1;*/
@@ -2974,7 +2974,7 @@ void do_cmd_walk(player_type *p_ptr, int dir, int pickup)
 		p_ptr->redraw |= (PR_STATE);
 
 		/* Cancel the arg */
-		command_arg = 0;
+		p_ptr->command_arg = 0;
 	}
 
 	/* Get a "repeated" direction */
@@ -3117,7 +3117,7 @@ void do_cmd_hold_or_stay(player_type *p_ptr, int pickup, int take_stairs)
 
 
 	/* Allow repeated command */
-	if (command_arg)
+	if (p_ptr->command_arg)
 	{
 		/* Set repeat count */
 		/*command_rep = command_arg - 1;*/
@@ -3126,7 +3126,7 @@ void do_cmd_hold_or_stay(player_type *p_ptr, int pickup, int take_stairs)
 		p_ptr->redraw |= (PR_STATE);
 
 		/* Cancel the arg */
-		command_arg = 0;
+		p_ptr->command_arg = 0;
 	}
 
 
@@ -3158,7 +3158,7 @@ void do_cmd_hold_or_stay(player_type *p_ptr, int pickup, int take_stairs)
 		disturb(p_ptr, 0, 0);
 
 		/* Hack -- enter store */
-		command_new = '_';
+		/*command_new = '_';*/
 	}
 
 
@@ -3233,7 +3233,7 @@ void do_cmd_toggle_rest(player_type *p_ptr)
 void do_cmd_rest(void)
 {
 	/* Prompt for time if needed */
-	if (command_arg <= 0)
+	if (p_ptr->command_arg <= 0)
 	{
 		cptr p = "Rest (0-9999, '*' for HP/SP, '&' as needed): ";
 
@@ -3248,33 +3248,33 @@ void do_cmd_rest(void)
 		/* Rest until done */
 		if (out_val[0] == '&')
 		{
-			command_arg = (-2);
+			p_ptr->command_arg = (-2);
 		}
 
 		/* Rest a lot */
 		else if (out_val[0] == '*')
 		{
-			command_arg = (-1);
+			p_ptr->command_arg = (-1);
 		}
 
 		/* Rest some */
 		else
 		{
-			command_arg = atoi(out_val);
-			if (command_arg <= 0) return;
+			p_ptr->command_arg = atoi(out_val);
+			if (p_ptr->command_arg <= 0) return;
 		}
 	}
 
 
 	/* Paranoia */
-	if (command_arg > 9999) command_arg = 9999;
+	if (p_ptr->command_arg > 9999) p_ptr->command_arg = 9999;
 
 
 	/* Take a turn XXX XXX XXX (?) */
 	energy -= level_speed(p_ptr->dun_depth);
 
 	/* Save the rest code */
-	resting = command_arg;
+	resting = p_ptr->command_arg;
 
 	/* Cancel searching */
 	p_ptr->searching = FALSE;
@@ -4428,7 +4428,7 @@ void do_cmd_purchase_house(player_type *p_ptr, int dir)
 				if (house_inside(p_ptr, i))
 				{
 					/* Hack -- Enter own store */
-					command_new = '_';
+					/*command_new = '_';*/
 					do_cmd_store(p_ptr, i);
 				}
 				else

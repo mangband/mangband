@@ -765,7 +765,7 @@ void do_cmd_destroy(player_type *p_ptr, int item, int quantity)
 	}
 
 	/* Hack -- force destruction */
-	if (command_arg > 0) force = TRUE;
+	if (p_ptr->command_arg > 0) force = TRUE;
 
 	/* Get the item (in the pack) */
 	if (item >= 0)
