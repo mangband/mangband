@@ -698,7 +698,7 @@ bool file_vputf(ang_file *f, const char *fmt, va_list vp)
 
 bool dir_exists(const char *path)
 {
-	#ifdef HAVE_STAT
+#ifdef HAVE_STAT
 	struct stat buf;
 	if (stat(path, &buf) != 0)
 		return false;
@@ -706,9 +706,38 @@ bool dir_exists(const char *path)
 		return true;
 	else
 		return false;
-	#else
+#else
+# ifdef WINDOWS
+	{
+#  ifdef WIN32
+	DWORD attrib;
+
+	/* Examine */
+	attrib = GetFileAttributes(path);
+
+	/* Require valid filename */
+	if (attrib == INVALID_FILE_NAME) return (FALSE);
+
+	/* Require directory */
+	if (!(attrib & FILE_ATTRIBUTE_DIRECTORY)) return (FALSE);
+
+#  else /* WIN16 */
+	unsigned int attrib;
+	/* Examine and verify */
+	if (_dos_getfileattr(path, &attrib)) return (FALSE);
+
+	/* Prohibit something */
+	if (attrib & FA_LABEL) return (FALSE);
+
+	/* Require directory */
+	if (!(attrib & FA_DIREC)) return (FALSE);
+
+#  endif /* WIN32 */
+	}
+# else
 	return true;
-	#endif
+# endif
+#endif
 }
 
 #ifdef HAVE_STAT

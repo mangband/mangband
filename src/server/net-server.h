@@ -53,7 +53,7 @@ extern int send_char_info(connection_type *ct, player_type *p_ptr);
 extern int send_race_info(connection_type *ct);
 extern int send_class_info(connection_type *ct);
 extern int send_optgroups_info(connection_type *ct);
-extern int send_options_info(connection_type *ct, int id);
+extern int send_options_info(connection_type *ct, player_type *p_ptr, int id);
 extern int send_indicator_info(connection_type *ct, int id);
 extern int send_custom_command_info(connection_type *ct, int id);
 /* Receive */

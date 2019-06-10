@@ -937,6 +937,11 @@ char command_from_keystroke(char *buf)
 	char *p;
 	for (p = buf; *p; p++)
 	{
+		if (*p == '\\') continue;
+		if ((KTRL(*p) == *p) && (isalpha(UN_KTRL(*p))))
+		{
+			return (*p);
+		}
 		if ((char)(*p) <= 32)
 		{
 			continue;
@@ -989,19 +994,24 @@ char command_by_item(int item, bool agressive)
 int command_as_keystroke(char cmd, char *dst, size_t len)
 {
 	char tmp[32];
+	char *p = tmp;
 	/* Hack -- dump the value */
-	tmp[0] = '\\';
-	tmp[1] = 'e';
+	*p++ = '\\';
+	*p++ = 'e';
+	if (rogue_like_commands)
+	{
+		*p++ = '\\';
+		*p++ = '\\';
+	}
 	if (KTRL(cmd) == cmd)
 	{
-		tmp[2] = '^';
-		tmp[3] = UN_KTRL(cmd);
-		tmp[4] = '\0';
+		*p++ = '^';
+		*p++ = UN_KTRL(cmd);
 	}
 	else {
-		tmp[2] = cmd;
-		tmp[3] = '\0';
+		*p++ = cmd;
 	}
+	*p++ = '\0';
 	my_strcpy(dst, tmp, len);
 	return strlen(dst);
 }

@@ -325,9 +325,8 @@ bool los(int Depth, int y1, int x1, int y2, int x2)
  * "glowing" grid.  This prevents the player from being able to "see" the
  * walls of illuminated rooms from a corridor outside the room.
  */
-bool player_can_see_bold(int Ind, int y, int x)
+bool player_can_see_bold(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int xx, yy;
 
@@ -349,7 +348,7 @@ bool player_can_see_bold(int Ind, int y, int x)
 		return (TRUE);
 
 	/* Require line of sight to the grid */
-	if (!player_has_los_bold(Ind, y, x)) return (FALSE);
+	if (!player_has_los_bold(p_ptr, y, x)) return (FALSE);
 
 	/* Require "perma-lite" of the grid */
 	if (!(c_ptr->info & CAVE_GLOW)) return (FALSE);
@@ -377,10 +376,9 @@ bool player_can_see_bold(int Ind, int y, int x)
 /*
  * Returns true if the player's grid is dark
  */
-bool no_lite(int Ind)
+bool no_lite(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	return (!player_can_see_bold(Ind, p_ptr->py, p_ptr->px));
+	return (!player_can_see_bold(p_ptr, p_ptr->py, p_ptr->px));
 }
 
 
@@ -392,6 +390,30 @@ bool no_lite(int Ind)
 
 
 /*
+ * Hack -- Continous per-player hallucinaton RNG
+ */
+void image_rng_flush(player_type *p_ptr)
+{
+	p_ptr->hallu_offset = 0;
+}
+static void image_rng_push(player_type *p_ptr, u32b *oldstate)
+{
+	/* Store old state */
+	*oldstate = Rand_value;
+	/* Use simple RNG */
+	Rand_quick = TRUE;
+	/* Seed with player->image_seed */
+	Rand_value = (p_ptr->image_seed + (p_ptr->hallu_offset++));
+}
+static void image_rng_pop(u32b oldstate)
+{
+	/* Use complex RNG */
+	Rand_quick = FALSE;
+	/* Restore state */
+	Rand_value = oldstate;
+}
+
+/*
  * Hack -- Legal monster codes
  */
 static cptr image_monster_hack = \
@@ -400,15 +422,20 @@ static cptr image_monster_hack = \
 /*
  * Mega-Hack -- Hallucinatory monster
  */
-static void image_monster(byte *ap, char *cp)
+static void image_monster(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
 	int n = strlen(image_monster_hack);
+
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
 	(*cp) = (image_monster_hack[rand_int(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
+
+	if (p_ptr) image_rng_pop(oldrng);
 }
 
 
@@ -421,44 +448,66 @@ static cptr image_object_hack = \
 /*
  * Mega-Hack -- Hallucinatory object
  */
-static void image_object(byte *ap, char *cp)
+static void image_object(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
 	int n = strlen(image_object_hack);
+
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
 	(*cp) = (image_object_hack[rand_int(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
+
+	if (p_ptr) image_rng_pop(oldrng);
 }
 
 
 /*
  * Hack -- Random hallucination
  */
-static void image_random(byte *ap, char *cp)
+static void image_random(player_type *p_ptr, byte *ap, char *cp)
 {
+	u32b oldrng;
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
+
 	/* Normally, assume monsters */
 	if (rand_int(100) < 75)
 	{
-		image_monster(ap, cp);
+		image_monster(p_ptr, ap, cp);
 	}
 
 	/* Otherwise, assume objects */
 	else
 	{
-		image_object(ap, cp);
+		image_object(p_ptr, ap, cp);
 	}
-}
 
+	if (p_ptr) image_rng_pop(oldrng);
+}
+/* Hack -- do we want random hallucination? */
+static bool image_random_chance(player_type *p_ptr)
+{
+	u32b oldrng;
+	bool hallucinate = FALSE;
+	if (p_ptr) image_rng_push(p_ptr, &oldrng);
+
+	if (!rand_int(256)) hallucinate = TRUE;
+
+	if (p_ptr && hallucinate) p_ptr->hallu_offset += randint0(64);
+
+	if (p_ptr) image_rng_pop(oldrng);
+
+	return hallucinate;
+}
 
 /*
  * Return the correct "color" of another player
  */
-static byte player_color(int Ind)
+static byte player_color(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Ghosts are black */
 	if (p_ptr->ghost) return TERM_L_DARK;
 
@@ -469,12 +518,10 @@ static byte player_color(int Ind)
 	return p_ptr->cp_ptr->attr;
 }
 /*
- * Return the correct attr/char pair for any player
- */ 
-int player_pict(int Ind, int who)
+ * Return the correct attr/char pair for player "q_ptr"
+ */
+int player_pict(player_type *p_ptr, player_type *q_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-	player_type *q_ptr = Players[who];
 	byte a;
 	char c;
 	int health, timefactor;
@@ -486,7 +533,7 @@ int player_pict(int Ind, int who)
 		c = p_ptr->pr_char[q_ptr->pclass * z_info->p_max + q_ptr->prace];
 
 		/* Handle himself */
-		if (who == Ind) 
+		if (same_player(q_ptr, p_ptr))
 		{
 			/* Get the "player" attr */
 			a = p_ptr->r_attr[0];
@@ -518,16 +565,16 @@ int player_pict(int Ind, int who)
 		if (q_ptr->fruit_bat) c = 'b';
 
 		/* Get the "player" attr */
-		a = player_color(who);
+		a = player_color(q_ptr);
 
 		/* MEGAHACK -- Hilite party leader! */
 		if (p_ptr->party && option_p(p_ptr,HILITE_LEADER) &&
-			player_in_party(p_ptr->party, who) && 
+			player_in_party(p_ptr->party, q_ptr) &&
 			streq(parties[p_ptr->party].owner, q_ptr->name))
 		a = TERM_YELLOW;
 
 		/* Handle himself -- can we say code duplication? Yes! */
-		if (who == Ind) 
+		if (same_player(q_ptr, p_ptr))
 		{
 			/* Get the "player" attr */
 			a = p_ptr->r_attr[0];
@@ -538,8 +585,8 @@ int player_pict(int Ind, int who)
 	}
 	
 	/* If we are in a slow time bubble, give a visual warning */
-	timefactor = base_time_factor(Ind,0);
-	if( (who == Ind) && (timefactor < NORMAL_TIME) )
+	timefactor = base_time_factor(p_ptr, 0);
+	if( same_player(q_ptr, p_ptr) && (timefactor < NORMAL_TIME) )
 	{
 		if( ht_passed(&turn, &p_ptr->bubble_change, (10+((NORMAL_TIME-timefactor)))))
 		{
@@ -566,7 +613,7 @@ int player_pict(int Ind, int who)
 			a = p_ptr->bubble_colour;
 		}
 	}
-	else if( who == Ind )
+	else if (same_player(q_ptr, p_ptr)) /* Self */
 	{
 		p_ptr->bubble_colour = TERM_WHITE;
 	}
@@ -578,7 +625,7 @@ int player_pict(int Ind, int who)
 		c = health + 48;
 		if (p_ptr->use_graphics)
 		{
-			a = (Ind==who) ? p_ptr->bubble_colour : player_color(who);
+			a = same_player(q_ptr, p_ptr) ? p_ptr->bubble_colour : player_color(q_ptr);
 		}
 	}
 	
@@ -730,9 +777,8 @@ void get_wilderness_light_colour(byte *a, int feat, player_type *p_ptr, cave_typ
  * Without this ability server side renders would use client localised 
  * char/attr values which may not makes sense in the context of the server.
  */
-void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, bool server)
+void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, bool server)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	char *f_char_ptr;
@@ -1130,10 +1176,10 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 	}
 #endif
 	/* Hack -- rare random hallucination, except on outer dungeon walls */
-	if (p_ptr->image && (!rand_int(256)) && (c_ptr->feat < FEAT_PERM_SOLID))
+	if (p_ptr->image && (image_random_chance(p_ptr)) && (c_ptr->feat < FEAT_PERM_SOLID))
 	{
 		/* Hallucinate */
-		image_random(ap, cp);
+		image_random(p_ptr, ap, cp);
 	}
 
 
@@ -1148,13 +1194,20 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		if ((p_ptr->obj_vis[c_ptr->o_idx]) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Normal char */
-			(*cp) = object_char(o_ptr);
+			(*cp) = object_char_p(p_ptr, o_ptr);
 
 			/* Normal attr */
-			(*ap) = object_attr(o_ptr);
+			(*ap) = object_attr_p(p_ptr, o_ptr);
 
 			/* Hack -- hallucination */
-			if (p_ptr->image) image_object(ap, cp);
+			if (p_ptr->image) image_object(p_ptr, ap, cp);
+
+			/* Hack -- server-side visuals? Also, undo hallucination */
+			if (server)
+			{
+				(*cp) = object_char_s(p_ptr, o_ptr);
+				(*ap) = object_attr_s(p_ptr, o_ptr);
+			}
 		}
 	}
 
@@ -1176,6 +1229,14 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			/* Desired char */
 			/* c = r_ptr->x_char; */
 			c = r_char_ptr[m_ptr->r_idx];
+
+			/* Is monster a mimic? */
+			if ((r_ptr->flags1 & (RF1_CHAR_MULTI))
+			&& (m_ptr->mimic_k_idx)) /* And does it pretend? */
+			{
+				a = object_kind_attr_p(p_ptr, m_ptr->mimic_k_idx);
+				c = object_kind_char_p(p_ptr, m_ptr->mimic_k_idx);
+			}
 
 			/* Ignore weird codes */
 			if (option_p(p_ptr,AVOID_OTHER))
@@ -1249,7 +1310,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			if (p_ptr->image)
 			{
 				/* Hallucinatory monster */
-				image_monster(ap, cp);
+				image_monster(p_ptr, ap, cp);
 			}
 		}
 	}
@@ -1267,7 +1328,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 		/* Is that player visible? */
 		if (p_ptr->play_vis[0 - c_ptr->m_idx])
 		{
-			int p = player_pict(Ind, 0 - c_ptr->m_idx);
+			int p = player_pict(p_ptr, Players[0 - c_ptr->m_idx]);
 			a = PICT_A(p);
 			c = PICT_C(p);
 
@@ -1277,7 +1338,7 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
 			if (p_ptr->image)
 			{
 				/* Change the other player into a hallucination */
-				image_monster(ap, cp);
+				image_monster(p_ptr, ap, cp);
 			}
 
 		}
@@ -1310,9 +1371,8 @@ void map_info(int Ind, int y, int x, byte *ap, char *cp, byte *tap, char *tcp, b
  * and terrain features separately, though both are dependant on the
  * "player_can_see_bold()" macro.
  */
-void note_spot(int Ind, int y, int x)
+void note_spot(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	cave_type *c_ptr = &cave[Depth][y][x];
 	byte *w_ptr = &p_ptr->cave_flag[y][x];
@@ -1325,7 +1385,7 @@ void note_spot(int Ind, int y, int x)
 		if (!(p_ptr->obj_vis[c_ptr->o_idx]))
 		{
 			/* Memorize visible objects */
-			if (player_can_see_bold(Ind, y, x))
+			if (player_can_see_bold(p_ptr, y, x))
 			{
 				/* Memorize */
 				p_ptr->obj_vis[c_ptr->o_idx] = TRUE;
@@ -1341,7 +1401,7 @@ void note_spot(int Ind, int y, int x)
 	if (!(*w_ptr & CAVE_MARK))
 	{
 		/* Memorize visible grids */
-		if (player_can_see_bold(Ind, y, x))
+		if (player_can_see_bold(p_ptr, y, x))
 		{
 			/* Memorize normal features */
 			if (!is_boring(c_ptr->feat)) 
@@ -1372,11 +1432,11 @@ void note_spot_depth(int Depth, int y, int x)
 {
 	int i;
 
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		if (Players[i]->dun_depth == Depth)
 		{
-			note_spot(i, y, x);
+			note_spot(Players[i], y, x);
 		}
 	}
 }
@@ -1386,14 +1446,14 @@ void everyone_lite_spot(int Depth, int y, int x)
 	int i;
 
 	/* Check everyone */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
 			continue;
 
 		/* Actually lite that spot for that player */
-		lite_spot(i, y, x);
+		lite_spot(Players[i], y, x);
 	}
 }
 
@@ -1405,7 +1465,7 @@ void everyone_forget_spot(int Depth, int y, int x)
 	int i;
 
 	/* Check everyone */
-	for (i = 1; i < NumPlayers + 1; i++)
+	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* If he's not here, skip him */
 		if (Players[i]->dun_depth != Depth)
@@ -1419,26 +1479,24 @@ void everyone_forget_spot(int Depth, int y, int x)
 /*
  * Redraw (on the screen) a given MAP location
  */
-void lite_spot(int Ind, int y, int x)
+void lite_spot(player_type *p_ptr, int y, int x)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int dispx, dispy;
 	bool is_player = FALSE;
 
 	/* Redraw if on screen */
-	if (panel_contains(y, x))
+	if (panel_contains(p_ptr, y, x))
 	{
 		byte a, ta;
 		char c, tc;
 
 		/* Examine the grid */
-		map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
+		map_info(p_ptr, y, x, &a, &c, &ta, &tc, FALSE);
 
 		/* Handle "player" */
 		if ((y == p_ptr->py) && (x == p_ptr->px))
 		{
-			int p = player_pict(Ind,Ind);
+			int p = player_pict(p_ptr, p_ptr);
 			a = PICT_A(p);
 			c = PICT_C(p);
 			is_player = TRUE;
@@ -1464,7 +1522,7 @@ void lite_spot(int Ind, int y, int x)
 			p_ptr->trn_info[dispy][dispx].a = ta;
 
 			/* Tell client to redraw this grid */
-			Stream_tile(Ind, p_ptr, dispy, dispx);
+			Stream_tile_p(p_ptr, dispy, dispx);
 
 			/* Mark player */
 			if (is_player)
@@ -1484,6 +1542,68 @@ void lite_spot(int Ind, int y, int x)
 	}
 }
 
+void spot_updates(int Depth, int y, int x, u32b updates)
+{
+	int i;
+
+	/* Check every player on this depth */
+	for (i = 1; i <= NumPlayers; i++)
+	{
+		player_type *p_ptr = Players[i];
+		if (p_ptr->dun_depth != Depth) continue;
+
+		/* Feature is in direct view */
+		if (player_has_los_bold(p_ptr, y, x))
+		{
+			p_ptr->update |= updates;
+		}
+	}
+}
+
+
+/*
+ * Change the "feat" flag for a grid, and notice/redraw the grid
+ */
+void cave_set_feat(int Depth, int y, int x, int feat)
+{
+	cave_type *c_ptr;
+
+	/* Access that cave grid */
+	c_ptr = &cave[Depth][y][x];
+
+	/* Change the feature */
+	c_ptr->feat = feat;
+
+#if 0
+	/* Handle "wall/door" grids */
+	if (feat >= FEAT_DOOR_HEAD)
+	{
+		cave_info[y][x] |= (CAVE_WALL);
+	}
+
+	/* Handle "floor"/etc grids */
+	else
+	{
+		cave_info[y][x] &= ~(CAVE_WALL);
+	}
+#endif
+
+	/* Notice/Redraw */
+	if (server_dungeon)
+	{
+		/* All players forget old feature */
+		/* everyone_forget_spot(Depth, ny, nx); */
+
+		/* Nearby players memorize the new feature */
+		note_spot_depth(Depth, y, x);
+
+		/* And see the change */
+		everyone_lite_spot(Depth, y, x);
+
+		/* Finally, update view region for affected players */
+		spot_updates(Depth, y, x, (PU_VIEW | PU_LITE | PU_MONSTERS | PU_DISTANCE));
+	}
+}
 
 
 
@@ -1495,15 +1615,16 @@ void lite_spot(int Ind, int y, int x)
  * "lite_spot()" function to display the player grid, if needed.
  */
  
-void prt_map(int Ind)
+void prt_map(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int x, y;
 	int dispx, dispy;
 
 	/* Make sure he didn't just change depth */
 	if (p_ptr->new_level_flag) return;
+
+	/* Hack -- reseed hallucinaton */
+	image_rng_flush(p_ptr);
 
 	/* Dump the map */
 	for (y = p_ptr->panel_row_min; y <= p_ptr->panel_row_max; y++)
@@ -1528,7 +1649,7 @@ void prt_map(int Ind)
 			char tc;
 
 			/* Determine what is there */
-			map_info(Ind, y, x, &a, &c, &ta, &tc, FALSE);
+			map_info(p_ptr, y, x, &a, &c, &ta, &tc, FALSE);
 
 			/* Hack -- fake monochrome */
 			if (!option_p(p_ptr,USE_COLOR)) a = TERM_WHITE;
@@ -1543,11 +1664,11 @@ void prt_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Stream_line(Ind, DUNGEON_STREAM_p(p_ptr), dispy);
+		Stream_line_p(p_ptr, DUNGEON_STREAM_p(p_ptr), dispy);
 	}
 
 	/* Display player */
-	lite_spot(Ind, p_ptr->py, p_ptr->px);
+	lite_spot(p_ptr, p_ptr->py, p_ptr->px);
 }
 	
 	
@@ -1667,7 +1788,7 @@ static byte priority(byte a, char c)
 		f_ptr = &f_info[p0];
 
 		/* Check character and attribute, accept matches */
-		if ((f_ptr->x_char == c) && (f_ptr->x_attr == a)) return (p1);
+		if ((f_ptr->d_char == c) && (f_ptr->d_attr == a)) return (p1);
 	}
 
 	/* Default */
@@ -1690,9 +1811,8 @@ static byte priority(byte a, char c)
  */
  
  
-void display_map(int Ind, bool quiet)
+void display_map(player_type *p_ptr, bool quiet)
 {
-	player_type *p_ptr = Players[Ind];
 	monster_race *r_ptr = &r_info[0];
 
 	int x, y;
@@ -1761,7 +1881,7 @@ void display_map(int Ind, bool quiet)
 			col = (x * map_wid / dungeon_wid);
 
 			/* Extract the current attr/char at that map location */
-			map_info(Ind, y, x, &ta, &tc, &ta, &tc, FALSE);
+			map_info(p_ptr, y, x, &ta, &tc, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
 			tp = priority(ta, tc);
@@ -1800,16 +1920,16 @@ void display_map(int Ind, bool quiet)
 	x = (p_ptr->px * map_wid / dungeon_wid) + 1;
 	
 	/*** Make sure the player is visible ***/
- 
+
 	/* Set the "player" attr */
-	ma[y][x] = r_ptr->x_attr;
+	ma[y][x] = r_ptr->d_attr;
 
 	/* Set the "player" char */
-	mc[y][x] = r_ptr->x_char;
+	mc[y][x] = r_ptr->d_char;
 
 	/* Activate mini-map window */
 	if (quiet)
-		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_MAP);
+		send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_MAP);
 
 	/* Display each map line in order */
 	for (y = 0; y < map_hgt+2; ++y)
@@ -1829,7 +1949,7 @@ void display_map(int Ind, bool quiet)
 		}
 
 		/* Send that line of info */
-		Stream_line(Ind, (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)), y);
+		Stream_line_p(p_ptr, (quiet ? BGMAP_STREAM_p(p_ptr) : MINIMAP_STREAM_p(p_ptr)), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -1842,11 +1962,11 @@ void display_map(int Ind, bool quiet)
 	}
 
 	/* Flush main window / Fresh extra window */
-	Send_term_info(Ind, (quiet ? NTERM_FRESH : (NTERM_FLUSH | NTERM_ICKY)), 0);
+	send_term_info(p_ptr, (quiet ? NTERM_FRESH : (NTERM_FLUSH | NTERM_ICKY)), 0);
 
 	/* Restore main window */
 	if (quiet)
-		Send_term_info(Ind, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
+		send_term_info(p_ptr, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 
 	/* Restore lighting effects */
 	option_p(p_ptr,VIEW_SPECIAL_LITE) = old_view_special_lite;
@@ -1854,10 +1974,8 @@ void display_map(int Ind, bool quiet)
 }
 
 
-void wild_display_map(int Ind)
+void wild_display_map(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
-
 	int world_x,world_y, x,y, wild_idx, type;
 
 	int map_hgt, map_wid;
@@ -1998,7 +2116,7 @@ void wild_display_map(int Ind)
 		}
 
 		/* Send that line of info */
-		Stream_line(Ind, MINIMAP_STREAM_p(p_ptr), y);
+		Stream_line_p(p_ptr, MINIMAP_STREAM_p(p_ptr), y);
 
 		/* Throw some nonsense into the "screen_info" so it gets cleared */
 		for (x = 0; x < map_wid+2; x++)
@@ -2010,7 +2128,7 @@ void wild_display_map(int Ind)
 		}
 	}
 
-	Send_term_info(Ind, NTERM_FLUSH, 0);
+	send_term_info(p_ptr, NTERM_FLUSH, 0);
 
 }
 
@@ -2025,8 +2143,6 @@ void wild_display_map(int Ind)
  
 void do_cmd_view_map(player_type *p_ptr, char query)
 {
-	int Ind = Get_Ind[p_ptr->conn];
-
 	/* Treat any interactive userkey as ESCAPE.
 	 * Note: this is bad, because requires a full round-trip to server
 	 * to simply disable the minimap.
@@ -2039,19 +2155,17 @@ void do_cmd_view_map(player_type *p_ptr, char query)
 	/* Display the map */
 	
 	/* if not in town or the dungeon, do normal map */
-	if (p_ptr->dun_depth >= 0) display_map(Ind, FALSE);
+	if (p_ptr->dun_depth >= 0) display_map(p_ptr, FALSE);
 	/* do wilderness map */
-	else wild_display_map(Ind);
+	else wild_display_map(p_ptr);
 }
 
 
 
 
-void update_player_lite(int Ind, int y, int x)
+void update_player_lite(player_type *p_ptr, int y, int x)
 {
 	int j;
-
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	/* Forget "LITE" flag */
@@ -2066,7 +2180,7 @@ void update_player_lite(int Ind, int y, int x)
 			continue;
 
 		/* Ignore the player that we're updating */
-		if (j == Ind)
+		if (same_player(Players[j], p_ptr))
 			continue;
 
 		/* If someone else also lites this spot relite it */
@@ -2290,9 +2404,8 @@ void update_player_lite(int Ind, int y, int x)
 /*
  * Actually erase the entire "lite" array, redrawing every grid
  */
-void forget_lite(int Ind)
+void forget_lite(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	int i, x, y;
@@ -2306,7 +2419,7 @@ void forget_lite(int Ind)
 		y = p_ptr->lite_y[i];
 		x = p_ptr->lite_x[i];
 
-		update_player_lite(Ind, y, x);
+		update_player_lite(p_ptr, y, x);
 
 		/* Redraw */
 		everyone_lite_spot(Depth, y, x);
@@ -2365,9 +2478,8 @@ void forget_lite(int Ind)
  *                 ***         *****
  *                              ***
  */
-void update_lite(int Ind)
+void update_lite(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int i, x, y, min_x, max_x, min_y, max_y;
 
@@ -2378,10 +2490,10 @@ void update_lite(int Ind)
 	if (p_ptr->cur_lite <= 0)
 	{
 		/* Forget the old lite */
-		forget_lite(Ind);
+		forget_lite(p_ptr);
 
 		/* Draw the player */
-		lite_spot(Ind, p_ptr->py, p_ptr->px);
+		lite_spot(p_ptr, p_ptr->py, p_ptr->px);
 
 		/* All done */
 		return;
@@ -2396,7 +2508,7 @@ void update_lite(int Ind)
 		y = p_ptr->lite_y[i];
 		x = p_ptr->lite_x[i];
 
-		update_player_lite(Ind, y, x);
+		update_player_lite(p_ptr, y, x);
 
 		/* Mark the grid as "seen" */
 		cave[Depth][y][x].info |= CAVE_TEMP;
@@ -2537,7 +2649,7 @@ void update_lite(int Ind)
 				if (d > p) continue;
 
 				/* Viewable, nearby, grids get "torch lit" */
-				if (player_has_los_bold(Ind, y, x))
+				if (player_has_los_bold(p_ptr, y, x))
 				{
 					/* This grid is "torch lit" */
 					cave_lite_hack(y, x);
@@ -2594,9 +2706,8 @@ void update_lite(int Ind)
 /*
  * Clear the viewable space
  */
-void forget_view(int Ind)
+void forget_view(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int i;
 
 	byte *w_ptr;
@@ -2617,7 +2728,7 @@ void forget_view(int Ind)
 		*w_ptr &= ~CAVE_VIEW;
 
 		/* Update the screen */
-		lite_spot(Ind, y, x);
+		lite_spot(p_ptr, y, x);
 	}
 
 	/* None left */
@@ -2661,9 +2772,8 @@ void forget_view(int Ind)
  */
  
  
-static bool update_view_aux(int Ind, int y, int x, int y1, int x1, int y2, int x2)
+static bool update_view_aux(player_type *p_ptr, int y, int x, int y1, int x1, int y2, int x2)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	bool f1, f2, v1, v2, z1, z2, wall;
 
@@ -2869,9 +2979,8 @@ static bool update_view_aux(int Ind, int y, int x, int y1, int x1, int y2, int x
     With my new "invisible wall" code this shouldn't be neccecary. 
     
  */
-void update_view(int Ind)
+void update_view(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 
 	int n, m, d, k, y, x, z;
@@ -3098,7 +3207,7 @@ void update_view(int Ind)
 					/*if (ypn + d > 65) break; */
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ypn+d, xpn, ypn+d-1, xpn-1, ypn+d-1, xpn))
+					if (update_view_aux(p_ptr, ypn+d, xpn, ypn+d-1, xpn-1, ypn+d-1, xpn))
 					{
 						if (n + d >= se) break;
 					}								
@@ -3124,7 +3233,7 @@ void update_view(int Ind)
 					/*if (ypn + d > 65) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ypn+d, xmn, ypn+d-1, xmn+1, ypn+d-1, xmn))
+					if (update_view_aux(p_ptr, ypn+d, xmn, ypn+d-1, xmn+1, ypn+d-1, xmn))
 					{
 						if (n + d >= sw) break;
 					}
@@ -3158,7 +3267,7 @@ void update_view(int Ind)
 					/*if (d > ymn) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ymn-d, xpn, ymn-d+1, xpn-1, ymn-d+1, xpn))
+					if (update_view_aux(p_ptr, ymn-d, xpn, ymn-d+1, xpn-1, ymn-d+1, xpn))
 					{
 						if (n + d >= ne) break;
 					}
@@ -3183,7 +3292,7 @@ void update_view(int Ind)
 					/*if (d > ymn) break;*/
 					
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ymn-d, xmn, ymn-d+1, xmn+1, ymn-d+1, xmn))
+					if (update_view_aux(p_ptr, ymn-d, xmn, ymn-d+1, xmn+1, ymn-d+1, xmn))
 					{
 						if (n + d >= nw) break;
 					}
@@ -3216,7 +3325,7 @@ void update_view(int Ind)
 					/*if (ypn > 65) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ypn, xpn+d, ypn-1, xpn+d-1, ypn, xpn+d-1))
+					if (update_view_aux(p_ptr, ypn, xpn+d, ypn-1, xpn+d-1, ypn, xpn+d-1))
 					{
 						if (n + d >= es) break;
 					}
@@ -3241,7 +3350,7 @@ void update_view(int Ind)
 					/*if (ymn > 65) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ymn, xpn+d, ymn+1, xpn+d-1, ymn, xpn+d-1))
+					if (update_view_aux(p_ptr, ymn, xpn+d, ymn+1, xpn+d-1, ymn, xpn+d-1))
 					{
 						if (n + d >= en) break;
 					}
@@ -3274,7 +3383,7 @@ void update_view(int Ind)
 					/*if (ypn > 65) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ypn, xmn-d, ypn-1, xmn-d+1, ypn, xmn-d+1))
+					if (update_view_aux(p_ptr, ypn, xmn-d, ypn-1, xmn-d+1, ypn, xmn-d+1))
 					{
 						if (n + d >= ws) break;
 					}
@@ -3299,7 +3408,7 @@ void update_view(int Ind)
 					/*if (ymn > 65) break;*/
 				
 					/* Check grid "d" in strip "n", notice "blockage" */
-					if (update_view_aux(Ind, ymn, xmn-d, ymn+1, xmn-d+1, ymn, xmn-d+1))
+					if (update_view_aux(p_ptr, ymn, xmn-d, ymn+1, xmn-d+1, ymn, xmn-d+1))
 					{
 						if (n + d >= wn) break;
 					}
@@ -3336,10 +3445,10 @@ void update_view(int Ind)
 		if (c_ptr->info & CAVE_TEMP) continue;
 
 		/* Note */
-		note_spot(Ind, y, x);
+		note_spot(p_ptr, y, x);
 
 		/* Redraw */
-		lite_spot(Ind, y, x);
+		lite_spot(p_ptr, y, x);
 	}
 
 	/* Wipe the old grids, update as needed */
@@ -3359,7 +3468,7 @@ void update_view(int Ind)
 		if (*w_ptr & CAVE_VIEW) continue;
 
 		/* Redraw */
-		lite_spot(Ind, y, x);
+		lite_spot(p_ptr, y, x);
 	}
 
 	/* None left */
@@ -3571,9 +3680,8 @@ void update_flow(void)
  * since this would prevent the use of "view_torch_grids" as a method to
  * keep track of what grids have been observed directly.
  */
-void wiz_lite(int Ind)
+void wiz_lite(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int		y, x, i;
 
@@ -3649,9 +3757,8 @@ void wiz_lite(int Ind)
 /*
  * Forget the dungeon map (ala "Thinking of Maud...").
  */
-void wiz_dark(int Ind)
+void wiz_dark(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int Depth = p_ptr->dun_depth;
 	int        y, x;
 
@@ -3906,10 +4013,8 @@ void scatter(int Depth, int *yp, int *xp, int y, int x, int d, int m)
 /*
  * Cursor-track a new monster
  */
-void cursor_track(int Ind, int m_idx)
+void cursor_track(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Track a new guy */
 	p_ptr->cursor_who = m_idx;
 
@@ -3946,10 +4051,8 @@ void update_cursor(int m_idx)
 /*
  * Track a new monster
  */
-void health_track(int Ind, int m_idx)
+void health_track(player_type *p_ptr, int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Track a new guy */
 	p_ptr->health_who = m_idx;
 
@@ -3983,10 +4086,8 @@ void update_health(int m_idx)
 /*
  * Hack -- track the given monster race
  */
-void monster_race_track(int Ind, int r_idx)
+void monster_race_track(player_type *p_ptr, int r_idx)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Window stuff */
 	if (p_ptr->monster_race_idx != r_idx) p_ptr->window |= (PW_MONSTER);
 
@@ -4010,10 +4111,8 @@ void monster_race_track(int Ind, int r_idx)
  * disturb calls provoked by Player intent (1) and calls provoked by
  * some external event (0).
  */
-void disturb(int Ind, int stop_search, int unused_flag)
+void disturb(player_type *p_ptr, int stop_search, int unused_flag)
 {
-	player_type *p_ptr = Players[Ind];
-
 	/* Used */
 	int player_intent = unused_flag;
 
@@ -4057,6 +4156,14 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		/* Calculate torch radius */
 		p_ptr->update |= (PU_TORCH);
 	}
+	if (p_ptr->running_withpathfind)
+	{
+		/* Cancel */
+		p_ptr->running_withpathfind = FALSE;
+
+		/* Calculate torch radius */
+		p_ptr->update |= (PU_TORCH);
+	}
 
 	/* Cancel searching if requested */
 	if (stop_search && p_ptr->searching)
@@ -4078,10 +4185,10 @@ void disturb(int Ind, int stop_search, int unused_flag)
 		p_ptr->panel_col != p_ptr->panel_col_old))
 	{
 		/* Cancel input */
-		Send_term_info(Ind, NTERM_HOLD, NTERM_ESCAPE);
+		send_term_info(p_ptr, NTERM_HOLD, NTERM_ESCAPE);
 
 		/* Stop locating */
-		do_cmd_locate(Ind, 0);
+		do_cmd_locate(p_ptr, 0);
 	}
 
 	/* Flush the input if requested */
@@ -4095,7 +4202,7 @@ void disturb(int Ind, int stop_search, int unused_flag)
 /*
  * Hack -- Check if player is on a "quest" level
  */
-bool is_quest_level(int Ind, int level)
+bool is_quest_level(player_type *p_ptr, int level)
 {
 	int i;
 	
@@ -4106,7 +4213,7 @@ bool is_quest_level(int Ind, int level)
 	for (i = 0; i < MAX_Q_IDX; i++)
 	{
 		/* Check for quest */
-		if (Players[Ind]->q_list[i].level == level) return (TRUE);
+		if (p_ptr->q_list[i].level == level) return (TRUE);
 	}
 	
 	/* Nope */
@@ -4123,7 +4230,7 @@ bool is_quest(int level)
 	if (level <= 0) return (FALSE);
 
 	/* Check each player */
-	for (j = 1; j < NumPlayers + 1; j++)
+	for (j = 1; j <= NumPlayers; j++)
 	{
 		if (Players[j]->dun_depth == level)
 		{
@@ -4138,4 +4245,29 @@ bool is_quest(int level)
 
 	/* Nope */
 	return (FALSE);
+}
+
+/* Player on cave */
+player_type* player_on_cave_p(cave_type *c_ptr)
+{
+	player_type *p_ptr;
+
+	/* Nobody, or a monster */
+	if (c_ptr->m_idx >= 0) return NULL;
+
+	/* A player! */
+	p_ptr = Players[0 - c_ptr->m_idx];
+
+	/* Changing levels -- not on a level */
+	if (p_ptr->new_level_flag == TRUE) return NULL;
+
+	/* Found a suitable player */
+	return p_ptr;
+}
+player_type* player_on_cave(int Depth, int y, int x)
+{
+	/* Paranoia */
+	if (!cave[Depth]) return NULL;
+
+	return player_on_cave_p(&cave[Depth][y][x]);
 }

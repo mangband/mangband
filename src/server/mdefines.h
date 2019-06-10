@@ -152,6 +152,7 @@
 #define SERVER_SAVE	10		/* Minutes between server saves */
 #define TOWN_DAWN		50000	/* Number of turns from dawn to dawn XXX */
 #define GROW_TREE	5000		/* How often to grow a new tree in town */
+#define GROW_CROPS	5000		/* How often to grow a bunch of new vegetables in wilderness */
 #define BREAK_GLYPH		550		/* Rune of protection resistance */
 #define BTH_PLUS_ADJ    3       /* Adjust BTH per plus-to-hit */
 #define MON_MULT_ADJ	8		/* High value slows multiplication */
@@ -273,7 +274,7 @@
 /*
  * Maximum number of options and option groups
  */
-#define	OPT_MAX 			41
+#define	OPT_MAX 			43
 #define	MAX_OPTION_GROUPS   4
 
 /*
@@ -329,6 +330,8 @@
 #define OPT_DISTURB_LOOK    	38
 #define OPT_UNSETH_BONUS    	39
 #define OPT_EXPAND_INSPECT	40
+#define OPT_ENERGY_BUILDUP	41
+#define OPT_MONSTER_RECOIL	42
 #define option_p(A,B) (A->options[OPT_ ## B])
 
 
@@ -569,8 +572,9 @@
 
 #define Send_char(I,X,Y,A,C) stream_char_raw(Players[I],STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
 #define Send_char_p(P,X,Y,A,C) stream_char_raw(P,STREAM_SPECIAL_MIXED,Y,X,A,C,A,C)
-#define Send_tile(I,X,Y,A,C,TA,TC) stream_char_raw(Players[I],DUNGEON_STREAM_p(Players[I]),Y,X,A,C,TA,TC)
+#define Send_tile(P,X,Y,A,C,TA,TC) stream_char_raw((P),DUNGEON_STREAM_p((P)),Y,X,A,C,TA,TC)
 #define Stream_tile(I,P,Y,X) stream_char(Players[I],DUNGEON_STREAM_p(P),Y,X);
+#define Stream_tile_p(P,Y,X) stream_char(P,DUNGEON_STREAM_p(P),Y,X);
 
 /*
  * The types of special file perusal.
@@ -606,7 +610,7 @@
 /* Hack -- overloaded guard-inscriptions */
 #define protected_p(P,O,M) (!is_dm_p((P)) && !obj_own_p((P), (O)) && CGI((O), (M)))
 /* Hack -- check guard inscription and abort (chunk of code) */
-#define __trap(I,X) if ((X)) { msg_print((I), "The item's inscription prevents it."); return; }
+#define __trap(P,X) if ((X)) { msg_print((P), "The item's inscription prevents it."); return; }
 /* Hack -- ensure a variable fits into ddx/ddy array bounds */
 #define VALID_DIR(D) ((D) > 0 && (D) < 10)
 
@@ -734,6 +738,44 @@
  */
 #define MAX_FLOOR_STACK			1/*23*/
 
+
+/* Object origin kinds */
+/* NOTE: do not change this unless you intend to break savefiles */
+enum {
+	ORIGIN_NONE = 0,
+	ORIGIN_FLOOR,			/* found on the dungeon floor */
+	ORIGIN_DROP,			/* normal monster drops */
+	ORIGIN_CHEST,			/* from chest (depth should be copied) */
+	ORIGIN_DROP_SPECIAL,		/* from monsters in special rooms */
+	ORIGIN_DROP_PIT,		/* from monsters in pits/nests */
+	ORIGIN_DROP_VAULT,		/* from monsters in vaults */
+	ORIGIN_SPECIAL,			/* on the floor of a special room */
+	ORIGIN_PIT,			/* on the floor of a pit/nest */
+	ORIGIN_VAULT,			/* on the floor of a vault */
+	ORIGIN_LABYRINTH,		/* on the floor of a labyrinth */
+	ORIGIN_CAVERN,			/* on the floor of a cavern */
+	ORIGIN_RUBBLE,			/* found under rubble */
+	ORIGIN_MIXED,			/* stack with mixed origins */
+	ORIGIN_STATS,			/* ^ only the above are considered by main-stats */
+	ORIGIN_ACQUIRE,			/* called forth by scroll */
+	ORIGIN_DROP_BREED,		/* from breeders */
+	ORIGIN_DROP_SUMMON,		/* from combat summons */
+	ORIGIN_STORE,			/* something you bought */
+	ORIGIN_STOLEN,			/* stolen by monster (used only for gold) */
+	ORIGIN_BIRTH,			/* objects created at character birth */
+	ORIGIN_DROP_UNKNOWN,		/* drops from unseen foes */
+	ORIGIN_CHEAT,			/* created by wizard mode */
+	ORIGIN_DROP_POLY,		/* from polymorphees */
+	ORIGIN_DROP_WIZARD,		/* from wizard mode summons */
+	ORIGIN_WILD_DWELLING,		/* from wilderness dwellings */
+
+	ORIGIN_MAX
+};
+
+#define ORIGIN_SIZE FLAG_SIZE(ORIGIN_MAX)
+#define ORIGIN_BYTES 4 /* savefile bytes - room for 32 origin types */
+
+
 /*
  * Legal restrictions for "summon_specific()"
  */
@@ -823,6 +865,17 @@ that keeps many algorithms happy.
 #define FEAT_LOOSE_DIRT		0x44
 #define FEAT_WATER			0x4C
 #define FEAT_MUD				0x48
+
+/* Crops */
+#define FEAT_CROP_HEAD			0x81
+#define FEAT_CROP_POTATO		0x81
+#define FEAT_CROP_CABBAGE		0x82
+#define FEAT_CROP_CARROT		0x83
+#define FEAT_CROP_BEET			0x84
+#define FEAT_CROP_SQUASH		0x85
+#define FEAT_CROP_CORN			0x86
+#define FEAT_CROP_MUSHROOM		0x87
+#define FEAT_CROP_TAIL			0x88
 
 /* Special "home doors" */
 #define FEAT_HOME_OPEN	0x51
@@ -2596,13 +2649,13 @@ that keeps many algorithms happy.
  * Determine if a given inventory item is "aware"
  */
 #define object_aware_p(PLR, T) \
-    ((PLR)->obj_aware[(T)->k_idx])
+    ((PLR)->kind_aware[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "tried"
  */
-#define object_tried_p(IND, T) \
-    (Players[IND]->obj_tried[(T)->k_idx])
+#define object_tried_p(PLR, T) \
+    ((PLR)->kind_tried[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "known"
@@ -2612,7 +2665,7 @@ that keeps many algorithms happy.
 #define object_known_p(PTR, T) \
 	(((T)->ident & (ID_KNOWN)) || \
 	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
-	  (PTR)->obj_aware[(T)->k_idx]))
+	  (PTR)->kind_aware[(T)->k_idx]))
 
 
 #define object_felt_or_known_p(IND, T) \
@@ -2622,62 +2675,59 @@ that keeps many algorithms happy.
 /*
  * Return the "attr" for a given item.
  * Allow user redefinition of "aware" items.
- * Default to the "base" attr for unaware items
+ * Default to the "flavor" attr for unaware items
  */
-#if 0
-#define object_attr(T) \
-    ((k_info[(T)->k_idx].aware) ? \
-     (k_info[(T)->k_idx].x_attr) : \
-     (k_info[(T)->k_idx].d_attr))
-
-#define object_attr(T) \
-    (k_info[(T)->k_idx].x_attr)
-
-#define object_attr(T) \
-    (p_ptr->k_attr[(T)->k_idx])
-
-#endif
-
-#define object_attr(T) \
-    ((p_ptr->obj_aware[(T)->k_idx]) ? \
-     (p_ptr->k_attr[(T)->k_idx]) : \
-     (p_ptr->d_attr[(T)->k_idx]))
+#define object_attr_p(PLR, T) \
+    (object_kind_attr_p((PLR), (T)->k_idx))
 
 /*
  * Return the "char" for a given item.
  * Allow user redefinition of "aware" items.
- * Default to the "base" char for unaware items
+ * Default to the "flavor" char for unaware items
  */
-#if 0
-#define object_char(T) \
-    ((k_info[(T)->k_idx].aware) ? \
-     (k_info[(T)->k_idx].x_char) : \
-     (k_info[(T)->k_idx].d_char))
+#define object_char_p(PLR, T) \
+    (object_kind_char_p((PLR), (T)->k_idx))
 
-#define object_char(T) \
-    (k_info[(T)->k_idx].x_char)
+/*
+ * Return the "attr" for a given object kind.
+ * Allow user redefinition of "aware" items.
+ * Default to the "flavor" attr for unaware items.
+ */
+#define object_kind_attr_p(PLR, K_IDX) \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
+     ((PLR)->k_attr[(K_IDX)]) : \
+     ((PLR)->d_attr[(K_IDX)]))
 
-#define object_char(T) \
-    (p_ptr->k_char[(T)->k_idx])
+/*
+ * Return the "char" for a given object kind.
+ * Allow user redefinition of "aware" items.
+ * Default to the "flavor" char for unaware items.
+ */
+#define object_kind_char_p(PLR, K_IDX) \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
+     ((PLR)->k_char[(K_IDX)]) : \
+     ((PLR)->d_char[(K_IDX)]))
 
-#endif
+/* Server-side versions of the above macros.
+ * The difference, is that while those *will* take
+ * player's awareness of a given object into account,
+ * they will completely ignore player-side visual mappings */
 
-#define object_char(T) \
-    ((p_ptr->obj_aware[(T)->k_idx]) ? \
-     (p_ptr->k_char[(T)->k_idx]) : \
-     (p_ptr->d_char[(T)->k_idx]))
+#define object_attr_s(PLR, T) \
+    (object_kind_attr_s((PLR), (T)->k_idx))
 
-/* MAngband-specific: olden ways to get attr/char from object kind */
-/* TODO: port more recent V definitions of those macros */
-#define object_kind_char(K_IDX) \
-    ((p_ptr->obj_aware[(K_IDX)]) ? \
-     (p_ptr->k_char[(K_IDX)]) : \
-     (p_ptr->d_char[(K_IDX)]))
+#define object_char_s(PLR, T) \
+    (object_kind_char_p((PLR), (T)->k_idx))
 
-#define object_kind_attr(K_IDX) \
-    ((p_ptr->obj_aware[(K_IDX)]) ? \
-     (p_ptr->k_attr[(K_IDX)]) : \
-     (p_ptr->d_attr[(K_IDX)]))
+#define object_kind_attr_s(PLR, K_IDX) \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
+     (k_attr_s[(K_IDX)]) : \
+     (flavor_attr_s[ k_info[(K_IDX)].flavor ]))
+
+#define object_kind_char_s(PLR, K_IDX) \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
+     (k_char_s[(K_IDX)]) : \
+     (flavor_char_s[ k_info[(K_IDX)].flavor ]))
 
 /* Copy object */
 #define object_copy(D,S) COPY((D), (S), object_type);
@@ -2741,9 +2791,9 @@ that keeps many algorithms happy.
  * Determines if a map location is currently "on screen" -RAK-
  * Note that "panel_contains(Y,X)" always implies "in_bounds2(Y,X)".
  */
-#define panel_contains(Y,X) \
-  (((Y) >= p_ptr->panel_row_min) && ((Y) <= p_ptr->panel_row_max) && \
-   ((X) >= p_ptr->panel_col_min) && ((X) <= p_ptr->panel_col_max))
+#define panel_contains(P_PTR,Y,X) \
+  (((Y) >= (P_PTR)->panel_row_min) && ((Y) <= (P_PTR)->panel_row_max) && \
+   ((X) >= (P_PTR)->panel_col_min) && ((X) <= (P_PTR)->panel_col_max))
 
 
 /*
@@ -2765,8 +2815,10 @@ that keeps many algorithms happy.
  */
 #define cave_wild_bold(DEPTH,Y,X) \
 	(!(DEPTH > 0) && \
-	((cave[DEPTH][Y][X].feat >= FEAT_DIRT) && \
-	 (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT)))
+	(((cave[DEPTH][Y][X].feat >= FEAT_DIRT) && \
+	  (cave[DEPTH][Y][X].feat <= FEAT_LOOSE_DIRT)) || \
+	(((cave[DEPTH][Y][X].feat >= FEAT_CROP_HEAD) && \
+	  (cave[DEPTH][Y][X].feat <= FEAT_CROP_TAIL)))))
 
 
 /*
@@ -2914,8 +2966,8 @@ that keeps many algorithms happy.
  *
  * Note the use of comparison to zero to force a "boolean" result
  */
-#define player_has_los_bold(IND,Y,X) \
-    ((Players[IND]->cave_flag[Y][X] & CAVE_VIEW) != 0)
+#define player_has_los_bold(PLR,Y,X) \
+    ((PLR->cave_flag[Y][X] & CAVE_VIEW) != 0)
 
 /*
  * Convert an "attr"/"char" pair into a "pict" (P)
@@ -2941,6 +2993,33 @@ that keeps many algorithms happy.
 #define level_is_town(DEPTH) \
 	((DEPTH) == 0 || (cfg_more_towns && check_special_level((DEPTH))))
 
+
+/*
+ * Get index for a player
+ */
+#define player_index(PLR) ( (PLR)->Ind )
+
+/*
+ * Compare two players
+ */
+#define same_player(PLR1, PLR2) ( (PLR1) == (PLR2) )
+
+/*
+ * Iterate over all players
+ * ITER must be a defined "int".
+ * PLR must be a defined "player_type*".
+ */
+#define foreach_player(ITER, PLR) \
+	for (\
+		(ITER) = 1;\
+		((ITER) <= NumPlayers) && ((PLR) = Players[(ITER)]); \
+		(ITER)++ \
+	    )
+
+/* Define iterator to use with "foreach_player" */
+#define player_iterator(ITER, PLR) \
+	int (ITER); \
+	player_type* (PLR);
 
 /*
  * Hack -- Prepare to use the "Secure" routines

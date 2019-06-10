@@ -76,57 +76,58 @@ P:^__118\r
 
 # Running: Shift+ End, Page_Down, Home, Page_Up
 
-A:.1
+A:\\.1
 P:^_S_117\r
 
-A:.3
+A:\\.3
 P:^_S_119\r
-A:.7
+
+A:\\.7
 P:^_S_116\r
 
-A:.9
+A:\\.9
 P:^_S_118\r
 
 # Running: Shift+ Left, Right, Up, Down
 
-A:.4
+A:\\.4
 P:^_S_114\r
 
-A:.6
+A:\\.6
 P:^_S_113\r
 
-A:.8
+A:\\.8
 P:^_S_111\r
 
-A:.2
+A:\\.2
 P:^_S_112\r
 
 # Digging: Ctrl+ End, Page_Down, Home, Page_Up
 
-A:+1
+A:\\+1
 P:^_N_117\r
 
-A:+3
+A:\\+3
 P:^_N_119\r
 
-A:+7
+A:\\+7
 P:^_N_116\r
 
-A:+9
+A:\\+9
 P:^_N_118\r
 
 # Digging: Ctrl+ Left, Right, Up, Down
 
-A:+4
+A:\\+4
 P:^_N_114\r
 
-A:+6
+A:\\+6
 P:^_N_113\r
 
-A:+8
+A:\\+8
 P:^_N_111\r
 
-A:+2
+A:\\+2
 P:^_N_112\r
 
 
@@ -206,6 +207,7 @@ P:^_S_109\r
 
 A:\e\e\e\e\\+0
 P:^_N_100\r
+
 A:\e\e\e\e\\+1
 P:^_N_101\r
 
@@ -237,28 +239,28 @@ P:^_N_109\r
 # macOS-specific: digging via Command+Arrows
 # (end, pagedown, home, pageup)
 
-A:+1
+A:\\+1
 P:^_M_117\r
 
-A:+3
+A:\\+3
 P:^_M_119\r
 
-A:+7
+A:\\+7
 P:^_M_116\r
 
-A:+9
+A:\\+9
 P:^_M_118\r
 
 # (left, right, up, down)
 
-A:+4
+A:\\+4
 P:^_M_114\r
 
-A:+6
+A:\\+6
 P:^_M_113\r
 
-A:+8
+A:\\+8
 P:^_M_111\r
 
-A:+2
+A:\\+2
 P:^_M_112\r

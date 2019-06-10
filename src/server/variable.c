@@ -68,17 +68,17 @@ bool character_xtra;		/* The game is in an icky startup mode */
 u32b seed_flavor;		/* Hack -- consistent object colors */
 u32b seed_town;			/* Hack -- consistent town layout */
 
-s16b command_cmd;		/* Current "Angband Command" */
+/*s16b command_cmd;*/		/* Current "Angband Command" */
 
-s16b command_arg;		/* Gives argument of current command */
-s16b command_rep;		/* Gives repetition of current command */
-s16b command_dir;		/* Gives direction of current command */
+/*s16b command_arg;*/		/* Gives argument of current command */
+/*s16b command_rep;*/		/* Gives repetition of current command */
+/*s16b command_dir;*/		/* Gives direction of current command */
 
 /*s16b command_see;*/		/* See "cmd1.c" */
 /*s16b command_wrk;*/		/* See "cmd1.c" */
 /*s16b command_gap = 50;*/	/* See "cmd1.c" */
 
-s16b command_new;		/* Command chaining from inven/equip view */
+/*s16b command_new;*/		/* Command chaining from inven/equip view */
 
 bool create_up_stair;		/* Auto-create "up stairs" */
 bool create_down_stair;		/* Auto-create "down stairs" */
@@ -120,8 +120,8 @@ hturn turn_compact;		/* Last time m_list and o_list were compacted */
 
 s32b player_id;			/* Current player ID */
 
-bool wizard;			/* Is the player currently in Wizard mode? */
-bool can_be_wizard;		/* Does the player have wizard permissions? */
+/*bool wizard;*/			/* Is the player currently in Wizard mode? */
+/*bool can_be_wizard;*/		/* Does the player have wizard permissions? */
 
 /*u16b total_winner;*/		/* Semi-Hack -- Game has been won */
 
@@ -282,7 +282,7 @@ byte spell_flags[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 byte spell_tests[MAX_SPELL_REALMS][PY_MAX_SPELLS];
 
 /* Player for doing text_out */
-int player_textout = 0;
+player_type* player_textout = NULL;
 
 /* Current player's character name */
 /* In the player info --KLJ-- */
@@ -607,6 +607,8 @@ byte *f_attr_s; /* copy of f_info attributes */
 object_kind *k_info;
 char *k_name;
 char *k_text;
+char *k_char_s; /* copy of k_info characters */
+byte *k_attr_s; /* copy of k_info attributes */
 
 /*
  * The artifact arrays
@@ -629,7 +631,7 @@ char *e_text;
 monster_race *r_info;
 char *r_name;
 char *r_text;
-char *r_char_s; /* copy of r_info charcartes */
+char *r_char_s; /* copy of r_info characters */
 byte *r_attr_s; /* copy of r_info attributes */
 
 
@@ -673,6 +675,8 @@ char *h_text;
 flavor_type *flavor_info;
 char *flavor_name;
 char *flavor_text;
+char *flavor_char_s; /* copy of flavor_info characters */
+byte *flavor_attr_s; /* copy of flavor_info attributes */
 
 /*
  * Hack -- The special Angband "System Suffix"

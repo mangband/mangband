@@ -1031,9 +1031,8 @@ static void describe_monster_toughness(int r_idx, const monster_lore *l_ptr)
 }
 
 
-static void describe_monster_exp(int Ind, int r_idx, const monster_lore *l_ptr)
+static void describe_monster_exp(player_type *p_ptr, int r_idx, const monster_lore *l_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	const monster_race *r_ptr = &r_info[r_idx];
 
 	cptr p, q;
@@ -1242,7 +1241,7 @@ static void cheat_monster_lore(int r_idx, monster_lore *l_ptr)
 	l_ptr->flags6 = r_ptr->flags6;
 }
 
-void describe_monster_name(int r_idx)
+void describe_monster_name(player_type *p_ptr, int r_idx)
 {
 	const monster_race *r_ptr = &r_info[r_idx];
 
@@ -1251,11 +1250,11 @@ void describe_monster_name(int r_idx)
 
 	/* Get the chars */
 	c1 = r_ptr->d_char;
-	c2 = r_ptr->x_char;
+	c2 = p_ptr->r_char[r_idx];
 
 	/* Get the attrs */
 	a1 = r_ptr->d_attr;
-	a2 = r_ptr->x_attr;
+	a2 = p_ptr->r_attr[r_idx];
 	
 	/* A title (use "The" for non-uniques) */
 	if (!(r_ptr->flags1 & RF1_UNIQUE))
@@ -1291,15 +1290,13 @@ void describe_monster_name(int r_idx)
  * left edge of the screen, on a cleared line, in which the recall is
  * to take place.  One extra blank line is left after the recall.
  */
-void describe_monster(int Ind, int r_idx, bool spoilers)
+void describe_monster(player_type *p_ptr, int r_idx, bool spoilers)
 {
 	const monster_race *r_ptr = &r_info[r_idx];
 	monster_lore lore;
 	monster_lore *l_ptr;
-	player_type	*p_ptr;
 	
 	/* Get the race and lore */
-	p_ptr = Players[Ind];
 	l_ptr = p_ptr->l_list + r_idx;
 
 	/* Hack -- create a copy of the monster-memory */
@@ -1320,7 +1317,7 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 	}
 
 	/* Monster name */
-	describe_monster_name(r_idx);
+	describe_monster_name(p_ptr, r_idx);
 
 	/* Cheat -- know everything */
 	if (p_ptr->dm_flags & DM_SEE_MONSTERS || spoilers) cheat_monster_lore(r_idx, &lore);
@@ -1337,7 +1334,7 @@ void describe_monster(int Ind, int r_idx, bool spoilers)
 	describe_monster_movement(r_idx, &lore, option_p(p_ptr, DEPTH_IN_FEET));
 
 	/* Describe experience */
-	if (!spoilers) describe_monster_exp(Ind, r_idx, &lore);
+	if (!spoilers) describe_monster_exp(p_ptr, r_idx, &lore);
 
 	/* Describe spells and innate attacks */
 	describe_monster_spells(r_idx, &lore);
@@ -1377,6 +1374,33 @@ int monster_richness(int r_idx)
 			(r_info[r_idx].flags1 & RF1_DROP_60)*1;
 }
 
+
+/* Hack -- fetch random suitable object_kind for a mimic monster */
+u16b rand_mimic_kind(int r_idx)
+{
+	int k_idx;
+	monster_race *r_ptr = &r_info[r_idx];
+	switch (r_ptr->d_char)
+	{
+		case '?': /* Scroll */
+			k_idx = rand_tval_kind(TV_SCROLL);
+		break;
+		case '!': /* Potion */
+			k_idx = rand_tval_kind(TV_POTION);
+		break;
+		case '=': /* Ring */
+			k_idx = rand_tval_kind(TV_RING);
+		break;
+		case '~': /* Chest */
+			k_idx = rand_tval_kind(TV_CHEST);
+		break;
+		default:
+			/* Give up */
+			return 0;
+		break;
+	}
+	return k_idx;
+}
 
 /*
  * Hack -- Display the "name" and "attr/chars" of a monster race

@@ -105,7 +105,42 @@ void free_server_memory() {
 	KILL(Get_Ind);
 }
 
-/* Player enters active gameplay */
+/* When player's p_list index changes, other players should be made aware! */
+/* Hack -- it is allowed to pass "0" for "newPInd", to make player forgotten. */
+void reindex_player(int oldPInd, int newPInd)
+{
+	int i;
+	/* For each player (EXPECT THE LAST ONE!) */
+	for (i = 1; i <= NumPlayers - 1; i++)
+	{
+		player_type *p_ptr = Players[i];
+
+		/* Cursor/health/target tracking */
+		if (p_ptr->cursor_who == 0 - oldPInd) p_ptr->cursor_who = 0 - newPInd;
+		if (p_ptr->target_who == 0 - oldPInd) p_ptr->target_who = 0 - newPInd;
+		if (p_ptr->health_who == 0 - oldPInd)
+		{
+			p_ptr->health_who = 0 - newPInd;
+			/* If there's no new target, refresh healthbar to wipe it */
+			if (newPInd == 0) p_ptr->redraw |= PR_HEALTH;
+		}
+
+		/* Visibility flags */
+		p_ptr->play_vis[newPInd] = p_ptr->play_vis[oldPInd];
+		p_ptr->play_los[newPInd] = p_ptr->play_los[oldPInd];
+		p_ptr->play_det[newPInd] = p_ptr->play_det[oldPInd];
+
+		/* Vanishing player was visible, update list */
+		if (newPInd == 0 && p_ptr->play_vis[oldPInd]) p_ptr->window |= (PW_MONLIST);
+
+		/* And forget about old index */
+		p_ptr->play_vis[oldPInd] = FALSE;
+		p_ptr->play_los[oldPInd] = FALSE;
+		p_ptr->play_det[oldPInd] = 0;
+	}
+}
+
+/* Player enters active gameplay (Add player to p_list) */
 int player_enter(int ind) 
 {
 	int PInd;
@@ -132,8 +167,11 @@ int player_enter(int ind)
 	Get_Conn[PInd] = ind;
 	PConn[PInd] = ct; 
 
+	/* Hack -- store own index! */
+	p_ptr->Ind = PInd;
+
 	/* Hack -- join '#public' channel */
-	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
+	send_channel(p_ptr, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
 	/* Hack -- send different 'G'ain command */
 	if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
@@ -145,27 +183,27 @@ int player_enter(int ind)
 	p_ptr->state = PLAYER_PLAYING;
 
 	/* Setup his locaton */
-	player_setup(PInd);
-	setup_panel(PInd, TRUE);
-	verify_panel(PInd);
+	player_setup(p_ptr);
+	setup_panel(p_ptr, TRUE);
+	verify_panel(p_ptr);
 
 	/* Hack, must find better place */
-	prt_history(PInd);
-	show_socials(PInd);
+	prt_history(p_ptr);
+	show_socials(p_ptr);
 
 	/* Current party */
-	send_party_info(PInd);
+	send_party_info(p_ptr);
 
 	/* Inform everyone */
 	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
 	{
 		if (p_ptr->new_game)
 		{
-			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+			msg_broadcast(p_ptr, format("%s begins a new game.", p_ptr->name));
 		}
 		else
 		{
-			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+			msg_broadcast(p_ptr, format("%s has entered the game.", p_ptr->name));
 		}
 	}
 
@@ -243,21 +281,21 @@ int player_leave(int p_idx)
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
 		/* Tell everyone to re-calculate visiblity for this player */
-		update_player(p_idx);
+		update_player(p_ptr);
 	}
 
 	/* Try to save his character */
 	saved = save_player(p_ptr);
 
 	/* Leave all chat channels */
-	channels_leave(p_idx);
+	channels_leave(p_ptr);
 
 	/* Leave everything else */
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
 	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
-	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
+	msg_broadcast(p_ptr, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
 	if (ind == -1)
@@ -285,13 +323,22 @@ int player_leave(int p_idx)
 		/* Put him in current player's place */
 		p_list[p_idx] = p_ptr;
 
+		/* Hack -- remember own index! */
+		p_ptr->Ind = p_idx;
+
 		/* Switch index on grid */
 		if (cave[p_ptr->dun_depth]) /* Cave is allocated */
 			cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].m_idx = 0 - p_idx;
 
 		/* Update "ind-by-Ind" */
 		Get_Conn[p_idx] = ind;
+
+		/* Make other players aware of the new index */
+		reindex_player(p_max, p_idx);
 	}
+
+	/* Make other players forget last player on the list */
+	reindex_player(p_max, 0);
 
 	/* Reduce list */
 	p_list[p_max] = NULL;
@@ -411,7 +458,7 @@ void setup_network_server()
 void post_process_players(void)
 {
 	int Ind;
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		
@@ -419,16 +466,16 @@ void post_process_players(void)
 		if (p_ptr->new_level_flag == TRUE) continue;
 		
 		/* Try to execute any commands on the command queue. */
-		(void) process_player_commands(Ind);
+		(void) process_player_commands(p_ptr);
 	}
 	/* Next loop flushes all potential update flags Players have set
 	 * for each other. */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		
 		/* Recalculate and schedule updates */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 	}
 }
 
@@ -876,6 +923,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		/* Attempt to load from a savefile */
 		if (!load_player(p_ptr))
 		{
+			plog(format("Corrupt savefile for player %s", p_ptr->name));
 			player_free(p_ptr); /* Unalloc back */
 			client_abort(ct, "Error loading savefile");
 		}

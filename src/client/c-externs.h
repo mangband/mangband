@@ -471,6 +471,7 @@ extern int sound_count(int val);
 extern void macro_add(cptr pat, cptr act, bool cmd_flag);
 extern int macro_find_exact(cptr pat);
 extern errr macro_trigger_free(void);
+extern void ascii_to_text(char *buf, size_t len, cptr src);
 extern char inkey(void);
 extern void bell(void);
 extern void c_prt(byte attr, cptr str, int row, int col);
@@ -520,7 +521,7 @@ extern void load_sound_prefs();
 #endif
 
 /* c-spell.c */
-extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known);
+extern int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless);
 extern bool get_spell_by_name(int *bn, int *sn, bool inven, bool equip, bool books);
 extern void show_browse(int book);
 extern void do_study(int book);

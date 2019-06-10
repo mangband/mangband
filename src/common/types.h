@@ -457,8 +457,11 @@ struct feature_type
 	byte d_attr;		/* Default feature attribute */
 	char d_char;		/* Default feature character */
 
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;		/* Desired feature attribute */
 	char x_char;		/* Desired feature character */
+#endif
 };
 
 
@@ -503,10 +506,11 @@ struct object_kind
 	byte d_attr;			/* Default object attribute */
 	char d_char;			/* Default object character */
 
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;			/* Desired object attribute */
 	char x_char;			/* Desired object character */
-
+#endif
 
 	u16b flavor;			/* Special object flavor (or zero) */
 
@@ -558,6 +562,9 @@ struct artifact_type
 
 	byte cur_num;			/* Number created (0 or 1) */
 	byte max_num;			/* Unused (should be "1") */
+
+	u16b owner_name;		/* Owner name (index) */
+	s32b owner_id;			/* His unique id */
 
 	byte activation;		/* Activation to use */
 	u16b time;			/* Activation time */
@@ -677,10 +684,11 @@ struct monster_race
 	byte d_attr;			/* Default monster attribute */
 	char d_char;			/* Default monster character */
 
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;			/* Desired monster attribute */
 	char x_char;			/* Desired monster character */
-
+#endif
 
 	byte max_num;			/* Maximum population allowed per level */
 	byte cur_num;			/* Monster population on current level */
@@ -813,6 +821,11 @@ struct object_type
 
 	s16b next_o_idx;		/* Next object in stack (if any) */
 	s16b held_m_idx;		/* Monster holding us (if any) */
+
+	byte origin;        /* How this item was found */
+	byte origin_depth;  /* What depth the item was found at */
+	u16b origin_xtra;   /* Extra information about origin */
+	u16b origin_player; /* MAngband-specific: Original owner */
 };
 
 
@@ -840,7 +853,7 @@ struct monster_type
 	s16b csleep;			/* Inactive counter */
 
 	byte mspeed;			/* Monster "speed" */
-	u32b energy;			/* Monster "energy" */
+	s64b energy;			/* Monster "energy" */
 
 	byte stunned;			/* Monster is stunned */
 	byte confused;			/* Monster is confused */
@@ -869,7 +882,7 @@ struct monster_type
 	u32b smart;			/* Field for "smart_learn" */
 
 #endif
-
+	u16b mimic_k_idx;		/* Which object kind it pretends to be. 0 if none. */
 };
 
 
@@ -1184,6 +1197,7 @@ struct player_other
 struct player_type
 {
 	int conn;			/* Connection number */
+	int Ind;			/* Players[] array index, or 0 */
 	char name[MAX_CHARS];		/* Nickname */
 	char pass[MAX_CHARS];		/* Password */
 	char basename[MAX_CHARS];
@@ -1345,8 +1359,8 @@ struct player_type
 	bool play_los[MAX_PLAYERS];
 	byte play_det[MAX_PLAYERS]; /* Were these players detected by this player? */
 
-	bool *obj_aware; /* Is the player aware of this obj type? */
-	bool *obj_tried; /* Has the player tried this obj type? */
+	bool *kind_aware; /* Is the player aware of this obj kind? */
+	bool *kind_tried; /* Has the player tried this obj kind? */
 
 	monster_lore *l_list; /* Character's monster lore */
 	monster_lore old_l; /* Old monster lore (for delta checks) */
@@ -1456,6 +1470,9 @@ struct player_type
 	int player_store_num;		/* What player store this guy is in */
 	int arena_num;		/* What arena this guy is in */
 
+	u32b image_seed;		/* Hack -- hallucination seed */
+	u32b hallu_offset;		/* Hack -- hallucination RNG offset */
+
 	s16b fast;			/* Timed -- Fast */
 	s16b slow;			/* Timed -- Slow */
 	s16b blind;			/* Timed -- Blindness */
@@ -1485,6 +1502,7 @@ struct player_type
 	s16b word_recall;	/* Word of recall counter */
 
 	u32b energy;		/* Current energy */
+	u32b energy_buildup;	/* MAngband-specific: bonus energy (!) */
 
 	s16b food;		/* Current nutrition */
 
@@ -1646,9 +1664,11 @@ struct flavor_type
 
 	byte d_attr;    /* Default flavor attribute */
 	char d_char;    /* Default flavor character */
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;    /* Desired flavor attribute */
 	char x_char;    /* Desired flavor character */
+#endif
 };
 
 

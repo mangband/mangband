@@ -494,6 +494,39 @@ static void place_secret_door(int Depth, int y, int x)
 
 
 /*
+ * Place a random type of closed door at the given location.
+ */
+void place_closed_door(int Depth, int y, int x)
+{
+	int tmp;
+
+	/* Choose an object */
+	tmp = rand_int(400);
+
+	/* Closed doors (300/400) */
+	if (tmp < 300)
+	{
+		/* Create closed door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x00);
+	}
+
+	/* Locked doors (99/400) */
+	else if (tmp < 399)
+	{
+		/* Create locked door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + randint(7));
+	}
+
+	/* Stuck doors (1/400) */
+	else
+	{
+		/* Create jammed door */
+		cave_set_feat(Depth, y, x, FEAT_DOOR_HEAD + 0x08 + rand_int(8));
+	}
+}
+
+
+/*
  * Place a random type of door at the given location
  */
 static void place_random_door(int Depth, int y, int x)
@@ -881,7 +914,7 @@ static void vault_objects(int Depth, int y, int x, int num)
 			/* Place an item */
 			if (rand_int(100) < 75)
 			{
-				place_object(Depth, j, k, FALSE, FALSE, 0);
+				place_object(Depth, j, k, FALSE, FALSE, ORIGIN_SPECIAL);
 			}
 
 			/* Place gold */
@@ -1276,7 +1309,7 @@ static void build_type3(int Depth, int yval, int xval)
 		}
 
 		/* Place a treasure in the vault */
-		place_object(Depth, yval, xval, FALSE, FALSE, 0);
+		place_object(Depth, yval, xval, FALSE, FALSE, ORIGIN_SPECIAL);
 
 		/* Let's guard the treasure well */
 		vault_monsters(Depth, yval, xval, rand_int(2) + 3);
@@ -1380,6 +1413,11 @@ static void build_type4(int Depth, int yval, int xval)
 
 	place_double_room(Depth, light, y1, y2, x1, x2);
 
+	/* The inner room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
 
 	/* Inner room variations */
 	switch (randint(5))
@@ -1440,7 +1478,7 @@ static void build_type4(int Depth, int yval, int xval)
 		/* Object (80%) */
 		if (rand_int(100) < 80)
 		{
-			place_object(Depth, yval, xval, FALSE, FALSE, 0);
+			place_object(Depth, yval, xval, FALSE, FALSE, ORIGIN_SPECIAL);
 		}
 
 		/* Stairs (20%) */
@@ -1523,8 +1561,8 @@ static void build_type4(int Depth, int yval, int xval)
 			vault_monsters(Depth, yval, xval + 2, randint(2));
 
 			/* Objects */
-			if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE, 0);
-			if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE, 0);
+			if (rand_int(3) == 0) place_object(Depth, yval, xval - 2, FALSE, FALSE, ORIGIN_SPECIAL);
+			if (rand_int(3) == 0) place_object(Depth, yval, xval + 2, FALSE, FALSE, ORIGIN_SPECIAL);
 		}
 
 		break;
@@ -1832,6 +1870,12 @@ static void build_type5(int Depth, int yval, int xval)
 
 	place_double_room(Depth, FALSE, y1, y2, x1, x2);
 
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
+
 	/* Place a secret door */
 	switch (randint(4))
 	{
@@ -1994,6 +2038,12 @@ static void build_type6(int Depth, int yval, int xval)
 	x2 = xval + 11;
 
 	place_double_room(Depth, FALSE, y1, y2, x1, x2);
+
+	/* Advance to the center room */
+	y1 = y1 + 2;
+	y2 = y2 - 2;
+	x1 = x1 + 2;
+	x2 = x2 - 2;
 
 	/* Place a secret door */
 	switch (randint(4))
@@ -2341,7 +2391,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				case '*':
 				if (rand_int(100) < 75)
 				{
-					place_object(Depth, y, x, FALSE, FALSE, 0);
+					place_object(Depth, y, x, FALSE, FALSE, ORIGIN_VAULT);
 				}
 				else
 				{
@@ -2402,7 +2452,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 7;
-				place_object(Depth, y, x, TRUE, FALSE, 0);
+				place_object(Depth, y, x, TRUE, FALSE, ORIGIN_VAULT);
 				object_level = Depth;
 				break;
 
@@ -2412,7 +2462,7 @@ void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr data)
 				place_monster(Depth, y, x, TRUE, TRUE);
 				monster_level = Depth;
 				object_level = Depth + 20;
-				place_object(Depth, y, x, TRUE, TRUE, 0);
+				place_object(Depth, y, x, TRUE, TRUE, ORIGIN_VAULT);
 				object_level = Depth;
 				break;
 
@@ -4066,11 +4116,10 @@ void dealloc_dungeon_level(int Depth)
  */
  
  
-void generate_cave(int Ind, int Depth, int auto_scum)
+void generate_cave(player_type *p_ptr, int Depth, int auto_scum)
 {
 	int i, num;
 	int scum = auto_scum;
-	player_type *p_ptr = 0;
 
 	/* No dungeon yet */
 	server_dungeon = FALSE;
@@ -4079,9 +4128,8 @@ void generate_cave(int Ind, int Depth, int auto_scum)
 	dungeon_align = TRUE;
 
 	/* get the player context, if any */
-	if(Ind)
+	if (p_ptr)
 	{
-		p_ptr = Players[Ind];
 		dungeon_align = option_p(p_ptr,DUNGEON_ALIGN);
 	}
 

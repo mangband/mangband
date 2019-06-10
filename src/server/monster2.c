@@ -73,9 +73,9 @@ void delete_monster_idx(int i)
 
 
 	/* Remove him from everybody's view */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
-		forget_monster(Ind, i, TRUE);
+		forget_monster(Players[Ind], i, TRUE);
 	}
 
 
@@ -177,7 +177,7 @@ static void compact_monsters_aux(int i1, int i2)
 	}
 	
 	/* Copy the visibility and los flags for the players */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 
 		Players[Ind]->mon_vis[i2] = Players[Ind]->mon_vis[i1];
@@ -191,7 +191,7 @@ static void compact_monsters_aux(int i1, int i2)
 		if (Players[Ind]->target_who == (int)(i1)) Players[Ind]->target_who = i2;
 
 		/* Hack -- Update the health bar */
-		if (Players[Ind]->health_who == (int)(i1)) health_track(Ind, i2);
+		if (Players[Ind]->health_who == (int)(i1)) health_track(Players[Ind], i2);
 	}
 
 	/* Hack -- move monster */
@@ -721,9 +721,8 @@ s16b get_mon_num(int level)
 /*
  * Display visible monsters in a window
  */
-void display_monlist(int Ind)
+void display_monlist(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	int idx, n;
 	int line = 0;
 
@@ -748,11 +747,14 @@ void display_monlist(int Ind)
 		/* Only visible monsters */
 		if (!p_ptr->mon_vis[idx]) continue;
 
+		/* Hack -- ignore mimics, unless DM */
+		if (m_ptr->mimic_k_idx && !(p_ptr->dm_flags & DM_SEE_MONSTERS)) continue;
+
 		/* Bump the count for this race */
 		race_counts[m_ptr->r_idx]++;
 	}
 	
-	text_out_init(Ind);
+	text_out_init(p_ptr);
 
 	/* Iterate over mon_list ( again :-/ ) */
 	for (idx = 1; idx < m_max; idx++)
@@ -785,9 +787,6 @@ void display_monlist(int Ind)
 
 		/* Append the "optional" attr/char info */
 		text_out_c(TERM_WHITE, "/('");
-		/* I don't understand what an "optional" attr/char for a monster is...
-		 * so how about we just dump player's mapping here? -flm- */
-		//text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
 		text_out_c(p_ptr->r_attr[m_ptr->r_idx], format("%c",p_ptr->r_char[m_ptr->r_idx]));
 		text_out_c(TERM_WHITE, "'):");
 		n += 7;
@@ -810,7 +809,7 @@ void display_monlist(int Ind)
 	}
 	
 	/* Iterate over player list  */
-	for (idx = 1; idx < NumPlayers+1; idx++)
+	for (idx = 1; idx <= NumPlayers; idx++)
 	{
 		/* Only visible players */
 		if (!p_ptr->play_vis[idx]) continue;
@@ -826,7 +825,7 @@ void display_monlist(int Ind)
 				c_text + q_ptr->cp_ptr->title[(q_ptr->lev-1)/5]);
 		text_out_c(TERM_WHITE, buf);
 
-		n = player_pict(Ind, idx);
+		n = player_pict(p_ptr, q_ptr);
 		text_out_c(TERM_WHITE, " ('");
 		text_out_c(PICT_A(n), format("%c", PICT_C(n)));
 		text_out_c(TERM_WHITE, "')");
@@ -894,10 +893,8 @@ void display_monlist(int Ind)
  *   0x22 --> Possessive, genderized if visable ("his") or "its"
  *   0x23 --> Reflexive, genderized if visable ("himself") or "itself"
  */
-void monster_desc(int Ind, char *desc, int m_idx, int mode)
+void monster_desc(player_type *p_ptr, char *desc, int m_idx, int mode)
 {
-	player_type *p_ptr;
-
 	cptr		res;
 
 	monster_type *m_ptr = &m_list[m_idx];
@@ -909,10 +906,8 @@ void monster_desc(int Ind, char *desc, int m_idx, int mode)
 
 
 	/* Check for bad player number */
-	if (Ind > 0)
+	if (p_ptr)
 	{
-		p_ptr = Players[Ind];
-	
 		/* Can we "see" it (exists + forced, or visible + not unforced) */
 		seen = (m_ptr && ((mode & 0x80) || (!(mode & 0x40) && p_ptr->mon_vis[m_idx])));
 	}
@@ -1036,9 +1031,8 @@ void monster_desc(int Ind, char *desc, int m_idx, int mode)
 /*
  * Learn about a monster (by "probing" it)
  */
-void lore_do_probe(int Ind, int m_idx)
+void lore_do_probe(player_type *p_ptr, int m_idx)
 {
-	player_type  *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1099,7 +1093,7 @@ bool monster_can_carry(int m_idx)
 /*
  * Make a monster carry an object
  */
-s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
+s16b monster_carry(player_type *p_ptr, int m_idx, object_type *j_ptr)
 {
 	s16b o_idx;
 
@@ -1179,9 +1173,8 @@ s16b monster_carry(int Ind, int m_idx, object_type *j_ptr)
  * gold and items are dropped, and remembers that information to be
  * described later by the monster recall code.
  */
-void lore_treasure(int Ind, int m_idx, int num_item, int num_gold)
+void lore_treasure(player_type *p_ptr, int m_idx, int num_item, int num_gold)
 {
-	player_type	 *p_ptr = Players[Ind];
 	monster_type *m_ptr = &m_list[m_idx];
 	monster_race *r_ptr = &r_info[m_ptr->r_idx];
 	monster_lore *l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1211,18 +1204,37 @@ bool is_detected(u32b flag, u32b esp)
 }
 
 
-/* Clear all visibility and tracking flags. */
-void forget_monster(int Ind, int m_idx, bool deleted)
+/* Display a newly revealed mimic to all players */
+void reveal_mimic(int m_idx)
 {
-	player_type *p_ptr = Players[Ind];
+	monster_type *m_ptr = &m_list[m_idx];
+	player_iterator (i, p_ptr);
 
+	/* Not mimicking anymore */
+	m_ptr->mimic_k_idx = 0;
+
+	foreach_player(i, p_ptr)
+	{
+		/* Skip players on different depth */
+		if (p_ptr->dun_depth != m_ptr->dun_depth) continue;
+		/* Skip players who don't see this monster */
+		if (!p_ptr->mon_vis[m_idx]) continue;
+
+		lite_spot(p_ptr, m_ptr->fy, m_ptr->fx);
+		p_ptr->window |= PW_ITEMLIST | PW_MONLIST;
+	}
+}
+
+/* Clear all visibility and tracking flags. */
+void forget_monster(player_type *p_ptr, int m_idx, bool deleted)
+{
 	/* Was visible? Update monster list then */
 	if (p_ptr->mon_vis[m_idx]) p_ptr->window |= (PW_MONLIST);
 
 	/* Remove cursor tracking */
 	if (p_ptr->cursor_who == m_idx)
 	{
-		cursor_track(Ind, 0);
+		cursor_track(p_ptr, 0);
 		p_ptr->redraw |= PR_CURSOR;
 	}
 
@@ -1230,7 +1242,7 @@ void forget_monster(int Ind, int m_idx, bool deleted)
 	if (p_ptr->target_who == m_idx) p_ptr->target_who = 0;
 
 	/* Remove health tracking */
-	if (p_ptr->health_who == m_idx) health_track(Ind, 0);
+	if (p_ptr->health_who == m_idx) health_track(p_ptr, 0);
 
 	/* Clear all visibility flags */
 	p_ptr->mon_vis[m_idx] = FALSE;
@@ -1326,7 +1338,7 @@ void update_mon(int m_idx, bool dist)
 	bool do_cold_blood = FALSE;
 
 	/* Check for each player */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		p_ptr = Players[Ind];
 		l_ptr = p_ptr->l_list + m_ptr->r_idx;
@@ -1337,7 +1349,7 @@ void update_mon(int m_idx, bool dist)
 		/* If he's not on this depth, skip him */
 		if (p_ptr->dun_depth != Depth)
 		{
-			forget_monster(Ind, m_idx, FALSE);
+			forget_monster(p_ptr, m_idx, FALSE);
 			continue;
 		}
 
@@ -1364,7 +1376,7 @@ void update_mon(int m_idx, bool dist)
 		{
 
 			/* Process "nearby" monsters on the current "panel" */
-			if (panel_contains(fy, fx))
+			if (panel_contains(p_ptr, fy, fx))
 			{
 				cave_type *c_ptr = &cave[Depth][fy][fx];
 				byte *w_ptr = &p_ptr->cave_flag[fy][fx];
@@ -1448,7 +1460,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_vis[m_idx] = TRUE;
 
 				/* Draw the monster */
-				lite_spot(Ind, fy, fx);
+				lite_spot(p_ptr, fy, fx);
 
 				/* Update health bar as needed */
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
@@ -1460,7 +1472,7 @@ void update_mon(int m_idx, bool dist)
 				if (r_ptr->r_sights < MAX_SHORT) r_ptr->r_sights++;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_MOVE)) disturb(p_ptr, 1, 0);
 
 				/* Window stuff */
 				p_ptr->window |= PW_MONLIST;
@@ -1486,13 +1498,13 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_vis[m_idx] = FALSE;
 
 				/* Erase the monster */
-				lite_spot(Ind, fy, fx);
+				lite_spot(p_ptr, fy, fx);
 
 				/* Update health bar as needed */
 				if (p_ptr->health_who == m_idx) p_ptr->redraw |= (PR_HEALTH);
 
 				/* Disturb on disappearance*/
-				if (option_p(p_ptr,DISTURB_MOVE)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_MOVE)) disturb(p_ptr, 1, 0);
 
 				/* Window stuff */
 				p_ptr->window |= PW_MONLIST;
@@ -1510,7 +1522,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_los[m_idx] = TRUE;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_NEAR)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_NEAR)) disturb(p_ptr, 1, 0);
 			}
 		}
 
@@ -1524,7 +1536,7 @@ void update_mon(int m_idx, bool dist)
 				p_ptr->mon_los[m_idx] = FALSE;
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_NEAR)) disturb(Ind, 1, 0);
+				if (option_p(p_ptr,DISTURB_NEAR)) disturb(p_ptr, 1, 0);
 			}
 		}
 	}
@@ -1563,9 +1575,9 @@ void update_monsters(bool dist)
  * This function updates the visiblity flags for everyone who may see
  * this player.
  */
-void update_player(int Ind)
+void update_player(player_type *q_ptr)
 {
-	player_type *p_ptr, *q_ptr = Players[Ind];
+	player_type *p_ptr;
 	
 	int i;
 
@@ -1598,7 +1610,7 @@ void update_player(int Ind)
 		nearby = FALSE;
 
 		/* Player can always see himself */
-		if (Ind == i) continue;
+		if (same_player(q_ptr, p_ptr)) continue;
 
 		/* Skip players not on this depth */
 		if (p_ptr->dun_depth != q_ptr->dun_depth) flag = FALSE;
@@ -1607,7 +1619,7 @@ void update_player(int Ind)
 		else if (q_ptr->dm_flags & DM_SECRET_PRESENCE) flag = FALSE;
 
 		/* Process players on current panel */
-		else if (panel_contains(py, px))
+		else if (panel_contains(p_ptr, py, px))
 		{
 			cave_type *c_ptr = &cave[p_ptr->dun_depth][py][px];
 			byte *w_ptr = &p_ptr->cave_flag[py][px];
@@ -1626,7 +1638,7 @@ void update_player(int Ind)
 			
 			if (!p_ptr->blind)			
 			{
-			if ((player_in_party(q_ptr->party, i)) && (q_ptr->party)) easy = flag = TRUE;
+			if ((player_in_party(q_ptr->party, p_ptr)) && (q_ptr->party)) easy = flag = TRUE;
 			
 			if (*w_ptr & CAVE_VIEW) {
 
@@ -1660,25 +1672,25 @@ void update_player(int Ind)
 		}
 
 		/* HACK ! - Detected via magical means */
-		if (p_ptr->play_det[Ind]) hard = flag = TRUE;
+		if (p_ptr->play_det[q_ptr->Ind]) hard = flag = TRUE;
 
 		/* Player is now visible */
 		if (flag)
 		{
 			/* It was previously unseen */
-			if (!p_ptr->play_vis[Ind])
+			if (!p_ptr->play_vis[q_ptr->Ind])
 			{
 				/* Mark as visible */
-				p_ptr->play_vis[Ind] = TRUE;
+				p_ptr->play_vis[q_ptr->Ind] = TRUE;
 
 				/* Draw the player */
-				lite_spot(i, py, px);
+				lite_spot(p_ptr, py, px);
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 
 				/* Window stuff */
@@ -1690,19 +1702,19 @@ void update_player(int Ind)
 		else
 		{
 			/* It was previously seen */
-			if (p_ptr->play_vis[Ind])
+			if (p_ptr->play_vis[q_ptr->Ind])
 			{
 				/* Mark as not visible */
-				p_ptr->play_vis[Ind] = FALSE;
+				p_ptr->play_vis[q_ptr->Ind] = FALSE;
 
 				/* Erase the player */
-				lite_spot(i, py, px);
+				lite_spot(p_ptr, py, px);
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_MOVE) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 
 				/* Window stuff */
@@ -1714,16 +1726,16 @@ void update_player(int Ind)
 		if (easy || (hard && nearby))
 		{
 			/* Change */
-			if (!p_ptr->play_los[Ind])
+			if (!p_ptr->play_los[q_ptr->Ind])
 			{
 				/* Mark as easily visible */
-				p_ptr->play_los[Ind] = TRUE;
+				p_ptr->play_los[q_ptr->Ind] = TRUE;
 
 				/* Disturb on appearance */
-				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 			}
 		}
@@ -1732,22 +1744,22 @@ void update_player(int Ind)
 		else
 		{
 			/* Change */
-			if (p_ptr->play_los[Ind])
+			if (p_ptr->play_los[q_ptr->Ind])
 			{
 				/* Mark as not easily visible */
-				p_ptr->play_los[Ind] = FALSE;
+				p_ptr->play_los[q_ptr->Ind] = FALSE;
 
 				/* Disturb on disappearance */
-				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(i, Ind))
+				if (option_p(p_ptr,DISTURB_NEAR) && check_hostile(p_ptr, q_ptr))
 				{
 					/* Disturb */
-					disturb(i, 1, 0);
+					disturb(p_ptr, 1, 0);
 				}
 			}
 		}
 	}
 
-	update_cursor(-Ind);	
+	update_cursor(0 - q_ptr->Ind);
 }
 
 /*
@@ -1761,7 +1773,7 @@ void update_players(void)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Update the player */
-		update_player(i);
+		update_player(Players[i]);
 	}
 }
 
@@ -1791,8 +1803,6 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	monster_type	*m_ptr;
 
 	monster_race	*r_ptr = &r_info[r_idx];
-
-	char buf[80];
 
 	/* Verify location */
 	if (!in_bounds(Depth, y, x)) return (FALSE);
@@ -1931,6 +1941,11 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 		m_ptr->energy = rand_int(level_speed(0) >> 4);
 	}
 
+	/* Hack -- Mimics pretend to be objects */
+	if (r_ptr->flags1 & RF1_CHAR_MULTI)
+	{
+		m_ptr->mimic_k_idx = rand_mimic_kind(m_ptr->r_idx);
+	}
 
 	/* No "damage" yet */
 	m_ptr->stunned = 0;
@@ -1940,15 +1955,13 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	/* No knowledge */
 	m_ptr->cdis = 0;
 
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		Players[Ind]->mon_los[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_vis[c_ptr->m_idx] = FALSE;
 		Players[Ind]->mon_det[c_ptr->m_idx] = 0;
 		Players[Ind]->mon_hrt[c_ptr->m_idx] = FALSE;		
 	}
-
-	my_strcpy(buf, (r_name + r_ptr->name), sizeof(buf));
 
 	/* Update the monster */
 	update_mon(c_ptr->m_idx, TRUE);
@@ -2314,7 +2327,7 @@ bool alloc_monster(int Depth, int dis, int slp)
 		if (!cave_naked_bold(Depth, y, x)) continue;
 
 		/* Accept far away grids */
-		for (i = 1; i < NumPlayers + 1; i++)
+		for (i = 1; i <= NumPlayers; i++)
 		{
 			p_ptr = Players[i];
 
@@ -2694,7 +2707,7 @@ bool multiply_monster(int m_idx)
  *
  * Technically should attempt to treat "Beholder"'s as jelly's
  */
-void message_pain(int Ind, int m_idx, int dam)
+void message_pain(player_type *p_ptr, int m_idx, int dam)
 {
 	long			oldhp, newhp, tmp;
 	int				percentage;
@@ -2706,12 +2719,12 @@ void message_pain(int Ind, int m_idx, int dam)
 
 
 	/* Get the monster name */
-	monster_desc(Ind, m_name, m_idx, 0);
+	monster_desc(p_ptr, m_name, m_idx, 0);
 
 	/* Notice non-damage */
 	if (dam == 0)
 	{
-		msg_format(Ind, "%^s is unharmed.", m_name);
+		msg_format(p_ptr, "%^s is unharmed.", m_name);
 		return;
 	}
 
@@ -2726,76 +2739,76 @@ void message_pain(int Ind, int m_idx, int dam)
 	if (strchr("jmvQ", r_ptr->d_char))
 	{
 		if (percentage > 95)
-			msg_format(Ind, "%^s barely notices.", m_name);
+			msg_format(p_ptr, "%^s barely notices.", m_name);
 		else if (percentage > 75)
-			msg_format(Ind, "%^s flinches.", m_name);
+			msg_format(p_ptr, "%^s flinches.", m_name);
 		else if (percentage > 50)
-			msg_format(Ind, "%^s squelches.", m_name);
+			msg_format(p_ptr, "%^s squelches.", m_name);
 		else if (percentage > 35)
-			msg_format(Ind, "%^s quivers in pain.", m_name);
+			msg_format(p_ptr, "%^s quivers in pain.", m_name);
 		else if (percentage > 20)
-			msg_format(Ind, "%^s writhes about.", m_name);
+			msg_format(p_ptr, "%^s writhes about.", m_name);
 		else if (percentage > 10)
-			msg_format(Ind, "%^s writhes in agony.", m_name);
+			msg_format(p_ptr, "%^s writhes in agony.", m_name);
 		else
-			msg_format(Ind, "%^s jerks limply.", m_name);
+			msg_format(p_ptr, "%^s jerks limply.", m_name);
 	}
 
 	/* Dogs and Hounds */
 	else if (strchr("CZ", r_ptr->d_char))
 	{
 		if (percentage > 95)
-			msg_format(Ind, "%^s shrugs off the attack.", m_name);
+			msg_format(p_ptr, "%^s shrugs off the attack.", m_name);
 		else if (percentage > 75)
-			msg_format(Ind, "%^s snarls with pain.", m_name);
+			msg_format(p_ptr, "%^s snarls with pain.", m_name);
 		else if (percentage > 50)
-			msg_format(Ind, "%^s yelps in pain.", m_name);
+			msg_format(p_ptr, "%^s yelps in pain.", m_name);
 		else if (percentage > 35)
-			msg_format(Ind, "%^s howls in pain.", m_name);
+			msg_format(p_ptr, "%^s howls in pain.", m_name);
 		else if (percentage > 20)
-			msg_format(Ind, "%^s howls in agony.", m_name);
+			msg_format(p_ptr, "%^s howls in agony.", m_name);
 		else if (percentage > 10)
-			msg_format(Ind, "%^s writhes in agony.", m_name);
+			msg_format(p_ptr, "%^s writhes in agony.", m_name);
 		else
-			msg_format(Ind, "%^s yelps feebly.", m_name);
+			msg_format(p_ptr, "%^s yelps feebly.", m_name);
 	}
 
 	/* One type of monsters (ignore,squeal,shriek) */
 	else if (strchr("FIKMRSXabclqrst", r_ptr->d_char))
 	{
 		if (percentage > 95)
-			msg_format(Ind, "%^s ignores the attack.", m_name);
+			msg_format(p_ptr, "%^s ignores the attack.", m_name);
 		else if (percentage > 75)
-			msg_format(Ind, "%^s grunts with pain.", m_name);
+			msg_format(p_ptr, "%^s grunts with pain.", m_name);
 		else if (percentage > 50)
-			msg_format(Ind, "%^s squeals in pain.", m_name);
+			msg_format(p_ptr, "%^s squeals in pain.", m_name);
 		else if (percentage > 35)
-			msg_format(Ind, "%^s shrieks in pain.", m_name);
+			msg_format(p_ptr, "%^s shrieks in pain.", m_name);
 		else if (percentage > 20)
-			msg_format(Ind, "%^s shrieks in agony.", m_name);
+			msg_format(p_ptr, "%^s shrieks in agony.", m_name);
 		else if (percentage > 10)
-			msg_format(Ind, "%^s writhes in agony.", m_name);
+			msg_format(p_ptr, "%^s writhes in agony.", m_name);
 		else
-			msg_format(Ind, "%^s cries out feebly.", m_name);
+			msg_format(p_ptr, "%^s cries out feebly.", m_name);
 	}
 
 	/* Another type of monsters (shrug,cry,scream) */
 	else
 	{
 		if (percentage > 95)
-			msg_format(Ind, "%^s shrugs off the attack.", m_name);
+			msg_format(p_ptr, "%^s shrugs off the attack.", m_name);
 		else if (percentage > 75)
-			msg_format(Ind, "%^s grunts with pain.", m_name);
+			msg_format(p_ptr, "%^s grunts with pain.", m_name);
 		else if (percentage > 50)
-			msg_format(Ind, "%^s cries out in pain.", m_name);
+			msg_format(p_ptr, "%^s cries out in pain.", m_name);
 		else if (percentage > 35)
-			msg_format(Ind, "%^s screams in pain.", m_name);
+			msg_format(p_ptr, "%^s screams in pain.", m_name);
 		else if (percentage > 20)
-			msg_format(Ind, "%^s screams in agony.", m_name);
+			msg_format(p_ptr, "%^s screams in agony.", m_name);
 		else if (percentage > 10)
-			msg_format(Ind, "%^s writhes in agony.", m_name);
+			msg_format(p_ptr, "%^s writhes in agony.", m_name);
 		else
-			msg_format(Ind, "%^s cries out feebly.", m_name);
+			msg_format(p_ptr, "%^s cries out feebly.", m_name);
 	}
 }
 

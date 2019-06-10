@@ -652,6 +652,9 @@ void init_file_paths(char *path)
  * Specify the attr/char values for inventory "objects" by kind tval
  *   E:<tv>:<a>:<c>
  *
+ * Execute macro action right now!
+ *   \:<str>
+ *
  * Define a macro action, given an encoded macro action
  *   A:<str>
  *
@@ -659,10 +662,10 @@ void init_file_paths(char *path)
  *   P:<str>
  *
  * Create a command macro, given an encoded macro trigger
- *   C:<str>:<str>
+ *   G:<str>
  *
- * Create a keyset mapping
- *   S:<key>:<key>:<dir>
+ * Create a keymap, given an encoded macro trigger
+ *   C:<num>:<str>
  *
  * Turn an option off, given its name
  *   X:<str>
@@ -872,6 +875,14 @@ errr process_pref_file_command(char *buf)
 		char tmp[1024];
 		text_to_ascii(tmp, sizeof(tmp), buf+2);
 		macro_add(tmp, macro__buf, FALSE);
+		return (0);
+	}
+	/* Process "G:<str>" -- create command macro */
+	else if (buf[0] == 'G')
+	{
+		char tmp[1024];
+		text_to_ascii(tmp, sizeof(tmp), buf+2);
+		macro_add(tmp, macro__buf, TRUE);
 		return (0);
 	}
 	/* Process "C:<num>:<str>" -- create keymap */

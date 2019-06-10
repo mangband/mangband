@@ -68,6 +68,14 @@ static void write_str(char* name, char* value)
 {
 	file_putf(file_handle, "%s%s = %s\n", xml_prefix, name, value);
 }
+
+/* Write a quark (as string) */
+static void write_quark(char* name, u16b quark)
+{
+	char *value = quark ? (char*)quark_str(quark) : "";
+	file_putf(file_handle, "%s%s = %s\n", xml_prefix, name, value);
+}
+
 #if 0
 static void write_float(char* name, float value)
 {
@@ -163,6 +171,12 @@ static void wr_item(object_type *o_ptr)
 
 	/* Held by monster index */ 
    write_int("held_m_idx", o_ptr->held_m_idx);
+
+	/* Origin */
+	write_int("origin", o_ptr->origin);
+	write_int("origin_depth", o_ptr->origin_depth);
+	write_int("origin_xtra", o_ptr->origin_xtra);
+	write_quark("origin_player", o_ptr->origin_player);
 	
 	end_section("item");
 }
@@ -176,7 +190,7 @@ static void wr_monster(monster_type *m_ptr)
 	char mon_name[80];
 
 	start_section("monster");
-	monster_desc(0,mon_name,m_ptr->r_idx,0x88);
+	monster_desc(NULL,mon_name,m_ptr->r_idx,0x88);
 	write_str("name",mon_name);
 	write_int("r_idx",m_ptr->r_idx);
 	write_int("fy",m_ptr->fy);
@@ -186,7 +200,7 @@ static void wr_monster(monster_type *m_ptr)
 	write_int("maxhp",m_ptr->maxhp);
 	write_int("csleep",m_ptr->csleep);
 	write_int("mspeed",m_ptr->mspeed);
-	write_uint("energy",m_ptr->energy);
+	write_huge("energy",m_ptr->energy);
 	write_int("stunned",m_ptr->stunned);
 	write_int("confused",m_ptr->confused);
 	write_int("afraid",m_ptr->monfear);
@@ -285,8 +299,8 @@ static void wr_flvr(player_type *p_ptr, int k_idx)
 {
 	byte tmp8u = 0;
 
-	if (p_ptr->obj_aware[k_idx]) tmp8u |= 0x01;
-	if (p_ptr->obj_tried[k_idx]) tmp8u |= 0x02;
+	if (p_ptr->kind_aware[k_idx]) tmp8u |= 0x01;
+	if (p_ptr->kind_tried[k_idx]) tmp8u |= 0x02;
 
 	write_int("flags",tmp8u);
 }
@@ -1465,6 +1479,19 @@ static bool wr_server_savefile(void)
         {
                 artifact_type *a_ptr = &a_info[i];
                 write_uint("artifact",a_ptr->cur_num);
+		if (a_ptr->cur_num)
+		{
+			/* Save owner information (if any) - name, */
+			if (a_ptr->owner_name)
+			{
+				write_str("owner_name",(char*)quark_str(a_ptr->owner_name));
+			}
+			else
+			{
+				write_str("owner_name","");
+			} /* and his id: */
+			write_int("owner_id", a_ptr->owner_id);
+		}
         }
 		end_section("artifacts");
 

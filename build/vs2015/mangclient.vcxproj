@@ -378,6 +378,8 @@
     <ClCompile Include="..\..\src\client\readdib.c" />
     <ClCompile Include="..\..\src\client\set_focus.c" />
     <ClCompile Include="..\..\src\client\c-variable.c" />
+    <ClCompile Include="..\..\src\common\parser.c" />
+    <ClCompile Include="..\..\src\common\z-bitflag.c" />
     <ClCompile Include="..\..\src\common\z-form.c" />
     <ClCompile Include="..\..\src\common\z-rand.c" />
     <ClCompile Include="..\..\src\client\z-term.c" />
@@ -412,6 +414,8 @@
     <ClInclude Include="..\..\src\client\readdib.h" />
     <ClInclude Include="..\..\src\client\resource.h" />
     <ClInclude Include="..\..\src\common\types.h" />
+    <ClInclude Include="..\..\src\common\parser.h" />
+    <ClInclude Include="..\..\src\common\z-bitflag.h" />
     <ClInclude Include="..\..\src\common\z-form.h" />
     <ClInclude Include="..\..\src\common\z-rand.h" />
     <ClInclude Include="..\..\src\client\z-term.h" />

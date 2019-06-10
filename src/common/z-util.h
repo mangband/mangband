@@ -41,8 +41,12 @@ extern vptr vptr_self;
 /* A cptr to the name of the program */
 extern cptr argv0;
 
+/* mbcs hook and function */
+extern size_t (*mbcs_hook)(wchar_t *dest, const char *src, int n);
+extern size_t z_mbstowcs(wchar_t *dest, const char *src, int n);
 
 /* Aux functions */
+
 extern void (*plog_aux)(cptr);
 extern void (*quit_aux)(cptr);
 extern void (*core_aux)(cptr);
@@ -115,10 +119,10 @@ extern void core(cptr str);
 
 /* Sorting functions */
 /* TODO: make ang_sort() take comp and swap hooks rather than use globals */
-extern void ang_sort(int Ind, vptr u, vptr v, int n);
-extern void ang_sort_aux(int Ind, vptr u, vptr v, int p, int q);
+extern void ang_sort(void *player_context, vptr u, vptr v, int n);
+extern void ang_sort_aux(void *player_context, vptr u, vptr v, int p, int q);
 
-extern bool (*ang_sort_comp)(int Ind, vptr u, vptr v, int a, int b);
-extern void (*ang_sort_swap)(int Ind, vptr u, vptr v, int a, int b);
+extern bool (*ang_sort_comp)(void *player_context, vptr u, vptr v, int a, int b);
+extern void (*ang_sort_swap)(void *player_context, vptr u, vptr v, int a, int b);
 
 #endif

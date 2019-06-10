@@ -67,13 +67,136 @@ static cptr act_description[ACT_MAX] =
 	"berserk rage (50+d50 turns)"
 };
 
-/* MAngband specific. Math sourced from cmd6.c. 
+/* Hack -- forward compatibility with V320 */
+#define textblock_append(TB, STR) text_out(STR)
+
+bool describe_origin(const player_type *p_ptr, const object_type *o_ptr)
+{
+	char *original_owner = NULL;
+	bool changed_hands = FALSE;
+	char origin_text[80];
+
+	if (o_ptr->origin_depth)
+	{
+		if (p_ptr == NULL)
+			strnfmt(origin_text, sizeof(origin_text), "%d feet (level %d)",
+			        o_ptr->origin_depth * 50, o_ptr->origin_depth);
+		else if (option_p(p_ptr,DEPTH_IN_FEET))
+			strnfmt(origin_text, sizeof(origin_text), "%d feet",
+			        o_ptr->origin_depth * 50);
+		else
+			strnfmt(origin_text, sizeof(origin_text), "level %d",
+			        o_ptr->origin_depth);
+	}
+	else
+		my_strcpy(origin_text, "town", sizeof(origin_text));
+
+	if (p_ptr && o_ptr->origin_player)
+	{
+		original_owner = (char*)quark_str(o_ptr->origin_player);
+		if (streq(original_owner, p_ptr->name)) original_owner = NULL;
+		else if (o_ptr->owner_name != o_ptr->origin_player)
+		{
+			changed_hands = TRUE;
+		}
+	}
+
+	/* Hack -- add extra space :( */
+	if (o_ptr->origin != ORIGIN_NONE &&
+	    o_ptr->origin != ORIGIN_MIXED) text_out(" ");
+
+	/* MAngband-specific: different player origin */
+	if (o_ptr->origin != ORIGIN_NONE &&
+	    o_ptr->origin != ORIGIN_MIXED &&
+	    o_ptr->origin != ORIGIN_BIRTH &&
+	    changed_hands
+	) textblock_append(tb, format("Obtained from %s. Rumored to be ", original_owner));
+
+	switch (o_ptr->origin)
+	{
+		case ORIGIN_NONE:
+		case ORIGIN_MIXED:
+			return FALSE;
+
+		case ORIGIN_BIRTH:
+
+			if (original_owner)
+				textblock_append(tb, format("An inheritance from %s's family.\n", original_owner));
+			else
+
+			textblock_append(tb, "An inheritance from your family.\n");
+			break;
+
+		case ORIGIN_STORE:
+			textblock_append(tb, "Bought from a store.\n");
+			break;
+
+		case ORIGIN_FLOOR:
+			textblock_append(tb, format("Found lying on the floor %s %s.\n",
+			         (o_ptr->origin_depth ? "at" : "in"),
+			         origin_text));
+			break;
+
+		case ORIGIN_DROP:
+		{
+			const char *name = r_name + r_info[o_ptr->origin_xtra].name;
+
+			textblock_append(tb, "Dropped by ");
+
+			if (r_info[o_ptr->origin_xtra].flags1 & RF1_UNIQUE)
+				textblock_append(tb, format("%s", name));
+			else
+				textblock_append(tb,format( "%s%s",
+						is_a_vowel(name[0]) ? "an " : "a ", name));
+
+			textblock_append(tb, format(" %s %s.\n",
+					(o_ptr->origin_depth ? "at" : "in"),
+					origin_text));
+			break;
+		}
+
+		case ORIGIN_DROP_UNKNOWN:
+			textblock_append(tb, format("Dropped by an unknown monster %s %s.\n",
+					(o_ptr->origin_depth ? "at" : "in"),
+					origin_text));
+			break;
+
+		case ORIGIN_ACQUIRE:
+			textblock_append(tb, format("Conjured forth by magic %s %s.\n",
+					(o_ptr->origin_depth ? "at" : "in"),
+					origin_text));
+			break;
+
+		case ORIGIN_CHEAT:
+			textblock_append(tb, format("Created by debug option.\n"));
+			break;
+
+		case ORIGIN_CHEST:
+			textblock_append(tb, format("Found in a chest from %s.\n",
+			         origin_text));
+			break;
+
+		/* MAngband-specific origins */
+		case ORIGIN_WILD_DWELLING:
+			textblock_append(tb, format("Found in the abandoned house at %s.\n",
+			         origin_text));
+			break;
+	}
+
+
+	//textblock_append(tb, "\n");
+
+	return TRUE;
+}
+
+
+/* MAngband-specific. Math sourced from cmd6.c and use-obj.c
  * Give the player an idea of their odds of successfully activating 
  * a wand, staff, rod, or item. - Avenger */
 void describe_activation_chance(const object_type *o_ptr)
 {
 	int	chance, lev;
-	player_type *p_ptr = Players[player_textout];
+	player_type *p_ptr = player_textout;
 	u32b f1, f2, f3;
 
 	/* Extract the flags */
@@ -808,7 +931,7 @@ static bool describe_misc_magic(const object_type *o_ptr, u32b f3)
 	{
 		if (f3 & (TR3_PERMA_CURSE)) bad[bc++] = "is permanently cursed";
 		else if (f3 & (TR3_HEAVY_CURSE)) bad[bc++] = "is heavily cursed";
-		else if (object_known_p(Players[player_textout], o_ptr)) bad[bc++] = "is cursed";
+		else if (object_known_p(player_textout, o_ptr)) bad[bc++] = "is cursed";
 	}
 
 	/* Describe */
@@ -882,7 +1005,7 @@ bool object_info_out(const object_type *o_ptr)
 	object_flags_known(player_textout, o_ptr, &f1, &f2, &f3);
 	
 	/* Hack -- set bonus flags */
-	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(Players[player_textout], o_ptr) )
+	if ( (k_ptr->flags1 & TR1_PVAL_MASK) && object_known_p(player_textout, o_ptr) )
 		fH = k_ptr->flags1;
 	/* Hack -- clear out any pval bonuses that are in the base item */
 	if (o_ptr->name2)
@@ -901,7 +1024,7 @@ bool object_info_out(const object_type *o_ptr)
 	if (describe_ignores(o_ptr, f3)) something = TRUE;
 
 	/* Unknown extra powers (ego-item with random extras or artifact) */
-	if (object_known_p(Players[player_textout], o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
+	if (object_known_p(player_textout, o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
 	    ((o_ptr->xtra1) || artifact_p(o_ptr)))
 	{
 		/* Hack -- Put this in a separate paragraph if screen dump */
@@ -924,7 +1047,7 @@ bool object_info_out(const object_type *o_ptr)
  */
 static bool screen_out_head(const object_type *o_ptr)
 {
-	player_type *p_ptr = Players[player_textout];
+	player_type *p_ptr = player_textout;
 	//char *o_name;
 	//int name_size = 80;//Term->wid;
 	bool has_description = FALSE;
@@ -946,7 +1069,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	/* Display the known artifact description */
 	//!adult_rand_artifacts
 	if (o_ptr->name1 &&
-	    object_known_p(Players[player_textout], o_ptr) && a_info[o_ptr->name1].text)
+	    object_known_p(player_textout, o_ptr) && a_info[o_ptr->name1].text)
 	{
 		p_text_out("\n\n   ");
 		p_text_out(a_text + a_info[o_ptr->name1].text);
@@ -954,7 +1077,7 @@ static bool screen_out_head(const object_type *o_ptr)
 	}
 
 	/* Display the known object description */
-	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(Players[player_textout], o_ptr))
+	else if (object_aware_p(p_ptr, o_ptr) || object_known_p(player_textout, o_ptr))
 	{
 		if (k_info[o_ptr->k_idx].text)
 		{
@@ -964,7 +1087,7 @@ static bool screen_out_head(const object_type *o_ptr)
 		}
 
 		/* Display an additional ego-item description */
-		if (o_ptr->name2 && object_known_p(Players[player_textout], o_ptr) && e_info[o_ptr->name2].text)
+		if (o_ptr->name2 && object_known_p(player_textout, o_ptr) && e_info[o_ptr->name2].text)
 		{
 			p_text_out("\n\n   ");
 			p_text_out(e_text + e_info[o_ptr->name2].text);
@@ -997,13 +1120,15 @@ void object_info_screen(const object_type *o_ptr)
 	has_info = object_info_out(o_ptr);
 	new_paragraph = FALSE;
 
-	if (!object_known_p(Players[player_textout], o_ptr))
+	if (!object_known_p(player_textout, o_ptr))
 		p_text_out("\n\n   This item has not been identified.");
 	else if (!has_description && !has_info)
 		p_text_out("\n\n   This item does not seem to possess any special abilities.");
 	else
 		describe_activation_chance(o_ptr);
 		
+	/*if (subjective)*/ describe_origin(player_textout, o_ptr);
+
 	//text_out_c(TERM_L_BLUE, "\n\n[Press any key to continue]\n");
 
 	/* Wait for input */
