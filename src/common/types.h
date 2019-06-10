@@ -457,8 +457,11 @@ struct feature_type
 	byte d_attr;		/* Default feature attribute */
 	char d_char;		/* Default feature character */
 
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;		/* Desired feature attribute */
 	char x_char;		/* Desired feature character */
+#endif
 };
 
 
@@ -503,10 +506,11 @@ struct object_kind
 	byte d_attr;			/* Default object attribute */
 	char d_char;			/* Default object character */
 
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;			/* Desired object attribute */
 	char x_char;			/* Desired object character */
-
+#endif
 
 	u16b flavor;			/* Special object flavor (or zero) */
 
@@ -680,10 +684,11 @@ struct monster_race
 	byte d_attr;			/* Default monster attribute */
 	char d_char;			/* Default monster character */
 
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;			/* Desired monster attribute */
 	char x_char;			/* Desired monster character */
-
+#endif
 
 	byte max_num;			/* Maximum population allowed per level */
 	byte cur_num;			/* Monster population on current level */
@@ -1658,9 +1663,11 @@ struct flavor_type
 
 	byte d_attr;    /* Default flavor attribute */
 	char d_char;    /* Default flavor character */
-
+#if 0
+/* Unused in MAngband. Use player_type mappings. */
 	byte x_attr;    /* Desired flavor attribute */
 	char x_char;    /* Desired flavor character */
+#endif
 };
 
 

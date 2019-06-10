@@ -2538,9 +2538,6 @@ void play_game(bool new_game)
 	load_all_pref_files();
 #endif
 
-	/* Store final visual mappings */
-	apply_visuals();
-
 	/* Make a town if necessary */
 	if (!server_dungeon)
 	{

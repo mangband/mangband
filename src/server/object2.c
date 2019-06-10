@@ -5446,8 +5446,8 @@ void display_itemlist(player_type *p_ptr)
 			/* default */
 			attr = TERM_WHITE;
 
-		a = object_kind_attr(o_ptr->k_idx);
-		c = object_kind_char(o_ptr->k_idx);
+		a = object_kind_attr_p(p_ptr, o_ptr->k_idx);
+		c = object_kind_char_p(p_ptr, o_ptr->k_idx);
 
 		/* Display the pict */
 		text_out(" ");

@@ -3223,8 +3223,8 @@ errr parse_r_info(char *buf, header *head)
 	strcpy(r_text + r_ptr->text, "It seems strangely familiar...");
 
 	/* Hack -- set the attr/char info */
-	r_ptr->d_attr = r_ptr->x_attr = TERM_WHITE;
-	r_ptr->d_char = r_ptr->x_char = 'G';
+	r_ptr->d_attr = /* r_ptr->x_attr = */ TERM_WHITE;
+	r_ptr->d_char = /* r_ptr->x_attr = */ 'G';
 
 	/* Hack -- Try to prevent a few "potential" bugs */
 	r_ptr->flags1 |= (RF1_UNIQUE);
@@ -3329,8 +3329,8 @@ errr parse_flavor_info(char *buf, header *head)
 		if (d_attr < 0) return (PARSE_ERROR_GENERIC);
 
 		/* Save the values */
-		flavor_ptr->d_attr = flavor_ptr->x_attr = d_attr;
-		flavor_ptr->d_char = flavor_ptr->x_char = d_char;
+		flavor_ptr->d_attr = /* flavor_ptr->x_attr = */ d_attr;
+		flavor_ptr->d_char = /* flavor_ptr->d_char = */ d_char;
 	}
 
 	/* Process 'D' for "Description" */

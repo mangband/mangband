@@ -1558,30 +1558,6 @@ static byte ironman_store_table[MAX_STORES-3][STORE_CHOICES][2] =
 
 
 /*
- * Initialize server-side terrain/monster visual arrays
- *
- * This should happen AFTER we have populated x_char/x_attr values
- * of f_info and r_info by
- *  a) calling reset_visuals()
- *  b) loading the font.prf file
- *  (both of those happen in "play_game()")
- */
-void apply_visuals(void)
-{
-	int i;
-	for (i = 0; i < z_info->f_max; i++)
-	{
-		f_char_s[i] = f_info[i].x_char;
-		f_attr_s[i] = f_info[i].x_attr;
-	}
-	for (i = 0; i < z_info->r_max; i++)
-	{
-		r_char_s[i] = r_info[i].x_char;
-		r_attr_s[i] = r_info[i].x_attr;
-	}
-}
-
-/*
  * Initialize some other arrays
  */
 static errr init_other(void)
@@ -1599,6 +1575,14 @@ static errr init_other(void)
 	/* Monster */
 	C_MAKE(r_char_s, z_info->r_max, char);
 	C_MAKE(r_attr_s, z_info->r_max, byte);
+
+	/* Object Kinds */
+	C_MAKE(k_char_s, z_info->k_max, char);
+	C_MAKE(k_attr_s, z_info->k_max, byte);
+
+	/* Flavored Objects */
+	C_MAKE(flavor_char_s, MAX_FLVR_IDX, char);
+	C_MAKE(flavor_attr_s, MAX_FLVR_IDX, byte);
 
 	/* Note: those arrays are filled in "apply_visuals()" */
 

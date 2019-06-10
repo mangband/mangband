@@ -1194,13 +1194,20 @@ void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte *tap, c
 		if ((p_ptr->obj_vis[c_ptr->o_idx]) || (p_ptr->dm_flags & DM_SEE_LEVEL))
 		{
 			/* Normal char */
-			(*cp) = object_char(o_ptr);
+			(*cp) = object_char_p(p_ptr, o_ptr);
 
 			/* Normal attr */
-			(*ap) = object_attr(o_ptr);
+			(*ap) = object_attr_p(p_ptr, o_ptr);
 
 			/* Hack -- hallucination */
 			if (p_ptr->image) image_object(p_ptr, ap, cp);
+
+			/* Hack -- server-side visuals? Also, undo hallucination */
+			if (server)
+			{
+				(*cp) = object_char_s(p_ptr, o_ptr);
+				(*ap) = object_attr_s(p_ptr, o_ptr);
+			}
 		}
 	}
 
@@ -1773,7 +1780,7 @@ static byte priority(byte a, char c)
 		f_ptr = &f_info[p0];
 
 		/* Check character and attribute, accept matches */
-		if ((f_ptr->x_char == c) && (f_ptr->x_attr == a)) return (p1);
+		if ((f_ptr->d_char == c) && (f_ptr->d_attr == a)) return (p1);
 	}
 
 	/* Default */
@@ -1905,12 +1912,12 @@ void display_map(player_type *p_ptr, bool quiet)
 	x = (p_ptr->px * map_wid / dungeon_wid) + 1;
 	
 	/*** Make sure the player is visible ***/
- 
+
 	/* Set the "player" attr */
-	ma[y][x] = r_ptr->x_attr;
+	ma[y][x] = r_ptr->d_attr;
 
 	/* Set the "player" char */
-	mc[y][x] = r_ptr->x_char;
+	mc[y][x] = r_ptr->d_char;
 
 	/* Activate mini-map window */
 	if (quiet)

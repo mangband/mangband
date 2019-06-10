@@ -3540,8 +3540,8 @@ void do_cmd_fire(player_type *p_ptr, int item, int dir)
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
-	missile_attr = object_attr(o_ptr);
-	missile_char = object_char(o_ptr);
+	missile_attr = object_attr_p(p_ptr, o_ptr);
+	missile_char = object_char_p(p_ptr, o_ptr);
 
 
 	/* Use the proper number of shots */
@@ -3911,6 +3911,7 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 
 	int			missile_attr;
 	int			missile_char;
+	byte			item_color;
 
 	char		o_name[80];
 
@@ -3986,8 +3987,8 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Find the color and symbol for the object for throwing */
-	missile_attr = object_attr(o_ptr);
-	missile_char = object_char(o_ptr);
+	missile_attr = object_attr_p(p_ptr, o_ptr);
+	missile_char = object_char_p(p_ptr, o_ptr);
 
 
 	/* Extract a "distance multiplier" */
@@ -4055,10 +4056,15 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 				/* Break it */
 				hit_body = TRUE;
 				
+				/* Potion color should ignore player's awareness and visuals */
+				item_color = k_info[o_ptr->k_idx].flavor ?
+						flavor_info[k_info[o_ptr->k_idx].flavor].d_attr :
+						k_info[o_ptr->k_idx].d_attr;
+				
 				/* Find suitable color */
 				for (i = FEAT_HOME_HEAD; i < FEAT_HOME_TAIL + 1; i++)
 				{
-					if (f_info[i].x_attr == missile_attr || f_info[i].x_attr == color_opposite(missile_attr)) 
+					if (f_info[i].d_attr == item_color || f_info[i].d_attr == color_opposite(item_color))
 					{
 						/* Pick a house */
 						if ((j = pick_house(Depth, ny, nx)) == -1) break;

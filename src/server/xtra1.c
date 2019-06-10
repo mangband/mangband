@@ -733,8 +733,8 @@ static void prt_player_equippy(player_type *p_ptr)
 			a = c = 0;
 		} else {
 			/* Get attr/char for display */
-			a = k_info[o_ptr->k_idx].x_attr;
-			c = k_info[o_ptr->k_idx].x_char;
+			a = k_info[o_ptr->k_idx].d_attr;
+			c = k_info[o_ptr->k_idx].d_char;
 		}
 
 		/* Dump proper character */

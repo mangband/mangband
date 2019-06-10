@@ -207,9 +207,11 @@ errr process_pref_file_aux(char *buf)
 			n1 = strtol(zz[1], NULL, 0);
 			n2 = strtol(zz[2], NULL, 0);
 			if (i >= z_info->r_max) return (1);
-			r_ptr = &r_info[i];
+			/*r_ptr = &r_info[i];
 			if (n1) r_ptr->x_attr = n1;
-			if (n2) r_ptr->x_char = n2;
+			if (n2) r_ptr->x_char = n2;*/
+			if (n1) r_attr_s[i] = n1;
+			if (n2) r_char_s[i] = n2;
 			return (0);
 		}
 	}
@@ -225,9 +227,11 @@ errr process_pref_file_aux(char *buf)
 			n1 = strtol(zz[1], NULL, 0);
 			n2 = strtol(zz[2], NULL, 0);
 			if (i >= z_info->k_max) return (1);
-			k_ptr = &k_info[i];
+			/*k_ptr = &k_info[i];
 			if (n1) k_ptr->x_attr = n1;
-			if (n2) k_ptr->x_char = n2;
+			if (n2) k_ptr->x_char = n2;*/
+			if (n1) k_attr_s[i] = n1;
+			if (n2) k_char_s[i] = n1;
 			return (0);
 		}
 	}
@@ -243,9 +247,11 @@ errr process_pref_file_aux(char *buf)
 			n1 = strtol(zz[1], NULL, 0);
 			n2 = strtol(zz[2], NULL, 0);
 			if (i >= z_info->f_max) return (1);
-			f_ptr = &f_info[i];
+			/*f_ptr = &f_info[i];
 			if (n1) f_ptr->x_attr = n1;
-			if (n2) f_ptr->x_char = n2;
+			if (n2) f_ptr->x_char = n2;*/
+			if (n1) f_attr_s[i] = n1;
+			if (n2) f_char_s[i] = n2;
 			return (0);
 		}
 	}

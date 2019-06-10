@@ -1241,7 +1241,7 @@ static void cheat_monster_lore(int r_idx, monster_lore *l_ptr)
 	l_ptr->flags6 = r_ptr->flags6;
 }
 
-void describe_monster_name(int r_idx)
+void describe_monster_name(player_type *p_ptr, int r_idx)
 {
 	const monster_race *r_ptr = &r_info[r_idx];
 
@@ -1250,11 +1250,11 @@ void describe_monster_name(int r_idx)
 
 	/* Get the chars */
 	c1 = r_ptr->d_char;
-	c2 = r_ptr->x_char;
+	c2 = p_ptr->r_char[r_idx];
 
 	/* Get the attrs */
 	a1 = r_ptr->d_attr;
-	a2 = r_ptr->x_attr;
+	a2 = p_ptr->r_attr[r_idx];
 	
 	/* A title (use "The" for non-uniques) */
 	if (!(r_ptr->flags1 & RF1_UNIQUE))
@@ -1317,7 +1317,7 @@ void describe_monster(player_type *p_ptr, int r_idx, bool spoilers)
 	}
 
 	/* Monster name */
-	describe_monster_name(r_idx);
+	describe_monster_name(p_ptr, r_idx);
 
 	/* Cheat -- know everything */
 	if (p_ptr->dm_flags & DM_SEE_MONSTERS || spoilers) cheat_monster_lore(r_idx, &lore);

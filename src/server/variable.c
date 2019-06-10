@@ -607,6 +607,8 @@ byte *f_attr_s; /* copy of f_info attributes */
 object_kind *k_info;
 char *k_name;
 char *k_text;
+char *k_char_s; /* copy of k_info characters */
+byte *k_attr_s; /* copy of k_info attributes */
 
 /*
  * The artifact arrays
@@ -629,7 +631,7 @@ char *e_text;
 monster_race *r_info;
 char *r_name;
 char *r_text;
-char *r_char_s; /* copy of r_info charcartes */
+char *r_char_s; /* copy of r_info characters */
 byte *r_attr_s; /* copy of r_info attributes */
 
 
@@ -673,6 +675,8 @@ char *h_text;
 flavor_type *flavor_info;
 char *flavor_name;
 char *flavor_text;
+char *flavor_char_s; /* copy of flavor_info characters */
+byte *flavor_attr_s; /* copy of flavor_info attributes */
 
 /*
  * Hack -- The special Angband "System Suffix"

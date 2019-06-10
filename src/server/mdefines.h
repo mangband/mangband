@@ -2675,62 +2675,59 @@ that keeps many algorithms happy.
 /*
  * Return the "attr" for a given item.
  * Allow user redefinition of "aware" items.
- * Default to the "base" attr for unaware items
+ * Default to the "flavor" attr for unaware items
  */
-#if 0
-#define object_attr(T) \
-    ((k_info[(T)->k_idx].aware) ? \
-     (k_info[(T)->k_idx].x_attr) : \
-     (k_info[(T)->k_idx].d_attr))
-
-#define object_attr(T) \
-    (k_info[(T)->k_idx].x_attr)
-
-#define object_attr(T) \
-    (p_ptr->k_attr[(T)->k_idx])
-
-#endif
-
-#define object_attr(T) \
-    ((p_ptr->obj_aware[(T)->k_idx]) ? \
-     (p_ptr->k_attr[(T)->k_idx]) : \
-     (p_ptr->d_attr[(T)->k_idx]))
+#define object_attr_p(PLR, T) \
+    (object_kind_attr_p((PLR), (T)->k_idx))
 
 /*
  * Return the "char" for a given item.
  * Allow user redefinition of "aware" items.
- * Default to the "base" char for unaware items
+ * Default to the "flavor" char for unaware items
  */
-#if 0
-#define object_char(T) \
-    ((k_info[(T)->k_idx].aware) ? \
-     (k_info[(T)->k_idx].x_char) : \
-     (k_info[(T)->k_idx].d_char))
+#define object_char_p(PLR, T) \
+    (object_kind_char_p((PLR), (T)->k_idx))
 
-#define object_char(T) \
-    (k_info[(T)->k_idx].x_char)
+/*
+ * Return the "attr" for a given object kind.
+ * Allow user redefinition of "aware" items.
+ * Default to the "flavor" attr for unaware items.
+ */
+#define object_kind_attr_p(PLR, K_IDX) \
+    (((PLR)->obj_aware[(K_IDX)]) ? \
+     ((PLR)->k_attr[(K_IDX)]) : \
+     ((PLR)->d_attr[(K_IDX)]))
 
-#define object_char(T) \
-    (p_ptr->k_char[(T)->k_idx])
+/*
+ * Return the "char" for a given object kind.
+ * Allow user redefinition of "aware" items.
+ * Default to the "flavor" char for unaware items.
+ */
+#define object_kind_char_p(PLR, K_IDX) \
+    (((PLR)->obj_aware[(K_IDX)]) ? \
+     ((PLR)->k_char[(K_IDX)]) : \
+     ((PLR)->d_char[(K_IDX)]))
 
-#endif
+/* Server-side versions of the above macros.
+ * The difference, is that while those *will* take
+ * player's awareness of a given object into account,
+ * they will completely ignore player-side visual mappings */
 
-#define object_char(T) \
-    ((p_ptr->obj_aware[(T)->k_idx]) ? \
-     (p_ptr->k_char[(T)->k_idx]) : \
-     (p_ptr->d_char[(T)->k_idx]))
+#define object_attr_s(PLR, T) \
+    (object_kind_attr_s((PLR), (T)->k_idx))
 
-/* MAngband-specific: olden ways to get attr/char from object kind */
-/* TODO: port more recent V definitions of those macros */
-#define object_kind_char(K_IDX) \
-    ((p_ptr->obj_aware[(K_IDX)]) ? \
-     (p_ptr->k_char[(K_IDX)]) : \
-     (p_ptr->d_char[(K_IDX)]))
+#define object_char_s(PLR, T) \
+    (object_kind_char_p((PLR), (T)->k_idx))
 
-#define object_kind_attr(K_IDX) \
-    ((p_ptr->obj_aware[(K_IDX)]) ? \
-     (p_ptr->k_attr[(K_IDX)]) : \
-     (p_ptr->d_attr[(K_IDX)]))
+#define object_kind_attr_s(PLR, K_IDX) \
+    (((PLR)->obj_aware[(K_IDX)]) ? \
+     (k_attr_s[(K_IDX)]) : \
+     (flavor_attr_s[ k_info[(K_IDX)].flavor ]))
+
+#define object_kind_char_s(PLR, K_IDX) \
+    (((PLR)->obj_aware[(K_IDX)]) ? \
+     (k_char_s[(K_IDX)]) : \
+     (flavor_char_s[ k_info[(K_IDX)].flavor ]))
 
 /* Copy object */
 #define object_copy(D,S) COPY((D), (S), object_type);

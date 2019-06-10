@@ -6888,7 +6888,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 
 				MASTER_COMMON_LIMIT();
 				MASTER_DUMP_I()
-				MASTER_DUMP_AC(f_ptr->x_attr, f_ptr->x_char);
+				MASTER_DUMP_AC(f_ptr->d_attr, f_ptr->d_char);
 
 				c_prt(p_ptr, attr, f_name + f_ptr->name, 2 + j++, 8);
 			}
@@ -6916,7 +6916,7 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 
 				MASTER_COMMON_LIMIT();
 				MASTER_DUMP_I()
-				MASTER_DUMP_AC(r_ptr->x_attr, r_ptr->x_char);
+				MASTER_DUMP_AC(r_ptr->d_attr, r_ptr->d_char);
 
 				c_prt(p_ptr, attr, r_name + r_ptr->name, 2 + j++, 8);
 			}

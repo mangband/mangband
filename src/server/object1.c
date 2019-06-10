@@ -844,8 +844,8 @@ void reset_visuals(void)
 		feature_type *f_ptr = &f_info[i];
 
 		/* Assume we will use the underlying values */
-		f_ptr->x_attr = f_ptr->d_attr;
-		f_ptr->x_char = f_ptr->d_char;
+		/*f_ptr->x_attr*/f_attr_s[i] = f_ptr->d_attr;
+		/*f_ptr->x_char*/f_char_s[i] = f_ptr->d_char;
 	}
 
 	/* Extract some info about objects */
@@ -860,18 +860,18 @@ void reset_visuals(void)
 		k_ptr->d_char = object_d_char(i);
 
 		/* Assume we will use the underlying values */
-		k_ptr->x_attr = k_ptr->d_attr;
-		k_ptr->x_char = k_ptr->d_char;
+		/*k_ptr->x_attr*/k_attr_s[i] = k_ptr->d_attr;
+		/*k_ptr->x_char*/k_char_s[i] = k_ptr->d_char;
 	}
 
 	/* Extract some info about monsters */
 	for (i = 0; i < z_info->r_max; i++)
 	{
 		/* Extract the "underlying" attr */
-		r_info[i].x_attr = r_info[i].d_attr;
+		/*r_info[i].x_attr*/r_attr_s[i] = r_info[i].d_attr;
 
 		/* Extract the "underlying" char */
-		r_info[i].x_char = r_info[i].d_char;
+		/*r_info[i].x_char*/r_char_s[i] = r_info[i].d_char;
 	}
 
 	/* Extract attr/chars for equippy items (by tval) */

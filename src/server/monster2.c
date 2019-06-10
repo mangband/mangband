@@ -784,9 +784,6 @@ void display_monlist(player_type *p_ptr)
 
 		/* Append the "optional" attr/char info */
 		text_out_c(TERM_WHITE, "/('");
-		/* I don't understand what an "optional" attr/char for a monster is...
-		 * so how about we just dump player's mapping here? -flm- */
-		//text_out_c(r_ptr->x_attr, format("%c",r_ptr->x_char));
 		text_out_c(p_ptr->r_attr[m_ptr->r_idx], format("%c",p_ptr->r_char[m_ptr->r_idx]));
 		text_out_c(TERM_WHITE, "'):");
 		n += 7;

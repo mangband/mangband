@@ -763,8 +763,8 @@ void player_verify_visual(player_type *p_ptr)
 
 	for (i = 0; i < MIN(MAX_FLVR_IDX, z_info->flavor_max); i++) 
 	{
-		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].x_attr;
-		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].x_char;
+		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].d_attr;
+		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].d_char;
 	}
 
 	for (i = 0; i < z_info->f_max; i++)
@@ -775,14 +775,14 @@ void player_verify_visual(player_type *p_ptr)
 			p_ptr->f_attr[i] = p_ptr->f_attr[f_info[i].mimic];
 			p_ptr->f_char[i] = p_ptr->f_char[f_info[i].mimic];
 		}
-		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].x_attr;
-		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
+		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].d_attr;
+		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].d_char;
 	}
 
 	for (i = 0; i < z_info->k_max; i++)
 	{
-		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].x_attr);
-		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].x_char);
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
 
 		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
 		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
@@ -790,8 +790,8 @@ void player_verify_visual(player_type *p_ptr)
 
 	for (i = 0; i < z_info->r_max; i++)
 	{
-		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].x_attr;
-		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].x_char;
+		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].d_attr;
+		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].d_char;
 	}
 
 	for (i = 0; i < 128; i++) 
