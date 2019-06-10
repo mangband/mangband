@@ -299,8 +299,8 @@ static void wr_flvr(player_type *p_ptr, int k_idx)
 {
 	byte tmp8u = 0;
 
-	if (p_ptr->obj_aware[k_idx]) tmp8u |= 0x01;
-	if (p_ptr->obj_tried[k_idx]) tmp8u |= 0x02;
+	if (p_ptr->kind_aware[k_idx]) tmp8u |= 0x01;
+	if (p_ptr->kind_tried[k_idx]) tmp8u |= 0x02;
 
 	write_int("flags",tmp8u);
 }

@@ -1358,8 +1358,8 @@ struct player_type
 	bool play_los[MAX_PLAYERS];
 	byte play_det[MAX_PLAYERS]; /* Were these players detected by this player? */
 
-	bool *obj_aware; /* Is the player aware of this obj type? */
-	bool *obj_tried; /* Has the player tried this obj type? */
+	bool *kind_aware; /* Is the player aware of this obj kind? */
+	bool *kind_tried; /* Has the player tried this obj kind? */
 
 	monster_lore *l_list; /* Character's monster lore */
 	monster_lore old_l; /* Old monster lore (for delta checks) */

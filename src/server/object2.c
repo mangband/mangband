@@ -988,7 +988,7 @@ void object_known(object_type *o_ptr)
 void object_aware(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Fully aware of the effects */
-	p_ptr->obj_aware[o_ptr->k_idx] = TRUE;
+	p_ptr->kind_aware[o_ptr->k_idx] = TRUE;
 	
 	/* Update resistant flags */
 	p_ptr->redraw |= PR_OFLAGS;
@@ -1002,7 +1002,7 @@ void object_aware(player_type *p_ptr, object_type *o_ptr)
 void object_tried(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Mark it as tried (even if "aware") */
-	p_ptr->obj_tried[o_ptr->k_idx] = TRUE;
+	p_ptr->kind_tried[o_ptr->k_idx] = TRUE;
 }
 
 

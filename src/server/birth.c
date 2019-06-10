@@ -502,8 +502,8 @@ void player_wipe(player_type *p_ptr)
 	monster_lore *l_ptr;
 	//byte *old_channels;
 	byte *old_arts;
-	bool *old_obj_aware;
-	bool *old_obj_tried;
+	bool *old_kind_aware;
+	bool *old_kind_tried;
 	s16b *old_r_killed;
 	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
 	char *f_char, *k_char, *d_char, *r_char, *pr_char;
@@ -516,8 +516,8 @@ void player_wipe(player_type *p_ptr)
 	old_lore = p_ptr->l_list;
 	//old_channels = p_ptr->on_channel;
 	old_arts = p_ptr->a_info;
-	old_obj_aware = p_ptr->obj_aware;
-	old_obj_tried = p_ptr->obj_tried;
+	old_kind_aware = p_ptr->kind_aware;
+	old_kind_tried = p_ptr->kind_tried;
 	old_r_killed = p_ptr->r_killed;
 	f_attr = p_ptr->f_attr; f_char = p_ptr->f_char;
 	r_attr = p_ptr->r_attr; r_char = p_ptr->r_char;
@@ -537,8 +537,8 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->l_list = old_lore;
 	//p_ptr->on_channel = old_channels;
 	p_ptr->a_info = old_arts;
-	p_ptr->obj_aware = old_obj_aware;
-	p_ptr->obj_tried = old_obj_tried;
+	p_ptr->kind_aware = old_kind_aware;
+	p_ptr->kind_tried = old_kind_tried;
 	p_ptr->r_killed = old_r_killed;
 	p_ptr->f_attr = f_attr; p_ptr->f_char = f_char;
 	p_ptr->r_attr = r_attr; p_ptr->r_char = r_char;
@@ -596,8 +596,8 @@ void player_wipe(player_type *p_ptr)
 	/* Wipe item knowledge */
 	for (i = 0; i < z_info->k_max; i++)
 	{
-		p_ptr->obj_aware[i] = FALSE;
-		p_ptr->obj_tried[i] = FALSE;
+		p_ptr->kind_aware[i] = FALSE;
+		p_ptr->kind_tried[i] = FALSE;
 	}
 
 	/* Clear "artifacts found" list */
@@ -1203,8 +1203,8 @@ player_type* player_alloc()
 	C_MAKE(p_ptr->a_info, z_info->a_max, byte);
 
 	/* Allocate memory for his dungeon flags array */
-	C_MAKE(p_ptr->obj_aware, z_info->k_max, bool);
-	C_MAKE(p_ptr->obj_tried, z_info->k_max, bool);
+	C_MAKE(p_ptr->kind_aware, z_info->k_max, bool);
+	C_MAKE(p_ptr->kind_tried, z_info->k_max, bool);
 	C_MAKE(p_ptr->r_killed,  z_info->r_max, s16b);
 
 	/* Allocate memory for his visuals */
@@ -1241,8 +1241,8 @@ void player_free(player_type *p_ptr)
 	if (p_ptr->a_info)
 		KILL(p_ptr->a_info);
 
-	if (p_ptr->obj_aware)	KILL(p_ptr->obj_aware);
-	if (p_ptr->obj_tried)	KILL(p_ptr->obj_tried);
+	if (p_ptr->kind_aware)	KILL(p_ptr->kind_aware);
+	if (p_ptr->kind_tried)	KILL(p_ptr->kind_tried);
 	if (p_ptr->r_killed)	KILL(p_ptr->r_killed);
 
 	if (p_ptr->f_attr)		KILL(p_ptr->f_attr);
@@ -1352,7 +1352,7 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 		if (!k_ptr->name) continue;
 
 		/* No flavor yields aware */
-		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
+		if (!k_ptr->flavor) p_ptr->kind_aware[i] = TRUE;
 	}
 
 	/* Set his location, panel, etc. */

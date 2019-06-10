@@ -2082,7 +2082,7 @@ void object_desc_store(const player_type *p_ptr, char *buf, object_type *o_ptr, 
 	if (p_ptr)
 	{
 		/* Save the "aware" flag */
-		hack_aware = p_ptr->obj_aware[o_ptr->k_idx];
+		hack_aware = p_ptr->kind_aware[o_ptr->k_idx];
 
 		/* Save the "known" flag */
 		hack_known = (o_ptr->ident & ID_KNOWN) ? TRUE : FALSE;
@@ -2095,7 +2095,7 @@ void object_desc_store(const player_type *p_ptr, char *buf, object_type *o_ptr, 
 	if (p_ptr)
 	{
 		/* Force "aware" for description */
-		p_ptr->obj_aware[o_ptr->k_idx] = TRUE;
+		p_ptr->kind_aware[o_ptr->k_idx] = TRUE;
 	}
 
 
@@ -2107,7 +2107,7 @@ void object_desc_store(const player_type *p_ptr, char *buf, object_type *o_ptr, 
 	if (p_ptr)
 	{
 		/* Restore "aware" flag */
-		p_ptr->obj_aware[o_ptr->k_idx] = hack_aware;
+		p_ptr->kind_aware[o_ptr->k_idx] = hack_aware;
 
 		/* Clear the known flag */
 		if (!hack_known) o_ptr->ident &= ~ID_KNOWN;

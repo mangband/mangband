@@ -2649,13 +2649,13 @@ that keeps many algorithms happy.
  * Determine if a given inventory item is "aware"
  */
 #define object_aware_p(PLR, T) \
-    ((PLR)->obj_aware[(T)->k_idx])
+    ((PLR)->kind_aware[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "tried"
  */
 #define object_tried_p(PLR, T) \
-    ((PLR)->obj_tried[(T)->k_idx])
+    ((PLR)->kind_tried[(T)->k_idx])
 
 /*
  * Determine if a given inventory item is "known"
@@ -2665,7 +2665,7 @@ that keeps many algorithms happy.
 #define object_known_p(PTR, T) \
 	(((T)->ident & (ID_KNOWN)) || \
 	 ((k_info[(T)->k_idx].flags3 & (TR3_EASY_KNOW)) && \
-	  (PTR)->obj_aware[(T)->k_idx]))
+	  (PTR)->kind_aware[(T)->k_idx]))
 
 
 #define object_felt_or_known_p(IND, T) \
@@ -2694,7 +2694,7 @@ that keeps many algorithms happy.
  * Default to the "flavor" attr for unaware items.
  */
 #define object_kind_attr_p(PLR, K_IDX) \
-    (((PLR)->obj_aware[(K_IDX)]) ? \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
      ((PLR)->k_attr[(K_IDX)]) : \
      ((PLR)->d_attr[(K_IDX)]))
 
@@ -2704,7 +2704,7 @@ that keeps many algorithms happy.
  * Default to the "flavor" char for unaware items.
  */
 #define object_kind_char_p(PLR, K_IDX) \
-    (((PLR)->obj_aware[(K_IDX)]) ? \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
      ((PLR)->k_char[(K_IDX)]) : \
      ((PLR)->d_char[(K_IDX)]))
 
@@ -2720,12 +2720,12 @@ that keeps many algorithms happy.
     (object_kind_char_p((PLR), (T)->k_idx))
 
 #define object_kind_attr_s(PLR, K_IDX) \
-    (((PLR)->obj_aware[(K_IDX)]) ? \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
      (k_attr_s[(K_IDX)]) : \
      (flavor_attr_s[ k_info[(K_IDX)].flavor ]))
 
 #define object_kind_char_s(PLR, K_IDX) \
-    (((PLR)->obj_aware[(K_IDX)]) ? \
+    (((PLR)->kind_aware[(K_IDX)]) ? \
      (k_char_s[(K_IDX)]) : \
      (flavor_char_s[ k_info[(K_IDX)].flavor ]))
 

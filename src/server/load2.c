@@ -1963,8 +1963,8 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 
 		__try( read_byte("flags", &tmp8u) );
 
-		p_ptr->obj_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
-		p_ptr->obj_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
+		p_ptr->kind_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
+		p_ptr->kind_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
 	}
 	__try( end_section_read("object_memory") );
 
