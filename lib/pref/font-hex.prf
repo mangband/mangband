@@ -1,5 +1,8 @@
 # File: font-hex.prf
 
+# This file defines font mappings for files "misc6x13.hex"
+# and "nethack10x19-10.hex", which are mainly used by SDL
+# and SDL2 ports.
 
 # Color palette - Text
 

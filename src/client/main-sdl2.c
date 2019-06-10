@@ -5,16 +5,8 @@
   2. Many files in 'lib/user' and 'lib/xtra' are essential. These files and their purpose(s) are:
     * 'lib/user/font-sdl2.prf'
       - used to create the initial color palette - if non-existent, all text will be black on black
-    * 'lib/user/graf-sdl2.prf'
-      - used to load in 'graf-new.prf', for the pict table
-    * 'lib/user/graf-new.prf'
-      - pict table that corresponds to Adam Bolt's 16x16 tiles
-    * 'lib/user/keymap-sdl2.prf'
+    * 'lib/pref/pref-sdl2.prf'
       - keymap file for SDL2, required for arrow keys, also needs expansion
-    * 'lib/user/pref-sdl2.prf'
-      - loads 'graf-sdl2.prf', 'font-sdl2.prf', 'keymap-sdl2.prf', and 'windows-sdl2.prf'
-    * 'lib/xtra/graf/16x16.png'
-      - Modified version of Adam Bolt's 16x16 tiles - has a few added tiles
     * 'lib/xtra/font/AnonymousPro.ttf'
       - The default TTF font, licensed under the Open Font License
       - NOTE: This can be overridden in MAngband.ini as "font_file".
@@ -23,11 +15,6 @@ TODO:
   * Actually use all possible settings in MAngband.ini
   * Figure out keymapping that doesn't require 'keymap-sdl2.prf'
   * Get rid of as much hard-coded values as possible!
-
-NOTES:
-  * Are player PICT graphics possible?
-  * Is it possible to get the ch/attr pairs for a tile underneath another tile?
-  * Are sounds actually a thing? If so, it would be cool to implement.
 */
 #ifdef USE_SDL2
 
