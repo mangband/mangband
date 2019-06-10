@@ -37,6 +37,9 @@
 ?:[EQU $FON hex]
 %:font-hex.prf
 
+?:[IOR [EQU $FON fon] [EQU $FON FON]]
+%:font-win.prf
+
 ?:[EQU $FONTNAME silm8x16.bmp]
 %:font-silm.prf
 
