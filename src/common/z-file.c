@@ -71,6 +71,16 @@
 # define my_mkdir(path, perms) false
 #endif
 
+#if defined (WINDOWS) && !defined (CYGWIN)
+#ifdef WIN32
+#define INVALID_FILE_NAME (DWORD)0xFFFFFFFF
+#else /* WIN32 -> WIN16/DOS */
+#define FA_LABEL    0x08        /* Volume label */
+#define FA_DIREC    0x10        /* Directory */
+unsigned _cdecl _dos_getfileattr(const char *, unsigned *);
+#endif /* WIN32/WIN16 */
+#endif
+
 /**
  * Player info
  */
@@ -695,21 +705,16 @@ bool file_vputf(ang_file *f, const char *fmt, va_list vp)
 	return file_put(f, buf);
 }
 
+#ifdef WINDOWS
+#ifndef INVALID_FILE_NAME
+#define INVALID_FILE_NAME (DWORD)0xFFFFFFFF
+#endif
+#endif
 
 bool dir_exists(const char *path)
 {
-#ifdef HAVE_STAT
-	struct stat buf;
-	if (stat(path, &buf) != 0)
-		return false;
-	else if (buf.st_mode & S_IFDIR)
-		return true;
-	else
-		return false;
-#else
-# ifdef WINDOWS
-	{
-#  ifdef WIN32
+#ifdef WINDOWS
+# ifdef WIN32
 	DWORD attrib;
 
 	/* Examine */
@@ -720,8 +725,7 @@ bool dir_exists(const char *path)
 
 	/* Require directory */
 	if (!(attrib & FILE_ATTRIBUTE_DIRECTORY)) return (FALSE);
-
-#  else /* WIN16 */
+# else /* WIN16 */
 	unsigned int attrib;
 	/* Examine and verify */
 	if (_dos_getfileattr(path, &attrib)) return (FALSE);
@@ -732,12 +736,25 @@ bool dir_exists(const char *path)
 	/* Require directory */
 	if (!(attrib & FA_DIREC)) return (FALSE);
 
-#  endif /* WIN32 */
+# endif /* WIN16/WIN32 */
+#else /* Not on WINDOWS */
+#ifdef HAVE_STAT
+	struct stat buf;
+	if (stat(path, &buf) != 0)
+	{
+		return false;
 	}
-# else
-	return true;
-# endif
+	else if (buf.st_mode & S_IFDIR)
+	{
+		return true;
+	}
+	else
+		return false;
 #endif
+#endif
+	/* If we got here, we can't reliably tell
+	 * if a directory exists.. */
+	return true;
 }
 
 #ifdef HAVE_STAT
