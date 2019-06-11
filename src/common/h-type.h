@@ -142,9 +142,15 @@ typedef  int64_t s64b;
 #else
 /* If we don't have <inttypes.h>, revert to old method: */
 
+/* Format specifiers for 8 bit values */
+#define SCNu8 "c"
+#define PRIu8 "c"
+
 /* Signed/Unsigned 16 bit value */
 typedef signed short s16b;
 typedef unsigned short u16b;
+#define SCNu16 "d"
+#define PRIu16 "d"
 
 /* Signed/Unsigned 32 bit value */
 #ifdef L64	/* 64 bit longs */
