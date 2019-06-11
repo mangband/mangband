@@ -29,7 +29,13 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\..\mangclient.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\mangclient-sdl.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\mangclient-sdl2.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\sdl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\sdl_ttf.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\sdl2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\sdl2_ttf.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\libfreetype-6.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\mangclient.ini"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-client.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\lib\bone\*"; DestDir: "{app}\lib\bone"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -42,6 +48,7 @@ Source: "..\..\lib\xtra\sound\*"; DestDir: "{app}\lib\xtra\sound"; Flags: ignore
 [Icons]
 Name: "{group}\MAngband"; Filename: "{app}\mangclient.exe"
 Name: "{group}\MAngband (One Window)"; Filename: "{app}\mangclient-sdl.exe"
+Name: "{group}\MAngband (Dockable Windows)"; Filename: "{app}\mangclient-sdl2.exe"
 Name: "{group}\ReadMe"; Filename: "{app}\README-client.htm"
 Name: "{group}\Config Dir"; Filename: "{app}\lib\user\"
 Name: "{group}\{cm:UninstallProgram,MAngband}"; Filename: "{uninstallexe}"

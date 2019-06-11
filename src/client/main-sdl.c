@@ -24,16 +24,14 @@
 
 /* Options */
 #undef SINGLE_SURFACE /* Eat more CPU, but less RAM (only signifcant when drawing GUI) */
-#define USE_BITMASK	/* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
+#define SHADE_FONTS /* Allow fonts with multiple colors */
+
 
 #include "c-angband.h"
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
 bool mouse_mode = FALSE;	/* pass mouse events to Angband !!! */
-
-static cptr ANGBAND_DIR_XTRA_FONT;
-static cptr ANGBAND_DIR_XTRA_GRAF;
 
 static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
 static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
@@ -44,18 +42,12 @@ bool quartz_hack = FALSE; /* Enable special mode on OSX */
 #include <SDL/SDL.h>
 #include <string.h>
 
-#ifndef HAVE_SDL_IMAGE
-#include "lupng/lupng.h"
-#endif
-
-
-/* local functions */
-static void play_sound_end(bool wait);
-static void play_sound(int v, int s);
+#include "sdl-font.h"
+#include "sdl-sound.h"
 
 /* this stuff was moved to sdl-maim.c */
 extern SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src, Uint32 t_oldw, Uint32 t_oldh, Uint32 t_neww, Uint32 t_newh, int dealloc_src);
-extern errr strtoii(const char *str, Uint32 *w, Uint32 *h);
+extern SDL_Surface* SurfaceTo8BIT(SDL_Surface *face, int free_src);
 extern char *formatsdlflags(Uint32 flags);
 extern void Multikeypress(char *k);
 extern char *SDL_keysymtostr(SDL_keysym *ks); /* this is the important one. */
@@ -91,6 +83,11 @@ struct font_data
 	 */
 	Uint8 w;
 	Uint8 h;
+
+#ifdef SHADE_FONTS
+	/* Our color ramp */
+	SDL_Color ramp[255];
+#endif
 
 	/* TODO: actual precolorization?! */
 	Uint8 precolorized;
@@ -391,156 +388,24 @@ int pick_term(int x, int y)
 	return r;
 }
 
-/*
- * Load a PNG tileset.
- *
- * If zerokey is TRUE, the top-left pixel will be used to pick a color key.
- *
- */
-SDL_Surface* SDLU_LoadPNG(const char *path)
-{
-#ifdef HAVE_SDL_IMAGE
-#else
-	SDL_Surface *face;
-	int x, y, i;
-	int npal = 0;
-	SDL_Color pal[256];
-	LuImage *img = luPngReadFile(path);
-	
-	if (!img) return NULL;
-	
-	luImageDarkenAlpha(img);
-	
-	face = SDL_CreateRGBSurface(SDL_SWSURFACE, img->width, img->height, 8, 0,0,0,0);
-	if(!face)
-	{
-		luImageRelease(img, NULL);
-		return NULL;
-	}
-	SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
-	
-	pal[0].r = pal[0].g = pal[0].b = 0; /* chroma black */
-	pal[1].r = pal[1].g = pal[1].b = 1; /* subtitution black */
-	npal = 2;
-
-	for (y = 0; y < img->height; y++) {
-	for (x = 0; x < img->width ; x++) {
-		
-		Uint8 r = img->data[y * img->width * img->channels + x * img->channels + 0];
-		Uint8 g = img->data[y * img->width * img->channels + x * img->channels + 1];
-		Uint8 b = img->data[y * img->width * img->channels + x * img->channels + 2];
-		Uint8 col = 255;
-		for (i = 0; i < npal; i++) {
-			if (pal[i].r == r && pal[i].g == g && pal[i].b == b) {
-				col = i;
-				break;
-			}
-		}
-		if (col == 255 && npal < 255) {
-			i = npal;
-			npal++;
-			pal[i].r = r;
-			pal[i].g = g;
-			pal[i].b = b;
-			col = i;
-		}
-		if (col == 0 && img->channels == 4) {
-			Uint8 a = img->data[y * img->width * img->channels + x * img->channels + 3];
-			if (a <= 32) col = 0;
-			else col = 1;
-		}
-		((Uint8*)face->pixels)[y * face->pitch + x * face->format->BytesPerPixel] = col;
-	} }
-	SDL_SetColors(face, &pal[0], 0, npal);
-	
-	luImageRelease(img, NULL);
-	
-	return face;
-#endif
-}
-errr load_PNG_graf_sdl(font_data *fd, cptr filename)
-{
-	char path[1024];
-	Uint32 mw, mh;
-
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
-
-	if ((fd->face = SDLU_LoadPNG(path)) != NULL)
-	{
-		/* Attempt to get dimensions from filename */
-		if(!strtoii(filename, &mw, &mh))
-		{
-			fd->w = mw;
-			fd->h = mh;
-		}
-	}
-	else
-	{
-		return 1;
-	}
-
-	return 0;
-}
 
 
 /*
- * Load a BMP tileset.
+ * Load a tileset.
  *
- * If USE_BITMASK is defined, a second file with mask will be loaded,
+ * If maskname != NULL, a second file with mask will be loaded,
  * and the tileset will be recolored to use it as the colorkey.
  *
  */
-errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
+errr load_ANY_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 {
-#ifdef USE_BITMASK
-	int x, y, mask_offset, tile_offset;
-	Uint8 *mask_pixels, *tile_pixels;
-	Uint8 sub_black;	/* substitution color for black */
-	SDL_Surface *mask;
-#endif
-	char path[1024];
-	Uint32 mw, mh;
+	SDL_Rect glyph_info;
 
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, filename);
-
-	if ((fd->face = SDL_LoadBMP(path)) != NULL)
+	if ((fd->face = sdl_graf_load(filename, &glyph_info, maskname)) != NULL)
 	{
 		/* Attempt to get dimensions from filename */
-		if(!strtoii(filename, &mw, &mh))
-		{
-			fd->w = mw;
-			fd->h = mh;
-		}
-
-		/* Convert mask to color-key */
-#ifdef USE_BITMASK
-		if (!maskname) return 0; /* No mask, we're done */
-			
-		path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, maskname);
-			
-		if ((mask = SDL_LoadBMP(path)) != NULL)
-		{
-			sub_black = SDL_MapRGB(fd->face->format, 1, 1, 1);
-
-			mask_pixels = (Uint8 *)mask->pixels;
-			tile_pixels = (Uint8 *)fd->face->pixels;
-
-			for (y = 0; y < mask->h; y++) {
-			for (x = 0; x < mask->w; x++) {
-		
-				mask_offset = (mask->pitch/2 * y + x);
-				tile_offset = (fd->face->pitch/2 * y + x);
-						
-				if (!tile_pixels[tile_offset])
-					tile_pixels[tile_offset] = ( mask_pixels[mask_offset] ? 0 : sub_black ); 
-
-			}
-			}
-
-			SDL_FreeSurface(mask);
-			mask = NULL;
-		}
-#endif
+		fd->w = glyph_info.w;
+		fd->h = glyph_info.h;
 	}
 	else
 	{
@@ -551,251 +416,42 @@ errr load_BMP_graf_sdl(font_data *fd, cptr filename, cptr maskname)
 }
 
 /*
- * Load a HEX font.
- * See http://czyborra.com/unifont/
- *
- * XXX Note. Your file should not be all full-width glyphs. At least one
- * half-width glyph must be present for my lame algorithm to work.
- * It is OK to have all half-width glyphs.
- * 
- * This routine will try to use strtoii() to figure out the font's bounding
- * box from the filename. This seems to be an acceptable thing to try, 
- * as seen in main-win.c
- *
- * FIXME
- * BUGS: There is no attempt made at figuring out a righteous bounding box.
- *	      Certain HEX fonts can be *wider* than 16 pixels. They may break.
- *
- *	What we need is a BDF loader. It's not a high priority though.
- *
+ * Load SDL font.
+ * "load_HEX_font_sdl" was moved to sdl-font.c
  */
-
-#define highhextoi(x) (strchr("ABCDEF", (x))? 0xA + ((x)-'A'):0)
-#define hexchartoi(x) (strchr("0123456789", (x))? (x)-'0' : highhextoi((x)))
-
-#ifndef MAX_HEX_FONT_LINE
-#define MAX_HEX_FONT_LINE 1024
-#endif
-
-errr load_HEX_font_sdl(font_data *fd, cptr filename, bool justmetrics)
+errr load_ANY_font_sdl(font_data *fd, cptr filename)
 {
-	ang_file* f;
-
-	char buf[1036]; /* 12 (or 11? ;->)extra bytes for good luck. */
-
-	char gs[MAX_HEX_FONT_LINE]; /* glyph string */
-
-	Uint32 i,j;
-
-	errr fail = 0; /* did we fail? */
-
-	Uint32 x; /* current x in fd->face */
-	Uint32 y; /* current y in fd->face */
-
-	Uint32 gn; /* current glyph n */
-
-	Uint32 n; /* current nibble or byte or whatever data from file */
-
-	Uint32 pos; /* position in the nasty string */
-
-	Uint32 bytesdone; /* bytes processed */
-
-	Uint32 mw, mh; /* for strtoii() */
-
-	Uint32 iw, ih; /* internal width and height. sometimes larger then final character size */
-
+#ifdef SHADE_FONTS
+	int i;
+#endif
+	SDL_Rect info;
+	SDL_Surface *face;
 
 	/* check font_data */
-	if (fd->w || fd->h || fd->face) return 1; /* dealloc it first, dummy. */
+	if (fd->w || fd->h || fd->face) return -1; /* dealloc it first, dummy. */
 
-	/* Build the filename */
-	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
+	face = sdl_font_load(filename, &info, 16, 0);
 
-	f = file_open(buf, MODE_READ, -1);
-
-	if (!f)
+	if (!face)
 	{
-		plog(format("Couldn't open: %s", buf));
 		return -1;
 	}
 
-
-
-	/* try hard to figure out the font metrics */
-
-	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
+#ifdef SHADE_FONTS
+	if (!face->format->palette)
 	{
-		i = strlen(gs);
-
-		if (gs[i-1] == '\n') i--;
-		if (gs[i-1] == '\r') i--;
-		
-		i -= 5; /* each line begins with 1234: */
-
-		/* now i is the number of nibbles in the line */
-
-		if (i & 1)
-		{
-			plog("Error in HEX line measurment. Report to hmaon@bumba.net.");
-			file_close(f);
-			fail = -1;
-			break;
-		}
-
-		i >>= 1; /* i is number of bytes */
-
-		if (!fd->h)
-		{
-			fd->w = 8; /* a nasty guess. */
-			fd->h = i;
-			/*if (i & 1) break;*/ /* odd number of bytes. this is the height. */
-		} else
-		{
-			if (i > fd->h) {
-				fd->w = 16; /* an even nastier guess (full-width glyphs here) */
-				if(fd -> h / 2 == i / 3)
-				{
-					/* this sucks. */
-					fd->h = i / 3;
-					fd->w = 24;
-				} else
-				if(i != (fd->h)*2) /* check sanity and file integrity */
-				{
-					plog("Error 2 in HEX measurement.");
-					/*fail = -1;*/
-				}
-				break; /* this is a full-width glyph. We have the height. */
-			} else
-			if (i < fd->h) {
-				if (i*2 != fd->h)
-				{
-					plog("Error 3 in HEX measurement.");
-					/*fail = -1;*/
-				}
-				fd->w = 16; /* the same nastier guess. */
-				fd->h = i; /* Ah, so this is the height */
-			}
-			/* they're equal. we can say nothing about the glyph height */
-		}
+		face = SurfaceTo8BIT(face, 1);
 	}
-
-	/* Use those dimensions for reading anyway */
-	iw = fd->w;
-	ih = fd->h;
-
-	/* analyze the file name */
-	if(!strtoii(filename, &mw, &mh))
+	for (i = 0; i < face->format->palette->ncolors; i++)
 	{
-		/* success! */
-		fd->w = mw;
-		fd->h = mh;
-	} else {
-		plog("You may wish to incude the dimensions of a font in its file name. ie \"vga8x16.hex\"");
+		fd->ramp[i] = face->format->palette->colors[i];
 	}
-
-	if (justmetrics) 
-	{
-		file_close(f);
-		return fail;
-	}
-
-	/* Allocate the bitmap here. */
-	fd->face = SDL_CreateRGBSurface(SDL_SWSURFACE, iw, 256 * ih, 8,0,0,0,0); 
-	if(!(fd->face)) return -1;
-	SDL_SetAlpha(fd->face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
-
-	file_seek(f, 0);
-
-	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
-	{
-#ifdef FONT_LOAD_DEBUGGING
-		puts("");
-		puts(gs);
 #endif
-		/* figure out character code (aka index). xxxx:... */
-		if (sscanf(gs, "%4x", &gn) != 1)
-		{
-			plog("Broken HEX file.");
-			fail = -1;
-			break;
-		}
 
-#ifdef FONT_LOAD_DEBUGGING
-		printf("%4x:\n", gn);
-#endif
-		if (gn > 255) {
-			gn = 255;
-		}
-
-		x = 0; 
-		y = fd->h * gn;
-
-		i = strlen(gs);
-
-		if (gs[i-1] == '\n') {
-			i--;
-			gs[i] = '\0';
-		}
-		if (gs[i-1] == '\r') 
-		{
-			i--;
-			gs[i] = '\0';
-		}
-
-		i -= 5; /* each line begins with 1234: */
-		/* now i is the number of nibbles represented in the line */
-		i >>= 1; /* now bytes. */
-
-		pos = 5;
-		bytesdone = 0; 
-
-		while (gs[pos] != '\0' && pos < strlen(gs)) 
-		{
-			n  = (hexchartoi(gs[pos])) << 4; pos++; 
-			n += (hexchartoi(gs[pos])); pos++;
-			/* they're macros. do NOT pass a "pos++" to them! :) :) :) */
-
-			for(j = 0; j < 8; ++j, ++x, n <<= 1)
-			{
-				if (n & 0x80) 
-				{
-#ifdef FONT_LOAD_DEBUGGING
-					printf("#");
-#endif
-					((Uint8 *)fd->face->pixels)[x + y*fd->face->pitch] = 0xff;
-				} else
-				{
-#ifdef FONT_LOAD_DEBUGGING
-					printf("-");
-#endif
-					((Uint8 *)fd->face->pixels)[x + y*fd->face->pitch] = 0x00;
-				}
-			}
-			++bytesdone;
-
-			/* processing half-width glyph or just finished even byte */
-			if (i == ih || ((i == 2*ih) && !(bytesdone & 1))) 
-			{
-				x = 0;
-				++y;
-#ifdef FONT_LOAD_DEBUGGING
-				printf("\n");
-#endif
-			} else if (i == 2*ih)
-			{
-				/* XXX do nothing? */
-			} else
-			{
-				/* XXX XXX XXX softer errors since HEX seems to actually permit
-				 * this situation
-				 */
-				/*plog("HEX measurement error, fd->h is not a multiple of i.");*/
-				/*fail = -1;*/
-			}
-		} /* while (gs[pos... */
-	} /* while (fgets... */
-
-	return fail;
+	fd->face = face;
+	fd->w = info.w;
+	fd->h = info.h;
+	return 0;
 }
 
 /* Helper functions end here. Let's do some GUI functions now */
@@ -1094,7 +750,7 @@ bool gui_term_event(SDL_Event* event) {
 		/* Various frivolous hacks. */
 		if (event->key.keysym.sym == SDLK_TAB)
 		{
-			taken = gui_term_next(); 
+			taken = gui_term_next();
 			break;
 		}
 		if (event->key.keysym.sym == SDLK_F12 && (event->key.keysym.mod & KMOD_ALT))
@@ -1409,8 +1065,8 @@ void SDL_PrintChar(term_data* td, int x, int y, Uint32 a, unsigned char c) {
 	dr.w = sr.w = td->fd->w;
 	dr.h = sr.h = td->fd->h;
 
-	sr.x = 0;
-	sr.y = c * td->fd->h;
+	sr.x = (c % 16) * td->fd->w;
+	sr.y = (c / 16) * td->fd->h;
 
 	dr.x = x * td->fd->w + td->xoff;
 	dr.y = y * td->fd->h + td->yoff;
@@ -1420,7 +1076,8 @@ void SDL_PrintChar(term_data* td, int x, int y, Uint32 a, unsigned char c) {
 	dc.g = a >> 8;
 	dc.b = a;
 
-	SDL_SetColors(td->fd->face, &dc, 0xff, 1);
+	if (td->fd->face->format->BitsPerPixel == 8)
+	SDL_SetColors(td->fd->face, &dc, 0x01, 1);
 	SDL_SetColorKey(td->fd->face, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
 	SDL_BlitSurface(td->fd->face, &sr, bigface, &dr);
 	SDL_SetColorKey(td->fd->face, SDL_RLEACCEL, 0);
@@ -1447,14 +1104,28 @@ void SDL_BlitChar_AUX(term_data* td, font_data *fd, int x, int y, byte a, unsign
 	sr.w = dr.w = fd->w;
 	sr.h = dr.h = fd->h;
 
-	sr.x = 0;
-	sr.y = c * fd->h;
+	sr.x = (c % 16) * fd->w;
+	sr.y = (c / 16) * fd->h;
 
-	/* Tweaking pallete with SDL_SetColors is not optimal AT ALL */
+	/* Tweaking palette with SDL_SetColors is not optimal AT ALL */
 	if (td->fd->precolorized)
-		sr.x = a * fd->w;
+		sr.x += a * fd->face->w;
 	else
-		SDL_SetColors(fd->face, &(color_data_sdl[a&0xf]), 0xff, 1);
+	{
+#ifdef SHADE_FONTS
+		int i;
+		for (i = 1; i < fd->face->format->palette->ncolors; i++)
+		{
+			SDL_Color dc;
+			dc.r = color_data_sdl[a&0xf].r * fd->ramp[i].r / 255;
+			dc.g = color_data_sdl[a&0xf].g * fd->ramp[i].g / 255;
+			dc.b = color_data_sdl[a&0xf].b * fd->ramp[i].b / 255;
+			SDL_SetColors(fd->face, &dc, i, 1);
+		}
+#else
+		SDL_SetColors(fd->face, &(color_data_sdl[a&0xf]), 0x01, 1);
+#endif
+	}
 
 #ifdef SINGLE_SURFACE
 	dr.x += td->xoff;
@@ -1700,7 +1371,7 @@ static errr Term_xtra_sdl(int n, int v)
 
 		/* HACK !!! */
 		/* Terminate current sound if necessary */
-		if (use_sound) play_sound_end(TRUE);
+		if (use_sound) sdl_play_sound_end(TRUE);
 
 		/* XXX XXX XXX Flush output (optional) */
 		/* This action should make sure that all "output" to the */
@@ -1733,7 +1404,7 @@ static errr Term_xtra_sdl(int n, int v)
 
 		/* Make a sound */
 		i = sound_count(v);
-		if (i) play_sound (v, rand_int(i));
+		if (i) sdl_play_sound (v, rand_int(i));
 
 		return (0);
 
@@ -2168,9 +1839,10 @@ void term_rescale(int i, bool create, bool redraw) {
 	/* Rescale font */
 	if (td->fd->face && (td->fd->w != td->w || td->fd->h != td->h)) {
 		SDL_SetColors(td->fd->face, &(color_data_sdl[TERM_WHITE&0xf]), 0xff, 1);
-
 		td->sfd.face = SDL_ScaleTiledBitmap(td->fd->face, td->fd->w, td->fd->h, td->w, td->h, 0);
-
+#ifdef SHADE_FONTS
+		memcpy(td->sfd.ramp, td->fd->ramp, sizeof(SDL_Color) * 255);
+#endif
 		td->sfd.w = td->w;
 		td->sfd.h = td->h;
 
@@ -2611,17 +2283,7 @@ bool term_load_graf(int i, cptr filename, cptr maskname)
 		memset(load_tiles, 0, sizeof(graf_tiles));
 		load_tiles->face = NULL;
 
-		if (isuffix(filename, ".png"))
-		{
-			if (!load_PNG_graf_sdl(load_tiles, filename))
-			{
-				load_tiles->name = string_make(filename);
-				td->gt = load_tiles;
-			}
-		}
-		else
-
-		if (!load_BMP_graf_sdl(load_tiles, filename, maskname))
+		if (!load_ANY_graf_sdl(load_tiles, filename, maskname))
 		{
 			load_tiles->name = string_make(filename);
 			td->gt = load_tiles;
@@ -2666,10 +2328,17 @@ bool term_set_font(int i, cptr fontname)
 		MAKE(load_font, font_data);
 		memset(load_font, 0, sizeof(font_data));
 		load_font->face = NULL;
-		if (!load_HEX_font_sdl(load_font, fontname, 0))
+
+		if (!load_ANY_font_sdl(load_font, fontname))
 		{
 			load_font->name = string_make(fontname);
 			td->fd = load_font;
+			if (i == 0)
+			{
+				char *ext = strrchr(fontname, '.');
+				ANGBAND_FON = ext ? string_make(ext+1) : ANGBAND_FON;
+				ANGBAND_FONTNAME = string_make(fontname);
+			}
 		}
 	}
 	if (!td->fd)
@@ -2846,195 +2515,6 @@ bool init_one_term(int i, bool force)
 
 	return TRUE;
 }
-void init_extra_paths()
-{
-	char path[1024];
-
-	/* Font */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "font");
-	ANGBAND_DIR_XTRA_FONT = string_make(path);
-
-	/* Graf */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
-	ANGBAND_DIR_XTRA_GRAF = string_make(path);
-
-#ifdef USE_SOUND
-	/* Sound */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "sound");
-	ANGBAND_DIR_XTRA_SOUND = string_make(path);
-#endif
-}
-
-#ifdef USE_SOUND
-typedef struct sound_wave 
-{
-	Uint8* buffer;
-	Uint32 length;
-	Uint32 pos;
-	bool playing;
-} sound_wave;
-sound_wave sound_data[MSG_MAX][SAMPLE_MAX];
-sound_wave *now_playing = NULL;
-
-SDL_AudioSpec wav_obtained;
-
-static void wav_play(void *userdata, Uint8 *stream, int len)
-{
-	/* Grab */
-	sound_wave * wav = now_playing;
-
-	/* Paranoia */
-	Uint32 tocopy = ((wav->length - wav->pos > len)? len: wav->length - wav->pos);
-
-	/* Copy data to audio buffer */
-	memcpy(stream, wav->buffer + wav->pos, tocopy);
-
-	/* Advance */
-	wav->pos += tocopy;
-}
-
-static void play_sound_end(bool wait)
-{
-	bool end_sound;
-	sound_wave * wav = now_playing;
-
-	if (wav == NULL) return;
-
-	end_sound = (wait? (wav->pos == wav->length): TRUE);
-
-	/* Wait for end of audio thread */
-	if ((wav->length != 0) && end_sound && wav->playing)
-	{
-		/* Stop playing */
-		SDL_PauseAudio(1);
-		wav->playing = FALSE;
-
-		/* Close the audio device */
-		SDL_CloseAudio();
-	}
-}
-
-/*
- * Init sound
- */
-
-static void init_sound()
-{
-	SDL_AudioSpec wav_desired;
-	int i, j;
-
-	/* Desired audio parameters */
-	wav_desired.freq = 44100;
-	wav_desired.format = 0; /* let OS pick //AUDIO_U16SYS;*/
-	wav_desired.channels = 2;
-	wav_desired.samples = 512;
-	wav_desired.callback = &wav_play;
-	wav_desired.userdata = NULL;
-
-	/* Open the audio device */
-	if (SDL_OpenAudio(&wav_desired, &wav_obtained) != 0)
-	{
-		plog_fmt("Could no`t open audio: %s", SDL_GetError());
-		use_sound = FALSE;
-		return;
-	}
-
-	/* Clear sound_data */
-	for (j = 0; j < MSG_MAX; j++)	for (i = 0; i < SAMPLE_MAX; i++)
-	{
-		(void)WIPE(&sound_data[j][i], sound_wave);
-	}
-}
-/*
- * Close sound
- */
-static void cleanup_sound()
-{
-	int j, i;
-
-	/* Close the audio device */
-	SDL_CloseAudio();
-
-	/* Free loaded wavs */
-	for (j = 0; j < MSG_MAX; j++)	for (i = 0; i < SAMPLE_MAX; i++)
-	{
-		if (sound_data[j][i].buffer != NULL)
-		{
-			free(sound_data[j][i].buffer);
-		}
-	}
-}
-/*
- * Load a sound
- */
-static void load_sound(int v, int s)
-{
-	SDL_AudioSpec wav_spec;
-	SDL_AudioCVT wav_cvt;
-	char buf[MSG_LEN];
-
-	sound_wave * wav = &sound_data[v][s];
-
-	/* Build the path */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);
-
-	/* Load the WAV */
-	if (SDL_LoadWAV(buf, &wav_spec, &wav->buffer, &wav->length) == NULL)
-	{
-		plog_fmt("Could not open %s: %s", buf, SDL_GetError());
-		return;
-	}
-
-	/* Build the audio converter */
-	if (SDL_BuildAudioCVT(&wav_cvt, wav_spec.format, wav_spec.channels, wav_spec.freq,
-		wav_obtained.format, wav_obtained.channels, wav_obtained.freq) < 0)
-	{
-		plog_fmt("Could not build audio converter: %s", SDL_GetError());
-		return;
-	}
-
-	/* Allocate a buffer for the audio converter */
-	wav_cvt.buf = malloc(wav->length * wav_cvt.len_mult);
-	wav_cvt.len = wav->length;
-	memcpy(wav_cvt.buf, wav->buffer, wav->length);
-
-	/* Convert audio data to correct format */
-	if (SDL_ConvertAudio(&wav_cvt) != 0)
-	{
-		plog_fmt("Could not convert audio file: %s", SDL_GetError());
-		return;
-	}
-
-	/* Free the WAV */
-	SDL_FreeWAV(wav->buffer);
-
-	/* Allocate a buffer for the audio data */
-	wav->buffer = malloc(wav_cvt.len_cvt);
-	memcpy(wav->buffer, wav_cvt.buf, wav_cvt.len_cvt);
-	free(wav_cvt.buf);
-	wav->length = wav_cvt.len_cvt;
-}
-/*
- * Make a sound
- */
-static void play_sound(int v, int s)
-{
-	sound_wave * wav = &sound_data[v][s];
-
-	/* If another sound is currently playing, stop it */
-	play_sound_end(FALSE);
-
-	/* If sound isn't loaded, load it */
-	if (wav->buffer == NULL) load_sound(v,s);
-
-	/* Start playing */
-	wav->pos = 0;
-	wav->playing = TRUE;
-	SDL_PauseAudio(0);
-
-	now_playing = wav;
-}
-#endif
 
 static void quit_sdl(cptr str)
 {
@@ -3043,8 +2523,9 @@ static void quit_sdl(cptr str)
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
-	cleanup_sound();
+	sdl_cleanup_sound();
 #endif
+	sdl_font_quit();
 	SDL_Quit();
 }
 
@@ -3167,13 +2648,14 @@ errr init_sdl(void)
 	 */
 	init_color_data_sdl();
 
-	init_extra_paths();
-
 	/* Sound */
 #ifdef USE_SOUND
 	load_sound_prefs();
-	init_sound();
+	sdl_init_sound();
 #endif
+
+	/* Init font loading sublibraries */
+	sdl_font_init();
 
 	/* Init all 'Terminals' */
 	init_all_terms();

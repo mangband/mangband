@@ -242,7 +242,7 @@
     <ClInclude Include="..\..\src\common\z-virt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-	<ClInclude Include="..\..\src\common\z-file.h">
+    <ClInclude Include="..\..\src\common\z-file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

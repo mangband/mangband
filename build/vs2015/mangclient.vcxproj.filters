@@ -129,6 +129,12 @@
     <ClCompile Include="..\..\src\common\z-file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\main-sdl2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\sdl-font.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\readpng.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -136,6 +142,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\lupng\miniz.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\sdl-sound.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -233,10 +242,19 @@
     <ClInclude Include="..\..\src\client\c-defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\sdl-font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\main-sdl2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\lupng\lupng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\lupng\miniz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\sdl-sound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

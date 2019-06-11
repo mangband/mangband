@@ -10,9 +10,9 @@
 #if !defined(USE_WIN) && !defined(USE_CRB)
 #include "c-angband.h"
 
-#ifdef USE_SDL
 /* This is needed on some platforms to replace main via dark magic */
 /* TODO: See if it breaks anything. Also, where is our ON_OSX define? */
+#if defined(USE_SDL2) || defined(USE_SDL)
 #include <SDL.h>
 #endif
 
@@ -92,6 +92,15 @@ int main(int argc, char *argv[])
 		if (done) ANGBAND_SYS = "sdl";
 	}
 #endif
+#ifdef USE_SDL2
+	if (!done)
+	{
+		extern errr init_sdl2(void);
+		if (init_sdl2() == 0) done = TRUE;
+		if (done) ANGBAND_SYS = "sdl2";
+	}
+#endif
+
 
 #ifdef USE_XAW
 	/* Attempt to use the "main-xaw.c" support */

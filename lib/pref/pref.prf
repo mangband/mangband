@@ -264,6 +264,9 @@ C:1:_
 ?:[EQU $SYS sdl]
 %:pref-sdl.prf
 
+?:[EQU $SYS sdl2]
+%:pref-sdl2.prf
+
 ?:[EQU $SYS ami]
 %:pref-ami.prf
 

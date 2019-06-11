@@ -66,6 +66,9 @@ cave_view_type* remote_info[16]; /* Local copies for Special Info */
 s16b last_remote_line[16];
 cptr stream_desc[32];
 
+cave_view_type sfx_info[MAX_HGT][MAX_WID] = { 0 };
+s32b sfx_delay[MAX_HGT][MAX_WID] = { 0 };
+
 cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
 s32b air_delay[MAX_HGT][MAX_WID] = { 0 };
 s32b air_fade[MAX_HGT][MAX_WID] = { 0 };
@@ -155,6 +158,10 @@ u32b window_flag_o[8]; /* Flags as user intended, no state modifications */
 byte color_table[256][4];
 
 cptr ANGBAND_SYS;
+
+cptr ANGBAND_FON = "";
+cptr ANGBAND_FONTNAME = "";
+cptr ANGBAND_GRAFNAME = "";
 
 cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
 

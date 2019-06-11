@@ -105,6 +105,10 @@ extern cave_view_type* remote_info[16];
 extern s16b last_remote_line[16];
 extern cptr stream_desc[32];
 
+cave_view_type sfx_info[MAX_HGT][MAX_WID];
+s32b sfx_delay[MAX_HGT][MAX_WID];
+extern void slashfx_dir_offset(int *x, int *y, int dir, bool invert);
+
 cave_view_type air_info[MAX_HGT][MAX_WID];
 s32b air_delay[MAX_HGT][MAX_WID];
 s32b air_fade[MAX_HGT][MAX_WID];
@@ -210,6 +214,10 @@ extern u32b window_flag_o[8];
 extern byte color_table[256][4];
 
 extern cptr ANGBAND_SYS;
+
+extern cptr ANGBAND_FON;
+extern cptr ANGBAND_FONTNAME;
+extern cptr ANGBAND_GRAFNAME;
 
 extern cptr keymap_act[KEYMAP_MODES][256];
 
@@ -433,6 +441,7 @@ extern bool sync_data(void);
 extern bool client_login(void);
 extern bool client_ready(void);
 extern bool client_setup(void);
+extern void wipe_visual_prefs(void);
 extern void initialize_all_pref_files(void);
 extern void client_init(void);
 extern  int client_failed(void);
@@ -500,6 +509,7 @@ extern void mem_line(int y, int x, int cols);
 extern void show_line(int y, s16b cols, bool mem, int st);
 extern void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem);
 extern void update_air(void);
+extern void update_slashfx(void);
 extern void prt_num(cptr header, int num, int row, int col, byte color);
 extern void prt_lnum(cptr header, s32b num, int row, int col, byte color);
 extern void interact_macros(void);
@@ -550,6 +560,7 @@ extern void do_chat_select(int id);
 extern void do_chat_close(int id);
 extern void do_handle_message(cptr mesg, u16b type);
 
+
 /* client.c */
 
 /* net-client.c */
@@ -557,6 +568,7 @@ extern s16b state;
 extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
+extern void net_visuals_update(void);
 extern void setup_keepalive_timer();
 extern void setup_network_client();
 extern void cleanup_network_client();

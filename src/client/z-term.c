@@ -486,6 +486,11 @@ static errr Term_pict_hack(int x, int y, int n, const byte *ap, const char *cp, 
 }
 
 
+/**** Redefinable hooks / Term2 ****/
+bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc) = NULL;
+void (*query_size_aux)(s16b *x, s16b *y, int st) = NULL;
+void (*refresh_char_aux)(int x, int y) = NULL;
+
 /*** Efficient routines ***/
 
 

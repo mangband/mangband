@@ -316,6 +316,26 @@ struct term
 #define TERM_XTRA_DELAY 13	/* Delay some milliseconds (optional) */
 
 
+/* TERM_XTRA_REACT hints.
+ *
+ * These values may be used as the second parameter of "Term_xtra()",
+ * with the first parameter is TERM_XTRA_REACT. The receiving hook
+ * is allowed to ignore those hints.
+ *
+ * Note, that receiving such event DOES NOT guarantee the change has
+ * actually occured, it's merely a hint suggesting IT COULD'VE OCCURED.
+ */
+#define TERM_XTRA_REACT_GENERIC  0	/* Something happened (probably) */
+#define TERM_XTRA_REACT_COLORS   0x01	/* Colors have been updated */
+#define TERM_XTRA_REACT_VISUALS  0x02	/* Visual mappings have been updated */
+#define TERM_XTRA_REACT_NETWORK  0x04	/* Network state changed */
+#define TERM_XTRA_REACT_XXX_XXX  0x08	/* */
+#define TERM_XTRA_REACT_OPTIONS  0x10	/* (=) Options were adjusted */
+#define TERM_XTRA_REACT_SETTINGS 0x20	/* (=X) Settings were adjusted */
+#define TERM_XTRA_REACT_WINDOWS  0x40	/* (=W) Window settings were adjusted */
+#define TERM_XTRA_REACT_XXX_222  0x80	/* */
+
+
 /*
  * Angband "attributes" (with symbols, and base (R,G,B) codes)
  *
@@ -346,6 +366,10 @@ struct term
 #define BASIC_COLORS	16
 
 
+/**** Redefinable hooks / Term2 ****/
+extern bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc);
+extern void (*query_size_aux)(s16b *x, s16b *y, int st);
+extern void (*refresh_char_aux)(int x, int y);
 
 /**** Available Variables ****/
 

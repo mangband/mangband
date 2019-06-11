@@ -264,14 +264,13 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	dst = SDL_CreateRGBSurface(src->flags, nx * t_neww, ny * t_newh, src->format->BitsPerPixel,
 	                           src->format->Rmask, src->format->Gmask, src->format->Bmask, src->format->Amask);
 
-	/* Copy pallete */
-	if (src->format->BitsPerPixel == 8) {
-	for (i = 0; i < src->format->palette->ncolors; i++) {
-		dst->format->palette->colors[i] = src->format->palette->colors[i];
+	/* Copy palette */
+	if (src->format->BitsPerPixel == 8)
+	{
+		SDL_SetColors(dst, src->format->palette->colors, 0, src->format->palette->ncolors);
+		dst->format->palette->ncolors = src->format->palette->ncolors;
 	}
-	dst->format->palette->ncolors = src->format->palette->ncolors;
-	}
-	
+
 	/* Do per-tile scaling */
 	for (y = 0; y < ny; ++y)
 	{
@@ -302,60 +301,42 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	return dst;
 }
 
-
-/* The following function will extract height and width info from a filename
- * such as 16x16.xyz or 8X13.bar or even argle8ook16.foo
- *
- * I realize now that it's also useful for reading integers out of an argument
- * such as --fooscale1=2
- */
-
-errr strtoii(const char *str, Uint32 *w, Uint32 *h)
+SDL_Surface* SurfaceTo8BIT(SDL_Surface *face, int free_src)
 {
-	char buf[1024];
-	char *s = buf;
-	char *tok;
-	char *numeric = "0123456789";
-
-	size_t l; /* length of numeric string */
-
-	if (!str || !w || !h) return -1;
-
-	if (strlen(str) < 3) return -1; /* must have room for at least "1x1" */
-
-	strncpy(buf, str, 1023);
-	buf[1023] = '\0';
-
-	tok = strpbrk(buf, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-
-	s = tok + l + 1;
-
-	if(!sscanf(tok, "%d", w)) return -1;
-
-	/* next token */
-	tok = strpbrk(s, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-	/* no need to set s since this is the last token */
-
-	if(!sscanf(tok, "%d", h)) return -1;
-
-	return 0;
-
+	int y, x;
+	int npal = 0;
+	SDL_Color *pc;
+	SDL_Surface *reface = SDL_CreateRGBSurface(0, face->w, face->h, 8, 0, 0, 0, 0);
+	for (y = 0; y < face->h; y++)
+	{
+		for (x = 0; x < face->w; x++)
+		{
+			byte n;
+			int found = 0;
+			Uint8 r, g, b;
+			Uint8 *dst_px = (Uint8*)((Uint8*)reface->pixels + (y * reface->pitch + x * reface->format->BytesPerPixel));
+			Uint32 *src_px = (Uint32*)((Uint8*)face->pixels + (y * face->pitch + x * face->format->BytesPerPixel));
+			SDL_GetRGB(*src_px, face->format, &r, &g, &b);
+			for (n = 0; n < npal; n++) {
+				pc = &(reface->format->palette->colors[n]);
+				if (pc->r == r && pc->g == g && pc->b == b) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found && npal < 255) {
+				pc = &(reface->format->palette->colors[npal]);
+				pc->r = r; pc->g = g; pc->b = b;
+				n = npal;
+				npal++;
+			}
+			*dst_px = n;
+		}
+	}
+	reface->format->palette->ncolors = npal;
+	if (free_src) SDL_FreeSurface(face);
+	return reface;
 }
-
-
-
 
 char *formatsdlflags(Uint32 flags) {
 	return format ("%s%s%s%s%s%s%s%s%s%s (%x)",

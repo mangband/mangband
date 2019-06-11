@@ -653,6 +653,20 @@ int send_item_tester_info(connection_type *ct, int id)
 	return 1;
 }
 
+int send_slash_fx(player_type *p_ptr, byte y, byte x, byte dir, byte fx)
+{
+	connection_type *ct;
+	if (!ct) return -1;
+	ct = Conn[p_ptr->conn];
+	if (!p_ptr->supports_slash_fx) return 1;
+	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%b", PKT_SLASH_FX, y, x, dir, fx) <= 0)
+	{
+		/* No space in buffer, but we don't really care for this packet */
+		return 0;
+	}
+	return 1;
+}
+
 int send_air_char(player_type *p_ptr, byte y, byte x, char a, char c, u16b delay, u16b fade)
 {
 	connection_type *ct;
@@ -1218,7 +1232,8 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 
 	if (IS_PLAYING(p_ptr))
 	{
-		client_abort(ct, "Can't change visual info during gameplay");
+		/* client_abort(ct, "Can't change visual info during gameplay"); */
+		/* We can, see below! */
 	}
 
 	/* Gather type */
@@ -1272,6 +1287,16 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 	{
 		/* Not enough bytes */
 		return 0;
+	}
+
+	/* Verify data (if changing during gameplay) */
+	if (IS_PLAYING(p_ptr))
+	{
+		player_verify_visual(p_ptr);
+		/* Redraw lots of things */
+		p_ptr->redraw |= (PR_MAP | PR_FLOOR);
+		p_ptr->window |= (PW_OVERHEAD | PW_INVEN | PW_EQUIP | PW_MAP | PW_MONLIST);
+		p_ptr->update |= (PU_VIEW | PU_LITE);
 	}
 
 	/* Ok */
@@ -1335,7 +1360,8 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		switch (i)
 		{
 			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break; 
+			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break;
+			case 5:	p_ptr->supports_slash_fx = (bool)val; break;
 			default: break;
 		}
 	}

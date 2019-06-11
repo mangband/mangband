@@ -96,6 +96,7 @@
 
 /* Extra packets */
 #define PKT_OBSERVE     	160
+#define PKT_SLASH_FX    	161
 #define PKT_CHANGEPASS  	162
 #define PKT_OBJFLAGS    	163
 #define PKT_AIR         	164

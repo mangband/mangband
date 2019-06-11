@@ -36,6 +36,7 @@
 	PACKET(PKT_OBJFLAGS,	NULL,   	recv_objflags)
 	PACKET(PKT_PARTY,	"%s%s", 	recv_party_info)
 	PACKET(PKT_AIR, 	"%c%c%c%c%ud%ud",	recv_air)
+	PACKET(PKT_SLASH_FX, 	"%c%c%c%b",     	recv_slash_fx)
 	PACKET(PKT_STORE,	"%c%c%d%d%ul%s",	recv_store)
 	PACKET(PKT_STORE_INFO,	"%c%s%s%d%l",   	recv_store_info)
 	PACKET(PKT_STORE_LEAVE,	"",     	recv_store_leave)

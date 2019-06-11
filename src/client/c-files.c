@@ -482,6 +482,8 @@ void init_file_paths(char *path)
         string_free(ANGBAND_DIR_USER);
         string_free(ANGBAND_DIR_XTRA);
 
+        /* Free extra paths */
+        string_free(ANGBAND_DIR_XTRA_SOUND);
 
         /*** Prepare the "path" ***/
 
@@ -509,6 +511,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_PREF = string_make("");
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
+        ANGBAND_DIR_XTRA_SOUND = string_make("");
 
 
 #else /* VM */
@@ -559,6 +562,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "xtra");
         ANGBAND_DIR_XTRA = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "xtra/sound");
+        ANGBAND_DIR_XTRA_SOUND = string_make(path);
 
 #endif /* VM */
 
@@ -999,7 +1006,7 @@ errr process_pref_file_command(char *buf)
 	else if (buf[0] == 'V')
 	{
 		/* Do nothing */
-		return (0);
+		// return (0);  // @@@ Why was this here? -kts
 
 		if (tokenize(buf+2, 5, zz) == 5)
 		{
@@ -1398,6 +1405,24 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			else if (streq(b+1, "GRAF"))
 			{
 				v = ANGBAND_GRAF;
+			}
+
+			/* Specific tileset */
+			if (streq(b+1, "GRAFNAME"))
+			{
+				v = ANGBAND_GRAFNAME;
+			}
+
+			/* Font-system */
+			if (streq(b+1, "FON"))
+			{
+				v = ANGBAND_FON;
+			}
+
+			/* Specific font */
+			if (streq(b+1, "FONTNAME"))
+			{
+				v = ANGBAND_FONTNAME;
 			}
 
 			/* Race */
@@ -1999,8 +2024,9 @@ void conf_init(void* param)
 	/* Remove ".exe" */
 	path[strlen(path) - 4] = '\0';
 	/* Remove ANGBAND_SYS suffix */
-	/* TODO: sdl2, etc, or just lowercase ANGBAND_SYS */
+	/* if (suffix(path, ANGBAND_SYS)) path[strlen(path) - strlen(ANGBAND_SYS)] = '\0'; */
 	if (suffix(path, "-sdl")) path[strlen(path) - 4] = '\0';
+	if (suffix(path, "-sdl2")) path[strlen(path) - 5] = '\0';
 	/* Append ".ini" */
 	my_strcpy(config_name, path, 1024);
 	my_strcat(config_name, ".ini", 1024);

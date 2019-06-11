@@ -1218,6 +1218,7 @@ struct player_type
 	int stat_order[6];
 
 	int infodata_sent[6];
+	bool supports_slash_fx;
 
 	bool alive;		/* Are we alive */
 	bool death;		/* Have we died */

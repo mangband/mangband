@@ -1107,6 +1107,34 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_slash_fx(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0,
+		dir = 0,
+		fx = 0;
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c%c%b", &y, &x, &dir, &fx) < 4) return 0;
+
+	if (y >= p_ptr->stream_hgt[0]) return 1;
+	if (x >= p_ptr->stream_wid[0]) return 1;
+
+	/* Discard current effect */
+	sfx_delay[y][x] = 0;
+	refresh_char_aux(x, y);
+
+	/* Remember new information */
+	sfx_info[y][x].a = dir;
+	sfx_info[y][x].c = fx;
+	sfx_delay[y][x] = SLASH_FX_THRESHOLD;
+
+	return 1;
+}
+
+
 int recv_air(connection_type *ct)
 {
 	byte
@@ -2076,6 +2104,8 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 		network_pause(100000); /* 0.1 ms "sleep" */
 		/* Let windows process UI events: */
 		Term_xtra(TERM_XTRA_FLUSH, 0);
+		/* Let SDL2 client re-render: */
+		Term_xtra(TERM_XTRA_BORED, 0);
 	}
 	/* Will be either 1 either -1 */
 
@@ -2275,6 +2305,12 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 					st_x[j] = st_x[j] - DUNGEON_OFFSET_X;
 					/* Status and top line */
 					st_y[j] = st_y[j] - SCREEN_CLIP_L - DUNGEON_OFFSET_Y;
+
+					/* Hack -- We have a special hook */
+					if (query_size_aux)
+					{
+						query_size_aux(&st_x[j], &st_y[j], j);
+					}
 				}
 
 				/* Test bounds */
@@ -2299,3 +2335,30 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 }
 /* Helper caller for "net_term_manage" */
 u32b net_term_update(bool clear) { return net_term_manage(window_flag, window_flag, clear); }
+
+/* Re-send visual info */
+void net_visuals_update(void)
+{
+	int i;
+
+	if (state < PLAYER_PLAYING) return;
+
+	wipe_visual_prefs();
+	process_pref_file("font.prf");
+	process_pref_file("graf.prf");
+
+	gather_settings();
+
+	send_settings();
+
+	/* send_options(); */
+
+	/* Send visual preferences */
+	for (i = 0; i < VISUAL_INFO_PR + 1; i++)
+	{
+		send_visual_info(i);
+	}
+
+	/* Hack -- redraw unrelated things */
+	p_ptr->redraw = 0xFFFFFFFF;
+}

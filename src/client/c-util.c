@@ -2369,6 +2369,53 @@ s32b c_get_quantity(cptr prompt, s32b max)
 	return (amt);
 }
 
+/*
+ * Handle the slash effects
+ */
+/*
+ * Note: this function uses up the static_timer(3). This means you can't use
+ * static_timer(3) anywhere else from now on.
+ */
+void slashfx_dir_offset(int *x, int *y, int dir, bool invert)
+{
+	const int dir_offset_y[9] = { 1, 1, 1,  0, 0, 0,  -1,-1,-1 };
+	const int dir_offset_x[9] = { -1, 0, 1,  -1, 0, 1,  -1, 0, 1 };
+	*x = dir_offset_x[dir - 1] * (invert ? 1 : 1);
+	*y = dir_offset_y[dir - 1] * (invert ? 1 : 1);
+}
+void update_slashfx()
+{
+	micro passed = static_timer(3);
+	u16b milli = (u16b)(passed / 1000);
+	int j, i;
+	for (j = 0; j < MAX_HGT; j++)
+	{
+		for (i = 0; i < MAX_WID; i++)
+		{
+			if (sfx_delay[j][i] > 0)
+			{
+				sfx_delay[j][i] -= milli;
+				/* Delay timeout */
+				if (sfx_delay[j][i] <= 0)
+				{
+					sfx_delay[j][i] = 0;
+				}
+				/* Draw same tile */
+				refresh_char_aux(i, j);
+			}
+		}
+	}
+}
+void discard_slashfx(int y, int x)
+{
+	if (sfx_delay[y][x] > 0 && (refresh_char_aux))
+	{
+		sfx_delay[y][x] = 0;
+		refresh_char_aux(x, y);
+	}
+}
+
+
 void clear_from(int row)
 {
 	int y;
@@ -2485,10 +2532,49 @@ int cavestr(cave_view_type* dest, cptr str, byte attr, int max_col)
 	return 1;
 }
 
+/* A version of "cavedraw()" for Term2 hack */
+bool Term2_cave_line(int st, int sy, int y, int cols)
+{
+	cave_view_type* src = stream_cave(st, sy);
+	int x = 0;
+	int dx = x;
+	int dy = y;
+	int i;
+	bool complete = FALSE;
+	/* Draw a character n times */
+	for (i = 0; i < cols; i++)
+	{
+		/* Don't draw on screen if character is 0 */
+		//if (src[i].c)
+		{
+			byte a = src[i].a;
+			char c = src[i].c;
+			byte ta = p_ptr->trn_info[y][x + i].a;
+			char tc = p_ptr->trn_info[y][x + i].c;
+			bool _ret;
+			//if (!ta) ta = a;
+			//if (!tc) tc = c;
+			discard_slashfx(y, x + i);
+			_ret = cave_char_aux(dx + i, dy, a, c, ta, tc);
+			if (_ret) complete = TRUE;
+		}
+	}
+	return complete;
+}
+
+
 /* Draw (or don't) a char depending on screen ickyness */
 void show_char(s16b y, s16b x, byte a, char c, byte ta, char tc, bool mem)
 {
 	bool draw = TRUE;
+
+	/* If we have a hook, use it */
+	if (cave_char_aux && mem)
+	{
+		discard_slashfx(y, x);
+		/* Hook will return TRUE if no further processing is needed */
+		if (cave_char_aux(x, y, a, c, ta, tc)) return;
+	}
 
 	/* Manipulate offset: */
 	x += DUNGEON_OFFSET_X;	
@@ -2536,6 +2622,15 @@ void show_line(int sy, s16b cols, bool mem, int st)
 	draw = mem ? !screen_icky : interactive_mode;
 	xoff = coff = 0;
 	y = sy + (mem ? DUNGEON_OFFSET_Y : 0);
+
+	/* Dungeon, and we have a dungeon hook. */
+	if ((streams[st].addr == NTERM_WIN_OVERHEAD)
+	&& !(streams[st].flag & SF_OVERLAYED)
+	&& (cave_char_aux != NULL))
+	{
+		/* Hook will return TRUE if no further processing is needed */
+		if (Term2_cave_line(st, sy, sy, cols)) return;
+	}
 
 	/* Ugly Hack - Shopping */
 	if (shopping) draw = FALSE;
@@ -4350,6 +4445,9 @@ static void do_cmd_options_win(void)
 	/* Notice changes */
 	p_ptr->window |= net_term_manage(old_flag, window_flag, TRUE);
 
+	/* Notify terminal (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_WINDOWS));
+
 	/* Update windows */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_MESSAGE | PW_MESSAGE_CHAT | PW_PLAYER | PW_PLAYER_1 | PW_STATUS);
 
@@ -4519,6 +4617,9 @@ void do_cmd_options(void)
 
 	/* Send a redraw request */
 	send_redraw();
+
+	/* Notify terminal (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_OPTIONS | TERM_XTRA_REACT_SETTINGS));
 }
 void do_cmd_options_birth()
 {

@@ -1,5 +1,4 @@
 # File: graf.prf
-
 #
 # This file defines special attr/char mappings for use in "graphics" mode
 #
@@ -31,5 +30,8 @@
 ?:[EQU $SYS sdl]
 %:graf-sdl.prf
 
-?:1
+?:[EQU $SYS sdl2]
+%:graf-sdl2.prf
 
+
+?:1
