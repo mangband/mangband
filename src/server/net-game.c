@@ -656,7 +656,7 @@ int send_item_tester_info(connection_type *ct, int id)
 int send_slash_fx(player_type *p_ptr, byte y, byte x, byte dir, byte fx)
 {
 	connection_type *ct;
-	if (!ct) return -1;
+	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
 	if (!p_ptr->supports_slash_fx) return 1;
 	if (cq_printf(&ct->wbuf, "%c" "%c%c" "%c%b", PKT_SLASH_FX, y, x, dir, fx) <= 0)
