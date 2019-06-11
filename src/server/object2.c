@@ -1851,10 +1851,6 @@ u16b rand_tval_kind(int tval)
 	/* Nothing found, give up */
 	if (!kinds) return 0;
 
-	int r = randint0(kinds);
-	printf(":out of %d kinds, generated %d, %s\n",
-		kinds, r, k_name + k_info[tbl[r]].name);
-
 	/* Randomly */
 	return tbl[randint0(kinds)];
 }
