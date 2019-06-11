@@ -160,7 +160,7 @@ errr init_sdl2(int argc, char **argv) {
 
   // **** Load in Configuration ****
   // The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
-  use_graphics = conf_get_int("SDL2", "graphics", 0);
+  use_graphics = conf_get_int("SDL2", "Graphics", 0);
   if (use_graphics) {
     ANGBAND_GRAF = GFXNAME[use_graphics];
   }
@@ -2461,24 +2461,24 @@ static errr loadConfig() {
 	strcpy(default_font, quick_font_names[1]);
     }
 
-  value = conf_get_string("SDL2", "font_file", default_font);
+  value = conf_get_string("SDL2", "FontFile", default_font);
   if (strcmp(default_font, value) != 0) {
     strcpy(default_font, value);
   }
 
-  default_font_size = conf_get_int("SDL2", "font_size", default_font_size);
+  default_font_size = conf_get_int("SDL2", "FontSize", default_font_size);
 
-  use_sound = (bool)conf_get_int("SDL2", "sound", 1);
+  use_sound = (bool)conf_get_int("SDL2", "Sound", 1);
 
   for (window_id = 0; window_id < 8; window_id++) {
-    strnfmt(section, 128, "SDL2-window-%d", window_id);
-    strncpy(terms[window_id].title, conf_get_string(section, "title", ""), 128);
+    strnfmt(section, 128, "SDL2-Window-%d", window_id);
+    strncpy(terms[window_id].title, conf_get_string(section, "Title", ""), 128);
 	my_strcpy(terms[window_id].pict_file, GFXBMP[use_graphics], 128);
 	my_strcpy(terms[window_id].mask_file, GFXMASK[use_graphics] ? GFXMASK[use_graphics] : "", 128);
-	strncpy(terms[window_id].font_file, conf_get_string(section, "font_file", ""), 128);
-	terms[window_id].font_size = conf_get_int(section, "font_size", 0);
+	strncpy(terms[window_id].font_file, conf_get_string(section, "FontFile", ""), 128);
+	terms[window_id].font_size = conf_get_int(section, "FontSize", 0);
 
-	value = conf_get_string(section, "pict_mode", "static");
+	value = conf_get_string(section, "PictMode", "static");
     if (strcmp(value, "static") == 0) {
       terms[window_id].pict_mode = TERM_PICT_STATIC;
     } else if (strcmp(value, "stretch") == 0) {
@@ -2487,12 +2487,12 @@ static errr loadConfig() {
       terms[window_id].pict_mode = TERM_PICT_SCALE;
     }
 
-    value = conf_get_string(section, "font_smoothing", "true");
+    value = conf_get_string(section, "FontSmoothing", "true");
     if (strcmp(value, "true") == 0) {
       terms[window_id].config |= TERM_FONT_SMOOTH;
     }
 
-    value = conf_get_string(section, "char_mode", "static");
+    value = conf_get_string(section, "CharMode", "static");
     if (strcmp(value, "static") == 0) {
       terms[window_id].char_mode = TERM_CHAR_STATIC;
     } else if (strcmp(value, "stretch") == 0) {
@@ -2501,10 +2501,10 @@ static errr loadConfig() {
       terms[window_id].char_mode = TERM_CHAR_SCALE;
     }
 
-    terms[window_id].orig_w = conf_get_int(section, "cell_width", 0);
-    terms[window_id].orig_w = conf_get_int(section, "cell_height", 0);
+    terms[window_id].orig_w = conf_get_int(section, "CellWidth", 0);
+    terms[window_id].orig_w = conf_get_int(section, "CellHeight", 0);
 
-    value = conf_get_string(section, "cell_mode", "font");
+    value = conf_get_string(section, "CellMode", "font");
     if (strcmp(value, "pict") == 0) {
       terms[window_id].cell_mode = TERM_CELL_PICT;
     } else if (strcmp(value, "font") == 0) {
@@ -2513,34 +2513,34 @@ static errr loadConfig() {
       terms[window_id].cell_mode = TERM_CELL_CUST;
     }
 
-    if (conf_get_int(section, "hidden", window_id < 5 ? 0 : 1) && window_id) {
+    if (!conf_get_int(section, "Visible", window_id < 5 ? 1 : 0) && window_id) {
       terms[window_id].config |= TERM_IS_HIDDEN;
     }
 
-    terms[window_id].zoom = conf_get_int(section, "zoom", 100);
+    terms[window_id].zoom = conf_get_int(section, "Zoom", 100);
     if (terms[window_id].zoom < 1) terms[window_id].zoom = 1;
     if (terms[window_id].zoom > 1000) terms[window_id].zoom = 1000;
 
-    if (conf_get_int(section, "alt_dungeon", 1)) {
+    if (conf_get_int(section, "AltDungeon", 1)) {
       terms[window_id].config |= TERM_DO_SCALE;
     } else {
       terms[window_id].zoom = 100;
     }
 
-    if (conf_get_int(section, "virtual", 1)) {
+    if (conf_get_int(section, "Virtual", 1)) {
 
-    terms[window_id].ren_rect.x = conf_get_int(section, "x", -1);
-    terms[window_id].ren_rect.y = conf_get_int(section, "y", -1);
-    terms[window_id].ren_rect.w = conf_get_int(section, "width", 0);
-    terms[window_id].ren_rect.h = conf_get_int(section, "height", 0);
+    terms[window_id].ren_rect.x = conf_get_int(section, "X", -1);
+    terms[window_id].ren_rect.y = conf_get_int(section, "Y", -1);
+    terms[window_id].ren_rect.w = conf_get_int(section, "Width", 0);
+    terms[window_id].ren_rect.h = conf_get_int(section, "Height", 0);
 
       terms[window_id].config |= TERM_IS_VIRTUAL;
     } else {
 
-    terms[window_id].x = conf_get_int(section, "x", -1);
-    terms[window_id].y = conf_get_int(section, "y", -1);
-    terms[window_id].width = conf_get_int(section, "width", 0);
-    terms[window_id].height = conf_get_int(section, "height", 0);
+    terms[window_id].x = conf_get_int(section, "X", -1);
+    terms[window_id].y = conf_get_int(section, "Y", -1);
+    terms[window_id].width = conf_get_int(section, "Width", 0);
+    terms[window_id].height = conf_get_int(section, "Height", 0);
     terms[window_id].ren_rect.x = 0;
     terms[window_id].ren_rect.y = 0;
     terms[window_id].ren_rect.w = terms[window_id].width;
@@ -2550,10 +2550,10 @@ static errr loadConfig() {
 
     if (window_id == 0) {
 
-    terms[window_id].x = conf_get_int("SDL2", "x", -1);
-    terms[window_id].y = conf_get_int("SDL2", "y", -1);
-    terms[window_id].width = conf_get_int("SDL2", "width", 0);
-    terms[window_id].height = conf_get_int("SDL2", "height", 0);
+    terms[window_id].x = conf_get_int("SDL2", "X", -1);
+    terms[window_id].y = conf_get_int("SDL2", "Y", -1);
+    terms[window_id].width = conf_get_int("SDL2", "Width", 0);
+    terms[window_id].height = conf_get_int("SDL2", "Height", 0);
 
     terms[window_id].config |= TERM_IS_VIRTUAL;
 
@@ -2567,78 +2567,78 @@ static errr saveConfig() {
   char section[128];
   int window_id;
 
-  conf_set_string("SDL2", "font_file", default_font);
-  conf_set_int("SDL2", "font_size", default_font_size);
+  conf_set_string("SDL2", "FontFile", default_font);
+  conf_set_int("SDL2", "FontSize", default_font_size);
 
-  conf_set_int("SDL2", "graphics", use_graphics);
-  conf_set_int("SDL2", "sound", use_sound);
+  conf_set_int("SDL2", "Graphics", use_graphics);
+  conf_set_int("SDL2", "Sound", use_sound);
 
   for (window_id = 0; window_id < 8; window_id++) {
-    strnfmt(section, 128, "SDL2-window-%d", window_id);
-    conf_set_string(section, "title", terms[window_id].title);
+    strnfmt(section, 128, "SDL2-Window-%d", window_id);
+    conf_set_string(section, "Title", terms[window_id].title);
 
-	conf_set_string(section, "font_file", terms[window_id].font_file);
-	conf_set_int(section, "font_size", terms[window_id].font_size);
+	conf_set_string(section, "FontFile", terms[window_id].font_file);
+	conf_set_int(section, "FontSize", terms[window_id].font_size);
 
-	conf_set_int(section, "zoom", terms[window_id].zoom);
+	conf_set_int(section, "Zoom", terms[window_id].zoom);
 	if (window_id)
-	conf_set_int(section, "alt_dungeon", (terms[window_id].config & TERM_DO_SCALE));
+	conf_set_int(section, "AltDungeon", (terms[window_id].config & TERM_DO_SCALE));
 
     if (terms[window_id].pict_mode == TERM_PICT_STATIC) {
-      conf_set_string(section, "pict_mode", "static");
+      conf_set_string(section, "PictMode", "static");
     } else if (terms[window_id].pict_mode == TERM_PICT_STRETCH) {
-      conf_set_string(section, "pict_mode", "stretch");
+      conf_set_string(section, "PictMode", "stretch");
     } else if (terms[window_id].pict_mode == TERM_PICT_SCALE) {
-      conf_set_string(section, "pict_mode", "scale");
+      conf_set_string(section, "PictMode", "scale");
     }
 
-    conf_set_string(section, "font_smoothing", (terms[window_id].config & TERM_FONT_SMOOTH) ? "true" : "false");
+    conf_set_string(section, "FontSmoothing", (terms[window_id].config & TERM_FONT_SMOOTH) ? "true" : "false");
 
     if (terms[window_id].char_mode == TERM_CHAR_STATIC) {
-      conf_set_string(section, "char_mode", "static");
+      conf_set_string(section, "CharMode", "static");
     } else if (terms[window_id].char_mode == TERM_CHAR_STRETCH) {
-      conf_set_string(section, "char_mode", "stretch");
+      conf_set_string(section, "CharMode", "stretch");
     } else if (terms[window_id].char_mode == TERM_CHAR_SCALE) {
-      conf_set_string(section, "char_mode", "scale");
+      conf_set_string(section, "CharMode", "scale");
     }
 
-    conf_set_int(section, "cell_width", terms[window_id].orig_w);
-    conf_set_int(section, "cell_height", terms[window_id].orig_w);
+    conf_set_int(section, "CellWidth", terms[window_id].orig_w);
+    conf_set_int(section, "CellHeight", terms[window_id].orig_w);
 
     if (terms[window_id].cell_mode == TERM_CELL_PICT) {
-      conf_set_string(section, "cell_mode", "pict");
+      conf_set_string(section, "CellMode", "pict");
     } else if (terms[window_id].cell_mode == TERM_CELL_FONT) {
-      conf_set_string(section, "cell_mode", "font");
+      conf_set_string(section, "CellMode", "font");
     } else if (terms[window_id].cell_mode == TERM_CELL_CUST) {
-      conf_set_string(section, "cell_mode", "custom");
+      conf_set_string(section, "CellMode", "custom");
     }
 
-    conf_set_int(section, "hidden", terms[window_id].config & TERM_IS_HIDDEN ? 1 : 0);
-//    conf_set_int(section, "hidden", (terms[window_id].config & TERM_IS_ONLINE) ? 0 : 1);
+    conf_set_int(section, "Visible", terms[window_id].config & TERM_IS_HIDDEN ? 0 : 1);
+//    conf_set_int(section, "Visible", (terms[window_id].config & TERM_IS_ONLINE) ? 0 : 1);
 
     if (terms[window_id].config & TERM_IS_VIRTUAL || window_id == TERM_MAIN) {
-	conf_set_int(section, "virtual", 1);
+	conf_set_int(section, "Virtual", 1);
 
-	conf_set_int(section, "x", terms[window_id].ren_rect.x);
-	conf_set_int(section, "y", terms[window_id].ren_rect.y);
-	conf_set_int(section, "width", terms[window_id].ren_rect.w);
-	conf_set_int(section, "height", terms[window_id].ren_rect.h);
+	conf_set_int(section, "X", terms[window_id].ren_rect.x);
+	conf_set_int(section, "Y", terms[window_id].ren_rect.y);
+	conf_set_int(section, "Width", terms[window_id].ren_rect.w);
+	conf_set_int(section, "Height", terms[window_id].ren_rect.h);
 
     } else {
-	conf_set_int(section, "virtual", 0);
+	conf_set_int(section, "Virtual", 0);
 
-	conf_set_int(section, "x", terms[window_id].x);
-	conf_set_int(section, "y", terms[window_id].y);
-	conf_set_int(section, "width", terms[window_id].width);
-	conf_set_int(section, "height", terms[window_id].height);
+	conf_set_int(section, "X", terms[window_id].x);
+	conf_set_int(section, "Y", terms[window_id].y);
+	conf_set_int(section, "Width", terms[window_id].width);
+	conf_set_int(section, "Height", terms[window_id].height);
 
     }
   }
 
-    conf_set_int("SDL2", "x", terms[TERM_MAIN].x);
-    conf_set_int("SDL2", "y", terms[TERM_MAIN].y);
-    conf_set_int("SDL2", "width", terms[0].width);
-    conf_set_int("SDL2", "height", terms[0].height);
+    conf_set_int("SDL2", "X", terms[TERM_MAIN].x);
+    conf_set_int("SDL2", "Y", terms[TERM_MAIN].y);
+    conf_set_int("SDL2", "Width", terms[0].width);
+    conf_set_int("SDL2", "Height", terms[0].height);
 
   return 0;
 }
