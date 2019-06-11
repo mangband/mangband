@@ -2674,8 +2674,7 @@ static errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing)
   fd->h = info.h;
 
   fd->scalable = 0;
-  if (suffix(filename, ".ttf") || suffix(filename, ".TTF")
-  || suffix(filename, ".ttf") || suffix(filename, ".ttf")) {
+  if (isuffix(filename, ".ttf") || isuffix(filename, ".otf")) {
     fd->scalable = 1;
   }
 
