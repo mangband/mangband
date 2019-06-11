@@ -74,8 +74,13 @@ void init_stuff(void)
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
+/* Calling quit before we have a nice messagebox hook for the message
+ * is counter-productive on Windows machines. Note: this is for SDL/SDL2,
+ * not the windows client, which does its own init. */
+#if !defined(WINDOWS) && !defined(__APPLE__)
 	/* Verify LIB DIR */
 	if (!dir_exists(path)) quit(format("Can't find LibDir at '%s' !", path));
+#endif
 
 	/* Initialize */
 	init_file_paths(path);
