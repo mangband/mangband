@@ -64,7 +64,7 @@
  */
 void do_cmd_eat_food(player_type *p_ptr, int item)
 {
-	int			lev;
+	int			lev, _idx;
 	bool ident;
 
 	object_type		*o_ptr;
@@ -85,7 +85,7 @@ void do_cmd_eat_food(player_type *p_ptr, int item)
 	item_tester_hook = NULL;
 
 	/* Get the item */
-	if ( !(o_ptr = player_get_item(p_ptr, item, &item)) )
+	if ( !(o_ptr = player_get_item(p_ptr, item, &_idx)) )
 	{
 		/* Paranoia */
 		return;
