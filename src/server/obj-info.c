@@ -1023,6 +1023,16 @@ bool object_info_out(const object_type *o_ptr)
 	if (describe_activation(o_ptr, f3)) something = TRUE;
 	if (describe_ignores(o_ptr, f3)) something = TRUE;
 
+	/* Describe boring bits */
+	if ((o_ptr->tval == TV_FOOD || o_ptr->tval == TV_POTION) &&
+		o_ptr->pval)
+	{
+		text_out("  It provides nourishment for about ");
+		text_out/*_c(*TERM_L_GREEN,*/(format("%d ", o_ptr->pval / 2));
+		text_out("turns under normal conditions.\n");
+		something = TRUE;
+	}
+
 	/* Unknown extra powers (ego-item with random extras or artifact) */
 	if (object_known_p(player_textout, o_ptr) && (!(o_ptr->ident & ID_MENTAL)) &&
 	    ((o_ptr->xtra1) || artifact_p(o_ptr)))
