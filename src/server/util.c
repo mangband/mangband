@@ -2951,13 +2951,19 @@ void log_history_event(player_type *p_ptr, char *msg, bool unique)
 	seconds = days = hours = mins = turn = 0;
 	for (i = 0; i < p_ptr->turn.era+2; i++)
 	{
+		int plus_days = 0, plus_hours = 0, plus_mins = 0;
 		turn = HTURN_ERA_FLIP;
 		if (i == p_ptr->turn.era+1) turn = p_ptr->turn.turn; 
 		seconds = turn / cfg_fps;
-		days += seconds / 86400;
-		hours += (seconds / 3600) - (24 * days);
-		mins += (seconds / 60) % 60;
+		plus_days = seconds / 86400;
+		plus_hours = (seconds / 3600) - (24 * days);
+		plus_mins = (seconds / 60) % 60;
+		days += plus_days;
+		hours += plus_hours;
+		mins += plus_mins;
 	}
+	while (mins >= 60) { mins -= 60; hours += 1; }
+	while (hours >= 24) { hours -= 24; days += 1; }
 
 	/* Create new entry */
 	MAKE(evt_forge, history_event);
