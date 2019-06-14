@@ -1618,8 +1618,8 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			disturb(p_ptr, 1, 0);
 			msg_format(p_ptr, "%^s teleports you away.", m_name);
 			msg_format_monster(m_idx, p_ptr, MSG_MON_OTHER,
-				"%^s teleports %s away.",
-				"%^s teleports %s away.",
+				"%%^s teleports %s away.",
+				"%%^s teleports %s away.",
 				p_ptr->name);
 			teleport_player(p_ptr, 100);
 			break;
