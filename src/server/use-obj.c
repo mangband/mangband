@@ -482,24 +482,25 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_CURE_LIGHT:
 		{
-			if (hp_player(p_ptr, damroll(2, 8))) *ident = TRUE;
+			if (hp_player(p_ptr, 15)) *ident = TRUE;
 			if (set_blind(p_ptr, 0)) *ident = TRUE;
-			if (set_cut(p_ptr, p_ptr->cut - 10)) *ident = TRUE;
+			if (set_cut(p_ptr, p_ptr->cut - 20)) *ident = TRUE;
+			if (set_confused(p_ptr, p_ptr->confused - 20)) *ident = TRUE;
 			break;
 		}
 
 		case SV_POTION_CURE_SERIOUS:
 		{
-			if (hp_player(p_ptr, damroll(4, 8))) *ident = TRUE;
+			if (hp_player(p_ptr, randint0(5)+20)) *ident = TRUE;
 			if (set_blind(p_ptr, 0)) *ident = TRUE;
 			if (set_confused(p_ptr, 0)) *ident = TRUE;
-			if (set_cut(p_ptr, (p_ptr->cut / 2) - 50)) *ident = TRUE;
+			if (set_cut(p_ptr, 0)) *ident = TRUE;
 			break;
 		}
 
 		case SV_POTION_CURE_CRITICAL:
 		{
-			if (hp_player(p_ptr, damroll(6, 8))) *ident = TRUE;
+			if (hp_player(p_ptr, randint0(5)+25)) *ident = TRUE;
 			if (set_blind(p_ptr, 0)) *ident = TRUE;
 			if (set_confused(p_ptr, 0)) *ident = TRUE;
 			if (set_poisoned(p_ptr, 0)) *ident = TRUE;

@@ -2057,8 +2057,8 @@ W:0:0:4:15
 A:0/1:1/1:3/1
 P:0:1d1:0:0:0
 F:EASY_KNOW
-D:It cures 2d8 points of damage, heals 10 points worth of cuts, and
-D: cures blindness.
+D:It cures 15 points of damage, heals 20 points worth of cuts and
+D: confusion, and cures blindness.
 D:  It also provides nourishment for about 25 turns under normal
 D: conditions.
 
@@ -2087,8 +2087,8 @@ W:3:0:4:40
 A:3/1
 P:0:1d1:0:0:0
 F:EASY_KNOW
-D:It cures 4d8 points of damage, heals half of all cut damage plus
-D: another 50 points, and cures blindness and confusion.
+D:It cures 1d6+19 points of damage, heals all cut damage, and
+D: cures blindness and confusion.
 D:  It also provides nourishment for about 50 turns under normal
 D: conditions.
 
@@ -2099,7 +2099,7 @@ W:5:0:4:100
 A:5/1
 P:0:1d1:0:0:0
 F:EASY_KNOW
-D:It cures 6d8 points of damage, cures all stunning, heals all cut
+D:It cures 1d6+24 points of damage, cures all stunning, heals all cut
 D: damage, neutralizes poison, and cures blindness and confusion.
 D:  It also provides nourishment for about 50 turns under normal
 D: conditions.
