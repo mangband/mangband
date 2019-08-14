@@ -1224,55 +1224,6 @@ static void process_player_end(player_type *p_ptr)
 
 		/*** Check the Food, and Regenerate ***/
 
-		/* Ghosts don't need food */
-		/* don't use food in town */
-
-		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
-		{
-			/* Digest normally */
-			if (p_ptr->food < PY_FOOD_MAX)
-			{
-				/* Every 50/6 level turns */
-			        if (!(turn.turn%((level_speed(p_ptr->dun_depth)/12)*10)))
-				{
-					/* Basic digestion rate based on speed */
-					i = extract_energy[p_ptr->pspeed] * 2;
-
-					/* Regeneration takes more food */
-					if (p_ptr->regenerate) i += 30;
-
-					/* Slow digestion takes less food */
-					if (p_ptr->slow_digest) i -= 10;
-
-					/* Digest some food */
-					(void)set_food(p_ptr, p_ptr->food - i);
-
-					/* Hack -- check to see if we have been kicked off
-					 * due to starvation 
-					 */
-
-					if (NumPlayers != NumPlayers_old) return;
-				}
-			}
-
-			/* Digest quickly when gorged */
-			else
-			{
-				/* Digest a lot of food */
-				(void)set_food(p_ptr, p_ptr->food - 100);
-			}
-
-			/* Starve to death (slowly) */
-			if (p_ptr->food < PY_FOOD_STARVE)
-			{
-				/* Calculate damage */
-				i = (PY_FOOD_STARVE - p_ptr->food) / 10;
-
-				/* Take damage */
-				take_hit(p_ptr, i, "starvation");
-			}
-		}
-
 		/* Default regeneration */
 		regen_amount = PY_REGEN_NORMAL;
 
