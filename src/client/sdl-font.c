@@ -200,7 +200,7 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
     if (miny+maxy > height) height = miny+maxy;
   }
   // For .fon files, try the NxN-in-filename approach
-  if (suffix(filename, ".FON") || suffix(filename, ".fon")) {
+  if (isuffix(filename, ".fon")) {
     int _width = 0;
     int _height = 0;
     if (!strtoii(filename, &_width, &_height)) {
@@ -720,14 +720,30 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 /* Read a PNG file using LuPng, convert it to SDL_Surface. */
 #if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
 #else
-SDL_Surface* SDLU_LoadPNG(const char *path)
+size_t RWopsLuRead(void *outPtr, size_t size, size_t count, void *userPtr)
+{
+	return SDL_RWread((SDL_RWops*)userPtr, outPtr, size, count);
+}
+size_t RWopsLuWrite(const void *inPtr, size_t size, size_t count, void *userPtr)
+{
+	return SDL_RWwrite((SDL_RWops*)userPtr, inPtr, size, count);
+}
+
+SDL_Surface* SDLU_LoadPNG_RW(SDL_RWops *rw, int freesrc)
 {
 	SDL_Surface *face;
 	int x, y, i;
 	int npal = 0;
 	SDL_Color pal[256];
-	LuImage *img = luPngReadFile(path);
-	
+	LuUserContext userCtx;
+	LuImage *img;
+
+	luUserContextInitDefault(&userCtx);
+	userCtx.readProc = RWopsLuRead;
+	userCtx.readProcUserPtr = (void*)rw;
+
+	img = luPngReadUC(&userCtx);
+
 	if (!img)
 	{
 		SDL_SetError("Can't read png file");
@@ -818,10 +834,13 @@ SDL_Surface* SDLU_LoadPNG(const char *path)
 	SDL_SetPaletteColors(face->format->palette, pal, 0, npal);
 #endif
 
-	
 	luImageRelease(img, NULL);
-	
+
 	return face;
+}
+SDL_Surface* SDLU_LoadPNG(const char *path)
+{
+	return SDLU_LoadPNG_RW(SDL_RWFromFile(path, "rb"), 1);
 }
 #endif
 
@@ -1018,7 +1037,7 @@ SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect *info, cptr maskname)
 #if defined(USE_SDL2_IMAGE) || defined(USE_SDL_IMAGE)
 	face = IMG_Load(path);
 #else
-	if (suffix(filename, ".png") || suffix(filename, ".PNG"))
+	if (isuffix(filename, ".png"))
 	{
 		face = SDLU_LoadPNG(path);
 		maskname = NULL;
