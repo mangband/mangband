@@ -139,7 +139,7 @@ void Term2_query_area_size(s16b *x, s16b *y, int st);
 /* init_sdl2
 Our initializer function. Sets up SDL2 and creates our z-terms (windows).
 */
-errr init_sdl2(int argc, char **argv) {
+errr init_sdl2(void) {
   char buf[1024];
   int i;
 #ifdef WINDOWS

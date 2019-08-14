@@ -362,7 +362,7 @@ extern void cmd_players(void);
 extern void cmd_high_scores(void);
 extern void cmd_help(void);
 extern void cmd_query_symbol(void);
-extern void cmd_chat();
+extern void cmd_chat(void);
 extern void cmd_message(void);
 extern void cmd_chat_close(int i);
 extern void cmd_chat_cycle(int dir);
@@ -392,7 +392,7 @@ extern void cmd_init(void);
 extern void do_cmd_term_mousepress(u32b termflag, int x, int y, int button);
 extern void cmd_term_mousepress(int i, int x, int y, int button);
 extern void do_cmd_use_item(int item, bool agressive);
-extern void cmd_use_item();
+extern void cmd_use_item(void);
 extern char* macro_find_by_action(cptr buf);
 extern custom_command_type *match_custom_command(char cmd, bool shop);
 extern int command_to_display_name(char cmd, char *dst, size_t len);
@@ -405,7 +405,7 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 
 /* c-files.c */
 extern void text_to_ascii(char *buf, size_t max, cptr str);
-extern void init_stuff();
+extern void init_stuff(void);
 extern void init_file_paths(char *path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
@@ -419,7 +419,7 @@ extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init(void* param);	/* Client config section */
-extern void conf_save();
+extern void conf_save(void);
 extern void conf_timer(int ticks);
 extern bool conf_section_exists(cptr section);
 extern cptr conf_get_string(cptr section, cptr name, cptr default_value);
@@ -517,7 +517,7 @@ extern void do_cmd_options(void);
 extern void do_cmd_options_birth(void);
 extern bool get_string_masked(cptr prompt, char *buf, int len);
 #ifdef USE_SOUND
-extern void load_sound_prefs();
+extern void load_sound_prefs(void);
 #endif
 
 /* c-spell.c */
@@ -569,10 +569,10 @@ extern bool net_term_clamp(byte win, byte *y, byte *x);
 extern u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear);
 extern u32b net_term_update(bool clear);
 extern void net_visuals_update(void);
-extern void setup_keepalive_timer();
-extern void setup_network_client();
-extern void cleanup_network_client();
-extern void network_loop();
+extern void setup_keepalive_timer(void);
+extern void setup_network_client(void);
+extern void cleanup_network_client(void);
+extern void network_loop(void);
 extern int call_metaserver(char *server_name, int server_port, char *buf, int buflen);
 extern int call_server(char *server_name, int server_port);
 extern server_setup_t serv_info;
@@ -583,7 +583,7 @@ extern int send_settings(void);
 extern int send_options(void);
 extern int send_play(byte mode);
 extern int send_suicide(void);
-extern int send_char_info();
+extern int send_char_info(void);
 extern int send_keepalive(u32b last_keepalive);
 extern int send_request(byte mode, u16b id);
 extern int send_visual_info(byte type);

@@ -35,7 +35,7 @@ static errr handleMenu(int i, int x, int y);
 // MMM END
 
 /* main hooks */
-extern errr init_sdl2(int argc, char **argv);
+extern errr init_sdl2(void);
 extern void quit_sdl2(cptr s);
 
 /* hook declarations */
@@ -138,8 +138,8 @@ static errr setTermTitle(TermData *td);
 static errr refreshTerm(TermData *td);
 static void refreshTermAlt(TermData *td);
 static errr resizeTerm(TermData *td, int rows, int cols);
-static errr loadConfig();
-static errr saveConfig();
+static errr loadConfig(void);
+static errr saveConfig(void);
 static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing);
 static errr unloadFont(TermData *td);
 static errr attachFont(FontData *fd, TermData *td);

@@ -1,12 +1,13 @@
 /* File: sdl-font.h */
 /* Purpose: SDL-font header file for mangband */
 #ifndef SDL_FONT_H
+#define SDL_FONT_H
 
 #if defined(USE_SDL) || defined(USE_SDL2)
 #include <SDL.h>
 
-extern errr sdl_font_init(); 
-extern errr sdl_font_quit(); 
+extern errr sdl_font_init(void);
+extern errr sdl_font_quit(void);
 
 extern bool sdl_graf_prefer_rgba;
 
