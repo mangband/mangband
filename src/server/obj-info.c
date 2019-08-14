@@ -465,7 +465,6 @@ static void output_desc_list(cptr intro, cptr list[], int n)
 }
 
 
-#define A_MAX 6 //hack, must be in defines.h with its friends
 /*
  * Describe stat modifications.
  * This function is HACKed to handle MAngband-specific bpval (bonus value) 

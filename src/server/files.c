@@ -750,7 +750,7 @@ void display_player(player_type *p_ptr)
 	//Send_various(Ind, p_ptr->ht, p_ptr->wt, p_ptr->age, p_ptr->sc);
 
 	/* Send all the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		//Send_stat(Ind, i, p_ptr->stat_top[i], p_ptr->stat_use[i]);
 		//Send_maxstat(Ind, i, p_ptr->stat_max[i]);
@@ -901,7 +901,7 @@ void display_player_server(player_type *p_ptr, char buffer[100][82])
 	prt_num_b(buffer,"Social Class ", (int)p_ptr->sc, 5, 32, TERM_L_BLUE);
 
 	/* Display the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Special treatment of "injured" stats */
 		if (p_ptr->stat_use[i] < p_ptr->stat_top[i])

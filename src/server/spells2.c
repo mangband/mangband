@@ -227,7 +227,7 @@ bool warding_glyph(player_type *p_ptr)
 /*
  * Array of stat "descriptions"
  */
-static cptr desc_stat_pos[] =
+static cptr desc_stat_pos[A_MAX] =
 {
 	"strong",
 	"smart",
@@ -241,7 +241,7 @@ static cptr desc_stat_pos[] =
 /*
  * Array of stat "descriptions"
  */
-static cptr desc_stat_neg[] =
+static cptr desc_stat_neg[A_MAX] =
 {
 	"weak",
 	"stupid",

@@ -184,7 +184,9 @@ s16b pclass;
 s16b sex;
 char ptitle[80];
 
-s16b stat_order[6];			/* Desired order of stats */
+byte A_MAX = 0;
+cptr *stat_names;
+s16b stat_order[A_CAP];			/* Desired order of stats */
 
 bool flip_inven = FALSE;
 s16b flip_charsheet = 0;

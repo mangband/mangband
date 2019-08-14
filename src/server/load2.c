@@ -1155,11 +1155,11 @@ static bool rd_extra(player_type *p_ptr, bool had_header)
 
 	/* Read the stat info */
 	__try( start_section_read("stats") );
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		__try( read_short("stat_max", &p_ptr->stat_max[i]) );
 	}
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		__try( read_short("stat_cur", &p_ptr->stat_cur[i]) );
 	}
@@ -1879,8 +1879,8 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		__try( read_byte("pclass", &p_ptr->pclass) );
 		__try( read_byte("male", &p_ptr->male) );
 
-		__try( read_binary("stat_order", stat_order_hack, 6) );
-		for (i = 0; i < 6; i++)
+		__try( read_binary("stat_order", stat_order_hack, A_MAX) );
+		for (i = 0; i < A_MAX; i++)
 			p_ptr->stat_order[i] = stat_order_hack[i];
 
 		__try( end_section_read("header") );

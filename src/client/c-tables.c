@@ -498,7 +498,7 @@ cptr angband_sound_name[MSG_MAX] =
 };
 
 
-
+#if 0
 /*
  * Abbreviations of healthy stats
  */
@@ -514,7 +514,7 @@ cptr stat_names_reduced[6] =
 {
 	"Str: ", "Int: ", "Wis: ", "Dex: ", "Con: ", "Chr: "
 };
-
+#endif
 
 /*
  * Standard window names

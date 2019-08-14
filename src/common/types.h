@@ -1099,7 +1099,7 @@ struct player_class
 
 	u32b title[10];		/* Titles - offset */
 
-	s16b c_adj[A_MAX];	/* Class stat modifier */
+	s16b c_adj[A_CAP];	/* Class stat modifier */
 
 	s16b c_dis;			/* class disarming */
 	s16b c_dev;			/* class magic devices */
@@ -1215,7 +1215,7 @@ struct player_type
 	hostile_type *hostile;	/* List of players we wish to attack */
 
 	char savefile[1024];	/* Name of the savefile */
-	int stat_order[6];
+	int stat_order[A_CAP];
 
 	int infodata_sent[6];
 	bool supports_slash_fx;
@@ -1544,11 +1544,11 @@ struct player_type
 	u64b redraw;		/* Normal Redraws (bit flags) */
 	u32b window;		/* Window Redraws (bit flags) */
 
-	s16b stat_use[6];	/* Current modified stats */
-	s16b stat_top[6];	/* Maximal modified stats */
+	s16b stat_use[A_CAP];	/* Current modified stats */
+	s16b stat_top[A_CAP];	/* Maximal modified stats */
 
-	s16b stat_add[6];	/* Modifiers to stat values */
-	s16b stat_ind[6];	/* Indexes into stat tables */
+	s16b stat_add[A_CAP];	/* Modifiers to stat values */
+	s16b stat_ind[A_CAP];	/* Indexes into stat tables */
 
 	bool immune_acid;	/* Immunity to acid */
 	bool immune_elec;	/* Immunity to lightning */

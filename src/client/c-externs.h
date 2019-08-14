@@ -26,8 +26,6 @@ extern char hexsym[16];
 extern byte ascii_to_color[128]; 
 extern option_type local_option_info[MAX_OPTIONS];
 extern cptr local_option_group[];
-extern cptr stat_names[6];
-extern cptr stat_names_reduced[6];
 extern cptr ang_term_name[8];
 extern cptr window_flag_desc[32];
 extern cptr angband_sound_name[MSG_MAX];
@@ -241,7 +239,9 @@ extern s16b pclass;
 extern s16b sex;
 extern char ptitle[80];
 
-extern s16b stat_order[6];
+extern byte A_MAX;
+extern cptr* stat_names;
+extern s16b stat_order[A_CAP];
 
 extern bool flip_inven;
 extern s16b flip_charsheet;

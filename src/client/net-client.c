@@ -216,7 +216,7 @@ int send_char_info() {
 	}
 
 	/* Send the desired stat order */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		if (!cq_printf(&serv->wbuf, "%d", stat_order[i]))
 		{
@@ -741,6 +741,21 @@ int recv_struct_info(connection_type *ct)
 
 				/* Transfer */
 				option_group[i] = string_make(name);
+			}
+		break;
+		/* Player Stats */
+		case STRUCT_INFO_STATS:
+			/* Alloc */
+			A_MAX = max;
+			C_MAKE(stat_names, max, char*);
+			/* Fill */
+			for (i = 0; i < max; i++)
+			{
+				if (cq_scanf(&ct->rbuf, "%s", &name) < 1)
+				{
+					return 0;
+				}
+				stat_names[i] = string_make(name);
 			}
 		break;
 		/* Player Races */

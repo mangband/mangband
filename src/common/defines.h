@@ -279,9 +279,9 @@
 #define MAX_OPTIONS 256
 
 /*
- * Total number of stats.
+ * Maximum possible number of stats.
  */
-#define A_MAX	6
+#define A_CAP	16
 
 
 /*

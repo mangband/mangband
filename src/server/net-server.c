@@ -968,6 +968,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	ct->receive_cb = client_read;
 
 	/* Since LOGIN is the first command ever, it's a good time to send basics */
+	if (client_version_atleast(p_ptr->version, 1,5,3)) send_stats_info(ct);
 	send_race_info(ct);
 	send_class_info(ct);
 	send_server_info(ct);

@@ -1480,8 +1480,8 @@ static void apply_morph(player_type *p_ptr, int power, char * killer)
 			msg_print(p_ptr, "Your body starts to scramble...");
 
 			/* Pick a pair of stats */
-			ii = rand_int(6);
-			for (jj = ii; jj == ii; jj = rand_int(6)) /* loop */;
+			ii = rand_int(A_MAX);
+			for (jj = ii; jj == ii; jj = rand_int(A_MAX)) /* loop */;
 
 			max1 = p_ptr->stat_max[ii];
 			cur1 = p_ptr->stat_cur[ii];
@@ -3895,7 +3895,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 
 			msg_print(p_ptr, "You're not as powerful as you used to be...");
 
-			for (k = 0; k < 6; k++)
+			for (k = 0; k < A_MAX; k++)
 			{
 				p_ptr->stat_cur[k] = (p_ptr->stat_cur[k] * 3) / 4;
 				if (p_ptr->stat_cur[k] < 3) p_ptr->stat_cur[k] = 3;

@@ -789,7 +789,7 @@ static void prt_player_sust_info(player_type *p_ptr)
 			f1 &= ~(k_ptr->flags1 & TR1_PVAL_MASK & ~e_ptr->flags1);
 
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
-		for (stat = 0; stat < 6; stat++)
+		for (stat = 0; stat < A_MAX; stat++)
 		{
 			/* Default */
 			a = TERM_SLATE;
@@ -841,7 +841,7 @@ static void prt_player_sust_info(player_type *p_ptr)
 	/* Player flags */
 	player_flags(p_ptr, &f1, &f2, &f3);
 	/* Check stats */
-	for (stat = 0; stat < 6; ++stat)
+	for (stat = 0; stat < A_MAX; ++stat)
 	{
 		/* Default */
 		a = TERM_SLATE;
@@ -2201,7 +2201,7 @@ static void calc_bonuses(player_type *p_ptr)
 	extra_blows = extra_shots = 0;
 
 	/* Clear the stat modifiers */
-	for (i = 0; i < 6; i++) p_ptr->stat_add[i] = 0;
+	for (i = 0; i < A_MAX; i++) p_ptr->stat_add[i] = 0;
 
 	/* Clear the Displayed/Real armor class */
 	p_ptr->dis_ac = p_ptr->ac = 0;
@@ -2350,7 +2350,7 @@ static void calc_bonuses(player_type *p_ptr)
 	if (p_ptr->maximize)
 	{
 		/* Apply the racial modifiers */
-		for (i = 0; i < 6; i++)
+		for (i = 0; i < A_MAX; i++)
 		{
 			/* Modify the stats for "race" */
 			p_ptr->stat_add[i] += (p_ptr->rp_ptr->r_adj[i] + p_ptr->cp_ptr->c_adj[i]);
@@ -2564,7 +2564,7 @@ static void calc_bonuses(player_type *p_ptr)
 	/*** Handle stats ***/
 
 	/* Calculate stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		int top, use, ind;
 

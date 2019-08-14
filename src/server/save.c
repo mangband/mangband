@@ -405,8 +405,8 @@ static void wr_arena(arena_type *arena)
 static void wr_player_header(player_type *p_ptr)
 {
 	/* Hack -- use array of chars */
-	char stat_order[6]; int i;
-	for (i = 0; i < 6; i++) stat_order[i] =
+	char stat_order[A_MAX]; int i;
+	for (i = 0; i < A_MAX; i++) stat_order[i] =
 		(char)p_ptr->stat_order[i];
 
 	start_section("header");
@@ -416,7 +416,7 @@ static void wr_player_header(player_type *p_ptr)
 	write_int("prace",p_ptr->prace);
 	write_int("pclass",p_ptr->pclass);
 	write_int("male",p_ptr->male);
-	write_binary("stat_order",stat_order,6);
+	write_binary("stat_order",stat_order,A_MAX);
 	
 	end_section("header");
 }
@@ -463,8 +463,8 @@ static void wr_player_main(player_type *p_ptr)
 
 	/* Dump the stats (maximum and current) */
 	start_section("stats");
-	for (i = 0; i < 6; ++i) write_int("stat_max",p_ptr->stat_max[i]);
-	for (i = 0; i < 6; ++i) write_int("stat_cur",p_ptr->stat_cur[i]);
+	for (i = 0; i < A_MAX; ++i) write_int("stat_max",p_ptr->stat_max[i]);
+	for (i = 0; i < A_MAX; ++i) write_int("stat_cur",p_ptr->stat_cur[i]);
 	end_section("stats");
 
 	write_int("id",p_ptr->id);

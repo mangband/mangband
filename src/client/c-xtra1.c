@@ -56,7 +56,7 @@ static void prt_stat(int stat, int row, int col)
 	/* Display "injured" stat */
 	if (p_ptr->stat_use[stat] < p_ptr->stat_top[stat])
 	{
-		put_str(stat_names_reduced[stat], row, col);
+		put_str(stat_names/*_reduced*/[stat], row, col);
 		cnv_stat(p_ptr->stat_use[stat], tmp);
 		c_put_str(TERM_YELLOW, tmp, row, col + 6);
 	}
@@ -2442,7 +2442,7 @@ void display_player_stats_info()
 	int row = 2;
 	char buf[80];
         /* Display the stats */
-        for (i = 0; i < 6; i++)
+        for (i = 0; i < A_MAX; i++)
         {
                 /* Special treatment of "injured" stats */
                 if (p_ptr->stat_use[i] < p_ptr->stat_top[i])
@@ -2450,7 +2450,7 @@ void display_player_stats_info()
                         int value;
 
                         /* Use lowercase stat name */
-                        put_str(stat_names_reduced[i], row + i, 61);
+                        put_str(stat_names/*_reduced*/[i], row + i, 61);
 
                         /* Get the current stat */
                         value = p_ptr->stat_use[i];

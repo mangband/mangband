@@ -70,6 +70,35 @@ int send_char_info(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+int send_stats_info(connection_type *ct)
+{
+	u32b i;
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_STATS) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul", A_MAX, 0, 0) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	for (i = 0; i < A_MAX; i++)
+	{
+		/* Transfer other fields here */
+		if (cq_printf(&ct->wbuf, "%s", stat_names[i]) <= 0)
+		{
+			ct->wbuf.len = start_pos; /* rollback */
+			client_withdraw(ct);
+		}
+	}
+	return 1;
+}
+
 int send_race_info(connection_type *ct)
 {
 	u32b i, name_size;
@@ -1197,7 +1226,7 @@ int recv_char_info(connection_type *ct, player_type *p_ptr) {
 	}
 
 	/* Read the stat order */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		p_ptr->stat_order[i] = 0;
 		if (cq_scanf(&ct->rbuf, "%d", &p_ptr->stat_order[i]) < 1)

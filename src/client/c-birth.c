@@ -319,12 +319,12 @@ static void choose_class(void)
  */
 void choose_stat_order(void)
 {
-	int i, j, k, avail[6];
+	int i, j, k, avail[A_CAP];
 	char c;
-	char out_val[160], stats[6][4];
+	char out_val[160], stats[A_CAP][4];
 
 	/* All stats are initially available */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		strncpy(stats[i], stat_names[i], 3);
 		stats[i][3] = '\0';
@@ -332,13 +332,13 @@ void choose_stat_order(void)
 	}
 
 	/* Find the ordering of all 6 stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Clear bottom of screen */
 		clear_from(20);
 
 		/* Print available stats at bottom */
-		for (k = 0; k < 6; k++)
+		for (k = 0; k < A_MAX; k++)
 		{
 			/* Check for availability */
 			if (avail[k])
@@ -355,7 +355,7 @@ void choose_stat_order(void)
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
-			if ((j < 6) && (j >= 0) && (avail[j]))
+			if ((j < A_MAX) && (j >= 0) && (avail[j]))
 			{
 				stat_order[i] = j;
 				c_put_str(TERM_L_BLUE, stats[j], 8 + i, 15);

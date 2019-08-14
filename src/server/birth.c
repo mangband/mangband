@@ -39,7 +39,7 @@ struct birther
 /*
  * Current stats
  */
-static s16b		stat_use[6];
+static s16b		stat_use[A_MAX];
 
 
 
@@ -123,18 +123,18 @@ static void get_stats(player_type *p_ptr)
 	int		i, j;
 	int		bonus;
 	int		dice[18];
-	int		stats[6];
+	int		stats[A_MAX];
 	int         n17, n16, n15;
 
 	/* Clear "stats" array */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 		stats[i] = 0;
 
 	/* Check over the given stat order, to prevent cheating */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Check range */
-		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > 5)
+		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > (A_MAX-1))
 		{
 			p_ptr->stat_order[i] = 1;
 		}
@@ -143,7 +143,7 @@ static void get_stats(player_type *p_ptr)
 		if (stats[p_ptr->stat_order[i]] == 1)
 		{
 			/* Find a stat that hasn't been specified yet */
-			for (j = 0; j < 6; j++)
+			for (j = 0; j < A_MAX; j++)
 			{
 				if (stats[j])
 					continue;
@@ -181,7 +181,7 @@ static void get_stats(player_type *p_ptr)
 	}
 
 	/* Acquire the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
@@ -197,9 +197,9 @@ static void get_stats(player_type *p_ptr)
 
 	/* Now sort the stats */
 	/* I use a bubble sort because I'm lazy at the moment */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
-		for (j = 0; j < 5; j++)
+		for (j = 0; j < (A_MAX - 1); j++)
 		{
 			if (stats[j] < stats[j + 1])
 			{
@@ -213,13 +213,13 @@ static void get_stats(player_type *p_ptr)
 	}
 
 	/* Now, put them in the correct order */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		p_ptr->stat_max[p_ptr->stat_order[i]] = stats[i];
 	}
 
 	/* Adjust the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Obtain a "bonus" for "race" and "class" */
 		bonus = p_ptr->rp_ptr->r_adj[i] + p_ptr->cp_ptr->c_adj[i];
@@ -470,13 +470,13 @@ static void get_money(player_type *p_ptr)
 	gold = (p_ptr->sc * 6) + randint(100) + 300;
 
 	/* Process the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Mega-Hack -- reduce gold for high stats */
-		if (stat_use[i] >= 18+50) gold -= 300;
-		else if (stat_use[i] >= 18+20) gold -= 200;
-		else if (stat_use[i] > 18) gold -= 150;
-		else gold -= (stat_use[i] - 8) * 10;
+		if (p_ptr->stat_cur[i] >= 18+50) gold -= 300;
+		else if (p_ptr->stat_cur[i] >= 18+20) gold -= 200;
+		else if (p_ptr->stat_cur[i] > 18) gold -= 150;
+		else gold -= (p_ptr->stat_cur[i] - 8) * 10;
 	}
 
 	/* Minimum 100 gold */
@@ -710,7 +710,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
 	}
 
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		p_tmp.stat_order[i] = p_ptr->stat_order[i];
 	}
@@ -746,7 +746,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 
 	if (reach)
 	{
-		for (i = 0; i < 6; i++)
+		for (i = 0; i < A_MAX; i++)
 		{
 			p_ptr->stat_order[i] = p_tmp.stat_order[i];
 		}
@@ -1274,7 +1274,7 @@ void player_free(player_type *p_ptr)
  * Note that we may be called with "junk" leftover in the various
  * fields, so we must be sure to clear them first.
  */
-bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
+bool player_birth(int ind, int race, int pclass, int sex, int stat_order[])
 {
 	player_type *p_ptr = ConnPlayers(ind);
 	int i;
