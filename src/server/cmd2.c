@@ -3010,8 +3010,14 @@ void do_cmd_walk(player_type *p_ptr, int dir, int pickup)
 		/* Actually move the character */
 		move_player(p_ptr, dir, pickup);
 
+		/* Hack -- don't spend energy if player attacked someone */
+		/* Because we have already spent an appropriate amount elsewhere */
+		if (!p_ptr->dealt_blows) {
+
 		/* Take a turn */
 		p_ptr->energy -= level_speed(p_ptr->dun_depth);
+
+		}/* End Hack */
 
 		/* Allow more walking */
 		more = TRUE;

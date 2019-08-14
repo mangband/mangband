@@ -1181,6 +1181,7 @@ void py_attack_player(player_type *p_ptr, int y, int x)
 	int Depth = p_ptr->dun_depth;
 
 	int num = 0, k, bonus, chance;
+	u32b blow_energy;
 
 	cave_type *c_ptr = &cave[Depth][y][x];
 
@@ -1191,6 +1192,9 @@ void py_attack_player(player_type *p_ptr, int y, int x)
 	char pvp_name[80];
 
 	bool do_quake = FALSE;
+
+	/* Hack -- reset counter */
+	p_ptr->dealt_blows = 0;
 
 	/* Disturb both players */
 	disturb(p_ptr, 0, 0);
@@ -1219,10 +1223,18 @@ void py_attack_player(player_type *p_ptr, int y, int x)
 	bonus = p_ptr->to_h + o_ptr->to_h;
 	chance = (p_ptr->skill_thn + (bonus * BTH_PLUS_ADJ));
 
+	/* Energy cost for one blow */
+	blow_energy = level_speed(p_ptr->dun_depth) / p_ptr->num_blow;
 
-	/* Attack once for each legal blow */
-	while (num++ < p_ptr->num_blow)
+	/* Attack once */
+	while (p_ptr->energy >= blow_energy)
 	{
+		/* Spend energy */
+		p_ptr->energy -= blow_energy;
+
+		/* Hack -- increase counter (for later) */
+		p_ptr->dealt_blows++;
+
 		/* Test for hit */
 		if (test_hit_norm(chance, q_ptr->ac + q_ptr->to_a, 1))
 		{
@@ -1327,6 +1339,7 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 	int Depth = p_ptr->dun_depth;
 
 	int			num = 0, k, bonus, chance;
+	u32b blow_energy;
 
 	cave_type		*c_ptr = &cave[Depth][y][x];
 
@@ -1343,6 +1356,9 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 	bool		do_quake = FALSE;
 
 	bool		backstab = FALSE, stab_fleeing = FALSE;
+
+	/* Hack -- reset counter */
+	p_ptr->dealt_blows = 0;
 
 	/* Disturb the player */
 	disturb(p_ptr, 0, 0);
@@ -1390,10 +1406,17 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 	bonus = p_ptr->to_h + o_ptr->to_h;
 	chance = (p_ptr->skill_thn + (bonus * BTH_PLUS_ADJ));
 
+	blow_energy = level_speed(p_ptr->dun_depth) / p_ptr->num_blow;
 
-	/* Attack once for each legal blow */
-	while (num++ < p_ptr->num_blow)
+	/* Attack while we have energy */
+	while (p_ptr->energy >= blow_energy)
 	{
+		/* Remove energy */
+		p_ptr->energy -= blow_energy;
+
+		/* Hack -- increase counter (for later) */
+		p_ptr->dealt_blows++;
+
 		/* Test for hit */
 		if (test_hit_norm(chance, r_ptr->ac, p_ptr->mon_vis[c_ptr->m_idx]))
 		{
@@ -1572,6 +1595,9 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 
 	/* Ensure "dir" is in ddx/ddy array bounds */
 	if (!VALID_DIR(dir)) return;
+
+	/* Hack -- reset temp. flag */
+	p_ptr->dealt_blows = 0;
 
 	/* Find the result of moving */
 	y = p_ptr->py + ddy[dir];
@@ -2885,15 +2911,23 @@ void run_step(player_type *p_ptr, int dir)
 	/* Increase counter */
 	p_ptr->ran_tiles += 1;
 
-	/* Take a turn */
-	p_ptr->energy -= level_speed(p_ptr->dun_depth);
-
-	/* Classic MAnghack #5. Reset built-up energy. */
-	p_ptr->energy_buildup = 0;
 
 	/* Make noise */
 	set_noise(p_ptr, p_ptr->noise + (30 - p_ptr->skill_stl));
 
 	/* Move the player, using the "pickup" flag */
 	move_player(p_ptr, p_ptr->find_current, option_p(p_ptr,ALWAYS_PICKUP));
+
+	/* Hack -- don't spend energy if player attacked someone */
+	/* Because we have already spent an appropriate amount elsewhere */
+	if (!p_ptr->dealt_blows)
+	{
+
+	/* Take a turn */
+	p_ptr->energy -= level_speed(p_ptr->dun_depth);
+
+	/* Classic MAnghack #5. Reset built-up energy. */
+	p_ptr->energy_buildup = 0;
+
+	}/* End Hack */
 }

@@ -1005,6 +1005,7 @@ static void process_player_end(player_type *p_ptr)
 	int	i, j, new_depth, new_world_x, new_world_y, time, timefactor;
 	int	regen_amount, NumPlayers_old=NumPlayers;
 	char	attackstatus;
+	u32b blow_energy;
 	int minus;
 	int fatal_err;
 
@@ -1023,8 +1024,12 @@ static void process_player_end(player_type *p_ptr)
 	/* Paranoia -- buffered commands shouldn't even cause fatal errors */
 	if (fatal_err == -1) return;
 
+	/* How much energy does it cost do deal 1 blow? */
+	blow_energy = level_speed(p_ptr->dun_depth) / p_ptr->num_blow;
+
+
 	/* Check for auto-retaliate */
-	if ((p_ptr->energy >= level_speed(p_ptr->dun_depth))/* - have spare energy */
+	if ((p_ptr->energy >= blow_energy)                  /* - have spare energy */
 	   && !p_ptr->confused && !p_ptr->afraid            /* - not confused or afraid */
 	   && !p_ptr->run_request && !cq_len(&p_ptr->cbuf)) /* - no commands queued */
 	{
@@ -1034,8 +1039,8 @@ static void process_player_end(player_type *p_ptr)
 		 */
 		if ((attackstatus = auto_retaliate(p_ptr)))
 		{
-			/* Use energy */
-			p_ptr->energy -= level_speed(p_ptr->dun_depth);
+			/* Use energy */ /* XXX spent in attack code */
+			/*p_ptr->energy -= blow_energy;*/
 		}
 	}
 

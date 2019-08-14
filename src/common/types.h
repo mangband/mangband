@@ -1504,6 +1504,8 @@ struct player_type
 	u32b energy;		/* Current energy */
 	u32b energy_buildup;	/* MAngband-specific: bonus energy (!) */
 
+	byte dealt_blows;	/* Temp -- count blows this round */
+
 	s16b food;		/* Current nutrition */
 
 	byte confusing;		/* Glowing hands */
