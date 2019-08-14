@@ -829,6 +829,7 @@ static errr unloadFont(TermData *td) {
   }
   // isn't referenced anymore, let's delete it!
   cleanFontData(fd);
+    return 0;
 }
 /* attachFont
 This function creates an SDL_Texture from the given FontData's surface, then sets
@@ -899,6 +900,7 @@ static errr unloadPict(TermData *td) {
   }
   // isn't referenced anymore, let's delete it!
   cleanPictData(pd);
+    return 0;
 }
 /* attachPict
 This function creates an SDL_Texture from the given PictData's surface. It then sets required
@@ -1207,6 +1209,7 @@ static errr renderTButton(TermData *td, int cx, int cy, char *buf, int menuID) {
 	}
 
 	sysText(td, cx, cy, n, color, buf);
+    return 0;
 }
 
 
@@ -1486,6 +1489,7 @@ static errr renderGui(TermData *td) {
 	SDL_SetRenderDrawColor(td->renderer, GUI_COLOR4(MENU_BORDER));
 	SDL_RenderDrawRect(td->renderer, &rect);
 	td->grip_rect = rect;
+    return 0;
 }
 
 static int guiTermMatch(int window_id, int x, int y) {
@@ -1575,7 +1579,7 @@ static int guiDragMotion(int mx, int my) {
 
 		td->need_render = TRUE;
 
-		return 0;
+		return 1;
 	}
 
 	td->ren_rect.x = td->ren_rect.x + mx;
@@ -1584,9 +1588,10 @@ static int guiDragMotion(int mx, int my) {
 	if (mx || my) td->need_render = TRUE;
 
 	termConstrain(td->id);
+	return 1;
 }
 
-static int guiDragStop() {
+static bool guiDragStop() {
 	if (dragging <= -1) {
 		return 0;
 	}
@@ -1610,6 +1615,7 @@ static int guiDragStop() {
 	}
 	gripping = 0;
 	dragging = -1;
+	return 1;
 }
 
 static int guiMenuReact(int window_id, int x, int y) {
@@ -1624,6 +1630,7 @@ static int guiMenuReact(int window_id, int x, int y) {
 	} else {
 		menu_term = -1;
 	}
+	return i;
 }
 
 static void guiMenuOff(void) {
@@ -2186,6 +2193,7 @@ static errr wipeTermCell_ALT(int x, int y) {
 	SDL_SetRenderDrawColor(td->renderer, 0, 0, 0, 255);
 	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
 	SDL_RenderFillRect(td->renderer, &alt_rect);
+	return 0;
 }
 static void wipeTermCell_UI(int x, int y, int cutout) {
 	int n = 1;
@@ -2199,7 +2207,7 @@ static void wipeTermCell_UI(int x, int y, int cutout) {
 }
 
 static errr wipeTermHook(int x, int y, int n) {
-  int i, alt_dungeon = 0;
+  int i;
   TermData *td = (TermData*)(Term->data);
 
 	for (i = 0; i < n; i++) {
@@ -2209,6 +2217,7 @@ static errr wipeTermHook(int x, int y, int n) {
 	if (td->config & TERM_DO_SCALE) {
 		td->need_cutout = TRUE;
 	}
+	return 0;
 }
 
 static void textTermCell_Char(int x, int y, byte attr, char c) {
@@ -2423,10 +2432,11 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 
 	td->need_render = TRUE;
 	//td->need_cutout = TRUE;
+	return 0;
 }
 
 static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp) {
-  int i, alt_dungeon = 0;
+  int i;
   Uint8 a,  c;
   Uint8 ta, tc;
 
@@ -2453,7 +2463,7 @@ static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, co
 		td->need_cutout = TRUE;
 	}
 
-  return 0;
+	return 0;
 }
 
 /* handleMenu
