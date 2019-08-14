@@ -2569,7 +2569,7 @@ void player_strip(player_type *p_ptr, bool gold, bool objects, bool artifacts, b
 		if (p_ptr->inventory[i].k_idx == 0) continue;
 
 		/* Handle artifacts */
-		if (artifact_p(&p_ptr->inventory[i]))
+		if (true_artifact_p(&p_ptr->inventory[i]))
 		{
 			/* Can't drop em */
 			if (!artifacts)
@@ -2601,7 +2601,7 @@ void player_strip(player_type *p_ptr, bool gold, bool objects, bool artifacts, b
 		{
 			p_ptr->total_weight -= item_weight;
 			/* If it was an artifact, mark it as unfound */
-			if (artifact_p(&p_ptr->inventory[i]))
+			if (true_artifact_p(&p_ptr->inventory[i]))
 			{
 				a_info[p_ptr->inventory[i].name1].cur_num = 0;
 				a_info[p_ptr->inventory[i].name1].owner_name = 0;

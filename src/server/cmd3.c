@@ -818,7 +818,7 @@ void do_cmd_destroy(player_type *p_ptr, int item, int quantity)
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
 	/* Artifacts cannot be destroyed */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		cptr feel = "special";
 

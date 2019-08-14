@@ -788,6 +788,10 @@ static void prt_player_sust_info(player_type *p_ptr)
 		if (o_ptr->name2)
 			f1 &= ~(k_ptr->flags1 & TR1_PVAL_MASK & ~e_ptr->flags1);
 
+		/* Hack -- same for bpval/randarts */
+		if (randart_p(o_ptr))
+			f1_hack &= ~(k_ptr->flags1 & TR1_PVAL_MASK);
+
 		/* Initialize color based of sign of pval. 6 -- total num of stats*/
 		for (stat = 0; stat < A_MAX; stat++)
 		{
@@ -2403,8 +2407,9 @@ static void calc_bonuses(player_type *p_ptr)
 		 * type so that each of the ego bonuses has its own independent
 		 * parameter.
 		 */
+		/* NOTE: Randarts totally ignore "bpval"! */
 		/* If we have any base bonuses to add, add them */
-		if (k_ptr->flags1 & TR1_PVAL_MASK)
+		if ((k_ptr->flags1 & TR1_PVAL_MASK) && !randart_p(o_ptr))
 		{
 			/* Affect stats */
 			if (k_ptr->flags1 & TR1_STR) p_ptr->stat_add[A_STR] += o_ptr->bpval;

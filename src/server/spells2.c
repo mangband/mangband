@@ -2194,7 +2194,7 @@ bool curse_armor(player_type *p_ptr)
 		msg_format(p_ptr, "A terrible black aura blasts your %s!", o_name);
 
 		/* Hack -- preserve artifact */
-		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+		if (true_artifact_p(o_ptr)) a_info[o_ptr->name1].cur_num = 0;
 
 		/* Blast the armor */
 		o_ptr->name1 = 0;
@@ -2262,7 +2262,7 @@ bool curse_weapon(player_type *p_ptr)
 		msg_format(p_ptr, "A terrible black aura blasts your %s!", o_name);
 
 		/* Hack -- preserve artifact */
-		if (artifact_p(o_ptr))	a_info[o_ptr->name1].cur_num = 0;
+		if (true_artifact_p(o_ptr)) a_info[o_ptr->name1].cur_num = 0;
 
 		/* Shatter the weapon */
 		o_ptr->name1 = 0;
@@ -2648,18 +2648,15 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 	if (artifact_p(o_ptr)) return FALSE;
 	
 	/* Description */
-	object_desc(p_ptr, o_name, o_ptr, FALSE, 0);
+	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 0);
 
-	/* Describe */
-	msg_format(p_ptr, "%s %s glow%s brightly!",
-		((item >= 0) ? "Your" : "The"), o_name,
-		((o_ptr->number > 1) ? "" : "s"));
-
+	/* Set to Randart */
 	o_ptr->name1 = ART_RANDART;
 
 	/* Piece together a 32-bit random seed */
 	o_ptr->name3 = rand_int(0xFFFF) << 16;
 	o_ptr->name3 += rand_int(0xFFFF);
+
 	/* Check the tval is allowed */
 	if (randart_make(o_ptr) == NULL)
 	{
@@ -2669,6 +2666,11 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 
 		return FALSE;
 	}
+
+	/* Describe */
+	msg_format(p_ptr, "%s %s glow%s brightly!",
+		((item >= 0) ? "Your" : "The"), o_name,
+		((o_ptr->number > 1) ? "" : "s"));
 
 	apply_magic(p_ptr->dun_depth, o_ptr, p_ptr->lev, FALSE, FALSE, FALSE);
 
@@ -2860,7 +2862,7 @@ bool ident_spell_aux(player_type *p_ptr, int item)
 	}
 
 	/* Notice artifacts */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		artifact_notify(p_ptr, o_ptr);
 	}
@@ -2946,7 +2948,7 @@ bool identify_fully_item(player_type *p_ptr, int item)
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
 
 	/* Handle artifact knowledge */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		artifact_notify(p_ptr, o_ptr);
 	}

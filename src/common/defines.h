@@ -347,9 +347,6 @@
 /* Offset for projected spells*/
 #define SPELL_PROJECTED (PY_MAX_SPELLS*2)
 
-/* Randart rarity */
-#define RANDART_RARITY	60
-
 
 /*
  * MAngband-specific item targeting flags

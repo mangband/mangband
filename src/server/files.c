@@ -3190,7 +3190,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	while (TRUE)
 	{
 		/* Get a line from the file */
-		if (!file_getl(fp, buf, 1024))
+		if (file_getl(fp, buf, 1024))
 		{
 			/* Count the lines */
 			line_num++;
@@ -3235,7 +3235,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 	while (TRUE)
 	{
 		/* Get the line */
-		if (!file_getl(fp, buf, 1024))
+		if (file_getl(fp, buf, 1024))
 		{
 			/* Count the lines */
 			line_num++;
@@ -3270,7 +3270,7 @@ errr get_rnd_line(cptr file_name, int entry, char *output)
 			line_num++;
 
 			/* Try to read the line */
-			if (!file_getl(fp, buf, 1024))
+			if (file_getl(fp, buf, 1024))
 			{
 				/* Found the line */
 				if (counter == line) break;

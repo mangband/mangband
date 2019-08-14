@@ -702,7 +702,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 						if (!o_ptr->k_idx) continue;
 
 						/* Don't steal artifacts  -CFT */
-						if (artifact_p(o_ptr)) continue;
+						if (true_artifact_p(o_ptr)) continue;
 
 						/* Get local object */ 
 						i_ptr = &object_type_body; 

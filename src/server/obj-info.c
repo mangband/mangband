@@ -261,9 +261,9 @@ void describe_item_activation(const object_type *o_ptr)
 	if (!(f3 & TR3_ACTIVATE)) return;
 
 	/* Artifact activations */
-	if (o_ptr->name1)
+	if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr = &a_info[o_ptr->name1];
+		artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 		if (!a_ptr->time && !a_ptr->randtime) text_out("[ERROR: missing `A:` line in artifact.txt] ");
 
@@ -483,7 +483,7 @@ static bool describe_stats(const object_type *o_ptr, u32b f1, u32b fH)
 	{
 		noted[i] = FALSE;
 		pval[i] = 0;
-		if (fH & (TR1_STR << i) )
+		if ((fH & (TR1_STR << i)) && !randart_p(o_ptr))
 			pval[i] += o_ptr->bpval;
 		if (f1 & (TR1_STR << i) )
 			pval[i] += o_ptr->pval;
@@ -593,7 +593,7 @@ static bool describe_secondary(const object_type *o_ptr, u32b f1, u32b fH)
 		noted[i] = FALSE;
 		pval[i] = 0;
 		/* Get 'base bonus' */
-		if (fH & (TR1_STEALTH << i))
+		if ((fH & (TR1_STEALTH << i)) && !randart_p(o_ptr))
 			pval[i] += ( i == 6 || i == 7 ? 1 : o_ptr->bpval );
 		/* Get 'base' */
 		if (f1 & (TR1_STEALTH << i))
@@ -1077,7 +1077,7 @@ static bool screen_out_head(const object_type *o_ptr)
 
 	/* Display the known artifact description */
 	//!adult_rand_artifacts
-	if (o_ptr->name1 &&
+	if (true_artifact_p(o_ptr) &&
 	    object_known_p(player_textout, o_ptr) && a_info[o_ptr->name1].text)
 	{
 		p_text_out("\n\n   ");

@@ -973,7 +973,7 @@ void do_cmd_activate(player_type *p_ptr, int item)
 	lev = k_info[o_ptr->k_idx].level;
 
 	/* Hack -- use artifact level instead */
-	if (artifact_p(o_ptr)) lev = a_info[o_ptr->name1].level;
+	if (artifact_p(o_ptr)) lev = artifact_ptr(o_ptr)->level;
 
 	/* Base chance of success */
 	chance = p_ptr->skill_dev;

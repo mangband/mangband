@@ -838,6 +838,10 @@ extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
 extern u16b rand_tval_kind(int tval);
 extern void display_itemlist(player_type *p_ptr);
 
+/* randart.c */
+extern artifact_type *randart_make(const object_type *o_ptr);
+extern void randart_name(const object_type *o_ptr, char *buffer);
+
 /* party.c */
 extern int party_lookup(cptr name);
 extern bool player_in_party(int party_id, player_type *p_ptr);

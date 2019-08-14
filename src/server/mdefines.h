@@ -1058,6 +1058,11 @@ that keeps many algorithms happy.
 /* Randarts */
 #define ART_RANDART		137
 
+/* Randart rarity */
+#define RANDART_RARITY	60
+
+/* Option: randarts can be generated */
+#define RANDART
 
 
 /*** Ego-Item indexes (see "lib/edit/e_info.txt") ***/
@@ -2744,6 +2749,20 @@ that keeps many algorithms happy.
         ((T)->name1 ? TRUE : FALSE)
 #define true_artifact_p(T) \
 	((T)->name1 ? ((T)->name3 ? FALSE : TRUE) : FALSE)
+#define randart_p(T) \
+	((T)->name1 == ART_RANDART ? TRUE : FALSE)
+
+
+/* Get pointer to correct artifact structure */
+#if defined(RANDART)
+#define artifact_ptr(O) \
+	((O)->name1 == ART_RANDART ? randart_make((O)) \
+	 : &a_info[(O)->name1])
+#else
+#define artifact_ptr(O) \
+	(&a_info[(O)->name1])
+#endif
+
 
 /*
  * Ego-Items use the "name2" field

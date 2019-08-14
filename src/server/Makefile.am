@@ -12,6 +12,7 @@ mangband_SOURCES = \
 		src/server/melee2.c src/server/monster1.c src/server/monster2.c \
 		src/server/net-server.c \
 		src/server/obj-info.c src/server/object1.c src/server/object2.c \
+		src/server/randart.c \
 		src/server/party.c src/server/save.c src/server/net-game.c \
 		src/server/spells1.c src/server/spells2.c src/server/store.c \
 		src/server/tables.c src/server/use-obj.c src/server/util.c \

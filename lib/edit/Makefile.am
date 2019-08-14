@@ -12,6 +12,7 @@ edit_DATA = \
 		lib/edit/p_class.txt \
 		lib/edit/p_hist.txt \
 		lib/edit/p_race.txt \
+		lib/edit/randarts.txt \
 		lib/edit/shop_own.txt \
 		lib/edit/socials.txt \
 		lib/edit/terrain.txt \

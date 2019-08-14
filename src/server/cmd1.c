@@ -779,7 +779,7 @@ void carry(player_type *p_ptr, int pickup, int confirm)
 							msg_format(p_ptr, "You bought %s for %ld gold.", o_name, (long)price);
 							msg_format(q_ptr, "You sold %s for %ld gold.", o_name, (long)price);
 							/* Mark artifact as sold */
-							if (artifact_p(o_ptr)) set_artifact_p(q_ptr, o_ptr->name1, ARTS_SOLD);
+							if (true_artifact_p(o_ptr)) set_artifact_p(q_ptr, o_ptr->name1, ARTS_SOLD);
 							/* Audit */
 							sprintf(msg, "PS %s-%d | %s-%d $ %ld",
 									p_ptr->name, (int)p_ptr->id,

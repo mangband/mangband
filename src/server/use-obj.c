@@ -1963,9 +1963,9 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	msg_print_aux(p_ptr, "You activate it...", MSG_ACT_ARTIFACT);
 
 	/* Artifacts */
-	if (o_ptr->name1)
+	if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr = &a_info[o_ptr->name1];
+		artifact_type *a_ptr = artifact_ptr(o_ptr);
 		char o_name[80];
 
 		/* Get the basic name of the object */
@@ -2808,9 +2808,9 @@ void describe_item_activation(const object_type *o_ptr)
 	if (!(f3 & TR3_ACTIVATE)) return;
 
 	/* Artifact activations */
-	if (o_ptr->name1)
+	if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr = &a_info[o_ptr->name1];
+		artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 		/* Paranoia */
 		if (a_ptr->activation >= ACT_MAX) return;

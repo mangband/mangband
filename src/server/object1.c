@@ -936,9 +936,9 @@ static void object_flags_aux(int mode, const player_type *p_ptr, const object_ty
 		if (mode == OBJECT_FLAGS_FULL)
 		{
 			/* Artifact */
-			if (o_ptr->name1)
+			if (artifact_p(o_ptr))
 			{
-				artifact_type *a_ptr = &a_info[o_ptr->name1];
+				artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 				(*f1) = a_ptr->flags1;
 				(*f2) = a_ptr->flags2;
@@ -959,9 +959,9 @@ static void object_flags_aux(int mode, const player_type *p_ptr, const object_ty
 		if (mode >= OBJECT_FLAGS_KNOWN)
 		{
 			/* Obvious artifact flags */
-			if (o_ptr->name1)
+			if (artifact_p(o_ptr))
 			{
-				artifact_type *a_ptr = &a_info[o_ptr->name1];
+				artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 				/* Obvious flags (pval) */
 				(*f1) = (a_ptr->flags1 & (TR1_PVAL_MASK));
@@ -989,20 +989,9 @@ static void object_flags_aux(int mode, const player_type *p_ptr, const object_ty
 		if (!spoil && !(o_ptr->ident & ID_MENTAL)) return;
 
 		/* Artifact */
-		if (o_ptr->name1)
+		if (artifact_p(o_ptr))
 		{
-
-#if 0
-	if (o_ptr->name1 == ART_RANDART)
-	{
-		a_ptr = randart_make(o_ptr);
-	}
-	else
-	{
-#endif
-		
-		
-			artifact_type *a_ptr = &a_info[o_ptr->name1];
+			artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 			(*f1) = a_ptr->flags1;
 			(*f2) = a_ptr->flags2;
@@ -1619,7 +1608,7 @@ void object_desc(const player_type *p_ptr, char *buf, size_t bufsize, const obje
 	if (known)
 	{
         /* Grab any randart name */
-#if defined(RANDARTS)
+#if defined(RANDART)
 	if (o_ptr->name1 == ART_RANDART)
 	{
 		/* Create the name */
@@ -1944,7 +1933,7 @@ void object_desc(const player_type *p_ptr, char *buf, size_t bufsize, const obje
 	{
 		/* Hack -- first display any base pval bonuses.  
 		 * The "bpval" flags are never displayed.  */
-		if (o_ptr->bpval)
+		if (o_ptr->bpval && !randart_p(o_ptr))
 		{
 			t = object_desc_chr(t, ' ');
 			t = object_desc_chr(t, p1);

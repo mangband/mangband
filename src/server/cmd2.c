@@ -3937,7 +3937,7 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 	__trap(p_ptr, CGI(o_ptr, 'v'));
 
 	/* Never throw artifacts */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		msg_print(p_ptr, "You can not throw this!");
 		return;

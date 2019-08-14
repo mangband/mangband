@@ -437,7 +437,7 @@ void compact_objects(int size)
 			}
 
 			/* Hack -- only compact artifacts in emergencies */ 
-			if (artifact_p(o_ptr) && (cnt < 1000)) chance = 100; 
+			if (true_artifact_p(o_ptr) && (cnt < 1000)) chance = 100;
 		
 			/* Apply the saving throw */ 
 			if (magik(chance)) continue; 
@@ -480,7 +480,7 @@ void wipe_o_list(int Depth)
 		/* Mega-Hack -- preserve artifacts */
 		/* Hack -- Preserve unknown artifacts */
 		/* We now preserve ALL artifacts, known or not */
-		if (artifact_p(o_ptr)/* && !object_known_p(o_ptr)*/)
+		if (true_artifact_p(o_ptr)/* && !object_known_p(o_ptr)*/)
 		{
 			/* Info */
 			/* s_printf("Preserving artifact %d.\n", o_ptr->name1); */
@@ -1095,22 +1095,7 @@ static s32b object_value_real(object_type *o_ptr)
 	/* Artifact */
     if (artifact_p(o_ptr))
     {
-        artifact_type *a_ptr;
-	
-	/* Randarts */
-#if defined(RANDARTS)
-	if (o_ptr->name1 == ART_RANDART)
-	{
-		a_ptr = randart_make(o_ptr);
-	}
-	else
-	{
-#endif
-		a_ptr = &a_info[o_ptr->name1];
-#if defined(RANDARTS)
-	}
-#endif
-
+	artifact_type *a_ptr = artifact_ptr(o_ptr);
 
 		/* Hack -- "worthless" artifacts */
 		if (!a_ptr->cost) return (0L);
@@ -2035,10 +2020,17 @@ static void object_mention(object_type *o_ptr)
 		object_desc_store(o_name, o_ptr, FALSE, 0);
 
 	/* Artifact */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		/* Silly message */
 		msg_format("Artifact (%s)", o_name);
+	}
+
+	/* Randart */
+	else if (artifact_p(o_ptr))
+	{
+		/* Silly message */
+		msg_format("Randart (%s)", o_name);
 	}
 
 	/* Ego-item */
@@ -3205,30 +3197,17 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 	/* Hack -- analyze artifacts */
     if (artifact_p(o_ptr))
     {
-        artifact_type *a_ptr;
-	 	
-	/* Randart */
-#if defined(RANDARTS)
-	if (o_ptr->name1 == ART_RANDART)
-	{
-		a_ptr =	randart_make(o_ptr);
-	}
-	/* Normal artifacts */
-	else
-	{
-#endif
-		a_ptr = &a_info[o_ptr->name1];
-#if defined(RANDARTS)
-	}
-#endif
+	artifact_type *a_ptr = artifact_ptr(o_ptr);
 
-
+	if (true_artifact_p(o_ptr))
+	{
 		/* Hack -- Mark the artifact as "created" */
 		a_ptr->cur_num = 1;
 
 		/* Hack -- reset ownership (just in case) */
 		a_ptr->owner_id = 0;
 		a_ptr->owner_name = 0;
+	}
 
 		/* Info */
 		/* s_printf("Created artifact %d.\n", o_ptr->name1); */
@@ -4251,7 +4230,7 @@ void inven_item_increase(player_type *p_ptr, int item, int num)
 	}
 
 	/* Mega-hack! If an artifact was "decreased", forget ownership */
-	if (artifact_p(o_ptr) && (num < 0))
+	if (true_artifact_p(o_ptr) && (num < 0))
 	{
 		a_info[o_ptr->name1].owner_name = 0;
 		a_info[o_ptr->name1].owner_id = 0;
@@ -4443,7 +4422,7 @@ void floor_item_optimize(int item)
 bool inven_drop_okay(player_type *p_ptr, object_type *o_ptr)
 {
 	/* Never drop artifacts above their base depth */
-	if (artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level))
+	if (true_artifact_p(o_ptr) && (p_ptr->dun_depth < a_info[o_ptr->name1].level))
 	{
 		/* Do not apply this rule to ironman and DMs */
 		if (!cfg_ironman && !dm_flag_p(p_ptr,ARTIFACT_CONTROL))
@@ -5142,13 +5121,13 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 	object_audit(p_ptr, o_ptr, o_ptr->number);
 
 	/* Handle artifacts */
-	if (artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
+	if (true_artifact_p(o_ptr) && object_known_p(p_ptr, o_ptr))
 	{
 		artifact_notify(p_ptr, o_ptr);
 	}
 
 	/* Store artifact owner */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		artifact_type *a_ptr = &a_info[o_ptr->name1];
 		a_ptr->owner_id = p_ptr->id;

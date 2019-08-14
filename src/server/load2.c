@@ -721,21 +721,8 @@ static bool rd_item(object_type *o_ptr)
 	/* Artifacts */
 	if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr;
+		artifact_type *a_ptr = artifact_ptr(o_ptr);
 
-		/* Obtain the artifact info */
-#if defined(RANDART)
-		if (o_ptr->name1 == ART_RANDART)
-		{
-			a_ptr = randart_make(o_ptr);
-		}
-		else
-		{
-#endif
-		a_ptr = &a_info[o_ptr->name1];
-#if defined(RANDART)
-		}
-#endif
 		/* Acquire new artifact "pval" */
 		o_ptr->pval = a_ptr->pval;
 
@@ -1321,7 +1308,7 @@ static errr rd_inventory(player_type *p_ptr)
 		if (!forge.k_idx) return (53);
 
 		/* Mega-Hack -- Handle artifacts that aren't yet "created" */
-		if (artifact_p(&forge))
+		if (true_artifact_p(&forge))
 		{
 			/* If this artifact isn't created, mark it as created */
 			/* Only if this isn't a "death" restore */

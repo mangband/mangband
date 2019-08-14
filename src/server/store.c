@@ -708,7 +708,7 @@ static int store_carry(int st, object_type *o_ptr)
 	if (value <= 0) return (-1);
 	
 	/* Artifacts "disappear" when sold */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		/* Mark the artifact so it can be found again */
 		a_info[o_ptr->name1].cur_num = 0;
@@ -911,7 +911,7 @@ static void store_delete(int st)
 	if (rand_int(100) < 50) num = 1;
 
 	/* Hack -- preserve artifacts */
-	if (artifact_p(&st_ptr->stock[what]))
+	if (true_artifact_p(&st_ptr->stock[what]))
 	{
 		/* Preserve this one */
 		a_info[st_ptr->stock[what].name1].cur_num = 0;
@@ -2159,7 +2159,7 @@ void store_confirm(player_type *p_ptr)
 	purchase_analyze(p_ptr, price, value, guess);
 
 	/* If this was an artifact, remember the player doesn't want it */
-	if (artifact_p(o_ptr))
+	if (true_artifact_p(o_ptr))
 	{
 		set_artifact_p(p_ptr, o_ptr->name1, ARTS_SOLD);
 	}

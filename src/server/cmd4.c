@@ -379,7 +379,7 @@ void do_cmd_check_artifacts(player_type *p_ptr, int line)
 					object_type *o_ptr = &o_list[c_ptr->o_idx];
 
 					/* Ignore non-artifacts */
-					if (!artifact_p(o_ptr)) continue;
+					if (!true_artifact_p(o_ptr)) continue;
 
 					/* Note location */
 					my_strcpy(&owners[o_ptr->name1 * 80], format(" (%d ft)", Depth * 50), 80);
@@ -408,7 +408,7 @@ void do_cmd_check_artifacts(player_type *p_ptr, int line)
 			if (!o_ptr->k_idx) continue;
 
 			/* Ignore non-artifacts */
-			if (!artifact_p(o_ptr)) continue;
+			if (!true_artifact_p(o_ptr)) continue;
 
 			/* Note owner */
 			my_strcpy(&owners[o_ptr->name1 * 80], format(" (%s)", q_ptr->name), 80);
