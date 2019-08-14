@@ -40,6 +40,12 @@ void choose_name(void)
 		break;
 	}
 
+#ifdef MOBILE_UI
+	/* Save entered name to config file */
+	/* TODO: maybe do it on all platforms? */
+	conf_set_string("MAngband", "nick", nick);
+#endif
+
 	/* Pad the name (to clear junk) */
 	sprintf(tmp, "%-15.15s", nick);
 
@@ -86,6 +92,12 @@ void enter_password(void)
 		/* All done */
 		break;
 	}
+
+#ifdef MOBILE_UI
+	/* Save entered password to config file */
+	/* TODO: maybe do it on all platforms? */
+	conf_set_string("MAngband", "pass", pass);
+#endif
 
 	/* Pad the name (to clear junk) 
 	sprintf(tmp, "%-15.15s", pass); */
@@ -578,6 +590,9 @@ bool get_server_name(void)
 
 	/* Prompt */
 	prt("Choose a server to connect to (Q for manual entry): ", y + 2, 1);
+
+	/* Show onscreen keyboard */
+	Term_show_keyboard(0);
 
 	/* Ask until happy */
 	while (1)

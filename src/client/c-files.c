@@ -5,6 +5,9 @@
 
 #include "c-angband.h"
 
+#ifdef ON_IOS
+#include "appl-dir.h"
+#endif
 
 /*
  * MAngband-specific R:0 loader hack.
@@ -2427,6 +2430,20 @@ void conf_init(void* param)
 		/* Attempt to open file */
 		config = file_open(config_name, MODE_READ, -1);
 	}
+
+#ifdef ON_IOS
+	if (!config)
+	{
+		/* Application Support directory */
+		appl_get_appsupport_dir(config_name, 1024, TRUE);
+
+		/* Append filename */
+		my_strcat(config_name, buf, 1024);
+
+		/* Attempt to open file */
+		config = file_open(config_name, MODE_READ, -1);
+    }
+#endif
 
 	/*
 	 * Read data

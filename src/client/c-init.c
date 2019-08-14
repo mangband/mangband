@@ -8,6 +8,10 @@
 
 #include "c-angband.h"
 
+#ifdef ON_IOS
+#include "appl-dir.h"
+#endif
+
 char host_name[80];
 
 static void init_arrays(void)
@@ -103,6 +107,17 @@ void init_stuff(void)
 		string_free(ANGBAND_DIR_USER);
 		ANGBAND_DIR_USER = string_make(path);
 	}
+
+    /* ------------------------------------- */
+    /* Copy pref files from ANGBAND_DIR_USER */
+    /* If succesfull, ANGBAND_DIR_USER will then point to the new location */
+#ifdef ON_IOS
+    {
+        char final_user_dir[PATH_MAX];
+        appl_get_appsupport_dir(final_user_dir, PATH_MAX, TRUE);
+        import_user_pref_files(final_user_dir);
+    }
+#endif
 
 }
 
@@ -739,6 +754,9 @@ int client_failed(void)
 		put_str("Couldn't connect to server, keep trying? [Y/N]", 21, 1);
 		/* Make sure the message is shown */
 		Term_fresh();
+
+		/* Show on-screen keyboard */
+		Term_show_keyboard(0);
 
 		while (ch != 'Y' && ch !='y' && ch != 'N' && ch != 'n')
 		{

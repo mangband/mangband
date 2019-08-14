@@ -22,6 +22,12 @@
 /* System Configuration */
 #include "../h-config.h"
 
+/* For systems lacking CONFIG_H */
+#ifdef ON_IOS
+#warning "Including 'ios-config.h'"
+#include "ios-config.h"
+#endif
+
 /* System includes/externs */
 #include "h-system.h"
 

@@ -130,6 +130,16 @@
 #endif
 
 /*
+ * Extract the "ON_IOS" flag from the environment
+ */
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE)
+#define ON_IOS
+#endif
+#endif
+
+/*
  * Extract the "WINDOWS" flag from the compiler
  */
 #if defined(_Windows) || defined(__WINDOWS__) || \

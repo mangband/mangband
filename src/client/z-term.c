@@ -485,11 +485,23 @@ static errr Term_pict_hack(int x, int y, int n, const byte *ap, const char *cp, 
 	return (-1);
 }
 
+/* Hack -- wrappers around Term2/screen_keyboard_aux (see below) */
+errr Term_show_keyboard(int hint)
+{
+	if (screen_keyboard_aux) screen_keyboard_aux(1, hint);
+	return 0;
+}
+errr Term_hide_keyboard(void)
+{
+	if (screen_keyboard_aux) screen_keyboard_aux(1, 0);
+	return 0;
+}
 
 /**** Redefinable hooks / Term2 ****/
 bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc) = NULL;
 void (*query_size_aux)(s16b *x, s16b *y, int st) = NULL;
 void (*refresh_char_aux)(int x, int y) = NULL;
+void (*screen_keyboard_aux)(int show, int hint) = NULL;
 
 /*** Efficient routines ***/
 

@@ -1108,6 +1108,8 @@ bool askfor_aux(char *buf, int len, char m_private)
 	Term_erase(x, y, len);
 	Term_putstr(x, y, -1, default_color, m_private ? "xxxxxx" : buf);
 
+	/* Show on-screen keyboard */
+	Term_show_keyboard(0);
 
 	/* Process input */
 	while (!done)
@@ -1162,6 +1164,9 @@ bool askfor_aux(char *buf, int len, char m_private)
 		buf[k] = '\0';
 
 	}
+
+	/* Hide on-screen keyboard */
+	Term_hide_keyboard();
 
 	/* Hide cursor */
 	Term_hide_ui_cursor();

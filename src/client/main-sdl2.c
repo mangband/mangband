@@ -134,6 +134,50 @@ static int zoom_levels[MAX_ZOOM_LEVELS] = {
 void Term2_refresh_char(int x, int y);
 bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
+void Term2_screen_keyboard(int show, int hint);
+
+/* Helper */
+static bool isHighDPI(void)
+{
+	int i = 0;
+#if 1
+	Uint32 hd = SDL_GetWindowFlags(terms[i].window);
+	return (hd & SDL_WINDOW_ALLOW_HIGHDPI);
+#else
+    int winW, winH, highW, highH;
+    SDL_GetWindowSize(terms[i].window, &winW, &winH);
+    SDL_GetRendererOutputSize(terms[i].renderer, &highW, &highH);
+    return (winW == highW && winH == highH) ? FALSE : TRUE;
+#endif
+}
+static void mobileAutoLayout(void)
+{
+	TermData *td = &terms[0];
+	int maxw, maxh;
+	int w = td->font_data->w;
+	int h = td->font_data->h;
+
+	SDL_GetRendererOutputSize(td->renderer, &maxw, &maxh);
+
+	maxh -= 32;
+
+	if (SDL_IsTablet() || isHighDPI())
+	{
+		w *= 2;
+		h *= 2;
+		td->cell_mode = TERM_CELL_CUST;
+		td->char_mode = TERM_CHAR_STRETCH;
+		td->orig_w = td->cell_w = w;
+		td->orig_h = td->cell_h = h;
+	}
+
+	td->x = 0;
+	td->y = 0;
+	td->need_render = true;
+
+	resizeTerm(td, MAX(maxw / w, 80), MAX(maxh / h, 24));
+	refreshTerm(td);
+}
 
 /* ==== Initialize function ==== */
 /* init_sdl2
@@ -227,6 +271,7 @@ errr init_sdl2(void) {
 	cave_char_aux = Term2_cave_char;
 	query_size_aux = Term2_query_area_size;
 	refresh_char_aux = Term2_refresh_char;
+	screen_keyboard_aux = Term2_screen_keyboard;
 
   return 0;
 }
@@ -237,8 +282,16 @@ void quit_sdl2(cptr s)
 	/* save all values */
 	saveConfig();
 
+#ifndef ON_IOS
 	/* Call regular quit hook */
 	quit_hook(s);
+#else
+	/* Don't know why, but iOS app crashes if we call quit_hook.
+	 * Probably SDL2 client has some fatal entaglement here, cause I saw similar
+	 * thing on Windows. TODO: fix properly! */
+	/* Save config, but don't do anything else */
+	conf_save();
+#endif
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
@@ -282,6 +335,7 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
     /* Initialize SDL2 window */
     int x = td->x;
     int y = td->y;
+      Uint32 winflags = SDL_WINDOW_RESIZABLE;
 
     if (td->id == TERM_MAIN)
     {
@@ -295,10 +349,16 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
 	}
 	if (td->width < width) td->width = width;
 	if (td->height < height) td->height = height;
+
+#ifdef MOBILE_UI
+        winflags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_RESIZABLE;
+#else
+        winflags = SDL_WINDOW_RESIZABLE;
+#endif
     }
 
     if ((td->window = SDL_CreateWindow(td->title, x, y,
-      td->width, td->height, SDL_WINDOW_RESIZABLE)) == NULL) {
+      td->width, td->height, winflags)) == NULL) {
         plog_fmt("Could not create Window: %s", SDL_GetError());
         return 1;
     }
@@ -406,6 +466,13 @@ static errr applyTermConf(TermData *td) {
     td->char_mode = TERM_CHAR_STATIC;
     td->pict_mode = TERM_PICT_STRETCH;
   }
+#ifdef MOBILE_UI
+    // set different settings
+    if (SDL_IsTablet() || isHighDPI())
+    {
+        td->char_mode = TERM_CHAR_STRETCH;
+    }
+#endif
   if (td->zoom < 1) td->zoom = 1;
   if (td->zoom > 1000) td->zoom = 1000;
   // apply cell mode settings
@@ -511,6 +578,21 @@ void Term2_refresh_char(int x, int y)
 	Term2_refresh_char1(x + ox, y + oy * 0);
 	Term2_refresh_char1(x, y);
 }
+/* Hook for managing on-screen keyboard */
+void Term2_screen_keyboard(int show, int hint)
+{
+    /* Does nothing on non-mobile platforms */
+#ifdef MOBILE_UI
+    if (show)
+    {
+        SDL_StartTextInput();
+    }
+    else
+    {
+        SDL_StopTextInput();
+    }
+#endif
+}
 
 void net_stream_clamp(int addr, int *x, int *y) {
 	int i;
@@ -601,14 +683,15 @@ void refreshTermAlt(TermData *td) {
 static errr refreshTerm(TermData *td) {
   int w, h;
 
-  if (td->id == TERM_MAIN && td->font_data && td->pict_data) {
+    if (td->id == TERM_MAIN && td->font_data && td->pict_data) {
     refreshTermAlt(td);
   }
 
   if (td->config & TERM_IS_VIRTUAL || td->id == 0) {
     w = td->ren_rect.w; h = td->ren_rect.h;
   } else {
-    SDL_GetWindowSize(td->window, &w, &h);
+	  /* SDL_GetWindowSize(td->window, &w, &h); */
+	  SDL_GetRendererOutputSize(td->renderer, &w, &h);
   }
   if (td->fb_w == w && td->fb_h == h) return 0;
   if (td->framebuffer) SDL_DestroyTexture(td->framebuffer);
@@ -644,6 +727,9 @@ static errr resizeWindow(TermData *td, int width, int height) {
 //    SDL_SetWindowSize(td->window, width, height);
     td->width = width;
     td->height = height;
+#ifdef MOBILE_UI
+    mobileAutoLayout();
+#endif
     refreshTerm(td);
     return 0;
 }
@@ -755,6 +841,9 @@ static errr attachFont(FontData *fd, TermData *td) {
   }
   SDL_SetTextureBlendMode(td->font_texture, SDL_BLENDMODE_BLEND);
   td->font_data = fd;
+#ifdef MOBILE_UI
+    mobileAutoLayout();
+#endif
   return 0;
 }
 
@@ -869,6 +958,7 @@ static int accum_x = 0;
 static int accum_y = 0;
 static int dragging = -1;
 static int gripping = 0;
+static float accum_pinch = 0;
 
 static void renderWindow(TermData *mtd) {
     SDL_Color *bgcol;
@@ -923,7 +1013,7 @@ static int looksLikeCave(int x, int y) {
 	/*printf("Print cave for row %d (term rows: %d, dungeon rows: %d)\n",
 	y, td->rows, td->dng_rows);*/
 	if (x >= DUNGEON_OFFSET_X && y >= DUNGEON_OFFSET_Y
-	 && y < td->rows - DUNGEON_OFFSET_X - DUNGEON_CLIP_Y) {
+	 && y < td->rows - DUNGEON_OFFSET_Y - DUNGEON_CLIP_Y) {
 		if (state < PLAYER_PLAYING) return 0;
 		if (screen_icky) return 0;
 		if (section_icky_row) return 0;
@@ -1562,7 +1652,8 @@ static void termSizeScreen(SDL_Rect *screen, int term_id)
 	else
 	{
 		SDL_GetWindowPosition(td->window, &screen->x, &screen->y);
-		SDL_GetWindowSize(td->window, &screen->w, &screen->h);
+		/* SDL_GetWindowSize(td->window, &screen->w, &screen->h); */
+		SDL_GetRendererOutputSize(td->renderer, &screen->w, &screen->h);
 	}
 }
 
@@ -1712,6 +1803,85 @@ static void termSpawn(int i) {
 	ang_term[i] = &(terms[i].t);
 }
 
+
+/* Needed for HIGHDPI/Retina displays */
+static void normalizeMouseCoordinates(int i, int *x, int *y, int sx, int sy)
+{
+	int winW, winH, highW, highH;
+	float scaleX, scaleY;
+
+	SDL_GetWindowSize(terms[i].window, &winW, &winH);
+	SDL_GetRendererOutputSize(terms[i].renderer, &highW, &highH);
+
+	scaleX = (float)highW / winW;
+	scaleY = (float)highH / winH;
+
+	*x = sx * scaleX;
+	*y = sy * scaleY;
+}
+
+static void mobilePinch(int i, int dir)
+{
+#if 0 /* This doesn't work well :( */
+	int zoom = terms[i].zoom;
+
+	if (dir >= 1)
+	{
+		zoom *= 2;
+		if (zoom > 200) zoom = 200;
+	}
+	else if (dir <= -1)
+	{
+		zoom /= 2;
+		if (zoom < 50) zoom = 50;
+	}
+
+	if (terms[i].zoom == zoom) return;
+
+	terms[i].zoom = zoom;
+
+	applyTermConf(&terms[i]);
+	refreshTerm(&terms[i]);
+	termConstrain(i);
+#endif
+}
+
+static void handleMouseClick(int i, int wx, int wy)
+{
+    if (i == 0)
+    {
+        int cx = (wx - terms[i].x) / terms[i].cell_w;
+        int cy = (wy - terms[i].y) / terms[i].cell_h;
+        int acw = terms[i].pict_data ? terms[i].pict_data->w : terms[i].cell_w;
+        int ach = terms[i].pict_data ? terms[i].pict_data->h : terms[i].cell_h;
+        if (terms[i].config & TERM_DO_SCALE)
+        {
+            acw = acw * terms[i].zoom / 100;
+            ach = ach * terms[i].zoom / 100;
+            if (looksLikeCave(cx, cy))
+            {
+                cx = (wx - terms[i].x - DUNGEON_OFFSET_X * terms[i].cell_w) /
+                    (acw) + DUNGEON_OFFSET_X;
+                cy = (wy - terms[i].y - DUNGEON_OFFSET_Y * terms[i].cell_h) /
+                    (ach) + DUNGEON_OFFSET_Y;
+            }
+        }
+#ifdef MOBILE_UI
+        if (cx < DUNGEON_OFFSET_X)
+        {
+            if (cy < 3) { Term_keypress(ESCAPE); return; }
+            if (SDL_IsTextInputActive() || SDL_IsScreenKeyboardShown(terms[i].window)) {
+                SDL_StopTextInput();
+            } else {
+                SDL_StartTextInput();
+            }
+            return;
+        }
+#endif
+        Term_mousepress(cx, cy, 1);
+    }
+}
+
 static errr xtraTermHook(int n, int v) {
 	term *old_td;
 	TermData *td = (TermData*)(Term->data);
@@ -1752,6 +1922,11 @@ static errr xtraTermHook(int n, int v) {
         char *c = event.text.text;
         while (*c) Term_keypress(*c++);
       } else if (event.type == SDL_KEYDOWN) {
+#ifdef ON_IOS
+		  /* Hack -- for some reason, SDL2 reports both SDL_TEXTINPUT and
+		   * SDL_KEYDOWN events for the spacebar, on iOS. Let's ignore one. */
+          if (event.key.keysym.sym == 32) continue;
+#endif
         if (event.key.state == SDL_PRESSED) {
           if (event.key.keysym.sym < 33) {
             // Send low-level ASCII char codes (backspace, delete, etc.)
@@ -1797,6 +1972,7 @@ static errr xtraTermHook(int n, int v) {
               int ch = h/terms[i].cell_h;
 
               if (i == 0) {
+					normalizeMouseCoordinates(0, &w, &h, w, h);
                   resizeWindow(&terms[i], w, h);
                   break;
               }
@@ -1848,25 +2024,46 @@ static errr xtraTermHook(int n, int v) {
           }
         }
       }
+        /* Gestures */
+        else if (event.type == SDL_MULTIGESTURE)
+        {
+            accum_pinch += event.mgesture.dDist;
+        }
+
+        /* Touch events! */
+        else if (event.type == SDL_FINGERDOWN) {
+        }
+        else if (event.type == SDL_FINGERMOTION) {
+        }
+        else if (event.type == SDL_FINGERUP) {
+            if (SDL_GetNumTouchFingers(event.tfinger.touchId) == 0)
+            {   mobilePinch(0, (int)(accum_pinch*100)); accum_pinch = 0; }
+        }
+
       // MMM BEGIN
       else if (event.type == SDL_MOUSEBUTTONDOWN) {
+		  int wx, wy;
+		  normalizeMouseCoordinates(0, &wx, &wy, event.button.x, event.button.y);
+
 	if (menu_mode) {
-		i = guiTermMatch(event.window.windowID, event.button.x, event.button.y);
+		i = guiTermMatch(event.window.windowID, wx, wy);
 		if (i >= 0 && terms[i].config & TERM_IS_VIRTUAL) {
 			/* Matched virtual title bar */
 			if (menu_hover <= 0) {
-				guiDragStart(i, event.button.x, event.button.y);
+				guiDragStart(i, wx, wy);
 			}
 		} else {
-			i = guiGripMatch(event.window.windowID, event.button.x, event.button.y);
+			i = guiGripMatch(event.window.windowID, wx, wy);
 			if (i >= 0) {
 				gripping = 1;
-				guiDragStart(i, event.button.x, event.button.y);
+				guiDragStart(i, wx, wy);
 			}
 		}
 	}
       }
       else if (event.type == SDL_MOUSEBUTTONUP) {
+		  int wx, wy;
+		  normalizeMouseCoordinates(0, &wx, &wy, event.button.x, event.button.y);
         if (event.button.button == SDL_BUTTON_RIGHT) {
                if (menu_mode) {
 		    menu_mode = 0;
@@ -1875,7 +2072,7 @@ static errr xtraTermHook(int n, int v) {
 	    } else {
 		    menu_mode = 1;
 		    menu_term = -1;
-		guiMenuReact(event.window.windowID, event.button.x, event.button.y);
+		guiMenuReact(event.window.windowID, wx, wy);
 	    }
 		mustRerender();
         }
@@ -1887,8 +2084,6 @@ static errr xtraTermHook(int n, int v) {
             if (menu_mode != 0) {//MENU_HIDE) {
             for (i = 0; i < 8; i++) {
               if (terms[i].window_id == event.window.windowID) {
-                int wx = event.button.x;
-                int wy = event.button.y;
                 int cx = wx/(terms[i].cell_w ? terms[i].cell_w : 1);
                 int cy = wy/(terms[i].cell_h ? terms[i].cell_h : 1);
 
@@ -1896,9 +2091,22 @@ static errr xtraTermHook(int n, int v) {
                 break;
               }
             }
-          }
+            } else {
+                for (i = 0; i < 8; i++) {
+                    if (terms[i].window_id == event.window.windowID) {
+                        if (wx >= terms[i].x && wy >= terms[i].y
+                            && wx <= terms[i].x + terms[i].fb_w
+                            && wy <= terms[i].y + terms[i].fb_h) {
+                            handleMouseClick(i, wx, wy);
+                            break;
+                        }
+                    }
+                }
+            }
         }
       } else if (event.type == SDL_MOUSEMOTION) {
+		  int wx, wy;
+		  normalizeMouseCoordinates(0, &wx, &wy, event.motion.x, event.motion.y);
 
 	if (dragging > -1 && terms[dragging].window_id == event.window.windowID) {
 		accum_x = event.motion.x;
@@ -1907,7 +2115,7 @@ static errr xtraTermHook(int n, int v) {
 		break;
 	}
 	if (menu_mode) {
-		guiMenuReact(event.window.windowID, event.motion.x, event.motion.y);
+		guiMenuReact(event.window.windowID, wx, wy);
 	}
 
       }
@@ -2516,6 +2724,14 @@ static errr loadConfig() {
       terms[window_id].config |= TERM_IS_HIDDEN;
     }
 
+#ifdef MOBILE_UI
+	  /* Hack -- hide all other windows on mobile */
+	  if (window_id > 0) {
+		  terms[window_id].config |= TERM_IS_HIDDEN;
+		  terms[window_id].config |= TERM_IS_VIRTUAL;
+	  }
+#endif
+
     terms[window_id].zoom = conf_get_int(section, "Zoom", 100);
     if (terms[window_id].zoom < 1) terms[window_id].zoom = 1;
     if (terms[window_id].zoom > 1000) terms[window_id].zoom = 1000;
@@ -2556,6 +2772,21 @@ static errr loadConfig() {
 
     terms[window_id].config |= TERM_IS_VIRTUAL;
 
+#ifdef MOBILE_UI
+        strcpy(default_font, "misc6x13.hex");
+        use_graphics = 3;
+        strcpy(terms[window_id].font_file, default_font);
+        strcpy(terms[window_id].pict_file, GFXBMP[use_graphics]);
+        terms[window_id].x = 0;
+        terms[window_id].y = 0;
+        terms[window_id].width = 0;
+        terms[window_id].height = 0;
+        terms[window_id].cols = 0;
+        terms[window_id].rows = 0;
+        if (use_graphics) terms[window_id].config |= TERM_DO_SCALE;
+        else terms[window_id].config &= ~TERM_DO_SCALE;
+        terms[window_id].zoom = 100;
+#endif
     }
 
   }

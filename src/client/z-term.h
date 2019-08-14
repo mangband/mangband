@@ -370,6 +370,7 @@ struct term
 extern bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc);
 extern void (*query_size_aux)(s16b *x, s16b *y, int st);
 extern void (*refresh_char_aux)(int x, int y);
+extern void (*screen_keyboard_aux)(int show, int hint);
 
 /**** Available Variables ****/
 
@@ -390,6 +391,8 @@ extern errr Term_gotoxy(int x, int y);
 extern errr Term_consolidate_cursor(bool on, int x, int y);
 extern errr Term_show_ui_cursor(void);
 extern errr Term_hide_ui_cursor(void);
+extern errr Term_show_keyboard(int hint);
+extern errr Term_hide_keyboard(void);
 extern errr Term_draw(int x, int y, byte a, char c);
 extern errr Term_mem_ch(int x, int y, byte a, char c, byte ta, char tc);
 extern errr Term_addch(byte a, char c);
