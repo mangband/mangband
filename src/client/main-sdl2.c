@@ -173,7 +173,7 @@ static void mobileAutoLayout(void)
 
 	td->x = 0;
 	td->y = 0;
-	td->need_render = true;
+	td->need_render = TRUE;
 
 	resizeTerm(td, MAX(maxw / w, 80), MAX(maxh / h, 24));
 	refreshTerm(td);
