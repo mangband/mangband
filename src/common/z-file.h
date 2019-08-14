@@ -125,6 +125,13 @@ bool file_delete(const char *fname);
 bool file_move(const char *fname, const char *newname);
 
 /**
+ * Copies the file `fname` to `newname`.
+ *
+ * Returns true if successful, false otherwise.
+ */
+bool file_copy(const char *fname, const char *newname, file_type ftype);
+
+/**
  * Returns true if the file `first` is newer than `second`.
  */
 bool file_newer(const char *first, const char *second);
@@ -227,13 +234,13 @@ bool file_seek(ang_file *f, int bytes);
  * Return current position inside the file.
  * \returns true if successful, false otherwise.
  */
-int file_tell(ang_file *f);
+size_t file_tell(ang_file *f);
 
 /**
  * Reads n bytes from file 'f' into buffer 'buf'.
  * \returns Number of bytes read; -1 on error
  */
-int file_read(ang_file *f, char *buf, size_t n);
+size_t file_read(ang_file *f, char *buf, size_t n);
 
 /**
  * Write the first `n` bytes following the pointer `buf` to the file represented

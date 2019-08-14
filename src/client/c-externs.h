@@ -407,6 +407,7 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 extern void text_to_ascii(char *buf, size_t max, cptr str);
 extern void init_stuff(void);
 extern void init_file_paths(char *path);
+extern void import_user_pref_files(cptr dest_path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);
 extern void show_motd(void);
@@ -427,7 +428,6 @@ extern s32b conf_get_int(cptr section, cptr name, s32b default_value);
 extern void conf_set_string(cptr section, cptr name, cptr value);
 extern void conf_set_int(cptr section, cptr name, s32b value);
 extern void conf_append_section(cptr section, cptr filename);
-extern bool my_fexists(const char *fname);
 extern void clia_init(int argc, const char *argv[]);
 extern int clia_find(const char *key); 
 extern bool clia_cpy_string(char *dst, int len, int i);

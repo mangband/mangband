@@ -443,7 +443,7 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 		return NULL;
 	}
 
-	f->fname = string_make(buf);
+	f->fname = (char*)string_make(buf);
 	f->mode = mode;
 
 	if (mode != MODE_READ && file_open_hook)
@@ -541,7 +541,7 @@ bool file_seek(ang_file *f, int bytes)
 /**
  * Return current location in file 'f'.
  */
-int file_tell(ang_file *f)
+size_t file_tell(ang_file *f)
 {
 	return ftell(f->fh);
 }
@@ -571,7 +571,7 @@ bool file_writec(ang_file *f, byte b)
 /**
  * Read 'n' bytes from file 'f' into array 'buf'.
  */
-int file_read(ang_file *f, char *buf, size_t n)
+size_t file_read(ang_file *f, char *buf, size_t n)
 {
 	size_t read = fread(buf, 1, n, f->fh);
 
@@ -703,6 +703,39 @@ bool file_vputf(ang_file *f, const char *fmt, va_list vp)
 
 	(void)vstrnfmt(buf, sizeof(buf), fmt, vp);
 	return file_put(f, buf);
+}
+
+/**
+ * Copy a file.
+ */
+bool file_copy(const char *src, const char *dst, file_type ftype)
+{
+	ang_file *sfile;
+	ang_file *dfile;
+	char buf[1024];
+	size_t n;
+
+	sfile = file_open(src, MODE_READ, ftype);
+	if (sfile == NULL)
+	{
+		return false;
+	}
+
+	dfile = file_open(dst, MODE_WRITE, ftype);
+	if (dfile == NULL)
+	{
+		file_close(sfile);
+		return false;
+	}
+
+	while ((n = file_read(sfile, buf, 1024)))
+	{
+		if (!file_write(dfile, buf, n)) break;
+    }
+
+	file_close(sfile);
+	file_close(dfile);
+	return true;
 }
 
 #ifdef WINDOWS
@@ -922,7 +955,7 @@ ang_dir *my_dopen(const char *dirname)
 
 	/* Set up the handle */
 	dir->d = d;
-	dir->dirname = string_make(dirname);
+	dir->dirname = (char*)string_make(dirname);
 
 	/* Success */
 	return dir;

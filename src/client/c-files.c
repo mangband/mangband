@@ -2663,3 +2663,49 @@ bool clia_read_int(s32b *dst, const char *key)
 	int i = clia_find(key);
 	return clia_cpy_int(dst, i);
 }
+
+/* Copy all *.prf files from the distribution to some
+ * user-writable directory. Essential on some platforms.
+ * Note, that on macOS/OSX, this is handled by "launch_client.sh",
+ * so we shouldn't be calling this. On iOS, though, this is required!
+ *
+ * TODO: we can probably also use this on Windows and Linux,
+ * e.g. copy from /usr/share/games/user/<*>.prf to ~/.mangclient/user
+ * or what-have-you.
+ *
+ * Note: after completing this operation, the ANGBAND_DIR_USER is
+ * switched to the new, writable location!
+ */
+void import_user_pref_files(cptr dest_path)
+{
+	char tmp_dest_path[PATH_MAX];
+	char tmp_src_path[PATH_MAX];
+	char tmp_fname[PATH_MAX];
+
+	/* Open source directory */
+	ang_dir *src_dir = my_dopen(ANGBAND_DIR_USER);
+	if (src_dir == NULL)
+	{
+		plog_fmt("Could not open directory '%s' for reading.", ANGBAND_DIR_USER);
+		return;
+	}
+
+	/* Iterate over files */
+	while (my_dread(src_dir, tmp_fname, PATH_MAX))
+	{
+		/* It's a .prf file */
+		if (isuffix(tmp_fname, ".prf"))
+		{
+			path_build(tmp_src_path, PATH_MAX, ANGBAND_DIR_USER, tmp_fname);
+			path_build(tmp_dest_path, PATH_MAX, dest_path, tmp_fname);
+			if (file_exists(tmp_dest_path)) continue; /* Don't overwrite */
+			file_copy(tmp_src_path, tmp_dest_path, FTYPE_TEXT);
+		}
+	}
+	/* Done, close source directory */
+	my_dclose(src_dir);
+
+	/* Now, let's switch the path */
+	string_free(ANGBAND_DIR_USER);
+	ANGBAND_DIR_USER = string_make(dest_path);
+}
