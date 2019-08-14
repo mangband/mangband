@@ -245,7 +245,7 @@ size_t path_build(char *buf, size_t len, const char *base, const char *leaf)
  */
 size_t path_filename_index(const char *path)
 {
-	int i;
+	size_t i;
 
 	if (strlen(path) == 0)
 		return 0;

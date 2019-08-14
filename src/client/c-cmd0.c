@@ -1100,7 +1100,7 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 	p = buf2;
 	if ((s = strchr(p, '[')) && *(s+1) && !isdigit(*(s+1))) p = s;
 	else if ((s = strchr(p, '['))) *s = '\0';
-	else if (s = strstr(p, " of ")) p = s + 4;
+	else if ((s = strstr(p, " of "))) p = s + 4;
 	if ((s = strchr(p, '('))) *s = '\0';
 	if ((s = strchr(p, '{'))) *s = '\0';
 	if (prefix(p, "a ")) p += 2;
@@ -1474,7 +1474,7 @@ static u32b do_cmd_term_chat(int x, int y, int button)
 static u32b do_cmd_term_store(int x, int y, int button)
 {
 	int item = y - 6;
-	char cmd;
+	char cmd = 0;
 	int btn, mods = 0;
 
 	if (item < 0 || item >= store.stock_num) return 0;

@@ -113,12 +113,13 @@ SDL_Surface* SDL_Create8BITSurface(int w, int h)
  * 16x16 glyph table format, and is a pallettized one.
  */
 SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
-	SDL_Color pal[2];
-	SDL_Surface *font, *surface;
-	SDL_Rect full_rect;
-	int width, height;
-	int i;
+	SDL_Surface *font;
+	Uint32 width, height;
 	char buf[1036];
+#if 0
+	SDL_Surface *surface;
+	SDL_Rect full_rect;
+#endif
 
 	// Get and open our BMP font from the xtra dir
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);

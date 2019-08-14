@@ -261,7 +261,9 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   if (td->cols < 1) td->cols = 80;
   if (td->rows < 1) td->rows = (td->id == TERM_RECALL) ? 13 : 24;
 
-  width = td->cell_w*td->cols, height = td->cell_h*td->rows, key_queue = 1024; // assume key queue of 1024 atm
+	width = td->cell_w * td->cols;
+	height = td->cell_h * td->rows;
+	key_queue = 1024; // assume key queue of 1024 atm
 
   td->fb_w = 0;
   td->fb_h = 0;
@@ -438,10 +440,7 @@ static errr setTermCells(TermData *td, int w, int h) {
 bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc)
 {
 	TermData *td = (TermData*)(Term->data);
-	byte *scr_aa, *scr_taa;
-	char *src_cc, *scr_tcc;
-	byte oa, ota;
-	char oc, otc;
+
 	/* If ALT.DUNGEON is off, defer to regular function. */
 	if (!(td->config & TERM_DO_SCALE))
 	{
@@ -1880,7 +1879,7 @@ static errr xtraTermHook(int n, int v) {
 	    }
 		mustRerender();
         }
-        else if (event.button.button = SDL_BUTTON_LEFT) {
+        else if (event.button.button == SDL_BUTTON_LEFT) {
             if (dragging > -1) {
                guiDragStop();
                break;
@@ -2657,7 +2656,7 @@ static errr cleanFontData(FontData *fd) {
   return 0;
 }
 static errr fileToFont(FontData *fd, cptr filename, int fontsize, int smoothing) {
-  SDL_Rect info, full;
+  SDL_Rect info;
   SDL_Surface *surface;
 
   if (fd->w || fd->h || fd->surface) return 1; // Return if FontData is not clean
