@@ -134,7 +134,7 @@
  */
 #ifdef __APPLE__
 #include <TargetConditionals.h>
-#if defined(TARGET_OS_IPHONE)
+#if TARGET_OS_IPHONE
 #define ON_IOS
 #endif
 #endif
