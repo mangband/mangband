@@ -153,9 +153,9 @@ struct client_setup_t
 	byte *r_attr;
 	char *r_char;
 	
-	byte misc_attr[256];
-	char misc_char[256];
-		
+	byte misc_attr[1024];
+	char misc_char[1024];
+	
 	byte tval_attr[128];
 	char tval_char[128];
 };
@@ -1377,8 +1377,8 @@ struct player_type
 	char *f_char;
 	byte flvr_attr[MAX_FLVR_IDX];
 	char flvr_char[MAX_FLVR_IDX];
-	byte misc_attr[256];
-	char misc_char[256];
+	byte misc_attr[1024];
+	char misc_char[1024];
 	byte tval_attr[128];
 	char tval_char[128];
 	byte *pr_attr;

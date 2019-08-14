@@ -883,6 +883,20 @@ void reset_visuals(void)
 		/* Extract a default char */
 		tval_to_char[i] = default_tval_to_char(i);
 	}
+
+	/* Extract info for spell/bolt effects */
+	for (i = 0; i < GF_MAX; i++)
+	{
+		int dir, index;
+		for (dir = 0; dir < 9; dir++)
+		{
+			/* Obtain the bolt pict */
+			int p = default_bolt_pict(i, dir, &index);
+			/* Extract attr/char */
+			misc_to_attr[index] = PICT_A(p);
+			misc_to_char[index] = PICT_C(p);
+		}
+	}
 }
 
 /*

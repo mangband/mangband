@@ -8,6 +8,9 @@
 # See "lib/help/command.txt" and "src/files.c" for more information.
 #
 
+##### Standard font file #####
+
+%:font-xxx.prf
 
 ## #
 ## # OPTION: Display "veins" (white "%") as "normal walls" (white "#").
@@ -16,12 +19,6 @@
 ## F:51:0x01/0x23
 ## F:52:0x01/0x23
 ## F:53:0x01/0x23
-
-
-##### Standard font file #####
-
-%:font-xxx.prf
-
 
 ##### System Specific Subfiles #####
 

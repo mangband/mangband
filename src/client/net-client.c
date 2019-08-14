@@ -283,7 +283,7 @@ int send_visual_info(byte type) {
 			char_ref = Client_setup.tval_char;
 			break;
 		case VISUAL_INFO_MISC:
-			size = 256;
+			size = 1024;
 			attr_ref =	Client_setup.misc_attr;
 			char_ref =	Client_setup.misc_char;
 			break;

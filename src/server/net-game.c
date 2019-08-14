@@ -1265,7 +1265,7 @@ int recv_visual_info(connection_type *ct, player_type *p_ptr) {
 			char_ref = p_ptr->tval_char;
 			break;
 		case VISUAL_INFO_MISC:
-			local_size = 256;
+			local_size = 1024;
 			attr_ref = p_ptr->misc_attr;
 			char_ref = p_ptr->misc_char;
 			break;

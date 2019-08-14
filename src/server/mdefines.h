@@ -1881,7 +1881,9 @@ that keeps many algorithms happy.
 #define GF_ACID         3
 #define GF_COLD         4
 #define GF_FIRE         5
-#define GF_MISSILE      10
+#define GF_BOULDER      8  /* Thrown boulder */
+#define GF_BOLT         9  /* Crossbow shot */
+#define GF_MISSILE      10 /* Magic missile */
 #define GF_ARROW        11
 #define GF_PLASMA       12
 #define GF_HOLY_ORB     13
@@ -1930,6 +1932,8 @@ that keeps many algorithms happy.
 #define	GF_HEAL_PLAYER	70
 #define GF_PROJECT_SPELL 71
 #define GF_PROJECT_PRAYER 72
+
+#define GF_MAX 73
 
 /*
  * Some things which induce learning

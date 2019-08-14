@@ -496,12 +496,12 @@ static byte mh_attr(void)
 /*
  * Return a color to use for the bolt/ball spells
  */
-static byte spell_color(int type)
+static byte spell_color(int type, bool resolve_mh)
 {
 	/* Analyze */
 	switch (type)
 	{
-		case GF_MISSILE:	return (mh_attr());
+		case GF_MISSILE:	return (resolve_mh ? mh_attr() : 0x7F);
 		case GF_ACID:		return (TERM_SLATE);
 		case GF_ELEC:		return (TERM_BLUE);
 		case GF_FIRE:		return (TERM_RED);
@@ -509,17 +509,19 @@ static byte spell_color(int type)
 		case GF_POIS:		return (TERM_GREEN);
 		case GF_HOLY_ORB:	return (TERM_L_DARK);
 		case GF_MANA:		return (TERM_L_DARK);
+		case GF_BOULDER:	return (TERM_WHITE);
+		case GF_BOLT:		return (TERM_L_WHITE);
 		case GF_ARROW:		return (TERM_WHITE);
 		case GF_WATER:		return (TERM_SLATE);
 		case GF_NETHER:		return (TERM_L_GREEN);
-		case GF_CHAOS:		return (mh_attr());
+		case GF_CHAOS:		return (resolve_mh ? mh_attr() : 0x7F);
 		case GF_DISENCHANT:	return (TERM_VIOLET);
 		case GF_NEXUS:		return (TERM_L_RED);
 		case GF_CONFUSION:	return (TERM_L_UMBER);
 		case GF_SOUND:		return (TERM_YELLOW);
 		case GF_SHARDS:		return (TERM_UMBER);
 		case GF_FORCE:		return (TERM_UMBER);
-		case GF_INERT:	return (TERM_L_WHITE);
+		case GF_INERT:		return (TERM_L_WHITE);
 		case GF_GRAVITY:	return (TERM_L_WHITE);
 		case GF_TIME:		return (TERM_L_BLUE);
 		case GF_LITE_WEAK:	return (TERM_ORANGE);
@@ -2482,6 +2484,8 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		}
 
 			/* Arrow -- XXX no defense */
+		case GF_BOULDER:
+		case GF_BOLT:
 		case GF_ARROW:
 		{
 			if (seen) obvious = TRUE;
@@ -4105,74 +4109,71 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
  *
  * If the distance is not "one", we (may) return "*".
  */
+static u16b bolt_index(int y, int x, int ny, int nx, int typ)
+{
+	int dir;
+
+	/* No motion (*) */
+	if ((ny == y) && (nx == x)) dir = 5;
+	/* Vertical (|) (down->up) */
+	else if (nx == x && (ny-y == -1)) dir = 8;
+	/* Vertical (|) (up->down) */
+	else if (nx == x && (ny-y == 1)) dir = 2;
+	/* Horizontal (-) (right->left) */
+	else if (ny == y && (nx-x == -1)) dir = 6;
+	/* Horizontal (-) (left->right) */
+	else if (ny == y && (nx-x == 1)) dir = 4;
+	/* Diagonal (/) (down->up) */
+	else if ((ny-y) == (x-nx) && (ny-y == -1)) dir = 9;
+	/* Diagonal (/) (up->down) */
+	else if ((ny-y) == (x-nx) && (ny-y == 1)) dir = 1;
+	/* Diagonal (\) (down->up) */
+	else if ((ny-y) == (nx-x) && (ny-y == -1)) dir = 3;
+	/* Diagonal (\) (up->down) */
+	else if ((ny-y) == (nx-x) && (ny-y == 1)) dir = 7;
+	/* Weird (*) */
+	else dir = 5;
+
+	/* spell_type * 9 + offset - 1 */
+	return typ * 9 + dir - 1;
+}
+
 static u16b bolt_pict(player_type *p_ptr, int y, int x, int ny, int nx, int typ)
 {
-	int base;
+	byte a;
+	char c;
+	int index = bolt_index(y, x, ny, nx, typ);
 
-	byte k;
+	/* Obtain attr/char */
+	a = p_ptr->misc_attr[index];
+	c = p_ptr->misc_char[index];
 
+	/* Resolve multi-hued */
+	if (a == 0x7F) a = mh_attr();
+
+	/* Create pict */
+	return (PICT(a,c));
+}
+
+/* Get "default" bolt attr/char. Only used on init. Replaced by pref files later on. */
+u16b default_bolt_pict(int typ, int dir, int *index)
+{
+	static char dirs[9][2] = {
+		{ -1, -1 }, { 0, -1 }, { 1, -1 },
+		{ -1,  0 }, { 0,  0 }, { 1,  0 },
+		{ -1,  1 }, { 0,  1 }, { 1,  1 },
+	};
+	static char chars[9] = {
+		'\\', '|', '/',
+		'-',  '*', '-',
+		'/',  '|', '\\',
+	};
 	byte a;
 	char c;
 
-	if (!(p_ptr->use_graphics && (p_ptr->use_graphics == GRAPHICS_DAVID_GERVAIS)))
-	{
-		/* No motion (*) */
-		if ((ny == y) && (nx == x)) base = 0x30;
-
-		/* Vertical (|) */
-		else if (nx == x) base = 0x40;
-
-		/* Horizontal (-) */
-		else if (ny == y) base = 0x50;
-
-		/* Diagonal (/) */
-		else if ((ny-y) == (x-nx)) base = 0x60;
-
-		/* Diagonal (\) */
-		else if ((ny-y) == (nx-x)) base = 0x70;
-
-		/* Weird (*) */
-		else base = 0x30;
-
-		/* Basic spell color */
-		if (!option_p(p_ptr,USE_COLOR)) k = TERM_WHITE;
-		else
-			k = spell_color(typ);
-
-		/* Obtain attr/char */
-		a = p_ptr->misc_attr[base+k];
-		c = p_ptr->misc_char[base+k];
-
-	}
-	else
-	{
-		int add;
-
-		/* No motion (*) */
-		if ((ny == y) && (nx == x)) {base = 0x00; add = 0;}
-
-		/* Vertical (|) */
-		else if (nx == x) {base = 0x40; add = 0;}
-
-		/* Horizontal (-) */
-		else if (ny == y) {base = 0x40; add = 1;}
-
-		/* Diagonal (/) */
-		else if ((ny-y) == (x-nx)) {base = 0x40; add = 2;}
-
-		/* Diagonal (\) */
-		else if ((ny-y) == (nx-x)) {base = 0x40; add = 3;}
-
-		/* Weird (*) */
-		else {base = 0x00; add = 0;}
-
-		if (typ >= 0x40) k = 0;
-		else k = typ;
-
-		/* Obtain attr/char */
-		a = p_ptr->misc_attr[base+k];
-		c = p_ptr->misc_char[base+k] + add;
-	}
+	*index = bolt_index(0, 0, dirs[8 - dir][1], dirs[8 - dir][0], typ);
+	a = spell_color(typ, FALSE);
+	c = chars[8 - dir];
 
 	/* Create pict */
 	return (PICT(a,c));
@@ -4478,11 +4479,11 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				/* Beams can have a slightly higher density */
 				if (randint(density>>1) == 1)
 				{
-					//p_ptr->scr_info[dispy][dispx].c = '*';
+					//p_ptr->scr_info[dispy][dispx].c = ch;
 					//p_ptr->scr_info[dispy][dispx].a = attr;
 					//Stream_tile(j, p_ptr, dispy, dispx);
 					/* Tell the client */
-					(void)send_air_char(p_ptr, dispy, dispx, attr, '*', 1, density);
+					(void)send_air_char(p_ptr, dispy, dispx, attr, ch, 1, density);
 				}
 			}
 		}

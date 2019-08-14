@@ -904,7 +904,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			disturb(p_ptr, 1, 0);
 			if (blind) msg_format(p_ptr, "You hear something grunt with exertion.", m_name);
 			else msg_format(p_ptr, "%^s hurls a boulder at you!", m_name);
-			bolt(p_ptr, m_idx, GF_ARROW, damroll(1 + r_ptr->level / 7, 12));
+			bolt(p_ptr, m_idx, GF_BOULDER, damroll(1 + r_ptr->level / 7, 12));
 			break;
 		}
 

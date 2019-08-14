@@ -281,8 +281,8 @@ extern s16b alloc_kind_size;
 extern alloc_entry *alloc_kind_table;
 extern s16b alloc_race_size;
 extern alloc_entry *alloc_race_table;
-extern byte misc_to_attr[256];
-extern char misc_to_char[256];
+extern byte misc_to_attr[1024];
+extern char misc_to_char[1024];
 extern byte tval_to_attr[128];
 extern char tval_to_char[128];
 extern byte keymap_cmds[128];
@@ -876,6 +876,7 @@ extern bool wr_dungeon_special_ext(int Depth, cptr levelname);
 
 
 /* spells1.c */
+extern u16b default_bolt_pict(int typ, int dir, int *index);
 extern s16b poly_r_idx(int r_idx);
 extern void teleport_away(int m_idx, int dis);
 extern void teleport_player(player_type *p_ptr, int dis);
