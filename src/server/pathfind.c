@@ -192,6 +192,13 @@ bool findpath(player_type *p_ptr, int y, int x)
 		p_ptr->pf_result[p_ptr->pf_result_index++] = '0' + (char)(10 - dir);
 		i += ddx[dir];
 		j += ddy[dir];
+
+		/* Paranoia -- stay in pf_result[MAX_PF_LENGTH] bounds */
+		if (p_ptr->pf_result_index >= MAX_PF_LENGTH)
+		{
+			bell();
+			return (FALSE);
+		}
 	}
 
 	p_ptr->pf_result_index--;
