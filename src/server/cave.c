@@ -588,7 +588,20 @@ int player_pict(player_type *p_ptr, player_type *q_ptr)
 	timefactor = base_time_factor(p_ptr, 0);
 	if( same_player(q_ptr, p_ptr) && (timefactor < NORMAL_TIME) )
 	{
-		if( ht_passed(&turn, &p_ptr->bubble_change, (10+((NORMAL_TIME-timefactor)))))
+		int blink_speed = cfg_fps;
+		/* If player has command(s) queued, blink faster */
+		if (cq_len(&p_ptr->cbuf) || p_ptr->running || p_ptr->run_request
+			|| p_ptr->running_withpathfind)
+		{
+			blink_speed = cfg_fps / 4;
+		}
+		/* If player has entered bulletime just now, force violet */
+		if (timefactor < p_ptr->bubble_speed)
+		{
+			p_ptr->bubble_colour = TERM_VIOLET;
+			blink_speed = cfg_fps * 2;
+		}
+		if( ht_passed(&turn, &p_ptr->bubble_change, blink_speed))
 		{
 			p_ptr->bubble_change = turn;
 			if(p_ptr->bubble_colour == TERM_VIOLET)

@@ -2109,6 +2109,10 @@ void do_cmd__after(player_type *p_ptr, byte pkt, int result)
 	/* Paranoia -- player did not have enough energy to execute the command */
 	if (result == 0) return;
 
+	/* Hack -- after player does something, reset bubble color */
+	p_ptr->bubble_colour = TERM_WHITE;
+	p_ptr->bubble_change = turn; /* Delay next blink somewhat */
+
 	/* Hack -- Add noise for commands that cost energy */
 	if (pcommand_energy_cost[pkt])
 	{
