@@ -4585,7 +4585,15 @@ void do_cmd_options(void)
 
 				cx = inkey();
 				if (cx == ESCAPE) break;
+				if (cx == '0') hitpoint_warn_toggle = 0;
 				if (isdigit((unsigned char)cx)) p_ptr->hitpoint_warn = D2I(cx);
+				else if (cx == '=') p_ptr->hitpoint_warn = 10; /* 100% */
+				else if (cx == '-')
+				{	/* Toggle between last value and 0% */
+					bool on = p_ptr->hitpoint_warn > 0 ? TRUE : FALSE;
+					hitpoint_warn_toggle = on ? p_ptr->hitpoint_warn : hitpoint_warn_toggle;
+					p_ptr->hitpoint_warn = on ? 0 : hitpoint_warn_toggle;
+				}
 				else bell();/*"Illegal hitpoint warning!");*/
 			}
 		}

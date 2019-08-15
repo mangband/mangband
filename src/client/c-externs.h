@@ -302,6 +302,8 @@ extern bool ignore_birth_options;
 extern int char_screen_mode;
 extern bool target_recall;
 extern char target_prompt[60];
+
+extern byte hitpoint_warn_toggle;
 /*
  * Not-so-Automatically generated "function declarations"
  */

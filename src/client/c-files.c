@@ -1229,7 +1229,7 @@ errr Save_options(void)
 	}
 
 	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
-	file_putf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
+	file_putf(fp, "\n# Hitpoint warning\nH:%d\n", MAX(p_ptr->hitpoint_warn, hitpoint_warn_toggle);
 
 	/* Close the file */
 	file_close(fp);

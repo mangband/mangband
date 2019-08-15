@@ -5175,6 +5175,9 @@ int base_time_factor(player_type *p_ptr, int slowest)
 	/* If nothing in LoS */
 	los = monsters_in_los(p_ptr);
 
+	/* Hack -- prevent too much manual slowdown */
+	if (p_ptr->hitpoint_warn > 9 && !los) timefactor = NORMAL_TIME;
+
 	/* Resting speeds up time disregarding health time scaling */
 	if (p_ptr->resting && !los) timefactor = MAX_TIME_SCALE;
 

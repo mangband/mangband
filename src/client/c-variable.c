@@ -285,3 +285,5 @@ bool escape_in_macro_triggers = FALSE;
 int char_screen_mode;
 bool target_recall;
 char target_prompt[60];
+
+byte hitpoint_warn_toggle = 0;
