@@ -105,6 +105,9 @@
     <ClCompile Include="..\..\src\server\party.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\server\randart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\server\save.c">
       <Filter>Source Files</Filter>
     </ClCompile>

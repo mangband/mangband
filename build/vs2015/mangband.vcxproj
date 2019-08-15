@@ -356,6 +356,7 @@
     <ClCompile Include="..\..\src\server\party.c" />
     <ClCompile Include="..\..\src\common\parser.c" />
     <ClCompile Include="..\..\src\server\pathfind.c" />
+    <ClCompile Include="..\..\src\server\randart.c" />
     <ClCompile Include="..\..\src\server\save.c" />
     <ClCompile Include="..\..\src\server\spells1.c" />
     <ClCompile Include="..\..\src\server\spells2.c" />

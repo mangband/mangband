@@ -899,6 +899,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\server\randart.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\save.c"
 				>
 			</File>
