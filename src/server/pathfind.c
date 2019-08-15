@@ -160,6 +160,18 @@ bool findpath(player_type *p_ptr, int y, int x)
 		for (k = 0; k < 8; k++)
 		{
 			dir = dir_search[k];
+
+			/* Paranoia -- stay in terrain[][] bounds */
+			if (j - oy + ddy[dir] < 0 ||
+			    j - oy + ddy[dir] >= MAX_PF_RADIUS ||
+			    i - ox + ddx[dir] < 0 ||
+			    i - ox + ddx[dir] >= MAX_PF_RADIUS)
+			{
+				/* Skip this direction */
+				dir = 5;
+				continue;
+			}
+
 			if (terrain[j - oy + ddy[dir]][i - ox + ddx[dir]] == cur_distance)
 				break;
 		}
