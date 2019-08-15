@@ -1484,6 +1484,17 @@ void cmd_mouseclick()
 		}
 	} /* XXX XXX XXX */
 
+	/* XXX HORRIBLE HACK#2 XXX*/
+	if (btn) { /* Allow rebinding */
+		byte map_from = btn | mod;
+		if (mousemap[map_from])
+		{
+
+			btn = mousemap[map_from] & 0x0F;
+			mod = mousemap[map_from] & 0xF0;
+		}
+	} /* XXX XXX XXX */
+
 	send_mouse(0
 	  | (btn == 1 ? MCURSOR_LMB : 0)
 	  | (btn == 2 ? MCURSOR_MMB : 0)

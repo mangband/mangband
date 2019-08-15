@@ -839,6 +839,21 @@ errr process_pref_file_command(char *buf)
 		}
 	}
 
+	/* Process "M" -- create mousemap */
+	else if (buf[0] == 'M')
+	{
+		byte mb_from, mb_to;
+
+		if (tokenize(buf+2, 2, zz) != 2) return (1);
+
+		mb_from = (byte)strtol(zz[0], NULL, 16);
+		mb_to = (byte)strtol(zz[1], NULL, 16);
+
+		mousemap[mb_from] = mb_to;
+
+		return (0);
+	}
+
 	/* Process "{" -- single auto-inscribe instruction */
 	else if (buf[0] == '{')
 	{

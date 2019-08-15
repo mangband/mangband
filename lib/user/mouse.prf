@@ -1,4 +1,33 @@
-# mouse.prf: Define "Mouse Macros".
+# mouse.prf: Define "Mouse Maps" and "Mouse Macros".
+
+#######################
+##### Mouse Maps. #####
+#######################
+
+# This allows you to swap mouse functions around. For example,
+# if the game has Ctrl+Click defined as some kind of action,
+# but you want to use Alt+Click instead, use this section.
+#
+# The format is similar to regular keymaps. Each 'M' line takes form of:
+# M:%%:$$
+#   |  \-- $$ Mouse Button Index (| modifiers) to execute.
+#   \----- %% Mouse Button Index (| modifiers) to map.
+#
+# See "MB mouse button index" table below, to get the hex values.
+
+
+##### And now, the mappings. #####
+
+# Swap right and left mouse buttons.
+#M:01:03
+#M:03:01
+
+# Right-click in dungeon: act as Ctrl+Click.
+#M:03:11
+
+#########################
+##### Mouse Macros. #####
+#########################
 
 # This is similar to regular macros, the 'A' line defines a new action
 # and 'P' lines binds a "macro trigger" to it.

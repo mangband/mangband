@@ -163,6 +163,8 @@ cptr ANGBAND_FON = "";
 cptr ANGBAND_FONTNAME = "";
 cptr ANGBAND_GRAFNAME = "";
 
+byte mousemap[0xFF] = { 0 };
+
 cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
 
 s16b command_cmd;

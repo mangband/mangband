@@ -217,6 +217,8 @@ extern cptr ANGBAND_FON;
 extern cptr ANGBAND_FONTNAME;
 extern cptr ANGBAND_GRAFNAME;
 
+extern byte mousemap[0xFF];
+
 extern cptr keymap_act[KEYMAP_MODES][256];
 
 extern s16b command_cmd;
