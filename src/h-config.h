@@ -257,6 +257,11 @@
 # define PATH_SEP ""
 #endif
 
+/* Hack -- for systems with no PATH_MAX (Windows?) */
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+
 /* Hack -- DOS has 8.3 filesystem */
 #undef FS_MAX_BASE_LEN
 #if defined(MSDOS)
