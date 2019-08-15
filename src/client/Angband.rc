@@ -111,6 +111,7 @@ BEGIN
 //			MENUITEM "&Respect Tile Size",		222
 		END
         MENUITEM "&Sound",                      301
+        MENUITEM "&Mouse",                      302
     END
     POPUP "&Help"
     BEGIN

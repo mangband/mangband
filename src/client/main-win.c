@@ -132,6 +132,7 @@ static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "Davi
 #define IDM_GRAPHICS_TILESET_8	230
 
 #define IDM_OPTIONS_SOUND		301
+#define IDM_OPTIONS_MOUSE		302
 #define IDM_OPTIONS_UNUSED		231
 #define IDM_OPTIONS_SAVER		232
 
@@ -391,6 +392,7 @@ bool game_in_progress  = FALSE;  /* game in progress */
 bool initialized       = FALSE;  /* note when "open"/"new" become valid */
 bool paletted          = FALSE;  /* screen paletted, i.e. 256 colors */
 bool colors16          = FALSE;  /* 16 colors screen, don't use RGB() */
+bool use_mouse         = FALSE;  /* game accepts mouse */
 
 /*
  * Saved instance handle
@@ -875,6 +877,8 @@ static void save_prefs(void)
 #ifdef USE_SOUND
 	conf_set_int("Windows32", "Sound", use_sound);
 #endif
+	conf_set_int("Windows32", "GameMouse", use_mouse);
+
 	save_prefs_aux(&win_data[0], "Main window");
 
 	/* XXX XXX XXX XXX */
@@ -945,6 +949,9 @@ static void load_prefs(void)
 	/* Extract the "use_sound" flag */
 	use_sound = (conf_get_int("Windows32", "Sound", 0) != 0);
 #endif
+
+	/* Extract the "use_mouse" flag */
+	use_mouse = (conf_get_int("Windows32", "GameMouse", 1) == 1);
 
 	/* Load window prefs */
 	load_prefs_aux(&win_data[0], "Main window");
@@ -2668,6 +2675,10 @@ static void setup_menus(void)
 	              MF_BYCOMMAND | (use_sound ? MF_CHECKED : MF_UNCHECKED));
 #endif
 
+	/* Item "Mouse" */
+	CheckMenuItem(hm, IDM_OPTIONS_MOUSE,
+	              MF_BYCOMMAND | (use_mouse ? MF_CHECKED : MF_UNCHECKED));
+
 #ifdef BEN_HACK
 	/* Item "Colors 16" */
 	EnableMenuItem(hm, IDM_OPTIONS_UNUSED,
@@ -2879,6 +2890,12 @@ static void process_menus(WORD wCmd)
 			break;
 		}
 
+		case IDM_OPTIONS_MOUSE:
+		{
+			use_mouse = !use_mouse;
+			break;
+		}
+
 		case IDM_HELP_GENERAL:
 		{
 			char buf[1024];
@@ -3071,6 +3088,8 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 			if (GetKeyState(VK_CONTROL) & 0x8000) button |= 16;
 			if (GetKeyState(VK_SHIFT)   & 0x8000) button |= 32;
 			if (GetKeyState(VK_MENU)    & 0x8000) button |= 64;
+
+			if (!use_mouse) return 0; /* No in-game mouse */
 
 			Term_mousepress(x, y, button);
 			return 0;
