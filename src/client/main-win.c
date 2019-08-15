@@ -3070,8 +3070,11 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		}
 
 		case WM_LBUTTONDOWN:
-		//case WM_MBUTTONDOWN:
-		//case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+#if define(WM_XBUTTONDOWN)
+		case WM_XBUTTONDOWN:
+#endif
 		{
 			int x = LOWORD(lParam);
 			int y = HIWORD(lParam);
@@ -3083,6 +3086,14 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 
 			x = x / td->font_wid;
 			y = y / td->font_hgt;
+
+			/* Which button */
+			if (uMsg == WM_LBUTTONDOWN) button = 1;
+			if (uMsg == WM_MBUTTONDOWN) button = 2;
+			if (uMsg == WM_RBUTTONDOWN) button = 3;
+#if defined(WM_XBUTTONDOWN)
+			if (uMsg == WM_XBUTTONDOWN) button = 3 + HIWORD(wParam);
+#endif
 
 			/* Extract the modifiers */
 			if (GetKeyState(VK_CONTROL) & 0x8000) button |= 16;
