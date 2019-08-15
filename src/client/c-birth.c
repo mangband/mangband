@@ -323,6 +323,19 @@ void choose_stat_order(void)
 	char c;
 	char out_val[160], stats[A_CAP][4];
 
+/* HACK!!! TODO: Deprecate at 1.6.0 !!! */
+if (A_MAX == 0)
+{
+    A_MAX = 6;
+    C_MAKE(stat_names, A_MAX, char*);
+    stat_names[0] = string_make("STR");
+    stat_names[1] = string_make("INT");
+    stat_names[2] = string_make("WIS");
+    stat_names[3] = string_make("DEX");
+    stat_names[4] = string_make("CON");
+    stat_names[5] = string_make("CHR");
+}
+
 	/* All stats are initially available */
 	for (i = 0; i < A_MAX; i++)
 	{
