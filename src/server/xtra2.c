@@ -1722,18 +1722,6 @@ bool set_food(player_type *p_ptr, int v)
 			case 0:
 			msg_print(p_ptr, "You are getting faint from hunger!");
 			sound(p_ptr, MSG_NOTICE);
-			/* Hack -- if the player is at full hit points, 
-			 * destroy his conneciton (this will hopefully prevent
-			 * people from starving while afk, and not in the dungeon.)
-			 */
-
-			if (p_ptr->chp == p_ptr->mhp /* && (p_ptr->dun_depth <=0) */ )
-			{
-				/* Use the value */
-				p_ptr->food = v;
-				player_disconnect(p_ptr, "Starving to death!");
-				return TRUE;
-			}
 			break;
 
 			/* Weak */

@@ -1207,7 +1207,8 @@ struct player_type
 	unsigned int version;		/* His version */
 
 	int state;	/* Player state, see "pack.h" */
-	int idle;	/* Number of seconds this player is idle */
+	int idle;	/* Number of seconds since last network packet */
+	int afk_seconds; /* Number of seconds since last game command */
 	cq cbuf;	/* Command Queue */
 
 	s32b id;		/* Unique ID to each player */

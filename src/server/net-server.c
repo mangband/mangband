@@ -673,6 +673,11 @@ int second_tick(int data1, data data2) {
 			/* Remove him from game*/
 			player_leave(i);
 		}
+		else
+		{
+			/* Also, track AFK status */
+			p_list[i]->afk_seconds++;
+		}
 	}
 
 	return 1;

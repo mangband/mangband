@@ -2082,6 +2082,9 @@ int send_party_info(player_type *p_ptr)
 /* This gets called before EVERY gameplay command. */
 void do_cmd__before(player_type *p_ptr, byte pkt)
 {
+	/* Player is doing something? Reset AKF timer */
+	p_ptr->afk_seconds = 0;
+
 	/* Assume non-custom commands have their own hacks */
 	if (pkt_command[pkt] >= MAX_CUSTOM_COMMANDS)
 	{

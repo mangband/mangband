@@ -1003,7 +1003,7 @@ static void process_player_begin(player_type *p_ptr)
 static void process_player_end(player_type *p_ptr)
 {
 	int	i, j, new_depth, new_world_x, new_world_y, time, timefactor;
-	int	regen_amount, NumPlayers_old=NumPlayers;
+	int	regen_amount;
 	char	attackstatus;
 	u32b blow_energy;
 	int minus;
@@ -1129,12 +1129,6 @@ static void process_player_end(player_type *p_ptr)
 
 				/* Digest some food */
 				(void)set_food(p_ptr, p_ptr->food - i);
-
-				/* Hack -- check to see if we have been kicked off
-				 * due to starvation
-				 */
-
-				if (NumPlayers != NumPlayers_old) return;
 			}
 
 			/* Digest quickly when gorged */
@@ -1147,6 +1141,16 @@ static void process_player_end(player_type *p_ptr)
 			/* Starve to death (slowly) */
 			if (p_ptr->food < PY_FOOD_STARVE)
 			{
+				/* Hack -- if the player is idle for >= 3 minutes,
+				 * destroy his conneciton */
+				#ifdef DISCONNECT_STARVING
+				if (p_ptr->afk_seconds >= DISCONNECT_STARVING)
+				{
+					player_disconnect(p_ptr, "Starving to death!");
+					return;
+				}
+				#endif
+
 				/* Calculate damage */
 				i = (PY_FOOD_STARVE - p_ptr->food) / 10;
 
