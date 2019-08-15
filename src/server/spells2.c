@@ -2644,6 +2644,7 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
 #else
+	if (!cfg_random_artifacts) return FALSE;
 	if (o_ptr->number > 1) return FALSE;
 	if (artifact_p(o_ptr)) return FALSE;
 	
