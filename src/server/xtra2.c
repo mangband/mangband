@@ -3264,7 +3264,7 @@ bool adjust_panel(player_type *p_ptr, int y, int x)
 	if (x2 > p_ptr->max_panel_cols) x2 = p_ptr->max_panel_cols;
 	else if (x2 < 0) x2 = 0;
 
-	if (x2 != x || y2 != y)
+	if (x2 != p_ptr->panel_col || y2 != p_ptr->panel_row)
 	{
 		p_ptr->panel_row = y2;
 		p_ptr->panel_col = x2;
