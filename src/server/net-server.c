@@ -187,6 +187,9 @@ int player_enter(int ind)
 	setup_panel(p_ptr, TRUE);
 	verify_panel(p_ptr);
 
+	/* Hack -- recalculate everything as early as possible */
+	update_stuff(p_ptr);
+
 	/* Hack, must find better place */
 	prt_history(p_ptr);
 	show_socials(p_ptr);
