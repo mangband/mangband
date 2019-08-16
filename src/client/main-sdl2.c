@@ -287,16 +287,8 @@ void quit_sdl2(cptr s)
 	/* save all values */
 	saveConfig();
 
-#ifndef ON_IOS
 	/* Call regular quit hook */
 	quit_hook(s);
-#else
-	/* Don't know why, but iOS app crashes if we call quit_hook.
-	 * Probably SDL2 client has some fatal entaglement here, cause I saw similar
-	 * thing on Windows. TODO: fix properly! */
-	/* Save config, but don't do anything else */
-	conf_save();
-#endif
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
@@ -326,6 +318,7 @@ static errr initTermData(TermData *td, cptr name, int id, cptr font) {
   td->fb_w = 0;
   td->fb_h = 0;
 
+	td->alt_framebuffer = NULL;
     td->alt_fb_w = td->alt_fb_h = 0;
 
     td->need_render = TRUE;
@@ -945,12 +938,14 @@ static void nukeTermHook(term *t) {
   unloadPict(td);
 
   // destroy self
-  if (td->config & TERM_IS_VIRTUAL) {
-    SDL_DestroyTexture(td->framebuffer);
-    SDL_DestroyTexture(td->alt_framebuffer);
+    if (td->framebuffer) SDL_DestroyTexture(td->framebuffer);
+    if (td->alt_framebuffer) SDL_DestroyTexture(td->alt_framebuffer);
     td->framebuffer = td->alt_framebuffer = NULL;
     td->fb_w = td->fb_h = 0;
     td->alt_fb_w = td->alt_fb_h;
+
+  if (td->config & TERM_IS_VIRTUAL) {
+
   } else{
     SDL_DestroyRenderer(td->renderer);
     SDL_DestroyWindow(td->window);
@@ -1801,9 +1796,10 @@ static void termConstrain(int i) {
 
 static void termClose(int i) {
 	terms[i].config |= TERM_IS_HIDDEN;
+	/* Hack -- if z-term active_flag is not set,
+	 * the nuke hook won't be called... */
+	terms[i].t.active_flag = TRUE;
 	term_nuke(&(terms[i].t));
-	/* TODO: verify, this should be called by term_nuke, not by us */
-	nukeTermHook(&(terms[i].t));
 	ang_term[i] = NULL;
 }
 
