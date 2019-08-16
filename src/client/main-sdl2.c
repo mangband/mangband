@@ -611,8 +611,8 @@ void refreshTermAlt(TermData *td) {
 	int fw = td->cols - DUNGEON_OFFSET_X;
 	int fh = td->rows - DUNGEON_OFFSET_Y - DUNGEON_CLIP_Y;
 
-	int pix_w = fw * td->font_data->w + 1;
-	int pix_h = fh * td->font_data->h + 1;
+	int pix_w = fw * td->cell_w + 1;
+	int pix_h = fh * td->cell_h + 1;
 
 	pix_w = pix_w * 100 / td->zoom;
 	pix_h = pix_h * 100 / td->zoom;
@@ -644,8 +644,8 @@ void refreshTermAlt(TermData *td) {
 	dw = (dng_cols) * td->pict_data->w;
 	dh = (dng_rows) * td->pict_data->h;
 
-	td->dng_rect.x = DUNGEON_OFFSET_X * td->font_data->w;
-	td->dng_rect.y = DUNGEON_OFFSET_Y * td->font_data->h;
+	td->dng_rect.x = DUNGEON_OFFSET_X * td->cell_w;
+	td->dng_rect.y = DUNGEON_OFFSET_Y * td->cell_h;
 
 	if ((td->dng_cols == dng_cols) && (td->dng_rows == dng_rows)
 	&& (td->alt_fb_w == dw) && (td->alt_fb_h == dh))
@@ -1859,8 +1859,8 @@ static void handleMouseClick(int i, int wx, int wy)
 {
     if (i == 0)
     {
-        int cx = (wx - terms[i].x) / terms[i].cell_w;
-        int cy = (wy - terms[i].y) / terms[i].cell_h;
+        int cx = (wx - terms[i].ren_rect.x) / terms[i].cell_w;
+        int cy = (wy - terms[i].ren_rect.y) / terms[i].cell_h;
         int acw = terms[i].pict_data ? terms[i].pict_data->w : terms[i].cell_w;
         int ach = terms[i].pict_data ? terms[i].pict_data->h : terms[i].cell_h;
         if (terms[i].config & TERM_DO_SCALE)
@@ -1869,9 +1869,9 @@ static void handleMouseClick(int i, int wx, int wy)
             ach = ach * terms[i].zoom / 100;
             if (looksLikeCave(cx, cy))
             {
-                cx = (wx - terms[i].x - DUNGEON_OFFSET_X * terms[i].cell_w) /
+                cx = (wx - terms[i].ren_rect.x - DUNGEON_OFFSET_X * terms[i].cell_w) /
                     (acw) + DUNGEON_OFFSET_X;
-                cy = (wy - terms[i].y - DUNGEON_OFFSET_Y * terms[i].cell_h) /
+                cy = (wy - terms[i].ren_rect.y - DUNGEON_OFFSET_Y * terms[i].cell_h) /
                     (ach) + DUNGEON_OFFSET_Y;
             }
         }
