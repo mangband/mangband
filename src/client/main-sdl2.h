@@ -3,11 +3,6 @@
 /* Original SDL2 written by "kts of kettek (kettek1@kettek.net)". */
 
 #include <SDL.h>
-#ifdef __APPLE__
-// This is for setting the "root" path to the app's current dir on Mac OS X
-// see first few lines of init_sdl2()
-#include "CoreFoundation/CoreFoundation.h"
-#endif
 #ifdef WINDOWS
 #include <winsock.h>
 #define Uint8 UINT8

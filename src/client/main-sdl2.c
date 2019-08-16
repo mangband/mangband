@@ -191,14 +191,6 @@ errr init_sdl2(void) {
   WSADATA wsadata;
   WSAStartup(MAKEWORD(1, 1), &wsadata);
 #endif
-#ifdef __APPLE__
-  // Set our "cwd" to the directory the application bundle is in on OS X
-  char path[PATH_MAX];
-  CFURLRef res = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
-  CFURLGetFileSystemRepresentation(res, TRUE, (UInt8 *)path, PATH_MAX);
-  CFRelease(res);
-  chdir(path);
-#endif
 
   init_stuff(); // load in paths
 

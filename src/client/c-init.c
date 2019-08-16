@@ -8,7 +8,7 @@
 
 #include "c-angband.h"
 
-#ifdef ON_IOS
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
 #include "appl-dir.h"
 #endif
 
@@ -111,7 +111,7 @@ void init_stuff(void)
     /* ------------------------------------- */
     /* Copy pref files from ANGBAND_DIR_USER */
     /* If succesfull, ANGBAND_DIR_USER will then point to the new location */
-#ifdef ON_IOS
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
     {
         char final_user_dir[PATH_MAX];
         appl_get_appsupport_dir(final_user_dir, PATH_MAX, TRUE);

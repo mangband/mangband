@@ -133,10 +133,12 @@
  * Extract the "ON_IOS" flag from the environment
  */
 #ifdef __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-#define ON_IOS
-#endif
+# include <TargetConditionals.h>
+# if TARGET_OS_IPHONE
+#  define ON_IOS
+# elif TARGET_OS_OSX
+#  define ON_OSX
+# endif
 #endif
 
 /*
@@ -148,6 +150,16 @@
 # ifndef WINDOWS
 #  define WINDOWS
 # endif
+#endif
+
+/*
+ * HACK: Extract some configure-like defines from Xcode
+ */
+#if defined(ON_OSX) && !defined(HAVE_CONFIG_H)
+#define HAVE_MEMSET
+#define HAVE_STRNLEN
+#define HAVE_DIRENT_H
+#define PKGDATADIR "./lib/"
 #endif
 
 /*

@@ -16,6 +16,12 @@
 #include <SDL.h>
 #endif
 
+#ifdef __APPLE__
+// This is for setting the "root" path to the app's current dir on Mac OS X
+// see below
+#include "CoreFoundation/CoreFoundation.h"
+#endif
+
 static void read_credentials(void)
 {
 #ifdef SET_UID
@@ -78,6 +84,15 @@ int main(int argc, char *argv[])
 
 	/* Client Config-file */
 	conf_init(NULL);
+
+#ifdef __APPLE__
+	// Set our "cwd" to the directory the application bundle is in on OS X
+	char path[PATH_MAX];
+	CFURLRef res = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
+	CFURLGetFileSystemRepresentation(res, TRUE, (UInt8 *)path, PATH_MAX);
+	CFRelease(res);
+	chdir(path);
+#endif
 
 	/* Setup the file paths */
 	init_stuff();

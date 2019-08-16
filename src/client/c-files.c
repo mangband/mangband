@@ -5,7 +5,7 @@
 
 #include "c-angband.h"
 
-#ifdef ON_IOS
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
 #include "appl-dir.h"
 #endif
 
@@ -2420,6 +2420,11 @@ void conf_init(void* param)
 	strcpy(buf, "/.mangrc");
 #endif
 
+	/* Hack -- make this file easier to find */
+#if defined(__APPLE__) || defined(ON_XDG)
+	strcpy(buf, "/mangclient.ini");
+#endif
+
 	/* Try to find home directory */
 	if (!config && getenv("HOME"))
 	{
@@ -2446,7 +2451,7 @@ void conf_init(void* param)
 		config = file_open(config_name, MODE_READ, -1);
 	}
 
-#ifdef ON_IOS
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
 	if (!config)
 	{
 		/* Application Support directory */
