@@ -84,11 +84,11 @@ extern char party_info[160];
 extern client_setup_t Client_setup;
 extern server_setup_t Setup;
 
-s16b lag_mark;
-s16b lag_minus;
-bool redraw_lag_meter;
-char health_track_num;
-byte health_track_attr;
+extern s16b lag_mark;
+extern s16b lag_minus;
+extern bool redraw_lag_meter;
+extern char health_track_num;
+extern byte health_track_attr;
 
 extern bool shopping;
 extern bool shopping_buying; 
@@ -103,15 +103,15 @@ extern cave_view_type* remote_info[16];
 extern s16b last_remote_line[16];
 extern cptr stream_desc[32];
 
-cave_view_type sfx_info[MAX_HGT][MAX_WID];
-s32b sfx_delay[MAX_HGT][MAX_WID];
+extern cave_view_type sfx_info[MAX_HGT][MAX_WID];
+extern s32b sfx_delay[MAX_HGT][MAX_WID];
 extern void slashfx_dir_offset(int *x, int *y, int dir, bool invert);
 
-cave_view_type air_info[MAX_HGT][MAX_WID];
-s32b air_delay[MAX_HGT][MAX_WID];
-s32b air_fade[MAX_HGT][MAX_WID];
-bool air_updates;
-bool air_refresh;
+extern cave_view_type air_info[MAX_HGT][MAX_WID];
+extern s32b air_delay[MAX_HGT][MAX_WID];
+extern s32b air_fade[MAX_HGT][MAX_WID];
+extern bool air_updates;
+extern bool air_refresh;
 
 extern player_type player;
 extern player_type *p_ptr;
