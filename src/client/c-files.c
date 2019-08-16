@@ -5,6 +5,9 @@
 
 #include "c-angband.h"
 
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
+#include "appl-dir.h"
+#endif
 
 /*
  * MAngband-specific R:0 loader hack.
@@ -12,10 +15,10 @@
  * [ EQU $RACE ] [ EQU $CLASS ] are used to load those into the r_info[0] slot accordingly
  * to character's race and class. In MAngband, however, players can encounter other
  * characters and thus need the infromation for ALL the Race/Class combos there are.
- * To load this information, a 'virtual mode' hack is used, which resolves *ALL* [ EQU $RACE ]
- * [ EQU $CLASS ] as true, storing the 'fake' races in the global variables.
+ * To load this information, a 'virtual mode' hack is used, which stores the last encountered
+ * [ EQU $RACE ] [ EQU $CLASS ] check as 'fake_race'/'fake_class' global variables.
  * 'Virtual mode' only works with 'R:0:...' lines, doesn't allow includes and cancels itself
- * after each pref command executed or not. 
+ * after each read 'R:0:...' line.
  *
  * Note: player's own race and class image will be loaded into r_info[0] slot as usual.
  *
@@ -299,7 +302,7 @@ static size_t trigger_text_to_ascii(char *buf, size_t max, cptr *strptr)
  * parsing "\xFF" into a (signed) char.  Whoever thought of making
  * the "sign" of a "char" undefined is a complete moron.  Oh well.
  */
-void text_to_ascii(char *buf, cptr str)
+void text_to_ascii(char *buf, size_t max, cptr str)
 {
 	char *s = buf;
 
@@ -318,7 +321,7 @@ void text_to_ascii(char *buf, cptr str)
 				/* Terminate before appending the trigger */
 				*s = '\0';
 
-				s += trigger_text_to_ascii(buf, sizeof(buf), &str);
+				s += trigger_text_to_ascii(buf, max, &str);
 			}
 
 			/* Hex-mode XXX */
@@ -426,193 +429,6 @@ void text_to_ascii(char *buf, cptr str)
 	*s = '\0';
 }
 
-/*
- * Extract a "parsed" path from an initial filename
- * Normally, we simply copy the filename into the buffer
- * But leading tilde symbols must be handled in a special way
- * Replace "~user/" by the home directory of the user named "user"
- * Replace "~/" by the home directory of the current user
- */
-errr path_parse(char *buf, int max, cptr file)
-{
-#ifndef WIN32
-	cptr            u, s;
-	struct passwd   *pw;
-	char            user[128];
-#endif /* WIN32 */
-
-
-	/* Assume no result */
-	buf[0] = '\0';
-
-	/* No file? */
-	if (!file) return (-1);
-
-	/* File needs no parsing */
-	if (file[0] != '~')
-	{
-		strcpy(buf, file);
-		return (0);
-	}
-
-	/* Windows should never have ~ in filename */
-#ifndef WIN32
-
-	/* Point at the user */
-	u = file+1;
-
-	/* Look for non-user portion of the file */
-	s = strstr(u, PATH_SEP);
-
-	/* Hack -- no long user names */
-	if (s && (s >= u + sizeof(user))) return (1);
-
-	/* Extract a user name */
-	if (s)
-	{
-		int i;
-		for (i = 0; u < s; ++i) user[i] = *u++;
-		user[i] = '\0';
-		u = user;
-	}
-
-	/* Look up the "current" user */
-	if (u[0] == '\0') u = getlogin();
-
-	/* Look up a user (or "current" user) */
-	if (u) pw = getpwnam(u);
-	else pw = getpwuid(getuid());
-
-	/* Nothing found? */
-	if (!pw) return (1);
-
-	/* Make use of the info */
-	(void)strcpy(buf, pw->pw_dir);
-
-	/* Append the rest of the filename, if any */
-	if (s) (void)strcat(buf, s);
-
-	/* Success */
-#endif /* WIN32 */
-	return (0);
-}
-
-
-
-/*
- * Hack -- replacement for "fopen()"
- */
-FILE *my_fopen(cptr file, cptr mode)
-{
-	char                buf[1024];
-
-	/* Hack -- Try to parse the path */
-	if (path_parse(buf, 1024, file)) return (NULL);
-
-	/* Attempt to fopen the file anyway */
-	return (fopen(buf, mode));
-}
-
-
-/*
- * Hack -- replacement for "fclose()"
- */
-errr my_fclose(FILE *fff)
-{
-	/* Require a file */
-	if (!fff) return (-1);
-
-	/* Close, check for error */
-	if (fclose(fff) == EOF) return (1);
-
-	/* Success */
-	return (0);
-}
-
-/*
- * Hack -- replacement for "fgets()"
- *
- * Read a string, without a newline, to a file
- *
- * Process tabs, strip internal non-printables
- */
-errr my_fgets(FILE *fff, char *buf, huge n)
-{
-	huge i = 0;
-
-	char *s;
-
-	char tmp[1024];
-
-	/* Read a line */
-	if (fgets(tmp, 1024, fff))
-	{
-		/* Convert weirdness */
-		for (s = tmp; *s; s++)
-		{
-			/* Handle newline */
-			if (*s == '\n')
-                        {
-				/* Terminate */
-				buf[i] = '\0';
-
-				/* Success */
-				return (0);
-			}
-
-			/* Handle tabs */
-			else if (*s == '\t')
-			{
-				/* Hack -- require room */
-				if (i + 8 >= n) break;
-
-				/* Append a space */
-				buf[i++] = ' ';
-
-				/* Append some more spaces */
-				while (!(i % 8)) buf[i++] = ' ';
-			}
-
-			/* Handle printables */
-			else if (isprint(*s))
-			{
-				/* Copy */
-				buf[i++] = *s;
-
-				/* Check length */
-				if (i >= n) break;
-			}
-		}
-	}
-
-	/* Nothing */
-	buf[0] = '\0';
-
-	/* Failure */
-	return (1);
-}
-
-/*
- * Check to see if a file exists, by opening it read-only.
- *
- * Return TRUE if it does, FALSE if it does not.
- */
-bool my_fexists(const char *fname)
-{
-	FILE* fd;
-
-	/* Try to open it */
-	fd = my_fopen(fname, "r");
-
-	/* It worked */
-	if (fd)
-	{
-		my_fclose(fd);
-		return TRUE;
-	}
-
-	return FALSE;
-}
 
 
 /*
@@ -669,6 +485,8 @@ void init_file_paths(char *path)
         string_free(ANGBAND_DIR_USER);
         string_free(ANGBAND_DIR_XTRA);
 
+        /* Free extra paths */
+        string_free(ANGBAND_DIR_XTRA_SOUND);
 
         /*** Prepare the "path" ***/
 
@@ -696,6 +514,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_PREF = string_make("");
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
+        ANGBAND_DIR_XTRA_SOUND = string_make("");
 
 
 #else /* VM */
@@ -746,6 +565,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "xtra");
         ANGBAND_DIR_XTRA = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "xtra/sound");
+        ANGBAND_DIR_XTRA_SOUND = string_make(path);
 
 #endif /* VM */
 
@@ -832,6 +655,9 @@ void init_file_paths(char *path)
  * Specify the attr/char values for inventory "objects" by kind tval
  *   E:<tv>:<a>:<c>
  *
+ * Execute macro action right now!
+ *   \:<str>
+ *
  * Define a macro action, given an encoded macro action
  *   A:<str>
  *
@@ -839,10 +665,10 @@ void init_file_paths(char *path)
  *   P:<str>
  *
  * Create a command macro, given an encoded macro trigger
- *   C:<str>:<str>
+ *   G:<str>
  *
- * Create a keyset mapping
- *   S:<key>:<key>:<dir>
+ * Create a keymap, given an encoded macro trigger
+ *   C:<num>:<str>
  *
  * Turn an option off, given its name
  *   X:<str>
@@ -879,12 +705,6 @@ errr process_pref_file_command(char *buf)
 	if (buf[1] != ':') return (1);
 
 
-	/* MAngband-specific hack: ignore non-R in fake mode */
-	if (virt == TRUE && buf[0] != 'R')
-	{
-		return (0);
-	}
-
 	/* Process "%:<fname>" */
 	if (buf[0] == '%')
 	{
@@ -904,12 +724,12 @@ errr process_pref_file_command(char *buf)
 
 			if (i >= z_info.r_max) return (1);
 			/* MAngband-specific hack: fill the 'pr' array */
-			if (virt == TRUE)
+			if ((virt == TRUE) && (i == 0))
 			{
-				/* Ignore non-zero index */
-				if (i != 0) return (0);
 				if (n1) p_ptr->pr_attr[fake_class * z_info.p_max + fake_race] = n1;
 				if (n2) p_ptr->pr_char[fake_class * z_info.p_max + fake_race] = n2;
+				/* And cancel virtual mode */
+				fake_race = fake_class = -1;
 				return (0);
 			}
 			if (n1) Client_setup.r_attr[i] = n1;
@@ -1019,10 +839,51 @@ errr process_pref_file_command(char *buf)
 		}
 	}
 
+	/* Process "M" -- create mousemap */
+	else if (buf[0] == 'M')
+	{
+		byte mb_from, mb_to;
+
+		if (tokenize(buf+2, 2, zz) != 2) return (1);
+
+		mb_from = (byte)strtol(zz[0], NULL, 16);
+		mb_to = (byte)strtol(zz[1], NULL, 16);
+
+		mousemap[mb_from] = mb_to;
+
+		return (0);
+	}
+
+	/* Process "{" -- single auto-inscribe instruction */
+	else if (buf[0] == '{')
+	{
+		char tmpbuf[1024];
+		char *item_query;
+		char *item_inscription;
+		my_strcpy(tmpbuf, buf + 2, sizeof(tmpbuf));
+		item_query = strtok(tmpbuf, ":");
+		item_inscription = strtok(NULL, ":");
+		if (!item_query || !item_inscription) return 1; /* Fail */
+		do_cmd_inscribe_auto(item_query, item_inscription);
+		/* Done */
+		return (0);
+	}
+
 	/* Process "A:<str>" -- save an "action" for later */
 	else if (buf[0] == 'A')
 	{
-		text_to_ascii(macro__buf, buf+2);
+		text_to_ascii(macro__buf, 1024, buf+2);
+		return (0);
+	}
+
+	/* Process "\:" -- execute "action" right away */
+	else if (buf[0] == '\\')
+	{
+		int i, n;
+		char raw_cmd[1024];
+		text_to_ascii(raw_cmd, sizeof(raw_cmd), buf+2);
+		n = strlen(raw_cmd);
+		for (i = 0; i < n; i++) Term_keypress(raw_cmd[i]);
 		return (0);
 	}
 
@@ -1030,8 +891,16 @@ errr process_pref_file_command(char *buf)
 	else if (buf[0] == 'P')
 	{
 		char tmp[1024];
-		text_to_ascii(tmp, buf+2);
+		text_to_ascii(tmp, sizeof(tmp), buf+2);
 		macro_add(tmp, macro__buf, FALSE);
+		return (0);
+	}
+	/* Process "G:<str>" -- create command macro */
+	else if (buf[0] == 'G')
+	{
+		char tmp[1024];
+		text_to_ascii(tmp, sizeof(tmp), buf+2);
+		macro_add(tmp, macro__buf, TRUE);
 		return (0);
 	}
 	/* Process "C:<num>:<str>" -- create keymap */
@@ -1046,7 +915,7 @@ errr process_pref_file_command(char *buf)
 		mode = strtol(zz[0], NULL, 0);
 		if ((mode < 0) || (mode >= KEYMAP_MODES)) return (1);
 
-		text_to_ascii(tmp, zz[1]);
+		text_to_ascii(tmp, sizeof(tmp), zz[1]);
 		if (!tmp[0] || tmp[1]) return (1);
 		i = (long)tmp[0];
 
@@ -1155,7 +1024,7 @@ errr process_pref_file_command(char *buf)
 	else if (buf[0] == 'V')
 	{
 		/* Do nothing */
-		return (0);
+		// return (0);  // @@@ Why was this here? -kts
 
 		if (tokenize(buf+2, 5, zz) == 5)
 		{
@@ -1272,7 +1141,7 @@ errr Save_windows(void)
 	int i;
 	byte j;
 
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 
@@ -1280,24 +1149,24 @@ errr Save_windows(void)
 	path_build(buf, 1024, ANGBAND_DIR_USER, "window.prf");
 
 	/* Open the file */
-	fp = my_fopen(buf, "w");
+	fp = file_open(buf, MODE_WRITE, FTYPE_TEXT);
 
 	/* Catch errors */
 	if (!fp) return (-1);
 
 	/* Skip space */
-	fprintf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
-	fprintf(fp, "\n\n");
-	fprintf(fp, "# Usage: W:<window number>:<usage number>\n");
-	fprintf(fp, "# \n");
-	fprintf(fp, "# Valid usage numbers:\n");
+	file_putf(fp, "# Window.prf:  Set the 'usage' on the various windows\n");
+	file_putf(fp, "\n\n");
+	file_putf(fp, "# Usage: W:<window number>:<usage number>\n");
+	file_putf(fp, "# \n");
+	file_putf(fp, "# Valid usage numbers:\n");
 	/* Describe */
 	for (j = 0; j < 32; j++)
 	{
 		if (window_flag_desc[j])
-		fprintf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
+		file_putf(fp, "# 	%d - %s\n", j, window_flag_desc[j]);
 	}
-	fprintf(fp, "\n\n");
+	file_putf(fp, "\n\n");
 
 	/* Dump */
 	for (i = 0; i < ANGBAND_TERM_MAX; i++)
@@ -1307,13 +1176,13 @@ errr Save_windows(void)
 			for (j = 0; j < 32; j++)
 			{
 				if (window_flag[i] & (1L << j))
-					fprintf(fp, "W:%d:%d\n", i, j);
+					file_putf(fp, "W:%d:%d\n", i, j);
 			}
 		}
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	return 0;
 }
@@ -1322,7 +1191,7 @@ errr Save_options(void)
 {
 	int i;
 	errr windows;
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 	byte last_page;
@@ -1334,16 +1203,16 @@ errr Save_options(void)
 	path_build(buf, 1024, ANGBAND_DIR_USER, "options.prf");
 
 	/* Open the file */
-	fp = my_fopen(buf, "w");
+	fp = file_open(buf, MODE_WRITE, FTYPE_TEXT);
 
 	/* Catch errors */
 	if (!fp) return (-1);
 
 	/* Skip space */
-	fprintf(fp, "# This file can be used to set or clear all of the options.\n");
-	fprintf(fp, "# Note that all of the options are given.\n\n");
-	fprintf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
-	fprintf(fp, "# Also remember that not all options are used.\n\n");
+	file_putf(fp, "# This file can be used to set or clear all of the options.\n");
+	file_putf(fp, "# Note that all of the options are given.\n\n");
+	file_putf(fp, "# Remember that \"X\" turns an option OFF, while \"Y\" turns an option ON.\n");
+	file_putf(fp, "# Also remember that not all options are used.\n\n");
 
 	/* Dump local options with "X:<str>" and "Y:<str>" */
 	last_page = 0;
@@ -1351,11 +1220,11 @@ errr Save_options(void)
 	{
 		if (local_option_info[i].o_text)
 		{
-			fprintf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
+			file_putf(fp, "%c:%s\n", (((*local_option_info[i].o_var) == TRUE) ? 'Y' : 'X'), local_option_info[i].o_text);
 		}
 		if (last_page != local_option_info[i].o_page)
 		{
-			fprintf(fp, "\n");
+			file_putf(fp, "\n");
 		}
 		last_page = local_option_info[i].o_page;
 	}
@@ -1365,20 +1234,20 @@ errr Save_options(void)
 	{
 		if (!option_info[i].o_set && option_info[i].o_text)
 		{
-			fprintf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
+			file_putf(fp, "%c:%s\n", (p_ptr->options[i] == TRUE ? 'Y' : 'X'), option_info[i].o_text);
 		}
 		if (last_page != option_info[i].o_page)
 		{
-			fprintf(fp, "\n");
+			file_putf(fp, "\n");
 		}
 		last_page = option_info[i].o_page;
 	}
 
 	/* MAngband-specific Hack: hitpoint warning (in V, it is stored in savefile) */
-	fprintf(fp, "\n# Hitpoint warning\nH:%d\n", p_ptr->hitpoint_warn);
+	file_putf(fp, "\n# Hitpoint warning\nH:%d\n", MAX(p_ptr->hitpoint_warn, hitpoint_warn_toggle));
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	return 0;
 }
@@ -1556,16 +1425,30 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 				v = ANGBAND_GRAF;
 			}
 
+			/* Specific tileset */
+			if (streq(b+1, "GRAFNAME"))
+			{
+				v = ANGBAND_GRAFNAME;
+			}
+
+			/* Font-system */
+			if (streq(b+1, "FON"))
+			{
+				v = ANGBAND_FON;
+			}
+
+			/* Specific font */
+			if (streq(b+1, "FONTNAME"))
+			{
+				v = ANGBAND_FONTNAME;
+			}
+
 			/* Race */
 			else if (streq(b+1, "RACE"))
 			{
 				v = p_name + race_info[p_ptr->prace].name;
-				/* MAngband-specific hack: enter virtual mode */	
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_race = find_race(s);
-				}
+				/* MAngband-specific hack: enter virtual mode */
+				if (s) fake_race = find_race(s);
 			}
 
 			/* Class */
@@ -1573,11 +1456,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
 			{
 				v = c_name + c_info[p_ptr->pclass].name;
 				/* MAngband-specific hack: enter virtual mode */
-				if (s && !streq(s, v))
-				{
-					v = s;
-					fake_class = find_class(s);
-				}
+				if (s) fake_class = find_class(s);
 			}
 
 			/* Player */
@@ -1615,7 +1494,7 @@ static cptr process_pref_file_expr(char **sp, char *fp)
  */
 static errr process_pref_file_aux(cptr name)
 {
-	FILE *fp;
+	ang_file* fp;
 
 	char buf[1024];
 
@@ -1629,14 +1508,14 @@ static errr process_pref_file_aux(cptr name)
 
 
 	/* Open the file */
-	fp = my_fopen(name, "r");
+	fp = file_open(name, MODE_READ, -1);
 
 	/* No such file */
 	if (!fp) return (-1);
 
 
 	/* Process the file */
-	while (0 == my_fgets(fp, buf, sizeof(buf)))
+	while (file_getl(fp, buf, sizeof(buf)))
 	{
 		/* Count lines */
 		line++;
@@ -1676,9 +1555,8 @@ static errr process_pref_file_aux(cptr name)
 			continue;
 		}
 
-		/* Apply conditionals */
-		if (bypass) continue;
-
+		/* Apply conditionals (unless it's an 'R' entry) */
+		if (bypass && buf[0] != 'R') continue;
 
 		/* Process "%:<file>" */
 		if (buf[0] == '%')
@@ -1694,9 +1572,6 @@ static errr process_pref_file_aux(cptr name)
 		/* Process the line */
 		err = process_pref_file_command(buf);
 
-		/* Hack - cancel 'virtual' mode */
-		fake_class = fake_race = -1;
-
 		/* Oops */
 		if (err) break;
 	}
@@ -1707,12 +1582,12 @@ static errr process_pref_file_aux(cptr name)
 	{
 		/* Print error message */
 		/* ToDo: Add better error messages */
-		printf("Error %d in line %d of file '%s'.", err, line, name);
-		printf("Parsing '%s'", old);
+		printf("Error %d in line %d of file '%s'.\n", err, line, name);
+		printf("Parsing '%s'\n", old);
 	}
 
 	/* Close the file */
-	my_fclose(fp);
+	file_close(fp);
 
 	/* Result */
 	return (err);
@@ -1831,6 +1706,9 @@ void show_recall(byte win, cptr prompt)
 		caveprt(source, 80, 0, n);
 	}
 
+	/* Hack -- prompt is NULL ? */
+	if (prompt == NULL) prompt = "";
+
 	/* Hack -- append target prompt after ':' */
 	source = stream_cave(st, 0);
 	for (n = 0; n < 80-2; n++)
@@ -1851,15 +1729,15 @@ void show_recall(byte win, cptr prompt)
  * Here, we *agree* to server's interactive request, so we don't
  * INITIALLY send anything. "cmd_interactive", on the other hand,
  * enters interactive mode by itself AND informs server that it did. */
-void prepare_popup(void)
+void prepare_popup(int line_type, bool use_anykey)
 {
-	bool use_anykey = interactive_anykey_flag;
 	char ch;
 
 	/* Hack -- if the screen is already icky, ignore this command */
 	if (screen_icky && !shopping) return;
 
 	/* Agree to SPECIAL stream */
+	//special_line_type = line_type;
 	special_line_onscreen = TRUE;
 
 	/* Save the screen */
@@ -1879,13 +1757,11 @@ void prepare_popup(void)
 		if (ch == ESCAPE) break;
 	}
 
-	/* Undo interactive_anykey_flag */
-	interactive_anykey_flag = FALSE;
-
 	/* Remove partial ickyness */
 	section_icky_col = section_icky_row = 0;
 
 	/* Stop it with SPECIAL stream */
+	//special_line_type = 0;
 	special_line_onscreen = FALSE;
 
 	/* Reload the screen */
@@ -1963,10 +1839,6 @@ void show_remote_peruse(s16b line)
 		prt("[Press Space to advance, or ESC to exit.]", Term->hgt - 1, 0);
 	else
 		prt("[Press ESC to exit.]", Term->hgt - 1, 0);
-
-	/* Enforce interactivity if not on */
-	special_line_type = 1;
-	if (!special_line_onscreen) special_line_requested = TRUE;
 }
 
 /* Save remote info into local ->file[][] array, to peruse
@@ -1974,7 +1846,7 @@ void show_remote_peruse(s16b line)
 void stash_remote_info(void)
 {
 	int j;
-	u32b last_line = last_remote_line[p_ptr->remote_term];
+	s16b last_line = last_remote_line[p_ptr->remote_term];
 	byte st = window_to_stream[p_ptr->remote_term];
 	for (j = 0; j < last_line + 1; j++)
 	{
@@ -1990,6 +1862,9 @@ void show_file_peruse(s16b line)
 	s16b last = p_ptr->last_file_line;
 	byte st = window_to_stream[NTERM_WIN_SPECIAL]; /* Ugh, what about others? */
 	int cols = p_ptr->stream_wid[st]; /* TODO: Untangle from streams? */
+
+	/* If we're not in perusal mode, ignore this */
+	if (!special_line_onscreen) return;
 
 	/* Clear screen */
 	Term_clear();
@@ -2155,7 +2030,7 @@ void conf_init(void* param)
 		my_strcat(path, "\\mangclient.ini", 1024);
 
 		/* Ok */
-		if (my_fexists(path))
+		if (file_exists(path))
 		{
 			my_strcpy(config_name, path, 1024);
 			return;
@@ -2167,8 +2042,9 @@ void conf_init(void* param)
 	/* Remove ".exe" */
 	path[strlen(path) - 4] = '\0';
 	/* Remove ANGBAND_SYS suffix */
-	/* TODO: sdl2, etc, or just lowercase ANGBAND_SYS */
+	/* if (suffix(path, ANGBAND_SYS)) path[strlen(path) - strlen(ANGBAND_SYS)] = '\0'; */
 	if (suffix(path, "-sdl")) path[strlen(path) - 4] = '\0';
+	if (suffix(path, "-sdl2")) path[strlen(path) - 5] = '\0';
 	/* Append ".ini" */
 	my_strcpy(config_name, path, 1024);
 	my_strcat(config_name, ".ini", 1024);
@@ -2292,7 +2168,7 @@ section_conf_type* conf_add_section_aux(cptr section)
 		MAKE(s_forge, section_conf_type);
 
 		/* Fill */
-		strcpy(s_forge->name, section);
+		my_strcpy(s_forge->name, section, 100);
 		s_forge->next = NULL;
 		s_forge->first = NULL;
 
@@ -2331,7 +2207,7 @@ void conf_set_string(cptr section, cptr name, cptr value)
 	{
 		if ( !my_stricmp(name, v_ptr->name) )
 		{
-			strcpy(v_ptr->value, value);
+			my_strcpy(v_ptr->value, value, 100);
 			done = TRUE;
 			break;
 		}
@@ -2410,7 +2286,7 @@ cptr conf_get_string(cptr section, cptr name, cptr default_value)
 {
 	return (cptr)conf_get_value(section, name, default_value, FALSE);
 }
-void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_ptr)
+void conf_read_file(ang_file* config, section_conf_type *s_ptr, value_conf_type *v_ptr)
 {
 	section_conf_type	*s_forge = NULL;
 	value_conf_type 	*v_forge = NULL;
@@ -2423,7 +2299,7 @@ void conf_read_file(FILE *config, section_conf_type *s_ptr, value_conf_type *v_p
 	if (config)
 	{
 		/* Read line (till end of file) */
-		while (fgets(buf, 1024, config))
+		while (file_getl(config, buf, 1024))
 		{
 			/* Skip comments, empty lines */
 			if (buf[0] == '\n' || buf[0] == '#' || buf[0] == ';')
@@ -2503,7 +2379,7 @@ void conf_init(void* param)
 	section_conf_type	*s_ptr = NULL;
 	value_conf_type 	*v_ptr = NULL;
 
-	FILE *config;
+	ang_file* config;
 	char buf[1024];
 
 	/*
@@ -2530,7 +2406,7 @@ void conf_init(void* param)
 	if (clia_read_string(buf, 1024, "config"))
 	{
 		/* Attempt to open file */
-		config = my_fopen(buf, "r");
+		config = file_open(buf, MODE_READ, -1);
 	}
 
 	/*
@@ -2544,6 +2420,11 @@ void conf_init(void* param)
 	strcpy(buf, "/.mangrc");
 #endif
 
+	/* Hack -- make this file easier to find */
+#if defined(__APPLE__) || defined(ON_XDG)
+	strcpy(buf, "/mangclient.ini");
+#endif
+
 	/* Try to find home directory */
 	if (!config && getenv("HOME"))
 	{
@@ -2554,7 +2435,7 @@ void conf_init(void* param)
 		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
+		config = file_open(config_name, MODE_READ, -1);
 	}
 
 	/* Otherwise use current directory */
@@ -2567,8 +2448,22 @@ void conf_init(void* param)
 		my_strcat(config_name, buf, 1024);
 
 		/* Attempt to open file */
-		config = my_fopen(config_name, "r");
+		config = file_open(config_name, MODE_READ, -1);
 	}
+
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
+	if (!config)
+	{
+		/* Application Support directory */
+		appl_get_appsupport_dir(config_name, 1024, TRUE);
+
+		/* Append filename */
+		my_strcat(config_name, buf, 1024);
+
+		/* Attempt to open file */
+		config = file_open(config_name, MODE_READ, -1);
+    }
+#endif
 
 	/*
 	 * Read data
@@ -2581,7 +2476,7 @@ void conf_init(void* param)
 		conf_read_file(config, s_ptr, v_ptr);
 
 		/* Done reading */
-		my_fclose(config);
+		file_close(config);
 	}
 #if 0
 	//list all sections
@@ -2601,26 +2496,26 @@ void conf_save()
 {
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;
-	FILE *config;
+	ang_file* config;
 
 	/* No changes */
 	if (!conf_need_save) return;
 
 	/* Write */
-	if ((config = my_fopen(config_name, "w")))
+	if ((config = file_open(config_name, MODE_WRITE, FTYPE_TEXT)))
 	{
 		for (s_ptr = root_node; s_ptr; s_ptr = s_ptr->next)
 		{
-			fprintf(config, "[%s]\n", s_ptr->name);
+			file_putf(config, "[%s]\n", s_ptr->name);
 			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
 			{
-				fprintf(config, "%s %s\n", v_ptr->name, v_ptr->value);
+				file_putf(config, "%s %s\n", v_ptr->name, v_ptr->value);
 			}
 			if (s_ptr->next)
-				fprintf(config, "\n");
+				file_putf(config, "\n");
 		}
 		/* Done writing */
-		my_fclose(config);
+		file_close(config);
 		conf_need_save = FALSE;
 	}
 }
@@ -2637,7 +2532,7 @@ void conf_timer(int ticks)
 /* HACK: Append section from other file */
 void conf_append_section(cptr section, cptr filename)
 {
-	FILE *config;
+	ang_file* config;
 
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;
@@ -2647,7 +2542,7 @@ void conf_append_section(cptr section, cptr filename)
 	for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next) { }
 
 	/* Try opening this 'other file' */
-	config = my_fopen(filename, "r");
+	config = file_open(filename, MODE_READ, -1);
 
  	/* File is opened */
 	if (config)
@@ -2656,7 +2551,7 @@ void conf_append_section(cptr section, cptr filename)
 		conf_read_file(config, s_ptr, v_ptr);
 
 		/* Done reading */
-		my_fclose(config);
+		file_close(config);
 	}
 }
 #endif
@@ -2766,7 +2661,7 @@ bool clia_cpy_int(s32b *dst, int i)
 	}
 	return FALSE;
 }
-bool clia_read_bool(s32b *dst, const char *key)
+bool clia_read_bool(bool *dst, const char *key)
 {
 	int i = clia_find(key);
 	if (i > 0 && i < p_argc)
@@ -2804,4 +2699,50 @@ bool clia_read_int(s32b *dst, const char *key)
 {
 	int i = clia_find(key);
 	return clia_cpy_int(dst, i);
+}
+
+/* Copy all *.prf files from the distribution to some
+ * user-writable directory. Essential on some platforms.
+ * Note, that on macOS/OSX, this is handled by "launch_client.sh",
+ * so we shouldn't be calling this. On iOS, though, this is required!
+ *
+ * TODO: we can probably also use this on Windows and Linux,
+ * e.g. copy from /usr/share/games/user/<*>.prf to ~/.mangclient/user
+ * or what-have-you.
+ *
+ * Note: after completing this operation, the ANGBAND_DIR_USER is
+ * switched to the new, writable location!
+ */
+void import_user_pref_files(cptr dest_path)
+{
+	char tmp_dest_path[PATH_MAX];
+	char tmp_src_path[PATH_MAX];
+	char tmp_fname[PATH_MAX];
+
+	/* Open source directory */
+	ang_dir *src_dir = my_dopen(ANGBAND_DIR_USER);
+	if (src_dir == NULL)
+	{
+		plog_fmt("Could not open directory '%s' for reading.", ANGBAND_DIR_USER);
+		return;
+	}
+
+	/* Iterate over files */
+	while (my_dread(src_dir, tmp_fname, PATH_MAX))
+	{
+		/* It's a .prf file */
+		if (isuffix(tmp_fname, ".prf"))
+		{
+			path_build(tmp_src_path, PATH_MAX, ANGBAND_DIR_USER, tmp_fname);
+			path_build(tmp_dest_path, PATH_MAX, dest_path, tmp_fname);
+			if (file_exists(tmp_dest_path)) continue; /* Don't overwrite */
+			file_copy(tmp_src_path, tmp_dest_path, FTYPE_TEXT);
+		}
+	}
+	/* Done, close source directory */
+	my_dclose(src_dir);
+
+	/* Now, let's switch the path */
+	string_free(ANGBAND_DIR_USER);
+	ANGBAND_DIR_USER = string_make(dest_path);
 }

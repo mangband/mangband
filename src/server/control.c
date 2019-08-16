@@ -12,10 +12,10 @@
 #define CONSOLE_READ 	FALSE
 
 typedef struct console_connection {
-	connection_type	conn;	/* id */
-	bool	auth;	/* logged in? */
-	bool	listen; /* legacy listener */
-	byte	on_channel[MAX_CHANNELS];
+	connection_type	conn;   /* id */
+	bool    	auth;   /* logged in? */
+	bool    	listen; /* legacy listener */
+	byte    	on_channel[MAX_CHANNELS];
 } console_connection;
 typedef void (*console_cb) (connection_type *ct, char *params);
 typedef struct console_command_ops {
@@ -34,11 +34,13 @@ int accept_console(int data1, data data2) {
 	eptr new_console;
 	bool old = (data1 == -1 ? TRUE : FALSE);
 	connection_type *ct = NULL;
-	console_connection *cn = NULL;	
+	console_connection *cn = NULL;
+	int i;
 
 	/* Add connection */
 	if (!old)
 	{
+		if (cfg_console_local_only && !islocalfd(data1)) return -1;
 		new_connection = add_connection(first_connection, data1, console_read, console_close);
 		if (!first_connection) first_connection = new_connection;
 		ct = new_connection->data2;
@@ -47,6 +49,7 @@ int accept_console(int data1, data data2) {
 	else
 	{
 		ct = (connection_type *)data2;
+		if (cfg_console_local_only && !islocalfd(ct->conn_fd)) return -1;
 		ct->receive_cb = console_read;
 		ct->close_cb = console_close;
 	}
@@ -62,6 +65,7 @@ int accept_console(int data1, data data2) {
 
 	/* Initial states */
 	cn->auth = cn->listen = FALSE;
+	for (i = 0; i < MAX_CHANNELS; i++) cn->on_channel[i] = 0;
 
 	/* Inform */
 	cq_printf(&ct->wbuf, "%T", "Connected\n");
@@ -86,10 +90,10 @@ int console_read(int data1, data data2) { /* return -1 on error */
 	bool found;
 
 	char buf[1024];
-	char *params;	
+	char *params;
 
 	/* Parse "read buffer" */
-	while (	cq_len(&ct->rbuf) )
+	while ( cq_len(&ct->rbuf) )
 	{
 		/* Ensure string is ready */
 		start_pos = ct->rbuf.pos;
@@ -107,9 +111,9 @@ int console_read(int data1, data data2) { /* return -1 on error */
 			if (!cfg_console_password || strcmp(buf, cfg_console_password))
 			{
 				/* Bail out! */
-				plog(format("{CON} Authentication failure %s", ct->host_addr));				
+				plog(format("{CON} Authentication failure %s", ct->host_addr));
 				cq_printf(&ct->wbuf, "%T", "Invalid password\n");
-				return -1;		
+				return -1;
 			}
 			/* Move on */
 			cn->auth = TRUE;
@@ -136,7 +140,7 @@ int console_read(int data1, data data2) { /* return -1 on error */
 		buflen = strlen(buf);
 		for (i = 0; i < command_len; i++) 
 		{
-			if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' ')) 
+			if (!strncmp(buf, console_commands[i].name, (j = strlen(console_commands[i].name)) ) && (buflen <= j || buf[j] == ' '))
 			{
 				found = TRUE;
 				if (params == NULL && console_commands[i].min_arguments > 0)
@@ -145,7 +149,7 @@ int console_read(int data1, data data2) { /* return -1 on error */
 					break;
 				}
 				/* Do it! */
-				(console_commands[i].call_back)(ct, params);				
+				(console_commands[i].call_back)(ct, params);
 				break;
 			}
 		}
@@ -204,10 +208,10 @@ static void console_who(connection_type* ct, char *useless)
 
 		/* Add an entry */
 		if (option_p(p_ptr, NO_GHOST)) strcpy(brave,"brave \0"); else strcpy(brave,"\0");
-		cq_printf(&ct->wbuf,"%T", format("%s is a %slevel %d %s %s at %d ft\n", 
+		cq_printf(&ct->wbuf,"%T", format("%s is a %slevel %d %s %s at %d ft\n",
 			p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 			c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
-			
+
 	}
 }
 
@@ -216,7 +220,6 @@ static void console_who(connection_type* ct, char *useless)
  */
 static void console_conn(connection_type* ct, char *useless)
 {
-	char conn_type[MAX_PLAYERS];
 	eptr iter;
 	int j = 0;
 	cq_printf(&ct->wbuf, "%T", "Listing connections\n");
@@ -251,7 +254,7 @@ static void console_listen(connection_type* ct, char *channel)
 		{
 			if (!strcmp(channels[i].name, channel))
 			{
-				cn->on_channel[i] = 1; 
+				cn->on_channel[i] = 1;
 				break;
 			}
 		}
@@ -266,7 +269,7 @@ static void console_whois(connection_type* ct, char *name)
 {
 	int i, len;
 	u16b major, minor, patch, extra;
-	char brave[15]; //output[1024]; 
+	char brave[15]; //output[1024];
 	player_type *p_ptr, *p_ptr_search;
 
 	p_ptr = 0;
@@ -291,7 +294,7 @@ static void console_whois(connection_type* ct, char *name)
 
 	/* General character description */
 	if (option_p(p_ptr, NO_GHOST)) strcpy(brave,"brave \0"); else strcpy(brave,"\0");
-	cq_printf(&ct->wbuf, "%T", format("%s is a %slevel %d %s %s at %d ft\n", 
+	cq_printf(&ct->wbuf, "%T", format("%s is a %slevel %d %s %s at %d ft\n",
 		p_ptr->name, brave, p_ptr->lev, p_name + p_info[p_ptr->prace].name,
 		c_name + c_info[p_ptr->pclass].name, p_ptr->dun_depth*50));
 	
@@ -302,7 +305,7 @@ static void console_whois(connection_type* ct, char *name)
 	extra = (p_ptr->version & 0xF);
 
 	/* Player connection info */
-	cq_printf(&ct->wbuf, "%T", format("(%s@%s [%s] v%d.%d.%d.%d)\n", 
+	cq_printf(&ct->wbuf, "%T", format("(%s@%s [%s] v%d.%d.%d.%d)\n",
 		p_ptr->realname, p_ptr->hostname, p_ptr->addr, major, minor, patch, extra));
 
 	/* Other interesting factoids */
@@ -325,7 +328,7 @@ static void console_whois(connection_type* ct, char *name)
 static void console_message(connection_type* ct, char *buf)
 {
 	/* Send the message */
-	player_talk(0, buf);
+	player_talk(NULL, buf);
 }
 
 static void console_kick_player(connection_type* ct, char *name)
@@ -425,6 +428,57 @@ static void console_rng_test(connection_type* ct, char *useless)
 	for( i=0; i<RAND_DEG; i++ ) Rand_state[i] = randstate[i];
 }
 
+/*
+ * Allocate each dungeon level N times.
+ */
+static void console_dng_test(connection_type* ct, char *params)
+{
+	int rep = 0;
+	int min_depth = 1;
+	int max_depth = 127;
+	int Depth, i;
+	u32b old_mode;
+
+	char *param1 = strtok(params, " ");
+	char *param2 = strtok(NULL, " ");
+	if (param2) min_depth = max_depth = atoi(param2);
+	if (param1) rep = atoi(param1);
+
+	/* Notify */
+	if (NumPlayers > 0)
+	{
+		cq_printf(&ct->wbuf, "%T", "Can't perform dngtest with players online!\n");
+		return;
+	}
+
+	plog("Performing DNG test, this may take a long time...");
+
+	/* Force "#cheat" output to plog */
+	old_mode = channels[chan_cheat].mode;
+	channels[chan_cheat].mode |= CM_PLOG;
+
+	/* Generate dungeons */
+	for (Depth = min_depth; Depth < max_depth+1; Depth++)
+	{
+		cheat(format("DLevel %d (%d feet), %d iterations:", Depth, Depth*50, rep));
+		for (i = 0; i < rep; i++)
+		{
+			/* Allocate space for it */
+			if (!cave[Depth]) alloc_dungeon_level(Depth);
+
+			/* Generate a dungeon level there */
+			generate_cave(0, Depth, TRUE);
+		}
+		/* XXX -- should we call compact from time to time? */
+	}
+
+	/* Restore channel mode */
+	channels[chan_cheat].mode = old_mode;
+
+	/* Notify */
+	cq_printf(&ct->wbuf, "%T", "Done\n");
+}
+
 static void console_reload(connection_type* ct, char *mod)
 {
 	bool done = FALSE;
@@ -489,7 +543,7 @@ static void console_shutdown(connection_type* ct, char *when)
 		plog_fmt("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s");
 
 		/* Send the message -- TODO: is this the right function ?*/
-		player_talk(0, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
+		player_talk(NULL, format("Server is shutting down in %d minute%s.", min, min == 1 ? "" : "s"));
 	}
 }
 
@@ -533,16 +587,19 @@ static void console_help(connection_type* ct, char *name)
 }
 
 console_command_ops console_commands[] = {
-	{ "help",      console_help,        0, "[TOPIC]\nExplain a command or list all avaliable"	},
-	{ "listen",    console_listen,      0, "[CHANNEL]\nAttach self to #public or specified"	},
-	{ "who",       console_who,         0, "\nList players"                                	},
-	{ "conn",      console_conn,        0, "\nList connections"                           	},
-	{ "shutdown",  console_shutdown,    0, "[TIME|NOW]\nKill server in TIME minutes or 'NOW'"	},
-	{ "msg",       console_message,     1, "MESSAGE\nBroadcast a message"                  	},
-	{ "kick",      console_kick_player, 1, "PLAYERNAME\nKick player from the game"         	},
-	{ "reload",    console_reload,      1, "config|news\nReload mangband.cfg or news.txt"  	},
-	{ "whois",     console_whois,       1, "PLAYERNAME\nDetailed player information"       	},
-	{ "rngtest",   console_rng_test,    0, "\nPerform RNG test"                            	},
-	{ "debug",     console_debug,       0, "\nUnused"                                      	},
+	{ "help",      console_help,        0, "[TOPIC]\nExplain a command or list all avaliable" },
+	{ "listen",    console_listen,      0, "[CHANNEL]\nAttach self to #public or specified"   },
+	{ "who",       console_who,         0, "\nList players"                                   },
+	{ "conn",      console_conn,        0, "\nList connections"                               },
+	{ "shutdown",  console_shutdown,    0, "[TIME|NOW]\nKill server in TIME minutes or 'NOW'" },
+	{ "msg",       console_message,     1, "MESSAGE\nBroadcast a message"                     },
+	{ "kick",      console_kick_player, 1, "PLAYERNAME\nKick player from the game"            },
+	{ "reload",    console_reload,      1, "config|news\nReload mangband.cfg or news.txt"     },
+	{ "whois",     console_whois,       1, "PLAYERNAME\nDetailed player information"          },
+	{ "rngtest",   console_rng_test,    0, "\nPerform RNG test"                               },
+#ifdef DEBUG
+	{ "dngtest",   console_dng_test,    2, "[N] [DEPTH]\nGenerate dungeon N times"            },
+#endif
+	{ "debug",     console_debug,       0, "\nUnused"                                         },
 };
 int command_len = sizeof(console_commands) / sizeof(console_command_ops);

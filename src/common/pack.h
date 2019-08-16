@@ -11,6 +11,8 @@
 #define PKT_MOTD        	6
 #define PKT_BASIC_INFO  	7
 
+#define PKT_TERM_WRITE  	8
+
 #define PKT_TALK        	9
 
 #define PKT_OPTION      	10
@@ -94,6 +96,7 @@
 
 /* Extra packets */
 #define PKT_OBSERVE     	160
+#define PKT_SLASH_FX    	161
 #define PKT_CHANGEPASS  	162
 #define PKT_OBJFLAGS    	163
 #define PKT_AIR         	164
@@ -135,6 +138,8 @@
 #define STRUCT_INFO_OPTION	6
 #define STRUCT_INFO_OPTGROUP	7
 #define STRUCT_INFO_FLOOR	8
+#define STRUCT_INFO_OBJFLAGS	9
+#define STRUCT_INFO_STATS	10
 
 /*
  * PKT_VISUAL_INFO helpers
@@ -186,7 +191,7 @@
 #define SCHEME_ITEM_SMALL_STRING 27
 #define SCHEME_ITEM_SMALL_CHAR   28
 
-#define SCHEME_PPTR_CHAR         29
+#define SCHEME_PPTR_CHAR         29 /* TODO: deprecate this scheme! */
 
 #define SCHEME_LAST 	SCHEME_ITEM_SMALL_CHAR
 
@@ -254,7 +259,7 @@
 #define NTERM_WIN_OVERHEAD	0
 #define NTERM_WIN_MAP   	1
 #define NTERM_WIN_XXXX1 	2
-#define NTERM_WIN_XXXX2 	3
+#define NTERM_WIN_ITEMLIST 	3
 #define NTERM_WIN_OBJECT	4
 #define NTERM_WIN_MONSTER	5
 #define NTERM_WIN_MONLIST	6
@@ -313,6 +318,15 @@
 #define MCURSOR_SHFT 0x40
 #define MCURSOR_META 0x80
 
+
+/*
+ * File types
+ */
+#define NFILE__BINARY 0x80 /* MSB marks binary mode */
+#define NFILE_USER 0x01
+#define NFILE_BONE 0x02
+#define NFILE_PREF 0x03
+#define NFILE_GRAF 0x04
 
 /*
  * Connection types

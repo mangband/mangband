@@ -580,6 +580,165 @@ void reserve_building_plot(int Depth, int *x1, int *y1, int *x2, int *y2, int xl
 	*x1 = *y1 = *x2 = *y2 = -1;
 }
 
+void do_cmd_plant_seed(player_type *p_ptr, int item)
+{
+	object_type	*o_ptr;
+
+	int feat = 0;
+	int crop = 0;
+
+	int Depth = p_ptr->dun_depth;
+	int y = p_ptr->py;
+	int x = p_ptr->px;
+
+	/* Check preventive inscription '^d' */
+	__trap(p_ptr, CPI(p_ptr, 'd'));
+
+	/* Restrict ghosts */
+	if ( (p_ptr->ghost || p_ptr->fruit_bat) && !(p_ptr->dm_flags & DM_GHOST_BODY) )
+	{
+		msg_print(p_ptr, "You cannot plant seeds!");
+		return;
+	}
+
+	/* Restrict choices to food */
+	item_tester_tval = TV_FOOD;
+
+	/* Get the item (in the pack) */
+	if (item >= 0)
+	{
+		o_ptr = &p_ptr->inventory[item];
+	}
+
+	/* Check guard inscription '!d' */
+	__trap(p_ptr, CGI(o_ptr, 'd'));
+
+	if (o_ptr->tval != TV_FOOD)
+	{
+		/* Tried to plant non-seed */
+		return;
+	}
+	switch (o_ptr->sval)
+	{
+		case SV_FOOD_POTATO:          crop = WILD_CROP_POTATO; break;
+		case SV_FOOD_HEAD_OF_CABBAGE: crop = WILD_CROP_CABBAGE; break;
+		case SV_FOOD_CARROT:          crop = WILD_CROP_CARROT; break;
+		case SV_FOOD_BEET:            crop = WILD_CROP_BEET; break;
+		case SV_FOOD_SQUASH:          crop = WILD_CROP_SQUASH; break;
+		case SV_FOOD_EAR_OF_CORN:     crop = WILD_CROP_CORN; break;
+		default: break;
+	}
+	if (!crop) return;
+
+	/* Inform */
+	msg_print(p_ptr, "You have planted some seeds.");
+
+	/* Create new crop */
+	cave_set_feat(Depth, y, x, FEAT_CROP_HEAD + crop);
+
+	/* Hack -- spend all energy! */
+	p_ptr->energy = 0;
+
+	/* Combine / Reorder the pack (later) */
+	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
+
+	/* Window stuff */
+	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+
+	/* Destroy an item in the pack */
+	if (item >= 0)
+	{
+		inven_item_increase(p_ptr, item, -1);
+		inven_item_describe(p_ptr, item);
+		inven_item_optimize(p_ptr, item);
+	}
+	/* Destroy an item on the floor */
+	else
+	{
+		floor_item_increase(0 - item, -1);
+		floor_item_describe(0 - item);
+		floor_item_optimize(0 - item);
+		floor_item_notify(p_ptr, 0 - item, TRUE);
+	}
+}
+
+void wild_grow_crop(int Depth, int y, int x)
+{
+	int type, feat;
+	object_type food;
+	wilderness_type *w_ptr = &wild_info[Depth];
+
+	feat = cave[Depth][y][x].feat;
+
+	/* HACK!!! Do not grow anything if there's an object here. */
+	/* Will prevent spawning too many vegetables, but also will
+	 * allow things placed on top of fields to block growth. */
+	if (cave[Depth][y][x].o_idx)
+	{
+		/* Abort */
+		return;
+	}
+
+	/* Random crop */
+	if (feat == FEAT_CROP)
+	{
+		/* choose type of garden it is */
+		type = rand_int(7);
+	}
+	/* Specific crop type */
+	else if (feat >= FEAT_CROP_HEAD && feat <= FEAT_CROP_TAIL)
+	{
+		type = feat - FEAT_CROP_HEAD;
+	}
+	else
+	{
+		/* Slime mold? */
+		type = 0;
+	}
+
+	switch (type)
+	{
+		case WILD_CROP_POTATO:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_POTATO));
+			break;
+
+		case WILD_CROP_CABBAGE:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_HEAD_OF_CABBAGE));
+			break;
+
+		case WILD_CROP_CARROT:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_CARROT));
+			break;
+
+		case WILD_CROP_BEET:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_BEET));
+			break;
+
+		case WILD_CROP_SQUASH:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_SQUASH));
+			break;
+
+		case WILD_CROP_CORN:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_EAR_OF_CORN));
+			break;
+
+		/* hack -- useful mushrooms are rare */
+		case WILD_CROP_MUSHROOM:
+			invcopy(&food, lookup_kind(TV_FOOD, rand_int(rand_int(20))));
+			break;
+
+		default:
+			invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_SLIME_MOLD));
+			break;
+	}
+	/* Hack -- only drop food the first time */
+	/* Hack -- or regenerate occasionally (1 in 16) */
+	if (!(w_ptr->flags & WILD_F_GENERATED) || (rand_int(16) < 1))
+	{
+		drop_near(&food, -1, Depth, y, x);
+	}
+}
+
 /* Adds a garden a reasonable distance from x,y.
    Some crazy games are played with the RNG, so that whether we are dropping
    food or not will not effect the final state it is in.
@@ -589,7 +748,6 @@ static void wild_add_garden(int Depth, int x, int y)
 {
 	int x1, y1, x2, y2, type, xlen, ylen;
 	char orientation;
-	object_type food;
 	wilderness_type *w_ptr = &wild_info[Depth];
 	int tmp_seed;
 
@@ -632,47 +790,12 @@ static void wild_add_garden(int Depth, int x, int y)
 			if (((!orientation) && (y%2)) || ((orientation) && (x%2)))
 			{
 				/* set to crop */
-				cave[Depth][y][x].feat = FEAT_CROP;	
+				cave[Depth][y][x].feat = FEAT_CROP;
+
 				/* random chance of food */
 				if (rand_int(100) < 40)
 				{
-					switch (type)
-					{
-					case WILD_CROP_POTATO:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_POTATO)); 
-						break;
-						
-					case WILD_CROP_CABBAGE:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_HEAD_OF_CABBAGE)); 
-						break;
-						
-					case WILD_CROP_CARROT:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_CARROT)); 
-						break;
-						
-					case WILD_CROP_BEET:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_BEET)); 
-						break;	
-					
-					case WILD_CROP_SQUASH:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_SQUASH)); 
-						break;
-					
-					case WILD_CROP_CORN:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_EAR_OF_CORN)); 
-						break;
-					
-					/* hack -- useful mushrooms are rare */
-					case WILD_CROP_MUSHROOM:
-						invcopy(&food, lookup_kind(TV_FOOD, rand_int(rand_int(20)))); 
-						break;
-					default:
-						invcopy(&food, lookup_kind(TV_FOOD, SV_FOOD_SLIME_MOLD));
-						break;
-					}
-					/* Hack -- only drop food the first time */
-					/* Hack -- or regenerate occasionally (1 in 16) */
-					if (!(w_ptr->flags & WILD_F_GENERATED) || (rand_int(16) < 1)) drop_near(&food, -1, Depth, y, x);
+					wild_grow_crop(Depth, y, x);
 				}
 			}
 		}
@@ -680,6 +803,42 @@ static void wild_add_garden(int Depth, int x, int y)
 	/* restore the RNG */
 	Rand_value = tmp_seed;
 }
+
+/* Grow all crops on specified wilderness level */
+void wild_grow_crops(int Depth)
+{
+	int x, y;
+	int tmp_seed;
+
+	/* Skip unallocated levels */
+	if (!cave[Depth]) return;
+
+	/* save the RNG */
+	tmp_seed = Rand_value;
+
+	for (y = 0; y < MAX_HGT; y++)
+	for (x = 0; x < MAX_WID; x++)
+	{
+		int feat = cave[Depth][y][x].feat;
+		if ((feat == FEAT_CROP) ||
+		    (feat >= FEAT_CROP_HEAD &&
+		     feat <= FEAT_CROP_TAIL))
+		{
+			/* Hack! Don't grow under monsters/players */
+			if (cave[Depth][y][x].m_idx) continue;
+
+			/* Very rare chance of anything happening */
+			if (!randint0(10000L * cfg_fps))
+			{
+				wild_grow_crop(Depth, y, x);
+			}
+		}
+	}
+
+	/* restore the RNG */
+	Rand_value = tmp_seed;
+}
+
 
 
 static bool wild_monst_aux_invaders(int r_idx)
@@ -825,7 +984,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 		if (cave_clean_bold(Depth,y,x))
 		{
 			object_level = w_ptr->radius/2 +1;
-			place_object(Depth,y,x,FALSE,FALSE,0);
+			place_object(Depth,y,x,FALSE,FALSE, ORIGIN_WILD_DWELLING);
 			num_objects--;
 		}
 		trys++;
@@ -1308,7 +1467,7 @@ int wild_clone_closed_loop_total(int cur_depth)
 		/* get a valid neighbor location */
 		do
 		{
-			neigh_idx = neighbor_index(cur_depth, rand_int(4));
+			neigh_idx = neighbor_index(cur_depth, (char)rand_int(4));
 		} while ((neigh_idx >= 0) || (neigh_idx <= -MAX_WILD));
 
 		/* move to this new location */
@@ -1400,7 +1559,7 @@ int determine_wilderness_type(int Depth)
 		while ((neighbor_idx >= 0) || (neighbor_idx <= -MAX_WILD))
 		{
 			/* pick a random direction */
-			neighbor_idx = neighbor_index(Depth, rand_int(4));
+			neighbor_idx = neighbor_index(Depth, (char)rand_int(4));
 		}
 		
 		/* recursively figure out our terrain type */

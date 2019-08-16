@@ -145,10 +145,10 @@ download_file() {
 # Update AUTHORS and ChangeLog files
 if [ "$dodoc" = "1" ]; then
     echo " * Downloading 'AUTHORS' from mangband.org";
-    download_file "AUTHORS.src" "http://www.mangband.org/Main/People?action=source" ||
+    download_file "AUTHORS" "http://www.mangband.org/docs/people.txt" ||
     echo " -- FAILED";
 
-    sed -e"s/\[\[h[^']*//g" -e"s/\]\]//g" -e"s/'''//g" AUTHORS.src > AUTHORS && rm AUTHORS.src
+#    sed -e"s/\[\[h[^']*//g" -e"s/\]\]//g" -e"s/'''//g" AUTHORS.src > AUTHORS && rm AUTHORS.src
 
     echo " * Downloading 'ChangeLog' from github";
     download_file "ChangeLog" "https://raw.githubusercontent.com/wiki/mangband/mangband/ReleaseChangeLog.md" ||

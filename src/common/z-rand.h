@@ -5,6 +5,21 @@
 
 #include "h-basic.h"
 
+/**
+ * A struct representing a strategy for making a dice roll.
+ *
+ * The result will be base + XdY + BONUS, where m_bonus is used in a
+ * tricky way to determine BONUS.
+ */
+typedef struct random {
+	int base;
+	int dice;
+	int sides;
+	int m_bonus;
+} random_value;
+/* Currently only used by parser.c !!! */
+
+
 
 
 /**** Available constants ****/
@@ -53,6 +68,20 @@
  */
 #define randint(M) \
 	(rand_int(M) + 1)
+
+
+/**
+ * In Angband 3.X, randint was renamed to randint1
+ * and rand_int was renamed to randint0
+ * I don't want to do this (yet), but here are some compatibility defines -flm
+ */
+#define randint1 randint
+#define randint0 rand_int
+
+/**
+ * Return TRUE one time in `x`.
+ */
+#define one_in_(x) (!randint0(x))
 
 
 /*

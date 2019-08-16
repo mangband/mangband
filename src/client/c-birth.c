@@ -40,6 +40,12 @@ void choose_name(void)
 		break;
 	}
 
+#ifdef MOBILE_UI
+	/* Save entered name to config file */
+	/* TODO: maybe do it on all platforms? */
+	conf_set_string("MAngband", "nick", nick);
+#endif
+
 	/* Pad the name (to clear junk) */
 	sprintf(tmp, "%-15.15s", nick);
 
@@ -87,6 +93,12 @@ void enter_password(void)
 		break;
 	}
 
+#ifdef MOBILE_UI
+	/* Save entered password to config file */
+	/* TODO: maybe do it on all platforms? */
+	conf_set_string("MAngband", "pass", pass);
+#endif
+
 	/* Pad the name (to clear junk) 
 	sprintf(tmp, "%-15.15s", pass); */
 
@@ -129,7 +141,7 @@ void do_cmd_help_birth(void)
 	init_subscriptions();
 
 	/* Ask it */
-	cmd_interactive();
+	cmd_interactive(0, FALSE);
 }
 
 /*
@@ -307,12 +319,25 @@ static void choose_class(void)
  */
 void choose_stat_order(void)
 {
-	int i, j, k, avail[6];
+	int i, j, k, avail[A_CAP];
 	char c;
-	char out_val[160], stats[6][4];
+	char out_val[160], stats[A_CAP][4];
+
+/* HACK!!! TODO: Deprecate at 1.6.0 !!! */
+if (A_MAX == 0)
+{
+    A_MAX = 6;
+    C_MAKE(stat_names, A_MAX, char*);
+    stat_names[0] = string_make("STR");
+    stat_names[1] = string_make("INT");
+    stat_names[2] = string_make("WIS");
+    stat_names[3] = string_make("DEX");
+    stat_names[4] = string_make("CON");
+    stat_names[5] = string_make("CHR");
+}
 
 	/* All stats are initially available */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		strncpy(stats[i], stat_names[i], 3);
 		stats[i][3] = '\0';
@@ -320,13 +345,13 @@ void choose_stat_order(void)
 	}
 
 	/* Find the ordering of all 6 stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Clear bottom of screen */
 		clear_from(20);
 
 		/* Print available stats at bottom */
-		for (k = 0; k < 6; k++)
+		for (k = 0; k < A_MAX; k++)
 		{
 			/* Check for availability */
 			if (avail[k])
@@ -343,7 +368,7 @@ void choose_stat_order(void)
 			c = inkey();
 			if (c == 'Q') quit(NULL);
 			j = (islower(c) ? A2I(c) : -1);
-			if ((j < 6) && (j >= 0) && (avail[j]))
+			if ((j < A_MAX) && (j >= 0) && (avail[j]))
 			{
 				stat_order[i] = j;
 				c_put_str(TERM_L_BLUE, stats[j], 8 + i, 15);
@@ -487,7 +512,7 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-	int i, j, y, bytes, offsets[20];
+	int i, j, y, srvnum, bytes, offsets[20];
 	bool server, info;
 	char buf[8192], *ptr, c, out_val[160];
 	int ports[30];
@@ -513,7 +538,7 @@ bool get_server_name(void)
 
 	/* Start at the beginning */
 	ptr = buf;
-	i = y = 0;
+	i = y = srvnum  = 0;
 
 	/* Print each server */
 	while (ptr - buf < bytes)
@@ -562,7 +587,10 @@ bool get_server_name(void)
 			prt(out_val, y + 1, 1);
 
 			/* One more entry */
-			if (server) i++;
+			if (server) {
+				i++;
+				srvnum++;
+			}
 			y++;
 		}
 
@@ -576,6 +604,9 @@ bool get_server_name(void)
 	/* Prompt */
 	prt("Choose a server to connect to (Q for manual entry): ", y + 2, 1);
 
+	/* Show onscreen keyboard */
+	Term_show_keyboard(0);
+
 	/* Ask until happy */
 	while (1)
 	{
@@ -583,7 +614,7 @@ bool get_server_name(void)
 		c = inkey();
 
 		/* Check for quit */
-		if (c == 'Q')
+		if ((c == 'Q') || (c == 'q' && srvnum < 17))
 		{
 			return enter_server_name();
 		}

@@ -15,11 +15,17 @@
 ## Option -- Force the use of roguelike commands
 #Y:rogue_like_commands
 
+# User keymaps -- Original/Roguelike
+%:keymaps.prf
+
 # User Options
 %:options.prf
 
 # User Terminals Setup
 %:window.prf
+
+# Mouse Macros
+#%:mouse.prf
 
 ##### System Specific Subfiles #####
 

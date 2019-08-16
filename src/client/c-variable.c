@@ -12,9 +12,11 @@ int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
+byte *inventory_secondary_tester;/* Secondary item tester (if known) */
 
 object_type floor_item;
 char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
+byte floor_secondary_tester;
 
 indicator_type indicators[MAX_INDICATORS];
 int known_indicators;
@@ -36,6 +38,7 @@ s16b store_num;				/* The current store number */
 
 char spell_info[26][SPELLS_PER_BOOK+1][MAX_CHARS];		/* Spell information */
 byte spell_flag[26 * (SPELLS_PER_BOOK+1)];  	/* Spell flags */
+byte spell_test[26 * (SPELLS_PER_BOOK+1)];	/* TV filter for item-related spells */
 
 char party_info[160];			/* Information about your party */
 channel_type channels[MAX_CHANNELS];
@@ -59,9 +62,12 @@ s16b last_line_info;			/* Last line of info we've received */
 s16b max_line;				/* Maximum amount of "special" info */
 s16b cur_line;				/* Current displayed line of "special" info */
 
-cave_view_type* remote_info[8]; /* Local copies for Special Info */
-s16b last_remote_line[8];
+cave_view_type* remote_info[16]; /* Local copies for Special Info */
+s16b last_remote_line[16];
 cptr stream_desc[32];
+
+cave_view_type sfx_info[MAX_HGT][MAX_WID] = { 0 };
+s32b sfx_delay[MAX_HGT][MAX_WID] = { 0 };
 
 cave_view_type air_info[MAX_HGT][MAX_WID] = { 0 };
 s32b air_delay[MAX_HGT][MAX_WID] = { 0 };
@@ -77,9 +83,16 @@ player_type *Players = &player;
 
 s32b exp_adv;				/* Amount of experience required to advance a level */
 
+bool prompt_quote_hack = FALSE; /* Allow '"' to be used in place of '\r' */
+
 s16b command_see;
 s16b command_gap;
 s16b command_wrk;
+
+bool spellcasting = FALSE; /* Selecting a magic book */
+int spellcasting_spell = -1; /* Select-by-name spell */
+
+int inven_out_index[256] = { -2 }; /* Last line->a) index mappings from show_equip() */
 
 bool item_tester_full;
 byte item_tester_tval;
@@ -87,13 +100,12 @@ bool (*item_tester_hook)(object_type *o_ptr);
 item_tester_type item_tester[MAX_ITEM_TESTERS];
 int known_item_testers;
 
-int special_line_type;
+//int special_line_type; /* Which interactive terminal we're interacting with */
 char special_line_header[MAX_CHARS];
-bool special_line_onscreen = TRUE;
-bool interactive_anykey_flag = FALSE;
+bool special_line_onscreen = FALSE;
 
 bool special_line_requested = FALSE;
-
+bool simple_popup_requested = FALSE;
 bool local_browser_requested = FALSE;
 
 bool confirm_requested = FALSE;
@@ -147,10 +159,17 @@ byte color_table[256][4];
 
 cptr ANGBAND_SYS;
 
+cptr ANGBAND_FON = "";
+cptr ANGBAND_FONTNAME = "";
+cptr ANGBAND_GRAFNAME = "";
+
+byte mousemap[0xFF] = { 0 };
+
 cptr keymap_act[KEYMAP_MODES][256]; /* Keymaps for each "mode" associated with each keypress. */
 
 s16b command_cmd;
 s16b command_dir;
+event_type command_cmd_ex; /* Gives additional information of current command */
 
 custom_command_type custom_command[MAX_CUSTOM_COMMANDS];
 int custom_commands;
@@ -167,8 +186,12 @@ s16b pclass;
 s16b sex;
 char ptitle[80];
 
-s16b stat_order[6];			/* Desired order of stats */
+byte A_MAX = 0;
+cptr *stat_names;
+s16b stat_order[A_CAP];			/* Desired order of stats */
 
+bool flip_inven = FALSE;
+s16b flip_charsheet = 0;
 
 bool topline_icky;
 bool screen_icky;
@@ -177,6 +200,7 @@ byte section_icky_row;
 bool party_mode;
 bool cursor_icky;
 bool looking;
+bool in_item_prompt = FALSE;
 
 byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 
@@ -208,6 +232,9 @@ s16b INVEN_PACK  = 23;
 s16b FLOOR_INDEX = -1;
 bool FLOOR_NEGATIVE = TRUE;
 s16b FLOOR_TOTAL = 1;
+
+u16b MAX_OBJFLAGS_ROWS = 13;
+u16b MAX_OBJFLAGS_COLS = 39;
 
 
 cptr ANGBAND_GRAF = "none";
@@ -244,8 +271,10 @@ bool rogue_like_commands;
 bool depth_in_feet;
 bool auto_accept;
 bool auto_itemlist;
+bool auto_showlist;
 bool show_labels;
 bool show_weights;
+bool wrap_messages;
 bool ring_bell;
 bool use_color;
 
@@ -253,6 +282,10 @@ bool use_old_target;
 
 bool ignore_birth_options;
 
+bool escape_in_macro_triggers = FALSE;
+
 int char_screen_mode;
 bool target_recall;
 char target_prompt[60];
+
+byte hitpoint_warn_toggle = 0;

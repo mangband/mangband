@@ -264,14 +264,13 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	dst = SDL_CreateRGBSurface(src->flags, nx * t_neww, ny * t_newh, src->format->BitsPerPixel,
 	                           src->format->Rmask, src->format->Gmask, src->format->Bmask, src->format->Amask);
 
-	/* Copy pallete */
-	if (src->format->BitsPerPixel == 8) {
-	for (i = 0; i < src->format->palette->ncolors; i++) {
-		dst->format->palette->colors[i] = src->format->palette->colors[i];
+	/* Copy palette */
+	if (src->format->BitsPerPixel == 8)
+	{
+		SDL_SetColors(dst, src->format->palette->colors, 0, src->format->palette->ncolors);
+		dst->format->palette->ncolors = src->format->palette->ncolors;
 	}
-	dst->format->palette->ncolors = src->format->palette->ncolors;
-	}
-	
+
 	/* Do per-tile scaling */
 	for (y = 0; y < ny; ++y)
 	{
@@ -302,60 +301,42 @@ SDL_Surface *SDL_ScaleTiledBitmap (SDL_Surface *src,
 	return dst;
 }
 
-
-/* The following function will extract height and width info from a filename
- * such as 16x16.xyz or 8X13.bar or even argle8ook16.foo
- *
- * I realize now that it's also useful for reading integers out of an argument
- * such as --fooscale1=2
- */
-
-errr strtoii(const char *str, Uint32 *w, Uint32 *h)
+SDL_Surface* SurfaceTo8BIT(SDL_Surface *face, int free_src)
 {
-	char buf[1024];
-	char *s = buf;
-	char *tok;
-	char *numeric = "0123456789";
-
-	size_t l; /* length of numeric string */
-
-	if (!str || !w || !h) return -1;
-
-	if (strlen(str) < 3) return -1; /* must have room for at least "1x1" */
-
-	strncpy(buf, str, 1023);
-	buf[1023] = '\0';
-
-	tok = strpbrk(buf, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-
-	s = tok + l + 1;
-
-	if(!sscanf(tok, "%d", w)) return -1;
-
-	/* next token */
-	tok = strpbrk(s, numeric);
-	if (!tok) return -1;
-
-	l = strspn(tok, numeric);
-	if (!l) return -1;
-
-	tok[l] = '\0';
-	/* no need to set s since this is the last token */
-
-	if(!sscanf(tok, "%d", h)) return -1;
-
-	return 0;
-
+	int y, x;
+	int npal = 0;
+	SDL_Color *pc;
+	SDL_Surface *reface = SDL_CreateRGBSurface(0, face->w, face->h, 8, 0, 0, 0, 0);
+	for (y = 0; y < face->h; y++)
+	{
+		for (x = 0; x < face->w; x++)
+		{
+			byte n;
+			int found = 0;
+			Uint8 r, g, b;
+			Uint8 *dst_px = (Uint8*)((Uint8*)reface->pixels + (y * reface->pitch + x * reface->format->BytesPerPixel));
+			Uint32 *src_px = (Uint32*)((Uint8*)face->pixels + (y * face->pitch + x * face->format->BytesPerPixel));
+			SDL_GetRGB(*src_px, face->format, &r, &g, &b);
+			for (n = 0; n < npal; n++) {
+				pc = &(reface->format->palette->colors[n]);
+				if (pc->r == r && pc->g == g && pc->b == b) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found && npal < 255) {
+				pc = &(reface->format->palette->colors[npal]);
+				pc->r = r; pc->g = g; pc->b = b;
+				n = npal;
+				npal++;
+			}
+			*dst_px = n;
+		}
+	}
+	reface->format->palette->ncolors = npal;
+	if (free_src) SDL_FreeSurface(face);
+	return reface;
 }
-
-
-
 
 char *formatsdlflags(Uint32 flags) {
 	return format ("%s%s%s%s%s%s%s%s%s%s (%x)",
@@ -401,6 +382,7 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_END, "[4~", "[4^", "Oq"},
 	{SDLK_PAGEUP, "[5~", "[5^", "Oy"},
 	{SDLK_PAGEDOWN, "[6~", "[6^", "Os"},*/
+/*
 	{SDLK_F1, "_FFBE", NULL, NULL},
 	{SDLK_F2, "_FFBF", NULL, NULL},
 	{SDLK_F3, "_FFC0", NULL, NULL},
@@ -413,10 +395,13 @@ sdl_keymapt sdl_keymap[] =
 	{SDLK_F10, "_FFC7", NULL, NULL},
 	{SDLK_F11, "_FFC8", NULL, NULL},
 	{SDLK_F12, "_FFC9", NULL, NULL},
+*/
 	/* I have no machines with F13, F14, F15. Is that a Sun thing? */
+/*
 	{SDLK_F13, "", NULL, NULL},
 	{SDLK_F14, "", NULL, NULL},
 	{SDLK_F15, "", NULL, NULL},
+*/
 	{SDLK_RSHIFT, "", NULL, NULL},
 	{SDLK_LSHIFT, "", NULL, NULL},
 	{SDLK_RALT, "", NULL, NULL},
@@ -465,6 +450,24 @@ void Multikeypress(char *k)
 	while (*k) Term_keypress(*k++);
 }
 
+int IsSpecial(SDLKey k)
+{
+	switch (k)
+	{
+		case SDLK_F1: case SDLK_F2:
+		case SDLK_F3: case SDLK_F4:
+		case SDLK_F5: case SDLK_F6:
+		case SDLK_F7: case SDLK_F8:
+		case SDLK_F9: case SDLK_F10:
+		case SDLK_F11: case SDLK_F12:
+		case SDLK_TAB:
+			return TRUE;
+		default:
+			return FALSE;
+	}
+	return 1234567; /* all good children go to heaven */
+}
+
 int IsMovement(SDLKey k)
 {
 	switch (k)
@@ -497,6 +500,66 @@ int IsMovement(SDLKey k)
 }
 
 
+/* *** Arrow keys combiner *** */
+int sdl_combine_arrowkeys = 1; /* ON/OFF */
+Uint16 sdl_combiner_delay = 20;
+/* Delayed key */
+SDL_keysym delayed_keysym; /* Actual key (with mods) */
+bool has_dlks = FALSE; /* We have one */
+Uint32 event_timestamp = 0; /* Book-keeping */
+Uint32 timestamp_dlks = 0;
+
+static SDLKey CombinedMovement(SDLKey a, SDLKey b)
+{
+	const SDLKey keys9x9[4][4] = {
+		{ SDLK_HOME, SDLK_UP, SDLK_PAGEUP },
+		{ SDLK_LEFT, 0, SDLK_RIGHT },
+		{ SDLK_END, SDLK_DOWN, SDLK_PAGEDOWN },
+	};
+	int _dx = 0, _dy = 0;
+	if (a == SDLK_UP || b == SDLK_UP) _dy = -1;
+	else if (a == SDLK_DOWN || b == SDLK_DOWN) _dy = 1;
+	if (a == SDLK_LEFT || b == SDLK_LEFT) _dx = -1;
+	else if (a == SDLK_RIGHT || b == SDLK_RIGHT) _dx = 1;
+	if (_dx && _dy)
+	{
+		return keys9x9[_dy + 1][_dx + 1];
+	}
+	return 0;
+}
+void Storedelayedkey(SDL_keysym *ks)
+{
+	memcpy(&delayed_keysym, ks, sizeof(delayed_keysym));
+	has_dlks = 1;
+	timestamp_dlks = event_timestamp;
+}
+char *SDL_keysymtostr(SDL_keysym *ks); /* forward dec */
+void Flushdelayedkey(bool execute, bool force_flush, SDLKey ks, Uint32 timestamp)
+{
+	bool flush = FALSE;
+	if (force_flush == TRUE) {
+		flush = TRUE;
+	}
+	else if (ks && has_dlks && delayed_keysym.sym == ks)
+	{
+		flush = TRUE;
+	}
+	else if (timestamp && has_dlks) {
+		if (timestamp - timestamp_dlks > sdl_combiner_delay) flush = TRUE;
+	}
+	if (flush)
+	{
+		if (execute)
+		{
+			int old = sdl_combine_arrowkeys;
+			sdl_combine_arrowkeys = 0;
+			Multikeypress(SDL_keysymtostr(&delayed_keysym));
+			sdl_combine_arrowkeys = old;
+		}
+		has_dlks = 0;
+	}
+}
+
 char *SDL_keysymtostr(SDL_keysym *ks)
 {
 #ifdef bufsize
@@ -521,9 +584,31 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 	buf[0] = '\0';
 
 	if(ks->unicode && !(ks->unicode & 0xff80)) {
-		ch = ks->unicode;
+		ch = (Uint8)ks->unicode;
 		if (ch) sdlkapp(ch);
 		return buf;
+	}
+
+	/* HACK -- combine two arrow keys pressed at the same time. */
+	if (sdl_combine_arrowkeys)
+	{
+		if (ks->sym == SDLK_LEFT || ks->sym == SDLK_RIGHT ||
+			ks->sym == SDLK_UP || ks->sym == SDLK_DOWN)
+		{
+			if (has_dlks)
+			{
+				SDLKey rekey = CombinedMovement(ks->sym, delayed_keysym.sym);
+				Flushdelayedkey(FALSE, TRUE, 0, 0);
+				if (rekey) {
+					/* Is replacing keysym.sym evil? Should work fine */
+					ks->sym = rekey;
+					ks->mod = delayed_keysym.mod;
+				}
+			} else {
+				Storedelayedkey(ks);
+				return buf;
+			}
+		}
 	}
 
 	for (i = 0; ; ++i)
@@ -558,13 +643,13 @@ char *SDL_keysymtostr(SDL_keysym *ks)
 		} else
 		if (sdl_keymap[i].k == SDLK_UNKNOWN)
 		{
-			if (IsMovement(ks->sym))
+			if (IsMovement(ks->sym) || IsSpecial(ks->sym))
 			{
 				sprintf(buf, "%c%s%s%s%s_%lX%c", 31,
 						ks->mod & KMOD_CTRL  ? "N" : "",
 						ks->mod & KMOD_SHIFT ? "S" : "",
-						"", /* for future expansion. */
-						ks->mod & KMOD_ALT   ? "M" : "",
+						ks->mod & KMOD_ALT   ? "O" : "",
+						ks->mod & KMOD_META  ? "M" : "",
 						(unsigned long) ks->sym, 13);
 				ch = 0;
 			}

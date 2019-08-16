@@ -2,7 +2,7 @@
 
 #
 # This file provides some macros for use with versions of Angband compiled
-# using the "main-x11.c" (or "main-xaw.c") file.
+# using the "main-sdl.c" file.
 #
 # Note the use of "\e\e\e\e" (four escapes) to allow the macros to work
 # even if the game is not yet ready for a command.
@@ -10,6 +10,55 @@
 # Note the use of "\\." (for "run") and "\\+" (for "alter"), to make sure
 # that the macros will work regardless of the "keymap" being used.
 #
+
+# Macro Trigger configuration
+#
+# T:<trigger template>:<modifiers>:<modifier name1>:<modifier name2>:....
+# '&' in <trigger template> specifies location of modifier character.
+# '#' in <trigger template> specifies location of key code.
+#
+# If <trigger template> is null string, all trigger difinition will be cleared.
+
+T:&_#:NSOM:control-:shift-:alt-:cmd-
+
+############
+
+# T:<trigger name>:<keycode>:<keycode with shiftkey>
+# '\' in <trigger name> is escape character.
+
+T:insert:115
+T:end:117
+T:page_down:119
+T:home:116
+T:page_up:118
+T:left:114
+T:right:113
+T:up:111
+T:down:112
+T:kp_insert:100
+T:kp_end:101
+T:kp_down:102
+T:kp_page_down:103
+T:kp_left:104
+T:[5]:105
+T:kp_right:106
+T:kp_home:107
+T:kp_up:108
+T:kp_page_up:109
+T:f1:11A
+T:f2:11B
+T:f3:11C
+T:f4:11D
+T:f5:11E
+T:f6:11F
+T:f7:120
+T:f8:121
+T:f9:122
+T:f10:123
+T:f11:124
+T:f12:125
+
+
 
 # End, Page_Down, Home, Page_Up
 
@@ -27,81 +76,61 @@ P:^__118\r
 
 # Running: Shift+ End, Page_Down, Home, Page_Up
 
-A:.1
+A:\\.1
 P:^_S_117\r
 
-A:.3
+A:\\.3
 P:^_S_119\r
-A:.7
+
+A:\\.7
 P:^_S_116\r
 
-A:.9
+A:\\.9
 P:^_S_118\r
 
 # Running: Shift+ Left, Right, Up, Down
 
-A:.4
+A:\\.4
 P:^_S_114\r
 
-A:.6
+A:\\.6
 P:^_S_113\r
 
-A:.8
+A:\\.8
 P:^_S_111\r
 
-A:.2
+A:\\.2
 P:^_S_112\r
 
 # Digging: Ctrl+ End, Page_Down, Home, Page_Up
 
-A:+1
+A:\\+1
 P:^_N_117\r
 
-A:+3
+A:\\+3
 P:^_N_119\r
 
-A:+7
+A:\\+7
 P:^_N_116\r
 
-A:+9
+A:\\+9
 P:^_N_118\r
 
 # Digging: Ctrl+ Left, Right, Up, Down
 
-A:+4
+A:\\+4
 P:^_N_114\r
 
-A:+6
+A:\\+6
 P:^_N_113\r
 
-A:+8
+A:\\+8
 P:^_N_111\r
 
-A:+2
+A:\\+2
 P:^_N_112\r
 
 
-# KP_Insert, KP_End, KP_Down, KP_PageDown, KP_Left, <None>, KP_Right,
-# KP_Home, KP_Up, KP_Page_Up
-
-A:0
-P:^__FF9E\r
-A:1
-P:^__FF9C\r
-A:2
-P:^__FF99\r
-A:3
-P:^__FF9B\r
-A:4
-P:^__FF96\r
-A:6
-P:^__FF98\r
-A:7
-P:^__FF95\r
-A:8
-P:^__FF97\r
-A:9
-P:^__FF9A\r
 
 # Keypad (0-9)
 
@@ -178,6 +207,7 @@ P:^_S_109\r
 
 A:\e\e\e\e\\+0
 P:^_N_100\r
+
 A:\e\e\e\e\\+1
 P:^_N_101\r
 
@@ -205,3 +235,32 @@ P:^_N_108\r
 A:\e\e\e\e\\+9
 P:^_N_109\r
 
+
+# macOS-specific: digging via Command+Arrows
+# (end, pagedown, home, pageup)
+
+A:\\+1
+P:^_M_117\r
+
+A:\\+3
+P:^_M_119\r
+
+A:\\+7
+P:^_M_116\r
+
+A:\\+9
+P:^_M_118\r
+
+# (left, right, up, down)
+
+A:\\+4
+P:^_M_114\r
+
+A:\\+6
+P:^_M_113\r
+
+A:\\+8
+P:^_M_111\r
+
+A:\\+2
+P:^_M_112\r

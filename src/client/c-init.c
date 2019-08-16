@@ -8,6 +8,10 @@
 
 #include "c-angband.h"
 
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
+#include "appl-dir.h"
+#endif
+
 char host_name[80];
 
 static void init_arrays(void)
@@ -74,6 +78,14 @@ void init_stuff(void)
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
+/* Calling quit before we have a nice messagebox hook for the message
+ * is counter-productive on Windows machines. Note: this is for SDL/SDL2,
+ * not the windows client, which does its own init. */
+#if !defined(WINDOWS) && !defined(__APPLE__)
+	/* Verify LIB DIR */
+	if (!dir_exists(path)) quit(format("Can't find LibDir at '%s' !", path));
+#endif
+
 	/* Initialize */
 	init_file_paths(path);
 
@@ -96,6 +108,17 @@ void init_stuff(void)
 		ANGBAND_DIR_USER = string_make(path);
 	}
 
+    /* ------------------------------------- */
+    /* Copy pref files from ANGBAND_DIR_USER */
+    /* If succesfull, ANGBAND_DIR_USER will then point to the new location */
+#if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
+    {
+        char final_user_dir[PATH_MAX];
+        appl_get_appsupport_dir(final_user_dir, PATH_MAX, TRUE);
+        import_user_pref_files(final_user_dir);
+    }
+#endif
+
 }
 
 /* Init minor arrays */
@@ -107,7 +130,8 @@ void init_minor(void)
 	for (i = 0; i < MAX_CHANNELS; i++)
 	{
 		channels[i].name[0] = '\0';
-		channels[i].id = channels[i].num = 0;
+		channels[i].id = 0;
+		channels[i].num = 0;
 		p_ptr->on_channel[i] = FALSE;
 	}
 	p_ptr->main_channel = 0;
@@ -166,6 +190,64 @@ void init_info(void)
 	/* pr_info */
 	C_MAKE(p_ptr->pr_attr, (z_info.c_max+1)*z_info.p_max, byte);
 	C_MAKE(p_ptr->pr_char, (z_info.c_max+1)*z_info.p_max, char);
+}
+
+/* Reset all visual mappings */
+void wipe_visual_prefs(void)
+{
+	int i;
+
+	for (i = 0; i < MAX_FLVR_IDX; i++)
+	{
+		Client_setup.flvr_x_attr[i] = 0;
+		Client_setup.flvr_x_char[i] = 0;
+	}
+	for (i = 0; i < 128; i++)
+	{
+		Client_setup.tval_attr[i] = 0;
+		Client_setup.tval_char[i] = 0;
+	}
+	for (i = 0; i < 256; i++)
+	{
+		Client_setup.misc_attr[i] = 0;
+		Client_setup.misc_char[i] = 0;
+	}
+
+	/* k_info (Object Kinds) */
+	for (i = 0; i < z_info.k_max; i++)
+	{
+		Client_setup.k_attr[i] = 0;
+		Client_setup.k_char[i] = 0;
+		p_ptr->k_attr[i] = 0;
+		p_ptr->k_char[i] = 0;
+		/* d_info hack */
+		p_ptr->d_attr[i] = 0;
+		p_ptr->d_char[i] = 0;
+	}
+	/* r_info (Monsters) */
+	for (i = 0; i < z_info.r_max; i++)
+	{
+		Client_setup.r_attr[i] = 0;
+		Client_setup.r_char[i] = 0;
+		p_ptr->r_attr[i] = 0;
+		p_ptr->r_char[i] = 0;
+	}
+
+	/* f_info (Terrain) */
+	for (i = 0; i < z_info.f_max; i++)
+	{
+		Client_setup.f_attr[i] = 0;
+		Client_setup.f_char[i] = 0;
+		p_ptr->f_attr[i] = 0;
+		p_ptr->f_char[i] = 0;
+	}
+
+	/* pr_info (Player picts) */
+	for (i = 0; i < (z_info.c_max+1)*z_info.p_max; i++)
+	{
+		p_ptr->pr_attr[i] = 0;
+		p_ptr->pr_char[i] = 0;
+	}
 }
 
 /*
@@ -290,7 +372,9 @@ static void Setup_loop()
 		/* Check and Prepare character */
 		if (old_state != state)
 		{
+#ifdef DEBUG
 			printf("Changing SetupState=%d (was=%d)\n", state, old_state);
+#endif
 			/* Handshake complete */
 			if (state == PLAYER_EMPTY)
 			{
@@ -366,6 +450,9 @@ static void Setup_loop()
 	client_ready();
 	send_play(PLAY_PLAY);
 
+	/* Notify term (optional) */
+//	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_NETWORK));
+
 	/* Advance to next loop */
 	Term_clear();
 	Term_fresh();
@@ -390,11 +477,19 @@ void flush_updates()
 		window_stuff();
 	}
 
+	/* Redraw slash effect? */
+	if (refresh_char_aux)
+	{
+		update_slashfx();
+	}
+
 	/* Redraw air? */
 	if (air_updates)
 	{
 		update_air();
 	}
+
+	Term_xtra(TERM_XTRA_BORED, 0);
 
 	/* Hack -- don't redraw the screen until we have all of it */
 	//if (last_line_info < Term->hgt - SCREEN_CLIP_Y) continue;
@@ -470,6 +565,9 @@ void gather_settings()
 
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;
+
+	/* Support slash fx */
+	Client_setup.settings[5] = (refresh_char_aux) ? TRUE : FALSE;
 }
 
 
@@ -591,6 +689,12 @@ bool client_setup()
 	/* Initialize the pref files */
 	initialize_all_pref_files();
 
+	/* Notify term (optional) */
+	Term_xtra(TERM_XTRA_REACT, (TERM_XTRA_REACT_COLORS | TERM_XTRA_REACT_VISUALS));
+
+	/* Horrible hack -- resave birth options if player adjusted them */
+	if (ignore_birth_options) Save_options();
+
 	/* Send request for MOTD to read (optional) */
 	//Send_motd(0); // pass -1 to receive motd off-screen
 
@@ -629,6 +733,9 @@ bool client_ready()
 	/* Subscribe to data streams */
 	init_subscriptions();
 
+	/* Prepare command menu */
+	cmd_init();
+
 	return TRUE;
 }
 
@@ -647,6 +754,9 @@ int client_failed(void)
 		put_str("Couldn't connect to server, keep trying? [Y/N]", 21, 1);
 		/* Make sure the message is shown */
 		Term_fresh();
+
+		/* Show on-screen keyboard */
+		Term_show_keyboard(0);
 
 		while (ch != 'Y' && ch !='y' && ch != 'N' && ch != 'n')
 		{

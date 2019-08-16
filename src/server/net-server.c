@@ -105,7 +105,42 @@ void free_server_memory() {
 	KILL(Get_Ind);
 }
 
-/* Player enters active gameplay */
+/* When player's p_list index changes, other players should be made aware! */
+/* Hack -- it is allowed to pass "0" for "newPInd", to make player forgotten. */
+void reindex_player(int oldPInd, int newPInd)
+{
+	int i;
+	/* For each player (EXPECT THE LAST ONE!) */
+	for (i = 1; i <= NumPlayers - 1; i++)
+	{
+		player_type *p_ptr = Players[i];
+
+		/* Cursor/health/target tracking */
+		if (p_ptr->cursor_who == 0 - oldPInd) p_ptr->cursor_who = 0 - newPInd;
+		if (p_ptr->target_who == 0 - oldPInd) p_ptr->target_who = 0 - newPInd;
+		if (p_ptr->health_who == 0 - oldPInd)
+		{
+			p_ptr->health_who = 0 - newPInd;
+			/* If there's no new target, refresh healthbar to wipe it */
+			if (newPInd == 0) p_ptr->redraw |= PR_HEALTH;
+		}
+
+		/* Visibility flags */
+		p_ptr->play_vis[newPInd] = p_ptr->play_vis[oldPInd];
+		p_ptr->play_los[newPInd] = p_ptr->play_los[oldPInd];
+		p_ptr->play_det[newPInd] = p_ptr->play_det[oldPInd];
+
+		/* Vanishing player was visible, update list */
+		if (newPInd == 0 && p_ptr->play_vis[oldPInd]) p_ptr->window |= (PW_MONLIST);
+
+		/* And forget about old index */
+		p_ptr->play_vis[oldPInd] = FALSE;
+		p_ptr->play_los[oldPInd] = FALSE;
+		p_ptr->play_det[oldPInd] = 0;
+	}
+}
+
+/* Player enters active gameplay (Add player to p_list) */
 int player_enter(int ind) 
 {
 	int PInd;
@@ -132,8 +167,11 @@ int player_enter(int ind)
 	Get_Conn[PInd] = ind;
 	PConn[PInd] = ct; 
 
+	/* Hack -- store own index! */
+	p_ptr->Ind = PInd;
+
 	/* Hack -- join '#public' channel */
-	send_channel(PInd, CHAN_JOIN, 0, DEFAULT_CHANNEL);
+	send_channel(p_ptr, CHAN_JOIN, 0, DEFAULT_CHANNEL);
 
 	/* Hack -- send different 'G'ain command */
 	if (c_info[p_ptr->pclass].spell_book == TV_PRAYER_BOOK)
@@ -145,27 +183,30 @@ int player_enter(int ind)
 	p_ptr->state = PLAYER_PLAYING;
 
 	/* Setup his locaton */
-	player_setup(PInd);
-	setup_panel(PInd, TRUE);
-	verify_panel(PInd);
+	player_setup(p_ptr);
+	setup_panel(p_ptr, TRUE);
+	verify_panel(p_ptr);
+
+	/* Hack -- recalculate everything as early as possible */
+	update_stuff(p_ptr);
 
 	/* Hack, must find better place */
-	prt_history(PInd);
-	show_socials(PInd);
+	prt_history(p_ptr);
+	show_socials(p_ptr);
 
 	/* Current party */
-	send_party_info(PInd);
+	send_party_info(p_ptr);
 
 	/* Inform everyone */
 	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless it's hidden DM */
 	{
 		if (p_ptr->new_game)
 		{
-			msg_broadcast(PInd, format("%s begins a new game.", p_ptr->name));
+			msg_broadcast(p_ptr, format("%s begins a new game.", p_ptr->name));
 		}
 		else
 		{
-			msg_broadcast(PInd, format("%s has entered the game.", p_ptr->name));
+			msg_broadcast(p_ptr, format("%s has entered the game.", p_ptr->name));
 		}
 	}
 
@@ -242,20 +283,22 @@ int player_leave(int p_idx)
 		//forget_view(Ind);TODO--test if this is really needed?
 		/* Show everyone his disappearance */
 		everyone_lite_spot(p_ptr->dun_depth, p_ptr->py, p_ptr->px);
+		/* Tell everyone to re-calculate visiblity for this player */
+		update_player(p_ptr);
 	}
 
 	/* Try to save his character */
-	saved = save_player(p_idx);
+	saved = save_player(p_ptr);
 
 	/* Leave all chat channels */
-	channels_leave(p_idx);
+	channels_leave(p_ptr);
 
 	/* Leave everything else */
 	player_abandon(p_ptr);
 
 	/* Inform everyone */
 	if (!(p_ptr->dm_flags & DM_SECRET_PRESENCE)) /* unless hidden DM */
-	msg_broadcast(p_idx, format("%s has left the game.", p_ptr->name));
+	msg_broadcast(p_ptr, format("%s has left the game.", p_ptr->name));
 
 	/* This player has no connection attached (orphaned) */
 	if (ind == -1)
@@ -283,13 +326,22 @@ int player_leave(int p_idx)
 		/* Put him in current player's place */
 		p_list[p_idx] = p_ptr;
 
+		/* Hack -- remember own index! */
+		p_ptr->Ind = p_idx;
+
 		/* Switch index on grid */
 		if (cave[p_ptr->dun_depth]) /* Cave is allocated */
 			cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].m_idx = 0 - p_idx;
 
 		/* Update "ind-by-Ind" */
 		Get_Conn[p_idx] = ind;
+
+		/* Make other players aware of the new index */
+		reindex_player(p_max, p_idx);
 	}
+
+	/* Make other players forget last player on the list */
+	reindex_player(p_max, 0);
 
 	/* Reduce list */
 	p_list[p_max] = NULL;
@@ -371,12 +423,12 @@ void setup_network_server()
 	/* Every Second */
 	add_timer(first_timer, (ONE_SECOND), (callback)second_tick);
 
+	/** Prepare FD_SETS **/
+	network_reset();
+
 	/** Add UDP */
 	/* Meta-server */
 	first_sender = add_sender(NULL, cfg_meta_address, 8800, ONE_SECOND * 4, report_to_meta);
-
-	/** Prepare FD_SETS **/
-	network_reset();
 
 	/** Add listeners **/
 	/* Game */
@@ -409,7 +461,7 @@ void setup_network_server()
 void post_process_players(void)
 {
 	int Ind;
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		
@@ -417,16 +469,16 @@ void post_process_players(void)
 		if (p_ptr->new_level_flag == TRUE) continue;
 		
 		/* Try to execute any commands on the command queue. */
-		(void) process_player_commands(Ind);
+		(void) process_player_commands(p_ptr);
 	}
 	/* Next loop flushes all potential update flags Players have set
 	 * for each other. */
-	for (Ind = 1; Ind < NumPlayers + 1; Ind++)
+	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
 		
 		/* Recalculate and schedule updates */
-		handle_stuff(Ind);
+		handle_stuff(p_ptr);
 	}
 }
 
@@ -434,7 +486,10 @@ void post_process_players(void)
 void network_loop()
 {
 	shutdown_timer = 0;
-	plog("Entering network loop...");
+	plog(format("Server is running version %04x", SERVER_VERSION));
+#ifdef DEBUG
+	plog("Serving with delicious DEBUG cheeze!");
+#endif
 	while (1)
 	{
 		first_listener = handle_listeners(first_listener);
@@ -502,22 +557,21 @@ int report_to_meta(int data1, data data2) {
 		/* Get our hostname */
 		if (cfg_report_address)
 		{
-			strncpy(local_name, cfg_report_address, 1024);
+			my_strcpy(local_name, cfg_report_address, 1024);
 		}
 		else
 		{
 			if (cfg_bind_name)
 			{
-				strncpy(local_name, cfg_bind_name, 1024);
+				my_strcpy(local_name, cfg_bind_name, 1024);
 			}
 			else
 			{
 				fillhostname(local_name, 1024);
 			}
 		}
-		strcat(local_name, ":");
-		sprintf(temp, "%d", (int) cfg_tcp_port);
-		strcat(local_name, temp);
+		/* Add :port number */
+		my_strcat(local_name, format(":%d", (int)cfg_tcp_port), 1024);
 	}
 
 	/* Start with our address */
@@ -563,12 +617,12 @@ int report_to_meta(int data1, data data2) {
 
 	/* Append the version number */
 #ifndef SVNREV
-    if (cfg_ironman)
-    	sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
-    else
-    	sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR, 
-    	SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	if (cfg_ironman)
+		sprintf(temp, "Version: %d.%d.%d Ironman ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
+	else
+		sprintf(temp, "Version: %d.%d.%d ", SERVER_VERSION_MAJOR,
+		SERVER_VERSION_MINOR, SERVER_VERSION_PATCH);
 	/* Append the additional version info */
 	if (SERVER_VERSION_EXTRA == 1)
 		strcat(temp, "alpha");
@@ -577,10 +631,10 @@ int report_to_meta(int data1, data data2) {
 	if (SERVER_VERSION_EXTRA == 3)
 		strcat(temp, "development");
 #else
-    if (cfg_ironman)
-    	sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
-    else
-    	sprintf(temp, "Revision: %d ", atoi(SVNREV));
+	if (cfg_ironman)
+		sprintf(temp, "Revision: %d Ironman ", atoi(SVNREV));
+	else
+		sprintf(temp, "Revision: %d ", atoi(SVNREV));
 #endif
 	strcat(buf, temp);
 
@@ -621,6 +675,11 @@ int second_tick(int data1, data data2) {
 			}
 			/* Remove him from game*/
 			player_leave(i);
+		}
+		else
+		{
+			/* Also, track AFK status */
+			p_list[i]->afk_seconds++;
 		}
 	}
 
@@ -685,7 +744,7 @@ int hub_read(int data1, data data2) { /* return -1 on error */
 			if (cq_len(&ct->rbuf) && cq_peek(&ct->rbuf)[0] == '\n')
 				ct->rbuf.pos++;
 		
-			accept_console(-1, (data)ct);
+			okay = accept_console(-1, (data)ct);
 
 		break;
 		case CONNTYPE_OLDPLAYER:
@@ -788,7 +847,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 #ifdef DEBUG
 		debug(format("Rejecting %s for version %04x", ct->host_addr, version));
 #endif
-		client_abort(ct, "Incompatible client version.");
+		client_abort(ct, format("Incompatible client version. You need version %04x", SERVER_VERSION));
 	}
 	if (!client_names_ok(nick_name, real_name, host_name))
 	{ 
@@ -872,6 +931,7 @@ int client_login(int data1, data data2) { /* return -1 on error */
 		/* Attempt to load from a savefile */
 		if (!load_player(p_ptr))
 		{
+			plog(format("Corrupt savefile for player %s", p_ptr->name));
 			player_free(p_ptr); /* Unalloc back */
 			client_abort(ct, "Error loading savefile");
 		}
@@ -916,10 +976,12 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	ct->receive_cb = client_read;
 
 	/* Since LOGIN is the first command ever, it's a good time to send basics */
+	if (client_version_atleast(p_ptr->version, 1,5,3)) send_stats_info(ct);
 	send_race_info(ct);
 	send_class_info(ct);
 	send_server_info(ct);
 	send_inventory_info(ct);
+	send_objflags_info(ct);
 	send_floor_info(ct);
 	send_optgroups_info(ct);
 
@@ -1037,6 +1099,9 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 	/* Can't start with space */
 	if (nick_name[0] == ' ') return FALSE;
 
+	/* Can't start with lowercase */
+	nick_name[0] = toupper(nick_name[0]);
+
 	/* Right-trim nick */
 	for (ptr = &nick_name[strlen(nick_name)]; ptr-- > nick_name; )
 	{
@@ -1045,8 +1110,40 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
 		else break;
 	}
 
+	/* On Win32, normalize case */
+#ifdef FS_CASE_IGNORE
+	{
+		char temp_name[MAX_CHARS];
+		rewrite_player_name(temp_name, NULL, nick_name);
+		my_strcpy(nick_name, temp_name, MAX_CHARS);
+	}
+#endif
+	/* On Win3.11/DOS, trim nick to 8 chars */
+#ifdef FS_MAX_BASE_LEN
+	nick_name[FS_MAX_BASE_LEN] = '\0';
+#endif
+
 	/* Hack -- Reserved name */
 	if (!my_stricmp(nick_name, "server")) return FALSE;
+
+	return TRUE;
+}
+
+/*
+ * Check if client is *at least* at version major.minor.patch.
+ * Do not check "extra". Pass -1 to "minor" or "patch"
+ * if you don't care about that particular value. */
+bool client_version_atleast(u16b version, int at_major, int at_minor, int at_patch)
+{
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	if (major < at_major) return FALSE;
+	if (minor < at_minor) return FALSE;
+	if (patch < at_patch) return FALSE;
 
 	return TRUE;
 }
@@ -1057,10 +1154,26 @@ bool client_names_ok(char *nick_name, char *real_name, char *host_name)
  */
 bool client_version_ok(u16b version)
 {
-	if (version == SERVER_VERSION) 
+	u16b major, minor, patch, extra;
+	major = (version & 0xF000) >> 12;
+	minor = (version & 0xF00) >> 8;
+	patch = (version & 0xF0) >> 4;
+	extra = (version & 0xF);
+
+	/* make alpha/beta/devel/stable versions always incompatible
+	 * with each other */
+	if (extra != SERVER_VERSION_EXTRA) return FALSE;
+
+	/* require minimal version */
+	if (!client_version_atleast(version, 1, 5, 0)) return FALSE;
+
+	return TRUE;
+/*
+	if (version == SERVER_VERSION)
 		return TRUE;
 	else
 		return FALSE;
+*/
 }
 
 /*

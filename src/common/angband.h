@@ -29,6 +29,7 @@
 #include "../common/z-virt.h"
 #include "../common/z-form.h"
 #include "../common/z-rand.h"
+#include "../common/z-file.h"
 
 
 /*
@@ -42,6 +43,9 @@
  */
 #include "../common/net-pack.h"
 
+
+/* Generic parser */
+#include "../common/parser.h"
 
 /***** Some copyright messages follow below *****/
 

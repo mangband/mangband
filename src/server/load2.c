@@ -52,7 +52,7 @@
 /*
  * Local "savefile" pointer
  */
-static FILE *file_handle; 
+static ang_file* file_handle; 
 /* Line counter */
 static int line_counter;
 
@@ -77,13 +77,13 @@ static char file_buf[1024];
  */
 
 /* Start a section */
-void start_section_read(char* name)
+bool start_section_read(char* name)
 {
 	char seek_section[80];
 	char got_section[80];
 	bool matched = FALSE;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sprintf(seek_section,"<%s>",name);
@@ -95,18 +95,19 @@ void start_section_read(char* name)
 	if(!matched)
 	{
 		plog(format("Missing section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
-		exit(1);
+		return (FALSE);
 	}
+	return (TRUE);
 }
 
 /* End a section */
-void end_section_read(char* name)
+bool end_section_read(char* name)
 {
 	char seek_section[80];
 	char got_section[80];
 	bool matched = FALSE;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sprintf(seek_section,"</%s>",name);
@@ -118,18 +119,69 @@ void end_section_read(char* name)
 	if(!matched)
 	{
 		plog(format("Missing end section.  Expected '%s', found '%s' at line %i",seek_section,got_section,line_counter));
-		exit(1);
+		return (FALSE);
 	}
+	return (TRUE);
+}
+
+/* Read a puny byte */
+bool read_byte(char* name, byte *dst)
+{
+	char seek_name[80];
+	bool matched = FALSE;
+	byte value;
+		
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
+	{
+		line_counter++;
+		if(sscanf(file_buf,"%s = %" SCNu8, seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
+	}
+	if(!matched)
+	{
+		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		return (FALSE);
+	}
+
+	*dst = value;
+	return (TRUE);
+}
+
+
+/* Read a short integer */
+bool read_short(char* name, s16b *dst)
+{
+	char seek_name[80];
+	bool matched = FALSE;
+	s16b value;
+		
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
+	{
+		line_counter++;
+		if(sscanf(file_buf,"%s = %" SCNu16, seek_name,&value) == 2)
+		{
+			matched = !strcmp(seek_name,name);
+		}
+	}
+	if(!matched)
+	{
+		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
+		return (FALSE);
+	}
+	*dst = value;
+	return (TRUE);
 }
 
 /* Read an integer */
-int read_int(char* name)
+bool read_int(char* name, int *dst)
 {
 	char seek_name[80];
 	bool matched = FALSE;
 	int value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %i",seek_name,&value) == 2)
@@ -140,19 +192,20 @@ int read_int(char* name)
 	if(!matched)
 	{
 		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
-		exit(1);
+		return (FALSE);
 	}
-	return value;
+	*dst = value;
+	return (TRUE);
 }
 
 /* Read an unsigned integer */
-uint read_uint(const char* name)
+bool read_uint(const char* name, uint *dst)
 {
 	char seek_name[80];
 	bool matched = FALSE;
 	uint value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %u",seek_name,&value) == 2)
@@ -163,19 +216,20 @@ uint read_uint(const char* name)
 	if(!matched)
 	{		
 		plog(format("Missing unsigned integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
-		exit(1);
+		return (FALSE);
 	}
-	return value;
+	*dst = value;
+	return (TRUE);
 }
 
 /* Read a 'huge' */
-huge read_huge(char* name)
+bool read_huge(char* name, huge *dst)
 {
 	char seek_name[80];
 	bool matched = FALSE;
 	huge value;
 		
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %" SCNu64 ,seek_name,&value) == 2)
@@ -186,19 +240,20 @@ huge read_huge(char* name)
 	if(!matched)
 	{		
 		plog(format("Missing signed long.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
-		exit(1);
+		return (FALSE);
 	}
-	return value;
+	*dst = value;
+	return (TRUE);
 }
 
 /* Read an hturn */
-void read_hturn(char* name, hturn *value)
+bool read_hturn(char* name, hturn *value)
 {
 	char seek_name[80];	
 	bool matched = FALSE;
 	s64b era, turn;
 
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if (sscanf(file_buf, "%s = %" SCNu64 " %" SCNu64, seek_name, &era, &turn) == 3)
@@ -209,24 +264,23 @@ void read_hturn(char* name, hturn *value)
 	if(!matched)
 	{		
 		plog(format("Missing hturn.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
-		exit(1);
+		return (FALSE);
 	}
 	
 	value->era = era;
 	value->turn = turn;
-
-	return;
+	return (TRUE);
 }
 
 /* Read a string */
 /* Returns TRUE if the string could be read */
-void read_str(char* name, char* value)
+bool read_str(char* name, char* value)
 {
 	char seek_name[80];
 	bool matched = FALSE;
 	char *c;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sscanf(file_buf,"%s = ",seek_name);
@@ -238,7 +292,7 @@ void read_str(char* name, char* value)
 	if (!matched)
 	{
 		plog(format("Missing string data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
-		exit(1);
+		return FALSE;
 	}
 
 	c = file_buf;	
@@ -250,17 +304,38 @@ void read_str(char* name, char* value)
 		*value = *c; c++; value++;
 	}
 	*value = '\0';
+	return (TRUE);
+}
+
+/* Read a quark */
+/* Tiny wrapper around read_str */
+bool read_quark(char* name, u16b *value)
+{
+	char note[80];
+	/* Read string into temp buffer. */
+	if (!read_str(name, note))
+	{
+		return (FALSE);
+	}
+	if (STRZERO(note))
+	{
+		*value = 0;
+		return (TRUE);
+	}
+	/* And create a quark from it */
+	*value = quark_add(note);
+	return (TRUE);
 }
 
 /* Read a float */
 /* Returns TRUE if the float could be read */
-float read_float(char* name)
+bool read_float(char* name, float *dst)
 {
 	char seek_name[80];
 	bool matched = FALSE;
 	float value;
 	
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(sscanf(file_buf,"%s = %f",seek_name,&value) == 2)
@@ -271,13 +346,14 @@ float read_float(char* name)
 	if(!matched)
 	{
 		plog(format("Missing float.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
-		exit(1);
+		return (FALSE);
 	}
-	return value;
+	*dst = value;
+	return (TRUE);
 }
 
 /* Read some binary data */
-void read_binary(char* name, char* value, int max_len)
+bool read_binary(char* name, char* value, int max_len)
 {
 	char seek_name[80];
 	bool matched = FALSE;
@@ -287,7 +363,7 @@ void read_binary(char* name, char* value, int max_len)
 	unsigned int abyte;
 	hex[2] = '\0';
 
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		sscanf(file_buf,"%s = ",seek_name);
@@ -299,7 +375,7 @@ void read_binary(char* name, char* value, int max_len)
 	if (!matched)
 	{
 		plog(format("Missing binary data.  Expected '%s' got '%s' at line %i",name,seek_name,line_counter));
-		exit(1);
+		return (FALSE);
 	}
 
 	c = file_buf;	
@@ -315,6 +391,7 @@ void read_binary(char* name, char* value, int max_len)
 		*bin = (byte)abyte;
 		bin++;
 	}
+	return (TRUE);
 }
 
 /* Skip a named value */
@@ -324,15 +401,15 @@ void skip_value(char* name)
 	long fpos;
 	
 	/* Remember where we are incase there is nothing to skip */
-	fpos = ftell(file_handle);
+	fpos = file_tell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
 		if(strstr(file_buf,seek_name) == NULL)
 		{
 			/* Move back on seek failures */
-			fseek(file_handle,fpos,SEEK_SET);
+			file_seek(file_handle, fpos);
 			line_counter--;
 			/* plog(format("Missing value.  Expected to skip '%s', found '%s' at line %i\n",name,seek_name,line_counter)); */
 			/* exit(1); */
@@ -348,9 +425,9 @@ bool value_exists(const char* name)
 	long fpos;
 	
 	/* Remember where we are */
-	fpos = ftell(file_handle);
+	fpos = file_tell(file_handle);
 	sprintf(seek_name,"%s = ",name);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		matched = TRUE;
 		if(strstr(file_buf,seek_name) == NULL)
@@ -359,7 +436,7 @@ bool value_exists(const char* name)
 		}
 	}
 	/* Move back */
-	fseek(file_handle,fpos,SEEK_SET);
+	file_seek(file_handle, fpos);
 	return(matched);
 }
 
@@ -372,8 +449,8 @@ bool section_exists(char* name)
 	long fpos;
 	
 	/* Remember where we are */
-	fpos = ftell(file_handle);
-	if (fgets(file_buf, sizeof(file_buf)-1, file_handle))
+	fpos = file_tell(file_handle);
+	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		sprintf(seek_section,"<%s>",name);
 		if(sscanf(file_buf,"%s",got_section) == 1)
@@ -382,7 +459,7 @@ bool section_exists(char* name)
 		}
 	}
 	/* Move back */
-	fseek(file_handle,fpos,SEEK_SET);
+	file_seek(file_handle, fpos);
 	return(matched);
 }
 
@@ -392,6 +469,7 @@ bool section_exists(char* name)
  */
 static void note(cptr msg)
 {
+	plog(msg);
 #if 0
 	static int y = 2;
 
@@ -468,8 +546,10 @@ static bool wearable_p(object_type *o_ptr)
  * "uncursed" when imported from pre-2.7.9 savefiles.
  */
  /* For wilderness levels, dun_depth has been changed from 1 to 4 bytes. */
-static void rd_item(object_type *o_ptr)
+static bool rd_item(object_type *o_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
 	byte old_dd;
 	byte old_ds;
 
@@ -479,7 +559,7 @@ static void rd_item(object_type *o_ptr)
 
 	char note[128];
 
-	start_section_read("item");
+	__try( start_section_read("item") );
 	
 	/* Hack -- wipe */
 	WIPE(o_ptr, object_type);
@@ -488,73 +568,77 @@ static void rd_item(object_type *o_ptr)
 	skip_value("name");
 
 	/* Kind */
-	o_ptr->k_idx = read_int("k_idx");
+	__try( read_short("k_idx", &o_ptr->k_idx) );
 
 	/* Location */
-	o_ptr->iy = read_int("iy");
-	o_ptr->ix = read_int("ix");
+	__try( read_byte("iy", &o_ptr->iy) );
+	__try( read_byte("ix", &o_ptr->ix) );
 	
-	o_ptr->dun_depth = read_int("dun_depth");
+	__try( read_short("dun_depth", &o_ptr->dun_depth) );
 
 	/* Type/Subtype */
-	o_ptr->tval = read_int("tval");
-	o_ptr->sval = read_int("sval");
+	__try( read_byte("tval", &o_ptr->tval) );
+	__try( read_byte("sval", &o_ptr->sval) );
 
 	/* Base pval */
-	o_ptr->bpval = read_int("bpval");
+	__try( read_int("bpval", &o_ptr->bpval) );
 
 	/* Special pval */
-	o_ptr->pval = read_int("pval");
+	__try( read_int("pval", &o_ptr->pval) );
 
 
-	o_ptr->discount = read_int("discount");
-	o_ptr->number = read_int("number");
-	o_ptr->weight = read_int("weight");
+	__try( read_byte("discount", &o_ptr->discount) );
+	__try( read_byte("number", &o_ptr->number) );
+	__try( read_short("weight", &o_ptr->weight) );
 
-	o_ptr->name1 = read_int("name1");
-	o_ptr->name2 = read_int("name2");
-	o_ptr->name3 = read_int("name3");
-	o_ptr->timeout = read_int("timeout");
+	__try( read_byte("name1", &o_ptr->name1) );
+	__try( read_byte("name2", &o_ptr->name2) );
+	__try( read_int("name3", &o_ptr->name3) );
+	__try( read_short("timeout", &o_ptr->timeout) );
 
-	o_ptr->to_h = read_int("to_h");
-	o_ptr->to_d = read_int("to_d");
-	o_ptr->to_a = read_int("to_a");
+	__try( read_short("to_h", &o_ptr->to_h) );
+	__try( read_short("to_d", &o_ptr->to_d) );
+	__try( read_short("to_a", &o_ptr->to_a) );
 
-	o_ptr->ac = read_int("ac");
+	__try( read_short("ac", &o_ptr->ac) );
 
-	old_dd = read_int("dd");
-	old_ds = read_int("ds");
+	__try( read_byte("dd", &old_dd) );
+	__try( read_byte("ds", &old_ds) );
 
-	o_ptr->ident = read_int("ident");
+	__try( read_byte("ident", &o_ptr->ident) );
 
 	/* Special powers */
-	o_ptr->xtra1 = read_int("xtra1");
-	o_ptr->xtra2 = read_int("xtra2");
+	__try( read_byte("xtra1", &o_ptr->xtra1) );
+	__try( read_byte("xtra2", &o_ptr->xtra2) );
 
 	/* Inscription */
-	read_str("inscription",note); 
+	__try( read_quark("inscription", &o_ptr->note) );
  
-	/* Save the inscription */
-	if (note[0]) o_ptr->note = quark_add(note);
-
 	/* Owner information */
 	if (value_exists("owner_name"))
 	{
-		/* Name */
-		read_str("owner_name",note);
-		/* Save */
-		if (!STRZERO(note)) o_ptr->owner_name = quark_add(note); 
-		/* Id */
-		o_ptr->owner_id = read_int("owner_id");
+		__try( read_quark("owner_name", &o_ptr->owner_name) );
+		__try( read_int("owner_id", &o_ptr->owner_id) );
 	}
 
 	/* Monster holding object */ 
-   o_ptr->held_m_idx = read_int("held_m_idx");
+	__try( read_short("held_m_idx", &o_ptr->held_m_idx) );
 
-	end_section_read("item");
+	/* Origin */
+	if (value_exists("origin"))
+	{
+		__try( read_byte("origin", &o_ptr->origin) );
+		__try( read_byte("origin_depth", &o_ptr->origin_depth) );
+		__try( read_short("origin_xtra", &o_ptr->origin_xtra) );
+		__try( read_quark("origin_player", &o_ptr->origin_player) );
+		if (o_ptr->origin_xtra >= z_info->r_max) { o_ptr->origin_xtra = 0; o_ptr->origin = ORIGIN_NONE; }
+		if (o_ptr->origin >= ORIGIN_MAX) o_ptr->origin = ORIGIN_NONE;
+	}
+
+	__try( end_section_read("item") );
 
 	/* Mega-Hack -- handle "dungeon objects" later */
-	if ((o_ptr->k_idx >= 445) && (o_ptr->k_idx <= 479)) return;
+	if ((o_ptr->k_idx >= 445) && (o_ptr->k_idx <= 479)) return (TRUE);
 
 
 	/* Obtain the "kind" template */
@@ -589,7 +673,7 @@ static void rd_item(object_type *o_ptr)
 		o_ptr->name1 = o_ptr->name2 = 0;
 
 		/* All done */
-		return;
+		return (TRUE);
 	}
 
 
@@ -637,21 +721,8 @@ static void rd_item(object_type *o_ptr)
 	/* Artifacts */
 	if (artifact_p(o_ptr))
 	{
-		artifact_type *a_ptr;
+		artifact_type *a_ptr = artifact_ptr(o_ptr);
 
-		/* Obtain the artifact info */
-#if defined(RANDART)
-		if (o_ptr->name1 == ART_RANDART)
-		{
-			a_ptr = randart_make(o_ptr);
-		}
-		else
-		{
-#endif
-		a_ptr = &a_info[o_ptr->name1];
-#if defined(RANDART)
-		}
-#endif
 		/* Acquire new artifact "pval" */
 		o_ptr->pval = a_ptr->pval;
 
@@ -695,6 +766,7 @@ static void rd_item(object_type *o_ptr)
 			o_ptr->ds = 0;
 		}
 	}
+	return (TRUE);
 }
 
 
@@ -702,9 +774,12 @@ static void rd_item(object_type *o_ptr)
  * Read a monster
  */
 
-static void rd_monster(monster_type *m_ptr)
+static bool rd_monster(monster_type *m_ptr)
 {
-	start_section_read("monster");
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
+	__try( start_section_read("monster") );
 
 	/* Hack -- wipe */
 	WIPE(m_ptr, monster_type);
@@ -712,22 +787,24 @@ static void rd_monster(monster_type *m_ptr)
 	skip_value("name");
 
 	/* Read the monster race */
-	m_ptr->r_idx = read_int("r_idx");
+	__try( read_short("r_idx", &m_ptr->r_idx) );
 
 	/* Read the other information */
-	m_ptr->fy = read_int("fy");
-	m_ptr->fx = read_int("fx");
-	m_ptr->dun_depth = read_int("dun_depth");
-	m_ptr->hp = read_int("hp");
-	m_ptr->maxhp = read_int("maxhp");
-	m_ptr->csleep = read_int("csleep");
-	m_ptr->mspeed = read_int("mspeed");
-	m_ptr->energy = read_uint("energy");
-	m_ptr->stunned = read_int("stunned");
-	m_ptr->confused = read_int("confused");
-	m_ptr->monfear = read_int("afraid");
+	__try( read_byte("fy", &m_ptr->fy) );
+	__try( read_byte("fx", &m_ptr->fx) );
+	__try( read_short("dun_depth", &m_ptr->dun_depth) );
+	__try( read_short("hp", &m_ptr->hp) );
+	__try( read_short("maxhp", &m_ptr->maxhp) );
+	__try( read_short("csleep", &m_ptr->csleep) );
+	__try( read_byte("mspeed", &m_ptr->mspeed) );
+	__try( read_huge("energy", &m_ptr->energy) );
+	__try( read_byte("stunned", &m_ptr->stunned) );
+	__try( read_byte("confused", &m_ptr->confused) );
+	__try( read_byte("afraid", &m_ptr->monfear) );
 
-	end_section_read("monster");
+	__try( end_section_read("monster") );
+
+	return (TRUE);
 }
 
 
@@ -737,48 +814,53 @@ static void rd_monster(monster_type *m_ptr)
 /*
  * Read the monster lore
  */
-static void rd_lore(player_type *p_ptr, int r_idx)
+static bool rd_lore(player_type *p_ptr, int r_idx)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	int i;
 	
 	monster_lore *l_ptr = p_ptr->l_list + r_idx;
 
-	start_section_read("lore");
+	__try( start_section_read("lore") );
 
 	/* Count sights/deaths/kills */
-	l_ptr->sights = read_int("sights");
-	l_ptr->deaths = read_int("deaths");
-	l_ptr->pkills = read_int("pkills");
-	l_ptr->tkills = read_int("tkills");
+	__try( read_short("sights", &l_ptr->sights) );
+	__try( read_short("deaths", &l_ptr->deaths) );
+	__try( read_short("pkills", &l_ptr->pkills) );
+	__try( read_short("tkills", &l_ptr->tkills) );
 
 	/* Count wakes and ignores */
-	l_ptr->wake = read_int("wake");
-	l_ptr->ignore = read_int("ignore");
+	__try( read_byte("wake", &l_ptr->wake) );
+	__try( read_byte("ignore", &l_ptr->ignore) );
 
 	/* Count drops */
-	l_ptr->drop_gold = read_int("drop_gold");
-	l_ptr->drop_item = read_int("drop_item");
+	__try( read_byte("drop_gold", &l_ptr->drop_gold) );
+	__try( read_byte("drop_item", &l_ptr->drop_item) );
 
 	/* Count spells */
-	l_ptr->cast_innate = read_int("cast_innate");
-	l_ptr->cast_spell = read_int("cast_spell");
+	__try( read_byte("cast_innate", &l_ptr->cast_innate) );
+	__try( read_byte("cast_spell", &l_ptr->cast_spell) );
 
 	/* Count blows of each type */
-	start_section_read("blows");
+	__try( start_section_read("blows") );
 	for (i = 0; i < MONSTER_BLOW_MAX; i++)
-		l_ptr->blows[i] = read_int("blow");
-	end_section_read("blows");
+	{
+		__try( read_byte("blow", &l_ptr->blows[i]) );
+	}
+	__try( end_section_read("blows") );
 
 
 	/* Memorize flags */
-	start_section_read("flags");
-	l_ptr->flags1 = read_int("flag");
-	l_ptr->flags2 = read_int("flag");
-	l_ptr->flags3 = read_int("flag");
-	l_ptr->flags4 = read_int("flag");
-	l_ptr->flags5 = read_int("flag");
-	l_ptr->flags6 = read_int("flag");
-	end_section_read("flags");
+	__try( start_section_read("flags") );
+	__try( read_int("flag", &l_ptr->flags1) );
+	__try( read_int("flag", &l_ptr->flags2) );
+	__try( read_int("flag", &l_ptr->flags3) );
+	__try( read_int("flag", &l_ptr->flags4) );
+	__try( read_int("flag", &l_ptr->flags6) );
+	__try( read_int("flag", &l_ptr->flags6) );
+	__try( end_section_read("flags") );
 
 	/* Repair the lore flags */
 	/* No need to repair AFAIU
@@ -789,25 +871,30 @@ static void rd_lore(player_type *p_ptr, int r_idx)
 	l_ptr->flags5 &= r_ptr->flags5;
 	l_ptr->flags6 &= r_ptr->flags6;
 	*/
-	end_section_read("lore");
+	__try( end_section_read("lore") );
+
+	return (TRUE);
 }
 
 /*
  * Read the uniques lore
  */
-static void rd_u_lore(int r_idx)
+static bool rd_u_lore(int r_idx)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	monster_race *r_ptr = &r_info[r_idx];
 
-	start_section_read("lore");
+	__try( start_section_read("lore") );
 
 	skip_value("name");
 
 	/* Count sights/deaths/kills */
-	r_ptr->r_sights = read_int("sights");
+	__try( read_short("sights", &r_ptr->r_sights) );
 	if (value_exists("deaths")) skip_value("deaths");
 	if (value_exists("pkills")) skip_value("pkills");
-	r_ptr->r_tkills = read_int("tkills");
+	__try( read_short("tkills", &r_ptr->r_tkills) );
 	
 	if (value_exists("wake")) skip_value("wake");
 	if (value_exists("ignore")) skip_value("ignore");
@@ -816,27 +903,28 @@ static void rd_u_lore(int r_idx)
 	if (value_exists("drop_item")) skip_value("drop_item");
 	if (value_exists("cast_innate")) skip_value("cast_innate");
 	if (value_exists("cast_spell")) skip_value("cast_spell");
-	
-	if (section_exists("blows")) 
+
+	if (section_exists("blows"))
 	{
-		start_section_read("blows");
+		__try( start_section_read("blows") );
 		while(value_exists("blow")) skip_value("blow");
-		end_section_read("blows");
+		__try( end_section_read("blows") );
 	}
-	if (section_exists("flags")) 
+	if (section_exists("flags"))
 	{
-		start_section_read("flags");
+		__try( start_section_read("flags") );
 		while(value_exists("flag")) skip_value("flag");
-		end_section_read("flags");
+		__try( end_section_read("flags") );
 	}
 	
 	/* Read the "Racial" monster limit per level */
-	r_ptr->max_num = read_int("max_num");
+	__try( read_byte("max_num", &r_ptr->max_num) );
 
 	if (value_exists("killer")) skip_value("killer");
 	
-	end_section_read("lore");
+	__try( end_section_read("lore") );
 
+	return (TRUE);
 }
 
 
@@ -845,35 +933,38 @@ static void rd_u_lore(int r_idx)
 /*
  * Read a store
  */
-static errr rd_store(int n)
+static bool rd_store(int n)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	store_type *st_ptr = &store[n];
 
 	int j;
 
 	byte own, num;
 
-	start_section_read("store");
+	__try( start_section_read("store") );
 
 	/* Read the basic info */
-	read_hturn("store_open", &st_ptr->store_open);
-	st_ptr->insult_cur = read_int("insult_cur");
-	own = read_int("owner");
-	num = read_int("stock_num");
-	st_ptr->good_buy = read_int("good_buy");
-	st_ptr->bad_buy = read_int("bad_buy");
+	__try( read_hturn("store_open", &st_ptr->store_open) );
+	__try( read_short("insult_cur", &st_ptr->insult_cur) );
+	__try( read_byte("owner", &own) );
+	__try( read_byte("stock_num", &num) );
+	__try( read_short("good_buy", &st_ptr->good_buy) );
+	__try( read_short("bad_buy", &st_ptr->bad_buy) );
 
 	/* Extract the owner (see above) */
 	st_ptr->owner = own;
 
-	start_section_read("stock");
+	__try( start_section_read("stock") );
 	/* Read the items */
 	for (j = 0; j < num; j++)
 	{
 		object_type forge;
 
 		/* Read the item */
-		rd_item(&forge);
+		__try( rd_item(&forge) );
 
 		/* Acquire valid items */
 		if (st_ptr->stock_num < STORE_INVEN_MAX)
@@ -882,11 +973,11 @@ static errr rd_store(int n)
 			st_ptr->stock[st_ptr->stock_num++] = forge;
 		}
 	}
-	end_section_read("stock");
-	end_section_read("store");
+	__try( end_section_read("stock") );
+	__try( end_section_read("store") );
 
 	/* Success */
-	return (0);
+	return (TRUE);
 }
 
 
@@ -897,84 +988,102 @@ static errr rd_store(int n)
  I hope......
 -APD-
  */
-static void rd_party(int n)
+static bool rd_party(int n)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	party_type *party_ptr = &parties[n];
 
-	start_section_read("party");
+	__try( start_section_read("party") );
 
 	/* Party name */
-	read_str("name",party_ptr->name);
+	__try( read_str("name",party_ptr->name) );
 
 	/* Party owner's name */
-	read_str("owner",party_ptr->owner);
+	__try( read_str("owner",party_ptr->owner) );
 
 	/* Number of people and creation time */
-	party_ptr->num = read_int("num");
-	read_hturn("created", &party_ptr->created);
+	__try( read_int("num", &party_ptr->num) );
+	__try( read_hturn("created", &party_ptr->created) );
 
-	end_section_read("party");
+	__try( end_section_read("party") );
+
+	return (TRUE);
 }
 
 /*
  * Read some house info
  */
-static void rd_house(int n)
+static bool rd_house(int n)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	house_type *house_ptr = &houses[n];
 
-	start_section_read("house");
+	__try( start_section_read("house") );
 
 	/* coordinates of corners of house */
-	house_ptr->x_1 = read_int("x1");
-	house_ptr->y_1 = read_int("y1");
-	house_ptr->x_2 = read_int("x2");
-	house_ptr->y_2 = read_int("y2");
+	__try( read_byte("x1", &house_ptr->x_1) );
+	__try( read_byte("y1", &house_ptr->y_1) );
+	__try( read_byte("x2", &house_ptr->x_2) );
+	__try( read_byte("y2", &house_ptr->y_2) );
 	
 	/* coordinates of the house door */
-	house_ptr->door_y = read_int("door_y");
-	house_ptr->door_x = read_int("door_x");
+	__try( read_byte("door_y", &house_ptr->door_y) );
+	__try( read_byte("door_x", &house_ptr->door_x) );
 
 	/* Door Strength */
-	house_ptr->strength = read_int("strength");
+	__try( read_byte("strength", &house_ptr->strength) );
 
 	/* Owned or not */
-	read_str("owned",house_ptr->owned); 
+	__try( read_str("owned", house_ptr->owned) );
 
-	house_ptr->depth = read_int("depth");
-	house_ptr->price = read_uint("price");
+	__try( read_int("depth", &house_ptr->depth) );
+	__try( read_uint("price", &house_ptr->price) );
 
-	end_section_read("house");
+	__try( end_section_read("house") );
 
+	return (TRUE);
 }
 
 /*
  * Read some arena info
  */
-static void rd_arena(int n)
+static bool rd_arena(int n)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	arena_type *arena_ptr = &arenas[n];
 
-	start_section_read("arena");
+	__try( start_section_read("arena") );
 
 	/* coordinates of corners of house */
-	arena_ptr->x_1 = read_int("x1");
-	arena_ptr->y_1 = read_int("y1");
-	arena_ptr->x_2 = read_int("x2");
-	arena_ptr->y_2 = read_int("y2");
+	__try( read_byte("x1", &arena_ptr->x_1) );
+	__try( read_byte("y1", &arena_ptr->y_1) );
+	__try( read_byte("x2", &arena_ptr->x_2) );
+	__try( read_byte("y2", &arena_ptr->y_2) );
 	
-	arena_ptr->depth = read_int("depth");
+	__try( read_int("depth", &arena_ptr->depth) );
 
-	end_section_read("arena");
+	__try( end_section_read("arena") );
+
+	return (TRUE);
 }
 
-static void rd_wild(int n)
+static bool rd_wild(int n)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	wilderness_type *w_ptr = &wild_info[-n];
 	
 	/* the flags */
-	w_ptr->flags = read_uint("flags");
-	
+	__try( read_short("flags", &w_ptr->flags) );
+
+	return (TRUE);
 }
 
 
@@ -984,155 +1093,169 @@ static void rd_wild(int n)
 
 static bool rd_extra(player_type *p_ptr, bool had_header)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	int i = 0;
 
-	start_section_read("player");
+	__try( start_section_read("player") );
 
 	if (!had_header)
 	{
-		read_str("playername",p_ptr->name); /* 32 */
+		__try( read_str("playername",p_ptr->name) ); /* 32 */
 		skip_value("pass");
 	}
 
-	read_str("died_from",p_ptr->died_from); /* 80 */
+	__try( read_str("died_from",p_ptr->died_from) ); /* 80 */
 
-	read_str("died_from_list",p_ptr->died_from_list); /* 80 */
-	p_ptr->died_from_depth = read_int("died_from_depth");
+	__try( read_str("died_from_list",p_ptr->died_from_list) ); /* 80 */
+	__try( read_short("died_from_depth", &p_ptr->died_from_depth) );
 
-	start_section_read("history");
+	__try( start_section_read("history") );
 	for (i = 0; i < 4; i++)
 	{
-		read_str("history",p_ptr->history[i]); /* 60 */
+		__try( read_str("history",p_ptr->history[i]) ); /* 60 */
 	}
 	if (value_exists("descrip"))
-	read_str("descrip",p_ptr->descrip); /* 240?! */
-	end_section_read("history");
+	{
+		__try( read_str("descrip",p_ptr->descrip) ); /* 240?! */
+	}
+	__try( end_section_read("history") );
 
 	/* Class/Race/Gender/Party */
 	if (!had_header)
 	{
-		p_ptr->prace = read_int("prace");
-		p_ptr->pclass = read_int("pclass");
-		p_ptr->male = read_int("male");
+		__try( read_byte("prace", &p_ptr->prace) );
+		__try( read_byte("pclass", &p_ptr->pclass) );
+		__try( read_byte("male", &p_ptr->male) );
 	}
-	p_ptr->party = read_int("party");
+	__try( read_byte("party", &p_ptr->party) );
 
 	/* Special Race/Class info */
-	p_ptr->hitdie = read_int("hitdie");
-	p_ptr->expfact = read_int("expfact");
+	__try( read_byte("hitdie", &p_ptr->hitdie) );
+	__try( read_short("expfact", &p_ptr->expfact) );
 
 	/* Age/Height/Weight */
-	p_ptr->age = read_int("age");
-	p_ptr->ht = read_int("ht");
-	p_ptr->wt = read_int("wt");
+	__try( read_short("age", &p_ptr->age) );
+	__try( read_short("ht", &p_ptr->ht) );
+	__try( read_short("wt", &p_ptr->wt) );
 
 	/* Read the stat info */
-	start_section_read("stats");
-	for (i = 0; i < 6; i++) p_ptr->stat_max[i] = read_int("stat_max");
-	for (i = 0; i < 6; i++) p_ptr->stat_cur[i] = read_int("stat_cur");
-	end_section_read("stats");
+	__try( start_section_read("stats") );
+	for (i = 0; i < A_MAX; i++)
+	{
+		__try( read_short("stat_max", &p_ptr->stat_max[i]) );
+	}
+	for (i = 0; i < A_MAX; i++)
+	{
+		__try( read_short("stat_cur", &p_ptr->stat_cur[i]) );
+	}
+	__try( end_section_read("stats") );
 
-	p_ptr->id = read_int("id");
+	__try( read_int("id", &p_ptr->id) );
 
 	/* If he was created in the pre-ID days, give him one */
 	if (!p_ptr->id)
 		p_ptr->id = player_id++;
 
-	p_ptr->au = read_int("au");
+	__try( read_int("au", &p_ptr->au) );
 
-	p_ptr->max_exp = read_int("max_exp");
-	p_ptr->exp = read_int("exp");
-	p_ptr->exp_frac = read_int("exp_frac");
+	__try( read_int("max_exp", &p_ptr->max_exp) );
+	__try( read_int("exp", &p_ptr->exp) );
+	__try( read_short("exp_frac", &p_ptr->exp_frac) );
 
-	p_ptr->lev = read_int("lev");
+	__try( read_short("lev", &p_ptr->lev) );
 
-	p_ptr->mhp = read_int("mhp");
-	p_ptr->chp = read_int("chp");
-	p_ptr->chp_frac = read_int("chp_frac");
+	__try( read_short("mhp", &p_ptr->mhp) );
+	__try( read_short("chp", &p_ptr->chp) );
+	__try( read_short("chp_frac", &p_ptr->chp_frac) );
 
-	p_ptr->msp = read_int("msp");
-	p_ptr->csp = read_int("csp");
-	p_ptr->csp_frac = read_int("csp_frac");
+	__try( read_short("msp", &p_ptr->msp) );
+	__try( read_short("csp", &p_ptr->csp) );
+	__try( read_short("csp_frac", &p_ptr->csp_frac) );
 
 	if(value_exists("no_ghost"))
 	{
-		(void)read_int("no_ghost");
+		u32b tmp32u;
+		__try( read_int("no_ghost", &tmp32u) );
 	}
 	
-	p_ptr->max_plv = read_int("max_plv");
-	p_ptr->max_dlv = read_int("max_dlv");
+	__try( read_short("max_plv", &p_ptr->max_plv) );
+	__try( read_short("max_dlv", &p_ptr->max_dlv) );
 	
 	p_ptr->recall_depth = p_ptr->max_dlv;
 
-	p_ptr->py = read_int("py");
-	p_ptr->px = read_int("px");
-	p_ptr->dun_depth = read_int("dun_depth");
+	__try( read_short("py", &p_ptr->py) );
+	__try( read_short("px", &p_ptr->px) );
+	__try( read_short("dun_depth", &p_ptr->dun_depth) );
 
-	p_ptr->world_x = read_int("world_x");
-	p_ptr->world_y = read_int("world_y");
+	__try( read_short("world_x", &p_ptr->world_x) );
+	__try( read_short("world_y", &p_ptr->world_y) );
 
 	/* More info */
-	
-	p_ptr->ghost = read_int("ghost");
-	p_ptr->sc = read_int("sc");
-	p_ptr->fruit_bat = read_int("fruit_bat");
+	__try( read_short("ghost", &p_ptr->ghost) );
+	__try( read_short("sc", &p_ptr->sc) );
+	__try( read_short("fruit_bat", &p_ptr->fruit_bat) );
 
 	/* Read the flags */
-	p_ptr->lives = read_int("lives");
+	__try( read_byte("lives", &p_ptr->lives) );
 
 	/* hack */
-	p_ptr->blind = read_int("blind");
-	p_ptr->paralyzed = read_int("paralyzed");
-	p_ptr->confused = read_int("confused");
-	p_ptr->food = read_int("food");
-	p_ptr->energy = read_uint("energy");
-	p_ptr->fast = read_int("fast");
-	p_ptr->slow = read_int("slow");
-	p_ptr->afraid = read_int("afraid");
-	p_ptr->cut = read_int("cut");
-	p_ptr->stun = read_int("stun");
-	p_ptr->poisoned = read_int("poisoned");
-	p_ptr->image = read_int("image");
-	p_ptr->protevil = read_int("protevil");
-	p_ptr->invuln = read_int("invuln");
-	p_ptr->hero = read_int("hero");
-	p_ptr->shero = read_int("shero");
-	p_ptr->shield = read_int("shield");
-	p_ptr->blessed = read_int("blessed");
-	p_ptr->tim_invis = read_int("tim_invis");
-	p_ptr->word_recall = read_int("word_recall");
-	p_ptr->see_infra = read_int("see_infra");
-	p_ptr->tim_infra = read_int("tim_infra");
-	
-	p_ptr->oppose_fire = read_int("oppose_fire");
-	p_ptr->oppose_cold = read_int("oppose_cold");
-	p_ptr->oppose_acid = read_int("oppose_acid");
-	p_ptr->oppose_elec = read_int("oppose_elec");
-	p_ptr->oppose_pois = read_int("oppose_pois");
+	__try( read_short("blind", &p_ptr->blind) );
+	__try( read_short("paralyzed", &p_ptr->paralyzed) );
+	__try( read_short("confused", &p_ptr->confused) );
+	__try( read_short("food", &p_ptr->food) );
+	__try( read_uint("energy", &p_ptr->energy) );
+	__try( read_short("fast", &p_ptr->fast) );
+	__try( read_short("slow", &p_ptr->slow) );
+	__try( read_short("afraid", &p_ptr->afraid) );
+	__try( read_short("cut", &p_ptr->cut) );
+	__try( read_short("stun", &p_ptr->stun) );
+	__try( read_short("poisoned", &p_ptr->poisoned) );
+	__try( read_short("image", &p_ptr->image) );
+	__try( read_short("protevil", &p_ptr->protevil) );
+	__try( read_short("invuln", &p_ptr->invuln) );
+	__try( read_short("hero", &p_ptr->hero) );
+	__try( read_short("shero", &p_ptr->shero) );
+	__try( read_short("shield", &p_ptr->shield) );
+	__try( read_short("blessed", &p_ptr->blessed) );
+	__try( read_short("tim_invis", &p_ptr->tim_invis) );
+	__try( read_short("word_recall", &p_ptr->word_recall) );
+	__try( read_short("see_infra", &p_ptr->see_infra) );
+	__try( read_short("tim_infra", &p_ptr->tim_infra) );
 
-	p_ptr->confusing = read_int("confusing");
-	p_ptr->searching = read_int("searching");
-	p_ptr->maximize = read_int("maximize");
-	p_ptr->preserve = read_int("preserve");
+	__try( read_short("oppose_fire", &p_ptr->oppose_fire) );
+	__try( read_short("oppose_cold", &p_ptr->oppose_cold) );
+	__try( read_short("oppose_acid", &p_ptr->oppose_acid) );
+	__try( read_short("oppose_elec", &p_ptr->oppose_elec) );
+	__try( read_short("oppose_pois", &p_ptr->oppose_pois) );
+
+	__try( read_byte("confusing", &p_ptr->confusing) );
+	__try( read_byte("searching", &p_ptr->searching) );
+	__try( read_byte("maximize", &p_ptr->maximize) );
+	__try( read_byte("preserve", &p_ptr->preserve) );
 
 	/* Read the unique list info */
-	start_section_read("uniques");
-	for (i = 0; i < z_info->r_max; i++) p_ptr->r_killed[i] = read_int("unique");
-	end_section_read("uniques");
+	__try( start_section_read("uniques") );
+	for (i = 0; i < z_info->r_max; i++)
+	{
+		__try( read_short("unique", &p_ptr->r_killed[i]) );
+	}
+	__try( end_section_read("uniques") );
 
 	/* Special stuff */
-	panic_save = read_int("panic_save");
-	p_ptr->total_winner = read_int("total_winner");
-	p_ptr->retire_timer = read_int("retire_timer");
-	p_ptr->noscore = read_int("noscore");
+	__try( read_short("panic_save", &panic_save) );
+	__try( read_short("total_winner", &p_ptr->total_winner) );
+	__try( read_short("retire_timer", &p_ptr->retire_timer) );
+	__try( read_short("noscore", &p_ptr->noscore) );
 
 	/* Read "death" */
-	p_ptr->death = read_int("death");
+	__try( read_byte("death", &p_ptr->death) );
 
-	end_section_read("player");
+	__try( end_section_read("player") );
 
 	/* Success */
-	return FALSE;
+	return (TRUE);
 }
 
 
@@ -1151,11 +1274,14 @@ static bool rd_extra(player_type *p_ptr, bool had_header)
  */
 static errr rd_inventory(player_type *p_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (-1); }
+
 	int slot = 0;
 
 	object_type forge;
 
-	start_section_read("inventory");
+	__try( start_section_read("inventory") );
 
 	/* No weight */
 	p_ptr->total_weight = 0;
@@ -1170,19 +1296,19 @@ static errr rd_inventory(player_type *p_ptr)
 		u16b n;
 
 		/* Get the next item index */
-		n = read_int("inv_entry");
+		__try( read_short("inv_entry", &n) );
 
 		/* Nope, we reached the end */
 		if (n == 0xFFFF) break;
 
 		/* Read the item */
-		rd_item(&forge);
+		__try( rd_item(&forge) );
 
 		/* Hack -- verify item */
 		if (!forge.k_idx) return (53);
 
 		/* Mega-Hack -- Handle artifacts that aren't yet "created" */
-		if (artifact_p(&forge))
+		if (true_artifact_p(&forge))
 		{
 			/* If this artifact isn't created, mark it as created */
 			/* Only if this isn't a "death" restore */
@@ -1230,7 +1356,7 @@ static errr rd_inventory(player_type *p_ptr)
 		}
 	}
 
-	end_section_read("inventory");
+	__try( end_section_read("inventory") );
 
 	/* Success */
 	return (0);
@@ -1241,6 +1367,9 @@ static errr rd_inventory(player_type *p_ptr)
  */
 static errr rd_birthoptions(player_type *p_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (-1); }
+
 	s32b i, id;
 	u16b tmp16u, ind;
 
@@ -1251,10 +1380,13 @@ static errr rd_birthoptions(player_type *p_ptr)
 	}
 
 	/* Begin */
-	start_section_read("options");
+	__try( start_section_read("options") );
 
 	/* Read number */
-	tmp16u = read_int("num");
+	__try( read_short("num", &tmp16u) );
+
+	/* HACK -- compat for new birth options */
+	if (tmp16u == 2) tmp16u = 4;
 
 	/* Read each record */
 	id = 0;
@@ -1271,15 +1403,20 @@ static errr rd_birthoptions(player_type *p_ptr)
 		if (value_exists(opt_ptr->o_text))
 		{
 			/* Read it */
-			u32b val = read_uint(opt_ptr->o_text);
+			u32b val;
+			__try( read_uint(opt_ptr->o_text, &val) );
 
 			/* Set it */
 			p_ptr->options[ind] = val ? TRUE : FALSE;
 		}
+		/* Hack -- compat for new birth options *//* REMOVE ME */
+		else if (ind == OPT_ENERGY_BUILDUP || ind == OPT_MONSTER_RECOIL)
+		{
+			p_ptr->options[ind] = FALSE;
+		}
 		else
 		{
-			end_section_read("options");
-
+			__try( end_section_read("options") );
 			/* Unexpected option */
 			return (29);
 		}
@@ -1290,7 +1427,7 @@ static errr rd_birthoptions(player_type *p_ptr)
 	}
 
 	/* Done */
-	end_section_read("options");
+	__try( end_section_read("options") );
 
 	/* Success */
 	return (0);
@@ -1304,21 +1441,24 @@ static errr rd_birthoptions(player_type *p_ptr)
  */
 static errr rd_hostilities(player_type *p_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (-1); }
+
 	hostile_type *h_ptr;
 	int i;
 	s32b id;
 	u16b tmp16u;
-  
-  start_section_read("hostilities");
-  
+
+	__try( start_section_read("hostilities") );
+
 	/* Read number */
-	tmp16u = read_int("num");
+	__try( read_short("num", &tmp16u) );
 
 	/* Read available ID's */
 	for (i = 0; i < tmp16u; i++)
 	{
 		/* Read next ID */
-		id = read_int("id");
+		__try( read_int("id", &id) );
 
 		/* Check for stale player */
 		if (id > 0 && !lookup_player_name(id)) continue;
@@ -1335,7 +1475,7 @@ static errr rd_hostilities(player_type *p_ptr)
 		p_ptr->hostile = h_ptr;
 	}
 
-  end_section_read("hostilities");
+	__try( end_section_read("hostilities") );
 
 	/* Success */
 	return (0);
@@ -1350,8 +1490,11 @@ static errr rd_hostilities(player_type *p_ptr)
  *
  */
 
-static errr rd_dungeon(bool ext, int Depth)
+static bool rd_dungeon(bool ext, int Depth)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	s32b depth;
 	u16b max_y, max_x;
 
@@ -1359,18 +1502,24 @@ static errr rd_dungeon(bool ext, int Depth)
 	cave_type *c_ptr;
 	char cave_row[MAX_WID+1];
 
-	start_section_read("dungeon_level");
+	__try( start_section_read("dungeon_level") );
 
 	/*** Depth info ***/
 
 	/* Level info */
-	depth = read_int("depth");
-	max_y = read_int("max_height");
-	max_x = read_int("max_width");
+	__try( read_int("depth", &depth) );
+	__try( read_short("max_height", &max_y) );
+	__try( read_short("max_width", &max_x) );
 	if (ext) depth = Depth;
 
+	/* Turn this level was generated */
+	if (value_exists("gen_turn"))
+	{
+		__try( read_hturn("gen_turn", &turn_cavegen[depth]) );
+	}
+
 	/* players on this depth */
-	players_on_depth[depth] = read_int("players_on_depth");
+	__try( read_short("players_on_depth", &players_on_depth[depth]) );
 
 	/* Hack -- only read in staircase information for non-wilderness
 	 * levels
@@ -1378,14 +1527,12 @@ static errr rd_dungeon(bool ext, int Depth)
 
 	if (depth >= 0)
 	{
-
-		level_up_y[depth] = read_int("level_up_y");
-		level_up_x[depth] = read_int("level_up_x");
-		level_down_y[depth] = read_int("level_down_y");
-		level_down_x[depth] = read_int("level_down_x");
-		level_rand_y[depth] = read_int("level_rand_y");
-		level_rand_x[depth] = read_int("level_rand_x");
-		
+		__try( read_byte("level_up_y", &level_up_y[depth]) );
+		__try( read_byte("level_up_x", &level_up_x[depth]) );
+		__try( read_byte("level_down_y", &level_down_y[depth]) );
+		__try( read_byte("level_down_x", &level_down_x[depth]) );
+		__try( read_byte("level_rand_y", &level_rand_y[depth]) );
+		__try( read_byte("level_rand_x", &level_rand_x[depth]) );
 	}
 	/* HACK */
 	else if (value_exists("level_up_y"))
@@ -1405,11 +1552,11 @@ static errr rd_dungeon(bool ext, int Depth)
 		alloc_dungeon_level(depth);
 
 	/* Load features */
-	start_section_read("features");
+	__try( start_section_read("features") );
 
 		for (y = 0; y < max_y; y++)
 		{
-			read_binary("row",cave_row,MAX_WID);
+			__try( read_binary("row",cave_row,MAX_WID) );
 			for(x = 0; x < max_x; x++)
 			{
 				/* Access the cave */
@@ -1420,14 +1567,14 @@ static errr rd_dungeon(bool ext, int Depth)
 			}			
 		}
 
-	end_section_read("features");
+	__try( end_section_read("features") );
 
 	/* Load info */
 	start_section_read("info");
 
 		for (y = 0; y < max_y; y++)
 		{
-			read_binary("row",cave_row,MAX_WID);
+			__try( read_binary("row",cave_row,MAX_WID) );
 			for(x = 0; x < max_x; x++)
 			{
 				/* Access the cave */
@@ -1438,11 +1585,12 @@ static errr rd_dungeon(bool ext, int Depth)
 			}			
 		}
 
-	end_section_read("info");
+	__try( end_section_read("info") );
 
-	end_section_read("dungeon_level");
+	__try( end_section_read("dungeon_level") );
+
 	/* Success */
-	return (0);
+	return (TRUE);
 }
 
 /*
@@ -1455,10 +1603,15 @@ static errr rd_dungeon(bool ext, int Depth)
  */
 static errr rd_dungeon_special()
 {
+#undef __try
+#define __try(X) if (!(X)) { return (-1); }
+
+	bool ok = FALSE;
+
 	char filename[1024];
 	char levelname[32];
-	FILE *fhandle;
-	FILE *server_handle;
+	ang_file* fhandle;
+	ang_file* server_handle;
 	int i,num_levels,j=0,k=0;
 	
 	/* Clear all the special levels */
@@ -1482,18 +1635,18 @@ static errr rd_dungeon_special()
 		sprintf(levelname,"server.level.%i.%i.%i",k,j,i);
 		path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 		/* open the file if it exists */
-		fhandle = my_fopen(filename, "r");
+		fhandle = file_open(filename, MODE_READ, -1);
 		if(fhandle)
 		{
 			/* swap out the main file pointer for our level file */
 			server_handle = file_handle;
 			file_handle = fhandle;
 			/* load the level */
-			rd_dungeon(FALSE, 0);
+			ok = rd_dungeon(FALSE, 0);
 			/* swap the file pointers back */
 			file_handle = server_handle;
 			/* close the level file */
-			my_fclose(fhandle);
+			file_close(fhandle);
 			/* we have an arbitrary max number of levels */
 			if(num_levels + 1 > MAX_SPECIAL_LEVELS)
 			{
@@ -1506,19 +1659,20 @@ static errr rd_dungeon_special()
 	}
 /*	}
 	}*/
-	return 0;
+	return ok ? 0 : -1;
 }
 
 /* HACK -- Read from file */
 bool rd_dungeon_special_ext(int Depth, cptr levelname)
 {
+	bool ok = FALSE;
 	char filename[1024];
-	FILE *fhandle;
-	FILE *server_handle;
+	ang_file* fhandle;
+	ang_file* server_handle;
 	
 	path_build(filename, 1024, ANGBAND_DIR_SAVE, levelname);
 
-	fhandle = my_fopen(filename, "r");
+	fhandle = file_open(filename, MODE_READ, -1);
 
 	if (fhandle)
 	{
@@ -1527,17 +1681,15 @@ bool rd_dungeon_special_ext(int Depth, cptr levelname)
 			file_handle = fhandle;
 
 			/* load the level */
-			rd_dungeon(TRUE, Depth);
+			ok = rd_dungeon(TRUE, Depth);
 
 			/* swap the file pointers back */
 			file_handle = server_handle;
 
 			/* close the level file */
-			my_fclose(fhandle);
-
-			return TRUE;
+			file_close(fhandle);
 	}
-	return FALSE;
+	return ok;
 }
 
 
@@ -1545,41 +1697,49 @@ bool rd_dungeon_special_ext(int Depth, cptr levelname)
  * format.  Simmilar to the above function.
  */
 
-static errr rd_cave_memory(player_type *p_ptr)
+static bool rd_cave_memory(player_type *p_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (FALSE); }
+
 	u16b max_y, max_x;
 	int y, x;
 	char cave_row[MAX_WID+1];
 
-	start_section_read("cave_memory");
+	__try( start_section_read("cave_memory") );
 
 	/* Memory dimensions */
-	max_y = read_int("max_height");
-	max_x = read_int("max_width");
+	__try( read_short("max_height", &max_y) );
+	__try( read_short("max_width", &max_x) );
 
 	for (y = 0; y < max_y; y++)
 	{
-		read_binary("row",cave_row,MAX_WID);
+		__try( read_binary("row", cave_row, MAX_WID) );
 		for(x = 0; x < max_x; x++)
 		{
 			p_ptr->cave_flag[y][x] = cave_row[x];
 		}			
 	}
 
-	end_section_read("cave_memory");
+	__try( end_section_read("cave_memory") );
 
 	/* Success */
-	return (0);
+	return (TRUE);
 }
 
 /* XXX XXX XXX 
  * This function parses savefile as if it was a text file, searching for
- * pass = , prace = , etc strings. It ignores the 'xml' format for sake
+ * "pass =" string. It ignores the 'xml' format for sake
  * of maintance simplicity (i.e. it doesn't care about savefile format
- * changes). It attempts to read out the race/class/sex info and 
- * does a password check -> result of wich is the return value.
+ * changes). It attempts to read out the stored password, and compares it
+ * to the password provided in "pass_word". If it matches, the hashed
+ * password stored back onto the "pass_word" buff, which is assumed to be
+ * of MAX_CHARS length.
  *
- * See "scoop_player" in "save.c" for more info.  
+ * Returns 0 on match, -1 on parsing error and -2 if password do not
+ * match.
+ *
+ * See "scoop_player" in "save.c" for more info.
  */
 errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 {
@@ -1594,35 +1754,34 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 	bool read_pass = FALSE;
 
 	char buf[1024];
-	int i;
 
 	/* The savefile is a text file */
-	file_handle = my_fopen(sfile, "r");
+	file_handle = file_open(sfile, MODE_READ, -1);
 
 	/* Paranoia */
 	if (!file_handle) return (-1);
 
 	/* Try to fetch the data */
-	while (fgets(buf, 1024, file_handle))
+	while (file_getl(file_handle, buf, 1024))
 	{
 		read = strtok(buf, " \t=");
 		if (!strcmp(read, "pass"))
 		{
 			read = strtok(NULL, " \t\n=");
-			strcpy(pass, read);
+			my_strcpy(pass, read, 80);
 			read_pass = TRUE;
 			continue;
 		}
 		if (read_pass) break;
 	}
 
-	/* Paranoia */	
+	/* Paranoia */
 	temp[0] = '\0';
 	
 	/* Here's where we do our password encryption handling */
-	strcpy(temp, (const char *)pass);
+	my_strcpy(temp, (const char *)pass, 80);
 	MD5Password(temp); /* The hashed version of our stored password */
-	strcpy(temp2, (const char *)pass_word);
+	my_strcpy(temp2, (const char *)pass_word, 80);
 	MD5Password(temp2); /* The hashed version of password from client */
 
 	err = 0;
@@ -1658,14 +1817,14 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
 			}
 		}
 		/* Good match with clear text, save the hashed */
-		strcpy(pass_word, (const char *)temp);
+		my_strcpy(pass_word, (const char *)temp, MAX_CHARS);
 	}
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);
@@ -1677,6 +1836,8 @@ errr rd_savefile_new_scoop_aux(char *sfile, char *pass_word)
  */
 static errr rd_savefile_new_aux(player_type *p_ptr)
 {
+#undef __try
+#define __try(X) if (!(X)) { return (-1); }
 	int i;
 
 	u16b tmp16u;
@@ -1685,67 +1846,62 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	bool had_header = FALSE;
 	char stat_order_hack[6];
 
-	if (!section_exists("mangband_player_save"))
-	{
-		return (-1); /* Horrible corruption */
-	}
-
-	start_section_read("mangband_player_save");
-	if (!section_exists("version"))
-	{
-		return (-1); /* Horrible corruption */
-	}
-	start_section_read("version");
-	read_int("major"); 
-	read_int("minor");
-	read_int("patch");
-	end_section_read("version");
+	__try( start_section_read("mangband_player_save") );
+	__try( start_section_read("version") );
+	__try( read_int("major", &tmp32u) );
+	__try( read_int("minor", &tmp32u) );
+	__try( read_int("patch", &tmp32u) );
+	__try( end_section_read("version") );
 	
-	if (section_exists("header")) 
+	if (section_exists("header"))
 	{
-		start_section_read("header");
+		__try( start_section_read("header") );
 		had_header = TRUE;
 
-		read_str("playername",p_ptr->name); /* 32 */
+		__try( read_str("playername",p_ptr->name) ); /* 32 */
 
 		skip_value("pass");
 
-		p_ptr->prace = read_int("prace");
-		p_ptr->pclass = read_int("pclass");
-		p_ptr->male = read_int("male");
+		__try( read_byte("prace", &p_ptr->prace) );
+		__try( read_byte("pclass", &p_ptr->pclass) );
+		__try( read_byte("male", &p_ptr->male) );
 
-		read_binary("stat_order", stat_order_hack, 6);
-		for (i = 0; i < 6; i++)
+		__try( read_binary("stat_order", stat_order_hack, A_MAX) );
+		for (i = 0; i < A_MAX; i++)
 			p_ptr->stat_order[i] = stat_order_hack[i];
 
-		end_section_read("header");
+		__try( end_section_read("header") );
 	}
 
 	/* Operating system info */
-	sf_xtra = read_uint("sf_xtra");
+	__try( read_uint("sf_xtra", &sf_xtra) );
 
 	/* Time of savefile creation */
-	sf_when = read_uint("sf_when");
+	__try( read_uint("sf_when", &sf_when) );
 
 	/* Number of resurrections */
-	sf_lives = read_int("sf_lives");
+	__try( read_short("sf_lives", &sf_lives) );
 
 	/* Number of times played */
-	sf_saves = read_int("sf_saves");
+	__try( read_short("sf_saves", &sf_saves) );
 
 	/* Skip the turn info - if present */
-	skip_value("turn");
+	__try( read_hturn("turn", &p_ptr->last_turn) );
 	
 	/* Turn this character was born on */
 	if(value_exists("birth_turn"))
-		read_hturn("birth_turn", &p_ptr->birth_turn);
+	{
+		__try( read_hturn("birth_turn", &p_ptr->birth_turn) );
+	}
 	else
 		/* Disable character event logging if no birth turn */
 		ht_clr(&p_ptr->birth_turn);
 
 	/* Player turns (actually time spent playing) */
 	if(value_exists("player_turn"))
-		read_hturn("player_turn", &p_ptr->turn);
+	{
+		__try( read_hturn("player_turn", &p_ptr->turn) );
+	}
 	else
 		ht_clr(&p_ptr->turn);
 
@@ -1757,8 +1913,8 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 
 	/* Monster Memory */
 	if (section_exists("monster_lore")) {
-	start_section_read("monster_lore");
-	tmp16u = read_int("max_r_idx");
+	__try( start_section_read("monster_lore") );
+	__try( read_short("max_r_idx", &tmp16u) );
 
 	/* Incompatible save files */
 	if (tmp16u > z_info->r_max)
@@ -1771,14 +1927,14 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	for (i = 0; i < tmp16u; i++)
 	{
 		/* Read the lore */
-		rd_lore(p_ptr, i);
+		__try( rd_lore(p_ptr, i) );
 	}
-	end_section_read("monster_lore");
+	__try( end_section_read("monster_lore") );
 	}
 	
 	/* Object Memory */
-	start_section_read("object_memory");
-	tmp16u = read_int("max_k_idx");
+	__try( start_section_read("object_memory") );
+	__try( read_short("max_k_idx", &tmp16u) );
 
 	/* Incompatible save files */
 	if (tmp16u > z_info->k_max)
@@ -1792,31 +1948,31 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	{
 		byte tmp8u;
 
-		tmp8u = read_int("flags");
+		__try( read_byte("flags", &tmp8u) );
 
-		p_ptr->obj_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
-		p_ptr->obj_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
+		p_ptr->kind_aware[i] = (tmp8u & 0x01) ? TRUE : FALSE;
+		p_ptr->kind_tried[i] = (tmp8u & 0x02) ? TRUE : FALSE;
 	}
-	end_section_read("object_memory");
+	__try( end_section_read("object_memory") );
 
 	/*if (arg_fiddle) note("Loaded Object Memory");*/
 
 	/* Read the extra stuff */
-	rd_extra(p_ptr, had_header);
+	__try( rd_extra(p_ptr, had_header) );
 
 	/*if (arg_fiddle) note("Loaded extra information");*/
 
 
 	/* Read the player_hp array */
-	start_section_read("hp");
-	tmp16u = read_int("py_max_level");
+	__try( start_section_read("hp") );
+	__try( read_short("py_max_level", &tmp16u) );
 
 	/* Read the player_hp array */
 	for (i = 0; i < tmp16u; i++)
 	{
-		p_ptr->player_hp[i] = read_int("hp");
+		__try( read_short("hp", &p_ptr->player_hp[i]) );
 	}
-	end_section_read("hp");
+	__try( end_section_read("hp") );
 
 
 	/* Important -- Initialize the race/class */
@@ -1831,12 +1987,12 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	/* Read spell info */
 	if (section_exists("spell_flags"))
 	{
-		start_section_read("spell_flags");
+		__try( start_section_read("spell_flags") );
 		for (i = 0; i < PY_MAX_SPELLS; i++)
 		{
-			p_ptr->spell_flags[i] = read_int("flag");
+			__try( read_byte("flag", &p_ptr->spell_flags[i]) );
 		}
-		end_section_read("spell_flags");
+		__try( end_section_read("spell_flags") );
 	}
 	else
 	{
@@ -1844,12 +2000,12 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		u32b spell_learned1, spell_learned2;
 		u32b spell_worked1, spell_worked2;
 		u32b spell_forgotten1, spell_forgotten2;
-		spell_learned1 = read_uint("spell_learned1");
-		spell_learned2 = read_uint("spell_learned2");
-		spell_worked1 = read_uint("spell_worked1");
-		spell_worked2 = read_uint("spell_worked2");
-		spell_forgotten1 = read_uint("spell_forgotten1");
-		spell_forgotten2 = read_uint("spell_forgotten2");
+		__try( read_uint("spell_learned1", &spell_learned1) );
+		__try( read_uint("spell_learned2", &spell_learned2) );
+		__try( read_uint("spell_worked1", &spell_worked1) );
+		__try( read_uint("spell_worked2", &spell_worked2) );
+		__try( read_uint("spell_forgotten1", &spell_forgotten1) );
+		__try( read_uint("spell_forgotten2", &spell_forgotten2) );
 		for (i = 0; i < PY_MAX_SPELLS; i++)
 		{
 			if ((i < 32) ?
@@ -1873,17 +2029,17 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		}
 	}
 
-	start_section_read("spell_order");
+	__try( start_section_read("spell_order") );
 	for (i = 0; i < PY_MAX_SPELLS; i++)
 	{
-		p_ptr->spell_order[i] = read_int("order");
+		__try( read_byte("order", &p_ptr->spell_order[i]) );
 	}
-	end_section_read("spell_order");
+	__try( end_section_read("spell_order") );
 
 	/* Read the inventory */
 	if (rd_inventory(p_ptr))
 	{
-		/*note("Unable to read inventory");*/
+		note("Unable to read inventory");
 		return (21);
 	}
 
@@ -1892,12 +2048,13 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	{
 		return (22);
 	}
-	rd_cave_memory(p_ptr);
+
+	__try( rd_cave_memory(p_ptr) );
 	
 	/* read the wilderness map */
-	start_section_read("wilderness");
+	__try( start_section_read("wilderness") );
 	/* get the map size */
-	tmp32u = read_int("max_wild");
+	__try( read_int("max_wild", &tmp32u) );
 		
 	/* if too many map entries */
 	if (tmp32u > MAX_WILD)
@@ -1908,9 +2065,9 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 	/* read in the map */
 	for (i = 0; i < tmp32u; i++)
 	{
-		p_ptr->wild_map[i] = read_int("wild_map");
+		__try( read_byte("wild_map", &p_ptr->wild_map[i]) );
 	}
-	end_section_read("wilderness");
+	__try( end_section_read("wilderness") );
 	
 	/* Read the character event history */
 	if(section_exists("event_history"))
@@ -1919,12 +2076,12 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		cptr msg;
 		history_event evt;
 		history_event *last = NULL;
-		start_section_read("event_history");
+		__try( start_section_read("event_history") );
 		while(value_exists("hist"))
 		{
 			int depth, level;
 			history_event *n_evt = NULL;
-			read_str("hist", buf);
+			__try( read_str("hist", buf) );
 			if (sscanf(buf, "%02i:%02i:%02i   %4ift   %2i   ", &evt.days, &evt.hours, &evt.mins,
 				&depth, &level) == 5)
 			{
@@ -1949,27 +2106,27 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 				last = n_evt;
 			}
 		}
-		end_section_read("event_history");
+		__try( end_section_read("event_history") );
 	}
 
 	/* Read the characters quest list */
 	if(section_exists("quests"))
 	{
-		start_section_read("quests");
-		tmp16u = read_int("max_q_idx");
+		__try( start_section_read("quests") );
+		__try( read_short("max_q_idx", &tmp16u) );
 		for(i = 0; i < MAX_Q_IDX; i++)
 		{
-			tmp16u = read_int("level");
+			__try( read_short("level", &tmp16u) );
 			p_ptr->q_list[i].level = tmp16u;
 		}
-		end_section_read("quests");
+		__try( end_section_read("quests") );
 	}
 
 	/* Read the characters sold artifact list */
 	if(section_exists("found_artifacts"))
 	{
-		start_section_read("found_artifacts");
-		tmp16u = read_int("max_a_idx");
+		__try( start_section_read("found_artifacts") );
+		__try( read_short("max_a_idx", &tmp16u) );
 		tmp32u = tmp16u;
 		/* If we have an unexpected number of arts, just reset our list
 		 * of sold artifacts. It's not so important we want to break
@@ -1983,18 +2140,21 @@ static errr rd_savefile_new_aux(player_type *p_ptr)
 		{
 			if(i < tmp32u)
 			{
-				if(!clear) tmp16u = read_int("a_info");
+				if(!clear)
+				{
+					__try( read_short("a_info", &tmp16u) );
+				}
 			}
 			p_ptr->a_info[i] = tmp16u;
 		}
-		end_section_read("found_artifacts");
+		__try( end_section_read("found_artifacts") );
 	}
 
 	/* Hack -- no ghosts */
 	/* r_info[z_info->r_max - 1].max_num = 0; */
 
-  end_section_read("mangband_player_save");
-  
+	__try( end_section_read("mangband_player_save") );
+
 	/* Success */
 	return (0);
 }
@@ -2011,7 +2171,7 @@ errr rd_savefile_new(player_type *p_ptr)
 	errr err;
 
 	/* The savefile is a text file */
-	file_handle = my_fopen(p_ptr->savefile, "r");
+	file_handle = file_open(p_ptr->savefile, MODE_READ, -1);
 
 	/* Paranoia */
 	if (!file_handle) return (-1);
@@ -2020,10 +2180,10 @@ errr rd_savefile_new(player_type *p_ptr)
 	err = rd_savefile_new_aux(p_ptr);
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);
@@ -2031,6 +2191,11 @@ errr rd_savefile_new(player_type *p_ptr)
 
 errr rd_server_savefile()
 {
+#undef __try
+#define __try(X) if (!(X)) { exit(1); }
+#define __tryN(X) if ((X)) { exit(1); }
+#define __tryR(X, RET) if (!(X)) { return (RET); }
+
         int i;
 
 	errr err = 0;
@@ -2048,15 +2213,16 @@ errr rd_server_savefile()
 	path_build(savefile, 1024, ANGBAND_DIR_SAVE, "server");
 
 	/* The server savefile is a binary file */
-	file_handle = my_fopen(savefile, "r");
+	file_handle = file_open(savefile, MODE_READ, -1);
 	line_counter = 0;
 
-	start_section_read("mangband_server_save");
-	start_section_read("version");
-	major = read_int("major"); 
-	major = read_int("minor");
-	major = read_int("patch");
-	end_section_read("version");
+
+	__try( start_section_read("mangband_server_save") );
+	__try( start_section_read("version") );
+	__try( read_int("major", &major) );
+	__try( read_int("minor", &major) );
+	__try( read_int("patch", &major) );
+	__try( end_section_read("version") );
 
 	/* Paranoia */
 	if (!file_handle) return (-1);
@@ -2066,21 +2232,20 @@ errr rd_server_savefile()
         x_check = 0L;
 
         /* Operating system info */
-		sf_xtra = read_uint("xtra");
+	__try( read_uint("xtra", &sf_xtra) );
 
         /* Time of savefile creation */
-		sf_when = read_uint("timestamp");
+	__try( read_int("timestamp", &sf_when) );
 
         /* Number of lives */
-		sf_lives = read_int("sf_lives");
+	__try( read_short("sf_lives", &sf_lives) );
 
         /* Number of times played */
-		sf_saves = read_int("sf_saves");
+	__try( read_short("sf_saves", &sf_saves) );
 
         /* Monster Memory */
-		start_section_read("monster_lore");
-
-		tmp16u = read_int("max_r_idx");
+	__try( start_section_read("monster_lore") );
+	__try( read_short("max_r_idx", &tmp16u) );
 
         /* Incompatible save files */
         if (tmp16u > z_info->r_max)
@@ -2095,18 +2260,18 @@ errr rd_server_savefile()
 		monster_race *r_ptr;
 
                 /* Read the lore */
-               rd_u_lore(i);
+		 __try( rd_u_lore(i) );
 
 		/* Access the monster race */
 		r_ptr = &r_info[i];
 
         }
 
-		end_section_read("monster_lore");
-		
+	__try( end_section_read("monster_lore") );
+
         /* Load the Artifacts */
-		start_section_read("artifacts");
-		tmp16u = read_int("max_a_idx");
+	__try( start_section_read("artifacts") );
+	__try( read_short("max_a_idx", &tmp16u) );
 
         /* Incompatible save files */
         if (tmp16u > z_info->a_max)
@@ -2118,23 +2283,29 @@ errr rd_server_savefile()
         /* Read the artifact flags */
         for (i = 0; i < tmp16u; i++)
         {
-				tmp8u = read_int("artifact");
+		__try( read_byte("artifact", &tmp8u) );
                 a_info[i].cur_num = tmp8u;
+		/* Owner information */
+		if (value_exists("owner_name"))
+		{
+			__try( read_quark("owner_name", &a_info[i].owner_name) );
+			__try( read_int("owner_id", &a_info[i].owner_id) );
+		}
         }
-		end_section_read("artifacts");
+	__try( end_section_read("artifacts") );
 
 	/* Read the stores */
-	start_section_read("stores");
-	tmp16u = read_int("max_stores");
+	__try( start_section_read("stores") );
+	__try( read_short("max_stores", &tmp16u) );
 	for (i = 0; i < tmp16u; i++)
 	{
-		if (rd_store(i)) return (22);
+		__tryR( rd_store(i), (22) );
 	}
-	end_section_read("stores");
+	__try( end_section_read("stores") );
 
 	/* Read party info if savefile is new enough */
-		start_section_read("parties");
-		tmp16u = read_int("max_parties");
+	__try( start_section_read("parties") );
+	__try( read_short("max_parties", &tmp16u) );
 		
 		/* Incompatible save files */
 		if (tmp16u > MAX_PARTIES)
@@ -2146,24 +2317,26 @@ errr rd_server_savefile()
 		/* Read the available records */
 		for (i = 0; i < tmp16u; i++)
 		{
-			rd_party(i);
+			__try( rd_party(i) );
 		}
-		end_section_read("parties");
+	__try( end_section_read("parties") );
 
 	/* XXX If new enough, read in the saved levels and monsters. */
-
-		start_section_read("dungeon_levels");
+	__try( start_section_read("dungeon_levels") );
 		/* read the number of levels to be loaded */
-		tmp32u = read_uint("num_levels");
+		__try( read_uint("num_levels", &tmp32u) );
 		/* load the levels */
-		for (i = 0; i < tmp32u; i++) rd_dungeon(FALSE, 0);
+		for (i = 0; i < tmp32u; i++)
+		{
+			__try( rd_dungeon(FALSE, 0) );
+		}
 		/* load any special static levels */
-		rd_dungeon_special();
-		end_section_read("dungeon_levels");
+		__tryN( rd_dungeon_special() );
+	__try( end_section_read("dungeon_levels") );
 
-		start_section_read("monsters");
+	__try( start_section_read("monsters") );
 		/* get the number of monsters to be loaded */
-		tmp32u = read_int("max_monsters");
+		__try( read_int("max_monsters", &tmp32u) );
 		if (tmp32u > MAX_M_IDX)
 		{
 			note(format("Too many (%u) monsters!", tmp16u));
@@ -2172,13 +2345,13 @@ errr rd_server_savefile()
 		/* load the monsters */
 		for (i = 1; i < tmp32u; i++)
 		{
-			rd_monster(&m_list[m_pop()]);
+			__try( rd_monster(&m_list[m_pop()]) );
 		}
-		end_section_read("monsters");
+	__try( end_section_read("monsters") );
 
-		/* Read object info */
-		start_section_read("objects");
-		tmp16u = read_int("max_objects");
+	/* Read object info */
+	__try( start_section_read("objects") );
+	__try( read_short("max_objects", &tmp16u) );
 
 		/* Incompatible save files */
 		if (tmp16u > MAX_O_IDX)
@@ -2189,13 +2362,13 @@ errr rd_server_savefile()
 
 		/* Read the available records */
 		for (i = 1; i < tmp16u; i++)
-		{		
-			rd_item(&o_list[i]);
+		{
+			__try( rd_item(&o_list[i]) );
 		}
 
 		/* Set the maximum object number */
 		o_max = tmp16u;
-		end_section_read("objects");
+	__try( end_section_read("objects") );
 
 		/* Read holding info */
 		/* Reacquire objects */
@@ -2228,8 +2401,8 @@ errr rd_server_savefile()
 		}
 	
 		/* Read house info */
-		start_section_read("houses");
-		tmp16u = read_int("num_houses");
+	__try( start_section_read("houses") );
+	__try( read_short("num_houses", &tmp16u) );
 
 		/* Incompatible save files */
 		if (tmp16u > MAX_HOUSES)
@@ -2241,16 +2414,16 @@ errr rd_server_savefile()
 		/* Read the available records */
 		for (i = 0; i < tmp16u; i++)
 		{
-			rd_house(i);
+			__try( rd_house(i) );
 		}
 		num_houses = tmp16u;
-		end_section_read("houses");
+		__try( end_section_read("houses") );
 
 		/* Read arenas info */
 		if (section_exists("arenas")) 
 		{
-			start_section_read("arenas");
-			tmp16u = read_int("num_arenas");
+			__try( start_section_read("arenas") );
+			__try( read_short("num_arenas", &tmp16u) );
 	
 			/* Incompatible save files */
 			if (tmp16u > MAX_ARENAS)
@@ -2262,17 +2435,17 @@ errr rd_server_savefile()
 			/* Read the available records */
 			for (i = 0; i < tmp16u; i++)
 			{
-				rd_arena(i);
+				__try( rd_arena(i) );
 			}
 			num_arenas = tmp16u;
-			end_section_read("arenas");
+			__try( end_section_read("arenas") );
 		}
 
-		/* Read wilderness info */
-		start_section_read("wilderness");
-		/* read how many wilderness levels */
-		tmp32u = read_int("max_wild");
-				
+	/* Read wilderness info */
+	__try( start_section_read("wilderness") );
+	/* read how many wilderness levels */
+	__try( read_int("max_wild", &tmp32u) );
+
 		if (tmp32u > MAX_WILD)
 		{
 			note("Too many wilderness levels");
@@ -2281,48 +2454,50 @@ errr rd_server_savefile()
 	
 		for (i = 1; i < tmp32u; i++)
 		{
-			rd_wild(i);
-		}	
-		end_section_read("wilderness");
+			__try( rd_wild(i) );
+		}
+		__try( end_section_read("wilderness") );
 
-		/* Read the player name database  */
-		start_section_read("player_names");
-
-		tmp32u = read_int("num_players");
+	/* Read the player name database  */
+	__try( start_section_read("player_names") );
+	__try( read_int("num_players", &tmp32u) );
 
 		/* Read the available records */
 		for (i = 0; i < tmp32u; i++)
 		{
-			start_section_read("player");
+			__try( start_section_read("player") );
+
 			/* Read the ID */
-			tmp32s = read_int("id");
+			__try( read_int("id", &tmp32s) );
 
 			/* Read the player name */
-			read_str("name",name);
+			__try( read_str("name", name) );
 
 			/* Store the player name */
 			add_player_name(name, tmp32s);
-			end_section_read("player");
+
+			__try( end_section_read("player") );
 		}
-		end_section_read("player_names");
+	__try( end_section_read("player_names") );
 
-	seed_flavor = read_uint("seed_flavor");
-	seed_town = read_uint("seed_town");
 
-	player_id = read_int("player_id");
+	__try( read_uint("seed_flavor", &seed_flavor) );
+	__try( read_uint("seed_town", &seed_town) );
 
-	read_hturn("turn", &turn);
+	__try( read_int("player_id", &player_id) );
+
+	__try( read_hturn("turn", &turn) );
 
         /* Hack -- no ghosts */
         /*r_info[z_info->r_max - 1].max_num = 0;*/
 
-	end_section_read("mangband_server_save");
+	__try( end_section_read("mangband_server_save") );
 
 	/* Check for errors */
-	if (ferror(file_handle)) err = -1;
+	if (file_error(file_handle)) err = -1;
 
 	/* Close the file */
-	my_fclose(file_handle);
+	file_close(file_handle);
 
 	/* Result */
 	return (err);

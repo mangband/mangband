@@ -39,6 +39,8 @@ extern void player_drop(int ind);
 extern bool client_names_ok(char *nick_name, char *real_name, char *host_name);
 extern bool client_version_ok(u16b version);
 extern u16b connection_type_ok(u16b version);
+extern bool client_version_atleast(u16b version, int at_major, int at_minor, int at_patch);
+
 
 /** net-game.c **/
 /* Setup */
@@ -48,10 +50,11 @@ extern int send_server_info(connection_type *ct);
 extern int send_play(connection_type *ct, byte mode);
 extern int send_quit(connection_type *ct, const char *reason);
 extern int send_char_info(connection_type *ct, player_type *p_ptr);
+extern int send_stats_info(connection_type *ct);
 extern int send_race_info(connection_type *ct);
 extern int send_class_info(connection_type *ct);
 extern int send_optgroups_info(connection_type *ct);
-extern int send_options_info(connection_type *ct, int id);
+extern int send_options_info(connection_type *ct, player_type *p_ptr, int id);
 extern int send_indicator_info(connection_type *ct, int id);
 extern int send_custom_command_info(connection_type *ct, int id);
 /* Receive */

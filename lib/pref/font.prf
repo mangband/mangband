@@ -8,6 +8,9 @@
 # See "lib/help/command.txt" and "src/files.c" for more information.
 #
 
+##### Standard font file #####
+
+%:font-xxx.prf
 
 ## #
 ## # OPTION: Display "veins" (white "%") as "normal walls" (white "#").
@@ -17,16 +20,25 @@
 ## F:52:0x01/0x23
 ## F:53:0x01/0x23
 
-
-##### Standard font file #####
-
-%:font-xxx.prf
-
-
 ##### System Specific Subfiles #####
 
 ?:[IOR [EQU $SYS sdl] [EQU $SYS xaw] [EQU $SYS x11] [EQU $SYS xpj] [EQU $SYS gtk]]
 %:font-x11.prf
+
+?:[EQU $SYS sdl]
+%:font-sdl.prf
+
+?:[EQU $SYS sdl2]
+%:font-sdl2.prf
+
+?:[EQU $FON hex]
+%:font-hex.prf
+
+?:[IOR [EQU $FON fon] [EQU $FON FON]]
+%:font-win.prf
+
+?:[EQU $FONTNAME silm8x16.bmp]
+%:font-silm.prf
 
 ?:[EQU $SYS lfb]
 %:font-lfb.prf

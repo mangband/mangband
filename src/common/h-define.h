@@ -103,6 +103,9 @@
 #undef SGN
 #define SGN(a)		(((a) < 0)   ? (-1) : ((a) != 0))
 
+/* Compare two values */
+#undef CMP
+#define CMP(a,b) (a < b ? -1 : (b < a ? 1: 0))
 
 /*
  * Hack -- allow use of "ASCII" and "EBCDIC" for "indexes", "digits",
@@ -118,6 +121,7 @@
 #  define D2I(X)	((X) - '0')
 #  define I2D(X)	((X) + '0')
 #  define KTRL(X)	((X) & 0x1F)
+#  define UN_KTRL(X)	((X) + 64)
 #  define ESCAPE	'\033'
 #else
 #  define A2I(X)	((X) - 'a')
@@ -125,6 +129,7 @@
 #  define D2I(X)	((X) - '0')
 #  define I2D(X)	((X) + '0')
 #  define KTRL(X)	((X) & 0x1F)
+#  define UN_KTRL(X)	((X) + 64)
 #  define ESCAPE	'\033'
 #endif
 

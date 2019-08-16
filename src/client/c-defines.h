@@ -5,10 +5,10 @@
 /*
  * Current version number of the MAngband client
  */
- 
+
 #define CLIENT_VERSION_MAJOR	1
 #define CLIENT_VERSION_MINOR	5
-#define CLIENT_VERSION_PATCH	0
+#define CLIENT_VERSION_PATCH	3
 
 /*
  * This value specifys the suffix to the version info sent to the metaserver.
@@ -18,7 +18,7 @@
  * 2 - "beta"
  * 3 - "development"
  */
-#define CLIENT_VERSION_EXTRA	2
+#define CLIENT_VERSION_EXTRA	0
 
 
 /*
@@ -55,6 +55,9 @@
 
 /* Speed of air layer fadeout effects */
 #define AIR_FADE_THRESHOLD 10
+
+/* Speed of slash fx effect */
+#define SLASH_FX_THRESHOLD 500
 
 /*** SERVER DEFINES ***/
 /* Sometimes, we just copy defines from server.
@@ -173,3 +176,15 @@
 
 #define ROW_OPPOSE_ELEMENTS	(Term->hgt - 1)
 #define COL_OPPOSE_ELEMENTS	80	/* "Acid Elec Fire Cold Pois" */
+
+/* Bitflags for "ctxt_flag" argument in
+ * spell_as_keystroke(), item_as_keystroke() functions.
+ */
+#define CTXT_WITH_CMD  0x01 /* If set, include command keystrokes */
+#define CTXT_WITH_ITEM 0x02 /* If set, include item selection keystrokes */
+#define CTXT_WITH_DIR  0x08 /* If set, include dir selection keystrokes */
+#define CTXT_FULL (CTXT_WITH_CMD | CTXT_WITH_ITEM | CTXT_WITH_DIR)
+#define CTXT_PREFER_SHORT 0x10 /* Prefer short spell names ('a') */
+#define CTXT_PREFER_NAME  0x20 /* Prefer long name ("Scroll of Xuzzy") */
+#define CTXT_PROJECTING   0x40 /* Projecting a spell/pryaer (uppercase) */
+#define CTXT_FORCE_TARGET 0x80 /* Always include "*t" at the end */

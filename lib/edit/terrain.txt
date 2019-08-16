@@ -40,7 +40,7 @@
 
 # Version stamp (required)
 
-V:1.5.0
+V:1.5.2
 
 
 # 0x00 --> <darkness>
@@ -520,3 +520,46 @@ G:+:D
 N:120:closed door
 G:+:y
 #M:40
+
+
+# 0x81 --> crops (potato)
+
+N:129:potato crops
+G:%:g
+M:66
+
+# 0x82 --> crops (cabbage)
+
+N:130:cabbage crops
+G:%:g
+M:66
+
+# 0x83 --> crops (carrot)
+
+N:131:carrot crops
+G:%:g
+M:66
+
+# 0x84 --> crops (beet)
+
+N:132:beet crops
+G:%:g
+M:66
+
+# 0x85 --> crops (squash)
+
+N:133:squash crops
+G:%:g
+M:66
+
+# 0x86 --> crops (corn)
+
+N:134:corn crops
+G:%:g
+M:66
+
+# 0x87 --> crops (mushroom)
+
+N:135:mushroom field
+G:%:G
+M:66

@@ -56,7 +56,7 @@ static void prt_stat(int stat, int row, int col)
 	/* Display "injured" stat */
 	if (p_ptr->stat_use[stat] < p_ptr->stat_top[stat])
 	{
-		put_str(stat_names_reduced[stat], row, col);
+		put_str(stat_names/*_reduced*/[stat], row, col);
 		cnv_stat(p_ptr->stat_use[stat], tmp);
 		c_put_str(TERM_YELLOW, tmp, row, col + 6);
 	}
@@ -292,7 +292,7 @@ static void prt_depth(int row, int col, int id)
 	/* Hack -- if indicator index is passed, use value from coffers */
 	if (id != -1)
 	{
-		p_ptr->dun_depth = coffers[coffer_refs[id]];
+		p_ptr->dun_depth = (s16b)coffers[coffer_refs[id]];
 	}
 
 	if (!p_ptr->dun_depth)
@@ -310,6 +310,9 @@ static void prt_depth(int row, int col, int id)
 
 	/* Right-Adjust the "depth" and clear old values */
 	put_str(format("%7s", depths), row, col);
+
+	/* Memorize if on main screen */
+	if (Term == term_screen) mem_line(row, col, 7);
 }
 
 #if 0
@@ -770,7 +773,7 @@ static void display_inven(void)
 		Term_putstr(0, i, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of description */
 		n = strlen(o_name);
@@ -782,11 +785,12 @@ static void display_inven(void)
 		Term_erase(3+n, i, 255);
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 18)
 		{
+			Term_erase(Term->wid - 9, i, 9);
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			Term_putstr(71, i, -1, TERM_WHITE, tmp_val);
+			Term_putstr(Term->wid - 9, i, -1, TERM_WHITE, tmp_val);
 		}
 	}
 
@@ -849,7 +853,7 @@ static void display_equip(void)
 		Term_putstr(0, i - INVEN_WIELD, 3, TERM_WHITE, tmp_val);
 		
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Obtain length of the description */
 		n = strlen(o_name);
@@ -861,17 +865,20 @@ static void display_equip(void)
 		Term_erase(3+n, i - INVEN_WIELD, 255);
 
 		/* Display the slot description (if needed) */
-		if (show_labels)
+		if (show_labels && Term->wid >= 24)
 		{
-			Term_putstr(61, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
-			Term_putstr(65, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
+			col = Term->wid - 19;
+			Term_erase(col, i - INVEN_WIELD, 255);
+			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, "<--");
+			Term_putstr(col+4, i - INVEN_WIELD, -1, TERM_WHITE, eq_name + eq_names[i]);
 		}
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 36)
 		{
 			wgt = o_ptr->weight;
-			col = (show_labels ? 52 : 71);
+			col = (show_labels ? Term->wid - 28 : Term->wid - 9);
+			Term_erase(col, i - INVEN_WIELD, 9);
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
 			Term_putstr(col, i - INVEN_WIELD, -1, TERM_WHITE, tmp_val);
 		}
@@ -897,6 +904,7 @@ void show_inven(void)
 {
 	int	i, j, k, l, z = 0;
 	int	col, len, lim, wgt;
+	size_t	truncate;
 
 	object_type *o_ptr;
 
@@ -916,11 +924,15 @@ void show_inven(void)
 	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = Term->wid - 1 - 3;
+	lim = Term->wid - 2;
 
 	/* Require space for weight (if needed) */
-	lim -= 9;
+	if (show_weights) lim -= 9;
 
+	/* Hack -- ensure we never try to truncate out of array bounds */
+	truncate = lim;
+	if (truncate < 0) truncate = 0;
+	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Find the "final" slot */
 	for (i = 0; i < INVEN_PACK; i++)
@@ -940,21 +952,21 @@ void show_inven(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
-		o_name[lim] = '\0';
+		o_name[truncate] = '\0';
 
-		/* Save the object index, color, and descrtiption */
+		/* Save the object index, color, and description */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
 
 		/* Be sure to account for the weight */
-		l += 9;
+		if (show_weights) l += 9;
 
 		/* Maintain the maximum length */
 		if (l > len) len = l;
@@ -992,8 +1004,11 @@ void show_inven(void)
 		{
 			wgt = o_ptr->weight;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, lim);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
+
+		/* Save the index (for other functions to use!) */
+		inven_out_index[j] = out_index[j];
 	}
 
 	/* Make a "shadow" below the list (only if needed) */
@@ -1003,8 +1018,14 @@ void show_inven(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
+
+	/* Hack -- cripple the rest of inven_out_index */
+	for ( ; j < 256; j++) inven_out_index[j] = -2;
 }
 
 
@@ -1015,6 +1036,7 @@ void show_equip(void)
 {
 	int	i, j, k, l;
 	int	col, len, lim, wgt;
+	size_t	truncate;
 
 	object_type *o_ptr;
 
@@ -1031,14 +1053,18 @@ void show_equip(void)
 	col = command_gap;
 
 	/* Default "max-length" */
-	len = 79 - col;
+	len = Term->wid - 1 - col;
 
 	/* Maximum space allowed for descriptions */
-	lim = 79 - 3;
+	lim = Term->wid - 2;
 
 	/* Require space for weight (if needed) */
-	lim -= 9;
+	if (show_weights) lim -= 9;
 
+	/* Hack -- ensure we never try to truncate out of array bounds */
+	truncate = lim;
+	if (truncate < 0) truncate = 0;
+	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Scan the equipment list */
 	for (k = 0, i = INVEN_WIELD; i < INVEN_TOTAL; i++)
@@ -1049,21 +1075,21 @@ void show_equip(void)
 		if (!item_tester_okay(o_ptr)) continue;
 
 		/* Describe the object */
-		strcpy(o_name, inventory_name[i]);
+		my_strcpy(o_name, inventory_name[i], sizeof(o_name));
 
 		/* Hack -- enforce max length */
-		o_name[lim] = '\0';
+		o_name[truncate] = '\0';
 
 		/* Save the object index, color, and descrtiption */
 		out_index[k] = i;
 		out_color[k] = o_ptr->sval;
-		(void)strcpy(out_desc[k], o_name);
+		my_strcpy(out_desc[k], o_name, 80);
 
 		/* Find the predicted "line length" */
 		l = strlen(out_desc[k]) + 5;
 
 		/* Be sure to account for the weight */
-		l += 9;
+		if (show_weights) l += 9;
 
 		/* Maintain the maximum length */
 		if (l > len) len = l;
@@ -1073,7 +1099,7 @@ void show_equip(void)
 	}
 
 	/* Find the column to start in */
-	col = (len > 76) ? 0 : (79 - len);
+	col = (len > Term->wid - 4) ? 0 : (Term->wid - 1 - len);
 
 	/* Output each entry */
 	for (j = 0; j < k; j++)
@@ -1097,12 +1123,15 @@ void show_equip(void)
 		c_put_str(out_color[j], out_desc[j], j + 1, col + 3);
 
 		/* Display the weight if needed */
-		if (show_weights && o_ptr->weight)
+		if (show_weights && o_ptr->weight && Term->wid >= 18)
 		{
 			wgt = o_ptr->weight * o_ptr->number;
 			(void)sprintf(tmp_val, "%3d.%1d lb", wgt / 10, wgt % 10);
-			put_str(tmp_val, j + 1, 71);
+			put_str(tmp_val, j + 1, lim + 1);
 		}
+
+		/* Save the index (for other functions to use!) */
+		inven_out_index[j] = out_index[j];
 	}
 
 	/* Make a "shadow" below the list (only if needed) */
@@ -1112,8 +1141,14 @@ void show_equip(void)
 	command_gap = col;
 
 	/* Make screen icky */
-	section_icky_row = j + 2;
-	section_icky_col = 0 - (Term->wid - col) - 2;
+	if (!screen_icky)
+	{
+		section_icky_row = j + 2;
+		section_icky_col = 0 - (Term->wid - col) - 2;
+	}
+
+	/* Hack -- cripple the rest of inven_out_index */
+	for ( ; j < 256; j++) inven_out_index[j] = -2;
 }
 
 
@@ -1139,7 +1174,8 @@ void fix_inven(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_inven();
+		if (!flip_inven) display_inven();
+		else display_equip();
 
 		/* Fresh */
 		Term_fresh();
@@ -1203,7 +1239,8 @@ void fix_equip(void)
 		Term_activate(ang_term[j]);
 
 		/* Display inventory */
-		display_equip();
+		if (!flip_inven) display_equip();
+		else display_inven();
 
 		/* Fresh */
 		Term_fresh();
@@ -1236,7 +1273,7 @@ static void fix_player_0(void)
 		Term_activate(ang_term[j]);
 
 		/* Display player */
-		display_player(0);
+		display_player(flip_charsheet);
 
 		/* Fresh */
 		Term_fresh();
@@ -1271,6 +1308,38 @@ static void fix_player_1(void)
 
 		/* Display flags */
 		display_player(2);
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
+}
+
+/*
+ * Hack -- display player in sub-windows (mode 2)
+ */
+static void fix_player_2(void)
+{
+	int j;
+
+	/* Scan windows */
+	for (j = 0; j < ANGBAND_TERM_MAX; j++)
+	{
+		term *old = Term;
+
+		/* No window */
+		if (!ang_term[j]) continue;
+
+		/* No relevant flags */
+		if (!(window_flag[j] & (PW_PLAYER_3))) continue;
+
+		/* Activate */
+		Term_activate(ang_term[j]);
+
+		/* Display flags */
+		display_player(1);
 
 		/* Fresh */
 		Term_fresh();
@@ -1773,7 +1842,7 @@ int find_whisper_tab(cptr msg, char *text)
 	if ((offset = strstr(msg, from_us)) != NULL)
 	{
 		/* To who */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Short text */
 		pmsg = msg + (offset - msg) + strlen(from_us) + 1;
@@ -1783,7 +1852,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (strstr(msg, to_us) != NULL)
 	{
 		/* From who */
-		strcpy(buf, msg + strlen(to_us));
+		my_strcpy(buf, msg + strlen(to_us), sizeof(buf));
 		offset = strstr(msg, "]");
 		buf[offset - msg - strlen(to_us)] = '\0';
 		/* Short text */
@@ -1793,10 +1862,10 @@ int find_whisper_tab(cptr msg, char *text)
 	else if ((offset = strstr(msg, ":")))
 	{
 		/* Destination */
-		strcpy(buf, msg + 1);
+		my_strcpy(buf, msg + 1, sizeof(buf));
 		buf[offset - msg - 1] = '\0';
 		/* Sender */
-		strcpy(from_us, offset + 1);
+		my_strcpy(from_us, offset + 1, sizeof(from_us));
 		pmsg = strstr(offset, "]");
 		from_us[pmsg - offset - 1] = '\0';
 		/* Short text */
@@ -1807,8 +1876,7 @@ int find_whisper_tab(cptr msg, char *text)
 	else if (msg[0] == '&')
 	{
 		/* Dest. */
-		strcpy(buf, msg);
-		buf[strlen(msg)] = '\0';
+		my_strcpy(buf, msg, sizeof(buf));
 	}
 	
 	if (STRZERO(buf)) return 0;
@@ -1840,7 +1908,7 @@ void fix_special_message_aux(byte win)
 	int x, y, tab;
 	cptr msg;
 	byte a;
-	char text[80];
+	char text[MSG_LEN];
 	
 	term *old = Term;
 
@@ -1925,9 +1993,9 @@ void fix_special_message_aux(byte win)
 		
 		message_color(msg, &a);
 
-		/* Dump the message on the appropriate line */
-		Term_putstr(0, (h - 1) - j, -1, a, msg);
-
+		/* Dump the message on the appropriate line(s) */
+		j += prt_multi(0, (h - 1) - j, -1, -(h - 1 - (t + 1) - j), a, msg);
+#if 0
 		/* Cursor */
 		Term_locate(&x, &y);
 
@@ -1935,6 +2003,7 @@ void fix_special_message_aux(byte win)
 		Term_erase(x, y, 255);
 		
 		j++;
+#endif
 	}
 
 	/* Erase rest */
@@ -1981,6 +2050,9 @@ byte find_chat_window(void)
 		/* No relevant flags */
 		if (!(window_flag[j] & PW_MESSAGE_CHAT)) continue;
 
+		/* XXX XXX XXX special win32 handler :( */
+		if (!win32_window_visible(j)) continue;
+
 		return j;
 	}
 	return 0;
@@ -2012,39 +2084,48 @@ void fix_message(void)
                 Term_get_size(&w, &h);
 
                 /* Dump messages */
-                i=0; c=0;
-                while(i<h)
-					{
-						byte a;
-						cptr msg;
-			
-						msg = message_str(c++);
-			
-						if (chat_window) {
-							if (message_type(c-1) >= MSG_WHISPER) continue;
-						}
-			
-						a = TERM_WHITE;
-						message_color(msg, &a);
-			
-						/* Dump the message on the appropriate line */
-						Term_putstr(0, (h - 1) - i, -1, a, msg);
-			
-						/* Cursor */
-						Term_locate(&x, &y);
-			
-						/* Clear to end of line */
-						Term_erase(x, y, 255);
-					
-						i++;
-					}
-                
-                /* Fresh */
-                Term_fresh();
+                i = 0; c = 0;
+                while (i < h)
+		{
+			byte a;
+			cptr msg;
 
-                /* Restore */
-                Term_activate(old);
-        }
+			msg = message_str(c++);
+			
+			if (chat_window) {
+				if (message_type(c-1) >= MSG_WHISPER) continue;
+			}
+			
+			a = TERM_WHITE;
+			message_color(msg, &a);
+			
+			/* No wrapping, do it the old way */
+			if (!wrap_messages)
+			{
+				/* Dump the message on the appropriate line */
+				Term_putstr(0, (h - 1) - i, -1, a, msg);
+
+				/* Cursor */
+				Term_locate(&x, &y);
+			
+				/* Clear to end of line */
+				Term_erase(x, y, 255);
+
+				i++;
+			}
+			else
+			{
+				/* Dump the message on the appropriate line(s) */
+				i += prt_multi(0, (h - 1) - i, -1, -(h - i), a, msg);
+			}
+		}
+
+		/* Fresh */
+		Term_fresh();
+
+		/* Restore */
+		Term_activate(old);
+	}
 }
 
 /*
@@ -2361,7 +2442,7 @@ void display_player_stats_info()
 	int row = 2;
 	char buf[80];
         /* Display the stats */
-        for (i = 0; i < 6; i++)
+        for (i = 0; i < A_MAX; i++)
         {
                 /* Special treatment of "injured" stats */
                 if (p_ptr->stat_use[i] < p_ptr->stat_top[i])
@@ -2369,7 +2450,7 @@ void display_player_stats_info()
                         int value;
 
                         /* Use lowercase stat name */
-                        put_str(stat_names_reduced[i], row + i, 61);
+                        put_str(stat_names/*_reduced*/[i], row + i, 61);
 
                         /* Get the current stat */
                         value = p_ptr->stat_use[i];
@@ -2969,8 +3050,10 @@ void prt_indicator(int first_row, int first_col, int id)
 				}
 
 				/* Cut */
+				if (cut < 0) cut = 0;
 				if (cut)
 				{
+					if (cut >= sizeof(tmp)) cut = sizeof(tmp)-1;
 					tmp[(n = cut)] = '\0';
 				}
 
@@ -3021,7 +3104,7 @@ void redraw_stuff(void)
 	s16b row;
 	int test_ickyness;
 	int i = 0; 
-	u32b old_redraw = p_ptr->redraw;
+	u64b old_redraw = p_ptr->redraw;
 
 	/* Redraw stuff */
 	if (!p_ptr->redraw) return;
@@ -3138,6 +3221,13 @@ void window_stuff(void)
 		fix_player_1();
 	}
 
+	/* Display player (mode 2) */
+	if (p_ptr->window & (PW_PLAYER_3))
+	{
+		p_ptr->window &= ~(PW_PLAYER_3);
+		fix_player_2();
+	}
+
 	/* Display player (compact) */
 	if (p_ptr->window & (PW_PLAYER_2))
 	{
@@ -3203,5 +3293,12 @@ void window_stuff(void)
 	{
 		p_ptr->window &= ~(PW_MONLIST);
 		fix_remote_term(NTERM_WIN_MONLIST, PW_MONLIST);
+	}
+
+	/* Display Item list */
+	if (p_ptr->window & (PW_ITEMLIST))
+	{
+		p_ptr->window &= ~(PW_ITEMLIST);
+		fix_remote_term(NTERM_WIN_ITEMLIST, PW_ITEMLIST);
 	}
 }

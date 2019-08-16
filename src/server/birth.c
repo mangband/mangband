@@ -39,7 +39,7 @@ struct birther
 /*
  * Current stats
  */
-static s16b		stat_use[6];
+static s16b		stat_use[A_MAX];
 
 
 
@@ -123,18 +123,18 @@ static void get_stats(player_type *p_ptr)
 	int		i, j;
 	int		bonus;
 	int		dice[18];
-	int		stats[6];
+	int		stats[A_MAX];
 	int         n17, n16, n15;
 
 	/* Clear "stats" array */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 		stats[i] = 0;
 
 	/* Check over the given stat order, to prevent cheating */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Check range */
-		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > 5)
+		if (p_ptr->stat_order[i] < 0 || p_ptr->stat_order[i] > (A_MAX-1))
 		{
 			p_ptr->stat_order[i] = 1;
 		}
@@ -143,7 +143,7 @@ static void get_stats(player_type *p_ptr)
 		if (stats[p_ptr->stat_order[i]] == 1)
 		{
 			/* Find a stat that hasn't been specified yet */
-			for (j = 0; j < 6; j++)
+			for (j = 0; j < A_MAX; j++)
 			{
 				if (stats[j])
 					continue;
@@ -181,7 +181,7 @@ static void get_stats(player_type *p_ptr)
 	}
 
 	/* Acquire the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Extract 5 + 1d3 + 1d4 + 1d5 */
 		j = 5 + dice[3*i] + dice[3*i+1] + dice[3*i+2];
@@ -197,9 +197,9 @@ static void get_stats(player_type *p_ptr)
 
 	/* Now sort the stats */
 	/* I use a bubble sort because I'm lazy at the moment */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
-		for (j = 0; j < 5; j++)
+		for (j = 0; j < (A_MAX - 1); j++)
 		{
 			if (stats[j] < stats[j + 1])
 			{
@@ -213,13 +213,13 @@ static void get_stats(player_type *p_ptr)
 	}
 
 	/* Now, put them in the correct order */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		p_ptr->stat_max[p_ptr->stat_order[i]] = stats[i];
 	}
 
 	/* Adjust the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Obtain a "bonus" for "race" and "class" */
 		bonus = p_ptr->rp_ptr->r_adj[i] + p_ptr->cp_ptr->c_adj[i];
@@ -470,13 +470,13 @@ static void get_money(player_type *p_ptr)
 	gold = (p_ptr->sc * 6) + randint(100) + 300;
 
 	/* Process the stats */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		/* Mega-Hack -- reduce gold for high stats */
-		if (stat_use[i] >= 18+50) gold -= 300;
-		else if (stat_use[i] >= 18+20) gold -= 200;
-		else if (stat_use[i] > 18) gold -= 150;
-		else gold -= (stat_use[i] - 8) * 10;
+		if (p_ptr->stat_cur[i] >= 18+50) gold -= 300;
+		else if (p_ptr->stat_cur[i] >= 18+20) gold -= 200;
+		else if (p_ptr->stat_cur[i] > 18) gold -= 150;
+		else gold -= (p_ptr->stat_cur[i] - 8) * 10;
 	}
 
 	/* Minimum 100 gold */
@@ -502,8 +502,8 @@ void player_wipe(player_type *p_ptr)
 	monster_lore *l_ptr;
 	//byte *old_channels;
 	byte *old_arts;
-	bool *old_obj_aware;
-	bool *old_obj_tried;
+	bool *old_kind_aware;
+	bool *old_kind_tried;
 	s16b *old_r_killed;
 	byte *f_attr, *k_attr, *d_attr, *r_attr, *pr_attr;
 	char *f_char, *k_char, *d_char, *r_char, *pr_char;
@@ -516,8 +516,8 @@ void player_wipe(player_type *p_ptr)
 	old_lore = p_ptr->l_list;
 	//old_channels = p_ptr->on_channel;
 	old_arts = p_ptr->a_info;
-	old_obj_aware = p_ptr->obj_aware;
-	old_obj_tried = p_ptr->obj_tried;
+	old_kind_aware = p_ptr->kind_aware;
+	old_kind_tried = p_ptr->kind_tried;
 	old_r_killed = p_ptr->r_killed;
 	f_attr = p_ptr->f_attr; f_char = p_ptr->f_char;
 	r_attr = p_ptr->r_attr; r_char = p_ptr->r_char;
@@ -537,8 +537,8 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->l_list = old_lore;
 	//p_ptr->on_channel = old_channels;
 	p_ptr->a_info = old_arts;
-	p_ptr->obj_aware = old_obj_aware;
-	p_ptr->obj_tried = old_obj_tried;
+	p_ptr->kind_aware = old_kind_aware;
+	p_ptr->kind_tried = old_kind_tried;
 	p_ptr->r_killed = old_r_killed;
 	p_ptr->f_attr = f_attr; p_ptr->f_char = f_char;
 	p_ptr->r_attr = r_attr; p_ptr->r_char = r_char;
@@ -557,6 +557,9 @@ void player_wipe(player_type *p_ptr)
 			p_ptr->options[opt_ptr->o_uid] = opt_ptr->o_norm;
 		}
 	}
+
+	/* Default support flags */
+	p_ptr->supports_slash_fx = FALSE;
 
 	/* Wipe the birth history */
 	for (i = 0; i < 4; i++)
@@ -596,8 +599,8 @@ void player_wipe(player_type *p_ptr)
 	/* Wipe item knowledge */
 	for (i = 0; i < z_info->k_max; i++)
 	{
-		p_ptr->obj_aware[i] = FALSE;
-		p_ptr->obj_tried[i] = FALSE;
+		p_ptr->kind_aware[i] = FALSE;
+		p_ptr->kind_tried[i] = FALSE;
 	}
 
 	/* Clear "artifacts found" list */
@@ -707,7 +710,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 		p_tmp.infodata_sent[i] = p_ptr->infodata_sent[i];
 	}
 
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		p_tmp.stat_order[i] = p_ptr->stat_order[i];
 	}
@@ -743,7 +746,7 @@ void player_net_wipe(player_type *p_ptr, int reach)
 
 	if (reach)
 	{
-		for (i = 0; i < 6; i++)
+		for (i = 0; i < A_MAX; i++)
 		{
 			p_ptr->stat_order[i] = p_tmp.stat_order[i];
 		}
@@ -763,8 +766,8 @@ void player_verify_visual(player_type *p_ptr)
 
 	for (i = 0; i < MIN(MAX_FLVR_IDX, z_info->flavor_max); i++) 
 	{
-		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].x_attr;
-		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].x_char;
+		if (!p_ptr->flvr_attr[i]) p_ptr->flvr_attr[i] = flavor_info[i].d_attr;
+		if (!p_ptr->flvr_char[i]) p_ptr->flvr_char[i] = flavor_info[i].d_char;
 	}
 
 	for (i = 0; i < z_info->f_max; i++)
@@ -775,14 +778,14 @@ void player_verify_visual(player_type *p_ptr)
 			p_ptr->f_attr[i] = p_ptr->f_attr[f_info[i].mimic];
 			p_ptr->f_char[i] = p_ptr->f_char[f_info[i].mimic];
 		}
-		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].x_attr;
-		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].x_char;
+		if (!p_ptr->f_attr[i]) p_ptr->f_attr[i] = f_info[i].d_attr;
+		if (!p_ptr->f_char[i]) p_ptr->f_char[i] = f_info[i].d_char;
 	}
 
 	for (i = 0; i < z_info->k_max; i++)
 	{
-		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].x_attr);
-		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].x_char);
+		if (!p_ptr->k_attr[i]) p_ptr->k_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
+		if (!p_ptr->k_char[i]) p_ptr->k_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
 
 		if (!p_ptr->d_attr[i]) p_ptr->d_attr[i] = (k_info[i].flavor ? p_ptr->flvr_attr[k_info[i].flavor]: k_info[i].d_attr);
 		if (!p_ptr->d_char[i]) p_ptr->d_char[i] = (k_info[i].flavor ? p_ptr->flvr_char[k_info[i].flavor]: k_info[i].d_char);
@@ -790,8 +793,8 @@ void player_verify_visual(player_type *p_ptr)
 
 	for (i = 0; i < z_info->r_max; i++)
 	{
-		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].x_attr;
-		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].x_char;
+		if (!p_ptr->r_attr[i]) p_ptr->r_attr[i] = r_info[i].d_attr;
+		if (!p_ptr->r_char[i]) p_ptr->r_char[i] = r_info[i].d_char;
 	}
 
 	for (i = 0; i < 128; i++) 
@@ -843,6 +846,7 @@ static void player_outfit(player_type *p_ptr)
 	i_ptr = &object_type_body; \
 	object_prep(i_ptr, (K)); \
 	i_ptr->number = (N); \
+	i_ptr->origin = ORIGIN_BIRTH; \
 	if ( (PV) ) i_ptr->pval = (PV); \
 	object_aware((P), i_ptr); \
 	object_known(i_ptr); \
@@ -888,7 +892,10 @@ static void player_outfit(player_type *p_ptr)
 	}
 
 	/* Give a free WoR */
-	player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+	if (!cfg_ironman)
+	{
+		player_outfit_i(p_ptr, lookup_kind(TV_SCROLL, SV_SCROLL_WORD_OF_RECALL), 1, 0);
+	}
 
 	/*
 	 * Give the DM (or all players, if this is dev. mode) some interesting stuff
@@ -914,9 +921,8 @@ static void player_outfit(player_type *p_ptr)
 }
 
 static void player_admin(player_type *p_ptr);
-void player_setup(int Ind)
+void player_setup(player_type *p_ptr)
 {
-	player_type *p_ptr = Players[Ind];
 	player_type *q_ptr;
 	int y, x, i, d, k, count = 0, Depth = p_ptr->dun_depth;
 	cave_type *c_ptr;
@@ -931,7 +937,7 @@ void player_setup(int Ind)
 	for (i = 1; i <= NumPlayers; i++)
 	{
 		/* Skip this player */
-		if (i == Ind) continue;
+		if (same_player(p_ptr, Players[i])) continue;
 
 		/* Count */
 		if (Players[i]->dun_depth == Depth)
@@ -941,7 +947,8 @@ void player_setup(int Ind)
 	/* Make sure he's supposed to be here -- if not, then the level has
 	 * been unstaticed and so he should forget his memory of the old level.
 	 */
-	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0)))
+	if ((count >= players_on_depth[Depth]) || ((!cave[Depth]) && (Depth > 0))
+	    || (ht_passed(&turn_cavegen[Depth], &p_ptr->last_turn, 0)) )
 	{
 		/* Clear the "marked" and "lit" flags for each cave grid */
 		for (y = 0; y < MAX_HGT; y++)
@@ -955,6 +962,10 @@ void player_setup(int Ind)
 		 * if neccecary. */
 		if (count >= players_on_depth[Depth])
 			players_on_depth[Depth]++;
+
+		/* Hack -- ironmen get 2 extra turns of invulnerability, see #1014 */
+		if (p_ptr->dun_depth > 0 && cfg_ironman)
+			if (p_ptr->invuln == 0) set_invuln(p_ptr, p_ptr->invuln + 2);
 	}
 
 	/* Rebuild the level if neccecary */
@@ -967,14 +978,14 @@ void player_setup(int Ind)
 		{
 			/* Build a new level and put him on it */
 			alloc_dungeon_level(Depth);
-			generate_cave(Ind, Depth, option_p(p_ptr,AUTO_SCUM));
+			generate_cave(p_ptr, Depth, option_p(p_ptr,AUTO_SCUM));
 		}
 		else
 		/* rebuild the wilderness level */
 		{
 			alloc_dungeon_level(Depth);
 			/* NB: Wilderness levels do not currently honor auto_scum */
-			generate_cave(Ind, Depth, 0);
+			generate_cave(p_ptr, Depth, 0);
 			/* hack -- this is important */
 			if (!players_on_depth[Depth]) players_on_depth[Depth] = 1;
 			
@@ -984,7 +995,7 @@ void player_setup(int Ind)
 	}
 
 	/* Hack -- grid might already be occupied by us, clear it */
-	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - Ind)
+	if (cave[Depth][p_ptr->py][p_ptr->px].m_idx == 0 - p_ptr->Ind)
 		cave[Depth][p_ptr->py][p_ptr->px].m_idx = 0;
 
 	/* Re-Place the player correctly */
@@ -1001,10 +1012,10 @@ void player_setup(int Ind)
 	for (i = 0; i < num_houses; i++)
 	{
 		/* Are we inside this house? */
-		if (house_inside(Ind, i))
+		if (house_inside(p_ptr, i))
 		{
 			/* If we don't own it, get out of it */
-			if( !house_owned_by(Ind, i) )
+			if( !house_owned_by(p_ptr, i) )
 			{
 				reposition = TRUE;
 				break;
@@ -1013,7 +1024,7 @@ void player_setup(int Ind)
 			for (k = 1; k <= NumPlayers; k++ )
 			{
 				q_ptr = Players[k];
-				if(q_ptr && Ind != k)
+				if (!same_player(q_ptr, p_ptr))
 				{
 					/* Someone in here? */
 					if(q_ptr->player_store_num == i && q_ptr->store_num == 8)
@@ -1090,9 +1101,9 @@ void player_setup(int Ind)
 		/* Pick a location */
 		/* Hack -- ghosts do not scatter, as they may not be in a line of sight
 		   with a valid region */
-        if (!p_ptr->ghost)
+		if (!p_ptr->ghost)
 		{
-			// Hack -- invery require_los since scatter actually takes
+			// Hack -- invert require_los since scatter actually takes
 			// a "don't require line of sight" boolean parameter.
 			scatter(Depth, &y, &x, p_ptr->py, p_ptr->px, d, !require_los);
 
@@ -1113,7 +1124,7 @@ void player_setup(int Ind)
 	p_ptr->px = x;
 
 	/* Update the location's player index */
-	cave[Depth][y][x].m_idx = 0 - Ind;
+	cave[Depth][y][x].m_idx = 0 - p_ptr->Ind;
 
 	/* Show him to everybody */
 	everyone_lite_spot(Depth, y, x);
@@ -1134,7 +1145,10 @@ void player_setup(int Ind)
 	p_ptr->panel_row_old = p_ptr->panel_col_old = -1;
 
 	/* Make sure his party still exists */
-	if (p_ptr->party && parties[p_ptr->party].num == 0)
+	if (p_ptr->party && (
+		parties[p_ptr->party].num == 0
+		|| ht_passed(&parties[p_ptr->party].created, &p_ptr->last_turn, 0)
+	))
 	{
 		/* Reset to neutral */
 		p_ptr->party = 0;
@@ -1142,13 +1156,14 @@ void player_setup(int Ind)
 
 	/* Tell the server to redraw the player's display */
 	p_ptr->redraw |= PR_MAP | PR_EXTRA | PR_BASIC | PR_VARIOUS | PR_OFLAGS;
-	p_ptr->redraw |= PR_PLUSSES;
+	p_ptr->redraw |= PR_PLUSSES | PR_FLOOR;
 
 	/* Update his view, light, bonuses, and torch radius */
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_BONUS | PU_TORCH | PU_DISTANCE);
 
 	/* Update his inventory, equipment, and spell info */
 	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL);
+	p_ptr->window |= (PW_ITEMLIST);
 
 	/* This guy is alive now */
 	p_ptr->alive = TRUE;
@@ -1191,8 +1206,8 @@ player_type* player_alloc()
 	C_MAKE(p_ptr->a_info, z_info->a_max, byte);
 
 	/* Allocate memory for his dungeon flags array */
-	C_MAKE(p_ptr->obj_aware, z_info->k_max, bool);
-	C_MAKE(p_ptr->obj_tried, z_info->k_max, bool);
+	C_MAKE(p_ptr->kind_aware, z_info->k_max, bool);
+	C_MAKE(p_ptr->kind_tried, z_info->k_max, bool);
 	C_MAKE(p_ptr->r_killed,  z_info->r_max, s16b);
 
 	/* Allocate memory for his visuals */
@@ -1229,8 +1244,8 @@ void player_free(player_type *p_ptr)
 	if (p_ptr->a_info)
 		KILL(p_ptr->a_info);
 
-	if (p_ptr->obj_aware)	KILL(p_ptr->obj_aware);
-	if (p_ptr->obj_tried)	KILL(p_ptr->obj_tried);
+	if (p_ptr->kind_aware)	KILL(p_ptr->kind_aware);
+	if (p_ptr->kind_tried)	KILL(p_ptr->kind_tried);
 	if (p_ptr->r_killed)	KILL(p_ptr->r_killed);
 
 	if (p_ptr->f_attr)		KILL(p_ptr->f_attr);
@@ -1259,7 +1274,7 @@ void player_free(player_type *p_ptr)
  * Note that we may be called with "junk" leftover in the various
  * fields, so we must be sure to clear them first.
  */
-bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
+bool player_birth(int ind, int race, int pclass, int sex, int stat_order[])
 {
 	player_type *p_ptr = ConnPlayers(ind);
 	int i;
@@ -1340,11 +1355,11 @@ bool player_birth(int ind, int race, int pclass, int sex, int stat_order[6])
 		if (!k_ptr->name) continue;
 
 		/* No flavor yields aware */
-		if (!k_ptr->flavor) p_ptr->obj_aware[i] = TRUE;
+		if (!k_ptr->flavor) p_ptr->kind_aware[i] = TRUE;
 	}
 
 	/* Set his location, panel, etc. */
-	//player_setup(Ind);
+	//player_setup(p_ptr);
 
 	/* Success */
 	return TRUE;

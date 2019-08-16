@@ -216,7 +216,7 @@ int send_char_info() {
 	}
 
 	/* Send the desired stat order */
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < A_MAX; i++)
 	{
 		if (!cq_printf(&serv->wbuf, "%d", stat_order[i]))
 		{
@@ -248,7 +248,7 @@ int send_request(byte mode, u16b id) {
 }
 
 int send_stream_size(byte id, int rows, int cols) {
-	return cq_printf(&serv->wbuf, "%c%c%c%c", PKT_RESIZE, id, (byte)rows, (byte)cols);
+	return cq_printf(&serv->wbuf, "%c" "%c%ud%c", PKT_RESIZE, id, (u16b)rows, (byte)cols);
 }
 
 int send_visual_info(byte type) {
@@ -283,7 +283,7 @@ int send_visual_info(byte type) {
 			char_ref = Client_setup.tval_char;
 			break;
 		case VISUAL_INFO_MISC:
-			size = 256;
+			size = 1024;
 			attr_ref =	Client_setup.misc_attr;
 			char_ref =	Client_setup.misc_char;
 			break;
@@ -743,6 +743,21 @@ int recv_struct_info(connection_type *ct)
 				option_group[i] = string_make(name);
 			}
 		break;
+		/* Player Stats */
+		case STRUCT_INFO_STATS:
+			/* Alloc */
+			A_MAX = max;
+			C_MAKE(stat_names, max, char*);
+			/* Fill */
+			for (i = 0; i < max; i++)
+			{
+				if (cq_scanf(&ct->rbuf, "%s", &name) < 1)
+				{
+					return 0;
+				}
+				stat_names[i] = string_make(name);
+			}
+		break;
 		/* Player Races */
 		case STRUCT_INFO_RACE:
 			/* Alloc */
@@ -805,6 +820,7 @@ int recv_struct_info(connection_type *ct)
 			C_MAKE(eq_names, max, s16b);
 			C_MAKE(inventory_name, max, char*);
 			C_MAKE(inventory, max, object_type);
+			C_MAKE(inventory_secondary_tester, max, byte);
 			INVEN_TOTAL = max;
 			INVEN_WIELD = fake_text_size;
 			
@@ -845,6 +861,13 @@ int recv_struct_info(connection_type *ct)
 			FLOOR_INDEX = (FLOOR_NEGATIVE ? -fake_text_size : fake_text_size);
 		}
 		break;
+		/* Objflag info (rows and cols of Charsheet plusses) */
+		case STRUCT_INFO_OBJFLAGS:
+		{
+			MAX_OBJFLAGS_ROWS = max;
+			MAX_OBJFLAGS_COLS = fake_name_size;
+		}
+		break;
 	}
 
 	return 1;
@@ -858,21 +881,29 @@ int recv_option_info(connection_type *ct)
 	char desc[MAX_CHARS];
 	char name[MAX_CHARS];
 	byte
+		opt_default = FALSE,
 		opt_page = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%s%s", &opt_page, name, desc) < 3)
+	if (cq_scanf(&ct->rbuf, "%c%c%s%s", &opt_page, &opt_default, name, desc) < 4)
 	{
 		return 0;
 	}
+
+	/* Hack -- ignore most bits on opt_default (for now) */
+	opt_default = (opt_default & 0x01);
 
 	/* Grab */
 	opt_ptr = &option_info[known_options];
 
 	/* Fill */
 	opt_ptr->o_page = opt_page;
+	opt_ptr->o_norm = opt_default;
 	opt_ptr->o_text = string_make(name);
 	opt_ptr->o_desc = string_make(desc);
 	opt_ptr->o_set = 0;
+
+	/* Set default */
+	p_ptr->options[known_options] = opt_default;
 
 	/* Link to local */
 	for (n = 0; local_option_info[n].o_desc; n++)
@@ -881,6 +912,8 @@ int recv_option_info(connection_type *ct)
 		{
 			local_option_info[n].o_set = known_options;
 			opt_ptr->o_set = n;
+			/* Copy default */
+			(*local_option_info[n].o_var) = opt_default;
 		}
 	}
 
@@ -985,7 +1018,6 @@ int recv_indicator_info(connection_type *ct) {
 	s16b row = 0,
 		col = 0;
 	u32b flag = 0;
-	int n;
 
 	indicator_type *i_ptr;
 
@@ -1009,7 +1041,7 @@ int recv_indicator_info(connection_type *ct) {
 	i_ptr->pkt = pkt;
 	i_ptr->type = type;
 	i_ptr->amnt = amnt;
-	i_ptr->redraw = (1L << (known_indicators));
+	i_ptr->redraw = (1LL << (known_indicators));
 	i_ptr->row = row;
 	i_ptr->col = col;
 	i_ptr->flag = flag;
@@ -1090,6 +1122,34 @@ int recv_indicator_info(connection_type *ct) {
 	return 1;
 }
 
+int recv_slash_fx(connection_type *ct)
+{
+	byte
+		y = 0,
+		x = 0,
+		dir = 0,
+		fx = 0;
+	/* TODO: check dungeon view stream bounds
+	 * plog an error and return -1 if it doesn't fit */
+
+	if (cq_scanf(&serv->rbuf, "%c%c%c%b", &y, &x, &dir, &fx) < 4) return 0;
+
+	if (y >= p_ptr->stream_hgt[0]) return 1;
+	if (x >= p_ptr->stream_wid[0]) return 1;
+
+	/* Discard current effect */
+	sfx_delay[y][x] = 0;
+	refresh_char_aux(x, y);
+
+	/* Remember new information */
+	sfx_info[y][x].a = dir;
+	sfx_info[y][x].c = fx;
+	sfx_delay[y][x] = SLASH_FX_THRESHOLD;
+
+	return 1;
+}
+
+
 int recv_air(connection_type *ct)
 {
 	byte
@@ -1118,6 +1178,37 @@ int recv_air(connection_type *ct)
 	return 1;
 }
 
+static errr verify_stream_y(byte st, s16b y)
+{
+	stream_type	*stream = &streams[st];
+	if (y >= p_ptr->stream_hgt[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
+		return -1;
+	}
+	else if (y > stream->max_row)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting row %d, max buffer is %d)!", st, stream->mark, y, stream->max_row + 1));
+		return -1;
+	}
+	return 0;
+}
+static errr verify_stream_x(byte st, s16b x)
+{
+	stream_type	*stream = &streams[st];
+	if (x >= p_ptr->stream_wid[st] && !(stream->flag & SF_MAXBUFFER))
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
+		return -1;
+	}
+	else if (x > stream->max_col)
+	{
+		plog(format("Stream %d,'%s' is out of bounds (getting col %d, max buffer is %d)!", st, stream->mark, x, stream->max_col + 1));
+		return -1;
+	}
+	return 0;
+}
+
 /* ... */
 int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 {
@@ -1130,16 +1221,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 
 	cave_view_type *dest = stream_cave(st, y);
 
-	if (x >= p_ptr->stream_wid[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting col %d, subscribed to %d)", st, streams[st].mark, x, p_ptr->stream_wid[st]));
-		return -1;
-	}
-	if (y >= p_ptr->stream_hgt[st])
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", st, streams[st].mark, y, p_ptr->stream_hgt[st]));
-		return -1;
-	}
+	if (verify_stream_y(st, y)) return -1;
+	if (verify_stream_x(st, x)) return -1;
 
 	if (cq_scanf(&serv->rbuf, "%c%c", &a, &c) < 2) return 0;
 
@@ -1148,8 +1231,8 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	dest[x].a = a;
 	dest[x].c = c;
 
-	if (y > last_remote_line[addr]) 
-		last_remote_line[addr] = y; 
+	if (y > last_remote_line[addr])
+		last_remote_line[addr] = y;
 
 	if (addr == NTERM_WIN_OVERHEAD)
 		show_char(y, x, a, c, ta, tc, mem);
@@ -1157,14 +1240,14 @@ int read_stream_char(byte st, byte addr, bool trn, bool mem, s16b y, s16b x)
 	return 1;
 }
 int recv_stream(connection_type *ct) {
-	s16b	cols, y = 0;
+	u16b	cols, y = 0;
 	s16b	*line;
 	byte	addr, id;
 	cave_view_type	*dest;
 
 	stream_type	*stream;
 
-	if (cq_scanf(&ct->rbuf, "%d", &y) < 1) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud", &y) < 1) return 0;
 
 	id = stream_ref[next_pkt];
 	stream = &streams[id];
@@ -1172,20 +1255,15 @@ int recv_stream(connection_type *ct) {
 
 	if (!p_ptr->stream_hgt[id])
 	{
-		plog(format("Stream %d,'%s' is unexpected (getting row %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
+		plog(format("Stream %d,'%s' is unexpected (subscribed to %d rows)", id, stream->mark, p_ptr->stream_hgt[id]));
 		return -1;
 	}
 
-	/* Hack -- single char */
-	if (y & 0xFF00) return
+	if (y & 0x8000) return
 		read_stream_char(id, addr, (stream->flag & SF_TRANSPARENT), !(stream->flag & SF_OVERLAYED),
-		 (y & 0x00FF), ((y >> 8) & 0x00FF) - 1);
+		((y >> 8) & 0x007F), (y & 0xFF));
 
-	if (y >= p_ptr->stream_hgt[id] && !(stream->flag & SF_MAXBUFFER))
-	{
-		plog(format("Stream %d,'%s' is out of bounds (getting row %d, subscribed to %d)", id, stream->mark, y, p_ptr->stream_hgt[id]));
-		return -1;
-	}
+	if (verify_stream_y(id, y)) return -1;
 
 	cols = p_ptr->stream_wid[id];
 	dest = p_ptr->stream_cave[id] + y * cols;
@@ -1218,11 +1296,11 @@ int recv_stream(connection_type *ct) {
 int recv_stream_size(connection_type *ct) {
 	byte
 		stg = 0,
-		x = 0, max_x = 0,
-		y = 0, max_y = 0;
+		x = 0, max_x = 0;
 	byte	st, addr;
+	u16b	y = 0, max_y = 0;
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c", &stg, &y, &x) < 3) return 0;
+	if (cq_scanf(&ct->rbuf, "%b%ud%b", &stg, &y, &x) < 3) return 0;
 
 	/* Ensure it is valid and start from there */
 	if (stg >= known_streams) { printf("invalid stream %d (known - %d)\n", stg, known_streams); return 1;}
@@ -1280,8 +1358,9 @@ int recv_stream_info(connection_type *ct) {
 		rle = 0;
 	byte
 		min_col = 0,
+		max_col = 0;
+	u16b
 		min_row = 0,
-		max_col = 0,
 		max_row = 0;
 	char buf[MSG_LEN]; //TODO: check this 
 	char mark[MSG_LEN];
@@ -1290,7 +1369,7 @@ int recv_stream_info(connection_type *ct) {
 
 	buf[0] = '\0';
 
-	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%c%c%c%c",
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%s%s" "%ud%c%ud%c",
 			&pkt, &addr, &rle, &flag,
 			mark, buf,
 			&min_row, &min_col, &max_row, &max_col) < 10) return 0;
@@ -1334,8 +1413,7 @@ int recv_stream_info(connection_type *ct) {
 
 	stream_ref[pkt] = known_streams;
 
-	known_streams++;	
-
+	known_streams++;
 
 	return 1;
 }
@@ -1460,28 +1538,50 @@ int recv_term_header(connection_type *ct) {
 
 	if (cq_scanf(&ct->rbuf, "%b%s", &hint, buf) < 2) return 0;
 
-	/* Save header */
-	my_strcpy(special_line_header, buf, MAX_CHARS);
-
-	/* Enable perusal mode */
-	special_line_type = TRUE;
-
 	/* Ignore it if we're busy */
 	if ((screen_icky && !shopping) || looking) return 1;
 
+	/* Save header */
+	my_strcpy(special_line_header, buf, MAX_CHARS);
+
 	/* Prepare local browser route */
-	if (hint & NTERM_BROWSE)
+	if ((hint & NTERM_BROWSE) && !(hint & NTERM_POP))
 	{
 		local_browser_requested = TRUE;
-		p_ptr->last_file_line = -1;
+		/* Also "clear" the "file" buffer */
+		if (hint & NTERM_CLEAR) p_ptr->last_file_line = -1;
 	}
-	/* Prepare popup route */
-	else
+	/* Prepare remote browser / interactive mode route */
+	else if (hint & NTERM_BROWSE)
 	{
 		special_line_requested = TRUE;
 	}
+	/* Prepare popup route */
+	else if (hint & NTERM_POP)
+	{
+		simple_popup_requested = TRUE;
+	}
+	/* Do not display anything */
+	else
+	{
+		return 1;
+	}
 	/* NOTE! WE NOW BREAK THE NETWORK CYCLE! */
 	return 2;
+}
+
+/* Dangerous! "Save file" packet. */
+int recv_term_writefile(connection_type *ct)
+{
+	byte fmode;
+	char filename[MAX_CHARS];
+
+	if (cq_scanf(&ct->rbuf, "%b%s", &fmode, filename) < 2) return 0;
+
+	/* XXX XXX XXX DO ABSOLUTELY NOTHING (for now) */
+
+	/* OK */
+	return 1;
 }
 
 int recv_cursor(connection_type *ct) {
@@ -1566,10 +1666,10 @@ int recv_channel(connection_type *ct) {
 
 int recv_message(connection_type *ct) {
 	char
-		mesg[MAX_CHARS];
+		mesg[MSG_LEN];
 	u16b
 		type = 0;
-	if (cq_scanf(&ct->rbuf, "%ud%s", &type, mesg) < 2) return 0;
+	if (cq_scanf(&ct->rbuf, "%ud%S", &type, mesg) < 2) return 0;
 
 	do_handle_message(mesg, type);
 
@@ -1739,11 +1839,11 @@ int recv_ghost(connection_type *ct)
 int recv_floor(connection_type *ct)
 {
 	byte pos, tval, attr;
-	byte flag;
+	byte flag, tester;
 	s16b amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%c%c%s", &pos, &attr, &amt, &tval, &flag, name) < 5)
+	if (cq_scanf(&ct->rbuf, "%c%c%d%c%b%b%s", &pos, &attr, &amt, &tval, &flag, &tester, name) < 7)
 	{
 		return 0;
 	}
@@ -1760,6 +1860,7 @@ int recv_floor(connection_type *ct)
 	floor_item.tval = tval;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.number = amt;
+	floor_secondary_tester = tester;
 
 	my_strcpy(floor_name, name, MAX_CHARS);
 	fix_floor();
@@ -1768,12 +1869,12 @@ int recv_floor(connection_type *ct)
 
 int recv_inven(connection_type *ct)
 {
-	char pos, attr, tval;
-	byte flag;
+	byte pos, attr, tval;
+	byte flag, tester;
 	s16b wgt, amt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%c%s", &pos, &attr, &wgt, &amt, &tval, &flag, name) < 7)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%b%b%s", &pos, &attr, &wgt, &amt, &tval, &flag, &tester, name) < 8)
 	{
 		return 0;
 	}
@@ -1781,36 +1882,40 @@ int recv_inven(connection_type *ct)
 	/* Hack -- The color is stored in the sval, since we don't use it for anything else */
 	inventory[pos - 'a'].sval = attr;
 	inventory[pos - 'a'].tval = tval;
-	inventory[pos - 'a'].ident = flag;
+	inventory[pos - 'a'].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
+	inventory_secondary_tester[pos - 'a'] = tester;
 
 	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
 
+	/* Hack -- if server used this packet to send equip */
+	if (pos >= INVEN_TOTAL) p_ptr->window |= (PW_EQUIP);
+
 	return 1;
 }
 
 int recv_equip(connection_type *ct)
 {
-	char pos, attr, tval;
+	byte pos, attr, tval;
 	byte flag;
 	s16b wgt;
 	char name[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%c%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
+	if (cq_scanf(&ct->rbuf, "%c%c%ud%c%b%s", &pos, &attr, &wgt, &tval, &flag, name) < 6)
 	{
 		return 0;
 	}
 
-	inventory[pos - 'a' + INVEN_WIELD].sval = attr;
+	inventory[pos - 'a' + INVEN_WIELD].sval = attr; /* Hack -- Store "attr" in "sval" */
 	inventory[pos - 'a' + INVEN_WIELD].tval = tval;
-	inventory[pos - 'a' + INVEN_WIELD].ident = flag;
+	inventory[pos - 'a' + INVEN_WIELD].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a' + INVEN_WIELD].weight = wgt;
 	inventory[pos - 'a' + INVEN_WIELD].number = 1;
-
+	inventory_secondary_tester[pos - 'a' + INVEN_WIELD] = 0;
 
 	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
@@ -1822,14 +1927,15 @@ int recv_equip(connection_type *ct)
 
 int recv_spell_info(connection_type *ct)
 {
-	char
-		flag;
+	byte
+		flag,
+		tester;
 	u16b
 		book,
 		line;
 	char buf[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%ud%ud%s", &flag, &book, &line, buf) < 4)
+	if (cq_scanf(&ct->rbuf, "%b%b%ud%ud%s", &flag, &tester, &book, &line, buf) < 5)
 	{
 		return 0;
 	}
@@ -1843,6 +1949,7 @@ int recv_spell_info(connection_type *ct)
 	/* Save the info */
 	my_strcpy(spell_info[book][line], buf, MAX_CHARS);
 	spell_flag[book * SPELLS_PER_BOOK + line] = flag;
+	spell_test[book * SPELLS_PER_BOOK + line] = tester;
 
 	/* and wipe the next line */
 	spell_info[book][line+1][0] = '\0';
@@ -1866,15 +1973,15 @@ int recv_objflags(connection_type *ct)
 	}
 
 	/* Verify */
-	if (y < 0 || y >= 14)
+	if (y < 0 || y >= MAX_OBJFLAGS_ROWS)
 	{
-		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, 14));
+		plog(format("Object flags row is out of bounds (%d, allowed %d)", y, MAX_OBJFLAGS_ROWS));
 		return -1;
 	}
 
 	/* Body (39 grids of cave) */
-	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], 39) < 39)
-	{ 
+	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], MAX_OBJFLAGS_COLS) < MAX_OBJFLAGS_COLS)
+	{
 		return 0;
 	}
 
@@ -1926,7 +2033,7 @@ int recv_party_info(connection_type *ct)
 
 
 /* HACK -- We have connected to server < 1.5.0 -- Remove this */
-int recv_oldserver_handshake()
+int recv_oldserver_handshake(connection_type *ct)
 {
 	quit("Server version is too old.");
 	return -1;
@@ -2012,6 +2119,8 @@ int call_metaserver(char *server_name, int server_port, char *buf, int buflen)
 		network_pause(100000); /* 0.1 ms "sleep" */
 		/* Let windows process UI events: */
 		Term_xtra(TERM_XTRA_FLUSH, 0);
+		/* Let SDL2 client re-render: */
+		Term_xtra(TERM_XTRA_BORED, 0);
 	}
 	/* Will be either 1 either -1 */
 
@@ -2211,6 +2320,12 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 					st_x[j] = st_x[j] - DUNGEON_OFFSET_X;
 					/* Status and top line */
 					st_y[j] = st_y[j] - SCREEN_CLIP_L - DUNGEON_OFFSET_Y;
+
+					/* Hack -- We have a special hook */
+					if (query_size_aux)
+					{
+						query_size_aux(&st_x[j], &st_y[j], j);
+					}
 				}
 
 				/* Test bounds */
@@ -2235,3 +2350,30 @@ u32b net_term_manage(u32b* old_flag, u32b* new_flag, bool clear)
 }
 /* Helper caller for "net_term_manage" */
 u32b net_term_update(bool clear) { return net_term_manage(window_flag, window_flag, clear); }
+
+/* Re-send visual info */
+void net_visuals_update(void)
+{
+	int i;
+
+	if (state < PLAYER_PLAYING) return;
+
+	wipe_visual_prefs();
+	process_pref_file("font.prf");
+	process_pref_file("graf.prf");
+
+	gather_settings();
+
+	send_settings();
+
+	/* send_options(); */
+
+	/* Send visual preferences */
+	for (i = 0; i < VISUAL_INFO_PR + 1; i++)
+	{
+		send_visual_info(i);
+	}
+
+	/* Hack -- redraw unrelated things */
+	p_ptr->redraw = 0xFFFFFFFF;
+}

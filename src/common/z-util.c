@@ -407,6 +407,23 @@ bool prefix(cptr s, cptr t)
 
 
 /*
+ * Determine if string "t" is a suffix of string "s",
+ * case-insensitive.
+ */
+bool isuffix(cptr s, cptr t)
+{
+	size_t tlen = strlen(t);
+	size_t slen = strlen(s);
+
+	/* Check for incompatible lengths */
+	if (tlen > slen) return (FALSE);
+
+	/* Compare "t" to the end of "s" */
+	return (!my_stricmp(s + slen - tlen, t));
+}
+
+
+/*
  * Redefinable "plog" action
  */
 void (*plog_aux)(cptr) = NULL;
@@ -442,16 +459,14 @@ void quit(cptr str)
         char buf[1024];
 
         /* Save exit string */
-        if (str)
-                strncpy(buf, str, 1024);
+        if (str) my_strcpy(buf, str, 1024);
+        else buf[0] = '\0';
 
         /* Attempt to use the aux function */
-        /* This was passing buf, which is a bad idea if quit() is called with
-         * NULL [grk] */
-        if (quit_aux) (*quit_aux)(str);
+        if (quit_aux) (*quit_aux)(buf);
 
         /* Success */
-        if (!str) (void)(exit(0));
+        if (buf[0] == '\0') (void)(exit(0));
 
         /* Extract a "special error code" */
         if ((buf[0] == '-') || (buf[0] == '+')) (void)(exit(atoi(buf)));
@@ -488,4 +503,85 @@ void core(cptr str)
 
 	/* Be sure we exited */
 	quit("core() failed");
+}
+
+
+/* convert a multibyte string to a wide-character string */
+size_t (*mbcs_hook)(wchar_t *dest, const char *src, int n) = NULL;
+size_t z_mbstowcs(wchar_t *dest, const char *src, int n)
+{
+	if (mbcs_hook)
+		return (*mbcs_hook)(dest, src, n);
+	else
+		return mbstowcs(dest, src, n);
+}
+
+
+
+
+/* Compare and swap hooks */
+bool (*ang_sort_comp)(void* player_context, vptr u, vptr v, int a, int b);
+void (*ang_sort_swap)(void* player_context, vptr u, vptr v, int a, int b);
+
+/*
+ * Angband sorting algorithm -- quick sort in place
+ *
+ * Note that the details of the data we are sorting is hidden,
+ * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
+ * function hooks to interact with the data, which is given as
+ * two pointers, and which may have any user-defined form.
+ */
+void ang_sort_aux(void* player_context, vptr u, vptr v, int p, int q)
+{
+	int z, a, b;
+
+	/* Done sort */
+	if (p >= q) return;
+
+	/* Pivot */
+	z = p;
+
+	/* Begin */
+	a = p;
+	b = q;
+
+	/* Partition */
+	while (TRUE)
+	{
+		/* Slide i2 */
+		while (!(*ang_sort_comp)(player_context, u, v, b, z)) b--;
+
+		/* Slide i1 */
+		while (!(*ang_sort_comp)(player_context, u, v, z, a)) a++;
+
+		/* Done partition */
+		if (a >= b) break;
+
+		/* Swap */
+		(*ang_sort_swap)(player_context, u, v, a, b);
+
+		/* Advance */
+		a++, b--;
+	}
+
+	/* Recurse left side */
+	ang_sort_aux(player_context, u, v, p, b);
+
+	/* Recurse right side */
+	ang_sort_aux(player_context, u, v, b+1, q);
+}
+
+
+/*
+ * Angband sorting algorithm -- quick sort in place
+ *
+ * Note that the details of the data we are sorting is hidden,
+ * and we rely on the "ang_sort_comp()" and "ang_sort_swap()"
+ * function hooks to interact with the data, which is given as
+ * two pointers, and which may have any user-defined form.
+ */
+void ang_sort(void* player_context, vptr u, vptr v, int n)
+{
+	/* Sort the array */
+	ang_sort_aux(player_context, u, v, 0, n-1);
 }

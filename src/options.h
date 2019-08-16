@@ -62,6 +62,12 @@
 */
 
 
+/*
+ * OPTION: Disconnect starving players.  If defined, starving players
+ * will be kicked out of the game (to protect their characters), given
+ * they've been AFK for at least the specified number of seconds.
+ */
+#define DISCONNECT_STARVING (60 * 3)
 
 /*
  * OPTION: Allow the use of "sound" in various places.
@@ -117,7 +123,7 @@
  * result in a server that crashes more frequently, as a core dump
  * will be done instead of killing the bad connection.
  */
-#define DEBUG
+/* #define DEBUG */
 
 
 /*

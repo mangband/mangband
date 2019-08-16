@@ -19,17 +19,25 @@
 *.out
 *.app
 *.hex
+
 # VisualStudio
 *.exp
 *.iobj
 *.ipdb
 *.pdb
-build/vs*/*Debug
-build/vs*/*Release
+*.ncb
+*.suo
+*.ilk
+build/vs*/UpgradeLog.XML
+build/vs*/_UpgradeReport_Files/
+build/vs2008/*.vcproj.*
+build/vs*/*Debug*
+build/vs*/*Release*
 
-
+# Autotools
 Makefile
 Makefile.in
+autogen.sh.*
 aclocal.m4
 autom4te.cache/
 compile
@@ -43,21 +51,33 @@ install-sh
 mangband
 mangclient
 missing
-src/.dirstamp
-src/client/.deps/
-src/client/.dirstamp
-src/common/.deps/
-src/common/.dirstamp
+**/.dirstamp
+**/.deps/
 src/config.h
 src/config.h.in
-src/server/.deps/
-src/server/.dirstamp
 src/stamp-h1
 
+# Unix redist files
+*.deb
+*.rpm
+*.tar.gz
+*.tar.xz
+
+# Common redist files
 lib/bone/*.txt
 lib/user/*.txt
 lib/data/*.raw
 lib/save/*
 !lib/save/server.*
 
+# Linux redist builds
+dist/tgz/version
+dist/deb/mangband-*
+dist/deb/mangband_*
+dist/rpm/*/
+
+# Local developer files
+*.patch
+*.orig
+*.rej
 *~ # backup files of my editor -flm

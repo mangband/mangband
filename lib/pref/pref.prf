@@ -207,24 +207,40 @@ A:w0
 C:1:X
 
 # Roguelike keymap: Repeat last command
-A:^V
-C:1:'
+#A:^V
+#C:1:'
 
-# Roguelike keymap: Describe an item in the chat window
+# Roguelike keymap: Describe an item in the chat window (Brag)
 A:^D
-C:1:^I
+C:1:^V
 
 # Roguelike keymap: Buy or sell a house (Mortgage)
 A:h
-C:1:M
+C:1:O
 
 # Roguelike keymap: Use undead (Ghost) powers
 A:U
 C:1:^G
 
-# Roguelike keymap: View top player Scores list
-# A:#
-# C:1:^S
+# Roguelike keymap: View knowledge screen
+A:#
+C:1:^S
+
+# Roguelike keymap: Use socials
+A:^S
+C:1:^W
+
+# Roguelike keymap: Party menu
+A:P
+C:1:V
+
+# Roguelike keymap: Steal
+A:J
+C:1:^A
+
+# Roguelike keymap: Refill bottle
+A:^G
+C:1:_
 
 # Message colors -- disabled in mangband
 # %:message.prf
@@ -247,6 +263,9 @@ C:1:^G
 
 ?:[EQU $SYS sdl]
 %:pref-sdl.prf
+
+?:[EQU $SYS sdl2]
+%:pref-sdl2.prf
 
 ?:[EQU $SYS ami]
 %:pref-ami.prf

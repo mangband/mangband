@@ -33,14 +33,6 @@
  * clear of the current window, and redraw the borders and other things.
  *
  * XXX XXX XXX
- * The "use_graphics" option should affect ALL of the windows, not just
- * the main "screen" window.  The "FULL_GRAPHICS" option is supposed to
- * enable this behavior, but it will load one bitmap file for each of
- * the windows, which may take a lot of memory, especially since with
- * a little clever code, we could load each bitmap only when needed,
- * and only free it once nobody is using it any more.
- *
- * XXX XXX XXX
  * The user should be able to select the "bitmap" for a window independant
  * from the "font", and should be allowed to select any bitmap file which
  * is strictly smaller than the font file.  Currently, bitmap selection
@@ -76,9 +68,12 @@
 #define MNU_SUPPORT
 #define GRAPHICS
 
-static cptr GFXBMP[] = { "8x8.BMP", "8x8.BMP", "16x16.BMP", "32x32.BMP" };
+static cptr GFXBMP[] = { "8x8.PNG", "8x8.PNG", "16x16.PNG", "32x32.PNG" };
 static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
+static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "David Gervais' (32x32)" };
 #define GFXD "16x16.BMP"
+
+#define WIN32_MAX_TILESETS 3
 
 /*
  * Extract the "WIN32" flag from the compiler
@@ -126,12 +121,18 @@ static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
 #define IDM_WINDOWS_TERM_7		218
 
 #define IDM_GRAPHICS_OFF	221
-#define IDM_GRAPHICS_OLD	222
-#define	IDM_GRAPHICS_NEW	223
-#define IDM_GRAPHICS_DVG	224
-#define IDM_GRAPHICS_BIG_TILE	225
+#define IDM_GRAPHICS_BIG_TILE	222
+#define IDM_GRAPHICS_TILESET_1	223
+#define IDM_GRAPHICS_TILESET_2	224
+#define IDM_GRAPHICS_TILESET_3	225
+#define IDM_GRAPHICS_TILESET_4	226
+#define IDM_GRAPHICS_TILESET_5	227
+#define IDM_GRAPHICS_TILESET_6	228
+#define IDM_GRAPHICS_TILESET_7	229
+#define IDM_GRAPHICS_TILESET_8	230
 
-#define IDM_OPTIONS_SOUND		226
+#define IDM_OPTIONS_SOUND		301
+#define IDM_OPTIONS_MOUSE		302
 #define IDM_OPTIONS_UNUSED		231
 #define IDM_OPTIONS_SAVER		232
 
@@ -391,6 +392,7 @@ bool game_in_progress  = FALSE;  /* game in progress */
 bool initialized       = FALSE;  /* note when "open"/"new" become valid */
 bool paletted          = FALSE;  /* screen paletted, i.e. 256 colors */
 bool colors16          = FALSE;  /* 16 colors screen, don't use RGB() */
+bool use_mouse         = FALSE;  /* game accepts mouse */
 
 /*
  * Saved instance handle
@@ -598,6 +600,11 @@ void stretch_chat_ctrl( void )
 	SetWindowPos(editmsg, 0, 2, win_data[4].client_hgt-21,
 	             win_data[4].client_wid-6, 20,
 	             SWP_NOZORDER);
+}
+
+int win32_window_visible(int i)
+{
+	return (bool)win_data[i].visible;
 }
 
 /*
@@ -870,6 +877,8 @@ static void save_prefs(void)
 #ifdef USE_SOUND
 	conf_set_int("Windows32", "Sound", use_sound);
 #endif
+	conf_set_int("Windows32", "GameMouse", use_mouse);
+
 	save_prefs_aux(&win_data[0], "Main window");
 
 	/* XXX XXX XXX XXX */
@@ -940,6 +949,9 @@ static void load_prefs(void)
 	/* Extract the "use_sound" flag */
 	use_sound = (conf_get_int("Windows32", "Sound", 0) != 0);
 #endif
+
+	/* Extract the "use_mouse" flag */
+	use_mouse = (conf_get_int("Windows32", "GameMouse", 1) == 1);
 
 	/* Load window prefs */
 	load_prefs_aux(&win_data[0], "Main window");
@@ -1147,7 +1159,28 @@ static void term_window_resize(term_data *td)
 	InvalidateRect(td->w, NULL, TRUE);
 }
 
+/*
+ * See if any other term is already using font_file
+ */
+static bool term_font_inuse(term_data* td)
+{
+	int i;
+	bool used = FALSE;
 
+	/* Scan windows */
+	for (i = 0; i < MAX_TERM_DATA; i++)
+	{
+		/* Check "screen" */
+		if ((td != &win_data[i]) &&
+		    (win_data[i].font_file) &&
+		    (streq(win_data[i].font_file, td->font_file)))
+		{
+			used = TRUE;
+			break;
+		}
+	}
+	return used;
+}
 
 /*
  * Force the use of a new "font file" for a term_data
@@ -1177,19 +1210,7 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Forget old font */
 	if (td->font_file)
 	{
-		bool used = FALSE;
-
-		/* Scan windows */
-		for (i = 0; i < MAX_TERM_DATA; i++)
-		{
-			/* Check "screen" */
-			if ((td != &win_data[i]) &&
-			    (win_data[i].font_file) &&
-			    (streq(win_data[i].font_file, td->font_file)))
-			{
-				used = TRUE;
-			}
-		}
+		bool used = term_font_inuse(td);
 
 		/* Remove unused font resources */
 		if (!used) RemoveFontResource(td->font_file);
@@ -1244,10 +1265,14 @@ static errr term_force_font(term_data *td, cptr name)
 	/* Save new font name */
 	td->font_file = string_make(buf);
 
-	/* Load the new font or quit */
-	if (!AddFontResource(buf))
+	/* If this font is used for the first time */
+	if (!term_font_inuse(td))
 	{
-		quit_fmt("Font file corrupted:\n%s", buf);
+		/* Load the new font or quit */
+		if (!AddFontResource(buf))
+		{
+			quit_fmt("Font file corrupted:\n%s", buf);
+		}
 	}
 
 	/* Create the font XXX XXX XXX Note use of "base" */
@@ -1303,7 +1328,7 @@ static errr term_force_font(term_data *td, cptr name)
  */
 static errr term_force_graf(term_data *td, cptr name)
 {
-	int i;
+	int i, is_png = 0;
 
 	int wid, hgt;
 
@@ -1314,12 +1339,6 @@ static errr term_force_graf(term_data *td, cptr name)
 	char base_graf[16];
 
 	char buf[1024];
-
-	HBITMAP scaled_gfx;
-	HDC  hdc;
-	HDC hdcSrc;
-	HDC hdcDest;
-	HBITMAP hbmSrcOld;
 
 	/* No name */
 	if (!name) return (1);
@@ -1349,10 +1368,12 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Require actual sizes */
 	if (!wid || !hgt) return (1);
 
+	/* Check if we need PNG loader */
+	if (isuffix(s, ".png")) is_png = TRUE;
+
 	/* Build base_graf */
 	strcpy(base_graf, base);
-	strcat(base_graf, ".BMP");
-
+	strcat(base_graf, is_png ? ".PNG" : ".BMP");
 
 	/* Access the graf file */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_GRAF, base_graf);
@@ -1360,28 +1381,40 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Verify file */
 	if (!check_file(buf)) return (1);
 
-
-	/* Load the bitmap or quit */
-	if (!ReadDIB(td->w, buf, &infGraph))
+	/* Note: PNG loader will extract the mask from the alpha
+	 * channel, or assume colorkey is at pixel0,0 */
+	if (is_png)
 	{
-		quit_fmt("Bitmap corrupted:\n%s", buf);
+		/* Load the png or quit */
+ 		if (!ReadDIB2_PNG(td->w, buf, &infGraph, &infMask, FALSE)) 
+		{
+			quit_fmt("Cannot read file '%s'", buf);
+		}
 	}
+	else
+	{
+		/* Load the bitmap or quit */
+		if (!ReadDIB(td->w, buf, &infGraph))
+		{
+			quit_fmt("Bitmap corrupted:\n%s", buf);
+		}
 
+		/* Load mask, if appropriate */
+		if (GFXMASK[use_graphics])
+		{
+			/* Access the mask file */
+			path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
+
+			/* Load the bitmap or quit */
+			if (!ReadDIB(win_data[0].w, buf, &infMask))
+			{
+				quit_fmt("Cannot read bitmap mask file '%s'", buf);
+			}
+		}
+	}
 	/* Save the new sizes */
 	infGraph.CellWidth = wid;
 	infGraph.CellHeight = hgt;
-
-	if (GFXMASK[use_graphics])
-	{
-		/* Access the mask file */
-		path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
-
-		/* Load the bitmap or quit */
-		if (!ReadDIB(win_data[0].w, buf, &infMask))
-		{
-			quit_fmt("Cannot read bitmap mask file '%s'", buf);
-		}
-	}
 
 	/* Copy the picture from the bitmap to the window */
 //	BitBlt(hdc, x2, y2, w1, h1, hdcSrc, x1, y1, SRCCOPY);
@@ -1413,11 +1446,24 @@ static errr term_force_graf(term_data *td, cptr name)
 static void term_change_font(term_data *td)
 {
 	OPENFILENAME ofn;
-
-	char tmp[128] = "";
+	TCHAR fullFileName[2048];
+	char tmp[1024] = "";
 
 	/* Extract a default if possible */
 	if (td->font_file) strcpy(tmp, td->font_file);
+
+	/* No default? Let's build it */
+	if (STRZERO(tmp))
+	{
+		strnfmt(tmp, 1024, "%s%s", ANGBAND_DIR_XTRA_FONT, "\\*.fon");
+	}
+
+	/* Resolve absolute path */
+	if (_fullpath(fullFileName, tmp, 2048) == NULL)
+	{
+		/* Complete and utter despair... */
+		strcpy(fullFileName, "\\*.fon");
+	}
 
 	/* Ask for a choice */
 	memset(&ofn, 0, sizeof(ofn));
@@ -1425,9 +1471,10 @@ static void term_change_font(term_data *td)
 	ofn.hwndOwner = win_data[0].w;
 	ofn.lpstrFilter = "Font Files (*.fon)\0*.fon\0";
 	ofn.nFilterIndex = 1;
-	ofn.lpstrFile = tmp;
+	ofn.lpstrFile = fullFileName;
 	ofn.nMaxFile = 128;
-	ofn.lpstrInitialDir = ANGBAND_DIR_XTRA_FONT;
+	ofn.lpstrInitialDir = NULL;
+
 	ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 	ofn.lpstrDefExt = "fon";
 
@@ -1435,7 +1482,7 @@ static void term_change_font(term_data *td)
 	if (GetOpenFileName(&ofn))
 	{
 		/* Force the font */
-		if (term_force_font(td, tmp))
+		if (term_force_font(td, fullFileName))
 		{
 			/* Oops */
 			(void)term_force_font(td, "8X13.FON");
@@ -1852,7 +1899,7 @@ static errr Term_xtra_win(int n, int v)
 
 		/* React to global changes */
 		case TERM_XTRA_REACT:
-		return (Term_xtra_win_react());
+		return (v == 0 ? Term_xtra_win_react() : 0);
 
 		/* Delay for some milliseconds */
 		case TERM_XTRA_DELAY:
@@ -1969,15 +2016,6 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		/* First, erase the grid */
 		return (Term_wipe_win(x, y, 1));
 	}
-
-#ifndef FULL_GRAPHICS
-	/* Paranoia -- handle weird requests */
-	if (td != &win_data[0])
-	{
-		/* First, erase the grid */
-		return (Term_wipe_win(x, y, 1));
-	}
-#endif
 
 	Term_wipe_win(x, y, n);
 
@@ -2400,6 +2438,53 @@ static void init_windows(void)
 	(void)Term_xtra_win_flush();
 }
 
+
+static char* has_addr_aux(cptr pmsgbuf, int mode, char* addrbuf, size_t addrmax, size_t* addrlen)
+{
+	int offset,breakpoint,nicklen;
+	char * startmsg;
+	char search_for = ':';
+	offset = 0;
+	if (mode == 1)
+	{
+		search_for = ' ';
+		if (pmsgbuf[0] != '#')
+		{
+			*addrlen = 0;
+			return pmsgbuf;
+		}
+	}
+	for (startmsg = pmsgbuf; *startmsg ; startmsg++ ) {
+		if( *startmsg==search_for ) break;
+	};
+	if( *startmsg  && (startmsg-pmsgbuf<addrmax) ) {
+		strncpy(addrbuf,pmsgbuf,(startmsg-pmsgbuf)+1);
+		nicklen=strlen(addrbuf);
+		startmsg+=1;
+		while (*startmsg == ' ') startmsg+=1;
+	} else {
+		startmsg=pmsgbuf;
+		nicklen=0;
+	};
+	*addrlen = nicklen;
+	return startmsg;
+}
+static char* has_addr(cptr msg, char* addrbuf, size_t addrmax, size_t* addrlen)
+{
+	char *r;
+	/* Check channel */
+	r = has_addr_aux(msg, 1, addrbuf, addrmax, addrlen);
+	if (*addrlen > 0) return r;
+
+	/* Check privmsg */
+	r = has_addr_aux(msg, 0, addrbuf, addrmax, addrlen);
+	if (*addrlen > 0) return r;
+
+	/* OK, got nothing */
+	*addrlen = 0;
+	return msg;
+}
+
 /* hack - edit control subclass [grk] */
 LRESULT APIENTRY SubClassFunc(   HWND hWnd,
                UINT Message,
@@ -2407,34 +2492,48 @@ LRESULT APIENTRY SubClassFunc(   HWND hWnd,
                LPARAM lParam)
 {
 	char pmsgbuf[1000]; /* overkill */
-	char pmsg[60];
+	char pmsg[MSG_LEN + 2];
 	char nickbuf[30];
 
 	/* Allow ESCAPE to return focus to main window. */
-	if( Message == WM_KEYDOWN )
+	if( Message == WM_KEYDOWN ) {
 		if( wParam == VK_ESCAPE ){
 		unset_chat_focus();
 		return 0;
+		}
+		if (wParam == 33) { /* PGUP */
+			cmd_chat_cycle(-1);
+			return 0;
+		}
+		if (wParam == 34) { /* PGDN */
+			cmd_chat_cycle(+1);
+			return 0;
+		}
 	}
 
 	if ( Message == WM_CHAR ) {
 		/* Is this RETURN ? */
 		if( wParam == 13 || wParam == 10000) {
+			int CUTOFF=0;
 			int msglen=0;
 			memset(nickbuf,0,22);
 
 			/* Get the controls text and send it */
 			msglen = GetWindowText(editmsg, pmsgbuf, 999);
 
-			/* Send the text in chunks of 58 characters,
-			   or nearest break before 58 chars */
+			/* Send the text in chunks of CUTOFF characters,
+			   or nearest break before CUTOFF chars */
 
 			if( msglen == 0 ){
 			    unset_chat_focus();
 			    return 0;
 			}
+			/* Max message length depends on our nick (known)
+			 * and recepient nick (unknown, assume max length) */
+			CUTOFF = MSG_LEN - strlen(nick) - 3; /* 3 is for decorative symbols */
+			CUTOFF -= (MAX_NAME_LEN+1); /* +1 for ':' symbol in private messages */
 /*RLS*/
-			if( msglen < 58 ){
+			if( msglen < CUTOFF ){
 				send_msg(pmsgbuf);
 			} else{
 				int offset,breakpoint,nicklen;
@@ -2443,34 +2542,24 @@ LRESULT APIENTRY SubClassFunc(   HWND hWnd,
 
 				/* see if this was a privmsg, if so, pull off the nick */
 
-				for(startmsg=pmsgbuf; *startmsg ; startmsg++ ) {
-					if( *startmsg==':' ) break;
-				};
-				if( *startmsg  && (startmsg-pmsgbuf<29) ) {
-					strncpy(nickbuf,pmsgbuf,(startmsg-pmsgbuf)+1);
-					nicklen=strlen(nickbuf);
-					startmsg+=2;
-				} else {
-					startmsg=pmsgbuf;
-					nicklen=0;
-				};
+				startmsg = has_addr(pmsgbuf, nickbuf, 29, &nicklen);
 
 				/* now deal with what's left */
 
 				while(msglen>0){
-					memset(pmsg,0,60);
+					memset(pmsg,0,MSG_LEN);
 
-					if(msglen<(58-nicklen)){
+					if(msglen<CUTOFF){
 						breakpoint=msglen;
 					} else{
 						/* try to find a breaking char */
-						for(breakpoint=58-nicklen; breakpoint>0; breakpoint--) {
+						for(breakpoint=CUTOFF; breakpoint>0; breakpoint--) {
 							if( startmsg[offset+breakpoint] == ' ' ) break;
 							if( startmsg[offset+breakpoint] == ',' ) break;
 							if( startmsg[offset+breakpoint] == '.' ) break;
 							if( startmsg[offset+breakpoint] == ';' ) break;
 						};
-						if(!breakpoint) breakpoint=58-nicklen; 	/* nope */
+						if(!breakpoint) breakpoint=CUTOFF; /* nope */
 					}
 
 					/* if we pulled off a nick above, prepend it. */
@@ -2553,15 +2642,28 @@ static void setup_menus(void)
 	/* Item "Graphics - Off" */
 	CheckMenuItem(hm, IDM_GRAPHICS_OFF,
 	              MF_BYCOMMAND | (!next_graphics ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - Old" */
-	CheckMenuItem(hm, IDM_GRAPHICS_OLD,
-	              MF_BYCOMMAND | (next_graphics == 1 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - New" */
-	CheckMenuItem(hm, IDM_GRAPHICS_NEW,
-	              MF_BYCOMMAND | (next_graphics == 2 ? MF_CHECKED : MF_UNCHECKED));
-	/* Item "Graphics - DVG" */
-	CheckMenuItem(hm, IDM_GRAPHICS_DVG,
-	              MF_BYCOMMAND | (next_graphics == 3 ? MF_CHECKED : MF_UNCHECKED));
+
+	/* Item "Graphics - Tileset N" */
+	for (i = 0; i < 8; i++)
+	{
+		/* Replace "Tileset N" string with actual tileset name */
+		if (i < WIN32_MAX_TILESETS)
+		{
+			MENUITEMINFO menuitem = { sizeof(MENUITEMINFO) };
+			GetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+			menuitem.fMask = MIIM_TYPE | MIIM_DATA;
+			menuitem.dwTypeData = GFXTITLE[i + 1];
+			SetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
+		}
+
+		/* Item "Graphics - Tileset N" */
+		CheckMenuItem(hm, IDM_GRAPHICS_TILESET_1 + i,
+		              MF_BYCOMMAND | (next_graphics == 1 + i ? MF_CHECKED : MF_UNCHECKED));
+
+		/* XXX Delete unused menu entries */
+		if (i >= WIN32_MAX_TILESETS && next_graphics < i + 1)
+		RemoveMenu(hm, IDM_GRAPHICS_TILESET_1 + i, MF_BYCOMMAND);
+	}
 
 	/* Item "Graphics - Respect Tile Size?" */
 	CheckMenuItem(hm, IDM_GRAPHICS_BIG_TILE,
@@ -2572,6 +2674,10 @@ static void setup_menus(void)
 	CheckMenuItem(hm, IDM_OPTIONS_SOUND,
 	              MF_BYCOMMAND | (use_sound ? MF_CHECKED : MF_UNCHECKED));
 #endif
+
+	/* Item "Mouse" */
+	CheckMenuItem(hm, IDM_OPTIONS_MOUSE,
+	              MF_BYCOMMAND | (use_mouse ? MF_CHECKED : MF_UNCHECKED));
 
 #ifdef BEN_HACK
 	/* Item "Colors 16" */
@@ -2736,21 +2842,17 @@ static void process_menus(WORD wCmd)
 			set_graphics_next(0);
 			break;
 		}
-		case IDM_GRAPHICS_OLD:
+		case IDM_GRAPHICS_TILESET_1:
+		case IDM_GRAPHICS_TILESET_2:
+		case IDM_GRAPHICS_TILESET_3:
+		case IDM_GRAPHICS_TILESET_4:
+		case IDM_GRAPHICS_TILESET_5:
+		case IDM_GRAPHICS_TILESET_6:
+		case IDM_GRAPHICS_TILESET_7:
+		case IDM_GRAPHICS_TILESET_8:
 		{
-			set_graphics_next(1);
+			set_graphics_next(wCmd - IDM_GRAPHICS_TILESET_1 + 1);
 			break;
-		}
-		case IDM_GRAPHICS_NEW:
-		{
-			set_graphics_next(2);
-			break;
-		}
-		case IDM_GRAPHICS_DVG:
-		{
-			set_graphics_next(3);
-			break;
-		
 			/* no support -GP */
 			/* React to changes */
 			//Term_xtra_win_react();
@@ -2785,6 +2887,12 @@ static void process_menus(WORD wCmd)
 		{
 			use_sound = !use_sound;
 			Term_xtra_win_react();
+			break;
+		}
+
+		case IDM_OPTIONS_MOUSE:
+		{
+			use_mouse = !use_mouse;
 			break;
 		}
 
@@ -2958,6 +3066,59 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		case WM_CHAR:
 		{
 			Term_keypress(wParam);
+			return 0;
+		}
+
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+#if define(WM_XBUTTONDOWN)
+		case WM_XBUTTONDOWN:
+#endif
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+			int button = 1;
+
+			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
+			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
+			if (!Term) return 1;  /* no active terminal yet */
+
+			x = x / td->font_wid;
+			y = y / td->font_hgt;
+
+			/* Which button */
+			if (uMsg == WM_LBUTTONDOWN) button = 1;
+			if (uMsg == WM_MBUTTONDOWN) button = 2;
+			if (uMsg == WM_RBUTTONDOWN) button = 3;
+#if defined(WM_XBUTTONDOWN)
+			if (uMsg == WM_XBUTTONDOWN) button = 3 + HIWORD(wParam);
+#endif
+
+			/* Extract the modifiers */
+			if (GetKeyState(VK_CONTROL) & 0x8000) button |= 16;
+			if (GetKeyState(VK_SHIFT)   & 0x8000) button |= 32;
+			if (GetKeyState(VK_MENU)    & 0x8000) button |= 64;
+
+			if (!use_mouse) return 0; /* No in-game mouse */
+
+			Term_mousepress(x, y, button);
+			return 0;
+		}
+
+		case WM_MOUSEMOVE:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			if (!td) return 1;    /* this message was sent before WM_NCCREATE */
+			if (!td->w) return 1; /* it was sent from inside CreateWindowEx */
+			if (!Term) return 1;  /* no active terminal yet */
+
+			x = x / td->font_wid;
+			y = y / td->font_hgt;
+
+			Term_mousepress(x, y, 0);
 			return 0;
 		}
 
@@ -3471,7 +3632,7 @@ static void hack_quit(cptr str)
 	save_prefs();
 	
 	/* Give a warning */
-	if (str) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
+	if (str && str[0]) MessageBox(NULL, str, "Error", MB_OK | MB_ICONSTOP);
 
 	/* Sub-Windows */
 	for (i = MAX_TERM_DATA - 1; i >= 1; i--)
@@ -3605,9 +3766,6 @@ static void hook_quit(cptr str)
 	//network_done();
 
 	/* Free strings */
-#ifdef USE_SOUND	
-	string_free(ANGBAND_DIR_XTRA_SOUND);
-#endif
 
 	exit(0);
 }
@@ -3654,8 +3812,10 @@ void static init_stuff_win(void)
 
 /*	validate_dir(ANGBAND_DIR_APEX); *//*on server */
 /*	validate_dir(ANGBAND_DIR_EDIT); */
-	validate_dir(ANGBAND_DIR_FILE);
-	validate_dir(ANGBAND_DIR_HELP);
+/*	validate_dir(ANGBAND_DIR_FILE); */
+/*	validate_dir(ANGBAND_DIR_HELP); */
+	validate_dir(ANGBAND_DIR_BONE);
+	validate_dir(ANGBAND_DIR_PREF);
 	validate_dir(ANGBAND_DIR_USER);
 	validate_dir(ANGBAND_DIR_XTRA);	  /*sounds & graphics */
 
@@ -3697,12 +3857,6 @@ void static init_stuff_win(void)
 
 
 #ifdef USE_SOUND
-
-	/* Build the "sound" path */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "sound");
-
-	/* Allocate the path */
-	ANGBAND_DIR_XTRA_SOUND = string_make(path);
 
 	/* Validate the "sound" directory */
 	validate_dir(ANGBAND_DIR_XTRA_SOUND);
