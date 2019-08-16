@@ -39,15 +39,17 @@
 		2EB0AFC22306B4A1003B13E7 /* parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFBE2306B4A1003B13E7 /* parser.c */; };
 		2EB0AFC32306B4A1003B13E7 /* z-bitflag.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFBF2306B4A1003B13E7 /* z-bitflag.c */; };
 		2EB0AFE32306B735003B13E7 /* mangclient.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2EB0AFE22306B735003B13E7 /* mangclient.icns */; };
-		2EB0AFE62306B7CE003B13E7 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EB0AFE52306B7CE003B13E7 /* SDL2.framework */; };
 		2EB0AFE82306B85B003B13E7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EB0AFE72306B85B003B13E7 /* Cocoa.framework */; };
 		2EB0AFEB2306B884003B13E7 /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFE92306B884003B13E7 /* ui.c */; };
 		2EB0AFF02306B8A4003B13E7 /* sdl-sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFEE2306B8A4003B13E7 /* sdl-sound.c */; };
 		2EB0AFF12306B8A4003B13E7 /* sdl-font.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFEF2306B8A4003B13E7 /* sdl-font.c */; };
 		2EB0AFF72306B8CB003B13E7 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFF42306B8CB003B13E7 /* miniz.c */; };
 		2EB0AFF82306B8CB003B13E7 /* lupng.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0AFF52306B8CB003B13E7 /* lupng.c */; };
-		2EB0B0212307065B003B13E7 /* SDL2_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EB0B0202307065B003B13E7 /* SDL2_ttf.framework */; };
 		2EB0B02423070721003B13E7 /* appl-dir.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EB0B02223070721003B13E7 /* appl-dir.m */; };
+		2ED92EF423071B9000D9E84A /* SDL2_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF223071B9000D9E84A /* SDL2_ttf.framework */; };
+		2ED92EF523071B9000D9E84A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF323071B9000D9E84A /* SDL2.framework */; };
+		2ED92EF823071C8700D9E84A /* SDL2_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF623071C8700D9E84A /* SDL2_ttf.framework */; };
+		2ED92EF923071C8700D9E84A /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF723071C8700D9E84A /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -134,7 +136,6 @@
 		2EB0AFBF2306B4A1003B13E7 /* z-bitflag.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "z-bitflag.c"; path = "../../src/common/z-bitflag.c"; sourceTree = "<group>"; };
 		2EB0AFC02306B4A1003B13E7 /* z-file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "z-file.h"; path = "../../src/common/z-file.h"; sourceTree = "<group>"; };
 		2EB0AFE22306B735003B13E7 /* mangclient.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = mangclient.icns; sourceTree = "<group>"; };
-		2EB0AFE52306B7CE003B13E7 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 		2EB0AFE72306B85B003B13E7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		2EB0AFE92306B884003B13E7 /* ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ui.c; path = ../../src/client/ui.c; sourceTree = "<group>"; };
 		2EB0AFEA2306B884003B13E7 /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ui.h; path = ../../src/client/ui.h; sourceTree = "<group>"; };
@@ -146,9 +147,12 @@
 		2EB0AFF42306B8CB003B13E7 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../src/client/lupng/miniz.c; sourceTree = "<group>"; };
 		2EB0AFF52306B8CB003B13E7 /* lupng.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lupng.c; path = ../../src/client/lupng/lupng.c; sourceTree = "<group>"; };
 		2EB0AFF62306B8CB003B13E7 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../src/client/lupng/miniz.h; sourceTree = "<group>"; };
-		2EB0B0202307065B003B13E7 /* SDL2_ttf.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2_ttf.framework; path = ../../../../../../Library/Frameworks/SDL2_ttf.framework; sourceTree = "<group>"; };
 		2EB0B02223070721003B13E7 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/ios/appl-dir.m"; sourceTree = "<group>"; };
 		2EB0B02323070721003B13E7 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/ios/appl-dir.h"; sourceTree = "<group>"; };
+		2ED92EF223071B9000D9E84A /* SDL2_ttf.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2_ttf.framework; sourceTree = "<group>"; };
+		2ED92EF323071B9000D9E84A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2.framework; sourceTree = "<group>"; };
+		2ED92EF623071C8700D9E84A /* SDL2_ttf.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2_ttf.framework; sourceTree = "<group>"; };
+		2ED92EF723071C8700D9E84A /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SDL2.framework; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* mangclient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mangclient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -157,9 +161,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2ED92EF923071C8700D9E84A /* SDL2.framework in Frameworks */,
+				2ED92EF823071C8700D9E84A /* SDL2_ttf.framework in Frameworks */,
+				2ED92EF423071B9000D9E84A /* SDL2_ttf.framework in Frameworks */,
+				2ED92EF523071B9000D9E84A /* SDL2.framework in Frameworks */,
 				2EB0AFE82306B85B003B13E7 /* Cocoa.framework in Frameworks */,
-				2EB0AFE62306B7CE003B13E7 /* SDL2.framework in Frameworks */,
-				2EB0B0212307065B003B13E7 /* SDL2_ttf.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,8 +295,9 @@
 		2EB0AFE42306B7CE003B13E7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2ED92EF623071C8700D9E84A /* SDL2_ttf.framework */,
+				2ED92EF723071C8700D9E84A /* SDL2.framework */,
 				2EB0AFE72306B85B003B13E7 /* Cocoa.framework */,
-				2EB0AFE52306B7CE003B13E7 /* SDL2.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -309,7 +316,8 @@
 		2EB0B00D2306F4A1003B13E7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				2EB0B0202307065B003B13E7 /* SDL2_ttf.framework */,
+				2ED92EF223071B9000D9E84A /* SDL2_ttf.framework */,
+				2ED92EF323071B9000D9E84A /* SDL2.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -433,6 +441,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(PROJECT_DIR)",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -440,9 +449,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
 				HEADER_SEARCH_PATHS = (
-					/Library/Frameworks/SDL2_ttf.framework/Headers,
-					/Library/Frameworks/SDL2.framework/Headers,
-					/Library/Frameworks/SDL2_image.framework/Headers,
+					SDL2_ttf.framework/Headers,
+					SDL2.framework/Headers,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -452,6 +460,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.mangclient-sdl2";
 				PRODUCT_NAME = mangclient;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -464,6 +473,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(PROJECT_DIR)",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -477,6 +487,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.mangclient-sdl2";
 				PRODUCT_NAME = mangclient;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
