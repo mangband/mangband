@@ -136,18 +136,31 @@ bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
 void Term2_screen_keyboard(int show, int hint);
 
-/* Helper */
+/* Helpers */
+
+/* There are some bugs in SDL2, so sadly, here's what we do: */
+static void getRendererSize(TermData *td, int *w, int *h)
+{
+	//SDL_GetWindowSize(td->window, w, h);
+#ifdef ON_OSX
+	/* On OSX, this seems to be more reliable */
+	SDL_GL_GetDrawableSize(td->window, w, h);
+#else
+	/* Assume there are no further bugs... */
+	SDL_GetRendererOutputSize(td->renderer, w, h);
+#endif
+}
 static bool isHighDPI(void)
 {
 	int i = 0;
-#if 1
+#if 0
 	Uint32 hd = SDL_GetWindowFlags(terms[i].window);
 	return (hd & SDL_WINDOW_ALLOW_HIGHDPI);
 #else
-    int winW, winH, highW, highH;
-    SDL_GetWindowSize(terms[i].window, &winW, &winH);
-    SDL_GetRendererOutputSize(terms[i].renderer, &highW, &highH);
-    return (winW == highW && winH == highH) ? FALSE : TRUE;
+	int winW, winH, highW, highH;
+	SDL_GetWindowSize(terms[i].window, &winW, &winH);
+	getRendererSize(&terms[i], &highW, &highH);
+	return (winW == highW && winH == highH) ? FALSE : TRUE;
 #endif
 }
 static void mobileAutoLayout(void)
@@ -157,7 +170,7 @@ static void mobileAutoLayout(void)
 	int w = td->font_data->w;
 	int h = td->font_data->h;
 
-	SDL_GetRendererOutputSize(td->renderer, &maxw, &maxh);
+	getRendererSize(td, &maxw, &maxh);
 
 	maxh -= 32;
 
@@ -682,8 +695,10 @@ static errr refreshTerm(TermData *td) {
   if (td->config & TERM_IS_VIRTUAL || td->id == 0) {
     w = td->ren_rect.w; h = td->ren_rect.h;
   } else {
-	  /* SDL_GetWindowSize(td->window, &w, &h); */
-	  SDL_GetRendererOutputSize(td->renderer, &w, &h);
+	  getRendererSize(td, &w, &h);
+	  /* HACK -- on OSX, newly created window has size of 1x1,
+	   * let's just say it's unusable... */
+	  if (w == 1 && h == 1) return -1;
   }
   if (td->fb_w == w && td->fb_h == h) return 0;
   if (td->framebuffer) SDL_DestroyTexture(td->framebuffer);
@@ -1651,8 +1666,7 @@ static void termSizeScreen(SDL_Rect *screen, int term_id)
 	else
 	{
 		SDL_GetWindowPosition(td->window, &screen->x, &screen->y);
-		/* SDL_GetWindowSize(td->window, &screen->w, &screen->h); */
-		SDL_GetRendererOutputSize(td->renderer, &screen->w, &screen->h);
+		getRendererSize(td, &screen->w, &screen->h);
 	}
 }
 
@@ -1810,7 +1824,7 @@ static void normalizeMouseCoordinates(int i, int *x, int *y, int sx, int sy)
 	float scaleX, scaleY;
 
 	SDL_GetWindowSize(terms[i].window, &winW, &winH);
-	SDL_GetRendererOutputSize(terms[i].renderer, &highW, &highH);
+	getRendererSize(&terms[i], &highW, &highH);
 
 	scaleX = (float)highW / winW;
 	scaleY = (float)highH / winH;
