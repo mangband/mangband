@@ -601,10 +601,10 @@ static bool auto_pickup_okay(const player_type *p_ptr, const object_type *o_ptr)
 	//if (!inven_carry_okay(o_ptr)) return (FALSE);
 
 	/* No inscription */
-	if (!o_ptr->note) return (FALSE);
+	//if (!o_ptr->note) return (FALSE);
 
 	/* Find a '=' */
-	s = strchr(quark_str(o_ptr->note), '=');
+	s = o_ptr->note ? strchr(quark_str(o_ptr->note), '=') : NULL;
 
 	/* Process inscription */
 	while (s)
@@ -620,10 +620,11 @@ static bool auto_pickup_okay(const player_type *p_ptr, const object_type *o_ptr)
 	if (option_p(p_ptr,PICKUP_INVEN))
 	{
 		/* Compare each inventory item :( */
-		for (i = INVEN_PACK; i < INVEN_TOTAL; i++)
+		for (i = 0; i < INVEN_PACK; i++)
 		{
 			/* Skip non-items */
 			if (!p_ptr->inventory[i].k_idx) continue;
+
 			/* Stackable? */
 			if (object_similar(p_ptr, &p_ptr->inventory[i], o_ptr))
 			{
