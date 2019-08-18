@@ -3612,6 +3612,8 @@ void interact_macros(void)
 	static bool old_school_macros = FALSE;
 	byte km_mode = 0;
 
+	int opt_page = 0;
+
 	char tmp[160], buf[1024], tmp_buf[160];
 	char* str;
 	tmp_buf[0] = '\0';
@@ -3655,6 +3657,9 @@ void interact_macros(void)
 
 
 		/* Selections */
+		if (opt_page == 0)
+		{
+
 		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load macros");
 		Term_putstr(5,  5, -1, TERM_WHITE, "(2) Save macros");
 		Term_putstr(5,  6, -1, TERM_WHITE, "(3) Enter a new action");
@@ -3662,11 +3667,29 @@ void interact_macros(void)
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
+
+		} else {
+
+		Term_putstr(5,  4, -1, TERM_WHITE, "(1) Load macros");
+		Term_putstr(5,  5, -1, TERM_WHITE, "(@) Save keymaps");
+		Term_putstr(5,  6, -1, TERM_WHITE, "(3) Enter a new action");
+		Term_putstr(5,  7, -1, TERM_WHITE, "($) Query key for keymap");
+		Term_putstr(5,  8, -1, TERM_WHITE, "(%) Create a command macro");
+		Term_putstr(5,  9, -1, TERM_WHITE, "(^) Create keymap");
+		Term_putstr(5, 10, -1, TERM_WHITE, "(=) Browse keymaps");
+
+
+		}
 #if 1
 		Term_putstr(5+24,  6, -1, TERM_L_DARK, ".........");
 		Term_putstr(5+34,  6, -1, TERM_L_DARK, "(8) Macro by command");
 		Term_putstr(5+34,  7, -1, TERM_L_DARK, "(9) Macro by item");
 		Term_putstr(5+34,  8, -1, TERM_L_DARK, "(0) Macro by spell");
+
+		if (opt_page)
+		Term_putstr(5+34-1,  9, -1, TERM_L_DARK, format("(^O) Macro by item: %s", old_school_macros ? "old-school" : "by name"));
+
+		Term_putstr(5+34-4,  10, -1, TERM_L_DARK, "(SPACE) Show other options");
 #endif
 
 #if 0
@@ -3685,6 +3708,8 @@ void interact_macros(void)
 
 		/* Leave */
 		if (i == ESCAPE) break;
+
+		else if (i == ' ') opt_page = 1 - opt_page;
 
 		/* Browse keymaps */
 		else if (i == '=') browse_keymaps();
