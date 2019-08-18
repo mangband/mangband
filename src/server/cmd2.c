@@ -3007,6 +3007,24 @@ void do_cmd_walk(player_type *p_ptr, int dir, int pickup)
 			}
 		}
 
+		/* Handle the "bump_open" option */
+		/* Hack -- Same as "easy_alter", but ignores traps */
+		if (option_p(p_ptr,BUMP_OPEN))
+		{
+			/* Get requested grid */
+			c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]];
+
+			if ((p_ptr->cave_flag[p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]] & (CAVE_MARK)) &&
+			    (((c_ptr->feat >= FEAT_DOOR_HEAD) &&
+			      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
+			    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
+			      (c_ptr->feat <= FEAT_HOME_TAIL))))
+			{
+				do_cmd_alter(p_ptr, dir);
+				return;
+			}
+		}
+
 		/* Actually move the character */
 		move_player(p_ptr, dir, pickup);
 
@@ -3078,6 +3096,29 @@ int do_cmd_run(player_type *p_ptr, int dir)
 				      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
 				    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
 				      (c_ptr->feat <= FEAT_HOME_TAIL)))) 
+				{
+					/* Check if we have enough energy to alter grid */
+					if (p_ptr->energy >= level_speed(p_ptr->dun_depth))
+					{
+						/* If so, do it. */
+						do_cmd_alter(p_ptr, dir);
+					}
+					return 1;
+				}
+			}
+
+			/* Handle the "bump_open" option */
+			/* Hack -- same as "easy_alter", but ignores traps */
+			if (option_p(p_ptr,BUMP_OPEN))
+			{
+				/* Get requested grid */
+				c_ptr = &cave[p_ptr->dun_depth][p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]];
+
+				if ((p_ptr->cave_flag[p_ptr->py+ddy[dir]][p_ptr->px+ddx[dir]] & (CAVE_MARK)) &&
+				    (((c_ptr->feat >= FEAT_DOOR_HEAD) &&
+				      (c_ptr->feat <= FEAT_DOOR_TAIL)) ||
+				    ((c_ptr->feat >= FEAT_HOME_HEAD) &&
+				      (c_ptr->feat <= FEAT_HOME_TAIL))))
 				{
 					/* Check if we have enough energy to alter grid */
 					if (p_ptr->energy >= level_speed(p_ptr->dun_depth))

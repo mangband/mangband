@@ -2532,6 +2532,10 @@ option_type option_info[] =
 
 	{ OPT_INFO(EASY_ALTER),			TRUE,	2,	0, 0,
 	"easy_alter",    			"Open/Disarm doors/traps on movement" },
+
+	{ OPT_INFO(BUMP_OPEN),			FALSE,	2,	0, 0,
+	"bump_open",    			"Open doors on movement" },
+
 	/* Targeting */
 	{ OPT_INFO(EXPAND_LOOK),			FALSE,	2,	0, 0,
 	"expand_look",  			"Expand the power of the look command" },
