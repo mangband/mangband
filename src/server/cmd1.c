@@ -2926,8 +2926,8 @@ void run_step(player_type *p_ptr, int dir)
 	/* Take a turn */
 	p_ptr->energy -= level_speed(p_ptr->dun_depth);
 
+	}/* End Hack */
+
 	/* Classic MAnghack #5. Reset built-up energy. */
 	p_ptr->energy_buildup = 0;
-
-	}/* End Hack */
 }
