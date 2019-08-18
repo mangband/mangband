@@ -589,9 +589,12 @@ void search(player_type *p_ptr)
 
 /*
  * Determine if the object can be picked up, and has "=g" in its inscription.
+ *
+ * This function wall also check if "pickup_inven" option is applicable.
  */
-static bool auto_pickup_okay(const object_type *o_ptr)
+static bool auto_pickup_okay(const player_type *p_ptr, const object_type *o_ptr)
 {
+	int i;
 	cptr s;
 
 	/* It can't be carried */
@@ -611,6 +614,22 @@ static bool auto_pickup_okay(const object_type *o_ptr)
 
 		/* Find another '=' */
 		s = strchr(s + 1, '=');
+	}
+
+	/* Hack -- also handle "pickup_inven" option */
+	if (option_p(p_ptr,PICKUP_INVEN))
+	{
+		/* Compare each inventory item :( */
+		for (i = INVEN_PACK; i < INVEN_TOTAL; i++)
+		{
+			/* Skip non-items */
+			if (!p_ptr->inventory[i].k_idx) continue;
+			/* Stackable? */
+			if (object_similar(p_ptr, &p_ptr->inventory[i], o_ptr))
+			{
+				return (TRUE);
+			}
+		}
 	}
 
 	/* Don't auto pickup */
@@ -653,7 +672,7 @@ void carry(player_type *p_ptr, int pickup, int confirm)
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
 	
 	/* Check for auto-pickup */
-	if (auto_pickup_okay(o_ptr)) pickup = 1;
+	if (auto_pickup_okay(p_ptr, o_ptr)) pickup = 1;
 
 	/* Pick up gold */
 	if (o_ptr->tval == TV_GOLD)

@@ -274,7 +274,7 @@
 /*
  * Maximum number of options and option groups
  */
-#define	OPT_MAX             44
+#define	OPT_MAX             45
 #define	MAX_OPTION_GROUPS   4
 
 /*
@@ -333,6 +333,7 @@
 #define OPT_ENERGY_BUILDUP	41
 #define OPT_MONSTER_RECOIL	42
 #define OPT_BUMP_OPEN   	43
+#define OPT_PICKUP_INVEN	44
 #define option_p(A,B) (A->options[OPT_ ## B])
 
 

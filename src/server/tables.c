@@ -2530,6 +2530,9 @@ option_type option_info[] =
 	{ OPT_INFO(ALWAYS_PICKUP),		FALSE,	2,	0, 0,
 	"always_pickup",    		"Pick things up by default" },
 
+	{ OPT_INFO(PICKUP_INVEN),		FALSE,	2,	0, 0,
+	"pickup_inven",    		"Pick up items matching inventory" },
+
 	{ OPT_INFO(EASY_ALTER),			TRUE,	2,	0, 0,
 	"easy_alter",    			"Open/Disarm doors/traps on movement" },
 
