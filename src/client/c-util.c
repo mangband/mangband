@@ -3208,6 +3208,13 @@ static void do_cmd_macro_aux_keymap(char *buf)
 	buf[0] = inkey();
 	buf[1] = '\0';
 
+	/* Hack -- ignore ESCAPE */
+	if (buf[0] == ESCAPE)
+	{
+		buf[0] = '\0';
+		return;
+	}
+
 	/* Convert to ascii */
 	ascii_to_text(tmp, sizeof(tmp), buf);
 
