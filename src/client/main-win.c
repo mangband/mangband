@@ -3072,7 +3072,7 @@ LRESULT FAR PASCAL AngbandWndProc(HWND hWnd, UINT uMsg,
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
-#if define(WM_XBUTTONDOWN)
+#if defined(WM_XBUTTONDOWN)
 		case WM_XBUTTONDOWN:
 #endif
 		{
