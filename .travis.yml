@@ -45,13 +45,13 @@ addons:
     - libsdl-ttf2.0-dev
     - libsdl2-dev
     - libsdl2-ttf-dev
-  homebrew:
-    packages:
-    - sdl
-    - sdl_ttf
-    - sdl2
-    - sdl2_ttf
-    update: false
+#  homebrew:
+#    packages:
+#    - sdl
+#    - sdl_ttf
+#    - sdl2
+#    - sdl2_ttf
+#    update: false
   coverity_scan:
     project:
       name: "mangband/mangband"
@@ -61,13 +61,13 @@ addons:
     build_command: "make"
     branch_pattern: coverity_scan
 
-#before_install:
+before_install:
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew update     ; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew install sdl; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew install sdl-ttf; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl-ttf; fi
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "2" ]]; then brew update     ; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "2" ]]; then brew install sdl2; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "2" ]]; then brew install sdl2-ttf; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "2" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "2" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2-ttf; fi
 
 script:
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./autogen.sh -n && ./configure ${CONFIGURE_FLAGS} && make ; fi
