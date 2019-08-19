@@ -2666,13 +2666,17 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 		o_ptr = &o_list[0 - item];
 		p_ptr->redraw |= (PR_FLOOR);
 	}
-#if !defined(RANDART)
+
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
 	apply_magic(127, o_ptr, 75, TRUE, TRUE, TRUE);
-#else
+
+#if defined(RANDART)
+	/* Failed to create an artifact */
+	if (!artifact_p(o_ptr))
+	{ /* Let's try randart */
+
 	if (!cfg_random_artifacts) return FALSE;
 	if (o_ptr->number > 1) return FALSE;
-	if (artifact_p(o_ptr)) return FALSE;
 	
 	/* Description */
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 0);
@@ -2707,6 +2711,8 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 		/* Forget the inscription */
                 o_ptr->note = 0;
         }
+
+	} /* End Randart hack */
 #endif
 	/* Clear flags */
 	o_ptr->ident &= ~ID_KNOWN;
