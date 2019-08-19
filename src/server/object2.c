@@ -821,8 +821,13 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 			flag |= ITF_ACT;
 
 			/* Hack: ask for direction ? (FOR ACTIVATION) */
-			/* Artifacts */
-			if (o_ptr->name1) switch(o_ptr->sval) { ITEM_ACT_CASE_AIM flag |= ITEM_ASK_AIM; 	break; default:	break; }
+			/* Artifacts (use-obj.c) */
+			if (true_artifact_p(o_ptr))
+				switch(a_info[o_ptr->name1].activation)
+				{
+					ITEM_ACT_CASE_AIM flag |= ITEM_ASK_AIM; break;
+					default: break;
+				}
 			/* Hack -- Dragon Scale Mail can be activated as well (use-obj.c) */
 			if (o_ptr->tval == TV_DRAG_ARMOR) flag |= ITEM_ASK_AIM;
 			/* Hack -- some Rings can be activated for double resist and element ball (use-obj.c) */
