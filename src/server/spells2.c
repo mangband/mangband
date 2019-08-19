@@ -3064,7 +3064,7 @@ bool recharge(player_type *p_ptr, int spell_strength)
  */
 bool recharge_aux(player_type *p_ptr, int item, int spell_strength)
 {
-	int i, t, lev, _idx;
+	int i, t, lev;
 
 	object_type *o_ptr;
 
@@ -3075,7 +3075,7 @@ bool recharge_aux(player_type *p_ptr, int item, int spell_strength)
 	item_tester_hook = NULL; /*item_tester_hook_recharge;*/
 
 	/* Get the item */
-	if ( !(o_ptr = player_get_item(p_ptr, item, &_idx)) )
+	if ( !(o_ptr = player_get_item(p_ptr, item, &item)) )
 	{
 		return FALSE;
 	}
