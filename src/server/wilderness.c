@@ -50,10 +50,9 @@ u32b base_house_price(int h_idx)
  * Base price must already be set.
  * Note: see store.c for similar CHR-adjustment code.
  * Charisma factor runs from 80 to 130 */
-u32b house_price(int Ind, int h_idx, bool buying)
+u32b house_price(player_type *p_ptr, int h_idx, bool buying)
 {
 	house_type *house = &houses[h_idx];
-	player_type *p_ptr = Players[Ind];
 	unsigned long price;
 	int factor, adjust;
 

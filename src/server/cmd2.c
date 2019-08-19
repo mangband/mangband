@@ -1262,7 +1262,7 @@ static bool do_cmd_open_aux(player_type *p_ptr, int y, int x)
 		/* Player might be interested in buying this house. */
 		else
 		{
-			unsigned long price = house_price(Ind, i, TRUE);
+			unsigned long price = house_price(p_ptr, i, TRUE);
 
 			/* Tell him the price */
 			msg_format(p_ptr, "This house costs %ld gold.", price);
@@ -4365,7 +4365,7 @@ void do_cmd_purchase_house(player_type *p_ptr, int dir)
 			c_ptr = &cave[Depth][houses[i].door_y][houses[i].door_x];
 
 			/* Calculate selling price (take player's CHR into account) */
-			price = house_price(Ind, i, FALSE);
+			price = house_price(p_ptr, i, FALSE);
 
 			if (house_owned(i))
 			{
@@ -4415,7 +4415,7 @@ void do_cmd_purchase_house(player_type *p_ptr, int dir)
 		}
 
 		/* Calculate selling price (take player's CHR into account) */
-		price = house_price(Ind, i, FALSE);
+		price = house_price(p_ptr, i, FALSE);
 
 		/* Check for already-owned house */
 		if (house_owned(i))
