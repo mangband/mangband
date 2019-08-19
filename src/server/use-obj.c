@@ -854,34 +854,34 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		case SV_SCROLL_ENCHANT_ARMOR:
 		{
 			*ident = TRUE;
-			if (!enchant_spell(p_ptr, 0, 0, 1)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, 0, 0, 1, FALSE)) used_up = FALSE;
 			break;
 		}
 
 		case SV_SCROLL_ENCHANT_WEAPON_TO_HIT:
 		{
-			if (!enchant_spell(p_ptr, 1, 0, 0)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, 1, 0, 0, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_ENCHANT_WEAPON_TO_DAM:
 		{
-			if (!enchant_spell(p_ptr, 0, 1, 0)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, 0, 1, 0, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ENCHANT_ARMOR:
 		{
-			if (!enchant_spell(p_ptr, 0, 0, randint(3) + 2)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, 0, 0, randint(3) + 2, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ENCHANT_WEAPON:
 		{
-			if (!enchant_spell(p_ptr, randint(3), randint(3), 0)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, randint(3), randint(3), 0, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
@@ -2355,7 +2355,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case ACT_FIREBRAND:
 			{
 				msg_format(p_ptr, "Your %s glows deep red...", o_name);
-				if (!brand_bolts(p_ptr)) return FALSE;
+				if (!brand_bolts(p_ptr, TRUE)) return FALSE;
 				break;
 			}
 

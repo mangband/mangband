@@ -12,6 +12,19 @@
 
 #include "mangband.h"
 
+/* Set 99% discount to enchanted/branded objects, that were bought
+ * from a store. This is used to prevent the "branding exploit",
+ * which allowed players to buy stuff from the store, brand it,
+ * and re-sell at higher price, which is cheezy!
+ */
+void apply_discount_hack(object_type *o_ptr)
+{
+	if (o_ptr->origin == ORIGIN_STORE
+	 || o_ptr->origin == ORIGIN_MIXED)
+	{
+		o_ptr->discount = 99;
+	}
+}
 
 /* Wipe everything */
 void wipe_spell(int Depth, int cy, int cx, int r)
@@ -2300,8 +2313,10 @@ bool curse_weapon(player_type *p_ptr)
  * Brand weapons (or ammo)
  *
  * Turns the (non-magical) object into an ego-item of 'brand_type'.
+ *
+ * Returns TRUE on success, FALSE on failure.
  */
-void brand_object(player_type *p_ptr, object_type *o_ptr, byte brand_type)
+bool brand_object(player_type *p_ptr, object_type *o_ptr, byte brand_type)
 {
 	/* you can never modify artifacts / ego-items */
 	/* you can never modify broken / cursed items */
@@ -2344,13 +2359,16 @@ void brand_object(player_type *p_ptr, object_type *o_ptr, byte brand_type)
 
 		/* Enchant */
 		enchant(p_ptr, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
-
 	}
 	else
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "The Branding failed.");
+
+		return (FALSE);
 	}
+
+	return (TRUE);
 }
 
 /*
@@ -2374,11 +2392,12 @@ static bool item_tester_hook_ammo(player_type *p_ptr, object_type *o_ptr)
 /*
  * Brand chosen ammo
  */
-void brand_ammo(player_type *p_ptr, int item)
+void brand_ammo(player_type *p_ptr, int item, bool discount)
 {
 	object_type *o_ptr;
 	int r;
 	byte brand_type;
+	bool branded;
 
 	/* Only accept ammo */
 	/* item_tester_hook = item_tester_hook_ammo; */
@@ -2417,7 +2436,10 @@ void brand_ammo(player_type *p_ptr, int item)
 		brand_type = EGO_AMMO_VENOM;
 
 	/* Brand the ammo */
-	brand_object(p_ptr, o_ptr, brand_type);
+	branded = brand_object(p_ptr, o_ptr, brand_type);
+
+	/* Apply discount */
+	if (branded && discount) apply_discount_hack(o_ptr);
 
 	/* Done */
 	return;
@@ -2426,11 +2448,12 @@ void brand_ammo(player_type *p_ptr, int item)
 /*
  * Brand the current weapon
  */
-void brand_weapon(player_type *p_ptr)
+void brand_weapon(player_type *p_ptr, bool discount)
 {
     object_type *o_ptr;
 
     byte brand_type;
+	bool branded;
     
     o_ptr = &p_ptr->inventory[INVEN_WIELD];
     
@@ -2440,7 +2463,10 @@ void brand_weapon(player_type *p_ptr)
 	 else
 		brand_type = EGO_BRAND_COLD;
 
-	 brand_object(p_ptr, o_ptr, brand_type);
+	branded = brand_object(p_ptr, o_ptr, brand_type);
+
+	/* Hack -- set 99% discount for some objects */
+	if (branded && discount) apply_discount_hack(o_ptr);
 }
 
 
@@ -2702,23 +2728,24 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 }
 
 
-bool enchant_spell(player_type *p_ptr, int num_hit, int num_dam, int num_ac)
+bool enchant_spell(player_type *p_ptr, int num_hit, int num_dam, int num_ac, bool discount)
 {
 	int item;
+	bool tried;
 
 	if (!get_item(p_ptr, &item, (num_ac ? item_test(ARMOR) : item_test(WEAPON)))) return (FALSE);
 
-	enchant_spell_aux(p_ptr, item, num_hit, num_dam, num_ac);
+	tried = enchant_spell_aux(p_ptr, item, num_hit, num_dam, num_ac, discount);
 
 	return (TRUE);
 }
-	
+
 /*
  * Enchant an item (in the inventory or on the floor)
  * Note that "num_ac" requires armour, else weapon
  * Returns TRUE if attempted, FALSE if cancelled
  */
-bool enchant_spell_aux(player_type *p_ptr, int item, int num_hit, int num_dam, int num_ac)
+bool enchant_spell_aux(player_type *p_ptr, int item, int num_hit, int num_dam, int num_ac, bool discount)
 {
 	bool		okay = FALSE;
 
@@ -2780,6 +2807,9 @@ bool enchant_spell_aux(player_type *p_ptr, int item, int num_hit, int num_dam, i
 		/* Message */
 		msg_print(p_ptr, "The enchantment failed.");
 	}
+
+	/* Success -- apply discount */
+	if (okay && discount) apply_discount_hack(o_ptr);
 
 	/* Something happened */
 	return (TRUE);
@@ -4883,7 +4913,7 @@ bool sleep_monsters_touch(player_type *p_ptr)
 /*
  * Enchant some bolts
  */
-bool brand_bolts(player_type *p_ptr)
+bool brand_bolts(player_type *p_ptr, bool discount)
 {
 	int i;
 
@@ -4912,6 +4942,9 @@ bool brand_bolts(player_type *p_ptr)
 
 		/* Enchant */
 		enchant(p_ptr, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+
+		/* Apply discount */
+		if (discount) apply_discount_hack(o_ptr);
 
 		/* Notice */
 		return (TRUE);
