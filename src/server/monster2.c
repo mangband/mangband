@@ -1239,7 +1239,11 @@ void forget_monster(player_type *p_ptr, int m_idx, bool deleted)
 	}
 
 	/* No longer a valid target */
-	if (p_ptr->target_who == m_idx) p_ptr->target_who = 0;
+	if (p_ptr->target_who == m_idx)
+	{
+		p_ptr->target_who = 0;
+		p_ptr->target_set = FALSE;
+	}
 
 	/* Remove health tracking */
 	if (p_ptr->health_who == m_idx) health_track(p_ptr, 0);

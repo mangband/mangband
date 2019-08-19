@@ -4367,11 +4367,21 @@ bool target_set_interactive(player_type *p_ptr, int mode, char query)
 	
 	char info[80];
 	int old_target = 0;
+	int old_target_x = -1;
+	int old_target_y = -1;
 
 	/* Hack -- remember "Old Target" */
-	if (!(mode & TARGET_LOOK) && option_p(p_ptr,USE_OLD_TARGET) && (p_ptr->target_set && p_ptr->target_who)) 
+	if (!(mode & TARGET_LOOK) && option_p(p_ptr,USE_OLD_TARGET) && p_ptr->target_set)
 	{
-		old_target = p_ptr->target_who;
+		if (p_ptr->target_who)
+		{
+			old_target = p_ptr->target_who;
+		}
+		else
+		{
+			old_target_x = p_ptr->target_col;
+			old_target_y = p_ptr->target_row;
+		}
 	}
 
 	/* Cancel target */
@@ -4409,6 +4419,17 @@ bool target_set_interactive(player_type *p_ptr, int mode, char query)
 			}
 		}
 	}
+
+	/* No usable targets, but we had a previous grid target */
+	if (!(p_ptr->target_flag & TARGET_GRID) && !p_ptr->target_n
+	&& old_target_x > -1 && old_target_y > -1 && query == '\0')
+	{
+		/* Switch to manual targeting */
+		p_ptr->target_flag |= TARGET_GRID;
+		p_ptr->look_x = old_target_x;
+		p_ptr->look_y = old_target_y;
+	}
+	else
 
 	/* No targets */
 	if (!(p_ptr->target_flag & TARGET_GRID) && !p_ptr->target_n)
@@ -4858,10 +4879,7 @@ bool target_set_interactive_mouse(player_type *p_ptr, int mod, int y, int x)
  * Get an "aiming direction" from the user.
  *
  * The "dir" is loaded with 1,2,3,4,6,7,8,9 for "actual direction", and
- * "0" for "current target", and "-1" for "entry aborted".
- *
- * Note that "Force Target", if set, will pre-empt user interaction,
- * if there is a usable target already set.
+ * "5" for "current target", and "0" for "entry aborted".
  *
  * Note that confusion over-rides any (explicit?) user choice.
  *
@@ -4876,7 +4894,8 @@ bool get_aim_dir(player_type *p_ptr, int *dp)
 	p_ptr->command_dir = 0;
 
 	/* Hack -- auto-target if requested */
-	if (option_p(p_ptr,USE_OLD_TARGET) && target_okay(p_ptr)) dir = 5;
+	if (option_p(p_ptr,USE_OLD_TARGET)
+	&& dir == 5 && !target_okay(p_ptr)) dir = 0;
 	
 	/* No direction -- Ask */
 	if (!dir)  
