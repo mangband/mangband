@@ -199,11 +199,6 @@ Our initializer function. Sets up SDL2 and creates our z-terms (windows).
 errr init_sdl2(void) {
   char buf[1024];
   int i;
-#ifdef WINDOWS
-  // Initialize WinSock
-  WSADATA wsadata;
-  WSAStartup(MAKEWORD(1, 1), &wsadata);
-#endif
 
   init_stuff(); // load in paths
 

@@ -3,11 +3,7 @@
 /* Original SDL2 written by "kts of kettek (kettek1@kettek.net)". */
 
 #include <SDL.h>
-#ifdef WINDOWS
-#include <winsock.h>
-#define Uint8 UINT8
-#define Uint32 UINT32
-#endif
+
 /* forward declarations */
 typedef struct FontData FontData;
 typedef struct PictData PictData;
