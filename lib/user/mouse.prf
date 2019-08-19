@@ -40,9 +40,9 @@
 #
 # The MB mouse button index may contain modifiers:
 # 0x10 CTRL pressed     0x01 Left mouse button
-# 0x20 SHIFT pressed    0x02 Middle mouse button
-# 0x40 ALT pressed      0x03 Right mouse button
-# 0x30 CTRL and SHIFT   0x0F ..etc
+# 0x20 ALT pressed      0x02 Middle mouse button
+# 0x40 SHIFT pressed    0x03 Right mouse button
+# 0x50 CTRL and SHIFT   0x0F ..etc
 
 
 ##### And now, the bindings. #####
