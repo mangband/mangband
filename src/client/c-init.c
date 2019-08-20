@@ -12,6 +12,10 @@
 #include "appl-dir.h"
 #endif
 
+#if defined(ON_ANDROID)
+#include <SDL.h>
+#endif
+
 char host_name[80];
 
 static void init_arrays(void)
@@ -75,6 +79,11 @@ void init_stuff(void)
 	/* Read path from command-line */
 	clia_read_string(path, 1024, "libdir");
 
+#ifdef ON_ANDROID
+	/* Always use PKGDATADIR */
+	my_strcpy(path, PKGDATADIR, 1024);
+#endif
+
 	/* Hack -- Add a path separator (only if needed) */
 	if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
@@ -111,10 +120,17 @@ void init_stuff(void)
     /* ------------------------------------- */
     /* Copy pref files from ANGBAND_DIR_USER */
     /* If succesfull, ANGBAND_DIR_USER will then point to the new location */
+    /* TODO: merge those into SDL_GetPrefPath? */
 #if defined(ON_IOS) || (defined(ON_OSX) && !defined(HAVE_CONFIG_H))
     {
         char final_user_dir[PATH_MAX];
         appl_get_appsupport_dir(final_user_dir, PATH_MAX, TRUE);
+        import_user_pref_files(final_user_dir);
+    }
+#endif
+#if defined(ON_ANDROID)
+    {
+        const char *final_user_dir = SDL_AndroidGetInternalStoragePath();
         import_user_pref_files(final_user_dir);
     }
 #endif

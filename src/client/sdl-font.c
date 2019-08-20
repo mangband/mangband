@@ -270,7 +270,7 @@ Taken from "main-sdl.c", Copyright 2001 Gregory Velichansky (hmaon@bumba.net)
 SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 {
 	SDL_Surface *face;
-	FILE *f;
+	ang_file *f;
 
 	char buf[1036]; /* 12 (or 11? ;->)extra bytes for good luck. */
 
@@ -302,7 +302,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 
-	f = fopen(buf, "r");
+	f = file_open(buf, MODE_READ, FTYPE_TEXT);
 
 	if (!f) 
 	{
@@ -312,7 +312,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 
 	/* try hard to figure out the font metrics */
 
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE) != NULL)
 	{
 		i = strlen(gs);
 
@@ -326,7 +326,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 		if (i & 1)
 		{
 			plog("Error in HEX line measurment. Report to hmaon@bumba.net.");
-			fclose(f);
+			file_close(f);
 			fail = -1;
 			break;
 		}
@@ -384,7 +384,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 
 	if (justmetrics) 
 	{
-		fclose(f);
+		file_close(f);
 		return NULL;
 	}
 
@@ -393,14 +393,14 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 
 	if (!face) 
 	{
-		fclose(f);
+		file_close(f);
 		return NULL;
 	}
 	//SDL_SetAlpha(face, SDL_RLEACCEL, SDL_ALPHA_OPAQUE); /* use RLE */
 
-	rewind(f);
+	file_seek(f, 0);
 
-	while (fgets(gs, MAX_HEX_FONT_LINE, f) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE) != NULL)
 	{
 #ifdef FONT_LOAD_DEBUGGING
 		puts("");
@@ -489,6 +489,8 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 		} /* while (gs[pos... */
 	} /* while (fgets... */
 
+	file_close(f);
+
 	if (fail == -1) 
 	{
 		SDL_FreeSurface(face);
@@ -561,7 +563,7 @@ SDL_Surface* load_HEX_font_sdl_(SDL_Rect *fd, cptr filename) {
  */
 SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 {
-	FILE *f;
+	ang_file *f;
 	SDL_Surface *face;
 	char buf[1024];
 	char line[1024];
@@ -583,7 +585,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 	/* Build the filename */
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 
-	f = fopen(buf, "r");
+	f = file_open(buf, MODE_READ, FTYPE_TEXT);
 
 	if (!f)
 	{
@@ -591,7 +593,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 		return NULL;
 	}
 
-	while (fgets(line, 1024, f) != NULL)
+	while (file_getl(f, line, 1024) != NULL)
 	{
 		/* Chomp */
 		n = strlen(line);
@@ -707,7 +709,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 		}
 	}
 
-	fclose(f);
+	file_close(f);
 
 	face->format->palette->ncolors = 2;
 

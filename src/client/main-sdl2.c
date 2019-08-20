@@ -35,6 +35,12 @@ double fmin(double x, double y) {
 #define WM_DESKTOP_OFFSET 0
 #define WM_TITLEBAR_OFFSET 16
 #endif
+#ifdef MOBILE_UI
+#undef WM_DESKTOP_OFFSET
+#undef WM_TITLEBAR_OFFSET
+#define WM_DESKTOP_OFFSET 0
+#define WM_TITLEBAR_OFFSET 0
+#endif
 
 /* Color definitions. Carefully copied from kettek's values. */
 enum {
@@ -1926,6 +1932,11 @@ static errr xtraTermHook(int n, int v) {
         char *c = event.text.text;
         while (*c) Term_keypress(*c++);
       } else if (event.type == SDL_KEYDOWN) {
+		if (event.key.keysym.scancode == SDL_SCANCODE_AC_BACK)
+		{
+			Term_keypress(ESCAPE);
+			continue;
+		}
 #ifdef ON_IOS
 		  /* Hack -- for some reason, SDL2 reports both SDL_TEXTINPUT and
 		   * SDL_KEYDOWN events for the spacebar, on iOS. Let's ignore one. */

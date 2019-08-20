@@ -13,7 +13,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
-#if !defined(_MSC_VER)
+#if !defined(_MSC_VER) && !defined(ON_IOS) && !defined(ON_ANDROID)
 //#pragma message( "warning: Your build lacks 'src/config.h', reverting to crazy defaults" ) /* portable but stupid */
 #warning "Your build lacks 'src/config.h', reverting to crazy defaults" /* good but not portable */
 #endif
@@ -26,6 +26,16 @@
 #ifdef ON_IOS
 #warning "Including 'ios-config.h'"
 #include "ios-config.h"
+#endif
+
+#ifdef ON_ANDROID
+#define HAVE_MEMSET 1
+#define HAVE_STRNLEN 1
+#define HAVE_DIRENT_H
+#define HAVE_INTTYPES_H 1
+#define MOBILE_UI
+#define USE_SDL2 1
+#define PKGDATADIR "lib/"
 #endif
 
 /* System includes/externs */
