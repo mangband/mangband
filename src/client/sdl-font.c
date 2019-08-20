@@ -312,7 +312,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 
 	/* try hard to figure out the font metrics */
 
-	while (file_getl(f, gs, MAX_HEX_FONT_LINE) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
 	{
 		i = strlen(gs);
 
@@ -400,7 +400,7 @@ SDL_Surface* load_HEX_font_sdl(SDL_Rect *fd, cptr filename, bool justmetrics)
 
 	file_seek(f, 0);
 
-	while (file_getl(f, gs, MAX_HEX_FONT_LINE) != NULL)
+	while (file_getl(f, gs, MAX_HEX_FONT_LINE))
 	{
 #ifdef FONT_LOAD_DEBUGGING
 		puts("");
@@ -593,7 +593,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 		return NULL;
 	}
 
-	while (file_getl(f, line, 1024) != NULL)
+	while (file_getl(f, line, 1024))
 	{
 		/* Chomp */
 		n = strlen(line);
@@ -612,7 +612,7 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 			char hbuf[3] = { 0, 0, 0 };
 			int i, j, l = strlen(line) / 2; /* num bytes */
 			if (!face) {
-				fclose(f);
+				file_close(f);
 				return NULL;
 			}
 			for (j = 0; j < l; j++) { /* for each byte */
@@ -697,13 +697,13 @@ SDL_Surface* load_BDF_font(SDL_Rect *fd, cptr filename)
 			/* By this time, we should know our bounding box */
 			if (iw <= 0 || ih <= 0)
 			{
-				fclose(f);
+				file_close(f);
 				return NULL;
 			}
 			face = SDL_Create8BITSurface(cols * iw, rows * ih);
 			if (!face)
 			{
-				fclose(f);
+				file_close(f);
 				return NULL;
 			}
 		}
