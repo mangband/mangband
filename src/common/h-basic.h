@@ -36,6 +36,7 @@
 #define MOBILE_UI
 #define USE_SDL2 1
 #define PKGDATADIR "lib/"
+#define USE_SDL_RWOPS
 #endif
 
 /* System includes/externs */

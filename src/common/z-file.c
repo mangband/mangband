@@ -284,10 +284,19 @@ size_t path_filename_index(const char *path)
 FILE *fdopen(int handle, const char *mode);
 #endif
 
+#ifdef USE_SDL_RWOPS
+#include <SDL.h>
+#endif
+
 /* Private structure to hold file pointers and useful info. */
 struct ang_file
 {
+#ifdef USE_SDL_RWOPS
+	SDL_RWops *fh;
+	int error;
+#else
 	FILE *fh;
+#endif
 	char *fname;
 	file_mode mode;
 };
@@ -408,6 +417,20 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 	/* Get the system-specific path */
 	path_parse(buf, sizeof(buf), fname);
 
+#ifdef USE_SDL_RWOPS
+{
+	char *rwm;
+	switch (mode) {
+		case MODE_WRITE: rwm = "wb"; break;
+		case MODE_READ: rwm = "rb"; break;
+		case MODE_APPEND: rwm = "a+"; break;
+		case MODE_READWRITE: rwm = "r+b"; break;
+		default: assert(0); break;
+	}
+	f->error = 0;
+	f->fh = SDL_RWFromFile(buf, rwm);
+}
+#else
 	switch (mode) {
 		case MODE_WRITE: {
 			if (ftype == FTYPE_SAVE) {
@@ -437,7 +460,7 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
 		default:
 			assert(0);
 	}
-
+#endif
 	if (f->fh == NULL) {
 		mem_free(f);
 		return NULL;
@@ -458,8 +481,13 @@ ang_file *file_open(const char *fname, file_mode mode, file_type ftype)
  */
 bool file_close(ang_file *f)
 {
+#ifdef USE_SDL_RWOPS
+	if (SDL_RWclose(f->fh) != 0)
+		return false;
+#else
 	if (fclose(f->fh) != 0)
 		return false;
+#endif
 
 	mem_free(f->fname);
 	mem_free(f);
@@ -473,6 +501,10 @@ bool file_close(ang_file *f)
  */
 bool file_error(ang_file *f)
 {
+#ifdef USE_SDL_RWOPS
+	if (f->error) return true;
+	return false;
+#else
 	if (ferror(f->fh) != 0)
 		return true;
 
@@ -480,6 +512,7 @@ bool file_error(ang_file *f)
 		return true;
 
 	return false;
+#endif
 }
 
 
@@ -527,7 +560,11 @@ bool file_unlock(ang_file *f)
  */
 bool file_skip(ang_file *f, int bytes)
 {
+#ifdef USE_SDL_RWOPS
+	return (SDL_RWseek(f->fh, bytes, RW_SEEK_CUR) > -1);
+#else
 	return (fseek(f->fh, bytes, SEEK_CUR) == 0);
+#endif
 }
 
 /**
@@ -535,7 +572,11 @@ bool file_skip(ang_file *f, int bytes)
  */
 bool file_seek(ang_file *f, int bytes)
 {
+#ifdef USE_SDL_RWOPS
+	return (SDL_RWseek(f->fh, bytes, RW_SEEK_SET) > -1);
+#else
 	return (fseek(f->fh, bytes, SEEK_SET) == 0);
+#endif
 }
 
 /**
@@ -543,7 +584,17 @@ bool file_seek(ang_file *f, int bytes)
  */
 size_t file_tell(ang_file *f)
 {
+#ifdef USE_SDL_RWOPS
+	Sint64 pos = SDL_RWtell(f->fh);
+	if (pos < 0)
+	{
+		f->error = TRUE;
+		return 0;
+	}
+	return (size_t)pos;
+#else
 	return ftell(f->fh);
+#endif
 }
 
 /**
@@ -551,6 +602,11 @@ size_t file_tell(ang_file *f)
  */
 bool file_readc(ang_file *f, byte *b)
 {
+#ifdef USE_SDL_RWOPS
+	size_t i = SDL_RWread(f->fh, b, 1, 1);
+	if (i == 0) return false;
+	return true;
+#else
 	int i = fgetc(f->fh);
 
 	if (i == EOF)
@@ -558,6 +614,7 @@ bool file_readc(ang_file *f, byte *b)
 
 	*b = (byte)i;
 	return true;
+#endif
 }
 
 /**
@@ -565,7 +622,13 @@ bool file_readc(ang_file *f, byte *b)
  */
 bool file_writec(ang_file *f, byte b)
 {
+#ifdef USE_SDL_RWOPS
+	size_t i = SDL_RWwrite(f->fh, (void*)&b, 1, 1);
+	if (i == 0) return false;
+	return true;
+#else
 	return file_write(f, (const char *)&b, 1);
+#endif
 }
 
 /**
@@ -573,12 +636,24 @@ bool file_writec(ang_file *f, byte b)
  */
 size_t file_read(ang_file *f, char *buf, size_t n)
 {
+#ifdef USE_SDL_RWOPS
+	size_t read;
+
+	SDL_ClearError();
+	read = SDL_RWread(f->fh, (void*)buf, 1, n);
+
+	if (read == 0 && SDL_GetError()[0] == '\0')
+		return -1;
+	else
+		return read;
+#else
 	size_t read = fread(buf, 1, n, f->fh);
 
 	if (read == 0 && ferror(f->fh))
 		return -1;
 	else
 		return read;
+#endif
 }
 
 /**
@@ -586,7 +661,11 @@ size_t file_read(ang_file *f, char *buf, size_t n)
  */
 bool file_write(ang_file *f, const char *buf, size_t n)
 {
+#ifdef USE_SDL_RWOPS
+	return SDL_RWwrite(f->fh, (void*)buf, 1, n) == n;
+#else
 	return fwrite(buf, 1, n, f->fh) == n;
+#endif
 }
 
 /** Line-based IO **/
@@ -624,7 +703,7 @@ bool file_getl(ang_file *f, char *buf, size_t len)
 		}
 
 		if (seen_cr && c != '\n') {
-			fseek(f->fh, -1, SEEK_CUR);
+			file_skip(f, -1);//fseek(f->fh, -1, SEEK_CUR);
 			buf[i] = '\0';
 			return true;
 		}
