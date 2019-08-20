@@ -1024,6 +1024,11 @@ static void process_player_end(player_type *p_ptr)
 	/* Paranoia -- buffered commands shouldn't even cause fatal errors */
 	if (fatal_err == -1) return;
 
+	/* Paranoia -- process_player_commands could've caused player
+	 * to change level, so, once agan: */
+	/* HACK -- Do not proccess while changing levels */
+	if (p_ptr->new_level_flag == TRUE) return;
+
 	/* How much energy does it cost do deal 1 blow? */
 	blow_energy = level_speed(p_ptr->dun_depth) / p_ptr->num_blow;
 

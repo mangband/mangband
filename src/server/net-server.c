@@ -476,7 +476,10 @@ void post_process_players(void)
 	for (Ind = 1; Ind <= NumPlayers; Ind++)
 	{
 		player_type *p_ptr = Players[Ind];
-		
+
+		/* HACK -- Do not proccess while changing levels */
+		if (p_ptr->new_level_flag == TRUE) continue;
+
 		/* Recalculate and schedule updates */
 		handle_stuff(p_ptr);
 	}
