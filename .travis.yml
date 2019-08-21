@@ -41,7 +41,9 @@ matrix:
     - language: android
       dist: trusty
       jdk: oraclejdk8
+      compiler: "" # Remove desktop compiler
       env: BUILDING_FOR_ANDROID="YES" SDL="2"
+      addons: [ ] # remove addons?
       android:
         components:
           - tools
@@ -65,6 +67,34 @@ matrix:
         - cp mangclient/build/outputs/apk/release/mangclient-release-unsigned.apk ../../.
         - rm -rf mangclient # kill temp files
         - ./.travis-gh.sh > ../../index.html
+
+    - language: objective-c
+      os: osx
+      osx_image: xcode9.4
+      compiler: ""
+      env: BUILDING_FOR_IOS="YES" SDL="2s" # "2s" instead of "2" to skip homebrew
+      before_script:
+        - export SDL_VERSION="2.0.10"
+        - export SDL_TTF_VERSION="2.0.15"
+        - cd ..
+        - curl -O https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+        - tar -xzf SDL2-${SDL_VERSION}.tar.gz
+        # Our xcode project expects to find "SDL" dir, not "SDL2-2.X.Y"
+        - mv SDL2-${SDL_VERSION} SDL
+        - curl -O https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        - tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        # Same for SDL2_ttf, let's strip away version number
+        - mv SDL2_ttf-${SDL_TTF_VERSION} SDL2_ttf
+        - cd -
+        - cd build/xcode-ios
+      script:
+        - xcodebuild -project mangclient-ios.xcodeproj
+          -scheme "libSDL-iOS" CONFIGURATION_BUILD_DIR="./build/Release-iphoneos"
+          && xcodebuild -project mangclient-ios.xcodeproj
+          -scheme "libSDL_ttf-iOS" CONFIGURATION_BUILD_DIR="./build/Release-iphoneos"
+          && xcodebuild -project mangclient-ios.xcodeproj build
+          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO"
+          CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
 
 addons:
   apt:
@@ -134,3 +164,13 @@ deploy:
     on:
       tags: true
       condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"
+
+  - provider: releases
+    skip-cleanup: true
+    keep-history: false
+    api_key: $GITHUB_TOKEN
+    file_glob: true
+    file: ./*.apk
+    on:
+      tags: true
+      condition: $BUILDING_FOR_ANDROID == "YES"
