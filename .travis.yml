@@ -54,11 +54,15 @@ matrix:
       before_script:
         - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
         - export SDL_VERSION="2.0.10"
+        - export SDL_TTF_VERSION="2.0.15"
         - cd build/asgradle
         - wget https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
         - tar -xzf SDL2-${SDL_VERSION}.tar.gz
         - cp -r SDL2-${SDL_VERSION}/android-project/gradle .
         - mv SDL2-${SDL_VERSION} mangclient/jni/SDL2
+        - wget https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        - tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        - mv SDL2_ttf-${SDL_TTF_VERSION} mangclient/jni/SDL2_ttf
         - ln -s ../../../../../../lib mangclient/src/main/assets/lib
       script:
         - ./gradlew build connectedCheck assembleDebug assembleRelease
