@@ -954,6 +954,8 @@ static errr term_data_init(term_data *td, int rows, int cols, int y, int x)
 	return (0);
 }
 
+const char help_gcu[] = "";
+
 /*
  * Prepare "curses" for use by the file "term.c"
  *

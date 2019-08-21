@@ -199,15 +199,16 @@ static void mobileAutoLayout(void)
 	refreshTerm(td);
 }
 
+/* ==== Help ==== */
+const char help_sdl2[] = "";
+
 /* ==== Initialize function ==== */
 /* init_sdl2
 Our initializer function. Sets up SDL2 and creates our z-terms (windows).
 */
 errr init_sdl2(void) {
 	char buf[1024];
-	 int i;
-
-	init_stuff(); // load in paths
+	int i;
 
 	// **** Load in Configuration ****
 	// The following global vars are set AFTER init_sdl2(), but as per below, we need 'em

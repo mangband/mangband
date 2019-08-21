@@ -2529,6 +2529,17 @@ static void quit_sdl(cptr str)
 	SDL_Quit();
 }
 
+/* "--help" text */
+const char help_sdl[] =
+"SDL module (single-window client):\n"
+"      --width PIXELS        Window width.\n"
+"      --height PIXELS       Window height.\n"
+"      --bpp BPP             Bits-Per-Pixel, 32 by default.\n"
+"      --fullscreen          Run in fullscreen mode.\n"
+"      --graphics TILESET    Tileset ID to use, 0 to disable graphics.\n"
+"      --sound TOGGLE        0 to disable sound, 1 to enable.\n"
+;
+
 /*
  * A "normal" system uses "main.c" for the "main()" function, and
  * simply adds a call to "init_xxx()" to that function, conditional
