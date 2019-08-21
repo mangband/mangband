@@ -37,6 +37,34 @@ matrix:
       env: CONFIGURE_FLAGS="--with-gcu --without-x11 --with-sdl    --without-sdl2" SDL="1"
     - os: osx
       env: CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --with-sdl2" SDL="2"
+  include:
+    - language: android
+      dist: trusty
+      jdk: oraclejdk8
+      env: BUILDING_FOR_ANDROID="YES" SDL="2"
+      android:
+        components:
+          - tools
+          - android-26
+          - build-tools-28.0.2
+      install:
+        - echo y | sdkmanager "ndk-bundle"
+      before_script:
+        - export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
+        - export SDL_VERSION="2.0.10"
+        - cd build/asgradle
+        - wget https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+        - tar -xzf SDL2-${SDL_VERSION}.tar.gz
+        - cp -r SDL2-${SDL_VERSION}/android-project/gradle .
+        - mv SDL2-${SDL_VERSION} mangclient/jni/SDL2
+        - ln -s ../../../../../../lib mangclient/src/main/assets/lib
+      script:
+        - ./gradlew build connectedCheck assembleDebug assembleRelease
+      before_deploy:
+        - cp mangclient/build/outputs/apk/debug/mangclient-debug.apk ../../.
+        - cp mangclient/build/outputs/apk/release/mangclient-release-unsigned.apk ../../.
+        - rm -rf mangclient # kill temp files
+        - ./.travis-gh.sh > ../../index.html
 
 addons:
   apt:
@@ -86,6 +114,16 @@ deploy:
     on:
       branch: develop
       condition: $TRAVIS_OS_NAME == "osx") && ($CC == "gcc"
+
+  - provider: pages
+    skip-cleanup: true
+    keep-history: false
+    repo: mangband/mangband-builds-android
+    branch: gh-pages
+    github-token: $GITHUB_TOKEN
+    on:
+      branch: develop
+      condition: $BUILDING_FOR_ANDROID == "YES"
 
   - provider: releases
     skip-cleanup: true
