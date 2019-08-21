@@ -55,6 +55,7 @@
 		2E29DE68230194C000415961 /* mangclient.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE67230194C000415961 /* mangclient.icns */; };
 		2E29DE752303FA6C00415961 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE722303FA6C00415961 /* Default.png */; };
 		2E29DE772303FA6C00415961 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE742303FA6C00415961 /* Default-568h@2x.png */; };
+		2EA8D715230D55D700EBF4A1 /* libSDL2_ttf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */; };
 		2EB388BA230401E6007B7A33 /* appl-dir.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EB388B8230401E6007B7A33 /* appl-dir.m */; };
 		2EE023F123009C0B00BA0836 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EE023DD23009C0B00BA0836 /* AVFoundation.framework */; };
 		FA8B4B97196703B400F8EB7C /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA8B4B96196703B400F8EB7C /* CoreMotion.framework */; };
@@ -106,6 +107,20 @@
 			proxyType = 2;
 			remoteGlobalIDString = F3E3C75F224138AE007D243C;
 			remoteInfo = "libSDLmain-tvOS";
+		};
+		2EA8D70F230D557800EBF4A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BE48FD6E07AFA17000BB41DA;
+			remoteInfo = "libSDL_ttf-iOS";
+		};
+		2EA8D711230D557800EBF4A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AA53152E1FE1016F0025C9BE;
+			remoteInfo = "libSDL_ttf-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -178,8 +193,6 @@
 		2E0078132301792200DD2D1A /* set_focus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = set_focus.c; path = ../../src/client/set_focus.c; sourceTree = "<group>"; };
 		2E0078152301792200DD2D1A /* sdl-font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "sdl-font.h"; path = "../../src/client/sdl-font.h"; sourceTree = "<group>"; };
 		2E0078162301792200DD2D1A /* c-xtra2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "c-xtra2.c"; path = "../../src/client/c-xtra2.c"; sourceTree = "<group>"; };
-		2E00783A23017B8100DD2D1A /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = "../../../SDL2-2.0.10/Xcode-iOS/SDL/output/iOS/debug/libSDL2.a"; sourceTree = "<group>"; };
-		2E00783C23017BBC00DD2D1A /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = "../../../SDL2-2.0.10/Xcode-iOS/SDL/output/iOS/release/libSDL2.a"; sourceTree = "<group>"; };
 		2E22CDE8230152A600CDE5A4 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		2E29DE1E2301816000415961 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../../../SDL2-2.0.10/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		2E29DE37230183B400415961 /* lupng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lupng.h; path = ../../src/client/lupng/lupng.h; sourceTree = "<group>"; };
@@ -195,6 +208,7 @@
 		2E29DE742303FA6C00415961 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../../src/client/ios/Default-568h@2x.png"; sourceTree = "<group>"; };
 		2E50683E230402FE009E8074 /* ios-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ios-config.h"; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
+		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf-2.0.15/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
 		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/ios/appl-dir.m"; sourceTree = "<group>"; };
 		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/ios/appl-dir.h"; sourceTree = "<group>"; };
 		2EB388BB23040212007B7A33 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -212,6 +226,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2E29DE36230181A600415961 /* libSDL2.a in Frameworks */,
+				2EA8D715230D55D700EBF4A1 /* libSDL2_ttf.a in Frameworks */,
 				2E22CDF2230152A600CDE5A4 /* Metal.framework in Frameworks */,
 				2EE023F123009C0B00BA0836 /* AVFoundation.framework in Frameworks */,
 				FAE0E9651BAF967F0098DFA4 /* GameController.framework in Frameworks */,
@@ -251,9 +266,10 @@
 		29B97315FDCFA39411CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				2E29DE1E2301816000415961 /* SDL.xcodeproj */,
+				2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */,
 				2E50683E230402FE009E8074 /* ios-config.h */,
 				2E29DE782303FA9200415961 /* libcommon */,
-				2E29DE1E2301816000415961 /* SDL.xcodeproj */,
 				2E0078052301791F00DD2D1A /* main-sdl2.c */,
 				2E0078062301791F00DD2D1A /* main-sdl2.h */,
 				2EB388B9230401E6007B7A33 /* appl-dir.h */,
@@ -312,8 +328,6 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				2E00783A23017B8100DD2D1A /* libSDL2.a */,
-				2E00783C23017BBC00DD2D1A /* libSDL2.a */,
 				2E22CDE8230152A600CDE5A4 /* Metal.framework */,
 				2EE023DD23009C0B00BA0836 /* AVFoundation.framework */,
 				FAE0E9641BAF967F0098DFA4 /* GameController.framework */,
@@ -383,6 +397,15 @@
 			name = libcommon;
 			sourceTree = "<group>";
 		};
+		2EA8D6FF230D557700EBF4A1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */,
+				2EA8D712230D557800EBF4A1 /* libSDL2_ttf.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -433,6 +456,10 @@
 					ProductGroup = 2E29DE1F2301816000415961 /* Products */;
 					ProjectRef = 2E29DE1E2301816000415961 /* SDL.xcodeproj */;
 				},
+				{
+					ProductGroup = 2EA8D6FF230D557700EBF4A1 /* Products */;
+					ProjectRef = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -482,6 +509,20 @@
 			fileType = archive.ar;
 			path = libSDLmain.a;
 			remoteRef = 2E29DE342301816100415961 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2_ttf.a;
+			remoteRef = 2EA8D70F230D557800EBF4A1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA8D712230D557800EBF4A1 /* libSDL2_ttf.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2_ttf.a;
+			remoteRef = 2EA8D711230D557800EBF4A1 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -562,13 +603,16 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = USE_SDL2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_SDL2,
+					USE_SDL2_TTF,
+				);
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
-				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include";
+				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include ../../../SDL2_ttf-2.0.15";
 				TARGETED_DEVICE_FAMILY = 1;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
@@ -584,13 +628,16 @@
 				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = USE_SDL2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					USE_SDL2,
+					USE_SDL2_TTF,
+				);
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
-				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include";
+				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include ../../../SDL2_ttf-2.0.15";
 				TARGETED_DEVICE_FAMILY = 1;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
