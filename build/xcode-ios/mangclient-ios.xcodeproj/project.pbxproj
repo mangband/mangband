@@ -206,7 +206,6 @@
 		2E29DE67230194C000415961 /* mangclient.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = mangclient.icns; path = ../../src/client/osx/mangclient.icns; sourceTree = "<group>"; };
 		2E29DE722303FA6C00415961 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Default.png; path = ../../src/client/ios/Default.png; sourceTree = "<group>"; };
 		2E29DE742303FA6C00415961 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../../src/client/ios/Default-568h@2x.png"; sourceTree = "<group>"; };
-		2E50683E230402FE009E8074 /* ios-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ios-config.h"; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
 		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf-2.0.15/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
 		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/ios/appl-dir.m"; sourceTree = "<group>"; };
@@ -268,7 +267,6 @@
 			children = (
 				2E29DE1E2301816000415961 /* SDL.xcodeproj */,
 				2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */,
-				2E50683E230402FE009E8074 /* ios-config.h */,
 				2E29DE782303FA9200415961 /* libcommon */,
 				2E0078052301791F00DD2D1A /* main-sdl2.c */,
 				2E0078062301791F00DD2D1A /* main-sdl2.h */,

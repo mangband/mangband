@@ -24,8 +24,19 @@
 
 /* For systems lacking CONFIG_H */
 #ifdef ON_IOS
-#warning "Including 'ios-config.h'"
-#include "ios-config.h"
+#define HAVE_MEMSET 1
+#define HAVE_STRNLEN 1
+#define HAVE_INTTYPES_H 1
+#define HAVE_DIRENT_H
+
+#define PKGDATADIR "./"
+#ifndef USE_SDL2
+#define USE_SDL2
+#endif
+#ifndef USE_SDL2_TTF
+#define USE_SDL2_TTF
+#endif
+#define MOBILE_UI
 #endif
 
 #ifdef ON_ANDROID
