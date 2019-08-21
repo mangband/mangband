@@ -99,13 +99,13 @@ static void hack_plog(cptr str)
 }
 
 /* ==== Global data ==== */
-static struct TermData terms[8];    // Our terminals
-static struct FontData fonts[8];    // Our fonts, tied to the term limit of 7
-static struct PictData picts[8];    // Our picts, ^
-char default_font[128];
-int default_font_size = 12;
-char default_font_small[128];
-int default_font_small_size = 10;
+static struct TermData terms[TERM_MAX];    // Our terminals
+static struct FontData fonts[TERM_MAX];    // Our fonts, tied to the term limit
+static struct PictData picts[TERM_MAX];    // Our picts, ^
+static char default_font[128];
+static int default_font_size = 12;
+static char default_font_small[128];
+static int default_font_small_size = 10;
 
 
 #define MAX_QUICK_FONTS 16
@@ -247,11 +247,12 @@ errr init_sdl2(void) {
 	/* Activate quit hook */
 	quit_aux = quit_sdl2;
 
-
-	SDL_StartTextInput(); // This may be better than massive keymaps, but not sure.
+	/* Take keyboard layouts into account: */
+	SDL_StartTextInput();
 
 	// **** Load Preferences ****
-	memset(terms, 0, sizeof(TermData)*7); // FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
+	// FIXME: 0 is not guaranteed to be NULL, use a "clearTermData" func
+	memset(terms, 0, sizeof(TermData)*TERM_MAX);
 
 	loadConfig();
 
@@ -1534,7 +1535,7 @@ static errr renderGui(TermData *td)
 			int sy = y + 1;
 			int si = 0;
 			int j;
-			for (j = 0; j < 8; j++) {
+			for (j = 0; j < TERM_MAX; j++) {
 				char buf[16];
 				strnfmt(buf, 16, " [%c] %-12s ",
 				(terms[j].config & TERM_IS_ONLINE) ? 'X' : '.',
@@ -1601,7 +1602,7 @@ static int guiTermMatch(int window_id, int x, int y) {
 	int i, j;
 	TermData *td;
 	SDL_Rect *r;
-	for (j = 0; j < 8; j++) {
+	for (j = 0; j < TERM_MAX; j++) {
 		i = 7 - j;
 		td = &terms[i];
 		if (!(terms[i].config & TERM_IS_ONLINE)) continue;
@@ -1620,7 +1621,7 @@ static int guiGripMatch(int window_id, int x, int y) {
 	int i, j;
 	TermData *td;
 	SDL_Rect *r;
-	for (j = 0; j < 8; j++) {
+	for (j = 0; j < TERM_MAX; j++) {
 		i = 7 - j;
 		td = &terms[i];
 		if (!(terms[i].config & TERM_IS_ONLINE)) continue;
@@ -1827,7 +1828,7 @@ static void termStack(int i) {
 
 	while (!found) {
 		/* Iterate throu all previous terminals to find non-occupied space */
-		for (j = 0; j < 8; j++) {
+		for (j = 0; j < TERM_MAX; j++) {
 			found = TRUE;
 
 			if (i == j) continue; /* Skip self */
@@ -1960,6 +1961,12 @@ static void mobilePinch(int i, int dir)
 #endif
 }
 
+static void Term_multikeypress(char *buf)
+{
+	char *c = buf;
+	while (*c) Term_keypress(*c++);
+}
+
 static void handleMouseClick(int i, int wx, int wy)
 {
 	if (i == 0)
@@ -1997,6 +2004,393 @@ static void handleMouseClick(int i, int wx, int wy)
 	}
 }
 
+static int matchWindow(int window_id)
+{
+	int i;
+	for (i = 0; i < TERM_MAX; i++)
+	{
+		if (terms[i].window_id == window_id)
+		{
+			return i;		
+		}
+	}
+	return -1;
+}
+static void handleWMEvent(SDL_Event *ev)
+{
+	int i;
+	if (ev->window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+	{
+		i = matchWindow(ev->window.windowID);
+		if (i >= 0)
+		{
+			//not a good idea
+			//Term_activate(&(terms[i].t));
+		}
+	}
+	else if (ev->window.event == SDL_WINDOWEVENT_RESIZED)
+	{
+		i = matchWindow(ev->window.windowID);
+		if (i >= 0)
+		{
+			// resize to nearest whole cell
+			int w = ev->window.data1;
+			int h = ev->window.data2;
+			int cw = w/terms[i].cell_w;
+			int ch = h/terms[i].cell_h;
+
+			if (i == TERM_MAIN)
+			{
+				normalizeMouseCoordinates(0, &w, &h, w, h);
+				resizeWindow(&terms[i], w, h);
+			}
+			else
+			{
+				byte cw_, ch_;
+				cw_ = cw; ch_ = ch;
+				net_term_clamp((byte)i, &ch_, &cw_);
+				cw = cw_; ch = ch_;
+
+				resizeTerm(&terms[i], cw, ch);
+				refreshTerm(&terms[i]);
+				//refreshTermAlt(&terms[i]);
+			}
+		}
+	}
+	else if (ev->window.event == SDL_WINDOWEVENT_MOVED)
+	{
+		i = matchWindow(ev->window.windowID);
+		if (i >= 0)
+		{
+			int x = ev->window.data1;
+			int y = ev->window.data2;
+
+			terms[i].x = x;
+			terms[i].y = y;
+		}
+	}
+	else if (ev->window.event == SDL_WINDOWEVENT_EXPOSED)
+	{
+		for (i = 0; i < TERM_MAX; i++)
+		{
+			if (terms[i].window_id == ev->window.windowID)
+			{
+				terms[i].need_redraw = TRUE;
+			}
+		}
+	}
+	else if (ev->window.event == SDL_WINDOWEVENT_CLOSE)
+	{
+		for (i = 0; i < TERM_MAX; i++)
+		{
+			if (terms[i].window_id == ev->window.windowID)
+			{
+				if (i == TERM_MAIN)
+				{
+					quit("Sayonara!");
+					return;
+				}
+				termClose(i);
+			}
+		}
+	}
+}
+
+static void eventMouseCoordinates(SDL_Event *ev, int *x, int *y)
+{
+	if (ev->type == SDL_MOUSEMOTION)
+	{
+		normalizeMouseCoordinates(0, x, y, ev->motion.x, ev->motion.y);
+	}
+	if (ev->type == SDL_MOUSEBUTTONDOWN || ev->type == SDL_MOUSEBUTTONUP)
+	{
+		normalizeMouseCoordinates(0, x, y, ev->button.x, ev->button.y);
+	}
+}
+
+static bool handleMouseEvent_Menu(SDL_Event *ev)
+{
+	int i;
+	int wx, wy;
+
+	eventMouseCoordinates(ev, &wx, &wy);
+
+	if (ev->type == SDL_MOUSEBUTTONDOWN && ev->button.button == SDL_BUTTON_LEFT)
+	{
+		/* Start dragging? */
+		i = guiTermMatch(ev->window.windowID, wx, wy);
+		if (i >= 0 && terms[i].config & TERM_IS_VIRTUAL)
+		{
+			/* Matched virtual title bar */
+			if (menu_hover <= 0)
+			{
+				guiDragStart(i, wx, wy);
+			}
+		}
+		else
+		{
+			/* Start resizing ? */
+			i = guiGripMatch(ev->window.windowID, wx, wy);
+			if (i >= 0)
+			{
+				gripping = 1;
+				guiDragStart(i, wx, wy);
+			}
+		}
+		return TRUE;
+	}
+	else if (ev->type == SDL_MOUSEMOTION)
+	{
+		if (dragging > -1 && terms[dragging].window_id == ev->window.windowID)
+		{
+			accum_x = ev->motion.x;
+			accum_y = ev->motion.y;
+			guiDragMotion(ev->motion.xrel, ev->motion.yrel);
+			return TRUE;
+		}
+
+		guiMenuReact(ev->window.windowID, wx, wy);
+		return TRUE;
+	}
+	else if (ev->type == SDL_MOUSEBUTTONUP && ev->button.button == SDL_BUTTON_LEFT)
+	{
+		if (dragging > -1)
+		{
+			guiDragStop();
+			return TRUE;
+		}
+		i = matchWindow(ev->window.windowID);
+		if (i >= 0)
+		{
+			int cx = wx/(terms[i].cell_w ? terms[i].cell_w : 1);
+			int cy = wy/(terms[i].cell_h ? terms[i].cell_h : 1);
+
+			handleMenu(menu_term, cx, cy);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+static void handleMouseEvent(SDL_Event *ev)
+{
+	int i;
+	int wx, wy;
+
+	if (menu_mode)
+	{
+		bool handled = handleMouseEvent_Menu(ev);
+		if (handled) return;	
+	}
+
+	eventMouseCoordinates(ev, &wx, &wy);
+
+	if (ev->type == SDL_MOUSEBUTTONDOWN)
+	{
+		
+	}
+	else if (ev->type == SDL_MOUSEBUTTONUP)
+	{
+		if (ev->button.button == SDL_BUTTON_RIGHT)
+		{
+			if (menu_mode)
+			{
+				menu_mode = 0;
+				guiDragStop();
+				guiMenuOff();
+			}
+			else
+			{
+				menu_mode = 1;
+				menu_term = -1;
+				guiMenuReact(ev->window.windowID, wx, wy);
+			}
+			mustRerender();
+		}
+		if (ev->button.button == SDL_BUTTON_LEFT)
+		{
+			for (i = 0; i < TERM_MAX; i++)
+			{
+				if (terms[i].window_id == ev->window.windowID)
+				{
+					if (wx >= terms[i].x && wy >= terms[i].y
+					 && wx <= terms[i].x + terms[i].fb_w
+					 && wy <= terms[i].y + terms[i].fb_h)
+					{
+						handleMouseClick(i, wx, wy);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+/* Options: */
+static bool ignore_keyboard_layout = FALSE;
+static bool collapse_numpad_keys = FALSE;
+/* Notification: */
+static bool warn_wrong_layout = FALSE;
+
+/* When keyboard layout is ignored, we do this: */
+static int hackyShift(int key)
+{
+	if (key >= 'a' && key <= 'z') return key - 32;
+	else if (key == '1') return '!';
+	else if (key == '2') return '@';
+	else if (key == '3') return '#';
+	else if (key == '4') return '$';
+	else if (key == '5') return '%';
+	else if (key == '6') return '^';
+	else if (key == '7') return '&';
+	else if (key == '8') return '*';
+	else if (key == '9') return '(';
+	else if (key == '0') return '*';
+	else if (key == '`') return '~';
+	else if (key == '-') return '_';
+	else if (key == '=') return '+';
+	else if (key == '[') return '{';
+	else if (key == ']') return '}';
+	else if (key == ';') return ':';
+	else if (key == '\'') return '"';
+	else if (key == '\\') return '|';
+	else if (key == '.') return '<';
+	else if (key == ',') return '>';
+	else if (key == '/') return '?';
+}
+
+static void handleKeyboardEvent(SDL_Event *ev)
+{
+	/* Handle text input */
+	if (ev->type == SDL_TEXTINPUT)
+	{
+		/* This is a utf-8 string */
+		char *c = ev->text.text;
+		/* Hack -- if we ignore_keyboard_layout, don't use textinput */	
+		if (ignore_keyboard_layout) c = NULL;
+		while (*c)
+		{
+			int key = *c;
+			/* We only want ascii input */
+			if (*c & 0x80)
+			{
+				/* Some foreign keyboard layout, warn user! */
+				warn_wrong_layout = TRUE;
+				return;
+			}
+			/* Send as-is */
+			Term_keypress(key);
+			c++;
+		}
+		return;
+	}
+
+	/* Hack -- "Back" button */
+	if (ev->key.keysym.scancode == SDL_SCANCODE_AC_BACK)
+	{
+		Term_keypress(ESCAPE);
+		return;
+	}
+
+	if (ev->type == SDL_KEYDOWN && ev->key.state == SDL_PRESSED)
+	{
+		int key = ev->key.keysym.sym;
+		int mod = ev->key.keysym.mod & 0x00000FFF;
+		bool sent = FALSE;
+		bool shift_only = ((mod & KMOD_SHIFT) && ((mod & ~KMOD_SHIFT) == 0));
+		bool ctrl_only = ((mod & KMOD_CTRL) && ((mod & ~KMOD_CTRL) == 0));
+
+		/* ASCII */
+		if (key <= 127)
+		{
+			/* Space is already handled by text input, ignore */
+			if (!ignore_keyboard_layout && key == ' ' && mod == 0) return;
+
+			/* Ignore modifier keypresses */
+			if (key >= SDLK_LCTRL && key <= SDLK_RGUI) return;
+
+			/* Printable charater */
+			if (isgraph(key))
+			{
+				/* No modifiers */
+				if (mod == 0)
+				{
+					/* Already handled by text input, ignore */
+					if (!ignore_keyboard_layout) return;
+
+					/* Send as-is */
+					Term_keypress(key);
+					sent = TRUE;
+				}
+				/* Only Shift modifier */
+				else if (shift_only)
+				{
+					/* Already handled by text input, ignore */
+					if (!ignore_keyboard_layout) return;
+
+					/* Send uppercase */
+					Term_keypress(hackyShift(key));
+					sent = TRUE;
+				}
+				/* Only Ctrl modifier */
+				else if (ctrl_only && isalpha(key))
+				{
+					/* Send ctrlcase */
+					Term_keypress(KTRL(key));
+					sent = TRUE;
+				}
+			}
+			/* Control character with no modifiers */
+			if ((iscntrl(key) || isspace(key)) && mod == 0)
+			{
+				/* Send as-is */
+				Term_keypress(key);
+				sent = TRUE;
+			}
+		}
+		/* Send as macro */
+		if (!sent)
+		{
+			char buf[32];
+
+			/* Remove 0x4000000, which SDL assigns to all non-ascii keys */
+			key &= 0x0000FFFF;
+
+			/* Hack -- allow NumPad to be macroed separately */
+			if ((ev->key.keysym.mod & KMOD_NUM) 
+			&& ev->key.keysym.sym >= SDLK_KP_DIVIDE
+			&& ev->key.keysym.sym <= SDLK_KP_PERIOD
+			&& collapse_numpad_keys == FALSE)
+			{
+				/* Largest real SDL_Keysym is 0x11A, so this is "safe" */
+				key |= 0xF00;
+			}
+				
+			/* Format macro */
+			strnfmt(buf, 32, "%c%s%s%s%s_%lX%c", 31,
+				    ev->key.keysym.mod & KMOD_CTRL  ? "N" : "",
+				    ev->key.keysym.mod & KMOD_SHIFT ? "S" : "",
+				    "",
+				    ev->key.keysym.mod & KMOD_ALT   ? "M" : "",
+				    (unsigned long) key, 13);
+#ifdef DEBUG
+			printf("Macro: ^_%s%s%s%s_%lX\\r%s\n",
+				    ev->key.keysym.mod & KMOD_CTRL  ? "N" : "",
+				    ev->key.keysym.mod & KMOD_SHIFT ? "S" : "",
+				    "",
+				    ev->key.keysym.mod & KMOD_ALT   ? "M" : "",
+				    (unsigned long) key);
+#endif
+			Term_multikeypress(buf);
+			sent = TRUE;	
+		}
+		if (!sent)
+		{
+			printf("Unhandled key %08x mod %08x\n", ev->key.keysym.sym, ev->key.keysym.mod);
+		}
+	}
+}
+
 static errr xtraTermHook(int n, int v) {
 	term *old_td;
 	TermData *td = (TermData*)(Term->data);
@@ -2017,151 +2411,28 @@ static errr xtraTermHook(int n, int v) {
 	case TERM_XTRA_LEVEL: // v of 0 = deactivate, v of 1 = activate
 		return 0;
 	case TERM_XTRA_EVENT:
-		do {
-			if (v)
-			{
-				if (!SDL_WaitEvent(&event)) return(0);
-				v = 0;
-			} else {
-				if (!SDL_PollEvent(&event)) return(0);
-			}
-			if (event.type == SDL_QUIT)
-			{
-				quit("Goodbye.");
-			}
-			else if (event.type == SDL_TEXTINPUT)
-			{
-				// this sends off "printable" characters (shifted variants as well)
-				char *c = event.text.text;
-				while (*c) Term_keypress(*c++);
-			}
-			else if (event.type == SDL_KEYDOWN)
-			{
-				if (event.key.keysym.scancode == SDL_SCANCODE_AC_BACK)
-				{
-					Term_keypress(ESCAPE);
-					continue;
-				}
-#ifdef ON_IOS
-		  /* Hack -- for some reason, SDL2 reports both SDL_TEXTINPUT and
-		   * SDL_KEYDOWN events for the spacebar, on iOS. Let's ignore one. */
-				if (event.key.keysym.sym == 32) continue;
-#endif
-				if (event.key.state == SDL_PRESSED)
-				{
-					if (event.key.keysym.sym < 33)
-					{
-						// Send low-level ASCII char codes (backspace, delete, etc.)
-						Term_keypress(event.key.keysym.sym);
-					} else {
-						unsigned int key = event.key.keysym.sym;
-						key &= ~(1 << 30);
-						if (event.key.keysym.sym >= 1073741881) {
-							// send off odd keys (arrows, keypad, function keys, etc.) as macros
-							char buf[32];
-							strnfmt(buf, 32, "%c%s%s%s%s_%lX%c", 31,
-							    event.key.keysym.mod & KMOD_CTRL  ? "N" : "",
-							    event.key.keysym.mod & KMOD_SHIFT ? "S" : "",
-							    "",
-							    event.key.keysym.mod & KMOD_ALT   ? "M" : "",
-							    (unsigned long) key, 13);
-							{
-							char *c = buf;
-							while (*c) Term_keypress(*c++);
-							}
-						}
-						else
-						{
-							// handle "ctrl" keymod of regular keys since TEXTINPUT does not handle them
-							if (event.key.keysym.mod & KMOD_CTRL) Term_keypress(KTRL(key));
-						}
-					}
-				}
-			}
-			else if (event.type == SDL_WINDOWEVENT)
-			{
-				if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							Term_activate(&(terms[i].t));
-							break;
-						}
-					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_RESIZED)
-				{
-					byte cw_, ch_;
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							// resize to nearest whole cell
-							int w = event.window.data1;
-							int h = event.window.data2;
-							int cw = w/terms[i].cell_w;
-							int ch = h/terms[i].cell_h;
+	do {
 
-							if (i == 0)
-							{
-								normalizeMouseCoordinates(0, &w, &h, w, h);
-								resizeWindow(&terms[i], w, h);
-								break;
-							}
-
-							cw_ = cw; ch_ = ch;
-							net_term_clamp((byte)i, &ch_, &cw_);
-							cw = cw_; ch = ch_;
-
-							resizeTerm(&terms[i], cw, ch);
-							refreshTerm(&terms[i]);
-							//refreshTermAlt(&terms[i]);
-							break;
-						}
-					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_MOVED)
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							int x = event.window.data1;
-							int y = event.window.data2;
-
-							terms[i].x = x;
-							terms[i].y = y;
-
-						}
-					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_EXPOSED)
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							terms[i].need_redraw = TRUE;
-							break;
-						}
-					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID) {
-						if (i == TERM_MAIN)
-						{
-							quit("Sayonara!");
-							break;
-						}
-						termClose(i);
-					}
-				}
-			}
+		if (v)
+		{
+			if (!SDL_WaitEvent(&event)) return(0);
+			v = 0;
+		} else {
+			if (!SDL_PollEvent(&event)) return(0);
+		}
+		if (event.type == SDL_QUIT)
+		{
+			quit("Goodbye.");
+		}
+		else if (event.type == SDL_KEYDOWN
+				|| event.type == SDL_KEYUP
+				|| event.type == SDL_TEXTINPUT)
+		{
+			handleKeyboardEvent(&event);
+		}
+		else if (event.type == SDL_WINDOWEVENT)
+		{
+			handleWMEvent(&event);
 		}
 
 		/* Gestures */
@@ -2187,112 +2458,14 @@ static errr xtraTermHook(int n, int v) {
 			}
 		}
 
-		// MMM BEGIN
-		else if (event.type == SDL_MOUSEBUTTONDOWN)
+		/* Mouse events */
+		else if (event.type == SDL_MOUSEBUTTONDOWN
+				|| event.type == SDL_MOUSEMOTION
+				|| event.type == SDL_MOUSEBUTTONUP)
 		{
-			int wx, wy;
-			normalizeMouseCoordinates(0, &wx, &wy, event.button.x, event.button.y);
-
-			if (menu_mode)
-			{
-				i = guiTermMatch(event.window.windowID, wx, wy);
-				if (i >= 0 && terms[i].config & TERM_IS_VIRTUAL)
-				{
-					/* Matched virtual title bar */
-					if (menu_hover <= 0)
-					{
-						guiDragStart(i, wx, wy);
-					}
-				}
-				else
-				{
-					i = guiGripMatch(event.window.windowID, wx, wy);
-					if (i >= 0)
-					{
-						gripping = 1;
-						guiDragStart(i, wx, wy);
-					}
-				}
-			}
-		}
-		else if (event.type == SDL_MOUSEBUTTONUP)
-		{
-			int wx, wy;
-			normalizeMouseCoordinates(0, &wx, &wy, event.button.x, event.button.y);
-			if (event.button.button == SDL_BUTTON_RIGHT)
-			{
-				if (menu_mode)
-				{
-					menu_mode = 0;
-					guiDragStop();
-					guiMenuOff();
-				}
-				else
-				{
-					menu_mode = 1;
-					menu_term = -1;
-					guiMenuReact(event.window.windowID, wx, wy);
-				}
-				mustRerender();
-			}
-			else if (event.button.button == SDL_BUTTON_LEFT)
-			{
-				if (dragging > -1)
-				{
-					guiDragStop();
-					break;
-				}
-				if (menu_mode)
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							int cx = wx/(terms[i].cell_w ? terms[i].cell_w : 1);
-							int cy = wy/(terms[i].cell_h ? terms[i].cell_h : 1);
-
-							handleMenu(menu_term, cx, cy);
-							break;
-						}
-					}
-				}
-				else
-				{
-					for (i = 0; i < 8; i++)
-					{
-						if (terms[i].window_id == event.window.windowID)
-						{
-							if (wx >= terms[i].x && wy >= terms[i].y
-							 && wx <= terms[i].x + terms[i].fb_w
-							 && wy <= terms[i].y + terms[i].fb_h)
-							{
-								handleMouseClick(i, wx, wy);
-								break;
-							}
-					}
-				}
-			}
-		}
-	}
-	else if (event.type == SDL_MOUSEMOTION)
-	{
-		int wx, wy;
-		normalizeMouseCoordinates(0, &wx, &wy, event.motion.x, event.motion.y);
-
-		if (dragging > -1 && terms[dragging].window_id == event.window.windowID)
-		{
-			accum_x = event.motion.x;
-			accum_y = event.motion.y;
-			guiDragMotion(event.motion.xrel, event.motion.yrel);
-			break;
-		}
-		if (menu_mode)
-		{
-			guiMenuReact(event.window.windowID, wx, wy);
+			handleMouseEvent(&event);
 		}
 
-	}
-	// MMM END
 	} while (SDL_PollEvent(NULL));
 	return 0; // okay, I guess?
 
@@ -2887,7 +3060,7 @@ static errr loadConfig()
 
 	use_sound = (bool)conf_get_int("SDL2", "Sound", 1);
 
-	for (window_id = 0; window_id < 8; window_id++)
+	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
 		strnfmt(section, 128, "SDL2-Window-%d", window_id);
 		strncpy(terms[window_id].title, conf_get_string(section, "Title", ""), 128);
@@ -3036,7 +3209,7 @@ static errr saveConfig()
 	conf_set_int("SDL2", "Graphics", use_graphics);
 	conf_set_int("SDL2", "Sound", use_sound);
 
-	for (window_id = 0; window_id < 8; window_id++)
+	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
 		strnfmt(section, 128, "SDL2-Window-%d", window_id);
 		conf_set_string(section, "Title", terms[window_id].title);
