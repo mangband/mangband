@@ -1546,7 +1546,7 @@ bool object_similar_floor(object_type *o_ptr, object_type *j_ptr)
  * Ego items may stack as long as they have the same ego-item type.
  * This is primarily to allow ego-missiles to stack.
  */
-bool object_similar(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr)
+bool object_similar(const player_type *p_ptr, const object_type *o_ptr, const object_type *j_ptr)
 {
 	int total = o_ptr->number + j_ptr->number;
 

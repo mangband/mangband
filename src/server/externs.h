@@ -811,7 +811,7 @@ extern void object_aware(player_type *p_ptr, object_type *o_ptr);
 extern void object_tried(player_type *p_ptr, object_type *o_ptr);
 extern s32b object_value(player_type *p_ptr, object_type *o_ptr);
 extern bool object_similar_floor(object_type *o_ptr, object_type *j_ptr);
-extern bool object_similar(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr);
+extern bool object_similar(const player_type *p_ptr, const object_type *o_ptr, const object_type *j_ptr);
 extern void object_absorb(player_type *p_ptr, object_type *o_ptr, object_type *j_ptr);
 extern s16b lookup_kind(int tval, int sval);
 extern void invwipe(object_type *o_ptr);
