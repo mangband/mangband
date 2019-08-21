@@ -25,7 +25,7 @@
  * and the return values are the same.
  */
 #include <windows.h>
-#include "lupng/lupng.h"
+#include "../lupng/lupng.h"
 
 #include "readdib.h"
 

@@ -212,7 +212,7 @@ static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "Davi
  * Include the support for loading bitmaps
  */
 #ifdef USE_GRAPHICS
-# include "readdib.h"
+# include "win/readdib.h"
 #endif
 
 /*

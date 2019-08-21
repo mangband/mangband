@@ -367,7 +367,7 @@
     <ClCompile Include="..\..\src\client\main-win.c" />
     <ClCompile Include="..\..\src\client\main-x11.c" />
     <ClCompile Include="..\..\src\client\main-xaw.c" />
-    <ClCompile Include="..\..\src\client\readpng.c" />
+    <ClCompile Include="..\..\src\client\win\readpng.c" />
     <ClCompile Include="..\..\src\client\sdl-font.c" />
     <ClCompile Include="..\..\src\client\sdl-sound.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
@@ -375,7 +375,7 @@
     <ClCompile Include="..\..\src\client\net-client.c" />
     <ClCompile Include="..\..\src\common\net-imps.c" />
     <ClCompile Include="..\..\src\common\net-pack.c" />
-    <ClCompile Include="..\..\src\client\readdib.c" />
+    <ClCompile Include="..\..\src\client\win\readdib.c" />
     <ClCompile Include="..\..\src\client\set_focus.c" />
     <ClCompile Include="..\..\src\client\c-variable.c" />
     <ClCompile Include="..\..\src\common\parser.c" />
@@ -411,8 +411,8 @@
     <ClInclude Include="..\..\src\common\net-pack.h" />
     <ClInclude Include="..\..\src\options.h" />
     <ClInclude Include="..\..\src\common\pack.h" />
-    <ClInclude Include="..\..\src\client\readdib.h" />
-    <ClInclude Include="..\..\src\client\resource.h" />
+    <ClInclude Include="..\..\src\client\win\readdib.h" />
+    <ClInclude Include="..\..\src\client\win\resource.h" />
     <ClInclude Include="..\..\src\common\types.h" />
     <ClInclude Include="..\..\src\common\parser.h" />
     <ClInclude Include="..\..\src\common\z-bitflag.h" />
@@ -428,7 +428,7 @@
     <Image Include="..\..\src\client\Angband.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\src\client\Angband.rc" />
+    <ResourceCompile Include="..\..\src\client\win\Angband.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

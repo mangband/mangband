@@ -6,7 +6,7 @@
  * Copyright 1991 Microsoft Corporation. All rights reserved.
  */
 
-#include "../common/angband.h"
+#include "../../common/angband.h"
 
 /*
  * Information about a bitmap

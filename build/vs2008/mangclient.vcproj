@@ -929,11 +929,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\readdib.c"
+				RelativePath="..\..\src\client\win\readdib.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\readpng.c"
+				RelativePath="..\..\src\client\win\readpng.c"
 				>
 			</File>
 			<File
@@ -1075,11 +1075,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\readdib.h"
+				RelativePath="..\..\src\client\win\readdib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\resource.h"
+				RelativePath="..\..\src\client\win\resource.h"
 				>
 			</File>
 			<File
@@ -1137,11 +1137,11 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\..\src\client\Angband.ico"
+				RelativePath="..\..\src\client\win\Angband.ico"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\Angband.rc"
+				RelativePath="..\..\src\client\win\Angband.rc"
 				>
 			</File>
 		</Filter>

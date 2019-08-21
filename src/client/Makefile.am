@@ -8,7 +8,7 @@ if HAVE_WINDRES
 # Added this conditional as it broke Linux - why is it needed for *nix? -kts
 if ON_WINDOWS
 
-mangclient_RESOURCES = src/client/Angband.rc
+mangclient_RESOURCES = src/client/win/Angband.rc
 endif
 endif
 
@@ -20,12 +20,17 @@ mangclient_SOURCES = \
 		src/client/ui.c src/client/ui.h src/client/c-cmd0.c \
 		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
 		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
-		src/client/readdib.c src/client/set_focus.c src/client/c-variable.c \
+		src/client/set_focus.c src/client/c-variable.c \
 		src/client/z-term.c \
 		$(mangclient_RESOURCES) \
 		src/client/c-angband.h src/client/c-defines.h src/client/c-externs.h \
-		src/client/net-client.h src/client/readdib.h src/client/resource.h \
+		src/client/net-client.h \
 		src/client/z-term.h
+
+mangclient_SOURCES += src/client/win/resource.h \
+		src/client/win/readpng.c \
+		src/client/win/readdib.c \
+		src/client/win/readdib.h
 
 mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c \
 		src/client/lupng/lupng.h src/client/lupng/miniz.h
