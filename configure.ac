@@ -13,6 +13,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O	# stops automake from complaining
+AC_PROG_OBJC	# same, as long as we have .m files
 AC_PROG_RANLIB
 #CFLAGS="$CFLAGS -Wall -g -pipe"
 

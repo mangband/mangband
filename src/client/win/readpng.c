@@ -1,4 +1,5 @@
-/* File: readdib.c */
+/* File: readpng.c */
+#ifdef USE_WIN
 
 /*
  * This package provides a routine to read a DIB file and set up the
@@ -24,6 +25,9 @@
  * opting for LuPng package instead. Otherwise, the semantics
  * and the return values are the same.
  */
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include "../lupng/lupng.h"
 
@@ -293,3 +297,5 @@ BOOL ReadDIB2_PNG(HWND hWnd, LPSTR lpFileName, DIBINIT *pInfo, DIBINIT *pMask, B
 	}
 	return (TRUE);
 }
+
+#endif

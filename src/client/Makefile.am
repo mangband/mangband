@@ -37,7 +37,8 @@ mangclient_SOURCES += src/client/lupng/lupng.c src/client/lupng/miniz.c \
 
 if USE_CRB
 
-mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h
+mangclient_SOURCES += src/client/main-crb.c src/client/osx/osx_tables.h \
+		src/client/ios/appl-dir.m src/client/ios/appl-dir.h
 
 # HACK -- Isolate JUST_CFLAGS from OBJ_CFLAGS
 src/client/mangclient-main-crb.o: src/client/main-crb.c
