@@ -46,6 +46,7 @@
 #define HAVE_INTTYPES_H 1
 #define MOBILE_UI
 #define USE_SDL2 1
+#define USE_SDL2_TTF 1
 #define PKGDATADIR "lib/"
 #define USE_SDL_RWOPS
 #endif

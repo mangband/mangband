@@ -7,9 +7,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := main
 
-SDL_PATH := ../SDL
+SDL_PATH := ../SDL2
 
-LOCAL_CFLAGS := -DON_ANDROID -DUSE_SDL2
+LOCAL_CFLAGS := -DON_ANDROID -DUSE_SDL2 -DUSE_SDL2_TTF
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 
@@ -31,7 +31,7 @@ LOCAL_SRC_FILES := $(MC_PATH)/main-sdl2.c $(MC_PATH)/client.c \
 		$(CMN_PATH)/net-imps.c $(CMN_PATH)/net-pack.c \
 		$(CMN_PATH)/parser.c $(CMN_PATH)/z-bitflag.c
 
-LOCAL_SHARED_LIBRARIES := SDL2
+LOCAL_SHARED_LIBRARIES := SDL2 SDL2_ttf
 
 LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog
 
