@@ -731,7 +731,7 @@ static errr refreshTerm(TermData *td) {
 		refreshTermAlt(td);
 	}
 
-	if (td->config & TERM_IS_VIRTUAL || td->id == 0)
+	if (td->config & TERM_IS_VIRTUAL || td->id == TERM_MAIN)
 	{
 		w = td->ren_rect.w;
 		h = td->ren_rect.h;
@@ -798,7 +798,7 @@ static errr resizeTerm(TermData *td, int cols, int rows)
 	td->rows = rows;
 	td->cols = cols;
 
-	if (td->config & TERM_IS_VIRTUAL || td->id == 0)
+	if (td->config & TERM_IS_VIRTUAL || td->id == TERM_MAIN)
 	{
 		td->ren_rect.w = td->cell_w*cols; td->ren_rect.h = td->cell_h*rows;
 	}
@@ -864,7 +864,7 @@ static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
 			}
 			attachFont(&fonts[i], td);
 
-			if (i == 0)
+			if (i == TERM_MAIN)
 			{
 				char *ext = strrchr(filename, '.');
 				ANGBAND_FON = ext ? string_make(ext+1) : ANGBAND_FON;
@@ -1064,7 +1064,7 @@ static void renderWindow(TermData *mtd)
 	SDL_RenderClear(mtd->renderer);
 
 	// Render ALT.DUNGEON
-	if (mtd->id == 0 && mtd->alt_framebuffer)
+	if (mtd->id == TERM_MAIN && mtd->alt_framebuffer)
 	{
 		SDL_Rect src = { 0, 0, mtd->alt_fb_w, mtd->alt_fb_h };
 		SDL_Rect dst = {
@@ -1372,7 +1372,7 @@ static errr renderGui(TermData *td)
 	y = 0;
 
 	// Main button
-	if (td->id == 0)
+	if (td->id == TERM_MAIN)
 	{
 		renderTButton(td, cx, 0, "[@]", MENU_SUB_ROOT);
 		cx += 3 + 1;
@@ -1478,7 +1478,7 @@ static errr renderGui(TermData *td)
 	}
 
 	// Graphics
-	if (td->id == 0)
+	if (td->id == TERM_MAIN)
 	{
 		renderTButton(td, cx, y, "Graphics", MENU_SUB_GRAPHICS);
 		if (menu_open == MENU_SUB_GRAPHICS && menu_open_term == td->id) {
@@ -1506,7 +1506,7 @@ static errr renderGui(TermData *td)
 	}
 
 	// Sound
-	if (td->id == 0)
+	if (td->id == TERM_MAIN)
 	{
 		renderTButton(td, cx, y, "Sound", MENU_SUB_SOUND);
 		if (menu_open == MENU_SUB_SOUND && menu_open_term == td->id) {
@@ -1527,7 +1527,7 @@ static errr renderGui(TermData *td)
 	}
 
 	// Windows
-	if (td->id == 0)
+	if (td->id == TERM_MAIN)
 	{
 		renderTButton(td, cx, y, "Windows", MENU_SUB_WINDOWS);
 		if (menu_open == MENU_SUB_WINDOWS && menu_open_term == td->id) {
@@ -1550,7 +1550,7 @@ static errr renderGui(TermData *td)
 	}
 
 	/* Right-hand buttons */
-	if (td->id == 0) {
+	if (td->id == TERM_MAIN) {
 		cx = td->cols - 3;
 	} else {
 		cx = td->cols - 7;
@@ -1810,7 +1810,7 @@ static void termStack(int i) {
 	int j;
 	bool found = FALSE;
 
-	if (i == 0) found = TRUE;
+	if (i == TERM_MAIN) found = TRUE;
 
 	termSizeRect(&pos, i);
 	termSizeScreen(&screen, i);
@@ -1969,7 +1969,7 @@ static void Term_multikeypress(char *buf)
 
 static void handleMouseClick(int i, int wx, int wy)
 {
-	if (i == 0)
+	if (i == TERM_MAIN)
 	{
 		int cx = (wx - terms[i].ren_rect.x) / terms[i].cell_w;
 		int cy = (wy - terms[i].ren_rect.y) / terms[i].cell_h;
@@ -2851,7 +2851,7 @@ static errr handleMenu(int i, int x, int y) {
 	td = &terms[i];
 	if (menu_hover == MENU_ACT_TOGGLE_VIRTUAL) {
 
-		if (i == 0) return 0;
+		if (i == TERM_MAIN) return 0;
 		/* Close it */
 		termClose(i);
 		/* Toggle virtuality */
@@ -2879,7 +2879,7 @@ static errr handleMenu(int i, int x, int y) {
 	}
 
 	if (menu_hover == MENU_ACT_CLOSE) {
-		if (i == 0) return 0;
+		if (i == TERM_MAIN) return 0;
 		termClose(i);
 	}
 
@@ -3168,7 +3168,7 @@ static errr loadConfig()
 			terms[window_id].ren_rect.h = terms[window_id].height;
 		}
 
-		if (window_id == 0)
+		if (window_id == TERM_MAIN)
 		{
 
 			terms[window_id].x = conf_get_int("SDL2", "X", -1);
