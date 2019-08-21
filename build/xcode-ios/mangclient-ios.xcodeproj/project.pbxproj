@@ -194,7 +194,7 @@
 		2E0078152301792200DD2D1A /* sdl-font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "sdl-font.h"; path = "../../src/client/sdl-font.h"; sourceTree = "<group>"; };
 		2E0078162301792200DD2D1A /* c-xtra2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "c-xtra2.c"; path = "../../src/client/c-xtra2.c"; sourceTree = "<group>"; };
 		2E22CDE8230152A600CDE5A4 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		2E29DE1E2301816000415961 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../../../SDL2-2.0.10/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
+		2E29DE1E2301816000415961 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../../../SDL/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		2E29DE37230183B400415961 /* lupng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lupng.h; path = ../../src/client/lupng/lupng.h; sourceTree = "<group>"; };
 		2E29DE38230183B400415961 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../src/client/lupng/miniz.c; sourceTree = "<group>"; };
 		2E29DE39230183B400415961 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../src/client/lupng/miniz.h; sourceTree = "<group>"; };
@@ -207,7 +207,7 @@
 		2E29DE722303FA6C00415961 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Default.png; path = ../../src/client/ios/Default.png; sourceTree = "<group>"; };
 		2E29DE742303FA6C00415961 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../../src/client/ios/Default-568h@2x.png"; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
-		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf-2.0.15/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
+		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
 		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/ios/appl-dir.m"; sourceTree = "<group>"; };
 		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/ios/appl-dir.h"; sourceTree = "<group>"; };
 		2EB388BB23040212007B7A33 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -610,7 +610,7 @@
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
-				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include ../../../SDL2_ttf-2.0.15";
+				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL/include ../../../SDL2_ttf";
 				TARGETED_DEVICE_FAMILY = 1;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
@@ -635,7 +635,7 @@
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
-				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL2-2.0.10/include ../../../SDL2_ttf-2.0.15";
+				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL/include ../../../SDL2_ttf";
 				TARGETED_DEVICE_FAMILY = 1;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
