@@ -208,8 +208,8 @@
 		2E29DE742303FA6C00415961 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../../src/client/ios/Default-568h@2x.png"; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
 		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
-		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/ios/appl-dir.m"; sourceTree = "<group>"; };
-		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/ios/appl-dir.h"; sourceTree = "<group>"; };
+		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/osx/appl-dir.m"; sourceTree = "<group>"; };
+		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/osx/appl-dir.h"; sourceTree = "<group>"; };
 		2EB388BB23040212007B7A33 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2EE023DD23009C0B00BA0836 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		FA8B4B96196703B400F8EB7C /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
@@ -605,7 +605,7 @@
 					USE_SDL2,
 					USE_SDL2_TTF,
 				);
-				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_FILE = ../../src/client/ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
@@ -630,7 +630,7 @@
 					USE_SDL2,
 					USE_SDL2_TTF,
 				);
-				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_FILE = ../../src/client/ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
