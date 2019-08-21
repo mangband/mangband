@@ -10,6 +10,80 @@
 # that the macros will work regardless of the "keymap" being used.
 #
 
+# Macro Trigger configuration
+#
+# T:<trigger template>:<modifiers>:<modifier name1>:<modifier name2>:....
+# '&' in <trigger template> specifies location of modifier character.
+# '#' in <trigger template> specifies location of key code.
+#
+# If <trigger template> is null string, all trigger difinition will be cleared.
+
+T:&_#:NSOM:control-:shift-:alt-:cmd-
+
+############
+
+# T:<trigger name>:<keycode>:<keycode with shiftkey>
+# '\' in <trigger name> is escape character.
+
+T:backspace:8
+T:tab:9
+T:enter:13
+T:insert:49
+T:delete:7F
+T:end:4D
+T:page_down:4E
+T:home:4A
+T:page_up:4B
+T:left:50
+T:right:4F
+T:up:52
+T:down:51
+T:kp_div:54
+T:kp_mult:55
+T:kp_minus:56
+T:kp_plus:57
+T:kp_home:5F
+T:kp_up:60
+T:kp_page_up:61
+T:kp_left:5C
+T:kp_5:5D
+T:kp_right:5E
+T:kp_end:59
+T:kp_down:5A
+T:kp_page_down:5B
+T:kp_insert:62
+T:kp_delete:63
+T:kp_return:58
+T:num_div:F54
+T:num_mult:F55
+T:num_minus:F56
+T:num_plus:F57
+T:num_home:F5F
+T:num_up:F60
+T:num_page_up:F61
+T:num_left:F5C
+T:num_5:F5D
+T:num_right:F5E
+T:num_end:F59
+T:num_down:F5A
+T:num_page_down:F5B
+T:num_insert:F62
+T:num_delete:F63
+T:num_return:F58
+T:f1:3A
+T:f2:3B
+T:f3:3C
+T:f4:3D
+T:f5:3E
+T:f6:3F
+T:f7:40
+T:f8:41
+T:f9:42
+T:f10:43
+T:f11:44
+T:f12:45
+
+
 # arrow keys
 A:4
 P:^__50\r
@@ -88,23 +162,27 @@ P:^_N_4A\r
 A:+9
 P:^_N_4B\r
 
-# KP_Insert, KP_End, KP_Down, KP_PageDown, KP_Left, <None>, KP_Right,
-# KP_Home, KP_Up, KP_Page_Up
+##
+## Keypad
+##
 
-A:0
-P:^__62\r
+# kp_end, kp_down, kp_page_down, walking
 A:1
 P:^__59\r
 A:2
 P:^__5A\r
 A:3
 P:^__5B\r
+
+# kp_left, kp_5, kp_right, walking
 A:4
 P:^__5C\r
 A:5
 P:^__5D\r
 A:6
 P:^__5E\r
+
+# kp_home, kp_up, kp_page_up, walking
 A:7
 P:^__5F\r
 A:8
@@ -112,102 +190,155 @@ P:^__60\r
 A:9
 P:^__61\r
 
-# Keypad (0-9)
-
-A:0
-P:^__62\r0
-
-A:1
-P:^__59\r1
-
-A:2
-P:^__5A\r2
-
-A:3
-P:^__5B\r3
-
-A:4
-P:^__5C\r4
-
-A:5
-P:^__5D\r5
-
-A:6
-P:^__5E\r6
-
-A:7
-P:^__5F\r7
-
-A:8
-P:^__60\r8
-
-A:9
-P:^__61\r9
-
-
 # Shift-Keypad (0-9)
 
 A:\e\e\e\e\\.0
-P:^_S_62\r0
+P:^_S_62\r
 
 A:\e\e\e\e\\.1
-P:^_S_59\r1
+P:^_S_59\r
 
 A:\e\e\e\e\\.2
-P:^_S_5A\r2
+P:^_S_5A\r
 
 A:\e\e\e\e\\.3
-P:^_S_5B\r3
+P:^_S_5B\r
 
 A:\e\e\e\e\\.4
-P:^_S_5C\r4
+P:^_S_5C\r
 
 A:\e\e\e\e\\.5
-P:^_S_5D\r5
+P:^_S_5D\r
 
 A:\e\e\e\e\\.6
-P:^_S_5E\r6
+P:^_S_5E\r
 
 A:\e\e\e\e\\.7
-P:^_S_5F\r7
+P:^_S_5F\r
 
 A:\e\e\e\e\\.8
-P:^_S_60\r8
+P:^_S_60\r
 
 A:\e\e\e\e\\.9
-P:^_S_61\r9
-
-
+P:^_S_61\r
 
 # Control-Keypad (0-9)
 
 A:\e\e\e\e\\+0
-P:^_N_62\r0
+P:^_N_62\r
 
 A:\e\e\e\e\\+1
 P:^_N_59\r1
 
 A:\e\e\e\e\\+2
-P:^_N_5A\r2
+P:^_N_5A\r
 
 A:\e\e\e\e\\+3
-P:^_N_5B\r3
+P:^_N_5B\r
 
 A:\e\e\e\e\\+4
-P:^_N_5C\r4
+P:^_N_5C\r
 
 A:\e\e\e\e\\+5
-P:^_N_5D\r5
+P:^_N_5D\r
 
 A:\e\e\e\e\\+6
-P:^_N_5E\r6
+P:^_N_5E\r
 
 A:\e\e\e\e\\+7
-P:^_N_5F\r7
+P:^_N_5F\r
 
 A:\e\e\e\e\\+8
-P:^_N_60\r8
+P:^_N_60\r
 
 A:\e\e\e\e\\+9
-P:^_N_61\r9
+P:^_N_61\r
+
+##
+## Numpad
+##
+
+# numpad -> regular keys
+A:/
+P:^__F54\r
+A:*
+P:^__F55\r
+A:-
+P:^__F56\r
+A:+
+P:^__F57\r
+A:7
+P:^__F5F\r
+A:8
+P:^__F60\r
+A:9
+P:^__F61\r
+A:4
+P:^__F5C\r
+A:5
+P:^__F5D\r
+A:6
+P:^__F5E\r
+A:1
+P:^__F59\r
+A:2
+P:^__F5A\r
+A:3
+P:^__F5B\r
+A:0
+P:^__F62\r
+A:.
+P:^__F63\r
+A:\r
+P:^__F58\r
+
+# numpad -> running
+A:\e\e\e\e\\.1
+P:^_S_F59\r
+
+A:\e\e\e\e\\.2
+P:^_S_F5A\r
+
+A:\e\e\e\e\\.3
+P:^_S_F5B\r
+
+A:\e\e\e\e\\.4
+P:^_S_F5C\r
+
+A:\e\e\e\e\\.6
+P:^_S_F5E\r
+
+A:\e\e\e\e\\.7
+P:^_S_F5F\r
+
+A:\e\e\e\e\\.8
+P:^_S_F60\r
+
+A:\e\e\e\e\\.9
+P:^_S_F61\r
+
+# numpad -> digging
+A:\e\e\e\e\\+1
+P:^_N_F59\r1
+
+A:\e\e\e\e\\+2
+P:^_N_F5A\r
+
+A:\e\e\e\e\\+3
+P:^_N_F5B\r
+
+A:\e\e\e\e\\+4
+P:^_N_F5C\r
+
+A:\e\e\e\e\\+6
+P:^_N_F5E\r
+
+A:\e\e\e\e\\+7
+P:^_N_F5F\r
+
+A:\e\e\e\e\\+8
+P:^_N_F60\r
+
+A:\e\e\e\e\\+9
+P:^_N_F61\r
 
