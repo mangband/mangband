@@ -481,8 +481,7 @@ void process_command()
 
 		case KTRL('X'):
 		{
-	        cleanup_network_client();
-	        quit(NULL);
+			quit(NULL);
 		}
 
 		case KTRL('R'):

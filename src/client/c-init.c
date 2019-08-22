@@ -43,6 +43,32 @@ static void init_arrays(void)
 	/* Clear client_setup */
 	Client_setup.k_attr = NULL;
 }
+static void free_arrays(void)
+{
+	int i, j;
+	for (i = 0; i < macro__num; i++)
+	{
+		string_ifree(macro__pat[i]);
+		string_ifree(macro__act[i]);
+	}
+	KILL(macro__pat);
+	KILL(macro__act);
+	KILL(macro__cmd);
+	KILL(macro__buf);
+	macro_trigger_free();
+	for (j = 0; j < KEYMAP_MODES; j++)
+	{
+		for (i = 0; i < 256; i++)
+		{
+			string_ifree(keymap_act[j][i]);
+		}
+	}
+	KILL(message__ptr);
+	KILL(message__buf);
+	KILL(message__type);
+	KILL(message__count);
+	KILL(store.stock);
+}
 
 /*
  * Initialize and verify the file paths.
@@ -174,6 +200,10 @@ void init_minor(void)
 		window_to_stream[i] = NTERM_WIN_NONE;
 		remote_info[i] = NULL;
 	}
+	for (i = 0; i < MAX_COFFERS; i++)
+	{
+		str_coffers[i] = NULL;
+	}
 
 	/* Redraw flags */
 	p_ptr->redraw = 0;
@@ -206,6 +236,25 @@ void init_info(void)
 	/* pr_info */
 	C_MAKE(p_ptr->pr_attr, (z_info.c_max+1)*z_info.p_max, byte);
 	C_MAKE(p_ptr->pr_char, (z_info.c_max+1)*z_info.p_max, char);
+}
+void free_info(void)
+{
+	KILL(Client_setup.k_attr);
+	KILL(Client_setup.k_char);
+	KILL(p_ptr->k_attr);
+	KILL(p_ptr->k_char);
+	KILL(p_ptr->d_attr);
+	KILL(p_ptr->d_char);
+	KILL(Client_setup.r_attr);
+	KILL(Client_setup.r_char);
+	KILL(p_ptr->r_attr);
+	KILL(p_ptr->r_char);
+	KILL(Client_setup.f_attr);
+	KILL(Client_setup.f_char);
+	KILL(p_ptr->f_attr);
+	KILL(p_ptr->f_char);
+	KILL(p_ptr->pr_attr);
+	KILL(p_ptr->pr_char);
 }
 
 /* Reset all visual mappings */
@@ -558,6 +607,11 @@ static void Game_loop(void)
 void quit_hook(cptr s)
 {
 	int j;
+
+	/* Everything allocated must be freed */
+	//FIXME: it's not safe to call :(
+	//free_arrays();
+	//free_info();
 
 	cleanup_network_client();
 

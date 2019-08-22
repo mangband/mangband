@@ -52,8 +52,17 @@ void setup_network_client()
 	/* Setup tables..? */
 	// can do it later
 }
+
+//void free_struct_info(void);
+//void free_streams(void);
+//void free_indicators(void);
 void cleanup_network_client()
 {
+	//FIXME: not safe to call! :(
+	//free_struct_info();
+	//free_indicators();
+	//free_streams();
+
 	e_release_all(first_connection, 0, 1);
 	first_connection = NULL;
 	e_release_all(first_caller, 0, 1);
@@ -872,6 +881,48 @@ int recv_struct_info(connection_type *ct)
 
 	return 1;
 }
+void free_struct_info(void)
+{
+	int i;
+	/* Options */
+	for (i = 0; i < options_groups_max; i++)
+	{
+		string_free(option_group[i]);
+	}
+	KILL(option_group);
+	for (i = 0; i < known_options; i++)
+	{
+		string_free(option_info[i].o_text);
+		string_free(option_info[i].o_desc);
+	}
+	KILL(option_info);
+
+	/* Stats */
+	for (i = 0; i < A_MAX; i++)
+	{
+		string_free(stat_names[i]);
+	}
+	KILL(stat_names);
+
+	/* Race */
+	KILL(p_name);
+	KILL(race_info);
+
+	/* Class */
+	KILL(c_name);
+	KILL(c_info);
+
+	/* Inven. Info */
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		KILL(inventory_name[i]);
+	}
+	KILL(eq_name);
+	KILL(eq_names);
+	KILL(inventory_name);
+	KILL(inventory);
+	KILL(inventory_secondary_tester);
+}
 
 int recv_option_info(connection_type *ct) 
 {
@@ -1120,6 +1171,27 @@ int recv_indicator_info(connection_type *ct) {
 	register_indicator(known_indicators - 1);
 
 	return 1;
+}
+
+void free_indicators(void)
+{
+	int i, j;
+	for (i = 0; i < known_indicators; i++)
+	{
+		//unregister_indicator(i);
+		string_free(indicators[i].mark);
+		string_free(indicators[i].prompt);
+	}
+	for (i = 0; i < MAX_COFFERS; i++)
+	{
+		if (str_coffers[i] == NULL) continue;
+		for (j = 0; j < MAX_COFFERS; j++)
+		{
+			if (i == j) continue;
+			if (str_coffers[j] == str_coffers[i]) str_coffers[j] = NULL;
+		}
+		KILL(str_coffers[i]);
+	}
 }
 
 int recv_slash_fx(connection_type *ct)
@@ -1416,6 +1488,22 @@ int recv_stream_info(connection_type *ct) {
 	known_streams++;
 
 	return 1;
+}
+void free_streams(void)
+{
+	stream_type *s_ptr;
+	int i;
+	for (i = 0; i < known_streams; i++)
+	{
+		s_ptr = &streams[i];
+		if (s_ptr->window_desc != s_ptr->mark)
+		{
+			string_free(s_ptr->window_desc);
+		}
+		string_free(s_ptr->mark);
+
+		if (remote_info[i]) KILL(remote_info[i]);
+	}
 }
 
 /* Network/Terminals */
