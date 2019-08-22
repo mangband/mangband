@@ -1368,11 +1368,11 @@ static errr Term_xtra_sdl(int n, int v)
 		return (0);
 
 		case TERM_XTRA_FRESH:
-
+#ifdef USE_SOUND
 		/* HACK !!! */
 		/* Terminate current sound if necessary */
 		if (use_sound) sdl_play_sound_end(TRUE);
-
+#endif
 		/* XXX XXX XXX Flush output (optional) */
 		/* This action should make sure that all "output" to the */
 		/* window will actually appear on the window. */
@@ -1401,11 +1401,11 @@ static errr Term_xtra_sdl(int n, int v)
 		return (0);
 
 		case TERM_XTRA_SOUND:
-
+#ifdef USE_SOUND
 		/* Make a sound */
 		i = sound_count(v);
 		if (i) sdl_play_sound (v, rand_int(i));
-
+#endif
 		return (0);
 
 		case TERM_XTRA_BORED:
