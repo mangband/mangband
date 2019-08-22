@@ -210,6 +210,8 @@ errr init_sdl2(void) {
 	char buf[1024];
 	int i;
 
+	Uint32 init_flags = SDL_INIT_VIDEO;
+
 	// **** Load in Configuration ****
 	// The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
 	use_graphics = conf_get_int("SDL2", "Graphics", 0);
@@ -223,8 +225,12 @@ errr init_sdl2(void) {
 	strnfmt(buf, 1024, "font-%s.prf", ANGBAND_SYS);
 	process_pref_file(buf);
 
+#ifdef USE_SOUND
+	init_flags |= SDL_INIT_AUDIO;
+#endif
+
 	// **** Initialize SDL libraries ****
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+	if (SDL_Init(init_flags) != 0)
 	{
 		plog_fmt("SDL_Init(): %s", SDL_GetError());
 		return 1;
@@ -2402,9 +2408,11 @@ static errr xtraTermHook(int n, int v) {
 		//return (Term_xtra_win_noise());
 		return 0;
 	case TERM_XTRA_SOUND:
+#ifdef USE_SOUND
 		/* Make a sound */
 		i = sound_count(v);
 		if (i) sdl_play_sound(v, rand_int(i));
+#endif
 		return 0;
 	case TERM_XTRA_BORED:
 		rerender();
@@ -2474,8 +2482,10 @@ static errr xtraTermHook(int n, int v) {
 		while (SDL_PollEvent(&event));
 		return 0; // force a redraw?
 	case TERM_XTRA_FRESH:
+#ifdef USE_SOUND
 		/* HACK !!! -- Terminate current sound if necessary */
 		if (use_sound) sdl_play_sound_end(TRUE);
+#endif
 		td->need_render = TRUE;
 		return 0;
 	case TERM_XTRA_CLEAR:
@@ -2889,7 +2899,9 @@ static errr handleMenu(int i, int x, int y) {
 	}
 
 	else if (menu_hover == MENU_ACT_SOUND_OFF) {
+#ifdef USE_SOUND
 		if (use_sound) sdl_play_sound_end(TRUE);
+#endif
 		use_sound = FALSE;
 	}
 
