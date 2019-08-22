@@ -61,7 +61,6 @@
  * to succeed even if the strings have not been allocated yet,
  * as long as the variables start out as "NULL".
  */
-#define string_ifree(S) if ((S)) string_free((S)); (S) = NULL
 void free_file_paths()
 {
 	/* Free the main path */

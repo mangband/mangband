@@ -139,4 +139,7 @@ extern cptr string_make(cptr str);
 /* Free a string allocated with "string_make()" */
 extern errr string_free(cptr str);
 
+/* Macro to free a string and set pointer to NULL */
+#define string_ifree(S) if ((S)) { string_free((S)); (S) = NULL; }
+
 #endif /* INCLUDED_Z_VIRT_H */

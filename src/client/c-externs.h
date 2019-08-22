@@ -411,6 +411,7 @@ extern int spell_as_keystroke(int spell, int book, char cmd, char *dst, size_t l
 extern void text_to_ascii(char *buf, size_t max, cptr str);
 extern void init_stuff(void);
 extern void init_file_paths(char *path);
+extern void free_file_paths(void);
 extern void import_user_pref_files(cptr dest_path);
 extern errr process_pref_file(cptr buf);
 extern errr process_pref_file_command(char *buf);

@@ -462,31 +462,35 @@ void text_to_ascii(char *buf, size_t max, cptr str)
  * to succeed even if the strings have not been allocated yet,
  * as long as the variables start out as "NULL".
  */
+void free_file_paths(void)
+{
+	/* Free the main path */
+	string_ifree(ANGBAND_DIR);
+
+	/* Free the sub-paths */
+	string_ifree(ANGBAND_DIR_APEX);
+	string_ifree(ANGBAND_DIR_BONE);
+	string_ifree(ANGBAND_DIR_DATA);
+	string_ifree(ANGBAND_DIR_EDIT);
+	string_ifree(ANGBAND_DIR_FILE);
+	string_ifree(ANGBAND_DIR_HELP);
+	string_ifree(ANGBAND_DIR_INFO);
+	string_ifree(ANGBAND_DIR_SAVE);
+	string_ifree(ANGBAND_DIR_PREF);
+	string_ifree(ANGBAND_DIR_USER);
+	string_ifree(ANGBAND_DIR_XTRA);
+
+	/* Free extra paths */
+	string_ifree(ANGBAND_DIR_XTRA_SOUND);
+}
+
 void init_file_paths(char *path)
 {
         char *tail;
 
 
         /*** Free everything ***/
-
-        /* Free the main path */
-        string_free(ANGBAND_DIR);
-
-        /* Free the sub-paths */
-        string_free(ANGBAND_DIR_APEX);
-        string_free(ANGBAND_DIR_BONE);
-        string_free(ANGBAND_DIR_DATA);
-        string_free(ANGBAND_DIR_EDIT);
-        string_free(ANGBAND_DIR_FILE);
-        string_free(ANGBAND_DIR_HELP);
-        string_free(ANGBAND_DIR_INFO);
-        string_free(ANGBAND_DIR_SAVE);
-        string_free(ANGBAND_DIR_PREF);
-        string_free(ANGBAND_DIR_USER);
-        string_free(ANGBAND_DIR_XTRA);
-
-        /* Free extra paths */
-        string_free(ANGBAND_DIR_XTRA_SOUND);
+	free_file_paths();
 
         /*** Prepare the "path" ***/
 

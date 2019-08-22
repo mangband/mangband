@@ -5460,7 +5460,6 @@ struct social_type
 int max_socials = 0; /* Store total number of socials */
 void wipe_socials()
 {
-#define string_ifree(S) if ((S)) string_free((S))
 	int i;
 	/*** Free ***/
 	for (i = 0; i < max_socials; i++)

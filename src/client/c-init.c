@@ -572,6 +572,9 @@ void quit_hook(cptr s)
 	}
 
 	conf_save();
+
+	/* Undo init_file_paths */
+	free_file_paths();
 }
 
 void gather_settings()
