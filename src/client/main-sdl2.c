@@ -1038,14 +1038,19 @@ static void nukeTermHook(term *t)
 	td->fb_w = td->fb_h = 0;
 	td->alt_fb_w = td->alt_fb_h = 0;
 
-	if (td->config & TERM_IS_VIRTUAL)
+	if (!(td->config & TERM_IS_VIRTUAL) || td->id == TERM_MAIN)
 	{
-
-	}
-	else
-	{
-		SDL_DestroyRenderer(td->renderer);
-		SDL_DestroyWindow(td->window);
+		int i;
+		for (i = 0; i < TERM_MAX; i++)
+		{
+			if (i == td->id) continue;
+			if (terms[i].renderer == td->renderer) terms[i].renderer = NULL;
+			if (terms[i].window == td->window) terms[i].renderer = NULL;
+		}
+		if (td->renderer) SDL_DestroyRenderer(td->renderer);
+		td->renderer = NULL;
+		if (td->window) SDL_DestroyWindow(td->window);
+		td->window = NULL;
 	}
 
 	/* Term is no longer visible */

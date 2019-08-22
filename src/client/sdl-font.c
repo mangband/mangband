@@ -746,6 +746,8 @@ SDL_Surface* SDLU_LoadPNG_RW(SDL_RWops *rw, int freesrc)
 
 	img = luPngReadUC(&userCtx);
 
+	if (freesrc) SDL_RWclose(rw);
+
 	if (!img)
 	{
 		SDL_SetError("Can't read png file");
