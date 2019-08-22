@@ -38,6 +38,7 @@ case "${host_os}" in
 	ON_OSX="yes"
 	LIBS="$LIBS -L/usr/X11R6/lib"
 	CLIENT_LDFLAG_SDL2="-framework Cocoa"
+	CLIENT_LDFLAGS="$CLIENT_LDFLAGS -framework CoreFoundation"
 	;;
 	freebsd*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
