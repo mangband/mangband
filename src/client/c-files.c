@@ -2057,6 +2057,8 @@ void conf_save()
 { }
 void conf_timer(int ticks)
 { }
+void conf_done(void)
+{ }
 bool conf_section_exists(cptr section)
 {
 	char sections[1024];
@@ -2494,6 +2496,28 @@ void conf_init(void* param)
 		}
 	}
 #endif
+}
+/* Destroy */
+void conf_done()
+{
+	section_conf_type	*s_ptr = NULL;
+	value_conf_type 	*v_ptr = NULL;
+
+	section_conf_type	*s_ptr_next = NULL;
+	value_conf_type 	*v_ptr_next = NULL;
+
+	/* Delete all sections */
+	for (s_ptr = root_node; s_ptr; s_ptr = s_ptr_next)
+	{
+		/* Delete all nodes */
+		for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr_next)
+		{
+			v_ptr_next = v_ptr->next;
+			FREE(v_ptr);
+		}
+		s_ptr_next = s_ptr->next;
+		FREE(s_ptr);
+	}
 }
 /* Save config file if it is scheduled */
 void conf_save()

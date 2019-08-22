@@ -571,7 +571,11 @@ void quit_hook(cptr s)
 		term_nuke(ang_term[j]);
 	}
 
+	/* Save config */
 	conf_save();
+
+	/* Release config */
+	conf_done();
 
 	/* Undo init_file_paths */
 	free_file_paths();

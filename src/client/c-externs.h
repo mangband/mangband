@@ -425,6 +425,7 @@ extern void stash_remote_info(void);
 extern void peruse_file(void);
 extern errr Save_options(void);
 extern void conf_init(void* param);	/* Client config section */
+extern void conf_done(void);
 extern void conf_save(void);
 extern void conf_timer(int ticks);
 extern bool conf_section_exists(cptr section);
