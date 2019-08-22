@@ -133,20 +133,20 @@ static void show_help()
 	printf("      --nick NICKNAME       Character name to use.\n");
 	printf("\nDisplay modules might support additional arguments.\n");
 #ifdef USE_SDL
-	extern const char help_sdl[];
-	printf("%s", help_sdl);
+	{ extern const char help_sdl[];
+	printf("%s", help_sdl); }
 #endif
 #ifdef USE_SDL2
-	extern const char help_sdl2[];
-	printf("%s", help_sdl2);
+	{ extern const char help_sdl2[];
+	printf("%s", help_sdl2); }
 #endif
 #ifdef USE_X11
-	extern const char help_x11[];
-	printf("%s", help_x11);
+	{ extern const char help_x11[];
+	printf("%s", help_x11); }
 #endif
 #ifdef USE_GCU
-	extern const char help_gcu[];
-	printf("%s", help_gcu);
+	{ extern const char help_gcu[];
+	printf("%s", help_gcu); }
 #endif
 }
 static bool exit_promptly(int argc, char *argv[])
