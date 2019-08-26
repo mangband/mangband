@@ -34,6 +34,9 @@ case "${host_os}" in
 	mingw*)
 	ON_WINDOWS="yes"
 	;;
+	cygwin*)
+	ON_WINDOWS="yes"
+	;;
 	darwin*)
 	ON_OSX="yes"
 	LIBS="$LIBS -L/usr/X11R6/lib"

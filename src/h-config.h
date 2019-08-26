@@ -187,6 +187,16 @@
 #endif
 
 /*
+ * HACK: autoconf guessing wrong on mingw32, fix it */
+#ifdef __MINGW32__
+#ifndef HAVE_ARPA_INET_H
+#ifdef HAVE_INET_NTOP
+#undef HAVE_INET_NTOP
+#endif
+#endif
+#endif
+
+/*
  * OPTION: Define "L64" if a "long" is 64-bits.  See "h-types.h".
  * (automatic for amd64 with gcc)
  */
