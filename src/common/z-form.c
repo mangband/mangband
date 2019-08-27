@@ -194,8 +194,14 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 {
 	cptr s;
 
+	/* The argument is "short" */
+	bool do_short;
+
 	/* The argument is "long" */
 	bool do_long;
+
+	/* The argument is "long long" */
+	bool do_long_long;
 
 	/* The argument needs "processing" */
 	bool do_xtra;
@@ -292,8 +298,14 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 		/* Save the "percent" */
 		aux[q++] = '%';
 
+		/* Assume no "short" argument */
+		do_short = FALSE;
+
 		/* Assume no "long" argument */
 		do_long = FALSE;
+
+		/* Assume no "long long" argument */
+		do_long_long = FALSE;
 
 		/* Assume no "xtra" processing */
 		do_xtra = FALSE;
@@ -324,8 +336,18 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 			/* Handle "alphabetic" chars */
 			if (isalpha((unsigned char)*s))
 			{
+				/* Hack -- handle "short" request */
+				if (*s == 'h')
+				{
+					/* Save the character */
+					aux[q++] = *s++;
+
+					/* Note the "short" flag */
+					do_short = TRUE;
+				}
+
 				/* Hack -- handle "long" request */
-				if (*s == 'l')
+				else if (*s == 'l')
 				{
 					/* Save the character */
 					aux[q++] = *s++;
@@ -342,6 +364,58 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 
 					/* Return "error" */
 					return (0);
+				}
+
+				/* Ultra-Hack -- handle I64 request */
+				else if (*s == 'I')
+				{
+					int numbits = 0;
+					char bitorder[4] = { 0 };
+					/* Save the character */
+					aux[q++] = *s++;
+					while (*s && isdigit(*s))
+					{
+						bitorder[numbits++] = *s;
+						aux[q++] = *s++;
+						if (numbits > 2) break;
+					}
+					if (numbits == 2 && bitorder[0] == '6' && bitorder[1] == '4')
+					{
+						do_long_long = TRUE;
+					}
+					else if (numbits == 2 && bitorder[0] == '3' && bitorder[1] == '2')
+					{
+						/* Just an int */
+					}
+					else if (numbits == 1 && bitorder[0] == '8')
+					{
+						do_short = TRUE;
+					}
+					else
+					{
+						/* Error -- illegal format char */
+						buf[0] = '\0';
+
+						/* Return "error" */
+						return (0);
+					}
+					if (*s == 'd' || *s == 'u')
+					{
+						aux[q++] = *s++;
+					}
+					else
+					{
+						/* Error -- illegal format char */
+						buf[0] = '\0';
+
+						/* Return "error" */
+						return (0);
+					}
+					/* Eh... */
+					do_long_long = TRUE;
+
+					/* Stop processing the format sequence */
+					break;
 				}
 
 				/* Handle normal end of format sequence */
@@ -449,12 +523,32 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 			/* Signed Integers -- standard format */
 			case 'd': case 'i':
 			{
-				if (do_long)
+				if (do_short)
+				{
+					short arg;
+
+					/* Get the next argument */
+					arg = va_arg(vp, int);
+
+					/* Format the argument */
+					sprintf(tmp, aux, arg);
+				}
+				else if (do_long)
 				{
 					long arg;
 
 					/* Get the next argument */
 					arg = va_arg(vp, long);
+
+					/* Format the argument */
+					sprintf(tmp, aux, arg);
+				}
+				else if (do_long_long)
+				{
+					long long arg;
+
+					/* Get the next argument */
+					arg = va_arg(vp, long long);
 
 					/* Format the argument */
 					sprintf(tmp, aux, arg);
@@ -477,12 +571,32 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 			/* Unsigned Integers -- various formats */
 			case 'u': case 'o': case 'x': case 'X':
 			{
-				if (do_long)
+				if (do_short)
+				{
+					unsigned short arg;
+
+					/* Get the next argument */
+					arg = va_arg(vp, unsigned int);
+
+					/* Format the argument */
+					sprintf(tmp, aux, arg);
+				}
+				else if (do_long)
 				{
 					unsigned long arg;
 
 					/* Get the next argument */
 					arg = va_arg(vp, unsigned long);
+
+					/* Format the argument */
+					sprintf(tmp, aux, arg);
+				}
+				else if (do_long_long)
+				{
+					unsigned long long arg;
+
+					/* Get the next argument */
+					arg = va_arg(vp, unsigned long long);
 
 					/* Format the argument */
 					sprintf(tmp, aux, arg);
