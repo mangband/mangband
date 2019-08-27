@@ -163,10 +163,10 @@ void perform_sanity_check(void)
 	if (sizeof(u32b) < 4) quit("sizeof(u32b) < 4");
 	if (sizeof(u64b) < 8) quit("sizeof(u64b) < 8");
 
-	tmp08u = tmp08s = 0xF7;
-	tmp16u = tmp16s = 0xF7F7;
-	tmp32u = tmp32s = 0xF7F7F7F7;
-	tmp64u = tmp64s = 0xF7F7F7F7F7F7F7F7LL;
+	tmp08u =/* tmp08s =*/ 0xF7;
+	tmp16u =/* tmp16s =*/ 0xF7F7;
+	tmp32u =/* tmp32s =*/ 0xF7F7F7F7;
+	tmp64u =/* tmp64s =*/ 0xF7F7F7F7F7F7F7F7LL;
 
 	sprintf(buf, "%" PRIu8, tmp08u);
 #ifndef SCNu8
