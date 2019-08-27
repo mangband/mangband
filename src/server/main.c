@@ -129,6 +129,95 @@ static void server_log(cptr str)
 	fprintf(stderr,"%s %s\n", buf, str);
 }
 
+void perform_sanity_check(void)
+{
+	char buf[128];
+	u64b tmp64u, _tmp64u;
+	u32b tmp32u, _tmp32u;
+	u16b tmp16u, _tmp16u;
+	byte tmp08u, _tmp08u;
+/* execessive
+	s64b tmp64s, _tmp64s;
+	s32b tmp32s, _tmp32s;
+	s16b tmp16s, _tmp16s;
+	char tmp08s, _tmp08s;
+*/
+
+#ifdef DEBUG
+#ifdef SCNu8
+	printf("byte %d <u> %s %s\n", sizeof(byte), PRIu8, SCNu8);
+	printf("char %d <u> %s %s\n", sizeof(char), PRId8, SCNd8);
+#else
+	printf("byte %d <!> %s %s\n", sizeof(byte), PRIu8, SCNu16);
+	printf("char %d <!> %s %s\n", sizeof(char), PRId8, SCNd16);
+#endif
+	printf("u16b %d <u> %s %s\n", sizeof(u16b), PRIu16, SCNu16);
+	printf("s16b %d <u> %s %s\n", sizeof(s16b), PRId16, SCNd16);
+	printf("u32b %d <u> %s %s\n", sizeof(u32b), PRIu32, SCNu32);
+	printf("s32b %d <u> %s %s\n", sizeof(s32b), PRId32, SCNd32);
+	printf("u64b %d <u> %s %s\n", sizeof(u64b), PRIu64, SCNu64);
+	printf("s64b %d <u> %s %s\n", sizeof(s64b), PRId64, SCNd64);
+#endif
+	if (sizeof(byte) < 1) quit("sizeof(byte) < 1");
+	if (sizeof(u16b) < 2) quit("sizeof(u16b) < 2");
+	if (sizeof(u32b) < 4) quit("sizeof(u32b) < 4");
+	if (sizeof(u64b) < 8) quit("sizeof(u64b) < 8");
+
+	tmp08u = tmp08s = 0xF7;
+	tmp16u = tmp16s = 0xF7F7;
+	tmp32u = tmp32s = 0xF7F7F7F7;
+	tmp64u = tmp64s = 0xF7F7F7F7F7F7F7F7LL;
+
+	sprintf(buf, "%" PRIu8, tmp08u);
+#ifndef SCNu8
+	sscanf(buf, "%" SCNu16, &_tmp16u);
+	_tmp08u = (byte)_tmp16u;
+#else
+	sscanf(buf, "%" SCNu8, &_tmp08u);
+#endif
+	if (tmp08u != _tmp08u) quit_fmt("printf/sscanf mismatch for byte");
+
+	strnfmt(buf, sizeof(buf), "%" PRIu8, tmp08u);
+	_tmp08u = 0;
+#ifndef SCNu8
+	sscanf(buf, "%" SCNu16, &_tmp16u);
+	_tmp08u = (byte)_tmp16u;
+#else
+	sscanf(buf, "%" SCNu8, &_tmp08u);
+#endif
+	if (tmp08u != _tmp08u) quit_fmt("strnfmt/sscanf mismatch for byte");
+
+
+	sprintf(buf, "%" PRIu16, tmp16u);
+	sscanf(buf, "%" SCNu16, &_tmp16u);
+	if (tmp16u != _tmp16u) quit_fmt("printf/sscanf mismatch for u16b %s/%s", PRIu16, SCNu16);
+
+	strnfmt(buf, sizeof(buf), "%" PRIu16, tmp16u);
+	_tmp16u = 0;
+	sscanf(buf, "%" SCNu16, &_tmp16u);
+	if (tmp16u != _tmp16u) quit_fmt("strnfmt/sscanf mismatch for u16b %s/%s", PRIu16, SCNu16);
+
+
+	sprintf(buf, "%" PRIu32, tmp32u);
+	sscanf(buf, "%" SCNu32, &_tmp32u);
+	if (tmp32u != _tmp32u) quit_fmt("printf/sscanf mismatch for u32b %s/%s", PRIu32, SCNu32);
+	
+	strnfmt(buf, sizeof(buf), "%" PRIu32, tmp32u);
+	_tmp32u = 0;
+	sscanf(buf, "%" SCNu32, &_tmp32u);
+	if (tmp32u != _tmp32u) quit_fmt("strnfmt/sscanf mismatch for u32b %s/%s", PRIu32, SCNu32);
+
+
+	sprintf(buf, "%" PRIu64, tmp64u);
+	sscanf(buf, "%" SCNu64, &_tmp64u);
+	if (tmp64u != _tmp64u) quit_fmt("printf/sscanf mismatch for u64b %s/%s", PRIu64, SCNu64);
+
+	strnfmt(buf, sizeof(buf), "%" PRIu64, tmp64u);
+	_tmp64u = 0;
+	sscanf(buf, "%" SCNu64, &_tmp64u);
+	if (tmp64u != _tmp64u) quit_fmt("strnfmt/sscanf mismatch for u64b %s/%s", PRIu64, SCNu64);
+}
+
 void show_version()
 {
 	cptr version_modifiers[] = {
@@ -185,6 +274,9 @@ int main(int argc, char *argv[])
 		_OvrInitEms(0, 0, 64);
 	}
 #endif
+
+	/* Sanity check */
+	perform_sanity_check();
 
 	/* Get the file paths */
 	init_stuff();
