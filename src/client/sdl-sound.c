@@ -49,9 +49,6 @@ void sdl_play_sound_end(bool wait)
 		/* Stop playing */
 		SDL_PauseAudio(1);
 		wav->playing = FALSE;
-
-		/* Close the audio device */
-		SDL_CloseAudio();
 	}
 }
 
