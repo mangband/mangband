@@ -139,27 +139,46 @@ typedef uint32_t u32b;
 typedef  int32_t s32b;
 typedef uint64_t u64b;
 typedef  int64_t s64b;
+
+/* Hack -- mingw32 on windows is likely to defer to msvcrt.dll,
+ * which doesn't support "hh", although they ARE present in inttypes. */
+#if defined(__MINGW32__) && defined(WINDOWS)
+#undef SCNd8
+#undef SCNu8
+#endif
+
 #else
 /* If we don't have <inttypes.h>, revert to old method: */
 
 /* Format specifiers for 8 bit values */
-#define SCNu8 "c"
-#define PRIu8 "c"
+#define PRIu8 "u"
+#define PRId8 "d"
+/* We leave SCNu8 and SCNd8 undefined. There is no way to tell... :(
+ * This shall lead to compile-time failures, which is good.
+ * To sscanf for 8-bit values, read into a 16-bit variable, then truncate! */
 
 /* Signed/Unsigned 16 bit value */
 typedef signed short s16b;
 typedef unsigned short u16b;
-#define SCNu16 "d"
-#define PRIu16 "d"
+#define SCNu16 "hu"
+#define PRIu16 "hu"
+#define SCNd16 "hd"
+#define PRId16 "hd"
 
 /* Signed/Unsigned 32 bit value */
 #ifdef L64	/* 64 bit longs */
 typedef signed int s32b;
 typedef unsigned int u32b;
+#define SCNu32 "u"
+#define PRIu32 "u"
+#define SCNd32 "d"
 #define PRId32 "d"
 #else
 typedef signed long s32b;
 typedef unsigned long u32b;
+#define SCNu32 "lu"
+#define PRIu32 "lu"
+#define SCNd32 "ld"
 #define PRId32 "ld"
 #endif
 
@@ -167,14 +186,25 @@ typedef unsigned long u32b;
 #if defined(HAVE___INT64)
 typedef __int64 s64b;
 typedef unsigned __int64 u64b;
-#else
+#define PRIu64 "I64u"
+#define SCNu64 "I64u"
+#define PRId64 "I64d"
+#define SCNd64 "I64d"
+#elif defined(L64) /* Long is 64-bit */
 typedef signed long s64b;
 typedef unsigned long u64b;
+#define PRIu64 "lu"
+#define SCNu64 "lu"
+#define PRId64 "ld"
+#define SCNd64 "ld"
+#else /* Long is 32-bit, hopefully "long long" is 64-bit */
+typedef signed long long s64b;
+typedef unsigned long long u64b;
+#define PRIu64 "llu"
+#define SCNu64 "llu"
+#define PRId64 "lld"
+#define SCNd64 "lld"
 #endif
-
-/* printf and scanf formats for 64-bit value */
-#define PRIu64 "ld"
-#define SCNu64 "ld"
 
 #endif /* !HAVE_INTTYPES_H */
 

@@ -198,9 +198,12 @@
 
 /*
  * OPTION: Define "L64" if a "long" is 64-bits.  See "h-types.h".
- * (automatic for amd64 with gcc)
+ * (automatic for some platforms)
  */
-#if defined(__alpha) || defined(__amd64__)
+#if defined(__alpha) || defined(__amd64__) \
+ || defined(_M_X64) || defined(_WIN64) || defined(__MINGW64__) \
+ || defined(_LP64) || defined(__LP64__) || defined(__ia64__) \
+ || defined(__x86_64__)
 # define L64
 #endif
 

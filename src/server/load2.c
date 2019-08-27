@@ -130,11 +130,18 @@ bool read_byte(char* name, byte *dst)
 	char seek_name[80];
 	bool matched = FALSE;
 	byte value;
+#ifndef SCNu8
+	u16b larger_value;
+#endif
 		
 	if (file_getl(file_handle, file_buf, sizeof(file_buf)-1))
 	{
 		line_counter++;
+#ifndef SCNu8
+		if(sscanf(file_buf,"%s = %" SCNu16, seek_name,&larger_value) == 2)
+#else
 		if(sscanf(file_buf,"%s = %" SCNu8, seek_name,&value) == 2)
+#endif
 		{
 			matched = !strcmp(seek_name,name);
 		}
@@ -144,8 +151,16 @@ bool read_byte(char* name, byte *dst)
 		plog(format("Missing integer.  Expected '%s', found '%s' at line %i",name,file_buf,line_counter));
 		return (FALSE);
 	}
-
+#ifndef SCNu8
+	if (larger_value > 255)
+	{
+		plog(format("Integer overflow.  Expected '%s' <= 255, found '%u' at line %i",name,larger_value,line_counter));
+		return (FALSE);
+	}
+	*dst = (byte)larger_value;
+#else
 	*dst = value;
+#endif
 	return (TRUE);
 }
 
