@@ -2133,7 +2133,7 @@ void store_confirm(player_type *p_ptr)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Re-Create the now-identified object that was sold */
 	sold_obj = *o_ptr;

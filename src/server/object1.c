@@ -2891,6 +2891,12 @@ void display_inven(player_type *p_ptr)
 	/* Display the pack */
 	for (i = 0; i < z; i++)
 	{
+		/* Don't send data that hasn't changed */
+		if (!(p_ptr->redraw_inven & (1LL << i))) continue;
+
+		/* Mark slot as up-to-date (clear bit) */
+		p_ptr->redraw_inven &= ~(1LL << i);
+
 		/* Examine the item */
 		o_ptr = &p_ptr->inventory[i];
 
@@ -2945,6 +2951,12 @@ void display_equip(player_type *p_ptr)
 	/* Display the equipment */
 	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
 	{
+		/* Don't send data that hasn't changed */
+		if (!(p_ptr->redraw_inven & (1LL << i))) continue;
+
+		/* Mark slot as up-to-date (clear bit) */
+		p_ptr->redraw_inven &= ~(1LL << i);
+
 		/* Examine the item */
 		o_ptr = &p_ptr->inventory[i];
 

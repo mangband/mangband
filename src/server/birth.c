@@ -1162,7 +1162,8 @@ void player_setup(player_type *p_ptr)
 	p_ptr->update |= (PU_VIEW | PU_LITE | PU_BONUS | PU_TORCH | PU_DISTANCE);
 
 	/* Update his inventory, equipment, and spell info */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL);
+	p_ptr->redraw_inven |= (0xFFFFFFFFFFFFFFFFLL);
+	p_ptr->window |= (PW_SPELL);
 	p_ptr->window |= (PW_ITEMLIST);
 
 	/* This guy is alive now */

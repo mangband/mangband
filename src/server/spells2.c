@@ -449,8 +449,8 @@ static int remove_curse_aux(player_type *p_ptr, int all)
 		/* Recalculate the bonuses */
 		p_ptr->update |= (PU_BONUS);
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << i);
 
 		/* Count the uncursings */
 		cnt++;
@@ -1105,6 +1105,9 @@ bool lose_all_info(player_type *p_ptr)
 
 		/* Hack -- Clear the "felt" flag */
 		o_ptr->ident &= ~ID_SENSE;
+
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << i);
 	}
 
 	/* Recalculate bonuses */
@@ -1114,7 +1117,7 @@ bool lose_all_info(player_type *p_ptr)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Mega-Hack -- Forget the map */
 	wiz_dark(p_ptr);
@@ -2232,8 +2235,11 @@ bool curse_armor(player_type *p_ptr)
 		/* Recalculate mana */
 		p_ptr->update |= (PU_MANA);
 
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << INVEN_BODY);
+
 		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+		p_ptr->window |= (PW_PLAYER);
 	}
 
 	return (TRUE);
@@ -2300,8 +2306,11 @@ bool curse_weapon(player_type *p_ptr)
 		/* Recalculate mana */
 		p_ptr->update |= (PU_MANA);
 
+		/* Redraw inventory slot */
+		p_ptr->redraw_inven |= (1LL << INVEN_WIELD);
+
 		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+		p_ptr->window |= (PW_PLAYER);
 	}
 
 	/* Notice */
@@ -2353,9 +2362,6 @@ bool brand_object(player_type *p_ptr, object_type *o_ptr, byte brand_type)
 
 		/* Combine / Reorder the pack (later) */
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
-
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
 
 		/* Enchant */
 		enchant(p_ptr, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
@@ -2417,7 +2423,6 @@ void brand_ammo(player_type *p_ptr, int item, bool discount)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	if (!item_tester_hook_ammo(p_ptr, o_ptr)) {
@@ -2440,6 +2445,9 @@ void brand_ammo(player_type *p_ptr, int item, bool discount)
 
 	/* Apply discount */
 	if (branded && discount) apply_discount_hack(o_ptr);
+
+	/* Redraw target item */
+	if (branded) player_redraw_item(p_ptr, item);
 
 	/* Done */
 	return;
@@ -2467,6 +2475,9 @@ void brand_weapon(player_type *p_ptr, bool discount)
 
 	/* Hack -- set 99% discount for some objects */
 	if (branded && discount) apply_discount_hack(o_ptr);
+
+	/* Redraw target item */
+	if (branded) player_redraw_item(p_ptr, INVEN_WIELD);
 }
 
 
@@ -2615,7 +2626,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Resend plusses */
 	p_ptr->redraw |= (PR_PLUSSES);
@@ -2664,7 +2675,6 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Cheap hack: maximum depth , playerlevel, etc */ 
@@ -2725,8 +2735,11 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
+	/* Redraw target item */
+	player_redraw_item(p_ptr, item);	
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 /*
 	p_ptr->current_artifact = FALSE;
 */
@@ -2781,7 +2794,6 @@ bool enchant_spell_aux(player_type *p_ptr, int item, int num_hit, int num_dam, i
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2816,6 +2828,9 @@ bool enchant_spell_aux(player_type *p_ptr, int item, int num_hit, int num_dam, i
 
 	/* Success -- apply discount */
 	if (okay && discount) apply_discount_hack(o_ptr);
+
+	/* Success -- Redraw target item */
+	if (okay) player_redraw_item(p_ptr, item);
 
 	/* Something happened */
 	return (TRUE);
@@ -2861,7 +2876,6 @@ bool ident_spell_aux(player_type *p_ptr, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2875,8 +2889,11 @@ bool ident_spell_aux(player_type *p_ptr, int item)
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
+	/* Redraw target item */
+	player_redraw_item(p_ptr, item);
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Description */
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, TRUE, 3);
@@ -2964,7 +2981,6 @@ bool identify_fully_item(player_type *p_ptr, int item)
 			return FALSE;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 
@@ -2981,8 +2997,11 @@ bool identify_fully_item(player_type *p_ptr, int item)
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
+	/* Redraw target item */
+	player_redraw_item(p_ptr, item);
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Handle artifact knowledge */
 	if (true_artifact_p(o_ptr))
@@ -3160,11 +3179,8 @@ bool recharge_aux(player_type *p_ptr, int item, int spell_strength)
 	/* Combine / Reorder the pack (later) */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
-	/* Window stuff */
-	p_ptr->window |= (PW_INVEN);
-
-	/* Redraw floor */
-	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
+	/* Redraw target item */
+	player_redraw_item(p_ptr, item);
 
 	/* Something was done */
 	return (TRUE);
@@ -4951,6 +4967,9 @@ bool brand_bolts(player_type *p_ptr, bool discount)
 
 		/* Apply discount */
 		if (discount) apply_discount_hack(o_ptr);
+
+		/* Redraw bolts */
+		player_redraw_item(p_ptr, i);
 
 		/* Notice */
 		return (TRUE);

@@ -1388,7 +1388,6 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		if (o_ptr->ix == 0 && o_ptr->iy == 0)
 		{
 			p_ptr->notice |= (PN_COMBINE | PN_REORDER);
-			p_ptr->window |= (PW_INVEN);
 		}
 		/* Refresh floor */
 		else
@@ -2388,9 +2387,6 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		else
 			o_ptr->timeout = a_ptr->time;
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
 		/* Done */
 		return FALSE;
 	}
@@ -2574,9 +2570,6 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			}
 		}
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
 		/* Success */
 		return FALSE;
 	}
@@ -2733,6 +2726,9 @@ bool use_object(player_type *p_ptr, object_type *o_ptr, int item, bool *ident)
 	/* Dismiss object */
 	if (used)
 		p_ptr->current_object = -2;
+
+	/* Hack -- redraw used item */
+	if (used) player_redraw_item(p_ptr, item);
 
 	return (used);
 }

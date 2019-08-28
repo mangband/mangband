@@ -595,8 +595,8 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 							/* Combine / Reorder the pack */
 							p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
-							/* Window stuff */
-							p_ptr->window |= (PW_INVEN);
+							/* Redraw slot */
+							p_ptr->redraw_inven |= (1LL << i);
 
 							/* Done */
 							break;
@@ -814,8 +814,8 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 							obvious = TRUE;
 						}
 
-						/* Window stuff */
-						p_ptr->window |= (PW_INVEN | PW_EQUIP);
+						/* Redraw slot */
+						p_ptr->redraw_inven |= (1LL << INVEN_LITE);
 					}
 
 					break;

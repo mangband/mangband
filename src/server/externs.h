@@ -835,6 +835,7 @@ extern void object_audit(player_type *p_ptr, object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
 extern void artifact_notify(player_type *p_ptr, object_type *o_ptr);
 extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
+extern void player_redraw_item(player_type *p_ptr, int item);
 extern u16b rand_tval_kind(int tval);
 extern void display_itemlist(player_type *p_ptr);
 

@@ -126,7 +126,7 @@ void do_cmd_eat_food(player_type *p_ptr, int item)
 	object_audit(p_ptr, o_ptr, 1);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Destroy a food in the pack */
 	if (item >= 0)
@@ -230,7 +230,7 @@ void do_cmd_quaff_potion(player_type *p_ptr, int item)
 	object_audit(p_ptr, o_ptr, 1);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Destroy a potion in the pack */
 	if (item >= 0)
@@ -363,7 +363,7 @@ void do_cmd_read_scroll_end(player_type *p_ptr, int item, bool ident)
 	object_audit(p_ptr, o_ptr, 1);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Destroy a scroll in the pack */
 	if (item >= 0)
@@ -506,10 +506,8 @@ void do_cmd_use_staff(player_type *p_ptr, int item)
 			msg_print(p_ptr, "The staffs have no charges left.");
 		o_ptr->ident |= ID_EMPTY;
 		
-		/* Redraw */
-		if (item >= 0) p_ptr->window |= (PW_INVEN);
-		/* Redraw floor */
-		else p_ptr->redraw |= (PR_FLOOR);
+		/* Redraw target item */
+		player_redraw_item(p_ptr, item);
 
 		return;
 	}
@@ -554,7 +552,7 @@ void do_cmd_use_staff_discharge(player_type *p_ptr, int item, bool ident)
 	}
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Use a single charge */
 	o_ptr->pval--;
@@ -585,6 +583,9 @@ void do_cmd_use_staff_discharge(player_type *p_ptr, int item, bool ident)
 	if (item >= 0)
 	{
 		inven_item_charges(p_ptr, item);
+
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << item);
 	}
 
 	/* Describe charges on the floor */
@@ -706,7 +707,7 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 	}
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 
 	/* Use a single charge */
@@ -737,6 +738,9 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
 	if (item >= 0)
 	{
 		inven_item_charges(p_ptr, item);
+
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << item);
 	}
 
 	/* Describe the charges on the floor */
@@ -801,7 +805,6 @@ void do_cmd_zap_rod(player_type *p_ptr, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Check guard inscription '!z' */
@@ -821,6 +824,9 @@ void do_cmd_zap_rod(player_type *p_ptr, int item)
 
 	/* Zap the rod */
 	use_object(p_ptr, o_ptr, item, &ident);
+	
+	/* Redraw rod */
+	player_redraw_item(p_ptr, item);
 }
 void do_cmd_zap_rod_discharge(player_type *p_ptr, int item, bool ident)
 {
@@ -860,10 +866,10 @@ void do_cmd_zap_rod_discharge(player_type *p_ptr, int item, bool ident)
 	}
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
-	/* Redraw floor */
-	if (item < 0) p_ptr->redraw |= (PR_FLOOR);
+	/* Redraw target item */
+	player_redraw_item(p_ptr, item);
 
 	/* Drain the charge */
 	/* happens in use-obj.c
@@ -1003,6 +1009,9 @@ void do_cmd_activate(player_type *p_ptr, int item)
 
 	/* Activate the object */
 	(void)use_object(p_ptr, o_ptr, item, &ident);
+
+	/* Redraw this item */
+	player_redraw_item(p_ptr, item);
 }
 void do_cmd_activate_dir(player_type *p_ptr, int item, int dir)
 {
@@ -1142,5 +1151,5 @@ void do_cmd_refill_potion(player_type *p_ptr, int item)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 }

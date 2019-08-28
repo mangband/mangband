@@ -2832,8 +2832,11 @@ void player_death(player_type *p_ptr)
 	/* Notice */
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
+	/* Redraw Inven/Equip */
+	p_ptr->redraw_inven |= (0xFFFFFFFFFFFFFFFFLL);
+
 	/* Windows */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL);
+	p_ptr->window |= (PW_SPELL);
 }
 
 /*
@@ -6721,6 +6724,8 @@ void do_cmd_dungeon_master(player_type *p_ptr, char query)
 				}
 				break;
 			}
+			/* Hack -- refresh forge slot */
+			p_ptr->redraw_inven |= (1 << 0);
 			/* PREPARE */
 			master_fill_objects(p_ptr, p_ptr->master_parm);
 			p_ptr->interactive_size = p_ptr->target_n - 1;

@@ -1544,6 +1544,7 @@ struct player_type
 	u32b update;		/* Pending Updates (bit flags) */
 	u64b redraw;		/* Normal Redraws (bit flags) */
 	u32b window;		/* Window Redraws (bit flags) */
+	u64b redraw_inven;	/* Inventory slots Redraws (bit flags) */
 
 	s16b stat_use[A_CAP];	/* Current modified stats */
 	s16b stat_top[A_CAP];	/* Maximal modified stats */

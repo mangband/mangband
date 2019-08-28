@@ -280,8 +280,8 @@ static void sense_inventory(player_type *p_ptr)
 		/* Combine / Reorder the pack (later) */
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << i);
 	}
 }
 
@@ -1486,8 +1486,8 @@ static void process_player_end(player_type *p_ptr)
 				/* Hack -- notice interesting fuel steps */
 				if ((o_ptr->pval < 100) || (!(o_ptr->pval % 100)))
 				{
-					/* Window stuff */
-					p_ptr->window |= (PW_INVEN | PW_EQUIP);
+					/* Redraw this slot */
+					p_ptr->redraw_inven |= (1LL << INVEN_LITE);
 				}
 
 				/* Hack -- Special treatment when blind */
@@ -1548,15 +1548,18 @@ static void process_player_end(player_type *p_ptr)
 				o_ptr->timeout--;
 
 				/* Notice changes */
-				if (!(o_ptr->timeout)) j++;
+				if (!(o_ptr->timeout))
+				{
+					j++;
+					/* Redraw slot */
+					p_ptr->redraw_inven |= (1LL << i);
+				}
 			}
 		}
 
 		/* Notice changes (equipment) */
 		if (j)
 		{
-			/* Window stuff */
-			p_ptr->window |= (PW_EQUIP);
 		}
 
 		j = 0;
@@ -1589,7 +1592,12 @@ static void process_player_end(player_type *p_ptr)
 
 					/* Update if any rods are recharged */
 					if (temp > (o_ptr->timeout + (k_ptr->pval - 1)) / k_ptr->pval)
+					{
+						/* Notice changes */
 						j++;
+						/* Redraw slot */
+						p_ptr->redraw_inven |= (1LL << i);
+					}
 				}
 			}
 		}
@@ -1599,9 +1607,6 @@ static void process_player_end(player_type *p_ptr)
 		{
 			/* Combine pack */
 			p_ptr->notice |= (PN_COMBINE);
-
-			/* Window stuff */
-			p_ptr->window |= (PW_INVEN);
 		}
 
 		/* Feel the inventory */
@@ -1717,16 +1722,7 @@ static void process_player_end(player_type *p_ptr)
 	/* HACK -- redraw stuff a lot, this should reduce perceived latency. */
 	/* This might not do anything, I may have been silly when I added this. -APD */
 	/* Notice stuff (if needed) */
-	//if (p_ptr->notice) notice_stuff(p_ptr);
-
-	/* Update stuff (if needed) */
-	//if (p_ptr->update) update_stuff(p_ptr);
-	
-	/* Redraw stuff (if needed) */
-	//if (p_ptr->redraw) redraw_stuff(p_ptr);
-
-	/* Redraw stuff (if needed) */
-	//if (p_ptr->window) window_stuff(p_ptr);
+	//handle_stuff(p_ptr);
 }
 
 
@@ -2334,17 +2330,8 @@ void dungeon(void)
 	{
 		player_type *p_ptr = Players[i];
 
-		/* Notice stuff */
-		if (p_ptr->notice) notice_stuff(p_ptr);
-
-		/* Update stuff */
-		if (p_ptr->update) update_stuff(p_ptr);
-
-		/* Redraw stuff */
-		if (p_ptr->redraw) redraw_stuff(p_ptr);
-
-		/* Window stuff */
-		if (p_ptr->window) window_stuff(p_ptr);
+		/* Flush pending updates */
+		handle_stuff(p_ptr);
 	}
 }
 

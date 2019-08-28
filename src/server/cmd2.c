@@ -4426,9 +4426,6 @@ void do_cmd_purchase_house(player_type *p_ptr, int dir)
 					 /* Get the money */
 					p_ptr->au += price / 2;
 
-					/* Window */
-					p_ptr->window |= (PW_INVEN);
-
 					/* Redraw */
 					p_ptr->redraw |= (PR_GOLD);
 

@@ -561,7 +561,7 @@ void do_cmd_plant_seed(player_type *p_ptr, int item)
 	p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Destroy an item in the pack */
 	if (item >= 0)

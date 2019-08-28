@@ -4231,7 +4231,10 @@ void inven_item_increase(player_type *p_ptr, int item, int num)
 		p_ptr->notice |= (PN_COMBINE);
 
 		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+		p_ptr->window |= (PW_PLAYER);
+
+		/* Redraw this slot */
+		p_ptr->redraw_inven |= (1LL << item);
 	}
 
 	/* Mega-hack! If an artifact was "decreased", forget ownership */
@@ -4269,10 +4272,16 @@ void inven_item_optimize(player_type *p_ptr, int item)
 		{
 			/* Structure copy */
 			p_ptr->inventory[i] = p_ptr->inventory[i+1];
+
+			/* Slot changed */
+			p_ptr->redraw_inven |= (1LL << i);
 		}
 
 		/* Erase the "final" slot */
 		invwipe(&p_ptr->inventory[i]);
+
+		/* Slot changed */
+		p_ptr->redraw_inven |= (1LL << i);
 	}
 
 	/* The item is being wielded */
@@ -4283,6 +4292,9 @@ void inven_item_optimize(player_type *p_ptr, int item)
 
 		/* Erase the empty slot */
 		invwipe(&p_ptr->inventory[item]);
+
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << item);
 
 		/* Recalculate bonuses */
 		p_ptr->update |= (PU_BONUS);
@@ -4295,7 +4307,7 @@ void inven_item_optimize(player_type *p_ptr, int item)
 	}
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
+	p_ptr->window |= (PW_SPELL | PW_PLAYER);
 }
 
 
@@ -4513,8 +4525,11 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 			/* Recalculate bonuses */
 			p_ptr->update |= (PU_BONUS);
 
+			/* Redraw slot */
+			p_ptr->redraw_inven |= (1LL << j);
+
 			/* Window stuff */
-			p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
+			p_ptr->window |= (PW_SPELL | PW_PLAYER);
 
 			/* Success */
 			return (j);
@@ -4593,10 +4608,16 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 		{
 			/* Hack -- Slide the item */
 			p_ptr->inventory[k+1] = p_ptr->inventory[k];
+
+			/* Redraw this slot */
+			p_ptr->redraw_inven |= (1LL << (k+1));
 		}
 
 		/* Paranoia -- Wipe the new slot */
 		invwipe(&p_ptr->inventory[i]);
+
+		/* Redraw this slot */
+		p_ptr->redraw_inven |= (1LL << i);
 	}
 
 
@@ -4622,7 +4643,10 @@ s16b inven_carry(player_type *p_ptr, object_type *o_ptr)
 	p_ptr->notice |= (PN_REORDER);
 
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_SPELL | PW_PLAYER);
+	p_ptr->window |= (PW_SPELL | PW_PLAYER);
+
+	/* Redraw slot */
+	p_ptr->redraw_inven |= (1LL << i);
 
 	/* Return the slot */
 	return (i);
@@ -4681,13 +4705,19 @@ void combine_pack(player_type *p_ptr)
 				{
 					/* Structure copy */
 					p_ptr->inventory[k] = p_ptr->inventory[k+1];
+
+					/* Redraw slot */
+					p_ptr->redraw_inven |= (1LL << k);
 				}
 
 				/* Erase the "final" slot */
 				invwipe(&p_ptr->inventory[k]);
 
+				/* Redraw slot */
+				p_ptr->redraw_inven |= (1LL << k);
+
 				/* Window stuff */
-				p_ptr->window |= (PW_INVEN | PW_EQUIP |  PW_SPELL);
+				p_ptr->window |= (PW_SPELL);
 
 				/* Done */
 				break;
@@ -4790,13 +4820,16 @@ void reorder_pack(player_type *p_ptr)
 		{
 			/* Slide the item */
 			p_ptr->inventory[k] = p_ptr->inventory[k-1];
+
+			/* Redraw slot */
+			p_ptr->redraw_inven |= (1LL << k);
 		}
 
 		/* Insert the moved item */
 		p_ptr->inventory[j] = temp;
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
+		/* Redraw slot */
+		p_ptr->redraw_inven |= (1LL << j);
 	}
 
 	/* Message */
@@ -5194,6 +5227,17 @@ object_type* player_get_item(player_type *p_ptr, int item, int *idx)
 	}
 
 	return o_ptr;
+}
+
+/* Schedule network update for indexed item.
+ * If "item" is < 0, we treat it as an o_list[] index.
+ * If "item" is >= 0, we treat it as an inventory[] slot index. */
+void player_redraw_item(player_type *p_ptr, int item)
+{
+	/* Inven/equip */
+	if (item >= 0) p_ptr->redraw_inven |= (1LL << item);
+	/* Floor */
+	else p_ptr->redraw |= (PR_FLOOR);
 }
 
 /*

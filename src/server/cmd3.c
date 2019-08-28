@@ -85,9 +85,6 @@ static void inven_takeoff(player_type *p_ptr, int item, int amt)
 	inven_item_increase(p_ptr, item, -amt);
 	inven_item_optimize(p_ptr, item);
 
-	/* Window stuff */
-	p_ptr->window |= (PW_EQUIP);
-
 	/* Redraw */
 	p_ptr->redraw |= (PR_PLUSSES | PR_OFLAGS);
 }
@@ -523,8 +520,11 @@ void do_cmd_wield(player_type *p_ptr, int item)
 	/* Redraw */
 	p_ptr->redraw |= (PR_PLUSSES | PR_OFLAGS);
 
+	/* Redraw slot */
+	p_ptr->redraw_inven |= (1LL << slot);
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 }
 
 
@@ -837,9 +837,6 @@ void do_cmd_destroy(player_type *p_ptr, int item, int quantity)
 		/* Combine the pack */
 		p_ptr->notice |= (PN_COMBINE);
 
-		/* Window stuff */
-		p_ptr->window |= (PW_INVEN | PW_EQUIP);
-
 		/* Done */
 		return;
 	}
@@ -983,7 +980,6 @@ void do_cmd_uninscribe(player_type *p_ptr, int item)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Check guard inscription '!}' */
@@ -1008,8 +1004,8 @@ void do_cmd_uninscribe(player_type *p_ptr, int item)
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
 
-	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+	/* Redraw item */
+	player_redraw_item(p_ptr, item);
 }
 
 
@@ -1045,7 +1041,6 @@ void do_cmd_inscribe(player_type *p_ptr, int item, cptr inscription)
 			return;
 		}
 		o_ptr = &o_list[0 - item];
-		p_ptr->redraw |= (PR_FLOOR);
 	}
 
 	/* Check guard inscription '!{' */
@@ -1101,8 +1096,8 @@ void do_cmd_inscribe(player_type *p_ptr, int item, cptr inscription)
 	/* Combine the pack */
 	p_ptr->notice |= (PN_COMBINE);
 
-	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP);
+	/* Redraw item */
+	player_redraw_item(p_ptr, item);
 }
 
 

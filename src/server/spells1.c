@@ -929,9 +929,11 @@ static int minus_ac(player_type *p_ptr)
 
 	char		o_name[80];
 
+	int item;
 
 	/* Pick a (possibly empty) inventory slot */
-	switch (randint(6))
+	item = randint(6);
+	switch (item)
 	{
 		case 1: o_ptr = &p_ptr->inventory[INVEN_BODY]; break;
 		case 2: o_ptr = &p_ptr->inventory[INVEN_ARM]; break;
@@ -971,8 +973,11 @@ static int minus_ac(player_type *p_ptr)
 	/* Calculate bonuses */
 	p_ptr->update |= (PU_BONUS);
 
+	/* Redraw inventory slot */
+	p_ptr->redraw_inven |= (1LL << item);
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Item was damaged */
 	return (TRUE);
@@ -1378,8 +1383,11 @@ bool apply_disenchant(player_type *p_ptr, int mode)
 	/* Recalculate bonuses */
 	p_ptr->update |= (PU_BONUS);
 
+	/* Redraw inventory slot */
+	p_ptr->redraw_inven |= (1LL << t);
+
 	/* Window stuff */
-	p_ptr->window |= (PW_INVEN | PW_EQUIP | PW_PLAYER);
+	p_ptr->window |= (PW_PLAYER);
 
 	/* Notice */
 	return (TRUE);

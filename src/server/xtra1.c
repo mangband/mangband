@@ -3464,14 +3464,22 @@ void window_stuff(player_type *p_ptr)
 	if (p_ptr->window & PW_INVEN)
 	{
 		p_ptr->window &= ~(PW_INVEN);
-		fix_inven(p_ptr);
+		/* Note: PW_INVEN has been disabled and does absolutely
+		 * nothing! To inform client about inventory changes,
+		 * set relevant bits in 'redraw_inven'. */
+		/* p_ptr->redraw_inven = 0xFFFFFFFFFFFFFFFFLL;
+		fix_inven(p_ptr); */
 	}
 
 	/* Display equipment */
 	if (p_ptr->window & PW_EQUIP)
 	{
 		p_ptr->window &= ~(PW_EQUIP);
-		fix_equip(p_ptr);
+		/* Note: PW_EQUIP has been disabled and does absolutely
+		 * nothing! To inform client about inventory changes,
+		 * set relevant bits in 'redraw_inven'. */
+		/* fix_equip(p_ptr);
+		p_ptr->redraw_inven = 0xFFFFFFFFFFFFFFFFLL; */
 	}
 
 	/* Display spell list */
@@ -3544,6 +3552,14 @@ void handle_stuff(player_type *p_ptr)
 
 	/* Update stuff */
 	if (p_ptr->update) update_stuff(p_ptr);
+
+	/* Redraw inventory */
+	if (p_ptr->redraw_inven)
+	{
+		fix_inven(p_ptr);
+		fix_equip(p_ptr);
+		p_ptr->redraw_inven = 0;
+	}
 
 	/* Redraw stuff */
 	if (p_ptr->redraw) redraw_stuff(p_ptr);
