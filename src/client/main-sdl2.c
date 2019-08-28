@@ -73,7 +73,8 @@ static SDL_Color GUI_COLORS[GUI_COLOR__MAX] = {
 /* plog() hook to display a message box. similar to WIN32 client */
 static void hack_plog(cptr str)
 {
-	const SDL_MessageBoxButtonData buttons[] = { { 0, 0, "OK" } };
+	const SDL_MessageBoxButtonData buttons[] = {
+	{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" } };
 	const SDL_MessageBoxColorScheme colorScheme = { {
 	{ GUI_COLOR3(BACKGROUND_ACTIVE) }, /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
 	{ GUI_COLOR3(MENU_ITEM_ALWAYS)  }, /* [SDL_MESSAGEBOX_COLOR_TEXT] */
