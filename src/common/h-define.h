@@ -68,7 +68,10 @@
 #define FALSE	0
 
 
-
+/* Hack -- define UCHAR_MAX */
+#ifndef UCHAR_MAX
+#define UCHAR_MAX 255
+#endif
 
 /**** Simple "Macros" ****/
 
