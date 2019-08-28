@@ -1948,6 +1948,22 @@ static void normalizeMouseCoordinates(int i, int *x, int *y, int sx, int sy)
 	*y = sy * scaleY;
 }
 
+/* Track state of modifier keys (to use with mouse clicks) */
+static int Noticemodkeypress(int sym, int b_pressed)
+{
+	static int pressed[3] = { 0 };
+	int r = -1;
+	switch (sym)
+	{
+		case SDLK_RCTRL:  case SDLK_LCTRL:  r = 0; break;
+		case SDLK_RALT:   case SDLK_LALT:   r = 1; break;
+		case SDLK_RSHIFT: case SDLK_LSHIFT: r = 2; break;
+		default: return 0; break;
+	}
+	if (b_pressed == 0 || b_pressed == 1) pressed[r] = b_pressed;
+	return pressed[r];
+}
+
 static void mobilePinch(int i, int dir)
 {
 #if 0 /* This doesn't work well :( */
@@ -1980,40 +1996,59 @@ static void Term_multikeypress(char *buf)
 	while (*c) Term_keypress(*c++);
 }
 
-static void handleMouseClick(int i, int wx, int wy)
+static void altCoord(int wx, int wy, int *x, int *y)
+{
+	int i = 0;
+	int cx, cy;
+
+	int acw = terms[i].pict_data ? terms[i].pict_data->w : terms[i].cell_w;
+	int ach = terms[i].pict_data ? terms[i].pict_data->h : terms[i].cell_h;
+
+	acw = acw * terms[i].zoom / 100;
+	ach = ach * terms[i].zoom / 100;
+
+	cx = (wx - terms[i].ren_rect.x - terms[i].dng_rect.x) /
+	    (acw);
+	cy = (wy - terms[i].ren_rect.y - terms[i].dng_rect.y) /
+	    (ach);
+
+	*x = cx;
+	*y = cy;
+}
+
+static void handleMouseClick(int i, int wx, int wy, int sdlbutton)
 {
 	if (i == TERM_MAIN)
 	{
+		int button = 0;
 		int cx = (wx - terms[i].ren_rect.x) / terms[i].cell_w;
 		int cy = (wy - terms[i].ren_rect.y) / terms[i].cell_h;
-		int acw = terms[i].pict_data ? terms[i].pict_data->w : terms[i].cell_w;
-		int ach = terms[i].pict_data ? terms[i].pict_data->h : terms[i].cell_h;
 		if (terms[i].config & TERM_DO_SCALE)
 		{
-			acw = acw * terms[i].zoom / 100;
-			ach = ach * terms[i].zoom / 100;
-			if (looksLikeCave(cx, cy))
-	                {
-				cx = (wx - terms[i].ren_rect.x - DUNGEON_OFFSET_X * terms[i].cell_w) /
-				    (acw) + DUNGEON_OFFSET_X;
-				cy = (wy - terms[i].ren_rect.y - DUNGEON_OFFSET_Y * terms[i].cell_h) /
-				    (ach) + DUNGEON_OFFSET_Y;
-			}
-		}
-#ifdef MOBILE_UI
-		if (cx < DUNGEON_OFFSET_X)
-		{
-			if (cy < 3) { Term_keypress(ESCAPE); return; }
-			if (SDL_IsTextInputActive() || SDL_IsScreenKeyboardShown(terms[i].window))
+			if (wx >= terms[i].ren_rect.x + terms[i].dng_rect.x
+			 && wy >= terms[i].ren_rect.y + terms[i].dng_rect.y
+			 && wx <= terms[i].ren_rect.x + terms[i].dng_rect.x + terms[i].dng_rect.w
+			 && wy <= terms[i].ren_rect.y + terms[i].dng_rect.y + terms[i].dng_rect.h)
 			{
-				SDL_StopTextInput();
-			} else {
-				SDL_StartTextInput();
+				altCoord(wx, wy, &cx, &cy);
+				cx += DUNGEON_OFFSET_X;
+				cy += DUNGEON_OFFSET_Y;
 			}
-			return;
 		}
-#endif
-		Term_mousepress(cx, cy, 1);
+		/* Indexes */
+		if (sdlbutton == SDL_BUTTON_LEFT) button = 1;
+		else if (sdlbutton == SDL_BUTTON_MIDDLE) button = 2;
+		else if (sdlbutton == SDL_BUTTON_RIGHT) button = 3;
+		else if (sdlbutton == SDL_BUTTON_X1) button = 4;
+		else if (sdlbutton == SDL_BUTTON_X2) button = 5;
+
+		/* Convention picked from main-win.c of V341 */
+		if (Noticemodkeypress(SDLK_LCTRL, -1))  button |= 16;
+		if (Noticemodkeypress(SDLK_LSHIFT, -1)) button |= 32;
+		if (Noticemodkeypress(SDLK_LALT, -1))   button |= 64;
+
+		/* Pass to Angband */
+		Term_mousepress(cx, cy, button);
 	}
 }
 
@@ -2219,6 +2254,7 @@ static void handleMouseEvent(SDL_Event *ev)
 				guiMenuReact(ev->window.windowID, wx, wy);
 			}
 			mustRerender();
+			return;
 		}
 		if (ev->button.button == SDL_BUTTON_LEFT)
 		{
@@ -2226,11 +2262,13 @@ static void handleMouseEvent(SDL_Event *ev)
 			{
 				if (terms[i].window_id == ev->window.windowID)
 				{
-					if (wx >= terms[i].x && wy >= terms[i].y
-					 && wx <= terms[i].x + terms[i].fb_w
-					 && wy <= terms[i].y + terms[i].fb_h)
+					int w = MAX(terms[i].fb_w, terms[i].dng_rect.x + terms[i].alt_fb_w);
+					int h = MAX(terms[i].fb_w, terms[i].dng_rect.y + terms[i].alt_fb_h);
+					if (wx >= terms[i].ren_rect.x && wy >= terms[i].ren_rect.y
+					 && wx <= terms[i].ren_rect.y + w
+					 && wy <= terms[i].ren_rect.y + h)
 					{
-						handleMouseClick(i, wx, wy);
+						handleMouseClick(i, wx, wy, ev->button.button);
 						break;
 					}
 				}
@@ -2305,6 +2343,19 @@ static void handleKeyboardEvent(SDL_Event *ev)
 		return;
 	}
 
+	/* Key released */
+	if (ev->type == SDL_KEYUP && ev->key.state == SDL_RELEASED)
+	{
+		int key = ev->key.keysym.sym;
+		/* Track modifier keypresses , for mouse sake */
+		if (key >= SDLK_LCTRL && key <= SDLK_RGUI)
+		{
+			Noticemodkeypress(key, 0);
+			return;
+		}
+	}
+
+	/* Key pressed */
 	if (ev->type == SDL_KEYDOWN && ev->key.state == SDL_PRESSED)
 	{
 		int key = ev->key.keysym.sym;
@@ -2312,6 +2363,12 @@ static void handleKeyboardEvent(SDL_Event *ev)
 		bool sent = FALSE;
 		bool shift_only = ((mod & KMOD_SHIFT) && ((mod & ~KMOD_SHIFT) == 0));
 		bool ctrl_only = ((mod & KMOD_CTRL) && ((mod & ~KMOD_CTRL) == 0));
+
+		/* Track modifier keypresses, for mouse sake */
+		if (key >= SDLK_LCTRL && key <= SDLK_RGUI)
+		{
+			Noticemodkeypress(key, 1);
+		}
 
 		/* ASCII */
 		if (key <= 127)
