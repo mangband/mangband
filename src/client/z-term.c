@@ -2002,6 +2002,7 @@ errr Term_what(int x, int y, byte *a, char *c)
 
 /*
  * Flush and forget the input
+ * Note: please do not call this function directly, use "flush()" and friends.
  */
 errr Term_flush(void)
 {

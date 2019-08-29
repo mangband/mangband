@@ -78,7 +78,9 @@ int count_spells_in_book(int book, int *book_over)
 }
 
 /* Get spell by name */
-bool get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
+/* Returns "0" if a spell was found, "1" if user has abourted input, and
+ * "-1" if no spell was found. */
+errr get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
 {
 	char buf[256];
 	char *tok;
@@ -93,12 +95,12 @@ bool get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
 	buf[0] = '\0';
 	if (!get_string(prompt, buf, 80))
 	{
-		return FALSE;
+		return 1;
 	}
 
 	/* Hack -- remove final quote */
 	len = strlen(buf);
-	if (len == 0) return FALSE;
+	if (len == 0) return 1;
 	if (buf[len-1] == '"') buf[len-1] = '\0';
 
 	/* Split entry */
@@ -139,13 +141,13 @@ bool get_spell_by_name(int *k, int *s, bool inven, bool equip, bool books)
 					if (get_check("Project? "))
 						(*s) += SPELL_PROJECTED;
 				}
-				return TRUE;
+				return 0;
 			}
 		}
 		tok = strtok(NULL, "|");
 	}
-	if (books && book_matched) return TRUE;
-	return FALSE;
+	if (books && book_matched) return 0;
+	return -1;
 }
 
 
@@ -222,16 +224,16 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless)
 		/* Enter by name */
 		if (choice == '@' || choice == '"')
 		{
-			int _sn, _bn;
+			int _sn, _bn; errr r;
 			if (choice == '"') prompt_quote_hack = TRUE;
 			/* XXX Lookup item by name */
-			if (get_spell_by_name(&_bn, &_sn, bookless ? FALSE : TRUE, FALSE, FALSE))
+			if (!(r = get_spell_by_name(&_bn, &_sn, bookless ? FALSE : TRUE, FALSE, FALSE)))
 			{
 				book = _bn;
 				i = _sn;
 				flag = TRUE;
 			}
-			else
+			else if (r < 0)
 			{
 				bell();
 			}

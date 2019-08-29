@@ -190,7 +190,9 @@ static int get_tag(int *cp, char tag)
 }
 
 /* Prompt player for a string, then try to find an item matching it */
-static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *force_str)
+/* Returns "0" if an item was found, "1" if user has abort input, and
+ *"-1" if nothing could be found. */
+static errr get_item_by_name(int *k, bool inven, bool equip, bool floor, char *force_str)
 {
 	char buf[256];
 	char *tok;
@@ -202,11 +204,11 @@ static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 	if (spellcasting)
 	{
 		int sn = -1;
-		bool ok = get_spell_by_name(k, &sn, inven, equip, TRUE);
+		errr failed = get_spell_by_name(k, &sn, inven, equip, TRUE);
 		/* Remember spell index */
 		spellcasting_spell = sn;
 		/* Don't do any other tests */
-		return ok;
+		return failed;
 	}
 
 	/* Hack -- show opening quote symbol */
@@ -223,13 +225,13 @@ static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 		buf[0] = '\0';
 		if (!get_string(prompt, buf, 80))
 		{
-			return FALSE;
+			return 1;
 		}
 	}
 
 	/* Hack -- remove final quote */
 	len = strlen(buf);
-	if (len == 0) return FALSE;
+	if (len == 0) return 1;
 	if (buf[len-1] == '"') buf[len-1] = '\0';
 
 	/* Split entry */
@@ -248,7 +250,7 @@ static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 			if (my_stristr(inventory_name[i], tok))
 			{
 				(*k) = i;
-				return TRUE;
+				return 0;
 			}
 		}
 		/* Also try floor */
@@ -259,13 +261,12 @@ static bool get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 			&& my_stristr(floor_name, tok))
 			{
 				(*k) = FLOOR_INDEX;
-				return TRUE;
+				return 0;
 			}
 		}
 		tok = strtok(NULL, "|");
 	}
-	return FALSE;
-
+	return -1;
 }
 
 bool c_check_item(int *item, byte tval)
@@ -323,6 +324,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 
 	char	tmp_val[160];
 	char	out_val[160];
+	errr	r;
 
 	/* Paranoia */
 	if (!inven && !equip) return (FALSE);
@@ -375,11 +377,23 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	
 	if ((i1 > i2) && (e1 > e2) && !allow_floor)
 	{
+		/* Hack -- traditionally, (M)Angband doesn't sound a bell
+		 * at this error. But we still want to call bell() so it can
+		 * flush input. */
+		bool old_ring_bell = ring_bell;
+		ring_bell = FALSE;
+
 		/* Cancel command_see */
 		command_see = FALSE;
 
 		/* Hack -- Nothing to choose */
 		*cp = -2;
+
+		/* Input error! */
+		bell();
+
+		/* End Hack -- restore user option */
+		ring_bell = old_ring_bell;
 
 		/* Done */
 		done = TRUE;
@@ -573,6 +587,10 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 					item = TRUE;
 					done = TRUE;
 				}
+				else
+				{
+					bell();
+				}
 
 				break;
 			}
@@ -607,13 +625,13 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
-				if (get_item_by_name(&k, inven, equip, floor, (NULL)))
+				if (!(r = get_item_by_name(&k, inven, equip, floor, (NULL))))
 				{
 					(*cp) = k;
 					item = TRUE;
 					done = TRUE;
 				}
-				else
+				else if (r < 0)
 				{
 					bell();
 				}
