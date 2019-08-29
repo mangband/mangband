@@ -777,10 +777,18 @@ bool file_putf(ang_file *f, const char *fmt, ...)
 bool file_vputf(ang_file *f, const char *fmt, va_list vp)
 {
 	char buf[1024];
+	int n;
 
 	if (!f) return false;
 
-	(void)vstrnfmt(buf, sizeof(buf), fmt, vp);
+	n = vstrnfmt(buf, sizeof(buf), fmt, vp);
+
+	/* The semantics of vstrnfmt are weird and its return
+	 * value is ill-defined. However, return value of zero
+	 * almost definitely means there was an error (unless you pass it
+	 * an empty format string with zero varargs, I guess). */
+	if (n == 0) return false;
+
 	return file_put(f, buf);
 }
 
