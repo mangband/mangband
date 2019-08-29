@@ -68,7 +68,9 @@
 #define PKT_WALK        	70
 #define PKT_RUN         	71
 #define PKT_REST        	72
+#define PKT_PATHFIND    	73
 #define PKT_STAND       	76
+#define PKT_ENTER_FEAT  	77
 #define PKT_LOOK        	78
 
 #define PKT_LOCATE      	98

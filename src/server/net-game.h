@@ -59,4 +59,6 @@
 #ifdef PCOMMAND
 	PCOMMAND(PKT_WALK,	"%c",   	recv_walk)
 	PCOMMAND(PKT_REST,	"",     	recv_toggle_rest)
+	PCOMMAND(PKT_PATHFIND,	"%c%c", 	recv_pathfind)
+	PCOMMAND(PKT_ENTER_FEAT,"",     	recv_enterfeat)
 #endif

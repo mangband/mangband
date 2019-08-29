@@ -1524,6 +1524,94 @@ int recv_term_key(connection_type *ct, player_type *p_ptr)
 	return 1;
 }
 
+/* Hack -- pretend we got an "enterfeat" command */
+int recv_enterfeat(player_type *p_ptr) {
+	do_cmd_enterfeat(p_ptr);
+	return 1;
+}
+/* Hack -- pretend we got a "pathfind" command */
+int recv_pathfind(player_type *p_ptr) {
+	byte x, y;
+	if (cq_scanf(&p_ptr->cbuf, "%c%c", &y, &x) < 2) return 0;
+	do_cmd_pathfind(p_ptr, y, x);
+	return 1;
+}
+
+/* Hack -- translate mouse action into dungeon action, and enqueue
+ * appropriate command. */
+int recv_mouse_hack(player_type *p_ptr, int mod, int y, int x)
+{
+	int i;
+	static int alter_cmd_id = -1;
+
+	/* Do nothing if not even playing */
+	if (!IS_PLAYING(p_ptr)) return 1;
+
+	/* Right now, we only support 1 mouse button */
+	if (!(mod & MCURSOR_LMB)) return 1;
+
+	/* HACK! Find custom command id for "Alter" */
+	if (alter_cmd_id == -1)
+	for (i = 0; i < MAX_CUSTOM_COMMANDS; i++)
+	{
+		const custom_command_type *cmd_ptr;
+		cmd_ptr = &custom_commands[i];
+		if (!cmd_ptr->m_catch) break;
+		if (!(cmd_ptr->flag & COMMAND_STORE)
+		   && cmd_ptr->m_catch == '+')
+		{
+			alter_cmd_id = i;
+		}
+	}
+
+	y = y + p_ptr->panel_row_min;
+	x = x + p_ptr->panel_col_min;
+
+	if (x < p_ptr->panel_col_min) x = p_ptr->panel_col_min;
+	if (y < p_ptr->panel_row_min) y = p_ptr->panel_row_min;
+	if (x > p_ptr->panel_col_max) x = p_ptr->panel_col_max;
+	if (y > p_ptr->panel_row_max) y = p_ptr->panel_row_max;
+
+	/* Hack -- queue '_' ? */
+	if ((mod & MCURSOR_LMB) && (mod & MCURSOR_SHFT))
+	{
+		/* Grid offset is 0 (standing on) */
+		if (p_ptr->px == x && p_ptr->py == y)
+		{
+			if (cq_printf(&p_ptr->cbuf, "%c", PKT_ENTER_FEAT) <= 0)
+			{
+				return -1;
+			}
+		}
+		return 1;
+	}
+
+	/* Hack -- queue alter? */
+	if ((mod & MCURSOR_LMB) && (mod & MCURSOR_KTRL))
+	{
+		/* Grid is nearby */
+		if (ABS(p_ptr->px - x) <= 1 && ABS(p_ptr->py - y) <= 1)
+		{
+			int dir = motion_dir(p_ptr->py, p_ptr->px, y, x);
+			if (cq_printf(&p_ptr->cbuf, "%c" "%c%c", PKT_COMMAND,
+				alter_cmd_id, (char)dir) <= 0)
+			{
+				return -1;
+			}
+		}
+		return 1;
+	}
+
+	/* It's a pathfind request */
+	if (cq_printf(&p_ptr->cbuf, "%c" "%c%c", PKT_PATHFIND,
+		(char)y, (char)x) <= 0)
+	{
+		return -1;
+	}
+	return 1;
+};
+
+
 /* Client sent us some "mouse" action */
 int recv_mouse(connection_type *ct, player_type *p_ptr) {
 	byte mod, x, y;
@@ -1535,7 +1623,7 @@ int recv_mouse(connection_type *ct, player_type *p_ptr) {
 	if ((mod & MCURSOR_META))
 		target_set_interactive_mouse(p_ptr, mod,  y, x);
 	else if (!(mod & MCURSOR_EMB))
-		do_cmd_mouseclick(p_ptr, mod, y, x);
+		return recv_mouse_hack(p_ptr, mod, y, x);
 	else if ((n = p_ptr->special_handler))
 		(*(void (*)(player_type*, char))(custom_commands[n].do_cmd_callback))(p_ptr, key);
 	else if (p_ptr->special_file_type)
@@ -1816,6 +1904,39 @@ static int recv_toggle_rest(player_type *p_ptr) {
 
 	/* Try again later */
 	return 0;
+}
+
+/* Handle mouse click from the command buffer */
+static int recv_mouse_click(player_type *p_ptr)
+{
+	u32b old_energy;
+	byte mod, x, y;
+	if (!IS_PLAYING(p_ptr)) return -1;
+
+	if (cq_scanf(&p_ptr->cbuf, "%c%c%c", &mod, &x, &y) < 1)
+	{
+		/* Broken queue (impossible!) */
+		return -1;
+	}
+
+	/* Remember how much energy player had */
+	old_energy = p_ptr->energy;
+
+	/* Reset "command_arg" (whatever that is) */
+	p_ptr->command_arg = 0;
+
+	/* RUN COMMAND */
+	do_cmd_mouseclick(p_ptr, mod, y, x);
+
+	/* Player has definitely spent energy */
+	if (p_ptr->energy < old_energy)
+	{
+		/* Report it */
+		return 2;
+	}
+
+	/* Done */
+	return 1;
 }
 
 /* By the time we're parsing command queue, we're guaranteed to have all the bytes,
