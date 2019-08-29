@@ -379,6 +379,9 @@ void text_to_ascii(char *buf, size_t max, cptr str)
 				*s++ = '\t';
 			}
 
+			/* MAngband-specific: feed queue */
+			else if (*str == 'f') *s++ = '\f';
+
 			/* Octal-mode */
 			else if (*str == '0')
 			{

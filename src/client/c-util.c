@@ -321,6 +321,9 @@ static event_type inkey_aux(void)
 		return (ke);
 	}
 
+	/* Cancel queue clearing */
+	if (ch == '\f' && parse_macro) { first_escape = FALSE; return (ke0); }
+
 	/* Do not check macro actions */
 	if (parse_macro) return (ke);
 
@@ -2891,6 +2894,12 @@ void ascii_to_text(char *buf, size_t len, cptr str)
 			*s++ = '\\';
 			*s++ = '\\';
 		}
+		else if (i == '\f')
+		{
+			*s++ = '\\';
+			*s++ = 'f';
+		}
+
 		/* Macro Trigger */
 		else if (i == 31)
 		{
