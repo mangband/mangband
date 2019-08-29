@@ -75,8 +75,20 @@ int accept_console(int data1, data data2) {
 int console_close(int data1, data data2) {
 	connection_type *ct = (connection_type*)data2;
 	console_connection *cn = ct->uptr;
+	eptr console;
 
 	KILL(cn);
+
+	/* Remove this console from our quick-list */
+	for (console = first_console; console; console = console->next)
+	{
+		if (console->data1 == data2)
+		{
+			e_rem(&first_console, console);
+			if (console == first_console) first_console = NULL;
+			break;
+		}
+	}
 
 	return 0;
 }
