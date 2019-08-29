@@ -145,18 +145,18 @@ void perform_sanity_check(void)
 
 #ifdef DEBUG
 #ifdef SCNu8
-	printf("byte %d <u> %s %s\n", sizeof(byte), PRIu8, SCNu8);
-	printf("char %d <u> %s %s\n", sizeof(char), PRId8, SCNd8);
+	printf("byte %d <u> %s %s\n", (int)sizeof(byte), PRIu8, SCNu8);
+	printf("char %d <u> %s %s\n", (int)sizeof(char), PRId8, SCNd8);
 #else
-	printf("byte %d <!> %s %s\n", sizeof(byte), PRIu8, SCNu16);
-	printf("char %d <!> %s %s\n", sizeof(char), PRId8, SCNd16);
+	printf("byte %d <!> %s %s\n", (int)sizeof(byte), PRIu8, SCNu16);
+	printf("char %d <!> %s %s\n", (int)sizeof(char), PRId8, SCNd16);
 #endif
-	printf("u16b %d <u> %s %s\n", sizeof(u16b), PRIu16, SCNu16);
-	printf("s16b %d <u> %s %s\n", sizeof(s16b), PRId16, SCNd16);
-	printf("u32b %d <u> %s %s\n", sizeof(u32b), PRIu32, SCNu32);
-	printf("s32b %d <u> %s %s\n", sizeof(s32b), PRId32, SCNd32);
-	printf("u64b %d <u> %s %s\n", sizeof(u64b), PRIu64, SCNu64);
-	printf("s64b %d <u> %s %s\n", sizeof(s64b), PRId64, SCNd64);
+	printf("u16b %d <u> %s %s\n", (int)sizeof(u16b), PRIu16, SCNu16);
+	printf("s16b %d <u> %s %s\n", (int)sizeof(s16b), PRId16, SCNd16);
+	printf("u32b %d <u> %s %s\n", (int)sizeof(u32b), PRIu32, SCNu32);
+	printf("s32b %d <u> %s %s\n", (int)sizeof(s32b), PRId32, SCNd32);
+	printf("u64b %d <u> %s %s\n", (int)sizeof(u64b), PRIu64, SCNu64);
+	printf("s64b %d <u> %s %s\n", (int)sizeof(s64b), PRId64, SCNd64);
 #endif
 	if (sizeof(byte) < 1) quit("sizeof(byte) < 1");
 	if (sizeof(u16b) < 2) quit("sizeof(u16b) < 2");
