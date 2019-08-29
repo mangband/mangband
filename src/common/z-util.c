@@ -516,7 +516,33 @@ size_t z_mbstowcs(wchar_t *dest, const char *src, int n)
 		return mbstowcs(dest, src, n);
 }
 
-
+/* integer square root */
+u32b isqrt(u32b x)
+{
+	u32b op  = x;
+	u32b res = 0;
+	u32b one = 1uL << 30; /* Set second-to-top bit */
+	while (one > op)
+	{
+		one >>= 2;
+	}
+	while (one != 0)
+	{
+		if (op >= res + one)
+		{
+			op = op - (res + one);
+			res = res +  2 * one;
+		}
+		res >>= 1;
+		one >>= 2;
+	}
+	return res;
+}
+/* And a "hypot" function. */
+u32b ihypot(u32b x, u32b y)
+{
+	return isqrt(x * x + y * y);
+}
 
 
 /* Compare and swap hooks */

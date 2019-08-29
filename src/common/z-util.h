@@ -117,6 +117,12 @@ extern void quit(cptr str);
 extern void core(cptr str);
 
 
+/* (integer) square root and hypot */
+extern u32b isqrt(u32b x);
+extern u32b ihypot(u32b x, u32b y);
+#define IHYPOT(X, Y) isqrt((X) * (X) + (Y) * (Y))
+
+
 /* Sorting functions */
 /* TODO: make ang_sort() take comp and swap hooks rather than use globals */
 extern void ang_sort(void *player_context, vptr u, vptr v, int n);
