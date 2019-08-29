@@ -49,6 +49,9 @@ void flush_now(void)
 	/* Cancel "strip" mode */
 	strip_chars = FALSE;
 
+	/* Restore "first escape" */
+	first_escape = TRUE;
+
 	/* Forget old keypresses */
 	Term_flush();
 }
@@ -314,6 +317,7 @@ static event_type inkey_aux(void)
 	{
 		parse_macro = FALSE;
 		strip_chars = FALSE;
+		first_escape = TRUE;
 		return (ke);
 	}
 
