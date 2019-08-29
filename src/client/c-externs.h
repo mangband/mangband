@@ -466,9 +466,6 @@ extern byte c_secondary_tester(int item);
 extern void do_cmd_inscribe_auto(char *item_name, char *inscription);
 
 /* c-util.c */
-#ifndef HAVE_USLEEP
-extern int usleep(huge microSeconds);
-#endif
 extern void move_cursor(int row, int col);
 extern void flush(void);
 extern void flush_now(void);

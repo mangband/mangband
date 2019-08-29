@@ -106,6 +106,10 @@ extern char *strdup(cptr s);
 extern size_t strnlen(char *s, size_t maxlen);
 #endif
 
+#ifndef HAVE_USLEEP
+extern int usleep(huge microSeconds);
+#endif
+
 
 /* Print an error message */
 extern void plog(cptr str);

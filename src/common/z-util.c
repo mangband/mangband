@@ -224,6 +224,48 @@ char *strdup(cptr s)
 }
 #endif
 
+#ifndef HAVE_USLEEP
+/*
+ * For those systems that don't have "usleep()" but need it.
+ */
+int usleep(huge microSeconds)
+{
+#ifdef HAVE_SELECT
+	/* Use select() to wait. New version, inspired by Borg. */
+	struct timeval Timer;
+
+	/* Paranoia -- No excessive sleeping */
+	if (microSeconds > 4000000L) core("Illegal usleep() call");
+
+	/* Setup our timeval */
+	Timer.tv_sec = (microSeconds / 1000000L);
+	Timer.tv_usec = (microSeconds % 1000000L);
+
+	/* Wait for it */
+	if (select(0, NULL, NULL, NULL, &Timer) < 0)
+	{
+		/* Hack -- ignore interrupts */
+		if (errno != EINTR) return -1;
+	}
+	return 0;
+#else /* HAVE_SELECT */
+	/* If we don't have select(), resort to other
+	 * methods */
+# ifdef WINDOWS
+	/* On WIN32, we use Sleep() */
+	/* meassured in milliseconds not microseconds */
+	DWORD milliseconds = (DWORD)(microSeconds / 1000);
+	Sleep(milliseconds);
+	return 0;
+# else /* WINDOWS */
+	/* There is nothing we can do :( Patches welcome. */
+	return -1;
+# endif
+#endif
+}
+#endif
+
+
 
 /*
  * Case insensitive comparison between two strings

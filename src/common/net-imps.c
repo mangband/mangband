@@ -564,6 +564,9 @@ void network_done() {
 }
 
 void network_pause(micro timeout) {
+#ifndef HAVE_SELECT
+	usleep(timeout);
+#else
 	struct timeval tv = { 0, 0 };
 
 	TV_SET(tv, timeout); /* 200000 = 0.2 seconds */
@@ -573,6 +576,7 @@ void network_pause(micro timeout) {
 	nfds = MATH_MAX(nfds, refds);
 
 	select(nfds + 1, &rd, &wd, NULL, &tv);
+#endif
 }
 
 /* Set socket as non-blocking */

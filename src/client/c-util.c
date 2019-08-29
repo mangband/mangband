@@ -4694,66 +4694,6 @@ void do_cmd_options_birth()
 	Term_load();
 }
 
-
-
-#ifdef SET_UID
-
-# ifndef HAVE_USLEEP
-
-/*
- * For those systems that don't have "usleep()" but need it.
- *
- * Fake "usleep()" function grabbed from the inl netrek server -cba
- */
-int usleep(huge microSeconds)
-{
-	struct timeval		Timer;
-
-	int			nfds = 0;
-
-#ifdef FD_SET
-	fd_set		*no_fds = NULL;
-#else
-	int			*no_fds = NULL;
-#endif
-
-	/* Was: int readfds, writefds, exceptfds; */
-	/* Was: readfds = writefds = exceptfds = 0; */
-
-
-	/* Paranoia -- No excessive sleeping */
-	if (microSeconds > 4000000L) core("Illegal usleep() call");
-
-
-	/* Wait for it */
-	Timer.tv_sec = (microSeconds / 1000000L);
-	Timer.tv_usec = (microSeconds % 1000000L);
-
-	/* Wait for it */
-	if (select(nfds, no_fds, no_fds, no_fds, &Timer) < 0)
-	{
-		/* Hack -- ignore interrupts */
-		if (errno != EINTR) return -1;
-	}
-
-	/* Success */
-	return 0;
-}
-
-# endif /* HAVE_USLEEP */
-
-#endif /* SET_UID */
-
-#ifdef WIN32
-int usleep(huge microSeconds)
-{ /* meassured in milliseconds not microseconds*/
-	DWORD milliseconds = (DWORD)(microSeconds / 1000);
-	Sleep(milliseconds);
-	return 0;
-}
-#endif /* WIN32 */
-
-
 /* HACK -- Count samples in "val" sound */
 int sound_count(int val)
 {

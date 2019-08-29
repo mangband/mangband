@@ -159,6 +159,7 @@
 #define HAVE_MEMSET
 #define HAVE_STRNLEN
 #define HAVE_DIRENT_H
+#define HAVE_SELECT 1
 #define PKGDATADIR "./lib/"
 #endif
 
@@ -179,6 +180,7 @@
 #define HAVE_STRNLEN
 #define HAVE___INT64
 #define HAVE_STAT
+#define HAVE_SELECT 1
 #endif
 #if defined (_MSC_VER) && (_MSC_VER >= 1900) /* VS2015 or later */
 #define HAVE_INTTYPES_H
@@ -194,6 +196,16 @@
 #undef HAVE_INET_NTOP
 #endif
 #endif
+#endif
+/*
+ * HACK: on old mingw32, select exists, but is close to useless
+ */
+#ifdef WINDOWS
+# if __MINGW32__ && (__GNUC__ < 3)
+#  ifdef HAVE_SELECT
+#   undef HAVE_SELECT
+#  endif
+# endif
 #endif
 
 /*

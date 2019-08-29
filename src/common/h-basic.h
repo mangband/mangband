@@ -28,6 +28,7 @@
 #define HAVE_STRNLEN 1
 #define HAVE_INTTYPES_H 1
 #define HAVE_DIRENT_H
+#define HAVE_SELECT 1
 
 #define PKGDATADIR "./"
 #ifndef USE_SDL2
@@ -44,6 +45,7 @@
 #define HAVE_STRNLEN 1
 #define HAVE_DIRENT_H
 #define HAVE_INTTYPES_H 1
+#define HAVE_SELECT 1
 #define MOBILE_UI
 #define USE_SDL2 1
 #define USE_SDL2_TTF 1
