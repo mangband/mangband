@@ -1119,6 +1119,9 @@ bool lose_all_info(player_type *p_ptr)
 	/* Window stuff */
 	p_ptr->window |= (PW_PLAYER);
 
+	/* Redraw resistance panel */
+	p_ptr->redraw |= (PR_OFLAGS);
+
 	/* Mega-Hack -- Forget the map */
 	wiz_dark(p_ptr);
 
