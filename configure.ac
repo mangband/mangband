@@ -76,9 +76,9 @@ AC_CHECK_LIB([ncurses], [main], have_curs_lib="ncurses", [
 # but that messes with ./configure tests order.
 have_crb="$ON_OSX" # Note, that the "ON_OSX" itself is NOT reliable!!!
 
-AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$withval)
-AC_ARG_ENABLE(osx, AC_HELP_STRING([--disable-osx],[Disable Apple-OSX application bundling]), ON_OSX=$withval)
-AC_ARG_ENABLE(xdg, AC_HELP_STRING([--disable-xdg],[Disable Freedesktop icon bundling]), ON_XDG=$withval, ON_XDG="yes")
+AC_ARG_ENABLE(win, AC_HELP_STRING([--disable-win],[Disable MS-Windows libraries and hacks]), ON_WINDOWS=$enableval)
+AC_ARG_ENABLE(osx, AC_HELP_STRING([--disable-osx],[Disable Apple-OSX application bundling]), ON_OSX=$enableval)
+AC_ARG_ENABLE(xdg, AC_HELP_STRING([--disable-xdg],[Disable Freedesktop icon bundling]), ON_XDG=$enableval, ON_XDG="yes")
 
 AC_ARG_WITH(crb, AC_HELP_STRING([--with-crb],[Build with CRB support [default=yes]]), with_crb=$withval, with_crb="yes")
 AC_ARG_WITH(x11, AC_HELP_STRING([--with-x11],[Build with X11 support [default=yes]]), with_x11=$withval, with_x11="yes")
