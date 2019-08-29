@@ -36,11 +36,21 @@ static int dir_search[8] = {2,4,6,8,1,3,7,9};
 static bool is_valid_pf(player_type *p_ptr, int y, int x)
 {
 	int Depth = p_ptr->dun_depth;
+	cave_type *c_ptr;
+
 	/* Unvisited means allowed */
 	if (!(p_ptr->cave_flag[y][x] & (CAVE_MARK))) return (TRUE);
 
 	/* Require open space */
-	return (cave_floor_bold(Depth, y, x));
+	if (!cave_floor_bold(Depth, y, x)) return (FALSE);
+
+	/* Hack -- don't step into traps */
+	c_ptr = &cave[Depth][y][x];
+	if ((p_ptr->cave_flag[y][x] & (CAVE_MARK)) /* Known location */
+	&& (c_ptr->feat >= FEAT_TRAP_HEAD) /* Visible trap */
+	&& (c_ptr->feat <= FEAT_TRAP_TAIL)) return (FALSE);
+
+	return (TRUE);
 }
 
 static void fill_terrain_info(player_type *p_ptr)
