@@ -236,6 +236,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless)
 			else if (r < 0)
 			{
 				bell();
+				if (executing_macro) flag = TRUE;
 			}
 			continue;
 		}
@@ -345,6 +346,7 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless)
 		if (i < 0)
 		{
 			bell();
+			if (executing_macro) flag = TRUE;
 			continue;
 		}
 
