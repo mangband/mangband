@@ -619,6 +619,8 @@ extern void build_vault(int Depth, int yval, int xval, int ymax, int xmax, cptr 
 extern void place_closed_door(int Depth, int y, int x);
 
 /* wilderness.c */
+extern u32b base_house_price(int h_idx);
+extern u32b house_price(player_type *p_ptr, int h_idx, bool buying);
 extern int world_index(int world_x, int world_y);
 extern void wild_cat_depth(int Depth, char *buf); 
 extern void init_wild_info(void);

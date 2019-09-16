@@ -383,7 +383,7 @@ static void wr_house(house_type *house)
 	write_str("owned",house->owned);
 
 	write_int("depth",house->depth);
-	write_int("price",house->price);
+	write_uint("price",house->price);
 	end_section("house");
 }
 

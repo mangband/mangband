@@ -277,7 +277,7 @@ struct house_type
 
 	s32b depth;
 
-	s32b price;             	/* Cost of buying */
+	u32b price;             	/* Cost of buying */
 };
 
 

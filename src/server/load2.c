@@ -1056,7 +1056,7 @@ static bool rd_house(int n)
 	__try( read_str("owned", house_ptr->owned) );
 
 	__try( read_int("depth", &house_ptr->depth) );
-	__try( read_int("price", &house_ptr->price) );
+	__try( read_uint("price", &house_ptr->price) );
 
 	__try( end_section_read("house") );
 
