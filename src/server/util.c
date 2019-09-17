@@ -3084,6 +3084,19 @@ void text_out_done()
 	player_type	*p_ptr = player_textout;
 	player_textout = NULL;
 
+	/* BAD HACK -- notify client about abrupt endings */
+	if (p_ptr->cur_hgt >= MAX_TXT_INFO-1)
+	{
+		char *msg = " {Out of buffer space!!!} ";
+		size_t len = strlen(msg);
+		for (i = 0; i < len; i++)
+		{
+			p_ptr->info[p_ptr->cur_hgt][i].c = msg[i];
+			p_ptr->info[p_ptr->cur_hgt][i].a = TERM_RED;
+		}
+		p_ptr->cur_wid = i;
+	}
+
 	/* HACK!! Clear rest of the line */
 	for (i = p_ptr->cur_wid; i < 80; i++)
 	{
@@ -3161,6 +3174,9 @@ void text_out_c(byte a, cptr buf)
  
 	while (TRUE)
 	{
+		/* Problem -- Out of stack space :( */
+		if (p_ptr->cur_hgt >= MAX_TXT_INFO-1) break;
+
 #if 0
 		/* Add 1 space between stuff (auto-separate) */
 		if (buf[shorten] != ' ' && p_ptr->cur_wid)
