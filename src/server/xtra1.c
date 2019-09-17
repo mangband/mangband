@@ -1411,6 +1411,9 @@ static void health_redraw(player_type *p_ptr)
  */
 static void fix_monlist(player_type *p_ptr)
 {
+	/* Hack -- do nothing if player is not subscribed */
+	if (!p_ptr->stream_hgt[STREAM_MONLIST_TEXT]) return;
+
 	/* HACK -- Save other player info */
 	text_out_save(p_ptr);
 
@@ -1432,6 +1435,9 @@ static void fix_monlist(player_type *p_ptr)
  */
 static void fix_itemlist(player_type *p_ptr)
 {
+	/* Hack -- do nothing if player is not subscribed */
+	if (!p_ptr->stream_hgt[STREAM_ITEMLIST_TEXT]) return;
+
 	/* HACK -- Save other player info */
 	text_out_save(p_ptr);
 
