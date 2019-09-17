@@ -5467,9 +5467,17 @@ void display_itemlist(player_type *p_ptr)
 						j--;
 					}
 					counter++;
+					/* Problem: we're out of stack space */
+					if (counter >= MAX_ITEMLIST - 1) break;
 				}
+				/* long breakout */
+				if (counter >= MAX_ITEMLIST - 1) break;
 			}
+			/* long breakout */
+			if (counter >= MAX_ITEMLIST - 1) break;
 		}
+		/* long breakout */
+		if (counter >= MAX_ITEMLIST - 1) break;
 	}
 
 	/* Note no visible items */
