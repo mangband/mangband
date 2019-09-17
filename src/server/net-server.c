@@ -230,6 +230,9 @@ void player_abandon(player_type *p_ptr)
 	channels_leave(p_idx);
 	*/
 
+	/* Reset AFK timer */
+	p_ptr->afk_seconds = 0;
+
 	/* Unsubscribe from all streams */
 	for (i = 0; i < MAX_STREAMS; i++)
 	{
