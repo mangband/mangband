@@ -3065,7 +3065,7 @@ void monster_race_track_hack(player_type *p_ptr)
 	if (!p_ptr->stream_wid[STREAM_MONSTER_TEXT])
 	{
 		/* Hack -- cancel monster tracking */
-		monster_race_track(p_ptr, -1);
+		monster_race_track(p_ptr, 0);
 	}
 }
 

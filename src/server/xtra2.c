@@ -4095,7 +4095,7 @@ static void target_set_interactive_aux(player_type *p_ptr, int y, int x, int mod
 		if (p_ptr->target_flag & TARGET_READ)
 		{
 			/* Hack -- cancel monster tracking */
-			monster_race_track(p_ptr, -1);
+			monster_race_track(p_ptr, 0);
 			/* Hack -- call descriptive function */
 			do_cmd_monster_desc_aux(p_ptr, m_idx, TRUE);
 			/* Hack -- pop up immediatly */
