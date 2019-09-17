@@ -1387,9 +1387,9 @@ static void do_cmd_refill_lamp(player_type *p_ptr, int item)
 
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
-	
-	/* Hack - Force Equipment Update */
-	p_ptr->window |= (PW_EQUIP);
+
+	/* Redraw the lantern */
+	player_redraw_item(p_ptr, INVEN_LITE);
 }
 
 
@@ -1489,8 +1489,8 @@ static void do_cmd_refill_torch(player_type *p_ptr, int item)
 	/* Recalculate torch */
 	p_ptr->update |= (PU_TORCH);
 
-	/* Hack - Force Equipment Update */
-	p_ptr->window |= (PW_EQUIP);
+	/* Redraw the primary torch */
+	player_redraw_item(p_ptr, INVEN_LITE);
 }
 
 
