@@ -838,6 +838,12 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 	/* ask for direction ? (FOR RODS) */
 	if (o_ptr->tval == TV_ROD)
 	{
+		/* Hack -- KNOWN Rod of Perception asks for item */
+		if ((o_ptr->sval == SV_ROD_IDENTIFY) && object_aware_p(p_ptr, o_ptr))
+		{
+			flag |= ITEM_ASK_ITEM;
+		}
+		else
 		/* Get a direction (unless KNOWN not to need it) */
 		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(p_ptr, o_ptr))
 		{

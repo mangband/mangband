@@ -767,8 +767,10 @@ void do_cmd_aim_wand(player_type *p_ptr, int item, int dir)
  */
 void do_cmd_zap_rod_pre(player_type *p_ptr, int item, int dir)
 {
-	if (dir > 0)
-		p_ptr->command_dir = dir;
+	if (dir < 0 && dir > -11)
+		p_ptr->command_dir = -dir;
+	else
+		p_ptr->command_arg = dir;
 
 	do_cmd_zap_rod(p_ptr, item);
 }

@@ -190,7 +190,8 @@ const custom_command_type custom_commands[MAX_CUSTOM_COMMANDS] =
 	},
 	{ /* Zap rod */
 		'z', PKT_UNDEFINED, SCHEME_ITEM_DIR, 1, (cccb)do_cmd_zap_rod_pre,
-		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW),
+		(COMMAND_ITEM_INVEN | COMMAND_ITEM_FLOOR | COMMAND_ITEM_RESET | COMMAND_TARGET_ALLOW
+		|/*item2->*/(COMMAND_NEED_SECOND | COMMAND_SECOND_DIR)/*<-item2*/),
 		TV_ROD, "Use which rod? ", "Zap rod"
 	},
 	{ /* Activate */
