@@ -1884,8 +1884,8 @@ void check_experience(player_type *p_ptr)
 		p_ptr->window |= (PW_PLAYER | PW_SPELL);
 	}
 	
-	/* Handle stuff */
-	handle_stuff(p_ptr);
+	/* Update stuff */
+	update_stuff(p_ptr);
 }
 
 
